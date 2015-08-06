@@ -168,7 +168,7 @@ cecprint(char *fmt, ...)
 static void
 getaddr(char *path, uint8_t *ea)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[6*2];
 	int n;
 	Chan *c;
@@ -574,7 +574,7 @@ inita(Conn *ncp, If *ifc, Pkt *p)
 static void
 cecrdr(void *vp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Block *bp;
 	Conn *cp;
 	If *ifc;
@@ -770,7 +770,7 @@ cecfixup(void)
 static void
 cecon(char *path)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[64];
 	uint8_t ea[6];
 	Chan *dc, *cc;
@@ -842,7 +842,7 @@ rst(Conn *c)
 static int32_t
 cecwrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Cmdbuf *cb;
 	Cmdtab *cp;
 

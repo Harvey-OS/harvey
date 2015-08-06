@@ -110,7 +110,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 void
 lockloop(Lock *l, uintptr_t pc)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 
 	p = l->p;
@@ -124,7 +124,7 @@ lockloop(Lock *l, uintptr_t pc)
 int
 lock(Lock *l)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	uintptr_t pc;
 	uint64_t t0;
@@ -190,7 +190,7 @@ lock(Lock *l)
 void
 ilock(Lock *l)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mpl pl;
 	uintptr_t pc;
 	uint64_t t0;
@@ -236,7 +236,7 @@ acquire:
 int
 canlock(Lock *l)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(up)
 		ainc(&up->nlocks);
 	if(TAS(&l->key)){
@@ -260,7 +260,7 @@ canlock(Lock *l)
 void
 unlock(Lock *l)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint64_t x;
 
 	if(LOCKCYCLES){
@@ -294,7 +294,7 @@ unlock(Lock *l)
 void
 iunlock(Lock *l)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mpl pl;
 	uint64_t x;
 

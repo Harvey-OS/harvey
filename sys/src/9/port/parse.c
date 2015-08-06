@@ -45,7 +45,7 @@ ncmdfield(char *p, int n)
 Cmdbuf*
 parsecmd(char *p, int n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Cmdbuf *volatile cb;
 	int nf;
 	char *sp;
@@ -83,7 +83,7 @@ parsecmd(char *p, int n)
 void
 cmderror(Cmdbuf *cb, char *s)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	char *p, *e;
 

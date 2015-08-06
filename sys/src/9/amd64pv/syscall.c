@@ -39,7 +39,7 @@ typedef struct {
 void
 noted(Ureg* cur, uintptr_t arg0)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	NFrame *nf;
 	Note note;
 	Ureg *nur;
@@ -129,7 +129,7 @@ noted(Ureg* cur, uintptr_t arg0)
 int
 notify(Ureg* ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int l;
 	Mpl pl;
 	Note note;
@@ -218,7 +218,7 @@ notify(Ureg* ureg)
 void
 noerrorsleft(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 
 	if(up->nerrlab){
@@ -247,7 +247,7 @@ syscall(int badscallnr, Ureg *ureg)
 	a2 = ureg->dx;
 	a3 = ureg->r10;
 	a4 = ureg->r8;
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	unsigned int scallnr = (unsigned int) badscallnr;
 	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
 	char *e;
@@ -436,7 +436,7 @@ sysexecstack(uintptr_t stack, int argc)
 void*
 sysexecregs(uintptr_t entry, uint32_t ssize, void *argv, uint32_t nargs, void *tos)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uintptr_t *sp;
 	Ureg *ureg;
 

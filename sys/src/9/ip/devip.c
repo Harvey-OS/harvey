@@ -183,7 +183,7 @@ static int
 ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qid q;
 	Conv *cv;
 	Fs *f;
@@ -368,6 +368,7 @@ static int m2p[] = {
 static Chan*
 ipopen(Chan* c, int omode)
 {
+	Proc *up = externup();
 	Conv *cv, *nc;
 	Proto *p;
 	int perm;
@@ -970,6 +971,7 @@ connected(void* a)
 static void
 connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
+	Proc *up = externup();
 	char *p;
 
 	if(c->state != 0)
@@ -1023,6 +1025,7 @@ announced(void* a)
 static void
 announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
+	Proc *up = externup();
 	char *p;
 
 	if(c->state != 0)
@@ -1097,6 +1100,7 @@ ttlctlmsg(Conv *c, Cmdbuf *cb)
 static int32_t
 ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Conv *c;
 	Proto *x;
 	char *p;

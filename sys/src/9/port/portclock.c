@@ -153,7 +153,7 @@ timerdel(Timer *dt)
 void
 hzclock(Ureg *ur)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uintptr_t pc;
 
 	machp()->ticks++;

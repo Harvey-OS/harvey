@@ -120,7 +120,7 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 void
 fpunotify(Ureg* u)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*
 	 * Called when a note is about to be delivered to a
 	 * user process, usually at the end of a system call.
@@ -139,7 +139,7 @@ fpunotify(Ureg* u)
 void
 fpunoted(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*
 	 * Called from sysnoted() via the machine-dependent
 	 * noted() routine.
@@ -151,7 +151,7 @@ fpunoted(void)
 void
 fpusysrfork(Ureg* u)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*
 	 * Called early in the non-interruptible path of
 	 * sysrfork() via the machine-dependent syscall() routine.
@@ -169,7 +169,7 @@ fpusysrfork(Ureg* u)
 void
 fpusysrforkchild(Proc* child, Proc* parent)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*
 	 * Called later in sysrfork() via the machine-dependent
 	 * sysrforkchild() routine.
@@ -266,7 +266,7 @@ acfpusysprocsetup(Proc *p)
 static char*
 fpunote(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint16_t fsw;
 	Fxsave *fpusave;
 	char *cm;
@@ -310,7 +310,7 @@ fpunote(void)
 char*
 xfpuxf(Ureg* ureg, void* v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t mxcsr;
 	Fxsave *fpusave;
 	char *cm;
@@ -360,7 +360,7 @@ xfpuxf(Ureg* ureg, void* v)
 void
 fpuxf(Ureg *ureg, void *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *n;
 
 	n = xfpuxf(ureg, p);
@@ -377,7 +377,7 @@ acfpuxf(Ureg *ureg, void *p)
 static char*
 xfpumf(Ureg* ureg, void* v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Fxsave *fpusave;
 
 	/*
@@ -414,7 +414,7 @@ xfpumf(Ureg* ureg, void* v)
 void
 fpumf(Ureg *ureg, void *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *n;
 
 	n = xfpumf(ureg, p);
@@ -431,7 +431,7 @@ acfpumf(Ureg *ureg, void *p)
 static char*
 xfpunm(Ureg* ureg, void* v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Fxsave *fpusave;
 
 	/*
@@ -498,7 +498,7 @@ xfpunm(Ureg* ureg, void* v)
 void
 fpunm(Ureg *ureg, void *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *n;
 
 	n = xfpunm(ureg, p);

@@ -31,7 +31,7 @@ slockstat(uintptr_t pc, uint64_t w)
 void
 qlock(QLock *q)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	uint64_t t0;
 
@@ -119,7 +119,7 @@ qunlock(QLock *q)
 void
 rlock(RWlock *q)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	uint64_t t0;
 
@@ -185,7 +185,7 @@ runlock(RWlock *q)
 void
 wlock(RWlock *q)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	uint64_t t0;
 

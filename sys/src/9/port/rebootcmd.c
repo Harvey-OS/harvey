@@ -64,6 +64,7 @@ setbootcmd(int argc, char *argv[])
 void
 rebootcmd(int argc, char *argv[])
 {
+	Proc *up = externup();
 	Chan *c;
 	Exec exec;
 	uintptr_t magic, text, rtext, entry, data, size;

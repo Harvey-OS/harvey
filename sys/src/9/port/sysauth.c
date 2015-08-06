@@ -25,13 +25,14 @@ char	hostdomain[DOMLEN];
 int
 iseve(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	return strcmp(eve, up->user) == 0;
 }
 
 void
 sysfversion(Ar0* ar0, ...)
 {
+	Proc *up = externup();
 	Chan *c;
 	char *version;
 	int fd;
@@ -94,6 +95,7 @@ sys_fsession(Ar0* ar0, ...)
 void
 sysfauth(Ar0* ar0, ...)
 {
+	Proc *up = externup();
 	Chan *c, *ac;
 	char *aname;
 	int fd;
@@ -150,7 +152,7 @@ sysfauth(Ar0* ar0, ...)
 int32_t
 userwrite(char* a, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
 	kstrdup(&up->user, "none");
@@ -167,7 +169,7 @@ userwrite(char* a, int32_t n)
 int32_t
 hostownerwrite(char* a, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[128];
 
 	if(!iseve())

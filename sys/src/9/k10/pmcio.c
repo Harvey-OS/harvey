@@ -281,6 +281,7 @@ pmcwclose(PmcWait *w)
 static void
 waitnotstale(Mach *mp, PmcCtr *p)
 {
+	Proc *up = externup();
 	PmcWait *w;
 
 	p->stale = 1;

@@ -459,7 +459,7 @@ espkick(void *x)
 void
 espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int payload, nexthdr;
 	uint8_t *auth, *espspi;
 	Conv *c;
