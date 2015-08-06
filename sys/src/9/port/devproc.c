@@ -186,7 +186,7 @@ void (*proctrace)(Proc*, int, int64_t) = notrace;
 static void
 profclock(Ureg *ur, Timer *ti)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Tos *tos;
 
 	if(up == nil || up->state != Running)
@@ -203,7 +203,7 @@ profclock(Ureg *ur, Timer *ti)
 static int
 procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qid qid;
 	Proc *p;
 	char *ename;
@@ -385,7 +385,7 @@ procstat(Chan *c, uint8_t *db, int32_t n)
 static void
 nonone(Proc *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(p == up)
 		return;
 	if(strcmp(up->user, "none") != 0)
@@ -398,7 +398,7 @@ nonone(Proc *p)
 static Chan*
 procopen(Chan *c, int omode)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	Pgrp *pg;
 	Chan *tc;
@@ -569,7 +569,7 @@ procopen(Chan *c, int omode)
 static int32_t
 procwstat(Chan *c, uint8_t *db, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	Dir *d;
 
@@ -661,6 +661,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 static int
 procfds(Proc *p, char *va, int count, int32_t offset)
 {
+	Proc *up = externup();
 	Fgrp *f;
 	Chan *c;
 	char buf[256];
@@ -787,7 +788,7 @@ eventsavailable(void *v)
 static int32_t
 procread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	Mach *ac, *wired;
 	int32_t l, r;
@@ -1251,6 +1252,7 @@ mntscan(Mntwalk *mw, Proc *p)
 static int32_t
 procwrite(Chan *c, void *va, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
@@ -1420,6 +1422,7 @@ Dev procdevtab = {
 static Chan*
 proctext(Chan *c, Proc *p)
 {
+	Proc *up = externup();
 	Chan *tc;
 	Image *i;
 	Segment *s;
@@ -1473,7 +1476,7 @@ proctext(Chan *c, Proc *p)
 void
 procstopwait(Proc *p, int ctl)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int pid;
 
 	if(p->pdbg)
@@ -1572,7 +1575,7 @@ parsetime(int64_t *rt, char *s)
 static void
 procctlreq(Proc *p, char *va, int n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	int npc, pri, core, sno;
 	Cmdbuf *cb;
@@ -1785,6 +1788,7 @@ procstopped(void *a)
 static int
 procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 {
+	Proc *up = externup();
 	KMap *k;
 	Pte *pte;
 	Page *pg;

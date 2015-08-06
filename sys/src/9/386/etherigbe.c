@@ -707,6 +707,7 @@ static Cmdtab igbectlmsg[] = {
 static int32_t
 igbectl(Ether* edev, void* buf, int32_t n)
 {
+	Proc *up = externup();
 	int v;
 	char *p;
 	Ctlr *ctlr;
@@ -1234,6 +1235,7 @@ igberproc(void* arg)
 static void
 igbeattach(Ether* edev)
 {
+	Proc *up = externup();
 	Block *bp;
 	Ctlr *ctlr;
 	char name[KNAMELEN];

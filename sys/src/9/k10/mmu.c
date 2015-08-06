@@ -43,7 +43,7 @@ mmuflushtlb(uint64_t u)
 void
 mmuflush(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mpl pl;
 
 	pl = splhi();
@@ -383,7 +383,7 @@ pteflags(uint attr)
 void
 mmuput(uintptr_t va, Page *pg, uint attr)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int lvl, user, x, pgsz;
 	PTE *pte;
 	Page *page, *prev;

@@ -87,7 +87,7 @@ procsave(Proc *p)
 static void
 linkproc(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	spllo();
 	up->kpfun(up->kparg);
 	pexit("kproc dying", 0);

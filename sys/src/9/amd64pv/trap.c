@@ -266,7 +266,7 @@ static char* excname[32] = {
 void
 intrtime(int vno)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t diff, x;		/* should be uint64_t */
 
 	x = perfticks();
@@ -292,7 +292,7 @@ void (*_pmcupdate)(Mach *m) = pmcnop;
 void
 kexit(Ureg* u)
 {
- 	Proc *up = machp()->externup;
+ 	Proc *up = externup();
  	uint64_t t;
 	Tos *tos;
 	Mach *mp;
@@ -323,7 +323,7 @@ kexit(Ureg* u)
 void
 _trap(Ureg *ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*
 	 * If it's a real trap in this core, then we want to
 	 * use the hardware cr2 register.
@@ -366,7 +366,7 @@ trap(Ureg* ureg)
 	lastvno = vno;
 	if (gsbase < 1ULL<<63)
 		die("bogus gsbase");
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 
@@ -486,7 +486,7 @@ trap(Ureg* ureg)
 void
 dumpgpr(Ureg* ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(up != nil)
 		iprint("cpu%d: registers for %s %d\n",
 			machp()->machno, up->text, up->pid);
@@ -525,7 +525,7 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 
 	dumpgpr(ureg);
 
@@ -559,7 +559,7 @@ callwithureg(void (*fn)(Ureg*))
 static void
 dumpstackwithureg(Ureg* ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uintptr_t l, v, i, estack;
 //	extern char etext;
 	int x;
@@ -613,7 +613,7 @@ dumpstack(void)
 static void
 debugbpt(Ureg* ureg, void* v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[ERRMAX];
 
 	if(up == 0)
@@ -645,7 +645,7 @@ expected(Ureg* ureg, void* v)
 static void
 faultamd64(Ureg* ureg, void* v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint64_t addr;
 	int read, user, insyscall;
 	char buf[ERRMAX];
@@ -708,7 +708,7 @@ iprint("could not fault %p\n", addr);
 uintptr_t
 userpc(Ureg* ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(ureg == nil)
 		ureg = up->dbgreg;
 	return ureg->ip;

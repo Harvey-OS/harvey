@@ -216,6 +216,7 @@ pmcclose(Chan *c)
 static int32_t
 pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	uint32_t type, id;
 	PmcCtl p;
 	char *s;
@@ -305,7 +306,7 @@ struct AcCtrArg {
 void
 acpmcsetctl(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	AcPmcArg p;
 	Mach *mp;
 
@@ -319,7 +320,7 @@ acpmcsetctl(void)
 void
 acpmcsetctr(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	AcCtrArg ctr;
 	Mach *mp;
 
@@ -334,7 +335,7 @@ acpmcsetctr(void)
 static int32_t
 pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	uint32_t type;

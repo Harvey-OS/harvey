@@ -31,6 +31,7 @@ extern void acsysret(void);
 Mach*
 getac(Proc *p, int core)
 {
+	Proc *up = externup();
 	int i;
 	Mach *mp;
 
@@ -100,7 +101,7 @@ putac(Mach *m)
 void
 stopac(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mach *mp;
 
 	mp = up->ac;
@@ -139,7 +140,7 @@ extern int notify(Ureg*);
 int
 runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint8_t *dpg, *spg;
 
 	if (n > sizeof(mp->icc->data))
@@ -192,7 +193,7 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 static void
 fakeretfromsyscall(Ureg *ureg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int s;
 
 	poperror();	/* as syscall() would do if we would return */
@@ -235,7 +236,7 @@ fakeretfromsyscall(Ureg *ureg)
 void
 runacore(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ureg *ureg;
 	void (*fn)(void);
 	int rc, flush, s;

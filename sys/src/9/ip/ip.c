@@ -129,6 +129,7 @@ iprouting(Fs *f, int on)
 int
 ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
+	Proc *up = externup();
 	Ipifc *ifc;
 	uint8_t *gate;
 	uint32_t fragoff;

@@ -957,7 +957,7 @@ bl2mem(uint8_t *p, Block *b, int n)
 Block*
 mem2bl(uint8_t *p, int len)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int n;
 	Block *b, *first, **l;
 
@@ -1033,6 +1033,7 @@ qwakeup_iunlock(Queue *q)
 Block*
 qbread(Queue *q, int len)
 {
+	Proc *up = externup();
 	Block *b, *nb;
 	int n;
 
@@ -1088,6 +1089,7 @@ qbread(Queue *q, int len)
 int32_t
 qread(Queue *q, void *vp, int len)
 {
+	Proc *up = externup();
 	Block *b, *first, **l;
 	int blen, n;
 
@@ -1183,6 +1185,7 @@ uint32_t noblockcnt;
 int32_t
 qbwrite(Queue *q, Block *b)
 {
+	Proc *up = externup();
 	int n, dowakeup;
 
 	n = BLEN(b);
@@ -1316,7 +1319,7 @@ int32_t qibwrite(Queue *q, Block *b)
 int
 qwrite(Queue *q, void *vp, int len)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int n, sofar;
 	Block *b;
 	uint8_t *p = vp;

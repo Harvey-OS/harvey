@@ -183,6 +183,7 @@ relocateseg(Segment *s, uintptr_t offset)
 Segment*
 dupseg(Segment **seg, int segno, int share)
 {
+	Proc *up = externup();
 	int i, size;
 	Pte *pte;
 	Segment *n, *s;
@@ -374,7 +375,7 @@ isoverlap(Proc* p, uintptr_t va, usize len)
 void
 segclock(uintptr_t pc)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	int sno;
 
@@ -395,7 +396,7 @@ segclock(uintptr_t pc)
 static void
 prepageseg(int i)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	uintptr_t addr, pgsz;
 

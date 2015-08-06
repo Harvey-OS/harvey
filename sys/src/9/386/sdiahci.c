@@ -267,7 +267,7 @@ dreg(char *s, Aport *p)
 static void
 esleep(int ms)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(waserror())
 		return;
 	tsleep(&up->sleep, return0, 0, ms);
@@ -286,6 +286,7 @@ ahciclear(void *v)
 static void
 aesleep(Aportm *pm, Asleep *a, int ms)
 {
+	Proc *up = externup();
 	if(waserror())
 		return;
 	tsleep(pm, ahciclear, a, ms);
@@ -380,7 +381,7 @@ setudmamode(Aportc *pc, unsigned char f)
 static void
 asleep(int ms)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(up == nil)
 		delay(ms);
 	else
@@ -1300,7 +1301,7 @@ portreset:
 static void
 satakproc(void *v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	for(;;){
 		tsleep(&up->sleep, return0, 0, Nms);
@@ -1706,6 +1707,7 @@ flushcache(Drive *d)
 static int
 iariopkt(SDreq *r, Drive *d)
 {
+	Proc *up = externup();
 	int n, count, try, max, flag, task, wormwrite;
 	char *name;
 	unsigned char *cmd, *data;
@@ -1823,6 +1825,7 @@ retry:
 static int
 iario(SDreq *r)
 {
+	Proc *up = externup();
 	int i, n, count, try, max, flag, task;
 	int64_t lba;
 	char *name;
@@ -2223,6 +2226,7 @@ forcemode(Drive *d, char *mode)
 static void
 runsmartable(Drive *d, int i)
 {
+	Proc *up = externup();
 	if(waserror()){
 		qunlock(&d->portm);
 		d->smartrs = 0;
@@ -2270,6 +2274,7 @@ changemedia(SDunit *u)
 static int
 iawctl(SDunit *u, Cmdbuf *cmd)
 {
+	Proc *up = externup();
 	char **f;
 	Ctlr *c;
 	Drive *d;

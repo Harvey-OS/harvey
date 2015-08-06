@@ -1412,7 +1412,7 @@ epiodone(void *a)
 static void
 epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ed *ed;
 	int timedout;
 
@@ -1458,6 +1458,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
 static int32_t
 epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 {
+	Proc *up = externup();
 	Ed *ed;
 	Ctlr *ctlr;
 	char buf[80];
@@ -1609,7 +1610,7 @@ clrhalt(Ep *ep)
 static int32_t
 epread(Ep *ep, void *a, int32_t count)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ctlio *cio;
 	Qio *io;
 	char buf[80];
@@ -1687,6 +1688,7 @@ epread(Ep *ep, void *a, int32_t count)
 static int32_t
 epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 {
+	Proc *up = externup();
 	unsigned char *c;
 	int32_t len;
 
@@ -1791,6 +1793,7 @@ putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
 static int32_t
 episowrite(Ep *ep, void *a, int32_t count)
 {
+	Proc *up = externup();
 	int32_t tot, nw;
 	char *err;
 	unsigned char *b;
@@ -1856,7 +1859,7 @@ episowrite(Ep *ep, void *a, int32_t count)
 static int32_t
 epwrite(Ep *ep, void *a, int32_t count)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qio *io;
 	Ctlio *cio;
 	uint32_t delta;
@@ -1905,6 +1908,7 @@ epwrite(Ep *ep, void *a, int32_t count)
 static Ed*
 newed(Ctlr *ctlr, Ep *ep, Qio *io, char *c)
 {
+	Proc *up = externup();
 	Ed *ed;
 	Td *td;
 
@@ -2019,6 +2023,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 static void
 epopen(Ep *ep)
 {
+	Proc *up = externup();
 	Ctlr *ctlr;
 	Qio *io;
 	Ctlio *cio;
@@ -2088,7 +2093,7 @@ epopen(Ep *ep)
 static void
 cancelio(Ep *ep, Qio *io)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ed *ed;
 	Ctlr *ctlr;
 
@@ -2182,6 +2187,7 @@ epclose(Ep *ep)
 static int
 portreset(Hci *hp, int port, int on)
 {
+	Proc *up = externup();
 	Ctlr *ctlr;
 	Ohci *ohci;
 
@@ -2217,7 +2223,7 @@ portreset(Hci *hp, int port, int on)
 static int
 portenable(Hci *hp, int port, int on)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ctlr *ctlr;
 
 	ctlr = hp->aux;

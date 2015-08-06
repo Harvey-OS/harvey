@@ -430,7 +430,7 @@ i8250baud(Uart* uart, int baud)
 static void
 i8250break(Uart* uart, int ms)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ctlr *ctlr;
 
 	/*

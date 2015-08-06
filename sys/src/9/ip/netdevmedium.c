@@ -72,7 +72,7 @@ netdevbind(Ipifc *ifc, int argc, char **argv)
 static void
 netdevunbind(Ipifc *ifc)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Netdevrock *er = ifc->arg;
 
 	if(er->readp != nil)
@@ -111,7 +111,7 @@ netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
 static void
 netdevread(void *a)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ipifc *ifc;
 	Block *bp;
 	Netdevrock *er;

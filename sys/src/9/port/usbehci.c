@@ -744,6 +744,7 @@ qhadvanced(void *a)
 static void
 qhcoherency(Ctlr *ctlr)
 {
+	Proc *up = externup();
 	int i;
 
 	qlock(&ctlr->portlck);
@@ -1580,7 +1581,7 @@ interrupt(Ureg *ureg, void* a)
 static int
 portenable(Hci *hp, int port, int on)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ctlr *ctlr;
 	Eopio *opio;
 	int s;
@@ -1639,6 +1640,7 @@ portlend(Ctlr *ctlr, int port, char *ss)
 static int
 portreset(Hci *hp, int port, int on)
 {
+	Proc *up = externup();
 	uint32_t *portscp;
 	Eopio *opio;
 	Ctlr *ctlr;
@@ -1692,6 +1694,7 @@ portreset(Hci *hp, int port, int on)
 static int
 portstatus(Hci *hp, int port)
 {
+	Proc *up = externup();
 	int s, r;
 	Eopio *opio;
 	Ctlr *ctlr;
@@ -1910,6 +1913,7 @@ episofscpy(Ctlr *ctlr, Ep *ep, Isoio* iso, unsigned char *b, int32_t count)
 static int32_t
 episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 {
+	Proc *up = externup();
 	Ctlr *ctlr;
 	unsigned char *b;
 	int32_t tot;
@@ -2012,6 +2016,7 @@ putsamples(Isoio *iso, unsigned char *b, int32_t count)
 static int32_t
 episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 {
+	Proc *up = externup();
 	Ctlr *ctlr;
 	unsigned char *b;
 	int tot, nw;
@@ -2166,7 +2171,7 @@ workpending(void *a)
 static void
 ehcipoll(void* a)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Hci *hp;
 	Ctlr *ctlr;
 	Poll *poll;
@@ -2223,7 +2228,7 @@ epiodone(void *a)
 static void
 epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qh *qh;
 	int timedout;
 	Ctlr *ctlr;
@@ -2292,6 +2297,7 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 static int32_t
 epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 {
+	Proc *up = externup();
 	int saved, ntds, tmout;
 	int32_t n, tot;
 	uint32_t load;
@@ -2428,7 +2434,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 static int32_t
 epread(Ep *ep, void *a, int32_t count)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ctlio *cio;
 	Qio *io;
 	Isoio *iso;
@@ -2508,6 +2514,7 @@ epread(Ep *ep, void *a, int32_t count)
 static int32_t
 epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 {
+	Proc *up = externup();
 	unsigned char *c;
 	int32_t len;
 
@@ -2590,7 +2597,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 static int32_t
 epwrite(Ep *ep, void *a, int32_t count)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qio *io;
 	Ctlio *cio;
 	Isoio *iso;
@@ -2842,6 +2849,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 static void
 epopen(Ep *ep)
 {
+	Proc *up = externup();
 	Ctlr *ctlr;
 	Ctlio *cio;
 	Qio *io;
@@ -2912,7 +2920,7 @@ epopen(Ep *ep)
 static void
 cancelio(Ctlr *ctlr, Qio *io)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qh *qh;
 
 	ilock(ctlr);
@@ -2942,7 +2950,7 @@ cancelio(Ctlr *ctlr, Qio *io)
 static void
 cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int frno, i, n, t, w, woff;
 	uint32_t *lp, *tp;
 	Isoio **il;

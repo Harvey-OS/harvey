@@ -73,6 +73,7 @@ devtabget(int dc, int user)
 int32_t
 devtabread(Chan* c, void* buf, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	int i;
 	Dev *dev;
 	char *alloc, *e, *p;

@@ -49,7 +49,7 @@ loopbackbind(Ipifc *ifc, int i, char**argv)
 static void
 loopbackunbind(Ipifc *ifc)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	LB *lb = ifc->arg;
 
 	if(lb->readp)
@@ -78,7 +78,7 @@ loopbackbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
 static void
 loopbackread(void *a)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ipifc *ifc;
 	Block *bp;
 	LB *lb;
