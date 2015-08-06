@@ -12,6 +12,7 @@ enum {
 	Qctl = 1,
 	Qmalloc,
 	Qtsleep,
+	Qlock,
 	Qmax,
 };
 
@@ -20,9 +21,11 @@ static Dirtab regressdir[Qmax] = {
 	"regressctl",	{ Qctl, 0 },	0,	0666,
 	"malloc",	{ Qmalloc, 0 },	0,	0666,
 	"tsleep",	{ Qtsleep, 0 },	0,	0666,
+	"qlock",	{ Qlock, 0 },	0,	0666,
 };
 
 int verbose = 0;
+static QLock testlock;
 
 static Chan*
 regressattach(char* spec)
@@ -63,6 +66,13 @@ regressread(Chan *c, void *a, int32_t n, int64_t offset)
 
 	case Qmalloc:
 	case Qtsleep:
+		break;
+
+	case Qlock:
+		qlock(&testlock);
+		// sanity test code here.
+		qunlock(&testlock);
+		n = 1;
 		break;
 
 	default:
