@@ -485,7 +485,7 @@ prepcmd(uint *cmd, int i)
 uint32_t
 cmd(Ctlr *c, int type, uint64_t data)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t buf[16], i;
 	Cmd *cmd;
 
@@ -525,7 +525,7 @@ cmd(Ctlr *c, int type, uint64_t data)
 uint32_t
 maccmd(Ctlr *c, int type, uint8_t *mac)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t buf[16], i;
 	Cmd *cmd;
 
@@ -571,7 +571,7 @@ enum {
 uint32_t
 dmatestcmd(Ctlr *c, int type, uint64_t addr, int len)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t buf[16], i;
 
 	memset(buf, 0, sizeof buf);
@@ -605,7 +605,7 @@ dmatestcmd(Ctlr *c, int type, uint64_t addr, int len)
 uint32_t
 rdmacmd(Ctlr *c, int on)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t buf[16], i;
 
 	memset(buf, 0, sizeof buf);
@@ -775,6 +775,7 @@ chkfw(Ctlr *c)
 static int
 reset(Ether *e, Ctlr *c)
 {
+	Proc *up = externup();
 	uint32_t i, sz;
 
 	if(waserror()){
@@ -1338,6 +1339,7 @@ m10ginterrupt(Ureg *ureg, void *v)
 static void
 m10gattach(Ether *e)
 {
+	Proc *up = externup();
 	Ctlr *c;
 	char name[12];
 
@@ -1497,6 +1499,7 @@ static Cmdtab ctab[] = {
 static int32_t
 m10gctl(Ether *e, void *v, int32_t n)
 {
+	Proc *up = externup();
 	int i;
 	Cmdbuf *c;
 	Cmdtab *t;

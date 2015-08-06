@@ -510,6 +510,11 @@ machp:
 	movq	%gs:0, %rax
 	ret
 
+.global externup
+externup:
+	movq	%gs:40, %rax
+	ret
+
 /* not needed.
 .global mul64fract
 mul64fract:

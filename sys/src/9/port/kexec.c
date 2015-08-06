@@ -44,7 +44,7 @@ enum {
 Proc*
 setupseg(int core)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	uintptr_t  ka;
 	Proc *p;

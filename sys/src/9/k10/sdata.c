@@ -1028,6 +1028,7 @@ atamodesense(Drive* drive, uint8_t* cmd)
 static int
 atastandby(Drive* drive, int period)
 {
+	Proc *up = externup();
 	Ctlr* ctlr;
 	int cmdport, done;
 
@@ -1276,6 +1277,7 @@ atapktinterrupt(Drive* drive)
 static int
 atapktio(Drive* drive, uint8_t* cmd, int clen)
 {
+	Proc *up = externup();
 	Ctlr *ctlr;
 	int as, cmdport, ctlport, len, r, timeo;
 
@@ -1503,6 +1505,7 @@ atagenioretry(Drive* drive)
 static int
 atagenio(Drive* drive, uint8_t* cmd, int clen)
 {
+	Proc *up = externup();
 	uint8_t *p;
 	Ctlr *ctlr;
 	int64_t lba, len;
@@ -2282,6 +2285,7 @@ atarctl(SDunit* unit, char* p, int l)
 static int
 atawctl(SDunit* unit, Cmdbuf* cb)
 {
+	Proc *up = externup();
 	int period;
 	Ctlr *ctlr;
 	Drive *drive;

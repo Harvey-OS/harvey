@@ -39,6 +39,7 @@ int		unfraglen(Block *bp, uint8_t *nexthdr, int setfh);
 int
 ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
+	Proc *up = externup();
 	int medialen, len, chunk, uflen, flen, seglen, lid, offset, fragoff;
 	int morefrags, blklen, rv = 0, tentative;
 	uint8_t *gate, nexthdr;

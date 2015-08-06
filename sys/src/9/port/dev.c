@@ -203,7 +203,7 @@ Walkqid*
 devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if (0) print_func_entry();
 	int i, j, alloc;
 	Walkqid *wq;
@@ -400,7 +400,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 void
 devpermcheck(char *fileuid, int perm, int omode)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if (0) print_func_entry();
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
@@ -461,6 +461,7 @@ devcreate(Chan* c, char* d, int i, int n)
 Block*
 devbread(Chan *c, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	if (0) print_func_entry();
 	Block *bp;
 
@@ -480,6 +481,7 @@ devbread(Chan *c, int32_t n, int64_t offset)
 int32_t
 devbwrite(Chan *c, Block *bp, int64_t offset)
 {
+	Proc *up = externup();
 	if (0) print_func_entry();
 	int32_t n;
 

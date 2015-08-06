@@ -105,6 +105,7 @@ zqdump(Zq *q)
 static int
 zqread(Zq *q, Kzio io[], int nio, usize count)
 {
+	Proc *up = externup();
 	int i;
 	int32_t tot, nr;
 	Kzio *qio;
@@ -172,6 +173,7 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 static int32_t
 zqwrite(Zq *q, Kzio io[], int nio)
 {
+	Proc *up = externup();
 	int i, ei, ri, wi, awake;
 
 	lock(q);
@@ -508,6 +510,7 @@ zpzread(Chan *c, Kzio io[], int nio, usize n, int64_t offset)
 static int32_t
 zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Proc *up = externup();
 	ZPipe *p;
 	Kzio io;	/* might write less than we could */
 	int32_t tot, nw;

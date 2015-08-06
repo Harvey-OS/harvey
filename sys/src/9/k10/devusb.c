@@ -276,6 +276,7 @@ addhcitype(char* t, int (*r)(Hci*))
 static char*
 seprintep(char *s, char *se, Ep *ep, int all)
 {
+	Proc *up = externup();
 	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
 	Udev *d;
 	int i;
@@ -409,6 +410,7 @@ putep(Ep *ep)
 static void
 dumpeps(void)
 {
+	Proc *up = externup();
 	int i;
 	static char buf[512];
 	char *s;
@@ -545,7 +547,7 @@ epdataperm(int mode)
 static int
 usbgen(Chan *c, char *l, Dirtab *d, int n, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qid q;
 	Dirtab *dir;
 	int perm;
@@ -833,6 +835,7 @@ usbload(int speed, int maxpkt)
 static Chan*
 usbopen(Chan *c, int omode)
 {
+	Proc *up = externup();
 	int q;
 	Ep *ep;
 	int mode;
@@ -889,6 +892,7 @@ usbopen(Chan *c, int omode)
 static void
 epclose(Ep *ep)
 {
+	Proc *up = externup();
 	qlock(ep);
 	if(waserror()){
 		qunlock(ep);
@@ -905,6 +909,7 @@ epclose(Ep *ep)
 static void
 usbclose(Chan *c)
 {
+	Proc *up = externup();
 	int q;
 	Ep *ep;
 
@@ -934,6 +939,7 @@ usbclose(Chan *c)
 static int32_t
 ctlread(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	int q;
 	char *s;
 	char *us;
@@ -1050,6 +1056,7 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 static int32_t
 usbread(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	int q;
 	Ep *ep;
 	int nr;
@@ -1127,7 +1134,7 @@ setmaxpkt(Ep *ep, char* s)
 static int32_t
 epctl(Ep *ep, Chan *c, void *a, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i, l, mode, nb, tt;
 	char *b, *s;
 	Cmdbuf *cb;
@@ -1341,6 +1348,7 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 static int32_t
 usbctl(void *a, int32_t n)
 {
+	Proc *up = externup();
 	Cmdtab *ct;
 	Cmdbuf *cb;
 	Ep *ep;
@@ -1380,6 +1388,7 @@ usbctl(void *a, int32_t n)
 static int32_t
 ctlwrite(Chan *c, void *a, int32_t n)
 {
+	Proc *up = externup();
 	int q;
 	Ep *ep;
 
@@ -1411,6 +1420,7 @@ ctlwrite(Chan *c, void *a, int32_t n)
 static int32_t
 usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	int nr, q;
 	Ep *ep;
 
