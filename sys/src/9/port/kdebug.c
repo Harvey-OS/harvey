@@ -16,7 +16,7 @@ static int tab_depth = 0;
 
 static void __iprint_hdr(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 //	struct per_cpu_info *pcpui = &per_cpu_info[core_id()];
 	iprint("Core %2d ", 0); //core_id());	/* may help with multicore output */
 	if (! islo()) {

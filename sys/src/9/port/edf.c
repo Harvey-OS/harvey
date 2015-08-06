@@ -139,7 +139,7 @@ edfinit(Proc*p)
 static void
 deadlineintr(Ureg* ureg, Timer *t)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/* Proc reached deadline */
 	extern int panicking;
 	Sched *sch;
@@ -216,7 +216,7 @@ release(Proc *p)
 static void
 releaseintr(Ureg* ureg, Timer *t)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	extern int panicking;
 	Sched *sch;
@@ -349,7 +349,7 @@ edfrun(Proc *p, int edfpri)
 char *
 edfadmit(Proc *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *err;
 	Edf *e;
 	int i;
@@ -463,7 +463,7 @@ edfstop(Proc *p)
 static int
 yfn(void *v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	now = ms();
 	return up->trend == nil || now - up->edf->r >= 0;
 }
@@ -471,7 +471,7 @@ yfn(void *v)
 void
 edfyield(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/* sleep until next release */
 	Edf *e;
 	int32_t n;

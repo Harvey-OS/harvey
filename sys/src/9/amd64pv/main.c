@@ -214,7 +214,7 @@ testiccs(void)
 static void
 nixsquids(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mach *mp;
 	int i;
 	uint64_t now, start;
@@ -341,7 +341,7 @@ void put64(uint64_t v)
 
 void debugtouser(void *va)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
@@ -558,7 +558,7 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 void
 init0(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
@@ -636,7 +636,7 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	Segment *s;
 	KMap *k;
@@ -727,7 +727,7 @@ confinit(void)
 static void
 shutdown(int ispanic)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int ms, once;
 
 	lock(&active);

@@ -292,6 +292,7 @@ overlap(uintptr_t a0, uintptr_t aend, uintptr_t b0, uintptr_t bend)
 int
 elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz)
 {
+	Proc *up = externup();
 	Elf64_Ehdr ehdr;
 	uint16_t (*get16)(uint8_t *);
 	uint32_t (*get32)(uint8_t *);

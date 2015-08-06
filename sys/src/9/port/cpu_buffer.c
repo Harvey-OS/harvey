@@ -252,6 +252,7 @@ static int
 op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 			int is_kernel, Proc *proc)
 {
+	Proc *up = externup();
 	//print_func_entry();
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
 	struct op_entry entry;
@@ -314,6 +315,7 @@ static inline int
 op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
 			  unsigned long pc, unsigned long event)
 {
+	Proc *up = externup();
 	//print_func_entry();
 	struct op_entry entry;
 	struct op_sample *sample;
@@ -350,7 +352,7 @@ log_sample(struct oprofile_cpu_buffer *cpu_buf, unsigned long pc,
 		   Proc *proc)
 {
 	//print_func_entry();
-	Proc *tsk = proc ? proc : machp()->externup;
+	Proc *tsk = proc ? proc : externup();
 	cpu_buf->sample_received++;
 
 	if (pc == ESCAPE_CODE) {
@@ -526,6 +528,7 @@ oprofile_write_reserve(struct op_entry *entry,
 		       Ureg *regs,
 		       unsigned long pc, int code, int size)
 {
+	Proc *up = externup();
 	//print_func_entry();
 	struct op_sample *sample;
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
@@ -540,7 +543,7 @@ oprofile_write_reserve(struct op_entry *entry,
 	cpu_buf->sample_received++;
 
 	/* no backtraces for samples with data */
-	if (op_add_code(cpu_buf, 0, is_kernel,machp()->externup))
+	if (op_add_code(cpu_buf, 0, is_kernel, externup()))
 		goto fail;
 
 	op_cpu_buffer_write_reserve(cpu_buf, entry, size + 2);

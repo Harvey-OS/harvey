@@ -21,14 +21,14 @@
 char*
 commonuser(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	return up->user;
 }
 
 char*
 commonerror(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	return up->errstr;
 }
 

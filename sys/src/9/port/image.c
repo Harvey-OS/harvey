@@ -215,6 +215,7 @@ imagechanreclaim(void)
 Image*
 attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 {
+	Proc *up = externup();
 	Image *i, **l;
 
 	/* reclaim any free channels from reclaimed segments */

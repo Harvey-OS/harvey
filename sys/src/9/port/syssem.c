@@ -34,7 +34,7 @@ static int semtrytimes = 100;
 static void
 semwakeup(Sem *s, int didwake, int dolock)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 
 	DBG("semwakeup up %#p sem %#p\n", up, s->np);
@@ -72,7 +72,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 static void
 semsleep(Sem *s, int dontblock)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	DBG("semsleep up %#p sem %#p\n", up, s->np);
 	if(dontblock){
 		/*
@@ -128,7 +128,7 @@ Done:
 void
 syssemsleep(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int *np;
 	int dontblock;
 	Sem *s;
@@ -153,7 +153,7 @@ syssemsleep(Ar0* ar0, ...)
 void
 syssemwakeup(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int *np;
 	Sem *s;
 	Segment *sg;
@@ -176,7 +176,7 @@ syssemwakeup(Ar0* ar0, ...)
 static void
 semdequeue(Sem *s)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 
 	assert(s != nil);
@@ -207,7 +207,7 @@ semdequeue(Sem *s)
 static int
 semalt(Sem *ss[], int n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i, j, r;
 	Sem *s;
 
@@ -249,7 +249,7 @@ Done:
 void
 syssemalt(Ar0 *ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int **sl;
 	int i, *np, ns;
 	Segment *sg;

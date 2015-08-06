@@ -48,7 +48,7 @@ kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 static int
 kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Kexecgrp *kg;
 	Kvalue *e;
 	uintptr_t addr;
@@ -170,6 +170,7 @@ kexecopen(Chan *c, int omode)
 static void
 kexeccreate(Chan *c, char *name, int omode, int i)
 {
+	Proc *up = externup();
 	Kexecgrp *kg;
 	Kvalue *e;
 	Kvalue **ent;

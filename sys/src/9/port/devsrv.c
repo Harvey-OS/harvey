@@ -33,7 +33,7 @@ static int	qidpath;
 static int
 srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Srv *sp;
 	Qid q;
 
@@ -111,6 +111,7 @@ srvname(Chan *c)
 static Chan*
 srvopen(Chan *c, int omode)
 {
+	Proc *up = externup();
 	Srv *sp;
 
 	if(c->qid.type == QTDIR){
@@ -149,7 +150,7 @@ srvopen(Chan *c, int omode)
 static void
 srvcreate(Chan *c, char *name, int omode, int perm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Srv *sp;
 	char *sname;
 
@@ -194,7 +195,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 static void
 srvremove(Chan *c)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Srv *sp, **l;
 
 	if(c->qid.type == QTDIR)
@@ -244,7 +245,7 @@ srvremove(Chan *c)
 static int32_t
 srvwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Dir d;
 	Srv *sp;
 	char *strs;
@@ -290,6 +291,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 static void
 srvclose(Chan *c)
 {
+	Proc *up = externup();
 	/*
 	 * in theory we need to override any changes in removability
 	 * since open, but since all that's checked is the owner,
@@ -313,6 +315,7 @@ srvread(Chan *c, void *va, int32_t n, int64_t m)
 static int32_t
 srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Proc *up = externup();
 	Srv *sp;
 	Chan *c1;
 	int fd;
