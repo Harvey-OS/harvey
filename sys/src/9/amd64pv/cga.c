@@ -140,10 +140,10 @@ cgaprinthex(uintptr_t x)
 void
 cgaconsputs(char* s, int n)
 {
-	ilock(&cgalock);
+	ilock(&(&cgalock)->lock);
 	while(n-- > 0)
 		cgaputc(*s++);
-	iunlock(&cgalock);
+	iunlock(&(&cgalock)->lock);
 }
 
 void
@@ -163,10 +163,10 @@ cgapost(int code)
 void
 cgainit(void)
 {
-	ilock(&cgalock);
+	ilock(&(&cgalock)->lock);
 	cgapos = cgaregr(0x0e)<<8;
 	cgapos |= cgaregr(0x0f);
 	cgapos *= 2;
 	cgainitdone = 1;
-	iunlock(&cgalock);
+	iunlock(&(&cgalock)->lock);
 }

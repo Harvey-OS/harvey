@@ -128,7 +128,7 @@ typedef struct Icmppriv6
 
 typedef struct Icmpcb6
 {
-	QLock;
+	QLock qlock;
 	uint8_t	headers;
 } Icmpcb6;
 
@@ -448,11 +448,11 @@ icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 	nbp = newIPICMP(sz);
 	np = (IPICMP *)nbp->rp;
 
-	rlock(ifc);
+	rlock(&ifc->rwlock);
 	if(!ipv6anylocal(ifc, np->src)){
 		netlog(f, Logicmp, "icmphostunr fail -> src %I dst %I\n",
 			p->src, p->dst);
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		freeblist(nbp);
 		goto freebl;
 	}
@@ -471,7 +471,7 @@ icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 		ipiput6(f, ifc, nbp);
 	else
 		ipoput6(f, nbp, 0, MAXTTL, DFLTTOS, nil);
-	runlock(ifc);
+	runlock(&ifc->rwlock);
 freebl:
 	if(free)
 		freeblist(bp);
@@ -684,20 +684,20 @@ targettype(Fs *f, Ipifc *ifc, uint8_t *target)
 	Iplifc *lifc;
 	int t;
 
-	rlock(ifc);
+	rlock(&ifc->rwlock);
 	if(ipproxyifc(f, ifc, target)) {
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		return Tuniproxy;
 	}
 
 	for(lifc = ifc->lifc; lifc; lifc = lifc->next)
 		if(ipcmp(lifc->local, target) == 0) {
 			t = (lifc->tentative)? Tunitent: Tunirany;
-			runlock(ifc);
+			runlock(&ifc->rwlock);
 			return t;
 		}
 
-	runlock(ifc);
+	runlock(&ifc->rwlock);
 	return 0;
 }
 

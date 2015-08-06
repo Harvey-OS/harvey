@@ -98,18 +98,18 @@ segmksem(Segment *sg, int *np)
 {
 	Sem *s, **l;
 
-	qlock(&sg->lk);
+	qlock(&(&sg->lk)->qlock);
 	if(sg->sems.s == nil)
 		sg->sems.s = mallocz(NHASH * sizeof(Sem*), 1);
 	for(l = &sg->sems.s[SHASH(np)]; (s = *l) != nil; l = &s->next)
 		if(s->np == np){
-			qunlock(&sg->lk);
+			qunlock(&(&sg->lk)->qlock);
 			return s;
 		}
 	s = mallocz(sizeof *s, 1);
 	s->np = np;
 	*l = s;
-	qunlock(&sg->lk);
+	qunlock(&(&sg->lk)->qlock);
 	return s;
 }
 
@@ -125,23 +125,23 @@ putseg(Segment *s)
 
 	i = s->image;
 	if(i != 0) {
-		lock(i);
-		lock(s);
+		lock(&i->lock);
+		lock(&s->lock);
 		if(i->s == s && s->ref == 1)
 			i->s = 0;
-		unlock(i);
+		unlock(&i->lock);
 	}
 	else
-		lock(s);
+		lock(&s->lock);
 
 	s->ref--;
 	if(s->ref != 0) {
-		unlock(s);
+		unlock(&s->lock);
 		return;
 	}
-	unlock(s);
+	unlock(&s->lock);
 
-	qlock(&s->lk);
+	qlock(&(&s->lk)->qlock);
 	if(i)
 		putimage(i);
 
@@ -150,7 +150,7 @@ putseg(Segment *s)
 		if(*pp)
 			freepte(s, *pp);
 
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	if(s->map != s->ssegmap)
 		free(s->map);
 	if(s->profile != 0)
@@ -191,9 +191,9 @@ dupseg(Segment **seg, int segno, int share)
 	SET(n);
 	s = seg[segno];
 
-	qlock(&s->lk);
+	qlock(&(&s->lk)->qlock);
 	if(waserror()){
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		nexterror();
 	}
 	switch(s->type&SG_TYPE) {
@@ -219,7 +219,7 @@ dupseg(Segment **seg, int segno, int share)
 	case SG_DATA:		/* Copy on write plus demand load info */
 		if((s->type & SG_EXEC) != 0){
 			poperror();
-			qunlock(&s->lk);
+			qunlock(&(&s->lk)->qlock);
 			return data2txt(s);
 		}
 
@@ -244,13 +244,13 @@ dupseg(Segment **seg, int segno, int share)
 	if(s->ref > 1)
 		procflushseg(s);
 	poperror();
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	return n;
 
 sameseg:
 	incref(s);
 	poperror();
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	return s;
 }
 

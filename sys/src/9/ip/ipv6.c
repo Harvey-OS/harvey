@@ -113,11 +113,11 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		eh->vcf[1]  = tos << 4;
 	}
 
-	if(!canrlock(ifc))
+	if(!canrlock(&ifc->rwlock))
 		goto free;
 
 	if(waserror()){
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		nexterror();
 	}
 
@@ -129,7 +129,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	if(len <= medialen) {
 		hnputs(eh->ploadlen, len - IP6HDR);
 		ifc->medium->bwrite(ifc, bp, V6, gate);
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		poperror();
 		return 0;
 	}
@@ -225,7 +225,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	ip->stats[FragOKs]++;
 
 raise:
-	runlock(ifc);
+	runlock(&ifc->rwlock);
 	poperror();
 free:
 	freeblist(bp);
@@ -484,7 +484,7 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 		ih = (Ip6hdr *)bp->rp;
 	}
 
-	qlock(&ip->fraglock6);
+	qlock(&(&ip->fraglock6)->qlock);
 
 	/*
 	 *  find a reassembly queue for this fragment
@@ -509,7 +509,7 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 			ipfragfree6(ip, f);
 			ip->stats[ReasmFails]++;
 		}
-		qunlock(&ip->fraglock6);
+		qunlock(&(&ip->fraglock6)->qlock);
 		return bp;
 	}
 
@@ -530,7 +530,7 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 
 		f->blist = bp;
 
-		qunlock(&ip->fraglock6);
+		qunlock(&(&ip->fraglock6)->qlock);
 		ip->stats[ReasmReqds]++;
 		return nil;
 	}
@@ -553,7 +553,7 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 		if(ovlap > 0) {
 			if(ovlap >= BKFG(bp)->flen) {
 				freeblist(bp);
-				qunlock(&ip->fraglock6);
+				qunlock(&(&ip->fraglock6)->qlock);
 				return nil;
 			}
 			BKFG(prev)->flen -= ovlap;
@@ -620,12 +620,12 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 			ipfragfree6(ip, f);
 			ih = (Ip6hdr*)bl->rp;
 			hnputs(ih->ploadlen, len);
-			qunlock(&ip->fraglock6);
+			qunlock(&(&ip->fraglock6)->qlock);
 			ip->stats[ReasmOKs]++;
 			return bl;
 		}
 		pktposn += BKFG(bl)->flen;
 	}
-	qunlock(&ip->fraglock6);
+	qunlock(&(&ip->fraglock6)->qlock);
 	return nil;
 }

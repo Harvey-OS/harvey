@@ -122,7 +122,7 @@ typedef struct Ctlr {
 
 	unsigned char	sticky[8];
 
-	Lock;
+	Lock lock;
 	int	hasfifo;
 	int	checkfifo;
 	int	fena;
@@ -224,7 +224,7 @@ i8250fifo(Uart* uart, int level)
 	 * the receive side, but it's possible to wait until
 	 * the transmitter is really empty.
 	 */
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	while(!(csr8r(ctlr, Lsr) & Temt))
 		;
 
@@ -253,7 +253,7 @@ i8250fifo(Uart* uart, int level)
 	}
 	csr8w(ctlr, Fcr, level);
 	csr8w(ctlr, Fcr, level);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 }
 
 static void
@@ -294,7 +294,7 @@ i8250modemctl(Uart* uart, int on)
 	Ctlr *ctlr;
 
 	ctlr = uart->regs;
-	ilock(&uart->tlock);
+	ilock(&(&uart->tlock)->lock);
 	if(on){
 		ctlr->sticky[Ier] |= Ems;
 		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
@@ -307,7 +307,7 @@ i8250modemctl(Uart* uart, int on)
 		uart->modem = 0;
 		uart->cts = 1;
 	}
-	iunlock(&uart->tlock);
+	iunlock(&(&uart->tlock)->lock);
 
 	/* modem needs fifo */
 	(*uart->phys->fifo)(uart, on);
@@ -485,12 +485,12 @@ i8250interrupt(Ureg* ureg, void* arg)
 		case Ims:		/* Ms interrupt */
 			r = csr8r(ctlr, Msr);
 			if(r & Dcts){
-				ilock(&uart->tlock);
+				ilock(&(&uart->tlock)->lock);
 				old = uart->cts;
 				uart->cts = r & Cts;
 				if(old == 0 && uart->cts)
 					uart->ctsbackoff = 2;
-				iunlock(&uart->tlock);
+				iunlock(&(&uart->tlock)->lock);
 			}
 		 	if(r & Ddsr){
 				old = r & Dsr;
@@ -578,7 +578,7 @@ i8250enable(Uart* uart, int ie)
 	 * can be dangerous, but this should only happen
 	 * once, before interrupts are enabled.
 	 */
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(!ctlr->checkfifo){
 		/*
 		 * Wait until the transmitter is really empty.
@@ -591,7 +591,7 @@ i8250enable(Uart* uart, int ie)
 		csr8w(ctlr, Fcr, 0);
 		ctlr->checkfifo = 1;
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	/*
  	 * Enable interrupts and turn on DTR and RTS.

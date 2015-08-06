@@ -99,10 +99,10 @@ static	char*	qstatstr[QSmax] = {
 
 static	Lock		mainlock;
 
-#define	MLOCK		ilock(&mainlock)
-#define	MUNLOCK		iunlock(&mainlock)
-#define QLOCK(l)	ilock(l)
-#define QUNLOCK(l)	iunlock(l)
+#define	MLOCK		ilock(&(&mainlock)->lock)
+#define	MUNLOCK		iunlock(&(&mainlock)->lock)
+#define QLOCK(l)	ilock(&l->lock)
+#define QUNLOCK(l)	iunlock(&l->lock)
 
 #define	tailalloc(p, n)	((p)=tailptr, tailsize -= (n), tailptr+=(n),\
 			 (p)->s.size=(n), (p)->s.next = &checkval)

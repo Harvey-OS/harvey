@@ -384,7 +384,7 @@ extern KMap* kmap(Page*);
 
 struct
 {
-	Lock;
+	Lock lock;
 	int	nonline;			/* # of active CPUs */
 	int nbooting;			/* # of CPUs waiting for the bTC to go */
 	int	exiting;			/* shutdown */

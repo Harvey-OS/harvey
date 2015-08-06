@@ -248,14 +248,14 @@ cmdopen(Chan *c, int omode)
 			error(Eperm);
 		break;
 	case Qclonus:
-		qlock(&cmd.l);
+		qlock(&(&cmd.l)->qlock);
 		if(waserror()){
-			qunlock(&cmd.l);
+			qunlock(&(&cmd.l)->qlock);
 			nexterror();
 		}
 		cv = cmdclone(up->user);
 		poperror();
-		qunlock(&cmd.l);
+		qunlock(&(&cmd.l)->qlock);
 		if(cv == 0)
 			error(Enodev);
 		mkqid(&c->qid, QID(cv->x, Qctl), 0, QTFILE);
@@ -266,12 +266,12 @@ cmdopen(Chan *c, int omode)
 	case Qalloc:
 	case Qexec:
 	case Qwait:
-		qlock(&cmd.l);
+		qlock(&(&cmd.l)->qlock);
 		cv = cmd.conv[CONV(c->qid)];
-		qlock(&cv->l);
+		qlock(&(&cv->l)->qlock);
 		if(waserror()){
-			qunlock(&cv->l);
-			qunlock(&cmd.l);
+			qunlock(&(&cv->l)->qlock);
+			qunlock(&(&cmd.l)->qlock);
 			nexterror();
 		}
 		user = up->user;
@@ -305,8 +305,8 @@ cmdopen(Chan *c, int omode)
 			cv->nice = 0;
 		}
 		poperror();
-		qunlock(&cv->l);
-		qunlock(&cmd.l);
+		qunlock(&(&cv->l)->qlock);
+		qunlock(&(&cmd.l)->qlock);
 		break;
 	}
 	c->mode = omode;
@@ -361,7 +361,7 @@ cmdclose(Chan *c)
 	case Qstderr:
 	case Qwait:
 		cc = cmd.conv[CONV(c->qid)];
-		qlock(&cc->l);
+		qlock(&(&cc->l)->qlock);
 		if(TYPE(c->qid) == Qdata){
 			if(c->mode == OWRITE || c->mode == ORDWR)
 				cmdfdclose(cc, 0);
@@ -380,7 +380,7 @@ cmdclose(Chan *c)
 		}else if(r == 0)
 			closeconv(cc);
 
-		qunlock(&cc->l);
+		qunlock(&(&cc->l)->qlock);
 		break;
 	}
 }
@@ -435,12 +435,12 @@ cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 		if(TYPE(ch->qid) == Qstderr)
 			fd = 2;
 		c = cmd.conv[CONV(ch->qid)];
-		qlock(&c->l);
+		qlock(&(&c->l)->qlock);
 		if(c->fd[fd] == -1){
-			qunlock(&c->l);
+			qunlock(&(&c->l)->qlock);
 			return 0;
 		}
-		qunlock(&c->l);
+		qunlock(&(&c->l)->qlock);
 	//	osenter();
 //		n = read(c->fd[fd], a, n);
 //		osleave();
@@ -524,9 +524,9 @@ cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 			break;
 		case CMexec:
 			poperror();	/* cb */
-			qlock(&c->l);
+			qlock(&(&c->l)->qlock);
 			if(waserror()){
-				qunlock(&c->l);
+				qunlock(&(&c->l)->qlock);
 				free(cb);
 				nexterror();
 			}
@@ -542,7 +542,7 @@ cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 			c->cmd = cb;	/* don't free cb */
 			c->state = "Execute";
 			poperror();
-			qunlock(&c->l);
+			qunlock(&(&c->l)->qlock);
 			while(waserror())
 				;
 //			Sleep(&c->startr, cmdstarted, c);
@@ -566,12 +566,12 @@ cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 		return n;
 	case Qdata:
 		c = cmd.conv[CONV(ch->qid)];
-		qlock(&c->l);
+		qlock(&(&c->l)->qlock);
 		if(c->fd[0] == -1){
-			qunlock(&c->l);
+			qunlock(&(&c->l)->qlock);
 			error(Ehungup);
 		}
-		qunlock(&c->l);
+		qunlock(&(&c->l)->qlock);
 //		osenter();
 //		r = write(c->fd[0], a, n);
 //		osleave();
@@ -637,17 +637,17 @@ cmdclone(char *user)
 			c = malloc(sizeof(Conv));
 			if(c == nil)
 				error(Enomem);
-			qlock(&c->l);
+			qlock(&(&c->l)->qlock);
 			c->inuse = 1;
 			c->x = pp - cmd.conv;
 			cmd.nc++;
 			*pp = c;
 			break;
 		}
-		if(canqlock(&c->l)){
+		if(canqlock(&(&c->l)->qlock)){
 			if(c->inuse == 0 && c->child == nil)
 				break;
-			qunlock(&c->l);
+			qunlock(&(&c->l)->qlock);
 		}
 	}
 	if(pp >= ep)
@@ -664,7 +664,7 @@ cmdclone(char *user)
 	// XXX: this should go somewhere else.
 	c->p = setupseg(0);
 
-	qunlock(&c->l);
+	qunlock(&(&c->l)->qlock);
 	return c;
 }
 

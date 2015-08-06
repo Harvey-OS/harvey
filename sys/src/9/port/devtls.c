@@ -334,7 +334,7 @@ tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 			return -1;
 		q.path = QID(s, Qconvdir);
 		q.type = QTDIR;
-		lock(&tdlock);
+		lock(&(&tdlock)->lock);
 		tr = tlsdevs[s];
 		if(tr != nil)
 			nm = tr->user;
@@ -345,7 +345,7 @@ tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 			sprint(name, "%d", s);
 		}
 		devdir(c, q, name, 0, nm, 0555, dp);
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 		return 1;
 	case Qconvdir:
 		if(s == DEVDOTDOT){
@@ -356,7 +356,7 @@ tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 		}
 		if(s < 0 || s >= nelem(convdir))
 			return -1;
-		lock(&tdlock);
+		lock(&(&tdlock)->lock);
 		tr = tlsdevs[CONV(c->qid)];
 		if(tr != nil){
 			nm = tr->user;
@@ -370,7 +370,7 @@ tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 			perm &= 0444;
 		q.path = QID(CONV(c->qid), t);
 		devdir(c, q, tlsnames[t], 0, nm, perm, dp);
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 		return 1;
 	case Qclonus:
 	case Qencalgs:
@@ -381,7 +381,7 @@ tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 		devdir(c, c->qid, tlsnames[t], 0, eve, perm, dp);
 		return 1;
 	default:
-		lock(&tdlock);
+		lock(&(&tdlock)->lock);
 		tr = tlsdevs[CONV(c->qid)];
 		if(tr != nil){
 			nm = tr->user;
@@ -393,7 +393,7 @@ tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 		if(t == Qstatus || t == Qstats)
 			perm &= 0444;
 		devdir(c, c->qid, tlsnames[t], 0, nm, perm, dp);
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 		return 1;
 	}
 }
@@ -465,10 +465,10 @@ tlsopen(Chan *c, int omode)
 		if((t == Qstatus || t == Qstats) && omode != OREAD)
 			error(Eperm);
 		if(waserror()) {
-			unlock(&tdlock);
+			unlock(&(&tdlock)->lock);
 			nexterror();
 		}
-		lock(&tdlock);
+		lock(&(&tdlock)->lock);
 		pp = &tlsdevs[CONV(c->qid)];
 		tr = *pp;
 		if(tr == nil)
@@ -479,21 +479,21 @@ tlsopen(Chan *c, int omode)
 			error(Eperm);
 		if(t == Qhand){
 			if(waserror()){
-				unlock(&tr->hqlock);
+				unlock(&(&tr->hqlock)->lock);
 				nexterror();
 			}
-			lock(&tr->hqlock);
+			lock(&(&tr->hqlock)->lock);
 			if(tr->handq != nil)
 				error(Einuse);
 			tr->handq = qopen(2 * MaxCipherRecLen, 0, nil, nil);
 			if(tr->handq == nil)
 				error("cannot allocate handshake queue");
 			tr->hqref = 1;
-			unlock(&tr->hqlock);
+			unlock(&(&tr->hqlock)->lock);
 			poperror();
 		}
 		tr->ref++;
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 		poperror();
 		break;
 	case Qencalgs:
@@ -519,11 +519,11 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 	d = nil;
 	if(waserror()){
 		free(d);
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 		nexterror();
 	}
 
-	lock(&tdlock);
+	lock(&(&tdlock)->lock);
 	tr = tlsdevs[CONV(c->qid)];
 	if(tr == nil)
 		error(Ebadusefd);
@@ -541,7 +541,7 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 
 	free(d);
 	poperror();
-	unlock(&tdlock);
+	unlock(&(&tdlock)->lock);
 
 	return rv;
 }
@@ -549,7 +549,7 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 static void
 dechandq(TlsRec *tr)
 {
-	lock(&tr->hqlock);
+	lock(&(&tr->hqlock)->lock);
 	if(--tr->hqref == 0){
 		if(tr->handq != nil){
 			qfree(tr->handq);
@@ -560,7 +560,7 @@ dechandq(TlsRec *tr)
 			tr->hprocessed = nil;
 		}
 	}
-	unlock(&tr->hqlock);
+	unlock(&(&tr->hqlock)->lock);
 }
 
 static void
@@ -586,13 +586,13 @@ tlsclose(Chan *c)
 		if(t == Qhand)
 			dechandq(tr);
 
-		lock(&tdlock);
+		lock(&(&tdlock)->lock);
 		if(--tr->ref > 0) {
-			unlock(&tdlock);
+			unlock(&(&tdlock)->lock);
 			return;
 		}
 		tlsdevs[CONV(c->qid)] = nil;
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 
 		if(tr->c != nil && !waserror()){
 			checkstate(tr, 0, SOpen|SHandshake|SRClose);
@@ -727,12 +727,12 @@ qgrab(Block **l, int n)
 static void
 tlsclosed(TlsRec *tr, int new)
 {
-	lock(&tr->statelk);
+	lock(&(&tr->statelk)->lock);
 	if(tr->state == SOpen || tr->state == SHandshake)
 		tr->state = new;
 	else if((new | tr->state) == (SRClose|SLClose))
 		tr->state = SClosed;
-	unlock(&tr->statelk);
+	unlock(&(&tr->statelk)->lock);
 	alertHand(tr, "close notify");
 }
 
@@ -810,10 +810,10 @@ if(tr->debug) pprint("consumed unprocessed %d\n", len);
 
 	in = &tr->in;
 	if(waserror()){
-		qunlock(&in->seclock);
+		qunlock(&(&in->seclock)->qlock);
 		nexterror();
 	}
-	qlock(&in->seclock);
+	qlock(&(&in->seclock)->qlock);
 	p = b->rp;
 	if(in->sec != nil) {
 		/* to avoid Canvel-Hiltgen-Vaudenay-Vuagnoux attack, all errors here
@@ -835,7 +835,7 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 			rcvError(tr, EBadRecordMac, "record mac mismatch");
 		b->wp = b->rp + len;
 	}
-	qunlock(&in->seclock);
+	qunlock(&(&in->seclock)->qlock);
 	poperror();
 	if(len < 0)
 		rcvError(tr, EDecodeError, "runt record message");
@@ -847,16 +847,16 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 	case RChangeCipherSpec:
 		if(len != 1 || p[0] != 1)
 			rcvError(tr, EDecodeError, "invalid change cipher spec");
-		qlock(&in->seclock);
+		qlock(&(&in->seclock)->qlock);
 		if(in->new == nil){
-			qunlock(&in->seclock);
+			qunlock(&(&in->seclock)->qlock);
 			rcvError(tr, EUnexpectedMessage, "unexpected change cipher spec");
 		}
 		freeSec(in->sec);
 		in->sec = in->new;
 		in->new = nil;
 		in->seq = 0;
-		qunlock(&in->seclock);
+		qunlock(&(&in->seclock)->qlock);
 		break;
 	case RAlert:
 		if(len != 2)
@@ -890,10 +890,10 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 		 * if there isn't any handshaker, ignore the request,
 		 * but notify the other side we are doing so.
 		 */
-		lock(&tr->hqlock);
+		lock(&(&tr->hqlock)->lock);
 		if(tr->handq != nil){
 			tr->hqref++;
-			unlock(&tr->hqlock);
+			unlock(&(&tr->hqlock)->lock);
 			if(waserror()){
 				dechandq(tr);
 				nexterror();
@@ -905,7 +905,7 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 			poperror();
 			dechandq(tr);
 		}else{
-			unlock(&tr->hqlock);
+			unlock(&(&tr->hqlock)->lock);
 			if(tr->verset && tr->version != SSL3Version && !waserror()){
 				sendAlert(tr, ENoRenegotiation);
 				poperror();
@@ -913,10 +913,10 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 		}
 		break;
 	case SSL2ClientHello:
-		lock(&tr->hqlock);
+		lock(&(&tr->hqlock)->lock);
 		if(tr->handq != nil){
 			tr->hqref++;
-			unlock(&tr->hqlock);
+			unlock(&(&tr->hqlock)->lock);
 			if(waserror()){
 				dechandq(tr);
 				nexterror();
@@ -935,7 +935,7 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 			poperror();
 			dechandq(tr);
 		}else{
-			unlock(&tr->hqlock);
+			unlock(&(&tr->hqlock)->lock);
 			if(tr->verset && tr->version != SSL3Version && !waserror()){
 				sendAlert(tr, ENoRenegotiation);
 				poperror();
@@ -1010,13 +1010,13 @@ alertHand(TlsRec *tr, char *msg)
 	Block *b;
 	int n;
 
-	lock(&tr->hqlock);
+	lock(&(&tr->hqlock)->lock);
 	if(tr->handq == nil){
-		unlock(&tr->hqlock);
+		unlock(&(&tr->hqlock)->lock);
 		return;
 	}
 	tr->hqref++;
-	unlock(&tr->hqlock);
+	unlock(&(&tr->hqlock)->lock);
 
 	n = strlen(msg);
 	if(waserror()){
@@ -1039,9 +1039,9 @@ checkstate(TlsRec *tr, int ishand, int ok)
 {
 	int state;
 
-	lock(&tr->statelk);
+	lock(&(&tr->statelk)->lock);
 	state = tr->state;
-	unlock(&tr->statelk);
+	unlock(&(&tr->statelk)->lock);
 	if(state & ok)
 		return;
 	switch(state){
@@ -1082,10 +1082,10 @@ tlsbread(Chan *c, int32_t n, int64_t offset)
 		panic("tlsbread");
 
 	if(waserror()){
-		qunlock(&tr->in.io);
+		qunlock(&(&tr->in.io)->qlock);
 		nexterror();
 	}
-	qlock(&tr->in.io);
+	qlock(&(&tr->in.io)->qlock);
 	if(ty == Qdata){
 		checkstate(tr, 0, SOpen);
 		while(tr->processed == nil)
@@ -1095,7 +1095,7 @@ tlsbread(Chan *c, int32_t n, int64_t offset)
 		b = qgrab(&tr->processed, n);
 if(tr->debug) pprint("consumed processed %ld\n", BLEN(b));
 if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
-		qunlock(&tr->in.io);
+		qunlock(&(&tr->in.io)->qlock);
 		poperror();
 		tr->datain += BLEN(b);
 	}else{
@@ -1109,14 +1109,14 @@ if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 		while(!tr->opened && tr->hprocessed == nil && !qcanread(tr->handq))
 			tlsrecread(tr);
 
-		qunlock(&tr->in.io);
+		qunlock(&(&tr->in.io)->qlock);
 		poperror();
 
 		if(waserror()){
-			qunlock(&tr->hqread);
+			qunlock(&(&tr->hqread)->qlock);
 			nexterror();
 		}
-		qlock(&tr->hqread);
+		qlock(&(&tr->hqread)->qlock);
 		if(tr->hprocessed == nil){
 			b = qbread(tr->handq, MaxRecLen + 1);
 			if(*b->rp++ == RAlert){
@@ -1128,7 +1128,7 @@ if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 		}
 		b = qgrab(&tr->hprocessed, n);
 		poperror();
-		qunlock(&tr->hqread);
+		qunlock(&(&tr->hqread)->qlock);
 		tr->handin += BLEN(b);
 	}
 
@@ -1157,8 +1157,8 @@ tlsread(Chan *c, void *a, int32_t n, int64_t off)
 		error(Ebadusefd);
 	case Qstatus:
 		buf = smalloc(Statlen);
-		qlock(&tr->in.seclock);
-		qlock(&tr->out.seclock);
+		qlock(&(&tr->in.seclock)->qlock);
+		qlock(&(&tr->out.seclock)->qlock);
 		s = buf;
 		e = buf + Statlen;
 		s = seprint(s, e, "State: %s\n", tlsstate(tr->state));
@@ -1171,8 +1171,8 @@ tlsread(Chan *c, void *a, int32_t n, int64_t off)
 			s = seprint(s, e, "EncOut: %s\nHashOut: %s\n", tr->out.sec->encalg, tr->out.sec->hashalg);
 		if(tr->out.new != nil)
 			seprint(s, e, "NewEncOut: %s\nNewHashOut: %s\n", tr->out.new->encalg, tr->out.new->hashalg);
-		qunlock(&tr->in.seclock);
-		qunlock(&tr->out.seclock);
+		qunlock(&(&tr->in.seclock)->qlock);
+		qunlock(&(&tr->out.seclock)->qlock);
 		n = readstr(offset, a, n, buf);
 		free(buf);
 		return n;
@@ -1237,12 +1237,12 @@ tlsrecwrite(TlsRec *tr, int type, Block *b)
 	out = &tr->out;
 	bb = b;
 	if(waserror()){
-		qunlock(&out->io);
+		qunlock(&(&out->io)->qlock);
 		if(bb != nil)
 			freeb(bb);
 		nexterror();
 	}
-	qlock(&out->io);
+	qlock(&(&out->io)->qlock);
 if(tr->debug)pprint("send %ld\n", BLEN(b));
 if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 
@@ -1259,10 +1259,10 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 		 * back for mac and maximal block padding.
 		 */
 		if(waserror()){
-			qunlock(&out->seclock);
+			qunlock(&(&out->seclock)->qlock);
 			nexterror();
 		}
-		qlock(&out->seclock);
+		qlock(&(&out->seclock)->qlock);
 		maclen = 0;
 		pad = 0;
 		if(out->sec != nil){
@@ -1313,7 +1313,7 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 			out->new = nil;
 			out->seq = 0;
 		}
-		qunlock(&out->seclock);
+		qunlock(&(&out->seclock)->qlock);
 		poperror();
 
 		/*
@@ -1328,7 +1328,7 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 		tr->c->dev->bwrite(tr->c, nb, 0);
 		poperror();
 	}
-	qunlock(&out->io);
+	qunlock(&(&out->io)->qlock);
 	poperror();
 }
 
@@ -1537,12 +1537,12 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 
 	/* mutex with operations using what we're about to change */
 	if(waserror()){
-		qunlock(&tr->in.seclock);
-		qunlock(&tr->out.seclock);
+		qunlock(&(&tr->in.seclock)->qlock);
+		qunlock(&(&tr->out.seclock)->qlock);
 		nexterror();
 	}
-	qlock(&tr->in.seclock);
-	qlock(&tr->out.seclock);
+	qlock(&(&tr->in.seclock)->qlock);
+	qlock(&(&tr->out.seclock)->qlock);
 
 	if(strcmp(cb->f[0], "fd") == 0){
 		if(cb->nf != 3)
@@ -1643,8 +1643,8 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 		if(tr->out.new == nil)
 			error("cannot change cipher spec without setting secret");
 
-		qunlock(&tr->in.seclock);
-		qunlock(&tr->out.seclock);
+		qunlock(&(&tr->in.seclock)->qlock);
+		qunlock(&(&tr->out.seclock)->qlock);
 		poperror();
 		free(cb);
 		poperror();
@@ -1662,13 +1662,13 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 			error("usage: opened");
 		if(tr->in.sec == nil || tr->out.sec == nil)
 			error("cipher must be configured before enabling data messages");
-		lock(&tr->statelk);
+		lock(&(&tr->statelk)->lock);
 		if(tr->state != SHandshake && tr->state != SOpen){
-			unlock(&tr->statelk);
+			unlock(&(&tr->statelk)->lock);
 			error("cannot enable data messages");
 		}
 		tr->state = SOpen;
-		unlock(&tr->statelk);
+		unlock(&(&tr->statelk)->lock);
 		tr->opened = 1;
 	}else if(strcmp(cb->f[0], "alert") == 0){
 		if(cb->nf != 2)
@@ -1677,8 +1677,8 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 			error("must set fd before sending alerts");
 		m = strtol(cb->f[1], nil, 0);
 
-		qunlock(&tr->in.seclock);
-		qunlock(&tr->out.seclock);
+		qunlock(&(&tr->in.seclock)->qlock);
+		qunlock(&(&tr->out.seclock)->qlock);
 		poperror();
 		free(cb);
 		poperror();
@@ -1700,8 +1700,8 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 	} else
 		error(Ebadarg);
 
-	qunlock(&tr->in.seclock);
-	qunlock(&tr->out.seclock);
+	qunlock(&(&tr->in.seclock)->qlock);
+	qunlock(&(&tr->out.seclock)->qlock);
 	poperror();
 	free(cb);
 	poperror();
@@ -1833,14 +1833,14 @@ tlsError(TlsRec *tr, char *msg)
 	int s;
 
 if(tr->debug)pprint("tleError %s\n", msg);
-	lock(&tr->statelk);
+	lock(&(&tr->statelk)->lock);
 	s = tr->state;
 	tr->state = SError;
 	if(s != SError){
 		strncpy(tr->err, msg, ERRMAX - 1);
 		tr->err[ERRMAX - 1] = '\0';
 	}
-	unlock(&tr->statelk);
+	unlock(&(&tr->statelk)->lock);
 	if(s != SError)
 		alertHand(tr, msg);
 }
@@ -1848,10 +1848,10 @@ if(tr->debug)pprint("tleError %s\n", msg);
 static void
 tlsSetState(TlsRec *tr, int new, int old)
 {
-	lock(&tr->statelk);
+	lock(&(&tr->statelk)->lock);
 	if(tr->state & old)
 		tr->state = new;
-	unlock(&tr->statelk);
+	unlock(&(&tr->statelk)->lock);
 }
 
 /* hand up a digest connection */
@@ -1860,7 +1860,7 @@ tlshangup(TlsRec *tr)
 {
 	Block *b;
 
-	qlock(&tr->in.io);
+	qlock(&(&tr->in.io)->qlock);
 	for(b = tr->processed; b; b = tr->processed){
 		tr->processed = b->next;
 		freeb(b);
@@ -1869,7 +1869,7 @@ tlshangup(TlsRec *tr)
 		freeb(tr->unprocessed);
 		tr->unprocessed = nil;
 	}
-	qunlock(&tr->in.io);
+	qunlock(&(&tr->in.io)->qlock);
 
 	tlsSetState(tr, SClosed, ~0);
 }
@@ -1882,17 +1882,17 @@ newtls(Chan *ch)
 	int t, newmax;
 
 	if(waserror()) {
-		unlock(&tdlock);
+		unlock(&(&tdlock)->lock);
 		nexterror();
 	}
-	lock(&tdlock);
+	lock(&(&tdlock)->lock);
 	ep = &tlsdevs[maxtlsdevs];
 	for(pp = tlsdevs; pp < ep; pp++)
 		if(*pp == nil)
 			break;
 	if(pp >= ep) {
 		if(maxtlsdevs >= MaxTlsDevs) {
-			unlock(&tdlock);
+			unlock(&(&tdlock)->lock);
 			poperror();
 			return nil;
 		}
@@ -1919,7 +1919,7 @@ newtls(Chan *ch)
 		t = Qctl;
 	ch->qid.path = QID(pp - tlsdevs, t);
 	ch->qid.vers = 0;
-	unlock(&tdlock);
+	unlock(&(&tdlock)->lock);
 	poperror();
 	return *pp;
 }

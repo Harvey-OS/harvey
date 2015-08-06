@@ -63,7 +63,7 @@ ehcireset(Ctlr *ctlr)
 	Eopio *opio;
 	int i;
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	dprint("ehci %#p reset\n", ctlr->capio);
 	opio = ctlr->opio;
 
@@ -118,7 +118,7 @@ ehcireset(Ctlr *ctlr)
 		panic("ehci: unknown fls %ld", opio->cmd & Cflsmask);
 	}
 	dprint("ehci: %d frames\n", ctlr->nframes);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 }
 
 static void
@@ -135,7 +135,7 @@ shutdown(Hci *hp)
 	Eopio *opio;
 
 	ctlr = hp->aux;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	opio = ctlr->opio;
 	opio->cmd |= Chcreset;		/* controller reset */
 	coherence();
@@ -149,7 +149,7 @@ shutdown(Hci *hp)
 	delay(100);
 	ehcirun(ctlr, 0);
 	opio->frbase = 0;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 }
 
 static void
@@ -225,7 +225,7 @@ reset(Hci *hp)
 	Pcidev *p;
 	static Lock resetlck;
 
-	ilock(&resetlck);
+	ilock(&(&resetlck)->lock);
 	scanpci();
 
 	/*
@@ -241,7 +241,7 @@ reset(Hci *hp)
 			break;
 		}
 	}
-	iunlock(&resetlck);
+	iunlock(&(&resetlck)->lock);
 	if(i >= Nhcis || ctlrs[i] == nil)
 		return -1;
 

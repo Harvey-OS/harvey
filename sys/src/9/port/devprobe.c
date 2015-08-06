@@ -131,9 +131,9 @@ newpl(void)
 		return nil;
 	}
 
-	ilock(&loglk);
+	ilock(&(&loglk)->lock);
 	index = pw++;
-	iunlock(&loglk);
+	iunlock(&(&loglk)->lock);
 
 	return &probelog[idx(index)];
 
@@ -226,7 +226,7 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 	case Qctl:
 		buf = malloc(READSTR);
 		i = 0;
-		qlock(&probeslk);
+		qlock(&(&probeslk)->qlock);
 		i += snprint(buf + i, READSTR - i, "logsize %lud\n", logsize);
 		for(p = probes; p != nil; p = p->next)
 			i += snprint(buf + i, READSTR - i, "probe %p new %s\n",
@@ -239,14 +239,14 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 		i += snprint(buf + i, READSTR - i, "#probehits %lud, in queue %lud\n",
 				pw, pw-pr);
 		snprint(buf + i, READSTR - i, "#probelog %p\n", probelog);
-		qunlock(&probeslk);
+		qunlock(&(&probeslk)->qlock);
 		n = readstr(offset, a, n, buf);
 		free(buf);
 		break;
 	case Qdata:
-		qlock(&gate);
+		qlock(&(&gate)->qlock);
 		if(waserror()){
-			qunlock(&gate);
+			qunlock(&(&gate)->qlock);
 			nexterror();
 		}
 		while(!lognonempty(nil))
@@ -280,7 +280,7 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 			i += printsize;
 		}
 		poperror();
-		qunlock(&gate);
+		qunlock(&(&gate)->qlock);
 		n = i;
 		break;
 	}
@@ -295,9 +295,9 @@ probewrite(Chan *c, void *a, int32_t n, int64_t)
 	Probe *p, **pp;
 	int ntok;
 
-	qlock(&probeslk);
+	qlock(&(&probeslk)->qlock);
 	if(waserror()){
-		qunlock(&probeslk);
+		qunlock(&(&probeslk)->qlock);
 		if(s != nil) free(s);
 		nexterror();
 	}
@@ -384,7 +384,7 @@ print("probeinstall in devprobe\n");
 		break;
 	}
 	poperror();
-	qunlock(&probeslk);
+	qunlock(&(&probeslk)->qlock);
 	return n;
 }
 

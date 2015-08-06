@@ -320,14 +320,14 @@ _proctrace(Proc* p, int etype, int64_t ts)
 	Traceevent *te;
 	int tp;
 
-	ilock(&tlck);
+	ilock(&(&tlck)->lock);
 	if (p->trace == 0 || topens == 0 ||
 		tproduced - tconsumed >= Nevents){
-		iunlock(&tlck);
+		iunlock(&(&tlck)->lock);
 		return;
 	}
 	tp = tproduced++;
-	iunlock(&tlck);
+	iunlock(&(&tlck)->lock);
 
 	te = &tevents[tp&Emask];
 	te->pid = p->pid;
@@ -410,9 +410,9 @@ procopen(Chan *c, int omode)
 	if(QID(c->qid) == Qtrace){
 		if (omode != OREAD)
 			error(Eperm);
-		lock(&tlock);
+		lock(&(&tlock)->lock);
 		if (waserror()){
-			unlock(&tlock);
+			unlock(&(&tlock)->lock);
 			nexterror();
 		}
 		if (topens > 0)
@@ -435,7 +435,7 @@ procopen(Chan *c, int omode)
 		}
 		proctrace = _proctrace;
 		poperror();
-		unlock(&tlock);
+		unlock(&(&tlock)->lock);
 
 		c->mode = openmode(omode);
 		c->flag |= COPEN;
@@ -452,9 +452,9 @@ procopen(Chan *c, int omode)
 	}
 	if((p = psincref(SLOT(c->qid))) == nil)
 		error(Eprocdied);
-	qlock(&p->debug);
+	qlock(&(&p->debug)->qlock);
 	if(waserror()){
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		nexterror();
 	}
@@ -471,7 +471,7 @@ procopen(Chan *c, int omode)
 		tc = proctext(c, p);
 		tc->offset = 0;
 		poperror();
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		cclose(c);
 		return tc;
@@ -543,7 +543,7 @@ procopen(Chan *c, int omode)
 
 	default:
 		poperror();
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		pprint("procopen %#llux\n", c->qid.path);
 		error(Egreg);
@@ -560,7 +560,7 @@ procopen(Chan *c, int omode)
 
 	tc = devopen(c, omode, 0, 0, procgen);
 	poperror();
-	qunlock(&p->debug);
+	qunlock(&(&p->debug)->qlock);
 	psdecref(p);
 
 	return tc;
@@ -583,9 +583,9 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 		error(Eprocdied);
 	nonone(p);
 	d = nil;
-	qlock(&p->debug);
+	qlock(&(&p->debug)->qlock);
 	if(waserror()){
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		free(d);
 		nexterror();
@@ -611,7 +611,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 		p->procmode = d->mode&0777;
 
 	poperror();
-	qunlock(&p->debug);
+	qunlock(&(&p->debug)->qlock);
 	psdecref(p);
 	free(d);
 
@@ -673,16 +673,16 @@ procfds(Proc *p, char *va, int count, int32_t offset)
 		count = sizeof buf;
 	a = buf;
 
-	qlock(&p->debug);
+	qlock(&(&p->debug)->qlock);
 	f = p->fgrp;
 	if(f == nil){
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		return 0;
 	}
-	lock(f);
+	lock(&f->lock);
 	if(waserror()){
-		unlock(f);
-		qunlock(&p->debug);
+		unlock(&f->lock);
+		qunlock(&(&p->debug)->qlock);
 		nexterror();
 	}
 
@@ -707,8 +707,8 @@ procfds(Proc *p, char *va, int count, int32_t offset)
 		offset = procoffset(offset, a, &n);
 	}
 	poperror();
-	unlock(f);
-	qunlock(&p->debug);
+	unlock(&f->lock);
+	qunlock(&(&p->debug)->qlock);
 
 	/* copy result to user space, now that locks are released */
 	memmove(va, buf, n);
@@ -846,9 +846,9 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		psdecref(p);
 		break;
 	case Qargs:
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 		j = procargs(p, up->genbuf, sizeof up->genbuf);
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		if(offset >= j)
 			return 0;
@@ -943,9 +943,9 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		return 0;
 
 	case Qnote:
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 		if(waserror()){
-			qunlock(&p->debug);
+			qunlock(&(&p->debug)->qlock);
 			psdecref(p);
 			nexterror();
 		}
@@ -969,7 +969,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		if(p->nnote == 0)
 			p->notepending = 0;
 		poperror();
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		return n;
 
@@ -1107,37 +1107,37 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		return n;
 
 	case Qwait:
-		if(!canqlock(&p->qwaitr)){
+		if(!canqlock(&(&p->qwaitr)->qlock)){
 			psdecref(p);
 			error(Einuse);
 		}
 
 		if(waserror()) {
-			qunlock(&p->qwaitr);
+			qunlock(&(&p->qwaitr)->qlock);
 			psdecref(p);
 			nexterror();
 		}
 
-		lock(&p->exl);
+		lock(&(&p->exl)->lock);
 		if(up == p && p->nchild == 0 && p->waitq == 0) {
-			unlock(&p->exl);
+			unlock(&(&p->exl)->lock);
 			error(Enochild);
 		}
 		pid = p->pid;
 		while(p->waitq == 0) {
-			unlock(&p->exl);
+			unlock(&(&p->exl)->lock);
 			sleep(&p->waitr, haswaitq, p);
 			if(p->pid != pid)
 				error(Eprocdied);
-			lock(&p->exl);
+			lock(&(&p->exl)->lock);
 		}
 		wq = p->waitq;
 		p->waitq = wq->next;
 		p->nwait--;
-		unlock(&p->exl);
+		unlock(&(&p->exl)->lock);
 
 		poperror();
-		qunlock(&p->qwaitr);
+		qunlock(&(&p->qwaitr)->qlock);
 		psdecref(p);
 		n = snprint(va, n, "%d %lud %lud %lud %q",
 			wq->w.pid,
@@ -1147,9 +1147,9 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		return n;
 
 	case Qns:
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 		if(waserror()){
-			qunlock(&p->debug);
+			qunlock(&(&p->debug)->qlock);
 			psdecref(p);
 			nexterror();
 		}
@@ -1158,7 +1158,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		mw = c->aux;
 		if(mw->cddone){
 			poperror();
-			qunlock(&p->debug);
+			qunlock(&(&p->debug)->qlock);
 			psdecref(p);
 			return 0;
 		}
@@ -1167,7 +1167,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 			mw->cddone = 1;
 			i = snprint(va, n, "cd %s\n", p->dot->path->s);
 			poperror();
-			qunlock(&p->debug);
+			qunlock(&(&p->debug)->qlock);
 			psdecref(p);
 			return i;
 		}
@@ -1182,7 +1182,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 			i = snprint(va, n, "bind %s %s %s\n", flag,
 				mw->cm->to->path->s, mw->mh->from->path->s);
 		poperror();
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		return i;
 
@@ -1221,7 +1221,7 @@ mntscan(Mntwalk *mw, Proc *p)
 	int best, i, last, nxt;
 
 	pg = p->pgrp;
-	rlock(&pg->ns);
+	rlock(&(&pg->ns)->rwlock);
 
 	nxt = 0;
 	best = (int)(~0U>>1);		/* largest 2's complement int */
@@ -1246,7 +1246,7 @@ mntscan(Mntwalk *mw, Proc *p)
 	if(nxt == 0)
 		mw->mh = 0;
 
-	runlock(&pg->ns);
+	runlock(&(&pg->ns)->rwlock);
 }
 
 static int32_t
@@ -1272,9 +1272,9 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 	if((p = psincref(SLOT(c->qid))) == nil)
 		error(Eprocdied);
 
-	qlock(&p->debug);
+	qlock(&(&p->debug)->qlock);
 	if(waserror()){
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		nexterror();
 	}
@@ -1378,7 +1378,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			if(*s >= '0' && *s <= '9'){
 				p->tls = (uintptr_t)strtoull(s, nil, 0); // a-tol-whex! a-tol-whex!
 				poperror();
-				qunlock(&p->debug);
+				qunlock(&(&p->debug)->qlock);
 				psdecref(p);
 				return n;
 			}
@@ -1387,13 +1387,13 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 
 	default:
 		poperror();
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 		pprint("unknown qid %#llux in procwrite\n", c->qid.path);
 		error(Egreg);
 	}
 	poperror();
-	qunlock(&p->debug);
+	qunlock(&(&p->debug)->qlock);
 	psdecref(p);
 	return n;
 }
@@ -1439,17 +1439,17 @@ proctext(Chan *c, Proc *p)
 	if(p->state==Dead)
 		error(Eprocdied);
 
-	lock(s);
+	lock(&s->lock);
 	i = s->image;
 	if(i == 0) {
-		unlock(s);
+		unlock(&s->lock);
 		error(Eprocdied);
 	}
-	unlock(s);
+	unlock(&s->lock);
 
-	lock(i);
+	lock(&i->lock);
 	if(waserror()) {
-		unlock(i);
+		unlock(&i->lock);
 		nexterror();
 	}
 
@@ -1468,7 +1468,7 @@ proctext(Chan *c, Proc *p)
 	}
 
 	poperror();
-	unlock(i);
+	unlock(&i->lock);
 
 	return tc;
 }
@@ -1488,16 +1488,16 @@ procstopwait(Proc *p, int ctl)
 		p->procctl = ctl;
 	p->pdbg = up;
 	pid = p->pid;
-	qunlock(&p->debug);
+	qunlock(&(&p->debug)->qlock);
 	up->psstate = "Stopwait";
 	if(waserror()) {
 		p->pdbg = 0;
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 		nexterror();
 	}
 	sleep(&up->sleep, procstopped, p);
 	poperror();
-	qlock(&p->debug);
+	qlock(&(&p->debug)->qlock);
 	if(p->pid != pid)
 		error(Eprocdied);
 }
@@ -1511,11 +1511,11 @@ procctlcloseone(Proc *p, Fgrp *f, int fd)
 	if(c == nil)
 		return;
 	f->fd[fd] = nil;
-	unlock(f);
-	qunlock(&p->debug);
+	unlock(&f->lock);
+	qunlock(&(&p->debug)->qlock);
 	cclose(c);
-	qlock(&p->debug);
-	lock(f);
+	qlock(&(&p->debug)->qlock);
+	lock(&f->lock);
 }
 
 void
@@ -1528,14 +1528,14 @@ procctlclosefiles(Proc *p, int all, int fd)
 	if(f == nil)
 		error(Eprocdied);
 
-	lock(f);
+	lock(&f->lock);
 	f->ref++;
 	if(all)
 		for(i = 0; i < f->maxfd; i++)
 			procctlcloseone(p, f, i);
 	else
 		procctlcloseone(p, f, fd);
-	unlock(f);
+	unlock(&f->lock);
 	closefgrp(f);
 }
 
@@ -1871,18 +1871,18 @@ txt2data(Proc *p, Segment *s)
 	ps->ldseg = s->ldseg;
 	ps->flushme = 1;
 
-	qlock(&p->seglock);
+	qlock(&(&p->seglock)->qlock);
 	for(i = 0; i < NSEG; i++)
 		if(p->seg[i] == s)
 			break;
 	if(i == NSEG)
 		panic("segment gone");
 
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	putseg(s);
-	qlock(&ps->lk);
+	qlock(&(&ps->lk)->qlock);
 	p->seg[i] = ps;
-	qunlock(&p->seglock);
+	qunlock(&(&p->seglock)->qlock);
 
 	return ps;
 }

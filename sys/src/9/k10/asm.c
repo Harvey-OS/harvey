@@ -94,7 +94,7 @@ asmfree(uintmem addr, uintmem size, int type)
 	if(size == 0)
 		return 0;
 
-	lock(&asmlock);
+	lock(&(&asmlock)->lock);
 
 	/*
 	 * Find either a map entry with an address greater
@@ -109,7 +109,7 @@ asmfree(uintmem addr, uintmem size, int type)
 
 	if((pp != nil && pp->addr+pp->size > addr)
 	|| (np != nil && addr+size > np->addr)){
-		unlock(&asmlock);
+		unlock(&(&asmlock)->lock);
 		DBG("asmfree: overlap %#Px@%#P, type %d\n", size, addr, type);
 		return -1;
 	}
@@ -124,7 +124,7 @@ asmfree(uintmem addr, uintmem size, int type)
 			asmfreelist = np;
 		}
 
-		unlock(&asmlock);
+		unlock(&(&asmlock)->lock);
 		return 0;
 	}
 
@@ -132,19 +132,19 @@ asmfree(uintmem addr, uintmem size, int type)
 		np->addr -= size;
 		np->size += size;
 
-		unlock(&asmlock);
+		unlock(&(&asmlock)->lock);
 		return 0;
 	}
 
 	if((pp = asmnew(addr, size, type)) == nil){
-		unlock(&asmlock);
+		unlock(&(&asmlock)->lock);
 		DBG("asmfree: losing %#P@%#P, type %d\n", size, addr, type);
 		return -1;
 	}
 	*ppp = pp;
 	pp->next = np;
 
-	unlock(&asmlock);
+	unlock(&(&asmlock)->lock);
 
 	return 0;
 }
@@ -156,7 +156,7 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 	Asm *assem, *pp;
 
 	DBG("asmalloc: %#P@%#P, type %d\n", size, addr, type);
-	lock(&asmlock);
+	lock(&(&asmlock)->lock);
 	for(pp = nil, assem = asmlist; assem != nil; pp = assem, assem = assem->next){
 		if(assem->type != type)
 			continue;
@@ -200,12 +200,12 @@ asmalloc(uintmem addr, uintmem size, int type, int align)
 			asmfreelist = assem;
 		}
 
-		unlock(&asmlock);
+		unlock(&(&asmlock)->lock);
 		if(o != a)
 			asmfree(o, a-o, type);
 		return a;
 	}
-	unlock(&asmlock);
+	unlock(&(&asmlock)->lock);
 
 	return 0;
 }

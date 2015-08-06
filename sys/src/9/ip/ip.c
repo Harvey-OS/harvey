@@ -193,10 +193,10 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	if(!gating)
 		eh->tos = tos;
 
-	if(!canrlock(ifc))
+	if(!canrlock(&ifc->rwlock))
 		goto free;
 	if(waserror()){
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		nexterror();
 	}
 	if(ifc->medium == nil)
@@ -220,7 +220,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		hnputs(eh->cksum, ipcsum(&eh->vihl));
 		assert(bp->next == nil);
 		ifc->medium->bwrite(ifc, bp, V4, gate);
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		poperror();
 		return 0;
 	}
@@ -309,7 +309,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	}
 	ip->stats[FragOKs]++;
 raise:
-	runlock(ifc);
+	runlock(&ifc->rwlock);
 	poperror();
 free:
 	freeblist(bp);
@@ -501,7 +501,7 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 		ih = (Ip4hdr*)(bp->rp);
 	}
 
-	qlock(&ip->fraglock4);
+	qlock(&(&ip->fraglock4)->qlock);
 
 	/*
 	 *  find a reassembly queue for this fragment
@@ -526,7 +526,7 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 			ipfragfree4(ip, f);
 			ip->stats[ReasmFails]++;
 		}
-		qunlock(&ip->fraglock4);
+		qunlock(&(&ip->fraglock4)->qlock);
 		return bp;
 	}
 
@@ -547,7 +547,7 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 
 		f->blist = bp;
 
-		qunlock(&ip->fraglock4);
+		qunlock(&(&ip->fraglock4)->qlock);
 		ip->stats[ReasmReqds]++;
 		return nil;
 	}
@@ -570,7 +570,7 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 		if(ovlap > 0) {
 			if(ovlap >= BKFG(bp)->flen) {
 				freeblist(bp);
-				qunlock(&ip->fraglock4);
+				qunlock(&(&ip->fraglock4)->qlock);
 				return nil;
 			}
 			BKFG(prev)->flen -= ovlap;
@@ -633,13 +633,13 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 			ipfragfree4(ip, f);
 			ih = BLKIP(bl);
 			hnputs(ih->length, len);
-			qunlock(&ip->fraglock4);
+			qunlock(&(&ip->fraglock4)->qlock);
 			ip->stats[ReasmOKs]++;
 			return bl;
 		}
 		pktposn += BKFG(bl)->flen;
 	}
-	qunlock(&ip->fraglock4);
+	qunlock(&(&ip->fraglock4)->qlock);
 	return nil;
 }
 

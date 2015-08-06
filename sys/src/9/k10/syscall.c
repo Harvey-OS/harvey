@@ -44,9 +44,9 @@ noted(Ureg* cur, uintptr_t arg0)
 	Note note;
 	Ureg *nur;
 
-	qlock(&up->debug);
+	qlock(&(&up->debug)->qlock);
 	if(arg0 != NRSTR && !up->notified){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pprint("suicide: call to noted when not notified\n");
 		pexit("Suicide", 0);
 	}
@@ -57,7 +57,7 @@ noted(Ureg* cur, uintptr_t arg0)
 
 	/* sanity clause */
 	if(!okaddr(PTR2UINT(nf), sizeof(NFrame), 0)){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pprint("suicide: bad ureg %#p in noted\n", nf);
 		pexit("Suicide", 0);
 	}
@@ -67,7 +67,7 @@ noted(Ureg* cur, uintptr_t arg0)
 	 */
 	nur = &nf->ureg;
 	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pprint("suicide: bad segment selector (cs %p want %p, ss %p want %p), in noted\n",
 			nur->cs, SSEL(SiUCS, SsRPL3),
 			nur->ss, SSEL(SiUDS, SsRPL3)
@@ -85,22 +85,22 @@ noted(Ureg* cur, uintptr_t arg0)
 	case NCONT:
 	case NRSTR:
 		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
-			qunlock(&up->debug);
+			qunlock(&(&up->debug)->qlock);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
 				nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
 		up->ureg = nf->old;
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		break;
 	case NSAVE:
 		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
-			qunlock(&up->debug);
+			qunlock(&(&up->debug)->qlock);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
 				nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 
 		splhi();
 		nf->arg1 = nf->msg;
@@ -111,13 +111,13 @@ noted(Ureg* cur, uintptr_t arg0)
 		break;
 	default:
 		memmove(&note, &up->lastnote, sizeof(Note));
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pprint("suicide: bad arg %#p in noted: %s\n", arg0, note.msg);
 		pexit(note.msg, 0);
 		break;
 	case NDFLT:
 		memmove(&note, &up->lastnote, sizeof(Note));
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		if(note.flag == NDebug)
 			pprint("suicide: %s\n", note.msg);
 		pexit(note.msg, note.flag != NDebug);
@@ -150,7 +150,7 @@ notify(Ureg* ureg)
 	fpunotify(ureg);
 
 	pl = spllo();
-	qlock(&up->debug);
+	qlock(&(&up->debug)->qlock);
 
 	up->notepending = 0;
 	memmove(&note, &up->note[0], sizeof(Note));
@@ -162,24 +162,24 @@ notify(Ureg* ureg)
 	}
 
 	if(note.flag != NUser && (up->notified || up->notify == nil)){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		if(note.flag == NDebug)
 			pprint("suicide: %s\n", note.msg);
 		pexit(note.msg, note.flag != NDebug);
 	}
 
 	if(up->notified){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		splhi();
 		return 0;
 	}
 
 	if(up->notify == nil){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pexit(note.msg, note.flag != NDebug);
 	}
 	if(!okaddr(PTR2UINT(up->notify), sizeof(ureg->ip), 0)){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pprint("suicide: bad function address %#p in notify\n",
 			up->notify);
 		pexit("Suicide", 0);
@@ -187,7 +187,7 @@ notify(Ureg* ureg)
 
 	sp = ureg->sp - ROUNDUP(sizeof(NFrame), 16) - 128; // amd64 red zone, also wanted by go stack traces
 	if(!okaddr(sp, sizeof(NFrame), 1)){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		pprint("suicide: bad stack address %#p in notify\n", sp);
 		pexit("Suicide", 0);
 	}
@@ -212,7 +212,7 @@ notify(Ureg* ureg)
 	memmove(&up->lastnote, &note, sizeof(Note));
 	memmove(&up->note[0], &up->note[1], up->nnote*sizeof(Note));
 
-	qunlock(&up->debug);
+	qunlock(&(&up->debug)->qlock);
 	splx(pl);
 
 	return 1;

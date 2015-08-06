@@ -25,22 +25,22 @@ alarmkproc(void* v)
 
 	for(;;){
 		now = sys->ticks;
-		qlock(&alarms);
+		qlock(&(&alarms)->qlock);
 		while((rp = alarms._head) && rp->alarm <= now){
 			if(rp->alarm != 0L){
-				if(canqlock(&rp->debug)){
+				if(canqlock(&(&rp->debug)->qlock)){
 					if(!waserror()){
 						postnote(rp, 0, "alarm", NUser);
 						poperror();
 					}
-					qunlock(&rp->debug);
+					qunlock(&(&rp->debug)->qlock);
 					rp->alarm = 0L;
 				}else
 					break;
 			}
 			alarms._head = rp->palarm;
 		}
-		qunlock(&alarms);
+		qunlock(&(&alarms)->qlock);
 
 		sleep(&alarmr, return0, 0);
 	}
@@ -79,7 +79,7 @@ procalarm(uint32_t time)
 	}
 	when = ms2tk(time)+sys->ticks;
 
-	qlock(&alarms);
+	qlock(&(&alarms)->qlock);
 	l = &alarms._head;
 	for(f = *l; f; f = f->palarm) {
 		if(up == f){
@@ -106,7 +106,7 @@ procalarm(uint32_t time)
 		alarms._head = up;
 done:
 	up->alarm = when;
-	qunlock(&alarms);
+	qunlock(&(&alarms)->qlock);
 
 	return old;
 }

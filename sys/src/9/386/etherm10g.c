@@ -130,7 +130,7 @@ typedef struct {
 } Send;
 
 typedef struct {
-	QLock;
+	QLock qlock;
 	Send	*lanai;		/* tx ring (cksum+len in lanai memory) */
 	Send	*host;		/* tx ring (data in our memory) */
 	Block	**bring;
@@ -147,7 +147,7 @@ typedef struct {
 } Tx;
 
 typedef struct {
-	Lock;
+	Lock lock;
 	Block	*head;
 	uint	size;		/* buffer size of each block */
 	uint	n;		/* n free buffers */
@@ -202,7 +202,7 @@ typedef struct {
 
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
-	QLock;
+	QLock qlock;
 	int	state;
 	int	kprocs;
 	uint64_t	port;
@@ -489,7 +489,7 @@ cmd(Ctlr *c, int type, uint64_t data)
 	uint32_t buf[16], i;
 	Cmd *cmd;
 
-	qlock(&c->cmdl);
+	qlock(&(&c->cmdl)->qlock);
 	cmd = c->cmd;
 	cmd->i[1] = Noconf;
 	memset(buf, 0, sizeof buf);
@@ -508,14 +508,14 @@ cmd(Ctlr *c, int type, uint64_t data)
 		if(cmd->i[1] != Noconf){
 			poperror();
 			i = gbit32(cmd->c);
-			qunlock(&c->cmdl);
+			qunlock(&(&c->cmdl)->qlock);
 			if(cmd->i[1] != 0)
 				dprint("[%ux]", i);
 			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
-	qunlock(&c->cmdl);
+	qunlock(&(&c->cmdl)->qlock);
 	iprint("m10g: cmd timeout [%ux %ux] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
@@ -529,7 +529,7 @@ maccmd(Ctlr *c, int type, uint8_t *mac)
 	uint32_t buf[16], i;
 	Cmd *cmd;
 
-	qlock(&c->cmdl);
+	qlock(&(&c->cmdl)->qlock);
 	cmd = c->cmd;
 	cmd->i[1] = Noconf;
 	memset(buf, 0, sizeof buf);
@@ -548,14 +548,14 @@ maccmd(Ctlr *c, int type, uint8_t *mac)
 		if(cmd->i[1] != Noconf){
 			poperror();
 			i = gbit32(cmd->c);
-			qunlock(&c->cmdl);
+			qunlock(&(&c->cmdl)->qlock);
 			if(cmd->i[1] != 0)
 				dprint("[%ux]", i);
 			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
-	qunlock(&c->cmdl);
+	qunlock(&(&c->cmdl)->qlock);
 	iprint("m10g: maccmd timeout [%ux %ux] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
@@ -885,13 +885,13 @@ balloc(Rx* rx)
 {
 	Block *b;
 
-	ilock(rx->pool);
+	ilock(&rx->pool->lock);
 	if((b = rx->pool->head) != nil){
 		rx->pool->head = b->next;
 		b->next = nil;
 		rx->pool->n--;
 	}
-	iunlock(rx->pool);
+	iunlock(&rx->pool->lock);
 	return b;
 }
 
@@ -904,12 +904,12 @@ smbfree(Block *b)
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &smpool;
-	ilock(p);
+	ilock(&p->lock);
 	b->next = p->head;
 	p->head = b;
 	p->n++;
 	p->cnt++;
-	iunlock(p);
+	iunlock(&p->lock);
 }
 
 static void
@@ -921,12 +921,12 @@ bgbfree(Block *b)
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &bgpool;
-	ilock(p);
+	ilock(&p->lock);
 	b->next = p->head;
 	p->head = b;
 	p->n++;
 	p->cnt++;
-	iunlock(p);
+	iunlock(&p->lock);
 }
 
 static void
@@ -1232,7 +1232,7 @@ m10gtransmit(Ether *e)
 	tx = &c->tx;
 	segsz = tx->segsz;
 
-	qlock(tx);
+	qlock(&tx->qlock);
 	count = 0;
 	s = tx->host + (tx->i & tx->m);
 	cnt = tx->cnt;
@@ -1273,7 +1273,7 @@ m10gtransmit(Ether *e)
 			s0m8 = tx->host + ((cnt - 8) & tx->m);
 		}
 	}
-	qunlock(tx);
+	qunlock(&tx->qlock);
 }
 
 static void
@@ -1345,15 +1345,15 @@ m10gattach(Ether *e)
 
 	dprint("m10gattach\n");
 
-	qlock(e->ctlr);
+	qlock(&e->ctlr->qlock);
 	c = e->ctlr;
 	if(c->state != Detached){
-		qunlock(c);
+		qunlock(&c->qlock);
 		return;
 	}
 	if(waserror()){
 		c->state = Detached;
-		qunlock(c);
+		qunlock(&c->qlock);
 		nexterror();
 	}
 	reset(e, c);
@@ -1367,7 +1367,7 @@ m10gattach(Ether *e)
 		kproc(name, txproc, e);
 	}
 	c->state = Runed;
-	qunlock(c);
+	qunlock(&c->qlock);
 	poperror();
 }
 

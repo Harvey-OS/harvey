@@ -241,7 +241,7 @@ struct PCMconftab
 /* a card slot */
 struct PCMslot
 {
-	Lock;
+	Lock lock;
 	int	ref;
 
 	void	*cp;		/* controller for this slot */

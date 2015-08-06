@@ -109,7 +109,7 @@ void udpkick(void *x, Block *bp);
 typedef struct Udpcb Udpcb;
 struct Udpcb
 {
-	QLock;
+	QLock qlock;
 	uint8_t	headers;
 };
 
@@ -410,13 +410,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		return;	/* to avoid a warning */
 	}
 
-	qlock(udp);
+	qlock(&udp->qlock);
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
 		/* no conversation found */
 		upriv->ustats.udpNoPorts++;
-		qunlock(udp);
+		qunlock(&udp->qlock);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
 		       laddr, lport);
 
@@ -453,7 +453,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 			}
 			c = Fsnewcall(c, raddr, rport, laddr, lport, version);
 			if(c == nil){
-				qunlock(udp);
+				qunlock(&udp->qlock);
 				freeblist(bp);
 				return;
 			}
@@ -462,8 +462,8 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		}
 	}
 
-	qlock(c);
-	qunlock(udp);
+	qlock(&c->qlock);
+	qunlock(&udp->qlock);
 
 	/*
 	 * Trim the packet down to data size
@@ -481,7 +481,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		panic("udpiput4: version %d", version);
 	}
 	if(bp == nil){
-		qunlock(c);
+		qunlock(&c->qlock);
 		netlog(f, Logudp, "udp: len err %I.%d -> %I.%d\n", raddr, rport,
 		       laddr, lport);
 		upriv->lenerr++;
@@ -508,7 +508,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		bp = concatblock(bp);
 
 	if(qfull(c->rq)){
-		qunlock(c);
+		qunlock(&c->qlock);
 		netlog(f, Logudp, "udp: qfull %I.%d -> %I.%d\n", raddr, rport,
 		       laddr, lport);
 		freeblist(bp);
@@ -516,7 +516,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	}
 
 	qpass(c->rq, bp);
-	qunlock(c);
+	qunlock(&c->qlock);
 
 }
 
@@ -568,7 +568,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 	}
 
 	/* Look for a connection */
-	qlock(udp);
+	qlock(&udp->qlock);
 	for(p = udp->conv; *p; p++) {
 		s = *p;
 		if(s->rport == pdest)
@@ -577,16 +577,16 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		if(ipcmp(s->laddr, source) == 0){
 			if(s->ignoreadvice)
 				break;
-			qlock(s);
-			qunlock(udp);
+			qlock(&s->qlock);
+			qunlock(&udp->qlock);
 			qhangup(s->rq, msg);
 			qhangup(s->wq, msg);
-			qunlock(s);
+			qunlock(&s->qlock);
 			freeblist(bp);
 			return;
 		}
 	}
-	qunlock(udp);
+	qunlock(&udp->qlock);
 	freeblist(bp);
 }
 

@@ -357,12 +357,12 @@ etherread4(void *a)
 	}
 	for(;;){
 		bp = er->mchan4->dev->bread(er->mchan4, ifc->maxtu, 0);
-		if(!canrlock(ifc)){
+		if(!canrlock(&ifc->rwlock)){
 			freeb(bp);
 			continue;
 		}
 		if(waserror()){
-			runlock(ifc);
+			runlock(&ifc->rwlock);
 			nexterror();
 		}
 		ifc->in++;
@@ -371,7 +371,7 @@ etherread4(void *a)
 			freeb(bp);
 		else
 			ipiput4(er->f, ifc, bp);
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		poperror();
 	}
 }
@@ -397,12 +397,12 @@ etherread6(void *a)
 	}
 	for(;;){
 		bp = er->mchan6->dev->bread(er->mchan6, ifc->maxtu, 0);
-		if(!canrlock(ifc)){
+		if(!canrlock(&ifc->rwlock)){
 			freeb(bp);
 			continue;
 		}
 		if(waserror()){
-			runlock(ifc);
+			runlock(&ifc->rwlock);
 			nexterror();
 		}
 		ifc->in++;
@@ -411,7 +411,7 @@ etherread6(void *a)
 			freeb(bp);
 		else
 			ipiput6(er->f, ifc, bp);
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		poperror();
 	}
 }

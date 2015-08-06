@@ -75,7 +75,7 @@ i8259init(int vectorbase)
 
 	vectorbase &= ~0x07;
 
-	ilock(&i8259lock);
+	ilock(&(&i8259lock)->lock);
 
 	/*
 	 * Boilerplate to initialise the pair of 8259 controllers,
@@ -134,7 +134,7 @@ i8259init(int vectorbase)
 			outb(Elcr1, elcr & 0xff);
 		}
 	}
-	iunlock(&i8259lock);
+	iunlock(&(&i8259lock)->lock);
 
 	return vectorbase;
 }
@@ -155,14 +155,14 @@ i8259isr(int vno)
 	 * one (this could be better but it's not really
 	 * used).
 	 */
-	ilock(&i8259lock);
+	ilock(&(&i8259lock)->lock);
 	isr = inb(Cntrl1+Isr);
 	outb(Cntrl1+Ocw2, Ocw2sel|Eoi);
 	if(irq >= 8){
 		isr |= inb(Cntrl2+Isr)<<8;
 		outb(Cntrl2+Ocw2, Ocw2sel|Eoi);
 	}
-	iunlock(&i8259lock);
+	iunlock(&(&i8259lock)->lock);
 
 	return isr & (1<<irq);
 }
@@ -186,10 +186,10 @@ i8259irqenable(Vctl* v)
 	}
 	irqbit = 1<<irq;
 
-	ilock(&i8259lock);
+	ilock(&(&i8259lock)->lock);
 	if(!(i8259mask & irqbit) && !(i8259elcr & irqbit)){
 		print("i8259enable: irq %d shared but not level\n", irq);
-		iunlock(&i8259lock);
+		iunlock(&(&i8259lock)->lock);
 		return -1;
 	}
 	i8259mask &= ~irqbit;
@@ -202,7 +202,7 @@ i8259irqenable(Vctl* v)
 		v->eoi = i8259isr;
 	else
 		v->isr = i8259isr;
-	iunlock(&i8259lock);
+	iunlock(&(&i8259lock)->lock);
 
 	v->type = "8259";
 	return IdtPIC+irq;
@@ -223,7 +223,7 @@ i8259irqdisable(int irq)
 	}
 	irqbit = 1<<irq;
 
-	ilock(&i8259lock);
+	ilock(&(&i8259lock)->lock);
 	if(!(i8259mask & irqbit)){
 		i8259mask |= irqbit;
 		if(irq < 8)
@@ -231,7 +231,7 @@ i8259irqdisable(int irq)
 		else
 			outb(Cntrl2+Imr, (i8259mask>>8) & 0xff);
 	}
-	iunlock(&i8259lock);
+	iunlock(&(&i8259lock)->lock);
 
 	return 0;
 }

@@ -46,7 +46,7 @@ static char *flagname[] = {
 
 typedef struct Ctlr Ctlr;
 struct Ctlr{
-	QLock;
+	QLock qlock;
 
 	Ctlr	*next;
 	SDunit	*unit;
@@ -189,11 +189,11 @@ ctlrlookup(char *path)
 {
 	Ctlr *c;
 
-	lock(&ctlrlock);
+	lock(&(&ctlrlock)->lock);
 	for(c = head; c; c = c->next)
 		if(strcmp(c->path, path) == 0)
 			break;
-	unlock(&ctlrlock);
+	unlock(&(&ctlrlock)->lock);
 	return c;
 }
 
@@ -209,13 +209,13 @@ newctlr(char *path)
 	if((c = malloc(sizeof *c)) == nil)
 		return 0;
 	kstrcpy(c->path, path, sizeof c->path);
-	lock(&ctlrlock);
+	lock(&(&ctlrlock)->lock);
 	if(head != nil)
 		tail->next = c;
 	else
 		head = c;
 	tail = c;
-	unlock(&ctlrlock);
+	unlock(&(&ctlrlock)->lock);
 	return c;
 }
 
@@ -224,13 +224,13 @@ delctlr(Ctlr *c)
 {
 	Ctlr *x, *prev;
 
-	lock(&ctlrlock);
+	lock(&(&ctlrlock)->lock);
 
 	for(prev = 0, x = head; x; prev = x, x = c->next)
 		if(strcmp(c->path, x->path) == 0)
 			break;
 	if(x == 0){
-		unlock(&ctlrlock);
+		unlock(&(&ctlrlock)->lock);
 		error(Enonexist);
 	}
 
@@ -240,7 +240,7 @@ delctlr(Ctlr *c)
 		head = x->next;
 	if(x->next == nil)
 		tail = prev;
-	unlock(&ctlrlock);
+	unlock(&(&ctlrlock)->lock);
 
 	if(x->c)
 		cclose(x->c);
@@ -394,9 +394,9 @@ aoeverify(SDunit *u)
 static int
 aoeconnect(SDunit *u, Ctlr *c)
 {
-	qlock(c);
+	qlock(&c->qlock);
 	if(waserror()){
-		qunlock(c);
+		qunlock(&c->qlock);
 		return -1;
 	}
 
@@ -406,7 +406,7 @@ aoeconnect(SDunit *u, Ctlr *c)
 	c->c = 0;
 	uprint("%s/data", c->path);
 	c->c = namec(up->genbuf, Aopen, ORDWR, 0);
-	qunlock(c);
+	qunlock(&c->qlock);
 	poperror();
 
 	return 0;

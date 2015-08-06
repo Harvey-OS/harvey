@@ -25,7 +25,7 @@ typedef struct Zq Zq;
 
 struct Zq
 {
-	Lock;			/* to protect Zq */
+	Lock lock;			/* to protect Zq */
 	QLock	rlck;		/* one reader at a time */
 	Kzio*	io;		/* io[] */
 	Kzio*	ep;		/* end pointer */
@@ -38,7 +38,7 @@ struct Zq
 
 struct ZPipe
 {
-	QLock;
+	QLock qlock;
 	ZPipe	*next;
 	int	ref;
 	uint32_t	path;
@@ -48,7 +48,7 @@ struct ZPipe
 
 struct
 {
-	Lock;
+	Lock lock;
 	uint32_t	path;
 } zpalloc;
 
@@ -113,18 +113,18 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 	char *p;
 
 	DBG("zqread %ld\n", count);
-	qlock(&q->rlck);
-	lock(q);
+	qlock(&(&q->rlck)->qlock);
+	lock(&q->lock);
 	if(waserror()){
-		unlock(q);
-		qunlock(&q->rlck);
+		unlock(&q->lock);
+		qunlock(&(&q->rlck)->qlock);
 		nexterror();
 	}
 	while(q->closed == 0 && ZQLEN(q) == 0){
 		q->waiting++;
-		unlock(q);
+		unlock(&q->lock);
 		sleep(&q->rr, zqnotempty, q);
-		lock(q);
+		lock(&q->lock);
 	}
 	i = 0;
 	for(tot = 0; ZQLEN(q) > 0 && i < nio && tot < count; tot += nr){
@@ -157,8 +157,8 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 		q->rp = q->wp = q->io;
 	zqdump(q);
 	poperror();
-	unlock(q);
-	qunlock(&q->rlck);
+	unlock(&q->lock);
+	qunlock(&(&q->rlck)->qlock);
 	return i;
 }
 
@@ -176,9 +176,9 @@ zqwrite(Zq *q, Kzio io[], int nio)
 	Proc *up = externup();
 	int i, ei, ri, wi, awake;
 
-	lock(q);
+	lock(&q->lock);
 	if(waserror()){
-		unlock(q);
+		unlock(&q->lock);
 		nexterror();
 	}
 
@@ -217,7 +217,7 @@ zqwrite(Zq *q, Kzio io[], int nio)
 		q->waiting--;
 	zqdump(q);
 	poperror();
-	unlock(q);
+	unlock(&q->lock);
 	if(awake)
 		wakeup(&q->rr);
 	return nio;
@@ -226,15 +226,15 @@ zqwrite(Zq *q, Kzio io[], int nio)
 static void
 zqflush(Zq *q)
 {
-	lock(q);
+	lock(&q->lock);
 	for(;q->rp < q->wp; q->rp++){
-		qlock(&q->rp->seg->lk);
+		qlock(&(&q->rp->seg->lk)->qlock);
 		zputaddr(q->rp->seg, PTR2UINT(q->rp->data));
-		qunlock(&q->rp->seg->lk);
+		qunlock(&(&q->rp->seg->lk)->qlock);
 		putseg(q->rp->seg);
 	}
 	q->rp = q->wp = q->io;
-	unlock(q);
+	unlock(&q->lock);
 }
 
 static void
@@ -273,9 +273,9 @@ zpattach(char *spec)
 		exhausted("memory");
 	p->ref = 1;
 
-	lock(&zpalloc);
+	lock(&(&zpalloc)->lock);
 	p->path = ++zpalloc.path;
-	unlock(&zpalloc);
+	unlock(&(&zpalloc)->lock);
 
 	mkqid(&c->qid, ZPQID(2*p->path, Qdir), 0, QTDIR);
 	c->aux = p;
@@ -326,7 +326,7 @@ zpwalk(Chan *c, Chan *nc, char **name, int nname)
 	wq = devwalk(c, nc, name, nname, zpdir, NZPDIR, zpgen);
 	if(wq != nil && wq->clone != nil && wq->clone != c){
 		p = c->aux;
-		qlock(p);
+		qlock(&p->qlock);
 		p->ref++;
 		if(c->flag & COPEN){
 			print("channel open in zpwalk\n");
@@ -339,7 +339,7 @@ zpwalk(Chan *c, Chan *nc, char **name, int nname)
 				break;
 			}
 		}
-		qunlock(p);
+		qunlock(&p->qlock);
 	}
 	return wq;
 }
@@ -389,7 +389,7 @@ zpopen(Chan *c, int omode)
 	}
 
 	p = c->aux;
-	qlock(p);
+	qlock(&p->qlock);
 	switch(ZPTYPE(c->qid.path)){
 	case Qdata0:
 		p->qref[0]++;
@@ -398,7 +398,7 @@ zpopen(Chan *c, int omode)
 		p->qref[1]++;
 		break;
 	}
-	qunlock(p);
+	qunlock(&p->qlock);
 
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -413,7 +413,7 @@ zpclose(Chan *c)
 	ZPipe *p;
 
 	p = c->aux;
-	qlock(p);
+	qlock(&p->qlock);
 
 	if(c->flag & COPEN){
 		/*
@@ -450,10 +450,10 @@ zpclose(Chan *c)
 	 */
 	p->ref--;
 	if(p->ref == 0){
-		qunlock(p);
+		qunlock(&p->qlock);
 		free(p);
 	} else
-		qunlock(p);
+		qunlock(&p->qlock);
 }
 
 static int32_t

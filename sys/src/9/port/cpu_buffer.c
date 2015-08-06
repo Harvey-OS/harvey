@@ -365,13 +365,13 @@ log_sample(struct oprofile_cpu_buffer *cpu_buf, unsigned long pc,
 	 * this function returns 0 in event of failure.
 	 * what a cluster.
 	 */
-	lock(&cpu_buf->lock);
+	lock(&(&cpu_buf->lock)->lock);
 	if (op_add_code(cpu_buf, backtrace, is_kernel, tsk))
 		goto fail;
 
 	if (op_add_sample(cpu_buf, pc, event))
 		goto fail;
-	unlock(&cpu_buf->lock);
+	unlock(&(&cpu_buf->lock)->lock);
 
 	//print_func_exit();
 	return 1;
@@ -401,7 +401,7 @@ void oprofile_cpubuf_flushone(int core, int newbuf)
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf;
 	cpu_buf = &op_cpu_buffer[core];
-	lock(&cpu_buf->lock);
+	lock(&(&cpu_buf->lock)->lock);
 	if (cpu_buf->block) {
 		print("Core %d has data\n", core);
 		qibwrite(opq, cpu_buf->block);
@@ -411,7 +411,7 @@ void oprofile_cpubuf_flushone(int core, int newbuf)
 		cpu_buf->block = iallocb(oprofile_cpu_buffer_size);
 	else
 		cpu_buf->block = nil;
-	unlock(&cpu_buf->lock);
+	unlock(&(&cpu_buf->lock)->lock);
 	//print_func_exit();
 }
 

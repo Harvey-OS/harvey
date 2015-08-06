@@ -294,7 +294,7 @@ typedef struct Ctlr {
 	Prd*	prdt;			/* physical region descriptor table */
 	void	(*irqack)(Ctlr*);	/* call to extinguish ICH intrs */
 
-	QLock;				/* current command */
+	QLock qlock;				/* current command */
 	Drive*	curdrive;
 	int	command;		/* last command issued (debugging) */
 	Rendez 	_rendez;
@@ -305,7 +305,7 @@ typedef struct Ctlr {
 	uint32_t	intbusy;		/* controller still busy */
 	uint32_t	intok;			/* normal */
 
-	Lock;				/* register access */
+	Lock lock;				/* register access */
 } Ctlr;
 
 typedef struct Drive {
@@ -331,7 +331,7 @@ typedef struct Drive {
 	uint8_t	sense[18];
 	uint8_t	inquiry[48];
 
-	QLock;				/* drive access */
+	QLock qlock;				/* drive access */
 	int	command;		/* current command */
 	int	write;
 	uint8_t*	data;
@@ -1034,17 +1034,17 @@ atastandby(Drive* drive, int period)
 
 	ctlr = drive->ctlr;
 	drive->command = Cstandby;
-	qlock(ctlr);
+	qlock(&ctlr->qlock);
 
 	cmdport = ctlr->cmdport;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	outb(cmdport+Count, period);
 	outb(cmdport+Dh, drive->dev);
 	ctlr->done = 0;
 	ctlr->curdrive = drive;
 	ctlr->command = Cstandby;	/* debugging */
 	outb(cmdport+Command, Cstandby);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	while(waserror())
 		;
@@ -1052,7 +1052,7 @@ atastandby(Drive* drive, int period)
 	poperror();
 
 	done = ctlr->done;
-	qunlock(ctlr);
+	qunlock(&ctlr->qlock);
 
 	if(!done || (drive->status & Err))
 		return atasetsense(drive, SDcheck, 4, 8, drive->error);
@@ -1100,7 +1100,7 @@ ataabort(Drive* drive, int dolock)
 	 * must try a software reset.
 	 */
 	if(dolock)
-		ilock(drive->ctlr);
+		ilock(&drive->ctlr->lock);
 	if(drive->info[Icsfs] & Mnop)
 		atanop(drive, 0);
 	else{
@@ -1108,7 +1108,7 @@ ataabort(Drive* drive, int dolock)
 		drive->error |= Abrt;
 	}
 	if(dolock)
-		iunlock(drive->ctlr);
+		iunlock(&drive->ctlr->lock);
 }
 
 static int
@@ -1295,16 +1295,16 @@ atapktio(Drive* drive, uint8_t* cmd, int clen)
 	cmdport = ctlr->cmdport;
 	ctlport = ctlr->ctlport;
 
-	qlock(ctlr);
+	qlock(&ctlr->qlock);
 
 	as = ataready(cmdport, ctlport, drive->dev, Bsy|Drq, Drdy, 107*1000);
 	/* used to test as&Chk as failure too, but some CD readers use that for media change */
 	if(as < 0){
-		qunlock(ctlr);
+		qunlock(&ctlr->qlock);
 		return -1;
 	}
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(drive->dlen && drive->dmactl && !atadmasetup(drive, drive->dlen))
 		drive->pktdma = Dma;
 	else
@@ -1335,7 +1335,7 @@ atapktio(Drive* drive, uint8_t* cmd, int clen)
 		}else
 			atapktinterrupt(drive);
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	while(waserror())
 		;
@@ -1345,7 +1345,7 @@ atapktio(Drive* drive, uint8_t* cmd, int clen)
 		tsleep(&ctlr->_rendez, atadone, ctlr, 1000);
 		if(ctlr->done)
 			break;
-		ilock(ctlr);
+		ilock(&ctlr->lock);
 		atadmainterrupt(drive, 0);
 		if(!drive->error && timeo > 20){
 			ataabort(drive, 0);
@@ -1357,11 +1357,11 @@ atapktio(Drive* drive, uint8_t* cmd, int clen)
 			drive->status |= Chk;
 			ctlr->curdrive = nil;
 		}
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 	}
 	poperror();
 
-	qunlock(ctlr);
+	qunlock(&ctlr->qlock);
 
 	if(drive->status & Chk)
 		r = SDcheck;
@@ -1411,7 +1411,7 @@ atageniostart(Drive* drive, uint64_t lba)
 	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, Drdy, 101*1000) < 0)
 		return -1;
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(drive->dmactl && !atadmasetup(drive, drive->count*drive->secsize)){
 		if(drive->write)
 			drive->command = Cwd;
@@ -1468,7 +1468,7 @@ atageniostart(Drive* drive, uint64_t lba)
 		/* 10*1000 for flash ide drives - maybe detect them? */
 		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 10*1000);
 		if(as < 0 || (as & Err)){
-			iunlock(ctlr);
+			iunlock(&ctlr->lock);
 			return -1;
 		}
 		len = drive->block;
@@ -1482,7 +1482,7 @@ atageniostart(Drive* drive, uint64_t lba)
 		atadmastart(ctlr, drive->write);
 		break;
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	return 0;
 }
@@ -1630,7 +1630,7 @@ atagenio(Drive* drive, uint8_t* cmd, int clen)
 		return SDok;
 	if(drive->dlen < count*drive->secsize)
 		count = drive->dlen/drive->secsize;
-	qlock(ctlr);
+	qlock(&ctlr->qlock);
 	if(ctlr->maxio)
 		maxio = ctlr->maxio;
 	else if(drive->flags & Lba48)
@@ -1643,10 +1643,10 @@ atagenio(Drive* drive, uint8_t* cmd, int clen)
 		else
 			drive->count = count;
 		if(atageniostart(drive, lba)){
-			ilock(ctlr);
+			ilock(&ctlr->lock);
 			atanop(drive, 0);
-			iunlock(ctlr);
-			qunlock(ctlr);
+			iunlock(&ctlr->lock);
+			qunlock(&ctlr->qlock);
 			return atagenioretry(drive);
 		}
 
@@ -1663,18 +1663,18 @@ atagenio(Drive* drive, uint8_t* cmd, int clen)
 			 */
 			atadumpstate(drive, cmd, lba, count);
 			ataabort(drive, 1);
-			qunlock(ctlr);
+			qunlock(&ctlr->qlock);
 			return atagenioretry(drive);
 		}
 
 		if(drive->status & Err){
-			qunlock(ctlr);
+			qunlock(&ctlr->qlock);
 			return atasetsense(drive, SDcheck, 4, 8, drive->error);
 		}
 		count -= drive->count;
 		lba += drive->count;
 	}
-	qunlock(ctlr);
+	qunlock(&ctlr->qlock);
 
 	return SDok;
 }
@@ -1722,7 +1722,7 @@ atario(SDreq* r)
 		break;
 	}
 
-	qlock(drive);
+	qlock(&drive->qlock);
 retry:
 	drive->write = r->write;
 	drive->data = r->data;
@@ -1768,7 +1768,7 @@ retry:
 			atasetsense(drive, SDok, 0, 0, 0);
 		}
 	}
-	qunlock(drive);
+	qunlock(&drive->qlock);
 	r->status = status;
 	if(status != SDok)
 		return status;
@@ -1813,10 +1813,10 @@ atainterrupt(Ureg *ureg, void* arg)
 
 	ctlr = arg;
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(inb(ctlr->ctlport+As) & Bsy){
 		ctlr->intbusy++;
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		if(DEBUG & DbgBsy)
 			print("IBsy+");
 		return;
@@ -1827,7 +1827,7 @@ atainterrupt(Ureg *ureg, void* arg)
 		ctlr->intnil++;
 		if(ctlr->irqack != nil)
 			ctlr->irqack(ctlr);
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		if((DEBUG & DbgINL) && ctlr->command != Cedd)
 			print("Inil%2.2uX+", ctlr->command);
 		return;
@@ -1898,7 +1898,7 @@ atainterrupt(Ureg *ureg, void* arg)
 	}
 	if(ctlr->irqack != nil)
 		ctlr->irqack(ctlr);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	if(drive->error){
 		status |= Err;
@@ -2254,7 +2254,7 @@ atarctl(SDunit* unit, char* p, int l)
 		return 0;
 	drive = ctlr->drive[unit->subno];
 
-	qlock(drive);
+	qlock(&drive->qlock);
 	n = snprint(p, l, "config %4.4uX capabilities %4.4uX",
 		drive->info[Iconfig], drive->info[Icapabilities]);
 	if(drive->dma)
@@ -2277,7 +2277,7 @@ atarctl(SDunit* unit, char* p, int l)
 				drive->c, drive->h, drive->s);
 		n += snprint(p+n, l-n, "\n");
 	}
-	qunlock(drive);
+	qunlock(&drive->qlock);
 
 	return n;
 }
@@ -2294,9 +2294,9 @@ atawctl(SDunit* unit, Cmdbuf* cb)
 		return 0;
 	drive = ctlr->drive[unit->subno];
 
-	qlock(drive);
+	qlock(&drive->qlock);
 	if(waserror()){
-		qunlock(drive);
+		qunlock(&drive->qlock);
 		nexterror();
 	}
 
@@ -2352,7 +2352,7 @@ atawctl(SDunit* unit, Cmdbuf* cb)
 	}
 	else
 		error(Ebadctl);
-	qunlock(drive);
+	qunlock(&drive->qlock);
 	poperror();
 
 	return 0;

@@ -490,10 +490,10 @@ static Ctlr	*ctlrtail;
 static void
 i82563im(Ctlr* ctlr, int im)
 {
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	ctlr->im |= im;
 	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 }
 
 static void
@@ -566,7 +566,7 @@ i82563transmit(Ether* edev)
 	int tdh;
 
 	ctlr = edev->ctlr;
-	ilock(&ctlr->tdlock);
+	ilock(&(&ctlr->tdlock)->lock);
 
 	/*
 	 * Free any completed packets
@@ -605,7 +605,7 @@ i82563transmit(Ether* edev)
 		tb->owner = Host;	/* give descriptor back */
 		edev->ti = NEXT(edev->ti, edev->ntb);
 	}
-	iunlock(&ctlr->tdlock);
+	iunlock(&(&ctlr->tdlock)->lock);
 }
 
 static void
@@ -665,7 +665,7 @@ i82563interrupt(Ureg*, void* arg)
 	edev = arg;
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
 
@@ -711,7 +711,7 @@ i82563interrupt(Ureg*, void* arg)
 	}
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 	if(txdw)
 		i82563transmit(edev);
 }
@@ -990,11 +990,11 @@ i82563reset(Ctlr* ctlr)
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
 
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	csr32w(ctlr, Imc, ~0);
 	ctlr->im = 0;		/* was = Lsc, which hangs some controllers */
 	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 
 	return 0;
 }

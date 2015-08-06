@@ -35,9 +35,9 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 			psdecref(p);
 			continue;
 		}
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 		if(p->pid == 0 || p->noteid != noteid){
-			qunlock(&p->debug);
+			qunlock(&(&p->debug)->qlock);
 			psdecref(p);
 			continue;
 		}
@@ -45,7 +45,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 			postnote(p, 0, buf, flag);
 			poperror();
 		}
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		psdecref(p);
 	}
 }
@@ -86,24 +86,24 @@ closepgrp(Pgrp *p)
 	if(decref(p) != 0)
 		return;
 
-	qlock(&p->debug);
-	wlock(&p->ns);
+	qlock(&(&p->debug)->qlock);
+	wlock(&(&p->ns)->rwlock);
 	p->pgrpid = -1;
 
 	e = &p->mnthash[MNTHASH];
 	for(h = p->mnthash; h < e; h++) {
 		for(f = *h; f; f = next) {
-			wlock(&f->lock);
+			wlock(&(&f->lock)->rwlock);
 			cclose(f->from);
 			mountfree(f->mount);
 			f->mount = nil;
 			next = f->hash;
-			wunlock(&f->lock);
+			wunlock(&(&f->lock)->rwlock);
 			putmhead(f);
 		}
 	}
-	wunlock(&p->ns);
-	qunlock(&p->debug);
+	wunlock(&(&p->ns)->rwlock);
+	qunlock(&(&p->debug)->qlock);
 	free(p);
 }
 
@@ -138,13 +138,13 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	Mount *n, *mount, **link, *order;
 	Mhead *f, **tom, **l, *mh;
 
-	wlock(&from->ns);
+	wlock(&(&from->ns)->rwlock);
 	order = 0;
 	tom = to->mnthash;
 	for(i = 0; i < MNTHASH; i++) {
 		l = tom++;
 		for(f = from->mnthash[i]; f; f = f->hash) {
-			rlock(&f->lock);
+			rlock(&(&f->lock)->rwlock);
 			mh = newmhead(f->from);
 			*l = mh;
 			l = &mh->hash;
@@ -156,17 +156,17 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 				*link = n;
 				link = &n->next;
 			}
-			runlock(&f->lock);
+			runlock(&(&f->lock)->rwlock);
 		}
 	}
 	/*
 	 * Allocate mount ids in the same sequence as the parent group
 	 */
-	lock(&mountid);
+	lock(&(&mountid)->lock);
 	for(mount = order; mount != nil; mount = mount->order)
 		mount->copy->mountid = mountid.ref++;
-	unlock(&mountid);
-	wunlock(&from->ns);
+	unlock(&(&mountid)->lock);
+	wunlock(&(&from->ns)->rwlock);
 }
 
 Fgrp*
@@ -184,7 +184,7 @@ dupfgrp(Fgrp *f)
 		return new;
 	}
 
-	lock(f);
+	lock(&f->lock);
 	/* Make new fd list shorter if possible, preserving quantization */
 	new->nfd = f->maxfd+1;
 	i = new->nfd%DELTAFD;
@@ -192,7 +192,7 @@ dupfgrp(Fgrp *f)
 		new->nfd += DELTAFD - i;
 	new->fd = malloc(new->nfd*sizeof(Chan*));
 	if(new->fd == nil){
-		unlock(f);
+		unlock(&f->lock);
 		free(new);
 		error("no memory for fgrp");
 	}
@@ -205,7 +205,7 @@ dupfgrp(Fgrp *f)
 			new->fd[i] = c;
 		}
 	}
-	unlock(f);
+	unlock(&f->lock);
 
 	return new;
 }

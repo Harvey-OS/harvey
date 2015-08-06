@@ -86,13 +86,13 @@ getgseg(Chan *c)
 	Globalseg *g;
 
 	x = SEG(c);
-	lock(&globalseglock);
+	lock(&(&globalseglock)->lock);
 	if(x >= nelem(globalseg))
 		panic("getgseg");
 	g = globalseg[x];
 	if(g != nil)
 		incref(g);
-	unlock(&globalseglock);
+	unlock(&(&globalseglock)->lock);
 	if(g == nil)
 		error("global segment disappeared");
 	return g;
@@ -135,17 +135,17 @@ segmentgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 		if(s >= nelem(globalseg))
 			return -1;
 
-		lock(&globalseglock);
+		lock(&(&globalseglock)->lock);
 		g = globalseg[s];
 		if(g == nil){
-			unlock(&globalseglock);
+			unlock(&(&globalseglock)->lock);
 			return 0;
 		}
 		q.vers = 0;
 		q.path = PATH(s, Qsegdir);
 		q.type = QTDIR;
 		devdir(c, q, g->name, 0, g->uid, DMDIR|0777, dp);
-		unlock(&globalseglock);
+		unlock(&(&globalseglock)->lock);
 
 		break;
 	case Qsegdir:
@@ -263,9 +263,9 @@ segmentopen(Chan *c, int omode)
 		if(g->s == nil)
 			error("segment not yet allocated");
 		if(g->kproc == nil){
-			qlock(&g->l);
+			qlock(&(&g->l)->qlock);
 			if(waserror()){
-				qunlock(&g->l);
+				qunlock(&(&g->l)->qlock);
 				nexterror();
 			}
 			if(g->kproc == nil){
@@ -274,7 +274,7 @@ segmentopen(Chan *c, int omode)
 				docmd(g, Cstart);
 			}
 			poperror();
-			qunlock(&g->l);
+			qunlock(&(&g->l)->qlock);
 		}
 		c->aux = g;
 		poperror();
@@ -315,7 +315,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 		error("must create directory");
 
 	if(waserror()){
-		unlock(&globalseglock);
+		unlock(&(&globalseglock)->lock);
 		nexterror();
 	}
 	xfree = -1;
@@ -327,7 +327,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 		else if(xfree < 0 || xfree >= nelem(globalseg))
 			error("invalid global segment index");
 	}
-	lock(&globalseglock);
+	lock(&(&globalseglock)->lock);
 	if(xfree < 0){
 		for(x = 0; x < nelem(globalseg); x++){
 			g = globalseg[x];
@@ -352,7 +352,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 	kstrdup(&g->uid, up->user);
 	g->perm = 0660;
 	globalseg[xfree] = g;
-	unlock(&globalseglock);
+	unlock(&(&globalseglock)->lock);
 	poperror();
 
 	c->qid.path = PATH(xfree, Qsegdir);
@@ -406,15 +406,15 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 		if(n < PTRSIZE)
 			error("read buffer too small");
 		zs = &g->s->zseg;
-		qlock(&g->s->lk);
+		qlock(&(&g->s->lk)->qlock);
 		if(waserror()){
-			qunlock(&g->s->lk);
+			qunlock(&(&g->s->lk)->qlock);
 			nexterror();
 		}
 		while((va = zgetaddr(g->s)) == 0ULL){
-			qunlock(&g->s->lk);
+			qunlock(&(&g->s->lk)->qlock);
 			sleep(&zs->rr, znotempty, zs);
-			qlock(&g->s->lk);
+			qlock(&(&g->s->lk)->qlock);
 		}
 		p = a;
 		for(tot = 0; n-tot > PTRSIZE; tot += PTRSIZE){
@@ -423,7 +423,7 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 				break;
 		}
 		poperror();
-		qunlock(&g->s->lk);
+		qunlock(&(&g->s->lk)->qlock);
 		return tot;
 	case Qctl:
 		if(g->s == nil)
@@ -445,9 +445,9 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 			if(n <= 0)
 				break;
 		}
-		qlock(&g->l);
+		qlock(&(&g->l)->qlock);
 		if(waserror()){
-			qunlock(&g->l);
+			qunlock(&(&g->l)->qlock);
 			nexterror();
 		}
 
@@ -464,7 +464,7 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 		free(g->data);
 
 		poperror();
-		qunlock(&g->l);
+		qunlock(&(&g->l)->qlock);
 		return g->dlen;
 	default:
 		panic("segmentread");
@@ -485,11 +485,11 @@ placeseg(uintptr_t len)
 	uintptr_t v;
 
 	len += BIGPGSZ;	/* so we fault upon overflows */
-	lock(&lck);
+	lock(&(&lck)->lock);
 	len = BIGPGROUND(len);
 	va -= len;
 	v = va;
-	unlock(&lck);
+	unlock(&(&lck)->lock);
 
 	return v;
 }
@@ -569,9 +569,9 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 			if(n <= 0)
 				break;
 		}
-		qlock(&g->l);
+		qlock(&(&g->l)->qlock);
 		if(waserror()){
-			qunlock(&g->l);
+			qunlock(&(&g->l)->qlock);
 			nexterror();
 		}
 
@@ -588,7 +588,7 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 		free(g->data);
 
 		poperror();
-		qunlock(&g->l);
+		qunlock(&(&g->l)->qlock);
 		break;
 	default:
 		panic("segmentwrite");
@@ -641,11 +641,11 @@ segmentremove(Chan *c)
 
 	if(TYPE(c) != Qsegdir)
 		error(Eperm);
-	lock(&globalseglock);
+	lock(&(&globalseglock)->lock);
 	x = SEG(c);
 	g = globalseg[x];
 	globalseg[x] = nil;
-	unlock(&globalseglock);
+	unlock(&(&globalseglock)->lock);
 	if(g != nil)
 		putgseg(g);
 }
@@ -663,17 +663,17 @@ globalsegattach(Proc *p, char *name)
 
 	g = nil;
 	if(waserror()){
-		unlock(&globalseglock);
+		unlock(&(&globalseglock)->lock);
 		nexterror();
 	}
-	lock(&globalseglock);
+	lock(&(&globalseglock)->lock);
 	for(x = 0; x < nelem(globalseg); x++){
 		g = globalseg[x];
 		if(g != nil && strcmp(g->name, name) == 0)
 			break;
 	}
 	if(x == nelem(globalseg)){
-		unlock(&globalseglock);
+		unlock(&(&globalseglock)->lock);
 		poperror();
 		return nil;
 	}
@@ -684,7 +684,7 @@ globalsegattach(Proc *p, char *name)
 	if(isoverlap(p, s->base, s->top - s->base) != nil)
 		error("overlaps existing segment");
 	incref(s);
-	unlock(&globalseglock);
+	unlock(&(&globalseglock)->lock);
 	poperror();
 	return s;
 }
@@ -725,7 +725,7 @@ segmentkproc(void *arg)
 	int done;
 	int sno;
 
-	qlock(&up->seglock);
+	qlock(&(&up->seglock)->qlock);
 	for(sno = 0; sno < NSEG; sno++)
 		if(up->seg[sno] == nil)
 			break;
@@ -735,7 +735,7 @@ segmentkproc(void *arg)
 
 	incref(g->s);
 	up->seg[sno] = g->s;
-	qunlock(&up->seglock);
+	qunlock(&(&up->seglock)->qlock);
 
 	for(done = 0; !done;){
 		sleep(&g->cmdwait, cmdready, g);

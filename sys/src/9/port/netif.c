@@ -328,11 +328,11 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 	buf[n] = 0;
 
 	if(waserror()){
-		qunlock(nif);
+		qunlock(&nif->qlock);
 		nexterror();
 	}
 
-	qlock(nif);
+	qlock(&nif->qlock);
 	f = nif->f[NETID(c->qid.path)];
 	if((p = matchtoken(buf, "connect")) != 0){
 		qclose(f->iq);
@@ -394,7 +394,7 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 			error(p);
 	} else
 		n = -1;
-	qunlock(nif);
+	qunlock(&nif->qlock);
 	poperror();
 	return n;
 }
@@ -449,37 +449,37 @@ netifclose(Netif *nif, Chan *c)
 		return;
 
 	f = nif->f[NETID(c->qid.path)];
-	qlock(f);
+	qlock(&f->qlock);
 	if(--(f->inuse) == 0){
 		if(f->prom){
-			qlock(nif);
+			qlock(&nif->qlock);
 			if(--(nif->prom) == 0 && nif->promiscuous != nil)
 				nif->promiscuous(nif->arg, 0);
-			qunlock(nif);
+			qunlock(&nif->qlock);
 			f->prom = 0;
 		}
 		if(f->scan){
-			qlock(nif);
+			qlock(&nif->qlock);
 			if(--(nif->_scan) == 0 && nif->scanbs != nil)
 				nif->scanbs(nif->arg, 0);
-			qunlock(nif);
+			qunlock(&nif->qlock);
 			f->prom = 0;
 			f->scan = 0;
 		}
 		if(f->nmaddr){
-			qlock(nif);
+			qlock(&nif->qlock);
 			t = 0;
 			for(ap = nif->maddr; ap; ap = ap->next){
 				if(f->maddr[t/8] & (1<<(t%8)))
 					netmulti(nif, f, ap->addr, 0);
 			}
-			qunlock(nif);
+			qunlock(&nif->qlock);
 			f->nmaddr = 0;
 		}
 		if(f->type < 0){
-			qlock(nif);
+			qlock(&nif->qlock);
 			--(nif->all);
-			qunlock(nif);
+			qunlock(&nif->qlock);
 		}
 		f->owner[0] = 0;
 		f->type = 0;
@@ -487,7 +487,7 @@ netifclose(Netif *nif, Chan *c)
 		f->headersonly = 0;
 		qclose(f->iq);
 	}
-	qunlock(f);
+	qunlock(&f->qlock);
 }
 
 Lock netlock;
@@ -499,7 +499,7 @@ netown(Netfile *p, char *o, int omode)
 	int mode;
 	int t;
 
-	lock(&netlock);
+	lock(&(&netlock)->lock);
 	if(*p->owner){
 		if(strncmp(o, p->owner, KNAMELEN) == 0)	/* User */
 			mode = p->mode;
@@ -510,16 +510,16 @@ netown(Netfile *p, char *o, int omode)
 
 		t = access[omode&3];
 		if((t & mode) == t){
-			unlock(&netlock);
+			unlock(&(&netlock)->lock);
 			return 0;
 		} else {
-			unlock(&netlock);
+			unlock(&(&netlock)->lock);
 			return -1;
 		}
 	}
 	strncpy(p->owner, o, KNAMELEN);
 	p->mode = 0660;
-	unlock(&netlock);
+	unlock(&(&netlock)->lock);
 	return 0;
 }
 
@@ -537,16 +537,16 @@ openfile(Netif *nif, int id)
 		f = nif->f[id];
 		if(f == 0)
 			error(Enodev);
-		qlock(f);
+		qlock(&f->qlock);
 		qreopen(f->iq);
 		f->inuse++;
-		qunlock(f);
+		qunlock(&f->qlock);
 		return id;
 	}
 
-	qlock(nif);
+	qlock(&nif->qlock);
 	if(waserror()){
-		qunlock(nif);
+		qunlock(&nif->qlock);
 		nexterror();
 	}
 	efp = &nif->f[nif->nfile];
@@ -562,19 +562,19 @@ openfile(Netif *nif, int id)
 				exhausted("memory");
 			}
 			*fp = f;
-			qlock(f);
+			qlock(&f->qlock);
 		} else {
-			qlock(f);
+			qlock(&f->qlock);
 			if(f->inuse){
-				qunlock(f);
+				qunlock(&f->qlock);
 				continue;
 			}
 		}
 		f->inuse = 1;
 		qreopen(f->iq);
 		netown(f, up->user, 0);
-		qunlock(f);
-		qunlock(nif);
+		qunlock(&f->qlock);
+		qunlock(&nif->qlock);
 		poperror();
 		return fp - nif->f;
 	}

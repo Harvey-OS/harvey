@@ -277,7 +277,7 @@ ipgetfs(int dev)
 	if(dev >= Nfs)
 		return nil;
 
-	qlock(&fslock);
+	qlock(&(&fslock)->qlock);
 	if(ipfs[dev] == nil){
 		f = smalloc(sizeof(Fs));
 		ip_init(f);
@@ -288,7 +288,7 @@ ipgetfs(int dev)
 		f->dev = dev;
 		ipfs[dev] = f;
 	}
-	qunlock(&fslock);
+	qunlock(&(&fslock)->qlock);
 
 	return ipfs[dev];
 }
@@ -418,13 +418,13 @@ ipopen(Chan* c, int omode)
 		break;
 	case Qclone:
 		p = f->p[PROTO(c->qid)];
-		qlock(p);
+		qlock(&p->qlock);
 		if(waserror()){
-			qunlock(p);
+			qunlock(&p->qlock);
 			nexterror();
 		}
 		cv = Fsprotoclone(p, ATTACHER(c));
-		qunlock(p);
+		qunlock(&p->qlock);
 		poperror();
 		if(cv == nil) {
 			error(Enodev);
@@ -436,12 +436,12 @@ ipopen(Chan* c, int omode)
 	case Qctl:
 	case Qerr:
 		p = f->p[PROTO(c->qid)];
-		qlock(p);
+		qlock(&p->qlock);
 		cv = p->conv[CONV(c->qid)];
-		qlock(cv);
+		qlock(&cv->qlock);
 		if(waserror()) {
-			qunlock(cv);
-			qunlock(p);
+			qunlock(&cv->qlock);
+			qunlock(&p->qlock);
 			nexterror();
 		}
 		if((perm & (cv->perm>>6)) != perm) {
@@ -456,8 +456,8 @@ ipopen(Chan* c, int omode)
 			kstrdup(&cv->owner, ATTACHER(c));
 			cv->perm = 0660;
 		}
-		qunlock(cv);
-		qunlock(p);
+		qunlock(&cv->qlock);
+		qunlock(&p->qlock);
 		poperror();
 		break;
 	case Qlisten:
@@ -477,9 +477,9 @@ ipopen(Chan* c, int omode)
 			closeconv(cv);
 			nexterror();
 		}
-		qlock(cv);
+		qlock(&cv->qlock);
 		cv->inuse++;
-		qunlock(cv);
+		qunlock(&cv->qlock);
 
 		nc = nil;
 		while(nc == nil) {
@@ -487,25 +487,25 @@ ipopen(Chan* c, int omode)
 			if(qisclosed(cv->rq))
 				error("listen hungup");
 
-			qlock(&cv->listenq);
+			qlock(&(&cv->listenq)->qlock);
 			if(waserror()) {
-				qunlock(&cv->listenq);
+				qunlock(&(&cv->listenq)->qlock);
 				nexterror();
 			}
 
 			/* wait for a connect */
 			sleep(&cv->listenr, incoming, cv);
 
-			qlock(cv);
+			qlock(&cv->qlock);
 			nc = cv->incall;
 			if(nc != nil){
 				cv->incall = nc->next;
 				mkqid(&c->qid, QID(PROTO(c->qid), nc->x, Qctl), 0, QTFILE);
 				kstrdup(&cv->owner, ATTACHER(c));
 			}
-			qunlock(cv);
+			qunlock(&cv->qlock);
 
-			qunlock(&cv->listenq);
+			qunlock(&(&cv->listenq)->qlock);
 			poperror();
 		}
 		closeconv(cv);
@@ -567,10 +567,10 @@ closeconv(Conv *cv)
 	Conv *nc;
 	Ipmulti *mp;
 
-	qlock(cv);
+	qlock(&cv->qlock);
 
 	if(--cv->inuse > 0) {
-		qunlock(cv);
+		qunlock(&cv->qlock);
 		return;
 	}
 
@@ -591,7 +591,7 @@ closeconv(Conv *cv)
 	cv->rgen = 0;
 	cv->p->close(cv);
 	cv->state = Idle;
-	qunlock(cv);
+	qunlock(&cv->qlock);
 }
 
 static void
@@ -757,7 +757,7 @@ setluniqueport(Conv* c, int lport)
 
 	p = c->p;
 
-	qlock(p);
+	qlock(&p->qlock);
 	for(x = 0; x < p->nc; x++){
 		xp = p->conv[x];
 		if(xp == nil)
@@ -769,12 +769,12 @@ setluniqueport(Conv* c, int lport)
 		&& xp->rport == c->rport
 		&& ipcmp(xp->raddr, c->raddr) == 0
 		&& ipcmp(xp->laddr, c->laddr) == 0){
-			qunlock(p);
+			qunlock(&p->qlock);
 			return "address in use";
 		}
 	}
 	c->lport = lport;
-	qunlock(p);
+	qunlock(&p->qlock);
 	return nil;
 }
 
@@ -802,7 +802,7 @@ setlport(Conv* c)
 	int i, port;
 
 	p = c->p;
-	qlock(p);
+	qlock(&p->qlock);
 	if(c->restricted){
 		/* Restricted ports cycle between 600 and 1024. */
 		for(i=0; i<1024-600; i++){
@@ -829,7 +829,7 @@ setlport(Conv* c)
 				goto chosen;
 		}
 	}
-	qunlock(p);
+	qunlock(&p->qlock);
 	/*
 	 * debugging: let's see if we ever get this.
 	 * if we do (and we're a cpu server), we might as well restart
@@ -840,7 +840,7 @@ setlport(Conv* c)
 
 chosen:
 	c->lport = port;
-	qunlock(p);
+	qunlock(&p->qlock);
 	return nil;
 }
 
@@ -984,13 +984,13 @@ connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 	if(p != nil)
 		error(p);
 
-	qunlock(c);
+	qunlock(&c->qlock);
 	if(waserror()){
-		qlock(c);
+		qlock(&c->qlock);
 		nexterror();
 	}
 	sleep(&c->cr, connected, c);
-	qlock(c);
+	qlock(&c->qlock);
 	poperror();
 
 	if(c->cerr[0] != '\0')
@@ -1038,13 +1038,13 @@ announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 	if(p != nil)
 		error(p);
 
-	qunlock(c);
+	qunlock(&c->qlock);
 	if(waserror()){
-		qlock(c);
+		qlock(&c->qlock);
 		nexterror();
 	}
 	sleep(&c->cr, announced, c);
-	qlock(c);
+	qlock(&c->qlock);
 	poperror();
 
 	if(c->cerr[0] != '\0')
@@ -1140,9 +1140,9 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 		c = x->conv[CONV(ch->qid)];
 		cb = parsecmd(a, n);
 
-		qlock(c);
+		qlock(&c->qlock);
 		if(waserror()) {
-			qunlock(c);
+			qunlock(&c->qlock);
 			free(cb);
 			nexterror();
 		}
@@ -1197,7 +1197,7 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 				error(p);
 		} else
 			error("unknown control request");
-		qunlock(c);
+		qunlock(&c->qlock);
 		free(cb);
 		poperror();
 	}
@@ -1306,7 +1306,7 @@ retry:
 			c = malloc(sizeof(Conv));
 			if(c == nil)
 				error(Enomem);
-			qlock(c);
+			qlock(&c->qlock);
 			c->p = p;
 			c->x = pp - p->conv;
 			if(p->ptclsize != 0){
@@ -1322,7 +1322,7 @@ retry:
 			(*p->create)(c);
 			break;
 		}
-		if(canqlock(c)){
+		if(canqlock(&c->qlock)){
 			/*
 			 *  make sure both processes and protocol
 			 *  are done with this Conv
@@ -1330,7 +1330,7 @@ retry:
 			if(c->inuse == 0 && (p->inuse == nil || (*p->inuse)(c) == 0))
 				break;
 
-			qunlock(c);
+			qunlock(&c->qlock);
 		}
 	}
 	if(pp >= ep) {
@@ -1361,7 +1361,7 @@ retry:
 	qreopen(c->wq);
 	qreopen(c->eq);
 
-	qunlock(c);
+	qunlock(&c->qlock);
 	return c;
 }
 
@@ -1411,14 +1411,14 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	Conv **l;
 	int i;
 
-	qlock(c);
+	qlock(&c->qlock);
 	i = 0;
 	for(l = &c->incall; *l; l = &(*l)->next)
 		i++;
 	if(i >= Maxincall) {
 		static int beenhere;
 
-		qunlock(c);
+		qunlock(&c->qlock);
 		if (!beenhere) {
 			beenhere = 1;
 			print("Fsnewcall: incall queue full (%d) on port %d\n",
@@ -1430,7 +1430,7 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	/* find a free conversation */
 	nc = Fsprotoclone(c->p, network);
 	if(nc == nil) {
-		qunlock(c);
+		qunlock(&c->qlock);
 		return nil;
 	}
 	ipmove(nc->raddr, raddr);
@@ -1442,7 +1442,7 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lpor
 	nc->state = Connected;
 	nc->ipversion = version;
 
-	qunlock(c);
+	qunlock(&c->qlock);
 
 	wakeup(&c->listenr);
 

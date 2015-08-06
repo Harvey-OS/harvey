@@ -74,7 +74,7 @@ struct IGMPrep
 typedef struct IGMP IGMP;
 struct IGMP
 {
-	Lock;
+	Lock lock;
 	Rendez	r;
 	IGMPrep	*reports;
 };
@@ -136,7 +136,7 @@ igmpproc(void *a)
 	for(;;){
 		sleep(&igmpalloc.r, isreport, 0);
 		for(;;){
-			lock(&igmpalloc);
+			lock(&(&igmpalloc)->lock);
 
 			if(igmpalloc.reports == nil)
 				break;
@@ -165,7 +165,7 @@ igmpproc(void *a)
 					free(rp);
 				}
 			}
-			unlock(&igmpalloc);
+			unlock(&(&igmpalloc)->lock);
 
 			if(mp){
 				/* do a single report and try again */
@@ -177,7 +177,7 @@ igmpproc(void *a)
 
 			tsleep(&up->sleep, return0, 0, MSPTICK);
 		}
-		unlock(&igmpalloc);
+		unlock(&(&igmpalloc)->lock);
 	}
 
 }
@@ -210,7 +210,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 
 	group = nhgetl(ghp->group);
 
-	lock(&igmpalloc);
+	lock(&(&igmpalloc)->lock);
 	switch(ghp->vertype & 0xf){
 	case IGMPquery:
 		/*
@@ -272,7 +272,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 
 		break;
 	}
-	unlock(&igmpalloc);
+	unlock(&(&igmpalloc)->lock);
 
 error:
 	freeb(bp);

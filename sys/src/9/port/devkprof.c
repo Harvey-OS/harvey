@@ -27,7 +27,7 @@ struct
 	int	nbuf;
 	int	time;
 	uint32_t	*buf;
-	Lock l;
+	Lock lock;
 }kprof;
 
 enum{
@@ -93,7 +93,7 @@ _kproftimer(uintptr_t pc)
 	if(pc>=PTR2UINT(spllo) && pc<=PTR2UINT(spldone))
 		pc = machp()->splpc;
 
-	ilock(&kprof.l);
+	ilock(&(&kprof.l)->lock);
 	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;
@@ -101,7 +101,7 @@ _kproftimer(uintptr_t pc)
 		kprof.buf[pc] += TK2MS(1);
 	}else
 		kprof.buf[1] += TK2MS(1);
-	iunlock(&kprof.l);
+	iunlock(&(&kprof.l)->lock);
 }
 
 static void

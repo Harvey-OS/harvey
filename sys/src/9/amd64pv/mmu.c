@@ -165,11 +165,11 @@ mmuptpalloc(void)
 	 * Could keep a cache and free excess.
 	 * Have to maintain any fiction for pexit?
 	 */
-	lock(&mmuptpfreelist);
+	lock(&(&mmuptpfreelist)->lock);
 	if((page = mmuptpfreelist.next) != nil){
 		mmuptpfreelist.next = page->next;
 		mmuptpfreelist.ref--;
-		unlock(&mmuptpfreelist);
+		unlock(&(&mmuptpfreelist)->lock);
 
 		if(page->ref++ != 0)
 			panic("mmuptpalloc ref\n");
@@ -180,7 +180,7 @@ mmuptpalloc(void)
 			panic("mmuptpalloc: free page with pa == 0");
 		return page;
 	}
-	unlock(&mmuptpfreelist);
+	unlock(&(&mmuptpfreelist)->lock);
 
 	if((page = malloc(sizeof(Page))) == nil){
 		print("mmuptpalloc Page\n");
@@ -252,12 +252,12 @@ mmurelease(Proc* proc)
 		next = page->next;
 		if(--page->ref)
 			panic("mmurelease: page->ref %d\n", page->ref);
-		lock(&mmuptpfreelist);
+		lock(&(&mmuptpfreelist)->lock);
 		page->next = mmuptpfreelist.next;
 		mmuptpfreelist.next = page;
 		mmuptpfreelist.ref++;
 		page->prev = nil;
-		unlock(&mmuptpfreelist);
+		unlock(&(&mmuptpfreelist)->lock);
 	}
 	if(proc->mmuptp[0] && pga.r.p)
 		wakeup(&pga.r);
@@ -687,12 +687,12 @@ vmap(uintptr_t pa, usize size)
 		print("vmap(0, %lud) pc=%#p\n", size, getcallerpc(&pa));
 		return nil;
 	}
-	ilock(&vmaplock);
+	ilock(&(&vmaplock)->lock);
 	if((va = vmapalloc(sz)) == 0 || pdmap(pa, PtePCD|PteRW, va, sz) < 0){
-		iunlock(&vmaplock);
+		iunlock(&(&vmaplock)->lock);
 		return nil;
 	}
-	iunlock(&vmaplock);
+	iunlock(&(&vmaplock)->lock);
 
 	DBG("vmap(%#p, %lud) => %#p\n", pa+o, size, va+o);
 

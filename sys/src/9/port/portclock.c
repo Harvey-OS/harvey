@@ -17,7 +17,7 @@
 
 struct Timers
 {
-	Lock;
+	Lock lock;
 	Timer	*head;
 };
 
@@ -117,19 +117,19 @@ timeradd(Timer *nt)
 	int64_t when;
 
 	/* Must lock Timer struct before Timers struct */
-	ilock(nt);
+	ilock(&nt->lock);
 	if(tt = nt->tt){
-		ilock(tt);
+		ilock(&tt->lock);
 		tdel(nt);
-		iunlock(tt);
+		iunlock(&tt->lock);
 	}
 	tt = &timers[machp()->machno];
-	ilock(tt);
+	ilock(&tt->lock);
 	when = tadd(tt, nt);
 	if(when)
 		timerset(when);
-	iunlock(tt);
-	iunlock(nt);
+	iunlock(&tt->lock);
+	iunlock(&nt->lock);
 }
 
 
@@ -139,15 +139,15 @@ timerdel(Timer *dt)
 	Timers *tt;
 	int64_t when;
 
-	ilock(dt);
+	ilock(&dt->lock);
 	if(tt = dt->tt){
-		ilock(tt);
+		ilock(&tt->lock);
 		when = tdel(dt);
 		if(when && tt == &timers[machp()->machno])
 			timerset(tt->head->twhen);
-		iunlock(tt);
+		iunlock(&tt->lock);
 	}
-	iunlock(dt);
+	iunlock(&dt->lock);
 }
 
 void
@@ -203,7 +203,7 @@ timerintr(Ureg *u, int64_t j)
 	callhzclock = 0;
 	tt = &timers[machp()->machno];
 	now = fastticks(nil);
-	ilock(tt);
+	ilock(&tt->lock);
 	while(t = tt->head){
 		/*
 		 * No need to ilock t here: any manipulation of t
@@ -214,7 +214,7 @@ timerintr(Ureg *u, int64_t j)
 		when = t->twhen;
 		if(when > now){
 			timerset(when);
-			iunlock(tt);
+			iunlock(&tt->lock);
 			if(callhzclock)
 				hzclock(u);
 			return;
@@ -223,16 +223,16 @@ timerintr(Ureg *u, int64_t j)
 		assert(t->tt == tt);
 		t->tt = nil;
 		fcallcount[machp()->machno]++;
-		iunlock(tt);
+		iunlock(&tt->lock);
 		if(t->tf)
 			(*t->tf)(u, t);
 		else
 			callhzclock++;
-		ilock(tt);
+		ilock(&tt->lock);
 		if(t->tmode == Tperiodic)
 			tadd(tt, t);
 	}
-	iunlock(tt);
+	iunlock(&tt->lock);
 }
 
 void
@@ -267,11 +267,11 @@ addclock0link(void (*f)(void), int ms)
 	nt->tt = nil;
 	nt->tf = (void (*)(Ureg*, Timer*))f;
 
-	ilock(&timers[0]);
+	ilock(&(&timers[0])->lock);
 	when = tadd(&timers[0], nt);
 	if(when)
 		timerset(when);
-	iunlock(&timers[0]);
+	iunlock(&(&timers[0])->lock);
 	return nt;
 }
 

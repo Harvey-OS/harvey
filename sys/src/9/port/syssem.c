@@ -39,7 +39,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 
 	DBG("semwakeup up %#p sem %#p\n", up, s->np);
 	if(dolock)
-		lock(s);
+		lock(&s->lock);
 	/*
 	 * If there are more processes sleeping than |*s->np| then
 	 * there are ups not yet seen by sleepers, wake up those that
@@ -66,7 +66,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 		}
 	}
 	if(dolock)
-		unlock(s);
+		unlock(&s->lock);
 }
 
 static void
@@ -88,14 +88,14 @@ semsleep(Sem *s, int dontblock)
 		semwakeup(s, 1, 1);
 		return;
 	}
-	lock(s);
+	lock(&s->lock);
 	if(*s->np >= 0){
 		/*
 		 * A ticket came, either it came while calling the kernel,
 		 * or it was a temporary sleep that didn't block.
 		 * Either way, we are done.
 		 */
-		unlock(s);
+		unlock(&s->lock);
 		goto Done;
 	}
 	/*
@@ -108,7 +108,7 @@ semsleep(Sem *s, int dontblock)
 	s->q[s->nq++] = up;
 	up->waitsem = nil;
 	up->state = Semdown;
-	unlock(s);
+	unlock(&s->lock);
 	DBG("semsleep up %#p blocked\n", up);
 	sched();
 Done:
@@ -118,10 +118,10 @@ Done:
 		 * nobody did awake us, we are probably being
 		 * killed; we no longer want a ticket.
 		 */
-		lock(s);
+		lock(&s->lock);
 		semainc(s->np);	/* we are no longer waiting; killed */
 		semwakeup(s, 1, 0);
-		unlock(s);
+		unlock(&s->lock);
 	}
 }
 
@@ -180,7 +180,7 @@ semdequeue(Sem *s)
 	int i;
 
 	assert(s != nil);
-	lock(s);
+	lock(&s->lock);
 	for(i = 0; i < s->nq; i++)
 		if(s->q[i] == up)
 			break;
@@ -197,7 +197,7 @@ semdequeue(Sem *s)
 		s->nq--;
 		s->q[i] = s->q[s->nq];
 	}
-	unlock(s);
+	unlock(&s->lock);
 }
 
 /*
@@ -220,12 +220,12 @@ semalt(Sem *ss[], int n)
 			r = i;
 			goto Done;
 		}
-		lock(s);
+		lock(&s->lock);
 		s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
 		if(s->q == nil)
 			panic("semalt: not enough memory");
 		s->q[s->nq++] = up;
-		unlock(s);
+		unlock(&s->lock);
 	}
 
 	DBG("semalt up %#p blocked\n", up);

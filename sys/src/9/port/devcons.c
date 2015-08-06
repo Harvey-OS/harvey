@@ -89,7 +89,7 @@ kmesgputs(char *str, int n)
 {
 	uint nn, d;
 
-	ilock(&kmesg.lk);
+	ilock(&(&kmesg.lk)->lock);
 	/* take the tail of huge writes */
 	if(n > sizeof kmesg.buf){
 		d = n - sizeof kmesg.buf;
@@ -110,7 +110,7 @@ kmesgputs(char *str, int n)
 	memmove(kmesg.buf+nn, str, n);
 	nn += n;
 	kmesg.n = nn;
-	iunlock(&kmesg.lk);
+	iunlock(&(&kmesg.lk)->lock);
 }
 
 /*
@@ -194,7 +194,7 @@ iprint(char *fmt, ...)
 				consdevs[i].fn(buf, n);
 		}
 	if(locked)
-		unlock(&iprintlock);
+		unlock(&(&iprintlock)->lock);
 	splx(pl);
 
 	return n;
@@ -277,9 +277,9 @@ pprint(char *fmt, ...)
 	c->dev->write(c, buf, n, c->offset);
 	poperror();
 
-	lock(c);
+	lock(&c->lock);
 	c->offset += n;
-	unlock(c);
+	unlock(&c->lock);
 
 	return n;
 }

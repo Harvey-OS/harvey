@@ -221,13 +221,13 @@ espconnect(Conv *c, char **argv, int argc)
 		ecb->incoming = 0;
 		ecb->seq = 0;
 		if(strcmp(p, "*") == 0) {
-			qlock(c->p);
+			qlock(&c->p->qlock);
 			for(;;) {
 				spi = nrand(1<<16) + 256;
 				if(convlookup(c->p, spi) == nil)
 					break;
 			}
-			qunlock(c->p);
+			qunlock(&c->p->qlock);
 			ecb->spi = spi;
 			ecb->incoming = 1;
 			qhangup(c->wq, nil);
@@ -369,14 +369,14 @@ espkick(void *x)
 	if(bp == nil)
 		return;
 
-	qlock(c);
+	qlock(&c->qlock);
 	ecb = c->ptcl;
 
 	if(ecb->header) {
 		/* make sure the message has a User header */
 		bp = pullupblock(bp, Userhdrlen);
 		if(bp == nil) {
-			qunlock(c);
+			qunlock(&c->qlock);
 			return;
 		}
 		uh = (Userhdr*)bp->rp;
@@ -444,7 +444,7 @@ espkick(void *x)
 	ecb->auth(ecb, bp->rp + vers.iphdrlen, (vers.hdrlen - vers.iphdrlen) +
 		payload + pad + Esptaillen, auth);
 
-	qunlock(c);
+	qunlock(&c->qlock);
 	/* print("esp: pass down: %uld\n", BLEN(bp)); */
 	if (vers.version == V4)
 		ipoput4(c->p->f, bp, 0, c->ttl, c->tos, c);
@@ -480,11 +480,11 @@ espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 	}
 	getpktspiaddrs(bp->rp, &vers);
 
-	qlock(esp);
+	qlock(&esp->qlock);
 	/* Look for a conversation structure for this port */
 	c = convlookup(esp, vers.spi);
 	if(c == nil) {
-		qunlock(esp);
+		qunlock(&esp->qlock);
 		netlog(f, Logesp, "esp: no conv %I -> %I!%lud\n", vers.raddr,
 			vers.laddr, vers.spi);
 		icmpnoconv(f, bp);
@@ -492,8 +492,8 @@ espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 		return;
 	}
 
-	qlock(c);
-	qunlock(esp);
+	qlock(&c->qlock);
+	qunlock(&esp->qlock);
 
 	ecb = c->ptcl;
 	/* too hard to do decryption/authentication on block lists */
@@ -501,7 +501,7 @@ espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 		bp = concatblock(bp);
 
 	if(BLEN(bp) < vers.hdrlen + ecb->espivlen + Esptaillen + ecb->ahlen) {
-		qunlock(c);
+		qunlock(&c->qlock);
 		netlog(f, Logesp, "esp: short block %I -> %I!%lud\n", vers.raddr,
 			vers.laddr, vers.spi);
 		freeb(bp);
@@ -514,7 +514,7 @@ espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 
 	/* compute secure hash and authenticate */
 	if(!ecb->auth(ecb, espspi, auth - espspi, auth)) {
-		qunlock(c);
+		qunlock(&c->qlock);
 print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
 		netlog(f, Logesp, "esp: bad auth %I -> %I!%lud\n", vers.raddr,
 			vers.laddr, vers.spi);
@@ -524,7 +524,7 @@ print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
 
 	payload = BLEN(bp) - vers.hdrlen - ecb->ahlen;
 	if(payload <= 0 || payload % 4 != 0 || payload % ecb->espblklen != 0) {
-		qunlock(c);
+		qunlock(&c->qlock);
 		netlog(f, Logesp, "esp: bad length %I -> %I!%lud payload=%d BLEN=%lud\n",
 			vers.raddr, vers.laddr, vers.spi, payload, BLEN(bp));
 		freeb(bp);
@@ -533,7 +533,7 @@ print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
 
 	/* decrypt payload */
 	if(!ecb->cipher(ecb, bp->rp + vers.hdrlen, payload)) {
-		qunlock(c);
+		qunlock(&c->qlock);
 print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi, up->errstr);
 		netlog(f, Logesp, "esp: cipher failed %I -> %I!%lud: %s\n",
 			vers.raddr, vers.laddr, vers.spi, up->errstr);
@@ -546,7 +546,7 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi,
 	payload -= et->pad + ecb->espivlen;
 	nexthdr = et->nexthdr;
 	if(payload <= 0) {
-		qunlock(c);
+		qunlock(&c->qlock);
 		netlog(f, Logesp, "esp: short packet after decrypt %I -> %I!%lud\n",
 			vers.raddr, vers.laddr, vers.spi);
 		freeb(bp);
@@ -575,7 +575,7 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi,
 		qpass(c->rq, bp);	/* pass packet up the read queue */
 	}
 
-	qunlock(c);
+	qunlock(&c->qlock);
 }
 
 char*
@@ -607,13 +607,13 @@ espadvise(Proto *esp, Block *bp, char *msg)
 	getverslens(pktipvers(esp->f, &bp), &vers);
 	getpktspiaddrs(bp->rp, &vers);
 
-	qlock(esp);
+	qlock(&esp->qlock);
 	c = convlookup(esp, vers.spi);
 	if(c != nil) {
 		qhangup(c->rq, msg);
 		qhangup(c->wq, msg);
 	}
-	qunlock(esp);
+	qunlock(&esp->qlock);
 	freeblist(bp);
 }
 
@@ -634,12 +634,12 @@ esplocal(Conv *c, char *buf, int len)
 	Espcb *ecb = c->ptcl;
 	int n;
 
-	qlock(c);
+	qlock(&c->qlock);
 	if(ecb->incoming)
 		n = snprint(buf, len, "%I!%uld\n", c->laddr, ecb->spi);
 	else
 		n = snprint(buf, len, "%I\n", c->laddr);
-	qunlock(c);
+	qunlock(&c->qlock);
 	return n;
 }
 
@@ -649,12 +649,12 @@ espremote(Conv *c, char *buf, int len)
 	Espcb *ecb = c->ptcl;
 	int n;
 
-	qlock(c);
+	qlock(&c->qlock);
 	if(ecb->incoming)
 		n = snprint(buf, len, "%I\n", c->raddr);
 	else
 		n = snprint(buf, len, "%I!%uld\n", c->raddr, ecb->spi);
-	qunlock(c);
+	qunlock(&c->qlock);
 	return n;
 }
 

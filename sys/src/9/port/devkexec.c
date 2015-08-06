@@ -62,7 +62,7 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 	print("getting kg name %s\n", name);
 
 	kg = kexecgrp(c);
-	rlock(kg);
+	rlock(&kg->rwlock);
 	e = 0;
 	if(name) {
 		addr = strtoull(name, nil, 0);
@@ -73,7 +73,7 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 		e = kg->ent[s];
 
 	if(e == 0) {
-		runlock(kg);
+		runlock(&kg->rwlock);
 		return -1;
 	}
 
@@ -84,7 +84,7 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 	print("e qid %d e->addr 0x%p size %ld len %ld\n", e->qid, e->addr, e->size, e->len);
 
 	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
-	runlock(kg);
+	runlock(&kg->rwlock);
 	print("finished gen\n");
 
 	return 1;
@@ -140,15 +140,15 @@ kexecopen(Chan *c, int omode)
 		if(omode != OREAD && !kexecwriteable(c))
 			error(Eperm);
 		if(trunc)
-			wlock(kg);
+			wlock(&kg->rwlock);
 		else
-			rlock(kg);
+			rlock(&kg->rwlock);
 		e = kexeclookup(kg, 0, c->qid.path);
 		if(e == 0) {
 			if(trunc)
-				wunlock(kg);
+				wunlock(&kg->rwlock);
 			else
-				runlock(kg);
+				runlock(&kg->rwlock);
 			error(Enonexist);
 		}
 		if(trunc && e->size) { // better validity check?
@@ -157,9 +157,9 @@ kexecopen(Chan *c, int omode)
 			e->len = 0;
 		}
 		if(trunc)
-			wunlock(kg);
+			wunlock(&kg->rwlock);
 		else
-			runlock(kg);
+			runlock(&kg->rwlock);
 	}
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -184,9 +184,9 @@ kexeccreate(Chan *c, char *name, int omode, int i)
 	omode = openmode(omode);
 	kg = kexecgrp(c);
 
-	wlock(kg);
+	wlock(&kg->rwlock);
 	if(waserror()) {
-		wunlock(kg);
+		wunlock(&kg->rwlock);
 		nexterror();
 	}
 
@@ -210,7 +210,7 @@ kexeccreate(Chan *c, char *name, int omode, int i)
 	kg->ent[kg->nent++] = e;
 	c->qid = e->qid;
 
-	wunlock(kg);
+	wunlock(&kg->rwlock);
 	poperror();
 
 	c->offset = 0;
@@ -229,7 +229,7 @@ kexecremove(Chan *c)
 		error(Eperm);
 
 	kg = kexecgrp(c);
-	wlock(kg);
+	wlock(&kg->rwlock);
 	e = 0;
 	for(i=0; i<kg->nent; i++){
 		if(kg->ent[i]->qid.path == c->qid.path){
@@ -240,7 +240,7 @@ kexecremove(Chan *c)
 			break;
 		}
 	}
-	wunlock(kg);
+	wunlock(&kg->rwlock);
 	if(e == 0)
 		error(Enonexist);
 	free(e);
@@ -269,10 +269,10 @@ kexecread(Chan *c, void *a, int32_t n, int64_t off)
 		return devdirread(c, a, n, 0, 0, kexecgen);
 
 	kg = kexecgrp(c);
-	rlock(kg);
+	rlock(&kg->rwlock);
 	e = kexeclookup(kg, 0, c->qid.path);
 	if(e == 0) {
-		runlock(kg);
+		runlock(&kg->rwlock);
 		error(Enonexist);
 	}
 
@@ -285,7 +285,7 @@ kexecread(Chan *c, void *a, int32_t n, int64_t off)
 		n = 0;
 //	else
 //		memmove(a, e->value+offset, n);
-	runlock(kg);
+	runlock(&kg->rwlock);
 	return n;
 }
 
@@ -329,10 +329,10 @@ kexecwrite(Chan *c, void *a, int32_t n, int64_t off)
 		error(Etoobig);
 	print("a: %s\n", a);
 	kg = kexecgrp(c);
-	wlock(kg);
+	wlock(&kg->rwlock);
 	e = kexeclookup(kg, 0, c->qid.path);
 	if(e == 0) {
-		wunlock(kg);
+		wunlock(&kg->rwlock);
 		error(Enonexist);
 	}
 
@@ -340,7 +340,7 @@ kexecwrite(Chan *c, void *a, int32_t n, int64_t off)
 
 	e->qid.vers++;
 	kg->vers++;
-	wunlock(kg);
+	wunlock(&kg->rwlock);
 	return n;
 }
 
@@ -371,7 +371,7 @@ kexeccpy(Kexecgrp *to, Kexecgrp *from)
 	int i;
 	Kvalue *ne, *e;
 
-	rlock(from);
+	rlock(&from->rwlock);
 	to->ment = (from->nent+31)&~31;
 	to->ent = smalloc(to->ment*sizeof(to->ent[0]));
 	for(i=0; i<from->nent; i++){
@@ -383,7 +383,7 @@ kexeccpy(Kexecgrp *to, Kexecgrp *from)
 		to->ent[i] = ne;
 	}
 	to->nent = from->nent;
-	runlock(from);
+	runlock(&from->rwlock);
 }
 
 void

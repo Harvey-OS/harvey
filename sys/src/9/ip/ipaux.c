@@ -282,10 +282,10 @@ iphtadd(Ipht *ht, Conv *c)
 	}
 	h->c = c;
 
-	lock(ht);
+	lock(&ht->lock);
 	h->next = ht->tab[hv];
 	ht->tab[hv] = h;
-	unlock(ht);
+	unlock(&ht->lock);
 }
 
 void
@@ -295,7 +295,7 @@ iphtrem(Ipht *ht, Conv *c)
 	Iphash **l, *h;
 
 	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
-	lock(ht);
+	lock(&ht->lock);
 	for(l = &ht->tab[hv]; (*l) != nil; l = &(*l)->next)
 		if((*l)->c == c){
 			h = *l;
@@ -303,7 +303,7 @@ iphtrem(Ipht *ht, Conv *c)
 			free(h);
 			break;
 		}
-	unlock(ht);
+	unlock(&ht->lock);
 }
 
 /* look for a matching conversation with the following precedence
@@ -322,14 +322,14 @@ iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 
 	/* exact 4 pair match (connection) */
 	hv = iphash(sa, sp, da, dp);
-	lock(ht);
+	lock(&ht->lock);
 	for(h = ht->tab[hv]; h != nil; h = h->next){
 		if(h->match != IPmatchexact)
 			continue;
 		c = h->c;
 		if(sp == c->rport && dp == c->lport
 		&& ipcmp(sa, c->raddr) == 0 && ipcmp(da, c->laddr) == 0){
-			unlock(ht);
+			unlock(&ht->lock);
 			return c;
 		}
 	}
@@ -341,7 +341,7 @@ iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 			continue;
 		c = h->c;
 		if(dp == c->lport && ipcmp(da, c->laddr) == 0){
-			unlock(ht);
+			unlock(&ht->lock);
 			return c;
 		}
 	}
@@ -353,7 +353,7 @@ iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 			continue;
 		c = h->c;
 		if(dp == c->lport){
-			unlock(ht);
+			unlock(&ht->lock);
 			return c;
 		}
 	}
@@ -365,7 +365,7 @@ iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 			continue;
 		c = h->c;
 		if(ipcmp(da, c->laddr) == 0){
-			unlock(ht);
+			unlock(&ht->lock);
 			return c;
 		}
 	}
@@ -376,9 +376,9 @@ iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 		if(h->match != IPmatchany)
 			continue;
 		c = h->c;
-		unlock(ht);
+		unlock(&ht->lock);
 		return c;
 	}
-	unlock(ht);
+	unlock(&ht->lock);
 	return nil;
 }

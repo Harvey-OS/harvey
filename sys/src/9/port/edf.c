@@ -97,7 +97,7 @@ edflock(Proc *p)
 
 	if (p->edf == nil)
 		return nil;
-	ilock(&thelock);
+	ilock(&(&thelock)->lock);
 	if((e = p->edf) && (e->flags & Admitted)){
 		thelock._pc = getcallerpc(&p);
 #ifdef EDFCYCLES
@@ -106,7 +106,7 @@ edflock(Proc *p)
 		now = ms();
 		return e;
 	}
-	iunlock(&thelock);
+	iunlock(&(&thelock)->lock);
 	return nil;
 }
 
@@ -118,7 +118,7 @@ edfunlock(void)
 	edfcycles += lcycles();
 #endif
 	edfnrun++;
-	iunlock(&thelock);
+	iunlock(&(&thelock)->lock);
 }
 
 void
@@ -372,9 +372,9 @@ edfadmit(Proc *p)
 	if (e->C > e->D)
 		return "C > D";
 
-	qlock(&edfschedlock);
+	qlock(&(&edfschedlock)->qlock);
 	if (err = testschedulability(p)){
-		qunlock(&edfschedlock);
+		qunlock(&(&edfschedlock)->qlock);
 		return err;
 	}
 	e->flags |= Admitted;
@@ -413,7 +413,7 @@ edfadmit(Proc *p)
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			p->ta = p;
 			edfunlock();
-			qunlock(&edfschedlock);
+			qunlock(&(&edfschedlock)->qlock);
 			releaseintr(nil, p);
 			return nil;
 		}
@@ -440,7 +440,7 @@ edfadmit(Proc *p)
 		}
 	}
 	edfunlock();
-	qunlock(&edfschedlock);
+	qunlock(&(&edfschedlock)->qlock);
 	return nil;
 }
 
@@ -575,7 +575,7 @@ edfready(Proc *p)
 	sch = procsched(p);
 	rq = &sch->runq[PriEdf];
 	/* insert in queue in earliest deadline order */
-	lock(sch);
+	lock(&sch->lock);
 	l = nil;
 	for(pp = rq->head; pp; pp = pp->rnext){
 		if(pp->edf->d > e->d)
@@ -595,7 +595,7 @@ edfready(Proc *p)
 	p->priority = PriEdf;
 	p->readytime = machp()->ticks;
 	p->state = Ready;
-	unlock(sch);
+	unlock(&sch->lock);
 	if(p->trace)
 		proctrace(p, SReady, 0);
 	return 1;

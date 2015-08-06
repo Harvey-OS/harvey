@@ -22,7 +22,7 @@ enum
 
 struct
 {
-	Lock;
+	Lock lock;
 	int	fid;
 	Chan	*free;
 	Chan	*list;
@@ -133,19 +133,19 @@ newchan(void)
 {
 	Chan *c;
 
-	lock(&chanalloc);
+	lock(&(&chanalloc)->lock);
 	c = chanalloc.free;
 	if(c != 0)
 		chanalloc.free = c->next;
-	unlock(&chanalloc);
+	unlock(&(&chanalloc)->lock);
 
 	if(c == nil){
 		c = smalloc(sizeof(Chan));
-		lock(&chanalloc);
+		lock(&(&chanalloc)->lock);
 		c->fid = ++chanalloc.fid;
 		c->link = chanalloc.list;
 		chanalloc.list = c;
-		unlock(&chanalloc);
+		unlock(&(&chanalloc)->lock);
 	}
 
 	c->dev = nil;
@@ -378,10 +378,10 @@ chanfree(Chan *c)
 	pathclose(c->path);
 	c->path = nil;
 
-	lock(&chanalloc);
+	lock(&(&chanalloc)->lock);
 	c->next = chanalloc.free;
 	chanalloc.free = c;
-	unlock(&chanalloc);
+	unlock(&(&chanalloc)->lock);
 }
 
 void
@@ -429,7 +429,7 @@ ccloseq(Chan *c)
 	if(decref(c))
 		return;
 
-	lock(&clunkq.l);
+	lock(&(&clunkq.l)->lock);
 	clunkq.nqueued++;
 	c->next = nil;
 	if(clunkq.head)
@@ -437,7 +437,7 @@ ccloseq(Chan *c)
 	else
 		clunkq.head = c;
 	clunkq.tail = c;
-	unlock(&clunkq.l);
+	unlock(&(&clunkq.l)->lock);
 
 	if(!wakeup(&clunkq.r))
 		kproc("closeproc", closeproc, nil);
@@ -456,23 +456,23 @@ closeproc(void* v)
 	Chan *c;
 
 	for(;;){
-		qlock(&clunkq.q);
+		qlock(&(&clunkq.q)->qlock);
 		if(clunkq.head == nil){
 			if(!waserror()){
 				tsleep(&clunkq.r, clunkwork, nil, 5000);
 				poperror();
 			}
 			if(clunkq.head == nil){
-				qunlock(&clunkq.q);
+				qunlock(&(&clunkq.q)->qlock);
 				pexit("no work", 1);
 			}
 		}
-		lock(&clunkq.l);
+		lock(&(&clunkq.l)->lock);
 		c = clunkq.head;
 		clunkq.head = c->next;
 		clunkq.nclosed++;
-		unlock(&clunkq.l);
-		qunlock(&clunkq.q);
+		unlock(&(&clunkq.l)->lock);
+		qunlock(&(&clunkq.q)->qlock);
 		if(!waserror()){
 			if(c->dev != nil)		//XDYNX
 				c->dev->close(c);
@@ -592,7 +592,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 		error(Emount);
 
 	pg = up->pgrp;
-	wlock(&pg->ns);
+	wlock(&(&pg->ns)->rwlock);
 
 	l = &MOUNTH(pg, old->qid);
 	for(mhead = *l; mhead; mhead = mhead->hash){
@@ -616,12 +616,12 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 		if(order != MREPL)
 			mhead->mount = newmount(mhead, old, 0, 0);
 	}
-	wlock(&mhead->lock);
+	wlock(&(&mhead->lock)->rwlock);
 	if(waserror()){
-		wunlock(&mhead->lock);
+		wunlock(&(&mhead->lock)->rwlock);
 		nexterror();
 	}
-	wunlock(&pg->ns);
+	wunlock(&(&pg->ns)->rwlock);
 
 	nm = newmount(mhead, new, flag, spec);
 	if(mh != nil && mh->mount != nil){
@@ -659,7 +659,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 		mhead->mount = nm;
 	}
 
-	wunlock(&mhead->lock);
+	wunlock(&(&mhead->lock)->rwlock);
 	poperror();
 	return nm->mountid;
 }
@@ -685,7 +685,7 @@ cunmount(Chan *mnt, Chan *mounted)
 	 */
 
 	pg = up->pgrp;
-	wlock(&pg->ns);
+	wlock(&(&pg->ns)->rwlock);
 
 	l = &MOUNTH(pg, mnt->qid);
 	for(mh = *l; mh; mh = mh->hash){
@@ -695,18 +695,18 @@ cunmount(Chan *mnt, Chan *mounted)
 	}
 
 	if(mh == 0){
-		wunlock(&pg->ns);
+		wunlock(&(&pg->ns)->rwlock);
 		error(Eunmount);
 	}
 
-	wlock(&mh->lock);
+	wlock(&(&mh->lock)->rwlock);
 	if(mounted == 0){
 		*l = mh->hash;
-		wunlock(&pg->ns);
+		wunlock(&(&pg->ns)->rwlock);
 		mountfree(mh->mount);
 		mh->mount = nil;
 		cclose(mh->from);
-		wunlock(&mh->lock);
+		wunlock(&(&mh->lock)->rwlock);
 		putmhead(mh);
 		return;
 	}
@@ -722,19 +722,19 @@ cunmount(Chan *mnt, Chan *mounted)
 			if(mh->mount == nil){
 				*l = mh->hash;
 				cclose(mh->from);
-				wunlock(&mh->lock);
-				wunlock(&pg->ns);
+				wunlock(&(&mh->lock)->rwlock);
+				wunlock(&(&pg->ns)->rwlock);
 				putmhead(mh);
 				return;
 			}
-			wunlock(&mh->lock);
-			wunlock(&pg->ns);
+			wunlock(&(&mh->lock)->rwlock);
+			wunlock(&(&pg->ns)->rwlock);
 			return;
 		}
 		p = &f->next;
 	}
-	wunlock(&mh->lock);
-	wunlock(&pg->ns);
+	wunlock(&(&mh->lock)->rwlock);
+	wunlock(&(&pg->ns)->rwlock);
 	error(Eunion);
 }
 
@@ -764,16 +764,16 @@ findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 	Mhead *mh;
 
 	pg = up->pgrp;
-	rlock(&pg->ns);
+	rlock(&(&pg->ns)->rwlock);
 	for(mh = MOUNTH(pg, qid); mh; mh = mh->hash){
-		rlock(&mh->lock);
+		rlock(&(&mh->lock)->rwlock);
 		if(mh->from == nil){
 			print("mh %#p: mh->from nil\n", mh);
-			runlock(&mh->lock);
+			runlock(&(&mh->lock)->rwlock);
 			continue;
 		}
 		if(eqchanddq(mh->from, dc, devno, qid, 1)){
-			runlock(&pg->ns);
+			runlock(&(&pg->ns)->rwlock);
 			if(mp != nil){
 				incref(mh);
 				if(*mp != nil)
@@ -784,13 +784,13 @@ findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 				cclose(*cp);
 			incref(mh->mount->to);
 			*cp = mh->mount->to;
-			runlock(&mh->lock);
+			runlock(&(&mh->lock)->rwlock);
 			return 1;
 		}
-		runlock(&mh->lock);
+		runlock(&(&mh->lock)->rwlock);
 	}
 
-	runlock(&pg->ns);
+	runlock(&(&pg->ns)->rwlock);
 	return 0;
 }
 
@@ -938,7 +938,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				/*
 				 * mh->mount->to == c, so start at mh->mount->next
 				 */
-				rlock(&mh->lock);
+				rlock(&(&mh->lock)->rwlock);
 				if(mh->mount){
 					for(f = mh->mount->next; f != nil; f = f->next){
 						if((wq = ewalk(f->to, nil, names+nhave, ntry)) != nil){
@@ -948,7 +948,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 						}
 					}
 				}
-				runlock(&mh->lock);
+				runlock(&(&mh->lock)->rwlock);
 			}
 			if(wq == nil){
 				cclose(c);
@@ -1052,15 +1052,15 @@ createdir(Chan *c, Mhead *mh)
 	Chan *nc;
 	Mount *f;
 
-	rlock(&mh->lock);
+	rlock(&(&mh->lock)->rwlock);
 	if(waserror()){
-		runlock(&mh->lock);
+		runlock(&(&mh->lock)->rwlock);
 		nexterror();
 	}
 	for(f = mh->mount; f; f = f->next){
 		if(f->mflag&MCREATE){
 			nc = cclone(f->to);
-			runlock(&mh->lock);
+			runlock(&(&mh->lock)->rwlock);
 			poperror();
 			cclose(c);
 			return nc;

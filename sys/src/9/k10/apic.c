@@ -357,7 +357,7 @@ apictimerset(uint64_t next)
 	apic = &xlapic[(apicrget(Id)>>24) & 0xff];
 
 	pl = splhi();
-	lock(&machp()->apictimerlock);
+	lock(&(&machp()->apictimerlock)->lock);
 
 	period = apic->max;
 	if(next != 0){
@@ -371,7 +371,7 @@ apictimerset(uint64_t next)
 	}
 	apicrput(Tic, period);
 
-	unlock(&machp()->apictimerlock);
+	unlock(&(&machp()->apictimerlock)->lock);
 	splx(pl);
 }
 

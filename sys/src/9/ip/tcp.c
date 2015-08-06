@@ -602,10 +602,10 @@ tcpkick(void *x)
 	tcb = (Tcpctl*)s->ptcl;
 
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->qlock);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->qlock);
 
 	switch(tcb->state) {
 	case Syn_sent:
@@ -622,7 +622,7 @@ tcpkick(void *x)
 		break;
 	}
 
-	qunlock(s);
+	qunlock(&s->qlock);
 	poperror();
 }
 
@@ -662,15 +662,15 @@ tcpacktimer(void *v)
 	tcb = (Tcpctl*)s->ptcl;
 
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->qlock);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->qlock);
 	if(tcb->state != Closed){
 		tcb->flags |= FORCE;
 		tcpoutput(s);
 	}
-	qunlock(s);
+	qunlock(&s->qlock);
 	poperror();
 }
 
@@ -769,7 +769,7 @@ tcpackproc(void *a)
 	for(;;) {
 		tsleep(&up->sleep, return0, 0, MSPTICK);
 
-		qlock(&priv->tl);
+		qlock(&(&priv->tl)->qlock);
 		timeo = nil;
 		loop = 0;
 		for(t = priv->timers; t != nil; t = tp) {
@@ -785,7 +785,7 @@ tcpackproc(void *a)
 				}
 			}
 		}
-		qunlock(&priv->tl);
+		qunlock(&(&priv->tl)->qlock);
 
 		loop = 0;
 		for(t = timeo; t != nil; t = t->readynext) {
@@ -807,10 +807,10 @@ tcpgo(Tcppriv *priv, Tcptimer *t)
 	if(t == nil || t->start == 0)
 		return;
 
-	qlock(&priv->tl);
+	qlock(&(&priv->tl)->qlock);
 	t->count = t->start;
 	timerstate(priv, t, TcptimerON);
-	qunlock(&priv->tl);
+	qunlock(&(&priv->tl)->qlock);
 }
 
 static void
@@ -819,9 +819,9 @@ tcphalt(Tcppriv *priv, Tcptimer *t)
 	if(t == nil)
 		return;
 
-	qlock(&priv->tl);
+	qlock(&(&priv->tl)->qlock);
 	timerstate(priv, t, TcptimerOFF);
-	qunlock(&priv->tl);
+	qunlock(&(&priv->tl)->qlock);
 }
 
 static int
@@ -973,13 +973,13 @@ tcpstart(Conv *s, int mode)
 	tpriv = s->p->priv;
 
 	if(tpriv->ackprocstarted == 0){
-		qlock(&tpriv->apl);
+		qlock(&(&tpriv->apl)->qlock);
 		if(tpriv->ackprocstarted == 0){
 			snprint(kpname, sizeof kpname, "#I%dtcpack", s->p->f->dev);
 			kproc(kpname, tcpackproc, s->p);
 			tpriv->ackprocstarted = 1;
 		}
-		qunlock(&tpriv->apl);
+		qunlock(&(&tpriv->apl)->qlock);
 	}
 
 	tcb = (Tcpctl*)s->ptcl;
@@ -1621,7 +1621,7 @@ limborexmit(Proto *tcp)
 
 	tpriv = tcp->priv;
 
-	if(!canqlock(tcp))
+	if(!canqlock(&tcp->qlock))
 		return;
 	seen = 0;
 	now = NOW;
@@ -1654,7 +1654,7 @@ limborexmit(Proto *tcp)
 			l = &lp->next;
 		}
 	}
-	qunlock(tcp);
+	qunlock(&tcp->qlock);
 }
 
 /*
@@ -2186,7 +2186,7 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 	}
 
 	/* lock protocol while searching for a conversation */
-	qlock(tcp);
+	qlock(&tcp->qlock);
 
 	/* Look for a matching conversation */
 	s = iphtlook(&tpriv->ht, source, seg.source, dest, seg.dest);
@@ -2194,7 +2194,7 @@ tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 		netlog(f, Logtcp, "iphtlook(src %I!%d, dst %I!%d) failed\n",
 			source, seg.source, dest, seg.dest);
 reset:
-		qunlock(tcp);
+		qunlock(&tcp->qlock);
 		sndrst(tcp, source, dest, length, &seg, version, "no conversation");
 		freeblist(bp);
 		return;
@@ -2205,7 +2205,7 @@ reset:
 	if(tcb->state == Listen){
 		if(seg.flags & RST){
 			limborst(s, &seg, source, dest, version);
-			qunlock(tcp);
+			qunlock(&tcp->qlock);
 			freeblist(bp);
 			return;
 		}
@@ -2213,7 +2213,7 @@ reset:
 		/* if this is a new SYN, put the call into limbo */
 		if((seg.flags & SYN) && (seg.flags & ACK) == 0){
 			limbo(s, source, dest, &seg, version);
-			qunlock(tcp);
+			qunlock(&tcp->qlock);
 			freeblist(bp);
 			return;
 		}
@@ -2233,11 +2233,11 @@ reset:
 	 */
 	tcb = (Tcpctl*)s->ptcl;
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->qlock);
 		nexterror();
 	}
-	qlock(s);
-	qunlock(tcp);
+	qlock(&s->qlock);
+	qunlock(&tcp->qlock);
 
 	/* fix up window */
 	seg.wnd <<= tcb->rcv.scale;
@@ -2285,7 +2285,7 @@ reset:
 		else
 			freeblist(bp);
 
-		qunlock(s);
+		qunlock(&s->qlock);
 		poperror();
 		return;
 	case Syn_received:
@@ -2332,7 +2332,7 @@ reset:
 			tcb->flags |= FORCE;
 			goto output;
 		}
-		qunlock(s);
+		qunlock(&s->qlock);
 		poperror();
 		return;
 	}
@@ -2483,7 +2483,7 @@ reset:
 					freeblist(bp);
 				sndrst(tcp, source, dest, length, &seg, version,
 					"send to Finwait2");
-				qunlock(s);
+				qunlock(&s->qlock);
 				poperror();
 				return;
 			}
@@ -2552,11 +2552,11 @@ reset:
 	}
 output:
 	tcpoutput(s);
-	qunlock(s);
+	qunlock(&s->qlock);
 	poperror();
 	return;
 raise:
-	qunlock(s);
+	qunlock(&s->qlock);
 	poperror();
 	freeblist(bp);
 	tcpkick(s);
@@ -2791,8 +2791,8 @@ tcpoutput(Conv *s)
 			panic("tcpoutput2: version %d", version);
 		}
 		if((msgs%4) == 3){
-			qunlock(s);
-			qlock(s);
+			qunlock(&s->qlock);
+			qlock(&s->qlock);
 		}
 	}
 }
@@ -2879,10 +2879,10 @@ tcpkeepalive(void *v)
 	s = v;
 	tcb = (Tcpctl*)s->ptcl;
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->qlock);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->qlock);
 	if(tcb->state != Closed){
 		if(--(tcb->kacounter) <= 0) {
 			localclose(s, Etimedout);
@@ -2891,7 +2891,7 @@ tcpkeepalive(void *v)
 			tcpgo(s->p->priv, &tcb->katimer);
 		}
 	}
-	qunlock(s);
+	qunlock(&s->qlock);
 	poperror();
 }
 
@@ -2977,10 +2977,10 @@ tcptimeout(void *arg)
 	tcb = (Tcpctl*)s->ptcl;
 
 	if(waserror()){
-		qunlock(s);
+		qunlock(&s->qlock);
 		nexterror();
 	}
-	qlock(s);
+	qlock(&s->qlock);
 	switch(tcb->state){
 	default:
 		tcb->backoff++;
@@ -3023,7 +3023,7 @@ tcptimeout(void *arg)
 	case Closed:
 		break;
 	}
-	qunlock(s);
+	qunlock(&s->qlock);
 	poperror();
 }
 
@@ -3267,7 +3267,7 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 	}
 
 	/* Look for a connection */
-	qlock(tcp);
+	qlock(&tcp->qlock);
 	for(p = tcp->conv; *p; p++) {
 		s = *p;
 		tcb = (Tcpctl*)s->ptcl;
@@ -3276,19 +3276,19 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 		if(tcb->state != Closed)
 		if(ipcmp(s->raddr, dest) == 0)
 		if(ipcmp(s->laddr, source) == 0){
-			qlock(s);
-			qunlock(tcp);
+			qlock(&s->qlock);
+			qunlock(&tcp->qlock);
 			switch(tcb->state){
 			case Syn_sent:
 				localclose(s, msg);
 				break;
 			}
-			qunlock(s);
+			qunlock(&s->qlock);
 			freeblist(bp);
 			return;
 		}
 	}
-	qunlock(tcp);
+	qunlock(&tcp->qlock);
 	freeblist(bp);
 }
 
@@ -3357,7 +3357,7 @@ tcpgc(Proto *tcp)
 		c = *pp;
 		if(c == nil)
 			break;
-		if(!canqlock(c))
+		if(!canqlock(&c->qlock))
 			continue;
 		tcb = (Tcpctl*)c->ptcl;
 		switch(tcb->state){
@@ -3374,7 +3374,7 @@ tcpgc(Proto *tcp)
 			}
 			break;
 		}
-		qunlock(c);
+		qunlock(&c->qlock);
 	}
 	return n;
 }

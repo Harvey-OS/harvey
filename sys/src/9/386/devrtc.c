@@ -166,7 +166,7 @@ rtctime(void)
 	int i;
 	int32_t t, ot;
 
-	ilock(&nvrtlock);
+	ilock(&(&nvrtlock)->lock);
 
 	/* loop till we get two reads in a row the same */
 	t = rtcextract();
@@ -175,7 +175,7 @@ rtctime(void)
 		if(ot == t)
 			break;
 	}
-	iunlock(&nvrtlock);
+	iunlock(&(&nvrtlock)->lock);
 
 	if(i == 100) print("we are boofheads\n");
 
@@ -205,14 +205,14 @@ rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 			n = Nvsize;
 		a = start = smalloc(n);
 
-		ilock(&nvrtlock);
+		ilock(&(&nvrtlock)->lock);
 		for(t = offset; t < offset + n; t++){
 			if(t >= Nvsize)
 				break;
 			outb(Paddr, Nvoff+t);
 			*a++ = inb(Pdata);
 		}
-		iunlock(&nvrtlock);
+		iunlock(&(&nvrtlock)->lock);
 
 		if(waserror()){
 			free(start);
@@ -274,14 +274,14 @@ rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 		/*
 		 *  write the clock
 		 */
-		ilock(&nvrtlock);
+		ilock(&(&nvrtlock)->lock);
 		outb(Paddr, Seconds);	outb(Pdata, bcdclock[0]);
 		outb(Paddr, Minutes);	outb(Pdata, bcdclock[1]);
 		outb(Paddr, Hours);	outb(Pdata, bcdclock[2]);
 		outb(Paddr, Mday);	outb(Pdata, bcdclock[3]);
 		outb(Paddr, Month);	outb(Pdata, bcdclock[4]);
 		outb(Paddr, Year);	outb(Pdata, bcdclock[5]);
-		iunlock(&nvrtlock);
+		iunlock(&(&nvrtlock)->lock);
 		return n;
 	case Qnvram:
 		if(n == 0)
@@ -297,14 +297,14 @@ rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 		memmove(a, buf, n);
 		poperror();
 
-		ilock(&nvrtlock);
+		ilock(&(&nvrtlock)->lock);
 		for(t = offset; t < offset + n; t++){
 			if(t >= Nvsize)
 				break;
 			outb(Paddr, Nvoff+t);
 			outb(Pdata, *a++);
 		}
-		iunlock(&nvrtlock);
+		iunlock(&(&nvrtlock)->lock);
 
 		free(start);
 		return t - offset;
@@ -454,10 +454,10 @@ nvramread(int addr)
 {
 	uint8_t data;
 
-	ilock(&nvrtlock);
+	ilock(&(&nvrtlock)->lock);
 	outb(Paddr, addr);
 	data = inb(Pdata);
-	iunlock(&nvrtlock);
+	iunlock(&(&nvrtlock)->lock);
 
 	return data;
 }
@@ -465,8 +465,8 @@ nvramread(int addr)
 void
 nvramwrite(int addr, uint8_t data)
 {
-	ilock(&nvrtlock);
+	ilock(&(&nvrtlock)->lock);
 	outb(Paddr, addr);
 	outb(Pdata, data);
-	iunlock(&nvrtlock);
+	iunlock(&(&nvrtlock)->lock);
 }

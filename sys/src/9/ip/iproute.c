@@ -317,14 +317,14 @@ v4addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type)
 		memmove(p->v4.gate, gate, sizeof(p->v4.gate));
 		memmove(p->tag, tag, sizeof(p->tag));
 
-		wlock(&routelock);
+		wlock(&(&routelock)->rwlock);
 		addnode(f, &f->v4root[h], p);
 		while(p = f->queue) {
 			f->queue = p->mid;
 			walkadd(f, &f->v4root[h], p->left);
 			freeroute(p);
 		}
-		wunlock(&routelock);
+		wunlock(&(&routelock)->rwlock);
 	}
 	v4routegeneration++;
 
@@ -363,14 +363,14 @@ v6addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type)
 		memmove(p->v6.gate, gate, IPaddrlen);
 		memmove(p->tag, tag, sizeof(p->tag));
 
-		wlock(&routelock);
+		wlock(&(&routelock)->rwlock);
 		addnode(f, &f->v6root[h], p);
 		while(p = f->queue) {
 			f->queue = p->mid;
 			walkadd(f, &f->v6root[h], p->left);
 			freeroute(p);
 		}
-		wunlock(&routelock);
+		wunlock(&(&routelock)->rwlock);
 	}
 	v6routegeneration++;
 
@@ -421,7 +421,7 @@ v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 	eh = V4H(rt.v4.endaddress);
 	for(h=V4H(rt.v4.address); h<=eh; h++) {
 		if(dolock)
-			wlock(&routelock);
+			wlock(&(&routelock)->rwlock);
 		r = looknode(&f->v4root[h], &rt);
 		if(r) {
 			p = *r;
@@ -439,7 +439,7 @@ v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 			}
 		}
 		if(dolock)
-			wunlock(&routelock);
+			wunlock(&(&routelock)->rwlock);
 	}
 	v4routegeneration++;
 
@@ -465,7 +465,7 @@ v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 	eh = V6H(rt.v6.endaddress);
 	for(h=V6H(rt.v6.address); h<=eh; h++) {
 		if(dolock)
-			wlock(&routelock);
+			wlock(&(&routelock)->rwlock);
 		r = looknode(&f->v6root[h], &rt);
 		if(r) {
 			p = *r;
@@ -483,7 +483,7 @@ v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 			}
 		}
 		if(dolock)
-			wunlock(&routelock);
+			wunlock(&(&routelock)->rwlock);
 	}
 	v6routegeneration++;
 
@@ -718,7 +718,7 @@ rr(Route *r, Routewalk *rw)
 void
 ipwalkroutes(Fs *f, Routewalk *rw)
 {
-	rlock(&routelock);
+	rlock(&(&routelock)->rwlock);
 	if(rw->e > rw->p) {
 		for(rw->h = 0; rw->h < nelem(f->v4root); rw->h++)
 			if(rr(f->v4root[rw->h], rw) == 0)
@@ -729,7 +729,7 @@ ipwalkroutes(Fs *f, Routewalk *rw)
 			if(rr(f->v6root[rw->h], rw) == 0)
 				break;
 	}
-	runlock(&routelock);
+	runlock(&(&routelock)->rwlock);
 }
 
 int32_t
@@ -838,15 +838,15 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 		tag = cb->f[1];
 		for(h = 0; h < nelem(f->v4root); h++)
 			for(changed = 1; changed;){
-				wlock(&routelock);
+				wlock(&(&routelock)->rwlock);
 				changed = routeflush(f, f->v4root[h], tag);
-				wunlock(&routelock);
+				wunlock(&(&routelock)->rwlock);
 			}
 		for(h = 0; h < nelem(f->v6root); h++)
 			for(changed = 1; changed;){
-				wlock(&routelock);
+				wlock(&(&routelock)->rwlock);
 				changed = routeflush(f, f->v6root[h], tag);
-				wunlock(&routelock);
+				wunlock(&(&routelock)->rwlock);
 			}
 	} else if(strcmp(cb->f[0], "remove") == 0){
 		if(cb->nf < 3)

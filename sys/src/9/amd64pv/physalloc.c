@@ -77,14 +77,14 @@ seprintphysstats(char *s,  char *e)
 	Bal *b;
 	int i;
 
-	lock(&budlock);
+	lock(&(&budlock)->lock);
 	for(i = 0; i < Ndoms; i++){
 		b = &bal[i];
 		if(b->size > 0)
 			s = seprint(s, e, "%uld/%uld %ulldK color %d blocks avail\n",
 				b->nfree, b->nblocks, b->bminsz/KiB, i);
 	}
-	unlock(&budlock);
+	unlock(&(&budlock)->lock);
 	return s;
 }
 
@@ -107,7 +107,7 @@ xphysfree(Bal *b, uintmem data, uint64_t size)
 		return;
 	i = INDEX(b,data);
 
-	lock(&budlock);
+	lock(&(&budlock)->lock);
 S1:
 	/*
 	 * Find buddy.
@@ -142,7 +142,7 @@ S1:
 
 		b->nfree += size/b->bminsz;
 
-		unlock(&budlock);
+		unlock(&(&budlock)->lock);
 		DBG("bsl: free @ i %d BLOCK(b,i) %d kval %d next %d %s\n",
 			i, BLOCK(b,i), l->kval, l->next, l->tag?"avail":"used");
 		return;
@@ -295,14 +295,14 @@ xphysalloc(Bal *b, uint64_t size, void *tag)
 		return 0;
 	k = lg2floor(size);
 
-	lock(&budlock);
+	lock(&(&budlock)->lock);
 	for(j = k; j <= b->kmax; j++){
 		if(avail[j].next != 0)
 			break;
 	}
 	DBG("bsr: size %#llud k %d j %d\n", size, k, j);
 	if(j > b->kmax){
-		unlock(&budlock);
+		unlock(&(&budlock)->lock);
 		return 0;
 	}
 
@@ -340,7 +340,7 @@ xphysalloc(Bal *b, uint64_t size, void *tag)
 			p->tag?"avail":"used");
 	}
 	b->nfree -= size/b->bminsz;
-	unlock(&budlock);
+	unlock(&(&budlock)->lock);
 
 	m = b->memory + b->bminsz*BLOCK(b,i);
 	assert(m >= b->base && m < b->base + b->size);

@@ -238,14 +238,14 @@ rtl8139promiscuous(void* arg, int on)
 
 	edev = arg;
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	if(on)
 		ctlr->rcr |= Aap;
 	else
 		ctlr->rcr &= ~Aap;
 	csr32w(ctlr, Rcr, ctlr->rcr);
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 }
 
 enum {
@@ -292,7 +292,7 @@ rtl8139multicast(void* ether, unsigned char *eaddr, int add)
 
 	edev = ether;
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	ctlr->mchash |= 1ULL << (ethercrcbe(eaddr, Eaddrlen) >> 26);
 
@@ -308,7 +308,7 @@ rtl8139multicast(void* ether, unsigned char *eaddr, int add)
 		csr32w(ctlr, Mar0+4, ctlr->mchash>>32);
 	}
 
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 }
 
 static int32_t
@@ -402,10 +402,10 @@ rtl8139shutdown(Ether *edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 	rtl8139halt(ctlr);
 	rtl8139reset(ctlr);
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 }
 
 static void
@@ -417,7 +417,7 @@ rtl8139init(Ether* edev)
 	unsigned char *alloc;
 
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	rtl8139halt(ctlr);
 
@@ -470,7 +470,7 @@ rtl8139init(Ether* edev)
 	csr16w(ctlr, Imr, Serr|Timerbit|Fovw|PunLc|Rxovw|Ter|Tok|Rer|Rok);
 	csr32w(ctlr, Mpc, 0);
 
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 }
 
 static void
@@ -487,17 +487,17 @@ rtl8139attach(Ether* edev)
 		print("rtl8139attach: nil ctlr for Ether %#p\n", edev);
 		return;
 	}
-	qlock(&ctlr->alock);
+	qlock(&(&ctlr->alock)->qlock);
 	if(ctlr->alloc == nil){
 		ctlr->rblen = 1<<((Rblen>>RblenSHIFT)+13);
 		ctlr->alloc = malloc(ctlr->rblen+16 + Ntd*Tdbsz + 32);
 		if(ctlr->alloc == nil) {
-			qunlock(&ctlr->alock);
+			qunlock(&(&ctlr->alock)->qlock);
 			error(Enomem);
 		}
 		rtl8139init(edev);
 	}
-	qunlock(&ctlr->alock);
+	qunlock(&(&ctlr->alock)->qlock);
 }
 
 static void
@@ -540,9 +540,9 @@ rtl8139transmit(Ether* edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 	rtl8139txstart(edev);
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 }
 
 static void
@@ -662,7 +662,7 @@ rtl8139interrupt(Ureg *ureg, void* arg)
 		}
 
 		if(isr & (Ter|Tok)){
-			ilock(&ctlr->tlock);
+			ilock(&(&ctlr->tlock)->lock);
 			while(ctlr->ntd){
 				td = &ctlr->td[ctlr->tdi];
 				tsd = csr32r(ctlr, td->tsd);
@@ -686,7 +686,7 @@ rtl8139interrupt(Ureg *ureg, void* arg)
 				ctlr->tdi = NEXT(ctlr->tdi, Ntd);
 			}
 			rtl8139txstart(edev);
-			iunlock(&ctlr->tlock);
+			iunlock(&(&ctlr->tlock)->lock);
 			isr &= ~(Ter|Tok);
 		}
 

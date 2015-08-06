@@ -62,14 +62,14 @@ canflush(Proc *p, Segment *s)
 {
 	int i, x;
 
-	lock(s);
+	lock(&s->lock);
 	if(s->ref == 1) {		/* Easy if we are the only user */
 		s->ref++;
-		unlock(s);
+		unlock(&s->lock);
 		return canpage(p);
 	}
 	s->ref++;
-	unlock(s);
+	unlock(&s->lock);
 
 	/* Now we must do hardwork to ensure all processes which have tlb
 	 * entries for this segment will be flushed if we succeed in paging it out
@@ -99,22 +99,22 @@ pageout(Proc *p, Segment *s)
 	if((s->type&SG_TYPE) != SG_LOAD && (s->type&SG_TYPE) != SG_TEXT)
 		panic("pageout");
 
-	if(!canqlock(&s->lk))	/* We cannot afford to wait, we will surely deadlock */
+	if(!canqlock(&(&s->lk)->qlock))	/* We cannot afford to wait, we will surely deadlock */
 		return 0;
 
 	if(s->steal){		/* Protected by /dev/proc */
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		return 0;
 	}
 
 	if(!canflush(p, s)){	/* Able to invalidate all tlbs with references */
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		putseg(s);
 		return 0;
 	}
 
 	if(waserror()){
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		putseg(s);
 		return 0;
 	}
@@ -140,7 +140,7 @@ pageout(Proc *p, Segment *s)
 		}
 	}
 	poperror();
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	putseg(s);
 	return n;
 }
@@ -170,14 +170,14 @@ Again:
 			break;
 		np = 0;
 		if(p->prepagemem == 0 || prepaged != 0)
-		if(p->state != Dead && p->noswap == 0 && canqlock(&p->seglock)){
+		if(p->state != Dead && p->noswap == 0 && canqlock(&(&p->seglock)->qlock)){
 			for(i = 0; i < NSEG; i++){
 				if((s = p->seg[i]) == nil)
 					continue;
 				if((s->type&SG_TYPE) == SG_TEXT)
 					np = pageout(p, s);
 			}
-			qunlock(&p->seglock);
+			qunlock(&(&p->seglock)->qlock);
 		}
 		/*
 		 * else process dead or locked or changing its segments
@@ -205,14 +205,14 @@ freepages(int si, int once)
 		if(pa->freecount > 0){
 			DBG("kickpager() up %#p: releasing %udK pages\n",
 				up, machp()->pgsz[si]/KiB);
-			lock(&pga);
+			lock(&(&pga)->lock);
 			if(pa->freecount == 0){
-				unlock(&pga);
+				unlock(&(&pga)->lock);
 				continue;
 			}
 			p = pa->head;
 			pageunchain(p);
-			unlock(&pga);
+			unlock(&(&pga)->lock);
 			if(p->ref != 0)
 				panic("freepages pa %#ullx", p->pa);
 			pgfree(p);
@@ -229,9 +229,9 @@ tryalloc(int pgszi, int color)
 
 	p = pgalloc(machp()->pgsz[pgszi], color);
 	if(p != nil){
-		lock(&pga);
+		lock(&(&pga)->lock);
 		pagechainhead(p);
-		unlock(&pga);
+		unlock(&(&pga)->lock);
 		return 0;
 	}
 	return -1;
@@ -242,13 +242,13 @@ hascolor(Page *pl, int color)
 {
 	Page *p;
 
-	lock(&pga);
+	lock(&(&pga)->lock);
 	for(p = pl; p != nil; p = p->next)
 		if(color == NOCOLOR || p->color == color){
-			unlock(&pga);
+			unlock(&(&pga)->lock);
 			return 1;
 		}
-	unlock(&pga);
+	unlock(&(&pga)->lock);
 	return 0;
 }
 
@@ -269,7 +269,7 @@ kickpager(int pgszi, int color)
 		DBG("kickpager() %#p\n", up);
 	if(waserror())
 		panic("error in kickpager");
-	qlock(&pagerlck);
+	qlock(&(&pagerlck)->qlock);
 	pa = &pga.pgsza[pgszi];
 
 	/*
@@ -333,7 +333,7 @@ kickpager(int pgszi, int color)
 
 Done:
 	poperror();
-	qunlock(&pagerlck);
+	qunlock(&(&pagerlck)->qlock);
 	if(DBGFLG>1)
 		DBG("kickpager() done %#p\n", up);
 }

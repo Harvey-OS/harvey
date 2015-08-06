@@ -27,15 +27,15 @@ addphysseg(Physseg* new)
 	 * Check not already entered and there is room
 	 * for a new entry and the terminating null entry.
 	 */
-	lock(&physseglock);
+	lock(&(&physseglock)->lock);
 	for(ps = physseg; ps->name; ps++){
 		if(strcmp(ps->name, new->name) == 0){
-			unlock(&physseglock);
+			unlock(&(&physseglock)->lock);
 			return -1;
 		}
 	}
 	if(ps-physseg >= nphysseg-2){
-		unlock(&physseglock);
+		unlock(&(&physseglock)->lock);
 		return -1;
 	}
 
@@ -44,7 +44,7 @@ addphysseg(Physseg* new)
 	if(new->pgszi < 0)
 		panic("addphysseg");
 	*ps = *new;
-	unlock(&physseglock);
+	unlock(&(&physseglock)->lock);
 
 	return 0;
 }
@@ -55,7 +55,7 @@ isphysseg(char *name)
 	int rv;
 	Physseg *ps;
 
-	lock(&physseglock);
+	lock(&(&physseglock)->lock);
 	rv = 0;
 	for(ps = physseg; ps->name; ps++){
 		if(strcmp(ps->name, name) == 0){
@@ -63,7 +63,7 @@ isphysseg(char *name)
 			break;
 		}
 	}
-	unlock(&physseglock);
+	unlock(&(&physseglock)->lock);
 	return rv;
 }
 
@@ -86,9 +86,9 @@ ibrk(uintptr_t addr, int seg)
 	if(addr == 0)
 		return s->top;
 
-	qlock(&s->lk);
+	qlock(&(&s->lk)->qlock);
 	if(waserror()) {
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		nexterror();
 	}
 
@@ -104,7 +104,7 @@ ibrk(uintptr_t addr, int seg)
 		s->top = newtop;
 		s->size = newsize;
 		poperror();
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		mmuflush();
 		return newtop;
 	}
@@ -141,7 +141,7 @@ ibrk(uintptr_t addr, int seg)
 	s->top = newtop;
 	s->size = newsize;
 	poperror();
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 
 	return rtop;
 }
@@ -237,9 +237,9 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 
 	vmemchr(name, 0, ~0);
 
-	qlock(&p->seglock);
+	qlock(&(&p->seglock)->qlock);
 	if(waserror()){
-		qunlock(&p->seglock);
+		qunlock(&(&p->seglock)->qlock);
 		nexterror();
 	}
 	for(sno = 0; sno < NSEG; sno++)
@@ -321,7 +321,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 
 clean_out:
 	poperror();
-	qunlock(&p->seglock);
+	qunlock(&(&p->seglock)->qlock);
 	return va;
 }
 
@@ -366,20 +366,20 @@ syssegdetach(Ar0* ar0, ...)
 	addr = PTR2UINT(va_arg(list, void*));
 	va_end(list);
 
-	qlock(&up->seglock);
+	qlock(&(&up->seglock)->qlock);
 	if(waserror()){
-		qunlock(&up->seglock);
+		qunlock(&(&up->seglock)->qlock);
 		nexterror();
 	}
 
 	s = 0;
 	for(i = 0; i < NSEG; i++)
 		if(s = up->seg[i]) {
-			qlock(&s->lk);
+			qlock(&(&s->lk)->qlock);
 			if((addr >= s->base && addr < s->top) ||
 			   (s->top == s->base && addr == s->base))
 				goto found;
-			qunlock(&s->lk);
+			qunlock(&(&s->lk)->qlock);
 		}
 
 	error(Ebadarg);
@@ -392,13 +392,13 @@ found:
 	 * TODO(aki): does it really?
 	 */
 	if((s->type & SG_TYPE) == SG_STACK){
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		error(Ebadarg);
 	}
 	up->seg[i] = 0;
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	putseg(s);
-	qunlock(&up->seglock);
+	qunlock(&(&up->seglock)->qlock);
 	poperror();
 
 	/* Ensure we flush any entries from the lost segment */
@@ -429,14 +429,14 @@ syssegfree(Ar0* ar0, ...)
 	len = va_arg(list, usize);
 	to = (from + len) & ~(BIGPGSZ-1);
 	if(to < from || to > s->top){
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		error(Ebadarg);
 	}
 	from = BIGPGROUND(from);
 	va_end(list);
 
 	mfreeseg(s, from, (to - from) / BIGPGSZ);
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 	mmuflush();
 
 	ar0->i = 0;
@@ -495,7 +495,7 @@ syssegflush(Ar0* ar0, ...)
 			pe = (pe+BIGPGSZ-1)&~(BIGPGSZ-1);
 		}
 		if(pe == ps) {
-			qunlock(&s->lk);
+			qunlock(&(&s->lk)->qlock);
 			error(Ebadarg);
 		}
 
@@ -509,7 +509,7 @@ syssegflush(Ar0* ar0, ...)
 		if(len > 0 && addr < s->top)
 			goto more;
 
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 	}
 	mmuflush();
 

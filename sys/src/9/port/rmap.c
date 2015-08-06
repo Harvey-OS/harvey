@@ -37,7 +37,7 @@ rmapfree(RMap* rmap, uintptr_t addr, uint size)
 	if(size == 0)
 		return;
 
-	lock(rmap);
+	lock(&rmap->lock);
 	for(mp = rmap->map; mp->addr <= addr && mp->size; mp++)
 		;
 
@@ -70,7 +70,7 @@ rmapfree(RMap* rmap, uintptr_t addr, uint size)
 			}while((size = t) != 0);
 		}
 	}
-	unlock(rmap);
+	unlock(&rmap->lock);
 }
 
 uintptr_t
@@ -79,7 +79,7 @@ rmapalloc(RMap* rmap, uintptr_t addr, uint size, int align)
 	Map *mp;
 	uint32_t maddr, oaddr;
 
-	lock(rmap);
+	lock(&rmap->lock);
 	for(mp = rmap->map; mp->size; mp++){
 		maddr = mp->addr;
 
@@ -119,13 +119,13 @@ rmapalloc(RMap* rmap, uintptr_t addr, uint size, int align)
 			}while((mp-1)->size = mp->size);
 		}
 
-		unlock(rmap);
+		unlock(&rmap->lock);
 		if(oaddr != maddr)
 			rmapfree(rmap, oaddr, maddr-oaddr);
 
 		return maddr;
 	}
-	unlock(rmap);
+	unlock(&rmap->lock);
 
 	return 0;
 }

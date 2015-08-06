@@ -432,14 +432,14 @@ rtl8169promiscuous(void* arg, int on)
 
 	edev = arg;
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	if(on)
 		ctlr->rcr |= Aap;
 	else
 		ctlr->rcr &= ~Aap;
 	csr32w(ctlr, Rcr, ctlr->rcr);
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 }
 
 enum {
@@ -486,7 +486,7 @@ rtl8169multicast(void* ether, unsigned char *eaddr, int add)
 
 	edev = ether;
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	ctlr->mchash |= 1ULL << (ethercrcbe(eaddr, Eaddrlen) >> 26);
 
@@ -502,7 +502,7 @@ rtl8169multicast(void* ether, unsigned char *eaddr, int add)
 		csr32w(ctlr, Mar0+4, ctlr->mchash>>32);
 	}
 
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 }
 
 static int32_t
@@ -515,11 +515,11 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	int i, l, r, timeo;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->slock);
+	qlock(&(&ctlr->slock)->qlock);
 
 	p = nil;
 	if(waserror()){
-		qunlock(&ctlr->slock);
+		qunlock(&(&ctlr->slock)->qlock);
 		free(p);
 		nexterror();
 	}
@@ -543,7 +543,7 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	edev->overflows = ctlr->txdu+ctlr->rdu;
 
 	if(n == 0){
-		qunlock(&ctlr->slock);
+		qunlock(&(&ctlr->slock)->qlock);
 		poperror();
 		return 0;
 	}
@@ -599,7 +599,7 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 
 	n = readstr(offset, a, n, p);
 
-	qunlock(&ctlr->slock);
+	qunlock(&(&ctlr->slock)->qlock);
 	poperror();
 	free(p);
 
@@ -685,7 +685,7 @@ rtl8169init(Ether* edev)
 	uint8_t cplusc;
 
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	rtl8169reset(ctlr);
 
@@ -837,7 +837,7 @@ rtl8169init(Ether* edev)
 	ctlr->tcr = csr32r(ctlr, Tcr);
 	csr8w(ctlr, Cr9346, 0);
 
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 
 //	rtl8169mii(ctlr);
 
@@ -851,7 +851,7 @@ rtl8169attach(Ether* edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->alock);
+	qlock(&(&ctlr->alock)->qlock);
 	if(ctlr->init == 0){
 		ctlr->td = mallocalign(sizeof(D)*Ntd, 256, 0, 0);
 		ctlr->tb = malloc(Ntd*sizeof(Block*));
@@ -867,7 +867,7 @@ rtl8169attach(Ether* edev)
 			free(ctlr->rd);
 			free(ctlr->rb);
 			free(ctlr->dtcc);
-			qunlock(&ctlr->alock);
+			qunlock(&(&ctlr->alock)->qlock);
 			error(Enomem);
 		}
 		rtl8169init(edev);
@@ -876,7 +876,7 @@ rtl8169attach(Ether* edev)
 		initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 		ctlr->init = 1;
 	}
-	qunlock(&ctlr->alock);
+	qunlock(&(&ctlr->alock)->qlock);
 
 	/* Don't wait int32_t for link to be ready. */
 	for(timeo = 0; timeo < 10; timeo++){
@@ -928,7 +928,7 @@ rtl8169transmit(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 	for(x = ctlr->tdh; ctlr->ntq > 0; x = NEXT(x, ctlr->ntd)){
 		d = &ctlr->td[x];
 		if((control = d->control) & Own)
@@ -977,7 +977,7 @@ rtl8169transmit(Ether* edev)
 	else if(ctlr->ntq >= (ctlr->ntd-1))
 		ctlr->txdu++;
 
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 }
 
 static void

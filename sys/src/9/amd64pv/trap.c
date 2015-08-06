@@ -69,10 +69,10 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	strncpy(v->name, name, KNAMELEN-1);
 	v->name[KNAMELEN-1] = 0;
 
-	ilock(&vctllock);
+	ilock(&(&vctllock)->lock);
 	vno = ioapicintrenable(v);
 	if(vno == -1){
-		iunlock(&vctllock);
+		iunlock(&(&vctllock)->lock);
 		print("intrenable: couldn't enable irq %d, tbdf %#ux for %s\n",
 			irq, tbdf, v->name);
 		free(v);
@@ -87,7 +87,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	v->vno = vno;
 	v->next = vctl[vno];
 	vctl[vno] = v;
-	iunlock(&vctllock);
+	iunlock(&(&vctllock)->lock);
 
 	if(v->mask)
 		v->mask(v, 0);
@@ -106,7 +106,7 @@ intrdisable(void* vector)
 	Vctl *v, *x, **ll;
 	extern int ioapicintrdisable(int);
 
-	ilock(&vctllock);
+	ilock(&(&vctllock)->lock);
 	v = vector;
 	if(v == nil || vctl[v->vno] != v)
 		panic("intrdisable: v %#p", v);
@@ -120,7 +120,7 @@ intrdisable(void* vector)
 	v->f(nil, v->a);
 	*ll = v->next;
 	ioapicintrdisable(v->vno);
-	iunlock(&vctllock);
+	iunlock(&(&vctllock)->lock);
 
 	free(v);
 	return 0;
@@ -183,10 +183,10 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	strncpy(v->name, name, KNAMELEN);
 	v->name[KNAMELEN-1] = 0;
 
-	ilock(&vctllock);
+	ilock(&(&vctllock)->lock);
 	v->next = vctl[vno];
 	vctl[vno] = v;
-	iunlock(&vctllock);
+	iunlock(&(&vctllock)->lock);
 }
 
 static void

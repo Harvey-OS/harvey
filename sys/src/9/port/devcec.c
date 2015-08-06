@@ -78,8 +78,8 @@ typedef struct {
 } Pkt;
 
 typedef struct {
-	QLock;
-	Lock;
+	QLock qlock;
+	Lock lock;
 	unsigned char	ea[6];		/* along with cno, the key to the connection */
 	unsigned char	cno;		/* connection number on remote host */
 	unsigned char	stalled;		/* cectimer needs to kick it */
@@ -332,13 +332,13 @@ start(Conn *cp)
 
 	if(cp->bp)
 		return;
-	ilock(cp);
+	ilock(&cp->lock);
 	for(n = 0; n < sizeof buf; n++){
 		if((c = cbget(cp)) == -1)
 			break;
 		buf[n] = c;
 	}
-	iunlock(cp);
+	iunlock(&cp->lock);
 	if(n != 0)
 		senddata(cp, buf, n);
 }
@@ -351,7 +351,7 @@ cecputs(char *str, int n)
 
 	wake = 0;
 	for(cp = conn; cp < conn+Nconns; cp++){
-		ilock(cp);
+		ilock(&cp->lock);
 		if(cp->state == Copen){
 			for (i = 0; i < n; i++){
 				c = str[i];
@@ -364,7 +364,7 @@ cecputs(char *str, int n)
 			cp->stalled = 1;
 			wake = 1;
 		}
-		iunlock(cp);
+		iunlock(&cp->lock);
 	}
 	if(wake){
 		tcond = 1;
@@ -394,7 +394,7 @@ cectimer(void * v)
 		tsleep(&trendez, icansleep, 0, 250);
 		tcond = 0;
 		for(cp = conn; cp < conn + Nconns; cp++){
-			qlock(cp);
+			qlock(&cp->qlock);
 			if(cp->bp != nil){
 				if(--cp->to <= 0){
 					if(--cp->retries <= 0){
@@ -408,7 +408,7 @@ cectimer(void * v)
 				cp->stalled = 0;
 				start(cp);
 			}
-			qunlock(cp);
+			qunlock(&cp->qlock);
 		}
 	}
 }
@@ -466,7 +466,7 @@ connidx(int cno)
 
 	for(c = conn; c < conn + Nconns; c++)
 		if(cno == c->cno){
-			qlock(c);
+			qlock(&c->qlock);
 			return c;
 		}
 	return nil;
@@ -482,12 +482,12 @@ findconn(uint8_t *ea, uint8_t cno)
 		if(ncp == nil && cp->state == Cunused)
 			ncp = cp;
 		if(memcmp(ea, cp->ea, 6) == 0 && cno == cp->cno){
-			qlock(cp);
+			qlock(&cp->qlock);
 			return cp;
 		}
 	}
 	if(ncp != nil)
-		qlock(ncp);
+		qlock(&ncp->qlock);
 	return ncp;
 }
 
@@ -603,7 +603,7 @@ cecrdr(void *vp)
 		}
 		if (waserror()){
 			freeb(bp);
-			qunlock(cp);
+			qunlock(&cp->qlock);
 			continue;
 		}
 		switch(p->type){
@@ -677,12 +677,12 @@ cecattach(char *spec)
 	static QLock q;
 	static int inited;
 
-	qlock(&q);
+	qlock(&(&q)->qlock);
 	if(inited == 0){
 		kproc("cectimer", cectimer, nil);
 		inited++;
 	}
-	qunlock(&q);
+	qunlock(&(&q)->qlock);
 	c = devattach(L'©', spec);
 	c->qid.path = Qdir;
 	return c;
@@ -836,7 +836,7 @@ rst(Conn *c)
 		freeb(c->bp);
 	c->bp = 0;
 	c->state = Cunused;
-	qunlock(c);
+	qunlock(&c->qlock);
 }
 
 static int32_t

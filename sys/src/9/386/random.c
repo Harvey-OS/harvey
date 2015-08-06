@@ -15,7 +15,7 @@
 
 struct Rb
 {
-	QLock;
+	QLock qlock;
 	Rendez	producer;
 	Rendez	consumer;
 	uint32_t	randomcount;
@@ -115,18 +115,18 @@ randomread(void *xp, uint32_t n)
 	p = xp;
 
 	if(waserror()){
-		qunlock(&rb);
+		qunlock(&(&rb)->qlock);
 		nexterror();
 	}
 
-	qlock(&rb);
+	qlock(&(&rb)->qlock);
 
 	/** WORKAROUND **/
 	for(e = p + n; p < e; ){
 		x = (2 * rb.randn +1)%1103515245;
 		*p++ = rb.randn = x;
 	}
-	qunlock(&rb);
+	qunlock(&(&rb)->qlock);
 	poperror();
 	return n;
 	/** END WORKAROUND **/
@@ -152,7 +152,7 @@ randomread(void *xp, uint32_t n)
 		else
 			rb.rp = rb.rp+1;
 	}
-	qunlock(&rb);
+	qunlock(&(&rb)->qlock);
 	poperror();
 
 	wakeup(&rb.producer);

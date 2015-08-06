@@ -437,9 +437,9 @@ pcicfginit(void)
 
 	if(pcicfgmode != -1)
 		return;
-	lock(&pcicfginitlock);
+	lock(&(&pcicfginitlock)->lock);
 	if(pcicfgmode != -1){
-		unlock(&pcicfginitlock);
+		unlock(&(&pcicfginitlock)->lock);
 		return;
 	}
 
@@ -460,7 +460,7 @@ pcicfginit(void)
 	outl(PciADDR, n);
 
 	if(pcicfgmode < 0){
-		unlock(&pcicfginitlock);
+		unlock(&(&pcicfginitlock)->lock);
 		return;
 	}
 
@@ -490,7 +490,7 @@ pcicfginit(void)
 	//if(pciroot != nil && getconf("*nopcirouting") == nil)
 	pcirouting();
 	pcireservemem();
-	unlock(&pcicfginitlock);
+	unlock(&(&pcicfginitlock)->lock);
 
 	//if(getconf("*pcihinv"))
 	pcihinv(nil);
@@ -507,7 +507,7 @@ pcicfgrw(int tbdf, int r, int data, int rw, int w)
 	if(BUSDNO(tbdf) > Maxdev)
 		return -1;
 
-	lock(&pcicfglock);
+	lock(&(&pcicfglock)->lock);
 	o = r & 4-w;
 	er = r&0xfc | (r & 0xf00)<<16;
 	outl(PciADDR, 0x80000000|BUSBDF(tbdf)|er);
@@ -539,7 +539,7 @@ pcicfgrw(int tbdf, int r, int data, int rw, int w)
 		}
 	}
 //	outl(PciADDR, 0);
-	unlock(&pcicfglock);
+	unlock(&(&pcicfglock)->lock);
 
 	return x;
 }
@@ -637,13 +637,13 @@ void
 pcihinv(Pcidev* p)
 {
 	pcicfginit();
-	lock(&pcicfginitlock);
+	lock(&(&pcicfginitlock)->lock);
 	if(p == nil){
 		p = pciroot;
 		print("bus dev type vid  did intl memory\n");
 	}
 	pcilhinv(p);
-	unlock(&pcicfginitlock);
+	unlock(&(&pcicfginitlock)->lock);
 }
 
 void

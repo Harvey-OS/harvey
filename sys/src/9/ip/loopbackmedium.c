@@ -95,19 +95,19 @@ loopbackread(void *a)
 		if(bp == nil)
 			continue;
 		ifc->in++;
-		if(!canrlock(ifc)){
+		if(!canrlock(&ifc->rwlock)){
 			freeb(bp);
 			continue;
 		}
 		if(waserror()){
-			runlock(ifc);
+			runlock(&ifc->rwlock);
 			nexterror();
 		}
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
 			ipiput4(lb->f, ifc, bp);
-		runlock(ifc);
+		runlock(&ifc->rwlock);
 		poperror();
 	}
 }

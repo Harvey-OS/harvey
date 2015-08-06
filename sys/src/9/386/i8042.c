@@ -119,7 +119,7 @@ mousecmds(uint8_t *cmd, int ncmd)
 {
 	int i;
 
-	ilock(&i8042lock);
+	ilock(&(&i8042lock)->lock);
 	for(i=0; i<ncmd; i++){
 		if(outready() == -1)
 			break;
@@ -128,7 +128,7 @@ mousecmds(uint8_t *cmd, int ncmd)
 			break;
 		outb(Data, cmd[i]);
 	}
-	iunlock(&i8042lock);
+	iunlock(&(&i8042lock)->lock);
 	return i;
 }
 
@@ -137,14 +137,14 @@ i8042intr(Ureg* u, void* v)
 {
 	uint8_t stat, data;
 
-	ilock(&i8042lock);
+	ilock(&(&i8042lock)->lock);
 	stat = inb(Status);
 	if((stat&Inready) == 0){
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		return;
 	}
 	data = inb(Data);
-	iunlock(&i8042lock);
+	iunlock(&(&i8042lock)->lock);
 
 	if(stat & Minready){
 		if(mouseq != nil)
@@ -191,7 +191,7 @@ mouseenable(void)
 	ccc &= ~Cauxdis;
 	ccc |= Cauxint;
 
-	ilock(&i8042lock);
+	ilock(&(&i8042lock)->lock);
 	if(outready() == -1)
 		iprint("mouseenable: failed 0\n");
 	outb(Cmd, 0x60);	/* write control register */
@@ -203,10 +203,10 @@ mouseenable(void)
 	outb(Cmd, 0xA8);	/* auxilliary device enable */
 	if(outready() == -1){
 		iprint("mouseenable: failed 3\n");
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		return;
 	}
-	iunlock(&i8042lock);
+	iunlock(&(&i8042lock)->lock);
 
 	intrenable(IrqAUX, i8042intr, 0, BUSUNKNOWN, "mouse");
 	addarchfile("ps2mouse", 0666, mouseread, mouserwrite);
@@ -218,7 +218,7 @@ keybinit(void)
 	int c, try;
 
 	/* wait for a quiescent controller */
-	ilock(&i8042lock);
+	ilock(&(&i8042lock)->lock);
 
 	try = 1000;
 	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
@@ -227,7 +227,7 @@ keybinit(void)
 		delay(1);
 	}
 	if (try <= 0) {
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		print("keybinit failed 0\n");
 		return;
 	}
@@ -235,7 +235,7 @@ keybinit(void)
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
 	if(inready() == -1){
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		print("keybinit failed 1\n");
 		ccc = 0;
 	} else
@@ -245,25 +245,25 @@ keybinit(void)
 	ccc &= ~(Ckeybdis);
 	ccc |= Csf | Ckeybint | Cscs1;
 	if(outready() == -1) {
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		print("keybinit failed 2\n");
 		return;
 	}
 
 	if (outbyte(Cmd, 0x60) == -1){
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		print("keybinit failed 3\n");
 		return;
 	}
 	if (outbyte(Data, ccc) == -1){
-		iunlock(&i8042lock);
+		iunlock(&(&i8042lock)->lock);
 		print("keybinit failed 4\n");
 		return;
 	}
 
 	nokeyb = 0;
 
-	iunlock(&i8042lock);
+	iunlock(&(&i8042lock)->lock);
 }
 
 static int32_t

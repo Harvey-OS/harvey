@@ -477,7 +477,7 @@ rtl8169init(Ether* edev)
 	uint8_t cplusc;
 
 	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
+	ilock(&(&ctlr->ilock)->lock);
 
 	rtl8169halt(ctlr);
 
@@ -625,7 +625,7 @@ rtl8169init(Ether* edev)
 
 	csr8w(ctlr, Cr9346, 0);
 
-	iunlock(&ctlr->ilock);
+	iunlock(&(&ctlr->ilock)->lock);
 
 //	rtl8169mii(ctlr);
 
@@ -639,7 +639,7 @@ rtl8169attach(Ether* edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->alock);
+	qlock(&(&ctlr->alock)->qlock);
 	if(ctlr->init == 0){
 		/*
 		 * Handle allocation/init errors here.
@@ -654,7 +654,7 @@ rtl8169attach(Ether* edev)
 		rtl8169init(edev);
 		ctlr->init = 1;
 	}
-	qunlock(&ctlr->alock);
+	qunlock(&(&ctlr->alock)->qlock);
 
 	for(timeo = 0; timeo < 3500; timeo++){
 		if(miistatus(ctlr->mii) == 0)
@@ -674,7 +674,7 @@ rtl8169transmit(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 	for(x = ctlr->tdh; ctlr->ntq > 0; x = NEXT(x, ctlr->ntd)){
 		d = &ctlr->td[x];
 		if((control = d->control) & Own)
@@ -730,7 +730,7 @@ rtl8169transmit(Ether* edev)
 	else if(ctlr->ntq >= (ctlr->ntd-1))
 		ctlr->txdu++;
 
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 }
 
 static void

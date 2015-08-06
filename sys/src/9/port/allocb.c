@@ -21,7 +21,7 @@ enum
 
 struct
 {
-	Lock;
+	Lock lock;
 	uint32_t	bytes;
 } ialloc;
 
@@ -107,9 +107,9 @@ iallocb(int size)
 	}
 	b->flag = BINTR;
 
-	ilock(&ialloc);
+	ilock(&(&ialloc)->lock);
 	ialloc.bytes += b->lim - b->base;
-	iunlock(&ialloc);
+	iunlock(&(&ialloc)->lock);
 
 	return b;
 }
@@ -132,9 +132,9 @@ freeb(Block *b)
 		return;
 	}
 	if(b->flag & BINTR) {
-		ilock(&ialloc);
+		ilock(&(&ialloc)->lock);
 		ialloc.bytes -= b->lim - b->base;
-		iunlock(&ialloc);
+		iunlock(&(&ialloc)->lock);
 	}
 
 	p = b->base;

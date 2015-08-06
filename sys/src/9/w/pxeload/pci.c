@@ -509,7 +509,7 @@ pcicfginit(void)
 	int bno, n;
 	Pcidev **list;
 
-	lock(&pcicfginitlock);
+	lock(&(&pcicfginitlock)->lock);
 	if(pcicfgmode != -1)
 		goto out;
 
@@ -571,7 +571,7 @@ pcicfginit(void)
 	pcirouting();
 
 out:
-	unlock(&pcicfginitlock);
+	unlock(&(&pcicfginitlock)->lock);
 
 	if(getconf("*pcihinv"))
 		pcihinv(nil);
@@ -594,7 +594,7 @@ pcicfgrw8(int tbdf, int rno, int data, int read)
 	if(BUSDNO(tbdf) > pcimaxdno)
 		return x;
 
-	lock(&pcicfglock);
+	lock(&(&pcicfglock)->lock);
 	switch(pcicfgmode){
 
 	case 1:
@@ -618,7 +618,7 @@ pcicfgrw8(int tbdf, int rno, int data, int read)
 		outb(PciCSE, 0);
 		break;
 	}
-	unlock(&pcicfglock);
+	unlock(&(&pcicfglock)->lock);
 
 	return x;
 }
@@ -651,7 +651,7 @@ pcicfgrw16(int tbdf, int rno, int data, int read)
 	if(BUSDNO(tbdf) > pcimaxdno)
 		return x;
 
-	lock(&pcicfglock);
+	lock(&(&pcicfglock)->lock);
 	switch(pcicfgmode){
 
 	case 1:
@@ -675,7 +675,7 @@ pcicfgrw16(int tbdf, int rno, int data, int read)
 		outb(PciCSE, 0);
 		break;
 	}
-	unlock(&pcicfglock);
+	unlock(&(&pcicfglock)->lock);
 
 	return x;
 }
@@ -708,7 +708,7 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 	if(BUSDNO(tbdf) > pcimaxdno)
 		return x;
 
-	lock(&pcicfglock);
+	lock(&(&pcicfglock)->lock);
 	switch(pcicfgmode){
 
 	case 1:
@@ -731,7 +731,7 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 		outb(PciCSE, 0);
 		break;
 	}
-	unlock(&pcicfglock);
+	unlock(&(&pcicfglock)->lock);
 
 	return x;
 }

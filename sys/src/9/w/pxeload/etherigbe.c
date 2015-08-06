@@ -452,10 +452,10 @@ static Ctlr* ctlrtail;
 static void
 igbeim(Ctlr* ctlr, int im)
 {
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	ctlr->im |= im;
 	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 }
 
 static void
@@ -623,7 +623,7 @@ igbetransmit(Ether* edev)
 	 * For now there are no smarts here. Tuning comes later.
 	 */
 	ctlr = edev->ctlr;
-	ilock(&ctlr->tdlock);
+	ilock(&(&ctlr->tdlock)->lock);
 
 	/*
 	 * Free any completed packets
@@ -667,7 +667,7 @@ igbetransmit(Ether* edev)
 
 		edev->ti = NEXT(edev->ti, edev->ntb);
 	}
-	iunlock(&ctlr->tdlock);
+	iunlock(&(&ctlr->tdlock)->lock);
 }
 
 static void
@@ -724,7 +724,7 @@ igbeinterrupt(Ureg*, void* arg)
 	edev = arg;
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
 
@@ -775,7 +775,7 @@ igbeinterrupt(Ureg*, void* arg)
 
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 
 	if(txdw)
 		igbetransmit(edev);
@@ -1561,11 +1561,11 @@ igbereset(Ctlr* ctlr)
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
 
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	csr32w(ctlr, Imc, ~0);
 	ctlr->im = Lsc;
 	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 
 	if(!(csr32r(ctlr, Status) & Tbimode) && igbemii(ctlr) < 0) {
 		print("igbe: igbemii failed\n");

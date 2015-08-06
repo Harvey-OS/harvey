@@ -54,7 +54,7 @@ enum
 
 struct Mntalloc
 {
-	Lock;
+	Lock lock;
 	Mnt*	list;		/* Mount devices in use */
 	Mnt*	mntfree;	/* Free list */
 	Mntrpc*	rpcfree;
@@ -117,9 +117,9 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	int64_t oo;
 	char buf[128];
 
-	qlock(&c->umqlock);	/* make sure no one else does this until we've established ourselves */
+	qlock(&(&c->umqlock)->qlock);	/* make sure no one else does this until we've established ourselves */
 	if(waserror()){
-		qunlock(&c->umqlock);
+		qunlock(&(&c->umqlock)->qlock);
 		nexterror();
 	}
 
@@ -139,7 +139,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	mnt = c->mux;
 
 	if(mnt != nil){
-		qunlock(&c->umqlock);
+		qunlock(&(&c->umqlock)->qlock);
 		poperror();
 
 		strecpy(buf, buf+sizeof buf, mnt->version);
@@ -171,17 +171,17 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	if(k == 0)
 		error("bad fversion conversion on send");
 
-	lock(c);
+	lock(&c->lock);
 	oo = c->offset;
 	c->offset += k;
-	unlock(c);
+	unlock(&c->lock);
 
 	l = c->dev->write(c, msg, k, oo);
 
 	if(l < k){
-		lock(c);
+		lock(&c->lock);
 		c->offset -= k - l;
-		unlock(c);
+		unlock(&c->lock);
 		error("short write in fversion");
 	}
 
@@ -190,9 +190,9 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	if(n <= 0)
 		error("EOF receiving fversion reply");
 
-	lock(c);
+	lock(&c->lock);
 	c->offset += n;
-	unlock(c);
+	unlock(&c->lock);
 
 	l = convM2S(msg, n, &f);
 	if(l != n)
@@ -211,14 +211,14 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 		error("bad 9P version returned from server");
 
 	/* now build Mnt associated with this connection */
-	lock(&mntalloc);
+	lock(&(&mntalloc)->lock);
 	mnt = mntalloc.mntfree;
 	if(mnt != nil)
 		mntalloc.mntfree = mnt->list;
 	else {
 		mnt = malloc(sizeof(Mnt));
 		if(mnt == nil) {
-			unlock(&mntalloc);
+			unlock(&(&mntalloc)->lock);
 			exhausted("mount devices");
 		}
 	}
@@ -229,7 +229,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	mnt->id = mntalloc.id++;
 	mnt->q = qopen(10*MAXRPC, 0, nil, nil);
 	mnt->msize = f.msize;
-	unlock(&mntalloc);
+	unlock(&(&mntalloc)->lock);
 
 	if(returnlen != 0){
 		if(returnlen < k)
@@ -240,17 +240,17 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	poperror();	/* msg */
 	free(msg);
 
-	lock(mnt);
+	lock(&mnt->lock);
 	mnt->queue = 0;
 	mnt->rip = 0;
 
 	c->flag |= CMSG;
 	c->mux = mnt;
 	mnt->c = c;
-	unlock(mnt);
+	unlock(&mnt->lock);
 
 	poperror();	/* c */
-	qunlock(&c->umqlock);
+	qunlock(&(&c->umqlock)->qlock);
 
 	return k;
 }
@@ -381,9 +381,9 @@ mntchan(void)
 	Chan *c;
 
 	c = devattach('M', 0);
-	lock(&mntalloc);
+	lock(&(&mntalloc)->lock);
 	c->devno = mntalloc.id++;
-	unlock(&mntalloc);
+	unlock(&(&mntalloc)->lock);
 
 	if(c->mchan)
 		panic("mntchan non-zero %#p", c->mchan);
@@ -601,7 +601,7 @@ mntpntfree(Mnt *mnt)
 	Mnt *f, **l;
 	Queue *q;
 
-	lock(&mntalloc);
+	lock(&(&mntalloc)->lock);
 	l = &mntalloc.list;
 	for(f = *l; f; f = f->list) {
 		if(f == mnt) {
@@ -613,7 +613,7 @@ mntpntfree(Mnt *mnt)
 	mnt->list = mntalloc.mntfree;
 	mntalloc.mntfree = mnt;
 	q = mnt->q;
-	unlock(&mntalloc);
+	unlock(&(&mntalloc)->lock);
 
 	qfree(q);
 }
@@ -791,11 +791,11 @@ xmitrpc(Mnt *mnt, Mntrpc *r)
 {
 	int n;
 
-	lock(mnt);
+	lock(&mnt->lock);
 	r->m = mnt;
 	r->list = mnt->queue;
 	mnt->queue = r;
-	unlock(mnt);
+	unlock(&mnt->lock);
 
 	/* Transmit a file system rpc */
 	if(mnt->msize == 0)
@@ -815,16 +815,16 @@ recvrpc(Mnt *mnt, Mntrpc *r)
 	Proc *up = externup();
 	/* Gate readers onto the mount point one at a time */
 	for(;;) {
-		lock(mnt);
+		lock(&mnt->lock);
 		if(mnt->rip == 0)
 			break;
-		unlock(mnt);
+		unlock(&mnt->lock);
 		sleep(&r->r, rpcattn, r);
 		if(r->done)
 			return;
 	}
 	mnt->rip = up;
-	unlock(mnt);
+	unlock(&mnt->lock);
 	while(r->done == 0) {
 		if(mntrpcread(mnt, r) < 0)
 			error(Emountrpc);
@@ -994,14 +994,14 @@ mntgate(Mnt *mnt)
 {
 	Mntrpc *q;
 
-	lock(mnt);
+	lock(&mnt->lock);
 	mnt->rip = 0;
 	for(q = mnt->queue; q; q = q->list) {
 		if(q->done == 0)
 		if(wakeup(&q->r))
 			break;
 	}
-	unlock(mnt);
+	unlock(&mnt->lock);
 }
 
 void
@@ -1009,7 +1009,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 {
 	Mntrpc **l, *q;
 
-	lock(mnt);
+	lock(&mnt->lock);
 	l = &mnt->queue;
 	for(q = *l; q; q = q->list) {
 		/* look for a reply to a message */
@@ -1025,7 +1025,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 				r->b = nil;
 			}
 			q->done = 1;
-			unlock(mnt);
+			unlock(&mnt->lock);
 			if(mntstats != nil)
 				(*mntstats)(q->request.type,
 					mnt->c, q->stime,
@@ -1036,7 +1036,7 @@ mountmux(Mnt *mnt, Mntrpc *r)
 		}
 		l = &q->list;
 	}
-	unlock(mnt);
+	unlock(&mnt->lock);
 	print("unexpected reply tag %ud; type %d\n", r->reply.tag, r->reply.type);
 }
 
@@ -1116,12 +1116,12 @@ mntralloc(Chan *c, uint32_t msize)
 {
 	Mntrpc *new;
 
-	lock(&mntalloc);
+	lock(&(&mntalloc)->lock);
 	new = mntalloc.rpcfree;
 	if(new == nil){
 		new = malloc(sizeof(Mntrpc));
 		if(new == nil) {
-			unlock(&mntalloc);
+			unlock(&(&mntalloc)->lock);
 			exhausted("mount rpc header");
 		}
 		/*
@@ -1131,7 +1131,7 @@ mntralloc(Chan *c, uint32_t msize)
 		new->rpc = mallocz(msize, 0);
 		if(new->rpc == nil){
 			free(new);
-			unlock(&mntalloc);
+			unlock(&(&mntalloc)->lock);
 			exhausted("mount rpc buffer");
 		}
 		new->rpclen = msize;
@@ -1146,14 +1146,14 @@ mntralloc(Chan *c, uint32_t msize)
 			if(new->rpc == nil){
 				free(new);
 				mntalloc.nrpcused--;
-				unlock(&mntalloc);
+				unlock(&(&mntalloc)->lock);
 				exhausted("mount rpc buffer");
 			}
 			new->rpclen = msize;
 		}
 	}
 	mntalloc.nrpcused++;
-	unlock(&mntalloc);
+	unlock(&(&mntalloc)->lock);
 	new->c = c;
 	new->done = 0;
 	new->flushed = nil;
@@ -1166,7 +1166,7 @@ mntfree(Mntrpc *r)
 {
 	if(r->b != nil)
 		freeblist(r->b);
-	lock(&mntalloc);
+	lock(&(&mntalloc)->lock);
 	if(mntalloc.nrpcfree >= 10){
 		free(r->rpc);
 		freetag(r->request.tag);
@@ -1178,7 +1178,7 @@ mntfree(Mntrpc *r)
 		mntalloc.nrpcfree++;
 	}
 	mntalloc.nrpcused--;
-	unlock(&mntalloc);
+	unlock(&(&mntalloc)->lock);
 }
 
 void
@@ -1186,7 +1186,7 @@ mntqrm(Mnt *mnt, Mntrpc *r)
 {
 	Mntrpc **l, *f;
 
-	lock(mnt);
+	lock(&mnt->lock);
 	r->done = 1;
 
 	l = &mnt->queue;
@@ -1197,7 +1197,7 @@ mntqrm(Mnt *mnt, Mntrpc *r)
 		}
 		l = &f->list;
 	}
-	unlock(mnt);
+	unlock(&mnt->lock);
 }
 
 Mnt*

@@ -46,7 +46,7 @@ typedef struct {
 	Map*	map;
 	Map*	mapend;
 
-	Lock;
+	Lock lock;
 } RMap;
 
 static Map mapupa[8];
@@ -125,7 +125,7 @@ mapfree(RMap* rmap, uint32_t addr, uint32_t size)
 	if(size == 0)
 		return;
 
-	lock(rmap);
+	lock(&rmap->lock);
 	for(mp = rmap->map; mp->addr <= addr && mp->size; mp++)
 		;
 
@@ -159,7 +159,7 @@ mapfree(RMap* rmap, uint32_t addr, uint32_t size)
 			mp++;
 		}while(size = t);
 	}
-	unlock(rmap);
+	unlock(&rmap->lock);
 }
 
 uint32_t
@@ -168,7 +168,7 @@ mapalloc(RMap* rmap, uint32_t addr, int size, int align)
 	Map *mp;
 	uint32_t maddr, oaddr;
 
-	lock(rmap);
+	lock(&rmap->lock);
 	for(mp = rmap->map; mp->size; mp++){
 		maddr = mp->addr;
 
@@ -208,13 +208,13 @@ mapalloc(RMap* rmap, uint32_t addr, int size, int align)
 			}while((mp-1)->size = mp->size);
 		}
 
-		unlock(rmap);
+		unlock(&rmap->lock);
 		if(oaddr != maddr)
 			mapfree(rmap, oaddr, maddr-oaddr);
 
 		return maddr;
 	}
-	unlock(rmap);
+	unlock(&rmap->lock);
 
 	return 0;
 }
@@ -434,7 +434,7 @@ mmukmap(uint32_t pa, uint32_t va, int size)
 		va = PPN(va);
 
 	pae = pa + size;
-	lock(&mmukmaplock);
+	lock(&(&mmukmaplock)->lock);
 	while(pa < pae){
 		table = &pdb[PDX(va)];
 		/*
@@ -505,7 +505,7 @@ mmukmap(uint32_t pa, uint32_t va, int size)
 		va += pgsz;
 		sync++;
 	}
-	unlock(&mmukmaplock);
+	unlock(&(&mmukmaplock)->lock);
 
 	/*
 	 * If something was added

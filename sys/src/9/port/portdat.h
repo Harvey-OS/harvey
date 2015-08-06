@@ -82,13 +82,13 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 struct Ref
 {
-	Lock;
+	Lock lock;
 	int	ref;
 };
 
 struct Rendez
 {
-	Lock;
+	Lock lock;
 	Proc	*_p; // There is already a Proc *p into Lock
 };
 
@@ -156,7 +156,7 @@ struct RWlock
 
 struct Alarms
 {
-	QLock;
+	QLock qlock;
 	Proc	*_head;
 };
 
@@ -335,7 +335,7 @@ struct Mhead
 
 struct Mnt
 {
-	Lock;
+	Lock lock;
 	/* references are counted using c->ref; channels on this mount point incref(c->mchan) == Mnt.c */
 	Chan	*c;		/* Channel to file service */
 	Proc	*rip;		/* Reader in progress */
@@ -374,7 +374,7 @@ enum
 
 struct Page
 {
-	Lock;
+	Lock lock;
 	uintmem	pa;			/* Physical address in memory */
 	uintptr_t	va;			/* Virtual address for user */
 	uint32_t	daddr;			/* Disc address on swap */
@@ -497,7 +497,7 @@ struct Sema
 /* NIX semaphores */
 struct Sem
 {
-	Lock;
+	Lock lock;
 	int*	np;		/* user-level semaphore */
 	Proc**	q;
 	int	nq;
@@ -643,7 +643,7 @@ struct Pgsza
 
 struct Pgalloc
 {
-	Lock;
+	Lock lock;
 	int	userinit;	/* working in user init mode */
 	Pgsza	pgsza[NPGSZ];	/* allocs for m->npgsz page sizes */
 	Page*	hash[PGHSIZE];	/* only used for user pages */
@@ -675,7 +675,7 @@ struct Timer
 	void	(*tf)(Ureg*, Timer*);
 	void	*ta;
 	/* Internal */
-	Lock;
+	Lock lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
 	int64_t	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
@@ -772,7 +772,7 @@ struct Schedq
 
 struct Sched
 {
-	Lock;			/* runq */
+	Lock lock;			/* runq */
 	int	nrdy;
 	uint32_t delayedscheds;	/* statistics */
 	int32_t skipscheds;
@@ -970,7 +970,7 @@ struct Proc
 
 struct Procalloc
 {
-	Lock;
+	Lock lock;
 	int	nproc;
 	Proc*	ht[128];
 	Proc*	arena;
@@ -1024,7 +1024,7 @@ enum
  *  action log
  */
 struct Log {
-	Lock;
+	Lock lock;
 	int	opens;
 	char*	buf;
 	char	*end;
@@ -1111,7 +1111,7 @@ struct Uart
 	int	special;		/* internal kernel device */
 	Uart*	next;			/* list of allocated uarts */
 
-	QLock;
+	QLock qlock;
 	int	type;			/* ?? */
 	int	dev;
 	int	opens;

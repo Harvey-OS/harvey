@@ -158,10 +158,10 @@ schedinit(void)		/* never returns */
 			 *	pga
 			 */
 			mmurelease(up);
-			unlock(&pga);
+			unlock(&(&pga)->lock);
 
 			psrelease(up);
-			unlock(&procalloc);
+			unlock(&(&procalloc)->lock);
 			break;
 		}
 		up->mach = nil;
@@ -483,7 +483,7 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 
 	pri = rq - sch->runq;
 	if(!locked)
-		lock(sch);
+		lock(&sch->lock);
 	else if(canlock(sch))
 		panic("queueproc: locked and can lock");
 	p->priority = pri;
@@ -497,7 +497,7 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 	sch->nrdy++;
 	sch->runvec |= 1<<pri;
 	if(!locked)
-		unlock(sch);
+		unlock(&sch->lock);
 }
 
 /*
@@ -527,7 +527,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	 */
 
 	if(p == 0 || p->mach){
-		unlock(sch);
+		unlock(&sch->lock);
 		return nil;
 	}
 	if(p->rnext == 0)
@@ -543,7 +543,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	if(p->state != Ready)
 		print("dequeueproc %s %d %s\n", p->text, p->pid, statename[p->state]);
 
-	unlock(sch);
+	unlock(&sch->lock);
 	return p;
 }
 
@@ -992,7 +992,7 @@ canpage(Proc *p)
 
 	splhi();
 	sch = procsched(p);
-	lock(sch);
+	lock(&sch->lock);
 	/* Only reliable way to see if we are Running */
 	if(p->mach == 0) {
 		p->newtlb = 1;
@@ -1000,7 +1000,7 @@ canpage(Proc *p)
 	}
 	else
 		ok = 0;
-	unlock(sch);
+	unlock(&sch->lock);
 	spllo();
 
 	return ok;
@@ -1124,11 +1124,11 @@ procwired(Proc *p, int bm)
 	if(up == nil || p != up)
 		return;
 	up->color = corecolor(up->mp->machno);
-	qlock(&up->seglock);
+	qlock(&(&up->seglock)->qlock);
 	for(i = 0; i < NSEG; i++)
 		if(up->seg[i])
 			up->seg[i]->color = up->color;
-	qunlock(&up->seglock);
+	qunlock(&(&up->seglock)->qlock);
 }
 
 void
@@ -1166,8 +1166,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	if(up->nlocks)
 		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
 			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc(&r));
-	lock(r);
-	lock(&up->rlock);
+	lock(&r->lock);
+	lock(&(&up->rlock)->lock);
 	if(r->_p){
 		print("double sleep called from %#p, %d %d\n",
 			getcallerpc(&r), r->_p->pid, up->pid);
@@ -1188,8 +1188,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 *  never mind
 		 */
 		r->_p = nil;
-		unlock(&up->rlock);
-		unlock(r);
+		unlock(&(&up->rlock)->lock);
+		unlock(&r->lock);
 	} else {
 		/*
 		 *  now we are committed to
@@ -1215,8 +1215,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			/*
 			 *  here to go to sleep (i.e. stop Running)
 			 */
-			unlock(&up->rlock);
-			unlock(r);
+			unlock(&(&up->rlock)->lock);
+			unlock(&r->lock);
 			/*debug*/gotolabel(&machp()->sched);
 		}
 	}
@@ -1294,19 +1294,19 @@ wakeup(Rendez *r)
 
 	pl = splhi();
 
-	lock(r);
+	lock(&r->lock);
 	p = r->_p;
 
 	if(p != nil){
-		lock(&p->rlock);
+		lock(&(&p->rlock)->lock);
 		if(p->state != Wakeme || p->r != r)
 			panic("wakeup: state");
 		r->_p = nil;
 		p->r = nil;
 		ready(p);
-		unlock(&p->rlock);
+		unlock(&(&p->rlock)->lock);
 	}
-	unlock(r);
+	unlock(&r->lock);
 
 	splx(pl);
 
@@ -1329,7 +1329,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	Proc *d, **l;
 
 	if(dolock)
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 
 	if(flag != NUser && (p->notify == 0 || p->notified))
 		p->nnote = 0;
@@ -1353,12 +1353,12 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	}
 
 	if(dolock)
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 
 	/* this loop is to avoid lock ordering problems. */
 	for(;;){
 		pl = splhi();
-		lock(&p->rlock);
+		lock(&(&p->rlock)->lock);
 		r = p->r;
 
 		/* waiting for a wakeup? */
@@ -1372,16 +1372,16 @@ postnote(Proc *p, int dolock, char *n, int flag)
 			p->r = nil;
 			r->_p = nil;
 			ready(p);
-			unlock(r);
+			unlock(&r->lock);
 			break;
 		}
 
 		/* give other process time to get out of critical section and try again */
-		unlock(&p->rlock);
+		unlock(&(&p->rlock)->lock);
 		splx(pl);
 		sched();
 	}
-	unlock(&p->rlock);
+	unlock(&(&p->rlock)->lock);
 	splx(pl);
 
 	if(p->state != Rendezvous){
@@ -1390,7 +1390,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		return ret;
 	}
 	/* Try and pull out of a rendezvous */
-	lock(p->rgrp);
+	lock(&p->rgrp->lock);
 	if(p->state == Rendezvous) {
 		p->rendval = ~0;
 		l = &REND(p->rgrp, p->rendtag);
@@ -1403,7 +1403,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		}
 		ready(p);
 	}
-	unlock(p->rgrp);
+	unlock(&p->rgrp->lock);
 	return ret;
 }
 
@@ -1413,7 +1413,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 #define	NBROKEN 4
 struct
 {
-	QLock;
+	QLock qlock;
 	int	n;
 	Proc	*p[NBROKEN];
 }broken;
@@ -1422,14 +1422,14 @@ void
 addbroken(Proc *p)
 {
 	Proc *up = externup();
-	qlock(&broken);
+	qlock(&(&broken)->qlock);
 	if(broken.n == NBROKEN) {
 		ready(broken.p[0]);
 		memmove(&broken.p[0], &broken.p[1], sizeof(Proc*)*(NBROKEN-1));
 		--broken.n;
 	}
 	broken.p[broken.n++] = p;
-	qunlock(&broken);
+	qunlock(&(&broken)->qlock);
 
 	stopac();
 	edfstop(up);
@@ -1443,7 +1443,7 @@ unbreak(Proc *p)
 {
 	int b;
 
-	qlock(&broken);
+	qlock(&(&broken)->qlock);
 	for(b=0; b < broken.n; b++)
 		if(broken.p[b] == p) {
 			broken.n--;
@@ -1452,7 +1452,7 @@ unbreak(Proc *p)
 			ready(p);
 			break;
 		}
-	qunlock(&broken);
+	qunlock(&(&broken)->qlock);
 }
 
 int
@@ -1460,14 +1460,14 @@ freebroken(void)
 {
 	int i, n;
 
-	qlock(&broken);
+	qlock(&(&broken)->qlock);
 	n = broken.n;
 	for(i=0; i<n; i++) {
 		ready(broken.p[i]);
 		broken.p[i] = 0;
 	}
 	broken.n = 0;
-	qunlock(&broken);
+	qunlock(&(&broken)->qlock);
 	return n;
 }
 
@@ -1501,7 +1501,7 @@ pexit(char *exitstr, int freemem)
 		proctrace(up, SDead, 0);
 
 	/* nil out all the resources under lock (free later) */
-	qlock(&up->debug);
+	qlock(&(&up->debug)->qlock);
 	fgrp = up->fgrp;
 	up->fgrp = nil;
 	egrp = up->egrp;
@@ -1512,7 +1512,7 @@ pexit(char *exitstr, int freemem)
 	up->pgrp = nil;
 	dot = up->dot;
 	up->dot = nil;
-	qunlock(&up->debug);
+	qunlock(&(&up->debug)->qlock);
 
 
 	if(fgrp)
@@ -1557,7 +1557,7 @@ pexit(char *exitstr, int freemem)
 		else
 			wq->w.msg[0] = '\0';
 
-		lock(&p->exl);
+		lock(&(&p->exl)->lock);
 		/*
 		 * Check that parent is still alive.
 		 */
@@ -1580,7 +1580,7 @@ pexit(char *exitstr, int freemem)
 				wakeup(&p->waitr);
 			}
 		}
-		unlock(&p->exl);
+		unlock(&(&p->exl)->lock);
 		if(wq)
 			free(wq);
 	}
@@ -1588,7 +1588,7 @@ pexit(char *exitstr, int freemem)
 	if(!freemem)
 		addbroken(up);
 
-	qlock(&up->seglock);
+	qlock(&(&up->seglock)->qlock);
 	es = &up->seg[NSEG];
 	for(s = up->seg; s < es; s++) {
 		if(*s) {
@@ -1596,13 +1596,13 @@ pexit(char *exitstr, int freemem)
 			*s = 0;
 		}
 	}
-	qunlock(&up->seglock);
+	qunlock(&(&up->seglock)->qlock);
 
-	lock(&up->exl);		/* Prevent my children from leaving waits */
+	lock(&(&up->exl)->lock);		/* Prevent my children from leaving waits */
 	psunhash(up);
 	up->pid = 0;
 	wakeup(&up->waitr);
-	unlock(&up->exl);
+	unlock(&(&up->exl)->lock);
 
 	for(f = up->waitq; f; f = next) {
 		next = f->next;
@@ -1610,16 +1610,16 @@ pexit(char *exitstr, int freemem)
 	}
 
 	/* release debuggers */
-	qlock(&up->debug);
+	qlock(&(&up->debug)->qlock);
 	if(up->pdbg) {
 		wakeup(&up->pdbg->sleep);
 		up->pdbg = 0;
 	}
-	qunlock(&up->debug);
+	qunlock(&(&up->debug)->qlock);
 
 	/* Sched must not loop for these locks */
-	lock(&procalloc);
-	lock(&pga);
+	lock(&(&procalloc)->lock);
+	lock(&(&pga)->lock);
 
 	stopac();
 	edfstop(up);
@@ -1644,30 +1644,30 @@ pwait(Waitmsg *w)
 	int cpid;
 	Waitq *wq;
 
-	if(!canqlock(&up->qwaitr))
+	if(!canqlock(&(&up->qwaitr)->qlock))
 		error(Einuse);
 
 	if(waserror()) {
-		qunlock(&up->qwaitr);
+		qunlock(&(&up->qwaitr)->qlock);
 		nexterror();
 	}
 
-	lock(&up->exl);
+	lock(&(&up->exl)->lock);
 	if(up->nchild == 0 && up->waitq == 0) {
-		unlock(&up->exl);
+		unlock(&(&up->exl)->lock);
 		error(Enochild);
 	}
-	unlock(&up->exl);
+	unlock(&(&up->exl)->lock);
 
 	sleep(&up->waitr, haswaitq, up);
 
-	lock(&up->exl);
+	lock(&(&up->exl)->lock);
 	wq = up->waitq;
 	up->waitq = wq->next;
 	up->nwait--;
-	unlock(&up->exl);
+	unlock(&(&up->exl)->lock);
 
-	qunlock(&up->qwaitr);
+	qunlock(&(&up->qwaitr)->qlock);
 	poperror();
 
 	if(w)
@@ -1874,12 +1874,12 @@ procctl(Proc *p)
 		p->psstate = "Stopped";
 		/* free a waiting debugger */
 		pl = spllo();
-		qlock(&p->debug);
+		qlock(&(&p->debug)->qlock);
 		if(p->pdbg) {
 			wakeup(&p->pdbg->sleep);
 			p->pdbg = 0;
 		}
-		qunlock(&p->debug);
+		qunlock(&(&p->debug)->qlock);
 		splhi();
 		p->state = Stopped;
 		sched();
@@ -1986,9 +1986,9 @@ killbig(char *why)
 	kp->procctl = Proc_exitbig;
 	for(i = 0; i < NSEG; i++) {
 		s = kp->seg[i];
-		if(s != 0 && canqlock(&s->lk)) {
+		if(s != 0 && canqlock(&(&s->lk)->qlock)) {
 			mfreeseg(s, s->base, (s->top - s->base)/BIGPGSZ);
-			qunlock(&s->lk);
+			qunlock(&(&s->lk)->qlock);
 		}
 	}
 	psdecref(kp);

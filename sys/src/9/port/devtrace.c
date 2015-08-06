@@ -541,7 +541,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 		error("traceread: bad qid");
 	case Qctl:
 		i = 0;
-		qlock(&traceslock);
+		qlock(&(&traceslock)->qlock);
 		buf = malloc(READSTR);
 		i += snprint(buf + i, READSTR - i, "logsize %lud\n", logsize);
 		for(p = traces; p != nil; p = p->next)
@@ -567,7 +567,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 		snprint(buf + i, READSTR - i, "watch %d\n", pidwatch[numpids - 1]);
 		n = readstr(offset, a, n, buf);
 		free(buf);
-		qunlock(&traceslock);
+		qunlock(&(&traceslock)->qlock);
 		break;
 	case Qdata:
 
@@ -674,9 +674,9 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 	int saveactive = traceactive;
 	traceactive = 0;
 
-	qlock(&traceslock);
+	qlock(&(&traceslock)->qlock);
 	if(waserror()){
-		qunlock(&traceslock);
+		qunlock(&(&traceslock)->qlock);
 		if(s != nil) free(s);
 		traceactive = saveactive;
 		nexterror();
@@ -877,7 +877,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 		break;
 	}
 	poperror();
-	qunlock(&traceslock);
+	qunlock(&(&traceslock)->qlock);
 	traceactive = saveactive;
 	return n;
 }

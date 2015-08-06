@@ -276,7 +276,7 @@ command(Ctlr* ctlr, int c, int v)
 {
 	int timeo;
 
-	ilock(&ctlr->rlock);
+	ilock(&(&ctlr->rlock)->lock);
 
 	/*
 	 * Only back-to-back CUresume can be done
@@ -298,7 +298,7 @@ command(Ctlr* ctlr, int c, int v)
 	}
 	if(timeo >= 100){
 		ctlr->command = -1;
-		iunlock(&ctlr->rlock);
+		iunlock(&(&ctlr->rlock)->lock);
 		iprint("i82557: command %#ux %#ux timeout\n", c, v);
 		return;
 	}
@@ -328,7 +328,7 @@ command(Ctlr* ctlr, int c, int v)
 	csr8w(ctlr, CommandR, c);
 	ctlr->command = c;
 
-	iunlock(&ctlr->rlock);
+	iunlock(&(&ctlr->rlock)->lock);
 }
 
 static Block*
@@ -374,12 +374,12 @@ watchdog(void* arg)
 			pexit("disabled", 0);
 		}
 
-		ilock(&ctlr->cblock);
+		ilock(&(&ctlr->cblock)->lock);
 		if(ctlr->tick++){
 			ctlr->action = CbMAS;
 			txstart(ether);
 		}
-		iunlock(&ctlr->cblock);
+		iunlock(&(&ctlr->cblock)->lock);
 	}
 }
 
@@ -390,11 +390,11 @@ attach(Ether* ether)
 	char name[KNAMELEN];
 
 	ctlr = ether->ctlr;
-	lock(&ctlr->slock);
+	lock(&(&ctlr->slock)->lock);
 	if(ctlr->state == 0){
-		ilock(&ctlr->rlock);
+		ilock(&(&ctlr->rlock)->lock);
 		csr8w(ctlr, Interrupt, 0);
-		iunlock(&ctlr->rlock);
+		iunlock(&(&ctlr->rlock)->lock);
 		command(ctlr, RUstart, PADDR(ctlr->rfdhead->rp));
 		ctlr->state = 1;
 
@@ -408,7 +408,7 @@ attach(Ether* ether)
 			kproc(name, watchdog, ether);
 		}
 	}
-	unlock(&ctlr->slock);
+	unlock(&(&ctlr->slock)->lock);
 }
 
 static int miir(Ctlr*, int, int);
@@ -422,7 +422,7 @@ ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 	uint32_t dump[17];
 
 	ctlr = ether->ctlr;
-	lock(&ctlr->dlock);
+	lock(&(&ctlr->dlock)->lock);
 
 	/*
 	 * Start the command then
@@ -441,12 +441,12 @@ ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 	ether->overflows = ctlr->dump[13];
 
 	if(n == 0){
-		unlock(&ctlr->dlock);
+		unlock(&(&ctlr->dlock)->lock);
 		return 0;
 	}
 
 	memmove(dump, ctlr->dump, sizeof(dump));
-	unlock(&ctlr->dlock);
+	unlock(&(&ctlr->dlock)->lock);
 
 	p = malloc(READSTR);
 	len = snprint(p, READSTR, "transmit good frames: %lud\n", dump[0]);
@@ -569,7 +569,7 @@ configure(Ether* ether, int promiscuous)
 	Ctlr *ctlr;
 
 	ctlr = ether->ctlr;
-	ilock(&ctlr->cblock);
+	ilock(&(&ctlr->cblock)->lock);
 	if(promiscuous){
 		ctlr->configdata[6] |= 0x80;		/* Save Bad Frames */
 		//ctlr->configdata[6] &= ~0x40;		/* !Discard Overrun Rx Frames */
@@ -588,7 +588,7 @@ configure(Ether* ether, int promiscuous)
 	}
 	ctlr->action = CbConfigure;
 	txstart(ether);
-	iunlock(&ctlr->cblock);
+	iunlock(&(&ctlr->cblock)->lock);
 }
 
 static void
@@ -616,9 +616,9 @@ transmit(Ether* ether)
 	Ctlr *ctlr;
 
 	ctlr = ether->ctlr;
-	ilock(&ctlr->cblock);
+	ilock(&(&ctlr->cblock)->lock);
 	txstart(ether);
-	iunlock(&ctlr->cblock);
+	iunlock(&(&ctlr->cblock)->lock);
 }
 
 static void
@@ -714,10 +714,10 @@ interrupt(Ureg* ureg, void* arg)
 	ctlr = ether->ctlr;
 
 	for(;;){
-		ilock(&ctlr->rlock);
+		ilock(&(&ctlr->rlock)->lock);
 		status = csr16r(ctlr, Status);
 		csr8w(ctlr, Ack, (status>>8) & 0xFF);
-		iunlock(&ctlr->rlock);
+		iunlock(&(&ctlr->rlock)->lock);
 
 		if(!(status & (StatCX|StatFR|StatCNA|StatRNR|StatMDI|StatSWI)))
 			break;
@@ -727,9 +727,9 @@ interrupt(Ureg* ureg, void* arg)
 		 * let it know the receiver is active.
 		 */
 		if(status & (StatFR|StatRNR)){
-			ilock(&ctlr->cblock);
+			ilock(&(&ctlr->cblock)->lock);
 			ctlr->tick = 0;
-			iunlock(&ctlr->cblock);
+			iunlock(&(&ctlr->cblock)->lock);
 		}
 
 		if(status & StatFR){
@@ -743,7 +743,7 @@ interrupt(Ureg* ureg, void* arg)
 		}
 
 		if(status & StatCNA){
-			ilock(&ctlr->cblock);
+			ilock(&(&ctlr->cblock)->lock);
 
 			cb = ctlr->cbtail;
 			while(ctlr->cbq){
@@ -762,7 +762,7 @@ interrupt(Ureg* ureg, void* arg)
 			ctlr->cbtail = cb;
 
 			txstart(ether);
-			iunlock(&ctlr->cblock);
+			iunlock(&(&ctlr->cblock)->lock);
 
 			status &= ~StatCNA;
 		}
@@ -807,7 +807,7 @@ ctlrinit(Ctlr* ctlr)
 	 * Create a ring of control blocks for the
 	 * transmit side.
 	 */
-	ilock(&ctlr->cblock);
+	ilock(&(&ctlr->cblock)->lock);
 	ctlr->cbr = malloc(ctlr->ncb*sizeof(Cb));
 	for(i = 0; i < ctlr->ncb; i++){
 		ctlr->cbr[i].status = CbC|CbOK;
@@ -823,7 +823,7 @@ ctlrinit(Ctlr* ctlr)
 	ctlr->threshold = 80;
 	ctlr->tick = 0;
 
-	iunlock(&ctlr->cblock);
+	iunlock(&(&ctlr->cblock)->lock);
 }
 
 static int
@@ -831,7 +831,7 @@ miir(Ctlr* ctlr, int phyadd, int regadd)
 {
 	int mcr, timo;
 
-	lock(&ctlr->miilock);
+	lock(&(&ctlr->miilock)->lock);
 	csr32w(ctlr, Mcr, MDIread|(phyadd<<21)|(regadd<<16));
 	mcr = 0;
 	for(timo = 64; timo; timo--){
@@ -840,7 +840,7 @@ miir(Ctlr* ctlr, int phyadd, int regadd)
 			break;
 		microdelay(1);
 	}
-	unlock(&ctlr->miilock);
+	unlock(&(&ctlr->miilock)->lock);
 
 	if(mcr & MDIready)
 		return mcr & 0xFFFF;
@@ -853,7 +853,7 @@ miiw(Ctlr* ctlr, int phyadd, int regadd, int data)
 {
 	int mcr, timo;
 
-	lock(&ctlr->miilock);
+	lock(&(&ctlr->miilock)->lock);
 	csr32w(ctlr, Mcr, MDIwrite|(phyadd<<21)|(regadd<<16)|(data & 0xFFFF));
 	mcr = 0;
 	for(timo = 64; timo; timo--){
@@ -862,7 +862,7 @@ miiw(Ctlr* ctlr, int phyadd, int regadd, int data)
 			break;
 		microdelay(1);
 	}
-	unlock(&ctlr->miilock);
+	unlock(&(&ctlr->miilock)->lock);
 
 	if(mcr & MDIready)
 		return 0;
@@ -1086,11 +1086,11 @@ reset(Ether* ether)
 	ether->irq = ctlr->pcidev->intl;
 	ether->tbdf = ctlr->pcidev->tbdf;
 
-	ilock(&ctlr->rlock);
+	ilock(&(&ctlr->rlock)->lock);
 	csr32w(ctlr, Port, 0);
 	delay(1);
 	csr8w(ctlr, Interrupt, InterruptM);
-	iunlock(&ctlr->rlock);
+	iunlock(&(&ctlr->rlock)->lock);
 
 	command(ctlr, LoadRUB, 0);
 	command(ctlr, LoadCUB, 0);
@@ -1319,10 +1319,10 @@ reset(Ether* ether)
 		}
 	}
 
-	ilock(&ctlr->cblock);
+	ilock(&(&ctlr->cblock)->lock);
 	ctlr->action = CbIAS;
 	txstart(ether);
-	iunlock(&ctlr->cblock);
+	iunlock(&(&ctlr->cblock)->lock);
 
 	/*
 	 * Linkage to the generic ethernet driver.

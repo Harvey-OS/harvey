@@ -42,12 +42,12 @@ srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 		return 1;
 	}
 
-	qlock(&srvlk);
+	qlock(&(&srvlk)->qlock);
 	for(sp = srv; sp && s; sp = sp->link)
 		s--;
 
 	if(sp == 0) {
-		qunlock(&srvlk);
+		qunlock(&(&srvlk)->qlock);
 		return -1;
 	}
 
@@ -55,7 +55,7 @@ srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 	/* make sure name string continues to exist after we release lock */
 	kstrcpy(up->genbuf, sp->name, sizeof up->genbuf);
 	devdir(c, q, up->genbuf, 0, sp->owner, sp->perm, dp);
-	qunlock(&srvlk);
+	qunlock(&(&srvlk)->qlock);
 	return 1;
 }
 
@@ -124,9 +124,9 @@ srvopen(Chan *c, int omode)
 		c->offset = 0;
 		return c;
 	}
-	qlock(&srvlk);
+	qlock(&(&srvlk)->qlock);
 	if(waserror()){
-		qunlock(&srvlk);
+		qunlock(&(&srvlk)->qlock);
 		nexterror();
 	}
 
@@ -142,7 +142,7 @@ srvopen(Chan *c, int omode)
 
 	cclose(c);
 	incref(sp->chan);
-	qunlock(&srvlk);
+	qunlock(&(&srvlk)->qlock);
 	poperror();
 	return sp->chan;
 }
@@ -163,11 +163,11 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 	sp = smalloc(sizeof *sp);
 	sname = smalloc(strlen(name)+1);
 
-	qlock(&srvlk);
+	qlock(&(&srvlk)->qlock);
 	if(waserror()){
 		free(sname);
 		free(sp);
-		qunlock(&srvlk);
+		qunlock(&(&srvlk)->qlock);
 		nexterror();
 	}
 	if(sp == nil || sname == nil)
@@ -182,7 +182,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 	c->qid.type = QTFILE;
 	c->qid.path = sp->path;
 	srv = sp;
-	qunlock(&srvlk);
+	qunlock(&(&srvlk)->qlock);
 	poperror();
 
 	kstrdup(&sp->owner, up->user);
@@ -201,9 +201,9 @@ srvremove(Chan *c)
 	if(c->qid.type == QTDIR)
 		error(Eperm);
 
-	qlock(&srvlk);
+	qlock(&(&srvlk)->qlock);
 	if(waserror()){
-		qunlock(&srvlk);
+		qunlock(&(&srvlk)->qlock);
 		nexterror();
 	}
 	l = &srv;
@@ -232,7 +232,7 @@ srvremove(Chan *c)
 		error(Eperm);
 
 	*l = sp->link;
-	qunlock(&srvlk);
+	qunlock(&(&srvlk)->qlock);
 	poperror();
 
 	if(sp->chan)
@@ -254,9 +254,9 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 		error(Eperm);
 
 	strs = nil;
-	qlock(&srvlk);
+	qlock(&(&srvlk)->qlock);
 	if(waserror()){
-		qunlock(&srvlk);
+		qunlock(&(&srvlk)->qlock);
 		free(strs);
 		nexterror();
 	}
@@ -282,7 +282,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 		kstrdup(&sp->name, d.name);
 	}
 
-	qunlock(&srvlk);
+	qunlock(&(&srvlk)->qlock);
 	free(strs);
 	poperror();
 	return n;
@@ -329,9 +329,9 @@ srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 
 	c1 = fdtochan(fd, -1, 0, 1);	/* error check and inc ref */
 
-	qlock(&srvlk);
+	qlock(&(&srvlk)->qlock);
 	if(waserror()) {
-		qunlock(&srvlk);
+		qunlock(&(&srvlk)->qlock);
 		cclose(c1);
 		nexterror();
 	}
@@ -347,7 +347,7 @@ srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		error(Ebadusefd);
 
 	sp->chan = c1;
-	qunlock(&srvlk);
+	qunlock(&(&srvlk)->qlock);
 	poperror();
 	return n;
 }

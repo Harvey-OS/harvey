@@ -81,7 +81,7 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 	return 0;
 fail:
 	if(s != nil){
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		print("%s fault fail %s(%c%c%c) pid %d addr 0x%p pc 0x%p\n",
 			faulttypes[ftype],
 			segtypes[s->type & SG_TYPE],
@@ -214,13 +214,13 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 		if((s->type & SG_TYPE) != SG_SHARED){
 
 			lkp = *pg;
-			lock(lkp);
+			lock(&lkp->lock);
 
 			ref = lkp->ref;
 
 			if(ref > 1) {	/* page is shared but segment is not: copy for write */
 				int pgref = lkp->ref;
-				unlock(lkp);
+				unlock(&lkp->lock);
 
 				DBG("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
 					up->pid,
@@ -245,7 +245,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 				if(lkp->image != nil)
 					duppage(lkp);
 
-				unlock(lkp);
+				unlock(&lkp->lock);
 			}
 		}
 		mmuattr = PTEVALID|PTEWRITE;
@@ -279,7 +279,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 	}
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 
 	if(dommuput){
 		assert(segppn(s, (*pg)->pa) == (*pg)->pa);
@@ -332,7 +332,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		panic("no swap");
 	}
 
-	qunlock(&s->lk);
+	qunlock(&(&s->lk)->qlock);
 
 	// For plan 9 a.out format the amount of data
 	// we read covered the page; the first parameter
@@ -369,7 +369,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		kunmap(k);
 	}
 
-	qlock(&s->lk);
+	qlock(&(&s->lk)->qlock);
 	if(loadrec == nil) {	/* This is demand load */
 		/*
 		 *  race, another proc may have gotten here first while
@@ -489,10 +489,10 @@ seg(Proc *p, uintptr_t addr, int dolock)
 			if(dolock == 0)
 				return n;
 
-			qlock(&n->lk);
+			qlock(&(&n->lk)->qlock);
 			if(addr >= n->base && addr < n->top)
 				return n;
-			qunlock(&n->lk);
+			qunlock(&(&n->lk)->qlock);
 		}
 	}
 

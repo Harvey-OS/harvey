@@ -69,9 +69,9 @@ regressread(Chan *c, void *a, int32_t n, int64_t offset)
 		break;
 
 	case Qlock:
-		qlock(&testlock);
+		qlock(&(&testlock)->qlock);
 		// sanity test code here.
-		qunlock(&testlock);
+		qunlock(&(&testlock)->qlock);
 		n = 1;
 		break;
 

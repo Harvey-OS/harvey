@@ -190,7 +190,7 @@ greconnect(Conv *c, char **argv, int argc)
 
 	/* make sure noone's already connected to this other sys */
 	p = c->p;
-	qlock(p);
+	qlock(&p->qlock);
 	ecp = &p->conv[p->nc];
 	for(cp = p->conv; cp < ecp; cp++){
 		tc = *cp;
@@ -205,7 +205,7 @@ greconnect(Conv *c, char **argv, int argc)
 			break;
 		}
 	}
-	qunlock(p);
+	qunlock(&p->qlock);
 
 	if(err != nil)
 		return err;
@@ -263,7 +263,7 @@ greclose(Conv *c)
 	memset(grec->north, 0, sizeof grec->north);
 	memset(grec->south, 0, sizeof grec->south);
 
-	qlock(&grec->lock);
+	qlock(&(&grec->lock)->qlock);
 	while((bp = getring(&grec->dlpending)) != nil)
 		freeb(bp);
 
@@ -276,7 +276,7 @@ greclose(Conv *c)
 	grec->dlpending.produced = grec->dlpending.consumed = 0;
 	grec->dlbuffered.produced = grec->dlbuffered.consumed = 0;
 	grec->ulbuffered.produced = grec->ulbuffered.consumed = 0;
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 
 	grec->raw = 0;
 	grec->seq = 0;
@@ -415,7 +415,7 @@ gredownlink(Conv *c, Block *bp)
 restart:
 	suspended = grec->dlsusp;
 	if(suspended){
-		if(!canqlock(&grec->lock)){
+		if(!canqlock(&(&grec->lock)->qlock)){
 			/*
 			 * just give up.  too bad, we lose a packet.  this
 			 * is just too hard and my brain already hurts.
@@ -429,13 +429,13 @@ restart:
 			 * suspend race.  We though we were suspended, but
 			 * we really weren't.
 			 */
-			qunlock(&grec->lock);
+			qunlock(&(&grec->lock)->qlock);
 			goto restart;
 		}
 
 		/* Undo the incorrect ref count addition */
 		addring(&grec->dlbuffered, bp);
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		return;
 	}
 
@@ -460,14 +460,14 @@ restart:
 	/*
 	 * Now make sure we didn't do the wrong thing.
 	 */
-	if(!canqlock(&grec->lock)){
+	if(!canqlock(&(&grec->lock)->qlock)){
 		freeb(bp);		/* The packet just goes away */
 		return;
 	}
 
 	/* We did the right thing */
 	addring(&grec->dlpending, bp);
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 }
 
 static void
@@ -516,7 +516,7 @@ greuplink(Conv *c, Block *bp)
 		hnputl(bp->rp + sizeof(GREhdr), grec->ulkey);
 	}
 
-	if(!canqlock(&grec->lock)){
+	if(!canqlock(&(&grec->lock)->qlock)){
 		freeb(bp);
 		return;
 	}
@@ -528,7 +528,7 @@ greuplink(Conv *c, Block *bp)
 		grepuout++;
 		grebuout += BLEN(bp);
 	}
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 }
 
 static void
@@ -587,7 +587,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	}
 	ip = (Ip4hdr *)(bp->rp + hdrlen);
 
-	qlock(proto);
+	qlock(&proto->qlock);
 	/*
 	 * Look for a conversation structure for this port and address, or
 	 * match the retunnel part, or match on the raw flag.
@@ -607,7 +607,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			grepdin++;
 			grebdin += BLEN(bp);
 			gredownlink(c, bp);
-			qunlock(proto);
+			qunlock(&proto->qlock);
 			return;
 		}
 
@@ -615,7 +615,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			grepuin++;
 			grebuin += BLEN(bp);
 			greuplink(c, bp);
-			qunlock(proto);
+			qunlock(&proto->qlock);
 			return;
 		}
 	}
@@ -640,7 +640,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			break;
 	}
 
-	qunlock(proto);
+	qunlock(&proto->qlock);
 
 	if(*p == nil){
 		freeb(bp);
@@ -746,7 +746,7 @@ grectlreport(Conv *c, int i, char **argv)
 	grec = c->ptcl;
 	seq  = strtoul(argv[1], nil, 0);
 
-	qlock(&grec->lock);
+	qlock(&(&grec->lock)->qlock);
 	r = &grec->dlpending;
 	while(r->produced - r->consumed > 0){
 		bp = r->ring[r->consumed & Ringmask];
@@ -761,7 +761,7 @@ grectlreport(Conv *c, int i, char **argv)
 
 		freeb(bp);
 	}
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 	return nil;
 }
 
@@ -800,15 +800,15 @@ grectldlresume(Conv *c, int i, char **argv)
 
 	grec = c->ptcl;
 
-	qlock(&grec->lock);
+	qlock(&(&grec->lock)->qlock);
 	if(!grec->dlsusp){
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		return "not suspended";
 	}
 
 	while((bp = getring(&grec->dlbuffered)) != nil){
 		gre = (GREhdr *)bp->rp;
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 
 		/*
 		 * Make sure the packet does not go away.
@@ -819,11 +819,11 @@ grectldlresume(Conv *c, int i, char **argv)
 
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
 
-		qlock(&grec->lock);
+		qlock(&(&grec->lock)->qlock);
 		addring(&grec->dlpending, bp);
 	}
 	grec->dlsusp = 0;
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 	return nil;
 }
 
@@ -836,16 +836,16 @@ grectlulresume(Conv *c, int i, char **argv)
 
 	grec = c->ptcl;
 
-	qlock(&grec->lock);
+	qlock(&(&grec->lock)->qlock);
 	while((bp = getring(&grec->ulbuffered)) != nil){
 		gre = (GREhdr *)bp->rp;
 
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
-		qlock(&grec->lock);
+		qlock(&(&grec->lock)->qlock);
 	}
 	grec->ulsusp = 0;
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 	return nil;
 }
 
@@ -863,9 +863,9 @@ grectlforward(Conv *c, int i, char **argv)
 	v4parseip(grec->south, argv[1]);
 	memmove(grec->north, grec->south, sizeof grec->north);
 
-	qlock(&grec->lock);
+	qlock(&(&grec->lock)->qlock);
 	if(!grec->dlsusp){
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		return "not suspended";
 	}
 	grec->dlsusp = 0;
@@ -898,9 +898,9 @@ grectlforward(Conv *c, int i, char **argv)
 		memmove(gre->src, grec->coa, sizeof gre->dst);
 		memmove(gre->dst, grec->south, sizeof gre->dst);
 
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
-		qlock(&grec->lock);
+		qlock(&(&grec->lock)->qlock);
 	}
 
 	while((bp = getring(&grec->dlbuffered)) != nil){
@@ -908,9 +908,9 @@ grectlforward(Conv *c, int i, char **argv)
 		memmove(gre->src, grec->coa, sizeof gre->dst);
 		memmove(gre->dst, grec->south, sizeof gre->dst);
 
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
-		qlock(&grec->lock);
+		qlock(&(&grec->lock)->qlock);
 	}
 
 	while((bp = getring(&grec->ulbuffered)) != nil){
@@ -919,11 +919,11 @@ grectlforward(Conv *c, int i, char **argv)
 		memmove(gre->src, grec->coa, sizeof gre->dst);
 		memmove(gre->dst, grec->south, sizeof gre->dst);
 
-		qunlock(&grec->lock);
+		qunlock(&(&grec->lock)->qlock);
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
-		qlock(&grec->lock);
+		qlock(&(&grec->lock)->qlock);
 	}
-	qunlock(&grec->lock);
+	qunlock(&(&grec->lock)->qlock);
 	return nil;
 }
 

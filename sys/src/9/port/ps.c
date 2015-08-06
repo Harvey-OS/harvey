@@ -25,10 +25,10 @@ pshash(Proc *p)
 	int h;
 
 	h = p->pid % nelem(procalloc.ht);
-	lock(&procalloc);
+	lock(&(&procalloc)->lock);
 	p->pidhash = procalloc.ht[h];
 	procalloc.ht[h] = p;
-	unlock(&procalloc);
+	unlock(&(&procalloc)->lock);
 }
 
 void
@@ -38,13 +38,13 @@ psunhash(Proc *p)
 	Proc **l;
 
 	h = p->pid % nelem(procalloc.ht);
-	lock(&procalloc);
+	lock(&(&procalloc)->lock);
 	for(l = &procalloc.ht[h]; *l != nil; l = &(*l)->pidhash)
 		if(*l == p){
 			*l = p->pidhash;
 			break;
 		}
-	unlock(&procalloc);
+	unlock(&(&procalloc)->lock);
 }
 
 int
@@ -56,13 +56,13 @@ psindex(int pid)
 
 	s = -1;
 	h = pid % nelem(procalloc.ht);
-	lock(&procalloc);
+	lock(&(&procalloc)->lock);
 	for(p = procalloc.ht[h]; p != nil; p = p->pidhash)
 		if(p->pid == pid){
 			s = p->index;
 			break;
 		}
-	unlock(&procalloc);
+	unlock(&(&procalloc)->lock);
 	return s;
 }
 
@@ -99,18 +99,18 @@ psalloc(void)
 {
 	Proc *p;
 
-	lock(&procalloc);
+	lock(&(&procalloc)->lock);
 	for(;;) {
 		if(p = procalloc.free)
 			break;
 
-		unlock(&procalloc);
+		unlock(&(&procalloc)->lock);
 		resrcwait("no procs");
-		lock(&procalloc);
+		lock(&(&procalloc)->lock);
 	}
 	procalloc.free = p->qnext;
 	procalloc.nproc++;
-	unlock(&procalloc);
+	unlock(&(&procalloc)->lock);
 
 	return p;
 }

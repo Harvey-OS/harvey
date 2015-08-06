@@ -702,10 +702,10 @@ i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 	uint64_t tuvl, ruvl;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->slock);
+	qlock(&(&ctlr->slock)->qlock);
 	p = s = malloc(READSTR);
 	if(p == nil) {
-		qunlock(&ctlr->slock);
+		qunlock(&(&ctlr->slock)->qlock);
 		error(Enomem);
 	}
 	e = p + READSTR;
@@ -770,7 +770,7 @@ i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 	USED(p);
 	n = readstr(offset, a, n, s);
 	free(s);
-	qunlock(&ctlr->slock);
+	qunlock(&(&ctlr->slock)->qlock);
 
 	return n;
 }
@@ -828,13 +828,13 @@ i82563rballoc(void)
 {
 	Block *bp;
 
-	ilock(&i82563rblock);
+	ilock(&(&i82563rblock)->lock);
 	if((bp = i82563rbpool) != nil){
 		i82563rbpool = bp->next;
 		bp->next = nil;
 		/*ainc(&bp->ref);	 prevent bp from being freed */
 	}
-	iunlock(&i82563rblock);
+	iunlock(&(&i82563rblock)->lock);
 
 	return bp;
 }
@@ -844,19 +844,19 @@ i82563rbfree(Block* b)
 {
 	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr_t)b->base, PGSZ);
  	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
-	ilock(&i82563rblock);
+	ilock(&(&i82563rblock)->lock);
 	b->next = i82563rbpool;
 	i82563rbpool = b;
-	iunlock(&i82563rblock);
+	iunlock(&(&i82563rblock)->lock);
 }
 
 static void
 i82563im(Ctlr* ctlr, int im)
 {
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	ctlr->im |= im;
 	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 }
 
 static void
@@ -941,7 +941,7 @@ i82563transmit(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	qlock(&ctlr->tlock);
+	qlock(&(&ctlr->tlock)->qlock);
 
 	/*
 	 * Free any completed packets
@@ -971,7 +971,7 @@ i82563transmit(Ether* edev)
 		ctlr->tdt = tdt;
 		csr32w(ctlr, Tdt, tdt);
 	}
-	qunlock(&ctlr->tlock);
+	qunlock(&(&ctlr->tlock)->qlock);
 }
 
 static void
@@ -1429,9 +1429,9 @@ i82563attach(Ether* edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->alock);
+	qlock(&(&ctlr->alock)->qlock);
 	if(ctlr->attached){
-		qunlock(&ctlr->alock);
+		qunlock(&(&ctlr->alock)->qlock);
 		return;
 	}
 
@@ -1453,7 +1453,7 @@ i82563attach(Ether* edev)
 		ctlr->tdba = nil;
 		free(ctlr->rdba);
 		ctlr->rdba = nil;
-		qunlock(&ctlr->alock);
+		qunlock(&(&ctlr->alock)->qlock);
 		nexterror();
 	}
 
@@ -1488,7 +1488,7 @@ i82563attach(Ether* edev)
 
 	i82563txinit(ctlr);
 
-	qunlock(&ctlr->alock);
+	qunlock(&(&ctlr->alock)->qlock);
 	poperror();
 }
 
@@ -1502,7 +1502,7 @@ i82563interrupt(Ureg* ureg, void* arg)
 	edev = arg;
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
 
@@ -1528,7 +1528,7 @@ i82563interrupt(Ureg* ureg, void* arg)
 
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 }
 
 /* assume misrouted interrupts and check all controllers */

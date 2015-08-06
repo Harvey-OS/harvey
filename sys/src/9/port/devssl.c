@@ -309,10 +309,10 @@ sslopen(Chan *c, int omode)
 	case Qsecretin:
 	case Qsecretout:
 		if(waserror()) {
-			unlock(&dslock);
+			unlock(&(&dslock)->lock);
 			nexterror();
 		}
-		lock(&dslock);
+		lock(&(&dslock)->lock);
 		pp = &dstate[CONV(c->qid)];
 		s = *pp;
 		if(s == 0)
@@ -325,7 +325,7 @@ sslopen(Chan *c, int omode)
 
 			s->ref++;
 		}
-		unlock(&dslock);
+		unlock(&(&dslock)->lock);
 		poperror();
 		break;
 	case Qencalgs:
@@ -388,13 +388,13 @@ sslclose(Chan *c)
 		if(s == 0)
 			break;
 
-		lock(&dslock);
+		lock(&(&dslock)->lock);
 		if(--s->ref > 0) {
-			unlock(&dslock);
+			unlock(&(&dslock)->lock);
 			break;
 		}
 		dstate[CONV(c->qid)] = 0;
-		unlock(&dslock);
+		unlock(&(&dslock)->lock);
 
 		if(s->user != nil)
 			free(s->user);
@@ -567,9 +567,9 @@ sslbread(Chan *c, int32_t n, int64_t m)
 	if(s->state == Sincomplete)
 		error(Ebadusefd);
 
-	qlock(&s->in.q);
+	qlock(&(&s->in.q)->qlock);
 	if(waserror()){
-		qunlock(&s->in.q);
+		qunlock(&(&s->in.q)->qlock);
 		nexterror();
 	}
 
@@ -609,12 +609,12 @@ sslbread(Chan *c, int32_t n, int64_t m)
 			print("devssl: sslbread got wrong count %d != %d", blocklen(b), len);
 
 		if(waserror()){
-			qunlock(&s->in.ctlq);
+			qunlock(&(&s->in.ctlq)->qlock);
 			if(b != nil)
 				freeb(b);
 			nexterror();
 		}
-		qlock(&s->in.ctlq);
+		qlock(&(&s->in.ctlq)->qlock);
 		switch(s->state){
 		case Sencrypting:
 			if(b == nil)
@@ -647,14 +647,14 @@ sslbread(Chan *c, int32_t n, int64_t m)
 			s->processed = b;
 		b = nil;
 		s->in.mid++;
-		qunlock(&s->in.ctlq);
+		qunlock(&(&s->in.ctlq)->qlock);
 		poperror();
 	}
 
 	/* return at most what was asked for */
 	b = qtake(&s->processed, n, 0);
 
-	qunlock(&s->in.q);
+	qunlock(&(&s->in.q)->qlock);
 	poperror();
 
 	return b;
@@ -741,15 +741,15 @@ sslbwrite(Chan *c, Block *b, int64_t m)
 
 	/* lock so split writes won't interleave */
 	if(waserror()){
-		qunlock(&s->out.q);
+		qunlock(&(&s->out.q)->qlock);
 		nexterror();
 	}
-	qlock(&s->out.q);
+	qlock(&(&s->out.q)->qlock);
 
 	rv = sslput(s, b);
 
 	poperror();
-	qunlock(&s->out.q);
+	qunlock(&(&s->out.q)->qlock);
 
 	return rv;
 }
@@ -1070,10 +1070,10 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 
 		/* lock should a write gets split over multiple records */
 		if(waserror()){
-			qunlock(&s->out.q);
+			qunlock(&(&s->out.q)->qlock);
 			nexterror();
 		}
-		qlock(&s->out.q);
+		qlock(&(&s->out.q)->qlock);
 
 		p = a;
 		e = p + n;
@@ -1097,18 +1097,18 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 		} while(p < e);
 
 		poperror();
-		qunlock(&s->out.q);
+		qunlock(&(&s->out.q)->qlock);
 		return n;
 	}
 
 	/* mutex with operations using what we're about to change */
 	if(waserror()){
-		qunlock(&s->in.ctlq);
-		qunlock(&s->out.q);
+		qunlock(&(&s->in.ctlq)->qlock);
+		qunlock(&(&s->out.q)->qlock);
 		nexterror();
 	}
-	qlock(&s->in.ctlq);
-	qlock(&s->out.q);
+	qlock(&(&s->in.ctlq)->qlock);
+	qlock(&(&s->out.q)->qlock);
 
 	switch(t){
 	default:
@@ -1208,8 +1208,8 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 		error(Ebadarg);
 
 out:
-	qunlock(&s->in.ctlq);
-	qunlock(&s->out.q);
+	qunlock(&(&s->in.ctlq)->qlock);
+	qunlock(&(&s->out.q)->qlock);
 	poperror();
 	return n;
 }
@@ -1454,7 +1454,7 @@ sslhangup(Dstate *s)
 {
 	Block *b;
 
-	qlock(&s->in.q);
+	qlock(&(&s->in.q)->qlock);
 	for(b = s->processed; b; b = s->processed){
 		s->processed = b->next;
 		freeb(b);
@@ -1464,7 +1464,7 @@ sslhangup(Dstate *s)
 		s->unprocessed = 0;
 	}
 	s->state = Sincomplete;
-	qunlock(&s->in.q);
+	qunlock(&(&s->in.q)->qlock);
 }
 
 static Dstate*
@@ -1474,10 +1474,10 @@ dsclone(Chan *ch)
 	Dstate *ret;
 
 	if(waserror()) {
-		unlock(&dslock);
+		unlock(&(&dslock)->lock);
 		nexterror();
 	}
-	lock(&dslock);
+	lock(&(&dslock)->lock);
 	ret = nil;
 	for(i=0; i<Maxdstate; i++){
 		if(dstate[i] == nil){
@@ -1486,7 +1486,7 @@ dsclone(Chan *ch)
 			break;
 		}
 	}
-	unlock(&dslock);
+	unlock(&(&dslock)->lock);
 	poperror();
 	return ret;
 }

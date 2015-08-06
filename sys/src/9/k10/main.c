@@ -779,7 +779,7 @@ shutdown(int ispanic)
 {
 	int ms, once;
 
-	lock(&active);
+	lock(&(&active)->lock);
 	if(ispanic)
 		active.ispanic = ispanic;
 	else if(machp()->machno == 0 && machp()->online == 0)
@@ -788,7 +788,7 @@ shutdown(int ispanic)
 	machp()->online = 0;
 	adec(&active.nonline);
 	active.exiting = 1;
-	unlock(&active);
+	unlock(&(&active)->lock);
 
 	if(once)
 		iprint("cpu%d: exiting\n", machp()->machno);

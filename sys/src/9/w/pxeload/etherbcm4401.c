@@ -477,9 +477,9 @@ bcm4401attach(Ether* edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->alock);
+	qlock(&(&ctlr->alock)->qlock);
 	if(ctlr->alloc != nil){
-		qunlock(&ctlr->alock);
+		qunlock(&(&ctlr->alock)->qlock);
 		return;
 	}
 
@@ -487,7 +487,7 @@ bcm4401attach(Ether* edev)
 		nexterror();
 	}
 
-	qunlock(&ctlr->alock);
+	qunlock(&(&ctlr->alock)->qlock);
 	poperror();
 }
 
@@ -502,7 +502,7 @@ bcm4401transmit(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 	s = csr32r(ctlr, TDMAstatus);
 	tdt = ((s & DcdMASK) >> DcdSHIFT)/sizeof(DD);
 	for(tdh = ctlr->tdh; tdh != tdt; tdh = NEXT(tdh, ctlr->ntd)){
@@ -562,7 +562,7 @@ d->control |= DDioc;
 	else if(ctlr->ntq >= (ctlr->ntd-1))
 		ctlr->txdu++;
 
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 }
 
 static void

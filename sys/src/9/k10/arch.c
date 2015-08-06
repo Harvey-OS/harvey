@@ -34,9 +34,9 @@ incref(Ref *r)
 {
 	int x;
 
-	lock(r);
+	lock(&r->lock);
 	x = ++r->ref;
-	unlock(r);
+	unlock(&r->lock);
 	return x;
 }
 
@@ -45,9 +45,9 @@ decref(Ref *r)
 {
 	int x;
 
-	lock(r);
+	lock(&r->lock);
 	x = --r->ref;
-	unlock(r);
+	unlock(&r->lock);
 	if(x < 0)
 		panic("decref pc=%#p", getcallerpc(&r));
 

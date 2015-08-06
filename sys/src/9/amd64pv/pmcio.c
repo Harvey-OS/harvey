@@ -289,7 +289,7 @@ waitnotstale(Mach *mp, PmcCtr *p)
 	w->next = p->wq;
 	p->wq = w;
 	incref(w);
-	iunlock(&mp->pmclock);
+	iunlock(&(&mp->pmclock)->lock);
 	apicipi(mp->apicno);
 	if(waserror()){
 		pmcwclose(w);
@@ -344,14 +344,14 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 
 	mp = sys->machptr[coreno];
 	p = &mp->pmc[regno];
-	ilock(&mp->pmclock);
+	ilock(&(&mp->pmclock)->lock);
 	p->ctrset |= PmcGet;
 	if(shouldipi(mp)){
 		waitnotstale(mp, p);
-		ilock(&mp->pmclock);
+		ilock(&(&mp->pmclock)->lock);
 	}
 	v = p->ctr;
-	iunlock(&mp->pmclock);
+	iunlock(&(&mp->pmclock)->lock);
 	if (pmcdebug) {
 		print("ext getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
 	}
@@ -377,13 +377,13 @@ pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 	if (pmcdebug) {
 		print("ext setctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
 	}
-	ilock(&mp->pmclock);
+	ilock(&(&mp->pmclock)->lock);
 	p->ctr = v;
 	p->ctrset |= PmcSet;
 	if(shouldipi(mp))
 		waitnotstale(mp, p);
 	else
-		iunlock(&mp->pmclock);
+		iunlock(&(&mp->pmclock)->lock);
 	return 0;
 }
 
@@ -414,13 +414,13 @@ pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 
 	mp = sys->machptr[coreno];
 	p = &mp->pmc[regno];
-	ilock(&mp->pmclock);
+	ilock(&(&mp->pmclock)->lock);
 	ctl2ctl(&p->PmcCtl, pctl);
 	p->ctlset |= PmcSet;
 	if(shouldipi(mp))
 		waitnotstale(mp, p);
 	else
-		iunlock(&mp->pmclock);
+		iunlock(&(&mp->pmclock)->lock);
 	return 0;
 }
 
@@ -437,14 +437,14 @@ pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 	mp = sys->machptr[coreno];
 	p = &mp->pmc[regno];
 
-	ilock(&mp->pmclock);
+	ilock(&(&mp->pmclock)->lock);
 	p->ctlset |= PmcGet;
 	if(shouldipi(mp)){
 		waitnotstale(mp, p);
-		ilock(&mp->pmclock);
+		ilock(&(&mp->pmclock)->lock);
 	}
 	memmove(pctl, &p->PmcCtl, sizeof(PmcCtl));
-	iunlock(&mp->pmclock);
+	iunlock(&(&mp->pmclock)->lock);
 	return 0;
 }
 
@@ -459,7 +459,7 @@ pmcupdate(Mach *m)
 	maxct = pmcnregs();
 	for (i = 0; i < maxct; i++) {
 		p = &m->pmc[i];
-		ilock(&m->pmclock);
+		ilock(&(&m->pmclock)->lock);
 		if(p->ctrset & PmcSet)
 			setctr(p->ctr, i);
 		if(p->ctlset & PmcSet)
@@ -477,7 +477,7 @@ pmcupdate(Mach *m)
 				pmcwclose(w);
 			}
 		}
-		iunlock(&m->pmclock);
+		iunlock(&(&m->pmclock)->lock);
 	}
 }
 

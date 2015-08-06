@@ -151,7 +151,7 @@ ioapicinit(int id, uintptr_t pa)
 	 * The MultiProcessor Specification says it is the
 	 * responsibility of the O/S to set the APIC ID.
 	 */
-	lock(apic);
+	lock(&apic->lock);
 	*(apic->addr+Ioregsel) = Ioapicver;
 	apic->nrdt = ((*(apic->addr+Iowin)>>16) & 0xff) + 1;
 	apic->gsib = gsib;
@@ -159,7 +159,7 @@ ioapicinit(int id, uintptr_t pa)
 
 	*(apic->addr+Ioregsel) = Ioapicid;
 	*(apic->addr+Iowin) = id<<24;
-	unlock(apic);
+	unlock(&apic->lock);
 }
 
 void
@@ -180,9 +180,9 @@ ioapicdump(void)
 		print("ioapic %d addr %#p nrdt %d gsib %d\n",
 			i, apic->addr, apic->nrdt, apic->gsib);
 		for(n = 0; n < apic->nrdt; n++){
-			lock(apic);
+			lock(&apic->lock);
 			rtblget(apic, n, &hi, &lo);
-			unlock(apic);
+			unlock(&apic->lock);
 			print(" rdt %2.2d %#8.8ux %#8.8ux\n", n, hi, lo);
 		}
 	}
@@ -209,9 +209,9 @@ ioapiconline(void)
 		if(!apic->useable || apic->addr == nil)
 			continue;
 		for(i = 0; i < apic->nrdt; i++){
-			lock(apic);
+			lock(&apic->lock);
 			rtblput(apic, i, 0, Im);
-			unlock(apic);
+			unlock(&apic->lock);
 		}
 	}
 	ioapicdump();
@@ -254,7 +254,7 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 		 * thread in a core. But, as usual, Intel make that an onerous
 		 * task.
 		 */
-		lock(&dflock);
+		lock(&(&dflock)->lock);
 		for(;;){
 			i = df++;
 			if(df >= sys->nmach+1)
@@ -265,7 +265,7 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 			if(xlapic[i].useable && xlapic[i].addr == 0)
 				break;
 		}
-		unlock(&dflock);
+		unlock(&(&dflock)->lock);
 
 		*hi = i<<24;
 		break;
@@ -278,12 +278,12 @@ nextvec(void)
 {
 	uint vecno;
 
-	lock(&idtnolock);
+	lock(&(&idtnolock)->lock);
 	vecno = idtno;
 	idtno = (idtno+8) % IdtMAX;
 	if(idtno < IdtIOAPIC)
 		idtno += IdtIOAPIC;
-	unlock(&idtnolock);
+	unlock(&(&idtnolock)->lock);
 
 	return vecno;
 }
@@ -432,7 +432,7 @@ ioapicintrenable(Vctl* v)
 	 * the whole IOAPIC to initialise the RDT entry
 	 * rather than putting a Lock in each entry.
 	 */
-	lock(rdt->apic);
+	lock(&rdt->apic->lock);
 	DBG("%T: %ld/%d/%d (%d)\n", v->tbdf, rdt->apic - xioapic, rbus->devno, rdt->intin, devno);
 	if((rdt->lo & 0xff) == 0){
 		vecno = nextvec();
@@ -446,7 +446,7 @@ ioapicintrenable(Vctl* v)
 	ioapicintrdd(&hi, &lo);
 	rtblput(rdt->apic, rdt->intin, hi, lo);
 	vecno = lo & 0xff;
-	unlock(rdt->apic);
+	unlock(&rdt->apic->lock);
 
 	DBG("busno %d devno %d hi %#8.8ux lo %#8.8ux vecno %d\n",
 		busno, devno, hi, lo, vecno);
@@ -480,11 +480,11 @@ ioapicintrdisable(int vecno)
 		return -1;
 	}
 
-	lock(rdt->apic);
+	lock(&rdt->apic->lock);
 	rdt->enabled--;
 	if(rdt->enabled == 0)
 		rtblput(rdt->apic, rdt->intin, 0, rdt->lo);
-	unlock(rdt->apic);
+	unlock(&rdt->apic->lock);
 
 	return 0;
 }

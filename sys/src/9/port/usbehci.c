@@ -191,7 +191,7 @@ struct Qtree
  */
 struct Qio
 {
-	QLock;			/* for the entire I/O process */
+	QLock qlock;			/* for the entire I/O process */
 	Rendez;			/* wait for completion */
 	Qh*	qh;		/* Td list (field const after init) */
 	int	usbid;		/* usb address for endpoint/device */
@@ -213,7 +213,7 @@ struct Ctlio
 
 struct Isoio
 {
-	QLock;
+	QLock qlock;
 	Rendez;			/* wait for space/completion/errors */
 	int	usbid;		/* address used for device/endpoint */
 	int	tok;		/* Tdtokin or Tdtokout */
@@ -245,7 +245,7 @@ struct Isoio
 
 struct Edpool
 {
-	Lock;
+	Lock lock;
 	Ed*	free;
 	int	nalloc;
 	int	ninuse;
@@ -414,7 +414,7 @@ edalloc(void)
 	int i, sz;
 
 	sz = ROUNDUP(sizeof *ed, 16);
-	lock(&edpool);
+	lock(&(&edpool)->lock);
 	if(edpool.free == nil){
 		pool = mallocalign(Incr*sz, Align, 0, 0);
 		if(pool == nil)
@@ -431,7 +431,7 @@ edalloc(void)
 	edpool.free = ed->next;
 	edpool.ninuse++;
 	edpool.nfree--;
-	unlock(&edpool);
+	unlock(&(&edpool)->lock);
 
 	memset(ed, 0, sizeof(Ed));	/* safety */
 	assert(((uint64_t)ed & 0xF) == 0);
@@ -444,12 +444,12 @@ edfree(void *a)
 	Ed *ed;
 
 	ed = a;
-	lock(&edpool);
+	lock(&(&edpool)->lock);
 	ed->next = edpool.free;
 	edpool.free = ed;
 	edpool.ninuse--;
 	edpool.nfree++;
-	unlock(&edpool);
+	unlock(&(&edpool)->lock);
 }
 
 /*
@@ -700,7 +700,7 @@ qhalloc(Ctlr *ctlr, Ep *ep, Qio *io, char* tag)
 		if(io != nil)
 			io->tag = tag;
 	}
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	ttype = Tctl;
 	if(ep != nil)
 		ttype = ep->ttype;
@@ -724,7 +724,7 @@ qhalloc(Ctlr *ctlr, Ep *ep, Qio *io, char* tag)
 	default:
 		print("ehci: qhalloc called for ttype != ctl/bulk\n");
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	return qh;
 }
 
@@ -747,7 +747,7 @@ qhcoherency(Ctlr *ctlr)
 	Proc *up = externup();
 	int i;
 
-	qlock(&ctlr->portlck);
+	qlock(&(&ctlr->portlck)->qlock);
 	ctlr->opio->cmd |= Ciasync;	/* ask for intr. on async advance */
 	coherence();
 	for(i = 0; i < 3 && qhadvanced(ctlr) == 0; i++)
@@ -759,7 +759,7 @@ qhcoherency(Ctlr *ctlr)
 	if(i == 3)
 		print("ehci: async advance doorbell did not ring\n");
 	ctlr->opio->cmd &= ~Ciasync;	/* try to clean */
-	qunlock(&ctlr->portlck);
+	qunlock(&(&ctlr->portlck)->qlock);
 }
 
 static void
@@ -770,7 +770,7 @@ qhfree(Ctlr *ctlr, Qh *qh)
 
 	if(qh == nil)
 		return;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(qh->sched < 0){
 		for(q = ctlr->qhs; q != nil; q = q->next)
 			if(q->next == qh)
@@ -782,7 +782,7 @@ qhfree(Ctlr *ctlr, Qh *qh)
 		coherence();
 	}else
 		unschedq(ctlr, qh);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	qhcoherency(ctlr);
 
@@ -1130,7 +1130,7 @@ dump(Hci *hp)
 
 	ctlr = hp->aux;
 	opio = ctlr->opio;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	print("ehci port %#p frames %#p (%d fr.) nintr %d ntdintr %d",
 		ctlr->capio, ctlr->frames, ctlr->nframes,
 		ctlr->nintr, ctlr->ntdintr);
@@ -1164,11 +1164,11 @@ dump(Hci *hp)
 	for(iso = ctlr->iso; iso != nil; iso = iso->next)
 		isodump(ctlr->iso, 0);
 	print("%d eds in tree\n", ctlr->ntree);
-	iunlock(ctlr);
-	lock(&edpool);
+	iunlock(&ctlr->lock);
+	lock(&(&edpool)->lock);
 	print("%d eds allocated = %d in use + %d free\n",
 		edpool.nalloc, edpool.ninuse, edpool.nfree);
-	unlock(&edpool);
+	unlock(&(&edpool)->lock);
 }
 
 static char*
@@ -1505,11 +1505,11 @@ ehciintr(Hci *hp)
 	 * Do they still teach indexing in CS?
 	 * This is Intel's doing.
 	 */
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	ctlr->nintr++;
 	sts = opio->sts & Sintrs;
 	if(sts == 0){		/* not ours; shared intr. */
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		return 0;
 	}
 	opio->sts = sts;
@@ -1568,7 +1568,7 @@ ehciintr(Hci *hp)
 	}
 //	if (some == 0)
 //		panic("ehciintr: no work");
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	return some;
 }
 
@@ -1589,14 +1589,14 @@ portenable(Hci *hp, int port, int on)
 	ctlr = hp->aux;
 	opio = ctlr->opio;
 	s = opio->portsc[port-1];
-	qlock(&ctlr->portlck);
+	qlock(&(&ctlr->portlck)->qlock);
 	if(waserror()){
-		qunlock(&ctlr->portlck);
+		qunlock(&(&ctlr->portlck)->qlock);
 		nexterror();
 	}
 	dprint("ehci %#p port %d enable=%d; sts %#x\n",
 		ctlr->capio, port, on, s);
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(s & (Psstatuschg | Pschange))
 		opio->portsc[port-1] = s;
 	if(on)
@@ -1605,11 +1605,11 @@ portenable(Hci *hp, int port, int on)
 		opio->portsc[port-1] &= ~Psenable;
 	coherence();
 	microdelay(64);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	tsleep(&up->sleep, return0, 0, Enabledelay);
 	dprint("ehci %#p port %d enable=%d: sts %#lux\n",
 		ctlr->capio, port, on, opio->portsc[port-1]);
-	qunlock(&ctlr->portlck);
+	qunlock(&(&ctlr->portlck)->qlock);
 	poperror();
 	return 0;
 }
@@ -1651,15 +1651,15 @@ portreset(Hci *hp, int port, int on)
 
 	ctlr = hp->aux;
 	opio = ctlr->opio;
-	qlock(&ctlr->portlck);
+	qlock(&(&ctlr->portlck)->qlock);
 	if(waserror()){
-		iunlock(ctlr);
-		qunlock(&ctlr->portlck);
+		iunlock(&ctlr->lock);
+		qunlock(&(&ctlr->portlck)->qlock);
 		nexterror();
 	}
 	portscp = &opio->portsc[port-1];
 	dprint("ehci %#p port %d reset; sts %#lux\n", ctlr->capio, port, *portscp);
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	/* Shalted must be zero, else Psreset will stay set */
 	if (opio->sts & Shalted)
 		iprint("ehci %#p: halted yet trying to reset port\n",
@@ -1683,10 +1683,10 @@ portreset(Hci *hp, int port, int on)
 	if((*portscp & Psenable) == 0)
 		portlend(ctlr, port, "full");
 
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	dprint("ehci %#p after port %d reset; sts %#lux\n",
 		ctlr->capio, port, *portscp);
-	qunlock(&ctlr->portlck);
+	qunlock(&(&ctlr->portlck)->qlock);
 	poperror();
 	return 0;
 }
@@ -1701,13 +1701,13 @@ portstatus(Hci *hp, int port)
 
 	ctlr = hp->aux;
 	opio = ctlr->opio;
-	qlock(&ctlr->portlck);
+	qlock(&(&ctlr->portlck)->qlock);
 	if(waserror()){
-		iunlock(ctlr);
-		qunlock(&ctlr->portlck);
+		iunlock(&ctlr->lock);
+		qunlock(&(&ctlr->portlck)->qlock);
 		nexterror();
 	}
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	s = opio->portsc[port-1];
 	if(s & (Psstatuschg | Pschange)){
 		opio->portsc[port-1] = s;
@@ -1722,8 +1722,8 @@ portstatus(Hci *hp, int port)
 		portlend(ctlr, port, "low");
 		s &= ~Pspresent;		/* not for us this time */
 	}
-	iunlock(ctlr);
-	qunlock(&ctlr->portlck);
+	iunlock(&ctlr->lock);
+	qunlock(&(&ctlr->portlck)->qlock);
 	poperror();
 
 	/*
@@ -1763,10 +1763,10 @@ seprintep(char *s, char *e, Ep *ep)
 	Ctlr *ctlr;
 
 	ctlr = ep->hp->aux;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(ep->aux == nil){
 		*s = 0;
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		return s;
 	}
 	switch(ep->ttype){
@@ -1787,7 +1787,7 @@ seprintep(char *s, char *e, Ep *ep)
 		*s = 0;
 		break;
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	return s;
 }
 
@@ -1806,16 +1806,16 @@ clrhalt(Ep *ep)
 	case Tbulk:
 		io = ep->aux;
 		if(ep->mode != OREAD){
-			qlock(&io[OWRITE]);
+			qlock(&(&io[OWRITE])->qlock);
 			io[OWRITE].toggle = Tddata0;
 			deprint("ep clrhalt for io %#p\n", io+OWRITE);
-			qunlock(&io[OWRITE]);
+			qunlock(&(&io[OWRITE])->qlock);
 		}
 		if(ep->mode != OWRITE){
-			qlock(&io[OREAD]);
+			qlock(&(&io[OREAD])->qlock);
 			io[OREAD].toggle = Tddata0;
 			deprint("ep clrhalt for io %#p\n", io+OREAD);
-			qunlock(&io[OREAD]);
+			qunlock(&(&io[OREAD])->qlock);
 		}
 		break;
 	}
@@ -1857,9 +1857,9 @@ episohscpy(Ctlr *ctlr, Ep *ep, Isoio* iso, unsigned char *b, int32_t count)
 			print("ehci: ep%d.%d: too many polls\n",
 				ep->dev->nb, ep->nb);
 		else{
-			iunlock(ctlr);		/* We could page fault here */
+			iunlock(&ctlr->lock);		/* We could page fault here */
 			memmove(b+tot, tdu->data, nr);
-			ilock(ctlr);
+			ilock(&ctlr->lock);
 			if(nr < tdu->ndata)
 				memmove(tdu->data, tdu->data+nr, tdu->ndata - nr);
 			tdu->ndata -= nr;
@@ -1893,9 +1893,9 @@ episofscpy(Ctlr *ctlr, Ep *ep, Isoio* iso, unsigned char *b, int32_t count)
 			print("ehci: ep%d.%d: too many polls\n",
 				ep->dev->nb, ep->nb);
 		else{
-			iunlock(ctlr);		/* We could page fault here */
+			iunlock(&ctlr->lock);		/* We could page fault here */
 			memmove(b+tot, stdu->data, nr);
-			ilock(ctlr);
+			ilock(&ctlr->lock);
 			if(nr < stdu->ndata)
 				memmove(stdu->data, stdu->data+nr,
 					stdu->ndata - nr);
@@ -1923,35 +1923,35 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 
 	b = a;
 	ctlr = ep->hp->aux;
-	qlock(iso);
+	qlock(&iso->qlock);
 	if(waserror()){
-		qunlock(iso);
+		qunlock(&iso->qlock);
 		nexterror();
 	}
 	iso->err = nil;
 	iso->nerrs = 0;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(iso->state == Qclose){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		error(iso->err ? iso->err : Eio);
 	}
 	iso->state = Qrun;
 	coherence();
 	while(isocanread(iso) == 0){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		diprint("ehci: episoread: %#p sleep\n", iso);
 		if(waserror()){
 			if(iso->err == nil)
 				iso->err = "I/O timed out";
-			ilock(ctlr);
+			ilock(&ctlr->lock);
 			break;
 		}
 		tsleep(iso, isocanread, iso, ep->tmout);
 		poperror();
-		ilock(ctlr);
+		ilock(&ctlr->lock);
 	}
 	if(iso->state == Qclose){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		error(iso->err ? iso->err : Eio);
 	}
 	iso->state = Qdone;
@@ -1962,8 +1962,8 @@ episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 		tot = episohscpy(ctlr, ep, iso, b, count);
 	else
 		tot = episofscpy(ctlr, ep, iso, b, count);
-	iunlock(ctlr);
-	qunlock(iso);
+	iunlock(&ctlr->lock);
+	qunlock(&iso->qlock);
 	poperror();
 	diprint("uhci: episoread: %#p %uld bytes err '%s'\n", iso, tot, iso->err);
 	if(iso->err != nil)
@@ -2026,14 +2026,14 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 	diprint("ehci: episowrite: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
 	ctlr = ep->hp->aux;
-	qlock(iso);
+	qlock(&iso->qlock);
 	if(waserror()){
-		qunlock(iso);
+		qunlock(&iso->qlock);
 		nexterror();
 	}
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(iso->state == Qclose){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		error(iso->err ? iso->err : Eio);
 	}
 	iso->state = Qrun;
@@ -2041,36 +2041,36 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 	b = a;
 	for(tot = 0; tot < count; tot += nw){
 		while(isocanwrite(iso) == 0){
-			iunlock(ctlr);
+			iunlock(&ctlr->lock);
 			diprint("ehci: episowrite: %#p sleep\n", iso);
 			if(waserror()){
 				if(iso->err == nil)
 					iso->err = "I/O timed out";
-				ilock(ctlr);
+				ilock(&ctlr->lock);
 				break;
 			}
 			tsleep(iso, isocanwrite, iso, ep->tmout);
 			poperror();
-			ilock(ctlr);
+			ilock(&ctlr->lock);
 		}
 		err = iso->err;
 		iso->err = nil;
 		if(iso->state == Qclose || err != nil){
-			iunlock(ctlr);
+			iunlock(&ctlr->lock);
 			error(err ? err : Eio);
 		}
 		if(iso->state != Qrun)
 			panic("episowrite: iso not running");
-		iunlock(ctlr);		/* We could page fault here */
+		iunlock(&ctlr->lock);		/* We could page fault here */
 		nw = putsamples(iso, b+tot, count-tot);
-		ilock(ctlr);
+		ilock(&ctlr->lock);
 	}
 	if(iso->state != Qclose)
 		iso->state = Qdone;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	err = iso->err;		/* in case it failed early */
 	iso->err = nil;
-	qunlock(iso);
+	qunlock(&iso->qlock);
 	poperror();
 	if(err != nil)
 		error(err);
@@ -2206,13 +2206,13 @@ pollcheck(Hci *hp)
 	poll = &ctlr->poll;
 
 	if(poll->must != 0 && poll->does == 0){
-		lock(poll);
+		lock(&poll->lock);
 		if(poll->must != 0 && poll->does == 0){
 			poll->does++;
 			print("ehci %#p: polling\n", ctlr->capio);
 			kproc("ehcipoll", ehcipoll, hp);
 		}
-		unlock(poll);
+		unlock(&poll->lock);
 	}
 }
 
@@ -2250,12 +2250,12 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 		poperror();
 	}
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	/* Are we missing interrupts? */
 	if(qh->state == Qrun){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		ehciintr(hp);
-		ilock(ctlr);
+		ilock(&ctlr->lock);
 		if(qh->state == Qdone){
 			dqprint("ehci %#p: polling required\n", ctlr->capio);
 			ctlr->poll.must = 1;
@@ -2273,12 +2273,12 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 	if(timedout){
 		aborttds(io->qh);
 		io->err = "request timed out";
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		if(!waserror()){
 			tsleep(&up->sleep, return0, 0, Abortdelay);
 			poperror();
 		}
-		ilock(ctlr);
+		ilock(&ctlr->lock);
 	}
 	if(qh->state != Qclose)
 		qh->state = Qidle;
@@ -2286,7 +2286,7 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 	qhlinktd(qh, nil);
 	ctlr->load -= load;
 	ctlr->nreqs--;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 }
 
 /*
@@ -2320,22 +2320,22 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 		print("echi epio: user data: %s\n", buf);
 	}
 	if(mustlock){
-		qlock(io);
+		qlock(&io->qlock);
 		if(waserror()){
-			qunlock(io);
+			qunlock(&io->qlock);
 			nexterror();
 		}
 	}
 	io->err = nil;
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(qh->state == Qclose){	/* Tds released by cancelio */
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		error(io->err ? io->err : Eio);
 	}
 	if(qh->state != Qidle)
 		panic("epio: qh not idle");
 	qh->state = Qinstall;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	c = a;
 	td0 = ltd = nil;
@@ -2366,7 +2366,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	if(ehcidebug > 1 || ep->debug > 1)
 		dumptd(td0, "epio: put: ");
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(qh->state != Qclose){
 		io->iotime = TK2MS(machp()->ticks);
 		qh->state = Qrun;
@@ -2375,7 +2375,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 		ctlr->nreqs++;
 		ctlr->load += load;
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	if(ctlr->poll.does)
 		wakeup(&ctlr->poll);
@@ -2417,7 +2417,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 	}
 	err = io->err;
 	if(mustlock){
-		qunlock(io);
+		qunlock(&io->qlock);
 		poperror();
 	}
 	ddeprint("epio: io %#p: %d tds: return %ld err '%s'\n",
@@ -2450,9 +2450,9 @@ epread(Ep *ep, void *a, int32_t count)
 	switch(ep->ttype){
 	case Tctl:
 		cio = ep->aux;
-		qlock(cio);
+		qlock(&cio->qlock);
 		if(waserror()){
-			qunlock(cio);
+			qunlock(&cio->qlock);
 			nexterror();
 		}
 		ddeprint("epread ctl ndata %d\n", cio->ndata);
@@ -2471,7 +2471,7 @@ epread(Ep *ep, void *a, int32_t count)
 			cio->data = nil;
 			cio->ndata = 0;	/* signal EOF next time */
 		}
-		qunlock(cio);
+		qunlock(&cio->qlock);
 		poperror();
 		if(ehcidebug>1 || ep->debug){
 			seprintdata(buf, buf+sizeof(buf), a, count);
@@ -2522,7 +2522,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		cio, ep->dev->nb, ep->nb, count);
 	if(count < Rsetuplen)
 		error("short usb comand");
-	qlock(cio);
+	qlock(&cio->qlock);
 	free(cio->data);
 	cio->data = nil;
 	cio->ndata = 0;
@@ -2530,7 +2530,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 		free(cio->data);
 		cio->data = nil;
 		cio->ndata = 0;
-		qunlock(cio);
+		qunlock(&cio->qlock);
 		nexterror();
 	}
 
@@ -2588,7 +2588,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 	cio->toggle = Tddata1;
 	coherence();
 	epio(ep, cio, nil, 0, 0);
-	qunlock(cio);
+	qunlock(&cio->qlock);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
 	return count;
@@ -2768,14 +2768,14 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	iso->maxsize = ep->ntds * ep->maxpkt;
 	if(ctlr->load + ep->load > 800)
 		print("usb: ehci: bandwidth may be exceeded\n");
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	ctlr->load += ep->load;
 	ctlr->isoload += ep->load;
 	ctlr->nreqs++;
 	dprint("ehci: load %uld isoload %uld\n", ctlr->load, ctlr->isoload);
 	diprint("iso nframes %d pollival %uld ival %d maxpkt %uld ntds %d\n",
 		iso->nframes, ep->pollival, ival, ep->maxpkt, ep->ntds);
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	if(ctlr->poll.does)
 		wakeup(&ctlr->poll);
 
@@ -2798,7 +2798,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	iso->stdu = iso->stdi = iso->sitdps[iso->td0frno];
 	coherence();
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	frno = iso->td0frno;
 	for(i = 0; i < iso->nframes; i++){
 		*iso->tdps[frno] = ctlr->frames[frno];
@@ -2834,7 +2834,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	ctlr->iso = iso;
 	coherence();
 	iso->state = Qdone;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	if(ehcidebug > 1 || iso->debug >1)
 		isodump(iso, 0);
 }
@@ -2923,25 +2923,25 @@ cancelio(Ctlr *ctlr, Qio *io)
 	Proc *up = externup();
 	Qh *qh;
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	qh = io->qh;
 	if(io == nil || io->qh == nil || io->qh->state == Qclose){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		return;
 	}
 	dqprint("ehci: cancelio for qh %#p state %s\n",
 		qh, qhsname[qh->state]);
 	aborttds(qh);
 	qh->state = Qclose;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	if(!waserror()){
 		tsleep(&up->sleep, return0, 0, Abortdelay);
 		poperror();
 	}
 	wakeup(io);
-	qlock(io);
+	qlock(&io->qlock);
 	/* wait for epio if running */
-	qunlock(io);
+	qunlock(&io->qlock);
 
 	qhfree(ctlr, qh);
 	io->qh = nil;
@@ -2957,9 +2957,9 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 	Itd *td;
 	Sitd *std;
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	if(iso->state == Qclose){
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		return;
 	}
 	ctlr->nreqs--;
@@ -3011,7 +3011,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 		coherence();
 		frno = TRUNC(frno+pollival, Nisoframes);
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	/*
 	 * wakeup anyone waiting for I/O and
@@ -3021,8 +3021,8 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 	wakeup(iso);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);
 	tsleep(&up->sleep, return0, 0, 5);
-	qlock(iso);
-	qunlock(iso);
+	qlock(&iso->qlock);
+	qunlock(&iso->qlock);
 	diprint("cancelisoio iso %#p releasing iso\n", iso);
 
 	frno = iso->td0frno;
@@ -3203,7 +3203,7 @@ init(Hci *hp)
 	opio = ctlr->opio;
 	dprint("ehci %#p init\n", ctlr->capio);
 
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	/*
 	 * Unless we activate frroll interrupt
 	 * some machines won't post other interrupts.
@@ -3225,7 +3225,7 @@ init(Hci *hp)
 
 	for (i = 0; i < hp->nports; i++)
 		opio->portsc[i] = Pspower;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 	if(ehcidebug > 1)
 		dump(hp);
 	ctlrno++;

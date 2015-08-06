@@ -46,7 +46,7 @@ struct Map {
 
 struct ZMap {
 	Map*	map;
-	Lock;
+	Lock lock;
 };
 
 static int inited;
@@ -220,17 +220,17 @@ getzkseg(void)
 	Segment *s;
 	int i;
 
-	qlock(&up->seglock);
+	qlock(&(&up->seglock)->qlock);
 	for(i = 0; i < NSEG; i++){
 		s = up->seg[i];
 		if(s != nil && (s->type&SG_KZIO) != 0){
 			incref(s);
-			qunlock(&up->seglock);
+			qunlock(&(&up->seglock)->qlock);
 			DBG("getzkseg: %#p\n", s);
 			return s;
 		}
 	}
-	qunlock(&up->seglock);
+	qunlock(&(&up->seglock)->qlock);
 	DBG("getzkseg: nil\n");
 	return nil;
 }
@@ -256,9 +256,9 @@ readzio(Kzio *io, int nio, void *a, int32_t count)
 			memmove(p+tot, io->data, nr);
 			tot += nr;
 		}
-		qlock(&io->seg->lk);
+		qlock(&(&io->seg->lk)->qlock);
 		zputaddr(io->seg, PTR2UINT(io->data));
-		qunlock(&io->seg->lk);
+		qunlock(&(&io->seg->lk)->qlock);
 		putseg(io->seg);
 		io->seg = nil;
 		io++;
@@ -320,10 +320,10 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 			DBG("devzwrite: copy %#p %Z\n", bp->wp, &io[i]);
 			memmove(bp->wp, io[i].data, io[i].size);
 			bp->wp += io[i].size;
-			qlock(&io[i].seg->lk);
+			qlock(&(&io[i].seg->lk)->qlock);
 			if(zputaddr(io[i].seg, PTR2UINT(io[i].data)) < 0)
 				panic("devzwrite: not a shared data segment");
-			qunlock(&io[i].seg->lk);
+			qunlock(&(&io[i].seg->lk)->qlock);
 		}
 		tot = c->dev->bwrite(c, bp, offset);
 	}
@@ -426,7 +426,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 			if(kio[i].seg == nil)
 				error("invalid address in zio");
 			incref(kio[i].seg);
-			qunlock(&kio[i].seg->lk);
+			qunlock(&(&kio[i].seg->lk)->qlock);
 			validaddr(kio[i].data, kio[i].size, 1);
 			if((kio[i].seg->type&SG_ZIO) == 0){
 				/*
@@ -463,10 +463,10 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	}
 	if(!isprw){
 		/* unlike in syswrite, we update offsets at the end */
-		lock(c);
+		lock(&c->lock);
 		c->devoffset += tot;
 		c->offset += tot;
-		unlock(c);
+		unlock(&c->lock);
 	}
 	poperror();
 	cclose(c);
@@ -539,11 +539,11 @@ sysziofree(Ar0 *ar0, ...)
 		if(s == nil)
 			error("invalid address in zio");
 		if((s->type&SG_ZIO) == 0){
-			qunlock(&s->lk);
+			qunlock(&(&s->lk)->qlock);
 			error("segment is not a zero-copy segment");
 		}
 		zputaddr(s, PTR2UINT(io[i].data));
-		qunlock(&s->lk);
+		qunlock(&(&s->lk)->qlock);
 		io[i].data = nil;
 		io[i].size = 0;
 	}
@@ -585,9 +585,9 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 	Proc *up = externup();
 	Map *mp, *prev, *next;
 
-	lock(rmap);
+	lock(&rmap->lock);
 	if(waserror()){
-		unlock(rmap);
+		unlock(&rmap->lock);
 		nexterror();
 	}
 	prev = nil;
@@ -614,7 +614,7 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 		free(next);
 	}
 	poperror();
-	unlock(rmap);
+	unlock(&rmap->lock);
 	if(DBGFLG > 1){
 		DBG("zmapfree %#ullx:\n", addr);
 		dumpzmap(rmap);
@@ -627,16 +627,16 @@ zmapalloc(ZMap* rmap, usize size)
 	Proc *up = externup();
 	Map *mp, *nmp;
 
-	lock(rmap);
+	lock(&rmap->lock);
 	if(waserror()){
-		unlock(rmap);
+		unlock(&rmap->lock);
 		nexterror();
 	}
 	for(mp = rmap->map; mp->free == 0 || mp->size < size; mp = mp->next)
 		;
 	if(mp == nil){
 		poperror();
-		unlock(rmap);
+		unlock(&rmap->lock);
 		return 0ULL;
 	}
 	if(mp->free == 0)
@@ -652,7 +652,7 @@ zmapalloc(ZMap* rmap, usize size)
 	}
 	mp->free = 0;
 	poperror();
-	unlock(rmap);
+	unlock(&rmap->lock);
 	if(DBGFLG > 1){
 		DBG("zmapalloc %#ullx:\n", mp->addr);
 		dumpzmap(rmap);

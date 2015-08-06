@@ -179,7 +179,7 @@ struct Ip4hdr
  */
 struct Conv
 {
-	QLock;
+	QLock qlock;
 
 	int	x;			/* conversation index */
 	Proto*	p;
@@ -380,7 +380,7 @@ struct Iphash
 };
 struct Ipht
 {
-	Lock;
+	Lock lock;
 	Iphash	*tab[Nipht];
 };
 void iphtadd(Ipht*, Conv*);
@@ -392,7 +392,7 @@ Conv* iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp);
  */
 struct Proto
 {
-	QLock;
+	QLock qlock;
 	char*		name;		/* protocol name */
 	int		x;		/* protocol index */
 	int		ipproto;	/* ip protocol type */

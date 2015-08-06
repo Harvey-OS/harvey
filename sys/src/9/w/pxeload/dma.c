@@ -69,7 +69,7 @@ struct DMA
 {
 	DMAport;
 	int	shift;
-	Lock;
+	Lock lock;
 	DMAxfer	x[4];
 };
 
@@ -178,7 +178,7 @@ dmasetup(int chan, void *va, int32_t len, int isread)
 	/*
 	 * this setup must be atomic
 	 */
-	ilock(dp);
+	ilock(&dp->lock);
 	mode = (isread ? 0x44 : 0x48) | chan;
 	outb(dp->mode, mode);	/* single mode dma (give CPU a chance at mem) */
 	outb(dp->page[chan], pa>>16);
@@ -188,7 +188,7 @@ dmasetup(int chan, void *va, int32_t len, int isread)
 	outb(dp->count[chan], (len>>dp->shift)-1);		/* set count */
 	outb(dp->count[chan], ((len>>dp->shift)-1)>>8);
 	outb(dp->sbm, chan);		/* enable the channel */
-	iunlock(dp);
+	iunlock(&dp->lock);
 
 	return len;
 }
@@ -223,9 +223,9 @@ dmaend(int chan)
 	/*
 	 *  disable the channel
 	 */
-	ilock(dp);
+	ilock(&dp->lock);
 	outb(dp->sbm, 4|chan);
-	iunlock(dp);
+	iunlock(&dp->lock);
 
 	xp = &dp->x[chan];
 	if(xp->len == 0 || !xp->isread)

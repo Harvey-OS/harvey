@@ -182,10 +182,10 @@ cgaprinthex(uintptr_t x)
 void
 cgaconsputs(char* s, int n)
 {
-	ilock(&cgalock);
+	ilock(&(&cgalock)->lock);
 	while(n-- > 0)
 		cgaputc(*s++);
-	iunlock(&cgalock);
+	iunlock(&(&cgalock)->lock);
 }
 
 void
@@ -237,13 +237,13 @@ cgawrite(Chan* c, void *vbuf, int32_t len, int64_t off)
 void
 cgainit(void)
 {
-	ilock(&cgalock);
+	ilock(&(&cgalock)->lock);
 
 	cgapos = cgaregr(0x0e)<<8;
 	cgapos |= cgaregr(0x0f);
 	cgapos *= 2;
 	cgablinkoff();
 	cgainitdone = 1;
-	iunlock(&cgalock);
+	iunlock(&(&cgalock)->lock);
 	addarchfile("cgamem", 0666, cgaread, cgawrite);
 }

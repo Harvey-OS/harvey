@@ -161,7 +161,7 @@ struct Ep
 	Udev*	dev;		/* device for the endpoint */
 	Ep*	ep0;		/* control endpoint for its device */
 
-	QLock;			/* protect fields below */
+	QLock qlock;			/* protect fields below */
 	char*	name;		/* for ep file names at #u/ */
 	int	inuse;		/* endpoint is open */
 	int	mode;		/* OREAD, OWRITE, or ORDWR */

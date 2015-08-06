@@ -28,7 +28,7 @@ struct IOMap
 
 static struct
 {
-	Lock;
+	Lock lock;
 	IOMap	*map;
 	IOMap	*free;
 	IOMap	maps[32];		// some initial free maps
@@ -81,15 +81,15 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 	strcpy(d.name, name);
 	d.perm = perm;
 
-	lock(&archwlock);
+	lock(&(&archwlock)->lock);
 	if(narchdir >= Qmax){
-		unlock(&archwlock);
+		unlock(&(&archwlock)->lock);
 		return nil;
 	}
 
 	for(i=0; i<narchdir; i++)
 		if(strcmp(archdir[i].name, name) == 0){
-			unlock(&archwlock);
+			unlock(&(&archwlock)->lock);
 			return nil;
 		}
 
@@ -98,7 +98,7 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 	readfn[narchdir] = rdfn;
 	writefn[narchdir] = wrfn;
 	dp = &archdir[narchdir++];
-	unlock(&archwlock);
+	unlock(&(&archwlock)->lock);
 
 	return dp;
 }
@@ -155,7 +155,7 @@ ioreserve(int n, int size, int align, char *tag)
 	IOMap *map, **l;
 	int i, port;
 
-	lock(&iomap);
+	lock(&(&iomap)->lock);
 	// find a free port above 0x400 and below 0x1000
 	port = 0x400;
 	for(l = &iomap.map; *l; l = &(*l)->next){
@@ -171,13 +171,13 @@ ioreserve(int n, int size, int align, char *tag)
 			port = map->end;
 	}
 	if(*l == nil){
-		unlock(&iomap);
+		unlock(&(&iomap)->lock);
 		return -1;
 	}
 	map = iomap.free;
 	if(map == nil){
 		print("ioalloc: out of maps");
-		unlock(&iomap);
+		unlock(&(&iomap)->lock);
 		return port;
 	}
 	iomap.free = map->next;
@@ -191,7 +191,7 @@ ioreserve(int n, int size, int align, char *tag)
 
 	archdir[0].qid.vers++;
 
-	unlock(&iomap);
+	unlock(&(&iomap)->lock);
 	return map->start;
 }
 
@@ -205,7 +205,7 @@ ioalloc(int port, int size, int align, char *tag)
 	IOMap *map, **l;
 	int i;
 
-	lock(&iomap);
+	lock(&(&iomap)->lock);
 	if(port < 0){
 		// find a free port above 0x400 and below 0x1000
 		port = 0x400;
@@ -222,13 +222,13 @@ ioalloc(int port, int size, int align, char *tag)
 				port = map->end;
 		}
 		if(*l == nil){
-			unlock(&iomap);
+			unlock(&(&iomap)->lock);
 			return -1;
 		}
 	} else {
 		// Only 64KB I/O space on the x86.
 		if((port+size) > 0x10000){
-			unlock(&iomap);
+			unlock(&(&iomap)->lock);
 			return -1;
 		}
 		// see if the space clashes with previously allocated ports
@@ -238,19 +238,19 @@ ioalloc(int port, int size, int align, char *tag)
 				continue;
 			if(map->reserved && map->start == port && map->end == port + size) {
 				map->reserved = 0;
-				unlock(&iomap);
+				unlock(&(&iomap)->lock);
 				return map->start;
 			}
 			if(map->start >= port+size)
 				break;
-			unlock(&iomap);
+			unlock(&(&iomap)->lock);
 			return -1;
 		}
 	}
 	map = iomap.free;
 	if(map == nil){
 		print("ioalloc: out of maps");
-		unlock(&iomap);
+		unlock(&(&iomap)->lock);
 		return port;
 	}
 	iomap.free = map->next;
@@ -263,7 +263,7 @@ ioalloc(int port, int size, int align, char *tag)
 
 	archdir[0].qid.vers++;
 
-	unlock(&iomap);
+	unlock(&(&iomap)->lock);
 	return map->start;
 }
 
@@ -272,7 +272,7 @@ iofree(int port)
 {
 	IOMap *map, **l;
 
-	lock(&iomap);
+	lock(&(&iomap)->lock);
 	for(l = &iomap.map; *l; l = &(*l)->next){
 		if((*l)->start == port){
 			map = *l;
@@ -285,7 +285,7 @@ iofree(int port)
 			break;
 	}
 	archdir[0].qid.vers++;
-	unlock(&iomap);
+	unlock(&(&iomap)->lock);
 }
 
 int

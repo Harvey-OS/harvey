@@ -144,15 +144,15 @@ sysrfork(Ar0* ar0, ...)
 
 	/* Make a new set of memory segments */
 	n = flag & RFMEM;
-	qlock(&p->seglock);
+	qlock(&(&p->seglock)->qlock);
 	if(waserror()){
-		qunlock(&p->seglock);
+		qunlock(&(&p->seglock)->qlock);
 		nexterror();
 	}
 	for(i = 0; i < NSEG; i++)
 		if(up->seg[i])
 			p->seg[i] = dupseg(up->seg, i, n);
-	qunlock(&p->seglock);
+	qunlock(&(&p->seglock)->qlock);
 	poperror();
 
 	/* File descriptors */
@@ -213,9 +213,9 @@ sysrfork(Ar0* ar0, ...)
 	if(flag&RFNOWAIT)
 		p->parentpid = 0;
 	else {
-		lock(&up->exl);
+		lock(&(&up->exl)->lock);
 		up->nchild++;
-		unlock(&up->exl);
+		unlock(&(&up->exl)->lock);
 	}
 	if((flag&RFNOTEG) == 0)
 		p->noteid = up->noteid;
@@ -403,14 +403,14 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * The architecture-dependent code which jumps to the new image
 	 * will also push a count of the argument array onto the stack (argc).
 	 */
-	qlock(&up->seglock);
+	qlock(&(&up->seglock)->qlock);
 	int sno = -1;
 	if(waserror()){
 		if(sno != -1 && up->seg[sno] != nil){
 			putseg(up->seg[sno]);
 			up->seg[sno] = nil;
 		}
-		qunlock(&up->seglock);
+		qunlock(&(&up->seglock)->qlock);
 		nexterror();
 	}
 
@@ -585,7 +585,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 			s->flushme = 1;
 			if(img->color != up->color)
 				up->color = img->color;
-			unlock(img);
+			unlock(&img->lock);
 		} else {
 			s = newseg(ldseg[i].type, ldseg[i].pg0vaddr, (ldseg[i].pg0off+ldseg[i].memsz+BIGPGSZ-1)/BIGPGSZ);
 			s->color = up->color;
@@ -623,7 +623,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/* the color of the stack was decided when we created it before,
 	 * it may have nothing to do with the color of other segments.
 	 */
-	qunlock(&up->seglock);
+	qunlock(&(&up->seglock)->qlock);
 	poperror();				/* seglock */
 
 
@@ -647,13 +647,13 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	mmuflush();
 	if(up->prepagemem || flags == EXAC)
 		nixprepage(-1);
-	qlock(&up->debug);
+	qlock(&(&up->debug)->qlock);
 	up->nnote = 0;
 	up->notify = 0;
 	up->notified = 0;
 	up->privatemem = 0;
 	sysprocsetup(up);
-	qunlock(&up->debug);
+	qunlock(&(&up->debug)->qlock);
 	if(up->hang)
 		up->procctl = Proc_stopme;
 
@@ -1004,7 +1004,7 @@ sysrendezvous(Ar0* ar0, ...)
 	l = &REND(up->rgrp, tag);
 	up->rendval = ~0;
 
-	lock(up->rgrp);
+	lock(&up->rgrp->lock);
 	for(p = *l; p; p = p->rendhash) {
 		if(p->rendtag == tag) {
 			*l = p->rendhash;
@@ -1014,7 +1014,7 @@ sysrendezvous(Ar0* ar0, ...)
 			while(p->mach != 0)
 				;
 			ready(p);
-			unlock(up->rgrp);
+			unlock(&up->rgrp->lock);
 
 			ar0->v = UINT2PTR(val);
 			return;
@@ -1031,7 +1031,7 @@ sysrendezvous(Ar0* ar0, ...)
 	up->state = Rendezvous;
 	if(up->trace)
 		proctrace(up, SLock, 0);
-	unlock(up->rgrp);
+	unlock(&up->rgrp->lock);
 
 	sched();
 
@@ -1129,22 +1129,22 @@ semqueue(Segment* s, int* addr, Sema* p)
 	memset(p, 0, sizeof *p);
 	p->addr = addr;
 
-	lock(&s->sema);	/* uses s->sema.Rendez.Lock, but no one else is */
+	lock(&(&s->sema)->lock);	/* uses s->sema.Rendez.Lock, but no one else is */
 	p->next = &s->sema;
 	p->prev = s->sema.prev;
 	p->next->prev = p;
 	p->prev->next = p;
-	unlock(&s->sema);
+	unlock(&(&s->sema)->lock);
 }
 
 /* Remove semaphore p from list in seg. */
 static void
 semdequeue(Segment* s, Sema* p)
 {
-	lock(&s->sema);
+	lock(&(&s->sema)->lock);
 	p->next->prev = p->prev;
 	p->prev->next = p->next;
-	unlock(&s->sema);
+	unlock(&(&s->sema)->lock);
 }
 
 /* Wake up n waiters with addr on list in seg. */
@@ -1153,7 +1153,7 @@ semwakeup(Segment* s, int* addr, int n)
 {
 	Sema *p;
 
-	lock(&s->sema);
+	lock(&(&s->sema)->lock);
 	for(p = s->sema.next; p != &s->sema && n > 0; p = p->next){
 		if(p->addr == addr && p->waiting){
 			p->waiting = 0;
@@ -1162,7 +1162,7 @@ semwakeup(Segment* s, int* addr, int n)
 			n--;
 		}
 	}
-	unlock(&s->sema);
+	unlock(&(&s->sema)->lock);
 }
 
 /* Add delta to semaphore and wake up waiters as appropriate. */

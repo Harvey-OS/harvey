@@ -42,7 +42,7 @@ char *arpstate[] =
  */
 struct Arp
 {
-	QLock;
+	QLock qlock;
 	Fs	*f;
 	Arpent	*hash[NHASH];
 	Arpent	cache[NCACHE];
@@ -225,7 +225,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 		ip = v6ip;
 	}
 
-	qlock(arp);
+	qlock(&arp->qlock);
 	hash = haship(ip);
 	for(a = arp->hash[hash]; a; a = a->hash){
 		if(memcmp(ip, a->ip, sizeof(a->ip)) == 0)
@@ -256,7 +256,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 	if(NOW - a->ctime > 15*60*1000)
 		cleanarpent(arp, a);
 
-	qunlock(arp);
+	qunlock(&arp->qlock);
 	return nil;
 }
 
@@ -266,7 +266,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 void
 arprelease(Arp *arp, Arpent *arpen)
 {
-	qunlock(arp);
+	qunlock(&arp->qlock);
 }
 
 /*
@@ -298,7 +298,7 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 	a->utime = NOW;
 	bp = a->hold;
 	a->hold = nil;
-	qunlock(arp);
+	qunlock(&arp->qlock);
 
 	return bp;
 }
@@ -344,7 +344,7 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 	ifc = r->ifc;
 	type = ifc->medium;
 
-	qlock(arp);
+	qlock(&arp->qlock);
 	for(a = arp->hash[haship(ip)]; a; a = a->hash){
 		if(a->type != type || (a->state != AWAIT && a->state != AOK))
 			continue;
@@ -373,21 +373,21 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 				ip += IPv4off;
 			a->utime = NOW;
 			a->ctime = a->utime;
-			qunlock(arp);
+			qunlock(&arp->qlock);
 
 			while(bp){
 				next = bp->list;
 				if(ifc != nil){
 					if(waserror()){
-						runlock(ifc);
+						runlock(&ifc->rwlock);
 						nexterror();
 					}
-					rlock(ifc);
+					rlock(&ifc->rwlock);
 					if(ifc->medium != nil)
 						ifc->medium->bwrite(ifc, bp, version, ip);
 					else
 						freeb(bp);
-					runlock(ifc);
+					runlock(&ifc->rwlock);
 					poperror();
 				} else
 					freeb(bp);
@@ -405,7 +405,7 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 		memmove(a->mac, mac, type->maclen);
 	}
 
-	qunlock(arp);
+	qunlock(&arp->qlock);
 }
 
 int
@@ -433,7 +433,7 @@ arpwrite(Fs *fs, char *s, int len)
 
 	n = getfields(buf, f, 4, 1, " ");
 	if(strcmp(f[0], "flush") == 0){
-		qlock(arp);
+		qlock(&arp->qlock);
 		for(a = arp->cache; a < &arp->cache[NCACHE]; a++){
 			memset(a->ip, 0, sizeof(a->ip));
 			memset(a->mac, 0, sizeof(a->mac));
@@ -451,7 +451,7 @@ arpwrite(Fs *fs, char *s, int len)
 		arp->rxmt = nil;
 		arp->dropf = nil;
 		arp->dropl = nil;
-		qunlock(arp);
+		qunlock(&arp->qlock);
 	} else if(strcmp(f[0], "add") == 0){
 		switch(n){
 		default:
@@ -488,7 +488,7 @@ arpwrite(Fs *fs, char *s, int len)
 
 		if (parseip(ip, f[1]) == -1)
 			error(Ebadip);
-		qlock(arp);
+		qlock(&arp->qlock);
 
 		l = &arp->hash[haship(ip)];
 		for(a = *l; a; a = a->hash){
@@ -518,7 +518,7 @@ arpwrite(Fs *fs, char *s, int len)
 			memset(a->ip, 0, sizeof(a->ip));
 			memset(a->mac, 0, sizeof(a->mac));
 		}
-		qunlock(arp);
+		qunlock(&arp->qlock);
 	} else
 		error(Ebadarp);
 
@@ -561,11 +561,11 @@ arpread(Arp *arp, char *p, uint32_t offset, int len)
 			continue;
 		}
 		len--;
-		qlock(arp);
+		qlock(&arp->qlock);
 		convmac(mac, &mac[sizeof mac], a->mac, a->type->maclen);
 		n += snprint(p+n, Alinelen+1, aformat, a->type->name,
 			arpstate[a->state], a->ip, mac);	/* +1 for NUL */
-		qunlock(arp);
+		qunlock(&arp->qlock);
 	}
 
 	return n;
@@ -582,7 +582,7 @@ rxmitsols(Arp *arp)
 	Ipifc *ifc = nil;
 	int32_t nrxt;
 
-	qlock(arp);
+	qlock(&arp->qlock);
 	f = arp->f;
 
 	a = arp->rxmt;
@@ -597,7 +597,7 @@ rxmitsols(Arp *arp)
 	for(; a; a = a->nextrxt){
 		ifc = a->ifc;
 		assert(ifc != nil);
-		if((a->rxtsrem <= 0) || !(canrlock(ifc)) || (a->ifcid != ifc->ifcid)){
+		if((a->rxtsrem <= 0) || !(canrlock(&ifc->rwlock)) || (a->ifcid != ifc->ifcid)){
 			xp = a->hold;
 			a->hold = nil;
 
@@ -617,12 +617,12 @@ rxmitsols(Arp *arp)
 		goto dodrops;
 
 
-	qunlock(arp);	/* for icmpns */
+	qunlock(&arp->qlock);	/* for icmpns */
 	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC)
 		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
 
-	runlock(ifc);
-	qlock(arp);
+	runlock(&ifc->rwlock);
+	qlock(&arp->qlock);
 
 	/* put to the end of re-transmit chain */
 	l = &arp->rxmt;
@@ -651,7 +651,7 @@ dodrops:
 	xp = arp->dropf;
 	arp->dropf = nil;
 	arp->dropl = nil;
-	qunlock(arp);
+	qunlock(&arp->qlock);
 
 	for(; xp; xp = next){
 		next = xp->list;

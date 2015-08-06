@@ -180,7 +180,7 @@ static uint32_t generation = 0;
 typedef struct Rudpcb Rudpcb;
 struct Rudpcb
 {
-	QLock;
+	QLock qlock;
 	uint8_t	headers;
 	uint8_t	randdrop;
 	Reliable *r;
@@ -209,14 +209,14 @@ rudpstartackproc(Proto *rudp)
 
 	rpriv = rudp->priv;
 	if(rpriv->ackprocstarted == 0){
-		qlock(&rpriv->apl);
+		qlock(&(&rpriv->apl)->qlock);
 		if(rpriv->ackprocstarted == 0){
 			snprint(kpname, sizeof kpname, "#I%drudpack",
 				rudp->f->dev);
 			kproc(kpname, relackproc, rudp);
 			rpriv->ackprocstarted = 1;
 		}
-		qunlock(&rpriv->apl);
+		qunlock(&(&rpriv->apl)->qlock);
 	}
 }
 
@@ -245,11 +245,11 @@ rudpstate(Conv *c, char *state, int n)
 
 	m = snprint(state, n, "%s", c->inuse?"Open":"Closed");
 	ucb = (Rudpcb*)c->ptcl;
-	qlock(ucb);
+	qlock(&ucb->qlock);
 	for(r = ucb->r; r; r = r->next)
 		m += snprint(state+m, n-m, " %I/%ld", r->addr, UNACKED(r));
 	m += snprint(state+m, n-m, "\n");
-	qunlock(ucb);
+	qunlock(&ucb->qlock);
 	return m;
 }
 
@@ -289,12 +289,12 @@ rudpclose(Conv *c)
 
 	/* force out any delayed acks */
 	ucb = (Rudpcb*)c->ptcl;
-	qlock(ucb);
+	qlock(&ucb->qlock);
 	for(r = ucb->r; r; r = r->next){
 		if(r->acksent != r->rcvseq)
 			relsendack(c, r, 0);
 	}
-	qunlock(ucb);
+	qunlock(&ucb->qlock);
 
 	qclose(c->rq);
 	qclose(c->wq);
@@ -306,7 +306,7 @@ rudpclose(Conv *c)
 
 	ucb->headers = 0;
 	ucb->randdrop = 0;
-	qlock(ucb);
+	qlock(&ucb->qlock);
 	for(r = ucb->r; r; r = nr){
 		if(r->acksent != r->rcvseq)
 			relsendack(c, r, 0);
@@ -316,7 +316,7 @@ rudpclose(Conv *c)
 	}
 	ucb->r = 0;
 
-	qunlock(ucb);
+	qunlock(&ucb->qlock);
 }
 
 /*
@@ -428,7 +428,7 @@ rudpkick(void *x)
 	uh->udpcksum[0] = 0;
 	uh->udpcksum[1] = 0;
 
-	qlock(ucb);
+	qlock(&ucb->qlock);
 	r = relstate(ucb, raddr, rport, "kick");
 	r->sndseq = NEXTSEQ(r->sndseq);
 	hnputl(rh->relseq, r->sndseq);
@@ -443,7 +443,7 @@ rudpkick(void *x)
 	hnputs(uh->udpcksum, ptclcsum(bp, UDP_IPHDR, dlen+UDP_RHDRSIZE));
 
 	relackq(r, bp);
-	qunlock(ucb);
+	qunlock(&ucb->qlock);
 
 	upriv->ustats.rudpOutDatagrams++;
 
@@ -454,19 +454,19 @@ rudpkick(void *x)
 
 	if(waserror()) {
 		relput(r);
-		qunlock(&r->lock);
+		qunlock(&(&r->lock)->qlock);
 		nexterror();
 	}
 
 	/* flow control of sorts */
-	qlock(&r->lock);
+	qlock(&(&r->lock)->qlock);
 	if(UNACKED(r) > Maxunacked){
 		r->blocked = 1;
 		sleep(&r->vous, flow, r);
 		r->blocked = 0;
 	}
 
-	qunlock(&r->lock);
+	qunlock(&(&r->lock)->qlock);
 	relput(r);
 	poperror();
 }
@@ -516,13 +516,13 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 		}
 	}
 
-	qlock(rudp);
+	qlock(&rudp->qlock);
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
 		/* no conversation found */
 		upriv->ustats.rudpNoPorts++;
-		qunlock(rudp);
+		qunlock(&rudp->qlock);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
 			laddr, lport);
 		uh->Unused = ottl;
@@ -532,11 +532,11 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 		return;
 	}
 	ucb = (Rudpcb*)c->ptcl;
-	qlock(ucb);
-	qunlock(rudp);
+	qlock(&ucb->qlock);
+	qunlock(&rudp->qlock);
 
 	if(reliput(c, bp, raddr, rport) < 0){
-		qunlock(ucb);
+		qunlock(&ucb->qlock);
 		freeb(bp);
 		return;
 	}
@@ -596,7 +596,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	else
 		qpass(c->rq, bp);
 
-	qunlock(ucb);
+	qunlock(&ucb->qlock);
 }
 
 static char *rudpunknown = "unknown rudp ctl request";
@@ -621,9 +621,9 @@ rudpctl(Conv *c, char **f, int n)
 		if (parseip(ip, f[1]) == -1)
 			return Ebadip;
 		x = atoi(f[2]);
-		qlock(ucb);
+		qlock(&ucb->qlock);
 		relforget(c, ip, x, 1);
-		qunlock(ucb);
+		qunlock(&ucb->qlock);
 		return nil;
 	} else if(strcmp(f[0], "randdrop") == 0){
 		x = 10;			/* default is 10% */
@@ -751,7 +751,7 @@ loop:
 	for(s = rudp->conv; *s; s++) {
 		c = *s;
 		ucb = (Rudpcb*)c->ptcl;
-		qlock(ucb);
+		qlock(&ucb->qlock);
 
 		for(r = ucb->r; r; r = r->next) {
 			if(r->unacked != nil){
@@ -762,7 +762,7 @@ loop:
 			if(r->acksent != r->rcvseq)
 				relsendack(c, r, 0);
 		}
-		qunlock(ucb);
+		qunlock(&ucb->qlock);
 	}
 	goto loop;
 }

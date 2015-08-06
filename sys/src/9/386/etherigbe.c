@@ -613,10 +613,10 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	uint64_t tuvl, ruvl;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->slock);
+	qlock(&(&ctlr->slock)->qlock);
 	p = malloc(READSTR);
 	if(p == nil) {
-		qunlock(&ctlr->slock);
+		qunlock(&(&ctlr->slock)->qlock);
 		error(Enomem);
 	}
 	l = 0;
@@ -691,7 +691,7 @@ igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 
 	n = readstr(offset, a, n, p);
 	free(p);
-	qunlock(&ctlr->slock);
+	qunlock(&(&ctlr->slock)->qlock);
 
 	return n;
 }
@@ -791,12 +791,12 @@ igberballoc(void)
 {
 	Block *bp;
 
-	ilock(&igberblock);
+	ilock(&(&igberblock)->lock);
 	if((bp = igberbpool) != nil){
 		igberbpool = bp->next;
 		bp->next = nil;
 	}
-	iunlock(&igberblock);
+	iunlock(&(&igberblock)->lock);
 
 	return bp;
 }
@@ -808,20 +808,20 @@ igberbfree(Block* bp)
 	bp->wp = bp->rp;
  	bp->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 
-	ilock(&igberblock);
+	ilock(&(&igberblock)->lock);
 	bp->next = igberbpool;
 	igberbpool = bp;
 	nrbfull--;
-	iunlock(&igberblock);
+	iunlock(&(&igberblock)->lock);
 }
 
 static void
 igbeim(Ctlr* ctlr, int im)
 {
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	ctlr->im |= im;
 	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 }
 
 static int
@@ -1008,7 +1008,7 @@ igbetransmit(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 
 	/*
 	 * Free any completed packets
@@ -1051,7 +1051,7 @@ igbetransmit(Ether* edev)
 		csr32w(ctlr, Tdt, tdt);
 	}
 
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 }
 
 static void
@@ -1206,9 +1206,9 @@ igberproc(void* arg)
 					bp->checksum = rd->checksum;
 					bp->flag |= Bpktck;
 				}
-				ilock(&igberblock);
+				ilock(&(&igberblock)->lock);
 				nrbfull++;
-				iunlock(&igberblock);
+				iunlock(&(&igberblock)->lock);
 				notemark(&ctlr->wmrb, nrbfull);
 				etheriq(edev, bp, 1);
 				passed++;
@@ -1242,9 +1242,9 @@ igbeattach(Ether* edev)
 
 	ctlr = edev->ctlr;
 	ctlr->edev = edev;			/* point back to Ether* */
-	qlock(&ctlr->alock);
+	qlock(&(&ctlr->alock)->qlock);
 	if(ctlr->alloc != nil){			/* already allocated? */
-		qunlock(&ctlr->alock);
+		qunlock(&(&ctlr->alock)->qlock);
 		return;
 	}
 
@@ -1265,7 +1265,7 @@ igbeattach(Ether* edev)
 		ctlr->rb = nil;
 		free(ctlr->alloc);
 		ctlr->alloc = nil;
-		qunlock(&ctlr->alock);
+		qunlock(&(&ctlr->alock)->qlock);
 		nexterror();
 	}
 
@@ -1304,7 +1304,7 @@ igbeattach(Ether* edev)
 
 	igbetxinit(ctlr);
 
-	qunlock(&ctlr->alock);
+	qunlock(&(&ctlr->alock)->qlock);
 	poperror();
 }
 
@@ -1318,7 +1318,7 @@ igbeinterrupt(Ureg *u, void* arg)
 	edev = arg;
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->imlock);
+	ilock(&(&ctlr->imlock)->lock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
 	txdw = 0;
@@ -1345,7 +1345,7 @@ igbeinterrupt(Ureg *u, void* arg)
 
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
-	iunlock(&ctlr->imlock);
+	iunlock(&(&ctlr->imlock)->lock);
 
 	if(txdw)
 		igbetransmit(edev);

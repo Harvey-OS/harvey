@@ -41,7 +41,7 @@ enum
  */
 struct Netfile
 {
-	QLock;
+	QLock qlock;
 
 	int	inuse;
 	uint32_t	mode;
@@ -74,7 +74,7 @@ struct Netaddr
  */
 struct Netif
 {
-	QLock;
+	QLock qlock;
 
 	/* multiplexing */
 	char	name[KNAMELEN];		/* for top level directory */

@@ -38,9 +38,9 @@ getac(Proc *p, int core)
 	mp = nil;
 	if(core == 0)
 		panic("can't getac for a %s", rolename[NIXTC]);
-	lock(&nixaclock);
+	lock(&(&nixaclock)->lock);
 	if(waserror()){
-		unlock(&nixaclock);
+		unlock(&(&nixaclock)->lock);
 		nexterror();
 	}
 	if(core > 0){
@@ -60,7 +60,7 @@ getac(Proc *p, int core)
 					goto Found;
 		error("not enough cores");
 	}
-	unlock(&nixaclock);
+	unlock(&(&nixaclock)->lock);
 	poperror();
 	return mp;
 }
@@ -110,10 +110,10 @@ stopac(void)
 	if(mp->proc != up)
 		panic("stopac");
 
-	lock(&nixaclock);
+	lock(&(&nixaclock)->lock);
 	up->ac = nil;
 	mp->proc = nil;
-	unlock(&nixaclock);
+	unlock(&(&nixaclock)->lock);
 
 	/* TODO:
 	 * send sipi to up->ac, it would rerun squidboy(), and
@@ -170,14 +170,14 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 
 	DBG("runac: exotic proc on cpu%d\n", mp->machno);
 	if(waserror()){
-		qunlock(&up->debug);
+		qunlock(&(&up->debug)->qlock);
 		nexterror();
 	}
-	qlock(&up->debug);
+	qlock(&(&up->debug)->qlock);
 	up->nicc++;
 	up->state = Exotic;
 	up->psstate = 0;
-	qunlock(&up->debug);
+	qunlock(&(&up->debug)->qlock);
 	poperror();
 	mfence();
 	mp->icc->fn = func;

@@ -88,7 +88,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 			if(w > waitstats.wait[i])
 				waitstats.wait[i] = w;	/* race but ok */
 			waitstats.total[i] += w;
-			unlock(&waitstatslk);
+			unlock(&(&waitstatslk)->lock);
 			return;
 		}
 
@@ -104,7 +104,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 			break;
 		}
 
-	unlock(&waitstatslk);
+	unlock(&(&waitstatslk)->lock);
 }
 
 void

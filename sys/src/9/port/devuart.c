@@ -44,7 +44,7 @@ static int uartndir;
 static Timer *uarttimer;
 
 struct Uartalloc {
-	Lock;
+	Lock lock;
 	Uart *elist;	/* list of enabled interfaces */
 } uartalloc;
 
@@ -98,7 +98,7 @@ uartenable(Uart *p)
 		uartctl(p, "b9600");
 	(*p->phys->enable)(p, 1);
 
-	lock(&uartalloc);
+	lock(&(&uartalloc)->lock);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
 			break;
@@ -108,7 +108,7 @@ uartenable(Uart *p)
 		uartalloc.elist = p;
 	}
 	p->enabled = 1;
-	unlock(&uartalloc);
+	unlock(&(&uartalloc)->lock);
 
 	return p;
 }
@@ -120,7 +120,7 @@ uartdisable(Uart *p)
 
 	(*p->phys->disable)(p);
 
-	lock(&uartalloc);
+	lock(&(&uartalloc)->lock);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p){
 			*l = p->elist;
@@ -128,7 +128,7 @@ uartdisable(Uart *p)
 		}
 	}
 	p->enabled = 0;
-	unlock(&uartalloc);
+	unlock(&(&uartalloc)->lock);
 }
 
 static void
@@ -247,14 +247,14 @@ uartopen(Chan *c, int omode)
 	case Qctl:
 	case Qdata:
 		p = uart[UARTID(c->qid.path)];
-		qlock(p);
+		qlock(&p->qlock);
 		if(p->opens == 0 && uartenable(p) == nil){
-			qunlock(p);
+			qunlock(&p->qlock);
 			c->flag &= ~COPEN;
 			error(Enodev);
 		}
 		p->opens++;
-		qunlock(p);
+		qunlock(&p->qlock);
 		break;
 	}
 
@@ -301,12 +301,12 @@ uartclose(Chan *c)
 	case Qdata:
 	case Qctl:
 		p = uart[UARTID(c->qid.path)];
-		qlock(p);
+		qlock(&p->qlock);
 		if(--(p->opens) == 0){
 			qclose(p->iq);
-			ilock(&p->rlock);
+			ilock(&(&p->rlock)->lock);
 			p->ir = p->iw = p->istage;
-			iunlock(&p->rlock);
+			iunlock(&(&p->rlock)->lock);
 
 			/*
 			 */
@@ -319,7 +319,7 @@ uartclose(Chan *c)
 			uartdisable(p);
 			p->dcd = p->dsr = p->dohup = 0;
 		}
-		qunlock(p);
+		qunlock(&p->qlock);
 		break;
 	}
 }
@@ -453,9 +453,9 @@ uartctl(Uart *p, char *cmd)
 		case 'X':
 		case 'x':
 			if(p->enabled){
-				ilock(&p->tlock);
+				ilock(&(&p->tlock)->lock);
 				p->xonoff = n;
-				iunlock(&p->tlock);
+				iunlock(&(&p->tlock)->lock);
 			}
 			break;
 		}
@@ -477,24 +477,24 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 
 	switch(UARTTYPE(c->qid.path)){
 	case Qdata:
-		qlock(p);
+		qlock(&p->qlock);
 		if(waserror()){
-			qunlock(p);
+			qunlock(&p->qlock);
 			nexterror();
 		}
 
 		n = qwrite(p->oq, buf, n);
 
-		qunlock(p);
+		qunlock(&p->qlock);
 		poperror();
 		break;
 	case Qctl:
 		cmd = malloc(n+1);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
-		qlock(p);
+		qlock(&p->qlock);
 		if(waserror()){
-			qunlock(p);
+			qunlock(&p->qlock);
 			free(cmd);
 			nexterror();
 		}
@@ -503,7 +503,7 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 		if(uartctl(p, cmd) < 0)
 			error(Ebadarg);
 
-		qunlock(p);
+		qunlock(&p->qlock);
 		poperror();
 		free(cmd);
 		break;
@@ -608,9 +608,9 @@ uartkick(void *v)
 	if(p->blocked)
 		return;
 
-	ilock(&p->tlock);
+	ilock(&(&p->tlock)->lock);
 	(*p->phys->kick)(p);
-	iunlock(&p->tlock);
+	iunlock(&(&p->tlock)->lock);
 
 	if(p->drain && uartdrained(p)){
 		p->drain = 0;
@@ -669,7 +669,7 @@ uartrecv(Uart *p,  char ch)
 	if(p->putc)
 		p->putc(p->iq, ch);
 	else{
-		ilock(&p->rlock);
+		ilock(&(&p->rlock)->lock);
 		next = p->iw + 1;
 		if(next == p->ie)
 			next = p->istage;
@@ -679,7 +679,7 @@ uartrecv(Uart *p,  char ch)
 			*p->iw = ch;
 			p->iw = next;
 		}
-		iunlock(&p->rlock);
+		iunlock(&(&p->rlock)->lock);
 	}
 }
 
@@ -692,7 +692,7 @@ uartclock(void)
 {
 	Uart *p;
 
-	lock(&uartalloc);
+	lock(&(&uartalloc)->lock);
 	for(p = uartalloc.elist; p; p = p->elist){
 
 		if(p->phys->poll != nil)
@@ -700,9 +700,9 @@ uartclock(void)
 
 		/* this hopefully amortizes cost of qproduce to many chars */
 		if(p->iw != p->ir){
-			ilock(&p->rlock);
+			ilock(&(&p->rlock)->lock);
 			uartstageinput(p);
-			iunlock(&p->rlock);
+			iunlock(&(&p->rlock)->lock);
 		}
 
 		/* hang up if requested */
@@ -714,13 +714,13 @@ uartclock(void)
 
 		/* this adds hysteresis to hardware/software flow control */
 		if(p->ctsbackoff){
-			ilock(&p->tlock);
+			ilock(&(&p->tlock)->lock);
 			if(p->ctsbackoff){
 				if(--(p->ctsbackoff) == 0)
 					(*p->phys->kick)(p);
 			}
-			iunlock(&p->tlock);
+			iunlock(&(&p->tlock)->lock);
 		}
 	}
-	unlock(&uartalloc);
+	unlock(&(&uartalloc)->lock);
 }

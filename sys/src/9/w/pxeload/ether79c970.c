@@ -116,7 +116,7 @@ enum {					/* md2 */
 
 typedef struct Ctlr Ctlr;
 struct Ctlr {
-	Lock;
+	Lock lock;
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
@@ -346,7 +346,7 @@ intrloop:
 	 * Transmitter interrupt: wakeup anyone waiting for a free descriptor.
 	 */
 	if(csr0 & Tint){
-		lock(ctlr);
+		lock(&ctlr->lock);
 		while(ctlr->ntq){
 			dre = &ctlr->tdr[ctlr->tdri];
 			if(dre->md1 & Own)
@@ -371,7 +371,7 @@ intrloop:
 			ctlr->tdri = NEXT(ctlr->tdri, Ntdre);
 		}
 		transmit(ether);
-		unlock(ctlr);
+		unlock(&ctlr->lock);
 	}
 	goto intrloop;
 }
@@ -429,7 +429,7 @@ amd79c970reset(Ether* ether)
 	ether->irq = ctlr->pcidev->intl;
 	ether->tbdf = ctlr->pcidev->tbdf;
 	pcisetbme(ctlr->pcidev);
-	ilock(ctlr);
+	ilock(&ctlr->lock);
 	ctlr->init = 1;
 
 	io32r(ctlr, Sreset);
@@ -443,7 +443,7 @@ amd79c970reset(Ether* ether)
 		ctlr->iow = io32w;
 	}else{
 		print("#l%d: card doesn't talk right\n", ether->ctlrno);
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		return -1;
 	}
 
@@ -458,7 +458,7 @@ amd79c970reset(Ether* ether)
 		break;
 	default:
 		print("unknown PCnet card version %.7ux\n", x&0xFFFFFFF);
-		iunlock(ctlr);
+		iunlock(&ctlr->lock);
 		return -1;
 	}
 
@@ -534,7 +534,7 @@ amd79c970reset(Ether* ether)
 	 */
 	ctlr->iow(ctlr, Rdp, Iena|Strt);
 	ctlr->init = 0;
-	iunlock(ctlr);
+	iunlock(&ctlr->lock);
 
 	/*
 	 * Linkage to the generic ethernet driver.

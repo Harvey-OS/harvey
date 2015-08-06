@@ -594,7 +594,7 @@ vgbetxeof(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 
 	if(ctlr->debugflags & DumpTx)
 		print("vgbe: tx_eof\n");
@@ -614,7 +614,7 @@ vgbetxeof(Ether* edev)
 	if(ctlr->debugflags & DumpTx)
 		print("vgbe: tx_eof: done [count=%d]\n", count);
 
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 
 	if(ctlr->tx_count)
 		wiob(ctlr, TxCsrS, TxCsr_Wakeup);
@@ -632,7 +632,7 @@ vgbetransmit(Ether* edev)
 
 	ctlr = edev->ctlr;
 
-	ilock(&ctlr->tlock);
+	ilock(&(&ctlr->tlock)->lock);
 
 	/* find empty slot */
 	start = riow(ctlr, TxDscIdx);
@@ -669,7 +669,7 @@ vgbetransmit(Ether* edev)
 	if(ctlr->debugflags & DumpTx)
 		print("vgbe: transmit: done [count=%d]\n", count);
 
-	iunlock(&ctlr->tlock);
+	iunlock(&(&ctlr->tlock)->lock);
 
 	if(ctlr->tx_count)
 		wiob(ctlr, TxCsrS, TxCsr_Wakeup);
@@ -692,9 +692,9 @@ vgbeattach(Ether* edev)
 //	ctlr->debugflags |= DumpRx|DumpTx;
 
 	// XXX: lock occurs in init
-	lock(&ctlr->ilock);
+	lock(&(&ctlr->ilock)->lock);
 	if(ctlr->inited){
-		unlock(&ctlr->ilock);
+		unlock(&(&ctlr->ilock)->lock);
 		return;
 	}
 
@@ -713,7 +713,7 @@ vgbeattach(Ether* edev)
 	rd = mallocalign(RxCount* sizeof(Rd), 256, 0, 0);
 	if(rd == nil){
 		print("vgbe: unable to alloc Rx ring\n");
-		unlock(&ctlr->ilock);
+		unlock(&(&ctlr->ilock)->lock);
 		return;
 	}
 	ctlr->rdring = rd;
@@ -737,7 +737,7 @@ vgbeattach(Ether* edev)
 	td = mallocalign(TxCount* sizeof(Td), 256, 0, 0);
 	if(td == nil){
 		print("vgbe: unable to alloc Tx ring\n");
-		unlock(&ctlr->ilock);
+		unlock(&(&ctlr->ilock)->lock);
 		return;
 	}
 	ctlr->td = td;
@@ -765,7 +765,7 @@ vgbeattach(Ether* edev)
 
 	/* Done */
 	ctlr->inited = 1;
-	unlock(&ctlr->ilock);
+	unlock(&(&ctlr->ilock)->lock);
 
 	/* Enable interrupts */
 	wiol(ctlr, isr, 0xffffffff);
