@@ -12,8 +12,6 @@
 #include <cursor.h>
 #include "screen.h"
 
-#define MB	0x100000
-
 static ulong
 preallocsize(Pcidev *p)
 {
