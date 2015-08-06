@@ -283,48 +283,47 @@ sfence:
 	RET
 
 /*
- * Note: CLI and STI are not serialising instructions.
- * Is that assumed anywhere?
+ *	disable interrupts,
+ *	return old flags for splx()
  */
 .global splhi
 splhi:
 _splhi:
 	PUSHFQ
 	POPQ	%rax
-	TESTQ	$If, %rax				/* If - Interrupt Flag */
-	JZ	_alreadyhi			/* use CMOVLEQ etc. here? */
-
-	MOVQ	%gs:0, %rax
-	// Until we know we have a register we can trash, we have to
-	// save and restore this one. Callee save
-	PUSHQ	%rbx
-	MOVQ	8(%rsp), %rbx
-	MOVQ	%rbx, 8(%rax) 			/* save PC in m->splpc */
-	POPQ	%rbx
-
+	TESTQ	$If, %rax	/* If - Interrupt Flag */
+	JZ	_alreadyhi
+	movq	0(%rsp), %rdi
+	movq	%rdi, %gs:8	/* callerpc to m->splpc */
 _alreadyhi:
 	CLI
 	RET
 
+/*
+ *	enable interrupts,
+ *	return old flags for splx()
+ */
 .global spllo
 spllo:
 _spllo:
 	PUSHFQ
 	POPQ	%rax
-	TESTQ	$If, %rax				/* If - Interrupt Flag */
-	JNZ	_alreadylo			/* use CMOVLEQ etc. here? */
-	MOVQ	%gs:0, %rax
-	MOVQ	$0, 8(%rax)			/* clear m->splpc */
-
+	TESTQ	$If, %rax	/* If - Interrupt Flag */
+	JNZ	_alreadylo
+	MOVQ	$0, %gs:8	/* clear m->splpc */
 _alreadylo:
 	STI
 	RET
 
+/*
+ *	undo splhi or spllo,
+ *	%rdi has flags before splhi or spllo
+ */
 .global splx
 splx:
-	TESTQ	$If, %rdi			/* If - Interrupt Flag */
-	JNZ	_spllo
-	JMP	_splhi
+	TESTQ	$If, %rdi	/* If - Interrupt Flag */
+	JNZ	_spllo		/* If set: enable */
+	JMP	_splhi		/* else: disable */
 
 .global spldone
 spldone:
@@ -334,7 +333,7 @@ spldone:
 islo:
 	PUSHFQ
 	POPQ	%rax
-	ANDQ	$If, %rax				/* If - Interrupt Flag */
+	ANDQ	$If, %rax	/* If - Interrupt Flag */
 	RET
 
 /*
