@@ -36,6 +36,8 @@
 				"ether",
 				"ip",
 				"pci",
+				"cap",
+				"ssl",
 				"uart"
 			],
 			"Ip": [

@@ -210,6 +210,7 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 	uint8_t hash[Hashlen];
 	char *key, *from, *to;
 	char err[256];
+	Proc *up = machp()->externup;
 
 	switch((uint32_t)c->qid.path){
 	case Qhash:
