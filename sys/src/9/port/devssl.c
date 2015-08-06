@@ -271,6 +271,7 @@ sslstat(Chan *c, uint8_t *db, int32_t n)
 static Chan*
 sslopen(Chan *c, int omode)
 {
+	Proc *up = externup();
 	Dstate *s, **pp;
 	int perm;
 	int ft;
@@ -319,7 +320,7 @@ sslopen(Chan *c, int omode)
 			dsnew(c, pp);
 		else {
 			if((perm & (s->perm>>6)) != perm
-			   && (strcmp(m->externup->user, s->user) != 0
+			   && (strcmp(up->user, s->user) != 0
 			     || (perm & s->perm) != perm))
 				error(Eperm);
 
@@ -343,6 +344,7 @@ sslopen(Chan *c, int omode)
 static int32_t
 sslwstat(Chan *c, uint8_t *db, int32_t n)
 {
+	Proc *up = externup();
 	Dir *dir;
 	Dstate *s;
 	int l;
@@ -350,7 +352,7 @@ sslwstat(Chan *c, uint8_t *db, int32_t n)
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
 		error(Ebadusefd);
-	if(strcmp(s->user, m->externup->user) != 0)
+	if(strcmp(s->user, up->user) != 0)
 		error(Eperm);
 
 	dir = smalloc(sizeof(Dir)+n);
@@ -362,7 +364,7 @@ sslwstat(Chan *c, uint8_t *db, int32_t n)
 
 	if(!emptystr(dir->uid))
 		kstrdup(&s->user, dir->uid);
-	if(dir->mode != ~0UL)
+	if(dir->mode != ~0U)
 		s->perm = dir->mode;
 
 	free(dir);
@@ -556,6 +558,7 @@ static Block*
 sslbread(Chan *c, int32_t n, int64_t m)
 {
 	Dstate * volatile s;
+	Proc *up = externup();
 	Block *b;
 	uint8_t consumed[3], *p;
 	int toconsume;
@@ -664,6 +667,7 @@ static int32_t
 sslread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Block * volatile b;
+	Proc *up = externup();
 	Block *nb;
 	uint8_t *va;
 	int i;
@@ -728,6 +732,7 @@ static int32_t
 sslbwrite(Chan *c, Block *b, int64_t m)
 {
 	Dstate * volatile s;
+	Proc *up = externup();
 	int32_t rv;
 
 	s = dstate[CONV(c->qid)];
@@ -763,6 +768,7 @@ sslbwrite(Chan *c, Block *b, int64_t m)
 static int32_t
 sslput(Dstate *s, Block * volatile b)
 {
+	Proc *up = externup();
 	Block *nb;
 	int h, n, l, pad, rv;
 	uint8_t *p;
@@ -1055,6 +1061,7 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	Dstate * volatile s;
 	Block * volatile b;
+	Proc *up = externup();
 	int l, t;
 	char *p, *np, *e, buf[128];
 	uint8_t *x;
@@ -1472,6 +1479,7 @@ dsclone(Chan *ch)
 {
 	int i;
 	Dstate *ret;
+	Proc *up = externup();
 
 	if(waserror()) {
 		unlock(&dslock);
@@ -1494,6 +1502,7 @@ dsclone(Chan *ch)
 static void
 dsnew(Chan *ch, Dstate **pp)
 {
+	Proc *up = externup();
 	Dstate *s;
 	int t;
 
@@ -1505,7 +1514,7 @@ dsnew(Chan *ch, Dstate **pp)
 	memset(s, 0, sizeof(*s));
 	s->state = Sincomplete;
 	s->ref = 1;
-	kstrdup(&s->user, m->externup->user);
+	kstrdup(&s->user, up->user);
 	s->perm = 0660;
 	t = TYPE(ch->qid);
 	if(t == Qclonus)
