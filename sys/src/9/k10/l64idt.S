@@ -105,6 +105,9 @@ _intrnested:
 	PUSHQ	%rax
 
 	MOVQ	%rsp, %rdi // it's ok, we saved %rdi.
+	xorq	%rax, %rax
+	pushq	%rax
+	popfq				/* clear all flags. is there something else we should clear too? */
 	CALL	_trap
 .globl _intrr
 _intrr:
