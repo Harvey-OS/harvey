@@ -1,5 +1,19 @@
 #News & events
 
+<a name="APE is here"></a>
+## APE repository and runtime available 
+7th August 2015
+
+APE is working now. It's in a separate repository, look at [Harvey-OS github site](https://github.com/Harvey-OS/ape) to see it.
+There are a [wiki](https://github.com/Harvey-OS/ape/wiki) there as well, with a getting started about how to compile and use it.
+
+APE is now out of the tree, what means you can clone the repository whatever you want and compile it indepently from Harvey's
+main tree. You just only need for now that libbsd and libap are linked to your ANSI program to run it in Harvey. You
+can use Harvey's and APE runtimes together: both use same compiler, all include directories and all libs.
+
+We hope porting tasks will be easier now.
+
+
 <a name="usenix-2015-materials"></a>
 ## USENIX presentation slides available 
 20th July 2015
