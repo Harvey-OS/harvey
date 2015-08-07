@@ -1,6 +1,8 @@
 body {
     padding-top: 70px;
     color: #333;
+    font-size: 1.6em;
+    line-height: 1.6em;
 }
 
 body > div.container {
@@ -37,7 +39,9 @@ div.col-md-9 img {
 
 div.lazy img { margin:0;}
 
-h1 { color: #000;} 
+blockquote { background-color: #eee; color: #777;}
+
+h1 { color: #000; margin-top: 0.25em;} 
 
 h2, h3 { color: #666; }
 
@@ -88,7 +92,7 @@ code, kbd, pre, samp  {
 }
 
 footer {
-    margin-top: 30px;
+    margin-top: 0;
     margin-bottom: 10px;
     text-align: center;
     font-weight: 200;
