@@ -25,6 +25,55 @@
  * connection.
  */
 
+enum {
+	Xxmit = 200,
+	Xrecv,
+	Xintr,
+	Xerror,
+	Xdone,
+};
+
+static char *
+typestr9p(int ttyp)
+{
+	switch(ttyp){
+	default: return "Unknown";
+	case Tversion: return "Tversion";
+	case Rversion: return "Rversion";
+	case Tauth: return "Tauth";
+	case Rauth: return "Rauth";
+	case Tattach: return "Tattach";
+	case Rattach: return "Rattach";
+	case Terror: return "Terror";
+	case Rerror: return "Rerror";
+	case Tflush: return "Tflush";
+	case Rflush: return "Rflush";
+	case Twalk: return "Twalk";
+	case Rwalk: return "Rwalk";
+	case Topen: return "Topen";
+	case Ropen: return "Ropen";
+	case Tcreate: return "Tcreate";
+	case Rcreate: return "Rcreate";
+	case Tread: return "Tread";
+	case Rread: return "Rread";
+	case Twrite: return "Twrite";
+	case Rwrite: return "Rwrite";
+	case Tclunk: return "Tclunk";
+	case Rclunk: return "Rclunk";
+	case Tremove: return "Tremove";
+	case Rremove: return "Rremove";
+	case Tstat: return "Tstat";
+	case Rstat: return "Rstat";
+	case Twstat: return "Twstat";
+	case Rwstat: return "Rwstat";
+	case Xxmit: return "xmit";
+	case Xrecv: return "recv";
+	case Xintr: return "intr";
+	case Xerror: return "error";
+	case Xdone: return "done";
+	}
+}
+
 #define MAXRPC (IOHDRSZ+8192)
 
 struct Mntrpc
@@ -42,6 +91,7 @@ struct Mntrpc
 	uint64_t	stime;		/* start time for mnt statistics */
 	uint32_t	reqlen;		/* request length for mnt statistics */
 	uint32_t	replen;		/* reply length for mnt statistics */
+	uint32_t	tag;
 	Mntrpc*	flushed;	/* message this one flushes */
 };
 
@@ -54,7 +104,7 @@ enum
 
 struct Mntalloc
 {
-	Lock;
+	Lock lk;
 	Mnt*	list;		/* Mount devices in use */
 	Mnt*	mntfree;	/* Free list */
 	Mntrpc*	rpcfree;
@@ -211,14 +261,14 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 		error("bad 9P version returned from server");
 
 	/* now build Mnt associated with this connection */
-	lock(&mntalloc);
+	lock(&mntalloc.lk);
 	mnt = mntalloc.mntfree;
 	if(mnt != nil)
 		mntalloc.mntfree = mnt->list;
 	else {
 		mnt = malloc(sizeof(Mnt));
 		if(mnt == nil) {
-			unlock(&mntalloc);
+			unlock(&mntalloc.lk);
 			exhausted("mount devices");
 		}
 	}
@@ -229,7 +279,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 	mnt->id = mntalloc.id++;
 	mnt->q = qopen(10*MAXRPC, 0, nil, nil);
 	mnt->msize = f.msize;
-	unlock(&mntalloc);
+	unlock(&mntalloc.lk);
 
 	if(returnlen != 0){
 		if(returnlen < k)
@@ -381,9 +431,9 @@ mntchan(void)
 	Chan *c;
 
 	c = devattach('M', 0);
-	lock(&mntalloc);
+	lock(&mntalloc.lk);
 	c->devno = mntalloc.id++;
-	unlock(&mntalloc);
+	unlock(&mntalloc.lk);
 
 	if(c->mchan)
 		panic("mntchan non-zero %#p", c->mchan);
@@ -601,7 +651,7 @@ mntpntfree(Mnt *mnt)
 	Mnt *f, **l;
 	Queue *q;
 
-	lock(&mntalloc);
+	lock(&mntalloc.lk);
 	l = &mntalloc.list;
 	for(f = *l; f; f = f->list) {
 		if(f == mnt) {
@@ -613,7 +663,7 @@ mntpntfree(Mnt *mnt)
 	mnt->list = mntalloc.mntfree;
 	mntalloc.mntfree = mnt;
 	q = mnt->q;
-	unlock(&mntalloc);
+	unlock(&mntalloc.lk);
 
 	qfree(q);
 }
@@ -761,13 +811,25 @@ mntvalidreply(Mnt *mnt, Mntrpc *r)
 {
 	Proc *up = externup();
 	char *sn, *cn;
-	int t;
+	int i, t;
 
+if(r->request.tag != r->tag)
+print("validreply hello! request.tag %d tag %d\n", r->request.tag, r->tag);
 	t = r->reply.type;
 	switch(t) {
 	case Rerror:
+		lock(mnt);
+		mnt->trace[mnt->tracei] = (struct Mnttrace){Xerror, r->request.fid, r->request.tag, up->pid, (uintptr_t)r};
+		mnt->tracei = (mnt->tracei+1)%nelem(mnt->trace);
+		unlock(mnt);
+		//print("mntvalidreply: Rerror '%s' for T%d fid %d tag %d\n", r->reply.ename, r->request.type, r->request.fid, r->request.tag);
 		error(r->reply.ename);
 	case Rflush:
+		lock(mnt);
+		mnt->trace[mnt->tracei] = (struct Mnttrace){Xintr, r->request.fid, r->request.tag, up->pid, (uintptr_t)r};
+		mnt->tracei = (mnt->tracei+1)%nelem(mnt->trace);
+		unlock(mnt);
+		//print("mntvalidreply: Rflush for T%d fid %d tag %d\n", r->request.type, r->request.fid, r->request.tag);
 		error(Eintr);
 	default:
 		if(t == r->request.type+1) // R for T is always T+1.
@@ -778,23 +840,46 @@ mntvalidreply(Mnt *mnt, Mntrpc *r)
 		cn = "?";
 		if(r->c != nil && r->c->path != nil)
 			cn = r->c->path->s;
+		lock(mnt);
 		print("mnt: proc %s %d: mismatch from %s %s rep %#p tag %d fid %d T%d R%d rp %d\n",
 			up->text, up->pid, sn, cn,
 			r, r->request.tag, r->request.fid, r->request.type,
 			r->reply.type, r->reply.tag);
+		print("mnttrace:\n");
+		for(i = 0; i < nelem(mnt->trace); i++){
+			int j = (mnt->tracei+1+i)%nelem(mnt->trace);
+			print("	%s fid %d tag %d pid %d rpc %p\n",
+				typestr9p(mnt->trace[j].type),
+				mnt->trace[j].fid,
+				mnt->trace[j].tag,
+				mnt->trace[j].pid,
+				mnt->trace[j].rpc
+
+			);
+		}
+		print("end\n");
+		unlock(mnt);
 		error(Emountrpc);
 	}
+	lock(mnt);
+	mnt->trace[mnt->tracei] = (struct Mnttrace){Xdone, r->request.fid, r->request.tag, up->pid, (uintptr_t)r};
+	mnt->tracei = (mnt->tracei+1)%nelem(mnt->trace);
+	unlock(mnt);
+
 }
 
 static void
 xmitrpc(Mnt *mnt, Mntrpc *r)
 {
+	Proc *up = externup();
 	int n;
 
 	lock(mnt);
 	r->m = mnt;
 	r->list = mnt->queue;
 	mnt->queue = r;
+	mnt->trace[mnt->tracei] = (struct Mnttrace){r->request.type, r->request.fid, r->request.tag, up->pid, (uintptr_t)r};
+	mnt->tracei = (mnt->tracei+1)%nelem(mnt->trace);
 	unlock(mnt);
 
 	/* Transmit a file system rpc */
@@ -807,6 +892,8 @@ xmitrpc(Mnt *mnt, Mntrpc *r)
 		error(Emountrpc);
 	r->stime = fastticks(nil);
 	r->reqlen = n;
+if(r->request.tag != r->tag)
+print("xmitrpc hello! request.tag %d tag %d\n", r->request.tag, r->tag);
 }
 
 static void
@@ -820,10 +907,15 @@ recvrpc(Mnt *mnt, Mntrpc *r)
 			break;
 		unlock(mnt);
 		sleep(&r->r, rpcattn, r);
-		if(r->done)
+		if(r->done){
+if(r->request.tag != r->tag)
+print("recvrpc hello! request.tag %d tag %d\n", r->request.tag, r->tag);
 			return;
+		}
 	}
 	mnt->rip = up;
+	mnt->trace[mnt->tracei] = (struct Mnttrace){Xrecv, r->request.fid, r->request.tag, up->pid, (uintptr_t)r};
+	mnt->tracei = (mnt->tracei+1)%nelem(mnt->trace);
 	unlock(mnt);
 	while(r->done == 0) {
 		if(mntrpcread(mnt, r) < 0)
@@ -847,10 +939,14 @@ mountiostart(Mnt *mnt, Mntrpc *r)
 	r->reply.type = Tmax;	/* can't ever be a valid message type */
 	gotintr = 0;
 	while(waserror()) {
+		if(mnt->rip == up)
+			mntgate(mnt);
 		if(strcmp(up->errstr, Eintr) != 0){
+			print("mountiostart: %s\n", up->errstr);
 			mntflushfree(mnt, r);
 			nexterror();
 		}
+		print("mountiostart: Eintr\n");
 		r = mntflushalloc(r, mnt->msize);
 		gotintr++;
 	}
@@ -878,9 +974,11 @@ mountiofinish(Mnt *mnt, Mntrpc *r)
 		if(mnt->rip == up)
 			mntgate(mnt);
 		if(strcmp(up->errstr, Eintr) != 0){
+			print("mountiofinish: %s\n", up->errstr);
 			mntflushfree(mnt, r);
 			nexterror();
 		}
+		print("mountiofinish: Eintr\n");
 		r = mntflushalloc(r, mnt->msize);
 		gotintr++;
 	}
@@ -1007,14 +1105,18 @@ mntgate(Mnt *mnt)
 void
 mountmux(Mnt *mnt, Mntrpc *r)
 {
+	Proc *up = externup();
 	Mntrpc **l, *q;
 
 	lock(mnt);
 	l = &mnt->queue;
+	mnt->trace[mnt->tracei] = (struct Mnttrace){r->reply.type, r->reply.fid, r->reply.tag, up->pid, (uintptr_t)r};
+	mnt->tracei = (mnt->tracei+1)%nelem(mnt->trace);
 	for(q = *l; q; q = q->list) {
 		/* look for a reply to a message */
 		if(q->request.tag == r->reply.tag) {
 			*l = q->list;
+			q->list = nil;
 			if(q != r) {
 				/*
 				 * Completed someone else.
@@ -1116,12 +1218,12 @@ mntralloc(Chan *c, uint32_t msize)
 {
 	Mntrpc *new;
 
-	lock(&mntalloc);
+	lock(&mntalloc.lk);
 	new = mntalloc.rpcfree;
 	if(new == nil){
 		new = malloc(sizeof(Mntrpc));
 		if(new == nil) {
-			unlock(&mntalloc);
+			unlock(&mntalloc.lk);
 			exhausted("mount rpc header");
 		}
 		/*
@@ -1131,11 +1233,12 @@ mntralloc(Chan *c, uint32_t msize)
 		new->rpc = mallocz(msize, 0);
 		if(new->rpc == nil){
 			free(new);
-			unlock(&mntalloc);
+			unlock(&mntalloc.lk);
 			exhausted("mount rpc buffer");
 		}
 		new->rpclen = msize;
-		new->request.tag = alloctag();
+		new->tag = alloctag();
+		new->request.tag = new->tag;
 	}
 	else {
 		mntalloc.rpcfree = new->list;
@@ -1146,18 +1249,19 @@ mntralloc(Chan *c, uint32_t msize)
 			if(new->rpc == nil){
 				free(new);
 				mntalloc.nrpcused--;
-				unlock(&mntalloc);
+				unlock(&mntalloc.lk);
 				exhausted("mount rpc buffer");
 			}
 			new->rpclen = msize;
 		}
 	}
 	mntalloc.nrpcused++;
-	unlock(&mntalloc);
+	unlock(&mntalloc.lk);
 	new->c = c;
 	new->done = 0;
 	new->flushed = nil;
 	new->b = nil;
+	new->list = nil;
 	return new;
 }
 
@@ -1166,8 +1270,12 @@ mntfree(Mntrpc *r)
 {
 	if(r->b != nil)
 		freeblist(r->b);
-	lock(&mntalloc);
-	if(mntalloc.nrpcfree >= 10){
+	r->b = nil;
+	lock(&mntalloc.lk);
+if(r->request.tag != r->tag)
+print("mntfree hello! request.tag %d tag %d\n", r->request.tag, r->tag);
+	r->request.tag = r->tag;
+	if(0 && mntalloc.nrpcfree >= 10){
 		free(r->rpc);
 		freetag(r->request.tag);
 		free(r);
@@ -1178,7 +1286,7 @@ mntfree(Mntrpc *r)
 		mntalloc.nrpcfree++;
 	}
 	mntalloc.nrpcused--;
-	unlock(&mntalloc);
+	unlock(&mntalloc.lk);
 }
 
 void
@@ -1193,6 +1301,7 @@ mntqrm(Mnt *mnt, Mntrpc *r)
 	for(f = *l; f; f = f->list) {
 		if(f == r) {
 			*l = r->list;
+			r->list = nil;
 			break;
 		}
 		l = &f->list;
