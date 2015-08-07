@@ -73,6 +73,9 @@ syscallentry:
 	MOVQ	%rsp, %rsi 				/* Ureg* */
 	// system call number is in %rax, as per linux.
 	movq	%rax, %rdi
+	xorq	%rax, %rax
+	pushq	%rax
+	popfq				/* clear all flags. is there something else we should clear too? */
 	CALL	syscall
 
 	.globl	syscallreturn
