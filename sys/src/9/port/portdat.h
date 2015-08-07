@@ -346,6 +346,15 @@ struct Mnt
 	int	msize;		/* data + IOHDRSZ */
 	char	*version;	/* 9P version */
 	Queue	*q;		/* input queue */
+
+	struct Mnttrace {
+		uint32_t type;
+		uint32_t fid;
+		uint32_t tag;
+		int pid;
+		uintptr_t rpc;
+	} trace[32];
+	int tracei;
 };
 
 enum

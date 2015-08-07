@@ -218,25 +218,6 @@ notify(Ureg* ureg)
 	return 1;
 }
 
-void
-noerrorsleft(void)
-{
-	Proc *up = externup();
-	int i;
-
-	if(up->nerrlab){
-		/* NIX processes will have a waserror in their handler */
-		if(up->ac != nil && up->nerrlab == 1)
-			return;
-
-		print("bad errstack: %d extra\n", up->nerrlab);
-		for(i = 0; i < NERR; i++)
-			print("sp=%#p pc=%#p\n",
-				up->errlab[i].sp, up->errlab[i].pc);
-		panic("error stack");
-	}
-}
-
 int printallsyscalls;
 /* it should be unsigned. FIXME */
 void
@@ -360,8 +341,9 @@ syscall(int badscallnr, Ureg *ureg)
 	 * See acore.c:/^retfromsyscall
 	 */
 
-	noerrorsleft();
-
+	if(up->nerrlab != 0){
+		print("bad errstack: %d extra\n", up->nerrlab);
+	}
 	/*
 	 * Put return value in frame.
 	 */

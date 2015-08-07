@@ -47,6 +47,7 @@ syscallentry:
 
 	PUSHQ	%rsp				/* Ureg* */
 	PUSHQ	%rdi				/* system call number */
+	CLD					/* gcc convention is to assume cld */
 	CALL	syscall
 
 .globl syscallreturn

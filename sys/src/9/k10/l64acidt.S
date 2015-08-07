@@ -51,6 +51,7 @@ _acintrnested:
 	PUSHQ	%rax
 
 	MOVQ	%rsp, %rdi // it's ok, we saved %rdi.
+	CLD						/* gcc convention is to assume cld */
 	CALL	_trap
 .globl _acintrr
 _acintrr:

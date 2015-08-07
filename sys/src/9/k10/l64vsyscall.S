@@ -73,6 +73,7 @@ syscallentry:
 	MOVQ	%rsp, %rsi 				/* Ureg* */
 	// system call number is in %rax, as per linux.
 	movq	%rax, %rdi
+	CLD				/* gcc convention is to assume cld */
 	CALL	syscall
 
 	.globl	syscallreturn

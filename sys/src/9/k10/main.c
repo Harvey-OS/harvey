@@ -191,7 +191,7 @@ squidboy(int apicno, Mach *mach)
 		ainc(&active.nonline);
 
 		/* Ready? steady? going to timer */
-		//ndnr();
+		ndnr();
 
 		schedinit();
 		break;

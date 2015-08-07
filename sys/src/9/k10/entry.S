@@ -342,6 +342,7 @@ _zap0done:
 	movq	%rax, entrym
 	movq	$0, (%rax) 				/* machp()->machno = 0 */
 
+	xorq	%rdx, %rdx
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ
 
@@ -349,6 +350,7 @@ _zap0done:
 	movq	%rbx, %rsi
 	movq	%rax, %rax
 	movq	%rax, %rdi				/* multiboot magic */
+	CLD					/* gcc convention is to assume cld */
 	CALL	main
 
 .globl ndnr
@@ -578,6 +580,7 @@ _apstart64v:
 
 	MOVQ	%rAX, %rSP			/* set stack */
 
+	xorq	%rdx, %rdx
 	PUSHQ	%rDX				/* clear flags */
 	POPFQ
 
@@ -588,6 +591,7 @@ _apstart64v:
 	movq	%rax, %rsi			/* Mach * */
 
 	MOVQ	8(%rsi), %rAX			/* m->splpc */
+	CLD					/* gcc convention is to assume cld */
 	CALL	*%raX				/* CALL squidboy(SB) */
 
 
