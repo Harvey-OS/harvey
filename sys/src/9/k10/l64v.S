@@ -336,6 +336,18 @@ islo:
 	ANDQ	$If, %rax	/* If - Interrupt Flag */
 	RET
 
+.global infected_with_std
+infected_with_std:
+	PUSHFQ
+	POPQ	%rax
+	ANDQ	$Df, %rax	/* Df - Direction Flag */
+	RET
+
+.global disinfect_std
+disinfect_std:
+	CLD
+	RET
+
 /*
  * Synchronisation
  */
