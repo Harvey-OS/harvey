@@ -182,6 +182,10 @@ extern uint64_t rdtsc(void);
 extern void trput(uint64_t);
 extern void wrmsr(uint32_t, uint64_t);
 
+// TODO(aki): once we figure this out, these will go.
+extern int infected_with_std(void);
+extern void disinfect_std(void);
+
 extern int islo(void);
 extern void spldone(void);
 extern Mpl splhi(void);

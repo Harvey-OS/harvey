@@ -124,6 +124,11 @@ schedinit(void)		/* never returns */
 
 	Proc *up = externup();
 
+	if(infected_with_std()){
+		print("mach %d got infected with std!\n", machp()->machno);
+		disinfect_std();
+	}
+
 	if(up) {
 		if((e = up->edf) && (e->flags & Admitted))
 			edfrecord(up);
