@@ -56,6 +56,28 @@ static int vflag = 1;
 int nosmp = 1;
 
 void
+machp_bad(void)
+{
+	static uintptr_t trace[256];
+	uintptr_t badpc;
+	int i;
+
+	badpc = (uintptr_t)__builtin_return_address(1);
+	for(i = 0; i < nelem(trace); i++){
+		if(trace[i] == badpc)
+			return;
+		if(trace[i] == 0)
+			break;
+	}
+	if(i == nelem(trace)){
+		print("machp_bad: out of trace space\n");
+		return;
+	}
+	trace[i] = badpc;
+	print("machp access spllo pc %p\n", badpc);
+}
+
+void
 optionsinit(char* s)
 {
 	oargblen = strecpy(oargb, oargb+sizeof(oargb), s) - oargb;
