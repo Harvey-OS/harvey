@@ -55,6 +55,23 @@ static int vflag = 1;
 
 int nosmp = 1;
 
+
+static int
+iskaddr(uintptr_t pc)
+{
+	return (pc & 0xfffffffff0000000) == 0xfffffffff0000000;
+}
+
+void
+stacksnippet(void)
+{
+	Stackframe *stkfr;
+	print(" stack:");
+	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
+		print(" %c:%p", iskaddr(stkfr->pc) ? 'k' : '?', iskaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
+	print("\n");
+}
+
 void
 machp_bad(void)
 {
@@ -74,7 +91,8 @@ machp_bad(void)
 		return;
 	}
 	trace[i] = badpc;
-	print("machp access spllo pc %p\n", badpc);
+	print("machp access spllo,");
+	stacksnippet();
 }
 
 void
@@ -492,6 +510,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 */
 	mach->cpuhz = 2000000000ll;
 	mach->cpumhz = 2000;
+	sys->cyclefreq = mach->cpuhz;
 
 	cgainit();
 	i8250console("0");
@@ -516,6 +535,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	if((hz = archhz()) != 0ll){
 		mach->cpuhz = hz;
 		mach->cyclefreq = hz;
+		sys->cyclefreq = hz;
 		mach->cpumhz = hz/1000000ll;
 	}
 	//iprint("archhz returns 0x%lld\n", hz);
