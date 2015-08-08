@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-runesnprint(Rune *buf, int len, char *fmt, ...)
+runesnprint(Rune* buf, int len, char* fmt, ...)
 {
 	int n;
 	va_list args;
@@ -21,4 +21,3 @@ runesnprint(Rune *buf, int len, char *fmt, ...)
 	va_end(args);
 	return n;
 }
-

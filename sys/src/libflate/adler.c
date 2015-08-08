@@ -11,28 +11,26 @@
 #include <libc.h>
 #include <flate.h>
 
-enum
-{
-	ADLERITERS	= 5552,	/* max iters before can overflow 32 bits */
-	ADLERBASE	= 65521 /* largest prime smaller than 65536 */
+enum { ADLERITERS = 5552, /* max iters before can overflow 32 bits */
+       ADLERBASE = 65521  /* largest prime smaller than 65536 */
 };
 
 uint32_t
-adler32(uint32_t adler, void *vbuf, int n)
+adler32(uint32_t adler, void* vbuf, int n)
 {
 	uint32_t s1, s2;
-	uint8_t *buf, *ebuf;
+	uint8_t* buf, *ebuf;
 	int m;
 
 	buf = vbuf;
 	s1 = adler & 0xffff;
 	s2 = (adler >> 16) & 0xffff;
-	for(; n >= 16; n -= m){
+	for(; n >= 16; n -= m) {
 		m = n;
 		if(m > ADLERITERS)
 			m = ADLERITERS;
 		m &= ~15;
-		for(ebuf = buf + m; buf < ebuf; buf += 16){
+		for(ebuf = buf + m; buf < ebuf; buf += 16) {
 			s1 += buf[0];
 			s2 += s1;
 			s1 += buf[1];
@@ -69,8 +67,8 @@ adler32(uint32_t adler, void *vbuf, int n)
 		s1 %= ADLERBASE;
 		s2 %= ADLERBASE;
 	}
-	if(n){
-		for(ebuf = buf + n; buf < ebuf; buf++){
+	if(n) {
+		for(ebuf = buf + n; buf < ebuf; buf++) {
 			s1 += buf[0];
 			s2 += s1;
 		}

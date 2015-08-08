@@ -14,14 +14,13 @@
 #include <ctype.h>
 #include "imagefile.h"
 
-Rawimage *readppm(Biobuf*, Rawimage*);
+Rawimage* readppm(Biobuf*, Rawimage*);
 
 /*
  * fetch a non-comment character.
  */
-static
-int
-Bgetch(Biobufhdr *b)
+static int
+Bgetch(Biobufhdr* b)
 {
 	int c;
 
@@ -32,15 +31,14 @@ Bgetch(Biobufhdr *b)
 				;
 		}
 		return c;
-	}		
+	}
 }
 
 /*
  * fetch a nonnegative decimal integer.
  */
-static
-int
-Bgetint(Biobufhdr *b)
+static int
+Bgetint(Biobufhdr* b)
 {
 	int c;
 	int i;
@@ -51,16 +49,15 @@ Bgetint(Biobufhdr *b)
 		return -1;
 
 	i = 0;
-	do { 
-		i = i*10 + (c-'0');
+	do {
+		i = i * 10 + (c - '0');
 	} while((c = Bgetch(b)) != Beof && isdigit(c));
 
 	return i;
 }
 
-static
-int
-Bgetdecimalbit(Biobufhdr *b)
+static int
+Bgetdecimalbit(Biobufhdr* b)
 {
 	int c;
 	while((c = Bgetch(b)) != Beof && c != '0' && c != '1')
@@ -72,9 +69,8 @@ Bgetdecimalbit(Biobufhdr *b)
 
 static int bitc, nbit;
 
-static
-int
-Bgetbit(Biobufhdr *b)
+static int
+Bgetbit(Biobufhdr* b)
 {
 	if(nbit == 0) {
 		nbit = 8;
@@ -86,22 +82,20 @@ Bgetbit(Biobufhdr *b)
 	return (bitc >> nbit) & 0x1;
 }
 
-static
-void
+static void
 Bflushbit(Biobufhdr*)
 {
 	nbit = 0;
 }
 
-
 Rawimage**
 readpixmap(int fd, int colorspace)
 {
-	Rawimage **array, *a;
+	Rawimage** array, *a;
 	Biobuf b;
 	char buf[ERRMAX];
 	int i;
-	char *e;
+	char* e;
 
 	USED(colorspace);
 	if(Binit(&b, fd, OREAD) < 0)
@@ -115,7 +109,7 @@ readpixmap(int fd, int colorspace)
 		goto Error;
 	memset(array[0], 0, sizeof *array[0]);
 
-	for(i=0; i<3; i++)
+	for(i = 0; i < 3; i++)
 		array[0]->chans[i] = nil;
 
 	e = "bad file format";
@@ -147,55 +141,54 @@ Error:
 	return nil;
 }
 
-typedef struct Pix	Pix;
+typedef struct Pix Pix;
 struct Pix {
 	char magic;
-	int	maxcol;
-	int	(*fetch)(Biobufhdr*);
-	int	nchan;
-	int	chandesc;
-	int	invert;
-	void	(*flush)(Biobufhdr*);
+	int maxcol;
+	int (*fetch)(Biobufhdr*);
+	int nchan;
+	int chandesc;
+	int invert;
+	void (*flush)(Biobufhdr*);
 };
 
 static Pix pix[] = {
-	{ '1', 1, Bgetdecimalbit, 1, CY, 1, nil },	/* portable bitmap */
-	{ '4', 1, Bgetbit, 1, CY, 1, Bflushbit },	/* raw portable bitmap */
-	{ '2', 0, Bgetint, 1, CY, 0, nil },	/* portable greymap */
-	{ '5', 0, Bgetc, 1, CY, 0, nil },	/* raw portable greymap */
-	{ '3', 0, Bgetint, 3, CRGB, 0, nil },	/* portable pixmap */
-	{ '6', 0, Bgetc, 3, CRGB, 0, nil },	/* raw portable pixmap */
-	{ 0 },
+    {'1', 1, Bgetdecimalbit, 1, CY, 1, nil}, /* portable bitmap */
+    {'4', 1, Bgetbit, 1, CY, 1, Bflushbit},  /* raw portable bitmap */
+    {'2', 0, Bgetint, 1, CY, 0, nil},        /* portable greymap */
+    {'5', 0, Bgetc, 1, CY, 0, nil},          /* raw portable greymap */
+    {'3', 0, Bgetint, 3, CRGB, 0, nil},      /* portable pixmap */
+    {'6', 0, Bgetc, 3, CRGB, 0, nil},        /* raw portable pixmap */
+    {0},
 };
 
 Rawimage*
-readppm(Biobuf *b, Rawimage *a)
+readppm(Biobuf* b, Rawimage* a)
 {
 	int i, ch, wid, ht, r, c;
 	int maxcol, nchan, invert;
 	int (*fetch)(Biobufhdr*);
-	uchar *rgb[3];
+	uchar* rgb[3];
 	char buf[ERRMAX];
-	char *e;
-	Pix *p;
+	char* e;
+	Pix* p;
 
 	e = "bad file format";
 	if(Bgetc(b) != 'P')
 		goto Error;
 
 	c = Bgetc(b);
-	for(p=pix; p->magic; p++)
+	for(p = pix; p->magic; p++)
 		if(p->magic == c)
 			break;
 	if(p->magic == 0)
 		goto Error;
 
-
 	wid = Bgetint(b);
 	ht = Bgetint(b);
 	if(wid <= 0 || ht <= 0)
 		goto Error;
-	a->r = Rect(0,0,wid,ht);
+	a->r = Rect(0, 0, wid, ht);
 
 	maxcol = p->maxcol;
 	if(maxcol == 0) {
@@ -205,11 +198,11 @@ readppm(Biobuf *b, Rawimage *a)
 	}
 
 	e = "out of memory";
-	for(i=0; i<p->nchan; i++)
-		if((rgb[i] = a->chans[i] = malloc(wid*ht)) == nil)
+	for(i = 0; i < p->nchan; i++)
+		if((rgb[i] = a->chans[i] = malloc(wid * ht)) == nil)
 			goto Error;
 	a->nchans = p->nchan;
-	a->chanlen = wid*ht;
+	a->chanlen = wid * ht;
 	a->chandesc = p->chandesc;
 
 	e = "error reading file";
@@ -217,14 +210,14 @@ readppm(Biobuf *b, Rawimage *a)
 	fetch = p->fetch;
 	nchan = p->nchan;
 	invert = p->invert;
-	for(r=0; r<ht; r++) {
-		for(c=0; c<wid; c++) {
-			for(i=0; i<nchan; i++) {
+	for(r = 0; r < ht; r++) {
+		for(c = 0; c < wid; c++) {
+			for(i = 0; i < nchan; i++) {
 				if((ch = (*fetch)(b)) < 0)
 					goto Error;
 				if(invert)
 					ch = maxcol - ch;
-				*rgb[i]++ = (ch * 255)/maxcol;
+				*rgb[i]++ = (ch * 255) / maxcol;
 			}
 		}
 		if(p->flush)
@@ -239,7 +232,7 @@ Error:
 		strcpy(buf, e);
 	errstr(buf, sizeof buf);
 
-	for(i=0; i<3; i++)
+	for(i = 0; i < 3; i++)
 		free(a->chans[i]);
 	free(a->cmap);
 	return nil;

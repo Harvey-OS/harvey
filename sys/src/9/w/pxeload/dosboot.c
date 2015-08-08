@@ -7,106 +7,105 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"fs.h"
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "fs.h"
 
-struct Dosboot{
-	uint8_t	magic[3];
-	uint8_t	version[8];
-	uint8_t	sectsize[2];
-	uint8_t	clustsize;
-	uint8_t	nresrv[2];
-	uint8_t	nfats;
-	uint8_t	rootsize[2];
-	uint8_t	volsize[2];
-	uint8_t	mediadesc;
-	uint8_t	fatsize[2];
-	uint8_t	trksize[2];
-	uint8_t	nheads[2];
-	uint8_t	nhidden[4];
-	uint8_t	bigvolsize[4];
-/* fat 32 */
-	uint8_t	bigfatsize[4];
-	uint8_t	extflags[2];
-	uint8_t	fsversion[2];
-	uint8_t	rootdirstartclust[4];
-	uint8_t	fsinfosect[2];
-	uint8_t	backupbootsect[2];
-/* ???
-	uchar	driveno;
-	uchar	reserved0;
-	uchar	bootsig;
-	uchar	volid[4];
-	uchar	label[11];
-	uchar	reserved1[8];
-*/
+struct Dosboot {
+	uint8_t magic[3];
+	uint8_t version[8];
+	uint8_t sectsize[2];
+	uint8_t clustsize;
+	uint8_t nresrv[2];
+	uint8_t nfats;
+	uint8_t rootsize[2];
+	uint8_t volsize[2];
+	uint8_t mediadesc;
+	uint8_t fatsize[2];
+	uint8_t trksize[2];
+	uint8_t nheads[2];
+	uint8_t nhidden[4];
+	uint8_t bigvolsize[4];
+	/* fat 32 */
+	uint8_t bigfatsize[4];
+	uint8_t extflags[2];
+	uint8_t fsversion[2];
+	uint8_t rootdirstartclust[4];
+	uint8_t fsinfosect[2];
+	uint8_t backupbootsect[2];
+	/* ???
+	        uchar	driveno;
+	        uchar	reserved0;
+	        uchar	bootsig;
+	        uchar	volid[4];
+	        uchar	label[11];
+	        uchar	reserved1[8];
+	*/
 };
 
-struct Dosdir{
-	uint8_t	name[8];
-	uint8_t	ext[3];
-	uint8_t	attr;
-	uint8_t	lowercase;
-	uint8_t	hundredth;
-	uint8_t	ctime[2];
-	uint8_t	cdate[2];
-	uint8_t	adate[2];
-	uint8_t	highstart[2];
-	uint8_t	mtime[2];
-	uint8_t	mdate[2];
-	uint8_t	start[2];
-	uint8_t	length[4];
+struct Dosdir {
+	uint8_t name[8];
+	uint8_t ext[3];
+	uint8_t attr;
+	uint8_t lowercase;
+	uint8_t hundredth;
+	uint8_t ctime[2];
+	uint8_t cdate[2];
+	uint8_t adate[2];
+	uint8_t highstart[2];
+	uint8_t mtime[2];
+	uint8_t mdate[2];
+	uint8_t start[2];
+	uint8_t length[4];
 };
 
-#define	DOSRONLY	0x01
-#define	DOSHIDDEN	0x02
-#define	DOSSYSTEM	0x04
-#define	DOSVLABEL	0x08
-#define	DOSDIR	0x10
-#define	DOSARCH	0x20
+#define DOSRONLY 0x01
+#define DOSHIDDEN 0x02
+#define DOSSYSTEM 0x04
+#define DOSVLABEL 0x08
+#define DOSDIR 0x10
+#define DOSARCH 0x20
 
 /*
  *  predeclared
  */
-static void	bootdump(Dosboot*);
-static void	setname(Dosfile*, char*);
+static void bootdump(Dosboot*);
+static void setname(Dosfile*, char*);
 
 /*
  *  debugging
  */
-#define chatty	0
-#define chat	if(chatty)print
+#define chatty 0
+#define chat                                                                   \
+	if(chatty)                                                             \
+	print
 
 /*
  *  block io buffers
  */
-enum
-{
-	Nbio=	16,
+enum { Nbio = 16,
 };
-typedef struct	Clustbuf	Clustbuf;
-struct Clustbuf
-{
-	int	age;
-	int32_t	sector;
-	uint8_t	*iobuf;
-	Dos	*dos;
-	int	size;
+typedef struct Clustbuf Clustbuf;
+struct Clustbuf {
+	int age;
+	int32_t sector;
+	uint8_t* iobuf;
+	Dos* dos;
+	int size;
 };
-Clustbuf	bio[Nbio];
+Clustbuf bio[Nbio];
 
 /*
  *  get an io block from an io buffer
  */
 Clustbuf*
-getclust(Dos *dos, int32_t sector)
+getclust(Dos* dos, int32_t sector)
 {
-	Fs *fs;
-	Clustbuf *p, *oldest;
+	Fs* fs;
+	Clustbuf* p, *oldest;
 	int size;
 
 	chat("getclust @ %ld\n", sector);
@@ -114,8 +113,8 @@ getclust(Dos *dos, int32_t sector)
 	/*
 	 *  if we have it, just return it
 	 */
-	for(p = bio; p < &bio[Nbio]; p++){
-		if(sector == p->sector && dos == p->dos){
+	for(p = bio; p < &bio[Nbio]; p++) {
+		if(sector == p->sector && dos == p->dos) {
 			p->age = machp()->ticks;
 			chat("getclust %ld in cache\n", sector);
 			return p;
@@ -126,7 +125,7 @@ getclust(Dos *dos, int32_t sector)
 	 *  otherwise, reuse the oldest entry
 	 */
 	oldest = bio;
-	for(p = &bio[1]; p < &bio[Nbio]; p++){
+	for(p = &bio[1]; p < &bio[Nbio]; p++) {
 		if(p->age <= oldest->age)
 			oldest = p;
 	}
@@ -135,8 +134,8 @@ getclust(Dos *dos, int32_t sector)
 	/*
 	 *  make sure the buffer is big enough
 	 */
-	size = dos->clustsize*dos->sectsize;
-	if(p->iobuf==0 || p->size < size)
+	size = dos->clustsize * dos->sectsize;
+	if(p->iobuf == 0 || p->size < size)
 		p->iobuf = ialloc(size, 0);
 	p->size = size;
 
@@ -145,13 +144,14 @@ getclust(Dos *dos, int32_t sector)
 	 */
 	fs = (Fs*)dos;
 	chat("getclust addr %lud %p %p %p\n",
-	     (uint32_t)((sector+dos->start)*(int64_t)dos->sectsize),
-		fs, fs->diskseek, fs->diskread);
-	if(fs->diskseek(fs, (sector+dos->start)*(int64_t)dos->sectsize) < 0){
+	     (uint32_t)((sector + dos->start) * (int64_t)dos->sectsize), fs,
+	     fs->diskseek, fs->diskread);
+	if(fs->diskseek(fs, (sector + dos->start) * (int64_t)dos->sectsize) <
+	   0) {
 		chat("can't seek block\n");
 		return 0;
 	}
-	if(fs->diskread(fs, p->iobuf, size) != size){
+	if(fs->diskread(fs, p->iobuf, size) != size) {
 		chat("can't read block\n");
 		return 0;
 	}
@@ -168,10 +168,10 @@ getclust(Dos *dos, int32_t sector)
  *  return the new cluster number or -1 if no more.
  */
 static int32_t
-fatwalk(Dos *dos, int n)
+fatwalk(Dos* dos, int n)
 {
 	uint32_t k, sect;
-	Clustbuf *p;
+	Clustbuf* p;
 	int o;
 
 	chat("fatwalk %d\n", n);
@@ -179,47 +179,49 @@ fatwalk(Dos *dos, int n)
 	if(n < 2 || n >= dos->fatclusters)
 		return -1;
 
-	switch(dos->fatbits){
+	switch(dos->fatbits) {
 	case 12:
-		k = (3*n)/2; break;
+		k = (3 * n) / 2;
+		break;
 	case 16:
-		k = 2*n; break;
+		k = 2 * n;
+		break;
 	case 32:
-		k = 4*n; break;
+		k = 4 * n;
+		break;
 	default:
 		return -1;
 	}
-	if(k >= dos->fatsize*dos->sectsize)
+	if(k >= dos->fatsize * dos->sectsize)
 		panic("getfat");
 
-	sect = (k/(dos->sectsize*dos->clustsize))*dos->clustsize + dos->fataddr;
-	o = k%(dos->sectsize*dos->clustsize);
+	sect = (k / (dos->sectsize * dos->clustsize)) * dos->clustsize +
+	       dos->fataddr;
+	o = k % (dos->sectsize * dos->clustsize);
 	p = getclust(dos, sect);
 	k = p->iobuf[o++];
-	if(o >= dos->sectsize*dos->clustsize){
-		p = getclust(dos, sect+dos->clustsize);
+	if(o >= dos->sectsize * dos->clustsize) {
+		p = getclust(dos, sect + dos->clustsize);
 		o = 0;
 	}
-	k |= p->iobuf[o++]<<8;
-	if(dos->fatbits == 12){
-		if(n&1)
+	k |= p->iobuf[o++] << 8;
+	if(dos->fatbits == 12) {
+		if(n & 1)
 			k >>= 4;
 		else
 			k &= 0xfff;
 		if(k >= 0xff8)
 			k = -1;
-	}
-	else if (dos->fatbits == 32){
-		if(o >= dos->sectsize*dos->clustsize){
-			p = getclust(dos, sect+dos->clustsize);
+	} else if(dos->fatbits == 32) {
+		if(o >= dos->sectsize * dos->clustsize) {
+			p = getclust(dos, sect + dos->clustsize);
 			o = 0;
 		}
-		k |= p->iobuf[o++]<<16;
-		k |= p->iobuf[o]<<24;
-		if (k >= 0xfffffff8)
+		k |= p->iobuf[o++] << 16;
+		k |= p->iobuf[o] << 24;
+		if(k >= 0xfffffff8)
 			k = -1;
-	}
-	else
+	} else
 		k = k < 0xfff8 ? k : -1;
 	chat("fatwalk %d -> %lud\n", n, k);
 	return k;
@@ -229,9 +231,9 @@ fatwalk(Dos *dos, int n)
  *  map a file's logical cluster address to a physical sector address
  */
 static int32_t
-fileaddr(Dosfile *fp, int32_t ltarget)
+fileaddr(Dosfile* fp, int32_t ltarget)
 {
-	Dos *dos = fp->dos;
+	Dos* dos = fp->dos;
 	int32_t l;
 	int32_t p;
 
@@ -240,9 +242,10 @@ fileaddr(Dosfile *fp, int32_t ltarget)
 	 *  root directory is contiguous and easy (unless FAT32)
 	 */
 	if(fp->pstart == 0 && dos->rootsize != 0) {
-		if(ltarget*dos->sectsize*dos->clustsize >= dos->rootsize*sizeof(Dosdir))
+		if(ltarget * dos->sectsize * dos->clustsize >=
+		   dos->rootsize * sizeof(Dosdir))
 			return -1;
-		l = dos->rootaddr + ltarget*dos->clustsize;
+		l = dos->rootaddr + ltarget * dos->clustsize;
 		chat("fileaddr %ld -> %ld\n", ltarget, l);
 		return l;
 	}
@@ -250,7 +253,7 @@ fileaddr(Dosfile *fp, int32_t ltarget)
 	/*
 	 *  anything else requires a walk through the fat
 	 */
-	if(ltarget >= fp->lcurrent && fp->pcurrent){
+	if(ltarget >= fp->lcurrent && fp->pcurrent) {
 		/* start at the currrent point */
 		l = fp->lcurrent;
 		p = fp->pcurrent;
@@ -259,7 +262,7 @@ fileaddr(Dosfile *fp, int32_t ltarget)
 		l = 0;
 		p = fp->pstart;
 	}
-	while(l != ltarget){
+	while(l != ltarget) {
 		/* walk the fat */
 		p = fatwalk(dos, p);
 		if(p < 0)
@@ -272,7 +275,7 @@ fileaddr(Dosfile *fp, int32_t ltarget)
 	/*
 	 *  clusters start at 2 instead of 0 (why? - presotto)
 	 */
-	l =  dos->dataaddr + (p-2)*dos->clustsize;
+	l = dos->dataaddr + (p - 2) * dos->clustsize;
 	chat("fileaddr %ld -> %ld\n", ltarget, l);
 	return l;
 }
@@ -281,28 +284,28 @@ fileaddr(Dosfile *fp, int32_t ltarget)
  *  read from a dos file
  */
 int32_t
-dosread(Dosfile *fp, void *a, int32_t n)
+dosread(Dosfile* fp, void* a, int32_t n)
 {
 	int32_t addr;
 	int32_t rv;
 	int i;
 	int off;
-	Clustbuf *p;
-	uint8_t *from, *to;
+	Clustbuf* p;
+	uint8_t* from, *to;
 
-	if((fp->attr & DOSDIR) == 0){
+	if((fp->attr & DOSDIR) == 0) {
 		if(fp->offset >= fp->length)
 			return 0;
-		if(fp->offset+n > fp->length)
+		if(fp->offset + n > fp->length)
 			n = fp->length - fp->offset;
 	}
 
 	to = a;
-	for(rv = 0; rv < n; rv+=i){
+	for(rv = 0; rv < n; rv += i) {
 		/*
 		 *  read the cluster
 		 */
-		addr = fileaddr(fp, fp->offset/fp->dos->clustbytes);
+		addr = fileaddr(fp, fp->offset / fp->dos->clustbytes);
 		if(addr < 0)
 			return -1;
 		p = getclust(fp->dos, addr);
@@ -332,39 +335,38 @@ dosread(Dosfile *fp, void *a, int32_t n)
  *	 1 if found
  */
 int
-doswalk(File *f, char *name)
+doswalk(File* f, char* name)
 {
 	Dosdir d;
 	int32_t n;
-	Dosfile *file;
+	Dosfile* file;
 
 	chat("doswalk %s\n", name);
 
 	file = &f->dos;
 
-	if((file->attr & DOSDIR) == 0){
+	if((file->attr & DOSDIR) == 0) {
 		chat("walking non-directory!\n");
 		return -1;
 	}
 
 	setname(file, name);
 
-	file->offset = 0;	/* start at the beginning */
-	while((n = dosread(file, &d, sizeof(d))) == sizeof(d)){
-		chat("comparing to %8.8s.%3.3s\n", (char*)d.name,
-		     (char*)d.ext);
+	file->offset = 0; /* start at the beginning */
+	while((n = dosread(file, &d, sizeof(d))) == sizeof(d)) {
+		chat("comparing to %8.8s.%3.3s\n", (char*)d.name, (char*)d.ext);
 		if(memcmp(file->name, d.name, sizeof(d.name)) != 0)
 			continue;
 		if(memcmp(file->ext, d.ext, sizeof(d.ext)) != 0)
 			continue;
-		if(d.attr & DOSVLABEL){
+		if(d.attr & DOSVLABEL) {
 			chat("%8.8s.%3.3s is a LABEL\n", (char*)d.name,
 			     (char*)d.ext);
 			continue;
 		}
 		file->attr = d.attr;
 		file->pstart = GSHORT(d.start);
-		if (file->dos->fatbits == 32)
+		if(file->dos->fatbits == 32)
 			file->pstart |= GSHORT(d.highstart) << 16;
 		file->length = GLONG(d.length);
 		file->pcurrent = 0;
@@ -378,23 +380,23 @@ doswalk(File *f, char *name)
 /*
  *  instructions that boot blocks can start with
  */
-#define	JMPSHORT	0xeb
-#define JMPNEAR		0xe9
+#define JMPSHORT 0xeb
+#define JMPNEAR 0xe9
 
 /*
  *  read in a segment
  */
 int32_t
-dosreadseg(File *f, void *va, int32_t len)
+dosreadseg(File* f, void* va, int32_t len)
 {
-	char *a;
+	char* a;
 	int32_t n, sofar;
-	Dosfile *fp;
+	Dosfile* fp;
 
 	fp = &f->dos;
 	a = va;
-	for(sofar = 0; sofar < len; sofar += n){
-		n = 8*1024;
+	for(sofar = 0; sofar < len; sofar += n) {
+		n = 8 * 1024;
 		if(len - sofar < n)
 			n = len - sofar;
 		n = dosread(fp, a + sofar, n);
@@ -406,15 +408,15 @@ dosreadseg(File *f, void *va, int32_t len)
 }
 
 int
-dosinit(Fs *fs)
+dosinit(Fs* fs)
 {
-	Clustbuf *p;
-	Dosboot *b;
+	Clustbuf* p;
+	Dosboot* b;
 	int i;
-	Dos *dos;
-	Dosfile *root;
+	Dos* dos;
+	Dosfile* root;
 
-chat("dosinit0 %p %p %p\n", fs, fs->diskseek, fs->diskread);
+	chat("dosinit0 %p %p %p\n", fs, fs->diskseek, fs->diskread);
 
 	dos = &fs->dos;
 	/* defaults till we know better */
@@ -423,18 +425,19 @@ chat("dosinit0 %p %p %p\n", fs, fs->diskseek, fs->diskread);
 
 	/* get first sector */
 	p = getclust(dos, 0);
-	if(p == 0){
+	if(p == 0) {
 		chat("can't read boot block\n");
 		return -1;
 	}
 
-chat("dosinit0a\n");
+	chat("dosinit0a\n");
 
 	p->dos = 0;
-	b = (Dosboot *)p->iobuf;
-	if(b->magic[0] != JMPNEAR && (b->magic[0] != JMPSHORT || b->magic[2] != 0x90)){
-		chat("no dos file system %x %x %x %x\n",
-			b->magic[0], b->magic[1], b->magic[2], b->magic[3]);
+	b = (Dosboot*)p->iobuf;
+	if(b->magic[0] != JMPNEAR &&
+	   (b->magic[0] != JMPSHORT || b->magic[2] != 0x90)) {
+		chat("no dos file system %x %x %x %x\n", b->magic[0],
+		     b->magic[1], b->magic[2], b->magic[3]);
 		return -1;
 	}
 
@@ -442,17 +445,17 @@ chat("dosinit0a\n");
 		bootdump(b);
 
 	if(b->clustsize == 0) {
-unreasonable:
-		if(chatty){
+	unreasonable:
+		if(chatty) {
 			print("unreasonable FAT BPB: ");
-			for(i=0; i<3+8+2+1; i++)
+			for(i = 0; i < 3 + 8 + 2 + 1; i++)
 				print(" %.2ux", p->iobuf[i]);
 			print("\n");
 		}
 		return -1;
 	}
 
-chat("dosinit1\n");
+	chat("dosinit1\n");
 
 	/*
 	 * Determine the systems' wondrous properties.
@@ -464,7 +467,7 @@ chat("dosinit1\n");
 	if(dos->sectsize & 0xFF)
 		goto unreasonable;
 	dos->clustsize = b->clustsize;
-	dos->clustbytes = dos->sectsize*dos->clustsize;
+	dos->clustbytes = dos->sectsize * dos->clustsize;
 	dos->nresrv = GSHORT(b->nresrv);
 	dos->nfats = b->nfats;
 	dos->fatsize = GSHORT(b->fatsize);
@@ -480,17 +483,17 @@ chat("dosinit1\n");
 		dos->fatbits = 32;
 	}
 	dos->fataddr = dos->nresrv;
-	if (dos->rootsize == 0) {
+	if(dos->rootsize == 0) {
 		dos->rootaddr = 0;
 		dos->rootclust = GLONG(b->rootdirstartclust);
-		dos->dataaddr = dos->fataddr + dos->nfats*dos->fatsize;
+		dos->dataaddr = dos->fataddr + dos->nfats * dos->fatsize;
 	} else {
-		dos->rootaddr = dos->fataddr + dos->nfats*dos->fatsize;
-		i = dos->rootsize*sizeof(Dosdir) + dos->sectsize - 1;
-		i = i/dos->sectsize;
+		dos->rootaddr = dos->fataddr + dos->nfats * dos->fatsize;
+		i = dos->rootsize * sizeof(Dosdir) + dos->sectsize - 1;
+		i = i / dos->sectsize;
 		dos->dataaddr = dos->rootaddr + i;
 	}
-	dos->fatclusters = 2+(dos->volsize - dos->dataaddr)/dos->clustsize;
+	dos->fatclusters = 2 + (dos->volsize - dos->dataaddr) / dos->clustsize;
 	if(dos->fatbits != 32) {
 		if(dos->fatclusters < 4087)
 			dos->fatbits = 12;
@@ -499,10 +502,10 @@ chat("dosinit1\n");
 	}
 	dos->freeptr = 2;
 
-	if(dos->clustbytes < 512 || dos->clustbytes > 64*1024)
+	if(dos->clustbytes < 512 || dos->clustbytes > 64 * 1024)
 		goto unreasonable;
 
-chat("dosinit2\n");
+	chat("dosinit2\n");
 
 	/*
 	 *  set up the root
@@ -515,9 +518,9 @@ chat("dosinit2\n");
 	root->pcurrent = root->lcurrent = 0;
 	root->offset = 0;
 	root->attr = DOSDIR;
-	root->length = dos->rootsize*sizeof(Dosdir);
+	root->length = dos->rootsize * sizeof(Dosdir);
 
-chat("dosinit3\n");
+	chat("dosinit3\n");
 
 	fs->read = dosreadseg;
 	fs->walk = doswalk;
@@ -525,12 +528,12 @@ chat("dosinit3\n");
 }
 
 static void
-bootdump(Dosboot *b)
+bootdump(Dosboot* b)
 {
 	if(chatty == 0)
 		return;
-	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x ",
-		b->magic[0], b->magic[1], b->magic[2]);
+	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x ", b->magic[0], b->magic[1],
+	      b->magic[2]);
 	print("version: \"%8.8s\"\n", (char*)b->version);
 	print("sectsize: %d ", GSHORT(b->sectsize));
 	print("allocsize: %d ", b->clustsize);
@@ -544,27 +547,26 @@ bootdump(Dosboot *b)
 	print("nheads: %d ", GSHORT(b->nheads));
 	print("nhidden: %d ", GLONG(b->nhidden));
 	print("bigvolsize: %d\n", GLONG(b->bigvolsize));
-/*
-	print("driveno: %d\n", b->driveno);
-	print("reserved0: 0x%2.2x\n", b->reserved0);
-	print("bootsig: 0x%2.2x\n", b->bootsig);
-	print("volid: 0x%8.8x\n", GLONG(b->volid));
-	print("label: \"%11.11s\"\n", b->label);
-*/
+	/*
+	        print("driveno: %d\n", b->driveno);
+	        print("reserved0: 0x%2.2x\n", b->reserved0);
+	        print("bootsig: 0x%2.2x\n", b->bootsig);
+	        print("volid: 0x%8.8x\n", GLONG(b->volid));
+	        print("label: \"%11.11s\"\n", b->label);
+	*/
 }
-
 
 /*
  *  set up a dos file name
  */
 static void
-setname(Dosfile *fp, char *from)
+setname(Dosfile* fp, char* from)
 {
-	char *to;
+	char* to;
 
 	to = fp->name;
-	for(; *from && to-fp->name < 8; from++, to++){
-		if(*from == '.'){
+	for(; *from && to - fp->name < 8; from++, to++) {
+		if(*from == '.') {
 			from++;
 			break;
 		}
@@ -581,13 +583,13 @@ setname(Dosfile *fp, char *from)
 		from++;
 
 	to = fp->ext;
-	for(; *from && to-fp->ext < 3; from++, to++){
+	for(; *from && to - fp->ext < 3; from++, to++) {
 		if(*from >= 'a' && *from <= 'z')
 			*to = *from + 'A' - 'a';
 		else
 			*to = *from;
 	}
-	while(to-fp->ext < 3)
+	while(to - fp->ext < 3)
 		*to++ = ' ';
 
 	chat("name is %8.8s.%3.3s\n", fp->name, fp->ext);

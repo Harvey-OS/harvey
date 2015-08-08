@@ -20,9 +20,9 @@
 #include "priv.h"
 
 int
-send(int fd, void *a, int n, int flags)
+send(int fd, void* a, int n, int flags)
 {
-	if(flags & MSG_OOB){
+	if(flags & MSG_OOB) {
 		errno = EOPNOTSUPP;
 		return -1;
 	}
@@ -30,9 +30,9 @@ send(int fd, void *a, int n, int flags)
 }
 
 int
-recv(int fd, void *a, int n, int flags)
+recv(int fd, void* a, int n, int flags)
 {
-	if(flags & MSG_OOB){
+	if(flags & MSG_OOB) {
 		errno = EOPNOTSUPP;
 		return -1;
 	}

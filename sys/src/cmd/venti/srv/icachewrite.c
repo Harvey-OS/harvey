@@ -18,19 +18,15 @@
 
 static void icachewriteproc(void*);
 static void icachewritecoord(void*);
-static IEntry *iesort(IEntry*);
+static IEntry* iesort(IEntry*);
 
-int icachesleeptime = 1000;	/* milliseconds */
+int icachesleeptime = 1000; /* milliseconds */
 int minicachesleeptime = 0;
 
-enum
-{
-	Bufsize = 8*1024*1024
-};
+enum { Bufsize = 8 * 1024 * 1024 };
 
 typedef struct IWrite IWrite;
-struct IWrite
-{
+struct IWrite {
 	Round round;
 	AState as;
 };
@@ -41,11 +37,11 @@ void
 initicachewrite(void)
 {
 	int i;
-	Index *ix;
+	Index* ix;
 
-	initround(&iwrite.round, "icache", 120*60*1000);
+	initround(&iwrite.round, "icache", 120 * 60 * 1000);
 	ix = mainindex;
-	for(i=0; i<ix->nsects; i++){
+	for(i = 0; i < ix->nsects; i++) {
 		ix->sects[i]->writechan = chancreate(sizeof(ulong), 1);
 		ix->sects[i]->writedonechan = chancreate(sizeof(ulong), 1);
 		vtproc(icachewriteproc, ix->sects[i]);
@@ -55,28 +51,28 @@ initicachewrite(void)
 }
 
 static uint64_t
-ie2diskaddr(Index *ix, ISect *is, IEntry *ie)
+ie2diskaddr(Index* ix, ISect* is, IEntry* ie)
 {
 	uint64_t bucket, addr;
 
-	bucket = hashbits(ie->score, 32)/ix->div;
+	bucket = hashbits(ie->score, 32) / ix->div;
 	addr = is->blockbase + ((bucket - is->start) << is->blocklog);
 	return addr;
 }
 
 static IEntry*
-nextchunk(Index *ix, ISect *is, IEntry **pie, uint64_t *paddr, uint *pnbuf)
+nextchunk(Index* ix, ISect* is, IEntry** pie, uint64_t* paddr, uint* pnbuf)
 {
 	uint64_t addr, naddr;
 	uint nbuf;
 	int bsize;
-	IEntry *iefirst, *ie, **l;
+	IEntry* iefirst, *ie, **l;
 
-	bsize = 1<<is->blocklog;
+	bsize = 1 << is->blocklog;
 	iefirst = *pie;
 	addr = ie2diskaddr(ix, is, iefirst);
 	nbuf = 0;
-	for(l = &iefirst->nextdirty; (ie = *l) != nil; l = &(*l)->nextdirty){
+	for(l = &iefirst->nextdirty; (ie = *l) != nil; l = &(*l)->nextdirty) {
 		naddr = ie2diskaddr(ix, is, ie);
 		if(naddr - addr >= Bufsize)
 			break;
@@ -90,35 +86,35 @@ nextchunk(Index *ix, ISect *is, IEntry **pie, uint64_t *paddr, uint *pnbuf)
 	*pnbuf = nbuf;
 	return iefirst;
 }
-	
+
 static int
-icachewritesect(Index *ix, ISect *is, uint8_t *buf)
+icachewritesect(Index* ix, ISect* is, uint8_t* buf)
 {
 	int err, i, werr, h, bsize, t;
 	uint32_t lo, hi;
 	uint64_t addr, naddr;
 	uint nbuf, off;
-	DBlock *b;
+	DBlock* b;
 	IBucket ib;
-	IEntry *ie, *iedirty, **l, *chunk;
+	IEntry* ie, *iedirty, **l, *chunk;
 
 	lo = is->start * ix->div;
-	if(TWID32/ix->div < is->stop)
+	if(TWID32 / ix->div < is->stop)
 		hi = TWID32;
 	else
 		hi = is->stop * ix->div - 1;
 
-	trace(TraceProc, "icachewritesect enter %ud %ud %llud",
-		lo, hi, iwrite.as.aa);
+	trace(TraceProc, "icachewritesect enter %ud %ud %llud", lo, hi,
+	      iwrite.as.aa);
 
 	iedirty = icachedirty(lo, hi, iwrite.as.aa);
 	iedirty = iesort(iedirty);
 	bsize = 1 << is->blocklog;
 	err = 0;
 
-	while(iedirty){
+	while(iedirty) {
 		disksched();
-		while((t = icachesleeptime) == SleepForever){
+		while((t = icachesleeptime) == SleepForever) {
 			sleep(1000);
 			disksched();
 		}
@@ -129,47 +125,48 @@ icachewritesect(Index *ix, ISect *is, uint8_t *buf)
 		trace(TraceProc, "icachewritesect nextchunk");
 		chunk = nextchunk(ix, is, &iedirty, &addr, &nbuf);
 
-		trace(TraceProc, "icachewritesect readpart 0x%llux+0x%ux",
-			addr, nbuf);
-		if(readpart(is->part, addr, buf, nbuf) < 0){
+		trace(TraceProc, "icachewritesect readpart 0x%llux+0x%ux", addr,
+		      nbuf);
+		if(readpart(is->part, addr, buf, nbuf) < 0) {
 			fprint(2, "%s: part %s addr 0x%llux: icachewritesect "
-				"readpart: %r\n", argv0, is->part->name, addr);
-			err  = -1;
+			          "readpart: %r\n",
+			       argv0, is->part->name, addr);
+			err = -1;
 			continue;
 		}
 		trace(TraceProc, "icachewritesect updatebuf");
 		addstat(StatIsectReadBytes, nbuf);
 		addstat(StatIsectRead, 1);
 
-		for(l=&chunk; (ie=*l)!=nil; l=&ie->nextdirty){
-again:
+		for(l = &chunk; (ie = *l) != nil; l = &ie->nextdirty) {
+		again:
 			naddr = ie2diskaddr(ix, is, ie);
 			off = naddr - addr;
-			if(off+bsize > nbuf){
+			if(off + bsize > nbuf) {
 				fprint(2, "%s: whoops! addr=0x%llux nbuf=%ud "
-					"addr+nbuf=0x%llux naddr=0x%llux\n",
-					argv0, addr, nbuf, addr+nbuf, naddr);
-				assert(off+bsize <= nbuf);
+				          "addr+nbuf=0x%llux naddr=0x%llux\n",
+				       argv0, addr, nbuf, addr + nbuf, naddr);
+				assert(off + bsize <= nbuf);
 			}
-			unpackibucket(&ib, buf+off, is->bucketmagic);
-			if(okibucket(&ib, is) < 0){
+			unpackibucket(&ib, buf + off, is->bucketmagic);
+			if(okibucket(&ib, is) < 0) {
 				fprint(2, "%s: bad bucket XXX\n", argv0);
 				goto skipit;
 			}
 			trace(TraceProc, "icachewritesect add %V at 0x%llux",
-				ie->score, naddr);
+			      ie->score, naddr);
 			h = bucklook(ie->score, ie->ia.type, ib.data, ib.n);
-			if(h & 1){
+			if(h & 1) {
 				h ^= 1;
 				packientry(ie, &ib.data[h]);
-			}else if(ib.n < is->buckmax){
+			} else if(ib.n < is->buckmax) {
 				memmove(&ib.data[h + IEntrySize], &ib.data[h],
-					ib.n*IEntrySize - h);
+				        ib.n * IEntrySize - h);
 				ib.n++;
 				packientry(ie, &ib.data[h]);
-			}else{
+			} else {
 				fprint(2, "%s: bucket overflow XXX\n", argv0);
-skipit:
+			skipit:
 				err = -1;
 				*l = ie->nextdirty;
 				ie = *l;
@@ -178,30 +175,33 @@ skipit:
 				else
 					break;
 			}
-			packibucket(&ib, buf+off, is->bucketmagic);
+			packibucket(&ib, buf + off, is->bucketmagic);
 		}
 
 		diskaccess(1);
 
 		trace(TraceProc, "icachewritesect writepart", addr, nbuf);
 		werr = 0;
-		if(writepart(is->part, addr, buf, nbuf) < 0 || flushpart(is->part) < 0)
+		if(writepart(is->part, addr, buf, nbuf) < 0 ||
+		   flushpart(is->part) < 0)
 			werr = -1;
 
-		for(i=0; i<nbuf; i+=bsize){
-			if((b = _getdblock(is->part, addr+i, ORDWR, 0)) != nil){
-				memmove(b->data, buf+i, bsize);
+		for(i = 0; i < nbuf; i += bsize) {
+			if((b = _getdblock(is->part, addr + i, ORDWR, 0)) !=
+			   nil) {
+				memmove(b->data, buf + i, bsize);
 				putdblock(b);
 			}
 		}
 
-		if(werr < 0){
+		if(werr < 0) {
 			fprint(2, "%s: part %s addr 0x%llux: icachewritesect "
-				"writepart: %r\n", argv0, is->part->name, addr);
+			          "writepart: %r\n",
+			       argv0, is->part->name, addr);
 			err = -1;
 			continue;
 		}
-		
+
 		addstat(StatIsectWriteBytes, nbuf);
 		addstat(StatIsectWrite, 1);
 		icacheclean(chunk);
@@ -212,23 +212,23 @@ skipit:
 }
 
 static void
-icachewriteproc(void *v)
+icachewriteproc(void* v)
 {
 	int ret;
 	uint bsize;
-	ISect *is;
-	Index *ix;
-	uint8_t *buf;
+	ISect* is;
+	Index* ix;
+	uint8_t* buf;
 
 	ix = mainindex;
 	is = v;
 	threadsetname("icachewriteproc:%s", is->part->name);
 
-	bsize = 1<<is->blocklog;
-	buf = emalloc(Bufsize+bsize);
-	buf = (uint8_t*)(((uintptr)buf+bsize-1)&~(uintptr)(bsize-1));
+	bsize = 1 << is->blocklog;
+	buf = emalloc(Bufsize + bsize);
+	buf = (uint8_t*)(((uintptr)buf + bsize - 1) & ~(uintptr)(bsize - 1));
 
-	for(;;){
+	for(;;) {
 		trace(TraceProc, "icachewriteproc recv");
 		recv(is->writechan, 0);
 		trace(TraceWork, "start");
@@ -240,10 +240,10 @@ icachewriteproc(void *v)
 }
 
 static void
-icachewritecoord(void *v)
+icachewritecoord(void* v)
 {
 	int i, err;
-	Index *ix;
+	Index* ix;
 	AState as;
 
 	USED(v);
@@ -253,40 +253,43 @@ icachewritecoord(void *v)
 	ix = mainindex;
 	iwrite.as = icachestate();
 
-	for(;;){
+	for(;;) {
 		trace(TraceProc, "icachewritecoord sleep");
 		waitforkick(&iwrite.round);
 		trace(TraceWork, "start");
 		as = icachestate();
-		if(as.arena==iwrite.as.arena && as.aa==iwrite.as.aa){
-			/* will not be able to do anything more than last flush - kick disk */
+		if(as.arena == iwrite.as.arena && as.aa == iwrite.as.aa) {
+			/* will not be able to do anything more than last flush
+			 * - kick disk */
 			trace(TraceProc, "icachewritecoord kick dcache");
 			kickdcache();
 			trace(TraceProc, "icachewritecoord kicked dcache");
-			goto SkipWork;	/* won't do anything; don't bother rewriting bloom filter */
+			goto SkipWork; /* won't do anything; don't bother
+			                  rewriting bloom filter */
 		}
 		iwrite.as = as;
 
 		trace(TraceProc, "icachewritecoord start flush");
-		if(iwrite.as.arena){
-			for(i=0; i<ix->nsects; i++)
+		if(iwrite.as.arena) {
+			for(i = 0; i < ix->nsects; i++)
 				send(ix->sects[i]->writechan, 0);
 			if(ix->bloom)
 				send(ix->bloom->writechan, 0);
-		
+
 			err = 0;
-			for(i=0; i<ix->nsects; i++)
+			for(i = 0; i < ix->nsects; i++)
 				err |= recvul(ix->sects[i]->writedonechan);
 			if(ix->bloom)
 				err |= recvul(ix->bloom->writedonechan);
 
-			trace(TraceProc, "icachewritecoord donewrite err=%d", err);
-			if(err == 0){
+			trace(TraceProc, "icachewritecoord donewrite err=%d",
+			      err);
+			if(err == 0) {
 				setatailstate(&iwrite.as);
 			}
 		}
 	SkipWork:
-		icacheclean(nil);	/* wake up anyone waiting */
+		icacheclean(nil); /* wake up anyone waiting */
 		trace(TraceWork, "finish");
 		addstat(StatIcacheFlush, 1);
 	}
@@ -313,11 +316,11 @@ delaykickicache(void)
 }
 
 static IEntry*
-iesort(IEntry *ie)
+iesort(IEntry* ie)
 {
 	int cmp;
-	IEntry **l;
-	IEntry *ie1, *ie2, *sorted;
+	IEntry** l;
+	IEntry* ie1, *ie2, *sorted;
 
 	if(ie == nil || ie->nextdirty == nil)
 		return ie;
@@ -329,13 +332,13 @@ iesort(IEntry *ie)
 		ie2 = ie2->nextdirty;
 	if(ie2)
 		ie2 = ie2->nextdirty;
-	while(ie1 && ie2){
+	while(ie1 && ie2) {
 		ie1 = ie1->nextdirty;
 		ie2 = ie2->nextdirty;
 		if(ie2)
 			ie2 = ie2->nextdirty;
 	}
-	if(ie1){
+	if(ie1) {
 		ie2 = ie1->nextdirty;
 		ie1->nextdirty = nil;
 	}
@@ -348,14 +351,14 @@ iesort(IEntry *ie)
 	sorted = nil;
 	l = &sorted;
 	cmp = 0;
-	while(ie1 || ie2){
+	while(ie1 || ie2) {
 		if(ie1 && ie2)
 			cmp = scorecmp(ie1->score, ie2->score);
-		if(ie1==nil || (ie2 && cmp > 0)){
+		if(ie1 == nil || (ie2 && cmp > 0)) {
 			*l = ie2;
 			l = &ie2->nextdirty;
 			ie2 = ie2->nextdirty;
-		}else{
+		} else {
 			*l = ie1;
 			l = &ie1->nextdirty;
 			ie1 = ie1->nextdirty;
@@ -364,4 +367,3 @@ iesort(IEntry *ie)
 	*l = nil;
 	return sorted;
 }
-

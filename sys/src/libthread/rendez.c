@@ -16,16 +16,16 @@ Rgrp _threadrgrp;
 static int isdirty;
 
 static void*
-finish(Thread *t, void *val)
+finish(Thread* t, void* val)
 {
-	void *ret;
+	void* ret;
 
 	ret = t->rendval;
 	t->rendval = val;
 	while(t->state == Running)
 		sleep(0);
 	lock(&t->proc->lock);
-	if(t->state == Rendezvous){	/* not always true: might be Dead */
+	if(t->state == Rendezvous) { /* not always true: might be Dead */
 		t->state = Ready;
 		_threadready(t);
 	}
@@ -34,16 +34,17 @@ finish(Thread *t, void *val)
 }
 
 void*
-_threadrendezvous(void *tag, void *val)
+_threadrendezvous(void* tag, void* val)
 {
-	void *ret;
-	Thread *t, **l;
+	void* ret;
+	Thread* t, **l;
 
 	lock(&_threadrgrp.lock);
-	l = &_threadrgrp.hash[((uintptr)tag)%nelem(_threadrgrp.hash)];
-	for(t=*l; t; l=&t->rendhash, t=*l){
-		if(t->rendtag==tag){
-			_threaddebug(DBGREND, "Rendezvous with thread %d.%d", t->proc->pid, t->id);
+	l = &_threadrgrp.hash[((uintptr)tag) % nelem(_threadrgrp.hash)];
+	for(t = *l; t; l = &t->rendhash, t = *l) {
+		if(t->rendtag == tag) {
+			_threaddebug(DBGREND, "Rendezvous with thread %d.%d",
+			             t->proc->pid, t->id);
 			*l = t->rendhash;
 			ret = finish(t, val);
 			unlock(&_threadrgrp.lock);
@@ -70,11 +71,11 @@ _threadrendezvous(void *tag, void *val)
 
 /*
  * This is called while holding _threadpq.lock and p->lock,
- * so we can't lock _threadrgrp.lock.  Instead our caller has 
+ * so we can't lock _threadrgrp.lock.  Instead our caller has
  * to call _threadbreakrendez after dropping those locks.
  */
 void
-_threadflagrendez(Thread *t)
+_threadflagrendez(Thread* t)
 {
 	t->rendbreak = 1;
 	isdirty = 1;
@@ -84,24 +85,24 @@ void
 _threadbreakrendez(void)
 {
 	int i;
-	Thread *t, **l;
+	Thread* t, **l;
 
 	if(isdirty == 0)
 		return;
 	lock(&_threadrgrp.lock);
-	if(isdirty == 0){
+	if(isdirty == 0) {
 		unlock(&_threadrgrp.lock);
 		return;
 	}
 	isdirty = 0;
-	for(i=0; i<nelem(_threadrgrp.hash); i++){
+	for(i = 0; i < nelem(_threadrgrp.hash); i++) {
 		l = &_threadrgrp.hash[i];
-		for(t=*l; t; t=*l){
-			if(t->rendbreak){
+		for(t = *l; t; t = *l) {
+			if(t->rendbreak) {
 				*l = t->rendhash;
 				finish(t, (void*)~0);
-			}else
-				 l=&t->rendhash;
+			} else
+				l = &t->rendhash;
 		}
 	}
 	unlock(&_threadrgrp.lock);

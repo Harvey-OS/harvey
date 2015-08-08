@@ -27,34 +27,33 @@
 #include "usbfs.h"
 
 #undef dprint
-#define dprint if(usbfsdebug)fprint
+#define dprint                                                                 \
+	if(usbfsdebug)                                                         \
+	fprint
 
 typedef struct Rpc Rpc;
 
-enum
-{
-	Nproc = 3,		/* max nb. of cached FS procs */
+enum { Nproc = 3, /* max nb. of cached FS procs */
 
-	Nofid = ~0,		/* null value for fid number */
-	Notag = ~0,		/* null value for tags */
-	Dietag = 0xdead,		/* fake tag to ask outproc to die */
+       Nofid = ~0,      /* null value for fid number */
+       Notag = ~0,      /* null value for tags */
+       Dietag = 0xdead, /* fake tag to ask outproc to die */
 
-	Stack = 16 * 1024,
+       Stack = 16 * 1024,
 
-	/* Fsproc requests */
-	Run = 0,		/* call f(r) */
-	Exit,			/* terminate */
+       /* Fsproc requests */
+       Run = 0, /* call f(r) */
+       Exit,    /* terminate */
 
 };
 
-struct Rpc
-{
-	Fcall	t;
-	Fcall	r;
-	Fid*	fid;
-	int	flushed;
-	Rpc*	next;
-	char	data[Bufsize];
+struct Rpc {
+	Fcall t;
+	Fcall r;
+	Fid* fid;
+	int flushed;
+	Rpc* next;
+	char data[Bufsize];
 };
 
 int usbfsdebug;
@@ -69,20 +68,20 @@ char Einuse[] = "fid already in use";
 char Eisopen[] = "it is already open";
 char Ebadctl[] = "unknown control request";
 
-static char *user;
+static char* user;
 static uint32_t epoch;
 static uint32_t msgsize = Msgsize;
 static int fsfd = -1;
-static Channel *outc;	/* of Rpc* */
+static Channel* outc; /* of Rpc* */
 
-static QLock rpclck;	/* protect vars in this block */
-static Fid *freefids;
-static Fid *fids;
-static Rpc *freerpcs;
-static Rpc *rpcs;
+static QLock rpclck; /* protect vars in this block */
+static Fid* freefids;
+static Fid* fids;
+static Rpc* freerpcs;
+static Rpc* rpcs;
 
-static Channel*procc;
-static Channel*endc;
+static Channel* procc;
+static Channel* endc;
 
 static Usbfs* fsops;
 
@@ -91,30 +90,27 @@ static void fsioproc(void*);
 static void
 schedproc(void*)
 {
-	Channel *proc[Nproc];
+	Channel* proc[Nproc];
 	int nproc;
-	Channel *p;
+	Channel* p;
 
-	Alt a[] =
-	{
-		{procc, &proc[0], CHANSND},
-		{endc, &p, CHANRCV},
-		{nil, nil, CHANEND}
-	};
+	Alt a[] = {{procc, &proc[0], CHANSND},
+	           {endc, &p, CHANRCV},
+	           {nil, nil, CHANEND}};
 	memset(proc, 0, sizeof(proc));
 	nproc = 0;
-	for(;;){
-		if(nproc == 0){
+	for(;;) {
+		if(nproc == 0) {
 			proc[0] = chancreate(sizeof(Rpc*), 0);
 			proccreate(fsioproc, proc[0], Stack);
 			nproc++;
 		}
-		switch(alt(a)){
+		switch(alt(a)) {
 		case 0:
 			proc[0] = nil;
-			if(nproc > 1){
-				proc[0] = proc[nproc-1];
-				proc[nproc-1] = nil;
+			if(nproc > 1) {
+				proc[0] = proc[nproc - 1];
+				proc[nproc - 1] = nil;
 			}
 			nproc--;
 			break;
@@ -133,16 +129,16 @@ schedproc(void*)
 static void
 dump(void)
 {
-	Rpc *rpc;
-	Fid *fid;
+	Rpc* rpc;
+	Fid* fid;
 
 	qlock(&rpclck);
 	fprint(2, "dump:\n");
 	for(rpc = rpcs; rpc != nil; rpc = rpc->next)
 		fprint(2, "rpc %#p %F next %#p\n", rpc, &rpc->t, rpc->next);
 	for(fid = fids; fid != nil; fid = fid->next)
-		fprint(2, "fid %d qid %#llux omode %d aux %#p\n",
-			fid->fid, fid->qid.path, fid->omode, fid->aux);
+		fprint(2, "fid %d qid %#llux omode %d aux %#p\n", fid->fid,
+		       fid->qid.path, fid->omode, fid->aux);
 	fprint(2, "\n");
 	qunlock(&rpclck);
 }
@@ -150,7 +146,7 @@ dump(void)
 static Rpc*
 newrpc(void)
 {
-	Rpc *r;
+	Rpc* r;
 
 	qlock(&rpclck);
 	r = freerpcs;
@@ -171,9 +167,9 @@ newrpc(void)
 }
 
 static void
-freerpc(Rpc *r)
+freerpc(Rpc* r)
 {
-	Rpc **l;
+	Rpc** l;
 	if(r == nil)
 		return;
 	qlock(&rpclck);
@@ -191,11 +187,11 @@ freerpc(Rpc *r)
 static void
 flushrpc(int tag)
 {
-	Rpc *r;
+	Rpc* r;
 
 	qlock(&rpclck);
 	for(r = rpcs; r != nil; r = r->next)
-		if(r->t.tag == tag){
+		if(r->t.tag == tag) {
 			r->flushed = 1;
 			break;
 		}
@@ -205,20 +201,20 @@ flushrpc(int tag)
 static Fid*
 getfid(int fid, int alloc)
 {
-	Fid *f;
+	Fid* f;
 
 	qlock(&rpclck);
 	for(f = fids; f != nil && f->fid != fid; f = f->next)
 		;
-	if(f != nil && alloc != 0){	/* fid in use */
+	if(f != nil && alloc != 0) { /* fid in use */
 		qunlock(&rpclck);
 		return nil;
 	}
-	if(f == nil && alloc != 0){
-		if(freefids != nil){
+	if(f == nil && alloc != 0) {
+		if(freefids != nil) {
 			f = freefids;
 			freefids = freefids->next;
-		}else
+		} else
 			f = emallocz(sizeof(Fid), 1);
 		f->fid = fid;
 		f->aux = nil;
@@ -231,9 +227,9 @@ getfid(int fid, int alloc)
 }
 
 static void
-freefid(Fid *f)
+freefid(Fid* f)
 {
-	Fid **l;
+	Fid** l;
 
 	if(f == nil)
 		return;
@@ -250,14 +246,14 @@ freefid(Fid *f)
 }
 
 static Rpc*
-fserror(Rpc *rpc, char* fmt, ...)
+fserror(Rpc* rpc, char* fmt, ...)
 {
 	va_list arg;
-	char *c;
+	char* c;
 
 	va_start(arg, fmt);
 	c = (char*)rpc->data;
-	vseprint(c, c+sizeof(rpc->data), fmt, arg);
+	vseprint(c, c + sizeof(rpc->data), fmt, arg);
 	va_end(arg);
 	rpc->r.type = Rerror;
 	rpc->r.ename = (char*)rpc->data;
@@ -265,7 +261,7 @@ fserror(Rpc *rpc, char* fmt, ...)
 }
 
 static Rpc*
-fsversion(Rpc *r)
+fsversion(Rpc* r)
 {
 	if(r->t.msize < 256)
 		return fserror(r, Etoosmall);
@@ -279,12 +275,12 @@ fsversion(Rpc *r)
 }
 
 static Rpc*
-fsattach(Rpc *r)
+fsattach(Rpc* r)
 {
 	static int already;
 
 	/* Reload user because at boot it could be still none */
-	user=getuser();
+	user = getuser();
 	if(already++ > 0 && strcmp(r->t.uname, user) != 0)
 		return fserror(r, Eperm);
 	if(r->fid == nil)
@@ -298,17 +294,17 @@ fsattach(Rpc *r)
 }
 
 static Rpc*
-fswalk(Rpc *r)
+fswalk(Rpc* r)
 {
 	int i;
-	Fid *nfid, *ofid;
+	Fid* nfid, *ofid;
 
 	if(r->fid->omode != ONONE)
 		return fserror(r, Eisopen);
 
 	nfid = nil;
 	ofid = r->fid;
-	if(r->t.newfid != r->t.fid){
+	if(r->t.newfid != r->t.fid) {
 		nfid = getfid(r->t.newfid, 1);
 		if(nfid == nil)
 			return fserror(r, Einuse);
@@ -326,7 +322,7 @@ fswalk(Rpc *r)
 		else
 			r->r.wqid[i] = r->fid->qid;
 	r->r.nwqid = i;
-	if(i != r->t.nwname && r->t.nwname > 0){
+	if(i != r->t.nwname && r->t.nwname > 0) {
 		if(nfid != nil)
 			freefid(nfid);
 		r->fid = ofid;
@@ -340,34 +336,37 @@ static void
 fsioproc(void* a)
 {
 	int32_t rc;
-	Channel *p = a;
-	Rpc *rpc;
-	Fcall *t, *r;
-	Fid *fid;
+	Channel* p = a;
+	Rpc* rpc;
+	Fcall* t, *r;
+	Fid* fid;
 
 	threadsetname("fsioproc");
 	dprint(2, "%s: fsioproc pid %d\n", argv0, getpid());
-	while((rpc = recvp(p)) != nil){
+	while((rpc = recvp(p)) != nil) {
 		t = &rpc->t;
 		r = &rpc->r;
 		fid = rpc->fid;
 		rc = -1;
-		dprint(2, "%s: fsioproc pid %d: req %d\n", argv0, getpid(), t->type);
-		switch(t->type){
+		dprint(2, "%s: fsioproc pid %d: req %d\n", argv0, getpid(),
+		       t->type);
+		switch(t->type) {
 		case Topen:
 			rc = fsops->open(fsops, fid, t->mode);
-			if(rc >= 0){
+			if(rc >= 0) {
 				r->iounit = 0;
 				r->qid = fid->qid;
 				fid->omode = t->mode & 3;
 			}
 			break;
 		case Tread:
-			rc = fsops->read(fsops, fid, r->data, t->count, t->offset);
-			if(rc >= 0){
+			rc = fsops->read(fsops, fid, r->data, t->count,
+			                 t->offset);
+			if(rc >= 0) {
 				if(rc > t->count)
-					print("%s: bug: read %ld bytes > %ud wanted\n",
-						argv0, rc, t->count);
+					print("%s: bug: read %ld bytes > %ud "
+					      "wanted\n",
+					      argv0, rc, t->count);
 				r->count = rc;
 			}
 			/*
@@ -377,7 +376,8 @@ fsioproc(void* a)
 			 */
 			break;
 		case Twrite:
-			rc = fsops->write(fsops, fid, t->data, t->count, t->offset);
+			rc = fsops->write(fsops, fid, t->data, t->count,
+			                  t->offset);
 			r->count = rc;
 			break;
 		default:
@@ -395,9 +395,9 @@ fsioproc(void* a)
 }
 
 static Rpc*
-fsopen(Rpc *r)
+fsopen(Rpc* r)
 {
-	Channel *p;
+	Channel* p;
 
 	if(r->fid->omode != ONONE)
 		return fserror(r, Eisopen);
@@ -409,9 +409,8 @@ fsopen(Rpc *r)
 }
 
 int
-usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
-	   Dirgen gen,
-	   void *arg)
+usbdirread(Usbfs* f, Qid q, char* data, int32_t cnt, int64_t off, Dirgen gen,
+           void* arg)
 {
 	int i, n, nd;
 	char name[Namesz];
@@ -423,10 +422,11 @@ usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
 	d.atime = time(nil);
 	d.mtime = epoch;
 	d.length = 0;
-	for(i = n = 0; gen(f, q, i, &d, arg) >= 0; i++){
+	for(i = n = 0; gen(f, q, i, &d, arg) >= 0; i++) {
 		if(usbfsdebug > 1)
-			fprint(2, "%s: dir %d q %#llux: %D\n", argv0, i, q.path, &d);
-		nd = convD2M(&d, (uint8_t*)data+n, cnt-n);
+			fprint(2, "%s: dir %d q %#llux: %D\n", argv0, i, q.path,
+			       &d);
+		nd = convD2M(&d, (uint8_t*)data + n, cnt - n);
 		if(nd <= BIT16SZ)
 			break;
 		if(off > 0)
@@ -443,7 +443,7 @@ usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
 }
 
 int32_t
-usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n)
+usbreadbuf(void* data, int32_t count, int64_t offset, void* buf, int32_t n)
 {
 	if(offset >= n)
 		return 0;
@@ -454,9 +454,9 @@ usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n)
 }
 
 static Rpc*
-fsread(Rpc *r)
+fsread(Rpc* r)
 {
-	Channel *p;
+	Channel* p;
 
 	if(r->fid->omode != OREAD && r->fid->omode != ORDWR)
 		return fserror(r, Eperm);
@@ -466,9 +466,9 @@ fsread(Rpc *r)
 }
 
 static Rpc*
-fswrite(Rpc *r)
+fswrite(Rpc* r)
 {
-	Channel *p;
+	Channel* p;
 
 	if(r->fid->omode != OWRITE && r->fid->omode != ORDWR)
 		return fserror(r, Eperm);
@@ -478,20 +478,20 @@ fswrite(Rpc *r)
 }
 
 static Rpc*
-fsclunk(Rpc *r)
+fsclunk(Rpc* r)
 {
 	freefid(r->fid);
 	return r;
 }
 
 static Rpc*
-fsno(Rpc *r)
+fsno(Rpc* r)
 {
 	return fserror(r, Eperm);
 }
 
 static Rpc*
-fsstat(Rpc *r)
+fsstat(Rpc* r)
 {
 	Dir d;
 	char name[Namesz];
@@ -510,7 +510,7 @@ fsstat(Rpc *r)
 }
 
 static Rpc*
-fsflush(Rpc *r)
+fsflush(Rpc* r)
 {
 	/*
 	 * Flag it as flushed and respond.
@@ -529,39 +529,31 @@ fsflush(Rpc *r)
 }
 
 Rpc* (*fscalls[])(Rpc*) = {
-	[Tversion]	fsversion,
-	[Tauth]		fsno,
-	[Tattach]	fsattach,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fsno,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsno,
-	[Tstat]		fsstat,
-	[Twstat]	fsno,
-	[Tflush]	fsflush,
+        [Tversion] fsversion, [Tauth] fsno,     [Tattach] fsattach,
+        [Twalk] fswalk,       [Topen] fsopen,   [Tcreate] fsno,
+        [Tread] fsread,       [Twrite] fswrite, [Tclunk] fsclunk,
+        [Tremove] fsno,       [Tstat] fsstat,   [Twstat] fsno,
+        [Tflush] fsflush,
 };
 
 static void
 outproc(void*)
 {
 	static uint8_t buf[Bufsize];
-	Rpc *rpc;
+	Rpc* rpc;
 	int nw;
 	static int once = 0;
 
 	if(once++ != 0)
 		sysfatal("more than one outproc");
 	threadsetname("outproc");
-	for(;;){
+	for(;;) {
 		do
 			rpc = recvp(outc);
-		while(rpc == nil);		/* a delayed reply */
+		while(rpc == nil); /* a delayed reply */
 		if(rpc->t.tag == Dietag)
 			break;
-		if(rpc->flushed){
+		if(rpc->flushed) {
 			dprint(2, "outproc: tag %d flushed\n", rpc->t.tag);
 			freerpc(rpc);
 			continue;
@@ -572,7 +564,7 @@ outproc(void*)
 			fprint(2, "%s: outproc: buffer is too small\n", argv0);
 		if(nw <= BIT16SZ)
 			fprint(2, "%s: conS2M failed\n", argv0);
-		else if(write(fsfd, buf, nw) != nw){
+		else if(write(fsfd, buf, nw) != nw) {
 			fprint(2, "%s: outproc: write: %r", argv0);
 			/* continue and let the reader abort us */
 		}
@@ -586,7 +578,7 @@ outproc(void*)
 static void
 usbfs(void*)
 {
-	Rpc *rpc;
+	Rpc* rpc;
 	int nr;
 	static int once = 0;
 
@@ -601,12 +593,12 @@ usbfs(void*)
 		sysfatal("chancreate: %r");
 	threadcreate(schedproc, nil, Stack);
 	proccreate(outproc, nil, Stack);
-	for(;;){
+	for(;;) {
 		rpc = newrpc();
-		do{
+		do {
 			nr = read9pmsg(fsfd, rpc->data, sizeof(rpc->data));
-		}while(nr == 0);
-		if(nr < 0){
+		} while(nr == 0);
+		if(nr < 0) {
 			dprint(2, "%s: usbfs: read: '%r'", argv0);
 			if(fsops->end != nil)
 				fsops->end(fsops);
@@ -616,7 +608,7 @@ usbfs(void*)
 			sendp(outc, rpc);
 			break;
 		}
-		if(convM2S((uint8_t*)rpc->data, nr, &rpc->t) <=0){
+		if(convM2S((uint8_t*)rpc->data, nr, &rpc->t) <= 0) {
 			dprint(2, "%s: convM2S failed\n", argv0);
 			freerpc(rpc);
 			continue;
@@ -625,16 +617,16 @@ usbfs(void*)
 		rpc->r.tag = rpc->t.tag;
 		rpc->r.type = rpc->t.type + 1;
 		rpc->r.fid = rpc->t.fid;
-		if(fscalls[rpc->t.type] == nil){
+		if(fscalls[rpc->t.type] == nil) {
 			sendp(outc, fserror(rpc, Ebadcall));
 			continue;
 		}
-		if(rpc->t.fid != Nofid){
+		if(rpc->t.fid != Nofid) {
 			if(rpc->t.type == Tattach)
 				rpc->fid = getfid(rpc->t.fid, 1);
 			else
 				rpc->fid = getfid(rpc->t.fid, 0);
-			if(rpc->fid == nil){
+			if(rpc->fid == nil) {
 				sendp(outc, fserror(rpc, Ebadfid));
 				continue;
 			}
@@ -645,7 +637,7 @@ usbfs(void*)
 }
 
 void
-usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
+usbfsinit(char* srv, char* mnt, Usbfs* f, int flag)
 {
 	int fd[2];
 	int sfd;
@@ -662,8 +654,8 @@ usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
 	fmtinstall('M', dirmodefmt);
 	fmtinstall('F', fcallfmt);
 	fsfd = fd[1];
-	procrfork(usbfs, nil, Stack, RFNAMEG);	/* no RFFDG */
-	if(srv != nil){
+	procrfork(usbfs, nil, Stack, RFNAMEG); /* no RFFDG */
+	if(srv != nil) {
 		snprint(sfile, sizeof(sfile), "#s/%s", srv);
 		remove(sfile);
 		sfd = create(sfile, OWRITE, 0660);
@@ -674,8 +666,8 @@ usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
 			sysfatal("post: %r");
 		close(sfd);
 	}
-	if(mnt != nil){
-		sfd = dup(fd[0], -1);	/* debug */
+	if(mnt != nil) {
+		sfd = dup(fd[0], -1); /* debug */
 		afd = fauth(sfd, "");
 		if(afd >= 0)
 			sysfatal("authentication required??");
@@ -684,4 +676,3 @@ usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
 	}
 	close(fd[0]);
 }
-

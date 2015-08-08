@@ -9,10 +9,10 @@
 
 #include <string.h>
 
-#define	N	256
+#define N 256
 
 char*
-strtok_r(char *s, const char *b, char **last)
+strtok_r(char* s, const char* b, char** last)
 {
 	char map[N], *os;
 
@@ -28,7 +28,7 @@ strtok_r(char *s, const char *b, char **last)
 	os = s;
 	while(map[*(unsigned char*)s] == 0)
 		if(*s++ == 0) {
-			*last = s-1;
+			*last = s - 1;
 			return os;
 		}
 	*s++ = 0;
@@ -37,9 +37,9 @@ strtok_r(char *s, const char *b, char **last)
 }
 
 char*
-strtok(char *s, const char *b)
+strtok(char* s, const char* b)
 {
-	static char *under_rock;
+	static char* under_rock;
 
 	return strtok_r(s, b, &under_rock);
 }

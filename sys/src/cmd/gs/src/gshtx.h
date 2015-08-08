@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* High-level interface to stand-alone halftone/transfer objects */
 
 #ifndef gshtx_INCLUDED
-#  define gshtx_INCLUDED
+#define gshtx_INCLUDED
 
 #include "gsmemory.h"
 #include "gsht1.h"
@@ -36,7 +36,7 @@
 
 /*
  * The stand-alone halftone structures are opaque, and are placed in an opaque
- * graphic state. 
+ * graphic state.
  */
 
 /* Alias type names */
@@ -54,7 +54,7 @@
 #define ht_multiple multiple
 
 #ifndef gs_state_DEFINED
-#  define gs_state_DEFINED
+#define gs_state_DEFINED
 typedef struct gs_state_s gs_state;
 
 #endif
@@ -66,7 +66,7 @@ typedef struct gs_state_s gs_state;
  * As with PostScript transfer functions, the operand will be in the range
  * [0, 1], and the result should be in the same range.
  */
-typedef gs_mapping_closure_proc_t gs_ht_transfer_proc;	/* see gxtmap.h */
+typedef gs_mapping_closure_proc_t gs_ht_transfer_proc; /* see gxtmap.h */
 
 /*
  * Constructor, destructor, assign, and copy routines for a gs_ht
@@ -90,32 +90,22 @@ typedef gs_mapping_closure_proc_t gs_ht_transfer_proc;	/* see gxtmap.h */
  *    Individual component halftones of a gs_ht structure must always be
  *    provided with transfer functions.
  *
- *    Releasing the gs_ht structure will NOT release the client data 
+ *    Releasing the gs_ht structure will NOT release the client data
  *    (the client must do that directly).
  */
 
-extern int gs_ht_build(gs_ht ** ppht, uint num_comps, gs_memory_t * pmem);
+extern int gs_ht_build(gs_ht** ppht, uint num_comps, gs_memory_t* pmem);
 
-extern int gs_ht_set_spot_comp(
-				     gs_ht * pht,
-				     int component_index,
-				     floatp freq,
-				     floatp angle,
-				     float (*spot_func) (floatp, floatp),
-				     bool accurate,
-				     gs_ht_transfer_proc transfer,
-				     const void *client_data
-			       );
+extern int gs_ht_set_spot_comp(gs_ht* pht, int component_index, floatp freq,
+                               floatp angle, float (*spot_func)(floatp, floatp),
+                               bool accurate, gs_ht_transfer_proc transfer,
+                               const void* client_data);
 
-extern int gs_ht_set_threshold_comp(
-					  gs_ht * pht,
-					  int component_index,
-					  int width,
-					  int height,
-					  const gs_const_string * thresholds,
-					  gs_ht_transfer_proc transfer,
-					  const void *client_data
-				    );
+extern int gs_ht_set_threshold_comp(gs_ht* pht, int component_index, int width,
+                                    int height,
+                                    const gs_const_string* thresholds,
+                                    gs_ht_transfer_proc transfer,
+                                    const void* client_data);
 
 /*
  * This procedure specifies a (possibly non-monotonic) halftone of size
@@ -126,31 +116,28 @@ extern int gs_ht_set_threshold_comp(
  *
  * Note that the client is responsible for releasing the mask data.
  */
-extern int gs_ht_set_mask_comp(
-				     gs_ht * pht,
-				     int component_index,
-				     int width,
-				     int height,
-				     int num_levels,
-				     const byte * masks,	/* width x height x num_levels */
-				     gs_ht_transfer_proc transfer,
-				     const void *client_data
-			       );
+extern int
+gs_ht_set_mask_comp(gs_ht* pht, int component_index, int width, int height,
+                    int num_levels,
+                    const byte* masks, /* width x height x num_levels */
+                    gs_ht_transfer_proc transfer, const void* client_data);
 
-extern void gs_ht_reference(gs_ht * pht);
-extern void gs_ht_release(gs_ht * pht);
+extern void gs_ht_reference(gs_ht* pht);
+extern void gs_ht_release(gs_ht* pht);
 
-#define gs_ht_assign(pto, pfrom)    \
-    BEGIN                           \
-        gs_ht_reference(pfrom);     \
-        if (pto != 0)               \
-            gs_ht_release(pto);     \
-        pto = pfrom;                \
-    END
+#define gs_ht_assign(pto, pfrom)                                               \
+	BEGIN                                                                  \
+	gs_ht_reference(pfrom);                                                \
+	if(pto != 0)                                                           \
+		gs_ht_release(pto);                                            \
+	pto = pfrom;                                                           \
+	END
 
-#define gs_ht_init_ptr(pto, pfrom)          \
-    BEGIN gs_ht_reference(pfrom); pto = pfrom; END
+#define gs_ht_init_ptr(pto, pfrom)                                             \
+	BEGIN gs_ht_reference(pfrom);                                          \
+	pto = pfrom;                                                           \
+	END
 
-extern int gs_ht_install(gs_state * pgs, gs_ht * pht);
+extern int gs_ht_install(gs_state* pgs, gs_ht* pht);
 
 #endif /* gshtx_INCLUDED */

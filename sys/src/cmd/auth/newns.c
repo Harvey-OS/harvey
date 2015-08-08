@@ -19,7 +19,7 @@ usage(void)
 }
 
 static int
-rooted(char *s)
+rooted(char* s)
 {
 	if(s[0] == '/')
 		return 1;
@@ -31,17 +31,18 @@ rooted(char *s)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	extern int newnsdebug;
-	char *defargv[] = { "/bin/rc", "-i", nil };
-	char *nsfile, err[ERRMAX];
+	char* defargv[] = {"/bin/rc", "-i", nil};
+	char* nsfile, err[ERRMAX];
 	int add;
 
 	rfork(RFNAMEG);
 	add = 0;
 	nsfile = "/lib/namespace";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		add = 1;
 		break;
@@ -54,18 +55,19 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 	if(argc == 0)
 		argv = defargv;
-	if (add)
+	if(add)
 		addns(getuser(), nsfile);
 	else
 		newns(getuser(), nsfile);
 	exec(argv[0], argv);
-	if(!rooted(argv[0])){
+	if(!rooted(argv[0])) {
 		rerrstr(err, sizeof err);
 		exec(smprint("/bin/%s", argv[0]), argv);
 		errstr(err, sizeof err);
 	}
 	sysfatal("exec: %s: %r", argv[0]);
-}	
+}

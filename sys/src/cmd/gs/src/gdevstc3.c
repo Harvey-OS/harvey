@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1995, 1996 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -51,64 +51,80 @@
  */
 
 /*ARGSUSED*/
-int 
-stc_gsrgb(stcolor_device *sdev,int npixel,byte *ip,byte *buf,byte *out)
+int
+stc_gsrgb(stcolor_device* sdev, int npixel, byte* ip, byte* buf, byte* out)
 {
 
-   int   error = 0;
+	int error = 0;
 
-/*
- * There are basically 3 Types of calls:
- * npixel < 0    => initialize buf, if this is required
- *                  (happens only if requested)
- * npixel > 0    => process next scanline, if the flag STC_WHITE is set, then
- *                  in == NULL signals, that the basic-driver has decided
- *                  that this scanline is white. (Useful for really dithering
- *                  drivers)
- */
+	/*
+	 * There are basically 3 Types of calls:
+	 * npixel < 0    => initialize buf, if this is required
+	 *                  (happens only if requested)
+	 * npixel > 0    => process next scanline, if the flag STC_WHITE is set,
+	 * then
+	 *                  in == NULL signals, that the basic-driver has
+	 * decided
+	 *                  that this scanline is white. (Useful for really
+	 * dithering
+	 *                  drivers)
+	 */
 
-/* ============================================================= */
-   if(npixel > 0) {  /* npixel >  0 -> scanline-processing       */
-/* ============================================================= */
+	/* ============================================================= */
+	if(npixel > 0) { /* npixel >  0 -> scanline-processing       */
+		/* =============================================================
+		 */
 
-      int p;
+		int p;
 
-/*
- *    simply merge the color-values into a single byte 
- *    (RED, GREEN, BLUE are defined in gdevstc.h)
- */
-      for(p = 0; p < npixel; ++p,++out) { /* loop over pixels */
+		/*
+		 *    simply merge the color-values into a single byte
+		 *    (RED, GREEN, BLUE are defined in gdevstc.h)
+		 */
+		for(p = 0; p < npixel; ++p, ++out) { /* loop over pixels */
 
-         *out = 0;
-         if(*ip++) *out |= RED;
-         if(*ip++) *out |= GREEN;
-         if(*ip++) *out |= BLUE;
+			*out = 0;
+			if(*ip++)
+				*out |= RED;
+			if(*ip++)
+				*out |= GREEN;
+			if(*ip++)
+				*out |= BLUE;
 
-      }                                   /* loop over pixels */
+		} /* loop over pixels */
 
-/* ============================================================= */
-   } else {          /* npixel <= 0 -> initialisation            */
-/* ============================================================= */
-/*
- * besides buffer-Initialisation, one may check the parameters in
- * the algorithm-table of the driver.
- */
+		/* =============================================================
+		 */
+	} else { /* npixel <= 0 -> initialisation            */
+		/* =============================================================
+		 */
+		/*
+		 * besides buffer-Initialisation, one may check the parameters
+		 * in
+		 * the algorithm-table of the driver.
+		 */
 
-/*    we didn't check for the white-calls above, so they would cause errors */
-      if(sdev->stc.dither->flags & STC_WHITE)              error = -1;
+		/*    we didn't check for the white-calls above, so they would
+		 * cause errors */
+		if(sdev->stc.dither->flags & STC_WHITE)
+			error = -1;
 
-/*    if we're not setup for bytes, this is an error too */
-      if((sdev->stc.dither->flags & STC_TYPE) != STC_BYTE) error = -2;
+		/*    if we're not setup for bytes, this is an error too */
+		if((sdev->stc.dither->flags & STC_TYPE) != STC_BYTE)
+			error = -2;
 
-/*    and rgb-mode is the only supported mode */
-      if(sdev->color_info.num_components != 3)             error = -3;
+		/*    and rgb-mode is the only supported mode */
+		if(sdev->color_info.num_components != 3)
+			error = -3;
 
-/*    we can't deal with ghostscript-data directly. */
-      if(sdev->stc.dither->flags & STC_DIRECT)             error = -4;
+		/*    we can't deal with ghostscript-data directly. */
+		if(sdev->stc.dither->flags & STC_DIRECT)
+			error = -4;
 
-/* ============================================================= */
-   } /* scanline-processing or initialisation */
-/* ============================================================= */
+		/* =============================================================
+		 */
+	} /* scanline-processing or initialisation */
+	  /* ============================================================= */
 
-   return error;
+	return error;
 }

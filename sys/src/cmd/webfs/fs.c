@@ -43,82 +43,65 @@
 
 int fsdebug;
 
-enum
-{
-	Qroot,
-	Qrootctl,
-	Qclone,
-	Qcookies,
-	Qclient,
-	Qctl,
-	Qbody,
-	Qbodyext,
-	Qcontenttype,
-	Qpostbody,
-	Qparsed,
-	Qurl,
-	Qscheme,
-	Qschemedata,
-	Quser,
-	Qpasswd,
-	Qhost,
-	Qport,
-	Qpath,
-	Qquery,
-	Qfragment,
-	Qftptype,
-	Qend,
+enum { Qroot,
+       Qrootctl,
+       Qclone,
+       Qcookies,
+       Qclient,
+       Qctl,
+       Qbody,
+       Qbodyext,
+       Qcontenttype,
+       Qpostbody,
+       Qparsed,
+       Qurl,
+       Qscheme,
+       Qschemedata,
+       Quser,
+       Qpasswd,
+       Qhost,
+       Qport,
+       Qpath,
+       Qquery,
+       Qfragment,
+       Qftptype,
+       Qend,
 };
 
-#define PATH(type, n)	((type)|((n)<<8))
-#define TYPE(path)		((int)(path) & 0xFF)
-#define NUM(path)		((uint)(path)>>8)
+#define PATH(type, n) ((type) | ((n) << 8))
+#define TYPE(path) ((int)(path)&0xFF)
+#define NUM(path) ((uint)(path) >> 8)
 
-Channel *creq;
-Channel *creqwait;
-Channel *cclunk;
-Channel *cclunkwait;
+Channel* creq;
+Channel* creqwait;
+Channel* cclunk;
+Channel* cclunkwait;
 
 typedef struct Tab Tab;
-struct Tab
-{
-	char *name;
+struct Tab {
+	char* name;
 	uint32_t mode;
 	int offset;
 };
 
-Tab tab[] =
-{
-	"/",			DMDIR|0555,		0,
-	"ctl",			0666,			0,
-	"clone",		0666,			0,
-	"cookies",		0666,			0,
-	"XXX",		DMDIR|0555,		0,
-	"ctl",			0666,			0,
-	"body",		0444,			0,
-	"XXX",		0444,			0,
-	"contenttype",	0444,			0,
-	"postbody",	0666,			0,
-	"parsed",		DMDIR|0555,		0,
-	"url",			0444,			offsetof(Url, url),
-	"scheme",		0444,			offsetof(Url, scheme),
-	"schemedata",	0444,			offsetof(Url, schemedata),
-	"user",		0444,			offsetof(Url, user),
-	"passwd",		0444,			offsetof(Url, passwd),
-	"host",		0444,			offsetof(Url, host),
-	"port",		0444,			offsetof(Url, port),
-	"path",		0444,			offsetof(Url, path),
-	"query",		0444,			offsetof(Url, query),
-	"fragment",	0444,			offsetof(Url, fragment),
-	"ftptype",		0444,			offsetof(Url, ftp.type),
+Tab tab[] = {
+    "/", DMDIR | 0555, 0, "ctl", 0666, 0, "clone", 0666, 0, "cookies", 0666, 0,
+    "XXX", DMDIR | 0555, 0, "ctl", 0666, 0, "body", 0444, 0, "XXX", 0444, 0,
+    "contenttype", 0444, 0, "postbody", 0666, 0, "parsed", DMDIR | 0555, 0,
+    "url", 0444, offsetof(Url, url), "scheme", 0444, offsetof(Url, scheme),
+    "schemedata", 0444, offsetof(Url, schemedata), "user", 0444,
+    offsetof(Url, user), "passwd", 0444, offsetof(Url, passwd), "host", 0444,
+    offsetof(Url, host), "port", 0444, offsetof(Url, port), "path", 0444,
+    offsetof(Url, path), "query", 0444, offsetof(Url, query), "fragment", 0444,
+    offsetof(Url, fragment), "ftptype", 0444, offsetof(Url, ftp.type),
 };
 
 uint32_t time0;
 
 static void
-fillstat(Dir *d, uint64_t path, uint32_t length, char *ext)
+fillstat(Dir* d, uint64_t path, uint32_t length, char* ext)
 {
-	Tab *t;
+	Tab* t;
 	int type;
 	char buf[32];
 
@@ -133,36 +116,35 @@ fillstat(Dir *d, uint64_t path, uint32_t length, char *ext)
 	if(type == Qbodyext) {
 		snprint(buf, sizeof buf, "body.%s", ext == nil ? "xxx" : ext);
 		d->name = estrdup(buf);
-	}
-	else if(t->name)
+	} else if(t->name)
 		d->name = estrdup(t->name);
-	else{	/* client directory */
+	else { /* client directory */
 		snprint(buf, sizeof buf, "%ud", NUM(path));
 		d->name = estrdup(buf);
 	}
-	d->qid.type = t->mode>>24;
+	d->qid.type = t->mode >> 24;
 	d->mode = t->mode;
 }
 
 static void
-fsstat(Req *r)
+fsstat(Req* r)
 {
 	fillstat(&r->d, r->fid->qid.path, 0, nil);
 	respond(r, nil);
 }
 
 static int
-rootgen(int i, Dir *d, void*)
+rootgen(int i, Dir* d, void*)
 {
 	char buf[32];
 
-	i += Qroot+1;
-	if(i < Qclient){
+	i += Qroot + 1;
+	if(i < Qclient) {
 		fillstat(d, i, 0, nil);
 		return 0;
 	}
 	i -= Qclient;
-	if(i < nclient){
+	if(i < nclient) {
 		fillstat(d, PATH(Qclient, i), 0, nil);
 		snprint(buf, sizeof buf, "%d", i);
 		free(d->name);
@@ -173,13 +155,13 @@ rootgen(int i, Dir *d, void*)
 }
 
 static int
-clientgen(int i, Dir *d, void *aux)
+clientgen(int i, Dir* d, void* aux)
 {
-	Client *c;
+	Client* c;
 
 	c = aux;
-	i += Qclient+1;
-	if(i <= Qparsed){
+	i += Qclient + 1;
+	if(i <= Qparsed) {
 		fillstat(d, PATH(i, c->num), 0, c->ext);
 		return 0;
 	}
@@ -187,13 +169,13 @@ clientgen(int i, Dir *d, void *aux)
 }
 
 static int
-parsedgen(int i, Dir *d, void *aux)
+parsedgen(int i, Dir* d, void* aux)
 {
-	Client *c;
+	Client* c;
 
 	c = aux;
-	i += Qparsed+1;
-	if(i < Qend){
+	i += Qparsed + 1;
+	if(i < Qend) {
 		fillstat(d, PATH(i, c->num), 0, nil);
 		return 0;
 	}
@@ -201,15 +183,15 @@ parsedgen(int i, Dir *d, void *aux)
 }
 
 static void
-fsread(Req *r)
+fsread(Req* r)
 {
-	char *s;
+	char* s;
 	char e[ERRMAX];
-	Client *c;
+	Client* c;
 	uint32_t path;
 
 	path = r->fid->qid.path;
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	default:
 		snprint(e, sizeof e, "bug in webfs path=%lux\n", path);
 		respond(r, e);
@@ -251,11 +233,11 @@ fsread(Req *r)
 		readbuf(r, c->postbody, c->npostbody);
 		respond(r, nil);
 		break;
-		
+
 	case Qbody:
 	case Qbodyext:
 		c = client[NUM(path)];
-		if(c->iobusy){
+		if(c->iobusy) {
 			respond(r, "already have i/o pending");
 			break;
 		}
@@ -281,8 +263,9 @@ fsread(Req *r)
 	case Qftptype:
 		c = client[NUM(path)];
 		r->ofcall.count = 0;
-		if(c->url != nil
-		&& (s = *(char**)((uintptr)c->url+tab[TYPE(path)].offset)) != nil)
+		if(c->url != nil &&
+		   (s = *(char**)((uintptr)c->url + tab[TYPE(path)].offset)) !=
+		       nil)
 			readstr(r, s);
 		respond(r, nil);
 		break;
@@ -290,15 +273,15 @@ fsread(Req *r)
 }
 
 static void
-fswrite(Req *r)
+fswrite(Req* r)
 {
 	int m;
 	uint32_t path;
 	char e[ERRMAX], *buf, *cmd, *arg;
-	Client *c;
+	Client* c;
 
 	path = r->fid->qid.path;
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	default:
 		snprint(e, sizeof e, "bug in webfs path=%lux\n", path);
 		respond(r, e);
@@ -310,28 +293,28 @@ fswrite(Req *r)
 
 	case Qrootctl:
 	case Qctl:
-		if(r->ifcall.count >= 1024){
+		if(r->ifcall.count >= 1024) {
 			respond(r, "ctl message too long");
 			return;
 		}
 		buf = estredup(r->ifcall.data,
-			       (char*)r->ifcall.data+r->ifcall.count);
+		               (char*)r->ifcall.data + r->ifcall.count);
 		cmd = buf;
 		arg = strpbrk(cmd, "\t ");
-		if(arg){
+		if(arg) {
 			*arg++ = '\0';
 			arg += strspn(arg, "\t ");
-		}else
+		} else
 			arg = "";
 		r->ofcall.count = r->ifcall.count;
-		if(TYPE(path)==Qrootctl){
-			if(!ctlwrite(r, &globalctl, cmd, arg)
-			&& !globalctlwrite(r, cmd, arg))
+		if(TYPE(path) == Qrootctl) {
+			if(!ctlwrite(r, &globalctl, cmd, arg) &&
+			   !globalctlwrite(r, cmd, arg))
 				respond(r, "unknown control command");
-		}else{
+		} else {
 			c = client[NUM(path)];
-			if(!ctlwrite(r, &c->ctl, cmd, arg)
-			&& !clientctlwrite(r, c, cmd, arg))
+			if(!ctlwrite(r, &c->ctl, cmd, arg) &&
+			   !clientctlwrite(r, c, cmd, arg))
 				respond(r, "unknown control command");
 		}
 		free(buf);
@@ -339,21 +322,23 @@ fswrite(Req *r)
 
 	case Qpostbody:
 		c = client[NUM(path)];
-		if(c->bodyopened){
+		if(c->bodyopened) {
 			respond(r, "cannot write postbody after opening body");
 			break;
 		}
-		if(r->ifcall.offset >= 128*1024*1024){	/* >128MB is probably a mistake */
+		if(r->ifcall.offset >=
+		   128 * 1024 * 1024) { /* >128MB is probably a mistake */
 			respond(r, "offset too large");
 			break;
 		}
 		m = r->ifcall.offset + r->ifcall.count;
-		if(c->npostbody < m){
+		if(c->npostbody < m) {
 			c->postbody = erealloc(c->postbody, m);
-			memset(c->postbody+c->npostbody, 0, m-c->npostbody);
+			memset(c->postbody + c->npostbody, 0, m - c->npostbody);
 			c->npostbody = m;
 		}
-		memmove(c->postbody+r->ifcall.offset, r->ifcall.data, r->ifcall.count);
+		memmove(c->postbody + r->ifcall.offset, r->ifcall.data,
+		        r->ifcall.count);
 		r->ofcall.count = r->ifcall.count;
 		respond(r, nil);
 		break;
@@ -361,13 +346,13 @@ fswrite(Req *r)
 }
 
 static void
-fsopen(Req *r)
+fsopen(Req* r)
 {
-	static int need[4] = { 4, 2, 6, 1 };
+	static int need[4] = {4, 2, 6, 1};
 	uint32_t path;
 	int n;
-	Client *c;
-	Tab *t;
+	Client* c;
+	Tab* t;
 
 	/*
 	 * lib9p already handles the blatantly obvious.
@@ -375,13 +360,13 @@ fsopen(Req *r)
 	 */
 	path = r->fid->qid.path;
 	t = &tab[TYPE(path)];
-	n = need[r->ifcall.mode&3];
-	if((n&t->mode) != n){
+	n = need[r->ifcall.mode & 3];
+	if((n & t->mode) != n) {
 		respond(r, "permission denied");
 		return;
 	}
 
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	case Qcookies:
 		cookieopen(r);
 		break;
@@ -396,7 +381,7 @@ fsopen(Req *r)
 	case Qbody:
 	case Qbodyext:
 		c = client[NUM(path)];
-		if(c->url == nil){
+		if(c->url == nil) {
 			respond(r, "url is not yet set");
 			break;
 		}
@@ -413,9 +398,9 @@ fsopen(Req *r)
 		if(fsdebug)
 			fprint(2, "open clone => path=%lux\n", path);
 		t = &tab[Qctl];
-		/* fall through */
+	/* fall through */
 	default:
-		if(t-tab >= Qclient)
+		if(t - tab >= Qclient)
 			client[NUM(path)]->ref++;
 		respond(r, nil);
 		break;
@@ -423,16 +408,16 @@ fsopen(Req *r)
 }
 
 static void
-fsdestroyfid(Fid *fid)
+fsdestroyfid(Fid* fid)
 {
 	sendp(cclunk, fid);
 	recvp(cclunkwait);
 }
 
 static void
-fsattach(Req *r)
+fsattach(Req* r)
 {
-	if(r->ifcall.aname && r->ifcall.aname[0]){
+	if(r->ifcall.aname && r->ifcall.aname[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -444,74 +429,74 @@ fsattach(Req *r)
 }
 
 static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+fswalk1(Fid* fid, char* name, Qid* qid)
 {
 	int i, n;
 	uint32_t path;
 	char buf[32], *ext;
 
 	path = fid->qid.path;
-	if(!(fid->qid.type&QTDIR))
+	if(!(fid->qid.type & QTDIR))
 		return "walk in non-directory";
 
-	if(strcmp(name, "..") == 0){
-		switch(TYPE(path)){
+	if(strcmp(name, "..") == 0) {
+		switch(TYPE(path)) {
 		case Qparsed:
 			qid->path = PATH(Qclient, NUM(path));
-			qid->type = tab[Qclient].mode>>24;
+			qid->type = tab[Qclient].mode >> 24;
 			return nil;
 		case Qclient:
 		case Qroot:
 			qid->path = PATH(Qroot, 0);
-			qid->type = tab[Qroot].mode>>24;
+			qid->type = tab[Qroot].mode >> 24;
 			return nil;
 		default:
 			return "bug in fswalk1";
 		}
 	}
 
-	i = TYPE(path)+1;
-	for(; i<nelem(tab); i++){
-		if(i==Qclient){
+	i = TYPE(path) + 1;
+	for(; i < nelem(tab); i++) {
+		if(i == Qclient) {
 			n = atoi(name);
 			snprint(buf, sizeof buf, "%d", n);
-			if(n < nclient && strcmp(buf, name) == 0){
+			if(n < nclient && strcmp(buf, name) == 0) {
 				qid->path = PATH(i, n);
-				qid->type = tab[i].mode>>24;
+				qid->type = tab[i].mode >> 24;
 				return nil;
 			}
 			break;
 		}
-		if(i==Qbodyext){
+		if(i == Qbodyext) {
 			ext = client[NUM(path)]->ext;
-			snprint(buf, sizeof buf, "body.%s", ext == nil ? "xxx" : ext);
-			if(strcmp(buf, name) == 0){
+			snprint(buf, sizeof buf, "body.%s",
+			        ext == nil ? "xxx" : ext);
+			if(strcmp(buf, name) == 0) {
 				qid->path = PATH(i, NUM(path));
-				qid->type = tab[i].mode>>24;
+				qid->type = tab[i].mode >> 24;
 				return nil;
 			}
-		}
-		else if(strcmp(name, tab[i].name) == 0){
+		} else if(strcmp(name, tab[i].name) == 0) {
 			qid->path = PATH(i, NUM(path));
-			qid->type = tab[i].mode>>24;
+			qid->type = tab[i].mode >> 24;
 			return nil;
 		}
-		if(tab[i].mode&DMDIR)
+		if(tab[i].mode & DMDIR)
 			break;
 	}
 	return "directory entry not found";
 }
 
 static void
-fsflush(Req *r)
+fsflush(Req* r)
 {
-	Req *or;
+	Req* or ;
 	int t;
-	Client *c;
+	Client* c;
 	uint32_t path;
 
-	or=r;
-	while(or->ifcall.type==Tflush)
+	or = r;
+	while(or->ifcall.type == Tflush)
 		or = or->oldreq;
 
 	if(or->ifcall.type != Tread && or->ifcall.type != Topen)
@@ -532,8 +517,8 @@ fsthread(void*)
 {
 	uint32_t path;
 	Alt a[3];
-	Fid *fid;
-	Req *r;
+	Fid* fid;
+	Req* r;
 
 	threadsetname("fsthread");
 	plumbstart();
@@ -546,18 +531,18 @@ fsthread(void*)
 	a[1].v = &r;
 	a[2].op = CHANEND;
 
-	for(;;){
-		switch(alt(a)){
+	for(;;) {
+		switch(alt(a)) {
 		case 0:
 			path = fid->qid.path;
-			if(TYPE(path)==Qcookies)
+			if(TYPE(path) == Qcookies)
 				cookieclunk(fid);
 			if(fid->omode != -1 && TYPE(path) >= Qclient)
 				closeclient(client[NUM(path)]);
 			sendp(cclunkwait, nil);
 			break;
 		case 1:
-			switch(r->ifcall.type){
+			switch(r->ifcall.type) {
 			case Tattach:
 				fsattach(r);
 				break;
@@ -587,10 +572,10 @@ fsthread(void*)
 }
 
 static void
-fssend(Req *r)
+fssend(Req* r)
 {
 	sendp(creq, r);
-	recvp(creqwait);	/* avoids need to deal with spurious flushes */
+	recvp(creqwait); /* avoids need to deal with spurious flushes */
 }
 
 void
@@ -611,16 +596,14 @@ takedown(Srv*)
 	threadexitsall("done");
 }
 
-Srv fs = 
-{
-.attach=		fssend,
-.destroyfid=	fsdestroyfid,
-.walk1=		fswalk1,
-.open=		fssend,
-.read=		fssend,
-.write=		fssend,
-.stat=		fssend,
-.flush=		fssend,
-.end=		takedown,
+Srv fs = {
+    .attach = fssend,
+    .destroyfid = fsdestroyfid,
+    .walk1 = fswalk1,
+    .open = fssend,
+    .read = fssend,
+    .write = fssend,
+    .stat = fssend,
+    .flush = fssend,
+    .end = takedown,
 };
-

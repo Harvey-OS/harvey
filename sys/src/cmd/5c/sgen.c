@@ -41,9 +41,9 @@ noretval(int n)
  *	calculate complexity (number of registers)
  */
 void
-xcom(Node *n)
+xcom(Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 	int t;
 
 	if(n == Z)
@@ -194,9 +194,8 @@ xcom(Node *n)
 		n->complex = l->complex;
 	if(r != Z) {
 		if(r->complex == n->complex)
-			n->complex = r->complex+1;
-		else
-		if(r->complex > n->complex)
+			n->complex = r->complex + 1;
+		else if(r->complex > n->complex)
 			n->complex = r->complex;
 	}
 	if(n->complex == 0)

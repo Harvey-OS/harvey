@@ -18,35 +18,27 @@
 
 #include "errstr.h"
 
-#define	Reqsize	(sizeof(Fcall)+Maxfdata)
-Fcall	*req;
-Fcall	*rep;
+#define Reqsize (sizeof(Fcall) + Maxfdata)
+Fcall* req;
+Fcall* rep;
 
-uint8_t	mdata[Maxiosize];
-char	repdata[Maxfdata];
-uint8_t	statbuf[STATMAX];
-int	errno;
-char	errbuf[ERRMAX];
-void	rmservice(void);
-char	srvfile[64];
-char	*deffile;
-int	doabort;
-int	trspaces;
+uint8_t mdata[Maxiosize];
+char repdata[Maxfdata];
+uint8_t statbuf[STATMAX];
+int errno;
+char errbuf[ERRMAX];
+void rmservice(void);
+char srvfile[64];
+char* deffile;
+int doabort;
+int trspaces;
 
-void	(*fcalls[])(void) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+void (*fcalls[])(void) = {
+        [Tversion] rversion, [Tflush] rflush,   [Tauth] rauth,
+        [Tattach] rattach,   [Twalk] rwalk,     [Topen] ropen,
+        [Tcreate] rcreate,   [Tread] rread,     [Twrite] rwrite,
+        [Tclunk] rclunk,     [Tremove] rremove, [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
 void
@@ -57,7 +49,7 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int stdio, srvfd, pipefd[2];
 
@@ -66,7 +58,8 @@ main(int argc, char **argv)
 	if(rep == nil || req == nil)
 		panic("out of memory");
 	stdio = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case ':':
 		trspaces = 1;
 		break;
@@ -87,7 +80,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		strcpy(srvfile, "#s/dos");
@@ -96,17 +90,17 @@ main(int argc, char **argv)
 	else
 		usage();
 
-	if(stdio){
+	if(stdio) {
 		pipefd[0] = 0;
 		pipefd[1] = 1;
-	}else{
+	} else {
 		close(0);
 		close(1);
 		open("/dev/null", OREAD);
 		open("/dev/null", OWRITE);
 		if(pipe(pipefd) < 0)
 			panic("pipe");
-		srvfd = create(srvfile, OWRITE|ORCLOSE, 0600);
+		srvfd = create(srvfile, OWRITE | ORCLOSE, 0600);
 		if(srvfd < 0)
 			panic(srvfile);
 		fprint(srvfd, "%d", pipefd[0]);
@@ -116,7 +110,7 @@ main(int argc, char **argv)
 	}
 	srvfd = pipefd[1];
 
-	switch(rfork(RFNOWAIT|RFNOTEG|RFFDG|RFPROC|RFNAMEG)){
+	switch(rfork(RFNOWAIT | RFNOTEG | RFFDG | RFPROC | RFNAMEG)) {
 	case -1:
 		panic("fork");
 	default:
@@ -127,7 +121,7 @@ main(int argc, char **argv)
 
 	iotrack_init();
 
-	if(!chatty){
+	if(!chatty) {
 		close(2);
 		open("#c/cons", OWRITE);
 	}
@@ -144,7 +138,7 @@ io(int srvfd)
 	pid = getpid();
 
 	fmtinstall('F', fcallfmt);
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads.
@@ -169,10 +163,10 @@ io(int srvfd)
 			errno = Ebadfcall;
 		else
 			(*fcalls[req->type])();
-		if(errno){
+		if(errno) {
 			rep->type = Rerror;
 			rep->ename = xerrstr(errno);
-		}else{
+		} else {
 			rep->type = req->type + 1;
 			rep->fid = req->fid;
 		}
@@ -194,12 +188,12 @@ rmservice(void)
 	remove(srvfile);
 }
 
-char *
+char*
 xerrstr(int e)
 {
-	if (e < 0 || e >= sizeof errmsg/sizeof errmsg[0])
+	if(e < 0 || e >= sizeof errmsg / sizeof errmsg[0])
 		return "no such error";
-	if(e == Eerrstr){
+	if(e == Eerrstr) {
 		errstr(errbuf, sizeof errbuf);
 		return errbuf;
 	}

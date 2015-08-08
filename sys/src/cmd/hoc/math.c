@@ -12,7 +12,7 @@
 
 #include "hoc.h"
 
-double	errcheck(double, char*);
+double errcheck(double, char*);
 
 double
 Log(double x)
@@ -62,19 +62,18 @@ Cosh(double x)
 double
 Pow(double x, double y)
 {
-	return errcheck(pow(x,y), "exponentiation");
+	return errcheck(pow(x, y), "exponentiation");
 }
 
 double
 integer(double x)
 {
-	if(x<-2147483648.0 || x>2147483647.0)
+	if(x < -2147483648.0 || x > 2147483647.0)
 		execerror("argument out of domain", 0);
 	return (double)(int32_t)x;
 }
 
-double
-errcheck(double d, char* s)	/* check result of library call */
+double errcheck(double d, char* s) /* check result of library call */
 {
 	if(isNaN(d))
 		execerror(s, "argument out of domain");

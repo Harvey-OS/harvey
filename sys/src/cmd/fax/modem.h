@@ -8,71 +8,71 @@
  */
 
 typedef struct {
-	char	*t;
-	int	fd;
-	int	cfd;
-	char	*id;
-	char	response[128];
-	char	error[128];
+	char* t;
+	int fd;
+	int cfd;
+	char* id;
+	char response[128];
+	char error[128];
 
-	int	fax;
-	char	phase;
-	char	ftsi[128];		/* remote ID */
-	long	fdcs[8];		/* frame information */
-	long	fpts[8];		/* page reception response */
-	long	fet;			/* post page message */
-	long	fhng;			/* call termination status */
-	int	pageno;			/* current page number */
-	char	pageid[128];		/* current page file */
-	int	pagefd;			/* current page fd */
-	int	valid;			/* valid page responses */
-	long	time;			/* timestamp */
-	int	pid;
+	int fax;
+	char phase;
+	char ftsi[128];   /* remote ID */
+	long fdcs[8];     /* frame information */
+	long fpts[8];     /* page reception response */
+	long fet;         /* post page message */
+	long fhng;        /* call termination status */
+	int pageno;       /* current page number */
+	char pageid[128]; /* current page file */
+	int pagefd;       /* current page fd */
+	int valid;        /* valid page responses */
+	long time;        /* timestamp */
+	int pid;
 
-	char	ibuf[1024];		/* modem input buffering */
-	char	*iptr;
-	long	icount;
+	char ibuf[1024]; /* modem input buffering */
+	char* iptr;
+	long icount;
 
-	Biobuf	*bp;			/* file input buffering */
+	Biobuf* bp; /* file input buffering */
 
 	/* FDCS parameters */
-	long	wd;			/* width */
-	long	vr;			/* resolution */
-	long	ln;			/* page size (length) */
-	long	df;			/* huffman encoding */
+	long wd; /* width */
+	long vr; /* resolution */
+	long ln; /* page size (length) */
+	long df; /* huffman encoding */
 } Modem;
 
-enum {					/* ResultCodes */
-	Rok		= 0,
-	Rconnect,
-	Rring,
-	Rfailure,
-	Rrerror,
-	Rcontinue,
-	Rhangup,
-	Rnoise,
+enum { /* ResultCodes */
+       Rok = 0,
+       Rconnect,
+       Rring,
+       Rfailure,
+       Rrerror,
+       Rcontinue,
+       Rhangup,
+       Rnoise,
 };
 
-enum {					/* ErrorCodes */
-	Eok	= 0,	/* no error */
-	Eattn,		/* can't get modem's attention */
-	Enoresponse,	/* no response from modem */
-	Enoanswer,	/* no answer from other side */
-	Enofax,		/* other side isn't a fax machine */
-	Eincompatible,	/* transmission incompatible with receiver */
-	Esys,		/* system call error */
-	Eproto,		/* fax protocol botch */
+enum {                /* ErrorCodes */
+       Eok = 0,       /* no error */
+       Eattn,         /* can't get modem's attention */
+       Enoresponse,   /* no response from modem */
+       Enoanswer,     /* no answer from other side */
+       Enofax,        /* other side isn't a fax machine */
+       Eincompatible, /* transmission incompatible with receiver */
+       Esys,          /* system call error */
+       Eproto,        /* fax protocol botch */
 };
 
-enum {					/* things that are valid */
-	Vfdcs		= 0x0001,	/* page responses */
-	Vftsi		= 0x0002,
-	Vfpts		= 0x0004,
-	Vfet		= 0x0008,
-	Vfhng		= 0x0010,
+enum {                 /* things that are valid */
+       Vfdcs = 0x0001, /* page responses */
+       Vftsi = 0x0002,
+       Vfpts = 0x0004,
+       Vfet = 0x0008,
+       Vfhng = 0x0010,
 
-	Vwd		= 0x4000,
-	Vtype		= 0x8000,
+       Vwd = 0x4000,
+       Vtype = 0x8000,
 };
 
 /* fax2modem.c */
@@ -89,7 +89,7 @@ extern int fhng(Modem*);
 extern int faxreceive(Modem*, char*);
 
 /* fax2send.c */
-extern int faxsend(Modem*, int, char*[]);
+extern int faxsend(Modem*, int, char* []);
 
 /* modem.c */
 extern int setflow(Modem*, int);

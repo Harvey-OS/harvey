@@ -11,9 +11,9 @@
 #include <libc.h>
 
 char*
-strdup(char *s) 
-{  
-	char *ns;
+strdup(char* s)
+{
+	char* ns;
 
 	ns = malloc(strlen(s) + 1);
 	if(ns == 0)

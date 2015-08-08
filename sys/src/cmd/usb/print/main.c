@@ -15,9 +15,7 @@
 #include <thread.h>
 #include "usb.h"
 
-enum
-{
-	Arglen = 80,
+enum { Arglen = 80,
 };
 
 static void
@@ -27,21 +25,22 @@ usage(void)
 	threadexitsall("usage");
 }
 
-static int csps[] = { 0x020107, 0 };
+static int csps[] = {0x020107, 0};
 
 extern int printmain(Dev*, int, char**);
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
 	char args[Arglen];
-	char *as;
-	char *ae;
+	char* as;
+	char* ae;
 
 	quotefmtinstall();
-	ae = args+sizeof(args);
+	ae = args + sizeof(args);
 	as = seprint(args, ae, "print");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		usbdebug++;
 		break;
@@ -50,7 +49,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	rfork(RFNOTEG);
 	threadsetgrp(threadid());

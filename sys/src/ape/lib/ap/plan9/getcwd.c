@@ -18,7 +18,7 @@
 #include "dir.h"
 
 char*
-getcwd(char *buf, size_t len)
+getcwd(char* buf, size_t len)
 {
 	int fd;
 
@@ -34,7 +34,7 @@ getcwd(char *buf, size_t len)
 	}
 	_CLOSE(fd);
 
-/* RSC: is this necessary? */
+	/* RSC: is this necessary? */
 	if(buf[0] == '\0')
 		strcpy(buf, "/");
 	return buf;

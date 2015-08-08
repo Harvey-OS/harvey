@@ -52,10 +52,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr xxx = {
-	"xxx",				/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "xxx",   /* name */
+    snarf,   /* snarf */
+    options, /* options */
+    init,    /* init */
+    load,    /* load */
+    dump,    /* dump */
 };

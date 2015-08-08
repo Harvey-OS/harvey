@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -34,7 +35,7 @@
  */
 
 double
-fmtcharstod(int(*f)(void*), void *vp)
+fmtcharstod(int (*f)(void*), void* vp)
 {
 	double num, dem;
 	int neg, eneg, dig, exp, c;
@@ -48,38 +49,38 @@ fmtcharstod(int(*f)(void*), void *vp)
 	c = (*f)(vp);
 	while(c == ' ' || c == '\t')
 		c = (*f)(vp);
-	if(c == '-' || c == '+'){
+	if(c == '-' || c == '+') {
 		if(c == '-')
 			neg = 1;
 		c = (*f)(vp);
 	}
-	while(c >= '0' && c <= '9'){
-		num = num*10 + c-'0';
+	while(c >= '0' && c <= '9') {
+		num = num * 10 + c - '0';
 		c = (*f)(vp);
 	}
 	if(c == '.')
 		c = (*f)(vp);
-	while(c >= '0' && c <= '9'){
-		num = num*10 + c-'0';
+	while(c >= '0' && c <= '9') {
+		num = num * 10 + c - '0';
 		dig++;
 		c = (*f)(vp);
 	}
-	if(c == 'e' || c == 'E'){
+	if(c == 'e' || c == 'E') {
 		c = (*f)(vp);
-		if(c == '-' || c == '+'){
-			if(c == '-'){
+		if(c == '-' || c == '+') {
+			if(c == '-') {
 				dig = -dig;
 				eneg = 1;
 			}
 			c = (*f)(vp);
 		}
-		while(c >= '0' && c <= '9'){
-			exp = exp*10 + c-'0';
+		while(c >= '0' && c <= '9') {
+			exp = exp * 10 + c - '0';
 			c = (*f)(vp);
 		}
 	}
 	exp -= dig;
-	if(exp < 0){
+	if(exp < 0) {
 		exp = -exp;
 		eneg = !eneg;
 	}

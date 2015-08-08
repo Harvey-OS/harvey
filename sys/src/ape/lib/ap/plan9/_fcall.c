@@ -7,31 +7,48 @@
  * in the LICENSE file.
  */
 
-#include	<string.h>
-#include	"sys9.h"
-#include	"lib.h"
-#include	"dir.h"
-#include	"fcall.h"
+#include <string.h>
+#include "sys9.h"
+#include "lib.h"
+#include "dir.h"
+#include "fcall.h"
 
 typedef unsigned char uchar;
 
-#define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	p[0] = f->x; p[1] = f->x>>8; p += 2
-#define	LONG(x)		p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24; p += 4
-#define	VLONG(x)	p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24;\
-				p[4] = 0; p[5] = 0; p[6] = 0; p[7] = 0; p += 8
-#define	STRING(x,n)	memcpy(p, f->x, n); p += n
+#define CHAR(x) *p++ = f->x
+#define SHORT(x)                                                               \
+	p[0] = f->x;                                                           \
+	p[1] = f->x >> 8;                                                      \
+	p += 2
+#define LONG(x)                                                                \
+	p[0] = f->x;                                                           \
+	p[1] = f->x >> 8;                                                      \
+	p[2] = f->x >> 16;                                                     \
+	p[3] = f->x >> 24;                                                     \
+	p += 4
+#define VLONG(x)                                                               \
+	p[0] = f->x;                                                           \
+	p[1] = f->x >> 8;                                                      \
+	p[2] = f->x >> 16;                                                     \
+	p[3] = f->x >> 24;                                                     \
+	p[4] = 0;                                                              \
+	p[5] = 0;                                                              \
+	p[6] = 0;                                                              \
+	p[7] = 0;                                                              \
+	p += 8
+#define STRING(x, n)                                                           \
+	memcpy(p, f->x, n);                                                    \
+	p += n
 
 int
-convS2M(Fcall *f, char *ap)
+convS2M(Fcall* f, char* ap)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)ap;
 	CHAR(type);
 	SHORT(tag);
-	switch(f->type)
-	{
+	switch(f->type) {
 	default:
 		return 0;
 
@@ -65,7 +82,7 @@ convS2M(Fcall *f, char *ap)
 	case Tauth:
 		SHORT(fid);
 		STRING(uname, sizeof(f->uname));
-		STRING(ticket, 8+NAMELEN);
+		STRING(ticket, 8 + NAMELEN);
 		break;
 
 	case Tclone:
@@ -100,7 +117,7 @@ convS2M(Fcall *f, char *ap)
 		SHORT(fid);
 		VLONG(offset);
 		SHORT(count);
-		p++;	/* pad(1) */
+		p++; /* pad(1) */
 		STRING(data, f->count);
 		break;
 
@@ -126,8 +143,8 @@ convS2M(Fcall *f, char *ap)
 		SHORT(newfid);
 		STRING(name, sizeof(f->name));
 		break;
-/*
- */
+	/*
+	 */
 	case Rosession:
 	case Rnop:
 		break;
@@ -160,7 +177,7 @@ convS2M(Fcall *f, char *ap)
 
 	case Rauth:
 		SHORT(fid);
-		STRING(ticket, 8+8+7+7);
+		STRING(ticket, 8 + 8 + 7 + 7);
 		break;
 
 	case Rclone:
@@ -189,7 +206,7 @@ convS2M(Fcall *f, char *ap)
 	case Rread:
 		SHORT(fid);
 		SHORT(count);
-		p++;	/* pad(1) */
+		p++; /* pad(1) */
 		STRING(data, f->count);
 		break;
 
@@ -218,30 +235,35 @@ convS2M(Fcall *f, char *ap)
 	return p - (uint8_t*)ap;
 }
 
-#undef	CHAR
-#undef	SHORT
-#undef	LONG
-#undef	VLONG
-#undef	STRING
+#undef CHAR
+#undef SHORT
+#undef LONG
+#undef VLONG
+#undef STRING
 
-#define	CHAR(x)		f->x = *p++
-#define	SHORT(x)	f->x = (p[0] | (p[1]<<8)); p += 2
-#define	LONG(x)		f->x = (p[0] | (p[1]<<8) |\
-				(p[2]<<16) | (p[3]<<24)); p += 4
-#define	VLONG(x)	f->x = (p[0] | (p[1]<<8) |\
-				(p[2]<<16) | (p[3]<<24)); p += 8
-#define	STRING(x,n)	memcpy(f->x, p, n); p += n
+#define CHAR(x) f->x = *p++
+#define SHORT(x)                                                               \
+	f->x = (p[0] | (p[1] << 8));                                           \
+	p += 2
+#define LONG(x)                                                                \
+	f->x = (p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24));             \
+	p += 4
+#define VLONG(x)                                                               \
+	f->x = (p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24));             \
+	p += 8
+#define STRING(x, n)                                                           \
+	memcpy(f->x, p, n);                                                    \
+	p += n
 
 int
-convM2S(char *ap, Fcall *f, int n)
+convM2S(char* ap, Fcall* f, int n)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)ap;
 	CHAR(type);
 	SHORT(tag);
-	switch(f->type)
-	{
+	switch(f->type) {
 	default:
 		return 0;
 
@@ -275,7 +297,7 @@ convM2S(char *ap, Fcall *f, int n)
 	case Tauth:
 		SHORT(fid);
 		STRING(uname, sizeof(f->uname));
-		STRING(ticket, 8+NAMELEN);
+		STRING(ticket, 8 + NAMELEN);
 		break;
 
 	case Tclone:
@@ -310,8 +332,9 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		VLONG(offset);
 		SHORT(count);
-		p++;	/* pad(1) */
-		f->data = (char*)p; p += f->count;
+		p++; /* pad(1) */
+		f->data = (char*)p;
+		p += f->count;
 		break;
 
 	case Tclunk:
@@ -336,8 +359,8 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(newfid);
 		STRING(name, sizeof(f->name));
 		break;
-/*
- */
+	/*
+	 */
 	case Rnop:
 	case Rosession:
 		break;
@@ -370,7 +393,7 @@ convM2S(char *ap, Fcall *f, int n)
 
 	case Rauth:
 		SHORT(fid);
-		STRING(ticket, 8+8+7+7);
+		STRING(ticket, 8 + 8 + 7 + 7);
 		break;
 
 	case Rclone:
@@ -399,8 +422,9 @@ convM2S(char *ap, Fcall *f, int n)
 	case Rread:
 		SHORT(fid);
 		SHORT(count);
-		p++;	/* pad(1) */
-		f->data = (char*)p; p += f->count;
+		p++; /* pad(1) */
+		f->data = (char*)p;
+		p += f->count;
 		break;
 
 	case Rwrite:
@@ -425,7 +449,7 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		break;
 	}
-	if((uint8_t*)ap+n == p)
+	if((uint8_t*)ap + n == p)
 		return n;
 	return 0;
 }

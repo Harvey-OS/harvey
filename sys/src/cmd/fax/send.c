@@ -23,23 +23,24 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int fd, cfd, r;
-	Modem *m;
-	char *addr;
+	Modem* m;
+	char* addr;
 
 	m = &modems[0];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		vflag = 1;
 		break;
 	default:
 		usage();
 		break;
-
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc <= 1)
 		usage();
@@ -47,18 +48,20 @@ main(int argc, char *argv[])
 
 	addr = netmkaddr(*argv, "telco", "fax!9600");
 	fd = dial(addr, 0, 0, &cfd);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "faxsend: can't dial %s: %r\n", addr);
 		exits("Retry, can't dial");
 	}
 	initmodem(m, fd, cfd, 0, 0);
-	argc--; argv++;
+	argc--;
+	argv++;
 	r = faxsend(m, argc, argv);
-	if(r != Eok){
+	if(r != Eok) {
 		fprint(2, "faxsend: %s\n", m->error);
-		syslog(0, "fax", "failed %s %s: %s", argv[0], argv[1], m->error); 
+		syslog(0, "fax", "failed %s %s: %s", argv[0], argv[1],
+		       m->error);
 		exits(m->error);
 	}
-	syslog(0, "fax", "success %s %s", argv[0], argv[1]); 
+	syslog(0, "fax", "success %s %s", argv[0], argv[1]);
 	exits(0);
 }

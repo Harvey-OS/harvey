@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
 int
-memcmp(const void *a1, const void *a2, uint32_t n)
+memcmp(const void* a1, const void* a2, uint32_t n)
 {
-	const char *s1, *s2;
+	const char* s1, *s2;
 	uint c1, c2;
 
 	s1 = a1;

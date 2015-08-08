@@ -15,17 +15,15 @@
 Biobuf in;
 Biobuf out;
 
-enum
-{
-	Empty,
-	Sys,
-	Dk,
-	Ip,
-	Domain,
+enum { Empty,
+       Sys,
+       Dk,
+       Ip,
+       Domain,
 };
 
 int
-iscomment(char *name)
+iscomment(char* name)
 {
 	return *name == '#';
 }
@@ -34,15 +32,15 @@ iscomment(char *name)
  *  is this a fully specified datakit name?
  */
 int
-isdk(char *name)
+isdk(char* name)
 {
 	int slash;
 
 	slash = 0;
-	for(; *name; name++){
+	for(; *name; name++) {
 		if(isalnum(*name))
 			continue;
-		if(*name == '/'){
+		if(*name == '/') {
 			slash = 1;
 			continue;
 		}
@@ -55,17 +53,17 @@ isdk(char *name)
  *  Is this an internet domain name?
  */
 int
-isdomain(char *name)
+isdomain(char* name)
 {
 	int dot = 0;
 	int alpha = 0;
 
-	for(; *name; name++){
-		if(isalpha(*name) || *name == '-'){
+	for(; *name; name++) {
+		if(isalpha(*name) || *name == '-') {
 			alpha = 1;
 			continue;
 		}
-		if(*name == '.'){
+		if(*name == '.') {
 			dot = 1;
 			continue;
 		}
@@ -80,12 +78,12 @@ isdomain(char *name)
  *  is this an ip address?
  */
 int
-isip(char *name)
+isip(char* name)
 {
 	int dot = 0;
 
-	for(; *name; name++){
-		if(*name == '.'){
+	for(; *name; name++) {
+		if(*name == '.') {
 			dot = 1;
 			continue;
 		}
@@ -104,25 +102,25 @@ void
 tprint(void)
 {
 	int i, tab;
-	char *p;
+	char* p;
 
 	tab = 0;
-	for(i = 0; i < ntup; i++){
-		if(ttype[i] == Sys){
+	for(i = 0; i < ntup; i++) {
+		if(ttype[i] == Sys) {
 			Bprint(&out, "sys = %s\n", tup[i]);
 			tab = 1;
 			ttype[i] = Empty;
 			break;
 		}
 	}
-	for(i = 0; i < ntup; i++){
+	for(i = 0; i < ntup; i++) {
 		if(ttype[i] == Empty)
 			continue;
 		if(tab)
 			Bprint(&out, "\t");
 		tab = 1;
 
-		switch(ttype[i]){
+		switch(ttype[i]) {
 		case Domain:
 			Bprint(&out, "dom=%s\n", tup[i]);
 			break;
@@ -131,10 +129,11 @@ tprint(void)
 			break;
 		case Dk:
 			p = strrchr(tup[i], '/');
-			if(p){
+			if(p) {
 				p++;
-				if((*p == 'C' || *p == 'R')
-				&& strncmp(tup[i], "nj/astro/", p-tup[i]) == 0)
+				if((*p == 'C' || *p == 'R') &&
+				   strncmp(tup[i], "nj/astro/", p - tup[i]) ==
+				       0)
 					Bprint(&out, "flavor=console ");
 			}
 			Bprint(&out, "dk=%s\n", tup[i]);
@@ -155,27 +154,28 @@ void
 main(void)
 {
 	int n, i, j;
-	char *l;
-	char *fields[NFIELDS];
+	char* l;
+	char* fields[NFIELDS];
 	int ftype[NFIELDS];
 	int same, match;
 
 	Binit(&in, 0, OREAD);
 	Binit(&out, 1, OWRITE);
 	ntup = 0;
-	while(l = Brdline(&in, '\n')){
-		l[Blinelen(&in)-1] = 0;
+	while(l = Brdline(&in, '\n')) {
+		l[Blinelen(&in) - 1] = 0;
 		n = getfields(l, fields, NFIELDS, 1, " \t");
 		same = 0;
-		for(i = 0; i < n; i++){
-			if(iscomment(fields[i])){
+		for(i = 0; i < n; i++) {
+			if(iscomment(fields[i])) {
 				n = i;
 				break;
 			}
-			if(isdomain(fields[i])){
+			if(isdomain(fields[i])) {
 				ftype[i] = Domain;
 				for(j = 0; j < ntup; j++)
-					if(ttype[j] == Domain && strcmp(fields[i], tup[j]) == 0){
+					if(ttype[j] == Domain &&
+					   strcmp(fields[i], tup[j]) == 0) {
 						same = 1;
 						ftype[i] = Empty;
 						break;
@@ -187,19 +187,20 @@ main(void)
 			else
 				ftype[i] = Sys;
 		}
-		if(!same && ntup){
+		if(!same && ntup) {
 			tprint();
 			ntup = 0;
 		}
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			match = 0;
-			for(j = 0; j < ntup; j++){
-				if(ftype[i] == ttype[j] && strcmp(fields[i], tup[j]) == 0){
+			for(j = 0; j < ntup; j++) {
+				if(ftype[i] == ttype[j] &&
+				   strcmp(fields[i], tup[j]) == 0) {
 					match = 1;
 					break;
 				}
 			}
-			if(!match){
+			if(!match) {
 				ttype[ntup] = ftype[i];
 				strcpy(tup[ntup], fields[i]);
 				ntup++;

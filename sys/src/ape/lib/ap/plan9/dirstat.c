@@ -13,31 +13,32 @@
 #include "sys9.h"
 #include "dir.h"
 
-enum
-{
-	DIRSIZE	= STATFIXLEN + 16 * 4		/* enough for encoded stat buf + some reasonable strings */
+enum { DIRSIZE =
+	   STATFIXLEN +
+	   16 * 4 /* enough for encoded stat buf + some reasonable strings */
 };
 
 Dir*
-_dirstat(char *name)
+_dirstat(char* name)
 {
-	Dir *d;
-	uint8_t *buf;
+	Dir* d;
+	uint8_t* buf;
 	int n, nd, i;
 
 	nd = DIRSIZE;
-	for(i=0; i<2; i++){	/* should work by the second try */
-		d = malloc(sizeof(Dir) + BIT16SZ +nd);
+	for(i = 0; i < 2; i++) { /* should work by the second try */
+		d = malloc(sizeof(Dir) + BIT16SZ + nd);
 		if(d == nil)
 			return nil;
 		buf = (uint8_t*)&d[1];
-		n = _STAT(name, buf, BIT16SZ+nd);
-		if(n < BIT16SZ){
+		n = _STAT(name, buf, BIT16SZ + nd);
+		if(n < BIT16SZ) {
 			free(d);
 			return nil;
 		}
-		nd = GBIT16((uint8_t*)buf);	/* size needed to store whole stat buffer */
-		if(nd <= n){
+		nd = GBIT16(
+		    (uint8_t*)buf); /* size needed to store whole stat buffer */
+		if(nd <= n) {
 			_convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
@@ -48,9 +49,9 @@ _dirstat(char *name)
 }
 
 int
-_dirwstat(char *name, Dir *d)
+_dirwstat(char* name, Dir* d)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int r;
 
 	r = _sizeD2M(d);
@@ -66,23 +67,23 @@ _dirwstat(char *name, Dir *d)
 Dir*
 _dirfstat(int fd)
 {
-	Dir *d;
-	uint8_t *buf;
+	Dir* d;
+	uint8_t* buf;
 	int n, nd, i;
 
 	nd = DIRSIZE;
-	for(i=0; i<2; i++){	/* should work by the second try */
+	for(i = 0; i < 2; i++) { /* should work by the second try */
 		d = malloc(sizeof(Dir) + nd);
 		if(d == nil)
 			return nil;
 		buf = (uint8_t*)&d[1];
 		n = _FSTAT(fd, buf, nd);
-		if(n < BIT16SZ){
+		if(n < BIT16SZ) {
 			free(d);
 			return nil;
 		}
-		nd = GBIT16(buf);	/* size needed to store whole stat buffer */
-		if(nd <= n){
+		nd = GBIT16(buf); /* size needed to store whole stat buffer */
+		if(nd <= n) {
 			_convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
@@ -93,9 +94,9 @@ _dirfstat(int fd)
 }
 
 int
-_dirfwstat(int fd, Dir *d)
+_dirfwstat(int fd, Dir* d)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int r;
 
 	r = _sizeD2M(d);
@@ -109,7 +110,7 @@ _dirfwstat(int fd, Dir *d)
 }
 
 void
-_nulldir(Dir *d)
+_nulldir(Dir* d)
 {
 	memset(d, ~0, sizeof(Dir));
 	d->name = d->uid = d->gid = d->muid = "";

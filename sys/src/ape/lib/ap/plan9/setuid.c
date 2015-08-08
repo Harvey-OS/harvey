@@ -15,8 +15,7 @@
  * BUG: never works
  */
 
-int
-setuid(uid_t)
+int setuid(uid_t)
 {
 	errno = EPERM;
 	return -1;

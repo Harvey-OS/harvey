@@ -7,30 +7,27 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include <u.h>
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"../port/edf.h"
-#include	"errstr.h"
-#include	<trace.h>
+#include "../port/edf.h"
+#include "errstr.h"
+#include <trace.h>
 
-enum
-{
-	Scaling=2,
+enum { Scaling = 2,
 
-	AMPmincores = 5,
+       AMPmincores = 5,
 };
 
-Ref	noteidalloc;
+Ref noteidalloc;
 
 static Ref pidalloc;
 
 static Sched run;
-
 
 struct Procalloc procalloc;
 
@@ -44,27 +41,15 @@ static void updatecpu(Proc*);
 
 static void rebalance(void);
 
-char *statename[] =
-{	/* BUG: generate automatically */
-	"Dead",
-	"Moribund",
-	"Ready",
-	"Scheding",
-	"Running",
-	"Queueing",
-	"QueueingR",
-	"QueueingW",
-	"Wakeme",
-	"Broken",
-	"Stopped",
-	"Rendez",
-	"Waitrelease",
-	"Exotic",
-	"Down",
+char* statename[] = {
+    /* BUG: generate automatically */
+    "Dead", "Moribund", "Ready", "Scheding", "Running", "Queueing", "QueueingR",
+    "QueueingW", "Wakeme", "Broken", "Stopped", "Rendez", "Waitrelease",
+    "Exotic", "Down",
 };
 
 Sched*
-procsched(Proc *p)
+procsched(Proc* p)
 {
 	return &run;
 }
@@ -76,16 +61,14 @@ void
 procinit0(void)
 {
 	run.schedgain = 30;
-
 }
 
 /*
  * Always splhi()'ed.
  */
-void
-schedinit(void)		/* never returns */
+void schedinit(void) /* never returns */
 {
-	Edf *e;
+	Edf* e;
 
 	m->inidle = 1;
 	m->proc = nil;
@@ -107,7 +90,7 @@ schedinit(void)		/* never returns */
 			up->state = Dead;
 			stopac();
 			edfstop(up);
-			if (up->edf)
+			if(up->edf)
 				free(up->edf);
 			up->edf = nil;
 
@@ -139,8 +122,9 @@ stackok(void)
 {
 	char dummy;
 
-	if(&dummy < (char*)up->kstack + 4*KiB){
-		print("tc kernel stack overflow, cpu%d stopped\n", machp()->machno);
+	if(&dummy < (char*)up->kstack + 4 * KiB) {
+		print("tc kernel stack overflow, cpu%d stopped\n",
+		      machp()->machno);
 		DONE();
 	}
 }
@@ -152,17 +136,16 @@ stackok(void)
 void
 sched(void)
 {
-	Proc *p;
+	Proc* p;
 
 	if(m->ilockdepth)
-		panic("cpu%d: ilockdepth %d, last lock %#p at %#p, sched called from %#p",
-			machp()->machno,
-			m->ilockdepth,
-			up? up->lastilock: nil,
-			(up && up->lastilock)? up->lastilock->_pc: 0,
-			getcallerpc(&p+2));
+		panic("cpu%d: ilockdepth %d, last lock %#p at %#p, sched "
+		      "called from %#p",
+		      machp()->machno, m->ilockdepth, up ? up->lastilock : nil,
+		      (up && up->lastilock) ? up->lastilock->_pc : 0,
+		      getcallerpc(&p + 2));
 
-	if(up){
+	if(up) {
 		/*
 		 * Delay the sched until the process gives up the locks
 		 * it is holding.  This avoids dumb lock loops.
@@ -178,14 +161,13 @@ sched(void)
 		 * holds a lock but Lock.p has not yet been initialized.
 		 */
 		if(up->nlocks)
-		if(up->state != Moribund)
-		if(up->delaysched < 20
-		|| pga.Lock.p == up
-		|| procalloc.Lock.p == up){
-			up->delaysched++;
- 			run.delayedscheds++;
-			return;
-		}
+			if(up->state != Moribund)
+				if(up->delaysched < 20 || pga.Lock.p == up ||
+				   procalloc.Lock.p == up) {
+					up->delaysched++;
+					run.delayedscheds++;
+					return;
+				}
 		up->delaysched = 0;
 
 		splhi();
@@ -198,7 +180,7 @@ sched(void)
 
 		procsave(up);
 		mmuflushtlb(machp()->pml4->pa);
-		if(setlabel(&up->sched)){
+		if(setlabel(&up->sched)) {
 			procrestore(up);
 			spllo();
 			return;
@@ -207,10 +189,10 @@ sched(void)
 	}
 
 	m->inidle = 1;
-	p = runproc();	/* core 0 never returns */
+	p = runproc(); /* core 0 never returns */
 	m->inidle = 0;
 
-	if(!p->edf){
+	if(!p->edf) {
 		updatecpu(p);
 		p->priority = reprioritize(p);
 	}
@@ -236,7 +218,7 @@ anyready(void)
 int
 anyhigher(void)
 {
-	return run.runvec & ~((1<<(up->priority+1))-1);
+	return run.runvec & ~((1 << (up->priority + 1)) - 1);
 }
 
 /*
@@ -247,14 +229,15 @@ void
 hzsched(void)
 {
 	/* once a second, rebalance will reprioritize ready procs */
-	if(machp()->machno == 0){
+	if(machp()->machno == 0) {
 		rebalance();
 		return;
 	}
 
-	/* with <= 4 cores, we use SMP and core 0 does not set qexpired for us */
+	/* with <= 4 cores, we use SMP and core 0 does not set qexpired for us
+	 */
 	if(sys->nmach <= AMPmincores)
-		if(machp()->ticks - m->qstart >= HZ/10)
+		if(machp()->ticks - m->qstart >= HZ / 10)
 			m->qexpired = 1;
 
 	/* unless preempted, get to run */
@@ -270,22 +253,26 @@ int
 preempted(void)
 {
 	if(up && up->state == Running)
-	if(up->preempted == 0)
-	if(anyhigher())
-	if(!active.exiting){
-		/*  Core 0 is dispatching all interrupts, so no core
-		 *  actually running a user process is ever going call preempted, unless
-		 *  we consider IPIs for preemption or we distribute interrupts.
-		 *  But we are going to use SMP for machines with few cores.
-		panic("preemted used");
-		 */
+		if(up->preempted == 0)
+			if(anyhigher())
+				if(!active.exiting) {
+					/*  Core 0 is dispatching all
+					interrupts, so no core
+					 *  actually running a user process is
+					ever going call preempted, unless
+					 *  we consider IPIs for preemption or
+					we distribute interrupts.
+					 *  But we are going to use SMP for
+					machines with few cores.
+					panic("preemted used");
+					 */
 
-		up->preempted = 1;
-		sched();
-		splhi();
-		up->preempted = 0;
-		return 1;
-	}
+					up->preempted = 1;
+					sched();
+					splhi();
+					up->preempted = 0;
+					return 1;
+				}
 	return 0;
 }
 
@@ -330,33 +317,34 @@ preempted(void)
  * at any time to bring the stats for a given proc up-to-date.
  */
 static void
-updatecpu(Proc *p)
+updatecpu(Proc* p)
 {
 	int D, n, t, ocpu;
 
 	if(p->edf)
 		return;
 
-	t = sys->ticks*Scaling + Scaling/2;
+	t = sys->ticks * Scaling + Scaling / 2;
 	n = t - p->lastupdate;
 	p->lastupdate = t;
 
 	if(n == 0)
 		return;
-	D = run.schedgain*HZ*Scaling;
+	D = run.schedgain * HZ * Scaling;
 	if(n > D)
 		n = D;
 
 	ocpu = p->cpu;
 	if(p != up)
-		p->cpu = (ocpu*(D-n))/D;
-	else{
+		p->cpu = (ocpu * (D - n)) / D;
+	else {
 		t = 1000 - ocpu;
-		t = (t*(D-n))/D;
+		t = (t * (D - n)) / D;
 		p->cpu = 1000 - t;
 	}
 
-//iprint("pid %d %s for %d cpu %d -> %d\n", p->pid,p==up?"active":"inactive",n, ocpu,p->cpu);
+	// iprint("pid %d %s for %d cpu %d -> %d\n",
+	// p->pid,p==up?"active":"inactive",n, ocpu,p->cpu);
 }
 
 /*
@@ -369,7 +357,7 @@ updatecpu(Proc *p)
  * means you're not using as much as you could.
  */
 static int
-reprioritize(Proc *p)
+reprioritize(Proc* p)
 {
 	int fairshare, n, load, ratio;
 
@@ -382,16 +370,17 @@ reprioritize(Proc *p)
 	 * except the decimal point is moved three places
 	 * on both load and fairshare.
 	 */
-	fairshare = (sys->nmach*1000*1000)/load;
+	fairshare = (sys->nmach * 1000 * 1000) / load;
 	n = p->cpu;
 	if(n == 0)
 		n = 1;
-	ratio = (fairshare+n/2) / n;
+	ratio = (fairshare + n / 2) / n;
 	if(ratio > p->basepri)
 		ratio = p->basepri;
 	if(ratio < 0)
 		panic("reprioritize");
-//iprint("pid %d cpu %d load %d fair %d pri %d\n", p->pid, p->cpu, load, fairshare, ratio);
+	// iprint("pid %d cpu %d load %d fair %d pri %d\n", p->pid, p->cpu,
+	// load, fairshare, ratio);
 	return ratio;
 }
 
@@ -399,7 +388,7 @@ reprioritize(Proc *p)
  * add a process to a scheduling queue
  */
 static void
-queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
+queueproc(Sched* sch, Schedq* rq, Proc* p, int locked)
 {
 	int pri;
 
@@ -417,7 +406,7 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
 	rq->tail = p;
 	rq->n++;
 	sch->nrdy++;
-	sch->runvec |= 1<<pri;
+	sch->runvec |= 1 << pri;
 	if(!locked)
 		unlock(sch);
 }
@@ -426,9 +415,9 @@ queueproc(Sched *sch, Schedq *rq, Proc *p, int locked)
  *  try to remove a process from a scheduling queue (called splhi)
  */
 Proc*
-dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
+dequeueproc(Sched* sch, Schedq* rq, Proc* tp)
 {
-	Proc *l, *p;
+	Proc* l, *p;
 
 	if(!canlock(sch))
 		return nil;
@@ -438,7 +427,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	 *  refind the target process.
 	 */
 	l = 0;
-	for(p = rq->head; p; p = p->rnext){
+	for(p = rq->head; p; p = p->rnext) {
 		if(p == tp)
 			break;
 		l = p;
@@ -448,7 +437,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	 *  p->mach==0 only when process state is saved
 	 */
 
-	if(p == 0 || p->mach){
+	if(p == 0 || p->mach) {
 		unlock(sch);
 		return nil;
 	}
@@ -459,25 +448,26 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	else
 		rq->head = p->rnext;
 	if(rq->head == nil)
-		sch->runvec &= ~(1<<(rq-sch->runq));
+		sch->runvec &= ~(1 << (rq - sch->runq));
 	rq->n--;
 	sch->nrdy--;
 	if(p->state != Ready)
-		print("dequeueproc %s %d %s\n", p->text, p->pid, statename[p->state]);
+		print("dequeueproc %s %d %s\n", p->text, p->pid,
+		      statename[p->state]);
 
 	unlock(sch);
 	return p;
 }
 
 static void
-schedready(Sched *sch, Proc *p, int locked)
+schedready(Sched* sch, Proc* p, int locked)
 {
 	Mpl pl;
 	int pri;
-	Schedq *rq;
+	Schedq* rq;
 
 	pl = splhi();
-	if(edfready(p)){
+	if(edfready(p)) {
 		splx(pl);
 		return;
 	}
@@ -498,7 +488,7 @@ schedready(Sched *sch, Proc *p, int locked)
  *  runq for that priority.
  */
 void
-ready(Proc *p)
+ready(Proc* p)
 {
 	schedready(procsched(p), p, 0);
 }
@@ -509,9 +499,9 @@ ready(Proc *p)
 void
 yield(void)
 {
-	if(anyready()){
+	if(anyready()) {
 		/* pretend we just used 1/2 tick */
-		up->lastupdate -= Scaling/2;
+		up->lastupdate -= Scaling / 2;
 		sched();
 	}
 }
@@ -526,16 +516,16 @@ rebalance(void)
 {
 	Mpl pl;
 	int pri, npri, t;
-	Schedq *rq;
-	Proc *p;
+	Schedq* rq;
+	Proc* p;
 
 	t = machp()->ticks;
 	if(t - run.balancetime < HZ)
 		return;
 	run.balancetime = t;
 
-	for(pri=0, rq=run.runq; pri<Npriq; pri++, rq++){
-another:
+	for(pri = 0, rq = run.runq; pri < Npriq; pri++, rq++) {
+	another:
 		p = rq->head;
 		if(p == nil)
 			continue;
@@ -545,7 +535,7 @@ another:
 			continue;
 		updatecpu(p);
 		npri = reprioritize(p);
-		if(npri != pri){
+		if(npri != pri) {
 			pl = splhi();
 			p = dequeueproc(&run, rq, p);
 			if(p)
@@ -561,16 +551,17 @@ another:
  * Try to make a core available by
  * 1. preempting a process with lower priority, or
  * 2. preempting one with the same priority that had more than HZ/10, or
- * 3. rescheduling one that run more than HZ, in the hope he gets his priority lowered.
+ * 3. rescheduling one that run more than HZ, in the hope he gets his priority
+ * lowered.
  */
 static void
-preemptfor(Proc *p)
+preemptfor(Proc* p)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	uint32_t delta;
 	uint i, j, rr;
-	Proc *mup;
-	Mach *mp;
+	Proc* mup;
+	Mach* mp;
 
 	assert(machp()->machno == 0);
 	/*
@@ -578,32 +569,34 @@ preemptfor(Proc *p)
 	 * round robin otherwise.
 	 */
 	for(rr = 0; rr < 2; rr++)
-		for(i = 0; i < MACHMAX; i++){
+		for(i = 0; i < MACHMAX; i++) {
 			j = pickcore(p->color, i);
-			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
+			if((mp = sys->machptr[j]) != nil && mp->online &&
+			   mp->nixtype == NIXTC) {
 				if(mp == m)
 					continue;
 				/*
 				 * Caution here: mp->proc can change, even die.
 				 */
 				mup = mp->proc;
-				if(mup == nil)		/* one got idle */
+				if(mup == nil) /* one got idle */
 					return;
 				delta = mp->ticks - mp->qstart;
-				if(mup->priority < p->priority){
+				if(mup->priority < p->priority) {
 					mp->qexpired = 1;
 					return;
 				}
-				if(rr && mup->priority == p->priority && delta > HZ/10){
+				if(rr && mup->priority == p->priority &&
+				   delta > HZ / 10) {
 					mp->qexpired = 1;
 					return;
 				}
-				if(rr & delta > HZ){
+				if(rr & delta > HZ) {
 					mp->qexpired = 1;
 					return;
 				}
 			}
-	}
+		}
 }
 
 /*
@@ -613,14 +606,14 @@ preemptfor(Proc *p)
 static void
 mach0sched(void)
 {
-	Schedq *rq;
-	Proc *p;
-	Mach *mp;
+	Schedq* rq;
+	Proc* p;
+	Mach* mp;
 	uint32_t start, now;
 	int n, i, j;
 
 	assert(machp()->machno == 0);
-	acmodeset(NIXKC);		/* we don't time share any more */
+	acmodeset(NIXKC); /* we don't time share any more */
 	n = 0;
 	start = perfticks();
 loop:
@@ -629,28 +622,30 @@ loop:
 	 * find a ready process that we might run.
 	 */
 	spllo();
-	for(rq = &run.runq[Nrq-1]; rq >= run.runq; rq--)
-		for(p = rq->head; p; p = p->rnext){
+	for(rq = &run.runq[Nrq - 1]; rq >= run.runq; rq--)
+		for(p = rq->head; p; p = p->rnext) {
 			/*
-			 * wired processes may only run when their core is available.
+			 * wired processes may only run when their core is
+			 * available.
 			 */
-			if(p->wired != nil){
+			if(p->wired != nil) {
 				if(p->wired->proc == nil)
 					goto found;
 				continue;
 			}
 			/*
-			 * find a ready process that did run at an available core
+			 * find a ready process that did run at an available
+			 * core
 			 * or one that has not moved for some time.
 			 */
-			if(p->mp == nil || p->mp->proc == nil || n>0)
+			if(p->mp == nil || p->mp->proc == nil || n > 0)
 				goto found;
 		}
 	/* waste time or halt the CPU */
 	idlehands();
 	/* remember how much time we're here */
 	now = perfticks();
-	m->perf.inidle += now-start;
+	m->perf.inidle += now - start;
 	start = now;
 	n++;
 	goto loop;
@@ -662,17 +657,18 @@ found:
 	 * find a core for this process, but honor wiring.
 	 */
 	mp = p->wired;
-	if(mp != nil){
+	if(mp != nil) {
 		if(mp->proc != nil)
 			goto loop;
-	}else{
-		for(i = 0; i < MACHMAX; i++){
+	} else {
+		for(i = 0; i < MACHMAX; i++) {
 			j = pickcore(p->color, i);
-			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC)
+			if((mp = sys->machptr[j]) != nil && mp->online &&
+			   mp->nixtype == NIXTC)
 				if(mp != m && mp->proc == nil)
 					break;
 		}
-		if(i == MACHMAX){
+		if(i == MACHMAX) {
 			preemptfor(p);
 			goto loop;
 		}
@@ -680,7 +676,7 @@ found:
 
 	p = dequeueproc(&run, rq, p);
 	mp->proc = p;
-	if(p != nil){
+	if(p != nil) {
 		p->state = Scheding;
 		p->mp = mp;
 	}
@@ -698,8 +694,8 @@ found:
 static Proc*
 smprunproc(void)
 {
-	Schedq *rq;
-	Proc *p;
+	Schedq* rq;
+	Proc* p;
 	uint32_t start, now;
 	int i;
 
@@ -713,16 +709,17 @@ loop:
 	 *  time around the loop affinity goes down.
 	 */
 	spllo();
-	for(i = 0;; i++){
+	for(i = 0;; i++) {
 		/*
 		 *  find the highest priority target process that this
 		 *  processor can run given affinity constraints.
 		 *
 		 */
-		for(rq = &run.runq[Nrq-1]; rq >= run.runq; rq--){
-			for(p = rq->head; p; p = p->rnext){
-				if(p->mp == nil || p->mp == sys->machptr[machp()->machno]
-				|| (!p->wired && i > 0))
+		for(rq = &run.runq[Nrq - 1]; rq >= run.runq; rq--) {
+			for(p = rq->head; p; p = p->rnext) {
+				if(p->mp == nil ||
+				   p->mp == sys->machptr[machp()->machno] ||
+				   (!p->wired && i > 0))
 					goto found;
 			}
 		}
@@ -731,7 +728,7 @@ loop:
 		idlehands();
 		/* remember how much time we're here */
 		now = perfticks();
-		m->perf.inidle += now-start;
+		m->perf.inidle += now - start;
 		start = now;
 	}
 
@@ -744,8 +741,11 @@ found:
 	p->state = Scheding;
 	p->mp = sys->machptr[machp()->machno];
 
-	if(edflock(p)){
-		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
+	if(edflock(p)) {
+		edfrun(p,
+		       rq ==
+		           &run.runq[PriEdf]); /* start deadline timer and do
+		                                  admin */
 		edfunlock();
 	}
 	if(p->trace)
@@ -765,8 +765,8 @@ found:
 Proc*
 runproc(void)
 {
-	Schedq *rq;
-	Proc *p;
+	Schedq* rq;
+	Proc* p;
 	uint32_t start, now;
 
 	if(sys->nmach <= AMPmincores)
@@ -775,22 +775,24 @@ runproc(void)
 	start = perfticks();
 	run.preempts++;
 	rq = nil;
-	if(machp()->machno != 0){
-		do{
+	if(machp()->machno != 0) {
+		do {
 			spllo();
 			while(m->proc == nil)
 				idlehands();
 			now = perfticks();
-			m->perf.inidle += now-start;
+			m->perf.inidle += now - start;
 			start = now;
 			splhi();
 			p = m->proc;
-		}while(p == nil);
+		} while(p == nil);
 		p->state = Scheding;
 		p->mp = sys->machptr[machp()->machno];
 
-		if(edflock(p)){
-			edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
+		if(edflock(p)) {
+			edfrun(p, rq == &run.runq[PriEdf]); /* start deadline
+			                                       timer and do
+			                                       admin */
 			edfunlock();
 		}
 		if(p->trace)
@@ -799,14 +801,14 @@ runproc(void)
 	}
 
 	mach0sched();
-	return nil;	/* not reached */
+	return nil; /* not reached */
 }
 
 int
-canpage(Proc *p)
+canpage(Proc* p)
 {
 	int ok;
-	Sched *sch;
+	Sched* sch;
 
 	splhi();
 	sch = procsched(p);
@@ -815,8 +817,7 @@ canpage(Proc *p)
 	if(p->mach == 0) {
 		p->newtlb = 1;
 		ok = 1;
-	}
-	else
+	} else
 		ok = 0;
 	unlock(sch);
 	spllo();
@@ -827,7 +828,7 @@ canpage(Proc *p)
 Proc*
 newproc(void)
 {
-	Proc *p;
+	Proc* p;
 
 	p = psalloc();
 
@@ -880,7 +881,7 @@ newproc(void)
 	p->wired = 0;
 	procpriority(p, PriNormal, 0);
 	p->cpu = 0;
-	p->lastupdate = sys->ticks*Scaling;
+	p->lastupdate = sys->ticks * Scaling;
 	p->edf = nil;
 
 	p->ntrap = 0;
@@ -901,26 +902,26 @@ newproc(void)
  * wire this proc to a machine
  */
 void
-procwired(Proc *p, int bm)
+procwired(Proc* p, int bm)
 {
-	Proc *up = externup();
-	Proc *pp;
+	Proc* up = externup();
+	Proc* pp;
 	int i;
 	char nwired[MACHMAX];
-	Mach *wm;
+	Mach* wm;
 
-	if(bm < 0){
+	if(bm < 0) {
 		/* pick a machine to wire to */
 		memset(nwired, 0, sizeof(nwired));
 		p->wired = 0;
-		for(i=0; (pp = psincref(i)) != nil; i++){
+		for(i = 0; (pp = psincref(i)) != nil; i++) {
 			wm = pp->wired;
 			if(wm && pp->pid)
 				nwired[wmachp()->machno]++;
 			psdecref(pp);
 		}
 		bm = 0;
-		for(i=0; i<sys->nmach; i++)
+		for(i = 0; i < sys->nmach; i++)
 			if(nwired[i] < nwired[bm])
 				bm = i;
 	} else {
@@ -945,7 +946,7 @@ procwired(Proc *p, int bm)
 }
 
 void
-procpriority(Proc *p, int pri, int fixed)
+procpriority(Proc* p, int pri, int fixed)
 {
 	if(pri >= Npriq)
 		pri = Npriq - 1;
@@ -953,7 +954,7 @@ procpriority(Proc *p, int pri, int fixed)
 		pri = 0;
 	p->basepri = pri;
 	p->priority = pri;
-	if(fixed){
+	if(fixed) {
 		p->fixedpri = 1;
 	} else {
 		p->fixedpri = 0;
@@ -969,20 +970,22 @@ procpriority(Proc *p, int pri, int fixed)
  *  and p->r synchronized.
  */
 void
-sleep(Rendez *r, int (*f)(void*), void *arg)
+sleep(Rendez* r, int (*f)(void*), void* arg)
 {
 	Mpl pl;
 
 	pl = splhi();
 
 	if(up->nlocks)
-		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
-			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc(&r));
+		print("process %d sleeps with %d locks held, last lock %#p "
+		      "locked at pc %#p, sleep called from %#p\n",
+		      up->pid, up->nlocks, up->lastlock, up->lastlock->_pc,
+		      getcallerpc(&r));
 	lock(r);
 	lock(&up->rlock);
-	if(r->p){
-		print("double sleep called from %#p, %d %d\n",
-			getcallerpc(&r), r->p->pid, up->pid);
+	if(r->p) {
+		print("double sleep called from %#p, %d %d\n", getcallerpc(&r),
+		      r->p->pid, up->pid);
 		dumpstack();
 	}
 
@@ -994,7 +997,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	 */
 	r->p = up;
 
-	if((*f)(arg) || up->notepending){
+	if((*f)(arg) || up->notepending) {
 		/*
 		 *  if condition happened or a note is pending
 		 *  never mind
@@ -1045,16 +1048,16 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 }
 
 static int
-tfn(void *arg)
+tfn(void* arg)
 {
 	return up->trend == nil || up->tfn(arg);
 }
 
 void
-twakeup(Ureg* ureg, Timer *t)
+twakeup(Ureg* ureg, Timer* t)
 {
-	Proc *p;
-	Rendez *trend;
+	Proc* p;
+	Rendez* trend;
 
 	p = t->ta;
 	trend = p->trend;
@@ -1064,11 +1067,11 @@ twakeup(Ureg* ureg, Timer *t)
 }
 
 void
-tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
+tsleep(Rendez* r, int (*fn)(void*), void* arg, int32_t ms)
 {
-	if (up->tt){
-		print("tsleep: timer active: mode %d, tf %#p\n",
-			up->tmode, up->tf);
+	if(up->tt) {
+		print("tsleep: timer active: mode %d, tf %#p\n", up->tmode,
+		      up->tf);
 		timerdel(up);
 	}
 	up->tns = MS2NS(ms);
@@ -1079,12 +1082,12 @@ tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
 	up->tfn = fn;
 	timeradd(up);
 
-	if(waserror()){
+	if(waserror()) {
 		timerdel(up);
 		nexterror();
 	}
 	sleep(r, tfn, arg);
-	if (up->tt)
+	if(up->tt)
 		timerdel(up);
 	up->twhen = 0;
 	poperror();
@@ -1097,17 +1100,17 @@ tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
  *  be held simultaneously, but I'm a paranoid - presotto.
  */
 Proc*
-wakeup(Rendez *r)
+wakeup(Rendez* r)
 {
 	Mpl pl;
-	Proc *p;
+	Proc* p;
 
 	pl = splhi();
 
 	lock(r);
 	p = r->p;
 
-	if(p != nil){
+	if(p != nil) {
 		lock(&p->rlock);
 		if(p->state != Wakeme || p->r != r)
 			panic("wakeup: state");
@@ -1131,12 +1134,12 @@ wakeup(Rendez *r)
  *  lock if we can't get the r->lock and retrying.
  */
 int
-postnote(Proc *p, int dolock, char *n, int flag)
+postnote(Proc* p, int dolock, char* n, int flag)
 {
 	Mpl pl;
 	int ret;
-	Rendez *r;
-	Proc *d, **l;
+	Rendez* r;
+	Proc* d, **l;
 
 	if(dolock)
 		qlock(&p->debug);
@@ -1153,7 +1156,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	p->notepending = 1;
 
 	/* NIX  */
-	if(p->state == Exotic){
+	if(p->state == Exotic) {
 		/* it could be that the process is not running
 		 * in the AC when we interrupt the AC, but then
 		 * we'd only get an extra interrupt in the AC, and
@@ -1166,19 +1169,20 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		qunlock(&p->debug);
 
 	/* this loop is to avoid lock ordering problems. */
-	for(;;){
+	for(;;) {
 		pl = splhi();
 		lock(&p->rlock);
 		r = p->r;
 
 		/* waiting for a wakeup? */
 		if(r == nil)
-			break;	/* no */
+			break; /* no */
 
 		/* try for the second lock */
-		if(canlock(r)){
+		if(canlock(r)) {
 			if(p->state != Wakeme || r->p != p)
-				panic("postnote: state %d %d %d", r->p != p, p->r != r, p->state);
+				panic("postnote: state %d %d %d", r->p != p,
+				      p->r != r, p->state);
 			p->r = nil;
 			r->p = nil;
 			ready(p);
@@ -1186,7 +1190,8 @@ postnote(Proc *p, int dolock, char *n, int flag)
 			break;
 		}
 
-		/* give other process time to get out of critical section and try again */
+		/* give other process time to get out of critical section and
+		 * try again */
 		unlock(&p->rlock);
 		splx(pl);
 		sched();
@@ -1194,7 +1199,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	unlock(&p->rlock);
 	splx(pl);
 
-	if(p->state != Rendezvous){
+	if(p->state != Rendezvous) {
 		if(p->state == Semdown)
 			ready(p);
 		return ret;
@@ -1220,21 +1225,21 @@ postnote(Proc *p, int dolock, char *n, int flag)
 /*
  * weird thing: keep at most NBROKEN around
  */
-#define	NBROKEN 4
-struct
-{
+#define NBROKEN 4
+struct {
 	QLock;
-	int	n;
-	Proc	*p[NBROKEN];
-}broken;
+	int n;
+	Proc* p[NBROKEN];
+} broken;
 
 void
-addbroken(Proc *p)
+addbroken(Proc* p)
 {
 	qlock(&broken);
 	if(broken.n == NBROKEN) {
 		ready(broken.p[0]);
-		memmove(&broken.p[0], &broken.p[1], sizeof(Proc*)*(NBROKEN-1));
+		memmove(&broken.p[0], &broken.p[1],
+		        sizeof(Proc*) * (NBROKEN - 1));
 		--broken.n;
 	}
 	broken.p[broken.n++] = p;
@@ -1248,16 +1253,16 @@ addbroken(Proc *p)
 }
 
 void
-unbreak(Proc *p)
+unbreak(Proc* p)
 {
 	int b;
 
 	qlock(&broken);
-	for(b=0; b < broken.n; b++)
+	for(b = 0; b < broken.n; b++)
 		if(broken.p[b] == p) {
 			broken.n--;
-			memmove(&broken.p[b], &broken.p[b+1],
-					sizeof(Proc*)*(NBROKEN-(b+1)));
+			memmove(&broken.p[b], &broken.p[b + 1],
+			        sizeof(Proc*) * (NBROKEN - (b + 1)));
 			ready(p);
 			break;
 		}
@@ -1271,7 +1276,7 @@ freebroken(void)
 
 	qlock(&broken);
 	n = broken.n;
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		ready(broken.p[i]);
 		broken.p[i] = 0;
 	}
@@ -1281,29 +1286,29 @@ freebroken(void)
 }
 
 void
-pexit(char *exitstr, int freemem)
+pexit(char* exitstr, int freemem)
 {
-	Proc *p;
-	Segment **s, **es;
+	Proc* p;
+	Segment** s, **es;
 	int32_t utime, stime;
-	Waitq *wq, *f, *next;
-	Fgrp *fgrp;
-	Egrp *egrp;
-	Rgrp *rgrp;
-	Pgrp *pgrp;
-	Chan *dot;
+	Waitq* wq, *f, *next;
+	Fgrp* fgrp;
+	Egrp* egrp;
+	Rgrp* rgrp;
+	Pgrp* pgrp;
+	Chan* dot;
 
 	if(0 && up->nfullq > 0)
 		iprint(" %s=%d", up->text, up->nfullq);
 	if(0 && up->nicc > 0)
-		iprint(" [%s nicc %ud tctime %ulld actime %ulld]\n",
-			up->text, up->nicc, up->tctime, up->actime);
+		iprint(" [%s nicc %ud tctime %ulld actime %ulld]\n", up->text,
+		       up->nicc, up->tctime, up->actime);
 	if(up->syscalltrace != nil)
 		free(up->syscalltrace);
 	up->syscalltrace = nil;
 	up->alarm = 0;
 
-	if (up->tt)
+	if(up->tt)
 		timerdel(up);
 	if(up->trace)
 		proctrace(up, SDead, 0);
@@ -1321,7 +1326,6 @@ pexit(char *exitstr, int freemem)
 	dot = up->dot;
 	up->dot = nil;
 	qunlock(&up->debug);
-
 
 	if(fgrp)
 		closefgrp(fgrp);
@@ -1360,7 +1364,7 @@ pexit(char *exitstr, int freemem)
 		wq->w.time[TReal] = tk2ms(sys->ticks - up->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %d: %s",
-				up->text, up->pid, exitstr);
+			        up->text, up->pid, exitstr);
 		else
 			wq->w.msg[0] = '\0';
 
@@ -1378,7 +1382,7 @@ pexit(char *exitstr, int freemem)
 			 * record behind.  This helps prevent badly written
 			 * daemon processes from accumulating lots of wait
 			 * records.
-		 	 */
+			 */
 			if(p->nwait < 128) {
 				wq->next = p->waitq;
 				p->waitq = wq;
@@ -1405,7 +1409,7 @@ pexit(char *exitstr, int freemem)
 	}
 	qunlock(&up->seglock);
 
-	lock(&up->exl);		/* Prevent my children from leaving waits */
+	lock(&up->exl); /* Prevent my children from leaving waits */
 	psunhash(up);
 	up->pid = 0;
 	wakeup(&up->waitr);
@@ -1436,19 +1440,19 @@ pexit(char *exitstr, int freemem)
 }
 
 int
-haswaitq(void *x)
+haswaitq(void* x)
 {
-	Proc *p;
+	Proc* p;
 
-	p = (Proc *)x;
+	p = (Proc*)x;
 	return p->waitq != 0;
 }
 
 int
-pwait(Waitmsg *w)
+pwait(Waitmsg* w)
 {
 	int cpid;
-	Waitq *wq;
+	Waitq* wq;
 
 	if(!canqlock(&up->qwaitr))
 		error(Einuse);
@@ -1485,10 +1489,10 @@ pwait(Waitmsg *w)
 }
 
 void
-dumpaproc(Proc *p)
+dumpaproc(Proc* p)
 {
 	uintptr_t bss;
-	char *s;
+	char* s;
 
 	if(p == 0)
 		return;
@@ -1502,23 +1506,24 @@ dumpaproc(Proc *p)
 	s = p->psstate;
 	if(s == 0)
 		s = statename[p->state];
-	print("%3d:%10s pc %#p dbgpc %#p  %8s (%s) ut %ld st %ld bss %#p qpc %#p nl %d nd %lud lpc %#p pri %lud\n",
-		p->pid, p->text, p->pc, dbgpc(p), s, statename[p->state],
-		p->time[0], p->time[1], bss, p->qpc, p->nlocks,
-		p->delaysched, p->lastlock ? p->lastlock->_pc : 0, p->priority);
+	print("%3d:%10s pc %#p dbgpc %#p  %8s (%s) ut %ld st %ld bss %#p qpc "
+	      "%#p nl %d nd %lud lpc %#p pri %lud\n",
+	      p->pid, p->text, p->pc, dbgpc(p), s, statename[p->state],
+	      p->time[0], p->time[1], bss, p->qpc, p->nlocks, p->delaysched,
+	      p->lastlock ? p->lastlock->_pc : 0, p->priority);
 }
 
 void
 procdump(void)
 {
 	int i;
-	Proc *p;
+	Proc* p;
 
 	if(up)
 		print("up %d\n", up->pid);
 	else
 		print("no current process\n");
-	for(i=0; (p = psincref(i)) != nil; i++) {
+	for(i = 0; (p = psincref(i)) != nil; i++) {
 		if(p->state != Dead)
 			dumpaproc(p);
 		psdecref(p);
@@ -1530,29 +1535,30 @@ procdump(void)
  *  state about segement s
  */
 void
-procflushseg(Segment *s)
+procflushseg(Segment* s)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i, ns, nm, nwait;
-	Proc *p;
-	Mach *mp;
+	Proc* p;
+	Mach* mp;
 
 	/*
 	 *  tell all processes with this
 	 *  segment to flush their mmu's
 	 */
 	nwait = 0;
-	for(i=0; (p = psincref(i)) != nil; i++) {
-		if(p->state == Dead){
+	for(i = 0; (p = psincref(i)) != nil; i++) {
+		if(p->state == Dead) {
 			psdecref(p);
 			continue;
 		}
-		for(ns = 0; ns < NSEG; ns++){
-			if(p->seg[ns] == s){
+		for(ns = 0; ns < NSEG; ns++) {
+			if(p->seg[ns] == s) {
 				p->newtlb = 1;
 				for(nm = 0; nm < MACHMAX; nm++)
-					if((mp = sys->machptr[nm]) != nil && mp->online)
-						if(mp->proc == p){
+					if((mp = sys->machptr[nm]) != nil &&
+					   mp->online)
+						if(mp->proc == p) {
 							mp->mmuflush = 1;
 							nwait++;
 						}
@@ -1582,15 +1588,16 @@ procflushseg(Segment *s)
 void
 scheddump(void)
 {
-	Proc *p;
-	Schedq *rq;
+	Proc* p;
+	Schedq* rq;
 
-	for(rq = &run.runq[Nrq-1]; rq >= run.runq; rq--){
+	for(rq = &run.runq[Nrq - 1]; rq >= run.runq; rq--) {
 		if(rq->head == 0)
 			continue;
-		print("run[%ld]:", rq-run.runq);
+		print("run[%ld]:", rq - run.runq);
 		for(p = rq->head; p; p = p->rnext)
-			print(" %d(%lud)", p->pid, machp()->ticks - p->readytime);
+			print(" %d(%lud)", p->pid,
+			      machp()->ticks - p->readytime);
 		print("\n");
 		delay(150);
 	}
@@ -1598,10 +1605,10 @@ scheddump(void)
 }
 
 void
-kproc(char *name, void (*func)(void *), void *arg)
+kproc(char* name, void (*func)(void*), void* arg)
 {
-	Proc *p;
-	static Pgrp *kpgrp;
+	Proc* p;
+	static Pgrp* kpgrp;
 
 	p = newproc();
 	p->psstate = 0;
@@ -1653,10 +1660,10 @@ kproc(char *name, void (*func)(void *), void *arg)
  *  reasoning.
  */
 void
-procctl(Proc *p)
+procctl(Proc* p)
 {
 	Mpl pl;
-	char *state;
+	char* state;
 
 	switch(p->procctl) {
 	case Proc_exitbig:
@@ -1664,13 +1671,13 @@ procctl(Proc *p)
 		pexit("Killed: Insufficient physical memory", 1);
 
 	case Proc_exitme:
-		spllo();		/* pexit has locks in it */
+		spllo(); /* pexit has locks in it */
 		pexit("Killed", 1);
 
 	case Proc_traceme:
 		if(p->nnote == 0)
 			return;
-		/* No break */
+	/* No break */
 
 	case Proc_stopme:
 		p->procctl = 0;
@@ -1713,13 +1720,13 @@ procctl(Proc *p)
 }
 
 void
-error(char *err)
+error(char* err)
 {
 	spllo();
 
 	assert(up->nerrlab < NERR);
 	kstrcpy(up->errstr, err, ERRMAX);
-	setlabel(&up->errlab[NERR-1]);
+	setlabel(&up->errlab[NERR - 1]);
 	nexterror();
 }
 
@@ -1730,7 +1737,7 @@ nexterror(void)
 }
 
 void
-exhausted(char *resource)
+exhausted(char* resource)
 {
 	char buf[ERRMAX];
 
@@ -1740,33 +1747,33 @@ exhausted(char *resource)
 }
 
 void
-killbig(char *why)
+killbig(char* why)
 {
 	int i, x;
-	Segment *s;
+	Segment* s;
 	uint32_t l, max;
-	Proc *p, *kp;
+	Proc* p, *kp;
 
 	max = 0;
 	kp = nil;
 	for(x = 0; (p = psincref(x)) != nil; x++) {
-		if(p->state == Dead || p->kp){
+		if(p->state == Dead || p->kp) {
 			psdecref(p);
 			continue;
 		}
 		l = 0;
-		for(i=1; i<NSEG; i++) {
+		for(i = 1; i < NSEG; i++) {
 			s = p->seg[i];
 			if(s != 0)
 				l += s->top - s->base;
 		}
-		if(l > max && ((p->procmode&0222) || strcmp(eve, p->user)!=0)) {
+		if(l > max &&
+		   ((p->procmode & 0222) || strcmp(eve, p->user) != 0)) {
 			if(kp != nil)
 				psdecref(kp);
 			kp = p;
 			max = l;
-		}
-		else
+		} else
 			psdecref(p);
 	}
 	if(kp == nil)
@@ -1774,7 +1781,7 @@ killbig(char *why)
 
 	print("%d: %s killed: %s\n", kp->pid, kp->text, why);
 	for(x = 0; (p = psincref(x)) != nil; x++) {
-		if(p->state == Dead || p->kp){
+		if(p->state == Dead || p->kp) {
 			psdecref(p);
 			continue;
 		}
@@ -1787,7 +1794,7 @@ killbig(char *why)
 	for(i = 0; i < NSEG; i++) {
 		s = kp->seg[i];
 		if(s != 0 && canqlock(&s->lk)) {
-			mfreeseg(s, s->base, (s->top - s->base)/BIGPGSZ);
+			mfreeseg(s, s->base, (s->top - s->base) / BIGPGSZ);
 			qunlock(&s->lk);
 		}
 	}
@@ -1799,13 +1806,13 @@ killbig(char *why)
  *  eve changes.
  */
 void
-renameuser(char *old, char *new)
+renameuser(char* old, char* new)
 {
 	int i;
-	Proc *p;
+	Proc* p;
 
-	for(i = 0; (p = psincref(i)) != nil; i++){
-		if(p->user!=nil && strcmp(old, p->user)==0)
+	for(i = 0; (p = psincref(i)) != nil; i++) {
+		if(p->user != nil && strcmp(old, p->user) == 0)
 			kstrdup(&p->user, new);
 		psdecref(p);
 	}
@@ -1819,7 +1826,7 @@ renameuser(char *old, char *new)
 void
 accounttime(void)
 {
-	Proc *p;
+	Proc* p;
 	uint32_t n, per;
 
 	p = m->proc;
@@ -1833,14 +1840,16 @@ accounttime(void)
 	n = perfticks();
 	per = n - m->perf.last;
 	m->perf.last = n;
-	per = (m->perf.period*(HZ-1) + per)/HZ;
+	per = (m->perf.period * (HZ - 1) + per) / HZ;
 	if(per != 0)
 		m->perf.period = per;
 
-	m->perf.avg_inidle = (m->perf.avg_inidle*(HZ-1)+m->perf.inidle)/HZ;
+	m->perf.avg_inidle =
+	    (m->perf.avg_inidle * (HZ - 1) + m->perf.inidle) / HZ;
 	m->perf.inidle = 0;
 
-	m->perf.avg_inintr = (m->perf.avg_inintr*(HZ-1)+m->perf.inintr)/HZ;
+	m->perf.avg_inintr =
+	    (m->perf.avg_inintr * (HZ - 1) + m->perf.inintr) / HZ;
 	m->perf.inintr = 0;
 
 	/* only one processor gets to compute system load averages.
@@ -1860,8 +1869,8 @@ accounttime(void)
 	 */
 	n = run.nrun;
 	run.nrun = 0;
-	n = (run.nrdy+n)*1000;
-	sys->load = (sys->load*(HZ-1)+n)/HZ;
+	n = (run.nrdy + n) * 1000;
+	sys->load = (sys->load * (HZ - 1) + n) / HZ;
 }
 
 void

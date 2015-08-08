@@ -18,14 +18,13 @@
  * Tvp302[056] Viewpoint Video Interface Palette.
  * Assumes hooked up to an S3 86C928 or S3 Vision964.
  */
-enum {
-	Index		= 0x06,		/* Index register */
-	Data		= 0x07,		/* Data register */
+enum { Index = 0x06, /* Index register */
+       Data = 0x07,  /* Data register */
 
-	Id		= 0x3F,		/* ID Register */
-	Tvp3020		= 0x20,
-	Tvp3025		= 0x25,
-	Tvp3026		= 0x26,
+       Id = 0x3F, /* ID Register */
+       Tvp3020 = 0x20,
+       Tvp3025 = 0x25,
+       Tvp3026 = 0x26,
 };
 
 /*
@@ -34,21 +33,18 @@ enum {
  * are for the Tvp3025. The Tvp3020 has only 8 direct registers.
  */
 static uint8_t directreg[32] = {
-	0x33, 0x33, 0x33, 0x33, 0x00, 0x00, 0x33, 0x33,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-	0x33, 0x33, 0x11, 0x33, 0x33, 0x33, 0x33, 0x33,
+    0x33, 0x33, 0x33, 0x33, 0x00, 0x00, 0x33, 0x33, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+    0x33, 0x33, 0x33, 0x33, 0x11, 0x33, 0x33, 0x33, 0x33, 0x33,
 };
 
 static uint8_t indexreg[64] = {
-	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x00,
-	0x02, 0x02, 0x33, 0x00, 0x00, 0x00, 0x30, 0x30,
-	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x30, 0x00,
-	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-	0x33, 0x33, 0x33, 0x33, 0x30, 0x30, 0x30, 0x30,
-	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-	0x33, 0x30, 0x33, 0x11, 0x11, 0x11, 0x22, 0x11,
+    0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x00, 0x02, 0x02, 0x33,
+    0x00, 0x00, 0x00, 0x30, 0x30, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+    0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x30, 0x00, 0x33,
+    0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+    0x30, 0x30, 0x30, 0x30, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+    0x33, 0x33, 0x30, 0x33, 0x11, 0x11, 0x11, 0x22, 0x11,
 };
 
 /*
@@ -61,9 +57,9 @@ checkindex(uint8_t index, uint8_t access)
 	uint8_t crt55;
 	static uint8_t id;
 
-	if(id == 0){
+	if(id == 0) {
 		crt55 = vgaxi(Crtx, 0x55) & 0xFC;
-		vgaxo(Crtx, 0x55, crt55|((Index>>2) & 0x03));
+		vgaxo(Crtx, 0x55, crt55 | ((Index >> 2) & 0x03));
 		vgao(dacxreg[Index & 0x03], Id);
 
 		id = vgai(dacxreg[Data & 0x03]);
@@ -74,23 +70,25 @@ checkindex(uint8_t index, uint8_t access)
 		return id;
 
 	access &= 0x03;
-	switch(id){
+	switch(id) {
 
 	case Tvp3020:
 		break;
 
 	case Tvp3025:
 	case Tvp3026:
-		access = access<<4;
+		access = access << 4;
 		break;
 
 	default:
-		Bprint(&stdout, "%s: unknown chip id - 0x%2.2X\n", tvp3020.name, id);
+		Bprint(&stdout, "%s: unknown chip id - 0x%2.2X\n", tvp3020.name,
+		       id);
 		break;
 	}
 
 	if(index > sizeof(indexreg) || (indexreg[index] & access) == 0)
-		error("%s: bad register index - 0x%2.2X\n", tvp3020.name, index);
+		error("%s: bad register index - 0x%2.2X\n", tvp3020.name,
+		      index);
 
 	return id;
 }
@@ -101,7 +99,7 @@ tvp3020io(uint8_t reg, uint8_t data)
 	uint8_t crt55;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
-	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
+	vgaxo(Crtx, 0x55, crt55 | ((reg >> 2) & 0x03));
 	vgao(dacxreg[reg & 0x03], data);
 
 	return crt55;
@@ -113,7 +111,7 @@ tvp3020i(uint8_t reg)
 	uint8_t crt55, r;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
-	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
+	vgaxo(Crtx, 0x55, crt55 | ((reg >> 2) & 0x03));
 	r = vgai(dacxreg[reg & 0x03]);
 	vgaxo(Crtx, 0x55, crt55);
 
@@ -158,14 +156,14 @@ tvp3020xo(uint8_t index, uint8_t data)
 static void
 options(Vga* vga, Ctlr* ctlr)
 {
-	ctlr->flag |= Hclk2|Hextsid|Hpvram|Henhanced|Foptions;
+	ctlr->flag |= Hclk2 | Hextsid | Hpvram | Henhanced | Foptions;
 }
 
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t grade;
-	char *p;
+	char* p;
 
 	/*
 	 * Work out the part speed-grade from name. Name can have,
@@ -173,7 +171,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	grade = 110000000;
 	if(p = strrchr(ctlr->name, '-'))
-		grade = strtoul(p+1, 0, 0) * 1000000;
+		grade = strtoul(p + 1, 0, 0) * 1000000;
 
 	/*
 	 * If we don't already have a desired pclk,
@@ -188,7 +186,7 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Determine whether to use clock-doubler or not.
 	 */
-	if(vga->f[0] > 85000000){
+	if(vga->f[0] > 85000000) {
 		vga->f[0] /= 2;
 		resyncinit(vga, ctlr, Uclk2, 0);
 	}
@@ -242,7 +240,7 @@ load(Vga* vga, Ctlr* ctlr)
 	 *	enhanced	8-bpp, 8:1 mux, 64-bit pixel-bus width
 	 */
 	x = 0x98;
-	if(ctlr->flag & Uenhanced){
+	if(ctlr->flag & Uenhanced) {
 		if(vga->mode->z == 8)
 			x = 0x1C;
 		else if(vga->mode->z == 1)
@@ -291,7 +289,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		access <<= 4;
 
 	printitem(ctlr->name, "direct");
-	for(i = 0; i < 8; i++){
+	for(i = 0; i < 8; i++) {
 		if(directreg[i] & access)
 			printreg(tvp3020i(i));
 		else
@@ -299,7 +297,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	}
 
 	printitem(ctlr->name, "index");
-	for(i = 0; i < sizeof(indexreg); i++){
+	for(i = 0; i < sizeof(indexreg); i++) {
 		if(indexreg[i] & access)
 			printreg(tvp3020xi(i));
 		else
@@ -308,10 +306,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr tvp3020 = {
-	"tvp3020",			/* name */
-	0,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "tvp3020", /* name */
+    0,         /* snarf */
+    options,   /* options */
+    init,      /* init */
+    load,      /* load */
+    dump,      /* dump */
 };

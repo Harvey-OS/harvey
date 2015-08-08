@@ -8,30 +8,30 @@
  */
 
 #include <plan9.h>
-#include <sys/socket.h>	/* various networking crud */
+#include <sys/socket.h> /* various networking crud */
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 
 void
-getremotehostname(char *name, int nname)
+getremotehostname(char* name, int nname)
 {
 	struct sockaddr_in sock;
-	struct hostent *hp;
+	struct hostent* hp;
 	uint len;
 	int on;
 
-	strecpy(name, name+nname, "unknown");
+	strecpy(name, name + nname, "unknown");
 	len = sizeof sock;
 	if(getpeername(0, (struct sockaddr*)&sock, (void*)&len) < 0)
 		return;
 
-	hp = gethostbyaddr((char *)&sock.sin_addr, sizeof (struct in_addr),
-		sock.sin_family);
+	hp = gethostbyaddr((char*)&sock.sin_addr, sizeof(struct in_addr),
+	                   sock.sin_family);
 	if(hp == 0)
 		return;
 
-	strecpy(name, name+nname, hp->h_name);
+	strecpy(name, name + nname, hp->h_name);
 	on = 1;
 	setsockopt(0, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
 #ifdef TCP_NODELAY

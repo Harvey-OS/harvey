@@ -17,14 +17,14 @@
  */
 
 mpint*
-itomp(int i, mpint *b)
+itomp(int i, mpint* b)
 {
 	if(b == nil)
 		b = mpnew(0);
 	mpassign(mpzero, b);
 	if(i != 0)
 		b->top = 1;
-	if(i < 0){
+	if(i < 0) {
 		b->sign = -1;
 		*b->p = -i;
 	} else
@@ -33,18 +33,18 @@ itomp(int i, mpint *b)
 }
 
 int
-mptoi(mpint *b)
+mptoi(mpint* b)
 {
 	uint x;
 
 	x = *b->p;
-	if(b->sign > 0){
+	if(b->sign > 0) {
 		if(b->top > 1 || (x > MAXINT))
 			x = (int)MAXINT;
 		else
 			x = (int)x;
 	} else {
-		if(b->top > 1 || x > MAXINT+1)
+		if(b->top > 1 || x > MAXINT + 1)
 			x = (int)MININT;
 		else
 			x = -(int)x;

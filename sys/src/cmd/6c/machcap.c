@@ -10,11 +10,11 @@
 #include "gc.h"
 
 int
-machcap(Node *n)
+machcap(Node* n)
 {
 
 	if(n == Z)
-		return 1;	/* test */
+		return 1; /* test */
 
 	switch(n->op) {
 	case OMUL:
@@ -24,7 +24,7 @@ machcap(Node *n)
 		if(typechl[n->type->etype])
 			return 1;
 		if(typev[n->type->etype]) {
-				return 1;
+			return 1;
 		}
 		break;
 

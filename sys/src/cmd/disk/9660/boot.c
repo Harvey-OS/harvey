@@ -51,7 +51,7 @@ g% cdsector 3149 | xd -b	# 0x0c4d
                                                     55 aa - magic
 
 0000020  88    - 88 = bootable
-            03   - 3 = 2.88MB diskette 
+            03   - 3 = 2.88MB diskette
                00 00 - load segment 0 means default 0x7C0
                      00  - system type (byte 5 of boot image)
                         00 - unused (0)
@@ -67,13 +67,13 @@ g% cdsector `{h2d 0c4e} | xd -b
 1+0 records out
 0000000  eb 3c 00 00 00 00 00 00 00 00 00 00 02 00 00 00
 0000010  00 00 00 00 00 00 00 00 12 00 02 00 00 00 00 00
-0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53 
+0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53
                                           31 c0
 
 FREEBSD
 0000000  eb 3c 00 00 00 00 00 00 00 00 00 00 02 00 00 00
 0000010  00 00 00 00 00 00 00 00 12 00 02 00 00 00 00 00
-0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53 
+0000020  00 00 00 00 00 16 1f 66 6a 00 51 50 06 53
                                           31 c0
 
 DOS 5
@@ -109,19 +109,19 @@ PBSDISK
 */
 
 void
-Cputbootvol(Cdimg *cd)
+Cputbootvol(Cdimg* cd)
 {
 	Cputc(cd, 0x00);
 	Cputs(cd, "CD001", 5);
 	Cputc(cd, 0x01);
-	Cputs(cd, "EL TORITO SPECIFICATION", 2+1+6+1+13);
-	Crepeat(cd, 0, 2+16+16+7);
+	Cputs(cd, "EL TORITO SPECIFICATION", 2 + 1 + 6 + 1 + 13);
+	Crepeat(cd, 0, 2 + 16 + 16 + 7);
 	cd->bootcatptr = Cwoffset(cd);
 	Cpadblock(cd);
 }
 
 void
-Cupdatebootvol(Cdimg *cd)
+Cupdatebootvol(Cdimg* cd)
 {
 	uint64_t o;
 
@@ -132,14 +132,14 @@ Cupdatebootvol(Cdimg *cd)
 }
 
 void
-Cputbootcat(Cdimg *cd)
+Cputbootcat(Cdimg* cd)
 {
 	cd->bootcatblock = Cwoffset(cd) / Blocksize;
 	Cputc(cd, 0x01);
 	Cputc(cd, 0x00);
 	Cputc(cd, 0x00);
 	Cputc(cd, 0x00);
-	Crepeat(cd, 0, 12+12);
+	Crepeat(cd, 0, 12 + 12);
 
 	/*
 	 * either the checksum doesn't include the header word
@@ -154,12 +154,11 @@ Cputbootcat(Cdimg *cd)
 	Cpadblock(cd);
 }
 
-enum {
-	Emusectsz	= 512,		/* bytes per emulated sector */
+enum { Emusectsz = 512, /* bytes per emulated sector */
 };
 
 void
-Cupdatebootcat(Cdimg *cd)
+Cupdatebootcat(Cdimg* cd)
 {
 	uint64_t o;
 	int n;
@@ -172,40 +171,41 @@ Cupdatebootcat(Cdimg *cd)
 	Cputc(cd, 0x88);
 
 	if(cd->flags & CDbootnoemu)
-		Cputc(cd, 0);			/* no disk emulation */
+		Cputc(cd, 0); /* no disk emulation */
 	else
-		switch(cd->bootdirec->length){
+		switch(cd->bootdirec->length) {
 		default:
-			fprint(2, "warning: boot image is not 1.44MB or 2.88MB; "
-				"pretending 1.44MB\n");
-			/* fall through */
-		case 1440*1024:
-			Cputc(cd, 0x02);	/* 1.44MB disk */
+			fprint(2,
+			       "warning: boot image is not 1.44MB or 2.88MB; "
+			       "pretending 1.44MB\n");
+		/* fall through */
+		case 1440 * 1024:
+			Cputc(cd, 0x02); /* 1.44MB disk */
 			break;
-		case 2880*1024:
-			Cputc(cd, 0x03);	/* 2.88MB disk */
+		case 2880 * 1024:
+			Cputc(cd, 0x03); /* 2.88MB disk */
 			break;
 		}
-	Cputnl(cd, 0, 2);	/* load segment */
-	Cputc(cd, 0);	/* system type */
-	Cputc(cd, 0);	/* unused */
+	Cputnl(cd, 0, 2); /* load segment */
+	Cputc(cd, 0);     /* system type */
+	Cputc(cd, 0);     /* unused */
 
 	n = 1;
-	if(cd->flags & CDbootnoemu){
+	if(cd->flags & CDbootnoemu) {
 		n = (cd->bootdirec->length + Emusectsz - 1) / Emusectsz;
-		if(n > 4){
+		if(n > 4) {
 			fprint(2, "warning: boot image too big; "
-				"will only load the first 2K\n");
+			          "will only load the first 2K\n");
 			n = 4;
 		}
 	}
-	Cputnl(cd, n, 2);	/* Emusectsz-byte sector count for load */
-	Cputnl(cd, cd->bootdirec->block, 4);	/* ptr to disk image */
+	Cputnl(cd, n, 2); /* Emusectsz-byte sector count for load */
+	Cputnl(cd, cd->bootdirec->block, 4); /* ptr to disk image */
 	Cwseek(cd, o);
 }
 
 void
-Cfillpbs(Cdimg *cd)
+Cfillpbs(Cdimg* cd)
 {
 	uint64_t o;
 	int n;
@@ -215,19 +215,19 @@ Cfillpbs(Cdimg *cd)
 	o = Cwoffset(cd);
 	Cwseek(cd, 3 + cd->bootdirec->block * Blocksize); /* jmp over magic */
 
-	Cputnl(cd, cd->loaderdirec->block, 4);		/* ptr to loader */
+	Cputnl(cd, cd->loaderdirec->block, 4); /* ptr to loader */
 	n = (cd->loaderdirec->length + Blocksize - 1) / Blocksize;
-	Cputnl(cd, n, 4);				/* loader size */
-	Cputnl(cd, Blocksize, 4);			/* loader size */
+	Cputnl(cd, n, 4);         /* loader size */
+	Cputnl(cd, Blocksize, 4); /* loader size */
 	Cwseek(cd, o);
 }
 
 void
-findbootimage(Cdimg *cd, Direc *root)
+findbootimage(Cdimg* cd, Direc* root)
 {
-	Direc *d;
+	Direc* d;
 	d = walkdirec(root, cd->bootimage);
-	if(d == nil){
+	if(d == nil) {
 		fprint(2, "warning: did not encounter boot image\n");
 		return;
 	}
@@ -236,12 +236,12 @@ findbootimage(Cdimg *cd, Direc *root)
 }
 
 void
-findloader(Cdimg *cd, Direc *root)
+findloader(Cdimg* cd, Direc* root)
 {
-	Direc *d;
+	Direc* d;
 
 	d = walkdirec(root, cd->loader);
-	if(d == nil){
+	if(d == nil) {
 		fprint(2, "warning: did not encounter boot loader\n");
 		return;
 	}

@@ -14,7 +14,7 @@
 #include "modem.h"
 
 int
-initfaxmodem(Modem *m)
+initfaxmodem(Modem* m)
 {
 	m->fax = 1;
 	m->phase = 'A';
@@ -24,18 +24,18 @@ initfaxmodem(Modem *m)
 }
 
 static int
-parameters(int32_t a[], char *s)
+parameters(int32_t a[], char* s)
 {
-	char *p;
+	char* p;
 	int i;
 
 	i = 0;
 	if((p = strchr(s, ':')) == 0)
 		return 0;
 	p++;
-	while(s = strchr(p, ',')){
+	while(s = strchr(p, ',')) {
 		a[i++] = strtol(p, 0, 10);
-		p = s+1;
+		p = s + 1;
 	}
 	if(p)
 		a[i++] = strtol(p, 0, 10);
@@ -44,7 +44,7 @@ parameters(int32_t a[], char *s)
 }
 
 int
-fcon(Modem *m)
+fcon(Modem* m)
 {
 	verbose("fcon: %s", m->response);
 	if(m->fax == 0 || m->phase != 'A')
@@ -54,25 +54,26 @@ fcon(Modem *m)
 }
 
 int
-ftsi(Modem *m)
+ftsi(Modem* m)
 {
-	char *p, *q;
+	char* p, *q;
 
 	verbose("ftsi: %s", m->response);
-	if((p = strchr(m->response, '"')) == 0 || (q = strrchr(p+1, '"')) == 0)
+	if((p = strchr(m->response, '"')) == 0 ||
+	   (q = strrchr(p + 1, '"')) == 0)
 		return Rrerror;
 	while(*++p == ' ')
 		;
 	*q = 0;
-	if((m->valid &  Vftsi) == 0){
-		strncpy(m->ftsi, p, sizeof(m->ftsi)-1);
+	if((m->valid & Vftsi) == 0) {
+		strncpy(m->ftsi, p, sizeof(m->ftsi) - 1);
 		m->valid |= Vftsi;
 	}
 	return Rcontinue;
 }
 
 int
-fdcs(Modem *m)
+fdcs(Modem* m)
 {
 	verbose("fdcs: %s", m->response);
 	parameters(m->fdcs, m->response);
@@ -81,7 +82,7 @@ fdcs(Modem *m)
 }
 
 int
-fcfr(Modem *m)
+fcfr(Modem* m)
 {
 	verbose("fcfr: %s", m->response);
 	if(m->fax == 0)
@@ -91,7 +92,7 @@ fcfr(Modem *m)
 }
 
 int
-fpts(Modem *m)
+fpts(Modem* m)
 {
 	verbose("fpts: %s", m->response);
 	if(m->fax == 0)
@@ -102,27 +103,27 @@ fpts(Modem *m)
 }
 
 int
-fet(Modem *m)
+fet(Modem* m)
 {
-	char *p;
+	char* p;
 
 	verbose("fet: %s", m->response);
 	if(m->fax == 0 || (p = strchr(m->response, ':')) == 0)
 		return Rrerror;
-	m->fet = strtol(p+1, 0, 10);
+	m->fet = strtol(p + 1, 0, 10);
 	m->valid |= Vfet;
 	return Rcontinue;
 }
 
 int
-fhng(Modem *m)
+fhng(Modem* m)
 {
-	char *p;
+	char* p;
 
 	verbose("fhng: %s", m->response);
 	if(m->fax == 0 || (p = strchr(m->response, ':')) == 0)
 		return Rrerror;
-	m->fhng = strtol(p+1, 0, 10);
+	m->fhng = strtol(p + 1, 0, 10);
 	m->valid |= Vfhng;
 	return Rhangup;
 }

@@ -16,15 +16,15 @@
 void
 main(void)
 {
-	Tree *t;
-	File *hello, *goodbye, *world;
+	Tree* t;
+	File* hello, *goodbye, *world;
 
 	t = mktree();
 
-	hello = fcreate(t->root, "hello", CHDIR|0777);
+	hello = fcreate(t->root, "hello", CHDIR | 0777);
 	assert(hello != nil);
 
-	goodbye = fcreate(t->root, "goodbye", CHDIR|0777);
+	goodbye = fcreate(t->root, "goodbye", CHDIR | 0777);
 	assert(goodbye != nil);
 
 	world = fcreate(hello, "world", 0666);

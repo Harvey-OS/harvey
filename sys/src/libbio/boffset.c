@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int64_t
-Boffset(Biobufhdr *bp)
+Boffset(Biobufhdr* bp)
 {
 	int64_t n;
 

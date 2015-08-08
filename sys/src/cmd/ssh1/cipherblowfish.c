@@ -9,16 +9,15 @@
 
 #include "ssh.h"
 
-struct CipherState
-{
+struct CipherState {
 	BFstate enc;
 	BFstate dec;
 };
 
 static CipherState*
-initblowfish(Conn *c, int)
+initblowfish(Conn* c, int)
 {
-	CipherState *cs;
+	CipherState* cs;
 
 	cs = emalloc(sizeof(CipherState));
 	setupBFstate(&cs->enc, c->sesskey, SESSKEYLEN, nil);
@@ -27,23 +26,18 @@ initblowfish(Conn *c, int)
 }
 
 static void
-encryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
+encryptblowfish(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	bfCBCencrypt(buf, nbuf, &cs->enc);
 }
 
 static void
-decryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
+decryptblowfish(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	bfCBCdecrypt(buf, nbuf, &cs->dec);
 }
 
-Cipher cipherblowfish = 
-{
-	SSH_CIPHER_BLOWFISH,
-	"blowfish",
-	initblowfish,
-	encryptblowfish,
-	decryptblowfish,
+Cipher cipherblowfish = {
+    SSH_CIPHER_BLOWFISH, "blowfish",      initblowfish,
+    encryptblowfish,     decryptblowfish,
 };
-

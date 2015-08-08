@@ -12,35 +12,35 @@
 #include "fns.h"
 #include "flfmt9660.h"
 
-#define blockWrite _blockWrite	/* hack */
+#define blockWrite _blockWrite /* hack */
 
 static void usage(void);
 static uint64_t fdsize(int fd);
-static void partition(int fd, int bsize, Header *h);
-static uint64_t unittoull(char *s);
+static void partition(int fd, int bsize, Header* h);
+static uint64_t unittoull(char* s);
 static uint32_t blockAlloc(int type, uint32_t tag);
 static void blockRead(int part, uint32_t addr);
 static void blockWrite(int part, uint32_t addr);
-static void superInit(char *label, uint32_t root, uint8_t[VtScoreSize]);
-static void rootMetaInit(Entry *e);
-static uint32_t rootInit(Entry *e);
-static void topLevel(char *name);
+static void superInit(char* label, uint32_t root, uint8_t[VtScoreSize]);
+static void rootMetaInit(Entry* e);
+static uint32_t rootInit(Entry* e);
+static void topLevel(char* name);
 static int parseScore(uint8_t[VtScoreSize], char*);
 static uint32_t ventiRoot(char*, char*);
-static VtSession *z;
+static VtSession* z;
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64 ((uint64_t) ~(uint64_t)0)
 
-Disk *disk;
-Fs *fs;
-uint8_t *buf;
-int bsize = 8*1024;
+Disk* disk;
+Fs* fs;
+uint8_t* buf;
+int bsize = 8 * 1024;
 uint64_t qid = 1;
 int iso9660off;
-char *iso9660file;
+char* iso9660file;
 
 int
-confirm(char *msg)
+confirm(char* msg)
 {
 	char buf[100];
 	int n;
@@ -55,20 +55,21 @@ confirm(char *msg)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int fd, force;
 	Header h;
 	uint32_t bn;
 	Entry e;
-	char *label = "vfs";
-	char *host = nil;
-	char *score = nil;
+	char* label = "vfs";
+	char* host = nil;
+	char* score = nil;
 	uint32_t root;
-	Dir *d;
+	Dir* d;
 
 	force = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'b':
@@ -99,7 +100,8 @@ main(int argc, char *argv[])
 	case 'y':
 		force = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -121,15 +123,16 @@ main(int argc, char *argv[])
 	if(pread(fd, buf, bsize, HeaderOffset) != bsize)
 		vtFatal("could not read fs header block: %r");
 
-	if(headerUnpack(&h, buf) && !force
-	&& !confirm("fs header block already exists; are you sure?"))
+	if(headerUnpack(&h, buf) && !force &&
+	   !confirm("fs header block already exists; are you sure?"))
 		goto Out;
 
 	if((d = dirfstat(fd)) == nil)
 		vtFatal("dirfstat: %r");
 
-	if(d->type == 'M' && !force
-	&& !confirm("fs file is mounted via devmnt (is not a kernel device); are you sure?"))
+	if(d->type == 'M' && !force &&
+	   !confirm("fs file is mounted via devmnt (is not a kernel device); "
+	            "are you sure?"))
 		goto Out;
 
 	partition(fd, bsize, &h);
@@ -154,7 +157,7 @@ main(int argc, char *argv[])
 
 	if(score)
 		root = ventiRoot(host, score);
-	else{
+	else {
 		rootMetaInit(&e);
 		root = rootInit(&e);
 	}
@@ -173,7 +176,7 @@ Out:
 static uint64_t
 fdsize(int fd)
 {
-	Dir *dir;
+	Dir* dir;
 	uint64_t size;
 
 	dir = dirfstat(fd);
@@ -188,12 +191,13 @@ static void
 usage(void)
 {
 	fprint(2, "usage: %s [-b blocksize] [-h host] [-i file offset] "
-		"[-l label] [-v score] [-y] file\n", argv0);
+	          "[-l label] [-v score] [-y] file\n",
+	       argv0);
 	exits("usage");
 }
 
 static void
-partition(int fd, int bsize, Header *h)
+partition(int fd, int bsize, Header* h)
 {
 	uint32_t nblock, ndata, nlabel;
 	uint32_t lpb;
@@ -206,21 +210,20 @@ partition(int fd, int bsize, Header *h)
 	memset(h, 0, sizeof(*h));
 	h->blockSize = bsize;
 
-	lpb = bsize/LabelSize;
+	lpb = bsize / LabelSize;
 
-	nblock = fdsize(fd)/bsize;
+	nblock = fdsize(fd) / bsize;
 
 	/* sanity check */
-	if(nblock < (HeaderOffset*10)/bsize)
+	if(nblock < (HeaderOffset * 10) / bsize)
 		vtFatal("file too small");
 
-	h->super = (HeaderOffset + 2*bsize)/bsize;
+	h->super = (HeaderOffset + 2 * bsize) / bsize;
 	h->label = h->super + 1;
-	ndata = ((uint64_t)lpb)*(nblock - h->label)/(lpb+1);
-	nlabel = (ndata + lpb - 1)/lpb;
+	ndata = ((uint64_t)lpb) * (nblock - h->label) / (lpb + 1);
+	nlabel = (ndata + lpb - 1) / lpb;
 	h->data = h->label + nlabel;
 	h->end = h->data + ndata;
-
 }
 
 static uint32_t
@@ -228,7 +231,7 @@ tagGen(void)
 {
 	uint32_t tag;
 
-	for(;;){
+	for(;;) {
 		tag = lrand();
 		if(tag > RootTag)
 			break;
@@ -237,11 +240,11 @@ tagGen(void)
 }
 
 static void
-entryInit(Entry *e)
+entryInit(Entry* e)
 {
 	e->gen = 0;
 	e->dsize = bsize;
-	e->psize = bsize/VtEntrySize*VtEntrySize;
+	e->psize = bsize / VtEntrySize * VtEntrySize;
 	e->flags = VtEntryActive;
 	e->depth = 0;
 	e->size = 0;
@@ -252,7 +255,7 @@ entryInit(Entry *e)
 }
 
 static void
-rootMetaInit(Entry *e)
+rootMetaInit(Entry* e)
 {
 	uint32_t addr;
 	uint32_t tag;
@@ -282,7 +285,7 @@ rootMetaInit(Entry *e)
 
 	/* build up meta block */
 	memset(buf, 0, bsize);
-	mbInit(&mb, buf, bsize, bsize/100);
+	mbInit(&mb, buf, bsize, bsize / 100);
 	me.size = deSize(&de);
 	me.p = mbAlloc(&mb, me.size);
 	assert(me.p != nil);
@@ -295,13 +298,13 @@ rootMetaInit(Entry *e)
 	/* build up entry for meta block */
 	entryInit(e);
 	e->flags |= VtEntryLocal;
- 	e->size = bsize;
+	e->size = bsize;
 	e->tag = tag;
 	localToGlobal(addr, e->score);
 }
 
 static uint32_t
-rootInit(Entry *e)
+rootInit(Entry* e)
 {
 	uint32_t addr;
 	uint32_t tag;
@@ -324,8 +327,8 @@ rootInit(Entry *e)
 	blockWrite(PartData, addr);
 
 	entryInit(e);
-	e->flags |= VtEntryLocal|VtEntryDir;
- 	e->size = VtEntrySize*3;
+	e->flags |= VtEntryLocal | VtEntryDir;
+	e->size = VtEntrySize * 3;
 	e->tag = tag;
 	localToGlobal(addr, e->score);
 
@@ -338,7 +341,6 @@ rootInit(Entry *e)
 	return addr;
 }
 
-
 static uint32_t
 blockAlloc(int type, uint32_t tag)
 {
@@ -346,9 +348,9 @@ blockAlloc(int type, uint32_t tag)
 	Label l;
 	int lpb;
 
-	lpb = bsize/LabelSize;
+	lpb = bsize / LabelSize;
 
-	blockRead(PartLabel, addr/lpb);
+	blockRead(PartLabel, addr / lpb);
 	if(!labelUnpack(&l, buf, addr % lpb))
 		vtFatal("bad label: %r");
 	if(l.state != BsFree)
@@ -359,12 +361,12 @@ blockAlloc(int type, uint32_t tag)
 	l.state = BsAlloc;
 	l.tag = tag;
 	labelPack(&l, buf, addr % lpb);
-	blockWrite(PartLabel, addr/lpb);
+	blockWrite(PartLabel, addr / lpb);
 	return addr++;
 }
 
 static void
-superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
+superInit(char* label, uint32_t root, uint8_t score[VtScoreSize])
 {
 	Super s;
 
@@ -377,7 +379,7 @@ superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
 	s.active = root;
 	s.next = (int64_t)NilBlock;
 	s.current = (int64_t)NilBlock;
-	strecpy(s.name, s.name+sizeof(s.name), label);
+	strecpy(s.name, s.name + sizeof(s.name), label);
 	memmove(s.last, score, VtScoreSize);
 
 	superPack(&s, buf);
@@ -385,22 +387,22 @@ superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
 }
 
 static uint64_t
-unittoull(char *s)
+unittoull(char* s)
 {
-	char *es;
+	char* es;
 	uint64_t n;
 
 	if(s == nil)
 		return TWID64;
 	n = strtoul(s, &es, 0);
-	if(*es == 'k' || *es == 'K'){
+	if(*es == 'k' || *es == 'K') {
 		n *= 1024;
 		es++;
-	}else if(*es == 'm' || *es == 'M'){
-		n *= 1024*1024;
+	} else if(*es == 'm' || *es == 'M') {
+		n *= 1024 * 1024;
 		es++;
-	}else if(*es == 'g' || *es == 'G'){
-		n *= 1024*1024*1024;
+	} else if(*es == 'g' || *es == 'G') {
+		n *= 1024 * 1024 * 1024;
 		es++;
 	}
 	if(*es != '\0')
@@ -423,9 +425,9 @@ blockWrite(int part, uint32_t addr)
 }
 
 static void
-addFile(File *root, char *name, uint mode)
+addFile(File* root, char* name, uint mode)
 {
-	File *f;
+	File* f;
 
 	f = fileCreate(root, name, mode | ModeDir, "adm");
 	if(f == nil)
@@ -434,10 +436,10 @@ addFile(File *root, char *name, uint mode)
 }
 
 static void
-topLevel(char *name)
+topLevel(char* name)
 {
-	Fs *fs;
-	File *root;
+	Fs* fs;
+	File* root;
 
 	/* ok, now we can open as a fs */
 	fs = fsOpen(name, z, 100, OReadWrite);
@@ -470,7 +472,7 @@ ventiRead(uint8_t score[VtScoreSize], int type)
 }
 
 static uint32_t
-ventiRoot(char *host, char *s)
+ventiRoot(char* host, char* s)
 {
 	int i, n;
 	uint8_t score[VtScoreSize];
@@ -484,8 +486,7 @@ ventiRoot(char *host, char *s)
 	if(!parseScore(score, s))
 		vtFatal("bad score '%s'", s);
 
-	if((z = vtDial(host, 0)) == nil
-	|| !vtConnect(z, nil))
+	if((z = vtDial(host, 0)) == nil || !vtConnect(z, nil))
 		vtFatal("connect to venti: %R");
 
 	tag = tagGen();
@@ -500,7 +501,7 @@ ventiRoot(char *host, char *s)
 	 * Fossil's vac archives start with an extra layer of source,
 	 * but vac's don't.
 	 */
-	if(n <= 2*VtEntrySize){
+	if(n <= 2 * VtEntrySize) {
 		if(!entryUnpack(&e, buf, 0))
 			vtFatal("bad root: top entry");
 		n = ventiRead(e.score, VtDirType);
@@ -509,21 +510,20 @@ ventiRoot(char *host, char *s)
 	/*
 	 * There should be three root sources (and nothing else) here.
 	 */
-	for(i=0; i<3; i++){
-		if(!entryUnpack(&e, buf, i)
-		|| !(e.flags&VtEntryActive)
-		|| e.psize < 256
-		|| e.dsize < 256)
+	for(i = 0; i < 3; i++) {
+		if(!entryUnpack(&e, buf, i) || !(e.flags & VtEntryActive) ||
+		   e.psize < 256 || e.dsize < 256)
 			vtFatal("bad root: entry %d", i);
 		fprint(2, "%V\n", e.score);
 	}
-	if(n > 3*VtEntrySize)
+	if(n > 3 * VtEntrySize)
 		vtFatal("bad root: entry count");
 
 	blockWrite(PartData, addr);
 
 	/*
-	 * Maximum qid is recorded in root's msource, entry #2 (conveniently in e).
+	 * Maximum qid is recorded in root's msource, entry #2 (conveniently in
+	 * e).
 	 */
 	ventiRead(e.score, VtDataType);
 	if(!mbUnpack(&mb, buf, bsize))
@@ -539,8 +539,8 @@ ventiRoot(char *host, char *s)
 	 * Recreate the top layer of source.
 	 */
 	entryInit(&e);
-	e.flags |= VtEntryLocal|VtEntryDir;
-	e.size = VtEntrySize*3;
+	e.flags |= VtEntryLocal | VtEntryDir;
+	e.size = VtEntrySize * 3;
 	e.tag = tag;
 	localToGlobal(addr, e.score);
 
@@ -553,15 +553,15 @@ ventiRoot(char *host, char *s)
 }
 
 static int
-parseScore(uint8_t *score, char *buf)
+parseScore(uint8_t* score, char* buf)
 {
 	int i, c;
 
 	memset(score, 0, VtScoreSize);
 
-	if(strlen(buf) < VtScoreSize*2)
+	if(strlen(buf) < VtScoreSize * 2)
 		return 0;
-	for(i=0; i<VtScoreSize*2; i++){
+	for(i = 0; i < VtScoreSize * 2; i++) {
 		if(buf[i] >= '0' && buf[i] <= '9')
 			c = buf[i] - '0';
 		else if(buf[i] >= 'a' && buf[i] <= 'f')
@@ -574,7 +574,7 @@ parseScore(uint8_t *score, char *buf)
 		if((i & 1) == 0)
 			c <<= 4;
 
-		score[i>>1] |= c;
+		score[i >> 1] |= c;
 	}
 	return 1;
 }

@@ -19,7 +19,7 @@
 #include "ureg.h"
 #include "io.h"
 
-Lock nixaclock;	/* NIX AC lock; held while assigning procs to cores */
+Lock nixaclock; /* NIX AC lock; held while assigning procs to cores */
 
 /*
  * NIX support for the time sharing core.
@@ -29,21 +29,21 @@ extern void actrapret(void);
 extern void acsysret(void);
 
 Mach*
-getac(Proc *p, int core)
+getac(Proc* p, int core)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
-	Mach *mp;
+	Mach* mp;
 
 	mp = nil;
 	if(core == 0)
 		panic("can't getac for a %s", rolename[NIXTC]);
 	lock(&nixaclock);
-	if(waserror()){
+	if(waserror()) {
 		unlock(&nixaclock);
 		nexterror();
 	}
-	if(core > 0){
+	if(core > 0) {
 		if(core >= MACHMAX)
 			error("no such core");
 		mp = sys->machptr[core];
@@ -53,9 +53,10 @@ getac(Proc *p, int core)
 			error("core is not an AC");
 	Found:
 		mp->proc = p;
-	}else{
+	} else {
 		for(i = 0; i < MACHMAX; i++)
-			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXAC)
+			if((mp = sys->machptr[i]) != nil && mp->online &&
+			   mp->nixtype == NIXAC)
 				if(mp->proc == nil)
 					goto Found;
 		error("not enough cores");
@@ -75,12 +76,12 @@ getac(Proc *p, int core)
  *
  */
 void
-intrac(Proc *p)
+intrac(Proc* p)
 {
-	Mach *ac;
+	Mach* ac;
 
 	ac = p->ac;
-	if(ac == nil){
+	if(ac == nil) {
 		DBG("intrac: Proc.ac is nil. no ipi sent.\n");
 		return;
 	}
@@ -92,7 +93,7 @@ intrac(Proc *p)
 }
 
 void
-putac(Mach *m)
+putac(Mach* m)
 {
 	mfence();
 	m->proc = nil;
@@ -101,8 +102,8 @@ putac(Mach *m)
 void
 stopac(void)
 {
-	Proc *up = externup();
-	Mach *mp;
+	Proc* up = externup();
+	Mach* mp;
 
 	mp = up->ac;
 	if(mp == nil)
@@ -138,12 +139,12 @@ extern int notify(Ureg*);
  * interrupted while issuing the ICC.
  */
 int
-runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
+runac(Mach* mp, APfunc func, int flushtlb, void* a, int32_t n)
 {
-	Proc *up = externup();
-	uint8_t *dpg, *spg;
+	Proc* up = externup();
+	uint8_t* dpg, *spg;
 
-	if (n > sizeof(mp->icc->data))
+	if(n > sizeof(mp->icc->data))
 		panic("runac: args too long");
 
 	if(mp->online == 0)
@@ -152,15 +153,16 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 		panic("runapfunc: mach is busy with another proc?");
 
 	memmove(mp->icc->data, a, n);
-	if(flushtlb){
-		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->pml4->pa, machp()->pml4->pa);
+	if(flushtlb) {
+		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->pml4->pa,
+		    machp()->pml4->pa);
 		dpg = UINT2PTR(mp->pml4->va);
 		spg = UINT2PTR(machp()->pml4->va);
 		/* We should copy less:
 		 *	memmove(dgp, spg, machp()->pml4->daddr * sizeof(PTE));
 		 */
 		memmove(dpg, spg, PTSZ);
-		if(0){
+		if(0) {
 			print("runac: upac pml4 %#p\n", up->ac->pml4->pa);
 			dumpptepg(4, up->ac->pml4->pa);
 		}
@@ -169,7 +171,7 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 	mp->icc->rc = ICCOK;
 
 	DBG("runac: exotic proc on cpu%d\n", mp->machno);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&up->debug);
 		nexterror();
 	}
@@ -191,13 +193,13 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
  * Do it here instead.
  */
 static void
-fakeretfromsyscall(Ureg *ureg)
+fakeretfromsyscall(Ureg* ureg)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int s;
 
-	poperror();	/* as syscall() would do if we would return */
-	if(up->procctl == Proc_tracesyscall){	/* Would this work? */
+	poperror(); /* as syscall() would do if we would return */
+	if(up->procctl == Proc_tracesyscall) { /* Would this work? */
 		up->procctl = Proc_stopme;
 		s = splhi();
 		procctl(up);
@@ -206,7 +208,7 @@ fakeretfromsyscall(Ureg *ureg)
 
 	up->insyscall = 0;
 	/* if we delayed sched because we held a lock, sched now */
-	if(up->delaysched){
+	if(up->delaysched) {
 		sched();
 		splhi();
 	}
@@ -236,11 +238,11 @@ fakeretfromsyscall(Ureg *ureg)
 void
 runacore(void)
 {
-	Proc *up = externup();
-	Ureg *ureg;
+	Proc* up = externup();
+	Ureg* ureg;
 	void (*fn)(void);
 	int rc, flush, s;
-	char *n;
+	char* n;
 	uint64_t t1;
 
 	if(waserror())
@@ -252,17 +254,17 @@ runacore(void)
 	procpriority(up, PriKproc, 1);
 	rc = runac(up->ac, actouser, 1, nil, 0);
 	procpriority(up, PriNormal, 0);
-	for(;;){
+	for(;;) {
 		t1 = fastticks(nil);
 		flush = 0;
 		fn = nil;
-		switch(rc){
+		switch(rc) {
 		case ICCTRAP:
 			s = splhi();
 			machp()->cr2 = up->ac->cr2;
 			DBG("runacore: trap %ulld cr2 %#ullx ureg %#p\n",
-				ureg->type, machp()->cr2, ureg);
-			switch(ureg->type){
+			    ureg->type, machp()->cr2, ureg);
+			switch(ureg->type) {
 			case IdtIPI:
 				if(up->procctl || up->nnote)
 					notify(up->dbgreg);
@@ -281,11 +283,11 @@ runacore(void)
 				n = up->ac->icc->note;
 				if(n != nil)
 					postnote(up, 1, n, NDebug);
-				ureg->type = IdtIPI;		/* NOP */
+				ureg->type = IdtIPI; /* NOP */
 				break;
 			default:
 				cr3put(machp()->pml4->pa);
-				if(0 && ureg->type == IdtPF){
+				if(0 && ureg->type == IdtPF) {
 					print("before PF:\n");
 					print("AC:\n");
 					dumpptepg(4, up->ac->pml4->pa);
@@ -299,15 +301,15 @@ runacore(void)
 			fn = actrapret;
 			break;
 		case ICCSYSCALL:
-			DBG("runacore: syscall ax %#ullx ureg %#p\n",
-				ureg->ax, ureg);
+			DBG("runacore: syscall ax %#ullx ureg %#p\n", ureg->ax,
+			    ureg);
 			cr3put(machp()->pml4->pa);
-			//syscall(ureg->ax, ureg);
+			// syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;
 			if(0)
-			if(up->nqtrap > 2 || up->nsyscall > 1)
-				goto ToTC;
+				if(up->nqtrap > 2 || up->nsyscall > 1)
+					goto ToTC;
 			if(up->ac == nil)
 				goto ToTC;
 			break;
@@ -327,12 +329,12 @@ ToTC:
 	DBG("runacore: up %#p: return\n", up);
 }
 
-extern ACVctl *acvctl[];
+extern ACVctl* acvctl[];
 
 void
-actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
+actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char* name)
 {
-	ACVctl *v;
+	ACVctl* v;
 
 	if(vno < 0 || vno >= 256)
 		panic("actrapenable: vno %d\n", vno);
@@ -341,11 +343,9 @@ actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
 	v->a = a;
 	v->vno = vno;
 	strncpy(v->name, name, KNAMELEN);
-	v->name[KNAMELEN-1] = 0;
+	v->name[KNAMELEN - 1] = 0;
 
 	if(acvctl[vno])
 		panic("AC traps can't be shared");
 	acvctl[vno] = v;
 }
-
-

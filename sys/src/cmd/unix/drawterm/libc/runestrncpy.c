@@ -11,10 +11,10 @@
 #include <libc.h>
 
 Rune*
-runestrncpy(Rune *s1, Rune *s2, int32_t n)
+runestrncpy(Rune* s1, Rune* s2, int32_t n)
 {
 	int i;
-	Rune *os1;
+	Rune* os1;
 
 	os1 = s1;
 	for(i = 0; i < n; i++)

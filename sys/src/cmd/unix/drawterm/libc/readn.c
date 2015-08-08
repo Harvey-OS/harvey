@@ -11,16 +11,16 @@
 #include <libc.h>
 
 int32_t
-readn(int f, void *av, int32_t n)
+readn(int f, void* av, int32_t n)
 {
-	char *a;
+	char* a;
 	int32_t m, t;
 
 	a = av;
 	t = 0;
-	while(t < n){
-		m = read(f, a+t, n-t);
-		if(m <= 0){
+	while(t < n) {
+		m = read(f, a + t, n - t);
+		if(m <= 0) {
 			if(t == 0)
 				return m;
 			break;

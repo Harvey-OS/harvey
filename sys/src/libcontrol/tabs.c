@@ -20,74 +20,64 @@ typedef struct Tab Tab;
 
 struct Tab {
 	Control;
-	int		border;
-	int		selected;
-	int		separation;
-	char		*_format;
-	CImage	*bordercolor;
-	CImage	*image;
-	Control	*tabrow;
-	Control	*tabstack;
-	Control	*tabcolumn;
-	int		ntabs;
-	int		nbuttons;
-	Control	**buttons;
+	int border;
+	int selected;
+	int separation;
+	char* _format;
+	CImage* bordercolor;
+	CImage* image;
+	Control* tabrow;
+	Control* tabstack;
+	Control* tabcolumn;
+	int ntabs;
+	int nbuttons;
+	Control** buttons;
 };
 
-enum{
-	EAdd,
-	EBorder,
-	EBordercolor,
-	EButton,
-	EFocus,
-	EFormat,
-	EHide,
-	EImage,
-	ERect,
-	EReveal,
-	ESeparation,
-	ESeparatorcolor,
-	EShow,
-	ESize,
-	EValue,
+enum { EAdd,
+       EBorder,
+       EBordercolor,
+       EButton,
+       EFocus,
+       EFormat,
+       EHide,
+       EImage,
+       ERect,
+       EReveal,
+       ESeparation,
+       ESeparatorcolor,
+       EShow,
+       ESize,
+       EValue,
 };
 
-static char *cmds[] = {
-	[EAdd] =			"add",
-	[EBorder] =		"border",
-	[EBordercolor] =	"bordercolor",
-	[EButton] =		"button",
-	[EFocus] = 		"focus",
-	[EFormat] = 		"format",
-	[EHide] =			"hide",
-	[EImage] =		"image",
-	[ERect] =			"rect",
-	[EReveal] =		"reveal",
-	[ESeparation] =		"separation",
-	[ESeparatorcolor] =	"separatorcolor",
-	[EShow] =			"show",
-	[ESize] =			"size",
-	[EValue] =			"value",
+static char* cmds[] = {
+        [EAdd] = "add", [EBorder] = "border", [EBordercolor] = "bordercolor",
+        [EButton] = "button", [EFocus] = "focus", [EFormat] = "format",
+        [EHide] = "hide", [EImage] = "image", [ERect] = "rect",
+        [EReveal] = "reveal", [ESeparation] = "separation",
+        [ESeparatorcolor] = "separatorcolor", [EShow] = "show",
+        [ESize] = "size", [EValue] = "value",
 };
 
 static void
-tabshow(Tab *t)
+tabshow(Tab* t)
 {
 	int i;
 	Rectangle r;
-	Group *g;
+	Group* g;
 
-	if (t->hidden)
+	if(t->hidden)
 		return;
-	for(i=0; i<t->nbuttons; i++){
-		_ctlprint(t->buttons[i], "value %d", (t->selected==i));
+	for(i = 0; i < t->nbuttons; i++) {
+		_ctlprint(t->buttons[i], "value %d", (t->selected == i));
 	}
 	_ctlprint(t->tabstack, "reveal %d", t->selected);
 	_ctlprint(t->tabcolumn, "show");
-	if (t->selected < 0)
+	if(t->selected < 0)
 		return;
 	g = (Group*)t->tabcolumn;
-	if (g->nseparators == 0){
+	if(g->nseparators == 0) {
 		return;
 	}
 	r = g->separators[0];
@@ -98,39 +88,42 @@ tabshow(Tab *t)
 }
 
 static void
-tabsize(Control *c)
+tabsize(Control* c)
 {
-	Tab *t = (Tab*)c;
-	if (t->tabcolumn && t->tabcolumn->setsize)
+	Tab* t = (Tab*)c;
+	if(t->tabcolumn && t->tabcolumn->setsize)
 		t->tabcolumn->setsize((Control*)t->tabcolumn);
 }
 
 static void
-tabctl(Control *c, CParse *cp)
+tabctl(Control* c, CParse* cp)
 {
 	int cmd, i;
-	Control *cbut, *cwin;
-	Tab *t;
+	Control* cbut, *cwin;
+	Tab* t;
 	Rectangle r;
 
 	t = (Tab*)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
-	switch(cmd){
+	switch(cmd) {
 	case EAdd:
-		if ((cp->nargs & 1) == 0)
+		if((cp->nargs & 1) == 0)
 			ctlerror("%q: arg count: %s", t->name, cp->args[1]);
-		for (i = 1; i < cp->nargs; i += 2){
+		for(i = 1; i < cp->nargs; i += 2) {
 			cbut = controlcalled(cp->args[i]);
-			if (cbut == nil)
-				ctlerror("%q: no such control: %s", t->name, cp->args[i]);
-			cwin = controlcalled(cp->args[i+1]);
-			if (cwin == nil)
-				ctlerror("%q: no such control: %s", t->name, cp->args[i+1]);
+			if(cbut == nil)
+				ctlerror("%q: no such control: %s", t->name,
+				         cp->args[i]);
+			cwin = controlcalled(cp->args[i + 1]);
+			if(cwin == nil)
+				ctlerror("%q: no such control: %s", t->name,
+				         cp->args[i + 1]);
 			_ctladdgroup(t->tabrow, cbut);
-			_ctlprint(t->tabstack, "add %q", cp->args[i+1]);
+			_ctlprint(t->tabstack, "add %q", cp->args[i + 1]);
 			_ctlprint(cbut, "format '%%s: %q button %%d'", t->name);
 			controlwire(cbut, "event", t->controlset->ctl);
-			t->buttons = ctlrealloc(t->buttons, (t->nbuttons+1)*sizeof(Control*));
+			t->buttons = ctlrealloc(
+			    t->buttons, (t->nbuttons + 1) * sizeof(Control*));
 			t->buttons[t->nbuttons] = cbut;
 			t->nbuttons++;
 			t->selected = -1;
@@ -150,20 +143,21 @@ tabctl(Control *c, CParse *cp)
 		break;
 	case EButton:
 		_ctlargcount(t, cp, 2);
-		if (cp->sender == nil)
-			ctlerror("%q: senderless buttonevent: %q", t->name, cp->str);
+		if(cp->sender == nil)
+			ctlerror("%q: senderless buttonevent: %q", t->name,
+			         cp->str);
 		cbut = controlcalled(cp->sender);
-		for(i=0; i<t->nbuttons; i++)
-			if (cbut == t->buttons[i])
+		for(i = 0; i < t->nbuttons; i++)
+			if(cbut == t->buttons[i])
 				break;
-		if (i == t->nbuttons)
+		if(i == t->nbuttons)
 			ctlerror("%q: not my event: %q", t->name, cp->str);
-		if(cp->iargs[1] == 0){
+		if(cp->iargs[1] == 0) {
 			/* button was turned off; turn it back on */
 			_ctlprint(cbut, "value 1");
-		}else{
+		} else {
 			t->selected = i;
-			if (t->_format)
+			if(t->_format)
 				chanprint(t->event, t->_format, t->name, i);
 			tabshow(t);
 		}
@@ -189,7 +183,7 @@ tabctl(Control *c, CParse *cp)
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
-		if(Dx(r)<=0 || Dy(r)<=0)
+		if(Dx(r) <= 0 || Dy(r) <= 0)
 			ctlerror("%q: bad rectangle: %s", t->name, cp->str);
 		t->rect = r;
 		r = insetrect(r, t->border);
@@ -206,7 +200,7 @@ tabctl(Control *c, CParse *cp)
 		break;
 	case EValue:
 		_ctlargcount(t, cp, 2);
-		if (cp->iargs[1] < 0 || cp->iargs[1] >= t->nbuttons)
+		if(cp->iargs[1] < 0 || cp->iargs[1] >= t->nbuttons)
 			ctlerror("%q: illegal value '%s'", t->name, cp->str);
 		t->selected = cp->iargs[1];
 		tabshow(t);
@@ -218,32 +212,32 @@ tabctl(Control *c, CParse *cp)
 }
 
 static void
-tabfree(Control*c)
+tabfree(Control* c)
 {
-	Tab *t = (Tab*)c;
+	Tab* t = (Tab*)c;
 	t->nbuttons = 0;
 	free(t->buttons);
 	t->buttons = 0;
 }
 
 static void
-activatetab(Control *c, int act)
+activatetab(Control* c, int act)
 {
-	Tab *t;
+	Tab* t;
 
 	t = (Tab*)c;
-	if (act)
+	if(act)
 		activate(t->tabcolumn);
 	else
 		deactivate(t->tabcolumn);
 }
-	
-Control *
-createtab(Controlset *cs, char *name)
+
+Control*
+createtab(Controlset* cs, char* name)
 {
 	char s[128];
 
-	Tab *t;
+	Tab* t;
 	t = (Tab*)_createctl(cs, "tab", sizeof(Tab), name);
 	t->selected = -1;
 	t->nbuttons = 0;

@@ -18,9 +18,9 @@
  *	name:x:nn:other stuff
  */
 
-static int isnumber(char *s);
+static int isnumber(char* s);
 
-sniff(Biobuf *b)
+sniff(Biobuf* b)
 {
 	read first line of file into p;
 
@@ -37,11 +37,10 @@ sniff(Biobuf *b)
 	return nil;
 }
 
-
 int
-isnumber(char *s)
+isnumber(char* s)
 {
-	char *q;
+	char* q;
 
 	strtol(s, &q, 10);
 	return *q == '\0';

@@ -28,17 +28,17 @@ snarf(Vga* vga, Ctlr* ctlr)
 static void
 options(Vga* vga, Ctlr* ctlr)
 {
-	ctlr->flag |= Hlinear|Hpclk2x8|Henhanced|Foptions;
+	ctlr->flag |= Hlinear | Hpclk2x8 | Henhanced | Foptions;
 }
 
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t x;
-	char *val;
+	char* val;
 
 	s3generic.init(vga, ctlr);
-	vga->crt[0x3B] = vga->crt[0]-5;
+	vga->crt[0x3B] = vga->crt[0] - 5;
 
 	if(vga->mode->z > 8)
 		error("depth %d not supported\n", vga->mode->z);
@@ -46,7 +46,7 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * VL-bus crap.
 	 */
-	if((vga->crt[0x36] & 0x03) == 0x01){
+	if((vga->crt[0x36] & 0x03) == 0x01) {
 		vga->crt[0x40] |= 0x08;
 		vga->crt[0x58] &= ~0x88;
 	}
@@ -59,8 +59,8 @@ init(Vga* vga, Ctlr* ctlr)
 	 * registers.
 	 */
 	vga->crt[0x60] = 0xFF;
-	x = vga->mode->x/8;
-	vga->crt[0x61] = 0x80|((x>>8) & 0x07);
+	x = vga->mode->x / 8;
+	vga->crt[0x61] = 0x80 | ((x >> 8) & 0x07);
 	vga->crt[0x62] = (x & 0xFF);
 	if(vga->mode->x <= 800)
 		vga->crt[0x54] = 0x88;
@@ -86,7 +86,7 @@ init(Vga* vga, Ctlr* ctlr)
 	else
 		vga->crt[0x6D] |= 2;
 	if(val = dbattr(vga->attr, "delaysc"))
-		vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07)<<4;
+		vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07) << 4;
 }
 
 static void
@@ -104,7 +104,7 @@ load(Vga* vga, Ctlr* ctlr)
 	vgaxo(Crtx, 0x6D, vga->crt[0x6D]);
 
 	advfunc = 0x0000;
-	if(ctlr->flag & Uenhanced){
+	if(ctlr->flag & Uenhanced) {
 		if(vga->mode->x == 1024 || vga->mode->x == 800)
 			advfunc = 0x0057;
 		else
@@ -120,10 +120,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr vision864 = {
-	"vision864",			/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "vision864", /* name */
+    snarf,       /* snarf */
+    options,     /* options */
+    init,        /* init */
+    load,        /* load */
+    dump,        /* dump */
 };

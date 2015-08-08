@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1997, 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,13 +27,13 @@
 /* Interface for get_bits_rectangle driver procedure */
 
 #ifndef gxgetbit_INCLUDED
-#  define gxgetbit_INCLUDED
+#define gxgetbit_INCLUDED
 
 #include "gxbitfmt.h"
 
 /* The parameter record typedef is also in gxdevcli.h. */
 #ifndef gs_get_bits_params_DEFINED
-#  define gs_get_bits_params_DEFINED
+#define gs_get_bits_params_DEFINED
 typedef struct gs_get_bits_params_s gs_get_bits_params_t;
 #endif
 
@@ -52,10 +52,10 @@ typedef gx_bitmap_format_t gs_get_bits_options_t;
  * to indicate what options were actually used (1 option per group).
  */
 struct gs_get_bits_params_s {
-    gs_get_bits_options_t options;
-    byte *data[32];
-    int x_offset;		/* in returned data */
-    uint raster;
+	gs_get_bits_options_t options;
+	byte* data[32];
+	int x_offset; /* in returned data */
+	uint raster;
 };
 
 /*
@@ -88,15 +88,15 @@ struct gs_get_bits_params_s {
 /* ---------------- Procedures ---------------- */
 
 /* Try to implement get_bits_rectangle by returning a pointer. */
-int gx_get_bits_return_pointer(gx_device * dev, int x, int h,
-			       gs_get_bits_params_t * params,
-			       const gs_get_bits_params_t *stored,
-			       byte * stored_base);
+int gx_get_bits_return_pointer(gx_device* dev, int x, int h,
+                               gs_get_bits_params_t* params,
+                               const gs_get_bits_params_t* stored,
+                               byte* stored_base);
 
 /* Implement get_bits_rectangle by copying. */
-int gx_get_bits_copy(gx_device * dev, int x, int w, int h,
-		     gs_get_bits_params_t * params,
-		     const gs_get_bits_params_t *stored,
-		     const byte * src_base, uint dev_raster);
+int gx_get_bits_copy(gx_device* dev, int x, int w, int h,
+                     gs_get_bits_params_t* params,
+                     const gs_get_bits_params_t* stored, const byte* src_base,
+                     uint dev_raster);
 
 #endif /* gxgetbit_INCLUDED */

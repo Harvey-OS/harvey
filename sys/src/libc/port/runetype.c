@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
-Rune*_runebsearch(Rune c, Rune *t, int n, int ne);
+Rune* _runebsearch(Rune c, Rune* t, int n, int ne);
 
 #include "runetypebody-6.2.0.h"

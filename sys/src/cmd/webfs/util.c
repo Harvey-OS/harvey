@@ -19,7 +19,7 @@
 #include "fns.h"
 
 void*
-erealloc(void *a, uint n)
+erealloc(void* a, uint n)
 {
 	a = realloc(a, n);
 	if(a == nil)
@@ -31,7 +31,7 @@ erealloc(void *a, uint n)
 void*
 emalloc(uint n)
 {
-	void *a;
+	void* a;
 
 	a = mallocz(n, 1);
 	if(a == nil)
@@ -41,7 +41,7 @@ emalloc(uint n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -51,21 +51,21 @@ estrdup(char *s)
 }
 
 char*
-estredup(char *s, char *e)
+estredup(char* s, char* e)
 {
-	char *t;
+	char* t;
 
-	t = emalloc(e-s+1);
-	memmove(t, s, e-s);
-	t[e-s] = '\0';
+	t = emalloc(e - s + 1);
+	memmove(t, s, e - s);
+	t[e - s] = '\0';
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
 
 char*
-estrmanydup(char *s, ...)
+estrmanydup(char* s, ...)
 {
-	char *p, *t;
+	char* p, *t;
 	int len;
 	va_list arg;
 
@@ -84,12 +84,12 @@ estrmanydup(char *s, ...)
 }
 
 char*
-strlower(char *s)
+strlower(char* s)
 {
-	char *t;
+	char* t;
 
-	for(t=s; *t; t++)
+	for(t = s; *t; t++)
 		if('A' <= *t && *t <= 'Z')
-			*t += 'a'-'A';
+			*t += 'a' - 'A';
 	return s;
 }

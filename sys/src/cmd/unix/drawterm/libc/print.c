@@ -12,7 +12,7 @@
 #include "fmtdef.h"
 
 int
-print(char *fmt, ...)
+print(char* fmt, ...)
 {
 	int n;
 	va_list args;

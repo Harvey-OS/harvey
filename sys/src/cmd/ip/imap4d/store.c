@@ -13,21 +13,18 @@
 #include <auth.h>
 #include "imap4d.h"
 
-static NamedInt	flagMap[] =
-{
-	{"\\Seen",	MSeen},
-	{"\\Answered",	MAnswered},
-	{"\\Flagged",	MFlagged},
-	{"\\Deleted",	MDeleted},
-	{"\\Draft",	MDraft},
-	{"\\Recent",	MRecent},
-	{nil,		0}
-};
+static NamedInt flagMap[] = {{"\\Seen", MSeen},
+                             {"\\Answered", MAnswered},
+                             {"\\Flagged", MFlagged},
+                             {"\\Deleted", MDeleted},
+                             {"\\Draft", MDraft},
+                             {"\\Recent", MRecent},
+                             {nil, 0}};
 
 int
-storeMsg(Box *box, Msg *m, int uids, void *vst)
+storeMsg(Box* box, Msg* m, int uids, void* vst)
 {
-	Store *st;
+	Store* st;
 	int f, flags;
 
 	USED(uids);
@@ -52,7 +49,7 @@ storeMsg(Box *box, Msg *m, int uids, void *vst)
 	f = (f & ~MRecent) | (m->flags & MRecent);
 	setFlags(box, m, f);
 
-	if(st->op != STFlagsSilent){
+	if(st->op != STFlagsSilent) {
 		m->sendFlags = 1;
 		box->sendFlags = 1;
 	}
@@ -64,13 +61,13 @@ storeMsg(Box *box, Msg *m, int uids, void *vst)
  * update flags & global flag counts in box
  */
 void
-setFlags(Box *box, Msg *m, int f)
+setFlags(Box* box, Msg* m, int f)
 {
 	if(f == m->flags)
 		return;
 
 	box->dirtyImp = 1;
-	if((f & MRecent) != (m->flags & MRecent)){
+	if((f & MRecent) != (m->flags & MRecent)) {
 		if(f & MRecent)
 			box->recent++;
 		else
@@ -80,16 +77,16 @@ setFlags(Box *box, Msg *m, int f)
 }
 
 void
-sendFlags(Box *box, int uids)
+sendFlags(Box* box, int uids)
 {
-	Msg *m;
+	Msg* m;
 
 	if(!box->sendFlags)
 		return;
 
 	box->sendFlags = 0;
-	for(m = box->msgs; m != nil; m = m->next){
-		if(!m->expunged && m->sendFlags){
+	for(m = box->msgs; m != nil; m = m->next) {
+		if(!m->expunged && m->sendFlags) {
 			Bprint(&bout, "* %lud FETCH (", m->seq);
 			if(uids)
 				Bprint(&bout, "uid %lud ", m->uid);
@@ -102,15 +99,15 @@ sendFlags(Box *box, int uids)
 }
 
 void
-writeFlags(Biobuf *b, Msg *m, int recentOk)
+writeFlags(Biobuf* b, Msg* m, int recentOk)
 {
-	char *sep;
+	char* sep;
 	int f;
 
 	sep = "";
-	for(f = 0; flagMap[f].name != nil; f++){
-		if((m->flags & flagMap[f].v)
-		&& (flagMap[f].v != MRecent || recentOk)){
+	for(f = 0; flagMap[f].name != nil; f++) {
+		if((m->flags & flagMap[f].v) &&
+		   (flagMap[f].v != MRecent || recentOk)) {
 			Bprint(b, "%s%s", sep, flagMap[f].name);
 			sep = " ";
 		}
@@ -118,7 +115,7 @@ writeFlags(Biobuf *b, Msg *m, int recentOk)
 }
 
 int
-msgSeen(Box *box, Msg *m)
+msgSeen(Box* box, Msg* m)
 {
 	if(m->flags & MSeen)
 		return 0;
@@ -130,7 +127,7 @@ msgSeen(Box *box, Msg *m)
 }
 
 uint32_t
-mapFlag(char *name)
+mapFlag(char* name)
 {
 	return mapInt(flagMap, name);
 }

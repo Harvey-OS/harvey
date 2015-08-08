@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1989-2003 artofcode LLC. All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -42,10 +42,10 @@
  * hope for the best.  We pick up getenv at the same time.
  */
 #ifdef __PROTOTYPES__
-#  include <stdlib.h>		/* for exit and getenv */
+#include <stdlib.h> /* for exit and getenv */
 #else
 extern void exit(int);
-extern char *getenv(const char *);
+extern char* getenv(const char*);
 #endif
 
 /* Do platform-dependent initialization. */
@@ -64,7 +64,7 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
-    exit(exit_status);
+	exit(exit_status);
 }
 
 /* ------ Miscellaneous ------ */
@@ -72,20 +72,20 @@ gp_do_exit(int exit_status)
 /* Get the string corresponding to an OS error number. */
 /* Unix systems support this so inconsistently that we don't attempt */
 /* to figure out whether it's available. */
-const char *
+const char*
 gp_strerror(int errnum)
 {
-    return NULL;
+	return NULL;
 }
 
 /* read in a MacOS 'resource' from an extended attribute. */
 /* we don't try to implemented this since it requires support */
 /* for Apple's HFS(+) filesystem */
 int
-gp_read_macresource(byte *buf, const char *filename, 
-                    const uint type, const uint16_t id)
+gp_read_macresource(byte* buf, const char* filename, const uint type,
+                    const uint16_t id)
 {
-    return 0;
+	return 0;
 }
 
 /* ------ Date and time ------ */
@@ -93,108 +93,111 @@ gp_read_macresource(byte *buf, const char *filename,
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(int32_t *pdt)
+gp_get_realtime(int32_t* pdt)
 {
-    struct timeval tp;
+	struct timeval tp;
 
-#if gettimeofday_no_timezone	/* older versions of SVR4 */
-    {
-	if (gettimeofday(&tp) == -1) {
-	    lprintf("Ghostscript: gettimeofday failed!\n");
-	    tp.tv_sec = tp.tv_usec = 0;
+#if gettimeofday_no_timezone /* older versions of SVR4 */
+	{
+		if(gettimeofday(&tp) == -1) {
+			lprintf("Ghostscript: gettimeofday failed!\n");
+			tp.tv_sec = tp.tv_usec = 0;
+		}
 	}
-    }
 #else /* All other systems */
-    {
-	struct timezone tzp;
+	{
+		struct timezone tzp;
 
-	if (gettimeofday(&tp, &tzp) == -1) {
-	    lprintf("Ghostscript: gettimeofday failed!\n");
-	    tp.tv_sec = tp.tv_usec = 0;
+		if(gettimeofday(&tp, &tzp) == -1) {
+			lprintf("Ghostscript: gettimeofday failed!\n");
+			tp.tv_sec = tp.tv_usec = 0;
+		}
 	}
-    }
 #endif
 
-    /* tp.tv_sec is #secs since Jan 1, 1970 */
-    pdt[0] = tp.tv_sec;
+	/* tp.tv_sec is #secs since Jan 1, 1970 */
+	pdt[0] = tp.tv_sec;
 
-    /* Some Unix systems (e.g., Interactive 3.2 r3.0) return garbage */
-    /* in tp.tv_usec.  Try to filter out the worst of it here. */
-    pdt[1] = tp.tv_usec >= 0 && tp.tv_usec < 1000000 ? tp.tv_usec * 1000 : 0;
+	/* Some Unix systems (e.g., Interactive 3.2 r3.0) return garbage */
+	/* in tp.tv_usec.  Try to filter out the worst of it here. */
+	pdt[1] =
+	    tp.tv_usec >= 0 && tp.tv_usec < 1000000 ? tp.tv_usec * 1000 : 0;
 
 #ifdef DEBUG_CLOCK
-    printf("tp.tv_sec = %d  tp.tv_usec = %d  pdt[0] = %ld  pdt[1] = %ld\n",
-	   tp.tv_sec, tp.tv_usec, pdt[0], pdt[1]);
+	printf("tp.tv_sec = %d  tp.tv_usec = %d  pdt[0] = %ld  pdt[1] = %ld\n",
+	       tp.tv_sec, tp.tv_usec, pdt[0], pdt[1]);
 #endif
 }
 
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(int32_t *pdt)
+gp_get_usertime(int32_t* pdt)
 {
 #if use_times_for_usertime
-    struct tms tms;
-    int32_t ticks;
-    const int32_t ticks_per_sec = CLK_TCK;
+	struct tms tms;
+	int32_t ticks;
+	const int32_t ticks_per_sec = CLK_TCK;
 
-    times(&tms);
-    ticks = tms.tms_utime + tms.tms_stime + tms.tms_cutime + tms.tms_cstime;
-    pdt[0] = ticks / ticks_per_sec;
-    pdt[1] = (ticks % ticks_per_sec) * (1000000000 / ticks_per_sec);
+	times(&tms);
+	ticks = tms.tms_utime + tms.tms_stime + tms.tms_cutime + tms.tms_cstime;
+	pdt[0] = ticks / ticks_per_sec;
+	pdt[1] = (ticks % ticks_per_sec) * (1000000000 / ticks_per_sec);
 #else
-    gp_get_realtime(pdt);	/* Use an approximation on other hosts.  */
+	gp_get_realtime(pdt); /* Use an approximation on other hosts.  */
 #endif
 }
 
 /* ------ Screen management ------ */
 
 /* Get the environment variable that specifies the display to use. */
-const char *
+const char*
 gp_getenv_display(void)
 {
-    return getenv("DISPLAY");
+	return getenv("DISPLAY");
 }
 
 /* ------ Printer accessing ------ */
 
 /* Open a connection to a printer.  See gp.h for details. */
-FILE *
+FILE*
 gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 {
-    const char *fmode = (binary_mode ? "wb" : "w");
+	const char* fmode = (binary_mode ? "wb" : "w");
 
-    return (strlen(fname) == 0 ? 0 : fopen(fname, fmode));
+	return (strlen(fname) == 0 ? 0 : fopen(fname, fmode));
 }
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const char *fname)
+gp_close_printer(FILE* pfile, const char* fname)
 {
-    if (fname[0] == '|')
-	pclose(pfile);
-    else
-	fclose(pfile);
+	if(fname[0] == '|')
+		pclose(pfile);
+	else
+		fclose(pfile);
 }
 
 /* ------ Font enumeration ------ */
- 
- /* This is used to query the native os for a list of font names and
-  * corresponding paths. The general idea is to save the hassle of
-  * building a custom fontmap file.
-  */
- 
-void *gp_enumerate_fonts_init(gs_memory_t *mem)
+
+/* This is used to query the native os for a list of font names and
+ * corresponding paths. The general idea is to save the hassle of
+ * building a custom fontmap file.
+ */
+
+void*
+gp_enumerate_fonts_init(gs_memory_t* mem)
 {
-    return NULL;
+	return NULL;
 }
-         
-int gp_enumerate_fonts_next(void *enum_state, char **fontname,
-                            char **path)
+
+int
+gp_enumerate_fonts_next(void* enum_state, char** fontname, char** path)
 {
-    return 0;
+	return 0;
 }
-                         
-void gp_enumerate_fonts_free(void *enum_state)
+
+void
+gp_enumerate_fonts_free(void* enum_state)
 {
-}           
+}

@@ -20,24 +20,14 @@
  * Wkd Mon ( D|DD) HH:MM:SS YYYY
  * plus anything similar
  */
-static char *
-weekdayname[7] =
-{
-	"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-};
-static char *
-wdayname[7] =
-{
-	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-};
+static char* weekdayname[7] = {"Sunday",   "Monday", "Tuesday", "Wednesday",
+                               "Thursday", "Friday", "Saturday"};
+static char* wdayname[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-static char *
-monname[12] =
-{
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
+static char* monname[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-static	int	dateindex(char*, char**, int);
+static int dateindex(char*, char**, int);
 
 static int
 dtolower(int c)
@@ -60,28 +50,28 @@ disdig(int c)
 }
 
 int
-hdatefmt(Fmt *f)
+hdatefmt(Fmt* f)
 {
-	Tm *tm;
+	Tm* tm;
 	uint32_t t;
 
 	t = va_arg(f->args, uint32_t);
 	tm = gmtime(t);
 	return fmtprint(f, "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
-		wdayname[tm->wday], tm->mday, monname[tm->mon], tm->year+1900,
-		tm->hour, tm->min, tm->sec);
+	                wdayname[tm->wday], tm->mday, monname[tm->mon],
+	                tm->year + 1900, tm->hour, tm->min, tm->sec);
 }
 
 static char*
-dateword(char *date, char *buf)
+dateword(char* date, char* buf)
 {
-	char *p;
+	char* p;
 	int c;
 
 	p = buf;
 	while(!disalpha(c = *date) && !disdig(c) && c)
 		date++;
-	while(disalpha(c = *date)){
+	while(disalpha(c = *date)) {
 		if(p - buf < 30)
 			*p++ = dtolower(c);
 		date++;
@@ -91,20 +81,20 @@ dateword(char *date, char *buf)
 }
 
 static int
-datenum(char **d)
+datenum(char** d)
 {
-	char *date;
+	char* date;
 	int c, n;
 
 	date = *d;
 	while(!disdig(c = *date) && c)
 		date++;
-	if(c == 0){
+	if(c == 0) {
 		*d = date;
 		return -1;
 	}
 	n = 0;
-	while(disdig(c = *date)){
+	while(disdig(c = *date)) {
 		n = n * 10 + c - '0';
 		date++;
 	}
@@ -117,7 +107,7 @@ datenum(char **d)
  * return 0 for a failure
  */
 uint32_t
-hdate2sec(char *date)
+hdate2sec(char* date)
 {
 	Tm tm;
 	char buf[32];
@@ -137,7 +127,7 @@ hdate2sec(char *date)
 	 */
 	date = dateword(date, buf);
 	tm.mon = dateindex(buf, monname, 12);
-	if(tm.mon >= 0){
+	if(tm.mon >= 0) {
 		/*
 		 * MM
 		 */
@@ -166,7 +156,7 @@ hdate2sec(char *date)
 			return 0;
 		if(tm.year >= 1970)
 			tm.year -= 1900;
-	}else{
+	} else {
 		/*
 		 * MM-Mon-(YY|YYYY)
 		 */
@@ -211,7 +201,7 @@ hdate2sec(char *date)
 }
 
 static int
-dateindex(char *d, char **tab, int n)
+dateindex(char* d, char** tab, int n)
 {
 	int i;
 

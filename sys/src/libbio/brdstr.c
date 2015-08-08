@@ -7,22 +7,21 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 static char*
-badd(char *p, int *np, char *data, int ndata, int delim,
-     int nulldelim)
+badd(char* p, int* np, char* data, int ndata, int delim, int nulldelim)
 {
 	int n;
 
 	n = *np;
-	p = realloc(p, n+ndata+1);
-	if(p){
-		memmove(p+n, data, ndata);
+	p = realloc(p, n + ndata + 1);
+	if(p) {
+		memmove(p + n, data, ndata);
 		n += ndata;
-		if(n>0 && nulldelim && p[n-1]==delim)
+		if(n > 0 && nulldelim && p[n - 1] == delim)
 			p[--n] = '\0';
 		else
 			p[n] = '\0';
@@ -32,9 +31,9 @@ badd(char *p, int *np, char *data, int ndata, int delim,
 }
 
 char*
-Brdstr(Biobufhdr *bp, int delim, int nulldelim)
+Brdstr(Biobufhdr* bp, int delim, int nulldelim)
 {
-	char *ip, *ep, *p;
+	char* ip, *ep, *p;
 	int i, j;
 
 	i = -bp->icount;
@@ -73,23 +72,25 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 	 * append to buffer looking for the delim
 	 */
 	p = nil;
-	for(;;){
+	for(;;) {
 		ip = (char*)bp->bbuf + i;
 		while(i < bp->bsize) {
-			j = read(bp->fid, ip, bp->bsize-i);
+			j = read(bp->fid, ip, bp->bsize - i);
 			if(j <= 0 && i == 0)
 				return p;
-			if(j <= 0 && i > 0){
+			if(j <= 0 && i > 0) {
 				/*
-				 * end of file but no delim. pretend we got a delim
-				 * by making the delim \0 and smashing it with nulldelim.
+				 * end of file but no delim. pretend we got a
+				 * delim
+				 * by making the delim \0 and smashing it with
+				 * nulldelim.
 				 */
 				j = 1;
 				ep = ip;
 				delim = '\0';
 				nulldelim = 1;
-				*ep = delim;	/* there will be room for this */
-			}else{
+				*ep = delim; /* there will be room for this */
+			} else {
 				bp->offset += j;
 				ep = memchr(ip, delim, j);
 			}
@@ -100,22 +101,22 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 				 * copy back up and reset everything
 				 */
 				ip = (char*)bp->ebuf - i;
-				if(i < bp->bsize){
+				if(i < bp->bsize) {
 					memmove(ip, bp->bbuf, i);
 					bp->gbuf = (uint8_t*)ip;
 				}
 				j = (ep - (char*)bp->bbuf) + 1;
 				bp->icount = j - i;
-				return badd(p, &bp->rdline, ip, j, delim, nulldelim);
+				return badd(p, &bp->rdline, ip, j, delim,
+				            nulldelim);
 			}
 			ip += j;
 		}
-	
+
 		/*
 		 * full buffer without finding; add to user string and continue
 		 */
-		p = badd(p, &bp->rdline, (char*)bp->bbuf, bp->bsize, 0,
-			 0);
+		p = badd(p, &bp->rdline, (char*)bp->bbuf, bp->bsize, 0, 0);
 		i = 0;
 		bp->icount = 0;
 		bp->gbuf = bp->ebuf;

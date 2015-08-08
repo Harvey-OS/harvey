@@ -11,7 +11,7 @@
  * HTTPDIGEST - MD5 challenge/response authentication (RFC 2617)
  *
  * Client protocol:
- *	write challenge: nonce method uri 
+ *	write challenge: nonce method uri
  *	read response: 2*MD5dlen hex digits
  *
  * Server protocol:
@@ -19,29 +19,25 @@
  */
 #include "dat.h"
 
-enum
-{
-	CNeedChal,
-	CHaveResp,
+enum { CNeedChal,
+       CHaveResp,
 
-	Maxphase,
+       Maxphase,
 };
 
-static char *phasenames[Maxphase] = {
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+static char* phasenames[Maxphase] = {
+        [CNeedChal] "CNeedChal", [CHaveResp] "CHaveResp",
 };
 
-struct State
-{
-	char resp[MD5dlen*2+1];
+struct State {
+	char resp[MD5dlen * 2 + 1];
 };
 
 static int
-hdinit(Proto *p, Fsstate *fss)
+hdinit(Proto* p, Fsstate* fss)
 {
 	int iscli;
-	State *s;
+	State* s;
 
 	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
@@ -57,23 +53,22 @@ hdinit(Proto *p, Fsstate *fss)
 }
 
 static void
-strtolower(char *s)
+strtolower(char* s)
 {
-	while(*s){
+	while(*s) {
 		*s = tolower(*s);
 		s++;
 	}
 }
 
 static void
-digest(char *user, char *realm, char *passwd,
-	char *nonce, char *method, char *uri,
-	char *dig)
+digest(char* user, char* realm, char* passwd, char* nonce, char* method,
+       char* uri, char* dig)
 {
 	uint8_t b[MD5dlen];
-	char ha1[MD5dlen*2+1];
-	char ha2[MD5dlen*2+1];
-	DigestState *s;
+	char ha1[MD5dlen * 2 + 1];
+	char ha2[MD5dlen * 2 + 1];
+	DigestState* s;
 
 	/*
 	 *  H(A1) = MD5(uid + ":" + realm ":" + passwd)
@@ -98,25 +93,25 @@ digest(char *user, char *realm, char *passwd,
 	/*
 	 *  digest = MD5(H(A1) + ":" + nonce + ":" + H(A2))
 	 */
-	s = md5((uint8_t*)ha1, MD5dlen*2, nil, nil);
+	s = md5((uint8_t*)ha1, MD5dlen * 2, nil, nil);
 	md5((uint8_t*)":", 1, nil, s);
 	md5((uint8_t*)nonce, strlen(nonce), nil, s);
 	md5((uint8_t*)":", 1, nil, s);
-	md5((uint8_t*)ha2, MD5dlen*2, b, s);
-	enc16(dig, MD5dlen*2+1, b, MD5dlen);
+	md5((uint8_t*)ha2, MD5dlen * 2, b, s);
+	enc16(dig, MD5dlen * 2 + 1, b, MD5dlen);
 	strtolower(dig);
 }
 
 static int
-hdwrite(Fsstate *fss, void *va, uint n)
+hdwrite(Fsstate* fss, void* va, uint n)
 {
-	State *s;
+	State* s;
 	int ret;
-	char *a, *p, *r, *u, *t;
-	char *tok[4];
-	Key *k;
+	char* a, *p, *r, *u, *t;
+	char* tok[4];
+	Key* k;
 	Keyinfo ki;
-	Attr *attr;
+	Attr* attr;
 
 	s = fss->ps;
 	a = va;
@@ -142,7 +137,7 @@ hdwrite(Fsstate *fss, void *va, uint n)
 	setattrs(fss->attr, k->attr);
 
 	/* copy in case a is not null-terminated */
-	t = emalloc(n+1);
+	t = emalloc(n + 1);
 	memcpy(t, a, n);
 	t[n] = 0;
 
@@ -159,9 +154,9 @@ hdwrite(Fsstate *fss, void *va, uint n)
 }
 
 static int
-hdread(Fsstate *fss, void *va, uint *n)
+hdread(Fsstate* fss, void* va, uint* n)
 {
-	State *s;
+	State* s;
 
 	s = fss->ps;
 	if(fss->phase != CHaveResp)
@@ -175,19 +170,17 @@ hdread(Fsstate *fss, void *va, uint *n)
 }
 
 static void
-hdclose(Fsstate *fss)
+hdclose(Fsstate* fss)
 {
-	State *s;
+	State* s;
 	s = fss->ps;
 	free(s);
 }
 
-Proto httpdigest = {
-.name=		"httpdigest",
-.init=		hdinit,
-.write=		hdwrite,
-.read=		hdread,
-.close=		hdclose,
-.addkey=	replacekey,
-.keyprompt=	"user? realm? !password?"
-};
+Proto httpdigest = {.name = "httpdigest",
+                    .init = hdinit,
+                    .write = hdwrite,
+                    .read = hdread,
+                    .close = hdclose,
+                    .addkey = replacekey,
+                    .keyprompt = "user? realm? !password?"};

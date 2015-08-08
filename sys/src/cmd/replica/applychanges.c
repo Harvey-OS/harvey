@@ -13,68 +13,69 @@
 #include "all.h"
 
 int douid;
-Db *db;
-char **x;
+Db* db;
+char** x;
 int nx;
 int justshow;
 int verbose;
 int conflicts;
 char newpath[10000];
 char oldpath[10000];
-char *clientroot;
-char *serverroot;
+char* clientroot;
+char* serverroot;
 int copyfile(char*, char*, Dir*, int);
 int metafile(char*, Dir*);
-char **match;
+char** match;
 int nmatch;
 
 int
-ismatch(char *s)
+ismatch(char* s)
 {
 	int i, len;
 
 	if(nmatch == 0)
 		return 1;
-	for(i=0; i<nmatch; i++){
+	for(i = 0; i < nmatch; i++) {
 		if(strcmp(s, match[i]) == 0)
 			return 1;
 		len = strlen(match[i]);
-		if(strncmp(s, match[i], len) == 0 && s[len]=='/')
+		if(strncmp(s, match[i], len) == 0 && s[len] == '/')
 			return 1;
 	}
 	return 0;
 }
 
 void
-xlog(char c, char *path, Dir *d)
+xlog(char c, char* path, Dir* d)
 {
 	if(!verbose)
 		return;
-	print("%c %s %luo %s %s %lud\n", c, path, d->mode, d->uid, d->gid, d->mtime);
+	print("%c %s %luo %s %s %lud\n", c, path, d->mode, d->uid, d->gid,
+	      d->mtime);
 }
 
 void
-walk(char *new, char *old, Dir *pd, void*)
+walk(char* new, char* old, Dir* pd, void*)
 {
 	int i, len;
 	Dir od, d;
-	static Dir *xd;
+	static Dir* xd;
 
 	new = unroot(new, "/");
 	old = unroot(old, serverroot);
 
 	if(!ismatch(new))
 		return;
-	if(xd != nil){
+	if(xd != nil) {
 		free(xd);
 		xd = nil;
 	}
 
-	for(i=0; i<nx; i++){
+	for(i = 0; i < nx; i++) {
 		if(strcmp(new, x[i]) == 0)
 			return;
 		len = strlen(x[i]);
-		if(strncmp(new, x[i], len)==0 && new[len]=='/')
+		if(strncmp(new, x[i], len) == 0 && new[len] == '/')
 			return;
 	}
 
@@ -85,26 +86,26 @@ walk(char *new, char *old, Dir *pd, void*)
 	snprint(oldpath, sizeof oldpath, "%s/%s", serverroot, old);
 
 	xd = dirstat(oldpath);
-	if(markdb(db, new, &od) < 0){
-		if(xd != nil){
+	if(markdb(db, new, &od) < 0) {
+		if(xd != nil) {
 			print("x %s create/create conflict\n", new);
 			conflicts = 1;
 			return;
 		}
 		xlog('a', new, &d);
-		d.muid = "mark";	/* mark bit */
-		if(!justshow){
+		d.muid = "mark"; /* mark bit */
+		if(!justshow) {
 			if(copyfile(newpath, oldpath, &d, 1) == 0)
 				insertdb(db, new, &d);
 		}
-	}else{
-		if((d.mode&DMDIR)==0 && od.mtime!=d.mtime){
-			if(xd==nil){
+	} else {
+		if((d.mode & DMDIR) == 0 && od.mtime != d.mtime) {
+			if(xd == nil) {
 				print("%s update/remove conflict\n", new);
 				conflicts = 1;
 				return;
 			}
-			if(xd->mtime != od.mtime){
+			if(xd->mtime != od.mtime) {
 				print("%s update/update conflict\n", new);
 				conflicts = 1;
 				return;
@@ -112,23 +113,23 @@ walk(char *new, char *old, Dir *pd, void*)
 			od.mtime = d.mtime;
 			od.muid = "mark";
 			xlog('c', new, &od);
-			if(!justshow){
+			if(!justshow) {
 				if(copyfile(newpath, oldpath, &od, 0) == 0)
 					insertdb(db, new, &od);
 			}
 		}
-		if((douid&&strcmp(od.uid,d.uid)!=0)
-		|| strcmp(od.gid,d.gid)!=0 
-		|| od.mode!=d.mode){
-			if(xd==nil){
+		if((douid && strcmp(od.uid, d.uid) != 0) ||
+		   strcmp(od.gid, d.gid) != 0 || od.mode != d.mode) {
+			if(xd == nil) {
 				print("%s metaupdate/remove conflict\n", new);
 				conflicts = 1;
 				return;
 			}
-			if((douid&&strcmp(od.uid,xd->uid)!=0)
-			|| strcmp(od.uid,xd->gid)!=0
-			|| od.mode!=xd->mode){
-				print("%s metaupdate/metaupdate conflict\n", new);
+			if((douid && strcmp(od.uid, xd->uid) != 0) ||
+			   strcmp(od.uid, xd->gid) != 0 ||
+			   od.mode != xd->mode) {
+				print("%s metaupdate/metaupdate conflict\n",
+				      new);
 				conflicts = 1;
 				return;
 			}
@@ -138,7 +139,7 @@ walk(char *new, char *old, Dir *pd, void*)
 			od.mode = d.mode;
 			od.muid = "mark";
 			xlog('m', new, &od);
-			if(!justshow){
+			if(!justshow) {
 				if(metafile(oldpath, &od) == 0)
 					insertdb(db, new, &od);
 			}
@@ -149,21 +150,23 @@ walk(char *new, char *old, Dir *pd, void*)
 void
 usage(void)
 {
-	fprint(2, "usage: replica/applychanges [-nuv] [-p proto] [-x path]... clientdb clientroot serverroot [path ...]\n");
+	fprint(2, "usage: replica/applychanges [-nuv] [-p proto] [-x path]... "
+	          "clientdb clientroot serverroot [path ...]\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *proto;
-	Avlwalk *w;
-	Dir *xd, d;
-	Entry *e;
+	char* proto;
+	Avlwalk* w;
+	Dir* xd, d;
+	Entry* e;
 
 	quotefmtinstall();
 	proto = "/sys/lib/sysconfig/proto/allproto";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'n':
 		justshow = 1;
 		verbose = 1;
@@ -178,13 +181,14 @@ main(int argc, char **argv)
 		verbose = 1;
 		break;
 	case 'x':
-		if(nx%16 == 0)
-			x = erealloc(x, (nx+16)*sizeof(x[0]));
+		if(nx % 16 == 0)
+			x = erealloc(x, (nx + 16) * sizeof(x[0]));
 		x[nx++] = EARGF(usage());
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 3)
 		usage();
@@ -192,26 +196,28 @@ main(int argc, char **argv)
 	db = opendb(argv[0]);
 	clientroot = argv[1];
 	serverroot = argv[2];
-	match = argv+3;
-	nmatch = argc-3;
-
+	match = argv + 3;
+	nmatch = argc - 3;
 
 	if(revrdproto(proto, clientroot, serverroot, walk, nil, nil) < 0)
 		sysfatal("rdproto: %r");
 
 	w = avlwalk(db->avl);
-	while(e = (Entry*)avlprev(w)){
+	while(e = (Entry*)avlprev(w)) {
 		if(!ismatch(e->name))
 			continue;
-		if(!e->d.mark){		/* not visited during walk */
-			snprint(newpath, sizeof newpath, "%s/%s", clientroot, e->name);
-			snprint(oldpath, sizeof oldpath, "%s/%s", serverroot, e->d.name);
+		if(!e->d.mark) { /* not visited during walk */
+			snprint(newpath, sizeof newpath, "%s/%s", clientroot,
+			        e->name);
+			snprint(oldpath, sizeof oldpath, "%s/%s", serverroot,
+			        e->d.name);
 			xd = dirstat(oldpath);
-			if(xd == nil){
+			if(xd == nil) {
 				removedb(db, e->name);
 				continue;
 			}
-			if(xd->mtime != e->d.mtime && (e->d.mode&xd->mode&DMDIR)==0){
+			if(xd->mtime != e->d.mtime &&
+			   (e->d.mode & xd->mode & DMDIR) == 0) {
 				print("x %q remove/update conflict\n", e->name);
 				free(xd);
 				continue;
@@ -223,7 +229,7 @@ main(int argc, char **argv)
 			d.mtime = e->d.mtime;
 			d.mode = e->d.mode;
 			xlog('d', e->name, &d);
-			if(!justshow){
+			if(!justshow) {
 				if(remove(oldpath) == 0)
 					removedb(db, e->name);
 			}
@@ -239,7 +245,7 @@ main(int argc, char **argv)
 enum { DEFB = 8192 };
 
 static int
-copy1(int fdf, int fdt, char *from, char *to)
+copy1(int fdf, int fdt, char* from, char* to)
 {
 	char buf[DEFB];
 	int32_t n, n1, rcount;
@@ -250,7 +256,7 @@ copy1(int fdf, int fdt, char *from, char *to)
 	err[0] = '\0';
 	errstr(err, ERRMAX);
 	rv = 0;
-	for(rcount=0;; rcount++) {
+	for(rcount = 0;; rcount++) {
 		n = read(fdf, buf, DEFB);
 		if(n <= 0)
 			break;
@@ -269,37 +275,37 @@ copy1(int fdf, int fdt, char *from, char *to)
 }
 
 int
-copyfile(char *from, char *to, Dir *d, int dowstat)
+copyfile(char* from, char* to, Dir* d, int dowstat)
 {
 	Dir nd;
 	int rfd, wfd, didcreate;
-	
+
 	if((rfd = open(from, OREAD)) < 0)
 		return -1;
 
 	didcreate = 0;
-	if(d->mode&DMDIR){
-		if((wfd = create(to, OREAD, DMDIR)) < 0){
+	if(d->mode & DMDIR) {
+		if((wfd = create(to, OREAD, DMDIR)) < 0) {
 			fprint(2, "mkdir %q: %r\n", to);
 			close(rfd);
 			return -1;
 		}
-	}else{
-		if((wfd = open(to, OTRUNC|OWRITE)) < 0){
-			if((wfd = create(to, OWRITE, 0)) < 0){
+	} else {
+		if((wfd = open(to, OTRUNC | OWRITE)) < 0) {
+			if((wfd = create(to, OWRITE, 0)) < 0) {
 				close(rfd);
 				return -1;
 			}
 			didcreate = 1;
 		}
-		if(copy1(rfd, wfd, from, to) < 0){
+		if(copy1(rfd, wfd, from, to) < 0) {
 			close(rfd);
 			close(wfd);
 			return -1;
 		}
 	}
 	close(rfd);
-	if(didcreate || dowstat){
+	if(didcreate || dowstat) {
 		nulldir(&nd);
 		nd.mode = d->mode;
 		if(dirfwstat(wfd, &nd) < 0)
@@ -308,11 +314,12 @@ copyfile(char *from, char *to, Dir *d, int dowstat)
 		nd.gid = d->gid;
 		if(dirfwstat(wfd, &nd) < 0)
 			fprint(2, "warning: cannot set gid on %q\n", to);
-		if(douid){
+		if(douid) {
 			nulldir(&nd);
 			nd.uid = d->uid;
 			if(dirfwstat(wfd, &nd) < 0)
-				fprint(2, "warning: cannot set uid on %q\n", to);
+				fprint(2, "warning: cannot set uid on %q\n",
+				       to);
 		}
 	}
 	nulldir(&nd);
@@ -324,7 +331,7 @@ copyfile(char *from, char *to, Dir *d, int dowstat)
 }
 
 int
-metafile(char *path, Dir *d)
+metafile(char* path, Dir* d)
 {
 	Dir nd;
 
@@ -333,7 +340,7 @@ metafile(char *path, Dir *d)
 	nd.mode = d->mode;
 	if(douid)
 		nd.uid = d->uid;
-	if(dirwstat(path, &nd) < 0){
+	if(dirwstat(path, &nd) < 0) {
 		fprint(2, "dirwstat %q: %r\n", path);
 		return -1;
 	}

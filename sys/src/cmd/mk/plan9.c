@@ -7,57 +7,57 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-char 	*shell =	"/bin/rc";
-char 	*shellname =	"rc";
+char* shell = "/bin/rc";
+char* shellname = "rc";
 
-static	Word	*encodenulls(char*, int);
+static Word* encodenulls(char*, int);
 
 void
 readenv(void)
 {
-	char *p;
+	char* p;
 	int envf, f;
-	Dir *e;
+	Dir* e;
 	char nam[1024];
 	int i, n, len;
-	Word *w;
+	Word* w;
 
-	rfork(RFENVG);	/*  use copy of the current environment variables */
+	rfork(RFENVG); /*  use copy of the current environment variables */
 
 	envf = open("/env", OREAD);
 	if(envf < 0)
 		return;
-	while((n = dirread(envf, &e)) > 0){
-		for(i = 0; i < n; i++){
+	while((n = dirread(envf, &e)) > 0) {
+		for(i = 0; i < n; i++) {
 			len = e[i].length;
-				/* don't import funny names, NULL values,
-				 * or internal mk variables
-				 */
+			/* don't import funny names, NULL values,
+			 * or internal mk variables
+			 */
 			if(len <= 0 || *shname(e[i].name) != '\0')
 				continue;
-			if (symlook(e[i].name, S_INTERNAL, 0))
+			if(symlook(e[i].name, S_INTERNAL, 0))
 				continue;
 			snprint(nam, sizeof nam, "/env/%s", e[i].name);
 			f = open(nam, OREAD);
 			if(f < 0)
 				continue;
-			p = Malloc(len+1);
-			if(read(f, p, len) != len){
+			p = Malloc(len + 1);
+			if(read(f, p, len) != len) {
 				perror(nam);
 				close(f);
 				continue;
 			}
 			close(f);
-			if (p[len-1] == 0)
+			if(p[len - 1] == 0)
 				len--;
 			else
 				p[len] = 0;
 			w = encodenulls(p, len);
 			free(p);
 			p = strdup(e[i].name);
-			setvar(p, (void *) w);
+			setvar(p, (void*)w);
 			symlook(p, S_EXPORTED, (void*)"")->u.ptr = "";
 		}
 		free(e);
@@ -66,25 +66,25 @@ readenv(void)
 }
 
 /* break string of values into words at 01's or nulls*/
-static Word *
-encodenulls(char *s, int n)
+static Word*
+encodenulls(char* s, int n)
 {
-	Word *w, *head;
-	char *cp;
+	Word* w, *head;
+	char* cp;
 
 	head = w = 0;
-	while (n-- > 0) {
-		for (cp = s; *cp && *cp != '\0'; cp++)
-				n--;
+	while(n-- > 0) {
+		for(cp = s; *cp && *cp != '\0'; cp++)
+			n--;
 		*cp = 0;
-		if (w) {
+		if(w) {
 			w->next = newword(s);
 			w = w->next;
 		} else
 			head = w = newword(s);
-		s = cp+1;
+		s = cp + 1;
 	}
-	if (!head)
+	if(!head)
 		head = newword("");
 	return head;
 }
@@ -93,33 +93,33 @@ encodenulls(char *s, int n)
  * treat the words as separate arguments
  */
 void
-exportenv(Envy *e)
+exportenv(Envy* e)
 {
 	int f, n, hasvalue, first;
-	Word *w;
-	Symtab *sy;
+	Word* w;
+	Symtab* sy;
 	char nam[256];
 
-	for(;e->name; e++){
+	for(; e->name; e++) {
 		sy = symlook(e->name, S_VAR, 0);
-		if (e->values == 0 || e->values->s == 0 || e->values->s[0] == 0)
+		if(e->values == 0 || e->values->s == 0 || e->values->s[0] == 0)
 			hasvalue = 0;
 		else
 			hasvalue = 1;
-		if(sy == 0 && !hasvalue)	/* non-existant null symbol */
+		if(sy == 0 && !hasvalue) /* non-existant null symbol */
 			continue;
 		snprint(nam, sizeof nam, "/env/%s", e->name);
-		if (sy != 0 && !hasvalue) {	/* Remove from environment */
-				/* we could remove it from the symbol table
-				 * too, but we're in the child copy, and it
-				 * would still remain in the parent's table.
-				 */
+		if(sy != 0 && !hasvalue) { /* Remove from environment */
+			/* we could remove it from the symbol table
+			 * too, but we're in the child copy, and it
+			 * would still remain in the parent's table.
+			 */
 			remove(nam);
 			delword(e->values);
-			e->values = 0;		/* memory leak */
+			e->values = 0; /* memory leak */
 			continue;
 		}
-	
+
 		f = create(nam, OWRITE, 0666L);
 		if(f < 0) {
 			fprint(2, "can't create %s, f=%d\n", nam, f);
@@ -127,16 +127,16 @@ exportenv(Envy *e)
 			continue;
 		}
 		first = 1;
-		for (w = e->values; w; w = w->next) {
+		for(w = e->values; w; w = w->next) {
 			n = strlen(w->s);
-			if (n) {
+			if(n) {
 				if(first)
 					first = 0;
-				else{
-					if (write (f, "\0", 1) != 1)
+				else {
+					if(write(f, "\0", 1) != 1)
 						perror(nam);
 				}
-				if (write(f, w->s, n) != n)
+				if(write(f, w->s, n) != n)
 					perror(nam);
 			}
 		}
@@ -145,61 +145,61 @@ exportenv(Envy *e)
 }
 
 int
-waitfor(char *msg)
+waitfor(char* msg)
 {
-	Waitmsg *w;
+	Waitmsg* w;
 	int pid;
 
-	if((w=wait()) == nil)
+	if((w = wait()) == nil)
 		return -1;
-	strecpy(msg, msg+ERRMAX, w->msg);
+	strecpy(msg, msg + ERRMAX, w->msg);
 	pid = w->pid;
 	free(w);
 	return pid;
 }
 
 void
-expunge(int pid, char *msg)
+expunge(int pid, char* msg)
 {
 	postnote(PNPROC, pid, msg);
 }
 
 int
-execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
+execsh(char* args, char* cmd, Bufblock* buf, Envy* e)
 {
-	char *p;
+	char* p;
 	int tot, n, pid, in[2], out[2];
 
-	if(buf && pipe(out) < 0){
+	if(buf && pipe(out) < 0) {
 		perror("pipe");
 		Exit();
 	}
-	pid = rfork(RFPROC|RFFDG|RFENVG);
-	if(pid < 0){
+	pid = rfork(RFPROC | RFFDG | RFENVG);
+	if(pid < 0) {
 		perror("mk rfork");
 		Exit();
 	}
-	if(pid == 0){
+	if(pid == 0) {
 		if(buf)
 			close(out[0]);
-		if(pipe(in) < 0){
+		if(pipe(in) < 0) {
 			perror("pipe");
 			Exit();
 		}
 		pid = fork();
-		if(pid < 0){
+		if(pid < 0) {
 			perror("mk fork");
 			Exit();
 		}
-		if(pid != 0){
+		if(pid != 0) {
 			dup(in[0], 0);
-			if(buf){
+			if(buf) {
 				dup(out[1], 1);
 				close(out[1]);
 			}
 			close(in[0]);
 			close(in[1]);
-			if (e)
+			if(e)
 				exportenv(e);
 			if(shflags)
 				execl(shell, shellname, shflags, args, nil);
@@ -210,9 +210,9 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 		}
 		close(out[1]);
 		close(in[0]);
-		p = cmd+strlen(cmd);
-		while(cmd < p){
-			n = write(in[1], cmd, p-cmd);
+		p = cmd + strlen(cmd);
+		while(cmd < p) {
+			n = write(in[1], cmd, p - cmd);
 			if(n < 0)
 				break;
 			cmd += n;
@@ -220,19 +220,19 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 		close(in[1]);
 		_exits(0);
 	}
-	if(buf){
+	if(buf) {
 		close(out[1]);
 		tot = 0;
-		for(;;){
-			if (buf->current >= buf->end)
+		for(;;) {
+			if(buf->current >= buf->end)
 				growbuf(buf);
-			n = read(out[0], buf->current, buf->end-buf->current);
+			n = read(out[0], buf->current, buf->end - buf->current);
 			if(n <= 0)
 				break;
 			buf->current += n;
 			tot += n;
 		}
-		if (tot && buf->current[-1] == '\n')
+		if(tot && buf->current[-1] == '\n')
 			buf->current--;
 		close(out[0]);
 	}
@@ -240,24 +240,24 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 }
 
 int
-pipecmd(char *cmd, Envy *e, int *fd)
+pipecmd(char* cmd, Envy* e, int* fd)
 {
 	int pid, pfd[2];
 
 	if(DEBUG(D_EXEC))
-		fprint(1, "pipecmd='%s'\n", cmd);/**/
+		fprint(1, "pipecmd='%s'\n", cmd); /**/
 
-	if(fd && pipe(pfd) < 0){
+	if(fd && pipe(pfd) < 0) {
 		perror("pipe");
 		Exit();
 	}
-	pid = rfork(RFPROC|RFFDG|RFENVG);
-	if(pid < 0){
+	pid = rfork(RFPROC | RFFDG | RFENVG);
+	if(pid < 0) {
 		perror("mk fork");
 		Exit();
 	}
-	if(pid == 0){
-		if(fd){
+	if(pid == 0) {
+		if(fd) {
 			close(pfd[0]);
 			dup(pfd[1], 1);
 			close(pfd[1]);
@@ -271,7 +271,7 @@ pipecmd(char *cmd, Envy *e, int *fd)
 		perror(shell);
 		_exits("exec");
 	}
-	if(fd){
+	if(fd) {
 		close(pfd[1]);
 		*fd = pfd[0];
 	}
@@ -287,17 +287,17 @@ Exit(void)
 }
 
 int
-notifyf(void *a, char *msg)
+notifyf(void* a, char* msg)
 {
 	static int nnote;
 
 	USED(a);
-	if(++nnote > 100){	/* until andrew fixes his program */
+	if(++nnote > 100) { /* until andrew fixes his program */
 		fprint(2, "mk: too many notes\n");
 		notify(0);
 		abort();
 	}
-	if(strcmp(msg, "interrupt")!=0 && strcmp(msg, "hangup")!=0)
+	if(strcmp(msg, "interrupt") != 0 && strcmp(msg, "hangup") != 0)
 		return 0;
 	killchildren(msg);
 	return -1;
@@ -319,59 +319,58 @@ maketmp(void)
 }
 
 int
-chgtime(char *name)
+chgtime(char* name)
 {
 	Dir sbuf;
 
 	if(access(name, AEXIST) >= 0) {
 		nulldir(&sbuf);
-		sbuf.mtime = time((int32_t *)0);
+		sbuf.mtime = time((int32_t*)0);
 		return dirwstat(name, &sbuf);
 	}
 	return close(create(name, OWRITE, 0666));
 }
 
 void
-rcopy(char **to, Resub *match, int n)
+rcopy(char** to, Resub* match, int n)
 {
 	int c;
-	char *p;
+	char* p;
 
-	*to = match->sp;		/* stem0 matches complete target */
-	for(to++, match++; --n > 0; to++, match++){
-		if(match->sp && match->ep){
+	*to = match->sp; /* stem0 matches complete target */
+	for(to++, match++; --n > 0; to++, match++) {
+		if(match->sp && match->ep) {
 			p = match->ep;
 			c = *p;
 			*p = 0;
 			*to = strdup(match->sp);
 			*p = c;
-		}
-		else
+		} else
 			*to = 0;
 	}
 }
 
 void
-dirtime(char *dir, char *path)
+dirtime(char* dir, char* path)
 {
 	int i, fd, n;
 	uint32_t mtime;
-	Dir *d;
+	Dir* d;
 	char buf[4096];
 
 	fd = open(dir, OREAD);
-	if(fd >= 0){
-		while((n = dirread(fd, &d)) > 0){
-			for(i=0; i<n; i++){
+	if(fd >= 0) {
+		while((n = dirread(fd, &d)) > 0) {
+			for(i = 0; i < n; i++) {
 				mtime = d[i].mtime;
 				/* defensive driving: this does happen */
 				if(mtime == 0)
 					mtime = 1;
 				snprint(buf, sizeof buf, "%s%s", path,
-					d[i].name);
+				        d[i].name);
 				if(symlook(buf, S_TIME, 0) == nil)
 					symlook(strdup(buf), S_TIME,
-						(void*)mtime)->u.value = mtime;
+					        (void*)mtime)->u.value = mtime;
 			}
 			free(d);
 		}
@@ -380,19 +379,19 @@ dirtime(char *dir, char *path)
 }
 
 void
-bulkmtime(char *dir)
+bulkmtime(char* dir)
 {
 	char buf[4096];
-	char *ss, *s, *sym;
+	char* ss, *s, *sym;
 
-	if(dir){
+	if(dir) {
 		sym = dir;
 		s = dir;
 		if(strcmp(dir, "/") == 0)
 			strecpy(buf, buf + sizeof buf - 1, dir);
 		else
 			snprint(buf, sizeof buf, "%s/", dir);
-	}else{
+	} else {
 		s = ".";
 		sym = "";
 		buf[0] = 0;
@@ -405,12 +404,12 @@ bulkmtime(char *dir)
 }
 
 uint32_t
-mkmtime(char *name, int force)
+mkmtime(char* name, int force)
 {
-	Dir *d;
-	char *s, *ss, carry;
+	Dir* d;
+	char* s, *ss, carry;
 	uint32_t t;
-	Symtab *sym;
+	Symtab* sym;
 	char buf[4096];
 
 	strecpy(buf, buf + sizeof buf - 1, name);
@@ -420,18 +419,18 @@ mkmtime(char *name, int force)
 	s = utfrrune(name, '/');
 	if(s == name)
 		s++;
-	if(s){
+	if(s) {
 		ss = name;
 		carry = *s;
 		*s = 0;
-	}else{
+	} else {
 		ss = 0;
 		carry = 0;
 	}
 	bulkmtime(ss);
 	if(carry)
 		*s = carry;
-	if(!force){
+	if(!force) {
 		sym = symlook(name, S_TIME, 0);
 		if(sym)
 			return sym->u.value;
@@ -443,4 +442,3 @@ mkmtime(char *name, int force)
 	free(d);
 	return t;
 }
-

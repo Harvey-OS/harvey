@@ -12,35 +12,32 @@
 
 typedef struct DS DS;
 
-static int	call(char*, char*, DS*);
-static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
+static int call(char*, char*, DS*);
+static int csdial(DS*);
+static void _dial_string_parse(char*, DS*);
 
-enum
-{
-	Maxstring	= 128,
-	Maxpath		= 256,
+enum { Maxstring = 128,
+       Maxpath = 256,
 };
 
 struct DS {
 	/* dist string */
-	char	buf[Maxstring];
-	char	*netdir;
-	char	*proto;
-	char	*rem;
+	char buf[Maxstring];
+	char* netdir;
+	char* proto;
+	char* rem;
 
 	/* other args */
-	char	*local;
-	char	*dir;
-	int	*cfdp;
+	char* local;
+	char* dir;
+	int* cfdp;
 };
-
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 int
-dial(char *dest, char *local, char *dir, int *cfdp)
+dial(char* dest, char* local, char* dir, int* cfdp)
 {
 	DS ds;
 	int rv;
@@ -60,7 +57,7 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 		return rv;
 	err[0] = '\0';
 	errstr(err, sizeof err);
-	if(strstr(err, "refused") != 0){
+	if(strstr(err, "refused") != 0) {
 		werrstr("%s", err);
 		return rv;
 	}
@@ -79,19 +76,20 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 }
 
 static int
-csdial(DS *ds)
+csdial(DS* ds)
 {
 	int n, fd, rv;
-	char *p, buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
+	char* p, buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
 
 	/*
 	 *  open connection server
 	 */
 	snprint(buf, sizeof(buf), "%s/cs", ds->netdir);
 	fd = open(buf, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		/* no connection server, don't translate */
-		snprint(clone, sizeof(clone), "%s/%s/clone", ds->netdir, ds->proto);
+		snprint(clone, sizeof(clone), "%s/%s/clone", ds->netdir,
+		        ds->proto);
 		return call(clone, ds->rem, ds);
 	}
 
@@ -99,7 +97,7 @@ csdial(DS *ds)
 	 *  ask connection server to translate
 	 */
 	snprint(buf, sizeof(buf), "%s!%s", ds->proto, ds->rem);
-	if(write(fd, buf, strlen(buf)) < 0){
+	if(write(fd, buf, strlen(buf)) < 0) {
 		close(fd);
 		return -1;
 	}
@@ -112,7 +110,7 @@ csdial(DS *ds)
 	rv = -1;
 	seek(fd, 0, 0);
 	strcpy(err, "cs gave empty translation list");
-	while((n = read(fd, buf, sizeof(buf) - 1)) > 0){
+	while((n = read(fd, buf, sizeof(buf) - 1)) > 0) {
 		buf[n] = 0;
 		p = strchr(buf, ' ');
 		if(p == 0)
@@ -136,7 +134,7 @@ csdial(DS *ds)
 }
 
 static int
-call(char *clone, char *dest, DS *ds)
+call(char* clone, char* dest, DS* ds)
 {
 	int fd, cfd, n;
 	char name[Maxpath], data[Maxpath], *p;
@@ -146,8 +144,8 @@ call(char *clone, char *dest, DS *ds)
 		return -1;
 
 	/* get directory name */
-	n = read(cfd, name, sizeof(name)-1);
-	if(n < 0){
+	n = read(cfd, name, sizeof(name) - 1);
+	if(n < 0) {
 		close(cfd);
 		return -1;
 	}
@@ -166,15 +164,15 @@ call(char *clone, char *dest, DS *ds)
 		snprint(name, sizeof(name), "connect %s %s", dest, ds->local);
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
-	if(write(cfd, name, strlen(name)) < 0){
+	if(write(cfd, name, strlen(name)) < 0) {
 		close(cfd);
 		return -1;
 	}
 
 	/* open data connection */
 	fd = open(data, ORDWR);
-	if(fd < 0){
-print("open %s: %r\n", data);
+	if(fd < 0) {
+		print("open %s: %r\n", data);
 		close(cfd);
 		return -1;
 	}
@@ -189,12 +187,12 @@ print("open %s: %r\n", data);
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(char* str, DS* ds)
 {
-	char *p, *p2;
+	char* p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
-	ds->buf[Maxstring-1] = 0;
+	ds->buf[Maxstring - 1] = 0;
 
 	p = strchr(ds->buf, '!');
 	if(p == 0) {
@@ -202,7 +200,7 @@ _dial_string_parse(char *str, DS *ds)
 		ds->proto = "net";
 		ds->rem = ds->buf;
 	} else {
-		if(*ds->buf != '/' && *ds->buf != '#'){
+		if(*ds->buf != '/' && *ds->buf != '#') {
 			ds->netdir = 0;
 			ds->proto = ds->buf;
 		} else {

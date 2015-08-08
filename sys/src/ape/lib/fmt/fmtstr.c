@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -28,9 +29,9 @@
 #include "fmtdef.h"
 
 static int
-fmtStrFlush(Fmt *f)
+fmtStrFlush(Fmt* f)
 {
-	char *s;
+	char* s;
 	int n;
 
 	n = (int)f->farg;
@@ -38,7 +39,7 @@ fmtStrFlush(Fmt *f)
 	f->farg = (void*)n;
 	s = (char*)f->start;
 	f->start = realloc(s, n);
-	if(f->start == nil){
+	if(f->start == nil) {
 		f->start = s;
 		return 0;
 	}
@@ -48,7 +49,7 @@ fmtStrFlush(Fmt *f)
 }
 
 int
-fmtstrinit(Fmt *f)
+fmtstrinit(Fmt* f)
 {
 	int n;
 
@@ -66,7 +67,7 @@ fmtstrinit(Fmt *f)
 }
 
 char*
-fmtstrflush(Fmt *f)
+fmtstrflush(Fmt* f)
 {
 	*(char*)f->to = '\0';
 	f->to = f->start;

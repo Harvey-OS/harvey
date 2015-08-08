@@ -21,151 +21,92 @@
  *
  *  aging corrupts the cache, so raise the trigger to avoid it.
  */
-enum {
-	Deftarget	= 1<<30,	/* effectively disable aging */
-	Minage		= 1<<30,
-	Defagefreq	= 1<<30,	/* age names this often (seconds) */
+enum { Deftarget = 1 << 30, /* effectively disable aging */
+       Minage = 1 << 30,
+       Defagefreq = 1 << 30, /* age names this often (seconds) */
 
-	/* these settings will trigger frequent aging */
-//	Deftarget	= 4000,
-//	Minage		=  5*60,
-//	Defagefreq	= 15*60,	/* age names this often (seconds) */
+       /* these settings will trigger frequent aging */
+       //	Deftarget	= 4000,
+       //	Minage		=  5*60,
+       //	Defagefreq	= 15*60,	/* age names this often
+       //(seconds) */
 
-	Restartmins	= 0,
-//	Restartmins	= 600,
+       Restartmins = 0,
+       //	Restartmins	= 600,
 };
 
 /*
  *  Hash table for domain names.  The hash is based only on the
  *  first element of the domain name.
  */
-DN *ht[HTLEN];
+DN* ht[HTLEN];
 
 static struct {
 	Lock;
-	ulong	names;		/* names allocated */
-	ulong	oldest;		/* longest we'll leave a name around */
-	int	active;
-	int	mutex;
-	ushort	id;		/* same size as in packet */
+	ulong names;  /* names allocated */
+	ulong oldest; /* longest we'll leave a name around */
+	int active;
+	int mutex;
+	ushort id; /* same size as in packet */
 } dnvars;
 
 /* names of RR types */
-char *rrtname[] =
-{
-[Ta]		"ip",
-[Tns]		"ns",
-[Tmd]		"md",
-[Tmf]		"mf",
-[Tcname]	"cname",
-[Tsoa]		"soa",
-[Tmb]		"mb",
-[Tmg]		"mg",
-[Tmr]		"mr",
-[Tnull]		"null",
-[Twks]		"wks",
-[Tptr]		"ptr",
-[Thinfo]	"hinfo",
-[Tminfo]	"minfo",
-[Tmx]		"mx",
-[Ttxt]		"txt",
-[Trp]		"rp",
-[Tafsdb]	"afsdb",
-[Tx25]		"x.25",
-[Tisdn]		"isdn",
-[Trt]		"rt",
-[Tnsap]		"nsap",
-[Tnsapptr]	"nsap-ptr",
-[Tsig]		"sig",
-[Tkey]		"key",
-[Tpx]		"px",
-[Tgpos]		"gpos",
-[Taaaa]		"ipv6",
-[Tloc]		"loc",
-[Tnxt]		"nxt",
-[Teid]		"eid",
-[Tnimloc]	"nimrod",
-[Tsrv]		"srv",
-[Tatma]		"atma",
-[Tnaptr]	"naptr",
-[Tkx]		"kx",
-[Tcert]		"cert",
-[Ta6]		"a6",
-[Tdname]	"dname",
-[Tsink]		"sink",
-[Topt]		"opt",
-[Tapl]		"apl",
-[Tds]		"ds",
-[Tsshfp]	"sshfp",
-[Tipseckey]	"ipseckey",
-[Trrsig]	"rrsig",
-[Tnsec]		"nsec",
-[Tdnskey]	"dnskey",
-[Tspf]		"spf",
-[Tuinfo]	"uinfo",
-[Tuid]		"uid",
-[Tgid]		"gid",
-[Tunspec]	"unspec",
-[Ttkey]		"tkey",
-[Ttsig]		"tsig",
-[Tixfr]		"ixfr",
-[Taxfr]		"axfr",
-[Tmailb]	"mailb",
-[Tmaila]	"maila",
-[Tall]		"all",
-		0,
+char* rrtname[] = {
+        [Ta] "ip", [Tns] "ns", [Tmd] "md", [Tmf] "mf", [Tcname] "cname",
+        [Tsoa] "soa", [Tmb] "mb", [Tmg] "mg", [Tmr] "mr", [Tnull] "null",
+        [Twks] "wks", [Tptr] "ptr", [Thinfo] "hinfo", [Tminfo] "minfo",
+        [Tmx] "mx", [Ttxt] "txt", [Trp] "rp", [Tafsdb] "afsdb", [Tx25] "x.25",
+        [Tisdn] "isdn", [Trt] "rt", [Tnsap] "nsap", [Tnsapptr] "nsap-ptr",
+        [Tsig] "sig", [Tkey] "key", [Tpx] "px", [Tgpos] "gpos", [Taaaa] "ipv6",
+        [Tloc] "loc", [Tnxt] "nxt", [Teid] "eid", [Tnimloc] "nimrod",
+        [Tsrv] "srv", [Tatma] "atma", [Tnaptr] "naptr", [Tkx] "kx",
+        [Tcert] "cert", [Ta6] "a6", [Tdname] "dname", [Tsink] "sink",
+        [Topt] "opt", [Tapl] "apl", [Tds] "ds", [Tsshfp] "sshfp",
+        [Tipseckey] "ipseckey", [Trrsig] "rrsig", [Tnsec] "nsec",
+        [Tdnskey] "dnskey", [Tspf] "spf", [Tuinfo] "uinfo", [Tuid] "uid",
+        [Tgid] "gid", [Tunspec] "unspec", [Ttkey] "tkey", [Ttsig] "tsig",
+        [Tixfr] "ixfr", [Taxfr] "axfr", [Tmailb] "mailb", [Tmaila] "maila",
+        [Tall] "all", 0,
 };
 
 /* names of response codes */
-char *rname[Rmask+1] =
-{
-[Rok]			"ok",
-[Rformat]		"format error",
-[Rserver]		"server failure",
-[Rname]			"bad name",
-[Runimplimented]	"unimplemented",
-[Rrefused]		"we don't like you",
-[Ryxdomain]		"name should not exist",
-[Ryxrrset]		"rr set should not exist",
-[Rnxrrset]		"rr set should exist",
-[Rnotauth]		"not authorative",
-[Rnotzone]		"not in zone",
-[Rbadvers]		"bad opt version",
-/* [Rbadsig]		"bad signature", */
-[Rbadkey]		"bad key",
-[Rbadtime]		"bad signature time",
-[Rbadmode]		"bad mode",
-[Rbadname]		"duplicate key name",
-[Rbadalg]		"bad algorithm",
+char* rname[Rmask + 1] = {
+        [Rok] "ok", [Rformat] "format error", [Rserver] "server failure",
+        [Rname] "bad name", [Runimplimented] "unimplemented",
+        [Rrefused] "we don't like you", [Ryxdomain] "name should not exist",
+        [Ryxrrset] "rr set should not exist", [Rnxrrset] "rr set should exist",
+        [Rnotauth] "not authorative", [Rnotzone] "not in zone",
+        [Rbadvers] "bad opt version",
+        /* [Rbadsig]		"bad signature", */
+        [Rbadkey] "bad key", [Rbadtime] "bad signature time",
+        [Rbadmode] "bad mode", [Rbadname] "duplicate key name",
+        [Rbadalg] "bad algorithm",
 };
 unsigned nrname = nelem(rname);
 
 /* names of op codes */
-char *opname[] =
-{
-[Oquery]	"query",
-[Oinverse]	"inverse query (retired)",
-[Ostatus]	"status",
-[Oupdate]	"update",
+char* opname[] = {
+        [Oquery] "query", [Oinverse] "inverse query (retired)",
+        [Ostatus] "status", [Oupdate] "update",
 };
 
 uint32_t target = Deftarget;
 uint32_t start;
-Lock	dnlock;
+Lock dnlock;
 
 static uint32_t agefreq = Defagefreq;
 
-static int rrequiv(RR *r1, RR *r2);
+static int rrequiv(RR* r1, RR* r2);
 static int sencodefmt(Fmt*);
 
 static void
-ding(void*, char *msg)
+ding(void*, char* msg)
 {
 	if(strstr(msg, "alarm") != nil) {
 		stats.alarms++;
-		noted(NCONT);		/* resume with system call error */
+		noted(NCONT); /* resume with system call error */
 	} else
-		noted(NDFLT);		/* die */
+		noted(NDFLT); /* die */
 }
 
 void
@@ -180,7 +121,7 @@ dninit(void)
 
 	dnvars.oldest = maxage;
 	dnvars.names = 0;
-	dnvars.id = truerand();	/* don't start with same id every time */
+	dnvars.id = truerand(); /* don't start with same id every time */
 
 	notify(ding);
 }
@@ -189,13 +130,13 @@ dninit(void)
  *  hash for a domain name
  */
 static uint32_t
-dnhash(char *name)
+dnhash(char* name)
 {
 	uint32_t hash;
-	uint8_t *val = (uint8_t*)name;
+	uint8_t* val = (uint8_t*)name;
 
 	for(hash = 0; *val; val++)
-		hash = hash*13 + tolower(*val)-'a';
+		hash = hash * 13 + tolower(*val) - 'a';
 	return hash % HTLEN;
 }
 
@@ -204,16 +145,16 @@ dnhash(char *name)
  *  not found, create it.
  */
 DN*
-dnlookup(char *name, int class, int enter)
+dnlookup(char* name, int class, int enter)
 {
-	DN **l;
-	DN *dp;
+	DN** l;
+	DN* dp;
 
 	l = &ht[dnhash(name)];
 	lock(&dnlock);
 	for(dp = *l; dp; dp = dp->next) {
 		assert(dp->magic == DNmagic);
-		if(dp->class == class && cistrcmp(dp->name, name) == 0){
+		if(dp->class == class && cistrcmp(dp->name, name) == 0) {
 			dp->referenced = now;
 			unlock(&dnlock);
 			return dp;
@@ -221,7 +162,7 @@ dnlookup(char *name, int class, int enter)
 		l = &dp->next;
 	}
 
-	if(!enter){
+	if(!enter) {
 		unlock(&dnlock);
 		return 0;
 	}
@@ -242,17 +183,18 @@ dnlookup(char *name, int class, int enter)
 }
 
 static int
-rrsame(RR *rr1, RR *rr2)
+rrsame(RR* rr1, RR* rr2)
 {
-	return rr1 == rr2 || rr2 && rrequiv(rr1, rr2) &&
-		rr1->db == rr2->db && rr1->auth == rr2->auth;
+	return rr1 == rr2 ||
+	       rr2 && rrequiv(rr1, rr2) && rr1->db == rr2->db &&
+	           rr1->auth == rr2->auth;
 }
 
 static int
-rronlist(RR *rp, RR *lp)
+rronlist(RR* rp, RR* lp)
 {
 	for(; lp; lp = lp->next)
-		if (rrsame(lp, rp))
+		if(rrsame(lp, rp))
 			return 1;
 	return 0;
 }
@@ -261,7 +203,7 @@ rronlist(RR *rp, RR *lp)
  * dump the stats
  */
 void
-dnstats(char *file)
+dnstats(char* file)
 {
 	int i, fd;
 
@@ -276,20 +218,22 @@ dnstats(char *file)
 	fprint(fd, "# queries received by udp\t%lud\n", stats.qrecvdudp);
 	fprint(fd, "# queries answered from memory\t%lud\n", stats.answinmem);
 	fprint(fd, "# queries sent by udp\t%lud\n", stats.qsent);
-	for (i = 0; i < nelem(stats.under10ths); i++)
-		if (stats.under10ths[i] || i == nelem(stats.under10ths) - 1)
-			fprint(fd, "# responses arriving within %.1f s.\t%lud\n",
-				(double)(i+1)/10, stats.under10ths[i]);
+	for(i = 0; i < nelem(stats.under10ths); i++)
+		if(stats.under10ths[i] || i == nelem(stats.under10ths) - 1)
+			fprint(fd,
+			       "# responses arriving within %.1f s.\t%lud\n",
+			       (double)(i + 1) / 10, stats.under10ths[i]);
 	fprint(fd, "\n# queries sent & timed-out\t%lud\n", stats.tmout);
 	fprint(fd, "# cname queries timed-out\t%lud\n", stats.tmoutcname);
 	fprint(fd, "# ipv6  queries timed-out\t%lud\n", stats.tmoutv6);
 	fprint(fd, "\n# negative answers received\t%lud\n", stats.negans);
 	fprint(fd, "# negative answers w Rserver set\t%lud\n", stats.negserver);
 	fprint(fd, "# negative answers w bad delegation\t%lud\n",
-		stats.negbaddeleg);
+	       stats.negbaddeleg);
 	fprint(fd, "# negative answers w bad delegation & no answers\t%lud\n",
-		stats.negbdnoans);
-	fprint(fd, "# negative answers w no Rname set\t%lud\n", stats.negnorname);
+	       stats.negbdnoans);
+	fprint(fd, "# negative answers w no Rname set\t%lud\n",
+	       stats.negnorname);
 	fprint(fd, "# negative answers cached\t%lud\n", stats.negcached);
 	qunlock(&stats);
 
@@ -303,11 +247,11 @@ dnstats(char *file)
  *  dump the cache
  */
 void
-dndump(char *file)
+dndump(char* file)
 {
 	int i, fd;
-	DN *dp;
-	RR *rp;
+	DN* dp;
+	RR* rp;
 
 	fd = create(file, OWRITE, 0666);
 	if(fd < 0)
@@ -315,13 +259,13 @@ dndump(char *file)
 
 	lock(&dnlock);
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next){
+		for(dp = ht[i]; dp; dp = dp->next) {
 			fprint(fd, "%s\n", dp->name);
 			for(rp = dp->rr; rp; rp = rp->next) {
-				fprint(fd, "\t%R %c%c %lud/%lud\n",
-					rp, rp->auth? 'A': 'U',
-					rp->db? 'D': 'N', rp->expire, rp->ttl);
-				if (rronlist(rp, rp->next))
+				fprint(fd, "\t%R %c%c %lud/%lud\n", rp,
+				       rp->auth ? 'A' : 'U', rp->db ? 'D' : 'N',
+				       rp->expire, rp->ttl);
+				if(rronlist(rp, rp->next))
 					fprint(fd, "*** duplicate:\n");
 			}
 		}
@@ -335,14 +279,14 @@ dndump(char *file)
 void
 dnpurge(void)
 {
-	DN *dp;
-	RR *rp, *srp;
+	DN* dp;
+	RR* rp, *srp;
 	int i;
 
 	lock(&dnlock);
 
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next){
+		for(dp = ht[i]; dp; dp = dp->next) {
 			srp = rp = dp->rr;
 			dp->rr = nil;
 			for(; rp != nil; rp = rp->next)
@@ -358,17 +302,17 @@ dnpurge(void)
  *  call with dnlock held.
  */
 static void
-rrdelhead(RR **l)
+rrdelhead(RR** l)
 {
-	RR *rp;
+	RR* rp;
 
-	if (canlock(&dnlock))
-		abort();	/* rrdelhead called with dnlock not held */
+	if(canlock(&dnlock))
+		abort(); /* rrdelhead called with dnlock not held */
 	rp = *l;
 	if(rp == nil)
 		return;
-	*l = rp->next;		/* unlink head */
-	rp->cached = 0;		/* avoid blowing an assertion in rrfree */
+	*l = rp->next;  /* unlink head */
+	rp->cached = 0; /* avoid blowing an assertion in rrfree */
 	rrfree(rp);
 }
 
@@ -377,50 +321,55 @@ rrdelhead(RR **l)
  *  call with dnlock held.
  */
 void
-dnage(DN *dp)
+dnage(DN* dp)
 {
-	RR **l;
-	RR *rp, *next;
+	RR** l;
+	RR* rp, *next;
 	uint32_t diff;
 
-	if (canlock(&dnlock))
-		abort();	/* dnage called with dnlock not held */
+	if(canlock(&dnlock))
+		abort(); /* dnage called with dnlock not held */
 	diff = now - dp->referenced;
 	if(diff < Reserved || dp->keep)
 		return;
 
 	l = &dp->rr;
-	for(rp = dp->rr; rp; rp = next){
+	for(rp = dp->rr; rp; rp = next) {
 		assert(rp->magic == RRmagic);
 		assert(rp->cached);
 		next = rp->next;
 		if(!rp->db && (rp->expire < now || diff > dnvars.oldest))
-			rrdelhead(l); /* rp == *l before; *l == rp->next after */
+			rrdelhead(
+			    l); /* rp == *l before; *l == rp->next after */
 		else
 			l = &rp->next;
 	}
 }
 
-#define MARK(dp)	{ if (dp) (dp)->keep = 1; }
+#define MARK(dp)                                                               \
+	{                                                                      \
+		if(dp)                                                         \
+			(dp)->keep = 1;                                        \
+	}
 
 /* mark a domain name and those in its RRs as never to be aged */
 void
-dnagenever(DN *dp, int dolock)
+dnagenever(DN* dp, int dolock)
 {
-	RR *rp;
+	RR* rp;
 
-	if (dolock)
+	if(dolock)
 		lock(&dnlock);
 
 	/* mark all referenced domain names */
 	MARK(dp);
-	for(rp = dp->rr; rp; rp = rp->next){
+	for(rp = dp->rr; rp; rp = rp->next) {
 		MARK(rp->owner);
-		if(rp->negative){
+		if(rp->negative) {
 			MARK(rp->negsoaowner);
 			continue;
 		}
-		switch(rp->type){
+		switch(rp->type) {
 		case Thinfo:
 			MARK(rp->cpu);
 			MARK(rp->os);
@@ -462,7 +411,7 @@ dnagenever(DN *dp, int dolock)
 		}
 	}
 
-	if (dolock)
+	if(dolock)
 		unlock(&dnlock);
 }
 
@@ -471,7 +420,7 @@ void
 dnageallnever(void)
 {
 	int i;
-	DN *dp;
+	DN* dp;
 
 	lock(&dnlock);
 
@@ -485,10 +434,14 @@ dnageallnever(void)
 	dnslog("%ld initial domain names; target is %ld", dnvars.names, target);
 	if(dnvars.names >= target)
 		dnslog("more initial domain names (%ld) than target (%ld)",
-			dnvars.names, target);
+		       dnvars.names, target);
 }
 
-#define REF(dp)	{ if (dp) (dp)->refs++; }
+#define REF(dp)                                                                \
+	{                                                                      \
+		if(dp)                                                         \
+			(dp)->refs++;                                          \
+	}
 
 /*
  *  periodicly sweep for old records and remove unreferenced domain names
@@ -498,24 +451,24 @@ dnageallnever(void)
 void
 dnageall(int doit)
 {
-	DN *dp, **l;
+	DN* dp, **l;
 	int i;
-	RR *rp;
+	RR* rp;
 	static uint32_t nextage;
 
-	if(dnvars.names < target || (now < nextage && !doit)){
+	if(dnvars.names < target || (now < nextage && !doit)) {
 		dnvars.oldest = maxage;
 		return;
 	}
 
 	if(dnvars.names >= target) {
 		dnslog("more names (%lud) than target (%lud)", dnvars.names,
-			target);
+		       target);
 		dnvars.oldest /= 2;
-		if (dnvars.oldest < Minage)
-			dnvars.oldest = Minage;		/* don't be silly */
+		if(dnvars.oldest < Minage)
+			dnvars.oldest = Minage; /* don't be silly */
 	}
-	if (agefreq > dnvars.oldest / 2)
+	if(agefreq > dnvars.oldest / 2)
 		nextage = now + dnvars.oldest / 2;
 	else
 		nextage = now + agefreq;
@@ -524,7 +477,7 @@ dnageall(int doit)
 
 	/* time out all old entries (and set refs to 0) */
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next){
+		for(dp = ht[i]; dp; dp = dp->next) {
 			dp->refs = 0;
 			dnage(dp);
 		}
@@ -532,13 +485,13 @@ dnageall(int doit)
 	/* mark all referenced domain names */
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next)
-			for(rp = dp->rr; rp; rp = rp->next){
+			for(rp = dp->rr; rp; rp = rp->next) {
 				REF(rp->owner);
-				if(rp->negative){
+				if(rp->negative) {
 					REF(rp->negsoaowner);
 					continue;
 				}
-				switch(rp->type){
+				switch(rp->type) {
 				case Thinfo:
 					REF(rp->cpu);
 					REF(rp->os);
@@ -581,10 +534,10 @@ dnageall(int doit)
 			}
 
 	/* sweep and remove unreferenced domain names */
-	for(i = 0; i < HTLEN; i++){
+	for(i = 0; i < HTLEN; i++) {
 		l = &ht[i];
-		for(dp = *l; dp; dp = *l){
-			if(dp->rr == 0 && dp->refs == 0 && !dp->keep){
+		for(dp = *l; dp; dp = *l) {
+			if(dp->rr == 0 && dp->refs == 0 && !dp->keep) {
 				assert(dp->magic == DNmagic);
 				*l = dp->next;
 
@@ -610,9 +563,9 @@ dnageall(int doit)
 void
 dnagedb(void)
 {
-	DN *dp;
+	DN* dp;
 	int i;
-	RR *rp;
+	RR* rp;
 
 	lock(&dnlock);
 
@@ -637,27 +590,29 @@ dnauthdb(void)
 {
 	int i;
 	uint32_t minttl;
-	Area *area;
-	DN *dp;
-	RR *rp;
+	Area* area;
+	DN* dp;
+	RR* rp;
 
 	lock(&dnlock);
 
 	/* time out all database entries */
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next){
+		for(dp = ht[i]; dp; dp = dp->next) {
 			area = inmyarea(dp->name);
 			for(rp = dp->rr; rp; rp = rp->next)
-				if(rp->db){
-					if(area){
-						minttl = area->soarr->soa->minttl;
+				if(rp->db) {
+					if(area) {
+						minttl =
+						    area->soarr->soa->minttl;
 						if(rp->ttl < minttl)
 							rp->ttl = minttl;
 						rp->auth = 1;
 					}
-					if(rp->expire == 0){
+					if(rp->expire == 0) {
 						rp->db = 0;
-						dp->referenced = now-Reserved-1;
+						dp->referenced =
+						    now - Reserved - 1;
 					}
 				}
 		}
@@ -670,21 +625,21 @@ dnauthdb(void)
  *  garbage collect.  block while garbage collecting.
  */
 int
-getactivity(Request *req, int recursive)
+getactivity(Request* req, int recursive)
 {
 	int rv;
 
 	if(traceactivity)
-		dnslog("get: %d active by pid %d from %p",
-			dnvars.active, getpid(), getcallerpc(&req));
+		dnslog("get: %d active by pid %d from %p", dnvars.active,
+		       getpid(), getcallerpc(&req));
 	lock(&dnvars);
 	/*
 	 * can't block here if we're already holding one
 	 * of the dnvars.active (recursive).  will deadlock.
 	 */
-	while(!recursive && dnvars.mutex){
+	while(!recursive && dnvars.mutex) {
 		unlock(&dnvars);
-		sleep(100);			/* tune; was 200 */
+		sleep(100); /* tune; was 200 */
 		lock(&dnvars);
 	}
 	rv = ++dnvars.active;
@@ -701,8 +656,7 @@ putactivity(int recursive)
 	static uint32_t lastclean;
 
 	if(traceactivity)
-		dnslog("put: %d active by pid %d",
-			dnvars.active, getpid());
+		dnslog("put: %d active by pid %d", dnvars.active, getpid());
 	lock(&dnvars);
 	dnvars.active--;
 	assert(dnvars.active >= 0); /* "dnvars.active %d", dnvars.active */
@@ -710,19 +664,20 @@ putactivity(int recursive)
 	/*
 	 *  clean out old entries and check for new db periodicly
 	 *  can't block here if being called to let go a "recursive" lock
-	 *  or we'll deadlock waiting for ourselves to give up the dnvars.active.
+	 *  or we'll deadlock waiting for ourselves to give up the
+	 * dnvars.active.
 	 */
-	if (recursive || dnvars.mutex ||
-	    (needrefresh == 0 && dnvars.active > 0)){
+	if(recursive || dnvars.mutex ||
+	   (needrefresh == 0 && dnvars.active > 0)) {
 		unlock(&dnvars);
 		return;
 	}
 
 	/* wait till we're alone */
 	dnvars.mutex = 1;
-	while(dnvars.active > 0){
+	while(dnvars.active > 0) {
 		unlock(&dnvars);
-		sleep(100);		/* tune; was 100 */
+		sleep(100); /* tune; was 100 */
 		lock(&dnvars);
 	}
 	unlock(&dnvars);
@@ -732,7 +687,7 @@ putactivity(int recursive)
 	/* if we've been running for long enough, restart */
 	if(start == 0)
 		start = time(nil);
-	if(Restartmins > 0 && time(nil) - start > Restartmins*60){
+	if(Restartmins > 0 && time(nil) - start > Restartmins * 60) {
 		dnslog("killing all dns procs for timed restart");
 		postnote(PNGROUP, getpid(), "die");
 		dnvars.mutex = 0;
@@ -748,7 +703,7 @@ putactivity(int recursive)
 }
 
 int
-rrlistlen(RR *rp)
+rrlistlen(RR* rp)
 {
 	int n;
 
@@ -768,23 +723,23 @@ rrlistlen(RR *rp)
  *  Must be called with dnlock held.
  */
 static void
-rrattach1(RR *new, int auth)
+rrattach1(RR* new, int auth)
 {
-	RR **l;
-	RR *rp;
-	DN *dp;
+	RR** l;
+	RR* rp;
+	DN* dp;
 
 	assert(new->magic == RRmagic);
 	assert(!new->cached);
 
-//	dnslog("rrattach1: %s", new->owner->name);
+	//	dnslog("rrattach1: %s", new->owner->name);
 	if(!new->db) {
 		/*
 		 * try not to let responses expire before we
 		 * can use them to complete this query, by extending
 		 * past (or nearly past) expiration time.
 		 */
-		new->expire = new->ttl > now + Min? new->ttl: now + 10*Min;
+		new->expire = new->ttl > now + Min ? new->ttl : now + 10 * Min;
 	} else
 		new->expire = now + Year;
 	dp = new->owner;
@@ -796,7 +751,7 @@ rrattach1(RR *new, int auth)
 	 *  find first rr of the right type
 	 */
 	l = &dp->rr;
-	for(rp = *l; rp; rp = *l){
+	for(rp = *l; rp; rp = *l) {
 		assert(rp->magic == RRmagic);
 		assert(rp->cached);
 		if(rp->type == new->type)
@@ -813,24 +768,25 @@ rrattach1(RR *new, int auth)
 	 *  for duplicates; RRs of a given type can have different rdata
 	 *  fields (e.g. multiple NS servers).
 	 */
-	while ((rp = *l) != nil){
+	while((rp = *l) != nil) {
 		assert(rp->magic == RRmagic);
 		assert(rp->cached);
 		if(rp->type != new->type)
 			break;
 
-		if(rp->db == new->db && rp->auth == new->auth){
+		if(rp->db == new->db && rp->auth == new->auth) {
 			/* negative drives out positive and vice versa */
 			if(rp->negative != new->negative) {
 				/* rp == *l before; *l == rp->next after */
 				rrdelhead(l);
-				continue;	
+				continue;
 			}
 			/* all things equal, pick the newer one */
-			else if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1){
+			else if(rp->arg0 == new->arg0 &&
+			        rp->arg1 == new->arg1) {
 				/* new drives out old */
-				if (new->ttl <= rp->ttl &&
-				    new->expire <= rp->expire) {
+				if(new->ttl <= rp->ttl &&
+				   new->expire <= rp->expire) {
 					rrfree(new);
 					return;
 				}
@@ -843,15 +799,15 @@ rrattach1(RR *new, int auth)
 			 *  the ordering in the list reflects the ordering
 			 *  received or read from the database
 			 */
-			else if(rp->type == Tptr &&
-			    !rp->negative && !new->negative &&
-			    rp->ptr->ordinal > new->ptr->ordinal)
+			else if(rp->type == Tptr && !rp->negative &&
+			        !new->negative &&
+			        rp->ptr->ordinal > new->ptr->ordinal)
 				break;
 		}
 		l = &rp->next;
 	}
 
-	if (rronlist(new, rp)) {
+	if(rronlist(new, rp)) {
 		/* should not happen; duplicates were processed above */
 		dnslog("adding duplicate %R to list of %R; aborting", new, rp);
 		abort();
@@ -872,28 +828,30 @@ rrattach1(RR *new, int auth)
  *  See rrattach1 for properties preserved.
  */
 void
-rrattach(RR *rp, int auth)
+rrattach(RR* rp, int auth)
 {
-	RR *next, *tp;
-	DN *dp;
+	RR* next, *tp;
+	DN* dp;
 
 	lock(&dnlock);
-	for(; rp; rp = next){
+	for(; rp; rp = next) {
 		next = rp->next;
 		rp->next = nil;
 		dp = rp->owner;
 
-//		dnslog("rrattach: %s", rp->owner->name);
+		//		dnslog("rrattach: %s", rp->owner->name);
 		/* avoid any outside spoofing; leave keepers alone */
 		if(cfg.cachedb && !rp->db && inmyarea(rp->owner->name)
-//		    || dp->keep			/* TODO: make this work */
-		    )
+		   //		    || dp->keep			/* TODO: make this work
+		   //*/
+		   )
 			rrfree(rp);
 		else {
 			/* ameliorate the memory leak (someday delete this) */
-			if (0 && rrlistlen(dp->rr) > 50 && !dp->keep) {
+			if(0 && rrlistlen(dp->rr) > 50 && !dp->keep) {
 				dnslog("rrattach(%s): rr list too long; "
-					"freeing it", dp->name);
+				       "freeing it",
+				       dp->name);
 				tp = dp->rr;
 				dp->rr = nil;
 				rrfreelist(tp);
@@ -907,26 +865,26 @@ rrattach(RR *rp, int auth)
 
 /* should be called with dnlock held */
 RR**
-rrcopy(RR *rp, RR **last)
+rrcopy(RR* rp, RR** last)
 {
-	Cert *cert;
-	Key *key;
-	Null *null;
-	RR *nrp;
-	SOA *soa;
-	Sig *sig;
-	Txt *t, *nt, **l;
+	Cert* cert;
+	Key* key;
+	Null* null;
+	RR* nrp;
+	SOA* soa;
+	Sig* sig;
+	Txt* t, *nt, **l;
 
-	if (canlock(&dnlock))
-		abort();	/* rrcopy called with dnlock not held */
+	if(canlock(&dnlock))
+		abort(); /* rrcopy called with dnlock not held */
 	nrp = rralloc(rp->type);
 	setmalloctag(nrp, getcallerpc(&rp));
-	switch(rp->type){
+	switch(rp->type) {
 	case Ttxt:
 		*nrp = *rp;
 		l = &nrp->txt;
 		*l = nil;
-		for(t = rp->txt; t != nil; t = t->next){
+		for(t = rp->txt; t != nil; t = t->next) {
 			nt = emalloc(sizeof(*nt));
 			nt->p = estrdup(t->p);
 			nt->next = nil;
@@ -1002,9 +960,9 @@ rrcopy(RR *rp, RR **last)
  *  return nothing instead.
  */
 RR*
-rrlookup(DN *dp, int type, int flag)
+rrlookup(DN* dp, int type, int flag)
 {
-	RR *rp, *first, **last;
+	RR* rp, *first, **last;
 
 	assert(dp->magic == DNmagic);
 
@@ -1013,58 +971,60 @@ rrlookup(DN *dp, int type, int flag)
 	lock(&dnlock);
 
 	/* try for an authoritative db entry */
-	for(rp = dp->rr; rp; rp = rp->next){
+	for(rp = dp->rr; rp; rp = rp->next) {
 		assert(rp->magic == RRmagic);
 		assert(rp->cached);
 		if(rp->db)
-		if(rp->auth)
-		if(tsame(type, rp->type)) {
-			last = rrcopy(rp, last);
-			// setmalloctag(*last, getcallerpc(&dp));
-		}
+			if(rp->auth)
+				if(tsame(type, rp->type)) {
+					last = rrcopy(rp, last);
+					// setmalloctag(*last,
+					// getcallerpc(&dp));
+				}
 	}
 	if(first)
 		goto out;
 
 	/* try for a living authoritative network entry */
-	for(rp = dp->rr; rp; rp = rp->next){
+	for(rp = dp->rr; rp; rp = rp->next) {
 		if(!rp->db)
-		if(rp->auth)
-		if(rp->ttl + 60 > now)
-		if(tsame(type, rp->type)){
-			if(flag == NOneg && rp->negative)
-				goto out;
-			last = rrcopy(rp, last);
-		}
+			if(rp->auth)
+				if(rp->ttl + 60 > now)
+					if(tsame(type, rp->type)) {
+						if(flag == NOneg &&
+						   rp->negative)
+							goto out;
+						last = rrcopy(rp, last);
+					}
 	}
 	if(first)
 		goto out;
 
 	/* try for a living unauthoritative network entry */
-	for(rp = dp->rr; rp; rp = rp->next){
+	for(rp = dp->rr; rp; rp = rp->next) {
 		if(!rp->db)
-		if(rp->ttl + 60 > now)
-		if(tsame(type, rp->type)){
-			if(flag == NOneg && rp->negative)
-				goto out;
-			last = rrcopy(rp, last);
-		}
+			if(rp->ttl + 60 > now)
+				if(tsame(type, rp->type)) {
+					if(flag == NOneg && rp->negative)
+						goto out;
+					last = rrcopy(rp, last);
+				}
 	}
 	if(first)
 		goto out;
 
 	/* try for an unauthoritative db entry */
-	for(rp = dp->rr; rp; rp = rp->next){
+	for(rp = dp->rr; rp; rp = rp->next) {
 		if(rp->db)
-		if(tsame(type, rp->type))
-			last = rrcopy(rp, last);
+			if(tsame(type, rp->type))
+				last = rrcopy(rp, last);
 	}
 	if(first)
 		goto out;
 
 	/* otherwise, settle for anything we got (except for negative caches) */
 	for(rp = dp->rr; rp; rp = rp->next)
-		if(tsame(type, rp->type)){
+		if(tsame(type, rp->type)) {
 			if(rp->negative)
 				goto out;
 			last = rrcopy(rp, last);
@@ -1073,9 +1033,9 @@ rrlookup(DN *dp, int type, int flag)
 out:
 	unique(first);
 	unlock(&dnlock);
-//	dnslog("rrlookup(%s) -> %#p\t# in-core only", dp->name, first);
-//	if (first)
-//		setmalloctag(first, getcallerpc(&dp));
+	//	dnslog("rrlookup(%s) -> %#p\t# in-core only", dp->name, first);
+	//	if (first)
+	//		setmalloctag(first, getcallerpc(&dp));
 	return first;
 }
 
@@ -1083,7 +1043,7 @@ out:
  *  convert an ascii RR type name to its integer representation
  */
 int
-rrtype(char *atype)
+rrtype(char* atype)
 {
 	int i;
 
@@ -1106,7 +1066,7 @@ rrtype(char *atype)
 int
 rrsupported(int type)
 {
-	if(type < 0 || type >Tall)
+	if(type < 0 || type > Tall)
 		return 0;
 	return rrtname[type] != nil;
 }
@@ -1126,17 +1086,17 @@ tsame(int t1, int t2)
  *  to avoid racing down the start chain.
  */
 RR*
-rrcat(RR **start, RR *rp)
+rrcat(RR** start, RR* rp)
 {
-	RR *olp, *nlp;
-	RR **last;
+	RR* olp, *nlp;
+	RR** last;
 
-	if (canlock(&dnlock))
-		abort();	/* rrcat called with dnlock not held */
+	if(canlock(&dnlock))
+		abort(); /* rrcat called with dnlock not held */
 	/* check for duplicates */
-	for (olp = *start; 0 && olp; olp = olp->next)
-		for (nlp = rp; nlp; nlp = nlp->next)
-			if (rrsame(nlp, olp))
+	for(olp = *start; 0 && olp; olp = olp->next)
+		for(nlp = rp; nlp; nlp = nlp->next)
+			if(rrsame(nlp, olp))
 				dnslog("rrcat: duplicate RR: %R", nlp);
 	USED(olp);
 
@@ -1152,18 +1112,18 @@ rrcat(RR **start, RR *rp)
  *  remove negative cache rr's from an rr list
  */
 RR*
-rrremneg(RR **l)
+rrremneg(RR** l)
 {
-	RR **nl, *rp;
-	RR *first;
+	RR** nl, *rp;
+	RR* first;
 
-	if (canlock(&dnlock))
-		abort();	/* rrremneg called with dnlock not held */
+	if(canlock(&dnlock))
+		abort(); /* rrremneg called with dnlock not held */
 	first = nil;
 	nl = &first;
-	while(*l != nil){
+	while(*l != nil) {
 		rp = *l;
-		if(rp->negative){
+		if(rp->negative) {
 			*l = rp->next;
 			*nl = rp;
 			nl = &rp->next;
@@ -1179,16 +1139,16 @@ rrremneg(RR **l)
  *  remove rr's of a particular type from an rr list
  */
 RR*
-rrremtype(RR **l, int type)
+rrremtype(RR** l, int type)
 {
-	RR *first, *rp;
-	RR **nl;
+	RR* first, *rp;
+	RR** nl;
 
 	first = nil;
 	nl = &first;
-	while(*l != nil){
+	while(*l != nil) {
 		rp = *l;
-		if(rp->type == type){
+		if(rp->type == type) {
 			*l = rp->next;
 			*nl = rp;
 			nl = &rp->next;
@@ -1200,45 +1160,45 @@ rrremtype(RR **l, int type)
 	return first;
 }
 
-static char *
-dnname(DN *dn)
+static char*
+dnname(DN* dn)
 {
-	return dn? dn->name: "<null>";
+	return dn ? dn->name : "<null>";
 }
 
 /*
  *  print conversion for rr records
  */
 int
-rrfmt(Fmt *f)
+rrfmt(Fmt* f)
 {
 	int rv;
-	char *strp;
+	char* strp;
 	char buf[Domlen];
 	Fmt fstr;
-	RR *rp;
-	Server *s;
-	SOA *soa;
-	Srv *srv;
-	Txt *t;
+	RR* rp;
+	Server* s;
+	SOA* soa;
+	Srv* srv;
+	Txt* t;
 
 	fmtstrinit(&fstr);
 
 	rp = va_arg(f->args, RR*);
-	if(rp == nil){
+	if(rp == nil) {
 		fmtprint(&fstr, "<null>");
 		goto out;
 	}
 
 	fmtprint(&fstr, "%s %s", dnname(rp->owner),
-		rrname(rp->type, buf, sizeof buf));
+	         rrname(rp->type, buf, sizeof buf));
 
-	if(rp->negative){
+	if(rp->negative) {
 		fmtprint(&fstr, "\tnegative - rcode %d", rp->negrcode);
 		goto out;
 	}
 
-	switch(rp->type){
+	switch(rp->type) {
 	case Thinfo:
 		fmtprint(&fstr, "\t%s %s", dnname(rp->cpu), dnname(rp->os));
 		break;
@@ -1264,33 +1224,32 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%s", dnname(rp->ip));
 		break;
 	case Tptr:
-//		fmtprint(&fstr, "\t%s(%lud)", dnname(rp->ptr),
-//			rp->ptr? rp->ptr->ordinal: "<null>");
+		//		fmtprint(&fstr, "\t%s(%lud)", dnname(rp->ptr),
+		//			rp->ptr? rp->ptr->ordinal: "<null>");
 		fmtprint(&fstr, "\t%s", dnname(rp->ptr));
 		break;
 	case Tsoa:
 		soa = rp->soa;
 		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud",
-			dnname(rp->host), dnname(rp->rmb),
-			(soa? soa->serial: 0),
-			(soa? soa->refresh: 0), (soa? soa->retry: 0),
-			(soa? soa->expire: 0), (soa? soa->minttl: 0));
-		if (soa)
+		         dnname(rp->host), dnname(rp->rmb),
+		         (soa ? soa->serial : 0), (soa ? soa->refresh : 0),
+		         (soa ? soa->retry : 0), (soa ? soa->expire : 0),
+		         (soa ? soa->minttl : 0));
+		if(soa)
 			for(s = soa->slaves; s != nil; s = s->next)
 				fmtprint(&fstr, " %s", s->name);
 		break;
 	case Tsrv:
 		srv = rp->srv;
-		fmtprint(&fstr, "\t%ud %ud %ud %s",
-			(srv? srv->pri: 0), (srv? srv->weight: 0),
-			rp->port, dnname(rp->host));
+		fmtprint(&fstr, "\t%ud %ud %ud %s", (srv ? srv->pri : 0),
+		         (srv ? srv->weight : 0), rp->port, dnname(rp->host));
 		break;
 	case Tnull:
-		if (rp->null == nil)
+		if(rp->null == nil)
 			fmtprint(&fstr, "\t<null>");
 		else
 			fmtprint(&fstr, "\t%.*H", rp->null->dlen,
-				rp->null->data);
+			         rp->null->data);
 		break;
 	case Ttxt:
 		fmtprint(&fstr, "\t");
@@ -1301,28 +1260,28 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%s %s", dnname(rp->rmb), dnname(rp->rp));
 		break;
 	case Tkey:
-		if (rp->key == nil)
+		if(rp->key == nil)
 			fmtprint(&fstr, "\t<null> <null> <null>");
 		else
 			fmtprint(&fstr, "\t%d %d %d", rp->key->flags,
-				rp->key->proto, rp->key->alg);
+			         rp->key->proto, rp->key->alg);
 		break;
 	case Tsig:
-		if (rp->sig == nil)
-			fmtprint(&fstr,
-		   "\t<null> <null> <null> <null> <null> <null> <null> <null>");
+		if(rp->sig == nil)
+			fmtprint(&fstr, "\t<null> <null> <null> <null> <null> "
+			                "<null> <null> <null>");
 		else
 			fmtprint(&fstr, "\t%d %d %d %lud %lud %lud %d %s",
-				rp->sig->type, rp->sig->alg, rp->sig->labels,
-				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
-				rp->sig->tag, dnname(rp->sig->signer));
+			         rp->sig->type, rp->sig->alg, rp->sig->labels,
+			         rp->sig->ttl, rp->sig->exp, rp->sig->incep,
+			         rp->sig->tag, dnname(rp->sig->signer));
 		break;
 	case Tcert:
-		if (rp->cert == nil)
+		if(rp->cert == nil)
 			fmtprint(&fstr, "\t<null> <null> <null>");
 		else
-			fmtprint(&fstr, "\t%d %d %d",
-				rp->cert->type, rp->cert->tag, rp->cert->alg);
+			fmtprint(&fstr, "\t%d %d %d", rp->cert->type,
+			         rp->cert->tag, rp->cert->alg);
 		break;
 	}
 out:
@@ -1336,21 +1295,21 @@ out:
  *  print conversion for rr records in attribute value form
  */
 int
-rravfmt(Fmt *f)
+rravfmt(Fmt* f)
 {
 	int rv, quote;
-	char *strp;
+	char* strp;
 	Fmt fstr;
-	RR *rp;
-	Server *s;
-	SOA *soa;
-	Srv *srv;
-	Txt *t;
+	RR* rp;
+	Server* s;
+	SOA* soa;
+	Srv* srv;
+	Txt* t;
 
 	fmtstrinit(&fstr);
 
 	rp = va_arg(f->args, RR*);
-	if(rp == nil){
+	if(rp == nil) {
 		fmtprint(&fstr, "<null>");
 		goto out;
 	}
@@ -1360,10 +1319,10 @@ rravfmt(Fmt *f)
 	else
 		fmtprint(&fstr, "dom=%s", dnname(rp->owner));
 
-	switch(rp->type){
+	switch(rp->type) {
 	case Thinfo:
-		fmtprint(&fstr, " cpu=%s os=%s",
-			dnname(rp->cpu), dnname(rp->os));
+		fmtprint(&fstr, " cpu=%s os=%s", dnname(rp->cpu),
+		         dnname(rp->os));
 		break;
 	case Tcname:
 		fmtprint(&fstr, " cname=%s", dnname(rp->host));
@@ -1374,15 +1333,15 @@ rravfmt(Fmt *f)
 		fmtprint(&fstr, " mbox=%s", dnname(rp->host));
 		break;
 	case Tns:
-		fmtprint(&fstr,  " ns=%s", dnname(rp->host));
+		fmtprint(&fstr, " ns=%s", dnname(rp->host));
 		break;
 	case Tmg:
 	case Tmr:
 		fmtprint(&fstr, " mbox=%s", dnname(rp->mb));
 		break;
 	case Tminfo:
-		fmtprint(&fstr, " mbox=%s mbox=%s",
-			dnname(rp->mb), dnname(rp->rmb));
+		fmtprint(&fstr, " mbox=%s mbox=%s", dnname(rp->mb),
+		         dnname(rp->rmb));
 		break;
 	case Tmx:
 		fmtprint(&fstr, " pref=%lud mx=%s", rp->pref, dnname(rp->host));
@@ -1396,27 +1355,27 @@ rravfmt(Fmt *f)
 		break;
 	case Tsoa:
 		soa = rp->soa;
-		fmtprint(&fstr,
-" ns=%s mbox=%s serial=%lud refresh=%lud retry=%lud expire=%lud ttl=%lud",
-			dnname(rp->host), dnname(rp->rmb),
-			(soa? soa->serial: 0),
-			(soa? soa->refresh: 0), (soa? soa->retry: 0),
-			(soa? soa->expire: 0), (soa? soa->minttl: 0));
+		fmtprint(&fstr, " ns=%s mbox=%s serial=%lud refresh=%lud "
+		                "retry=%lud expire=%lud ttl=%lud",
+		         dnname(rp->host), dnname(rp->rmb),
+		         (soa ? soa->serial : 0), (soa ? soa->refresh : 0),
+		         (soa ? soa->retry : 0), (soa ? soa->expire : 0),
+		         (soa ? soa->minttl : 0));
 		for(s = soa->slaves; s != nil; s = s->next)
 			fmtprint(&fstr, " dnsslave=%s", s->name);
 		break;
 	case Tsrv:
 		srv = rp->srv;
 		fmtprint(&fstr, " pri=%ud weight=%ud port=%ud target=%s",
-			(srv? srv->pri: 0), (srv? srv->weight: 0),
-			rp->port, dnname(rp->host));
+		         (srv ? srv->pri : 0), (srv ? srv->weight : 0),
+		         rp->port, dnname(rp->host));
 		break;
 	case Tnull:
-		if (rp->null == nil)
+		if(rp->null == nil)
 			fmtprint(&fstr, " null=<null>");
 		else
 			fmtprint(&fstr, " null=%.*H", rp->null->dlen,
-				rp->null->data);
+			         rp->null->data);
 		break;
 	case Ttxt:
 		fmtprint(&fstr, " txt=");
@@ -1432,33 +1391,35 @@ rravfmt(Fmt *f)
 			fmtprint(&fstr, "\"");
 		break;
 	case Trp:
-		fmtprint(&fstr, " rp=%s txt=%s",
-			dnname(rp->rmb), dnname(rp->rp));
+		fmtprint(&fstr, " rp=%s txt=%s", dnname(rp->rmb),
+		         dnname(rp->rp));
 		break;
 	case Tkey:
-		if (rp->key == nil)
-			fmtprint(&fstr, " flags=<null> proto=<null> alg=<null>");
+		if(rp->key == nil)
+			fmtprint(&fstr,
+			         " flags=<null> proto=<null> alg=<null>");
 		else
 			fmtprint(&fstr, " flags=%d proto=%d alg=%d",
-				rp->key->flags, rp->key->proto, rp->key->alg);
+			         rp->key->flags, rp->key->proto, rp->key->alg);
 		break;
 	case Tsig:
-		if (rp->sig == nil)
-			fmtprint(&fstr,
-" type=<null> alg=<null> labels=<null> ttl=<null> exp=<null> incep=<null> tag=<null> signer=<null>");
+		if(rp->sig == nil)
+			fmtprint(&fstr, " type=<null> alg=<null> labels=<null> "
+			                "ttl=<null> exp=<null> incep=<null> "
+			                "tag=<null> signer=<null>");
 		else
-			fmtprint(&fstr,
-" type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
-				rp->sig->type, rp->sig->alg, rp->sig->labels,
-				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
-				rp->sig->tag, dnname(rp->sig->signer));
+			fmtprint(&fstr, " type=%d alg=%d labels=%d ttl=%lud "
+			                "exp=%lud incep=%lud tag=%d signer=%s",
+			         rp->sig->type, rp->sig->alg, rp->sig->labels,
+			         rp->sig->ttl, rp->sig->exp, rp->sig->incep,
+			         rp->sig->tag, dnname(rp->sig->signer));
 		break;
 	case Tcert:
-		if (rp->cert == nil)
+		if(rp->cert == nil)
 			fmtprint(&fstr, " type=<null> tag=<null> alg=<null>");
 		else
 			fmtprint(&fstr, " type=%d tag=%d alg=%d",
-				rp->cert->type, rp->cert->tag, rp->cert->alg);
+			         rp->cert->type, rp->cert->tag, rp->cert->alg);
 		break;
 	}
 out:
@@ -1469,25 +1430,25 @@ out:
 }
 
 void
-warning(char *fmt, ...)
+warning(char* fmt, ...)
 {
 	char dnserr[256];
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(dnserr, dnserr+sizeof(dnserr), fmt, arg);
+	vseprint(dnserr, dnserr + sizeof(dnserr), fmt, arg);
 	va_end(arg);
-	syslog(1, logfile, dnserr);		/* on console too */
+	syslog(1, logfile, dnserr); /* on console too */
 }
 
 void
-dnslog(char *fmt, ...)
+dnslog(char* fmt, ...)
 {
 	char dnserr[256];
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(dnserr, dnserr+sizeof(dnserr), fmt, arg);
+	vseprint(dnserr, dnserr + sizeof(dnserr), fmt, arg);
 	va_end(arg);
 	syslog(0, logfile, dnserr);
 }
@@ -1497,21 +1458,21 @@ dnslog(char *fmt, ...)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(char *fmt, ...)
+procsetname(char* fmt, ...)
 {
 	int fd;
-	char *cmdname;
+	char* cmdname;
 	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
 	cmdname = vsmprint(fmt, arg);
 	va_end(arg);
-	if (cmdname == nil)
+	if(cmdname == nil)
 		return;
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
-		write(fd, cmdname, strlen(cmdname)+1);
+	if((fd = open(buf, OWRITE)) >= 0) {
+		write(fd, cmdname, strlen(cmdname) + 1);
 		close(fd);
 	}
 	free(cmdname);
@@ -1522,12 +1483,12 @@ procsetname(char *fmt, ...)
  *  another
  */
 void
-slave(Request *req)
+slave(Request* req)
 {
 	int ppid, procs;
 
 	if(req->isslave)
-		return;		/* we're already a slave process */
+		return; /* we're already a slave process */
 
 	/*
 	 * These calls to putactivity cannot block.
@@ -1539,9 +1500,9 @@ slave(Request *req)
 
 	/* limit parallelism */
 	procs = getactivity(req, 1);
-	if (procs > stats.slavehiwat)
+	if(procs > stats.slavehiwat)
 		stats.slavehiwat = procs;
-	if(procs > Maxactive){
+	if(procs > Maxactive) {
 		if(traceactivity)
 			dnslog("[%d] too much activity", getpid());
 		putactivity(1);
@@ -1553,15 +1514,15 @@ slave(Request *req)
 	 * don't change note group.
 	 */
 	ppid = getpid();
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+	switch(rfork(RFPROC | RFMEM | RFNOWAIT)) {
 	case -1:
 		putactivity(1);
 		break;
 	case 0:
 		procsetname("request slave of pid %d", ppid);
- 		if(traceactivity)
+		if(traceactivity)
 			dnslog("[%d] take activity from %d", getpid(), ppid);
-		req->isslave = 1;	/* why not `= getpid()'? */
+		req->isslave = 1; /* why not `= getpid()'? */
 		break;
 	default:
 		/*
@@ -1578,13 +1539,13 @@ slave(Request *req)
  *  chasing down double free's
  */
 void
-dncheck(void *p, int dolock)
+dncheck(void* p, int dolock)
 {
 	int i;
-	DN *dp;
-	RR *rp;
+	DN* dp;
+	RR* rp;
 
-	if(p != nil){
+	if(p != nil) {
 		dp = p;
 		assert(dp->magic == DNmagic);
 	}
@@ -1596,17 +1557,18 @@ dncheck(void *p, int dolock)
 		lock(&dnlock);
 	poolcheck(mainmem);
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next){
+		for(dp = ht[i]; dp; dp = dp->next) {
 			assert(dp != p);
 			assert(dp->magic == DNmagic);
-			for(rp = dp->rr; rp; rp = rp->next){
+			for(rp = dp->rr; rp; rp = rp->next) {
 				assert(rp->magic == RRmagic);
 				assert(rp->cached);
 				assert(rp->owner == dp);
 				/* also check for duplicate rrs */
-				if (dolock && rronlist(rp, rp->next)) {
+				if(dolock && rronlist(rp, rp->next)) {
 					dnslog("%R duplicates its next chain "
-						"(%R); aborting", rp, rp->next);
+					       "(%R); aborting",
+					       rp, rp->next);
 					abort();
 				}
 			}
@@ -1616,24 +1578,22 @@ dncheck(void *p, int dolock)
 }
 
 static int
-rrequiv(RR *r1, RR *r2)
+rrequiv(RR* r1, RR* r2)
 {
-	return r1->owner == r2->owner
-		&& r1->type == r2->type
-		&& r1->arg0 == r2->arg0
-		&& r1->arg1 == r2->arg1;
+	return r1->owner == r2->owner && r1->type == r2->type &&
+	       r1->arg0 == r2->arg0 && r1->arg1 == r2->arg1;
 }
 
 /* called with dnlock held */
 void
-unique(RR *rp)
+unique(RR* rp)
 {
-	RR **l, *nrp;
+	RR** l, *nrp;
 
-	for(; rp; rp = rp->next){
+	for(; rp; rp = rp->next) {
 		l = &rp->next;
 		for(nrp = *l; nrp; nrp = *l)
-			if(rrequiv(rp, nrp)){
+			if(rrequiv(rp, nrp)) {
 				*l = nrp->next;
 				rrfree(nrp);
 			} else
@@ -1645,14 +1605,14 @@ unique(RR *rp)
  *  true if second domain is subsumed by the first
  */
 int
-subsume(char *higher, char *lower)
+subsume(char* higher, char* lower)
 {
 	int hn, ln;
 
 	ln = strlen(lower);
 	hn = strlen(higher);
-	if (ln < hn || cistrcmp(lower + ln - hn, higher) != 0 ||
-	    ln > hn && hn != 0 && lower[ln - hn - 1] != '.')
+	if(ln < hn || cistrcmp(lower + ln - hn, higher) != 0 ||
+	   ln > hn && hn != 0 && lower[ln - hn - 1] != '.')
 		return 0;
 	return 1;
 }
@@ -1664,9 +1624,9 @@ subsume(char *higher, char *lower)
  *  only randomize the first class of entries
  */
 RR*
-randomize(RR *rp)
+randomize(RR* rp)
 {
-	RR *first, *last, *x, *base;
+	RR* first, *last, *x, *base;
 	uint32_t n;
 
 	if(rp == nil || rp->next == nil)
@@ -1674,17 +1634,17 @@ randomize(RR *rp)
 
 	/* just randomize addresses, mx's and ns's */
 	for(x = rp; x; x = x->next)
-		if(x->type != Ta && x->type != Taaaa &&
-		    x->type != Tmx && x->type != Tns)
+		if(x->type != Ta && x->type != Taaaa && x->type != Tmx &&
+		   x->type != Tns)
 			return rp;
 
 	base = rp;
 
 	n = rand();
 	last = first = nil;
-	while(rp != nil){
+	while(rp != nil) {
 		/* stop randomizing if we've moved past our class */
-		if(base->auth != rp->auth || base->db != rp->db){
+		if(base->auth != rp->auth || base->db != rp->db) {
 			last->next = rp;
 			break;
 		}
@@ -1694,7 +1654,7 @@ randomize(RR *rp)
 		rp = x->next;
 		x->next = nil;
 
-		if(n&1){
+		if(n & 1) {
 			/* add to tail */
 			if(last == nil)
 				first = x;
@@ -1717,14 +1677,14 @@ randomize(RR *rp)
 }
 
 static int
-sencodefmt(Fmt *f)
+sencodefmt(Fmt* f)
 {
 	int i, len, ilen, rv;
-	char *out, *buf;
-	uint8_t *b;
-	char obuf[64];		/* rsc optimization */
+	char* out, *buf;
+	uint8_t* b;
+	char obuf[64]; /* rsc optimization */
 
-	if(!(f->flags&FmtPrec) || f->prec < 1)
+	if(!(f->flags & FmtPrec) || f->prec < 1)
 		goto error;
 
 	b = va_arg(f->args, uint8_t*);
@@ -1736,9 +1696,9 @@ sencodefmt(Fmt *f)
 	for(i = 0; i < len; i++)
 		if(!isprint(b[i]))
 			break;
-	if(i == len){
+	if(i == len) {
 		if(len >= sizeof obuf)
-			len = sizeof(obuf)-1;
+			len = sizeof(obuf) - 1;
 		memmove(obuf, b, len);
 		obuf[len] = 0;
 		fmtstrcpy(f, obuf);
@@ -1748,21 +1708,21 @@ sencodefmt(Fmt *f)
 	ilen = f->prec;
 	f->prec = 0;
 	f->flags &= ~FmtPrec;
-	switch(f->r){
+	switch(f->r) {
 	case '<':
-		len = (8*ilen+4)/5 + 3;
+		len = (8 * ilen + 4) / 5 + 3;
 		break;
 	case '[':
-		len = (8*ilen+5)/6 + 4;
+		len = (8 * ilen + 5) / 6 + 4;
 		break;
 	case 'H':
-		len = 2*ilen + 1;
+		len = 2 * ilen + 1;
 		break;
 	default:
 		goto error;
 	}
 
-	if(len > sizeof(obuf)){
+	if(len > sizeof(obuf)) {
 		buf = malloc(len);
 		if(buf == nil)
 			goto error;
@@ -1771,7 +1731,7 @@ sencodefmt(Fmt *f)
 
 	/* convert */
 	out = buf;
-	switch(f->r){
+	switch(f->r) {
 	case '<':
 		rv = enc32(out, len, b, ilen);
 		break;
@@ -1800,7 +1760,7 @@ error:
 void*
 emalloc(int size)
 {
-	char *x;
+	char* x;
 
 	x = mallocz(size, 1);
 	if(x == nil)
@@ -1810,12 +1770,12 @@ emalloc(int size)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	int size;
-	char *p;
+	char* p;
 
-	size = strlen(s)+1;
+	size = strlen(s) + 1;
 	p = mallocz(size, 0);
 	if(p == nil)
 		abort();
@@ -1828,10 +1788,10 @@ estrdup(char *s)
  *  create a pointer record
  */
 static RR*
-mkptr(DN *dp, char *ptr, uint32_t ttl)
+mkptr(DN* dp, char* ptr, uint32_t ttl)
 {
-	DN *ipdp;
-	RR *rp;
+	DN* ipdp;
+	RR* rp;
 
 	ipdp = dnlookup(ptr, Cin, 1);
 
@@ -1844,30 +1804,30 @@ mkptr(DN *dp, char *ptr, uint32_t ttl)
 	return rp;
 }
 
-void	bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes);
+void bytes2nibbles(uint8_t* nibbles, uint8_t* bytes, int nbytes);
 
 /*
  *  look for all ip addresses in this network and make
  *  pointer records for them.
  */
 void
-dnptr(uint8_t *net, uint8_t *mask, char *dom, int forwtype, int subdoms,
+dnptr(uint8_t* net, uint8_t* mask, char* dom, int forwtype, int subdoms,
       int ttl)
 {
 	int i, j, len;
-	char *p, *e;
+	char* p, *e;
 	char ptr[Domlen];
-	uint8_t *ipp;
+	uint8_t* ipp;
 	uint8_t ip[IPaddrlen], nnet[IPaddrlen];
-	uint8_t nibip[IPaddrlen*2];
-	DN *dp;
-	RR *rp, *nrp, *first, **l;
+	uint8_t nibip[IPaddrlen * 2];
+	DN* dp;
+	RR* rp, *nrp, *first, **l;
 
 	l = &first;
 	first = nil;
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next)
-			for(rp = dp->rr; rp; rp = rp->next){
+			for(rp = dp->rr; rp; rp = rp->next) {
 				if(rp->type != forwtype || rp->negative)
 					continue;
 				parseip(ip, rp->ip->name);
@@ -1877,17 +1837,19 @@ dnptr(uint8_t *net, uint8_t *mask, char *dom, int forwtype, int subdoms,
 
 				ipp = ip;
 				len = IPaddrlen;
-				if (forwtype == Taaaa) {
+				if(forwtype == Taaaa) {
 					bytes2nibbles(nibip, ip, IPaddrlen);
 					ipp = nibip;
-					len = 2*IPaddrlen;
+					len = 2 * IPaddrlen;
 				}
 
 				p = ptr;
-				e = ptr+sizeof(ptr);
+				e = ptr + sizeof(ptr);
 				for(j = len - 1; j >= len - subdoms; j--)
-					p = seprint(p, e, (forwtype == Ta?
-						"%d.": "%x."), ipp[j]);
+					p = seprint(
+					    p, e,
+					    (forwtype == Ta ? "%d." : "%x."),
+					    ipp[j]);
 				seprint(p, e, "%s", dom);
 
 				nrp = mkptr(dp, ptr, ttl);
@@ -1895,7 +1857,7 @@ dnptr(uint8_t *net, uint8_t *mask, char *dom, int forwtype, int subdoms,
 				l = &nrp->next;
 			}
 
-	for(rp = first; rp != nil; rp = nrp){
+	for(rp = first; rp != nil; rp = nrp) {
 		nrp = rp->next;
 		rp->next = nil;
 		rrattach(rp, Authoritative);
@@ -1903,31 +1865,30 @@ dnptr(uint8_t *net, uint8_t *mask, char *dom, int forwtype, int subdoms,
 }
 
 void
-addserver(Server **l, char *name)
+addserver(Server** l, char* name)
 {
-	Server *s;
+	Server* s;
 
 	while(*l)
 		l = &(*l)->next;
-	s = malloc(sizeof(Server)+strlen(name)+1);
+	s = malloc(sizeof(Server) + strlen(name) + 1);
 	if(s == nil)
 		return;
-	s->name = (char*)(s+1);
+	s->name = (char*)(s + 1);
 	strcpy(s->name, name);
 	s->next = nil;
 	*l = s;
 }
 
 Server*
-copyserverlist(Server *s)
+copyserverlist(Server* s)
 {
-	Server *ns;
+	Server* ns;
 
 	for(ns = nil; s != nil; s = s->next)
 		addserver(&ns, s->name);
 	return ns;
 }
-
 
 /* from here down is copied to ip/snoopy/dns.c periodically to update it */
 
@@ -1935,14 +1896,14 @@ copyserverlist(Server *s)
  *  convert an integer RR type to it's ascii name
  */
 char*
-rrname(int type, char *buf, int len)
+rrname(int type, char* buf, int len)
 {
-	char *t;
+	char* t;
 
 	t = nil;
 	if(type >= 0 && type <= Tall)
 		t = rrtname[type];
-	if(t==nil){
+	if(t == nil) {
 		snprint(buf, len, "%d", type);
 		t = buf;
 	}
@@ -1953,22 +1914,22 @@ rrname(int type, char *buf, int len)
  *  free a list of resource records and any related structs
  */
 void
-rrfreelist(RR *rp)
+rrfreelist(RR* rp)
 {
-	RR *next;
+	RR* next;
 
-	for(; rp; rp = next){
+	for(; rp; rp = next) {
 		next = rp->next;
 		rrfree(rp);
 	}
 }
 
 void
-freeserverlist(Server *s)
+freeserverlist(Server* s)
 {
-	Server *next;
+	Server* next;
 
-	for(; s != nil; s = next){
+	for(; s != nil; s = next) {
 		next = s->next;
 		free(s);
 	}
@@ -1980,16 +1941,16 @@ freeserverlist(Server *s)
 RR*
 rralloc(int type)
 {
-	RR *rp;
+	RR* rp;
 
 	rp = emalloc(sizeof(*rp));
 	rp->magic = RRmagic;
 	rp->pc = getcallerpc(&type);
 	rp->type = type;
-	if (rp->type != type)
+	if(rp->type != type)
 		dnslog("rralloc: bogus type %d", type);
 	setmalloctag(rp, rp->pc);
-	switch(type){
+	switch(type) {
 	case Tsoa:
 		rp->soa = emalloc(sizeof(*rp->soa));
 		rp->soa->slaves = nil;
@@ -2026,69 +1987,69 @@ rralloc(int type)
  *  free a resource record and any related structs
  */
 void
-rrfree(RR *rp)
+rrfree(RR* rp)
 {
-	DN *dp;
-	RR *nrp;
-	Txt *t;
+	DN* dp;
+	RR* nrp;
+	Txt* t;
 
 	assert(rp->magic == RRmagic);
 	assert(!rp->cached);
 
 	/* our callers often hold dnlock.  it's needed to examine dp safely. */
 	dp = rp->owner;
-	if(dp){
+	if(dp) {
 		/* if someone else holds dnlock, skip the sanity check. */
-		if (canlock(&dnlock)) {
+		if(canlock(&dnlock)) {
 			assert(dp->magic == DNmagic);
 			for(nrp = dp->rr; nrp; nrp = nrp->next)
-				assert(nrp != rp);   /* "rrfree of live rr" */
+				assert(nrp != rp); /* "rrfree of live rr" */
 			unlock(&dnlock);
 		}
 	}
 
-	switch(rp->type){
+	switch(rp->type) {
 	case Tsoa:
 		freeserverlist(rp->soa->slaves);
-		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
+		memset(rp->soa, 0, sizeof *rp->soa); /* cause trouble */
 		free(rp->soa);
 		break;
 	case Tsrv:
-		memset(rp->srv, 0, sizeof *rp->srv);	/* cause trouble */
+		memset(rp->srv, 0, sizeof *rp->srv); /* cause trouble */
 		free(rp->srv);
 		break;
 	case Tkey:
 		free(rp->key->data);
-		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
+		memset(rp->key, 0, sizeof *rp->key); /* cause trouble */
 		free(rp->key);
 		break;
 	case Tcert:
 		free(rp->cert->data);
-		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
+		memset(rp->cert, 0, sizeof *rp->cert); /* cause trouble */
 		free(rp->cert);
 		break;
 	case Tsig:
 		free(rp->sig->data);
-		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
+		memset(rp->sig, 0, sizeof *rp->sig); /* cause trouble */
 		free(rp->sig);
 		break;
 	case Tnull:
 		free(rp->null->data);
-		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
+		memset(rp->null, 0, sizeof *rp->null); /* cause trouble */
 		free(rp->null);
 		break;
 	case Ttxt:
-		while(rp->txt != nil){
+		while(rp->txt != nil) {
 			t = rp->txt;
 			rp->txt = t->next;
 			free(t->p);
-			memset(t, 0, sizeof *t);	/* cause trouble */
+			memset(t, 0, sizeof *t); /* cause trouble */
 			free(t);
 		}
 		break;
 	}
 
 	rp->magic = ~rp->magic;
-	memset(rp, 0, sizeof *rp);		/* cause trouble */
+	memset(rp, 0, sizeof *rp); /* cause trouble */
 	free(rp);
 }

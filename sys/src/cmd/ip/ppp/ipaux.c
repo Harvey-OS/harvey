@@ -13,12 +13,12 @@
 #include <auth.h>
 #include "ppp.h"
 
-static	uint16_t	endian	= 1;
-static	uint8_t*	aendian	= (uint8_t*)&endian;
-#define	LITTLE	*aendian
+static uint16_t endian = 1;
+static uint8_t* aendian = (uint8_t*)&endian;
+#define LITTLE *aendian
 
 uint16_t
-ptclbsum(uint8_t *addr, int len)
+ptclbsum(uint8_t* addr, int len)
 {
 	uint32_t losum, hisum, mdsum, x;
 	uint32_t t1, t2;
@@ -37,14 +37,21 @@ ptclbsum(uint8_t *addr, int len)
 		x = 1;
 	}
 	while(len >= 16) {
-		t1 = *(uint16_t*)(addr+0);
-		t2 = *(uint16_t*)(addr+2);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+4);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+6);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+8);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+10);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+12);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+14);	mdsum += t1;
+		t1 = *(uint16_t*)(addr + 0);
+		t2 = *(uint16_t*)(addr + 2);
+		mdsum += t1;
+		t1 = *(uint16_t*)(addr + 4);
+		mdsum += t2;
+		t2 = *(uint16_t*)(addr + 6);
+		mdsum += t1;
+		t1 = *(uint16_t*)(addr + 8);
+		mdsum += t2;
+		t2 = *(uint16_t*)(addr + 10);
+		mdsum += t1;
+		t1 = *(uint16_t*)(addr + 12);
+		mdsum += t2;
+		t2 = *(uint16_t*)(addr + 14);
+		mdsum += t1;
 		mdsum += t2;
 		len -= 16;
 		addr += 16;
@@ -72,16 +79,16 @@ ptclbsum(uint8_t *addr, int len)
 
 	losum += hisum >> 8;
 	losum += (hisum & 0xff) << 8;
-	while(hisum = losum>>16)
+	while(hisum = losum >> 16)
 		losum = hisum + (losum & 0xffff);
 
 	return losum & 0xffff;
 }
 
 uint16_t
-ptclcsum(Block *bp, int offset, int len)
+ptclcsum(Block* bp, int offset, int len)
 {
-	uint8_t *addr;
+	uint8_t* addr;
 	uint32_t losum, hisum;
 	uint16_t csum;
 	int odd, blen, x;
@@ -117,7 +124,7 @@ ptclcsum(Block *bp, int offset, int len)
 			hisum += csum;
 		else
 			losum += csum;
-		odd = (odd+x) & 1;
+		odd = (odd + x) & 1;
 		len -= x;
 
 		bp = bp->next;
@@ -127,25 +134,25 @@ ptclcsum(Block *bp, int offset, int len)
 		addr = bp->rptr;
 	}
 
-	losum += hisum>>8;
-	losum += (hisum&0xff)<<8;
-	while((csum = losum>>16) != 0)
+	losum += hisum >> 8;
+	losum += (hisum & 0xff) << 8;
+	while((csum = losum >> 16) != 0)
 		losum = csum + (losum & 0xffff);
 
 	return ~losum & 0xffff;
 }
 
 uint16_t
-ipcsum(uint8_t *addr)
+ipcsum(uint8_t* addr)
 {
 	int len;
 	uint32_t sum;
 
 	sum = 0;
-	len = (addr[0]&0xf)<<2;
+	len = (addr[0] & 0xf) << 2;
 
 	while(len > 0) {
-		sum += (addr[0]<<8) | addr[1] ;
+		sum += (addr[0] << 8) | addr[1];
 		len -= 2;
 		addr += 2;
 	}
@@ -153,5 +160,5 @@ ipcsum(uint8_t *addr)
 	sum = (sum & 0xffff) + (sum >> 16);
 	sum = (sum & 0xffff) + (sum >> 16);
 
-	return (sum^0xffff);
+	return (sum ^ 0xffff);
 }

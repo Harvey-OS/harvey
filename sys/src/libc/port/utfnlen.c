@@ -11,23 +11,23 @@
 #include <libc.h>
 
 int
-utfnlen(char *s, int32_t m)
+utfnlen(char* s, int32_t m)
 {
 	int c;
 	int32_t n;
 	Rune rune;
-	char *es;
+	char* es;
 
 	es = s + m;
 	for(n = 0; s < es; n++) {
 		c = *(uint8_t*)s;
-		if(c < Runeself){
+		if(c < Runeself) {
 			if(c == '\0')
 				break;
 			s++;
 			continue;
 		}
-		if(!fullrune(s, es-s))
+		if(!fullrune(s, es - s))
 			break;
 		s += chartorune(&rune, s);
 	}

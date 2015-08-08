@@ -16,7 +16,7 @@
 #include "queue.h"
 
 void
-vthangup(VtConn *z)
+vthangup(VtConn* z)
 {
 	qlock(&z->lk);
 	z->state = VtStateClosed;
@@ -37,4 +37,3 @@ vthangup(VtConn *z)
 		_vtqhangup(z->readq);
 	qunlock(&z->lk);
 }
-

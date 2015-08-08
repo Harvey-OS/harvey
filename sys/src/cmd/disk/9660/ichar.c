@@ -24,16 +24,16 @@
  * at most 8 letters and at most one suffix of at most 3 letters.
  */
 char*
-isostring(uint8_t *buf, int len)
+isostring(uint8_t* buf, int len)
 {
-	char *p, *q;
+	char* p, *q;
 
-	p = emalloc(len+1);
+	p = emalloc(len + 1);
 	memmove(p, buf, len);
 	p[len] = '\0';
-	while(len > 0 && p[len-1] == ' ')
+	while(len > 0 && p[len - 1] == ' ')
 		p[--len] = '\0';
-	for(q=p; *q; q++)
+	for(q = p; *q; q++)
 		*q = tolower(*q);
 
 	q = atom(p);
@@ -41,7 +41,7 @@ isostring(uint8_t *buf, int len)
 	return q;
 }
 
-int 
+int
 isisofrog(char c)
 {
 	if(c >= '0' && c <= '9')
@@ -55,26 +55,26 @@ isisofrog(char c)
 }
 
 int
-isbadiso9660(char *s)
+isbadiso9660(char* s)
 {
-	char *p, *q;
+	char* p, *q;
 	int i;
 
 	if((p = strchr(s, '.')) != nil) {
-		if(p-s > 8)
+		if(p - s > 8)
 			return 1;
-		for(q=s; q<p; q++)
+		for(q = s; q < p; q++)
 			if(isisofrog(*q))
 				return 1;
-		if(strlen(p+1) > 3)
+		if(strlen(p + 1) > 3)
 			return 1;
-		for(q=p+1; *q; q++)
+		for(q = p + 1; *q; q++)
 			if(isisofrog(*q))
 				return 1;
 	} else {
 		if(strlen(s) > 8)
 			return 1;
-		for(q=s; *q; q++)
+		for(q = s; *q; q++)
 			if(isisofrog(*q))
 				return 1;
 
@@ -83,7 +83,7 @@ isbadiso9660(char *s)
 		 * so they don't interfere with us.
 		 */
 		if(strlen(s) == 7 && (s[0] == 'D' || s[0] == 'F')) {
-			for(i=1; i<7; i++)
+			for(i = 1; i < 7; i++)
 				if(s[i] < '0' || s[i] > '9')
 					break;
 			if(i == 7)
@@ -95,7 +95,7 @@ isbadiso9660(char *s)
 
 /*
  * ISO9660 name comparison
- * 
+ *
  * The standard algorithm is as follows:
  *   Take the filenames without extensions, pad the shorter with 0x20s (spaces),
  *   and do strcmp.  If they are equal, go on.
@@ -109,18 +109,18 @@ isbadiso9660(char *s)
  * so that .foo sorts before !foo.foo.
  */
 int
-isocmp(const void *va, const void *vb)
+isocmp(const void* va, const void* vb)
 {
 	int i;
 	char s1[32], s2[32], *b1, *b2, *e1, *e2;
-	const Direc *a, *b;
+	const Direc* a, *b;
 
 	a = va;
 	b = vb;
 
-	strecpy(s1, s1+sizeof s1, a->confname);
+	strecpy(s1, s1 + sizeof s1, a->confname);
 	b1 = s1;
-	strecpy(s2, s2+sizeof s2, b->confname);
+	strecpy(s2, s2 + sizeof s2, b->confname);
 	b2 = s2;
 	if((e1 = strchr(b1, '.')) != nil)
 		*e1++ = '\0';
@@ -138,14 +138,14 @@ isocmp(const void *va, const void *vb)
 }
 
 static char*
-mkisostring(char *isobuf, int n, char *s)
+mkisostring(char* isobuf, int n, char* s)
 {
-	char *p, *q, *eq;
+	char* p, *q, *eq;
 
-	eq = isobuf+n;
-	for(p=s, q=isobuf; *p && q < eq; p++)
+	eq = isobuf + n;
+	for(p = s, q = isobuf; *p && q < eq; p++)
 		if('a' <= *p && *p <= 'z')
-			*q++ = *p+'A'-'a';
+			*q++ = *p + 'A' - 'a';
 		else
 			*q++ = *p;
 
@@ -156,16 +156,16 @@ mkisostring(char *isobuf, int n, char *s)
 }
 
 void
-Cputisopvd(Cdimg *cd, Cdinfo info)
+Cputisopvd(Cdimg* cd, Cdinfo info)
 {
 	char buf[130];
 
-	Cputc(cd, 1);				/* primary volume descriptor */
-	Cputs(cd, "CD001", 5);			/* standard identifier */
-	Cputc(cd, 1);				/* volume descriptor version */
-	Cputc(cd, 0);				/* unused */
+	Cputc(cd, 1);          /* primary volume descriptor */
+	Cputs(cd, "CD001", 5); /* standard identifier */
+	Cputc(cd, 1);          /* volume descriptor version */
+	Cputc(cd, 0);          /* unused */
 
-	assert(~info.flags & (CDplan9|CDrockridge));
+	assert(~info.flags & (CDplan9 | CDrockridge));
 
 	/* system identifier */
 	strcpy(buf, "");
@@ -179,37 +179,42 @@ Cputisopvd(Cdimg *cd, Cdinfo info)
 		strcat(buf, "iso9660");
 	else
 		strcat(buf, "utf8");
-	
+
 	struprcpy(buf, buf);
 	Cputs(cd, buf, 32);
 
-	Cputs(cd, mkisostring(buf, 32, info.volumename), 32);			/* volume identifier */
+	Cputs(cd, mkisostring(buf, 32, info.volumename),
+	      32); /* volume identifier */
 
-	Crepeat(cd, 0, 8);				/* unused */
-	Cputn(cd, 0, 4);				/* volume space size */
-	Crepeat(cd, 0, 32);				/* unused */
-	Cputn(cd, 1, 2);				/* volume set size */
-	Cputn(cd, 1, 2);				/* volume sequence number */
-	Cputn(cd, Blocksize, 2);			/* logical block size */
-	Cputn(cd, 0, 4);				/* path table size */
-	Cputnl(cd, 0, 4);				/* location of Lpath */
-	Cputnl(cd, 0, 4);				/* location of optional Lpath */
-	Cputnm(cd, 0, 4);				/* location of Mpath */
-	Cputnm(cd, 0, 4);				/* location of optional Mpath */
-	Cputisodir(cd, nil, DTroot, 1, Cwoffset(cd));			/* root directory */
+	Crepeat(cd, 0, 8);       /* unused */
+	Cputn(cd, 0, 4);         /* volume space size */
+	Crepeat(cd, 0, 32);      /* unused */
+	Cputn(cd, 1, 2);         /* volume set size */
+	Cputn(cd, 1, 2);         /* volume sequence number */
+	Cputn(cd, Blocksize, 2); /* logical block size */
+	Cputn(cd, 0, 4);         /* path table size */
+	Cputnl(cd, 0, 4);        /* location of Lpath */
+	Cputnl(cd, 0, 4);        /* location of optional Lpath */
+	Cputnm(cd, 0, 4);        /* location of Mpath */
+	Cputnm(cd, 0, 4);        /* location of optional Mpath */
+	Cputisodir(cd, nil, DTroot, 1, Cwoffset(cd)); /* root directory */
 
-	Cputs(cd, mkisostring(buf, 128, info.volumeset), 128);		/* volume set identifier */
-	Cputs(cd, mkisostring(buf, 128, info.publisher), 128);			/* publisher identifier */
-	Cputs(cd, mkisostring(buf, 128, info.preparer), 128);			/* data preparer identifier */
-	Cputs(cd, mkisostring(buf, 128, info.application), 128);		/* application identifier */
+	Cputs(cd, mkisostring(buf, 128, info.volumeset),
+	      128); /* volume set identifier */
+	Cputs(cd, mkisostring(buf, 128, info.publisher),
+	      128); /* publisher identifier */
+	Cputs(cd, mkisostring(buf, 128, info.preparer),
+	      128); /* data preparer identifier */
+	Cputs(cd, mkisostring(buf, 128, info.application),
+	      128); /* application identifier */
 
-	Cputs(cd, "", 37);			/* copyright notice */
-	Cputs(cd, "", 37);			/* abstract */
-	Cputs(cd, "", 37);			/* bibliographic file */
-	Cputdate1(cd, now);				/* volume creation date */
-	Cputdate1(cd, now);				/* volume modification date */
-	Cputdate1(cd, 0);				/* volume expiration date */
-	Cputdate1(cd, 0);				/* volume effective date */
-	Cputc(cd, 1);				/* file structure version */
+	Cputs(cd, "", 37);  /* copyright notice */
+	Cputs(cd, "", 37);  /* abstract */
+	Cputs(cd, "", 37);  /* bibliographic file */
+	Cputdate1(cd, now); /* volume creation date */
+	Cputdate1(cd, now); /* volume modification date */
+	Cputdate1(cd, 0);   /* volume expiration date */
+	Cputdate1(cd, 0);   /* volume effective date */
+	Cputc(cd, 1);       /* file structure version */
 	Cpadblock(cd);
 }

@@ -15,28 +15,28 @@
 
 #include "iso9660.h"
 
-typedef struct Stringtab	Stringtab;
+typedef struct Stringtab Stringtab;
 struct Stringtab {
-	Stringtab *link;
-	char *str;
+	Stringtab* link;
+	char* str;
 };
 
-static Stringtab *stab[1024];
+static Stringtab* stab[1024];
 
 static uint
-hash(char *s)
+hash(char* s)
 {
 	uint h;
-	uint8_t *p;
+	uint8_t* p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
-		h = h*37 + *p;
+	for(p = (uint8_t*)s; *p; p++)
+		h = h * 37 + *p;
 	return h;
 }
 
 static char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	if((s = strdup(s)) == nil)
 		sysfatal("strdup(%.10s): out of memory", s);
@@ -44,13 +44,13 @@ estrdup(char *s)
 }
 
 char*
-atom(char *str)
+atom(char* str)
 {
 	uint h;
-	Stringtab *tab;
-	
+	Stringtab* tab;
+
 	h = hash(str) % nelem(stab);
-	for(tab=stab[h]; tab; tab=tab->link)
+	for(tab = stab[h]; tab; tab = tab->link)
 		if(strcmp(str, tab->str) == 0)
 			return tab->str;
 
@@ -64,7 +64,7 @@ atom(char *str)
 void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	if((p = malloc(n)) == nil)
 		sysfatal("malloc(%lud): out of memory", n);
@@ -73,7 +73,7 @@ emalloc(uint32_t n)
 }
 
 void*
-erealloc(void *v, uint32_t n)
+erealloc(void* v, uint32_t n)
 {
 	if((v = realloc(v, n)) == nil)
 		sysfatal("realloc(%p, %lud): out of memory", v, n);
@@ -81,9 +81,9 @@ erealloc(void *v, uint32_t n)
 }
 
 char*
-struprcpy(char *p, char *s)
+struprcpy(char* p, char* s)
 {
-	char *op;
+	char* op;
 
 	op = p;
 	for(; *s; s++)
@@ -94,7 +94,7 @@ struprcpy(char *p, char *s)
 }
 
 int
-chat(char *fmt, ...)
+chat(char* fmt, ...)
 {
 	va_list arg;
 

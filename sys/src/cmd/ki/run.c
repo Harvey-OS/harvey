@@ -15,9 +15,9 @@
 #include "sparc.h"
 
 void add(ulong);
-void and(ulong);
-void or(ulong);
-void xor(ulong);
+void and (ulong);
+void or (ulong);
+void xor (ulong);
 void sub(ulong);
 void andn(ulong);
 void xnor(ulong);
@@ -42,73 +42,71 @@ void orncc(ulong);
 void xnorcc(ulong);
 void orn(ulong);
 
-Inst op2[] = {
-	{ add,		"add",	Iarith },
-	{ and,		"and",	Iarith },
-	{ or,		"or",	Iarith },
-	{ xor,		"xor",	Iarith },
-	{ sub,		"sub",	Iarith },
-	{ andn,		"andn", Iarith },
-	{ orn,		"orn",	Inop },
-	{ xnor,		"xnor", Iarith },
-	{ addx,		"addx", Iarith },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ addcc, 	"addcc", Iarith },
-	{ andcc, 	"andcc", Iarith },
-	{ orcc,	 	"orcc",  Iarith },
-	{ xorcc, 	"xorcc", Iarith },
-	{ subcc, 	"subcc", Iarith },
-	{ andncc,	"andncc",Iarith },
-	{ orncc, 	"orncc", Iarith },
-	{ xnorcc,	"xnorcc",Iarith },
-	{ addxcc,	"addxcc",Iarith },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ mulscc,	"mulscc", Iarith },
-	{ sll,		"sll",	Iarith },
-	{ srl,		"srl",	Iarith },
-	{ sra,		"sra",	Iarith },
-	{ rdy,		"rdy",	Ireg },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ wry,		"wry",	Ireg },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ farith,	"farith", Ifloat },
-	{ fcmp,		"fcmp", Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ jmpl,		"jmpl", Ibranch },
-	{ undef,	"" },
-	{ ta,		"ta",	Isyscall },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ 0 }
-};
+Inst op2[] = {{add, "add", Iarith},
+              {and, "and", Iarith},
+              { or, "or", Iarith},
+              {xor, "xor", Iarith},
+              {sub, "sub", Iarith},
+              {andn, "andn", Iarith},
+              {orn, "orn", Inop},
+              {xnor, "xnor", Iarith},
+              {addx, "addx", Iarith},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {addcc, "addcc", Iarith},
+              {andcc, "andcc", Iarith},
+              {orcc, "orcc", Iarith},
+              {xorcc, "xorcc", Iarith},
+              {subcc, "subcc", Iarith},
+              {andncc, "andncc", Iarith},
+              {orncc, "orncc", Iarith},
+              {xnorcc, "xnorcc", Iarith},
+              {addxcc, "addxcc", Iarith},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {mulscc, "mulscc", Iarith},
+              {sll, "sll", Iarith},
+              {srl, "srl", Iarith},
+              {sra, "sra", Iarith},
+              {rdy, "rdy", Ireg},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {wry, "wry", Ireg},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {farith, "farith", Ifloat},
+              {fcmp, "fcmp", Ifloat},
+              {undef, ""},
+              {undef, ""},
+              {jmpl, "jmpl", Ibranch},
+              {undef, ""},
+              {ta, "ta", Isyscall},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {0}};
 
 void st(ulong);
 void stb(ulong);
@@ -127,92 +125,88 @@ void swap(ulong);
 void lddf(ulong);
 void stdf(ulong);
 
-Inst op3[] = {
-	{ ld,		"ld",	Iload },
-	{ ldub,		"ldub",	Iload },
-	{ lduh,		"lduh",	Iload },
-	{ ldd,		"ldd",	Iload },
-	{ st,		"st",	Istore },
-	{ stb,		"stb",	Istore },
-	{ sth,		"sth",	Istore },
-	{ std,		"std",	Istore },
-	{ undef,	"" },
-	{ ldsb,		"ldsb",	Iload },
-	{ ldsh,		"ldsh", Iload },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ ldstub,	"ldstub", Iload },
-	{ undef,	"" },
-	{ swap,		"swap",	Iload },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ ldf,		"ldf",	Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ lddf,		"lddf", Ifloat },
-	{ stf,		"stf",	Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ stdf,		"stdf",	Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ 0 }
-};
+Inst op3[] = {{ld, "ld", Iload},
+              {ldub, "ldub", Iload},
+              {lduh, "lduh", Iload},
+              {ldd, "ldd", Iload},
+              {st, "st", Istore},
+              {stb, "stb", Istore},
+              {sth, "sth", Istore},
+              {std, "std", Istore},
+              {undef, ""},
+              {ldsb, "ldsb", Iload},
+              {ldsh, "ldsh", Iload},
+              {undef, ""},
+              {undef, ""},
+              {ldstub, "ldstub", Iload},
+              {undef, ""},
+              {swap, "swap", Iload},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {ldf, "ldf", Ifloat},
+              {undef, ""},
+              {undef, ""},
+              {lddf, "lddf", Ifloat},
+              {stf, "stf", Ifloat},
+              {undef, ""},
+              {undef, ""},
+              {stdf, "stdf", Ifloat},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {undef, ""},
+              {0}};
 
 void sethi(ulong);
 void bicc(ulong);
 void fbcc(ulong);
 void call(ulong);
 
-Inst op0[] = {
-	{ undef,	"" },
-	{ undef,	"" },
-	{ bicc,		"bicc",	Ibranch },
-	{ undef,	"" },
-	{ sethi,	"sethi",Iarith },
-	{ undef,	"" },
-	{ fbcc,		"fbcc",	Ibranch },
-	{ undef,	"" },
-	/* This is a fake and connot be reached by op0 decode */
-	{ call,		"call", Ibranch },
-	{ 0 }
-};
+Inst op0[] = {{undef, ""},
+              {undef, ""},
+              {bicc, "bicc", Ibranch},
+              {undef, ""},
+              {sethi, "sethi", Iarith},
+              {undef, ""},
+              {fbcc, "fbcc", Ibranch},
+              {undef, ""},
+              /* This is a fake and connot be reached by op0 decode */
+              {call, "call", Ibranch},
+              {0}};
 
 void call(ulong);
 
@@ -222,9 +216,9 @@ run(void)
 	do {
 		reg.r[0] = 0;
 		reg.ir = ifetch(reg.pc);
-		switch(reg.ir>>30) {
+		switch(reg.ir >> 30) {
 		case 0:
-			ci = &op0[(reg.ir>>22)&0x07];
+			ci = &op0[(reg.ir >> 22) & 0x07];
 			ci->count++;
 			(*ci->func)(reg.ir);
 			break;
@@ -234,12 +228,12 @@ run(void)
 			call(reg.ir);
 			break;
 		case 2:
-			ci = &op2[(reg.ir>>19)&0x3f];
+			ci = &op2[(reg.ir >> 19) & 0x3f];
 			ci->count++;
 			(*ci->func)(reg.ir);
 			break;
 		case 3:
-			ci = &op3[(reg.ir>>19)&0x3f];
+			ci = &op3[(reg.ir >> 19) & 0x3f];
 			ci->count++;
 			(*ci->func)(reg.ir);
 			break;
@@ -247,7 +241,7 @@ run(void)
 		reg.pc += 4;
 		if(bplist)
 			brkchk(reg.pc, Instruction);
-	}while(--count);
+	} while(--count);
 }
 
 void
@@ -255,22 +249,22 @@ ilock(int rd)
 {
 	uint32_t ir;
 
-	ir = getmem_4(reg.pc+4);
-	switch(ir>>30) {
+	ir = getmem_4(reg.pc + 4);
+	switch(ir >> 30) {
 	case 0:
 	case 1:
 		break;
 	case 2:
-		if(((ir>>20)&0x1f) == 0x1a)		/* floating point */
+		if(((ir >> 20) & 0x1f) == 0x1a) /* floating point */
 			break;
 	case 3:
-		if(rd == ((ir>>14)&0x1f)) {
+		if(rd == ((ir >> 14) & 0x1f)) {
 			loadlock++;
 			break;
 		}
-		if(ir&IMMBIT)
+		if(ir & IMMBIT)
 			break;
-		if(rd == (ir&0x1f))
+		if(rd == (ir & 0x1f))
 			loadlock++;
 		break;
 	}
@@ -284,9 +278,9 @@ delay(uint32_t npc)
 	reg.r[0] = 0;
 	if(reg.ir != NOP)
 		ci->useddelay++;
-	switch(reg.ir>>30) {
+	switch(reg.ir >> 30) {
 	case 0:
-		ci = &op0[(reg.ir>>22)&0x07];
+		ci = &op0[(reg.ir >> 22) & 0x07];
 		ci->count++;
 		(*ci->func)(reg.ir);
 		break;
@@ -296,18 +290,18 @@ delay(uint32_t npc)
 		call(reg.ir);
 		break;
 	case 2:
-		ci = &op2[(reg.ir>>19)&0x3f];
+		ci = &op2[(reg.ir >> 19) & 0x3f];
 		ci->count++;
 		opc = reg.pc;
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 		(*ci->func)(reg.ir);
 		reg.pc = opc;
 		break;
 	case 3:
-		ci = &op3[(reg.ir>>19)&0x3f];
+		ci = &op3[(reg.ir >> 19) & 0x3f];
 		ci->count++;
 		opc = reg.pc;
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 		(*ci->func)(reg.ir);
 		reg.pc = opc;
 		break;
@@ -317,7 +311,8 @@ delay(uint32_t npc)
 void
 undef(uint32_t ir)
 {
-/*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7, (ir>>19)&0x3f); */
+	/*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7,
+	 * (ir>>19)&0x3f); */
 	Bprint(bioout, "illegal_instruction IR #%.8lux\n", ir);
 	longjmp(errjmp, 0);
 }
@@ -329,12 +324,11 @@ sub(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("sub\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("sub\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -349,13 +343,12 @@ sll(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("sll\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
-		v = reg.r[rs2]&0x1F;
+	} else {
+		v = reg.r[rs2] & 0x1F;
 		if(trace)
 			itrace("sll\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
@@ -369,12 +362,11 @@ srl(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("srl\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("srl\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -389,20 +381,19 @@ sra(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("sra\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("sra\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
-	if(reg.r[rs1]&SIGNBIT)
-		reg.r[rd] = reg.r[rs1]>>v | ~((1<<(32-v))-1);
+	if(reg.r[rs1] & SIGNBIT)
+		reg.r[rd] = reg.r[rs1] >> v | ~((1 << (32 - v)) - 1);
 	else
-		reg.r[rd] = reg.r[rs1]>>v;
+		reg.r[rd] = reg.r[rs1] >> v;
 }
 
 void
@@ -412,35 +403,33 @@ subcc(uint32_t ir)
 	int b31rs1, b31op2, b31res, r, rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("subcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("subcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] - v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
 		reg.psr |= PSR_n;
 
-	b31rs1 = reg.r[rs1]>>31;
-	b31op2 = v>>31;
-	b31res = r>>31;
+	b31rs1 = reg.r[rs1] >> 31;
+	b31op2 = v >> 31;
+	b31res = r >> 31;
 
-	if((b31rs1 & ~b31op2 & ~b31res)|(~b31rs1 & b31op2 & b31res))
+	if((b31rs1 & ~b31op2 & ~b31res) | (~b31rs1 & b31op2 & b31res))
 		reg.psr |= PSR_v;
 
-	if((~b31rs1 & b31op2)|(b31res & (~b31rs1|b31op2)))
+	if((~b31rs1 & b31op2) | (b31res & (~b31rs1 | b31op2)))
 		reg.psr |= PSR_c;
 
 	reg.r[rd] = r;
-
 }
 
 void
@@ -450,12 +439,11 @@ add(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("add\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("add\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -470,27 +458,26 @@ addcc(uint32_t ir)
 	int rd, rs1, rs2, b31rs1, b31op2, b31r;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("addcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("addcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] + v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
 		reg.psr |= PSR_n;
 
-	b31rs1 = reg.r[rs1]>>31;
-	b31op2 = v>>31;
-	b31r = r>>31;
-	if((b31rs1 & b31op2 & ~b31r)|(~b31rs1 & ~b31op2 & b31r))
+	b31rs1 = reg.r[rs1] >> 31;
+	b31op2 = v >> 31;
+	b31r = r >> 31;
+	if((b31rs1 & b31op2 & ~b31r) | (~b31rs1 & ~b31op2 & b31r))
 		reg.psr |= PSR_v;
 	if((b31rs1 & b31op2) | (~b31r & (b31rs1 | b31op2)))
 		reg.psr |= PSR_c;
@@ -505,17 +492,16 @@ addx(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("addx\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("addx\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
-	if(reg.psr&PSR_c)
+	if(reg.psr & PSR_c)
 		v++;
 	reg.r[rd] = reg.r[rs1] + v;
 }
@@ -527,30 +513,29 @@ addxcc(uint32_t ir)
 	int rd, rs1, rs2, b31rs1, b31op2, b31r;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("addxcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("addxcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
-	if(reg.psr&PSR_c)
+	if(reg.psr & PSR_c)
 		v++;
 
 	r = reg.r[rs1] + v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
 		reg.psr |= PSR_n;
 
-	b31rs1 = reg.r[rs1]>>31;
-	b31op2 = v>>31;
-	b31r = r>>31;
-	if((b31rs1 & b31op2 & ~b31r)|(~b31rs1 & ~b31op2 & b31r))
+	b31rs1 = reg.r[rs1] >> 31;
+	b31op2 = v >> 31;
+	b31r = r >> 31;
+	if((b31rs1 & b31op2 & ~b31r) | (~b31rs1 & ~b31op2 & b31r))
 		reg.psr |= PSR_v;
 	if((b31rs1 & b31op2) | (~b31r & (b31rs1 | b31op2)))
 		reg.psr |= PSR_c;
@@ -567,12 +552,11 @@ wry(uint32_t ir)
 	getrop23(ir);
 	if(rd != 0)
 		undef(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("wry\tr%d,#0x%x,Y", rs1, v);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("wry\tr%d,r%d,Y", rs1, rs2);
@@ -589,26 +573,24 @@ rdy(uint32_t ir)
 	USED(rs2);
 	if(rs1 != 0)
 		undef(ir);
-	
+
 	if(trace)
 		itrace("rdy\tY,r%d", rd);
 
 	reg.r[rd] = reg.Y;
 }
 
-void
-and(uint32_t ir)
+void and (uint32_t ir)
 {
 	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("and\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("and\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -623,18 +605,17 @@ andcc(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("andcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("andcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] & v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
@@ -650,18 +631,17 @@ orcc(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("orcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("orcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] | v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
@@ -677,57 +657,54 @@ mulscc(uint32_t ir)
 	int32_t o1, o2, r, b31o1, b31o2, b31r;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(o2, ir);
 		if(trace)
 			itrace("mulscc\tr%d,#0x%x,r%d", rs1, o2, rd);
-	}
-	else {
+	} else {
 		o2 = reg.r[rs2];
 		if(trace)
 			itrace("mulscc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
-	o1 = reg.r[rs1]>>1;
-	n = reg.psr&PSR_n ? 1 : 0;
-	v = reg.psr&PSR_v ? 1 : 0;
+	o1 = reg.r[rs1] >> 1;
+	n = reg.psr & PSR_n ? 1 : 0;
+	v = reg.psr & PSR_v ? 1 : 0;
 
-	o1 |= (n ^ v)<<31;
-	if((reg.Y&1) == 0)
+	o1 |= (n ^ v) << 31;
+	if((reg.Y & 1) == 0)
 		o2 = 0;
 
 	r = o1 + o2;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
 		reg.psr |= PSR_n;
 
-	b31o1 = o1>>31;
-	b31o2 = o2>>31;
-	b31r = r>>31;
+	b31o1 = o1 >> 31;
+	b31o2 = o2 >> 31;
+	b31r = r >> 31;
 	if((b31o1 & b31o2 & ~b31r) | (~b31o1 & ~b31o2 & b31r))
 		reg.psr |= PSR_v;
-	if((b31o1 & b31o2) | (~b31r & (b31o1 | b31o2)))		
+	if((b31o1 & b31o2) | (~b31r & (b31o1 | b31o2)))
 		reg.psr |= PSR_c;
 
-	b = reg.r[rs1]&1;
-	reg.Y = (reg.Y>>1)|(b<<31);
+	b = reg.r[rs1] & 1;
+	reg.Y = (reg.Y >> 1) | (b << 31);
 	reg.r[rd] = r;
 }
 
-void
-or(uint32_t ir)
+void or (uint32_t ir)
 {
 	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("or\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("or\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -735,45 +712,41 @@ or(uint32_t ir)
 	reg.r[rd] = reg.r[rs1] | v;
 }
 
-void
-xor(uint32_t ir)
-{
-	int32_t v;
-	int rd, rs1, rs2;
+void xor
+    (uint32_t ir) {
+	    int32_t v;
+	    int rd, rs1, rs2;
 
-	getrop23(ir);
-	if(ir&IMMBIT) {
-		ximm(v, ir);
-		if(trace)
-			itrace("xor\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
-		v = reg.r[rs2];
-		if(trace)
-			itrace("xor\tr%d,r%d,r%d", rs1, rs2, rd);
-	}
-	reg.r[rd] = reg.r[rs1] ^ v;
-}
+	    getrop23(ir);
+	    if(ir & IMMBIT) {
+		    ximm(v, ir);
+		    if(trace)
+			    itrace("xor\tr%d,#0x%x,r%d", rs1, v, rd);
+	    } else {
+		    v = reg.r[rs2];
+		    if(trace)
+			    itrace("xor\tr%d,r%d,r%d", rs1, rs2, rd);
+	    }
+	    reg.r[rd] = reg.r[rs1] ^ v;
+    }
 
-void
-xorcc(uint32_t ir)
+    void xorcc(uint32_t ir)
 {
 	int32_t v, r;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("xorcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("xorcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] ^ v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
@@ -789,12 +762,11 @@ andn(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("andn\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("andn\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -809,18 +781,17 @@ andncc(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("andncc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("andncc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] & ~v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
@@ -836,15 +807,14 @@ orn(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(rd == 0 && rs1 == 0)	/* ken used orn r0,r0,r0 as nop */
+	if(rd == 0 && rs1 == 0) /* ken used orn r0,r0,r0 as nop */
 		nopcount++;
 
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("orn\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("orn\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -859,18 +829,17 @@ orncc(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("orncc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("orncc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] | ~v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
@@ -886,12 +855,11 @@ xnor(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("xnor\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("xnor\tr%d,r%d,r%d", rs1, rs2, rd);
@@ -906,18 +874,17 @@ xnorcc(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(v, ir);
 		if(trace)
 			itrace("xnorcc\tr%d,#0x%x,r%d", rs1, v, rd);
-	}
-	else {
+	} else {
 		v = reg.r[rs2];
 		if(trace)
 			itrace("xnorcc\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
 	r = reg.r[rs1] ^ ~v;
-	reg.psr &= ~(PSR_z|PSR_n|PSR_c|PSR_v);
+	reg.psr &= ~(PSR_z | PSR_n | PSR_c | PSR_v);
 	if(r == 0)
 		reg.psr |= PSR_z;
 	if(r < 0)
@@ -933,18 +900,17 @@ st(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("st\tr%d,0x%lux(r%d) %lux=%lux",
-					rd, ea, rs1, ea+reg.r[rs1], reg.r[rd]);
+			itrace("st\tr%d,0x%lux(r%d) %lux=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1], reg.r[rd]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("st\tr%d,[r%d+r%d] %lux=%lux",
-					rd, rs1, rs2, ea, reg.r[rd]);
+			itrace("st\tr%d,[r%d+r%d] %lux=%lux", rd, rs1, rs2, ea,
+			       reg.r[rd]);
 	}
 
 	putmem_w(ea, reg.r[rd]);
@@ -957,22 +923,21 @@ std(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("std\tr%d,0x%lux(r%d) %lux=%lux",
-					rd, ea, rs1, ea+reg.r[rs1], reg.r[rd]);
+			itrace("std\tr%d,0x%lux(r%d) %lux=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1], reg.r[rd]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("std\tr%d,[r%d+r%d] %lux=%lux",
-					rd, rs1, rs2, ea, reg.r[rd]);
+			itrace("std\tr%d,[r%d+r%d] %lux=%lux", rd, rs1, rs2, ea,
+			       reg.r[rd]);
 	}
 
 	putmem_w(ea, reg.r[rd]);
-	putmem_w(ea+4, reg.r[rd+1]);
+	putmem_w(ea + 4, reg.r[rd + 1]);
 }
 
 void
@@ -982,18 +947,17 @@ stb(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("stb\tr%d,0x%lux(r%d) %lux=%lux",
-					rd, ea, rs1, ea+reg.r[rs1], reg.r[rd]&0xff);
+			itrace("stb\tr%d,0x%lux(r%d) %lux=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1], reg.r[rd] & 0xff);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("stb\tr%d,[r%d+r%d] %lux=%lux",
-					rd, rs1, rs2, ea, reg.r[rd]&0xff);
+			itrace("stb\tr%d,[r%d+r%d] %lux=%lux", rd, rs1, rs2, ea,
+			       reg.r[rd] & 0xff);
 	}
 
 	putmem_b(ea, reg.r[rd]);
@@ -1006,18 +970,17 @@ sth(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("sth\tr%d,0x%lux(r%d) %lux=%lux",
-					rd, ea, rs1, ea+reg.r[rs1], reg.r[rd]&0xffff);
+			itrace("sth\tr%d,0x%lux(r%d) %lux=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1], reg.r[rd] & 0xffff);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("sth\tr%d,[r%d+r%d] %lux=%lux",
-					rd, rs1, rs2, ea, reg.r[rd]&0xffff);
+			itrace("sth\tr%d,[r%d+r%d] %lux=%lux", rd, rs1, rs2, ea,
+			       reg.r[rd] & 0xffff);
 	}
 
 	putmem_h(ea, reg.r[rd]);
@@ -1030,13 +993,13 @@ ld(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ld\tr%d,0x%lux(r%d) ea=%lux",rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ld\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("ld\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -1053,14 +1016,13 @@ swap(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("swap\tr%d,0x%lux(r%d) ea=%lux",
-						rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("swap\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("swap\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -1078,20 +1040,20 @@ ldd(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ldd\tr%d,0x%lux(r%d) ea=%lux",rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ldd\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("ldd\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
 	}
 
 	reg.r[rd] = getmem_w(ea);
-	reg.r[rd+1] = getmem_w(ea+4);
+	reg.r[rd + 1] = getmem_w(ea + 4);
 }
 
 void
@@ -1101,14 +1063,13 @@ ldub(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ldub\tr%d,0x%lux(r%d) ea=%lux",
-						rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ldub\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("ldub\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -1125,17 +1086,17 @@ ldstub(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ldstub\tr%d,0x%lux(r%d) ea=%lux",
-						rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ldstub\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("ldstub\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
+			itrace("ldstub\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2,
+			       ea);
 	}
 
 	reg.r[rd] = getmem_b(ea) & 0xff;
@@ -1149,14 +1110,13 @@ ldsb(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ldsb\tr%d,0x%lux(r%d) ea=%lux",
-						rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ldsb\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("ldsb\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -1173,14 +1133,13 @@ lduh(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("lduh\tr%d,0x%lux(r%d) ea=%lux",
-						rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("lduh\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("lduh\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -1197,14 +1156,13 @@ ldsh(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ldsh\tr%d,0x%lux(r%d) ea=%lux",
-						rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ldsh\tr%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("ldsh\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -1220,8 +1178,8 @@ sethi(uint32_t ir)
 	int rd;
 	uint32_t v;
 
-	rd = (ir>>25)&0x1f;
-	v = (ir&0x3FFFFF)<<10;
+	rd = (ir >> 25) & 0x1f;
+	v = (ir & 0x3FFFFF) << 10;
 
 	if(rd == 0)
 		nopcount++;
@@ -1238,13 +1196,13 @@ call(uint32_t ir)
 	Symbol s;
 	uint32_t npc;
 
-	npc = (ir<<2) + reg.pc;
+	npc = (ir << 2) + reg.pc;
 	if(trace)
 		itrace("call\t%lux", npc);
 
 	ci->taken++;
 	reg.r[15] = reg.pc;
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	delay(npc);
 
 	if(calltree) {
@@ -1267,7 +1225,7 @@ jmpl(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		o = ea;
 		if(trace)
@@ -1275,12 +1233,11 @@ jmpl(uint32_t ir)
 
 		ea += reg.r[rs1];
 		if(calltree && rd == 0 && o == 8) {
-			findsym(ea-4, CTEXT, &s);
+			findsym(ea - 4, CTEXT, &s);
 			Bprint(bioout, "%8lux return to %lux %s r7=%lux\n",
-						reg.pc, ea-4, s.name, reg.r[7]);
+			       reg.pc, ea - 4, s.name, reg.r[7]);
 		}
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("jmpl\t[r%d+r%d],r%d", rs1, rs2, rd);
@@ -1288,59 +1245,59 @@ jmpl(uint32_t ir)
 
 	ci->taken++;
 	reg.r[rd] = reg.pc;
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	delay(ea);
-	reg.pc = ea-4;
+	reg.pc = ea - 4;
 }
 
 void
 bicc(uint32_t ir)
 {
-	char *op;
+	char* op;
 	uint32_t npc, anul, ba;
 	int takeit, z, v, n, c;
 
 	SET(op, takeit);
 	ba = 0;
-	switch((ir>>25)&0x0F) {
+	switch((ir >> 25) & 0x0F) {
 	case 0:
 		op = "bn";
 		takeit = 0;
 		break;
 	case 1:
 		op = "be";
-		takeit = reg.psr&PSR_z;
+		takeit = reg.psr & PSR_z;
 		break;
 	case 2:
 		op = "ble";
-		z = reg.psr&PSR_z ? 1 : 0;
-		v = reg.psr&PSR_v ? 1 : 0;
-		n = reg.psr&PSR_n ? 1 : 0;
+		z = reg.psr & PSR_z ? 1 : 0;
+		v = reg.psr & PSR_v ? 1 : 0;
+		n = reg.psr & PSR_n ? 1 : 0;
 		takeit = z | (n ^ v);
 		break;
 	case 3:
 		op = "bl";
-		v = reg.psr&PSR_v ? 1 : 0;
-		n = reg.psr&PSR_n ? 1 : 0;
+		v = reg.psr & PSR_v ? 1 : 0;
+		n = reg.psr & PSR_n ? 1 : 0;
 		takeit = n ^ v;
 		break;
 	case 4:
 		op = "bleu";
-		z = reg.psr&PSR_z ? 1 : 0;
-		c = reg.psr&PSR_c ? 1 : 0;
+		z = reg.psr & PSR_z ? 1 : 0;
+		c = reg.psr & PSR_c ? 1 : 0;
 		takeit = c | z;
 		break;
 	case 5:
 		op = "bcs";
-		takeit = reg.psr&PSR_c;
+		takeit = reg.psr & PSR_c;
 		break;
 	case 6:
 		op = "bneg";
-		takeit = reg.psr&PSR_n;
+		takeit = reg.psr & PSR_n;
 		break;
 	case 7:
 		op = "bvs";
-		takeit = reg.psr&PSR_v;
+		takeit = reg.psr & PSR_v;
 		break;
 	case 8:
 		op = "ba";
@@ -1349,47 +1306,47 @@ bicc(uint32_t ir)
 		break;
 	case 9:
 		op = "bne";
-		takeit = !(reg.psr&PSR_z);
+		takeit = !(reg.psr & PSR_z);
 		break;
 	case 10:
 		op = "bg";
-		z = reg.psr&PSR_z ? 1 : 0;
-		v = reg.psr&PSR_v ? 1 : 0;
-		n = reg.psr&PSR_n ? 1 : 0;
+		z = reg.psr & PSR_z ? 1 : 0;
+		v = reg.psr & PSR_v ? 1 : 0;
+		n = reg.psr & PSR_n ? 1 : 0;
 		takeit = !(z | (n ^ v));
 		break;
 	case 11:
 		op = "bge";
-		v = reg.psr&PSR_v ? 1 : 0;
-		n = reg.psr&PSR_n ? 1 : 0;
+		v = reg.psr & PSR_v ? 1 : 0;
+		n = reg.psr & PSR_n ? 1 : 0;
 		takeit = !(n ^ v);
 		break;
 	case 12:
 		op = "bgu";
-		z = reg.psr&PSR_z ? 1 : 0;
-		c = reg.psr&PSR_c ? 1 : 0;
+		z = reg.psr & PSR_z ? 1 : 0;
+		c = reg.psr & PSR_c ? 1 : 0;
 		takeit = !(c | z);
 		break;
 	case 13:
 		op = "bcc";
-		takeit = !(reg.psr&PSR_c);
+		takeit = !(reg.psr & PSR_c);
 		break;
 	case 14:
 		op = "bpos";
-		takeit = !(reg.psr&PSR_n);
+		takeit = !(reg.psr & PSR_n);
 		break;
 	case 15:
 		op = "bvc";
-		takeit = !(reg.psr&PSR_v);
+		takeit = !(reg.psr & PSR_v);
 		break;
 	}
 
 	npc = ir & 0x3FFFFF;
-	if(npc & (1<<21))
-		npc |= ~((1<<22)-1);
-	npc = (npc<<2) + reg.pc;
+	if(npc & (1 << 21))
+		npc |= ~((1 << 22) - 1);
+	npc = (npc << 2) + reg.pc;
 
-	anul = ir&ANUL;
+	anul = ir & ANUL;
 	if(trace) {
 		if(anul)
 			itrace("%s,a\t%lux", op, npc);
@@ -1401,9 +1358,8 @@ bicc(uint32_t ir)
 		reg.pc += 4;
 		if(anul == 0) {
 			reg.ir = ifetch(reg.pc);
-			delay(reg.pc+4);
-		}
-		else
+			delay(reg.pc + 4);
+		} else
 			anulled++;
 		return;
 	}
@@ -1411,10 +1367,10 @@ bicc(uint32_t ir)
 	ci->taken++;
 	if(ba && anul) {
 		anulled++;
-		reg.pc = npc-4;
-		return;	
+		reg.pc = npc - 4;
+		return;
 	}
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	delay(npc);
-	reg.pc = npc-4;
+	reg.pc = npc - 4;
 }

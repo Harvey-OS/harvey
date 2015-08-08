@@ -16,39 +16,36 @@ typedef struct Wmsg Wmsg;
 typedef union Pmsg Pmsg;
 typedef struct Pacbuf Pacbuf;
 
-enum {
-	Qdir,
-	Qplayctl,
-	Qplaylist,
-	Qplayvol,
-	Qplaystat,
-	Nqid,
+enum { Qdir,
+       Qplayctl,
+       Qplaylist,
+       Qplayvol,
+       Qplaystat,
+       Nqid,
 };
 
-enum {
-	DbgPcm		= 0x01000,
-	DbgPac		= 0x02000,
-	DbgFs		= 0x10000,
-	DbgWorker	= 0x20000,
-	DbgPlayer	= 0x40000,
-	DbgError	= 0x80000,
+enum { DbgPcm = 0x01000,
+       DbgPac = 0x02000,
+       DbgFs = 0x10000,
+       DbgWorker = 0x20000,
+       DbgPlayer = 0x40000,
+       DbgError = 0x80000,
 };
 
-enum {
-	STACKSIZE = 2048*sizeof(void*),
-	Messagesize = 8*1024+IOHDRSZ,
-	Undef = 0x80000000,
-	/* 256 buffers of 4096 bytes represents 5.9 seconds
-	 * of playout at 44100 Hz (2*16bit samples)
-	 */
-	NPacbuf = 256,
-	Pacbufsize = 4096,
-	NSparebuf = 16,	/* For in-line commands (Pause, Resume, Error) */
+enum { STACKSIZE = 2048 * sizeof(void*),
+       Messagesize = 8 * 1024 + IOHDRSZ,
+       Undef = 0x80000000,
+       /* 256 buffers of 4096 bytes represents 5.9 seconds
+        * of playout at 44100 Hz (2*16bit samples)
+        */
+       NPacbuf = 256,
+       Pacbufsize = 4096,
+       NSparebuf = 16, /* For in-line commands (Pause, Resume, Error) */
 };
 
 enum {
 	/* Named commands (see fs.c): */
-	Nostate,	// can't use zero for state
+	Nostate, // can't use zero for state
 	Error,
 	Stop,
 	Pause,
@@ -65,7 +62,7 @@ enum {
 
 union Pmsg {
 	uint32_t m;
-	struct{
+	struct {
 		ushort cmd;
 		ushort off;
 	};
@@ -73,7 +70,7 @@ union Pmsg {
 
 struct Wmsg {
 	Pmsg;
-	void	*arg;	/* if(cmd != Work) mallocated by sender, freed by receiver */
+	void* arg; /* if(cmd != Work) mallocated by sender, freed by receiver */
 };
 
 struct Playlist {
@@ -83,40 +80,37 @@ struct Playlist {
 	 * by newline characters.  Neither file names, nor object refs
 	 * may contain newlines.
 	 */
-	uint32_t	*lines;
-	uint32_t	nlines;
-	char	*data;
-	uint32_t	ndata;
+	uint32_t* lines;
+	uint32_t nlines;
+	char* data;
+	uint32_t ndata;
 };
 
 struct File {
-	Dir	dir;
-	Channel	*workers;
+	Dir dir;
+	Channel* workers;
 };
 
-struct Worker
-{
-	Req	*r;
-	Channel	*eventc;
+struct Worker {
+	Req* r;
+	Channel* eventc;
 };
 
-struct Fid
-{
-	int	fid;
-	File	*file;
-	ushort	flags;
-	short	readers;
-	uint32_t	vers;	/* set to file's version when completely read */
-	Fid	*next;
+struct Fid {
+	int fid;
+	File* file;
+	ushort flags;
+	short readers;
+	uint32_t vers; /* set to file's version when completely read */
+	Fid* next;
 };
 
-struct Req
-{
-	uchar	indata[Messagesize];
-	uchar	outdata[Messagesize];
-	Fcall	ifcall;
-	Fcall	ofcall;
-	Fid*	fid;
+struct Req {
+	uchar indata[Messagesize];
+	uchar outdata[Messagesize];
+	Fcall ifcall;
+	Fcall ofcall;
+	Fid* fid;
 };
 
 struct Pacbuf {
@@ -125,33 +119,33 @@ struct Pacbuf {
 	char data[Pacbufsize];
 };
 
-void	allocwork(Req*);
-Wmsg	waitmsg(Worker*, Channel*);
-int	sendmsg(Channel*, Wmsg*);
-void	bcastmsg(Channel*, Wmsg*);
-void	reqfree(Req*);
-Req	*reqalloc(void);
-void	readbuf(Req*, void*, long);
-void	readstr(Req*, char*);
-void	volumeset(int *v);
-void	playupdate(Pmsg, char*);
-void	playinit(void);
-void	volumeproc(void*);
-void	srv(void *);
-long	robustread(int, void*, long);
-void	volumeupdate(int*);
-char	*getplaylist(int);
-char	*getplaystat(char*, char*);
+void allocwork(Req*);
+Wmsg waitmsg(Worker*, Channel*);
+int sendmsg(Channel*, Wmsg*);
+void bcastmsg(Channel*, Wmsg*);
+void reqfree(Req*);
+Req* reqalloc(void);
+void readbuf(Req*, void*, long);
+void readstr(Req*, char*);
+void volumeset(int* v);
+void playupdate(Pmsg, char*);
+void playinit(void);
+void volumeproc(void*);
+void srv(void*);
+long robustread(int, void*, long);
+void volumeupdate(int*);
+char* getplaylist(int);
+char* getplaystat(char*, char*);
 
-extern int		debug, aflag;
-extern char	*user;
-extern Channel	*playc;
-extern char	*statetxt[];
-extern int		volume[8];
-extern Playlist	playlist;
-extern Channel	*workers;
-extern Channel	*volumechan;
-extern Channel	*playchan;
-extern Channel	*playlistreq;
-extern File	files[];
-extern int		srvfd[];
+extern int debug, aflag;
+extern char* user;
+extern Channel* playc;
+extern char* statetxt[];
+extern int volume[8];
+extern Playlist playlist;
+extern Channel* workers;
+extern Channel* volumechan;
+extern Channel* playchan;
+extern Channel* playlistreq;
+extern File files[];
+extern int srvfd[];

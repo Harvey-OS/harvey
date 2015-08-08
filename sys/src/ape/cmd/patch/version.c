@@ -34,6 +34,6 @@ written by Larry Wall with lots o' patches by Paul Eggert";
 void
 version()
 {
-  printf ("%s %s\n%s\n\n%s\n\n%s\n", program_name, PATCH_VERSION,
-	  copyright_string, free_software_msgid, authorship_msgid);
+	printf("%s %s\n%s\n\n%s\n\n%s\n", program_name, PATCH_VERSION,
+	       copyright_string, free_software_msgid, authorship_msgid);
 }

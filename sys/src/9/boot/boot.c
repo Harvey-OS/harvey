@@ -13,33 +13,33 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-char	cputype[64];
-char	sys[2*64];
-char 	reply[256];
-int	printcol;
-int	mflag;
-int	fflag;
-int	kflag;
+char cputype[64];
+char sys[2 * 64];
+char reply[256];
+int printcol;
+int mflag;
+int fflag;
+int kflag;
 
-char	*bargv[Nbarg];
-int	bargc;
+char* bargv[Nbarg];
+int bargc;
 
-static Method	*rootserver(char*);
-static void	usbinit(void);
-static void	kbmap(void);
+static Method* rootserver(char*);
+static void usbinit(void);
+static void kbmap(void);
 
 void
-boot(int argc, char *argv[])
+boot(int argc, char* argv[])
 {
 	int fd, afd;
-	Method *mp;
-	char *cmd, cmdbuf[64], *iargv[16];
+	Method* mp;
+	char* cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
 	int islocal, ishybrid;
-	char *rp, *rsp;
+	char* rp, *rsp;
 	int iargc, n;
 	char buf[32];
-	AuthInfo *ai;
+	AuthInfo* ai;
 
 	fmtinstall('r', errfmt);
 
@@ -52,16 +52,17 @@ boot(int argc, char *argv[])
 	 * #ec gets us plan9.ini settings (*var variables).
 	 */
 	bind("#ec", "/env", MREPL);
-	bind("#e", "/env", MBEFORE|MCREATE);
-	bind("#s", "/srv", MREPL|MCREATE);
+	bind("#e", "/env", MBEFORE | MCREATE);
+	bind("#s", "/srv", MREPL | MCREATE);
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)
 		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
-#endif //DEBUG
+#endif // DEBUG
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'k':
 		kflag = 1;
 		break;
@@ -71,7 +72,8 @@ boot(int argc, char *argv[])
 	case 'f':
 		fflag = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	readfile("#e/cputype", cputype, sizeof(cputype));
 
@@ -96,11 +98,11 @@ boot(int argc, char *argv[])
 	kbmap();
 
 	/*
- 	 *  authentication agent
+	 *  authentication agent
 	 */
 	authentication(cpuflag);
 
-print("connect...");
+	print("connect...");
 	/*
 	 *  connect to the root file system
 	 */
@@ -109,11 +111,11 @@ print("connect...");
 		fatal("can't connect to file server");
 	if(getenv("srvold9p"))
 		fd = old9p(fd);
-	if(!islocal && !ishybrid){
+	if(!islocal && !ishybrid) {
 		if(cfs)
 			fd = (*cfs)(fd);
 	}
-print("\n");
+	print("\n");
 	print("version...");
 	buf[0] = '\0';
 	n = fversion(fd, 0, buf, sizeof buf);
@@ -131,32 +133,38 @@ print("\n");
 		rp = "";
 
 	afd = fauth(fd, rp);
-	if(afd >= 0){
+	if(afd >= 0) {
 		ai = auth_proxy(afd, auth_getkey, "proto=p9any role=client");
 		if(ai == nil)
-			print("authentication failed (%r), trying mount anyways\n");
+			print("authentication failed (%r), trying mount "
+			      "anyways\n");
 	}
-	if(mount(fd, afd, "/root", MREPL|MCREATE, rp) < 0)
+	if(mount(fd, afd, "/root", MREPL | MCREATE, rp) < 0)
 		fatal("mount /");
 	rsp = rp;
 	rp = getenv("rootdir");
 	if(rp == nil)
 		rp = rootdir;
-	if(bind(rp, "/", MAFTER|MCREATE) < 0){
-		if(strncmp(rp, "/root", 5) == 0){
-			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
+	if(bind(rp, "/", MAFTER | MCREATE) < 0) {
+		if(strncmp(rp, "/root", 5) == 0) {
+			fprint(2,
+			       "boot: couldn't bind $rootdir=%s to root: %r\n",
+			       rp);
 			fatal("second bind /");
 		}
 		snprint(rootbuf, sizeof rootbuf, "/root/%s", rp);
 		rp = rootbuf;
-		if(bind(rp, "/", MAFTER|MCREATE) < 0){
-			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
-			if(strcmp(rootbuf, "/root//plan9") == 0){
-				fprint(2, "**** warning: remove rootdir=/plan9 entry from plan9.ini\n");
+		if(bind(rp, "/", MAFTER | MCREATE) < 0) {
+			fprint(2,
+			       "boot: couldn't bind $rootdir=%s to root: %r\n",
+			       rp);
+			if(strcmp(rootbuf, "/root//plan9") == 0) {
+				fprint(2, "**** warning: remove rootdir=/plan9 "
+				          "entry from plan9.ini\n");
 				rp = "/root";
-				if(bind(rp, "/", MAFTER|MCREATE) < 0)
+				if(bind(rp, "/", MAFTER | MCREATE) < 0)
 					fatal("second bind /");
-			}else
+			} else
 				fatal("second bind /");
 		}
 	}
@@ -168,12 +176,12 @@ print("\n");
 		close(afd);
 
 	cmd = getenv("init");
-	if(cmd == nil){
-		sprint(cmdbuf, "/%s/init -%s%s", cputype,
-			cpuflag ? "c" : "t", mflag ? "m" : "");
+	if(cmd == nil) {
+		sprint(cmdbuf, "/%s/init -%s%s", cputype, cpuflag ? "c" : "t",
+		       mflag ? "m" : "");
 		cmd = cmdbuf;
 	}
-	iargc = tokenize(cmd, iargv, nelem(iargv)-1);
+	iargc = tokenize(cmd, iargv, nelem(iargv) - 1);
 	cmd = iargv[0];
 
 	/* make iargv[0] basename(iargv[0]) */
@@ -189,18 +197,18 @@ print("\n");
 }
 
 static Method*
-findmethod(char *a)
+findmethod(char* a)
 {
-	Method *mp;
+	Method* mp;
 	int i, j;
-	char *cp;
+	char* cp;
 
 	if((i = strlen(a)) == 0)
 		return nil;
 	cp = strchr(a, '!');
 	if(cp)
 		i = cp - a;
-	for(mp = method; mp->name; mp++){
+	for(mp = method; mp->name; mp++) {
 		j = strlen(mp->name);
 		if(j > i)
 			j = i;
@@ -216,16 +224,16 @@ findmethod(char *a)
  *  ask user from whence cometh the root file system
  */
 static Method*
-rootserver(char *arg)
+rootserver(char* arg)
 {
 	char prompt[256];
-	Method *mp;
-	char *cp;
+	Method* mp;
+	char* cp;
 	int n;
 
 	/* look for required reply */
 	readfile("#e/nobootprompt", reply, sizeof(reply));
-	if(reply[0]){
+	if(reply[0]) {
 		mp = findmethod(reply);
 		if(mp)
 			goto HaveMethod;
@@ -237,14 +245,14 @@ rootserver(char *arg)
 	mp = method;
 	n = sprint(prompt, "root is from (%s", mp->name);
 	for(mp++; mp->name; mp++)
-		n += sprint(prompt+n, ", %s", mp->name);
-	sprint(prompt+n, ")");
+		n += sprint(prompt + n, ", %s", mp->name);
+	sprint(prompt + n, ")");
 
 	/* create default reply */
 	readfile("#e/bootargs", reply, sizeof(reply));
 	if(reply[0] == 0 && arg != 0)
 		strcpy(reply, arg);
-	if(reply[0]){
+	if(reply[0]) {
 		mp = findmethod(reply);
 		if(mp == 0)
 			reply[0] = 0;
@@ -253,17 +261,17 @@ rootserver(char *arg)
 		strcpy(reply, method->name);
 
 	/* parse replies */
-	do{
+	do {
 		outin(prompt, reply, sizeof(reply));
 		mp = findmethod(reply);
-	}while(mp == nil);
+	} while(mp == nil);
 
 HaveMethod:
-	bargc = tokenize(reply, bargv, Nbarg-2);
+	bargc = tokenize(reply, bargv, Nbarg - 2);
 	bargv[bargc] = nil;
 	cp = strchr(reply, '!');
 	if(cp)
-		strcpy(sys, cp+1);
+		strcpy(sys, cp + 1);
 	return mp;
 }
 
@@ -300,27 +308,27 @@ usbinit(void)
 	static char usbd[] = "/boot/usbd";
 
 	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0 &&
-	    access(usbd, AEXIST) >= 0)
+	   access(usbd, AEXIST) >= 0)
 		run(usbd, nil);
 }
 
 static void
 kbmap(void)
 {
-	char *f;
+	char* f;
 	int n, in, out;
 	char buf[1024];
 
 	f = getenv("kbmap");
 	if(f == nil)
 		return;
-	if(bind("#κ", "/dev", MAFTER) < 0){
+	if(bind("#κ", "/dev", MAFTER) < 0) {
 		warning("can't bind #κ");
 		return;
 	}
 
 	in = open(f, OREAD);
-	if(in < 0){
+	if(in < 0) {
 		warning("can't open kbd map");
 		return;
 	}
@@ -331,7 +339,7 @@ kbmap(void)
 		return;
 	}
 	while((n = read(in, buf, sizeof(buf))) > 0)
-		if(write(out, buf, n) != n){
+		if(write(out, buf, n) != n) {
 			warning("write to /dev/kbmap failed");
 			break;
 		}

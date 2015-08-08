@@ -23,7 +23,7 @@ char*
 inet_ntoa(struct in_addr in)
 {
 	static char s[18];
-	unsigned char *p;	
+	unsigned char* p;
 
 	p = (unsigned char*)&in.s_addr;
 	snprintf(s, sizeof s, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);

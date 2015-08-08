@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -25,7 +26,7 @@
 #include "fmt.h"
 
 int
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	quotefmtinstall();
 	print("hello world\n");
@@ -41,7 +42,7 @@ main(int argc, char *argv[])
 	print("smiley: %C\n", (Rune)0x263a);
 	print("%g %.18\n", 2e25, 2e25);
 	print("%2.18g\n", 1.0);
-	print("%f\n", 3.1415927/4);
+	print("%f\n", 3.1415927 / 4);
 	print("%d\n", 23);
 	print("%i\n", 23);
 	return 0;

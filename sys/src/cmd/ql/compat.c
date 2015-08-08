@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 /*
  * fake malloc
@@ -15,7 +15,7 @@
 void*
 malloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	while(n & 7)
 		n++;
@@ -28,7 +28,7 @@ malloc(uint32_t n)
 }
 
 void
-free(void *p)
+free(void* p)
 {
 	USED(p);
 }
@@ -36,7 +36,7 @@ free(void *p)
 void*
 calloc(uint32_t m, uint32_t n)
 {
-	void *p;
+	void* p;
 
 	n *= m;
 	p = malloc(n);
@@ -59,16 +59,17 @@ mysbrk(uint32_t size)
 }
 
 void
-setmalloctag(void *v, uint32_t pc)
+setmalloctag(void* v, uint32_t pc)
 {
 	USED(v, pc);
 }
 
 int
-fileexists(char *s)
+fileexists(char* s)
 {
 	uint8_t dirbuf[400];
 
-	/* it's fine if stat result doesn't fit in dirbuf, since even then the file exists */
+	/* it's fine if stat result doesn't fit in dirbuf, since even then the
+	 * file exists */
 	return stat(s, dirbuf, sizeof(dirbuf)) >= 0;
 }

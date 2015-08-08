@@ -7,13 +7,11 @@
  * in the LICENSE file.
  */
 
-enum
-{
-	Maxfdata	= 8192,
-	Maxiosize	= IOHDRSZ+Maxfdata,
+enum { Maxfdata = 8192,
+       Maxiosize = IOHDRSZ + Maxfdata,
 };
 
-extern Fcall	*req;
-extern Fcall	*rep;
-extern char	repdata[Maxfdata];
-extern unsigned char	statbuf[STATMAX];
+extern Fcall* req;
+extern Fcall* rep;
+extern char repdata[Maxfdata];
+extern unsigned char statbuf[STATMAX];

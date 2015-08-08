@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1993, 1995, 1997, 1999 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1993, 1995, 1997, 1999 Aladdin Enterprises.  All rights
+  reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,10 +29,10 @@
 /* Requires stdio.h */
 
 #ifndef strimpl_INCLUDED
-#  define strimpl_INCLUDED
+#define strimpl_INCLUDED
 
 #include "scommon.h"
-#include "gstypes.h"		/* for gsstruct.h */
+#include "gstypes.h" /* for gsstruct.h */
 #include "gsstruct.h"
 
 /*
@@ -135,41 +136,41 @@
  */
 struct stream_template_s {
 
-    /* Define the structure type for the stream state. */
-    gs_memory_type_ptr_t stype;
+	/* Define the structure type for the stream state. */
+	gs_memory_type_ptr_t stype;
 
-    /* Define an optional initialization procedure. */
-    stream_proc_init((*init));
+	/* Define an optional initialization procedure. */
+	stream_proc_init((*init));
 
-    /* Define the processing procedure. */
-    /* (The init procedure can reset other procs if it wants.) */
-    stream_proc_process((*process));
+	/* Define the processing procedure. */
+	/* (The init procedure can reset other procs if it wants.) */
+	stream_proc_process((*process));
 
-    /* Define the minimum buffer sizes. */
-    uint min_in_size;		/* minimum size for process input */
-    uint min_out_size;		/* minimum size for process output */
+	/* Define the minimum buffer sizes. */
+	uint min_in_size;  /* minimum size for process input */
+	uint min_out_size; /* minimum size for process output */
 
-    /* Define an optional releasing procedure. */
-    stream_proc_release((*release));
+	/* Define an optional releasing procedure. */
+	stream_proc_release((*release));
 
-    /* Define an optional parameter defaulting and pointer initialization */
-    /* procedure. */
-    stream_proc_set_defaults((*set_defaults));
+	/* Define an optional parameter defaulting and pointer initialization */
+	/* procedure. */
+	stream_proc_set_defaults((*set_defaults));
 
-    /* Define an optional reinitialization procedure. */
-    stream_proc_reinit((*reinit));
-
+	/* Define an optional reinitialization procedure. */
+	stream_proc_reinit((*reinit));
 };
 
 /* Utility procedures */
-int stream_move(stream_cursor_read *, stream_cursor_write *);	/* in stream.c */
+int stream_move(stream_cursor_read*, stream_cursor_write*); /* in stream.c */
 
 /* Hex decoding utility procedure */
 typedef enum {
-    hex_ignore_garbage = 0,
-    hex_ignore_whitespace = 1,
-    hex_ignore_leading_whitespace = 2
+	hex_ignore_garbage = 0,
+	hex_ignore_whitespace = 1,
+	hex_ignore_leading_whitespace = 2
 } hex_syntax;
-int s_hex_process(stream_cursor_read *, stream_cursor_write *, int *, hex_syntax);	/* in sstring.c */
+int s_hex_process(stream_cursor_read*, stream_cursor_write*, int*,
+                  hex_syntax); /* in sstring.c */
 
 #endif /* strimpl_INCLUDED */

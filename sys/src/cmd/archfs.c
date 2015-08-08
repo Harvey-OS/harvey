@@ -19,13 +19,13 @@
 #include <thread.h>
 #include <9p.h>
 
-Tree *archtree;
-Biobuf *b;
+Tree* archtree;
+Biobuf* b;
 int verbose;
 
 typedef struct Ahdr Ahdr;
 struct Ahdr {
-	char *_name;
+	char* _name;
 	Dir;
 };
 
@@ -38,7 +38,7 @@ struct Arch {
 static void*
 emalloc(int32_t sz)
 {
-	void *v;
+	void* v;
 
 	v = malloc(sz);
 	if(v == nil)
@@ -48,7 +48,7 @@ emalloc(int32_t sz)
 }
 
 static char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -57,20 +57,20 @@ estrdup(char *s)
 }
 
 static char*
-Bgetline(Biobuf *b)
+Bgetline(Biobuf* b)
 {
-	char *p;
+	char* p;
 
 	if(p = Brdline(b, '\n'))
-		p[Blinelen(b)-1] = '\0';
+		p[Blinelen(b) - 1] = '\0';
 	return p;
 }
 
 Ahdr*
-gethdr(Biobuf *b)
+gethdr(Biobuf* b)
 {
-	Ahdr *a;
-	char *p, *f[10];
+	Ahdr* a;
+	char* p, *f[10];
 
 	if((p = Bgetline(b)) == nil)
 		return nil;
@@ -98,12 +98,12 @@ gethdr(Biobuf *b)
 static Arch*
 newarch(int64_t off, int64_t length)
 {
-	static Arch *abuf;
+	static Arch* abuf;
 	static int nabuf;
 
 	if(nabuf == 0) {
 		nabuf = 256;
-		abuf = emalloc(sizeof(Arch)*nabuf);
+		abuf = emalloc(sizeof(Arch) * nabuf);
 	}
 
 	nabuf--;
@@ -113,26 +113,27 @@ newarch(int64_t off, int64_t length)
 }
 
 static File*
-createpath(File *f, char *name, char *u, uint32_t m)
+createpath(File* f, char* name, char* u, uint32_t m)
 {
-	char *p;
-	File *nf;
+	char* p;
+	File* nf;
 
 	if(verbose)
 		fprint(2, "createpath %s\n", name);
 	incref(f);
 	while(f && (p = strchr(name, '/'))) {
 		*p = '\0';
-		if(strcmp(name, "") != 0 && strcmp(name, ".") != 0){
+		if(strcmp(name, "") != 0 && strcmp(name, ".") != 0) {
 			/* this would be a race if we were multithreaded */
-			incref(f);	/* so walk doesn't kill it immediately on failure */
+			incref(f); /* so walk doesn't kill it immediately on
+			              failure */
 			if((nf = walkfile(f, name)) == nil)
-				nf = createfile(f, name, u, DMDIR|0777, nil);
+				nf = createfile(f, name, u, DMDIR | 0777, nil);
 			decref(f);
 			f = nf;
 		}
 		*p = '/';
-		name = p+1;
+		name = p + 1;
 	}
 	if(f == nil)
 		return nil;
@@ -145,9 +146,9 @@ createpath(File *f, char *name, char *u, uint32_t m)
 }
 
 static void
-archcreatefile(char *name, Arch *arch, Dir *d)
+archcreatefile(char* name, Arch* arch, Dir* d)
 {
-	File *f;
+	File* f;
 	f = createpath(archtree->root, name, d->uid, d->mode);
 	if(f == nil)
 		sysfatal("creating %s: %r", name);
@@ -160,32 +161,32 @@ archcreatefile(char *name, Arch *arch, Dir *d)
 }
 
 static void
-fsread(Req *r)
+fsread(Req* r)
 {
-	Arch *a;
+	Arch* a;
 	char err[ERRMAX];
 	int n;
 
 	a = r->fid->file->aux;
-	if(a->length <= r->ifcall.offset) 
+	if(a->length <= r->ifcall.offset)
 		r->ifcall.count = 0;
-	else if(a->length <= r->ifcall.offset+r->ifcall.count)
+	else if(a->length <= r->ifcall.offset + r->ifcall.count)
 		r->ifcall.count = a->length - r->ifcall.offset;
 
 	werrstr("unknown error");
-	if(Bseek(b, a->off+r->ifcall.offset, 0) < 0 
-	|| (n = Bread(b, r->ofcall.data, r->ifcall.count)) < 0) {
+	if(Bseek(b, a->off + r->ifcall.offset, 0) < 0 ||
+	   (n = Bread(b, r->ofcall.data, r->ifcall.count)) < 0) {
 		err[0] = '\0';
 		errstr(err, sizeof err);
 		respond(r, err);
 	} else {
 		r->ofcall.count = n;
-		respond(r, nil);	
+		respond(r, nil);
 	}
 }
 
 Srv fs = {
-	.read=	fsread,
+    .read = fsread,
 };
 
 static void
@@ -196,16 +197,17 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Ahdr *a;
+	Ahdr* a;
 	uint32_t flag;
-	char *mtpt;
+	char* mtpt;
 	char err[ERRMAX];
 
 	flag = 0;
 	mtpt = "/mnt/arch";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -227,7 +229,8 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -235,7 +238,7 @@ main(int argc, char **argv)
 	if((b = Bopen(argv[0], OREAD)) == nil)
 		sysfatal("open '%s': %r", argv[0]);
 
-	archtree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
+	archtree = fs.tree = alloctree("sys", "sys", DMDIR | 0775, nil);
 	while(a = gethdr(b)) {
 		archcreatefile(a->_name, newarch(Boffset(b), a->length), a);
 		Bseek(b, a->length, 1);

@@ -12,13 +12,13 @@
 static char t16e[] = "0123456789ABCDEF";
 
 int
-dec16(uint8_t *out, int lim, char *in, int n)
+dec16(uint8_t* out, int lim, char* in, int n)
 {
 	int c, w = 0, i = 0;
-	uint8_t *start = out;
-	uint8_t *eout = out + lim;
+	uint8_t* start = out;
+	uint8_t* eout = out + lim;
 
-	while(n-- > 0){
+	while(n-- > 0) {
 		c = *in++;
 		if('0' <= c && c <= '9')
 			c = c - '0';
@@ -28,9 +28,9 @@ dec16(uint8_t *out, int lim, char *in, int n)
 			c = c - 'A' + 10;
 		else
 			continue;
-		w = (w<<4) + c;
+		w = (w << 4) + c;
 		i++;
-		if(i == 2){
+		if(i == 2) {
 			if(out + 1 > eout)
 				goto exhausted;
 			*out++ = w;
@@ -43,18 +43,18 @@ exhausted:
 }
 
 int
-enc16(char *out, int lim, uint8_t *in, int n)
+enc16(char* out, int lim, uint8_t* in, int n)
 {
 	uint c;
-	char *eout = out + lim;
-	char *start = out;
+	char* eout = out + lim;
+	char* start = out;
 
-	while(n-- > 0){
+	while(n-- > 0) {
 		c = *in++;
 		if(out + 2 >= eout)
 			goto exhausted;
-		*out++ = t16e[c>>4];
-		*out++ = t16e[c&0xf];
+		*out++ = t16e[c >> 4];
+		*out++ = t16e[c & 0xf];
 	}
 exhausted:
 	*out = 0;

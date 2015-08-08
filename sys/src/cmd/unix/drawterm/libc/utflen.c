@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-utflen(char *s)
+utflen(char* s)
 {
 	int c;
 	int32_t n;

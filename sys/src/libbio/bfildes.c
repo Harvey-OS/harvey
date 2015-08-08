@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int
-Bfildes(Biobufhdr *bp)
+Bfildes(Biobufhdr* bp)
 {
 
 	return bp->fid;

@@ -9,18 +9,18 @@
 
 #include "all.h"
 
-static Entry *fe;
+static Entry* fe;
 
 static Entry*
 allocentry(void)
 {
 	int i;
-	Entry *e;
+	Entry* e;
 
-	if(fe == nil){
-		fe = emalloc(128*sizeof(Entry));
-		for(i=0; i<128-1; i++)
-			fe[i].name = (char*)&fe[i+1];
+	if(fe == nil) {
+		fe = emalloc(128 * sizeof(Entry));
+		for(i = 0; i < 128 - 1; i++)
+			fe[i].name = (char*)&fe[i + 1];
 		fe[i].name = nil;
 	}
 
@@ -31,16 +31,16 @@ allocentry(void)
 }
 
 static void
-freeentry(Entry *e)
+freeentry(Entry* e)
 {
 	e->name = (char*)fe;
 	fe = e;
 }
 
 static void
-_removedb(Db *db, char *name)
+_removedb(Db* db, char* name)
 {
-	Entry *e, k;
+	Entry* e, k;
 
 	memset(&k, 0, sizeof k);
 	k.name = name;
@@ -51,9 +51,9 @@ _removedb(Db *db, char *name)
 }
 
 static void
-_insertdb(Db *db, Entry *e)
+_insertdb(Db* db, Entry* e)
 {
-	Entry *o, *ne;
+	Entry* o, *ne;
 
 	ne = allocentry();
 	*ne = *e;
@@ -64,9 +64,9 @@ _insertdb(Db *db, Entry *e)
 }
 
 static int
-entrycmp(Avl *a, Avl *b)
+entrycmp(Avl* a, Avl* b)
 {
-	Entry *ea, *eb;
+	Entry* ea, *eb;
 	int r;
 
 	ea = (Entry*)a;
@@ -76,12 +76,12 @@ entrycmp(Avl *a, Avl *b)
 }
 
 Db*
-opendb(char *file)
+opendb(char* file)
 {
-	char *f[10], *s, *t;
+	char* f[10], *s, *t;
 	int i, fd, nf;
 	Biobuf b;
-	Db *db;
+	Db* db;
 	Entry e;
 
 	if(file == nil)
@@ -95,7 +95,7 @@ opendb(char *file)
 		return db;
 	Binit(&b, fd, OREAD);
 	i = 0;
-	for(; s=Brdstr(&b, '\n', 1); free(s)){
+	for(; s = Brdstr(&b, '\n', 1); free(s)) {
 		t = estrdup(s);
 		nf = tokenize(s, f, nelem(f));
 		if(nf != 7)
@@ -103,11 +103,11 @@ opendb(char *file)
 		free(t);
 		if(strcmp(f[2], "REMOVED") == 0)
 			_removedb(db, f[0]);
-		else{
+		else {
 			memset(&e, 0, sizeof e);
 			e.name = atom(f[0]);
 			e.d.name = atom(f[1]);
-			if(strcmp(e.d.name, "-")==0)
+			if(strcmp(e.d.name, "-") == 0)
 				e.d.name = e.name;
 			e.d.mode = strtoul(f[2], 0, 8);
 			e.d.uid = atom(f[3]);
@@ -122,9 +122,9 @@ opendb(char *file)
 }
 
 static int
-_finddb(Db *db, char *name, Dir *d, int domark)
+_finddb(Db* db, char* name, Dir* d, int domark)
 {
-	Entry *e, k;
+	Entry* e, k;
 
 	memset(&k, 0, sizeof k);
 	k.name = name;
@@ -145,29 +145,30 @@ _finddb(Db *db, char *name, Dir *d, int domark)
 }
 
 int
-finddb(Db *db, char *name, Dir *d)
+finddb(Db* db, char* name, Dir* d)
 {
 	return _finddb(db, name, d, 0);
 }
 
 int
-markdb(Db *db, char *name, Dir *d)
+markdb(Db* db, char* name, Dir* d)
 {
 	return _finddb(db, name, d, 1);
 }
 
 void
-removedb(Db *db, char *name)
+removedb(Db* db, char* name)
 {
-	if(db->fd>=0 && fprint(db->fd, "%q xxx REMOVED xxx xxx 0 0\n", name) < 0)
+	if(db->fd >= 0 &&
+	   fprint(db->fd, "%q xxx REMOVED xxx xxx 0 0\n", name) < 0)
 		sysfatal("appending to db: %r");
 	_removedb(db, name);
 }
 
 void
-insertdb(Db *db, char *name, Dir *d)
+insertdb(Db* db, char* name, Dir* d)
 {
-	char *dname;
+	char* dname;
 	Entry e;
 
 	memset(&e, 0, sizeof e);
@@ -178,13 +179,14 @@ insertdb(Db *db, char *name, Dir *d)
 	e.d.mtime = d->mtime;
 	e.d.mode = d->mode;
 	e.d.length = d->length;
-	e.d.mark = d->muid!=0;
+	e.d.mark = d->muid != 0;
 
 	dname = d->name;
 	if(strcmp(name, dname) == 0)
 		dname = "-";
-	if(db->fd>=0 && fprint(db->fd, "%q %q %luo %q %q %lud %lld\n", name, dname, d->mode, d->uid, d->gid, d->mtime, d->length) < 0)
+	if(db->fd >= 0 &&
+	   fprint(db->fd, "%q %q %luo %q %q %lud %lld\n", name, dname, d->mode,
+	          d->uid, d->gid, d->mtime, d->length) < 0)
 		sysfatal("appending to db: %r");
 	_insertdb(db, &e);
 }
-

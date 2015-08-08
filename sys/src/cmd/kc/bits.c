@@ -7,19 +7,19 @@
  * in the LICENSE file.
  */
 
-#define	EXTERN
+#define EXTERN
 #include "gc.h"
 
 /*
 Bits
 bor(Bits a, Bits b)
 {
-	Bits c;
-	int i;
+        Bits c;
+        int i;
 
-	for(i=0; i<BITS; i++)
-		c.b[i] = a.b[i] | b.b[i];
-	return c;
+        for(i=0; i<BITS; i++)
+                c.b[i] = a.b[i] | b.b[i];
+        return c;
 }
 */
 
@@ -27,12 +27,12 @@ bor(Bits a, Bits b)
 Bits
 band(Bits a, Bits b)
 {
-	Bits c;
-	int i;
+        Bits c;
+        int i;
 
-	for(i=0; i<BITS; i++)
-		c.b[i] = a.b[i] & b.b[i];
-	return c;
+        for(i=0; i<BITS; i++)
+                c.b[i] = a.b[i] & b.b[i];
+        return c;
 }
 */
 
@@ -40,21 +40,21 @@ band(Bits a, Bits b)
 Bits
 bnot(Bits a)
 {
-	Bits c;
-	int i;
+        Bits c;
+        int i;
 
-	for(i=0; i<BITS; i++)
-		c.b[i] = ~a.b[i];
-	return c;
+        for(i=0; i<BITS; i++)
+                c.b[i] = ~a.b[i];
+        return c;
 }
 */
 
 int
-bany(Bits *a)
+bany(Bits* a)
 {
 	int i;
 
-	for(i=0; i<BITS; i++)
+	for(i = 0; i < BITS; i++)
 		if(a->b[i])
 			return 1;
 	return 0;
@@ -64,12 +64,12 @@ bany(Bits *a)
 int
 beq(Bits a, Bits b)
 {
-	int i;
+        int i;
 
-	for(i=0; i<BITS; i++)
-		if(a.b[i] != b.b[i])
-			return 0;
-	return 1;
+        for(i=0; i<BITS; i++)
+                if(a.b[i] != b.b[i])
+                        return 0;
+        return 1;
 }
 */
 
@@ -79,9 +79,9 @@ bnum(Bits a)
 	int i;
 	int32_t b;
 
-	for(i=0; i<BITS; i++)
+	for(i = 0; i < BITS; i++)
 		if(b = a.b[i])
-			return 32*i + bitno(b);
+			return 32 * i + bitno(b);
 	diag(Z, "bad in bnum");
 	return 0;
 }
@@ -92,7 +92,7 @@ blsh(unsigned n)
 	Bits c;
 
 	c = zbits;
-	c.b[n/32] = 1L << (n%32);
+	c.b[n / 32] = 1L << (n % 32);
 	return c;
 }
 
@@ -100,16 +100,16 @@ blsh(unsigned n)
 int
 bset(Bits a, unsigned n)
 {
-	int i;
+        int i;
 
-	if(a.b[n/32] & (1L << (n%32)))
-		return 1;
-	return 0;
+        if(a.b[n/32] & (1L << (n%32)))
+                return 1;
+        return 0;
 }
 */
 
 int
-Bconv(va_list *arg, Fconv *fp)
+Bconv(va_list* arg, Fconv* fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
@@ -129,7 +129,7 @@ Bconv(va_list *arg, Fconv *fp)
 		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
 			break;
 		strcat(str, s);
-		bits.b[i/32] &= ~(1L << (i%32));
+		bits.b[i / 32] &= ~(1L << (i % 32));
 	}
 	strconv(str, fp);
 	return 0;

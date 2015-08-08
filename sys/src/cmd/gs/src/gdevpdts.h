@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Text state structure and API for pdfwrite */
 
 #ifndef gdevpdts_INCLUDED
-#  define gdevpdts_INCLUDED
+#define gdevpdts_INCLUDED
 
 #include "gsmatrix.h"
 
@@ -39,7 +39,7 @@
 /* ================ Types and structures ================ */
 
 #ifndef pdf_text_state_DEFINED
-#  define pdf_text_state_DEFINED
+#define pdf_text_state_DEFINED
 typedef struct pdf_text_state_s pdf_text_state_t;
 #endif
 
@@ -49,26 +49,26 @@ typedef struct pdf_text_state_s pdf_text_state_t;
  * set them in the output.
  */
 typedef struct pdf_text_state_values_s {
-    float character_spacing;	/* Tc */
-    pdf_font_resource_t *pdfont; /* for Tf */
-    double size;		/* for Tf */
-    /*
-     * The matrix is the transformation from text space to user space, which
-     * in pdfwrite text output is the same as device space.  Thus this
-     * matrix combines the effect of the PostScript CTM and the FontMatrix,
-     * scaled by the inverse of the font size value.
-     */
-    gs_matrix matrix;		/* Tm et al */
-    int render_mode;		/* Tr */
-    float word_spacing;		/* Tw */
+	float character_spacing;     /* Tc */
+	pdf_font_resource_t* pdfont; /* for Tf */
+	double size;                 /* for Tf */
+	                             /*
+	                              * The matrix is the transformation from text space to user space, which
+	                              * in pdfwrite text output is the same as device space.  Thus this
+	                              * matrix combines the effect of the PostScript CTM and the FontMatrix,
+	                              * scaled by the inverse of the font size value.
+	                              */
+	gs_matrix matrix;            /* Tm et al */
+	int render_mode;             /* Tr */
+	float word_spacing;          /* Tw */
 } pdf_text_state_values_t;
-#define TEXT_STATE_VALUES_DEFAULT\
-    0,				/* character_spacing */\
-    NULL,			/* font */\
-    0,				/* size */\
-    { identity_matrix_body },	/* matrix */\
-    0,				/* render_mode */\
-    0				/* word_spacing */
+#define TEXT_STATE_VALUES_DEFAULT                                              \
+	0,                          /* character_spacing */                    \
+	    NULL,                   /* font */                                 \
+	    0,                      /* size */                                 \
+	    {identity_matrix_body}, /* matrix */                               \
+	    0,                      /* render_mode */                          \
+	    0                       /* word_spacing */
 
 /* ================ Procedures ================ */
 
@@ -77,17 +77,17 @@ typedef struct pdf_text_state_values_s {
 /*
  * Transition from stream context to text context.
  */
-int pdf_from_stream_to_text(gx_device_pdf *pdev);
+int pdf_from_stream_to_text(gx_device_pdf* pdev);
 
 /*
  * Transition from string context to text context.
  */
-int pdf_from_string_to_text(gx_device_pdf *pdev);
+int pdf_from_string_to_text(gx_device_pdf* pdev);
 
 /*
  * Close the text aspect of the current contents part.
  */
-void pdf_close_text_contents(gx_device_pdf *pdev); /* gdevpdts.h */
+void pdf_close_text_contents(gx_device_pdf* pdev); /* gdevpdts.h */
 
 /* ------ Used only within the text code ------ */
 
@@ -95,46 +95,44 @@ void pdf_close_text_contents(gx_device_pdf *pdev); /* gdevpdts.h */
  * Test whether a change in render_mode requires resetting the stroke
  * parameters.
  */
-bool pdf_render_mode_uses_stroke(const gx_device_pdf *pdev,
-				 const pdf_text_state_values_t *ptsv);
+bool pdf_render_mode_uses_stroke(const gx_device_pdf* pdev,
+                                 const pdf_text_state_values_t* ptsv);
 
 /*
  * Read the stored client view of text state values.
  */
-void pdf_get_text_state_values(gx_device_pdf *pdev,
-			       pdf_text_state_values_t *ptsv);
+void pdf_get_text_state_values(gx_device_pdf* pdev,
+                               pdf_text_state_values_t* ptsv);
 
 /*
  * Set wmode to text state.
  */
-void pdf_set_text_wmode(gx_device_pdf *pdev, int wmode);
-
+void pdf_set_text_wmode(gx_device_pdf* pdev, int wmode);
 
 /*
  * Set the stored client view of text state values.
  */
-int pdf_set_text_state_values(gx_device_pdf *pdev,
-			      const pdf_text_state_values_t *ptsv);
+int pdf_set_text_state_values(gx_device_pdf* pdev,
+                              const pdf_text_state_values_t* ptsv);
 
 /*
  * Transform a distance from unscaled text space (text space ignoring the
  * scaling implied by the font size) to device space.
  */
 int pdf_text_distance_transform(floatp wx, floatp wy,
-				const pdf_text_state_t *pts,
-				gs_point *ppt);
+                                const pdf_text_state_t* pts, gs_point* ppt);
 
 /*
  * Return the current (x,y) text position as seen by the client, in
  * unscaled text space.
  */
-void pdf_text_position(const gx_device_pdf *pdev, gs_point *ppt);
+void pdf_text_position(const gx_device_pdf* pdev, gs_point* ppt);
 
 /*
  * Append characters to text being accumulated, giving their advance width
  * in device space.
  */
-int pdf_append_chars(gx_device_pdf * pdev, const byte * str, uint size,
-		     floatp wx, floatp wy, bool nobreak);
+int pdf_append_chars(gx_device_pdf* pdev, const byte* str, uint size, floatp wx,
+                     floatp wy, bool nobreak);
 
 #endif /* gdevpdts_INCLUDED */

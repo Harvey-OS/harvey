@@ -12,7 +12,9 @@
 #include "fns.h"
 #include "xml.h"
 
-void xmlarena(Hio *hout, Arena *s, char *tag, int indent){
+void
+xmlarena(Hio* hout, Arena* s, char* tag, int indent)
+{
 	xmlindent(hout, indent);
 	hprint(hout, "<%s", tag);
 	xmlaname(hout, s->name, "name");
@@ -20,7 +22,7 @@ void xmlarena(Hio *hout, Arena *s, char *tag, int indent){
 	xmlaname(hout, s->part->name, "partition");
 	xmlu32int(hout, s->blocksize, "blocksize");
 	xmlu64int(hout, s->base, "start");
-	xmlu64int(hout, s->base+2*s->blocksize, "stop");
+	xmlu64int(hout, s->base + 2 * s->blocksize, "stop");
 	xmlu32int(hout, s->ctime, "created");
 	xmlu32int(hout, s->wtime, "modified");
 	xmlsealed(hout, s->memstats.sealed, "sealed");
@@ -28,12 +30,16 @@ void xmlarena(Hio *hout, Arena *s, char *tag, int indent){
 	xmlu32int(hout, s->memstats.clumps, "clumps");
 	xmlu32int(hout, s->memstats.cclumps, "compressedclumps");
 	xmlu64int(hout, s->memstats.uncsize, "data");
-	xmlu64int(hout, s->memstats.used - s->memstats.clumps * ClumpSize, "compresseddata");
-	xmlu64int(hout, s->memstats.used + s->memstats.clumps * ClumpInfoSize, "storage");
+	xmlu64int(hout, s->memstats.used - s->memstats.clumps * ClumpSize,
+	          "compresseddata");
+	xmlu64int(hout, s->memstats.used + s->memstats.clumps * ClumpInfoSize,
+	          "storage");
 	hprint(hout, "/>\n");
 }
 
-void xmlindex(Hio *hout, Index *s, char *tag, int indent){
+void
+xmlindex(Hio* hout, Index* s, char* tag, int indent)
+{
 	int i;
 	xmlindent(hout, indent);
 	hprint(hout, "<%s", tag);
@@ -66,7 +72,9 @@ void xmlindex(Hio *hout, Index *s, char *tag, int indent){
 	hprint(hout, "</%s>\n", tag);
 }
 
-void xmlamap(Hio *hout, AMap *s, char *tag, int indent){
+void
+xmlamap(Hio* hout, AMap* s, char* tag, int indent)
+{
 	xmlindent(hout, indent);
 	hprint(hout, "<%s", tag);
 	xmlaname(hout, s->name, "name");
@@ -74,4 +82,3 @@ void xmlamap(Hio *hout, AMap *s, char *tag, int indent){
 	xmlu64int(hout, s->stop, "stop");
 	hprint(hout, "/>\n");
 }
-

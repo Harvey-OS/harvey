@@ -9,24 +9,23 @@
 
 #include "all.h"
 
-enum { 
-	ARgiveup = 100,
+enum { ARgiveup = 100,
 };
 
 static uint8_t*
-gstring(uint8_t *p, uint8_t *ep, char **s)
+gstring(uint8_t* p, uint8_t* ep, char** s)
 {
 	uint n;
 
 	if(p == nil)
 		return nil;
-	if(p+BIT16SZ > ep)
+	if(p + BIT16SZ > ep)
 		return nil;
 	n = GBIT16(p);
 	p += BIT16SZ;
-	if(p+n > ep)
+	if(p + n > ep)
 		return nil;
-	*s = malloc(n+1);
+	*s = malloc(n + 1);
 	memmove((*s), p, n);
 	(*s)[n] = '\0';
 	p += n;
@@ -34,17 +33,17 @@ gstring(uint8_t *p, uint8_t *ep, char **s)
 }
 
 static uint8_t*
-gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
+gcarray(uint8_t* p, uint8_t* ep, uint8_t** s, int* np)
 {
 	uint n;
 
 	if(p == nil)
 		return nil;
-	if(p+BIT16SZ > ep)
+	if(p + BIT16SZ > ep)
 		return nil;
 	n = GBIT16(p);
 	p += BIT16SZ;
-	if(p+n > ep)
+	if(p + n > ep)
 		return nil;
 	*s = malloc(n);
 	if(*s == nil)
@@ -56,10 +55,10 @@ gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
 }
 
 static uint8_t*
-convM2AI(uint8_t *p, int n, AuthInfo **aip)
+convM2AI(uint8_t* p, int n, AuthInfo** aip)
 {
-	uint8_t *e = p+n;
-	AuthInfo *ai;
+	uint8_t* e = p + n;
+	AuthInfo* ai;
 
 	ai = mallocz(sizeof(*ai), 1);
 	if(ai == nil)
@@ -77,22 +76,23 @@ convM2AI(uint8_t *p, int n, AuthInfo **aip)
 }
 
 static int
-dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc* rpc, char* verb, char* val, int len, AuthGetkey* getkey)
 {
 	int ret;
 
-	for(;;){
-		if((ret = auth_rpc(rpc, verb, val, len)) != ARneedkey && ret != ARbadkey)
+	for(;;) {
+		if((ret = auth_rpc(rpc, verb, val, len)) != ARneedkey &&
+		   ret != ARbadkey)
 			return ret;
 		if(getkey == nil)
-			return ARgiveup;	/* don't know how */
+			return ARgiveup; /* don't know how */
 		if((*getkey)(rpc->arg) < 0)
-			return ARgiveup;	/* user punted */
+			return ARgiveup; /* user punted */
 	}
 }
 
 static int
-doread(Session *s, Fid *f, void *buf, int n)
+doread(Session* s, Fid* f, void* buf, int n)
 {
 	s->f.fid = f - s->fids;
 	s->f.offset = 0;
@@ -105,12 +105,12 @@ doread(Session *s, Fid *f, void *buf, int n)
 }
 
 static int
-dowrite(Session *s, Fid *f, void *buf, int n)
+dowrite(Session* s, Fid* f, void* buf, int n)
 {
 	s->f.fid = f - s->fids;
 	s->f.offset = 0;
 	s->f.count = n;
-	s->f.data = (char *)buf;
+	s->f.data = (char*)buf;
 	if(xmesg(s, Twrite) < 0)
 		return -1;
 	return n;
@@ -120,18 +120,17 @@ dowrite(Session *s, Fid *f, void *buf, int n)
  *  this just proxies what the factotum tells it to.
  */
 AuthInfo*
-authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey,
-	  char *params)
+authproto(Session* s, Fid* f, AuthRpc* rpc, AuthGetkey* getkey, char* params)
 {
-	char *buf;
+	char* buf;
 	int m, n, ret;
-	AuthInfo *a;
+	AuthInfo* a;
 	char oerr[ERRMAX];
 
 	rerrstr(oerr, sizeof oerr);
 	werrstr("UNKNOWN AUTH ERROR");
 
-	if(dorpc(rpc, "start", params, strlen(params), getkey) != ARok){
+	if(dorpc(rpc, "start", params, strlen(params), getkey) != ARok) {
 		werrstr("fauth_proxy start: %r");
 		return nil;
 	}
@@ -139,15 +138,17 @@ authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey,
 	buf = malloc(AuthRpcMax);
 	if(buf == nil)
 		return nil;
-	for(;;){
-		switch(dorpc(rpc, "read", nil, 0, getkey)){
+	for(;;) {
+		switch(dorpc(rpc, "read", nil, 0, getkey)) {
 		case ARdone:
 			free(buf);
 			a = auth_getinfo(rpc);
-			errstr(oerr, sizeof oerr);	/* no error, restore whatever was there */
+			errstr(oerr,
+			       sizeof oerr); /* no error, restore whatever was
+			                        there */
 			return a;
 		case ARok:
-			if(dowrite(s, f, rpc->arg, rpc->narg) != rpc->narg){
+			if(dowrite(s, f, rpc->arg, rpc->narg) != rpc->narg) {
 				werrstr("auth_proxy write fd: %r");
 				goto Error;
 			}
@@ -155,18 +156,21 @@ authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey,
 		case ARphase:
 			n = 0;
 			memset(buf, 0, AuthRpcMax);
-			while((ret = dorpc(rpc, "write", buf, n, getkey)) == ARtoosmall){
+			while((ret = dorpc(rpc, "write", buf, n, getkey)) ==
+			      ARtoosmall) {
 				if(atoi(rpc->arg) > AuthRpcMax)
 					break;
-				m = doread(s, f, buf+n, atoi(rpc->arg)-n);
-				if(m <= 0){
+				m = doread(s, f, buf + n, atoi(rpc->arg) - n);
+				if(m <= 0) {
 					if(m == 0)
-						werrstr("auth_proxy short read: %s", buf);
+						werrstr(
+						    "auth_proxy short read: %s",
+						    buf);
 					goto Error;
 				}
 				n += m;
 			}
-			if(ret != ARok){
+			if(ret != ARok) {
 				werrstr("auth_proxy rpc write: %s: %r", buf);
 				goto Error;
 			}
@@ -183,13 +187,13 @@ Error:
 
 /* returns 0 if auth succeeded (or unneeded), -1 otherwise */
 int
-authhostowner(Session *s)
+authhostowner(Session* s)
 {
-	Fid *af, *f;
+	Fid* af, *f;
 	int rv = -1;
 	int afd;
-	AuthInfo *ai;
-	AuthRpc *rpc;
+	AuthInfo* ai;
+	AuthRpc* rpc;
 
 	/* get a fid to authenticate over */
 	f = nil;
@@ -197,16 +201,16 @@ authhostowner(Session *s)
 	s->f.afid = af - s->fids;
 	s->f.uname = getuser();
 	s->f.aname = s->spec;
-	if(xmesg(s, Tauth)){
+	if(xmesg(s, Tauth)) {
 		/* not needed */
 		rv = 0;
 		goto out;
 	}
 
-	quotefmtinstall();	/* just in case */
+	quotefmtinstall(); /* just in case */
 
 	afd = open("/mnt/factotum/rpc", ORDWR);
-	if(afd < 0){
+	if(afd < 0) {
 		werrstr("opening /mnt/factotum/rpc: %r");
 		goto out;
 	}
@@ -216,7 +220,7 @@ authhostowner(Session *s)
 		goto out;
 
 	ai = authproto(s, af, rpc, auth_getkey, "proto=p9any role=client");
-	if(ai != nil){
+	if(ai != nil) {
 		rv = 0;
 		auth_freeAI(ai);
 	}
@@ -227,18 +231,19 @@ authhostowner(Session *s)
 	chat("attaching as hostowner...");
 	f = newfid(s);
 	s->f.fid = f - s->fids;
-	s->f.afid = af - s->fids;;
+	s->f.afid = af - s->fids;
+	;
 	s->f.uname = getuser();
 	s->f.aname = s->spec;
 	if(xmesg(s, Tattach) == 0)
 		rv = 0;
 out:
-	if(af != nil){
+	if(af != nil) {
 		putfid(s, af);
 		s->f.fid = af - s->fids;
 		xmesg(s, Tclunk);
 	}
-	if(f != nil){
+	if(f != nil) {
 		putfid(s, f);
 		s->f.fid = f - s->fids;
 		xmesg(s, Tclunk);
@@ -246,4 +251,3 @@ out:
 
 	return rv;
 }
-

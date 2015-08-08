@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1992, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1992, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All
+  rights reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,10 +28,10 @@
 /* Definitions for the interpreter's dictionary stack */
 
 #ifndef dstack_INCLUDED
-#  define dstack_INCLUDED
+#define dstack_INCLUDED
 
 #include "idstack.h"
-#include "icstate.h"		/* for access to dict_stack */
+#include "icstate.h" /* for access to dict_stack */
 
 /* Define the dictionary stack instance for operators. */
 #define idict_stack (i_ctx_p->dict_stack)
@@ -45,8 +46,8 @@
 #define dtop_npairs (idict_stack.top_npairs)
 #define dtop_values (idict_stack.top_values)
 #define dict_set_top() dstack_set_top(&idict_stack);
-#define dict_is_permanent_on_dstack(pdict)\
-  dstack_dict_is_permanent(&idict_stack, pdict)
+#define dict_is_permanent_on_dstack(pdict)                                     \
+	dstack_dict_is_permanent(&idict_stack, pdict)
 #define dicts_gc_cleanup() dstack_gc_cleanup(&idict_stack)
 #define systemdict (&idict_stack.system_dict)
 
@@ -56,9 +57,11 @@
 #define dstop (d_stack.top)
 
 /* Macro to ensure enough room on the dictionary stack */
-#define check_dstack(n)\
-  if ( dstop - dsp < (n) )\
-    { d_stack.requested = (n); return_error(e_dictstackoverflow); }
+#define check_dstack(n)                                                        \
+	if(dstop - dsp < (n)) {                                                \
+		d_stack.requested = (n);                                       \
+		return_error(e_dictstackoverflow);                             \
+	}
 
 /*
  * The dictionary stack is implemented as a linked list of blocks;
@@ -71,14 +74,15 @@
  */
 
 /* Name lookup */
-#define dict_find_name_by_index(nidx)\
-  dstack_find_name_by_index(&idict_stack, nidx)
-#define dict_find_name(pnref) dict_find_name_by_index(name_index(imemory, pnref))
-#define dict_find_name_by_index_inline(nidx, htemp)\
-  dstack_find_name_by_index_inline(&idict_stack, nidx, htemp)
-#define if_dict_find_name_by_index_top(nidx, htemp, pvslot)\
-  if_dstack_find_name_by_index_top(&idict_stack, nidx, htemp, pvslot)
-
+#define dict_find_name_by_index(nidx)                                          \
+	dstack_find_name_by_index(&idict_stack, nidx)
+#define dict_find_name(pnref)                                                  \
+	dict_find_name_by_index(name_index(imemory, pnref))
+#define dict_find_name_by_index_inline(nidx, htemp)                            \
+	dstack_find_name_by_index_inline(&idict_stack, nidx, htemp)
+#define if_dict_find_name_by_index_top(nidx, htemp, pvslot)                    \
+	if_dstack_find_name_by_index_top(&idict_stack, nidx, htemp, pvslot)
+
 /*
 Notes on dictionary lookup performance
 ======================================
@@ -87,35 +91,35 @@ We mark heavily used operations with a * below; moderately heavily used
 operations with a +.
 
 The following operations look up keys on the dictionary stack:
-	*(interpreter name lookup)
-	load
-	where
+        *(interpreter name lookup)
+        load
+        where
 
 The following operations change the contents of dictionaries:
-	*def, +put
-	undef
-	restore
-	(grow)
+        *def, +put
+        undef
+        restore
+        (grow)
 We implement store in PostScript, and copy as a series of puts.  Many
 other operators also do puts (e.g., ScaleMatrix in makefont,
 Implementation in makepattern, ...).  Note that put can do an implicit
 .setmaxlength (if it has to grow the dictionary).
 
 The following operations change the dictionary stack:
-	+begin, +end
-	+?(context switch)
-	readonly (on a dictionary that is on the stack)
-	noaccess (on a dictionary that is on the stack)
+        +begin, +end
+        +?(context switch)
+        readonly (on a dictionary that is on the stack)
+        noaccess (on a dictionary that is on the stack)
 We implement cleardictstack as a series of ends.
 
 Current design
 ==============
 
 Each name N has a pointer N.V that has one of 3 states:
-	- This name has no definitions.
-	- This name has exactly one definition, in systemdict or userdict.
-	In this case, N.V points to the value slot.
-	- This name has some other status.
+        - This name has no definitions.
+        - This name has exactly one definition, in systemdict or userdict.
+        In this case, N.V points to the value slot.
+        - This name has some other status.
 
 We cache some pointers to the top dictionary on the stack if it is a
 readable dictionary with packed keys, which allows us to do fast,
@@ -134,21 +138,21 @@ associate:
 
     * A name lookup cache, C.  Each entry C[i] in the cache consists of:
 
-	A key, K (a name index).
+        A key, K (a name index).
 
-	A dictionary stack level (depth), L.  C[i] is valid iff the
-	current dictionary stack depth, |dstack|, is equal to L.
-	(L is always less than or equal to |dstack|.)
+        A dictionary stack level (depth), L.  C[i] is valid iff the
+        current dictionary stack depth, |dstack|, is equal to L.
+        (L is always less than or equal to |dstack|.)
 
-	A value pointer, V, which points to some value slot of some
-	dictionary on the stack.
+        A value pointer, V, which points to some value slot of some
+        dictionary on the stack.
 
     * A lookup cache restoration stack, R.  Each entry R[j] on this stack
     consists of:
 
-	An index i in C.
+        An index i in C.
 
-	The previous (K,D,V) of C[i].
+        The previous (K,D,V) of C[i].
 
 C needs to be large enough to satisfy the overwhelming majority of name
 lookups with only 1-3 probes.  In a single-context system, C can be large
@@ -156,12 +160,12 @@ lookups with only 1-3 probes.  In a single-context system, C can be large
 in a typical run with no reprobes).  In a multiple-context system, one can
 choose a variety of different strategies for managing C, such as:
 
-	A single cache that is cleared on every context switch;
+        A single cache that is cleared on every context switch;
 
-	A small cache (e.g., .5K entries) for each context;
+        A small cache (e.g., .5K entries) for each context;
 
-	A cache that starts out small and grows adaptively if the hit rate
-	is too low.
+        A cache that starts out small and grows adaptively if the hit rate
+        is too low.
 
 R needs to be able to grow dynamically; in the worst case, it may have |C|
 entries per level of the dictionary stack.  We assume that R will always be
@@ -197,15 +201,15 @@ Now we describe the implementation of each of the above operations.
 To look up a name with index N, compute a hash index 0 <= i < |C|.  There
 are three cases:
 
-	1. C[i].K == N and C[i].L == |dstack|.  Nothing more is needed:
-	C[i].V points to the N's value.
+        1. C[i].K == N and C[i].L == |dstack|.  Nothing more is needed:
+        C[i].V points to the N's value.
 
-	2. C[i].K == N but C[i].L < |dstack|.  Look up N in the top |dstack|
-	- L entries on the dictionary stack; push i and C[i] onto R; set
-	C[i].V to point to the value if found, and in any case set C[i].L =
-	|dstack|.
+        2. C[i].K == N but C[i].L < |dstack|.  Look up N in the top |dstack|
+        - L entries on the dictionary stack; push i and C[i] onto R; set
+        C[i].V to point to the value if found, and in any case set C[i].L =
+        |dstack|.
 
-	3. C[i].K != N.  Reprobe some small number of times.
+        3. C[i].K != N.  Reprobe some small number of times.
 
 If all reprobes fail, look up N on the (full) dictionary stack.  Pick an
 index i (one of the probed entries) in C to replace.  If C[i].L != |dstack|,

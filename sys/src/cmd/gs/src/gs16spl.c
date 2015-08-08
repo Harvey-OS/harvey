@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1995, Russell Lang.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,11 +28,11 @@
 /* by Russell Lang */
 /* 1995-11-23 */
 
-/* 
+/*
  * Ghostscript produces printer specific output
  * which must be given to the print spooler.
  * Under Win16, the APIs OpenJob, WriteSpool etc. are used
- * Under Win32 and Windows 95/NT, the APIs OpenPrinter, WritePrinter etc.  
+ * Under Win32 and Windows 95/NT, the APIs OpenPrinter, WritePrinter etc.
  * are used.
  * Under Win32s, the 16-bit spooler APIs are not available, and the
  * 32-bit spooler APIs are not implemented.
@@ -45,7 +45,6 @@
  *
  * filename will be sent to the spooler port.
  */
-
 
 #define STRICT
 #include <windows.h>
@@ -84,144 +83,145 @@ char szAppName[] = "GS Win32s/Win16 spooler";
 
 /* returns TRUE on success, FALSE on failure */
 int
-spoolfile(char *portname, char *filename)
+spoolfile(char* portname, char* filename)
 {
-    FILE *f;
-    char *buffer;
-    char pcdone[64];
-    int32_t ldone;
-    int32_t lsize;
-    int count;
-    MSG msg;
+	FILE* f;
+	char* buffer;
+	char pcdone[64];
+	int32_t ldone;
+	int32_t lsize;
+	int count;
+	MSG msg;
 
-    if ((*portname == '\0') || (*filename == '\0')) {
-	strcpy(error_message, "Usage: gs16spl port filename");
-	return FALSE;
-    }
-    if ((buffer = malloc(PRINT_BUF_SIZE)) == (char *)NULL)
-	return FALSE;
+	if((*portname == '\0') || (*filename == '\0')) {
+		strcpy(error_message, "Usage: gs16spl port filename");
+		return FALSE;
+	}
+	if((buffer = malloc(PRINT_BUF_SIZE)) == (char*)NULL)
+		return FALSE;
 
-    if ((f = fopen(filename, "rb")) == (FILE *) NULL) {
-	sprintf(error_message, "Can't open %s", filename);
-	free(buffer);
-	return FALSE;
-    }
-    fseek(f, 0L, SEEK_END);
-    lsize = ftell(f);
-    if (lsize <= 0)
-	lsize = 1;
-    fseek(f, 0L, SEEK_SET);
-    ldone = 0;
+	if((f = fopen(filename, "rb")) == (FILE*)NULL) {
+		sprintf(error_message, "Can't open %s", filename);
+		free(buffer);
+		return FALSE;
+	}
+	fseek(f, 0L, SEEK_END);
+	lsize = ftell(f);
+	if(lsize <= 0)
+		lsize = 1;
+	fseek(f, 0L, SEEK_SET);
+	ldone = 0;
 
-    hJob = OpenJob(portname, filename, (HDC) NULL);
-    switch ((int)hJob) {
+	hJob = OpenJob(portname, filename, (HDC)NULL);
+	switch((int)hJob) {
 	case SP_APPABORT:
 	case SP_ERROR:
 	case SP_OUTOFDISK:
 	case SP_OUTOFMEMORY:
 	case SP_USERABORT:
-	    fclose(f);
-	    free(buffer);
-	    return FALSE;
-    }
-    if (StartSpoolPage(hJob) < 0)
-	error = TRUE;
-
-    while (!error
-	   && (count = fread(buffer, 1, PRINT_BUF_SIZE, f)) != 0) {
-	if (WriteSpool(hJob, buffer, count) < 0)
-	    error = TRUE;
-	ldone += count;
-	sprintf(pcdone, "%d%% written to %s", (int)(ldone * 100 / lsize), portname);
-	SetWindowText(GetDlgItem(hwndspl, ID_TEXT), pcdone);
-	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-	    TranslateMessage(&msg);
-	    DispatchMessage(&msg);
+		fclose(f);
+		free(buffer);
+		return FALSE;
 	}
-    }
-    free(buffer);
-    fclose(f);
+	if(StartSpoolPage(hJob) < 0)
+		error = TRUE;
 
-    EndSpoolPage(hJob);
-    if (error)
-	DeleteJob(hJob, 0);
-    else
-	CloseJob(hJob);
-    return !error;
+	while(!error && (count = fread(buffer, 1, PRINT_BUF_SIZE, f)) != 0) {
+		if(WriteSpool(hJob, buffer, count) < 0)
+			error = TRUE;
+		ldone += count;
+		sprintf(pcdone, "%d%% written to %s",
+		        (int)(ldone * 100 / lsize), portname);
+		SetWindowText(GetDlgItem(hwndspl, ID_TEXT), pcdone);
+		while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+	free(buffer);
+	fclose(f);
+
+	EndSpoolPage(hJob);
+	if(error)
+		DeleteJob(hJob, 0);
+	else
+		CloseJob(hJob);
+	return !error;
 }
-
 
 /* Modeless dialog box - main window */
 BOOL CALLBACK _export
 SpoolDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message) {
+	switch(message) {
 	case WM_INITDIALOG:
-	    SetWindowText(hDlg, szAppName);
-	    return TRUE;
+		SetWindowText(hDlg, szAppName);
+		return TRUE;
 	case WM_COMMAND:
-	    switch (LOWORD(wParam)) {
+		switch(LOWORD(wParam)) {
 		case IDCANCEL:
-		    error = TRUE;
-		    DestroyWindow(hDlg);
-		    EndDialog(hDlg, 0);
-		    PostQuitMessage(0);
-		    return TRUE;
-	    }
-    }
-    return FALSE;
+			error = TRUE;
+			DestroyWindow(hDlg);
+			EndDialog(hDlg, 0);
+			PostQuitMessage(0);
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
-
 
 void
 init_window(LPSTR cmdline)
 {
-    LPSTR s;
-    char *d;
+	LPSTR s;
+	char* d;
 
-    s = cmdline;
-    /* skip leading spaces */
-    while (*s && *s == ' ')
-	s++;
-    /* copy port name */
-    d = port;
-    while (*s && *s != ' ')
-	*d++ = *s++;
-    *d = '\0';
-    /* skip spaces */
-    while (*s && *s == ' ')
-	s++;
-    /* copy port name */
-    d = filename;
-    while (*s && *s != ' ')
-	*d++ = *s++;
-    *d = '\0';
+	s = cmdline;
+	/* skip leading spaces */
+	while(*s && *s == ' ')
+		s++;
+	/* copy port name */
+	d = port;
+	while(*s && *s != ' ')
+		*d++ = *s++;
+	*d = '\0';
+	/* skip spaces */
+	while(*s && *s == ' ')
+		s++;
+	/* copy port name */
+	d = filename;
+	while(*s && *s != ' ')
+		*d++ = *s++;
+	*d = '\0';
 
-    lpfnSpoolProc = (DLGPROC) MakeProcInstance((FARPROC) SpoolDlgProc, phInstance);
-    hwndspl = CreateDialog(phInstance, "SpoolDlgBox", HWND_DESKTOP, lpfnSpoolProc);
+	lpfnSpoolProc =
+	    (DLGPROC)MakeProcInstance((FARPROC)SpoolDlgProc, phInstance);
+	hwndspl = CreateDialog(phInstance, "SpoolDlgBox", HWND_DESKTOP,
+	                       lpfnSpoolProc);
 
-    return;
+	return;
 }
 
 int PASCAL
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
+WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine,
+        int cmdShow)
 {
-    MSG msg;
+	MSG msg;
 
-    phInstance = hInstance;
+	phInstance = hInstance;
 
-    init_window(lpszCmdLine);
-    ShowWindow(hwndspl, cmdShow);
+	init_window(lpszCmdLine);
+	ShowWindow(hwndspl, cmdShow);
 
-    if (!spoolfile(port, filename)) {
-	/* wait, showing error message */
-	SetWindowText(GetDlgItem(hwndspl, ID_TEXT), error_message);
-	while (GetMessage(&msg, (HWND) NULL, 0, 0)) {
-	    TranslateMessage(&msg);
-	    DispatchMessage(&msg);
+	if(!spoolfile(port, filename)) {
+		/* wait, showing error message */
+		SetWindowText(GetDlgItem(hwndspl, ID_TEXT), error_message);
+		while(GetMessage(&msg, (HWND)NULL, 0, 0)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 	}
-    }
-    DestroyWindow(hwndspl);
-    FreeProcInstance((FARPROC) lpfnSpoolProc);
-    return 0;
+	DestroyWindow(hwndspl);
+	FreeProcInstance((FARPROC)lpfnSpoolProc);
+	return 0;
 }

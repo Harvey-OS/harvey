@@ -10,10 +10,10 @@
 #include "cc.h"
 
 Node*
-dodecl(void (*f)(int,Type*,Sym*), int c, Type *t, Node *n)
+dodecl(void (*f)(int, Type*, Sym*), int c, Type* t, Node* n)
 {
-	Sym *s;
-	Node *n1;
+	Sym* s;
+	Node* n1;
 	int32_t v;
 
 	nearln = lineno;
@@ -21,105 +21,107 @@ dodecl(void (*f)(int,Type*,Sym*), int c, Type *t, Node *n)
 
 loop:
 	if(n != Z)
-	switch(n->op) {
-	default:
-		diag(n, "unknown declarator: %O", n->op);
-		break;
+		switch(n->op) {
+		default:
+			diag(n, "unknown declarator: %O", n->op);
+			break;
 
-	case OARRAY:
-		t = typ(TARRAY, t);
-		t->width = 0;
-		n1 = n->right;
-		n = n->left;
-		if(n1 != Z) {
-			complex(n1);
-			v = -1;
-			if(n1->op == OCONST)
-				v = n1->vconst;
-			if(v <= 0) {
-				diag(n, "array size must be a positive constant");
-				v = 1;
+		case OARRAY:
+			t = typ(TARRAY, t);
+			t->width = 0;
+			n1 = n->right;
+			n = n->left;
+			if(n1 != Z) {
+				complex(n1);
+				v = -1;
+				if(n1->op == OCONST)
+					v = n1->vconst;
+				if(v <= 0) {
+					diag(n, "array size must be a positive "
+					        "constant");
+					v = 1;
+				}
+				t->width = v * t->link->width;
 			}
-			t->width = v * t->link->width;
-		}
-		goto loop;
+			goto loop;
 
-	case OIND:
-		t = typ(TIND, t);
-		t->garb = n->garb;
-		n = n->left;
-		goto loop;
+		case OIND:
+			t = typ(TIND, t);
+			t->garb = n->garb;
+			n = n->left;
+			goto loop;
 
-	case OFUNC:
-		t = typ(TFUNC, t);
-		t->down = fnproto(n);
-		n = n->left;
-		goto loop;
+		case OFUNC:
+			t = typ(TFUNC, t);
+			t->down = fnproto(n);
+			n = n->left;
+			goto loop;
 
-	case OBIT:
-		n1 = n->right;
-		complex(n1);
-		lastfield = -1;
-		if(n1->op == OCONST)
-			lastfield = n1->vconst;
-		if(lastfield < 0) {
-			diag(n, "field width must be non-negative constant");
-			lastfield = 1;
-		}
-		if(lastfield == 0) {
-			lastbit = 0;
-			firstbit = 1;
-			if(n->left != Z) {
-				diag(n, "zero width named field");
+		case OBIT:
+			n1 = n->right;
+			complex(n1);
+			lastfield = -1;
+			if(n1->op == OCONST)
+				lastfield = n1->vconst;
+			if(lastfield < 0) {
+				diag(n, "field width must be non-negative "
+				        "constant");
 				lastfield = 1;
 			}
-		}
-		if(!typei[t->etype]) {
-			diag(n, "field type must be int-like");
-			t = types[TINT];
-			lastfield = 1;
-		}
-		if(lastfield > tfield->width*8) {
-			diag(n, "field width larger than field unit");
-			lastfield = 1;
-		}
-		lastbit += lastfield;
-		if(lastbit > tfield->width*8) {
-			lastbit = lastfield;
-			firstbit = 1;
-		}
-		n = n->left;
-		goto loop;
+			if(lastfield == 0) {
+				lastbit = 0;
+				firstbit = 1;
+				if(n->left != Z) {
+					diag(n, "zero width named field");
+					lastfield = 1;
+				}
+			}
+			if(!typei[t->etype]) {
+				diag(n, "field type must be int-like");
+				t = types[TINT];
+				lastfield = 1;
+			}
+			if(lastfield > tfield->width * 8) {
+				diag(n, "field width larger than field unit");
+				lastfield = 1;
+			}
+			lastbit += lastfield;
+			if(lastbit > tfield->width * 8) {
+				lastbit = lastfield;
+				firstbit = 1;
+			}
+			n = n->left;
+			goto loop;
 
-	case ONAME:
-		if(f == NODECL)
+		case ONAME:
+			if(f == NODECL)
+				break;
+			s = n->sym;
+			(*f)(c, t, s);
+			if(s->class == CLOCAL)
+				s = mkstatic(s);
+			firstbit = 0;
+			n->sym = s;
+			n->type = s->type;
+			n->xoffset = s->offset;
+			n->class = s->class;
+			n->etype = TVOID;
+			if(n->type != T)
+				n->etype = n->type->etype;
+			if(debug['d'])
+				dbgdecl(s);
+			acidvar(s);
+			s->varlineno = lineno;
 			break;
-		s = n->sym;
-		(*f)(c, t, s);
-		if(s->class == CLOCAL)
-			s = mkstatic(s);
-		firstbit = 0;
-		n->sym = s;
-		n->type = s->type;
-		n->xoffset = s->offset;
-		n->class = s->class;
-		n->etype = TVOID;
-		if(n->type != T)
-			n->etype = n->type->etype;
-		if(debug['d'])
-			dbgdecl(s);
-		acidvar(s);
-		s->varlineno = lineno;
-		break;
-	}
+		}
 	lastdcl = t;
 	return n;
 }
 
 Sym*
-mkstatic(Sym *s)
+mkstatic(Sym* s)
 {
-	Sym *s1;
+	Sym* s1;
 
 	if(s->class != CLOCAL)
 		return s;
@@ -141,9 +143,9 @@ mkstatic(Sym *s)
  * rather than the typedef.
  */
 Type*
-tcopy(Type *t)
+tcopy(Type* t)
 {
-	Type *tl, *tx;
+	Type* tl, *tx;
 	int et;
 
 	if(t == T)
@@ -152,8 +154,7 @@ tcopy(Type *t)
 	if(typesu[et])
 		return t;
 	tl = tcopy(t->link);
-	if(tl != t->link ||
-	  (et == TARRAY && t->width == 0)) {
+	if(tl != t->link || (et == TARRAY && t->width == 0)) {
 		tx = copytyp(t);
 		tx->link = tl;
 		return tx;
@@ -162,9 +163,9 @@ tcopy(Type *t)
 }
 
 Node*
-doinit(Sym *s, Type *t, int32_t o, Node *a)
+doinit(Sym* s, Type* t, int32_t o, Node* a)
 {
-	Node *n;
+	Node* n;
 
 	if(t == T)
 		return Z;
@@ -178,7 +179,6 @@ doinit(Sym *s, Type *t, int32_t o, Node *a)
 		prtree(a, "doinit value");
 	}
 
-
 	n = initlist;
 	if(a->op == OINIT)
 		a = a->left;
@@ -186,8 +186,7 @@ doinit(Sym *s, Type *t, int32_t o, Node *a)
 
 	a = init1(s, t, o, 0);
 	if(initlist != Z)
-		diag(initlist, "more initializers than structure: %s",
-			s->name);
+		diag(initlist, "more initializers than structure: %s", s->name);
 	initlist = n;
 
 	return a;
@@ -200,7 +199,7 @@ doinit(Sym *s, Type *t, int32_t o, Node *a)
 Node*
 peekinit(void)
 {
-	Node *a;
+	Node* a;
 
 	a = initlist;
 
@@ -221,7 +220,7 @@ loop:
 Node*
 nextinit(void)
 {
-	Node *a, *b, *n;
+	Node* a, *b, *n;
 
 	a = initlist;
 	n = Z;
@@ -254,9 +253,9 @@ nextinit(void)
 }
 
 int
-isstruct(Node *a, Type *t)
+isstruct(Node* a, Type* t)
 {
-	Node *n;
+	Node* n;
 
 	switch(a->op) {
 	case ODOTDOT:
@@ -291,10 +290,10 @@ isstruct(Node *a, Type *t)
 }
 
 Node*
-init1(Sym *s, Type *t, int32_t o, int exflag)
+init1(Sym* s, Type* t, int32_t o, int exflag)
 {
-	Node *a, *l, *r, nod;
-	Type *t1;
+	Node* a, *l, *r, nod;
+	Type* t1;
 	int32_t e, w, so, mw;
 
 	a = peekinit();
@@ -311,7 +310,8 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 
 	switch(t->etype) {
 	default:
-		diag(Z, "unknown type in initialization: %T to: %s", t, s->name);
+		diag(Z, "unknown type in initialization: %T to: %s", t,
+		     s->name);
 		return Z;
 
 	case TCHAR:
@@ -356,8 +356,10 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 			return Z;
 
 		if(a->op == OCONST) {
-			if(vconst(a) && t->etype == TIND && a->type && a->type->etype != TIND){
-				diag(a, "initialize pointer to an integer: %s", s->name);
+			if(vconst(a) && t->etype == TIND && a->type &&
+			   a->type->etype != TIND) {
+				diag(a, "initialize pointer to an integer: %s",
+				     s->name);
 				return Z;
 			}
 			if(!sametype(a->type, t)) {
@@ -374,7 +376,7 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 			}
 			if(a->op != OCONST) {
 				diag(a, "initializer is not a constant: %s",
-					s->name);
+				     s->name);
 				return Z;
 			}
 			if(vconst(a) == 0)
@@ -387,8 +389,9 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 				a = a->left;
 			}
 			if(!sametype(t, a->type)) {
-				diag(a, "initialization of incompatible pointers: %s\n%T and %T",
-					s->name, t, a->type);
+				diag(a, "initialization of incompatible "
+				        "pointers: %s\n%T and %T",
+				     s->name, t, a->type);
 			}
 			if(a->op == OADDR)
 				a = a->left;
@@ -398,7 +401,8 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 		while(a->op == OCAST)
 			a = a->left;
 		if(a->op == OADDR) {
-			warn(a, "initialize pointer to an integer: %s", s->name);
+			warn(a, "initialize pointer to an integer: %s",
+			     s->name);
 			a = a->left;
 			goto gext;
 		}
@@ -413,30 +417,31 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 	case TARRAY:
 		w = t->link->width;
 		if(a->op == OSTRING || a->op == OLSTRING)
-		if(typei[t->link->etype]) {
-			/*
-			 * get rid of null if sizes match exactly
-			 */
-			a = nextinit();
-			mw = t->width/w;
-			so = a->type->width/a->type->link->width;
-			if(mw && so > mw) {
-				if(so != mw+1)
-					diag(a, "string initialization larger than array");
-				a->type->width -= a->type->link->width;
-			}
+			if(typei[t->link->etype]) {
+				/*
+				 * get rid of null if sizes match exactly
+				 */
+				a = nextinit();
+				mw = t->width / w;
+				so = a->type->width / a->type->link->width;
+				if(mw && so > mw) {
+					if(so != mw + 1)
+						diag(a, "string initialization "
+						        "larger than array");
+					a->type->width -= a->type->link->width;
+				}
 
-			/*
-			 * arrange strings to be expanded
-			 * inside OINIT braces.
-			 */
-			a = new(OUSED, a, Z);
-			return doinit(s, t, o, a);
-		}
+				/*
+				 * arrange strings to be expanded
+				 * inside OINIT braces.
+				 */
+				a = new(OUSED, a, Z);
+				return doinit(s, t, o, a);
+			}
 
 		mw = -w;
 		l = Z;
-		for(e=0;;) {
+		for(e = 0;;) {
 			/*
 			 * peek ahead for element initializer
 			 */
@@ -452,29 +457,32 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 				r = a->left;
 				complex(r);
 				if(r->op != OCONST) {
-					diag(r, "initializer subscript must be constant");
+					diag(r, "initializer subscript must be "
+					        "constant");
 					return Z;
 				}
 				e = r->vconst;
 				if(t->width != 0)
-					if(e < 0 || e*w >= t->width) {
-						diag(a, "initialization index out of range: %ld", e);
+					if(e < 0 || e * w >= t->width) {
+						diag(a, "initialization index "
+						        "out of range: %ld",
+						     e);
 						continue;
 					}
 			}
 
-			so = e*w;
+			so = e * w;
 			if(so > mw)
 				mw = so;
 			if(t->width != 0)
 				if(mw >= t->width)
 					break;
-			r = init1(s, t->link, o+so, 1);
+			r = init1(s, t->link, o + so, 1);
 			l = newlist(l, r);
 			e++;
 		}
 		if(t->width == 0)
-			t->width = mw+w;
+			t->width = mw + w;
 		return l;
 
 	case TUNION:
@@ -503,7 +511,7 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 					continue;
 				nextinit();
 			}
-			r = init1(s, t1, o+t1->offset, 1);
+			r = init1(s, t1, o + t1->offset, 1);
 			l = newlist(l, r);
 			a = peekinit();
 			if(a == Z)
@@ -518,7 +526,7 @@ init1(Sym *s, Type *t, int32_t o, int exflag)
 }
 
 Node*
-newlist(Node *l, Node *r)
+newlist(Node* l, Node* r)
 {
 	if(r == Z)
 		return l;
@@ -528,9 +536,9 @@ newlist(Node *l, Node *r)
 }
 
 void
-sualign(Type *t)
+sualign(Type* t)
 {
-	Type *l;
+	Type* l;
 	int32_t o, w;
 
 	o = 0;
@@ -552,10 +560,12 @@ sualign(Type *t)
 				if(l->width < 0 ||
 				   l->width == 0 && l->down != T)
 					if(l->sym)
-						diag(Z, "incomplete structure element: %s",
-							l->sym->name);
+						diag(Z, "incomplete structure "
+						        "element: %s",
+						     l->sym->name);
 					else
-						diag(Z, "incomplete structure element");
+						diag(Z, "incomplete structure "
+						        "element");
 				w = align(w, l, Ael1);
 				l->offset = w;
 				w = align(w, l, Ael2);
@@ -574,7 +584,7 @@ sualign(Type *t)
 			if(l->width <= 0)
 				if(l->sym)
 					diag(Z, "incomplete union element: %s",
-						l->sym->name);
+					     l->sym->name);
 				else
 					diag(Z, "incomplete union element");
 			l->offset = 0;
@@ -604,16 +614,16 @@ round(int32_t v, int w)
 		diag(Z, "rounding by %d", w);
 		w = 1;
 	}
-	r = v%w;
+	r = v % w;
 	if(r)
-		v += w-r;
+		v += w - r;
 	return v;
 }
 
 Type*
-ofnproto(Node *n)
+ofnproto(Node* n)
 {
-	Type *tl, *tr, *t;
+	Type* tl, *tr, *t;
 
 	if(n == Z)
 		return T;
@@ -634,13 +644,13 @@ ofnproto(Node *n)
 	return T;
 }
 
-#define	ANSIPROTO	1
-#define	OLDPROTO	2
+#define ANSIPROTO 1
+#define OLDPROTO 2
 
 void
-argmark(Node *n, int pass)
+argmark(Node* n, int pass)
 {
-	Type *t;
+	Type* t;
 
 	autoffset = align(0, thisfn->link, Aarg0);
 	stkoff = 0;
@@ -662,10 +672,10 @@ argmark(Node *n, int pass)
 }
 
 void
-walkparam(Node *n, int pass)
+walkparam(Node* n, int pass)
 {
-	Sym *s;
-	Node *n1;
+	Sym* s;
+	Node* n1;
 
 	if(n != Z && n->op == OPROTO && n->left == Z && n->type == types[TVOID])
 		return;
@@ -684,7 +694,7 @@ loop:
 		goto loop;
 
 	case OPROTO:
-		for(n1 = n; n1 != Z; n1=n1->left)
+		for(n1 = n; n1 != Z; n1 = n1->left)
 			if(n1->op == ONAME) {
 				if(pass == 0) {
 					s = n1->sym;
@@ -711,7 +721,7 @@ loop:
 
 	case ODOTDOT:
 		break;
-	
+
 	case ONAME:
 		s = n->sym;
 		if(pass == 0) {
@@ -736,7 +746,7 @@ loop:
 void
 markdcl(void)
 {
-	Decl *d;
+	Decl* d;
 
 	blockno++;
 	d = push();
@@ -749,9 +759,9 @@ markdcl(void)
 Node*
 revertdcl(void)
 {
-	Decl *d;
-	Sym *s;
-	Node *n, *n1;
+	Decl* d;
+	Sym* s;
+	Node* n, *n1;
 
 	n = Z;
 	for(;;) {
@@ -774,9 +784,13 @@ revertdcl(void)
 			if(s->aused == 0) {
 				nearln = s->varlineno;
 				if(s->class == CAUTO)
-					warn(Z, "auto declared and not used: %s", s->name);
+					warn(Z,
+					     "auto declared and not used: %s",
+					     s->name);
 				if(s->class == CPARAM)
-					warn(Z, "param declared and not used: %s", s->name);
+					warn(Z,
+					     "param declared and not used: %s",
+					     s->name);
 			}
 			if(s->type && (s->type->garb & GVOLATILE)) {
 				n1 = new(ONAME, Z, Z);
@@ -814,7 +828,9 @@ revertdcl(void)
 			if(debug['d'])
 				print("revert3 \"%s\"\n", s->name);
 			if(s->label && s->label->addable == 0)
-				warn(s->label, "label declared and not used \"%s\"", s->name);
+				warn(s->label,
+				     "label declared and not used \"%s\"",
+				     s->name);
 			s->label = Z;
 			break;
 		}
@@ -823,21 +839,22 @@ revertdcl(void)
 }
 
 Type*
-fnproto(Node *n)
+fnproto(Node* n)
 {
 	int r;
 
 	r = anyproto(n->right);
 	if(r == 0 || (r & OLDPROTO)) {
 		if(r & ANSIPROTO)
-			diag(n, "mixed ansi/old function declaration: %F", n->left);
+			diag(n, "mixed ansi/old function declaration: %F",
+			     n->left);
 		return T;
 	}
 	return fnproto1(n->right);
 }
 
 int
-anyproto(Node *n)
+anyproto(Node* n)
 {
 	int r;
 
@@ -860,9 +877,9 @@ loop:
 }
 
 Type*
-fnproto1(Node *n)
+fnproto1(Node* n)
 {
-	Type *t;
+	Type* t;
 
 	if(n == Z)
 		return T;
@@ -893,16 +910,16 @@ fnproto1(Node *n)
 }
 
 void
-dbgdecl(Sym *s)
+dbgdecl(Sym* s)
 {
-	print("decl \"%s\": C=%s [B=%d:O=%ld] T=%T\n",
-		s->name, cnames[s->class], s->block, s->offset, s->type);
+	print("decl \"%s\": C=%s [B=%d:O=%ld] T=%T\n", s->name,
+	      cnames[s->class], s->block, s->offset, s->type);
 }
 
 Decl*
 push(void)
 {
-	Decl *d;
+	Decl* d;
 
 	d = alloc(sizeof(*d));
 	d->link = dclstack;
@@ -911,9 +928,9 @@ push(void)
 }
 
 Decl*
-push1(Sym *s)
+push1(Sym* s)
 {
-	Decl *d;
+	Decl* d;
 
 	d = push();
 	d->sym = s;
@@ -928,7 +945,7 @@ push1(Sym *s)
 }
 
 int
-sametype(Type *t1, Type *t2)
+sametype(Type* t1, Type* t2)
 {
 
 	if(t1 == t2)
@@ -937,7 +954,7 @@ sametype(Type *t1, Type *t2)
 }
 
 int
-rsametype(Type *t1, Type *t2, int n, int f)
+rsametype(Type* t1, Type* t2, int n, int f)
 {
 	int et;
 
@@ -977,15 +994,17 @@ rsametype(Type *t1, Type *t2, int n, int f)
 			return 1;
 		}
 		if(et == TARRAY)
-			if(t1->width != t2->width && t1->width != 0 && t2->width != 0)
+			if(t1->width != t2->width && t1->width != 0 &&
+			   t2->width != 0)
 				return 0;
 		if(typesu[et]) {
 			if(t1->link == T)
 				snap(t1);
 			if(t2->link == T)
 				snap(t2);
-			if(t1 != t2 && t1->link == T && t2->link == T){
-				/* structs with missing or different tag names aren't considered equal */
+			if(t1 != t2 && t1->link == T && t2->link == T) {
+				/* structs with missing or different tag names
+				 * aren't considered equal */
 				if(t1->tag == nil || t2->tag == nil ||
 				   strcmp(t1->tag->name, t2->tag->name) != 0)
 					return 0;
@@ -1014,27 +1033,27 @@ rsametype(Type *t1, Type *t2, int n, int f)
 
 typedef struct Typetab Typetab;
 
-struct Typetab{
+struct Typetab {
 	int n;
-	Type **a;
+	Type** a;
 };
 
 static int
-sigind(Type *t, Typetab *tt)
+sigind(Type* t, Typetab* tt)
 {
 	int n;
-	Type **a, **na, **p, **e;
+	Type** a, **na, **p, **e;
 
 	n = tt->n;
 	a = tt->a;
-	e = a+n;
+	e = a + n;
 	/* linear search seems ok */
-	for(p = a ; p < e; p++)
+	for(p = a; p < e; p++)
 		if(sametype(*p, t))
-			return p-a;
-	if((n&15) == 0){
-		na = malloc((n+16)*sizeof(Type*));
-		memmove(na, a, n*sizeof(Type*));
+			return p - a;
+	if((n & 15) == 0) {
+		na = malloc((n + 16) * sizeof(Type*));
+		memmove(na, a, n * sizeof(Type*));
 		free(a);
 		a = tt->a = na;
 	}
@@ -1043,35 +1062,35 @@ sigind(Type *t, Typetab *tt)
 }
 
 static uint32_t
-signat(Type *t, Typetab *tt)
+signat(Type* t, Typetab* tt)
 {
 	int i;
-	Type *t1;
+	Type* t1;
 	int32_t s;
 
 	s = 0;
-	for(; t; t=t->link) {
-		s = s*thash1 + thash[t->etype];
-		if(t->garb&GINCOMPLETE)
+	for(; t; t = t->link) {
+		s = s * thash1 + thash[t->etype];
+		if(t->garb & GINCOMPLETE)
 			return s;
 		switch(t->etype) {
 		default:
 			return s;
 		case TARRAY:
-			s = s*thash2 + 0;	/* was t->width */
+			s = s * thash2 + 0; /* was t->width */
 			break;
 		case TFUNC:
-			for(t1=t->down; t1; t1=t1->down)
-				s = s*thash3 + signat(t1, tt);
+			for(t1 = t->down; t1; t1 = t1->down)
+				s = s * thash3 + signat(t1, tt);
 			break;
 		case TSTRUCT:
 		case TUNION:
-			if((i = sigind(t, tt)) >= 0){
-				s = s*thash2 + i;
+			if((i = sigind(t, tt)) >= 0) {
+				s = s * thash2 + i;
 				return s;
 			}
-			for(t1=t->link; t1; t1=t1->down)
-				s = s*thash3 + signat(t1, tt);
+			for(t1 = t->link; t1; t1 = t1->down)
+				s = s * thash3 + signat(t1, tt);
 			return s;
 		case TIND:
 			break;
@@ -1081,7 +1100,7 @@ signat(Type *t, Typetab *tt)
 }
 
 uint32_t
-signature(Type *t)
+signature(Type* t)
 {
 	uint32_t s;
 	Typetab tt;
@@ -1094,10 +1113,10 @@ signature(Type *t)
 }
 
 uint32_t
-sign(Sym *s)
+sign(Sym* s)
 {
 	uint32_t v;
-	Type *t;
+	Type* t;
 
 	if(s->sig == SIGINTERN)
 		return SIGNINTERN;
@@ -1110,19 +1129,19 @@ sign(Sym *s)
 }
 
 void
-snap(Type *t)
+snap(Type* t)
 {
 	if(typesu[t->etype])
-	if(t->link == T && t->tag && t->tag->suetag) {
-		t->link = t->tag->suetag->link;
-		t->width = t->tag->suetag->width;
-	}
+		if(t->link == T && t->tag && t->tag->suetag) {
+			t->link = t->tag->suetag->link;
+			t->width = t->tag->suetag->width;
+		}
 }
 
 Type*
-dotag(Sym *s, int et, int bn)
+dotag(Sym* s, int et, int bn)
 {
-	Decl *d;
+	Decl* d;
 
 	if(bn != 0 && bn != s->sueblock) {
 		d = push();
@@ -1137,27 +1156,26 @@ dotag(Sym *s, int et, int bn)
 		s->sueblock = autobn;
 	}
 	if(s->suetag->etype != et)
-		diag(Z, "tag used for more than one type: %s",
-			s->name);
+		diag(Z, "tag used for more than one type: %s", s->name);
 	if(s->suetag->tag == S)
 		s->suetag->tag = s;
 	return s->suetag;
 }
 
 Node*
-dcllabel(Sym *s, int f)
+dcllabel(Sym* s, int f)
 {
-	Decl *d, d1;
-	Node *n;
+	Decl* d, d1;
+	Node* n;
 
 	n = s->label;
 	if(n != Z) {
 		if(f) {
 			if(n->complex)
 				diag(Z, "label reused: %s", s->name);
-			n->complex = 1;	// declared
+			n->complex = 1; // declared
 		} else
-			n->addable = 1;	// used
+			n->addable = 1; // used
 		return n;
 	}
 
@@ -1185,7 +1203,7 @@ dcllabel(Sym *s, int f)
 }
 
 Type*
-paramconv(Type *t, int f)
+paramconv(Type* t, int f)
 {
 
 	switch(t->etype) {
@@ -1220,7 +1238,7 @@ paramconv(Type *t, int f)
 }
 
 void
-adecl(int c, Type *t, Sym *s)
+adecl(int c, Type* t, Sym* s)
 {
 
 	if(c == CSTATIC)
@@ -1241,9 +1259,10 @@ adecl(int c, Type *t, Sym *s)
 				warn(Z, "just say static: %s", s->name);
 				c = CSTATIC;
 			}
-		if(s->class == CAUTO || s->class == CPARAM || s->class == CLOCAL)
-		if(s->block == autobn)
-			diag(Z, "auto redeclaration of: %s", s->name);
+		if(s->class == CAUTO || s->class == CPARAM ||
+		   s->class == CLOCAL)
+			if(s->block == autobn)
+				diag(Z, "auto redeclaration of: %s", s->name);
 		if(c != CPARAM)
 			push1(s);
 		s->block = autobn;
@@ -1273,13 +1292,13 @@ adecl(int c, Type *t, Sym *s)
 }
 
 void
-pdecl(int c, Type *t, Sym *s)
+pdecl(int c, Type* t, Sym* s)
 {
 	if(s && s->offset != -1) {
 		diag(Z, "not a parameter: %s", s->name);
 		return;
 	}
-	t = paramconv(t, c==CPARAM);
+	t = paramconv(t, c == CPARAM);
 	if(c == CXXX)
 		c = CPARAM;
 	if(c != CPARAM) {
@@ -1292,7 +1311,7 @@ pdecl(int c, Type *t, Sym *s)
 }
 
 void
-xdecl(int c, Type *t, Sym *s)
+xdecl(int c, Type* t, Sym* s)
 {
 	int32_t o;
 
@@ -1318,7 +1337,8 @@ xdecl(int c, Type *t, Sym *s)
 		break;
 
 	case CAUTO:
-		diag(Z, "overspecified class: %s %s %s", s->name, cnames[c], cnames[s->class]);
+		diag(Z, "overspecified class: %s %s %s", s->name, cnames[c],
+		     cnames[s->class]);
 		c = CEXTERN;
 		break;
 
@@ -1333,14 +1353,18 @@ xdecl(int c, Type *t, Sym *s)
 
 	if(s->class == CSTATIC)
 		if(c == CEXTERN || c == CGLOBL) {
-			warn(Z, "overspecified class: %s %s %s", s->name, cnames[c], cnames[s->class]);
+			warn(Z, "overspecified class: %s %s %s", s->name,
+			     cnames[c], cnames[s->class]);
 			c = CSTATIC;
 		}
 	if(s->type != T)
-		if(s->class != c || !sametype(t, s->type) || t->etype == TENUM) {
+		if(s->class != c || !sametype(t, s->type) ||
+		   t->etype == TENUM) {
 			diag(Z, "external redeclaration of: %s", s->name);
-			Bprint(&diagbuf, "	%s %T %L\n", cnames[c], t, nearln);
-			Bprint(&diagbuf, "	%s %T %L\n", cnames[s->class], s->type, s->varlineno);
+			Bprint(&diagbuf, "	%s %T %L\n", cnames[c], t,
+			       nearln);
+			Bprint(&diagbuf, "	%s %T %L\n", cnames[s->class],
+			       s->type, s->varlineno);
 		}
 	tmerge(t, s);
 	s->type = t;
@@ -1350,12 +1374,12 @@ xdecl(int c, Type *t, Sym *s)
 }
 
 void
-tmerge(Type *t1, Sym *s)
+tmerge(Type* t1, Sym* s)
 {
-	Type *ta, *tb, *t2;
+	Type* ta, *tb, *t2;
 
 	t2 = s->type;
-/*print("merge	%T; %T\n", t1, t2);/**/
+	/*print("merge	%T; %T\n", t1, t2);/**/
 	for(;;) {
 		if(t1 == T || t2 == T || t1 == t2)
 			break;
@@ -1395,7 +1419,8 @@ tmerge(Type *t1, Sym *s)
 				tb = tb->down;
 			}
 			if(ta != tb)
-				diag(Z, "function inconsistently declared: %s", s->name);
+				diag(Z, "function inconsistently declared: %s",
+				     s->name);
 
 			/* take new-style over old-style */
 			ta = t1->down;
@@ -1421,18 +1446,18 @@ tmerge(Type *t1, Sym *s)
 }
 
 void
-edecl(int c, Type *t, Sym *s)
+edecl(int c, Type* t, Sym* s)
 {
-	Type *t1;
+	Type* t1;
 
 	if(s == S) {
 		if(!typesu[t->etype])
-			diag(Z, "unnamed structure element must be struct/union");
+			diag(Z,
+			     "unnamed structure element must be struct/union");
 		if(c != CXXX)
 			diag(Z, "unnamed structure element cannot have class");
-	} else
-		if(c != CXXX)
-			diag(Z, "structure element cannot have class: %s", s->name);
+	} else if(c != CXXX)
+		diag(Z, "structure element cannot have class: %s", s->name);
 	t1 = t;
 	t = copytyp(t1);
 	t->sym = s;
@@ -1464,7 +1489,7 @@ edecl(int c, Type *t, Sym *s)
  * to unsigned.
  */
 Type*
-maxtype(Type *t1, Type *t2)
+maxtype(Type* t1, Type* t2)
 {
 
 	if(t1 == T)
@@ -1477,7 +1502,7 @@ maxtype(Type *t1, Type *t2)
 }
 
 void
-doenum(Sym *s, Node *n)
+doenum(Sym* s, Node* n)
 {
 
 	if(n) {
@@ -1519,7 +1544,7 @@ doenum(Sym *s, Node *n)
 }
 
 void
-symadjust(Sym *s, Node *n, int32_t del)
+symadjust(Sym* s, Node* n, int32_t del)
 {
 
 	switch(n->op) {
@@ -1545,11 +1570,11 @@ symadjust(Sym *s, Node *n, int32_t del)
 }
 
 Node*
-contig(Sym *s, Node *n, int32_t v)
+contig(Sym* s, Node* n, int32_t v)
 {
-	Node *p, *r, *q, *m;
+	Node* p, *r, *q, *m;
 	int32_t w;
-	Type *zt;
+	Type* zt;
 
 	if(debug['i']) {
 		print("contig v = %ld; s = %s\n", v, s->name);
@@ -1577,32 +1602,33 @@ contig(Sym *s, Node *n, int32_t v)
 		goto no;
 	if(n->op == OAS)
 		diag(Z, "oops in contig");
-/*ZZZ this appears incorrect
-need to check if the list completely covers the data.
-if not, bail
- */
+	/*ZZZ this appears incorrect
+	need to check if the list completely covers the data.
+	if not, bail
+	 */
 	if(n->op == OLIST)
 		goto no;
 	if(n->op == OASI)
 		if(n->left->type)
-		if(n->left->type->width == w)
-			goto no;
-	while(w & (ewidth[TIND]-1))
+			if(n->left->type->width == w)
+				goto no;
+	while(w & (ewidth[TIND] - 1))
 		w++;
-/*
- * insert the following code, where long becomes vlong if pointers are fat
- *
-	*(long**)&X = (long*)((char*)X + sizeof(X));
-	do {
-		*(long**)&X -= 1;
-		**(long**)&X = 0;
-	} while(*(long**)&X);
- */
+	/*
+	 * insert the following code, where long becomes vlong if pointers are
+	 fat
+	 *
+	        *(long**)&X = (long*)((char*)X + sizeof(X));
+	        do {
+	                *(long**)&X -= 1;
+	                **(long**)&X = 0;
+	        } while(*(long**)&X);
+	 */
 
-	for(q=n; q->op != ONAME; q=q->left)
+	for(q = n; q->op != ONAME; q = q->left)
 		;
 
-	zt = ewidth[TIND] > ewidth[TLONG]? types[TVLONG]: types[TLONG];
+	zt = ewidth[TIND] > ewidth[TLONG] ? types[TVLONG] : types[TLONG];
 
 	p = new(ONAME, Z, Z);
 	*p = *q;

@@ -10,18 +10,17 @@
 #include <u.h>
 #include <libc.h>
 
-#define	NFN	33
-static	int	(*onnot[NFN])(void*, char*);
-static	Lock	onnotlock;
+#define NFN 33
+static int (*onnot[NFN])(void*, char*);
+static Lock onnotlock;
 
-static
-void
-notifier(void *v, char *s)
+static void
+notifier(void* v, char* s)
 {
 	int i;
 
-	for(i=0; i<NFN; i++)
-		if(onnot[i] && ((*onnot[i])(v, s))){
+	for(i = 0; i < NFN; i++)
+		if(onnot[i] && ((*onnot[i])(v, s))) {
 			noted(NCONT);
 			return;
 		}
@@ -34,30 +33,30 @@ atnotify(int (*f)(void*, char*), int in)
 	int i, n, ret;
 	static int init;
 
-	if(!init){
+	if(!init) {
 		notify(notifier);
-		init = 1;		/* assign = */
+		init = 1; /* assign = */
 	}
 	ret = 0;
 	lock(&onnotlock);
-	if(in){
-		for(i=0; i<NFN; i++)
+	if(in) {
+		for(i = 0; i < NFN; i++)
 			if(onnot[i] == 0) {
 				onnot[i] = f;
 				ret = 1;
 				break;
 			}
-	}else{
+	} else {
 		n = 0;
-		for(i=0; i<NFN; i++)
-			if(onnot[i]){
-				if(ret==0 && onnot[i]==f){
+		for(i = 0; i < NFN; i++)
+			if(onnot[i]) {
+				if(ret == 0 && onnot[i] == f) {
 					onnot[i] = 0;
 					ret = 1;
-				}else
+				} else
 					n++;
 			}
-		if(n == 0){
+		if(n == 0) {
 			init = 0;
 			notify(0);
 		}

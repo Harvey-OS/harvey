@@ -46,10 +46,7 @@
 #include <unistd.h>
 #include <string.h>
 
-static	char	dmsize[12] =
-{
-	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
+static char dmsize[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 /*
  * The following table is used for 1974 and 1975 and
@@ -57,32 +54,30 @@ static	char	dmsize[12] =
  * change.
  */
 
-static	int	dysize(int);
-static	void	ct_numb(char*, int);
-static	void	readtimezone(void);
-static	int	rd_name(char**, char*);
-static	int	rd_long(char**, int32_t*);
+static int dysize(int);
+static void ct_numb(char*, int);
+static void readtimezone(void);
+static int rd_name(char**, char*);
+static int rd_long(char**, int32_t*);
 
-#define	TZSIZE	150
+#define TZSIZE 150
 
-static
-struct
-{
-	char	stname[4];
-	char	dlname[4];
-	int32_t	stdiff;
-	int32_t	dldiff;
-	int32_t	dlpairs[TZSIZE];
+static struct {
+	char stname[4];
+	char dlname[4];
+	int32_t stdiff;
+	int32_t dldiff;
+	int32_t dlpairs[TZSIZE];
 } timezone;
 
 char*
-ctime(const time_t *t)
+ctime(const time_t* t)
 {
 	return asctime(localtime(t));
 }
 
 struct tm*
-gmtime_r(const time_t *timp, struct tm *result)
+gmtime_r(const time_t* timp, struct tm* result)
 {
 	int d0, d1;
 	int32_t hms, day;
@@ -123,8 +118,8 @@ gmtime_r(const time_t *timp, struct tm *result)
 		for(d1 = 70; day >= dysize(d1); d1++)
 			day -= dysize(d1);
 	else
-		for (d1 = 70; day < 0; d1--)
-			day += dysize(d1-1);
+		for(d1 = 70; day < 0; d1--)
+			day += dysize(d1 - 1);
 	result->tm_year = d1;
 	result->tm_yday = d0 = day;
 
@@ -144,7 +139,7 @@ gmtime_r(const time_t *timp, struct tm *result)
 }
 
 struct tm*
-gmtime(const time_t *timp)
+gmtime(const time_t* timp)
 {
 	static struct tm xtime;
 
@@ -152,11 +147,11 @@ gmtime(const time_t *timp)
 }
 
 struct tm*
-localtime_r(const time_t *timp, struct tm *result)
+localtime_r(const time_t* timp, struct tm* result)
 {
-	struct tm *ct;
+	struct tm* ct;
 	time_t t, tim;
-	int32_t *p;
+	int32_t* p;
 	int dlflag;
 
 	tim = *timp;
@@ -166,18 +161,18 @@ localtime_r(const time_t *timp, struct tm *result)
 	dlflag = 0;
 	for(p = timezone.dlpairs; *p; p += 2)
 		if(t >= p[0])
-		if(t < p[1]) {
-			t = tim + timezone.dldiff;
-			dlflag++;
-			break;
-		}
+			if(t < p[1]) {
+				t = tim + timezone.dldiff;
+				dlflag++;
+				break;
+			}
 	ct = gmtime_r(&t, result);
 	ct->tm_isdst = dlflag;
 	return ct;
 }
 
 struct tm*
-localtime(const time_t *timp)
+localtime(const time_t* timp)
 {
 	static struct tm xtime;
 
@@ -185,62 +180,59 @@ localtime(const time_t *timp)
 }
 
 char*
-asctime_r(const struct tm *t, char *buf)
+asctime_r(const struct tm* t, char* buf)
 {
-	char *ncp;
+	char* ncp;
 
 	strcpy(buf, "Thu Jan 01 00:00:00 1970\n");
-	ncp = &"SunMonTueWedThuFriSat"[t->tm_wday*3];
+	ncp = &"SunMonTueWedThuFriSat"[t->tm_wday * 3];
 	buf[0] = *ncp++;
 	buf[1] = *ncp++;
 	buf[2] = *ncp;
-	ncp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[t->tm_mon*3];
+	ncp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[t->tm_mon * 3];
 	buf[4] = *ncp++;
 	buf[5] = *ncp++;
 	buf[6] = *ncp;
-	ct_numb(buf+8, t->tm_mday);
-	ct_numb(buf+11, t->tm_hour+100);
-	ct_numb(buf+14, t->tm_min+100);
-	ct_numb(buf+17, t->tm_sec+100);
+	ct_numb(buf + 8, t->tm_mday);
+	ct_numb(buf + 11, t->tm_hour + 100);
+	ct_numb(buf + 14, t->tm_min + 100);
+	ct_numb(buf + 17, t->tm_sec + 100);
 	if(t->tm_year >= 100) {
 		buf[20] = '2';
 		buf[21] = '0';
 	}
-	ct_numb(buf+22, t->tm_year+100);
+	ct_numb(buf + 22, t->tm_year + 100);
 	return buf;
 }
 
 char*
-asctime(const struct tm *t)
+asctime(const struct tm* t)
 {
 	static char cbuf[30];
 
 	return asctime_r(t, cbuf);
 }
 
-static
-dysize(int y)
+static dysize(int y)
 {
-	if((y%4) == 0)
+	if((y % 4) == 0)
 		return 366;
 	return 365;
 }
 
-static
-void
-ct_numb(char *cp, int n)
+static void
+ct_numb(char* cp, int n)
 {
 	cp[0] = ' ';
 	if(n >= 10)
-		cp[0] = (n/10)%10 + '0';
-	cp[1] = n%10 + '0';
+		cp[0] = (n / 10) % 10 + '0';
+	cp[1] = n % 10 + '0';
 }
 
-static
-void
+static void
 readtimezone(void)
 {
-	char buf[TZSIZE*11+30], *p;
+	char buf[TZSIZE * 11 + 30], *p;
 	int i;
 
 	memset(buf, 0, sizeof(buf));
@@ -259,7 +251,7 @@ readtimezone(void)
 		goto error;
 	if(rd_long(&p, &timezone.dldiff))
 		goto error;
-	for(i=0; i<TZSIZE; i++) {
+	for(i = 0; i < TZSIZE; i++) {
 		if(rd_long(&p, &timezone.dlpairs[i]))
 			goto error;
 		if(timezone.dlpairs[i] == 0)
@@ -272,8 +264,7 @@ error:
 	timezone.dlpairs[0] = 0;
 }
 
-static
-rd_name(char **f, char *p)
+static rd_name(char** f, char* p)
 {
 	int c, i;
 
@@ -282,7 +273,7 @@ rd_name(char **f, char *p)
 		if(c != ' ' && c != '\n')
 			break;
 	}
-	for(i=0; i<3; i++) {
+	for(i = 0; i < 3; i++) {
 		if(c == ' ' || c == '\n')
 			return 1;
 		*p++ = c;
@@ -294,8 +285,7 @@ rd_name(char **f, char *p)
 	return 0;
 }
 
-static
-rd_long(char **f, int32_t *p)
+static rd_long(char** f, int32_t* p)
 {
 	int c, s;
 	int32_t l;
@@ -320,7 +310,7 @@ rd_long(char **f, int32_t *p)
 			break;
 		if(c < '0' || c > '9')
 			return 1;
-		l = l*10 + c-'0';
+		l = l * 10 + c - '0';
 		c = *(*f)++;
 	}
 	if(s)

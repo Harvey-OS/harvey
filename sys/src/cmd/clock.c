@@ -12,27 +12,27 @@
 #include <draw.h>
 #include <event.h>
 
-Image *hrhand, *minhand;
-Image *dots, *back;
+Image* hrhand, *minhand;
+Image* dots, *back;
 
 Point
 circlept(Point c, int r, int degrees)
 {
 	double rad;
-	rad = (double) degrees * PI/180.0;
-	c.x += cos(rad)*r;
-	c.y -= sin(rad)*r;
+	rad = (double)degrees * PI / 180.0;
+	c.x += cos(rad) * r;
+	c.y -= sin(rad) * r;
 	return c;
 }
 
 void
-redraw(Image *screen)
+redraw(Image* screen)
 {
 	static int tm, ntm;
 	static Rectangle r;
 	static Point c;
 	static int rad;
-	static Image *im;
+	static Image* im;
 	int i;
 	int anghr, angmin;
 	static Tm tms;
@@ -43,8 +43,8 @@ redraw(Image *screen)
 		return;
 
 	ntms = *localtime(ntm);
-	anghr = 90-(ntms.hour*5 + ntms.min/12)*6;
-	angmin = 90-ntms.min*6;
+	anghr = 90 - (ntms.hour * 5 + ntms.min / 12) * 6;
+	angmin = 90 - ntms.min * 6;
 	tm = ntm;
 	tms = ntms;
 	r = screen->r;
@@ -54,11 +54,13 @@ redraw(Image *screen)
 	rad -= 8;
 
 	draw(screen, screen->r, back, nil, ZP);
-	for(i=0; i<12; i++)
-		fillellipse(screen, circlept(c, rad, i*(360/12)), 2, 2, dots, ZP);
+	for(i = 0; i < 12; i++)
+		fillellipse(screen, circlept(c, rad, i * (360 / 12)), 2, 2,
+		            dots, ZP);
 
-	line(screen, c, circlept(c, (rad*3)/4, angmin), 0, 0, 1, minhand, ZP);
-	line(screen, c, circlept(c, rad/2, anghr), 0, 0, 1, hrhand, ZP);
+	line(screen, c, circlept(c, (rad * 3) / 4, angmin), 0, 0, 1, minhand,
+	     ZP);
+	line(screen, c, circlept(c, rad / 2, anghr), 0, 0, 1, hrhand, ZP);
 
 	flushimage(display, 1);
 }
@@ -66,32 +68,32 @@ redraw(Image *screen)
 void
 eresized(int new)
 {
-	if(new && getwindow(display, Refnone) < 0)
-		fprint(2,"can't reattach to window");
+	if(new&& getwindow(display, Refnone) < 0)
+		fprint(2, "can't reattach to window");
 	redraw(screen);
 }
 
 void
-main(int i, char **c)
+main(int i, char** c)
 {
 	Event e;
 	Mouse m;
 	Menu menu;
-	char *mstr[] = {"exit", 0};
+	char* mstr[] = {"exit", 0};
 	int key, timer;
 	int t;
 
-	if (initdraw(0, 0, "clock") < 0)
+	if(initdraw(0, 0, "clock") < 0)
 		sysfatal("initdraw failed");
 	back = allocimagemix(display, DPalebluegreen, DWhite);
 
-	hrhand = allocimage(display, Rect(0,0,1,1), CMAP8, 1, DDarkblue);
-	minhand = allocimage(display, Rect(0,0,1,1), CMAP8, 1, DPaleblue);
-	dots = allocimage(display, Rect(0,0,1,1), CMAP8, 1, DBlue);
+	hrhand = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, DDarkblue);
+	minhand = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, DPaleblue);
+	dots = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, DBlue);
 	redraw(screen);
 
 	einit(Emouse);
-	t = (30*1000);
+	t = (30 * 1000);
 	timer = etimer(0, t);
 
 	menu.item = mstr;
@@ -107,5 +109,5 @@ main(int i, char **c)
 		} else if(key == timer) {
 			redraw(screen);
 		}
-	}	
+	}
 }

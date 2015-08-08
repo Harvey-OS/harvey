@@ -14,19 +14,19 @@
 #include "authcmdlib.h"
 
 /* working directory */
-Dir	*dirbuf;
-int32_t	ndirbuf = 0;
+Dir* dirbuf;
+int32_t ndirbuf = 0;
 
 int debug;
 
-int32_t	readdirect(int);
-void	douser(Fs*, char*);
-void	dodir(Fs*);
-int	mail(Fs*, char*, char*, int32_t);
-int	mailin(Fs*, char*, int32_t, char*, char*);
-void	complain(char*, ...);
-int32_t	readnumfile(char*);
-void	writenumfile(char*, int32_t);
+int32_t readdirect(int);
+void douser(Fs*, char*);
+void dodir(Fs*);
+int mail(Fs*, char*, char*, int32_t);
+int mailin(Fs*, char*, int32_t, char*, char*);
+void complain(char*, ...);
+int32_t readnumfile(char*);
+void writenumfile(char*, int32_t);
 
 void
 usage(void)
@@ -36,12 +36,13 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int which;
 
 	which = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		which |= Plan9;
 		break;
@@ -53,7 +54,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	argv0 = "warning";
 
 	if(!which)
@@ -65,17 +67,17 @@ main(int argc, char **argv)
 }
 
 void
-dodir(Fs *f)
+dodir(Fs* f)
 {
 	int nfiles;
 	int i, fd;
 
-	if(chdir(f->keys) < 0){
+	if(chdir(f->keys) < 0) {
 		complain("can't chdir to %s: %r", f->keys);
 		return;
 	}
- 	fd = open(".", OREAD);
-	if(fd < 0){
+	fd = open(".", OREAD);
+	if(fd < 0) {
 		complain("can't open %s: %r\n", f->keys);
 		return;
 	}
@@ -89,24 +91,24 @@ dodir(Fs *f)
  *  check for expiration
  */
 void
-douser(Fs *f, char *user)
+douser(Fs* f, char* user)
 {
 	int n, nwarn;
 	char buf[128];
 	int32_t rcvrs, et, now;
-	char *l;
+	char* l;
 
 	snprint(buf, sizeof buf, "%s/expire", user);
 	et = readnumfile(buf);
 	now = time(0);
 
 	/* start warning 2 weeks ahead of time */
-	if(et <= now || et > now+14*24*60*60)
+	if(et <= now || et > now + 14 * 24 * 60 * 60)
 		return;
 
 	snprint(buf, sizeof buf, "%s/warnings", user);
 	nwarn = readnumfile(buf);
-	if(et <= now+14*24*60*60 && et > now+7*24*60*60){
+	if(et <= now + 14 * 24 * 60 * 60 && et > now + 7 * 24 * 60 * 60) {
 		/* one warning 2 weeks before expiration */
 		if(nwarn > 0)
 			return;
@@ -120,17 +122,17 @@ douser(Fs *f, char *user)
 
 	/*
 	 *  if we can't open the who file, just mail to the user and hope
- 	 *  for it makes it.
+	 *  for it makes it.
 	 */
-	if(f->b){
-		if(Bseek(f->b, 0, 0) < 0){
+	if(f->b) {
+		if(Bseek(f->b, 0, 0) < 0) {
 			Bterm(f->b);
 			f->b = 0;
 		}
 	}
-	if(f->b == 0){
+	if(f->b == 0) {
 		f->b = Bopen(f->who, OREAD);
-		if(f->b == 0){
+		if(f->b == 0) {
 			if(mail(f, user, user, et) > 0)
 				writenumfile(buf, nwarn);
 			return;
@@ -142,10 +144,10 @@ douser(Fs *f, char *user)
 	 *  matching lines
 	 */
 	rcvrs = 0;
-	while(l = Brdline(f->b, '\n')){
+	while(l = Brdline(f->b, '\n')) {
 		n = strlen(user);
 		if(strncmp(l, user, n) == 0 && (l[n] == ' ' || l[n] == '\t'))
-			rcvrs += mailin(f, user, et, l, l+Blinelen(f->b));
+			rcvrs += mailin(f, user, et, l, l + Blinelen(f->b));
 	}
 
 	/*
@@ -162,17 +164,17 @@ douser(Fs *f, char *user)
  *  anything in <>'s is an address
  */
 int
-mailin(Fs *f, char *user, int32_t et, char *l, char *e)
+mailin(Fs* f, char* user, int32_t et, char* l, char* e)
 {
 	int n;
 	int rcvrs;
-	char *p;
+	char* p;
 	char addr[256];
 
 	p = 0;
 	rcvrs = 0;
-	while(l < e){
-		switch(*l){
+	while(l < e) {
+		switch(*l) {
 		case '<':
 			p = l + 1;
 			break;
@@ -180,7 +182,7 @@ mailin(Fs *f, char *user, int32_t et, char *l, char *e)
 			if(p == 0)
 				break;
 			n = l - p;
-			if(n > 0 && n <= sizeof(addr) - 2){
+			if(n > 0 && n <= sizeof(addr) - 2) {
 				memmove(addr, p, n);
 				addr[n] = 0;
 				rcvrs += mail(f, addr, user, et);
@@ -197,20 +199,20 @@ mailin(Fs *f, char *user, int32_t et, char *l, char *e)
  *  send mail
  */
 int
-mail(Fs *f, char *rcvr, char *user, int32_t et)
+mail(Fs* f, char* rcvr, char* user, int32_t et)
 {
 	int pid, i, fd;
 	int pfd[2];
-	char *ct, *p;
-	Waitmsg *w;
+	char* ct, *p;
+	Waitmsg* w;
 	char buf[128];
 
-	if(pipe(pfd) < 0){
+	if(pipe(pfd) < 0) {
 		complain("out of pipes: %r");
 		return 0;
 	}
 
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		complain("can't fork: %r");
 		return 0;
@@ -223,9 +225,11 @@ mail(Fs *f, char *rcvr, char *user, int32_t et)
 		ct = ctime(et);
 		p = strchr(ct, '\n');
 		*p = '.';
-		fprint(pfd[1], "User '%s's %s expires on %s\n", user, f->msg, ct);
+		fprint(pfd[1], "User '%s's %s expires on %s\n", user, f->msg,
+		       ct);
 		if(f != fs)
-			fprint(pfd[1], "If you wish to renew contact your local administrator.\n");
+			fprint(pfd[1], "If you wish to renew contact your "
+			               "local administrator.\n");
 		p = strrchr(f->keys, '/');
 		if(p)
 			p++;
@@ -233,7 +237,7 @@ mail(Fs *f, char *rcvr, char *user, int32_t et)
 			p = f->keys;
 		snprint(buf, sizeof buf, "/adm/warn.%s", p);
 		fd = open(buf, OREAD);
-		if(fd >= 0){
+		if(fd >= 0) {
 			while((i = read(fd, buf, sizeof(buf))) > 0)
 				write(pfd[1], buf, i);
 			close(fd);
@@ -241,21 +245,22 @@ mail(Fs *f, char *rcvr, char *user, int32_t et)
 		close(pfd[1]);
 
 		/* wait for warning to be mailed */
-		for(;;){
+		for(;;) {
 			w = wait();
 			if(w == nil)
 				break;
-			if(w->pid == pid){
+			if(w->pid == pid) {
 				if(debug)
-					fprint(2, "%d terminated: %s\n", pid, w->msg);
-				if(w->msg[0] == 0){
+					fprint(2, "%d terminated: %s\n", pid,
+					       w->msg);
+				if(w->msg[0] == 0) {
 					free(w);
 					break;
-				}else{
+				} else {
 					free(w);
 					return 0;
 				}
-			}else
+			} else
 				free(w);
 		}
 		return 1;
@@ -268,7 +273,7 @@ mail(Fs *f, char *rcvr, char *user, int32_t et)
 	close(pfd[0]);
 	close(pfd[1]);
 	putenv("upasname", "netkeys");
-	if(debug){
+	if(debug) {
 		print("\nto %s\n", rcvr);
 		execl("/bin/cat", "cat", nil);
 	}
@@ -277,11 +282,11 @@ mail(Fs *f, char *rcvr, char *user, int32_t et)
 	/* just in case */
 	sysfatal("can't exec send: %r");
 
-	return 0;		/* for compiler */
+	return 0; /* for compiler */
 }
 
 void
-complain(char *fmt, ...)
+complain(char* fmt, ...)
 {
 	char buf[8192], *s;
 	va_list arg;
@@ -296,19 +301,19 @@ complain(char *fmt, ...)
 }
 
 int32_t
-readnumfile(char *file)
+readnumfile(char* file)
 {
 	int fd, n;
 	char buf[64];
 
 	fd = open(file, OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		complain("can't open %s: %r", file);
 		return 0;
 	}
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	close(fd);
-	if(n < 0){
+	if(n < 0) {
 		complain("can't read %s: %r", file);
 		return 0;
 	}
@@ -317,12 +322,12 @@ readnumfile(char *file)
 }
 
 void
-writenumfile(char *file, int32_t num)
+writenumfile(char* file, int32_t num)
 {
 	int fd;
 
 	fd = open(file, OWRITE);
-	if(fd < 0){
+	if(fd < 0) {
 		complain("can't open %s: %r", file);
 		return;
 	}

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int32_t
-runestrlen(Rune *s)
+runestrlen(Rune* s)
 {
 
 	return runestrchr(s, 0) - s;

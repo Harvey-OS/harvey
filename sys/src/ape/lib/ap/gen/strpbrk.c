@@ -8,10 +8,10 @@
  */
 
 #include <string.h>
-#define	N	256
+#define N 256
 
 char*
-strpbrk(const char *s, const char *b)
+strpbrk(const char* s, const char* b)
 {
 	char map[N];
 
@@ -24,6 +24,6 @@ strpbrk(const char *s, const char *b)
 	while(map[*s++] == 0)
 		;
 	if(*--s)
-		return (char *)s;
+		return (char*)s;
 	return 0;
 }

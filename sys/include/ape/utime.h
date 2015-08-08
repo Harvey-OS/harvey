@@ -12,8 +12,7 @@
 
 #pragma lib "/$M/lib/ape/libap.a"
 
-struct utimbuf
-{
+struct utimbuf {
 	time_t actime;
 	time_t modtime;
 };
@@ -22,7 +21,7 @@ struct utimbuf
 extern "C" {
 #endif
 
-extern int utime(const char *, const struct utimbuf *);
+extern int utime(const char*, const struct utimbuf*);
 
 #ifdef __cplusplus
 }

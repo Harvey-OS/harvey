@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1993, 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Wrapper for ctype.h */
 
 #ifndef ctype__INCLUDED
-#  define ctype__INCLUDED
+#define ctype__INCLUDED
 
 /* We must include std.h before any file that includes sys/types.h. */
 #include "std.h"

@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  * Experiment on zero-copy
@@ -29,10 +29,7 @@
  * or something like that.
  */
 
-enum
-{
-	Maxatomic = 64*KiB
-};
+enum { Maxatomic = 64 * KiB };
 
 typedef struct ZMap ZMap;
 typedef struct Map Map;
@@ -40,12 +37,12 @@ typedef struct Map Map;
 struct Map {
 	Map* next;
 	int free;
-	uintptr_t	addr;
-	uint64_t	size;
+	uintptr_t addr;
+	uint64_t size;
 };
 
 struct ZMap {
-	Map*	map;
+	Map* map;
 	Lock;
 };
 
@@ -64,39 +61,39 @@ zioinit(void)
 }
 
 int
-ziofmt(Fmt *f)
+ziofmt(Fmt* f)
 {
-	Kzio *io;
+	Kzio* io;
 
 	io = va_arg(f->args, Kzio*);
 	return fmtprint(f, "%#p[%#ulx]", io->data, io->size);
 }
 
 static void
-dumpzmap(ZMap *map)
+dumpzmap(ZMap* map)
 {
-	Map *mp;
+	Map* mp;
 	for(mp = map->map; mp != nil; mp = mp->next)
 		print("\tmap %#ullx[%#ullx] %c\n", mp->addr, mp->size,
-			mp->free ? 'f' : 'a');
+		      mp->free ? 'f' : 'a');
 }
 
 /*
  * No locks!
  */
 void
-dumpzseg(Segment *s)
+dumpzseg(Segment* s)
 {
-	Zseg *zs;
-	ZMap *map;
+	Zseg* zs;
+	ZMap* map;
 	int i;
 
 	if(DBGFLG == 0)
 		return;
 
 	zs = &s->zseg;
-	print("zseg %#ullx type %#ux map %#p naddr %d end %d\n",
-		s->base, s->type, zs->map, zs->naddr, zs->end);
+	print("zseg %#ullx type %#ux map %#p naddr %d end %d\n", s->base,
+	      s->type, zs->map, zs->naddr, zs->end);
 	if(zs->addr != nil)
 		for(i = 0; i < zs->end; i++)
 			print("\taddr %#ullx\n", zs->addr[i]);
@@ -110,11 +107,11 @@ dumpzseg(Segment *s)
  * Called from putseg, when the segment is being destroyed.
  */
 void
-freezseg(Segment *s)
+freezseg(Segment* s)
 {
-	Zseg *zs;
-	ZMap *zp;
-	Map *mp;
+	Zseg* zs;
+	ZMap* zp;
+	Map* mp;
 
 	DBG("freezseg: ");
 	dumpzseg(s);
@@ -122,7 +119,7 @@ freezseg(Segment *s)
 	zp = zs->map;
 	if(zp == nil)
 		return;
-	while(zp->map != nil){
+	while(zp->map != nil) {
 		mp = zp->map;
 		zp->map = mp->next;
 		free(mp);
@@ -134,15 +131,15 @@ freezseg(Segment *s)
  * Grow the pool of addresses in s's zseg, s is qlocked
  */
 void
-zgrow(Segment *s)
+zgrow(Segment* s)
 {
-	enum{Incr = 32};
-	Zseg *zs;
+	enum { Incr = 32 };
+	Zseg* zs;
 
 	zioinit();
 	zs = &s->zseg;
 	zs->naddr += Incr;
-	zs->addr = realloc(zs->addr, zs->naddr*sizeof(uintptr_t));
+	zs->addr = realloc(zs->addr, zs->naddr * sizeof(uintptr_t));
 	if(zs->addr == nil)
 		panic("zgrow: no memory");
 }
@@ -151,9 +148,9 @@ zgrow(Segment *s)
  * Find an address in s's zseg; s is qlocked
  */
 uintptr_t
-zgetaddr(Segment *s)
+zgetaddr(Segment* s)
 {
-	Zseg *zs;
+	Zseg* zs;
 	uintptr_t va;
 
 	zs = &s->zseg;
@@ -173,14 +170,14 @@ zgetaddr(Segment *s)
  * wakeup any reader if it's waiting.
  */
 int
-zputaddr(Segment *s, uintptr_t va)
+zputaddr(Segment* s, uintptr_t va)
 {
-	Zseg *zs;
+	Zseg* zs;
 
 	zs = &s->zseg;
-	if((s->type&SG_ZIO) == 0)
+	if((s->type & SG_ZIO) == 0)
 		return -1;
-	if((s->type&SG_KZIO) != 0){
+	if((s->type & SG_KZIO) != 0) {
 		DBG("zputaddr: zmapfree %#ullx\n", va);
 		zmapfree(s->zseg.map, va);
 		dumpzseg(s);
@@ -190,16 +187,16 @@ zputaddr(Segment *s, uintptr_t va)
 		zgrow(s);
 	zs->addr[zs->end++] = va;
 	if(zs->end == 1)
-		wakeup(&zs->rr);	/* in case anyone was waiting */
+		wakeup(&zs->rr); /* in case anyone was waiting */
 	DBG("zputaddr %#ullx\n", va);
 	dumpzseg(s);
 	return 0;
 }
 
 void*
-alloczio(Segment *s, int32_t len)
+alloczio(Segment* s, int32_t len)
 {
-	Zseg *zs;
+	Zseg* zs;
 	uintptr_t va;
 
 	zs = &s->zseg;
@@ -216,14 +213,14 @@ alloczio(Segment *s, int32_t len)
 Segment*
 getzkseg(void)
 {
-	Proc *up = externup();
-	Segment *s;
+	Proc* up = externup();
+	Segment* s;
 	int i;
 
 	qlock(&up->seglock);
-	for(i = 0; i < NSEG; i++){
+	for(i = 0; i < NSEG; i++) {
 		s = up->seg[i];
-		if(s != nil && (s->type&SG_KZIO) != 0){
+		if(s != nil && (s->type & SG_KZIO) != 0) {
 			incref(s);
 			qunlock(&up->seglock);
 			DBG("getzkseg: %#p\n", s);
@@ -240,20 +237,20 @@ getzkseg(void)
  * it reads in the traditional way from io[].
  */
 int32_t
-readzio(Kzio *io, int nio, void *a, int32_t count)
+readzio(Kzio* io, int nio, void* a, int32_t count)
 {
 	int32_t tot, nr;
-	char *p;
+	char* p;
 
 	p = a;
 	tot = 0;
-	while(nio-- > 0){
-		if(tot < count){
+	while(nio-- > 0) {
+		if(tot < count) {
 			nr = io->size;
 			if(tot + nr > count)
 				nr = count - tot;
-			DBG("readzio: copy %#p %Z\n", p+tot, io);
-			memmove(p+tot, io->data, nr);
+			DBG("readzio: copy %#p %Z\n", p + tot, io);
+			memmove(p + tot, io->data, nr);
 			tot += nr;
 		}
 		qlock(&io->seg->lk);
@@ -267,10 +264,10 @@ readzio(Kzio *io, int nio, void *a, int32_t count)
 }
 
 int
-devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
+devzread(Chan* c, Kzio io[], int nio, usize tot, int64_t offset)
 {
-	Proc *up = externup();
-	Segment *s;
+	Proc* up = externup();
+	Segment* s;
 
 	DBG("devzread %#p[%d]\n", io, nio);
 
@@ -281,7 +278,7 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 		tot = Maxatomic;
 	io[0].data = alloczio(s, tot);
 	io[0].seg = s;
-	if(waserror()){
+	if(waserror()) {
 		zputaddr(s, PTR2UINT(io[0].data));
 		putseg(s);
 		nexterror();
@@ -292,12 +289,12 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 }
 
 int
-devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
+devzwrite(Chan* c, Kzio io[], int nio, int64_t offset)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i, j;
 	int32_t tot;
-	Block *bp;
+	Block* bp;
 
 	DBG("devzwrite %#p[%d]\n", io, nio);
 
@@ -305,18 +302,18 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 	for(i = 0; i < nio; i++)
 		tot += io[i].size;
 	bp = nil;
-	if(waserror()){
+	if(waserror()) {
 		if(bp != nil)
 			freeb(bp);
 		nexterror();
 	}
 	if(nio == 1)
 		tot = c->dev->write(c, io[0].data, io[0].size, offset);
-	else{
+	else {
 		bp = allocb(tot);
 		if(bp == nil)
 			error(Enomem);
-		for(i = 0; i < nio; i++){
+		for(i = 0; i < nio; i++) {
 			DBG("devzwrite: copy %#p %Z\n", bp->wp, &io[i]);
 			memmove(bp->wp, io[i].data, io[i].size);
 			bp->wp += io[i].size;
@@ -328,7 +325,7 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 		tot = c->dev->bwrite(c, bp, offset);
 	}
 	j = 0;
-	for(i = 0; i < nio; i++){
+	for(i = 0; i < nio; i++) {
 		io[i].data = nil; /* safety */
 		io[i].seg = nil;
 		putseg(io[i].seg);
@@ -337,7 +334,7 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 				tot -= io[i].size;
 			else
 				io[i].size = tot;
-		else{
+		else {
 			j = i;
 			io[i].size = 0;
 		}
@@ -351,10 +348,10 @@ devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 }
 
 static void
-kernzio(Kzio *io)
+kernzio(Kzio* io)
 {
-	Segment *s;
-	void *data;
+	Segment* s;
+	void* data;
 	Kzio uio;
 
 	s = getzkseg();
@@ -377,12 +374,12 @@ kernzio(Kzio *io)
  * is asking the system to allocate memory as needed (mread only).
  */
 static int
-ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
+ziorw(int fd, Zio* io, int nio, usize count, int64_t offset, int iswrite)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i, n, isprw;
-	Kzio *kio, skio[16];
-	Chan *c;
+	Kzio* kio, skio[16];
+	Chan* c;
 	usize tot;
 
 	if(nio <= 0 || nio > 512)
@@ -394,8 +391,8 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	DBG("ziorw %d io%#p[%d] %uld %lld\n", fd, io, nio, count, offset);
 	if(DBGFLG)
 		for(i = 0; i < nio; i++)
-			print("\tio%#p[%d] = %Z %s\n",
-				io, i, (Kzio*)&io[i], iswrite?"w":"r");
+			print("\tio%#p[%d] = %Z %s\n", io, i, (Kzio*)&io[i],
+			      iswrite ? "w" : "r");
 
 	if(iswrite)
 		c = fdtochan(fd, OWRITE, 1, 1);
@@ -404,9 +401,9 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	isprw = offset != -1LL;
 	if(isprw)
 		offset = c->offset;
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
-		if(kio != nil){
+		if(kio != nil) {
 			for(i = 0; i < nio; i++)
 				if(kio[i].seg != nil)
 					putseg(kio[i].seg);
@@ -419,16 +416,16 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 		kio = skio;
 	else
 		kio = smalloc(sizeof kio[0] * nio);
-	for(i = 0; i < nio; i++){
+	for(i = 0; i < nio; i++) {
 		kio[i].Zio = io[i];
-		if(iswrite){
+		if(iswrite) {
 			kio[i].seg = seg(up, PTR2UINT(io[i].data), 1);
 			if(kio[i].seg == nil)
 				error("invalid address in zio");
 			incref(kio[i].seg);
 			qunlock(&kio[i].seg->lk);
 			validaddr(kio[i].data, kio[i].size, 1);
-			if((kio[i].seg->type&SG_ZIO) == 0){
+			if((kio[i].seg->type & SG_ZIO) == 0) {
 				/*
 				 * It's not a segment where we can report
 				 * addresses to anyone once they are free.
@@ -437,18 +434,18 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 				 */
 				kernzio(&kio[i]);
 			}
-			assert(kio[i].seg->type&SG_ZIO);
-		}else{
+			assert(kio[i].seg->type & SG_ZIO);
+		} else {
 			kio[i].data = nil;
 			kio[i].seg = nil;
 		}
 	}
 
-	if(c->dev->zread == nil){
+	if(c->dev->zread == nil) {
 		DBG("installing devzread for %s\n", c->dev->name);
 		c->dev->zread = devzread;
 	}
-	if(c->dev->zwrite == nil){
+	if(c->dev->zwrite == nil) {
 		DBG("installing devzwrite for %s\n", c->dev->name);
 		c->dev->zwrite = devzwrite;
 	}
@@ -457,11 +454,11 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	else
 		n = c->dev->zread(c, kio, nio, count, offset);
 	tot = 0;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		io[i] = kio[i].Zio;
 		tot += kio[i].size;
 	}
-	if(!isprw){
+	if(!isprw) {
 		/* unlike in syswrite, we update offsets at the end */
 		lock(c);
 		c->devoffset += tot;
@@ -476,12 +473,12 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 }
 
 void
-sysziopread(Ar0 *ar0, ...)
+sysziopread(Ar0* ar0, ...)
 {
 	int fd, nio;
 	int32_t count;
 	int64_t offset;
-	Zio *io;
+	Zio* io;
 	va_list list;
 	va_start(list, ar0);
 
@@ -498,11 +495,11 @@ sysziopread(Ar0 *ar0, ...)
 }
 
 void
-sysziopwrite(Ar0 *ar0, ...)
+sysziopwrite(Ar0* ar0, ...)
 {
 	int fd, nio;
 	int64_t offset;
-	Zio *io;
+	Zio* io;
 	va_list list;
 	va_start(list, ar0);
 
@@ -518,12 +515,12 @@ sysziopwrite(Ar0 *ar0, ...)
 }
 
 void
-sysziofree(Ar0 *ar0, ...)
+sysziofree(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Zio *io;
+	Proc* up = externup();
+	Zio* io;
 	int nio, i;
-	Segment *s;
+	Segment* s;
 	va_list list;
 	va_start(list, ar0);
 
@@ -534,11 +531,11 @@ sysziofree(Ar0 *ar0, ...)
 	nio = va_arg(list, int);
 	va_end(list);
 	io = validaddr(io, sizeof io[0] * nio, 1);
-	for(i = 0; i < nio; i++){
+	for(i = 0; i < nio; i++) {
 		s = seg(up, PTR2UINT(io[i].data), 1);
 		if(s == nil)
 			error("invalid address in zio");
-		if((s->type&SG_ZIO) == 0){
+		if((s->type & SG_ZIO) == 0) {
 			qunlock(&s->lk);
 			error("segment is not a zero-copy segment");
 		}
@@ -556,13 +553,13 @@ sysziofree(Ar0 *ar0, ...)
  */
 
 void
-newzmap(Segment *s)
+newzmap(Segment* s)
 {
-	ZMap *zp;
-	Map *mp;
+	ZMap* zp;
+	Map* mp;
 
 	zioinit();
-	if((s->type&SG_KZIO) == 0)
+	if((s->type & SG_KZIO) == 0)
 		panic("newzmap but not SG_KZIO");
 	if(s->zseg.map != nil)
 		panic("newzmap: already allocated");
@@ -573,7 +570,7 @@ newzmap(Segment *s)
 	mp->addr = s->base;
 	mp->size = s->top - s->base;
 	zp->map = mp;
-	if(DBGFLG > 1){
+	if(DBGFLG > 1) {
 		DBG("newzmap:\n");
 		dumpzmap(zp);
 	}
@@ -582,16 +579,16 @@ newzmap(Segment *s)
 static void
 zmapfree(ZMap* rmap, uintptr_t addr)
 {
-	Proc *up = externup();
-	Map *mp, *prev, *next;
+	Proc* up = externup();
+	Map* mp, *prev, *next;
 
 	lock(rmap);
-	if(waserror()){
+	if(waserror()) {
 		unlock(rmap);
 		nexterror();
 	}
 	prev = nil;
-	for(mp = rmap->map; mp != nil; mp = mp->next){
+	for(mp = rmap->map; mp != nil; mp = mp->next) {
 		if(mp->addr <= addr)
 			break;
 		prev = mp;
@@ -600,14 +597,14 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 		panic("zmapfree: no map");
 	if(mp->free == 1)
 		panic("zmapfree: already free");
-	if(prev != nil && prev->free && prev->addr + prev->size == addr){
+	if(prev != nil && prev->free && prev->addr + prev->size == addr) {
 		prev->size += mp->size;
 		prev->next = mp->next;
 		free(mp);
 		mp = prev;
 	}
 	next = mp->next;
-	if(next != nil && next->free && mp->addr + mp->size == next->addr){
+	if(next != nil && next->free && mp->addr + mp->size == next->addr) {
 		mp->size += next->size;
 		mp->next = next->next;
 		mp->free = 1;
@@ -615,7 +612,7 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 	}
 	poperror();
 	unlock(rmap);
-	if(DBGFLG > 1){
+	if(DBGFLG > 1) {
 		DBG("zmapfree %#ullx:\n", addr);
 		dumpzmap(rmap);
 	}
@@ -624,24 +621,24 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 static uintptr_t
 zmapalloc(ZMap* rmap, usize size)
 {
-	Proc *up = externup();
-	Map *mp, *nmp;
+	Proc* up = externup();
+	Map* mp, *nmp;
 
 	lock(rmap);
-	if(waserror()){
+	if(waserror()) {
 		unlock(rmap);
 		nexterror();
 	}
 	for(mp = rmap->map; mp->free == 0 || mp->size < size; mp = mp->next)
 		;
-	if(mp == nil){
+	if(mp == nil) {
 		poperror();
 		unlock(rmap);
 		return 0ULL;
 	}
 	if(mp->free == 0)
 		panic("zmapalloc: not free");
-	if(mp->size > size){
+	if(mp->size > size) {
 		nmp = smalloc(sizeof *nmp);
 		*nmp = *mp;
 		nmp->addr += size;
@@ -653,7 +650,7 @@ zmapalloc(ZMap* rmap, usize size)
 	mp->free = 0;
 	poperror();
 	unlock(rmap);
-	if(DBGFLG > 1){
+	if(DBGFLG > 1) {
 		DBG("zmapalloc %#ullx:\n", mp->addr);
 		dumpzmap(rmap);
 	}

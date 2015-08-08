@@ -14,86 +14,77 @@
 #include "dat.h"
 #include "fns.h"
 
-enum
-{
-	Maxfdata	= 8192,
-	Maxiosize	= IOHDRSZ+Maxfdata,
+enum { Maxfdata = 8192,
+       Maxiosize = IOHDRSZ + Maxfdata,
 };
 
 void io(int);
 void rversion(void);
-void	rattach(void);
-void	rauth(void);
-void	rclunk(void);
-void	rcreate(void);
-void	rflush(void);
-void	ropen(void);
-void	rread(void);
-void	rremove(void);
-void	rsession(void);
-void	rstat(void);
-void	rwalk(void);
-void	rwrite(void);
-void	rwstat(void);
+void rattach(void);
+void rauth(void);
+void rclunk(void);
+void rcreate(void);
+void rflush(void);
+void ropen(void);
+void rread(void);
+void rremove(void);
+void rsession(void);
+void rstat(void);
+void rwalk(void);
+void rwrite(void);
+void rwstat(void);
 
-static int	openflags(int);
-//static void	rmservice(void);
-static void	usage(void);
+static int openflags(int);
+// static void	rmservice(void);
+static void usage(void);
 
-#define Reqsize (sizeof(Fcall)+Maxfdata)
+#define Reqsize (sizeof(Fcall) + Maxfdata)
 
-Fcall *req;
-Fcall *rep;
+Fcall* req;
+Fcall* rep;
 
 uint8_t mdata[Maxiosize];
 char fdata[Maxfdata];
 uint8_t statbuf[STATMAX];
 int errno;
 
-static char	srvfile[64];
+static char srvfile[64];
 
-extern Xfsub	*xsublist[];
-extern int	nclust;
+extern Xfsub* xsublist[];
+extern int nclust;
 
-jmp_buf	err_lab[16];
-int	nerr_lab;
-char	err_msg[ERRMAX];
+jmp_buf err_lab[16];
+int nerr_lab;
+char err_msg[ERRMAX];
 
-int	chatty;
-int	nojoliet;
-int	noplan9;
+int chatty;
+int nojoliet;
+int noplan9;
 int norock;
 
-void	(*fcalls[])(void) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+void (*fcalls[])(void) = {
+        [Tversion] rversion, [Tflush] rflush,   [Tauth] rauth,
+        [Tattach] rattach,   [Twalk] rwalk,     [Topen] ropen,
+        [Tcreate] rcreate,   [Tread] rread,     [Twrite] rwrite,
+        [Tclunk] rclunk,     [Tremove] rremove, [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int srvfd, pipefd[2], stdio;
-	Xfsub **xs;
+	Xfsub** xs;
 
 	stdio = 0;
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case '9':
 		noplan9 = 1;
 		break;
 	case 'c':
 		nclust = atoi(EARGF(usage()));
-		if (nclust <= 0)
+		if(nclust <= 0)
 			sysfatal("nclust %d non-positive", nclust);
 		break;
 	case 'f':
@@ -113,7 +104,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	switch(argc) {
 	case 0:
@@ -126,7 +118,7 @@ main(int argc, char **argv)
 	}
 
 	iobuf_init();
-	for(xs=xsublist; *xs; xs++)
+	for(xs = xsublist; *xs; xs++)
 		(*(*xs)->reset)();
 
 	if(stdio) {
@@ -140,7 +132,7 @@ main(int argc, char **argv)
 		if(pipe(pipefd) < 0)
 			panic(1, "pipe");
 		sprint(srvfile, "/srv/%s", srvname);
-		srvfd = create(srvfile, OWRITE|ORCLOSE, 0600);
+		srvfd = create(srvfile, OWRITE | ORCLOSE, 0600);
 		if(srvfd < 0)
 			panic(1, srvfile);
 		fprint(srvfd, "%d", pipefd[0]);
@@ -149,7 +141,7 @@ main(int argc, char **argv)
 	}
 	srvfd = pipefd[1];
 
-	switch(rfork(RFNOWAIT|RFNOTEG|RFFDG|RFPROC)){
+	switch(rfork(RFNOWAIT | RFNOTEG | RFFDG | RFPROC)) {
 	case -1:
 		panic(1, "fork");
 	default:
@@ -173,7 +165,7 @@ io(int srvfd)
 	pid = getpid();
 	fmtinstall('F', fcallfmt);
 
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads.
@@ -194,7 +186,7 @@ io(int srvfd)
 			fprint(2, "9660srv %d:<-%F\n", pid, req);
 
 		errno = 0;
-		if(!waserror()){
+		if(!waserror()) {
 			err_msg[0] = 0;
 			if(req->type >= nelem(fcalls) || !fcalls[req->type])
 				error("bad fcall type");
@@ -202,10 +194,10 @@ io(int srvfd)
 			poperror();
 		}
 
-		if(err_msg[0]){
+		if(err_msg[0]) {
 			rep->type = Rerror;
 			rep->ename = err_msg;
-		}else{
+		} else {
 			rep->type = req->type + 1;
 			rep->fid = req->fid;
 		}
@@ -219,10 +211,11 @@ io(int srvfd)
 		if(write(srvfd, mdata, n) != n)
 			panic(1, "mount write");
 		if(nerr_lab != 0)
-			panic(0, "err stack %d: %lux %lux %lux %lux %lux %lux", nerr_lab,
-			err_lab[0][JMPBUFPC], err_lab[1][JMPBUFPC],
-			err_lab[2][JMPBUFPC], err_lab[3][JMPBUFPC],
-			err_lab[4][JMPBUFPC], err_lab[5][JMPBUFPC]);
+			panic(0, "err stack %d: %lux %lux %lux %lux %lux %lux",
+			      nerr_lab, err_lab[0][JMPBUFPC],
+			      err_lab[1][JMPBUFPC], err_lab[2][JMPBUFPC],
+			      err_lab[3][JMPBUFPC], err_lab[4][JMPBUFPC],
+			      err_lab[5][JMPBUFPC]);
 	}
 	chat("server shut down");
 }
@@ -230,14 +223,15 @@ io(int srvfd)
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-v] [-9Jr] [-s] [-f devicefile] [srvname]\n", argv0);
+	fprint(2, "usage: %s [-v] [-9Jr] [-s] [-f devicefile] [srvname]\n",
+	       argv0);
 	exits("usage");
 }
 
 void
-error(char *p)
+error(char* p)
 {
-	strecpy(err_msg, err_msg+sizeof err_msg, p);
+	strecpy(err_msg, err_msg + sizeof err_msg, p);
 	nexterror();
 }
 
@@ -250,7 +244,7 @@ nexterror(void)
 void*
 ealloc(int32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == 0)
@@ -259,12 +253,12 @@ ealloc(int32_t n)
 }
 
 void
-setnames(Dir *d, char *n)
+setnames(Dir* d, char* n)
 {
 	d->name = n;
-	d->uid = n+Maxname;
-	d->gid = n+Maxname*2;
-	d->muid = n+Maxname*3;
+	d->uid = n + Maxname;
+	d->gid = n + Maxname * 2;
+	d->muid = n + Maxname * 3;
 
 	d->name[0] = '\0';
 	d->uid[0] = '\0';
@@ -296,14 +290,14 @@ rflush(void)
 void
 rattach(void)
 {
-	Xfs *xf;
-	Xfile *root;
-	Xfsub **xs;
+	Xfs* xf;
+	Xfile* root;
+	Xfsub** xs;
 
-	chat("attach(fid=%d,uname=\"%s\",aname=\"%s\")...",
-		req->fid, req->uname, req->aname);
+	chat("attach(fid=%d,uname=\"%s\",aname=\"%s\")...", req->fid,
+	     req->uname, req->aname);
 
-	if(waserror()){
+	if(waserror()) {
 		xfile(req->fid, Clunk);
 		nexterror();
 	}
@@ -314,8 +308,8 @@ rattach(void)
 	xf->ref = 1;
 	xf->d = getxdata(req->aname);
 
-	for(xs=xsublist; *xs; xs++)
-		if((*(*xs)->attach)(root) >= 0){
+	for(xs = xsublist; *xs; xs++)
+		if((*(*xs)->attach)(root) >= 0) {
 			poperror();
 			xf->s = *xs;
 			xf->rootqid = root->qid;
@@ -326,12 +320,12 @@ rattach(void)
 }
 
 Xfile*
-doclone(Xfile *of, int newfid)
+doclone(Xfile* of, int newfid)
 {
-	Xfile *nf, *next;
+	Xfile* nf, *next;
 
 	nf = xfile(newfid, Clean);
-	if(waserror()){
+	if(waserror()) {
 		xfile(newfid, Clunk);
 		nexterror();
 	}
@@ -340,10 +334,10 @@ doclone(Xfile *of, int newfid)
 	nf->next = next;
 	nf->fid = newfid;
 	refxfs(nf->xf, 1);
-	if(nf->len){
+	if(nf->len) {
 		nf->ptr = ealloc(nf->len);
 		memmove(nf->ptr, of->ptr, nf->len);
-	}else
+	} else
 		nf->ptr = of->ptr;
 	(*of->xf->s->clone)(of, nf);
 	poperror();
@@ -353,8 +347,8 @@ doclone(Xfile *of, int newfid)
 void
 rwalk(void)
 {
-	Xfile *f, *nf;
-	Isofile *oldptr;
+	Xfile* f, *nf;
+	Isofile* oldptr;
 	int oldlen;
 	Qid oldqid;
 
@@ -368,21 +362,21 @@ rwalk(void)
 	oldqid = f->qid;
 	oldlen = f->len;
 	oldptr = f->ptr;
-	if(oldlen){
+	if(oldlen) {
 		oldptr = ealloc(oldlen);
 		memmove(oldptr, f->ptr, oldlen);
 	}
 
-	if(waserror()){
+	if(waserror()) {
 		/*
 		 * if nf != nil, nf == f, which is derived from req->newfid,
 		 * so we can't clunk req->newfid with xfile, which would put
 		 * f back on the free list, until we're done with f below.
 		 */
-		if(rep->nwqid == req->nwname){
+		if(rep->nwqid == req->nwname) {
 			if(oldlen)
 				free(oldptr);
-		}else{
+		} else {
 			/* restore previous state */
 			f->qid = oldqid;
 			if(f->len)
@@ -392,24 +386,25 @@ rwalk(void)
 		}
 		if(nf != nil)
 			xfile(req->newfid, Clunk);
-		if(rep->nwqid==req->nwname || rep->nwqid > 0){
+		if(rep->nwqid == req->nwname || rep->nwqid > 0) {
 			err_msg[0] = '\0';
 			return;
 		}
 		nexterror();
 	}
 
-	for(rep->nwqid=0; rep->nwqid < req->nwname && rep->nwqid < MAXWELEM; rep->nwqid++){
+	for(rep->nwqid = 0; rep->nwqid < req->nwname && rep->nwqid < MAXWELEM;
+	    rep->nwqid++) {
 		chat("\twalking %s\n", req->wname[rep->nwqid]);
-		if(!(f->qid.type & QTDIR)){
+		if(!(f->qid.type & QTDIR)) {
 			chat("\tnot dir: type=%#x\n", f->qid.type);
 			error("walk in non-directory");
 		}
 
-		if(strcmp(req->wname[rep->nwqid], "..")==0){
+		if(strcmp(req->wname[rep->nwqid], "..") == 0) {
 			if(f->qid.path != f->xf->rootqid.path)
 				(*f->xf->s->walkup)(f);
-		}else
+		} else
 			(*f->xf->s->walk)(f, req->wname[rep->nwqid]);
 		rep->wqid[rep->nwqid] = f->qid;
 	}
@@ -421,12 +416,12 @@ rwalk(void)
 void
 ropen(void)
 {
-	Xfile *f;
+	Xfile* f;
 
 	f = xfile(req->fid, Asis);
-	if(f->flags&Omodes)
+	if(f->flags & Omodes)
 		error("open on open file");
-	if(req->mode&ORCLOSE)
+	if(req->mode & ORCLOSE)
 		error("no removes");
 	(*f->xf->s->open)(f, req->mode);
 	f->flags = openflags(req->mode);
@@ -438,46 +433,47 @@ void
 rcreate(void)
 {
 	error("no creates");
-/*
-	Xfile *f;
+	/*
+	        Xfile *f;
 
-	if(strcmp(req->name, ".") == 0 || strcmp(req->name, "..") == 0)
-		error("create . or ..");
-	f = xfile(req->fid, Asis);
-	if(f->flags&Omodes)
-		error("create on open file");
-	if(!(f->qid.path&CHDIR))
-		error("create in non-directory");
-	(*f->xf->s->create)(f, req->name, req->perm, req->mode);
-	chat("f->qid=0x%8.8lux...", f->qid.path);
-	f->flags = openflags(req->mode);
-	rep->qid = f->qid;
-*/
+	        if(strcmp(req->name, ".") == 0 || strcmp(req->name, "..") == 0)
+	                error("create . or ..");
+	        f = xfile(req->fid, Asis);
+	        if(f->flags&Omodes)
+	                error("create on open file");
+	        if(!(f->qid.path&CHDIR))
+	                error("create in non-directory");
+	        (*f->xf->s->create)(f, req->name, req->perm, req->mode);
+	        chat("f->qid=0x%8.8lux...", f->qid.path);
+	        f->flags = openflags(req->mode);
+	        rep->qid = f->qid;
+	*/
 }
 
 void
 rread(void)
 {
-	Xfile *f;
+	Xfile* f;
 
-	f=xfile(req->fid, Asis);
-	if (!(f->flags&Oread))
+	f = xfile(req->fid, Asis);
+	if(!(f->flags & Oread))
 		error("file not opened for reading");
 	if(f->qid.type & QTDIR)
 		rep->count = (*f->xf->s->readdir)(f, (uint8_t*)fdata,
-						  req->offset, req->count);
+		                                  req->offset, req->count);
 	else
-		rep->count = (*f->xf->s->read)(f, fdata, req->offset, req->count);
+		rep->count =
+		    (*f->xf->s->read)(f, fdata, req->offset, req->count);
 	rep->data = fdata;
 }
 
 void
 rwrite(void)
 {
-	Xfile *f;
+	Xfile* f;
 
-	f=xfile(req->fid, Asis);
-	if(!(f->flags&Owrite))
+	f = xfile(req->fid, Asis);
+	if(!(f->flags & Owrite))
 		error("file not opened for writing");
 	rep->count = (*f->xf->s->write)(f, req->data, req->offset, req->count);
 }
@@ -485,9 +481,9 @@ rwrite(void)
 void
 rclunk(void)
 {
-	Xfile *f;
+	Xfile* f;
 
-	if(!waserror()){
+	if(!waserror()) {
 		f = xfile(req->fid, Asis);
 		(*f->xf->s->clunk)(f);
 		poperror();
@@ -504,11 +500,11 @@ rremove(void)
 void
 rstat(void)
 {
-	Xfile *f;
+	Xfile* f;
 	Dir dir;
 
 	chat("stat(fid=%d)...", req->fid);
-	f=xfile(req->fid, Asis);
+	f = xfile(req->fid, Asis);
 	setnames(&dir, fdata);
 	(*f->xf->s->stat)(f, &dir);
 	if(chatty)
@@ -528,14 +524,17 @@ openflags(int mode)
 {
 	int flags = 0;
 
-	switch(mode & ~(OTRUNC|OCEXEC|ORCLOSE)){
+	switch(mode & ~(OTRUNC | OCEXEC | ORCLOSE)) {
 	case OREAD:
 	case OEXEC:
-		flags = Oread; break;
+		flags = Oread;
+		break;
 	case OWRITE:
-		flags = Owrite; break;
+		flags = Owrite;
+		break;
 	case ORDWR:
-		flags = Oread|Owrite; break;
+		flags = Oread | Owrite;
+		break;
 	}
 	if(mode & ORCLOSE)
 		flags |= Orclose;
@@ -543,32 +542,31 @@ openflags(int mode)
 }
 
 void
-showdir(int fd, Dir *s)
+showdir(int fd, Dir* s)
 {
 	char a_time[32], m_time[32];
-	char *p;
+	char* p;
 
 	strcpy(a_time, ctime(s->atime));
-	if(p=strchr(a_time, '\n'))	/* assign = */
+	if(p = strchr(a_time, '\n')) /* assign = */
 		*p = 0;
 	strcpy(m_time, ctime(s->mtime));
-	if(p=strchr(m_time, '\n'))	/* assign = */
+	if(p = strchr(m_time, '\n')) /* assign = */
 		*p = 0;
 	fprint(fd, "name=\"%s\" qid=(0x%llux,%lud) type=%d dev=%d \
 mode=0x%8.8lux=0%luo atime=%s mtime=%s length=%lld uid=\"%s\" gid=\"%s\"...",
-		s->name, s->qid.path, s->qid.vers, s->type, s->dev,
-		s->mode, s->mode,
-		a_time, m_time, s->length, s->uid, s->gid);
+	       s->name, s->qid.path, s->qid.vers, s->type, s->dev, s->mode,
+	       s->mode, a_time, m_time, s->length, s->uid, s->gid);
 }
 
-#define	SIZE	1024
+#define SIZE 1024
 
 void
-chat(char *fmt, ...)
+chat(char* fmt, ...)
 {
 	va_list arg;
 
-	if(chatty){
+	if(chatty) {
 		va_start(arg, fmt);
 		vfprint(2, fmt, arg);
 		va_end(arg);
@@ -576,17 +574,18 @@ chat(char *fmt, ...)
 }
 
 void
-panic(int rflag, char *fmt, ...)
+panic(int rflag, char* fmt, ...)
 {
 	va_list arg;
-	char buf[SIZE]; int n;
+	char buf[SIZE];
+	int n;
 
 	n = sprint(buf, "%s %d: ", argv0, getpid());
 	va_start(arg, fmt);
-	vseprint(buf+n, buf+SIZE, fmt, arg);
+	vseprint(buf + n, buf + SIZE, fmt, arg);
 	va_end(arg);
 	fprint(2, (rflag ? "%s: %r\n" : "%s\n"), buf);
-	if(chatty){
+	if(chatty) {
 		fprint(2, "abort\n");
 		abort();
 	}

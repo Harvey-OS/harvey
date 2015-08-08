@@ -14,16 +14,15 @@
 #include <ndb.h>
 #include "ndbhf.h"
 
-
 /*
  *  parse a single tuple
  */
 char*
-_ndbparsetuple(char *cp, Ndbtuple **tp)
+_ndbparsetuple(char* cp, Ndbtuple** tp)
 {
-	char *p;
+	char* p;
 	int len;
-	Ndbtuple *t;
+	Ndbtuple* t;
 
 	/* a '#' starts a comment lasting till new line */
 	EATWHITE(cp);
@@ -40,21 +39,21 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 		cp++;
 	len = cp - p;
 	if(len >= Ndbalen)
-		len = Ndbalen-1;
+		len = Ndbalen - 1;
 	strncpy(t->attr, p, len);
 
 	/* parse value */
 	EATWHITE(cp);
-	if(*cp == '='){
+	if(*cp == '=') {
 		cp++;
-		if(*cp == '"'){
+		if(*cp == '"') {
 			p = ++cp;
 			while(*cp != '\n' && *cp != '"')
 				cp++;
 			len = cp - p;
 			if(*cp == '"')
 				cp++;
-		} else if(*cp == '#'){
+		} else if(*cp == '#') {
 			len = 0;
 		} else {
 			p = cp;
@@ -69,25 +68,25 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 }
 
 /*
- *  parse all tuples in a line.  we assume that the 
+ *  parse all tuples in a line.  we assume that the
  *  line ends in a '\n'.
  *
  *  the tuples are linked as a list using ->entry and
  *  as a ring using ->line.
  */
 Ndbtuple*
-_ndbparseline(char *cp)
+_ndbparseline(char* cp)
 {
-	Ndbtuple *t;
-	Ndbtuple *first, *last;
+	Ndbtuple* t;
+	Ndbtuple* first, *last;
 
 	first = last = 0;
-	while(*cp != '#' && *cp != '\n'){
+	while(*cp != '#' && *cp != '\n') {
 		t = 0;
 		cp = _ndbparsetuple(cp, &t);
 		if(cp == 0)
 			break;
-		if(first){
+		if(first) {
 			last->line = t;
 			last->entry = t;
 		} else

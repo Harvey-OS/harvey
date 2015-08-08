@@ -25,40 +25,43 @@
 #include "audio.h"
 #include "audioctl.h"
 
-#define STACKSIZE 16*1024
+#define STACKSIZE 16 * 1024
 
 extern char* srvpost;
-char * mntpt;
+char* mntpt;
 
-Channel *controlchan;
+Channel* controlchan;
 
 int verbose;
 int setrec = 0;
 int defaultspeed[2] = {44100, 44100};
-Dev *buttondev;
-Dev *epdev[2];
+Dev* buttondev;
+Dev* epdev[2];
 
 static void
-audio_endpoint(Dev *, Desc *dd)
+audio_endpoint(Dev*, Desc* dd)
 {
-	byte *b = (uint8_t*)&dd->data;
+	byte* b = (uint8_t*)&dd->data;
 	int n = dd->data.bLength;
-	char *hd;
+	char* hd;
 
-	switch(b[2]){
+	switch(b[2]) {
 	case 0x01:
-		if(usbdebug){
-			fprint(2, "CS_ENDPOINT for attributes 0x%x, lockdelayunits %d, lockdelay %#ux, ",
-				b[3], b[4], b[5] | (b[6]<<8));
+		if(usbdebug) {
+			fprint(2, "CS_ENDPOINT for attributes 0x%x, "
+			          "lockdelayunits %d, lockdelay %#ux, ",
+			       b[3], b[4], b[5] | (b[6] << 8));
 			if(b[3] & has_setspeed)
 				fprint(2, "has sampling-frequency control");
 			else
-				fprint(2, "does not have sampling-frequency control");
-			if(b[3] & 0x1<<1)
+				fprint(
+				    2,
+				    "does not have sampling-frequency control");
+			if(b[3] & 0x1 << 1)
 				fprint(2, ", has pitch control");
 			else
 				fprint(2, ", does not have pitch control");
-			if(b[3] & 0x1<<7)
+			if(b[3] & 0x1 << 7)
 				fprint(2, ", max packets only");
 			fprint(2, "\n");
 		}
@@ -69,19 +72,22 @@ audio_endpoint(Dev *, Desc *dd)
 		if(dd->altc == nil)
 			sysfatal("alt == nil");
 		if(dd->altc->aux == nil)
-			dd->altc->aux= mallocz(sizeof(Audioalt),1);
+			dd->altc->aux = mallocz(sizeof(Audioalt), 1);
 		((Audioalt*)dd->altc->aux)->caps |= b[3];
 		break;
 	case 0x02:
-		if(usbdebug){
-			fprint(2, "CS_INTERFACE FORMAT_TYPE %d, channels %d, subframesize %d, resolution %d, freqtype %d, ",
-				b[3], b[4], b[5], b[6], b[7]);
+		if(usbdebug) {
+			fprint(2, "CS_INTERFACE FORMAT_TYPE %d, channels %d, "
+			          "subframesize %d, resolution %d, freqtype "
+			          "%d, ",
+			       b[3], b[4], b[5], b[6], b[7]);
 			fprint(2, "freq0 %d, freq1 %d\n",
-				b[8] | (b[9]<<8) | (b[10]<<16), b[11] | (b[12]<<8) | (b[13]<<16));
+			       b[8] | (b[9] << 8) | (b[10] << 16),
+			       b[11] | (b[12] << 8) | (b[13] << 16));
 		}
 		break;
 	default:
-		if(usbdebug){
+		if(usbdebug) {
 			hd = hexstr(b, n);
 			fprint(2, "CS_INTERFACE: %s\n", hd);
 			free(hd);
@@ -89,26 +95,25 @@ audio_endpoint(Dev *, Desc *dd)
 	}
 }
 
-enum {
-	None,
-	Volumeset,
-	Volumeget,
-	Altset,
-	Altget,
-	Speedget,
+enum { None,
+       Volumeset,
+       Volumeget,
+       Altset,
+       Altget,
+       Speedget,
 };
 
 void
-controlproc(void *)
+controlproc(void*)
 {
 	/* Proc that looks after /dev/usb/%d/ctl */
 	int i, nf;
-	char *req, *args[8];
-	Audiocontrol *c;
+	char* req, *args[8];
+	Audiocontrol* c;
 	int32_t value[8];
-	Channel *replchan;
+	Channel* replchan;
 
-	while(req = recvp(controlchan)){
+	while(req = recvp(controlchan)) {
 		int rec;
 
 		nf = tokenize(req, args, nelem(args));
@@ -119,42 +124,54 @@ controlproc(void *)
 			rec = Play;
 		else if(strcmp(args[2], "record") == 0)
 			rec = Record;
-		else{
+		else {
 			/* illegal request */
 			dprint(2, "%s must be record or playback", args[2]);
-			if(replchan) chanprint(replchan, "%s must be record or playback", args[2]);
+			if(replchan)
+				chanprint(replchan,
+				          "%s must be record or playback",
+				          args[2]);
 			free(req);
 			continue;
 		}
 		c = nil;
-		for(i = 0; i < Ncontrol; i++){
+		for(i = 0; i < Ncontrol; i++) {
 			c = &controls[rec][i];
 			if(strcmp(args[1], c->name) == 0)
 				break;
 		}
-		if(i == Ncontrol){
+		if(i == Ncontrol) {
 			dprint(2, "Illegal control name: %s", args[1]);
-			if(replchan) chanprint(replchan, "Illegal control name: %s", args[1]);
-		}else if(!c->settable){
+			if(replchan)
+				chanprint(replchan, "Illegal control name: %s",
+				          args[1]);
+		} else if(!c->settable) {
 			dprint(2, "%s %s is not settable", args[1], args[2]);
 			if(replchan)
-				chanprint(replchan, "%s %s is not settable", args[1], args[2]);
-		}else if(nf < 4){
-			dprint(2, "insufficient arguments for %s %s", args[1], args[2]);
+				chanprint(replchan, "%s %s is not settable",
+				          args[1], args[2]);
+		} else if(nf < 4) {
+			dprint(2, "insufficient arguments for %s %s", args[1],
+			       args[2]);
 			if(replchan)
-				chanprint(replchan, "insufficient arguments for %s %s",
-					args[1], args[2]);
-		}else if(ctlparse(args[3], c, value) < 0){
+				chanprint(replchan,
+				          "insufficient arguments for %s %s",
+				          args[1], args[2]);
+		} else if(ctlparse(args[3], c, value) < 0) {
 			if(replchan)
-				chanprint(replchan, "parse error in %s %s", args[1], args[2]);
-		}else{
+				chanprint(replchan, "parse error in %s %s",
+				          args[1], args[2]);
+		} else {
 			dprint(2, "controlproc: setcontrol %s %s %s\n",
-					rec?"in":"out", args[1], args[3]);
-			if(setcontrol(rec, args[1], value) < 0){
+			       rec ? "in" : "out", args[1], args[3]);
+			if(setcontrol(rec, args[1], value) < 0) {
 				if(replchan)
-					chanprint(replchan, "setting %s %s failed", args[1], args[2]);
-			}else{
-				if(replchan) chanprint(replchan, "ok");
+					chanprint(replchan,
+					          "setting %s %s failed",
+					          args[1], args[2]);
+			} else {
+				if(replchan)
+					chanprint(replchan, "ok");
 			}
 			ctlevent();
 		}
@@ -163,28 +180,28 @@ controlproc(void *)
 }
 
 void
-buttonproc(void *)
+buttonproc(void*)
 {
-	int	i, fd, b;
+	int i, fd, b;
 	char err[32];
 	byte buf[1];
-	Audiocontrol *c;
+	Audiocontrol* c;
 
 	fd = buttondev->dfd;
 
 	c = &controls[Play][Volume_control];
-	for(;;){
-		if((b = read(fd, buf, 1)) < 0){
+	for(;;) {
+		if((b = read(fd, buf, 1)) < 0) {
 			rerrstr(err, sizeof err);
-			if(strcmp(err, "interrupted") == 0){
+			if(strcmp(err, "interrupted") == 0) {
 				dprint(2, "read interrupted\n");
 				continue;
 			}
 			sysfatal("read %s/data: %r", buttondev->dir);
 		}
-		if(b == 0 || buf[0] == 0){
+		if(b == 0 || buf[0] == 0) {
 			continue;
-		}else if(buf[0] == 1){
+		} else if(buf[0] == 1) {
 			if(c->chans == 0)
 				c->value[0] += c->step;
 			else
@@ -192,7 +209,7 @@ buttonproc(void *)
 					if(c->chans & 1 << i)
 						c->value[i] += c->step;
 			chanprint(controlchan, "0 volume playback %A", c);
-		}else if(buf[0] == 2){
+		} else if(buf[0] == 2) {
 			if(c->chans == 0)
 				c->value[0] -= c->step;
 			else
@@ -200,7 +217,7 @@ buttonproc(void *)
 					if(c->chans & 1 << i)
 						c->value[i] -= c->step;
 			chanprint(controlchan, "0 volume playback %A", c);
-		}else if(usbdebug){
+		} else if(usbdebug) {
 			fprint(2, "button");
 			for(i = 0; i < b; i++)
 				fprint(2, " %#2.2x", buf[i]);
@@ -209,38 +226,38 @@ buttonproc(void *)
 	}
 }
 
-
 void
 usage(void)
 {
 	fprint(2, "usage: usbaudio [-dpV] [-N nb] [-m mountpoint] [-s srvname] "
-		"[-v volume] [dev]\n");
+	          "[-v volume] [dev]\n");
 	threadexitsall("usage");
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	char *devdir;
+	char* devdir;
 	int i;
 	long value[8], volume[8];
-	Audiocontrol *c;
-	char *p;
+	Audiocontrol* c;
+	char* p;
 	extern int attachok;
-	Ep *ep;
-	int csps[] = { Audiocsp, 0};
+	Ep* ep;
+	int csps[] = {Audiocsp, 0};
 
 	devdir = nil;
 	volume[0] = Undef;
-	for(i = 0; i<8; i++)
+	for(i = 0; i < 8; i++)
 		value[i] = 0;
 	fmtinstall('A', Aconv);
 	fmtinstall('U', Ufmt);
 	quotefmtinstall();
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'N':
-		p = EARGF(usage());	/* ignore dev nb */
+		p = EARGF(usage()); /* ignore dev nb */
 		break;
 	case 'd':
 		usbdebug++;
@@ -265,8 +282,9 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
-	switch(argc){
+	}
+	ARGEND
+	switch(argc) {
 	case 0:
 		break;
 	case 1:
@@ -276,7 +294,7 @@ threadmain(int argc, char **argv)
 		usage();
 	}
 	if(devdir == nil)
-		if(finddevs(matchdevcsp, csps, &devdir, 1) < 1){
+		if(finddevs(matchdevcsp, csps, &devdir, 1) < 1) {
 			fprint(2, "No usb audio\n");
 			threadexitsall("usbaudio not found");
 		}
@@ -285,35 +303,37 @@ threadmain(int argc, char **argv)
 		sysfatal("opendev: %r");
 	if(configdev(ad) < 0)
 		sysfatal("configdev: %r");
-	
+
 	for(i = 0; i < nelem(ad->usb->ddesc); i++)
 		if(ad->usb->ddesc[i] != nil)
-		switch(ad->usb->ddesc[i]->data.bDescriptorType){
-		case AUDIO_INTERFACE:
-			audio_interface(ad, ad->usb->ddesc[i]);
-			break;
-		case AUDIO_ENDPOINT:
-			audio_endpoint(ad, ad->usb->ddesc[i]);
-			break;
-		}
+			switch(ad->usb->ddesc[i]->data.bDescriptorType) {
+			case AUDIO_INTERFACE:
+				audio_interface(ad, ad->usb->ddesc[i]);
+				break;
+			case AUDIO_ENDPOINT:
+				audio_endpoint(ad, ad->usb->ddesc[i]);
+				break;
+			}
 
 	controlchan = chancreate(sizeof(char*), 8);
 
 	for(i = 0; i < nelem(ad->usb->ep); i++)
-		if((ep = ad->usb->ep[i]) != nil){
-			if(ep->iface->csp == CSP(Claudio, 2, 0) && ep->dir == Eout)
+		if((ep = ad->usb->ep[i]) != nil) {
+			if(ep->iface->csp == CSP(Claudio, 2, 0) &&
+			   ep->dir == Eout)
 				endpt[0] = ep->id;
-			if(ep->iface->csp == CSP(Claudio, 2, 0) && ep->dir == Ein)
+			if(ep->iface->csp == CSP(Claudio, 2, 0) &&
+			   ep->dir == Ein)
 				endpt[1] = ep->id;
-			if(buttonendpt<0 && Class(ep->iface->csp) == Clhid)
+			if(buttonendpt < 0 && Class(ep->iface->csp) == Clhid)
 				buttonendpt = ep->id;
 		}
-	if(endpt[0] != -1){
+	if(endpt[0] != -1) {
 		if(verbose)
 			fprint(2, "usb/audio: playback on ep %d\n", endpt[0]);
 		interface[0] = ad->usb->ep[endpt[0]]->iface->id;
 	}
-	if(endpt[1] != -1){
+	if(endpt[1] != -1) {
 		if(verbose)
 			fprint(2, "usb/audio: record on ep %d\n", endpt[0]);
 		interface[1] = ad->usb->ep[endpt[1]]->iface->id;
@@ -321,15 +341,19 @@ threadmain(int argc, char **argv)
 	if(verbose && buttonendpt >= 0)
 		fprint(2, "usb/audio: buttons on ep %d\n", buttonendpt);
 
-	if(endpt[Play] >= 0){
+	if(endpt[Play] >= 0) {
 		if(verbose)
-			fprint(2, "Setting default play parameters: %d Hz, %d channels at %d bits\n",
-				defaultspeed[Play], 2, 16);
-		if(findalt(Play, 2, 16, defaultspeed[Play]) < 0){
+			fprint(2, "Setting default play parameters: %d Hz, %d "
+			          "channels at %d bits\n",
+			       defaultspeed[Play], 2, 16);
+		if(findalt(Play, 2, 16, defaultspeed[Play]) < 0) {
 			if(findalt(Play, 2, 16, 48000) < 0)
-				sysfatal("Can't configure playout for %d or %d Hz", defaultspeed[Play], 48000);
-			fprint(2, "Warning, can't configure playout for %d Hz, configuring for %d Hz instead\n",
-				defaultspeed[Play], 48000);
+				sysfatal(
+				    "Can't configure playout for %d or %d Hz",
+				    defaultspeed[Play], 48000);
+			fprint(2, "Warning, can't configure playout for %d Hz, "
+			          "configuring for %d Hz instead\n",
+			       defaultspeed[Play], 48000);
 			defaultspeed[Play] = 48000;
 		}
 		value[0] = 2;
@@ -340,31 +364,34 @@ threadmain(int argc, char **argv)
 			sysfatal("Can't set play resolution");
 	}
 
-	if(endpt[Record] >= 0){
+	if(endpt[Record] >= 0) {
 		setrec = 1;
 		if(verbose)
 			fprint(2, "Setting default record parameters: "
-				"%d Hz, %d channels at %d bits\n",
-				defaultspeed[Record], 2, 16);
+			          "%d Hz, %d channels at %d bits\n",
+			       defaultspeed[Record], 2, 16);
 		i = 2;
 		while(findalt(Record, i, 16, defaultspeed[Record]) < 0)
-			if(i == 2 && controls[Record][Channel_control].max == 1){
-				fprint(2, "Warning, can't configure stereo "
-					"recording, configuring mono instead\n");
+			if(i == 2 &&
+			   controls[Record][Channel_control].max == 1) {
+				fprint(2,
+				       "Warning, can't configure stereo "
+				       "recording, configuring mono instead\n");
 				i = 1;
-			}else
+			} else
 				break;
-		if(findalt(Record, i, 16, 48000) < 0){
-			endpt[Record] = -1;	/* disable recording */
+		if(findalt(Record, i, 16, 48000) < 0) {
+			endpt[Record] = -1; /* disable recording */
 			setrec = 0;
-			fprint(2, "Warning, can't configure record for %d Hz or %d Hz\n",
-				defaultspeed[Record], 48000);
-		}else
+			fprint(2, "Warning, can't configure record for %d Hz "
+			          "or %d Hz\n",
+			       defaultspeed[Record], 48000);
+		} else
 			fprint(2, "Warning, can't configure record for %d Hz, "
-				"configuring for %d Hz instead\n",
-				defaultspeed[Record], 48000);
+			          "configuring for %d Hz instead\n",
+			       defaultspeed[Record], 48000);
 		defaultspeed[Record] = 48000;
-		if(setrec){
+		if(setrec) {
 			value[0] = i;
 			if(setcontrol(Record, "channels", value) == Undef)
 				sysfatal("Can't set record channels");
@@ -374,7 +401,7 @@ threadmain(int argc, char **argv)
 		}
 	}
 
-	getcontrols();	/* Get the initial value of all controls */
+	getcontrols(); /* Get the initial value of all controls */
 	value[0] = defaultspeed[Play];
 	if(endpt[Play] >= 0 && setcontrol(Play, "speed", value) < 0)
 		sysfatal("can't set play speed");
@@ -384,11 +411,13 @@ threadmain(int argc, char **argv)
 	value[0] = 0;
 	setcontrol(Play, "mute", value);
 
-	if(volume[0] != Undef){
+	if(volume[0] != Undef) {
 		c = &controls[Play][Volume_control];
 		if(*p == '%' && c->min != Undef)
 			for(i = 0; i < 8; i++)
-				volume[i] = (volume[i]*c->max + (100-volume[i])*c->min)/100;
+				volume[i] = (volume[i] * c->max +
+				             (100 - volume[i]) * c->min) /
+				            100;
 		if(c->settable)
 			setcontrol(Play, "volume", volume);
 		c = &controls[Record][Volume_control];
@@ -396,7 +425,7 @@ threadmain(int argc, char **argv)
 			setcontrol(Record, "volume", volume);
 	}
 
-	if(buttonendpt > 0){
+	if(buttonendpt > 0) {
 		buttondev = openep(ad, buttonendpt);
 		if(buttondev == nil)
 			sysfatal("openep: buttons: %r");

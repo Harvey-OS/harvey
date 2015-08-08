@@ -11,10 +11,10 @@
 #include <libc.h>
 
 char*
-strncpy(char *s1, char *s2, uint32_t n)
+strncpy(char* s1, char* s2, uint32_t n)
 {
 	int i;
-	char *os1;
+	char* os1;
 
 	os1 = s1;
 	for(i = 0; i < n; i++)

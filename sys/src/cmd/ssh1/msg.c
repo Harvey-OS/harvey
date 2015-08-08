@@ -11,73 +11,47 @@
 
 static uint32_t sum32(uint32_t, void*, int);
 
-char *msgnames[] =
-{
-/* 0 */
-	"SSH_MSG_NONE",
-	"SSH_MSG_DISCONNECT",
-	"SSH_SMSG_PUBLIC_KEY",
-	"SSH_CMSG_SESSION_KEY",
-	"SSH_CMSG_USER",
-	"SSH_CMSG_AUTH_RHOSTS",
-	"SSH_CMSG_AUTH_RSA",
-	"SSH_SMSG_AUTH_RSA_CHALLENGE",
-	"SSH_CMSG_AUTH_RSA_RESPONSE",
-	"SSH_CMSG_AUTH_PASSWORD",
+char* msgnames[] = {
+    /* 0 */
+    "SSH_MSG_NONE", "SSH_MSG_DISCONNECT", "SSH_SMSG_PUBLIC_KEY",
+    "SSH_CMSG_SESSION_KEY", "SSH_CMSG_USER", "SSH_CMSG_AUTH_RHOSTS",
+    "SSH_CMSG_AUTH_RSA", "SSH_SMSG_AUTH_RSA_CHALLENGE",
+    "SSH_CMSG_AUTH_RSA_RESPONSE", "SSH_CMSG_AUTH_PASSWORD",
 
-/* 10 */
-	"SSH_CMSG_REQUEST_PTY",
-	"SSH_CMSG_WINDOW_SIZE",
-	"SSH_CMSG_EXEC_SHELL",
-	"SSH_CMSG_EXEC_CMD",
-	"SSH_SMSG_SUCCESS",
-	"SSH_SMSG_FAILURE",
-	"SSH_CMSG_STDIN_DATA",
-	"SSH_SMSG_STDOUT_DATA",
-	"SSH_SMSG_STDERR_DATA",
-	"SSH_CMSG_EOF",
+    /* 10 */
+    "SSH_CMSG_REQUEST_PTY", "SSH_CMSG_WINDOW_SIZE", "SSH_CMSG_EXEC_SHELL",
+    "SSH_CMSG_EXEC_CMD", "SSH_SMSG_SUCCESS", "SSH_SMSG_FAILURE",
+    "SSH_CMSG_STDIN_DATA", "SSH_SMSG_STDOUT_DATA", "SSH_SMSG_STDERR_DATA",
+    "SSH_CMSG_EOF",
 
-/* 20 */
-	"SSH_SMSG_EXITSTATUS",
-	"SSH_MSG_CHANNEL_OPEN_CONFIRMATION",
-	"SSH_MSG_CHANNEL_OPEN_FAILURE",
-	"SSH_MSG_CHANNEL_DATA",
-	"SSH_MSG_CHANNEL_INPUT_EOF",
-	"SSH_MSG_CHANNEL_OUTPUT_CLOSED",
-	"SSH_MSG_UNIX_DOMAIN_X11_FORWARDING (obsolete)",
-	"SSH_SMSG_X11_OPEN",
-	"SSH_CMSG_PORT_FORWARD_REQUEST",
-	"SSH_MSG_PORT_OPEN",
+    /* 20 */
+    "SSH_SMSG_EXITSTATUS", "SSH_MSG_CHANNEL_OPEN_CONFIRMATION",
+    "SSH_MSG_CHANNEL_OPEN_FAILURE", "SSH_MSG_CHANNEL_DATA",
+    "SSH_MSG_CHANNEL_INPUT_EOF", "SSH_MSG_CHANNEL_OUTPUT_CLOSED",
+    "SSH_MSG_UNIX_DOMAIN_X11_FORWARDING (obsolete)", "SSH_SMSG_X11_OPEN",
+    "SSH_CMSG_PORT_FORWARD_REQUEST", "SSH_MSG_PORT_OPEN",
 
-/* 30 */
-	"SSH_CMSG_AGENT_REQUEST_FORWARDING",
-	"SSH_SMSG_AGENT_OPEN",
-	"SSH_MSG_IGNORE",
-	"SSH_CMSG_EXIT_CONFIRMATION",
-	"SSH_CMSG_X11_REQUEST_FORWARDING",
-	"SSH_CMSG_AUTH_RHOSTS_RSA",
-	"SSH_MSG_DEBUG",
-	"SSH_CMSG_REQUEST_COMPRESSION",
-	"SSH_CMSG_MAX_PACKET_SIZE",
-	"SSH_CMSG_AUTH_TIS",
+    /* 30 */
+    "SSH_CMSG_AGENT_REQUEST_FORWARDING", "SSH_SMSG_AGENT_OPEN",
+    "SSH_MSG_IGNORE", "SSH_CMSG_EXIT_CONFIRMATION",
+    "SSH_CMSG_X11_REQUEST_FORWARDING", "SSH_CMSG_AUTH_RHOSTS_RSA",
+    "SSH_MSG_DEBUG", "SSH_CMSG_REQUEST_COMPRESSION", "SSH_CMSG_MAX_PACKET_SIZE",
+    "SSH_CMSG_AUTH_TIS",
 
-/* 40 */
-	"SSH_SMSG_AUTH_TIS_CHALLENGE",
-	"SSH_CMSG_AUTH_TIS_RESPONSE",
-	"SSH_CMSG_AUTH_KERBEROS",
-	"SSH_SMSG_AUTH_KERBEROS_RESPONSE",
-	"SSH_CMSG_HAVE_KERBEROS_TGT"
-};
+    /* 40 */
+    "SSH_SMSG_AUTH_TIS_CHALLENGE", "SSH_CMSG_AUTH_TIS_RESPONSE",
+    "SSH_CMSG_AUTH_KERBEROS", "SSH_SMSG_AUTH_KERBEROS_RESPONSE",
+    "SSH_CMSG_HAVE_KERBEROS_TGT"};
 
 void
-badmsg(Msg *m, int want)
+badmsg(Msg* m, int want)
 {
-	char *s, buf[20+ERRMAX];
+	char* s, buf[20 + ERRMAX];
 
-	if(m==nil){
+	if(m == nil) {
 		snprint(buf, sizeof buf, "<early eof: %r>");
 		s = buf;
-	}else{
+	} else {
 		snprint(buf, sizeof buf, "<unknown type %d>", m->type);
 		s = buf;
 		if(0 <= m->type && m->type < nelem(msgnames))
@@ -89,81 +63,83 @@ badmsg(Msg *m, int want)
 }
 
 Msg*
-allocmsg(Conn *c, int type, int len)
+allocmsg(Conn* c, int type, int len)
 {
-	uint8_t *p;
-	Msg *m;
+	uint8_t* p;
+	Msg* m;
 
-	if(len > 256*1024)
+	if(len > 256 * 1024)
 		abort();
 
-	m = (Msg*)emalloc(sizeof(Msg)+4+8+1+len+4);
+	m = (Msg*)emalloc(sizeof(Msg) + 4 + 8 + 1 + len + 4);
 	setmalloctag(m, getcallerpc(&c));
 	p = (uint8_t*)&m[1];
 	m->c = c;
 	m->bp = p;
-	m->ep = p+len;
+	m->ep = p + len;
 	m->wp = p;
 	m->type = type;
 	return m;
 }
 
 void
-unrecvmsg(Conn *c, Msg *m)
+unrecvmsg(Conn* c, Msg* m)
 {
-	debug(DBG_PROTO, "unreceived %s len %ld\n", msgnames[m->type], m->ep - m->rp);
+	debug(DBG_PROTO, "unreceived %s len %ld\n", msgnames[m->type],
+	      m->ep - m->rp);
 	free(c->unget);
 	c->unget = m;
 }
 
 static Msg*
-recvmsg0(Conn *c)
+recvmsg0(Conn* c)
 {
 	int pad;
-	uint8_t *p, buf[4];
+	uint8_t* p, buf[4];
 	uint32_t crc, crc0, len;
-	Msg *m;
+	Msg* m;
 
-	if(c->unget){
+	if(c->unget) {
 		m = c->unget;
 		c->unget = nil;
 		return m;
 	}
 
-	if(readn(c->fd[0], buf, 4) != 4){
+	if(readn(c->fd[0], buf, 4) != 4) {
 		werrstr("short net read: %r");
 		return nil;
 	}
 
 	len = LONG(buf);
-	if(len > 256*1024){
+	if(len > 256 * 1024) {
 		werrstr("packet size far too big: %.8lux", len);
 		return nil;
 	}
 
-	pad = 8 - len%8;
+	pad = 8 - len % 8;
 
-	m = (Msg*)emalloc(sizeof(Msg)+pad+len);
+	m = (Msg*)emalloc(sizeof(Msg) + pad + len);
 	setmalloctag(m, getcallerpc(&c));
 	m->c = c;
 	m->bp = (uint8_t*)&m[1];
-	m->ep = m->bp + pad+len-4;	/* -4: don't include crc */
+	m->ep = m->bp + pad + len - 4; /* -4: don't include crc */
 	m->rp = m->bp;
 
-	if(readn(c->fd[0], m->bp, pad+len) != pad+len){
+	if(readn(c->fd[0], m->bp, pad + len) != pad + len) {
 		werrstr("short net read: %r");
 		free(m);
 		return nil;
 	}
 
 	if(c->cipher)
-		c->cipher->decrypt(c->cstate, m->bp, len+pad);
+		c->cipher->decrypt(c->cstate, m->bp, len + pad);
 
-	crc = sum32(0, m->bp, pad+len-4);
-	p = m->bp + pad+len-4;
+	crc = sum32(0, m->bp, pad + len - 4);
+	p = m->bp + pad + len - 4;
 	crc0 = LONG(p);
-	if(crc != crc0){
-		werrstr("bad crc %#lux != %#lux (packet length %lud)", crc, crc0, len);
+	if(crc != crc0) {
+		werrstr("bad crc %#lux != %#lux (packet length %lud)", crc,
+		        crc0, len);
 		free(m);
 		return nil;
 	}
@@ -175,27 +151,28 @@ recvmsg0(Conn *c)
 }
 
 Msg*
-recvmsg(Conn *c, int type)
+recvmsg(Conn* c, int type)
 {
-	Msg *m;
+	Msg* m;
 
-	while((m = recvmsg0(c)) != nil){
-		debug(DBG_PROTO, "received %s len %ld\n", msgnames[m->type], m->ep - m->rp);
+	while((m = recvmsg0(c)) != nil) {
+		debug(DBG_PROTO, "received %s len %ld\n", msgnames[m->type],
+		      m->ep - m->rp);
 		if(m->type != SSH_MSG_DEBUG && m->type != SSH_MSG_IGNORE)
 			break;
 		if(m->type == SSH_MSG_DEBUG)
 			debug(DBG_PROTO, "remote DEBUG: %s\n", getstring(m));
 		free(m);
 	}
-	if(type == 0){
+	if(type == 0) {
 		/* no checking */
-	}else if(type == -1){
+	} else if(type == -1) {
 		/* must not be nil */
 		if(m == nil)
 			error(Ehangup);
-	}else{
+	} else {
 		/* must be given type */
-		if(m==nil || m->type!=type)
+		if(m == nil || m->type != type)
 			badmsg(m, type);
 	}
 	setmalloctag(m, getcallerpc(&c));
@@ -203,29 +180,30 @@ recvmsg(Conn *c, int type)
 }
 
 int
-sendmsg(Msg *m)
+sendmsg(Msg* m)
 {
 	int i, pad;
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t datalen, len, crc;
-	Conn *c;
+	Conn* c;
 
 	datalen = m->wp - m->bp;
 	len = datalen + 5;
-	pad = 8 - len%8;
+	pad = 8 - len % 8;
 
 	debug(DBG_PROTO, "sending %s len %lud\n", msgnames[m->type], datalen);
 
 	p = m->bp;
-	memmove(m->bp+4+pad+1, m->bp, datalen);	/* slide data to correct position */
+	memmove(m->bp + 4 + pad + 1, m->bp,
+	        datalen); /* slide data to correct position */
 
 	PLONG(p, len);
 	p += 4;
 
-	if(m->c->cstate){
-		for(i=0; i<pad; i++)
+	if(m->c->cstate) {
+		for(i = 0; i < pad; i++)
 			*p++ = fastrand();
-	}else{
+	} else {
 		memset(p, 0, pad);
 		p += pad;
 	}
@@ -235,16 +213,16 @@ sendmsg(Msg *m)
 	/* data already in position */
 	p += datalen;
 
-	crc = sum32(0, m->bp+4, pad+1+datalen);
+	crc = sum32(0, m->bp + 4, pad + 1 + datalen);
 	PLONG(p, crc);
 	p += 4;
 
 	c = m->c;
 	qlock(c);
 	if(c->cstate)
-		c->cipher->encrypt(c->cstate, m->bp+4, len+pad);
+		c->cipher->encrypt(c->cstate, m->bp + 4, len + pad);
 
-	if(write(c->fd[1], m->bp, p - m->bp) != p-m->bp){
+	if(write(c->fd[1], m->bp, p - m->bp) != p - m->bp) {
 		qunlock(c);
 		free(m);
 		return -1;
@@ -255,7 +233,7 @@ sendmsg(Msg *m)
 }
 
 uint8_t
-getbyte(Msg *m)
+getbyte(Msg* m)
 {
 	if(m->rp >= m->ep)
 		error(Edecode);
@@ -263,11 +241,11 @@ getbyte(Msg *m)
 }
 
 uint16_t
-getshort(Msg *m)
+getshort(Msg* m)
 {
 	uint16_t x;
 
-	if(m->rp+2 > m->ep)
+	if(m->rp + 2 > m->ep)
 		error(Edecode);
 
 	x = SHORT(m->rp);
@@ -276,11 +254,11 @@ getshort(Msg *m)
 }
 
 uint32_t
-getlong(Msg *m)
+getlong(Msg* m)
 {
 	uint32_t x;
 
-	if(m->rp+4 > m->ep)
+	if(m->rp + 4 > m->ep)
 		error(Edecode);
 
 	x = LONG(m->rp);
@@ -289,27 +267,27 @@ getlong(Msg *m)
 }
 
 char*
-getstring(Msg *m)
+getstring(Msg* m)
 {
-	char *p;
+	char* p;
 	uint32_t len;
 
 	/* overwrites length to make room for NUL */
 	len = getlong(m);
-	if(m->rp+len > m->ep)
+	if(m->rp + len > m->ep)
 		error(Edecode);
-	p = (char*)m->rp-1;
+	p = (char*)m->rp - 1;
 	memmove(p, m->rp, len);
 	p[len] = '\0';
 	return p;
 }
 
 void*
-getbytes(Msg *m, int n)
+getbytes(Msg* m, int n)
 {
-	uint8_t *p;
+	uint8_t* p;
 
-	if(m->rp+n > m->ep)
+	if(m->rp + n > m->ep)
 		error(Edecode);
 	p = m->rp;
 	m->rp += n;
@@ -317,18 +295,18 @@ getbytes(Msg *m, int n)
 }
 
 mpint*
-getmpint(Msg *m)
+getmpint(Msg* m)
 {
 	int n;
 
-	n = (getshort(m)+7)/8;	/* getshort returns # bits */
+	n = (getshort(m) + 7) / 8; /* getshort returns # bits */
 	return betomp(getbytes(m, n), n, nil);
 }
 
 RSApub*
-getRSApub(Msg *m)
+getRSApub(Msg* m)
 {
-	RSApub *key;
+	RSApub* key;
 
 	getlong(m);
 	key = rsapuballoc();
@@ -341,7 +319,7 @@ getRSApub(Msg *m)
 }
 
 void
-putbyte(Msg *m, uint8_t x)
+putbyte(Msg* m, uint8_t x)
 {
 	if(m->wp >= m->ep)
 		error(Eencode);
@@ -349,25 +327,25 @@ putbyte(Msg *m, uint8_t x)
 }
 
 void
-putshort(Msg *m, uint16_t x)
+putshort(Msg* m, uint16_t x)
 {
-	if(m->wp+2 > m->ep)
+	if(m->wp + 2 > m->ep)
 		error(Eencode);
 	PSHORT(m->wp, x);
 	m->wp += 2;
 }
 
 void
-putlong(Msg *m, uint32_t x)
+putlong(Msg* m, uint32_t x)
 {
-	if(m->wp+4 > m->ep)
+	if(m->wp + 4 > m->ep)
 		error(Eencode);
 	PLONG(m->wp, x);
 	m->wp += 4;
 }
 
 void
-putstring(Msg *m, char *s)
+putstring(Msg* m, char* s)
 {
 	int len;
 
@@ -377,30 +355,30 @@ putstring(Msg *m, char *s)
 }
 
 void
-putbytes(Msg *m, void *a, int32_t n)
+putbytes(Msg* m, void* a, int32_t n)
 {
-	if(m->wp+n > m->ep)
+	if(m->wp + n > m->ep)
 		error(Eencode);
 	memmove(m->wp, a, n);
 	m->wp += n;
 }
 
 void
-putmpint(Msg *m, mpint *b)
+putmpint(Msg* m, mpint* b)
 {
 	int bits, n;
 
 	bits = mpsignif(b);
 	putshort(m, bits);
-	n = (bits+7)/8;
-	if(m->wp+n > m->ep)
+	n = (bits + 7) / 8;
+	if(m->wp + n > m->ep)
 		error(Eencode);
 	mptobe(b, m->wp, n, nil);
 	m->wp += n;
 }
 
 void
-putRSApub(Msg *m, RSApub *key)
+putRSApub(Msg* m, RSApub* key)
 {
 	putlong(m, mpsignif(key->n));
 	putmpint(m, key->ek);
@@ -416,9 +394,9 @@ initsum32(void)
 	int i, j;
 
 	poly = 0xEDB88320;
-	for(i = 0; i < 256; i++){
+	for(i = 0; i < 256; i++) {
 		crc = i;
-		for(j = 0; j < 8; j++){
+		for(j = 0; j < 8; j++) {
 			if(crc & 1)
 				crc = (crc >> 1) ^ poly;
 			else
@@ -429,54 +407,54 @@ initsum32(void)
 }
 
 static uint32_t
-sum32(uint32_t lcrc, void *buf, int n)
+sum32(uint32_t lcrc, void* buf, int n)
 {
-	static int first=1;
-	uint8_t *s = buf;
+	static int first = 1;
+	uint8_t* s = buf;
 	uint32_t crc = lcrc;
 
-	if(first){
-		first=0;
+	if(first) {
+		first = 0;
 		initsum32();
 	}
 	while(n-- > 0)
-		crc = crctab[(crc^*s++)&0xff] ^ (crc>>8);
+		crc = crctab[(crc ^ *s++) & 0xff] ^ (crc >> 8);
 	return crc;
 }
 
 mpint*
-rsapad(mpint *b, int n)
+rsapad(mpint* b, int n)
 {
 	int i, pad, nbuf;
 	uint8_t buf[2560];
-	mpint *c;
+	mpint* c;
 
 	if(n > sizeof buf)
 		error("buffer too small in rsapad");
 
-	nbuf = (mpsignif(b)+7)/8;
+	nbuf = (mpsignif(b) + 7) / 8;
 	pad = n - nbuf;
 	assert(pad >= 3);
 	mptobe(b, buf, nbuf, nil);
-	memmove(buf+pad, buf, nbuf);
+	memmove(buf + pad, buf, nbuf);
 
 	buf[0] = 0;
 	buf[1] = 2;
-	for(i=2; i<pad-1; i++)
-		buf[i]=1+fastrand()%255;
-	buf[pad-1] = 0;
+	for(i = 2; i < pad - 1; i++)
+		buf[i] = 1 + fastrand() % 255;
+	buf[pad - 1] = 0;
 	c = betomp(buf, n, nil);
 	memset(buf, 0, sizeof buf);
 	return c;
 }
 
 mpint*
-rsaunpad(mpint *b)
+rsaunpad(mpint* b)
 {
 	int i, n;
 	uint8_t buf[2560];
 
-	n = (mpsignif(b)+7)/8;
+	n = (mpsignif(b) + 7) / 8;
 	if(n > sizeof buf)
 		error("buffer too small in rsaunpad");
 	mptobe(b, buf, n, nil);
@@ -484,33 +462,33 @@ rsaunpad(mpint *b)
 	/* the initial zero has been eaten by the betomp -> mptobe sequence */
 	if(buf[0] != 2)
 		error("bad data in rsaunpad");
-	for(i=1; i<n; i++)
-		if(buf[i]==0)
+	for(i = 1; i < n; i++)
+		if(buf[i] == 0)
 			break;
-	return betomp(buf+i, n-i, nil);
+	return betomp(buf + i, n - i, nil);
 }
 
 void
-mptoberjust(mpint *b, uint8_t *buf, int len)
+mptoberjust(mpint* b, uint8_t* buf, int len)
 {
 	int n;
 
 	n = mptobe(b, buf, len, nil);
 	assert(n >= 0);
-	if(n < len){
+	if(n < len) {
 		len -= n;
-		memmove(buf+len, buf, n);
+		memmove(buf + len, buf, n);
 		memset(buf, 0, len);
 	}
 }
 
 mpint*
-rsaencryptbuf(RSApub *key, uint8_t *buf, int nbuf)
+rsaencryptbuf(RSApub* key, uint8_t* buf, int nbuf)
 {
 	int n;
-	mpint *a, *b, *c;
+	mpint* a, *b, *c;
 
-	n = (mpsignif(key->n)+7)/8;
+	n = (mpsignif(key->n) + 7) / 8;
 	a = betomp(buf, nbuf, nil);
 	b = rsapad(a, n);
 	mpfree(a);
@@ -518,4 +496,3 @@ rsaencryptbuf(RSApub *key, uint8_t *buf, int nbuf)
 	mpfree(b);
 	return c;
 }
-

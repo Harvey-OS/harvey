@@ -9,29 +9,29 @@
 
 #include "stdinc.h"
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64 ((uint64_t) ~(uint64_t)0)
 
 uint64_t
-unittoull(char *s)
+unittoull(char* s)
 {
-	char *es;
+	char* es;
 	uint64_t n;
 
 	if(s == nil)
 		return TWID64;
 	n = strtoul(s, &es, 0);
-	if(*es == 'k' || *es == 'K'){
+	if(*es == 'k' || *es == 'K') {
 		n *= 1024;
 		es++;
-	}else if(*es == 'm' || *es == 'M'){
-		n *= 1024*1024;
+	} else if(*es == 'm' || *es == 'M') {
+		n *= 1024 * 1024;
 		es++;
-	}else if(*es == 'g' || *es == 'G'){
-		n *= 1024*1024*1024;
+	} else if(*es == 'g' || *es == 'G') {
+		n *= 1024 * 1024 * 1024;
 		es++;
-	}else if(*es == 't' || *es == 'T'){
-		n *= 1024*1024;
-		n *= 1024*1024;
+	} else if(*es == 't' || *es == 'T') {
+		n *= 1024 * 1024;
+		n *= 1024 * 1024;
 	}
 	if(*es != '\0')
 		return TWID64;

@@ -11,54 +11,51 @@
 #include "dat.h"
 #include "fns.h"
 
-enum
-{
-	ClumpChunks	= 32*1024
-};
+enum { ClumpChunks = 32 * 1024 };
 
-static int	verbose;
+static int verbose;
 
 int
-clumpinfoeq(ClumpInfo *c, ClumpInfo *d)
+clumpinfoeq(ClumpInfo* c, ClumpInfo* d)
 {
-	return c->type == d->type
-		&& c->size == d->size
-		&& c->uncsize == d->uncsize
-		&& scorecmp(c->score, d->score)==0;
+	return c->type == d->type && c->size == d->size &&
+	       c->uncsize == d->uncsize && scorecmp(c->score, d->score) == 0;
 }
 
 int
-findscore(Arena *arena, uint8_t *score)
+findscore(Arena* arena, uint8_t* score)
 {
 	IEntry ie;
-	ClumpInfo *ci, *cis;
+	ClumpInfo* ci, *cis;
 	uint64_t a;
 	uint32_t clump;
 	int i, n, found;
 
-//ZZZ remove fprint?
+	// ZZZ remove fprint?
 	if(arena->memstats.clumps)
 		fprint(2, "reading directory for arena=%s with %d entries\n",
-			arena->name, arena->memstats.clumps);
+		       arena->name, arena->memstats.clumps);
 
 	cis = MKN(ClumpInfo, ClumpChunks);
 	found = 0;
 	a = 0;
 	memset(&ie, 0, sizeof(IEntry));
-	for(clump = 0; clump < arena->memstats.clumps; clump += n){
+	for(clump = 0; clump < arena->memstats.clumps; clump += n) {
 		n = ClumpChunks;
 		if(n > arena->memstats.clumps - clump)
 			n = arena->memstats.clumps - clump;
-		if(readclumpinfos(arena, clump, cis, n) != n){
+		if(readclumpinfos(arena, clump, cis, n) != n) {
 			seterr(EOk, "arena directory read failed: %r");
 			break;
 		}
 
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			ci = &cis[i];
-			if(scorecmp(score, ci->score)==0){
-				fprint(2, "found at clump=%d with type=%d size=%d csize=%d position=%lld\n",
-					clump + i, ci->type, ci->uncsize, ci->size, a);
+			if(scorecmp(score, ci->score) == 0) {
+				fprint(2, "found at clump=%d with type=%d "
+				          "size=%d csize=%d position=%lld\n",
+				       clump + i, ci->type, ci->uncsize,
+				       ci->size, a);
 				found++;
 			}
 			a += ci->size + ClumpSize;
@@ -76,24 +73,26 @@ usage(void)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
-	ArenaPart *ap;
-	Part *part;
-	char *file;
+	ArenaPart* ap;
+	Part* part;
+	char* file;
 	u8int score[VtScoreSize];
 	int i, found;
 
 	ventifmtinstall();
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		verbose++;
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	readonly = 1;
 
@@ -104,7 +103,7 @@ threadmain(int argc, char *argv[])
 	if(strscore(argv[1], score) < 0)
 		sysfatal("bad score %s", argv[1]);
 
-	part = initpart(file, OREAD|ODIRECT);
+	part = initpart(file, OREAD | ODIRECT);
 	if(part == nil)
 		sysfatal("can't open partition %s: %r", file);
 
@@ -112,7 +111,7 @@ threadmain(int argc, char *argv[])
 	if(ap == nil)
 		sysfatal("can't initialize arena partition in %s: %r", file);
 
-	if(verbose > 1){
+	if(verbose > 1) {
 		printarenapart(2, ap);
 		fprint(2, "\n");
 	}

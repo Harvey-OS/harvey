@@ -12,9 +12,9 @@
 Toc thetoc;
 
 void
-tocthread(void *v)
+tocthread(void* v)
 {
-	Drive *d;
+	Drive* d;
 
 	threadsetname("tocthread");
 	d = v;
@@ -28,19 +28,19 @@ tocthread(void *v)
 }
 
 void
-freetoc(Toc *t)
+freetoc(Toc* t)
 {
 	int i;
 
 	free(t->title);
-	for(i=0; i<t->ntrack; i++)
+	for(i = 0; i < t->ntrack; i++)
 		free(t->track[i].title);
 }
 
 void
-cddbthread(void *v)
+cddbthread(void* v)
 {
-	Drive *d;
+	Drive* d;
 	Toc t;
 
 	threadsetname("cddbthread");
@@ -55,14 +55,13 @@ cddbthread(void *v)
 }
 
 void
-cdstatusthread(void *v)
+cdstatusthread(void* v)
 {
-	Drive *d;
+	Drive* d;
 	Cdstatus s;
 
 	d = v;
-	
+
 	for(;;)
 		recv(d->cstat, &s);
-
 }

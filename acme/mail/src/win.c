@@ -18,16 +18,16 @@ Window*
 newwindow(void)
 {
 	char buf[12];
-	Window *w;
+	Window* w;
 
 	w = emalloc(sizeof(Window));
-	w->ctl = open("/mnt/wsys/new/ctl", ORDWR|OCEXEC);
-	if(w->ctl<0 || read(w->ctl, buf, 12)!=12)
+	w->ctl = open("/mnt/wsys/new/ctl", ORDWR | OCEXEC);
+	if(w->ctl < 0 || read(w->ctl, buf, 12) != 12)
 		error("can't open window ctl file: %r");
 	ctlprint(w->ctl, "noscroll\n");
 	w->id = atoi(buf);
 	w->event = winopenfile(w, "event");
-	w->addr = -1;	/* will be opened when needed */
+	w->addr = -1; /* will be opened when needed */
 	w->body = nil;
 	w->data = -1;
 	w->cevent = chancreate(sizeof(Event*), 0);
@@ -35,7 +35,7 @@ newwindow(void)
 }
 
 void
-winsetdump(Window *w, char *dir, char *cmd)
+winsetdump(Window* w, char* dir, char* cmd)
 {
 	if(dir != nil)
 		ctlprint(w->ctl, "dumpdir %s\n", dir);
@@ -44,13 +44,13 @@ winsetdump(Window *w, char *dir, char *cmd)
 }
 
 void
-wineventproc(void *v)
+wineventproc(void* v)
 {
-	Window *w;
+	Window* w;
 	int i;
 
 	w = v;
-	for(i=0; ; i++){
+	for(i = 0;; i++) {
 		if(i >= NEVENT)
 			i = 0;
 		wingetevent(w, &w->e[i]);
@@ -59,26 +59,26 @@ wineventproc(void *v)
 }
 
 static int
-winopenfile1(Window *w, char *f, int m)
+winopenfile1(Window* w, char* f, int m)
 {
 	char buf[64];
 	int fd;
 
 	sprint(buf, "/mnt/wsys/%d/%s", w->id, f);
-	fd = open(buf, m|OCEXEC);
+	fd = open(buf, m | OCEXEC);
 	if(fd < 0)
 		error("can't open window file %s: %r", f);
 	return fd;
 }
 
 int
-winopenfile(Window *w, char *f)
+winopenfile(Window* w, char* f)
 {
 	return winopenfile1(w, f, ORDWR);
 }
 
 void
-wintagwrite(Window *w, char *s, int n)
+wintagwrite(Window* w, char* s, int n)
 {
 	int fd;
 
@@ -89,33 +89,33 @@ wintagwrite(Window *w, char *s, int n)
 }
 
 void
-winname(Window *w, char *s)
+winname(Window* w, char* s)
 {
 	ctlprint(w->ctl, "name %s\n", s);
 }
 
 void
-winopenbody(Window *w, int mode)
+winopenbody(Window* w, int mode)
 {
 	char buf[256];
 
 	sprint(buf, "/mnt/wsys/%d/body", w->id);
-	w->body = Bopen(buf, mode|OCEXEC);
+	w->body = Bopen(buf, mode | OCEXEC);
 	if(w->body == nil)
 		error("can't open window body file: %r");
 }
 
 void
-winclosebody(Window *w)
+winclosebody(Window* w)
 {
-	if(w->body != nil){
+	if(w->body != nil) {
 		Bterm(w->body);
 		w->body = nil;
 	}
 }
 
 void
-winwritebody(Window *w, char *s, int n)
+winwritebody(Window* w, char* s, int n)
 {
 	if(w->body == nil)
 		winopenbody(w, OWRITE);
@@ -124,12 +124,13 @@ winwritebody(Window *w, char *s, int n)
 }
 
 int
-wingetec(Window *w)
+wingetec(Window* w)
 {
-	if(w->nbuf == 0){
+	if(w->nbuf == 0) {
 		w->nbuf = read(w->event, w->buf, sizeof w->buf);
-		if(w->nbuf <= 0){
-			/* probably because window has exited, and only called by wineventproc, so just shut down */
+		if(w->nbuf <= 0) {
+			/* probably because window has exited, and only called
+			 * by wineventproc, so just shut down */
 			threadexits(nil);
 		}
 		w->bufp = w->buf;
@@ -139,20 +140,20 @@ wingetec(Window *w)
 }
 
 int
-wingeten(Window *w)
+wingeten(Window* w)
 {
 	int n, c;
 
 	n = 0;
-	while('0'<=(c=wingetec(w)) && c<='9')
-		n = n*10+(c-'0');
+	while('0' <= (c = wingetec(w)) && c <= '9')
+		n = n * 10 + (c - '0');
 	if(c != ' ')
 		error("event number syntax");
 	return n;
 }
 
 int
-wingeter(Window *w, char *buf, int *nb)
+wingeter(Window* w, char* buf, int* nb)
 {
 	Rune r;
 	int n;
@@ -164,13 +165,13 @@ wingeter(Window *w, char *buf, int *nb)
 		while(!fullrune(buf, n))
 			buf[n++] = wingetec(w);
 		chartorune(&r, buf);
-	} 
+	}
 	*nb = n;
 	return r;
 }
 
 void
-wingetevent(Window *w, Event *e)
+wingetevent(Window* w, Event* e)
 {
 	int i, nb;
 
@@ -183,8 +184,8 @@ wingetevent(Window *w, Event *e)
 	if(e->nr > EVENTSIZE)
 		error("event string too long");
 	e->nb = 0;
-	for(i=0; i<e->nr; i++){
-		e->r[i] = wingeter(w, e->b+e->nb, &nb);
+	for(i = 0; i < e->nr; i++) {
+		e->r[i] = wingeter(w, e->b + e->nb, &nb);
 		e->nb += nb;
 	}
 	e->r[e->nr] = 0;
@@ -194,13 +195,13 @@ wingetevent(Window *w, Event *e)
 }
 
 void
-winwriteevent(Window *w, Event *e)
+winwriteevent(Window* w, Event* e)
 {
 	fprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
 }
 
 void
-winread(Window *w, uint q0, uint q1, char *data)
+winread(Window* w, uint q0, uint q1, char* data)
 {
 	int m, n, nr;
 	char buf[256];
@@ -210,7 +211,7 @@ winread(Window *w, uint q0, uint q1, char *data)
 	if(w->data < 0)
 		w->data = winopenfile(w, "data");
 	m = q0;
-	while(m < q1){
+	while(m < q1) {
 		n = sprint(buf, "#%d", m);
 		if(write(w->addr, buf, n) != n)
 			error("error writing addr: %r");
@@ -218,8 +219,10 @@ winread(Window *w, uint q0, uint q1, char *data)
 		if(n <= 0)
 			error("reading data: %r");
 		nr = utfnlen(buf, n);
-		while(m+nr >q1){
-			do; while(n>0 && (buf[--n]&0xC0)==0x80);
+		while(m + nr > q1) {
+			do
+				;
+			while(n > 0 && (buf[--n] & 0xC0) == 0x80);
 			--nr;
 		}
 		if(n == 0)
@@ -232,25 +235,24 @@ winread(Window *w, uint q0, uint q1, char *data)
 }
 
 void
-windormant(Window *w)
+windormant(Window* w)
 {
-	if(w->addr >= 0){
+	if(w->addr >= 0) {
 		close(w->addr);
 		w->addr = -1;
 	}
-	if(w->body != nil){
+	if(w->body != nil) {
 		Bterm(w->body);
 		w->body = nil;
 	}
-	if(w->data >= 0){
+	if(w->data >= 0) {
 		close(w->data);
 		w->data = -1;
 	}
 }
 
-
 int
-windel(Window *w, int sure)
+windel(Window* w, int sure)
 {
 	if(sure)
 		write(w->ctl, "delete\n", 7);
@@ -266,7 +268,7 @@ windel(Window *w, int sure)
 }
 
 void
-winclean(Window *w)
+winclean(Window* w)
 {
 	if(w->body)
 		Bflush(w->body);
@@ -274,11 +276,11 @@ winclean(Window *w)
 }
 
 int
-winsetaddr(Window *w, char *addr, int errok)
+winsetaddr(Window* w, char* addr, int errok)
 {
 	if(w->addr < 0)
 		w->addr = winopenfile(w, "addr");
-	if(write(w->addr, addr, strlen(addr)) < 0){
+	if(write(w->addr, addr, strlen(addr)) < 0) {
 		if(!errok)
 			error("error writing addr(%s): %r", addr);
 		return 0;
@@ -287,19 +289,20 @@ winsetaddr(Window *w, char *addr, int errok)
 }
 
 int
-winselect(Window *w, char *addr, int errok)
+winselect(Window* w, char* addr, int errok)
 {
-	if(winsetaddr(w, addr, errok)){
+	if(winsetaddr(w, addr, errok)) {
 		ctlprint(w->ctl, "dot=addr\n");
 		return 1;
 	}
 	return 0;
 }
 
-char*
-winreadbody(Window *w, int *np)	/* can't use readfile because acme doesn't report the length */
+char* winreadbody(
+    Window* w,
+    int* np) /* can't use readfile because acme doesn't report the length */
 {
-	char *s;
+	char* s;
 	int m, na, n;
 
 	if(w->body != nil)
@@ -308,12 +311,12 @@ winreadbody(Window *w, int *np)	/* can't use readfile because acme doesn't repor
 	s = nil;
 	na = 0;
 	n = 0;
-	for(;;){
-		if(na < n+512){
+	for(;;) {
+		if(na < n + 512) {
 			na += 1024;
-			s = realloc(s, na+1);
+			s = realloc(s, na + 1);
 		}
-		m = Bread(w->body, s+n, na-n);
+		m = Bread(w->body, s + n, na - n);
 		if(m <= 0)
 			break;
 		n += m;
@@ -325,10 +328,10 @@ winreadbody(Window *w, int *np)	/* can't use readfile because acme doesn't repor
 }
 
 char*
-winselection(Window *w)
+winselection(Window* w)
 {
 	int fd, m, n;
-	char *buf;
+	char* buf;
 	char tmp[256];
 
 	fd = winopenfile1(w, "rdsel", OREAD);
@@ -336,12 +339,12 @@ winselection(Window *w)
 		error("can't open rdsel: %r");
 	n = 0;
 	buf = nil;
-	for(;;){
+	for(;;) {
 		m = read(fd, tmp, sizeof tmp);
 		if(m <= 0)
 			break;
-		buf = erealloc(buf, n+m+1);
-		memmove(buf+n, tmp, m);
+		buf = erealloc(buf, n + m + 1);
+		memmove(buf + n, tmp, m);
 		n += m;
 		buf[n] = '\0';
 	}

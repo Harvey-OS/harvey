@@ -22,242 +22,243 @@
  * string, or use regular expressions somehow.
  */
 Cinfo ftinfo[] = {
-	{ FTVid, FTACTZWAVEDid },
-	{ FTSheevaVid, FTSheevaDid },
-	{ FTVid, FTOpenRDUltDid},
-	{ FTVid, FTIRTRANSDid },
-	{ FTVid, FTIPLUSDid },
-	{ FTVid, FTSIODid },
-	{ FTVid, FT8U232AMDid },
-	{ FTVid, FT8U232AMALTDid },
-	{ FTVid, FT8U2232CDid },
-	{ FTVid, FTRELAISDid },
-	{ INTERBIOMVid, INTERBIOMIOBRDDid },
-	{ INTERBIOMVid, INTERBIOMMINIIOBRDDid },
-	{ FTVid, FTXF632Did },
-	{ FTVid, FTXF634Did },
-	{ FTVid, FTXF547Did },
-	{ FTVid, FTXF633Did },
-	{ FTVid, FTXF631Did },
-	{ FTVid, FTXF635Did },
-	{ FTVid, FTXF640Did },
-	{ FTVid, FTXF642Did },
-	{ FTVid, FTDSS20Did },
-	{ FTNFRICVid, FTNFRICDid },
-	{ FTVid, FTVNHCPCUSBDDid },
-	{ FTVid, FTMTXORB0Did },
-	{ FTVid, FTMTXORB1Did },
-	{ FTVid, FTMTXORB2Did },
-	{ FTVid, FTMTXORB3Did },
-	{ FTVid, FTMTXORB4Did },
-	{ FTVid, FTMTXORB5Did },
-	{ FTVid, FTMTXORB6Did },
-	{ FTVid, FTPERLEULTRAPORTDid },
-	{ FTVid, FTPIEGROUPDid },
-	{ SEALEVELVid, SEALEVEL2101Did },
-	{ SEALEVELVid, SEALEVEL2102Did },
-	{ SEALEVELVid, SEALEVEL2103Did },
-	{ SEALEVELVid, SEALEVEL2104Did },
-	{ SEALEVELVid, SEALEVEL22011Did },
-	{ SEALEVELVid, SEALEVEL22012Did },
-	{ SEALEVELVid, SEALEVEL22021Did },
-	{ SEALEVELVid, SEALEVEL22022Did },
-	{ SEALEVELVid, SEALEVEL22031Did },
-	{ SEALEVELVid, SEALEVEL22032Did },
-	{ SEALEVELVid, SEALEVEL24011Did },
-	{ SEALEVELVid, SEALEVEL24012Did },
-	{ SEALEVELVid, SEALEVEL24013Did },
-	{ SEALEVELVid, SEALEVEL24014Did },
-	{ SEALEVELVid, SEALEVEL24021Did },
-	{ SEALEVELVid, SEALEVEL24022Did },
-	{ SEALEVELVid, SEALEVEL24023Did },
-	{ SEALEVELVid, SEALEVEL24024Did },
-	{ SEALEVELVid, SEALEVEL24031Did },
-	{ SEALEVELVid, SEALEVEL24032Did },
-	{ SEALEVELVid, SEALEVEL24033Did },
-	{ SEALEVELVid, SEALEVEL24034Did },
-	{ SEALEVELVid, SEALEVEL28011Did },
-	{ SEALEVELVid, SEALEVEL28012Did },
-	{ SEALEVELVid, SEALEVEL28013Did },
-	{ SEALEVELVid, SEALEVEL28014Did },
-	{ SEALEVELVid, SEALEVEL28015Did },
-	{ SEALEVELVid, SEALEVEL28016Did },
-	{ SEALEVELVid, SEALEVEL28017Did },
-	{ SEALEVELVid, SEALEVEL28018Did },
-	{ SEALEVELVid, SEALEVEL28021Did },
-	{ SEALEVELVid, SEALEVEL28022Did },
-	{ SEALEVELVid, SEALEVEL28023Did },
-	{ SEALEVELVid, SEALEVEL28024Did },
-	{ SEALEVELVid, SEALEVEL28025Did },
-	{ SEALEVELVid, SEALEVEL28026Did },
-	{ SEALEVELVid, SEALEVEL28027Did },
-	{ SEALEVELVid, SEALEVEL28028Did },
-	{ SEALEVELVid, SEALEVEL28031Did },
-	{ SEALEVELVid, SEALEVEL28032Did },
-	{ SEALEVELVid, SEALEVEL28033Did },
-	{ SEALEVELVid, SEALEVEL28034Did },
-	{ SEALEVELVid, SEALEVEL28035Did },
-	{ SEALEVELVid, SEALEVEL28036Did },
-	{ SEALEVELVid, SEALEVEL28037Did },
-	{ SEALEVELVid, SEALEVEL28038Did },
-	{ IDTECHVid, IDTECHIDT1221UDid },
-	{ OCTVid, OCTUS101Did },
-	{ FTVid, FTHETIRA1Did }, /* special quirk div = 240 baud = B38400 rtscts = 1 */
-	{ FTVid, FTUSBUIRTDid }, /* special quirk div = 77, baud = B38400 */
-	{ FTVid, PROTEGOSPECIAL1 },
-	{ FTVid, PROTEGOR2X0 },
-	{ FTVid, PROTEGOSPECIAL3 },
-	{ FTVid, PROTEGOSPECIAL4 },
-	{ FTVid, FTGUDEADSE808Did },
-	{ FTVid, FTGUDEADSE809Did },
-	{ FTVid, FTGUDEADSE80ADid },
-	{ FTVid, FTGUDEADSE80BDid },
-	{ FTVid, FTGUDEADSE80CDid },
-	{ FTVid, FTGUDEADSE80DDid },
-	{ FTVid, FTGUDEADSE80EDid },
-	{ FTVid, FTGUDEADSE80FDid },
-	{ FTVid, FTGUDEADSE888Did },
-	{ FTVid, FTGUDEADSE889Did },
-	{ FTVid, FTGUDEADSE88ADid },
-	{ FTVid, FTGUDEADSE88BDid },
-	{ FTVid, FTGUDEADSE88CDid },
-	{ FTVid, FTGUDEADSE88DDid },
-	{ FTVid, FTGUDEADSE88EDid },
-	{ FTVid, FTGUDEADSE88FDid },
-	{ FTVid, FTELVUO100Did },
-	{ FTVid, FTELVUM100Did },
-	{ FTVid, FTELVUR100Did },
-	{ FTVid, FTELVALC8500Did },
-	{ FTVid, FTPYRAMIDDid },
-	{ FTVid, FTELVFHZ1000PCDid },
-	{ FTVid, FTELVCLI7000Did },
-	{ FTVid, FTELVPPS7330Did },
-	{ FTVid, FTELVTFM100Did },
-	{ FTVid, FTELVUDF77Did },
-	{ FTVid, FTELVUIO88Did },
-	{ FTVid, FTELVUAD8Did },
-	{ FTVid, FTELVUDA7Did },
-	{ FTVid, FTELVUSI2Did },
-	{ FTVid, FTELVT1100Did },
-	{ FTVid, FTELVPCD200Did },
-	{ FTVid, FTELVULA200Did },
-	{ FTVid, FTELVCSI8Did },
-	{ FTVid, FTELVEM1000DLDid },
-	{ FTVid, FTELVPCK100Did },
-	{ FTVid, FTELVRFP500Did },
-	{ FTVid, FTELVFS20SIGDid },
-	{ FTVid, FTELVWS300PCDid },
-	{ FTVid, FTELVFHZ1300PCDid },
-	{ FTVid, FTELVWS500Did },
-	{ FTVid, LINXSDMUSBQSSDid },
-	{ FTVid, LINXMASTERDEVEL2Did },
-	{ FTVid, LINXFUTURE0Did },
-	{ FTVid, LINXFUTURE1Did },
-	{ FTVid, LINXFUTURE2Did },
-	{ FTVid, FTCCSICDU200Did },
-	{ FTVid, FTCCSICDU401Did },
-	{ FTVid, INSIDEACCESSO },
-	{ INTREDidVid, INTREDidVALUECANDid },
-	{ INTREDidVid, INTREDidNEOVIDid },
-	{ FALCOMVid, FALCOMTWISTDid },
-	{ FALCOMVid, FALCOMSAMBADid },
-	{ FTVid, FTSUUNTOSPORTSDid },
-	{ FTVid, FTRMCANVIEWDid },
-	{ BANDBVid, BANDBUSOTL4Did },
-	{ BANDBVid, BANDBUSTL4Did },
-	{ BANDBVid, BANDBUSO9ML2Did },
-	{ FTVid, EVERECOPROCDSDid },
-	{ FTVid, FT4NGALAXYDE0Did },
-	{ FTVid, FT4NGALAXYDE1Did },
-	{ FTVid, FT4NGALAXYDE2Did },
-	{ FTVid, XSENSCONVERTER0Did },
-	{ FTVid, XSENSCONVERTER1Did },
-	{ FTVid, XSENSCONVERTER2Did },
-	{ FTVid, XSENSCONVERTER3Did },
-	{ FTVid, XSENSCONVERTER4Did },
-	{ FTVid, XSENSCONVERTER5Did },
-	{ FTVid, XSENSCONVERTER6Did },
-	{ FTVid, XSENSCONVERTER7Did },
-	{ MOBILITYVid, MOBILITYUSBSERIALDid },
-	{ FTVid, FTACTIVEROBOTSDid },
-	{ FTVid, FTMHAMKWDid },
-	{ FTVid, FTMHAMYSDid },
-	{ FTVid, FTMHAMY6Did },
-	{ FTVid, FTMHAMY8Did },
-	{ FTVid, FTMHAMICDid },
-	{ FTVid, FTMHAMDB9Did },
-	{ FTVid, FTMHAMRS232Did },
-	{ FTVid, FTMHAMY9Did },
-	{ FTVid, FTTERATRONIKVCPDid },
-	{ FTVid, FTTERATRONIKD2XXDid },
-	{ EVOLUTIONVid, EVOLUTIONER1Did },
-	{ FTVid, FTARTEMISDid },
-	{ FTVid, FTATIKATK16Did },
-	{ FTVid, FTATIKATK16CDid },
-	{ FTVid, FTATIKATK16HRDid },
-	{ FTVid, FTATIKATK16HRCDid },
-	{ KOBILVid, KOBILCONVB1Did },
-	{ KOBILVid, KOBILCONVKAANDid },
-	{ POSIFLEXVid, POSIFLEXPP7000Did },
-	{ FTVid, FTTTUSBDid },
-	{ FTVid, FTECLOCOM1WIREDid },
-	{ FTVid, FTWESTREXMODEL777Did },
-	{ FTVid, FTWESTREXMODEL8900FDid },
-	{ FTVid, FTPCDJDAC2Did },
-	{ FTVid, FTRRCIRKITSLOCOBUFFERDid },
-	{ FTVid, FTASKRDR400Did },
-	{ ICOMID1Vid, ICOMID1Did },
-	{ PAPOUCHVid, PAPOUCHTMUDid },
-	{ FTVid, FTACGHFDUALDid },
-	{ FT8U232AMDid, FT4232HDid },
-	{ FTVid, AMONKEYDid },
-	{ 0,	0 },
+    {FTVid, FTACTZWAVEDid},
+    {FTSheevaVid, FTSheevaDid},
+    {FTVid, FTOpenRDUltDid},
+    {FTVid, FTIRTRANSDid},
+    {FTVid, FTIPLUSDid},
+    {FTVid, FTSIODid},
+    {FTVid, FT8U232AMDid},
+    {FTVid, FT8U232AMALTDid},
+    {FTVid, FT8U2232CDid},
+    {FTVid, FTRELAISDid},
+    {INTERBIOMVid, INTERBIOMIOBRDDid},
+    {INTERBIOMVid, INTERBIOMMINIIOBRDDid},
+    {FTVid, FTXF632Did},
+    {FTVid, FTXF634Did},
+    {FTVid, FTXF547Did},
+    {FTVid, FTXF633Did},
+    {FTVid, FTXF631Did},
+    {FTVid, FTXF635Did},
+    {FTVid, FTXF640Did},
+    {FTVid, FTXF642Did},
+    {FTVid, FTDSS20Did},
+    {FTNFRICVid, FTNFRICDid},
+    {FTVid, FTVNHCPCUSBDDid},
+    {FTVid, FTMTXORB0Did},
+    {FTVid, FTMTXORB1Did},
+    {FTVid, FTMTXORB2Did},
+    {FTVid, FTMTXORB3Did},
+    {FTVid, FTMTXORB4Did},
+    {FTVid, FTMTXORB5Did},
+    {FTVid, FTMTXORB6Did},
+    {FTVid, FTPERLEULTRAPORTDid},
+    {FTVid, FTPIEGROUPDid},
+    {SEALEVELVid, SEALEVEL2101Did},
+    {SEALEVELVid, SEALEVEL2102Did},
+    {SEALEVELVid, SEALEVEL2103Did},
+    {SEALEVELVid, SEALEVEL2104Did},
+    {SEALEVELVid, SEALEVEL22011Did},
+    {SEALEVELVid, SEALEVEL22012Did},
+    {SEALEVELVid, SEALEVEL22021Did},
+    {SEALEVELVid, SEALEVEL22022Did},
+    {SEALEVELVid, SEALEVEL22031Did},
+    {SEALEVELVid, SEALEVEL22032Did},
+    {SEALEVELVid, SEALEVEL24011Did},
+    {SEALEVELVid, SEALEVEL24012Did},
+    {SEALEVELVid, SEALEVEL24013Did},
+    {SEALEVELVid, SEALEVEL24014Did},
+    {SEALEVELVid, SEALEVEL24021Did},
+    {SEALEVELVid, SEALEVEL24022Did},
+    {SEALEVELVid, SEALEVEL24023Did},
+    {SEALEVELVid, SEALEVEL24024Did},
+    {SEALEVELVid, SEALEVEL24031Did},
+    {SEALEVELVid, SEALEVEL24032Did},
+    {SEALEVELVid, SEALEVEL24033Did},
+    {SEALEVELVid, SEALEVEL24034Did},
+    {SEALEVELVid, SEALEVEL28011Did},
+    {SEALEVELVid, SEALEVEL28012Did},
+    {SEALEVELVid, SEALEVEL28013Did},
+    {SEALEVELVid, SEALEVEL28014Did},
+    {SEALEVELVid, SEALEVEL28015Did},
+    {SEALEVELVid, SEALEVEL28016Did},
+    {SEALEVELVid, SEALEVEL28017Did},
+    {SEALEVELVid, SEALEVEL28018Did},
+    {SEALEVELVid, SEALEVEL28021Did},
+    {SEALEVELVid, SEALEVEL28022Did},
+    {SEALEVELVid, SEALEVEL28023Did},
+    {SEALEVELVid, SEALEVEL28024Did},
+    {SEALEVELVid, SEALEVEL28025Did},
+    {SEALEVELVid, SEALEVEL28026Did},
+    {SEALEVELVid, SEALEVEL28027Did},
+    {SEALEVELVid, SEALEVEL28028Did},
+    {SEALEVELVid, SEALEVEL28031Did},
+    {SEALEVELVid, SEALEVEL28032Did},
+    {SEALEVELVid, SEALEVEL28033Did},
+    {SEALEVELVid, SEALEVEL28034Did},
+    {SEALEVELVid, SEALEVEL28035Did},
+    {SEALEVELVid, SEALEVEL28036Did},
+    {SEALEVELVid, SEALEVEL28037Did},
+    {SEALEVELVid, SEALEVEL28038Did},
+    {IDTECHVid, IDTECHIDT1221UDid},
+    {OCTVid, OCTUS101Did},
+    {FTVid,
+     FTHETIRA1Did}, /* special quirk div = 240 baud = B38400 rtscts = 1 */
+    {FTVid, FTUSBUIRTDid}, /* special quirk div = 77, baud = B38400 */
+    {FTVid, PROTEGOSPECIAL1},
+    {FTVid, PROTEGOR2X0},
+    {FTVid, PROTEGOSPECIAL3},
+    {FTVid, PROTEGOSPECIAL4},
+    {FTVid, FTGUDEADSE808Did},
+    {FTVid, FTGUDEADSE809Did},
+    {FTVid, FTGUDEADSE80ADid},
+    {FTVid, FTGUDEADSE80BDid},
+    {FTVid, FTGUDEADSE80CDid},
+    {FTVid, FTGUDEADSE80DDid},
+    {FTVid, FTGUDEADSE80EDid},
+    {FTVid, FTGUDEADSE80FDid},
+    {FTVid, FTGUDEADSE888Did},
+    {FTVid, FTGUDEADSE889Did},
+    {FTVid, FTGUDEADSE88ADid},
+    {FTVid, FTGUDEADSE88BDid},
+    {FTVid, FTGUDEADSE88CDid},
+    {FTVid, FTGUDEADSE88DDid},
+    {FTVid, FTGUDEADSE88EDid},
+    {FTVid, FTGUDEADSE88FDid},
+    {FTVid, FTELVUO100Did},
+    {FTVid, FTELVUM100Did},
+    {FTVid, FTELVUR100Did},
+    {FTVid, FTELVALC8500Did},
+    {FTVid, FTPYRAMIDDid},
+    {FTVid, FTELVFHZ1000PCDid},
+    {FTVid, FTELVCLI7000Did},
+    {FTVid, FTELVPPS7330Did},
+    {FTVid, FTELVTFM100Did},
+    {FTVid, FTELVUDF77Did},
+    {FTVid, FTELVUIO88Did},
+    {FTVid, FTELVUAD8Did},
+    {FTVid, FTELVUDA7Did},
+    {FTVid, FTELVUSI2Did},
+    {FTVid, FTELVT1100Did},
+    {FTVid, FTELVPCD200Did},
+    {FTVid, FTELVULA200Did},
+    {FTVid, FTELVCSI8Did},
+    {FTVid, FTELVEM1000DLDid},
+    {FTVid, FTELVPCK100Did},
+    {FTVid, FTELVRFP500Did},
+    {FTVid, FTELVFS20SIGDid},
+    {FTVid, FTELVWS300PCDid},
+    {FTVid, FTELVFHZ1300PCDid},
+    {FTVid, FTELVWS500Did},
+    {FTVid, LINXSDMUSBQSSDid},
+    {FTVid, LINXMASTERDEVEL2Did},
+    {FTVid, LINXFUTURE0Did},
+    {FTVid, LINXFUTURE1Did},
+    {FTVid, LINXFUTURE2Did},
+    {FTVid, FTCCSICDU200Did},
+    {FTVid, FTCCSICDU401Did},
+    {FTVid, INSIDEACCESSO},
+    {INTREDidVid, INTREDidVALUECANDid},
+    {INTREDidVid, INTREDidNEOVIDid},
+    {FALCOMVid, FALCOMTWISTDid},
+    {FALCOMVid, FALCOMSAMBADid},
+    {FTVid, FTSUUNTOSPORTSDid},
+    {FTVid, FTRMCANVIEWDid},
+    {BANDBVid, BANDBUSOTL4Did},
+    {BANDBVid, BANDBUSTL4Did},
+    {BANDBVid, BANDBUSO9ML2Did},
+    {FTVid, EVERECOPROCDSDid},
+    {FTVid, FT4NGALAXYDE0Did},
+    {FTVid, FT4NGALAXYDE1Did},
+    {FTVid, FT4NGALAXYDE2Did},
+    {FTVid, XSENSCONVERTER0Did},
+    {FTVid, XSENSCONVERTER1Did},
+    {FTVid, XSENSCONVERTER2Did},
+    {FTVid, XSENSCONVERTER3Did},
+    {FTVid, XSENSCONVERTER4Did},
+    {FTVid, XSENSCONVERTER5Did},
+    {FTVid, XSENSCONVERTER6Did},
+    {FTVid, XSENSCONVERTER7Did},
+    {MOBILITYVid, MOBILITYUSBSERIALDid},
+    {FTVid, FTACTIVEROBOTSDid},
+    {FTVid, FTMHAMKWDid},
+    {FTVid, FTMHAMYSDid},
+    {FTVid, FTMHAMY6Did},
+    {FTVid, FTMHAMY8Did},
+    {FTVid, FTMHAMICDid},
+    {FTVid, FTMHAMDB9Did},
+    {FTVid, FTMHAMRS232Did},
+    {FTVid, FTMHAMY9Did},
+    {FTVid, FTTERATRONIKVCPDid},
+    {FTVid, FTTERATRONIKD2XXDid},
+    {EVOLUTIONVid, EVOLUTIONER1Did},
+    {FTVid, FTARTEMISDid},
+    {FTVid, FTATIKATK16Did},
+    {FTVid, FTATIKATK16CDid},
+    {FTVid, FTATIKATK16HRDid},
+    {FTVid, FTATIKATK16HRCDid},
+    {KOBILVid, KOBILCONVB1Did},
+    {KOBILVid, KOBILCONVKAANDid},
+    {POSIFLEXVid, POSIFLEXPP7000Did},
+    {FTVid, FTTTUSBDid},
+    {FTVid, FTECLOCOM1WIREDid},
+    {FTVid, FTWESTREXMODEL777Did},
+    {FTVid, FTWESTREXMODEL8900FDid},
+    {FTVid, FTPCDJDAC2Did},
+    {FTVid, FTRRCIRKITSLOCOBUFFERDid},
+    {FTVid, FTASKRDR400Did},
+    {ICOMID1Vid, ICOMID1Did},
+    {PAPOUCHVid, PAPOUCHTMUDid},
+    {FTVid, FTACGHFDUALDid},
+    {FT8U232AMDid, FT4232HDid},
+    {FTVid, AMONKEYDid},
+    {0, 0},
 };
 
-enum {
-	Packsz		= 64,		/* default size */
-	Maxpacksz	= 512,
-	Bufsiz		= 4 * 1024,
+enum { Packsz = 64, /* default size */
+       Maxpacksz = 512,
+       Bufsiz = 4 * 1024,
 };
 
 static int
-ftdiread(Serialport *p, int index, int req, uint8_t *buf, int len)
+ftdiread(Serialport* p, int index, int req, uint8_t* buf, int len)
 {
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
 	if(req != FTGETE2READ)
 		index |= p->interfc + 1;
-	dsprint(2, "serial: ftdiread %#p [%d] req: %#x val: %#x idx:%d buf:%p len:%d\n",
-		p, p->interfc, req, 0, index, buf, len);
-	res = usbcmd(ser->dev,  Rd2h | Rftdireq | Rdev, req, 0, index, buf, len);
+	dsprint(2, "serial: ftdiread %#p [%d] req: %#x val: %#x idx:%d buf:%p "
+	           "len:%d\n",
+	        p, p->interfc, req, 0, index, buf, len);
+	res = usbcmd(ser->dev, Rd2h | Rftdireq | Rdev, req, 0, index, buf, len);
 	dsprint(2, "serial: ftdiread res:%d\n", res);
 	return res;
 }
 
 static int
-ftdiwrite(Serialport *p, int val, int index, int req)
+ftdiwrite(Serialport* p, int val, int index, int req)
 {
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
 	if(req != FTGETE2READ || req != FTSETE2ERASE || req != FTSETBAUDRATE)
 		index |= p->interfc + 1;
-	dsprint(2, "serial: ftdiwrite %#p [%d] req: %#x val: %#x idx:%d\n",
-		p, p->interfc, req, val, index);
+	dsprint(2, "serial: ftdiwrite %#p [%d] req: %#x val: %#x idx:%d\n", p,
+	        p->interfc, req, val, index);
 	res = usbcmd(ser->dev, Rh2d | Rftdireq | Rdev, req, val, index, nil, 0);
 	dsprint(2, "serial: ftdiwrite res:%d\n", res);
 	return res;
 }
 
 static int
-ftmodemctl(Serialport *p, int set)
+ftmodemctl(Serialport* p, int set)
 {
-	if(set == 0){
+	if(set == 0) {
 		p->mctl = 0;
 		ftdiwrite(p, 0, 0, FTSETMODEMCTRL);
 		return 0;
@@ -275,26 +276,25 @@ ft232ambaudbase2div(int baud, int base)
 
 	divisor3 = (base / 2) / baud;
 	if((divisor3 & 7) == 7)
-		divisor3++;			/* round x.7/8 up to x+1 */
+		divisor3++; /* round x.7/8 up to x+1 */
 	divisor = divisor3 >> 3;
 	divisor3 &= 7;
 
 	if(divisor3 == 1)
-		divisor |= 0xc000;		/*	0.125 */
+		divisor |= 0xc000; /*	0.125 */
 	else if(divisor3 >= 4)
-		divisor |= 0x4000;		/*	0.5	*/
+		divisor |= 0x4000; /*	0.5	*/
 	else if(divisor3 != 0)
-		divisor |= 0x8000;		/*	0.25	*/
-	if( divisor == 1)
-		divisor = 0;		/* special case for maximum baud rate */
+		divisor |= 0x8000; /*	0.25	*/
+	if(divisor == 1)
+		divisor = 0; /* special case for maximum baud rate */
 	return divisor;
 }
 
-enum{
-	ClockNew	= 48000000,
-	ClockOld	= 12000000 / 16,
-	HetiraDiv	= 240,
-	UirtDiv		= 77,
+enum { ClockNew = 48000000,
+       ClockOld = 12000000 / 16,
+       HetiraDiv = 240,
+       UirtDiv = 77,
 };
 
 static uint16_t
@@ -303,7 +303,7 @@ ft232ambaud2div(int baud)
 	return ft232ambaudbase2div(baud, ClockNew);
 }
 
-static uint32_t divfrac[8] = { 0, 3, 2, 4, 1, 5, 6, 7};
+static uint32_t divfrac[8] = {0, 3, 2, 4, 1, 5, 6, 7};
 
 static uint32_t
 ft232bmbaudbase2div(int baud, int base)
@@ -315,33 +315,34 @@ ft232bmbaudbase2div(int baud, int base)
 	divisor = divisor3 >> 3 | divfrac[divisor3 & 7] << 14;
 
 	/* Deal with special cases for highest baud rates. */
-	if( divisor == 1)
-		divisor = 0;			/* 1.0 */
-	else if( divisor == 0x4001)
-		divisor = 1;			/* 1.5 */
+	if(divisor == 1)
+		divisor = 0; /* 1.0 */
+	else if(divisor == 0x4001)
+		divisor = 1; /* 1.5 */
 	return divisor;
 }
 
 static uint32_t
-ft232bmbaud2div (int baud)
+ft232bmbaud2div(int baud)
 {
-	return ft232bmbaudbase2div (baud, ClockNew);
+	return ft232bmbaudbase2div(baud, ClockNew);
 }
 
 static int
-customdiv(Serial *ser)
+customdiv(Serial* ser)
 {
 	if(ser->dev->usb->vid == FTVid && ser->dev->usb->did == FTHETIRA1Did)
 		return HetiraDiv;
-	else if(ser->dev->usb->vid == FTVid && ser->dev->usb->did == FTUSBUIRTDid)
+	else if(ser->dev->usb->vid == FTVid &&
+	        ser->dev->usb->did == FTUSBUIRTDid)
 		return UirtDiv;
 
 	fprint(2, "serial: weird custom divisor\n");
-	return 0;		/* shouldn't happen, break as much as I can */
+	return 0; /* shouldn't happen, break as much as I can */
 }
 
 static uint32_t
-ftbaudcalcdiv(Serial *ser, int baud)
+ftbaudcalcdiv(Serial* ser, int baud)
 {
 	int cusdiv;
 	uint32_t divval;
@@ -414,7 +415,7 @@ ftbaudcalcdiv(Serial *ser, int baud)
 }
 
 static int
-ftsetparam(Serialport *p)
+ftsetparam(Serialport* p)
 {
 	int res;
 	uint16_t val;
@@ -427,7 +428,7 @@ ftsetparam(Serialport *p)
 		val |= FTSETDATASTOPBITS2;
 	else if(p->stop == 15)
 		val |= FTSETDATASTOPBITS15;
-	switch(p->parity){
+	switch(p->parity) {
 	case 0:
 		val |= FTSETDATAParNONE;
 		break;
@@ -456,14 +457,14 @@ ftsetparam(Serialport *p)
 		return res;
 
 	bauddiv = ftbaudcalcdiv(p->s, p->baud);
-	res = ftdiwrite(p, bauddiv, (bauddiv>>16) & 1, FTSETBAUDRATE);
+	res = ftdiwrite(p, bauddiv, (bauddiv >> 16) & 1, FTSETBAUDRATE);
 
 	dsprint(2, "serial: setparam res: %d\n", res);
 	return res;
 }
 
 static int
-hasjtag(Usbdev *udev)
+hasjtag(Usbdev* udev)
 {
 	/* no string, for now, by default we detect no jtag */
 	if(udev->product != nil && cistrstr(udev->product, "jtag") != nil)
@@ -473,11 +474,11 @@ hasjtag(Usbdev *udev)
 
 /* ser locked */
 static void
-ftgettype(Serial *ser)
+ftgettype(Serial* ser)
 {
 	int i, outhdrsz, dno, pksz;
 	uint32_t baudbase;
-	Conf *cnf;
+	Conf* cnf;
 
 	pksz = Packsz;
 	/* Assume it is not the original SIO device for now. */
@@ -497,10 +498,10 @@ ftgettype(Serial *ser)
 			ser->type = FT2232C;
 		else if(dno == 0x600)
 			ser->type = FTKINDR;
-		else if(dno == 0x700){
+		else if(dno == 0x700) {
 			ser->type = FT2232H;
 			pksz = Maxpacksz;
-		} else if(dno == 0x800){
+		} else if(dno == 0x800) {
 			ser->type = FT4232H;
 			pksz = Maxpacksz;
 		} else
@@ -515,11 +516,12 @@ ftgettype(Serial *ser)
 		 */
 		if(dno < 0x500)
 			fprint(2, "serial: warning: dno %d too low for "
-				"multi-interface device\n", dno);
+			          "multi-interface device\n",
+			       dno);
 	} else if(dno < 0x200) {
 		/* Old device.  Assume it is the original SIO. */
 		ser->type = SIO;
-		baudbase = ClockOld/16;
+		baudbase = ClockOld / 16;
 		outhdrsz = 1;
 	} else if(dno < 0x400)
 		/*
@@ -528,7 +530,7 @@ ftgettype(Serial *ser)
 		 * but it will still work as an AM device.)
 		 */
 		ser->type = FT8U232AM;
-	else			/* Assume it is an FT232BM (or FT245BM) */
+	else /* Assume it is an FT232BM (or FT245BM) */
 		ser->type = FT232BM;
 
 	ser->maxrtrans = ser->maxwtrans = pksz;
@@ -536,20 +538,21 @@ ftgettype(Serial *ser)
 	ser->outhdrsz = outhdrsz;
 	ser->inhdrsz = 2;
 
-	dsprint (2, "serial: detected type: %#x\n", ser->type);
+	dsprint(2, "serial: detected type: %#x\n", ser->type);
 }
 
 int
-ftmatch(Serial *ser, char *info)
+ftmatch(Serial* ser, char* info)
 {
-	Cinfo *ip;
+	Cinfo* ip;
 	char buf[50];
 
-	for(ip = ftinfo; ip->vid != 0; ip++){
-		snprint(buf, sizeof buf, "vid %#06x did %#06x", ip->vid, ip->did);
+	for(ip = ftinfo; ip->vid != 0; ip++) {
+		snprint(buf, sizeof buf, "vid %#06x did %#06x", ip->vid,
+		        ip->did);
 		dsprint(2, "serial: %s %s\n", buf, info);
-		if(strstr(info, buf) != nil){
-			if(ser != nil){
+		if(strstr(info, buf) != nil) {
+			if(ser != nil) {
 				qlock(ser);
 				ftgettype(ser);
 				qunlock(ser);
@@ -561,7 +564,7 @@ ftmatch(Serial *ser, char *info)
 }
 
 static int
-ftuseinhdr(Serialport *p, uint8_t *b)
+ftuseinhdr(Serialport* p, uint8_t* b)
 {
 	if(b[0] & FTICTS)
 		p->cts = 1;
@@ -592,7 +595,7 @@ ftuseinhdr(Serialport *p, uint8_t *b)
 }
 
 static int
-ftsetouthdr(Serialport *p, uint8_t *b, int len)
+ftsetouthdr(Serialport* p, uint8_t* b, int len)
 {
 	if(p->s->outhdrsz != 0)
 		b[0] = FTOPORT | (FTOLENMSK & len);
@@ -600,10 +603,10 @@ ftsetouthdr(Serialport *p, uint8_t *b, int len)
 }
 
 static int
-wait4data(Serialport *p, uint8_t *data, int count)
+wait4data(Serialport* p, uint8_t* data, int count)
 {
 	int d;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
@@ -614,7 +617,7 @@ wait4data(Serialport *p, uint8_t *data, int count)
 		return -1;
 	if(p->ndata >= count)
 		p->ndata -= count;
-	else{
+	else {
 		count = p->ndata;
 		p->ndata = 0;
 	}
@@ -622,64 +625,64 @@ wait4data(Serialport *p, uint8_t *data, int count)
 	assert(p->ndata >= 0);
 	memmove(data, p->data, count);
 	if(p->ndata != 0)
-		memmove(p->data, p->data+count, p->ndata);
+		memmove(p->data, p->data + count, p->ndata);
 
 	recvul(p->gotdata);
 	return count;
 }
 
 static int
-wait4write(Serialport *p, uint8_t *data, int count)
+wait4write(Serialport* p, uint8_t* data, int count)
 {
 	int off, fd;
-	uint8_t *b;
-	Serial *ser;
+	uint8_t* b;
+	Serial* ser;
 
 	ser = p->s;
 
-	b = emallocz(count+ser->outhdrsz, 1);
+	b = emallocz(count + ser->outhdrsz, 1);
 	off = ftsetouthdr(p, b, count);
-	memmove(b+off, data, count);
+	memmove(b + off, data, count);
 
 	fd = p->epout->dfd;
 	qunlock(ser);
-	count = write(fd, b, count+off);
+	count = write(fd, b, count + off);
 	qlock(ser);
 	free(b);
 	return count;
 }
 
 typedef struct Packser Packser;
-struct Packser{
-	int	nb;
-	uint8_t	b[Bufsiz];
+struct Packser {
+	int nb;
+	uint8_t b[Bufsiz];
 };
 
 typedef struct Areader Areader;
-struct Areader{
-	Serialport	*p;
-	Channel	*c;
+struct Areader {
+	Serialport* p;
+	Channel* c;
 };
 
 static void
-shutdownchan(Channel *c)
+shutdownchan(Channel* c)
 {
-	Packser *bp;
+	Packser* bp;
 
-	while((bp=nbrecvp(c)) != nil)
+	while((bp = nbrecvp(c)) != nil)
 		free(bp);
 	chanfree(c);
 }
 
 int
-cpdata(Serial *ser, Serialport *port, uint8_t *out, uint8_t *in, int sz)
+cpdata(Serial* ser, Serialport* port, uint8_t* out, uint8_t* in, int sz)
 {
 	int i, ncp, ntotcp, pksz;
 
 	pksz = ser->maxrtrans;
 	ntotcp = 0;
 
-	for(i = 0; i < sz; i+= pksz){
+	for(i = 0; i < sz; i += pksz) {
 		ftuseinhdr(port, in + i);
 		if(sz - i > pksz)
 			ncp = pksz - ser->inhdrsz;
@@ -693,15 +696,15 @@ cpdata(Serial *ser, Serialport *port, uint8_t *out, uint8_t *in, int sz)
 }
 
 static void
-epreader(void *u)
+epreader(void* u)
 {
 	int dfd, rcount, cl, ntries, recov;
 	char err[40];
-	Areader *a;
-	Channel *c;
-	Packser *pk;
-	Serial *ser;
-	Serialport *p;
+	Areader* a;
+	Channel* c;
+	Packser* pk;
+	Serial* ser;
+	Serialport* p;
 
 	threadsetname("epreader proc");
 	a = u;
@@ -710,38 +713,39 @@ epreader(void *u)
 	c = a->c;
 	free(a);
 
-	qlock(ser);	/* this makes the reader wait end of initialization too */
+	qlock(ser); /* this makes the reader wait end of initialization too */
 	dfd = p->epin->dfd;
 	qunlock(ser);
 
 	ntries = 0;
 	pk = nil;
 	do {
-		if (pk == nil)
+		if(pk == nil)
 			pk = emallocz(sizeof(Packser), 1);
-Eagain:
+	Eagain:
 		rcount = read(dfd, pk->b, sizeof pk->b);
 		if(serialdebug > 5)
 			dsprint(2, "%d %#ux%#ux ", rcount, p->data[0],
-				p->data[1]);
+			        p->data[1]);
 
-		if(rcount < 0){
+		if(rcount < 0) {
 			if(ntries++ > 100)
 				break;
 			qlock(ser);
-			recov = serialrecover(ser, p, nil, "epreader: bulkin error");
+			recov = serialrecover(ser, p, nil,
+			                      "epreader: bulkin error");
 			qunlock(ser);
 			if(recov >= 0)
 				goto Eagain;
 		}
 		if(rcount == 0)
 			continue;
-		if(rcount >= ser->inhdrsz){
+		if(rcount >= ser->inhdrsz) {
 			rcount = cpdata(ser, p, pk->b, pk->b, rcount);
-			if(rcount != 0){
+			if(rcount != 0) {
 				pk->nb = rcount;
 				cl = sendp(c, pk);
-				if(cl < 0){
+				if(cl < 0) {
 					/*
 					 * if it was a time-out, I don't want
 					 * to give back an error.
@@ -749,7 +753,7 @@ Eagain:
 					rcount = 0;
 					break;
 				}
-			}else
+			} else
 				free(pk);
 			qlock(ser);
 			ser->recover = 0;
@@ -773,40 +777,40 @@ Eagain:
 }
 
 static void
-statusreader(void *u)
+statusreader(void* u)
 {
-	Areader *a;
-	Channel *c;
-	Packser *pk;
-	Serialport *p;
-	Serial *ser;
+	Areader* a;
+	Channel* c;
+	Packser* pk;
+	Serialport* p;
+	Serial* ser;
 	int cl;
 
 	p = u;
 	ser = p->s;
 	threadsetname("statusreader thread");
 	/* big buffering, fewer bytes lost */
-	c = chancreate(sizeof(Packser *), 128);
+	c = chancreate(sizeof(Packser*), 128);
 	a = emallocz(sizeof(Areader), 1);
 	a->p = p;
 	a->c = c;
 	incref(ser->dev);
-	proccreate(epreader, a, 16*1024);
+	proccreate(epreader, a, 16 * 1024);
 
-	while((pk = recvp(c)) != nil){
+	while((pk = recvp(c)) != nil) {
 		memmove(p->data, pk->b, pk->nb);
 		p->ndata = pk->nb;
 		free(pk);
 		dsprint(2, "serial %p: status reader %d \n", p, p->ndata);
 		/* consume it all */
-		while(p->ndata != 0){
+		while(p->ndata != 0) {
 			dsprint(2, "serial %p: status reader to consume: %d\n",
-				p, p->ndata);
+			        p, p->ndata);
 			cl = recvul(p->w4data);
-			if(cl  < 0)
+			if(cl < 0)
 				break;
 			cl = sendul(p->gotdata, 1);
-			if(cl  < 0)
+			if(cl < 0)
 				break;
 		}
 	}
@@ -818,11 +822,11 @@ statusreader(void *u)
 }
 
 static int
-ftreset(Serial *ser, Serialport *p)
+ftreset(Serial* ser, Serialport* p)
 {
 	int i;
 
-	if(p != nil){
+	if(p != nil) {
 		ftdiwrite(p, FTRESETCTLVAL, 0, FTRESET);
 		return 0;
 	}
@@ -834,49 +838,49 @@ ftreset(Serial *ser, Serialport *p)
 }
 
 static int
-ftinit(Serialport *p)
+ftinit(Serialport* p)
 {
-	Serial *ser;
+	Serial* ser;
 	uint timerval;
 	int res;
 
 	ser = p->s;
-	if(p->isjtag){
+	if(p->isjtag) {
 		res = ftdiwrite(p, FTSETFLOWCTRL, 0, FTDISABLEFLOWCTRL);
 		if(res < 0)
 			return -1;
-		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uint8_t *)&timerval,
-			FTLATENCYTIMERSZ);
+		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uint8_t*)&timerval,
+		               FTLATENCYTIMERSZ);
 		if(res < 0)
 			return -1;
 		dsprint(2, "serial: jtag latency timer is %d\n", timerval);
 		timerval = 2;
 		ftdiwrite(p, FTLATENCYDEFAULT, 0, FTSETLATENCYTIMER);
-		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uint8_t *)&timerval,
-			FTLATENCYTIMERSZ);
+		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uint8_t*)&timerval,
+		               FTLATENCYTIMERSZ);
 		if(res < 0)
 			return -1;
 
 		dsprint(2, "serial: jtag latency timer set to %d\n", timerval);
 		/* may be unnecessary */
-		devctl(p->epin,  "timeout 5000");
+		devctl(p->epin, "timeout 5000");
 		devctl(p->epout, "timeout 5000");
 		/* 0xb is the mask for lines. plug dependant? */
-		ftdiwrite(p, BMMPSSE|0x0b, 0, FTSETBITMODE);
+		ftdiwrite(p, BMMPSSE | 0x0b, 0, FTSETBITMODE);
 	}
 	incref(ser->dev);
-	threadcreate(statusreader, p, 8*1024);
+	threadcreate(statusreader, p, 8 * 1024);
 	return 0;
 }
 
 static int
-ftsetbreak(Serialport *p, int val)
+ftsetbreak(Serialport* p, int val)
 {
-	return ftdiwrite(p, (val != 0? FTSETBREAK: 0), 0, FTSETDATA);
+	return ftdiwrite(p, (val != 0 ? FTSETBREAK : 0), 0, FTSETDATA);
 }
 
 static int
-ftclearpipes(Serialport *p)
+ftclearpipes(Serialport* p)
 {
 	/* maybe can be done in one... */
 	ftdiwrite(p, FTRESETCTLVALPURGETX, 0, FTRESET);
@@ -885,13 +889,13 @@ ftclearpipes(Serialport *p)
 }
 
 static int
-setctlline(Serialport *p, uint8_t val)
+setctlline(Serialport* p, uint8_t val)
 {
 	return ftdiwrite(p, val | (val << 8), 0, FTSETMODEMCTRL);
 }
 
 static void
-updatectlst(Serialport *p, int val)
+updatectlst(Serialport* p, int val)
 {
 	if(p->rts)
 		p->ctlstate |= val;
@@ -900,28 +904,28 @@ updatectlst(Serialport *p, int val)
 }
 
 static int
-setctl(Serialport *p)
+setctl(Serialport* p)
 {
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
-	if(ser->dev->usb->vid == FTVid && ser->dev->usb->did ==  FTHETIRA1Did){
+	if(ser->dev->usb->vid == FTVid && ser->dev->usb->did == FTHETIRA1Did) {
 		fprint(2, "serial: cannot set lines for this device\n");
-		updatectlst(p, CtlRTS|CtlDTR);
+		updatectlst(p, CtlRTS | CtlDTR);
 		p->rts = p->dtr = 1;
 		return -1;
 	}
 
 	/* NB: you can not set DTR and RTS with one control message */
 	updatectlst(p, CtlRTS);
-	res = setctlline(p, (CtlRTS<<8)|p->ctlstate);
+	res = setctlline(p, (CtlRTS << 8) | p->ctlstate);
 	if(res < 0)
 		return res;
 
 	updatectlst(p, CtlDTR);
-	res = setctlline(p, (CtlDTR<<8)|p->ctlstate);
+	res = setctlline(p, (CtlDTR << 8) | p->ctlstate);
 	if(res < 0)
 		return res;
 
@@ -929,7 +933,7 @@ setctl(Serialport *p)
 }
 
 static int
-ftsendlines(Serialport *p)
+ftsendlines(Serialport* p)
 {
 	int res;
 
@@ -940,10 +944,10 @@ ftsendlines(Serialport *p)
 }
 
 static int
-ftseteps(Serialport *p)
+ftseteps(Serialport* p)
 {
-	char *s;
-	Serial *ser;
+	char* s;
+	Serial* ser;
 
 	ser = p->s;
 
@@ -958,14 +962,14 @@ ftseteps(Serialport *p)
 }
 
 Serialops ftops = {
-	.init		= ftinit,
-	.seteps		= ftseteps,
-	.setparam	= ftsetparam,
-	.clearpipes	= ftclearpipes,
-	.reset		= ftreset,
-	.sendlines	= ftsendlines,
-	.modemctl	= ftmodemctl,
-	.setbreak	= ftsetbreak,
-	.wait4data	= wait4data,
-	.wait4write	= wait4write,
+    .init = ftinit,
+    .seteps = ftseteps,
+    .setparam = ftsetparam,
+    .clearpipes = ftclearpipes,
+    .reset = ftreset,
+    .sendlines = ftsendlines,
+    .modemctl = ftmodemctl,
+    .setbreak = ftsetbreak,
+    .wait4data = wait4data,
+    .wait4write = wait4write,
 };

@@ -23,11 +23,10 @@
  * JPEG library.  Most applications need only include jpeglib.h.
  */
 
-
 /* Include auto-config file to find out which system include files we need. */
 
-#include "jconfig.h"		/* auto configuration options */
-#define JCONFIG_INCLUDED	/* so that jpeglib.h doesn't do it again */
+#include "jconfig.h"     /* auto configuration options */
+#define JCONFIG_INCLUDED /* so that jpeglib.h doesn't do it again */
 
 /*
  * We need the NULL macro and size_t typedef.
@@ -67,14 +66,16 @@
 #ifdef NEED_BSD_STRINGS
 
 #include <strings.h>
-#define MEMZERO(target,size)	bzero((void *)(target), (size_t)(size))
-#define MEMCOPY(dest,src,size)	bcopy((const void *)(src), (void *)(dest), (size_t)(size))
+#define MEMZERO(target, size) bzero((void*)(target), (size_t)(size))
+#define MEMCOPY(dest, src, size)                                               \
+	bcopy((const void*)(src), (void*)(dest), (size_t)(size))
 
 #else /* not BSD, assume ANSI/SysV string lib */
 
 #include <string.h>
-#define MEMZERO(target,size)	memset((void *)(target), 0, (size_t)(size))
-#define MEMCOPY(dest,src,size)	memcpy((void *)(dest), (const void *)(src), (size_t)(size))
+#define MEMZERO(target, size) memset((void*)(target), 0, (size_t)(size))
+#define MEMCOPY(dest, src, size)                                               \
+	memcpy((void*)(dest), (const void*)(src), (size_t)(size))
 
 #endif
 
@@ -86,7 +87,7 @@
  * we always use this SIZEOF() macro in place of using sizeof() directly.
  */
 
-#define SIZEOF(object)	((size_t) sizeof(object))
+#define SIZEOF(object) ((size_t)sizeof(object))
 
 /*
  * The modules that use fread() and fwrite() always invoke them through
@@ -94,7 +95,8 @@
  * CAUTION: argument order is different from underlying functions!
  */
 
-#define JFREAD(file,buf,sizeofbuf)  \
-  ((size_t) fread((void *) (buf), (size_t) 1, (size_t) (sizeofbuf), (file)))
-#define JFWRITE(file,buf,sizeofbuf)  \
-  ((size_t) fwrite((const void *) (buf), (size_t) 1, (size_t) (sizeofbuf), (file)))
+#define JFREAD(file, buf, sizeofbuf)                                           \
+	((size_t)fread((void*)(buf), (size_t)1, (size_t)(sizeofbuf), (file)))
+#define JFWRITE(file, buf, sizeofbuf)                                          \
+	((size_t)fwrite((const void*)(buf), (size_t)1, (size_t)(sizeofbuf),    \
+	                (file)))

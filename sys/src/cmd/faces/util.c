@@ -16,7 +16,7 @@
 void*
 emalloc(uint32_t sz)
 {
-	void *v;
+	void* v;
 	v = malloc(sz);
 	if(v == nil) {
 		fprint(2, "out of memory allocating %ld\n", sz);
@@ -27,7 +27,7 @@ emalloc(uint32_t sz)
 }
 
 void*
-erealloc(void *v, uint32_t sz)
+erealloc(void* v, uint32_t sz)
 {
 	v = realloc(v, sz);
 	if(v == nil) {
@@ -38,13 +38,12 @@ erealloc(void *v, uint32_t sz)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *t;
+	char* t;
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);
 		exits("mem");
 	}
 	return t;
 }
-

@@ -17,8 +17,8 @@
 typedef struct Args Args;
 
 struct Args {
-	int	argc;
-	char	**argv;
+	int argc;
+	char** argv;
 };
 
 typedef struct Dfile Dfile;
@@ -31,204 +31,181 @@ typedef struct Tardir Tardir;
 
 extern int threadrforkflag = RFNAMEG;
 
-enum{
-	Nstat = 1024,	/* plenty for this application */
-	MAXSIZE = 8192+IOHDRSZ,
+enum { Nstat = 1024, /* plenty for this application */
+       MAXSIZE = 8192 + IOHDRSZ,
 };
 
 int messagesize = MAXSIZE;
 
 void
-fatal(char *fmt, ...)
+fatal(char* fmt, ...)
 {
 	va_list arg;
 	char buf[1024];
 
 	write(2, "depend: ", 8);
 	va_start(arg, fmt);
-	vseprint(buf, buf+1024, fmt, arg);
+	vseprint(buf, buf + 1024, fmt, arg);
 	va_end(arg);
 	write(2, buf, strlen(buf));
 	write(2, "\n", 1);
 	threadexitsall(fmt);
 }
 
-enum
-{
-	Nfidhash=	64,
-	Ndfhash=	128,
+enum { Nfidhash = 64,
+       Ndfhash = 128,
 };
 
-struct Symbol
-{
-	Symbol	*next;		/* hash list chaining */
-	char	*sym;
-	int	fno;		/* file symbol is defined in */
+struct Symbol {
+	Symbol* next; /* hash list chaining */
+	char* sym;
+	int fno; /* file symbol is defined in */
 };
 
 /* source file */
-struct File
-{
+struct File {
 	QLock;
 
-	char	*name;
-	Symbol	*ref;
-	unsigned char	*refvec;	/* files resolving the references */
-	uint	len;		/* length of file */
-	uint	tarlen;		/* length of tar file */
-	uint	mode;
-	uint	mtime;
+	char* name;
+	Symbol* ref;
+	unsigned char* refvec; /* files resolving the references */
+	uint len;              /* length of file */
+	uint tarlen;           /* length of tar file */
+	uint mode;
+	uint mtime;
 
-	int	use;
-	int	fd;
+	int use;
+	int fd;
 };
 
 /* .depend file */
-struct Dfile
-{
+struct Dfile {
 	Lock;
-	int	use;		/* use count */
-	int	old;		/* true if this is an superceded dfile */
+	int use; /* use count */
+	int old; /* true if this is an superceded dfile */
 
-	File	*file;		/* files */
-	int	nfile;		/* number of files */
-	int	flen;		/* length of file table */
+	File* file; /* files */
+	int nfile;  /* number of files */
+	int flen;   /* length of file table */
 
-	Symbol	**dhash;	/* hash table of symbols */
-	int	hlen;		/* length of hash table */
+	Symbol** dhash; /* hash table of symbols */
+	int hlen;       /* length of hash table */
 
-	Dfile	*next;		/* hash chain */
-	char	*path;		/* path name of dependency file */
-	Qid	qid;		/* qid of the dependency file */
+	Dfile* next; /* hash chain */
+	char* path;  /* path name of dependency file */
+	Qid qid;     /* qid of the dependency file */
 };
 
-struct Fid
-{
-	Fid	*next;
-	int	fid;
-	int	ref;
+struct Fid {
+	Fid* next;
+	int fid;
+	int ref;
 
-	int	attached;
-	int	open;
-	Qid	qid;
-	char	*path;
-	Dfile	*df;
-	Symbol	*dp;
-	int	fd;
-	Dir	*dir;
-	int	ndir;
-	int	dirindex;
+	int attached;
+	int open;
+	Qid qid;
+	char* path;
+	Dfile* df;
+	Symbol* dp;
+	int fd;
+	Dir* dir;
+	int ndir;
+	int dirindex;
 };
 
-struct Request
-{
-	Request	*next;
-	Fid	*fid;
-	Fcall	f;
-	uint8_t	buf[1];
+struct Request {
+	Request* next;
+	Fid* fid;
+	Fcall f;
+	uint8_t buf[1];
 };
 
-enum
-{
-	Tblocksize=	512,	/* tar block size */
-	Tnamesize=	100,	/* tar name size */
+enum { Tblocksize = 512, /* tar block size */
+       Tnamesize = 100,  /* tar name size */
 };
 
-struct Tardir
-{
-	char	name[Tnamesize];
-	char	mode[8];
-	char	uid[8];
-	char	gid[8];
-	char	size[12];
-	char	mtime[12];
-	char	chksum[8];
-	char	linkflag;
-	char	linkname[Tnamesize];
+struct Tardir {
+	char name[Tnamesize];
+	char mode[8];
+	char uid[8];
+	char gid[8];
+	char size[12];
+	char mtime[12];
+	char chksum[8];
+	char linkflag;
+	char linkname[Tnamesize];
 };
 
-struct Fs
-{
+struct Fs {
 	Lock;
 
-	int	fd;		/* to kernel mount point */
-	Fid	*hash[Nfidhash];
-	char	*root;
-	Qid	rootqid;
-
+	int fd; /* to kernel mount point */
+	Fid* hash[Nfidhash];
+	char* root;
+	Qid rootqid;
 };
 
-struct Fsarg
-{
-	Fs	*fs;
-	int	fd;
-	char *root;
+struct Fsarg {
+	Fs* fs;
+	int fd;
+	char* root;
 };
 
+extern void fsrun(void*);
+extern Fid* fsgetfid(Fs*, int);
+extern void fsputfid(Fs*, Fid*);
+extern void fsreply(Fs*, Request*, char*);
+extern void fsversion(Fs*, Request*, Fid*);
+extern void fsauth(Fs*, Request*, Fid*);
+extern void fsflush(Fs*, Request*, Fid*);
+extern void fsattach(Fs*, Request*, Fid*);
+extern void fswalk(Fs*, Request*, Fid*);
+extern void fsopen(Fs*, Request*, Fid*);
+extern void fscreate(Fs*, Request*, Fid*);
+extern void fsread(Fs*, Request*, Fid*);
+extern void fswrite(Fs*, Request*, Fid*);
+extern void fsclunk(Fs*, Request*, Fid*);
+extern void fsremove(Fs*, Request*, Fid*);
+extern void fsstat(Fs*, Request*, Fid*);
+extern void fswstat(Fs*, Request*, Fid*);
 
-extern	void	fsrun(void*);
-extern	Fid*	fsgetfid(Fs*, int);
-extern	void	fsputfid(Fs*, Fid*);
-extern	void	fsreply(Fs*, Request*, char*);
-extern	void	fsversion(Fs*, Request*, Fid*);
-extern	void	fsauth(Fs*, Request*, Fid*);
-extern	void	fsflush(Fs*, Request*, Fid*);
-extern	void	fsattach(Fs*, Request*, Fid*);
-extern	void	fswalk(Fs*, Request*, Fid*);
-extern	void	fsopen(Fs*, Request*, Fid*);
-extern	void	fscreate(Fs*, Request*, Fid*);
-extern	void	fsread(Fs*, Request*, Fid*);
-extern	void	fswrite(Fs*, Request*, Fid*);
-extern	void	fsclunk(Fs*, Request*, Fid*);
-extern	void	fsremove(Fs*, Request*, Fid*);
-extern	void	fsstat(Fs*, Request*, Fid*);
-extern	void	fswstat(Fs*, Request*, Fid*);
+void (*fcall[])(Fs*, Request*,
+                Fid*) = {[Tflush] fsflush,   [Tversion] fsversion,
+                         [Tauth] fsauth,     [Tattach] fsattach,
+                         [Twalk] fswalk,     [Topen] fsopen,
+                         [Tcreate] fscreate, [Tread] fsread,
+                         [Twrite] fswrite,   [Tclunk] fsclunk,
+                         [Tremove] fsremove, [Tstat] fsstat,
+                         [Twstat] fswstat};
 
-void 	(*fcall[])(Fs*, Request*, Fid*) =
-{
-	[Tflush]	fsflush,
-	[Tversion]	fsversion,
-	[Tauth]	fsauth,
-	[Tattach]	fsattach,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fscreate,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsremove,
-	[Tstat]		fsstat,
-	[Twstat]	fswstat
-};
-
-char Eperm[]   = "permission denied";
-char Eexist[]  = "file does not exist";
+char Eperm[] = "permission denied";
+char Eexist[] = "file does not exist";
 char Enotdir[] = "not a directory";
 char Eisopen[] = "file already open";
 char Enofid[] = "no such fid";
-char mallocerr[]	= "malloc: %r";
-char Etoolong[]	= "name too long";
+char mallocerr[] = "malloc: %r";
+char Etoolong[] = "name too long";
 
-char *dependlog = "depend";
+char* dependlog = "depend";
 
 int debug;
-Dfile *dfhash[Ndfhash];		/* dependency file hash */
+Dfile* dfhash[Ndfhash]; /* dependency file hash */
 QLock dfhlock[Ndfhash];
 QLock iolock;
 
-Request*	allocreq(int);
-Dfile*	getdf(char*);
-void	releasedf(Dfile*);
-Symbol*	dfsearch(Dfile*, char*);
-void	dfresolve(Dfile*, int);
-char*	mkpath(char*, char*);
-int	mktar(Dfile*, Symbol*, uint8_t*, uint, int);
-void	closetar(Dfile*, Symbol*);
+Request* allocreq(int);
+Dfile* getdf(char*);
+void releasedf(Dfile*);
+Symbol* dfsearch(Dfile*, char*);
+void dfresolve(Dfile*, int);
+char* mkpath(char*, char*);
+int mktar(Dfile*, Symbol*, uint8_t*, uint, int);
+void closetar(Dfile*, Symbol*);
 
 void*
 emalloc(uint n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -237,26 +214,26 @@ emalloc(uint n)
 	return p;
 }
 
-void *
-erealloc(void *ReallocP, int ReallocN)
+void*
+erealloc(void* ReallocP, int ReallocN)
 {
 	if(ReallocN == 0)
 		ReallocN = 1;
 	if(!ReallocP)
 		ReallocP = emalloc(ReallocN);
 	else if(!(ReallocP = realloc(ReallocP, ReallocN)))
-		fatal("unable to allocate %d bytes",ReallocN);
-	return(ReallocP);
+		fatal("unable to allocate %d bytes", ReallocN);
+	return (ReallocP);
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *d, *d0;
+	char* d, *d0;
 
 	if(!s)
 		return 0;
-	d = d0 = emalloc(strlen(s)+1);
+	d = d0 = emalloc(strlen(s) + 1);
 	while(*d++ = *s++)
 		;
 	return d0;
@@ -267,16 +244,16 @@ estrdup(char *s)
  *  per CPU
  */
 void
-realmain(void *a)
+realmain(void* a)
 {
-	Fs *fs;
+	Fs* fs;
 	int pfd[2];
 	int srv;
 	char service[128];
 	struct Fsarg fsarg;
-	Args *args;
+	Args* args;
 	int argc;
-	char **argv;
+	char** argv;
 
 	args = a;
 	argc = args->argc;
@@ -284,12 +261,14 @@ realmain(void *a)
 
 	fmtinstall('F', fcallfmt);
 
-	ARGBEGIN{
-		case 'd':
-			debug++;
-			break;
-	}ARGEND
-	if(argc != 2){
+	ARGBEGIN
+	{
+	case 'd':
+		debug++;
+		break;
+	}
+	ARGEND
+	if(argc != 2) {
 		fprint(2, "usage: %s [-d] svc-name directory\n", argv0);
 		exits("usage");
 	}
@@ -308,7 +287,7 @@ realmain(void *a)
 	close(srv);
 	close(pfd[1]);
 
-	time(nil);	/* open fd for time before losing / */
+	time(nil); /* open fd for time before losing / */
 	if(bind(argv[1], "/", MREPL) == 0)
 		fatal("can't bind %s to /", argv[1]);
 
@@ -316,28 +295,28 @@ realmain(void *a)
 	fsarg.fs = fs;
 	fsarg.fd = pfd[0];
 	fsarg.root = argv[1];
-	proccreate(fsrun, &fsarg, 16*1024);
-	proccreate(fsrun, &fsarg, 16*1024);
+	proccreate(fsrun, &fsarg, 16 * 1024);
+	proccreate(fsrun, &fsarg, 16 * 1024);
 	fsrun(&fsarg);
 	exits(nil);
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	static Args args;
 
 	args.argc = argc;
 	args.argv = argv;
 	rfork(RFNAMEG);
-	proccreate(realmain, &args, 16*1024);
+	proccreate(realmain, &args, 16 * 1024);
 }
 
 char*
-mkpath(char *dir, char *file)
+mkpath(char* dir, char* file)
 {
 	int len;
-	char *path;
+	char* path;
 
 	len = strlen(dir) + 1;
 	if(file != nil)
@@ -351,15 +330,15 @@ mkpath(char *dir, char *file)
 }
 
 void
-fsrun(void *a)
+fsrun(void* a)
 {
-	struct Fsarg *fsarg;
+	struct Fsarg* fsarg;
 	Fs* fs;
-	char *root;
+	char* root;
 	int n, t;
-	Request *r;
-	Fid *f;
-	Dir *d;
+	Request* r;
+	Fid* f;
+	Dir* d;
 
 	fsarg = a;
 	fs = fsarg->fs;
@@ -371,7 +350,7 @@ fsrun(void *a)
 	fs->rootqid = d->qid;
 	free(d);
 
-	for(;;){
+	for(;;) {
 		r = allocreq(messagesize);
 		qlock(&iolock);
 		n = read9pmsg(fs->fd, r->buf, messagesize);
@@ -379,9 +358,9 @@ fsrun(void *a)
 		if(n <= 0)
 			fatal("read9pmsg error: %r");
 
-		if(convM2S(r->buf, n, &r->f) == 0){
+		if(convM2S(r->buf, n, &r->f) == 0) {
 			fprint(2, "can't convert %ux %ux %ux\n", r->buf[0],
-				r->buf[1], r->buf[2]);
+			       r->buf[1], r->buf[2]);
 			free(r);
 			continue;
 		}
@@ -396,7 +375,6 @@ fsrun(void *a)
 		(*fcall[t])(fs, r, f);
 		fsputfid(fs, f);
 	}
-
 }
 
 /*
@@ -405,21 +383,21 @@ fsrun(void *a)
 Request*
 allocreq(int bufsize)
 {
-	Request *r;
+	Request* r;
 
-	r = emalloc(sizeof(Request)+bufsize);
+	r = emalloc(sizeof(Request) + bufsize);
 	r->next = nil;
 	return r;
 }
 
 Fid*
-fsgetfid(Fs *fs, int fid)
+fsgetfid(Fs* fs, int fid)
 {
-	Fid *f, *nf;
+	Fid* f, *nf;
 
 	lock(fs);
-	for(f = fs->hash[fid%Nfidhash]; f; f = f->next){
-		if(f->fid == fid){
+	for(f = fs->hash[fid % Nfidhash]; f; f = f->next) {
+		if(f->fid == fid) {
 			f->ref++;
 			unlock(fs);
 			return f;
@@ -427,8 +405,8 @@ fsgetfid(Fs *fs, int fid)
 	}
 
 	nf = emalloc(sizeof(Fid));
-	nf->next = fs->hash[fid%Nfidhash];
-	fs->hash[fid%Nfidhash] = nf;
+	nf->next = fs->hash[fid % Nfidhash];
+	fs->hash[fid % Nfidhash] = nf;
 	nf->fid = fid;
 	nf->ref = 1;
 	nf->fd = -1;
@@ -437,17 +415,17 @@ fsgetfid(Fs *fs, int fid)
 }
 
 void
-fsputfid(Fs *fs, Fid *f)
+fsputfid(Fs* fs, Fid* f)
 {
-	Fid **l, *nf;
+	Fid** l, *nf;
 
 	lock(fs);
-	if(--f->ref > 0){
+	if(--f->ref > 0) {
 		unlock(fs);
 		return;
 	}
-	for(l = &fs->hash[f->fid%Nfidhash]; nf = *l; l = &nf->next)
-		if(nf == f){
+	for(l = &fs->hash[f->fid % Nfidhash]; nf = *l; l = &nf->next)
+		if(nf == f) {
 			*l = f->next;
 			break;
 		}
@@ -456,12 +434,12 @@ fsputfid(Fs *fs, Fid *f)
 }
 
 void
-fsreply(Fs *fs, Request *r, char *err)
+fsreply(Fs* fs, Request* r, char* err)
 {
 	int n;
 	uint8_t buf[MAXSIZE];
 
-	if(err){
+	if(err) {
 		r->f.type = Rerror;
 		r->f.ename = err;
 	}
@@ -476,9 +454,9 @@ fsreply(Fs *fs, Request *r, char *err)
 }
 
 void
-fsversion(Fs *fs, Request *r, Fid *fi)
+fsversion(Fs* fs, Request* r, Fid* fi)
 {
-	if(r->f.msize < 256){
+	if(r->f.msize < 256) {
 		fsreply(fs, r, "version: bad message size");
 		return;
 	}
@@ -490,18 +468,18 @@ fsversion(Fs *fs, Request *r, Fid *fi)
 }
 
 void
-fsauth(Fs *fs, Request *r, Fid *fi)
+fsauth(Fs* fs, Request* r, Fid* fi)
 {
 	fsreply(fs, r, "depend: authentication not required");
 }
 
 void
-fsflush(Fs *fs, Request *r, Fid *fi)
+fsflush(Fs* fs, Request* r, Fid* fi)
 {
 }
 
 void
-fsattach(Fs *fs, Request *r, Fid *f)
+fsattach(Fs* fs, Request* r, Fid* f)
 {
 	f->qid = fs->rootqid;
 	f->path = strdup("/");
@@ -518,19 +496,19 @@ fsattach(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fswalk(Fs *fs, Request *r, Fid *f)
+fswalk(Fs* fs, Request* r, Fid* f)
 {
-	Fid *nf;
-	char *name, *tmp;
+	Fid* nf;
+	char* name, *tmp;
 	int i, nqid, nwname;
 	char errbuf[ERRMAX], *err;
 	Qid qid[MAXWELEM];
-	Dfile *lastdf;
-	char *path, *npath;
-	Dir *d;
-	Symbol *dp;
+	Dfile* lastdf;
+	char* path, *npath;
+	Dir* d;
+	Symbol* dp;
 
-	if(f->attached == 0){
+	if(f->attached == 0) {
 		fsreply(fs, r, Eexist);
 		return;
 	}
@@ -539,7 +517,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 		fatal("walk of an open file");
 
 	nf = nil;
-	if(r->f.newfid != r->f.fid){
+	if(r->f.newfid != r->f.fid) {
 		nf = fsgetfid(fs, r->f.newfid);
 		nf->attached = 1;
 		nf->open = f->open;
@@ -548,12 +526,12 @@ fswalk(Fs *fs, Request *r, Fid *f)
 		nf->dp = f->dp;
 		nf->fd = f->fd;
 		nf->df = f->df;
-		if(nf->df){
+		if(nf->df) {
 			lock(nf->df);
 			nf->df->use++;
 			unlock(nf->df);
 		}
-		if(r->f.nwname == 0){
+		if(r->f.nwname == 0) {
 			r->f.nwqid = 0;
 			fsreply(fs, r, nil);
 			return;
@@ -569,34 +547,34 @@ fswalk(Fs *fs, Request *r, Fid *f)
 	nwname = r->f.nwname;
 	lastdf = f->df;
 
-	if(nwname > 0){
-		for(; nqid<nwname; nqid++){
+	if(nwname > 0) {
+		for(; nqid < nwname; nqid++) {
 			name = r->f.wname[nqid];
 
-			if(strcmp(name, ".") == 0){
-	Noop:
+			if(strcmp(name, ".") == 0) {
+			Noop:
 				if(nqid == 0)
 					qid[nqid] = f->qid;
 				else
-					qid[nqid] = qid[nqid-1];
+					qid[nqid] = qid[nqid - 1];
 				continue;
 			}
 
-			if(strcmp(name, "..") == 0){
+			if(strcmp(name, "..") == 0) {
 				name = strrchr(path, '/');
-				if(name){
-					if(name == path)	/* at root */
+				if(name) {
+					if(name == path) /* at root */
 						goto Noop;
 					*name = '\0';
 				}
 				d = dirstat(path);
-				if(d == nil){
+				if(d == nil) {
 					*name = '/';
 					errstr(errbuf, sizeof errbuf);
 					err = errbuf;
 					break;
 				}
-	Directory:
+			Directory:
 				qid[nqid] = d->qid;
 				free(d);
 				releasedf(lastdf);
@@ -609,7 +587,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 			path = npath;
 			d = dirstat(path);
 
-			if(d !=nil && (d->qid.type & QTDIR))
+			if(d != nil && (d->qid.type & QTDIR))
 				goto Directory;
 			free(d);
 
@@ -618,19 +596,19 @@ fswalk(Fs *fs, Request *r, Fid *f)
 			qid[nqid].vers = 0;
 
 			dp = dfsearch(lastdf, name);
-			if(dp == nil){
+			if(dp == nil) {
 				tmp = strdup(name);
 				if(tmp == nil)
 					fatal("mallocerr");
 				i = strlen(tmp);
-				if(i > 4 && strcmp(&tmp[i-4], ".tar") == 0){
-					tmp[i-4] = 0;
+				if(i > 4 && strcmp(&tmp[i - 4], ".tar") == 0) {
+					tmp[i - 4] = 0;
 					dp = dfsearch(lastdf, tmp);
 				}
 				free(tmp);
 			}
 
-			if(dp == nil){
+			if(dp == nil) {
 				err = Eexist;
 				break;
 			}
@@ -642,33 +620,32 @@ fswalk(Fs *fs, Request *r, Fid *f)
 	}
 
 	/* for error or partial success, put the cloned fid back*/
-	if(nf!=nil && (err != nil || nqid < nwname)){
+	if(nf != nil && (err != nil || nqid < nwname)) {
 		releasedf(nf->df);
 		nf->df = nil;
 		fsputfid(fs, nf);
 	}
 
-	if(err == nil){
+	if(err == nil) {
 		/* return (possibly short) list of qids */
-		for(i=0; i<nqid; i++)
+		for(i = 0; i < nqid; i++)
 			r->f.wqid[i] = qid[i];
 		r->f.nwqid = nqid;
 
 		/* for full success, advance f */
-		if(nqid > 0 && nqid == nwname){
+		if(nqid > 0 && nqid == nwname) {
 			free(f->path);
 			f->path = path;
 			path = nil;
 
-			f->qid = qid[nqid-1];
+			f->qid = qid[nqid - 1];
 			f->dp = (Symbol*)f->qid.path;
 
-			if(f->df != lastdf){
+			if(f->df != lastdf) {
 				releasedf(f->df);
 				f->df = lastdf;
 				lastdf = nil;
 			}
-
 		}
 	}
 
@@ -680,11 +657,11 @@ fswalk(Fs *fs, Request *r, Fid *f)
 
 #ifdef adf
 void
-fsclone(Fs *fs, Request *r, Fid *f)
+fsclone(Fs* fs, Request* r, Fid* f)
 {
-	Fid *nf;
+	Fid* nf;
 
-	if(f->attached == 0){
+	if(f->attached == 0) {
 		fsreply(fs, r, Eexist);
 		return;
 	}
@@ -697,7 +674,7 @@ fsclone(Fs *fs, Request *r, Fid *f)
 	nf->dp = f->dp;
 	nf->fd = f->fd;
 	nf->df = f->df;
-	if(nf->df){
+	if(nf->df) {
 		lock(nf->df);
 		nf->df->use++;
 		unlock(nf->df);
@@ -706,16 +683,16 @@ fsclone(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fswalk(Fs *fs, Request *r, Fid *f)
+fswalk(Fs* fs, Request* r, Fid* f)
 {
-	char *name;
+	char* name;
 	int i;
 	Dir d;
 	char errbuf[ERRLEN];
-	char *path;
-	Symbol *dp;
+	char* path;
+	Symbol* dp;
 
-	if(f->attached == 0){
+	if(f->attached == 0) {
 		fsreply(fs, r, Enofid);
 		return;
 	}
@@ -724,20 +701,20 @@ fswalk(Fs *fs, Request *r, Fid *f)
 		fatal("walk of an open file");
 
 	name = r->f.name;
-	if(strcmp(name, ".") == 0){
+	if(strcmp(name, ".") == 0) {
 		fsreply(fs, r, nil);
 		return;
 	}
-	if(strcmp(name, "..") == 0){
+	if(strcmp(name, "..") == 0) {
 		name = strrchr(f->path, '/');
-		if(name){
-			if(name == f->path){
+		if(name) {
+			if(name == f->path) {
 				fsreply(fs, r, nil);
 				return;
 			}
 			*name = 0;
 		}
-		if(dirstat(f->path, &d) < 0){
+		if(dirstat(f->path, &d) < 0) {
 			*name = '/';
 			errstr(errbuf);
 			fsreply(fs, r, errbuf);
@@ -753,16 +730,16 @@ fswalk(Fs *fs, Request *r, Fid *f)
 	}
 
 	path = mkpath(f->path, name);
-	if(dirstat(path, &d) < 0 || (d.qid.path & CHDIR) == 0){
+	if(dirstat(path, &d) < 0 || (d.qid.path & CHDIR) == 0) {
 		dp = dfsearch(f->df, name);
-		if(dp == nil){
+		if(dp == nil) {
 			i = strlen(name);
-			if(i > 4 && strcmp(&name[i-4], ".tar") == 0){
-				name[i-4] = 0;
+			if(i > 4 && strcmp(&name[i - 4], ".tar") == 0) {
+				name[i - 4] = 0;
 				dp = dfsearch(f->df, name);
 			}
 		}
-		if(dp == nil){
+		if(dp == nil) {
 			fsreply(fs, r, Eexist);
 			free(path);
 			return;
@@ -775,7 +752,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 	free(f->path);
 	f->path = path;
 
-	if(d.qid.path & CHDIR){
+	if(d.qid.path & CHDIR) {
 		releasedf(f->df);
 		f->df = getdf(mkpath(f->path, ".depend"));
 	}
@@ -785,29 +762,29 @@ fswalk(Fs *fs, Request *r, Fid *f)
 }
 #endif
 void
-fsopen(Fs *fs, Request *r, Fid *f)
+fsopen(Fs* fs, Request* r, Fid* f)
 {
 	int mode;
 	char errbuf[ERRMAX];
-	
-	if(f->attached == 0){
+
+	if(f->attached == 0) {
 		fsreply(fs, r, Enofid);
 		return;
 	}
-	if(f->open){
+	if(f->open) {
 		fsreply(fs, r, Eisopen);
 		return;
 	}
 
 	mode = r->f.mode & 3;
-	if(mode != OREAD){
+	if(mode != OREAD) {
 		fsreply(fs, r, Eperm);
 		return;
 	}
 
-	if(f->qid.type & QTDIR){
+	if(f->qid.type & QTDIR) {
 		f->fd = open(f->path, OREAD);
-		if(f->fd < 0){
+		if(f->fd < 0) {
 			errstr(errbuf, sizeof errbuf);
 			fsreply(fs, r, errbuf);
 			return;
@@ -820,55 +797,58 @@ fsopen(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fscreate(Fs *fs, Request *r, Fid *f)
+fscreate(Fs* fs, Request* r, Fid* f)
 {
 	fsreply(fs, r, Eperm);
 }
 
 void
-fsread(Fs *fs, Request *r, Fid *f)
+fsread(Fs* fs, Request* r, Fid* f)
 {
-	int i, n, len,skip;
+	int i, n, len, skip;
 	Dir d;
-	Symbol *dp;
+	Symbol* dp;
 	char buf[512];
 
-	if(f->attached == 0){
+	if(f->attached == 0) {
 		fsreply(fs, r, Enofid);
 		return;
 	}
-	if((int)r->f.count < 0){
+	if((int)r->f.count < 0) {
 		fsreply(fs, r, "bad read count");
 		return;
 	}
 
-	if(f->qid.type & QTDIR){
+	if(f->qid.type & QTDIR) {
 		n = 0;
-		if(f->dir == nil){
+		if(f->dir == nil) {
 			f->ndir = dirreadall(f->fd, &f->dir);
 			f->dirindex = 0;
 		}
 		if(f->dir == nil)
 			goto Return;
-		if(r->f.offset == 0)	/* seeking to zero is permitted */
+		if(r->f.offset == 0) /* seeking to zero is permitted */
 			f->dirindex = 0;
-		for(; f->dirindex < f->ndir; f->dirindex++){
+		for(; f->dirindex < f->ndir; f->dirindex++) {
 			if((f->dir[f->dirindex].qid.type & QTDIR) == 0)
 				continue;
-			len = convD2M(&f->dir[f->dirindex], r->buf+n, r->f.count-n);
+			len = convD2M(&f->dir[f->dirindex], r->buf + n,
+			              r->f.count - n);
 			if(len <= BIT16SZ)
 				goto Return;
 			n += len;
 		}
 
-		skip = f->dirindex - f->ndir;	/* # depend records already read */
+		skip =
+		    f->dirindex - f->ndir; /* # depend records already read */
 
-		if(f->df){
+		if(f->df) {
 			for(i = 0; i < f->df->hlen; i++)
-				for(dp = f->df->dhash[i]; dp; dp = dp->next){
+				for(dp = f->df->dhash[i]; dp; dp = dp->next) {
 					if(skip-- > 0)
 						continue;
-					snprint(buf, sizeof buf, "%s.tar", dp->sym);
+					snprint(buf, sizeof buf, "%s.tar",
+					        dp->sym);
 					d.name = buf;
 					d.uid = "none";
 					d.gid = "none";
@@ -880,7 +860,8 @@ fsread(Fs *fs, Request *r, Fid *f)
 					d.mode = 0444;
 					d.mtime = time(nil);
 					d.atime = time(nil);
-					len = convD2M(&d, r->buf + n, r->f.count - n);
+					len = convD2M(&d, r->buf + n,
+					              r->f.count - n);
 					if(len <= BIT16SZ)
 						goto Return;
 					n += len;
@@ -890,26 +871,26 @@ fsread(Fs *fs, Request *r, Fid *f)
 	} else
 		n = mktar(f->df, f->dp, r->buf, r->f.offset, r->f.count);
 
-    Return:
+Return:
 	r->f.data = (char*)r->buf;
 	r->f.count = n;
 	fsreply(fs, r, nil);
 }
 
 void
-fswrite(Fs *fs, Request *r, Fid *v)
+fswrite(Fs* fs, Request* r, Fid* v)
 {
 	fsreply(fs, r, Eperm);
 }
 
 void
-fsclunk(Fs *fs, Request *r, Fid *f)
+fsclunk(Fs* fs, Request* r, Fid* f)
 {
-	if(f->attached == 0){
+	if(f->attached == 0) {
 		fsreply(fs, r, Enofid);
 		return;
 	}
-	if(f->fd >= 0){
+	if(f->fd >= 0) {
 		close(f->fd);
 		f->fd = -1;
 	}
@@ -927,17 +908,17 @@ fsclunk(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fsremove(Fs *fs, Request *r, Fid *v)
+fsremove(Fs* fs, Request* r, Fid* v)
 {
 	fsreply(fs, r, Eperm);
 }
 
 void
-fsstat(Fs *fs, Request *r, Fid *f)
+fsstat(Fs* fs, Request* r, Fid* f)
 {
 	char err[ERRMAX];
 	Dir d;
-	Symbol *dp;
+	Symbol* dp;
 	int n;
 	uint8_t statbuf[Nstat];
 
@@ -958,7 +939,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 		d.atime = time(nil);
 		n = convD2M(&d, statbuf, sizeof statbuf);
 	}
-	if(n <= BIT16SZ){
+	if(n <= BIT16SZ) {
 		errstr(err, sizeof err);
 		fsreply(fs, r, err);
 	} else {
@@ -969,7 +950,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fswstat(Fs *fs, Request *r, Fid *f)
+fswstat(Fs* fs, Request* r, Fid* f)
 {
 	fsreply(fs, r, Eperm);
 }
@@ -978,14 +959,14 @@ fswstat(Fs *fs, Request *r, Fid *f)
  *  string hash
  */
 uint
-shash(char *str, int len)
+shash(char* str, int len)
 {
-	uint	hash;
-	char	*val; 
+	uint hash;
+	char* val;
 
 	hash = 0;
 	for(val = str; *val; val++)
-		hash = (hash*13) + *val-'a';
+		hash = (hash * 13) + *val - 'a';
 	return hash % len;
 }
 
@@ -993,19 +974,19 @@ shash(char *str, int len)
  *  free info about a dependency file
  */
 void
-freedf(Dfile *df)
+freedf(Dfile* df)
 {
 	int i;
-	Symbol *dp, *next;
+	Symbol* dp, *next;
 
 	lock(df);
 	df->old = 1;
-	if(df->use){
+	if(df->use) {
 		unlock(df);
 		return;
 	}
 
-	unlock(df);	/* we're no longer referenced */
+	unlock(df); /* we're no longer referenced */
 	for(i = 0; i < df->nfile; i++)
 		free(df->file[i].name);
 	free(df->file[i].refvec);
@@ -1013,7 +994,7 @@ freedf(Dfile *df)
 	df->file = nil;
 
 	for(i = 0; i < df->hlen; i++)
-		for(dp = df->dhash[i]; dp != nil; dp = next){
+		for(dp = df->dhash[i]; dp != nil; dp = next) {
 			next = dp->next;
 			free(dp);
 		}
@@ -1028,9 +1009,9 @@ freedf(Dfile *df)
  *  crack a dependency file
  */
 void
-newsym(char *name, int fno, Symbol **l)
+newsym(char* name, int fno, Symbol** l)
 {
-	Symbol *dp;
+	Symbol* dp;
 
 	dp = emalloc(sizeof(Symbol));
 	dp->sym = strdup(name);
@@ -1041,16 +1022,16 @@ newsym(char *name, int fno, Symbol **l)
 	*l = dp;
 }
 int
-awk(Biobuf *b, char **field, int n)
+awk(Biobuf* b, char** field, int n)
 {
-	char *line;
+	char* line;
 	int i;
 
-	while(line = Brdline(b, '\n')){
-		line[Blinelen(b)-1] = 0;
+	while(line = Brdline(b, '\n')) {
+		line[Blinelen(b) - 1] = 0;
 		while(*line == ' ' || *line == '\t')
 			*line++ = 0;
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			if(*line == 0 || *line == '#')
 				break;
 			field[i] = line;
@@ -1067,47 +1048,50 @@ awk(Biobuf *b, char **field, int n)
 }
 
 void
-crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
+crackdf(Dfile* df, Biobuf* b, uint len, char* dpath)
 {
-	char *name;
-	char *field[3];
+	char* name;
+	char* field[3];
 	char path[512];
 	int n, inc, ok, npath;
-	Symbol **l, *dp, *next;
-	File *f, *ef;
-	Dir *d;
+	Symbol** l, *dp, *next;
+	File* f, *ef;
+	Dir* d;
 
 	inc = 32;
 	df->flen = inc;
-	df->file = emalloc(df->flen*sizeof(File));
+	df->file = emalloc(df->flen * sizeof(File));
 	df->nfile = 0;
 
-	df->hlen = 1 + len/8;
-	df->dhash = emalloc(df->hlen*sizeof(Symbol*));
+	df->hlen = 1 + len / 8;
+	df->dhash = emalloc(df->hlen * sizeof(Symbol*));
 
 	l = nil;
-	while((n = awk(b, field, 3)) > 0){
+	while((n = awk(b, field, 3)) > 0) {
 		if(n != 2)
 			continue;
 
 		name = field[1];
-		switch(*field[0]){
+		switch(*field[0]) {
 		case 'F':
-			if(df->flen == df->nfile){
+			if(df->flen == df->nfile) {
 				df->flen += inc;
-				df->file = realloc(df->file, df->flen*sizeof(File));
+				df->file =
+				    realloc(df->file, df->flen * sizeof(File));
 				if(df->file == nil)
 					fatal(mallocerr);
-				memset(&df->file[df->nfile], 0, inc*sizeof(File));
+				memset(&df->file[df->nfile], 0,
+				       inc * sizeof(File));
 			}
 			f = &df->file[df->nfile++];
 			f->name = strdup(name);
 			l = &f->ref;
-			/* fall through and define as a symbol */
+		/* fall through and define as a symbol */
 		case 'D':
 			if(l == nil)
 				continue;
-			newsym(name, df->nfile-1, &(df->dhash[shash(name, df->hlen)]));
+			newsym(name, df->nfile - 1,
+			       &(df->dhash[shash(name, df->hlen)]));
 			break;
 		case 'R':
 			if(l == nil)
@@ -1121,37 +1105,37 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
 
 	/* stat the files to get sizes */
 	npath = strlen(dpath);
-	if(npath+1+1 >= sizeof path)
+	if(npath + 1 + 1 >= sizeof path)
 		fatal(Etoolong);
-	memmove(path, dpath, npath+1);	/* include NUL */
+	memmove(path, dpath, npath + 1); /* include NUL */
 	name = strrchr(path, '/') + 1;
-	for(f = df->file; f < ef; f++){
+	for(f = df->file; f < ef; f++) {
 		n = strlen(f->name);
-		if(npath+1+n+3+1 > sizeof path)
+		if(npath + 1 + n + 3 + 1 > sizeof path)
 			fatal(Etoolong);
-		memmove(name, f->name, n+1);	/* include NUL */
+		memmove(name, f->name, n + 1); /* include NUL */
 		ok = access(path, AEXIST);
-		if(ok < 0){
-			strcpy(name+n, ".Z");
+		if(ok < 0) {
+			strcpy(name + n, ".Z");
 			ok = access(path, AEXIST);
-			if(ok < 0){
-				strcpy(name+n, ".gz");
+			if(ok < 0) {
+				strcpy(name + n, ".gz");
 				ok = access(path, AEXIST);
 			}
 		}
-		if(ok >= 0){
+		if(ok >= 0) {
 			free(f->name);
 			f->name = strdup(name);
 			if(f->name == nil)
 				fatal(mallocerr);
 		}
 		d = dirstat(path);
-		if(d){
+		if(d) {
 			f->len = d->length;
 			f->mode = d->mode;
 			f->mtime = d->mtime;
 			free(d);
-		}else{
+		} else {
 			f->len = 0;
 			f->mode = 0;
 			f->mtime = 0;
@@ -1161,12 +1145,12 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
 
 	/* resolve all file references */
 	for(f = df->file; f < ef; f++)
-		dfresolve(df, f-df->file);
+		dfresolve(df, f - df->file);
 
 	/* free the referenced symbols, don't need them anymore */
-	for(f = df->file; f < ef; f++){
-		f->tarlen += 2*Tblocksize;	/* tars trailing 0 blocks */
-		for(dp = f->ref; dp != nil; dp = next){
+	for(f = df->file; f < ef; f++) {
+		f->tarlen += 2 * Tblocksize; /* tars trailing 0 blocks */
+		for(dp = f->ref; dp != nil; dp = next) {
 			next = dp->next;
 			free(dp);
 		}
@@ -1178,27 +1162,28 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
  *  get a cracked dependency file
  */
 Dfile*
-getdf(char *path)
+getdf(char* path)
 {
-	Dfile *df, **l;
-	QLock *lk;
-	Dir *d;
+	Dfile* df, **l;
+	QLock* lk;
+	Dir* d;
 	int i, fd;
-	Biobuf *b;
+	Biobuf* b;
 
 	i = shash(path, Ndfhash);
 	l = &dfhash[i];
 	lk = &dfhlock[i];
 	qlock(lk);
-	for(df = *l; df; df = *l){
+	for(df = *l; df; df = *l) {
 		if(strcmp(path, df->path) == 0)
 			break;
 		l = &df->next;
 	}
 	d = dirstat(path);
 
-	if(df){
-		if(d!=nil && d->qid.type == df->qid.type && d->qid.vers == df->qid.vers && d->qid.vers == df->qid.vers){
+	if(df) {
+		if(d != nil && d->qid.type == df->qid.type &&
+		   d->qid.vers == df->qid.vers && d->qid.vers == df->qid.vers) {
 			free(path);
 			lock(df);
 			df->use++;
@@ -1210,7 +1195,7 @@ getdf(char *path)
 	}
 
 	fd = open(path, OREAD);
-	if(d == nil || fd < 0){
+	if(d == nil || fd < 0) {
 		close(fd);
 		goto Return;
 	}
@@ -1229,7 +1214,7 @@ getdf(char *path)
 	df->next = *l;
 	*l = df;
 	df->use = 1;
-    Return:
+Return:
 	qunlock(lk);
 	free(d);
 	return df;
@@ -1239,10 +1224,10 @@ getdf(char *path)
  *  stop using a dependency file.  Free it if it is no longer linked in.
  */
 void
-releasedf(Dfile *df)
+releasedf(Dfile* df)
 {
-	Dfile **l, *d;
-	QLock *lk;
+	Dfile** l, *d;
+	QLock* lk;
 	int i;
 
 	if(df == nil)
@@ -1255,13 +1240,13 @@ releasedf(Dfile *df)
 	qlock(lk);
 	lock(df);
 	df->use--;
-	if(df->old == 0 || df->use > 0){
+	if(df->old == 0 || df->use > 0) {
 		unlock(df);
 		qunlock(lk);
 		return;
 	}
-	for(d = *l; d; d = *l){
-		if(d == df){
+	for(d = *l; d; d = *l) {
+		if(d == df) {
 			*l = d->next;
 			break;
 		}
@@ -1278,9 +1263,9 @@ releasedf(Dfile *df)
  *  search a dependency file for a symbol
  */
 Symbol*
-dfsearch(Dfile *df, char *name)
+dfsearch(Dfile* df, char* name)
 {
-	Symbol *dp;
+	Symbol* dp;
 
 	if(df == nil)
 		return nil;
@@ -1296,53 +1281,55 @@ dfsearch(Dfile *df, char *name)
  */
 /* set a bit in the referenced file vector */
 int
-set(uint8_t *vec, int fno)
+set(uint8_t* vec, int fno)
 {
-	if(vec[fno/8] & (1<<(fno&7)))
+	if(vec[fno / 8] & (1 << (fno & 7)))
 		return 1;
-	vec[fno/8] |= 1<<(fno&7);
+	vec[fno / 8] |= 1 << (fno & 7);
 	return 0;
 }
 /* merge two referenced file vectors */
 void
-merge(uint8_t *vec, uint8_t *ovec, int nfile)
+merge(uint8_t* vec, uint8_t* ovec, int nfile)
 {
-	nfile = (nfile+7)/8;
+	nfile = (nfile + 7) / 8;
 	while(nfile-- > 0)
 		*vec++ |= *ovec++;
 }
 uint
-res(Dfile *df, uint8_t *vec, int fno)
+res(Dfile* df, uint8_t* vec, int fno)
 {
-	File *f;
-	Symbol *rp, *dp;
+	File* f;
+	Symbol* rp, *dp;
 	int len;
 
 	f = &df->file[fno];
 	if(set(vec, fno))
-		return 0;				/* already set */
-	if(f->refvec != nil){
-		merge(vec, f->refvec, df->nfile);	/* we've descended here before */
+		return 0; /* already set */
+	if(f->refvec != nil) {
+		merge(vec, f->refvec,
+		      df->nfile); /* we've descended here before */
 		return f->tarlen;
 	}
 
 	len = 0;
-	for(rp = f->ref; rp; rp = rp->next){
+	for(rp = f->ref; rp; rp = rp->next) {
 		dp = dfsearch(df, rp->sym);
 		if(dp == nil)
 			continue;
 		len += res(df, vec, dp->fno);
 	}
-	return len + Tblocksize + ((f->len + Tblocksize - 1)/Tblocksize)*Tblocksize;
+	return len + Tblocksize +
+	       ((f->len + Tblocksize - 1) / Tblocksize) * Tblocksize;
 }
 void
-dfresolve(Dfile *df, int fno)
+dfresolve(Dfile* df, int fno)
 {
-	uint8_t *vec;
-	File *f;
+	uint8_t* vec;
+	File* f;
 
 	f = &df->file[fno];
-	vec = emalloc((df->nfile+7)/8);
+	vec = emalloc((df->nfile + 7) / 8);
 	f->tarlen = res(df, vec, fno);
 	f->refvec = vec;
 }
@@ -1351,12 +1338,12 @@ dfresolve(Dfile *df, int fno)
  *  make the tar directory block for a file
  */
 uint8_t*
-mktardir(File *f)
+mktardir(File* f)
 {
-	uint8_t *ep;
-	Tardir *tp;
+	uint8_t* ep;
+	Tardir* tp;
 	uint sum;
-	uint8_t *p, *cp;
+	uint8_t* p, *cp;
 
 	p = emalloc(Tblocksize);
 	tp = (Tardir*)p;
@@ -1372,7 +1359,7 @@ mktardir(File *f)
 	memset(tp->chksum, ' ', sizeof(tp->chksum));
 	sum = 0;
 	ep = p + Tblocksize;
-	for (cp = p; cp < ep; cp++)
+	for(cp = p; cp < ep; cp++)
 		sum += *cp;
 	sprint(tp->chksum, "%6o", sum);
 
@@ -1383,18 +1370,21 @@ mktardir(File *f)
  *  manage open files
  */
 int
-getfile(Dfile *df, File *f)
+getfile(Dfile* df, File* f)
 {
 	int n;
 	char path[512], *name;
 
 	qlock(f);
 	f->use++;
-	if(f->fd < 0){
+	if(f->fd < 0) {
 		name = strrchr(df->path, '/') + 1;
-		n = snprint(path, sizeof path, "%.*s/%s", (int)(name-df->path), df->path, f->name);
-		if(n >= sizeof path - UTFmax){
-			syslog(0, dependlog, "path name too long: %.20s.../%.20s...", df->path, f->name);
+		n = snprint(path, sizeof path, "%.*s/%s",
+		            (int)(name - df->path), df->path, f->name);
+		if(n >= sizeof path - UTFmax) {
+			syslog(0, dependlog,
+			       "path name too long: %.20s.../%.20s...",
+			       df->path, f->name);
 			return -1;
 		}
 		f->fd = open(path, OREAD);
@@ -1405,16 +1395,16 @@ getfile(Dfile *df, File *f)
 	return f->fd;
 }
 void
-releasefile(File *f)
+releasefile(File* f)
 {
 	--f->use;
 	qunlock(f);
 }
 void
-closefile(File *f)
+closefile(File* f)
 {
 	qlock(f);
-	if(f->use == 0){
+	if(f->use == 0) {
 		close(f->fd);
 		f->fd = -1;
 	}
@@ -1425,37 +1415,39 @@ closefile(File *f)
  *  return a block of a tar file
  */
 int
-mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
+mktar(Dfile* df, Symbol* dp, uint8_t* area, uint offset, int len)
 {
 	int fd, i, j, n, off;
-	uint8_t *p, *buf;
-	uint8_t *vec;
-	File *f;
+	uint8_t* p, *buf;
+	uint8_t* vec;
+	File* f;
 
 	f = &df->file[dp->fno];
 	vec = f->refvec;
 	p = area;
 
 	/* find file */
-	for(i = 0; i < df->nfile && len > 0; i++){
-		if((vec[i/8] & (1<<(i&7))) == 0)
+	for(i = 0; i < df->nfile && len > 0; i++) {
+		if((vec[i / 8] & (1 << (i & 7))) == 0)
 			continue;
 
 		f = &df->file[i];
-		n = Tblocksize + ((f->len + Tblocksize - 1)/Tblocksize)*Tblocksize;
-		if(offset >= n){
+		n = Tblocksize +
+		    ((f->len + Tblocksize - 1) / Tblocksize) * Tblocksize;
+		if(offset >= n) {
 			offset -= n;
 			continue;
 		}
 
-		if(offset < Tblocksize){
+		if(offset < Tblocksize) {
 			buf = mktardir(f);
 			if(offset + len > Tblocksize)
 				j = Tblocksize - offset;
 			else
 				j = len;
-//if(debug)fprint(2, "reading %d bytes dir of %s\n", j, f->name);
-			memmove(p, buf+offset, j);
+			// if(debug)fprint(2, "reading %d bytes dir of %s\n", j,
+			// f->name);
+			memmove(p, buf + offset, j);
 			p += j;
 			len -= j;
 			offset += j;
@@ -1464,16 +1456,20 @@ mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
 		if(len <= 0)
 			break;
 		off = offset - Tblocksize;
-		if(off >= 0 && off < f->len){
+		if(off >= 0 && off < f->len) {
 			if(off + len > f->len)
 				j = f->len - off;
 			else
 				j = len;
 			fd = getfile(df, f);
-			if(fd >= 0){
-//if(debug)fprint(2, "reading %d bytes from offset %d of %s\n", j, off, f->name);
+			if(fd >= 0) {
+				// if(debug)fprint(2, "reading %d bytes from
+				// offset %d of %s\n", j, off, f->name);
 				if(pread(fd, p, j, off) != j)
-					syslog(0, dependlog, "%r reading %d bytes from offset %d of %s", j, off, f->name);
+					syslog(0, dependlog, "%r reading %d "
+					                     "bytes from "
+					                     "offset %d of %s",
+					       j, off, f->name);
 			}
 			releasefile(f);
 			p += j;
@@ -1482,12 +1478,13 @@ mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
 		}
 		if(len <= 0)
 			break;
-		if(offset < n){
+		if(offset < n) {
 			if(offset + len > n)
 				j = n - offset;
 			else
 				j = len;
-//if(debug)fprint(2, "filling %d bytes after %s\n", j, f->name);
+			// if(debug)fprint(2, "filling %d bytes after %s\n", j,
+			// f->name);
 			memset(p, 0, j);
 			p += j;
 			len -= j;
@@ -1496,12 +1493,12 @@ mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
 	}
 
 	/* null blocks at end of tar file */
-	if(offset < 2*Tblocksize && len > 0){
-		if(offset + len > 2*Tblocksize)
-			j = 2*Tblocksize - offset;
+	if(offset < 2 * Tblocksize && len > 0) {
+		if(offset + len > 2 * Tblocksize)
+			j = 2 * Tblocksize - offset;
 		else
 			j = len;
-//if(debug)fprint(2, "filling %d bytes at end\n", j);
+		// if(debug)fprint(2, "filling %d bytes at end\n", j);
 		memset(p, 0, j);
 		p += j;
 	}
@@ -1513,20 +1510,19 @@ mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
  *  close the files making up  a tar file
  */
 void
-closetar(Dfile *df, Symbol *dp)
+closetar(Dfile* df, Symbol* dp)
 {
 	int i;
-	uint8_t *vec;
-	File *f;
+	uint8_t* vec;
+	File* f;
 
 	f = &df->file[dp->fno];
 	vec = f->refvec;
 
 	/* find file */
-	for(i = 0; i < df->nfile; i++){
-		if((vec[i/8] & (1<<(i&7))) == 0)
+	for(i = 0; i < df->nfile; i++) {
+		if((vec[i / 8] & (1 << (i & 7))) == 0)
 			continue;
 		closefile(&df->file[i]);
 	}
 }
-

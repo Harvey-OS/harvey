@@ -13,9 +13,9 @@
 #include "fns.h"
 
 static void
-queue(Proc **first, Proc **last)
+queue(Proc** first, Proc** last)
 {
-	Proc *t;
+	Proc* t;
 
 	t = *last;
 	if(t == 0)
@@ -27,9 +27,9 @@ queue(Proc **first, Proc **last)
 }
 
 static Proc*
-dequeue(Proc **first, Proc **last)
+dequeue(Proc** first, Proc** last)
 {
-	Proc *t;
+	Proc* t;
 
 	t = *first;
 	if(t == 0)
@@ -41,7 +41,7 @@ dequeue(Proc **first, Proc **last)
 }
 
 void
-qlock(QLock *q)
+qlock(QLock* q)
 {
 	lock(&q->lk);
 
@@ -54,7 +54,7 @@ qlock(QLock *q)
 	/*
 	 * Can't assert this because of RWLock
 	assert(q->hold != up);
-	 */		
+	 */
 
 	queue((Proc**)&q->first, (Proc**)&q->last);
 	unlock(&q->lk);
@@ -62,7 +62,7 @@ qlock(QLock *q)
 }
 
 int
-canqlock(QLock *q)
+canqlock(QLock* q)
 {
 	lock(&q->lk);
 	if(q->hold == 0) {
@@ -75,12 +75,12 @@ canqlock(QLock *q)
 }
 
 void
-qunlock(QLock *q)
+qunlock(QLock* q)
 {
-	Proc *p;
+	Proc* p;
 
 	lock(&q->lk);
-	/* 
+	/*
 	 * Can't assert this because of RWlock
 	assert(q->hold == CT);
 	 */
@@ -96,8 +96,7 @@ qunlock(QLock *q)
 }
 
 int
-holdqlock(QLock *q)
+holdqlock(QLock* q)
 {
 	return q->hold == up;
 }
-

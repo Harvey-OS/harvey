@@ -12,26 +12,26 @@
 #include <auth.h>
 #include <authsrv.h>
 
-char*	readenv(char*);
-void	setenv(char*, char*);
-void	cpenv(char*, char*);
-void	closefds(void);
-void	fexec(void(*)(void));
-void	rcexec(void);
-void	cpustart(void);
-void	pass(int);
+char* readenv(char*);
+void setenv(char*, char*);
+void cpenv(char*, char*);
+void closefds(void);
+void fexec(void (*)(void));
+void rcexec(void);
+void cpustart(void);
+void pass(int);
 
-char	*service;
-char	*cmd;
-char	*cpu;
-char	*systemname;
-int	manual;
-int	iscpu;
+char* service;
+char* cmd;
+char* cpu;
+char* systemname;
+int manual;
+int iscpu;
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *user;
+	char* user;
 	int fd;
 	char ctl[128];
 
@@ -40,7 +40,8 @@ main(int argc, char *argv[])
 
 	service = "cpu";
 	manual = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		service = "cpu";
 		break;
@@ -50,16 +51,16 @@ main(int argc, char *argv[])
 	case 't':
 		service = "terminal";
 		break;
-	}ARGEND
+	}
+	ARGEND
 	cmd = *argv;
 
 	snprint(ctl, sizeof(ctl), "#p/%d/ctl", getpid());
 	fd = open(ctl, OWRITE);
 	if(fd < 0)
 		print("init: warning: can't open %s: %r\n", ctl);
-	else
-		if(write(fd, "pri 10", 6) != 6)
-			print("init: warning: can't set priority: %r\n");
+	else if(write(fd, "pri 10", 6) != 6)
+		print("init: warning: can't set priority: %r\n");
 	close(fd);
 
 	cpu = readenv("#e/cputype");
@@ -70,12 +71,12 @@ main(int argc, char *argv[])
 	systemname = readenv("#c/sysname");
 
 	newns(user, 0);
-	iscpu = strcmp(service, "cpu")==0;
+	iscpu = strcmp(service, "cpu") == 0;
 
 	if(iscpu && manual == 0)
 		fexec(cpustart);
 
-	for(;;){
+	for(;;) {
 		print("\ninit: starting /bin/rc\n");
 		fexec(rcexec);
 		manual = 1;
@@ -92,14 +93,14 @@ pass(int fd)
 	char crypted[DESKEYLEN];
 	int i;
 
-	for(;;){
+	for(;;) {
 		print("\n%s password:", systemname);
-		for(i=0; i<sizeof typed; i++){
-			if(read(0, typed+i, 1) != 1){
+		for(i = 0; i < sizeof typed; i++) {
+			if(read(0, typed + i, 1) != 1) {
 				print("init: can't read password; insecure\n");
 				return;
 			}
-			if(typed[i] == '\n'){
+			if(typed[i] == '\n') {
 				typed[i] = 0;
 				break;
 			}
@@ -109,7 +110,7 @@ pass(int fd)
 		if(passtokey(crypted, typed) == 0)
 			continue;
 		seek(fd, 0, 0);
-		if(read(fd, key, DESKEYLEN) != DESKEYLEN){
+		if(read(fd, key, DESKEYLEN) != DESKEYLEN) {
 			print("init: can't read key; insecure\n");
 			return;
 		}
@@ -125,7 +126,7 @@ pass(int fd)
 static int gotnote;
 
 void
-pinhead(void *c, char *msg)
+pinhead(void* c, char* msg)
 {
 	gotnote = 1;
 	fprint(2, "init got note '%s'\n", msg);
@@ -135,10 +136,10 @@ pinhead(void *c, char *msg)
 void
 fexec(void (*execfn)(void))
 {
-	Waitmsg *w;
+	Waitmsg* w;
 	int pid;
 
-	switch(pid=fork()){
+	switch(pid = fork()) {
 	case 0:
 		rfork(RFNOTEG);
 		(*execfn)();
@@ -152,17 +153,17 @@ fexec(void (*execfn)(void))
 		notify(pinhead);
 		gotnote = 0;
 		w = wait();
-		if(w == nil){
+		if(w == nil) {
 			if(gotnote)
 				goto casedefault;
 			print("init: wait error: %r\n");
 			break;
 		}
-		if(w->pid != pid){
+		if(w->pid != pid) {
 			free(w);
 			goto casedefault;
 		}
-		if(strstr(w->msg, "exec error") != 0){
+		if(strstr(w->msg, "exec error") != 0) {
 			print("init: exit string %s\n", w->msg);
 			print("init: sleeping because exec failed\n");
 			free(w);
@@ -184,7 +185,9 @@ rcexec(void)
 	else if(manual || iscpu)
 		execl("/bin/rc", "rc", nil);
 	else if(strcmp(service, "terminal") == 0)
-		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
+		execl("/bin/rc", "rc", "-c",
+		      ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile",
+		      nil);
 	else
 		execl("/bin/rc", "rc", nil);
 }
@@ -196,57 +199,57 @@ cpustart(void)
 }
 
 char*
-readenv(char *name)
+readenv(char* name)
 {
 	int f, len;
-	Dir *d;
-	char *val;
+	Dir* d;
+	char* val;
 
 	f = open(name, OREAD);
-	if(f < 0){
+	if(f < 0) {
 		print("init: can't open %s: %r\n", name);
-		return "*unknown*";	
+		return "*unknown*";
 	}
 	d = dirfstat(f);
-	if(d == nil){
+	if(d == nil) {
 		print("init: can't stat %s: %r\n", name);
 		return "*unknown*";
 	}
 	len = d->length;
 	free(d);
-	if(len == 0)	/* device files can be zero length but have contents */
+	if(len == 0) /* device files can be zero length but have contents */
 		len = 64;
-	val = malloc(len+1);
-	if(val == nil){
+	val = malloc(len + 1);
+	if(val == nil) {
 		print("init: can't malloc %s: %r\n", name);
 		return "*unknown*";
 	}
 	len = read(f, val, len);
 	close(f);
-	if(len < 0){
+	if(len < 0) {
 		print("init: can't read %s: %r\n", name);
 		return "*unknown*";
-	}else
+	} else
 		val[len] = '\0';
 	return val;
 }
 
 void
-setenv(char *var, char *val)
+setenv(char* var, char* val)
 {
 	int fd;
 
 	fd = create(var, OWRITE, 0644);
 	if(fd < 0)
 		print("init: can't open %s\n", var);
-	else{
+	else {
 		fprint(fd, val);
 		close(fd);
 	}
 }
 
 void
-cpenv(char *file, char *var)
+cpenv(char* file, char* var)
 {
 	int i, fd;
 	char buf[8192];
@@ -254,11 +257,11 @@ cpenv(char *file, char *var)
 	fd = open(file, OREAD);
 	if(fd < 0)
 		print("init: can't open %s\n", file);
-	else{
-		i = read(fd, buf, sizeof(buf)-1);
+	else {
+		i = read(fd, buf, sizeof(buf) - 1);
 		if(i <= 0)
 			print("init: can't read %s: %r\n", file);
-		else{
+		else {
 			close(fd);
 			buf[i] = 0;
 			setenv(var, buf);

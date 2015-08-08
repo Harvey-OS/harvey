@@ -14,16 +14,16 @@
 #include <mp.h>
 #include <libsec.h>
 
-enum{ ThumbTab = 1<<10 };
+enum { ThumbTab = 1 << 10 };
 
-static void *
+static void*
 emalloc(int n)
 {
-	void *p;
-	if(n==0)
-		n=1;
+	void* p;
+	if(n == 0)
+		n = 1;
 	p = malloc(n);
-	if(p == nil){
+	if(p == nil) {
 		exits("out of memory");
 	}
 	memset(p, 0, n);
@@ -31,11 +31,11 @@ emalloc(int n)
 }
 
 void
-freeThumbprints(Thumbprint *table)
+freeThumbprints(Thumbprint* table)
 {
-	Thumbprint *hd, *p, *q;
-	for(hd = table; hd < table+ThumbTab; hd++){
-		for(p = hd->next; p; p = q){
+	Thumbprint* hd, *p, *q;
+	for(hd = table; hd < table + ThumbTab; hd++) {
+		for(p = hd->next; p; p = q) {
 			q = p->next;
 			free(p);
 		}
@@ -44,10 +44,10 @@ freeThumbprints(Thumbprint *table)
 }
 
 int
-okThumbprint(uint8_t *sum, Thumbprint *table)
+okThumbprint(uint8_t* sum, Thumbprint* table)
 {
-	Thumbprint *p;
-	int i = ((sum[0]<<8) + sum[1]) & (ThumbTab-1);
+	Thumbprint* p;
+	int i = ((sum[0] << 8) + sum[1]) & (ThumbTab - 1);
 
 	for(p = table[i].next; p; p = p->next)
 		if(memcmp(sum, p->sha1, SHA1dlen) == 0)
@@ -56,25 +56,26 @@ okThumbprint(uint8_t *sum, Thumbprint *table)
 }
 
 static void
-loadThumbprints(char *file, Thumbprint *table, Thumbprint *crltab)
+loadThumbprints(char* file, Thumbprint* table, Thumbprint* crltab)
 {
-	Thumbprint *entry;
-	Biobuf *bin;
-	char *line, *field[50];
+	Thumbprint* entry;
+	Biobuf* bin;
+	char* line, *field[50];
 	uint8_t sum[SHA1dlen];
 	int i;
 
 	bin = Bopen(file, OREAD);
 	if(bin == nil)
 		return;
-	for(; (line = Brdstr(bin, '\n', 1)) != 0; free(line)){
+	for(; (line = Brdstr(bin, '\n', 1)) != 0; free(line)) {
 		if(tokenize(line, field, nelem(field)) < 2)
 			continue;
-		if(strcmp(field[0], "#include") == 0){
+		if(strcmp(field[0], "#include") == 0) {
 			loadThumbprints(field[1], table, crltab);
 			continue;
 		}
-		if(strcmp(field[0], "x509") != 0 || strncmp(field[1], "sha1=", strlen("sha1=")) != 0)
+		if(strcmp(field[0], "x509") != 0 ||
+		   strncmp(field[1], "sha1=", strlen("sha1=")) != 0)
 			continue;
 		field[1] += strlen("sha1=");
 		dec16(sum, sizeof(sum), field[1], strlen(field[1]));
@@ -82,19 +83,19 @@ loadThumbprints(char *file, Thumbprint *table, Thumbprint *crltab)
 			continue;
 		entry = (Thumbprint*)emalloc(sizeof(*entry));
 		memcpy(entry->sha1, sum, SHA1dlen);
-		i = ((sum[0]<<8) + sum[1]) & (ThumbTab-1);
+		i = ((sum[0] << 8) + sum[1]) & (ThumbTab - 1);
 		entry->next = table[i].next;
 		table[i].next = entry;
 	}
 	Bterm(bin);
 }
 
-Thumbprint *
-initThumbprints(char *ok, char *crl)
+Thumbprint*
+initThumbprints(char* ok, char* crl)
 {
-	Thumbprint *table, *crltab = nil;
+	Thumbprint* table, * crltab = nil;
 
-	if(crl){
+	if(crl) {
 		crltab = emalloc(ThumbTab * sizeof(*table));
 		loadThumbprints(crl, crltab, nil);
 	}
@@ -103,4 +104,3 @@ initThumbprints(char *ok, char *crl)
 	free(crltab);
 	return table;
 }
-

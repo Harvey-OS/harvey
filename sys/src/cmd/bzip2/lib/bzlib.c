@@ -37,16 +37,16 @@
   1. Redistributions of source code must retain the above copyright
      notice, this list of conditions and the following disclaimer.
 
-  2. The origin of this software must not be misrepresented; you must 
-     not claim that you wrote the original software.  If you use this 
-     software in a product, an acknowledgment in the product 
+  2. The origin of this software must not be misrepresented; you must
+     not claim that you wrote the original software.  If you use this
+     software in a product, an acknowledgment in the product
      documentation would be appreciated but is not required.
 
   3. Altered source versions must be plainly marked as such, and must
      not be misrepresented as being the original software.
 
-  4. The name of the author may not be used to endorse or promote 
-     products derived from this software without specific prior written 
+  4. The name of the author may not be used to endorse or promote
+     products derived from this software without specific prior written
      permission.
 
   THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
@@ -98,28 +98,36 @@
 #include "bzlib_private.h"
 
 /*---------------------------------------------------*/
-int bz_config_ok ( void )
+int
+bz_config_ok(void)
 {
-   if (sizeof(int)   != 4) return 0;
-   if (sizeof(int16_t) != 2) return 0;
-   if (sizeof(int8_t)  != 1) return 0;
-   return 1;
+	if(sizeof(int) != 4)
+		return 0;
+	if(sizeof(int16_t) != 2)
+		return 0;
+	if(sizeof(int8_t) != 1)
+		return 0;
+	return 1;
 }
 
 /*---------------------------------------------------*/
-void* default_bzalloc ( void* opaque, Int32 items, Int32 size )
+void*
+default_bzalloc(void* opaque, Int32 items, Int32 size)
 {
-   void* v = malloc ( items * size );
-   return v;
+	void* v = malloc(items * size);
+	return v;
 }
 
-void default_bzfree ( void* opaque, void* addr )
+void
+default_bzfree(void* opaque, void* addr)
 {
-   if (addr != NULL) free ( addr );
+	if(addr != NULL)
+		free(addr);
 }
 
 /* rsc added this: where did the original go? */
-void bz_internal_error( int errcode )
+void
+bz_internal_error(int errcode)
 {
-   exit(1);
+	exit(1);
 }

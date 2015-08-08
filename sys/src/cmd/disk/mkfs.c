@@ -12,86 +12,85 @@
 #include <auth.h>
 #include <bio.h>
 
-enum{
-	LEN	= 8*1024,
-	HUNKS	= 128,
+enum { LEN = 8 * 1024,
+       HUNKS = 128,
 
-	/*
-	 * types of destination file sytems
-	 */
-	Kfs = 0,
-	Fs,
-	Archive,
+       /*
+        * types of destination file sytems
+        */
+       Kfs = 0,
+       Fs,
+       Archive,
 };
 
-typedef struct File	File;
+typedef struct File File;
 
-struct File{
-	char	*new;
-	char	*elem;
-	char	*old;
-	char	*uid;
-	char	*gid;
-	uint32_t	mode;
+struct File {
+	char* new;
+	char* elem;
+	char* old;
+	char* uid;
+	char* gid;
+	uint32_t mode;
 };
 
-void	arch(Dir*);
-void	copy(Dir*);
-int	copyfile(File*, Dir*, int);
-void*	emalloc(uint32_t);
-void	error(char *, ...);
-void	freefile(File*);
-File*	getfile(File*);
-char*	getmode(char*, uint32_t*);
-char*	getname(char*, char**);
-char*	getpath(char*);
-void	kfscmd(char *);
-void	mkdir(Dir*);
-int	mkfile(File*);
-void	mkfs(File*, int);
-char*	mkpath(char*, char*);
-void	mktree(File*, int);
-void	mountkfs(char*);
-void	printfile(File*);
-void	setnames(File*);
-void	setusers(void);
-void	skipdir(void);
-char*	strdup(char*);
-int	uptodate(Dir*, char*);
-void	usage(void);
-void	warn(char *, ...);
+void arch(Dir*);
+void copy(Dir*);
+int copyfile(File*, Dir*, int);
+void* emalloc(uint32_t);
+void error(char*, ...);
+void freefile(File*);
+File* getfile(File*);
+char* getmode(char*, uint32_t*);
+char* getname(char*, char**);
+char* getpath(char*);
+void kfscmd(char*);
+void mkdir(Dir*);
+int mkfile(File*);
+void mkfs(File*, int);
+char* mkpath(char*, char*);
+void mktree(File*, int);
+void mountkfs(char*);
+void printfile(File*);
+void setnames(File*);
+void setusers(void);
+void skipdir(void);
+char* strdup(char*);
+int uptodate(Dir*, char*);
+void usage(void);
+void warn(char*, ...);
 
-Biobuf	*b;
-Biobufhdr bout;			/* stdout when writing archive */
-uint8_t	boutbuf[2*LEN];
-char	newfile[LEN];
-char	oldfile[LEN];
-char	*proto;
-char	*cputype;
-char	*users;
-char	*oldroot;
-char	*newroot;
-char	*prog = "mkfs";
-int	lineno;
-char	*buf;
-char	*zbuf;
-int	buflen = 1024-8;
-int	indent;
-int	verb;
-int	modes;
-int	ream;
-int	debug;
-int	xflag;
-int	sfd;
-int	fskind;			/* Kfs, Fs, Archive */
-int	setuid;			/* on Fs: set uid and gid? */
-char	*user;
+Biobuf* b;
+Biobufhdr bout; /* stdout when writing archive */
+uint8_t boutbuf[2 * LEN];
+char newfile[LEN];
+char oldfile[LEN];
+char* proto;
+char* cputype;
+char* users;
+char* oldroot;
+char* newroot;
+char* prog = "mkfs";
+int lineno;
+char* buf;
+char* zbuf;
+int buflen = 1024 - 8;
+int indent;
+int verb;
+int modes;
+int ream;
+int debug;
+int xflag;
+int sfd;
+int fskind; /* Kfs, Fs, Archive */
+int setuid; /* on Fs: set uid and gid? */
+char* user;
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	File file;
-	char *name;
+	char* name;
 	int i, errs;
 
 	quotefmtinstall();
@@ -104,7 +103,8 @@ main(int argc, char **argv)
 	newroot = "/n/kfs";
 	users = 0;
 	fskind = Kfs;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		if(fskind != Kfs) {
 			fprint(2, "cannot use -a with -d\n");
@@ -150,13 +150,14 @@ main(int argc, char **argv)
 		xflag = 1;
 		break;
 	case 'z':
-		buflen = atoi(ARGF())-8;
+		buflen = atoi(ARGF()) - 8;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(!argc)	
+	if(!argc)
 		usage();
 
 	buf = emalloc(buflen);
@@ -172,12 +173,12 @@ main(int argc, char **argv)
 		cputype = "68020";
 
 	errs = 0;
-	for(i = 0; i < argc; i++){
+	for(i = 0; i < argc; i++) {
 		proto = argv[i];
 		fprint(2, "processing %q\n", proto);
 
 		b = Bopen(proto, OREAD);
-		if(!b){
+		if(!b) {
 			fprint(2, "%q: can't open %q: skipping\n", prog, proto);
 			errs++;
 			continue;
@@ -193,7 +194,7 @@ main(int argc, char **argv)
 	kfscmd("sync");
 	if(errs)
 		exits("skipped protos");
-	if(fskind == Archive){
+	if(fskind == Archive) {
 		Bprint(&bout, "end of archive\n");
 		Bterm(&bout);
 	}
@@ -201,15 +202,16 @@ main(int argc, char **argv)
 }
 
 void
-mkfs(File *me, int level)
+mkfs(File* me, int level)
 {
-	File *child;
+	File* child;
 	int rec;
 
 	child = getfile(me);
 	if(!child)
 		return;
-	if((child->elem[0] == '+' || child->elem[0] == '*') && child->elem[1] == '\0'){
+	if((child->elem[0] == '+' || child->elem[0] == '*') &&
+	   child->elem[1] == '\0') {
 		rec = child->elem[0] == '+';
 		free(child->new);
 		child->new = strdup(me->new);
@@ -218,13 +220,13 @@ mkfs(File *me, int level)
 		freefile(child);
 		child = getfile(me);
 	}
-	while(child && indent > level){
+	while(child && indent > level) {
 		if(mkfile(child))
 			mkfs(child, indent);
 		freefile(child);
 		child = getfile(me);
 	}
-	if(child){
+	if(child) {
 		freefile(child);
 		Bseek(b, -Blinelen(b), 1);
 		lineno--;
@@ -232,21 +234,21 @@ mkfs(File *me, int level)
 }
 
 void
-mktree(File *me, int rec)
+mktree(File* me, int rec)
 {
 	File child;
-	Dir *d;
+	Dir* d;
 	int i, n, fd;
 
 	fd = open(oldfile, OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		warn("can't open %q: %r", oldfile);
 		return;
 	}
 
 	child = *me;
-	while((n = dirread(fd, &d)) > 0){
-		for(i = 0; i < n; i++){
+	while((n = dirread(fd, &d)) > 0) {
+		for(i = 0; i < n; i++) {
 			child.new = mkpath(me->new, d[i].name);
 			if(me->old)
 				child.old = mkpath(me->old, d[i].name);
@@ -263,11 +265,11 @@ mktree(File *me, int rec)
 }
 
 int
-mkfile(File *f)
+mkfile(File* f)
 {
-	Dir *dir;
+	Dir* dir;
 
-	if((dir = dirstat(oldfile)) == nil){
+	if((dir = dirstat(oldfile)) == nil) {
 		warn("can't stat file %q: %r", oldfile);
 		skipdir();
 		return 0;
@@ -276,19 +278,19 @@ mkfile(File *f)
 }
 
 int
-copyfile(File *f, Dir *d, int permonly)
+copyfile(File* f, Dir* d, int permonly)
 {
 	uint32_t mode;
 	Dir nd;
 
-	if(xflag){
+	if(xflag) {
 		Bprint(&bout, "%q\t%ld\t%lld\n", f->new, d->mtime, d->length);
 		return (d->mode & DMDIR) != 0;
 	}
 	if(verb && (fskind == Archive || ream))
 		fprint(2, "%q\n", f->new);
 	d->name = f->elem;
-	if(d->type != 'M'){
+	if(d->type != 'M') {
 		d->uid = "sys";
 		d->gid = "sys";
 		mode = (d->mode >> 6) & 7;
@@ -298,26 +300,26 @@ copyfile(File *f, Dir *d, int permonly)
 		d->uid = f->uid;
 	if(strcmp(f->gid, "-") != 0)
 		d->gid = f->gid;
-	if(fskind == Fs && !setuid){
+	if(fskind == Fs && !setuid) {
 		d->uid = "";
 		d->gid = "";
 	}
-	if(f->mode != ~0){
+	if(f->mode != ~0) {
 		if(permonly)
 			d->mode = (d->mode & ~0666) | (f->mode & 0666);
-		else if((d->mode&DMDIR) != (f->mode&DMDIR))
+		else if((d->mode & DMDIR) != (f->mode & DMDIR))
 			warn("inconsistent mode for %q", f->new);
 		else
 			d->mode = f->mode;
 	}
-	if(!uptodate(d, newfile)){
+	if(!uptodate(d, newfile)) {
 		if(verb && (fskind != Archive && ream == 0))
 			fprint(2, "%q\n", f->new);
 		if(d->mode & DMDIR)
 			mkdir(d);
 		else
 			copy(d);
-	}else if(modes){
+	} else if(modes) {
 		nulldir(&nd);
 		nd.mode = d->mode;
 		nd.gid = d->gid;
@@ -338,10 +340,10 @@ copyfile(File *f, Dir *d, int permonly)
  * respect to the file represented by df
  */
 int
-uptodate(Dir *df, char *to)
+uptodate(Dir* df, char* to)
 {
 	int ret;
-	Dir *dt;
+	Dir* dt;
 
 	if(fskind == Archive || ream || (dt = dirstat(to)) == nil)
 		return 0;
@@ -351,7 +353,7 @@ uptodate(Dir *df, char *to)
 }
 
 void
-copy(Dir *d)
+copy(Dir* d)
 {
 	char cptmp[LEN], *p;
 	int f, t, n, needwrite, nowarnyet = 1;
@@ -359,21 +361,21 @@ copy(Dir *d)
 	Dir nd;
 
 	f = open(oldfile, OREAD);
-	if(f < 0){
+	if(f < 0) {
 		warn("can't open %q: %r", oldfile);
 		return;
 	}
 	t = -1;
 	if(fskind == Archive)
 		arch(d);
-	else{
+	else {
 		strcpy(cptmp, newfile);
 		p = utfrrune(cptmp, L'/');
 		if(!p)
 			error("internal temporary file error");
-		strcpy(p+1, "__mkfstmp");
+		strcpy(p + 1, "__mkfstmp");
 		t = create(cptmp, OWRITE, 0666);
-		if(t < 0){
+		if(t < 0) {
 			warn("can't create %q: %r", newfile);
 			close(f);
 			return;
@@ -381,10 +383,10 @@ copy(Dir *d)
 	}
 
 	needwrite = 0;
-	for(tot = 0; tot < d->length; tot += n){
+	for(tot = 0; tot < d->length; tot += n) {
 		len = d->length - tot;
 		/* don't read beyond d->length */
-		if (len > buflen)
+		if(len > buflen)
 			len = buflen;
 		n = read(f, buf, len);
 		if(n <= 0) {
@@ -399,29 +401,30 @@ copy(Dir *d)
 			memset(buf, 0, len);
 			n = len;
 		}
-		if(fskind == Archive){
+		if(fskind == Archive) {
 			if(Bwrite(&bout, buf, n) != n)
 				error("write error: %r");
-		}else if(memcmp(buf, zbuf, n) == 0){
+		} else if(memcmp(buf, zbuf, n) == 0) {
 			if(seek(t, n, 1) < 0)
 				error("can't write zeros to %q: %r", newfile);
 			needwrite = 1;
-		}else{
+		} else {
 			if(write(t, buf, n) < n)
 				error("can't write %q: %r", newfile);
 			needwrite = 0;
 		}
 	}
 	close(f);
-	if(needwrite){
+	if(needwrite) {
 		if(seek(t, -1, 1) < 0 || write(t, zbuf, 1) != 1)
 			error("can't write zero at end of %q: %r", newfile);
 	}
-	if(tot != d->length){
+	if(tot != d->length) {
 		/* this should no longer happen */
-		warn("wrong number of bytes written to %q (was %lld should be %lld)\n",
-			newfile, tot, d->length);
-		if(fskind == Archive){
+		warn("wrong number of bytes written to %q (was %lld should be "
+		     "%lld)\n",
+		     newfile, tot, d->length);
+		if(fskind == Archive) {
 			warn("seeking to proper position\n");
 			/* does no good if stdout is a pipe */
 			Bseek(&bout, d->length - tot, 1);
@@ -444,13 +447,13 @@ copy(Dir *d)
 }
 
 void
-mkdir(Dir *d)
+mkdir(Dir* d)
 {
-	Dir *d1;
+	Dir* d1;
 	Dir nd;
 	int fd;
 
-	if(fskind == Archive){
+	if(fskind == Archive) {
 		arch(d);
 		return;
 	}
@@ -459,8 +462,8 @@ mkdir(Dir *d)
 	nd.mode = d->mode;
 	nd.gid = d->gid;
 	nd.mtime = d->mtime;
-	if(fd < 0){
-		if((d1 = dirstat(newfile)) == nil || !(d1->mode & DMDIR)){
+	if(fd < 0) {
+		if((d1 = dirstat(newfile)) == nil || !(d1->mode & DMDIR)) {
 			free(d1);
 			error("can't create %q", newfile);
 		}
@@ -481,16 +484,16 @@ mkdir(Dir *d)
 }
 
 void
-arch(Dir *d)
+arch(Dir* d)
 {
-	Bprint(&bout, "%q %luo %q %q %lud %lld\n",
-		newfile, d->mode, d->uid, d->gid, d->mtime, d->length);
+	Bprint(&bout, "%q %luo %q %q %lud %lld\n", newfile, d->mode, d->uid,
+	       d->gid, d->mtime, d->length);
 }
 
-char *
-mkpath(char *prefix, char *elem)
+char*
+mkpath(char* prefix, char* elem)
 {
-	char *p;
+	char* p;
 	int n;
 
 	n = strlen(prefix) + strlen(elem) + 2;
@@ -499,33 +502,33 @@ mkpath(char *prefix, char *elem)
 	return p;
 }
 
-char *
-strdup(char *s)
+char*
+strdup(char* s)
 {
-	char *t;
+	char* t;
 
 	t = emalloc(strlen(s) + 1);
 	return strcpy(t, s);
 }
 
 void
-setnames(File *f)
+setnames(File* f)
 {
 	sprint(newfile, "%s%s", newroot, f->new);
-	if(f->old){
+	if(f->old) {
 		if(f->old[0] == '/')
 			sprint(oldfile, "%s%s", oldroot, f->old);
 		else
 			strcpy(oldfile, f->old);
-	}else
+	} else
 		sprint(oldfile, "%s%s", oldroot, f->new);
-	if(strlen(newfile) >= sizeof newfile 
-	|| strlen(oldfile) >= sizeof oldfile)
+	if(strlen(newfile) >= sizeof newfile ||
+	   strlen(oldfile) >= sizeof oldfile)
 		error("name overfile");
 }
 
 void
-freefile(File *f)
+freefile(File* f)
 {
 	if(f->old)
 		free(f->old);
@@ -541,17 +544,17 @@ freefile(File *f)
 void
 skipdir(void)
 {
-	char *p, c;
+	char* p, c;
 	int level;
 
-	if(indent < 0 || b == nil)	/* b is nil when copying adm/users */
+	if(indent < 0 || b == nil) /* b is nil when copying adm/users */
 		return;
 	level = indent;
-	for(;;){
+	for(;;) {
 		indent = 0;
 		p = Brdline(b, '\n');
 		lineno++;
-		if(!p){
+		if(!p) {
 			indent = -1;
 			return;
 		}
@@ -562,7 +565,7 @@ skipdir(void)
 				indent += 8;
 			else
 				break;
-		if(indent <= level){
+		if(indent <= level) {
 			Bseek(b, -Blinelen(b), 1);
 			lineno--;
 			return;
@@ -571,11 +574,11 @@ skipdir(void)
 }
 
 File*
-getfile(File *old)
+getfile(File* old)
 {
-	File *f;
-	char *elem;
-	char *p;
+	File* f;
+	char* elem;
+	char* p;
 	int c;
 
 	if(indent < 0)
@@ -584,7 +587,7 @@ loop:
 	indent = 0;
 	p = Brdline(b, '\n');
 	lineno++;
-	if(!p){
+	if(!p) {
 		indent = -1;
 		return 0;
 	}
@@ -612,7 +615,7 @@ loop:
 	if(!*f->gid)
 		f->gid = "-";
 	f->old = getpath(p);
-	if(f->old && strcmp(f->old, "-") == 0){
+	if(f->old && strcmp(f->old, "-") == 0) {
 		free(f->old);
 		f->old = 0;
 	}
@@ -625,9 +628,9 @@ loop:
 }
 
 char*
-getpath(char *p)
+getpath(char* p)
 {
-	char *q, *new;
+	char* q, *new;
 	int c, n;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -645,9 +648,9 @@ getpath(char *p)
 }
 
 char*
-getname(char *p, char **buf)
+getname(char* p, char** buf)
 {
-	char *s, *start;
+	char* s, *start;
 	int c;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -657,16 +660,16 @@ getname(char *p, char **buf)
 	while((c = *p) != '\n' && c != ' ' && c != '\t' && c != '\0')
 		p++;
 
-	*buf = malloc(p+1-start);
+	*buf = malloc(p + 1 - start);
 	if(*buf == nil)
 		return nil;
-	memmove(*buf, start, p-start);
-	(*buf)[p-start] = '\0';
+	memmove(*buf, start, p - start);
+	(*buf)[p - start] = '\0';
 
-	if(**buf == '$'){
-		s = getenv(*buf+1);
-		if(s == 0){
-			warn("can't read environment variable %q", *buf+1);
+	if(**buf == '$') {
+		s = getenv(*buf + 1);
+		if(s == 0) {
+			warn("can't read environment variable %q", *buf + 1);
 			skipdir();
 			free(*buf);
 			return nil;
@@ -678,9 +681,9 @@ getname(char *p, char **buf)
 }
 
 char*
-getmode(char *p, uint32_t *xmode)
+getmode(char* p, uint32_t* xmode)
 {
-	char *buf, *s;
+	char* buf, *s;
 	uint32_t m;
 
 	*xmode = ~0;
@@ -692,22 +695,20 @@ getmode(char *p, uint32_t *xmode)
 	if(!*s || strcmp(s, "-") == 0)
 		return p;
 	m = 0;
-	if(*s == 'd'){
+	if(*s == 'd') {
 		m |= DMDIR;
 		s++;
 	}
-	if(*s == 'a'){
+	if(*s == 'a') {
 		m |= DMAPPEND;
 		s++;
 	}
-	if(*s == 'l'){
+	if(*s == 'l') {
 		m |= DMEXCL;
 		s++;
 	}
-	if(s[0] < '0' || s[0] > '7'
-	|| s[1] < '0' || s[1] > '7'
-	|| s[2] < '0' || s[2] > '7'
-	|| s[3]){
+	if(s[0] < '0' || s[0] > '7' || s[1] < '0' || s[1] > '7' || s[2] < '0' ||
+	   s[2] > '7' || s[3]) {
 		warn("bad mode specification %q", buf);
 		free(buf);
 		return p;
@@ -729,35 +730,35 @@ setusers(void)
 	modes = 1;
 	file.uid = "adm";
 	file.gid = "adm";
-	file.mode = DMDIR|0775;
+	file.mode = DMDIR | 0775;
 	file.new = "/adm";
 	file.elem = "adm";
 	file.old = 0;
 	setnames(&file);
-	strcpy(oldfile, file.new);	/* Don't use root for /adm */
+	strcpy(oldfile, file.new); /* Don't use root for /adm */
 	mkfile(&file);
 	file.new = "/adm/users";
 	file.old = users;
 	file.elem = "users";
 	file.mode = 0664;
 	setnames(&file);
-	if (file.old)
-		strcpy(oldfile, file.old);	/* Don't use root for /adm/users */
+	if(file.old)
+		strcpy(oldfile, file.old); /* Don't use root for /adm/users */
 	mkfile(&file);
 	kfscmd("user");
 	mkfile(&file);
-	file.mode = DMDIR|0775;
+	file.mode = DMDIR | 0775;
 	file.new = "/adm";
 	file.old = "/adm";
 	file.elem = "adm";
 	setnames(&file);
-	strcpy(oldfile, file.old);	/* Don't use root for /adm */
+	strcpy(oldfile, file.old); /* Don't use root for /adm */
 	mkfile(&file);
 	modes = m;
 }
 
 void
-mountkfs(char *name)
+mountkfs(char* name)
 {
 	char kname[64];
 
@@ -768,53 +769,53 @@ mountkfs(char *name)
 	else
 		strcpy(kname, "/srv/kfs");
 	sfd = open(kname, ORDWR);
-	if(sfd < 0){
+	if(sfd < 0) {
 		fprint(2, "can't open %q\n", kname);
 		exits("open /srv/kfs");
 	}
-	if(mount(sfd, -1, "/n/kfs", MREPL|MCREATE, "") < 0){
+	if(mount(sfd, -1, "/n/kfs", MREPL | MCREATE, "") < 0) {
 		fprint(2, "can't mount kfs on /n/kfs\n");
 		exits("mount kfs");
 	}
 	close(sfd);
 	strcat(kname, ".cmd");
 	sfd = open(kname, ORDWR);
-	if(sfd < 0){
+	if(sfd < 0) {
 		fprint(2, "can't open %q\n", kname);
 		exits("open /srv/kfs");
 	}
 }
 
 void
-kfscmd(char *cmd)
+kfscmd(char* cmd)
 {
-	char buf[4*1024];
+	char buf[4 * 1024];
 	int n;
 
 	if(fskind != Kfs)
 		return;
-	if(write(sfd, cmd, strlen(cmd)) != strlen(cmd)){
+	if(write(sfd, cmd, strlen(cmd)) != strlen(cmd)) {
 		fprint(2, "%q: error writing %q: %r", prog, cmd);
 		return;
 	}
-	for(;;){
+	for(;;) {
 		n = read(sfd, buf, sizeof buf - 1);
 		if(n <= 0)
 			return;
 		buf[n] = '\0';
 		if(strcmp(buf, "done") == 0 || strcmp(buf, "success") == 0)
 			return;
-		if(strcmp(buf, "unknown command") == 0){
+		if(strcmp(buf, "unknown command") == 0) {
 			fprint(2, "%q: command %q not recognized\n", prog, cmd);
 			return;
 		}
 	}
 }
 
-void *
+void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	if((p = malloc(n)) == 0)
 		error("out of memory");
@@ -822,14 +823,14 @@ emalloc(uint32_t n)
 }
 
 void
-error(char *fmt, ...)
+error(char* fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: %q:%d: ", prog, proto, lineno);
 	va_start(arg, fmt);
-	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 	kfscmd("disallow");
@@ -838,23 +839,24 @@ error(char *fmt, ...)
 }
 
 void
-warn(char *fmt, ...)
+warn(char* fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: %q:%d: ", prog, proto, lineno);
 	va_start(arg, fmt);
-	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 }
 
 void
-printfile(File *f)
+printfile(File* f)
 {
 	if(f->old)
-		fprint(2, "%q from %q %q %q %lo\n", f->new, f->old, f->uid, f->gid, f->mode);
+		fprint(2, "%q from %q %q %q %lo\n", f->new, f->old, f->uid,
+		       f->gid, f->mode);
 	else
 		fprint(2, "%q %q %q %lo\n", f->new, f->uid, f->gid, f->mode);
 }
@@ -862,6 +864,8 @@ printfile(File *f)
 void
 usage(void)
 {
-	fprint(2, "usage: %q [-aprvx] [-d root] [-n name] [-s source] [-u users] [-z n] proto ...\n", prog);
+	fprint(2, "usage: %q [-aprvx] [-d root] [-n name] [-s source] [-u "
+	          "users] [-z n] proto ...\n",
+	       prog);
 	exits("usage");
 }

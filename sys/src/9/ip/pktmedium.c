@@ -16,23 +16,21 @@
 
 #include "ip.h"
 
+static void pktbind(Ipifc*, int, char**);
+static void pktunbind(Ipifc*);
+static void pktbwrite(Ipifc*, Block*, int, uint8_t*);
+static void pktin(Fs*, Ipifc*, Block*);
 
-static void	pktbind(Ipifc*, int, char**);
-static void	pktunbind(Ipifc*);
-static void	pktbwrite(Ipifc*, Block*, int, uint8_t*);
-static void	pktin(Fs*, Ipifc*, Block*);
-
-Medium pktmedium =
-{
-.name=		"pkt",
-.hsize=		14,
-.mintu=		40,
-.maxtu=		4*1024,
-.maclen=	6,
-.bind=		pktbind,
-.unbind=	pktunbind,
-.bwrite=	pktbwrite,
-.pktin=		pktin,
+Medium pktmedium = {
+    .name = "pkt",
+    .hsize = 14,
+    .mintu = 40,
+    .maxtu = 4 * 1024,
+    .maclen = 6,
+    .bind = pktbind,
+    .unbind = pktunbind,
+    .bwrite = pktbwrite,
+    .pktin = pktin,
 };
 
 /*
@@ -40,16 +38,17 @@ Medium pktmedium =
  *  called with ifc wlock'd
  */
 static void
-pktbind(Ipifc *ipifc, int argc, char **argv)
+pktbind(Ipifc* ipifc, int argc, char** argv)
 {
-	USED(argc); USED(argv);
+	USED(argc);
+	USED(argv);
 }
 
 /*
  *  called with ifc wlock'd
  */
 static void
-pktunbind(Ipifc *ipifc)
+pktunbind(Ipifc* ipifc)
 {
 }
 
@@ -57,7 +56,7 @@ pktunbind(Ipifc *ipifc)
  *  called by ipoput with a single packet to write
  */
 static void
-pktbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
+pktbwrite(Ipifc* ifc, Block* bp, int i, uint8_t* c)
 {
 	/* enqueue onto the conversation's rq */
 	bp = concatblock(bp);
@@ -70,7 +69,7 @@ pktbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
  *  called with ifc rlocked when someone write's to 'data'
  */
 static void
-pktin(Fs *f, Ipifc *ifc, Block *bp)
+pktin(Fs* f, Ipifc* ifc, Block* bp)
 {
 	if(ifc->lifc == nil)
 		freeb(bp);

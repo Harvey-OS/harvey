@@ -19,18 +19,20 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int fd, cfd, n;
 	char buf[4096], data[128], devdir[40], net[32];
 
 	setnetmtpt(net, sizeof net, nil);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'x':
 		setnetmtpt(net, sizeof net, EARGF(usage()));
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	sprint(data, "%s/udp!*!echo", net);
 	cfd = announce(data, devdir);
@@ -43,9 +45,9 @@ main(int argc, char **argv)
 	fd = open(data, ORDWR);
 	if(fd < 0)
 		sysfatal("open %s: %r", data);
-	while ((n = read(fd, buf, sizeof buf)) > 0)
+	while((n = read(fd, buf, sizeof buf)) > 0)
 		write(fd, buf, n);
-	if (n < 0)
+	if(n < 0)
 		sysfatal("error reading: %r");
 	exits(0);
 }

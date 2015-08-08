@@ -9,7 +9,7 @@
 
 typedef struct Auth Auth;
 struct Auth {
-	char *name;
+	char* name;
 
 	char* (*auth)(Fcall*, Fcall*);
 	char* (*attach)(Fcall*, Fcall*);
@@ -21,7 +21,7 @@ struct Auth {
 
 extern char remotehostname[];
 extern char Eauth[];
-extern char *autharg;
+extern char* autharg;
 
 extern Auth authp9any;
 extern Auth authrhosts;
@@ -30,10 +30,10 @@ extern Auth authnone;
 extern uint32_t truerand(void);
 extern void randombytes(uchar*, uint);
 
-extern uint32_t  msize;
+extern uint32_t msize;
 
 typedef struct Fid Fid;
-Fid *newauthfid(int fid, void *magic, char **ep);
-Fid *oldauthfid(int fid, void **magic, char **ep);
+Fid* newauthfid(int fid, void* magic, char** ep);
+Fid* oldauthfid(int fid, void** magic, char** ep);
 
-void safecpy(char *to, char *from, int len);
+void safecpy(char* to, char* from, int len);

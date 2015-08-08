@@ -17,11 +17,11 @@
  * reverse string [s:e) in place
  */
 void
-strrev(char *s, char *e)
+strrev(char* s, char* e)
 {
 	int c;
 
-	while(--e > s){
+	while(--e > s) {
 		c = *s;
 		*s++ = *e;
 		*e = c;
@@ -29,13 +29,13 @@ strrev(char *s, char *e)
 }
 
 int
-isdotdot(char *s)
+isdotdot(char* s)
 {
 	return s[0] == '.' && s[1] == '.' && (s[2] == '/' || s[2] == '\0');
 }
 
 int
-issuffix(char *suf, char *s)
+issuffix(char* suf, char* s)
 {
 	int n;
 
@@ -46,13 +46,13 @@ issuffix(char *suf, char *s)
 }
 
 int
-isprefix(char *pre, char *s)
+isprefix(char* pre, char* s)
 {
 	return strncmp(pre, s, strlen(pre)) == 0;
 }
 
 int
-ciisprefix(char *pre, char *s)
+ciisprefix(char* pre, char* s)
 {
 	return cistrncmp(pre, s, strlen(pre)) == 0;
 }
@@ -60,9 +60,9 @@ ciisprefix(char *pre, char *s)
 char*
 readFile(int fd)
 {
-	Dir *d;
+	Dir* d;
 	int32_t length;
-	char *s;
+	char* s;
 
 	d = dirfstat(fd);
 	if(d == nil)
@@ -87,8 +87,8 @@ imapTmp(void)
 	int tries, fd;
 
 	snprint(name, sizeof(name), "/mail/box/%s/mbox.tmp.imp", username);
-	for(tries = 0; tries < LockSecs*2; tries++){
-		fd = create(name, ORDWR|ORCLOSE|OCEXEC, DMEXCL|0600);
+	for(tries = 0; tries < LockSecs * 2; tries++) {
+		fd = create(name, ORDWR | ORCLOSE | OCEXEC, DMEXCL | 0600);
 		if(fd >= 0)
 			return fd;
 		errstr(buf, sizeof buf);
@@ -104,12 +104,12 @@ imapTmp(void)
  * if it is, spin until available
  */
 int
-openLocked(char *dir, char *file, int mode)
+openLocked(char* dir, char* file, int mode)
 {
 	char buf[ERRMAX];
 	int tries, fd;
 
-	for(tries = 0; tries < LockSecs*2; tries++){
+	for(tries = 0; tries < LockSecs * 2; tries++) {
 		fd = cdOpen(dir, file, mode);
 		if(fd >= 0)
 			return fd;
@@ -122,9 +122,9 @@ openLocked(char *dir, char *file, int mode)
 }
 
 int
-fqid(int fd, Qid *qid)
+fqid(int fd, Qid* qid)
 {
-	Dir *d;
+	Dir* d;
 
 	d = dirfstat(fd);
 	if(d == nil)
@@ -135,7 +135,7 @@ fqid(int fd, Qid *qid)
 }
 
 uint32_t
-mapInt(NamedInt *map, char *name)
+mapInt(NamedInt* map, char* name)
 {
 	int i;
 
@@ -146,9 +146,9 @@ mapInt(NamedInt *map, char *name)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *t;
+	char* t;
 
 	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
@@ -158,7 +158,7 @@ estrdup(char *s)
 void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -170,7 +170,7 @@ emalloc(uint32_t n)
 void*
 ezmalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -181,7 +181,7 @@ ezmalloc(uint32_t n)
 }
 
 void*
-erealloc(void *p, uint32_t n)
+erealloc(void* p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)

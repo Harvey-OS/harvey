@@ -7,60 +7,54 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-enum
-{
-	NHASH		= 128,
-	MAXCACHE	= 1024*1024,
-	NFILE		= 4096,
-	NEXTENT		= 200,		/* extent allocation size */
+enum { NHASH = 128,
+       MAXCACHE = 1024 * 1024,
+       NFILE = 4096,
+       NEXTENT = 200, /* extent allocation size */
 };
 
 typedef struct Extent Extent;
-struct Extent
-{
-	int	bid;
-	uint32_t	start;
-	int	len;
-	Page	*cache;
-	Extent	*next;
+struct Extent {
+	int bid;
+	uint32_t start;
+	int len;
+	Page* cache;
+	Extent* next;
 };
 
 typedef struct Mntcache Mntcache;
-struct Mntcache
-{
-	Qid	qid;
-	uint	devno;
-	Dev*	dev;
+struct Mntcache {
+	Qid qid;
+	uint devno;
+	Dev* dev;
 	QLock;
-	Extent	 *list;
-	Mntcache *hash;
-	Mntcache *prev;
-	Mntcache *next;
+	Extent* list;
+	Mntcache* hash;
+	Mntcache* prev;
+	Mntcache* next;
 };
 
 typedef struct Cache Cache;
-struct Cache
-{
+struct Cache {
 	Lock;
-	int		pgno;
-	Mntcache	*head;
-	Mntcache	*tail;
-	Mntcache	*hash[NHASH];
+	int pgno;
+	Mntcache* head;
+	Mntcache* tail;
+	Mntcache* hash[NHASH];
 };
 
 typedef struct Ecache Ecache;
-struct Ecache
-{
+struct Ecache {
 	Lock;
-	int	total;
-	int	free;
-	Extent*	head;
+	int total;
+	int free;
+	Extent* head;
 };
 
 static Image fscache;
@@ -81,17 +75,17 @@ extentfree(Extent* e)
 static Extent*
 extentalloc(void)
 {
-	Extent *e;
+	Extent* e;
 	int i;
 
 	lock(&ecache);
-	if(ecache.head == nil){
-		e = malloc(NEXTENT*sizeof(Extent));
-		if(e == nil){
+	if(ecache.head == nil) {
+		e = malloc(NEXTENT * sizeof(Extent));
+		if(e == nil) {
 			unlock(&ecache);
 			return nil;
 		}
-		for(i = 0; i < NEXTENT; i++){
+		for(i = 0; i < NEXTENT; i++) {
 			e->next = ecache.head;
 			ecache.head = e;
 			e++;
@@ -113,21 +107,21 @@ void
 cinit(void)
 {
 	int i;
-	Mntcache *mc;
+	Mntcache* mc;
 
-	if((cache.head = malloc(sizeof(Mntcache)*NFILE)) == nil)
+	if((cache.head = malloc(sizeof(Mntcache) * NFILE)) == nil)
 		panic("cinit: no memory");
 	mc = cache.head;
 
 	/* a better algorithm would be nice */
-//	if(conf.npage*PGSZ > 200*MB)
-//		maxcache = 10*MAXCACHE;
-//	if(conf.npage*PGSZ > 400*MB)
-//		maxcache = 50*MAXCACHE;
+	//	if(conf.npage*PGSZ > 200*MB)
+	//		maxcache = 10*MAXCACHE;
+	//	if(conf.npage*PGSZ > 400*MB)
+	//		maxcache = 50*MAXCACHE;
 
-	for(i = 0; i < NFILE-1; i++) {
-		mc->next = mc+1;
-		mc->prev = mc-1;
+	for(i = 0; i < NFILE - 1; i++) {
+		mc->next = mc + 1;
+		mc->prev = mc - 1;
 		mc++;
 	}
 
@@ -139,7 +133,7 @@ cinit(void)
 }
 
 Page*
-cpage(Extent *e)
+cpage(Extent* e)
 {
 	/* Easy consistency check */
 	if(e->cache->daddr != e->bid)
@@ -149,9 +143,9 @@ cpage(Extent *e)
 }
 
 void
-cnodata(Mntcache *mc)
+cnodata(Mntcache* mc)
 {
-	Extent *e, *n;
+	Extent* e, *n;
 
 	/*
 	 * Invalidate all extent data
@@ -165,7 +159,7 @@ cnodata(Mntcache *mc)
 }
 
 void
-ctail(Mntcache *mc)
+ctail(Mntcache* mc)
 {
 	/* Unlink and send to the tail */
 	if(mc->prev)
@@ -182,8 +176,7 @@ ctail(Mntcache *mc)
 		cache.tail->next = mc;
 		mc->next = 0;
 		cache.tail = mc;
-	}
-	else {
+	} else {
 		cache.head = mc;
 		cache.tail = mc;
 		mc->prev = 0;
@@ -192,40 +185,40 @@ ctail(Mntcache *mc)
 }
 
 void
-copen(Chan *c)
+copen(Chan* c)
 {
 	int h;
-	Extent *e, *next;
-	Mntcache *mc, *f, **l;
+	Extent* e, *next;
+	Mntcache* mc, *f, **l;
 
 	/* directories aren't cacheable and append-only files confuse us */
-	if(c->qid.type&(QTDIR|QTAPPEND))
+	if(c->qid.type & (QTDIR | QTAPPEND))
 		return;
 
-	h = c->qid.path%NHASH;
+	h = c->qid.path % NHASH;
 	lock(&cache);
 	for(mc = cache.hash[h]; mc != nil; mc = mc->hash) {
 		if(mc->qid.path == c->qid.path)
-		if(mc->qid.type == c->qid.type)
-		if(mc->devno == c->devno && mc->dev == c->dev) {
-			c->mc = mc;
-			ctail(mc);
-			unlock(&cache);
+			if(mc->qid.type == c->qid.type)
+				if(mc->devno == c->devno && mc->dev == c->dev) {
+					c->mc = mc;
+					ctail(mc);
+					unlock(&cache);
 
-			/* File was updated, invalidate cache */
-			if(mc->qid.vers != c->qid.vers) {
-				mc->qid.vers = c->qid.vers;
-				qlock(mc);
-				cnodata(mc);
-				qunlock(mc);
-			}
-			return;
-		}
+					/* File was updated, invalidate cache */
+					if(mc->qid.vers != c->qid.vers) {
+						mc->qid.vers = c->qid.vers;
+						qlock(mc);
+						cnodata(mc);
+						qunlock(mc);
+					}
+					return;
+				}
 	}
 
 	/* LRU the cache headers */
 	mc = cache.head;
-	l = &cache.hash[mc->qid.path%NHASH];
+	l = &cache.hash[mc->qid.path % NHASH];
 	for(f = *l; f; f = f->hash) {
 		if(f == mc) {
 			*l = mc->hash;
@@ -258,7 +251,7 @@ copen(Chan *c)
 }
 
 static int
-cdev(Mntcache *mc, Chan *c)
+cdev(Mntcache* mc, Chan* c)
 {
 	if(mc->qid.path != c->qid.path)
 		return 0;
@@ -274,17 +267,17 @@ cdev(Mntcache *mc, Chan *c)
 }
 
 int
-cread(Chan *c, uint8_t *buf, int len, int64_t off)
+cread(Chan* c, uint8_t* buf, int len, int64_t off)
 {
-	Proc *up = externup();
-	KMap *k;
-	Page *p;
-	Mntcache *mc;
-	Extent *e, **t;
+	Proc* up = externup();
+	KMap* k;
+	Page* p;
+	Mntcache* mc;
+	Extent* e, **t;
 	int o, l, total;
 	uint32_t offset;
 
-	if(off+len > maxcache)
+	if(off + len > maxcache)
 		return 0;
 
 	mc = c->mc;
@@ -300,7 +293,7 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 	offset = off;
 	t = &mc->list;
 	for(e = *t; e; e = e->next) {
-		if(offset >= e->start && offset < e->start+e->len)
+		if(offset >= e->start && offset < e->start + e->len)
 			break;
 		t = &e->next;
 	}
@@ -322,8 +315,8 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 
 		o = offset - e->start;
 		l = len;
-		if(l > e->len-o)
-			l = e->len-o;
+		if(l > e->len - o)
+			l = e->len - o;
 
 		k = kmap(p);
 		if(waserror()) {
@@ -355,13 +348,13 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 }
 
 Extent*
-cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
+cchain(uint8_t* buf, uint32_t offset, int len, Extent** tail)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int l;
-	Page *p;
-	KMap *k;
-	Extent *e, *start, **t;
+	Page* p;
+	KMap* k;
+	Extent* e, *start, **t;
 
 	start = 0;
 	*tail = 0;
@@ -387,19 +380,20 @@ cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 		lock(&cache);
 		e->bid = cache.pgno;
 		cache.pgno += BIGPGSZ;
-		/* wrap the counter; low bits are unused by pghash but checked by lookpage */
-		if((cache.pgno & ~(BIGPGSZ-1)) == 0){
-			if(cache.pgno == BIGPGSZ-1){
+		/* wrap the counter; low bits are unused by pghash but checked
+		 * by lookpage */
+		if((cache.pgno & ~(BIGPGSZ - 1)) == 0) {
+			if(cache.pgno == BIGPGSZ - 1) {
 				print("cache wrapped\n");
 				cache.pgno = 0;
-			}else
+			} else
 				cache.pgno++;
 		}
 		unlock(&cache);
 
 		p->daddr = e->bid;
 		k = kmap(p);
-		if(waserror()) {		/* buf may be virtual */
+		if(waserror()) { /* buf may be virtual */
 			kunmap(k);
 			nexterror();
 		}
@@ -423,23 +417,23 @@ cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 }
 
 int
-cpgmove(Extent *e, uint8_t *buf, int boff, int len)
+cpgmove(Extent* e, uint8_t* buf, int boff, int len)
 {
-	Proc *up = externup();
-	Page *p;
-	KMap *k;
+	Proc* up = externup();
+	Page* p;
+	KMap* k;
 
 	p = cpage(e);
 	if(p == 0)
 		return 0;
 
 	k = kmap(p);
-	if(waserror()) {		/* Since buf may be virtual */
+	if(waserror()) { /* Since buf may be virtual */
 		kunmap(k);
 		nexterror();
 	}
 
-	memmove((uint8_t*)VA(k)+boff, buf, len);
+	memmove((uint8_t*)VA(k) + boff, buf, len);
 
 	poperror();
 	kunmap(k);
@@ -449,11 +443,11 @@ cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 }
 
 void
-cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
+cupdate(Chan* c, uint8_t* buf, int len, int64_t off)
 {
-	Mntcache *mc;
-	Extent *tail;
-	Extent *e, *f, *p;
+	Mntcache* mc;
+	Extent* tail;
+	Extent* e, *f, *p;
 	int o, ee, eblock;
 	uint32_t offset;
 
@@ -481,7 +475,7 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 	}
 
 	/* trim if there is a successor */
-	eblock = offset+len;
+	eblock = offset + len;
 	if(f != 0 && eblock > f->start) {
 		len -= (eblock - f->start);
 		if(len <= 0) {
@@ -490,7 +484,7 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 		}
 	}
 
-	if(p == 0) {		/* at the head */
+	if(p == 0) { /* at the head */
 		e = cchain(buf, offset, len, &tail);
 		if(e != 0) {
 			mc->list = e;
@@ -501,7 +495,7 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 	}
 
 	/* trim to the predecessor */
-	ee = p->start+p->len;
+	ee = p->start + p->len;
 	if(offset < ee) {
 		o = ee - offset;
 		len -= o;
@@ -524,7 +518,10 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 			len -= o;
 			offset += o;
 			if(len <= 0) {
-if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->start=%uld\n", p->start, p->len, f->start);
+				if(f && p->start + p->len > f->start)
+					print("CACHE: p->start=%uld p->len=%d "
+					      "f->start=%uld\n",
+					      p->start, p->len, f->start);
 				qunlock(mc);
 				return;
 			}
@@ -540,12 +537,12 @@ if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->s
 }
 
 void
-cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
+cwrite(Chan* c, uint8_t* buf, int len, int64_t off)
 {
 	int o, eo;
-	Mntcache *mc;
+	Mntcache* mc;
 	uint32_t eblock, ee;
-	Extent *p, *f, *e, *tail;
+	Extent* p, *f, *e, *tail;
 	uint32_t offset;
 
 	if(off > maxcache || len == 0)
@@ -573,7 +570,7 @@ cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
 	}
 
 	if(p != 0) {
-		ee = p->start+p->len;
+		ee = p->start + p->len;
 		eo = offset - p->start;
 		/* pack in predecessor if there is space */
 		if(offset <= ee && eo < BIGPGSZ) {
@@ -581,8 +578,8 @@ cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
 			if(o > BIGPGSZ - eo)
 				o = BIGPGSZ - eo;
 			if(cpgmove(p, buf, eo, o)) {
-				if(eo+o > p->len)
-					p->len = eo+o;
+				if(eo + o > p->len)
+					p->len = eo + o;
 				buf += o;
 				len -= o;
 				offset += o;
@@ -591,7 +588,7 @@ cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
 	}
 
 	/* free the overlap -- it's a rare case */
-	eblock = offset+len;
+	eblock = offset + len;
 	while(f && f->start < eblock) {
 		e = f->next;
 		extentfree(f);

@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1995, 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -35,26 +35,26 @@
 #undef font_
 #define font_(fname, fproc, zfproc) extern ccfont_proc(fproc);
 #ifndef GCONFIGF_H
-# include "gconfigf.h"
+#include "gconfigf.h"
 #else
-# include GCONFIGF_H
+#include GCONFIGF_H
 #endif
 
-private const ccfont_fproc fprocs[] = {
+private
+const ccfont_fproc fprocs[] = {
 #undef font_
-#define font_(fname, fproc, zfproc) fproc,  /* fname, zfproc are not needed */
+#define font_(fname, fproc, zfproc) fproc, /* fname, zfproc are not needed */
 #ifndef GCONFIGF_H
-# include "gconfigf.h"
+#include "gconfigf.h"
 #else
-# include GCONFIGF_H
+#include GCONFIGF_H
 #endif
-    0
-};
+    0};
 
 int
-ccfont_fprocs(int *pnum_fprocs, const ccfont_fproc ** pfprocs)
+ccfont_fprocs(int* pnum_fprocs, const ccfont_fproc** pfprocs)
 {
-    *pnum_fprocs = countof(fprocs) - 1;
-    *pfprocs = &fprocs[0];
-    return ccfont_version;	/* for compatibility checking */
+	*pnum_fprocs = countof(fprocs) - 1;
+	*pfprocs = &fprocs[0];
+	return ccfont_version; /* for compatibility checking */
 }

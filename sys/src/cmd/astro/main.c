@@ -9,25 +9,25 @@
 
 #include "astro.h"
 
-char*	herefile = "/lib/sky/here";
+char* herefile = "/lib/sky/here";
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i, j;
 	double d;
 
-	pi = atan(1.0)*4;
-	pipi = pi*2;
-	radian = pi/180;
-	radsec = radian/3600;
+	pi = atan(1.0) * 4;
+	pipi = pi * 2;
+	radian = pi / 180;
+	radsec = radian / 3600;
 	converge = 1.0e-14;
 
 	fmtinstall('R', Rconv);
 	fmtinstall('D', Dconv);
 
 	per = PER;
-	deld = PER/NPTS;
+	deld = PER / NPTS;
 	init();
 	args(argc, argv);
 	init();
@@ -41,10 +41,10 @@ loop:
 		pstime(d);
 	}
 	print("\n");
-	for(i=0; i<=NPTS+1; i++) {
+	for(i = 0; i <= NPTS + 1; i++) {
 		setime(d);
 
-		for(j=0; objlst[j]; j++) {
+		for(j = 0; objlst[j]; j++) {
 			(*objlst[j]->obj)();
 			setobj(&objlst[j]->point[i]);
 			if(flags['p']) {
@@ -56,14 +56,15 @@ loop:
 		}
 		if(flags['e']) {
 			d = dist(&eobj1->point[i], &eobj2->point[i]);
-			print("dist %s to %s = %.4f\n", eobj1->name, eobj2->name, d);
+			print("dist %s to %s = %.4f\n", eobj1->name,
+			      eobj2->name, d);
 		}
-//		if(flags['p']) {
-//			pdate(d);
-//			print(" ");
-//			ptime(d);
-//			print("\n");
-//		}
+		//		if(flags['p']) {
+		//			pdate(d);
+		//			print(" ");
+		//			ptime(d);
+		//			print("\n");
+		//		}
 		if(flags['p'] || flags['e'])
 			break;
 		d += deld;
@@ -78,15 +79,16 @@ loop:
 }
 
 void
-args(int argc, char *argv[])
+args(int argc, char* argv[])
 {
-	char *p;
+	char* p;
 	long t;
 	int f, i;
-	Obj2 *q;
+	Obj2* q;
 
 	memset(flags, 0, sizeof(flags));
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	default:
 		fprint(2, "astro [-adeklmopst] [-c nperiod] [-C tperiod]\n");
 		exits(0);
@@ -108,7 +110,7 @@ args(int argc, char *argv[])
 		eobj2 = nil;
 		p = ARGF();
 		if(p) {
-			for(i=0; q=objlst[i]; i++) {
+			for(i = 0; q = objlst[i]; i++) {
 				if(strcmp(q->name, p) == 0)
 					eobj1 = q;
 				if(strcmp(q->name1, p) == 0)
@@ -116,7 +118,7 @@ args(int argc, char *argv[])
 			}
 			p = ARGF();
 			if(p) {
-				for(i=0; q=objlst[i]; i++) {
+				for(i = 0; q = objlst[i]; i++) {
 					if(strcmp(q->name, p) == 0)
 						eobj2 = q;
 					if(strcmp(q->name1, p) == 0)
@@ -143,21 +145,23 @@ args(int argc, char *argv[])
 	case 't':
 		flags[ARGC()]++;
 		break;
-	} ARGEND
-	if(*argv){
-		fprint(2, "usage: astro [-dlpsatokm] [-c nday] [-e obj1 obj2]\n");
+	}
+	ARGEND
+	if(*argv) {
+		fprint(2,
+		       "usage: astro [-dlpsatokm] [-c nday] [-e obj1 obj2]\n");
 		exits("usage");
 	}
 
 	t = time(0);
-	day = t/86400. + 25567.5;
+	day = t / 86400. + 25567.5;
 	if(flags['d'])
 		day = readate();
 	if(flags['j'])
 		print("jday = %.4f\n", day);
 	deltat = day * .001704;
-	if(deltat > 32.184)		// assume date is utc1
-		deltat = 32.184;	// correct by leap sec
+	if(deltat > 32.184)      // assume date is utc1
+		deltat = 32.184; // correct by leap sec
 	if(flags['t'])
 		deltat = readdt();
 
@@ -169,8 +173,8 @@ args(int argc, char *argv[])
 		if(f < 0) {
 			fprint(2, "%s?\n", herefile);
 			/* btl mh */
-			nlat = (40 + 41.06/60)*radian;
-			awlong = (74 + 23.98/60)*radian;
+			nlat = (40 + 41.06 / 60) * radian;
+			awlong = (74 + 23.98 / 60) * radian;
 			elev = 150 * 3.28084;
 		} else {
 			readlat(f);
@@ -187,7 +191,7 @@ readate(void)
 
 	fprint(2, "year mo da hr min\n");
 	rline(0);
-	for(i=0; i<5; i++)
+	for(i = 0; i < 5; i++)
 		t.ifa[i] = atof(skip(i));
 	return convdate(&t);
 }
@@ -227,5 +231,5 @@ readlat(int f)
 double
 fmod(double a, double b)
 {
-	return a - floor(a/b)*b;
+	return a - floor(a / b) * b;
 }

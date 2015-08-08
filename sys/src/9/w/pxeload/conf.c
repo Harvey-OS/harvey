@@ -25,26 +25,26 @@
  * The low-level boot routines in l.s leave data for us at CONFADDR,
  * which we pick up before reading the plan9.ini file.
  */
-#define BOOTLINELEN	64
-#define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
-#define	BOOTARGSLEN	(3584-0x200-BOOTLINELEN)
-#define	MAXCONF		100
+#define BOOTLINELEN 64
+#define BOOTARGS ((char*)(CONFADDR + BOOTLINELEN))
+#define BOOTARGSLEN (3584 - 0x200 - BOOTLINELEN)
+#define MAXCONF 100
 
-static char *confname[MAXCONF];
-static char *confval[MAXCONF];
+static char* confname[MAXCONF];
+static char* confval[MAXCONF];
 static int nconf;
 
-extern char **ini;
+extern char** ini;
 
 typedef struct {
-	char*	name;
-	int	start;
-	int	end;
+	char* name;
+	int start;
+	int end;
 } Mblock;
 
 typedef struct {
-	char*	tag;
-	Mblock*	mb;
+	char* tag;
+	Mblock* mb;
 } Mitem;
 
 static Mblock mblock[MAXCONF];
@@ -58,9 +58,9 @@ static int mtimeout;
 static char*
 comma(char* line, char** residue)
 {
-	char *q, *r;
+	char* q, *r;
 
-	if((q = strchr(line, ',')) != nil){
+	if((q = strchr(line, ',')) != nil) {
 		*q++ = 0;
 		if(*q == ' ')
 			q++;
@@ -79,10 +79,10 @@ static Mblock*
 findblock(char* name, char** residue)
 {
 	int i;
-	char *p;
+	char* p;
 
 	p = comma(name, residue);
-	for(i = 0; i < nmblock; i++){
+	for(i = 0; i < nmblock; i++) {
 		if(strcmp(p, mblock[i].name) == 0)
 			return &mblock[i];
 	}
@@ -93,10 +93,10 @@ static Mitem*
 finditem(char* name, char** residue)
 {
 	int i;
-	char *p;
+	char* p;
 
 	p = comma(name, residue);
-	for(i = 0; i < nmitem; i++){
+	for(i = 0; i < nmitem; i++) {
 		if(strcmp(p, mitem[i].mb->name) == 0)
 			return &mitem[i];
 	}
@@ -106,8 +106,8 @@ finditem(char* name, char** residue)
 static void
 parsemenu(char* str, char* scratch, int len)
 {
-	Mitem *mi;
-	Mblock *mb, *menu;
+	Mitem* mi;
+	Mblock* mb, *menu;
 	char buf[20], *p, *q, *line[MAXCONF];
 	int i, inblock, n, show;
 
@@ -117,50 +117,50 @@ parsemenu(char* str, char* scratch, int len)
 	n = getfields(scratch, line, MAXCONF, '\n');
 	if(n >= MAXCONF)
 		print("warning: possibly too many lines in plan9.ini\n");
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		p = line[i];
-		if(inblock && *p == '['){
+		if(inblock && *p == '[') {
 			mblock[nmblock].end = i;
 			if(strcmp(mblock[nmblock].name, "menu") == 0)
 				menu = &mblock[nmblock];
 			nmblock++;
 			inblock = 0;
 		}
-		if(*p == '['){
-			if(nmblock == 0 && i != 0){
+		if(*p == '[') {
+			if(nmblock == 0 && i != 0) {
 				mblock[nmblock].name = "common";
 				mblock[nmblock].start = 0;
 				mblock[nmblock].end = i;
 				nmblock++;
 			}
-			q = strchr(p+1, ']');
-			if(q == nil || *(q+1) != 0){
+			q = strchr(p + 1, ']');
+			if(q == nil || *(q + 1) != 0) {
 				print("malformed menu block header - %s\n", p);
 				return;
 			}
 			*q = 0;
-			mblock[nmblock].name = p+1;
-			mblock[nmblock].start = i+1;
+			mblock[nmblock].name = p + 1;
+			mblock[nmblock].start = i + 1;
 			inblock = 1;
 		}
 	}
 
-	if(inblock){
+	if(inblock) {
 		mblock[nmblock].end = i;
 		nmblock++;
 	}
 	if(menu == nil)
 		return;
-	if(nmblock < 2){
+	if(nmblock < 2) {
 		print("incomplete menu specification\n");
 		return;
 	}
 
-	for(i = menu->start; i < menu->end; i++){
+	for(i = menu->start; i < menu->end; i++) {
 		p = line[i];
-		if(cistrncmp(p, "menuitem=", 9) == 0){
+		if(cistrncmp(p, "menuitem=", 9) == 0) {
 			p += 9;
-			if((mb = findblock(p, &q)) == nil){
+			if((mb = findblock(p, &q)) == nil) {
 				print("no block for menuitem %s\n", p);
 				return;
 			}
@@ -170,24 +170,21 @@ parsemenu(char* str, char* scratch, int len)
 				mitem[nmitem].tag = mb->name;
 			mitem[nmitem].mb = mb;
 			nmitem++;
-		}
-		else if(cistrncmp(p, "menudefault=", 12) == 0){
+		} else if(cistrncmp(p, "menudefault=", 12) == 0) {
 			p += 12;
-			if((mi = finditem(p, &q)) == nil){
+			if((mi = finditem(p, &q)) == nil) {
 				print("no item for menudefault %s\n", p);
 				return;
 			}
 			if(q != nil)
 				mtimeout = strtol(q, 0, 0);
-			sprint(mdefaultbuf, "%ld", mi-mitem+1);
+			sprint(mdefaultbuf, "%ld", mi - mitem + 1);
 			mdefault = mdefaultbuf;
-		}
-		else if(cistrncmp(p, "menuconsole=", 12) == 0){
+		} else if(cistrncmp(p, "menuconsole=", 12) == 0) {
 			p += 12;
 			p = comma(p, &q);
 			consinit(p, q);
-		}
-		else{
+		} else {
 			print("invalid line in [menu] block - %s\n", p);
 			return;
 		}
@@ -196,14 +193,14 @@ parsemenu(char* str, char* scratch, int len)
 again:
 	print("\nPlan 9 Startup Menu:\n====================\n");
 	for(i = 0; i < nmitem; i++)
-		print("    %d. %s\n", i+1, mitem[i].tag);
-	for(;;){
+		print("    %d. %s\n", i + 1, mitem[i].tag);
+	for(;;) {
 		getstr("Selection", buf, sizeof(buf), mdefault, mtimeout);
 		mtimeout = 0;
-		i = strtol(buf, &p, 0)-1;
+		i = strtol(buf, &p, 0) - 1;
 		if(i < 0 || i >= nmitem)
 			goto again;
-		switch(*p){
+		switch(*p) {
 		case 'p':
 		case 'P':
 			show = 1;
@@ -214,13 +211,12 @@ again:
 			break;
 		default:
 			continue;
-
 		}
 		mi = &mitem[i];
 
 		p = str;
 		p += sprint(p, "menuitem=%s\n", mi->mb->name);
-		for(i = 0; i < nmblock; i++){
+		for(i = 0; i < nmblock; i++) {
 			mb = &mblock[i];
 			if(mi->mb != mb && cistrcmp(mb->name, "common") != 0)
 				continue;
@@ -228,8 +224,8 @@ again:
 				p += sprint(p, "%s\n", line[n]);
 		}
 
-		if(show){
-			for(q = str; q < p; q += i){
+		if(show) {
+			for(q = str; q < p; q += i) {
 				if((i = print(q)) <= 0)
 					break;
 			}
@@ -244,10 +240,10 @@ again:
 static void
 msleep(int msec)
 {
-	ulong start;
+        ulong start;
 
-	for(start = machp()->ticks; TK2MS(machp()->ticks - start) < msec; )
-		;
+        for(start = machp()->ticks; TK2MS(machp()->ticks - start) < msec; )
+                ;
 }
 */
 
@@ -255,32 +251,30 @@ void
 readlsconf(void)
 {
 	int i, n;
-	uint8_t *p;
-	MMap *map;
+	uint8_t* p;
+	MMap* map;
 	uint64_t addr, len;
 
 	p = (uint8_t*)ROUND((uint32_t)end, BY2PG);
-	for(n = 0; n < 20; n++){
+	for(n = 0; n < 20; n++) {
 		if(*p == 0)
 			break;
-		if(memcmp(p, "APM\0", 4) == 0){
+		if(memcmp(p, "APM\0", 4) == 0) {
 			apm.haveinfo = 1;
-			apm.ax = *(uint16_t*)(p+4);
-			apm.cx = *(uint16_t*)(p+6);
-			apm.dx = *(uint16_t*)(p+8);
-			apm.di = *(uint16_t*)(p+10);
-			apm.ebx = *(uint32_t*)(p+12);
-			apm.esi = *(uint32_t*)(p+16);
+			apm.ax = *(uint16_t*)(p + 4);
+			apm.cx = *(uint16_t*)(p + 6);
+			apm.dx = *(uint16_t*)(p + 8);
+			apm.di = *(uint16_t*)(p + 10);
+			apm.ebx = *(uint32_t*)(p + 12);
+			apm.esi = *(uint32_t*)(p + 16);
 			print("apm ax=%x cx=%x dx=%x di=%x ebx=%x esi=%x\n",
-				apm.ax, apm.cx, apm.dx,
-				apm.di, apm.ebx, apm.esi);
+			      apm.ax, apm.cx, apm.dx, apm.di, apm.ebx, apm.esi);
 			p += 20;
 			continue;
-		}
-		else if(memcmp(p, "MAP\0", 4) == 0){
+		} else if(memcmp(p, "MAP\0", 4) == 0) {
 			map = (MMap*)p;
 
-			switch(map->type){
+			switch(map->type) {
 			default:
 				if(vflag)
 					print("type %ud", map->type);
@@ -302,23 +296,23 @@ readlsconf(void)
 					print("ACPI NVS Memory");
 				break;
 			}
-			addr = (((uint64_t)map->base[1])<<32)|map->base[0];
-			len = (((uint64_t)map->length[1])<<32)|map->length[0];
+			addr = (((uint64_t)map->base[1]) << 32) | map->base[0];
+			len =
+			    (((uint64_t)map->length[1]) << 32) | map->length[0];
 			if(vflag)
 				print("\n\t0x%16.16lluX 0x%16.16lluX (%llud)\n",
-					addr, addr+len, len);
+				      addr, addr + len, len);
 
-			if(nmmap < nelem(mmap)){
+			if(nmmap < nelem(mmap)) {
 				memmove(&mmap[nmmap], map, sizeof(MMap));
 				mmap[nmmap].size = 20;
 				nmmap++;
 			}
 			p += 24;
 			continue;
-		}
-		else{
+		} else {
 			for(i = 0; i < 24; i++)
-				print(" %2.2uX", *(p+i));
+				print(" %2.2uX", *(p + i));
 			print("\n");
 		}
 		break;
@@ -326,7 +320,7 @@ readlsconf(void)
 }
 
 char*
-getconf(char *name)
+getconf(char* name)
 {
 	int i, n, nmatch;
 	char buf[20];
@@ -368,34 +362,34 @@ getconf(char *name)
 }
 
 void
-addconf(char *fmt, ...)
+addconf(char* fmt, ...)
 {
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(BOOTARGS+strlen(BOOTARGS), BOOTARGS+BOOTARGSLEN, fmt, arg);
+	vseprint(BOOTARGS + strlen(BOOTARGS), BOOTARGS + BOOTARGSLEN, fmt, arg);
 	va_end(arg);
 }
 
 void
-changeconf(char *fmt, ...)
+changeconf(char* fmt, ...)
 {
 	va_list arg;
-	char *p, *q, pref[20], buf[128];
+	char* p, *q, pref[20], buf[128];
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, arg);
+	vseprint(buf, buf + sizeof buf, fmt, arg);
 	va_end(arg);
-	strncpy(pref+1, buf, 19);
+	strncpy(pref + 1, buf, 19);
 	pref[19] = '\0';
 	if(p = strchr(pref, '='))
-		*(p+1) = '\0';
+		*(p + 1) = '\0';
 	else
 		print("warning: did not change %s in plan9.ini\n", buf);
 
 	/* find old line by looking for \nwhat= */
 	pref[0] = '\n';
-	if(strncmp(BOOTARGS, pref+1, strlen(pref+1)) == 0)
+	if(strncmp(BOOTARGS, pref + 1, strlen(pref + 1)) == 0)
 		p = BOOTARGS;
 	else if(p = strstr(BOOTARGS, pref))
 		p++;
@@ -404,7 +398,7 @@ changeconf(char *fmt, ...)
 
 	/* move rest of args up, deleting what= line. */
 	if(p != nil && (q = strchr(p, '\n')) != nil)
-		memmove(p, q+1, strlen(q+1)+1);
+		memmove(p, q + 1, strlen(q + 1) + 1);
 
 	/* add replacement to end */
 	addconf("%s", buf);
@@ -417,18 +411,18 @@ static char inibuf[BOOTARGSLEN];
 static char id[8] = "ZORT 0\r\n";
 
 int
-dotini(Fs *fs)
+dotini(Fs* fs)
 {
 	File rc;
 	int blankline, i, incomment, inspace, n;
-	char *cp, *p, *q, *line[MAXCONF];
+	char* cp, *p, *q, *line[MAXCONF];
 
 	if(fswalk(fs, *ini, &rc) <= 0)
 		return -1;
 
 	cp = inibuf;
 	*cp = 0;
-	n = fsread(&rc, cp, BOOTARGSLEN-1);
+	n = fsread(&rc, cp, BOOTARGSLEN - 1);
 	if(n <= 0)
 		return -1;
 
@@ -448,17 +442,17 @@ dotini(Fs *fs)
 	p = cp;
 	blankline = 1;
 	incomment = inspace = 0;
-	for(q = cp; *q; q++){
+	for(q = cp; *q; q++) {
 		if(*q == '\r')
 			continue;
 		if(*q == '\t')
 			*q = ' ';
-		if(*q == ' '){
+		if(*q == ' ') {
 			inspace = 1;
 			continue;
 		}
-		if(*q == '\n'){
-			if(!blankline){
+		if(*q == '\n') {
+			if(!blankline) {
 				if(!incomment)
 					*p++ = '\n';
 				blankline = 1;
@@ -466,7 +460,7 @@ dotini(Fs *fs)
 			incomment = inspace = 0;
 			continue;
 		}
-		if(inspace){
+		if(inspace) {
 			if(!blankline && !incomment)
 				*p++ = ' ';
 			inspace = 0;
@@ -480,7 +474,7 @@ dotini(Fs *fs)
 	if(p > cp && p[-1] != '\n')
 		*p++ = '\n';
 	*p++ = 0;
-	n = p-cp;
+	n = p - cp;
 
 	parsemenu(cp, BOOTARGS, n);
 
@@ -490,23 +484,22 @@ dotini(Fs *fs)
 	 * to the booted programme instead of the raw
 	 * string, then it only gets done once.
 	 */
-	if(strncmp(cp, id, sizeof(id))){
+	if(strncmp(cp, id, sizeof(id))) {
 		memmove(BOOTARGS, id, sizeof(id));
-		if(n+1+sizeof(id) >= BOOTARGSLEN)
+		if(n + 1 + sizeof(id) >= BOOTARGSLEN)
 			n -= sizeof(id);
-		memmove(BOOTARGS+sizeof(id), cp, n+1);
-	}
-	else
-		memmove(BOOTARGS, cp, n+1);
+		memmove(BOOTARGS + sizeof(id), cp, n + 1);
+	} else
+		memmove(BOOTARGS, cp, n + 1);
 
 	n = getfields(cp, line, MAXCONF, '\n');
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		cp = strchr(line[i], '=');
 		if(cp == 0)
 			continue;
 		*cp++ = 0;
-		if(cp - line[i] >= NAMELEN+1)
-			*(line[i]+NAMELEN-1) = 0;
+		if(cp - line[i] >= NAMELEN + 1)
+			*(line[i] + NAMELEN - 1) = 0;
 		confname[nconf] = line[i];
 		confval[nconf] = cp;
 		nconf++;
@@ -515,16 +508,16 @@ dotini(Fs *fs)
 }
 
 static int
-parseether(uint8_t *to, char *from)
+parseether(uint8_t* to, char* from)
 {
 	char nip[4];
-	char *p;
+	char* p;
 	int i;
 
 	p = from;
 	while(*p == ' ')
 		++p;
-	for(i = 0; i < 6; i++){
+	for(i = 0; i < 6; i++) {
 		if(*p == 0)
 			return -1;
 		nip[0] = *p++;
@@ -540,7 +533,7 @@ parseether(uint8_t *to, char *from)
 }
 
 int
-isaconfig(char *class, int ctlrno, ISAConf *isa)
+isaconfig(char* class, int ctlrno, ISAConf* isa)
 {
 	int i;
 	char cc[NAMELEN], *p, *r;
@@ -550,7 +543,7 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 		return 0;
 
 	isa->nopt = 0;
-	while(*p){
+	while(*p) {
 		/*
 		 * Like tokenize, but non-destructive.
 		 */
@@ -558,11 +551,11 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 			p++;
 		if(*p == 0)
 			break;
-		if(isa->nopt < NISAOPT){
+		if(isa->nopt < NISAOPT) {
 			r = isa->opt[isa->nopt];
-			while(*p != 0 && *p != ' ' && *p != '\t'){
+			while(*p != 0 && *p != ' ' && *p != '\t') {
 				*r++ = *p++;
-				if(r-isa->opt[isa->nopt] >= ISAOPTLEN-1)
+				if(r - isa->opt[isa->nopt] >= ISAOPTLEN - 1)
 					break;
 			}
 			*r = '\0';
@@ -571,24 +564,24 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 		while(*p != 0 && *p != ' ' && *p != '\t')
 			p++;
 	}
-	for(i = 0; i < isa->nopt; i++){
+	for(i = 0; i < isa->nopt; i++) {
 		p = isa->opt[i];
 		if(cistrncmp(p, "type=", 5) == 0)
 			isa->type = p + 5;
 		else if(cistrncmp(p, "port=", 5) == 0)
-			isa->port = strtoul(p+5, &p, 0);
+			isa->port = strtoul(p + 5, &p, 0);
 		else if(cistrncmp(p, "irq=", 4) == 0)
-			isa->irq = strtoul(p+4, &p, 0);
+			isa->irq = strtoul(p + 4, &p, 0);
 		else if(cistrncmp(p, "dma=", 4) == 0)
-			isa->dma = strtoul(p+4, &p, 0);
+			isa->dma = strtoul(p + 4, &p, 0);
 		else if(cistrncmp(p, "mem=", 4) == 0)
-			isa->mem = strtoul(p+4, &p, 0);
+			isa->mem = strtoul(p + 4, &p, 0);
 		else if(cistrncmp(p, "size=", 5) == 0)
-			isa->size = strtoul(p+5, &p, 0);
+			isa->size = strtoul(p + 5, &p, 0);
 		else if(cistrncmp(p, "freq=", 5) == 0)
-			isa->freq = strtoul(p+5, &p, 0);
-		else if(cistrncmp(p, "ea=", 3) == 0){
-			if(parseether(isa->ea, p+3) == -1)
+			isa->freq = strtoul(p + 5, &p, 0);
+		else if(cistrncmp(p, "ea=", 3) == 0) {
+			if(parseether(isa->ea, p + 3) == -1)
 				memset(isa->ea, 0, 6);
 		}
 	}

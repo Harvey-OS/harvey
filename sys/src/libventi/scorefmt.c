@@ -12,9 +12,9 @@
 #include <venti.h>
 
 int
-vtscorefmt(Fmt *f)
+vtscorefmt(Fmt* f)
 {
-	uint8_t *v;
+	uint8_t* v;
 	int i;
 
 	v = va_arg(f->args, uint8_t*);

@@ -21,16 +21,16 @@
 
 typedef struct Xarg Xarg;
 struct Xarg {
-	void (*enm)(char*,char*,XDir*,void*);
-	void (*warn)(char*,void*);
-	void *arg;
+	void (*enm)(char*, char*, XDir*, void*);
+	void (*warn)(char*, void*);
+	void* arg;
 };
 
-static int32_t numericuid(char *user);
-static int32_t numericgid(char *gp);
+static int32_t numericuid(char* user);
+static int32_t numericgid(char* gp);
 
 void
-dirtoxdir(XDir *xd, Dir *d)
+dirtoxdir(XDir* xd, Dir* d)
 {
 	//	char buf[NAMELEN+1];
 	memset(xd, 0, sizeof *xd);
@@ -60,14 +60,15 @@ fdtruncate(int fd, uint32_t size)
 }
 
 static int32_t
-numericuid(char *user)
+numericuid(char* user)
 {
-	struct passwd *pass;
+	struct passwd* pass;
 	static int warned = 0;
 
-	if (! (pass = getpwnam(user))) {
-		if (!warned)
-			fprint(2, "Warning: getpwnam(3) failed for \"%s\"\n", user);
+	if(!(pass = getpwnam(user))) {
+		if(!warned)
+			fprint(2, "Warning: getpwnam(3) failed for \"%s\"\n",
+			       user);
 		warned = 1;
 		return 0;
 	}
@@ -76,14 +77,15 @@ numericuid(char *user)
 }
 
 static int32_t
-numericgid(char *gp)
+numericgid(char* gp)
 {
-	struct group *gr;
+	struct group* gr;
 	static int warned = 0;
 
-	if (! (gr = getgrnam(gp))) {
-		if (!warned)
-			fprint(2, "Warning: getgrnam(3) failed for \"%s\"\n", gp);
+	if(!(gr = getgrnam(gp))) {
+		if(!warned)
+			fprint(2, "Warning: getgrnam(3) failed for \"%s\"\n",
+			       gp);
 		warned = 1;
 		return 0;
 	}

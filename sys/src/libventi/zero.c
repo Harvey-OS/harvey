@@ -12,38 +12,38 @@
 #include <venti.h>
 
 void
-vtzeroextend(int type, uint8_t *buf, uint n, uint nn)
+vtzeroextend(int type, uint8_t* buf, uint n, uint nn)
 {
-	uint8_t *p, *ep;
+	uint8_t* p, *ep;
 
-	switch(type&7) {
+	switch(type & 7) {
 	case 0:
-		memset(buf+n, 0, nn-n);
+		memset(buf + n, 0, nn - n);
 		break;
 	default:
-		p = buf + (n/VtScoreSize)*VtScoreSize;
-		ep = buf + (nn/VtScoreSize)*VtScoreSize;
+		p = buf + (n / VtScoreSize) * VtScoreSize;
+		ep = buf + (nn / VtScoreSize) * VtScoreSize;
 		while(p < ep) {
 			memmove(p, vtzeroscore, VtScoreSize);
 			p += VtScoreSize;
 		}
-		memset(p, 0, buf+nn-p);
+		memset(p, 0, buf + nn - p);
 		break;
 	}
 }
 
-uint 
-vtzerotruncate(int type, uint8_t *buf, uint n)
+uint
+vtzerotruncate(int type, uint8_t* buf, uint n)
 {
-	uint8_t *p;
+	uint8_t* p;
 
-	if(type == VtRootType){
+	if(type == VtRootType) {
 		if(n < VtRootSize)
 			return n;
 		return VtRootSize;
 	}
 
-	switch(type&7){
+	switch(type & 7) {
 	case 0:
 		for(p = buf + n; p > buf; p--) {
 			if(p[-1] != 0)
@@ -52,10 +52,11 @@ vtzerotruncate(int type, uint8_t *buf, uint n)
 		return p - buf;
 	default:
 		/* ignore slop at end of block */
-		p = buf + (n/VtScoreSize)*VtScoreSize;
+		p = buf + (n / VtScoreSize) * VtScoreSize;
 
 		while(p > buf) {
-			if(memcmp(p - VtScoreSize, vtzeroscore, VtScoreSize) != 0)
+			if(memcmp(p - VtScoreSize, vtzeroscore, VtScoreSize) !=
+			   0)
 				break;
 			p -= VtScoreSize;
 		}

@@ -27,7 +27,7 @@ char srv[] = "/srv";
 char env[] = "/env";
 
 void
-startboot(char *argv0, char **argv)
+startboot(char* argv0, char** argv)
 {
 	char buf[200];
 
@@ -41,8 +41,8 @@ startboot(char *argv0, char **argv)
 	open(cons, OWRITE);
 	bind(c, dev, MAFTER);
 	bind(ec, env, MAFTER);
-	bind(e, env, MCREATE|MAFTER);
-	bind(s, srv, MREPL|MCREATE);
+	bind(e, env, MCREATE | MAFTER);
+	bind(s, srv, MREPL | MCREATE);
 	exec(boot, argv);
 
 	rerrstr(buf, sizeof buf);

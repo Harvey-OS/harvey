@@ -16,30 +16,30 @@ static char EProtocolBotch[] = "venti protocol botch";
 static char ELumpSize[] = "illegal lump size";
 static char ENotConnected[] = "not connected to venti server";
 
-static Packet *vtRPC(VtSession *z, int op, Packet *p);
+static Packet* vtRPC(VtSession* z, int op, Packet* p);
 
-VtSession *
+VtSession*
 vtClientAlloc(void)
 {
-	VtSession *z = vtAlloc();	
+	VtSession* z = vtAlloc();
 	return z;
 }
 
-VtSession *
-vtDial(char *host, int canfail)
+VtSession*
+vtDial(char* host, int canfail)
 {
-	VtSession *z;
+	VtSession* z;
 	int fd;
-	char *na;
+	char* na;
 	char e[ERRMAX];
 
-	if(host == nil) 
+	if(host == nil)
 		host = getenv("venti");
 	if(host == nil)
 		host = "$venti";
 
-	if (host == nil) {
-		if (!canfail)
+	if(host == nil) {
+		if(!canfail)
 			werrstr("no venti host set");
 		na = "";
 		fd = -1;
@@ -47,9 +47,9 @@ vtDial(char *host, int canfail)
 		na = netmkaddr(host, 0, "venti");
 		fd = dial(na, 0, 0, 0);
 	}
-	if(fd < 0){
+	if(fd < 0) {
 		rerrstr(e, sizeof e);
-		if(!canfail){
+		if(!canfail) {
 			vtSetError("venti dialstring %s: %s", na, e);
 			return nil;
 		}
@@ -62,19 +62,19 @@ vtDial(char *host, int canfail)
 }
 
 int
-vtRedial(VtSession *z, char *host)
+vtRedial(VtSession* z, char* host)
 {
 	int fd;
-	char *na;
+	char* na;
 
-	if(host == nil) 
+	if(host == nil)
 		host = getenv("venti");
 	if(host == nil)
 		host = "$venti";
 
 	na = netmkaddr(host, 0, "venti");
 	fd = dial(na, 0, 0, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		vtOSError();
 		return 0;
 	}
@@ -83,11 +83,11 @@ vtRedial(VtSession *z, char *host)
 	return 1;
 }
 
-VtSession *
-vtStdioServer(char *server)
+VtSession*
+vtStdioServer(char* server)
 {
 	int pfd[2];
-	VtSession *z;
+	VtSession* z;
 
 	if(server == nil)
 		return nil;
@@ -123,9 +123,9 @@ vtStdioServer(char *server)
 }
 
 int
-vtPing(VtSession *z)
+vtPing(VtSession* z)
 {
-	Packet *p = packetAlloc();
+	Packet* p = packetAlloc();
 
 	p = vtRPC(z, VtQPing, p);
 	if(p == nil)
@@ -135,11 +135,11 @@ vtPing(VtSession *z)
 }
 
 int
-vtHello(VtSession *z)
+vtHello(VtSession* z)
 {
-	Packet *p;
+	Packet* p;
 	uint8_t buf[10];
-	char *sid;
+	char* sid;
 	int crypto, codec;
 
 	sid = nil;
@@ -189,14 +189,14 @@ Err:
 }
 
 int
-vtSync(VtSession *z)
+vtSync(VtSession* z)
 {
-	Packet *p = packetAlloc();
+	Packet* p = packetAlloc();
 
 	p = vtRPC(z, VtQSync, p);
 	if(p == nil)
 		return 0;
-	if(packetSize(p) != 0){
+	if(packetSize(p) != 0) {
 		vtSetError(EProtocolBotch);
 		goto Err;
 	}
@@ -209,26 +209,25 @@ Err:
 }
 
 int
-vtWrite(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
-	int n)
+vtWrite(VtSession* z, uint8_t score[VtScoreSize], int type, uint8_t* buf, int n)
 {
-	Packet *p = packetAlloc();
+	Packet* p = packetAlloc();
 
 	packetAppend(p, buf, n);
 	return vtWritePacket(z, score, type, p);
 }
 
 int
-vtWritePacket(VtSession *z, uint8_t score[VtScoreSize], int type, Packet *p)
+vtWritePacket(VtSession* z, uint8_t score[VtScoreSize], int type, Packet* p)
 {
 	int n = packetSize(p);
-	uint8_t *hdr;
+	uint8_t* hdr;
 
 	if(n > VtMaxLumpSize || n < 0) {
 		vtSetError(ELumpSize);
 		goto Err;
 	}
-	
+
 	if(n == 0) {
 		memmove(score, vtZeroScore, VtScoreSize);
 		return 1;
@@ -236,9 +235,9 @@ vtWritePacket(VtSession *z, uint8_t score[VtScoreSize], int type, Packet *p)
 
 	hdr = packetHeader(p, 4);
 	hdr[0] = type;
-	hdr[1] = 0;	/* pad */
-	hdr[2] = 0;	/* pad */
-	hdr[3] = 0;	/* pad */
+	hdr[1] = 0; /* pad */
+	hdr[2] = 0; /* pad */
+	hdr[3] = 0; /* pad */
 	p = vtRPC(z, VtQWrite, p);
 	if(p == nil)
 		return 0;
@@ -256,10 +255,9 @@ Err:
 }
 
 int
-vtRead(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
-       int n)
+vtRead(VtSession* z, uint8_t score[VtScoreSize], int type, uint8_t* buf, int n)
 {
-	Packet *p;
+	Packet* p;
 
 	p = vtReadPacket(z, score, type, n);
 	if(p == nil)
@@ -270,10 +268,10 @@ vtRead(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
 	return n;
 }
 
-Packet *
-vtReadPacket(VtSession *z, uint8_t score[VtScoreSize], int type, int n)
+Packet*
+vtReadPacket(VtSession* z, uint8_t score[VtScoreSize], int type, int n)
 {
-	Packet *p;
+	Packet* p;
 	uint8_t buf[10];
 
 	if(n < 0 || n > VtMaxLumpSize) {
@@ -287,21 +285,20 @@ vtReadPacket(VtSession *z, uint8_t score[VtScoreSize], int type, int n)
 
 	packetAppend(p, score, VtScoreSize);
 	buf[0] = type;
-	buf[1] = 0;	/* pad */
+	buf[1] = 0; /* pad */
 	buf[2] = n >> 8;
 	buf[3] = n;
 	packetAppend(p, buf, 4);
 	return vtRPC(z, VtQRead, p);
 }
 
-
-static Packet *
-vtRPC(VtSession *z, int op, Packet *p)
+static Packet*
+vtRPC(VtSession* z, int op, Packet* p)
 {
-	uint8_t *hdr, buf[2];
-	char *err;
+	uint8_t* hdr, buf[2];
+	char* err;
 
-	if(z == nil){
+	if(z == nil) {
 		vtSetError(ENotConnected);
 		return nil;
 	}
@@ -310,13 +307,13 @@ vtRPC(VtSession *z, int op, Packet *p)
 	 * single threaded for the momment
 	 */
 	vtLock(z->lk);
-	if(z->cstate != VtStateConnected){
+	if(z->cstate != VtStateConnected) {
 		vtSetError(ENotConnected);
 		goto Err;
 	}
 	hdr = packetHeader(p, 2);
-	hdr[0] = op;	/* op */
-	hdr[1] = 0;	/* tid */
+	hdr[0] = op; /* op */
+	hdr[1] = 0;  /* tid */
 	vtDebug(z, "client send: ");
 	vtDebugMesg(z, p, "\n");
 	if(!vtSendPacket(z, p)) {
@@ -341,7 +338,7 @@ vtRPC(VtSession *z, int op, Packet *p)
 		vtUnlock(z->lk);
 		return nil;
 	}
-	if(buf[0] != op+1 || buf[1] != 0) {
+	if(buf[0] != op + 1 || buf[1] != 0) {
 		vtSetError(EProtocolBotch);
 		goto Err;
 	}

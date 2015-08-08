@@ -14,17 +14,32 @@
 /*
  * integer conversion routines
  */
-#define	U8GET(p)	((p)[0])
-#define	U16GET(p)	(((p)[0]<<8)|(p)[1])
-#define	U32GET(p)	((uint32_t)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
-#define	U48GET(p)	(((int64_t)U16GET(p)<<32)|(int64_t)U32GET((p)+2))
-#define	U64GET(p)	(((int64_t)U32GET(p)<<32)|(int64_t)U32GET((p)+4))
+#define U8GET(p) ((p)[0])
+#define U16GET(p) (((p)[0] << 8) | (p)[1])
+#define U32GET(p)                                                              \
+	((uint32_t)(((p)[0] << 24) | ((p)[1] << 16) | ((p)[2] << 8) | (p)[3]))
+#define U48GET(p) (((int64_t)U16GET(p) << 32) | (int64_t)U32GET((p) + 2))
+#define U64GET(p) (((int64_t)U32GET(p) << 32) | (int64_t)U32GET((p) + 4))
 
-#define	U8PUT(p,v)	(p)[0]=(v)
-#define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
-#define	U32PUT(p,v)	(p)[0]=(v)>>24;(p)[1]=(v)>>16;(p)[2]=(v)>>8;(p)[3]=(v)
-#define	U48PUT(p,v,t32)	t32=(v)>>32;U16PUT(p,t32);t32=(v);U32PUT((p)+2,t32)
-#define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
+#define U8PUT(p, v) (p)[0] = (v)
+#define U16PUT(p, v)                                                           \
+	(p)[0] = (v) >> 8;                                                     \
+	(p)[1] = (v)
+#define U32PUT(p, v)                                                           \
+	(p)[0] = (v) >> 24;                                                    \
+	(p)[1] = (v) >> 16;                                                    \
+	(p)[2] = (v) >> 8;                                                     \
+	(p)[3] = (v)
+#define U48PUT(p, v, t32)                                                      \
+	t32 = (v) >> 32;                                                       \
+	U16PUT(p, t32);                                                        \
+	t32 = (v);                                                             \
+	U32PUT((p) + 2, t32)
+#define U64PUT(p, v, t32)                                                      \
+	t32 = (v) >> 32;                                                       \
+	U32PUT(p, t32);                                                        \
+	t32 = (v);                                                             \
+	U32PUT((p) + 4, t32)
 
 static int
 checkSize(int n)
@@ -35,12 +50,11 @@ checkSize(int n)
 	}
 	return 1;
 }
-		
 
 void
-vtRootPack(VtRoot *r, uint8_t *p)
+vtRootPack(VtRoot* r, uint8_t* p)
 {
-	uint8_t *op = p;
+	uint8_t* op = p;
 
 	U16PUT(p, r->version);
 	p += 2;
@@ -49,19 +63,19 @@ vtRootPack(VtRoot *r, uint8_t *p)
 	memmove(p, r->type, sizeof(r->type));
 	p += sizeof(r->type);
 	memmove(p, r->score, VtScoreSize);
-	p +=  VtScoreSize;
+	p += VtScoreSize;
 	U16PUT(p, r->blockSize);
 	p += 2;
 	memmove(p, r->prev, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtRootSize);
+	assert(p - op == VtRootSize);
 }
 
 int
-vtRootUnpack(VtRoot *r, uint8_t *p)
+vtRootUnpack(VtRoot* r, uint8_t* p)
 {
-	uint8_t *op = p;
+	uint8_t* op = p;
 
 	memset(r, 0, sizeof(*r));
 
@@ -72,13 +86,13 @@ vtRootUnpack(VtRoot *r, uint8_t *p)
 	}
 	p += 2;
 	memmove(r->name, p, sizeof(r->name));
-	r->name[sizeof(r->name)-1] = 0;
+	r->name[sizeof(r->name) - 1] = 0;
 	p += sizeof(r->name);
 	memmove(r->type, p, sizeof(r->type));
-	r->type[sizeof(r->type)-1] = 0;
+	r->type[sizeof(r->type) - 1] = 0;
 	p += sizeof(r->type);
 	memmove(r->score, p, VtScoreSize);
-	p +=  VtScoreSize;
+	p += VtScoreSize;
 	r->blockSize = U16GET(p);
 	if(!checkSize(r->blockSize))
 		return 0;
@@ -86,16 +100,16 @@ vtRootUnpack(VtRoot *r, uint8_t *p)
 	memmove(r->prev, p, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtRootSize);
+	assert(p - op == VtRootSize);
 	return 1;
 }
 
 void
-vtEntryPack(VtEntry *e, uint8_t *p, int index)
+vtEntryPack(VtEntry* e, uint8_t* p, int index)
 {
 	uint32_t t32;
 	int flags;
-	uint8_t *op;
+	uint8_t* op;
 
 	p += index * VtEntrySize;
 	op = p;
@@ -116,13 +130,13 @@ vtEntryPack(VtEntry *e, uint8_t *p, int index)
 	memmove(p, e->score, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtEntrySize);
+	assert(p - op == VtEntrySize);
 }
 
 int
-vtEntryUnpack(VtEntry *e, uint8_t *p, int index)
+vtEntryUnpack(VtEntry* e, uint8_t* p, int index)
 {
-	uint8_t *op;
+	uint8_t* op;
 
 	p += index * VtEntrySize;
 	op = p;
@@ -143,8 +157,8 @@ vtEntryUnpack(VtEntry *e, uint8_t *p, int index)
 	memmove(e->score, p, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtEntrySize);
-	
+	assert(p - op == VtEntrySize);
+
 	if(!(e->flags & VtEntryActive))
 		return 1;
 
@@ -153,4 +167,3 @@ vtEntryUnpack(VtEntry *e, uint8_t *p, int index)
 
 	return 1;
 }
-

@@ -11,23 +11,23 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
-#define Extern	extern
+#define Extern extern
 #include "statfs.h"
 
-char Ebadfid[]	= "Bad fid";
-char Enotdir[]	="Not a directory";
-char Edupfid[]	= "Fid already in use";
-char Eopen[]	= "Fid already opened";
-char Exmnt[]	= "Cannot .. past mount point";
-char Enoauth[]	= "iostats: Authentication failed";
-char Ebadver[]	= "Unrecognized 9P version";
+char Ebadfid[] = "Bad fid";
+char Enotdir[] = "Not a directory";
+char Edupfid[] = "Fid already in use";
+char Eopen[] = "Fid already opened";
+char Exmnt[] = "Cannot .. past mount point";
+char Enoauth[] = "iostats: Authentication failed";
+char Ebadver[] = "Unrecognized 9P version";
 
 int
-okfile(char *s, int mode)
+okfile(char* s, int mode)
 {
-	if(strncmp(s, "/fd/", 3) == 0){
+	if(strncmp(s, "/fd/", 3) == 0) {
 		/* 0, 1, and 2 we handle ourselves */
-		if(s[4]=='/' || atoi(s+4) > 2)
+		if(s[4] == '/' || atoi(s + 4) > 2)
 			return 0;
 		return 1;
 	}
@@ -35,13 +35,14 @@ okfile(char *s, int mode)
 		return 0;
 	if(strncmp(s, "/net/tls", 8) == 0)
 		return 0;
-	if(strncmp(s, "/srv/", 5) == 0 && ((mode&3) == OWRITE || (mode&3) == ORDWR))
+	if(strncmp(s, "/srv/", 5) == 0 &&
+	   ((mode & 3) == OWRITE || (mode & 3) == ORDWR))
 		return 0;
 	return 1;
 }
 
 void
-update(Rpc *rpc, int64_t t)
+update(Rpc* rpc, int64_t t)
 {
 	int64_t t2;
 
@@ -58,19 +59,19 @@ update(Rpc *rpc, int64_t t)
 }
 
 void
-Xversion(Fsrpc *r)
+Xversion(Fsrpc* r)
 {
 	Fcall thdr;
 	int64_t t;
 
 	t = nsec();
 
-	if(r->work.msize > IOHDRSZ+Maxfdata)
-		thdr.msize = IOHDRSZ+Maxfdata;
+	if(r->work.msize > IOHDRSZ + Maxfdata)
+		thdr.msize = IOHDRSZ + Maxfdata;
 	else
 		thdr.msize = r->work.msize;
 	myiounit = thdr.msize - IOHDRSZ;
-	if(strncmp(r->work.version, "9P2000", 6) != 0){
+	if(strncmp(r->work.version, "9P2000", 6) != 0) {
 		reply(&r->work, &thdr, Ebadver);
 		r->busy = 0;
 		return;
@@ -84,7 +85,7 @@ Xversion(Fsrpc *r)
 }
 
 void
-Xauth(Fsrpc *r)
+Xauth(Fsrpc* r)
 {
 	Fcall thdr;
 	int64_t t;
@@ -98,16 +99,17 @@ Xauth(Fsrpc *r)
 }
 
 void
-Xflush(Fsrpc *r)
+Xflush(Fsrpc* r)
 {
-	Fsrpc *t, *e;
+	Fsrpc* t, *e;
 	Fcall thdr;
 
 	e = &Workq[Nr_workbufs];
 
 	for(t = Workq; t < e; t++) {
 		if(t->work.tag == r->work.oldtag) {
-			DEBUG(2, "\tQ busy %d pid %p can %d\n", t->busy, t->pid, t->canint);
+			DEBUG(2, "\tQ busy %d pid %p can %d\n", t->busy, t->pid,
+			      t->canint);
 			if(t->busy && t->pid) {
 				t->flushtag = r->work.tag;
 				DEBUG(2, "\tset flushtag %d\n", r->work.tag);
@@ -125,10 +127,10 @@ Xflush(Fsrpc *r)
 }
 
 void
-Xattach(Fsrpc *r)
+Xattach(Fsrpc* r)
 {
 	Fcall thdr;
-	Fid *f;
+	Fid* f;
 	int64_t t;
 
 	t = nsec();
@@ -149,12 +151,12 @@ Xattach(Fsrpc *r)
 }
 
 void
-Xwalk(Fsrpc *r)
+Xwalk(Fsrpc* r)
 {
 	char errbuf[ERRMAX], *err;
 	Fcall thdr;
-	Fid *f, *n;
-	File *nf;
+	Fid* f, *n;
+	File* nf;
 	int64_t t;
 	int i;
 
@@ -167,7 +169,7 @@ Xwalk(Fsrpc *r)
 		return;
 	}
 	n = nil;
-	if(r->work.newfid != r->work.fid){
+	if(r->work.newfid != r->work.fid) {
 		n = newfid(r->work.newfid);
 		if(n == 0) {
 			reply(&r->work, &thdr, Edupfid);
@@ -175,12 +177,12 @@ Xwalk(Fsrpc *r)
 			return;
 		}
 		n->f = f->f;
-		f = n;	/* walk new guy */
+		f = n; /* walk new guy */
 	}
 
 	thdr.nwqid = 0;
 	err = nil;
-	for(i=0; i<r->work.nwname; i++){
+	for(i = 0; i < r->work.nwname; i++) {
 		if(i >= MAXWELEM)
 			break;
 		if(strcmp(r->work.wname[i], "..") == 0) {
@@ -192,7 +194,7 @@ Xwalk(Fsrpc *r)
 			thdr.wqid[thdr.nwqid++] = f->f->qid;
 			continue;
 		}
-	
+
 		nf = file(f->f, r->work.wname[i]);
 		if(nf == 0) {
 			errstr(errbuf, sizeof errbuf);
@@ -208,7 +210,7 @@ Xwalk(Fsrpc *r)
 	if(err == nil && thdr.nwqid == 0 && r->work.nwname > 0)
 		err = "file does not exist";
 
-	if(n != nil && (err != 0 || thdr.nwqid < r->work.nwname)){
+	if(n != nil && (err != 0 || thdr.nwqid < r->work.nwname)) {
 		/* clunk the new fid, which is the one we walked */
 		freefid(n->nr);
 	}
@@ -222,10 +224,10 @@ Xwalk(Fsrpc *r)
 }
 
 void
-Xclunk(Fsrpc *r)
+Xclunk(Fsrpc* r)
 {
 	Fcall thdr;
-	Fid *f;
+	Fid* f;
 	int64_t t;
 	int fid;
 
@@ -254,12 +256,12 @@ Xclunk(Fsrpc *r)
 }
 
 void
-Xstat(Fsrpc *r)
+Xstat(Fsrpc* r)
 {
 	char err[ERRMAX], path[128];
 	uint8_t statbuf[STATMAX];
 	Fcall thdr;
-	Fid *f;
+	Fid* f;
 	int s;
 	int64_t t;
 
@@ -272,7 +274,7 @@ Xstat(Fsrpc *r)
 		return;
 	}
 	makepath(path, f->f, "");
-	if(!okfile(path, -1)){
+	if(!okfile(path, -1)) {
 		snprint(err, sizeof err, "iostats: can't simulate %s", path);
 		reply(&r->work, &thdr, err);
 		r->busy = 0;
@@ -299,12 +301,12 @@ Xstat(Fsrpc *r)
 }
 
 void
-Xcreate(Fsrpc *r)
+Xcreate(Fsrpc* r)
 {
 	char err[ERRMAX], path[128];
 	Fcall thdr;
-	Fid *f;
-	File *nf;
+	Fid* f;
+	File* nf;
 	int64_t t;
 
 	t = nsec();
@@ -315,7 +317,6 @@ Xcreate(Fsrpc *r)
 		r->busy = 0;
 		return;
 	}
-	
 
 	makepath(path, f->f, r->work.name);
 	f->fid = create(path, r->work.mode, r->work.perm);
@@ -344,13 +345,12 @@ Xcreate(Fsrpc *r)
 	update(&stats->rpc[Tcreate], t);
 }
 
-
 void
-Xremove(Fsrpc *r)
+Xremove(Fsrpc* r)
 {
 	char err[ERRMAX], path[128];
 	Fcall thdr;
-	Fid *f;
+	Fid* f;
 	int64_t t;
 
 	t = nsec();
@@ -384,11 +384,11 @@ Xremove(Fsrpc *r)
 }
 
 void
-Xwstat(Fsrpc *r)
+Xwstat(Fsrpc* r)
 {
 	char err[ERRMAX], path[128];
 	Fcall thdr;
-	Fid *f;
+	Fid* f;
 	int s;
 	int64_t t;
 
@@ -409,8 +409,7 @@ Xwstat(Fsrpc *r)
 	if(s < 0) {
 		errstr(err, sizeof err);
 		reply(&r->work, &thdr, err);
-	}
-	else
+	} else
 		reply(&r->work, &thdr, 0);
 
 	r->busy = 0;
@@ -418,10 +417,10 @@ Xwstat(Fsrpc *r)
 }
 
 void
-slave(Fsrpc *f)
+slave(Fsrpc* f)
 {
 	int r;
-	Proc *p;
+	Proc* p;
 	uintptr pid;
 	static int nproc;
 
@@ -434,13 +433,13 @@ slave(Fsrpc *f)
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
-			}	
+			}
 		}
 
 		if(++nproc > MAXPROC)
 			fatal("too many procs");
 
-		r = rfork(RFPROC|RFMEM);
+		r = rfork(RFPROC | RFMEM);
 		if(r < 0)
 			fatal("rfork");
 
@@ -463,9 +462,9 @@ slave(Fsrpc *f)
 void
 blockingslave(void)
 {
-	Proc *m;
+	Proc* m;
 	uintptr pid;
-	Fsrpc *p;
+	Fsrpc* p;
 	Fcall thdr;
 
 	notify(flushaction);
@@ -473,13 +472,14 @@ blockingslave(void)
 	pid = getpid();
 
 	m = rendezvous((void*)pid, 0);
-		
+
 	for(;;) {
 		p = rendezvous((void*)pid, (void*)pid);
-		if(p == (void*)~0)			/* Interrupted */
+		if(p == (void*)~0) /* Interrupted */
 			continue;
 
-		DEBUG(2, "\tslave: %p %F b %d p %p\n", pid, &p->work, p->busy, p->pid);
+		DEBUG(2, "\tslave: %p %F b %d p %p\n", pid, &p->work, p->busy,
+		      p->pid);
 		if(p->flushtag != NOTAG)
 			return;
 
@@ -501,17 +501,17 @@ blockingslave(void)
 			p->work.tag = p->flushtag;
 			reply(&p->work, &thdr, 0);
 		}
-		p->busy = 0;	
+		p->busy = 0;
 		m->busy = 0;
 	}
 }
 
 void
-slaveopen(Fsrpc *p)
+slaveopen(Fsrpc* p)
 {
 	char err[ERRMAX], path[128];
-	Fcall *work, thdr;
-	Fid *f;
+	Fcall* work, thdr;
+	Fid* f;
 	int64_t t;
 
 	work = &p->work;
@@ -527,7 +527,7 @@ slaveopen(Fsrpc *p)
 		close(f->fid);
 		f->fid = -1;
 	}
-	
+
 	makepath(path, f->f, "");
 	DEBUG(2, "\topen: %s %d\n", path, work->mode);
 
@@ -535,7 +535,7 @@ slaveopen(Fsrpc *p)
 	if(p->flushtag != NOTAG)
 		return;
 
-	if(!okfile(path, work->mode)){
+	if(!okfile(path, work->mode)) {
 		snprint(err, sizeof err, "iostats can't simulate %s", path);
 		reply(work, &thdr, err);
 		return;
@@ -560,11 +560,11 @@ slaveopen(Fsrpc *p)
 }
 
 void
-slaveread(Fsrpc *p)
+slaveread(Fsrpc* p)
 {
 	char data[Maxfdata], err[ERRMAX];
-	Fcall *work, thdr;
-	Fid *f;
+	Fcall* work, thdr;
+	Fid* f;
 	int n, r;
 	int64_t t;
 
@@ -583,24 +583,27 @@ slaveread(Fsrpc *p)
 	if(p->flushtag != NOTAG)
 		return;
 	/* can't just call pread, since directories must update the offset */
-	if(f->f->qid.type&QTDIR){
-		if(work->offset != f->offset){
-			if(work->offset != 0){
-				snprint(err, sizeof err, "can't seek in directory from %lld to %lld", f->offset, work->offset);
+	if(f->f->qid.type & QTDIR) {
+		if(work->offset != f->offset) {
+			if(work->offset != 0) {
+				snprint(
+				    err, sizeof err,
+				    "can't seek in directory from %lld to %lld",
+				    f->offset, work->offset);
 				reply(work, &thdr, err);
 				return;
 			}
-			if(seek(f->fid, 0, 0) != 0){
+			if(seek(f->fid, 0, 0) != 0) {
 				errstr(err, sizeof err);
 				reply(work, &thdr, err);
-				return;	
+				return;
 			}
 			f->offset = 0;
 		}
 		r = read(f->fid, data, n);
 		if(r > 0)
 			f->offset += r;
-	}else
+	} else
 		r = pread(f->fid, data, n, work->offset);
 	p->canint = 0;
 	if(r < 0) {
@@ -622,11 +625,11 @@ slaveread(Fsrpc *p)
 }
 
 void
-slavewrite(Fsrpc *p)
+slavewrite(Fsrpc* p)
 {
 	char err[ERRMAX];
-	Fcall *work, thdr;
-	Fid *f;
+	Fcall* work, thdr;
+	Fid* f;
 	int n;
 	int64_t t;
 
@@ -664,14 +667,14 @@ slavewrite(Fsrpc *p)
 }
 
 void
-reopen(Fid *f)
+reopen(Fid* f)
 {
 	USED(f);
 	fatal("reopen");
 }
 
 void
-flushaction(void *a, char *cause)
+flushaction(void* a, char* cause)
 {
 	USED(a);
 	if(strncmp(cause, "kill", 4) == 0)

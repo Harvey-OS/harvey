@@ -14,10 +14,10 @@
 #include "SConn.h"
 #include "secstore.h"
 
-void *
+void*
 emalloc(uint32_t n)
 {
-	void *p = malloc(n);
+	void* p = malloc(n);
 
 	if(p == nil)
 		sysfatal("emalloc");
@@ -25,30 +25,31 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void *
-erealloc(void *p, uint32_t n)
+void*
+erealloc(void* p, uint32_t n)
 {
-	if ((p = realloc(p, n)) == nil)
+	if((p = realloc(p, n)) == nil)
 		sysfatal("erealloc");
 	return p;
 }
 
-char *
-estrdup(char *s)
+char*
+estrdup(char* s)
 {
-	if ((s = strdup(s)) == nil)
+	if((s = strdup(s)) == nil)
 		sysfatal("estrdup");
 	return s;
 }
 
 char*
-getpassm(char *prompt)
+getpassm(char* prompt)
 {
-	char *p, line[4096];
+	char* p, line[4096];
 	int n, nr;
-	static int cons, consctl; /* closing & reopening fails in ssh environment */
+	static int cons,
+	    consctl; /* closing & reopening fails in ssh environment */
 
-	if(cons == 0){			/* first time? */
+	if(cons == 0) { /* first time? */
 		cons = open("/dev/cons", ORDWR);
 		if(cons < 0)
 			sysfatal("couldn't open cons");
@@ -60,14 +61,14 @@ getpassm(char *prompt)
 	fprint(cons, "%s", prompt);
 	nr = 0;
 	p = line;
-	for(;;){
+	for(;;) {
 		n = read(cons, p, 1);
-		if(n < 0){
+		if(n < 0) {
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");
 			return nil;
 		}
-		if(n == 0 || *p == '\n' || *p == '\r' || *p == 0x7f){
+		if(n == 0 || *p == '\n' || *p == '\r' || *p == 0x7f) {
 			*p = '\0';
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");
@@ -75,20 +76,20 @@ getpassm(char *prompt)
 			memset(line, 0, nr);
 			return p;
 		}
-		if(*p == '\b'){
-			if(nr > 0){
+		if(*p == '\b') {
+			if(nr > 0) {
 				nr--;
 				p--;
 			}
-		}else if(*p == ('u' & 037)){		/* cntrl-u */
+		} else if(*p == ('u' & 037)) { /* cntrl-u */
 			fprint(cons, "\n%s", prompt);
 			nr = 0;
 			p = line;
-		}else{
+		} else {
 			nr++;
 			p++;
 		}
-		if(nr+1 == sizeof line){
+		if(nr + 1 == sizeof line) {
 			fprint(cons, "line too long; try again\n%s", prompt);
 			nr = 0;
 			p = line;
@@ -96,17 +97,17 @@ getpassm(char *prompt)
 	}
 }
 
-static char *
-illegal(char *f)
+static char*
+illegal(char* f)
 {
 	syslog(0, LOG, "illegal name: %s", f);
 	return nil;
 }
 
-char *
-validatefile(char *f)
+char*
+validatefile(char* f)
 {
-	char *p;
+	char* p;
 
 	if(f == nil || *f == '\0')
 		return nil;

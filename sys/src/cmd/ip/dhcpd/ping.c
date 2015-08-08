@@ -12,8 +12,7 @@
 #include <ip.h>
 #include "../icmp.h"
 
-static void
-catch(void *a, char *msg)
+static void catch(void* a, char* msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -29,32 +28,32 @@ catch(void *a, char *msg)
  *  TODO: ipv6 ping
  */
 int
-icmpecho(uint8_t *a)
+icmpecho(uint8_t* a)
 {
 	int fd, i, n, len, rv;
 	uint16_t sseq, x;
 	char buf[512];
-	Icmphdr *ip;
+	Icmphdr* ip;
 
 	rv = 0;
-	if (!isv4(a))
+	if(!isv4(a))
 		return 0;
 	sprint(buf, "%I", a);
 	fd = dial(netmkaddr(buf, "icmp", "1"), 0, 0, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		return 0;
 	}
 
-	sseq = getpid()*time(0);
+	sseq = getpid() * time(0);
 
-	ip = (Icmphdr *)(buf + IPV4HDR_LEN);
+	ip = (Icmphdr*)(buf + IPV4HDR_LEN);
 	notify(catch);
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 3; i++) {
 		ip->type = EchoRequest;
 		ip->code = 0;
 		strcpy((char*)ip->data, MSG);
 		ip->seq[0] = sseq;
-		ip->seq[1] = sseq>>8;
+		ip->seq[1] = sseq >> 8;
 		len = IPV4HDR_LEN + ICMP_HDRSIZE + sizeof(MSG);
 
 		/* send a request */
@@ -69,9 +68,9 @@ icmpecho(uint8_t *a)
 			continue;
 
 		/* an answer to our echo request? */
-		x = (ip->seq[1]<<8) | ip->seq[0];
+		x = (ip->seq[1] << 8) | ip->seq[0];
 		if(n >= len && ip->type == EchoReply && x == sseq &&
-		    strcmp((char*)ip->data, MSG) == 0){
+		   strcmp((char*)ip->data, MSG) == 0) {
 			rv = 1;
 			break;
 		}

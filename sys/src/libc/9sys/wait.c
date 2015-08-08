@@ -16,18 +16,18 @@ wait(void)
 {
 	int n, l;
 	char buf[512], *fld[5];
-	Waitmsg *w;
+	Waitmsg* w;
 
-	n = await(buf, sizeof buf-1);
+	n = await(buf, sizeof buf - 1);
 	if(n < 0)
 		return nil;
 	buf[n] = '\0';
-	if(tokenize(buf, fld, nelem(fld)) != nelem(fld)){
+	if(tokenize(buf, fld, nelem(fld)) != nelem(fld)) {
 		werrstr("couldn't parse wait message");
 		return nil;
 	}
-	l = strlen(fld[4])+1;
-	w = malloc(sizeof(Waitmsg)+l);
+	l = strlen(fld[4]) + 1;
+	w = malloc(sizeof(Waitmsg) + l);
 	if(w == nil)
 		return nil;
 	w->pid = atoi(fld[0]);
@@ -38,4 +38,3 @@ wait(void)
 	memmove(w->msg, fld[4], l);
 	return w;
 }
-

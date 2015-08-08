@@ -19,25 +19,26 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	char buf[128];
 	int n;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 2)
 		usage();
 
 	memset(buf, 0, sizeof buf);
-	n = auth_respond(argv[1], strlen(argv[1]), buf, sizeof buf-1, auth_getkey, "%s", argv[0]);
+	n = auth_respond(argv[1], strlen(argv[1]), buf, sizeof buf - 1,
+	                 auth_getkey, "%s", argv[0]);
 	if(n < 0)
 		sysfatal("auth_respond: %r");
 	write(1, buf, n);
 	print("\n");
 }
-
-	

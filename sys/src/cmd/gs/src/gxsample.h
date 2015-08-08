@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1997, 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,19 +27,19 @@
 /* Sample lookup and expansion */
 
 #ifndef gxsample_INCLUDED
-#  define gxsample_INCLUDED
+#define gxsample_INCLUDED
 
 /*
  * The following union implements the expansion of sample
  * values from N bits to 8, and a possible linear transformation.
  */
 typedef union sample_lookup_s {
-    bits32 lookup4x1to32[16];	/* 1 bit/sample, not spreading */
-    bits16 lookup2x2to16[16];	/* 2 bits/sample, not spreading */
-    byte lookup8[256];		/* 1 bit/sample, spreading [2] */
-    /* 2 bits/sample, spreading [4] */
-    /* 4 bits/sample [16] */
-    /* 8 bits/sample [256] */
+	bits32 lookup4x1to32[16]; /* 1 bit/sample, not spreading */
+	bits16 lookup2x2to16[16]; /* 2 bits/sample, not spreading */
+	byte lookup8[256];        /* 1 bit/sample, spreading [2] */
+	                          /* 2 bits/sample, spreading [4] */
+	                          /* 4 bits/sample [16] */
+	                          /* 8 bits/sample [256] */
 } sample_lookup_t;
 
 /*
@@ -66,10 +66,10 @@ typedef struct sample_map_s sample_map;
  * Note that this procedure may return either a pointer to the buffer, or
  * a pointer to the original data.
  */
-#define SAMPLE_UNPACK_PROC(proc)\
-  const byte *proc(byte *bptr, int *pdata_x, const byte * data, int data_x,\
-		   uint dsize, const sample_map *smap, int spread,\
-		   int num_components_per_plane)
+#define SAMPLE_UNPACK_PROC(proc)                                               \
+	const byte* proc(byte* bptr, int* pdata_x, const byte* data,           \
+	                 int data_x, uint dsize, const sample_map* smap,       \
+	                 int spread, int num_components_per_plane)
 typedef SAMPLE_UNPACK_PROC((*sample_unpack_proc_t));
 
 /*

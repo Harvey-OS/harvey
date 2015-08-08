@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -26,19 +27,19 @@
 #include "utfdef.h"
 
 char*
-utfrrune(char *s, int32_t c)
+utfrrune(char* s, int32_t c)
 {
 	int32_t c1;
 	Rune r;
-	char *s1;
+	char* s1;
 
-	if(c < Runesync)		/* not part of utf sequence */
+	if(c < Runesync) /* not part of utf sequence */
 		return strrchr(s, c);
 
 	s1 = 0;
 	for(;;) {
 		c1 = *(uint8_t*)s;
-		if(c1 < Runeself) {	/* one byte rune */
+		if(c1 < Runeself) { /* one byte rune */
 			if(c1 == 0)
 				return s1;
 			if(c1 == c)

@@ -13,20 +13,20 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-static	Hio		*hout;
-static	Hio		houtb;
-static	HConnect	*connect;
+static Hio* hout;
+static Hio houtb;
+static HConnect* connect;
 
-void	doconvert(char*, int);
+void doconvert(char*, int);
 
 void
-error(char *title, char *fmt, ...)
+error(char* title, char* fmt, ...)
 {
 	va_list arg;
 	char buf[1024], *out;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
+	out = vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	*out = 0;
 
@@ -43,43 +43,43 @@ error(char *title, char *fmt, ...)
 	exits(nil);
 }
 
-typedef struct Hit	Hit;
-struct Hit 
-{
-	Hit *next;
-	char *file;
+typedef struct Hit Hit;
+struct Hit {
+	Hit* next;
+	char* file;
 };
 
 void
-lookup(char *object, int section, Hit **list)
+lookup(char* object, int section, Hit** list)
 {
 	int fd;
-	char *p, *f;
+	char* p, *f;
 	Biobuf b;
 	char file[256];
-	Hit *h;
+	Hit* h;
 
 	while(*list != nil)
 		list = &(*list)->next;
 
 	snprint(file, sizeof(file), "/sys/man/%d/INDEX", section);
 	fd = open(file, OREAD);
-	if(fd > 0){
+	if(fd > 0) {
 		Binit(&b, fd, OREAD);
-		for(;;){
+		for(;;) {
 			p = Brdline(&b, '\n');
 			if(p == nil)
 				break;
-			p[Blinelen(&b)-1] = 0;
+			p[Blinelen(&b) - 1] = 0;
 			f = strchr(p, ' ');
 			if(f == nil)
 				continue;
 			*f++ = 0;
-			if(strcmp(p, object) == 0){
+			if(strcmp(p, object) == 0) {
 				h = ezalloc(sizeof *h);
 				*list = h;
 				h->next = nil;
-				snprint(file, sizeof(file), "/%d/%s", section, f);
+				snprint(file, sizeof(file), "/%d/%s", section,
+				        f);
 				h->file = estrdup(file);
 				close(fd);
 				return;
@@ -88,11 +88,11 @@ lookup(char *object, int section, Hit **list)
 		close(fd);
 	}
 	snprint(file, sizeof(file), "/sys/man/%d/%s", section, object);
-	if(access(file, 0) == 0){
+	if(access(file, 0) == 0) {
 		h = ezalloc(sizeof *h);
 		*list = h;
 		h->next = nil;
-		h->file = estrdup(file+8);
+		h->file = estrdup(file + 8);
 	}
 }
 
@@ -101,7 +101,7 @@ manindex(int sect, int vermaj)
 {
 	int i;
 
-	if(vermaj){
+	if(vermaj) {
 		hokheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
@@ -117,23 +117,28 @@ manindex(int sect, int vermaj)
 	hprint(hout, "</H6>\n");
 
 	if(sect)
-		hprint(hout, "<p><a href=\"/plan9/man%d.html\">/plan9/man%d.html</a>\n",
-			sect, sect);
-	else for(i = 1; i < 10; i++)
-		hprint(hout, "<p><a href=\"/plan9/man%d.html\">/plan9/man%d.html</a>\n",
-			i, i);
+		hprint(
+		    hout,
+		    "<p><a href=\"/plan9/man%d.html\">/plan9/man%d.html</a>\n",
+		    sect, sect);
+	else
+		for(i = 1; i < 10; i++)
+			hprint(hout, "<p><a "
+			             "href=\"/plan9/man%d.html\">/plan9/"
+			             "man%d.html</a>\n",
+			       i, i);
 	hprint(hout, "</body>\n");
 }
 
 void
-man(char *o, int sect, int vermaj)
+man(char* o, int sect, int vermaj)
 {
 	int i;
-	Hit *list;
+	Hit* list;
 
 	list = nil;
 
-	if(*o == 0){
+	if(*o == 0) {
 		manindex(sect, vermaj);
 		return;
 	}
@@ -144,12 +149,12 @@ man(char *o, int sect, int vermaj)
 		for(i = 1; i < 9; i++)
 			lookup(o, i, &list);
 
-	if(list != nil && list->next == nil){
+	if(list != nil && list->next == nil) {
 		doconvert(list->file, vermaj);
 		return;
 	}
 
-	if(vermaj){
+	if(vermaj) {
 		hokheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
@@ -165,42 +170,49 @@ man(char *o, int sect, int vermaj)
 	hprint(hout, "</H6>\n");
 
 	for(; list; list = list->next)
-		hprint(hout, "<p><a href=\"/magic/man2html%U\">/magic/man2html%H</a>\n",
-			list->file, list->file);
+		hprint(
+		    hout,
+		    "<p><a href=\"/magic/man2html%U\">/magic/man2html%H</a>\n",
+		    list->file, list->file);
 	hprint(hout, "</body>\n");
 }
 
 void
-strlwr(char *p)
+strlwr(char* p)
 {
 	for(; *p; p++)
 		if('A' <= *p && *p <= 'Z')
-			*p += 'a'-'A';
+			*p += 'a' - 'A';
 }
 
 void
-redirectto(char *uri)
+redirectto(char* uri)
 {
-	if(connect){
+	if(connect) {
 		hmoved(connect, uri);
 		exits(0);
-	}else
-		hprint(hout, "Your selection moved to <a href=\"%U\"> here</a>.<p></body>\r\n", uri);
+	} else
+		hprint(hout, "Your selection moved to <a href=\"%U\"> "
+		             "here</a>.<p></body>\r\n",
+		       uri);
 }
 
 void
-searchfor(char *search)
+searchfor(char* search)
 {
 	int i, j, n, fd;
-	char *p, *sp;
-	Biobufhdr *b;
-	char *arg[32];
+	char* p, *sp;
+	Biobufhdr* b;
+	char* arg[32];
 
-	hprint(hout, "<head><title>plan 9 search for %H</title></head>\n", search);
+	hprint(hout, "<head><title>plan 9 search for %H</title></head>\n",
+	       search);
 	hprint(hout, "<body>\n");
 
 	hprint(hout, "<p>This is a keyword search through Plan 9 man pages.\n");
-	hprint(hout, "The search is case insensitive; blanks denote \"boolean and\".\n");
+	hprint(
+	    hout,
+	    "The search is case insensitive; blanks denote \"boolean and\".\n");
 	hprint(hout, "<FORM METHOD=\"GET\" ACTION=\"/magic/man2html\">\n");
 	hprint(hout, "<INPUT NAME=\"pat\" TYPE=\"text\" SIZE=\"60\">\n");
 	hprint(hout, "<INPUT TYPE=\"submit\" VALUE=\"Submit\">\n");
@@ -208,17 +220,17 @@ searchfor(char *search)
 
 	hprint(hout, "<hr><H6>Search for %H</H6>\n", search);
 	n = getfields(search, arg, 32, 1, "+");
-	for(i = 0; i < n; i++){
-		for(j = i+1; j < n; j++){
-			if(strcmp(arg[i], arg[j]) > 0){
+	for(i = 0; i < n; i++) {
+		for(j = i + 1; j < n; j++) {
+			if(strcmp(arg[i], arg[j]) > 0) {
 				sp = arg[j];
 				arg[j] = arg[i];
 				arg[i] = sp;
 			}
 		}
 		sp = malloc(strlen(arg[i]) + 2);
-		if(sp != nil){
-			strcpy(sp+1, arg[i]);
+		if(sp != nil) {
+			strcpy(sp + 1, arg[i]);
 			sp[0] = ' ';
 			arg[i] = sp;
 		}
@@ -228,24 +240,24 @@ searchfor(char *search)
 	 *  search index till line starts alphabetically < first token
 	 */
 	fd = open("/sys/man/searchindex", OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		hprint(hout, "<body>error: No Plan 9 search index\n");
 		hprint(hout, "</body>");
 		return;
 	}
-	p = malloc(32*1024);
-	if(p == nil){
+	p = malloc(32 * 1024);
+	if(p == nil) {
 		close(fd);
 		return;
 	}
 	b = ezalloc(sizeof *b);
-	Binits(b, fd, OREAD, (uint8_t*)p, 32*1024);
-	for(;;){
+	Binits(b, fd, OREAD, (uint8_t*)p, 32 * 1024);
+	for(;;) {
 		p = Brdline(b, '\n');
 		if(p == nil)
 			break;
-		p[Blinelen(b)-1] = 0;
-		for(i = 0; i < n; i++){
+		p[Blinelen(b) - 1] = 0;
+		for(i = 0; i < n; i++) {
 			sp = strstr(p, arg[i]);
 			if(sp == nil)
 				break;
@@ -257,8 +269,10 @@ searchfor(char *search)
 		if(sp == nil)
 			continue;
 		sp++;
-		hprint(hout, "<p><a href=\"/magic/man2html/%U\">/magic/man2html/%H</a>\n",
-			sp, sp);
+		hprint(hout, "<p><a "
+		             "href=\"/magic/man2html/%U\">/magic/man2html/%H</"
+		             "a>\n",
+		       sp, sp);
 	}
 	hprint(hout, "</body>");
 
@@ -272,39 +286,40 @@ searchfor(char *search)
  *  find man pages mentioning the search string
  */
 void
-dosearch(int vermaj, char *search)
+dosearch(int vermaj, char* search)
 {
 	int sect;
-	char *p;
+	char* p;
 
-	if(strncmp(search, "man=", 4) == 0){
+	if(strncmp(search, "man=", 4) == 0) {
 		sect = 0;
-		search = hurlunesc(connect, search+4);
+		search = hurlunesc(connect, search + 4);
 		p = strchr(search, '&');
-		if(p != nil){
+		if(p != nil) {
 			*p++ = 0;
 			if(strncmp(p, "sect=", 5) == 0)
-				sect = atoi(p+5);
+				sect = atoi(p + 5);
 		}
 		man(search, sect, vermaj);
 		return;
 	}
 
-	if(vermaj){
+	if(vermaj) {
 		hokheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
 
-	if(strncmp(search, "pat=", 4) == 0){
-		search = hurlunesc(connect, search+4);
+	if(strncmp(search, "pat=", 4) == 0) {
+		search = hurlunesc(connect, search + 4);
 		search = hlower(search);
 		searchfor(search);
 		return;
 	}
 
 	hprint(hout, "<head><title>illegal search</title></head>\n");
-	hprint(hout, "<body><p>Illegally formatted Plan 9 man page search</p>\n");
+	hprint(hout,
+	       "<body><p>Illegally formatted Plan 9 man page search</p>\n");
 	search = hurlunesc(connect, search);
 	hprint(hout, "<body><p>%H</p>\n", search);
 	hprint(hout, "</body>");
@@ -314,31 +329,32 @@ dosearch(int vermaj, char *search)
  *  convert a man page to html and output
  */
 void
-doconvert(char *uri, int vermaj)
+doconvert(char* uri, int vermaj)
 {
-	char *p;
+	char* p;
 	char file[256];
 	char title[256];
 	char err[ERRMAX];
 	int pfd[2];
-	Dir *d;
-	Waitmsg *w;
+	Dir* d;
+	Waitmsg* w;
 	int x;
 
 	if(strstr(uri, ".."))
 		error("bad URI", "man page URI cannot contain ..");
 	p = strstr(uri, "/intro");
 
-	if(p == nil){
+	if(p == nil) {
 		while(*uri == '/')
 			uri++;
 		/* redirect section requests */
 		snprint(file, sizeof(file), "/sys/man/%s", uri);
 		d = dirstat(file);
-		if(d == nil){
+		if(d == nil) {
 			strlwr(file);
-			if(dirstat(file) != nil){
-				snprint(file, sizeof(file), "/magic/man2html/%s", uri);
+			if(dirstat(file) != nil) {
+				snprint(file, sizeof(file),
+				        "/magic/man2html/%s", uri);
 				strlwr(file);
 				redirectto(file);
 			}
@@ -346,12 +362,12 @@ doconvert(char *uri, int vermaj)
 		}
 		x = d->qid.type;
 		free(d);
-		if(x & QTDIR){
+		if(x & QTDIR) {
 			if(*uri == 0 || strcmp(uri, "/") == 0)
 				redirectto("/sys/man/index.html");
 			else {
-				snprint(file, sizeof(file), "/sys/man/%s/INDEX.html",
-					uri+1);
+				snprint(file, sizeof(file),
+				        "/sys/man/%s/INDEX.html", uri + 1);
 				redirectto(file);
 			}
 			return;
@@ -366,7 +382,7 @@ doconvert(char *uri, int vermaj)
 			error(uri, "man page not found");
 	}
 
-	if(vermaj){
+	if(vermaj) {
 		hokheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
@@ -377,7 +393,7 @@ doconvert(char *uri, int vermaj)
 		error("out of resources", "pipe failed");
 
 	/* troff -manhtml <file> | troff2html -t '' */
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		error("out of resources", "fork failed");
 	case 0:
@@ -390,7 +406,7 @@ doconvert(char *uri, int vermaj)
 		errstr(err, sizeof err);
 		exits(err);
 	}
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		error("out of resources", "fork failed");
 	case 0:
@@ -408,7 +424,7 @@ doconvert(char *uri, int vermaj)
 	close(pfd[1]);
 
 	/* wait for completion */
-	for(;;){
+	for(;;) {
 		w = wait();
 		if(w == nil)
 			break;
@@ -419,12 +435,12 @@ doconvert(char *uri, int vermaj)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	fmtinstall('H', httpfmt);
 	fmtinstall('U', hurlfmt);
 
-	if(argc == 2){
+	if(argc == 2) {
 		hinit(&houtb, 1, Hwrite);
 		hout = &houtb;
 		doconvert(argv[1], 0);
@@ -437,11 +453,12 @@ main(int argc, char **argv)
 	if(hparseheaders(connect, HSTIMEOUT) < 0)
 		exits("failed");
 
-	if(strcmp(connect->req.meth, "GET") != 0 && strcmp(connect->req.meth, "HEAD") != 0){
+	if(strcmp(connect->req.meth, "GET") != 0 &&
+	   strcmp(connect->req.meth, "HEAD") != 0) {
 		hunallowed(connect, "GET, HEAD");
 		exits("not allowed");
 	}
-	if(connect->head.expectother || connect->head.expectcont){
+	if(connect->head.expectother || connect->head.expectcont) {
 		hfail(connect, HExpectFail, nil);
 		exits("failed");
 	}

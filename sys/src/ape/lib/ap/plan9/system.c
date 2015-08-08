@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 int
-system(const char *s)
+system(const char* s)
 {
 	int w, status;
 	pid_t pid;
@@ -31,7 +31,7 @@ system(const char *s)
 		execl(cmd, "sh", "-c", s, NULL);
 		_exit(1);
 	}
-	if(pid < 0){
+	if(pid < 0) {
 		_syserrno();
 		return -1;
 	}
@@ -41,7 +41,7 @@ system(const char *s)
 			break;
 	}
 
-	if(w == -1){
+	if(w == -1) {
 		_syserrno();
 		return w;
 	}

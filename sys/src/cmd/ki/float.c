@@ -21,13 +21,13 @@ ldf(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("ldf\tf%d,0x%lux(r%d) ea=%lux",rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("ldf\tf%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("ldf\tf%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
@@ -43,28 +43,28 @@ lddf(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("lddf\tf%d,0x%lux(r%d) ea=%lux",
-							rd, ea, rs1, ea+reg.r[rs1]);
+			itrace("lddf\tf%d,0x%lux(r%d) ea=%lux", rd, ea, rs1,
+			       ea + reg.r[rs1]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
 			itrace("lddf\tf%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
 	}
 
-	if(ea&7) {
-		Bprint(bioout, "mem_address_not_aligned [load addr %.8lux]\n", ea);
+	if(ea & 7) {
+		Bprint(bioout, "mem_address_not_aligned [load addr %.8lux]\n",
+		       ea);
 		longjmp(errjmp, 0);
 	}
-	if(rd&1)
+	if(rd & 1)
 		undef(ir);
 
 	reg.di[rd] = getmem_w(ea);
-	reg.di[rd+1] = getmem_w(ea+4);
+	reg.di[rd + 1] = getmem_w(ea + 4);
 }
 
 void
@@ -74,18 +74,17 @@ stf(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("stf\tf%d,0x%lux(r%d) %lux=%g",
-					rd, ea, rs1, ea+reg.r[rs1], reg.fl[rd]);
+			itrace("stf\tf%d,0x%lux(r%d) %lux=%g", rd, ea, rs1,
+			       ea + reg.r[rs1], reg.fl[rd]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("stf\tf%d,[r%d+r%d] %lux=%lux",
-					rd, rs1, rs2, ea, reg.r[rd]);
+			itrace("stf\tf%d,[r%d+r%d] %lux=%lux", rd, rs1, rs2, ea,
+			       reg.r[rd]);
 	}
 
 	putmem_w(ea, reg.di[rd]);
@@ -98,29 +97,29 @@ stdf(uint32_t ir)
 	int rd, rs1, rs2;
 
 	getrop23(ir);
-	if(ir&IMMBIT) {
+	if(ir & IMMBIT) {
 		ximm(ea, ir);
 		if(trace)
-			itrace("stdf\tf%d,0x%lux(r%d) %lux=%g",
-					rd, ea, rs1, ea+reg.r[rs1], reg.fl[rd]);
+			itrace("stdf\tf%d,0x%lux(r%d) %lux=%g", rd, ea, rs1,
+			       ea + reg.r[rs1], reg.fl[rd]);
 		ea += reg.r[rs1];
-	}
-	else {
+	} else {
 		ea = reg.r[rs1] + reg.r[rs2];
 		if(trace)
-			itrace("stdf\tf%d,[r%d+r%d] %lux=%lux",
-					rd, rs1, rs2, ea, reg.r[rd]);
+			itrace("stdf\tf%d,[r%d+r%d] %lux=%lux", rd, rs1, rs2,
+			       ea, reg.r[rd]);
 	}
 
-	if(ea&7) {
-		Bprint(bioout, "mem_address_not_aligned [store addr %.8lux]\n", ea);
+	if(ea & 7) {
+		Bprint(bioout, "mem_address_not_aligned [store addr %.8lux]\n",
+		       ea);
 		longjmp(errjmp, 0);
 	}
-	if(rd&1)
+	if(rd & 1)
 		undef(ir);
 
 	putmem_w(ea, reg.di[rd]);
-	putmem_w(ea+4, reg.di[rd+1]);
+	putmem_w(ea + 4, reg.di[rd + 1]);
 }
 
 void
@@ -131,10 +130,10 @@ fcmp(uint32_t ir)
 	getrop23(ir);
 	USED(rd);
 	SET(fc);
-	switch((ir>>5)&0x1FF) {
+	switch((ir >> 5) & 0x1FF) {
 	default:
 		undef(ir);
-	case 0x51:		/* fcmps */
+	case 0x51: /* fcmps */
 		if(trace)
 			itrace("fcmps\tf%d,f%d", rs1, rs2);
 		if(isNaN(reg.fl[rs1]) || isNaN(reg.fl[rs2])) {
@@ -178,7 +177,7 @@ fcmp(uint32_t ir)
 		}
 		print("ki: fcmp error\n");
 		break;
-	case 0x55:		/* fcmpes */
+	case 0x55: /* fcmpes */
 		if(trace)
 			itrace("fcmpes\tf%d,f%d", rs1, rs2);
 		rs1 >>= 1;
@@ -222,22 +221,21 @@ fcmp(uint32_t ir)
 		}
 		print("ki: fcmp error\n");
 		break;
-
 	}
-	reg.fpsr = (reg.fpsr&~(0x3<<10)) | (fc<<10);
+	reg.fpsr = (reg.fpsr & ~(0x3 << 10)) | (fc << 10);
 }
 
 void
 fbcc(uint32_t ir)
 {
-	char *op;
+	char* op;
 	uint32_t npc;
 	int takeit, fc, ba, anul;
 
-	fc = (reg.fpsr>>10)&3;
+	fc = (reg.fpsr >> 10) & 3;
 	ba = 0;
 	SET(op, takeit);
-	switch((ir>>25)&0x0F) {
+	switch((ir >> 25) & 0x0F) {
 	case 0:
 		op = "fbn";
 		takeit = 0;
@@ -306,11 +304,11 @@ fbcc(uint32_t ir)
 	}
 
 	npc = ir & 0x3FFFFF;
-	if(npc & (1<<21))
-		npc |= ~((1<<22)-1);
-	npc = (npc<<2) + reg.pc;
+	if(npc & (1 << 21))
+		npc |= ~((1 << 22) - 1);
+	npc = (npc << 2) + reg.pc;
 
-	anul = ir&ANUL;
+	anul = ir & ANUL;
 	if(trace) {
 		if(anul)
 			itrace("%s,a\t%lux", op, npc);
@@ -322,34 +320,33 @@ fbcc(uint32_t ir)
 		reg.pc += 4;
 		if(anul == 0) {
 			reg.ir = ifetch(reg.pc);
-			delay(reg.pc+4);
-		}
-		else
+			delay(reg.pc + 4);
+		} else
 			anulled++;
 		return;
 	}
 
 	ci->taken++;
 	if(ba && anul) {
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 		anulled++;
-		return;	
+		return;
 	}
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	delay(npc);
-	reg.pc = npc-4;
+	reg.pc = npc - 4;
 }
 
 void
 farith(uint32_t ir)
 {
-	char *op;
+	char* op;
 	int32_t v;
 	int rd, rs1, rs2, fmt;
 
 	fmt = 0;
 	getrop23(ir);
-	switch((ir>>5)&0x1FF) {
+	switch((ir >> 5) & 0x1FF) {
 	default:
 		undef(ir);
 	case 0x41:
@@ -357,7 +354,7 @@ farith(uint32_t ir)
 		op = "fadds";
 		break;
 	case 0x42:
-		reg.fd[rd>>1] = reg.fd[rs1>>1] + reg.fd[rs2>>1];
+		reg.fd[rd >> 1] = reg.fd[rs1 >> 1] + reg.fd[rs2 >> 1];
 		op = "faddd";
 		break;
 	case 0x45:
@@ -365,7 +362,7 @@ farith(uint32_t ir)
 		op = "fsubs";
 		break;
 	case 0x46:
-		reg.fd[rd>>1] = reg.fd[rs1>>1] - reg.fd[rs2>>1];
+		reg.fd[rd >> 1] = reg.fd[rs1 >> 1] - reg.fd[rs2 >> 1];
 		op = "fsubd";
 		break;
 	case 0x4d:
@@ -377,11 +374,11 @@ farith(uint32_t ir)
 		op = "fdivs";
 		break;
 	case 0x4e:
-		if(reg.fd[rs2>>1] == 0.0) {
+		if(reg.fd[rs2 >> 1] == 0.0) {
 			Bprint(bioout, "fp_exception DZ\n");
 			longjmp(errjmp, 0);
 		}
-		reg.fd[rd>>1] = reg.fd[rs1>>1] / reg.fd[rs2>>1];
+		reg.fd[rd >> 1] = reg.fd[rs1 >> 1] / reg.fd[rs2 >> 1];
 		op = "fdivd";
 		break;
 	case 0x49:
@@ -389,7 +386,7 @@ farith(uint32_t ir)
 		op = "fmuls";
 		break;
 	case 0x4a:
-		reg.fd[rd>>1] = reg.fd[rs1>>1] * reg.fd[rs2>>1];
+		reg.fd[rd >> 1] = reg.fd[rs1 >> 1] * reg.fd[rs2 >> 1];
 		op = "fmuld";
 		break;
 	case 0xc4:
@@ -398,7 +395,7 @@ farith(uint32_t ir)
 		op = "fitos";
 		break;
 	case 0xc8:
-		reg.fd[rd>>1] = (int32_t)reg.di[rs2];
+		reg.fd[rd >> 1] = (int32_t)reg.di[rs2];
 		fmt = 1;
 		op = "fitod";
 		break;
@@ -409,7 +406,7 @@ farith(uint32_t ir)
 		op = "fstoi";
 		break;
 	case 0xd2:
-		v = reg.fd[rs2>>1];
+		v = reg.fd[rs2 >> 1];
 		reg.di[rd] = v;
 		fmt = 1;
 		op = "fdtoi";
@@ -430,12 +427,12 @@ farith(uint32_t ir)
 		op = "fabss";
 		break;
 	case 0xc9:
-		reg.fd[rd>>1] = reg.fl[rs2];
+		reg.fd[rd >> 1] = reg.fl[rs2];
 		fmt = 1;
 		op = "fstod";
 		break;
 	case 0xc6:
-		reg.fl[rd] = reg.fd[rs2>>1];
+		reg.fl[rd] = reg.fd[rs2 >> 1];
 		fmt = 1;
 		op = "fdtos";
 		break;

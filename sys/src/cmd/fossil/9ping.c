@@ -12,26 +12,25 @@
 
 typedef uint64_t uint64_t;
 
-#define TWID64	((uint64_t)~(uint64_t)0)
-
+#define TWID64 ((uint64_t) ~(uint64_t)0)
 
 uint64_t
-unittoull(char *s)
+unittoull(char* s)
 {
-	char *es;
+	char* es;
 	uint64_t n;
 
 	if(s == nil)
 		return TWID64;
 	n = strtoul(s, &es, 0);
-	if(*es == 'k' || *es == 'K'){
+	if(*es == 'k' || *es == 'K') {
 		n *= 1024;
 		es++;
-	}else if(*es == 'm' || *es == 'M'){
-		n *= 1024*1024;
+	} else if(*es == 'm' || *es == 'M') {
+		n *= 1024 * 1024;
 		es++;
-	}else if(*es == 'g' || *es == 'G'){
-		n *= 1024*1024*1024;
+	} else if(*es == 'g' || *es == 'G') {
+		n *= 1024 * 1024 * 1024;
 		es++;
 	}
 	if(*es != '\0')
@@ -40,23 +39,24 @@ unittoull(char *s)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int fd, i;
 	int n = 1000, m;
 	int s = 1;
-	double *t, t0, t1;
-	unsigned char *buf;	
+	double* t, t0, t1;
+	unsigned char* buf;
 	double a, d, max, min;
 
 	m = OREAD;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'n':
 		n = atoi(ARGF());
 		break;
 	case 's':
 		s = unittoull(ARGF());
-		if(s < 1 || s > 1024*1024)
+		if(s < 1 || s > 1024 * 1024)
 			sysfatal("bad size");
 		break;
 	case 'r':
@@ -65,29 +65,30 @@ main(int argc, char *argv[])
 	case 'w':
 		m = OWRITE;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	fd = 0;
-	if(argc == 1){
+	if(argc == 1) {
 		fd = open(argv[0], m);
 		if(fd < 0)
 			sysfatal("could not open file: %s: %r", argv[0]);
 	}
 
 	buf = malloc(s);
-	t = malloc(n*sizeof(double));
-	
+	t = malloc(n * sizeof(double));
+
 	t0 = nsec();
-	for(i=0; i<n; i++){
-		if(m == OREAD){
+	for(i = 0; i < n; i++) {
+		if(m == OREAD) {
 			if(pread(fd, buf, s, 0) < s)
 				sysfatal("bad read: %r");
-		}else{
+		} else {
 			if(pwrite(fd, buf, s, 0) < s)
 				sysfatal("bad write: %r");
 		}
 		t1 = nsec();
-		t[i] = (t1 - t0)*1e-3;
+		t[i] = (t1 - t0) * 1e-3;
 		t0 = t1;
 	}
 
@@ -96,7 +97,7 @@ main(int argc, char *argv[])
 	max = 0.;
 	min = 1e12;
 
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		a += t[i];
 		if(max < t[i])
 			max = t[i];
@@ -105,14 +106,14 @@ main(int argc, char *argv[])
 	}
 
 	a /= n;
-	
-	for(i=0; i<n; i++)
+
+	for(i = 0; i < n; i++)
 		d += (a - t[i]) * (a - t[i]);
 	d /= n;
 	d = sqrt(d);
 
-	print("avg = %.0fµs min = %.0fµs max = %.0fµs dev = %.0fµs\n", a, min, max, d);
+	print("avg = %.0fµs min = %.0fµs max = %.0fµs dev = %.0fµs\n", a, min,
+	      max, d);
 
 	exits(0);
 }
-

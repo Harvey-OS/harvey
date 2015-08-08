@@ -13,7 +13,7 @@
 #include "scsireq.h"
 
 int32_t
-SReinitialise(ScsiReq *rp)
+SReinitialise(ScsiReq* rp)
 {
 	uint8_t cmd[6];
 
@@ -28,17 +28,17 @@ SReinitialise(ScsiReq *rp)
 }
 
 int32_t
-SRmmove(ScsiReq *rp, int transport, int source, int destination, int invert)
+SRmmove(ScsiReq* rp, int transport, int source, int destination, int invert)
 {
 	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdMMove;
-	cmd[2] = transport>>8;
+	cmd[2] = transport >> 8;
 	cmd[3] = transport;
-	cmd[4] = source>>8;
+	cmd[4] = source >> 8;
 	cmd[5] = source;
-	cmd[6] = destination>>8;
+	cmd[6] = destination >> 8;
 	cmd[7] = destination;
 	cmd[10] = invert & 0x01;
 	rp->cmd.p = cmd;
@@ -50,7 +50,7 @@ SRmmove(ScsiReq *rp, int transport, int source, int destination, int invert)
 }
 
 int32_t
-SRestatus(ScsiReq *rp, uint8_t type, uint8_t *list, int nbytes)
+SRestatus(ScsiReq* rp, uint8_t type, uint8_t* list, int nbytes)
 {
 	uint8_t cmd[12];
 
@@ -59,8 +59,8 @@ SRestatus(ScsiReq *rp, uint8_t type, uint8_t *list, int nbytes)
 	cmd[1] = type & 0x07;
 	cmd[4] = 0xFF;
 	cmd[5] = 0xFF;
-	cmd[7] = nbytes>>16;
-	cmd[8] = nbytes>>8;
+	cmd[7] = nbytes >> 16;
+	cmd[8] = nbytes >> 8;
 	cmd[9] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);

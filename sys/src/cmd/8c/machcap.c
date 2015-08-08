@@ -10,12 +10,12 @@
 #include "gc.h"
 
 int
-machcap(Node *n)
+machcap(Node* n)
 {
-//	return 0;
+	//	return 0;
 
 	if(n == Z)
-		return 1;	/* test */
+		return 1; /* test */
 
 	switch(n->op) {
 	case OMUL:
@@ -25,9 +25,10 @@ machcap(Node *n)
 		if(typechl[n->type->etype])
 			return 1;
 		if(typev[n->type->etype]) {
-//		if(typev[n->type->etype] && n->right->op == OCONST) {
-//			if(hi64v(n->right) == 0)
-				return 1;
+			//		if(typev[n->type->etype] && n->right->op
+			//== OCONST) {
+			//			if(hi64v(n->right) == 0)
+			return 1;
 		}
 		break;
 
@@ -49,8 +50,7 @@ machcap(Node *n)
 		if(typev[n->type->etype]) {
 			if(typechlp[n->left->type->etype])
 				return 1;
-		}
-		else if(!typefd[n->type->etype]) {
+		} else if(!typefd[n->type->etype]) {
 			if(typev[n->left->type->etype])
 				return 1;
 		}
@@ -93,7 +93,7 @@ machcap(Node *n)
 	case OHS:
 	case OLO:
 	case OLS:
-//print("%O\n", n->op);
+		// print("%O\n", n->op);
 		return 1;
 	}
 	return 0;

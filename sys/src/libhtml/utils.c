@@ -79,11 +79,10 @@ _splitl(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
 		*n1 = n;
 		*p2 = nil;
 		*n2 = 0;
-	}
-	else {
+	} else {
 		*p2 = p;
-		*n1 = p-s;
-		*n2 = n-*n1;
+		*n1 = p - s;
+		*n2 = n - *n1;
 	}
 }
 
@@ -102,16 +101,16 @@ _splitr(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
 		*n1 = 0;
 		*p2 = s;
 		*n2 = n;
-	}
-	else {
+	} else {
 		*p1 = s;
-		*p2 = p+1;
-		*n1 = *p2-s;
-		*n2 = n-*n1;
+		*p2 = p + 1;
+		*n1 = *p2 - s;
+		*n2 = n - *n1;
 	}
 }
 
-// Splitall splits s[0:n] into parts that are separated by characters from class cl.
+// Splitall splits s[0:n] into parts that are separated by characters from class
+// cl.
 // Each part will have nonzero length.
 // At most alen parts are found, and pointers to their starts go into
 // the strarr array, while their lengths go into the lenarr array.
@@ -128,18 +127,18 @@ _splitall(Rune* s, int n, Rune* cl, Rune** strarr, int* lenarr, int alen)
 		return 0;
 	i = 0;
 	p = s;
-	slast = s+n;
+	slast = s + n;
 	while(p < slast && i < alen) {
 		while(p < slast && _inclass(*p, cl))
 			p++;
 		if(p == slast)
 			break;
-		q = _Strnclass(p, cl, slast-p);
+		q = _Strnclass(p, cl, slast - p);
 		if(q == nil)
 			q = slast;
 		assert(q > p && q <= slast);
 		strarr[i] = p;
-		lenarr[i] = q-p;
+		lenarr[i] = q - p;
 		i++;
 		p = q;
 	}
@@ -160,7 +159,7 @@ _trimwhite(Rune* s, int n, Rune** pans, int* panslen)
 		if(p != nil) {
 			q = _Strnrclass(s, notwhitespace, n);
 			assert(q != nil);
-			n = q+1-p;
+			n = q + 1 - p;
 		}
 	}
 	*pans = p;
@@ -233,10 +232,10 @@ _Strnrclass(Rune* s, Rune* cl, int n)
 int
 _inclass(Rune c, Rune* cl)
 {
-	int	n;
-	int	ans;
-	int	negate;
-	int	i;
+	int n;
+	int ans;
+	int negate;
+	int i;
 
 	n = _Strlen(cl);
 	if(n == 0)
@@ -255,8 +254,7 @@ _inclass(Rune c, Rune* cl)
 				break;
 			}
 			i++;
-		}
-		else if(c == cl[i]) {
+		} else if(c == cl[i]) {
 			ans = 1;
 			break;
 		}
@@ -270,9 +268,9 @@ _inclass(Rune c, Rune* cl)
 int
 _prefix(Rune* pre, Rune* s)
 {
-	int	ns;
-	int	n;
-	int	k;
+	int ns;
+	int n;
+	int k;
 
 	ns = _Strlen(s);
 	n = _Strlen(pre);
@@ -296,7 +294,7 @@ _Strlen(Rune* s)
 
 // -1, 0, 1 as s1 is lexicographically less, equal greater than s2
 int
-_Strcmp(Rune *s1, Rune *s2)
+_Strcmp(Rune* s1, Rune* s2)
 {
 	if(s1 == nil)
 		return (s2 == nil || *s2 == 0) ? 0 : -1;
@@ -311,7 +309,7 @@ _Strcmp(Rune *s1, Rune *s2)
 // (This routine is used for in-place keyword lookup, where s2 is in a keyword
 // list and s1 is some substring, possibly mixed-case, in a buffer.)
 int
-_Strncmpci(Rune *s1, int n1, Rune *s2)
+_Strncmpci(Rune* s1, int n1, Rune* s2)
 {
 	Rune c1, c2;
 
@@ -353,7 +351,7 @@ _Strndup(Rune* s, int n)
 	if(n <= 0)
 		return nil;
 	ans = _newstr(n);
-	memmove(ans, s, n*sizeof(Rune));
+	memmove(ans, s, n * sizeof(Rune));
 	ans[n] = 0;
 	return ans;
 }
@@ -362,7 +360,7 @@ _Strndup(Rune* s, int n)
 Rune*
 _newstr(int n)
 {
-	return (Rune*)emalloc((n+1)*sizeof(Rune));
+	return (Rune*)emalloc((n + 1) * sizeof(Rune));
 }
 
 // emalloc and copy s+t
@@ -375,9 +373,9 @@ _Strdup2(Rune* s, Rune* t)
 
 	ns = _Strlen(s);
 	nt = _Strlen(t);
-	if(ns+nt == 0)
+	if(ns + nt == 0)
 		return nil;
-	ans = _newstr(ns+nt);
+	ans = _newstr(ns + nt);
 	p = _Stradd(ans, s, ns);
 	p = _Stradd(p, t, nt);
 	*p = 0;
@@ -392,7 +390,7 @@ _Strsubstr(Rune* s, int start, int stop)
 
 	if(start == stop)
 		return nil;
-	t = _Strndup(s+start, stop-start);
+	t = _Strndup(s + start, stop - start);
 	return t;
 }
 
@@ -402,14 +400,14 @@ _Stradd(Rune* s1, Rune* s2, int n)
 {
 	if(n == 0)
 		return s1;
-	memmove(s1, s2, n*sizeof(Rune));
-	return s1+n;
+	memmove(s1, s2, n * sizeof(Rune));
+	return s1 + n;
 }
 
 // Like strtol, but converting from Rune* string
 
-#define LONG_MAX	2147483647L
-#define LONG_MIN	-2147483648L
+#define LONG_MAX 2147483647L
+#define LONG_MIN -2147483648L
 
 int32_t
 _Strtol(Rune* nptr, Rune** endptr, int base)
@@ -427,8 +425,8 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 	/*
 	 * White space
 	 */
-	for(;;p++){
-		switch(*p){
+	for(;; p++) {
+		switch(*p) {
 		case ' ':
 		case '\t':
 		case '\n':
@@ -443,55 +441,55 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 	/*
 	 * Sign
 	 */
-	if(*p=='-' || *p=='+')
+	if(*p == '-' || *p == '+')
 		if(*p++ == '-')
 			neg = 1;
 
 	/*
 	 * Base
 	 */
-	if(base==0){
+	if(base == 0) {
 		if(*p != '0')
 			base = 10;
-		else{
+		else {
 			base = 8;
-			if(p[1]=='x' || p[1]=='X'){
+			if(p[1] == 'x' || p[1] == 'X') {
 				p += 2;
 				base = 16;
 			}
 		}
-	}else if(base==16 && *p=='0'){
-		if(p[1]=='x' || p[1]=='X')
+	} else if(base == 16 && *p == '0') {
+		if(p[1] == 'x' || p[1] == 'X')
 			p += 2;
-	}else if(base<0 || 36<base)
+	} else if(base < 0 || 36 < base)
 		goto Return;
 
 	/*
 	 * Non-empty sequence of digits
 	 */
-	for(;; p++,ndig++){
+	for(;; p++, ndig++) {
 		c = *p;
 		v = base;
-		if('0'<=c && c<='9')
+		if('0' <= c && c <= '9')
 			v = c - '0';
-		else if('a'<=c && c<='z')
+		else if('a' <= c && c <= 'z')
 			v = c - 'a' + 10;
-		else if('A'<=c && c<='Z')
+		else if('A' <= c && c <= 'Z')
 			v = c - 'A' + 10;
 		if(v >= base)
 			break;
-		nn = n*base + v;
+		nn = n * base + v;
 		if(nn < n)
 			ovfl = 1;
 		n = nn;
 	}
 
-    Return:
+Return:
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
 		*endptr = p;
-	if(ovfl){
+	if(ovfl) {
 		if(neg)
 			return LONG_MIN;
 		return LONG_MAX;
@@ -514,7 +512,7 @@ toStr(uint8_t* buf, int n, int chset)
 	switch(chset) {
 	case US_Ascii:
 	case ISO_8859_1:
-		ans = (Rune*)emalloc((n+1)*sizeof(Rune));
+		ans = (Rune*)emalloc((n + 1) * sizeof(Rune));
 		for(i = 0; i < n; i++)
 			ans[i] = buf[i];
 		ans[n] = 0;
@@ -522,14 +520,14 @@ toStr(uint8_t* buf, int n, int chset)
 
 	case UTF_8:
 		m = 0;
-		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (char*)(buf+i));
+		for(i = 0; i < n;) {
+			i += chartorune(&ch, (char*)(buf + i));
 			m++;
 		}
-		ans = (Rune*)emalloc((m+1)*sizeof(Rune));
+		ans = (Rune*)emalloc((m + 1) * sizeof(Rune));
 		m = 0;
-		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (char*)(buf+i));
+		for(i = 0; i < n;) {
+			i += chartorune(&ch, (char*)(buf + i));
 			ans[m++] = ch;
 		}
 		ans[m] = 0;
@@ -558,8 +556,8 @@ fromStr(Rune* buf, int n, int chset)
 	switch(chset) {
 	case US_Ascii:
 	case ISO_8859_1:
-		ans = (uint8_t*)emalloc(n+1);
-		lim = (chset==US_Ascii)? 127 : 255;
+		ans = (uint8_t*)emalloc(n + 1);
+		lim = (chset == US_Ascii) ? 127 : 255;
 		for(i = 0; i < n; i++) {
 			ch = buf[i];
 			if(ch > lim)
@@ -574,7 +572,7 @@ fromStr(Rune* buf, int n, int chset)
 		for(i = 0; i < n; i++) {
 			m += runetochar((char*)s, &buf[i]);
 		}
-		ans = (uint8_t*)emalloc(m+1);
+		ans = (uint8_t*)emalloc(m + 1);
 		p = ans;
 		for(i = 0; i < n; i++)
 			p += runetochar((char*)p, &buf[i]);
@@ -585,5 +583,4 @@ fromStr(Rune* buf, int n, int chset)
 		assert(0);
 	}
 	return ans;
-
 }

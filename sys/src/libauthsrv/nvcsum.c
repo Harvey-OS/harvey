@@ -12,9 +12,9 @@
 #include <auth.h>
 
 uint8_t
-nvcsum(void *vmem, int n)
+nvcsum(void* vmem, int n)
 {
-	uint8_t *mem, sum;
+	uint8_t* mem, sum;
 	int i;
 
 	sum = 9;

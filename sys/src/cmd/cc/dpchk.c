@@ -7,45 +7,41 @@
  * in the LICENSE file.
  */
 
-#include	"cc.h"
-#include	"y.tab.h"
+#include "cc.h"
+#include "y.tab.h"
 
-enum
-{
-	Fnone	= 0,
-	Fl,
-	Fvl,
-	Fignor,
-	Fstar,
-	Fadj,
+enum { Fnone = 0,
+       Fl,
+       Fvl,
+       Fignor,
+       Fstar,
+       Fadj,
 
-	Fverb	= 10,
+       Fverb = 10,
 };
 
-typedef	struct	Tprot	Tprot;
-struct	Tprot
-{
-	Type*	type;
-	Bits	flag;
-	Tprot*	link;
+typedef struct Tprot Tprot;
+struct Tprot {
+	Type* type;
+	Bits flag;
+	Tprot* link;
 };
 
-typedef	struct	Tname	Tname;
-struct	Tname
-{
-	char*	name;
-	int	param;
-	Tname*	link;
+typedef struct Tname Tname;
+struct Tname {
+	char* name;
+	int param;
+	Tname* link;
 };
 
-static	Type*	indchar;
-static	uint8_t	flagbits[512];
-static	char	fmtbuf[100];
-static	int	lastadj;
-static	int	lastverb;
-static	int	nstar;
-static	Tprot*	tprot;
-static	Tname*	tname;
+static Type* indchar;
+static uint8_t flagbits[512];
+static char fmtbuf[100];
+static int lastadj;
+static int lastverb;
+static int nstar;
+static Tprot* tprot;
+static Tname* tname;
 
 void
 argflag(int c, int v)
@@ -60,23 +56,23 @@ argflag(int c, int v)
 		break;
 	case Fverb:
 		flagbits[c] = lastverb;
-/*print("flag-v %c %d\n", c, lastadj);*/
+		/*print("flag-v %c %d\n", c, lastadj);*/
 		lastverb++;
 		break;
 	case Fadj:
 		flagbits[c] = lastadj;
-/*print("flag-l %c %d\n", c, lastadj);*/
+		/*print("flag-l %c %d\n", c, lastadj);*/
 		lastadj++;
 		break;
 	}
 }
 
 Bits
-getflag(char *s)
+getflag(char* s)
 {
 	Bits flag;
 	int f;
-	char *fmt;
+	char* fmt;
 	Rune c;
 
 	fmt = fmtbuf;
@@ -110,17 +106,17 @@ getflag(char *s)
 }
 
 void
-newprot(Sym *m, Type *t, char *s)
+newprot(Sym* m, Type* t, char* s)
 {
 	Bits flag;
-	Tprot *l;
+	Tprot* l;
 
 	if(t == T) {
 		warn(Z, "%s: newprot: type not defined", m->name);
 		return;
 	}
 	flag = getflag(s);
-	for(l=tprot; l; l=l->link)
+	for(l = tprot; l; l = l->link)
 		if(beq(flag, l->flag) && sametype(t, l->type))
 			return;
 	l = alloc(sizeof(*l));
@@ -131,11 +127,11 @@ newprot(Sym *m, Type *t, char *s)
 }
 
 void
-newname(char *s, int p)
+newname(char* s, int p)
 {
-	Tname *l;
+	Tname* l;
 
-	for(l=tname; l; l=l->link)
+	for(l = tname; l; l = l->link)
 		if(strcmp(l->name, s) == 0) {
 			if(l->param != p)
 				yyerror("vargck %s already defined\n", s);
@@ -153,8 +149,8 @@ arginit(void)
 {
 	int i;
 
-/* debug['F'] = 1;*/
-/* debug['w'] = 1;*/
+	/* debug['F'] = 1;*/
+	/* debug['w'] = 1;*/
 
 	lastadj = Fadj;
 	lastverb = Fverb;
@@ -162,7 +158,7 @@ arginit(void)
 
 	memset(flagbits, Fnone, sizeof(flagbits));
 
-	for(i='0'; i<='9'; i++)
+	for(i = '0'; i <= '9'; i++)
 		argflag(i, Fignor);
 	argflag('.', Fignor);
 	argflag('#', Fignor);
@@ -182,11 +178,11 @@ arginit(void)
 void
 pragvararg(void)
 {
-	Sym *s;
+	Sym* s;
 	int n, c;
-	char *t;
+	char* t;
 	Rune r;
-	Type *ty;
+	Type* ty;
 
 	if(!debug['F'])
 		goto out;
@@ -201,7 +197,7 @@ pragvararg(void)
 	goto out;
 
 ckpos:
-/*#pragma	varargck	argpos	warn	2*/
+	/*#pragma	varargck	argpos	warn	2*/
 	s = getsym();
 	if(s == S)
 		goto bad;
@@ -212,7 +208,7 @@ ckpos:
 	goto out;
 
 ckflag:
-/*#pragma	varargck	flag	'c'*/
+	/*#pragma	varargck	flag	'c'*/
 	c = getnsc();
 	if(c != '\'')
 		goto bad;
@@ -229,7 +225,7 @@ ckflag:
 	goto out;
 
 cktype:
-/*#pragma	varargck	type	O	int*/
+	/*#pragma	varargck	type	O	int*/
 	c = getnsc();
 	if(c != '"')
 		goto bad;
@@ -263,7 +259,7 @@ out:
 }
 
 Node*
-nextarg(Node *n, Node **a)
+nextarg(Node* n, Node** a)
 {
 	if(n == Z) {
 		*a = Z;
@@ -278,11 +274,11 @@ nextarg(Node *n, Node **a)
 }
 
 void
-checkargs(Node *nn, char *s, int pos)
+checkargs(Node* nn, char* s, int pos)
 {
-	Node *a, *n;
+	Node* a, *n;
 	Bits flag;
-	Tprot *l;
+	Tprot* l;
 
 	if(!debug['F'])
 		return;
@@ -293,7 +289,7 @@ checkargs(Node *nn, char *s, int pos)
 			nextarg(n, &a);
 			if(a != Z)
 				warn(nn, "more arguments than format %T",
-					a->type);
+				     a->type);
 			return;
 		}
 		s++;
@@ -304,7 +300,7 @@ checkargs(Node *nn, char *s, int pos)
 			nstar--;
 			if(a == Z) {
 				warn(nn, "more format than arguments %s",
-					fmtbuf);
+				     fmtbuf);
 				return;
 			}
 			if(a->type == T)
@@ -312,9 +308,9 @@ checkargs(Node *nn, char *s, int pos)
 			if(!sametype(types[TINT], a->type) &&
 			   !sametype(types[TUINT], a->type))
 				warn(nn, "format mismatch '*' in %s %T, arg %d",
-					fmtbuf, a->type, pos);
+				     fmtbuf, a->type, pos);
 		}
-		for(l=tprot; l; l=l->link)
+		for(l = tprot; l; l = l->link)
 			if(sametype(types[TVOID], l->type)) {
 				if(beq(flag, l->flag)) {
 					s++;
@@ -325,29 +321,30 @@ checkargs(Node *nn, char *s, int pos)
 		n = nextarg(n, &a);
 		pos++;
 		if(a == Z) {
-			warn(nn, "more format than arguments %s",
-				fmtbuf);
+			warn(nn, "more format than arguments %s", fmtbuf);
 			return;
 		}
 		if(a->type == 0)
 			continue;
-		for(l=tprot; l; l=l->link)
+		for(l = tprot; l; l = l->link)
 			if(sametype(a->type, l->type)) {
-/*print("checking %T/%ulx %T/%ulx\n", a->type, flag.b[0], l->type, l->flag.b[0]);*/
+				/*print("checking %T/%ulx %T/%ulx\n", a->type,
+				 * flag.b[0], l->type, l->flag.b[0]);*/
 				if(beq(flag, l->flag))
 					goto loop;
 			}
 		warn(nn, "format mismatch %s %T, arg %d", fmtbuf, a->type, pos);
-	loop:;
+	loop:
+		;
 	}
 }
 
 void
-dpcheck(Node *n)
+dpcheck(Node* n)
 {
-	char *s;
-	Node *a, *b;
-	Tname *l;
+	char* s;
+	Node* a, *b;
+	Tname* l;
 	int i;
 
 	if(n == Z)
@@ -356,7 +353,7 @@ dpcheck(Node *n)
 	if(b == Z || b->op != ONAME)
 		return;
 	s = b->sym->name;
-	for(l=tname; l; l=l->link)
+	for(l = tname; l; l = l->link)
 		if(strcmp(s, l->name) == 0)
 			break;
 	if(l == 0)
@@ -376,8 +373,9 @@ dpcheck(Node *n)
 		warn(n, "format arg type %T", a->type);
 		return;
 	}
-	if(a->op != OADDR || a->left->op != ONAME || a->left->sym != symstring) {
-/*		warn(n, "format arg not constant string");*/
+	if(a->op != OADDR || a->left->op != ONAME ||
+	   a->left->sym != symstring) {
+		/*		warn(n, "format arg not constant string");*/
 		return;
 	}
 	s = a->left->cstring;
@@ -387,14 +385,13 @@ dpcheck(Node *n)
 void
 pragpack(void)
 {
-	Sym *s;
+	Sym* s;
 
 	packflg = 0;
 	s = getsym();
 	if(s) {
-		packflg = atoi(s->name+1);
-		if(strcmp(s->name, "on") == 0 ||
-		   strcmp(s->name, "yes") == 0)
+		packflg = atoi(s->name + 1);
+		if(strcmp(s->name, "on") == 0 || strcmp(s->name, "yes") == 0)
 			packflg = 1;
 	}
 	while(getnsc() != '\n')
@@ -409,14 +406,13 @@ pragpack(void)
 void
 pragfpround(void)
 {
-	Sym *s;
+	Sym* s;
 
 	fproundflg = 0;
 	s = getsym();
 	if(s) {
-		fproundflg = atoi(s->name+1);
-		if(strcmp(s->name, "on") == 0 ||
-		   strcmp(s->name, "yes") == 0)
+		fproundflg = atoi(s->name + 1);
+		if(strcmp(s->name, "on") == 0 || strcmp(s->name, "yes") == 0)
 			fproundflg = 1;
 	}
 	while(getnsc() != '\n')
@@ -431,14 +427,13 @@ pragfpround(void)
 void
 pragprofile(void)
 {
-	Sym *s;
+	Sym* s;
 
 	profileflg = 0;
 	s = getsym();
 	if(s) {
-		profileflg = atoi(s->name+1);
-		if(strcmp(s->name, "on") == 0 ||
-		   strcmp(s->name, "yes") == 0)
+		profileflg = atoi(s->name + 1);
+		if(strcmp(s->name, "on") == 0 || strcmp(s->name, "yes") == 0)
 			profileflg = 1;
 	}
 	while(getnsc() != '\n')
@@ -453,8 +448,8 @@ pragprofile(void)
 void
 pragincomplete(void)
 {
-	Sym *s;
-	Type *t;
+	Sym* s;
+	Type* t;
 	int istag, w, et;
 
 	istag = 0;
@@ -467,22 +462,23 @@ pragincomplete(void)
 		et = TSTRUCT;
 	else if(w == LUNION)
 		et = TUNION;
-	if(et != 0){
+	if(et != 0) {
 		s = getsym();
-		if(s == nil){
-			yyerror("missing struct/union tag in pragma incomplete");
+		if(s == nil) {
+			yyerror(
+			    "missing struct/union tag in pragma incomplete");
 			goto out;
 		}
-		if(s->lexical != LNAME && s->lexical != LTYPE){
+		if(s->lexical != LNAME && s->lexical != LTYPE) {
 			yyerror("invalid struct/union tag: %s", s->name);
 			goto out;
 		}
 		dotag(s, et, 0);
 		istag = 1;
-	}else if(strcmp(s->name, "_off_") == 0){
+	} else if(strcmp(s->name, "_off_") == 0) {
 		debug['T'] = 0;
 		goto out;
-	}else if(strcmp(s->name, "_on_") == 0){
+	} else if(strcmp(s->name, "_on_") == 0) {
 		debug['T'] = 1;
 		goto out;
 	}
@@ -492,7 +488,8 @@ pragincomplete(void)
 	if(t == T)
 		yyerror("unknown type %s in pragma incomplete", s->name);
 	else if(!typesu[t->etype])
-		yyerror("not struct/union type in pragma incomplete: %s", s->name);
+		yyerror("not struct/union type in pragma incomplete: %s",
+		        s->name);
 	else
 		t->garb |= GINCOMPLETE;
 out:

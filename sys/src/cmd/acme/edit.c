@@ -21,77 +21,80 @@
 #include "edit.h"
 #include "fns.h"
 
-static char	linex[]="\n";
-static char	wordx[]=" \t\n";
-struct cmdtab cmdtab[]={
-/*	cmdc	text	regexp	addr	defcmd	defaddr	count	token	 fn	*/
-	'\n',	0,	0,	0,	0,	aDot,	0,	0,	nl_cmd,
-	'a',	1,	0,	0,	0,	aDot,	0,	0,	a_cmd,
-	'b',	0,	0,	0,	0,	aNo,	0,	linex,	b_cmd,
-	'c',	1,	0,	0,	0,	aDot,	0,	0,	c_cmd,
-	'd',	0,	0,	0,	0,	aDot,	0,	0,	d_cmd,
-	'e',	0,	0,	0,	0,	aNo,	0,	wordx,	e_cmd,
-	'f',	0,	0,	0,	0,	aNo,	0,	wordx,	f_cmd,
-	'g',	0,	1,	0,	'p',	aDot,	0,	0,	g_cmd,
-	'i',	1,	0,	0,	0,	aDot,	0,	0,	i_cmd,
-	'm',	0,	0,	1,	0,	aDot,	0,	0,	m_cmd,
-	'p',	0,	0,	0,	0,	aDot,	0,	0,	p_cmd,
-	'r',	0,	0,	0,	0,	aDot,	0,	wordx,	e_cmd,
-	's',	0,	1,	0,	0,	aDot,	1,	0,	s_cmd,
-	't',	0,	0,	1,	0,	aDot,	0,	0,	m_cmd,
-	'u',	0,	0,	0,	0,	aNo,	2,	0,	u_cmd,
-	'v',	0,	1,	0,	'p',	aDot,	0,	0,	g_cmd,
-	'w',	0,	0,	0,	0,	aAll,	0,	wordx,	w_cmd,
-	'x',	0,	1,	0,	'p',	aDot,	0,	0,	x_cmd,
-	'y',	0,	1,	0,	'p',	aDot,	0,	0,	x_cmd,
-	'=',	0,	0,	0,	0,	aDot,	0,	linex,	eq_cmd,
-	'B',	0,	0,	0,	0,	aNo,	0,	linex,	B_cmd,
-	'D',	0,	0,	0,	0,	aNo,	0,	linex,	D_cmd,
-	'X',	0,	1,	0,	'f',	aNo,	0,	0,	X_cmd,
-	'Y',	0,	1,	0,	'f',	aNo,	0,	0,	X_cmd,
-	'<',	0,	0,	0,	0,	aDot,	0,	linex,	pipe_cmd,
-	'|',	0,	0,	0,	0,	aDot,	0,	linex,	pipe_cmd,
-	'>',	0,	0,	0,	0,	aDot,	0,	linex,	pipe_cmd,
-/* deliberately unimplemented:
-	'k',	0,	0,	0,	0,	aDot,	0,	0,	k_cmd,
-	'n',	0,	0,	0,	0,	aNo,	0,	0,	n_cmd,
-	'q',	0,	0,	0,	0,	aNo,	0,	0,	q_cmd,
-	'!',	0,	0,	0,	0,	aNo,	0,	linex,	plan9_cmd,
- */
-	0,	0,	0,	0,	0,	0,	0,	0,
+static char linex[] = "\n";
+static char wordx[] = " \t\n";
+struct cmdtab cmdtab[] = {
+    /*	cmdc	text	regexp	addr	defcmd	defaddr	count	token	 fn
+       */
+    '\n',  0,     0,        0,        0,        aDot,  0,     0,     nl_cmd, 'a',
+    1,     0,     0,        0,        aDot,     0,     0,     a_cmd, 'b',    0,
+    0,     0,     0,        aNo,      0,        linex, b_cmd, 'c',   1,      0,
+    0,     0,     aDot,     0,        0,        c_cmd, 'd',   0,     0,      0,
+    0,     aDot,  0,        0,        d_cmd,    'e',   0,     0,     0,      0,
+    aNo,   0,     wordx,    e_cmd,    'f',      0,     0,     0,     0,      aNo,
+    0,     wordx, f_cmd,    'g',      0,        1,     0,     'p',   aDot,   0,
+    0,     g_cmd, 'i',      1,        0,        0,     0,     aDot,  0,      0,
+    i_cmd, 'm',   0,        0,        1,        0,     aDot,  0,     0,      m_cmd,
+    'p',   0,     0,        0,        0,        aDot,  0,     0,     p_cmd,  'r',
+    0,     0,     0,        0,        aDot,     0,     wordx, e_cmd, 's',    0,
+    1,     0,     0,        aDot,     1,        0,     s_cmd, 't',   0,      0,
+    1,     0,     aDot,     0,        0,        m_cmd, 'u',   0,     0,      0,
+    0,     aNo,   2,        0,        u_cmd,    'v',   0,     1,     0,      'p',
+    aDot,  0,     0,        g_cmd,    'w',      0,     0,     0,     0,      aAll,
+    0,     wordx, w_cmd,    'x',      0,        1,     0,     'p',   aDot,   0,
+    0,     x_cmd, 'y',      0,        1,        0,     'p',   aDot,  0,      0,
+    x_cmd, '=',   0,        0,        0,        0,     aDot,  0,     linex,  eq_cmd,
+    'B',   0,     0,        0,        0,        aNo,   0,     linex, B_cmd,  'D',
+    0,     0,     0,        0,        aNo,      0,     linex, D_cmd, 'X',    0,
+    1,     0,     'f',      aNo,      0,        0,     X_cmd, 'Y',   0,      1,
+    0,     'f',   aNo,      0,        0,        X_cmd, '<',   0,     0,      0,
+    0,     aDot,  0,        linex,    pipe_cmd, '|',   0,     0,     0,      0,
+    aDot,  0,     linex,    pipe_cmd, '>',      0,     0,     0,     0,      aDot,
+    0,     linex, pipe_cmd,
+    /* deliberately unimplemented:
+            'k',	0,	0,	0,	0,	aDot,	0,	0,
+       k_cmd,
+            'n',	0,	0,	0,	0,	aNo,	0,	0,
+       n_cmd,
+            'q',	0,	0,	0,	0,	aNo,	0,	0,
+       q_cmd,
+            '!',	0,	0,	0,	0,	aNo,	0,	linex,
+       plan9_cmd,
+     */
+    0,     0,     0,        0,        0,        0,     0,     0,
 };
 
-Cmd	*parsecmd(int);
-Addr	*compoundaddr(void);
-Addr	*simpleaddr(void);
-void	freecmd(void);
-void	okdelim(int);
+Cmd* parsecmd(int);
+Addr* compoundaddr(void);
+Addr* simpleaddr(void);
+void freecmd(void);
+void okdelim(int);
 
-Rune	*cmdstartp;
-Rune	*cmdendp;
-Rune	*cmdp;
-Channel	*editerrc;
+Rune* cmdstartp;
+Rune* cmdendp;
+Rune* cmdp;
+Channel* editerrc;
 
-String	*lastpat;
-int	patset;
+String* lastpat;
+int patset;
 
-List	cmdlist;
-List	addrlist;
-List	stringlist;
-Text	*curtext;
-int	editing = Inactive;
+List cmdlist;
+List addrlist;
+List stringlist;
+Text* curtext;
+int editing = Inactive;
 
-String*	newstring(int);
+String* newstring(int);
 
 void
 editthread(void*)
 {
-	Cmd *cmdp;
+	Cmd* cmdp;
 
 	threadsetname("editthread");
-	while((cmdp=parsecmd(0)) != 0){
-//		ocurfile = curfile;
-//		loaded = curfile && !curfile->unread;
+	while((cmdp = parsecmd(0)) != 0) {
+		//		ocurfile = curfile;
+		//		loaded = curfile && !curfile->unread;
 		if(cmdexec(curtext, cmdp) == 0)
 			break;
 		freecmd();
@@ -100,13 +103,13 @@ editthread(void*)
 }
 
 void
-allelogterm(Window *w, void*)
+allelogterm(Window* w, void*)
 {
 	elogterm(w->body.file);
 }
 
 void
-alleditinit(Window *w, void*)
+alleditinit(Window* w, void*)
 {
 	textcommit(&w->tag, TRUE);
 	textcommit(&w->body, TRUE);
@@ -114,23 +117,23 @@ alleditinit(Window *w, void*)
 }
 
 void
-allupdate(Window *w, void*)
+allupdate(Window* w, void*)
 {
-	Text *t;
+	Text* t;
 	int i;
-	File *f;
+	File* f;
 
 	t = &w->body;
 	f = t->file;
-	if(f->curtext != t)	/* do curtext only */
+	if(f->curtext != t) /* do curtext only */
 		return;
 	if(f->elog.type == Null)
 		elogterm(f);
-	else if(f->elog.type != Empty){
+	else if(f->elog.type != Empty) {
 		elogapply(f);
-		if(f->editclean){
+		if(f->editclean) {
 			f->mod = FALSE;
-			for(i=0; i<f->ntext; i++)
+			for(i = 0; i < f->ntext; i++)
 				f->text[i]->w->dirty = FALSE;
 		}
 	}
@@ -140,28 +143,28 @@ allupdate(Window *w, void*)
 }
 
 void
-editerror(char *fmt, ...)
+editerror(char* fmt, ...)
 {
 	va_list arg;
-	char *s;
+	char* s;
 
 	va_start(arg, fmt);
 	s = vsmprint(fmt, arg);
 	va_end(arg);
 	freecmd();
-	allwindows(allelogterm, nil);	/* truncate the edit logs */
+	allwindows(allelogterm, nil); /* truncate the edit logs */
 	sendp(editerrc, s);
 	threadexits(nil);
 }
 
 void
-editcmd(Text *ct, Rune *r, uint n)
+editcmd(Text* ct, Rune* r, uint n)
 {
-	char *err;
+	char* err;
 
 	if(n == 0)
 		return;
-	if(2*n > RBUFSIZE){
+	if(2 * n > RBUFSIZE) {
 		warning(nil, "string too long\n");
 		return;
 	}
@@ -169,26 +172,26 @@ editcmd(Text *ct, Rune *r, uint n)
 	allwindows(alleditinit, nil);
 	if(cmdstartp)
 		free(cmdstartp);
-	cmdstartp = runemalloc(n+2);
+	cmdstartp = runemalloc(n + 2);
 	runemove(cmdstartp, r, n);
 	if(r[n] != '\n')
 		cmdstartp[n++] = '\n';
 	cmdstartp[n] = '\0';
-	cmdendp = cmdstartp+n;
+	cmdendp = cmdstartp + n;
 	cmdp = cmdstartp;
 	if(ct->w == nil)
 		curtext = nil;
 	else
 		curtext = &ct->w->body;
 	resetxec();
-	if(editerrc == nil){
+	if(editerrc == nil) {
 		editerrc = chancreate(sizeof(char*), 0);
 		lastpat = allocstring(0);
 	}
 	threadcreate(editthread, nil, STACK);
 	err = recvp(editerrc);
 	editing = Inactive;
-	if(err != nil){
+	if(err != nil) {
 		if(err[0] != '\0')
 			warning(nil, "Edit: %s\n", err);
 		free(err);
@@ -229,16 +232,16 @@ getnum(int signok)
 
 	n = 0;
 	sign = 1;
-	if(signok>1 && nextc()=='-'){
+	if(signok > 1 && nextc() == '-') {
 		sign = -1;
 		getch();
 	}
-	if((c=nextc())<'0' || '9'<c)	/* no number defaults to 1 */
+	if((c = nextc()) < '0' || '9' < c) /* no number defaults to 1 */
 		return sign;
-	while('0'<=(c=getch()) && c<='9')
-		n = n*10 + (c-'0');
+	while('0' <= (c = getch()) && c <= '9')
+		n = n * 10 + (c - '0');
 	ungetch();
-	return sign*n;
+	return sign * n;
 }
 
 int
@@ -247,7 +250,7 @@ cmdskipbl(void)
 	int c;
 	do
 		c = getch();
-	while(c==' ' || c=='\t');
+	while(c == ' ' || c == '\t');
 	if(c >= 0)
 		ungetch();
 	return c;
@@ -257,15 +260,16 @@ cmdskipbl(void)
  * Check that list has room for one more element.
  */
 void
-growlist(List *l)
+growlist(List* l)
 {
-	if(l->listptr==0 || l->nalloc==0){
+	if(l->listptr == 0 || l->nalloc == 0) {
 		l->nalloc = INCR;
-		l->listptr = emalloc(INCR*sizeof(void*));
+		l->listptr = emalloc(INCR * sizeof(void*));
 		l->nused = 0;
-	}else if(l->nused == l->nalloc){
-		l->listptr = erealloc(l->listptr, (l->nalloc+INCR)*sizeof(void*));
-		memset(l->ptr+l->nalloc, 0, INCR*sizeof(void*));
+	} else if(l->nused == l->nalloc) {
+		l->listptr =
+		    erealloc(l->listptr, (l->nalloc + INCR) * sizeof(void*));
+		memset(l->ptr + l->nalloc, 0, INCR * sizeof(void*));
 		l->nalloc += INCR;
 	}
 }
@@ -274,9 +278,10 @@ growlist(List *l)
  * Remove the ith element from the list
  */
 void
-dellist(List *l, int i)
+dellist(List* l, int i)
 {
-	memmove(&l->ptr[i], &l->ptr[i+1], (l->nused-(i+1))*sizeof(void*));
+	memmove(&l->ptr[i], &l->ptr[i + 1],
+	        (l->nused - (i + 1)) * sizeof(void*));
 	l->nused--;
 }
 
@@ -284,16 +289,16 @@ dellist(List *l, int i)
  * Add a new element, whose position is i, to the list
  */
 void
-inslist(List *l, int i, void *v)
+inslist(List* l, int i, void* v)
 {
 	growlist(l);
-	memmove(&l->ptr[i+1], &l->ptr[i], (l->nused-i)*sizeof(void*));
+	memmove(&l->ptr[i + 1], &l->ptr[i], (l->nused - i) * sizeof(void*));
 	l->ptr[i] = v;
 	l->nused++;
 }
 
 void
-listfree(List *l)
+listfree(List* l)
 {
 	free(l->listptr);
 	free(l);
@@ -302,26 +307,27 @@ listfree(List *l)
 String*
 allocstring(int n)
 {
-	String *s;
+	String* s;
 
 	s = emalloc(sizeof(String));
 	s->n = n;
-	s->nalloc = n+10;
-	s->r = emalloc(s->nalloc*sizeof(Rune));
+	s->nalloc = n + 10;
+	s->r = emalloc(s->nalloc * sizeof(Rune));
 	s->r[n] = '\0';
 	return s;
 }
 
 void
-freestring(String *s)
+freestring(String* s)
 {
 	free(s->r);
 	free(s);
 }
 
 Cmd*
-newcmd(void){
-	Cmd *p;
+newcmd(void)
+{
+	Cmd* p;
 
 	p = emalloc(sizeof(Cmd));
 	inslist(&cmdlist, cmdlist.nused, p);
@@ -331,7 +337,7 @@ newcmd(void){
 String*
 newstring(int n)
 {
-	String *p;
+	String* p;
 
 	p = allocstring(n);
 	inslist(&stringlist, stringlist.nused, p);
@@ -341,7 +347,7 @@ newstring(int n)
 Addr*
 newaddr(void)
 {
-	Addr *p;
+	Addr* p;
 
 	p = emalloc(sizeof(Addr));
 	inslist(&addrlist, addrlist.nused, p);
@@ -357,7 +363,7 @@ freecmd(void)
 		free(cmdlist.ucharptr[--cmdlist.nused]);
 	while(addrlist.nused > 0)
 		free(addrlist.ucharptr[--addrlist.nused]);
-	while(stringlist.nused>0){
+	while(stringlist.nused > 0) {
 		i = --stringlist.nused;
 		freestring(stringlist.stringptr[i]);
 	}
@@ -366,8 +372,8 @@ freecmd(void)
 void
 okdelim(int c)
 {
-	if(c=='\\' || ('a'<=c && c<='z')
-	|| ('A'<=c && c<='Z') || ('0'<=c && c<='9'))
+	if(c == '\\' || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+	   ('0' <= c && c <= '9'))
 		editerror("bad delimiter %c\n", c);
 }
 
@@ -383,81 +389,82 @@ atnl(void)
 }
 
 void
-Straddc(String *s, int c)
+Straddc(String* s, int c)
 {
-	if(s->n+1 >= s->nalloc){
+	if(s->n + 1 >= s->nalloc) {
 		s->nalloc += 10;
-		s->r = erealloc(s->r, s->nalloc*sizeof(Rune));
+		s->r = erealloc(s->r, s->nalloc * sizeof(Rune));
 	}
 	s->r[s->n++] = c;
 	s->r[s->n] = '\0';
 }
 
 void
-getrhs(String *s, int delim, int cmd)
+getrhs(String* s, int delim, int cmd)
 {
 	int c;
 
-	while((c = getch())>0 && c!=delim && c!='\n'){
-		if(c == '\\'){
-			if((c=getch()) <= 0)
+	while((c = getch()) > 0 && c != delim && c != '\n') {
+		if(c == '\\') {
+			if((c = getch()) <= 0)
 				error("bad right hand side");
-			if(c == '\n'){
+			if(c == '\n') {
 				ungetch();
-				c='\\';
-			}else if(c == 'n')
-				c='\n';
-			else if(c!=delim && (cmd=='s' || c!='\\'))	/* s does its own */
+				c = '\\';
+			} else if(c == 'n')
+				c = '\n';
+			else if(c != delim &&
+			        (cmd == 's' || c != '\\')) /* s does its own */
 				Straddc(s, '\\');
 		}
 		Straddc(s, c);
 	}
-	ungetch();	/* let client read whether delimiter, '\n' or whatever */
+	ungetch(); /* let client read whether delimiter, '\n' or whatever */
 }
 
-String *
-collecttoken(char *end)
+String*
+collecttoken(char* end)
 {
-	String *s = newstring(0);
+	String* s = newstring(0);
 	int c;
 
-	while((c=nextc())==' ' || c=='\t')
+	while((c = nextc()) == ' ' || c == '\t')
 		Straddc(s, getch()); /* blanks significant for getname() */
-	while((c=getch())>0 && utfrune(end, c)==0)
+	while((c = getch()) > 0 && utfrune(end, c) == 0)
 		Straddc(s, c);
 	if(c != '\n')
 		atnl();
 	return s;
 }
 
-String *
+String*
 collecttext(void)
 {
-	String *s;
+	String* s;
 	int begline, i, c, delim;
 
 	s = newstring(0);
-	if(cmdskipbl()=='\n'){
+	if(cmdskipbl() == '\n') {
 		getch();
 		i = 0;
-		do{
+		do {
 			begline = i;
-			while((c = getch())>0 && c!='\n')
+			while((c = getch()) > 0 && c != '\n')
 				i++, Straddc(s, c);
 			i++, Straddc(s, '\n');
 			if(c < 0)
 				goto Return;
-		}while(s->r[begline]!='.' || s->r[begline+1]!='\n');
-		s->r[s->n-2] = '\0';
+		} while(s->r[begline] != '.' || s->r[begline + 1] != '\n');
+		s->r[s->n - 2] = '\0';
 		s->n -= 2;
-	}else{
+	} else {
 		okdelim(delim = getch());
 		getrhs(s, delim, 'a');
-		if(nextc()==delim)
+		if(nextc() == delim)
 			getch();
 		atnl();
 	}
-    Return:
+Return:
 	return s;
 }
 
@@ -466,7 +473,7 @@ cmdlookup(int c)
 {
 	int i;
 
-	for(i=0; cmdtab[i].cmdc; i++)
+	for(i = 0; cmdtab[i].cmdc; i++)
 		if(cmdtab[i].cmdc == c)
 			return i;
 	return -1;
@@ -476,8 +483,8 @@ Cmd*
 parsecmd(int nest)
 {
 	int i, c;
-	struct cmdtab *ct;
-	Cmd *cp, *ncp;
+	struct cmdtab* ct;
+	Cmd* cp, *ncp;
 	Cmd cmd;
 
 	cmd.next = cmd.cmd = 0;
@@ -486,82 +493,81 @@ parsecmd(int nest)
 	cmd.addr = compoundaddr();
 	if(cmdskipbl() == -1)
 		return 0;
-	if((c=getch())==-1)
+	if((c = getch()) == -1)
 		return 0;
 	cmd.cmdc = c;
-	if(cmd.cmdc=='c' && nextc()=='d'){	/* sleazy two-character case */
-		getch();		/* the 'd' */
-		cmd.cmdc='c'|0x100;
+	if(cmd.cmdc == 'c' && nextc() == 'd') { /* sleazy two-character case */
+		getch();                        /* the 'd' */
+		cmd.cmdc = 'c' | 0x100;
 	}
 	i = cmdlookup(cmd.cmdc);
-	if(i >= 0){
+	if(i >= 0) {
 		if(cmd.cmdc == '\n')
-			goto Return;	/* let nl_cmd work it all out */
+			goto Return; /* let nl_cmd work it all out */
 		ct = &cmdtab[i];
-		if(ct->defaddr==aNo && cmd.addr)
+		if(ct->defaddr == aNo && cmd.addr)
 			editerror("command takes no address");
 		if(ct->count)
 			cmd.num = getnum(ct->count);
-		if(ct->regexp){
+		if(ct->regexp) {
 			/* x without pattern -> .*\n, indicated by cmd.re==0 */
 			/* X without pattern is all files */
-			if((ct->cmdc!='x' && ct->cmdc!='X') ||
-			   ((c = nextc())!=' ' && c!='\t' && c!='\n')){
+			if((ct->cmdc != 'x' && ct->cmdc != 'X') ||
+			   ((c = nextc()) != ' ' && c != '\t' && c != '\n')) {
 				cmdskipbl();
-				if((c = getch())=='\n' || c<0)
+				if((c = getch()) == '\n' || c < 0)
 					editerror("no address");
 				okdelim(c);
 				cmd.re = getregexp(c);
-				if(ct->cmdc == 's'){
+				if(ct->cmdc == 's') {
 					cmd.text = newstring(0);
 					getrhs(cmd.text, c, 's');
-					if(nextc() == c){
+					if(nextc() == c) {
 						getch();
 						if(nextc() == 'g')
 							cmd.flag = getch();
 					}
-			
 				}
 			}
 		}
-		if(ct->addr && (cmd.mtaddr=simpleaddr())==0)
+		if(ct->addr && (cmd.mtaddr = simpleaddr()) == 0)
 			editerror("bad address");
-		if(ct->defcmd){
-			if(cmdskipbl() == '\n'){
+		if(ct->defcmd) {
+			if(cmdskipbl() == '\n') {
 				getch();
 				cmd.cmd = newcmd();
 				cmd.cmd->cmdc = ct->defcmd;
-			}else if((cmd.cmd = parsecmd(nest))==0)
+			} else if((cmd.cmd = parsecmd(nest)) == 0)
 				error("defcmd");
-		}else if(ct->text)
+		} else if(ct->text)
 			cmd.text = collecttext();
 		else if(ct->token)
 			cmd.text = collecttoken(ct->token);
 		else
 			atnl();
-	}else
-		switch(cmd.cmdc){
+	} else
+		switch(cmd.cmdc) {
 		case '{':
 			cp = 0;
-			do{
-				if(cmdskipbl()=='\n')
+			do {
+				if(cmdskipbl() == '\n')
 					getch();
-				ncp = parsecmd(nest+1);
+				ncp = parsecmd(nest + 1);
 				if(cp)
 					cp->next = ncp;
 				else
 					cmd.cmd = ncp;
-			}while(cp = ncp);
+			} while(cp = ncp);
 			break;
 		case '}':
 			atnl();
-			if(nest==0)
+			if(nest == 0)
 				editerror("right brace with no left brace");
 			return 0;
 		default:
 			editerror("unknown command %c", cmd.cmdc);
 		}
-    Return:
+Return:
 	cp = newcmd();
 	*cp = cmd;
 	return cp;
@@ -570,58 +576,68 @@ parsecmd(int nest)
 String*
 getregexp(int delim)
 {
-	String *buf, *r;
+	String* buf, *r;
 	int i, c;
 
 	buf = allocstring(0);
-	for(i=0; ; i++){
-		if((c = getch())=='\\'){
-			if(nextc()==delim)
+	for(i = 0;; i++) {
+		if((c = getch()) == '\\') {
+			if(nextc() == delim)
 				c = getch();
-			else if(nextc()=='\\'){
+			else if(nextc() == '\\') {
 				Straddc(buf, c);
 				c = getch();
 			}
-		}else if(c==delim || c=='\n')
+		} else if(c == delim || c == '\n')
 			break;
 		if(i >= RBUFSIZE)
 			editerror("regular expression too long");
 		Straddc(buf, c);
 	}
-	if(c!=delim && c)
+	if(c != delim && c)
 		ungetch();
-	if(buf->n > 0){
+	if(buf->n > 0) {
 		patset = TRUE;
 		freestring(lastpat);
 		lastpat = buf;
-	}else
+	} else
 		freestring(buf);
 	if(lastpat->n == 0)
 		editerror("no regular expression defined");
 	r = newstring(lastpat->n);
-	runemove(r->r, lastpat->r, lastpat->n);	/* newstring put \0 at end */
+	runemove(r->r, lastpat->r, lastpat->n); /* newstring put \0 at end */
 	return r;
 }
 
-Addr *
+Addr*
 simpleaddr(void)
 {
 	Addr addr;
-	Addr *ap, *nap;
+	Addr* ap, *nap;
 
 	addr.next = 0;
 	addr.left = 0;
-	switch(cmdskipbl()){
+	switch(cmdskipbl()) {
 	case '#':
 		addr.type = getch();
 		addr.num = getnum(1);
 		break;
-	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9': 
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 		addr.num = getnum(1);
-		addr.type='l';
+		addr.type = 'l';
 		break;
-	case '/': case '?': case '"':
+	case '/':
+	case '?':
+	case '"':
 		addr.re = getregexp(addr.type = getch());
 		break;
 	case '.':
@@ -635,25 +651,25 @@ simpleaddr(void)
 		return 0;
 	}
 	if(addr.next = simpleaddr())
-		switch(addr.next->type){
+		switch(addr.next->type) {
 		case '.':
 		case '$':
 		case '\'':
-			if(addr.type!='"')
-		case '"':
-				editerror("bad address syntax");
+			if(addr.type != '"')
+			case '"':
+			editerror("bad address syntax");
 			break;
 		case 'l':
 		case '#':
-			if(addr.type=='"')
+			if(addr.type == '"')
 				break;
-			/* fall through */
+		/* fall through */
 		case '/':
 		case '?':
-			if(addr.type!='+' && addr.type!='-'){
+			if(addr.type != '+' && addr.type != '-') {
 				/* insert the missing '+' */
 				nap = newaddr();
-				nap->type='+';
+				nap->type = '+';
 				nap->next = addr.next;
 				addr.next = nap;
 			}
@@ -669,18 +685,18 @@ simpleaddr(void)
 	return ap;
 }
 
-Addr *
+Addr*
 compoundaddr(void)
 {
 	Addr addr;
-	Addr *ap, *next;
+	Addr* ap, *next;
 
 	addr.left = simpleaddr();
-	if((addr.type = cmdskipbl())!=',' && addr.type!=';')
+	if((addr.type = cmdskipbl()) != ',' && addr.type != ';')
 		return addr.left;
 	getch();
 	next = addr.next = compoundaddr();
-	if(next && (next->type==',' || next->type==';') && next->left==0)
+	if(next && (next->type == ',' || next->type == ';') && next->left == 0)
 		editerror("bad address syntax");
 	ap = newaddr();
 	*ap = addr;

@@ -42,10 +42,7 @@
 #include <u.h>
 #include <libc.h>
 
-static	char	dmsize[12] =
-{
-	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
+static char dmsize[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 /*
  * The following table is used for 1974 and 1975 and
@@ -53,21 +50,19 @@ static	char	dmsize[12] =
  * change.
  */
 
-static	int	dysize(int);
-static	void	ct_numb(char*, int);
+static int dysize(int);
+static void ct_numb(char*, int);
 
-#define	TZSIZE	150
-static	void	readtimezone(void);
-static	int	rd_name(char**, char*);
-static	int	rd_long(char**, int32_t*);
-static
-struct
-{
-	char	stname[4];
-	char	dlname[4];
-	int32_t	stdiff;
-	int32_t	dldiff;
-	int32_t	dlpairs[TZSIZE];
+#define TZSIZE 150
+static void readtimezone(void);
+static int rd_name(char**, char*);
+static int rd_long(char**, int32_t*);
+static struct {
+	char stname[4];
+	char dlname[4];
+	int32_t stdiff;
+	int32_t dldiff;
+	int32_t dlpairs[TZSIZE];
 } timezone;
 
 char*
@@ -79,7 +74,7 @@ ctime(int32_t t)
 Tm*
 localtime(int32_t tim)
 {
-	Tm *ct;
+	Tm* ct;
 	int32_t t, *p;
 	int dlflag;
 
@@ -89,13 +84,13 @@ localtime(int32_t tim)
 	dlflag = 0;
 	for(p = timezone.dlpairs; *p; p += 2)
 		if(t >= p[0])
-		if(t < p[1]) {
-			t = tim + timezone.dldiff;
-			dlflag++;
-			break;
-		}
+			if(t < p[1]) {
+				t = tim + timezone.dldiff;
+				dlflag++;
+				break;
+			}
 	ct = gmtime(t);
-	if(dlflag){
+	if(dlflag) {
 		strcpy(ct->zone, timezone.dlname);
 		ct->tzoff = timezone.dldiff;
 	} else {
@@ -146,9 +141,9 @@ gmtime(int32_t tim)
 		for(d1 = 1970; day >= dysize(d1); d1++)
 			day -= dysize(d1);
 	else
-		for (d1 = 1970; day < 0; d1--)
-			day += dysize(d1-1);
-	xtime.year = d1-1900;
+		for(d1 = 1970; day < 0; d1--)
+			day += dysize(d1 - 1);
+	xtime.year = d1 - 1900;
 	xtime.yday = d0 = day;
 
 	/*
@@ -167,24 +162,24 @@ gmtime(int32_t tim)
 }
 
 char*
-asctime(Tm *t)
+asctime(Tm* t)
 {
-	char *ncp;
+	char* ncp;
 	static char cbuf[30];
 
 	strcpy(cbuf, "Thu Jan 01 00:00:00 GMT 1970\n");
-	ncp = &"SunMonTueWedThuFriSat"[t->wday*3];
+	ncp = &"SunMonTueWedThuFriSat"[t->wday * 3];
 	cbuf[0] = *ncp++;
 	cbuf[1] = *ncp++;
 	cbuf[2] = *ncp;
-	ncp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[t->mon*3];
+	ncp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[t->mon * 3];
 	cbuf[4] = *ncp++;
 	cbuf[5] = *ncp++;
 	cbuf[6] = *ncp;
-	ct_numb(cbuf+8, t->mday);
-	ct_numb(cbuf+11, t->hour+100);
-	ct_numb(cbuf+14, t->min+100);
-	ct_numb(cbuf+17, t->sec+100);
+	ct_numb(cbuf + 8, t->mday);
+	ct_numb(cbuf + 11, t->hour + 100);
+	ct_numb(cbuf + 14, t->min + 100);
+	ct_numb(cbuf + 17, t->sec + 100);
 	ncp = t->zone;
 	cbuf[20] = *ncp++;
 	cbuf[21] = *ncp++;
@@ -193,43 +188,40 @@ asctime(Tm *t)
 		cbuf[24] = '2';
 		cbuf[25] = '0';
 	}
-	ct_numb(cbuf+26, t->year+100);
+	ct_numb(cbuf + 26, t->year + 100);
 	return cbuf;
 }
 
-static
-int
+static int
 dysize(int y)
 {
 
-	if(y%4 == 0 && (y%100 != 0 || y%400 == 0))
+	if(y % 4 == 0 && (y % 100 != 0 || y % 400 == 0))
 		return 366;
 	return 365;
 }
 
-static
-void
-ct_numb(char *cp, int n)
+static void
+ct_numb(char* cp, int n)
 {
 
 	cp[0] = ' ';
 	if(n >= 10)
-		cp[0] = (n/10)%10 + '0';
-	cp[1] = n%10 + '0';
+		cp[0] = (n / 10) % 10 + '0';
+	cp[1] = n % 10 + '0';
 }
 
-static
-void
+static void
 readtimezone(void)
 {
-	char buf[TZSIZE*11+30], *p;
+	char buf[TZSIZE * 11 + 30], *p;
 	int i;
 
 	memset(buf, 0, sizeof(buf));
 	i = open("/env/timezone", 0);
 	if(i < 0)
 		goto error;
-	if(read(i, buf, sizeof(buf)) >= sizeof(buf)){
+	if(read(i, buf, sizeof(buf)) >= sizeof(buf)) {
 		close(i);
 		goto error;
 	}
@@ -243,7 +235,7 @@ readtimezone(void)
 		goto error;
 	if(rd_long(&p, &timezone.dldiff))
 		goto error;
-	for(i=0; i<TZSIZE; i++) {
+	for(i = 0; i < TZSIZE; i++) {
 		if(rd_long(&p, &timezone.dlpairs[i]))
 			goto error;
 		if(timezone.dlpairs[i] == 0)
@@ -256,9 +248,8 @@ error:
 	timezone.dlpairs[0] = 0;
 }
 
-static
-int
-rd_name(char **f, char *p)
+static int
+rd_name(char** f, char* p)
 {
 	int c, i;
 
@@ -267,7 +258,7 @@ rd_name(char **f, char *p)
 		if(c != ' ' && c != '\n')
 			break;
 	}
-	for(i=0; i<3; i++) {
+	for(i = 0; i < 3; i++) {
 		if(c == ' ' || c == '\n')
 			return 1;
 		*p++ = c;
@@ -279,9 +270,8 @@ rd_name(char **f, char *p)
 	return 0;
 }
 
-static
-int
-rd_long(char **f, int32_t *p)
+static int
+rd_long(char** f, int32_t* p)
 {
 	int c, s;
 	int32_t l;
@@ -306,7 +296,7 @@ rd_long(char **f, int32_t *p)
 			break;
 		if(c < '0' || c > '9')
 			return 1;
-		l = l*10 + c-'0';
+		l = l * 10 + c - '0';
 		c = *(*f)++;
 	}
 	if(s)

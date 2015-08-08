@@ -8,7 +8,7 @@
  */
 
 #if !defined(_RESEARCH_SOURCE) && !defined(_PLAN9_SOURCE)
-   This header file is an extension of ANSI/POSIX
+This header file is an extension of ANSI / POSIX
 #endif
 
 #ifndef __LOCK_H
@@ -17,20 +17,19 @@
 
 #include <u.h>
 
-typedef struct
-{
-	int32_t	key;
-	int32_t	sem;
+    typedef struct {
+	int32_t key;
+	int32_t sem;
 } Lock;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern	void	lock(Lock*);
-extern	void	unlock(Lock*);
-extern	int	canlock(Lock*);
-extern	int	tas(int*);
+extern void lock(Lock*);
+extern void unlock(Lock*);
+extern int canlock(Lock*);
+extern int tas(int*);
 
 #ifdef __cplusplus
 }

@@ -8,11 +8,11 @@
  */
 
 /*
- * Multiplexed Venti client.  It would be nice if we 
+ * Multiplexed Venti client.  It would be nice if we
  * could turn this into a generic library routine rather
  * than keep it Venti specific.  A user-level 9P client
  * could use something like this too.
- * 
+ *
  * (Actually it does - this should be replaced with libmux,
  * which should be renamed librpcmux.)
  *
@@ -27,10 +27,9 @@
 #include <venti.h>
 
 typedef struct Rwait Rwait;
-struct Rwait
-{
+struct Rwait {
 	Rendez r;
-	Packet *p;
+	Packet* p;
 	int done;
 	int sleeping;
 };
@@ -40,13 +39,13 @@ static void puttag(VtConn*, Rwait*, int);
 static void muxrpc(VtConn*, Packet*);
 
 Packet*
-_vtrpc(VtConn *z, Packet *p, VtFcall *tx)
+_vtrpc(VtConn* z, Packet* p, VtFcall* tx)
 {
 	int i;
 	uint8_t tag, buf[2], *top;
-	Rwait *r, *rr;
+	Rwait* r, *rr;
 
-	if(z == nil){
+	if(z == nil) {
 		werrstr("not connected");
 		packetfree(p);
 		return nil;
@@ -58,7 +57,7 @@ _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 	qlock(&z->lk);
 	r->r.l = &z->lk;
 	tag = gettag(z, r);
-	if(tx){
+	if(tx) {
 		/* vtfcallrpc can't print packet because it doesn't have tag */
 		tx->tag = tag;
 		if(chattyventi)
@@ -67,11 +66,11 @@ _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 
 	/* slam tag into packet */
 	top = packetpeek(p, buf, 0, 2);
-	if(top == nil){
+	if(top == nil) {
 		packetfree(p);
 		return nil;
 	}
-	if(top == buf){
+	if(top == buf) {
 		werrstr("first two bytes must be in same packet fragment");
 		packetfree(p);
 		vtfree(r);
@@ -79,7 +78,7 @@ _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 	}
 	top[1] = tag;
 	qunlock(&z->lk);
-	if(vtsend(z, p) < 0){
+	if(vtsend(z, p) < 0) {
 		vtfree(r);
 		return nil;
 	}
@@ -94,13 +93,13 @@ _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 	r->sleeping = 0;
 
 	/* if not done, there's no muxer: start muxing */
-	if(!r->done){
+	if(!r->done) {
 		if(z->muxer)
 			abort();
 		z->muxer = 1;
-		while(!r->done){
+		while(!r->done) {
 			qunlock(&z->lk);
-			if((p = vtrecv(z)) == nil){
+			if((p = vtrecv(z)) == nil) {
 				werrstr("unexpected eof on venti connection");
 				z->muxer = 0;
 				vtfree(r);
@@ -110,15 +109,16 @@ _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 			muxrpc(z, p);
 		}
 		z->muxer = 0;
-		/* if there is anyone else sleeping, wake first unfinished to mux */
+		/* if there is anyone else sleeping, wake first unfinished to
+		 * mux */
 		if(z->nsleep)
-		for(i=0; i<256; i++){
-			rr = z->wait[i];
-			if(rr && rr->sleeping && !rr->done){
-				rwakeup(&rr->r);
-				break;
+			for(i = 0; i < 256; i++) {
+				rr = z->wait[i];
+				if(rr && rr->sleeping && !rr->done) {
+					rwakeup(&rr->r);
+					break;
+				}
 			}
-		}
 	}
 
 	p = r->p;
@@ -129,21 +129,21 @@ _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 }
 
 Packet*
-vtrpc(VtConn *z, Packet *p)
+vtrpc(VtConn* z, Packet* p)
 {
 	return _vtrpc(z, p, nil);
 }
 
-static int 
-gettag(VtConn *z, Rwait *r)
+static int
+gettag(VtConn* z, Rwait* r)
 {
 	int i;
 
 Again:
 	while(z->ntag == 256)
 		rsleep(&z->tagrend);
-	for(i=0; i<256; i++)
-		if(z->wait[i] == 0){
+	for(i = 0; i < 256; i++)
+		if(z->wait[i] == 0) {
 			z->ntag++;
 			z->wait[i] = r;
 			return i;
@@ -153,7 +153,7 @@ Again:
 }
 
 static void
-puttag(VtConn *z, Rwait *r, int tag)
+puttag(VtConn* z, Rwait* r, int tag)
 {
 	assert(z->wait[tag] == r);
 	z->wait[tag] = nil;
@@ -162,21 +162,21 @@ puttag(VtConn *z, Rwait *r, int tag)
 }
 
 static void
-muxrpc(VtConn *z, Packet *p)
+muxrpc(VtConn* z, Packet* p)
 {
 	uint8_t tag, buf[2], *top;
-	Rwait *r;
+	Rwait* r;
 
-	if((top = packetpeek(p, buf, 0, 2)) == nil){
+	if((top = packetpeek(p, buf, 0, 2)) == nil) {
 		fprint(2, "libventi: short packet in vtrpc\n");
 		packetfree(p);
 		return;
 	}
 
 	tag = top[1];
-	if((r = z->wait[tag]) == nil){
+	if((r = z->wait[tag]) == nil) {
 		fprint(2, "libventi: unexpected packet tag %d in vtrpc\n", tag);
-abort();
+		abort();
 		packetfree(p);
 		return;
 	}
@@ -185,4 +185,3 @@ abort();
 	r->done = 1;
 	rwakeup(&r->r);
 }
-

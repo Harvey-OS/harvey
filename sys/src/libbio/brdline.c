@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 void*
-Brdline(Biobufhdr *bp, int delim)
+Brdline(Biobufhdr* bp, int delim)
 {
-	char *ip, *ep;
+	char* ip, *ep;
 	int i, j;
 
 	i = -bp->icount;
@@ -55,15 +55,15 @@ Brdline(Biobufhdr *bp, int delim)
 	 */
 	ip = (char*)bp->bbuf + i;
 	while(i < bp->bsize) {
-		j = read(bp->fid, ip, bp->bsize-i);
+		j = read(bp->fid, ip, bp->bsize - i);
 		if(j <= 0) {
 			/*
 			 * end of file with no delim
 			 */
-			memmove(bp->ebuf-i, bp->bbuf, i);
+			memmove(bp->ebuf - i, bp->bbuf, i);
 			bp->rdline = i;
 			bp->icount = -i;
-			bp->gbuf = bp->ebuf-i;
+			bp->gbuf = bp->ebuf - i;
 			return 0;
 		}
 		bp->offset += j;
@@ -75,7 +75,7 @@ Brdline(Biobufhdr *bp, int delim)
 			 * copy back up and reset everything
 			 */
 			ip = (char*)bp->ebuf - i;
-			if(i < bp->bsize){
+			if(i < bp->bsize) {
 				memmove(ip, bp->bbuf, i);
 				bp->gbuf = (uint8_t*)ip;
 			}
@@ -97,7 +97,7 @@ Brdline(Biobufhdr *bp, int delim)
 }
 
 int
-Blinelen(Biobufhdr *bp)
+Blinelen(Biobufhdr* bp)
 {
 
 	return bp->rdline;

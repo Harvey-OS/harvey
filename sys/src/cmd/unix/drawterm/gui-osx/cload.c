@@ -13,7 +13,7 @@
 #include <memdraw.h>
 
 int
-cloadmemimage(Memimage *i, Rectangle r, uint8_t *data, int ndata)
+cloadmemimage(Memimage* i, Rectangle r, uint8_t* data, int ndata)
 {
 	return _cloadmemimage(i, r, data, ndata);
 }

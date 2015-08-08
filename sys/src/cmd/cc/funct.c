@@ -7,32 +7,30 @@
  * in the LICENSE file.
  */
 
-#include	"cc.h"
+#include "cc.h"
 
-typedef	struct	Ftab	Ftab;
-struct	Ftab
-{
-	char	op;
-	char*	name;
-	char	typ;
+typedef struct Ftab Ftab;
+struct Ftab {
+	char op;
+	char* name;
+	char typ;
 };
-typedef	struct	Gtab	Gtab;
-struct	Gtab
-{
-	char	etype;
-	char*	name;
+typedef struct Gtab Gtab;
+struct Gtab {
+	char etype;
+	char* name;
 };
 
-Ftab	ftabinit[OEND];
-Gtab	gtabinit[NTYPE];
+Ftab ftabinit[OEND];
+Gtab gtabinit[NTYPE];
 
 int
-isfunct(Node *n)
+isfunct(Node* n)
 {
-	Type *t, *t1;
-	Funct *f;
-	Node *l;
-	Sym *s;
+	Type* t, *t1;
+	Funct* f;
+	Node* l;
+	Sym* s;
 	int o;
 
 	o = n->op;
@@ -44,7 +42,7 @@ isfunct(Node *n)
 	f = t->funct;
 
 	switch(o) {
-	case OAS:	// put cast on rhs
+	case OAS: // put cast on rhs
 	case OASI:
 	case OASADD:
 	case OASAND:
@@ -80,7 +78,7 @@ isfunct(Node *n)
 			prtree(n, "isfunc !");
 		break;
 
-	case OCAST:	// t f(T) or T f(t)
+	case OCAST: // t f(T) or T f(t)
 		t1 = n->type;
 		if(t1 == T)
 			goto no;
@@ -118,7 +116,7 @@ isfunct(Node *n)
 		diag(n, "isfunct op missing %O\n", o);
 		goto bad;
 
-	case OADD:	// T f(T, T)
+	case OADD: // T f(T, T)
 	case OAND:
 	case OASHL:
 	case OASHR:
@@ -133,7 +131,7 @@ isfunct(Node *n)
 	case OSUB:
 	case OXOR:
 
-	case OEQ:	// int f(T, T)
+	case OEQ: // int f(T, T)
 	case OGE:
 	case OGT:
 	case OHI:
@@ -153,11 +151,11 @@ isfunct(Node *n)
 		n->right = new(OLIST, n->left, n->right);
 		break;
 
-	case OAS:	// structure copies done by the compiler
+	case OAS: // structure copies done by the compiler
 	case OASI:
 		goto no;
 
-	case OASADD:	// T f(T*, T)
+	case OASADD: // T f(T*, T)
 	case OASAND:
 	case OASASHL:
 	case OASASHR:
@@ -181,14 +179,12 @@ isfunct(Node *n)
 		n->right = new(OLIST, new(OADDR, n->left, Z), n->right);
 		break;
 
-	case OPOS:	// T f(T)
+	case OPOS: // T f(T)
 	case ONEG:
 	case ONOT:
 	case OCOM:
 		n->right = n->left;
 		break;
-
-
 	}
 
 build:
@@ -220,11 +216,11 @@ bad:
 }
 
 void
-dclfunct(Type *t, Sym *s)
+dclfunct(Type* t, Sym* s)
 {
-	Funct *f;
-	Node *n;
-	Type *f1, *f2, *f3, *f4;
+	Funct* f;
+	Node* n;
+	Type* f1, *f2, *f3, *f4;
 	int o, i, c;
 	char str[100];
 
@@ -234,9 +230,9 @@ dclfunct(Type *t, Sym *s)
 	// recognize generated tag of dorm _%d_
 	if(t->tag == S)
 		goto bad;
-	for(i=0; c = t->tag->name[i]; i++) {
+	for(i = 0; c = t->tag->name[i]; i++) {
 		if(c == '_') {
-			if(i == 0 || t->tag->name[i+1] == 0)
+			if(i == 0 || t->tag->name[i + 1] == 0)
 				continue;
 			break;
 		}
@@ -247,7 +243,7 @@ dclfunct(Type *t, Sym *s)
 		goto bad;
 
 	f = alloc(sizeof(*f));
-	for(o=0; o<nelem(f->sym); o++)
+	for(o = 0; o < nelem(f->sym); o++)
 		f->sym[o] = S;
 
 	t->funct = f;
@@ -267,7 +263,7 @@ dclfunct(Type *t, Sym *s)
 	f4 = typ(TFUNC, t);
 	f4->down = t;
 
-	for(i=0;; i++) {
+	for(i = 0;; i++) {
 		o = ftabinit[i].op;
 		if(o == OXXX)
 			break;
@@ -280,24 +276,24 @@ dclfunct(Type *t, Sym *s)
 			diag(Z, "dclfunct op missing %d\n", ftabinit[i].typ);
 			break;
 
-		case 1:	// T f(T,T)	+
+		case 1: // T f(T,T)	+
 			dodecl(xdecl, CEXTERN, f1, n);
 			break;
 
-		case 2:	// int f(T,T)	==
+		case 2: // int f(T,T)	==
 			dodecl(xdecl, CEXTERN, f2, n);
 			break;
 
-		case 3:	// void f(T*,T)	+=
+		case 3: // void f(T*,T)	+=
 			dodecl(xdecl, CEXTERN, f3, n);
 			break;
 
-		case 4:	// T f(T)	~
+		case 4: // T f(T)	~
 			dodecl(xdecl, CEXTERN, f4, n);
 			break;
 		}
 	}
-	for(i=0;; i++) {
+	for(i = 0;; i++) {
 		o = gtabinit[i].etype;
 		if(o == TXXX)
 			break;
@@ -328,77 +324,38 @@ bad:
 	diag(Z, "dclfunct bad %T %s\n", t, s->name);
 }
 
-Gtab	gtabinit[NTYPE] =
-{
-	TCHAR,		"c",
-	TUCHAR,		"uc",
-	TSHORT,		"h",
-	TUSHORT,	"uh",
-	TINT,		"i",
-	TUINT,		"ui",
-	TLONG,		"l",
-	TULONG,		"ul",
-	TVLONG,		"v",
-	TUVLONG,	"uv",
-	TFLOAT,		"f",
-	TDOUBLE,	"d",
-	TXXX
-};
+Gtab gtabinit[NTYPE] = {TCHAR,  "c",     TUCHAR, "uc",  TSHORT,  "h",   TUSHORT,
+                        "uh",   TINT,    "i",    TUINT, "ui",    TLONG, "l",
+                        TULONG, "ul",    TVLONG, "v",   TUVLONG, "uv",  TFLOAT,
+                        "f",    TDOUBLE, "d",    TXXX};
 
-Ftab	ftabinit[OEND] =
-{
-	OADD,		"add",		1,
-	OAND,		"and",		1,
-	OASHL,		"ashl",		1,
-	OASHR,		"ashr",		1,
-	ODIV,		"div",		1,
-	OLDIV,		"ldiv",		1,
-	OLMOD,		"lmod",		1,
-	OLMUL,		"lmul",		1,
-	OLSHR,		"lshr",		1,
-	OMOD,		"mod",		1,
-	OMUL,		"mul",		1,
-	OOR,		"or",		1,
-	OSUB,		"sub",		1,
-	OXOR,		"xor",		1,
+Ftab ftabinit[OEND] = {
+    OADD,    "add",    1, OAND,    "and",    1, OASHL,   "ashl",   1,
+    OASHR,   "ashr",   1, ODIV,    "div",    1, OLDIV,   "ldiv",   1,
+    OLMOD,   "lmod",   1, OLMUL,   "lmul",   1, OLSHR,   "lshr",   1,
+    OMOD,    "mod",    1, OMUL,    "mul",    1, OOR,     "or",     1,
+    OSUB,    "sub",    1, OXOR,    "xor",    1,
 
-	OEQ,		"eq",		2,
-	OGE,		"ge",		2,
-	OGT,		"gt",		2,
-	OHI,		"hi",		2,
-	OHS,		"hs",		2,
-	OLE,		"le",		2,
-	OLO,		"lo",		2,
-	OLS,		"ls",		2,
-	OLT,		"lt",		2,
-	ONE,		"ne",		2,
+    OEQ,     "eq",     2, OGE,     "ge",     2, OGT,     "gt",     2,
+    OHI,     "hi",     2, OHS,     "hs",     2, OLE,     "le",     2,
+    OLO,     "lo",     2, OLS,     "ls",     2, OLT,     "lt",     2,
+    ONE,     "ne",     2,
 
-	OASADD,		"asadd",	3,
-	OASAND,		"asand",	3,
-	OASASHL,	"asashl",	3,
-	OASASHR,	"asashr",	3,
-	OASDIV,		"asdiv",	3,
-	OASLDIV,	"asldiv",	3,
-	OASLMOD,	"aslmod",	3,
-	OASLMUL,	"aslmul",	3,
-	OASLSHR,	"aslshr",	3,
-	OASMOD,		"asmod",	3,
-	OASMUL,		"asmul",	3,
-	OASOR,		"asor",		3,
-	OASSUB,		"assub",	3,
-	OASXOR,		"asxor",	3,
+    OASADD,  "asadd",  3, OASAND,  "asand",  3, OASASHL, "asashl", 3,
+    OASASHR, "asashr", 3, OASDIV,  "asdiv",  3, OASLDIV, "asldiv", 3,
+    OASLMOD, "aslmod", 3, OASLMUL, "aslmul", 3, OASLSHR, "aslshr", 3,
+    OASMOD,  "asmod",  3, OASMUL,  "asmul",  3, OASOR,   "asor",   3,
+    OASSUB,  "assub",  3, OASXOR,  "asxor",  3,
 
-	OPOS,		"pos",		4,
-	ONEG,		"neg",		4,
-	OCOM,		"com",		4,
-	ONOT,		"not",		4,
+    OPOS,    "pos",    4, ONEG,    "neg",    4, OCOM,    "com",    4,
+    ONOT,    "not",    4,
 
-//	OPOSTDEC,
-//	OPOSTINC,
-//	OPREDEC,
-//	OPREINC,
+    //	OPOSTDEC,
+    //	OPOSTINC,
+    //	OPREDEC,
+    //	OPREINC,
 
-	OXXX,
+    OXXX,
 };
 
 //	Node*	nodtestv;

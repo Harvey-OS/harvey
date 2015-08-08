@@ -16,94 +16,90 @@
 
 #include "devip.h"
 
-void	csclose(Chan*);
-int32_t	csread(Chan*, void*, int32_t, int64_t);
-int32_t	cswrite(Chan*, void*, int32_t, int64_t);
+void csclose(Chan*);
+int32_t csread(Chan*, void*, int32_t, int64_t);
+int32_t cswrite(Chan*, void*, int32_t, int64_t);
 
 void osipinit(void);
 
-enum
-{
-	Qtopdir		= 1,	/* top level directory */
-	Qcs,
-	Qprotodir,		/* directory for a protocol */
-	Qclonus,
-	Qconvdir,		/* directory for a conversation */
-	Qdata,
-	Qctl,
-	Qstatus,
-	Qremote,
-	Qlocal,
-	Qlisten,
+enum { Qtopdir = 1, /* top level directory */
+       Qcs,
+       Qprotodir, /* directory for a protocol */
+       Qclonus,
+       Qconvdir, /* directory for a conversation */
+       Qdata,
+       Qctl,
+       Qstatus,
+       Qremote,
+       Qlocal,
+       Qlisten,
 
-	MAXPROTO	= 4
-};
-#define TYPE(x) 	((int)((x).path & 0xf))
-#define CONV(x) 	((int)(((x).path >> 4)&0xfff))
-#define PROTO(x) 	((int)(((x).path >> 16)&0xff))
-#define QID(p, c, y) 	(((p)<<16) | ((c)<<4) | (y))
-#define ipzero(x)	memset(x, 0, IPaddrlen)
+       MAXPROTO = 4 };
+#define TYPE(x) ((int)((x).path & 0xf))
+#define CONV(x) ((int)(((x).path >> 4) & 0xfff))
+#define PROTO(x) ((int)(((x).path >> 16) & 0xff))
+#define QID(p, c, y) (((p) << 16) | ((c) << 4) | (y))
+#define ipzero(x) memset(x, 0, IPaddrlen)
 
-typedef struct Proto	Proto;
-typedef struct Conv	Conv;
-struct Conv
-{
-	int	x;
-	Ref	r;
-	int	sfd;
-	int	perm;
-	char	owner[KNAMELEN];
-	char*	state;
-	uint8_t	laddr[IPaddrlen];
-	uint16_t	lport;
-	uint8_t	raddr[IPaddrlen];
-	uint16_t	rport;
-	int	restricted;
-	char	cerr[KNAMELEN];
-	Proto*	p;
+typedef struct Proto Proto;
+typedef struct Conv Conv;
+struct Conv {
+	int x;
+	Ref r;
+	int sfd;
+	int perm;
+	char owner[KNAMELEN];
+	char* state;
+	uint8_t laddr[IPaddrlen];
+	uint16_t lport;
+	uint8_t raddr[IPaddrlen];
+	uint16_t rport;
+	int restricted;
+	char cerr[KNAMELEN];
+	Proto* p;
 };
 
-struct Proto
-{
-	Lock	l;
-	int	x;
-	int	stype;
-	char	name[KNAMELEN];
-	int	nc;
-	int	maxconv;
-	Conv**	conv;
-	Qid	qid;
+struct Proto {
+	Lock l;
+	int x;
+	int stype;
+	char name[KNAMELEN];
+	int nc;
+	int maxconv;
+	Conv** conv;
+	Qid qid;
 };
 
-static	int	np;
-static	Proto	proto[MAXPROTO];
+static int np;
+static Proto proto[MAXPROTO];
 
-static	Conv*	protoclone(Proto*, char*, int);
-static	void	setladdr(Conv*);
+static Conv* protoclone(Proto*, char*, int);
+static void setladdr(Conv*);
 
 int
-ipgen(Chan *c, char *nname, Dirtab *d, int nd, int s, Dir *dp)
+ipgen(Chan* c, char* nname, Dirtab* d, int nd, int s, Dir* dp)
 {
 	Qid q;
-	Conv *cv;
-	char *p;
+	Conv* cv;
+	char* p;
 
 	USED(nname);
 	q.vers = 0;
 	q.type = 0;
 	switch(TYPE(c->qid)) {
 	case Qtopdir:
-		if(s >= 1+np)
+		if(s >= 1 + np)
 			return -1;
 
-		if(s == 0){
+		if(s == 0) {
 			q.path = QID(s, 0, Qcs);
 			devdir(c, q, "cs", 0, "network", 0666, dp);
-		}else{
+		} else {
 			s--;
 			q.path = QID(s, 0, Qprotodir);
 			q.type = QTDIR;
-			devdir(c, q, proto[s].name, 0, "network", DMDIR|0555, dp);
+			devdir(c, q, proto[s].name, 0, "network", DMDIR | 0555,
+			       dp);
 		}
 		return 1;
 	case Qprotodir:
@@ -112,7 +108,8 @@ ipgen(Chan *c, char *nname, Dirtab *d, int nd, int s, Dir *dp)
 			sprint(up->genbuf, "%d", s);
 			q.path = QID(PROTO(c->qid), s, Qconvdir);
 			q.type = QTDIR;
-			devdir(c, q, up->genbuf, 0, cv->owner, DMDIR|0555, dp);
+			devdir(c, q, up->genbuf, 0, cv->owner, DMDIR | 0555,
+			       dp);
 			return 1;
 		}
 		s -= proto[PROTO(c->qid)].nc;
@@ -163,10 +160,10 @@ ipgen(Chan *c, char *nname, Dirtab *d, int nd, int s, Dir *dp)
 }
 
 static void
-newproto(char *name, int type, int maxconv)
+newproto(char* name, int type, int maxconv)
 {
 	int l;
-	Proto *p;
+	Proto* p;
 
 	if(np >= MAXPROTO) {
 		print("no %s: increase MAXPROTO", name);
@@ -180,7 +177,7 @@ newproto(char *name, int type, int maxconv)
 	p->qid.type = QTDIR;
 	p->x = np++;
 	p->maxconv = maxconv;
-	l = sizeof(Conv*)*(p->maxconv+1);
+	l = sizeof(Conv*) * (p->maxconv + 1);
 	p->conv = mallocz(l, 1);
 	if(p->conv == 0)
 		panic("no memory");
@@ -196,13 +193,12 @@ ipinit(void)
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('E', eipfmt);
-	
 }
 
-Chan *
-ipattach(char *spec)
+Chan*
+ipattach(char* spec)
 {
-	Chan *c;
+	Chan* c;
 
 	c = devattach('I', spec);
 	c->qid.path = QID(0, 0, Qtopdir);
@@ -212,25 +208,25 @@ ipattach(char *spec)
 }
 
 static Walkqid*
-ipwalk(Chan *c, Chan *nc, char **name, int nname)
+ipwalk(Chan* c, Chan* nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, ipgen);
 }
 
 int
-ipstat(Chan *c, uint8_t *dp, int n)
+ipstat(Chan* c, uint8_t* dp, int n)
 {
 	return devstat(c, dp, n, 0, 0, ipgen);
 }
 
-Chan *
-ipopen(Chan *c, int omode)
+Chan*
+ipopen(Chan* c, int omode)
 {
-	Proto *p;
+	Proto* p;
 	uint8_t raddr[IPaddrlen];
 	uint16_t rport;
 	int perm, sfd;
-	Conv *cv, *lcv;
+	Conv* cv, *lcv;
 
 	omode &= 3;
 	perm = 0;
@@ -272,9 +268,9 @@ ipopen(Chan *c, int omode)
 		lock(&p->l);
 		cv = p->conv[CONV(c->qid)];
 		lock(&cv->r.lk);
-		if((perm & (cv->perm>>6)) != perm) {
+		if((perm & (cv->perm >> 6)) != perm) {
 			if(strcmp(up->user, cv->owner) != 0 ||
-		 	  (perm & cv->perm) != perm) {
+			   (perm & cv->perm) != perm) {
 				unlock(&cv->r.lk);
 				unlock(&p->l);
 				error(Eperm);
@@ -311,9 +307,9 @@ ipopen(Chan *c, int omode)
 }
 
 void
-ipclose(Chan *c)
+ipclose(Chan* c)
 {
-	Conv *cc;
+	Conv* cc;
 
 	switch(TYPE(c->qid)) {
 	case Qcs:
@@ -339,15 +335,15 @@ ipclose(Chan *c)
 }
 
 int32_t
-ipread(Chan *ch, void *a, int32_t n, int64_t offset)
+ipread(Chan* ch, void* a, int32_t n, int64_t offset)
 {
 	int r;
-	Conv *c;
-	Proto *x;
+	Conv* c;
+	Proto* x;
 	uint8_t ip[IPaddrlen];
 	char buf[128], *p;
 
-/*print("ipread %s %lux\n", c2name(ch), (long)ch->qid.path);*/
+	/*print("ipread %s %lux\n", c2name(ch), (long)ch->qid.path);*/
 	p = a;
 	switch(TYPE(ch->qid)) {
 	default:
@@ -374,13 +370,13 @@ ipread(Chan *ch, void *a, int32_t n, int64_t offset)
 	case Qstatus:
 		x = &proto[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
-		sprint(buf, "%s/%d %d %s \n",
-			c->p->name, c->x, c->r.ref, c->state);
+		sprint(buf, "%s/%d %d %s \n", c->p->name, c->x, c->r.ref,
+		       c->state);
 		return readstr(offset, p, n, buf);
 	case Qdata:
 		c = proto[PROTO(ch->qid)].conv[CONV(ch->qid)];
 		r = so_recv(c->sfd, a, n, 0);
-		if(r < 0){
+		if(r < 0) {
 			oserrstr();
 			nexterror();
 		}
@@ -389,13 +385,13 @@ ipread(Chan *ch, void *a, int32_t n, int64_t offset)
 }
 
 static void
-setladdr(Conv *c)
+setladdr(Conv* c)
 {
 	so_getsockname(c->sfd, c->laddr, &c->lport);
 }
 
 static void
-setlport(Conv *c)
+setlport(Conv* c)
 {
 	if(c->restricted == 0 && c->lport == 0)
 		return;
@@ -407,17 +403,16 @@ setlport(Conv *c)
 }
 
 static void
-setladdrport(Conv *c, char *str)
+setladdrport(Conv* c, char* str)
 {
-	char *p;
+	char* p;
 	uint8_t addr[IPaddrlen];
 
 	p = strchr(str, '!');
 	if(p == 0) {
 		p = str;
 		ipzero(c->laddr);
-	}
-	else {
+	} else {
 		*p++ = 0;
 		parseip(addr, str);
 		ipmove(c->laddr, addr);
@@ -431,9 +426,9 @@ setladdrport(Conv *c, char *str)
 }
 
 static char*
-setraddrport(Conv *c, char *str)
+setraddrport(Conv* c, char* str)
 {
-	char *p;
+	char* p;
 	uint8_t addr[IPaddrlen];
 
 	p = strchr(str, '!');
@@ -452,12 +447,12 @@ setraddrport(Conv *c, char *str)
 }
 
 int32_t
-ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
+ipwrite(Chan* ch, void* a, int32_t n, int64_t offset)
 {
-	Conv *c;
-	Proto *x;
+	Conv* c;
+	Proto* x;
 	int r, nf;
-	char *p, *fields[3], buf[128];
+	char* p, *fields[3], buf[128];
 
 	switch(TYPE(ch->qid)) {
 	default:
@@ -467,13 +462,13 @@ ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 	case Qctl:
 		x = &proto[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
-		if(n > sizeof(buf)-1)
-			n = sizeof(buf)-1;
+		if(n > sizeof(buf) - 1)
+			n = sizeof(buf) - 1;
 		memmove(buf, a, n);
 		buf[n] = '\0';
 
 		nf = tokenize(buf, fields, 3);
-		if(strcmp(fields[0], "connect") == 0){
+		if(strcmp(fields[0], "connect") == 0) {
 			switch(nf) {
 			default:
 				error("bad args to connect");
@@ -498,7 +493,7 @@ ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 			return n;
 		}
 		if(strcmp(fields[0], "announce") == 0) {
-			switch(nf){
+			switch(nf) {
 			default:
 				error("bad args to announce");
 			case 2:
@@ -509,8 +504,8 @@ ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 			c->state = "Announced";
 			return n;
 		}
-		if(strcmp(fields[0], "bind") == 0){
-			switch(nf){
+		if(strcmp(fields[0], "bind") == 0) {
+			switch(nf) {
 			default:
 				error("bad args to bind");
 			case 2:
@@ -525,7 +520,7 @@ ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 		x = &proto[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		r = so_send(c->sfd, a, n, 0);
-		if(r < 0){
+		if(r < 0) {
 			oserrstr();
 			nexterror();
 		}
@@ -535,9 +530,9 @@ ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 }
 
 static Conv*
-protoclone(Proto *p, char *user, int nfd)
+protoclone(Proto* p, char* user, int nfd)
 {
-	Conv *c, **pp, **ep;
+	Conv* c, **pp, **ep;
 
 	c = 0;
 	lock(&p->l);
@@ -590,126 +585,47 @@ protoclone(Proto *p, char *user, int nfd)
 }
 
 void
-csclose(Chan *c)
+csclose(Chan* c)
 {
 	free(c->aux);
 }
 
 int32_t
-csread(Chan *c, void *a, int32_t n, int64_t offset)
+csread(Chan* c, void* a, int32_t n, int64_t offset)
 {
 	if(c->aux == nil)
 		return 0;
 	return readstr(offset, a, n, c->aux);
 }
 
-static struct
-{
-	char *name;
+static struct {
+	char* name;
 	uint num;
 } tab[] = {
-	"cs", 1,
-	"echo", 7,
-	"discard", 9,
-	"systat", 11,
-	"daytime", 13,
-	"netstat", 15,
-	"chargen", 19,
-	"ftp-data", 20,
-	"ftp", 21,
-	"ssh", 22,
-	"telnet", 23,
-	"smtp", 25,
-	"time", 37,
-	"whois", 43,
-	"dns", 53,
-	"domain", 53,
-	"uucp", 64,
-	"gopher", 70,
-	"rje", 77,
-	"finger", 79,
-	"http", 80,
-	"link", 87,
-	"supdup", 95,
-	"hostnames", 101,
-	"iso-tsap", 102,
-	"x400", 103,
-	"x400-snd", 104,
-	"csnet-ns", 105,
-	"pop-2", 109,
-	"pop3", 110,
-	"portmap", 111,
-	"uucp-path", 117,
-	"nntp", 119,
-	"netbios", 139,
-	"imap4", 143,
-	"NeWS", 144,
-	"print-srv", 170,
-	"z39.50", 210,
-	"fsb", 400,
-	"sysmon", 401,
-	"proxy", 402,
-	"proxyd", 404,
-	"https", 443,
-	"cifs", 445,
-	"ssmtp", 465,
-	"rexec", 512,
-	"login", 513,
-	"shell", 514,
-	"printer", 515,
-	"courier", 530,
-	"cscan", 531,
-	"uucp", 540,
-	"snntp", 563,
-	"9fs", 564,
-	"whoami", 565,
-	"guard", 566,
-	"ticket", 567,
-	"dlsftp", 666,
-	"fmclient", 729,
-	"imaps", 993,
-	"pop3s", 995,
-	"ingreslock", 1524,
-	"pptp", 1723,
-	"nfs", 2049,
-	"webster", 2627,
-	"weather", 3000,
-	"secstore", 5356,
-	"Xdisplay", 6000,
-	"styx", 6666,
-	"mpeg", 6667,
-	"rstyx", 6668,
-	"infdb", 6669,
-	"infsigner", 6671,
-	"infcsigner", 6672,
-	"inflogin", 6673,
-	"bandt", 7330,
-	"face", 32000,
-	"dhashgate", 11978,
-	"exportfs", 17007,
-	"rexexec", 17009,
-	"ncpu", 17010,
-	"cpu", 17013,
-	"glenglenda1", 17020,
-	"glenglenda2", 17021,
-	"glenglenda3", 17022,
-	"glenglenda4", 17023,
-	"glenglenda5", 17024,
-	"glenglenda6", 17025,
-	"glenglenda7", 17026,
-	"glenglenda8", 17027,
-	"glenglenda9", 17028,
-	"glenglenda10", 17029,
-	"flyboy", 17032,
-	"dlsftp", 17033,
-	"venti", 17034,
-	"wiki", 17035,
-	"vica", 17036,
-	0
-};
+    "cs", 1, "echo", 7, "discard", 9, "systat", 11, "daytime", 13, "netstat",
+    15, "chargen", 19, "ftp-data", 20, "ftp", 21, "ssh", 22, "telnet", 23,
+    "smtp", 25, "time", 37, "whois", 43, "dns", 53, "domain", 53, "uucp", 64,
+    "gopher", 70, "rje", 77, "finger", 79, "http", 80, "link", 87, "supdup", 95,
+    "hostnames", 101, "iso-tsap", 102, "x400", 103, "x400-snd", 104, "csnet-ns",
+    105, "pop-2", 109, "pop3", 110, "portmap", 111, "uucp-path", 117, "nntp",
+    119, "netbios", 139, "imap4", 143, "NeWS", 144, "print-srv", 170, "z39.50",
+    210, "fsb", 400, "sysmon", 401, "proxy", 402, "proxyd", 404, "https", 443,
+    "cifs", 445, "ssmtp", 465, "rexec", 512, "login", 513, "shell", 514,
+    "printer", 515, "courier", 530, "cscan", 531, "uucp", 540, "snntp", 563,
+    "9fs", 564, "whoami", 565, "guard", 566, "ticket", 567, "dlsftp", 666,
+    "fmclient", 729, "imaps", 993, "pop3s", 995, "ingreslock", 1524, "pptp",
+    1723, "nfs", 2049, "webster", 2627, "weather", 3000, "secstore", 5356,
+    "Xdisplay", 6000, "styx", 6666, "mpeg", 6667, "rstyx", 6668, "infdb", 6669,
+    "infsigner", 6671, "infcsigner", 6672, "inflogin", 6673, "bandt", 7330,
+    "face", 32000, "dhashgate", 11978, "exportfs", 17007, "rexexec", 17009,
+    "ncpu", 17010, "cpu", 17013, "glenglenda1", 17020, "glenglenda2", 17021,
+    "glenglenda3", 17022, "glenglenda4", 17023, "glenglenda5", 17024,
+    "glenglenda6", 17025, "glenglenda7", 17026, "glenglenda8", 17027,
+    "glenglenda9", 17028, "glenglenda10", 17029, "flyboy", 17032, "dlsftp",
+    17033, "venti", 17034, "wiki", 17035, "vica", 17036, 0};
 
 static int
-lookupport(char *s)
+lookupport(char* s)
 {
 	int i;
 	char buf[10], *p;
@@ -721,14 +637,14 @@ lookupport(char *s)
 	i = so_getservbyname(s, "tcp", buf);
 	if(i != -1)
 		return atoi(buf);
-	for(i=0; tab[i].name; i++)
+	for(i = 0; tab[i].name; i++)
 		if(strcmp(s, tab[i].name) == 0)
 			return tab[i].num;
 	return 0;
 }
 
 static int
-lookuphost(char *s, uint8_t *to)
+lookuphost(char* s, uint8_t* to)
 {
 	ipzero(to);
 	if(parseip(to, s) != -1)
@@ -741,17 +657,17 @@ lookuphost(char *s, uint8_t *to)
 }
 
 int32_t
-cswrite(Chan *c, void *a, int32_t n, int64_t offset)
+cswrite(Chan* c, void* a, int32_t n, int64_t offset)
 {
-	char *f[4];
-	char *s, *ns;
+	char* f[4];
+	char* s, *ns;
 	uint8_t ip[IPaddrlen];
 	int nf, port;
 
-	s = malloc(n+1);
+	s = malloc(n + 1);
 	if(s == nil)
 		error(Enomem);
-	if(waserror()){
+	if(waserror()) {
 		free(s);
 		nexterror();
 	}
@@ -778,25 +694,10 @@ cswrite(Chan *c, void *a, int32_t n, int64_t offset)
 	return n;
 }
 
-Dev ipdevtab = 
-{
-	'I',
-	"ip",
+Dev ipdevtab = {
+    'I',      "ip",
 
-	devreset,
-	ipinit,
-	devshutdown,
-	ipattach,
-	ipwalk,
-	ipstat,
-	ipopen,
-	devcreate,
-	ipclose,
-	ipread,
-	devbread,
-	ipwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    devreset, ipinit,  devshutdown, ipattach,  ipwalk,
+    ipstat,   ipopen,  devcreate,   ipclose,   ipread,
+    devbread, ipwrite, devbwrite,   devremove, devwstat,
 };
-

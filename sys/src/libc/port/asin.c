@@ -30,11 +30,11 @@ asin(double arg)
 	}
 	if(arg > 1)
 		return NaN();
-	temp = sqrt(1 - arg*arg);
+	temp = sqrt(1 - arg * arg);
 	if(arg > 0.7)
-		temp = PIO2 - atan(temp/arg);
+		temp = PIO2 - atan(temp / arg);
 	else
-		temp = atan(arg/temp);
+		temp = atan(arg / temp);
 	if(sign)
 		temp = -temp;
 	return temp;

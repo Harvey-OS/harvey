@@ -26,38 +26,34 @@
 #include "usb.h"
 #include "hid.h"
 
-enum
-{
-	Awakemsg= 0xdeaddead,
-	Diemsg	= 0xbeefbeef,
-	Dwcidle	= 8,
+enum { Awakemsg = 0xdeaddead,
+       Diemsg = 0xbeefbeef,
+       Dwcidle = 8,
 };
 
 typedef struct KDev KDev;
 typedef struct Kin Kin;
 
-struct KDev
-{
-	Dev*	dev;		/* usb device*/
-	Dev*	ep;		/* endpoint to get events */
-	Kin*	in;		/* used to send events to kernel */
-	int	idle;		/* min time between reports (× 4ms) */
-	Channel*repeatc;	/* only for keyboard */
-	int	accel;		/* only for mouse */
-	int	bootp;		/* has associated keyboard */
-	int	debug;
+struct KDev {
+	Dev* dev;         /* usb device*/
+	Dev* ep;          /* endpoint to get events */
+	Kin* in;          /* used to send events to kernel */
+	int idle;         /* min time between reports (× 4ms) */
+	Channel* repeatc; /* only for keyboard */
+	int accel;        /* only for mouse */
+	int bootp;        /* has associated keyboard */
+	int debug;
 	HidRepTempl templ;
-	int	(*ptrvals)(KDev *kd, Chain *ch, int *px, int *py, int *pb);
+	int (*ptrvals)(KDev* kd, Chain* ch, int* px, int* py, int* pb);
 };
 
 /*
  * Kbdin and mousein files must be shared among all instances.
  */
-struct Kin
-{
-	int	ref;
-	int	fd;
-	char*	name;
+struct Kin {
+	int ref;
+	int fd;
+	char* name;
 };
 
 /*
@@ -78,104 +74,97 @@ struct Kin
  * key code to scan code; for the page table used by
  * the logitech bluetooth keyboard.
  */
-static char sctab[256] =
-{
-[0x00]	0x0,	0x0,	0x0,	0x0,	0x1e,	0x30,	0x2e,	0x20,
-[0x08]	0x12,	0x21,	0x22,	0x23,	0x17,	0x24,	0x25,	0x26,
-[0x10]	0x32,	0x31,	0x18,	0x19,	0x10,	0x13,	0x1f,	0x14,
-[0x18]	0x16,	0x2f,	0x11,	0x2d,	0x15,	0x2c,	0x2,	0x3,
-[0x20]	0x4,	0x5,	0x6,	0x7,	0x8,	0x9,	0xa,	0xb,
-[0x28]	0x1c,	0x1,	0xe,	0xf,	0x39,	0xc,	0xd,	0x1a,
-[0x30]	0x1b,	0x2b,	0x2b,	0x27,	0x28,	0x29,	0x33,	0x34,
-[0x38]	0x35,	0x3a,	0x3b,	0x3c,	0x3d,	0x3e,	0x3f,	0x40,
-[0x40]	0x41,	0x42,	0x43,	0x44,	0x57,	0x58,	0x63,	0x46,
-[0x48]	0x77,	0x52,	0x47,	0x49,	0x53,	0x4f,	0x51,	0x4d,
-[0x50]	0x4b,	0x50,	0x48,	0x45,	0x35,	0x37,	0x4a,	0x4e,
-[0x58]	0x1c,	0x4f,	0x50,	0x51,	0x4b,	0x4c,	0x4d,	0x47,
-[0x60]	0x48,	0x49,	0x52,	0x53,	0x56,	0x7f,	0x74,	0x75,
-[0x68]	0x55,	0x59,	0x5a,	0x5b,	0x5c,	0x5d,	0x5e,	0x5f,
-[0x70]	0x78,	0x79,	0x7a,	0x7b,	0x0,	0x0,	0x0,	0x0,
-[0x78]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x71,
-[0x80]	0x73,	0x72,	0x0,	0x0,	0x0,	0x7c,	0x0,	0x0,
-[0x88]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0x90]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0x98]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xa0]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xa8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xb0]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xb8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xc0]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xc8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xd0]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xd8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xe0]	0x1d,	0x2a,	0x38,	0x7d,	0x61,	0x36,	0x64,	0x7e,
-[0xe8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x73,	0x72,	0x71,
-[0xf0]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
-[0xf8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
+static char sctab[256] = {
+        [0x00] 0x0,  0x0,  0x0,  0x0,  0x1e, 0x30, 0x2e, 0x20,
+        [0x08] 0x12, 0x21, 0x22, 0x23, 0x17, 0x24, 0x25, 0x26,
+        [0x10] 0x32, 0x31, 0x18, 0x19, 0x10, 0x13, 0x1f, 0x14,
+        [0x18] 0x16, 0x2f, 0x11, 0x2d, 0x15, 0x2c, 0x2,  0x3,
+        [0x20] 0x4,  0x5,  0x6,  0x7,  0x8,  0x9,  0xa,  0xb,
+        [0x28] 0x1c, 0x1,  0xe,  0xf,  0x39, 0xc,  0xd,  0x1a,
+        [0x30] 0x1b, 0x2b, 0x2b, 0x27, 0x28, 0x29, 0x33, 0x34,
+        [0x38] 0x35, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f, 0x40,
+        [0x40] 0x41, 0x42, 0x43, 0x44, 0x57, 0x58, 0x63, 0x46,
+        [0x48] 0x77, 0x52, 0x47, 0x49, 0x53, 0x4f, 0x51, 0x4d,
+        [0x50] 0x4b, 0x50, 0x48, 0x45, 0x35, 0x37, 0x4a, 0x4e,
+        [0x58] 0x1c, 0x4f, 0x50, 0x51, 0x4b, 0x4c, 0x4d, 0x47,
+        [0x60] 0x48, 0x49, 0x52, 0x53, 0x56, 0x7f, 0x74, 0x75,
+        [0x68] 0x55, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
+        [0x70] 0x78, 0x79, 0x7a, 0x7b, 0x0,  0x0,  0x0,  0x0,
+        [0x78] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x71,
+        [0x80] 0x73, 0x72, 0x0,  0x0,  0x0,  0x7c, 0x0,  0x0,
+        [0x88] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0x90] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0x98] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xa0] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xa8] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xb0] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xb8] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xc0] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xc8] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xd0] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xd8] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xe0] 0x1d, 0x2a, 0x38, 0x7d, 0x61, 0x36, 0x64, 0x7e,
+        [0xe8] 0x0,  0x0,  0x0,  0x0,  0x0,  0x73, 0x72, 0x71,
+        [0xf0] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+        [0xf8] 0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
 };
 
 static QLock inlck;
-static Kin kbdin =
-{
-	.ref = 0,
-	.name = "#Ι/kbin",
-	.fd = -1,
+static Kin kbdin = {
+    .ref = 0, .name = "#Ι/kbin", .fd = -1,
 };
-static Kin ptrin =
-{
-	.ref = 0,
-	.name = "#m/mousein",
-	.fd = -1,
+static Kin ptrin = {
+    .ref = 0, .name = "#m/mousein", .fd = -1,
 };
 
-static int ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
-static int ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
+static int ptrbootpvals(KDev* kd, Chain* ch, int* px, int* py, int* pb);
+static int ptrrepvals(KDev* kd, Chain* ch, int* px, int* py, int* pb);
 
 static int
-setbootproto(KDev* f, int eid, uint8_t *, int)
+setbootproto(KDev* f, int eid, uint8_t*, int)
 {
 	int nr, r, id;
 
 	f->ptrvals = ptrbootpvals;
-	r = Rh2d|Rclass|Riface;
+	r = Rh2d | Rclass | Riface;
 	dprint(2, "setting boot protocol\n");
 	id = f->dev->usb->ep[eid]->iface->id;
 	nr = usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
 	if(nr < 0)
 		return -1;
-	usbcmd(f->dev, r, Setidle, f->idle<<8, id, nil, 0);
+	usbcmd(f->dev, r, Setidle, f->idle << 8, id, nil, 0);
 	return nr;
 }
 
 static uint8_t ignoredesc[128];
 
 static int
-setfirstconfig(KDev* f, int eid, uint8_t *desc, int descsz)
+setfirstconfig(KDev* f, int eid, uint8_t* desc, int descsz)
 {
 	int nr, r, id, i;
 
 	dprint(2, "setting first config\n");
-	if(desc == nil){
+	if(desc == nil) {
 		descsz = sizeof ignoredesc;
 		desc = ignoredesc;
 	}
 	id = f->dev->usb->ep[eid]->iface->id;
 	r = Rh2d | Rstd | Rdev;
-	nr = usbcmd(f->dev,  r, Rsetconf, 1, 0, nil, 0);
+	nr = usbcmd(f->dev, r, Rsetconf, 1, 0, nil, 0);
 	if(nr < 0)
 		return -1;
 	r = Rh2d | Rclass | Riface;
-	nr = usbcmd(f->dev, r, Setidle, f->idle<<8, id, nil, 0);
+	nr = usbcmd(f->dev, r, Setidle, f->idle << 8, id, nil, 0);
 	if(nr < 0)
 		return -1;
 	r = Rd2h | Rstd | Riface;
-	nr=usbcmd(f->dev,  r, Rgetdesc, Dreport<<8, id, desc, descsz);
+	nr = usbcmd(f->dev, r, Rgetdesc, Dreport << 8, id, desc, descsz);
 	if(nr <= 0)
 		return -1;
-	if(f->debug){
+	if(f->debug) {
 		fprint(2, "report descriptor:");
-		for(i = 0; i < nr; i++){
-			if(i%8 == 0)
+		for(i = 0; i < nr; i++) {
+			if(i % 8 == 0)
 				fprint(2, "\n\t");
 			fprint(2, "%#2.2ux ", desc[i]);
 		}
@@ -190,17 +179,17 @@ setfirstconfig(KDev* f, int eid, uint8_t *desc, int descsz)
  * BUG: we should be careful not to reset a bundle with several devices.
  */
 static void
-recoverkb(KDev *f)
+recoverkb(KDev* f)
 {
 	int i;
 
-	close(f->dev->dfd);		/* it's for usbd now */
+	close(f->dev->dfd); /* it's for usbd now */
 	devctl(f->dev, "reset");
-	for(i = 0; i < 10; i++){
+	for(i = 0; i < 10; i++) {
 		if(i == 5)
 			f->bootp++;
 		sleep(500);
-		if(opendevdata(f->dev, ORDWR) >= 0){
+		if(opendevdata(f->dev, ORDWR) >= 0) {
 			if(f->bootp)
 				/* TODO func pointer */
 				setbootproto(f, f->ep->id, nil, 0);
@@ -213,9 +202,9 @@ recoverkb(KDev *f)
 }
 
 static void
-kbfatal(KDev *kd, char *sts)
+kbfatal(KDev* kd, char* sts)
 {
-	Dev *dev;
+	Dev* dev;
 
 	if(sts != nil)
 		fprint(2, "kb: fatal: %s\n", sts);
@@ -237,31 +226,31 @@ kbfatal(KDev *kd, char *sts)
 }
 
 static int
-scale(KDev *f, int x)
+scale(KDev* f, int x)
 {
 	int sign = 1;
 
-	if(x < 0){
+	if(x < 0) {
 		sign = -1;
 		x = -x;
 	}
-	switch(x){
+	switch(x) {
 	case 0:
 	case 1:
 	case 2:
 	case 3:
 		break;
 	case 4:
-		x = 6 + (f->accel>>2);
+		x = 6 + (f->accel >> 2);
 		break;
 	case 5:
-		x = 9 + (f->accel>>1);
+		x = 9 + (f->accel >> 1);
 		break;
 	default:
 		x *= MaxAcc;
 		break;
 	}
-	return sign*x;
+	return sign * x;
 }
 
 /*
@@ -283,7 +272,7 @@ sethipri(void)
 }
 
 static int
-ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
+ptrrepvals(KDev* kd, Chain* ch, int* px, int* py, int* pb)
 {
 	int i, x, y, b, c;
 	static char buts[] = {0x0, 0x2, 0x1};
@@ -305,11 +294,11 @@ ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 	x = hidifcval(&kd->templ, KindX, 0);
 	y = hidifcval(&kd->templ, KindY, 0);
 	b = 0;
-	for(i = 0; i<sizeof buts; i++)
+	for(i = 0; i < sizeof buts; i++)
 		b |= (hidifcval(&kd->templ, KindButtons, i) & 1) << buts[i];
-	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) > 0)	/* up */
+	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) > 0) /* up */
 		b |= 0x08;
-	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) < 0)	/* down */
+	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) < 0) /* down */
 		b |= 0x10;
 
 	*px = x;
@@ -319,7 +308,7 @@ ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 }
 
 static int
-ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
+ptrbootpvals(KDev* kd, Chain* ch, int* px, int* py, int* pb)
 {
 	int b, c;
 	char x, y;
@@ -328,19 +317,19 @@ ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 	c = ch->e / 8;
 	if(c < 3)
 		return -1;
-	if(kd->templ.nifcs){
+	if(kd->templ.nifcs) {
 		x = hidifcval(&kd->templ, KindX, 0);
 		y = hidifcval(&kd->templ, KindY, 0);
-	}else{
+	} else {
 		/* no report descriptor for boot protocol */
 		x = ((signed char*)ch->buf)[1];
 		y = ((signed char*)ch->buf)[2];
 	}
 
 	b = maptab[ch->buf[0] & 0x7];
-	if(c > 3 && ch->buf[3] == 1)		/* up */
+	if(c > 3 && ch->buf[3] == 1) /* up */
 		b |= 0x08;
-	if(c > 3 && ch->buf[3] == 0xff)		/* down */
+	if(c > 3 && ch->buf[3] == 0xff) /* down */
 		b |= 0x10;
 	*px = x;
 	*py = y;
@@ -362,16 +351,16 @@ ptrwork(void* a)
 	mfd = f->in->fd;
 	if(f->ep->maxpkt < 3 || f->ep->maxpkt > MaxChLen)
 		kbfatal(f, "weird mouse maxpkt");
-	for(;;){
+	for(;;) {
 		memset(ch.buf, 0, MaxChLen);
 		if(f->ep == nil)
 			kbfatal(f, nil);
 		c = read(ptrfd, ch.buf, f->ep->maxpkt);
 		assert(f->dev != nil);
 		assert(f->ep != nil);
-		if(c < 0){
+		if(c < 0) {
 			dprint(2, "kb: mouse: %s: read: %r\n", f->ep->dir);
-			if(++nerrs < 3){
+			if(++nerrs < 3) {
 				recoverkb(f);
 				continue;
 			}
@@ -382,16 +371,16 @@ ptrwork(void* a)
 		ch.e = 8 * c;
 		if(f->ptrvals(f, &ch, &x, &y, &b) < 0)
 			continue;
-		if(f->accel){
+		if(f->accel) {
 			x = scale(f, x);
 			y = scale(f, y);
 		}
 		if(f->debug > 1)
 			fprint(2, "kb: m%11d %11d %11d\n", x, y, b);
-		seprint(mbuf, mbuf+sizeof(mbuf), "m%11d %11d %11d", x, y,b);
+		seprint(mbuf, mbuf + sizeof(mbuf), "m%11d %11d %11d", x, y, b);
 		if(write(mfd, mbuf, strlen(mbuf)) < 0)
 			kbfatal(f, "mousein i/o");
-		if(hipri == 0){
+		if(hipri == 0) {
 			sethipri();
 			hipri = 1;
 		}
@@ -399,13 +388,13 @@ ptrwork(void* a)
 }
 
 static void
-stoprepeat(KDev *f)
+stoprepeat(KDev* f)
 {
 	sendul(f->repeatc, Awakemsg);
 }
 
 static void
-startrepeat(KDev *f, uint8_t esc1, uint8_t sc)
+startrepeat(KDev* f, uint8_t esc1, uint8_t sc)
 {
 	uint32_t c;
 
@@ -417,34 +406,34 @@ startrepeat(KDev *f, uint8_t esc1, uint8_t sc)
 }
 
 static void
-putscan(KDev *f, uint8_t esc, uint8_t sc)
+putscan(KDev* f, uint8_t esc, uint8_t sc)
 {
 	int kbinfd;
 	uint8_t s[2] = {SCesc1, 0};
 
 	kbinfd = f->in->fd;
-	if(sc == 0x41){
+	if(sc == 0x41) {
 		f->debug += 2;
 		return;
 	}
-	if(sc == 0x42){
+	if(sc == 0x42) {
 		f->debug = 0;
 		return;
 	}
 	if(f->debug > 1)
-		fprint(2, "sc: %x %x\n", (esc? SCesc1: 0), sc);
+		fprint(2, "sc: %x %x\n", (esc ? SCesc1 : 0), sc);
 	s[1] = sc;
 	if(esc && sc != 0)
 		write(kbinfd, s, 2);
 	else if(sc != 0)
-		write(kbinfd, s+1, 1);
+		write(kbinfd, s + 1, 1);
 }
 
 static void
 repeatproc(void* a)
 {
-	KDev *f;
-	Channel *repeatc;
+	KDev* f;
+	Channel* repeatc;
 	uint32_t l, t, i;
 	uint8_t esc1, sc;
 
@@ -466,8 +455,8 @@ Repeat:
 	esc1 = l >> 8;
 	sc = l;
 	t = 160;
-	for(;;){
-		for(i = 0; i < t; i += 5){
+	for(;;) {
+		for(i = 0; i < t; i += 5) {
 			if(l = nbrecvul(repeatc))
 				goto Repeat;
 			sleep(5);
@@ -478,21 +467,19 @@ Repeat:
 Abort:
 	chanfree(repeatc);
 	threadexits("aborted");
-
 }
 
-
-#define hasesc1(sc)	((sc) >= 0x47 || (sc) == 0x38)
+#define hasesc1(sc) ((sc) >= 0x47 || (sc) == 0x38)
 
 static void
-putmod(KDev *f, uint8_t mods, uint8_t omods, uint8_t mask, uint8_t esc,
+putmod(KDev* f, uint8_t mods, uint8_t omods, uint8_t mask, uint8_t esc,
        uint8_t sc)
 {
 	/* BUG: Should be a single write */
-	if((mods&mask) && !(omods&mask))
+	if((mods & mask) && !(omods & mask))
 		putscan(f, esc, sc);
-	if(!(mods&mask) && (omods&mask))
-		putscan(f, esc, Keyup|sc);
+	if(!(mods & mask) && (omods & mask))
+		putscan(f, esc, Keyup | sc);
 }
 
 /*
@@ -504,23 +491,23 @@ putmod(KDev *f, uint8_t mods, uint8_t omods, uint8_t mask, uint8_t esc,
  * for other keyboards.
  */
 static uint8_t
-putkeys(KDev *f, uint8_t buf[], uint8_t obuf[], int n, uint8_t dk)
+putkeys(KDev* f, uint8_t buf[], uint8_t obuf[], int n, uint8_t dk)
 {
 	int i, j;
 	uint8_t uk;
 
 	putmod(f, buf[0], obuf[0], Mctrl, 0, SCctrl);
-	putmod(f, buf[0], obuf[0], (1<<Mlshift), 0, SClshift);
-	putmod(f, buf[0], obuf[0], (1<<Mrshift), 0, SCrshift);
+	putmod(f, buf[0], obuf[0], (1 << Mlshift), 0, SClshift);
+	putmod(f, buf[0], obuf[0], (1 << Mrshift), 0, SCrshift);
 	putmod(f, buf[0], obuf[0], Mcompose, 0, SCcompose);
 	putmod(f, buf[0], obuf[0], Maltgr, 1, SCcompose);
 
 	/* Report key downs */
-	for(i = 2; i < n; i++){
+	for(i = 2; i < n; i++) {
 		for(j = 2; j < n; j++)
 			if(buf[i] == obuf[j])
-			 	break;
-		if(j == n && buf[i] != 0){
+				break;
+		if(j == n && buf[i] != 0) {
 			dk = sctab[buf[i]];
 			putscan(f, hasesc1(dk), dk);
 			startrepeat(f, hasesc1(dk), dk);
@@ -529,16 +516,16 @@ putkeys(KDev *f, uint8_t buf[], uint8_t obuf[], int n, uint8_t dk)
 
 	/* Report key ups */
 	uk = 0;
-	for(i = 2; i < n; i++){
+	for(i = 2; i < n; i++) {
 		for(j = 2; j < n; j++)
 			if(obuf[i] == buf[j])
 				break;
-		if(j == n && obuf[i] != 0){
+		if(j == n && obuf[i] != 0) {
 			uk = sctab[obuf[i]];
-			putscan(f, hasesc1(uk), uk|Keyup);
+			putscan(f, hasesc1(uk), uk | Keyup);
 		}
 	}
-	if(uk && (dk == 0 || dk == uk)){
+	if(uk && (dk == 0 || dk == uk)) {
 		stoprepeat(f);
 		dk = 0;
 	}
@@ -557,12 +544,12 @@ kbdbusy(uint8_t* buf, int n)
 }
 
 static void
-kbdwork(void *a)
+kbdwork(void* a)
 {
 	int c, i, kbdfd, nerrs;
 	uint8_t dk, buf[64], lbuf[64];
 	char err[128];
-	KDev *f = a;
+	KDev* f = a;
 
 	threadsetname("kbd %s", f->ep->dir);
 	kbdfd = f->ep->dfd;
@@ -577,15 +564,15 @@ kbdwork(void *a)
 	proccreate(repeatproc, f, Stack);
 	memset(lbuf, 0, sizeof lbuf);
 	dk = nerrs = 0;
-	for(;;){
+	for(;;) {
 		memset(buf, 0, sizeof buf);
 		c = read(kbdfd, buf, f->ep->maxpkt);
 		assert(f->dev != nil);
 		assert(f->ep != nil);
-		if(c < 0){
+		if(c < 0) {
 			rerrstr(err, sizeof(err));
 			fprint(2, "kb: %s: read: %s\n", f->ep->dir, err);
-			if(strstr(err, "babble") != 0 && ++nerrs < 3){
+			if(strstr(err, "babble") != 0 && ++nerrs < 3) {
 				recoverkb(f);
 				continue;
 			}
@@ -596,7 +583,7 @@ kbdwork(void *a)
 			continue;
 		if(kbdbusy(buf + 2, c - 2))
 			continue;
-		if(usbdebug > 2 || f->debug > 1){
+		if(usbdebug > 2 || f->debug > 1) {
 			fprint(2, "kbd mod %x: ", buf[0]);
 			for(i = 2; i < c; i++)
 				fprint(2, "kc %x ", buf[i]);
@@ -609,14 +596,14 @@ kbdwork(void *a)
 }
 
 static void
-freekdev(void *a)
+freekdev(void* a)
 {
-	KDev *kd;
+	KDev* kd;
 
 	kd = a;
-	if(kd->in != nil){
+	if(kd->in != nil) {
 		qlock(&inlck);
-		if(--kd->in->ref == 0){
+		if(--kd->in->ref == 0) {
 			close(kd->in->fd);
 			kd->in->fd = -1;
 		}
@@ -627,58 +614,58 @@ freekdev(void *a)
 }
 
 static void
-kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
+kbstart(Dev* d, Ep* ep, Kin* in, void (*f)(void*), KDev* kd)
 {
 	uint8_t desc[512];
 	int n, res;
 
 	qlock(&inlck);
-	if(in->fd < 0){
+	if(in->fd < 0) {
 		in->fd = open(in->name, OWRITE);
-		if(in->fd < 0){
+		if(in->fd < 0) {
 			fprint(2, "kb: %s: %r\n", in->name);
 			qunlock(&inlck);
 			return;
 		}
 	}
-	in->ref++;	/* for kd->in = in */
+	in->ref++; /* for kd->in = in */
 	qunlock(&inlck);
 	d->free = freekdev;
 	kd->in = in;
 	kd->dev = d;
 	res = -1;
 	kd->ep = openep(d, ep->id);
-	if(kd->ep == nil){
+	if(kd->ep == nil) {
 		fprint(2, "kb: %s: openep %d: %r\n", d->dir, ep->id);
 		return;
 	}
-	if(in == &kbdin){
+	if(in == &kbdin) {
 		/*
 		 * DWC OTG controller misses some split transaction inputs.
 		 * Set nonzero idle time to return more frequent reports
 		 * of keyboard state, to avoid losing key up/down events.
 		 */
 		n = read(d->cfd, desc, sizeof desc - 1);
-		if(n > 0){
+		if(n > 0) {
 			desc[n] = 0;
 			if(strstr((char*)desc, "dwcotg") != nil)
 				kd->idle = Dwcidle;
 		}
 	}
 	if(!kd->bootp)
-		res= setfirstconfig(kd, ep->id, desc, sizeof desc);
+		res = setfirstconfig(kd, ep->id, desc, sizeof desc);
 	if(res > 0)
 		res = parsereportdesc(&kd->templ, desc, sizeof desc);
 	/* if we could not set the first config, we give up */
-	if(kd->bootp || res < 0){
+	if(kd->bootp || res < 0) {
 		kd->bootp = 1;
-		if(setbootproto(kd, ep->id, nil, 0) < 0){
+		if(setbootproto(kd, ep->id, nil, 0) < 0) {
 			fprint(2, "kb: %s: bootproto: %r\n", d->dir);
 			return;
 		}
-	}else if(kd->debug)
+	} else if(kd->debug)
 		dumpreport(&kd->templ);
-	if(opendevdata(kd->ep, OREAD) < 0){
+	if(opendevdata(kd->ep, OREAD) < 0) {
 		fprint(2, "kb: %s: opendevdata: %r\n", kd->ep->dir);
 		closedev(kd->ep);
 		kd->ep = nil;
@@ -697,19 +684,20 @@ usage(void)
 }
 
 int
-kbmain(Dev *d, int argc, char* argv[])
+kbmain(Dev* d, int argc, char* argv[])
 {
 	int bootp, i, kena, pena, accel, devid, debug;
-	Ep *ep;
-	KDev *kd;
-	Usbdev *ud;
+	Ep* ep;
+	KDev* kd;
+	Usbdev* ud;
 
 	kena = pena = 1;
 	bootp = 0;
 	accel = 0;
 	debug = 0;
 	devid = d->id;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		accel = strtol(EARGF(usage()), nil, 0);
 		break;
@@ -725,14 +713,15 @@ kbmain(Dev *d, int argc, char* argv[])
 		pena = 1;
 		break;
 	case 'N':
-		devid = atoi(EARGF(usage()));		/* ignore dev number */
+		devid = atoi(EARGF(usage())); /* ignore dev number */
 		break;
 	case 'b':
 		bootp++;
 		break;
 	default:
 		return usage();
-	}ARGEND;
+	}
+	ARGEND;
 	if(argc != 0)
 		return usage();
 	USED(devid);
@@ -747,11 +736,11 @@ kbmain(Dev *d, int argc, char* argv[])
 			else if(ep->iface->csp == KbdCSP)
 				bootp = 1;
 
-	for(i = 0; i < nelem(ud->ep); i++){
+	for(i = 0; i < nelem(ud->ep); i++) {
 		if((ep = ud->ep[i]) == nil)
 			continue;
 		if(kena && ep->type == Eintr && ep->dir == Ein &&
-		    ep->iface->csp == KbdCSP){
+		   ep->iface->csp == KbdCSP) {
 			kd = d->aux = emallocz(sizeof(KDev), 1);
 			kd->accel = 0;
 			kd->bootp = 1;
@@ -759,7 +748,7 @@ kbmain(Dev *d, int argc, char* argv[])
 			kbstart(d, ep, &kbdin, kbdwork, kd);
 		}
 		if(pena && ep->type == Eintr && ep->dir == Ein &&
-		    ep->iface->csp == PtrCSP){
+		   ep->iface->csp == PtrCSP) {
 			kd = d->aux = emallocz(sizeof(KDev), 1);
 			kd->accel = accel;
 			kd->bootp = bootp;

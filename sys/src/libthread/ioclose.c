@@ -13,7 +13,7 @@
 #include "threadimpl.h"
 
 static int32_t
-_ioclose(va_list *arg)
+_ioclose(va_list* arg)
 {
 	int fd;
 
@@ -22,7 +22,7 @@ _ioclose(va_list *arg)
 }
 
 int
-ioclose(Ioproc *io, int fd)
+ioclose(Ioproc* io, int fd)
 {
 	return iocall(io, _ioclose, fd);
 }

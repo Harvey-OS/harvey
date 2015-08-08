@@ -18,29 +18,29 @@
  *		<0 if we ran out of _relist space
  */
 static int
-rregexec1(Reprog *progp,	/* program to run */
-	Rune *bol,		/* string to run machine on */
-	Resub *mp,		/* subexpression elements */
-	int ms,			/* number of elements at mp */
-	Reljunk *j)
+rregexec1(Reprog* progp, /* program to run */
+          Rune* bol,     /* string to run machine on */
+          Resub* mp,     /* subexpression elements */
+          int ms,        /* number of elements at mp */
+          Reljunk* j)
 {
-	int flag=0;
-	Reinst *inst;
-	Relist *tlp;
-	Rune *s;
+	int flag = 0;
+	Reinst* inst;
+	Relist* tlp;
+	Rune* s;
 	int i, checkstart;
 	Rune r, *rp, *ep;
-	Relist* tl;		/* This list, next list */
+	Relist* tl; /* This list, next list */
 	Relist* nl;
-	Relist* tle;		/* ends of this and next list */
+	Relist* tle; /* ends of this and next list */
 	Relist* nle;
 	int match;
-	Rune *p;
+	Rune* p;
 
 	match = 0;
 	checkstart = j->startchar;
 	if(mp)
-		for(i=0; i<ms; i++) {
+		for(i = 0; i < ms; i++) {
 			mp[i].rsp = 0;
 			mp[i].rep = 0;
 		}
@@ -49,7 +49,7 @@ rregexec1(Reprog *progp,	/* program to run */
 
 	/* Execute machine once for each character, including terminal NUL */
 	s = j->rstarts;
-	do{
+	do {
 		/* fast check for first char */
 		if(checkstart) {
 			switch(j->starttype) {
@@ -65,7 +65,7 @@ rregexec1(Reprog *progp,	/* program to run */
 				p = runestrchr(s, '\n');
 				if(p == 0 || s == j->reol)
 					return match;
-				s = p+1;
+				s = p + 1;
 				break;
 			}
 		}
@@ -75,7 +75,7 @@ rregexec1(Reprog *progp,	/* program to run */
 		/* switch run lists */
 		tl = j->relist[flag];
 		tle = j->reliste[flag];
-		nl = j->relist[flag^=1];
+		nl = j->relist[flag ^= 1];
 		nle = j->reliste[flag];
 		nl->inst = 0;
 
@@ -83,12 +83,14 @@ rregexec1(Reprog *progp,	/* program to run */
 		_rrenewemptythread(tl, progp->startinst, ms, s);
 
 		/* Execute machine until current list is empty */
-		for(tlp=tl; tlp->inst; tlp++){
-			for(inst=tlp->inst; ; inst = inst->next){
-				switch(inst->type){
-				case RUNE:	/* regular character */
+		for(tlp = tl; tlp->inst; tlp++) {
+			for(inst = tlp->inst;; inst = inst->next) {
+				switch(inst->type) {
+				case RUNE: /* regular character */
 					if(inst->r == r)
-						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next,
+						                ms, &tlp->se) ==
+						   nle)
 							return -1;
 					break;
 				case LBRA:
@@ -99,15 +101,18 @@ rregexec1(Reprog *progp,	/* program to run */
 					continue;
 				case ANY:
 					if(r != '\n')
-						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next,
+						                ms, &tlp->se) ==
+						   nle)
 							return -1;
 					break;
 				case ANYNL:
-					if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
-							return -1;
+					if(_renewthread(nl, inst->next, ms,
+					                &tlp->se) == nle)
+						return -1;
 					break;
 				case BOL:
-					if(s == bol || *(s-1) == '\n')
+					if(s == bol || *(s - 1) == '\n')
 						continue;
 					break;
 				case EOL:
@@ -116,29 +121,38 @@ rregexec1(Reprog *progp,	/* program to run */
 					break;
 				case CCLASS:
 					ep = inst->cp->end;
-					for(rp = inst->cp->spans; rp < ep; rp += 2)
-						if(r >= rp[0] && r <= rp[1]){
-							if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+					for(rp = inst->cp->spans; rp < ep;
+					    rp += 2)
+						if(r >= rp[0] && r <= rp[1]) {
+							if(_renewthread(
+							       nl, inst->next,
+							       ms,
+							       &tlp->se) == nle)
 								return -1;
 							break;
 						}
 					break;
 				case NCCLASS:
 					ep = inst->cp->end;
-					for(rp = inst->cp->spans; rp < ep; rp += 2)
+					for(rp = inst->cp->spans; rp < ep;
+					    rp += 2)
 						if(r >= rp[0] && r <= rp[1])
 							break;
 					if(rp == ep)
-						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next,
+						                ms, &tlp->se) ==
+						   nle)
 							return -1;
 					break;
 				case OR:
 					/* evaluate right choice later */
-					if(_renewthread(tlp, inst->right, ms, &tlp->se) == tle)
+					if(_renewthread(tlp, inst->right, ms,
+					                &tlp->se) == tle)
 						return -1;
-					/* efficiency: advance and re-evaluate */
+					/* efficiency: advance and re-evaluate
+					 */
 					continue;
-				case END:	/* Match! */
+				case END: /* Match! */
 					match = 1;
 					tlp->se.m[0].rep = s;
 					if(mp != 0)
@@ -150,21 +164,20 @@ rregexec1(Reprog *progp,	/* program to run */
 		}
 		if(s == j->reol)
 			break;
-		checkstart = j->startchar && nl->inst==0;
+		checkstart = j->startchar && nl->inst == 0;
 		s++;
-	}while(r);
+	} while(r);
 	return match;
 }
 
 static int
-rregexec2(Reprog *progp,	/* program to run */
-	Rune *bol,	/* string to run machine on */
-	Resub *mp,	/* subexpression elements */
-	int ms,		/* number of elements at mp */
-	Reljunk *j
-)
+rregexec2(Reprog* progp, /* program to run */
+          Rune* bol,     /* string to run machine on */
+          Resub* mp,     /* subexpression elements */
+          int ms,        /* number of elements at mp */
+          Reljunk* j)
 {
-	Relist relist0[5*LISTSIZE], relist1[5*LISTSIZE];
+	Relist relist0[5 * LISTSIZE], relist1[5 * LISTSIZE];
 
 	/* mark space */
 	j->relist[0] = relist0;
@@ -175,22 +188,21 @@ rregexec2(Reprog *progp,	/* program to run */
 	return rregexec1(progp, bol, mp, ms, j);
 }
 
-extern int
-rregexec(Reprog *progp,	/* program to run */
-	Rune *bol,	/* string to run machine on */
-	Resub *mp,	/* subexpression elements */
-	int ms)		/* number of elements at mp */
+extern int rregexec(Reprog* progp, /* program to run */
+                    Rune* bol,     /* string to run machine on */
+                    Resub* mp,     /* subexpression elements */
+                    int ms)        /* number of elements at mp */
 {
 	Reljunk j;
 	Relist relist0[LISTSIZE], relist1[LISTSIZE];
 	int rv;
 
 	/*
- 	 *  use user-specified starting/ending location if specified
+	 *  use user-specified starting/ending location if specified
 	 */
 	j.rstarts = bol;
 	j.reol = 0;
-	if(mp && ms>0){
+	if(mp && ms > 0) {
 		if(mp->sp)
 			j.rstarts = mp->rsp;
 		if(mp->ep)

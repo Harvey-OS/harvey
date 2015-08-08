@@ -14,26 +14,23 @@
 
 typedef struct KbMap KbMap;
 struct KbMap {
-	char *name;
-	char *file;
+	char* name;
+	char* file;
 	Rectangle r;
 	int current;
 };
 
-KbMap *map;
+KbMap* map;
 int nmap;
-Image *lightblue;
-Image *justblue;
+Image* lightblue;
+Image* justblue;
 
-enum {
-	PAD = 3,
-	MARGIN = 5
-};
+enum { PAD = 3, MARGIN = 5 };
 
-char *dir = "/sys/lib/kbmap";
+char* dir = "/sys/lib/kbmap";
 
 void*
-erealloc(void *v, uint32_t n)
+erealloc(void* v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -44,7 +41,7 @@ erealloc(void *v, uint32_t n)
 void*
 emalloc(uint32_t n)
 {
-	void *v;
+	void* v;
 
 	v = malloc(n);
 	if(v == nil)
@@ -54,14 +51,14 @@ emalloc(uint32_t n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	int l;
-	char *t;
+	char* t;
 
-	if (s == nil)
+	if(s == nil)
 		return nil;
-	l = strlen(s)+1;
+	l = strlen(s) + 1;
 	t = emalloc(l);
 	memcpy(t, s, l);
 
@@ -72,7 +69,7 @@ void
 init(void)
 {
 	int i, fd, nr;
-	Dir *pd;
+	Dir* pd;
 	char buf[128];
 
 	if((fd = open(dir, OREAD)) < 0)
@@ -80,7 +77,7 @@ init(void)
 
 	nmap = nr = dirreadall(fd, &pd);
 	map = emalloc(nr * sizeof(KbMap));
-	for(i=0; i<nr; i++){
+	for(i = 0; i < nr; i++) {
 		sprint(buf, "%s/%s", dir, pd[i].name);
 		map[i].file = estrdup(buf);
 		map[i].name = estrdup(pd[i].name);
@@ -99,10 +96,10 @@ drawmap(int i)
 	else
 		draw(screen, map[i].r, lightblue, nil, ZP);
 
-	_string(screen, addpt(map[i].r.min, Pt(2,0)), display->black, ZP,
-		font, map[i].name, nil, strlen(map[i].name), 
-		map[i].r, nil, ZP, SoverD);
-	border(screen, map[i].r, 1, display->black, ZP);	
+	_string(screen, addpt(map[i].r.min, Pt(2, 0)), display->black, ZP, font,
+	        map[i].name, nil, strlen(map[i].name), map[i].r, nil, ZP,
+	        SoverD);
+	border(screen, map[i].r, 1, display->black, ZP);
 }
 
 void
@@ -111,22 +108,23 @@ geometry(void)
 	int i, rows;
 	Rectangle r;
 
-	rows = (Dy(screen->r)-2*MARGIN+PAD)/(font->height+PAD);
+	rows = (Dy(screen->r) - 2 * MARGIN + PAD) / (font->height + PAD);
 
-	r = Rect(0,0,(Dx(screen->r)-2*MARGIN), font->height);
-	for(i=0; i<nmap; i++)
-		map[i].r = rectaddpt(rectaddpt(r, Pt(MARGIN+(PAD+Dx(r))*(i/rows),
-					MARGIN+(PAD+Dy(r))*(i%rows))), screen->r.min);
-
+	r = Rect(0, 0, (Dx(screen->r) - 2 * MARGIN), font->height);
+	for(i = 0; i < nmap; i++)
+		map[i].r = rectaddpt(
+		    rectaddpt(r, Pt(MARGIN + (PAD + Dx(r)) * (i / rows),
+		                    MARGIN + (PAD + Dy(r)) * (i % rows))),
+		    screen->r.min);
 }
 
 void
-redraw(Image *screen)
+redraw(Image* screen)
 {
 	int i;
 
 	draw(screen, screen->r, lightblue, nil, ZP);
-	for(i=0; i<nmap; i++)
+	for(i = 0; i < nmap; i++)
 		drawmap(i);
 	flushimage(display, 1);
 }
@@ -134,19 +132,19 @@ redraw(Image *screen)
 void
 eresized(int new)
 {
-	if(new && getwindow(display, Refmesg) < 0)
-		fprint(2,"can't reattach to window");
+	if(new&& getwindow(display, Refmesg) < 0)
+		fprint(2, "can't reattach to window");
 	geometry();
 	redraw(screen);
 }
 
 int
-writemap(char *file)
+writemap(char* file)
 {
 	int i, fd, ofd;
 	char buf[8192];
 
-	if((fd = open(file, OREAD)) < 0){
+	if((fd = open(file, OREAD)) < 0) {
 		fprint(2, "cannot open %s: %r", file);
 		return -1;
 	}
@@ -156,7 +154,7 @@ writemap(char *file)
 		return -1;
 	}
 	while((i = read(fd, buf, sizeof buf)) > 0)
-		if(write(ofd, buf, i) != i){
+		if(write(ofd, buf, i) != i) {
 			fprint(2, "writing /dev/kbmap: %r");
 			break;
 		}
@@ -175,7 +173,7 @@ click(Mouse m)
 	if(m.buttons == 0 || (m.buttons & ~4))
 		return;
 
-	for(i=0; i<nmap; i++)
+	for(i = 0; i < nmap; i++)
 		if(ptinrect(m.xy, map[i].r))
 			break;
 	if(i == nmap)
@@ -185,14 +183,14 @@ click(Mouse m)
 		m = emouse();
 	while(m.buttons == 4);
 
-	if(m.buttons != 0){
+	if(m.buttons != 0) {
 		do
 			m = emouse();
 		while(m.buttons);
 		return;
 	}
 
-	for(j=0; j<nmap; j++)
+	for(j = 0; j < nmap; j++)
 		if(ptinrect(m.xy, map[j].r))
 			break;
 	if(j != i)
@@ -204,7 +202,7 @@ click(Mouse m)
 	writemap(map[i].file);
 
 	/* clean the previous current map */
-	for(j=0; j<nmap; j++)
+	for(j = 0; j < nmap; j++)
 		map[j].current = 0;
 
 	map[i].current = 1;
@@ -220,22 +218,23 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	Event e;
-	char *c;
+	char* c;
 
 	if(argc > 1) {
-		argv++; argc--;
-		map = emalloc((argc)*sizeof(KbMap));
+		argv++;
+		argc--;
+		map = emalloc((argc) * sizeof(KbMap));
 		while(argc--) {
 			map[argc].file = estrdup(argv[argc]);
 			c = strrchr(map[argc].file, '/');
-			map[argc].name = (c == nil ? map[argc].file : c+1);
+			map[argc].name = (c == nil ? map[argc].file : c + 1);
 			map[argc].current = 0;
 			nmap++;
 		}
-	} else 
+	} else
 		init();
 
 	initdraw(0, 0, "kbmap");
@@ -247,12 +246,12 @@ main(int argc, char **argv)
 		sysfatal("allocimagemix: %r");
 
 	eresized(0);
-	einit(Emouse|Ekeyboard);
+	einit(Emouse | Ekeyboard);
 
-	for(;;){
-		switch(eread(Emouse|Ekeyboard, &e)){
+	for(;;) {
+		switch(eread(Emouse | Ekeyboard, &e)) {
 		case Ekeyboard:
-			if(e.kbdc==0x7F || e.kbdc=='q')
+			if(e.kbdc == 0x7F || e.kbdc == 'q')
 				exits(0);
 			break;
 		case Emouse:
@@ -262,4 +261,3 @@ main(int argc, char **argv)
 		}
 	}
 }
-

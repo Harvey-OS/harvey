@@ -17,14 +17,14 @@
 #include <ndb.h>
 #include "dat.h"
 
-static Ndb *db;
-char *ndbfile;
+static Ndb* db;
+char* ndbfile;
 
 /*
  * open ndbfile as db if not already open.  also check for stale data
  * and reload as needed.
  */
-static Ndb *
+static Ndb*
 opendb(void)
 {
 	static uint32_t lastcheck;
@@ -35,7 +35,7 @@ opendb(void)
 		if(db != nil)
 			lastcheck = now;
 	} else if(now >= lastcheck + 60) {
-		if (ndbchanged(db))
+		if(ndbchanged(db))
 			ndbreopen(db);
 		lastcheck = now;
 	}
@@ -43,14 +43,14 @@ opendb(void)
 }
 
 Iplifc*
-findlifc(uint8_t *ip)
+findlifc(uint8_t* ip)
 {
 	uint8_t x[IPaddrlen];
-	Ipifc *ifc;
-	Iplifc *lifc;
+	Ipifc* ifc;
+	Iplifc* lifc;
 
-	for(ifc = ipifcs; ifc; ifc = ifc->next){
-		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next){
+	for(ifc = ipifcs; ifc; ifc = ifc->next) {
+		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next) {
 			if(lifc->net[0] == 0)
 				continue;
 			maskip(ip, lifc->mask, x);
@@ -62,12 +62,12 @@ findlifc(uint8_t *ip)
 }
 
 int
-forme(uint8_t *ip)
+forme(uint8_t* ip)
 {
-	Ipifc *ifc;
-	Iplifc *lifc;
+	Ipifc* ifc;
+	Iplifc* lifc;
 
-	for(ifc = ipifcs; ifc; ifc = ifc->next){
+	for(ifc = ipifcs; ifc; ifc = ifc->next) {
 		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next)
 			if(memcmp(ip, lifc->ip, IPaddrlen) == 0)
 				return 1;
@@ -78,14 +78,14 @@ forme(uint8_t *ip)
 uint8_t noetheraddr[6];
 
 static void
-setipaddr(uint8_t *addr, char *ip)
+setipaddr(uint8_t* addr, char* ip)
 {
 	if(ipcmp(addr, IPnoaddr) == 0)
 		parseip(addr, ip);
 }
 
 static void
-setipmask(uint8_t *mask, char *ip)
+setipmask(uint8_t* mask, char* ip)
 {
 	if(ipcmp(mask, IPnoaddr) == 0)
 		parseipmask(mask, ip);
@@ -95,13 +95,13 @@ setipmask(uint8_t *mask, char *ip)
  *  do an ipinfo with defaults
  */
 int
-lookupip(uint8_t *ipaddr, Info *iip, int gate)
+lookupip(uint8_t* ipaddr, Info* iip, int gate)
 {
 	char ip[32];
-	Ndbtuple *t, *nt;
-	char *attrs[32], **p;
+	Ndbtuple* t, *nt;
+	char* attrs[32], **p;
 
-	if(opendb() == nil){
+	if(opendb() == nil) {
 		warning(1, "can't open db");
 		return -1;
 	}
@@ -110,7 +110,7 @@ lookupip(uint8_t *ipaddr, Info *iip, int gate)
 	*p++ = "ip";
 	*p++ = "ipmask";
 	*p++ = "@ipgw";
-	if(!gate){
+	if(!gate) {
 		*p++ = "bootf";
 		*p++ = "bootf2";
 		*p++ = "@tftp";
@@ -130,30 +130,23 @@ lookupip(uint8_t *ipaddr, Info *iip, int gate)
 	t = ndbipinfo(db, "ip", ip, attrs, p - attrs);
 	if(t == nil)
 		return -1;
-	
-	for(nt = t; nt != nil; nt = nt->entry){
+
+	for(nt = t; nt != nil; nt = nt->entry) {
 		if(strcmp(nt->attr, "ip") == 0)
 			setipaddr(iip->ipaddr, nt->val);
-		else
-		if(strcmp(nt->attr, "ipmask") == 0)
+		else if(strcmp(nt->attr, "ipmask") == 0)
 			setipmask(iip->ipmask, nt->val);
-		else
-		if(strcmp(nt->attr, "fs") == 0)
+		else if(strcmp(nt->attr, "fs") == 0)
 			setipaddr(iip->fsip, nt->val);
-		else
-		if(strcmp(nt->attr, "auth") == 0)
+		else if(strcmp(nt->attr, "auth") == 0)
 			setipaddr(iip->auip, nt->val);
-		else
-		if(strcmp(nt->attr, "tftp") == 0)
+		else if(strcmp(nt->attr, "tftp") == 0)
 			setipaddr(iip->tftp, nt->val);
-		else
-		if(strcmp(nt->attr, "tftp2") == 0)
+		else if(strcmp(nt->attr, "tftp2") == 0)
 			setipaddr(iip->tftp2, nt->val);
-		else
-		if(strcmp(nt->attr, "ipgw") == 0)
+		else if(strcmp(nt->attr, "ipgw") == 0)
 			setipaddr(iip->gwip, nt->val);
-		else
-		if(strcmp(nt->attr, "ether") == 0){
+		else if(strcmp(nt->attr, "ether") == 0) {
 			/*
 			 * this is probably wrong for machines with multiple
 			 * ethers.  bootp or dhcp requests could come from any
@@ -162,34 +155,22 @@ lookupip(uint8_t *ipaddr, Info *iip, int gate)
 			if(memcmp(iip->etheraddr, noetheraddr, 6) == 0)
 				parseether(iip->etheraddr, nt->val);
 			iip->indb = 1;
-		}
-		else
-		if(strcmp(nt->attr, "dhcp") == 0){
+		} else if(strcmp(nt->attr, "dhcp") == 0) {
 			if(iip->dhcpgroup[0] == 0)
 				strcpy(iip->dhcpgroup, nt->val);
-		}
-		else
-		if(strcmp(nt->attr, "bootf") == 0){
+		} else if(strcmp(nt->attr, "bootf") == 0) {
 			if(iip->bootf[0] == 0)
 				strcpy(iip->bootf, nt->val);
-		}
-		else
-		if(strcmp(nt->attr, "bootf2") == 0){
+		} else if(strcmp(nt->attr, "bootf2") == 0) {
 			if(iip->bootf2[0] == 0)
 				strcpy(iip->bootf2, nt->val);
-		}
-		else
-		if(strcmp(nt->attr, "vendor") == 0){
+		} else if(strcmp(nt->attr, "vendor") == 0) {
 			if(iip->vendor[0] == 0)
 				strcpy(iip->vendor, nt->val);
-		}
-		else
-		if(strcmp(nt->attr, "dom") == 0){
+		} else if(strcmp(nt->attr, "dom") == 0) {
 			if(iip->domain[0] == 0)
 				strcpy(iip->domain, nt->val);
-		}
-		else
-		if(strcmp(nt->attr, "rootpath") == 0){
+		} else if(strcmp(nt->attr, "rootpath") == 0) {
 			if(iip->rootpath[0] == 0)
 				strcpy(iip->rootpath, nt->val);
 		}
@@ -206,15 +187,15 @@ static uint8_t zeroes[6];
  *  same net as riip.
  */
 int
-lookup(Bootp *bp, Info *iip, Info *riip)
+lookup(Bootp* bp, Info* iip, Info* riip)
 {
-	Ndbtuple *t, *nt;
+	Ndbtuple* t, *nt;
 	Ndbs s;
-	char *hwattr;
-	char *hwval, hwbuf[33];
+	char* hwattr;
+	char* hwval, hwbuf[33];
 	uint8_t ciaddr[IPaddrlen];
 
-	if(opendb() == nil){
+	if(opendb() == nil) {
 		warning(1, "can't open db");
 		return -1;
 	}
@@ -223,13 +204,13 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 
 	/* client knows its address? */
 	v4tov6(ciaddr, bp->ciaddr);
-	if(validip(ciaddr)){
+	if(validip(ciaddr)) {
 		if(lookupip(ciaddr, iip, 0) < 0) {
-			if (debug)
+			if(debug)
 				warning(0, "don't know %I", ciaddr);
-			return -1;	/* don't know anything about it */
+			return -1; /* don't know anything about it */
 		}
-		if(!samenet(riip->ipaddr, iip)){
+		if(!samenet(riip->ipaddr, iip)) {
 			warning(0, "%I not on %I", ciaddr, riip->ipnet);
 			return -1;
 		}
@@ -239,16 +220,17 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 		 *  address doesn't match what we expected it to be.
 		 */
 		if(memcmp(iip->etheraddr, zeroes, 6) != 0)
-		if(memcmp(bp->chaddr, iip->etheraddr, 6) != 0)
-			warning(0, "ciaddr %I rcvd from %E instead of %E",
-				ciaddr, bp->chaddr, iip->etheraddr);
+			if(memcmp(bp->chaddr, iip->etheraddr, 6) != 0)
+				warning(0,
+				        "ciaddr %I rcvd from %E instead of %E",
+				        ciaddr, bp->chaddr, iip->etheraddr);
 
 		return 0;
 	}
 
 	if(bp->hlen > Maxhwlen)
 		return -1;
-	switch(bp->htype){
+	switch(bp->htype) {
 	case 1:
 		hwattr = "ether";
 		hwval = hwbuf;
@@ -256,7 +238,7 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 		break;
 	default:
 		syslog(0, blog, "not ethernet %E, htype %d, hlen %d",
-			bp->chaddr, bp->htype, bp->hlen);
+		       bp->chaddr, bp->htype, bp->hlen);
 		return -1;
 	}
 
@@ -265,14 +247,14 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 	 *  same net as riip
 	 */
 	t = ndbsearch(db, &s, hwattr, hwval);
-	while(t){
-		for(nt = t; nt; nt = nt->entry){
+	while(t) {
+		for(nt = t; nt; nt = nt->entry) {
 			if(strcmp(nt->attr, "ip") != 0)
 				continue;
 			parseip(ciaddr, nt->val);
 			if(lookupip(ciaddr, iip, 0) < 0)
 				continue;
-			if(samenet(riip->ipaddr, iip)){
+			if(samenet(riip->ipaddr, iip)) {
 				ndbfree(t);
 				return 0;
 			}
@@ -287,7 +269,7 @@ lookup(Bootp *bp, Info *iip, Info *riip)
  *  interface to ndbipinfo
  */
 Ndbtuple*
-lookupinfo(uint8_t *ipaddr, char **attr, int n)
+lookupinfo(uint8_t* ipaddr, char** attr, int n)
 {
 	char ip[32];
 
@@ -299,13 +281,13 @@ lookupinfo(uint8_t *ipaddr, char **attr, int n)
  *  return the ip addresses for a type of server for system ip
  */
 int
-lookupserver(char *attr, uint8_t **ipaddrs, Ndbtuple *t)
+lookupserver(char* attr, uint8_t** ipaddrs, Ndbtuple* t)
 {
-	Ndbtuple *nt;
+	Ndbtuple* nt;
 	int rv = 0;
 
 	for(nt = t; rv < 2 && nt != nil; nt = nt->entry)
-		if(strcmp(nt->attr, attr) == 0){
+		if(strcmp(nt->attr, attr) == 0) {
 			parseip(ipaddrs[rv], nt->val);
 			rv++;
 		}
@@ -316,12 +298,12 @@ lookupserver(char *attr, uint8_t **ipaddrs, Ndbtuple *t)
  *  just lookup the name
  */
 void
-lookupname(char *val, Ndbtuple *t)
+lookupname(char* val, Ndbtuple* t)
 {
-	Ndbtuple *nt;
+	Ndbtuple* nt;
 
 	for(nt = t; nt != nil; nt = nt->entry)
-		if(strcmp(nt->attr, "dom") == 0){
+		if(strcmp(nt->attr, "dom") == 0) {
 			strcpy(val, nt->val);
 			break;
 		}

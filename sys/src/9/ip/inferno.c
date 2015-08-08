@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  *  some hacks for commonality twixt inferno and plan9
@@ -21,19 +21,19 @@
 char*
 commonuser(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	return up->user;
 }
 
 char*
 commonerror(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	return up->errstr;
 }
 
 int
-bootpread(char *c, uint32_t u, int i)
+bootpread(char* c, uint32_t u, int i)
 {
-	return	0;
+	return 0;
 }

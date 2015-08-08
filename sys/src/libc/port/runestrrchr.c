@@ -11,9 +11,9 @@
 #include <libc.h>
 
 Rune*
-runestrrchr(Rune *s, Rune c)
+runestrrchr(Rune* s, Rune c)
 {
-	Rune *r;
+	Rune* r;
 
 	if(c == 0)
 		return runestrchr(s, 0);

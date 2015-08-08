@@ -2,8 +2,7 @@
 #include <libc.h>
 
 void
-rdpmc (int counter, int low, int high)
+rdpmc(int counter, int low, int high)
 {
-     asm __volatile__("rdpmc" : "=a" (low), "=d" (high) : "c" (counter)) ;
+	asm __volatile__("rdpmc" : "=a"(low), "=d"(high) : "c"(counter));
 }
-

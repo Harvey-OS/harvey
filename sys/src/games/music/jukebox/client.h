@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-char*	getroot(void);
-void	doplay(char*);
-void	fillbrowsebot(char*);
-void	fillbrowsetop(char*);
-void	fillplaytext(char*);
-void	addchild(char*, char*);
-void	addparent(char*);
-char	*getoneliner(char*);
-char	*getparent(char*);
-void	addplaytext(char*);
+char* getroot(void);
+void doplay(char*);
+void fillbrowsebot(char*);
+void fillbrowsetop(char*);
+void fillplaytext(char*);
+void addchild(char*, char*);
+void addparent(char*);
+char* getoneliner(char*);
+char* getparent(char*);
+void addplaytext(char*);

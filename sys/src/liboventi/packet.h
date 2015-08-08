@@ -11,55 +11,48 @@ typedef struct Packet Packet;
 typedef struct Mem Mem;
 typedef struct Frag Frag;
 
-enum {
-	BigMemSize = MaxFragSize,
-	SmallMemSize = BigMemSize/8,
-	NLocalFrag = 2,
+enum { BigMemSize = MaxFragSize,
+       SmallMemSize = BigMemSize / 8,
+       NLocalFrag = 2,
 };
 
 /* position to carve out of a Mem */
-enum {
-	PFront,
-	PMiddle,
-	PEnd,
+enum { PFront,
+       PMiddle,
+       PEnd,
 };
 
-struct Mem
-{
+struct Mem {
 	Lock lk;
 	int ref;
-	unsigned char *bp;
-	unsigned char *ep;
-	unsigned char *rp;
-	unsigned char *wp;
-	Mem *next;
+	unsigned char* bp;
+	unsigned char* ep;
+	unsigned char* rp;
+	unsigned char* wp;
+	Mem* next;
 };
 
-enum {
-	FragLocalFree,
-	FragLocalAlloc,
-	FragGlobal,
+enum { FragLocalFree,
+       FragLocalAlloc,
+       FragGlobal,
 };
-	
-struct Frag
-{
+
+struct Frag {
 	int state;
-	Mem *mem;
-	unsigned char *rp;
-	unsigned char *wp;
-	Frag *next;
+	Mem* mem;
+	unsigned char* rp;
+	unsigned char* wp;
+	Frag* next;
 };
 
-struct Packet
-{
+struct Packet {
 	int size;
-	int asize;  /* allocated memmory - always greater than size */
-	
-	Packet *next;
-	
-	Frag *first;
-	Frag *last;
-	
+	int asize; /* allocated memmory - always greater than size */
+
+	Packet* next;
+
+	Frag* first;
+	Frag* last;
+
 	Frag local[NLocalFrag];
 };
-

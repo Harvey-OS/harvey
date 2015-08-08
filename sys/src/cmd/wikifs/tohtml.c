@@ -18,35 +18,27 @@
  * Get HTML and text templates from underlying file system.
  * Caches them, which means changes don't take effect for
  * up to Tcache seconds after they are made.
- * 
+ *
  * If the files are deleted, we keep returning the last
  * known copy.
  */
-enum {
-	WAIT = 60
-};
+enum { WAIT = 60 };
 
-static char *name[2*Ntemplate] = {
- [Tpage]		"page.html",
- [Tedit]		"edit.html",
- [Tdiff]		"diff.html",
- [Thistory]		"history.html",
- [Tnew]		"new.html",
- [Toldpage]	"oldpage.html",
- [Twerror]		"werror.html",
- [Ntemplate+Tpage]	"page.txt",
- [Ntemplate+Tdiff]	"diff.txt",
- [Ntemplate+Thistory]	"history.txt",
- [Ntemplate+Toldpage]	"oldpage.txt",
- [Ntemplate+Twerror]	"werror.txt",
+static char* name[2 * Ntemplate] = {
+        [Tpage] "page.html", [Tedit] "edit.html", [Tdiff] "diff.html",
+        [Thistory] "history.html", [Tnew] "new.html", [Toldpage] "oldpage.html",
+        [Twerror] "werror.html", [Ntemplate + Tpage] "page.txt",
+        [Ntemplate + Tdiff] "diff.txt", [Ntemplate + Thistory] "history.txt",
+        [Ntemplate + Toldpage] "oldpage.txt",
+        [Ntemplate + Twerror] "werror.txt",
 };
 
 static struct {
 	RWLock;
-	String *s;
+	String* s;
 	ulong t;
 	Qid qid;
-} cache[2*Ntemplate];
+} cache[2 * Ntemplate];
 
 static void
 cacheinit(void)
@@ -58,12 +50,12 @@ cacheinit(void)
 	if(x)
 		return;
 	lock(&l);
-	if(x){
+	if(x) {
 		unlock(&l);
 		return;
 	}
 
-	for(i=0; i<2*Ntemplate; i++)
+	for(i = 0; i < 2 * Ntemplate; i++)
 		if(name[i])
 			cache[i].s = s_copy("");
 	x = 1;
@@ -74,29 +66,31 @@ static String*
 gettemplate(int type)
 {
 	int n;
-	Biobuf *b;
-	Dir *d;
-	String *s, *ns;
+	Biobuf* b;
+	Dir* d;
+	String* s, *ns;
 
-	if(name[type]==nil)
+	if(name[type] == nil)
 		return nil;
 
 	cacheinit();
 
 	rlock(&cache[type]);
-	if(0 && cache[type].t+Tcache >= time(0)){
+	if(0 && cache[type].t + Tcache >= time(0)) {
 		s = s_incref(cache[type].s);
 		runlock(&cache[type]);
 		return s;
 	}
 	runlock(&cache[type]);
 
-//	d = nil;
+	//	d = nil;
 	wlock(&cache[type]);
-	if(0 && cache[type].t+Tcache >= time(0) || (d = wdirstat(name[type])) == nil)
+	if(0 && cache[type].t + Tcache >= time(0) ||
+	   (d = wdirstat(name[type])) == nil)
 		goto Return;
 
-	if(0 && d->qid.vers == cache[type].qid.vers && d->qid.path == cache[type].qid.path){
+	if(0 && d->qid.vers == cache[type].qid.vers &&
+	   d->qid.path == cache[type].qid.path) {
 		cache[type].t = time(0);
 		goto Return;
 	}
@@ -126,18 +120,17 @@ Return:
 	return s;
 }
 
-	
 /*
  * Write wiki document in HTML.
  */
 static String*
-s_escappend(String *s, char *p, int pre)
+s_escappend(String* s, char* p, int pre)
 {
-	char *q;
+	char* q;
 
-	while(q = strpbrk(p, pre ? "<>&" : " <>&")){
-		s = s_nappend(s, p, q-p);
-		switch(*q){
+	while(q = strpbrk(p, pre ? "<>&" : " <>&")) {
+		s = s_nappend(s, p, q - p);
+		switch(*q) {
 		case '<':
 			s = s_append(s, "&lt;");
 			break;
@@ -150,28 +143,25 @@ s_escappend(String *s, char *p, int pre)
 		case ' ':
 			s = s_append(s, "\n");
 		}
-		p = q+1;
+		p = q + 1;
 	}
 	s = s_append(s, p);
 	return s;
 }
 
 static char*
-mkurl(char *s, int ty)
+mkurl(char* s, int ty)
 {
-	char *p, *q;
+	char* p, *q;
 
-	if(strncmp(s, "http:", 5)==0
-	|| strncmp(s, "https:", 6)==0
-	|| strncmp(s, "#", 1)==0
-	|| strncmp(s, "ftp:", 4)==0
-	|| strncmp(s, "mailto:", 7)==0
-	|| strncmp(s, "telnet:", 7)==0
-	|| strncmp(s, "file:", 5)==0)
+	if(strncmp(s, "http:", 5) == 0 || strncmp(s, "https:", 6) == 0 ||
+	   strncmp(s, "#", 1) == 0 || strncmp(s, "ftp:", 4) == 0 ||
+	   strncmp(s, "mailto:", 7) == 0 || strncmp(s, "telnet:", 7) == 0 ||
+	   strncmp(s, "file:", 5) == 0)
 		return estrdup(s);
 
-	if(strchr(s, ' ')==nil && strchr(s, '@')!=nil){
-		p = emalloc(strlen(s)+8);
+	if(strchr(s, ' ') == nil && strchr(s, '@') != nil) {
+		p = emalloc(strlen(s) + 8);
 		strcpy(p, "mailto:");
 		strcat(p, s);
 		return p;
@@ -182,99 +172,87 @@ mkurl(char *s, int ty)
 	else
 		p = smprint("../%s", s);
 
-	for(q=p; *q; q++)
-		if(*q==' ')
+	for(q = p; *q; q++)
+		if(*q == ' ')
 			*q = '_';
 	return p;
 }
 
-int okayinlist[Nwtxt] =
-{
-	[Wbullet]	1,
-	[Wlink]	1,
-	[Wman]	1,
-	[Wplain]	1,
+int okayinlist[Nwtxt] = {
+        [Wbullet] 1, [Wlink] 1, [Wman] 1, [Wplain] 1,
 };
 
-int okayinpre[Nwtxt] =
-{
-	[Wlink]	1,
-	[Wman]	1,
-	[Wpre]	1,
+int okayinpre[Nwtxt] = {
+        [Wlink] 1, [Wman] 1, [Wpre] 1,
 };
 
-int okayinpara[Nwtxt] =
-{
-	[Wpara]	1,
-	[Wlink]	1,
-	[Wman]	1,
-	[Wplain]	1,
+int okayinpara[Nwtxt] = {
+        [Wpara] 1, [Wlink] 1, [Wman] 1, [Wplain] 1,
 };
 
 char*
-nospaces(char *s)
+nospaces(char* s)
 {
-	char *q;
+	char* q;
 	s = strdup(s);
 	if(s == nil)
 		return nil;
-	for(q=s; *q; q++)
+	for(q = s; *q; q++)
 		if(*q == ' ')
 			*q = '_';
 	return s;
 }
-	
+
 String*
-pagehtml(String *s, Wpage *wtxt, int ty)
+pagehtml(String* s, Wpage* wtxt, int ty)
 {
-	char *p, tmp[40];
+	char* p, tmp[40];
 	int inlist, inpara, inpre, t, tnext;
-	Wpage *w;
+	Wpage* w;
 
 	inlist = 0;
 	inpre = 0;
 	inpara = 0;
 
-	for(w=wtxt; w; w=w->next){
+	for(w = wtxt; w; w = w->next) {
 		t = w->type;
 		tnext = Whr;
 		if(w->next)
 			tnext = w->next->type;
 
-		if(inlist && !okayinlist[t]){
+		if(inlist && !okayinlist[t]) {
 			inlist = 0;
 			s = s_append(s, "\n</li>\n</ul>\n");
 		}
-		if(inpre && !okayinpre[t]){
+		if(inpre && !okayinpre[t]) {
 			inpre = 0;
 			s = s_append(s, "</pre>\n");
 		}
 
-		switch(t){
+		switch(t) {
 		case Wheading:
 			p = nospaces(w->text);
-			s = s_appendlist(s, 
-				"\n<a name=\"", p, "\" /><h3>", 
-				w->text, "</h3>\n", nil);
+			s = s_appendlist(s, "\n<a name=\"", p, "\" /><h3>",
+			                 w->text, "</h3>\n", nil);
 			free(p);
 			break;
 
 		case Wpara:
-			if(inpara){
+			if(inpara) {
 				s = s_append(s, "\n</p>\n");
 				inpara = 0;
 			}
-			if(okayinpara[tnext]){
+			if(okayinpara[tnext]) {
 				s = s_append(s, "\n<p class='para'>\n");
 				inpara = 1;
 			}
 			break;
 
 		case Wbullet:
-			if(!inlist){
+			if(!inlist) {
 				inlist = 1;
 				s = s_append(s, "\n<ul>\n");
-			}else
+			} else
 				s = s_append(s, "\n</li>\n");
 			s = s_append(s, "\n<li>\n");
 			break;
@@ -293,21 +271,22 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 
 		case Wman:
 			sprint(tmp, "%d", w->section);
-			s = s_appendlist(s, 
-				"<a href=\"http://plan9.bell-labs.com/magic/man2html/",
-				tmp, "/", w->text, "\"><i>", w->text, "</i>(",
-				tmp, ")</a>", nil);
+			s = s_appendlist(s, "<a "
+			                    "href=\"http://plan9.bell-labs.com/"
+			                    "magic/man2html/",
+			                 tmp, "/", w->text, "\"><i>", w->text,
+			                 "</i>(", tmp, ")</a>", nil);
 			break;
-			
+
 		case Wpre:
-			if(!inpre){
+			if(!inpre) {
 				inpre = 1;
 				s = s_append(s, "\n<pre>\n");
 			}
 			s = s_escappend(s, w->text, 1);
 			s = s_append(s, "\n");
 			break;
-		
+
 		case Whr:
 			s = s_append(s, "<hr />");
 			break;
@@ -327,18 +306,18 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 }
 
 static String*
-copythru(String *s, char **newp, int *nlinep, int l)
+copythru(String* s, char** newp, int* nlinep, int l)
 {
-	char *oq, *q, *r;
+	char* oq, *q, *r;
 	int ol;
 
 	q = *newp;
 	oq = q;
 	ol = *nlinep;
-	while(ol < l){
+	while(ol < l) {
 		if(r = strchr(q, '\n'))
-			q = r+1;
-		else{
+			q = r + 1;
+		else {
 			q += strlen(q);
 			break;
 		}
@@ -347,19 +326,19 @@ copythru(String *s, char **newp, int *nlinep, int l)
 	if(*nlinep < l)
 		*nlinep = l;
 	*newp = q;
-	return s_nappend(s, oq, q-oq);
+	return s_nappend(s, oq, q - oq);
 }
 
 static int
-dodiff(char *f1, char *f2)
+dodiff(char* f1, char* f2)
 {
 	int p[2];
 
-	if(pipe(p) < 0){
+	if(pipe(p) < 0) {
 		return -1;
 	}
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		return -1;
 
@@ -373,16 +352,15 @@ dodiff(char *f1, char *f2)
 	return p[0];
 }
 
-
 /* print document i grayed out, with only diffs relative to j in black */
 static String*
-s_diff(String *s, Whist *h, int i, int j)
+s_diff(String* s, Whist* h, int i, int j)
 {
-	char *p, *q, *pnew;
+	char* p, *q, *pnew;
 	int fdiff, fd1, fd2, n1, n2;
 	Biobuf b;
 	char fn1[40], fn2[40];
-	String *new, *old;
+	String* new, *old;
 	int nline;
 
 	if(j < 0)
@@ -390,7 +368,7 @@ s_diff(String *s, Whist *h, int i, int j)
 
 	strcpy(fn1, "/tmp/wiki.XXXXXX");
 	strcpy(fn2, "/tmp/wiki.XXXXXX");
-	if((fd1 = opentemp(fn1)) < 0 || (fd2 = opentemp(fn2)) < 0){
+	if((fd1 = opentemp(fn1)) < 0 || (fd2 = opentemp(fn2)) < 0) {
 		close(fd1);
 		s = s_append(s, "\nopentemp failed; sorry\n");
 		return s;
@@ -404,27 +382,28 @@ s_diff(String *s, Whist *h, int i, int j)
 	fdiff = dodiff(fn2, fn1);
 	if(fdiff < 0)
 		s = s_append(s, "\ndiff failed; sorry\n");
-	else{
+	else {
 		nline = 0;
 		pnew = s_to_c(new);
 		Binit(&b, fdiff, OREAD);
-		while(p = Brdline(&b, '\n')){
-			if(p[0]=='<' || p[0]=='>' || p[0]=='-')
+		while(p = Brdline(&b, '\n')) {
+			if(p[0] == '<' || p[0] == '>' || p[0] == '-')
 				continue;
-			p[Blinelen(&b)-1] = '\0';
+			p[Blinelen(&b) - 1] = '\0';
 			if((p = strpbrk(p, "acd")) == nil)
 				continue;
-			n1 = atoi(p+1);
+			n1 = atoi(p + 1);
 			if(q = strchr(p, ','))
-				n2 = atoi(q+1);
+				n2 = atoi(q + 1);
 			else
 				n2 = n1;
-			switch(*p){
+			switch(*p) {
 			case 'a':
 			case 'c':
 				s = s_append(s, "<span class='old_text'>");
-				s = copythru(s, &pnew, &nline, n1-1);
-				s = s_append(s, "</span><span class='new_text'>");
+				s = copythru(s, &pnew, &nline, n1 - 1);
+				s = s_append(s,
+				             "</span><span class='new_text'>");
 				s = copythru(s, &pnew, &nline, n2);
 				s = s_append(s, "</span>");
 				break;
@@ -434,7 +413,6 @@ s_diff(String *s, Whist *h, int i, int j)
 		s = s_append(s, "<span class='old_text'>");
 		s = s_append(s, pnew);
 		s = s_append(s, "</span>");
-
 	}
 	s_free(new);
 	s_free(old);
@@ -444,102 +422,102 @@ s_diff(String *s, Whist *h, int i, int j)
 }
 
 static String*
-diffhtml(String *s, Whist *h)
+diffhtml(String* s, Whist* h)
 {
 	int i;
 	char tmp[50];
-	char *atime;
+	char* atime;
 
-	for(i=h->ndoc-1; i>=0; i--){
+	for(i = h->ndoc - 1; i >= 0; i--) {
 		s = s_append(s, "<hr /><div class='diff_head'>\n");
-		if(i==h->current)
+		if(i == h->current)
 			sprint(tmp, "index.html");
 		else
 			sprint(tmp, "%lud", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
-		atime[strlen(atime)-1] = '\0';
-		s = s_appendlist(s, 
-			"<a href=\"", tmp, "\">",
-			atime, "</a>", nil);
+		atime[strlen(atime) - 1] = '\0';
+		s = s_appendlist(s, "<a href=\"", tmp, "\">", atime, "</a>",
+		                 nil);
 		if(h->doc[i].author)
 			s = s_appendlist(s, ", ", h->doc[i].author, nil);
 		if(h->doc[i].conflict)
 			s = s_append(s, ", conflicting write");
 		s = s_append(s, "\n");
 		if(h->doc[i].comment)
-			s = s_appendlist(s, "<br /><i>", h->doc[i].comment, "</i>\n", nil);
+			s = s_appendlist(s, "<br /><i>", h->doc[i].comment,
+			                 "</i>\n", nil);
 		s = s_append(s, "</div><hr />");
-		s = s_diff(s, h, i, i-1);
+		s = s_diff(s, h, i, i - 1);
 	}
 	s = s_append(s, "<hr>");
 	return s;
 }
 
 static String*
-historyhtml(String *s, Whist *h)
+historyhtml(String* s, Whist* h)
 {
 	int i;
 	char tmp[40];
-	char *atime;
+	char* atime;
 
 	s = s_append(s, "<ul>\n");
-	for(i=h->ndoc-1; i>=0; i--){
-		if(i==h->current)
+	for(i = h->ndoc - 1; i >= 0; i--) {
+		if(i == h->current)
 			sprint(tmp, "index.html");
 		else
 			sprint(tmp, "%lud", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
-		atime[strlen(atime)-1] = '\0';
-		s = s_appendlist(s, 
-			"<li><a href=\"", tmp, "\">",
-			atime, "</a>", nil);
+		atime[strlen(atime) - 1] = '\0';
+		s = s_appendlist(s, "<li><a href=\"", tmp, "\">", atime, "</a>",
+		                 nil);
 		if(h->doc[i].author)
 			s = s_appendlist(s, ", ", h->doc[i].author, nil);
 		if(h->doc[i].conflict)
 			s = s_append(s, ", conflicting write");
 		s = s_append(s, "\n");
 		if(h->doc[i].comment)
-			s = s_appendlist(s, "<br><i>", h->doc[i].comment, "</i>\n", nil);
+			s = s_appendlist(s, "<br><i>", h->doc[i].comment,
+			                 "</i>\n", nil);
 	}
 	s = s_append(s, "</ul>");
-	return s;		
+	return s;
 }
 
 String*
-tohtml(Whist *h, Wdoc *d, int ty)
+tohtml(Whist* h, Wdoc* d, int ty)
 {
-	char *atime;
-	char *p, *q, ver[40];
+	char* atime;
+	char* p, *q, ver[40];
 	int nsub;
 	Sub sub[3];
-	String *s, *t;
+	String* s, *t;
 
 	t = gettemplate(ty);
 	if(p = strstr(s_to_c(t), "PAGE"))
-		q = p+4;
-	else{
-		p = s_to_c(t)+s_len(t);
+		q = p + 4;
+	else {
+		p = s_to_c(t) + s_len(t);
 		q = nil;
 	}
 
 	nsub = 0;
-	if(h){
-		sub[nsub] = (Sub){ "TITLE", h->title };
+	if(h) {
+		sub[nsub] = (Sub){"TITLE", h->title};
 		nsub++;
 	}
-	if(d){
+	if(d) {
 		sprint(ver, "%lud", d->time);
-		sub[nsub] = (Sub){ "VERSION", ver };
+		sub[nsub] = (Sub){"VERSION", ver};
 		nsub++;
 		atime = ctime(d->time);
-		atime[strlen(atime)-1] = '\0';
-		sub[nsub] = (Sub){ "DATE", atime };
+		atime[strlen(atime) - 1] = '\0';
+		sub[nsub] = (Sub){"DATE", atime};
 		nsub++;
 	}
 
 	s = s_reset(nil);
-	s = s_appendsub(s, s_to_c(t), p-s_to_c(t), sub, nsub);
-	switch(ty){
+	s = s_appendsub(s, s_to_c(t), p - s_to_c(t), sub, nsub);
+	switch(ty) {
 	case Tpage:
 	case Toldpage:
 		s = pagehtml(s, d->wtxt, ty);
@@ -563,19 +541,18 @@ tohtml(Whist *h, Wdoc *d, int ty)
 	return s;
 }
 
-enum {
-	LINELEN = 70,
+enum { LINELEN = 70,
 };
 
 static String*
-s_appendbrk(String *s, char *p, char *prefix, int dosharp)
+s_appendbrk(String* s, char* p, char* prefix, int dosharp)
 {
-	char *e, *w, *x;
+	char* e, *w, *x;
 	int first, l;
 	Rune r;
 
 	first = 1;
-	while(*p){
+	while(*p) {
 		s = s_append(s, p);
 		e = strrchr(s_to_c(s), '\n');
 		if(e == nil)
@@ -584,21 +561,22 @@ s_appendbrk(String *s, char *p, char *prefix, int dosharp)
 			e++;
 		if(utflen(e) <= LINELEN)
 			break;
-		x = e; l=LINELEN;
+		x = e;
+		l = LINELEN;
 		while(l--)
-			x+=chartorune(&r, x);
+			x += chartorune(&r, x);
 		x = strchr(x, ' ');
-		if(x){
+		if(x) {
 			*x = '\0';
 			w = strrchr(e, ' ');
 			*x = ' ';
-		}else
+		} else
 			w = strrchr(e, ' ');
-	
-		if(w-s_to_c(s) < strlen(prefix))
+
+		if(w - s_to_c(s) < strlen(prefix))
 			break;
-		
-		x = estrdup(w+1);
+
+		x = estrdup(w + 1);
 		*w = '\0';
 		s->ptr = w;
 		s_append(s, "\n");
@@ -616,57 +594,59 @@ s_appendbrk(String *s, char *p, char *prefix, int dosharp)
 }
 
 static void
-s_endline(String *s, int dosharp)
+s_endline(String* s, int dosharp)
 {
-	if(dosharp){
-		if(s->ptr == s->base+1 && s->ptr[-1] == '#')
+	if(dosharp) {
+		if(s->ptr == s->base + 1 && s->ptr[-1] == '#')
 			return;
 
-		if(s->ptr > s->base+1 && s->ptr[-1] == '#' && s->ptr[-2] == '\n')
+		if(s->ptr > s->base + 1 && s->ptr[-1] == '#' &&
+		   s->ptr[-2] == '\n')
 			return;
 		s_append(s, "\n#");
-	}else{
-		if(s->ptr > s->base+1 && s->ptr[-1] == '\n')
+	} else {
+		if(s->ptr > s->base + 1 && s->ptr[-1] == '\n')
 			return;
 		s_append(s, "\n");
 	}
 }
 
 String*
-pagetext(String *s, Wpage *page, int dosharp)
+pagetext(String* s, Wpage* page, int dosharp)
 {
 	int inlist, inpara;
-	char *prefix, *sharp, tmp[40];
-	String *t;
-	Wpage *w;
+	char* prefix, *sharp, tmp[40];
+	String* t;
+	Wpage* w;
 
 	inlist = 0;
 	inpara = 0;
 	prefix = "";
 	sharp = dosharp ? "#" : "";
 	s = s_append(s, sharp);
-	for(w=page; w; w=w->next){
-		switch(w->type){
+	for(w = page; w; w = w->next) {
+		switch(w->type) {
 		case Wheading:
-			if(inlist){
+			if(inlist) {
 				prefix = "";
 				inlist = 0;
 			}
 			s_endline(s, dosharp);
-			if(!inpara){
+			if(!inpara) {
 				inpara = 1;
 				s = s_appendlist(s, "\n", sharp, nil);
 			}
-			s = s_appendlist(s, w->text, "\n", sharp, "\n", sharp, nil);
+			s = s_appendlist(s, w->text, "\n", sharp, "\n", sharp,
+			                 nil);
 			break;
 
 		case Wpara:
 			s_endline(s, dosharp);
-			if(inlist){
+			if(inlist) {
 				prefix = "";
 				inlist = 0;
 			}
-			if(!inpara){
+			if(!inpara) {
 				inpara = 1;
 				s = s_appendlist(s, "\n", sharp, nil);
 			}
@@ -688,7 +668,7 @@ pagetext(String *s, Wpage *page, int dosharp)
 			t = s_append(s_copy("["), w->text);
 			if(w->url == nil)
 				t = s_append(t, "]");
-			else{
+			else {
 				t = s_append(t, " | ");
 				t = s_append(t, w->url);
 				t = s_append(t, "]");
@@ -704,9 +684,9 @@ pagetext(String *s, Wpage *page, int dosharp)
 			sprint(tmp, "(%d)", w->section);
 			s = s_appendbrk(s, tmp, prefix, dosharp);
 			break;
-			
+
 		case Wpre:
-			if(inlist){
+			if(inlist) {
 				prefix = "";
 				inlist = 0;
 			}
@@ -717,7 +697,9 @@ pagetext(String *s, Wpage *page, int dosharp)
 			break;
 		case Whr:
 			s_endline(s, dosharp);
-			s = s_appendlist(s, "------------------------------------------------------ \n", sharp, nil);
+			s = s_appendlist(s, "----------------------------------"
+			                    "-------------------- \n",
+			                 sharp, nil);
 			break;
 
 		case Wplain:
@@ -734,19 +716,19 @@ pagetext(String *s, Wpage *page, int dosharp)
 }
 
 static String*
-historytext(String *s, Whist *h)
+historytext(String* s, Whist* h)
 {
 	int i;
 	char tmp[40];
-	char *atime;
+	char* atime;
 
-	for(i=h->ndoc-1; i>=0; i--){
-		if(i==h->current)
+	for(i = h->ndoc - 1; i >= 0; i--) {
+		if(i == h->current)
 			sprint(tmp, "[current]");
 		else
 			sprint(tmp, "[%lud/]", h->doc[i].time);
 		atime = ctime(h->doc[i].time);
-		atime[strlen(atime)-1] = '\0';
+		atime[strlen(atime) - 1] = '\0';
 		s = s_appendlist(s, " * ", tmp, " ", atime, nil);
 		if(h->doc[i].author)
 			s = s_appendlist(s, ", ", h->doc[i].author, nil);
@@ -754,46 +736,47 @@ historytext(String *s, Whist *h)
 			s = s_append(s, ", conflicting write");
 		s = s_append(s, "\n");
 		if(h->doc[i].comment)
-			s = s_appendlist(s, "<i>", h->doc[i].comment, "</i>\n", nil);
+			s = s_appendlist(s, "<i>", h->doc[i].comment, "</i>\n",
+			                 nil);
 	}
-	return s;		
+	return s;
 }
 
 String*
-totext(Whist *h, Wdoc *d, int ty)
+totext(Whist* h, Wdoc* d, int ty)
 {
-	char *atime;
-	char *p, *q, ver[40];
+	char* atime;
+	char* p, *q, ver[40];
 	int nsub;
 	Sub sub[3];
-	String *s, *t;
+	String* s, *t;
 
-	t = gettemplate(Ntemplate+ty);
+	t = gettemplate(Ntemplate + ty);
 	if(p = strstr(s_to_c(t), "PAGE"))
-		q = p+4;
-	else{
-		p = s_to_c(t)+s_len(t);
+		q = p + 4;
+	else {
+		p = s_to_c(t) + s_len(t);
 		q = nil;
 	}
 
 	nsub = 0;
-	if(h){
-		sub[nsub] = (Sub){ "TITLE", h->title };
+	if(h) {
+		sub[nsub] = (Sub){"TITLE", h->title};
 		nsub++;
 	}
-	if(d){
+	if(d) {
 		sprint(ver, "%lud", d->time);
-		sub[nsub] = (Sub){ "VERSION", ver };
+		sub[nsub] = (Sub){"VERSION", ver};
 		nsub++;
 		atime = ctime(d->time);
-		atime[strlen(atime)-1] = '\0';
-		sub[nsub] = (Sub){ "DATE", atime };
+		atime[strlen(atime) - 1] = '\0';
+		sub[nsub] = (Sub){"DATE", atime};
 		nsub++;
 	}
-	
+
 	s = s_reset(nil);
-	s = s_appendsub(s, s_to_c(t), p-s_to_c(t), sub, nsub);
-	switch(ty){
+	s = s_appendsub(s, s_to_c(t), p - s_to_c(t), sub, nsub);
+	switch(ty) {
 	case Tpage:
 	case Toldpage:
 		s = pagetext(s, d->wtxt, 0);
@@ -812,17 +795,17 @@ totext(Whist *h, Wdoc *d, int ty)
 }
 
 String*
-doctext(String *s, Wdoc *d)
+doctext(String* s, Wdoc* d)
 {
 	char tmp[40];
 
 	sprint(tmp, "D%lud", d->time);
 	s = s_append(s, tmp);
-	if(d->comment){
+	if(d->comment) {
 		s = s_append(s, "\nC");
 		s = s_append(s, d->comment);
 	}
-	if(d->author){
+	if(d->author) {
 		s = s_append(s, "\nA");
 		s = s_append(s, d->author);
 	}

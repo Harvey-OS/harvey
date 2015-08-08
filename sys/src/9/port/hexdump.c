@@ -19,68 +19,74 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#include	"u.h"
-#include	"tos.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "tos.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-static int isprint(int c)
+static int
+isprint(int c)
 {
 	return (c >= 32 && c <= 126);
 }
 
-void hexdump(void *v, int length)
+void
+hexdump(void* v, int length)
 {
 	int i;
-	uint8_t *m = v;
-	uintptr_t memory = (uintptr_t) v;
+	uint8_t* m = v;
+	uintptr_t memory = (uintptr_t)v;
 	int all_zero = 0;
 
-	for (i = 0; i < length; i += 16) {
+	for(i = 0; i < length; i += 16) {
 		int j;
 
 		all_zero++;
-		for (j = 0; (j < 16) && (i + j < length); j++) {
-			if (m[i + j] != 0) {
+		for(j = 0; (j < 16) && (i + j < length); j++) {
+			if(m[i + j] != 0) {
 				all_zero = 0;
 				break;
 			}
 		}
 
-		if (all_zero < 2) {
-			iprint("%p:", (void *)(memory + i));
-			for (j = 0; j < 16; j++)
+		if(all_zero < 2) {
+			iprint("%p:", (void*)(memory + i));
+			for(j = 0; j < 16; j++)
 				iprint(" %02x", m[i + j]);
 			iprint("  ");
-			for (j = 0; j < 16; j++)
-				iprint("%c", isprint(m[i + j]) ? m[i + j] : '.');
+			for(j = 0; j < 16; j++)
+				iprint("%c",
+				       isprint(m[i + j]) ? m[i + j] : '.');
 			iprint("\n");
-		} else if (all_zero == 2) {
+		} else if(all_zero == 2) {
 			iprint("...\n");
 		}
 	}
 }
 
-void pahexdump(uintptr_t pa, int len)
+void
+pahexdump(uintptr_t pa, int len)
 {
-	void *v = KADDR(pa);
+	void* v = KADDR(pa);
 	hexdump(v, len);
 }
 
 /* Print a string, with printables preserved, and \xxx where not possible. */
-int printdump(char *buf, int buflen, uint8_t *data)
+int
+printdump(char* buf, int buflen, uint8_t* data)
 {
 	int ret = 0;
 	int ix = 0;
-	while (ret < buflen) {
-		if (isprint(data[ix])) {
+	while(ret < buflen) {
+		if(isprint(data[ix])) {
 			buf[ret++] = data[ix];
-		} else if (ret < buflen - 4) {
+		} else if(ret < buflen - 4) {
 			/* guarantee there is room for a \xxx sequence */
-			ret += snprint(&buf[ret], buflen-ret, "\\%03o", data[ix]);
+			ret += snprint(&buf[ret], buflen - ret, "\\%03o",
+			               data[ix]);
 		} else {
 			break;
 		}

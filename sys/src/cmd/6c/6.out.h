@@ -7,17 +7,16 @@
  * in the LICENSE file.
  */
 
-#define	NSYM	50
-#define	NSNAME	8
-#define NOPROF	(1<<0)
-#define DUPOK	(1<<1)
+#define NSYM 50
+#define NSNAME 8
+#define NOPROF (1 << 0)
+#define DUPOK (1 << 1)
 
 /*
  *	amd64
  */
 
-enum	as
-{
+enum as {
 	AXXX,
 	AAAA,
 	AAAD,
@@ -711,10 +710,9 @@ enum	as
 	ALAST
 };
 
-enum
-{
+enum {
 
-	D_AL		= 0,
+	D_AL = 0,
 	D_CL,
 	D_DL,
 	D_BL,
@@ -731,7 +729,7 @@ enum
 	D_R14B,
 	D_R15B,
 
-	D_AX		= 16,
+	D_AX = 16,
 	D_CX,
 	D_DX,
 	D_BX,
@@ -748,82 +746,81 @@ enum
 	D_R14,
 	D_R15,
 
-	D_AH		= 32,
+	D_AH = 32,
 	D_CH,
 	D_DH,
 	D_BH,
 
-	D_F0		= 36,
+	D_F0 = 36,
 
-	D_M0		= 44,
+	D_M0 = 44,
 
-	D_X0		= 52,
+	D_X0 = 52,
 
-	D_CS		= 68,
+	D_CS = 68,
 	D_SS,
 	D_DS,
 	D_ES,
 	D_FS,
 	D_GS,
 
-	D_GDTR,		/* global descriptor table register */
-	D_IDTR,		/* interrupt descriptor table register */
-	D_LDTR,		/* local descriptor table register */
-	D_MSW,		/* machine status word */
-	D_TASK,		/* task register */
+	D_GDTR, /* global descriptor table register */
+	D_IDTR, /* interrupt descriptor table register */
+	D_LDTR, /* local descriptor table register */
+	D_MSW,  /* machine status word */
+	D_TASK, /* task register */
 
-	D_CR		= 79,
-	D_DR		= 95,
-	D_TR		= 103,
+	D_CR = 79,
+	D_DR = 95,
+	D_TR = 103,
 
-	D_NONE		= 111,
+	D_NONE = 111,
 
-	D_BRANCH	= 112,
-	D_EXTERN	= 113,
-	D_STATIC		= 114,
-	D_AUTO		= 115,
-	D_PARAM		= 116,
-	D_CONST		= 117,
-	D_FCONST	= 118,
-	D_SCONST	= 119,
-	D_ADDR		= 120,
+	D_BRANCH = 112,
+	D_EXTERN = 113,
+	D_STATIC = 114,
+	D_AUTO = 115,
+	D_PARAM = 116,
+	D_CONST = 117,
+	D_FCONST = 118,
+	D_SCONST = 119,
+	D_ADDR = 120,
 
 	D_FILE,
 	D_FILE1,
 
-	D_INDIR,	/* additive */
+	D_INDIR, /* additive */
 
-	T_TYPE		= 1<<0,
-	T_INDEX		= 1<<1,
-	T_OFFSET	= 1<<2,
-	T_FCONST	= 1<<3,
-	T_SYM		= 1<<4,
-	T_SCONST	= 1<<5,
-	T_64	= 1<<6,
+	T_TYPE = 1 << 0,
+	T_INDEX = 1 << 1,
+	T_OFFSET = 1 << 2,
+	T_FCONST = 1 << 3,
+	T_SYM = 1 << 4,
+	T_SCONST = 1 << 5,
+	T_64 = 1 << 6,
 
-	REGARG		= D_BP,	/* MIGHT CHANGE */
-	REGRET		= D_AX,
-	FREGRET		= D_X0,
-	REGSP		= D_SP,
-	REGTMP		= D_DI,
-	REGEXT		= D_R15,	/* compiler allocates external registers R15 down */
-	FREGMIN		= D_X0+5,	/* first register variable */
-	FREGEXT		= D_X0+7	/* first external register */
+	REGARG = D_BP, /* MIGHT CHANGE */
+	REGRET = D_AX,
+	FREGRET = D_X0,
+	REGSP = D_SP,
+	REGTMP = D_DI,
+	REGEXT = D_R15,     /* compiler allocates external registers R15 down */
+	FREGMIN = D_X0 + 5, /* first register variable */
+	FREGEXT = D_X0 + 7  /* first external register */
 };
 
 /*
  * this is the ranlib header
  */
-#define	SYMDEF	"__.SYMDEF"
+#define SYMDEF "__.SYMDEF"
 
 /*
  * this is the simulated IEEE floating point
  */
-typedef	struct	ieee	Ieee;
-struct	ieee
-{
-	long	l;	/* contains ls-man	0xffffffff */
-	long	h;	/* contains sign	0x80000000
-				    exp		0x7ff00000
-				    ms-man	0x000fffff */
+typedef struct ieee Ieee;
+struct ieee {
+	long l; /* contains ls-man	0xffffffff */
+	long h; /* contains sign	0x80000000
+	                    exp		0x7ff00000
+	                    ms-man	0x000fffff */
 };

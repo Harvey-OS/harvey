@@ -12,6 +12,8 @@
  */
 #include "iolib.h"
 #undef getchar
-int getchar(void){
+int
+getchar(void)
+{
 	return fgetc(stdin);
 }

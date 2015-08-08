@@ -9,97 +9,66 @@
 
 #include "sam.h"
 
-Header	h;
-uint8_t	indata[DATASIZE];
-uint8_t	outdata[2*DATASIZE+3];	/* room for overflow message */
-uint8_t	*inp;
-uint8_t	*outp;
-uint8_t	*outmsg = outdata;
-Posn	cmdpt;
-Posn	cmdptadv;
-Buffer	snarfbuf;
-int	waitack;
-int	outbuffered;
-int	tversion;
+Header h;
+uint8_t indata[DATASIZE];
+uint8_t outdata[2 * DATASIZE + 3]; /* room for overflow message */
+uint8_t* inp;
+uint8_t* outp;
+uint8_t* outmsg = outdata;
+Posn cmdpt;
+Posn cmdptadv;
+Buffer snarfbuf;
+int waitack;
+int outbuffered;
+int tversion;
 
-int	inshort(void);
-int32_t	inlong(void);
-int64_t	invlong(void);
-int	inmesg(Tmesg);
+int inshort(void);
+int32_t inlong(void);
+int64_t invlong(void);
+int inmesg(Tmesg);
 
-void	outshort(int);
-void	outlong(int32_t);
-void	outvlong(int64_t);
-void	outcopy(int, void*);
-void	outsend(void);
-void	outstart(Hmesg);
+void outshort(int);
+void outlong(int32_t);
+void outvlong(int64_t);
+void outcopy(int, void*);
+void outsend(void);
+void outstart(Hmesg);
 
-void	setgenstr(File*, Posn, Posn);
+void setgenstr(File*, Posn, Posn);
 
 #ifdef DEBUG
-char *hname[] = {
-	[Hversion]	"Hversion",
-	[Hbindname]	"Hbindname",
-	[Hcurrent]	"Hcurrent",
-	[Hnewname]	"Hnewname",
-	[Hmovname]	"Hmovname",
-	[Hgrow]		"Hgrow",
-	[Hcheck0]	"Hcheck0",
-	[Hcheck]	"Hcheck",
-	[Hunlock]	"Hunlock",
-	[Hdata]		"Hdata",
-	[Horigin]	"Horigin",
-	[Hunlockfile]	"Hunlockfile",
-	[Hsetdot]	"Hsetdot",
-	[Hgrowdata]	"Hgrowdata",
-	[Hmoveto]	"Hmoveto",
-	[Hclean]	"Hclean",
-	[Hdirty]	"Hdirty",
-	[Hcut]		"Hcut",
-	[Hsetpat]	"Hsetpat",
-	[Hdelname]	"Hdelname",
-	[Hclose]	"Hclose",
-	[Hsetsnarf]	"Hsetsnarf",
-	[Hsnarflen]	"Hsnarflen",
-	[Hack]		"Hack",
-	[Hexit]		"Hexit",
-	[Hplumb]		"Hplumb",
+char* hname[] = {
+        [Hversion] "Hversion", [Hbindname] "Hbindname", [Hcurrent] "Hcurrent",
+        [Hnewname] "Hnewname", [Hmovname] "Hmovname", [Hgrow] "Hgrow",
+        [Hcheck0] "Hcheck0", [Hcheck] "Hcheck", [Hunlock] "Hunlock",
+        [Hdata] "Hdata", [Horigin] "Horigin", [Hunlockfile] "Hunlockfile",
+        [Hsetdot] "Hsetdot", [Hgrowdata] "Hgrowdata", [Hmoveto] "Hmoveto",
+        [Hclean] "Hclean", [Hdirty] "Hdirty", [Hcut] "Hcut",
+        [Hsetpat] "Hsetpat", [Hdelname] "Hdelname", [Hclose] "Hclose",
+        [Hsetsnarf] "Hsetsnarf", [Hsnarflen] "Hsnarflen", [Hack] "Hack",
+        [Hexit] "Hexit", [Hplumb] "Hplumb",
 };
 
-char *tname[] = {
-	[Tversion]	"Tversion",
-	[Tstartcmdfile]	"Tstartcmdfile",
-	[Tcheck]	"Tcheck",
-	[Trequest]	"Trequest",
-	[Torigin]	"Torigin",
-	[Tstartfile]	"Tstartfile",
-	[Tworkfile]	"Tworkfile",
-	[Ttype]		"Ttype",
-	[Tcut]		"Tcut",
-	[Tpaste]	"Tpaste",
-	[Tsnarf]	"Tsnarf",
-	[Tstartnewfile]	"Tstartnewfile",
-	[Twrite]	"Twrite",
-	[Tclose]	"Tclose",
-	[Tlook]		"Tlook",
-	[Tsearch]	"Tsearch",
-	[Tsend]		"Tsend",
-	[Tdclick]	"Tdclick",
-	[Tstartsnarf]	"Tstartsnarf",
-	[Tsetsnarf]	"Tsetsnarf",
-	[Tack]		"Tack",
-	[Texit]		"Texit",
-	[Tplumb]		"Tplumb",
+char* tname[] = {
+        [Tversion] "Tversion", [Tstartcmdfile] "Tstartcmdfile",
+        [Tcheck] "Tcheck", [Trequest] "Trequest", [Torigin] "Torigin",
+        [Tstartfile] "Tstartfile", [Tworkfile] "Tworkfile", [Ttype] "Ttype",
+        [Tcut] "Tcut", [Tpaste] "Tpaste", [Tsnarf] "Tsnarf",
+        [Tstartnewfile] "Tstartnewfile", [Twrite] "Twrite", [Tclose] "Tclose",
+        [Tlook] "Tlook", [Tsearch] "Tsearch", [Tsend] "Tsend",
+        [Tdclick] "Tdclick", [Tstartsnarf] "Tstartsnarf",
+        [Tsetsnarf] "Tsetsnarf", [Tack] "Tack", [Texit] "Texit",
+        [Tplumb] "Tplumb",
 };
 
 void
-journal(int out, char *s)
+journal(int out, char* s)
 {
 	static int fd = 0;
 
 	if(fd <= 0)
 		fd = create("/tmp/sam.out", 1, 0666L);
-	fprint(fd, "%s%s\n", out? "out: " : "in:  ", s);
+	fprint(fd, "%s%s\n", out ? "out: " : "in:  ", s);
 }
 
 void
@@ -120,18 +89,19 @@ journalv(int out, int64_t v)
 	journal(out, buf);
 }
 #else
-#define	journal(a, b)
+#define journal(a, b)
 #define journaln(a, b)
 #define journalv(a, b)
 #endif
 
 int
-rcvchar(void){
+rcvchar(void)
+{
 	static uint8_t buf[64];
 	static i, nleft = 0;
 
-	if(nleft <= 0){
-		nleft = read(0, (char *)buf, sizeof buf);
+	if(nleft <= 0) {
+		nleft = read(0, (char*)buf, sizeof buf);
 		if(nleft <= 0)
 			return -1;
 		i = 0;
@@ -141,14 +111,15 @@ rcvchar(void){
 }
 
 int
-rcv(void){
+rcv(void)
+{
 	int c;
 	static state = 0;
 	static count = 0;
 	static i = 0;
 
-	while((c=rcvchar()) != -1)
-		switch(state){
+	while((c = rcvchar()) != -1)
+		switch(state) {
 		case 0:
 			h.type = c;
 			state++;
@@ -161,7 +132,7 @@ rcv(void){
 
 		case 2:
 			h.count1 = c;
-			count = h.count0|(h.count1<<8);
+			count = h.count0 | (h.count1 << 8);
 			i = 0;
 			if(count > DATASIZE)
 				panic("count>DATASIZE");
@@ -172,8 +143,8 @@ rcv(void){
 
 		case 3:
 			indata[i++] = c;
-			if(i == count){
-		zerocount:
+			if(i == count) {
+			zerocount:
 				indata[i] = 0;
 				state = count = 0;
 				return inmesg(h.type);
@@ -183,15 +154,15 @@ rcv(void){
 	return 0;
 }
 
-File *
+File*
 whichfile(int tag)
 {
 	int i;
 
-	for(i = 0; i<file.nused; i++)
-		if(file.filepptr[i]->tag==tag)
+	for(i = 0; i < file.nused; i++)
+		if(file.filepptr[i]->tag == tag)
 			return file.filepptr[i];
-	hiccough((char *)0);
+	hiccough((char*)0);
 	return 0;
 }
 
@@ -204,13 +175,13 @@ inmesg(Tmesg type)
 	int16_t s;
 	int32_t l, l1;
 	int64_t v;
-	File *f;
+	File* f;
 	Posn p0, p1, p;
 	Range r;
-	String *str;
-	char *c, *wdir;
-	Rune *rp;
-	Plumbmsg *pm;
+	String* str;
+	char* c, *wdir;
+	Rune* rp;
+	Plumbmsg* pm;
 
 	if(type > TMAX)
 		panic("inmesg");
@@ -218,7 +189,7 @@ inmesg(Tmesg type)
 	journal(0, tname[type]);
 
 	inp = indata;
-	switch(type){
+	switch(type) {
 	case -1:
 		panic("rcv error");
 
@@ -232,7 +203,7 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartcmdfile:
-		v = invlong();		/* for 64-bit pointers */
+		v = invlong(); /* for 64-bit pointers */
 		journalv(0, v);
 		Strdupl(&genstr, samname);
 		cmd = newfile();
@@ -242,7 +213,7 @@ inmesg(Tmesg type)
 		logsetname(cmd, &genstr);
 		cmd->rasp = listalloc('P');
 		cmd->mod = 0;
-		if(cmdstr.n){
+		if(cmdstr.n) {
 			loginsert(cmd, 0L, cmdstr.s, cmdstr.n);
 			Strdelete(&cmdstr, 0L, (Posn)cmdstr.n);
 		}
@@ -258,25 +229,25 @@ inmesg(Tmesg type)
 	case Trequest:
 		f = whichfile(inshort());
 		p0 = inlong();
-		p1 = p0+inshort();
+		p1 = p0 + inshort();
 		journaln(0, p0);
-		journaln(0, p1-p0);
+		journaln(0, p1 - p0);
 		if(f->unread)
 			panic("Trequest: unread");
-		if(p1>f->nc)
+		if(p1 > f->nc)
 			p1 = f->nc;
-		if(p0>f->nc) /* can happen e.g. scrolling during command */
+		if(p0 > f->nc) /* can happen e.g. scrolling during command */
 			p0 = f->nc;
-		if(p0 == p1){
+		if(p0 == p1) {
 			i = 0;
 			r.p1 = r.p2 = p0;
-		}else{
-			r = rdata(f->rasp, p0, p1-p0);
-			i = r.p2-r.p1;
+		} else {
+			r = rdata(f->rasp, p0, p1 - p0);
+			i = r.p2 - r.p1;
 			bufread(f, r.p1, buf, i);
 		}
-		buf[i]=0;
-		outTslS(Hdata, f->tag, r.p1, tmprstr(buf, i+1));
+		buf[i] = 0;
+		outTslS(Hdata, f->tag, r.p1, tmprstr(buf, i + 1));
 		break;
 
 	case Torigin:
@@ -290,16 +261,16 @@ inmesg(Tmesg type)
 	case Tstartfile:
 		termlocked++;
 		f = whichfile(inshort());
-		if(!f->rasp)	/* this might be a duplicate message */
+		if(!f->rasp) /* this might be a duplicate message */
 			f->rasp = listalloc('P');
 		current(f);
-		outTsv(Hbindname, f->tag, invlong());	/* for 64-bit pointers */
+		outTsv(Hbindname, f->tag, invlong()); /* for 64-bit pointers */
 		outTs(Hcurrent, f->tag);
 		journaln(0, f->tag);
 		if(f->unread)
 			load(f);
-		else{
-			if(f->nc>0){
+		else {
+			if(f->nc > 0) {
 				rgrow(f->rasp, 0L, f->nc);
 				outTsll(Hgrow, f->tag, 0L, f->nc);
 			}
@@ -330,13 +301,15 @@ inmesg(Tmesg type)
 		loginsert(f, p0, str->s, str->n);
 		if(fileupdate(f, FALSE, FALSE))
 			seq++;
-		if(f==cmd && p0==f->nc-i && i>0 && str->s[i-1]=='\n'){
+		if(f == cmd && p0 == f->nc - i && i > 0 &&
+		   str->s[i - 1] == '\n') {
 			freetmpstr(str);
 			termlocked++;
 			termcommand();
-		}else
+		} else
 			freetmpstr(str);
-		f->dot.r.p1 = f->dot.r.p2 = p0+i; /* terminal knows this already */
+		f->dot.r.p1 = f->dot.r.p2 =
+		    p0 + i; /* terminal knows this already */
 		f->tdot = f->dot.r;
 		break;
 
@@ -350,16 +323,17 @@ inmesg(Tmesg type)
 		if(fileupdate(f, FALSE, FALSE))
 			seq++;
 		f->dot.r.p1 = f->dot.r.p2 = p0;
-		f->tdot = f->dot.r;   /* terminal knows the value of dot already */
+		f->tdot =
+		    f->dot.r; /* terminal knows the value of dot already */
 		break;
 
 	case Tpaste:
 		f = whichfile(inshort());
 		p0 = inlong();
 		journaln(0, p0);
-		for(l=0; l<snarfbuf.nc; l+=m){
-			m = snarfbuf.nc-l;
-			if(m>BLOCKSIZE)
+		for(l = 0; l < snarfbuf.nc; l += m) {
+			m = snarfbuf.nc - l;
+			if(m > BLOCKSIZE)
 				m = BLOCKSIZE;
 			bufread(&snarfbuf, l, genbuf, m);
 			loginsert(f, p0, tmprstr(genbuf, m)->s, m);
@@ -367,7 +341,7 @@ inmesg(Tmesg type)
 		if(fileupdate(f, FALSE, TRUE))
 			seq++;
 		f->dot.r.p1 = p0;
-		f->dot.r.p2 = p0+snarfbuf.nc;
+		f->dot.r.p2 = p0 + snarfbuf.nc;
 		f->tdot.p1 = -1; /* force telldot to tell (arguably a BUG) */
 		telldot(f);
 		outTs(Hunlockfile, f->tag);
@@ -424,9 +398,9 @@ inmesg(Tmesg type)
 		journaln(0, p0);
 		journaln(0, p1);
 		setgenstr(f, p0, p1);
-		for(l = 0; l<genstr.n; l++){
+		for(l = 0; l < genstr.n; l++) {
 			i = genstr.s[l];
-			if(utfrune(".*+?(|)\\[]^$", i)){
+			if(utfrune(".*+?(|)\\[]^$", i)) {
 				str = tmpcstr("\\");
 				Strinsert(&genstr, str, l++);
 				freetmpstr(str);
@@ -449,14 +423,14 @@ inmesg(Tmesg type)
 
 	case Tsend:
 		termlocked++;
-		inshort();	/* ignored */
+		inshort(); /* ignored */
 		p0 = inlong();
 		p1 = inlong();
 		setgenstr(cmd, p0, p1);
 		bufreset(&snarfbuf);
 		bufinsert(&snarfbuf, (Posn)0, genstr.s, genstr.n);
 		outTl(Hsnarflen, genstr.n);
-		if(genstr.s[genstr.n-1] != '\n')
+		if(genstr.s[genstr.n - 1] != '\n')
 			Straddc(&genstr, '\n');
 		loginsert(cmd, cmd->nc, genstr.s, genstr.n);
 		fileupdate(cmd, FALSE, TRUE);
@@ -475,7 +449,7 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartsnarf:
-		if (snarfbuf.nc <= 0) {	/* nothing to export */
+		if(snarfbuf.nc <= 0) { /* nothing to export */
 			outTs(Hsetsnarf, 0);
 			break;
 		}
@@ -486,15 +460,15 @@ inmesg(Tmesg type)
 			m = SNARFSIZE;
 			dprint("?warning: snarf buffer truncated\n");
 		}
-		rp = malloc(m*sizeof(Rune));
-		if(rp){
+		rp = malloc(m * sizeof(Rune));
+		if(rp) {
 			bufread(&snarfbuf, 0, rp, m);
 			c = Strtoc(tmprstr(rp, m));
 			free(rp);
 			i = strlen(c);
 		}
 		outTs(Hsetsnarf, i);
-		if(c){
+		if(c) {
 			Write(1, c, i);
 			free(c);
 		} else
@@ -505,9 +479,9 @@ inmesg(Tmesg type)
 		m = inshort();
 		if(m > SNARFSIZE)
 			error(Etoolong);
-		c = malloc(m+1);
-		if(c){
-			for(i=0; i<m; i++)
+		c = malloc(m + 1);
+		if(c) {
+			for(i = 0; i < m; i++)
 				c[i] = rcvchar();
 			c[m] = 0;
 			str = tmpcstr(c);
@@ -534,7 +508,7 @@ inmesg(Tmesg type)
 		c = Strtoc(&f->name);
 		if(c[0] == '/')
 			pm->wdir = c;
-		else{
+		else {
 			wdir = emalloc(1024);
 			getwd(wdir, 1024);
 			pm->wdir = emalloc(1024);
@@ -549,16 +523,18 @@ inmesg(Tmesg type)
 		pm->type = strdup("text");
 		if(p1 > p0)
 			pm->attr = nil;
-		else{
+		else {
 			p = p0;
-			while(p0>0 && (i=filereadc(f, p0 - 1))!=' ' && i!='\t' && i!='\n')
+			while(p0 > 0 && (i = filereadc(f, p0 - 1)) != ' ' &&
+			      i != '\t' && i != '\n')
 				p0--;
-			while(p1<f->nc && (i=filereadc(f, p1))!=' ' && i!='\t' && i!='\n')
+			while(p1 < f->nc && (i = filereadc(f, p1)) != ' ' &&
+			      i != '\t' && i != '\n')
 				p1++;
-			sprint(cbuf, "click=%ld", p-p0);
+			sprint(cbuf, "click=%ld", p - p0);
 			pm->attr = plumbunpackattr(cbuf);
 		}
-		if(p0==p1 || p1-p0>=BLOCKSIZE){
+		if(p0 == p1 || p1 - p0 >= BLOCKSIZE) {
 			plumbfree(pm);
 			break;
 		}
@@ -566,7 +542,7 @@ inmesg(Tmesg type)
 		pm->data = Strtoc(&genstr);
 		pm->ndata = strlen(pm->data);
 		c = plumbpack(pm, &i);
-		if(c != 0){
+		if(c != 0) {
 			outTs(Hplumb, i);
 			Write(1, c, i);
 			free(c);
@@ -581,21 +557,22 @@ inmesg(Tmesg type)
 }
 
 void
-snarf(File *f, Posn p1, Posn p2, Buffer *buf, int emptyok)
+snarf(File* f, Posn p1, Posn p2, Buffer* buf, int emptyok)
 {
 	Posn l;
 	int i;
 
-	if(!emptyok && p1==p2)
+	if(!emptyok && p1 == p2)
 		return;
 	bufreset(buf);
 	/* Stage through genbuf to avoid compaction problems (vestigial) */
-	if(p2 > f->nc){
-		fprint(2, "bad snarf addr p1=%ld p2=%ld f->nc=%d\n", p1, p2, f->nc); /*ZZZ should never happen, can remove */
+	if(p2 > f->nc) {
+		fprint(2, "bad snarf addr p1=%ld p2=%ld f->nc=%d\n", p1, p2,
+		       f->nc); /*ZZZ should never happen, can remove */
 		p2 = f->nc;
 	}
-	for(l=p1; l<p2; l+=i){
-		i = p2-l>BLOCKSIZE? BLOCKSIZE : p2-l;
+	for(l = p1; l < p2; l += i) {
+		i = p2 - l > BLOCKSIZE ? BLOCKSIZE : p2 - l;
 		bufread(f, l, genbuf, i);
 		bufinsert(buf, buf->nc, tmprstr(genbuf, i)->s, i);
 	}
@@ -606,7 +583,7 @@ inshort(void)
 {
 	uint16_t n;
 
-	n = inp[0] | (inp[1]<<8);
+	n = inp[0] | (inp[1] << 8);
 	inp += 2;
 	return n;
 }
@@ -616,7 +593,7 @@ inlong(void)
 {
 	uint32_t n;
 
-	n = inp[0] | (inp[1]<<8) | (inp[2]<<16) | (inp[3]<<24);
+	n = inp[0] | (inp[1] << 8) | (inp[2] << 16) | (inp[3] << 24);
 	inp += 4;
 	return n;
 }
@@ -625,32 +602,32 @@ int64_t
 invlong(void)
 {
 	int64_t v;
-	
-	v = (inp[7]<<24) | (inp[6]<<16) | (inp[5]<<8) | inp[4];
-	v = (v<<16) | (inp[3]<<8) | inp[2];
-	v = (v<<16) | (inp[1]<<8) | inp[0];
+
+	v = (inp[7] << 24) | (inp[6] << 16) | (inp[5] << 8) | inp[4];
+	v = (v << 16) | (inp[3] << 8) | inp[2];
+	v = (v << 16) | (inp[1] << 8) | inp[0];
 	inp += 8;
 	return v;
 }
 
 void
-setgenstr(File *f, Posn p0, Posn p1)
+setgenstr(File* f, Posn p0, Posn p1)
 {
-	if(p0 != p1){
-		if(p1-p0 >= TBLOCKSIZE)
+	if(p0 != p1) {
+		if(p1 - p0 >= TBLOCKSIZE)
 			error(Etoolong);
-		Strinsure(&genstr, p1-p0);
-		bufread(f, p0, genbuf, p1-p0);
-		memmove(genstr.s, genbuf, RUNESIZE*(p1-p0));
-		genstr.n = p1-p0;
-	}else{
+		Strinsure(&genstr, p1 - p0);
+		bufread(f, p0, genbuf, p1 - p0);
+		memmove(genstr.s, genbuf, RUNESIZE * (p1 - p0));
+		genstr.n = p1 - p0;
+	} else {
 		if(snarfbuf.nc == 0)
 			error(Eempty);
 		if(snarfbuf.nc > TBLOCKSIZE)
 			error(Etoolong);
 		bufread(&snarfbuf, (Posn)0, genbuf, snarfbuf.nc);
 		Strinsure(&genstr, snarfbuf.nc);
-		memmove(genstr.s, genbuf, RUNESIZE*snarfbuf.nc);
+		memmove(genstr.s, genbuf, RUNESIZE * snarfbuf.nc);
 		genstr.n = snarfbuf.nc;
 	}
 }
@@ -680,9 +657,9 @@ outTs(Hmesg type, int s)
 }
 
 void
-outS(String *s)
+outS(String* s)
 {
-	char *c;
+	char* c;
 	int i;
 
 	c = Strtoc(s);
@@ -696,7 +673,7 @@ outS(String *s)
 }
 
 void
-outTsS(Hmesg type, int s1, String *s)
+outTsS(Hmesg type, int s1, String* s)
 {
 	outstart(type);
 	outshort(s1);
@@ -705,7 +682,7 @@ outTsS(Hmesg type, int s1, String *s)
 }
 
 void
-outTslS(Hmesg type, int s1, Posn l1, String *s)
+outTslS(Hmesg type, int s1, Posn l1, String* s)
 {
 	outstart(type);
 	outshort(s1);
@@ -717,7 +694,7 @@ outTslS(Hmesg type, int s1, Posn l1, String *s)
 }
 
 void
-outTS(Hmesg type, String *s)
+outTS(Hmesg type, String* s)
 {
 	outstart(type);
 	outS(s);
@@ -725,7 +702,7 @@ outTS(Hmesg type, String *s)
 }
 
 void
-outTsllS(Hmesg type, int s1, Posn l1, Posn l2, String *s)
+outTsllS(Hmesg type, int s1, Posn l1, Posn l2, String* s)
 {
 	outstart(type);
 	outshort(s1);
@@ -774,11 +751,11 @@ outstart(Hmesg type)
 {
 	journal(1, hname[type]);
 	outmsg[0] = type;
-	outp = outmsg+3;
+	outp = outmsg + 3;
 }
 
 void
-outcopy(int count, void *data)
+outcopy(int count, void* data)
 {
 	memmove(outp, data, count);
 	outp += count;
@@ -788,16 +765,16 @@ void
 outshort(int s)
 {
 	*outp++ = s;
-	*outp++ = s>>8; 
+	*outp++ = s >> 8;
 }
 
 void
 outlong(int32_t l)
 {
 	*outp++ = l;
-	*outp++ = l>>8;
-	*outp++ = l>>16;
-	*outp++ = l>>24;
+	*outp++ = l >> 8;
+	*outp++ = l >> 16;
+	*outp++ = l >> 24;
 }
 
 void
@@ -805,7 +782,7 @@ outvlong(int64_t v)
 {
 	int i;
 
-	for(i = 0; i < 8; i++){
+	for(i = 0; i < 8; i++) {
 		*outp++ = v;
 		v >>= 8;
 	}
@@ -816,16 +793,16 @@ outsend(void)
 {
 	int outcount;
 
-	if(outp >= outdata+nelem(outdata))
+	if(outp >= outdata + nelem(outdata))
 		panic("outsend");
-	outcount = outp-outmsg;
+	outcount = outp - outmsg;
 	outcount -= 3;
 	outmsg[1] = outcount;
-	outmsg[2] = outcount>>8;
+	outmsg[2] = outcount >> 8;
 	outmsg = outp;
-	if(!outbuffered){
-		outcount = outmsg-outdata;
-		if (write(1, (char*) outdata, outcount) != outcount)
+	if(!outbuffered) {
+		outcount = outmsg - outdata;
+		if(write(1, (char*)outdata, outcount) != outcount)
 			rescue();
 		outmsg = outdata;
 		return;
@@ -835,7 +812,7 @@ outsend(void)
 int
 needoutflush(void)
 {
-	return outmsg >= outdata+DATASIZE;
+	return outmsg >= outdata + DATASIZE;
 }
 
 void
@@ -848,7 +825,7 @@ outflush(void)
 	outT0(Hack);
 	waitack = 1;
 	do
-		if(rcv() == 0){
+		if(rcv() == 0) {
 			rescue();
 			exits("eof");
 		}

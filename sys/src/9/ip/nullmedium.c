@@ -17,28 +17,27 @@
 #include "ip.h"
 
 static void
-nullbind(Ipifc *ipifc, int i, char **argv)
+nullbind(Ipifc* ipifc, int i, char** argv)
 {
 	error("cannot bind null device");
 }
 
 static void
-nullunbind(Ipifc *ipifc)
+nullunbind(Ipifc* ipifc)
 {
 }
 
 static void
-nullbwrite(Ipifc *ipifc, Block *block, int i, uint8_t *c)
+nullbwrite(Ipifc* ipifc, Block* block, int i, uint8_t* c)
 {
 	error("nullbwrite");
 }
 
-Medium nullmedium =
-{
-.name=		"null",
-.bind=		nullbind,
-.unbind=	nullunbind,
-.bwrite=	nullbwrite,
+Medium nullmedium = {
+    .name = "null",
+    .bind = nullbind,
+    .unbind = nullunbind,
+    .bwrite = nullbwrite,
 };
 
 void

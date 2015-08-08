@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#undef _BSD_EXTENSION		/* avoid multiple def'n if predefined */
+#undef _BSD_EXTENSION /* avoid multiple def'n if predefined */
 #undef _PLAN9_SOURCE
 #undef _POSIX_SOURCE
 #undef _RESEARCH_SOURCE
@@ -38,25 +38,25 @@
 
 #define uintptr uintptr_t
 
-char *strdup(const char *);
+char* strdup(const char*);
 
 #define nil ((void*)0)
 
 /* in case uchar, etc. are built-in types */
-#define uchar	_fmtuchar
-#define ushort	_fmtushort
-#define uint	_fmtuint
-#define ulong	_fmtulong
-#define vlong	_fmtvlong
-#define uvlong	_fmtuvlong
+#define uchar _fmtuchar
+#define ushort _fmtushort
+#define uint _fmtuint
+#define ulong _fmtulong
+#define vlong _fmtvlong
+#define uvlong _fmtuvlong
 
-typedef unsigned char		uchar;
-typedef unsigned short		ushort;
-typedef unsigned int		uint;
-typedef unsigned long		ulong;
-typedef unsigned long long	uvlong;
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
+typedef unsigned long long uvlong;
 
-#define OREAD	O_RDONLY
-#define OWRITE	O_WRONLY
-#define ORDWR	O_RDWR
-#define OCEXEC	0
+#define OREAD O_RDONLY
+#define OWRITE O_WRONLY
+#define ORDWR O_RDWR
+#define OCEXEC 0

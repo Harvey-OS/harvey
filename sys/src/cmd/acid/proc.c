@@ -26,8 +26,8 @@ nocore(void)
 	if(cormap == 0)
 		return;
 
-	for (i = 0; i < cormap->nsegs; i++)
-		if (cormap->seg[i].inuse && cormap->seg[i].fd >= 0)
+	for(i = 0; i < cormap->nsegs; i++)
+		if(cormap->seg[i].inuse && cormap->seg[i].fd >= 0)
 			close(cormap->seg[i].fd);
 	free(cormap);
 	cormap = 0;
@@ -36,7 +36,7 @@ nocore(void)
 void
 sproc(int pid)
 {
-	Lsym *s;
+	Lsym* s;
 	char buf[64];
 	int i, fcor;
 
@@ -55,19 +55,19 @@ sproc(int pid)
 
 	nocore();
 	cormap = attachproc(pid, kernel, fcor, &fhdr);
-	if (cormap == 0)
+	if(cormap == 0)
 		error("setproc: can't make coremap: %r");
 	i = findseg(cormap, "text");
-	if (i > 0)
+	if(i > 0)
 		cormap->seg[i].name = "*text";
 	i = findseg(cormap, "data");
-	if (i > 0)
+	if(i > 0)
 		cormap->seg[i].name = "*data";
 	install(pid);
 }
 
 int
-nproc(char **argv)
+nproc(char** argv)
 {
 	char buf[128];
 	int pid, i, fd;
@@ -77,7 +77,7 @@ nproc(char **argv)
 	case -1:
 		error("new: fork %r");
 	case 0:
-		rfork(RFNAMEG|RFNOTEG);
+		rfork(RFNAMEG | RFNOTEG);
 
 		snprint(buf, sizeof(buf), "/proc/%d/ctl", getpid());
 		fd = open(buf, ORDWR);
@@ -112,11 +112,11 @@ nproc(char **argv)
 void
 notes(int pid)
 {
-	Lsym *s;
-	Value *v;
+	Lsym* s;
+	Value* v;
 	int i, fd;
 	char buf[128];
-	List *l, **tail;
+	List* l, **tail;
 
 	s = look("notes");
 	if(s == 0)
@@ -149,8 +149,8 @@ notes(int pid)
 void
 dostop(int pid)
 {
-	Lsym *s;
-	Node *np, *p;
+	Lsym* s;
+	Node* np, *p;
 
 	s = look("stopped");
 	if(s && s->proc) {
@@ -168,8 +168,8 @@ dostop(int pid)
 static void
 install(int pid)
 {
-	Lsym *s;
-	List *l;
+	Lsym* s;
+	List* l;
 	char buf[128];
 	int i, fd, new, p;
 
@@ -204,8 +204,8 @@ void
 deinstall(int pid)
 {
 	int i;
-	Lsym *s;
-	List *f, **d;
+	Lsym* s;
+	List* f, **d;
 
 	for(i = 0; i < Maxproc; i++) {
 		if(ptab[i].pid == pid) {
@@ -228,7 +228,7 @@ deinstall(int pid)
 }
 
 void
-msg(int pid, char *msg)
+msg(int pid, char* msg)
 {
 	int i;
 	int l;
@@ -249,11 +249,11 @@ msg(int pid, char *msg)
 	error("msg: pid=%d: not found for %s", pid, msg);
 }
 
-char *
+char*
 getstatus(int pid)
 {
 	int fd, n;
-	char *argv[16], buf[64];
+	char* argv[16], buf[64];
 	static char status[128];
 
 	snprint(buf, sizeof(buf), "/proc/%d/status", pid);
@@ -261,13 +261,13 @@ getstatus(int pid)
 	if(fd < 0)
 		error("open %s: %r", buf);
 
-	n = read(fd, status, sizeof(status)-1);
+	n = read(fd, status, sizeof(status) - 1);
 	close(fd);
 	if(n <= 0)
 		error("read %s: %r", buf);
 	status[n] = '\0';
 
-	if(tokenize(status, argv, nelem(argv)-1) < 3)
+	if(tokenize(status, argv, nelem(argv) - 1) < 3)
 		error("tokenize %s: %r", buf);
 
 	return argv[2];
@@ -276,7 +276,7 @@ getstatus(int pid)
 Waitmsg*
 waitfor(int pid)
 {
-	Waitmsg *w;
+	Waitmsg* w;
 
 	for(;;) {
 		if((w = wait()) == nil)

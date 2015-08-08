@@ -9,10 +9,10 @@
 
 #include <string.h>
 
-#define	N	256
+#define N 256
 
 size_t
-strcspn(const char *s, const char *b)
+strcspn(const char* s, const char* b)
 {
 	char map[N], *os;
 
@@ -22,7 +22,7 @@ strcspn(const char *s, const char *b)
 		if(*b++ == 0)
 			break;
 	}
-	os = (char *)s;
+	os = (char*)s;
 	while(map[*(unsigned char*)s++] == 0)
 		;
 	return s - os - 1;

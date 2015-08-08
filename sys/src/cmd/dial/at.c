@@ -18,51 +18,50 @@ usage(void)
 }
 
 struct {
-	char	*resp;
-	int	ok;
-} tab[] =
-{
-	{ "ok\n",		1 },
-	{ "connect\n",		1 },
-	{ "no carrier\n",	0 },
-	{ "no dialtone\n",	0 },
-	{ "error\n",		0 },
-	{ "busy\n",		0 },
-	{ "no answer\n",	0 },
-	{ "delayed\n",		0 },
-	{ "blacklisted\n",	0 },
+	char* resp;
+	int ok;
+} tab[] = {
+    {"ok\n", 1},
+    {"connect\n", 1},
+    {"no carrier\n", 0},
+    {"no dialtone\n", 0},
+    {"error\n", 0},
+    {"busy\n", 0},
+    {"no answer\n", 0},
+    {"delayed\n", 0},
+    {"blacklisted\n", 0},
 };
 
 int
-writewithoutcr(int fd, char *p, int i)
+writewithoutcr(int fd, char* p, int i)
 {
-	char *q, *e;
+	char* q, *e;
 
 	/* dump cr's */
-	for(e = p+i; p < e; ){
-		q = memchr(p, '\r', e-p);
+	for(e = p + i; p < e;) {
+		q = memchr(p, '\r', e - p);
 		if(q == nil)
 			break;
 		if(q > p)
-			if(write(fd, p, q-p) < 0)
+			if(write(fd, p, q - p) < 0)
 				return -1;
-		p = q+1;
+		p = q + 1;
 	}
 	if(p < e)
-		if(write(fd, p, e-p) < 0)
+		if(write(fd, p, e - p) < 0)
 			return -1;
 	return i;
 }
 
 int
-readln(int fd, char *buf, int n)
+readln(int fd, char* buf, int n)
 {
 	int c, i, sofar;
 
 	sofar = 0;
 	buf[sofar] = 0;
-	while(sofar < n-1){
-		i = read(fd, buf+sofar, 1);
+	while(sofar < n - 1) {
+		i = read(fd, buf + sofar, 1);
 		if(i <= 0)
 			return i;
 		c = buf[sofar];
@@ -77,37 +76,37 @@ readln(int fd, char *buf, int n)
 }
 
 void
-docmd(char *cmd, int timeout, int quiet, int consfd)
+docmd(char* cmd, int timeout, int quiet, int consfd)
 {
 	char buf[4096];
 	int i;
-	char *p, *cp;
+	char* p, *cp;
 
-	if(timeout == 0){
+	if(timeout == 0) {
 		if(*cmd == 'd' || *cmd == 'D')
-			timeout = 2*60;
+			timeout = 2 * 60;
 		else
 			timeout = 5;
 	}
 
 	p = smprint("at%s\r", cmd);
-	for(cp = p; *cp; cp++){
+	for(cp = p; *cp; cp++) {
 		write(1, cp, 1);
 		sleep(100);
 	}
 	free(p);
 
-	alarm(timeout*1000);
-	for(;;){
+	alarm(timeout * 1000);
+	for(;;) {
 		i = readln(0, buf, sizeof(buf));
-		if(i <= 0){
+		if(i <= 0) {
 			rerrstr(buf, sizeof buf);
 			exits(buf);
 		}
 		if(!quiet)
 			writewithoutcr(consfd, buf, i);
 		for(i = 0; i < nelem(tab); i++)
-			if(cistrcmp(buf, tab[i].resp) == 0){
+			if(cistrcmp(buf, tab[i].resp) == 0) {
 				if(tab[i].ok)
 					goto out;
 				else
@@ -119,7 +118,7 @@ out:
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int timeout;
 	int quiet;
@@ -128,7 +127,8 @@ main(int argc, char **argv)
 
 	timeout = 0;
 	quiet = 0;
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 't':
 		timeout = atoi(EARGF(usage()));
 		break;
@@ -137,7 +137,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 1)
 		usage();

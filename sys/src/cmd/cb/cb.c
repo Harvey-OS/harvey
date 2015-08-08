@@ -21,36 +21,38 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	Biobuf stdin, stdout;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'j':
 		join = 1;
 		break;
 	case 'l':
 		maxleng = atoi(EARGF(usage()));
-		maxtabs = maxleng/TABLENG - 2;
-		maxleng -= (maxleng + 5)/10;
+		maxtabs = maxleng / TABLENG - 2;
+		maxleng -= (maxleng + 5) / 10;
 		break;
 	case 's':
 		strict = 1;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	Binit(&stdout, 1, OWRITE);
 	output = &stdout;
-	if (argc <= 0){
+	if(argc <= 0) {
 		Binit(&stdin, 0, OREAD);
 		input = &stdin;
 		work();
 		Bterm(input);
 	} else {
-		while (argc-- > 0){
-			if ((input = Bopen(*argv, OREAD)) == 0)
+		while(argc-- > 0) {
+			if((input = Bopen(*argv, OREAD)) == 0)
 				sysfatal("can't open input file %s: %r", *argv);
 			work();
 			Bterm(input);
@@ -63,81 +65,84 @@ void
 work(void)
 {
 	int c, cc;
-	struct keyw *lptr;
-	char *pt;
+	struct keyw* lptr;
+	char* pt;
 	int ct;
 
-	while ((c = getch()) != Beof){
-		switch (c){
+	while((c = getch()) != Beof) {
+		switch(c) {
 		case '{':
-			if ((lptr = lookup(lastlook,p)) != 0){
-				if (lptr->type == ELSE)gotelse();
-				else if(lptr->type == DO)gotdo();
-				else if(lptr->type == STRUCT)structlev++;
+			if((lptr = lookup(lastlook, p)) != 0) {
+				if(lptr->type == ELSE)
+					gotelse();
+				else if(lptr->type == DO)
+					gotdo();
+				else if(lptr->type == STRUCT)
+					structlev++;
 			}
-			if(++clev >= &ind[CLEVEL-1]){
-				fprint(2,"too many levels of curly brackets\n");
-				clev = &ind[CLEVEL-1];
+			if(++clev >= &ind[CLEVEL - 1]) {
+				fprint(2,
+				       "too many levels of curly brackets\n");
+				clev = &ind[CLEVEL - 1];
 			}
 			clev->pdepth = 0;
-			clev->tabs = (clev-1)->tabs;
+			clev->tabs = (clev - 1)->tabs;
 			clearif(clev);
 			if(strict && clev->tabs > 0)
-				putspace(' ',NO);
-			putch(c,NO);
+				putspace(' ', NO);
+			putch(c, NO);
 			getnl();
-			if(keyflag == DATADEF){
+			if(keyflag == DATADEF) {
 				OUT;
-			}
-			else {
+			} else {
 				OUTK;
 			}
 			clev->tabs++;
-			pt = getnext(0);		/* to handle initialized structures */
-			if(*pt == '{'){		/* hide one level of {} */
-				while((c=getch()) != '{')
-					if(c == Beof)error("{");
-				putch(c,NO);
-				if(strict){
-					putch(' ',NO);
+			pt = getnext(0); /* to handle initialized structures */
+			if(*pt == '{') { /* hide one level of {} */
+				while((c = getch()) != '{')
+					if(c == Beof)
+						error("{");
+				putch(c, NO);
+				if(strict) {
+					putch(' ', NO);
 					eatspace();
 				}
 				keyflag = SINIT;
 			}
 			continue;
 		case '}':
-			pt = getnext(0);		/* to handle initialized structures */
-			if(*pt == ','){
-				if(strict){
-					putspace(' ',NO);
+			pt = getnext(0); /* to handle initialized structures */
+			if(*pt == ',') {
+				if(strict) {
+					putspace(' ', NO);
 					eatspace();
 				}
-				putch(c,NO);
-				putch(*pt,NO);
+				putch(c, NO);
+				putch(*pt, NO);
 				*pt = '\0';
 				ct = getnl();
 				pt = getnext(0);
-				if(*pt == '{'){
+				if(*pt == '{') {
 					OUT;
 					while((cc = getch()) != '{')
-						if(cc == Beof)error("}");
-					putch(cc,NO);
-					if(strict){
-						putch(' ',NO);
+						if(cc == Beof)
+							error("}");
+					putch(cc, NO);
+					if(strict) {
+						putch(' ', NO);
 						eatspace();
 					}
 					getnext(0);
 					continue;
-				}
-				else if(strict || ct){
+				} else if(strict || ct) {
 					OUT;
 				}
 				continue;
-			}
-			else if(keyflag == SINIT && *pt == '}'){
+			} else if(keyflag == SINIT && *pt == '}') {
 				if(strict)
-					putspace(' ',NO);
-				putch(c,NO);
+					putspace(' ', NO);
+				putch(c, NO);
 				getnl();
 				OUT;
 				keyflag = DATADEF;
@@ -145,193 +150,200 @@ work(void)
 				pt = getnext(0);
 			}
 			outs(clev->tabs);
-			if(--clev < ind)clev = ind;
+			if(--clev < ind)
+				clev = ind;
 			ptabs(clev->tabs);
-			putch(c,NO);
+			putch(c, NO);
 			lbegin = 0;
-			lptr=lookup(pt,lastplace+1);
+			lptr = lookup(pt, lastplace + 1);
 			c = *pt;
-			if(*pt == ';' || *pt == ','){
-				putch(*pt,NO);
+			if(*pt == ';' || *pt == ',') {
+				putch(*pt, NO);
 				*pt = '\0';
-				lastplace=pt;
+				lastplace = pt;
 			}
 			ct = getnl();
-			if((dolevel && clev->tabs <= dotabs[dolevel]) || (structlev )
-			    || (lptr != 0 &&lptr->type == ELSE&& clev->pdepth == 0)){
-				if(c == ';'){
+			if((dolevel && clev->tabs <= dotabs[dolevel]) ||
+			   (structlev) || (lptr != 0 && lptr->type == ELSE &&
+			                   clev->pdepth == 0)) {
+				if(c == ';') {
 					OUTK;
-				}
-				else if(strict || (lptr != 0 && lptr->type == ELSE && ct == 0)){
-					putspace(' ',NO);
+				} else if(strict ||
+				          (lptr != 0 && lptr->type == ELSE &&
+				           ct == 0)) {
+					putspace(' ', NO);
 					eatspace();
-				}
-				else if(lptr != 0 && lptr->type == ELSE){
+				} else if(lptr != 0 && lptr->type == ELSE) {
 					OUTK;
 				}
-				if(structlev){
+				if(structlev) {
 					structlev--;
 					keyflag = DATADEF;
 				}
-			}
-			else {
+			} else {
 				OUTK;
-				if(strict && clev->tabs == 0){
-					if((c=getch()) != '\n'){
+				if(strict && clev->tabs == 0) {
+					if((c = getch()) != '\n') {
 						Bputc(output, '\n');
 						Bputc(output, '\n');
 						unget(c);
-					}
-					else {
+					} else {
 						lineno++;
 						Bputc(output, '\n');
-						if((c=getch()) != '\n')unget(c);
-						else lineno++;
+						if((c = getch()) != '\n')
+							unget(c);
+						else
+							lineno++;
 						Bputc(output, '\n');
 					}
 				}
 			}
-			if(lptr != 0 && lptr->type == ELSE && clev->pdepth != 0){
+			if(lptr != 0 && lptr->type == ELSE &&
+			   clev->pdepth != 0) {
 				UNBUMP;
 			}
-			if(lptr == 0 || lptr->type != ELSE){
+			if(lptr == 0 || lptr->type != ELSE) {
 				clev->iflev = 0;
-				if(dolevel && docurly[dolevel] == NO && clev->tabs == dotabs[dolevel]+1)
+				if(dolevel && docurly[dolevel] == NO &&
+				   clev->tabs == dotabs[dolevel] + 1)
 					clev->tabs--;
-				else if(clev->pdepth != 0){
+				else if(clev->pdepth != 0) {
 					UNBUMP;
 				}
 			}
 			continue;
 		case '(':
 			paren++;
-			if ((lptr = lookup(lastlook,p)) != 0){
-				if(!(lptr->type == TYPE || lptr->type == STRUCT))keyflag=KEYWORD;
-				if (strict){
-					putspace(lptr->punc,NO);
+			if((lptr = lookup(lastlook, p)) != 0) {
+				if(!(lptr->type == TYPE ||
+				     lptr->type == STRUCT))
+					keyflag = KEYWORD;
+				if(strict) {
+					putspace(lptr->punc, NO);
 					opflag = 1;
 				}
-				putch(c,NO);
-				if (lptr->type == IF)gotif();
-			}
-			else {
-				putch(c,NO);
+				putch(c, NO);
+				if(lptr->type == IF)
+					gotif();
+			} else {
+				putch(c, NO);
 				lastlook = p;
 				opflag = 1;
 			}
 			continue;
 		case ')':
-			if(--paren < 0)paren = 0;
-			putch(c,NO);
-			if((lptr = lookup(lastlook,p)) != 0){
+			if(--paren < 0)
+				paren = 0;
+			putch(c, NO);
+			if((lptr = lookup(lastlook, p)) != 0) {
 				if(lptr->type == TYPE || lptr->type == STRUCT)
 					opflag = 1;
-			}
-			else if(keyflag == DATADEF)opflag = 1;
-			else opflag = 0;
+			} else if(keyflag == DATADEF)
+				opflag = 1;
+			else
+				opflag = 0;
 			outs(clev->tabs);
 			pt = getnext(1);
-			if ((ct = getnl()) == 1 && !strict){
+			if((ct = getnl()) == 1 && !strict) {
 				if(dolevel && clev->tabs <= dotabs[dolevel])
 					resetdo();
-				if(clev->tabs > 0 && (paren != 0 || keyflag == 0)){
-					if(join){
+				if(clev->tabs > 0 &&
+				   (paren != 0 || keyflag == 0)) {
+					if(join) {
 						eatspace();
-						putch(' ',YES);
+						putch(' ', YES);
 						continue;
 					} else {
 						OUT;
 						split = 1;
 						continue;
 					}
-				}
-				else if(clev->tabs > 0 && *pt != '{'){
+				} else if(clev->tabs > 0 && *pt != '{') {
 					BUMP;
 				}
 				OUTK;
-			}
-			else if(strict){
-				if(clev->tabs == 0){
-					if(*pt != ';' && *pt != ',' && *pt != '(' && *pt != '['){
+			} else if(strict) {
+				if(clev->tabs == 0) {
+					if(*pt != ';' && *pt != ',' &&
+					   *pt != '(' && *pt != '[') {
 						OUTK;
 					}
-				}
-				else {
-					if(keyflag == KEYWORD && paren == 0){
-						if(dolevel && clev->tabs <= dotabs[dolevel]){
+				} else {
+					if(keyflag == KEYWORD && paren == 0) {
+						if(dolevel &&
+						   clev->tabs <=
+						       dotabs[dolevel]) {
 							resetdo();
 							eatspace();
 							continue;
 						}
-						if(*pt != '{'){
+						if(*pt != '{') {
 							BUMP;
 							OUTK;
-						}
-						else {
-							*pt='\0';
+						} else {
+							*pt = '\0';
 							eatspace();
 							unget('{');
 						}
-					}
-					else if(ct){
-						if(paren){
-							if(join){
+					} else if(ct) {
+						if(paren) {
+							if(join) {
 								eatspace();
 							} else {
 								split = 1;
 								OUT;
 							}
-						}
-						else {
+						} else {
 							OUTK;
 						}
 					}
 				}
-			}
-			else if(dolevel && clev->tabs <= dotabs[dolevel])
+			} else if(dolevel && clev->tabs <= dotabs[dolevel])
 				resetdo();
 			continue;
 		case ' ':
 		case '\t':
-			if ((lptr = lookup(lastlook,p)) != 0){
-				if(!(lptr->type==TYPE||lptr->type==STRUCT))
+			if((lptr = lookup(lastlook, p)) != 0) {
+				if(!(lptr->type == TYPE ||
+				     lptr->type == STRUCT))
 					keyflag = KEYWORD;
-				else if(paren == 0)keyflag = DATADEF;
-				if(strict){
-					if(lptr->type != ELSE){
-						if(lptr->type == TYPE){
-							if(paren != 0)putch(' ',YES);
-						}
-						else
-							putch(lptr->punc,NO);
+				else if(paren == 0)
+					keyflag = DATADEF;
+				if(strict) {
+					if(lptr->type != ELSE) {
+						if(lptr->type == TYPE) {
+							if(paren != 0)
+								putch(' ', YES);
+						} else
+							putch(lptr->punc, NO);
 						eatspace();
 					}
-				}
-				else putch(c,YES);
-				switch(lptr->type){
+				} else
+					putch(c, YES);
+				switch(lptr->type) {
 				case CASE:
-					outs(clev->tabs-1);
+					outs(clev->tabs - 1);
 					continue;
 				case ELSE:
 					pt = getnext(1);
 					eatspace();
-					if((cc = getch()) == '\n' && !strict){
+					if((cc = getch()) == '\n' && !strict) {
 						unget(cc);
-					}
-					else {
+					} else {
 						unget(cc);
-						if(checkif(pt))continue;
+						if(checkif(pt))
+							continue;
 					}
 					gotelse();
-					if(strict) unget(c);
-					if(getnl() == 1 && !strict){
+					if(strict)
+						unget(c);
+					if(getnl() == 1 && !strict) {
 						OUTK;
-						if(*pt != '{'){
+						if(*pt != '{') {
 							BUMP;
 						}
-					}
-					else if(strict){
-						if(*pt != '{'){
+					} else if(strict) {
+						if(*pt != '{') {
 							OUTK;
 							BUMP;
 						}
@@ -343,35 +355,38 @@ work(void)
 				case DO:
 					gotdo();
 					pt = getnext(1);
-					if(*pt != '{'){
+					if(*pt != '{') {
 						eatallsp();
 						OUTK;
 						docurly[dolevel] = NO;
-						dopdepth[dolevel] = clev->pdepth;
+						dopdepth[dolevel] =
+						    clev->pdepth;
 						clev->pdepth = 0;
 						clev->tabs++;
 					}
 					continue;
 				case TYPE:
-					if(paren)continue;
-					if(!strict)continue;
+					if(paren)
+						continue;
+					if(!strict)
+						continue;
 					gottype(lptr);
 					continue;
 				case STRUCT:
 					gotstruct();
 					continue;
 				}
-			}
-			else if (lbegin == 0 || p > string) 
+			} else if(lbegin == 0 || p > string)
 				if(strict)
-					putch(c,NO);
-				else putch(c,YES);
+					putch(c, NO);
+				else
+					putch(c, YES);
 			continue;
 		case ';':
-			putch(c,NO);
-			if(paren != 0){
-				if(strict){
-					putch(' ',YES);
+			putch(c, NO);
+			if(paren != 0) {
+				if(strict) {
+					putch(' ', YES);
 					eatspace();
 				}
 				opflag = 1;
@@ -379,55 +394,59 @@ work(void)
 			}
 			outs(clev->tabs);
 			pt = getnext(0);
-			lptr=lookup(pt,lastplace+1);
-			if(lptr == 0 || lptr->type != ELSE){
+			lptr = lookup(pt, lastplace + 1);
+			if(lptr == 0 || lptr->type != ELSE) {
 				clev->iflev = 0;
-				if(clev->pdepth != 0){
+				if(clev->pdepth != 0) {
 					UNBUMP;
 				}
-				if(dolevel && docurly[dolevel] == NO && clev->tabs <= dotabs[dolevel]+1)
+				if(dolevel && docurly[dolevel] == NO &&
+				   clev->tabs <= dotabs[dolevel] + 1)
 					clev->tabs--;
-/*
-				else if(clev->pdepth != 0){
-					UNBUMP;
-				}
-*/
+				/*
+				                                else
+				   if(clev->pdepth != 0){
+				                                        UNBUMP;
+				                                }
+				*/
 			}
 			getnl();
 			OUTK;
 			continue;
 		case '\n':
-			if ((lptr = lookup(lastlook,p)) != 0){
+			if((lptr = lookup(lastlook, p)) != 0) {
 				pt = getnext(1);
-				if (lptr->type == ELSE){
+				if(lptr->type == ELSE) {
 					if(strict)
-						if(checkif(pt))continue;
+						if(checkif(pt))
+							continue;
 					gotelse();
 					OUTK;
-					if(*pt != '{'){
+					if(*pt != '{') {
 						BUMP;
 					}
-				}
-				else if(lptr->type == DO){
+				} else if(lptr->type == DO) {
 					OUTK;
 					gotdo();
-					if(*pt != '{'){
+					if(*pt != '{') {
 						docurly[dolevel] = NO;
-						dopdepth[dolevel] = clev->pdepth;
+						dopdepth[dolevel] =
+						    clev->pdepth;
 						clev->pdepth = 0;
 						clev->tabs++;
 					}
-				}
-				else {
+				} else {
 					OUTK;
-					if(lptr->type == STRUCT)gotstruct();
+					if(lptr->type == STRUCT)
+						gotstruct();
 				}
-			}
-			else if(p == string)Bputc(output, '\n');
+			} else if(p == string)
+				Bputc(output, '\n');
 			else {
-				if(clev->tabs > 0 &&(paren != 0 || keyflag == 0)){
-					if(join){
-						putch(' ',YES);
+				if(clev->tabs > 0 &&
+				   (paren != 0 || keyflag == 0)) {
+					if(join) {
+						putch(' ', YES);
 						eatspace();
 						continue;
 					} else {
@@ -435,8 +454,7 @@ work(void)
 						split = 1;
 						continue;
 					}
-				}
-				else if(keyflag == KEYWORD){
+				} else if(keyflag == KEYWORD) {
 					OUTK;
 					continue;
 				}
@@ -445,52 +463,53 @@ work(void)
 			continue;
 		case '"':
 		case '\'':
-			putch(c,NO);
-			while ((cc = getch()) != c){
+			putch(c, NO);
+			while((cc = getch()) != c) {
 				if(cc == Beof)
 					error("\" or '");
-				putch(cc,NO);
-				if (cc == '\\'){
-					putch(getch(),NO);
+				putch(cc, NO);
+				if(cc == '\\') {
+					putch(getch(), NO);
 				}
-				if (cc == '\n'){
+				if(cc == '\n') {
 					outs(clev->tabs);
 					lbegin = 1;
 					count = 0;
 				}
 			}
-			putch(cc,NO);
-			opflag=0;
-			if (getnl() == 1){
+			putch(cc, NO);
+			opflag = 0;
+			if(getnl() == 1) {
 				unget('\n');
 			}
 			continue;
 		case '\\':
-			putch(c,NO);
-			putch(getch(),NO);
+			putch(c, NO);
+			putch(getch(), NO);
 			continue;
 		case '?':
 			question = 1;
 			gotop(c);
 			continue;
 		case ':':
-			if ((cc = getch()) == ':') {
-				putch(c,NO);
-				putch(cc,NO);
+			if((cc = getch()) == ':') {
+				putch(c, NO);
+				putch(cc, NO);
 				continue;
 			}
 			unget(cc);
-			if (question == 1){
+			if(question == 1) {
 				question = 0;
 				gotop(c);
 				continue;
 			}
-			putch(c,NO);
-			if(structlev)continue;
-			if ((lptr = lookup(lastlook,p)) != 0){
-				if (lptr->type == CASE)outs(clev->tabs - 1);
-			}
-			else {
+			putch(c, NO);
+			if(structlev)
+				continue;
+			if((lptr = lookup(lastlook, p)) != 0) {
+				if(lptr->type == CASE)
+					outs(clev->tabs - 1);
+			} else {
 				lbegin = 0;
 				outs(clev->tabs);
 			}
@@ -498,27 +517,25 @@ work(void)
 			OUTK;
 			continue;
 		case '/':
-			if ((cc = getch()) == '/') {
-				putch(c,NO);
-				putch(cc,NO);
+			if((cc = getch()) == '/') {
+				putch(c, NO);
+				putch(cc, NO);
 				cpp_comment(YES);
 				OUT;
 				lastlook = 0;
 				continue;
-			}
-			else if (cc != '*') {
+			} else if(cc != '*') {
 				unget(cc);
 				gotop(c);
 				continue;
 			}
-			putch(c,NO);
-			putch(cc,NO);
+			putch(c, NO);
+			putch(cc, NO);
 			cc = comment(YES);
-			if(getnl() == 1){
-				if(cc == 0){
+			if(getnl() == 1) {
+				if(cc == 0) {
 					OUT;
-				}
-				else {
+				} else {
 					outs(0);
 					Bputc(output, '\n');
 					lbegin = 1;
@@ -528,345 +545,384 @@ work(void)
 			}
 			continue;
 		case '[':
-			putch(c,NO);
+			putch(c, NO);
 			ct = 0;
-			while((c = getch()) != ']' || ct > 0){
-				if(c == Beof)error("]");
-				putch(c,NO);
-				if(c == '[')ct++;
-				if(c == ']')ct--;
+			while((c = getch()) != ']' || ct > 0) {
+				if(c == Beof)
+					error("]");
+				putch(c, NO);
+				if(c == '[')
+					ct++;
+				if(c == ']')
+					ct--;
 			}
-			putch(c,NO);
+			putch(c, NO);
 			continue;
 		case '#':
-			putch(c,NO);
-			while ((cc = getch()) != '\n'){
-				if(cc == Beof)error("newline");
-				if (cc == '\\'){
-					putch(cc,NO);
+			putch(c, NO);
+			while((cc = getch()) != '\n') {
+				if(cc == Beof)
+					error("newline");
+				if(cc == '\\') {
+					putch(cc, NO);
 					cc = getch();
 				}
-				putch(cc,NO);
+				putch(cc, NO);
 			}
-			putch(cc,NO);
+			putch(cc, NO);
 			lbegin = 0;
 			outs(clev->tabs);
 			lbegin = 1;
 			count = 0;
 			continue;
 		default:
-			if (c == ','){
+			if(c == ',') {
 				opflag = 1;
-				putch(c,YES);
-				if (strict){
-					if ((cc = getch()) != ' ')unget(cc);
-					if(cc != '\n')putch(' ',YES);
+				putch(c, YES);
+				if(strict) {
+					if((cc = getch()) != ' ')
+						unget(cc);
+					if(cc != '\n')
+						putch(' ', YES);
 				}
-			}
-			else if(isop(c))gotop(c);
+			} else if(isop(c))
+				gotop(c);
 			else {
-				if(isalnum(c) && lastlook == 0)lastlook = p;
-				if(isdigit(c)){
-					putch(c,NO);
-					while(isdigit(c=Bgetc(input))||c == '.')putch(c,NO);
-					if(c == 'e'){
-						putch(c,NO);
+				if(isalnum(c) && lastlook == 0)
+					lastlook = p;
+				if(isdigit(c)) {
+					putch(c, NO);
+					while(isdigit(c = Bgetc(input)) ||
+					      c == '.')
+						putch(c, NO);
+					if(c == 'e') {
+						putch(c, NO);
 						c = Bgetc(input);
 						putch(c, NO);
-						while(isdigit(c=Bgetc(input)))putch(c,NO);
+						while(isdigit(c = Bgetc(input)))
+							putch(c, NO);
 					}
 					Bungetc(input);
-				}
-				else putch(c,NO);
-				if(keyflag != DATADEF)opflag = 0;
+				} else
+					putch(c, NO);
+				if(keyflag != DATADEF)
+					opflag = 0;
 			}
 		}
 	}
 }
 void
-gotif(void){
+gotif(void)
+{
 	outs(clev->tabs);
-	if(++clev->iflev >= IFLEVEL-1){
-		fprint(2,"too many levels of if %d\n",clev->iflev );
-		clev->iflev = IFLEVEL-1;
+	if(++clev->iflev >= IFLEVEL - 1) {
+		fprint(2, "too many levels of if %d\n", clev->iflev);
+		clev->iflev = IFLEVEL - 1;
 	}
 	clev->ifc[clev->iflev] = clev->tabs;
 	clev->spdepth[clev->iflev] = clev->pdepth;
 }
 void
-gotelse(void){
+gotelse(void)
+{
 	clev->tabs = clev->ifc[clev->iflev];
 	clev->pdepth = clev->spdepth[clev->iflev];
-	if(--(clev->iflev) < 0)clev->iflev = 0;
+	if(--(clev->iflev) < 0)
+		clev->iflev = 0;
 }
 int
-checkif(char *pt)
+checkif(char* pt)
 {
-	struct keyw *lptr;
+	struct keyw* lptr;
 	int cc;
-	if((lptr=lookup(pt,lastplace+1))!= 0){
-		if(lptr->type == IF){
-			if(strict)putch(' ',YES);
+	if((lptr = lookup(pt, lastplace + 1)) != 0) {
+		if(lptr->type == IF) {
+			if(strict)
+				putch(' ', YES);
 			copy(lptr->name);
-			*pt='\0';
+			*pt = '\0';
 			lastplace = pt;
-			if(strict){
-				putch(lptr->punc,NO);
+			if(strict) {
+				putch(lptr->punc, NO);
 				eatallsp();
 			}
 			clev->tabs = clev->ifc[clev->iflev];
 			clev->pdepth = clev->spdepth[clev->iflev];
 			keyflag = KEYWORD;
-			return(1);
+			return (1);
 		}
 	}
-	return(0);
+	return (0);
 }
 void
-gotdo(void){
-	if(++dolevel >= DOLEVEL-1){
-		fprint(2,"too many levels of do %d\n",dolevel);
-		dolevel = DOLEVEL-1;
+gotdo(void)
+{
+	if(++dolevel >= DOLEVEL - 1) {
+		fprint(2, "too many levels of do %d\n", dolevel);
+		dolevel = DOLEVEL - 1;
 	}
 	dotabs[dolevel] = clev->tabs;
 	docurly[dolevel] = YES;
 }
 void
-resetdo(void){
+resetdo(void)
+{
 	if(docurly[dolevel] == NO)
 		clev->pdepth = dopdepth[dolevel];
-	if(--dolevel < 0)dolevel = 0;
+	if(--dolevel < 0)
+		dolevel = 0;
 }
 void
-gottype(struct keyw *lptr)
+gottype(struct keyw* lptr)
 {
-	char *pt;
-	struct keyw *tlptr;
+	char* pt;
+	struct keyw* tlptr;
 	int c;
-	while(1){
+	while(1) {
 		pt = getnext(1);
-		if((tlptr=lookup(pt,lastplace+1))!=0){
-			putch(' ',YES);
+		if((tlptr = lookup(pt, lastplace + 1)) != 0) {
+			putch(' ', YES);
 			copy(tlptr->name);
-			*pt='\0';
+			*pt = '\0';
 			lastplace = pt;
-			if(tlptr->type == STRUCT){
-				putch(tlptr->punc,YES);
+			if(tlptr->type == STRUCT) {
+				putch(tlptr->punc, YES);
 				gotstruct();
 				break;
 			}
-			lptr=tlptr;
+			lptr = tlptr;
 			continue;
-		}
-		else{
-			putch(lptr->punc,NO);
-			while((c=getch())== ' ' || c == '\t');
+		} else {
+			putch(lptr->punc, NO);
+			while((c = getch()) == ' ' || c == '\t')
+				;
 			unget(c);
 			break;
 		}
 	}
 }
 void
-gotstruct(void){
+gotstruct(void)
+{
 	int c;
 	int cc;
-	char *pt;
-	while((c=getch()) == ' ' || c == '\t')
-		if(!strict)putch(c,NO);
-	if(c == '{'){
+	char* pt;
+	while((c = getch()) == ' ' || c == '\t')
+		if(!strict)
+			putch(c, NO);
+	if(c == '{') {
 		structlev++;
 		unget(c);
 		return;
 	}
-	if(isalpha(c)){
-		putch(c,NO);
-		while(isalnum(c=getch()))putch(c,NO);
+	if(isalpha(c)) {
+		putch(c, NO);
+		while(isalnum(c = getch()))
+			putch(c, NO);
 	}
 	unget(c);
 	pt = getnext(1);
-	if(*pt == '{')structlev++;
-	if(strict){
+	if(*pt == '{')
+		structlev++;
+	if(strict) {
 		eatallsp();
-		putch(' ',NO);
+		putch(' ', NO);
 	}
 }
 void
 gotop(int c)
 {
 	char optmp[OPLENGTH];
-	char *op_ptr;
-	struct op *s_op;
-	char *a, *b;
+	char* op_ptr;
+	struct op* s_op;
+	char* a, *b;
 	op_ptr = optmp;
 	*op_ptr++ = c;
-	while (isop(( *op_ptr = getch())))op_ptr++;
-	if(!strict)unget(*op_ptr);
-	else if (*op_ptr != ' ')unget( *op_ptr);
+	while(isop((*op_ptr = getch())))
+		op_ptr++;
+	if(!strict)
+		unget(*op_ptr);
+	else if(*op_ptr != ' ')
+		unget(*op_ptr);
 	*op_ptr = '\0';
 	s_op = op;
 	b = optmp;
-	while ((a = s_op->name) != 0){
+	while((a = s_op->name) != 0) {
 		op_ptr = b;
-		while ((*op_ptr == *a) && (*op_ptr != '\0')){
+		while((*op_ptr == *a) && (*op_ptr != '\0')) {
 			a++;
 			op_ptr++;
 		}
-		if (*a == '\0'){
+		if(*a == '\0') {
 			keep(s_op);
 			opflag = s_op->setop;
-			if (*op_ptr != '\0'){
+			if(*op_ptr != '\0') {
 				b = op_ptr;
 				s_op = op;
 				continue;
-			}
-			else break;
-		}
-		else s_op++;
+			} else
+				break;
+		} else
+			s_op++;
 	}
 }
 void
-keep(struct op *o)
+keep(struct op* o)
 {
-	char	*s;
+	char* s;
 	int ok;
-	if(o->blanks == NEVER)ok = NO;
-	else ok = YES;
-	if (strict && ((o->blanks & ALWAYS)
-	    || ((opflag == 0 && o->blanks & SOMETIMES) && clev->tabs != 0)))
-		putspace(' ',YES);
-	for(s=o->name; *s != '\0'; s++){
-		if(*(s+1) == '\0')putch(*s,ok);
+	if(o->blanks == NEVER)
+		ok = NO;
+	else
+		ok = YES;
+	if(strict &&
+	   ((o->blanks & ALWAYS) ||
+	    ((opflag == 0 && o->blanks & SOMETIMES) && clev->tabs != 0)))
+		putspace(' ', YES);
+	for(s = o->name; *s != '\0'; s++) {
+		if(*(s + 1) == '\0')
+			putch(*s, ok);
 		else
-			putch(*s,NO);
+			putch(*s, NO);
 	}
-	if (strict && ((o->blanks & ALWAYS)
-	    || ((opflag == 0 && o->blanks & SOMETIMES) && clev->tabs != 0))) putch(' ',YES);
+	if(strict &&
+	   ((o->blanks & ALWAYS) ||
+	    ((opflag == 0 && o->blanks & SOMETIMES) && clev->tabs != 0)))
+		putch(' ', YES);
 }
 int
-getnl(void){
+getnl(void)
+{
 	int ch;
-	char *savp;
+	char* savp;
 	int gotcmt;
 	gotcmt = 0;
 	savp = p;
-	while ((ch = getch()) == '\t' || ch == ' ')putch(ch,NO);
-	if (ch == '/'){
-		if ((ch = getch()) == '*'){
-			putch('/',NO);
-			putch('*',NO);
+	while((ch = getch()) == '\t' || ch == ' ')
+		putch(ch, NO);
+	if(ch == '/') {
+		if((ch = getch()) == '*') {
+			putch('/', NO);
+			putch('*', NO);
 			comment(NO);
 			ch = getch();
-			gotcmt=1;
-		}
-		else if (ch == '/') {
-			putch('/',NO);
-			putch('/',NO);
+			gotcmt = 1;
+		} else if(ch == '/') {
+			putch('/', NO);
+			putch('/', NO);
 			cpp_comment(NO);
 			ch = getch();
 			gotcmt = 1;
-		}
-		else {
-			if(inswitch)*(++lastplace) = ch;
+		} else {
+			if(inswitch)
+				*(++lastplace) = ch;
 			else {
 				inswitch = 1;
 				*lastplace = ch;
 			}
 			unget('/');
-			return(0);
+			return (0);
 		}
 	}
-	if(ch == '\n'){
-		if(gotcmt == 0)p=savp;
-		return(1);
+	if(ch == '\n') {
+		if(gotcmt == 0)
+			p = savp;
+		return (1);
 	}
 	unget(ch);
-	return(0);
+	return (0);
 }
 void
-ptabs(int n){
-	int	i;
+ptabs(int n)
+{
+	int i;
 	int num;
-	if(n > maxtabs){
-		if(!folded){
+	if(n > maxtabs) {
+		if(!folded) {
 			Bprint(output, "/* code folded from here */\n");
 			folded = 1;
 		}
-		num = n-maxtabs;
-	}
-	else {
+		num = n - maxtabs;
+	} else {
 		num = n;
-		if(folded){
+		if(folded) {
 			folded = 0;
 			Bprint(output, "/* unfolding */\n");
 		}
 	}
-	for (i = 0; i < num; i++)Bputc(output, '\t');
+	for(i = 0; i < num; i++)
+		Bputc(output, '\t');
 }
 void
-outs(int n){
-	if (p > string){
-		if (lbegin){
+outs(int n)
+{
+	if(p > string) {
+		if(lbegin) {
 			ptabs(n);
 			lbegin = 0;
-			if (split == 1){
+			if(split == 1) {
 				split = 0;
-				if (clev->tabs > 0)Bprint(output, "\t");
+				if(clev->tabs > 0)
+					Bprint(output, "\t");
 			}
 		}
 		*p = '\0';
 		Bprint(output, "%s", string);
 		lastlook = p = string;
-	}
-	else {
-		if (lbegin != 0){
+	} else {
+		if(lbegin != 0) {
 			lbegin = 0;
 			split = 0;
 		}
 	}
 }
 void
-putch(char c,int ok)
+putch(char c, int ok)
 {
 	int cc;
-	if(p < &string[LINE-1]){
-		if(count+TABLENG*clev->tabs >= maxleng && ok && !folded){
-			if(c != ' ')*p++ = c;
+	if(p < &string[LINE - 1]) {
+		if(count + TABLENG * clev->tabs >= maxleng && ok && !folded) {
+			if(c != ' ')
+				*p++ = c;
 			OUT;
 			split = 1;
-			if((cc=getch()) != '\n')unget(cc);
-		}
-		else {
+			if((cc = getch()) != '\n')
+				unget(cc);
+		} else {
 			*p++ = c;
 			count++;
 		}
-	}
-	else {
+	} else {
 		outs(clev->tabs);
 		*p++ = c;
 		count = 0;
 	}
 }
-struct keyw *
-lookup(char *first, char *last)
+struct keyw*
+lookup(char* first, char* last)
 {
-	struct keyw *ptr;
-	char	*cptr, *ckey, *k;
+	struct keyw* ptr;
+	char* cptr, *ckey, *k;
 
-	if(first == last || first == 0)return(0);
+	if(first == last || first == 0)
+		return (0);
 	cptr = first;
-	while (*cptr == ' ' || *cptr == '\t')cptr++;
-	if(cptr >= last)return(0);
+	while(*cptr == ' ' || *cptr == '\t')
+		cptr++;
+	if(cptr >= last)
+		return (0);
 	ptr = key;
-	while ((ckey = ptr->name) != 0){
-		for (k = cptr; (*ckey == *k && *ckey != '\0'); k++, ckey++);
-		if(*ckey=='\0' && (k==last|| (k<last && !isalnum(*k)))){
+	while((ckey = ptr->name) != 0) {
+		for(k = cptr; (*ckey == *k && *ckey != '\0'); k++, ckey++)
+			;
+		if(*ckey == '\0' && (k == last || (k < last && !isalnum(*k)))) {
 			opflag = 1;
 			lastlook = 0;
-			return(ptr);
+			return (ptr);
 		}
 		ptr++;
 	}
-	return(0);
+	return (0);
 }
 int
 comment(int ok)
@@ -875,22 +931,22 @@ comment(int ok)
 	int hitnl;
 
 	hitnl = 0;
-	while ((ch  = getch()) != Beof){
+	while((ch = getch()) != Beof) {
 		putch(ch, NO);
-		if (ch == '*'){
-gotstar:
-			if ((ch  = getch()) == '/'){
-				putch(ch,NO);
-				return(hitnl);
+		if(ch == '*') {
+		gotstar:
+			if((ch = getch()) == '/') {
+				putch(ch, NO);
+				return (hitnl);
 			}
-			putch(ch,NO);
-			if (ch == '*')goto gotstar;
+			putch(ch, NO);
+			if(ch == '*')
+				goto gotstar;
 		}
-		if (ch == '\n'){
-			if(ok && !hitnl){
+		if(ch == '\n') {
+			if(ok && !hitnl) {
 				outs(clev->tabs);
-			}
-			else {
+			} else {
 				outs(0);
 			}
 			lbegin = 1;
@@ -898,7 +954,7 @@ gotstar:
 			hitnl = 1;
 		}
 	}
-	return(hitnl);
+	return (hitnl);
 }
 int
 cpp_comment(int ok)
@@ -907,9 +963,9 @@ cpp_comment(int ok)
 	int hitnl;
 
 	hitnl = 0;
-	while ((ch = getch()) != -1) {
-		if (ch == '\n') {
-			if (ok && !hitnl)
+	while((ch = getch()) != -1) {
+		if(ch == '\n') {
+			if(ok && !hitnl)
 				outs(clev->tabs);
 			else
 				outs(0);
@@ -925,125 +981,144 @@ cpp_comment(int ok)
 void
 putspace(char ch, int ok)
 {
-	if(p == string)putch(ch,ok);
-	else if (*(p - 1) != ch) putch(ch,ok);
+	if(p == string)
+		putch(ch, ok);
+	else if(*(p - 1) != ch)
+		putch(ch, ok);
 }
 int
-getch(void){
+getch(void)
+{
 	char c;
-	if(inswitch){
-		if(next != '\0'){
-			c=next;
+	if(inswitch) {
+		if(next != '\0') {
+			c = next;
 			next = '\0';
-			return(c);
+			return (c);
 		}
-		if(tptr <= lastplace){
-			if(*tptr != '\0')return(*tptr++);
-			else if(++tptr <= lastplace)return(*tptr++);
+		if(tptr <= lastplace) {
+			if(*tptr != '\0')
+				return (*tptr++);
+			else if(++tptr <= lastplace)
+				return (*tptr++);
 		}
-		inswitch=0;
+		inswitch = 0;
 		lastplace = tptr = temp;
 	}
-	return(Bgetc(input));
+	return (Bgetc(input));
 }
 void
 unget(char c)
 {
-	if(inswitch){
+	if(inswitch) {
 		if(tptr != temp)
 			*(--tptr) = c;
-		else next = c;
-	}
-	else Bungetc(input);
+		else
+			next = c;
+	} else
+		Bungetc(input);
 }
-char *
-getnext(int must){
+char*
+getnext(int must)
+{
 	int c;
-	char *beg;
-	int prect,nlct;
+	char* beg;
+	int prect, nlct;
 	prect = nlct = 0;
-	if(tptr > lastplace){
+	if(tptr > lastplace) {
 		tptr = lastplace = temp;
 		err = 0;
 		inswitch = 0;
 	}
 	tp = lastplace;
 	if(inswitch && tptr <= lastplace)
-		if (isalnum(*lastplace)||ispunct(*lastplace)||isop(*lastplace))return(lastplace);
+		if(isalnum(*lastplace) || ispunct(*lastplace) ||
+		   isop(*lastplace))
+			return (lastplace);
 space:
-	while(isspace(c=Bgetc(input)))puttmp(c,1);
+	while(isspace(c = Bgetc(input)))
+		puttmp(c, 1);
 	beg = tp;
-	puttmp(c,1);
-	if(c == '/'){
-		if(puttmp(Bgetc(input),1) == '*'){
-cont:
-			while((c=Bgetc(input)) != '*'){
-				puttmp(c,0);
+	puttmp(c, 1);
+	if(c == '/') {
+		if(puttmp(Bgetc(input), 1) == '*') {
+		cont:
+			while((c = Bgetc(input)) != '*') {
+				puttmp(c, 0);
 				if(must == 0 && c == '\n')
-					if(nlct++ > 2)goto done;
+					if(nlct++ > 2)
+						goto done;
 			}
-			puttmp(c,1);
-	star:
-			if(puttmp((c=Bgetc(input)),1) == '/'){
+			puttmp(c, 1);
+		star:
+			if(puttmp((c = Bgetc(input)), 1) == '/') {
 				beg = tp;
-				puttmp((c=Bgetc(input)),1);
-			}
-			else if(c == '*')goto star;
-			else goto cont;
-		}
-		else goto done;
+				puttmp((c = Bgetc(input)), 1);
+			} else if(c == '*')
+				goto star;
+			else
+				goto cont;
+		} else
+			goto done;
 	}
-	if(isspace(c))goto space;
-	if(c == '#' && tp > temp+1 && *(tp-2) == '\n'){
-		if(prect++ > 2)goto done;
-		while(puttmp((c=Bgetc(input)),1) != '\n')
-			if(c == '\\')puttmp(Bgetc(input),1);
+	if(isspace(c))
+		goto space;
+	if(c == '#' && tp > temp + 1 && *(tp - 2) == '\n') {
+		if(prect++ > 2)
+			goto done;
+		while(puttmp((c = Bgetc(input)), 1) != '\n')
+			if(c == '\\')
+				puttmp(Bgetc(input), 1);
 		goto space;
 	}
-	if(isalnum(c)){
-		while(isalnum(c = Bgetc(input)))puttmp(c,1);
+	if(isalnum(c)) {
+		while(isalnum(c = Bgetc(input)))
+			puttmp(c, 1);
 		Bungetc(input);
 	}
 done:
-	puttmp('\0',1);
-	lastplace = tp-1;
+	puttmp('\0', 1);
+	lastplace = tp - 1;
 	inswitch = 1;
-	return(beg);
+	return (beg);
 }
 void
-copy(char *s)
+copy(char* s)
 {
-	while(*s != '\0')putch(*s++,NO);
+	while(*s != '\0')
+		putch(*s++, NO);
 }
 void
-clearif(struct indent *cl)
+clearif(struct indent* cl)
 {
 	int i;
-	for(i=0;i<IFLEVEL-1;i++)cl->ifc[i] = 0;
+	for(i = 0; i < IFLEVEL - 1; i++)
+		cl->ifc[i] = 0;
 }
-char 
+char
 puttmp(char c, int keep)
 {
-	if(tp < &temp[TEMP-120])
+	if(tp < &temp[TEMP - 120])
 		*tp++ = c;
 	else {
-		if(keep){
-			if(tp >= &temp[TEMP-1]){
-				fprint(2,"can't look past huge comment - quiting\n");
+		if(keep) {
+			if(tp >= &temp[TEMP - 1]) {
+				fprint(
+				    2,
+				    "can't look past huge comment - quiting\n");
 				exits("boom");
 			}
 			*tp++ = c;
-		}
-		else if(err == 0){
+		} else if(err == 0) {
 			err++;
-			fprint(2,"truncating long comment\n");
+			fprint(2, "truncating long comment\n");
 		}
 	}
-	return(c);
+	return (c);
 }
 void
-error(char *s)
+error(char* s)
 {
-	fprint(2,"saw EOF while looking for %s\n",s);
+	fprint(2, "saw EOF while looking for %s\n", s);
 	exits("boom");
 }

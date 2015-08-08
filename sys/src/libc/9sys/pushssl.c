@@ -12,12 +12,13 @@
 
 /*
  * Since the SSL device uses decimal file descriptors to name channels,
- * it is impossible for a user-level file server to stand in for the kernel device.
+ * it is impossible for a user-level file server to stand in for the kernel
+ * device.
  * Thus we hard-code #D rather than use /net/ssl.
  */
 
 int
-pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
+pushssl(int fd, char* alg, char* secin, char* secout, int* cfd)
 {
 	char buf[8];
 	char dname[64];
@@ -26,7 +27,7 @@ pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
 	ctl = open("#D/ssl/clone", ORDWR);
 	if(ctl < 0)
 		return -1;
-	n = read(ctl, buf, sizeof(buf)-1);
+	n = read(ctl, buf, sizeof(buf) - 1);
 	if(n < 0)
 		goto error;
 	buf[n] = 0;
@@ -37,7 +38,7 @@ pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
 	if(fprint(ctl, "fd %d", fd) < 0 ||
 	   fprint(ctl, "secretin %s", secin) < 0 ||
 	   fprint(ctl, "secretout %s", secout) < 0 ||
-	   fprint(ctl, "alg %s", alg) < 0){
+	   fprint(ctl, "alg %s", alg) < 0) {
 		close(data);
 		goto error;
 	}

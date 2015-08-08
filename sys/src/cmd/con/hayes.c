@@ -18,34 +18,43 @@ void punt(char*, ...);
 
 int pulsed;
 int verbose;
-char msgbuf[128];		/* last message read */
+char msgbuf[128]; /* last message read */
 
-enum
-{
-	Ok,
-	Success,
-	Failure,
-	Noise,
+enum { Ok,
+       Success,
+       Failure,
+       Noise,
 };
 
-typedef struct Msg	Msg;
-struct Msg
-{
-	char	*text;
-	int	type;
+typedef struct Msg Msg;
+struct Msg {
+	char* text;
+	int type;
 };
 
-
-Msg msgs[] =
-{
-	{ "OK",			Ok, },
-	{ "NO CARRIER", 	Failure, },
-	{ "ERROR",		Failure, },
-	{ "NO DIALTONE",	Failure, },
-	{ "BUSY",		Failure, },
-	{ "NO ANSWER",		Failure, },
-	{ "CONNECT",		Success, },
-	{ 0,			0 },
+Msg msgs[] = {
+    {
+     "OK", Ok,
+    },
+    {
+     "NO CARRIER", Failure,
+    },
+    {
+     "ERROR", Failure,
+    },
+    {
+     "NO DIALTONE", Failure,
+    },
+    {
+     "BUSY", Failure,
+    },
+    {
+     "NO ANSWER", Failure,
+    },
+    {
+     "CONNECT", Success,
+    },
+    {0, 0},
 };
 
 void
@@ -55,13 +64,14 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int data = -1;
 	int ctl = -1;
-	char *cname;
+	char* cname;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		pulsed = 1;
 		break;
@@ -70,19 +80,20 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	switch(argc){
+	switch(argc) {
 	case 1:
 		data = 1;
 		break;
 	case 2:
 		data = open(argv[1], ORDWR);
-		if(data < 0){
+		if(data < 0) {
 			fprint(2, "hayes: %r opening %s\n", argv[1]);
 			exits("hayes");
 		}
-		cname = malloc(strlen(argv[1])+4);
+		cname = malloc(strlen(argv[1]) + 4);
 		sprint(cname, "%sctl", argv[1]);
 		ctl = open(cname, ORDWR);
 		free(cname);
@@ -95,15 +106,15 @@ main(int argc, char **argv)
 }
 
 int
-send(int fd, char *x)
+send(int fd, char* x)
 {
 	return write(fd, x, strlen(x));
 }
 
 void
-godial(int data, int ctl, char *number)
+godial(int data, int ctl, char* number)
 {
-	char *dialstr;
+	char* dialstr;
 	int m;
 	int baud;
 
@@ -138,7 +149,7 @@ godial(int data, int ctl, char *number)
 	sleep(1000);
 
 	/* godial */
-	dialstr = malloc(6+strlen(number));
+	dialstr = malloc(6 + strlen(number));
 	sprint(dialstr, "ATD%c%s\r", pulsed ? 'P' : 'T', number);
 	if(send(data, dialstr) < 0) {
 		free(dialstr);
@@ -160,17 +171,17 @@ int
 readmsg(int f, int secs)
 {
 	uint32_t start;
-	char *p;
+	char* p;
 	int len;
-	Dir *d;
-	Msg *pp;
+	Dir* d;
+	Msg* pp;
 
 	p = msgbuf;
 	len = sizeof(msgbuf) - 1;
-	for(start = time(0); time(0) <= start+secs;){
+	for(start = time(0); time(0) <= start + secs;) {
 		if((d = dirfstat(f)) == nil)
 			punt("failed read");
-		if(d->length == 0){
+		if(d->length == 0) {
 			free(d);
 			sleep(100);
 			continue;
@@ -178,12 +189,13 @@ readmsg(int f, int secs)
 		free(d);
 		if(read(f, p, 1) <= 0)
 			punt("failed read");
-		if(*p == '\n' || *p == '\r' || len == 0){
+		if(*p == '\n' || *p == '\r' || len == 0) {
 			*p = 0;
 			if(verbose && p != msgbuf)
 				fprint(2, "%s\n", msgbuf);
 			for(pp = msgs; pp->text; pp++)
-				if(strncmp(pp->text, msgbuf, strlen(pp->text))==0)
+				if(strncmp(pp->text, msgbuf,
+				           strlen(pp->text)) == 0)
 					return pp->type;
 			start = time(0);
 			p = msgbuf;
@@ -201,9 +213,9 @@ readmsg(int f, int secs)
  *  get baud rate from a connect message
  */
 int
-getspeed(char *msg, int speed)
+getspeed(char* msg, int speed)
 {
-	char *p;
+	char* p;
 	int s;
 
 	p = msg + sizeof("CONNECT") - 1;
@@ -231,9 +243,8 @@ setspeed(int ctl, int baud)
 	write(ctl, "m1", 2);
 }
 
-
 void
-punt(char *fmt, ...)
+punt(char* fmt, ...)
 {
 	char buf[256];
 	va_list arg;
@@ -241,9 +252,9 @@ punt(char *fmt, ...)
 
 	strcpy(buf, "hayes: ");
 	va_start(arg, fmt);
-	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 	buf[n] = '\n';
-	write(2, buf, n+1);
+	write(2, buf, n + 1);
 	exits("hayes");
 }

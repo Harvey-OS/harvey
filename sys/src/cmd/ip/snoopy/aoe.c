@@ -13,52 +13,49 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct{
-	uint8_t	verflags;
-	uint8_t	error;
-	uint8_t	major[2];
-	uint8_t	minor;
-	uint8_t	cmd;
-	uint8_t	tag[4];
-}Hdr;
+typedef struct {
+	uint8_t verflags;
+	uint8_t error;
+	uint8_t major[2];
+	uint8_t minor;
+	uint8_t cmd;
+	uint8_t tag[4];
+} Hdr;
 
-enum{
-	Hsize	= 10,
+enum { Hsize = 10,
 };
 
-enum{
-	Omajor,
-	Ominor,
-	Ocmd,
+enum { Omajor,
+       Ominor,
+       Ocmd,
 };
 
 static Mux p_mux[] = {
-	{"aoeata",	0},
-	{"aoecmd",	1},
-	{"aoemask",	2},
-	{"aoerr",	3},
-	{0},
+    {"aoeata", 0}, {"aoecmd", 1}, {"aoemask", 2}, {"aoerr", 3}, {0},
 };
 
-static Field p_fields[] =
-{
-	{"shelf",	Fnum,	Ominor,		"shelf", },
-	{"slot",	Fnum,	Omajor,		"slot",	},
-	{"cmd",		Fnum,	Ocmd,		"cmd",	},
-	{0}
-};
+static Field p_fields[] = {{
+                            "shelf", Fnum, Ominor, "shelf",
+                           },
+                           {
+                            "slot", Fnum, Omajor, "slot",
+                           },
+                           {
+                            "cmd", Fnum, Ocmd, "cmd",
+                           },
+                           {0}};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	Mux *m;
+	Mux* m;
 
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(aoe.name, f, p_fields);
 		return;
 	}
 	for(m = p_mux; m->name; m++)
-		if(strcmp(f->s, m->name) == 0){
+		if(strcmp(f->s, m->name) == 0) {
 			f->pr = m->pr;
 			f->ulv = m->val;
 			f->subop = Ocmd;
@@ -68,9 +65,9 @@ p_compile(Filter *f)
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -78,7 +75,7 @@ p_filter(Filter *f, Msg *m)
 	h = (Hdr*)m->ps;
 	m->ps += Hsize;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Omajor:
 		return NetS(h->major) == f->ulv;
 	case Ominor:
@@ -90,9 +87,9 @@ p_filter(Filter *f, Msg *m)
 }
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -102,20 +99,14 @@ p_seprint(Msg *m)
 
 	demux(p_mux, h->cmd, h->cmd, m, &dump);
 
-	m->p = seprint(m->p, m->e, "ver=%d flag=%4b err=%d %d.%d cmd=%ux tag=%ux",
-		h->verflags >> 4, h->verflags & 0xf, h->error, NetS(h->major),
-		h->minor, h->cmd, NetL(h->tag));
+	m->p =
+	    seprint(m->p, m->e, "ver=%d flag=%4b err=%d %d.%d cmd=%ux tag=%ux",
+	            h->verflags >> 4, h->verflags & 0xf, h->error,
+	            NetS(h->major), h->minor, h->cmd, NetL(h->tag));
 	return 0;
 }
 
-Proto aoe =
-{
-	"aoe",
-	p_compile,
-	p_filter,
-	p_seprint,
-	p_mux,
-	"%lud",
-	p_fields,
-	defaultframer,
+Proto aoe = {
+    "aoe", p_compile, p_filter, p_seprint,
+    p_mux, "%lud",    p_fields, defaultframer,
 };

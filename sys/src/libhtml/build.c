@@ -15,152 +15,130 @@
 #include "impl.h"
 
 // A stack for holding integer values
-enum {
-	Nestmax = 40	// max nesting level of lists, font styles, etc.
+enum { Nestmax = 40 // max nesting level of lists, font styles, etc.
 };
 
 struct Stack {
-	int		n;				// next available slot (top of stack is stack[n-1])
-	int		slots[Nestmax];	// stack entries
+	int n;              // next available slot (top of stack is stack[n-1])
+	int slots[Nestmax]; // stack entries
 };
 
 // Parsing state
-struct Pstate
-{
-	Pstate*	next;			// in stack of Pstates
-	int		skipping;		// true when we shouldn't add items
-	int		skipwhite;		// true when we should strip leading space
-	int		curfont;		// font index for current font
-	int		curfg;		// current foreground color
-	Background	curbg;	// current background
-	int		curvoff;		// current baseline offset
-	uint8_t	curul;		// current underline/strike state
-	uint8_t	curjust;		// current justify state
-	int		curanchor;	// current (href) anchor id (if in one), or 0
-	int		curstate;		// current value of item state
-	int		literal;		// current literal state
-	int		inpar;		// true when in a paragraph-like construct
-	int		adjsize;		// current font size adjustment
-	Item*	items;		// dummy head of item list we're building
-	Item*	lastit;		// tail of item list we're building
-	Item*	prelastit;		// item before lastit
-	Stack	fntstylestk;	// style stack
-	Stack	fntsizestk;		// size stack
-	Stack	fgstk;		// text color stack
-	Stack	ulstk;		// underline stack
-	Stack	voffstk;		// vertical offset stack
-	Stack	listtypestk;	// list type stack
-	Stack	listcntstk;		// list counter stack
-	Stack	juststk;		// justification stack
-	Stack	hangstk;		// hanging stack
+struct Pstate {
+	Pstate* next;      // in stack of Pstates
+	int skipping;      // true when we shouldn't add items
+	int skipwhite;     // true when we should strip leading space
+	int curfont;       // font index for current font
+	int curfg;         // current foreground color
+	Background curbg;  // current background
+	int curvoff;       // current baseline offset
+	uint8_t curul;     // current underline/strike state
+	uint8_t curjust;   // current justify state
+	int curanchor;     // current (href) anchor id (if in one), or 0
+	int curstate;      // current value of item state
+	int literal;       // current literal state
+	int inpar;         // true when in a paragraph-like construct
+	int adjsize;       // current font size adjustment
+	Item* items;       // dummy head of item list we're building
+	Item* lastit;      // tail of item list we're building
+	Item* prelastit;   // item before lastit
+	Stack fntstylestk; // style stack
+	Stack fntsizestk;  // size stack
+	Stack fgstk;       // text color stack
+	Stack ulstk;       // underline stack
+	Stack voffstk;     // vertical offset stack
+	Stack listtypestk; // list type stack
+	Stack listcntstk;  // list counter stack
+	Stack juststk;     // justification stack
+	Stack hangstk;     // hanging stack
 };
 
-struct ItemSource
-{
-	Docinfo*		doc;
-	Pstate*		psstk;
-	int			nforms;
-	int			ntables;
-	int			nanchors;
-	int			nframes;
-	Form*		curform;
-	Map*		curmap;
-	Table*		tabstk;
-	Kidinfo*		kidstk;
+struct ItemSource {
+	Docinfo* doc;
+	Pstate* psstk;
+	int nforms;
+	int ntables;
+	int nanchors;
+	int nframes;
+	Form* curform;
+	Map* curmap;
+	Table* tabstk;
+	Kidinfo* kidstk;
 };
 
 // Some layout parameters
-enum {
-	FRKIDMARGIN = 6,	// default margin around kid frames
-	IMGHSPACE = 0,	// default hspace for images (0 matches IE, Netscape)
-	IMGVSPACE = 0,	// default vspace for images
-	FLTIMGHSPACE = 2,	// default hspace for float images
-	TABSP = 5,		// default cellspacing for tables
-	TABPAD = 1,		// default cell padding for tables
-	LISTTAB = 1,		// number of tabs to indent lists
-	BQTAB = 1,		// number of tabs to indent blockquotes
-	HRSZ = 2,			// thickness of horizontal rules
-	SUBOFF = 4,		// vertical offset for subscripts
-	SUPOFF = 6,		// vertical offset for superscripts
-	NBSP = 160		// non-breaking space character
+enum { FRKIDMARGIN = 6,  // default margin around kid frames
+       IMGHSPACE = 0,    // default hspace for images (0 matches IE, Netscape)
+       IMGVSPACE = 0,    // default vspace for images
+       FLTIMGHSPACE = 2, // default hspace for float images
+       TABSP = 5,        // default cellspacing for tables
+       TABPAD = 1,       // default cell padding for tables
+       LISTTAB = 1,      // number of tabs to indent lists
+       BQTAB = 1,        // number of tabs to indent blockquotes
+       HRSZ = 2,         // thickness of horizontal rules
+       SUBOFF = 4,       // vertical offset for subscripts
+       SUPOFF = 6,       // vertical offset for superscripts
+       NBSP = 160        // non-breaking space character
 };
 
 // These tables must be sorted
-static StringInt align_tab[] = {
-	{(Rune*)L"baseline",	ALbaseline},
-	{(Rune*)L"bottom",	ALbottom},
-	{(Rune*)L"center",	ALcenter},
-	{(Rune*)L"char",		ALchar},
-	{(Rune*)L"justify",	ALjustify},
-	{(Rune*)L"left",		ALleft},
-	{(Rune*)L"middle",	ALmiddle},
-	{(Rune*)L"right",		ALright},
-	{(Rune*)L"top",		ALtop}
-};
-#define NALIGNTAB (sizeof(align_tab)/sizeof(StringInt))
+static StringInt align_tab[] = {{(Rune*)L"baseline", ALbaseline},
+                                {(Rune*)L"bottom", ALbottom},
+                                {(Rune*)L"center", ALcenter},
+                                {(Rune*)L"char", ALchar},
+                                {(Rune*)L"justify", ALjustify},
+                                {(Rune*)L"left", ALleft},
+                                {(Rune*)L"middle", ALmiddle},
+                                {(Rune*)L"right", ALright},
+                                {(Rune*)L"top", ALtop}};
+#define NALIGNTAB (sizeof(align_tab) / sizeof(StringInt))
 
-static StringInt input_tab[] = {
-	{(Rune*)L"button",	Fbutton},
-	{(Rune*)L"checkbox",	Fcheckbox},
-	{(Rune*)L"file",		Ffile},
-	{(Rune*)L"hidden",	Fhidden},
-	{(Rune*)L"image",	Fimage},
-	{(Rune*)L"password",	Fpassword},
-	{(Rune*)L"radio",		Fradio},
-	{(Rune*)L"reset",		Freset},
-	{(Rune*)L"submit",	Fsubmit},
-	{(Rune*)L"text",		Ftext}
-};
-#define NINPUTTAB (sizeof(input_tab)/sizeof(StringInt))
+static StringInt input_tab[] = {{(Rune*)L"button", Fbutton},
+                                {(Rune*)L"checkbox", Fcheckbox},
+                                {(Rune*)L"file", Ffile},
+                                {(Rune*)L"hidden", Fhidden},
+                                {(Rune*)L"image", Fimage},
+                                {(Rune*)L"password", Fpassword},
+                                {(Rune*)L"radio", Fradio},
+                                {(Rune*)L"reset", Freset},
+                                {(Rune*)L"submit", Fsubmit},
+                                {(Rune*)L"text", Ftext}};
+#define NINPUTTAB (sizeof(input_tab) / sizeof(StringInt))
 
-static StringInt clear_tab[] = {
-	{(Rune*)L"all",	IFcleft|IFcright},
-	{(Rune*)L"left",	IFcleft},
-	{(Rune*)L"right",	IFcright}
-};
-#define NCLEARTAB (sizeof(clear_tab)/sizeof(StringInt))
+static StringInt clear_tab[] = {{(Rune*)L"all", IFcleft | IFcright},
+                                {(Rune*)L"left", IFcleft},
+                                {(Rune*)L"right", IFcright}};
+#define NCLEARTAB (sizeof(clear_tab) / sizeof(StringInt))
 
 static StringInt fscroll_tab[] = {
-	{(Rune*)L"auto",	FRhscrollauto|FRvscrollauto},
-	{(Rune*)L"no",	FRnoscroll},
-	{(Rune*)L"yes",	FRhscroll|FRvscroll},
+    {(Rune*)L"auto", FRhscrollauto | FRvscrollauto},
+    {(Rune*)L"no", FRnoscroll},
+    {(Rune*)L"yes", FRhscroll | FRvscroll},
 };
-#define NFSCROLLTAB (sizeof(fscroll_tab)/sizeof(StringInt))
+#define NFSCROLLTAB (sizeof(fscroll_tab) / sizeof(StringInt))
 
-static StringInt shape_tab[] = {
-	{(Rune*)L"circ",		SHcircle},
-	{(Rune*)L"circle",		SHcircle},
-	{(Rune*)L"poly",		SHpoly},
-	{(Rune*)L"polygon",	SHpoly},
-	{(Rune*)L"rect",		SHrect},
-	{(Rune*)L"rectangle",	SHrect}
-};
-#define NSHAPETAB (sizeof(shape_tab)/sizeof(StringInt))
+static StringInt shape_tab[] = {{(Rune*)L"circ", SHcircle},
+                                {(Rune*)L"circle", SHcircle},
+                                {(Rune*)L"poly", SHpoly},
+                                {(Rune*)L"polygon", SHpoly},
+                                {(Rune*)L"rect", SHrect},
+                                {(Rune*)L"rectangle", SHrect}};
+#define NSHAPETAB (sizeof(shape_tab) / sizeof(StringInt))
 
-static StringInt method_tab[] = {
-	{(Rune*)L"get",		HGet},
-	{(Rune*)L"post",		HPost}
-};
-#define NMETHODTAB (sizeof(method_tab)/sizeof(StringInt))
+static StringInt method_tab[] = {{(Rune*)L"get", HGet},
+                                 {(Rune*)L"post", HPost}};
+#define NMETHODTAB (sizeof(method_tab) / sizeof(StringInt))
 
-static Rune* roman[15]= {
-	(Rune*)L"I", (Rune*)L"II", (Rune*)L"III", (Rune*)L"IV", (Rune*)L"V", 
-	(Rune*)L"VI", (Rune*)L"VII", (Rune*)L"VIII", (Rune*)L"IX", (Rune*)L"X",
-	(Rune*)L"XI", (Rune*)L"XII", (Rune*)L"XIII", (Rune*)L"XIV", (Rune*)L"XV"
-};
+static Rune* roman[15] = {
+    (Rune*)L"I",  (Rune*)L"II",  (Rune*)L"III",  (Rune*)L"IV",  (Rune*)L"V",
+    (Rune*)L"VI", (Rune*)L"VII", (Rune*)L"VIII", (Rune*)L"IX",  (Rune*)L"X",
+    (Rune*)L"XI", (Rune*)L"XII", (Rune*)L"XIII", (Rune*)L"XIV", (Rune*)L"XV"};
 #define NROMAN 15
 
 // List number types
-enum {
-	LTdisc, LTsquare, LTcircle, LT1, LTa, LTA, LTi, LTI
-};
+enum { LTdisc, LTsquare, LTcircle, LT1, LTa, LTA, LTi, LTI };
 
-enum {
-	SPBefore = 2,
-	SPAfter = 4,
-	BL = 1,
-	BLBA = (BL|SPBefore|SPAfter)
-};
+enum { SPBefore = 2, SPAfter = 4, BL = 1, BLBA = (BL | SPBefore | SPAfter) };
 
 // blockbrk[tag] is break info for a block level element, or one
 // of a few others that get the same treatment re ending open paragraphs
@@ -168,178 +146,185 @@ enum {
 // If we want a line of space before the given element, SPBefore is OR'd in.
 // If we want a line of space after the given element, SPAfter is OR'd in.
 
-static unsigned char blockbrk[Numtags]= {
-	[Taddress] BLBA, [Tblockquote] BLBA, [Tcenter] BL,
-	[Tdir] BLBA, [Tdiv] BL, [Tdd] BL, [Tdl] BLBA,
-	[Tdt] BL, [Tform] BLBA,
-	// headings and tables get breaks added manually
-	[Th1] BL, [Th2] BL, [Th3] BL,
-	[Th4] BL, [Th5] BL, [Th6] BL,
-	[Thr] BL, [Tisindex] BLBA, [Tli] BL, [Tmenu] BLBA,
-	[Tol] BLBA, [Tp] BLBA, [Tpre] BLBA,
-	[Tul] BLBA
-};
+static unsigned char blockbrk[Numtags] =
+    {[Taddress] BLBA, [Tblockquote] BLBA, [Tcenter] BL, [Tdir] BLBA,
+     [Tdiv] BL,       [Tdd] BL,           [Tdl] BLBA,   [Tdt] BL,
+     [Tform] BLBA,
+     // headings and tables get breaks added manually
+     [Th1] BL,        [Th2] BL,           [Th3] BL,     [Th4] BL,
+     [Th5] BL,        [Th6] BL,           [Thr] BL,     [Tisindex] BLBA,
+     [Tli] BL,        [Tmenu] BLBA,       [Tol] BLBA,   [Tp] BLBA,
+     [Tpre] BLBA,     [Tul] BLBA};
 
-enum {
-	AGEN = 1
-};
+enum { AGEN = 1 };
 
 // attrinfo is information about attributes.
-// The AGEN value means that the attribute is generic (applies to almost all elements)
-static unsigned char attrinfo[Numattrs]= {
-	[Aid] AGEN, [Aclass] AGEN, [Astyle] AGEN, [Atitle] AGEN,
-	[Aonblur] AGEN, [Aonchange] AGEN, [Aonclick] AGEN,
-	[Aondblclick] AGEN, [Aonfocus] AGEN, [Aonkeypress] AGEN,
-	[Aonkeyup] AGEN, [Aonload] AGEN, [Aonmousedown] AGEN,
-	[Aonmousemove] AGEN, [Aonmouseout] AGEN, [Aonmouseover] AGEN,
-	[Aonmouseup] AGEN, [Aonreset] AGEN, [Aonselect] AGEN,
-	[Aonsubmit] AGEN, [Aonunload] AGEN
-};
+// The AGEN value means that the attribute is generic (applies to almost all
+// elements)
+static unsigned char attrinfo[Numattrs] =
+    {[Aid] AGEN,          [Aclass] AGEN,       [Astyle] AGEN,
+     [Atitle] AGEN,       [Aonblur] AGEN,      [Aonchange] AGEN,
+     [Aonclick] AGEN,     [Aondblclick] AGEN,  [Aonfocus] AGEN,
+     [Aonkeypress] AGEN,  [Aonkeyup] AGEN,     [Aonload] AGEN,
+     [Aonmousedown] AGEN, [Aonmousemove] AGEN, [Aonmouseout] AGEN,
+     [Aonmouseover] AGEN, [Aonmouseup] AGEN,   [Aonreset] AGEN,
+     [Aonselect] AGEN,    [Aonsubmit] AGEN,    [Aonunload] AGEN};
 
-static unsigned char scriptev[Numattrs]= {
-	[Aonblur] SEonblur, [Aonchange] SEonchange, [Aonclick] SEonclick,
-	[Aondblclick] SEondblclick, [Aonfocus] SEonfocus, [Aonkeypress] SEonkeypress,
-	[Aonkeyup] SEonkeyup, [Aonload] SEonload, [Aonmousedown] SEonmousedown,
-	[Aonmousemove] SEonmousemove, [Aonmouseout] SEonmouseout, [Aonmouseover] SEonmouseover,
-	[Aonmouseup] SEonmouseup, [Aonreset] SEonreset, [Aonselect] SEonselect,
-	[Aonsubmit] SEonsubmit, [Aonunload] SEonunload
-};
+static unsigned char scriptev[Numattrs] =
+    {[Aonblur] SEonblur,           [Aonchange] SEonchange,
+     [Aonclick] SEonclick,         [Aondblclick] SEondblclick,
+     [Aonfocus] SEonfocus,         [Aonkeypress] SEonkeypress,
+     [Aonkeyup] SEonkeyup,         [Aonload] SEonload,
+     [Aonmousedown] SEonmousedown, [Aonmousemove] SEonmousemove,
+     [Aonmouseout] SEonmouseout,   [Aonmouseover] SEonmouseover,
+     [Aonmouseup] SEonmouseup,     [Aonreset] SEonreset,
+     [Aonselect] SEonselect,       [Aonsubmit] SEonsubmit,
+     [Aonunload] SEonunload};
 
 // Color lookup table
-static StringInt color_tab[] = {
-	{(Rune*)L"aqua", 0x00FFFF},
-	{(Rune*)L"black",  0x000000},
-	{(Rune*)L"blue", 0x0000CC},
-	{(Rune*)L"fuchsia", 0xFF00FF},
-	{(Rune*)L"gray", 0x808080},
-	{(Rune*)L"green", 0x008000},
-	{(Rune*)L"lime", 0x00FF00},
-	{(Rune*)L"maroon", 0x800000},
-	{(Rune*)L"navy", 0x000080,},
-	{(Rune*)L"olive", 0x808000},
-	{(Rune*)L"purple", 0x800080},
-	{(Rune*)L"red", 0xFF0000},
-	{(Rune*)L"silver", 0xC0C0C0},
-	{(Rune*)L"teal", 0x008080},
-	{(Rune*)L"white", 0xFFFFFF},
-	{(Rune*)L"yellow", 0xFFFF00}
-};
-#define NCOLORS (sizeof(color_tab)/sizeof(StringInt))
+static StringInt color_tab[] = {{(Rune*)L"aqua", 0x00FFFF},
+                                {(Rune*)L"black", 0x000000},
+                                {(Rune*)L"blue", 0x0000CC},
+                                {(Rune*)L"fuchsia", 0xFF00FF},
+                                {(Rune*)L"gray", 0x808080},
+                                {(Rune*)L"green", 0x008000},
+                                {(Rune*)L"lime", 0x00FF00},
+                                {(Rune*)L"maroon", 0x800000},
+                                {
+                                 (Rune*)L"navy", 0x000080,
+                                },
+                                {(Rune*)L"olive", 0x808000},
+                                {(Rune*)L"purple", 0x800080},
+                                {(Rune*)L"red", 0xFF0000},
+                                {(Rune*)L"silver", 0xC0C0C0},
+                                {(Rune*)L"teal", 0x008080},
+                                {(Rune*)L"white", 0xFFFFFF},
+                                {(Rune*)L"yellow", 0xFFFF00}};
+#define NCOLORS (sizeof(color_tab) / sizeof(StringInt))
 
-static StringInt 		*targetmap;
-static int			targetmapsize;
-static int			ntargets;
+static StringInt* targetmap;
+static int targetmapsize;
+static int ntargets;
 
 static int buildinited = 0;
 
 #define SMALLBUFSIZE 240
 #define BIGBUFSIZE 2000
 
-int	dbgbuild = 0;
-int	warn = 0;
+int dbgbuild = 0;
+int warn = 0;
 
-static Align		aalign(Token* tok);
-static int			acolorval(Token* tok, int attid, int dflt);
-static void			addbrk(Pstate* ps, int sp, int clr);
-static void			additem(Pstate* ps, Item* it, Token* tok);
-static void			addlinebrk(Pstate* ps, int clr);
-static void			addnbsp(Pstate* ps);
-static void			addtext(Pstate* ps, Rune* s);
-static Dimen		adimen(Token* tok, int attid);
-static int			aflagval(Token* tok, int attid);
-static int			aintval(Token* tok, int attid, int dflt);
-static Rune*		astrval(Token* tok, int attid, Rune* dflt);
-static int			atabval(Token* tok, int attid, StringInt* tab, int ntab, int dflt);
-static int			atargval(Token* tok, int dflt);
-static int			auintval(Token* tok, int attid, int dflt);
-static Rune*		aurlval(Token* tok, int attid, Rune* dflt, Rune* base);
-static Rune*		aval(Token* tok, int attid);
-static void			buildinit(void);
-static Pstate*		cell_pstate(Pstate* oldps, int ishead);
-static void			changehang(Pstate* ps, int delta);
-static void			changeindent(Pstate* ps, int delta);
-static int			color(Rune* s, int dflt);
-static void			copystack(Stack* tostk, Stack* fromstk);
-static int			dimprint(char* buf, int nbuf, Dimen d);
-static Pstate*		finishcell(Table* curtab, Pstate* psstk);
-static void			finish_table(Table* t);
-static void			freeanchor(Anchor* a);
-static void			freedestanchor(DestAnchor* da);
-static void			freeform(Form* f);
-static void			freeformfield(Formfield* ff);
-static void			freeitem(Item* it);
-static void			freepstate(Pstate* p);
-static void			freepstatestack(Pstate* pshead);
-static void			freescriptevents(SEvent* ehead);
-static void			freetable(Table* t);
-static Map*		getmap(Docinfo* di, Rune* name);
-static Rune*		getpcdata(Token* toks, int tokslen, int* ptoki);
-static Pstate*		lastps(Pstate* psl);
-static Rune*		listmark(uint8_t ty, int n);
-static int			listtyval(Token* tok, int dflt);
-static Align		makealign(int halign, int valign);
-static Background	makebackground(Rune* imgurl, int color);
-static Dimen		makedimen(int kind, int spec);
-static Anchor*		newanchor(int index, Rune* name, Rune* href, int target, Anchor* link);
-static Area*		newarea(int shape, Rune* href, int target, Area* link);
-static DestAnchor*	newdestanchor(int index, Rune* name, Item* item, DestAnchor* link);
-static Docinfo*		newdocinfo(void);
-static Genattr*		newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent* events);
-static Form*		newform(int formid, Rune* name, Rune* action,
-					int target, int method, Form* link);
-static Formfield*	newformfield(int ftype, int fieldid, Form* form, Rune* name,
-					Rune* value, int size, int maxlength, Formfield* link);
-static Item*		newifloat(Item* it, int side);
-static Item*		newiformfield(Formfield* ff);
-static Item*		newiimage(Rune* src, Rune* altrep, int align, int width, int height,
-					int hspace, int vspace, int border, int ismap, Map* map);
-static Item*		newirule(int align, int size, int noshade, int color, Dimen wspec);
-static Item*		newispacer(int spkind);
-static Item*		newitable(Table* t);
-static ItemSource*	newitemsource(Docinfo* di);
-static Item*		newitext(Rune* s, int fnt, int fg, int voff, int ul);
-static Kidinfo*		newkidinfo(int isframeset, Kidinfo* link);
-static Option*		newoption(int selected, Rune* value, Rune* display, Option* link);
-static Pstate*		newpstate(Pstate* link);
-static SEvent*		newscriptevent(int type, Rune* script, SEvent* link);
-static Table*		newtable(int tableid, Align align, Dimen width, int border,
-					int cellspacing, int cellpadding, Background bg, Token* tok, Table* link);
-static Tablecell*	newtablecell(int cellid, int rowspan, int colspan, Align align, Dimen wspec,
-					int hspec, Background bg, int flags, Tablecell* link);
-static Tablerow*	newtablerow(Align align, Background bg, int flags, Tablerow* link);
-static Dimen		parsedim(Rune* s, int ns);
-static void			pop(Stack* stk);
-static void			popfontsize(Pstate* ps);
-static void			popfontstyle(Pstate* ps);
-static void			popjust(Pstate* ps);
-static int			popretnewtop(Stack* stk, int dflt);
-static int			push(Stack* stk, int val);
-static void			pushfontsize(Pstate* ps, int sz);
-static void			pushfontstyle(Pstate* ps, int sty);
-static void			pushjust(Pstate* ps, int j);
-static Item*		textit(Pstate* ps, Rune* s);
-static Rune*		removeallwhite(Rune* s);
-static void			resetdocinfo(Docinfo* d);
-static void			setcurfont(Pstate* ps);
-static void			setcurjust(Pstate* ps);
-static void			setdimarray(Token* tok, int attid, Dimen** pans, int* panslen);
-static Rune*		stringalign(int a);
-static void			targetmapinit(void);
-static int			toint(Rune* s);
-static int			top(Stack* stk, int dflt);
-static void			trim_cell(Tablecell* c);
-static int			validalign(Align a);
-static int			validdimen(Dimen d);
-static int			validformfield(Formfield* f);
-static int			validhalign(int a);
-static int			validptr(void* p);
-static int			validStr(Rune* s);
-static int			validtable(Table* t);
-static int			validtablerow(Tablerow* r);
-static int			validtablecol(Tablecol* c);
-static int			validtablecell(Tablecell* c);
-static int			validvalign(int a);
-static int			Iconv(Fmt *f);
+static Align aalign(Token* tok);
+static int acolorval(Token* tok, int attid, int dflt);
+static void addbrk(Pstate* ps, int sp, int clr);
+static void additem(Pstate* ps, Item* it, Token* tok);
+static void addlinebrk(Pstate* ps, int clr);
+static void addnbsp(Pstate* ps);
+static void addtext(Pstate* ps, Rune* s);
+static Dimen adimen(Token* tok, int attid);
+static int aflagval(Token* tok, int attid);
+static int aintval(Token* tok, int attid, int dflt);
+static Rune* astrval(Token* tok, int attid, Rune* dflt);
+static int atabval(Token* tok, int attid, StringInt* tab, int ntab, int dflt);
+static int atargval(Token* tok, int dflt);
+static int auintval(Token* tok, int attid, int dflt);
+static Rune* aurlval(Token* tok, int attid, Rune* dflt, Rune* base);
+static Rune* aval(Token* tok, int attid);
+static void buildinit(void);
+static Pstate* cell_pstate(Pstate* oldps, int ishead);
+static void changehang(Pstate* ps, int delta);
+static void changeindent(Pstate* ps, int delta);
+static int color(Rune* s, int dflt);
+static void copystack(Stack* tostk, Stack* fromstk);
+static int dimprint(char* buf, int nbuf, Dimen d);
+static Pstate* finishcell(Table* curtab, Pstate* psstk);
+static void finish_table(Table* t);
+static void freeanchor(Anchor* a);
+static void freedestanchor(DestAnchor* da);
+static void freeform(Form* f);
+static void freeformfield(Formfield* ff);
+static void freeitem(Item* it);
+static void freepstate(Pstate* p);
+static void freepstatestack(Pstate* pshead);
+static void freescriptevents(SEvent* ehead);
+static void freetable(Table* t);
+static Map* getmap(Docinfo* di, Rune* name);
+static Rune* getpcdata(Token* toks, int tokslen, int* ptoki);
+static Pstate* lastps(Pstate* psl);
+static Rune* listmark(uint8_t ty, int n);
+static int listtyval(Token* tok, int dflt);
+static Align makealign(int halign, int valign);
+static Background makebackground(Rune* imgurl, int color);
+static Dimen makedimen(int kind, int spec);
+static Anchor* newanchor(int index, Rune* name, Rune* href, int target,
+                         Anchor* link);
+static Area* newarea(int shape, Rune* href, int target, Area* link);
+static DestAnchor* newdestanchor(int index, Rune* name, Item* item,
+                                 DestAnchor* link);
+static Docinfo* newdocinfo(void);
+static Genattr* newgenattr(Rune* id, Rune* class, Rune* style, Rune* title,
+                           SEvent* events);
+static Form* newform(int formid, Rune* name, Rune* action, int target,
+                     int method, Form* link);
+static Formfield* newformfield(int ftype, int fieldid, Form* form, Rune* name,
+                               Rune* value, int size, int maxlength,
+                               Formfield* link);
+static Item* newifloat(Item* it, int side);
+static Item* newiformfield(Formfield* ff);
+static Item* newiimage(Rune* src, Rune* altrep, int align, int width,
+                       int height, int hspace, int vspace, int border,
+                       int ismap, Map* map);
+static Item* newirule(int align, int size, int noshade, int color, Dimen wspec);
+static Item* newispacer(int spkind);
+static Item* newitable(Table* t);
+static ItemSource* newitemsource(Docinfo* di);
+static Item* newitext(Rune* s, int fnt, int fg, int voff, int ul);
+static Kidinfo* newkidinfo(int isframeset, Kidinfo* link);
+static Option* newoption(int selected, Rune* value, Rune* display,
+                         Option* link);
+static Pstate* newpstate(Pstate* link);
+static SEvent* newscriptevent(int type, Rune* script, SEvent* link);
+static Table* newtable(int tableid, Align align, Dimen width, int border,
+                       int cellspacing, int cellpadding, Background bg,
+                       Token* tok, Table* link);
+static Tablecell* newtablecell(int cellid, int rowspan, int colspan,
+                               Align align, Dimen wspec, int hspec,
+                               Background bg, int flags, Tablecell* link);
+static Tablerow* newtablerow(Align align, Background bg, int flags,
+                             Tablerow* link);
+static Dimen parsedim(Rune* s, int ns);
+static void pop(Stack* stk);
+static void popfontsize(Pstate* ps);
+static void popfontstyle(Pstate* ps);
+static void popjust(Pstate* ps);
+static int popretnewtop(Stack* stk, int dflt);
+static int push(Stack* stk, int val);
+static void pushfontsize(Pstate* ps, int sz);
+static void pushfontstyle(Pstate* ps, int sty);
+static void pushjust(Pstate* ps, int j);
+static Item* textit(Pstate* ps, Rune* s);
+static Rune* removeallwhite(Rune* s);
+static void resetdocinfo(Docinfo* d);
+static void setcurfont(Pstate* ps);
+static void setcurjust(Pstate* ps);
+static void setdimarray(Token* tok, int attid, Dimen** pans, int* panslen);
+static Rune* stringalign(int a);
+static void targetmapinit(void);
+static int toint(Rune* s);
+static int top(Stack* stk, int dflt);
+static void trim_cell(Tablecell* c);
+static int validalign(Align a);
+static int validdimen(Dimen d);
+static int validformfield(Formfield* f);
+static int validhalign(int a);
+static int validptr(void* p);
+static int validStr(Rune* s);
+static int validtable(Table* t);
+static int validtablerow(Tablerow* r);
+static int validtablecol(Tablecol* c);
+static int validtablecell(Tablecell* c);
+static int validvalign(int a);
+static int Iconv(Fmt* f);
 
 static void
 buildinit(void)
@@ -352,8 +337,8 @@ buildinit(void)
 static ItemSource*
 newitemsource(Docinfo* di)
 {
-	ItemSource*	is;
-	Pstate*	ps;
+	ItemSource* is;
+	Pstate* ps;
 
 	ps = newpstate(nil);
 	if(di->mediatype != TextHtml) {
@@ -375,7 +360,7 @@ newitemsource(Docinfo* di)
 	return is;
 }
 
-static Item *getitems(ItemSource* is, uint8_t* data, int datalen);
+static Item* getitems(ItemSource* is, uint8_t* data, int datalen);
 
 // Parse an html document and create a list of layout items.
 // Allocate and return document info in *pdi.
@@ -384,11 +369,11 @@ static Item *getitems(ItemSource* is, uint8_t* data, int datalen);
 // freedocinfo(*pdi).
 Item*
 parsehtml(uint8_t* data, int datalen, Rune* pagesrc, int mtype, int chset,
-	  Docinfo** pdi)
+          Docinfo** pdi)
 {
-	Item *it;
-	Docinfo*	di;
-	ItemSource*	is;
+	Item* it;
+	Docinfo* di;
+	ItemSource* is;
 
 	di = newdocinfo();
 	di->src = _Strdup(pagesrc);
@@ -410,81 +395,81 @@ parsehtml(uint8_t* data, int datalen, Rune* pagesrc, int mtype, int chset,
 static Item*
 getitems(ItemSource* is, uint8_t* data, int datalen)
 {
-	int	i;
-	int	j;
-	int	nt;
-	int	pt;
-	int	doscripts;
-	int	tokslen;
-	int	toki;
-	int	h;
-	int	sz;
-	int	method;
-	int	n;
-	int	nblank;
-	int	norsz;
-	int	bramt;
-	int	sty;
-	int	nosh;
-	int	color;
-	int	oldcuranchor;
-	int	dfltbd;
-	int	v;
-	int	hang;
-	int	isempty;
-	int	tag;
-	int	brksp;
-	int	target;
-	uint8_t	brk;
-	uint8_t	flags;
-	uint8_t	align;
-	uint8_t	al;
-	uint8_t	ty;
-	uint8_t	ty2;
-	Pstate*	ps;
-	Pstate*	nextps;
-	Pstate*	outerps;
-	Table*	curtab;
-	Token*	tok;
-	Token*	toks;
-	Docinfo*	di;
-	Item*	ans;
-	Item*	img;
-	Item*	ffit;
-	Item*	tabitem;
-	Rune*	s;
-	Rune*	t;
-	Rune*	name;
-	Rune*	enctype;
-	Rune*	usemap;
-	Rune*	prompt;
-	Rune*	equiv;
-	Rune*	val;
-	Rune*	nsz;
-	Rune*	script;
-	Map*	map;
-	Form*	frm;
-	Iimage*	ii;
-	Kidinfo*	kd;
-	Kidinfo*	ks;
-	Kidinfo*	pks;
-	Dimen	wd;
-	Option*	option;
-	Table*	tab;
-	Tablecell*	c;
-	Tablerow*	tr;
-	Formfield*	field;
-	Formfield*	ff;
-	Rune*	href;
-	Rune*	src;
-	Rune*	scriptsrc;
-	Rune*	bgurl;
-	Rune*	action;
-	Background	bg;
+	int i;
+	int j;
+	int nt;
+	int pt;
+	int doscripts;
+	int tokslen;
+	int toki;
+	int h;
+	int sz;
+	int method;
+	int n;
+	int nblank;
+	int norsz;
+	int bramt;
+	int sty;
+	int nosh;
+	int color;
+	int oldcuranchor;
+	int dfltbd;
+	int v;
+	int hang;
+	int isempty;
+	int tag;
+	int brksp;
+	int target;
+	uint8_t brk;
+	uint8_t flags;
+	uint8_t align;
+	uint8_t al;
+	uint8_t ty;
+	uint8_t ty2;
+	Pstate* ps;
+	Pstate* nextps;
+	Pstate* outerps;
+	Table* curtab;
+	Token* tok;
+	Token* toks;
+	Docinfo* di;
+	Item* ans;
+	Item* img;
+	Item* ffit;
+	Item* tabitem;
+	Rune* s;
+	Rune* t;
+	Rune* name;
+	Rune* enctype;
+	Rune* usemap;
+	Rune* prompt;
+	Rune* equiv;
+	Rune* val;
+	Rune* nsz;
+	Rune* script;
+	Map* map;
+	Form* frm;
+	Iimage* ii;
+	Kidinfo* kd;
+	Kidinfo* ks;
+	Kidinfo* pks;
+	Dimen wd;
+	Option* option;
+	Table* tab;
+	Tablecell* c;
+	Tablerow* tr;
+	Formfield* field;
+	Formfield* ff;
+	Rune* href;
+	Rune* src;
+	Rune* scriptsrc;
+	Rune* bgurl;
+	Rune* action;
+	Background bg;
 
 	if(!buildinited)
 		buildinit();
-	doscripts = 0;	// for now
+	doscripts = 0; // for now
 	ps = is->psstk;
 	curtab = is->tabstk;
 	di = is->doc;
@@ -493,18 +478,18 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 	for(; toki < tokslen; toki++) {
 		tok = &toks[toki];
 		if(dbgbuild > 1)
-			fprint(2, "build: curstate %ux, token %T\n", ps->curstate, tok);
+			fprint(2, "build: curstate %ux, token %T\n",
+			       ps->curstate, tok);
 		tag = tok->tag;
 		brk = 0;
 		brksp = 0;
 		if(tag < Numtags) {
 			brk = blockbrk[tag];
-			if(brk&SPBefore)
+			if(brk & SPBefore)
 				brksp = 1;
-		}
-		else if(tag < Numtags + RBRA) {
+		} else if(tag < Numtags + RBRA) {
 			brk = blockbrk[tag - RBRA];
-			if(brk&SPAfter)
+			if(brk & SPAfter)
 				brksp = 1;
 		}
 		if(brk) {
@@ -516,7 +501,8 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 		}
 		// check common case first (Data), then switch statement on tag
 		if(tag == Data) {
-			// Lexing didn't pay attention to SGML record boundary rules:
+			// Lexing didn't pay attention to SGML record boundary
+			// rules:
 			// \n after start tag or before end tag to be discarded.
 			// (Lex has already discarded all \r's).
 			// Some pages assume this doesn't happen in <PRE> text,
@@ -530,21 +516,24 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				j = n;
 				if(toki > 0) {
 					pt = toks[toki - 1].tag;
-					// IE and Netscape both ignore this rule (contrary to spec)
+					// IE and Netscape both ignore this rule
+					// (contrary to spec)
 					// if previous tag was img
-					if(pt < Numtags && pt != Timg && j > 0 && s[0] == '\n')
+					if(pt < Numtags && pt != Timg &&
+					   j > 0 && s[0] == '\n')
 						i++;
 				}
 				if(toki < tokslen - 1) {
 					nt = toks[toki + 1].tag;
-					if(nt >= RBRA && nt < Numtags + RBRA && j > i && s[j - 1] == '\n')
+					if(nt >= RBRA && nt < Numtags + RBRA &&
+					   j > i && s[j - 1] == '\n')
 						j--;
 				}
 				if(i > 0 || j < n) {
 					t = s;
 					s = _Strsubstr(s, i, j);
 					free(t);
-					n = j-i;
+					n = j - i;
 				}
 			}
 			if(ps->skipwhite) {
@@ -552,8 +541,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(t == nil) {
 					free(s);
 					s = nil;
-				}
-				else if(t != s) {
+				} else if(t != s) {
 					t = _Strndup(t, nt);
 					free(s);
 					s = t;
@@ -561,30 +549,37 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(s != nil)
 					ps->skipwhite = 0;
 			}
-			tok->text = nil;		// token doesn't own string anymore
+			tok->text = nil; // token doesn't own string anymore
 			if(s != nil)
 				addtext(ps, s);
-		}
-		else
+		} else
 			switch(tag) {
 			// Some abbrevs used in following DTD comments
 			// %text = 	#PCDATA
-			//		| TT | I | B | U | STRIKE | BIG | SMALL | SUB | SUP
-			//		| EM | STRONG | DFN | CODE | SAMP | KBD | VAR | CITE
-			//		| A | IMG | APPLET | FONT | BASEFONT | BR | SCRIPT | MAP
+			//		| TT | I | B | U | STRIKE | BIG | SMALL |
+			//SUB | SUP
+			//		| EM | STRONG | DFN | CODE | SAMP | KBD |
+			//VAR | CITE
+			//		| A | IMG | APPLET | FONT | BASEFONT | BR
+			//| SCRIPT | MAP
 			//		| INPUT | SELECT | TEXTAREA
-			// %block = P | UL | OL | DIR | MENU | DL | PRE | DL | DIV | CENTER
-			//		| BLOCKQUOTE | FORM | ISINDEX | HR | TABLE
+			// %block = P | UL | OL | DIR | MENU | DL | PRE | DL |
+			// DIV | CENTER
+			//		| BLOCKQUOTE | FORM | ISINDEX | HR |
+			//TABLE
 			// %flow = (%text | %block)*
-			// %body.content = (%heading | %text | %block | ADDRESS)*
+			// %body.content = (%heading | %text | %block |
+			// ADDRESS)*
 
 			// <!ELEMENT A - - (%text) -(A)>
-			// Anchors are not supposed to be nested, but you sometimes see
+			// Anchors are not supposed to be nested, but you
+			// sometimes see
 			// href anchors inside destination anchors.
 			case Ta:
 				if(ps->curanchor != 0) {
 					if(warn)
-						fprint(2, "warning: nested <A> or missing </A>\n");
+						fprint(2, "warning: nested <A> "
+						          "or missing </A>\n");
 					ps->curanchor = 0;
 				}
 				name = aval(tok, Aname);
@@ -592,9 +587,14 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				// ignore rel, rev, and title attrs
 				if(href != nil) {
 					target = atargval(tok, di->target);
-					di->anchors = newanchor(++is->nanchors, name, href, target, di->anchors);
+					di->anchors = newanchor(
+					    ++is->nanchors, name, href, target,
+					    di->anchors);
 					if(name != nil)
-						name = _Strdup(name);	// for DestAnchor construction, below
+						name = _Strdup(
+						    name); // for DestAnchor
+						           // construction,
+						           // below
 					ps->curanchor = is->nanchors;
 					ps->curfg = push(&ps->fgstk, di->link);
 					ps->curul = push(&ps->ulstk, ULunder);
@@ -602,14 +602,18 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(name != nil) {
 					// add a null item to be destination
 					additem(ps, newispacer(ISPnull), tok);
-					di->dests = newdestanchor(++is->nanchors, name, ps->lastit, di->dests);
+					di->dests = newdestanchor(
+					    ++is->nanchors, name, ps->lastit,
+					    di->dests);
 				}
 				break;
 
-			case Ta+RBRA :
+			case Ta + RBRA:
 				if(ps->curanchor != 0) {
-					ps->curfg = popretnewtop(&ps->fgstk, di->text);
-					ps->curul = popretnewtop(&ps->ulstk, ULnone);
+					ps->curfg =
+					    popretnewtop(&ps->fgstk, di->text);
+					ps->curul =
+					    popretnewtop(&ps->ulstk, ULnone);
 					ps->curanchor = 0;
 				}
 				break;
@@ -618,9 +622,10 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			// We can't do applets, so ignore PARAMS, and let
 			// the %text contents appear for the alternative rep
 			case Tapplet:
-			case Tapplet+RBRA:
+			case Tapplet + RBRA:
 				if(warn && tag == Tapplet)
-					fprint(2, "warning: <APPLET> ignored\n");
+					fprint(2,
+					       "warning: <APPLET> ignored\n");
 				break;
 
 			// <!ELEMENT AREA - O EMPTY>
@@ -628,14 +633,17 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				map = di->maps;
 				if(map == nil) {
 					if(warn)
-						fprint(2, "warning: <AREA> not inside <MAP>\n");
+						fprint(2, "warning: <AREA> not "
+						          "inside <MAP>\n");
 					continue;
 				}
-				map->areas = newarea(atabval(tok, Ashape, shape_tab, NSHAPETAB, SHrect),
-					aurlval(tok, Ahref, nil, di->base),
-					atargval(tok, di->target),
-					map->areas);
-				setdimarray(tok, Acoords, &map->areas->coords, &map->areas->ncoords);
+				map->areas = newarea(
+				    atabval(tok, Ashape, shape_tab, NSHAPETAB,
+				            SHrect),
+				    aurlval(tok, Ahref, nil, di->base),
+				    atargval(tok, di->target), map->areas);
+				setdimarray(tok, Acoords, &map->areas->coords,
+				            &map->areas->ncoords);
 				break;
 
 			// <!ELEMENT (B|STRONG) - - (%text)*>
@@ -644,25 +652,26 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				pushfontstyle(ps, FntB);
 				break;
 
-			case Tb+RBRA:
-			case Tcite+RBRA:
-			case Tcode+RBRA:
-			case Tdfn+RBRA:
-			case Tem+RBRA:
-			case Tkbd+RBRA:
-			case Ti+RBRA:
-			case Tsamp+RBRA:
-			case Tstrong+RBRA:
-			case Ttt+RBRA:
-			case Tvar+RBRA :
-			case Taddress+RBRA:
+			case Tb + RBRA:
+			case Tcite + RBRA:
+			case Tcode + RBRA:
+			case Tdfn + RBRA:
+			case Tem + RBRA:
+			case Tkbd + RBRA:
+			case Ti + RBRA:
+			case Tsamp + RBRA:
+			case Tstrong + RBRA:
+			case Ttt + RBRA:
+			case Tvar + RBRA:
+			case Taddress + RBRA:
 				popfontstyle(ps);
 				break;
 
 			// <!ELEMENT BASE - O EMPTY>
 			case Tbase:
 				t = di->base;
-				di->base = aurlval(tok, Ahref, di->base, di->base);
+				di->base =
+				    aurlval(tok, Ahref, di->base, di->base);
 				if(t != nil)
 					free(t);
 				di->target = atargval(tok, di->target);
@@ -684,8 +693,8 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				pushfontsize(ps, sz);
 				break;
 
-			case Tbig+RBRA:
-			case Tsmall+RBRA:
+			case Tbig + RBRA:
+			case Tsmall + RBRA:
 				popfontsize(ps);
 				break;
 
@@ -694,22 +703,31 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				changeindent(ps, BQTAB);
 				break;
 
-			case Tblockquote+RBRA:
+			case Tblockquote + RBRA:
 				changeindent(ps, -BQTAB);
 				break;
 
 			// <!ELEMENT BODY O O %body.content>
 			case Tbody:
 				ps->skipping = 0;
-				bg = makebackground(nil, acolorval(tok, Abgcolor, di->background.color));
-				bgurl = aurlval(tok, Abackground, nil, di->base);
+				bg = makebackground(
+				    nil, acolorval(tok, Abgcolor,
+				                   di->background.color));
+				bgurl =
+				    aurlval(tok, Abackground, nil, di->base);
 				if(bgurl != nil) {
 					if(di->backgrounditem != nil)
-						freeitem((Item*)di->backgrounditem);
-						// really should remove old item from di->images list,
-						// but there should only be one BODY element ...
-					di->backgrounditem = (Iimage*)newiimage(bgurl, nil, ALnone, 0, 0, 0, 0, 0, 0, nil);
-					di->backgrounditem->nextimage = di->images;
+						freeitem(
+						    (Item*)di->backgrounditem);
+					// really should remove old item from
+					// di->images list,
+					// but there should only be one BODY
+					// element ...
+					di->backgrounditem = (Iimage*)newiimage(
+					    bgurl, nil, ALnone, 0, 0, 0, 0, 0,
+					    0, nil);
+					di->backgrounditem->nextimage =
+					    di->images;
 					di->images = di->backgrounditem;
 				}
 				ps->curbg = bg;
@@ -724,7 +742,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				}
 				break;
 
-			case Tbody+RBRA:
+			case Tbody + RBRA:
 				// HTML spec says ignore things after </body>,
 				// but IE and Netscape don't
 				// ps.skipping = 1;
@@ -732,30 +750,36 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 
 			// <!ELEMENT BR - O EMPTY>
 			case Tbr:
-				addlinebrk(ps, atabval(tok, Aclear, clear_tab, NCLEARTAB, 0));
+				addlinebrk(ps, atabval(tok, Aclear, clear_tab,
+				                       NCLEARTAB, 0));
 				break;
 
 			// <!ELEMENT CAPTION - - (%text;)*>
 			case Tcaption:
 				if(curtab == nil) {
 					if(warn)
-						fprint(2, "warning: <CAPTION> outside <TABLE>\n");
+						fprint(2, "warning: <CAPTION> "
+						          "outside <TABLE>\n");
 					continue;
 				}
 				if(curtab->caption != nil) {
 					if(warn)
-						fprint(2, "warning: more than one <CAPTION> in <TABLE>\n");
+						fprint(2, "warning: more than "
+						          "one <CAPTION> in "
+						          "<TABLE>\n");
 					continue;
 				}
 				ps = newpstate(ps);
-				curtab->caption_place = atabval(tok, Aalign, align_tab, NALIGNTAB, ALtop);
+				curtab->caption_place = atabval(
+				    tok, Aalign, align_tab, NALIGNTAB, ALtop);
 				break;
 
-			case Tcaption+RBRA:
+			case Tcaption + RBRA:
 				nextps = ps->next;
 				if(curtab == nil || nextps == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </CAPTION>\n");
+						fprint(2, "warning: unexpected "
+						          "</CAPTION>\n");
 					continue;
 				}
 				curtab->caption = ps->items->next;
@@ -768,12 +792,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(tag == Tcenter)
 					al = ALcenter;
 				else
-					al = atabval(tok, Aalign, align_tab, NALIGNTAB, ps->curjust);
+					al = atabval(tok, Aalign, align_tab,
+					             NALIGNTAB, ps->curjust);
 				pushjust(ps, al);
 				break;
 
-			case Tcenter+RBRA:
-			case Tdiv+RBRA:
+			case Tcenter + RBRA:
+			case Tdiv + RBRA:
 				popjust(ps);
 				break;
 
@@ -781,12 +806,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tdd:
 				if(ps->hangstk.n == 0) {
 					if(warn)
-						fprint(2, "warning: <DD> not inside <DL\n");
+						fprint(2, "warning: <DD> not "
+						          "inside <DL\n");
 					continue;
 				}
 				h = top(&ps->hangstk, 0);
 				if(h != 0)
-					changehang(ps, -10*LISTTAB);
+					changehang(ps, -10 * LISTTAB);
 				else
 					addbrk(ps, 0, 0);
 				push(&ps->hangstk, 0);
@@ -799,17 +825,21 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tol:
 			case Tul:
 				changeindent(ps, LISTTAB);
-				push(&ps->listtypestk, listtyval(tok, (tag==Tol)? LT1 : LTdisc));
+				push(&ps->listtypestk,
+				     listtyval(tok,
+				               (tag == Tol) ? LT1 : LTdisc));
 				push(&ps->listcntstk, aintval(tok, Astart, 1));
 				break;
 
-			case Tdir+RBRA:
-			case Tmenu+RBRA:
-			case Tol+RBRA:
-			case Tul+RBRA:
+			case Tdir + RBRA:
+			case Tmenu + RBRA:
+			case Tol + RBRA:
+			case Tul + RBRA:
 				if(ps->listtypestk.n == 0) {
 					if(warn)
-						fprint(2, "warning: %T ended no list\n", tok);
+						fprint(2, "warning: %T ended "
+						          "no list\n",
+						       tok);
 					continue;
 				}
 				addbrk(ps, 0, 0);
@@ -824,15 +854,16 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				push(&ps->hangstk, 0);
 				break;
 
-			case Tdl+RBRA:
+			case Tdl + RBRA:
 				if(ps->hangstk.n == 0) {
 					if(warn)
-						fprint(2, "warning: unexpected </DL>\n");
+						fprint(2, "warning: unexpected "
+						          "</DL>\n");
 					continue;
 				}
 				changeindent(ps, -LISTTAB);
 				if(top(&ps->hangstk, 0) != 0)
-					changehang(ps, -10*LISTTAB);
+					changehang(ps, -10 * LISTTAB);
 				pop(&ps->hangstk);
 				break;
 
@@ -840,14 +871,15 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tdt:
 				if(ps->hangstk.n == 0) {
 					if(warn)
-						fprint(2, "warning: <DT> not inside <DL>\n");
+						fprint(2, "warning: <DT> not "
+						          "inside <DL>\n");
 					continue;
 				}
 				h = top(&ps->hangstk, 0);
 				pop(&ps->hangstk);
 				if(h != 0)
-					changehang(ps, -10*LISTTAB);
-				changehang(ps, 10*LISTTAB);
+					changehang(ps, -10 * LISTTAB);
+				changehang(ps, 10 * LISTTAB);
 				push(&ps->hangstk, 1);
 				break;
 
@@ -856,20 +888,29 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				sz = top(&ps->fntsizestk, Normal);
 				if(_tokaval(tok, Asize, &nsz, 0)) {
 					if(_prefix((Rune*)L"+", nsz))
-						sz = Normal + _Strtol(nsz+1, nil, 10) + ps->adjsize;
+						sz = Normal +
+						     _Strtol(nsz + 1, nil, 10) +
+						     ps->adjsize;
 					else if(_prefix((Rune*)L"-", nsz))
-						sz = Normal - _Strtol(nsz+1, nil, 10) + ps->adjsize;
+						sz = Normal -
+						     _Strtol(nsz + 1, nil, 10) +
+						     ps->adjsize;
 					else if(nsz != nil)
-						sz = Normal + (_Strtol(nsz, nil, 10) - 3);
+						sz =
+						    Normal +
+						    (_Strtol(nsz, nil, 10) - 3);
 				}
-				ps->curfg = push(&ps->fgstk, acolorval(tok, Acolor, ps->curfg));
+				ps->curfg =
+				    push(&ps->fgstk,
+				         acolorval(tok, Acolor, ps->curfg));
 				pushfontsize(ps, sz);
 				break;
 
-			case Tfont+RBRA:
+			case Tfont + RBRA:
 				if(ps->fgstk.n == 0) {
 					if(warn)
-						fprint(2, "warning: unexpected </FONT>\n");
+						fprint(2, "warning: unexpected "
+						          "</FONT>\n");
 					continue;
 				}
 				ps->curfg = popretnewtop(&ps->fgstk, di->text);
@@ -880,32 +921,44 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tform:
 				if(is->curform != nil) {
 					if(warn)
-						fprint(2, "warning: <FORM> nested inside another\n");
+						fprint(2, "warning: <FORM> "
+						          "nested inside "
+						          "another\n");
 					continue;
 				}
-				action = aurlval(tok, Aaction, di->base, di->base);
+				action =
+				    aurlval(tok, Aaction, di->base, di->base);
 				s = aval(tok, Aid);
 				name = astrval(tok, Aname, s);
 				if(s)
 					free(s);
 				target = atargval(tok, di->target);
-				method = atabval(tok, Amethod, method_tab, NMETHODTAB, HGet);
-				if(warn && _tokaval(tok, Aenctype, &enctype, 0) &&
-						_Strcmp(enctype, (Rune*)L"application/x-www-form-urlencoded"))
-					fprint(2, "form enctype %S not handled\n", enctype);
-				frm = newform(++is->nforms, name, action, target, method, di->forms);
+				method = atabval(tok, Amethod, method_tab,
+				                 NMETHODTAB, HGet);
+				if(warn &&
+				   _tokaval(tok, Aenctype, &enctype, 0) &&
+				   _Strcmp(enctype,
+				           (Rune*)L"application/"
+				                  L"x-www-form-urlencoded"))
+					fprint(2,
+					       "form enctype %S not handled\n",
+					       enctype);
+				frm = newform(++is->nforms, name, action,
+				              target, method, di->forms);
 				di->forms = frm;
 				is->curform = frm;
 				break;
 
-			case Tform+RBRA:
+			case Tform + RBRA:
 				if(is->curform == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </FORM>\n");
+						fprint(2, "warning: unexpected "
+						          "</FORM>\n");
 					continue;
 				}
 				// put fields back in input order
-				is->curform->fields = (Formfield*)_revlist((List*)is->curform->fields);
+				is->curform->fields = (Formfield*)_revlist(
+				    (List*)is->curform->fields);
 				is->curform = nil;
 				break;
 
@@ -914,18 +967,23 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				ks = is->kidstk;
 				if(ks == nil) {
 					if(warn)
-						fprint(2, "warning: <FRAME> not in <FRAMESET>\n");
+						fprint(2, "warning: <FRAME> "
+						          "not in "
+						          "<FRAMESET>\n");
 					continue;
 				}
 				ks->kidinfos = kd = newkidinfo(0, ks->kidinfos);
 				kd->src = aurlval(tok, Asrc, nil, di->base);
 				kd->name = aval(tok, Aname);
 				if(kd->name == nil)
-					kd->name = runesmprint("_fr%d", ++is->nframes);
+					kd->name =
+					    runesmprint("_fr%d", ++is->nframes);
 				kd->marginw = auintval(tok, Amarginwidth, 0);
 				kd->marginh = auintval(tok, Amarginheight, 0);
 				kd->framebd = auintval(tok, Aframeborder, 1);
-				kd->flags = atabval(tok, Ascrolling, fscroll_tab, NFSCROLLTAB, kd->flags);
+				kd->flags =
+				    atabval(tok, Ascrolling, fscroll_tab,
+				            NFSCROLLTAB, kd->flags);
 				norsz = aflagval(tok, Anoresize);
 				if(norsz)
 					kd->flags |= FRnoresize;
@@ -937,7 +995,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				pks = is->kidstk;
 				if(pks == nil)
 					di->kidinfo = ks;
-				else  {
+				else {
 					ks->next = pks->kidinfos;
 					pks->kidinfos = ks;
 				}
@@ -945,32 +1003,37 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				is->kidstk = ks;
 				setdimarray(tok, Arows, &ks->rows, &ks->nrows);
 				if(ks->nrows == 0) {
-					ks->rows = (Dimen*)emalloc(sizeof(Dimen));
+					ks->rows =
+					    (Dimen*)emalloc(sizeof(Dimen));
 					ks->nrows = 1;
 					ks->rows[0] = makedimen(Dpercent, 100);
 				}
 				setdimarray(tok, Acols, &ks->cols, &ks->ncols);
 				if(ks->ncols == 0) {
-					ks->cols = (Dimen*)emalloc(sizeof(Dimen));
+					ks->cols =
+					    (Dimen*)emalloc(sizeof(Dimen));
 					ks->ncols = 1;
 					ks->cols[0] = makedimen(Dpercent, 100);
 				}
 				break;
 
-			case Tframeset+RBRA:
+			case Tframeset + RBRA:
 				if(is->kidstk == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </FRAMESET>\n");
+						fprint(2, "warning: unexpected "
+						          "</FRAMESET>\n");
 					continue;
 				}
 				ks = is->kidstk;
 				// put kids back in original order
 				// and add blank frames to fill out cells
-				n = ks->nrows*ks->ncols;
+				n = ks->nrows * ks->ncols;
 				nblank = n - _listlen((List*)ks->kidinfos);
 				while(nblank-- > 0)
-					ks->kidinfos = newkidinfo(0, ks->kidinfos);
-				ks->kidinfos = (Kidinfo*)_revlist((List*)ks->kidinfos);
+					ks->kidinfos =
+					    newkidinfo(0, ks->kidinfos);
+				ks->kidinfos =
+				    (Kidinfo*)_revlist((List*)ks->kidinfos);
 				is->kidstk = is->kidstk->nextframeset;
 				if(is->kidstk == nil) {
 					// end input
@@ -989,7 +1052,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				bramt = 1;
 				if(ps->items == ps->lastit)
 					bramt = 0;
-				addbrk(ps, bramt, IFcleft|IFcright);
+				addbrk(ps, bramt, IFcleft | IFcright);
 				sz = Verylarge - (tag - Th1);
 				if(sz < Tiny)
 					sz = Tiny;
@@ -998,17 +1061,18 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(tag == Th1)
 					sty = FntB;
 				pushfontstyle(ps, sty);
-				pushjust(ps, atabval(tok, Aalign, align_tab, NALIGNTAB, ps->curjust));
+				pushjust(ps, atabval(tok, Aalign, align_tab,
+				                     NALIGNTAB, ps->curjust));
 				ps->skipwhite = 1;
 				break;
 
-			case Th1+RBRA:
-			case Th2+RBRA:
-			case Th3+RBRA:
-			case Th4+RBRA:
-			case Th5+RBRA:
-			case Th6+RBRA:
-				addbrk(ps, 1, IFcleft|IFcright);
+			case Th1 + RBRA:
+			case Th2 + RBRA:
+			case Th3 + RBRA:
+			case Th4 + RBRA:
+			case Th5 + RBRA:
+			case Th6 + RBRA:
+				addbrk(ps, 1, IFcleft | IFcright);
 				popfontsize(ps);
 				popfontstyle(ps);
 				popjust(ps);
@@ -1020,20 +1084,22 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				// ps.skipping = 1;
 				break;
 
-			case Thead+RBRA:
+			case Thead + RBRA:
 				ps->skipping = 0;
 				break;
 
 			// <!ELEMENT HR - O EMPTY>
 			case Thr:
-				al = atabval(tok, Aalign, align_tab, NALIGNTAB, ALcenter);
+				al = atabval(tok, Aalign, align_tab, NALIGNTAB,
+				             ALcenter);
 				sz = auintval(tok, Asize, HRSZ);
 				wd = adimen(tok, Awidth);
 				if(dimenkind(wd) == Dnone)
 					wd = makedimen(Dpercent, 100);
 				nosh = aflagval(tok, Anoshade);
 				color = acolorval(tok, Acolor, 0);
-				additem(ps, newirule(al, sz, nosh, color, wd), tok);
+				additem(ps, newirule(al, sz, nosh, color, wd),
+				        tok);
 				addbrk(ps, 0, 0);
 				break;
 
@@ -1053,44 +1119,53 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(_tokaval(tok, Ausemap, &usemap, 0)) {
 					if(!_prefix((Rune*)L"#", usemap)) {
 						if(warn)
-							fprint(2, "warning: can't handle non-local map %S\n", usemap);
-					}
-					else {
-						map = getmap(di, usemap+1);
+							fprint(2, "warning: "
+							          "can't "
+							          "handle "
+							          "non-local "
+							          "map %S\n",
+							       usemap);
+					} else {
+						map = getmap(di, usemap + 1);
 						if(ps->curanchor == 0) {
-							di->anchors = newanchor(++is->nanchors, nil, nil, di->target, di->anchors);
-							ps->curanchor = is->nanchors;
+							di->anchors = newanchor(
+							    ++is->nanchors, nil,
+							    nil, di->target,
+							    di->anchors);
+							ps->curanchor =
+							    is->nanchors;
 						}
 					}
 				}
-				align = atabval(tok, Aalign, align_tab, NALIGNTAB, ALbottom);
+				align = atabval(tok, Aalign, align_tab,
+				                NALIGNTAB, ALbottom);
 				dfltbd = 0;
 				if(ps->curanchor != 0)
 					dfltbd = 2;
 				src = aurlval(tok, Asrc, nil, di->base);
 				if(src == nil) {
 					if(warn)
-						fprint(2, "warning: <img> has no src attribute\n");
+						fprint(2, "warning: <img> has "
+						          "no src attribute\n");
 					ps->curanchor = oldcuranchor;
 					continue;
 				}
-				img = newiimage(src,
-						aval(tok, Aalt),
-						align,
-						auintval(tok, Awidth, 0),
-						auintval(tok, Aheight, 0),
-						auintval(tok, Ahspace, IMGHSPACE),
-						auintval(tok, Avspace, IMGVSPACE),
-						auintval(tok, Aborder, dfltbd),
-						aflagval(tok, Aismap),
-						map);
+				img =
+				    newiimage(src, aval(tok, Aalt), align,
+				              auintval(tok, Awidth, 0),
+				              auintval(tok, Aheight, 0),
+				              auintval(tok, Ahspace, IMGHSPACE),
+				              auintval(tok, Avspace, IMGVSPACE),
+				              auintval(tok, Aborder, dfltbd),
+				              aflagval(tok, Aismap), map);
 				if(align == ALleft || align == ALright) {
 					additem(ps, newifloat(img, align), tok);
-					// if no hspace specified, use FLTIMGHSPACE
+					// if no hspace specified, use
+					// FLTIMGHSPACE
 					if(!_tokaval(tok, Ahspace, &val, 0))
-						((Iimage*)img)->hspace = FLTIMGHSPACE;
-				}
-				else {
+						((Iimage*)img)->hspace =
+						    FLTIMGHSPACE;
+				} else {
 					ps->skipwhite = 0;
 					additem(ps, img, tok);
 				}
@@ -1106,18 +1181,18 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				ps->skipwhite = 0;
 				if(is->curform == nil) {
 					if(warn)
-						fprint(2, "<INPUT> not inside <FORM>\n");
+						fprint(2, "<INPUT> not inside "
+						          "<FORM>\n");
 					continue;
 				}
 				is->curform->fields = field = newformfield(
-						atabval(tok, Atype, input_tab, NINPUTTAB, Ftext),
-						++is->curform->nfields,
-						is->curform,
-						aval(tok, Aname),
-						aval(tok, Avalue),
-						auintval(tok, Asize, 0),
-						auintval(tok, Amaxlength, 1000),
-						is->curform->fields);
+				    atabval(tok, Atype, input_tab, NINPUTTAB,
+				            Ftext),
+				    ++is->curform->nfields, is->curform,
+				    aval(tok, Aname), aval(tok, Avalue),
+				    auintval(tok, Asize, 0),
+				    auintval(tok, Amaxlength, 1000),
+				    is->curform->fields);
 				if(aflagval(tok, Achecked))
 					field->flags = FFchecked;
 
@@ -1132,43 +1207,63 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				case Fcheckbox:
 					if(field->name == nil) {
 						if(warn)
-							fprint(2, "warning: checkbox form field missing name\n");
+							fprint(2, "warning: "
+							          "checkbox "
+							          "form field "
+							          "missing "
+							          "name\n");
 						continue;
 					}
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L"1");
+						field->value =
+						    _Strdup((Rune*)L"1");
 					break;
 
 				case Fradio:
-					if(field->name == nil || field->value == nil) {
+					if(field->name == nil ||
+					   field->value == nil) {
 						if(warn)
-							fprint(2, "warning: radio form field missing name or value\n");
+							fprint(2,
+							       "warning: radio "
+							       "form field "
+							       "missing name "
+							       "or value\n");
 						continue;
 					}
 					break;
 
 				case Fsubmit:
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L"Submit");
+						field->value =
+						    _Strdup((Rune*)L"Submit");
 					if(field->name == nil)
-						field->name = _Strdup((Rune*)L"_no_name_submit_");
+						field->name = _Strdup(
+						    (Rune*)L"_no_name_submit_");
 					break;
 
 				case Fimage:
 					src = aurlval(tok, Asrc, nil, di->base);
 					if(src == nil) {
 						if(warn)
-							fprint(2, "warning: image form field missing src\n");
+							fprint(2,
+							       "warning: image "
+							       "form field "
+							       "missing src\n");
 						continue;
 					}
-					// width and height attrs aren't specified in HTML 3.2,
-					// but some people provide them and they help avoid
+					// width and height attrs aren't
+					// specified in HTML 3.2,
+					// but some people provide them and they
+					// help avoid
 					// a relayout
-					field->image = newiimage(src,
-						astrval(tok, Aalt, (Rune*)L"Submit"),
-						atabval(tok, Aalign, align_tab, NALIGNTAB, ALbottom),
-						auintval(tok, Awidth, 0), auintval(tok, Aheight, 0),
-						0, 0, 0, 0, nil);
+					field->image = newiimage(
+					    src, astrval(tok, Aalt,
+					                 (Rune*)L"Submit"),
+					    atabval(tok, Aalign, align_tab,
+					            NALIGNTAB, ALbottom),
+					    auintval(tok, Awidth, 0),
+					    auintval(tok, Aheight, 0), 0, 0, 0,
+					    0, nil);
 					ii = (Iimage*)field->image;
 					ii->nextimage = di->images;
 					di->images = ii;
@@ -1176,12 +1271,14 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 
 				case Freset:
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L"Reset");
+						field->value =
+						    _Strdup((Rune*)L"Reset");
 					break;
 
 				case Fbutton:
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L" ");
+						field->value =
+						    _Strdup((Rune*)L" ");
 					break;
 				}
 				ffit = newiformfield(field);
@@ -1193,24 +1290,16 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			// <!ENTITY ISINDEX - O EMPTY>
 			case Tisindex:
 				ps->skipwhite = 0;
-				prompt = astrval(tok, Aprompt, (Rune*)L"Index search terms:");
+				prompt = astrval(tok, Aprompt,
+				                 (Rune*)L"Index search terms:");
 				target = atargval(tok, di->target);
 				additem(ps, textit(ps, prompt), tok);
-				frm = newform(++is->nforms,
-						nil,
-						di->base,
-						target,
-						HGet,
-						di->forms);
+				frm = newform(++is->nforms, nil, di->base,
+				              target, HGet, di->forms);
 				di->forms = frm;
-				ff = newformfield(Ftext,
-						1,
-						frm,
-						_Strdup((Rune*)L"_ISINDEX_"),
-						nil,
-						50,
-						1000,
-						nil);
+				ff = newformfield(Ftext, 1, frm,
+				                  _Strdup((Rune*)L"_ISINDEX_"),
+				                  nil, 50, 1000, nil);
 				frm->fields = ff;
 				frm->nfields = 1;
 				additem(ps, newiformfield(ff), tok);
@@ -1230,11 +1319,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 					ty = ty2;
 					push(&ps->listtypestk, ty2);
 				}
-				v = aintval(tok, Avalue, top(&ps->listcntstk, 1));
-				if(ty == LTdisc || ty == LTsquare || ty == LTcircle)
-					hang = 10*LISTTAB - 3;
+				v = aintval(tok, Avalue,
+				            top(&ps->listcntstk, 1));
+				if(ty == LTdisc || ty == LTsquare ||
+				   ty == LTcircle)
+					hang = 10 * LISTTAB - 3;
 				else
-					hang = 10*LISTTAB - 1;
+					hang = 10 * LISTTAB - 1;
 				changehang(ps, hang);
 				addtext(ps, listmark(ty, v));
 				push(&ps->listcntstk, v + 1);
@@ -1248,11 +1339,12 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 					is->curmap = getmap(di, name);
 				break;
 
-			case Tmap+RBRA:
+			case Tmap + RBRA:
 				map = is->curmap;
 				if(map == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </MAP>\n");
+						fprint(2, "warning: unexpected "
+						          "</MAP>\n");
 					continue;
 				}
 				map->areas = (Area*)_revlist((List*)map->areas);
@@ -1264,30 +1356,49 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(_tokaval(tok, Ahttp_equiv, &equiv, 0)) {
 					val = aval(tok, Acontent);
 					n = _Strlen(equiv);
-					if(!_Strncmpci(equiv, n, (Rune*)L"refresh"))
+					if(!_Strncmpci(equiv, n,
+					               (Rune*)L"refresh"))
 						di->refresh = val;
-					else if(!_Strncmpci(equiv, n, (Rune*)L"content-script-type")) {
+					else if(!_Strncmpci(
+					            equiv, n,
+					            (Rune*)L"content-script-"
+					                   L"type")) {
 						n = _Strlen(val);
-						if(!_Strncmpci(val, n, (Rune*)L"javascript")
-						   || !_Strncmpci(val, n, (Rune*)L"jscript1.1")
-						   || !_Strncmpci(val, n, (Rune*)L"jscript"))
-							di->scripttype = TextJavascript;
+						if(!_Strncmpci(
+						       val, n,
+						       (Rune*)L"javascript") ||
+						   !_Strncmpci(
+						       val, n,
+						       (Rune*)L"jscript1.1") ||
+						   !_Strncmpci(
+						       val, n,
+						       (Rune*)L"jscript"))
+							di->scripttype =
+							    TextJavascript;
 						else {
 							if(warn)
-								fprint(2, "unimplemented script type %S\n", val);
-							di->scripttype = UnknownType;
+								fprint(2,
+								       "unimple"
+								       "mented "
+								       "script "
+								       "type "
+								       "%S\n",
+								       val);
+							di->scripttype =
+							    UnknownType;
 						}
 					}
 				}
 				break;
 
-			// Nobr is NOT in HMTL 4.0, but it is ubiquitous on the web
+			// Nobr is NOT in HMTL 4.0, but it is ubiquitous on the
+			// web
 			case Tnobr:
 				ps->skipwhite = 0;
 				ps->curstate &= ~IFwrap;
 				break;
 
-			case Tnobr+RBRA:
+			case Tnobr + RBRA:
 				ps->curstate |= IFwrap;
 				break;
 
@@ -1296,50 +1407,58 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				ps->skipping = 1;
 				break;
 
-			case Tnoframes+RBRA:
+			case Tnoframes + RBRA:
 				ps->skipping = 0;
 				break;
 
-			// We do scripts (if enabled), so skip stuff in noscripts
+			// We do scripts (if enabled), so skip stuff in
+			// noscripts
 			case Tnoscript:
 				if(doscripts)
 					ps->skipping = 1;
 				break;
 
-			case Tnoscript+RBRA:
+			case Tnoscript + RBRA:
 				if(doscripts)
 					ps->skipping = 0;
 				break;
 
 			// <!ELEMENT OPTION - O (	//PCDATA)>
 			case Toption:
-				if(is->curform == nil || is->curform->fields == nil) {
+				if(is->curform == nil ||
+				   is->curform->fields == nil) {
 					if(warn)
-						fprint(2, "warning: <OPTION> not in <SELECT>\n");
+						fprint(2, "warning: <OPTION> "
+						          "not in <SELECT>\n");
 					continue;
 				}
 				field = is->curform->fields;
 				if(field->ftype != Fselect) {
 					if(warn)
-						fprint(2, "warning: <OPTION> not in <SELECT>\n");
+						fprint(2, "warning: <OPTION> "
+						          "not in <SELECT>\n");
 					continue;
 				}
 				val = aval(tok, Avalue);
-				option = newoption(aflagval(tok, Aselected), val, nil, field->options);
+				option = newoption(aflagval(tok, Aselected),
+				                   val, nil, field->options);
 				field->options = option;
-				option->display =  getpcdata(toks, tokslen, &toki);
+				option->display =
+				    getpcdata(toks, tokslen, &toki);
 				if(val == nil)
-					option->value = _Strdup(option->display);
+					option->value =
+					    _Strdup(option->display);
 				break;
 
 			// <!ELEMENT P - O (%text)* >
 			case Tp:
-				pushjust(ps, atabval(tok, Aalign, align_tab, NALIGNTAB, ps->curjust));
+				pushjust(ps, atabval(tok, Aalign, align_tab,
+				                     NALIGNTAB, ps->curjust));
 				ps->inpar = 1;
 				ps->skipwhite = 1;
 				break;
 
-			case Tp+RBRA:
+			case Tp + RBRA:
 				break;
 
 			// <!ELEMENT PARAM - O EMPTY>
@@ -1347,7 +1466,8 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tparam:
 				break;
 
-			// <!ELEMENT PRE - - (%text)* -(IMG|BIG|SMALL|SUB|SUP|FONT) >
+			// <!ELEMENT PRE - - (%text)*
+			// -(IMG|BIG|SMALL|SUB|SUP|FONT) >
 			case Tpre:
 				ps->curstate &= ~IFwrap;
 				ps->literal = 1;
@@ -1355,7 +1475,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				pushfontstyle(ps, FntT);
 				break;
 
-			case Tpre+RBRA:
+			case Tpre + RBRA:
 				ps->curstate |= IFwrap;
 				if(ps->literal) {
 					popfontstyle(ps);
@@ -1367,8 +1487,10 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tscript:
 				if(doscripts) {
 					if(!di->hasscripts) {
-						if(di->scripttype == TextJavascript) {
-							// TODO: initialize script if nec.
+						if(di->scripttype ==
+						   TextJavascript) {
+							// TODO: initialize
+							// script if nec.
 							// initjscript(di);
 							di->hasscripts = 1;
 						}
@@ -1376,29 +1498,35 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				}
 				if(!di->hasscripts) {
 					if(warn)
-						fprint(2, "warning: <SCRIPT> ignored\n");
+						fprint(2, "warning: <SCRIPT> "
+						          "ignored\n");
 					ps->skipping = 1;
-				}
-				else {
-					scriptsrc = aurlval(tok, Asrc, nil, di->base);
+				} else {
+					scriptsrc =
+					    aurlval(tok, Asrc, nil, di->base);
 					script = nil;
 					if(scriptsrc != nil) {
 						if(warn)
-							fprint(2, "warning: non-local <SCRIPT> ignored\n");
+							fprint(2, "warning: "
+							          "non-local "
+							          "<SCRIPT> "
+							          "ignored\n");
 						free(scriptsrc);
-					}
-					else {
-						script = getpcdata(toks, tokslen, &toki);
+					} else {
+						script = getpcdata(
+						    toks, tokslen, &toki);
 					}
 					if(script != nil) {
 						if(warn)
-							fprint(2, "script ignored\n");
+							fprint(
+							    2,
+							    "script ignored\n");
 						free(script);
 					}
 				}
 				break;
 
-			case Tscript+RBRA:
+			case Tscript + RBRA:
 				ps->skipping = 0;
 				break;
 
@@ -1406,17 +1534,15 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tselect:
 				if(is->curform == nil) {
 					if(warn)
-						fprint(2, "<SELECT> not inside <FORM>\n");
+						fprint(2, "<SELECT> not inside "
+						          "<FORM>\n");
 					continue;
 				}
-				field = newformfield(Fselect,
-					++is->curform->nfields,
-					is->curform,
-					aval(tok, Aname),
-					nil,
-					auintval(tok, Asize, 0),
-					0,
-					is->curform->fields);
+				field = newformfield(
+				    Fselect, ++is->curform->nfields,
+				    is->curform, aval(tok, Aname), nil,
+				    auintval(tok, Asize, 0), 0,
+				    is->curform->fields);
 				is->curform->fields = field;
 				if(aflagval(tok, Amultiple))
 					field->flags = FFmultiple;
@@ -1424,36 +1550,45 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				additem(ps, ffit, tok);
 				if(ffit->genattr != nil)
 					field->events = ffit->genattr->events;
-				// throw away stuff until next tag (should be <OPTION>)
+				// throw away stuff until next tag (should be
+				// <OPTION>)
 				s = getpcdata(toks, tokslen, &toki);
 				if(s != nil)
 					free(s);
 				break;
 
-			case Tselect+RBRA:
-				if(is->curform == nil || is->curform->fields == nil) {
+			case Tselect + RBRA:
+				if(is->curform == nil ||
+				   is->curform->fields == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </SELECT>\n");
+						fprint(2, "warning: unexpected "
+						          "</SELECT>\n");
 					continue;
 				}
 				field = is->curform->fields;
 				if(field->ftype != Fselect)
 					continue;
 				// put options back in input order
-				field->options = (Option*)_revlist((List*)field->options);
+				field->options =
+				    (Option*)_revlist((List*)field->options);
 				break;
 
 			// <!ELEMENT (STRIKE|U) - - (%text)*>
 			case Tstrike:
 			case Tu:
-				ps->curul = push(&ps->ulstk, (tag==Tstrike)? ULmid : ULunder);
+				ps->curul =
+				    push(&ps->ulstk,
+				         (tag == Tstrike) ? ULmid : ULunder);
 				break;
 
-			case Tstrike+RBRA:
-			case Tu+RBRA:
+			case Tstrike + RBRA:
+			case Tu + RBRA:
 				if(ps->ulstk.n == 0) {
 					if(warn)
-						fprint(2, "warning: unexpected %T\n", tok);
+						fprint(
+						    2,
+						    "warning: unexpected %T\n",
+						    tok);
 					continue;
 				}
 				ps->curul = popretnewtop(&ps->ulstk, ULnone);
@@ -1462,11 +1597,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			// <!ELEMENT STYLE - - CDATA>
 			case Tstyle:
 				if(warn)
-					fprint(2, "warning: unimplemented <STYLE>\n");
+					fprint(
+					    2,
+					    "warning: unimplemented <STYLE>\n");
 				ps->skipping = 1;
 				break;
 
-			case Tstyle+RBRA:
+			case Tstyle + RBRA:
 				ps->skipping = 0;
 				break;
 
@@ -1482,11 +1619,14 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				pushfontsize(ps, sz - 1);
 				break;
 
-			case Tsub+RBRA:
-			case Tsup+RBRA:
+			case Tsub + RBRA:
+			case Tsup + RBRA:
 				if(ps->voffstk.n == 0) {
 					if(warn)
-						fprint(2, "warning: unexpected %T\n", tok);
+						fprint(
+						    2,
+						    "warning: unexpected %T\n",
+						    tok);
 					continue;
 				}
 				ps->curvoff = popretnewtop(&ps->voffstk, 0);
@@ -1496,31 +1636,32 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			// <!ELEMENT TABLE - - (CAPTION?, TR+)>
 			case Ttable:
 				ps->skipwhite = 0;
-				tab = newtable(++is->ntables,
-						aalign(tok),
-						adimen(tok, Awidth),
-						aflagval(tok, Aborder), 
-						auintval(tok, Acellspacing, TABSP),
-						auintval(tok, Acellpadding, TABPAD),
-						makebackground(nil, acolorval(tok, Abgcolor, ps->curbg.color)),
-						tok,
-						is->tabstk);
+				tab = newtable(
+				    ++is->ntables, aalign(tok),
+				    adimen(tok, Awidth), aflagval(tok, Aborder),
+				    auintval(tok, Acellspacing, TABSP),
+				    auintval(tok, Acellpadding, TABPAD),
+				    makebackground(nil,
+				                   acolorval(tok, Abgcolor,
+				                             ps->curbg.color)),
+				    tok, is->tabstk);
 				is->tabstk = tab;
 				curtab = tab;
 				break;
 
-			case Ttable+RBRA:
+			case Ttable + RBRA:
 				if(curtab == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </TABLE>\n");
+						fprint(2, "warning: unexpected "
+						          "</TABLE>\n");
 					continue;
 				}
 				isempty = (curtab->cells == nil);
 				if(isempty) {
 					if(warn)
-						fprint(2, "warning: <TABLE> has no cells\n");
-				}
-				else {
+						fprint(2, "warning: <TABLE> "
+						          "has no cells\n");
+				} else {
 					ps = finishcell(curtab, ps);
 					if(curtab->rows != nil)
 						curtab->rows->flags = 0;
@@ -1533,7 +1674,9 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 					switch(al) {
 					case ALleft:
 					case ALright:
-						additem(ps, newifloat(tabitem, al), tok);
+						additem(ps,
+						        newifloat(tabitem, al),
+						        tok);
 						break;
 					default:
 						if(al == ALcenter)
@@ -1543,7 +1686,8 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 							popjust(ps);
 							ps->inpar = 0;
 						}
-						additem(ps, tabitem, curtab->tabletok);
+						additem(ps, tabitem,
+						        curtab->tabletok);
 						if(al == ALcenter)
 							popjust(ps);
 						break;
@@ -1551,9 +1695,9 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				}
 				if(is->tabstk == nil) {
 					if(warn)
-						fprint(2, "warning: table stack is wrong\n");
-				}
-				else
+						fprint(2, "warning: table "
+						          "stack is wrong\n");
+				} else
 					is->tabstk = is->tabstk->next;
 				curtab->next = di->tables;
 				di->tables = curtab;
@@ -1564,13 +1708,16 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 
 			// <!ELEMENT (TH|TD) - O %body.content>
 			// Cells for a row are accumulated in reverse order.
-			// We push ps on a stack, and use a new one to accumulate
+			// We push ps on a stack, and use a new one to
+			// accumulate
 			// the contents of the cell.
 			case Ttd:
 			case Tth:
 				if(curtab == nil) {
 					if(warn)
-						fprint(2, "%T outside <TABLE>\n", tok);
+						fprint(2,
+						       "%T outside <TABLE>\n",
+						       tok);
 					continue;
 				}
 				if(ps->inpar) {
@@ -1583,11 +1730,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 					tr = curtab->rows;
 				if(tr == nil || !tr->flags) {
 					if(warn)
-						fprint(2, "%T outside row\n", tok);
-					tr = newtablerow(makealign(ALnone, ALnone),
-							makebackground(nil, curtab->background.color),
-							TFparsing,
-							curtab->rows);
+						fprint(2, "%T outside row\n",
+						       tok);
+					tr = newtablerow(
+					    makealign(ALnone, ALnone),
+					    makebackground(
+					        nil, curtab->background.color),
+					    TFparsing, curtab->rows);
 					curtab->rows = tr;
 				}
 				ps = cell_pstate(ps, tag == Tth);
@@ -1598,20 +1747,24 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				}
 				if(tag == Tth)
 					flags |= TFisth;
-				c = newtablecell(curtab->cells==nil? 1 : curtab->cells->cellid+1,
-						auintval(tok, Arowspan, 1),
-						auintval(tok, Acolspan, 1), 
-						aalign(tok), 
-						adimen(tok, Awidth),
-						auintval(tok, Aheight, 0),
-						makebackground(nil, acolorval(tok, Abgcolor, tr->background.color)),
-						flags,
-						curtab->cells);
+				c = newtablecell(
+				    curtab->cells == nil
+				        ? 1
+				        : curtab->cells->cellid + 1,
+				    auintval(tok, Arowspan, 1),
+				    auintval(tok, Acolspan, 1), aalign(tok),
+				    adimen(tok, Awidth),
+				    auintval(tok, Aheight, 0),
+				    makebackground(
+				        nil, acolorval(tok, Abgcolor,
+				                       tr->background.color)),
+				    flags, curtab->cells);
 				curtab->cells = c;
 				ps->curbg = c->background;
 				if(c->align.halign == ALnone) {
 					if(tr->align.halign != ALnone)
-						c->align.halign = tr->align.halign;
+						c->align.halign =
+						    tr->align.halign;
 					else if(tag == Tth)
 						c->align.halign = ALcenter;
 					else
@@ -1619,7 +1772,8 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				}
 				if(c->align.valign == ALnone) {
 					if(tr->align.valign != ALnone)
-						c->align.valign = tr->align.valign;
+						c->align.valign =
+						    tr->align.valign;
 					else
 						c->align.valign = ALmiddle;
 				}
@@ -1627,11 +1781,12 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				tr->cells = c;
 				break;
 
-			case Ttd+RBRA:
-			case Tth+RBRA:
+			case Ttd + RBRA:
+			case Tth + RBRA:
 				if(curtab == nil || curtab->cells == nil) {
 					if(warn)
-						fprint(2, "unexpected %T\n", tok);
+						fprint(2, "unexpected %T\n",
+						       tok);
 					continue;
 				}
 				ps = finishcell(curtab, ps);
@@ -1641,34 +1796,38 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Ttextarea:
 				if(is->curform == nil) {
 					if(warn)
-						fprint(2, "<TEXTAREA> not inside <FORM>\n");
+						fprint(2, "<TEXTAREA> not "
+						          "inside <FORM>\n");
 					continue;
 				}
-				field = newformfield(Ftextarea,
-					++is->curform->nfields,
-					is->curform,
-					aval(tok, Aname),
-					nil,
-					0,
-					0,
-					is->curform->fields);
+				field = newformfield(
+				    Ftextarea, ++is->curform->nfields,
+				    is->curform, aval(tok, Aname), nil, 0, 0,
+				    is->curform->fields);
 				is->curform->fields = field;
 				field->rows = auintval(tok, Arows, 3);
 				field->cols = auintval(tok, Acols, 50);
 				field->value = getpcdata(toks, tokslen, &toki);
-				if(warn && toki < tokslen - 1 && toks[toki + 1].tag != Ttextarea + RBRA)
-					fprint(2, "warning: <TEXTAREA> data ended by %T\n", &toks[toki + 1]);
+				if(warn && toki < tokslen - 1 &&
+				   toks[toki + 1].tag != Ttextarea + RBRA)
+					fprint(2, "warning: <TEXTAREA> data "
+					          "ended by %T\n",
+					       &toks[toki + 1]);
 				ffit = newiformfield(field);
 				additem(ps, ffit, tok);
 				if(ffit->genattr != nil)
 					field->events = ffit->genattr->events;
 				break;
 
-			// <!ELEMENT TITLE - - (	//PCDATA)* -(%head.misc)>
+			// <!ELEMENT TITLE - - (	//PCDATA)*
+			// -(%head.misc)>
 			case Ttitle:
 				di->doctitle = getpcdata(toks, tokslen, &toki);
-				if(warn && toki < tokslen - 1 && toks[toki + 1].tag != Ttitle + RBRA)
-					fprint(2, "warning: <TITLE> data ended by %T\n", &toks[toki + 1]);
+				if(warn && toki < tokslen - 1 &&
+				   toks[toki + 1].tag != Ttitle + RBRA)
+					fprint(2, "warning: <TITLE> data ended "
+					          "by %T\n",
+					       &toks[toki + 1]);
 				break;
 
 			// <!ELEMENT TR - O (TH|TD)+>
@@ -1676,7 +1835,8 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Ttr:
 				if(curtab == nil) {
 					if(warn)
-						fprint(2, "warning: <TR> outside <TABLE>\n");
+						fprint(2, "warning: <TR> "
+						          "outside <TABLE>\n");
 					continue;
 				}
 				if(ps->inpar) {
@@ -1686,27 +1846,31 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				ps = finishcell(curtab, ps);
 				if(curtab->rows != nil)
 					curtab->rows->flags = 0;
-				curtab->rows = newtablerow(aalign(tok),
-					makebackground(nil, acolorval(tok, Abgcolor, curtab->background.color)),
-					TFparsing,
-					curtab->rows);
+				curtab->rows = newtablerow(
+				    aalign(tok),
+				    makebackground(
+				        nil,
+				        acolorval(tok, Abgcolor,
+				                  curtab->background.color)),
+				    TFparsing, curtab->rows);
 				break;
 
-			case Ttr+RBRA:
+			case Ttr + RBRA:
 				if(curtab == nil || curtab->rows == nil) {
 					if(warn)
-						fprint(2, "warning: unexpected </TR>\n");
+						fprint(2, "warning: unexpected "
+						          "</TR>\n");
 					continue;
 				}
 				ps = finishcell(curtab, ps);
 				tr = curtab->rows;
 				if(tr->cells == nil) {
 					if(warn)
-						fprint(2, "warning: empty row\n");
+						fprint(2,
+						       "warning: empty row\n");
 					curtab->rows = tr->next;
 					tr->next = nil;
-				}
-				else
+				} else
 					tr->flags = 0;
 				break;
 
@@ -1720,66 +1884,70 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 
 			// Tags that have empty action
 			case Tabbr:
-			case Tabbr+RBRA:
+			case Tabbr + RBRA:
 			case Tacronym:
-			case Tacronym+RBRA:
-			case Tarea+RBRA:
-			case Tbase+RBRA:
-			case Tbasefont+RBRA:
-			case Tbr+RBRA:
-			case Tdd+RBRA:
-			case Tdt+RBRA:
-			case Tframe+RBRA:
-			case Thr+RBRA:
+			case Tacronym + RBRA:
+			case Tarea + RBRA:
+			case Tbase + RBRA:
+			case Tbasefont + RBRA:
+			case Tbr + RBRA:
+			case Tdd + RBRA:
+			case Tdt + RBRA:
+			case Tframe + RBRA:
+			case Thr + RBRA:
 			case Thtml:
-			case Thtml+RBRA:
-			case Timg+RBRA:
-			case Tinput+RBRA:
-			case Tisindex+RBRA:
-			case Tli+RBRA:
+			case Thtml + RBRA:
+			case Timg + RBRA:
+			case Tinput + RBRA:
+			case Tisindex + RBRA:
+			case Tli + RBRA:
 			case Tlink:
-			case Tlink+RBRA:
-			case Tmeta+RBRA:
-			case Toption+RBRA:
-			case Tparam+RBRA:
-			case Ttextarea+RBRA:
-			case Ttitle+RBRA:
+			case Tlink + RBRA:
+			case Tmeta + RBRA:
+			case Toption + RBRA:
+			case Tparam + RBRA:
+			case Ttextarea + RBRA:
+			case Ttitle + RBRA:
 				break;
-
 
 			// Tags not implemented
 			case Tbdo:
-			case Tbdo+RBRA:
+			case Tbdo + RBRA:
 			case Tbutton:
-			case Tbutton+RBRA:
+			case Tbutton + RBRA:
 			case Tdel:
-			case Tdel+RBRA:
+			case Tdel + RBRA:
 			case Tfieldset:
-			case Tfieldset+RBRA:
+			case Tfieldset + RBRA:
 			case Tiframe:
-			case Tiframe+RBRA:
+			case Tiframe + RBRA:
 			case Tins:
-			case Tins+RBRA:
+			case Tins + RBRA:
 			case Tlabel:
-			case Tlabel+RBRA:
+			case Tlabel + RBRA:
 			case Tlegend:
-			case Tlegend+RBRA:
+			case Tlegend + RBRA:
 			case Tobject:
-			case Tobject+RBRA:
+			case Tobject + RBRA:
 			case Toptgroup:
-			case Toptgroup+RBRA:
+			case Toptgroup + RBRA:
 			case Tspan:
-			case Tspan+RBRA:
+			case Tspan + RBRA:
 				if(warn) {
 					if(tag > RBRA)
 						tag -= RBRA;
-					fprint(2, "warning: unimplemented HTML tag: %S\n", tagnames[tag]);
+					fprint(2, "warning: unimplemented HTML "
+					          "tag: %S\n",
+					       tagnames[tag]);
 				}
 				break;
 
 			default:
 				if(warn)
-					fprint(2, "warning: unknown HTML tag: %S\n", tok->text);
+					fprint(
+					    2,
+					    "warning: unknown HTML tag: %S\n",
+					    tok->text);
 				break;
 			}
 	}
@@ -1792,13 +1960,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			if(curtab->cells == nil) {
 				if(warn)
 					fprint(2, "warning: empty table\n");
-			}
-			else {
+			} else {
 				if(curtab->rows != nil)
 					curtab->rows->flags = 0;
 				finish_table(curtab);
 				ps->skipping = 0;
-				additem(ps, newitable(curtab), curtab->tabletok);
+				additem(ps, newitable(curtab),
+				        curtab->tabletok);
 				addbrk(ps, 0, 0);
 			}
 		}
@@ -1838,13 +2006,13 @@ return_ans:
 static Rune*
 getpcdata(Token* toks, int tokslen, int* ptoki)
 {
-	Rune*	ans;
-	Rune*	p;
-	Rune*	trimans;
-	int	anslen;
-	int	trimanslen;
-	int	toki;
-	Token*	tok;
+	Rune* ans;
+	Rune* p;
+	Rune* trimans;
+	int anslen;
+	int trimanslen;
+	int toki;
+	Token* tok;
 
 	ans = nil;
 	anslen = 0;
@@ -1855,8 +2023,7 @@ getpcdata(Token* toks, int tokslen, int* ptoki)
 		if(tok->tag == Data) {
 			toki++;
 			anslen += _Strlen(tok->text);
-		}
-		else
+		} else
 			break;
 	}
 	// now make up the initial answer
@@ -1869,8 +2036,7 @@ getpcdata(Token* toks, int tokslen, int* ptoki)
 			if(tok->tag == Data) {
 				toki++;
 				p = _Stradd(p, tok->text, _Strlen(tok->text));
-			}
-			else
+			} else
 				break;
 		}
 		*p = 0;
@@ -1881,7 +2047,7 @@ getpcdata(Token* toks, int tokslen, int* ptoki)
 			free(p);
 		}
 	}
-	*ptoki = toki-1;
+	*ptoki = toki - 1;
 	return ans;
 }
 
@@ -1891,18 +2057,18 @@ getpcdata(Token* toks, int tokslen, int* ptoki)
 static Pstate*
 finishcell(Table* curtab, Pstate* psstk)
 {
-	Tablecell*	c;
+	Tablecell* c;
 	Pstate* psstknext;
 
 	c = curtab->cells;
 	if(c != nil) {
-		if((c->flags&TFparsing)) {
+		if((c->flags & TFparsing)) {
 			psstknext = psstk->next;
 			if(psstknext == nil) {
 				if(warn)
-					fprint(2, "warning: parse state stack is wrong\n");
-			}
-			else {
+					fprint(2, "warning: parse state stack "
+					          "is wrong\n");
+			} else {
 				c->content = psstk->items->next;
 				c->flags &= ~TFparsing;
 				freepstate(psstk);
@@ -1918,8 +2084,8 @@ finishcell(Table* curtab, Pstate* psstk)
 static Pstate*
 cell_pstate(Pstate* oldps, int ishead)
 {
-	Pstate*	ps;
-	int	sty;
+	Pstate* ps;
+	int sty;
 
 	ps = newpstate(oldps);
 	ps->skipwhite = 1;
@@ -1932,8 +2098,8 @@ cell_pstate(Pstate* oldps, int ishead)
 	copystack(&ps->fgstk, &oldps->fgstk);
 	ps->adjsize = oldps->adjsize;
 	if(ishead) {
-		sty = ps->curfont%NumSize;
-		ps->curfont = FntB*NumSize + sty;
+		sty = ps->curfont % NumSize;
+		ps->curfont = FntB * NumSize + sty;
 	}
 	return ps;
 }
@@ -1943,7 +2109,7 @@ cell_pstate(Pstate* oldps, int ishead)
 static Pstate*
 newpstate(Pstate* link)
 {
-	Pstate*	ps;
+	Pstate* ps;
 
 	ps = (Pstate*)emalloc(sizeof(Pstate));
 	ps->curfont = DefFnt;
@@ -1976,14 +2142,14 @@ lastps(Pstate* psl)
 static void
 additem(Pstate* ps, Item* it, Token* tok)
 {
-	int	aid;
-	int	any;
-	Rune*	i;
-	Rune*	c;
-	Rune*	s;
-	Rune*	t;
-	Attr*	a;
-	SEvent*	e;
+	int aid;
+	int any;
+	Rune* i;
+	Rune* c;
+	Rune* s;
+	Rune* t;
+	Attr* a;
+	SEvent* e;
 
 	if(ps->skipping) {
 		if(warn)
@@ -2022,7 +2188,8 @@ additem(Pstate* ps, Item* it, Token* tok)
 
 			default:
 				assert(aid >= Aonblur && aid <= Aonunload);
-				e = newscriptevent(scriptev[a->attid], a->value, e);
+				e = newscriptevent(scriptev[a->attid], a->value,
+				                   e);
 				break;
 			}
 			a->value = nil;
@@ -2031,7 +2198,7 @@ additem(Pstate* ps, Item* it, Token* tok)
 		if(any)
 			it->genattr = newgenattr(i, c, s, t, e);
 	}
-	ps->curstate &= ~(IFbrk|IFbrksp|IFnobrk|IFcleft|IFcright);
+	ps->curstate &= ~(IFbrk | IFbrksp | IFnobrk | IFcleft | IFcright);
 	ps->prelastit = ps->lastit;
 	ps->lastit->next = it;
 	ps->lastit = it;
@@ -2043,7 +2210,8 @@ static Item*
 textit(Pstate* ps, Rune* s)
 {
 	assert(s != nil);
-	return newitext(s, ps->curfont, ps->curfg, ps->curvoff + Voffbias, ps->curul);
+	return newitext(s, ps->curfont, ps->curfg, ps->curvoff + Voffbias,
+	                ps->curul);
 }
 
 // Add text item or items for s, paying attention to
@@ -2062,17 +2230,17 @@ textit(Pstate* ps, Rune* s)
 static void
 addtext(Pstate* ps, Rune* s)
 {
-	int	n;
-	int	i;
-	int	j;
-	int	k;
-	int	col;
-	int	c;
-	int	nsp;
-	Item*	it;
-	Rune*	ss;
-	Rune*	p;
-	Rune	buf[SMALLBUFSIZE];
+	int n;
+	int i;
+	int j;
+	int k;
+	int col;
+	int c;
+	int nsp;
+	Item* it;
+	Rune* ss;
+	Rune* p;
+	Rune buf[SMALLBUFSIZE];
 
 	assert(s != nil);
 	n = runestrlen(s);
@@ -2088,28 +2256,34 @@ addtext(Pstate* ps, Rune* s)
 						if(s[k - 1] != ' ')
 							break;
 					if(k > j)
-						additem(ps, textit(ps, _Strndup(s+j, k-j)), nil);
+						additem(
+						    ps,
+						    textit(ps, _Strndup(s + j,
+						                        k - j)),
+						    nil);
 				}
 				addlinebrk(ps, 0);
 				j = i + 1;
 				col = 0;
-			}
-			else {
+			} else {
 				if(s[i] == '\t') {
 					col += i - j;
-					nsp = 8 - (col%8);
+					nsp = 8 - (col % 8);
 					// make ss = s[j:i] + nsp spaces
-					ss = _newstr(i-j+nsp);
-					p = _Stradd(ss, s+j, i-j);
+					ss = _newstr(i - j + nsp);
+					p = _Stradd(ss, s + j, i - j);
 					p = _Stradd(p, (Rune*)L"        ", nsp);
 					*p = 0;
 					additem(ps, textit(ps, ss), nil);
 					col += nsp;
 					j = i + 1;
-				}
-				else if(s[i] == NBSP) {
+				} else if(s[i] == NBSP) {
 					if(i > j)
-						additem(ps, textit(ps, _Strndup(s+j, i-j)), nil);
+						additem(
+						    ps,
+						    textit(ps, _Strndup(s + j,
+						                        i - j)),
+						    nil);
 					addnbsp(ps);
 					col += (i - j) + 1;
 					j = i + 1;
@@ -2121,15 +2295,14 @@ addtext(Pstate* ps, Rune* s)
 			if(j == 0 && i == n) {
 				// just transfer s over
 				additem(ps, textit(ps, s), nil);
-			}
-			else {
-				additem(ps, textit(ps, _Strndup(s+j, i-j)), nil);
+			} else {
+				additem(ps, textit(ps, _Strndup(s + j, i - j)),
+				        nil);
 				free(s);
 			}
 		}
-	}
-	else {	// not literal mode
-		if((ps->curstate&IFbrk) || ps->lastit == ps->items)
+	} else { // not literal mode
+		if((ps->curstate & IFbrk) || ps->lastit == ps->items)
 			while(i < n) {
 				c = s[i];
 				if(c >= 256 || !isspace(c))
@@ -2138,13 +2311,16 @@ addtext(Pstate* ps, Rune* s)
 			}
 		p = buf;
 		for(j = i; i < n; i++) {
-			assert(p+i-j < buf+SMALLBUFSIZE-1);
+			assert(p + i - j < buf + SMALLBUFSIZE - 1);
 			c = s[i];
 			if(c == NBSP) {
 				if(i > j)
-					p = _Stradd(p, s+j, i-j);
+					p = _Stradd(p, s + j, i - j);
 				if(p > buf)
-					additem(ps, textit(ps, _Strndup(buf, p-buf)), nil);
+					additem(
+					    ps,
+					    textit(ps, _Strndup(buf, p - buf)),
+					    nil);
 				p = buf;
 				addnbsp(ps);
 				j = i + 1;
@@ -2152,7 +2328,7 @@ addtext(Pstate* ps, Rune* s)
 			}
 			if(c < 256 && isspace(c)) {
 				if(i > j)
-					p = _Stradd(p, s+j, i-j);
+					p = _Stradd(p, s + j, i - j);
 				*p++ = ' ';
 				while(i < n - 1) {
 					c = s[i + 1];
@@ -2163,20 +2339,21 @@ addtext(Pstate* ps, Rune* s)
 				j = i + 1;
 			}
 			if(i - j >= 100) {
-				p = _Stradd(p, s+j, i+1-j);
+				p = _Stradd(p, s + j, i + 1 - j);
 				j = i + 1;
 			}
-			if(p-buf >= 100) {
-				additem(ps, textit(ps, _Strndup(buf, p-buf)), nil);
+			if(p - buf >= 100) {
+				additem(ps, textit(ps, _Strndup(buf, p - buf)),
+				        nil);
 				p = buf;
 			}
 		}
 		if(i > j && j < n) {
-			assert(p+i-j < buf+SMALLBUFSIZE-1);
-			p = _Stradd(p, s+j, i-j);
+			assert(p + i - j < buf + SMALLBUFSIZE - 1);
+			p = _Stradd(p, s + j, i - j);
 		}
 		// don't add a space if previous item ended in a space
-		if(p-buf == 1 && buf[0] == ' ' && ps->lastit != nil) {
+		if(p - buf == 1 && buf[0] == ' ' && ps->lastit != nil) {
 			it = ps->lastit;
 			if(it->tag == Itexttag) {
 				ss = ((Itext*)it)->s;
@@ -2186,7 +2363,7 @@ addtext(Pstate* ps, Rune* s)
 			}
 		}
 		if(p > buf)
-			additem(ps, textit(ps, _Strndup(buf, p-buf)), nil);
+			additem(ps, textit(ps, _Strndup(buf, p - buf)), nil);
 		free(s);
 	}
 }
@@ -2202,41 +2379,41 @@ addtext(Pstate* ps, Rune* s)
 static void
 addbrk(Pstate* ps, int sp, int clr)
 {
-	int	state;
-	Rune*	l;
-	int		nl;
-	Rune*	r;
-	int		nr;
-	Itext*	t;
-	Rune*	s;
+	int state;
+	Rune* l;
+	int nl;
+	Rune* r;
+	int nr;
+	Itext* t;
+	Rune* s;
 
 	state = ps->curstate;
-	clr = clr|(state&(IFcleft|IFcright));
+	clr = clr | (state & (IFcleft | IFcright));
 	if(sp && !(ps->lastit == ps->items))
 		sp = IFbrksp;
 	else
 		sp = 0;
-	ps->curstate = IFbrk|sp|(state&~(IFcleft|IFcright))|clr;
+	ps->curstate = IFbrk | sp | (state & ~(IFcleft | IFcright)) | clr;
 	if(ps->lastit != ps->items) {
 		if(!ps->literal && ps->lastit->tag == Itexttag) {
 			t = (Itext*)ps->lastit;
-			_splitr(t->s, _Strlen(t->s), notwhitespace, &l, &nl, &r, &nr);
+			_splitr(t->s, _Strlen(t->s), notwhitespace, &l, &nl, &r,
+			        &nr);
 			// try to avoid making empty items
 			// but not crucial f the occasional one gets through
 			if(nl == 0 && ps->prelastit != nil) {
 				ps->lastit = ps->prelastit;
 				ps->lastit->next = nil;
 				ps->prelastit = nil;
-			}
-			else {
+			} else {
 				s = t->s;
 				if(nl == 0) {
-					// need a non-nil pointer to empty string
+					// need a non-nil pointer to empty
+					// string
 					// (_Strdup(L"") returns nil)
 					t->s = emalloc(sizeof(Rune));
 					t->s[0] = 0;
-				}
-				else
+				} else
 					t->s = _Strndup(l, nl);
 				if(s)
 					free(s);
@@ -2255,12 +2432,12 @@ addbrk(Pstate* ps, int sp, int clr)
 static void
 addlinebrk(Pstate* ps, int clr)
 {
-	int	obrkstate;
-	int	b;
+	int obrkstate;
+	int b;
 
 	// don't want break before our null item unless the previous item
 	// was also a null item for the purposes of line breaking
-	obrkstate = ps->curstate&(IFbrk|IFbrksp);
+	obrkstate = ps->curstate & (IFbrk | IFbrksp);
 	b = IFnobrk;
 	if(ps->lastit != nil) {
 		if(ps->lastit->tag == Ispacertag) {
@@ -2268,9 +2445,9 @@ addlinebrk(Pstate* ps, int clr)
 				b = IFbrk;
 		}
 	}
-	ps->curstate = (ps->curstate&~(IFbrk|IFbrksp))|b;
+	ps->curstate = (ps->curstate & ~(IFbrk | IFbrksp)) | b;
 	additem(ps, newispacer(ISPvline), nil);
-	ps->curstate = (ps->curstate&~(IFbrk|IFbrksp))|obrkstate;
+	ps->curstate = (ps->curstate & ~(IFbrk | IFbrksp)) | obrkstate;
 	addbrk(ps, 0, clr);
 }
 
@@ -2281,7 +2458,7 @@ addnbsp(Pstate* ps)
 	// if nbsp comes right where a break was specified,
 	// do the break anyway (nbsp is being used to generate undiscardable
 	// space rather than to prevent a break)
-	if((ps->curstate&IFbrk) == 0)
+	if((ps->curstate & IFbrk) == 0)
 		ps->curstate |= IFnobrk;
 	additem(ps, newispacer(ISPhspace), nil);
 	// but definitely no break on next item
@@ -2295,30 +2472,30 @@ addnbsp(Pstate* ps)
 static void
 changehang(Pstate* ps, int delta)
 {
-	int	amt;
+	int amt;
 
-	amt = (ps->curstate&IFhangmask) + delta;
+	amt = (ps->curstate & IFhangmask) + delta;
 	if(amt < 0) {
 		if(warn)
 			fprint(2, "warning: hang went negative\n");
 		amt = 0;
 	}
-	ps->curstate = (ps->curstate&~IFhangmask)|amt;
+	ps->curstate = (ps->curstate & ~IFhangmask) | amt;
 }
 
 // Change indent in ps.curstate by delta.
 static void
 changeindent(Pstate* ps, int delta)
 {
-	int	amt;
+	int amt;
 
-	amt = ((ps->curstate&IFindentmask) >> IFindentshift) + delta;
+	amt = ((ps->curstate & IFindentmask) >> IFindentshift) + delta;
 	if(amt < 0) {
 		if(warn)
 			fprint(2, "warning: indent went negative\n");
 		amt = 0;
 	}
-	ps->curstate = (ps->curstate&~IFindentmask)|(amt << IFindentshift);
+	ps->curstate = (ps->curstate & ~IFindentmask) | (amt << IFindentshift);
 }
 
 // Push val on top of stack, and also return value pushed
@@ -2328,8 +2505,7 @@ push(Stack* stk, int val)
 	if(stk->n == Nestmax) {
 		if(warn)
 			fprint(2, "warning: build stack overflow\n");
-	}
-	else
+	} else
 		stk->slots[stk->n++] = val;
 	return val;
 }
@@ -2342,13 +2518,13 @@ pop(Stack* stk)
 		--stk->n;
 }
 
-//Return top of stack, using dflt if stack is empty
+// Return top of stack, using dflt if stack is empty
 static int
 top(Stack* stk, int dflt)
 {
 	if(stk->n == 0)
 		return dflt;
-	return stk->slots[stk->n-1];
+	return stk->slots[stk->n - 1];
 }
 
 // pop, then return new top, with dflt if empty
@@ -2360,7 +2536,7 @@ popretnewtop(Stack* stk, int dflt)
 	stk->n--;
 	if(stk->n == 0)
 		return dflt;
-	return stk->slots[stk->n-1];
+	return stk->slots[stk->n - 1];
 }
 
 // Copy fromstk entries into tostk
@@ -2371,7 +2547,7 @@ copystack(Stack* tostk, Stack* fromstk)
 
 	n = fromstk->n;
 	tostk->n = n;
-	memmove(tostk->slots, fromstk->slots, n*sizeof(int));
+	memmove(tostk->slots, fromstk->slots, n * sizeof(int));
 }
 
 static void
@@ -2405,8 +2581,8 @@ pushfontsize(Pstate* ps, int sz)
 static void
 setcurfont(Pstate* ps)
 {
-	int	sty;
-	int	sz;
+	int sty;
+	int sz;
 
 	sty = top(&ps->fntstylestk, FntR);
 	sz = top(&ps->fntsizestk, Normal);
@@ -2414,7 +2590,7 @@ setcurfont(Pstate* ps)
 		sz = Tiny;
 	if(sz > Verylarge)
 		sz = Verylarge;
-	ps->curfont = sty*NumSize + sz;
+	ps->curfont = sty * NumSize + sz;
 }
 
 static void
@@ -2434,14 +2610,14 @@ pushjust(Pstate* ps, int j)
 static void
 setcurjust(Pstate* ps)
 {
-	int	j;
-	int	state;
+	int j;
+	int state;
 
 	j = top(&ps->juststk, ALleft);
 	if(j != ps->curjust) {
 		ps->curjust = j;
 		state = ps->curstate;
-		state &= ~(IFrjust|IFcjust);
+		state &= ~(IFrjust | IFcjust);
 		if(j == ALcenter)
 			state |= IFcjust;
 		else if(j == ALright)
@@ -2455,26 +2631,26 @@ setcurjust(Pstate* ps)
 static void
 finish_table(Table* t)
 {
-	int	ncol;
-	int	nrow;
-	int	r;
-	Tablerow*	rl;
-	Tablecell*	cl;
-	int*	rowspancnt;
-	Tablecell**	rowspancell;
-	int	ri;
-	int	ci;
-	Tablecell*	c;
-	Tablecell*	cnext;
-	Tablerow*	row;
-	Tablerow*	rownext;
-	int	rcols;
-	int	newncol;
-	int	k;
-	int	j;
-	int	cspan;
-	int	rspan;
-	int	i;
+	int ncol;
+	int nrow;
+	int r;
+	Tablerow* rl;
+	Tablecell* cl;
+	int* rowspancnt;
+	Tablecell** rowspancell;
+	int ri;
+	int ci;
+	Tablecell* c;
+	Tablecell* cnext;
+	Tablerow* row;
+	Tablerow* rownext;
+	int rcols;
+	int newncol;
+	int k;
+	int j;
+	int cspan;
+	int rspan;
+	int i;
 
 	rl = t->rows;
 	t->nrow = nrow = _listlen((List*)rl);
@@ -2492,8 +2668,8 @@ finish_table(Table* t)
 
 		// If rowspan is > 1 but this is the last row,
 		// reset the rowspan
-		if(c != nil && c->rowspan > 1 && r == nrow-2)
-				c->rowspan = 1;
+		if(c != nil && c->rowspan > 1 && r == nrow - 2)
+			c->rowspan = 1;
 
 		// reverse row->cells list (along nextinrow pointers)
 		row->cells = nil;
@@ -2513,7 +2689,7 @@ finish_table(Table* t)
 	// Reverse cells just so they are drawn in source order.
 	// Also, trim their contents so they don't end in whitespace.
 	t->cells = (Tablecell*)_revlist((List*)t->cells);
-	for(c = t->cells; c != nil; c= c->next)
+	for(c = t->cells; c != nil; c = c->next)
 		trim_cell(c);
 	t->grid = (Tablecell***)emalloc(nrow * sizeof(Tablecell**));
 	for(i = 0; i < nrow; i++)
@@ -2534,8 +2710,7 @@ finish_table(Table* t)
 				t->grid[ri][ci] = rowspancell[ci];
 				rowspancnt[ci]--;
 				ci++;
-			}
-			else {
+			} else {
 				if(cl == nil) {
 					ci++;
 					continue;
@@ -2545,19 +2720,33 @@ finish_table(Table* t)
 				cspan = c->colspan;
 				rspan = c->rowspan;
 				if(ci + cspan > ncol) {
-					// because of row spanning, we calculated
+					// because of row spanning, we
+					// calculated
 					// ncol incorrectly; adjust it
 					newncol = ci + cspan;
-					t->cols = (Tablecol*)erealloc(t->cols, newncol * sizeof(Tablecol));
-					rowspancnt = (int*)erealloc(rowspancnt, newncol * sizeof(int));
-					rowspancell = (Tablecell**)erealloc(rowspancell, newncol * sizeof(Tablecell*));
-					k = newncol-ncol;
-					memset(t->cols+ncol, 0, k*sizeof(Tablecol));
-					memset(rowspancnt+ncol, 0, k*sizeof(int));
-					memset(rowspancell+ncol, 0, k*sizeof(Tablecell*));
+					t->cols = (Tablecol*)erealloc(
+					    t->cols,
+					    newncol * sizeof(Tablecol));
+					rowspancnt = (int*)erealloc(
+					    rowspancnt, newncol * sizeof(int));
+					rowspancell = (Tablecell**)erealloc(
+					    rowspancell,
+					    newncol * sizeof(Tablecell*));
+					k = newncol - ncol;
+					memset(t->cols + ncol, 0,
+					       k * sizeof(Tablecol));
+					memset(rowspancnt + ncol, 0,
+					       k * sizeof(int));
+					memset(rowspancell + ncol, 0,
+					       k * sizeof(Tablecell*));
 					for(j = 0; j < nrow; j++) {
-						t->grid[j] = (Tablecell**)erealloc(t->grid[j], newncol * sizeof(Tablecell*));
-						memset(t->grid[j], 0, k*sizeof(Tablecell*));
+						t->grid[j] =
+						    (Tablecell**)erealloc(
+						        t->grid[j],
+						        newncol *
+						            sizeof(Tablecell*));
+						memset(t->grid[j], 0,
+						       k * sizeof(Tablecell*));
 					}
 					t->ncol = ncol = newncol;
 				}
@@ -2582,15 +2771,15 @@ finish_table(Table* t)
 static void
 trim_cell(Tablecell* c)
 {
-	int	dropping;
-	Rune*	s;
-	Rune*	x;
-	Rune*	y;
-	int		nx;
-	int		ny;
-	Item*	p;
-	Itext*	q;
-	Item*	pprev;
+	int dropping;
+	Rune* s;
+	Rune* x;
+	Rune* y;
+	int nx;
+	int ny;
+	Item* p;
+	Itext* q;
+	Item* pprev;
 
 	dropping = 1;
 	while(c->content != nil && dropping) {
@@ -2601,11 +2790,12 @@ trim_cell(Tablecell* c)
 			p = p->next;
 		}
 		dropping = 0;
-		if(!(p->state&IFnobrk)) {
+		if(!(p->state & IFnobrk)) {
 			if(p->tag == Itexttag) {
 				q = (Itext*)p;
 				s = q->s;
-				_splitr(s, _Strlen(s), notwhitespace, &x, &nx, &y, &ny);
+				_splitr(s, _Strlen(s), notwhitespace, &x, &nx,
+				        &y, &ny);
 				if(nx != 0 && ny != 0) {
 					q->s = _Strndup(x, nx);
 					free(s);
@@ -2627,10 +2817,10 @@ trim_cell(Tablecell* c)
 static Rune*
 listmark(uint8_t ty, int n)
 {
-	Rune*	s;
-	Rune*	t;
-	int	n2;
-	int	i;
+	Rune* s;
+	Rune* t;
+	int n2;
+	int i;
 
 	s = nil;
 	switch(ty) {
@@ -2638,9 +2828,10 @@ listmark(uint8_t ty, int n)
 	case LTsquare:
 	case LTcircle:
 		s = _newstr(1);
-		s[0] = (ty == LTdisc)? 0x2022		// bullet
-			: ((ty == LTsquare)? 0x220e	// filled square
-			    : 0x2218);				// degree
+		s[0] = (ty == LTdisc)
+		           ? 0x2022                       // bullet
+		           : ((ty == LTsquare) ? 0x220e   // filled square
+		                               : 0x2218); // degree
 		s[1] = 0;
 		break;
 
@@ -2654,15 +2845,15 @@ listmark(uint8_t ty, int n)
 		i = 0;
 		if(n < 0)
 			n = 0;
-		s = _newstr((n <= 25)? 2 : 3);
+		s = _newstr((n <= 25) ? 2 : 3);
 		if(n > 25) {
-			n2 = n%26;
+			n2 = n % 26;
 			n /= 26;
 			if(n2 > 25)
 				n2 = 25;
-			s[i++] = n2 + (ty == LTa)? 'a' : 'A';
+			s[i++] = n2 + (ty == LTa) ? 'a' : 'A';
 		}
-		s[i++] = n + (ty == LTa)? 'a' : 'A';
+		s[i++] = n + (ty == LTa) ? 'a' : 'A';
 		s[i++] = '.';
 		s[i] = 0;
 		break;
@@ -2671,14 +2862,16 @@ listmark(uint8_t ty, int n)
 	case LTI:
 		if(n >= NROMAN) {
 			if(warn)
-				fprint(2, "warning: unimplemented roman number > %d\n", NROMAN);
+				fprint(2, "warning: unimplemented roman number "
+				          "> %d\n",
+				       NROMAN);
 			n = NROMAN;
 		}
 		t = roman[n - 1];
 		n2 = _Strlen(t);
-		s = _newstr(n2+1);
+		s = _newstr(n2 + 1);
 		for(i = 0; i < n2; i++)
-			s[i] = (ty == LTi)? tolower(t[i]) : t[i];
+			s[i] = (ty == LTi) ? tolower(t[i]) : t[i];
 		s[i++] = '.';
 		s[i] = 0;
 		break;
@@ -2692,7 +2885,7 @@ listmark(uint8_t ty, int n)
 static Map*
 getmap(Docinfo* di, Rune* name)
 {
-	Map*	m;
+	Map* m;
 
 	for(m = di->maps; m != nil; m = m->next) {
 		if(!_Strcmp(name, m->name))
@@ -2725,9 +2918,10 @@ newarea(int shape, Rune* href, int target, Area* link)
 static Rune*
 aval(Token* tok, int attid)
 {
-	Rune*	ans;
+	Rune* ans;
 
-	_tokaval(tok, attid, &ans, 1);	// transfers string ownership from token to ans
+	_tokaval(tok, attid, &ans,
+	         1); // transfers string ownership from token to ans
 	return ans;
 }
 
@@ -2736,10 +2930,10 @@ aval(Token* tok, int attid)
 static Rune*
 astrval(Token* tok, int attid, Rune* dflt)
 {
-	Rune*	ans;
+	Rune* ans;
 
 	if(_tokaval(tok, attid, &ans, 1))
-		return ans;	// transfers string ownership from token to ans
+		return ans; // transfers string ownership from token to ans
 	else
 		return _Strdup(dflt);
 }
@@ -2749,7 +2943,7 @@ astrval(Token* tok, int attid, Rune* dflt)
 static int
 aintval(Token* tok, int attid, int dflt)
 {
-	Rune*	ans;
+	Rune* ans;
 
 	if(!_tokaval(tok, attid, &ans, 0) || ans == nil)
 		return dflt;
@@ -2768,7 +2962,7 @@ auintval(Token* tok, int attid, int dflt)
 		return dflt;
 	else {
 		v = toint(ans);
-		return v >= 0? v : 0;
+		return v >= 0 ? v : 0;
 	}
 }
 
@@ -2784,7 +2978,8 @@ toint(Rune* s)
 		if(*eptr != 0) {
 			eptr = _Strclass(eptr, notwhitespace);
 			if(eptr != nil)
-				fprint(2, "warning: expected integer, got %S\n", s);
+				fprint(2, "warning: expected integer, got %S\n",
+				       s);
 		}
 	}
 	return ans;
@@ -2794,15 +2989,17 @@ toint(Rune* s)
 static int
 atabval(Token* tok, int attid, StringInt* tab, int ntab, int dflt)
 {
-	Rune*	aval;
-	int	ans;
+	Rune* aval;
+	int ans;
 
 	ans = dflt;
 	if(_tokaval(tok, attid, &aval, 0)) {
 		if(!_lookup(tab, ntab, aval, _Strlen(aval), &ans)) {
 			ans = dflt;
 			if(warn)
-				fprint(2, "warning: name not found in table lookup: %S\n", aval);
+				fprint(2, "warning: name not found in table "
+				          "lookup: %S\n",
+				       aval);
 		}
 	}
 	return ans;
@@ -2812,8 +3009,8 @@ atabval(Token* tok, int attid, StringInt* tab, int ntab, int dflt)
 static int
 acolorval(Token* tok, int attid, int dflt)
 {
-	Rune*	aval;
-	int	ans;
+	Rune* aval;
+	int ans;
 
 	ans = dflt;
 	if(_tokaval(tok, attid, &aval, 0))
@@ -2825,11 +3022,11 @@ acolorval(Token* tok, int attid, int dflt)
 static int
 atargval(Token* tok, int dflt)
 {
-	int	ans;
-	Rune*	aval;
+	int ans;
+	Rune* aval;
 
 	ans = dflt;
-	if(_tokaval(tok, Atarget, &aval, 0)){
+	if(_tokaval(tok, Atarget, &aval, 0)) {
 		ans = targetid(aval);
 	}
 	return ans;
@@ -2840,9 +3037,9 @@ atargval(Token* tok, int dflt)
 static int
 listtyval(Token* tok, int dflt)
 {
-	Rune*	aval;
-	int	ans;
-	int	n;
+	Rune* aval;
+	int ans;
+	int n;
 
 	ans = dflt;
 	if(_tokaval(tok, Atype, &aval, 0)) {
@@ -2865,10 +3062,11 @@ listtyval(Token* tok, int dflt)
 				ans = LTi;
 			default:
 				if(warn)
-					fprint(2, "warning: unknown list element type %c\n", aval[0]);
+					fprint(2, "warning: unknown list "
+					          "element type %c\n",
+					       aval[0]);
 			}
-		}
-		else {
+		} else {
 			if(!_Strncmpci(aval, n, (Rune*)L"circle"))
 				ans = LTcircle;
 			else if(!_Strncmpci(aval, n, (Rune*)L"disc"))
@@ -2877,7 +3075,9 @@ listtyval(Token* tok, int dflt)
 				ans = LTsquare;
 			else {
 				if(warn)
-					fprint(2, "warning: unknown list element type %S\n", aval);
+					fprint(2, "warning: unknown list "
+					          "element type %S\n",
+					       aval);
 			}
 		}
 	}
@@ -2890,8 +3090,8 @@ listtyval(Token* tok, int dflt)
 static Rune*
 aurlval(Token* tok, int attid, Rune* dflt, Rune* base)
 {
-	Rune*	ans;
-	Rune*	url;
+	Rune* ans;
+	Rune* url;
 
 	USED(base);
 	ans = nil;
@@ -2907,11 +3107,11 @@ aurlval(Token* tok, int attid, Rune* dflt, Rune* base)
 static Rune*
 removeallwhite(Rune* s)
 {
-	int	j;
-	int	n;
-	int	i;
-	int	c;
-	Rune*	ans;
+	int j;
+	int n;
+	int i;
+	int c;
+	Rune* ans;
 
 	j = 0;
 	n = _Strlen(s);
@@ -2929,8 +3129,7 @@ removeallwhite(Rune* s)
 				ans[j++] = c;
 		}
 		ans[j] = 0;
-	}
-	else
+	} else
 		ans = _Strdup(s);
 	return ans;
 }
@@ -2940,8 +3139,8 @@ removeallwhite(Rune* s)
 static int
 aflagval(Token* tok, int attid)
 {
-	int	val;
-	Rune*	sval;
+	int val;
+	Rune* sval;
 
 	val = 0;
 	if(_tokaval(tok, attid, &sval, 0)) {
@@ -2955,7 +3154,7 @@ aflagval(Token* tok, int attid)
 static Align
 makealign(int halign, int valign)
 {
-	Align	al;
+	Align al;
 
 	al.halign = halign;
 	al.valign = valign;
@@ -2966,16 +3165,15 @@ makealign(int halign, int valign)
 static Align
 aalign(Token* tok)
 {
-	return makealign(
-		atabval(tok, Aalign, align_tab, NALIGNTAB, ALnone),
-		atabval(tok, Avalign, align_tab, NALIGNTAB, ALnone));
+	return makealign(atabval(tok, Aalign, align_tab, NALIGNTAB, ALnone),
+	                 atabval(tok, Avalign, align_tab, NALIGNTAB, ALnone));
 }
 
 // Make a Dimen, based on value of attid attr
 static Dimen
 adimen(Token* tok, int attid)
 {
-	Rune*	wd;
+	Rune* wd;
 
 	if(_tokaval(tok, attid, &wd, 0))
 		return parsedim(wd, _Strlen(wd));
@@ -2987,31 +3185,32 @@ adimen(Token* tok, int attid)
 static Dimen
 parsedim(Rune* s, int ns)
 {
-	int	kind;
-	int	spec;
-	Rune*	l;
-	int	nl;
-	Rune*	r;
-	int	nr;
-	int	mul;
-	int	i;
-	Rune*	f;
-	int	nf;
-	int	Tkdpi;
-	Rune*	units;
+	int kind;
+	int spec;
+	Rune* l;
+	int nl;
+	Rune* r;
+	int nr;
+	int mul;
+	int i;
+	Rune* f;
+	int nf;
+	int Tkdpi;
+	Rune* units;
 
 	kind = Dnone;
 	spec = 0;
 	_splitl(s, ns, (Rune*)L"^0-9", &l, &nl, &r, &nr);
 	if(nl != 0) {
-		spec = 1000*_Strtol(l, nil, 10);
+		spec = 1000 * _Strtol(l, nil, 10);
 		if(nr > 0 && r[0] == '.') {
-			_splitl(r+1, nr-1, (Rune*)L"^0-9", &f, &nf, &r, &nr);
+			_splitl(r + 1, nr - 1, (Rune*)L"^0-9", &f, &nf, &r,
+			        &nr);
 			if(nf != 0) {
 				mul = 100;
 				for(i = 0; i < nf; i++) {
-					spec = spec + mul*(f[i]-'0');
-					mul = mul/10;
+					spec = spec + mul * (f[i] - '0');
+					mul = mul / 10;
 				}
 			}
 		}
@@ -3020,23 +3219,25 @@ parsedim(Rune* s, int ns)
 			if(nr >= 2) {
 				Tkdpi = 100;
 				units = r;
-				r = r+2;
+				r = r + 2;
 				nr -= 2;
 				if(!_Strncmpci(units, 2, (Rune*)L"pt"))
-					spec = (spec*Tkdpi)/72;
+					spec = (spec * Tkdpi) / 72;
 				else if(!_Strncmpci(units, 2, (Rune*)L"pi"))
-					spec = (spec*12*Tkdpi)/72;
+					spec = (spec * 12 * Tkdpi) / 72;
 				else if(!_Strncmpci(units, 2, (Rune*)L"in"))
-					spec = spec*Tkdpi;
+					spec = spec * Tkdpi;
 				else if(!_Strncmpci(units, 2, (Rune*)L"cm"))
-					spec = (spec*100*Tkdpi)/254;
+					spec = (spec * 100 * Tkdpi) / 254;
 				else if(!_Strncmpci(units, 2, (Rune*)L"mm"))
-					spec = (spec*10*Tkdpi)/254;
+					spec = (spec * 10 * Tkdpi) / 254;
 				else if(!_Strncmpci(units, 2, (Rune*)L"em"))
-					spec = spec*15;
+					spec = spec * 15;
 				else {
 					if(warn)
-						fprint(2, "warning: unknown units %C%Cs\n", units[0], units[1]);
+						fprint(2, "warning: unknown "
+						          "units %C%Cs\n",
+						       units[0], units[1]);
 				}
 			}
 			if(nr >= 1) {
@@ -3046,9 +3247,8 @@ parsedim(Rune* s, int ns)
 					kind = Drelative;
 			}
 		}
-		spec = spec/1000;
-	}
-	else if(nr == 1 && r[0] == '*') {
+		spec = spec / 1000;
+	} else if(nr == 1 && r[0] == '*') {
 		spec = 1;
 		kind = Drelative;
 	}
@@ -3058,15 +3258,16 @@ parsedim(Rune* s, int ns)
 static void
 setdimarray(Token* tok, int attid, Dimen** pans, int* panslen)
 {
-	Rune*	s;
-	Dimen*	d;
-	int	k;
-	int	nc;
+	Rune* s;
+	Dimen* d;
+	int k;
+	int nc;
 	Rune* a[SMALLBUFSIZE];
-	int	an[SMALLBUFSIZE];
+	int an[SMALLBUFSIZE];
 
 	if(_tokaval(tok, attid, &s, 0)) {
-		nc = _splitall(s, _Strlen(s), (Rune*)L", ", a, an, SMALLBUFSIZE);
+		nc =
+		    _splitall(s, _Strlen(s), (Rune*)L", ", a, an, SMALLBUFSIZE);
 		if(nc > 0) {
 			d = (Dimen*)emalloc(nc * sizeof(Dimen));
 			for(k = 0; k < nc; k++) {
@@ -3124,11 +3325,11 @@ newirule(int align, int size, int noshade, int color, Dimen wspec)
 
 // Map is owned elsewhere.
 static Item*
-newiimage(Rune* src, Rune* altrep, int align, int width, int height,
-		int hspace, int vspace, int border, int ismap, Map* map)
+newiimage(Rune* src, Rune* altrep, int align, int width, int height, int hspace,
+          int vspace, int border, int ismap, Map* map)
 {
 	Iimage* i;
-	int	state;
+	int state;
 
 	state = 0;
 	if(ismap)
@@ -3383,8 +3584,7 @@ freekidinfo(Kidinfo* k)
 		free(k->rows);
 		free(k->cols);
 		freekidinfos(k->kidinfos);
-	}
-	else {
+	} else {
 		free(k->src);
 		free(k->name);
 	}
@@ -3472,79 +3672,85 @@ freepstatestack(Pstate* pshead)
 }
 
 static int
-Iconv(Fmt *f)
+Iconv(Fmt* f)
 {
-	Item*	it;
-	Itext*	t;
-	Irule*	r;
-	Iimage*	i;
-	Ifloat*	fl;
-	int	state;
-	Formfield*	ff;
-	Rune*	ty;
-	Tablecell*	c;
-	Table*	tab;
-	char*	p;
-	int	cl;
-	int	hang;
-	int	indent;
-	int	bi;
-	int	nbuf;
-	char	buf[BIGBUFSIZE];
+	Item* it;
+	Itext* t;
+	Irule* r;
+	Iimage* i;
+	Ifloat* fl;
+	int state;
+	Formfield* ff;
+	Rune* ty;
+	Tablecell* c;
+	Table* tab;
+	char* p;
+	int cl;
+	int hang;
+	int indent;
+	int bi;
+	int nbuf;
+	char buf[BIGBUFSIZE];
 
 	it = va_arg(f->args, Item*);
 	bi = 0;
 	nbuf = sizeof(buf);
 	state = it->state;
-	nbuf = nbuf-1;
-	if(state&IFbrk) {
-		cl = state&(IFcleft|IFcright);
+	nbuf = nbuf - 1;
+	if(state & IFbrk) {
+		cl = state & (IFcleft | IFcright);
 		p = "";
 		if(cl) {
-			if(cl == (IFcleft|IFcright))
+			if(cl == (IFcleft | IFcright))
 				p = " both";
 			else if(cl == IFcleft)
 				p = " left";
 			else
 				p = " right";
 		}
-		bi = snprint(buf, nbuf, "brk(%d%s)", (state&IFbrksp)? 1 : 0, p);
+		bi = snprint(buf, nbuf, "brk(%d%s)", (state & IFbrksp) ? 1 : 0,
+		             p);
 	}
-	if(state&IFnobrk)
-		bi += snprint(buf+bi, nbuf-bi, " nobrk");
-	if(!(state&IFwrap))
-		bi += snprint(buf+bi, nbuf-bi, " nowrap");
-	if(state&IFrjust)
-		bi += snprint(buf+bi, nbuf-bi, " rjust");
-	if(state&IFcjust)
-		bi += snprint(buf+bi, nbuf-bi, " cjust");
-	if(state&IFsmap)
-		bi += snprint(buf+bi, nbuf-bi, " smap");
-	indent = (state&IFindentmask) >> IFindentshift;
+	if(state & IFnobrk)
+		bi += snprint(buf + bi, nbuf - bi, " nobrk");
+	if(!(state & IFwrap))
+		bi += snprint(buf + bi, nbuf - bi, " nowrap");
+	if(state & IFrjust)
+		bi += snprint(buf + bi, nbuf - bi, " rjust");
+	if(state & IFcjust)
+		bi += snprint(buf + bi, nbuf - bi, " cjust");
+	if(state & IFsmap)
+		bi += snprint(buf + bi, nbuf - bi, " smap");
+	indent = (state & IFindentmask) >> IFindentshift;
 	if(indent > 0)
-		bi += snprint(buf+bi, nbuf-bi, " indent=%d", indent);
-	hang = state&IFhangmask;
+		bi += snprint(buf + bi, nbuf - bi, " indent=%d", indent);
+	hang = state & IFhangmask;
 	if(hang > 0)
-		bi += snprint(buf+bi, nbuf-bi, " hang=%d", hang);
+		bi += snprint(buf + bi, nbuf - bi, " hang=%d", hang);
 
 	switch(it->tag) {
 	case Itexttag:
 		t = (Itext*)it;
-		bi += snprint(buf+bi, nbuf-bi, " Text '%S', fnt=%d, fg=%x", t->s, t->fnt, t->fg);
+		bi += snprint(buf + bi, nbuf - bi, " Text '%S', fnt=%d, fg=%x",
+		              t->s, t->fnt, t->fg);
 		break;
 
 	case Iruletag:
 		r = (Irule*)it;
-		bi += snprint(buf+bi, nbuf-bi, "Rule size=%d, al=%S, wspec=", r->size, stringalign(r->align));
-		bi += dimprint(buf+bi, nbuf-bi, r->wspec);
+		bi +=
+		    snprint(buf + bi, nbuf - bi, "Rule size=%d, al=%S, wspec=",
+		            r->size, stringalign(r->align));
+		bi += dimprint(buf + bi, nbuf - bi, r->wspec);
 		break;
 
 	case Iimagetag:
 		i = (Iimage*)it;
-		bi += snprint(buf+bi, nbuf-bi,
-			"Image src=%S, alt=%S, al=%S, w=%d, h=%d hsp=%d, vsp=%d, bd=%d, map=%S",
-			i->imsrc, i->altrep? i->altrep : (Rune*)L"", stringalign(i->align), i->imwidth, i->imheight,
-			i->hspace, i->vspace, i->border, i->map? i->map->name : (Rune*)L"");
+		bi += snprint(
+		    buf + bi, nbuf - bi, "Image src=%S, alt=%S, al=%S, w=%d, "
+		                         "h=%d hsp=%d, vsp=%d, bd=%d, map=%S",
+		    i->imsrc, i->altrep ? i->altrep : (Rune*)L"",
+		    stringalign(i->align), i->imwidth, i->imheight, i->hspace,
+		    i->vspace, i->border, i->map ? i->map->name : (Rune*)L"");
 		break;
 
 	case Iformfieldtag:
@@ -3558,28 +3764,37 @@ Iconv(Fmt *f)
 			if(ty == nil)
 				ty = (Rune*)L"none";
 		}
-		bi += snprint(buf+bi, nbuf-bi, "Formfield %S, fieldid=%d, formid=%d, name=%S, value=%S",
-			ty, ff->fieldid, ff->form->formid, ff->name? ff->name : (Rune*)L"",
-			ff->value? ff->value : (Rune*)L"");
+		bi += snprint(
+		    buf + bi, nbuf - bi,
+		    "Formfield %S, fieldid=%d, formid=%d, name=%S, value=%S",
+		    ty, ff->fieldid, ff->form->formid,
+		    ff->name ? ff->name : (Rune*)L"",
+		    ff->value ? ff->value : (Rune*)L"");
 		break;
 
 	case Itabletag:
 		tab = ((Itable*)it)->table;
-		bi += snprint(buf+bi, nbuf-bi, "Table tableid=%d, width=", tab->tableid);
-		bi += dimprint(buf+bi, nbuf-bi, tab->width);
-		bi += snprint(buf+bi, nbuf-bi, ", nrow=%d, ncol=%d, ncell=%d, totw=%d, toth=%d\n",
-			tab->nrow, tab->ncol, tab->ncell, tab->totw, tab->toth);
+		bi += snprint(buf + bi, nbuf - bi, "Table tableid=%d, width=",
+		              tab->tableid);
+		bi += dimprint(buf + bi, nbuf - bi, tab->width);
+		bi += snprint(
+		    buf + bi, nbuf - bi,
+		    ", nrow=%d, ncol=%d, ncell=%d, totw=%d, toth=%d\n",
+		    tab->nrow, tab->ncol, tab->ncell, tab->totw, tab->toth);
 		for(c = tab->cells; c != nil; c = c->next)
-			bi += snprint(buf+bi, nbuf-bi, "Cell %d.%d, at (%d,%d) ",
-					tab->tableid, c->cellid, c->row, c->col);
-		bi += snprint(buf+bi, nbuf-bi, "End of Table %d", tab->tableid);
+			bi += snprint(buf + bi, nbuf - bi,
+			              "Cell %d.%d, at (%d,%d) ", tab->tableid,
+			              c->cellid, c->row, c->col);
+		bi += snprint(buf + bi, nbuf - bi, "End of Table %d",
+		              tab->tableid);
 		break;
 
 	case Ifloattag:
 		fl = (Ifloat*)it;
-		bi += snprint(buf+bi, nbuf-bi, "Float, x=%d y=%d, side=%S, it=%I",
-			fl->x, fl->y, stringalign(fl->side), fl->item);
-		bi += snprint(buf+bi, nbuf-bi, "\n\t");
+		bi += snprint(buf + bi, nbuf - bi,
+		              "Float, x=%d y=%d, side=%S, it=%I", fl->x, fl->y,
+		              stringalign(fl->side), fl->item);
+		bi += snprint(buf + bi, nbuf - bi, "\n\t");
 		break;
 
 	case Ispacertag:
@@ -3595,11 +3810,11 @@ Iconv(Fmt *f)
 			p = "hspace";
 			break;
 		}
-		bi += snprint(buf+bi, nbuf-bi, "Spacer %s ", p);
+		bi += snprint(buf + bi, nbuf - bi, "Spacer %s ", p);
 		break;
 	}
-	bi += snprint(buf+bi, nbuf-bi, " w=%d, h=%d, a=%d, anchor=%d\n",
-			it->width, it->height, it->ascent, it->anchorid);
+	bi += snprint(buf + bi, nbuf - bi, " w=%d, h=%d, a=%d, anchor=%d\n",
+	              it->width, it->height, it->ascent, it->anchorid);
 	buf[bi] = 0;
 	return fmtstrcpy(f, buf);
 }
@@ -3608,7 +3823,7 @@ Iconv(Fmt *f)
 static Rune*
 stringalign(int a)
 {
-	Rune*	s;
+	Rune* s;
 
 	s = _revlookup(align_tab, NALIGNTAB, a);
 	if(s == nil)
@@ -3621,8 +3836,8 @@ stringalign(int a)
 static int
 dimprint(char* buf, int nbuf, Dimen d)
 {
-	int	n;
-	int	k;
+	int n;
+	int k;
 
 	n = 0;
 	n += snprint(buf, nbuf, "%d", dimenspec(d));
@@ -3637,7 +3852,7 @@ dimprint(char* buf, int nbuf, Dimen d)
 void
 printitems(Item* items, char* msg)
 {
-	Item*	il;
+	Item* il;
 
 	fprint(2, "%s\n", msg);
 	il = items;
@@ -3648,7 +3863,7 @@ printitems(Item* items, char* msg)
 }
 
 static Genattr*
-newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent*	 events)
+newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent* events)
 {
 	Genattr* g;
 
@@ -3662,8 +3877,8 @@ newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent*	 events)
 }
 
 static Formfield*
-newformfield(int ftype, int fieldid, Form* form, Rune* name,
-		Rune* value, int size, int maxlength, Formfield* link)
+newformfield(int ftype, int fieldid, Form* form, Rune* name, Rune* value,
+             int size, int maxlength, Formfield* link)
 {
 	Formfield* ff;
 
@@ -3684,7 +3899,7 @@ newformfield(int ftype, int fieldid, Form* form, Rune* name,
 static Option*
 newoption(int selected, Rune* value, Rune* display, Option* link)
 {
-	Option *o;
+	Option* o;
 
 	o = (Option*)emalloc(sizeof(Option));
 	o->selected = selected;
@@ -3695,7 +3910,8 @@ newoption(int selected, Rune* value, Rune* display, Option* link)
 }
 
 static Form*
-newform(int formid, Rune* name, Rune* action, int target, int method, Form* link)
+newform(int formid, Rune* name, Rune* action, int target, int method,
+        Form* link)
 {
 	Form* f;
 
@@ -3712,8 +3928,8 @@ newform(int formid, Rune* name, Rune* action, int target, int method, Form* link
 }
 
 static Table*
-newtable(int tableid, Align align, Dimen width, int border,
-	int cellspacing, int cellpadding, Background bg, Token* tok, Table* link)
+newtable(int tableid, Align align, Dimen width, int border, int cellspacing,
+         int cellpadding, Background bg, Token* tok, Table* link)
 {
 	Table* t;
 
@@ -3747,8 +3963,8 @@ newtablerow(Align align, Background bg, int flags, Tablerow* link)
 }
 
 static Tablecell*
-newtablecell(int cellid, int rowspan, int colspan, Align align, Dimen wspec, int hspec,
-		Background bg, int flags, Tablecell* link)
+newtablecell(int cellid, int rowspan, int colspan, Align align, Dimen wspec,
+             int hspec, Background bg, int flags, Tablecell* link)
 {
 	Tablecell* c;
 
@@ -3825,36 +4041,37 @@ makedimen(int kind, int spec)
 {
 	Dimen d;
 
-	if(spec&Dkindmask) {
+	if(spec & Dkindmask) {
 		if(warn)
-			fprint(2, "warning: dimension spec too big: %d\n", spec);
+			fprint(2, "warning: dimension spec too big: %d\n",
+			       spec);
 		spec = 0;
 	}
-	d.kindspec = kind|spec;
+	d.kindspec = kind | spec;
 	return d;
 }
 
 int
 dimenkind(Dimen d)
 {
-	return (d.kindspec&Dkindmask);
+	return (d.kindspec & Dkindmask);
 }
 
 int
 dimenspec(Dimen d)
 {
-	return (d.kindspec&Dspecmask);
+	return (d.kindspec & Dspecmask);
 }
 
 static Kidinfo*
 newkidinfo(int isframeset, Kidinfo* link)
 {
-	Kidinfo*	ki;
+	Kidinfo* ki;
 
 	ki = (Kidinfo*)emalloc(sizeof(Kidinfo));
 	ki->isframeset = isframeset;
 	if(!isframeset) {
-		ki->flags = FRhscrollauto|FRvscrollauto;
+		ki->flags = FRhscrollauto | FRvscrollauto;
 		ki->marginw = FRKIDMARGIN;
 		ki->marginh = FRKIDMARGIN;
 		ki->framebd = 1;
@@ -3866,7 +4083,7 @@ newkidinfo(int isframeset, Kidinfo* link)
 static Docinfo*
 newdocinfo(void)
 {
-	Docinfo*	d;
+	Docinfo* d;
 
 	d = (Docinfo*)emalloc(sizeof(Docinfo));
 	resetdocinfo(d);
@@ -3896,7 +4113,7 @@ targetmapinit(void)
 	int l;
 
 	targetmapsize = 10;
-	l = targetmapsize*sizeof *targetmap;
+	l = targetmapsize * sizeof *targetmap;
 	targetmap = emalloc(l);
 	memset(targetmap, 0, l);
 	targetmap[0].key = _Strdup((Rune*)L"_top");
@@ -3924,7 +4141,8 @@ targetid(Rune* s)
 			return targetmap[i].val;
 	if(i == targetmapsize) {
 		targetmapsize += 10;
-		targetmap = erealloc(targetmap, targetmapsize*sizeof(StringInt));
+		targetmap =
+		    erealloc(targetmap, targetmapsize * sizeof(StringInt));
 	}
 	targetmap[i].key = _Strdup(s);
 	targetmap[i].val = i;
@@ -3982,12 +4200,11 @@ validitem(Item* i)
 	int a;
 
 	ok = (i->tag >= Itexttag && i->tag <= Ispacertag) &&
-		(i->next == nil || validptr(i->next)) &&
-		(i->width >= 0 && i->width < HUGEPIX) &&
-		(i->height >= 0 && i->height < HUGEPIX) &&
-		(i->ascent > -HUGEPIX && i->ascent < HUGEPIX) &&
-		(i->anchorid >= 0) &&
-		(i->genattr == nil || validptr(i->genattr));
+	     (i->next == nil || validptr(i->next)) &&
+	     (i->width >= 0 && i->width < HUGEPIX) &&
+	     (i->height >= 0 && i->height < HUGEPIX) &&
+	     (i->ascent > -HUGEPIX && i->ascent < HUGEPIX) &&
+	     (i->anchorid >= 0) && (i->genattr == nil || validptr(i->genattr));
 	// also, could check state for ridiculous combinations
 	// also, could check anchorid for within-doc-range
 	if(ok)
@@ -3995,25 +4212,28 @@ validitem(Item* i)
 		case Itexttag:
 			ti = (Itext*)i;
 			ok = validStr(ti->s) &&
-				(ti->fnt >= 0 && ti->fnt < NumStyle*NumSize) &&
-				(ti->ul == ULnone || ti->ul == ULunder || ti->ul == ULmid);
+			     (ti->fnt >= 0 && ti->fnt < NumStyle * NumSize) &&
+			     (ti->ul == ULnone || ti->ul == ULunder ||
+			      ti->ul == ULmid);
 			break;
 		case Iruletag:
 			ri = (Irule*)i;
-			ok = (validvalign(ri->align) || validhalign(ri->align)) &&
-				(ri->size >=0 && ri->size < HUGEPIX);
+			ok = (validvalign(ri->align) ||
+			      validhalign(ri->align)) &&
+			     (ri->size >= 0 && ri->size < HUGEPIX);
 			break;
 		case Iimagetag:
 			ii = (Iimage*)i;
 			ok = (ii->imsrc == nil || validptr(ii->imsrc)) &&
-				(ii->width >= 0 && ii->width < HUGEPIX) &&
-				(ii->height >= 0 && ii->height < HUGEPIX) &&
-				(ii->imwidth >= 0 && ii->imwidth < HUGEPIX) &&
-				(ii->imheight >= 0 && ii->imheight < HUGEPIX) &&
-				(ii->altrep == nil || validStr(ii->altrep)) &&
-				(ii->map == nil || validptr(ii->map)) &&
-				(validvalign(ii->align) || validhalign(ii->align)) &&
-				(ii->nextimage == nil || validptr(ii->nextimage));
+			     (ii->width >= 0 && ii->width < HUGEPIX) &&
+			     (ii->height >= 0 && ii->height < HUGEPIX) &&
+			     (ii->imwidth >= 0 && ii->imwidth < HUGEPIX) &&
+			     (ii->imheight >= 0 && ii->imheight < HUGEPIX) &&
+			     (ii->altrep == nil || validStr(ii->altrep)) &&
+			     (ii->map == nil || validptr(ii->map)) &&
+			     (validvalign(ii->align) ||
+			      validhalign(ii->align)) &&
+			     (ii->nextimage == nil || validptr(ii->nextimage));
 			break;
 		case Iformfieldtag:
 			ok = validformfield(((Iformfield*)i)->formfield);
@@ -4024,12 +4244,14 @@ validitem(Item* i)
 		case Ifloattag:
 			fi = (Ifloat*)i;
 			ok = (fi->side == ALleft || fi->side == ALright) &&
-				validitem(fi->item) &&
-				(fi->item->tag == Iimagetag || fi->item->tag == Itabletag);
+			     validitem(fi->item) &&
+			     (fi->item->tag == Iimagetag ||
+			      fi->item->tag == Itabletag);
 			break;
 		case Ispacertag:
 			a = ((Ispacer*)i)->spkind;
-			ok = a==ISPnull || a==ISPvline || a==ISPhspace || a==ISPgeneral;
+			ok = a == ISPnull || a == ISPvline || a == ISPhspace ||
+			     a == ISPgeneral;
 			break;
 		default:
 			ok = 0;
@@ -4052,8 +4274,7 @@ validitems(Item* i)
 		if(ok) {
 			if(i->tag == Itabletag) {
 				ok = validtable(((Itable*)i)->table);
-			}
-			else if(i->tag == Ifloattag) {
+			} else if(i->tag == Ifloattag) {
 				ii = ((Ifloat*)i)->item;
 				if(ii->tag == Itabletag)
 					ok = validtable(((Itable*)ii)->table);
@@ -4073,14 +4294,13 @@ validformfield(Formfield* f)
 	int ok;
 
 	ok = (f->next == nil || validptr(f->next)) &&
-		(f->ftype >= 0 && f->ftype <= Ftextarea) &&
-		f->fieldid >= 0 &&
-		(f->form == nil || validptr(f->form)) &&
-		(f->name == nil || validStr(f->name)) &&
-		(f->value == nil || validStr(f->value)) &&
-		(f->options == nil || validptr(f->options)) &&
-		(f->image == nil || validitem(f->image)) &&
-		(f->events == nil || validptr(f->events));
+	     (f->ftype >= 0 && f->ftype <= Ftextarea) && f->fieldid >= 0 &&
+	     (f->form == nil || validptr(f->form)) &&
+	     (f->name == nil || validStr(f->name)) &&
+	     (f->value == nil || validStr(f->value)) &&
+	     (f->options == nil || validptr(f->options)) &&
+	     (f->image == nil || validitem(f->image)) &&
+	     (f->events == nil || validptr(f->events));
 	// when all built, should have f->fieldid < f->form->nfields,
 	// but this may be called during build...
 	return ok;
@@ -4094,28 +4314,24 @@ validtable(Table* t)
 	int i, j;
 	Tablecell* c;
 
-	ok = (t->next == nil || validptr(t->next)) &&
-		t->nrow >= 0 &&
-		t->ncol >= 0 &&
-		t->ncell >= 0 &&
-		validalign(t->align) &&
-		validdimen(t->width) &&
-		(t->border >= 0 && t->border < HUGEPIX) &&
-		(t->cellspacing >= 0 && t->cellspacing < HUGEPIX) &&
-		(t->cellpadding >= 0 && t->cellpadding < HUGEPIX) &&
-		validitems(t->caption) &&
-		(t->caption_place == ALtop || t->caption_place == ALbottom) &&
-		(t->totw >= 0 && t->totw < HUGEPIX) &&
-		(t->toth >= 0 && t->toth < HUGEPIX) &&
-		(t->tabletok == nil || validptr(t->tabletok));
+	ok = (t->next == nil || validptr(t->next)) && t->nrow >= 0 &&
+	     t->ncol >= 0 && t->ncell >= 0 && validalign(t->align) &&
+	     validdimen(t->width) && (t->border >= 0 && t->border < HUGEPIX) &&
+	     (t->cellspacing >= 0 && t->cellspacing < HUGEPIX) &&
+	     (t->cellpadding >= 0 && t->cellpadding < HUGEPIX) &&
+	     validitems(t->caption) &&
+	     (t->caption_place == ALtop || t->caption_place == ALbottom) &&
+	     (t->totw >= 0 && t->totw < HUGEPIX) &&
+	     (t->toth >= 0 && t->toth < HUGEPIX) &&
+	     (t->tabletok == nil || validptr(t->tabletok));
 	// during parsing, t->rows has list;
 	// only when parsing is done is t->nrow set > 0
 	if(ok && t->nrow > 0 && t->ncol > 0) {
 		// table is "finished"
-		for(i = 0; i < t->nrow && ok; i++) 
-			ok = validtablerow(t->rows+i);
+		for(i = 0; i < t->nrow && ok; i++)
+			ok = validtablerow(t->rows + i);
 		for(j = 0; j < t->ncol && ok; j++)
-			ok = validtablecol(t->cols+j);
+			ok = validtablecol(t->cols + j);
 		for(c = t->cells; c != nil && ok; c = c->next)
 			ok = validtablecell(c);
 		for(i = 0; i < t->nrow && ok; i++)
@@ -4128,14 +4344,15 @@ validtable(Table* t)
 static int
 validvalign(int a)
 {
-	return a == ALnone || a == ALmiddle || a == ALbottom || a == ALtop || a == ALbaseline;
+	return a == ALnone || a == ALmiddle || a == ALbottom || a == ALtop ||
+	       a == ALbaseline;
 }
 
 static int
 validhalign(int a)
 {
 	return a == ALnone || a == ALleft || a == ALcenter || a == ALright ||
-			a == ALjustify || a == ALchar;
+	       a == ALjustify || a == ALchar;
 }
 
 static int
@@ -4151,10 +4368,10 @@ validdimen(Dimen d)
 	int s;
 
 	ok = 0;
-	s = d.kindspec&Dspecmask;
-	switch(d.kindspec&Dkindmask) {
+	s = d.kindspec & Dspecmask;
+	switch(d.kindspec & Dkindmask) {
 	case Dnone:
-		ok = s==0;
+		ok = s == 0;
 		break;
 	case Dpixels:
 		ok = s < HUGEPIX;
@@ -4171,16 +4388,15 @@ static int
 validtablerow(Tablerow* r)
 {
 	return (r->cells == nil || validptr(r->cells)) &&
-		(r->height >= 0 && r->height < HUGEPIX) &&
-		(r->ascent > -HUGEPIX && r->ascent < HUGEPIX) &&
-		validalign(r->align);
+	       (r->height >= 0 && r->height < HUGEPIX) &&
+	       (r->ascent > -HUGEPIX && r->ascent < HUGEPIX) &&
+	       validalign(r->align);
 }
 
 static int
 validtablecol(Tablecol* c)
 {
-	return c->width >= 0 && c->width < HUGEPIX
-		&& validalign(c->align);
+	return c->width >= 0 && c->width < HUGEPIX && validalign(c->align);
 }
 
 static int
@@ -4189,15 +4405,11 @@ validtablecell(Tablecell* c)
 	int ok;
 
 	ok = (c->next == nil || validptr(c->next)) &&
-		(c->nextinrow == nil || validptr(c->nextinrow)) &&
-		(c->content == nil || validptr(c->content)) &&
-		(c->lay == nil || validptr(c->lay)) &&
-		c->rowspan >= 0 &&
-		c->colspan >= 0 &&
-		validalign(c->align) &&
-		validdimen(c->wspec) &&
-		c->row >= 0 &&
-		c->col >= 0;
+	     (c->nextinrow == nil || validptr(c->nextinrow)) &&
+	     (c->content == nil || validptr(c->content)) &&
+	     (c->lay == nil || validptr(c->lay)) && c->rowspan >= 0 &&
+	     c->colspan >= 0 && validalign(c->align) && validdimen(c->wspec) &&
+	     c->row >= 0 && c->col >= 0;
 	if(ok) {
 		if(c->content != nil)
 			ok = validitems(c->content);

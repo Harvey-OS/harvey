@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#define	EXTERN
+#define EXTERN
 #include "gc.h"
 
 void
@@ -24,7 +24,7 @@ listinit(void)
 }
 
 int
-Bconv(Fmt *fp)
+Bconv(Fmt* fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
@@ -44,28 +44,26 @@ Bconv(Fmt *fp)
 		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
 			break;
 		strcat(str, s);
-		bits.b[i/32] &= ~(1L << (i%32));
+		bits.b[i / 32] &= ~(1L << (i % 32));
 	}
 	return fmtstrcpy(fp, str);
 }
 
-char *extra [] = {
-	".EQ", ".NE", ".CS", ".CC", 
-	".MI", ".PL", ".VS", ".VC", 
-	".HI", ".LS", ".GE", ".LT", 
-	".GT", ".LE", "", ".NV",
+char* extra[] = {
+    ".EQ", ".NE", ".CS", ".CC", ".MI", ".PL", ".VS", ".VC",
+    ".HI", ".LS", ".GE", ".LT", ".GT", ".LE", "",    ".NV",
 };
 
 int
-Pconv(Fmt *fp)
+Pconv(Fmt* fp)
 {
 	char str[STRINGSZ], sc[20];
-	Prog *p;
+	Prog* p;
 	int a, s;
 
 	p = va_arg(fp->args, Prog*);
 	a = p->as;
-	s = p->scond; 
+	s = p->scond;
 	strcpy(sc, extra[s & C_SCOND]);
 	if(s & C_SBIT)
 		strcat(sc, ".S");
@@ -73,37 +71,40 @@ Pconv(Fmt *fp)
 		strcat(sc, ".P");
 	if(s & C_WBIT)
 		strcat(sc, ".W");
-	if(s & C_UBIT)		/* ambiguous with FBIT */
+	if(s & C_UBIT) /* ambiguous with FBIT */
 		strcat(sc, ".U");
 	if(a == AMOVM) {
 		if(p->from.type == D_CONST)
-			snprint(str, sizeof(str), "	%A%s	%R,%D", a, sc, &p->from, &p->to);
+			snprint(str, sizeof(str), "	%A%s	%R,%D", a, sc,
+			        &p->from, &p->to);
+		else if(p->to.type == D_CONST)
+			snprint(str, sizeof(str), "	%A%s	%D,%R", a, sc,
+			        &p->from, &p->to);
 		else
-		if(p->to.type == D_CONST)
-			snprint(str, sizeof(str), "	%A%s	%D,%R", a, sc, &p->from, &p->to);
-		else
-			snprint(str, sizeof(str), "	%A%s	%D,%D", a, sc, &p->from, &p->to);
-	} else
-	if(a == ADATA)
-		snprint(str, sizeof(str), "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
+			snprint(str, sizeof(str), "	%A%s	%D,%D", a, sc,
+			        &p->from, &p->to);
+	} else if(a == ADATA)
+		snprint(str, sizeof(str), "	%A	%D/%d,%D", a, &p->from,
+		        p->reg, &p->to);
+	else if(p->as == ATEXT)
+		snprint(str, sizeof(str), "	%A	%D,%d,%D", a, &p->from,
+		        p->reg, &p->to);
+	else if(p->reg == NREG)
+		snprint(str, sizeof(str), "	%A%s	%D,%D", a, sc, &p->from,
+		        &p->to);
+	else if(p->from.type != D_FREG)
+		snprint(str, sizeof(str), "	%A%s	%D,R%d,%D", a, sc,
+		        &p->from, p->reg, &p->to);
 	else
-	if(p->as == ATEXT)
-		snprint(str, sizeof(str), "	%A	%D,%d,%D", a, &p->from, p->reg, &p->to);
-	else
-	if(p->reg == NREG)
-		snprint(str, sizeof(str), "	%A%s	%D,%D", a, sc, &p->from, &p->to);
-	else
-	if(p->from.type != D_FREG)
-		snprint(str, sizeof(str), "	%A%s	%D,R%d,%D", a, sc, &p->from, p->reg, &p->to);
-	else
-		snprint(str, sizeof(str), "	%A%s	%D,F%d,%D", a, sc, &p->from, p->reg, &p->to);
+		snprint(str, sizeof(str), "	%A%s	%D,F%d,%D", a, sc,
+		        &p->from, p->reg, &p->to);
 	return fmtstrcpy(fp, str);
 }
 
 int
-Aconv(Fmt *fp)
+Aconv(Fmt* fp)
 {
-	char *s;
+	char* s;
 	int a;
 
 	a = va_arg(fp->args, int);
@@ -114,11 +115,11 @@ Aconv(Fmt *fp)
 }
 
 int
-Dconv(Fmt *fp)
+Dconv(Fmt* fp)
 {
 	char str[STRINGSZ];
-	Adr *a;
-	char *op;
+	Adr* a;
+	char* op;
 	int v;
 
 	a = va_arg(fp->args, Adr*);
@@ -143,13 +144,15 @@ Dconv(Fmt *fp)
 
 	case D_SHIFT:
 		v = a->offset;
-		op = "<<>>->@>" + (((v>>5) & 3) << 1);
-		if(v & (1<<4))
-			snprint(str, sizeof(str), "R%d%c%cR%d", v&15, op[0], op[1], (v>>8)&15);
+		op = "<<>>->@>" + (((v >> 5) & 3) << 1);
+		if(v & (1 << 4))
+			snprint(str, sizeof(str), "R%d%c%cR%d", v & 15, op[0],
+			        op[1], (v >> 8) & 15);
 		else
-			snprint(str, sizeof(str), "R%d%c%c%d", v&15, op[0], op[1], (v>>7)&31);
+			snprint(str, sizeof(str), "R%d%c%c%d", v & 15, op[0],
+			        op[1], (v >> 7) & 31);
 		if(a->reg != NREG)
-			sprint(str+strlen(str), "(R%d)", a->reg);
+			sprint(str + strlen(str), "(R%d)", a->reg);
 		break;
 
 	case D_OREG:
@@ -178,7 +181,7 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_BRANCH:
-		snprint(str, sizeof(str), "%ld(PC)", a->offset-pc);
+		snprint(str, sizeof(str), "%ld(PC)", a->offset - pc);
 		break;
 
 	case D_FCONST:
@@ -193,10 +196,10 @@ Dconv(Fmt *fp)
 }
 
 int
-Rconv(Fmt *fp)
+Rconv(Fmt* fp)
 {
 	char str[STRINGSZ], *p, *e;
-	Adr *a;
+	Adr* a;
 	int i, v;
 
 	a = va_arg(fp->args, Adr*);
@@ -209,9 +212,9 @@ Rconv(Fmt *fp)
 			break;
 		v = a->offset;
 		p = str;
-		e = str+sizeof(str);
-		for(i=0; i<NREG; i++) {
-			if(v & (1<<i)) {
+		e = str + sizeof(str);
+		for(i = 0; i < NREG; i++) {
+			if(v & (1 << i)) {
 				if(p == str)
 					p = seprint(p, e, "[R%d", i);
 				else
@@ -224,19 +227,17 @@ Rconv(Fmt *fp)
 }
 
 int
-Sconv(Fmt *fp)
+Sconv(Fmt* fp)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
 	a = va_arg(fp->args, char*);
 	p = str;
-	for(i=0; i<NSNAME; i++) {
+	for(i = 0; i < NSNAME; i++) {
 		c = a[i] & 0xff;
-		if(c >= 'a' && c <= 'z' ||
-		   c >= 'A' && c <= 'Z' ||
-		   c >= '0' && c <= '9' ||
-		   c == ' ' || c == '%') {
+		if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' ||
+		   c >= '0' && c <= '9' || c == ' ' || c == '%') {
 			*p++ = c;
 			continue;
 		}
@@ -262,8 +263,8 @@ Sconv(Fmt *fp)
 			*p++ = 'f';
 			continue;
 		}
-		*p++ = (c>>6) + '0';
-		*p++ = ((c>>3) & 7) + '0';
+		*p++ = (c >> 6) + '0';
+		*p++ = ((c >> 3) & 7) + '0';
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
@@ -271,11 +272,11 @@ Sconv(Fmt *fp)
 }
 
 int
-Nconv(Fmt *fp)
+Nconv(Fmt* fp)
 {
 	char str[STRINGSZ];
-	Adr *a;
-	Sym *s;
+	Adr* a;
+	Sym* s;
 
 	a = va_arg(fp->args, Adr*);
 	s = a->sym;

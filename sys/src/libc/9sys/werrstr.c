@@ -11,13 +11,13 @@
 #include <libc.h>
 
 void
-werrstr(char *fmt, ...)
+werrstr(char* fmt, ...)
 {
 	va_list arg;
 	char buf[ERRMAX];
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+ERRMAX, fmt, arg);
+	vseprint(buf, buf + ERRMAX, fmt, arg);
 	va_end(arg);
 	errstr(buf, ERRMAX);
 }

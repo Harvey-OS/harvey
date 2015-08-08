@@ -11,10 +11,10 @@
 #include <u.h>
 #include <libc.h>
 
-enum { TIMEOUT = 10*60*1000 };
+enum { TIMEOUT = 10 * 60 * 1000 };
 
 int
-alarmhandler(void *, char *note)
+alarmhandler(void*, char* note)
 {
 	if(strcmp(note, "alarm") == 0) {
 		fprint(2, "alarm\n");
@@ -30,9 +30,9 @@ pass(int in, int out)
 	static char buf[4096];
 
 	for(;;) {
-		alarm(TIMEOUT);		/* to break hanging */
+		alarm(TIMEOUT); /* to break hanging */
 		rv = read(in, buf, sizeof buf);
-		if (rv == 0)
+		if(rv == 0)
 			break;
 		if(rv < 0)
 			sysfatal("read error: %r");
@@ -50,18 +50,18 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int netfd;
 
 	argv0 = argv[0];
-	if (argc != 2)
+	if(argc != 2)
 		usage();
 
 	atnotify(alarmhandler, 1);
 
 	netfd = dial(argv[1], "net", 0, 0);
-	if (netfd < 0)
+	if(netfd < 0)
 		sysfatal("can't dial %s: %r", argv[1]);
 	pass(0, netfd);
 	exits(0);

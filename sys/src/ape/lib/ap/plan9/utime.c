@@ -17,7 +17,7 @@
 #include "dir.h"
 
 int
-utime(const char *path, const struct utimbuf *times)
+utime(const char* path, const struct utimbuf* times)
 {
 	int n;
 	Dir nd;

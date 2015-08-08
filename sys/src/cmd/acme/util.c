@@ -20,14 +20,14 @@
 #include "dat.h"
 #include "fns.h"
 
-static	Point		prevmouse;
-static	Window	*mousew;
+static Point prevmouse;
+static Window* mousew;
 
 void
-cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
+cvttorunes(char* p, int n, Rune* r, int* nb, int* nr, int* nulls)
 {
-	uint8_t *q;
-	Rune *s;
+	uint8_t* q;
+	Rune* s;
 	int j, w;
 
 	/*
@@ -39,11 +39,11 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 */
 	q = (uint8_t*)p;
 	s = r;
-	for(j=0; j<n; j+=w){
-		if(*q < Runeself){
+	for(j = 0; j < n; j += w) {
+		if(*q < Runeself) {
 			w = 1;
 			*s = *q++;
-		}else{
+		} else {
 			w = chartorune(s, (char*)q);
 			q += w;
 		}
@@ -52,12 +52,12 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 			*nulls = TRUE;
 	}
-	*nb = (char*)q-p;
-	*nr = s-r;
+	*nb = (char*)q - p;
+	*nr = s - r;
 }
 
 void
-error(char *s)
+error(char* s)
 {
 	fprint(2, "acme: %s: %r\n", s);
 	remove(acmeerrorfile);
@@ -65,30 +65,31 @@ error(char *s)
 }
 
 Window*
-errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
+errorwin1(Rune* dir, int ndir, Rune** incl, int nincl)
 {
-	Window *w;
-	Rune *r;
+	Window* w;
+	Rune* r;
 	int i, n;
 
-	r = runemalloc(ndir+8);
-	if(n = ndir){	/* assign = */
+	r = runemalloc(ndir + 8);
+	if(n = ndir) { /* assign = */
 		runemove(r, dir, ndir);
 		r[n++] = L'/';
 	}
-	runemove(r+n, L"+Errors", 7);
+	runemove(r + n, L"+Errors", 7);
 	n += 7;
 	w = lookfile(r, n);
-	if(w == nil){
+	if(w == nil) {
 		if(row.ncol == 0)
 			if(rowadd(&row, nil, -1) == nil)
-				error("can't create column to make error window");
-		w = coladd(row.col[row.ncol-1], nil, nil, -1);
+				error(
+				    "can't create column to make error window");
+		w = coladd(row.col[row.ncol - 1], nil, nil, -1);
 		w->filemenu = FALSE;
 		winsetname(w, r, n);
 	}
 	free(r);
-	for(i=nincl; --i>=0; ){
+	for(i = nincl; --i >= 0;) {
 		n = runestrlen(incl[i]);
 		r = runemalloc(n);
 		runemove(r, incl[i], n);
@@ -100,11 +101,11 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 
 /* make new window, if necessary; return with it locked */
 Window*
-errorwin(Mntdir *md, int owner)
+errorwin(Mntdir* md, int owner)
 {
-	Window *w;
+	Window* w;
 
-	for(;;){
+	for(;;) {
 		if(md == nil)
 			w = errorwin1(nil, 0, nil, 0);
 		else
@@ -119,38 +120,38 @@ errorwin(Mntdir *md, int owner)
 }
 
 /*
- * Incoming window should be locked. 
+ * Incoming window should be locked.
  * It will be unlocked and returned window
  * will be locked in its place.
  */
 Window*
-errorwinforwin(Window *w)
+errorwinforwin(Window* w)
 {
 	int i, n, nincl, owner;
-	Rune **incl;
+	Rune** incl;
 	Runestr dir;
-	Text *t;
+	Text* t;
 
 	t = &w->body;
 	dir = dirname(t, nil, 0);
-	if(dir.nr==1 && dir.r[0]=='.'){	/* sigh */
+	if(dir.nr == 1 && dir.r[0] == '.') { /* sigh */
 		free(dir.r);
 		dir.r = nil;
 		dir.nr = 0;
 	}
 	incl = nil;
 	nincl = w->nincl;
-	if(nincl > 0){
-		incl = emalloc(nincl*sizeof(Rune*));
-		for(i=0; i<nincl; i++){
+	if(nincl > 0) {
+		incl = emalloc(nincl * sizeof(Rune*));
+		for(i = 0; i < nincl; i++) {
 			n = runestrlen(w->incl[i]);
-			incl[i] = runemalloc(n+1);
+			incl[i] = runemalloc(n + 1);
 			runemove(incl[i], w->incl[i], n);
 		}
 	}
 	owner = w->owner;
 	winunlock(w);
-	for(;;){
+	for(;;) {
 		w = errorwin1(dir.r, dir.nr, incl, nincl);
 		winlock(w, owner);
 		if(w->col != nil)
@@ -163,22 +164,21 @@ errorwinforwin(Window *w)
 
 typedef struct Warning Warning;
 
-struct Warning{
-	Mntdir *md;
+struct Warning {
+	Mntdir* md;
 	Buffer buf;
-	Warning *next;
+	Warning* next;
 };
 
-static Warning *warnings;
+static Warning* warnings;
 
-static
-void
-addwarningtext(Mntdir *md, Rune *r, int nr)
+static void
+addwarningtext(Mntdir* md, Rune* r, int nr)
 {
-	Warning *warn;
-	
-	for(warn = warnings; warn; warn=warn->next){
-		if(warn->md == md){
+	Warning* warn;
+
+	for(warn = warnings; warn; warn = warn->next) {
+		if(warn->md == md) {
 			bufinsert(&warn->buf, warn->buf.nc, r, nr);
 			return;
 		}
@@ -197,13 +197,13 @@ addwarningtext(Mntdir *md, Rune *r, int nr)
 void
 flushwarnings(void)
 {
-	Warning *warn, *next;
-	Window *w;
-	Text *t;
+	Warning* warn, *next;
+	Window* w;
+	Text* t;
 	int owner, nr, q0, n;
-	Rune *r;
+	Rune* r;
 
-	for(warn=warnings; warn; warn=next) {
+	for(warn = warnings; warn; warn = next) {
 		w = errorwin(warn->md, 'E');
 		t = &w->body;
 		owner = w->owner;
@@ -214,13 +214,14 @@ flushwarnings(void)
 		 * Most commands don't generate much output. For instance,
 		 * Edit ,>cat goes through /dev/cons and is already in blocks
 		 * because of the i/o system, but a few can.  Edit ,p will
-		 * put the entire result into a single hunk.  So it's worth doing
+		 * put the entire result into a single hunk.  So it's worth
+		 * doing
 		 * this in blocks (and putting the text in a buffer in the first
 		 * place), to avoid a big memory footprint.
 		 */
 		r = fbufalloc();
 		q0 = t->file->nc;
-		for(n = 0; n < warn->buf.nc; n += nr){
+		for(n = 0; n < warn->buf.nc; n += nr) {
 			nr = warn->buf.nc - n;
 			if(nr > RBUFSIZE)
 				nr = RBUFSIZE;
@@ -244,9 +245,9 @@ flushwarnings(void)
 }
 
 void
-warning(Mntdir *md, char *s, ...)
+warning(Mntdir* md, char* s, ...)
 {
-	Rune *r;
+	Rune* r;
 	va_list arg;
 
 	va_start(arg, s);
@@ -259,11 +260,11 @@ warning(Mntdir *md, char *s, ...)
 }
 
 int
-runeeq(Rune *s1, uint n1, Rune *s2, uint n2)
+runeeq(Rune* s1, uint n1, Rune* s2, uint n2)
 {
 	if(n1 != n2)
 		return FALSE;
-	return memcmp(s1, s2, n1*sizeof(Rune)) == 0;
+	return memcmp(s1, s2, n1 * sizeof(Rune)) == 0;
 }
 
 uint
@@ -283,26 +284,26 @@ max(uint a, uint b)
 }
 
 char*
-runetobyte(Rune *r, int n)
+runetobyte(Rune* r, int n)
 {
-	char *s;
+	char* s;
 
 	if(r == nil)
 		return nil;
-	s = emalloc(n*UTFmax+1);
+	s = emalloc(n * UTFmax + 1);
 	setmalloctag(s, getcallerpc(&r));
-	snprint(s, n*UTFmax+1, "%.*S", n, r);
+	snprint(s, n * UTFmax + 1, "%.*S", n, r);
 	return s;
 }
 
 Rune*
-bytetorune(char *s, int *ip)
+bytetorune(char* s, int* ip)
 {
-	Rune *r;
+	Rune* r;
 	int nb, nr;
 
 	nb = strlen(s);
-	r = runemalloc(nb+1);
+	r = runemalloc(nb + 1);
 	cvttorunes(s, nb, r, &nb, &nr, nil);
 	r[nr] = '\0';
 	*ip = nr;
@@ -322,7 +323,7 @@ isalnum(Rune c)
 	 */
 	if(c <= ' ')
 		return FALSE;
-	if(0x7F<=c && c<0xA0)
+	if(0x7F <= c && c < 0xA0)
 		return FALSE;
 	if(utfrune("!\"#$%&'()*+,-./:;<=>?@[\\]^`{|}~", c))
 		return FALSE;
@@ -330,15 +331,15 @@ isalnum(Rune c)
 }
 
 int
-rgetc(void *v, uint n)
+rgetc(void* v, uint n)
 {
 	return ((Rune*)v)[n];
 }
 
 int
-tgetc(void *a, uint n)
+tgetc(void* a, uint n)
 {
-	Text *t;
+	Text* t;
 
 	t = a;
 	if(n >= t->file->nc)
@@ -347,9 +348,9 @@ tgetc(void *a, uint n)
 }
 
 Rune*
-skipbl(Rune *r, int n, int *np)
+skipbl(Rune* r, int n, int* np)
 {
-	while(n>0 && (*r==' ' || *r=='\t' || *r=='\n')){
+	while(n > 0 && (*r == ' ' || *r == '\t' || *r == '\n')) {
 		--n;
 		r++;
 	}
@@ -358,9 +359,9 @@ skipbl(Rune *r, int n, int *np)
 }
 
 Rune*
-findbl(Rune *r, int n, int *np)
+findbl(Rune* r, int n, int* np)
 {
-	while(n>0 && *r!=' ' && *r!='\t' && *r!='\n'){
+	while(n > 0 && *r != ' ' && *r != '\t' && *r != '\n') {
 		--n;
 		r++;
 	}
@@ -369,19 +370,19 @@ findbl(Rune *r, int n, int *np)
 }
 
 void
-savemouse(Window *w)
+savemouse(Window* w)
 {
 	prevmouse = mouse->xy;
 	mousew = w;
 }
 
 int
-restoremouse(Window *w)
+restoremouse(Window* w)
 {
 	int did;
 
 	did = 0;
-	if(mousew!=nil && mousew==w){
+	if(mousew != nil && mousew == w) {
 		moveto(mousectl, prevmouse);
 		did = 1;
 	}
@@ -396,9 +397,9 @@ clearmouse()
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *t;
+	char* t;
 
 	t = strdup(s);
 	if(t == nil)
@@ -410,7 +411,7 @@ estrdup(char *s)
 void*
 emalloc(uint n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -421,7 +422,7 @@ emalloc(uint n)
 }
 
 void*
-erealloc(void *p, uint n)
+erealloc(void* p, uint n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -434,11 +435,11 @@ erealloc(void *p, uint n)
  * Heuristic city.
  */
 Window*
-makenewwindow(Text *t)
+makenewwindow(Text* t)
 {
-	Column *c;
-	Window *w, *bigw, *emptyw;
-	Text *emptyb;
+	Column* c;
+	Window* w, *bigw, *emptyw;
+	Text* emptyb;
 	int i, y, el;
 
 	if(activecol)
@@ -447,36 +448,38 @@ makenewwindow(Text *t)
 		c = seltext->col;
 	else if(t && t->col)
 		c = t->col;
-	else{
-		if(row.ncol==0 && rowadd(&row, nil, -1)==nil)
+	else {
+		if(row.ncol == 0 && rowadd(&row, nil, -1) == nil)
 			error("can't make column");
-		c = row.col[row.ncol-1];
+		c = row.col[row.ncol - 1];
 	}
 	activecol = c;
-	if(t==nil || t->w==nil || c->nw==0)
+	if(t == nil || t->w == nil || c->nw == 0)
 		return coladd(c, nil, nil, -1);
 
 	/* find biggest window and biggest blank spot */
 	emptyw = c->w[0];
 	bigw = emptyw;
-	for(i=1; i<c->nw; i++){
+	for(i = 1; i < c->nw; i++) {
 		w = c->w[i];
 		/* use >= to choose one near bottom of screen */
 		if(w->body.maxlines >= bigw->body.maxlines)
 			bigw = w;
-		if(w->body.maxlines-w->body.nlines >= emptyw->body.maxlines-emptyw->body.nlines)
+		if(w->body.maxlines - w->body.nlines >=
+		   emptyw->body.maxlines - emptyw->body.nlines)
 			emptyw = w;
 	}
 	emptyb = &emptyw->body;
-	el = emptyb->maxlines-emptyb->nlines;
+	el = emptyb->maxlines - emptyb->nlines;
 	/* if empty space is big, use it */
-	if(el>15 || (el>3 && el>(bigw->body.maxlines-1)/2))
-		y = emptyb->r.min.y+emptyb->nlines*font->height;
-	else{
-		/* if this window is in column and isn't much smaller, split it */
-		if(t->col==c && Dy(t->w->r)>2*Dy(bigw->r)/3)
+	if(el > 15 || (el > 3 && el > (bigw->body.maxlines - 1) / 2))
+		y = emptyb->r.min.y + emptyb->nlines * font->height;
+	else {
+		/* if this window is in column and isn't much smaller, split it
+		 */
+		if(t->col == c && Dy(t->w->r) > 2 * Dy(bigw->r) / 3)
 			bigw = t->w;
-		y = (bigw->r.min.y + bigw->r.max.y)/2;
+		y = (bigw->r.min.y + bigw->r.max.y) / 2;
 	}
 	w = coladd(c, nil, nil, y);
 	if(w->body.maxlines < 2)

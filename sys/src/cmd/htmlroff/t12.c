@@ -14,12 +14,12 @@
  */
 
 /*
-	\o'asdf'
-	\zc
-	\b'asdf'
-	\l'Nc'
-	\L'Nc'
-	\D'xxx'
+        \o'asdf'
+        \zc
+        \b'asdf'
+        \l'Nc'
+        \L'Nc'
+        \D'xxx'
 */
 
 int

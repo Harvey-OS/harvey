@@ -7,23 +7,22 @@
  * in the LICENSE file.
  */
 
-
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
 #include "String.h"
 
-struct Sinstack{
-	int	depth;
-	Biobuf	*fp[32];	/* hard limit to avoid infinite recursion */
+struct Sinstack {
+	int depth;
+	Biobuf* fp[32]; /* hard limit to avoid infinite recursion */
 };
 
 /* initialize */
-extern Sinstack *
-s_allocinstack(char *file)
+extern Sinstack*
+s_allocinstack(char* file)
 {
-	Sinstack *sp;
-	Biobuf *fp;
+	Sinstack* sp;
+	Biobuf* fp;
 
 	fp = Bopen(file, OREAD);
 	if(fp == nil)
@@ -36,7 +35,7 @@ s_allocinstack(char *file)
 }
 
 extern void
-s_freeinstack(Sinstack *sp)
+s_freeinstack(Sinstack* sp)
 {
 	while(sp->depth >= 0)
 		Bterm(sp->fp[sp->depth--]);
@@ -47,8 +46,8 @@ s_freeinstack(Sinstack *sp)
  *
  *  Empty lines and leading whitespace are removed.
  */
-static char *
-rdline(Biobuf *fp, String *to)
+static char*
+rdline(Biobuf* fp, String* to)
 {
 	int c;
 	int len = 0;
@@ -56,19 +55,19 @@ rdline(Biobuf *fp, String *to)
 	c = Bgetc(fp);
 
 	/* eat leading white */
-	while(c==' ' || c=='\t' || c=='\n' || c=='\r')
+	while(c == ' ' || c == '\t' || c == '\n' || c == '\r')
 		c = Bgetc(fp);
 
 	if(c < 0)
 		return 0;
 
-	for(;;){
+	for(;;) {
 		switch(c) {
 		case -1:
 			goto out;
 		case '\\':
 			c = Bgetc(fp);
-			if (c != '\n') {
+			if(c != '\n') {
 				s_putc(to, '\\');
 				s_putc(to, c);
 				len += 2;
@@ -98,19 +97,19 @@ out:
  * Leading whitespace and newlines are removed.
  * Lines starting with #include cause us to descend into the new file.
  * Empty lines and other lines starting with '#' are ignored.
- */ 
-extern char *
-s_rdinstack(Sinstack *sp, String *to)
+ */
+extern char*
+s_rdinstack(Sinstack* sp, String* to)
 {
-	char *p;
-	Biobuf *fp, *nfp;
+	char* p;
+	Biobuf* fp, *nfp;
 
 	s_terminate(to);
 	fp = sp->fp[sp->depth];
 
-	for(;;){
+	for(;;) {
 		p = rdline(fp, to);
-		if(p == nil){
+		if(p == nil) {
 			if(sp->depth == 0)
 				break;
 			Bterm(fp);
@@ -118,7 +117,8 @@ s_rdinstack(Sinstack *sp, String *to)
 			return s_rdinstack(sp, to);
 		}
 
-		if(strncmp(p, "#include", 8) == 0 && (p[8] == ' ' || p[8] == '\t')){
+		if(strncmp(p, "#include", 8) == 0 &&
+		   (p[8] == ' ' || p[8] == '\t')) {
 			to->ptr = p;
 			p += 8;
 

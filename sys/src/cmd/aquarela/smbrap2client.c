@@ -10,15 +10,15 @@
 #include "headers.h"
 
 static SmbTransactionMethod smbtransactionmethodrap = {
-	.encodeprimary = smbtransactionencodeprimary,
-	.sendrequest = smbtransactionclientsend,
-	.receiveresponse = smbtransactionclientreceive,
-	.decoderesponse = smbtransactiondecoderesponse,
+    .encodeprimary = smbtransactionencodeprimary,
+    .sendrequest = smbtransactionclientsend,
+    .receiveresponse = smbtransactionclientreceive,
+    .decoderesponse = smbtransactiondecoderesponse,
 };
 
 int
-smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata,
-	     char **errmsgp)
+smbclientrap(SmbClient* c, SmbBuffer* inparam, SmbBuffer* outparam,
+             SmbBuffer* outdata, char** errmsgp)
 {
 	SmbTransaction transaction;
 	SmbHeader h;
@@ -33,20 +33,20 @@ smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *o
 	h = c->protoh;
 	h.tid = c->ipctid;
 	h.mid = 0;
-	return smbtransactionexecute(&transaction, &h, &c->peerinfo, c->b, &smbtransactionmethodrap, c, nil, errmsgp);
+	return smbtransactionexecute(&transaction, &h, &c->peerinfo, c->b,
+	                             &smbtransactionmethodrap, c, nil, errmsgp);
 }
 
 int
-smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
-		  int *entriesp,
-		  SmbRapServerInfo1 **sip, char **errmsgp)
+smbnetserverenum2(SmbClient* c, uint32_t stype, char* domain, int* entriesp,
+                  SmbRapServerInfo1** sip, char** errmsgp)
 {
 	int rv;
 	uint16_t ec, entries, total, converter;
-	SmbRapServerInfo1 *si = nil;
-	SmbBuffer *ipb = smbbuffernew(512);
-	SmbBuffer *odb = smbbuffernew(65535);
-	SmbBuffer *opb = smbbuffernew(8);
+	SmbRapServerInfo1* si = nil;
+	SmbBuffer* ipb = smbbuffernew(512);
+	SmbBuffer* odb = smbbuffernew(65535);
+	SmbBuffer* opb = smbbuffernew(8);
 	smbbufferputs(ipb, 104);
 	smbbufferputstring(ipb, nil, SMB_STRING_ASCII, "WrLehDz");
 	smbbufferputstring(ipb, nil, SMB_STRING_ASCII, "B16BBDz");
@@ -56,32 +56,37 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 	smbbufferputstring(ipb, nil, SMB_STRING_ASCII, domain);
 	rv = !smbclientrap(c, ipb, opb, odb, errmsgp);
 	smbbufferfree(&ipb);
-	if (rv == 0) {
-		char *remark, *eremark;
+	if(rv == 0) {
+		char* remark, *eremark;
 		int remarkspace;
 		int i;
-		if (!smbbuffergets(opb, &ec)
-			|| !smbbuffergets(opb, &converter)
-			|| !smbbuffergets(opb, &entries)
-			|| !smbbuffergets(opb, &total)) {
-			smbstringprint(errmsgp, "smbnetserverenum2: not enough return parameters");
+		if(!smbbuffergets(opb, &ec) ||
+		   !smbbuffergets(opb, &converter) ||
+		   !smbbuffergets(opb, &entries) ||
+		   !smbbuffergets(opb, &total)) {
+			smbstringprint(
+			    errmsgp,
+			    "smbnetserverenum2: not enough return parameters");
 			rv = -1;
 			goto done;
 		}
-		if (ec != 0) {
+		if(ec != 0) {
 			rv = ec;
 			goto done;
 		}
-		if (smbbufferreadspace(odb) < entries * 26) {
-			smbstringprint(errmsgp, "smbnetserverenum2: not enough return data");
+		if(smbbufferreadspace(odb) < entries * 26) {
+			smbstringprint(
+			    errmsgp,
+			    "smbnetserverenum2: not enough return data");
 			rv = -1;
 			goto done;
 		}
 		remarkspace = smbbufferreadspace(odb) - entries * 26;
-		si = smbemalloc(entries * sizeof(SmbRapServerInfo1) + remarkspace);
-		remark = (char *)&si[entries];
+		si = smbemalloc(entries * sizeof(SmbRapServerInfo1) +
+		                remarkspace);
+		remark = (char*)&si[entries];
 		eremark = remark + remarkspace;
-		for (i = 0; i < entries; i++) {
+		for(i = 0; i < entries; i++) {
 			uint32_t offset;
 			int remarklen;
 			assert(smbbuffergetbytes(odb, si[i].name, 16));
@@ -90,8 +95,12 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 			assert(smbbuffergetl(odb, &si[i].type));
 			assert(smbbuffergetl(odb, &offset));
 			offset -= converter;
-			if (!smbbufferoffsetcopystr(odb, offset, remark, eremark - remark, &remarklen)) {
-				smbstringprint(errmsgp, "smbnetserverenum2: invalid string offset");
+			if(!smbbufferoffsetcopystr(odb, offset, remark,
+			                           eremark - remark,
+			                           &remarklen)) {
+				smbstringprint(
+				    errmsgp,
+				    "smbnetserverenum2: invalid string offset");
 				rv = -1;
 				goto done;
 			}
@@ -101,9 +110,8 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 		*sip = si;
 		si = nil;
 		*entriesp = entries;
-	}
-	else
-		rv = -1;	
+	} else
+		rv = -1;
 done:
 	free(si);
 	smbbufferfree(&opb);

@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
 int
-fprint(int fd, char *fmt, ...)
+fprint(int fd, char* fmt, ...)
 {
 	int n;
 	va_list args;

@@ -15,91 +15,78 @@
 #include <String.h>
 #include <libsec.h>
 
-enum
-{
-	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	Maxsize	= 512*1024*1024,
-	Maxfdata	= 8192,
-	NAMELEN = 28,
+enum { OPERM = 0x3, /* mask of all permission types in open mode */
+       Maxsize = 512 * 1024 * 1024,
+       Maxfdata = 8192,
+       NAMELEN = 28,
 };
 
 typedef struct Fid Fid;
-struct Fid
-{
-	int16_t	busy;
-	int	fid;
-	Fid	*next;
-	char	*user;
-	String	*path;		/* complete path */
+struct Fid {
+	int16_t busy;
+	int fid;
+	Fid* next;
+	char* user;
+	String* path; /* complete path */
 
-	int	fd;		/* set on open or create */
-	Qid	qid;		/* set on open or create */
-	int	attach;		/* this is an attach fd */
+	int fd;     /* set on open or create */
+	Qid qid;    /* set on open or create */
+	int attach; /* this is an attach fd */
 
-	uint32_t	diroff;		/* directory offset */
-	Dir	*dir;		/* directory entries */
-	int	ndir;		/* number of directory entries */
+	uint32_t diroff; /* directory offset */
+	Dir* dir;        /* directory entries */
+	int ndir;        /* number of directory entries */
 };
 
-Fid	*fids;
-int	mfd[2];
-char	*user;
-uint8_t	mdata[IOHDRSZ+Maxfdata];
-uint8_t	rdata[Maxfdata];	/* buffer for data in reply */
-uint8_t	statbuf[STATMAX];
-Fcall	thdr;
-Fcall	rhdr;
-int	messagesize = sizeof mdata;
-int	readonly;
-char	*srvname;
-int	debug;
+Fid* fids;
+int mfd[2];
+char* user;
+uint8_t mdata[IOHDRSZ + Maxfdata];
+uint8_t rdata[Maxfdata]; /* buffer for data in reply */
+uint8_t statbuf[STATMAX];
+Fcall thdr;
+Fcall rhdr;
+int messagesize = sizeof mdata;
+int readonly;
+char* srvname;
+int debug;
 
-Fid *	newfid(int);
-void	io(void);
-void	*erealloc(void *c, uint32_t);
-void	*emalloc(uint32_t);
-char	*estrdup(char*);
-void	usage(void);
-void	fidqid(Fid*, Qid*);
-char*	short2int32_t(char*);
-char*	int32_t2short(char*, int);
-void	readnames(void);
-void	post(char*, int);
+Fid* newfid(int);
+void io(void);
+void* erealloc(void* c, uint32_t);
+void* emalloc(uint32_t);
+char* estrdup(char*);
+void usage(void);
+void fidqid(Fid*, Qid*);
+char* short2int32_t(char*);
+char* int32_t2short(char*, int);
+void readnames(void);
+void post(char*, int);
 
-char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
-	*rattach(Fid*), *rwalk(Fid*),
-	*ropen(Fid*), *rcreate(Fid*),
-	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
+char* rflush(Fid*), *rversion(Fid*), *rauth(Fid*), *rattach(Fid*), *rwalk(Fid*),
+    *ropen(Fid*), *rcreate(Fid*), *rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
+    *rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
-char 	*(*fcalls[])(Fid*) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char* (*fcalls[])(Fid*) = {
+        [Tversion] rversion, [Tflush] rflush,   [Tauth] rauth,
+        [Tattach] rattach,   [Twalk] rwalk,     [Topen] ropen,
+        [Tcreate] rcreate,   [Tread] rread,     [Twrite] rwrite,
+        [Tclunk] rclunk,     [Tremove] rremove, [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"lnfs: authentication not required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Eisdir[] =	"file is a directory";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Eversion[] =	"unknown 9P version";
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enoauth[] = "lnfs: authentication not required";
+char Enotexist[] = "file does not exist";
+char Einuse[] = "file in use";
+char Eexist[] = "file exists";
+char Eisdir[] = "file is a directory";
+char Enotowner[] = "not owner";
+char Eisopen[] = "file already open for I/O";
+char Excl[] = "exclusive use file already open";
+char Ename[] = "illegal name";
+char Eversion[] = "unknown 9P version";
 
 void
 usage(void)
@@ -109,7 +96,7 @@ usage(void)
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void* a, char* s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -118,13 +105,14 @@ notifyf(void *a, char *s)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *defmnt;
+	char* defmnt;
 	int p[2];
-	Dir *d;
+	Dir* d;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'r':
 		readonly = 1;
 		break;
@@ -138,7 +126,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -161,7 +150,7 @@ main(int argc, char *argv[])
 
 	if(debug)
 		fmtinstall('F', fcallfmt);
-	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
+	switch(rfork(RFFDG | RFPROC | RFNAMEG | RFNOTEG)) {
 	case -1:
 		sysfatal("fork: %r");
 	case 0:
@@ -170,15 +159,15 @@ main(int argc, char *argv[])
 		io();
 		break;
 	default:
-		close(p[0]);	/* don't deadlock if child fails */
-		if(mount(p[1], -1, defmnt, MREPL|MCREATE, "") < 0)
+		close(p[0]); /* don't deadlock if child fails */
+		if(mount(p[1], -1, defmnt, MREPL | MCREATE, "") < 0)
 			sysfatal("mount failed: %r");
 	}
 	exits(0);
 }
 
 void
-post(char *srvname, int pfd)
+post(char* srvname, int pfd)
 {
 	char name[128];
 	int fd;
@@ -192,9 +181,9 @@ post(char *srvname, int pfd)
 		sysfatal("writing %s: %r", srvname);
 }
 char*
-rversion(Fid *fi)
+rversion(Fid* fi)
 {
-	Fid *f;
+	Fid* f;
 
 	for(f = fids; f; f = f->next)
 		if(f->busy)
@@ -211,20 +200,20 @@ rversion(Fid *fi)
 }
 
 char*
-rauth(Fid *f)
+rauth(Fid* f)
 {
 	return Enoauth;
 }
 
 char*
-rflush(Fid *f)
+rflush(Fid* f)
 {
 	USED(f);
 	return nil;
 }
 
 char*
-rattach(Fid *f)
+rattach(Fid* f)
 {
 	/* no authentication! */
 	f->busy = 1;
@@ -243,7 +232,7 @@ rattach(Fid *f)
 }
 
 char*
-clone(Fid *f, Fid **nf)
+clone(Fid* f, Fid** nf)
 {
 	if(f->fd >= 0)
 		return Eisopen;
@@ -259,36 +248,36 @@ clone(Fid *f, Fid **nf)
 }
 
 char*
-rwalk(Fid *f)
+rwalk(Fid* f)
 {
-	char *name;
-	Fid *nf;
-	char *err;
+	char* name;
+	Fid* nf;
+	char* err;
 	int i;
-	String *npath;
-	Dir *d;
-	char *cp;
+	String* npath;
+	Dir* d;
+	char* cp;
 	Qid qid;
 
 	err = nil;
 	nf = nil;
 	rhdr.nwqid = 0;
-	if(rhdr.newfid != rhdr.fid){
+	if(rhdr.newfid != rhdr.fid) {
 		err = clone(f, &nf);
 		if(err)
 			return err;
-		f = nf;	/* walk the new fid */
+		f = nf; /* walk the new fid */
 	}
 	readnames();
 	npath = s_clone(f->path);
-	if(thdr.nwname > 0){
-		for(i=0; i<thdr.nwname && i<MAXWELEM; i++){
+	if(thdr.nwname > 0) {
+		for(i = 0; i < thdr.nwname && i < MAXWELEM; i++) {
 			name = int32_t2short(thdr.wname[i], 0);
-			if(strcmp(name, ".") == 0){
+			if(strcmp(name, ".") == 0) {
 				;
-			} else if(strcmp(name, "..") == 0){
+			} else if(strcmp(name, "..") == 0) {
 				cp = strrchr(s_to_c(npath), '/');
-				if(cp != nil){
+				if(cp != nil) {
 					*cp = 0;
 					npath->ptr = cp;
 				}
@@ -304,18 +293,18 @@ rwalk(Fid *f)
 			rhdr.wqid[i] = qid;
 			free(d);
 		}
-		if(i==0 && err == nil)
+		if(i == 0 && err == nil)
 			err = Enotexist;
 	}
 
 	/* if there was an error and we cloned, get rid of the new fid */
-	if(nf != nil && (err!=nil || rhdr.nwqid<thdr.nwname)){
+	if(nf != nil && (err != nil || rhdr.nwqid < thdr.nwname)) {
 		f->busy = 0;
 		s_free(npath);
 	}
 
 	/* update the fid after a successful walk */
-	if(rhdr.nwqid == thdr.nwname){
+	if(rhdr.nwqid == thdr.nwname) {
 		s_free(f->path);
 		f->path = npath;
 	}
@@ -332,7 +321,7 @@ passerror(void)
 }
 
 char*
-ropen(Fid *f)
+ropen(Fid* f)
 {
 	if(readonly && (thdr.mode & 3))
 		return Eperm;
@@ -343,14 +332,14 @@ ropen(Fid *f)
 		return passerror();
 	fidqid(f, &rhdr.qid);
 	f->qid = rhdr.qid;
-	rhdr.iounit = messagesize-IOHDRSZ;
+	rhdr.iounit = messagesize - IOHDRSZ;
 	return nil;
 }
 
 char*
-rcreate(Fid *f)
+rcreate(Fid* f)
 {
-	char *name;
+	char* name;
 
 	if(readonly)
 		return Eperm;
@@ -365,18 +354,18 @@ rcreate(Fid *f)
 		return passerror();
 	fidqid(f, &rhdr.qid);
 	f->qid = rhdr.qid;
-	rhdr.iounit = messagesize-IOHDRSZ;
+	rhdr.iounit = messagesize - IOHDRSZ;
 	return nil;
 }
 
 char*
-rreaddir(Fid *f)
+rreaddir(Fid* f)
 {
 	int i;
 	int n;
 
 	/* reread the directory */
-	if(thdr.offset == 0){
+	if(thdr.offset == 0) {
 		if(f->dir)
 			free(f->dir);
 		f->dir = nil;
@@ -392,8 +381,8 @@ rreaddir(Fid *f)
 	}
 
 	/* copy in as many directory entries as possible */
-	for(n = 0; f->diroff < f->ndir; n += i){
-		i = convD2M(&f->dir[f->diroff], rdata+n, thdr.count - n);
+	for(n = 0; f->diroff < f->ndir; n += i) {
+		i = convD2M(&f->dir[f->diroff], rdata + n, thdr.count - n);
 		if(i <= BIT16SZ)
 			break;
 		f->diroff++;
@@ -404,14 +393,14 @@ rreaddir(Fid *f)
 }
 
 char*
-rread(Fid *f)
+rread(Fid* f)
 {
 	int32_t n;
 
 	if(f->fd < 0)
 		return Enotexist;
-	if(thdr.count > messagesize-IOHDRSZ)
-		thdr.count = messagesize-IOHDRSZ;
+	if(thdr.count > messagesize - IOHDRSZ)
+		thdr.count = messagesize - IOHDRSZ;
 	if(f->qid.type & QTDIR)
 		return rreaddir(f);
 	n = pread(f->fd, rdata, thdr.count, thdr.offset);
@@ -423,7 +412,7 @@ rread(Fid *f)
 }
 
 char*
-rwrite(Fid *f)
+rwrite(Fid* f)
 {
 	int32_t n;
 
@@ -431,8 +420,8 @@ rwrite(Fid *f)
 		return Eperm;
 	if(f->fd < 0)
 		return Enotexist;
-	if(thdr.count > messagesize-IOHDRSZ)	/* shouldn't happen, anyway */
-		thdr.count = messagesize-IOHDRSZ;
+	if(thdr.count > messagesize - IOHDRSZ) /* shouldn't happen, anyway */
+		thdr.count = messagesize - IOHDRSZ;
 	n = pwrite(f->fd, thdr.data, thdr.count, thdr.offset);
 	if(n < 0)
 		return passerror();
@@ -441,18 +430,18 @@ rwrite(Fid *f)
 }
 
 char*
-rclunk(Fid *f)
+rclunk(Fid* f)
 {
 	f->busy = 0;
 	close(f->fd);
 	f->fd = -1;
 	f->path = s_reset(f->path);
-	if(f->attach){
+	if(f->attach) {
 		free(f->user);
 		f->user = nil;
 	}
 	f->attach = 0;
-	if(f->dir != nil){
+	if(f->dir != nil) {
 		free(f->dir);
 		f->dir = nil;
 	}
@@ -461,7 +450,7 @@ rclunk(Fid *f)
 }
 
 char*
-rremove(Fid *f)
+rremove(Fid* f)
 {
 	if(remove(s_to_c(f->path)) < 0)
 		return passerror();
@@ -469,10 +458,10 @@ rremove(Fid *f)
 }
 
 char*
-rstat(Fid *f)
+rstat(Fid* f)
 {
 	int n;
-	Dir *d;
+	Dir* d;
 
 	d = dirstat(s_to_c(f->path));
 	if(d == nil)
@@ -488,7 +477,7 @@ rstat(Fid *f)
 }
 
 char*
-rwstat(Fid *f)
+rwstat(Fid* f)
 {
 	int n;
 	Dir d;
@@ -503,10 +492,10 @@ rwstat(Fid *f)
 	return nil;
 }
 
-Fid *
+Fid*
 newfid(int fid)
 {
-	Fid *f, *ff;
+	Fid* f, *ff;
 
 	ff = 0;
 	for(f = fids; f; f = f->next)
@@ -514,7 +503,7 @@ newfid(int fid)
 			return f;
 		else if(!ff && !f->busy)
 			ff = f;
-	if(ff){
+	if(ff) {
 		ff->fid = fid;
 		return ff;
 	}
@@ -530,12 +519,12 @@ newfid(int fid)
 void
 io(void)
 {
-	char *err;
+	char* err;
 	int n, pid;
 
 	pid = getpid();
 
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads.
@@ -559,16 +548,16 @@ io(void)
 			err = "bad fcall type";
 		else
 			err = (*fcalls[thdr.type])(newfid(thdr.fid));
-		if(err){
+		if(err) {
 			rhdr.type = Rerror;
 			rhdr.ename = err;
-		}else{
+		} else {
 			rhdr.type = thdr.type + 1;
 			rhdr.fid = thdr.fid;
 		}
 		rhdr.tag = thdr.tag;
 		if(debug)
-			fprint(2, "%s %d:->%F\n", argv0, pid, &rhdr);/**/
+			fprint(2, "%s %d:->%F\n", argv0, pid, &rhdr); /**/
 		n = convS2M(&rhdr, mdata, messagesize);
 		if(n == 0)
 			sysfatal("convS2M error on write");
@@ -577,10 +566,10 @@ io(void)
 	}
 }
 
-void *
+void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(!p)
@@ -589,8 +578,8 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void *
-erealloc(void *p, uint32_t n)
+void*
+erealloc(void* p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)
@@ -598,13 +587,13 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-char *
-estrdup(char *q)
+char*
+estrdup(char* q)
 {
-	char *p;
+	char* p;
 	int n;
 
-	n = strlen(q)+1;
+	n = strlen(q) + 1;
 	p = malloc(n);
 	if(!p)
 		sysfatal("out of memory");
@@ -613,9 +602,9 @@ estrdup(char *q)
 }
 
 void
-fidqid(Fid *f, Qid *q)
+fidqid(Fid* f, Qid* q)
 {
-	Dir *d;
+	Dir* d;
 
 	d = dirstat(s_to_c(f->path));
 	if(d == nil)
@@ -635,29 +624,28 @@ fidqid(Fid *f, Qid *q)
  */
 
 typedef struct Name Name;
-struct Name
-{
-	Name	*next;
-	char	shortname[NAMELEN];
-	char	*longname;
+struct Name {
+	Name* next;
+	char shortname[NAMELEN];
+	char* longname;
 };
 
-Dir *dbstat;	/* last stat of the name file */
-char *namefile = "./.longnames";
-char *namebuf;
-Name *names;
+Dir* dbstat; /* last stat of the name file */
+char* namefile = "./.longnames";
+char* namebuf;
+Name* names;
 
 Name*
-newname(char *longname, int writeflag)
+newname(char* longname, int writeflag)
 {
-	Name *np;
+	Name* np;
 	int n;
 	uint8_t digest[MD5dlen];
 	int fd;
 
 	/* chain in new name */
 	n = strlen(longname);
-	np = emalloc(sizeof(*np)+n+1);
+	np = emalloc(sizeof(*np) + n + 1);
 	np->longname = (char*)&np[1];
 	strcpy(np->longname, longname);
 	md5((uint8_t*)longname, n, digest, nil);
@@ -671,7 +659,7 @@ newname(char *longname, int writeflag)
 
 	/* add to namefile */
 	fd = open(namefile, OWRITE);
-	if(fd >= 0){
+	if(fd >= 0) {
 		seek(fd, 0, 2);
 		fprint(fd, "%s\n", longname);
 		close(fd);
@@ -682,9 +670,9 @@ newname(char *longname, int writeflag)
 void
 freenames(void)
 {
-	Name *np, *next;
+	Name* np, *next;
 
-	for(np = names; np != nil; np = next){
+	for(np = names; np != nil; np = next) {
 		next = np->next;
 		free(np);
 	}
@@ -699,19 +687,19 @@ freenames(void)
 void
 readnames(void)
 {
-	Dir *d;
+	Dir* d;
 	int fd;
 	int64_t offset;
-	Biobuf *b;
-	char *p;
+	Biobuf* b;
+	char* p;
 
 	d = dirstat(namefile);
-	if(d == nil){
+	if(d == nil) {
 		if(readonly)
 			return;
 
 		/* create file if it doesn't exist */
-		fd = create(namefile, OREAD, DMAPPEND|0666);
+		fd = create(namefile, OREAD, DMAPPEND | 0666);
 		if(fd < 0)
 			return;
 		if(dbstat != nil)
@@ -723,9 +711,9 @@ readnames(void)
 
 	/* up to date? */
 	offset = 0;
-	if(dbstat != nil){
-		if(d->qid.path == dbstat->qid.path){
-			if(d->length <= dbstat->length){
+	if(dbstat != nil) {
+		if(d->qid.path == dbstat->qid.path) {
+			if(d->length <= dbstat->length) {
 				free(d);
 				return;
 			}
@@ -739,13 +727,13 @@ readnames(void)
 
 	/* read file */
 	b = Bopen(namefile, OREAD);
-	if(b == nil){
+	if(b == nil) {
 		free(d);
 		return;
 	}
 	Bseek(b, offset, 0);
-	while((p = Brdline(b, '\n')) != nil){
-		p[Blinelen(b)-1] = 0;
+	while((p = Brdline(b, '\n')) != nil) {
+		p[Blinelen(b) - 1] = 0;
 		newname(p, 0);
 	}
 	Bterm(b);
@@ -758,11 +746,11 @@ readnames(void)
  *  non-zero.  Return a pointer to the short name.
  */
 char*
-int32_t2short(char *longname, int writeflag)
+int32_t2short(char* longname, int writeflag)
 {
-	Name *np;
+	Name* np;
 
-	if(strlen(longname) < NAMELEN-1 && strpbrk(longname, " ")==nil)
+	if(strlen(longname) < NAMELEN - 1 && strpbrk(longname, " ") == nil)
 		return longname;
 
 	for(np = names; np != nil; np = np->next)
@@ -779,9 +767,9 @@ int32_t2short(char *longname, int writeflag)
  *  longname.
  */
 char*
-short2int32_t(char *shortname)
+short2int32_t(char* shortname)
 {
-	Name *np;
+	Name* np;
 
 	for(np = names; np != nil; np = np->next)
 		if(strcmp(shortname, np->shortname) == 0)

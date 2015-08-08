@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#define	EOF	(-1)
-#define	NBUF	512
+#define EOF (-1)
+#define NBUF 512
 
-struct io{
-	int	fd;
-	unsigned char	*bufp, *ebuf, *strp;
-	unsigned char	buf[NBUF];
+struct io {
+	int fd;
+	unsigned char* bufp, *ebuf, *strp;
+	unsigned char buf[NBUF];
 };
-io *err;
+io* err;
 
-io *openfd(int), *openstr(void), *opencore(char *, int);
+io* openfd(int), *openstr(void), *opencore(char*, int);
 int emptybuf(io*);
 void pchr(io*, int);
 int rchr(io*);

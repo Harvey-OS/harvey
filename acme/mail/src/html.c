@@ -15,14 +15,13 @@
 #include <plumb.h>
 #include "dat.h"
 
-
 char*
-formathtml(char *body, int *np)
+formathtml(char* body, int* np)
 {
 	int i, j, p[2], q[2];
-	Exec *e;
+	Exec* e;
 	char buf[1024];
-	Channel *sync;
+	Channel* sync;
 
 	e = emalloc(sizeof(struct Exec));
 	if(pipe(p) < 0 || pipe(q) < 0)
@@ -32,7 +31,7 @@ formathtml(char *body, int *np)
 	e->p[1] = p[1];
 	e->q[0] = q[0];
 	e->q[1] = q[1];
-	e->argv = emalloc(3*sizeof(char*));
+	e->argv = emalloc(3 * sizeof(char*));
 	e->argv[0] = estrdup("htmlfmt");
 	e->argv[1] = estrdup("-cutf-8");
 	e->argv[2] = nil;
@@ -44,8 +43,9 @@ formathtml(char *body, int *np)
 	close(p[0]);
 	close(q[1]);
 
-	if((i=write(p[1], body, *np)) != *np){
-		fprint(2, "Mail: warning: htmlfmt failed: wrote %d of %d: %r\n", i, *np);
+	if((i = write(p[1], body, *np)) != *np) {
+		fprint(2, "Mail: warning: htmlfmt failed: wrote %d of %d: %r\n",
+		       i, *np);
 		close(p[1]);
 		close(q[0]);
 		return body;
@@ -55,14 +55,14 @@ formathtml(char *body, int *np)
 	free(body);
 	body = nil;
 	i = 0;
-	for(;;){
+	for(;;) {
 		j = read(q[0], buf, sizeof buf);
 		if(j <= 0)
 			break;
-		body = realloc(body, i+j+1);
+		body = realloc(body, i + j + 1);
 		if(body == nil)
 			error("realloc failed: %r");
-		memmove(body+i, buf, j);
+		memmove(body + i, buf, j);
 		i += j;
 		body[i] = '\0';
 	}
@@ -73,10 +73,10 @@ formathtml(char *body, int *np)
 }
 
 char*
-readbody(char *type, char *dir, int *np)
+readbody(char* type, char* dir, int* np)
 {
-	char *body;
-	
+	char* body;
+
 	body = readfile(dir, "body", np);
 	if(body != nil && strcmp(type, "text/html") == 0)
 		return formathtml(body, np);

@@ -12,29 +12,30 @@
 #include "io.h"
 #include "fns.h"
 
-void *
+void*
 emalloc(int32_t n)
 {
-	void *p = Malloc(n);
+	void* p = Malloc(n);
 
-	if(p==0)
+	if(p == 0)
 		panic("Can't malloc %d bytes", n);
-/*	if(err){ pfmt(err, "malloc %d->%p\n", n, p); flush(err); } */
+	/*	if(err){ pfmt(err, "malloc %d->%p\n", n, p); flush(err); } */
 	return p;
 }
 
 void
-efree(void *p)
+efree(void* p)
 {
-/*	pfmt(err, "free %p\n", p); flush(err); */
+	/*	pfmt(err, "free %p\n", p); flush(err); */
 	if(p)
 		free(p);
-	else pfmt(err, "free 0\n");
+	else
+		pfmt(err, "free 0\n");
 }
 extern int lastword, lastdol;
 
 void
-yyerror(char *m)
+yyerror(char* m)
 {
 	pfmt(err, "rc: ");
 	if(runq->cmdfile && !runq->iflag)
@@ -43,40 +44,41 @@ yyerror(char *m)
 		pfmt(err, "%s: ", runq->cmdfile);
 	else if(!runq->iflag)
 		pfmt(err, "line %d: ", runq->lineno);
-	if(tok[0] && tok[0]!='\n')
+	if(tok[0] && tok[0] != '\n')
 		pfmt(err, "token %q: ", tok);
 	pfmt(err, "%s\n", m);
 	flush(err);
 	lastword = 0;
 	lastdol = 0;
-	while(lastc!='\n' && lastc!=EOF) advance();
+	while(lastc != '\n' && lastc != EOF)
+		advance();
 	nerror++;
-	setvar("status", newword(m, (word *)0));
+	setvar("status", newword(m, (word*)0));
 }
-char *bp;
+char* bp;
 
 static void
 iacvt(int n)
 {
-	if(n<0){
-		*bp++='-';
-		n=-n;	/* doesn't work for n==-inf */
+	if(n < 0) {
+		*bp++ = '-';
+		n = -n; /* doesn't work for n==-inf */
 	}
-	if(n/10)
-		iacvt(n/10);
-	*bp++=n%10+'0';
+	if(n / 10)
+		iacvt(n / 10);
+	*bp++ = n % 10 + '0';
 }
 
 void
-inttoascii(char *s, int32_t n)
+inttoascii(char* s, int32_t n)
 {
 	bp = s;
 	iacvt(n);
-	*bp='\0';
+	*bp = '\0';
 }
 
 void
-panic(char *s, int n)
+panic(char* s, int n)
 {
 	pfmt(err, "rc: ");
 	pfmt(err, s, n);

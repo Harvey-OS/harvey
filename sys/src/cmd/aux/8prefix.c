@@ -19,44 +19,39 @@
 #include "/sys/src/cmd/8c/8.out.h"
 
 typedef struct Sym Sym;
-struct Sym
-{
-	char *name;
-	char *newname;
+struct Sym {
+	char* name;
+	char* newname;
 	int16_t type;
 	int16_t version;
-	Sym *link;
+	Sym* link;
 };
 
 typedef struct Obj Obj;
-struct Obj
-{
+struct Obj {
 	int fd;
 	int version;
-	uint8_t *bp;
-	uint8_t *ep;
-	char *name;
+	uint8_t* bp;
+	uint8_t* ep;
+	char* name;
 };
 
-enum
-{
-	NHASH = 10007
-};
+enum { NHASH = 10007 };
 
-Sym *hash[NHASH];
+Sym* hash[NHASH];
 int nsymbol;
 int renamemain = 1;
-Sym *xsym[256];
+Sym* xsym[256];
 int version = 1;
-Obj **obj;
+Obj** obj;
 int nobj;
 Biobuf bout;
-char *prefix;
+char* prefix;
 int verbose;
 
-void *emalloc(uint32_t);
-Sym *lookup(char*, int);
-Obj *openobj(char*);
+void* emalloc(uint32_t);
+Sym* lookup(char*, int);
+Obj* openobj(char*);
 void walkobj(Obj*, void (*fn)(int, Sym*, uint8_t*, int));
 void walkobjs(void (*fn)(int, Sym*, uint8_t*, int));
 void dump(int, Sym*, uint8_t*, int);
@@ -73,12 +68,13 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i;
-	Obj *o;
+	Obj* o;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'm':
 		renamemain = 0;
 		break;
@@ -87,26 +83,27 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
-	
+	}
+	ARGEND
+
 	if(argc < 2)
 		usage();
-	
+
 	prefix = argv[0];
 	argv++;
 	argc--;
 
 	nobj = argc;
-	obj = emalloc(nobj*sizeof obj[0]);
-	for(i=0; i<argc; i++)
+	obj = emalloc(nobj * sizeof obj[0]);
+	for(i = 0; i < argc; i++)
 		obj[i] = openobj(argv[i]);
 
-	walkobjs(nop);	/* initialize symbol table */
+	walkobjs(nop); /* initialize symbol table */
 	if(verbose)
 		walkobjs(dump);
 	walkobjs(renamesyms);
-	
-	for(i=0; i<nobj; i++){
+
+	for(i = 0; i < nobj; i++) {
 		o = obj[i];
 		seek(o->fd, 0, 0);
 		Binit(&bout, o->fd, OWRITE);
@@ -117,33 +114,33 @@ main(int argc, char **argv)
 }
 
 void
-renamesyms(int op, Sym *sym, uint8_t*, int)
+renamesyms(int op, Sym* sym, uint8_t*, int)
 {
-	if(sym && sym->version==0 && !sym->newname)
-	switch(op){
-	case AGLOBL:
-	case AINIT:
-	case ADATA:
-	case ATEXT:
-		if(!renamemain && strcmp(sym->name, "main") == 0)
+	if(sym && sym->version == 0 && !sym->newname)
+		switch(op) {
+		case AGLOBL:
+		case AINIT:
+		case ADATA:
+		case ATEXT:
+			if(!renamemain && strcmp(sym->name, "main") == 0)
+				break;
+			sym->newname = smprint("%s%s", prefix, sym->name);
 			break;
-		sym->newname = smprint("%s%s", prefix, sym->name);
-		break;
-	}	
+		}
 }
 
 void
-dump(int op, Sym *sym, uint8_t*, int)
+dump(int op, Sym* sym, uint8_t*, int)
 {
-	if(sym && sym->version==0)
-	switch(op){
-	case AGLOBL:
-	case AINIT:
-	case ADATA:
-	case ATEXT:
-		print("%s\n", sym->name);
-		break;
-	}	
+	if(sym && sym->version == 0)
+		switch(op) {
+		case AGLOBL:
+		case AINIT:
+		case ADATA:
+		case ATEXT:
+			print("%s\n", sym->name);
+			break;
+		}
 }
 
 void
@@ -152,17 +149,17 @@ nop(int, Sym*, uint8_t*, int)
 }
 
 void
-owrite(int op, Sym *sym, uint8_t *p, int l)
+owrite(int op, Sym* sym, uint8_t* p, int l)
 {
-	switch(op){
+	switch(op) {
 	case ASIGNAME:
 		Bwrite(&bout, p, 4);
 		p += 4;
 		l -= 4;
 	case ANAME:
-		if(sym->newname){
+		if(sym->newname) {
 			Bwrite(&bout, p, 4);
-			Bwrite(&bout, sym->newname, strlen(sym->newname)+1);
+			Bwrite(&bout, sym->newname, strlen(sym->newname) + 1);
 			break;
 		}
 	default:
@@ -172,17 +169,17 @@ owrite(int op, Sym *sym, uint8_t *p, int l)
 }
 
 int
-zaddr(uint8_t *p, Sym **symp)
+zaddr(uint8_t* p, Sym** symp)
 {
 	int c, t;
-	
+
 	t = p[0];
 	c = 1;
 	if(t & T_INDEX)
 		c += 2;
 	if(t & T_OFFSET)
 		c += 4;
-	if(t & T_SYM){
+	if(t & T_SYM) {
 		if(symp)
 			*symp = xsym[p[c]];
 		c++;
@@ -199,8 +196,8 @@ zaddr(uint8_t *p, Sym **symp)
 void*
 emalloc(uint32_t n)
 {
-	void *v;
-	
+	void* v;
+
 	v = mallocz(n, 1);
 	if(v == nil)
 		sysfatal("out of memory");
@@ -208,24 +205,24 @@ emalloc(uint32_t n)
 }
 
 Sym*
-lookup(char *symb, int v)
+lookup(char* symb, int v)
 {
-	Sym *s;
-	char *p;
+	Sym* s;
+	char* p;
 	int32_t h;
 	int l, c;
 
 	h = v;
-	for(p=symb; c = *p; p++)
-		h = h+h+h + c;
+	for(p = symb; c = *p; p++)
+		h = h + h + h + c;
 	l = (p - symb) + 1;
 	if(h < 0)
 		h = ~h;
 	h %= NHASH;
 	for(s = hash[h]; s != nil; s = s->link)
 		if(s->version == v)
-		if(memcmp(s->name, symb, l) == 0)
-			return s;
+			if(memcmp(s->name, symb, l) == 0)
+				return s;
 
 	s = emalloc(sizeof *s);
 	s->name = emalloc(l + 1);
@@ -240,11 +237,11 @@ lookup(char *symb, int v)
 }
 
 Obj*
-openobj(char *name)
+openobj(char* name)
 {
-	Dir *d;
-	Obj *obj;
-	
+	Dir* d;
+	Obj* obj;
+
 	obj = emalloc(sizeof *obj);
 	obj->name = name;
 	obj->version = version++;
@@ -255,7 +252,7 @@ openobj(char *name)
 	obj->bp = emalloc(d->length);
 	if(readn(obj->fd, obj->bp, d->length) != d->length)
 		sysfatal("read %s: %r", name);
-	obj->ep = obj->bp+d->length;
+	obj->ep = obj->bp + d->length;
 	return obj;
 }
 
@@ -263,42 +260,43 @@ void
 walkobjs(void (*fn)(int, Sym*, uint8_t*, int))
 {
 	int i;
-	
-	for(i=0; i<nobj; i++)
+
+	for(i = 0; i < nobj; i++)
 		walkobj(obj[i], fn);
 }
 
 void
-walkobj(Obj *obj, void (*fn)(int, Sym*, uint8_t*, int))
+walkobj(Obj* obj, void (*fn)(int, Sym*, uint8_t*, int))
 {
 	int op, type;
-	Sym *sym;
-	uint8_t *p, *p0;
+	Sym* sym;
+	uint8_t* p, *p0;
 
-	for(p=obj->bp; p+4<=obj->ep; ){
-		op = p[0] | (p[1]<<8);
+	for(p = obj->bp; p + 4 <= obj->ep;) {
+		op = p[0] | (p[1] << 8);
 		if(op <= AXXX || op >= ALAST)
-			sysfatal("%s: opcode out of range - probably not a .8 file", obj->name);
+			sysfatal(
+			    "%s: opcode out of range - probably not a .8 file",
+			    obj->name);
 		p0 = p;
-		switch(op){
+		switch(op) {
 		case ASIGNAME:
-			p += 4;	/* sign */
+			p += 4; /* sign */
 		case ANAME:
 			type = p[2];
-			sym = lookup((char*)p+4,
-				     type==D_STATIC ? obj->version : 0);
+			sym = lookup((char*)p + 4,
+			             type == D_STATIC ? obj->version : 0);
 			xsym[p[3]] = sym;
-			p += 4+strlen(sym->name)+1;
-			fn(op, sym, p0, p-p0);
+			p += 4 + strlen(sym->name) + 1;
+			fn(op, sym, p0, p - p0);
 			break;
-		
+
 		default:
 			p += 6;
 			p += zaddr(p, &sym);
 			p += zaddr(p, nil);
-			fn(op, sym, p0, p-p0);
+			fn(op, sym, p0, p - p0);
 			break;
 		}
 	}
 }
-

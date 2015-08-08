@@ -14,7 +14,7 @@
 extern char _plan9err[128];
 
 void
-werrstr(const char *fmt, ...)
+werrstr(const char* fmt, ...)
 {
 	va_list arg;
 

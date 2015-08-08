@@ -15,20 +15,23 @@
 #include <9p.h>
 #include "flashfs.h"
 
-extern int	chatty9p;
+extern int chatty9p;
 
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-rD] [-n nsect] [-z sectsize] [-m mount] [-f file]\n", argv0);
+	fprint(
+	    2,
+	    "usage: %s [-rD] [-n nsect] [-z sectsize] [-m mount] [-f file]\n",
+	    argv0);
 	exits("usage");
 }
 
 static uint32_t
-argval(char *arg)
+argval(char* arg)
 {
 	int32_t v;
-	char *extra;
+	char* extra;
 
 	if(arg == nil)
 		usage();
@@ -39,16 +42,17 @@ argval(char *arg)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int ro;
-	char *file, *mount;
+	char* file, *mount;
 
 	mount = "/n/brzr";
 	ro = 0;
 	file = "/dev/flash/fs";
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -69,7 +73,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();

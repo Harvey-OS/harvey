@@ -13,9 +13,9 @@
 #include "threadimpl.h"
 
 static int32_t
-_ioopen(va_list *arg)
+_ioopen(va_list* arg)
 {
-	char *path;
+	char* path;
 	int mode;
 
 	path = va_arg(*arg, char*);
@@ -24,7 +24,7 @@ _ioopen(va_list *arg)
 }
 
 int
-ioopen(Ioproc *io, char *path, int mode)
+ioopen(Ioproc* io, char* path, int mode)
 {
 	return iocall(io, _ioopen, path, mode);
 }

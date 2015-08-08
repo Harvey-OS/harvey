@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
 span(void)
 {
-	Prog *p;
-	Sym *setext;
-	Optab *o;
+	Prog* p;
+	Sym* setext;
+	Optab* o;
 	int m;
 	int32_t c;
 
@@ -53,11 +53,11 @@ span(void)
 		Bprint(&bso, "tsize = %lux\n", textsize);
 	Bflush(&bso);
 }
-		
+
 void
-xdefine(char *p, int t, int32_t v)
+xdefine(char* p, int t, int32_t v)
 {
-	Sym *s;
+	Sym* s;
 
 	s = lookup(p, 0);
 	if(s->type == 0 || s->type == SXREF) {
@@ -67,7 +67,7 @@ xdefine(char *p, int t, int32_t v)
 }
 
 int32_t
-regoff(Adr *a)
+regoff(Adr* a)
 {
 
 	instoffset = 0;
@@ -76,9 +76,9 @@ regoff(Adr *a)
 }
 
 int
-aclass(Adr *a)
+aclass(Adr* a)
 {
-	Sym *s;
+	Sym* s;
 	int t;
 
 	switch(a->type) {
@@ -110,7 +110,7 @@ aclass(Adr *a)
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s",
-					a->sym->name, TNAME);
+				     a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
 			instoffset = a->sym->value + a->offset - BIG;
@@ -173,8 +173,8 @@ aclass(Adr *a)
 				break;
 			t = s->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s",
-					s->name, TNAME);
+				diag("undefined external: %s in %s", s->name,
+				     TNAME);
 				s->type = SDATA;
 			}
 			if(s->type == STEXT || s->type == SLEAF) {
@@ -186,20 +186,22 @@ aclass(Adr *a)
 				goto consize;
 			}
 			instoffset = s->value + a->offset - BIG;
-			if(instoffset >= -BIG && instoffset < BIG && instoffset != 0)
+			if(instoffset >= -BIG && instoffset < BIG &&
+			   instoffset != 0)
 				return C_SECON;
 			instoffset = s->value + a->offset + INITDAT;
-/* not sure why this barfs */
-return C_LCON;
-/*
-			if(instoffset == 0)
-				return C_ZCON;
-			if(instoffset >= -0x1000 && instoffset <= 0xfff)
-				return C_SCON;
-			if((instoffset & 0x3ff) == 0)
-				return C_UCON;
+			/* not sure why this barfs */
 			return C_LCON;
-*/
+		/*
+		                        if(instoffset == 0)
+		                                return C_ZCON;
+		                        if(instoffset >= -0x1000 && instoffset
+		   <= 0xfff)
+		                                return C_SCON;
+		                        if((instoffset & 0x3ff) == 0)
+		                                return C_UCON;
+		                        return C_LCON;
+		*/
 
 		case D_AUTO:
 			instoffset = autosize + a->offset;
@@ -222,15 +224,15 @@ return C_LCON;
 }
 
 Optab*
-oplook(Prog *p)
+oplook(Prog* p)
 {
 	int a1, a2, a3, r;
-	char *c1, *c3;
-	Optab *o, *e;
+	char* c1, *c3;
+	Optab* o, *e;
 
 	a1 = p->optab;
 	if(a1)
-		return optab+(a1-1);
+		return optab + (a1 - 1);
 	a1 = p->from.class;
 	if(a1 == 0) {
 		a1 = aclass(&p->from) + 1;
@@ -253,16 +255,15 @@ oplook(Prog *p)
 	e = oprange[r].stop;
 	c1 = xcmp[a1];
 	c3 = xcmp[a3];
-	for(; o<e; o++)
+	for(; o < e; o++)
 		if(o->a2 == a2)
-		if(c1[o->a1])
-		if(c3[o->a3]) {
-			p->optab = (o-optab)+1;
-			return o;
-		}
-	diag("illegal combination %A %d %d %d",
-		p->as, a1, a2, a3);
-	if(1||!debug['a'])
+			if(c1[o->a1])
+				if(c3[o->a3]) {
+					p->optab = (o - optab) + 1;
+					return o;
+				}
+	diag("illegal combination %A %d %d %d", p->as, a1, a2, a3);
+	if(1 || !debug['a'])
 		prasm(p);
 	if(o == 0)
 		errorexit();
@@ -301,8 +302,7 @@ cmp(int a, int b)
 			return 1;
 		break;
 	case C_LEXT:
-		if(b == C_SEXT ||
-		   b == C_ESEXT || b == C_OSEXT ||
+		if(b == C_SEXT || b == C_ESEXT || b == C_OSEXT ||
 		   b == C_ELEXT || b == C_OLEXT)
 			return 1;
 		break;
@@ -315,8 +315,7 @@ cmp(int a, int b)
 			return 1;
 		break;
 	case C_LAUTO:
-		if(b == C_SAUTO ||
-		   b == C_ESAUTO || b == C_OSAUTO ||
+		if(b == C_SAUTO || b == C_ESAUTO || b == C_OSAUTO ||
 		   b == C_ELAUTO || b == C_OLAUTO)
 			return 1;
 		break;
@@ -344,9 +343,9 @@ cmp(int a, int b)
 }
 
 int
-ocmp(const void *a1, const void *a2)
+ocmp(const void* a1, const void* a2)
 {
-	Optab *p1, *p2;
+	Optab* p1, *p2;
 	int n;
 
 	p1 = (Optab*)a1;
@@ -371,22 +370,21 @@ buildop(void)
 {
 	int i, n, r;
 
-	for(i=0; i<C_NCLASS; i++)
-		for(n=0; n<C_NCLASS; n++)
+	for(i = 0; i < C_NCLASS; i++)
+		for(n = 0; n < C_NCLASS; n++)
 			xcmp[i][n] = cmp(n, i);
-	for(n=0; optab[n].as != AXXX; n++)
+	for(n = 0; optab[n].as != AXXX; n++)
 		;
 	qsort(optab, n, sizeof(optab[0]), ocmp);
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		r = optab[i].as;
-		oprange[r].start = optab+i;
+		oprange[r].start = optab + i;
 		while(optab[i].as == r)
 			i++;
-		oprange[r].stop = optab+i;
+		oprange[r].stop = optab + i;
 		i--;
-		
-		switch(r)
-		{
+
+		switch(r) {
 		default:
 			diag("unknown op in build: %A", r);
 			errorexit();

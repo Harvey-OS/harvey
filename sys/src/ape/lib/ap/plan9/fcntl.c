@@ -17,13 +17,13 @@
  * BUG: advisory locking not implemented
  */
 
-#define OFL (O_ACCMODE|O_NONBLOCK|O_APPEND)
+#define OFL (O_ACCMODE | O_NONBLOCK | O_APPEND)
 
 int
 fcntl(int fd, int cmd, ...)
 {
 	int arg, i, ans, err;
-	Fdinfo *fi, *fans;
+	Fdinfo* fi, *fans;
 	va_list va;
 	unsigned long oflags;
 
@@ -33,31 +33,33 @@ fcntl(int fd, int cmd, ...)
 	arg = va_arg(va, int);
 	va_end(va);
 	fi = &_fdinfo[fd];
-	if(fd<0 || fd>=OPEN_MAX || !(fi->flags&FD_ISOPEN))
+	if(fd < 0 || fd >= OPEN_MAX || !(fi->flags & FD_ISOPEN))
 		err = EBADF;
-	else switch(cmd){
+	else
+		switch(cmd) {
 		case F_DUPFD:
-			if(fi->flags&(FD_BUFFERED|FD_BUFFEREDX)){
-				err = EGREG;	/* dup of buffered fd not implemented */
+			if(fi->flags & (FD_BUFFERED | FD_BUFFEREDX)) {
+				err = EGREG; /* dup of buffered fd not
+				                implemented */
 				break;
 			}
 			oflags = fi->oflags;
-			for(i = (arg>0)? arg : 0; i<OPEN_MAX; i++)
-				if(!(_fdinfo[i].flags&FD_ISOPEN))
+			for(i = (arg > 0) ? arg : 0; i < OPEN_MAX; i++)
+				if(!(_fdinfo[i].flags & FD_ISOPEN))
 					break;
 			if(i == OPEN_MAX)
 				err = EMFILE;
 			else {
 				ans = _DUP(fd, i);
-				if(ans != i){
-					if(ans < 0){
+				if(ans != i) {
+					if(ans < 0) {
 						_syserrno();
 						err = errno;
-					}else
+					} else
 						err = EBADF;
-				}else{
+				} else {
 					fans = &_fdinfo[ans];
-					fans->flags = fi->flags&~FD_CLOEXEC;
+					fans->flags = fi->flags & ~FD_CLOEXEC;
 					fans->oflags = oflags;
 					fans->uid = fi->uid;
 					fans->gid = fi->gid;
@@ -65,16 +67,17 @@ fcntl(int fd, int cmd, ...)
 			}
 			break;
 		case F_GETFD:
-			ans = fi->flags&FD_CLOEXEC;
+			ans = fi->flags & FD_CLOEXEC;
 			break;
 		case F_SETFD:
-			fi->flags = (fi->flags&~FD_CLOEXEC)|(arg&FD_CLOEXEC);
+			fi->flags =
+			    (fi->flags & ~FD_CLOEXEC) | (arg & FD_CLOEXEC);
 			break;
 		case F_GETFL:
-			ans = fi->oflags&OFL;
+			ans = fi->oflags & OFL;
 			break;
 		case F_SETFL:
-			fi->oflags = (fi->oflags&~OFL)|(arg&OFL);
+			fi->oflags = (fi->oflags & ~OFL) | (arg & OFL);
 			break;
 		case F_GETLK:
 		case F_SETLK:
@@ -82,7 +85,7 @@ fcntl(int fd, int cmd, ...)
 			err = EINVAL;
 			break;
 		}
-	if(err){
+	if(err) {
 		errno = err;
 		ans = -1;
 	}

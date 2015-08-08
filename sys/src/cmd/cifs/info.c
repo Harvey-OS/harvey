@@ -15,34 +15,33 @@
 #include <9p.h>
 #include "cifs.h"
 
-
 struct {
-	char	*name;
-	int	(*func)(Fmt *f);
-	char	*buf;
-	int	len;
+	char* name;
+	int (*func)(Fmt* f);
+	char* buf;
+	int len;
 } Infdir[] = {
-	{ "Users",	userinfo },	
-	{ "Groups",	groupinfo },	
-	{ "Shares",	shareinfo },	
-	{ "Connection",	conninfo },	
-	{ "Sessions",	sessioninfo },	
-	{ "Dfsroot",	dfsrootinfo },	
-	{ "Dfscache",	dfscacheinfo },	
-	{ "Domains",	domaininfo },	
-	{ "Openfiles",	openfileinfo },	
-	{ "Workstations", workstationinfo },	
-	{ "Filetable",	filetableinfo },	
+    {"Users", userinfo},
+    {"Groups", groupinfo},
+    {"Shares", shareinfo},
+    {"Connection", conninfo},
+    {"Sessions", sessioninfo},
+    {"Dfsroot", dfsrootinfo},
+    {"Dfscache", dfscacheinfo},
+    {"Domains", domaininfo},
+    {"Openfiles", openfileinfo},
+    {"Workstations", workstationinfo},
+    {"Filetable", filetableinfo},
 };
 
 int
-walkinfo(char *name)
+walkinfo(char* name)
 {
 	int i;
 
 	for(i = 0; i < nelem(Infdir); i++)
 		if(strcmp(Infdir[i].name, name) == 0)
-			return(i);
+			return (i);
 	return -1;
 }
 
@@ -53,7 +52,7 @@ numinfo(void)
 }
 
 int
-dirgeninfo(int slot, Dir *d)
+dirgeninfo(int slot, Dir* d)
 {
 	if(slot < 0 || slot > nelem(Infdir))
 		return -1;
@@ -93,7 +92,7 @@ makeinfo(int path)
 }
 
 int
-readinfo(int path, char *buf, int len, int off)
+readinfo(int path, char* buf, int len, int off)
 {
 	if(path < 0 || path > nelem(Infdir))
 		return -1;

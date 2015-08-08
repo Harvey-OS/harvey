@@ -15,8 +15,4 @@
  * No such concept in plan9, but supposed to be always successful
  */
 
-mode_t
-umask(mode_t)
-{
-	return 0;
-}
+mode_t umask(mode_t) { return 0; }

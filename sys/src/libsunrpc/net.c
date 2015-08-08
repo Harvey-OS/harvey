@@ -13,21 +13,20 @@
 #include <sunrpc.h>
 
 typedef struct Arg Arg;
-struct Arg
-{
+struct Arg {
 	int fd;
 	char adir[40];
-	SunSrv *srv;
+	SunSrv* srv;
 };
 
 static void
-sunNetListen(void *v)
+sunNetListen(void* v)
 {
 	int fd, lcfd;
 	char ldir[40];
-	Arg *a = v;
+	Arg* a = v;
 
-	for(;;){
+	for(;;) {
 		lcfd = listen(a->adir, ldir);
 		if(lcfd < 0)
 			break;
@@ -43,9 +42,9 @@ sunNetListen(void *v)
 }
 
 int
-sunSrvNet(SunSrv *srv, char *addr)
+sunSrvNet(SunSrv* srv, char* addr)
 {
-	Arg *a;
+	Arg* a;
 
 	a = emalloc(sizeof(Arg));
 	if((a->fd = announce(addr, a->adir)) < 0)
@@ -57,7 +56,7 @@ sunSrvNet(SunSrv *srv, char *addr)
 }
 
 int
-sunSrvAnnounce(SunSrv *srv, char *addr)
+sunSrvAnnounce(SunSrv* srv, char* addr)
 {
 	if(strstr(addr, "udp!"))
 		return sunSrvUdp(srv, addr);

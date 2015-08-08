@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -35,15 +35,11 @@
  *
  * Returns 0 on success, < 0 in the event of an error.
  */
-extern  int     gx_overprint_generic_fill_rectangle(
-    gx_device *             tdev,
-    gx_color_index          drawn_comps,
-    int                     x,
-    int                     y,
-    int                     w,
-    int                     h,
-    gx_color_index          color,
-    gs_memory_t *           mem );
+extern int gx_overprint_generic_fill_rectangle(gx_device* tdev,
+                                               gx_color_index drawn_comps,
+                                               int x, int y, int w, int h,
+                                               gx_color_index color,
+                                               gs_memory_t* mem);
 
 /*
  * Perform the fill rectangle operation of a separable color encoding.
@@ -60,24 +56,14 @@ extern  int     gx_overprint_generic_fill_rectangle(
  *
  * Returns 0 on success, < 0 in the event of an error.
  */
-extern  int     gx_overprint_sep_fill_rectangle_1(
-    gx_device *             tdev,
-    gx_color_index          retain_mask,    /* already swapped */
-    int                     x,
-    int                     y,
-    int                     w,
-    int                     h,
-    gx_color_index          color,          /* already swapped */
-    gs_memory_t *           mem );
+extern int gx_overprint_sep_fill_rectangle_1(
+    gx_device* tdev, gx_color_index retain_mask,      /* already swapped */
+    int x, int y, int w, int h, gx_color_index color, /* already swapped */
+    gs_memory_t* mem);
 
-extern  int     gx_overprint_sep_fill_rectangle_2(
-    gx_device *             tdev,
-    gx_color_index          retain_mask,    /* already swapped */
-    int                     x,
-    int                     y,
-    int                     w,
-    int                     h,
-    gx_color_index          color,          /* already swapped */
-    gs_memory_t *           mem );
+extern int gx_overprint_sep_fill_rectangle_2(
+    gx_device* tdev, gx_color_index retain_mask,      /* already swapped */
+    int x, int y, int w, int h, gx_color_index color, /* already swapped */
+    gs_memory_t* mem);
 
-#endif  /* gxoprect_INCLUDED */
+#endif /* gxoprect_INCLUDED */

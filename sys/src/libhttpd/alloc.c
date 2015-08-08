@@ -19,9 +19,9 @@
  * note: these routines probably shouldn't fatal.
  */
 char*
-hstrdup(HConnect *c, char *s)
+hstrdup(HConnect* c, char* s)
 {
-	char *t;
+	char* t;
 	int n;
 
 	n = strlen(s) + 1;
@@ -33,9 +33,9 @@ hstrdup(HConnect *c, char *s)
 }
 
 void*
-halloc(HConnect *c, uint32_t n)
+halloc(HConnect* c, uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = binalloc(&c->bin, n, 1);
 	if(p == nil)

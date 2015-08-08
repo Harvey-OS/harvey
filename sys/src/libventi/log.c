@@ -11,63 +11,62 @@
 #include <libc.h>
 #include <venti.h>
 
-char *VtServerLog = "libventi/server";
+char* VtServerLog = "libventi/server";
 
 int ventilogging;
-#define log	not_the_log_library_call
+#define log not_the_log_library_call
 
 static char Eremoved[] = "[removed]";
 
-enum
-{	/* defaults */
-	LogChunkSize = 8192,
-	LogSize = 65536
+enum { /* defaults */
+       LogChunkSize = 8192,
+       LogSize = 65536
 };
 
 static struct {
 	QLock lk;
-	VtLog *hash[1024];
+	VtLog* hash[1024];
 } vl;
 
 static uint
-hash(char *s)
+hash(char* s)
 {
 	uint h;
-	uint8_t *p;
+	uint8_t* p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
-		h = h*37 + *p;
+	for(p = (uint8_t*)s; *p; p++)
+		h = h * 37 + *p;
 	return h;
 }
 
 char**
-vtlognames(int *pn)
+vtlognames(int* pn)
 {
 	int i, nname, size;
-	VtLog *l;
-	char **s, *a, *e;
-	
+	VtLog* l;
+	char** s, *a, *e;
+
 	qlock(&vl.lk);
 	size = 0;
 	nname = 0;
-	for(i=0; i<nelem(vl.hash); i++)
-	for(l=vl.hash[i]; l; l=l->next){
-		nname++;
-		size += strlen(l->name)+1;
-	}
+	for(i = 0; i < nelem(vl.hash); i++)
+		for(l = vl.hash[i]; l; l = l->next) {
+			nname++;
+			size += strlen(l->name) + 1;
+		}
 
-	s = vtmalloc(nname*sizeof(char*)+size);
-	a = (char*)(s+nname);
-	e = (char*)s+nname*sizeof(char*)+size;
+	s = vtmalloc(nname * sizeof(char*) + size);
+	a = (char*)(s + nname);
+	e = (char*)s + nname * sizeof(char*) + size;
 
 	nname = 0;
-	for(i=0; i<nelem(vl.hash); i++)
-	for(l=vl.hash[i]; l; l=l->next){
-		strcpy(a, l->name);
-		s[nname++] = a;
-		a += strlen(a)+1;
-	}
+	for(i = 0; i < nelem(vl.hash); i++)
+		for(l = vl.hash[i]; l; l = l->next) {
+			strcpy(a, l->name);
+			s[nname++] = a;
+			a += strlen(a) + 1;
+		}
 	*pn = nname;
 	assert(a == e);
 	qunlock(&vl.lk);
@@ -76,22 +75,22 @@ vtlognames(int *pn)
 }
 
 VtLog*
-vtlogopen(char *name, uint size)
+vtlogopen(char* name, uint size)
 {
 	uint h;
 	int i, nc;
-	char *p;
-	VtLog *l, *last;
+	char* p;
+	VtLog* l, *last;
 
 	if(!ventilogging)
 		return nil;
 
-	h = hash(name)%nelem(vl.hash);
+	h = hash(name) % nelem(vl.hash);
 	qlock(&vl.lk);
 	last = nil;
-	for(l=vl.hash[h]; l; last=l, l=l->next)
-		if(strcmp(l->name, name) == 0){
-			if(last){	/* move to front */
+	for(l = vl.hash[h]; l; last = l, l = l->next)
+		if(strcmp(l->name, name) == 0) {
+			if(last) { /* move to front */
 				last->next = l->next;
 				l->next = vl.hash[h];
 				vl.hash[h] = l;
@@ -101,20 +100,21 @@ vtlogopen(char *name, uint size)
 			return l;
 		}
 
-	if(size == 0){
+	if(size == 0) {
 		qunlock(&vl.lk);
 		return nil;
 	}
 
 	/* allocate */
-	nc = (size+LogChunkSize-1)/LogChunkSize;
-	l = vtmalloc(sizeof *l + nc*(sizeof(*l->chunk)+LogChunkSize) + strlen(name)+1);
+	nc = (size + LogChunkSize - 1) / LogChunkSize;
+	l = vtmalloc(sizeof *l + nc * (sizeof(*l->chunk) + LogChunkSize) +
+	             strlen(name) + 1);
 	memset(l, 0, sizeof *l);
-	l->chunk = (VtLogChunk*)(l+1);
+	l->chunk = (VtLogChunk*)(l + 1);
 	l->nchunk = nc;
 	l->w = l->chunk;
-	p = (char*)(l->chunk+nc);
-	for(i=0; i<nc; i++){
+	p = (char*)(l->chunk + nc);
+	for(i = 0; i < nc; i++) {
 		l->chunk[i].p = p;
 		l->chunk[i].wp = p;
 		p += LogChunkSize;
@@ -134,32 +134,32 @@ vtlogopen(char *name, uint size)
 }
 
 void
-vtlogclose(VtLog *l)
+vtlogclose(VtLog* l)
 {
 	if(l == nil)
 		return;
 
 	qlock(&vl.lk);
-	if(--l->ref == 0){
+	if(--l->ref == 0) {
 		/* must not be in hash table */
 		assert(l->name == Eremoved);
 		free(l);
-	}else
+	} else
 		assert(l->ref > 0);
 	qunlock(&vl.lk);
 }
 
 void
-vtlogremove(char *name)
+vtlogremove(char* name)
 {
 	uint h;
-	VtLog *last, *l;
+	VtLog* last, *l;
 
-	h = hash(name)%nelem(vl.hash);
+	h = hash(name) % nelem(vl.hash);
 	qlock(&vl.lk);
 	last = nil;
-	for(l=vl.hash[h]; l; last=l, l=l->next)
-		if(strcmp(l->name, name) == 0){
+	for(l = vl.hash[h]; l; last = l, l = l->next)
+		if(strcmp(l->name, name) == 0) {
 			if(last)
 				last->next = l->next;
 			else
@@ -174,30 +174,31 @@ vtlogremove(char *name)
 }
 
 static int
-timefmt(Fmt *fmt)
+timefmt(Fmt* fmt)
 {
 	static uint64_t t0;
 	uint64_t t;
 
 	if(t0 == 0)
 		t0 = nsec();
-	t = nsec()-t0;
-	return fmtprint(fmt, "T+%d.%04d", (uint)(t/1000000000), (uint)(t%1000000000)/100000);
+	t = nsec() - t0;
+	return fmtprint(fmt, "T+%d.%04d", (uint)(t / 1000000000),
+	                (uint)(t % 1000000000) / 100000);
 }
 
 void
-vtlogvprint(VtLog *l, char *fmt, ...)
+vtlogvprint(VtLog* l, char* fmt, ...)
 {
 	int n;
-	char *p;
-	VtLogChunk *c;
+	char* p;
+	VtLogChunk* c;
 	static int first = 1;
 	va_list arg;
 
 	if(l == nil)
 		return;
 
-	if(first){
+	if(first) {
 		fmtinstall('T', timefmt);
 		first = 0;
 	}
@@ -205,9 +206,9 @@ vtlogvprint(VtLog *l, char *fmt, ...)
 	qlock(&l->lk);
 	c = l->w;
 	n = c->ep - c->wp;
-	if(n < 512){
+	if(n < 512) {
 		c++;
-		if(c == l->chunk+l->nchunk)
+		if(c == l->chunk + l->nchunk)
 			c = l->chunk;
 		c->wp = c->p;
 		l->w = c;
@@ -221,22 +222,22 @@ vtlogvprint(VtLog *l, char *fmt, ...)
 }
 
 void
-vtlogprint(VtLog *l, char *fmt, ...)
+vtlogprint(VtLog* l, char* fmt, ...)
 {
 	va_list arg;
-	
+
 	if(l == nil)
 		return;
-		
+
 	va_start(arg, fmt);
 	vtlogvprint(l, fmt, arg);
 	va_end(arg);
 }
 
 void
-vtlog(char *name, char *fmt, ...)
+vtlog(char* name, char* fmt, ...)
 {
-	VtLog *l;
+	VtLog* l;
 	va_list arg;
 
 	l = vtlogopen(name, LogSize);
@@ -249,19 +250,18 @@ vtlog(char *name, char *fmt, ...)
 }
 
 void
-vtlogdump(int fd, VtLog *l)
+vtlogdump(int fd, VtLog* l)
 {
 	int i;
-	VtLogChunk *c;
+	VtLogChunk* c;
 
 	if(l == nil)
 		return;
 
 	c = l->w;
-	for(i=0; i<l->nchunk; i++){
-		if(++c == l->chunk+l->nchunk)
+	for(i = 0; i < l->nchunk; i++) {
+		if(++c == l->chunk + l->nchunk)
 			c = l->chunk;
-		write(fd, c->p, c->wp-c->p);
+		write(fd, c->p, c->wp - c->p);
 	}
 }
-

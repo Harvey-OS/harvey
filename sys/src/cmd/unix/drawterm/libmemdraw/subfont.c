@@ -13,10 +13,10 @@
 #include <memdraw.h>
 
 Memsubfont*
-allocmemsubfont(char *name, int n, int height, int ascent,
-		Fontchar *info, Memimage *i)
+allocmemsubfont(char* name, int n, int height, int ascent, Fontchar* info,
+                Memimage* i)
 {
-	Memsubfont *f;
+	Memsubfont* f;
 
 	f = malloc(sizeof(Memsubfont));
 	if(f == 0)
@@ -34,11 +34,11 @@ allocmemsubfont(char *name, int n, int height, int ascent,
 }
 
 void
-freememsubfont(Memsubfont *f)
+freememsubfont(Memsubfont* f)
 {
 	if(f == 0)
 		return;
-	free(f->info);	/* note: f->info must have been malloc'ed! */
+	free(f->info); /* note: f->info must have been malloc'ed! */
 	freememimage(f->bits);
 	free(f);
 }

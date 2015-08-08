@@ -13,22 +13,21 @@
 #include <libsec.h>
 
 #define MAGIC 0x54798314
-#define NOTFREE(p)	assert((p)->magic == MAGIC)
+#define NOTFREE(p) assert((p)->magic == MAGIC)
 
-struct Packet
-{
-	char *data;
+struct Packet {
+	char* data;
 	int len;
 	void (*free)(void*);
-	void *arg;
+	void* arg;
 	int magic;
 };
 
 Packet*
 packetalloc(void)
 {
-	Packet *p;
-	
+	Packet* p;
+
 	p = vtmallocz(sizeof *p);
 	p->free = vtfree;
 	p->arg = nil;
@@ -37,37 +36,37 @@ packetalloc(void)
 }
 
 void
-packetappend(Packet *p, uint8_t *buf, int n)
+packetappend(Packet* p, uint8_t* buf, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
 		abort();
 	if(p->free != vtfree)
 		sysfatal("packetappend");
-	p->data = vtrealloc(p->data, p->len+n);
+	p->data = vtrealloc(p->data, p->len + n);
 	p->arg = p->data;
-	memmove(p->data+p->len, buf, n);
+	memmove(p->data + p->len, buf, n);
 	p->len += n;
 }
 
 uint
-packetasize(Packet *p)
+packetasize(Packet* p)
 {
 	NOTFREE(p);
 	return p->len;
 }
 
 int
-packetcmp(Packet *p, Packet *q)
+packetcmp(Packet* p, Packet* q)
 {
 	int i, len;
-	
+
 	NOTFREE(p);
 	NOTFREE(q);
 	len = p->len;
 	if(len > q->len)
 		len = q->len;
-	if(len && (i=memcmp(p->data, q->data, len)) != 0)
+	if(len && (i = memcmp(p->data, q->data, len)) != 0)
 		return i;
 	if(p->len > len)
 		return 1;
@@ -77,7 +76,7 @@ packetcmp(Packet *p, Packet *q)
 }
 
 void
-packetconcat(Packet *p, Packet *q)
+packetconcat(Packet* p, Packet* q)
 {
 	NOTFREE(p);
 	NOTFREE(q);
@@ -90,7 +89,7 @@ packetconcat(Packet *p, Packet *q)
 }
 
 int
-packetconsume(Packet *p, uint8_t *buf, int n)
+packetconsume(Packet* p, uint8_t* buf, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
@@ -99,46 +98,46 @@ packetconsume(Packet *p, uint8_t *buf, int n)
 		abort();
 	memmove(buf, p->data, n);
 	p->len -= n;
-	memmove(p->data, p->data+n, p->len);
+	memmove(p->data, p->data + n, p->len);
 	return 0;
 }
 
 int
-packetcopy(Packet *p, uint8_t *buf, int offset, int n)
+packetcopy(Packet* p, uint8_t* buf, int offset, int n)
 {
 	NOTFREE(p);
 	if(offset < 0 || n < 0)
 		abort();
 	if(offset > p->len)
 		abort();
-	if(offset+n > p->len)
+	if(offset + n > p->len)
 		n = p->len - offset;
-	memmove(buf, p->data+offset, n);
+	memmove(buf, p->data + offset, n);
 	return 0;
 }
 
 Packet*
-packetdup(Packet *p, int offset, int n)
+packetdup(Packet* p, int offset, int n)
 {
-	Packet *q;
+	Packet* q;
 
 	NOTFREE(p);
 	if(offset < 0 || n < 0)
 		abort();
 	if(offset > p->len)
 		abort();
-	if(offset+n > p->len)
+	if(offset + n > p->len)
 		n = p->len - offset;
 	q = packetalloc();
-	packetappend(q, p->data+offset, n);
+	packetappend(q, p->data + offset, n);
 	return q;
 }
 
 Packet*
-packetforeign(uint8_t *buf, int n, void (*free)(void*), void *a)
+packetforeign(uint8_t* buf, int n, void (*free)(void*), void* a)
 {
-	Packet *p;
-	
+	Packet* p;
+
 	if(n < 0)
 		abort();
 	p = packetalloc();
@@ -150,14 +149,14 @@ packetforeign(uint8_t *buf, int n, void (*free)(void*), void *a)
 }
 
 int
-packetfragments(Packet *p, IOchunk *io, int nio, int offset)
+packetfragments(Packet* p, IOchunk* io, int nio, int offset)
 {
 	NOTFREE(p);
 	if(offset < 0)
 		abort();
 	if(nio == 0)
 		return 0;
-	memset(io, 0, sizeof(io[0])*nio);
+	memset(io, 0, sizeof(io[0]) * nio);
 	if(offset >= p->len)
 		return 0;
 	io[0].addr = p->data + offset;
@@ -166,7 +165,7 @@ packetfragments(Packet *p, IOchunk *io, int nio, int offset)
 }
 
 void
-packetfree(Packet *p)
+packetfree(Packet* p)
 {
 	NOTFREE(p);
 	if(p->free == free)
@@ -179,7 +178,7 @@ packetfree(Packet *p)
 }
 
 uint8_t*
-packetheader(Packet *p, int n)
+packetheader(Packet* p, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
@@ -190,50 +189,50 @@ packetheader(Packet *p, int n)
 }
 
 uint8_t*
-packetpeek(Packet *p, uint8_t *buf, int offset, int n)
+packetpeek(Packet* p, uint8_t* buf, int offset, int n)
 {
 	NOTFREE(p);
 	if(offset < 0 || n < 0)
 		abort();
-	if(offset+n > p->len)
+	if(offset + n > p->len)
 		abort();
-	return p->data+offset;
+	return p->data + offset;
 }
 
 void
-packetprefix(Packet *p, uint8_t *buf, int n)
+packetprefix(Packet* p, uint8_t* buf, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
 		abort();
 	if(p->free != free)
 		sysfatal("packetappend");
-	p->data = vtrealloc(p->data, p->len+n);
+	p->data = vtrealloc(p->data, p->len + n);
 	p->arg = p->data;
-	memmove(p->data+n, p->data, p->len);
+	memmove(p->data + n, p->data, p->len);
 	memmove(p->data, buf, n);
 	p->len += n;
 }
 
 void
-packetsha1(Packet *p, uint8_t d[20])
+packetsha1(Packet* p, uint8_t d[20])
 {
 	NOTFREE(p);
 	sha1((uint8_t*)p->data, p->len, d, nil);
 }
 
 uint
-packetsize(Packet *p)
+packetsize(Packet* p)
 {
 	NOTFREE(p);
 	return p->len;
 }
 
 Packet*
-packetsplit(Packet *p, int n)
+packetsplit(Packet* p, int n)
 {
-	Packet *q;
-	
+	Packet* q;
+
 	NOTFREE(p);
 	q = packetalloc();
 	q->data = vtmalloc(n);
@@ -249,7 +248,7 @@ packetstats(void)
 }
 
 uint8_t*
-packettrailer(Packet *p, int n)
+packettrailer(Packet* p, int n)
 {
 	NOTFREE(p);
 	if(n < 0)
@@ -260,15 +259,14 @@ packettrailer(Packet *p, int n)
 }
 
 int
-packettrim(Packet *p, int offset, int n)
+packettrim(Packet* p, int offset, int n)
 {
 	NOTFREE(p);
 	if(offset < 0 || n < 0)
 		abort();
-	if(offset+n > p->len)
+	if(offset + n > p->len)
 		abort();
-	memmove(p->data+offset, p->data+offset+n, p->len-offset-n);
+	memmove(p->data + offset, p->data + offset + n, p->len - offset - n);
 	p->len -= n;
 	return 0;
 }
-

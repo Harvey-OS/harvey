@@ -9,75 +9,63 @@
 
 #include "dat.h"
 
-int		askforkeys = 1;
-char		*authaddr;
-int		debug;
-int		doprivate = 1;
-int		gflag;
-char		*owner;
-int		kflag;
-char		*mtpt = "/mnt";
-Keyring	*ring;
-char		*service;
-int		sflag;
-int		uflag;
+int askforkeys = 1;
+char* authaddr;
+int debug;
+int doprivate = 1;
+int gflag;
+char* owner;
+int kflag;
+char* mtpt = "/mnt";
+Keyring* ring;
+char* service;
+int sflag;
+int uflag;
 
-extern Srv		fs;
-static void		notifyf(void*, char*);
-static void		private(void);
+extern Srv fs;
+static void notifyf(void*, char*);
+static void private(void);
 
-char	Easproto[]		= "auth server protocol botch";
-char Ebadarg[]		= "invalid argument";
-char Ebadkey[]		= "bad key";
-char Enegotiation[]	= "negotiation failed, no common protocols or keys";
-char Etoolarge[]	= "rpc too large";
+char Easproto[] = "auth server protocol botch";
+char Ebadarg[] = "invalid argument";
+char Ebadkey[] = "bad key";
+char Enegotiation[] = "negotiation failed, no common protocols or keys";
+char Etoolarge[] = "rpc too large";
 
-Proto*
-prototab[] =
-{
-	&apop,
-	&chap,
-	&cram,
-	&httpdigest,
-	&mschap,
-	&p9any,
-	&p9cr,
-	&p9sk1,
-	&p9sk2,
-	&pass,
-/*	&srs, */
-	&rsa,
-	&vnc,
-	&wep,
-	nil,
+Proto* prototab[] = {
+    &apop,  &chap, &cram,  &httpdigest, &mschap,
+    &p9any, &p9cr, &p9sk1, &p9sk2,      &pass,
+    /*	&srs, */
+    &rsa,   &vnc,  &wep,   nil,
 };
 
 void
 usage(void)
 {
 	fprint(2, "usage: %s [-DSdknpu] [-a authaddr] [-m mtpt] [-s service]\n",
-		argv0);
+	       argv0);
 	fprint(2, "or    %s -g 'params'\n", argv0);
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i, trysecstore;
 	char err[ERRMAX], *s;
 	Dir d;
-	Proto *p;
-	char *secstorepw;
+	Proto* p;
+	char* secstorepw;
 
 	trysecstore = 1;
 	secstorepw = nil;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
-	case 'S':		/* server: read nvram, no prompting for keys */
+	case 'S': /* server: read nvram, no prompting for keys */
 		askforkeys = 0;
 		trysecstore = 0;
 		sflag = 1;
@@ -89,13 +77,13 @@ main(int argc, char **argv)
 		debug = 1;
 		doprivate = 0;
 		break;
-	case 'g':		/* get: prompt for key for name and domain */
+	case 'g': /* get: prompt for key for name and domain */
 		gflag = 1;
 		break;
-	case 'k':		/* reinitialize nvram */
+	case 'k': /* reinitialize nvram */
 		kflag = 1;
 		break;
-	case 'm':		/* set default mount point */
+	case 'm': /* set default mount point */
 		mtpt = EARGF(usage());
 		break;
 	case 'n':
@@ -104,20 +92,22 @@ main(int argc, char **argv)
 	case 'p':
 		doprivate = 0;
 		break;
-	case 's':		/* set service name */
+	case 's': /* set service name */
 		service = EARGF(usage());
 		break;
-	case 'u':		/* user: set hostowner */
+	case 'u': /* user: set hostowner */
 		uflag = 1;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0 && !gflag)
 		usage();
 	if(doprivate)
-		private();
+	      private
+	();
 
 	initcap();
 
@@ -129,14 +119,14 @@ main(int argc, char **argv)
 	ring = emalloc(sizeof(*ring));
 	notify(notifyf);
 
-	if(gflag){
+	if(gflag) {
 		if(argc != 1)
 			usage();
 		askuser(argv[0]);
 		exits(nil);
 	}
 
-	for(i=0; prototab[i]; i++){
+	for(i = 0; prototab[i]; i++) {
 		p = prototab[i];
 		if(p->name == nil)
 			sysfatal("protocol %d has no name", i);
@@ -152,15 +142,16 @@ main(int argc, char **argv)
 			p->keyprompt = "";
 	}
 
-	if(sflag){
+	if(sflag) {
 		s = getnvramkey(kflag ? NVwrite : NVwriteonerr, &secstorepw);
 		if(s == nil)
 			fprint(2, "factotum warning: cannot read nvram: %r\n");
 		else if(ctlwrite(s, 0) < 0)
-			fprint(2, "factotum warning: cannot add nvram key: %r\n");
+			fprint(2,
+			       "factotum warning: cannot add nvram key: %r\n");
 		if(secstorepw != nil)
 			trysecstore = 1;
-		if (s != nil) {
+		if(s != nil) {
 			memset(s, 0, strlen(s));
 			free(s);
 		}
@@ -168,9 +159,9 @@ main(int argc, char **argv)
 		promptforhostowner();
 	owner = getuser();
 
-	if(trysecstore){
-		if(havesecstore() == 1){
-			while(secstorefetch(secstorepw) < 0){
+	if(trysecstore) {
+		if(havesecstore() == 1) {
+			while(secstorefetch(secstorepw) < 0) {
 				rerrstr(err, sizeof err);
 				if(strcmp(err, "cancel") == 0)
 					break;
@@ -179,42 +170,43 @@ main(int argc, char **argv)
 				free(secstorepw);
 				secstorepw = nil; /* just try nvram pw once */
 			}
-		}else{
-/*
-			rerrstr(err, sizeof err);
-			if(*err)
-				fprint(2, "factotum: havesecstore: %r\n");
-*/
+		} else {
+			/*
+			                        rerrstr(err, sizeof err);
+			                        if(*err)
+			                                fprint(2, "factotum:
+			   havesecstore: %r\n");
+			*/
 		}
 	}
 
 	postmountsrv(&fs, service, mtpt, MBEFORE);
-	if(service){
+	if(service) {
 		nulldir(&d);
 		d.mode = 0666;
-		s = emalloc(10+strlen(service));
+		s = emalloc(10 + strlen(service));
 		strcpy(s, "/srv/");
 		strcat(s, service);
 		if(dirwstat(s, &d) < 0)
-			fprint(2, "factotum warning: cannot chmod 666 %s: %r\n", s);
+			fprint(2, "factotum warning: cannot chmod 666 %s: %r\n",
+			       s);
 		free(s);
 	}
 	exits(nil);
 }
 
-char *pmsg = "Warning! %s can't protect itself from debugging: %r\n";
-char *smsg = "Warning! %s can't turn off swapping: %r\n";
+char* pmsg = "Warning! %s can't protect itself from debugging: %r\n";
+char* smsg = "Warning! %s can't turn off swapping: %r\n";
 
 /* don't allow other processes to debug us and steal keys */
-static void
-private(void)
+static void private(void)
 {
 	int fd;
 	char buf[64];
 
 	snprint(buf, sizeof(buf), "#p/%d/ctl", getpid());
 	fd = open(buf, OWRITE);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, pmsg, argv0);
 		return;
 	}
@@ -226,24 +218,22 @@ private(void)
 }
 
 static void
-notifyf(void* v, char *s)
+notifyf(void* v, char* s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		noted(NCONT);
 	noted(NDFLT);
 }
 
-enum
-{
-	Qroot,
-	Qfactotum,
-	Qrpc,
-	Qkeylist,
-	Qprotolist,
-	Qconfirm,
-	Qlog,
-	Qctl,
-	Qneedkey,
+enum { Qroot,
+       Qfactotum,
+       Qrpc,
+       Qkeylist,
+       Qprotolist,
+       Qconfirm,
+       Qlog,
+       Qctl,
+       Qneedkey,
 };
 
 Qid
@@ -258,7 +248,7 @@ mkqid(int type, int path)
 }
 
 static void
-fsattach(Req *r)
+fsattach(Req* r)
 {
 	r->fid->qid = mkqid(QTDIR, Qroot);
 	r->ofcall.qid = r->fid->qid;
@@ -266,23 +256,21 @@ fsattach(Req *r)
 }
 
 static struct {
-	char *name;
+	char* name;
 	int qidpath;
 	uint32_t perm;
 } dirtab[] = {
-	"confirm",	Qconfirm,	0600|DMEXCL,		/* we know this is slot #0 below */
-	"needkey", Qneedkey,	0600|DMEXCL,		/* we know this is slot #1 below */
-	"ctl",		Qctl,			0644,
-	"rpc",	Qrpc,		0666,
-	"proto",	Qprotolist,	0444,
-	"log",	Qlog,		0400|DMEXCL,
+    "confirm", Qconfirm,   0600 | DMEXCL, /* we know this is slot #0 below */
+    "needkey", Qneedkey,   0600 | DMEXCL, /* we know this is slot #1 below */
+    "ctl",     Qctl,       0644,          "rpc", Qrpc, 0666,
+    "proto",   Qprotolist, 0444,          "log", Qlog, 0400 | DMEXCL,
 };
 static int inuse[nelem(dirtab)];
-int *confirminuse = &inuse[0];
-int *needkeyinuse = &inuse[1];
+int* confirminuse = &inuse[0];
+int* needkeyinuse = &inuse[1];
 
 static void
-fillstat(Dir *dir, char *name, int type, int path, uint32_t perm)
+fillstat(Dir* dir, char* name, int type, int path, uint32_t perm)
 {
 	dir->name = estrdup(name);
 	dir->uid = estrdup(owner);
@@ -296,16 +284,16 @@ fillstat(Dir *dir, char *name, int type, int path, uint32_t perm)
 }
 
 static int
-rootdirgen(int n, Dir *dir, void* v)
+rootdirgen(int n, Dir* dir, void* v)
 {
 	if(n > 0)
 		return -1;
-	fillstat(dir, "factotum", QTDIR, Qfactotum, DMDIR|0555);
+	fillstat(dir, "factotum", QTDIR, Qfactotum, DMDIR | 0555);
 	return 0;
 }
 
 static int
-fsdirgen(int n, Dir *dir, void* v)
+fsdirgen(int n, Dir* dir, void* v)
 {
 	if(n >= nelem(dirtab))
 		return -1;
@@ -314,32 +302,32 @@ fsdirgen(int n, Dir *dir, void* v)
 }
 
 static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+fswalk1(Fid* fid, char* name, Qid* qid)
 {
 	int i;
 
-	switch((uint32_t)fid->qid.path){
+	switch((uint32_t)fid->qid.path) {
 	default:
 		return "cannot happen";
 	case Qroot:
-		if(strcmp(name, "factotum") == 0){
+		if(strcmp(name, "factotum") == 0) {
 			*qid = mkqid(QTDIR, Qfactotum);
 			fid->qid = *qid;
 			return nil;
 		}
-		if(strcmp(name, "..") == 0){
+		if(strcmp(name, "..") == 0) {
 			*qid = fid->qid;
 			return nil;
 		}
 		return "not found";
 	case Qfactotum:
-		for(i=0; i<nelem(dirtab); i++)
-			if(strcmp(name, dirtab[i].name) == 0){
+		for(i = 0; i < nelem(dirtab); i++)
+			if(strcmp(name, dirtab[i].name) == 0) {
 				*qid = mkqid(0, dirtab[i].qidpath);
 				fid->qid = *qid;
 				return nil;
 			}
-		if(strcmp(name, "..") == 0){
+		if(strcmp(name, "..") == 0) {
 			*qid = mkqid(QTDIR, Qroot);
 			fid->qid = *qid;
 			return nil;
@@ -349,60 +337,61 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 }
 
 static void
-fsstat(Req *r)
+fsstat(Req* r)
 {
 	int i;
 	uint32_t path;
 
 	path = r->fid->qid.path;
-	if(path == Qroot){
-		fillstat(&r->d, "/", QTDIR, Qroot, 0555|DMDIR);
+	if(path == Qroot) {
+		fillstat(&r->d, "/", QTDIR, Qroot, 0555 | DMDIR);
 		respond(r, nil);
 		return;
 	}
-	if(path == Qfactotum){
-		fillstat(&r->d, "factotum", QTDIR, Qfactotum, 0555|DMDIR);
+	if(path == Qfactotum) {
+		fillstat(&r->d, "factotum", QTDIR, Qfactotum, 0555 | DMDIR);
 		respond(r, nil);
 		return;
 	}
-	for(i=0; i<nelem(dirtab); i++)
-		if(dirtab[i].qidpath == path){
-			fillstat(&r->d, dirtab[i].name, 0, dirtab[i].qidpath, dirtab[i].perm);
+	for(i = 0; i < nelem(dirtab); i++)
+		if(dirtab[i].qidpath == path) {
+			fillstat(&r->d, dirtab[i].name, 0, dirtab[i].qidpath,
+			         dirtab[i].perm);
 			respond(r, nil);
 			return;
 		}
-	respond(r, "file not found");	
+	respond(r, "file not found");
 }
 
 static void
-fsopen(Req *r)
+fsopen(Req* r)
 {
 	int i, *p, perm;
 	static int need[4] = {4, 2, 6, 1};
 	int n;
-	Fsstate *fss;
+	Fsstate* fss;
 
 	p = nil;
-	for(i=0; i<nelem(dirtab); i++)
+	for(i = 0; i < nelem(dirtab); i++)
 		if(dirtab[i].qidpath == r->fid->qid.path)
 			break;
-	if(i < nelem(dirtab)){
+	if(i < nelem(dirtab)) {
 		if(dirtab[i].perm & DMEXCL)
 			p = &inuse[i];
 		if(strcmp(r->fid->uid, owner) == 0)
-			perm = dirtab[i].perm>>6;
+			perm = dirtab[i].perm >> 6;
 		else
 			perm = dirtab[i].perm;
-	}else
+	} else
 		perm = 5;
 
-	n = need[r->ifcall.mode&3];
-	if((r->ifcall.mode&~(3|OTRUNC)) || ((perm&n) != n)){
+	n = need[r->ifcall.mode & 3];
+	if((r->ifcall.mode & ~(3 | OTRUNC)) || ((perm & n) != n)) {
 		respond(r, "permission denied");
 		return;
 	}
-	if(p){
-		if(*p){
+	if(p) {
+		if(*p) {
 			respond(r, "file in use");
 			return;
 		}
@@ -418,15 +407,15 @@ fsopen(Req *r)
 }
 
 static void
-fsdestroyfid(Fid *fid)
+fsdestroyfid(Fid* fid)
 {
 	int i;
-	Fsstate *fss;
+	Fsstate* fss;
 
-	if(fid->omode != -1){
-		for(i=0; i<nelem(dirtab); i++)
+	if(fid->omode != -1) {
+		for(i = 0; i < nelem(dirtab); i++)
 			if(dirtab[i].qidpath == fid->qid.path)
-				if(dirtab[i].perm&DMEXCL)
+				if(dirtab[i].perm & DMEXCL)
 					inuse[i] = 0;
 	}
 
@@ -440,17 +429,16 @@ fsdestroyfid(Fid *fid)
 }
 
 static int
-readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r,
-	 Fsstate *fss)
+readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req* r, Fsstate* fss)
 {
-	char *a, *ea;
+	char* a, *ea;
 	int n;
 
 	a = r->ofcall.data;
-	ea = a+r->ifcall.count;
-	for(;;){
-		n = (*gen)(off, a, ea-a, fss);
-		if(n == 0){
+	ea = a + r->ifcall.count;
+	for(;;) {
+		n = (*gen)(off, a, ea - a, fss);
+		if(n == 0) {
 			r->ofcall.count = a - (char*)r->ofcall.data;
 			return off;
 		}
@@ -459,15 +447,16 @@ readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r,
 	}
 }
 
-enum { Nearend = 2, };			/* at least room for \n and NUL */
+enum { Nearend = 2,
+}; /* at least room for \n and NUL */
 
 /* result in `a', of `n' bytes maximum */
 static int
-keylist(int i, char *a, uint n, Fsstate *fss)
+keylist(int i, char* a, uint n, Fsstate* fss)
 {
 	int wb;
 	Keyinfo ki;
-	Key *k;
+	Key* k;
 	static char zero[Nearend];
 
 	k = nil;
@@ -481,7 +470,7 @@ keylist(int i, char *a, uint n, Fsstate *fss)
 	memset(a + n - Nearend, 0, Nearend);
 	wb = snprint(a, n, "key %A %N\n", k->attr, k->privattr);
 	closekey(k);
-	if (wb >= n - 1 && a[n - 2] != '\n' && a[n - 2] != '\0') {
+	if(wb >= n - 1 && a[n - 2] != '\n' && a[n - 2] != '\0') {
 		/* line won't fit in `a', so just truncate */
 		strcpy(a + n - 2, "\n");
 		return 0;
@@ -490,27 +479,27 @@ keylist(int i, char *a, uint n, Fsstate *fss)
 }
 
 static int
-protolist(int i, char *a, uint n, Fsstate *fss)
+protolist(int i, char* a, uint n, Fsstate* fss)
 {
 	USED(fss);
 
-	if(i >= nelem(prototab)-1)
+	if(i >= nelem(prototab) - 1)
 		return 0;
-	if(strlen(prototab[i]->name)+1 > n)
+	if(strlen(prototab[i]->name) + 1 > n)
 		return 0;
-	n = strlen(prototab[i]->name)+1;
-	memmove(a, prototab[i]->name, n-1);
-	a[n-1] = '\n';
+	n = strlen(prototab[i]->name) + 1;
+	memmove(a, prototab[i]->name, n - 1);
+	a[n - 1] = '\n';
 	return n;
 }
 
 static void
-fsread(Req *r)
+fsread(Req* r)
 {
-	Fsstate *s;
+	Fsstate* s;
 
 	s = r->fid->aux;
-	switch((uint32_t)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path) {
 	default:
 		respond(r, "bug in fsread");
 		break;
@@ -546,12 +535,12 @@ fsread(Req *r)
 }
 
 static void
-fswrite(Req *r)
+fswrite(Req* r)
 {
 	int ret;
 	char err[ERRMAX], *s;
 
-	switch((uint32_t)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path) {
 	default:
 		respond(r, "bug in fswrite");
 		break;
@@ -561,10 +550,10 @@ fswrite(Req *r)
 	case Qneedkey:
 	case Qconfirm:
 	case Qctl:
-		s = emalloc(r->ifcall.count+1);
+		s = emalloc(r->ifcall.count + 1);
 		memmove(s, r->ifcall.data, r->ifcall.count);
 		s[r->ifcall.count] = '\0';
-		switch((uint32_t)r->fid->qid.path){
+		switch((uint32_t)r->fid->qid.path) {
 		default:
 			abort();
 		case Qneedkey:
@@ -578,10 +567,10 @@ fswrite(Req *r)
 			break;
 		}
 		free(s);
-		if(ret < 0){
+		if(ret < 0) {
 			rerrstr(err, sizeof err);
 			respond(r, err);
-		}else{
+		} else {
 			r->ofcall.count = r->ifcall.count;
 			respond(r, nil);
 		}
@@ -590,7 +579,7 @@ fswrite(Req *r)
 }
 
 static void
-fsflush(Req *r)
+fsflush(Req* r)
 {
 	confirmflush(r->oldreq);
 	needkeyflush(r->oldreq);
@@ -599,13 +588,12 @@ fsflush(Req *r)
 }
 
 Srv fs = {
-.attach=	fsattach,
-.walk1=	fswalk1,
-.open=	fsopen,
-.read=	fsread,
-.write=	fswrite,
-.stat=	fsstat,
-.flush=	fsflush,
-.destroyfid=	fsdestroyfid,
+    .attach = fsattach,
+    .walk1 = fswalk1,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .stat = fsstat,
+    .flush = fsflush,
+    .destroyfid = fsdestroyfid,
 };
-

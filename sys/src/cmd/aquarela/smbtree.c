@@ -10,15 +10,15 @@
 #include "headers.h"
 
 typedef struct DisconnectData {
-	SmbSession *s;
-	SmbTree *t;
+	SmbSession* s;
+	SmbTree* t;
 } DisconnectData;
 
 static void
-smbtreefree(SmbTree **tp)
+smbtreefree(SmbTree** tp)
 {
-	SmbTree *t = *tp;
-	if (t) {
+	SmbTree* t = *tp;
+	if(t) {
 		smbserviceput(t->serv);
 		free(t);
 		*tp = nil;
@@ -26,29 +26,30 @@ smbtreefree(SmbTree **tp)
 }
 
 static void
-closesearch(void *magic, void *a)
+closesearch(void* magic, void* a)
 {
-	SmbSearch *search = a;
-	DisconnectData *d = magic;
-	if (search->t == d->t)
+	SmbSearch* search = a;
+	DisconnectData* d = magic;
+	if(search->t == d->t)
 		smbsearchclose(d->s, search);
 }
 
 static void
-closefile(void *magic, void *a)
+closefile(void* magic, void* a)
 {
-	SmbFile *f = a;
-	DisconnectData *d = magic;
-	if (f->t == d->t)
+	SmbFile* f = a;
+	DisconnectData* d = magic;
+	if(f->t == d->t)
 		smbfileclose(d->s, f);
 }
 
 void
-smbtreedisconnect(SmbSession *s, SmbTree *t)
+smbtreedisconnect(SmbSession* s, SmbTree* t)
 {
-	if (t) {
+	if(t) {
 		DisconnectData data;
-		smblogprintif(smbglobals.log.tids, "smbtreedisconnect: 0x%.4ux\n", t->id);
+		smblogprintif(smbglobals.log.tids,
+		              "smbtreedisconnect: 0x%.4ux\n", t->id);
 		data.s = s;
 		data.t = t;
 		smbserviceput(t->serv);
@@ -60,17 +61,17 @@ smbtreedisconnect(SmbSession *s, SmbTree *t)
 }
 
 void
-smbtreedisconnectbyid(SmbSession *s, uint16_t id)
+smbtreedisconnectbyid(SmbSession* s, uint16_t id)
 {
 	smbtreedisconnect(s, smbidmapfind(s->tidmap, id));
 }
 
-SmbTree *
-smbtreeconnect(SmbSession *s, SmbService *serv)
+SmbTree*
+smbtreeconnect(SmbSession* s, SmbService* serv)
 {
-	SmbTree *t;
+	SmbTree* t;
 
-	if (s->tidmap == nil)
+	if(s->tidmap == nil)
 		s->tidmap = smbidmapnew();
 
 	t = smbemallocz(sizeof(*t), 1);

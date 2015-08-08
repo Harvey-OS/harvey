@@ -7,84 +7,74 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-typedef struct DMAport	DMAport;
-typedef struct DMA	DMA;
-typedef struct DMAxfer	DMAxfer;
+typedef struct DMAport DMAport;
+typedef struct DMA DMA;
+typedef struct DMAxfer DMAxfer;
 
-enum
-{
+enum {
 	/*
-	 *  the byte registers for DMA0 are all one byte apart
-	 */
-	Dma0=		0x00,
-	Dma0status=	Dma0+0x8,	/* status port */
-	Dma0reset=	Dma0+0xD,	/* reset port */
+         *  the byte registers for DMA0 are all one byte apart
+         */
+	Dma0 = 0x00,
+	Dma0status = Dma0 + 0x8, /* status port */
+	Dma0reset = Dma0 + 0xD,  /* reset port */
 
 	/*
-	 *  the byte registers for DMA1 are all two bytes apart (why?)
-	 */
-	Dma1=		0xC0,
-	Dma1status=	Dma1+2*0x8,	/* status port */
-	Dma1reset=	Dma1+2*0xD,	/* reset port */
+         *  the byte registers for DMA1 are all two bytes apart (why?)
+         */
+	Dma1 = 0xC0,
+	Dma1status = Dma1 + 2 * 0x8, /* status port */
+	Dma1reset = Dma1 + 2 * 0xD,  /* reset port */
 };
 
 /*
  *  state of a dma transfer
  */
-struct DMAxfer
-{
-	uint32_t	bpa;		/* bounce buffer physical address */
-	void*	bva;		/* bounce buffer virtual address */
-	void*	va;		/* virtual address destination/src */
-	int32_t	len;		/* bytes to be transferred */
-	int	isread;
+struct DMAxfer {
+	uint32_t bpa; /* bounce buffer physical address */
+	void* bva;    /* bounce buffer virtual address */
+	void* va;     /* virtual address destination/src */
+	int32_t len;  /* bytes to be transferred */
+	int isread;
 };
 
 /*
  *  the dma controllers.  the first half of this structure specifies
  *  the I/O ports used by the DMA controllers.
  */
-struct DMAport
-{
-	uint8_t	addr[4];	/* current address (4 channels) */
-	uint8_t	count[4];	/* current count (4 channels) */
-	uint8_t	page[4];	/* page registers (4 channels) */
-	uint8_t	cmd;		/* command status register */
-	uint8_t	req;		/* request registers */
-	uint8_t	sbm;		/* single bit mask register */
-	uint8_t	mode;		/* mode register */
-	uint8_t	cbp;		/* clear byte pointer */
-	uint8_t	mc;		/* master clear */
-	uint8_t	cmask;		/* clear mask register */
-	uint8_t	wam;		/* write all mask register bit */
+struct DMAport {
+	uint8_t addr[4];  /* current address (4 channels) */
+	uint8_t count[4]; /* current count (4 channels) */
+	uint8_t page[4];  /* page registers (4 channels) */
+	uint8_t cmd;      /* command status register */
+	uint8_t req;      /* request registers */
+	uint8_t sbm;      /* single bit mask register */
+	uint8_t mode;     /* mode register */
+	uint8_t cbp;      /* clear byte pointer */
+	uint8_t mc;       /* master clear */
+	uint8_t cmask;    /* clear mask register */
+	uint8_t wam;      /* write all mask register bit */
 };
 
-struct DMA
-{
+struct DMA {
 	DMAport;
-	int	shift;
+	int shift;
 	Lock;
-	DMAxfer	x[4];
+	DMAxfer x[4];
 };
 
 DMA dma[2] = {
-	{ 0x00, 0x02, 0x04, 0x06,
-	  0x01, 0x03, 0x05, 0x07,
-	  0x87, 0x83, 0x81, 0x82,
-	  0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-	 0 },
+    {0x00, 0x02, 0x04, 0x06, 0x01, 0x03, 0x05, 0x07, 0x87, 0x83, 0x81, 0x82,
+     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0},
 
-	{ 0xc0, 0xc4, 0xc8, 0xcc,
-	  0xc2, 0xc6, 0xca, 0xce,
-	  0x8f, 0x8b, 0x89, 0x8a,
-	  0xd0, 0xd2, 0xd4, 0xd6, 0xd8, 0xda, 0xdc, 0xde,
-	 1 },
+    {0xc0, 0xc4, 0xc8, 0xcc, 0xc2, 0xc6, 0xca, 0xce, 0x8f, 0x8b, 0x89, 0x8a,
+     0xd0, 0xd2, 0xd4, 0xd6, 0xd8, 0xda, 0xdc, 0xde, 1},
 };
 
 /*
@@ -95,16 +85,16 @@ DMA dma[2] = {
 void
 dmainit(int chan)
 {
-	DMA *dp;
-	DMAxfer *xp;
+	DMA* dp;
+	DMAxfer* xp;
 	uint32_t v;
 	static int once;
 
-	if(once == 0){
-//		if(ioalloc(0x00, 0x10, 0, "dma") < 0
-//		|| ioalloc(0x80, 0x10, 0, "dma") < 0
-//		|| ioalloc(0xd0, 0x10, 0, "dma") < 0)
-//			panic("dmainit");
+	if(once == 0) {
+		//		if(ioalloc(0x00, 0x10, 0, "dma") < 0
+		//		|| ioalloc(0x80, 0x10, 0, "dma") < 0
+		//		|| ioalloc(0xd0, 0x10, 0, "dma") < 0)
+		//			panic("dmainit");
 		outb(dma[0].mc, 0);
 		outb(dma[1].mc, 0);
 		outb(dma[0].cmask, 0);
@@ -113,14 +103,14 @@ dmainit(int chan)
 		once = 1;
 	}
 
-	dp = &dma[(chan>>2)&1];
+	dp = &dma[(chan >> 2) & 1];
 	chan = chan & 3;
 	xp = &dp->x[chan];
 	if(xp->bva != nil)
 		return;
 
-	v = (uint32_t)xalloc(BY2PG+BY2PG);
-	if(v == 0 || PADDR(v) >= 16*MiB){
+	v = (uint32_t)xalloc(BY2PG + BY2PG);
+	if(v == 0 || PADDR(v) >= 16 * MiB) {
 		print("dmainit: chan %d: 0x%luX out of range\n", chan, v);
 		xfree((void*)v);
 		v = 0;
@@ -142,14 +132,14 @@ dmainit(int chan)
  *  boundaries)
  */
 int32_t
-dmasetup(int chan, void *va, int32_t len, int isread)
+dmasetup(int chan, void* va, int32_t len, int isread)
 {
-	DMA *dp;
+	DMA* dp;
 	uint32_t pa;
 	uint8_t mode;
-	DMAxfer *xp;
+	DMAxfer* xp;
 
-	dp = &dma[(chan>>2)&1];
+	dp = &dma[(chan >> 2) & 1];
 	chan = chan & 3;
 	xp = &dp->x[chan];
 
@@ -158,9 +148,8 @@ dmasetup(int chan, void *va, int32_t len, int isread)
 	 *  use the allocated low memory page.
 	 */
 	pa = PADDR(va);
-	if((((uint32_t)va)&0xF0000000) != KZERO
-	|| (pa&0xFFFF0000) != ((pa+len)&0xFFFF0000)
-	|| pa > 16*MiB) {
+	if((((uint32_t)va) & 0xF0000000) != KZERO ||
+	   (pa & 0xFFFF0000) != ((pa + len) & 0xFFFF0000) || pa > 16 * MiB) {
 		if(xp->bva == nil)
 			return -1;
 		if(len > BY2PG)
@@ -171,8 +160,7 @@ dmasetup(int chan, void *va, int32_t len, int isread)
 		xp->len = len;
 		xp->isread = isread;
 		pa = xp->bpa;
-	}
-	else
+	} else
 		xp->len = 0;
 
 	/*
@@ -180,14 +168,14 @@ dmasetup(int chan, void *va, int32_t len, int isread)
 	 */
 	ilock(dp);
 	mode = (isread ? 0x44 : 0x48) | chan;
-	outb(dp->mode, mode);	/* single mode dma (give CPU a chance at mem) */
-	outb(dp->page[chan], pa>>16);
-	outb(dp->cbp, 0);		/* set count & address to their first byte */
-	outb(dp->addr[chan], pa>>dp->shift);		/* set address */
-	outb(dp->addr[chan], pa>>(8+dp->shift));
-	outb(dp->count[chan], (len>>dp->shift)-1);		/* set count */
-	outb(dp->count[chan], ((len>>dp->shift)-1)>>8);
-	outb(dp->sbm, chan);		/* enable the channel */
+	outb(dp->mode, mode); /* single mode dma (give CPU a chance at mem) */
+	outb(dp->page[chan], pa >> 16);
+	outb(dp->cbp, 0); /* set count & address to their first byte */
+	outb(dp->addr[chan], pa >> dp->shift); /* set address */
+	outb(dp->addr[chan], pa >> (8 + dp->shift));
+	outb(dp->count[chan], (len >> dp->shift) - 1); /* set count */
+	outb(dp->count[chan], ((len >> dp->shift) - 1) >> 8);
+	outb(dp->sbm, chan); /* enable the channel */
 	iunlock(dp);
 
 	return len;
@@ -196,12 +184,12 @@ dmasetup(int chan, void *va, int32_t len, int isread)
 int
 dmadone(int chan)
 {
-	DMA *dp;
+	DMA* dp;
 
-	dp = &dma[(chan>>2)&1];
+	dp = &dma[(chan >> 2) & 1];
 	chan = chan & 3;
 
-	return inb(dp->cmd) & (1<<chan);
+	return inb(dp->cmd) & (1 << chan);
 }
 
 /*
@@ -214,17 +202,17 @@ dmadone(int chan)
 void
 dmaend(int chan)
 {
-	DMA *dp;
-	DMAxfer *xp;
+	DMA* dp;
+	DMAxfer* xp;
 
-	dp = &dma[(chan>>2)&1];
+	dp = &dma[(chan >> 2) & 1];
 	chan = chan & 3;
 
 	/*
 	 *  disable the channel
 	 */
 	ilock(dp);
-	outb(dp->sbm, 4|chan);
+	outb(dp->sbm, 4 | chan);
 	iunlock(dp);
 
 	xp = &dp->x[chan];
@@ -242,13 +230,13 @@ dmaend(int chan)
 int
 dmacount(int chan)
 {
-	int     retval;
-	DMA     *dp;
+        int     retval;
+        DMA     *dp;
 
-	dp = &dma[(chan>>2)&1];
-	outb(dp->cbp, 0);
-	retval = inb(dp->count[chan]);
-	retval |= inb(dp->count[chan]) << 8;
-	return((retval<<dp->shift)+1);
+        dp = &dma[(chan>>2)&1];
+        outb(dp->cbp, 0);
+        retval = inb(dp->count[chan]);
+        retval |= inb(dp->count[chan]) << 8;
+        return((retval<<dp->shift)+1);
 }
  */

@@ -15,22 +15,20 @@
 
 typedef struct EQueue EQueue;
 
-struct EQueue
-{
-	int		id;
-	char		*buf;
-	int		nbuf;
-	EQueue	*next;
+struct EQueue {
+	int id;
+	char* buf;
+	int nbuf;
+	EQueue* next;
 };
 
-static	EQueue	*equeue;
-static	Lock		eqlock;
+static EQueue* equeue;
+static Lock eqlock;
 
-static
-int
-partial(int id, Event *e, uint8_t *b, int n)
+static int
+partial(int id, Event* e, uint8_t* b, int n)
 {
-	EQueue *eq, *p;
+	EQueue* eq, *p;
 	int nmore;
 
 	lock(&eqlock);
@@ -41,18 +39,18 @@ partial(int id, Event *e, uint8_t *b, int n)
 	if(eq == nil)
 		return 0;
 	/* partial message exists for this id */
-	eq->buf = realloc(eq->buf, eq->nbuf+n);
+	eq->buf = realloc(eq->buf, eq->nbuf + n);
 	if(eq->buf == nil)
 		drawerror(display, "eplumb: cannot allocate buffer");
-	memmove(eq->buf+eq->nbuf, b, n);
+	memmove(eq->buf + eq->nbuf, b, n);
 	eq->nbuf += n;
 	e->v = plumbunpackpartial((char*)eq->buf, eq->nbuf, &nmore);
-	if(nmore == 0){	/* no more to read in this message */
+	if(nmore == 0) { /* no more to read in this message */
 		lock(&eqlock);
 		if(eq == equeue)
 			equeue = eq->next;
-		else{
-			for(p = equeue; p!=nil && p->next!=eq; p = p->next)
+		else {
+			for(p = equeue; p != nil && p->next != eq; p = p->next)
 				;
 			if(p == nil)
 				drawerror(display, "eplumb: bad event queue");
@@ -65,11 +63,10 @@ partial(int id, Event *e, uint8_t *b, int n)
 	return 1;
 }
 
-static
-void
-addpartial(int id, char *b, int n)
+static void
+addpartial(int id, char* b, int n)
 {
-	EQueue *eq;
+	EQueue* eq;
 
 	eq = malloc(sizeof(EQueue));
 	if(eq == nil)
@@ -77,7 +74,7 @@ addpartial(int id, char *b, int n)
 	eq->id = id;
 	eq->nbuf = n;
 	eq->buf = malloc(n);
-	if(eq->buf == nil){
+	if(eq->buf == nil) {
 		free(eq);
 		return;
 	}
@@ -88,16 +85,15 @@ addpartial(int id, char *b, int n)
 	unlock(&eqlock);
 }
 
-static
-int
-plumbevent(int id, Event *e, uint8_t *b, int n)
+static int
+plumbevent(int id, Event* e, uint8_t* b, int n)
 {
 	int nmore;
 
-	if(partial(id, e, b, n) == 0){
+	if(partial(id, e, b, n) == 0) {
 		/* no partial message already waiting for this id */
 		e->v = plumbunpackpartial((char*)b, n, &nmore);
-		if(nmore > 0)	/* incomplete message */
+		if(nmore > 0) /* incomplete message */
 			addpartial(id, (char*)b, n);
 	}
 	if(e->v == nil)
@@ -106,11 +102,11 @@ plumbevent(int id, Event *e, uint8_t *b, int n)
 }
 
 int
-eplumb(int key, char *port)
+eplumb(int key, char* port)
 {
 	int fd;
 
-	fd = plumbopen(port, OREAD|OCEXEC);
+	fd = plumbopen(port, OREAD | OCEXEC);
 	if(fd < 0)
 		return -1;
 	return estartfn(key, fd, 8192, plumbevent);

@@ -14,18 +14,18 @@
 #include <memlayer.h>
 
 int
-memlsetrefresh(Memimage *i, Refreshfn fn, void *ptr)
+memlsetrefresh(Memimage* i, Refreshfn fn, void* ptr)
 {
-	Memlayer *l;
+	Memlayer* l;
 
 	l = i->layer;
-	if(l->refreshfn!=nil && fn!=nil){	/* just change functions */
+	if(l->refreshfn != nil && fn != nil) { /* just change functions */
 		l->refreshfn = fn;
 		l->refreshptr = ptr;
 		return 1;
 	}
 
-	if(l->refreshfn == nil){	/* is using backup image; just free it */
+	if(l->refreshfn == nil) { /* is using backup image; just free it */
 		freememimage(l->save);
 		l->save = nil;
 		l->refreshfn = fn;

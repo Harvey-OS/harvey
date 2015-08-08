@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Serializer/expander for gs_parm_list's */
 
 #ifndef gsparams_INCLUDED
-#  define gsparams_INCLUDED
+#define gsparams_INCLUDED
 
 /* Initial version 2/1/98 by John Desrosiers (soho@crl.com) */
 /* 8/8/98 L. Peter Deutsch (ghost@aladdin.com) Completely redesigned
@@ -37,7 +37,7 @@
 #include "stream.h"
 #include "gsparam.h"
 
-#if 0	/****************/
+#if 0 /****************/
 
 /* ------ Future interface, implemented in gsparam2.c ------ */
 
@@ -53,7 +53,7 @@ int gs_param_list_puts(stream *dest, gs_param_list *list);
  */
 int gs_param_list_gets(stream *src, gs_param_list *list, gs_memory_t *mem);
 
-#else	/****************/
+#else /****************/
 
 /* ------ Present interface, implemented in gsparams.c ------ */
 
@@ -64,15 +64,15 @@ int gs_param_list_gets(stream *src, gs_param_list *list, gs_memory_t *mem);
  * less than or equal to the buffer size.  Note that the buffer may be
  * NULL, in which case nothing is stored (but the size is still returned).
  */
-int gs_param_list_serialize(gs_param_list *list, byte *buf, int buf_size);
+int gs_param_list_serialize(gs_param_list* list, byte* buf, int buf_size);
 
 /*
  * Unserialize a parameter list from a buffer.  Return the actual number
  * of bytes occupied by the list, or a negative error code.  The buffer
  * must be void * aligned.
  */
-int gs_param_list_unserialize(gs_param_list *list, const byte *buf);
+int gs_param_list_unserialize(gs_param_list* list, const byte* buf);
 
-#endif	/****************/
+#endif /****************/
 
 #endif /* gsparams_INCLUDED */

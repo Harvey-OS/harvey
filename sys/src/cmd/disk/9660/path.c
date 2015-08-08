@@ -18,86 +18,87 @@
  * Add the requisite path tables to the CD image.
  * They get put on the end once everything else is done.
  * We use the path table itself as a queue in the breadth-first
- * traversal of the tree.  
+ * traversal of the tree.
  *
  * The only problem with this is that the path table does not
  * store the lengths of the directories.  So we keep an explicit
  * map in an array in memory.
  */
 
-enum {
-	Big,
-	Little
-};
+enum { Big, Little };
 
 static void
-Crdpath(Cdimg *cd, Cpath *p)
+Crdpath(Cdimg* cd, Cpath* p)
 {
 	p->namelen = Cgetc(cd);
 	if(p->namelen == 0) {
-		Crseek(cd, (Croffset(cd)+Blocksize-1)/Blocksize * Blocksize);
+		Crseek(cd,
+		       (Croffset(cd) + Blocksize - 1) / Blocksize * Blocksize);
 		p->namelen = Cgetc(cd);
 		assert(p->namelen != 0);
 	}
 
 	p->xlen = Cgetc(cd);
-	assert(p->xlen == 0);	/* sanity, might not be true if we start using the extended fields */
+	assert(p->xlen ==
+	       0); /* sanity, might not be true if we start using the extended
+	              fields */
 
 	Cread(cd, p->dloc, 4);
 	Cread(cd, p->parent, 2);
 	p->name[0] = '\0';
-	Crseek(cd, Croffset(cd)+p->namelen+p->xlen+(p->namelen&1));	/* skip name, ext data */
+	Crseek(cd, Croffset(cd) + p->namelen + p->xlen +
+	               (p->namelen & 1)); /* skip name, ext data */
 }
 
 static void
-writepath(Cdimg *cd, Cdir *c, int parent, int size)
+writepath(Cdimg* cd, Cdir* c, int parent, int size)
 {
-/*
-	DO NOT UNCOMMENT THIS CODE.
-	This commented-out code is here only so that no one comes
-	along and adds it later.
+	/*
+	        DO NOT UNCOMMENT THIS CODE.
+	        This commented-out code is here only so that no one comes
+	        along and adds it later.
 
-	The ISO 9660 spec is silent about whether path table entries
-	need to be padded so that they never cross block boundaries.
-	It would be reasonable to assume that they are like every other
-	data structure in the bloody spec; this code pads them out.
+	        The ISO 9660 spec is silent about whether path table entries
+	        need to be padded so that they never cross block boundaries.
+	        It would be reasonable to assume that they are like every other
+	        data structure in the bloody spec; this code pads them out.
 
-	Empirically, though, they're NOT padded.  Windows NT and
-	derivatives are the only known current operating systems
-	that actually read these things.
+	        Empirically, though, they're NOT padded.  Windows NT and
+	        derivatives are the only known current operating systems
+	        that actually read these things.
 
-	int l;
+	        int l;
 
-	l = 1+1+4+2+c->namelen;
-	if(Cwoffset(cd)/Blocksize != (Cwoffset(cd)+l)/Blocksize)
-		Cpadblock(cd);
-*/
+	        l = 1+1+4+2+c->namelen;
+	        if(Cwoffset(cd)/Blocksize != (Cwoffset(cd)+l)/Blocksize)
+	                Cpadblock(cd);
+	*/
 	Cputc(cd, c->namelen);
 	Cputc(cd, 0);
-	Cwrite(cd, c->dloc + (size==Little ? 0 : 4), 4);
-	(size==Little ? Cputnl : Cputnm)(cd, parent, 2);
+	Cwrite(cd, c->dloc + (size == Little ? 0 : 4), 4);
+	(size == Little ? Cputnl : Cputnm)(cd, parent, 2);
 	Cwrite(cd, c->name, c->namelen);
 	if(c->namelen & 1)
 		Cputc(cd, 0);
 }
 
 static uint32_t*
-addlength(uint32_t *a, uint32_t x, int n)
+addlength(uint32_t* a, uint32_t x, int n)
 {
-	if(n%128==0)
-		a = erealloc(a, (n+128)*sizeof a[0]);
+	if(n % 128 == 0)
+		a = erealloc(a, (n + 128) * sizeof a[0]);
 	a[n] = x;
 	return a;
 }
 
 static uint32_t
-writepathtable(Cdimg *cd, uint32_t vdblock, int size)
+writepathtable(Cdimg* cd, uint32_t vdblock, int size)
 {
 	int rp, wp;
 	uint8_t buf[Blocksize];
 	uint32_t bk, i, *len, n;
 	uint64_t start, end, rdoff;
-	Cdir *c;
+	Cdir* c;
 	Cpath p;
 
 	Creadblock(cd, buf, vdblock, Blocksize);
@@ -115,37 +116,37 @@ writepathtable(Cdimg *cd, uint32_t vdblock, int size)
 
 	while(rp < wp) {
 		Crdpath(cd, &p);
-		n = (len[rp]+Blocksize-1)/Blocksize;
+		n = (len[rp] + Blocksize - 1) / Blocksize;
 		rp++;
-		bk = (size==Big ? big : little)(p.dloc, 4);
+		bk = (size == Big ? big : little)(p.dloc, 4);
 		rdoff = Croffset(cd);
-		for(i=0; i<n; i++) {
-			Creadblock(cd, buf, bk+i, Blocksize);
+		for(i = 0; i < n; i++) {
+			Creadblock(cd, buf, bk + i, Blocksize);
 			c = (Cdir*)buf;
 			if(i != 0 && c->namelen == 1 && c->name[0] == '\0')
-				break;	/* hit another directory; stop */
+				break; /* hit another directory; stop */
 			while(c->len && c->namelen &&
-			    (uint8_t*)c + c->len < buf + Blocksize) {
+			      (uint8_t*)c + c->len < buf + Blocksize) {
 				if(c->flags & 0x02 &&
-				    (c->namelen > 1 || c->name[0] > '\001')) {
+				   (c->namelen > 1 || c->name[0] > '\001')) {
 					/* directory */
 					writepath(cd, c, rp, size);
-					len = addlength(len, little(c->dlen, 4), wp);
+					len = addlength(len, little(c->dlen, 4),
+					                wp);
 					wp++;
 				}
-				c = (Cdir*)((uint8_t*)c+c->len);
+				c = (Cdir*)((uint8_t*)c + c->len);
 			}
 		}
 		Crseek(cd, rdoff);
 	}
 	end = Cwoffset(cd);
 	Cpadblock(cd);
-	return end-start;
+	return end - start;
 }
 
-
 static void
-writepathtablepair(Cdimg *cd, uint32_t vdblock)
+writepathtablepair(Cdimg* cd, uint32_t vdblock)
 {
 	uint32_t bloc, lloc, sz, sz2;
 
@@ -158,7 +159,7 @@ writepathtablepair(Cdimg *cd, uint32_t vdblock)
 }
 
 void
-writepathtables(Cdimg *cd)
+writepathtables(Cdimg* cd)
 {
 	cd->pathblock = cd->nextblock;
 

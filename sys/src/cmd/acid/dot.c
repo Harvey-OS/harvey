@@ -16,9 +16,9 @@
 #include "acid.h"
 
 Type*
-srch(Type *t, char *s)
+srch(Type* t, char* s)
 {
-	Type *f;
+	Type* f;
 
 	f = 0;
 	while(t) {
@@ -32,10 +32,10 @@ srch(Type *t, char *s)
 }
 
 void
-odot(Node *n, Node *r)
+odot(Node* n, Node* r)
 {
-	char *s;
-	Type *t;
+	char* s;
+	Type* t;
 	Node res;
 	uint64_t addr;
 
@@ -55,40 +55,38 @@ odot(Node *n, Node *r)
 		error("no tag for (expr).%s", s);
 
 	/* Propagate types */
-	if(t->type) 
+	if(t->type)
 		r->comt = t->type->lt;
-	
-	addr = res.ival+t->offset;
+
+	addr = res.ival + t->offset;
 	if(t->fmt == 'a') {
 		r->op = OCONST;
 		r->fmt = 'a';
 		r->type = TINT;
 		r->ival = addr;
-	}
-	else 
+	} else
 		indir(cormap, addr, t->fmt, r);
-
 }
 
-static Type **tail;
-static Lsym *base;
+static Type** tail;
+static Lsym* base;
 
 void
-buildtype(Node *m, int d)
+buildtype(Node* m, int d)
 {
-	Type *t;
+	Type* t;
 
 	if(m == ZN)
 		return;
 
 	switch(m->op) {
 	case OLIST:
-		buildtype(m->left, d);		
+		buildtype(m->left, d);
 		buildtype(m->right, d);
 		break;
 
 	case OCTRUCT:
-		buildtype(m->left, d+1);
+		buildtype(m->left, d + 1);
 		break;
 	default:
 		t = malloc(sizeof(Type));
@@ -99,9 +97,8 @@ buildtype(Node *m, int d)
 		t->offset = m->ival;
 		if(m->left) {
 			t->type = m->left->sym;
-			t->fmt = 'a';			
-		}
-		else {
+			t->fmt = 'a';
+		} else {
 			t->type = 0;
 			if(m->right)
 				t->type = m->right->sym;
@@ -110,11 +107,11 @@ buildtype(Node *m, int d)
 
 		*tail = t;
 		tail = &t->next;
-	}			
+	}
 }
 
 void
-defcomplex(Node *tn, Node *m)
+defcomplex(Node* tn, Node* m)
 {
 	tail = &tn->sym->lt;
 	base = tn->sym;
@@ -122,12 +119,12 @@ defcomplex(Node *tn, Node *m)
 }
 
 void
-decl(Node *n)
+decl(Node* n)
 {
-	Node *l;
-	Value *v;
-	Frtype *f;
-	Lsym *type;
+	Node* l;
+	Value* v;
+	Frtype* f;
+	Lsym* type;
 
 	type = n->sym;
 	if(type->lt == 0)

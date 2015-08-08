@@ -11,40 +11,42 @@
 #include "dat.h"
 #include "fns.h"
 
-int			syncwrites = 0;
-int			queuewrites = 0;
-int			writestodevnull = 0;
-int			verifywrites = 0;
+int syncwrites = 0;
+int queuewrites = 0;
+int writestodevnull = 0;
+int verifywrites = 0;
 
-static Packet		*readilump(Lump *u, IAddr *ia, uint8_t *score);
+static Packet* readilump(Lump* u, IAddr* ia, uint8_t* score);
 
 /*
  * Some of this logic is duplicated in hdisk.c
  */
 Packet*
-readlump(uint8_t *score, int type, uint32_t size, int *cached)
+readlump(uint8_t* score, int type, uint32_t size, int* cached)
 {
-	Lump *u;
-	Packet *p;
+	Lump* u;
+	Packet* p;
 	IAddr ia;
 	uint32_t n;
 
 	trace(TraceLump, "readlump enter");
-/*
-	qlock(&stats.lock);
-	stats.lumpreads++;
-	qunlock(&stats.lock);
-*/
+	/*
+	        qlock(&stats.lock);
+	        stats.lumpreads++;
+	        qunlock(&stats.lock);
+	*/
 	if(scorecmp(score, zeroscore) == 0)
 		return packetalloc();
 	u = lookuplump(score, type);
-	if(u->data != nil){
+	if(u->data != nil) {
 		trace(TraceLump, "readlump lookuplump hit");
 		if(cached)
 			*cached = 1;
 		n = packetsize(u->data);
-		if(n > size){
-			seterr(EOk, "read too small: asked for %d need at least %d", size, n);
+		if(n > size) {
+			seterr(EOk,
+			       "read too small: asked for %d need at least %d",
+			       size, n);
 			putlump(u);
 
 			return nil;
@@ -57,15 +59,16 @@ readlump(uint8_t *score, int type, uint32_t size, int *cached)
 	if(cached)
 		*cached = 0;
 
-	if(lookupscore(score, type, &ia) < 0){
+	if(lookupscore(score, type, &ia) < 0) {
 		/* ZZZ place to check for someone trying to guess scores */
 		seterr(EOk, "no block with score %V/%d exists", score, type);
 
 		putlump(u);
 		return nil;
 	}
-	if(ia.size > size){
-		seterr(EOk, "read too small 1: asked for %d need at least %d", size, ia.size);
+	if(ia.size > size) {
+		seterr(EOk, "read too small 1: asked for %d need at least %d",
+		       size, ia.size);
 
 		putlump(u);
 		return nil;
@@ -84,34 +87,39 @@ readlump(uint8_t *score, int type, uint32_t size, int *cached)
  * doesn't store duplicates, but checks that the data is really the same.
  */
 int
-writelump(Packet *p, uint8_t *score, int type, uint32_t creator, uint ms)
+writelump(Packet* p, uint8_t* score, int type, uint32_t creator, uint ms)
 {
-	Lump *u;
+	Lump* u;
 	int ok;
 
-/*
-	qlock(&stats.lock);
-	stats.lumpwrites++;
-	qunlock(&stats.lock);
-*/
+	/*
+	        qlock(&stats.lock);
+	        stats.lumpwrites++;
+	        qunlock(&stats.lock);
+	*/
 
 	packetsha1(p, score);
-	if(packetsize(p) == 0 || writestodevnull==1){
+	if(packetsize(p) == 0 || writestodevnull == 1) {
 		packetfree(p);
 		return 0;
 	}
 
 	u = lookuplump(score, type);
-	if(u->data != nil){
+	if(u->data != nil) {
 		ok = 0;
-		if(packetcmp(p, u->data) != 0){
+		if(packetcmp(p, u->data) != 0) {
 			uint8_t nscore[VtScoreSize];
 
 			packetsha1(u->data, nscore);
 			if(scorecmp(u->score, score) != 0)
-				seterr(EStrange, "lookuplump returned bad score %V not %V", u->score, score);
+				seterr(
+				    EStrange,
+				    "lookuplump returned bad score %V not %V",
+				    u->score, score);
 			else if(scorecmp(u->score, nscore) != 0)
-				seterr(EStrange, "lookuplump returned bad data %V not %V", nscore, u->score);
+				seterr(EStrange,
+				       "lookuplump returned bad data %V not %V",
+				       nscore, u->score);
 			else
 				seterr(EStrange, "score collision %V", score);
 			ok = -1;
@@ -121,7 +129,7 @@ writelump(Packet *p, uint8_t *score, int type, uint32_t creator, uint ms)
 		return ok;
 	}
 
-	if(writestodevnull==2){
+	if(writestodevnull == 2) {
 		packetfree(p);
 		return 0;
 	}
@@ -136,15 +144,15 @@ writelump(Packet *p, uint8_t *score, int type, uint32_t creator, uint ms)
 }
 
 int
-writeqlump(Lump *u, Packet *p, int creator, uint ms)
+writeqlump(Lump* u, Packet* p, int creator, uint ms)
 {
-	ZBlock *flat;
-	Packet *old;
+	ZBlock* flat;
+	Packet* old;
 	IAddr ia;
 	int ok;
 
-	if(lookupscore(u->score, u->type, &ia) == 0){
-		if(verifywrites == 0){
+	if(lookupscore(u->score, u->type, &ia) == 0) {
+		if(verifywrites == 0) {
 			/* assume the data is here! */
 			packetfree(p);
 			ms = msec() - ms;
@@ -157,16 +165,19 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 		 * assume it was corrupted data and store the block again
 		 */
 		old = readilump(u, &ia, u->score);
-		if(old != nil){
+		if(old != nil) {
 			ok = 0;
-			if(packetcmp(p, old) != 0){
+			if(packetcmp(p, old) != 0) {
 				uint8_t nscore[VtScoreSize];
 
 				packetsha1(old, nscore);
 				if(scorecmp(u->score, nscore) != 0)
-					seterr(EStrange, "readilump returned bad data %V not %V", nscore, u->score);
+					seterr(EStrange, "readilump returned "
+					                 "bad data %V not %V",
+					       nscore, u->score);
 				else
-					seterr(EStrange, "score collision %V", u->score);
+					seterr(EStrange, "score collision %V",
+					       u->score);
 				ok = -1;
 			}
 			packetfree(p);
@@ -176,7 +187,8 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 			addstat2(StatRpcWriteOld, 1, StatRpcWriteOldTime, ms);
 			return ok;
 		}
-		logerr(EAdmin, "writelump: read %V failed, rewriting: %r\n", u->score);
+		logerr(EAdmin, "writelump: read %V failed, rewriting: %r\n",
+		       u->score);
 	}
 
 	flat = packet2zblock(p, packetsize(p));
@@ -186,8 +198,8 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 		insertlump(u, p);
 	else
 		packetfree(p);
-	
-	if(syncwrites){
+
+	if(syncwrites) {
 		flushdcache();
 		flushicache();
 		flushdcache();
@@ -199,40 +211,40 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 }
 
 static Packet*
-readilump(Lump *u, IAddr *ia, uint8_t *score)
+readilump(Lump* u, IAddr* ia, uint8_t* score)
 {
-	Arena *arena;
-	ZBlock *zb;
-	Packet *p, *pp;
+	Arena* arena;
+	ZBlock* zb;
+	Packet* p, *pp;
 	Clump cl;
 	uint64_t aa;
 	uint8_t sc[VtScoreSize];
 
 	trace(TraceLump, "readilump enter");
 	arena = amapitoa(mainindex, ia->addr, &aa);
-	if(arena == nil){
+	if(arena == nil) {
 		trace(TraceLump, "readilump amapitoa failed");
 		return nil;
 	}
 
 	trace(TraceLump, "readilump loadclump");
 	zb = loadclump(arena, aa, ia->blocks, &cl, sc, paranoid);
-	if(zb == nil){
+	if(zb == nil) {
 		trace(TraceLump, "readilump loadclump failed");
 		return nil;
 	}
 
-	if(ia->size != cl.info.uncsize){
+	if(ia->size != cl.info.uncsize) {
 		seterr(EInconsist, "index and clump size mismatch");
 		freezblock(zb);
 		return nil;
 	}
-	if(ia->type != cl.info.type){
+	if(ia->type != cl.info.type) {
 		seterr(EInconsist, "index and clump type mismatch");
 		freezblock(zb);
 		return nil;
 	}
-	if(scorecmp(score, sc) != 0){
+	if(scorecmp(score, sc) != 0) {
 		seterr(ECrash, "score mismatch");
 		freezblock(zb);
 		return nil;

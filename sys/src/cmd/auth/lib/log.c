@@ -14,7 +14,7 @@
 #include "authcmdlib.h"
 
 static void
-record(char *db, char *user, char *msg)
+record(char* db, char* user, char* msg)
 {
 	char buf[Maxpath];
 	int fd;
@@ -29,7 +29,7 @@ record(char *db, char *user, char *msg)
 }
 
 void
-logfail(char *user)
+logfail(char* user)
 {
 	if(!user)
 		return;
@@ -38,7 +38,7 @@ logfail(char *user)
 }
 
 void
-succeed(char *user)
+succeed(char* user)
 {
 	if(!user)
 		return;
@@ -47,7 +47,7 @@ succeed(char *user)
 }
 
 void
-fail(char *user)
+fail(char* user)
 {
 	logfail(user);
 	exits("failure");

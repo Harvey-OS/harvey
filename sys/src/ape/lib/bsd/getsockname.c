@@ -26,20 +26,20 @@
 #include "priv.h"
 
 int
-getsockname(int fd, void *addr, int *alen)
+getsockname(int fd, void* addr, int* alen)
 {
-	Rock *r;
+	Rock* r;
 	int i;
-	struct sockaddr_in *lip;
-	struct sockaddr_un *lunix;
+	struct sockaddr_in* lip;
+	struct sockaddr_un* lunix;
 
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
 
-	switch(r->domain){
+	switch(r->domain) {
 	case PF_INET:
 		lip = (struct sockaddr_in*)addr;
 		_sock_ingetaddr(r, lip, alen, "local");

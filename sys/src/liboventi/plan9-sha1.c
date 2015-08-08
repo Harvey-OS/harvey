@@ -12,17 +12,16 @@
 #include <oventi.h>
 #include <libsec.h>
 
-extern void vtSha1Block(uint32_t *s, uint8_t *p, uint32_t len);
+extern void vtSha1Block(uint32_t* s, uint8_t* p, uint32_t len);
 
-struct VtSha1
-{
-	DigestState *s;
+struct VtSha1 {
+	DigestState* s;
 };
 
-VtSha1 *
+VtSha1*
 vtSha1Alloc(void)
 {
-	VtSha1 *s;
+	VtSha1* s;
 
 	s = vtMemAlloc(sizeof(VtSha1));
 	vtSha1Init(s);
@@ -30,7 +29,7 @@ vtSha1Alloc(void)
 }
 
 void
-vtSha1Free(VtSha1 *s)
+vtSha1Free(VtSha1* s)
 {
 	if(s == nil)
 		return;
@@ -40,26 +39,26 @@ vtSha1Free(VtSha1 *s)
 }
 
 void
-vtSha1Init(VtSha1 *s)
+vtSha1Init(VtSha1* s)
 {
 	s->s = nil;
 }
 
 void
-vtSha1Update(VtSha1 *s, uint8_t *p, int len)
+vtSha1Update(VtSha1* s, uint8_t* p, int len)
 {
 	s->s = sha1(p, len, nil, s->s);
 }
 
 void
-vtSha1Final(VtSha1 *s, uint8_t *digest)
+vtSha1Final(VtSha1* s, uint8_t* digest)
 {
 	sha1(nil, 0, digest, s->s);
 	s->s = nil;
 }
 
 void
-vtSha1(uint8_t sha1[VtScoreSize], uint8_t *p, int n)
+vtSha1(uint8_t sha1[VtScoreSize], uint8_t* p, int n)
 {
 	VtSha1 s;
 
@@ -69,7 +68,7 @@ vtSha1(uint8_t sha1[VtScoreSize], uint8_t *p, int n)
 }
 
 int
-vtSha1Check(uint8_t score[VtScoreSize], uint8_t *p, int n)
+vtSha1Check(uint8_t score[VtScoreSize], uint8_t* p, int n)
 {
 	VtSha1 s;
 	uint8_t score2[VtScoreSize];

@@ -11,23 +11,23 @@
 #include <libc.h>
 
 char*
-getenv(char *name)
+getenv(char* name)
 {
 	int r, f;
 	int32_t s;
-	char *ans;
-	char *p, *ep, ename[100];
+	char* ans;
+	char* p, *ep, ename[100];
 
 	if(strchr(name, '/') != nil)
 		return nil;
 	snprint(ename, sizeof ename, "/env/%s", name);
-	if(strcmp(ename+5, name) != 0)
+	if(strcmp(ename + 5, name) != 0)
 		return nil;
 	f = open(ename, OREAD);
 	if(f < 0)
 		return 0;
 	s = seek(f, 0, 2);
-	ans = malloc(s+1);
+	ans = malloc(s + 1);
 	if(ans) {
 		setmalloctag(ans, getcallerpc(&name));
 		seek(f, 0, 0);

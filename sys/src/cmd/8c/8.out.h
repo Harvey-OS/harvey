@@ -7,14 +7,13 @@
  * in the LICENSE file.
  */
 
-#define	NSYM	50
-#define	NSNAME	8
-#define NOPROF	(1<<0)
-#define DUPOK	(1<<1)
-#define NOSPLIT	(1<<2)
+#define NSYM 50
+#define NSNAME 8
+#define NOPROF (1 << 0)
+#define DUPOK (1 << 1)
+#define NOSPLIT (1 << 2)
 
-enum	as
-{
+enum as {
 	AXXX,
 	AAAA,
 	AAAD,
@@ -418,97 +417,94 @@ enum	as
 	ALAST
 };
 
-enum
-{
-	D_AL		= 0,
-	D_CL,
-	D_DL,
-	D_BL,
+enum { D_AL = 0,
+       D_CL,
+       D_DL,
+       D_BL,
 
-	D_AH		= 4,
-	D_CH,
-	D_DH,
-	D_BH,
+       D_AH = 4,
+       D_CH,
+       D_DH,
+       D_BH,
 
-	D_AX		= 8,
-	D_CX,
-	D_DX,
-	D_BX,
-	D_SP,
-	D_BP,
-	D_SI,
-	D_DI,
+       D_AX = 8,
+       D_CX,
+       D_DX,
+       D_BX,
+       D_SP,
+       D_BP,
+       D_SI,
+       D_DI,
 
-	D_F0		= 16,
-	D_F7		= D_F0 + 7,
+       D_F0 = 16,
+       D_F7 = D_F0 + 7,
 
-	D_CS		= 24,
-	D_SS,
-	D_DS,
-	D_ES,
-	D_FS,
-	D_GS,
+       D_CS = 24,
+       D_SS,
+       D_DS,
+       D_ES,
+       D_FS,
+       D_GS,
 
-	D_GDTR,		/* global descriptor table register */
-	D_IDTR,		/* interrupt descriptor table register */
-	D_LDTR,		/* local descriptor table register */
-	D_MSW,		/* machine status word */
-	D_TASK,		/* task register */
+       D_GDTR, /* global descriptor table register */
+       D_IDTR, /* interrupt descriptor table register */
+       D_LDTR, /* local descriptor table register */
+       D_MSW,  /* machine status word */
+       D_TASK, /* task register */
 
-	D_CR		= 35,
-	D_DR		= 43,
-	D_TR		= 51,
+       D_CR = 35,
+       D_DR = 43,
+       D_TR = 51,
 
-	D_NONE		= 59,
+       D_NONE = 59,
 
-	D_BRANCH	= 60,
-	D_EXTERN	= 61,
-	D_STATIC	= 62,
-	D_AUTO		= 63,
-	D_PARAM		= 64,
-	D_CONST		= 65,
-	D_FCONST	= 66,
-	D_SCONST	= 67,
-	D_ADDR		= 68,
+       D_BRANCH = 60,
+       D_EXTERN = 61,
+       D_STATIC = 62,
+       D_AUTO = 63,
+       D_PARAM = 64,
+       D_CONST = 65,
+       D_FCONST = 66,
+       D_SCONST = 67,
+       D_ADDR = 68,
 
-	D_FILE,
-	D_FILE1,
+       D_FILE,
+       D_FILE1,
 
-	D_INDIR,	/* additive */
+       D_INDIR, /* additive */
 
-	D_CONST2 = D_INDIR+D_INDIR,
+       D_CONST2 = D_INDIR + D_INDIR,
 
-	D_SIZE,	/* 8l internal */
+       D_SIZE, /* 8l internal */
 
-	T_TYPE		= 1<<0,
-	T_INDEX		= 1<<1,
-	T_OFFSET	= 1<<2,
-	T_FCONST	= 1<<3,
-	T_SYM		= 1<<4,
-	T_SCONST	= 1<<5,
-	T_OFFSET2	= 1<<6,
-	T_GOTYPE	= 1<<7,
+       T_TYPE = 1 << 0,
+       T_INDEX = 1 << 1,
+       T_OFFSET = 1 << 2,
+       T_FCONST = 1 << 3,
+       T_SYM = 1 << 4,
+       T_SCONST = 1 << 5,
+       T_OFFSET2 = 1 << 6,
+       T_GOTYPE = 1 << 7,
 
-	REGARG		= -1,
-	REGRET		= D_AX,
-	FREGRET		= D_F0,
-	REGSP		= D_SP,
-	REGTMP		= D_DI,
+       REGARG = -1,
+       REGRET = D_AX,
+       FREGRET = D_F0,
+       REGSP = D_SP,
+       REGTMP = D_DI,
 };
 
 /*
  * this is the ranlib header
  */
-#define	SYMDEF	"__.SYMDEF"
+#define SYMDEF "__.SYMDEF"
 
 /*
  * this is the simulated IEEE floating point
  */
-typedef	struct	ieee	Ieee;
-struct	ieee
-{
-	long	l;	/* contains ls-man	0xffffffff */
-	long	h;	/* contains sign	0x80000000
-				    exp		0x7ff00000
-				    ms-man	0x000fffff */
+typedef struct ieee Ieee;
+struct ieee {
+	long l; /* contains ls-man	0xffffffff */
+	long h; /* contains sign	0x80000000
+	                    exp		0x7ff00000
+	                    ms-man	0x000fffff */
 };

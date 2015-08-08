@@ -16,7 +16,7 @@
  * to a file descriptor
  */
 int
-_fmtFdFlush(Fmt *f)
+_fmtFdFlush(Fmt* f)
 {
 	int n;
 
@@ -28,15 +28,15 @@ _fmtFdFlush(Fmt *f)
 }
 
 int
-vfprint(int fd, char *fmt, va_list args)
+vfprint(int fd, char* fmt, va_list args)
 {
 	Fmt f;
 	char buf[256];
 	int n;
 
 	fmtfdinit(&f, fd, buf, sizeof(buf));
-	//f.args = args;
-	va_copy(f.args,args);
+	// f.args = args;
+	va_copy(f.args, args);
 	n = dofmt(&f, fmt);
 	va_end(f.args);
 	if(n > 0 && _fmtFdFlush(&f) == 0)

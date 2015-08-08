@@ -7,32 +7,33 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"tos.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "tos.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"../port/edf.h"
-#include	<trace.h>
+#include "../port/edf.h"
+#include <trace.h>
 
 #undef DBG
-#define DBG if(0)print
-
+#define DBG                                                                    \
+	if(0)                                                                  \
+	print
 
 void
 sysrfork(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Proc *p;
+	Proc* up = externup();
+	Proc* p;
 	int flag, i, n, pid;
-	Fgrp *ofg;
-	Pgrp *opg;
-	Rgrp *org;
-	Egrp *oeg;
-	Mach *wm;
+	Fgrp* ofg;
+	Pgrp* opg;
+	Rgrp* org;
+	Egrp* oeg;
+	Mach* wm;
 	va_list list;
 	va_start(list, ar0);
 
@@ -43,23 +44,23 @@ sysrfork(Ar0* ar0, ...)
 	va_end(list);
 
 	/* Check flags before we commit */
-	if((flag & (RFFDG|RFCFDG)) == (RFFDG|RFCFDG))
+	if((flag & (RFFDG | RFCFDG)) == (RFFDG | RFCFDG))
 		error(Ebadarg);
-	if((flag & (RFNAMEG|RFCNAMEG)) == (RFNAMEG|RFCNAMEG))
+	if((flag & (RFNAMEG | RFCNAMEG)) == (RFNAMEG | RFCNAMEG))
 		error(Ebadarg);
-	if((flag & (RFENVG|RFCENVG)) == (RFENVG|RFCENVG))
+	if((flag & (RFENVG | RFCENVG)) == (RFENVG | RFCENVG))
 		error(Ebadarg);
-	if((flag & (RFPREPAGE|RFCPREPAGE)) == (RFPREPAGE|RFCPREPAGE))
+	if((flag & (RFPREPAGE | RFCPREPAGE)) == (RFPREPAGE | RFCPREPAGE))
 		error(Ebadarg);
-	if((flag & (RFCORE|RFCCORE)) == (RFCORE|RFCCORE))
+	if((flag & (RFCORE | RFCCORE)) == (RFCORE | RFCCORE))
 		error(Ebadarg);
 	if(flag & RFCORE && up->wired != nil)
 		error("wired proc cannot move to ac");
 
-	if((flag&RFPROC) == 0) {
-		if(flag & (RFMEM|RFNOWAIT))
+	if((flag & RFPROC) == 0) {
+		if(flag & (RFMEM | RFNOWAIT))
 			error(Ebadarg);
-		if(flag & (RFFDG|RFCFDG)) {
+		if(flag & (RFFDG | RFCFDG)) {
 			ofg = up->fgrp;
 			if(flag & RFFDG)
 				up->fgrp = dupfgrp(ofg);
@@ -67,7 +68,7 @@ sysrfork(Ar0* ar0, ...)
 				up->fgrp = dupfgrp(nil);
 			closefgrp(ofg);
 		}
-		if(flag & (RFNAMEG|RFCNAMEG)) {
+		if(flag & (RFNAMEG | RFCNAMEG)) {
 			opg = up->pgrp;
 			up->pgrp = newpgrp();
 			if(flag & RFNAMEG)
@@ -83,7 +84,7 @@ sysrfork(Ar0* ar0, ...)
 			up->rgrp = newrgrp();
 			closergrp(org);
 		}
-		if(flag & (RFENVG|RFCENVG)) {
+		if(flag & (RFENVG | RFCENVG)) {
 			oeg = up->egrp;
 			up->egrp = smalloc(sizeof(Egrp));
 			up->egrp->ref = 1;
@@ -93,14 +94,14 @@ sysrfork(Ar0* ar0, ...)
 		}
 		if(flag & RFNOTEG)
 			up->noteid = incref(&noteidalloc);
-		if(flag & (RFPREPAGE|RFCPREPAGE)){
-			up->prepagemem = flag&RFPREPAGE;
+		if(flag & (RFPREPAGE | RFCPREPAGE)) {
+			up->prepagemem = flag & RFPREPAGE;
 			nixprepage(-1);
 		}
-		if(flag & RFCORE){
+		if(flag & RFCORE) {
 			up->ac = getac(up, -1);
 			up->procctl = Proc_toac;
-		}else if(flag & RFCCORE){
+		} else if(flag & RFCCORE) {
 			if(up->ac != nil)
 				up->procctl = Proc_totc;
 		}
@@ -111,13 +112,14 @@ sysrfork(Ar0* ar0, ...)
 
 	p = newproc();
 
-	if(flag & RFCORE){
-		if(!waserror()){
+	if(flag & RFCORE) {
+		if(!waserror()) {
 			p->ac = getac(p, -1);
 			p->procctl = Proc_toac;
 			poperror();
-		}else{
-			print("warning: rfork: no available ac for the child, it runs in the tc\n");
+		} else {
+			print("warning: rfork: no available ac for the child, "
+			      "it runs in the tc\n");
 			p->procctl = 0;
 		}
 	}
@@ -145,7 +147,7 @@ sysrfork(Ar0* ar0, ...)
 	/* Make a new set of memory segments */
 	n = flag & RFMEM;
 	qlock(&p->seglock);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&p->seglock);
 		nexterror();
 	}
@@ -156,26 +158,24 @@ sysrfork(Ar0* ar0, ...)
 	poperror();
 
 	/* File descriptors */
-	if(flag & (RFFDG|RFCFDG)) {
+	if(flag & (RFFDG | RFCFDG)) {
 		if(flag & RFFDG)
 			p->fgrp = dupfgrp(up->fgrp);
 		else
 			p->fgrp = dupfgrp(nil);
-	}
-	else {
+	} else {
 		p->fgrp = up->fgrp;
 		incref(p->fgrp);
 	}
 
 	/* Process groups */
-	if(flag & (RFNAMEG|RFCNAMEG)) {
+	if(flag & (RFNAMEG | RFCNAMEG)) {
 		p->pgrp = newpgrp();
 		if(flag & RFNAMEG)
 			pgrpcpy(p->pgrp, up->pgrp);
 		/* inherit noattach */
 		p->pgrp->noattach = up->pgrp->noattach;
-	}
-	else {
+	} else {
 		p->pgrp = up->pgrp;
 		incref(p->pgrp);
 	}
@@ -190,13 +190,12 @@ sysrfork(Ar0* ar0, ...)
 	}
 
 	/* Environment group */
-	if(flag & (RFENVG|RFCENVG)) {
+	if(flag & (RFENVG | RFCENVG)) {
 		p->egrp = smalloc(sizeof(Egrp));
 		p->egrp->ref = 1;
 		if(flag & RFENVG)
 			envcpy(p->egrp, up->egrp);
-	}
-	else {
+	} else {
 		p->egrp = up->egrp;
 		incref(p->egrp);
 	}
@@ -210,22 +209,22 @@ sysrfork(Ar0* ar0, ...)
 
 	p->parent = up;
 	p->parentpid = up->pid;
-	if(flag&RFNOWAIT)
+	if(flag & RFNOWAIT)
 		p->parentpid = 0;
 	else {
 		lock(&up->exl);
 		up->nchild++;
 		unlock(&up->exl);
 	}
-	if((flag&RFNOTEG) == 0)
+	if((flag & RFNOTEG) == 0)
 		p->noteid = up->noteid;
 
 	pid = p->pid;
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = sys->ticks;
 
-	if(flag & (RFPREPAGE|RFCPREPAGE)){
-		p->prepagemem = flag&RFPREPAGE;
+	if(flag & (RFPREPAGE | RFCPREPAGE)) {
+		p->prepagemem = flag & RFPREPAGE;
 		/*
 		 * BUG: this is prepaging our memory, not
 		 * that of the child, but at least we
@@ -283,25 +282,24 @@ l2be(int32_t l)
  * that you want an XC for you.
  */
 static void
-execac(Ar0* ar0, int flags, char *ufile, char **argv)
+execac(Ar0* ar0, int flags, char* ufile, char** argv)
 {
-	Proc *up = externup();
-	Fgrp *fg;
-	Tos *tos;
-	Chan *chan, *ichan;
-	Image *img;
-	Segment *s;
-	Ldseg *ldseg;
+	Proc* up = externup();
+	Fgrp* fg;
+	Tos* tos;
+	Chan* chan, *ichan;
+	Image* img;
+	Segment* s;
+	Ldseg* ldseg;
 	int argc, i, n, nldseg;
-	char *a, *elem, *file, *p;
-	char line[64], *progarg[sizeof(line)/2+1];
+	char* a, *elem, *file, *p;
+	char line[64], *progarg[sizeof(line) / 2 + 1];
 	int32_t hdrsz;
 	uintptr_t entry, stack;
 
-
 	file = nil;
 	elem = nil;
-	switch(flags){
+	switch(flags) {
 	case EXTC:
 	case EXXC:
 		break;
@@ -311,7 +309,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	default:
 		error("unknown execac flag");
 	}
-	if(waserror()){
+	if(waserror()) {
 		DBG("execac: failing: %s\n", up->errstr);
 		free(file);
 		free(elem);
@@ -330,7 +328,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	if(up->trace)
 		proctracepid(up);
 	ichan = namec(file, Aopen, OEXEC, 0);
-	if(waserror()){
+	if(waserror()) {
 		iprint("ERROR ON OPEN\n");
 		cclose(ichan);
 		nexterror();
@@ -347,12 +345,12 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	hdrsz = ichan->dev->read(ichan, line, sizeof line, 0);
 	if(hdrsz < 2)
 		error(Ebadexec);
-	if(line[0] == '#' && line[1] == '!'){
+	if(line[0] == '#' && line[1] == '!') {
 		p = memchr(line, '\n', MIN(sizeof line, hdrsz));
 		if(p == nil)
 			error(Ebadexec);
 		*p = '\0';
-		argc = tokenize(line+2, progarg, nelem(progarg));
+		argc = tokenize(line + 2, progarg, nelem(progarg));
 		if(argc == 0)
 			error(Ebadexec);
 
@@ -365,10 +363,10 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		 */
 		p = progarg[0];
 		progarg[0] = elem;
-		chan = nil;	/* in case namec errors out */
+		chan = nil; /* in case namec errors out */
 		USED(chan);
 		chan = namec(p, Aopen, OEXEC, 0);
-	}else{
+	} else {
 		chan = ichan;
 		incref(ichan);
 	}
@@ -381,16 +379,16 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 
 	nldseg = elf64ldseg(chan, &entry, &ldseg, cputype, BIGPGSZ);
-	if(nldseg == 0){
+	if(nldseg == 0) {
 		print("execac: elf64ldseg returned 0 segs!\n");
 		error(Ebadexec);
 	}
 
 	/* TODO(aki): not sure I see the point
 	if(up->ac != nil && up->ac != machp())
-		up->color = corecolor(up->ac->machno);
+	        up->color = corecolor(up->ac->machno);
 	else
-		up->color = corecolor(machp()->machno);
+	        up->color = corecolor(machp()->machno);
 	*/
 
 	/*
@@ -407,8 +405,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	qlock(&up->seglock);
 	int sno = -1;
-	if(waserror()){
-		if(sno != -1 && up->seg[sno] != nil){
+	if(waserror()) {
+		if(sno != -1 && up->seg[sno] != nil) {
 			putseg(up->seg[sno]);
 			up->seg[sno] = nil;
 		}
@@ -422,14 +420,15 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	if(i == NSEG)
 		error("exeac: no free segment slots");
 	sno = i;
-	up->seg[sno] = newseg(SG_STACK|SG_READ|SG_WRITE, TSTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
+	up->seg[sno] = newseg(SG_STACK | SG_READ | SG_WRITE, TSTKTOP - USTKSIZE,
+	                      USTKSIZE / BIGPGSZ);
 	up->seg[sno]->color = up->color;
 
 	/*
 	 * Stack is a pointer into the temporary stack
 	 * segment, and will move as items are pushed.
 	 */
-	stack = TSTKTOP-sizeof(Tos);
+	stack = TSTKTOP - sizeof(Tos);
 
 	/*
 	 * First, the top-of-stack structure.
@@ -444,8 +443,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * Next push any arguments found from a #! header.
 	 */
-	for(i = 0; i < argc; i++){
-		n = strlen(progarg[i])+1;
+	for(i = 0; i < argc; i++) {
+		n = strlen(progarg[i]) + 1;
 		stack -= n;
 		memmove(UINT2PTR(stack), progarg[i], n);
 	}
@@ -455,7 +454,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * the temporary stack segment, being careful to check
 	 * the strings argv points to are valid.
 	 */
-	for(i = 0;; i++, argv++){
+	for(i = 0;; i++, argv++) {
 
 		a = *(char**)validaddr(argv, sizeof(char**), 0);
 		if(a == nil)
@@ -476,11 +475,11 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		 * will not overflow the bottom of the stack.
 		 */
 		stack -= n;
-		if(stack < TSTKTOP-USTKSIZE)
+		if(stack < TSTKTOP - USTKSIZE)
 			error(Enovmem);
 		p = UINT2PTR(stack);
 		memmove(p, a, n);
-		p[n-1] = 0;
+		p[n - 1] = 0;
 		argc++;
 	}
 	if(argc < 1)
@@ -501,18 +500,18 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	a = p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
-	if(stack-(argc+2)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE) {
-		//iprint("stck too small?\n");
+	if(stack - (argc + 2) * sizeof(char**) - BIGPGSZ < TSTKTOP - USTKSIZE) {
+		// iprint("stck too small?\n");
 		error(Ebadexec);
 	}
 
 	argv = (char**)stack;
 	*--argv = nil;
-	for(i = 0; i < argc; i++){
-		*--argv = p + (USTKTOP-TSTKTOP);
+	for(i = 0; i < argc; i++) {
+		*--argv = p + (USTKTOP - TSTKTOP);
 		p += strlen(p) + 1;
 	}
-	*--argv = (void *)(uintptr_t) argc;
+	*--argv = (void*)(uintptr_t)argc;
 
 	/*
 	 * Make a good faith copy of the args in up->args using the strings
@@ -528,15 +527,15 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		n = 128;
 
 	p = smalloc(n);
-	if(waserror()){
+	if(waserror()) {
 		free(p);
 		nexterror();
 	}
 
 	memmove(p, a, n);
-	while(n > 0 && (p[n-1] & 0xc0) == 0x80)
+	while(n > 0 && (p[n - 1] & 0xc0) == 0x80)
 		n--;
-	p[n-1] = '\0';
+	p[n - 1] = '\0';
 
 	/*
 	 * All the argument processing is now done, ready to commit.
@@ -547,13 +546,13 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	free(up->args);
 	up->args = p;
 	up->nargs = n;
-	poperror();				/* p (up->args) */
+	poperror(); /* p (up->args) */
 
 	/*
 	 * Close on exec
 	 */
 	fg = up->fgrp;
-	for(i=0; i<=fg->maxfd; i++)
+	for(i = 0; i <= fg->maxfd; i++)
 		fdclose(i, CCEXEC);
 
 	/*
@@ -569,27 +568,30 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/* put the stack in first */
 	sno = 0;
 	up->seg[sno++] = s;
-	s->base = USTKTOP-USTKSIZE;
+	s->base = USTKTOP - USTKSIZE;
 	s->top = USTKTOP;
-	relocateseg(s, USTKTOP-TSTKTOP);
+	relocateseg(s, USTKTOP - TSTKTOP);
 
 	img = nil;
 	uintptr_t datalim;
 	datalim = 0;
-	for(i = 0; i < nldseg; i++){
+	for(i = 0; i < nldseg; i++) {
 
-		if(img == nil){
-			img = attachimage(ldseg[i].type, chan, up->color,
-				ldseg[i].pg0vaddr,
-				(ldseg[i].pg0off+ldseg[i].memsz+BIGPGSZ-1)/BIGPGSZ
-			);
+		if(img == nil) {
+			img = attachimage(
+			    ldseg[i].type, chan, up->color, ldseg[i].pg0vaddr,
+			    (ldseg[i].pg0off + ldseg[i].memsz + BIGPGSZ - 1) /
+			        BIGPGSZ);
 			s = img->s;
 			s->flushme = 1;
 			if(img->color != up->color)
 				up->color = img->color;
 			unlock(img);
 		} else {
-			s = newseg(ldseg[i].type, ldseg[i].pg0vaddr, (ldseg[i].pg0off+ldseg[i].memsz+BIGPGSZ-1)/BIGPGSZ);
+			s = newseg(
+			    ldseg[i].type, ldseg[i].pg0vaddr,
+			    (ldseg[i].pg0off + ldseg[i].memsz + BIGPGSZ - 1) /
+			        BIGPGSZ);
 			s->color = up->color;
 			incref(img);
 			s->image = img;
@@ -597,37 +599,33 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 
 		s->ldseg = ldseg[i];
 		up->seg[sno++] = s;
-		if(datalim < ldseg[i].pg0vaddr+ldseg[i].memsz)
-			datalim = ldseg[i].pg0vaddr+ldseg[i].memsz;
+		if(datalim < ldseg[i].pg0vaddr + ldseg[i].memsz)
+			datalim = ldseg[i].pg0vaddr + ldseg[i].memsz;
 	}
 
 	/* BSS. Zero fill on demand for TS */
-	s = newseg(SG_BSS|SG_READ|SG_WRITE, (datalim + BIGPGSZ-1) & ~(BIGPGSZ-1), 0);
+	s = newseg(SG_BSS | SG_READ | SG_WRITE,
+	           (datalim + BIGPGSZ - 1) & ~(BIGPGSZ - 1), 0);
 	up->seg[sno++] = s;
-	s->color= up->color;
+	s->color = up->color;
 
-	for(i = 0; i < sno; i++){
+	for(i = 0; i < sno; i++) {
 		s = up->seg[i];
-		DBG(
-			"execac %d %s(%c%c%c) %p:%p va %p off %p fsz %d msz %d\n",
-			up->pid, segtypes[s->type & SG_TYPE],
-			(s->type & SG_READ) != 0 ? 'r' : '-',
-			(s->type & SG_WRITE) != 0 ? 'w' : '-',
-			(s->type & SG_EXEC) != 0 ? 'x' : '-',
-			s->base, s->top,
-			s->ldseg.pg0vaddr+s->ldseg.pg0off,
-			s->ldseg.pg0fileoff+s->ldseg.pg0off,
-			s->ldseg.filesz,
-			s->ldseg.memsz
-		);
+		DBG("execac %d %s(%c%c%c) %p:%p va %p off %p fsz %d msz %d\n",
+		    up->pid, segtypes[s->type & SG_TYPE],
+		    (s->type & SG_READ) != 0 ? 'r' : '-',
+		    (s->type & SG_WRITE) != 0 ? 'w' : '-',
+		    (s->type & SG_EXEC) != 0 ? 'x' : '-', s->base, s->top,
+		    s->ldseg.pg0vaddr + s->ldseg.pg0off,
+		    s->ldseg.pg0fileoff + s->ldseg.pg0off, s->ldseg.filesz,
+		    s->ldseg.memsz);
 	}
 
 	/* the color of the stack was decided when we created it before,
 	 * it may have nothing to do with the color of other segments.
 	 */
 	qunlock(&up->seglock);
-	poperror();				/* seglock */
-
+	poperror(); /* seglock */
 
 	/*
 	 *  '/' processes are higher priority
@@ -638,7 +636,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	up->priority = up->basepri;
 
-	poperror();				/* chan, elem, file */
+	poperror(); /* chan, elem, file */
 	cclose(chan);
 	free(file);
 
@@ -659,10 +657,13 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	if(up->hang)
 		up->procctl = Proc_stopme;
 
-	/* we need to compte the value of &argv in user mode and then push that. */
-	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), ((void *)tos) + (USTKTOP-TSTKTOP)/sizeof(void *));
+	/* we need to compte the value of &argv in user mode and then push that.
+	 */
+	ar0->v =
+	    sysexecregs(entry, TSTKTOP - PTR2UINT(argv),
+	                ((void*)tos) + (USTKTOP - TSTKTOP) / sizeof(void*));
 
-	if(flags == EXAC){
+	if(flags == EXAC) {
 		up->procctl = Proc_toac;
 		up->prepagemem = 1;
 	}
@@ -672,7 +673,7 @@ void
 sysexecac(Ar0* ar0, ...)
 {
 	int flags;
-	char *file, **argv;
+	char* file, **argv;
 	va_list list;
 	va_start(list, ar0);
 
@@ -692,7 +693,7 @@ sysexecac(Ar0* ar0, ...)
 void
 sysexec(Ar0* ar0, ...)
 {
-	char *file, **argv;
+	char* file, **argv;
 	va_list list;
 
 	va_start(list, ar0);
@@ -729,7 +730,7 @@ return0(void* v)
 void
 syssleep(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int32_t ms;
 	va_list list;
 	va_start(list, ar0);
@@ -742,7 +743,7 @@ syssleep(Ar0* ar0, ...)
 
 	ar0->i = 0;
 	if(ms <= 0) {
-		if (up->edf && (up->edf->flags & Admitted))
+		if(up->edf && (up->edf->flags & Admitted))
 			edfyield();
 		else
 			yield();
@@ -773,9 +774,9 @@ sysalarm(Ar0* ar0, ...)
 void
 sysexits(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	char *status;
-	char *inval = "invalid exit string";
+	Proc* up = externup();
+	char* status;
+	char* inval = "invalid exit string";
 	char buf[ERRMAX];
 	va_list list;
 	va_start(list, ar0);
@@ -786,19 +787,18 @@ sysexits(Ar0* ar0, ...)
 	status = va_arg(list, char*);
 	va_end(list);
 
-	if(status){
+	if(status) {
 		if(waserror())
 			status = inval;
-		else{
+		else {
 			status = validaddr(status, 1, 0);
-			if(vmemchr(status, 0, ERRMAX) == 0){
+			if(vmemchr(status, 0, ERRMAX) == 0) {
 				memmove(buf, status, ERRMAX);
-				buf[ERRMAX-1] = 0;
+				buf[ERRMAX - 1] = 0;
 				status = buf;
 			}
 			poperror();
 		}
-
 	}
 	pexit(status, 1);
 }
@@ -808,7 +808,7 @@ sys_wait(Ar0* ar0, ...)
 {
 	int pid;
 	Waitmsg w;
-	OWaitmsg *ow;
+	OWaitmsg* ow;
 	va_list list;
 	va_start(list, ar0);
 
@@ -819,7 +819,7 @@ sys_wait(Ar0* ar0, ...)
 	 */
 	ow = va_arg(list, OWaitmsg*);
 	va_end(list);
-	if(ow == nil){
+	if(ow == nil) {
 		ar0->i = pwait(nil);
 		return;
 	}
@@ -827,13 +827,16 @@ sys_wait(Ar0* ar0, ...)
 	ow = validaddr(ow, sizeof(OWaitmsg), 1);
 	evenaddr(PTR2UINT(ow));
 	pid = pwait(&w);
-	if(pid >= 0){
+	if(pid >= 0) {
 		readnum(0, ow->pid, NUMSIZE, w.pid, NUMSIZE);
-		readnum(0, ow->time+TUser*NUMSIZE, NUMSIZE, w.time[TUser], NUMSIZE);
-		readnum(0, ow->time+TSys*NUMSIZE, NUMSIZE, w.time[TSys], NUMSIZE);
-		readnum(0, ow->time+TReal*NUMSIZE, NUMSIZE, w.time[TReal], NUMSIZE);
+		readnum(0, ow->time + TUser * NUMSIZE, NUMSIZE, w.time[TUser],
+		        NUMSIZE);
+		readnum(0, ow->time + TSys * NUMSIZE, NUMSIZE, w.time[TSys],
+		        NUMSIZE);
+		readnum(0, ow->time + TReal * NUMSIZE, NUMSIZE, w.time[TReal],
+		        NUMSIZE);
 		strncpy(ow->msg, w.msg, sizeof(ow->msg));
-		ow->msg[sizeof(ow->msg)-1] = '\0';
+		ow->msg[sizeof(ow->msg) - 1] = '\0';
 	}
 
 	ar0->i = pid;
@@ -846,7 +849,7 @@ sysawait(Ar0* ar0, ...)
 	int pid;
 	Waitmsg w;
 	usize n;
-	char *p;
+	char* p;
 	va_list list;
 	va_start(list, ar0);
 
@@ -861,37 +864,35 @@ sysawait(Ar0* ar0, ...)
 	p = validaddr(p, n, 1);
 
 	pid = pwait(&w);
-	if(pid < 0){
+	if(pid < 0) {
 		ar0->i = -1;
 		return;
 	}
-	i = snprint(p, n, "%d %lud %lud %lud %q",
-		w.pid,
-		w.time[TUser], w.time[TSys], w.time[TReal],
-		w.msg);
+	i = snprint(p, n, "%d %lud %lud %lud %q", w.pid, w.time[TUser],
+	            w.time[TSys], w.time[TReal], w.msg);
 
 	ar0->i = i;
 }
 
 void
-werrstr(char *fmt, ...)
+werrstr(char* fmt, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	va_list va;
 
 	if(up == nil)
 		return;
 
 	va_start(va, fmt);
-	vseprint(up->syserrstr, up->syserrstr+ERRMAX, fmt, va);
+	vseprint(up->syserrstr, up->syserrstr + ERRMAX, fmt, va);
 	va_end(va);
 }
 
 static void
-generrstr(char *buf, int32_t n)
+generrstr(char* buf, int32_t n)
 {
-	Proc *up = externup();
-	char *p, tmp[ERRMAX];
+	Proc* up = externup();
+	char* p, tmp[ERRMAX];
 
 	if(n <= 0)
 		error(Ebadarg);
@@ -901,16 +902,16 @@ generrstr(char *buf, int32_t n)
 	memmove(tmp, p, n);
 
 	/* make sure it's NUL-terminated */
-	tmp[n-1] = '\0';
+	tmp[n - 1] = '\0';
 	memmove(p, up->syserrstr, n);
-	p[n-1] = '\0';
+	p[n - 1] = '\0';
 	memmove(up->syserrstr, tmp, n);
 }
 
 void
 syserrstr(Ar0* ar0, ...)
 {
-	char *err;
+	char* err;
 	usize nerr;
 	va_list list;
 	va_start(list, ar0);
@@ -932,7 +933,7 @@ syserrstr(Ar0* ar0, ...)
 void
 sys_errstr(Ar0* ar0, ...)
 {
-	char *p;
+	char* p;
 	va_list list;
 	va_start(list, ar0);
 
@@ -951,7 +952,7 @@ sys_errstr(Ar0* ar0, ...)
 void
 sysnotify(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	void (*f)(void*, char*);
 	va_list list;
 	va_start(list, ar0);
@@ -972,7 +973,7 @@ sysnotify(Ar0* ar0, ...)
 void
 sysnoted(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int v;
 	va_list list;
 	va_start(list, ar0);
@@ -992,8 +993,8 @@ sysnoted(Ar0* ar0, ...)
 void
 sysrendezvous(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Proc *p, **l;
+	Proc* up = externup();
+	Proc* p, **l;
 	uintptr_t tag, val;
 	va_list list;
 	va_start(list, ar0);
@@ -1131,7 +1132,7 @@ semqueue(Segment* s, int* addr, Sema* p)
 	memset(p, 0, sizeof *p);
 	p->addr = addr;
 
-	lock(&s->sema);	/* uses s->sema.Rendez.Lock, but no one else is */
+	lock(&s->sema); /* uses s->sema.Rendez.Lock, but no one else is */
 	p->next = &s->sema;
 	p->prev = s->sema.prev;
 	p->next->prev = p;
@@ -1153,11 +1154,11 @@ semdequeue(Segment* s, Sema* p)
 static void
 semwakeup(Segment* s, int* addr, int n)
 {
-	Sema *p;
+	Sema* p;
 
 	lock(&s->sema);
-	for(p = s->sema.next; p != &s->sema && n > 0; p = p->next){
-		if(p->addr == addr && p->waiting){
+	for(p = s->sema.next; p != &s->sema && n > 0; p = p->next) {
+		if(p->addr == addr && p->waiting) {
 			p->waiting = 0;
 			coherence();
 			wakeup(p);
@@ -1175,10 +1176,10 @@ semrelease(Segment* s, int* addr, int delta)
 
 	do
 		value = *addr;
-	while(!CASW(addr, value, value+delta));
+	while(!CASW(addr, value, value + delta));
 	semwakeup(s, addr, delta);
 
-	return value+delta;
+	return value + delta;
 }
 
 /* Try to acquire semaphore using compare-and-swap */
@@ -1187,8 +1188,8 @@ canacquire(int* addr)
 {
 	int value;
 
-	while((value = *addr) > 0){
-		if(CASW(addr, value, value-1))
+	while((value = *addr) > 0) {
+		if(CASW(addr, value, value - 1))
 			return 1;
 	}
 
@@ -1207,7 +1208,7 @@ semawoke(void* p)
 static int
 semacquire(Segment* s, int* addr, int block)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int acquired;
 	Sema phore;
 
@@ -1218,10 +1219,10 @@ semacquire(Segment* s, int* addr, int block)
 
 	acquired = 0;
 	semqueue(s, addr, &phore);
-	for(;;){
+	for(;;) {
 		phore.waiting = 1;
 		coherence();
-		if(canacquire(addr)){
+		if(canacquire(addr)) {
 			acquired = 1;
 			break;
 		}
@@ -1231,7 +1232,7 @@ semacquire(Segment* s, int* addr, int block)
 		poperror();
 	}
 	semdequeue(s, &phore);
-	coherence();	/* not strictly necessary due to lock in semdequeue */
+	coherence(); /* not strictly necessary due to lock in semdequeue */
 	if(!phore.waiting)
 		semwakeup(s, addr, 1);
 	if(!acquired)
@@ -1244,7 +1245,7 @@ semacquire(Segment* s, int* addr, int block)
 static int
 tsemacquire(Segment* s, int* addr, int32_t ms)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int acquired;
 	uint32_t t;
 	Sema phore;
@@ -1256,10 +1257,10 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 
 	acquired = 0;
 	semqueue(s, addr, &phore);
-	for(;;){
+	for(;;) {
 		phore.waiting = 1;
 		coherence();
-		if(canacquire(addr)){
+		if(canacquire(addr)) {
 			acquired = 1;
 			break;
 		}
@@ -1267,13 +1268,13 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 			break;
 		t = sys->ticks;
 		tsleep(&phore, semawoke, &phore, ms);
-		ms -= TK2MS(sys->ticks-t);
+		ms -= TK2MS(sys->ticks - t);
 		poperror();
 		if(ms <= 0)
 			break;
 	}
 	semdequeue(s, &phore);
-	coherence();	/* not strictly necessary due to lock in semdequeue */
+	coherence(); /* not strictly necessary due to lock in semdequeue */
 	if(!phore.waiting)
 		semwakeup(s, addr, 1);
 	if(ms <= 0)
@@ -1286,9 +1287,9 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 void
 syssemacquire(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Segment *s;
-	int *addr, block;
+	Proc* up = externup();
+	Segment* s;
+	int* addr, block;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1314,9 +1315,9 @@ syssemacquire(Ar0* ar0, ...)
 void
 systsemacquire(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Segment *s;
-	int *addr, ms;
+	Proc* up = externup();
+	Segment* s;
+	int* addr, ms;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1342,9 +1343,9 @@ systsemacquire(Ar0* ar0, ...)
 void
 syssemrelease(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Segment *s;
-	int *addr, delta;
+	Proc* up = externup();
+	Segment* s;
+	int* addr, delta;
 	va_list list;
 	va_start(list, ar0);
 

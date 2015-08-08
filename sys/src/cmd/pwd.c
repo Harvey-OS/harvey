@@ -14,11 +14,11 @@
  */
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	char pathname[512];
 
-	//USED(argc, argv);
+	// USED(argc, argv);
 	if(getwd(pathname, sizeof(pathname)) == 0) {
 		fprint(2, "pwd: %r\n");
 		exits("getwd");

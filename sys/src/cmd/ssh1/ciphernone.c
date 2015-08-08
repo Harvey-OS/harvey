@@ -26,12 +26,6 @@ decryptnone(CipherState*, uint8_t*, int)
 {
 }
 
-Cipher ciphernone =
-{
-	SSH_CIPHER_NONE,
-	"none",
-	initnone,
-	encryptnone,
-	decryptnone,
+Cipher ciphernone = {
+    SSH_CIPHER_NONE, "none", initnone, encryptnone, decryptnone,
 };
-

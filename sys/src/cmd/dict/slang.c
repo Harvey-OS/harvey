@@ -13,42 +13,41 @@
 #include "dict.h"
 
 /* Possible tags */
-enum {
-	DF,		/* definition */
-	DX,		/* definition/example */
-	ET,		/* etymology */
-	EX,		/* example */
-	LA,		/* label */
-	ME,		/* main entry */
-	NU,		/* sense number */
-	PR,		/* pronunciation */
-	PS,		/* grammar part */
-	XR,		/* cross reference */
-	XX,		/* cross reference (whole entry) */
+enum { DF, /* definition */
+       DX, /* definition/example */
+       ET, /* etymology */
+       EX, /* example */
+       LA, /* label */
+       ME, /* main entry */
+       NU, /* sense number */
+       PR, /* pronunciation */
+       PS, /* grammar part */
+       XR, /* cross reference */
+       XX, /* cross reference (whole entry) */
 };
 
 /* Assoc tables must be sorted on first field */
 
 static Assoc tagtab[] = {
-	{"df",	DF},
-	{"dx",	DX},
-	{"et",	ET},
-	{"ex",	EX},
-	{"la",	LA},
-	{"me",	ME},
-	{"nu",	NU},
-	{"pr",	PR},
-	{"ps",	PS},
-	{"xr",	XR},
-	{"xx",	XX},
+    {"df", DF},
+    {"dx", DX},
+    {"et", ET},
+    {"ex", EX},
+    {"la", LA},
+    {"me", ME},
+    {"nu", NU},
+    {"pr", PR},
+    {"ps", PS},
+    {"xr", XR},
+    {"xx", XX},
 };
-static int32_t	sget(char *, char *, char **, char **);
-static void	soutpiece(char *, char *);
+static int32_t sget(char*, char*, char**, char**);
+static void soutpiece(char*, char*);
 
 void
 slangprintentry(Entry e, int cmd)
 {
-	char *p, *pe, *vs, *ve;
+	char* p, *pe, *vs, *ve;
 	int32_t t;
 
 	p = e.start;
@@ -116,7 +115,7 @@ slangprintentry(Entry e, int cmd)
 			outchars(".  ");
 			break;
 		default:
-			ve = pe;	/* will end loop */
+			ve = pe; /* will end loop */
 			break;
 		}
 		p = ve;
@@ -128,7 +127,7 @@ int32_t
 slangnextoff(int32_t fromoff)
 {
 	int32_t a;
-	char *p;
+	char* p;
 
 	a = Bseek(bdict, fromoff, 0);
 	if(a < 0)
@@ -138,7 +137,7 @@ slangnextoff(int32_t fromoff)
 		if(!p)
 			break;
 		if(p[0] == 'm' && p[1] == 'e' && p[2] == ' ')
-			return (Boffset(bdict)-Blinelen(bdict));
+			return (Boffset(bdict) - Blinelen(bdict));
 	}
 	return -1;
 }
@@ -157,9 +156,9 @@ slangprintkey(void)
  * Set pve to point at newline that ends the value.
  */
 static int32_t
-sget(char *b, char *e, char **pvb, char **pve)
+sget(char* b, char* e, char** pvb, char** pve)
 {
-	char *p;
+	char* p;
 	char buf[3];
 	int32_t t, tans;
 
@@ -188,7 +187,7 @@ sget(char *b, char *e, char **pvb, char **pve)
 		p = strchr(p, '\n');
 		if(!p || ++p >= e) {
 			if(tans >= 0)
-				*pve = e-1;
+				*pve = e - 1;
 			break;
 		}
 	}
@@ -196,7 +195,7 @@ sget(char *b, char *e, char **pvb, char **pve)
 }
 
 static void
-soutpiece(char *b, char *e)
+soutpiece(char* b, char* e)
 {
 	int c, lastc;
 

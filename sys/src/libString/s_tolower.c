@@ -11,13 +11,12 @@
 #include <libc.h>
 #include "String.h"
 
-
 /* convert String to lower case */
 void
-s_tolower(String *sp)
+s_tolower(String* sp)
 {
-	char *cp;
+	char* cp;
 
-	for(cp=sp->ptr; *cp; cp++)
+	for(cp = sp->ptr; *cp; cp++)
 		*cp = tolower(*cp);
 }

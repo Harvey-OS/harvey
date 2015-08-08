@@ -19,24 +19,24 @@
 #include "flayer.h"
 #include "samterm.h"
 
-#define	HSIZE	3	/* Type + short count */
-Header	h;
-uint8_t	indata[DATASIZE+1];	/* room for NUL */
-uint8_t	outdata[DATASIZE];
-int16_t	outcount;
-int	hversion;
-int	exiting;
+#define HSIZE 3 /* Type + short count */
+Header h;
+uint8_t indata[DATASIZE + 1]; /* room for NUL */
+uint8_t outdata[DATASIZE];
+int16_t outcount;
+int hversion;
+int exiting;
 
-void	inmesg(Hmesg, int);
-int	inshort(int);
-int32_t	inlong(int);
-int64_t	invlong(int);
-void	hsetdot(int, int32_t, int32_t);
-void	hmoveto(int, int32_t);
-void	hsetsnarf(int);
-void	hplumb(int);
-void	clrlock(void);
-int	snarfswap(char*, int, char**);
+void inmesg(Hmesg, int);
+int inshort(int);
+int32_t inlong(int);
+int64_t invlong(int);
+void hsetdot(int, int32_t, int32_t);
+void hmoveto(int, int32_t);
+void hsetsnarf(int);
+void hplumb(int);
+void clrlock(void);
+int snarfswap(char*, int, char**);
 
 void
 rcv(void)
@@ -44,8 +44,8 @@ rcv(void)
 	int c;
 	static int count = 0, errs = 0, i = 0, state = 0;
 
-	while((c=rcvchar()) != -1)
-		switch(state){
+	while((c = rcvchar()) != -1)
+		switch(state) {
 		case 0:
 			h.type = c;
 			state++;
@@ -58,10 +58,10 @@ rcv(void)
 
 		case 2:
 			h.count1 = c;
-			count = h.count0|(h.count1<<8);
+			count = h.count0 | (h.count1 << 8);
 			i = 0;
-			if(count > DATASIZE){
-				if(++errs < 5){
+			if(count > DATASIZE) {
+				if(++errs < 5) {
 					dumperrmsg(count, h.type, h.count0, c);
 					state = 0;
 					continue;
@@ -76,8 +76,8 @@ rcv(void)
 
 		case 3:
 			indata[i++] = c;
-			if(i == count){
-		zerocount:
+			if(i == count) {
+			zerocount:
 				indata[i] = 0;
 				inmesg(h.type, count);
 				state = count = 0;
@@ -87,12 +87,12 @@ rcv(void)
 		}
 }
 
-Text *
+Text*
 whichtext(int tg)
 {
 	int i;
 
-	for(i=0; i<nname; i++)
+	for(i = 0; i < nname; i++)
 		if(tag[i] == tg)
 			return text[i];
 	panic("whichtext");
@@ -102,14 +102,14 @@ whichtext(int tg)
 void
 inmesg(Hmesg type, int count)
 {
-	Text *t;
+	Text* t;
 	int i, m;
 	int32_t l;
-	Flayer *lp;
+	Flayer* lp;
 
 	m = inshort(0);
 	l = inlong(2);
-	switch(type){
+	switch(type) {
 	case -1:
 		panic("rcv error");
 	default:
@@ -121,56 +121,58 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hbindname:
-		l = invlong(2);		/* for 64-bit pointers */
-		if((i=whichmenu(m)) < 0)
+		l = invlong(2); /* for 64-bit pointers */
+		if((i = whichmenu(m)) < 0)
 			break;
 		/* in case of a race, a bindname may already have occurred */
-		if((t=whichtext(m)) == 0)
-			t=(Text *)l;
-		else	/* let the old one win; clean up the new one */
-			while(((Text *)l)->nwin>0)
-				closeup(&((Text *)l)->l[((Text *)l)->front]);
+		if((t = whichtext(m)) == 0)
+			t = (Text*)l;
+		else /* let the old one win; clean up the new one */
+			while(((Text*)l)->nwin > 0)
+				closeup(&((Text*)l)->l[((Text*)l)->front]);
 		text[i] = t;
 		text[i]->tag = m;
 		break;
 
 	case Hcurrent:
-		if(whichmenu(m)<0)
+		if(whichmenu(m) < 0)
 			break;
 		t = whichtext(m);
-		i = which && ((Text *)which->user1)==&cmd && m!=cmd.tag;
-		if(t==0 && (t = sweeptext(0, m))==0)
+		i = which && ((Text*)which->user1) == &cmd && m != cmd.tag;
+		if(t == 0 && (t = sweeptext(0, m)) == 0)
 			break;
-		if(t->l[t->front].textfn==0)
+		if(t->l[t->front].textfn == 0)
 			panic("Hcurrent");
 		lp = &t->l[t->front];
-		if(i){
+		if(i) {
 			flupfront(lp);
 			flborder(lp, 0);
 			work = lp;
-		}else
+		} else
 			current(lp);
 		break;
 
 	case Hmovname:
-		if((m=whichmenu(m)) < 0)
+		if((m = whichmenu(m)) < 0)
 			break;
 		t = text[m];
 		l = tag[m];
 		i = name[m][0];
-		text[m] = 0;	/* suppress panic in menudel */
+		text[m] = 0; /* suppress panic in menudel */
 		menudel(m);
 		if(t == &cmd)
 			m = 0;
-		else{
-			if (nname>0 && text[0]==&cmd)
+		else {
+			if(nname > 0 && text[0] == &cmd)
 				m = 1;
-			else m = 0;
-			for(; m<nname; m++)
-				if(strcmp((char*)indata+2, (char*)name[m]+1)<0)
+			else
+				m = 0;
+			for(; m < nname; m++)
+				if(strcmp((char*)indata + 2,
+				          (char*)name[m] + 1) < 0)
 					break;
 		}
-		menuins(m, indata+2, t, i, (int)l);
+		menuins(m, indata + 2, t, i, (int)l);
 		break;
 
 	case Hgrow:
@@ -179,12 +181,12 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hnewname:
-		menuins(0, (uint8_t *)"", (Text *)0, ' ', m);
+		menuins(0, (uint8_t*)"", (Text*)0, ' ', m);
 		break;
 
 	case Hcheck0:
 		i = whichmenu(m);
-		if(i>=0) {
+		if(i >= 0) {
 			t = text[i];
 			if(t)
 				t->lock++;
@@ -194,7 +196,7 @@ inmesg(Hmesg type, int count)
 
 	case Hcheck:
 		i = whichmenu(m);
-		if(i>=0) {
+		if(i >= 0) {
 			t = text[i];
 			if(t && t->lock)
 				t->lock--;
@@ -208,13 +210,13 @@ inmesg(Hmesg type, int count)
 
 	case Hdata:
 		if(whichmenu(m) >= 0)
-			l += hdata(m, l, indata+6, count-6);
+			l += hdata(m, l, indata + 6, count - 6);
 	Checkscroll:
-		if(m == cmd.tag){
-			for(i=0; i<NL; i++){
+		if(m == cmd.tag) {
+			for(i = 0; i < NL; i++) {
 				lp = &cmd.l[i];
 				if(lp->textfn)
-					center(lp, l>=0? l : lp->p1);
+					center(lp, l >= 0 ? l : lp->p1);
 			}
 		}
 		break;
@@ -225,7 +227,7 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hunlockfile:
-		if(whichmenu(m)>=0 && (t = whichtext(m))->lock){
+		if(whichmenu(m) >= 0 && (t = whichtext(m))->lock) {
 			--t->lock;
 			l = -1;
 			goto Checkscroll;
@@ -238,15 +240,15 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hgrowdata:
-		if(whichmenu(m)<0)
+		if(whichmenu(m) < 0)
 			break;
 		hgrow(m, l, inlong(6), 0);
-		whichtext(m)->lock++;	/* fake the request */
-		l += hdata(m, l, indata+10, count-10);
+		whichtext(m)->lock++; /* fake the request */
+		l += hdata(m, l, indata + 10, count - 10);
 		goto Checkscroll;
 
 	case Hmoveto:
-		if(whichmenu(m)>=0)
+		if(whichmenu(m) >= 0)
 			hmoveto(m, l);
 		break;
 
@@ -256,12 +258,12 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hdirty:
-		if((m = whichmenu(m))>=0)
+		if((m = whichmenu(m)) >= 0)
 			name[m][0] = '\'';
 		break;
 
 	case Hdelname:
-		if((m=whichmenu(m)) >= 0)
+		if((m = whichmenu(m)) >= 0)
 			menudel(m);
 		break;
 
@@ -271,18 +273,18 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hclose:
-		if(whichmenu(m)<0 || (t = whichtext(m))==0)
+		if(whichmenu(m) < 0 || (t = whichtext(m)) == 0)
 			break;
 		l = t->nwin;
-		for(i = 0,lp = t->l; l>0 && i<NL; i++,lp++)
-			if(lp->textfn){
+		for(i = 0, lp = t->l; l > 0 && i < NL; i++, lp++)
+			if(lp->textfn) {
 				closeup(lp);
 				--l;
 			}
 		break;
 
 	case Hsetpat:
-		setpat((char *)indata);
+		setpat((char*)indata);
 		break;
 
 	case Hsetsnarf:
@@ -323,34 +325,34 @@ clrlock(void)
 	if(hostlock > 0)
 		hostlock--;
 	if(hostlock == 0)
-		setcursor(mousectl, cursor=(Cursor *)0);
+		setcursor(mousectl, cursor = (Cursor*)0);
 }
 
 void
-startfile(Text *t)
+startfile(Text* t)
 {
-	outTsv(Tstartfile, t->tag, (int64_t)t);	/* for 64-bit pointers */
+	outTsv(Tstartfile, t->tag, (int64_t)t); /* for 64-bit pointers */
 	setlock();
 }
 
 void
-startnewfile(int type, Text *t)
+startnewfile(int type, Text* t)
 {
 	t->tag = Untagged;
-	outTv(type, (int64_t)t);			/* for 64-bit pointers */
+	outTv(type, (int64_t)t); /* for 64-bit pointers */
 }
 
 int
 inshort(int n)
 {
-	return indata[n]|(indata[n+1]<<8);
+	return indata[n] | (indata[n + 1] << 8);
 }
 
 int32_t
 inlong(int n)
 {
-	return indata[n]|(indata[n+1]<<8)|
-		((int32_t)indata[n+2]<<16)|((int32_t)indata[n+3]<<24);
+	return indata[n] | (indata[n + 1] << 8) |
+	       ((int32_t)indata[n + 2] << 16) | ((int32_t)indata[n + 3] << 24);
 }
 
 int64_t
@@ -358,9 +360,10 @@ invlong(int n)
 {
 	int64_t v;
 
-	v = (indata[n+7]<<24) | (indata[n+6]<<16) | (indata[n+5]<<8) | indata[n+4];
-	v = (v<<16) | (indata[n+3]<<8) | indata[n+2];
-	v = (v<<16) | (indata[n+1]<<8) | indata[n];
+	v = (indata[n + 7] << 24) | (indata[n + 6] << 16) |
+	    (indata[n + 5] << 8) | indata[n + 4];
+	v = (v << 16) | (indata[n + 3] << 8) | indata[n + 2];
+	v = (v << 16) | (indata[n + 1] << 8) | indata[n];
 	return v;
 }
 
@@ -433,10 +436,10 @@ outTv(Tmesg type, int64_t v1)
 }
 
 void
-outTslS(Tmesg type, int s1, int32_t l1, Rune *s)
+outTslS(Tmesg type, int s1, int32_t l1, Rune* s)
 {
-	char buf[DATASIZE*3+1];
-	char *c;
+	char buf[DATASIZE * 3 + 1];
+	char* c;
 
 	outstart(type);
 	outshort(s1);
@@ -445,7 +448,7 @@ outTslS(Tmesg type, int s1, int32_t l1, Rune *s)
 	while(*s)
 		c += runetochar(c, s++);
 	*c++ = 0;
-	outcopy(c-buf, (uint8_t *)buf);
+	outcopy(c - buf, (uint8_t*)buf);
 	outsend();
 }
 
@@ -467,10 +470,10 @@ outstart(Tmesg type)
 }
 
 void
-outcopy(int count, uint8_t *data)
+outcopy(int count, uint8_t* data)
 {
 	while(count--)
-		outdata[HSIZE+outcount++] = *data++;	
+		outdata[HSIZE + outcount++] = *data++;
 }
 
 void
@@ -478,8 +481,8 @@ outshort(int s)
 {
 	uint8_t buf[2];
 
-	buf[0]=s;
-	buf[1]=s>>8;
+	buf[0] = s;
+	buf[1] = s >> 8;
 	outcopy(2, buf);
 }
 
@@ -488,10 +491,10 @@ outlong(int32_t l)
 {
 	uint8_t buf[4];
 
-	buf[0]=l;
-	buf[1]=l>>8;
-	buf[2]=l>>16;
-	buf[3]=l>>24;
+	buf[0] = l;
+	buf[1] = l >> 8;
+	buf[2] = l >> 16;
+	buf[3] = l >> 24;
 	outcopy(4, buf);
 }
 
@@ -501,7 +504,7 @@ outvlong(int64_t v)
 	int i;
 	uint8_t buf[8];
 
-	for(i = 0; i < sizeof(buf); i++){
+	for(i = 0; i < sizeof(buf); i++) {
 		buf[i] = v;
 		v >>= 8;
 	}
@@ -512,20 +515,19 @@ outvlong(int64_t v)
 void
 outsend(void)
 {
-	if(outcount>DATASIZE-HSIZE)
+	if(outcount > DATASIZE - HSIZE)
 		panic("outcount>sizeof outdata");
-	outdata[1]=outcount;
-	outdata[2]=outcount>>8;
-	if(write(1, (char *)outdata, outcount+HSIZE)!=outcount+HSIZE)
+	outdata[1] = outcount;
+	outdata[2] = outcount >> 8;
+	if(write(1, (char*)outdata, outcount + HSIZE) != outcount + HSIZE)
 		panic("write error");
 }
-
 
 void
 hsetdot(int m, int32_t p0, int32_t p1)
 {
-	Text *t = whichtext(m);
-	Flayer *l = &t->l[t->front];
+	Text* t = whichtext(m);
+	Flayer* l = &t->l[t->front];
 
 	flushtyping(1);
 	flsetselect(l, p0, p1);
@@ -534,27 +536,27 @@ hsetdot(int m, int32_t p0, int32_t p1)
 void
 horigin(int m, int32_t p0)
 {
-	Text *t = whichtext(m);
-	Flayer *l = &t->l[t->front];
+	Text* t = whichtext(m);
+	Flayer* l = &t->l[t->front];
 	int32_t a;
 	uint32_t n;
-	Rune *r;
+	Rune* r;
 
-	if(!flprepare(l)){
+	if(!flprepare(l)) {
 		l->origin = p0;
 		return;
 	}
-	a = p0-l->origin;
-	if(a>=0 && a<l->f.nchars)
+	a = p0 - l->origin;
+	if(a >= 0 && a < l->f.nchars)
 		frdelete(&l->f, 0, a);
-	else if(a<0 && -a<l->f.nchars){
+	else if(a < 0 && -a < l->f.nchars) {
 		r = rload(&t->rasp, p0, l->origin, &n);
-		frinsert(&l->f, r, r+n, 0);
-	}else
+		frinsert(&l->f, r, r + n, 0);
+	} else
 		frdelete(&l->f, 0, l->f.nchars);
 	l->origin = p0;
 	scrdraw(l, t->rasp.nrunes);
-	if(l->visible==Some)
+	if(l->visible == Some)
 		flrefresh(l, l->entire, 0);
 	hcheck(m);
 }
@@ -562,112 +564,112 @@ horigin(int m, int32_t p0)
 void
 hmoveto(int m, int32_t p0)
 {
-	Text *t = whichtext(m);
-	Flayer *l = &t->l[t->front];
+	Text* t = whichtext(m);
+	Flayer* l = &t->l[t->front];
 
-	if(p0<l->origin || p0-l->origin>l->f.nchars*9/10)
+	if(p0 < l->origin || p0 - l->origin > l->f.nchars * 9 / 10)
 		outTsll(Torigin, m, p0, 2L);
 }
 
 void
 hcheck(int m)
 {
-	Flayer *l;
-	Text *t;
+	Flayer* l;
+	Text* t;
 	int reqd = 0, i;
 	int32_t n, nl, a;
-	Rune *r;
+	Rune* r;
 
 	if(m == Untagged)
 		return;
 	t = whichtext(m);
-	if(t == 0)		/* possible in a half-built window */
+	if(t == 0) /* possible in a half-built window */
 		return;
-	for(l = &t->l[0], i = 0; i<NL; i++, l++){
-		if(l->textfn==0 || !flprepare(l))	/* BUG: don't
-							   need this if BUG below
-							   is fixed */
+	for(l = &t->l[0], i = 0; i < NL; i++, l++) {
+		if(l->textfn == 0 || !flprepare(l)) /* BUG: don't
+		                                       need this if BUG below
+		                                       is fixed */
 			continue;
 		a = t->l[i].origin;
-		n = rcontig(&t->rasp, a, a+l->f.nchars, 1);
-		if(n<l->f.nchars)	/* text missing in middle of screen */
-			a+=n;
-		else{			/* text missing at end of screen? */
-        Again:
-		 	if(l->f.lastlinefull)
-				goto Checksel;	/* all's well */
-			a = t->l[i].origin+l->f.nchars;
-			n = t->rasp.nrunes-a;
-			if(n==0)
+		n = rcontig(&t->rasp, a, a + l->f.nchars, 1);
+		if(n < l->f.nchars) /* text missing in middle of screen */
+			a += n;
+		else { /* text missing at end of screen? */
+		Again:
+			if(l->f.lastlinefull)
+				goto Checksel; /* all's well */
+			a = t->l[i].origin + l->f.nchars;
+			n = t->rasp.nrunes - a;
+			if(n == 0)
 				goto Checksel;
-			if(n>TBLOCKSIZE)
+			if(n > TBLOCKSIZE)
 				n = TBLOCKSIZE;
-			n = rcontig(&t->rasp, a, a+n, 1);
-			if(n>0){
-				rload(&t->rasp, a, a+n, 0);
+			n = rcontig(&t->rasp, a, a + n, 1);
+			if(n > 0) {
+				rload(&t->rasp, a, a + n, 0);
 				nl = l->f.nchars;
 				r = scratch;
-				flinsert(l, r, r+n, l->origin+nl);
-				if(nl == l->f.nchars)	/* made no progress */
+				flinsert(l, r, r + n, l->origin + nl);
+				if(nl == l->f.nchars) /* made no progress */
 					goto Checksel;
 				goto Again;
 			}
 		}
-		if(!reqd){
-			n = rcontig(&t->rasp, a, a+TBLOCKSIZE, 0);
+		if(!reqd) {
+			n = rcontig(&t->rasp, a, a + TBLOCKSIZE, 0);
 			if(n <= 0)
 				panic("hcheck request==0");
 			outTsls(Trequest, m, a, (int)n);
 			outTs(Tcheck, m);
-			t->lock++;	/* for the Trequest */
-			t->lock++;	/* for the Tcheck */
+			t->lock++; /* for the Trequest */
+			t->lock++; /* for the Tcheck */
 			reqd++;
 		}
-	    Checksel:
+	Checksel:
 		flsetselect(l, l->p0, l->p1);
 	}
 }
 
 void
-flnewlyvisible(Flayer *l)
+flnewlyvisible(Flayer* l)
 {
-	hcheck(((Text *)l->user1)->tag);
+	hcheck(((Text*)l->user1)->tag);
 }
 
 void
 hsetsnarf(int nc)
 {
-	char *s2;
-	char *s1;
+	char* s2;
+	char* s1;
 	int i;
 	int n;
 
 	setcursor(mousectl, &deadmouse);
-	s2 = alloc(nc+1);
-	for(i=0; i<nc; i++)
+	s2 = alloc(nc + 1);
+	for(i = 0; i < nc; i++)
 		s2[i] = getch();
 	s2[nc] = 0;
 	n = snarfswap(s2, nc, &s1);
-	if(n >= 0){
+	if(n >= 0) {
 		if(!s1)
 			n = 0;
-		if(n > SNARFSIZE){
+		if(n > SNARFSIZE) {
 			s1 = strdup("<snarf too long>");
-			if (!s1)
+			if(!s1)
 				panic("strdup");
 			n = strlen(s1);
-		}else{
-			s1 = realloc(s1, n+1);
-			if (!s1)
+		} else {
+			s1 = realloc(s1, n + 1);
+			if(!s1)
 				panic("realloc");
 			s1[n] = 0;
 		}
 		snarflen = n;
 		outTs(Tsetsnarf, n);
-		if(n>0 && write(1, s1, n)!=n)
+		if(n > 0 && write(1, s1, n) != n)
 			panic("snarf write error");
 		free(s1);
-	}else
+	} else
 		outTs(Tsetsnarf, 0);
 	free(s2);
 	setcursor(mousectl, cursor);
@@ -677,13 +679,13 @@ void
 hplumb(int nc)
 {
 	int i;
-	char *s;
-	Plumbmsg *m;
+	char* s;
+	Plumbmsg* m;
 
 	s = alloc(nc);
-	for(i=0; i<nc; i++)
+	for(i = 0; i < nc; i++)
 		s[i] = getch();
-	if(plumbfd > 0){
+	if(plumbfd > 0) {
 		m = plumbunpack(s, nc);
 		if(m != 0)
 			plumbsend(plumbfd, m);
@@ -696,29 +698,29 @@ void
 hgrow(int m, int32_t a, int32_t new, int req)
 {
 	int i;
-	Flayer *l;
-	Text *t = whichtext(m);
+	Flayer* l;
+	Text* t = whichtext(m);
 	int32_t o, b;
 
 	if(new <= 0)
 		panic("hgrow");
 	rresize(&t->rasp, a, 0L, new);
-	for(l = &t->l[0], i = 0; i<NL; i++, l++){
+	for(l = &t->l[0], i = 0; i < NL; i++, l++) {
 		if(l->textfn == 0)
 			continue;
 		o = l->origin;
-		b = a-o-rmissing(&t->rasp, o, a);
+		b = a - o - rmissing(&t->rasp, o, a);
 		if(a < o)
-			l->origin+=new;
+			l->origin += new;
 		if(a < l->p0)
-			l->p0+=new;
+			l->p0 += new;
 		if(a < l->p1)
-			l->p1+=new;
+			l->p1 += new;
 		/* must prevent b temporarily becoming unsigned */
-		if(!req || a<o || (b>0 && b>l->f.nchars) ||
-		    (l->f.nchars==0 && a-o>0))
+		if(!req || a < o || (b > 0 && b > l->f.nchars) ||
+		   (l->f.nchars == 0 && a - o > 0))
 			continue;
-		if(new>TBLOCKSIZE)
+		if(new > TBLOCKSIZE)
 			new = TBLOCKSIZE;
 		outTsls(Trequest, m, a, (int)new);
 		t->lock++;
@@ -727,32 +729,32 @@ hgrow(int m, int32_t a, int32_t new, int req)
 }
 
 int
-hdata1(Text *t, int32_t a, Rune *r, int len)
+hdata1(Text* t, int32_t a, Rune* r, int len)
 {
 	int i;
-	Flayer *l;
+	Flayer* l;
 	int32_t o, b;
 
-	for(l = &t->l[0], i=0; i<NL; i++, l++){
-		if(l->textfn==0)
+	for(l = &t->l[0], i = 0; i < NL; i++, l++) {
+		if(l->textfn == 0)
 			continue;
 		o = l->origin;
-		b = a-o-rmissing(&t->rasp, o, a);
+		b = a - o - rmissing(&t->rasp, o, a);
 		/* must prevent b temporarily becoming unsigned */
-		if(a<o || (b>0 && b>l->f.nchars))
+		if(a < o || (b > 0 && b > l->f.nchars))
 			continue;
-		flinsert(l, r, r+len, o+b);
+		flinsert(l, r, r + len, o + b);
 	}
-	rdata(&t->rasp, a, a+len, r);
+	rdata(&t->rasp, a, a + len, r);
 	rclean(&t->rasp);
 	return len;
 }
 
 int
-hdata(int m, int32_t a, uint8_t *s, int len)
+hdata(int m, int32_t a, uint8_t* s, int len)
 {
 	int i, w;
-	Text *t = whichtext(m);
+	Text* t = whichtext(m);
 	Rune buf[DATASIZE], *r;
 
 	if(t->lock)
@@ -760,15 +762,15 @@ hdata(int m, int32_t a, uint8_t *s, int len)
 	if(len == 0)
 		return 0;
 	r = buf;
-	for(i=0; i<len; i+=w,s+=w)
+	for(i = 0; i < len; i += w, s += w)
 		w = chartorune(r++, (char*)s);
-	return hdata1(t, a, buf, r-buf);
+	return hdata1(t, a, buf, r - buf);
 }
 
 int
-hdatarune(int m, int32_t a, Rune *r, int len)
+hdatarune(int m, int32_t a, Rune* r, int len)
 {
-	Text *t = whichtext(m);
+	Text* t = whichtext(m);
 
 	if(t->lock)
 		--t->lock;
@@ -780,34 +782,34 @@ hdatarune(int m, int32_t a, Rune *r, int len)
 void
 hcut(int m, int32_t a, int32_t old)
 {
-	Flayer *l;
-	Text *t = whichtext(m);
+	Flayer* l;
+	Text* t = whichtext(m);
 	int i;
 	int32_t o, b;
 
 	if(t->lock)
 		--t->lock;
-	for(l = &t->l[0], i = 0; i<NL; i++, l++){
+	for(l = &t->l[0], i = 0; i < NL; i++, l++) {
 		if(l->textfn == 0)
 			continue;
 		o = l->origin;
-		b = a-o-rmissing(&t->rasp, o, a);
+		b = a - o - rmissing(&t->rasp, o, a);
 		/* must prevent b temporarily becoming unsigned */
-		if((b<0 || b<l->f.nchars) && a+old>=o){
-			fldelete(l, b<0? o : o+b,
-			    a+old-rmissing(&t->rasp, o, a+old));
+		if((b < 0 || b < l->f.nchars) && a + old >= o) {
+			fldelete(l, b < 0 ? o : o + b,
+			         a + old - rmissing(&t->rasp, o, a + old));
 		}
-		if(a+old<o)
-			l->origin-=old;
-		else if(a<=o)
+		if(a + old < o)
+			l->origin -= old;
+		else if(a <= o)
 			l->origin = a;
-		if(a+old<l->p0)
-			l->p0-=old;
-		else if(a<=l->p0)
+		if(a + old < l->p0)
+			l->p0 -= old;
+		else if(a <= l->p0)
 			l->p0 = a;
-		if(a+old<l->p1)
-			l->p1-=old;
-		else if(a<=l->p1)
+		if(a + old < l->p1)
+			l->p1 -= old;
+		else if(a <= l->p1)
 			l->p1 = a;
 	}
 	rresize(&t->rasp, a, old, 0L);

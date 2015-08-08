@@ -30,7 +30,7 @@ struct op_entry;
 struct oprofile_cpu_buffer {
 	Lock lock;
 	unsigned long buffer_size;
-	Proc *last_proc;
+	Proc* last_proc;
 	int last_is_kernel;
 	int tracing;
 	unsigned long sample_received;
@@ -38,7 +38,7 @@ struct oprofile_cpu_buffer {
 	unsigned long backtrace_aborted;
 	unsigned long sample_invalid_eip;
 	int cpu;
-	Block *block;
+	Block* block;
 	/* long term plan: when we fill the block,
 	 * we write it to fullblock, and pull a
 	 * freeblock from the emptyblock queue.
@@ -49,11 +49,11 @@ struct oprofile_cpu_buffer {
 	 * functions convenient because they interface to
 	 * the dev code so easily.
 	 */
-	Queue *fullqueue, *emptyqueue;
+	Queue* fullqueue, *emptyqueue;
 };
 
 /* extra data flags */
-#define KERNEL_CTX_SWITCH	(1UL << 0)
-#define IS_KERNEL		(1UL << 1)
-#define TRACE_BEGIN		(1UL << 2)
-#define USER_CTX_SWITCH		(1UL << 3)
+#define KERNEL_CTX_SWITCH (1UL << 0)
+#define IS_KERNEL (1UL << 1)
+#define TRACE_BEGIN (1UL << 2)
+#define USER_CTX_SWITCH (1UL << 3)

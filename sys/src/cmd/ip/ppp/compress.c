@@ -14,104 +14,96 @@
 #include "ppp.h"
 
 typedef struct Iphdr Iphdr;
-struct Iphdr
-{
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;		/* Time to live */
-	uint8_t	proto;		/* Protocol */
-	uint8_t	cksum[2];	/* Header checksum */
-	uint32_t	src;		/* Ip source (uint8_t ordering unimportant) */
-	uint32_t	dst;		/* Ip destination (uint8_t ordering unimportant) */
+struct Iphdr {
+	uint8_t vihl;      /* Version and header length */
+	uint8_t tos;       /* Type of service */
+	uint8_t length[2]; /* packet length */
+	uint8_t id[2];     /* Identification */
+	uint8_t frag[2];   /* Fragment information */
+	uint8_t ttl;       /* Time to live */
+	uint8_t proto;     /* Protocol */
+	uint8_t cksum[2];  /* Header checksum */
+	uint32_t src;      /* Ip source (uint8_t ordering unimportant) */
+	uint32_t dst;      /* Ip destination (uint8_t ordering unimportant) */
 };
 
 typedef struct Tcphdr Tcphdr;
-struct Tcphdr
-{
-	uint32_t	ports;		/* defined as a uint32_t to make comparisons easier */
-	uint8_t	seq[4];
-	uint8_t	ack[4];
-	uint8_t	flag[2];
-	uint8_t	win[2];
-	uint8_t	cksum[2];
-	uint8_t	urg[2];
+struct Tcphdr {
+	uint32_t ports; /* defined as a uint32_t to make comparisons easier */
+	uint8_t seq[4];
+	uint8_t ack[4];
+	uint8_t flag[2];
+	uint8_t win[2];
+	uint8_t cksum[2];
+	uint8_t urg[2];
 };
 
 typedef struct Ilhdr Ilhdr;
-struct Ilhdr
-{
-	uint8_t	sum[2];	/* Checksum including header */
-	uint8_t	len[2];	/* Packet length */
-	uint8_t	type;		/* Packet type */
-	uint8_t	spec;		/* Special */
-	uint8_t	src[2];	/* Src port */
-	uint8_t	dst[2];	/* Dst port */
-	uint8_t	id[4];	/* Sequence id */
-	uint8_t	ack[4];	/* Acked sequence */
+struct Ilhdr {
+	uint8_t sum[2]; /* Checksum including header */
+	uint8_t len[2]; /* Packet length */
+	uint8_t type;   /* Packet type */
+	uint8_t spec;   /* Special */
+	uint8_t src[2]; /* Src port */
+	uint8_t dst[2]; /* Dst port */
+	uint8_t id[4];  /* Sequence id */
+	uint8_t ack[4]; /* Acked sequence */
 };
 
-enum
-{
-	URG		= 0x20,		/* Data marked urgent */
-	ACK		= 0x10,		/* Aknowledge is valid */
-	PSH		= 0x08,		/* Whole data pipe is pushed */
-	RST		= 0x04,		/* Reset connection */
-	SYN		= 0x02,		/* Pkt. is synchronise */
-	FIN		= 0x01,		/* Start close down */
+enum { URG = 0x20, /* Data marked urgent */
+       ACK = 0x10, /* Aknowledge is valid */
+       PSH = 0x08, /* Whole data pipe is pushed */
+       RST = 0x04, /* Reset connection */
+       SYN = 0x02, /* Pkt. is synchronise */
+       FIN = 0x01, /* Start close down */
 
-	IP_DF		= 0x4000,	/* Don't fragment */
+       IP_DF = 0x4000, /* Don't fragment */
 
-	IP_TCPPROTO	= 6,
-	IP_ILPROTO	= 40,
-	IL_IPHDR	= 20,
+       IP_TCPPROTO = 6,
+       IP_ILPROTO = 40,
+       IL_IPHDR = 20,
 };
 
 typedef struct Hdr Hdr;
-struct Hdr
-{
-	uint8_t	buf[128];
-	Iphdr	*ip;
-	Tcphdr	*tcp;
-	int	len;
+struct Hdr {
+	uint8_t buf[128];
+	Iphdr* ip;
+	Tcphdr* tcp;
+	int len;
 };
 
 typedef struct Tcpc Tcpc;
-struct Tcpc
-{
-	uint8_t	lastrecv;
-	uint8_t	lastxmit;
-	uint8_t	basexmit;
-	uint8_t	err;
-	uint8_t	compressid;
-	Hdr	t[MAX_STATES];
-	Hdr	r[MAX_STATES];
+struct Tcpc {
+	uint8_t lastrecv;
+	uint8_t lastxmit;
+	uint8_t basexmit;
+	uint8_t err;
+	uint8_t compressid;
+	Hdr t[MAX_STATES];
+	Hdr r[MAX_STATES];
 };
 
-enum
-{	/* flag bits for what changed in a packet */
-	NEW_U=(1<<0),	/* tcp only */
-	NEW_W=(1<<1),	/* tcp only */
-	NEW_A=(1<<2),	/* il tcp */
-	NEW_S=(1<<3),	/* tcp only */
-	NEW_P=(1<<4),	/* tcp only */
-	NEW_I=(1<<5),	/* il tcp */
-	NEW_C=(1<<6),	/* il tcp */
-	NEW_T=(1<<7),	/* il only */
-	TCP_PUSH_BIT	= 0x10,
+enum {                   /* flag bits for what changed in a packet */
+       NEW_U = (1 << 0), /* tcp only */
+       NEW_W = (1 << 1), /* tcp only */
+       NEW_A = (1 << 2), /* il tcp */
+       NEW_S = (1 << 3), /* tcp only */
+       NEW_P = (1 << 4), /* tcp only */
+       NEW_I = (1 << 5), /* il tcp */
+       NEW_C = (1 << 6), /* il tcp */
+       NEW_T = (1 << 7), /* il only */
+       TCP_PUSH_BIT = 0x10,
 };
 
 /* reserved, special-case values of above for tcp */
-#define SPECIAL_I (NEW_S|NEW_W|NEW_U)		/* echoed interactive traffic */
-#define SPECIAL_D (NEW_S|NEW_A|NEW_W|NEW_U)	/* unidirectional data */
-#define SPECIALS_MASK (NEW_S|NEW_A|NEW_W|NEW_U)
+#define SPECIAL_I (NEW_S | NEW_W | NEW_U) /* echoed interactive traffic */
+#define SPECIAL_D (NEW_S | NEW_A | NEW_W | NEW_U) /* unidirectional data */
+#define SPECIALS_MASK (NEW_S | NEW_A | NEW_W | NEW_U)
 
 int
-encode(void *p, uint32_t n)
+encode(void* p, uint32_t n)
 {
-	uint8_t	*cp;
+	uint8_t* cp;
 
 	cp = p;
 	if(n >= 256 || n == 0) {
@@ -124,35 +116,37 @@ encode(void *p, uint32_t n)
 	return 1;
 }
 
-#define DECODEL(f) { \
-	if (*cp == 0) {\
-		hnputl(f, nhgetl(f) + ((cp[1] << 8) | cp[2])); \
-		cp += 3; \
-	} else { \
-		hnputl(f, nhgetl(f) + (uint32_t)*cp++); \
-	} \
-}
-#define DECODES(f) { \
-	if (*cp == 0) {\
-		hnputs(f, nhgets(f) + ((cp[1] << 8) | cp[2])); \
-		cp += 3; \
-	} else { \
-		hnputs(f, nhgets(f) + (uint32_t)*cp++); \
-	} \
-}
+#define DECODEL(f)                                                             \
+	{                                                                      \
+		if(*cp == 0) {                                                 \
+			hnputl(f, nhgetl(f) + ((cp[1] << 8) | cp[2]));         \
+			cp += 3;                                               \
+		} else {                                                       \
+			hnputl(f, nhgetl(f) + (uint32_t)*cp++);                \
+		}                                                              \
+	}
+#define DECODES(f)                                                             \
+	{                                                                      \
+		if(*cp == 0) {                                                 \
+			hnputs(f, nhgets(f) + ((cp[1] << 8) | cp[2]));         \
+			cp += 3;                                               \
+		} else {                                                       \
+			hnputs(f, nhgets(f) + (uint32_t)*cp++);                \
+		}                                                              \
+	}
 
 Block*
-tcpcompress(Tcpc *comp, Block *b, int *protop)
+tcpcompress(Tcpc* comp, Block* b, int* protop)
 {
-	Iphdr	*ip;		/* current packet */
-	Tcphdr	*tcp;		/* current pkt */
-	uint32_t 	iplen, tcplen, hlen;	/* header length in uint8_ts */
-	uint32_t 	deltaS, deltaA;	/* general purpose temporaries */
-	uint32_t 	changes;	/* change mask */
-	uint8_t 	new_seq[16];	/* changes from last to current */
-	uint8_t 	*cp;
-	Hdr	*h;		/* last packet */
-	int 	i, j;
+	Iphdr* ip;                    /* current packet */
+	Tcphdr* tcp;                  /* current pkt */
+	uint32_t iplen, tcplen, hlen; /* header length in uint8_ts */
+	uint32_t deltaS, deltaA;      /* general purpose temporaries */
+	uint32_t changes;             /* change mask */
+	uint8_t new_seq[16];          /* changes from last to current */
+	uint8_t* cp;
+	Hdr* h; /* last packet */
+	int i, j;
 
 	/*
 	 * Bail if this is not a compressible TCP/IP packet
@@ -162,9 +156,9 @@ tcpcompress(Tcpc *comp, Block *b, int *protop)
 	tcp = (Tcphdr*)(b->rptr + iplen);
 	tcplen = (tcp->flag[0] & 0xf0) >> 2;
 	hlen = iplen + tcplen;
-	if((tcp->flag[1] & (SYN|FIN|RST|ACK)) != ACK){
+	if((tcp->flag[1] & (SYN | FIN | RST | ACK)) != ACK) {
 		*protop = Pip;
-		return b;		/* connection control */
+		return b; /* connection control */
 	}
 
 	/*
@@ -174,13 +168,13 @@ tcpcompress(Tcpc *comp, Block *b, int *protop)
 	cp = new_seq;
 	j = comp->lastxmit;
 	h = &comp->t[j];
-	if(ip->src != h->ip->src || ip->dst != h->ip->dst
-	|| tcp->ports != h->tcp->ports) {
+	if(ip->src != h->ip->src || ip->dst != h->ip->dst ||
+	   tcp->ports != h->tcp->ports) {
 		for(i = 0; i < MAX_STATES; ++i) {
 			j = (comp->basexmit + i) % MAX_STATES;
 			h = &comp->t[j];
-			if(ip->src == h->ip->src && ip->dst == h->ip->dst
-			&& tcp->ports == h->tcp->ports)
+			if(ip->src == h->ip->src && ip->dst == h->ip->dst &&
+			   tcp->ports == h->tcp->ports)
 				goto found;
 		}
 
@@ -196,15 +190,17 @@ tcpcompress(Tcpc *comp, Block *b, int *protop)
 found:
 
 	/*
-	 * Make sure that only what we expect to change changed. 
+	 * Make sure that only what we expect to change changed.
 	 */
-	if(ip->vihl  != h->ip->vihl || ip->tos   != h->ip->tos ||
-	   ip->ttl   != h->ip->ttl  || ip->proto != h->ip->proto)
-		goto rescue;	/* headers changed */
-	if(iplen != sizeof(Iphdr) && memcmp(ip+1, h->ip+1, iplen - sizeof(Iphdr)))
-		goto rescue;	/* ip options changed */
-	if(tcplen != sizeof(Tcphdr) && memcmp(tcp+1, h->tcp+1, tcplen - sizeof(Tcphdr)))
-		goto rescue;	/* tcp options changed */
+	if(ip->vihl != h->ip->vihl || ip->tos != h->ip->tos ||
+	   ip->ttl != h->ip->ttl || ip->proto != h->ip->proto)
+		goto rescue; /* headers changed */
+	if(iplen != sizeof(Iphdr) &&
+	   memcmp(ip + 1, h->ip + 1, iplen - sizeof(Iphdr)))
+		goto rescue; /* ip options changed */
+	if(tcplen != sizeof(Tcphdr) &&
+	   memcmp(tcp + 1, h->tcp + 1, tcplen - sizeof(Tcphdr)))
+		goto rescue; /* tcp options changed */
 
 	if(tcp->flag[1] & URG) {
 		cp += encode(cp, nhgets(tcp->urg));
@@ -222,7 +218,7 @@ found:
 		changes |= NEW_A;
 	}
 	if(deltaS = nhgetl(tcp->seq) - nhgetl(h->tcp->seq)) {
-		if (deltaS > 0xffff)
+		if(deltaS > 0xffff)
 			goto rescue;
 		cp += encode(cp, deltaS);
 		changes |= NEW_S;
@@ -253,15 +249,14 @@ found:
 		 */
 		goto rescue;
 	case NEW_S | NEW_A:
-		if (deltaS == deltaA &&
-			deltaS == nhgets(h->ip->length) - hlen) {
+		if(deltaS == deltaA && deltaS == nhgets(h->ip->length) - hlen) {
 			/* special case for echoed terminal traffic */
 			changes = SPECIAL_I;
 			cp = new_seq;
 		}
 		break;
 	case NEW_S:
-		if (deltaS == nhgets(h->ip->length) - hlen) {
+		if(deltaS == nhgets(h->ip->length) - hlen) {
 			/* special case for data xfer */
 			changes = SPECIAL_D;
 			cp = new_seq;
@@ -273,7 +268,7 @@ found:
 		cp += encode(cp, deltaS);
 		changes |= NEW_I;
 	}
-	if (tcp->flag[1] & PSH)
+	if(tcp->flag[1] & PSH)
 		changes |= TCP_PUSH_BIT;
 	/*
 	 * Grab the cksum before we overwrite it below. Then update our
@@ -327,14 +322,14 @@ rescue:
 }
 
 Block*
-tcpuncompress(Tcpc *comp, Block *b, int type)
+tcpuncompress(Tcpc* comp, Block* b, int type)
 {
-	uint8_t	*cp, changes;
-	int	i;
-	int	iplen, len;
-	Iphdr	*ip;
-	Tcphdr	*tcp;
-	Hdr	*h;
+	uint8_t* cp, changes;
+	int i;
+	int iplen, len;
+	Iphdr* ip;
+	Tcphdr* tcp;
+	Hdr* h;
 
 	if(type == Pvjutcp) {
 		/*
@@ -382,7 +377,7 @@ tcpuncompress(Tcpc *comp, Block *b, int type)
 		 * line error since the last time we got an explicit state
 		 * index, we have to toss the packet.
 		 */
-		if(comp->err != 0){
+		if(comp->err != 0) {
 			freeb(b);
 			return nil;
 		}
@@ -405,7 +400,7 @@ tcpuncompress(Tcpc *comp, Block *b, int type)
 	 * Fix up the state's ack, seq, urg and win fields based on the
 	 * changemask.
 	 */
-	switch (changes & SPECIALS_MASK) {
+	switch(changes & SPECIALS_MASK) {
 	case SPECIAL_I:
 		i = nhgets(ip->length) - len;
 		hnputl(tcp->ack, nhgetl(tcp->ack) + i);
@@ -419,10 +414,10 @@ tcpuncompress(Tcpc *comp, Block *b, int type)
 	default:
 		if(changes & NEW_U) {
 			tcp->flag[1] |= URG;
-			if(*cp == 0){
-				hnputs(tcp->urg, nhgets(cp+1));
+			if(*cp == 0) {
+				hnputs(tcp->urg, nhgets(cp + 1));
 				cp += 3;
-			}else
+			} else
 				hnputs(tcp->urg, *cp++);
 		} else
 			tcp->flag[1] &= ~URG;
@@ -449,14 +444,14 @@ tcpuncompress(Tcpc *comp, Block *b, int type)
 	 *  up to 128 uint8_ts of header.
 	 */
 	b->rptr = cp;
-	if(b->rptr - b->base < len){
+	if(b->rptr - b->base < len) {
 		b = padb(b, len);
 		b = pullup(b, blen(b));
 	} else
 		b->rptr -= len;
 	hnputs(ip->length, BLEN(b));
 	memmove(b->rptr, ip, len);
-	
+
 	/* recompute the ip header checksum */
 	ip = (Iphdr*)b->rptr;
 	ip->cksum[0] = ip->cksum[1] = 0;
@@ -472,16 +467,16 @@ rescue:
 }
 
 Tcpc*
-compress_init(Tcpc *c)
+compress_init(Tcpc* c)
 {
 	int i;
-	Hdr *h;
+	Hdr* h;
 
 	if(c == nil)
 		c = malloc(sizeof(Tcpc));
 
 	memset(c, 0, sizeof(*c));
-	for(i = 0; i < MAX_STATES; i++){
+	for(i = 0; i < MAX_STATES; i++) {
 		h = &c->t[i];
 		h->ip = (Iphdr*)h->buf;
 		h->tcp = (Tcphdr*)(h->buf + 20);
@@ -496,15 +491,15 @@ compress_init(Tcpc *c)
 }
 
 Block*
-compress(Tcpc *tcp, Block *b, int *protop)
+compress(Tcpc* tcp, Block* b, int* protop)
 {
-	Iphdr		*ip;
+	Iphdr* ip;
 
 	/*
 	 * Bail if this is not a compressible IP packet
 	 */
 	ip = (Iphdr*)b->rptr;
-	if((nhgets(ip->frag) & 0x3fff) != 0){
+	if((nhgets(ip->frag) & 0x3fff) != 0) {
 		*protop = Pip;
 		return b;
 	}
@@ -519,7 +514,7 @@ compress(Tcpc *tcp, Block *b, int *protop)
 }
 
 int
-compress_negotiate(Tcpc *tcp, uint8_t *data)
+compress_negotiate(Tcpc* tcp, uint8_t* data)
 {
 	if(data[0] != MAX_STATES - 1)
 		return -1;
@@ -529,7 +524,7 @@ compress_negotiate(Tcpc *tcp, uint8_t *data)
 
 /* called by ppp when there was a bad frame received */
 void
-compress_error(Tcpc *tcp)
+compress_error(Tcpc* tcp)
 {
 	tcp->err = 1;
 }

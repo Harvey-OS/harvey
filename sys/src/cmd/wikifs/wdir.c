@@ -15,14 +15,14 @@
 #include "wiki.h"
 
 /* open, create relative to wiki dir */
-char *wikidir;
+char* wikidir;
 
 static char*
-wname(char *s)
+wname(char* s)
 {
-	char *t;
+	char* t;
 
-	t = emalloc(strlen(wikidir)+1+strlen(s)+1);
+	t = emalloc(strlen(wikidir) + 1 + strlen(s) + 1);
 	strcpy(t, wikidir);
 	strcat(t, "/");
 	strcat(t, s);
@@ -30,7 +30,7 @@ wname(char *s)
 }
 
 int
-wopen(char *fn, int mode)
+wopen(char* fn, int mode)
 {
 	int rv;
 
@@ -41,7 +41,7 @@ wopen(char *fn, int mode)
 }
 
 int
-wcreate(char *fn, int mode, int32_t perm)
+wcreate(char* fn, int mode, int32_t perm)
 {
 	int rv;
 
@@ -52,9 +52,9 @@ wcreate(char *fn, int mode, int32_t perm)
 }
 
 Biobuf*
-wBopen(char *fn, int mode)
+wBopen(char* fn, int mode)
 {
-	Biobuf *rv;
+	Biobuf* rv;
 
 	fn = wname(fn);
 	rv = Bopen(fn, mode);
@@ -63,7 +63,7 @@ wBopen(char *fn, int mode)
 }
 
 int
-waccess(char *fn, int mode)
+waccess(char* fn, int mode)
 {
 	int rv;
 
@@ -74,9 +74,9 @@ waccess(char *fn, int mode)
 }
 
 Dir*
-wdirstat(char *fn)
+wdirstat(char* fn)
 {
-	Dir *d;
+	Dir* d;
 
 	fn = wname(fn);
 	d = dirstat(fn);

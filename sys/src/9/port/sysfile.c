@@ -7,19 +7,19 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  * The sys*() routines needn't poperror() as they return directly to syscall().
  */
 
 static void
-unlockfgrp(Fgrp *f)
+unlockfgrp(Fgrp* f)
 {
 	int ex;
 
@@ -30,35 +30,34 @@ unlockfgrp(Fgrp *f)
 		pprint("warning: process exceeds %d file descriptors\n", ex);
 }
 
-static int
-growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
+static int growfd(Fgrp* f, int fd) /* fd is always >= 0 */
 {
-	Chan **newfd, **oldfd;
+	Chan** newfd, **oldfd;
 
 	if(fd < f->nfd)
 		return 0;
-	if(fd >= f->nfd+DELTAFD)
-		return -1;	/* out of range */
-	/*
-	 * Unbounded allocation is unwise; besides, there are only 16 bits
-	 * of fid in 9P
-	 */
-	if(f->nfd >= 5000){
-    Exhausted:
+	if(fd >= f->nfd + DELTAFD)
+		return -1; /* out of range */
+	                   /*
+	                    * Unbounded allocation is unwise; besides, there are only 16 bits
+	                    * of fid in 9P
+	                    */
+	if(f->nfd >= 5000) {
+	Exhausted:
 		print("no free file descriptors\n");
 		return -1;
 	}
-	newfd = malloc((f->nfd+DELTAFD)*sizeof(Chan*));
+	newfd = malloc((f->nfd + DELTAFD) * sizeof(Chan*));
 	if(newfd == 0)
 		goto Exhausted;
 	oldfd = f->fd;
-	memmove(newfd, oldfd, f->nfd*sizeof(Chan*));
+	memmove(newfd, oldfd, f->nfd * sizeof(Chan*));
 	f->fd = newfd;
 	free(oldfd);
 	f->nfd += DELTAFD;
-	if(fd > f->maxfd){
-		if(fd/100 > f->maxfd/100)
-			f->exceed = (fd/100)*100;
+	if(fd > f->maxfd) {
+		if(fd / 100 > f->maxfd / 100)
+			f->exceed = (fd / 100) * 100;
 		f->maxfd = fd;
 	}
 	return 1;
@@ -68,11 +67,11 @@ growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
  *  this assumes that the fgrp is locked
  */
 static int
-findfreefd(Fgrp *f, int start)
+findfreefd(Fgrp* f, int start)
 {
 	int fd;
 
-	for(fd=start; fd<f->nfd; fd++)
+	for(fd = start; fd < f->nfd; fd++)
 		if(f->fd[fd] == 0)
 			break;
 	if(fd >= f->nfd && growfd(f, fd) < 0)
@@ -81,16 +80,16 @@ findfreefd(Fgrp *f, int start)
 }
 
 int
-newfd(Chan *c)
+newfd(Chan* c)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int fd;
-	Fgrp *f;
+	Fgrp* f;
 
 	f = up->fgrp;
 	lock(f);
 	fd = findfreefd(f, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
@@ -102,20 +101,20 @@ newfd(Chan *c)
 }
 
 static int
-newfd2(int fd[2], Chan *c[2])
+newfd2(int fd[2], Chan* c[2])
 {
-	Proc *up = externup();
-	Fgrp *f;
+	Proc* up = externup();
+	Fgrp* f;
 
 	f = up->fgrp;
 	lock(f);
 	fd[0] = findfreefd(f, 0);
-	if(fd[0] < 0){
+	if(fd[0] < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
-	fd[1] = findfreefd(f, fd[0]+1);
-	if(fd[1] < 0){
+	fd[1] = findfreefd(f, fd[0] + 1);
+	if(fd[1] < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
@@ -131,15 +130,15 @@ newfd2(int fd[2], Chan *c[2])
 Chan*
 fdtochan(int fd, int mode, int chkmnt, int iref)
 {
-	Proc *up = externup();
-	Chan *c;
-	Fgrp *f;
+	Proc* up = externup();
+	Chan* c;
+	Fgrp* f;
 
 	c = nil;
 	f = up->fgrp;
 
 	lock(f);
-	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
+	if(fd < 0 || f->nfd <= fd || (c = f->fd[fd]) == 0) {
 		unlock(f);
 		error(Ebadfd);
 	}
@@ -147,22 +146,22 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 		incref(c);
 	unlock(f);
 
-	if(chkmnt && (c->flag&CMSG)) {
+	if(chkmnt && (c->flag & CMSG)) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
 	}
 
-	if(mode<0 || c->mode==ORDWR)
+	if(mode < 0 || c->mode == ORDWR)
 		return c;
 
-	if((mode&OTRUNC) && c->mode==OREAD) {
+	if((mode & OTRUNC) && c->mode == OREAD) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
 	}
 
-	if((mode&~OTRUNC) != c->mode) {
+	if((mode & ~OTRUNC) != c->mode) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
@@ -174,7 +173,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 int
 openmode(int omode)
 {
-	omode &= ~(OTRUNC|OCEXEC|ORCLOSE);
+	omode &= ~(OTRUNC | OCEXEC | ORCLOSE);
 	if(omode > OEXEC)
 		error(Ebadarg);
 	if(omode == OEXEC)
@@ -185,8 +184,8 @@ openmode(int omode)
 void
 sysfd2path(Ar0* ar0, ...)
 {
-	Chan *c;
-	char *buf;
+	Chan* c;
+	char* buf;
 	int fd;
 	usize nbuf;
 	va_list list;
@@ -213,10 +212,10 @@ sysfd2path(Ar0* ar0, ...)
 void
 syspipe(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	int *a, fd[2];
-	Chan *c[2];
-	static char *datastr[] = {"data", "data1"};
+	Proc* up = externup();
+	int* a, fd[2];
+	Chan* c[2];
+	static char* datastr[] = {"data", "data1"};
 	va_list list;
 	va_start(list, ar0);
 
@@ -233,16 +232,16 @@ syspipe(Ar0* ar0, ...)
 	fd[0] = -1;
 	fd[1] = -1;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c[0]);
 		if(c[1])
 			cclose(c[1]);
 		nexterror();
 	}
 	c[1] = cclone(c[0]);
-	if(walk(&c[0], datastr+0, 1, 1, nil) < 0)
+	if(walk(&c[0], datastr + 0, 1, 1, nil) < 0)
 		error(Egreg);
-	if(walk(&c[1], datastr+1, 1, 1, nil) < 0)
+	if(walk(&c[1], datastr + 1, 1, 1, nil) < 0)
 		error(Egreg);
 	c[0] = c[0]->dev->open(c[0], ORDWR);
 	c[1] = c[1]->dev->open(c[1], ORDWR);
@@ -259,10 +258,10 @@ syspipe(Ar0* ar0, ...)
 void
 sysdup(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int nfd, ofd;
-	Chan *nc, *oc;
-	Fgrp *f;
+	Chan* nc, *oc;
+	Fgrp* f;
 	va_list list;
 	va_start(list, ar0);
 
@@ -276,7 +275,7 @@ sysdup(Ar0* ar0, ...)
 	nfd = va_arg(list, int);
 	va_end(list);
 
-	if(nfd != -1){
+	if(nfd != -1) {
 		f = up->fgrp;
 		lock(f);
 		if(nfd < 0 || growfd(f, nfd) < 0) {
@@ -292,7 +291,7 @@ sysdup(Ar0* ar0, ...)
 		unlockfgrp(f);
 		if(nc != nil)
 			cclose(nc);
-	}else{
+	} else {
 		if(waserror()) {
 			cclose(oc);
 			nexterror();
@@ -309,11 +308,11 @@ sysdup(Ar0* ar0, ...)
 void
 sysopen(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	va_list list;
-	char *aname;
+	char* aname;
 	int fd, omode;
-	Chan *c;
+	Chan* c;
 
 	/*
 	 * int open(char* file, int omode);
@@ -322,10 +321,10 @@ sysopen(Ar0* ar0, ...)
 	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
 	va_end(list);
-	openmode(omode);	/* error check only */
+	openmode(omode); /* error check only */
 
 	c = nil;
-	if(waserror()){
+	if(waserror()) {
 		if(c != nil)
 			cclose(c);
 		nexterror();
@@ -355,28 +354,28 @@ sysnsec(Ar0* ar0, ...)
 void
 fdclose(int fd, int flag)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
-	Chan *c;
-	Fgrp *f;
+	Chan* c;
+	Fgrp* f;
 
 	f = up->fgrp;
 	lock(f);
 	c = f->fd[fd];
-	if(c == nil){
+	if(c == nil) {
 		/* can happen for users with shared fd tables */
 		unlock(f);
 		return;
 	}
-	if(flag){
-		if(c == nil || !(c->flag&flag)){
+	if(flag) {
+		if(c == nil || !(c->flag & flag)) {
 			unlock(f);
 			return;
 		}
 	}
 	f->fd[fd] = nil;
 	if(fd == f->maxfd)
-		for(i = fd; --i >= 0 && f->fd[i] == 0; )
+		for(i = fd; --i >= 0 && f->fd[i] == 0;)
 			f->maxfd = i;
 
 	unlock(f);
@@ -403,13 +402,13 @@ sysclose(Ar0* ar0, ...)
 }
 
 static int32_t
-unionread(Chan *c, void *va, int32_t n)
+unionread(Chan* c, void* va, int32_t n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
 	int32_t nr;
-	Mhead *mh;
-	Mount *mount;
+	Mhead* mh;
+	Mount* mount;
 
 	qlock(&c->umqlock);
 	mh = c->umh;
@@ -420,10 +419,10 @@ unionread(Chan *c, void *va, int32_t n)
 		mount = mount->next;
 
 	nr = 0;
-	while(mount != nil){
+	while(mount != nil) {
 		/* Error causes component of union to be skipped */
-		if(mount->to && !waserror()){
-			if(c->umc == nil){
+		if(mount->to && !waserror()) {
+			if(c->umc == nil) {
 				c->umc = cclone(mount->to);
 				c->umc = c->umc->dev->open(c->umc, OREAD);
 			}
@@ -437,7 +436,7 @@ unionread(Chan *c, void *va, int32_t n)
 
 		/* Advance to next element */
 		c->uri++;
-		if(c->umc){
+		if(c->umc) {
 			cclose(c->umc);
 			c->umc = nil;
 		}
@@ -449,11 +448,11 @@ unionread(Chan *c, void *va, int32_t n)
 }
 
 static void
-unionrewind(Chan *c)
+unionrewind(Chan* c)
 {
 	qlock(&c->umqlock);
 	c->uri = 0;
-	if(c->umc){
+	if(c->umc) {
 		cclose(c->umc);
 		c->umc = nil;
 	}
@@ -461,22 +460,21 @@ unionrewind(Chan *c)
 }
 
 static usize
-dirfixed(uint8_t *p, uint8_t *e, Dir *d)
+dirfixed(uint8_t* p, uint8_t* e, Dir* d)
 {
 	int len;
-	Dev *dev;
+	Dev* dev;
 
-	len = GBIT16(p)+BIT16SZ;
+	len = GBIT16(p) + BIT16SZ;
 	if(p + len > e)
 		return 0;
 
-	p += BIT16SZ;	/* ignore size */
-	dev = devtabget(GBIT16(p), 1);			//XDYNX
-	if(dev != nil){
+	p += BIT16SZ; /* ignore size */
+	dev = devtabget(GBIT16(p), 1); // XDYNX
+	if(dev != nil) {
 		d->type = dev->dc;
-		//devtabdecr(dev);
-	}
-	else
+		// devtabdecr(dev);
+	} else
 		d->type = -1;
 	p += BIT16SZ;
 	d->dev = GBIT32(p);
@@ -499,19 +497,19 @@ dirfixed(uint8_t *p, uint8_t *e, Dir *d)
 }
 
 static char*
-dirname(uint8_t *p, usize *n)
+dirname(uint8_t* p, usize* n)
 {
-	p += BIT16SZ+BIT16SZ+BIT32SZ+BIT8SZ+BIT32SZ+BIT64SZ
-		+ BIT32SZ+BIT32SZ+BIT32SZ+BIT64SZ;
+	p += BIT16SZ + BIT16SZ + BIT32SZ + BIT8SZ + BIT32SZ + BIT64SZ +
+	     BIT32SZ + BIT32SZ + BIT32SZ + BIT64SZ;
 	*n = GBIT16(p);
 
-	return (char*)p+BIT16SZ;
+	return (char*)p + BIT16SZ;
 }
 
 static usize
-dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
+dirsetname(char* name, usize len, uint8_t* p, usize n, usize maxn)
 {
-	char *oname;
+	char* oname;
 	usize nn, olen;
 
 	if(n == BIT16SZ)
@@ -519,14 +517,15 @@ dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
 
 	oname = dirname(p, &olen);
 
-	nn = n+len-olen;
-	PBIT16(p, nn-BIT16SZ);
+	nn = n + len - olen;
+	PBIT16(p, nn - BIT16SZ);
 	if(nn > maxn)
 		return BIT16SZ;
 
 	if(len != olen)
-		memmove(oname+len, oname+olen, p+n-(uint8_t*)(oname+olen));
-	PBIT16((uint8_t*)(oname-2), len);
+		memmove(oname + len, oname + olen,
+		        p + n - (uint8_t*)(oname + olen));
+	PBIT16((uint8_t*)(oname - 2), len);
 	memmove(oname, name, len);
 
 	return nn;
@@ -537,32 +536,32 @@ dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
  * to overflow the buffer.  Catch the overflow in c->dirrock.
  */
 static void
-mountrock(Chan *c, uint8_t *p, uint8_t **pe)
+mountrock(Chan* c, uint8_t* p, uint8_t** pe)
 {
-	uint8_t *e, *r;
+	uint8_t* e, *r;
 	int len, n;
 
 	e = *pe;
 
 	/* find last directory entry */
-	for(;;){
-		len = BIT16SZ+GBIT16(p);
-		if(p+len >= e)
+	for(;;) {
+		len = BIT16SZ + GBIT16(p);
+		if(p + len >= e)
 			break;
 		p += len;
 	}
 
 	/* save it away */
 	qlock(&c->rockqlock);
-	if(c->nrock+len > c->mrock){
-		n = ROUNDUP(c->nrock+len, 1024);
+	if(c->nrock + len > c->mrock) {
+		n = ROUNDUP(c->nrock + len, 1024);
 		r = smalloc(n);
 		memmove(r, c->dirrock, c->nrock);
 		free(c->dirrock);
 		c->dirrock = r;
 		c->mrock = n;
 	}
-	memmove(c->dirrock+c->nrock, p, len);
+	memmove(c->dirrock + c->nrock, p, len);
 	c->nrock += len;
 	qunlock(&c->rockqlock);
 
@@ -574,10 +573,10 @@ mountrock(Chan *c, uint8_t *p, uint8_t **pe)
  * Satisfy a directory read with the results saved in c->dirrock.
  */
 static int
-mountrockread(Chan *c, uint8_t *op, int32_t n, int32_t *nn)
+mountrockread(Chan* c, uint8_t* op, int32_t n, int32_t* nn)
 {
 	int32_t dirlen;
-	uint8_t *rp, *erp, *ep, *p;
+	uint8_t* rp, *erp, *ep, *p;
 
 	/* common case */
 	if(c->nrock == 0)
@@ -586,26 +585,26 @@ mountrockread(Chan *c, uint8_t *op, int32_t n, int32_t *nn)
 	/* copy out what we can */
 	qlock(&c->rockqlock);
 	rp = c->dirrock;
-	erp = rp+c->nrock;
+	erp = rp + c->nrock;
 	p = op;
-	ep = p+n;
-	while(rp+BIT16SZ <= erp){
-		dirlen = BIT16SZ+GBIT16(rp);
-		if(p+dirlen > ep)
+	ep = p + n;
+	while(rp + BIT16SZ <= erp) {
+		dirlen = BIT16SZ + GBIT16(rp);
+		if(p + dirlen > ep)
 			break;
 		memmove(p, rp, dirlen);
 		p += dirlen;
 		rp += dirlen;
 	}
 
-	if(p == op){
+	if(p == op) {
 		qunlock(&c->rockqlock);
 		return 0;
 	}
 
 	/* shift the rest */
 	if(rp != erp)
-		memmove(c->dirrock, rp, erp-rp);
+		memmove(c->dirrock, rp, erp - rp);
 	c->nrock = erp - rp;
 
 	*nn = p - op;
@@ -614,7 +613,7 @@ mountrockread(Chan *c, uint8_t *op, int32_t n, int32_t *nn)
 }
 
 static void
-mountrewind(Chan *c)
+mountrewind(Chan* c)
 {
 	c->nrock = 0;
 }
@@ -626,35 +625,36 @@ mountrewind(Chan *c)
  * of statting what is mounted there.  Except leave the old names.
  */
 static int32_t
-mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
+mountfix(Chan* c, uint8_t* op, int32_t n, int32_t maxn)
 {
-	Proc *up = externup();
-	char *name;
+	Proc* up = externup();
+	char* name;
 	int nbuf;
-	Chan *nc;
-	Mhead *mh;
-	Mount *mount;
+	Chan* nc;
+	Mhead* mh;
+	Mount* mount;
 	usize dirlen, nname, r, rest;
 	int32_t l;
-	uint8_t *buf, *e, *p;
+	uint8_t* buf, *e, *p;
 	Dir d;
 
 	p = op;
 	buf = nil;
 	nbuf = 0;
-	for(e=&p[n]; p+BIT16SZ<e; p+=dirlen){
+	for(e = &p[n]; p + BIT16SZ < e; p += dirlen) {
 		dirlen = dirfixed(p, e, &d);
 		if(dirlen == 0)
 			break;
 		nc = nil;
 		mh = nil;
-		if(findmount(&nc, &mh, d.type, d.dev, d.qid)){
+		if(findmount(&nc, &mh, d.type, d.dev, d.qid)) {
 			/*
 			 * If it's a union directory and the original is
 			 * in the union, don't rewrite anything.
 			 */
-			for(mount=mh->mount; mount; mount=mount->next)
-				if(eqchanddq(mount->to, d.type, d.dev, d.qid, 1))
+			for(mount = mh->mount; mount; mount = mount->next)
+				if(eqchanddq(mount->to, d.type, d.dev, d.qid,
+				             1))
 					goto Norewrite;
 
 			name = dirname(p, &nname);
@@ -665,7 +665,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 			 * the entry, what can we do?  Nothing, really.
 			 * Might as well skip it.
 			 */
-			if(buf == nil){
+			if(buf == nil) {
 				buf = smalloc(4096);
 				nbuf = 4096;
 			}
@@ -681,21 +681,21 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 			 * Shift data in buffer to accomodate new entry,
 			 * possibly overflowing into rock.
 			 */
-			rest = e - (p+dirlen);
-			if(r > dirlen){
-				while(p+r+rest > op+maxn){
+			rest = e - (p + dirlen);
+			if(r > dirlen) {
+				while(p + r + rest > op + maxn) {
 					mountrock(c, p, &e);
-					if(e == p){
+					if(e == p) {
 						dirlen = 0;
 						goto Norewrite;
 					}
-					rest = e - (p+dirlen);
+					rest = e - (p + dirlen);
 				}
 			}
-			if(r != dirlen){
-				memmove(p+r, p+dirlen, rest);
+			if(r != dirlen) {
+				memmove(p + r, p + dirlen, rest);
 				dirlen = r;
-				e = p+dirlen+rest;
+				e = p + dirlen + rest;
 			}
 
 			/*
@@ -703,7 +703,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 			 */
 			memmove(p, buf, r);
 
-		    Norewrite:
+		Norewrite:
 			cclose(nc);
 			putmhead(mh);
 		}
@@ -714,21 +714,21 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	if(p != e)
 		error("oops in mountfix");
 
-	return e-op;
+	return e - op;
 }
 
 static int32_t
-read(int ispread, int fd, void *p, int32_t n, int64_t off)
+read(int ispread, int fd, void* p, int32_t n, int64_t off)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int32_t nn, nnn;
-	Chan *c;
+	Chan* c;
 
 	p = validaddr(p, n, 1);
 
 	c = fdtochan(fd, OREAD, 1, 1);
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -742,23 +742,22 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-	if(ispread){
-		if(off == ~0LL){	/* use and maintain channel's offset */
+	if(ispread) {
+		if(off == ~0LL) { /* use and maintain channel's offset */
 			off = c->offset;
 			ispread = 0;
 		}
-	}
-	else
+	} else
 		off = c->offset;
-	if(c->qid.type & QTDIR){
+	if(c->qid.type & QTDIR) {
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
 		 * clear ispread to always maintain the Chan offset.
 		 */
-		if(off == 0LL){
-			if(!ispread){
+		if(off == 0LL) {
+			if(!ispread) {
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -766,10 +765,10 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 			unionrewind(c);
 		}
 
-		if(!mountrockread(c, p, n, &nn)){
+		if(!mountrockread(c, p, n, &nn)) {
 			if(c->umh)
 				nn = unionread(c, p, n);
-			else{
+			else {
 				if(off != c->offset)
 					error(Edirseek);
 				nn = c->dev->read(c, p, n, c->devoffset);
@@ -778,11 +777,10 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 		nnn = mountfix(c, p, nn, n);
 
 		ispread = 0;
-	}
-	else
+	} else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(!ispread){
+	if(!ispread) {
 		lock(c);
 		c->devoffset += nn;
 		c->offset += nnn;
@@ -799,7 +797,7 @@ void
 sysread(Ar0* ar0, ...)
 {
 	int fd;
-	void *p;
+	void* p;
 	int32_t n;
 	int64_t off = ~0ULL;
 	va_list list;
@@ -818,7 +816,7 @@ void
 syspread(Ar0* ar0, ...)
 {
 	int fd;
-	void *p;
+	void* p;
 	int32_t n;
 	int64_t off;
 	va_list list;
@@ -835,11 +833,11 @@ syspread(Ar0* ar0, ...)
 }
 
 static int32_t
-write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
+write(int fd, void* p, int32_t n, int64_t off, int ispwrite)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int32_t r;
-	Chan *c;
+	Chan* c;
 
 	r = n;
 
@@ -847,7 +845,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 	if(waserror()) {
-		if(!ispwrite){
+		if(!ispwrite) {
 			lock(c);
 			c->offset -= n;
 			unlock(c);
@@ -861,7 +859,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	n = r;
 
-	if(off == ~0LL){	/* use and maintain channel's offset */
+	if(off == ~0LL) { /* use and maintain channel's offset */
 		lock(c);
 		off = c->offset;
 		c->offset += n;
@@ -870,7 +868,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(!ispwrite && r < n){
+	if(!ispwrite && r < n) {
 		lock(c);
 		c->offset -= n - r;
 		unlock(c);
@@ -888,7 +886,7 @@ syswrite(Ar0* ar0, ...)
 	va_list list;
 	va_start(list, ar0);
 	int fd = va_arg(list, int);
-	void *buf = va_arg(list, void *);
+	void* buf = va_arg(list, void*);
 	long nbytes = va_arg(list, long);
 	int64_t offset = -1ULL;
 	va_end(list);
@@ -904,7 +902,7 @@ syspwrite(Ar0* ar0, ...)
 	va_list list;
 	va_start(list, ar0);
 	int fd = va_arg(list, int);
-	void *buf = va_arg(list, void *);
+	void* buf = va_arg(list, void*);
 	long nbytes = va_arg(list, long);
 	int64_t offset = va_arg(list, int64_t);
 	va_end(list);
@@ -917,21 +915,21 @@ syspwrite(Ar0* ar0, ...)
 static int64_t
 sseek(int fd, int64_t offset, int whence)
 {
-	Proc *up = externup();
-	Chan *c;
-	uint8_t buf[sizeof(Dir)+100];
+	Proc* up = externup();
+	Chan* c;
+	uint8_t buf[sizeof(Dir) + 100];
 	Dir dir;
 	int n;
 
 	c = fdtochan(fd, -1, 1, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
 	if(c->dev->dc == '|')
 		error(Eisstream);
 
-	switch(whence){
+	switch(whence) {
 	case 0:
 		if((c->qid.type & QTDIR) && offset != 0LL)
 			error(Eisdir);
@@ -941,7 +939,7 @@ sseek(int fd, int64_t offset, int whence)
 	case 1:
 		if(c->qid.type & QTDIR)
 			error(Eisdir);
-		lock(c);	/* lock for read/write update */
+		lock(c); /* lock for read/write update */
 		offset += c->offset;
 		c->offset = offset;
 		unlock(c);
@@ -1019,7 +1017,7 @@ sysoseek(Ar0* ar0, ...)
 }
 
 void
-validstat(uint8_t *s, usize n)
+validstat(uint8_t* s, usize n)
 {
 	usize m;
 	char buf[64];
@@ -1027,16 +1025,16 @@ validstat(uint8_t *s, usize n)
 	if(statcheck(s, n) < 0)
 		error(Ebadstat);
 	/* verify that name entry is acceptable */
-	s += STATFIXLEN - 4*BIT16SZ;	/* location of first string */
-	/*
-	 * s now points at count for first string.
-	 * if it's too long, let the server decide; this is
-	 * only for his protection anyway. otherwise
-	 * we'd have to allocate and waserror.
-	 */
+	s += STATFIXLEN - 4 * BIT16SZ; /* location of first string */
+	                               /*
+	                                * s now points at count for first string.
+	                                * if it's too long, let the server decide; this is
+	                                * only for his protection anyway. otherwise
+	                                * we'd have to allocate and waserror.
+	                                */
 	m = GBIT16(s);
 	s += BIT16SZ;
-	if(m+1 > sizeof buf)
+	if(m + 1 > sizeof buf)
 		return;
 	memmove(buf, s, m);
 	buf[m] = '\0';
@@ -1046,9 +1044,9 @@ validstat(uint8_t *s, usize n)
 }
 
 static char*
-pathlast(Path *p)
+pathlast(Path* p)
 {
-	char *s;
+	char* s;
 
 	if(p == nil)
 		return nil;
@@ -1056,19 +1054,19 @@ pathlast(Path *p)
 		return nil;
 	s = strrchr(p->s, '/');
 	if(s)
-		return s+1;
+		return s + 1;
 	return p->s;
 }
 
 void
 sysfstat(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int fd;
-	Chan *c;
+	Chan* c;
 	usize n;
 	int r;
-	uint8_t *p;
+	uint8_t* p;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1100,12 +1098,12 @@ sysfstat(Ar0* ar0, ...)
 void
 sysstat(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	char *aname;
-	Chan *c;
+	Proc* up = externup();
+	char* aname;
+	Chan* c;
 	usize n;
 	int r;
-	uint8_t *p;
+	uint8_t* p;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1124,7 +1122,7 @@ sysstat(Ar0* ar0, ...)
 
 	p = validaddr(p, n, 1);
 	c = namec(aname, Aaccess, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1142,9 +1140,9 @@ sysstat(Ar0* ar0, ...)
 void
 syschdir(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Chan *c;
-	char *aname;
+	Proc* up = externup();
+	Chan* c;
+	char* aname;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1167,42 +1165,42 @@ syschdir(Ar0* ar0, ...)
  * really start using it.
  */
 
-static int dcok[] =  {
-	'M'
-};
-static int checkdc(int dc)
+static int dcok[] = {'M'};
+static int
+checkdc(int dc)
 {
 	int i;
 	/* we check for non-zero in case somebody ever puts a ,
 	 * after the last element and we end up with 0 as the last thing ...
 	 */
 	for(i = 0; (i < nelem(dcok)) && dcok[i]; i++)
-		if (dcok[i] == dc)
+		if(dcok[i] == dc)
 			return 1;
 	return 0;
 }
-/* if dc is non-zero, it means we're doing a mount and dc is the mount device to use. */
+/* if dc is non-zero, it means we're doing a mount and dc is the mount device to
+ * use. */
 static int
 bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
-	Dev *dev;
-	Chan *c0, *c1, *ac, *bc;
-	struct{
-		Chan	*chan;
-		Chan	*authchan;
-		char	*spec;
-		int	flags;
-	}bogus;
+	Dev* dev;
+	Chan* c0, *c1, *ac, *bc;
+	struct {
+		Chan* chan;
+		Chan* authchan;
+		char* spec;
+		int flags;
+	} bogus;
 
-	if((flag&~MMASK) || (flag&MORDER)==(MBEFORE|MAFTER))
+	if((flag & ~MMASK) || (flag & MORDER) == (MBEFORE | MAFTER))
 		error(Ebadarg);
 
 	bogus.flags = flag & MCACHE;
 
-	if(dc){
-		if (! checkdc(dc))
+	if(dc) {
+		if(!checkdc(dc))
 			error(Ebadarg);
 
 		if(up->pgrp->noattach)
@@ -1229,38 +1227,38 @@ bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 		spec = validnamedup(spec, 1);
 		poperror();
 
-		if(waserror()){
+		if(waserror()) {
 			free(spec);
 			nexterror();
 		}
 
-		dev = devtabget(dc, 0);		//XDYNX
-		if(waserror()){
-			//devtabdecr(dev);
+		dev = devtabget(dc, 0); // XDYNX
+		if(waserror()) {
+			// devtabdecr(dev);
 			nexterror();
 		}
 		c0 = dev->attach((char*)&bogus);
 		poperror();
-		//devtabdecr(dev);
+		// devtabdecr(dev);
 
-		poperror();	/* spec */
+		poperror(); /* spec */
 		free(spec);
-		poperror();	/* ac bc */
+		poperror(); /* ac bc */
 		if(ac)
 			cclose(ac);
 		cclose(bc);
-	}else{
+	} else {
 		bogus.spec = nil;
 		c0 = namec(validaddr(arg0, 1, 0), Abind, 0, 0);
 	}
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c0);
 		nexterror();
 	}
 
 	c1 = namec(validaddr(arg1, 1, 0), Amount, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c1);
 		nexterror();
 	}
@@ -1281,7 +1279,7 @@ void
 sysbind(Ar0* ar0, ...)
 {
 	int flag;
-	char *name, *old;
+	char* name, *old;
 
 	va_list list;
 	va_start(list, ar0);
@@ -1302,7 +1300,7 @@ void
 sysmount(Ar0* ar0, ...)
 {
 	int afd, fd, flag;
-	char *aname, *old;
+	char* aname, *old;
 	int dc = 'M';
 	va_list list;
 	va_start(list, ar0);
@@ -1326,7 +1324,7 @@ void
 sys_mount(Ar0* ar0, ...)
 {
 	int fd, flag;
-	char *aname, *old;
+	char* aname, *old;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1349,9 +1347,9 @@ sys_mount(Ar0* ar0, ...)
 void
 sysunmount(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	char *name, *old;
-	Chan *cmount, *cmounted;
+	Proc* up = externup();
+	char* name, *old;
+	Chan* cmount, *cmounted;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1399,10 +1397,10 @@ sysunmount(Ar0* ar0, ...)
 void
 syscreate(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	char *aname;
+	Proc* up = externup();
+	char* aname;
 	int fd, omode, perm;
-	Chan *c;
+	Chan* c;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1416,7 +1414,7 @@ syscreate(Ar0* ar0, ...)
 	perm = va_arg(list, int);
 	va_end(list);
 
-	openmode(omode & ~OEXCL);	/* error check only; OEXCL okay here */
+	openmode(omode & ~OEXCL); /* error check only; OEXCL okay here */
 	c = nil;
 	if(waserror()) {
 		if(c != nil)
@@ -1435,9 +1433,9 @@ syscreate(Ar0* ar0, ...)
 void
 sysremove(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Chan *c;
-	char *aname;
+	Proc* up = externup();
+	Chan* c;
+	char* aname;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1452,12 +1450,12 @@ sysremove(Ar0* ar0, ...)
 	 * Removing mount points is disallowed to avoid surprises
 	 * (which should be removed: the mount point or the mounted Chan?).
 	 */
-	if(c->ismtpt){
+	if(c->ismtpt) {
 		cclose(c);
 		error(Eismtpt);
 	}
-	if(waserror()){
-		c->dev = nil;	/* see below */
+	if(waserror()) {
+		c->dev = nil; /* see below */
 		cclose(c);
 		nexterror();
 	}
@@ -1478,11 +1476,11 @@ Not sure this dicking around is right for Dev ref counts.
 static int32_t
 wstat(Chan* c, uint8_t* p, usize n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int32_t l;
 	usize namelen;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1491,7 +1489,7 @@ wstat(Chan* c, uint8_t* p, usize n)
 	 * Renaming mount points is disallowed to avoid surprises
 	 * (which should be renamed? the mount point or the mounted Chan?).
 	 */
-	if(c->ismtpt){
+	if(c->ismtpt) {
 		dirname(p, &namelen);
 		if(namelen)
 			nameerror(chanpath(c), Eismtpt);
@@ -1506,9 +1504,9 @@ wstat(Chan* c, uint8_t* p, usize n)
 void
 syswstat(Ar0* ar0, ...)
 {
-	Chan *c;
-	char *aname;
-	uint8_t *p;
+	Chan* c;
+	char* aname;
+	uint8_t* p;
 	usize n;
 	va_list list;
 	va_start(list, ar0);
@@ -1535,9 +1533,9 @@ syswstat(Ar0* ar0, ...)
 void
 sysfwstat(Ar0* ar0, ...)
 {
-	Chan *c;
+	Chan* c;
 	int fd;
-	uint8_t *p;
+	uint8_t* p;
 	usize n;
 	va_list list;
 	va_start(list, ar0);
@@ -1562,9 +1560,9 @@ sysfwstat(Ar0* ar0, ...)
 }
 
 static void
-packoldstat(uint8_t *buf, Dir *d)
+packoldstat(uint8_t* buf, Dir* d)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t q;
 
 	/* lay down old stat buffer - grotty code but it's temporary */
@@ -1575,8 +1573,9 @@ packoldstat(uint8_t *buf, Dir *d)
 	p += 28;
 	strncpy((char*)p, d->gid, 28);
 	p += 28;
-	q = d->qid.path & ~DMDIR;	/* make sure doesn't accidentally look like directory */
-	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
+	q = d->qid.path &
+	    ~DMDIR; /* make sure doesn't accidentally look like directory */
+	if(d->qid.type & QTDIR) /* this is the real test of a new directory */
 		q |= DMDIR;
 	PBIT32(p, q);
 	p += BIT32SZ;
@@ -1598,11 +1597,11 @@ packoldstat(uint8_t *buf, Dir *d)
 void
 sys_stat(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Chan *c;
+	Proc* up = externup();
+	Chan* c;
 	int32_t l;
 	uint8_t buf[128], *p;
-	char *aname, *name, strs[128];
+	char* aname, *name, strs[128];
 	Dir d;
 	char old[] = "old stat system call - recompile";
 	va_list list;
@@ -1626,7 +1625,7 @@ sys_stat(Ar0* ar0, ...)
 	p = validaddr(p, 116, 1);
 
 	c = namec(validaddr(aname, 1, 0), Aaccess, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1656,9 +1655,9 @@ sys_stat(Ar0* ar0, ...)
 void
 sys_fstat(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Chan *c;
-	char *name;
+	Proc* up = externup();
+	Chan* c;
+	char* name;
 	int32_t l;
 	uint8_t buf[128], *p;
 	char strs[128];
@@ -1685,7 +1684,7 @@ sys_fstat(Ar0* ar0, ...)
 	 */
 	p = validaddr(p, 116, 1);
 	c = fdtochan(fd, -1, 0, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}

@@ -12,11 +12,11 @@
 #include <libsec.h>
 
 int
-egverify(EGpub *pub, EGsig *sig, mpint *m)
+egverify(EGpub* pub, EGsig* sig, mpint* m)
 {
-	mpint *p = pub->p, *alpha = pub->alpha;
-	mpint *r = sig->r, *s = sig->s;
-	mpint *v1, *v2, *rs;
+	mpint* p = pub->p, * alpha = pub->alpha;
+	mpint* r = sig->r, * s = sig->s;
+	mpint* v1, *v2, *rs;
 	int rv = -1;
 
 	if(mpcmp(r, mpone) < 0 || mpcmp(r, p) >= 0)

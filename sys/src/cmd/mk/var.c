@@ -7,42 +7,42 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
 void
-setvar(char *name, void *value)
+setvar(char* name, void* value)
 {
 	symlook(name, S_VAR, value)->u.ptr = value;
 	symlook(name, S_MAKEVAR, (void*)"");
 }
 
 static void
-print1(Symtab *s)
+print1(Symtab* s)
 {
-	Word *w;
+	Word* w;
 
 	Bprint(&bout, "\t%s=", s->name);
-	for (w = s->u.ptr; w; w = w->next)
+	for(w = s->u.ptr; w; w = w->next)
 		Bprint(&bout, "'%s'", w->s);
 	Bprint(&bout, "\n");
 }
 
 void
-dumpv(char *s)
+dumpv(char* s)
 {
 	Bprint(&bout, "%s:\n", s);
 	symtraverse(S_VAR, print1);
 }
 
-char *
-shname(char *a)
+char*
+shname(char* a)
 {
 	Rune r;
 	int n;
 
-	while (*a) {
+	while(*a) {
 		n = chartorune(&r, a);
-		if (!WORDCHR(r))
+		if(!WORDCHR(r))
 			break;
 		a += n;
 	}

@@ -14,7 +14,7 @@
 static Lock l;
 
 void
-_xinc(long *p)
+_xinc(long* p)
 {
 
 	lock(&l);
@@ -23,7 +23,7 @@ _xinc(long *p)
 }
 
 long
-_xdec(long *p)
+_xdec(long* p)
 {
 	long r;
 

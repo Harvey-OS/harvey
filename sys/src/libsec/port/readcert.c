@@ -14,11 +14,11 @@
 #include <libsec.h>
 
 static char*
-readfile(char *name)
+readfile(char* name)
 {
 	int fd;
-	char *s;
-	Dir *d;
+	char* s;
+	Dir* d;
 
 	fd = open(name, OREAD);
 	if(fd < 0)
@@ -28,7 +28,7 @@ readfile(char *name)
 		return nil;
 	}
 	s = malloc(d->length + 1);
-	if(s == nil || readn(fd, s, d->length) != d->length){
+	if(s == nil || readn(fd, s, d->length) != d->length) {
 		free(s);
 		free(d);
 		close(fd);
@@ -41,35 +41,34 @@ readfile(char *name)
 }
 
 uint8_t*
-readcert(char *filename, int *pcertlen)
+readcert(char* filename, int* pcertlen)
 {
-	char *pem;
-	uint8_t *binary;
+	char* pem;
+	uint8_t* binary;
 
 	pem = readfile(filename);
-	if(pem == nil){
+	if(pem == nil) {
 		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
 	binary = decodePEM(pem, "CERTIFICATE", pcertlen, nil);
 	free(pem);
-	if(binary == nil){
+	if(binary == nil) {
 		werrstr("can't parse %s", filename);
 		return nil;
 	}
 	return binary;
 }
 
-PEMChain *
-readcertchain(char *filename)
+PEMChain*
+readcertchain(char* filename)
 {
-	char *chfile;
+	char* chfile;
 
 	chfile = readfile(filename);
-	if (chfile == nil) {
+	if(chfile == nil) {
 		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
 	return decodepemchain(chfile, "CERTIFICATE");
 }
-

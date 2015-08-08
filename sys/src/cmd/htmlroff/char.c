@@ -18,26 +18,26 @@ rune2html(Rune r)
 {
 	static Biobuf b;
 	static int fd = -1;
-	static Rune **tcscache[256];
+	static Rune** tcscache[256];
 	int p[2];
-	char *q;
-	
+	char* q;
+
 	if(r == '\n')
 		return L("\n");
 
-	if(((uint)r&~0xFFFF) != 0){
+	if(((uint)r & ~0xFFFF) != 0) {
 		/* The cache must grow a lot to handle them */
 		fprint(2, "%s: can't handle rune '%C'\n", argv0, r);
 		return L("?");
 	}
 
-	if(tcscache[r>>8] && tcscache[r>>8][r&0xFF])
-		return tcscache[r>>8][r&0xFF];
+	if(tcscache[r >> 8] && tcscache[r >> 8][r & 0xFF])
+		return tcscache[r >> 8][r & 0xFF];
 
-	if(fd < 0){
+	if(fd < 0) {
 		if(pipe(p) < 0)
 			sysfatal("pipe: %r");
-		switch(fork()){
+		switch(fork()) {
 		case -1:
 			sysfatal("fork: %r");
 		case 0:
@@ -56,15 +56,15 @@ rune2html(Rune r)
 	/* HACK: extra newlines force rune+\n through tcs now */
 	fprint(fd, "%C\n\n\n\n", r);
 	q = Brdline(&b, '\n');
-	while (q != nil && *q == '\n')
+	while(q != nil && *q == '\n')
 		q = Brdline(&b, '\n');
 	if(q == nil)
 		sysfatal("tcs: early eof");
-	q[Blinelen(&b)-1] = 0;
-	if(tcscache[r>>8] == nil)
-		tcscache[r>>8] = emalloc(256*sizeof tcscache[0][0]);
-	tcscache[r>>8][r&0xFF] = erunesmprint("%s", q);
-	return tcscache[r>>8][r&0xFF];
+	q[Blinelen(&b) - 1] = 0;
+	if(tcscache[r >> 8] == nil)
+		tcscache[r >> 8] = emalloc(256 * sizeof tcscache[0][0]);
+	tcscache[r >> 8][r & 0xFF] = erunesmprint("%s", q);
+	return tcscache[r >> 8][r & 0xFF];
 }
 
 /*
@@ -72,8 +72,7 @@ rune2html(Rune r)
  * This way we don't have yet another hard-coded table.
  */
 typedef struct Trtab Trtab;
-struct Trtab
-{
+struct Trtab {
 	char t[UTFmax];
 	Rune r;
 };
@@ -81,54 +80,48 @@ struct Trtab
 static Trtab trtab[200];
 int ntrtab;
 
-static Trtab trinit[] =
-{
-	"pl",		Upl,
-	"eq",	Ueq,
-	"em",	0x2014,
-	"en",	0x2013,
-	"mi",	Umi,
-	"fm",	0x2032,
+static Trtab trinit[] = {
+    "pl", Upl, "eq", Ueq, "em", 0x2014, "en", 0x2013, "mi", Umi, "fm", 0x2032,
 };
 
 Rune
-troff2rune(Rune *rs)
+troff2rune(Rune* rs)
 {
-	char *file, *f[10], *p, s[3];
+	char* file, *f[10], *p, s[3];
 	int i, nf;
-	Biobuf *b;
-	
+	Biobuf* b;
+
 	if(rs[0] >= Runeself || rs[1] >= Runeself)
 		return Runeerror;
 	s[0] = rs[0];
 	s[1] = rs[1];
 	s[2] = 0;
-	if(ntrtab == 0){
-		for(i=0; i<nelem(trinit) && ntrtab < nelem(trtab); i++){
+	if(ntrtab == 0) {
+		for(i = 0; i < nelem(trinit) && ntrtab < nelem(trtab); i++) {
 			trtab[ntrtab] = trinit[i];
 			ntrtab++;
 		}
 		file = "/sys/lib/troff/font/devutf/utfmap";
 		if((b = Bopen(file, OREAD)) == nil)
 			sysfatal("open %s: %r", file);
-		while((p = Brdline(b, '\n')) != nil){
-			p[Blinelen(b)-1] = 0;
+		while((p = Brdline(b, '\n')) != nil) {
+			p[Blinelen(b) - 1] = 0;
 			nf = getfields(p, f, nelem(f), 0, "\t");
-			for(i=0; i+2<=nf && ntrtab<nelem(trtab); i+=2){
+			for(i = 0; i + 2 <= nf && ntrtab < nelem(trtab);
+			    i += 2) {
 				chartorune(&trtab[ntrtab].r, f[i]);
-				memmove(trtab[ntrtab].t, f[i+1], 2);
+				memmove(trtab[ntrtab].t, f[i + 1], 2);
 				ntrtab++;
 			}
 		}
 		Bterm(b);
-		
+
 		if(ntrtab >= nelem(trtab))
 			fprint(2, "%s: trtab too small\n", argv0);
 	}
-	
-	for(i=0; i<ntrtab; i++)
+
+	for(i = 0; i < ntrtab; i++)
 		if(strcmp(s, trtab[i].t) == 0)
 			return trtab[i].r;
 	return Runeerror;
 }
-

@@ -18,31 +18,35 @@
 void
 dobplist(void)
 {
-	Breakpoint *b;
+	Breakpoint* b;
 	char buf[512];
 
 	for(b = bplist; b; b = b->next) {
 		switch(b->type) {
 		case Instruction:
-			Bprint(bioout, "0x%lux,%d:b %d done, at ", b->addr, b->count, b->done);
+			Bprint(bioout, "0x%lux,%d:b %d done, at ", b->addr,
+			       b->count, b->done);
 			symoff(buf, sizeof(buf), b->addr, CTEXT);
 			Bprint(bioout, "%s", buf);
 			break;
 
 		case Access:
-			Bprint(bioout, "0x%lux,%d:ba %d done, at ", b->addr, b->count, b->done);
+			Bprint(bioout, "0x%lux,%d:ba %d done, at ", b->addr,
+			       b->count, b->done);
 			symoff(buf, sizeof(buf), b->addr, CDATA);
 			Bprint(bioout, "%s", buf);
 			break;
 
 		case Read:
-			Bprint(bioout, "0x%lux,%d:br %d done, at ", b->addr, b->count, b->done);
+			Bprint(bioout, "0x%lux,%d:br %d done, at ", b->addr,
+			       b->count, b->done);
 			symoff(buf, sizeof(buf), b->addr, CDATA);
 			Bprint(bioout, "%s", buf);
 			break;
 
 		case Write:
-			Bprint(bioout, "0x%lux,%d:bw %d done, at ", b->addr, b->count, b->done);
+			Bprint(bioout, "0x%lux,%d:bw %d done, at ", b->addr,
+			       b->count, b->done);
 			symoff(buf, sizeof(buf), b->addr, CDATA);
 			Bprint(bioout, "%s", buf);
 			break;
@@ -58,9 +62,9 @@ dobplist(void)
 }
 
 void
-breakpoint(char *addr, char *cp)
+breakpoint(char* addr, char* cp)
 {
-	Breakpoint *b;
+	Breakpoint* b;
 	int type;
 
 	cp = nextc(cp);
@@ -94,9 +98,9 @@ breakpoint(char *addr, char *cp)
 }
 
 void
-delbpt(char *addr)
+delbpt(char* addr)
 {
-	Breakpoint *b, **l;
+	Breakpoint* b, **l;
 	uint32_t baddr;
 
 	baddr = expr(addr);
@@ -109,7 +113,7 @@ delbpt(char *addr)
 			free(b);
 			return;
 		}
-		l = &b->next;	
+		l = &b->next;
 	}
 
 	Bprint(bioout, "no breakpoint\n");
@@ -118,10 +122,10 @@ delbpt(char *addr)
 void
 brkchk(uint32_t addr, int type)
 {
-	Breakpoint *b;
+	Breakpoint* b;
 
 	for(b = bplist; b; b = b->next) {
-		if(b->addr == addr && (b->type&type)) {
+		if(b->addr == addr && (b->type & type)) {
 			if(b->type == Equal && getmem_4(addr) == b->count) {
 				count = 1;
 				atbpt = 1;
@@ -134,5 +138,5 @@ brkchk(uint32_t addr, int type)
 				return;
 			}
 		}
-	}	
+	}
 }

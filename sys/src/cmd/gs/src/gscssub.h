@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Client interface to color space substitution */
 
 #ifndef gscssub_INCLUDED
-#  define gscssub_INCLUDED
+#define gscssub_INCLUDED
 
 #include "gscspace.h"
 
@@ -63,18 +63,17 @@
  */
 
 /* If pcs is NULL, it means undo any substitution. */
-int gs_setsubstitutecolorspace(gs_state *pgs, gs_color_space_index csi,
-			       const gs_color_space *pcs);
-const gs_color_space *
-    gs_currentsubstitutecolorspace(const gs_state *pgs,
-				   gs_color_space_index csi);
+int gs_setsubstitutecolorspace(gs_state* pgs, gs_color_space_index csi,
+                               const gs_color_space* pcs);
+const gs_color_space* gs_currentsubstitutecolorspace(const gs_state* pgs,
+                                                     gs_color_space_index csi);
 
 /*
  * The following procedures are primarily for internal use, to provide
  * fast access to specific color spaces.
  */
-const gs_color_space *gs_current_DeviceGray_space(const gs_state *pgs);
-const gs_color_space *gs_current_DeviceRGB_space(const gs_state *pgs);
-const gs_color_space *gs_current_DeviceCMYK_space(const gs_state *pgs);
+const gs_color_space* gs_current_DeviceGray_space(const gs_state* pgs);
+const gs_color_space* gs_current_DeviceRGB_space(const gs_state* pgs);
+const gs_color_space* gs_current_DeviceCMYK_space(const gs_state* pgs);
 
 #endif /* gscssub_INCLUDED */

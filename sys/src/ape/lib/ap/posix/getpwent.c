@@ -11,41 +11,43 @@
 #include <pwd.h>
 #include <stdlib.h>
 
-static char PASSWD[]	= "/etc/passwd";
-static FILE *pwf = NULL;
-static char line[BUFSIZ+2];
+static char PASSWD[] = "/etc/passwd";
+static FILE* pwf = NULL;
+static char line[BUFSIZ + 2];
 static struct passwd passwd;
 
 void
 setpwent(void)
 {
-	if( pwf == NULL )
-		pwf = fopen( PASSWD, "r" );
+	if(pwf == NULL)
+		pwf = fopen(PASSWD, "r");
 	else
-		rewind( pwf );
+		rewind(pwf);
 }
 
 void
 endpwent(void)
 {
-	if( pwf != NULL ){
-		fclose( pwf );
+	if(pwf != NULL) {
+		fclose(pwf);
 		pwf = NULL;
 	}
 }
 
-static char *
-pwskip(char *p)
+static char*
+pwskip(char* p)
 {
-	while( *p && *p != ':' && *p != '\n' )
+	while(*p && *p != ':' && *p != '\n')
 		++p;
-	if( *p ) *p++ = 0;
-	else p[1] = 0;
-	return(p);
+	if(*p)
+		*p++ = 0;
+	else
+		p[1] = 0;
+	return (p);
 }
 
-struct passwd *
-pwdecode(char *p)
+struct passwd*
+pwdecode(char* p)
 {
 	passwd.pw_name = p;
 	p = pwskip(p);
@@ -59,20 +61,20 @@ pwdecode(char *p)
 	p = pwskip(p);
 	passwd.pw_shell = p;
 	pwskip(p);
-	return(&passwd);
+	return (&passwd);
 }
 
-struct passwd *
+struct passwd*
 getpwent(void)
 {
-	register char *p;
+	register char* p;
 
-	if (pwf == NULL) {
-		if( (pwf = fopen( PASSWD, "r" )) == NULL )
-			return(0);
+	if(pwf == NULL) {
+		if((pwf = fopen(PASSWD, "r")) == NULL)
+			return (0);
 	}
 	p = fgets(line, BUFSIZ, pwf);
-	if (p==NULL)
-		return(0);
-	return pwdecode (p);
+	if(p == NULL)
+		return (0);
+	return pwdecode(p);
 }

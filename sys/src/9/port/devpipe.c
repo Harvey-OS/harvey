@@ -7,54 +7,56 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-typedef struct Pipe	Pipe;
-struct Pipe
-{
+typedef struct Pipe Pipe;
+struct Pipe {
 	QLock;
-	Pipe	*next;
-	int	ref;
-	uint32_t	path;
-	Queue	*q[2];
-	int	qref[2];
+	Pipe* next;
+	int ref;
+	uint32_t path;
+	Queue* q[2];
+	int qref[2];
 };
 
-struct
-{
+struct {
 	Lock;
-	uint32_t	path;
+	uint32_t path;
 } pipealloc;
 
-enum
-{
-	Qdir,
-	Qdata0,
-	Qdata1,
+enum { Qdir,
+       Qdata0,
+       Qdata1,
 };
 
-Dirtab pipedir[] =
-{
-	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"data",		{Qdata0},	0,		0600,
-	"data1",	{Qdata1},	0,		0600,
+Dirtab pipedir[] = {
+    ".",
+    {Qdir, 0, QTDIR},
+    0,
+    DMDIR | 0500,
+    "data",
+    {Qdata0},
+    0,
+    0600,
+    "data1",
+    {Qdata1},
+    0,
+    0600,
 };
 #define NPIPEDIR 3
 
-#define PIPETYPE(x)	(((unsigned)x)&0x1f)
-#define PIPEID(x)	((((unsigned)x))>>5)
-#define PIPEQID(i, t)	((((unsigned)i)<<5)|(t))
+#define PIPETYPE(x) (((unsigned)x) & 0x1f)
+#define PIPEID(x) ((((unsigned)x)) >> 5)
+#define PIPEQID(i, t) ((((unsigned)i) << 5) | (t))
 
-
-enum
-{
+enum {
 	/* Plan 9 default for nmach > 1 */
-	Pipeqsize = 256*1024
+	Pipeqsize = 256 * 1024
 };
 
 static void
@@ -66,10 +68,10 @@ pipeinit(void)
  *  create a pipe, no streams are created until an open
  */
 static Chan*
-pipeattach(char *spec)
+pipeattach(char* spec)
 {
-	Pipe *p;
-	Chan *c;
+	Pipe* p;
+	Chan* c;
 
 	c = devattach('|', spec);
 	p = malloc(sizeof(Pipe));
@@ -78,12 +80,12 @@ pipeattach(char *spec)
 	p->ref = 1;
 
 	p->q[0] = qopen(Pipeqsize, 0, 0, 0);
-	if(p->q[0] == 0){
+	if(p->q[0] == 0) {
 		free(p);
 		exhausted("memory");
 	}
 	p->q[1] = qopen(Pipeqsize, 0, 0, 0);
-	if(p->q[1] == 0){
+	if(p->q[1] == 0) {
 		free(p->q[0]);
 		free(p);
 		exhausted("memory");
@@ -93,30 +95,30 @@ pipeattach(char *spec)
 	p->path = ++pipealloc.path;
 	unlock(&pipealloc);
 
-	mkqid(&c->qid, PIPEQID(2*p->path, Qdir), 0, QTDIR);
+	mkqid(&c->qid, PIPEQID(2 * p->path, Qdir), 0, QTDIR);
 	c->aux = p;
 	c->devno = 0;
 	return c;
 }
 
 static int
-pipegen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan* c, char* d, Dirtab* tab, int ntab, int i, Dir* dp)
 {
 	Qid q;
 	int len;
-	Pipe *p;
+	Pipe* p;
 
-	if(i == DEVDOTDOT){
-		devdir(c, c->qid, "#|", 0, eve, DMDIR|0555, dp);
+	if(i == DEVDOTDOT) {
+		devdir(c, c->qid, "#|", 0, eve, DMDIR | 0555, dp);
 		return 1;
 	}
-	i++;	/* skip . */
-	if(tab==0 || i>=ntab)
+	i++; /* skip . */
+	if(tab == 0 || i >= ntab)
 		return -1;
 
 	tab += i;
 	p = c->aux;
-	switch((uint32_t)tab->qid.path){
+	switch((uint32_t)tab->qid.path) {
 	case Qdata0:
 		len = qlen(p->q[0]);
 		break;
@@ -132,21 +134,20 @@ pipegen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 	return 1;
 }
 
-
 static Walkqid*
-pipewalk(Chan *c, Chan *nc, char **name, int nname)
+pipewalk(Chan* c, Chan* nc, char** name, int nname)
 {
-	Walkqid *wq;
-	Pipe *p;
+	Walkqid* wq;
+	Pipe* p;
 
 	wq = devwalk(c, nc, name, nname, pipedir, NPIPEDIR, pipegen);
-	if(wq != nil && wq->clone != nil && wq->clone != c){
+	if(wq != nil && wq->clone != nil && wq->clone != c) {
 		p = c->aux;
 		qlock(p);
 		p->ref++;
-		if(c->flag & COPEN){
+		if(c->flag & COPEN) {
 			print("channel open in pipewalk\n");
-			switch(PIPETYPE(c->qid.path)){
+			switch(PIPETYPE(c->qid.path)) {
 			case Qdata0:
 				p->qref[0]++;
 				break;
@@ -161,16 +162,16 @@ pipewalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int32_t
-pipestat(Chan *c, uint8_t *db, int32_t n)
+pipestat(Chan* c, uint8_t* db, int32_t n)
 {
-	Pipe *p;
+	Pipe* p;
 	Dir dir;
 
 	p = c->aux;
 
-	switch(PIPETYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)) {
 	case Qdir:
-		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
+		devdir(c, c->qid, ".", 0, eve, DMDIR | 0555, &dir);
 		break;
 	case Qdata0:
 		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
@@ -191,11 +192,11 @@ pipestat(Chan *c, uint8_t *db, int32_t n)
  *  if the stream doesn't exist, create it
  */
 static Chan*
-pipeopen(Chan *c, int omode)
+pipeopen(Chan* c, int omode)
 {
-	Pipe *p;
+	Pipe* p;
 
-	if(c->qid.type & QTDIR){
+	if(c->qid.type & QTDIR) {
 		if(omode != OREAD)
 			error(Ebadarg);
 		c->mode = omode;
@@ -206,7 +207,7 @@ pipeopen(Chan *c, int omode)
 
 	p = c->aux;
 	qlock(p);
-	switch(PIPETYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)) {
 	case Qdata0:
 		p->qref[0]++;
 		break;
@@ -224,28 +225,28 @@ pipeopen(Chan *c, int omode)
 }
 
 static void
-pipeclose(Chan *c)
+pipeclose(Chan* c)
 {
-	Pipe *p;
+	Pipe* p;
 
 	p = c->aux;
 	qlock(p);
 
-	if(c->flag & COPEN){
+	if(c->flag & COPEN) {
 		/*
 		 *  closing either side hangs up the stream
 		 */
-		switch(PIPETYPE(c->qid.path)){
+		switch(PIPETYPE(c->qid.path)) {
 		case Qdata0:
 			p->qref[0]--;
-			if(p->qref[0] == 0){
+			if(p->qref[0] == 0) {
 				qhangup(p->q[1], 0);
 				qclose(p->q[0]);
 			}
 			break;
 		case Qdata1:
 			p->qref[1]--;
-			if(p->qref[1] == 0){
+			if(p->qref[1] == 0) {
 				qhangup(p->q[0], 0);
 				qclose(p->q[1]);
 			}
@@ -253,11 +254,10 @@ pipeclose(Chan *c)
 		}
 	}
 
-
 	/*
 	 *  if both sides are closed, they are reusable
 	 */
-	if(p->qref[0] == 0 && p->qref[1] == 0){
+	if(p->qref[0] == 0 && p->qref[1] == 0) {
 		qreopen(p->q[0]);
 		qreopen(p->q[1]);
 	}
@@ -266,7 +266,7 @@ pipeclose(Chan *c)
 	 *  free the structure on last close
 	 */
 	p->ref--;
-	if(p->ref == 0){
+	if(p->ref == 0) {
 		qunlock(p);
 		free(p->q[0]);
 		free(p->q[1]);
@@ -276,13 +276,13 @@ pipeclose(Chan *c)
 }
 
 static int32_t
-piperead(Chan *c, void *va, int32_t n, int64_t m)
+piperead(Chan* c, void* va, int32_t n, int64_t m)
 {
-	Pipe *p;
+	Pipe* p;
 
 	p = c->aux;
 
-	switch(PIPETYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)) {
 	case Qdir:
 		return devdirread(c, va, n, pipedir, NPIPEDIR, pipegen);
 	case Qdata0:
@@ -292,17 +292,17 @@ piperead(Chan *c, void *va, int32_t n, int64_t m)
 	default:
 		panic("piperead");
 	}
-	return -1;	/* not reached */
+	return -1; /* not reached */
 }
 
 static Block*
-pipebread(Chan *c, int32_t n, int64_t offset)
+pipebread(Chan* c, int32_t n, int64_t offset)
 {
-	Pipe *p;
+	Pipe* p;
 
 	p = c->aux;
 
-	switch(PIPETYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)) {
 	case Qdata0:
 		return qbread(p->q[0], n);
 	case Qdata1:
@@ -317,13 +317,14 @@ pipebread(Chan *c, int32_t n, int64_t offset)
  *  the process.
  */
 static int32_t
-pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
+pipewrite(Chan* c, void* va, int32_t n, int64_t mm)
 {
-	Proc *up = externup();
-	Pipe *p;
+	Proc* up = externup();
+	Pipe* p;
 
-	if(0)if(!islo())
-		print("pipewrite hi %#p\n", getcallerpc(&c)); // devmnt?
+	if(0)
+		if(!islo())
+			print("pipewrite hi %#p\n", getcallerpc(&c)); // devmnt?
 
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
@@ -334,7 +335,7 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 
 	p = c->aux;
 
-	switch(PIPETYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)) {
 	case Qdata0:
 		n = qwrite(p->q[1], va, n);
 		break;
@@ -352,11 +353,11 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 }
 
 static int32_t
-pipebwrite(Chan *c, Block *bp, int64_t mm)
+pipebwrite(Chan* c, Block* bp, int64_t mm)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int32_t n;
-	Pipe *p;
+	Pipe* p;
 
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
@@ -366,7 +367,7 @@ pipebwrite(Chan *c, Block *bp, int64_t mm)
 	}
 
 	p = c->aux;
-	switch(PIPETYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)) {
 	case Qdata0:
 		n = qbwrite(p->q[1], bp);
 		break;
@@ -385,22 +386,9 @@ pipebwrite(Chan *c, Block *bp, int64_t mm)
 }
 
 Dev pipedevtab = {
-	'|',
-	"pipe",
+    '|',       "pipe",
 
-	devreset,
-	pipeinit,
-	devshutdown,
-	pipeattach,
-	pipewalk,
-	pipestat,
-	pipeopen,
-	devcreate,
-	pipeclose,
-	piperead,
-	pipebread,
-	pipewrite,
-	pipebwrite,
-	devremove,
-	devwstat,
+    devreset,  pipeinit,  devshutdown, pipeattach, pipewalk,
+    pipestat,  pipeopen,  devcreate,   pipeclose,  piperead,
+    pipebread, pipewrite, pipebwrite,  devremove,  devwstat,
 };

@@ -17,7 +17,7 @@
 #include "sys9.h"
 
 time_t
-time(time_t *tp)
+time(time_t* tp)
 {
 	char b[20];
 	int f;

@@ -12,19 +12,18 @@
 #include <flate.h>
 #include "zlib.h"
 
-typedef struct ZWrite	ZWrite;
+typedef struct ZWrite ZWrite;
 
-struct ZWrite
-{
-	uint32_t	adler;
-	void	*wr;
-	int	(*w)(void*, void*, int);
+struct ZWrite {
+	uint32_t adler;
+	void* wr;
+	int (*w)(void*, void*, int);
 };
 
 static int
-zlwrite(void *vzw, void *buf, int n)
+zlwrite(void* vzw, void* buf, int n)
 {
-	ZWrite *zw;
+	ZWrite* zw;
 
 	zw = vzw;
 	zw->adler = adler32(zw->adler, buf, n);
@@ -35,7 +34,8 @@ zlwrite(void *vzw, void *buf, int n)
 }
 
 int
-inflatezlib(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*))
+inflatezlib(void* wr, int (*w)(void*, void*, int), void* getr,
+            int (*get)(void*))
 {
 	ZWrite zw;
 	uint32_t v;
@@ -50,8 +50,7 @@ inflatezlib(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*)
 
 	if(((c << 8) | i) % 31)
 		return FlateCorrupted;
-	if((c & ZlibMeth) != ZlibDeflate
-	|| (c & ZlibCInfo) > ZlibWin32k)
+	if((c & ZlibMeth) != ZlibDeflate || (c & ZlibCInfo) > ZlibWin32k)
 		return FlateCorrupted;
 
 	zw.wr = wr;
@@ -62,7 +61,7 @@ inflatezlib(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*)
 		return i;
 
 	v = 0;
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		c = (*get)(getr);
 		if(c < 0)
 			return FlateInputFail;

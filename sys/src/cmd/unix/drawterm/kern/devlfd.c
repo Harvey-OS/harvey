@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
+#include "u.h"
 #include <errno.h>
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 #undef pread
 #undef pwrite
@@ -20,8 +20,8 @@
 Chan*
 lfdchan(int fd)
 {
-	Chan *c;
-	
+	Chan* c;
+
 	c = newchan();
 	c->type = devno('L', 0);
 	c->aux = (void*)(uintptr)fd;
@@ -42,28 +42,28 @@ lfdfd(int fd)
 }
 
 static Chan*
-lfdattach(char *x)
+lfdattach(char* x)
 {
 	USED(x);
-	
+
 	error(Egreg);
 	return nil;
 }
 
 static Walkqid*
-lfdwalk(Chan *c, Chan *nc, char **name, int nname)
+lfdwalk(Chan* c, Chan* nc, char** name, int nname)
 {
 	USED(c);
 	USED(nc);
 	USED(name);
 	USED(nname);
-	
+
 	error(Egreg);
 	return nil;
 }
 
 static int
-lfdstat(Chan *c, uint8_t *dp, int n)
+lfdstat(Chan* c, uint8_t* dp, int n)
 {
 	USED(c);
 	USED(dp);
@@ -73,27 +73,27 @@ lfdstat(Chan *c, uint8_t *dp, int n)
 }
 
 static Chan*
-lfdopen(Chan *c, int omode)
+lfdopen(Chan* c, int omode)
 {
 	USED(c);
 	USED(omode);
-	
+
 	error(Egreg);
 	return nil;
 }
 
 static void
-lfdclose(Chan *c)
+lfdclose(Chan* c)
 {
 	close((int)(uintptr)c->aux);
 }
 
 static int32_t
-lfdread(Chan *c, void *buf, int32_t n, int64_t off)
+lfdread(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	USED(off);	/* can't pread on pipes */
+	USED(off); /* can't pread on pipes */
 	n = read((int)(uintptr)c->aux, buf, n);
-	if(n < 0){
+	if(n < 0) {
 		iprint("error %d\n", errno);
 		oserror();
 	}
@@ -101,12 +101,12 @@ lfdread(Chan *c, void *buf, int32_t n, int64_t off)
 }
 
 static int32_t
-lfdwrite(Chan *c, void *buf, int32_t n, int64_t off)
+lfdwrite(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	USED(off);	/* can't pread on pipes */
+	USED(off); /* can't pread on pipes */
 
 	n = write((int)(uintptr)c->aux, buf, n);
-	if(n < 0){
+	if(n < 0) {
 		iprint("error %d\n", errno);
 		oserror();
 	}
@@ -114,22 +114,9 @@ lfdwrite(Chan *c, void *buf, int32_t n, int64_t off)
 }
 
 Dev lfddevtab = {
-	'L',
-	"lfd",
-	
-	devreset,
-	devinit,
-	devshutdown,
-	lfdattach,
-	lfdwalk,
-	lfdstat,
-	lfdopen,
-	devcreate,
-	lfdclose,
-	lfdread,
-	devbread,
-	lfdwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    'L',      "lfd",
+
+    devreset, devinit,  devshutdown, lfdattach, lfdwalk,
+    lfdstat,  lfdopen,  devcreate,   lfdclose,  lfdread,
+    devbread, lfdwrite, devbwrite,   devremove, devwstat,
 };

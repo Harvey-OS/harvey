@@ -15,12 +15,12 @@
 static pthread_mutex_t initmutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void
-lockinit(Lock *lk)
+lockinit(Lock* lk)
 {
 	pthread_mutexattr_t attr;
 
 	pthread_mutex_lock(&initmutex);
-	if(lk->init == 0){
+	if(lk->init == 0) {
 		pthread_mutexattr_init(&attr);
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
 		pthread_mutex_init(&lk->mutex, &attr);
@@ -31,7 +31,7 @@ lockinit(Lock *lk)
 }
 
 void
-lock(Lock *lk)
+lock(Lock* lk)
 {
 	if(!lk->init)
 		lockinit(lk);
@@ -40,7 +40,7 @@ lock(Lock *lk)
 }
 
 int
-canlock(Lock *lk)
+canlock(Lock* lk)
 {
 	int r;
 
@@ -55,24 +55,24 @@ canlock(Lock *lk)
 }
 
 void
-unlock(Lock *lk)
+unlock(Lock* lk)
 {
 	if(pthread_mutex_unlock(&lk->mutex) != 0)
 		abort();
 }
 
-#else 
+#else
 
 /* old, non-pthread systems */
 
 int
-canlock(Lock *lk)
+canlock(Lock* lk)
 {
 	return !tas(&lk->key);
 }
 
 void
-lock(Lock *lk)
+lock(Lock* lk)
 {
 	int i;
 
@@ -81,19 +81,19 @@ lock(Lock *lk)
 		return;
 
 	/* for multi processor machines */
-	for(i=0; i<100; i++)
+	for(i = 0; i < 100; i++)
 		if(canlock(lk))
 			return;
 
-	for(i=0; i<100; i++) {
+	for(i = 0; i < 100; i++) {
 		osyield();
 		if(canlock(lk))
 			return;
 	}
 
 	/* looking bad - make sure it is not a priority problem */
-	for(i=0; i<12; i++) {
-		osmsleep(1<<i);
+	for(i = 0; i < 12; i++) {
+		osmsleep(1 << i);
 		if(canlock(lk))
 			return;
 	}
@@ -102,13 +102,14 @@ lock(Lock *lk)
 	for(;;) {
 		if(canlock(lk))
 			return;
-		iprint("lock loop %ld: val=%d &lock=%ux pc=%p\n", getpid(), lk->key, lk, getcallerpc(&lk));
+		iprint("lock loop %ld: val=%d &lock=%ux pc=%p\n", getpid(),
+		       lk->key, lk, getcallerpc(&lk));
 		osmsleep(1000);
 	}
 }
 
 void
-unlock(Lock *lk)
+unlock(Lock* lk)
 {
 	assert(lk->key);
 	lk->key = 0;
@@ -117,13 +118,13 @@ unlock(Lock *lk)
 #endif
 
 void
-ilock(Lock *lk)
+ilock(Lock* lk)
 {
 	lock(lk);
 }
 
 void
-iunlock(Lock *lk)
+iunlock(Lock* lk)
 {
 	unlock(lk);
 }

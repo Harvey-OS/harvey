@@ -13,15 +13,14 @@
 #include "threadimpl.h"
 
 typedef struct Mainarg Mainarg;
-struct Mainarg
-{
-	int	argc;
-	char	**argv;
+struct Mainarg {
+	int argc;
+	char** argv;
 };
 
-int	mainstacksize;
-int	_threadnotefd;
-int	_threadpasserpid;
+int mainstacksize;
+int _threadnotefd;
+int _threadpasserpid;
 static jmp_buf _mainjmp;
 static void mainlauncher(void*);
 extern void (*_sysfatal)(char*, va_list);
@@ -30,20 +29,20 @@ extern int (*_dial)(char*, char*, char*, int*);
 
 extern int _threaddial(char*, char*, char*, int*);
 
-static Proc **mainp;
+static Proc** mainp;
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Mainarg *a;
-	Proc *p;
+	Mainarg* a;
+	Proc* p;
 
 	rfork(RFREND);
 	mainp = &p;
 	if(setjmp(_mainjmp))
 		_schedinit(p);
 
-//_threaddebuglevel = (DBGSCHED|DBGCHAN|DBGREND)^~0;
+	//_threaddebuglevel = (DBGSCHED|DBGCHAN|DBGREND)^~0;
 	_systhreadinit();
 	_qlockinit(_threadrendezvous);
 	_sysfatal = _threadsysfatal;
@@ -51,7 +50,7 @@ main(int argc, char **argv)
 	__assert = _threadassert;
 	notify(_threadnote);
 	if(mainstacksize == 0)
-		mainstacksize = 8*1024;
+		mainstacksize = 8 * 1024;
 
 	a = _threadmalloc(sizeof *a, 1);
 	a->argc = argc;
@@ -59,13 +58,13 @@ main(int argc, char **argv)
 
 	p = _newproc(mainlauncher, a, mainstacksize, "threadmain", 0, 0);
 	_schedinit(p);
-	abort();	/* not reached */
+	abort(); /* not reached */
 }
 
 static void
-mainlauncher(void *arg)
+mainlauncher(void* arg)
 {
-	Mainarg *a;
+	Mainarg* a;
 
 	a = arg;
 	threadmain(a->argc, a->argv);
@@ -73,7 +72,7 @@ mainlauncher(void *arg)
 }
 
 static char*
-skip(char *p)
+skip(char* p)
 {
 	while(*p == ' ')
 		p++;
@@ -83,17 +82,17 @@ skip(char *p)
 }
 
 static int32_t
-_times(int32_t *t)
+_times(int32_t* t)
 {
 	char b[200], *p;
 	int f;
 	uint32_t r;
 
 	memset(b, 0, sizeof(b));
-	f = open("/dev/cputime", OREAD|OCEXEC);
+	f = open("/dev/cputime", OREAD | OCEXEC);
 	if(f < 0)
 		return 0;
-	if(read(f, b, sizeof(b)) <= 0){
+	if(read(f, b, sizeof(b)) <= 0) {
 		close(f);
 		return 0;
 	}
@@ -105,7 +104,7 @@ _times(int32_t *t)
 		t[1] = atol(p);
 	p = skip(p);
 	r = atol(p);
-	if(t){
+	if(t) {
 		p = skip(p);
 		t[2] = atol(p);
 		p = skip(p);
@@ -115,7 +114,7 @@ _times(int32_t *t)
 }
 
 static void
-efork(Execargs *e)
+efork(Execargs* e)
 {
 	char buf[ERRMAX];
 
@@ -124,7 +123,7 @@ efork(Execargs *e)
 	exec(e->prog, e->args);
 	_threaddebug(DBGEXEC, "_schedexec failed: %r");
 	rerrstr(buf, sizeof buf);
-	if(buf[0]=='\0')
+	if(buf[0] == '\0')
 		strcpy(buf, "exec failed");
 	write(e->fd[1], buf, strlen(buf));
 	close(e->fd[1]);
@@ -132,11 +131,11 @@ efork(Execargs *e)
 }
 
 int
-_schedexec(Execargs *e)
+_schedexec(Execargs* e)
 {
 	int pid;
 
-	switch(pid = rfork(RFREND|RFNOTEG|RFFDG|RFMEM|RFPROC)){
+	switch(pid = rfork(RFREND | RFNOTEG | RFFDG | RFMEM | RFPROC)) {
 	case 0:
 		efork(e);
 	default:
@@ -145,13 +144,13 @@ _schedexec(Execargs *e)
 }
 
 int
-_schedfork(Proc *p)
+_schedfork(Proc* p)
 {
 	int pid;
 
-	switch(pid = rfork(RFPROC|RFMEM|RFNOWAIT|p->rforkflag)){
+	switch(pid = rfork(RFPROC | RFMEM | RFNOWAIT | p->rforkflag)) {
 	case 0:
-		*mainp = p;	/* write to stack, so local to proc */
+		*mainp = p; /* write to stack, so local to proc */
 		longjmp(_mainjmp, 1);
 	default:
 		return pid;
@@ -159,14 +158,14 @@ _schedfork(Proc *p)
 }
 
 void
-_schedexit(Proc *p)
+_schedexit(Proc* p)
 {
 	char ex[ERRMAX];
-	Proc **l;
+	Proc** l;
 
 	lock(&_threadpq.lock);
-	for(l=&_threadpq.head; *l; l=&(*l)->next){
-		if(*l == p){
+	for(l = &_threadpq.head; *l; l = &(*l)->next) {
+		if(*l == p) {
 			*l = p->next;
 			if(*l == nil)
 				_threadpq.tail = l;
@@ -175,7 +174,7 @@ _schedexit(Proc *p)
 	}
 	unlock(&_threadpq.lock);
 
-	utfecpy(ex, ex+sizeof ex, p->exitstr);
+	utfecpy(ex, ex + sizeof ex, p->exitstr);
 	free(p);
 	_exits(ex);
 }
@@ -184,10 +183,10 @@ void
 _schedexecwait(void)
 {
 	int pid;
-	Channel *c;
-	Proc *p;
-	Thread *t;
-	Waitmsg *w;
+	Channel* c;
+	Proc* p;
+	Thread* t;
+	Waitmsg* w;
 
 	p = _threadgetproc();
 	t = p->thread;
@@ -195,7 +194,7 @@ _schedexecwait(void)
 	_threaddebug(DBGEXEC, "_schedexecwait %d", t->ret);
 
 	rfork(RFCFDG);
-	for(;;){
+	for(;;) {
 		w = wait();
 		if(w == nil)
 			break;
@@ -203,7 +202,7 @@ _schedexecwait(void)
 			break;
 		free(w);
 	}
-	if(w != nil){
+	if(w != nil) {
 		if((c = _threadwaitchan) != nil)
 			sendp(c, w);
 		else
@@ -212,7 +211,7 @@ _schedexecwait(void)
 	threadexits("procexec");
 }
 
-static Proc **procp;
+static Proc** procp;
 
 void
 _systhreadinit(void)
@@ -227,7 +226,7 @@ _threadgetproc(void)
 }
 
 void
-_threadsetproc(Proc *p)
+_threadsetproc(Proc* p)
 {
 	*procp = p;
 }

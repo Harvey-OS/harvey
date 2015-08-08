@@ -15,14 +15,14 @@
 
 #include <tos.h>
 
-char*	file = "5.out";
-int	datasize;
-uint32_t	textbase;
-Biobuf	bp, bi;
-Fhdr	fhdr;
+char* file = "5.out";
+int datasize;
+uint32_t textbase;
+Biobuf bp, bi;
+Fhdr fhdr;
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 
 	argc--;
@@ -56,12 +56,12 @@ void
 initmap()
 {
 	uint32_t t, d, b, bssend;
-	Segment *s;
+	Segment* s;
 
-	t = (fhdr.txtaddr+fhdr.txtsz+(BY2PG-1)) & ~(BY2PG-1);
-	d = (t + fhdr.datsz + (BY2PG-1)) & ~(BY2PG-1);
+	t = (fhdr.txtaddr + fhdr.txtsz + (BY2PG - 1)) & ~(BY2PG - 1);
+	d = (t + fhdr.datsz + (BY2PG - 1)) & ~(BY2PG - 1);
 	bssend = t + fhdr.datsz + fhdr.bsssz;
-	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
+	b = (bssend + (BY2PG - 1)) & ~(BY2PG - 1);
 
 	s = &memory.seg[Text];
 	s->type = Text;
@@ -69,31 +69,31 @@ initmap()
 	s->end = t;
 	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
 	s->fileend = s->fileoff + fhdr.txtsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t*));
 
-	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(int32_t));
+	iprof = emalloc(((s->end - s->base) / PROFGRAN) * sizeof(int32_t));
 	textbase = s->base;
 
 	s = &memory.seg[Data];
 	s->type = Data;
 	s->base = t;
-	s->end = t+(d-t);
+	s->end = t + (d - t);
 	s->fileoff = fhdr.datoff;
 	s->fileend = s->fileoff + fhdr.datsz;
 	datasize = fhdr.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t*));
 
 	s = &memory.seg[Bss];
 	s->type = Bss;
 	s->base = d;
-	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->end = d + (b - d);
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t*));
 
 	s = &memory.seg[Stack];
 	s->type = Stack;
-	s->base = STACKTOP-STACKSIZE;
+	s->base = STACKTOP - STACKSIZE;
 	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t*));
 
 	reg.r[REGPC] = fhdr.entry;
 }
@@ -106,17 +106,17 @@ inithdr(int fd)
 	extern Machdata armmach;
 
 	seek(fd, 0, 0);
-	if (!crackhdr(fd, &fhdr))
+	if(!crackhdr(fd, &fhdr))
 		fatal(0, "read text header");
 
-	if(fhdr.type != FARM )
+	if(fhdr.type != FARM)
 		fatal(0, "bad magic number: %d %d", fhdr.type, FARM);
 
-	if (syminit(fd, &fhdr) < 0)
+	if(syminit(fd, &fhdr) < 0)
 		fatal(0, "%r\n");
 
 	symmap = loadmap(symmap, fd, &fhdr);
-	if (mach->sbreg && lookup(0, mach->sbreg, &s))
+	if(mach->sbreg && lookup(0, mach->sbreg, &s))
 		mach->sb = s.value;
 	machdata = &armmach;
 }
@@ -125,14 +125,14 @@ void
 reset(void)
 {
 	int i, l, m;
-	Segment *s;
-	Breakpoint *b;
+	Segment* s;
+	Breakpoint* b;
 
 	memset(&reg, 0, sizeof(Registers));
 
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
-		l = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
+		l = ((s->end - s->base) / BY2PG) * sizeof(uint8_t*);
 		for(m = 0; m < l; m++)
 			if(s->table[m])
 				free(s->table[m]);
@@ -146,17 +146,18 @@ reset(void)
 }
 
 void
-initstk(int argc, char *argv[])
+initstk(int argc, char* argv[])
 {
 	uint32_t size;
 	uint32_t sp, ap, tos;
 	int i;
-	char *p;
+	char* p;
 
 	initmap();
-	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
+	tos = STACKTOP -
+	      sizeof(Tos) * 2; /* we'll assume twice the host's is big enough */
 	sp = tos;
-	for (i = 0; i < sizeof(Tos)*2; i++)
+	for(i = 0; i < sizeof(Tos) * 2; i++)
 		putmem_b(tos + i, 0);
 
 	/*
@@ -164,28 +165,29 @@ initstk(int argc, char *argv[])
 	 * we know arm is a 32-bit cpu, so we'll assume knowledge of the Tos
 	 * struct for now, and use our pid.
 	 */
-	putmem_w(tos + 4*4 + 2*sizeof(uint32_t) + 3*sizeof(uvlong), getpid());
+	putmem_w(tos + 4 * 4 + 2 * sizeof(uint32_t) + 3 * sizeof(uvlong),
+	         getpid());
 
 	/* Build exec stack */
-	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
+	size = strlen(file) + 1 + BY2WD + BY2WD + BY2WD;
 	for(i = 0; i < argc; i++)
-		size += strlen(argv[i])+BY2WD+1;
+		size += strlen(argv[i]) + BY2WD + 1;
 
 	sp -= size;
 	sp &= ~7;
 	reg.r[0] = tos;
 	reg.r[13] = sp;
-	reg.r[1] = STACKTOP-4;	/* Plan 9 profiling clock (why & why in R1?) */
+	reg.r[1] = STACKTOP - 4; /* Plan 9 profiling clock (why & why in R1?) */
 
 	/* Push argc */
-	putmem_w(sp, argc+1);
+	putmem_w(sp, argc + 1);
 	sp += BY2WD;
 
 	/* Compute sizeof(argv) and push argv[0] */
-	ap = sp+((argc+1)*BY2WD)+BY2WD;
+	ap = sp + ((argc + 1) * BY2WD) + BY2WD;
 	putmem_w(sp, ap);
 	sp += BY2WD;
-	
+
 	/* Build argv[0] string into stack */
 	for(p = file; *p; p++)
 		putmem_b(ap++, *p);
@@ -202,17 +204,16 @@ initstk(int argc, char *argv[])
 	}
 	/* Null terminate argv */
 	putmem_w(sp, 0);
-
 }
 
 void
-fatal(int syserr, char *fmt, ...)
+fatal(int syserr, char* fmt, ...)
 {
 	char buf[ERRMAX], *s;
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	s = "5i: %s\n";
 	if(syserr)
@@ -222,15 +223,15 @@ fatal(int syserr, char *fmt, ...)
 }
 
 void
-itrace(char *fmt, ...)
+itrace(char* fmt, ...)
 {
 	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
-	Bprint(bioout, "%8lux %.8lux %2d %s\n", reg.ar, reg.ir, reg.class, buf);	
+	Bprint(bioout, "%8lux %.8lux %2d %s\n", reg.ar, reg.ir, reg.class, buf);
 }
 
 void
@@ -238,11 +239,11 @@ dumpreg(void)
 {
 	int i;
 
-	Bprint(bioout, "PC  #%-8lux SP  #%-8lux \n",
-				reg.r[REGPC], reg.r[REGSP]);
+	Bprint(bioout, "PC  #%-8lux SP  #%-8lux \n", reg.r[REGPC],
+	       reg.r[REGSP]);
 
 	for(i = 0; i < 16; i++) {
-		if((i%4) == 0 && i != 0)
+		if((i % 4) == 0 && i != 0)
 			Bprint(bioout, "\n");
 		Bprint(bioout, "R%-2d #%-8lux ", i, reg.r[i]);
 	}
@@ -259,10 +260,10 @@ dumpdreg(void)
 {
 }
 
-void *
+void*
 emalloc(uint32_t size)
 {
-	void *a;
+	void* a;
 
 	a = malloc(size);
 	if(a == 0)
@@ -272,10 +273,10 @@ emalloc(uint32_t size)
 	return a;
 }
 
-void *
-erealloc(void *a, uint32_t oldsize, uint32_t size)
+void*
+erealloc(void* a, uint32_t oldsize, uint32_t size)
 {
-	void *n;
+	void* n;
 
 	n = malloc(size);
 	if(n == 0)

@@ -16,11 +16,11 @@
  *
  * Returns a pointer to the character string (or 0).
  * Trailing newline is left on.
- */ 
-extern char *
-s_read_line(Biobuf *fp, String *to)
+ */
+extern char*
+s_read_line(Biobuf* fp, String* to)
 {
-	char *cp;
+	char* cp;
 	int llen;
 
 	if(to->ref > 1)

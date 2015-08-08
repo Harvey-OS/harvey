@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -28,17 +29,17 @@
 #include "fmtdef.h"
 
 static int
-runeFmtStrFlush(Fmt *f)
+runeFmtStrFlush(Fmt* f)
 {
-	Rune *s;
+	Rune* s;
 	int n;
 
 	n = (int)f->farg;
 	n += 256;
 	f->farg = (void*)n;
 	s = (Rune*)f->start;
-	f->start = realloc(s, sizeof(Rune)*n);
-	if(f->start == nil){
+	f->start = realloc(s, sizeof(Rune) * n);
+	if(f->start == nil) {
 		f->start = s;
 		return 0;
 	}
@@ -48,13 +49,13 @@ runeFmtStrFlush(Fmt *f)
 }
 
 int
-runefmtstrinit(Fmt *f)
+runefmtstrinit(Fmt* f)
 {
 	int n;
 
 	f->runes = 1;
 	n = 32;
-	f->start = malloc(sizeof(Rune)*n);
+	f->start = malloc(sizeof(Rune) * n);
 	if(f->start == nil)
 		return -1;
 	f->to = f->start;
@@ -66,7 +67,7 @@ runefmtstrinit(Fmt *f)
 }
 
 Rune*
-runefmtstrflush(Fmt *f)
+runefmtstrflush(Fmt* f)
 {
 	*(Rune*)f->to = '\0';
 	f->to = f->start;

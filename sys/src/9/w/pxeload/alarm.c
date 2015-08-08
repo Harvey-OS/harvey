@@ -7,39 +7,37 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#define	MAXALARM	10
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#define MAXALARM 10
 
-Alarm	alarmtab[MAXALARM];
+Alarm alarmtab[MAXALARM];
 
 /*
  * Insert new into list after where
  */
 void
-insert(List **head, List *where, List *new)
+insert(List** head, List* where, List* new)
 {
-	if(where == 0){
+	if(where == 0) {
 		new->next = *head;
 		*head = new;
-	}else{
+	} else {
 		new->next = where->next;
 		where->next = new;
 	}
-
 }
 
 /*
  * Delete old from list.  where->next is known to be old.
  */
-void
-delete(List **head, List *where, List *old)
+void delete(List** head, List* where, List* old)
 {
-	if(where == 0){
+	if(where == 0) {
 		*head = old->next;
 		return;
 	}
@@ -50,23 +48,23 @@ Alarm*
 newalarm(void)
 {
 	int i;
-	Alarm *a;
+	Alarm* a;
 
-	for(i=0,a=alarmtab; i < nelem(alarmtab); i++,a++)
-		if(a->busy==0 && a->f==0){
+	for(i = 0, a = alarmtab; i < nelem(alarmtab); i++, a++)
+		if(a->busy == 0 && a->f == 0) {
 			a->f = 0;
 			a->arg = 0;
 			a->busy = 1;
 			return a;
 		}
 	panic("newalarm");
-	return 0;	/* not reached */
+	return 0; /* not reached */
 }
 
 Alarm*
-alarm(int ms, void (*f)(Alarm*), void *arg)
+alarm(int ms, void (*f)(Alarm*), void* arg)
 {
-	Alarm *a, *w, *pw;
+	Alarm* a, *w, *pw;
 	uint32_t s;
 
 	if(ms < 0)
@@ -77,8 +75,8 @@ alarm(int ms, void (*f)(Alarm*), void *arg)
 	a->f = f;
 	a->arg = arg;
 	pw = 0;
-	for(w=m->alarm; w; pw=w, w=w->next){
-		if(w->dt <= a->dt){
+	for(w = m->alarm; w; pw = w, w = w->next) {
+		if(w->dt <= a->dt) {
 			a->dt -= w->dt;
 			continue;
 		}
@@ -91,7 +89,7 @@ alarm(int ms, void (*f)(Alarm*), void *arg)
 }
 
 void
-cancel(Alarm *a)
+cancel(Alarm* a)
 {
 	a->f = 0;
 }
@@ -101,19 +99,19 @@ alarminit(void)
 {
 }
 
-#define NA 10		/* alarms per clock tick */
+#define NA 10 /* alarms per clock tick */
 void
 checkalarms(void)
 {
 	int i, n, s;
-	Alarm *a;
+	Alarm* a;
 	void (*f)(Alarm*);
-	Alarm *alist[NA];
+	Alarm* alist[NA];
 
 	s = splhi();
 	a = m->alarm;
-	if(a){
-		for(n=0; a && a->dt<=0 && n<NA; n++){
+	if(a) {
+		for(n = 0; a && a->dt <= 0 && n < NA; n++) {
 			alist[n] = a;
 			delete(&m->alarm, 0, a);
 			a = m->alarm;
@@ -121,8 +119,8 @@ checkalarms(void)
 		if(a)
 			a->dt--;
 
-		for(i = 0; i < n; i++){
-			f = alist[i]->f;	/* avoid race with cancel */
+		for(i = 0; i < n; i++) {
+			f = alist[i]->f; /* avoid race with cancel */
 			if(f)
 				(*f)(alist[i]);
 			alist[i]->busy = 0;

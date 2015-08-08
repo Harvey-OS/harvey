@@ -7,15 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int32_t
-Bread(Biobufhdr *bp, void *ap, int32_t count)
+Bread(Biobufhdr* bp, void* ap, int32_t count)
 {
 	int32_t c;
-	uint8_t *p;
+	uint8_t* p;
 	int i, n, ic;
 
 	p = ap;
@@ -39,13 +39,13 @@ Bread(Biobufhdr *bp, void *ap, int32_t count)
 			bp->gbuf = bp->bbuf;
 			bp->offset += i;
 			if(i < bp->bsize) {
-				memmove(bp->ebuf-i, bp->bbuf, i);
-				bp->gbuf = bp->ebuf-i;
+				memmove(bp->ebuf - i, bp->bbuf, i);
+				bp->gbuf = bp->ebuf - i;
 			}
 			ic = -i;
 			continue;
 		}
-		memmove(p, bp->ebuf+ic, n);
+		memmove(p, bp->ebuf + ic, n);
 		c -= n;
 		ic += n;
 		p += n;
@@ -53,5 +53,5 @@ Bread(Biobufhdr *bp, void *ap, int32_t count)
 	bp->icount = ic;
 	if(count == c && bp->state == Binactive)
 		return -1;
-	return count-c;
+	return count - c;
 }

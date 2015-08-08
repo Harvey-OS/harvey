@@ -12,10 +12,10 @@
 #include <venti.h>
 
 char*
-vtstrdup(char *s)
+vtstrdup(char* s)
 {
 	int n;
-	char *ss;
+	char* ss;
 
 	if(s == nil)
 		return nil;
@@ -24,4 +24,3 @@ vtstrdup(char *s)
 	memmove(ss, s, n);
 	return ss;
 }
-

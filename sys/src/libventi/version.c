@@ -11,9 +11,8 @@
 #include <libc.h>
 #include <venti.h>
 
-static char *okvers[] = {
-	"02",
-	nil,
+static char* okvers[] = {
+    "02", nil,
 };
 
 /*
@@ -24,26 +23,27 @@ static char ENullString[] = "missing string";
 static char EBadVersion[] = "bad format in version string";
 
 static int
-vtreadversion(VtConn *z, char *q, char *v, int nv)
+vtreadversion(VtConn* z, char* q, char* v, int nv)
 {
 	int n;
 
-	for(;;){
-		if(nv <= 1){
+	for(;;) {
+		if(nv <= 1) {
 			werrstr("version too long");
 			return -1;
 		}
 		n = read(z->infd, v, 1);
-		if(n <= 0){
+		if(n <= 0) {
 			if(n == 0)
 				werrstr("unexpected eof");
 			return -1;
 		}
-		if(*v == '\n'){
+		if(*v == '\n') {
 			*v = 0;
 			break;
 		}
-		if((unsigned char)*v < ' ' || (unsigned char)*v > 0x7f || (*q && *v != *q)){
+		if((unsigned char)*v < ' ' || (unsigned char)*v > 0x7f ||
+		   (*q && *v != *q)) {
 			werrstr(EBadVersion);
 			return -1;
 		}
@@ -56,13 +56,13 @@ vtreadversion(VtConn *z, char *q, char *v, int nv)
 }
 
 int
-vtversion(VtConn *z)
+vtversion(VtConn* z)
 {
 	char buf[VtMaxStringSize], *p, *ep, *prefix, *pp;
 	int i;
 
 	qlock(&z->lk);
-	if(z->state != VtStateAlloc){
+	if(z->state != VtStateAlloc) {
 		werrstr("bad session state");
 		qunlock(&z->lk);
 		return -1;
@@ -76,12 +76,12 @@ vtversion(VtConn *z)
 	prefix = "venti-";
 	p = seprint(p, ep, "%s", prefix);
 	p += strlen(p);
-	for(i=0; okvers[i]; i++)
+	for(i = 0; okvers[i]; i++)
 		p = seprint(p, ep, "%s%s", i ? ":" : "", okvers[i]);
 	p = seprint(p, ep, "-libventi\n");
-	assert(p-buf < sizeof buf);
+	assert(p - buf < sizeof buf);
 
-	if(write(z->outfd, buf, p-buf) != p-buf)
+	if(write(z->outfd, buf, p - buf) != p - buf)
 		goto Err;
 	vtdebug(z, "version string out: %s", buf);
 
@@ -89,15 +89,16 @@ vtversion(VtConn *z)
 		goto Err;
 	vtdebug(z, "version string in: %s", buf);
 
-	p = buf+strlen(prefix);
-	for(; *p; p=pp){
+	p = buf + strlen(prefix);
+	for(; *p; p = pp) {
 		if(*p == ':' || *p == '-')
 			p++;
 		pp = strpbrk(p, ":-");
 		if(pp == nil)
-			pp = p+strlen(p);
-		for(i=0; okvers[i]; i++)
-			if(strlen(okvers[i]) == pp-p && memcmp(okvers[i], p, pp-p) == 0){
+			pp = p + strlen(p);
+		for(i = 0; okvers[i]; i++)
+			if(strlen(okvers[i]) == pp - p &&
+			   memcmp(okvers[i], p, pp - p) == 0) {
 				*pp = 0;
 				z->version = vtstrdup(p);
 				goto Okay;

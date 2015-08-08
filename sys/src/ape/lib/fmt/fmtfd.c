@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -31,7 +32,7 @@
  * to a file descriptor; returns total char count.
  */
 int
-fmtfdflush(Fmt *f)
+fmtfdflush(Fmt* f)
 {
 	if(__fmtFdFlush(f) <= 0)
 		return -1;
@@ -42,7 +43,7 @@ fmtfdflush(Fmt *f)
  * initialize an output buffer for buffered printing
  */
 int
-fmtfdinit(Fmt *f, int fd, char *buf, int size)
+fmtfdinit(Fmt* f, int fd, char* buf, int size)
 {
 	f->runes = 0;
 	f->start = buf;

@@ -29,7 +29,7 @@
 /*
  * Definitions for UNIX IPC domain.
  */
-struct	sockaddr_un {
-	int16_t	sun_family;		/* AF_UNIX */
-	char	sun_path[108];		/* path name (gag) */
+struct sockaddr_un {
+	int16_t sun_family; /* AF_UNIX */
+	char sun_path[108]; /* path name (gag) */
 };

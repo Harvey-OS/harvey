@@ -20,23 +20,25 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *user, *sys, *arch, *term, *ofile;
+	char* user, *sys, *arch, *term, *ofile;
 	int i;
 	long pid, me;
-	Biobuf *b;
-	Dir *d;
-	Proc *p;
+	Biobuf* b;
+	Dir* d;
+	Proc* p;
 
 	ofile = "/fd/1";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'o':
 		ofile = ARGF();
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 1)
 		usage();
@@ -61,10 +63,10 @@ main(int argc, char **argv)
 	if((term = getenv("terminal")) == nil)
 		term = "unknown terminal type";
 
-	Bprint(b, "process snapshot %ld %s@%s %s %ld \"%s\"\n",
-		time(0), user, sys, arch, d->mtime, term);
+	Bprint(b, "process snapshot %ld %s@%s %s %ld \"%s\"\n", time(0), user,
+	       sys, arch, d->mtime, term);
 	me = getpid();
-	for(i=0; i<argc; i++) {
+	for(i = 0; i < argc; i++) {
 		if((pid = atol(argv[i])) == me)
 			fprint(2, "warning: will not snapshot self\n");
 		else if(p = snap(pid, 1))

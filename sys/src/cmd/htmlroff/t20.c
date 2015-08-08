@@ -19,45 +19,45 @@
 /* .pm - print macros and strings */
 
 void
-r_pm(int argc, Rune **argv)
+r_pm(int argc, Rune** argv)
 {
 	int i;
-	
-	if(argc == 1){
+
+	if(argc == 1) {
 		printds(0);
 		return;
 	}
-	if(runestrcmp(argv[1], L("t")) == 0){
+	if(runestrcmp(argv[1], L("t")) == 0) {
 		printds(1);
 		return;
 	}
-	for(i=1; i<argc; i++)
+	for(i = 1; i < argc; i++)
 		fprint(2, "%S: %S\n", argv[i], getds(argv[i]));
 }
 
 void
-r_tm(Rune *name)
+r_tm(Rune* name)
 {
-	Rune *line;
-	
+	Rune* line;
+
 	USED(name);
-	
+
 	line = readline(CopyMode);
 	fprint(2, "%S\n", line);
 	free(line);
 }
 
 void
-r_ab(Rune *name)
+r_ab(Rune* name)
 {
 	USED(name);
-	
+
 	r_tm(L("ab"));
 	exits(".ab");
 }
 
 void
-r_lf(int argc, Rune **argv)
+r_lf(int argc, Rune** argv)
 {
 	if(argc == 1)
 		return;
@@ -68,7 +68,7 @@ r_lf(int argc, Rune **argv)
 }
 
 void
-r_fl(int argc, Rune **argv)
+r_fl(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
@@ -85,4 +85,3 @@ t20init(void)
 	addreq(L("pm"), r_pm, -1);
 	addreq(L("fl"), r_fl, 0);
 }
-

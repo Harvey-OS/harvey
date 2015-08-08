@@ -10,7 +10,7 @@
 #include "acd.h"
 
 int
-msfconv(Fmt *fp)
+msfconv(Fmt* fp)
 {
 	Msf m;
 
@@ -20,7 +20,7 @@ msfconv(Fmt *fp)
 }
 
 static int
-status(Drive *d)
+status(Drive* d)
 {
 	uchar cmd[12];
 
@@ -30,7 +30,7 @@ status(Drive *d)
 }
 
 static int
-playmsf(Drive *d, Msf start, Msf end)
+playmsf(Drive* d, Msf start, Msf end)
 {
 	uchar cmd[12];
 
@@ -47,9 +47,9 @@ playmsf(Drive *d, Msf start, Msf end)
 }
 
 int
-playtrack(Drive *d, int start, int end)
+playtrack(Drive* d, int start, int end)
 {
-	Toc *t;
+	Toc* t;
 
 	t = &d->toc;
 
@@ -59,7 +59,7 @@ playtrack(Drive *d, int start, int end)
 	if(start < 0)
 		start = 0;
 	if(end >= t->ntrack)
-		end = t->ntrack-1;
+		end = t->ntrack - 1;
 	if(end < start)
 		end = start;
 
@@ -67,7 +67,7 @@ playtrack(Drive *d, int start, int end)
 }
 
 int
-resume(Drive *d)
+resume(Drive* d)
 {
 	uchar cmd[12];
 
@@ -78,7 +78,7 @@ resume(Drive *d)
 }
 
 int
-pause(Drive *d)
+pause(Drive* d)
 {
 	uchar cmd[12];
 
@@ -88,7 +88,7 @@ pause(Drive *d)
 }
 
 int
-stop(Drive *d)
+stop(Drive* d)
 {
 	uchar cmd[12];
 
@@ -98,7 +98,7 @@ stop(Drive *d)
 }
 
 int
-eject(Drive *d)
+eject(Drive* d)
 {
 	uchar cmd[12];
 
@@ -110,7 +110,7 @@ eject(Drive *d)
 }
 
 int
-ingest(Drive *d)
+ingest(Drive* d)
 {
 	uchar cmd[12];
 
@@ -122,7 +122,7 @@ ingest(Drive *d)
 }
 
 static Msf
-rdmsf(uchar *p)
+rdmsf(uchar* p)
 {
 	Msf msf;
 
@@ -133,14 +133,14 @@ rdmsf(uchar *p)
 }
 
 static uint32_t
-rdlba(uchar *p)
+rdlba(uchar* p)
 {
-	return (p[0]<<16) | (p[1]<<8) | p[2];
+	return (p[0] << 16) | (p[1] << 8) | p[2];
 }
 
 /* not a Drive, so that we don't accidentally touch Drive.toc */
 int
-gettoc(Scsi *s, Toc *t)
+gettoc(Scsi* s, Toc* t)
 {
 	int i, n;
 	uchar cmd[12];
@@ -151,7 +151,7 @@ Again:
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x43;
 	cmd[1] = 0x02;
-	cmd[7] = sizeof(resp)>>8;
+	cmd[7] = sizeof(resp) >> 8;
 	cmd[8] = sizeof(resp);
 
 	s->changetime = 1;
@@ -174,25 +174,25 @@ Again:
 	if(t->ntrack > MTRACK)
 		t->ntrack = MTRACK;
 
-DPRINT(2, "%d %d\n", resp[3], resp[2]);
-	t->ntrack = resp[3]-resp[2]+1;
+	DPRINT(2, "%d %d\n", resp[3], resp[2]);
+	t->ntrack = resp[3] - resp[2] + 1;
 	t->track0 = resp[2];
 
-	n = ((resp[0]<<8) | resp[1])+2;
-	if(n < 4+8*(t->ntrack+1)) {
-		werrstr("bad read0 %d %d", n, 4+8*(t->ntrack+1));
+	n = ((resp[0] << 8) | resp[1]) + 2;
+	if(n < 4 + 8 * (t->ntrack + 1)) {
+		werrstr("bad read0 %d %d", n, 4 + 8 * (t->ntrack + 1));
 		return -1;
 	}
 
-	for(i=0; i<=t->ntrack; i++)		/* <=: track[ntrack] = end */
-		t->track[i].start = rdmsf(resp+4+i*8+5);
+	for(i = 0; i <= t->ntrack; i++) /* <=: track[ntrack] = end */
+		t->track[i].start = rdmsf(resp + 4 + i * 8 + 5);
 
-	for(i=0; i<t->ntrack; i++)
-		t->track[i].end = t->track[i+1].start;
+	for(i = 0; i < t->ntrack; i++)
+		t->track[i].end = t->track[i + 1].start;
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = 0x43;
-	cmd[7] = sizeof(resp)>>8;
+	cmd[7] = sizeof(resp) >> 8;
 	cmd[8] = sizeof(resp);
 	if(scsi(s, cmd, sizeof cmd, resp, sizeof(resp), Sread) < 4)
 		return -1;
@@ -202,35 +202,34 @@ DPRINT(2, "%d %d\n", resp[3], resp[2]);
 		goto Again;
 	}
 
-	n = ((resp[0]<<8) | resp[1])+2;
-	if(n < 4+8*(t->ntrack+1)) {
+	n = ((resp[0] << 8) | resp[1]) + 2;
+	if(n < 4 + 8 * (t->ntrack + 1)) {
 		werrstr("bad read");
 		return -1;
 	}
 
-	for(i=0; i<=t->ntrack; i++)
-		t->track[i].bstart = rdlba(resp+4+i*8+5);
+	for(i = 0; i <= t->ntrack; i++)
+		t->track[i].bstart = rdlba(resp + 4 + i * 8 + 5);
 
-	for(i=0; i<t->ntrack; i++)
-		t->track[i].bend = t->track[i+1].bstart;
+	for(i = 0; i < t->ntrack; i++)
+		t->track[i].bend = t->track[i + 1].bstart;
 
 	return 0;
 }
 
 static void
-dumptoc(Toc *t)
+dumptoc(Toc* t)
 {
 	int i;
 
 	fprint(1, "%d tracks\n", t->ntrack);
-	for(i=0; i<t->ntrack; i++)
-		print("%d. %M-%M (%lud-%lud)\n", i+1,
-			t->track[i].start, t->track[i].end,
-			t->track[i].bstart, t->track[i].bend);
+	for(i = 0; i < t->ntrack; i++)
+		print("%d. %M-%M (%lud-%lud)\n", i + 1, t->track[i].start,
+		      t->track[i].end, t->track[i].bstart, t->track[i].bend);
 }
 
 static void
-ping(Drive *d)
+ping(Drive* d)
 {
 	uchar cmd[12];
 
@@ -240,7 +239,7 @@ ping(Drive *d)
 }
 
 static int
-playstatus(Drive *d, Cdstatus *stat)
+playstatus(Drive* d, Cdstatus* stat)
 {
 	uchar cmd[12], resp[16];
 
@@ -249,12 +248,12 @@ playstatus(Drive *d, Cdstatus *stat)
 	cmd[1] = 0x02;
 	cmd[2] = 0x40;
 	cmd[3] = 0x01;
-	cmd[7] = sizeof(resp)>>8;
+	cmd[7] = sizeof(resp) >> 8;
 	cmd[8] = sizeof(resp);
 	if(scsi(d->scsi, cmd, sizeof(cmd), resp, sizeof(resp), Sread) < 0)
 		return -1;
 
-	switch(resp[1]){
+	switch(resp[1]) {
 	case 0x11:
 		stat->state = Splaying;
 		break;
@@ -267,8 +266,8 @@ playstatus(Drive *d, Cdstatus *stat)
 	case 0x14:
 		stat->state = Serror;
 		break;
-	case 0x00:	/* not supported */
-	case 0x15:	/* no current status to return */
+	case 0x00: /* not supported */
+	case 0x15: /* no current status to return */
 	default:
 		stat->state = Sunknown;
 		break;
@@ -276,15 +275,15 @@ playstatus(Drive *d, Cdstatus *stat)
 
 	stat->track = resp[6];
 	stat->index = resp[7];
-	stat->abs = rdmsf(resp+9);
-	stat->rel = rdmsf(resp+13);
+	stat->abs = rdmsf(resp + 9);
+	stat->rel = rdmsf(resp + 13);
 	return 0;
 }
 
 void
-cdstatusproc(void *v)
+cdstatusproc(void* v)
 {
-	Drive *d;
+	Drive* d;
 	Toc t;
 	Cdstatus s;
 
@@ -296,13 +295,16 @@ cdstatusproc(void *v)
 	DPRINT(2, "cdstatus %d\n", getpid());
 	for(;;) {
 		ping(d);
-	//DPRINT(2, "d %d %d t %d %d\n", d->scsi->changetime, d->scsi->nchange, t.changetime, t.nchange);
+		// DPRINT(2, "d %d %d t %d %d\n", d->scsi->changetime,
+		// d->scsi->nchange, t.changetime, t.nchange);
 		if(playstatus(d, &s) == 0)
 			send(d->cstatus, &s);
-		if(d->scsi->changetime != t.changetime || d->scsi->nchange != t.nchange) {
+		if(d->scsi->changetime != t.changetime ||
+		   d->scsi->nchange != t.nchange) {
 			if(gettoc(d->scsi, &t) == 0) {
 				DPRINT(2, "sendtoc...\n");
-				if(debug) dumptoc(&t);
+				if(debug)
+					dumptoc(&t);
 				send(d->ctocdisp, &t);
 			} else
 				DPRINT(2, "error: %r\n");

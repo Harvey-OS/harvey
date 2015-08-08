@@ -23,93 +23,95 @@
 typedef struct Addr Addr;
 
 struct Addr {
-	int	n;		/* number of offsets */
-	int	cur;		/* current position within doff array */
-	int	maxn;		/* actual current size of doff array */
-	uint32_t	doff[1];	/* doff[maxn], with 0..n-1 significant */
+	int n;            /* number of offsets */
+	int cur;          /* current position within doff array */
+	int maxn;         /* actual current size of doff array */
+	uint32_t doff[1]; /* doff[maxn], with 0..n-1 significant */
 };
 
-Biobuf	binbuf;
-Biobuf	boutbuf;
-Biobuf	*bin = &binbuf;		/* user cmd input */
-Biobuf	*bout = &boutbuf;	/* output */
-Biobuf	*bdict;			/* dictionary */
-Biobuf	*bindex;		/* index file */
-int32_t	indextop;		/* index offset at end of file */
-int	lastcmd;		/* last executed command */
-Addr	*dot;			/* "current" address */
-Dict	*dict;			/* current dictionary */
-int	linelen;
-int	breaklen = 60;
-int	outinhibit;
-int	debug;
+Biobuf binbuf;
+Biobuf boutbuf;
+Biobuf* bin = &binbuf;   /* user cmd input */
+Biobuf* bout = &boutbuf; /* output */
+Biobuf* bdict;           /* dictionary */
+Biobuf* bindex;          /* index file */
+int32_t indextop;        /* index offset at end of file */
+int lastcmd;             /* last executed command */
+Addr* dot;               /* "current" address */
+Dict* dict;              /* current dictionary */
+int linelen;
+int breaklen = 60;
+int outinhibit;
+int debug;
 
-void	execcmd(int);
-int	getpref(char*, Rune*);
-Entry	getentry(int);
-int	getfield(Rune*);
-int32_t	locate(Rune*);
-int	parseaddr(char*, char**);
-int	parsecmd(char*);
-int	search(char*, int);
-int32_t	seeknextline(Biobuf*, int32_t);
-void	setdotnext(void);
-void	setdotprev(void);
-void	sortaddr(Addr*);
-void	usage(void);
+void execcmd(int);
+int getpref(char*, Rune*);
+Entry getentry(int);
+int getfield(Rune*);
+int32_t locate(Rune*);
+int parseaddr(char*, char**);
+int parsecmd(char*);
+int search(char*, int);
+int32_t seeknextline(Biobuf*, int32_t);
+void setdotnext(void);
+void setdotprev(void);
+void sortaddr(Addr*);
+void usage(void);
 
-enum {
-	Plen=300,	/* max length of a search pattern */
-	Fieldlen=200,	/* max length of an index field */
-	Aslots=10,	/* initial number of slots in an address */
+enum { Plen = 300,     /* max length of a search pattern */
+       Fieldlen = 200, /* max length of an index field */
+       Aslots = 10,    /* initial number of slots in an address */
 };
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i, cmd, kflag;
-	char *line, *p;
+	char* line, *p;
 
 	Binit(&binbuf, 0, OREAD);
 	Binit(&boutbuf, 1, OWRITE);
 	kflag = 0;
 	line = 0;
 	dict = 0;
-	for(i=0; dicts[i].name; i++){
-		if(access(dicts[i].path, 0)>=0 && access(dicts[i].indexpath, 0)>=0){
+	for(i = 0; dicts[i].name; i++) {
+		if(access(dicts[i].path, 0) >= 0 &&
+		   access(dicts[i].indexpath, 0) >= 0) {
 			dict = &dicts[i];
 			break;
 		}
 	}
-	ARGBEGIN {
-		case 'd':
-			p = ARGF();
-			dict = 0;
-			if(p) {
-				for(i=0; dicts[i].name; i++)
-					if(strcmp(p, dicts[i].name)==0) {
-						dict = &dicts[i];
-						break;
-					}
-			}
-			if(!dict)
-				usage();
-			break;
-		case 'c':
-			line = ARGF();
-			if(!line)
-				usage();
-			break;
-		case 'k':
-			kflag++;
-			break;
-		case 'D':
-			debug++;
-			break;
-		default:
+	ARGBEGIN
+	{
+	case 'd':
+		p = ARGF();
+		dict = 0;
+		if(p) {
+			for(i = 0; dicts[i].name; i++)
+				if(strcmp(p, dicts[i].name) == 0) {
+					dict = &dicts[i];
+					break;
+				}
+		}
+		if(!dict)
 			usage();
-	ARGEND }
-	if(dict == 0){
+		break;
+	case 'c':
+		line = ARGF();
+		if(!line)
+			usage();
+		break;
+	case 'k':
+		kflag++;
+		break;
+	case 'D':
+		debug++;
+		break;
+	default:
+		usage();
+		ARGEND
+	}
+	if(dict == 0) {
 		err("no dictionaries present on this system");
 		exits("nodict");
 	}
@@ -124,7 +126,7 @@ main(int argc, char **argv)
 		if(line)
 			usage();
 		p = argv[0];
-		line = malloc(strlen(p)+5);
+		line = malloc(strlen(p) + 5);
 		sprint(line, "/%s/P\n", p);
 	}
 	bdict = Bopen(dict->path, OREAD);
@@ -139,7 +141,7 @@ main(int argc, char **argv)
 	}
 	indextop = Bseek(bindex, 0L, 2);
 
-	dot = malloc(sizeof(Addr)+(Aslots-1)*sizeof(ulong));
+	dot = malloc(sizeof(Addr) + (Aslots - 1) * sizeof(ulong));
 	dot->n = 0;
 	dot->cur = 0;
 	dot->maxn = Aslots;
@@ -171,25 +173,28 @@ void
 usage(void)
 {
 	int i;
-	char *a, *b;
+	char* a, *b;
 
 	Bprint(bout, "Usage: %s [-d dict] [-k] [-c cmd] [word]\n", argv0);
-	Bprint(bout, "dictionaries (brackets mark dictionaries not present on this system):\n");
-	for(i = 0; dicts[i].name; i++){
+	Bprint(bout, "dictionaries (brackets mark dictionaries not present on "
+	             "this system):\n");
+	for(i = 0; dicts[i].name; i++) {
 		a = b = "";
-		if(access(dicts[i].path, 0)<0 || access(dicts[i].indexpath, 0)<0){
+		if(access(dicts[i].path, 0) < 0 ||
+		   access(dicts[i].indexpath, 0) < 0) {
 			a = "[";
 			b = "]";
 		}
-		Bprint(bout, "   %s%s\t%s%s\n", a, dicts[i].name, dicts[i].desc, b);
+		Bprint(bout, "   %s%s\t%s%s\n", a, dicts[i].name, dicts[i].desc,
+		       b);
 	}
 	exits("usage");
 }
 
 int
-parsecmd(char *line)
+parsecmd(char* line)
 {
-	char *e;
+	char* e;
 	int cmd, ans;
 
 	if(parseaddr(line, &e) >= 0)
@@ -207,9 +212,15 @@ parsecmd(char *line)
 	}
 	if(cmd == '\n')
 		switch(lastcmd) {
-			case 0:	ans = 'H'; break;
-			case 'H':	ans = 'p'; break;
-			default :	ans = lastcmd; break;
+		case 0:
+			ans = 'H';
+			break;
+		case 'H':
+			ans = 'p';
+			break;
+		default:
+			ans = lastcmd;
+			break;
 		}
 	else if(line[1] != '\n' && line[1] != 0)
 		err("extra stuff after command %c ignored", cmd);
@@ -232,12 +243,12 @@ execcmd(int cmd)
 	}
 
 	if(debug && doall && cmd == 'a')
-		Bprint(bout, "%d entries, cur=%d\n", dot->n, cur+1);
-	for(;;){
+		Bprint(bout, "%d entries, cur=%d\n", dot->n, cur + 1);
+	for(;;) {
 		if(cur >= dot->n)
 			break;
 		if(doall) {
-			Bprint(bout, "%d\t", cur+1);
+			Bprint(bout, "%d\t", cur + 1);
 			linelen += 4 + (cur >= 10);
 		}
 		switch(cmd) {
@@ -266,41 +277,42 @@ execcmd(int cmd)
 }
 
 /*
- * Address syntax: ('.' | '/' re '/' | '!' re '!' | number | '#' number) ('+' | '-')*
+ * Address syntax: ('.' | '/' re '/' | '!' re '!' | number | '#' number) ('+' |
+ * '-')*
  * Answer goes in dot.
  * Return -1 if address starts, but get error.
  * Return 0 if no address.
  */
 int
-parseaddr(char *line, char **eptr)
+parseaddr(char* line, char** eptr)
 {
 	int delim, plen;
 	uint32_t v;
-	char *e;
+	char* e;
 	char pat[Plen];
 
 	if(*line == '/' || *line == '!') {
 		/* anchored regular expression match; '!' means no folding */
 		if(*line == '/') {
 			delim = '/';
-			e = strpbrk(line+1, "/\n");
+			e = strpbrk(line + 1, "/\n");
 		} else {
 			delim = '!';
-			e = strpbrk(line+1, "!\n");
+			e = strpbrk(line + 1, "!\n");
 		}
-		plen = e-line-1;
-		if(plen >= Plen-3) {
+		plen = e - line - 1;
+		if(plen >= Plen - 3) {
 			err("pattern too big");
 			return -1;
 		}
 		pat[0] = '^';
-		memcpy(pat+1, line+1, plen);
-		pat[plen+1] = '$';
-		pat[plen+2] = 0;
+		memcpy(pat + 1, line + 1, plen);
+		pat[plen + 1] = '$';
+		pat[plen + 2] = 0;
 		if(*e == '\n')
 			line = e;
 		else
-			line = e+1;
+			line = e + 1;
 		if(!search(pat, delim == '/')) {
 			err("pattern not found");
 			return -1;
@@ -319,10 +331,9 @@ parseaddr(char *line, char **eptr)
 		v = strtoul(line, &e, 10);
 		line = e;
 		if(v < 1 || v > dot->n)
-			err(".%d not in range [1,%d], ignored",
-				v, dot->n);
+			err(".%d not in range [1,%d], ignored", v, dot->n);
 		else
-			dot->cur = v-1;
+			dot->cur = v - 1;
 	} else if(*line == '.') {
 		line++;
 	} else {
@@ -351,18 +362,18 @@ parseaddr(char *line, char **eptr)
  * We know pat len < Plen, and that it is surrounded by ^..$
  */
 int
-search(char *pat, int dofold)
+search(char* pat, int dofold)
 {
 	int needre, prelen, match, n;
-	Reprog *re;
+	Reprog* re;
 	int32_t ioff, v;
 	Rune pre[Plen];
 	Rune lit[Plen];
 	Rune entry[Fieldlen];
 	char fpat[Plen];
 
-	prelen = getpref(pat+1, pre);
-	if(pat[prelen+1] == 0 || pat[prelen+1] == '$') {
+	prelen = getpref(pat + 1, pre);
+	if(pat[prelen + 1] == 0 || pat[prelen + 1] == '$') {
 		runescpy(lit, pre);
 		if(dofold)
 			fold(lit);
@@ -396,9 +407,10 @@ search(char *pat, int dofold)
 				break;
 			v = runetol(entry);
 			if(dot->n >= dot->maxn) {
-				n = 2*dot->maxn;
-				dot = realloc(dot,
-					sizeof(Addr)+(n-1)*sizeof(int32_t));
+				n = 2 * dot->maxn;
+				dot =
+				    realloc(dot, sizeof(Addr) +
+				                     (n - 1) * sizeof(int32_t));
 				if(!dot) {
 					err("out of memory");
 					exits("nomem");
@@ -429,7 +441,7 @@ search(char *pat, int dofold)
  * first field has pre as a prefix.  -1 if none found.
  */
 int32_t
-locate(Rune *pre)
+locate(Rune* pre)
 {
 	int32_t top, bot, mid;
 	Rune entry[Fieldlen];
@@ -438,18 +450,18 @@ locate(Rune *pre)
 		return 0;
 	bot = 0;
 	top = indextop;
-	if(debug>1)
+	if(debug > 1)
 		fprint(2, "locate looking for prefix %S\n", pre);
 	for(;;) {
 		/*
 		 * Loop invariant: foldkey(bot) < pre <= foldkey(top)
 		 * and bot < top, and bot,top point at beginning of lines
 		 */
-		mid = (top+bot) / 2;
+		mid = (top + bot) / 2;
 		mid = seeknextline(bindex, mid);
 		if(debug > 1)
-			fprint(2, "bot=%ld, mid=%ld->%ld, top=%ld\n",
-				bot, (top+bot) / 2, mid, top);
+			fprint(2, "bot=%ld, mid=%ld->%ld, top=%ld\n", bot,
+			       (top + bot) / 2, mid, top);
 		if(mid == top || !getfield(entry))
 			break;
 		if(debug > 1)
@@ -486,7 +498,6 @@ locate(Rune *pre)
 		}
 	}
 	return -1;
-
 }
 
 /*
@@ -494,21 +505,29 @@ locate(Rune *pre)
  * and return length
  */
 int
-getpref(char *pat, Rune *pre)
+getpref(char* pat, Rune* pre)
 {
 	int n, r;
-	char *p;
+	char* p;
 
 	p = pat;
 	while(*p) {
 		n = chartorune(pre, p);
 		r = *pre;
 		switch(r) {
-		case L'.': case L'*': case L'+': case L'?':
-		case L'[': case L']': case L'(': case ')':
-		case L'|': case L'^': case L'$':
+		case L'.':
+		case L'*':
+		case L'+':
+		case L'?':
+		case L'[':
+		case L']':
+		case L'(':
+		case ')':
+		case L'|':
+		case L'^':
+		case L'$':
 			*pre = 0;
-			return p-pat;
+			return p - pat;
 		case L'\\':
 			p += n;
 			p += chartorune(++pre, p);
@@ -519,18 +538,18 @@ getpref(char *pat, Rune *pre)
 			pre++;
 		}
 	}
-	return p-pat;
+	return p - pat;
 }
 
 int32_t
-seeknextline(Biobuf *b, int32_t off)
+seeknextline(Biobuf* b, int32_t off)
 {
 	int32_t c;
 
 	Bseek(b, off, 0);
 	do {
 		c = Bgetrune(b);
-	} while(c>=0 && c!='\n');
+	} while(c >= 0 && c != '\n');
 	return Boffset(b);
 }
 
@@ -540,13 +559,13 @@ seeknextline(Biobuf *b, int32_t off)
  * Return 0 if read error first.
  */
 int
-getfield(Rune *rp)
+getfield(Rune* rp)
 {
 	int32_t c;
 	int n;
 
-	for(n=Fieldlen; n-- > 0; ) {
-		if ((c = Bgetrune(bindex)) < 0)
+	for(n = Fieldlen; n-- > 0;) {
+		if((c = Bgetrune(bindex)) < 0)
 			return 0;
 		if(c == '\t' || c == '\n') {
 			*rp = L'\0';
@@ -562,10 +581,10 @@ getfield(Rune *rp)
  * A compare longs function suitable for qsort
  */
 static int
-longcmp(const void *av, const void *bv)
+longcmp(const void* av, const void* bv)
 {
 	int32_t v;
-	int32_t *a, *b;
+	int32_t* a, *b;
 
 	a = av;
 	b = bv;
@@ -580,7 +599,7 @@ longcmp(const void *av, const void *bv)
 }
 
 void
-sortaddr(Addr *a)
+sortaddr(Addr* a)
 {
 	int i, j;
 	int32_t v;
@@ -591,9 +610,9 @@ sortaddr(Addr *a)
 	qsort(a->doff, a->n, sizeof(int32_t), longcmp);
 
 	/* remove duplicates */
-	for(i=0, j=0; j < a->n; j++) {
+	for(i = 0, j = 0; j < a->n; j++) {
 		v = a->doff[j];
-		if(i > 0 && v == a->doff[i-1])
+		if(i > 0 && v == a->doff[i - 1])
 			continue;
 		a->doff[i++] = v;
 	}
@@ -608,21 +627,21 @@ getentry(int i)
 	static int anslen = 0;
 
 	b = dot->doff[i];
-	e = (*dict->nextoff)(b+1);
+	e = (*dict->nextoff)(b + 1);
 	ans.doff = b;
 	if(e < 0) {
 		err("couldn't seek to entry");
 		ans.start = 0;
 		ans.end = 0;
 	} else {
-		n = e-b;
-		if(n+1 > anslen) {
-			ans.start = realloc(ans.start, n+1);
+		n = e - b;
+		if(n + 1 > anslen) {
+			ans.start = realloc(ans.start, n + 1);
 			if(!ans.start) {
 				err("out of memory");
 				exits("nomem");
 			}
-			anslen = n+1;
+			anslen = n + 1;
 		}
 		Bseek(bdict, b, 0);
 		n = Bread(bdict, ans.start, n);
@@ -637,7 +656,7 @@ setdotnext(void)
 {
 	int32_t b;
 
-	b = (*dict->nextoff)(dot->doff[dot->cur]+1);
+	b = (*dict->nextoff)(dot->doff[dot->cur] + 1);
 	if(b < 0) {
 		err("couldn't find a next entry");
 		return;
@@ -663,7 +682,7 @@ setdotprev(void)
 		if(p < 0)
 			p = 0;
 		for(;;) {
-			p = (*dict->nextoff)(p+1);
+			p = (*dict->nextoff)(p + 1);
 			if(p < 0)
 				return; /* shouldn't happen */
 			if(p >= here)
@@ -675,7 +694,7 @@ setdotprev(void)
 				err("can't find a previous entry");
 				return;
 			}
-			tryback = 2*tryback;
+			tryback = 2 * tryback;
 		}
 	}
 	dot->doff[0] = last;

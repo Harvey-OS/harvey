@@ -22,10 +22,10 @@ usage(void)
 	exits("usage");
 }
 
-#pragma	varargck	argpos	flprint	1
+#pragma varargck argpos flprint 1
 
 static int
-flprint(char *fmt, ...)
+flprint(char* fmt, ...)
 {
 	int n;
 	va_list arg;
@@ -37,39 +37,40 @@ flprint(char *fmt, ...)
 }
 
 static void
-flclre(Fsck *f, Block *b, int o)
+flclre(Fsck* f, Block* b, int o)
 {
 	Bprint(&bout, "# clre 0x%ux %d\n", b->addr, o);
 }
 
 static void
-flclrp(Fsck *f, Block *b, int o)
+flclrp(Fsck* f, Block* b, int o)
 {
 	Bprint(&bout, "# clrp 0x%ux %d\n", b->addr, o);
 }
 
 static void
-flclri(Fsck *f, char *name, MetaBlock *m, int i, Block *b)
+flclri(Fsck* f, char* name, MetaBlock* m, int i, Block* b)
 {
 	Bprint(&bout, "# clri %s\n", name);
 }
 
 static void
-flclose(Fsck *f, Block *b, uint32_t epoch)
+flclose(Fsck* f, Block* b, uint32_t epoch)
 {
 	Bprint(&bout, "# bclose 0x%ux %ud\n", b->addr, epoch);
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int csize = 1000;
-	VtSession *z;
-	char *host = nil;
-	
+	VtSession* z;
+	char* host = nil;
+
 	fsck.useventi = 1;
 	Binit(&bout, 1, OWRITE);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'c':
@@ -86,7 +87,8 @@ main(int argc, char *argv[])
 	case 'v':
 		fsck.printdirs = 1;
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -101,10 +103,11 @@ main(int argc, char *argv[])
 	 * Connect to Venti.
 	 */
 	z = vtDial(host, 0);
-	if(z == nil){
+	if(z == nil) {
 		if(fsck.useventi)
-			vtFatal("could not connect to server: %s", vtGetError());
-	}else if(!vtConnect(z, 0))
+			vtFatal("could not connect to server: %s",
+			        vtGetError());
+	} else if(!vtConnect(z, 0))
 		vtFatal("vtConnect: %s", vtGetError());
 
 	/*
@@ -124,4 +127,3 @@ main(int argc, char *argv[])
 
 	exits(0);
 }
-

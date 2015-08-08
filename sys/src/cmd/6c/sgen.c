@@ -25,9 +25,9 @@ noretval(int n)
 
 /* welcome to commute */
 static void
-commute(Node *n)
+commute(Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 
 	l = n->left;
 	r = n->right;
@@ -38,14 +38,14 @@ commute(Node *n)
 }
 
 void
-indexshift(Node *n)
+indexshift(Node* n)
 {
 	int g;
 
 	if(!typechlpv[n->type->etype])
 		return;
 	simplifyshift(n);
-	if(n->op == OASHL && n->right->op == OCONST){
+	if(n->op == OASHL && n->right->op == OCONST) {
 		g = vconst(n->right);
 		if(g >= 0 && g <= 3)
 			n->addable = 7;
@@ -72,9 +72,9 @@ indexshift(Node *n)
  *	calculate complexity (number of registers)
  */
 void
-xcom(Node *n)
+xcom(Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 	int g;
 
 	if(n == Z)
@@ -106,8 +106,7 @@ xcom(Node *n)
 		xcom(l);
 		if(l->addable == 10)
 			n->addable = 13;
-		else
-		if(l->addable == 11)
+		else if(l->addable == 11)
 			n->addable = 1;
 		break;
 
@@ -311,9 +310,8 @@ brk:
 		n->complex = l->complex;
 	if(r != Z) {
 		if(r->complex == n->complex)
-			n->complex = r->complex+1;
-		else
-		if(r->complex > n->complex)
+			n->complex = r->complex + 1;
+		else if(r->complex > n->complex)
 			n->complex = r->complex;
 	}
 	if(n->complex == 0)
@@ -406,9 +404,9 @@ brk:
 }
 
 void
-indx(Node *n)
+indx(Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 
 	if(debug['x'])
 		prtree(n, "indx");
@@ -424,12 +422,10 @@ indx(Node *n)
 	if(l->addable != 7) {
 		idx.regtree = l;
 		idx.scale = 1;
-	} else
-	if(l->right->addable == 20) {
+	} else if(l->right->addable == 20) {
 		idx.regtree = l->left;
 		idx.scale = 1 << l->right->vconst;
-	} else
-	if(l->left->addable == 20) {
+	} else if(l->left->addable == 20) {
 		idx.regtree = l->right;
 		idx.scale = 1 << l->left->vconst;
 	} else

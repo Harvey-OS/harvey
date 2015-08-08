@@ -18,7 +18,7 @@
  *  Create an lru chain of buffers
  */
 void
-lruinit(Lru *h)
+lruinit(Lru* h)
 {
 	h->lprev = h->lnext = h;
 }
@@ -27,7 +27,7 @@ lruinit(Lru *h)
  *  Add a member to an lru chain
  */
 void
-lruadd(Lru *h, Lru *m)
+lruadd(Lru* h, Lru* m)
 {
 	h->lprev->lnext = m;
 	m->lprev = h->lprev;
@@ -39,10 +39,10 @@ lruadd(Lru *h, Lru *m)
  *  Move to end of lru list
  */
 void
-lruref(Lru *h, Lru *m)
+lruref(Lru* h, Lru* m)
 {
 	if(h->lprev == m)
-		return;		/* alread at end of list */
+		return; /* alread at end of list */
 
 	/*
 	 *  remove from list
@@ -63,10 +63,10 @@ lruref(Lru *h, Lru *m)
  *  Move to head of lru list
  */
 void
-lruderef(Lru *h, Lru *m)
+lruderef(Lru* h, Lru* m)
 {
 	if(h->lnext == m)
-		return;		/* alread at head of list */
+		return; /* alread at head of list */
 
 	/*
 	 *  remove from list

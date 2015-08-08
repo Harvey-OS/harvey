@@ -15,29 +15,25 @@
 void*
 emalloc(uint32_t n)
 {
-	void *v;
+	void* v;
 
 	v = mallocz(n, 1);
-	if(v == nil)
-{
-abort();
+	if(v == nil) {
+		abort();
 		sysfatal("out of memory");
-}
+	}
 	setmalloctag(v, getcallerpc(&n));
 	return v;
 }
 
 void*
-erealloc(void *v, uint32_t n)
+erealloc(void* v, uint32_t n)
 {
 	v = realloc(v, n);
-	if(v == nil)
-{
-abort();
+	if(v == nil) {
+		abort();
 		sysfatal("out of memory");
-}
+	}
 	setrealloctag(v, getcallerpc(&n));
 	return v;
 }
-
-

@@ -15,29 +15,29 @@
 
 /* research 16-bit crc.  good enough. */
 static uint32_t
-sumr(uint32_t sum, void *buf, int n)
+sumr(uint32_t sum, void* buf, int n)
 {
-	uint8_t *s, *send;
+	uint8_t* s, *send;
 
 	if(buf == 0)
 		return sum;
-	for(s=buf, send=s+n; s<send; s++)
+	for(s = buf, send = s + n; s < send; s++)
 		if(sum & 1)
-			sum = 0xffff & ((sum>>1)+*s+0x8000);
+			sum = 0xffff & ((sum >> 1) + *s + 0x8000);
 		else
-			sum = 0xffff & ((sum>>1)+*s);
+			sum = 0xffff & ((sum >> 1) + *s);
 	return sum;
 }
 
 static int npage;
-static Page *pgtab[1<<10];
+static Page* pgtab[1 << 10];
 
 Page*
-datapage(char *p, int32_t len)
+datapage(char* p, int32_t len)
 {
-	Page *pg;
-	char *q, *ep;
-	int32_t	sum;
+	Page* pg;
+	char* q, *ep;
+	int32_t sum;
 	int iszero;
 
 	if(len > Pagesize) {
@@ -45,10 +45,10 @@ datapage(char *p, int32_t len)
 		exits("datapage");
 	}
 
-	sum = sumr(0, p, len) & (nelem(pgtab)-1);
+	sum = sumr(0, p, len) & (nelem(pgtab) - 1);
 	if(sum == 0) {
 		iszero = 1;
-		for(q=p, ep=p+len; q<ep; q++)
+		for(q = p, ep = p + len; q < ep; q++)
 			if(*q != 0) {
 				iszero = 0;
 				break;
@@ -56,13 +56,13 @@ datapage(char *p, int32_t len)
 	} else
 		iszero = 0;
 
-	for(pg = pgtab[sum]; pg; pg=pg->link)
+	for(pg = pgtab[sum]; pg; pg = pg->link)
 		if(pg->len == len && memcmp(pg->data, p, len) == 0)
 			break;
 	if(pg)
 		return pg;
 
-	pg = emalloc(sizeof(*pg)+len);
+	pg = emalloc(sizeof(*pg) + len);
 	pg->data = (char*)&pg[1];
 	pg->type = 0;
 	pg->len = len;
@@ -79,12 +79,12 @@ datapage(char *p, int32_t len)
 }
 
 static Data*
-readsection(int32_t pid, char *sec)
+readsection(int32_t pid, char* sec)
 {
 	char buf[8192];
 	int n, fd;
 	int hdr, tot;
-	Data *d = nil;
+	Data* d = nil;
 
 	snprint(buf, sizeof buf, "/proc/%ld/%s", pid, sec);
 	if((fd = open(buf, OREAD)) < 0)
@@ -93,8 +93,8 @@ readsection(int32_t pid, char *sec)
 	tot = 0;
 	hdr = (int)((Data*)0)->data;
 	while((n = read(fd, buf, sizeof buf)) > 0) {
-		d = erealloc(d, tot+n+hdr);
-		memmove(d->data+tot, buf, n);
+		d = erealloc(d, tot + n + hdr);
+		memmove(d->data + tot, buf, n);
 		tot += n;
 	}
 	close(fd);
@@ -105,12 +105,12 @@ readsection(int32_t pid, char *sec)
 }
 
 static Seg*
-readseg(int fd, int64_t off, uint32_t len, char *name)
+readseg(int fd, int64_t off, uint32_t len, char* name)
 {
 	char buf[Pagesize];
-	Page **pg;
+	Page** pg;
 	int npg;
-	Seg *s;
+	Seg* s;
 	uint32_t i;
 	int n;
 
@@ -124,20 +124,20 @@ readseg(int fd, int64_t off, uint32_t len, char *name)
 
 	pg = nil;
 	npg = 0;
-	for(i=0; i<len; ) {
+	for(i = 0; i < len;) {
 		n = Pagesize;
-		if(n > len-i)
-			n = len-i;
+		if(n > len - i)
+			n = len - i;
 		if((n = readn(fd, buf, n)) <= 0)
 			break;
-		pg = erealloc(pg, sizeof(*pg)*(npg+1));
+		pg = erealloc(pg, sizeof(*pg) * (npg + 1));
 		pg[npg++] = datapage(buf, n);
 		i += n;
-		if(n != Pagesize)	/* any short read, planned or otherwise */
+		if(n != Pagesize) /* any short read, planned or otherwise */
 			break;
 	}
 
-	if(i==0 && len!=0)
+	if(i == 0 && len != 0)
 		goto Die;
 
 	s->offset = off;
@@ -154,17 +154,17 @@ Die:
 
 /* discover the stack pointer of the given process */
 uint32_t
-stackptr(Proc *proc, int fd)
+stackptr(Proc* proc, int fd)
 {
-	char *q;
+	char* q;
 	Fhdr f;
-	Reglist *r;
+	Reglist* r;
 	int32_t textoff;
 	int i;
-	Data *dreg;
+	Data* dreg;
 
 	textoff = -1;
-	for(i=0; i<proc->nseg; i++)
+	for(i = 0; i < proc->nseg; i++)
 		if(proc->seg[i] && strcmp(proc->seg[i]->name, "Text") == 0)
 			textoff = proc->seg[i]->offset;
 
@@ -176,27 +176,30 @@ stackptr(Proc *proc, int fd)
 		return 0;
 
 	machbytype(f.type);
-	for(r=mach->reglist; r->rname; r++)
+	for(r = mach->reglist; r->rname; r++)
 		if(strcmp(r->rname, mach->sp) == 0)
 			break;
 	if(r == nil) {
 		fprint(2, "couldn't find stack pointer register?\n");
 		return 0;
 	}
-	
+
 	if((dreg = proc->d[Pregs]) == nil)
 		return 0;
 
-	if(r->roffs+mach->szreg > dreg->len) {
+	if(r->roffs + mach->szreg > dreg->len) {
 		fprint(2, "SP register too far into registers?\n");
 		return 0;
 	}
 
-	q = dreg->data+r->roffs;
+	q = dreg->data + r->roffs;
 	switch(mach->szreg) {
-	case 2:	return machdata->swab(*(uint16_t*)q);
-	case 4:	return machdata->swal(*(uint32_t*)q);
-	case 8:	return machdata->swav(*(uint64_t*)q);
+	case 2:
+		return machdata->swab(*(uint16_t*)q);
+	case 4:
+		return machdata->swal(*(uint32_t*)q);
+	case 8:
+		return machdata->swav(*(uint64_t*)q);
 	default:
 		fprint(2, "register size is %d bytes?\n", mach->szreg);
 		return 0;
@@ -206,10 +209,10 @@ stackptr(Proc *proc, int fd)
 Proc*
 snap(int32_t pid, int usetext)
 {
-	Data *d;
-	Proc *proc;
-	Seg **s;
-	char *name, *segdat, *q, *f[128+1], buf[128];
+	Data* d;
+	Proc* proc;
+	Seg** s;
+	char* name, *segdat, *q, *f[128 + 1], buf[128];
 	int fd, i, stacki, nf, np;
 	uint64_t off, len, stackoff, stacklen;
 	uint64_t sp;
@@ -218,11 +221,12 @@ snap(int32_t pid, int usetext)
 	proc->pid = pid;
 
 	np = 0;
-	for(i=0; i<Npfile; i++) {
+	for(i = 0; i < Npfile; i++) {
 		if(proc->d[i] = readsection(pid, pfile[i]))
 			np++;
 		else
-			fprint(2, "warning: can't include /proc/%ld/%s\n", pid, pfile[i]);
+			fprint(2, "warning: can't include /proc/%ld/%s\n", pid,
+			       pfile[i]);
 	}
 	if(np == 0)
 		return nil;
@@ -231,19 +235,22 @@ snap(int32_t pid, int usetext)
 		snprint(buf, sizeof buf, "/proc/%ld/text", pid);
 		if((fd = open(buf, OREAD)) >= 0) {
 			werrstr("");
-			if((proc->text = readseg(fd, 0, 1<<31, "textfile")) == nil)
-				fprint(2, "warning: can't include %s: %r\n", buf);
+			if((proc->text = readseg(fd, 0, 1 << 31, "textfile")) ==
+			   nil)
+				fprint(2, "warning: can't include %s: %r\n",
+				       buf);
 			close(fd);
 		} else
-			fprint(2, "warning: can't include /proc/%ld/text\n", pid);
+			fprint(2, "warning: can't include /proc/%ld/text\n",
+			       pid);
 	}
 
-	if((d=proc->d[Psegment]) == nil) {
+	if((d = proc->d[Psegment]) == nil) {
 		fprint(2, "warning: no segment table, no memory image\n");
 		return proc;
 	}
 
-	segdat = emalloc(d->len+1);
+	segdat = emalloc(d->len + 1);
 	memmove(segdat, d->data, d->len);
 	segdat[d->len] = 0;
 
@@ -251,10 +258,11 @@ snap(int32_t pid, int usetext)
 	if(nf == nelem(f)) {
 		nf--;
 		fprint(2, "process %ld has >%d segments; only using first %d\n",
-			pid, nf, nf);
+		       pid, nf, nf);
 	}
 	if(nf <= 0) {
-		fprint(2, "warning: couldn't understand segment table, no memory image\n");
+		fprint(2, "warning: couldn't understand segment table, no "
+		          "memory image\n");
 		free(segdat);
 		return proc;
 	}
@@ -265,15 +273,15 @@ snap(int32_t pid, int usetext)
 		return proc;
 	}
 
-	s = emalloc(nf*sizeof(*s));
+	s = emalloc(nf * sizeof(*s));
 	stacklen = 0;
 	stackoff = 0;
 	stacki = 0;
-	for(i=0; i<nf; i++) {
-		if(q = strchr(f[i], ' ')) 
+	for(i = 0; i < nf; i++) {
+		if(q = strchr(f[i], ' '))
 			*q = 0;
 		name = f[i];
-		off = strtoull(name+10, &q, 16);
+		off = strtoull(name + 10, &q, 16);
 		len = strtoull(q, &q, 16) - off;
 		if(strcmp(name, "Stack") == 0) {
 			stackoff = off;
@@ -288,14 +296,14 @@ snap(int32_t pid, int usetext)
 	/* stack hack: figure sp so don't need to page in the whole segment */
 	if(stacklen) {
 		sp = stackptr(proc, fd);
-		if(stackoff <= sp && sp < stackoff+stacklen) {
+		if(stackoff <= sp && sp < stackoff + stacklen) {
 			off = (sp - Pagesize) & ~(Pagesize - 1);
 			if(off < stackoff)
 				off = stackoff;
 			len = stacklen - (off - stackoff);
-		} else {	/* stack pointer not in segment.  thread library? */
-			off = stackoff + stacklen - 16*1024;
-			len = 16*1024;
+		} else { /* stack pointer not in segment.  thread library? */
+			off = stackoff + stacklen - 16 * 1024;
+			len = 16 * 1024;
 		}
 		s[stacki] = readseg(fd, off, len, "Stack");
 	}

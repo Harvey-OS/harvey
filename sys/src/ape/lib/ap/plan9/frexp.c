@@ -12,28 +12,26 @@
 #define _RESEARCH_SOURCE
 #include <float.h>
 
-#define	MASK	0x7ffL
-#define	SHIFT	20
-#define	BIAS	1022L
-#define	SIG	52
+#define MASK 0x7ffL
+#define SHIFT 20
+#define BIAS 1022L
+#define SIG 52
 
-typedef	union
-{
-	double	d;
-	struct
-	{
+typedef union {
+	double d;
+	struct {
 #ifdef IEEE_8087
-		int32_t	ls;
-		int32_t	ms;
+		int32_t ls;
+		int32_t ms;
 #else
-		int32_t	ms;
-		int32_t	ls;
+		int32_t ms;
+		int32_t ls;
 #endif
 	};
 } Cheat;
 
 double
-frexp(double d, int *ep)
+frexp(double d, int* ep)
 {
 	Cheat x, a;
 
@@ -43,8 +41,8 @@ frexp(double d, int *ep)
 		return d;
 	x.d = d;
 	a.d = fabs(d);
-	if((a.ms >> SHIFT) == 0){	/* normalize subnormal numbers */
-		x.d = (double)(1ULL<<SIG) * d;
+	if((a.ms >> SHIFT) == 0) { /* normalize subnormal numbers */
+		x.d = (double)(1ULL << SIG) * d;
 		*ep = -SIG;
 	}
 	*ep = ((x.ms >> SHIFT) & MASK) - BIAS;
@@ -64,7 +62,7 @@ ldexp(double d, int e)
 	e += (x.ms >> SHIFT) & MASK;
 	if(e <= 0)
 		return 0;
-	if(e >= MASK){
+	if(e >= MASK) {
 		errno = ERANGE;
 		if(d < 0)
 			return -HUGE_VAL;
@@ -76,7 +74,7 @@ ldexp(double d, int e)
 }
 
 double
-modf(double d, double *ip)
+modf(double d, double* ip)
 {
 	double f;
 	Cheat x;
@@ -84,9 +82,9 @@ modf(double d, double *ip)
 
 	x.d = d;
 	e = (x.ms >> SHIFT) & MASK;
-	if(e == MASK){
+	if(e == MASK) {
 		*ip = d;
-		if(x.ls != 0 || (x.ms & 0xfffffL) != 0)	/* NaN */
+		if(x.ls != 0 || (x.ms & 0xfffffL) != 0) /* NaN */
 			return d;
 		/* ±Inf */
 		x.ms &= 0x80000000L;
@@ -102,12 +100,11 @@ modf(double d, double *ip)
 		return d;
 	}
 	e -= BIAS;
-	if(e <= SHIFT+1) {
+	if(e <= SHIFT + 1) {
 		x.ms &= ~(0x1fffffL >> e);
 		x.ls = 0;
-	} else
-	if(e <= SHIFT+33)
-		x.ls &= ~(0x7fffffffL >> (e-SHIFT-2));
+	} else if(e <= SHIFT + 33)
+		x.ls &= ~(0x7fffffffL >> (e - SHIFT - 2));
 	*ip = x.d;
 	return d - x.d;
 }

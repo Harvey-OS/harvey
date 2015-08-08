@@ -14,26 +14,28 @@
 #include <memlayer.h>
 
 Memimage*
-memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr,
-	  uint32_t val)
+memlalloc(Memscreen* s, Rectangle screenr, Refreshfn refreshfn,
+          void* refreshptr, uint32_t val)
 {
-	Memlayer *l;
-	Memimage *n;
-	static Memimage *paint;
+	Memlayer* l;
+	Memimage* n;
+	static Memimage* paint;
 
-	if(paint == nil){
-		paint = allocmemimage(Rect(0,0,1,1), RGBA32);
+	if(paint == nil) {
+		paint = allocmemimage(Rect(0, 0, 1, 1), RGBA32);
 		if(paint == nil)
 			return nil;
 		paint->flags |= Frepl;
-		paint->clipr = Rect(-0x3FFFFFF, -0x3FFFFFF, 0x3FFFFFF, 0x3FFFFFF);
+		paint->clipr =
+		    Rect(-0x3FFFFFF, -0x3FFFFFF, 0x3FFFFFF, 0x3FFFFFF);
 	}
 
-	n = allocmemimaged(screenr, s->image->chan, s->image->data, s->image->X);
+	n = allocmemimaged(screenr, s->image->chan, s->image->data,
+	                   s->image->X);
 	if(n == nil)
 		return nil;
 	l = malloc(sizeof(Memlayer));
-	if(l == nil){
+	if(l == nil) {
 		free(n);
 		return nil;
 	}
@@ -41,21 +43,22 @@ memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr
 	l->screen = s;
 	if(refreshfn)
 		l->save = nil;
-	else{
+	else {
 		l->save = allocmemimage(screenr, s->image->chan);
-		if(l->save == nil){
+		if(l->save == nil) {
 			free(l);
 			free(n);
 			return nil;
 		}
-		/* allocmemimage doesn't initialize memory; this paints save area */
+		/* allocmemimage doesn't initialize memory; this paints save
+		 * area */
 		if(val != DNofill)
 			memfillcolor(l->save, val);
 	}
 	l->refreshfn = refreshfn;
-	l->refreshptr = nil;	/* don't set it until we're done */
+	l->refreshptr = nil; /* don't set it until we're done */
 	l->screenr = screenr;
-	l->delta = Pt(0,0);
+	l->delta = Pt(0, 0);
 
 	n->data->ref++;
 	n->zero = s->image->zero;
@@ -77,10 +80,12 @@ memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr
 	l->refreshptr = refreshptr;
 
 	/*
-	 * paint with requested color; previously exposed areas are already right
-	 * if this window has backing store, but just painting the whole thing is simplest.
+	 * paint with requested color; previously exposed areas are already
+	 * right
+	 * if this window has backing store, but just painting the whole thing
+	 * is simplest.
 	 */
-	if(val != DNofill){
+	if(val != DNofill) {
 		memsetchan(paint, n->chan);
 		memfillcolor(paint, val);
 		memdraw(n, n->r, paint, n->r.min, nil, n->r.min, S);

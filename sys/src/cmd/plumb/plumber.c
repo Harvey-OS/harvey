@@ -16,29 +16,29 @@
 #include <fcall.h>
 #include "plumber.h"
 
-char	*plumbfile;
-char *user;
-char *home;
-char *progname;
-Ruleset **rules;
-int	printerrors=1;
-jmp_buf	parsejmp;
-char	*lasterror;
-int mainstacksize = 20*1024;
+char* plumbfile;
+char* user;
+char* home;
+char* progname;
+Ruleset** rules;
+int printerrors = 1;
+jmp_buf parsejmp;
+char* lasterror;
+int mainstacksize = 20 * 1024;
 
 void
-makeports(Ruleset *rules[])
+makeports(Ruleset* rules[])
 {
 	int i;
 
-	for(i=0; rules[i]; i++)
+	for(i = 0; rules[i]; i++)
 		addport(rules[i]->port);
 }
 
 void
-mainproc(void *v)
+mainproc(void* v)
 {
-	Channel *c;
+	Channel* c;
 
 	c = v;
 	printerrors = 0;
@@ -48,25 +48,27 @@ mainproc(void *v)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	char buf[512];
 	int fd;
-	Channel *c;
+	Channel* c;
 
 	progname = "plumber";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		plumbfile = ARGF();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	user = getenv("user");
 	home = getenv("home");
-	if(user==nil || home==nil)
+	if(user == nil || home == nil)
 		error("can't initialize $user or $home: %r");
-	if(plumbfile == nil){
+	if(plumbfile == nil) {
 		sprint(buf, "%s/lib/plumbing", home);
 		plumbfile = estrdup(buf);
 	}
@@ -92,13 +94,13 @@ threadmain(int argc, char *argv[])
 }
 
 void
-error(char *fmt, ...)
+error(char* fmt, ...)
 {
 	char buf[512];
 	va_list args;
 
 	va_start(args, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, args);
+	vseprint(buf, buf + sizeof buf, fmt, args);
 	va_end(args);
 
 	fprint(2, "%s: %s\n", progname, buf);
@@ -106,20 +108,22 @@ error(char *fmt, ...)
 }
 
 void
-parseerror(char *fmt, ...)
+parseerror(char* fmt, ...)
 {
 	char buf[512];
 	va_list args;
 
 	va_start(args, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, args);
+	vseprint(buf, buf + sizeof buf, fmt, args);
 	va_end(args);
 
-	if(printerrors){
+	if(printerrors) {
 		printinputstack();
 		fprint(2, "%s\n", buf);
 	}
-	do; while(popinput());
+	do
+		;
+	while(popinput());
 	lasterror = estrdup(buf);
 	longjmp(parsejmp, 1);
 }
@@ -127,7 +131,7 @@ parseerror(char *fmt, ...)
 void*
 emalloc(int32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -137,7 +141,7 @@ emalloc(int32_t n)
 }
 
 void*
-erealloc(void *p, int32_t n)
+erealloc(void* p, int32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -146,9 +150,9 @@ erealloc(void *p, int32_t n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *t;
+	char* t;
 
 	t = strdup(s);
 	if(t == nil)

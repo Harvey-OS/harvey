@@ -14,24 +14,23 @@
 
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcherarm(int, void (*f)(void *arg), void *arg)
+launcherarm(int, void (*f)(void* arg), void* arg)
 {
 	(*f)(arg);
 	threadexits(nil);
 }
 
 void
-_threadinitstack(Thread *t, void (*f)(void*), void *arg)
+_threadinitstack(Thread* t, void (*f)(void*), void* arg)
 {
-	uint32_t *tos;
+	uint32_t* tos;
 
-	tos = (uint32_t*)&t->stk[t->stksize&~7];
+	tos = (uint32_t*)&t->stk[t->stksize & ~7];
 	*--tos = (uint32_t)arg;
 	*--tos = (uint32_t)f;
-	*--tos = 0;	/* first arg to launchermips */
-	*--tos = 0;	/* place to store return PC */
+	*--tos = 0; /* first arg to launchermips */
+	*--tos = 0; /* place to store return PC */
 
-	t->sched[JMPBUFPC] = (uint32_t)launcherarm+JMPBUFDPC;
+	t->sched[JMPBUFPC] = (uint32_t)launcherarm + JMPBUFDPC;
 	t->sched[JMPBUFSP] = (uint32_t)tos;
 }
-

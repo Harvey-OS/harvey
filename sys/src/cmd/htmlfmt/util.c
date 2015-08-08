@@ -17,7 +17,7 @@
 void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -27,7 +27,7 @@ emalloc(uint32_t n)
 }
 
 void*
-erealloc(void *p, uint32_t n)
+erealloc(void* p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -36,60 +36,60 @@ erealloc(void *p, uint32_t n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *t;
+	char* t;
 
-	t = emalloc(strlen(s)+1);
+	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
 	return t;
 }
 
 char*
-estrstrdup(char *s, char *t)
+estrstrdup(char* s, char* t)
 {
 	int32_t ns, nt;
-	char *u;
+	char* u;
 
 	ns = strlen(s);
 	nt = strlen(t);
 	/* use malloc to avoid memset */
-	u = malloc(ns+nt+1);
+	u = malloc(ns + nt + 1);
 	if(u == nil)
 		error("can't malloc: %r");
 	memmove(u, s, ns);
-	memmove(u+ns, t, nt);
-	u[ns+nt] = '\0';
+	memmove(u + ns, t, nt);
+	u[ns + nt] = '\0';
 	return u;
 }
 
 char*
-eappend(char *s, char *sep, char *t)
+eappend(char* s, char* sep, char* t)
 {
 	int32_t ns, nsep, nt;
-	char *u;
+	char* u;
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
-	else{
+	else {
 		ns = strlen(s);
 		nsep = strlen(sep);
 		nt = strlen(t);
 		/* use malloc to avoid memset */
-		u = malloc(ns+nsep+nt+1);
+		u = malloc(ns + nsep + nt + 1);
 		if(u == nil)
 			error("can't malloc: %r");
 		memmove(u, s, ns);
-		memmove(u+ns, sep, nsep);
-		memmove(u+ns+nsep, t, nt);
-		u[ns+nsep+nt] = '\0';
+		memmove(u + ns, sep, nsep);
+		memmove(u + ns + nsep, t, nt);
+		u[ns + nsep + nt] = '\0';
 	}
 	free(s);
 	return u;
 }
 
 char*
-egrow(char *s, char *sep, char *t)
+egrow(char* s, char* sep, char* t)
 {
 	s = eappend(s, sep, t);
 	free(t);
@@ -97,7 +97,7 @@ egrow(char *s, char *sep, char *t)
 }
 
 void
-error(char *fmt, ...)
+error(char* fmt, ...)
 {
 	va_list arg;
 	char buf[256];
@@ -114,16 +114,16 @@ error(char *fmt, ...)
 }
 
 void
-growbytes(Bytes *b, char *s, int32_t ns)
+growbytes(Bytes* b, char* s, int32_t ns)
 {
-	if(b->nalloc < b->n + ns + 1){
+	if(b->nalloc < b->n + ns + 1) {
 		b->nalloc = b->n + ns + 8000;
 		/* use realloc to avoid memset */
 		b->b = realloc(b->b, b->nalloc);
 		if(b->b == nil)
 			error("growbytes: can't realloc: %r");
 	}
-	memmove(b->b+b->n, s, ns);
+	memmove(b->b + b->n, s, ns);
 	b->n += ns;
 	b->b[b->n] = '\0';
 }

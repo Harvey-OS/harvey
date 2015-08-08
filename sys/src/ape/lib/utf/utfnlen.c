@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -26,23 +27,23 @@
 #include "utfdef.h"
 
 int
-utfnlen(char *s, int32_t m)
+utfnlen(char* s, int32_t m)
 {
 	int c;
 	int32_t n;
 	Rune rune;
-	char *es;
+	char* es;
 
 	es = s + m;
 	for(n = 0; s < es; n++) {
 		c = *(uint8_t*)s;
-		if(c < Runeself){
+		if(c < Runeself) {
 			if(c == '\0')
 				break;
 			s++;
 			continue;
 		}
-		if(!fullrune(s, es-s))
+		if(!fullrune(s, es - s))
 			break;
 		s += chartorune(&rune, s);
 	}

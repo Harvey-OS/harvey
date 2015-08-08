@@ -22,15 +22,19 @@
 
 /* the rules are different for different compilers. We need to define up. */
 // Initialize it to force it into data.
-// That way, if we set them in assembly, they won't get zero'd by the bss init in main
-// N.B. There was an interesting hack in plan 9 c. You could grab up to two registers for your
-// program. In the case of Plan 9, m was r15, and up was r14. Very slick, and if there is a way to do
-// this in gcc or clang I don't know it. This also nicely handled per cpu info; R15/14 were always right for
+// That way, if we set them in assembly, they won't get zero'd by the bss init
+// in main
+// N.B. There was an interesting hack in plan 9 c. You could grab up to two
+// registers for your
+// program. In the case of Plan 9, m was r15, and up was r14. Very slick, and if
+// there is a way to do
+// this in gcc or clang I don't know it. This also nicely handled per cpu info;
+// R15/14 were always right for
 // your core and context.
-//Mach *m = (void *)0;
+// Mach *m = (void *)0;
 
 int
-incref(Ref *r)
+incref(Ref* r)
 {
 	int x;
 
@@ -41,7 +45,7 @@ incref(Ref *r)
 }
 
 int
-decref(Ref *r)
+decref(Ref* r)
 {
 	int x;
 
@@ -55,7 +59,7 @@ decref(Ref *r)
 }
 
 void
-procrestore(Proc *p)
+procrestore(Proc* p)
 {
 	uint64_t t;
 
@@ -74,7 +78,7 @@ procrestore(Proc *p)
  *  care about fpu, mostly.
  */
 void
-procsave(Proc *p)
+procsave(Proc* p)
 {
 	uint64_t t;
 
@@ -87,7 +91,7 @@ procsave(Proc *p)
 static void
 linkproc(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	spllo();
 	up->kpfun(up->kparg);
 	pexit("kproc dying", 0);
@@ -102,7 +106,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 	 * to linkproc().
 	 */
 	p->sched.pc = PTR2UINT(linkproc);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-BY2SE);
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - BY2SE);
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	p->kpfun = func;
@@ -120,5 +124,5 @@ void
 idlehands(void)
 {
 	if(machp()->nixtype != NIXAC)
- 		halt();
+		halt();
 }

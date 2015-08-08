@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1991, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1991, 1995, 1997, 1998 Aladdin Enterprises.  All rights
+  reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +28,7 @@
 /* Generic substitute for Unix sys/time.h */
 
 #ifndef time__INCLUDED
-#  define time__INCLUDED
+#define time__INCLUDED
 
 /* We must include std.h before any file that includes sys/types.h. */
 #include "std.h"
@@ -44,24 +45,25 @@
  * The HAVE_SYS_TIME_H switch in gconfig_.h reflects this.
  */
 #ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-#  if defined(Plan9) || defined(M_UNIX) || defined(_IBMR2) || defined(_SEQUENT_) || defined(__GNUC__) || defined(__INTEL_COMPILER)
-     /* Plan 9, SCO, AIX and Sequent's DYNIX/ptx need both time.h and
-      * sys/time.h! As of version 2.2, at least some glibc
-      * installations also require both files. 
-      * Following Duraid Madina's request we also do it on Intel compiler.
-      */
-#    include <time.h>
-#  endif
+#include <sys/time.h>
+#if defined(Plan9) || defined(M_UNIX) || defined(_IBMR2) ||                    \
+    defined(_SEQUENT_) || defined(__GNUC__) || defined(__INTEL_COMPILER)
+/* Plan 9, SCO, AIX and Sequent's DYNIX/ptx need both time.h and
+ * sys/time.h! As of version 2.2, at least some glibc
+ * installations also require both files.
+ * Following Duraid Madina's request we also do it on Intel compiler.
+ */
+#include <time.h>
+#endif
 #else
-#  include <time.h>
-#  if !defined(__DECC) && !defined(__MWERKS__)
+#include <time.h>
+#if !defined(__DECC) && !defined(__MWERKS__)
 struct timeval {
-    long tv_sec, tv_usec;
+	long tv_sec, tv_usec;
 };
-#  endif
+#endif
 struct timezone {
-    int tz_minuteswest, tz_dsttime;
+	int tz_minuteswest, tz_dsttime;
 };
 
 #endif
@@ -80,25 +82,24 @@ struct timezone {
  * gettimeofday doesn't take a timezone argument.
  */
 #ifdef SVR4_0
-#  define gettimeofday_no_timezone 1
+#define gettimeofday_no_timezone 1
 #else
-#  define gettimeofday_no_timezone 0
+#define gettimeofday_no_timezone 0
 #endif
 
 /* Some System V environments, and Posix environments, need <sys/times.h>. */
 #ifdef HAVE_SYS_TIMES_H
-#  include <sys/times.h>
-#  define use_times_for_usertime 1
-		/* Posix 1003.1b-1993 section 4.8.1.5 says that
-		   CLK_TCK is obsolescent and that sysconf(_SC_CLK_TCK)
-		   should be used instead, but this requires including
-		   <unistd.h>, which is too painful to configure.  */
-#  ifndef CLK_TCK
-#    define CLK_TCK 100		/* guess for older hosts */
-#  endif
+#include <sys/times.h>
+#define use_times_for_usertime 1
+/* Posix 1003.1b-1993 section 4.8.1.5 says that
+   CLK_TCK is obsolescent and that sysconf(_SC_CLK_TCK)
+   should be used instead, but this requires including
+   <unistd.h>, which is too painful to configure.  */
+#ifndef CLK_TCK
+#define CLK_TCK 100 /* guess for older hosts */
+#endif
 #else
-#  define use_times_for_usertime 0
+#define use_times_for_usertime 0
 #endif
 
 #endif /* time__INCLUDED */
-

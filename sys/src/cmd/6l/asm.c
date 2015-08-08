@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
-#define	Dbufslop	100
+#define Dbufslop 100
 
-#define PADDR(a)	((a) & ~0xfffffffff0000000ull)
+#define PADDR(a) ((a) & ~0xfffffffff0000000ull)
 
 int64_t
 entryvalue(void)
 {
-	char *a;
-	Sym *s;
+	char* a;
+	Sym* s;
 
 	a = INITENTRY;
 	if(*a >= '0' && *a <= '9')
@@ -30,40 +30,40 @@ entryvalue(void)
 		break;
 	case SDATA:
 		if(dlm)
-			return s->value+INITDAT;
+			return s->value + INITDAT;
 	default:
 		diag("entry not text: %s", s->name);
 	}
 	return s->value;
 }
 
-/* these need to take long arguments to be compatible with elf.c */void
+/* these need to take long arguments to be compatible with elf.c */ void
 wputl(int32_t w)
 {
 	cput(w);
-	cput(w>>8);
+	cput(w >> 8);
 }
 
 void
 wput(int32_t w)
 {
-	cput(w>>8);
+	cput(w >> 8);
 	cput(w);
 }
 
 void
 lput(int32_t l)
 {
-	cput(l>>24);
-	cput(l>>16);
-	cput(l>>8);
+	cput(l >> 24);
+	cput(l >> 16);
+	cput(l >> 8);
 	cput(l);
 }
 
 void
 llput(int64_t v)
 {
-	lput(v>>32);
+	lput(v >> 32);
 	lput(v);
 }
 
@@ -71,26 +71,26 @@ void
 lputl(int32_t l)
 {
 	cput(l);
-	cput(l>>8);
-	cput(l>>16);
-	cput(l>>24);
+	cput(l >> 8);
+	cput(l >> 16);
+	cput(l >> 24);
 }
 
 void
 llputl(int64_t v)
 {
 	lputl(v);
-	lputl(v>>32);
+	lputl(v >> 32);
 }
 
 void
-strnput(char *s, int n)
+strnput(char* s, int n)
 {
-	for(; *s && n > 0; s++){
+	for(; *s && n > 0; s++) {
 		cput(*s);
 		n--;
 	}
-	while(n > 0){
+	while(n > 0) {
 		cput(0);
 		n--;
 	}
@@ -99,10 +99,10 @@ strnput(char *s, int n)
 void
 asmb(void)
 {
-	Prog *p;
+	Prog* p;
 	int32_t v, magic;
 	int a;
-	uint8_t *op1;
+	uint8_t* op1;
 	int64_t vl;
 
 	if(debug['v'])
@@ -118,7 +118,8 @@ asmb(void)
 		if(p->pc != pc) {
 			if(!debug['a'])
 				print("%P\n", curp);
-			diag("phase error %llux sb %llux in %s", p->pc, pc, TNAME);
+			diag("phase error %llux sb %llux in %s", p->pc, pc,
+			     TNAME);
 			pc = p->pc;
 		}
 		curp = p;
@@ -150,7 +151,7 @@ asmb(void)
 	case 2:
 	case 5:
 	case 6:
-		seek(cout, HEADR+textsize, 0);
+		seek(cout, HEADR + textsize, 0);
 		break;
 	}
 
@@ -158,18 +159,18 @@ asmb(void)
 		Bprint(&bso, "%5.2f datblk\n", cputime());
 	Bflush(&bso);
 
-	if(dlm){
+	if(dlm) {
 		char buf[8];
 
-		write(cout, buf, INITDAT-textsize);
+		write(cout, buf, INITDAT - textsize);
 		textsize = INITDAT;
 	}
 
-	for(v = 0; v < datsize; v += sizeof(buf)-Dbufslop) {
-		if(datsize-v > sizeof(buf)-Dbufslop)
-			datblk(v, sizeof(buf)-Dbufslop);
+	for(v = 0; v < datsize; v += sizeof(buf) - Dbufslop) {
+		if(datsize - v > sizeof(buf) - Dbufslop)
+			datblk(v, sizeof(buf) - Dbufslop);
 		else
-			datblk(v, datsize-v);
+			datblk(v, datsize - v);
 	}
 
 	symsize = 0;
@@ -184,7 +185,7 @@ asmb(void)
 		case 2:
 		case 5:
 		case 6:
-			seek(cout, HEADR+textsize+datsize, 0);
+			seek(cout, HEADR + textsize + datsize, 0);
 			break;
 		}
 		if(!debug['s'])
@@ -200,9 +201,8 @@ asmb(void)
 		if(dlm)
 			asmdyn();
 		cflush();
-	}
-	else if(dlm){
-		seek(cout, HEADR+textsize+datsize, 0);
+	} else if(dlm) {
+		seek(cout, HEADR + textsize + datsize, 0);
 		asmdyn();
 		cflush();
 	}
@@ -212,24 +212,24 @@ asmb(void)
 	seek(cout, 0L, 0);
 	switch(HEADTYPE) {
 	default:
-	case 2:	/* plan9 */
-		magic = 4*26*26+7;
-		magic |= 0x00008000;		/* fat header */
+	case 2: /* plan9 */
+		magic = 4 * 26 * 26 + 7;
+		magic |= 0x00008000; /* fat header */
 		if(dlm)
-			magic |= 0x80000000;	/* dlm */
-		lput(magic);			/* magic */
-		lput(textsize);			/* sizes */
+			magic |= 0x80000000; /* dlm */
+		lput(magic);                 /* magic */
+		lput(textsize);              /* sizes */
 		lput(datsize);
 		lput(bsssize);
-		lput(symsize);			/* nsyms */
+		lput(symsize); /* nsyms */
 		vl = entryvalue();
-		lput(PADDR(vl));		/* va of entry */
-		lput(spsize);			/* sp offsets */
-		lput(lcsize);			/* line offsets */
-		llput(vl);			/* va of entry */
+		lput(PADDR(vl)); /* va of entry */
+		lput(spsize);    /* sp offsets */
+		lput(lcsize);    /* line offsets */
+		llput(vl);       /* va of entry */
 		break;
 	case 5:
-		elf32(debug['8']? I386: AMD64, ELFDATA2LSB, 0, nil);
+		elf32(debug['8'] ? I386 : AMD64, ELFDATA2LSB, 0, nil);
 		break;
 	case 6:
 		elf64(AMD64, ELFDATA2LSB, 0, nil);
@@ -253,20 +253,20 @@ cflush(void)
 void
 datblk(int32_t s, int32_t n)
 {
-	Prog *p;
-	uint8_t *cast;
+	Prog* p;
+	uint8_t* cast;
 	int32_t l, fl, j;
 	int64_t o;
 	int i, c;
 
-	memset(buf.dbuf, 0, n+Dbufslop);
+	memset(buf.dbuf, 0, n + Dbufslop);
 	for(p = datap; p != P; p = p->link) {
 		curp = p;
 		l = p->from.sym->value + p->from.offset - s;
 		c = p->from.scale;
 		i = 0;
 		if(l < 0) {
-			if(l+c <= 0)
+			if(l + c <= 0)
 				continue;
 			while(l < 0) {
 				l++;
@@ -276,7 +276,7 @@ datblk(int32_t s, int32_t n)
 		if(l >= n)
 			continue;
 		if(p->as != AINIT && p->as != ADYNT) {
-			for(j=l+(c-i)-1; j>=l; j--)
+			for(j = l + (c - i) - 1; j >= l; j--)
 				if(buf.dbuf[j]) {
 					print("%P\n", p);
 					diag("multiple initialization");
@@ -291,12 +291,13 @@ datblk(int32_t s, int32_t n)
 				fl = ieeedtof(&p->to.ieee);
 				cast = (uint8_t*)&fl;
 				if(debug['a'] && i == 0) {
-					Bprint(&bso, pcstr, l+s+INITDAT);
-					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[fnuxi4[j]]);
+					Bprint(&bso, pcstr, l + s + INITDAT);
+					for(j = 0; j < c; j++)
+						Bprint(&bso, "%.2ux",
+						       cast[fnuxi4[j]]);
 					Bprint(&bso, "\t%P\n", curp);
 				}
-				for(; i<c; i++) {
+				for(; i < c; i++) {
 					buf.dbuf[l] = cast[fnuxi4[i]];
 					l++;
 				}
@@ -304,12 +305,13 @@ datblk(int32_t s, int32_t n)
 			case 8:
 				cast = (uint8_t*)&p->to.ieee;
 				if(debug['a'] && i == 0) {
-					Bprint(&bso, pcstr, l+s+INITDAT);
-					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[fnuxi8[j]]);
+					Bprint(&bso, pcstr, l + s + INITDAT);
+					for(j = 0; j < c; j++)
+						Bprint(&bso, "%.2ux",
+						       cast[fnuxi8[j]]);
 					Bprint(&bso, "\t%P\n", curp);
 				}
-				for(; i<c; i++) {
+				for(; i < c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
 				}
@@ -319,12 +321,13 @@ datblk(int32_t s, int32_t n)
 
 		case D_SCONST:
 			if(debug['a'] && i == 0) {
-				Bprint(&bso, pcstr, l+s+INITDAT);
-				for(j=0; j<c; j++)
-					Bprint(&bso, "%.2ux", p->to.scon[j] & 0xff);
+				Bprint(&bso, pcstr, l + s + INITDAT);
+				for(j = 0; j < c; j++)
+					Bprint(&bso, "%.2ux",
+					       p->to.scon[j] & 0xff);
 				Bprint(&bso, "\t%P\n", curp);
 			}
-			for(; i<c; i++) {
+			for(; i < c; i++) {
 				buf.dbuf[l] = p->to.scon[i];
 				l++;
 			}
@@ -332,16 +335,19 @@ datblk(int32_t s, int32_t n)
 		default:
 			o = p->to.offset;
 			if(p->to.type == D_ADDR) {
-				if(p->to.index != D_STATIC && p->to.index != D_EXTERN)
+				if(p->to.index != D_STATIC &&
+				   p->to.index != D_EXTERN)
 					diag("DADDR type%P", p);
 				if(p->to.sym) {
 					if(p->to.sym->type == SUNDEF)
 						ckoff(p->to.sym, o);
 					o += p->to.sym->value;
-					if(p->to.sym->type != STEXT && p->to.sym->type != SUNDEF)
+					if(p->to.sym->type != STEXT &&
+					   p->to.sym->type != SUNDEF)
 						o += INITDAT;
 					if(dlm)
-						dynreloc(p->to.sym, l+s+INITDAT, 1);
+						dynreloc(p->to.sym,
+						         l + s + INITDAT, 1);
 				}
 			}
 			fl = o;
@@ -352,36 +358,39 @@ datblk(int32_t s, int32_t n)
 				break;
 			case 1:
 				if(debug['a'] && i == 0) {
-					Bprint(&bso, pcstr, l+s+INITDAT);
-					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi1[j]]);
+					Bprint(&bso, pcstr, l + s + INITDAT);
+					for(j = 0; j < c; j++)
+						Bprint(&bso, "%.2ux",
+						       cast[inuxi1[j]]);
 					Bprint(&bso, "\t%P\n", curp);
 				}
-				for(; i<c; i++) {
+				for(; i < c; i++) {
 					buf.dbuf[l] = cast[inuxi1[i]];
 					l++;
 				}
 				break;
 			case 2:
 				if(debug['a'] && i == 0) {
-					Bprint(&bso, pcstr, l+s+INITDAT);
-					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi2[j]]);
+					Bprint(&bso, pcstr, l + s + INITDAT);
+					for(j = 0; j < c; j++)
+						Bprint(&bso, "%.2ux",
+						       cast[inuxi2[j]]);
 					Bprint(&bso, "\t%P\n", curp);
 				}
-				for(; i<c; i++) {
+				for(; i < c; i++) {
 					buf.dbuf[l] = cast[inuxi2[i]];
 					l++;
 				}
 				break;
 			case 4:
 				if(debug['a'] && i == 0) {
-					Bprint(&bso, pcstr, l+s+INITDAT);
-					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi4[j]]);
+					Bprint(&bso, pcstr, l + s + INITDAT);
+					for(j = 0; j < c; j++)
+						Bprint(&bso, "%.2ux",
+						       cast[inuxi4[j]]);
 					Bprint(&bso, "\t%P\n", curp);
 				}
-				for(; i<c; i++) {
+				for(; i < c; i++) {
 					buf.dbuf[l] = cast[inuxi4[i]];
 					l++;
 				}
@@ -389,12 +398,13 @@ datblk(int32_t s, int32_t n)
 			case 8:
 				cast = (uint8_t*)&o;
 				if(debug['a'] && i == 0) {
-					Bprint(&bso, pcstr, l+s+INITDAT);
-					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi8[j]]);
+					Bprint(&bso, pcstr, l + s + INITDAT);
+					for(j = 0; j < c; j++)
+						Bprint(&bso, "%.2ux",
+						       cast[inuxi8[j]]);
 					Bprint(&bso, "\t%P\n", curp);
 				}
-				for(; i<c; i++) {
+				for(; i < c; i++) {
 					buf.dbuf[l] = cast[inuxi8[i]];
 					l++;
 				}

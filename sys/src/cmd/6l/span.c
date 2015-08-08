@@ -7,15 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
-static int	rexflag;
-static int	asmode;
+static int rexflag;
+static int asmode;
 
 void
 span(void)
 {
-	Prog *p, *q;
+	Prog* p, *q;
 	int32_t v;
 	int64_t c, idat;
 	int m, n, again;
@@ -37,9 +37,9 @@ span(void)
 			p->to.type = D_SP;
 			v = -p->from.offset;
 			p->from.offset = v;
-			p->as = p->mode != 64? AADDL: AADDQ;
+			p->as = p->mode != 64 ? AADDL : AADDQ;
 			if(v < 0) {
-				p->as = p->mode != 64? ASUBL: ASUBQ;
+				p->as = p->mode != 64 ? ASUBL : ASUBQ;
 				v = -v;
 				p->from.offset = v;
 			}
@@ -62,7 +62,7 @@ start:
 				p->pc = c;
 		asmins(p);
 		p->pc = c;
-		m = andptr-and;
+		m = andptr - and;
 		p->mark = m;
 		c += m;
 	}
@@ -85,7 +85,7 @@ loop:
 			if(p->back)
 				p->pc = c;
 			asmins(p);
-			m = andptr-and;
+			m = andptr - and;
 			if(m != p->mark) {
 				p->mark = m;
 				again++;
@@ -115,9 +115,9 @@ loop:
 }
 
 void
-xdefine(char *p, int t, int64_t v)
+xdefine(char* p, int t, int64_t v)
 {
-	Sym *s;
+	Sym* s;
 
 	s = lookup(p, 0);
 	if(s->type == 0 || s->type == SXREF) {
@@ -129,14 +129,14 @@ xdefine(char *p, int t, int64_t v)
 }
 
 void
-putsymb(char *s, int t, int64_t v, int ver)
+putsymb(char* s, int t, int64_t v, int ver)
 {
 	int i, f, l;
 
 	if(t == 'f')
 		s++;
 	l = 4;
-	switch(HEADTYPE){
+	switch(HEADTYPE) {
 	default:
 		break;
 	case 5:
@@ -144,27 +144,26 @@ putsymb(char *s, int t, int64_t v, int ver)
 			break;
 	case 2:
 	case 6:
-		lput(v>>32);
+		lput(v >> 32);
 		l = 8;
 		break;
 	}
 	lput(v);
 	if(ver)
 		t += 'a' - 'A';
-	cput(t+0x80);			/* 0x80 is variable length */
+	cput(t + 0x80); /* 0x80 is variable length */
 
 	if(t == 'Z' || t == 'z') {
 		cput(s[0]);
-		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
+		for(i = 1; s[i] != 0 || s[i + 1] != 0; i += 2) {
 			cput(s[i]);
-			cput(s[i+1]);
+			cput(s[i + 1]);
 		}
 		cput(0);
 		cput(0);
 		i++;
-	}
-	else {
-		for(i=0; s[i]; i++)
+	} else {
+		for(i = 0; s[i]; i++)
 			cput(s[i]);
 		cput(0);
 	}
@@ -173,8 +172,8 @@ putsymb(char *s, int t, int64_t v, int ver)
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
 			Bprint(&bso, "%c %.8llux ", t, v);
-			for(i=1; s[i] != 0 || s[i+1] != 0; i+=2) {
-				f = ((s[i]&0xff) << 8) | (s[i+1]&0xff);
+			for(i = 1; s[i] != 0 || s[i + 1] != 0; i += 2) {
+				f = ((s[i] & 0xff) << 8) | (s[i + 1] & 0xff);
 				Bprint(&bso, "/%x", f);
 			}
 			Bprint(&bso, "\n");
@@ -190,28 +189,30 @@ putsymb(char *s, int t, int64_t v, int ver)
 void
 asmsym(void)
 {
-	Prog *p;
-	Auto *a;
-	Sym *s;
+	Prog* p;
+	Auto* a;
+	Sym* s;
 	int h;
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
 		putsymb(s->name, 'T', s->value, s->version);
 
-	for(h=0; h<NHASH; h++)
-		for(s=hash[h]; s!=S; s=s->link)
+	for(h = 0; h < NHASH; h++)
+		for(s = hash[h]; s != S; s = s->link)
 			switch(s->type) {
 			case SCONST:
 				putsymb(s->name, 'D', s->value, s->version);
 				continue;
 
 			case SDATA:
-				putsymb(s->name, 'D', s->value+INITDAT, s->version);
+				putsymb(s->name, 'D', s->value + INITDAT,
+				        s->version);
 				continue;
 
 			case SBSS:
-				putsymb(s->name, 'B', s->value+INITDAT, s->version);
+				putsymb(s->name, 'B', s->value + INITDAT,
+				        s->version);
 				continue;
 
 			case SFILE:
@@ -219,29 +220,27 @@ asmsym(void)
 				continue;
 			}
 
-	for(p=textp; p!=P; p=p->pcond) {
+	for(p = textp; p != P; p = p->pcond) {
 		s = p->from.sym;
 		if(s->type != STEXT)
 			continue;
 
 		/* filenames first */
-		for(a=p->to.autom; a; a=a->link)
+		for(a = p->to.autom; a; a = a->link)
 			if(a->type == D_FILE)
 				putsymb(a->asym->name, 'z', a->aoffset, 0);
-			else
-			if(a->type == D_FILE1)
+			else if(a->type == D_FILE1)
 				putsymb(a->asym->name, 'Z', a->aoffset, 0);
 
 		putsymb(s->name, 'T', s->value, s->version);
 
 		/* frame, auto and param after */
-		putsymb(".frame", 'm', p->to.offset+8, 0);
+		putsymb(".frame", 'm', p->to.offset + 8, 0);
 
-		for(a=p->to.autom; a; a=a->link)
+		for(a = p->to.autom; a; a = a->link)
 			if(a->type == D_AUTO)
 				putsymb(a->asym->name, 'a', -a->aoffset, 0);
-			else
-			if(a->type == D_PARAM)
+			else if(a->type == D_PARAM)
 				putsymb(a->asym->name, 'p', a->aoffset, 0);
 	}
 	if(debug['v'] || debug['n'])
@@ -253,7 +252,7 @@ void
 asmlc(void)
 {
 	int64_t oldpc;
-	Prog *p;
+	Prog* p;
 	int32_t oldlc, v, s;
 
 	oldpc = INITTEXT;
@@ -263,8 +262,7 @@ asmlc(void)
 			if(p->as == ATEXT)
 				curtext = p;
 			if(debug['V'])
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			continue;
 		}
 		if(debug['V'])
@@ -274,9 +272,10 @@ asmlc(void)
 			s = 127;
 			if(v < 127)
 				s = v;
-			cput(s+128);	/* 129-255 +pc */
+			cput(s + 128); /* 129-255 +pc */
 			if(debug['V'])
-				Bprint(&bso, " pc+%ld*%d(%ld)", s, MINLC, s+128);
+				Bprint(&bso, " pc+%ld*%d(%ld)", s, MINLC,
+				       s + 128);
 			v -= s;
 			lcsize++;
 		}
@@ -284,37 +283,34 @@ asmlc(void)
 		oldlc = p->line;
 		oldpc = p->pc + MINLC;
 		if(s > 64 || s < -64) {
-			cput(0);	/* 0 vv +lc */
-			cput(s>>24);
-			cput(s>>16);
-			cput(s>>8);
+			cput(0); /* 0 vv +lc */
+			cput(s >> 24);
+			cput(s >> 16);
+			cput(s >> 8);
 			cput(s);
 			if(debug['V']) {
 				if(s > 0)
-					Bprint(&bso, " lc+%ld(%d,%ld)\n",
-						s, 0, s);
+					Bprint(&bso, " lc+%ld(%d,%ld)\n", s, 0,
+					       s);
 				else
-					Bprint(&bso, " lc%ld(%d,%ld)\n",
-						s, 0, s);
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+					Bprint(&bso, " lc%ld(%d,%ld)\n", s, 0,
+					       s);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			}
 			lcsize += 5;
 			continue;
 		}
 		if(s > 0) {
-			cput(0+s);	/* 1-64 +lc */
+			cput(0 + s); /* 1-64 +lc */
 			if(debug['V']) {
-				Bprint(&bso, " lc+%ld(%ld)\n", s, 0+s);
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+				Bprint(&bso, " lc+%ld(%ld)\n", s, 0 + s);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			}
 		} else {
-			cput(64-s);	/* 65-128 -lc */
+			cput(64 - s); /* 65-128 -lc */
 			if(debug['V']) {
-				Bprint(&bso, " lc%ld(%ld)\n", s, 64-s);
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+				Bprint(&bso, " lc%ld(%ld)\n", s, 64 - s);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			}
 		}
 		lcsize++;
@@ -330,7 +326,7 @@ asmlc(void)
 }
 
 int
-oclass(Adr *a)
+oclass(Adr* a)
 {
 	int64_t v;
 	int32_t l;
@@ -341,7 +337,7 @@ oclass(Adr *a)
 				switch(a->index) {
 				case D_EXTERN:
 				case D_STATIC:
-					return Yi32;	/* TO DO: Yi64 */
+					return Yi32; /* TO DO: Yi64 */
 				case D_AUTO:
 				case D_PARAM:
 					return Yiauto;
@@ -352,17 +348,16 @@ oclass(Adr *a)
 		}
 		return Ym;
 	}
-	switch(a->type)
-	{
+	switch(a->type) {
 	case D_AL:
 		return Yal;
 
 	case D_AX:
 		return Yax;
 
-/*
-	case D_SPB:
-*/
+	/*
+	        case D_SPB:
+	*/
 	case D_BPB:
 	case D_SIB:
 	case D_DIB:
@@ -394,7 +389,7 @@ oclass(Adr *a)
 	case D_BX:
 		return Yrx;
 
-	case D_R8:	/* not really Yrl */
+	case D_R8: /* not really Yrl */
 	case D_R9:
 	case D_R10:
 	case D_R11:
@@ -410,89 +405,125 @@ oclass(Adr *a)
 	case D_DI:
 		return Yrl;
 
-	case D_F0+0:
-		return	Yf0;
+	case D_F0 + 0:
+		return Yf0;
 
-	case D_F0+1:
-	case D_F0+2:
-	case D_F0+3:
-	case D_F0+4:
-	case D_F0+5:
-	case D_F0+6:
-	case D_F0+7:
-		return	Yrf;
+	case D_F0 + 1:
+	case D_F0 + 2:
+	case D_F0 + 3:
+	case D_F0 + 4:
+	case D_F0 + 5:
+	case D_F0 + 6:
+	case D_F0 + 7:
+		return Yrf;
 
-	case D_M0+0:
-	case D_M0+1:
-	case D_M0+2:
-	case D_M0+3:
-	case D_M0+4:
-	case D_M0+5:
-	case D_M0+6:
-	case D_M0+7:
-		return	Ymr;
+	case D_M0 + 0:
+	case D_M0 + 1:
+	case D_M0 + 2:
+	case D_M0 + 3:
+	case D_M0 + 4:
+	case D_M0 + 5:
+	case D_M0 + 6:
+	case D_M0 + 7:
+		return Ymr;
 
-	case D_X0+0:
-	case D_X0+1:
-	case D_X0+2:
-	case D_X0+3:
-	case D_X0+4:
-	case D_X0+5:
-	case D_X0+6:
-	case D_X0+7:
-	case D_X0+8:
-	case D_X0+9:
-	case D_X0+10:
-	case D_X0+11:
-	case D_X0+12:
-	case D_X0+13:
-	case D_X0+14:
-	case D_X0+15:
-		return	Yxr;
+	case D_X0 + 0:
+	case D_X0 + 1:
+	case D_X0 + 2:
+	case D_X0 + 3:
+	case D_X0 + 4:
+	case D_X0 + 5:
+	case D_X0 + 6:
+	case D_X0 + 7:
+	case D_X0 + 8:
+	case D_X0 + 9:
+	case D_X0 + 10:
+	case D_X0 + 11:
+	case D_X0 + 12:
+	case D_X0 + 13:
+	case D_X0 + 14:
+	case D_X0 + 15:
+		return Yxr;
 
 	case D_NONE:
 		return Ynone;
 
-	case D_CS:	return	Ycs;
-	case D_SS:	return	Yss;
-	case D_DS:	return	Yds;
-	case D_ES:	return	Yes;
-	case D_FS:	return	Yfs;
-	case D_GS:	return	Ygs;
+	case D_CS:
+		return Ycs;
+	case D_SS:
+		return Yss;
+	case D_DS:
+		return Yds;
+	case D_ES:
+		return Yes;
+	case D_FS:
+		return Yfs;
+	case D_GS:
+		return Ygs;
 
-	case D_GDTR:	return	Ygdtr;
-	case D_IDTR:	return	Yidtr;
-	case D_LDTR:	return	Yldtr;
-	case D_MSW:	return	Ymsw;
-	case D_TASK:	return	Ytask;
+	case D_GDTR:
+		return Ygdtr;
+	case D_IDTR:
+		return Yidtr;
+	case D_LDTR:
+		return Yldtr;
+	case D_MSW:
+		return Ymsw;
+	case D_TASK:
+		return Ytask;
 
-	case D_CR+0:	return	Ycr0;
-	case D_CR+1:	return	Ycr1;
-	case D_CR+2:	return	Ycr2;
-	case D_CR+3:	return	Ycr3;
-	case D_CR+4:	return	Ycr4;
-	case D_CR+5:	return	Ycr5;
-	case D_CR+6:	return	Ycr6;
-	case D_CR+7:	return	Ycr7;
-	case D_CR+8:	return	Ycr8;
+	case D_CR + 0:
+		return Ycr0;
+	case D_CR + 1:
+		return Ycr1;
+	case D_CR + 2:
+		return Ycr2;
+	case D_CR + 3:
+		return Ycr3;
+	case D_CR + 4:
+		return Ycr4;
+	case D_CR + 5:
+		return Ycr5;
+	case D_CR + 6:
+		return Ycr6;
+	case D_CR + 7:
+		return Ycr7;
+	case D_CR + 8:
+		return Ycr8;
 
-	case D_DR+0:	return	Ydr0;
-	case D_DR+1:	return	Ydr1;
-	case D_DR+2:	return	Ydr2;
-	case D_DR+3:	return	Ydr3;
-	case D_DR+4:	return	Ydr4;
-	case D_DR+5:	return	Ydr5;
-	case D_DR+6:	return	Ydr6;
-	case D_DR+7:	return	Ydr7;
+	case D_DR + 0:
+		return Ydr0;
+	case D_DR + 1:
+		return Ydr1;
+	case D_DR + 2:
+		return Ydr2;
+	case D_DR + 3:
+		return Ydr3;
+	case D_DR + 4:
+		return Ydr4;
+	case D_DR + 5:
+		return Ydr5;
+	case D_DR + 6:
+		return Ydr6;
+	case D_DR + 7:
+		return Ydr7;
 
-	case D_TR+0:	return	Ytr0;
-	case D_TR+1:	return	Ytr1;
-	case D_TR+2:	return	Ytr2;
-	case D_TR+3:	return	Ytr3;
-	case D_TR+4:	return	Ytr4;
-	case D_TR+5:	return	Ytr5;
-	case D_TR+6:	return	Ytr6;
-	case D_TR+7:	return	Ytr7;
+	case D_TR + 0:
+		return Ytr0;
+	case D_TR + 1:
+		return Ytr1;
+	case D_TR + 2:
+		return Ytr2;
+	case D_TR + 3:
+		return Ytr3;
+	case D_TR + 4:
+		return Ytr4;
+	case D_TR + 5:
+		return Ytr5;
+	case D_TR + 6:
+		return Ytr6;
+	case D_TR + 7:
+		return Ytr7;
 
 	case D_EXTERN:
 	case D_STATIC:
@@ -512,12 +543,12 @@ oclass(Adr *a)
 				return Yi8;
 			l = v;
 			if((int64_t)l == v)
-				return Ys32;	/* can sign extend */
-			if((v>>32) == 0)
-				return Yi32;	/* unsigned */
+				return Ys32; /* can sign extend */
+			if((v >> 32) == 0)
+				return Yi32; /* unsigned */
 			return Yi64;
 		}
-		return Yi32;	/* TO DO: D_ADDR as Yi64 */
+		return Yi32; /* TO DO: D_ADDR as Yi64 */
 
 	case D_BRANCH:
 		return Ybr;
@@ -526,7 +557,7 @@ oclass(Adr *a)
 }
 
 void
-asmidx(Adr *a, int base)
+asmidx(Adr* a, int base)
 {
 	int i;
 
@@ -564,20 +595,20 @@ asmidx(Adr *a, int base)
 	case 1:
 		break;
 	case 2:
-		i |= (1<<6);
+		i |= (1 << 6);
 		break;
 	case 4:
-		i |= (2<<6);
+		i |= (2 << 6);
 		break;
 	case 8:
-		i |= (3<<6);
+		i |= (3 << 6);
 		break;
 	}
 bas:
 	switch(base) {
 	default:
 		goto bad;
-	case D_NONE:	/* must be mod=00 */
+	case D_NONE: /* must be mod=00 */
 		i |= 5;
 		break;
 	case D_R8:
@@ -612,41 +643,42 @@ bad:
 static void
 put4(int32_t v)
 {
-	if(dlm && curp != P && reloca != nil){
+	if(dlm && curp != P && reloca != nil) {
 		dynreloc(reloca->sym, curp->pc + andptr - &and[0], 1);
 		reloca = nil;
 	}
 	andptr[0] = v;
-	andptr[1] = v>>8;
-	andptr[2] = v>>16;
-	andptr[3] = v>>24;
+	andptr[1] = v >> 8;
+	andptr[2] = v >> 16;
+	andptr[3] = v >> 24;
 	andptr += 4;
 }
 
 static void
 put8(int64_t v)
 {
-	if(dlm && curp != P && reloca != nil){
-		dynreloc(reloca->sym, curp->pc + andptr - &and[0], 1);	/* TO DO */
+	if(dlm && curp != P && reloca != nil) {
+		dynreloc(reloca->sym, curp->pc + andptr - &and[0],
+		         1); /* TO DO */
 		reloca = nil;
 	}
 	andptr[0] = v;
-	andptr[1] = v>>8;
-	andptr[2] = v>>16;
-	andptr[3] = v>>24;
-	andptr[4] = v>>32;
-	andptr[5] = v>>40;
-	andptr[6] = v>>48;
-	andptr[7] = v>>56;
+	andptr[1] = v >> 8;
+	andptr[2] = v >> 16;
+	andptr[3] = v >> 24;
+	andptr[4] = v >> 32;
+	andptr[5] = v >> 40;
+	andptr[6] = v >> 48;
+	andptr[7] = v >> 56;
 	andptr += 8;
 }
 
 int64_t
-vaddr(Adr *a)
+vaddr(Adr* a)
 {
 	int t;
 	int64_t v;
-	Sym *s;
+	Sym* s;
 
 	t = a->type;
 	v = a->offset;
@@ -665,7 +697,7 @@ vaddr(Adr *a)
 			case STEXT:
 			case SCONST:
 				if((uint64_t)s->value < (uint64_t)INITTEXT)
-					v += INITTEXT;	/* TO DO */
+					v += INITTEXT; /* TO DO */
 				v += s->value;
 				break;
 			default:
@@ -677,7 +709,7 @@ vaddr(Adr *a)
 }
 
 static void
-asmandsz(Adr *a, int r, int rex, int m64)
+asmandsz(Adr* a, int r, int rex, int m64)
 {
 	int32_t v;
 	int t;
@@ -689,7 +721,8 @@ asmandsz(Adr *a, int r, int rex, int m64)
 	if(a->index != D_NONE) {
 		if(t >= D_INDIR) {
 			t -= D_INDIR;
-			rexflag |= (regrex[a->index] & Rxx) | (regrex[t] & Rxb) | rex;
+			rexflag |=
+			    (regrex[a->index] & Rxx) | (regrex[t] & Rxb) | rex;
 			if(t == D_NONE) {
 				*andptr++ = (0 << 6) | (4 << 0) | (r << 3);
 				asmidx(a, t);
@@ -717,11 +750,11 @@ asmandsz(Adr *a, int r, int rex, int m64)
 			goto bad;
 		case D_STATIC:
 		case D_EXTERN:
-			aa.type = D_NONE+D_INDIR;
+			aa.type = D_NONE + D_INDIR;
 			break;
 		case D_AUTO:
 		case D_PARAM:
-			aa.type = D_SP+D_INDIR;
+			aa.type = D_SP + D_INDIR;
 			break;
 		}
 		aa.offset = vaddr(a);
@@ -730,7 +763,7 @@ asmandsz(Adr *a, int r, int rex, int m64)
 		asmandsz(&aa, r, rex, m64);
 		return;
 	}
-	if(t >= D_AL && t <= D_X0+15) {
+	if(t >= D_AL && t <= D_X0 + 15) {
 		if(v)
 			goto bad;
 		*andptr++ = (3 << 6) | (reg[t] << 0) | (r << 3);
@@ -741,14 +774,15 @@ asmandsz(Adr *a, int r, int rex, int m64)
 		t -= D_INDIR;
 		rexflag |= (regrex[t] & Rxb) | rex;
 		if(t == D_NONE) {
-			if(asmode != 64){
+			if(asmode != 64) {
 				*andptr++ = (0 << 6) | (5 << 0) | (r << 3);
 				put4(v);
 				return;
 			}
 			/* temporary */
-			*andptr++ = (0 <<  6) | (4 << 0) | (r << 3);	/* sib present */
-			*andptr++ = (0 << 6) | (4 << 3) | (5 << 0);	/* DS:d32 */
+			*andptr++ =
+			    (0 << 6) | (4 << 0) | (r << 3); /* sib present */
+			*andptr++ = (0 << 6) | (4 << 3) | (5 << 0); /* DS:d32 */
 			put4(v);
 			return;
 		}
@@ -791,11 +825,11 @@ asmandsz(Adr *a, int r, int rex, int m64)
 		goto bad;
 	case D_STATIC:
 	case D_EXTERN:
-		aa.type = D_NONE+D_INDIR;
+		aa.type = D_NONE + D_INDIR;
 		break;
 	case D_AUTO:
 	case D_PARAM:
-		aa.type = D_SP+D_INDIR;
+		aa.type = D_SP + D_INDIR;
 		break;
 	}
 	aa.index = D_NONE;
@@ -809,164 +843,162 @@ bad:
 }
 
 void
-asmand(Adr *a, Adr *ra)
+asmand(Adr* a, Adr* ra)
 {
 	asmandsz(a, reg[ra->type], regrex[ra->type], 0);
 }
 
 void
-asmando(Adr *a, int o)
+asmando(Adr* a, int o)
 {
 	asmandsz(a, o, 0, 0);
 }
 
 static void
-bytereg(Adr *a)
+bytereg(Adr* a)
 {
 	if(a->index == D_NONE && (a->type >= D_AX && a->type <= D_R15))
-		a->type = D_AL + (a->type-D_AX);
+		a->type = D_AL + (a->type - D_AX);
 }
 
-#define	E	0xff
-Movtab	ymovtab[] =
-{
-/* push */
-	{APUSHL,	Ycs,	Ynone,	0,	0x0e,E,0,0},
-	{APUSHL,	Yss,	Ynone,	0,	0x16,E,0,0},
-	{APUSHL,	Yds,	Ynone,	0,	0x1e,E,0,0},
-	{APUSHL,	Yes,	Ynone,	0,	0x06,E,0,0},
-	{APUSHL,	Yfs,	Ynone,	0,	0x0f,0xa0,E,0},
-	{APUSHL,	Ygs,	Ynone,	0,	0x0f,0xa8,E,0},
-	{APUSHQ,	Yfs,	Ynone,	0,	0x0f,0xa0,E,0},
-	{APUSHQ,	Ygs,	Ynone,	0,	0x0f,0xa8,E,0},
+#define E 0xff
+Movtab ymovtab[] = {
+    /* push */
+    {APUSHL, Ycs, Ynone, 0, 0x0e, E, 0, 0},
+    {APUSHL, Yss, Ynone, 0, 0x16, E, 0, 0},
+    {APUSHL, Yds, Ynone, 0, 0x1e, E, 0, 0},
+    {APUSHL, Yes, Ynone, 0, 0x06, E, 0, 0},
+    {APUSHL, Yfs, Ynone, 0, 0x0f, 0xa0, E, 0},
+    {APUSHL, Ygs, Ynone, 0, 0x0f, 0xa8, E, 0},
+    {APUSHQ, Yfs, Ynone, 0, 0x0f, 0xa0, E, 0},
+    {APUSHQ, Ygs, Ynone, 0, 0x0f, 0xa8, E, 0},
 
-	{APUSHW,	Ycs,	Ynone,	0,	Pe,0x0e,E,0},
-	{APUSHW,	Yss,	Ynone,	0,	Pe,0x16,E,0},
-	{APUSHW,	Yds,	Ynone,	0,	Pe,0x1e,E,0},
-	{APUSHW,	Yes,	Ynone,	0,	Pe,0x06,E,0},
-	{APUSHW,	Yfs,	Ynone,	0,	Pe,0x0f,0xa0,E},
-	{APUSHW,	Ygs,	Ynone,	0,	Pe,0x0f,0xa8,E},
+    {APUSHW, Ycs, Ynone, 0, Pe, 0x0e, E, 0},
+    {APUSHW, Yss, Ynone, 0, Pe, 0x16, E, 0},
+    {APUSHW, Yds, Ynone, 0, Pe, 0x1e, E, 0},
+    {APUSHW, Yes, Ynone, 0, Pe, 0x06, E, 0},
+    {APUSHW, Yfs, Ynone, 0, Pe, 0x0f, 0xa0, E},
+    {APUSHW, Ygs, Ynone, 0, Pe, 0x0f, 0xa8, E},
 
-/* pop */
-	{APOPL,	Ynone,	Yds,	0,	0x1f,E,0,0},
-	{APOPL,	Ynone,	Yes,	0,	0x07,E,0,0},
-	{APOPL,	Ynone,	Yss,	0,	0x17,E,0,0},
-	{APOPL,	Ynone,	Yfs,	0,	0x0f,0xa1,E,0},
-	{APOPL,	Ynone,	Ygs,	0,	0x0f,0xa9,E,0},
-	{APOPQ,	Ynone,	Yfs,	0,	0x0f,0xa1,E,0},
-	{APOPQ,	Ynone,	Ygs,	0,	0x0f,0xa9,E,0},
+    /* pop */
+    {APOPL, Ynone, Yds, 0, 0x1f, E, 0, 0},
+    {APOPL, Ynone, Yes, 0, 0x07, E, 0, 0},
+    {APOPL, Ynone, Yss, 0, 0x17, E, 0, 0},
+    {APOPL, Ynone, Yfs, 0, 0x0f, 0xa1, E, 0},
+    {APOPL, Ynone, Ygs, 0, 0x0f, 0xa9, E, 0},
+    {APOPQ, Ynone, Yfs, 0, 0x0f, 0xa1, E, 0},
+    {APOPQ, Ynone, Ygs, 0, 0x0f, 0xa9, E, 0},
 
-	{APOPW,	Ynone,	Yds,	0,	Pe,0x1f,E,0},
-	{APOPW,	Ynone,	Yes,	0,	Pe,0x07,E,0},
-	{APOPW,	Ynone,	Yss,	0,	Pe,0x17,E,0},
-	{APOPW,	Ynone,	Yfs,	0,	Pe,0x0f,0xa1,E},
-	{APOPW,	Ynone,	Ygs,	0,	Pe,0x0f,0xa9,E},
+    {APOPW, Ynone, Yds, 0, Pe, 0x1f, E, 0},
+    {APOPW, Ynone, Yes, 0, Pe, 0x07, E, 0},
+    {APOPW, Ynone, Yss, 0, Pe, 0x17, E, 0},
+    {APOPW, Ynone, Yfs, 0, Pe, 0x0f, 0xa1, E},
+    {APOPW, Ynone, Ygs, 0, Pe, 0x0f, 0xa9, E},
 
-/* mov seg */
-	{AMOVW,	Yes,	Yml,	1,	0x8c,0,0,0},
-	{AMOVW,	Ycs,	Yml,	1,	0x8c,1,0,0},
-	{AMOVW,	Yss,	Yml,	1,	0x8c,2,0,0},
-	{AMOVW,	Yds,	Yml,	1,	0x8c,3,0,0},
-	{AMOVW,	Yfs,	Yml,	1,	0x8c,4,0,0},
-	{AMOVW,	Ygs,	Yml,	1,	0x8c,5,0,0},
+    /* mov seg */
+    {AMOVW, Yes, Yml, 1, 0x8c, 0, 0, 0},
+    {AMOVW, Ycs, Yml, 1, 0x8c, 1, 0, 0},
+    {AMOVW, Yss, Yml, 1, 0x8c, 2, 0, 0},
+    {AMOVW, Yds, Yml, 1, 0x8c, 3, 0, 0},
+    {AMOVW, Yfs, Yml, 1, 0x8c, 4, 0, 0},
+    {AMOVW, Ygs, Yml, 1, 0x8c, 5, 0, 0},
 
-	{AMOVW,	Yml,	Yes,	2,	0x8e,0,0,0},
-	{AMOVW,	Yml,	Ycs,	2,	0x8e,1,0,0},
-	{AMOVW,	Yml,	Yss,	2,	0x8e,2,0,0},
-	{AMOVW,	Yml,	Yds,	2,	0x8e,3,0,0},
-	{AMOVW,	Yml,	Yfs,	2,	0x8e,4,0,0},
-	{AMOVW,	Yml,	Ygs,	2,	0x8e,5,0,0},
+    {AMOVW, Yml, Yes, 2, 0x8e, 0, 0, 0},
+    {AMOVW, Yml, Ycs, 2, 0x8e, 1, 0, 0},
+    {AMOVW, Yml, Yss, 2, 0x8e, 2, 0, 0},
+    {AMOVW, Yml, Yds, 2, 0x8e, 3, 0, 0},
+    {AMOVW, Yml, Yfs, 2, 0x8e, 4, 0, 0},
+    {AMOVW, Yml, Ygs, 2, 0x8e, 5, 0, 0},
 
-/* mov cr */
-	{AMOVL,	Ycr0,	Yml,	3,	0x0f,0x20,0,0},
-	{AMOVL,	Ycr2,	Yml,	3,	0x0f,0x20,2,0},
-	{AMOVL,	Ycr3,	Yml,	3,	0x0f,0x20,3,0},
-	{AMOVL,	Ycr4,	Yml,	3,	0x0f,0x20,4,0},
-	{AMOVL,	Ycr8,	Yml,	3,	0x0f,0x20,8,0},
-	{AMOVQ,	Ycr0,	Yml,	3,	0x0f,0x20,0,0},
-	{AMOVQ,	Ycr2,	Yml,	3,	0x0f,0x20,2,0},
-	{AMOVQ,	Ycr3,	Yml,	3,	0x0f,0x20,3,0},
-	{AMOVQ,	Ycr4,	Yml,	3,	0x0f,0x20,4,0},
-	{AMOVQ,	Ycr8,	Yml,	3,	0x0f,0x20,8,0},
+    /* mov cr */
+    {AMOVL, Ycr0, Yml, 3, 0x0f, 0x20, 0, 0},
+    {AMOVL, Ycr2, Yml, 3, 0x0f, 0x20, 2, 0},
+    {AMOVL, Ycr3, Yml, 3, 0x0f, 0x20, 3, 0},
+    {AMOVL, Ycr4, Yml, 3, 0x0f, 0x20, 4, 0},
+    {AMOVL, Ycr8, Yml, 3, 0x0f, 0x20, 8, 0},
+    {AMOVQ, Ycr0, Yml, 3, 0x0f, 0x20, 0, 0},
+    {AMOVQ, Ycr2, Yml, 3, 0x0f, 0x20, 2, 0},
+    {AMOVQ, Ycr3, Yml, 3, 0x0f, 0x20, 3, 0},
+    {AMOVQ, Ycr4, Yml, 3, 0x0f, 0x20, 4, 0},
+    {AMOVQ, Ycr8, Yml, 3, 0x0f, 0x20, 8, 0},
 
-	{AMOVL,	Yml,	Ycr0,	4,	0x0f,0x22,0,0},
-	{AMOVL,	Yml,	Ycr2,	4,	0x0f,0x22,2,0},
-	{AMOVL,	Yml,	Ycr3,	4,	0x0f,0x22,3,0},
-	{AMOVL,	Yml,	Ycr4,	4,	0x0f,0x22,4,0},
-	{AMOVL,	Yml,	Ycr8,	4,	0x0f,0x22,8,0},
-	{AMOVQ,	Yml,	Ycr0,	4,	0x0f,0x22,0,0},
-	{AMOVQ,	Yml,	Ycr2,	4,	0x0f,0x22,2,0},
-	{AMOVQ,	Yml,	Ycr3,	4,	0x0f,0x22,3,0},
-	{AMOVQ,	Yml,	Ycr4,	4,	0x0f,0x22,4,0},
-	{AMOVQ,	Yml,	Ycr8,	4,	0x0f,0x22,8,0},
+    {AMOVL, Yml, Ycr0, 4, 0x0f, 0x22, 0, 0},
+    {AMOVL, Yml, Ycr2, 4, 0x0f, 0x22, 2, 0},
+    {AMOVL, Yml, Ycr3, 4, 0x0f, 0x22, 3, 0},
+    {AMOVL, Yml, Ycr4, 4, 0x0f, 0x22, 4, 0},
+    {AMOVL, Yml, Ycr8, 4, 0x0f, 0x22, 8, 0},
+    {AMOVQ, Yml, Ycr0, 4, 0x0f, 0x22, 0, 0},
+    {AMOVQ, Yml, Ycr2, 4, 0x0f, 0x22, 2, 0},
+    {AMOVQ, Yml, Ycr3, 4, 0x0f, 0x22, 3, 0},
+    {AMOVQ, Yml, Ycr4, 4, 0x0f, 0x22, 4, 0},
+    {AMOVQ, Yml, Ycr8, 4, 0x0f, 0x22, 8, 0},
 
-/* mov dr */
-	{AMOVL,	Ydr0,	Yml,	3,	0x0f,0x21,0,0},
-	{AMOVL,	Ydr6,	Yml,	3,	0x0f,0x21,6,0},
-	{AMOVL,	Ydr7,	Yml,	3,	0x0f,0x21,7,0},
-	{AMOVQ,	Ydr0,	Yml,	3,	0x0f,0x21,0,0},
-	{AMOVQ,	Ydr6,	Yml,	3,	0x0f,0x21,6,0},
-	{AMOVQ,	Ydr7,	Yml,	3,	0x0f,0x21,7,0},
+    /* mov dr */
+    {AMOVL, Ydr0, Yml, 3, 0x0f, 0x21, 0, 0},
+    {AMOVL, Ydr6, Yml, 3, 0x0f, 0x21, 6, 0},
+    {AMOVL, Ydr7, Yml, 3, 0x0f, 0x21, 7, 0},
+    {AMOVQ, Ydr0, Yml, 3, 0x0f, 0x21, 0, 0},
+    {AMOVQ, Ydr6, Yml, 3, 0x0f, 0x21, 6, 0},
+    {AMOVQ, Ydr7, Yml, 3, 0x0f, 0x21, 7, 0},
 
-	{AMOVL,	Yml,	Ydr0,	4,	0x0f,0x23,0,0},
-	{AMOVL,	Yml,	Ydr6,	4,	0x0f,0x23,6,0},
-	{AMOVL,	Yml,	Ydr7,	4,	0x0f,0x23,7,0},
-	{AMOVQ,	Yml,	Ydr0,	4,	0x0f,0x23,0,0},
-	{AMOVQ,	Yml,	Ydr6,	4,	0x0f,0x23,6,0},
-	{AMOVQ,	Yml,	Ydr7,	4,	0x0f,0x23,7,0},
+    {AMOVL, Yml, Ydr0, 4, 0x0f, 0x23, 0, 0},
+    {AMOVL, Yml, Ydr6, 4, 0x0f, 0x23, 6, 0},
+    {AMOVL, Yml, Ydr7, 4, 0x0f, 0x23, 7, 0},
+    {AMOVQ, Yml, Ydr0, 4, 0x0f, 0x23, 0, 0},
+    {AMOVQ, Yml, Ydr6, 4, 0x0f, 0x23, 6, 0},
+    {AMOVQ, Yml, Ydr7, 4, 0x0f, 0x23, 7, 0},
 
-/* mov tr */
-	{AMOVL,	Ytr6,	Yml,	3,	0x0f,0x24,6,0},
-	{AMOVL,	Ytr7,	Yml,	3,	0x0f,0x24,7,0},
+    /* mov tr */
+    {AMOVL, Ytr6, Yml, 3, 0x0f, 0x24, 6, 0},
+    {AMOVL, Ytr7, Yml, 3, 0x0f, 0x24, 7, 0},
 
-	{AMOVL,	Yml,	Ytr6,	4,	0x0f,0x26,6,E},
-	{AMOVL,	Yml,	Ytr7,	4,	0x0f,0x26,7,E},
+    {AMOVL, Yml, Ytr6, 4, 0x0f, 0x26, 6, E},
+    {AMOVL, Yml, Ytr7, 4, 0x0f, 0x26, 7, E},
 
-/* lgdt, sgdt, lidt, sidt */
-	{AMOVL,	Ym,	Ygdtr,	4,	0x0f,0x01,2,0},
-	{AMOVL,	Ygdtr,	Ym,	3,	0x0f,0x01,0,0},
-	{AMOVL,	Ym,	Yidtr,	4,	0x0f,0x01,3,0},
-	{AMOVL,	Yidtr,	Ym,	3,	0x0f,0x01,1,0},
-	{AMOVQ,	Ym,	Ygdtr,	4,	0x0f,0x01,2,0},
-	{AMOVQ,	Ygdtr,	Ym,	3,	0x0f,0x01,0,0},
-	{AMOVQ,	Ym,	Yidtr,	4,	0x0f,0x01,3,0},
-	{AMOVQ,	Yidtr,	Ym,	3,	0x0f,0x01,1,0},
+    /* lgdt, sgdt, lidt, sidt */
+    {AMOVL, Ym, Ygdtr, 4, 0x0f, 0x01, 2, 0},
+    {AMOVL, Ygdtr, Ym, 3, 0x0f, 0x01, 0, 0},
+    {AMOVL, Ym, Yidtr, 4, 0x0f, 0x01, 3, 0},
+    {AMOVL, Yidtr, Ym, 3, 0x0f, 0x01, 1, 0},
+    {AMOVQ, Ym, Ygdtr, 4, 0x0f, 0x01, 2, 0},
+    {AMOVQ, Ygdtr, Ym, 3, 0x0f, 0x01, 0, 0},
+    {AMOVQ, Ym, Yidtr, 4, 0x0f, 0x01, 3, 0},
+    {AMOVQ, Yidtr, Ym, 3, 0x0f, 0x01, 1, 0},
 
-/* lldt, sldt */
-	{AMOVW,	Yml,	Yldtr,	4,	0x0f,0x00,2,0},
-	{AMOVW,	Yldtr,	Yml,	3,	0x0f,0x00,0,0},
+    /* lldt, sldt */
+    {AMOVW, Yml, Yldtr, 4, 0x0f, 0x00, 2, 0},
+    {AMOVW, Yldtr, Yml, 3, 0x0f, 0x00, 0, 0},
 
-/* lmsw, smsw */
-	{AMOVW,	Yml,	Ymsw,	4,	0x0f,0x01,6,0},
-	{AMOVW,	Ymsw,	Yml,	3,	0x0f,0x01,4,0},
+    /* lmsw, smsw */
+    {AMOVW, Yml, Ymsw, 4, 0x0f, 0x01, 6, 0},
+    {AMOVW, Ymsw, Yml, 3, 0x0f, 0x01, 4, 0},
 
-/* ltr, str */
-	{AMOVW,	Yml,	Ytask,	4,	0x0f,0x00,3,0},
-	{AMOVW,	Ytask,	Yml,	3,	0x0f,0x00,1,0},
+    /* ltr, str */
+    {AMOVW, Yml, Ytask, 4, 0x0f, 0x00, 3, 0},
+    {AMOVW, Ytask, Yml, 3, 0x0f, 0x00, 1, 0},
 
-/* load full pointer */
-	{AMOVL,	Yml,	Ycol,	5,	0,0,0,0},
-	{AMOVW,	Yml,	Ycol,	5,	Pe,0,0,0},
+    /* load full pointer */
+    {AMOVL, Yml, Ycol, 5, 0, 0, 0, 0},
+    {AMOVW, Yml, Ycol, 5, Pe, 0, 0, 0},
 
-/* double shift */
-	{ASHLL,	Ycol,	Yml,	6,	0xa4,0xa5,0,0},
-	{ASHRL,	Ycol,	Yml,	6,	0xac,0xad,0,0},
-	{ASHLQ,	Ycol,	Yml,	6,	Pw,0xa4,0xa5,0},
-	{ASHRQ,	Ycol,	Yml,	6,	Pw,0xac,0xad,0},
-	{ASHLW,	Ycol,	Yml,	6,	Pe,0xa4,0xa5,0},
-	{ASHRW,	Ycol,	Yml,	6,	Pe,0xac,0xad,0},
-	0
-};
+    /* double shift */
+    {ASHLL, Ycol, Yml, 6, 0xa4, 0xa5, 0, 0},
+    {ASHRL, Ycol, Yml, 6, 0xac, 0xad, 0, 0},
+    {ASHLQ, Ycol, Yml, 6, Pw, 0xa4, 0xa5, 0},
+    {ASHRQ, Ycol, Yml, 6, Pw, 0xac, 0xad, 0},
+    {ASHLW, Ycol, Yml, 6, Pe, 0xa4, 0xa5, 0},
+    {ASHRW, Ycol, Yml, 6, Pe, 0xac, 0xad, 0},
+    0};
 
 int
-isax(Adr *a)
+isax(Adr* a)
 {
 
 	switch(a->type) {
 	case D_AX:
 	case D_AL:
 	case D_AH:
-	case D_INDIR+D_AX:
+	case D_INDIR + D_AX:
 		return 1;
 	}
 	if(a->index == D_AX)
@@ -975,7 +1007,7 @@ isax(Adr *a)
 }
 
 void
-subreg(Prog *p, int from, int to)
+subreg(Prog* p, int from, int to)
 {
 
 	if(debug['Q'])
@@ -993,23 +1025,23 @@ subreg(Prog *p, int from, int to)
 
 	from += D_INDIR;
 	if(p->from.type == from)
-		p->from.type = to+D_INDIR;
+		p->from.type = to + D_INDIR;
 	if(p->to.type == from)
-		p->to.type = to+D_INDIR;
+		p->to.type = to + D_INDIR;
 
 	if(debug['Q'])
 		print("%P\n", p);
 }
 
 static int
-mediaop(Optab *o, int op, int osize, int z)
+mediaop(Optab* o, int op, int osize, int z)
 {
-	switch(op){
+	switch(op) {
 	case Pm:
 	case Pe:
 	case Pf2:
 	case Pf3:
-		if(osize != 1){
+		if(osize != 1) {
 			if(op != Pm)
 				*andptr++ = op;
 			*andptr++ = Pm;
@@ -1026,12 +1058,12 @@ mediaop(Optab *o, int op, int osize, int z)
 }
 
 void
-doasm(Prog *p)
+doasm(Prog* p)
 {
-	Optab *o;
-	Prog *q, pp;
-	uint8_t *t;
-	Movtab *mo;
+	Optab* o;
+	Prog* q, pp;
+	uint8_t* t;
+	Movtab* mo;
 	int z, op, ft, tt, xo, l;
 	int64_t v;
 
@@ -1048,50 +1080,50 @@ doasm(Prog *p)
 		return;
 	}
 	xo = o->op[0] == 0x0f;
-	for(z=0; *t; z+=t[3]+xo,t+=4)
-		if(ycover[ft+t[0]])
-		if(ycover[tt+t[1]])
-			goto found;
+	for(z = 0; *t; z += t[3] + xo, t += 4)
+		if(ycover[ft + t[0]])
+			if(ycover[tt + t[1]])
+				goto found;
 	goto domov;
 
 found:
 	switch(o->prefix) {
-	case Pq:	/* 16 bit escape and opcode escape */
+	case Pq: /* 16 bit escape and opcode escape */
 		*andptr++ = Pe;
 		*andptr++ = Pm;
 		break;
 
-	case Pf2:	/* xmm opcode escape */
+	case Pf2: /* xmm opcode escape */
 	case Pf3:
 		*andptr++ = o->prefix;
 		*andptr++ = Pm;
 		break;
 
-	case Pm:	/* opcode escape */
+	case Pm: /* opcode escape */
 		*andptr++ = Pm;
 		break;
 
-	case Pe:	/* 16 bit escape */
+	case Pe: /* 16 bit escape */
 		*andptr++ = Pe;
 		break;
 
-	case Pw:	/* 64-bit escape */
+	case Pw: /* 64-bit escape */
 		if(p->mode != 64)
 			diag("asmins: illegal 64: %P", p);
 		rexflag |= Pw;
 		break;
 
-	case Pb:	/* botch */
+	case Pb: /* botch */
 		bytereg(&p->from);
 		bytereg(&p->to);
 		break;
 
-	case P32:	/* 32 bit but illegal if 64-bit mode */
+	case P32: /* 32 bit but illegal if 64-bit mode */
 		if(p->mode == 64)
 			diag("asmins: illegal in 64-bit mode: %P", p);
 		break;
 
-	case Py:	/* 64-bit only, no prefix */
+	case Py: /* 64-bit only, no prefix */
 		if(p->mode != 64)
 			diag("asmins: illegal in %d-bit mode: %P", p->mode, p);
 		break;
@@ -1117,7 +1149,7 @@ found:
 
 	case Zmb_r:
 		bytereg(&p->from);
-		/* fall through */
+	/* fall through */
 	case Zm_r:
 		*andptr++ = op;
 		asmand(&p->from, &p->to);
@@ -1154,7 +1186,7 @@ found:
 		break;
 
 	case Zaut_r:
-		*andptr++ = 0x8d;	/* leal */
+		*andptr++ = 0x8d; /* leal */
 		if(p->from.type != D_ADDR)
 			diag("asmins: Zaut sb type ADDR");
 		p->from.type = p->from.index;
@@ -1166,7 +1198,7 @@ found:
 
 	case Zm_o:
 		*andptr++ = op;
-		asmando(&p->from, o->op[z+1]);
+		asmando(&p->from, o->op[z + 1]);
 		break;
 
 	case Zr_m:
@@ -1193,30 +1225,30 @@ found:
 
 	case Zo_m:
 		*andptr++ = op;
-		asmando(&p->to, o->op[z+1]);
+		asmando(&p->to, o->op[z + 1]);
 		break;
 
 	case Zo_m64:
 		*andptr++ = op;
-		asmandsz(&p->to, o->op[z+1], 0, 1);
+		asmandsz(&p->to, o->op[z + 1], 0, 1);
 		break;
 
 	case Zm_ibo:
 		v = vaddr(&p->to);
 		*andptr++ = op;
-		asmando(&p->from, o->op[z+1]);
+		asmando(&p->from, o->op[z + 1]);
 		*andptr++ = v;
 		break;
 
 	case Zibo_m:
 		*andptr++ = op;
-		asmando(&p->to, o->op[z+1]);
+		asmando(&p->to, o->op[z + 1]);
 		*andptr++ = v;
 		break;
 
 	case Zibo_m_xm:
 		z = mediaop(o, op, t[3], z);
-		asmando(&p->to, o->op[z+1]);
+		asmando(&p->to, o->op[z + 1]);
 		*andptr++ = v;
 		break;
 
@@ -1228,7 +1260,7 @@ found:
 		break;
 
 	case Zib_rp:
-		rexflag |= regrex[p->to.type] & (Rxb|0x40);
+		rexflag |= regrex[p->to.type] & (Rxb | 0x40);
 		*andptr++ = op + reg[p->to.type];
 		*andptr++ = v;
 		break;
@@ -1238,37 +1270,37 @@ found:
 		*andptr++ = op + reg[p->to.type];
 		if(o->prefix == Pe) {
 			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
+			*andptr++ = v >> 8;
+		} else
 			put4(v);
 		break;
 
 	case Zo_iw:
 		*andptr++ = op;
-		if(p->from.type != D_NONE){
+		if(p->from.type != D_NONE) {
 			*andptr++ = v;
-			*andptr++ = v>>8;
+			*andptr++ = v >> 8;
 		}
 		break;
 
 	case Ziq_rp:
-		l = v>>32;
-		if(l == 0){
-			//p->mark |= 0100;
-			//print("zero: %llux %P\n", v, p);
-			rexflag &= ~(0x40|Rxw);
+		l = v >> 32;
+		if(l == 0) {
+			// p->mark |= 0100;
+			// print("zero: %llux %P\n", v, p);
+			rexflag &= ~(0x40 | Rxw);
 			rexflag |= regrex[p->to.type] & Rxb;
 			*andptr++ = 0xb8 + reg[p->to.type];
 			put4(v);
-		}else if(l == -1 && (v&((uint64_t)1<<31))!=0){	/* sign extend */
-			//p->mark |= 0100;
-			//print("sign: %llux %P\n", v, p);
-			*andptr ++ = 0xc7;
+		} else if(l == -1 &&
+		          (v & ((uint64_t)1 << 31)) != 0) { /* sign extend */
+			// p->mark |= 0100;
+			// print("sign: %llux %P\n", v, p);
+			*andptr++ = 0xc7;
 			asmando(&p->to, 0);
 			put4(v);
-		}else{	/* need all 8 */
-			//print("all: %llux %P\n", v, p);
+		} else { /* need all 8 */
+			// print("all: %llux %P\n", v, p);
 			rexflag |= regrex[p->to.type] & Rxb;
 			*andptr++ = op + reg[p->to.type];
 			put8(v);
@@ -1287,32 +1319,29 @@ found:
 		*andptr++ = op;
 		if(o->prefix == Pe) {
 			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
+			*andptr++ = v >> 8;
+		} else
 			put4(v);
 		break;
 
 	case Zm_ilo:
 		v = vaddr(&p->to);
 		*andptr++ = op;
-		asmando(&p->from, o->op[z+1]);
+		asmando(&p->from, o->op[z + 1]);
 		if(o->prefix == Pe) {
 			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
+			*andptr++ = v >> 8;
+		} else
 			put4(v);
 		break;
 
 	case Zilo_m:
 		*andptr++ = op;
-		asmando(&p->to, o->op[z+1]);
+		asmando(&p->to, o->op[z + 1]);
 		if(o->prefix == Pe) {
 			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
+			*andptr++ = v >> 8;
+		} else
 			put4(v);
 		break;
 
@@ -1321,19 +1350,18 @@ found:
 		asmand(&p->to, &p->to);
 		if(o->prefix == Pe) {
 			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
+			*andptr++ = v >> 8;
+		} else
 			put4(v);
 		break;
 
 	case Z_rp:
-		rexflag |= regrex[p->to.type] & (Rxb|0x40);
+		rexflag |= regrex[p->to.type] & (Rxb | 0x40);
 		*andptr++ = op + reg[p->to.type];
 		break;
 
 	case Zrp_:
-		rexflag |= regrex[p->from.type] & (Rxb|0x40);
+		rexflag |= regrex[p->from.type] & (Rxb | 0x40);
 		*andptr++ = op + reg[p->from.type];
 		break;
 
@@ -1350,13 +1378,13 @@ found:
 				*andptr++ = op;
 				*andptr++ = v;
 			} else {
-				v -= 6-2;
+				v -= 6 - 2;
 				*andptr++ = 0x0f;
-				*andptr++ = o->op[z+1];
+				*andptr++ = o->op[z + 1];
 				*andptr++ = v;
-				*andptr++ = v>>8;
-				*andptr++ = v>>16;
-				*andptr++ = v>>24;
+				*andptr++ = v >> 8;
+				*andptr++ = v >> 16;
+				*andptr++ = v >> 24;
 			}
 		}
 		break;
@@ -1365,18 +1393,18 @@ found:
 		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 5;
-			if(dlm && curp != P && p->to.sym->type == SUNDEF){
+			if(dlm && curp != P && p->to.sym->type == SUNDEF) {
 				/* v = 0 - p->pc - 5; */
 				v = 0;
 				ckoff(p->to.sym, v);
 				v += p->to.sym->value;
-				dynreloc(p->to.sym, p->pc+1, 0);
+				dynreloc(p->to.sym, p->pc + 1, 0);
 			}
 			*andptr++ = op;
 			*andptr++ = v;
-			*andptr++ = v>>8;
-			*andptr++ = v>>16;
-			*andptr++ = v>>24;
+			*andptr++ = v >> 8;
+			*andptr++ = v >> 16;
+			*andptr++ = v >> 24;
 		}
 		break;
 
@@ -1388,12 +1416,12 @@ found:
 				*andptr++ = op;
 				*andptr++ = v;
 			} else {
-				v -= 5-2;
-				*andptr++ = o->op[z+1];
+				v -= 5 - 2;
+				*andptr++ = o->op[z + 1];
 				*andptr++ = v;
-				*andptr++ = v>>8;
-				*andptr++ = v>>16;
-				*andptr++ = v>>24;
+				*andptr++ = v >> 8;
+				*andptr++ = v >> 16;
+				*andptr++ = v >> 24;
 			}
 		}
 		break;
@@ -1412,15 +1440,15 @@ found:
 	case Zbyte:
 		*andptr++ = v;
 		if(op > 1) {
-			*andptr++ = v>>8;
+			*andptr++ = v >> 8;
 			if(op > 2) {
-				*andptr++ = v>>16;
-				*andptr++ = v>>24;
+				*andptr++ = v >> 16;
+				*andptr++ = v >> 24;
 				if(op > 4) {
-					*andptr++ = v>>32;
-					*andptr++ = v>>40;
-					*andptr++ = v>>48;
-					*andptr++ = v>>56;
+					*andptr++ = v >> 32;
+					*andptr++ = v >> 40;
+					*andptr++ = v >> 48;
+					*andptr++ = v >> 56;
 				}
 			}
 		}
@@ -1429,15 +1457,15 @@ found:
 	return;
 
 domov:
-	for(mo=ymovtab; mo->as; mo++)
+	for(mo = ymovtab; mo->as; mo++)
 		if(p->as == mo->as)
-		if(ycover[ft+mo->ft])
-		if(ycover[tt+mo->tt]){
-			t = mo->op;
-			goto mfound;
-		}
+			if(ycover[ft + mo->ft])
+				if(ycover[tt + mo->tt]) {
+					t = mo->op;
+					goto mfound;
+				}
 bad:
-	if(p->mode != 64){
+	if(p->mode != 64) {
 		/*
 		 * here, the assembly has failed.
 		 * if its a byte instruction that has
@@ -1449,34 +1477,34 @@ bad:
 		z = p->from.type;
 		if(z >= D_BP && z <= D_DI) {
 			if(isax(&p->to)) {
-				*andptr++ = 0x87;			/* xchg lhs,bx */
+				*andptr++ = 0x87; /* xchg lhs,bx */
 				asmando(&p->from, reg[D_BX]);
 				subreg(&pp, z, D_BX);
 				doasm(&pp);
-				*andptr++ = 0x87;			/* xchg lhs,bx */
+				*andptr++ = 0x87; /* xchg lhs,bx */
 				asmando(&p->from, reg[D_BX]);
 			} else {
-				*andptr++ = 0x90 + reg[z];		/* xchg lsh,ax */
+				*andptr++ = 0x90 + reg[z]; /* xchg lsh,ax */
 				subreg(&pp, z, D_AX);
 				doasm(&pp);
-				*andptr++ = 0x90 + reg[z];		/* xchg lsh,ax */
+				*andptr++ = 0x90 + reg[z]; /* xchg lsh,ax */
 			}
 			return;
 		}
 		z = p->to.type;
 		if(z >= D_BP && z <= D_DI) {
 			if(isax(&p->from)) {
-				*andptr++ = 0x87;			/* xchg rhs,bx */
+				*andptr++ = 0x87; /* xchg rhs,bx */
 				asmando(&p->to, reg[D_BX]);
 				subreg(&pp, z, D_BX);
 				doasm(&pp);
-				*andptr++ = 0x87;			/* xchg rhs,bx */
+				*andptr++ = 0x87; /* xchg rhs,bx */
 				asmando(&p->to, reg[D_BX]);
 			} else {
-				*andptr++ = 0x90 + reg[z];		/* xchg rsh,ax */
+				*andptr++ = 0x90 + reg[z]; /* xchg rsh,ax */
 				subreg(&pp, z, D_AX);
 				doasm(&pp);
-				*andptr++ = 0x90 + reg[z];		/* xchg rsh,ax */
+				*andptr++ = 0x90 + reg[z]; /* xchg rsh,ax */
 			}
 			return;
 		}
@@ -1490,36 +1518,36 @@ mfound:
 		diag("asmins: unknown mov %d %P", mo->code, p);
 		break;
 
-	case 0:	/* lit */
-		for(z=0; t[z]!=E; z++)
+	case 0: /* lit */
+		for(z = 0; t[z] != E; z++)
 			*andptr++ = t[z];
 		break;
 
-	case 1:	/* r,m */
+	case 1: /* r,m */
 		*andptr++ = t[0];
 		asmando(&p->to, t[1]);
 		break;
 
-	case 2:	/* m,r */
+	case 2: /* m,r */
 		*andptr++ = t[0];
 		asmando(&p->from, t[1]);
 		break;
 
-	case 3:	/* r,m - 2op */
+	case 3: /* r,m - 2op */
 		*andptr++ = t[0];
 		*andptr++ = t[1];
 		asmando(&p->to, t[2]);
-		rexflag |= regrex[p->from.type] & (Rxr|0x40);
+		rexflag |= regrex[p->from.type] & (Rxr | 0x40);
 		break;
 
-	case 4:	/* m,r - 2op */
+	case 4: /* m,r - 2op */
 		*andptr++ = t[0];
 		*andptr++ = t[1];
 		asmando(&p->from, t[2]);
-		rexflag |= regrex[p->to.type] & (Rxr|0x40);
+		rexflag |= regrex[p->to.type] & (Rxr | 0x40);
 		break;
 
-	case 5:	/* load full pointer, trash heap */
+	case 5: /* load full pointer, trash heap */
 		if(t[0])
 			*andptr++ = t[0];
 		switch(p->to.index) {
@@ -1547,13 +1575,13 @@ mfound:
 		asmand(&p->from, &p->to);
 		break;
 
-	case 6:	/* double shift */
-		if(t[0] == Pw){
+	case 6: /* double shift */
+		if(t[0] == Pw) {
 			if(p->mode != 64)
 				diag("asmins: illegal 64: %P", p);
 			rexflag |= Pw;
 			t++;
-		}else if(t[0] == Pe){
+		} else if(t[0] == Pe) {
 			*andptr++ = Pe;
 			t++;
 		}
@@ -1564,14 +1592,16 @@ mfound:
 		case D_CONST:
 			*andptr++ = 0x0f;
 			*andptr++ = t[0];
-			asmandsz(&p->to, reg[p->from.index], regrex[p->from.index], 0);
+			asmandsz(&p->to, reg[p->from.index],
+			         regrex[p->from.index], 0);
 			*andptr++ = p->from.offset;
 			break;
 		case D_CL:
 		case D_CX:
 			*andptr++ = 0x0f;
 			*andptr++ = t[1];
-			asmandsz(&p->to, reg[p->from.index], regrex[p->from.index], 0);
+			asmandsz(&p->to, reg[p->from.index],
+			         regrex[p->from.index], 0);
 			break;
 		}
 		break;
@@ -1579,7 +1609,7 @@ mfound:
 }
 
 void
-asmins(Prog *p)
+asmins(Prog* p)
 {
 	int n, np, c;
 
@@ -1587,75 +1617,77 @@ asmins(Prog *p)
 	andptr = and;
 	asmode = p->mode;
 	doasm(p);
-	if(rexflag){
+	if(rexflag) {
 		/*
 		 * as befits the whole approach of the architecture,
 		 * the rex prefix must appear before the first opcode byte
 		 * (and thus after any 66/67/f2/f3/26/2e/3e prefix bytes, but
 		 * before the 0f opcode escape!), or it might be ignored.
-		 * note that the handbook often misleadingly shows 66/f2/f3 in `opcode'.
+		 * note that the handbook often misleadingly shows 66/f2/f3 in
+		 * `opcode'.
 		 */
 		if(p->mode != 64)
 			diag("asmins: illegal in mode %d: %P", p->mode, p);
 		n = andptr - and;
 		for(np = 0; np < n; np++) {
 			c = and[np];
-			if(c != 0xf2 && c != 0xf3 && (c < 0x64 || c > 0x67) && c != 0x2e && c != 0x3e && c != 0x26)
+			if(c != 0xf2 && c != 0xf3 && (c < 0x64 || c > 0x67) &&
+			   c != 0x2e && c != 0x3e && c != 0x26)
 				break;
 		}
-		memmove(and+np+1, and+np, n-np);
+		memmove(and + np + 1, and + np, n - np);
 		and[np] = 0x40 | rexflag;
 		andptr++;
 	}
 }
 
-enum{
-	ABSD = 0,
-	ABSU = 1,
-	RELD = 2,
-	RELU = 3,
+enum { ABSD = 0,
+       ABSU = 1,
+       RELD = 2,
+       RELU = 3,
 };
 
-int modemap[4] = { 0, 1, -1, 2, };
+int modemap[4] = {
+    0, 1, -1, 2,
+};
 
 typedef struct Reloc Reloc;
 
-struct Reloc
-{
+struct Reloc {
 	int n;
 	int t;
-	uint8_t *m;
-	uint32_t *a;
+	uint8_t* m;
+	uint32_t* a;
 };
 
 Reloc rels;
 
 static void
-grow(Reloc *r)
+grow(Reloc* r)
 {
 	int t;
-	uint8_t *m, *nm;
-	uint32_t *a, *na;
+	uint8_t* m, *nm;
+	uint32_t* a, *na;
 
 	t = r->t;
 	r->t += 64;
 	m = r->m;
 	a = r->a;
-	r->m = nm = malloc(r->t*sizeof(uint8_t));
-	r->a = na = malloc(r->t*sizeof(uint32_t));
-	memmove(nm, m, t*sizeof(uint8_t));
-	memmove(na, a, t*sizeof(uint32_t));
+	r->m = nm = malloc(r->t * sizeof(uint8_t));
+	r->a = na = malloc(r->t * sizeof(uint32_t));
+	memmove(nm, m, t * sizeof(uint8_t));
+	memmove(na, a, t * sizeof(uint32_t));
 	free(m);
 	free(a);
 }
 
 void
-dynreloc(Sym *s, uint32_t v, int abs)
+dynreloc(Sym* s, uint32_t v, int abs)
 {
 	int i, k, n;
-	uint8_t *m;
-	uint32_t *a;
-	Reloc *r;
+	uint8_t* m;
+	uint32_t* a;
+	Reloc* r;
 
 	if(s->type == SUNDEF)
 		k = abs ? ABSU : RELU;
@@ -1669,12 +1701,11 @@ dynreloc(Sym *s, uint32_t v, int abs)
 		grow(r);
 	m = r->m;
 	a = r->a;
-	for(i = n; i > 0; i--){
-		if(v < a[i-1]){	/* happens occasionally for data */
-			m[i] = m[i-1];
-			a[i] = a[i-1];
-		}
-		else
+	for(i = n; i > 0; i--) {
+		if(v < a[i - 1]) { /* happens occasionally for data */
+			m[i] = m[i - 1];
+			a[i] = a[i - 1];
+		} else
 			break;
 	}
 	m[i] = k;
@@ -1683,26 +1714,26 @@ dynreloc(Sym *s, uint32_t v, int abs)
 }
 
 static int
-sput(char *s)
+sput(char* s)
 {
-	char *p;
+	char* p;
 
 	p = s;
 	while(*s)
 		cput(*s++);
 	cput(0);
-	return s-p+1;
+	return s - p + 1;
 }
 
 void
 asmdyn()
 {
 	int i, n, t, c;
-	Sym *s;
+	Sym* s;
 	uint32_t la, ra, *a;
 	int64_t off;
-	uint8_t *m;
-	Reloc *r;
+	uint8_t* m;
+	Reloc* r;
 
 	cflush();
 	off = seek(cout, 0, 1);
@@ -1712,7 +1743,7 @@ asmdyn()
 	t += 4;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->type == SUNDEF){
+			if(s->type == SUNDEF) {
 				lput(s->sig);
 				t += 4;
 				t += sput(s->name);
@@ -1725,8 +1756,8 @@ asmdyn()
 	a = r->a;
 	lput(n);
 	t += 4;
-	for(i = 0; i < n; i++){
-		ra = *a-la;
+	for(i = 0; i < n; i++) {
+		ra = *a - la;
 		if(*a < la)
 			diag("bad relocation order");
 		if(ra < 256)
@@ -1735,17 +1766,15 @@ asmdyn()
 			c = 1;
 		else
 			c = 2;
-		cput((c<<6)|*m++);
+		cput((c << 6) | *m++);
 		t++;
-		if(c == 0){
+		if(c == 0) {
 			cput(ra);
 			t++;
-		}
-		else if(c == 1){
+		} else if(c == 1) {
 			wput(ra);
 			t += 2;
-		}
-		else{
+		} else {
 			lput(ra);
 			t += 4;
 		}
@@ -1756,7 +1785,7 @@ asmdyn()
 	seek(cout, off, 0);
 	lput(t);
 
-	if(debug['v']){
+	if(debug['v']) {
 		Bprint(&bso, "import table entries = %d\n", imports);
 		Bprint(&bso, "export table entries = %d\n", exports);
 	}

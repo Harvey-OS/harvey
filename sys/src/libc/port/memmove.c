@@ -7,20 +7,20 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
 void*
-memmove(void *a1, const void *a2, size_t n)
+memmove(void* a1, const void* a2, size_t n)
 {
-	char *s1;
-	const char *s2;
+	char* s1;
+	const char* s2;
 
 	if((int32_t)n < 0)
 		abort();
 	s1 = a1;
 	s2 = a2;
-	if((s2 < s1) && (s2+n > s1))
+	if((s2 < s1) && (s2 + n > s1))
 		goto back;
 	while(n > 0) {
 		*s1++ = *s2++;
@@ -39,7 +39,7 @@ back:
 }
 
 void*
-memcpy(void *a1, const void *a2, size_t n)
+memcpy(void* a1, const void* a2, size_t n)
 {
 	return memmove(a1, a2, n);
 }

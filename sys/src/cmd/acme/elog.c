@@ -22,7 +22,7 @@
 #include "edit.h"
 
 static char Wsequence[] = "warning: changes out of sequence\n";
-static int	warned = FALSE;
+static int warned = FALSE;
 
 /*
  * Log of changes made by editing commands.  Three reasons for this:
@@ -35,31 +35,27 @@ static int	warned = FALSE;
  */
 
 typedef struct Buflog Buflog;
-struct Buflog
-{
-	int16_t	type;		/* Replace, Filename */
-	uint		q0;		/* location of change (unused in f) */
-	uint		nd;		/* # runes to delete */
-	uint		nr;		/* # runes in string or file name */
+struct Buflog {
+	int16_t type; /* Replace, Filename */
+	uint q0;      /* location of change (unused in f) */
+	uint nd;      /* # runes to delete */
+	uint nr;      /* # runes in string or file name */
 };
 
-enum
-{
-	Buflogsize = sizeof(Buflog)/sizeof(Rune),
+enum { Buflogsize = sizeof(Buflog) / sizeof(Rune),
 };
 
 /*
  * Minstring shouldn't be very big or we will do lots of I/O for small changes.
  * Maxstring is RBUFSIZE so we can fbufalloc() once and not realloc elog.r.
  */
-enum
-{
-	Minstring = 16,		/* distance beneath which we merge changes */
-	Maxstring = RBUFSIZE,	/* maximum length of change we will merge into one */
+enum { Minstring = 16, /* distance beneath which we merge changes */
+       Maxstring =
+	   RBUFSIZE, /* maximum length of change we will merge into one */
 };
 
 void
-eloginit(File *f)
+eloginit(File* f)
 {
 	if(f->elog.type != Empty)
 		return;
@@ -72,9 +68,9 @@ eloginit(File *f)
 }
 
 void
-elogclose(File *f)
+elogclose(File* f)
 {
-	if(f->elogbuf){
+	if(f->elogbuf) {
 		bufclose(f->elogbuf);
 		free(f->elogbuf);
 		f->elogbuf = nil;
@@ -82,7 +78,7 @@ elogclose(File *f)
 }
 
 void
-elogreset(File *f)
+elogreset(File* f)
 {
 	f->elog.type = Null;
 	f->elog.nd = 0;
@@ -90,7 +86,7 @@ elogreset(File *f)
 }
 
 void
-elogterm(File *f)
+elogterm(File* f)
 {
 	elogreset(f);
 	if(f->elogbuf)
@@ -102,7 +98,7 @@ elogterm(File *f)
 }
 
 void
-elogflush(File *f)
+elogflush(File* f)
 {
 	Buflog b;
 
@@ -110,7 +106,7 @@ elogflush(File *f)
 	b.q0 = f->elog.q0;
 	b.nd = f->elog.nd;
 	b.nr = f->elog.nr;
-	switch(f->elog.type){
+	switch(f->elog.type) {
 	default:
 		warning(nil, "unknown elog type 0x%ux\n", f->elog.type);
 		break;
@@ -119,8 +115,9 @@ elogflush(File *f)
 	case Insert:
 	case Replace:
 		if(f->elog.nr > 0)
-			bufinsert(f->elogbuf, f->elogbuf->nc, f->elog.r, f->elog.nr);
-		/* fall through */
+			bufinsert(f->elogbuf, f->elogbuf->nc, f->elog.r,
+			          f->elog.nr);
+	/* fall through */
 	case Delete:
 		bufinsert(f->elogbuf, f->elogbuf->nc, (Rune*)&b, Buflogsize);
 		break;
@@ -129,28 +126,30 @@ elogflush(File *f)
 }
 
 void
-elogreplace(File *f, int q0, int q1, Rune *r, int nr)
+elogreplace(File* f, int q0, int q1, Rune* r, int nr)
 {
 	uint gap;
 
-	if(q0==q1 && nr==0)
+	if(q0 == q1 && nr == 0)
 		return;
 	eloginit(f);
-	if(f->elog.type!=Null && q0<f->elog.q0){
+	if(f->elog.type != Null && q0 < f->elog.q0) {
 		if(warned++ == 0)
 			warning(nil, Wsequence);
 		elogflush(f);
 	}
 	/* try to merge with previous */
-	gap = q0 - (f->elog.q0+f->elog.nd);	/* gap between previous and this */
-	if(f->elog.type==Replace && f->elog.nr+gap+nr<Maxstring){
-		if(gap < Minstring){
-			if(gap > 0){
-				bufread(f, f->elog.q0+f->elog.nd, f->elog.r+f->elog.nr, gap);
+	gap =
+	    q0 - (f->elog.q0 + f->elog.nd); /* gap between previous and this */
+	if(f->elog.type == Replace && f->elog.nr + gap + nr < Maxstring) {
+		if(gap < Minstring) {
+			if(gap > 0) {
+				bufread(f, f->elog.q0 + f->elog.nd,
+				        f->elog.r + f->elog.nr, gap);
 				f->elog.nr += gap;
 			}
-			f->elog.nd += gap + q1-q0;
-			runemove(f->elog.r+f->elog.nr, r, nr);
+			f->elog.nd += gap + q1 - q0;
+			runemove(f->elog.r + f->elog.nr, r, nr);
 			f->elog.nr += nr;
 			return;
 		}
@@ -158,33 +157,35 @@ elogreplace(File *f, int q0, int q1, Rune *r, int nr)
 	elogflush(f);
 	f->elog.type = Replace;
 	f->elog.q0 = q0;
-	f->elog.nd = q1-q0;
+	f->elog.nd = q1 - q0;
 	f->elog.nr = nr;
 	if(nr > RBUFSIZE)
-		editerror("internal error: replacement string too large(%d)", nr);
+		editerror("internal error: replacement string too large(%d)",
+		          nr);
 	runemove(f->elog.r, r, nr);
 }
 
 void
-eloginsert(File *f, int q0, Rune *r, int nr)
+eloginsert(File* f, int q0, Rune* r, int nr)
 {
 	int n;
 
 	if(nr == 0)
 		return;
 	eloginit(f);
-	if(f->elog.type!=Null && q0<f->elog.q0){
+	if(f->elog.type != Null && q0 < f->elog.q0) {
 		if(warned++ == 0)
 			warning(nil, Wsequence);
 		elogflush(f);
 	}
 	/* try to merge with previous */
-	if(f->elog.type==Insert && q0==f->elog.q0 && f->elog.nr+nr<Maxstring){
-		runemove(f->elog.r+f->elog.nr, r, nr);
+	if(f->elog.type == Insert && q0 == f->elog.q0 &&
+	   f->elog.nr + nr < Maxstring) {
+		runemove(f->elog.r + f->elog.nr, r, nr);
 		f->elog.nr += nr;
 		return;
 	}
-	while(nr > 0){
+	while(nr > 0) {
 		elogflush(f);
 		f->elog.type = Insert;
 		f->elog.q0 = q0;
@@ -199,37 +200,37 @@ eloginsert(File *f, int q0, Rune *r, int nr)
 }
 
 void
-elogdelete(File *f, int q0, int q1)
+elogdelete(File* f, int q0, int q1)
 {
 	if(q0 == q1)
 		return;
 	eloginit(f);
-	if(f->elog.type!=Null && q0<f->elog.q0+f->elog.nd){
+	if(f->elog.type != Null && q0 < f->elog.q0 + f->elog.nd) {
 		if(warned++ == 0)
 			warning(nil, Wsequence);
 		elogflush(f);
 	}
 	/* try to merge with previous */
-	if(f->elog.type==Delete && f->elog.q0+f->elog.nd==q0){
-		f->elog.nd += q1-q0;
+	if(f->elog.type == Delete && f->elog.q0 + f->elog.nd == q0) {
+		f->elog.nd += q1 - q0;
 		return;
 	}
 	elogflush(f);
 	f->elog.type = Delete;
 	f->elog.q0 = q0;
-	f->elog.nd = q1-q0;
+	f->elog.nd = q1 - q0;
 }
 
 #define tracelog 0
 void
-elogapply(File *f)
+elogapply(File* f)
 {
 	Buflog b;
-	Rune *buf;
+	Rune* buf;
 	uint i, n, up, mod;
 	uint tq0, tq1;
-	Buffer *log;
-	Text *t;
+	Buffer* log;
+	Text* t;
 	int owner;
 
 	elogflush(f);
@@ -240,7 +241,7 @@ elogapply(File *f)
 	mod = FALSE;
 
 	owner = 0;
-	if(t->w){
+	if(t->w) {
 		owner = t->w->owner;
 		if(owner == 0)
 			t->w->owner = 'E';
@@ -248,10 +249,14 @@ elogapply(File *f)
 
 	/*
 	 * The edit commands have already updated the selection in t->q0, t->q1,
-	 * but using coordinates relative to the unmodified buffer.  As we apply the log,
-	 * we have to update the coordinates to be relative to the modified buffer.
-	 * Textinsert and textdelete will do this for us; our only work is to apply the
-	 * convention that an insertion at t->q0==t->q1 is intended to select the 
+	 * but using coordinates relative to the unmodified buffer.  As we apply
+	 * the log,
+	 * we have to update the coordinates to be relative to the modified
+	 * buffer.
+	 * Textinsert and textdelete will do this for us; our only work is to
+	 * apply the
+	 * convention that an insertion at t->q0==t->q1 is intended to select
+	 * the
 	 * inserted text.
 	 */
 
@@ -262,10 +267,10 @@ elogapply(File *f)
 	 * keep things in range.
 	 */
 
-	while(log->nc > 0){
-		up = log->nc-Buflogsize;
+	while(log->nc > 0) {
+		up = log->nc - Buflogsize;
 		bufread(log, up, (Rune*)&b, Buflogsize);
-		switch(b.type){
+		switch(b.type) {
 		default:
 			fprint(2, "elogapply: 0x%ux\n", b.type);
 			abort();
@@ -274,20 +279,20 @@ elogapply(File *f)
 		case Replace:
 			if(tracelog)
 				warning(nil, "elog replace %d %d (%d %d)\n",
-					b.q0, b.q0+b.nd, t->q0, t->q1);
-			if(!mod){
+				        b.q0, b.q0 + b.nd, t->q0, t->q1);
+			if(!mod) {
 				mod = TRUE;
 				filemark(f);
 			}
-			textconstrain(t, b.q0, b.q0+b.nd, &tq0, &tq1);
+			textconstrain(t, b.q0, b.q0 + b.nd, &tq0, &tq1);
 			textdelete(t, tq0, tq1, TRUE);
 			up -= b.nr;
-			for(i=0; i<b.nr; i+=n){
+			for(i = 0; i < b.nr; i += n) {
 				n = b.nr - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
-				bufread(log, up+i, buf, n);
-				textinsert(t, tq0+i, buf, n, TRUE);
+				bufread(log, up + i, buf, n);
+				textinsert(t, tq0 + i, buf, n, TRUE);
 			}
 			if(t->q0 == b.q0 && t->q1 == b.q0)
 				t->q1 += b.nr;
@@ -296,50 +301,52 @@ elogapply(File *f)
 		case Delete:
 			if(tracelog)
 				warning(nil, "elog delete %d %d (%d %d)\n",
-					b.q0, b.q0+b.nd, t->q0, t->q1);
-			if(!mod){
+				        b.q0, b.q0 + b.nd, t->q0, t->q1);
+			if(!mod) {
 				mod = TRUE;
 				filemark(f);
 			}
-			textconstrain(t, b.q0, b.q0+b.nd, &tq0, &tq1);
+			textconstrain(t, b.q0, b.q0 + b.nd, &tq0, &tq1);
 			textdelete(t, tq0, tq1, TRUE);
 			break;
 
 		case Insert:
 			if(tracelog)
 				warning(nil, "elog insert %d %d (%d %d)\n",
-					b.q0, b.q0+b.nr, t->q0, t->q1);
-			if(!mod){
+				        b.q0, b.q0 + b.nr, t->q0, t->q1);
+			if(!mod) {
 				mod = TRUE;
 				filemark(f);
 			}
 			textconstrain(t, b.q0, b.q0, &tq0, &tq1);
 			up -= b.nr;
-			for(i=0; i<b.nr; i+=n){
+			for(i = 0; i < b.nr; i += n) {
 				n = b.nr - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
-				bufread(log, up+i, buf, n);
-				textinsert(t, tq0+i, buf, n, TRUE);
+				bufread(log, up + i, buf, n);
+				textinsert(t, tq0 + i, buf, n, TRUE);
 			}
 			if(t->q0 == b.q0 && t->q1 == b.q0)
 				t->q1 += b.nr;
 			break;
 
-/*		case Filename:
-			f->seq = u.seq;
-			fileunsetname(f, epsilon);
-			f->mod = u.mod;
-			up -= u.n;
-			free(f->name);
-			if(u.n == 0)
-				f->name = nil;
-			else
-				f->name = runemalloc(u.n);
-			bufread(delta, up, f->name, u.n);
-			f->nname = u.n;
-			break;
-*/
+			/*		case Filename:
+			                        f->seq = u.seq;
+			                        fileunsetname(f, epsilon);
+			                        f->mod = u.mod;
+			                        up -= u.n;
+			                        free(f->name);
+			                        if(u.n == 0)
+			                                f->name = nil;
+			                        else
+			                                f->name =
+			   runemalloc(u.n);
+			                        bufread(delta, up, f->name,
+			   u.n);
+			                        f->nname = u.n;
+			                        break;
+			*/
 		}
 		bufdelete(log, up, log->nc);
 	}
@@ -348,11 +355,13 @@ elogapply(File *f)
 
 	/*
 	 * Bad addresses will cause bufload to crash, so double check.
-	 * If changes were out of order, we expect problems so don't complain further.
+	 * If changes were out of order, we expect problems so don't complain
+	 * further.
 	 */
-	if(t->q0 > f->nc || t->q1 > f->nc || t->q0 > t->q1){
+	if(t->q0 > f->nc || t->q1 > f->nc || t->q0 > t->q1) {
 		if(!warned)
-			warning(nil, "elogapply: can't happen %d %d %d\n", t->q0, t->q1, f->nc);
+			warning(nil, "elogapply: can't happen %d %d %d\n",
+			        t->q0, t->q1, f->nc);
 		t->q1 = min(t->q1, f->nc);
 		t->q0 = min(t->q0, t->q1);
 	}

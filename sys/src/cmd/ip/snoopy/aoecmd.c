@@ -13,32 +13,29 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct{
-	uint8_t	bc[2];
-	uint8_t	fw[2];
-	uint8_t	sc;
-	uint8_t	ccmd;
-	uint8_t	len[2];
-}Hdr;
+typedef struct {
+	uint8_t bc[2];
+	uint8_t fw[2];
+	uint8_t sc;
+	uint8_t ccmd;
+	uint8_t len[2];
+} Hdr;
 
-enum{
-	Hsize	= 8,
+enum { Hsize = 8,
 };
 
-enum{
-	Ocmd,
+enum { Ocmd,
 };
 
-static Field p_fields[] =
-{
-	{"cmd",		Fnum,	Ocmd,		"cmd",	},
-	{0}
-};
+static Field p_fields[] = {{
+                            "cmd", Fnum, Ocmd, "cmd",
+                           },
+                           {0}};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(aoecmd.name, f, p_fields);
 		return;
 	}
@@ -46,9 +43,9 @@ p_compile(Filter *f)
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -56,7 +53,7 @@ p_filter(Filter *f, Msg *m)
 	h = (Hdr*)m->ps;
 	m->ps += Hsize;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Ocmd:
 		return (h->ccmd & 0xf) == f->ulv;
 	}
@@ -64,9 +61,9 @@ p_filter(Filter *f, Msg *m)
 }
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -77,21 +74,14 @@ p_seprint(Msg *m)
 	/* no next protocol */
 	m->pr = nil;
 
-	m->p = seprint(m->p, m->e, "bc=%d fw=%.4x sc=%d ver=%d ccmd=%d len=%d cfg=",
-		NetS(h->bc), NetS(h->fw), h->sc, h->ccmd >> 4, h->ccmd & 0xf,
-		NetS(h->len));
+	m->p = seprint(m->p, m->e,
+	               "bc=%d fw=%.4x sc=%d ver=%d ccmd=%d len=%d cfg=",
+	               NetS(h->bc), NetS(h->fw), h->sc, h->ccmd >> 4,
+	               h->ccmd & 0xf, NetS(h->len));
 	m->p = seprint(m->p, m->e, "%.*s", NetS(h->len), (char*)m->ps);
 	return 0;
 }
 
-Proto aoecmd =
-{
-	"aoecmd",
-	p_compile,
-	p_filter,
-	p_seprint,
-	nil,
-	nil,
-	p_fields,
-	defaultframer,
+Proto aoecmd = {
+    "aoecmd", p_compile, p_filter, p_seprint, nil, nil, p_fields, defaultframer,
 };

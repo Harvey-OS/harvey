@@ -19,66 +19,63 @@
 #include <plumb.h>
 #include "dat.h"
 #include "fns.h"
-	/* for generating syms in mkfile only: */
-	#include <bio.h>
-	#include "edit.h"
+/* for generating syms in mkfile only: */
+#include <bio.h>
+#include "edit.h"
 
-void	mousethread(void*);
-void	keyboardthread(void*);
-void	waitthread(void*);
-void	xfidallocthread(void*);
-void	newwindowthread(void*);
+void mousethread(void*);
+void keyboardthread(void*);
+void waitthread(void*);
+void xfidallocthread(void*);
+void newwindowthread(void*);
 void plumbproc(void*);
 
-Reffont	**fontcache;
-int		nfontcache;
-char		wdir[512] = ".";
-Reffont	*reffonts[2];
-int		snarffd = -1;
-int		mainpid;
-int		plumbsendfd;
-int		plumbeditfd;
+Reffont** fontcache;
+int nfontcache;
+char wdir[512] = ".";
+Reffont* reffonts[2];
+int snarffd = -1;
+int mainpid;
+int plumbsendfd;
+int plumbeditfd;
 
-enum{
-	NSnarf = 1000	/* less than 1024, I/O buffer size */
+enum { NSnarf = 1000 /* less than 1024, I/O buffer size */
 };
-Rune	snarfrune[NSnarf+1];
+Rune snarfrune[NSnarf + 1];
 
-char		*fontnames[2] =
-{
-	"/lib/font/bit/lucidasans/euro.8.font",
-	"/lib/font/bit/lucm/unicode.9.font"
-};
+char* fontnames[2] = {"/lib/font/bit/lucidasans/euro.8.font",
+                      "/lib/font/bit/lucm/unicode.9.font"};
 
-Command *command;
+Command* command;
 
-void	acmeerrorinit(void);
-void	readfile(Column*, char*);
-int	shutdown(void*, char*);
+void acmeerrorinit(void);
+void readfile(Column*, char*);
+int shutdown(void*, char*);
 
 void
-derror(Display*, char *errorstr)
+derror(Display*, char* errorstr)
 {
 	error(errorstr);
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	int i;
-	char *p, *loadfile;
+	char* p, *loadfile;
 	char buf[256];
-	Column *c;
+	Column* c;
 	int ncol;
-	Display *d;
-	static void *arg[1];
+	Display* d;
+	static void* arg[1];
 
-	rfork(RFENVG|RFNAMEG);
+	rfork(RFENVG | RFNAMEG);
 
 	ncol = -1;
 
 	loadfile = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		globalautoindent = TRUE;
 		break;
@@ -110,9 +107,11 @@ threadmain(int argc, char *argv[])
 		break;
 	default:
 	Usage:
-		fprint(2, "usage: acme [-ab] [-c ncol] [-f font] [-F fixedfont] [-l loadfile | file...]\n");
+		fprint(2, "usage: acme [-ab] [-c ncol] [-f font] [-F "
+		          "fixedfont] [-l loadfile | file...]\n");
 		exits("usage");
-	}ARGEND
+	}
+	ARGEND
 
 	fontnames[0] = estrdup(fontnames[0]);
 	fontnames[1] = estrdup(fontnames[1]);
@@ -122,24 +121,24 @@ threadmain(int argc, char *argv[])
 	objtype = getenv("objtype");
 	home = getenv("home");
 	p = getenv("tabstop");
-	if(p != nil){
+	if(p != nil) {
 		maxtab = strtoul(p, nil, 0);
 		free(p);
 	}
 	if(maxtab == 0)
-		maxtab = 4; 
+		maxtab = 4;
 	if(loadfile)
 		rowloadfonts(loadfile);
 	putenv("font", fontnames[0]);
-	snarffd = open("/dev/snarf", OREAD|OCEXEC);
-	if(cputype){
+	snarffd = open("/dev/snarf", OREAD | OCEXEC);
+	if(cputype) {
 		sprint(buf, "/acme/bin/%s", cputype);
 		bind(buf, "/bin", MBEFORE);
 	}
 	bind("/acme/bin", "/bin", MBEFORE);
 	getwd(wdir, sizeof wdir);
 
-	if(geninitdraw(nil, derror, fontnames[0], "acme", nil, Refnone) < 0){
+	if(geninitdraw(nil, derror, fontnames[0], "acme", nil, Refnone) < 0) {
 		fprint(2, "acme: can't open display: %r\n");
 		exits("geninitdraw");
 	}
@@ -148,8 +147,8 @@ threadmain(int argc, char *argv[])
 
 	reffont.f = font;
 	reffonts[0] = &reffont;
-	incref(&reffont);	/* one to hold up 'font' variable */
-	incref(&reffont);	/* one to hold up reffonts[0] */
+	incref(&reffont); /* one to hold up 'font' variable */
+	incref(&reffont); /* one to hold up reffonts[0] */
 	fontcache = emalloc(sizeof(Reffont*));
 	nfontcache = 1;
 	fontcache[0] = &reffont;
@@ -168,62 +167,65 @@ threadmain(int argc, char *argv[])
 	cedit = chancreate(sizeof(int), 0);
 	cexit = chancreate(sizeof(int), 0);
 	cwarn = chancreate(sizeof(void*), 1);
-	if(cwait==nil || ccommand==nil || ckill==nil || cxfidalloc==nil || cxfidfree==nil || cerr==nil || cexit==nil || cwarn==nil){
+	if(cwait == nil || ccommand == nil || ckill == nil ||
+	   cxfidalloc == nil || cxfidfree == nil || cerr == nil ||
+	   cexit == nil || cwarn == nil) {
 		fprint(2, "acme: can't create initial channels: %r\n");
 		exits("channels");
 	}
 
 	mousectl = initmouse(nil, screen);
-	if(mousectl == nil){
+	if(mousectl == nil) {
 		fprint(2, "acme: can't initialize mouse: %r\n");
 		exits("mouse");
 	}
 	mouse = mousectl;
 	keyboardctl = initkeyboard(nil);
-	if(keyboardctl == nil){
+	if(keyboardctl == nil) {
 		fprint(2, "acme: can't initialize keyboard: %r\n");
 		exits("keyboard");
 	}
 	mainpid = getpid();
-	plumbeditfd = plumbopen("edit", OREAD|OCEXEC);
-	if(plumbeditfd >= 0){
+	plumbeditfd = plumbopen("edit", OREAD | OCEXEC);
+	if(plumbeditfd >= 0) {
 		cplumb = chancreate(sizeof(Plumbmsg*), 0);
 		proccreate(plumbproc, nil, STACK);
 	}
-	plumbsendfd = plumbopen("send", OWRITE|OCEXEC);
+	plumbsendfd = plumbopen("send", OWRITE | OCEXEC);
 
 	fsysinit();
 
-	#define	WPERCOL	8
+#define WPERCOL 8
 	disk = diskinit();
-	if(!loadfile || !rowload(&row, loadfile, TRUE)){
+	if(!loadfile || !rowload(&row, loadfile, TRUE)) {
 		rowinit(&row, screen->clipr);
-		if(ncol < 0){
+		if(ncol < 0) {
 			if(argc == 0)
 				ncol = 2;
-			else{
-				ncol = (argc+(WPERCOL-1))/WPERCOL;
+			else {
+				ncol = (argc + (WPERCOL - 1)) / WPERCOL;
 				if(ncol < 2)
 					ncol = 2;
 			}
 		}
 		if(ncol == 0)
 			ncol = 2;
-		for(i=0; i<ncol; i++){
+		for(i = 0; i < ncol; i++) {
 			c = rowadd(&row, nil, -1);
-			if(c==nil && i==0)
+			if(c == nil && i == 0)
 				error("initializing columns");
 		}
-		c = row.col[row.ncol-1];
+		c = row.col[row.ncol - 1];
 		if(argc == 0)
 			readfile(c, wdir);
 		else
-			for(i=0; i<argc; i++){
+			for(i = 0; i < argc; i++) {
 				p = utfrrune(argv[i], '/');
-				if((p!=nil && strcmp(p, "/guide")==0) || i/WPERCOL>=row.ncol)
+				if((p != nil && strcmp(p, "/guide") == 0) ||
+				   i / WPERCOL >= row.ncol)
 					readfile(c, argv[i]);
 				else
-					readfile(row.col[i/WPERCOL], argv[i]);
+					readfile(row.col[i / WPERCOL], argv[i]);
 			}
 	}
 	flushimage(display, 1);
@@ -242,9 +244,9 @@ threadmain(int argc, char *argv[])
 }
 
 void
-readfile(Column *c, char *s)
+readfile(Column* c, char* s)
 {
-	Window *w;
+	Window* w;
 	Rune rb[256];
 	int nb, nr;
 	Runestr rs;
@@ -261,27 +263,22 @@ readfile(Column *c, char *s)
 	textsetselect(&w->tag, w->tag.file->nc, w->tag.file->nc);
 }
 
-char *oknotes[] ={
-	"delete",
-	"hangup",
-	"kill",
-	"exit",
-	nil
-};
+char* oknotes[] = {"delete", "hangup", "kill", "exit", nil};
 
-int	dumping;
+int dumping;
 
 int
-shutdown(void*, char *msg)
+shutdown(void*, char* msg)
 {
 	int i;
 
 	killprocs();
-	if(!dumping && strcmp(msg, "kill")!=0 && strcmp(msg, "exit")!=0 && getpid()==mainpid){
+	if(!dumping && strcmp(msg, "kill") != 0 && strcmp(msg, "exit") != 0 &&
+	   getpid() == mainpid) {
 		dumping = TRUE;
 		rowdump(&row, nil);
 	}
-	for(i=0; oknotes[i]; i++)
+	for(i = 0; oknotes[i]; i++)
 		if(strncmp(oknotes[i], msg, strlen(oknotes[i])) == 0)
 			threadexitsall(msg);
 	print("acme: %s\n", msg);
@@ -292,13 +289,13 @@ shutdown(void*, char *msg)
 void
 killprocs(void)
 {
-	Command *c;
+	Command* c;
 
 	fsysclose();
-//	if(display)
-//		flushimage(display, 1);
+	//	if(display)
+	//		flushimage(display, 1);
 
-	for(c=command; c; c=c->next)
+	for(c = command; c; c = c->next)
 		postnote(PNGROUP, c->pid, "hangup");
 	remove(acmeerrorfile);
 }
@@ -306,14 +303,14 @@ killprocs(void)
 static int errorfd;
 
 void
-acmeerrorproc(void *)
+acmeerrorproc(void*)
 {
-	char *buf;
+	char* buf;
 	int n;
 
 	threadsetname("acmeerrorproc");
-	buf = emalloc(8192+1);
-	while((n=read(errorfd, buf, 8192)) >= 0){
+	buf = emalloc(8192 + 1);
+	while((n = read(errorfd, buf, 8192)) >= 0) {
 		buf[n] = '\0';
 		sendp(cerr, estrdup(buf));
 	}
@@ -329,9 +326,9 @@ acmeerrorinit(void)
 		error("can't create pipe");
 	sprint(acmeerrorfile, "/srv/acme.%s.%d", getuser(), mainpid);
 	fd = create(acmeerrorfile, OWRITE, 0666);
-	if(fd < 0){
+	if(fd < 0) {
 		remove(acmeerrorfile);
-  		fd = create(acmeerrorfile, OWRITE, 0666);
+		fd = create(acmeerrorfile, OWRITE, 0666);
 		if(fd < 0)
 			error("can't create acmeerror file");
 	}
@@ -340,7 +337,7 @@ acmeerrorinit(void)
 	close(fd);
 	/* reopen pfd[1] close on exec */
 	sprint(buf, "/fd/%d", pfd[1]);
-	errorfd = open(buf, OREAD|OCEXEC);
+	errorfd = open(buf, OREAD | OCEXEC);
 	if(errorfd < 0)
 		error("can't re-open acmeerror file");
 	close(pfd[1]);
@@ -349,12 +346,12 @@ acmeerrorinit(void)
 }
 
 void
-plumbproc(void *)
+plumbproc(void*)
 {
-	Plumbmsg *m;
+	Plumbmsg* m;
 
 	threadsetname("plumbproc");
-	for(;;){
+	for(;;) {
 		m = plumbrecv(plumbeditfd);
 		if(m == nil)
 			threadexits(nil);
@@ -363,13 +360,13 @@ plumbproc(void *)
 }
 
 void
-keyboardthread(void *)
+keyboardthread(void*)
 {
 	Rune r;
-	Timer *timer;
-	Text *t;
+	Timer* timer;
+	Text* t;
 	enum { KTimer, KKey, NKALT };
-	static Alt alts[NKALT+1];
+	static Alt alts[NKALT + 1];
 
 	alts[KTimer].c = nil;
 	alts[KTimer].v = nil;
@@ -382,12 +379,12 @@ keyboardthread(void *)
 	timer = nil;
 	typetext = nil;
 	threadsetname("keyboardthread");
-	for(;;){
-		switch(alt(alts)){
+	for(;;) {
+		switch(alt(alts)) {
 		case KTimer:
 			timerstop(timer);
 			t = typetext;
-			if(t!=nil && t->what==Tag){
+			if(t != nil && t->what == Tag) {
 				winlock(t->w, 'K');
 				wincommit(t->w, t);
 				winunlock(t->w);
@@ -400,17 +397,20 @@ keyboardthread(void *)
 		casekeyboard:
 			typetext = rowtype(&row, r, mouse->xy);
 			t = typetext;
-			if(t!=nil && t->col!=nil && !(r==Kdown || r==Kleft || r==Kright))	/* scrolling doesn't change activecol */
+			if(t != nil && t->col != nil &&
+			   !(r == Kdown ||
+			     r == Kleft || r == Kright)) /* scrolling doesn't
+			                                    change activecol */
 				activecol = t->col;
-			if(t!=nil && t->w!=nil)
+			if(t != nil && t->w != nil)
 				t->w->body.file->curtext = &t->w->body;
 			if(timer != nil)
 				timercancel(timer);
-			if(t!=nil && t->what==Tag) {
+			if(t != nil && t->what == Tag) {
 				timer = timerstart(500);
 				alts[KTimer].c = timer->c;
 				alts[KTimer].op = CHANRCV;
-			}else{
+			} else {
 				timer = nil;
 				alts[KTimer].c = nil;
 				alts[KTimer].op = CHANNOP;
@@ -424,17 +424,17 @@ keyboardthread(void *)
 }
 
 void
-mousethread(void *)
+mousethread(void*)
 {
-	Text *t, *argt;
+	Text* t, *argt;
 	int but;
 	uint q0, q1;
-	Window *w;
-	Plumbmsg *pm;
+	Window* w;
+	Plumbmsg* pm;
 	Mouse m;
-	char *act;
+	char* act;
 	enum { MResize, MMouse, MPlumb, MWarnings, NMALT };
-	static Alt alts[NMALT+1];
+	static Alt alts[NMALT + 1];
 
 	threadsetname("mousethread");
 	alts[MResize].c = mousectl->resizec;
@@ -452,13 +452,13 @@ mousethread(void *)
 	if(cplumb == nil)
 		alts[MPlumb].op = CHANNOP;
 	alts[NMALT].op = CHANEND;
-	
-	for(;;){
+
+	for(;;) {
 		qlock(&row);
 		flushwarnings();
 		qunlock(&row);
 		flushimage(display, 1);
-		switch(alt(alts)){
+		switch(alt(alts)) {
 		case MResize:
 			if(getwindow(display, Refnone) < 0)
 				error("attach to window");
@@ -466,11 +466,11 @@ mousethread(void *)
 			rowresize(&row, screen->clipr);
 			break;
 		case MPlumb:
-			if(strcmp(pm->type, "text") == 0){
+			if(strcmp(pm->type, "text") == 0) {
 				act = plumblookup(pm->attr, "action");
-				if(act==nil || strcmp(act, "showfile")==0)
+				if(act == nil || strcmp(act, "showfile") == 0)
 					plumblook(pm);
-				else if(strcmp(act, "showdata")==0)
+				else if(strcmp(act, "showdata") == 0)
 					plumbshow(pm);
 			}
 			plumbfree(pm);
@@ -479,14 +479,17 @@ mousethread(void *)
 			break;
 		case MMouse:
 			/*
-			 * Make a copy so decisions are consistent; mousectl changes
-			 * underfoot.  Can't just receive into m because this introduces
+			 * Make a copy so decisions are consistent; mousectl
+			 * changes
+			 * underfoot.  Can't just receive into m because this
+			 * introduces
 			 * another race; see /sys/src/libdraw/mouse.c.
 			 */
 			m = mousectl->Mouse;
 			qlock(&row);
 			t = rowwhich(&row, m.xy);
-			if(t!=mousetext && mousetext!=nil && mousetext->w!=nil){
+			if(t != mousetext && mousetext != nil &&
+			   mousetext->w != nil) {
 				winlock(mousetext->w, 'M');
 				mousetext->eq0 = ~0;
 				wincommit(mousetext->w, mousetext);
@@ -496,7 +499,7 @@ mousethread(void *)
 			if(t == nil)
 				goto Continue;
 			w = t->w;
-			if(t==nil || m.buttons==0)
+			if(t == nil || m.buttons == 0)
 				goto Continue;
 			but = 0;
 			if(m.buttons == 1)
@@ -506,8 +509,8 @@ mousethread(void *)
 			else if(m.buttons == 4)
 				but = 3;
 			barttext = t;
-			if(t->what==Body && ptinrect(m.xy, t->scrollr)){
-				if(but){
+			if(t->what == Body && ptinrect(m.xy, t->scrollr)) {
+				if(but) {
 					winlock(w, 'M');
 					t->eq0 = ~0;
 					textscroll(t, but);
@@ -516,7 +519,8 @@ mousethread(void *)
 				goto Continue;
 			}
 			/* scroll buttons, wheels, etc. */
-			if(t->what==Body && w != nil && (m.buttons & (8|16))){
+			if(t->what == Body && w != nil &&
+			   (m.buttons & (8 | 16))) {
 				if(m.buttons & 8)
 					but = Kscrolloneup;
 				else
@@ -527,11 +531,11 @@ mousethread(void *)
 				winunlock(w);
 				goto Continue;
 			}
-			if(ptinrect(m.xy, t->scrollr)){
-				if(but){
+			if(ptinrect(m.xy, t->scrollr)) {
+				if(but) {
 					if(t->what == Columntag)
 						rowdragcol(&row, t->col, but);
-					else if(t->what == Tag){
+					else if(t->what == Tag) {
 						coldragwin(t->col, t->w, but);
 						if(t->w)
 							barttext = &t->w->body;
@@ -541,7 +545,7 @@ mousethread(void *)
 				}
 				goto Continue;
 			}
-			if(m.buttons){
+			if(m.buttons) {
 				if(w)
 					winlock(w, 'M');
 				t->eq0 = ~0;
@@ -549,20 +553,21 @@ mousethread(void *)
 					wincommit(w, t);
 				else
 					textcommit(t, TRUE);
-				if(m.buttons & 1){
+				if(m.buttons & 1) {
 					textselect(t);
 					if(w)
 						winsettag(w);
 					argtext = t;
 					seltext = t;
 					if(t->col)
-						activecol = t->col;	/* button 1 only */
-					if(t->w!=nil && t==&t->w->body)
+						activecol =
+						    t->col; /* button 1 only */
+					if(t->w != nil && t == &t->w->body)
 						activewin = t->w;
-				}else if(m.buttons & 2){
+				} else if(m.buttons & 2) {
 					if(textselect2(t, &q0, &q1, &argt))
 						execute(t, q0, q1, FALSE, argt);
-				}else if(m.buttons & 4){
+				} else if(m.buttons & 4) {
 					if(textselect3(t, &q0, &q1))
 						look3(t, q0, q1, FALSE);
 				}
@@ -570,7 +575,7 @@ mousethread(void *)
 					winunlock(w);
 				goto Continue;
 			}
-    Continue:
+		Continue:
 			qunlock(&row);
 			break;
 		}
@@ -578,30 +583,31 @@ mousethread(void *)
 }
 
 /*
- * There is a race between process exiting and our finding out it was ever created.
- * This structure keeps a list of processes that have exited we haven't heard of.
+ * There is a race between process exiting and our finding out it was ever
+ * created.
+ * This structure keeps a list of processes that have exited we haven't heard
+ * of.
  */
 typedef struct Pid Pid;
-struct Pid
-{
-	int	pid;
-	char	msg[ERRMAX];
-	Pid	*next;
+struct Pid {
+	int pid;
+	char msg[ERRMAX];
+	Pid* next;
 };
 
 void
-waitthread(void *)
+waitthread(void*)
 {
-	Waitmsg *w;
-	Command *c, *lc;
+	Waitmsg* w;
+	Command* c, *lc;
 	uint pid;
 	int found, ncmd;
-	Rune *cmd;
-	char *err;
-	Text *t;
-	Pid *pids, *p, *lastp;
+	Rune* cmd;
+	char* err;
+	Text* t;
+	Pid* pids, *p, *lastp;
 	enum { WErr, WKill, WWait, WCmd, NWALT };
-	Alt alts[NWALT+1];
+	Alt alts[NWALT + 1];
 
 	threadsetname("waitthread");
 	pids = nil;
@@ -620,8 +626,8 @@ waitthread(void *)
 	alts[NWALT].op = CHANEND;
 
 	command = nil;
-	for(;;){
-		switch(alt(alts)){
+	for(;;) {
+		switch(alt(alts)) {
 		case WErr:
 			qlock(&row);
 			warning(nil, "%s", err);
@@ -632,11 +638,14 @@ waitthread(void *)
 		case WKill:
 			found = FALSE;
 			ncmd = runestrlen(cmd);
-			for(c=command; c; c=c->next){
+			for(c = command; c; c = c->next) {
 				/* -1 for blank */
-				if(runeeq(c->name, c->nname-1, cmd, ncmd) == TRUE){
-					if(postnote(PNGROUP, c->pid, "kill") < 0)
-						warning(nil, "kill %S: %r\n", cmd);
+				if(runeeq(c->name, c->nname - 1, cmd, ncmd) ==
+				   TRUE) {
+					if(postnote(PNGROUP, c->pid, "kill") <
+					   0)
+						warning(nil, "kill %S: %r\n",
+						        cmd);
 					found = TRUE;
 				}
 			}
@@ -647,8 +656,8 @@ waitthread(void *)
 		case WWait:
 			pid = w->pid;
 			lc = nil;
-			for(c=command; c; c=c->next){
-				if(c->pid == pid){
+			for(c = command; c; c = c->next) {
+				if(c->pid == pid) {
 					if(lc)
 						lc->next = c->next;
 					else
@@ -660,17 +669,17 @@ waitthread(void *)
 			qlock(&row);
 			t = &row.tag;
 			textcommit(t, TRUE);
-			if(c == nil){
+			if(c == nil) {
 				/* helper processes use this exit status */
-				if(strncmp(w->msg, "libthread", 9) != 0){
+				if(strncmp(w->msg, "libthread", 9) != 0) {
 					p = emalloc(sizeof(Pid));
 					p->pid = pid;
 					strncpy(p->msg, w->msg, sizeof(p->msg));
 					p->next = pids;
 					pids = p;
 				}
-			}else{
-				if(search(t, c->name, c->nname)){
+			} else {
+				if(search(t, c->name, c->nname)) {
 					textdelete(t, t->q0, t->q1, TRUE);
 					textsetselect(t, 0, 0);
 				}
@@ -680,8 +689,8 @@ waitthread(void *)
 			}
 			qunlock(&row);
 			free(w);
-    Freecmd:
-			if(c){
+		Freecmd:
+			if(c) {
 				if(c->iseditcmd)
 					sendul(cedit, 0);
 				free(c->text);
@@ -693,8 +702,8 @@ waitthread(void *)
 		case WCmd:
 			/* has this command already exited? */
 			lastp = nil;
-			for(p=pids; p!=nil; p=p->next){
-				if(p->pid == c->pid){
+			for(p = pids; p != nil; p = p->next) {
+				if(p->pid == c->pid) {
 					if(p->msg[0])
 						warning(c->md, "%s\n", p->msg);
 					if(lastp == nil)
@@ -723,9 +732,9 @@ waitthread(void *)
 void
 xfidallocthread(void*)
 {
-	Xfid *xfree, *x;
+	Xfid* xfree, *x;
 	enum { Alloc, Free, N };
-	static Alt alts[N+1];
+	static Alt alts[N + 1];
 
 	threadsetname("xfidallocthread");
 	alts[Alloc].c = cxfidalloc;
@@ -737,15 +746,15 @@ xfidallocthread(void*)
 	alts[N].op = CHANEND;
 
 	xfree = nil;
-	for(;;){
-		switch(alt(alts)){
+	for(;;) {
+		switch(alt(alts)) {
 		case Alloc:
 			x = xfree;
 			if(x)
 				xfree = x->next;
-			else{
+			else {
 				x = emalloc(sizeof(Xfid));
-				x->c = chancreate(sizeof(void(*)(Xfid*)), 0);
+				x->c = chancreate(sizeof(void (*)(Xfid*)), 0);
 				x->arg = x;
 				threadcreate(xfidctl, x->arg, STACK);
 			}
@@ -759,16 +768,18 @@ xfidallocthread(void*)
 	}
 }
 
-/* this thread, in the main proc, allows fsysproc to get a window made without doing graphics */
+/* this thread, in the main proc, allows fsysproc to get a window made without
+ * doing graphics */
 void
 newwindowthread(void*)
 {
-	Window *w;
+	Window* w;
 
 	threadsetname("newwindowthread");
 
-	for(;;){
-		/* only fsysproc is talking to us, so synchronization is trivial */
+	for(;;) {
+		/* only fsysproc is talking to us, so synchronization is trivial
+		 */
 		recvp(cnewwindow);
 		w = makenewwindow(nil);
 		winsettag(w);
@@ -777,45 +788,46 @@ newwindowthread(void*)
 }
 
 Reffont*
-rfget(int fix, int save, int setfont, char *name)
+rfget(int fix, int save, int setfont, char* name)
 {
-	Reffont *r;
-	Font *f;
+	Reffont* r;
+	Font* f;
 	int i;
 
 	r = nil;
-	if(name == nil){
+	if(name == nil) {
 		name = fontnames[fix];
 		r = reffonts[fix];
 	}
-	if(r == nil){
-		for(i=0; i<nfontcache; i++)
-			if(strcmp(name, fontcache[i]->f->name) == 0){
+	if(r == nil) {
+		for(i = 0; i < nfontcache; i++)
+			if(strcmp(name, fontcache[i]->f->name) == 0) {
 				r = fontcache[i];
 				goto Found;
 			}
 		f = openfont(display, name);
-		if(f == nil){
+		if(f == nil) {
 			warning(nil, "can't open font file %s: %r\n", name);
 			return nil;
 		}
 		r = emalloc(sizeof(Reffont));
 		r->f = f;
-		fontcache = erealloc(fontcache, (nfontcache+1)*sizeof(Reffont*));
+		fontcache =
+		    erealloc(fontcache, (nfontcache + 1) * sizeof(Reffont*));
 		fontcache[nfontcache++] = r;
 	}
-    Found:
-	if(save){
+Found:
+	if(save) {
 		incref(r);
 		if(reffonts[fix])
 			rfclose(reffonts[fix]);
 		reffonts[fix] = r;
-		if(name != fontnames[fix]){
+		if(name != fontnames[fix]) {
 			free(fontnames[fix]);
 			fontnames[fix] = estrdup(name);
 		}
 	}
-	if(setfont){
+	if(setfont) {
 		reffont.f = r->f;
 		incref(r);
 		rfclose(reffonts[0]);
@@ -829,19 +841,21 @@ rfget(int fix, int save, int setfont, char *name)
 }
 
 void
-rfclose(Reffont *r)
+rfclose(Reffont* r)
 {
 	int i;
 
-	if(decref(r) == 0){
-		for(i=0; i<nfontcache; i++)
+	if(decref(r) == 0) {
+		for(i = 0; i < nfontcache; i++)
 			if(r == fontcache[i])
 				break;
 		if(i >= nfontcache)
-			warning(nil, "internal error: can't find font in cache\n");
-		else{
+			warning(nil,
+			        "internal error: can't find font in cache\n");
+		else {
 			nfontcache--;
-			memmove(fontcache+i, fontcache+i+1, (nfontcache-i)*sizeof(Reffont*));
+			memmove(fontcache + i, fontcache + i + 1,
+			        (nfontcache - i) * sizeof(Reffont*));
 		}
 		freefont(r->f);
 		free(r);
@@ -849,44 +863,45 @@ rfclose(Reffont *r)
 }
 
 Cursor boxcursor = {
-	{-7, -7},
-	{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	 0xFF, 0xFF, 0xF8, 0x1F, 0xF8, 0x1F, 0xF8, 0x1F,
-	 0xF8, 0x1F, 0xF8, 0x1F, 0xF8, 0x1F, 0xFF, 0xFF,
-	 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
-	{0x00, 0x00, 0x7F, 0xFE, 0x7F, 0xFE, 0x7F, 0xFE,
-	 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E,
-	 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E,
-	 0x7F, 0xFE, 0x7F, 0xFE, 0x7F, 0xFE, 0x00, 0x00}
-};
+    {-7, -7},
+    {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF8, 0x1F,
+     0xF8, 0x1F, 0xF8, 0x1F, 0xF8, 0x1F, 0xF8, 0x1F, 0xF8, 0x1F, 0xFF, 0xFF,
+     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+    {0x00, 0x00, 0x7F, 0xFE, 0x7F, 0xFE, 0x7F, 0xFE, 0x70, 0x0E, 0x70, 0x0E,
+     0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E, 0x70, 0x0E,
+     0x7F, 0xFE, 0x7F, 0xFE, 0x7F, 0xFE, 0x00, 0x00}};
 
 void
 iconinit(void)
 {
 	Rectangle r;
-	Image *tmp;
+	Image* tmp;
 
 	/* Blue */
 	tagcols[BACK] = allocimagemix(display, DPalebluegreen, DWhite);
-	tagcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPalegreygreen);
-	tagcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPurpleblue);
+	tagcols[HIGH] = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,
+	                           DPalegreygreen);
+	tagcols[BORD] =
+	    allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DPurpleblue);
 	tagcols[TEXT] = display->black;
 	tagcols[HTEXT] = display->black;
 
 	/* Yellow */
 	textcols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
-	textcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
-	textcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DYellowgreen);
+	textcols[HIGH] =
+	    allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DDarkyellow);
+	textcols[BORD] = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,
+	                            DYellowgreen);
 	textcols[TEXT] = display->black;
 	textcols[HTEXT] = display->black;
 
-	if(button){
+	if(button) {
 		freeimage(button);
 		freeimage(modbutton);
 		freeimage(colbutton);
 	}
 
-	r = Rect(0, 0, Scrollwid+2, font->height+1);
+	r = Rect(0, 0, Scrollwid + 2, font->height + 1);
 	button = allocimage(display, r, screen->chan, 0, DNofill);
 	draw(button, r, tagcols[BACK], nil, r.min);
 	r.max.x -= 2;
@@ -898,7 +913,7 @@ iconinit(void)
 	r.max.x -= 2;
 	border(modbutton, r, 2, tagcols[BORD], ZP);
 	r = insetrect(r, 2);
-	tmp = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DMedblue);
+	tmp = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DMedblue);
 	draw(modbutton, r, tmp, nil, ZP);
 	freeimage(tmp);
 
@@ -917,22 +932,22 @@ iconinit(void)
 /* rio truncates larges snarf buffers, so this avoids using the
  * service if the string is huge */
 
-#define MAXSNARF 100*1024
+#define MAXSNARF 100 * 1024
 
 void
 putsnarf(void)
 {
 	int fd, i, n;
 
-	if(snarffd<0 || snarfbuf.nc==0)
+	if(snarffd < 0 || snarfbuf.nc == 0)
 		return;
 	if(snarfbuf.nc > MAXSNARF)
 		return;
 	fd = open("/dev/snarf", OWRITE);
 	if(fd < 0)
 		return;
-	for(i=0; i<snarfbuf.nc; i+=n){
-		n = snarfbuf.nc-i;
+	for(i = 0; i < snarfbuf.nc; i += n) {
+		n = snarfbuf.nc - i;
 		if(n >= NSnarf)
 			n = NSnarf;
 		bufread(&snarfbuf, i, snarfrune, n);

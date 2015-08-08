@@ -30,7 +30,7 @@ iseve(void)
 }
 
 void
-setswapchan(Chan *c)
+setswapchan(Chan* c)
 {
 	USED(c);
 }
@@ -79,7 +79,7 @@ xsummary(void)
 }
 
 void
-rebootcmd(int argc, char **argv)
+rebootcmd(int argc, char** argv)
 {
 	USED(argc);
 	USED(argv);
@@ -91,14 +91,14 @@ kickpager(void)
 }
 
 int
-userwrite(char *a, int n)
+userwrite(char* a, int n)
 {
 	error(Eperm);
 	return 0;
 }
 
 int64_t
-todget(int64_t *p)
+todget(int64_t* p)
 {
 	if(p)
 		*p = 0;
@@ -120,7 +120,7 @@ todsetfreq(int64_t a)
 }
 
 int32_t
-hostdomainwrite(char *a, int n)
+hostdomainwrite(char* a, int n)
 {
 	USED(a);
 	USED(n);
@@ -129,7 +129,7 @@ hostdomainwrite(char *a, int n)
 }
 
 int32_t
-hostownerwrite(char *a, int n)
+hostownerwrite(char* a, int n)
 {
 	USED(a);
 	USED(n);
@@ -148,14 +148,14 @@ rdb(void)
 }
 
 void
-setmalloctag(void *v, uintptr tag)
+setmalloctag(void* v, uintptr tag)
 {
 	USED(v);
 	USED(tag);
 }
 
 int
-postnote(Proc *p, int x, char *msg, int flag)
+postnote(Proc* p, int x, char* msg, int flag)
 {
 	USED(p);
 	USED(x);
@@ -165,16 +165,15 @@ postnote(Proc *p, int x, char *msg, int flag)
 }
 
 void
-exhausted(char *s)
+exhausted(char* s)
 {
 	panic("out of %s", s);
 }
 
 uint64_t
-fastticks(uint64_t *v)
+fastticks(uint64_t* v)
 {
 	if(v)
 		*v = 1;
 	return 0;
 }
-

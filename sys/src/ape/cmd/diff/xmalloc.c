@@ -39,30 +39,28 @@
 #if STDC_HEADERS
 #include <stdlib.h>
 #else
-VOID *malloc ();
-VOID *realloc ();
-void free ();
+VOID* malloc();
+VOID* realloc();
+void free();
 #endif
 
-#if __STDC__ && defined (HAVE_VPRINTF)
-void error (int, int, char const *, ...);
+#if __STDC__ && defined(HAVE_VPRINTF)
+void error(int, int, char const*, ...);
 #else
-void error ();
+void error();
 #endif
 
 /* Allocate N bytes of memory dynamically, with error checking.  */
 
-VOID *
-xmalloc (n)
-     size_t n;
+VOID* xmalloc(n) size_t n;
 {
-  VOID *p;
+	VOID* p;
 
-  p = malloc (n);
-  if (p == 0)
-    /* Must exit with 2 for `cmp'.  */
-    error (2, 0, "memory exhausted");
-  return p;
+	p = malloc(n);
+	if(p == 0)
+		/* Must exit with 2 for `cmp'.  */
+		error(2, 0, "memory exhausted");
+	return p;
 }
 
 /* Change the size of an allocated block of memory P to N bytes,
@@ -70,21 +68,18 @@ xmalloc (n)
    If P is NULL, run xmalloc.
    If N is 0, run free and return NULL.  */
 
-VOID *
-xrealloc (p, n)
-     VOID *p;
-     size_t n;
+VOID* xrealloc(p, n) VOID* p;
+size_t n;
 {
-  if (p == 0)
-    return xmalloc (n);
-  if (n == 0)
-    {
-      free (p);
-      return 0;
-    }
-  p = realloc (p, n);
-  if (p == 0)
-    /* Must exit with 2 for `cmp'.  */
-    error (2, 0, "memory exhausted");
-  return p;
+	if(p == 0)
+		return xmalloc(n);
+	if(n == 0) {
+		free(p);
+		return 0;
+	}
+	p = realloc(p, n);
+	if(p == 0)
+		/* Must exit with 2 for `cmp'.  */
+		error(2, 0, "memory exhausted");
+	return p;
 }

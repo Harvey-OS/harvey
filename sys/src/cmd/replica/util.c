@@ -10,16 +10,16 @@
 #include "all.h"
 
 void*
-erealloc(void *a, int n)
+erealloc(void* a, int n)
 {
 	a = realloc(a, n);
-	if(a==nil)
+	if(a == nil)
 		sysfatal("realloc: %r");
 	return a;
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -30,7 +30,7 @@ estrdup(char *s)
 void*
 emalloc(int n)
 {
-	void *a;
+	void* a;
 
 	a = mallocz(n, 1);
 	if(a == nil)
@@ -42,19 +42,19 @@ emalloc(int n)
  *	Custom allocators to avoid malloc overheads on small objects.
  * 	We never free these.  (See below.)
  */
-typedef struct Stringtab	Stringtab;
+typedef struct Stringtab Stringtab;
 struct Stringtab {
-	Stringtab *link;
-	char *str;
+	Stringtab* link;
+	char* str;
 };
 static Stringtab*
 taballoc(void)
 {
-	static Stringtab *t;
+	static Stringtab* t;
 	static uint nt;
 
-	if(nt == 0){
-		t = malloc(64*sizeof(Stringtab));
+	if(nt == 0) {
+		t = malloc(64 * sizeof(Stringtab));
 		if(t == 0)
 			sysfatal("out of memory");
 		nt = 64;
@@ -64,18 +64,18 @@ taballoc(void)
 }
 
 static char*
-xstrdup(char *s)
+xstrdup(char* s)
 {
-	char *r;
+	char* r;
 	int len;
-	static char *t;
+	static char* t;
 	static int nt;
 
-	len = strlen(s)+1;
+	len = strlen(s) + 1;
 	if(len >= 8192)
 		sysfatal("strdup big string");
 
-	if(nt < len){
+	if(nt < len) {
 		t = malloc(8192);
 		if(t == 0)
 			sysfatal("out of memory");
@@ -90,33 +90,33 @@ xstrdup(char *s)
 
 /*
  *	Return a uniquely allocated copy of a string.
- *	Don't free these -- they stay in the table for the 
+ *	Don't free these -- they stay in the table for the
  *	next caller who wants that particular string.
- *	String comparison can be done with pointer comparison 
+ *	String comparison can be done with pointer comparison
  *	if you know both strings are atoms.
  */
-static Stringtab *stab[1024];
+static Stringtab* stab[1024];
 
 static uint
-hash(char *s)
+hash(char* s)
 {
 	uint h;
-	uint8_t *p;
+	uint8_t* p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
-		h = h*37 + *p;
+	for(p = (uint8_t*)s; *p; p++)
+		h = h * 37 + *p;
 	return h;
 }
 
 char*
-atom(char *str)
+atom(char* str)
 {
 	uint h;
-	Stringtab *tab;
-	
+	Stringtab* tab;
+
 	h = hash(str) % nelem(stab);
-	for(tab=stab[h]; tab; tab=tab->link)
+	for(tab = stab[h]; tab; tab = tab->link)
 		if(strcmp(str, tab->str) == 0)
 			return tab->str;
 
@@ -128,16 +128,17 @@ atom(char *str)
 }
 
 char*
-unroot(char *path, char *root)
+unroot(char* path, char* root)
 {
 	int len;
-	char *s;
+	char* s;
 
 	len = strlen(root);
-	while(len >= 1 && root[len-1]=='/')
+	while(len >= 1 && root[len - 1] == '/')
 		len--;
-	if(strncmp(path, root, len)==0 && (path[len]=='/' || path[len]=='\0')){
-		s = path+len;
+	if(strncmp(path, root, len) == 0 &&
+	   (path[len] == '/' || path[len] == '\0')) {
+		s = path + len;
 		while(*s == '/')
 			s++;
 		return s;

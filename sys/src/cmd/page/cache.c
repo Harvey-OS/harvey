@@ -19,12 +19,11 @@
 #include "page.h"
 
 typedef struct Cached Cached;
-struct Cached
-{
-	Document *doc;
+struct Cached {
+	Document* doc;
 	int page;
 	int angle;
-	Image *im;
+	Image* im;
 };
 
 static Cached cache[5];
@@ -32,11 +31,11 @@ static Cached cache[5];
 static Image*
 questionmark(void)
 {
-	static Image *im;
+	static Image* im;
 
 	if(im)
-		return im;	
-	im = xallocimage(display, Rect(0,0,50,50), GREY1, 1, DBlack);
+		return im;
+	im = xallocimage(display, Rect(0, 0, 50, 50), GREY1, 1, DBlack);
 	if(im == nil)
 		return nil;
 	string(im, ZP, display->white, ZP, display->defaultfont, "?");
@@ -47,9 +46,9 @@ void
 cacheflush(void)
 {
 	int i;
-	Cached *c;
+	Cached* c;
 
-	for(i=0; i<nelem(cache); i++){
+	for(i = 0; i < nelem(cache); i++) {
 		c = &cache[i];
 		if(c->im)
 			freeimage(c->im);
@@ -59,21 +58,22 @@ cacheflush(void)
 }
 
 static Image*
-_cachedpage(Document *doc, int angle, int page, char *ra)
+_cachedpage(Document* doc, int angle, int page, char* ra)
 {
 	int i;
-	Cached *c, old;
-	Image *im, *tmp;
+	Cached* c, old;
+	Image* im, *tmp;
 	static int lastpage = -1;
 
 	if((page < 0 || page >= doc->npage) && !doc->fwdonly)
 		return nil;
 
 Again:
-	for(i=0; i<nelem(cache); i++){
+	for(i = 0; i < nelem(cache); i++) {
 		c = &cache[i];
-		if(c->doc == doc && c->angle == angle && c->page == page){
-			if(chatty) fprint(2, "cache%s hit %d\n", ra, page);
+		if(c->doc == doc && c->angle == angle && c->page == page) {
+			if(chatty)
+				fprint(2, "cache%s hit %d\n", ra, page);
 			goto Found;
 		}
 		if(c->doc == nil)
@@ -81,7 +81,7 @@ Again:
 	}
 
 	if(i >= nelem(cache))
-		i = nelem(cache)-1;
+		i = nelem(cache) - 1;
 	c = &cache[i];
 	if(c->im)
 		freeimage(c->im);
@@ -89,15 +89,16 @@ Again:
 	c->doc = nil;
 	c->page = -1;
 
-	if(chatty) fprint(2, "cache%s load %d\n", ra, page);
+	if(chatty)
+		fprint(2, "cache%s load %d\n", ra, page);
 	im = doc->drawpage(doc, page);
-	if(im == nil){
-		if(doc->fwdonly)	/* end of file */
+	if(im == nil) {
+		if(doc->fwdonly) /* end of file */
 			wexits(0);
 		im = questionmark();
-		if(im == nil){
+		if(im == nil) {
 		Flush:
-			if(i > 0){
+			if(i > 0) {
 				cacheflush();
 				goto Again;
 			}
@@ -107,10 +108,11 @@ Again:
 		return im;
 	}
 
-	if(im->r.min.x != 0 || im->r.min.y != 0){
+	if(im->r.min.x != 0 || im->r.min.y != 0) {
 		/* translate to 0,0 */
-		tmp = xallocimage(display, Rect(0, 0, Dx(im->r), Dy(im->r)), im->chan, 0, DNofill);
-		if(tmp == nil){
+		tmp = xallocimage(display, Rect(0, 0, Dx(im->r), Dy(im->r)),
+		                  im->chan, 0, DNofill);
+		if(tmp == nil) {
 			freeimage(im);
 			goto Flush;
 		}
@@ -119,7 +121,7 @@ Again:
 		im = tmp;
 	}
 
-	switch(angle){
+	switch(angle) {
 	case 90:
 		im = rot90(im);
 		break;
@@ -139,27 +141,29 @@ Again:
 	c->im = im;
 
 Found:
-	if(chatty) fprint(2, "cache%s mtf %d @%d:", ra, c->page, i);
+	if(chatty)
+		fprint(2, "cache%s mtf %d @%d:", ra, c->page, i);
 	old = *c;
-	memmove(cache+1, cache, (c-cache)*sizeof cache[0]);
+	memmove(cache + 1, cache, (c - cache) * sizeof cache[0]);
 	cache[0] = old;
-	if(chatty){
-		for(i=0; i<nelem(cache); i++)
+	if(chatty) {
+		for(i = 0; i < nelem(cache); i++)
 			fprint(2, " %d", cache[i].page);
 		fprint(2, "\n");
 	}
-	if(chatty) fprint(2, "cache%s return %d %p\n", ra, old.page, old.im);
+	if(chatty)
+		fprint(2, "cache%s return %d %p\n", ra, old.page, old.im);
 	return old.im;
 }
 
 Image*
-cachedpage(Document *doc, int angle, int page)
+cachedpage(Document* doc, int angle, int page)
 {
 	static int lastpage = -1;
 	static int rabusy;
-	Image *im;
+	Image* im;
 	int ra;
-	
+
 	if(doc->npage < 1)
 		return display->white;
 
@@ -169,16 +173,16 @@ cachedpage(Document *doc, int angle, int page)
 
 	/* readahead */
 	ra = -1;
-	if(!rabusy){
-		if(page == lastpage+1)
-			ra = page+1;
-		else if(page == lastpage-1)
-			ra = page-1;
+	if(!rabusy) {
+		if(page == lastpage + 1)
+			ra = page + 1;
+		else if(page == lastpage - 1)
+			ra = page - 1;
 	}
 	lastpage = page;
-	if(ra >= 0){
+	if(ra >= 0) {
 		rabusy = 1;
-		switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+		switch(rfork(RFPROC | RFMEM | RFNOWAIT)) {
 		case -1:
 			rabusy = 0;
 			break;

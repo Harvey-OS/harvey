@@ -12,7 +12,7 @@
 #include "fmtdef.h"
 
 int
-snprint(char *buf, int len, char *fmt, ...)
+snprint(char* buf, int len, char* fmt, ...)
 {
 	int n;
 	va_list args;
@@ -22,4 +22,3 @@ snprint(char *buf, int len, char *fmt, ...)
 	va_end(args);
 	return n;
 }
-

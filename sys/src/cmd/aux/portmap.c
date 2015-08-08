@@ -14,33 +14,33 @@
 #include <sunrpc.h>
 
 int chatty;
-SunClient *client;
+SunClient* client;
 
 void
 usage(void)
 {
 	fprint(2, "usage: portmap address [cmd]\n"
-		"cmd is one of:\n"
-		"\tnull\n"
-		"\tset prog vers proto port\n"
-		"\tunset prog vers proto port\n"
-		"\tgetport prog vers proto\n"
-		"\tdump (default)\n");
+	          "cmd is one of:\n"
+	          "\tnull\n"
+	          "\tset prog vers proto port\n"
+	          "\tunset prog vers proto port\n"
+	          "\tgetport prog vers proto\n"
+	          "\tdump (default)\n");
 	threadexitsall("usage");
 }
 
 void
-portCall(SunCall *c, PortCallType type)
+portCall(SunCall* c, PortCallType type)
 {
 	c->rpc.prog = PortProgram;
 	c->rpc.vers = PortVersion;
-	c->rpc.proc = type>>1;
-	c->rpc.iscall = !(type&1);
+	c->rpc.proc = type >> 1;
+	c->rpc.iscall = !(type & 1);
 	c->type = type;
 }
 
 void
-tnull(char **argv)
+tnull(char** argv)
 {
 	PortTNull tx;
 	PortRNull rx;
@@ -58,7 +58,7 @@ tnull(char **argv)
 }
 
 void
-tset(char **argv)
+tset(char** argv)
 {
 	PortTSet tx;
 	PortRSet rx;
@@ -81,7 +81,7 @@ tset(char **argv)
 }
 
 void
-tunset(char **argv)
+tunset(char** argv)
 {
 	PortTUnset tx;
 	PortRUnset rx;
@@ -104,7 +104,7 @@ tunset(char **argv)
 }
 
 void
-tgetport(char **argv)
+tgetport(char** argv)
 {
 	PortTGetport tx;
 	PortRGetport rx;
@@ -125,13 +125,13 @@ tgetport(char **argv)
 }
 
 void
-tdump(char **argv)
+tdump(char** argv)
 {
 	int i;
-	uint8_t *p;
+	uint8_t* p;
 	PortTDump tx;
 	PortRDump rx;
-	PortMap *m;
+	PortMap* m;
 
 	USED(argv);
 
@@ -144,36 +144,38 @@ tdump(char **argv)
 	if(sunClientRpc(client, 0, &tx.call, &rx.call, &p) < 0)
 		sysfatal("rpc: %r");
 
-	for(i=0, m=rx.map; i<rx.nmap; i++, m++)
-		print("%ud %ud %ud %ud\n", (uint)m->prog, (uint)m->vers, (uint)m->prot, (uint)m->port);
+	for(i = 0, m = rx.map; i < rx.nmap; i++, m++)
+		print("%ud %ud %ud %ud\n", (uint)m->prog, (uint)m->vers,
+		      (uint)m->prot, (uint)m->port);
 
 	free(p);
 }
 
 static struct {
-	char *cmd;
+	char* cmd;
 	int narg;
 	void (*fn)(char**);
 } tab[] = {
-	"null",	0,	tnull,
-	"set",	4,	tset,
-	"unset",	4,	tunset,
-	"getport",	3,	tgetport,
-	"dump",	0,	tdump,
+    "null", 0,         tnull, "set",    4,      tset, "unset", 4,
+    tunset, "getport", 3,     tgetport, "dump", 0,    tdump,
 };
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	char *dflt[] = { "dump", };
-	char *addr, *cmd;
+	char* dflt[] = {
+	    "dump",
+	};
+	char* addr, *cmd;
 	int i;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'R':
 		chatty++;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -193,7 +195,7 @@ threadmain(int argc, char **argv)
 	argv++;
 	argc--;
 
-	if(argc == 0){
+	if(argc == 0) {
 		argc = 1;
 		argv = dflt;
 	}
@@ -201,8 +203,8 @@ threadmain(int argc, char **argv)
 	argv++;
 	argc--;
 
-	for(i=0; i<nelem(tab); i++){
-		if(strcmp(tab[i].cmd, cmd) == 0){
+	for(i = 0; i < nelem(tab); i++) {
+		if(strcmp(tab[i].cmd, cmd) == 0) {
 			if(tab[i].narg != argc)
 				usage();
 			(*tab[i].fn)(argv);

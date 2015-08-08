@@ -20,26 +20,25 @@
 #include "io.h"
 #include "error.h"
 
-enum {					/* configuration mechanism #1 */
-	PciADDR		= 0xCF8,	/* CONFIG_ADDRESS */
-	PciDATA		= 0xCFC,	/* CONFIG_DATA */
+enum {                  /* configuration mechanism #1 */
+       PciADDR = 0xCF8, /* CONFIG_ADDRESS */
+       PciDATA = 0xCFC, /* CONFIG_DATA */
 
-					/* configuration mechanism #2 */
-	PciCSE		= 0xCF8,	/* configuration space enable */
-	PciFORWARD	= 0xCFA,	/* which bus */
+       /* configuration mechanism #2 */
+       PciCSE = 0xCF8,     /* configuration space enable */
+       PciFORWARD = 0xCFA, /* which bus */
 
-	MaxFNO		= 7,
-	MaxUBN		= 255,
+       MaxFNO = 7,
+       MaxUBN = 255,
 };
 
-enum
-{					/* command register */
-	IOen		= (1<<0),
-	MEMen		= (1<<1),
-	MASen		= (1<<2),
-	MemWrInv	= (1<<4),
-	PErrEn		= (1<<6),
-	SErrEn		= (1<<8),
+enum { /* command register */
+       IOen = (1 << 0),
+       MEMen = (1 << 1),
+       MASen = (1 << 2),
+       MemWrInv = (1 << 4),
+       PErrEn = (1 << 6),
+       SErrEn = (1 << 8),
 };
 
 static Lock pcicfglock;
@@ -55,7 +54,7 @@ static int pcicfgrw32(int, int, int, int);
 static int pcicfgrw8(int, int, int, int);
 
 uint32_t
-pcibarsize(Pcidev *p, int rno)
+pcibarsize(Pcidev* p, int rno)
 {
 	uint32_t v, size;
 
@@ -72,15 +71,15 @@ pcibarsize(Pcidev *p, int rno)
 int
 pciscan(int bno, Pcidev** list)
 {
-	Pcidev *p, *head, *tail;
+	Pcidev* p, *head, *tail;
 	int dno, fno, i, hdt, l, maxfno, maxubn, rno, sbn, tbdf, ubn;
 
 	maxubn = bno;
 	head = nil;
 	tail = nil;
-	for(dno = 0; dno <= pcimaxdno; dno++){
+	for(dno = 0; dno <= pcimaxdno; dno++) {
 		maxfno = 0;
-		for(fno = 0; fno <= maxfno; fno++){
+		for(fno = 0; fno <= maxfno; fno++) {
 			/*
 			 * For this possible device, form the
 			 * bus+device+function triplet needed to address it
@@ -96,7 +95,7 @@ pciscan(int bno, Pcidev** list)
 			p = malloc(sizeof(*p));
 			p->tbdf = tbdf;
 			p->vid = l;
-			p->did = l>>16;
+			p->did = l >> 16;
 
 			if(pcilist != nil)
 				pcitail->list = p;
@@ -125,22 +124,22 @@ pciscan(int bno, Pcidev** list)
 			 * If appropriate, read the base address registers
 			 * and work out the sizes.
 			 */
-			switch(p->ccrb){
+			switch(p->ccrb) {
 
-			case 0x01:		/* mass storage controller */
-			case 0x02:		/* network controller */
-			case 0x03:		/* display controller */
-			case 0x04:		/* multimedia device */
-			case 0x07:		/* simple comm. controllers */
-			case 0x08:		/* base system peripherals */
-			case 0x09:		/* input devices */
-			case 0x0A:		/* docking stations */
-			case 0x0B:		/* processors */
-			case 0x0C:		/* serial bus controllers */
+			case 0x01: /* mass storage controller */
+			case 0x02: /* network controller */
+			case 0x03: /* display controller */
+			case 0x04: /* multimedia device */
+			case 0x07: /* simple comm. controllers */
+			case 0x08: /* base system peripherals */
+			case 0x09: /* input devices */
+			case 0x0A: /* docking stations */
+			case 0x0B: /* processors */
+			case 0x0C: /* serial bus controllers */
 				if((hdt & 0x7F) != 0)
 					break;
 				rno = PciBAR0 - 4;
-				for(i = 0; i < nelem(p->mem); i++){
+				for(i = 0; i < nelem(p->mem); i++) {
 					rno += 4;
 					p->mem[i].bar = pcicfgr32(p, rno);
 					p->mem[i].size = pcibarsize(p, rno);
@@ -148,8 +147,8 @@ pciscan(int bno, Pcidev** list)
 				break;
 
 			case 0x00:
-			case 0x05:		/* memory controller */
-			case 0x06:		/* bridge device */
+			case 0x05: /* memory controller */
+			case 0x06: /* bridge device */
 			default:
 				break;
 			}
@@ -163,7 +162,7 @@ pciscan(int bno, Pcidev** list)
 	}
 
 	*list = head;
-	for(p = head; p != nil; p = p->link){
+	for(p = head; p != nil; p = p->link) {
 		/*
 		 * Find PCI-PCI and PCI-Cardbus bridges
 		 * and recursively descend the tree.
@@ -182,8 +181,8 @@ pciscan(int bno, Pcidev** list)
 		ubn = pcicfgr8(p, PciUBN);
 		sbn = pcicfgr8(p, PciSBN);
 
-		if(sbn == 0 || ubn == 0){
-			sbn = maxubn+1;
+		if(sbn == 0 || ubn == 0) {
+			sbn = maxubn + 1;
 			/*
 			 * Make sure memory, I/O and master enables are
 			 * off, set the primary, secondary and subordinate
@@ -193,15 +192,14 @@ pciscan(int bno, Pcidev** list)
 			 * Initialisation of the bridge should be done here.
 			 */
 			pcicfgw32(p, PciPCR, 0xFFFF0000);
-			l = (MaxUBN<<16)|(sbn<<8)|bno;
+			l = (MaxUBN << 16) | (sbn << 8) | bno;
 			pcicfgw32(p, PciPBN, l);
 			pcicfgw16(p, PciSPSR, 0xFFFF);
 			maxubn = pciscan(sbn, &p->bridge);
-			l = (maxubn<<16)|(sbn<<8)|bno;
+			l = (maxubn << 16) | (sbn << 8) | bno;
 
 			pcicfgw32(p, PciPBN, l);
-		}
-		else{
+		} else {
 			/*
 			 * You can't go back.
 			 * This shouldn't be possible, but the
@@ -220,244 +218,246 @@ pciscan(int bno, Pcidev** list)
 }
 
 static uint8_t
-pIIx_link(Pcidev *router, uint8_t link)
+pIIx_link(Pcidev* router, uint8_t link)
 {
 	uint8_t pirq;
 
 	/* link should be 0x60, 0x61, 0x62, 0x63 */
 	pirq = pcicfgr8(router, link);
-	return (pirq < 16)? pirq: 0;
+	return (pirq < 16) ? pirq : 0;
 }
 
 static void
-pIIx_init(Pcidev *router, uint8_t link, uint8_t irq)
+pIIx_init(Pcidev* router, uint8_t link, uint8_t irq)
 {
 	pcicfgw8(router, link, irq);
 }
 
 static uint8_t
-via_link(Pcidev *router, uint8_t link)
+via_link(Pcidev* router, uint8_t link)
 {
 	uint8_t pirq;
 
 	/* link should be 1, 2, 3, 5 */
-	pirq = (link < 6)? pcicfgr8(router, 0x55 + (link>>1)): 0;
+	pirq = (link < 6) ? pcicfgr8(router, 0x55 + (link >> 1)) : 0;
 
-	return (link & 1)? (pirq >> 4): (pirq & 15);
+	return (link & 1) ? (pirq >> 4) : (pirq & 15);
 }
 
 static void
-via_init(Pcidev *router, uint8_t link, uint8_t irq)
+via_init(Pcidev* router, uint8_t link, uint8_t irq)
 {
 	uint8_t pirq;
 
 	pirq = pcicfgr8(router, 0x55 + (link >> 1));
-	pirq &= (link & 1)? 0x0f: 0xf0;
-	pirq |= (link & 1)? (irq << 4): (irq & 15);
-	pcicfgw8(router, 0x55 + (link>>1), pirq);
+	pirq &= (link & 1) ? 0x0f : 0xf0;
+	pirq |= (link & 1) ? (irq << 4) : (irq & 15);
+	pcicfgw8(router, 0x55 + (link >> 1), pirq);
 }
 
 static uint8_t
-opti_link(Pcidev *router, uint8_t link)
+opti_link(Pcidev* router, uint8_t link)
 {
 	uint8_t pirq = 0;
 
 	/* link should be 0x02, 0x12, 0x22, 0x32 */
-	if ((link & 0xcf) == 0x02)
+	if((link & 0xcf) == 0x02)
 		pirq = pcicfgr8(router, 0xb8 + (link >> 5));
-	return (link & 0x10)? (pirq >> 4): (pirq & 15);
+	return (link & 0x10) ? (pirq >> 4) : (pirq & 15);
 }
 
 static void
-opti_init(Pcidev *router, uint8_t link, uint8_t irq)
+opti_init(Pcidev* router, uint8_t link, uint8_t irq)
 {
 	uint8_t pirq;
 
 	pirq = pcicfgr8(router, 0xb8 + (link >> 5));
-    	pirq &= (link & 0x10)? 0x0f : 0xf0;
-    	pirq |= (link & 0x10)? (irq << 4): (irq & 15);
+	pirq &= (link & 0x10) ? 0x0f : 0xf0;
+	pirq |= (link & 0x10) ? (irq << 4) : (irq & 15);
 	pcicfgw8(router, 0xb8 + (link >> 5), pirq);
 }
 
 static uint8_t
-ali_link(Pcidev *router, uint8_t link)
+ali_link(Pcidev* router, uint8_t link)
 {
 	/* No, you're not dreaming */
-	static const uint8_t map[] = { 0, 9, 3, 10, 4, 5, 7, 6, 1, 11, 0, 12, 0, 14, 0, 15 };
+	static const uint8_t map[] = {0, 9,  3, 10, 4, 5,  7, 6,
+	                              1, 11, 0, 12, 0, 14, 0, 15};
 	uint8_t pirq;
 
 	/* link should be 0x01..0x08 */
-	pirq = pcicfgr8(router, 0x48 + ((link-1)>>1));
-	return (link & 1)? map[pirq&15]: map[pirq>>4];
+	pirq = pcicfgr8(router, 0x48 + ((link - 1) >> 1));
+	return (link & 1) ? map[pirq & 15] : map[pirq >> 4];
 }
 
 static void
-ali_init(Pcidev *router, uint8_t link, uint8_t irq)
+ali_init(Pcidev* router, uint8_t link, uint8_t irq)
 {
 	/* Inverse of map in ali_link */
-	static const uint8_t map[] = { 0, 8, 0, 2, 4, 5, 7, 6, 0, 1, 3, 9, 11, 0, 13, 15 };
+	static const uint8_t map[] = {0, 8, 0, 2, 4,  5, 7,  6,
+	                              0, 1, 3, 9, 11, 0, 13, 15};
 	uint8_t pirq;
 
-	pirq = pcicfgr8(router, 0x48 + ((link-1)>>1));
-	pirq &= (link & 1)? 0x0f: 0xf0;
-	pirq |= (link & 1)? (map[irq] << 4): (map[irq] & 15);
-	pcicfgw8(router, 0x48 + ((link-1)>>1), pirq);
+	pirq = pcicfgr8(router, 0x48 + ((link - 1) >> 1));
+	pirq &= (link & 1) ? 0x0f : 0xf0;
+	pirq |= (link & 1) ? (map[irq] << 4) : (map[irq] & 15);
+	pcicfgw8(router, 0x48 + ((link - 1) >> 1), pirq);
 }
 
 static uint8_t
-cyrix_link(Pcidev *router, uint8_t link)
+cyrix_link(Pcidev* router, uint8_t link)
 {
 	uint8_t pirq;
 
 	/* link should be 1, 2, 3, 4 */
-	pirq = pcicfgr8(router, 0x5c + ((link-1)>>1));
-	return ((link & 1)? pirq >> 4: pirq & 15);
+	pirq = pcicfgr8(router, 0x5c + ((link - 1) >> 1));
+	return ((link & 1) ? pirq >> 4 : pirq & 15);
 }
 
 static void
-cyrix_init(Pcidev *router, uint8_t link, uint8_t irq)
+cyrix_init(Pcidev* router, uint8_t link, uint8_t irq)
 {
 	uint8_t pirq;
 
-	pirq = pcicfgr8(router, 0x5c + (link>>1));
-	pirq &= (link & 1)? 0x0f: 0xf0;
-	pirq |= (link & 1)? (irq << 4): (irq & 15);
-	pcicfgw8(router, 0x5c + (link>>1), pirq);
+	pirq = pcicfgr8(router, 0x5c + (link >> 1));
+	pirq &= (link & 1) ? 0x0f : 0xf0;
+	pirq |= (link & 1) ? (irq << 4) : (irq & 15);
+	pcicfgw8(router, 0x5c + (link >> 1), pirq);
 }
 
-enum {
-	Intel = 0x8086,
-		Intel_82371FB_0 = 0x122e,
-		Intel_82371MX_0 = 0x1234,
-		Intel_82371SB_0 = 0x7000,
-		Intel_82371AB_0 = 0x7110,
-		Intel_82443MX_1 = 0x7198,
-		Intel_82801AA_0 = 0x2410,
-		Intel_82801AB_0 = 0x2420,
-		Intel_82801BA_0 = 0x2440,
-		Intel_82801BAM_0 = 0x244c,
-		Intel_82801CAM_0 = 0x248c,
-		Intel_82801DBM_0 = 0x24cc,
-		Intel_82801EB_0 = 0x24d0,
-		Intel_82801FB_0 = 0x2640,
-	Viatech = 0x1106,
-		Via_82C586_0 = 0x0586,
-		Via_82C596 = 0x0596,
-		Via_82C686 = 0x0686,
-	Opti = 0x1045,
-		Opti_82C700 = 0xc700,
-	Al = 0x10b9,
-		Al_M1533 = 0x1533,
-	SI = 0x1039,
-		SI_503 = 0x0008,
-		SI_496 = 0x0496,
-	Cyrix = 0x1078,
-		Cyrix_5530_Legacy = 0x0100,
+enum { Intel = 0x8086,
+       Intel_82371FB_0 = 0x122e,
+       Intel_82371MX_0 = 0x1234,
+       Intel_82371SB_0 = 0x7000,
+       Intel_82371AB_0 = 0x7110,
+       Intel_82443MX_1 = 0x7198,
+       Intel_82801AA_0 = 0x2410,
+       Intel_82801AB_0 = 0x2420,
+       Intel_82801BA_0 = 0x2440,
+       Intel_82801BAM_0 = 0x244c,
+       Intel_82801CAM_0 = 0x248c,
+       Intel_82801DBM_0 = 0x24cc,
+       Intel_82801EB_0 = 0x24d0,
+       Intel_82801FB_0 = 0x2640,
+       Viatech = 0x1106,
+       Via_82C586_0 = 0x0586,
+       Via_82C596 = 0x0596,
+       Via_82C686 = 0x0686,
+       Opti = 0x1045,
+       Opti_82C700 = 0xc700,
+       Al = 0x10b9,
+       Al_M1533 = 0x1533,
+       SI = 0x1039,
+       SI_503 = 0x0008,
+       SI_496 = 0x0496,
+       Cyrix = 0x1078,
+       Cyrix_5530_Legacy = 0x0100,
 };
 
 typedef struct {
-	uint16_t	sb_vid, sb_did;
-	uint8_t	(*sb_translate)(Pcidev *, uint8_t);
-	void	(*sb_initialize)(Pcidev *, uint8_t, uint8_t);
+	uint16_t sb_vid, sb_did;
+	uint8_t (*sb_translate)(Pcidev*, uint8_t);
+	void (*sb_initialize)(Pcidev*, uint8_t, uint8_t);
 } bridge_t;
 
 static bridge_t southbridges[] = {
-{	Intel, Intel_82371FB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82371MX_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82371SB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82371AB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82443MX_1,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801AA_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801AB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801BA_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801BAM_0,	pIIx_link,	pIIx_init },
-{	Intel, Intel_82801CAM_0,	pIIx_link,	pIIx_init },
-{	Intel, Intel_82801DBM_0,	pIIx_link,	pIIx_init },
-{	Intel, Intel_82801EB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801FB_0,		pIIx_link,	pIIx_init },
-{	Viatech, Via_82C586_0,		via_link,	via_init },
-{	Viatech, Via_82C596,		via_link,	via_init },
-{	Viatech, Via_82C686,		via_link,	via_init },
-{	Opti, Opti_82C700,		opti_link,	opti_init },
-{	Al, Al_M1533,			ali_link,	ali_init },
-{	SI, SI_503,			pIIx_link,	pIIx_init },
-{	SI, SI_496,			pIIx_link,	pIIx_init },
-{	Cyrix, Cyrix_5530_Legacy,	cyrix_link,	cyrix_init }
-};
+    {Intel, Intel_82371FB_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82371MX_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82371SB_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82371AB_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82443MX_1, pIIx_link, pIIx_init},
+    {Intel, Intel_82801AA_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801AB_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801BA_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801BAM_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801CAM_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801DBM_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801EB_0, pIIx_link, pIIx_init},
+    {Intel, Intel_82801FB_0, pIIx_link, pIIx_init},
+    {Viatech, Via_82C586_0, via_link, via_init},
+    {Viatech, Via_82C596, via_link, via_init},
+    {Viatech, Via_82C686, via_link, via_init},
+    {Opti, Opti_82C700, opti_link, opti_init},
+    {Al, Al_M1533, ali_link, ali_init},
+    {SI, SI_503, pIIx_link, pIIx_init},
+    {SI, SI_496, pIIx_link, pIIx_init},
+    {Cyrix, Cyrix_5530_Legacy, cyrix_link, cyrix_init}};
 
 typedef struct {
-	uint8_t	e_bus;			// Pci bus number
-	uint8_t	e_dev;			// Pci device number
-	uint8_t	e_maps[12];		// Avoid structs!  Link and mask.
-	uint8_t	e_slot;			// Add-in/built-in slot
-	uint8_t	e_reserved;
+	uint8_t e_bus;      // Pci bus number
+	uint8_t e_dev;      // Pci device number
+	uint8_t e_maps[12]; // Avoid structs!  Link and mask.
+	uint8_t e_slot;     // Add-in/built-in slot
+	uint8_t e_reserved;
 } slot_t;
 
 typedef struct {
-	uint8_t	rt_signature[4];	// Routing table signature
-	uint8_t	rt_version[2];		// Version number
-	uint8_t	rt_size[2];			// Total table size
-	uint8_t	rt_bus;			// Interrupt router bus number
-	uint8_t	rt_devfn;			// Router's devfunc
-	uint8_t	rt_pciirqs[2];		// Exclusive PCI irqs
-	uint8_t	rt_compat[4];		// Compatible PCI interrupt router
-	uint8_t	rt_miniport[4];		// Miniport data
-	uint8_t	rt_reserved[11];
-	uint8_t	rt_checksum;
+	uint8_t rt_signature[4]; // Routing table signature
+	uint8_t rt_version[2];   // Version number
+	uint8_t rt_size[2];      // Total table size
+	uint8_t rt_bus;          // Interrupt router bus number
+	uint8_t rt_devfn;        // Router's devfunc
+	uint8_t rt_pciirqs[2];   // Exclusive PCI irqs
+	uint8_t rt_compat[4];    // Compatible PCI interrupt router
+	uint8_t rt_miniport[4];  // Miniport data
+	uint8_t rt_reserved[11];
+	uint8_t rt_checksum;
 } router_t;
 
-static uint16_t pciirqs;			// Exclusive PCI irqs
-static bridge_t *southbridge;	// Which southbridge to use.
+static uint16_t pciirqs;      // Exclusive PCI irqs
+static bridge_t* southbridge; // Which southbridge to use.
 
 static void
 pcirouting(void)
 {
-	uint8_t *p, pin, irq;
+	uint8_t* p, pin, irq;
 	uint32_t tbdf, vdid;
 	uint16_t vid, did;
-	router_t *r;
-	slot_t *e;
+	router_t* r;
+	slot_t* e;
 	int size, i, fn;
-	Pcidev *sbpci, *pci;
+	Pcidev* sbpci, *pci;
 
 	// Peek in the BIOS
-	for (p = (uint8_t *)KADDR(0xf0000); p < (uint8_t *)KADDR(0xfffff); p += 16)
-		if (p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
+	for(p = (uint8_t*)KADDR(0xf0000); p < (uint8_t*)KADDR(0xfffff); p += 16)
+		if(p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
 			break;
 
-	if (p >= (uint8_t *)KADDR(0xfffff))
+	if(p >= (uint8_t*)KADDR(0xfffff))
 		return;
 
-	r = (router_t *)p;
+	r = (router_t*)p;
 
 	// print("PCI interrupt routing table version %d.%d at %.6uX\n",
 	// 	r->rt_version[0], r->rt_version[1], (ulong)r & 0xfffff);
 
-	tbdf = (BusPCI << 24)|(r->rt_bus << 16)|(r->rt_devfn << 8);
+	tbdf = (BusPCI << 24) | (r->rt_bus << 16) | (r->rt_devfn << 8);
 	vdid = pcicfgrw32(tbdf, PciVID, 0, 1);
 	vid = vdid;
 	did = vdid >> 16;
 
-	for (i = 0; i != nelem(southbridges); i++)
-		if (vid == southbridges[i].sb_vid && did == southbridges[i].sb_did)
+	for(i = 0; i != nelem(southbridges); i++)
+		if(vid == southbridges[i].sb_vid &&
+		   did == southbridges[i].sb_did)
 			break;
 
-	if (i == nelem(southbridges)) {
-		print("pcirouting: South bridge %.4uX, %.4uX not found\n", vid, did);
+	if(i == nelem(southbridges)) {
+		print("pcirouting: South bridge %.4uX, %.4uX not found\n", vid,
+		      did);
 		return;
 	}
 	southbridge = &southbridges[i];
 
-	if ((sbpci = pcimatch(nil, vid, did)) == nil) {
+	if((sbpci = pcimatch(nil, vid, did)) == nil) {
 		print("pcirouting: Cannot match south bridge %.4uX, %.4uX\n",
-			  vid, did);
+		      vid, did);
 		return;
 	}
 
-	pciirqs = (r->rt_pciirqs[1] << 8)|r->rt_pciirqs[0];
+	pciirqs = (r->rt_pciirqs[1] << 8) | r->rt_pciirqs[0];
 
-	size = (r->rt_size[1] << 8)|r->rt_size[0];
-	for (e = (slot_t *)&r[1]; (uint8_t *)e < p + size; e++) {
+	size = (r->rt_size[1] << 8) | r->rt_size[0];
+	for(e = (slot_t*)&r[1]; (uint8_t*)e < p + size; e++) {
 		// print("%.2uX/%.2uX %.2uX: ", e->e_bus, e->e_dev, e->e_slot);
 		// for (i = 0; i != 4; i++) {
 		// 	uchar *m = &e->e_maps[i * 3];
@@ -466,34 +466,36 @@ pcirouting(void)
 		// }
 		// print("\n");
 
-		for (fn = 0; fn != 8; fn++) {
-			uint8_t *m;
+		for(fn = 0; fn != 8; fn++) {
+			uint8_t* m;
 
 			// Retrieve the did and vid through the devfn before
 			// obtaining the Pcidev structure.
-			tbdf = (BusPCI << 24)|(e->e_bus << 16)|((e->e_dev | fn) << 8);
+			tbdf = (BusPCI << 24) | (e->e_bus << 16) |
+			       ((e->e_dev | fn) << 8);
 			vdid = pcicfgrw32(tbdf, PciVID, 0, 1);
-			if (vdid == 0xFFFFFFFF || vdid == 0)
+			if(vdid == 0xFFFFFFFF || vdid == 0)
 				continue;
 
 			vid = vdid;
 			did = vdid >> 16;
 
 			pci = nil;
-			while ((pci = pcimatch(pci, vid, did)) != nil) {
+			while((pci = pcimatch(pci, vid, did)) != nil) {
 
-				if (pci->intl != 0 && pci->intl != 0xFF)
+				if(pci->intl != 0 && pci->intl != 0xFF)
 					continue;
 
 				pin = pcicfgr8(pci, PciINTP);
-				if (pin == 0 || pin == 0xff)
+				if(pin == 0 || pin == 0xff)
 					continue;
 
 				m = &e->e_maps[(pin - 1) * 3];
 				irq = southbridge->sb_translate(sbpci, m[0]);
-				if (irq) {
-					print("pcirouting: %.4uX/%.4uX at pin %d irq %d\n",
-						  vid, did, pin, irq);
+				if(irq) {
+					print("pcirouting: %.4uX/%.4uX at pin "
+					      "%d irq %d\n",
+					      vid, did, pin, irq);
 					pcicfgw8(pci, PciINTL, irq);
 					pci->intl = irq;
 				}
@@ -505,9 +507,9 @@ pcirouting(void)
 static void
 pcicfginit(void)
 {
-	char *p;
+	char* p;
 	int bno, n;
-	Pcidev **list;
+	Pcidev** list;
 
 	lock(&pcicfginitlock);
 	if(pcicfgmode != -1)
@@ -527,24 +529,24 @@ pcicfginit(void)
 	 * according to the spec.
 	 */
 	n = inl(PciADDR);
-	if(!(n & 0x7FF00000)){
+	if(!(n & 0x7FF00000)) {
 		outl(PciADDR, 0x80000000);
-		outb(PciADDR+3, 0);
-		if(inl(PciADDR) & 0x80000000){
+		outb(PciADDR + 3, 0);
+		if(inl(PciADDR) & 0x80000000) {
 			pcicfgmode = 1;
 			pcimaxdno = 31;
 		}
 	}
 	outl(PciADDR, n);
 
-	if(pcicfgmode < 0){
+	if(pcicfgmode < 0) {
 		/*
 		 * The 'key' part of PciCSE should be 0.
 		 */
 		n = inb(PciCSE);
-		if(!(n & 0xF0)){
+		if(!(n & 0xF0)) {
 			outb(PciCSE, 0x0E);
-			if(inb(PciCSE) == 0x0E){
+			if(inb(PciCSE) == 0x0E) {
 				pcicfgmode = 2;
 				pcimaxdno = 15;
 			}
@@ -554,7 +556,6 @@ pcicfginit(void)
 
 	if(pcicfgmode < 0)
 		goto out;
-
 
 	if(p = getconf("*pcimaxbno"))
 		pcimaxbno = strtoul(p, 0, 0);
@@ -577,7 +578,6 @@ out:
 		pcihinv(nil);
 }
 
-
 static int
 pcicfgrw8(int tbdf, int rno, int data, int read)
 {
@@ -595,26 +595,26 @@ pcicfgrw8(int tbdf, int rno, int data, int read)
 		return x;
 
 	lock(&pcicfglock);
-	switch(pcicfgmode){
+	switch(pcicfgmode) {
 
 	case 1:
 		o = rno & 0x03;
 		rno &= ~0x03;
-		outl(PciADDR, 0x80000000|BUSBDF(tbdf)|rno|type);
+		outl(PciADDR, 0x80000000 | BUSBDF(tbdf) | rno | type);
 		if(read)
-			x = inb(PciDATA+o);
+			x = inb(PciDATA + o);
 		else
-			outb(PciDATA+o, data);
+			outb(PciDATA + o, data);
 		outl(PciADDR, 0);
 		break;
 
 	case 2:
-		outb(PciCSE, 0x80|(BUSFNO(tbdf)<<1));
+		outb(PciCSE, 0x80 | (BUSFNO(tbdf) << 1));
 		outb(PciFORWARD, BUSBNO(tbdf));
 		if(read)
-			x = inb((0xC000|(BUSDNO(tbdf)<<8)) + rno);
+			x = inb((0xC000 | (BUSDNO(tbdf) << 8)) + rno);
 		else
-			outb((0xC000|(BUSDNO(tbdf)<<8)) + rno, data);
+			outb((0xC000 | (BUSDNO(tbdf) << 8)) + rno, data);
 		outb(PciCSE, 0);
 		break;
 	}
@@ -652,26 +652,26 @@ pcicfgrw16(int tbdf, int rno, int data, int read)
 		return x;
 
 	lock(&pcicfglock);
-	switch(pcicfgmode){
+	switch(pcicfgmode) {
 
 	case 1:
 		o = rno & 0x02;
 		rno &= ~0x03;
-		outl(PciADDR, 0x80000000|BUSBDF(tbdf)|rno|type);
+		outl(PciADDR, 0x80000000 | BUSBDF(tbdf) | rno | type);
 		if(read)
-			x = ins(PciDATA+o);
+			x = ins(PciDATA + o);
 		else
-			outs(PciDATA+o, data);
+			outs(PciDATA + o, data);
 		outl(PciADDR, 0);
 		break;
 
 	case 2:
-		outb(PciCSE, 0x80|(BUSFNO(tbdf)<<1));
+		outb(PciCSE, 0x80 | (BUSFNO(tbdf) << 1));
 		outb(PciFORWARD, BUSBNO(tbdf));
 		if(read)
-			x = ins((0xC000|(BUSDNO(tbdf)<<8)) + rno);
+			x = ins((0xC000 | (BUSDNO(tbdf) << 8)) + rno);
 		else
-			outs((0xC000|(BUSDNO(tbdf)<<8)) + rno, data);
+			outs((0xC000 | (BUSDNO(tbdf) << 8)) + rno, data);
 		outb(PciCSE, 0);
 		break;
 	}
@@ -709,11 +709,11 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 		return x;
 
 	lock(&pcicfglock);
-	switch(pcicfgmode){
+	switch(pcicfgmode) {
 
 	case 1:
 		rno &= ~0x03;
-		outl(PciADDR, 0x80000000|BUSBDF(tbdf)|rno|type);
+		outl(PciADDR, 0x80000000 | BUSBDF(tbdf) | rno | type);
 		if(read)
 			x = inl(PciDATA);
 		else
@@ -722,12 +722,12 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 		break;
 
 	case 2:
-		outb(PciCSE, 0x80|(BUSFNO(tbdf)<<1));
+		outb(PciCSE, 0x80 | (BUSFNO(tbdf) << 1));
 		outb(PciFORWARD, BUSBNO(tbdf));
 		if(read)
-			x = inl((0xC000|(BUSDNO(tbdf)<<8)) + rno);
+			x = inl((0xC000 | (BUSDNO(tbdf) << 8)) + rno);
 		else
-			outl((0xC000|(BUSDNO(tbdf)<<8)) + rno, data);
+			outl((0xC000 | (BUSDNO(tbdf) << 8)) + rno, data);
 		outb(PciCSE, 0);
 		break;
 	}
@@ -760,8 +760,8 @@ pcimatch(Pcidev* prev, int vid, int did)
 		prev = prev->list;
 
 	while(prev != nil) {
-		if((vid == 0 || prev->vid == vid)
-		&& (did == 0 || prev->did == did))
+		if((vid == 0 || prev->vid == vid) &&
+		   (did == 0 || prev->did == did))
 			break;
 		prev = prev->list;
 	}
@@ -769,18 +769,19 @@ pcimatch(Pcidev* prev, int vid, int did)
 }
 
 uint8_t
-pciipin(Pcidev *pci, uint8_t pin)
+pciipin(Pcidev* pci, uint8_t pin)
 {
-	if (pci == nil)
+	if(pci == nil)
 		pci = pcilist;
 
-	while (pci) {
+	while(pci) {
 		uint8_t intl;
 
-		if (pcicfgr8(pci, PciINTP) == pin && pci->intl != 0 && pci->intl != 0xff)
+		if(pcicfgr8(pci, PciINTP) == pin && pci->intl != 0 &&
+		   pci->intl != 0xff)
 			return pci->intl;
 
-		if (pci->bridge && (intl = pciipin(pci->bridge, pin)) != 0)
+		if(pci->bridge && (intl = pciipin(pci->bridge, pin)) != 0)
 			return intl;
 
 		pci = pci->list;
@@ -789,16 +790,16 @@ pciipin(Pcidev *pci, uint8_t pin)
 }
 
 static uint16_t
-pciimask(Pcidev *pci)
+pciimask(Pcidev* pci)
 {
 	uint16_t imask;
 
 	imask = 0;
-	while (pci) {
-		if (pcicfgr8(pci, PciINTP) && pci->intl < 16)
+	while(pci) {
+		if(pcicfgr8(pci, PciINTP) && pci->intl < 16)
 			imask |= 1 << pci->intl;
 
-		if (pci->bridge)
+		if(pci->bridge)
 			imask |= pciimask(pci->bridge);
 
 		pci = pci->list;
@@ -807,17 +808,17 @@ pciimask(Pcidev *pci)
 }
 
 uint8_t
-pciintl(Pcidev *pci)
+pciintl(Pcidev* pci)
 {
 	uint16_t imask;
 	int i;
 
-	if (pci == nil)
+	if(pci == nil)
 		pci = pcilist;
 
 	imask = pciimask(pci) | 1;
-	for (i = 0; i != 16; i++)
-		if ((imask & (1 << i)) == 0)
+	for(i = 0; i != 16; i++)
+		if((imask & (1 << i)) == 0)
 			return i;
 	return 0;
 }
@@ -826,7 +827,7 @@ void
 pcihinv(Pcidev* p)
 {
 	int i;
-	Pcidev *t;
+	Pcidev* t;
 
 	if(pcicfgmode == -1)
 		pcicfginit();
@@ -837,15 +838,15 @@ pcihinv(Pcidev* p)
 	}
 	for(t = p; t != nil; t = t->link) {
 		print("%d  %2d/%d %.2ux %.2ux %.2ux %.4ux %.4ux %3d %3d  ",
-			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
-			t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl,
-			t->intp);
+		      BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
+		      t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl,
+		      t->intp);
 
 		for(i = 0; i < nelem(p->mem); i++) {
 			if(t->mem[i].size == 0)
 				continue;
-			print("%d:%.8lux %d ", i,
-				t->mem[i].bar, t->mem[i].size);
+			print("%d:%.8lux %d ", i, t->mem[i].bar,
+			      t->mem[i].size);
 		}
 		print("\n");
 	}
@@ -859,13 +860,13 @@ pcihinv(Pcidev* p)
 void
 pcireset(void)
 {
-	Pcidev *p;
+	Pcidev* p;
 	int pcr;
 
 	if(pcicfgmode == -1)
 		pcicfginit();
 
-	for(p = pcilist; p != nil; p = p->list){
+	for(p = pcilist; p != nil; p = p->list) {
 		pcr = pcicfgr16(p, PciPSR);
 		pcicfgw16(p, PciPSR, pcr & ~0x04);
 	}
@@ -930,20 +931,20 @@ pcigetpmrb(Pcidev* p)
 	 */
 	if(!(p->pcr & 0x0010))
 		return -1;
-	switch(pcicfgr8(p, PciHDT)){
+	switch(pcicfgr8(p, PciHDT)) {
 	default:
 		return -1;
-	case 0:					/* all other */
-	case 1:					/* PCI to PCI bridge */
+	case 0: /* all other */
+	case 1: /* PCI to PCI bridge */
 		ptr = 0x34;
 		break;
-	case 2:					/* CardBus bridge */
+	case 2: /* CardBus bridge */
 		ptr = 0x14;
 		break;
 	}
 	ptr = pcicfgr32(p, ptr);
 
-	while(ptr != 0){
+	while(ptr != 0) {
 		/*
 		 * Check for validity.
 		 * Can't be in standard header and must be double
@@ -951,12 +952,12 @@ pcigetpmrb(Pcidev* p)
 		 */
 		if(ptr < 0x40 || (ptr & ~0xFC))
 			return -1;
-		if(pcicfgr8(p, ptr) == 0x01){
+		if(pcicfgr8(p, ptr) == 0x01) {
 			p->pmrb = ptr;
 			return ptr;
 		}
 
-		ptr = pcicfgr8(p, ptr+1);
+		ptr = pcicfgr8(p, ptr + 1);
 	}
 
 	return -1;
@@ -979,7 +980,7 @@ pcigetpms(Pcidev* p)
 	 *	   6:	bridge support extensions
 	 *	   7:	data
 	 */
-	pmcsr = pcicfgr16(p, ptr+4);
+	pmcsr = pcicfgr16(p, ptr + 4);
 
 	return pmcsr & 0x0003;
 }
@@ -992,12 +993,12 @@ pcisetpms(Pcidev* p, int state)
 	if((ptr = pcigetpmrb(p)) == -1)
 		return -1;
 
-	pmc = pcicfgr16(p, ptr+2);
-	pmcsr = pcicfgr16(p, ptr+4);
+	pmc = pcicfgr16(p, ptr + 2);
+	pmcsr = pcicfgr16(p, ptr + 4);
 	ostate = pmcsr & 0x0003;
 	pmcsr &= ~0x0003;
 
-	switch(state){
+	switch(state) {
 	default:
 		return -1;
 	case 0:
@@ -1014,7 +1015,7 @@ pcisetpms(Pcidev* p, int state)
 		break;
 	}
 	pmcsr |= state;
-	pcicfgw16(p, ptr+4, pmcsr);
+	pcicfgw16(p, ptr + 4, pmcsr);
 
 	return ostate;
 }

@@ -12,50 +12,53 @@
 #include "exec.h"
 #include "fns.h"
 #include "getflags.h"
-#define	c0	t->child[0]
-#define	c1	t->child[1]
-#define	c2	t->child[2]
+#define c0 t->child[0]
+#define c1 t->child[1]
+#define c2 t->child[2]
 int codep, ncode;
-#define	emitf(x) ((void)(codep!=ncode || morecode()), codebuf[codep].f = (x), codep++)
-#define	emiti(x) ((void)(codep!=ncode || morecode()), codebuf[codep].i = (x), codep++)
-#define	emits(x) ((void)(codep!=ncode || morecode()), codebuf[codep].s = (x), codep++)
+#define emitf(x)                                                               \
+	((void)(codep != ncode || morecode()), codebuf[codep].f = (x), codep++)
+#define emiti(x)                                                               \
+	((void)(codep != ncode || morecode()), codebuf[codep].i = (x), codep++)
+#define emits(x)                                                               \
+	((void)(codep != ncode || morecode()), codebuf[codep].s = (x), codep++)
 void stuffdot(int);
-char *fnstr(tree*);
+char* fnstr(tree*);
 void outcode(tree*, int);
 void codeswitch(tree*, int);
 int iscase(tree*);
-code *codecopy(code*);
+code* codecopy(code*);
 void codefree(code*);
 
 int
 morecode(void)
 {
-	ncode+=100;
-	codebuf = (code *)realloc((char *)codebuf, ncode*sizeof codebuf[0]);
-	if(codebuf==0)
+	ncode += 100;
+	codebuf = (code*)realloc((char*)codebuf, ncode * sizeof codebuf[0]);
+	if(codebuf == 0)
 		panic("Can't realloc %d bytes in morecode!",
-				ncode*sizeof codebuf[0]);
+		      ncode * sizeof codebuf[0]);
 	return 0;
 }
 
 void
 stuffdot(int a)
 {
-	if(a<0 || codep<=a)
+	if(a < 0 || codep <= a)
 		panic("Bad address %d in stuffdot", a);
 	codebuf[a].i = codep;
 }
 
 int
-compile(tree *t)
+compile(tree* t)
 {
 	ncode = 100;
-	codebuf = (code *)emalloc(ncode*sizeof codebuf[0]);
+	codebuf = (code*)emalloc(ncode * sizeof codebuf[0]);
 	codep = 0;
-	emiti(0);			/* reference count */
-	outcode(t, flag['e']?1:0);
-	if(nerror){
-		efree((char *)codebuf);
+	emiti(0); /* reference count */
+	outcode(t, flag['e'] ? 1 : 0);
+	if(nerror) {
+		efree((char*)codebuf);
 		return 0;
 	}
 	readhere();
@@ -65,17 +68,17 @@ compile(tree *t)
 }
 
 void
-cleanhere(char *f)
+cleanhere(char* f)
 {
 	emitf(Xdelhere);
 	emits(strdup(f));
 }
 
 char*
-fnstr(tree *t)
+fnstr(tree* t)
 {
-	io *f = openstr();
-	void *v;
+	io* f = openstr();
+	void* v;
 	extern char nl;
 	char svnl = nl;
 
@@ -89,15 +92,15 @@ fnstr(tree *t)
 }
 
 void
-outcode(tree *t, int eflag)
+outcode(tree* t, int eflag)
 {
 	int p, q;
-	tree *tt;
-	if(t==0)
+	tree* tt;
+	if(t == 0)
 		return;
-	if(t->type!=NOT && t->type!=';')
+	if(t->type != NOT && t->type != ';')
 		runq->iflast = 0;
-	switch(t->type){
+	switch(t->type) {
 	default:
 		pfmt(err, "bad type %d in outcode\n", t->type);
 		break;
@@ -120,7 +123,7 @@ outcode(tree *t, int eflag)
 		break;
 	case '&':
 		emitf(Xasync);
-		if(havefork){
+		if(havefork) {
 			p = emiti(0);
 			outcode(c0, eflag);
 			emitf(Xexit);
@@ -141,7 +144,7 @@ outcode(tree *t, int eflag)
 		break;
 	case '`':
 		emitf(Xbackq);
-		if(havefork){
+		if(havefork) {
 			p = emiti(0);
 			outcode(c0, 0);
 			emitf(Xexit);
@@ -176,16 +179,15 @@ outcode(tree *t, int eflag)
 	case FN:
 		emitf(Xmark);
 		outcode(c0, eflag);
-		if(c1){
+		if(c1) {
 			emitf(Xfn);
 			p = emiti(0);
 			emits(fnstr(c1));
 			outcode(c1, eflag);
-			emitf(Xunlocal);	/* get rid of $* */
+			emitf(Xunlocal); /* get rid of $* */
 			emitf(Xreturn);
 			stuffdot(p);
-		}
-		else
+		} else
 			emitf(Xdelfn);
 		break;
 	case IF:
@@ -223,7 +225,7 @@ outcode(tree *t, int eflag)
 		break;
 	case SUBSHELL:
 		emitf(Xsubshell);
-		if(havefork){
+		if(havefork) {
 			p = emiti(0);
 			outcode(c0, eflag);
 			emitf(Xexit);
@@ -248,8 +250,8 @@ outcode(tree *t, int eflag)
 	case WHILE:
 		q = codep;
 		outcode(c0, 0);
-		if(q==codep)
-			emitf(Xsettrue);	/* empty condition == while(true) */
+		if(q == codep)
+			emitf(Xsettrue); /* empty condition == while(true) */
 		emitf(Xtrue);
 		p = emiti(0);
 		outcode(c1, eflag);
@@ -263,17 +265,16 @@ outcode(tree *t, int eflag)
 		break;
 	case FOR:
 		emitf(Xmark);
-		if(c1){
+		if(c1) {
 			outcode(c1, eflag);
 			emitf(Xglob);
-		}
-		else{
+		} else {
 			emitf(Xmark);
 			emitf(Xword);
 			emits(strdup("*"));
 			emitf(Xdol);
 		}
-		emitf(Xmark);		/* dummy value for Xlocal */
+		emitf(Xmark); /* dummy value for Xlocal */
 		emitf(Xmark);
 		outcode(c0, eflag);
 		emitf(Xlocal);
@@ -290,12 +291,11 @@ outcode(tree *t, int eflag)
 		emits(strdup(t->str));
 		break;
 	case DUP:
-		if(t->rtype==DUPFD){
+		if(t->rtype == DUPFD) {
 			emitf(Xdup);
 			emiti(t->fd0);
 			emiti(t->fd1);
-		}
-		else{
+		} else {
 			emitf(Xclose);
 			emiti(t->fd0);
 		}
@@ -305,7 +305,7 @@ outcode(tree *t, int eflag)
 	case PIPEFD:
 		emitf(Xpipefd);
 		emiti(t->rtype);
-		if(havefork){
+		if(havefork) {
 			p = emiti(0);
 			outcode(c0, eflag);
 			emitf(Xexit);
@@ -318,7 +318,7 @@ outcode(tree *t, int eflag)
 		emitf(Xmark);
 		outcode(c0, eflag);
 		emitf(Xglob);
-		switch(t->rtype){
+		switch(t->rtype) {
 		case APPEND:
 			emitf(Xappend);
 			break;
@@ -339,35 +339,35 @@ outcode(tree *t, int eflag)
 		break;
 	case '=':
 		tt = t;
-		for(;t && t->type=='=';t = c2);
-		if(t){					/* var=value cmd */
-			for(t = tt;t->type=='=';t = c2){
+		for(; t && t->type == '='; t = c2)
+			;
+		if(t) { /* var=value cmd */
+			for(t = tt; t->type == '='; t = c2) {
 				emitf(Xmark);
 				outcode(c1, eflag);
 				emitf(Xmark);
 				outcode(c0, eflag);
-				emitf(Xlocal);		/* push var for cmd */
+				emitf(Xlocal); /* push var for cmd */
 			}
-			outcode(t, eflag);		/* gen. code for cmd */
+			outcode(t, eflag); /* gen. code for cmd */
 			for(t = tt; t->type == '='; t = c2)
-				emitf(Xunlocal);	/* pop var */
-		}
-		else{					/* var=value */
-			for(t = tt;t;t = c2){
+				emitf(Xunlocal); /* pop var */
+		} else {                         /* var=value */
+			for(t = tt; t; t = c2) {
 				emitf(Xmark);
 				outcode(c1, eflag);
 				emitf(Xmark);
 				outcode(c0, eflag);
-				emitf(Xassign);	/* set var permanently */
+				emitf(Xassign); /* set var permanently */
 			}
 		}
-		t = tt;	/* so tests below will work */
+		t = tt; /* so tests below will work */
 		break;
 	case PIPE:
 		emitf(Xpipe);
 		emiti(t->fd0);
 		emiti(t->fd1);
-		if(havefork){
+		if(havefork) {
 			p = emiti(0);
 			q = emiti(0);
 			outcode(c0, eflag);
@@ -383,9 +383,10 @@ outcode(tree *t, int eflag)
 		emitf(Xpipewait);
 		break;
 	}
-	if(t->type!=NOT && t->type!=';')
-		runq->iflast = t->type==IF;
-	else if(c0) runq->iflast = c0->type==IF;
+	if(t->type != NOT && t->type != ';')
+		runq->iflast = t->type == IF;
+	else if(c0)
+		runq->iflast = c0->type == IF;
 }
 /*
  * switch code looks like this:
@@ -409,15 +410,14 @@ outcode(tree *t, int eflag)
  */
 
 void
-codeswitch(tree *t, int eflag)
+codeswitch(tree* t, int eflag)
 {
-	int leave;		/* patch jump address to leave switch */
-	int out;		/* jump here to leave switch */
-	int nextcase;	/* patch jump address to next case */
-	tree *tt;
-	if(c1->child[0]==nil
-	|| c1->child[0]->type!=';'
-	|| !iscase(c1->child[0]->child[0])){
+	int leave;    /* patch jump address to leave switch */
+	int out;      /* jump here to leave switch */
+	int nextcase; /* patch jump address to next case */
+	tree* tt;
+	if(c1->child[0] == nil || c1->child[0]->type != ';' ||
+	   !iscase(c1->child[0]->child[0])) {
 		yyerror("case missing in switch");
 		return;
 	}
@@ -429,21 +429,23 @@ codeswitch(tree *t, int eflag)
 	leave = emiti(0);
 	stuffdot(nextcase);
 	t = c1->child[0];
-	while(t->type==';'){
+	while(t->type == ';') {
 		tt = c1;
 		emitf(Xmark);
-		for(t = c0->child[0];t->type==ARGLIST;t = c0) outcode(c1, eflag);
+		for(t = c0->child[0]; t->type == ARGLIST; t = c0)
+			outcode(c1, eflag);
 		emitf(Xcase);
 		nextcase = emiti(0);
 		t = tt;
-		for(;;){
-			if(t->type==';'){
-				if(iscase(c0)) break;
+		for(;;) {
+			if(t->type == ';') {
+				if(iscase(c0))
+					break;
 				outcode(c0, eflag);
 				t = c1;
-			}
-			else{
-				if(!iscase(t)) outcode(t, eflag);
+			} else {
+				if(!iscase(t))
+					outcode(t, eflag);
 				break;
 			}
 		}
@@ -456,40 +458,46 @@ codeswitch(tree *t, int eflag)
 }
 
 int
-iscase(tree *t)
+iscase(tree* t)
 {
-	if(t->type!=SIMPLE)
+	if(t->type != SIMPLE)
 		return 0;
-	do t = c0; while(t->type==ARGLIST);
-	return t->type==WORD && !t->quoted && strcmp(t->str, "case")==0;
+	do
+		t = c0;
+	while(t->type == ARGLIST);
+	return t->type == WORD && !t->quoted && strcmp(t->str, "case") == 0;
 }
 
 code*
-codecopy(code *cp)
+codecopy(code* cp)
 {
 	cp[0].i++;
 	return cp;
 }
 
 void
-codefree(code *cp)
+codefree(code* cp)
 {
-	code *p;
-	if(--cp[0].i!=0)
+	code* p;
+	if(--cp[0].i != 0)
 		return;
-	for(p = cp+1;p->f;p++){
-		if(p->f==Xappend || p->f==Xclose || p->f==Xread || p->f==Xwrite
-		|| p->f==Xrdwr
-		|| p->f==Xasync || p->f==Xbackq || p->f==Xcase || p->f==Xfalse
-		|| p->f==Xfor || p->f==Xjump
-		|| p->f==Xsubshell || p->f==Xtrue) p++;
-		else if(p->f==Xdup || p->f==Xpipefd) p+=2;
-		else if(p->f==Xpipe) p+=4;
-		else if(p->f==Xword || p->f==Xdelhere) efree((++p)->s);
-		else if(p->f==Xfn){
+	for(p = cp + 1; p->f; p++) {
+		if(p->f == Xappend || p->f == Xclose || p->f == Xread ||
+		   p->f == Xwrite || p->f == Xrdwr || p->f == Xasync ||
+		   p->f == Xbackq || p->f == Xcase || p->f == Xfalse ||
+		   p->f == Xfor || p->f == Xjump || p->f == Xsubshell ||
+		   p->f == Xtrue)
+			p++;
+		else if(p->f == Xdup || p->f == Xpipefd)
+			p += 2;
+		else if(p->f == Xpipe)
+			p += 4;
+		else if(p->f == Xword || p->f == Xdelhere)
+			efree((++p)->s);
+		else if(p->f == Xfn) {
 			efree(p[2].s);
-			p+=2;
+			p += 2;
 		}
 	}
-	efree((char *)cp);
+	efree((char*)cp);
 }

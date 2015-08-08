@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-hogport(char *proto, int port)
+hogport(char* proto, int port)
 {
 	char buf[256];
 	char dir[40];
@@ -22,9 +22,9 @@ hogport(char *proto, int port)
 }
 
 void
-hogrange(char *str)
+hogrange(char* str)
 {
-	char *er, *sr;
+	char* er, *sr;
 	int start, end;
 
 	sr = strrchr(str, '!');
@@ -48,25 +48,26 @@ hogrange(char *str)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i;
 
-	ARGBEGIN{
-	}ARGEND;
+	ARGBEGIN {}
+	ARGEND;
 
-	if(argc == 0){
+	if(argc == 0) {
 		fprint(2, "usage: %s portrange\n", argv0);
 		exits("usage");
 	}
 
-	switch(rfork(RFREND|RFNOTEG|RFFDG|RFPROC|RFNAMEG)){
+	switch(rfork(RFREND | RFNOTEG | RFFDG | RFPROC | RFNAMEG)) {
 	case 0:
 		close(0);
 		close(1);
 		break;
 	case -1:
-		abort(); /* "fork failed\n" */;
+		abort(); /* "fork failed\n" */
+		;
 	default:
 		_exits(0);
 	}

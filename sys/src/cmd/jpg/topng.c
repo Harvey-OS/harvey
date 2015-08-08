@@ -24,15 +24,16 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	Biobuf bout;
-	Memimage *i;
+	Memimage* i;
 	int fd;
-	char *err, *filename;
+	char* err, *filename;
 	ImageInfo II;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		II.comment = ARGF();
 		if(II.comment == nil)
@@ -49,16 +50,17 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(Binit(&bout, 1, OWRITE) < 0)
 		sysfatal("Binit failed: %r");
 	memimageinit();
 
-	if(argc == 0){
+	if(argc == 0) {
 		fd = 0;
 		filename = "<stdin>";
-	}else{
+	} else {
 		fd = open(argv[0], OREAD);
 		if(fd < 0)
 			sysfatal("can't open %s: %r", argv[0]);

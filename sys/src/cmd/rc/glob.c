@@ -10,42 +10,45 @@
 #include "rc.h"
 #include "exec.h"
 #include "fns.h"
-char *globname;
-struct word *globv;
+char* globname;
+struct word* globv;
 /*
  * delete all the GLOB marks from s, in place
  */
 
 void
-deglob(void *as)
+deglob(void* as)
 {
-	char *s = as;
-	char *t = s;
-	do{
-		if(*t==GLOB)
+	char* s = as;
+	char* t = s;
+	do {
+		if(*t == GLOB)
 			t++;
-		*s++=*t;
-	}while(*t++);
+		*s++ = *t;
+	} while(*t++);
 }
 
 int
-globcmp(const void *s, const void *t)
+globcmp(const void* s, const void* t)
 {
 	return strcmp(*(char**)s, *(char**)t);
 }
 
 void
-globsort(word *left, word *right)
+globsort(word* left, word* right)
 {
-	char **list;
-	word *a;
+	char** list;
+	word* a;
 	int n = 0;
-	for(a = left;a!=right;a = a->next) n++;
-	list = (char **)emalloc(n*sizeof(char *));
-	for(a = left,n = 0;a!=right;a = a->next,n++) list[n] = a->word;
-	qsort((void *)list, n, sizeof(void *), globcmp);
-	for(a = left,n = 0;a!=right;a = a->next,n++) a->word = list[n];
-	efree((char *)list);
+	for(a = left; a != right; a = a->next)
+		n++;
+	list = (char**)emalloc(n * sizeof(char*));
+	for(a = left, n = 0; a != right; a = a->next, n++)
+		list[n] = a->word;
+	qsort((void*)list, n, sizeof(void*), globcmp);
+	for(a = left, n = 0; a != right; a = a->next, n++)
+		a->word = list[n];
+	efree((char*)list);
 }
 /*
  * Push names prefixed by globname and suffixed by a match of p onto the astack.
@@ -53,40 +56,44 @@ globsort(word *left, word *right)
  */
 
 void
-globdir(uint8_t *p, uint8_t *namep)
+globdir(uint8_t* p, uint8_t* namep)
 {
-	uint8_t *t, *newp;
+	uint8_t* t, *newp;
 	int f;
-	/* scan the pattern looking for a component with a metacharacter in it */
-	if(*p=='\0'){
+	/* scan the pattern looking for a component with a metacharacter in it
+	 */
+	if(*p == '\0') {
 		globv = newword(globname, globv);
 		return;
 	}
 	t = namep;
 	newp = p;
-	while(*newp){
-		if(*newp==GLOB)
+	while(*newp) {
+		if(*newp == GLOB)
 			break;
-		*t=*newp++;
-		if(*t++=='/'){
+		*t = *newp++;
+		if(*t++ == '/') {
 			namep = t;
 			p = newp;
 		}
 	}
 	/* If we ran out of pattern, append the name if accessible */
-	if(*newp=='\0'){
-		*t='\0';
-		if(access(globname, 0)==0)
+	if(*newp == '\0') {
+		*t = '\0';
+		if(access(globname, 0) == 0)
 			globv = newword(globname, globv);
 		return;
 	}
 	/* read the directory and recur for any entry that matches */
-	*namep='\0';
-	if((f = Opendir(globname[0]?globname:"."))<0) return;
-	while(*newp!='/' && *newp!='\0') newp++;
-	while(Readdir(f, namep, *newp=='/')){
-		if(matchfn(namep, p)){
-			for(t = namep;*t;t++);
+	*namep = '\0';
+	if((f = Opendir(globname[0] ? globname : ".")) < 0)
+		return;
+	while(*newp != '/' && *newp != '\0')
+		newp++;
+	while(Readdir(f, namep, *newp == '/')) {
+		if(matchfn(namep, p)) {
+			for(t = namep; *t; t++)
+				;
 			globdir(newp, t);
 		}
 	}
@@ -98,26 +105,25 @@ globdir(uint8_t *p, uint8_t *namep)
  */
 
 void
-glob(void *ap)
+glob(void* ap)
 {
-	uint8_t *p = ap;
-	word *svglobv = globv;
+	uint8_t* p = ap;
+	word* svglobv = globv;
 	int globlen = Globsize(ap);
 
-	if(!globlen){
+	if(!globlen) {
 		deglob(p);
-		globv = newword((char *)p, globv);
+		globv = newword((char*)p, globv);
 		return;
 	}
 	globname = emalloc(globlen);
-	globname[0]='\0';
-	globdir(p, (uint8_t *)globname);
+	globname[0] = '\0';
+	globdir(p, (uint8_t*)globname);
 	efree(globname);
-	if(svglobv==globv){
+	if(svglobv == globv) {
 		deglob(p);
-		globv = newword((char *)p, globv);
-	}
-	else
+		globv = newword((char*)p, globv);
+	} else
 		globsort(globv, svglobv);
 }
 
@@ -125,12 +131,12 @@ glob(void *ap)
  * Do p and q point at equal utf codes
  */
 int
-equtf(uint8_t *p, uint8_t *q)
+equtf(uint8_t* p, uint8_t* q)
 {
 	Rune pr, qr;
-	if(*p!=*q)
+	if(*p != *q)
 		return 0;
-	
+
 	chartorune(&pr, (char*)p);
 	chartorune(&qr, (char*)q);
 	return pr == qr;
@@ -142,7 +148,7 @@ equtf(uint8_t *p, uint8_t *q)
  */
 
 uint8_t*
-nextutf(uint8_t *p)
+nextutf(uint8_t* p)
 {
 	Rune dummy;
 	return p + chartorune(&dummy, (char*)p);
@@ -153,7 +159,7 @@ nextutf(uint8_t *p)
  */
 
 int
-unicode(uint8_t *p)
+unicode(uint8_t* p)
 {
 	Rune r;
 
@@ -170,83 +176,91 @@ unicode(uint8_t *p)
  */
 
 int
-matchfn(void *as, void *ap)
+matchfn(void* as, void* ap)
 {
-	uint8_t *s = as, *p = ap;
+	uint8_t* s = as, * p = ap;
 
-	if(s[0]=='.' && (s[1]=='\0' || s[1]=='.' && s[2]=='\0') && p[0]!='.')
+	if(s[0] == '.' && (s[1] == '\0' || s[1] == '.' && s[2] == '\0') &&
+	   p[0] != '.')
 		return 0;
 	return match(s, p, '/');
 }
 
 int
-match(void *as, void *ap, int stop)
+match(void* as, void* ap, int stop)
 {
 	int compl, hit, lo, hi, t, c;
-	uint8_t *s = as, *p = ap;
+	uint8_t* s = as, * p = ap;
 
-	for(; *p!=stop && *p!='\0'; s = nextutf(s), p = nextutf(p)){
-		if(*p!=GLOB){
-			if(!equtf(p, s)) return 0;
-		}
-		else switch(*++p){
-		case GLOB:
-			if(*s!=GLOB)
+	for(; *p != stop && *p != '\0'; s = nextutf(s), p = nextutf(p)) {
+		if(*p != GLOB) {
+			if(!equtf(p, s))
 				return 0;
-			break;
-		case '*':
-			for(;;){
-				if(match(s, nextutf(p), stop)) return 1;
-				if(!*s)
-					break;
-				s = nextutf(s);
-			}
-			return 0;
-		case '?':
-			if(*s=='\0')
-				return 0;
-			break;
-		case '[':
-			if(*s=='\0')
-				return 0;
-			c = unicode(s);
-			p++;
-			compl=*p=='~';
-			if(compl)
-				p++;
-			hit = 0;
-			while(*p!=']'){
-				if(*p=='\0')
-					return 0;		/* syntax error */
-				lo = unicode(p);
-				p = nextutf(p);
-				if(*p!='-')
-					hi = lo;
-				else{
-					p++;
-					if(*p=='\0')
-						return 0;	/* syntax error */
-					hi = unicode(p);
-					p = nextutf(p);
-					if(hi<lo){ t = lo; lo = hi; hi = t; }
+		} else
+			switch(*++p) {
+			case GLOB:
+				if(*s != GLOB)
+					return 0;
+				break;
+			case '*':
+				for(;;) {
+					if(match(s, nextutf(p), stop))
+						return 1;
+					if(!*s)
+						break;
+					s = nextutf(s);
 				}
-				if(lo<=c && c<=hi)
-					hit = 1;
-			}
-			if(compl)
-				hit=!hit;
-			if(!hit)
 				return 0;
-			break;
-		}
+			case '?':
+				if(*s == '\0')
+					return 0;
+				break;
+			case '[':
+				if(*s == '\0')
+					return 0;
+				c = unicode(s);
+				p++;
+				compl = *p == '~';
+				if(compl)
+					p++;
+				hit = 0;
+				while(*p != ']') {
+					if(*p == '\0')
+						return 0; /* syntax error */
+					lo = unicode(p);
+					p = nextutf(p);
+					if(*p != '-')
+						hi = lo;
+					else {
+						p++;
+						if(*p == '\0')
+							return 0; /* syntax
+							             error */
+						hi = unicode(p);
+						p = nextutf(p);
+						if(hi < lo) {
+							t = lo;
+							lo = hi;
+							hi = t;
+						}
+					}
+					if(lo <= c && c <= hi)
+						hit = 1;
+				}
+				if(compl)
+					hit = !hit;
+				if(!hit)
+					return 0;
+				break;
+			}
 	}
-	return *s=='\0';
+	return *s == '\0';
 }
 
 void
-globlist1(word *gl)
+globlist1(word* gl)
 {
-	if(gl){
+	if(gl) {
 		globlist1(gl->next);
 		glob(gl->word);
 	}
@@ -255,13 +269,14 @@ globlist1(word *gl)
 void
 globlist(void)
 {
-	word *a;
+	word* a;
 	globv = 0;
 	globlist1(runq->argv->words);
 	poplist();
 	pushlist();
-	if(globv){
-		for(a = globv;a->next;a = a->next);
+	if(globv) {
+		for(a = globv; a->next; a = a->next)
+			;
 		a->next = runq->argv->words;
 		runq->argv->words = globv;
 	}

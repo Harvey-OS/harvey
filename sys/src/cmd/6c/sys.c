@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "/sys/src/libc/9syscall/sys.h"
 
-int64_t	_sysargs[6*4];
+int64_t _sysargs[6 * 4];
 int64_t _callsys(void);
 
 /*
@@ -26,7 +26,7 @@ getpid(void)
 }
 
 int32_t
-pread(int fd, void *a, int32_t n, int64_t)
+pread(int fd, void* a, int32_t n, int64_t)
 {
 	_sysargs[0] = PREAD;
 	_sysargs[1] = fd;
@@ -36,7 +36,7 @@ pread(int fd, void *a, int32_t n, int64_t)
 }
 
 int32_t
-pwrite(int fd, void *a, int32_t n, int64_t)
+pwrite(int fd, void* a, int32_t n, int64_t)
 {
 	_sysargs[0] = PWRITE;
 	_sysargs[1] = fd;
@@ -54,7 +54,7 @@ close(int fd)
 }
 
 int
-open(char *name, int mode)
+open(char* name, int mode)
 {
 	_sysargs[0] = OPEN;
 	_sysargs[1] = (int64_t)name;
@@ -63,7 +63,7 @@ open(char *name, int mode)
 }
 
 int
-create(char *f, int mode, uint32_t perm)
+create(char* f, int mode, uint32_t perm)
 {
 	_sysargs[0] = CREATE;
 	_sysargs[1] = (int64_t)f;
@@ -73,10 +73,10 @@ create(char *f, int mode, uint32_t perm)
 }
 
 void
-_exits(char *s)
+_exits(char* s)
 {
 	_sysargs[0] = EXITS;
-	_sysargs[1] = s!=nil? strlen(s): 0;
+	_sysargs[1] = s != nil ? strlen(s) : 0;
 	_callsys();
 }
 
@@ -90,7 +90,7 @@ dup(int f, int t)
 }
 
 int
-errstr(char *buf, uint n)
+errstr(char* buf, uint n)
 {
 	_sysargs[0] = ERRSTR;
 	_sysargs[1] = (int64_t)buf;
@@ -99,7 +99,7 @@ errstr(char *buf, uint n)
 }
 
 int
-brk_(void *a)
+brk_(void* a)
 {
 	_sysargs[0] = BRK_;
 	_sysargs[1] = (int64_t)a;

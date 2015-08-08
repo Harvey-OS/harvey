@@ -19,163 +19,169 @@ static int debug = 0;
 
 typedef struct Text Text;
 
-struct Text
-{
+struct Text {
 	Control;
-	int		border;
-	int		topline;
-	int		scroll;
-	int		nvis;
-	int		lastbut;
-	CFont	*font;
-	CImage	*image;
-	CImage	*textcolor;
-	CImage	*bordercolor;
-	CImage	*selectcolor;
-	CImage	*selectingcolor;
-	Rune		**line;
-	int		selectmode;	// Selsingle, Selmulti
-	int		selectstyle;	// Seldown, Selup (use Selup only with Selsingle)
-	uint8_t	*selected;
-	int		nline;
-	int		warp;
-	int		align;
-	int		sel;		// line nr of selection made by last button down
-	int		but;		// last button down (still being hold)
-	int		offsel;	// we are on selection
+	int border;
+	int topline;
+	int scroll;
+	int nvis;
+	int lastbut;
+	CFont* font;
+	CImage* image;
+	CImage* textcolor;
+	CImage* bordercolor;
+	CImage* selectcolor;
+	CImage* selectingcolor;
+	Rune** line;
+	int selectmode;  // Selsingle, Selmulti
+	int selectstyle; // Seldown, Selup (use Selup only with Selsingle)
+	uint8_t* selected;
+	int nline;
+	int warp;
+	int align;
+	int sel;    // line nr of selection made by last button down
+	int but;    // last button down (still being hold)
+	int offsel; // we are on selection
 };
 
-enum
-{
-	Selsingle,
-	Selmulti,
-	Seldown,
-	Selup,
+enum { Selsingle,
+       Selmulti,
+       Seldown,
+       Selup,
 };
 
-enum{
-	EAccumulate,
-	EAdd,
-	EAlign,
-	EBorder,
-	EBordercolor,
-	EClear,
-	EDelete,
-	EFocus,
-	EFont,
-	EHide,
-	EImage,
-	ERect,
-	EReplace,
-	EReveal,
-	EScroll,
-	ESelect,
-	ESelectcolor,
-	ESelectingcolor,
-	ESelectmode,
-	ESelectstyle,
-	EShow,
-	ESize,
-	ETextcolor,
-	ETopline,
-	EValue,
-	EWarp,
+enum { EAccumulate,
+       EAdd,
+       EAlign,
+       EBorder,
+       EBordercolor,
+       EClear,
+       EDelete,
+       EFocus,
+       EFont,
+       EHide,
+       EImage,
+       ERect,
+       EReplace,
+       EReveal,
+       EScroll,
+       ESelect,
+       ESelectcolor,
+       ESelectingcolor,
+       ESelectmode,
+       ESelectstyle,
+       EShow,
+       ESize,
+       ETextcolor,
+       ETopline,
+       EValue,
+       EWarp,
 };
 
-static char *cmds[] = {
-	[EAccumulate] =	"accumulate",
-	[EAdd] =			"add",
-	[EAlign] =			"align",
-	[EBorder] =		"border",
-	[EBordercolor] =	"bordercolor",
-	[EClear] =			"clear",
-	[EDelete] =		"delete",
-	[EFocus] = 		"focus",
-	[EFont] =			"font",
-	[EHide] =			"hide",
-	[EImage] =		"image",
-	[ERect] =			"rect",
-	[EReplace] =		"replace",
-	[EReveal] =		"reveal",
-	[EScroll] =			"scroll",
-	[ESelect] =		"select",
-	[ESelectcolor] =	"selectcolor",
-	[ESelectingcolor] =	"selectingcolor",
-	[ESelectmode] =	"selectmode",
-	[ESelectstyle] =		"selectstyle",
-	[EShow] =			"show",
-	[ESize] =			"size",
-	[ETextcolor] =		"textcolor",
-	[ETopline] =		"topline",
-	[EValue] =			"value",
-	[EWarp] =			"warp",
-	nil
-};
+static char* cmds[] = {[EAccumulate] = "accumulate", [EAdd] = "add",
+                       [EAlign] = "align", [EBorder] = "border",
+                       [EBordercolor] = "bordercolor", [EClear] = "clear",
+                       [EDelete] = "delete", [EFocus] = "focus",
+                       [EFont] = "font", [EHide] = "hide", [EImage] = "image",
+                       [ERect] = "rect", [EReplace] = "replace",
+                       [EReveal] = "reveal", [EScroll] = "scroll",
+                       [ESelect] = "select", [ESelectcolor] = "selectcolor",
+                       [ESelectingcolor] = "selectingcolor",
+                       [ESelectmode] = "selectmode",
+                       [ESelectstyle] = "selectstyle", [EShow] = "show",
+                       [ESize] = "size", [ETextcolor] = "textcolor",
+                       [ETopline] = "topline", [EValue] = "value",
+                       [EWarp] = "warp", nil};
 
-static void	textshow(Text*);
-static void	texttogglei(Text*, int);
-static int	textline(Text*, Point);
-static int	texttoggle(Text*, Point);
+static void textshow(Text*);
+static void texttogglei(Text*, int);
+static int textline(Text*, Point);
+static int texttoggle(Text*, Point);
 
 static void
-textmouse(Control *c, Mouse *m)
+textmouse(Control* c, Mouse* m)
 {
-	Text *t;
+	Text* t;
 	int sel;
 
 	t = (Text*)c;
-	if (debug) fprint(2, "textmouse %s t->lastbut %d; m->buttons %d\n", t->name, t->lastbut, m->buttons);
-	if (t->warp >= 0)
+	if(debug)
+		fprint(2, "textmouse %s t->lastbut %d; m->buttons %d\n",
+		       t->name, t->lastbut, m->buttons);
+	if(t->warp >= 0)
 		return;
-	if ((t->selectstyle == Selup) && (m->buttons&7)) {
+	if((t->selectstyle == Selup) && (m->buttons & 7)) {
 		sel = textline(t, m->xy);
-		if (t->sel >= 0) {
-//			if (debug) fprint(2, "textmouse Selup %q sel=%d t->sel=%d t->but=%d\n",
-//						t->name, sel, t->sel, t->but);
+		if(t->sel >= 0) {
+			//			if (debug) fprint(2, "textmouse
+			//Selup %q sel=%d t->sel=%d t->but=%d\n",
+			//						t->name, sel,
+			//t->sel, t->but);
 			t->offsel = (sel == t->sel) ? 0 : 1;
-			if ((sel == t->sel &&
-				    ((t->selected[t->sel] && !t->but) ||
-				     ((!t->selected[t->sel]) && t->but))) ||
-			    (sel != t->sel &&
-				     ((t->selected[t->sel] && t->but) ||
-                                         ((!t->selected[t->sel]) && (!t->but))))) {
+			if((sel == t->sel &&
+			    ((t->selected[t->sel] && !t->but) ||
+			     ((!t->selected[t->sel]) && t->but))) ||
+			   (sel != t->sel &&
+			    ((t->selected[t->sel] && t->but) ||
+			     ((!t->selected[t->sel]) && (!t->but))))) {
 				texttogglei(t, t->sel);
 			}
 		}
 	}
-	if(t->lastbut != (m->buttons&7)){
-		if(m->buttons & 7){
+	if(t->lastbut != (m->buttons & 7)) {
+		if(m->buttons & 7) {
 			sel = texttoggle(t, m->xy);
 			if(sel >= 0) {
-				if (t->selectstyle == Seldown) {
+				if(t->selectstyle == Seldown) {
 					chanprint(t->event, "%q: select %d %d",
-						t->name, sel, t->selected[sel] ? (m->buttons & 7) : 0);
-					if (debug) fprint(2, "textmouse Seldown event %q: select %d %d\n",
-						t->name, sel, t->selected[sel] ? (m->buttons & 7) : 0);
+					          t->name, sel,
+					          t->selected[sel]
+					              ? (m->buttons & 7)
+					              : 0);
+					if(debug)
+						fprint(2, "textmouse Seldown "
+						          "event %q: select %d "
+						          "%d\n",
+						       t->name, sel,
+						       t->selected[sel]
+						           ? (m->buttons & 7)
+						           : 0);
 				} else {
-					if (debug) fprint(2, "textmouse Selup no event yet %q: select %d %d\n",
-						t->name, sel, t->selected[sel] ? (m->buttons & 7) : 0);
+					if(debug)
+						fprint(2, "textmouse Selup no "
+						          "event yet %q: "
+						          "select %d %d\n",
+						       t->name, sel,
+						       t->selected[sel]
+						           ? (m->buttons & 7)
+						           : 0);
 					t->sel = sel;
-					t->but =  t->selected[sel] ? (m->buttons & 7) : 0;
+					t->but = t->selected[sel]
+					             ? (m->buttons & 7)
+					             : 0;
 				}
 			}
-		} else if (t->selectstyle == Selup) {
+		} else if(t->selectstyle == Selup) {
 			sel = textline(t, m->xy);
 			t->offsel = 0;
-			if ((sel >= 0) && (sel == t->sel)) {
-				chanprint(t->event, "%q: select %d %d",
-					t->name, sel, t->but);
-				if (debug) fprint(2, "textmouse Selup event %q: select %d %d\n",
-					t->name, sel, t->but);
-			} else if (sel != t->sel) {
-				if  ((t->selected[t->sel] && t->but) ||
-                                         ((!t->selected[t->sel]) && (!t->but))) {
+			if((sel >= 0) && (sel == t->sel)) {
+				chanprint(t->event, "%q: select %d %d", t->name,
+				          sel, t->but);
+				if(debug)
+					fprint(2, "textmouse Selup event %q: "
+					          "select %d %d\n",
+					       t->name, sel, t->but);
+			} else if(sel != t->sel) {
+				if((t->selected[t->sel] && t->but) ||
+				   ((!t->selected[t->sel]) && (!t->but))) {
 					texttogglei(t, t->sel);
 				} else {
 					textshow(t);
 				}
-				if (debug) fprint(2, "textmouse Selup cancel %q: select %d %d\n",
-					t->name, sel, t->but);
+				if(debug)
+					fprint(2, "textmouse Selup cancel %q: "
+					          "select %d %d\n",
+					       t->name, sel, t->but);
 			}
 			t->sel = -1;
 			t->but = 0;
@@ -185,10 +191,10 @@ textmouse(Control *c, Mouse *m)
 }
 
 static void
-textfree(Control *c)
+textfree(Control* c)
 {
 	int i;
-	Text *t;
+	Text* t;
 
 	t = (Text*)c;
 	_putctlfont(t->font);
@@ -197,69 +203,68 @@ textfree(Control *c)
 	_putctlimage(t->bordercolor);
 	_putctlimage(t->selectcolor);
 	_putctlimage(t->selectingcolor);
-	for(i=0; i<t->nline; i++)
+	for(i = 0; i < t->nline; i++)
 		free(t->line[i]);
 	free(t->line);
 	free(t->selected);
 }
 
 static void
-textshow(Text *t)
+textshow(Text* t)
 {
 	Rectangle r, tr;
 	Point p;
 	int i, ntext;
-	Font *f;
-	Rune *text;
+	Font* f;
+	Rune* text;
 
-	if (t->hidden)
+	if(t->hidden)
 		return;
 	r = t->rect;
 	f = t->font->font;
 	draw(t->screen, r, t->image->image, nil, t->image->image->r.min);
-	if(t->border > 0){
-		border(t->screen, r, t->border, t->bordercolor->image, t->bordercolor->image->r.min);
+	if(t->border > 0) {
+		border(t->screen, r, t->border, t->bordercolor->image,
+		       t->bordercolor->image->r.min);
 		r = insetrect(r, t->border);
 	}
 	tr = r;
-	t->nvis = Dy(r)/f->height;
-	for(i=t->topline; i<t->nline && i<t->topline+t->nvis; i++){
+	t->nvis = Dy(r) / f->height;
+	for(i = t->topline; i < t->nline && i < t->topline + t->nvis; i++) {
 		text = t->line[i];
 		ntext = runestrlen(text);
-		r.max.y = r.min.y+f->height;
+		r.max.y = r.min.y + f->height;
 		if(t->sel == i && t->offsel)
 			draw(t->screen, r, t->selectingcolor->image, nil, ZP);
 		else if(t->selected[i])
 			draw(t->screen, r, t->selectcolor->image, nil, ZP);
-		p = _ctlalignpoint(r,
-			runestringnwidth(f, text, ntext),
-			f->height, t->align);
+		p = _ctlalignpoint(r, runestringnwidth(f, text, ntext),
+		                   f->height, t->align);
 		if(t->warp == i) {
 			Point p2;
-			 p2.x = p.x + 0.5*runestringnwidth(f, text, ntext);
-			 p2.y = p.y + 0.5*f->height;
+			p2.x = p.x + 0.5 * runestringnwidth(f, text, ntext);
+			p2.y = p.y + 0.5 * f->height;
 			moveto(t->controlset->mousectl, p2);
 			t->warp = -1;
 		}
-		_string(t->screen, p, t->textcolor->image,
-			ZP, f, nil, text, ntext, tr,
-			nil, ZP, SoverD);
+		_string(t->screen, p, t->textcolor->image, ZP, f, nil, text,
+		        ntext, tr, nil, ZP, SoverD);
 		r.min.y += f->height;
 	}
 	flushimage(display, 1);
 }
 
 static void
-textctl(Control *c, CParse *cp)
+textctl(Control* c, CParse* cp)
 {
 	int cmd, i, n;
 	Rectangle r;
-	Text *t;
-	Rune *rp;
+	Text* t;
+	Rune* rp;
 
 	t = (Text*)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
-	switch(cmd){
+	switch(cmd) {
 	default:
 		ctlerror("%q: unrecognized message '%s'", t->name, cp->str);
 		break;
@@ -279,7 +284,7 @@ textctl(Control *c, CParse *cp)
 		break;
 	case EClear:
 		_ctlargcount(t, cp, 1);
-		for(i=0; i<t->nline; i++)
+		for(i = 0; i < t->nline; i++)
 			free(t->line[i]);
 		free(t->line);
 		free(t->selected);
@@ -291,11 +296,14 @@ textctl(Control *c, CParse *cp)
 	case EDelete:
 		_ctlargcount(t, cp, 2);
 		i = cp->iargs[1];
-		if(i<0 || i>=t->nline)
-			ctlerror("%q: line number out of range: %s", t->name, cp->str);
+		if(i < 0 || i >= t->nline)
+			ctlerror("%q: line number out of range: %s", t->name,
+			         cp->str);
 		free(t->line[i]);
-		memmove(t->line+i, t->line+i+1, (t->nline-(i+1))*sizeof(Rune*));
-		memmove(t->selected+i, t->selected+i+1, t->nline-(i+1));
+		memmove(t->line + i, t->line + i + 1,
+		        (t->nline - (i + 1)) * sizeof(Rune*));
+		memmove(t->selected + i, t->selected + i + 1,
+		        t->nline - (i + 1));
 		t->nline--;
 		textshow(t);
 		break;
@@ -319,16 +327,17 @@ textctl(Control *c, CParse *cp)
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
-		if(Dx(r)<=0 || Dy(r)<=0)
+		if(Dx(r) <= 0 || Dy(r) <= 0)
 			ctlerror("%q: bad rectangle: %s", t->name, cp->str);
 		t->rect = r;
-		t->nvis = (Dy(r)-2*t->border)/t->font->font->height;
+		t->nvis = (Dy(r) - 2 * t->border) / t->font->font->height;
 		break;
 	case EReplace:
 		_ctlargcount(t, cp, 3);
 		i = cp->iargs[1];
-		if(i<0 || i>=t->nline)
-			ctlerror("%q: line number out of range: %s", t->name, cp->str);
+		if(i < 0 || i >= t->nline)
+			ctlerror("%q: line number out of range: %s", t->name,
+			         cp->str);
 		free(t->line[i]);
 		t->line[i] = _ctlrunestr(cp->args[2]);
 		textshow(t);
@@ -343,26 +352,28 @@ textctl(Control *c, CParse *cp)
 		t->scroll = cp->iargs[1];
 		break;
 	case ESelect:
-		if(cp->nargs!=2 && cp->nargs!=3)
-	badselect:
-			ctlerror("%q: bad select message: %s", t->name, cp->str);
-		if(cp->nargs == 2){
-			if(strcmp(cp->args[1], "all") == 0){
+		if(cp->nargs != 2 && cp->nargs != 3)
+		badselect:
+		ctlerror("%q: bad select message: %s", t->name, cp->str);
+		if(cp->nargs == 2) {
+			if(strcmp(cp->args[1], "all") == 0) {
 				memset(t->selected, 1, t->nline);
 				break;
 			}
-			if(strcmp(cp->args[1], "none") == 0){
+			if(strcmp(cp->args[1], "none") == 0) {
 				memset(t->selected, 0, t->nline);
 				break;
 			}
-			if(cp->args[1][0]<'0' && '9'<cp->args[1][0])
+			if(cp->args[1][0] < '0' && '9' < cp->args[1][0])
 				goto badselect;
 			texttogglei(t, cp->iargs[1]);
 			break;
 		}
-		if(cp->iargs[1]<0 || cp->iargs[1]>=t->nline)
-			ctlerror("%q: selection index out of range (nline %d): %s", t->name, t->nline, cp->str);
-		if(t->selected[cp->iargs[1]] != (cp->iargs[2]!=0))
+		if(cp->iargs[1] < 0 || cp->iargs[1] >= t->nline)
+			ctlerror(
+			    "%q: selection index out of range (nline %d): %s",
+			    t->name, t->nline, cp->str);
+		if(t->selected[cp->iargs[1]] != (cp->iargs[2] != 0))
 			texttogglei(t, cp->iargs[1]);
 		break;
 	case ESelectcolor:
@@ -378,7 +389,7 @@ textctl(Control *c, CParse *cp)
 		break;
 	case ESelectstyle:
 		_ctlargcount(t, cp, 2);
-		 if(strcmp(cp->args[1], "down") == 0)
+		if(strcmp(cp->args[1], "down") == 0)
 			t->selectstyle = Seldown;
 		else if(strcmp(cp->args[1], "up") == 0)
 			t->selectstyle = Selup;
@@ -388,16 +399,17 @@ textctl(Control *c, CParse *cp)
 		textshow(t);
 		break;
 	case ESize:
-		if (cp->nargs == 3)
+		if(cp->nargs == 3)
 			r.max = Pt(10000, 10000);
-		else{
+		else {
 			_ctlargcount(t, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
-		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+		if(r.min.x <= 0 || r.min.y <= 0 || r.max.x <= 0 ||
+		   r.max.y <= 0 || r.max.x < r.min.x || r.max.y < r.min.y)
 			ctlerror("%q: bad sizes: %s", t->name, cp->str);
 		t->size.min = r.min;
 		t->size.max = r.max;
@@ -413,7 +425,7 @@ textctl(Control *c, CParse *cp)
 			i = 0;
 		if(i > t->nline)
 			i = t->nline;
-		if(t->topline != i){
+		if(t->topline != i) {
 			t->topline = i;
 			textshow(t);
 		}
@@ -421,37 +433,41 @@ textctl(Control *c, CParse *cp)
 	case EValue:
 		/* set contents to single line */
 		/* free existing text and fall through to add */
-		for(i=0; i<t->nline; i++){
+		for(i = 0; i < t->nline; i++) {
 			free(t->line[i]);
 			t->line[i] = nil;
 		}
 		t->nline = 0;
 		t->topline = 0;
-		/* fall through */
+	/* fall through */
 	case EAccumulate:
 	case EAdd:
-		switch (cp->nargs) {
+		switch(cp->nargs) {
 		default:
-			ctlerror("%q: wrong argument count in '%s'", t->name, cp->str);
+			ctlerror("%q: wrong argument count in '%s'", t->name,
+			         cp->str);
 		case 2:
 			n = t->nline;
 			break;
 		case 3:
 			n = cp->iargs[1];
-			if(n<0 || n>t->nline)
-				ctlerror("%q: line number out of range: %s", t->name, cp->str);
+			if(n < 0 || n > t->nline)
+				ctlerror("%q: line number out of range: %s",
+				         t->name, cp->str);
 			break;
 		}
-		rp = _ctlrunestr(cp->args[cp->nargs-1]);
-		t->line = ctlrealloc(t->line, (t->nline+1)*sizeof(Rune*));
-		memmove(t->line+n+1, t->line+n, (t->nline-n)*sizeof(Rune*));
+		rp = _ctlrunestr(cp->args[cp->nargs - 1]);
+		t->line = ctlrealloc(t->line, (t->nline + 1) * sizeof(Rune*));
+		memmove(t->line + n + 1, t->line + n,
+		        (t->nline - n) * sizeof(Rune*));
 		t->line[n] = rp;
-		t->selected = ctlrealloc(t->selected, t->nline+1);
-		memmove(t->selected+n+1, t->selected+n, t->nline-n);
-		t->selected[n] = (t->selectmode==Selmulti && cmd!=EAccumulate);
+		t->selected = ctlrealloc(t->selected, t->nline + 1);
+		memmove(t->selected + n + 1, t->selected + n, t->nline - n);
+		t->selected[n] =
+		    (t->selectmode == Selmulti && cmd != EAccumulate);
 		t->nline++;
 		if(t->scroll) {
-			if(n > t->topline + (t->nvis - 1)){
+			if(n > t->topline + (t->nvis - 1)) {
 				t->topline = n - (t->nvis - 1);
 				if(t->topline < 0)
 					t->topline = 0;
@@ -460,15 +476,17 @@ textctl(Control *c, CParse *cp)
 				t->topline = n;
 		}
 		if(cmd != EAccumulate)
-			if(t->scroll || t->nline<=t->topline+t->nvis)
+			if(t->scroll || t->nline <= t->topline + t->nvis)
 				textshow(t);
 		break;
 	case EWarp:
 		_ctlargcount(t, cp, 2);
 		i = cp->iargs[1];
-		if(i <0 || i>=t->nline)
-			ctlerror("%q: selection index out of range (nline %d): %s", t->name, t->nline, cp->str);
-		if(i < t->topline || i >=  t->topline+t->nvis){
+		if(i < 0 || i >= t->nline)
+			ctlerror(
+			    "%q: selection index out of range (nline %d): %s",
+			    t->name, t->nline, cp->str);
+		if(i < t->topline || i >= t->topline + t->nvis) {
 			t->topline = i;
 		}
 		t->warp = cp->iargs[1];
@@ -479,11 +497,11 @@ textctl(Control *c, CParse *cp)
 }
 
 static void
-texttogglei(Text *t, int i)
+texttogglei(Text* t, int i)
 {
 	int prev;
 
-	if(t->selectmode == Selsingle){
+	if(t->selectmode == Selsingle) {
 		/* clear the others */
 		prev = t->selected[i];
 		memset(t->selected, 0, t->nline);
@@ -494,7 +512,7 @@ texttogglei(Text *t, int i)
 }
 
 static int
-textline(Text *t, Point p)
+textline(Text* t, Point p)
 {
 	Rectangle r;
 	int i;
@@ -504,7 +522,7 @@ textline(Text *t, Point p)
 		r = insetrect(r, t->border);
 	if(!ptinrect(p, r))
 		return -1;
-	i = (p.y-r.min.y)/t->font->font->height;
+	i = (p.y - r.min.y) / t->font->font->height;
 	i += t->topline;
 	if(i >= t->nline)
 		return -1;
@@ -512,20 +530,20 @@ textline(Text *t, Point p)
 }
 
 static int
-texttoggle(Text *t, Point p)
+texttoggle(Text* t, Point p)
 {
 	int i;
 
 	i = textline(t, p);
-	if (i >= 0)
+	if(i >= 0)
 		texttogglei(t, i);
 	return i;
 }
 
 Control*
-createtext(Controlset *cs, char *name)
+createtext(Controlset* cs, char* name)
 {
-	Text *t;
+	Text* t;
 
 	t = (Text*)_createctl(cs, "text", sizeof(Text), name);
 	t->line = ctlmalloc(sizeof(Rune*));
@@ -547,5 +565,5 @@ createtext(Controlset *cs, char *name)
 	t->sel = -1;
 	t->offsel = 0;
 	t->but = 0;
-	return (Control *)t;
+	return (Control*)t;
 }

@@ -14,32 +14,32 @@
 //#include <lib9.h>
 
 void
-lock(Lock *l)
+lock(Lock* l)
 {
 	if(ainc(&l->key) == 1)
-		return;	/* changed from 0 -> 1: we hold lock */
+		return; /* changed from 0 -> 1: we hold lock */
 	/* otherwise wait in kernel */
-	while(_SEMACQUIRE(&l->sem, 1) < 0){
+	while(_SEMACQUIRE(&l->sem, 1) < 0) {
 		/* interrupted; try again */
 	}
 }
 
 void
-unlock(Lock *l)
+unlock(Lock* l)
 {
 	if(adec(&l->key) == 0)
-		return;	/* changed from 1 -> 0: no contention */
+		return; /* changed from 1 -> 0: no contention */
 	_SEMRELEASE(&l->sem, 1);
 }
 
 int
-canlock(Lock *l)
+canlock(Lock* l)
 {
 	if(ainc(&l->key) == 1)
-		return 1;	/* changed from 0 -> 1: success */
+		return 1; /* changed from 0 -> 1: success */
 	/* Undo increment (but don't miss wakeup) */
 	if(adec(&l->key) == 0)
-		return 0;	/* changed from 1 -> 0: no contention */
+		return 0; /* changed from 1 -> 0: no contention */
 	_SEMRELEASE(&l->sem, 1);
 	return 0;
 }

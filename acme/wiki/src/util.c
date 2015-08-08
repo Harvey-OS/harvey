@@ -12,7 +12,7 @@
 void*
 emalloc(uint n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -22,35 +22,35 @@ emalloc(uint n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
-	char *t;
+	char* t;
 
-	t = emalloc(strlen(s)+1);
+	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
 	return t;
 }
 
 char*
-estrstrdup(char *s, char *t)
+estrstrdup(char* s, char* t)
 {
-	char *u;
+	char* u;
 
-	u = emalloc(strlen(s)+strlen(t)+1);
+	u = emalloc(strlen(s) + strlen(t) + 1);
 	strcpy(u, s);
 	strcat(u, t);
 	return u;
 }
 
 char*
-eappend(char *s, char *sep, char *t)
+eappend(char* s, char* sep, char* t)
 {
-	char *u;
+	char* u;
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
-	else{
-		u = emalloc(strlen(s)+strlen(sep)+strlen(t)+1);
+	else {
+		u = emalloc(strlen(s) + strlen(sep) + strlen(t) + 1);
 		strcpy(u, s);
 		strcat(u, sep);
 		strcat(u, t);
@@ -60,7 +60,7 @@ eappend(char *s, char *sep, char *t)
 }
 
 char*
-egrow(char *s, char *sep, char *t)
+egrow(char* s, char* sep, char* t)
 {
 	s = eappend(s, sep, t);
 	free(t);
@@ -68,7 +68,7 @@ egrow(char *s, char *sep, char *t)
 }
 
 void
-error(char *fmt, ...)
+error(char* fmt, ...)
 {
 	int n;
 	va_list arg;
@@ -76,7 +76,7 @@ error(char *fmt, ...)
 
 	fprint(2, "Wiki: ");
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	n = vseprint(buf, buf + sizeof buf, fmt, arg) - buf;
 	va_end(arg);
 	write(2, buf, n);
 	write(2, "\n", 1);
@@ -84,14 +84,14 @@ error(char *fmt, ...)
 }
 
 void
-ctlprint(int fd, char *fmt, ...)
+ctlprint(int fd, char* fmt, ...)
 {
 	int n;
 	va_list arg;
 	char buf[256];
 
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	n = vseprint(buf, buf + sizeof buf, fmt, arg) - buf;
 	va_end(arg);
 	if(write(fd, buf, n) != n)
 		error("control file write(%s) error: %r", buf);

@@ -38,15 +38,15 @@ initm64(void)
 	memset(mt64d, 255, 256);
 	memset(mt64e, '=', 64);
 	i = 0;
-	for(c = 'A'; c <= 'Z'; c++){
+	for(c = 'A'; c <= 'Z'; c++) {
 		mt64e[i] = c;
 		mt64d[c] = i++;
 	}
-	for(c = 'a'; c <= 'z'; c++){
+	for(c = 'a'; c <= 'z'; c++) {
 		mt64e[i] = c;
 		mt64d[c] = i++;
 	}
-	for(c = '0'; c <= '9'; c++){
+	for(c = '0'; c <= '9'; c++) {
 		mt64e[i] = c;
 		mt64d[c] = i++;
 	}
@@ -57,20 +57,20 @@ initm64(void)
 }
 
 int
-encmutf7(char *out, int lim, char *in)
+encmutf7(char* out, int lim, char* in)
 {
 	Rune rr;
 	uint32_t r, b;
-	char *start = out;
-	char *e = out + lim;
+	char* start = out;
+	char* e = out + lim;
 	int nb;
 
 	if(mt64e[0] == 0)
 		initm64();
-	for(;;){
+	for(;;) {
 		r = *(uint8_t*)in;
 
-		if(r < ' ' || r >= Runeself){
+		if(r < ' ' || r >= Runeself) {
 			if(r == '\0')
 				break;
 			if(out + 1 >= e)
@@ -78,27 +78,27 @@ encmutf7(char *out, int lim, char *in)
 			*out++ = '&';
 			b = 0;
 			nb = 0;
-			for(;;){
+			for(;;) {
 				in += chartorune(&rr, in);
 				r = rr;
 				if(r == '\0' || r >= ' ' && r < Runeself)
 					break;
 				b = (b << 16) | r;
-				for(nb += 16; nb >= 6; nb -= 6){
+				for(nb += 16; nb >= 6; nb -= 6) {
 					if(out + 1 >= e)
 						return -1;
-					*out++ = mt64e[(b>>(nb-6))&0x3f];
+					*out++ = mt64e[(b >> (nb - 6)) & 0x3f];
 				}
 			}
-			for(; nb >= 6; nb -= 6){
+			for(; nb >= 6; nb -= 6) {
 				if(out + 1 >= e)
 					return -1;
-				*out++ = mt64e[(b>>(nb-6))&0x3f];
+				*out++ = mt64e[(b >> (nb - 6)) & 0x3f];
 			}
-			if(nb){
+			if(nb) {
 				if(out + 1 >= e)
 					return -1;
-				*out++ = mt64e[(b<<(6-nb))&0x3f];
+				*out++ = mt64e[(b << (6 - nb)) & 0x3f];
 			}
 
 			if(out + 1 >= e)
@@ -106,7 +106,7 @@ encmutf7(char *out, int lim, char *in)
 			*out++ = '-';
 			if(r == '\0')
 				break;
-		}else
+		} else
 			in++;
 		if(out + 1 >= e)
 			return -1;
@@ -123,24 +123,24 @@ encmutf7(char *out, int lim, char *in)
 }
 
 int
-decmutf7(char *out, int lim, char *in)
+decmutf7(char* out, int lim, char* in)
 {
 	Rune rr;
-	char *start = out;
-	char *e = out + lim;
+	char* start = out;
+	char* e = out + lim;
 	int c, b, nb;
 
 	if(mt64e[0] == 0)
 		initm64();
-	for(;;){
+	for(;;) {
 		c = *in;
 
-		if(c < ' ' || c >= Runeself){
+		if(c < ' ' || c >= Runeself) {
 			if(c == '\0')
 				break;
 			return -1;
 		}
-		if(c != '&'){
+		if(c != '&') {
 			if(out + 1 >= e)
 				return -1;
 			*out++ = c;
@@ -148,7 +148,7 @@ decmutf7(char *out, int lim, char *in)
 			continue;
 		}
 		in++;
-		if(*in == '-'){
+		if(*in == '-') {
 			if(out + 1 >= e)
 				return -1;
 			*out++ = '&';
@@ -158,16 +158,17 @@ decmutf7(char *out, int lim, char *in)
 
 		b = 0;
 		nb = 0;
-		while((c = *in++) != '-'){
+		while((c = *in++) != '-') {
 			c = mt64d[c];
 			if(c >= 64)
 				return -1;
 			b = (b << 6) | c;
 			nb += 6;
-			if(nb >= 16){
+			if(nb >= 16) {
 				rr = b >> (nb - 16);
 				nb -= 16;
-				if(out + UTFmax + 1 >= e && out + runelen(rr) + 1 >= e)
+				if(out + UTFmax + 1 >= e &&
+				   out + runelen(rr) + 1 >= e)
 					return -1;
 				out += runetochar(out, &rr);
 			}

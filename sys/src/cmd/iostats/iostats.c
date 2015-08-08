@@ -17,23 +17,14 @@
 #define Extern
 #include "statfs.h"
 
-void	runprog(char**);
+void runprog(char**);
 
-void (*fcalls[])(Fsrpc*) =
-{
-	[Tversion]	Xversion,
-	[Tauth]	Xauth,
-	[Tflush]	Xflush,
-	[Tattach]	Xattach,
-	[Twalk]		Xwalk,
-	[Topen]		slave,
-	[Tcreate]	Xcreate,
-	[Tclunk]	Xclunk,
-	[Tread]		slave,
-	[Twrite]	slave,
-	[Tremove]	Xremove,
-	[Tstat]		Xstat,
-	[Twstat]	Xwstat,
+void (*fcalls[])(Fsrpc*) = {
+        [Tversion] Xversion, [Tauth] Xauth,     [Tflush] Xflush,
+        [Tattach] Xattach,   [Twalk] Xwalk,     [Topen] slave,
+        [Tcreate] Xcreate,   [Tclunk] Xclunk,   [Tread] slave,
+        [Twrite] slave,      [Tremove] Xremove, [Tstat] Xstat,
+        [Twstat] Xwstat,
 };
 
 int p[2];
@@ -46,22 +37,23 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Fsrpc *r;
-	Rpc *rpc;
-	Proc *m;
-	Frec *fr;
-	Fid *fid;
+	Fsrpc* r;
+	Rpc* rpc;
+	Proc* m;
+	Frec* fr;
+	Fid* fid;
 	ulong ttime;
-	char *dbfile, *s;
+	char* dbfile, *s;
 	char buf[128];
 	float brpsec, bwpsec, bppsec;
 	int type, cpid, fspid, n;
 
 	dbfile = DEBUGFILE;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		dbg++;
 		break;
@@ -70,7 +62,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		usage();
@@ -91,12 +84,12 @@ main(int argc, char **argv)
 		if(getwd(buf, sizeof(buf)) == 0)
 			fatal("no working directory");
 
-		rfork(RFENVG|RFNAMEG|RFNOTEG);
+		rfork(RFENVG | RFNAMEG | RFNOTEG);
 		if(mount(p[0], -1, "/", MREPL, "") < 0)
 			fatal("mount /");
 
 		bind("#c/pid", "/dev/pid", MREPL);
-		bind("#e", "/env", MREPL|MCREATE);
+		bind("#e", "/env", MREPL | MCREATE);
 		close(0);
 		close(1);
 		close(2);
@@ -128,14 +121,14 @@ main(int argc, char **argv)
 
 	/* Allocate work queues in shared memory */
 	malloc(Dsegpad);
-	Workq = malloc(sizeof(Fsrpc)*Nr_workbufs);
+	Workq = malloc(sizeof(Fsrpc) * Nr_workbufs);
 	stats = malloc(sizeof(Stats));
-	fhash = mallocz(sizeof(Fid*)*FHASHSIZE, 1);
+	fhash = mallocz(sizeof(Fid*) * FHASHSIZE, 1);
 
 	if(Workq == 0 || fhash == 0 || stats == 0)
 		fatal("no initial memory");
 
-	memset(Workq, 0, sizeof(Fsrpc)*Nr_workbufs);
+	memset(Workq, 0, sizeof(Fsrpc) * Nr_workbufs);
 	memset(stats, 0, sizeof(Stats));
 
 	stats->rpc[Tversion].name = "version";
@@ -199,10 +192,10 @@ main(int argc, char **argv)
 		postnote(PNPROC, m->pid, "kill");
 
 	rpc = &stats->rpc[Tread];
-	brpsec = (float)stats->totread / (((float)rpc->time/1e9)+.000001);
+	brpsec = (float)stats->totread / (((float)rpc->time / 1e9) + .000001);
 
 	rpc = &stats->rpc[Twrite];
-	bwpsec = (float)stats->totwrite / (((float)rpc->time/1e9)+.000001);
+	bwpsec = (float)stats->totwrite / (((float)rpc->time / 1e9) + .000001);
 
 	ttime = 0;
 	for(n = 0; n < Maxrpc; n++) {
@@ -212,29 +205,28 @@ main(int argc, char **argv)
 		ttime += rpc->time;
 	}
 
-	bppsec = (float)stats->nproto / ((ttime/1e9)+.000001);
+	bppsec = (float)stats->nproto / ((ttime / 1e9) + .000001);
 
-	fprint(2, "\nread      %lud bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
-	fprint(2, "write     %lud bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
-	fprint(2, "protocol  %lud bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
+	fprint(2, "\nread      %lud bytes, %g Kb/sec\n", stats->totread,
+	       brpsec / 1024.0);
+	fprint(2, "write     %lud bytes, %g Kb/sec\n", stats->totwrite,
+	       bwpsec / 1024.0);
+	fprint(2, "protocol  %lud bytes, %g Kb/sec\n", stats->nproto,
+	       bppsec / 1024.0);
 	fprint(2, "rpc       %lud count\n\n", stats->nrpc);
 
-	fprint(2, "%-10s %5s %5s %5s %5s %5s          T       R\n", 
-	      "Message", "Count", "Low", "High", "Time", "Averg");
+	fprint(2, "%-10s %5s %5s %5s %5s %5s          T       R\n", "Message",
+	       "Count", "Low", "High", "Time", "Averg");
 
 	for(n = 0; n < Maxrpc; n++) {
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
-		fprint(2, "%-10s %5lud %5llud %5llud %5llud %5llud ms %8lud %8lud bytes\n", 
-			rpc->name, 
-			rpc->count,
-			rpc->lo/1000000,
-			rpc->hi/1000000,
-			rpc->time/1000000,
-			rpc->time/1000000/rpc->count,
-			rpc->bin,
-			rpc->bout);
+		fprint(2, "%-10s %5lud %5llud %5llud %5llud %5llud ms %8lud "
+		          "%8lud bytes\n",
+		       rpc->name, rpc->count, rpc->lo / 1000000,
+		       rpc->hi / 1000000, rpc->time / 1000000,
+		       rpc->time / 1000000 / rpc->count, rpc->bin, rpc->bout);
 	}
 
 	for(n = 0; n < FHASHSIZE; n++)
@@ -250,27 +242,24 @@ main(int argc, char **argv)
 		if(*s) {
 			if(strcmp(s, "/fd/0") == 0)
 				s = "(stdin)";
-			else
-			if(strcmp(s, "/fd/1") == 0)
+			else if(strcmp(s, "/fd/1") == 0)
 				s = "(stdout)";
-			else
-			if(strcmp(s, "/fd/2") == 0)
+			else if(strcmp(s, "/fd/2") == 0)
 				s = "(stderr)";
-		}
-		else
+		} else
 			s = "/.";
 
-		fprint(2, "%5lud %8lud %8lud %8lud %8lud %s\n", fr->opens, fr->nread, fr->bread,
-							fr->nwrite, fr->bwrite, s);
+		fprint(2, "%5lud %8lud %8lud %8lud %8lud %s\n", fr->opens,
+		       fr->nread, fr->bread, fr->nwrite, fr->bwrite, s);
 	}
 
 	exits(0);
 }
 
 void
-reply(Fcall *r, Fcall *t, char *err)
+reply(Fcall* r, Fcall* t, char* err)
 {
-	uint8_t data[IOHDRSZ+Maxfdata];
+	uint8_t data[IOHDRSZ + Maxfdata];
 	int n;
 
 	t->tag = r->tag;
@@ -278,23 +267,22 @@ reply(Fcall *r, Fcall *t, char *err)
 	if(err) {
 		t->type = Rerror;
 		t->ename = err;
-	}
-	else 
+	} else
 		t->type = r->type + 1;
 
 	DEBUG(2, "\t%F\n", t);
 
 	n = convS2M(t, data, sizeof data);
-	if(write(p[1], data, n)!=n)
+	if(write(p[1], data, n) != n)
 		fatal("mount write");
 	stats->nproto += n;
-	stats->rpc[t->type-1].bout += n;
+	stats->rpc[t->type - 1].bout += n;
 }
 
-Fid *
+Fid*
 getfid(int nr)
 {
-	Fid *f;
+	Fid* f;
 
 	for(f = fidhash(nr); f; f = f->next)
 		if(f->nr == nr)
@@ -306,7 +294,7 @@ getfid(int nr)
 int
 freefid(int nr)
 {
-	Fid *f, **l;
+	Fid* f, **l;
 
 	l = &fidhash(nr);
 	for(f = *l; f; f = f->next) {
@@ -319,13 +307,13 @@ freefid(int nr)
 		l = &f->next;
 	}
 
-	return 0;	
+	return 0;
 }
 
-Fid *
+Fid*
 newfid(int nr)
 {
-	Fid *new, **l;
+	Fid* new, **l;
 	int i;
 
 	l = &fidhash(nr);
@@ -338,10 +326,10 @@ newfid(int nr)
 		if(fidfree == 0)
 			fatal("out of memory");
 
-		for(i = 0; i < Fidchunk-1; i++)
-			fidfree[i].next = &fidfree[i+1];
+		for(i = 0; i < Fidchunk - 1; i++)
+			fidfree[i].next = &fidfree[i + 1];
 
-		fidfree[Fidchunk-1].next = 0;
+		fidfree[Fidchunk - 1].next = 0;
 	}
 
 	new = fidfree;
@@ -357,15 +345,15 @@ newfid(int nr)
 	new->bread = 0;
 	new->bwrite = 0;
 
-	return new;	
+	return new;
 }
 
-Fsrpc *
+Fsrpc*
 getsbuf(void)
 {
 	static int ap;
 	int look;
-	Fsrpc *wb;
+	Fsrpc* wb;
 
 	for(look = 0; look < Nr_workbufs; look++) {
 		if(++ap == Nr_workbufs)
@@ -386,24 +374,24 @@ getsbuf(void)
 	return wb;
 }
 
-char *
-strcatalloc(char *p, char *n)
+char*
+strcatalloc(char* p, char* n)
 {
-	char *v;
+	char* v;
 
-	v = realloc(p, strlen(p)+strlen(n)+1);
+	v = realloc(p, strlen(p) + strlen(n) + 1);
 	if(v == 0)
 		fatal("no memory");
 	strcat(v, n);
 	return v;
 }
 
-File *
-file(File *parent, char *name)
+File*
+file(File* parent, char* name)
 {
 	char buf[128];
-	File *f, *new;
-	Dir *dir;
+	File* f, *new;
+	Dir* dir;
 
 	DEBUG(2, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
 
@@ -417,7 +405,7 @@ file(File *parent, char *name)
 	dir = dirstat(buf);
 	if(dir == nil)
 		return 0;
-	if(f != nil){
+	if(f != nil) {
 		free(dir);
 		f->inval = 0;
 		return f;
@@ -446,7 +434,7 @@ file(File *parent, char *name)
 void
 initroot(void)
 {
-	Dir *dir;
+	Dir* dir;
 
 	root = malloc(sizeof(File));
 	if(root == 0)
@@ -467,17 +455,17 @@ initroot(void)
 }
 
 void
-makepath(char *as, File *p, char *name)
+makepath(char* as, File* p, char* name)
 {
-	char *c, *seg[100];
+	char* c, *seg[100];
 	int i;
-	char *s;
+	char* s;
 
 	seg[0] = name;
-	for(i = 1; i < 100 && p; i++, p = p->parent){
+	for(i = 1; i < 100 && p; i++, p = p->parent) {
 		seg[i] = p->name;
 		if(strcmp(p->name, "/") == 0)
-			seg[i] = "";	/* will insert slash later */
+			seg[i] = ""; /* will insert slash later */
 	}
 
 	s = as;
@@ -489,14 +477,14 @@ makepath(char *as, File *p, char *name)
 	while(s[-1] == '/')
 		s--;
 	*s = '\0';
-	if(as == s)	/* empty string is root */
+	if(as == s) /* empty string is root */
 		strcpy(as, "/");
 }
 
 void
-fatal(char *s)
+fatal(char* s)
 {
-	Proc *m;
+	Proc* m;
 
 	fprint(2, "iostats: %s: %r\n", s);
 
@@ -508,11 +496,11 @@ fatal(char *s)
 }
 
 char*
-rdenv(char *v, char **end)
+rdenv(char* v, char** end)
 {
 	int fd, n;
-	char *buf;
-	Dir *d;
+	char* buf;
+	Dir* d;
 	if((fd = open(v, OREAD)) == -1)
 		return nil;
 	d = dirfstat(fd);
@@ -521,11 +509,11 @@ rdenv(char *v, char **end)
 	n = (int)d->length;
 	n = read(fd, buf, n);
 	close(fd);
-	if(n <= 0){
+	if(n <= 0) {
 		free(buf);
 		buf = nil;
-	}else{
-		if(buf[n-1] != '\0')
+	} else {
+		if(buf[n - 1] != '\0')
 			buf[n++] = '\0';
 		*end = &buf[n];
 	}
@@ -535,17 +523,17 @@ rdenv(char *v, char **end)
 
 char Defaultpath[] = ".\0/bin";
 void
-runprog(char *argv[])
+runprog(char* argv[])
 {
-	char *path, *ep, *p;
+	char* path, *ep, *p;
 	char arg0[256];
 
 	path = rdenv("/env/path", &ep);
-	if(path == nil){
+	if(path == nil) {
 		path = Defaultpath;
-		ep = path+sizeof(Defaultpath);
+		ep = path + sizeof(Defaultpath);
 	}
-	for(p = path; p < ep; p += strlen(p)+1){
+	for(p = path; p < ep; p += strlen(p) + 1) {
 		snprint(arg0, sizeof arg0, "%s/%s", p, argv[0]);
 		exec(arg0, argv);
 	}
@@ -553,7 +541,7 @@ runprog(char *argv[])
 }
 
 void
-catcher(void *a, char *msg)
+catcher(void* a, char* msg)
 {
 	USED(a);
 	if(strcmp(msg, DONESTR) == 0) {
@@ -567,10 +555,10 @@ catcher(void *a, char *msg)
 }
 
 void
-fidreport(Fid *f)
+fidreport(Fid* f)
 {
-	char *p, path[128];
-	Frec *fr;
+	char* p, path[128];
+	Frec* fr;
 
 	p = path;
 	makepath(p, f->f, "");
@@ -598,8 +586,7 @@ fidreport(Fid *f)
 	if(frhead == 0) {
 		frhead = fr;
 		frtail = fr;
-	}
-	else {
+	} else {
 		frtail->next = fr;
 		frtail = fr;
 	}

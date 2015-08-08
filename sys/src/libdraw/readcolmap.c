@@ -13,24 +13,24 @@
 #include <bio.h>
 
 static uint32_t
-getval(char **p)
+getval(char** p)
 {
 	uint32_t v;
-	char *q;
+	char* q;
 
 	v = strtoul(*p, &q, 0);
-	v |= v<<8;
-	v |= v<<16;
+	v |= v << 8;
+	v |= v << 16;
 	*p = q;
 	return v;
 }
 
 void
-readcolmap(Display *d, RGB *colmap)
+readcolmap(Display* d, RGB* colmap)
 {
 	int i;
-	char *p, *q;
-	Biobuf *b;
+	char* p, *q;
+	Biobuf* b;
 	char buf[128];
 
 	USED(screen);
@@ -50,9 +50,9 @@ readcolmap(Display *d, RGB *colmap)
 			exits("bad");
 		}
 		p = q;
-		colmap[255-i].red = getval(&p);
-		colmap[255-i].green = getval(&p);
-		colmap[255-i].blue = getval(&p);
+		colmap[255 - i].red = getval(&p);
+		colmap[255 - i].green = getval(&p);
+		colmap[255 - i].blue = getval(&p);
 	}
 	Bterm(b);
 }

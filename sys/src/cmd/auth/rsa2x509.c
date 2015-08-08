@@ -18,36 +18,40 @@
 void
 usage(void)
 {
-	fprint(2, "usage: auth/rsa2x509 [-e expireseconds] 'C=US ...CN=xxx' [key]");
+	fprint(
+	    2,
+	    "usage: auth/rsa2x509 [-e expireseconds] 'C=US ...CN=xxx' [key]");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int len;
-	unsigned char *cert;
+	unsigned char* cert;
 	uint32_t valid[2];
-	RSApriv *key;
+	RSApriv* key;
 
 	fmtinstall('B', mpfmt);
 	fmtinstall('H', encodefmt);
 
 	valid[0] = time(0);
-	valid[1] = valid[0] + 3*366*24*60*60;
+	valid[1] = valid[0] + 3 * 366 * 24 * 60 * 60;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'e':
 		valid[1] = valid[0] + strtoul(ARGF(), 0, 10);
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1 && argc != 2)
 		usage();
 
-	if((key = getkey(argc-1, argv+1, 1, nil)) == nil)
+	if((key = getkey(argc - 1, argv + 1, 1, nil)) == nil)
 		sysfatal("%r");
 
 	cert = X509gen(key, argv[0], valid, &len);

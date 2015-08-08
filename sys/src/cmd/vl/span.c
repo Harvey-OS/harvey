@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
-pagebug(Prog *p)
+pagebug(Prog* p)
 {
-	Prog *q;
+	Prog* q;
 
 	switch(p->as) {
 	case ABGEZAL:
@@ -42,9 +42,9 @@ pagebug(Prog *p)
 void
 span(void)
 {
-	Prog *p, *q;
-	Sym *setext, *s;
-	Optab *o;
+	Prog* p, *q;
+	Sym* setext, *s;
+	Optab* o;
 	int m, bflag, i;
 	int64_t c, otxt, v;
 
@@ -57,7 +57,7 @@ span(void)
 	otxt = c;
 	for(p = firstp; p != P; p = p->link) {
 		/* bug in early 4000 chips delayslot on page boundary */
-		if((c&(0x1000-1)) == 0xffc)
+		if((c & (0x1000 - 1)) == 0xffc)
 			pagebug(p);
 		p->pc = c;
 		o = oplook(p);
@@ -69,7 +69,7 @@ span(void)
 				if(p->from.sym != S)
 					p->from.sym->value = c;
 				/* need passes to resolve branches */
-				if(c-otxt >= 1L<<17)
+				if(c - otxt >= 1L << 17)
 					bflag = 1;
 				otxt = c;
 				continue;
@@ -93,7 +93,7 @@ span(void)
 		c = INITTEXT;
 		for(p = firstp; p != P; p = p->link) {
 			/* bug in early 4000 chips delayslot on page boundary */
-			if((c&(0x1000-1)) == 0xffc)
+			if((c & (0x1000 - 1)) == 0xffc)
 				pagebug(p);
 			p->pc = c;
 			o = oplook(p);
@@ -101,7 +101,7 @@ span(void)
 				otxt = p->cond->pc - c;
 				if(otxt < 0)
 					otxt = -otxt;
-				if(otxt >= (1L<<17) - 10) {
+				if(otxt >= (1L << 17) - 10) {
 					q = prg();
 					q->link = p->link;
 					p->link = q;
@@ -137,20 +137,20 @@ span(void)
 	}
 
 	if(debug['t']) {
-		/* 
+		/*
 		 * add strings to text segment
 		 */
 		c = rnd(c, 8);
-		for(i=0; i<NHASH; i++)
-		for(s = hash[i]; s != S; s = s->link) {
-			if(s->type != SSTRING)
-				continue;
-			v = s->value;
-			while(v & 3)
-				v++;
-			s->value = c;
-			c += v;
-		}
+		for(i = 0; i < NHASH; i++)
+			for(s = hash[i]; s != S; s = s->link) {
+				if(s->type != SSTRING)
+					continue;
+				v = s->value;
+				while(v & 3)
+					v++;
+				s->value = c;
+				c += v;
+			}
 	}
 
 	c = rnd(c, 8);
@@ -166,11 +166,11 @@ span(void)
 		Bprint(&bso, "tsize = %llux\n", textsize);
 	Bflush(&bso);
 }
-		
+
 void
-xdefine(char *p, int t, int32_t v)
+xdefine(char* p, int t, int32_t v)
 {
-	Sym *s;
+	Sym* s;
 
 	s = lookup(p, 0);
 	if(s->type == 0 || s->type == SXREF) {
@@ -180,7 +180,7 @@ xdefine(char *p, int t, int32_t v)
 }
 
 int32_t
-regoff(Adr *a)
+regoff(Adr* a)
 {
 
 	instoffset = 0;
@@ -188,9 +188,9 @@ regoff(Adr *a)
 	return instoffset;
 }
 
-aclass(Adr *a)
+aclass(Adr* a)
 {
-	Sym *s;
+	Sym* s;
 	int t;
 
 	switch(a->type) {
@@ -221,7 +221,7 @@ aclass(Adr *a)
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s",
-					a->sym->name, TNAME);
+				     a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
 			instoffset = a->sym->value + a->offset - BIG;
@@ -261,8 +261,8 @@ aclass(Adr *a)
 			s = a->sym;
 			t = s->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s",
-					s->name, TNAME);
+				diag("undefined external: %s in %s", s->name,
+				     TNAME);
 				s->type = SDATA;
 			}
 			instoffset = s->value + a->offset + INITDAT;
@@ -304,8 +304,8 @@ aclass(Adr *a)
 			switch(t) {
 			case 0:
 			case SXREF:
-				diag("undefined external: %s in %s",
-					s->name, TNAME);
+				diag("undefined external: %s in %s", s->name,
+				     TNAME);
 				s->type = SDATA;
 				break;
 			case SCONST:
@@ -318,7 +318,8 @@ aclass(Adr *a)
 				return C_LCON;
 			}
 			instoffset = s->value + a->offset - BIG;
-			if(instoffset >= -BIG && instoffset < BIG && instoffset != 0L)
+			if(instoffset >= -BIG && instoffset < BIG &&
+			   instoffset != 0L)
 				return C_SECON;
 			instoffset = s->value + a->offset + INITDAT;
 			return C_LCON;
@@ -344,15 +345,15 @@ aclass(Adr *a)
 }
 
 Optab*
-oplook(Prog *p)
+oplook(Prog* p)
 {
 	int a1, a2, a3, r;
-	char *c1, *c3;
-	Optab *o, *e;
+	char* c1, *c3;
+	Optab* o, *e;
 
 	a1 = p->optab;
 	if(a1)
-		return optab+(a1-1);
+		return optab + (a1 - 1);
 	a1 = p->from.class;
 	if(a1 == 0) {
 		a1 = aclass(&p->from) + 1;
@@ -373,27 +374,26 @@ oplook(Prog *p)
 	if(o == 0) {
 		a1 = opcross[repop[r]][a1][a2][a3];
 		if(a1) {
-			p->optab = a1+1;
-			return optab+a1;
+			p->optab = a1 + 1;
+			return optab + a1;
 		}
 		o = oprange[r].stop; /* just generate an error */
 	}
 	e = oprange[r].stop;
 	c1 = xcmp[a1];
 	c3 = xcmp[a3];
-	for(; o<e; o++)
+	for(; o < e; o++)
 		if(o->a2 == a2)
-		if(c1[o->a1])
-		if(c3[o->a3]) {
-			p->optab = (o-optab)+1;
-			return o;
-		}
-	diag("illegal combination %A %d %d %d",
-		p->as, a1, a2, a3);
+			if(c1[o->a1])
+				if(c3[o->a3]) {
+					p->optab = (o - optab) + 1;
+					return o;
+				}
+	diag("illegal combination %A %d %d %d", p->as, a1, a2, a3);
 	if(!debug['a'])
 		prasm(p);
 	o = optab;
-	p->optab = (o-optab)+1;
+	p->optab = (o - optab) + 1;
 	return o;
 }
 
@@ -405,8 +405,8 @@ cmp(int a, int b)
 		return 1;
 	switch(a) {
 	case C_LCON:
-		if(b == C_ZCON || b == C_SCON || b == C_UCON ||
-		   b == C_ADDCON || b == C_ANDCON)
+		if(b == C_ZCON || b == C_SCON || b == C_UCON || b == C_ADDCON ||
+		   b == C_ANDCON)
 			return 1;
 		break;
 	case C_ADD0CON:
@@ -464,9 +464,9 @@ cmp(int a, int b)
 }
 
 int
-ocmp(const void *a1, const void *a2)
+ocmp(const void* a1, const void* a2)
 {
-	Optab *p1, *p2;
+	Optab* p1, *p2;
 	int n;
 
 	p1 = (Optab*)a1;
@@ -491,22 +491,21 @@ buildop(void)
 {
 	int i, n, r;
 
-	for(i=0; i<32; i++)
-		for(n=0; n<32; n++)
+	for(i = 0; i < 32; i++)
+		for(n = 0; n < 32; n++)
 			xcmp[i][n] = cmp(n, i);
-	for(n=0; optab[n].as != AXXX; n++)
+	for(n = 0; optab[n].as != AXXX; n++)
 		;
 	qsort(optab, n, sizeof(optab[0]), ocmp);
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		r = optab[i].as;
-		oprange[r].start = optab+i;
+		oprange[r].start = optab + i;
 		while(optab[i].as == r)
 			i++;
-		oprange[r].stop = optab+i;
+		oprange[r].stop = optab + i;
 		i--;
-		
-		switch(r)
-		{
+
+		switch(r) {
 		default:
 			diag("unknown op in build: %A", r);
 			errorexit();
@@ -637,8 +636,8 @@ buildop(void)
 void
 buildrep(int x, int as)
 {
-	Opcross *p;
-	Optab *e, *s, *o;
+	Opcross* p;
+	Optab* e, *s, *o;
 	int a1, a2, a3, n;
 
 	if(C_NONE != 0 || C_REG != 1 || C_GOK >= 32 || x >= nelem(opcross)) {
@@ -649,19 +648,18 @@ buildrep(int x, int as)
 	p = (opcross + x);
 	s = oprange[as].start;
 	e = oprange[as].stop;
-	for(o=e-1; o>=s; o--) {
-		n = o-optab;
-		for(a2=0; a2<2; a2++) {
+	for(o = e - 1; o >= s; o--) {
+		n = o - optab;
+		for(a2 = 0; a2 < 2; a2++) {
 			if(a2) {
 				if(o->a2 == C_NONE)
 					continue;
-			} else
-				if(o->a2 != C_NONE)
-					continue;
-			for(a1=0; a1<32; a1++) {
+			} else if(o->a2 != C_NONE)
+				continue;
+			for(a1 = 0; a1 < 32; a1++) {
 				if(!xcmp[a1][o->a1])
 					continue;
-				for(a3=0; a3<32; a3++)
+				for(a3 = 0; a3 < 32; a3++)
 					if(xcmp[a3][o->a3])
 						(*p)[a1][a2][a3] = n;
 			}

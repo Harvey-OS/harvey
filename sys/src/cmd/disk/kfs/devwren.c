@@ -9,28 +9,27 @@
 
 #include "all.h"
 
-enum{
-	MAXWREN = 7,
+enum { MAXWREN = 7,
 };
 
-#define WMAGIC	"kfs wren device\n"
+#define WMAGIC "kfs wren device\n"
 
-typedef struct Wren	Wren;
+typedef struct Wren Wren;
 
-struct Wren{
+struct Wren {
 	QLock;
-	Device	dev;
-	uint64_t	size;
-	int	fd;
+	Device dev;
+	uint64_t size;
+	int fd;
 };
 
-static Wren	*wrens;
-static int	maxwren;
-char		*wrenfile;
-int		nwren;
-int		badmagic;
+static Wren* wrens;
+static int maxwren;
+char* wrenfile;
+int nwren;
+int badmagic;
 
-static Wren *
+static Wren*
 wren(Device dev)
 {
 	int i;
@@ -46,8 +45,8 @@ void
 wreninit(Device dev)
 {
 	char buf[MAXBUFSIZE];
-	Wren *w;
-	Dir *d;
+	Wren* w;
+	Dir* d;
 	int fd, i;
 
 	if(wrens == 0)
@@ -64,13 +63,15 @@ wreninit(Device dev)
 		panic("can't read %s", wrenfile);
 	badmagic = 0;
 	RBUFSIZE = 1024;
-	if(strncmp(buf+256, WMAGIC, strlen(WMAGIC)) == 0){
-		RBUFSIZE = atol(buf+256+strlen(WMAGIC));
-		if(RBUFSIZE % 512){
-			fprint(2, "kfs: bad buffersize(%d): assuming 1k blocks\n", RBUFSIZE);
+	if(strncmp(buf + 256, WMAGIC, strlen(WMAGIC)) == 0) {
+		RBUFSIZE = atol(buf + 256 + strlen(WMAGIC));
+		if(RBUFSIZE % 512) {
+			fprint(2,
+			       "kfs: bad buffersize(%d): assuming 1k blocks\n",
+			       RBUFSIZE);
 			RBUFSIZE = 1024;
 		}
-	}else
+	} else
 		badmagic = 1;
 	w->dev = dev;
 	w->size = d->length;
@@ -82,20 +83,22 @@ wreninit(Device dev)
 void
 wrenream(Device dev)
 {
-	Wren *w;
+	Wren* w;
 	char buf[MAXBUFSIZE];
 	int fd, i;
 
 	if(RBUFSIZE % 512)
-		panic("kfs: bad buffersize(%d): restart a multiple of 512\n", RBUFSIZE);
+		panic("kfs: bad buffersize(%d): restart a multiple of 512\n",
+		      RBUFSIZE);
 	if(RBUFSIZE > sizeof(buf))
-		panic("kfs: bad buffersize(%d): must be at most %d\n", RBUFSIZE, sizeof(buf));
+		panic("kfs: bad buffersize(%d): must be at most %d\n", RBUFSIZE,
+		      sizeof(buf));
 
 	print("kfs: reaming the file system using %d byte blocks\n", RBUFSIZE);
 	w = wren(dev);
 	fd = w->fd;
 	memset(buf, 0, sizeof buf);
-	sprint(buf+256, "%s%d\n", WMAGIC, RBUFSIZE);
+	sprint(buf + 256, "%s%d\n", WMAGIC, RBUFSIZE);
 	qlock(w);
 	i = seek(fd, 0, 0) < 0 || write(fd, buf, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
@@ -104,12 +107,12 @@ wrenream(Device dev)
 }
 
 int
-wrentag(char *p, int tag, int32_t qpath)
+wrentag(char* p, int tag, int32_t qpath)
 {
-	Tag *t;
+	Tag* t;
 
-	t = (Tag*)(p+BUFSIZE);
-	return t->tag != tag || (qpath&~QPDIR) != t->path;
+	t = (Tag*)(p + BUFSIZE);
+	return t->tag != tag || (qpath & ~QPDIR) != t->path;
 }
 
 int
@@ -120,12 +123,14 @@ wrencheck(Device dev)
 	if(badmagic)
 		return 1;
 	if(RBUFSIZE > sizeof(buf))
-		panic("kfs: bad buffersize(%d): must be at most %d\n", RBUFSIZE, sizeof(buf));
+		panic("kfs: bad buffersize(%d): must be at most %d\n", RBUFSIZE,
+		      sizeof(buf));
 
-	if(wrenread(dev, wrensuper(dev), buf) || wrentag(buf, Tsuper, QPSUPER)
-	|| wrenread(dev, wrenroot(dev), buf) || wrentag(buf, Tdir, QPROOT))
+	if(wrenread(dev, wrensuper(dev), buf) ||
+	   wrentag(buf, Tsuper, QPSUPER) || wrenread(dev, wrenroot(dev), buf) ||
+	   wrentag(buf, Tdir, QPROOT))
 		return 1;
-	if(((Dentry *)buf)[0].mode & DALLOC)
+	if(((Dentry*)buf)[0].mode & DALLOC)
 		return 0;
 	return 1;
 }
@@ -151,15 +156,16 @@ wrenroot(Device dev)
 }
 
 int
-wrenread(Device dev, int32_t addr, void *b)
+wrenread(Device dev, int32_t addr, void* b)
 {
-	Wren *w;
+	Wren* w;
 	int fd, i;
 
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr * RBUFSIZE, 0) == -1 ||
+	    read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	if(i)
 		print("wrenread failed: %r\n");
@@ -167,15 +173,16 @@ wrenread(Device dev, int32_t addr, void *b)
 }
 
 int
-wrenwrite(Device dev, int32_t addr, void *b)
+wrenwrite(Device dev, int32_t addr, void* b)
 {
-	Wren *w;
+	Wren* w;
 	int fd, i;
 
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr * RBUFSIZE, 0) == -1 ||
+	    write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	if(i)
 		print("wrenwrite failed: %r\n");

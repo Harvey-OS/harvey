@@ -14,9 +14,9 @@
 #include <ndb.h>
 
 int
-authdial(char *netroot, char *dom)
+authdial(char* netroot, char* dom)
 {
-	char *p;
+	char* p;
 	int rv;
 
 	if(dom == nil)
@@ -35,7 +35,7 @@ authdial(char *netroot, char *dom)
 	 */
 	if(p == nil)
 		p = smprint("p9auth.%s", dom);
-	if(p == nil){			/* should no longer ever happen */
+	if(p == nil) { /* should no longer ever happen */
 		werrstr("no auth server found for %s", dom);
 		return -1;
 	}

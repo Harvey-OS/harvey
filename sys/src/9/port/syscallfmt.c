@@ -22,15 +22,15 @@ static void
 fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 {
 	int i;
-	char *t;
+	char* t;
 
-	if(a == nil){
+	if(a == nil) {
 		fmtprint(f, "0x0%s", suffix);
 		return;
 	}
 	a = validaddr(a, n, 0);
-	t = smalloc(n+1);
-	for(i = 0; i < n; i++){
+	t = smalloc(n + 1);
+	for(i = 0; i < n; i++) {
 		if(a[i] > 0x20 && a[i] < 0x7f)
 			t[i] = a[i];
 		else
@@ -45,15 +45,15 @@ static void
 fmtuserstring(Fmt* f, char* a, char* suffix)
 {
 	int len;
-	char *t;
+	char* t;
 
-	if(a == nil){
+	if(a == nil) {
 		fmtprint(f, "0/\"\"%s", suffix);
 		return;
 	}
 	a = validaddr(a, 1, 0);
 	len = ((char*)vmemchr(a, 0, 0x7fffffff) - a);
-	t = smalloc(len+1);
+	t = smalloc(len + 1);
 	memmove(t, a, len);
 	t[len] = 0;
 	fmtprint(f, "%#p/\"%s\"%s", a, t, suffix);
@@ -65,18 +65,18 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 void
 syscallfmt(int syscallno, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	va_list list;
 	int32_t l;
 	uint32_t ul;
 	Fmt fmt;
-	void *v;
+	void* v;
 	int64_t vl;
 	uintptr_t p;
 	int i[2], len, **ip;
-	char *a, **argv;
+	char* a, **argv;
 	va_start(list, syscallno);
-iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
+	iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 	fmtstrinit(&fmt);
 	fmtprint(&fmt, "%d %s ", up->pid, up->text);
 
@@ -89,12 +89,12 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		free(up->syscalltrace);
 	up->syscalltrace = nil;
 
-	switch(syscallno){
+	switch(syscallno) {
 	case SYSR1:
 		p = va_arg(list, uintptr_t);
 		fmtprint(&fmt, "%#p", p);
 		break;
-	case _ERRSTR:					/* deprecated */
+	case _ERRSTR: /* deprecated */
 	case CHDIR:
 	case EXITS:
 	case REMOVE:
@@ -107,7 +107,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
-		fmtprint(&fmt, "%#ux",  i[0]);
+		fmtprint(&fmt, "%#ux", i[0]);
 		break;
 	case CLOSE:
 	case NOTED:
@@ -130,7 +130,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		fmtuserstring(&fmt, a, " ");
 		argv = va_arg(list, char**);
 		evenaddr(PTR2UINT(argv));
-		for(;;){
+		for(;;) {
 			a = *(char**)validaddr(argv, sizeof(char**), 0);
 			if(a == nil)
 				break;
@@ -144,7 +144,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		fmtuserstring(&fmt, a, "");
 		argv = va_arg(list, char**);
 		evenaddr(PTR2UINT(argv));
-		for(;;){
+		for(;;) {
 			a = *(char**)validaddr(argv, sizeof(char**), 0);
 			if(a == nil)
 				break;
@@ -153,9 +153,9 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 			argv++;
 		}
 		break;
-	case _FSESSION:					/* deprecated */
-	case _FSTAT:					/* deprecated */
-	case _FWSTAT:					/* obsolete */
+	case _FSESSION: /* deprecated */
+	case _FSTAT:    /* deprecated */
+	case _FWSTAT:   /* obsolete */
 		i[0] = va_arg(list, int);
 		a = va_arg(list, char*);
 		fmtprint(&fmt, "%d %#p", i[0], a);
@@ -173,7 +173,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		v = va_arg(list, void*);
 		fmtprint(&fmt, "%#p", v);
 		break;
-	case _MOUNT:					/* deprecated */
+	case _MOUNT: /* deprecated */
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d ", i[0]);
 		a = va_arg(list, char*);
@@ -189,7 +189,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux", i[0]);
 		break;
-	case OSEEK:					/* deprecated */
+	case OSEEK: /* deprecated */
 		i[0] = va_arg(list, int);
 		l = va_arg(list, int32_t);
 		i[1] = va_arg(list, int);
@@ -199,8 +199,8 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		l = va_arg(list, int32_t);
 		fmtprint(&fmt, "%ld", l);
 		break;
-	case _STAT:					/* obsolete */
-	case _WSTAT:					/* obsolete */
+	case _STAT:  /* obsolete */
+	case _WSTAT: /* obsolete */
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		a = va_arg(list, char*);
@@ -232,7 +232,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		break;
 	case NOTIFY:
 	case SEGDETACH:
-	case _WAIT:					/* deprecated */
+	case _WAIT: /* deprecated */
 		v = va_arg(list, void*);
 		fmtprint(&fmt, "%#p", v);
 		break;
@@ -241,7 +241,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		fmtprint(&fmt, "%d ", i[0]);
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	case SEGFREE:
 	case SEGFLUSH:
 		v = va_arg(list, void*);
@@ -273,7 +273,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 	case SEMALT:
 		ip = va_arg(list, int**);
 		i[0] = va_arg(list, int);
-		validaddr(ip, sizeof(int*)*i[0], 0);
+		validaddr(ip, sizeof(int*) * i[0], 0);
 		fmtprint(&fmt, "%#p %d", ip, i[0]);
 		break;
 	case SEEK:
@@ -296,7 +296,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 	case STAT:
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	case ERRSTR:
 	case AWAIT:
 		a = va_arg(list, char*);
@@ -314,18 +314,18 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
-	case READ:					/* deprecated */
+	case READ: /* deprecated */
 	case PREAD:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
 		fmtprint(&fmt, "%d %#p %ld", i[0], v, l);
-		if(syscallno == PREAD){
+		if(syscallno == PREAD) {
 			vl = va_arg(list, int64_t);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
-	case WRITE:					/* deprecated */
+	case WRITE: /* deprecated */
 	case PWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
@@ -334,7 +334,7 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 		len = MIN(l, 64);
 		fmtrwdata(&fmt, v, len, " ");
 		fmtprint(&fmt, "%ld", l);
-		if(syscallno == PWRITE){
+		if(syscallno == PWRITE) {
 			vl = va_arg(list, int64_t);
 			fmtprint(&fmt, " %lld", vl);
 		}
@@ -365,17 +365,16 @@ iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 }
 
 void
-sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
-	  uint64_t stop, ...)
+sysretfmt(int syscallno, Ar0* ar0, uint64_t start, uint64_t stop, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	va_list list;
 	int32_t l;
 	void* v;
 	Fmt fmt;
 	int64_t vl;
 	int i, len;
-	char *a, *errstr;
+	char* a, *errstr;
 
 	fmtstrinit(&fmt);
 	va_start(list, stop);
@@ -384,7 +383,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	up->syscalltrace = nil;
 
 	errstr = "\"\"";
-	switch(syscallno){
+	switch(syscallno) {
 	default:
 		if(ar0->i == -1)
 			errstr = up->errstr;
@@ -409,11 +408,10 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	case AWAIT:
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
-		if(ar0->i > 0){
+		if(ar0->i > 0) {
 			fmtuserstring(&fmt, a, " ");
 			fmtprint(&fmt, "%lud = %d", l, ar0->i);
-		}
-		else{
+		} else {
 			fmtprint(&fmt, "%#p/\"\" %lud = %d", a, l, ar0->i);
 			errstr = up->errstr;
 		}
@@ -425,11 +423,10 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			l = 64;
 		else
 			l = va_arg(list, unsigned long);
-		if(ar0->i > 0){
+		if(ar0->i > 0) {
 			fmtuserstring(&fmt, a, " ");
 			fmtprint(&fmt, "%lud = %d", l, ar0->i);
-		}
-		else{
+		} else {
 			fmtprint(&fmt, "\"\" %lud = %d", l, ar0->i);
 			errstr = up->errstr;
 		}
@@ -439,11 +436,10 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		USED(i);
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
-		if(ar0->i > 0){
+		if(ar0->i > 0) {
 			fmtuserstring(&fmt, a, " ");
 			fmtprint(&fmt, "%lud = %d", l, ar0->i);
-		}
-		else{
+		} else {
 			fmtprint(&fmt, "\"\" %lud = %d", l, ar0->i);
 			errstr = up->errstr;
 		}
@@ -454,16 +450,15 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		USED(i);
 		v = va_arg(list, void*);
 		l = va_arg(list, int32_t);
-		if(ar0->l > 0){
+		if(ar0->l > 0) {
 			len = MIN(ar0->l, 64);
 			fmtrwdata(&fmt, v, len, "");
-		}
-		else{
+		} else {
 			fmtprint(&fmt, "/\"\"");
 			errstr = up->errstr;
 		}
 		fmtprint(&fmt, " %ld", l);
-		if(syscallno == PREAD){
+		if(syscallno == PREAD) {
 			vl = va_arg(list, int64_t);
 			fmtprint(&fmt, " %lld", vl);
 		}

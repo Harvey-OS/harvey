@@ -11,43 +11,42 @@
 #include <libc.h>
 #include <bio.h>
 
-enum{
-	LEN	= 8*1024,
-	NFLDS	= 6,		/* filename, modes, uid, gid, mtime, bytes */
+enum { LEN = 8 * 1024,
+       NFLDS = 6, /* filename, modes, uid, gid, mtime, bytes */
 };
 
-int	selected(char*, int, char*[]);
-void	mkdirs(char*, char*);
-void	mkdir(char*, uint32_t, uint32_t, char*, char*);
-void	extract(char*, uint32_t, uint32_t, char*, char*,
-		    uint64_t);
-void	seekpast(uint64_t);
-void	error(char*, ...);
-void	warn(char*, ...);
-void	usage(void);
+int selected(char*, int, char* []);
+void mkdirs(char*, char*);
+void mkdir(char*, uint32_t, uint32_t, char*, char*);
+void extract(char*, uint32_t, uint32_t, char*, char*, uint64_t);
+void seekpast(uint64_t);
+void error(char*, ...);
+void warn(char*, ...);
+void usage(void);
 #pragma varargck argpos warn 1
 #pragma varargck argpos error 1
 
 Biobufhdr bin;
-unsigned char	binbuf[2*LEN];
-int8_t	linebuf[LEN];
-int	uflag;
-int	hflag;
-int	vflag;
-int	Tflag;
+unsigned char binbuf[2 * LEN];
+int8_t linebuf[LEN];
+int uflag;
+int hflag;
+int vflag;
+int Tflag;
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	Biobuf bout;
-	char *fields[NFLDS], name[2*LEN], *p, *namep;
-	char *uid, *gid;
+	char* fields[NFLDS], name[2 * LEN], *p, *namep;
+	char* uid, *gid;
 	uint32_t mode, mtime;
 	uint64_t bytes;
 
 	quotefmtinstall();
 	namep = name;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		p = ARGF();
 		if(strlen(p) >= LEN)
@@ -71,19 +70,20 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
-	
+	}
+	ARGEND
+
 	Binits(&bin, 0, OREAD, binbuf, sizeof binbuf);
-	while(p = Brdline(&bin, '\n')){
-		p[Blinelen(&bin)-1] = '\0';
+	while(p = Brdline(&bin, '\n')) {
+		p[Blinelen(&bin) - 1] = '\0';
 		strcpy(linebuf, p);
 		p = linebuf;
-		if(strcmp(p, "end of archive") == 0){
+		if(strcmp(p, "end of archive") == 0) {
 			Bterm(&bout);
 			fprint(2, "done\n");
 			exits(0);
 		}
-		if (gettokens(p, fields, NFLDS, " \t") != NFLDS){
+		if(gettokens(p, fields, NFLDS, " \t") != NFLDS) {
 			warn("too few fields in file header");
 			continue;
 		}
@@ -95,17 +95,17 @@ main(int argc, char **argv)
 		gid = fields[3];
 		mtime = strtoul(fields[4], 0, 10);
 		bytes = strtoull(fields[5], 0, 10);
-		if(argc){
-			if(!selected(namep, argc, argv)){
+		if(argc) {
+			if(!selected(namep, argc, argv)) {
 				if(bytes)
 					seekpast(bytes);
 				continue;
 			}
 			mkdirs(name, namep);
 		}
-		if(hflag){
-			Bprint(&bout, "%q %luo %q %q %lud %llud\n",
-				name, mode, uid, gid, mtime, bytes);
+		if(hflag) {
+			Bprint(&bout, "%q %luo %q %q %lud %llud\n", name, mode,
+			       uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
 			continue;
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 }
 
 int
-fileprefix(char *prefix, char *s)
+fileprefix(char* prefix, char* s)
 {
 	while(*prefix)
 		if(*prefix++ != *s++)
@@ -131,48 +131,48 @@ fileprefix(char *prefix, char *s)
 }
 
 int
-selected(char *s, int argc, char *argv[])
+selected(char* s, int argc, char* argv[])
 {
 	int i;
 
-	for(i=0; i<argc; i++)
+	for(i = 0; i < argc; i++)
 		if(fileprefix(argv[i], s))
 			return 1;
 	return 0;
 }
 
 void
-mkdirs(char *name, char *namep)
+mkdirs(char* name, char* namep)
 {
-	char buf[2*LEN], *p;
+	char buf[2 * LEN], *p;
 	int fd;
 
 	strcpy(buf, name);
-	for(p = &buf[namep - name]; p = utfrune(p, '/'); p++){
+	for(p = &buf[namep - name]; p = utfrune(p, '/'); p++) {
 		if(p[1] == '\0')
 			return;
 		*p = 0;
-		fd = create(buf, OREAD, 0775|DMDIR);
+		fd = create(buf, OREAD, 0775 | DMDIR);
 		close(fd);
 		*p = '/';
 	}
 }
 
 void
-mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
-      char *gid)
+mkdir(char* name, uint32_t mode, uint32_t mtime, char* uid, char* gid)
 {
-	Dir *d, xd;
+	Dir* d, xd;
 	int fd;
-	char *p;
+	char* p;
 	char olderr[256];
 
 	fd = create(name, OREAD, mode);
-	if(fd < 0){
+	if(fd < 0) {
 		rerrstr(olderr, sizeof(olderr));
-		if((d = dirstat(name)) == nil || !(d->mode & DMDIR)){
+		if((d = dirstat(name)) == nil || !(d->mode & DMDIR)) {
 			free(d);
-			warn("can't make directory %q, mode %luo: %s", name, mode, olderr);
+			warn("can't make directory %q, mode %luo: %s", name,
+			     mode, olderr);
 			return;
 		}
 		free(d);
@@ -187,7 +187,7 @@ mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
 	else
 		p = name;
 	d->name = p;
-	if(uflag){
+	if(uflag) {
 		d->uid = uid;
 		d->gid = gid;
 	}
@@ -197,13 +197,14 @@ mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
 	if(dirwstat(name, d) < 0)
 		warn("can't set modes for %q: %r", name);
 
-	if(uflag||Tflag){
-		if((d = dirstat(name)) == nil){
+	if(uflag || Tflag) {
+		if((d = dirstat(name)) == nil) {
 			warn("can't reread modes for %q: %r", name);
 			return;
 		}
 		if(Tflag && d->mtime != mtime)
-			warn("%q: time mismatch %lud %lud\n", name, mtime, d->mtime);
+			warn("%q: time mismatch %lud %lud\n", name, mtime,
+			     d->mtime);
 		if(uflag && strcmp(uid, d->uid))
 			warn("%q: uid mismatch %q %q", name, uid, d->uid);
 		if(uflag && strcmp(gid, d->gid))
@@ -212,14 +213,13 @@ mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
 }
 
 void
-extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
-	char *gid,
-	uint64_t bytes)
+extract(char* name, uint32_t mode, uint32_t mtime, char* uid, char* gid,
+        uint64_t bytes)
 {
 	Dir d, *nd;
-	Biobuf *b;
+	Biobuf* b;
 	char buf[LEN];
-	char *p;
+	char* p;
 	uint32_t n;
 	uint64_t tot;
 
@@ -227,12 +227,12 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
 		print("x %q %llud bytes\n", name, bytes);
 
 	b = Bopen(name, OWRITE);
-	if(!b){
+	if(!b) {
 		warn("can't make file %q: %r", name);
 		seekpast(bytes);
 		return;
 	}
-	for(tot = 0; tot < bytes; tot += n){
+	for(tot = 0; tot < bytes; tot += n) {
 		n = sizeof buf;
 		if(tot + n > bytes)
 			n = bytes - tot;
@@ -250,7 +250,7 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
 	else
 		p = name;
 	d.name = p;
-	if(uflag){
+	if(uflag) {
 		d.uid = uid;
 		d.gid = gid;
 	}
@@ -260,19 +260,19 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
 	Bflush(b);
 	if(dirfwstat(Bfildes(b), &d) < 0)
 		warn("can't set modes for %q: %r", name);
-	if(uflag||Tflag){
+	if(uflag || Tflag) {
 		if((nd = dirfstat(Bfildes(b))) == nil)
 			warn("can't reread modes for %q: %r", name);
-		else{
+		else {
 			if(Tflag && nd->mtime != mtime)
-				warn("%q: time mismatch %lud %lud\n",
-					name, mtime, nd->mtime);
+				warn("%q: time mismatch %lud %lud\n", name,
+				     mtime, nd->mtime);
 			if(uflag && strcmp(uid, nd->uid))
-				warn("%q: uid mismatch %q %q",
-					name, uid, nd->uid);
+				warn("%q: uid mismatch %q %q", name, uid,
+				     nd->uid);
 			if(uflag && strcmp(gid, nd->gid))
-				warn("%q: gid mismatch %q %q",
-					name, gid, nd->gid);
+				warn("%q: gid mismatch %q %q", name, gid,
+				     nd->gid);
 			free(nd);
 		}
 	}
@@ -286,7 +286,7 @@ seekpast(uint64_t bytes)
 	int32_t n;
 	uint64_t tot;
 
-	for(tot = 0; tot < bytes; tot += n){
+	for(tot = 0; tot < bytes; tot += n) {
 		n = sizeof buf;
 		if(tot + n > bytes)
 			n = bytes - tot;
@@ -297,28 +297,28 @@ seekpast(uint64_t bytes)
 }
 
 void
-error(char *fmt, ...)
+error(char* fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: ", argv0);
 	va_start(arg, fmt);
-	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 	exits(0);
 }
 
 void
-warn(char *fmt, ...)
+warn(char* fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: ", argv0);
 	va_start(arg, fmt);
-	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 }

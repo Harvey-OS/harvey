@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1997 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,15 +27,15 @@
 /* Client interface to Display PostScript facilities. */
 
 #ifndef gsdps_INCLUDED
-#  define gsdps_INCLUDED
+#define gsdps_INCLUDED
 
 /* Device-source images */
 #include "gsiparm2.h"
 
 /* View clipping */
-int gs_initviewclip(gs_state *);
-int gs_eoviewclip(gs_state *);
-int gs_viewclip(gs_state *);
-int gs_viewclippath(gs_state *);
+int gs_initviewclip(gs_state*);
+int gs_eoviewclip(gs_state*);
+int gs_viewclip(gs_state*);
+int gs_viewclippath(gs_state*);
 
 #endif /* gsdps_INCLUDED */

@@ -20,23 +20,24 @@
  * this was copied from inet's guard.
  */
 static void
-netresp(char *key, int32_t chal, char *answer)
+netresp(char* key, int32_t chal, char* answer)
 {
 	uint8_t buf[8];
 
 	memset(buf, 0, sizeof buf);
-	snprint((char *)buf, sizeof buf, "%lud", chal);
+	snprint((char*)buf, sizeof buf, "%lud", chal);
 	if(encrypt(key, buf, 8) < 0)
 		abort();
-	sprint(answer, "%.8ux", buf[0]<<24 | buf[1]<<16 | buf[2]<<8 | buf[3]);
+	sprint(answer, "%.8ux",
+	       buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]);
 }
 
 AuthInfo*
-auth_userpasswd(char *user, char *passwd)
+auth_userpasswd(char* user, char* passwd)
 {
 	char key[DESKEYLEN], resp[16];
-	AuthInfo *ai;
-	Chalstate *ch;
+	AuthInfo* ai;
+	Chalstate* ch;
 
 	/*
 	 * Probably we should have a factotum protocol

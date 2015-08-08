@@ -28,15 +28,15 @@ typedef int32_t time_t;
 #endif
 
 struct tm {
-	int	tm_sec;
-	int	tm_min;
-	int	tm_hour;
-	int	tm_mday;
-	int	tm_mon;
-	int	tm_year;
-	int	tm_wday;
-	int	tm_yday;
-	int	tm_isdst;
+	int tm_sec;
+	int tm_min;
+	int tm_hour;
+	int tm_mday;
+	int tm_mon;
+	int tm_year;
+	int tm_wday;
+	int tm_yday;
+	int tm_isdst;
 };
 
 #ifdef __cplusplus
@@ -45,18 +45,18 @@ extern "C" {
 
 extern clock_t clock(void);
 extern double difftime(time_t, time_t);
-extern time_t mktime(struct tm *);
-extern time_t time(time_t *);
-extern char *asctime(const struct tm *);
-extern char *ctime(const time_t *);
-extern struct tm *gmtime(const time_t *);
-extern struct tm *localtime(const time_t *);
-extern size_t strftime(char *, size_t, const char *, const struct tm *);
+extern time_t mktime(struct tm*);
+extern time_t time(time_t*);
+extern char* asctime(const struct tm*);
+extern char* ctime(const time_t*);
+extern struct tm* gmtime(const time_t*);
+extern struct tm* localtime(const time_t*);
+extern size_t strftime(char*, size_t, const char*, const struct tm*);
 
 #ifdef _REENTRANT_SOURCE
-extern struct tm *gmtime_r(const time_t *, struct tm *);
-extern struct tm *localtime_r(const time_t *, struct tm *);
-extern char *ctime_r(const time_t *, char *);
+extern struct tm* gmtime_r(const time_t*, struct tm*);
+extern struct tm* localtime_r(const time_t*, struct tm*);
+extern char* ctime_r(const time_t*, char*);
 #endif
 
 #ifdef _POSIX_SOURCE
@@ -68,7 +68,7 @@ extern void tzset(void);
 #endif
 
 #ifdef _POSIX_SOURCE
-extern char *tzname[2];
+extern char* tzname[2];
 #endif
 
 #endif /* __TIME_H */

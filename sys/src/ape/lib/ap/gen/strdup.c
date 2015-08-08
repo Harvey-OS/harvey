@@ -12,12 +12,12 @@
 #include <stdlib.h>
 
 char*
-strdup(char *p)
+strdup(char* p)
 {
 	int n;
-	char *np;
+	char* np;
 
-	n = strlen(p)+1;
+	n = strlen(p) + 1;
 	np = malloc(n);
 	if(np)
 		memmove(np, p, n);

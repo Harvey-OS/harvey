@@ -12,7 +12,7 @@
  */
 #include "all.h"
 
-Db *db;
+Db* db;
 
 void
 usage(void)
@@ -22,17 +22,19 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Avlwalk *w;
+	Avlwalk* w;
 	Biobuf bout;
-	Entry *e;
+	Entry* e;
 
 	quotefmtinstall();
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -41,9 +43,9 @@ main(int argc, char **argv)
 	db = opendb(argv[0]);
 	w = avlwalk(db->avl);
 	while(e = (Entry*)avlnext(w))
-		Bprint(&bout, "%q %q %luo %q %q %lud %lld\n",
-			e->name, strcmp(e->name, e->d.name)==0 ? "-" : e->d.name, e->d.mode,
-			e->d.uid, e->d.gid, e->d.mtime, e->d.length);
+		Bprint(&bout, "%q %q %luo %q %q %lud %lld\n", e->name,
+		       strcmp(e->name, e->d.name) == 0 ? "-" : e->d.name,
+		       e->d.mode, e->d.uid, e->d.gid, e->d.mtime, e->d.length);
 	if(Bterm(&bout) < 0)
 		sysfatal("writing output: %r");
 

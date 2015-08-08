@@ -7,7 +7,8 @@
  * in the LICENSE file.
  */
 
-/* inttypes.h for SunOS cuff.link.cs.cmu.edu 5.5.1 Generic_103640-29 sun4u sparc SUNW,Ultra-Enterprise */
+/* inttypes.h for SunOS cuff.link.cs.cmu.edu 5.5.1 Generic_103640-29 sun4u sparc
+ * SUNW,Ultra-Enterprise */
 #ifndef INTTYPES_H
 #define INTTYPES_H
 

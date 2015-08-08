@@ -13,91 +13,165 @@
 #include <mach.h>
 #include "arm.h"
 
-void	unimp(ulong);
-void	Ifcmp(ulong);
-void	Ifdiv(ulong);
-void	Ifmul(ulong);
-void	Ifadd(ulong);
-void	Ifsub(ulong);
-void	Ifmov(ulong);
-void	Icvtd(ulong);
-void	Icvtw(ulong);
-void	Icvts(ulong);
-void	Ifabs(ulong);
-void	Ifneg(ulong);
+void unimp(ulong);
+void Ifcmp(ulong);
+void Ifdiv(ulong);
+void Ifmul(ulong);
+void Ifadd(ulong);
+void Ifsub(ulong);
+void Ifmov(ulong);
+void Icvtd(ulong);
+void Icvtw(ulong);
+void Icvts(ulong);
+void Ifabs(ulong);
+void Ifneg(ulong);
 
-Inst cop1[] = {
-	{ Ifadd,	"add.f", Ifloat },
-	{ Ifsub,	"sub.f", Ifloat },
-	{ Ifmul,	"mul.f", Ifloat },
-	{ Ifdiv,	"div.f", Ifloat },
-	{ unimp,	"", },
-	{ Ifabs,	"abs.f", Ifloat },
-	{ Ifmov,	"mov.f", Ifloat },
-	{ Ifneg,	"neg.f", Ifloat },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ Icvts,	"cvt.s", Ifloat },
-	{ Icvtd,	"cvt.d", Ifloat },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ Icvtw,	"cvt.w", Ifloat },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ Ifcmp,	"c.f",	 Ifloat },
-	{ Ifcmp,	"c.un",  Ifloat },
-	{ Ifcmp,	"c.eq",  Ifloat },
-	{ Ifcmp,	"c.ueq", Ifloat },
-	{ Ifcmp,	"c.olt", Ifloat },
-	{ Ifcmp,	"c.ult", Ifloat },
-	{ Ifcmp,	"c.ole", Ifloat },
-	{ Ifcmp,	"c.ule", Ifloat },
-	{ Ifcmp,	"c,sf",  Ifloat },
-	{ Ifcmp,	"c.ngle",Ifloat },
-	{ Ifcmp,	"c.seq", Ifloat },
-	{ Ifcmp,	"c.ngl", Ifloat },
-	{ Ifcmp,	"c.lt",  Ifloat },
-	{ Ifcmp,	"c.nge", Ifloat },
-	{ Ifcmp,	"c.le",  Ifloat },
-	{ Ifcmp,	"c.ngt", Ifloat },
-	{ 0 }
-};
+Inst cop1[] = {{Ifadd, "add.f", Ifloat},
+               {Ifsub, "sub.f", Ifloat},
+               {Ifmul, "mul.f", Ifloat},
+               {Ifdiv, "div.f", Ifloat},
+               {
+                unimp, "",
+               },
+               {Ifabs, "abs.f", Ifloat},
+               {Ifmov, "mov.f", Ifloat},
+               {Ifneg, "neg.f", Ifloat},
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {Icvts, "cvt.s", Ifloat},
+               {Icvtd, "cvt.d", Ifloat},
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {Icvtw, "cvt.w", Ifloat},
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {
+                unimp, "",
+               },
+               {Ifcmp, "c.f", Ifloat},
+               {Ifcmp, "c.un", Ifloat},
+               {Ifcmp, "c.eq", Ifloat},
+               {Ifcmp, "c.ueq", Ifloat},
+               {Ifcmp, "c.olt", Ifloat},
+               {Ifcmp, "c.ult", Ifloat},
+               {Ifcmp, "c.ole", Ifloat},
+               {Ifcmp, "c.ule", Ifloat},
+               {Ifcmp, "c,sf", Ifloat},
+               {Ifcmp, "c.ngle", Ifloat},
+               {Ifcmp, "c.seq", Ifloat},
+               {Ifcmp, "c.ngl", Ifloat},
+               {Ifcmp, "c.lt", Ifloat},
+               {Ifcmp, "c.nge", Ifloat},
+               {Ifcmp, "c.le", Ifloat},
+               {Ifcmp, "c.ngt", Ifloat},
+               {0}};
 
 void
 unimp(uint32_t inst)
 {
-	print("op %d\n", inst&0x3f);
+	print("op %d\n", inst & 0x3f);
 	Bprint(bioout, "Unimplemented floating point Trap IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
 }
@@ -112,7 +186,8 @@ inval(uint32_t inst)
 void
 ifmt(int r)
 {
-	Bprint(bioout, "Invalid Floating Data Format f%d pc 0x%lux\n", r, reg.r[15]);
+	Bprint(bioout, "Invalid Floating Data Format f%d pc 0x%lux\n", r,
+	       reg.r[15]);
 	longjmp(errjmp, 0);
 }
 

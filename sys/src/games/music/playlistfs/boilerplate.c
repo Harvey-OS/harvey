@@ -13,12 +13,12 @@
 #include <fcall.h>
 #include "playlist.h"
 
-static Channel *reqs;
+static Channel* reqs;
 
 Req*
 reqalloc(void)
 {
-	Req *r;
+	Req* r;
 
 	if(reqs == nil)
 		reqs = chancreate(sizeof(Req*), 256);
@@ -29,14 +29,14 @@ reqalloc(void)
 }
 
 void
-reqfree(Req *r)
+reqfree(Req* r)
 {
 	if(!nbsendp(reqs, r))
 		free(r);
 }
 
 Wmsg
-waitmsg(Worker *w, Channel *q)
+waitmsg(Worker* w, Channel* q)
 {
 	Wmsg m;
 
@@ -46,26 +46,26 @@ waitmsg(Worker *w, Channel *q)
 }
 
 int
-sendmsg(Channel *q, Wmsg *m)
+sendmsg(Channel* q, Wmsg* m)
 {
-	Worker *w;
+	Worker* w;
 
-	while(w = nbrecvp(q)){
+	while(w = nbrecvp(q)) {
 		/* Test for markerdom (see bcastmsg) */
-		if(w->eventc){
+		if(w->eventc) {
 			send(w->eventc, m);
 			return 1;
 		}
-		sendp(q, w);	/* put back */
+		sendp(q, w); /* put back */
 	}
 	return 0;
 }
 
 void
-bcastmsg(Channel *q, Wmsg *m)
+bcastmsg(Channel* q, Wmsg* m)
 {
-	Worker *w, marker;
-	void *a;
+	Worker* w, marker;
+	void* a;
 
 	a = m->arg;
 	/*
@@ -74,14 +74,15 @@ bcastmsg(Channel *q, Wmsg *m)
 	 * broadcast and putting themselves back on the
 	 * queue before the broadcast has finished
 	 */
-	marker.eventc = nil;	/* Only markers have eventc == nil */
+	marker.eventc = nil; /* Only markers have eventc == nil */
 	sendp(q, &marker);
-	while((w = recvp(q)) != &marker){
-		if(w->eventc == nil){
+	while((w = recvp(q)) != &marker) {
+		if(w->eventc == nil) {
 			/* somebody else's marker, put it back */
 			sendp(q, w);
-		}else{
-			if(a) m->arg = strdup(a);
+		} else {
+			if(a)
+				m->arg = strdup(a);
 			send(w->eventc, m);
 		}
 	}
@@ -90,20 +91,20 @@ bcastmsg(Channel *q, Wmsg *m)
 }
 
 void
-readbuf(Req *r, void *s, int32_t n)
+readbuf(Req* r, void* s, int32_t n)
 {
 	r->ofcall.count = r->ifcall.count;
-	if(r->ifcall.offset >= n){
+	if(r->ifcall.offset >= n) {
 		r->ofcall.count = 0;
 		return;
 	}
-	if(r->ifcall.offset+r->ofcall.count > n)
+	if(r->ifcall.offset + r->ofcall.count > n)
 		r->ofcall.count = n - r->ifcall.offset;
-	memmove(r->ofcall.data, (char*)s+r->ifcall.offset, r->ofcall.count);
+	memmove(r->ofcall.data, (char*)s + r->ifcall.offset, r->ofcall.count);
 }
 
 void
-readstr(Req *r, char *s)
+readstr(Req* r, char* s)
 {
 	readbuf(r, s, strlen(s));
 }

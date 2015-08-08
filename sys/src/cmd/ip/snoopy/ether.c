@@ -13,61 +13,75 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct Hdr	Hdr;
+typedef struct Hdr Hdr;
 struct Hdr {
-	uint8_t	d[6];
-	uint8_t	s[6];
-	uint8_t	type[2];
-	char	data[1500];
+	uint8_t d[6];
+	uint8_t s[6];
+	uint8_t type[2];
+	char data[1500];
 };
 
-#define	ETHERMINTU	60	/* minimum transmit size */
-#define	ETHERMAXTU	1514	/* maximum transmit size */
-#define ETHERHDRSIZE	14	/* size of an ethernet header */
+#define ETHERMINTU 60   /* minimum transmit size */
+#define ETHERMAXTU 1514 /* maximum transmit size */
+#define ETHERHDRSIZE 14 /* size of an ethernet header */
 
-static Mux p_mux[] =
-{
-	{"ip",		0x0800,	} ,
-	{"arp",		0x0806,	} ,
-	{"rarp",	0x0806,	} ,
-	{"ip6", 	0x86dd, } ,
-	{"pppoe_disc",	0x8863, },
-	{"pppoe_sess",	0x8864, },
-	{"eapol",	0x888e, },
-	{"aoe",		0x88a2, } ,
-	{"cec",		0xbcbc, } ,
-	{0}
+static Mux p_mux[] = {{
+                       "ip", 0x0800,
+                      },
+                      {
+                       "arp", 0x0806,
+                      },
+                      {
+                       "rarp", 0x0806,
+                      },
+                      {
+                       "ip6", 0x86dd,
+                      },
+                      {
+                       "pppoe_disc", 0x8863,
+                      },
+                      {
+                       "pppoe_sess", 0x8864,
+                      },
+                      {
+                       "eapol", 0x888e,
+                      },
+                      {
+                       "aoe", 0x88a2,
+                      },
+                      {
+                       "cec", 0xbcbc,
+                      },
+                      {0}};
+
+enum { Os, /* source */
+       Od, /* destination */
+       Oa, /* source or destination */
+       Ot, /* type */
 };
 
-enum
-{
-	Os,	/* source */
-	Od,	/* destination */
-	Oa,	/* source or destination */
-	Ot,	/* type */
-};
-
-static Field p_fields[] =
-{
-	{"s",	Fether,	Os,	"source address",	} ,
-	{"d",	Fether,	Od,	"destination address",	} ,
-	{"a",	Fether,	Oa,	"source|destination address" } ,
-	{"sd",	Fether,	Oa,	"source|destination address" } ,
-	{"t",	Fnum,	Ot,	"type" } ,
-	{0}
-};
+static Field p_fields[] = {{
+                            "s", Fether, Os, "source address",
+                           },
+                           {
+                            "d", Fether, Od, "destination address",
+                           },
+                           {"a", Fether, Oa, "source|destination address"},
+                           {"sd", Fether, Oa, "source|destination address"},
+                           {"t", Fnum, Ot, "type"},
+                           {0}};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	Mux *m;
+	Mux* m;
 
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(ether.name, f, p_fields);
 		return;
 	}
 	for(m = p_mux; m->name != nil; m++)
-		if(strcmp(f->s, m->name) == 0){
+		if(strcmp(f->s, m->name) == 0) {
 			f->pr = m->pr;
 			f->ulv = m->val;
 			f->subop = Ot;
@@ -77,9 +91,9 @@ p_compile(Filter *f)
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < ETHERHDRSIZE)
 		return 0;
@@ -87,7 +101,7 @@ p_filter(Filter *f, Msg *m)
 	h = (Hdr*)m->ps;
 	m->ps += ETHERHDRSIZE;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Os:
 		return memcmp(h->s, f->a, 6) == 0;
 	case Od:
@@ -101,11 +115,11 @@ p_filter(Filter *f, Msg *m)
 }
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
 	int len;
 	uint t;
-	Hdr *h;
+	Hdr* h;
 
 	len = m->pe - m->ps;
 	if(len < ETHERHDRSIZE)
@@ -117,19 +131,10 @@ p_seprint(Msg *m)
 	t = NetS(h->type);
 	demux(p_mux, t, t, m, &dump);
 
-	m->p = seprint(m->p, m->e, "s=%E d=%E pr=%4.4ux ln=%d", h->s, h->d,
-		t, len);
+	m->p = seprint(m->p, m->e, "s=%E d=%E pr=%4.4ux ln=%d", h->s, h->d, t,
+	               len);
 	return 0;
 }
 
-Proto ether =
-{
-	"ether",
-	p_compile,
-	p_filter,
-	p_seprint,
-	p_mux,
-	"%#.4lux",
-	p_fields,
-	defaultframer
-};
+Proto ether = {"ether", p_compile, p_filter, p_seprint,
+               p_mux,   "%#.4lux", p_fields, defaultframer};

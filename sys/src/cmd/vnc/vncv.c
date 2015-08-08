@@ -11,20 +11,17 @@
 #include "vncv.h"
 #include <libsec.h>
 
-char*	encodings = "copyrect hextile corre rre raw mousewarp";
-int		bpp12;
-int		shared;
-int		verbose;
-Vnc*		vnc;
-int		mousefd;
-int		tls;
+char* encodings = "copyrect hextile corre rre raw mousewarp";
+int bpp12;
+int shared;
+int verbose;
+Vnc* vnc;
+int mousefd;
+int tls;
 
-static int	vncstart(Vnc*, int);
+static int vncstart(Vnc*, int);
 
-enum
-{
-	NProcs	= 4
-};
+enum { NProcs = 4 };
 
 static int pids[NProcs];
 static char killkin[] = "die vnc kin";
@@ -50,9 +47,9 @@ shutdown(void)
 }
 
 char*
-netmkvncaddr(char *inserver)
+netmkvncaddr(char* inserver)
 {
-	char *p, portstr[NETPATHLEN], *server;
+	char* p, portstr[NETPATHLEN], *server;
 	int port;
 
 	server = strdup(inserver);
@@ -81,21 +78,23 @@ vnchungup(Vnc*)
 void
 usage(void)
 {
-	fprint(2, "usage: vncv [-e encodings] [-k keypattern] [-csv] host[:n]\n");
+	fprint(2,
+	       "usage: vncv [-e encodings] [-k keypattern] [-csv] host[:n]\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int p, fd, dfd, cfd, shared;
-	char *keypattern, *addr;
+	char* keypattern, *addr;
 	Point d;
 	TLSconn conn;
 
 	keypattern = nil;
 	shared = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		bpp12 = 1;
 		break;
@@ -116,7 +115,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 	dfd = dial(addr, nil, nil, &cfd);
 	if(dfd < 0)
 		sysfatal("cannot dial %s: %r", addr);
-	if(tls){
+	if(tls) {
 		dfd = tlsClient(dfd, &conn);
 		if(dfd < 0)
 			sysfatal("tlsClient: %r");
@@ -145,9 +145,10 @@ main(int argc, char **argv)
 	display->locking = 1;
 	unlockdisplay(display);
 
-	d = addpt(vnc->dim, Pt(2*Borderwidth, 2*Borderwidth));
+	d = addpt(vnc->dim, Pt(2 * Borderwidth, 2 * Borderwidth));
 	if(verbose)
-		fprint(2, "screen size %P, desktop size %P\n", display->image->r.max, d);
+		fprint(2, "screen size %P, desktop size %P\n",
+		       display->image->r.max, d);
 
 	choosecolor(vnc);
 	sendencodings(vnc);
@@ -157,7 +158,7 @@ main(int argc, char **argv)
 	atexit(shutdown);
 	pids[0] = getpid();
 
-	switch(p = rfork(RFPROC|RFMEM)){
+	switch(p = rfork(RFPROC | RFMEM)) {
 	case -1:
 		sysfatal("rfork: %r");
 	default:
@@ -169,7 +170,7 @@ main(int argc, char **argv)
 	}
 	pids[1] = p;
 
-	switch(p = rfork(RFPROC|RFMEM)){
+	switch(p = rfork(RFPROC | RFMEM)) {
 	case -1:
 		sysfatal("rfork: %r");
 	default:
@@ -182,12 +183,12 @@ main(int argc, char **argv)
 	pids[2] = p;
 
 	fd = open("/dev/label", OWRITE);
-	if(fd >= 0){
+	if(fd >= 0) {
 		fprint(fd, "vnc %s", serveraddr);
 		close(fd);
 	}
-	if(access("/dev/snarf", AEXIST) >= 0){
-		switch(p = rfork(RFPROC|RFMEM)){
+	if(access("/dev/snarf", AEXIST) >= 0) {
+		switch(p = rfork(RFPROC | RFMEM)) {
 		case -1:
 			sysfatal("rfork: %r");
 		default:
@@ -205,7 +206,7 @@ main(int argc, char **argv)
 }
 
 static int
-vncstart(Vnc *v, int shared)
+vncstart(Vnc* v, int shared)
 {
 	vncwrchar(v, shared);
 	vncflush(v);

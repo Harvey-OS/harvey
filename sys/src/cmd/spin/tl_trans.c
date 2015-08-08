@@ -23,42 +23,42 @@
 
 #include "tl.h"
 
-extern FILE	*tl_out;
-extern int	tl_errs, tl_verbose, tl_terse, newstates, state_cnt;
+extern FILE* tl_out;
+extern int tl_errs, tl_verbose, tl_terse, newstates, state_cnt;
 
-int	Stack_mx=0, Max_Red=0, Total=0;
+int Stack_mx = 0, Max_Red = 0, Total = 0;
 
-static Mapping	*Mapped = (Mapping *) 0;
-static Graph	*Nodes_Set = (Graph *) 0;
-static Graph	*Nodes_Stack = (Graph *) 0;
+static Mapping* Mapped = (Mapping*)0;
+static Graph* Nodes_Set = (Graph*)0;
+static Graph* Nodes_Stack = (Graph*)0;
 
-static char	dumpbuf[2048];
-static int	Red_cnt  = 0;
-static int	Lab_cnt  = 0;
-static int	Base     = 0;
-static int	Stack_sz = 0;
+static char dumpbuf[2048];
+static int Red_cnt = 0;
+static int Lab_cnt = 0;
+static int Base = 0;
+static int Stack_sz = 0;
 
-static Graph	*findgraph(char *);
-static Graph	*pop_stack(void);
-static Node	*Duplicate(Node *);
-static Node	*flatten(Node *);
-static Symbol	*catSlist(Symbol *, Symbol *);
-static Symbol	*dupSlist(Symbol *);
-static char	*newname(void);
-static int	choueka(Graph *, int);
-static int	not_new(Graph *);
-static int	set_prefix(char *, int, Graph *);
-static void	Addout(char *, char *);
-static void	fsm_trans(Graph *, int, char *);
-static void	mkbuchi(void);
-static void	expand_g(Graph *);
-static void	fixinit(Node *);
-static void	liveness(Node *);
-static void	mk_grn(Node *);
-static void	mk_red(Node *);
-static void	ng(Symbol *, Symbol *, Node *, Node *, Node *);
-static void	push_stack(Graph *);
-static void	sdump(Node *);
+static Graph* findgraph(char*);
+static Graph* pop_stack(void);
+static Node* Duplicate(Node*);
+static Node* flatten(Node*);
+static Symbol* catSlist(Symbol*, Symbol*);
+static Symbol* dupSlist(Symbol*);
+static char* newname(void);
+static int choueka(Graph*, int);
+static int not_new(Graph*);
+static int set_prefix(char*, int, Graph*);
+static void Addout(char*, char*);
+static void fsm_trans(Graph*, int, char*);
+static void mkbuchi(void);
+static void expand_g(Graph*);
+static void fixinit(Node*);
+static void liveness(Node*);
+static void mk_grn(Node*);
+static void mk_red(Node*);
+static void ng(Symbol*, Symbol*, Node*, Node*, Node*);
+static void push_stack(Graph*);
+static void sdump(Node*);
 
 void
 ini_trans(void)
@@ -67,174 +67,192 @@ ini_trans(void)
 	Max_Red = 0;
 	Total = 0;
 
-	Mapped = (Mapping *) 0;
-	Nodes_Set = (Graph *) 0;
-	Nodes_Stack = (Graph *) 0;
+	Mapped = (Mapping*)0;
+	Nodes_Set = (Graph*)0;
+	Nodes_Stack = (Graph*)0;
 
 	memset(dumpbuf, 0, sizeof(dumpbuf));
-	Red_cnt  = 0;
-	Lab_cnt  = 0;
-	Base     = 0;
+	Red_cnt = 0;
+	Lab_cnt = 0;
+	Base = 0;
 	Stack_sz = 0;
 }
 
 static void
-dump_graph(Graph *g)
-{	Node *n1;
+dump_graph(Graph* g)
+{
+	Node* n1;
 
 	printf("\n\tnew:\t");
-	for (n1 = g->New; n1; n1 = n1->nxt)
-	{ dump(n1); printf(", "); }
+	for(n1 = g->New; n1; n1 = n1->nxt) {
+		dump(n1);
+		printf(", ");
+	}
 	printf("\n\told:\t");
-	for (n1 = g->Old; n1; n1 = n1->nxt)
-	{ dump(n1); printf(", "); }
+	for(n1 = g->Old; n1; n1 = n1->nxt) {
+		dump(n1);
+		printf(", ");
+	}
 	printf("\n\tnxt:\t");
-	for (n1 = g->Next; n1; n1 = n1->nxt)
-	{ dump(n1); printf(", "); }
+	for(n1 = g->Next; n1; n1 = n1->nxt) {
+		dump(n1);
+		printf(", ");
+	}
 	printf("\n\tother:\t");
-	for (n1 = g->Other; n1; n1 = n1->nxt)
-	{ dump(n1); printf(", "); }
+	for(n1 = g->Other; n1; n1 = n1->nxt) {
+		dump(n1);
+		printf(", ");
+	}
 	printf("\n");
 }
 
 static void
-push_stack(Graph *g)
+push_stack(Graph* g)
 {
-	if (!g) return;
+	if(!g)
+		return;
 
 	g->nxt = Nodes_Stack;
 	Nodes_Stack = g;
-	if (tl_verbose)
-	{	Symbol *z;
+	if(tl_verbose) {
+		Symbol* z;
 		printf("\nPush %s, from ", g->name->name);
-		for (z = g->incoming; z; z = z->next)
+		for(z = g->incoming; z; z = z->next)
 			printf("%s, ", z->name);
 		dump_graph(g);
 	}
 	Stack_sz++;
-	if (Stack_sz > Stack_mx) Stack_mx = Stack_sz;
+	if(Stack_sz > Stack_mx)
+		Stack_mx = Stack_sz;
 }
 
-static Graph *
+static Graph*
 pop_stack(void)
-{	Graph *g = Nodes_Stack;
+{
+	Graph* g = Nodes_Stack;
 
-	if (g) Nodes_Stack = g->nxt;
+	if(g)
+		Nodes_Stack = g->nxt;
 
 	Stack_sz--;
 
 	return g;
 }
 
-static char *
+static char*
 newname(void)
-{	static char buf[32];
+{
+	static char buf[32];
 	sprintf(buf, "S%d", state_cnt++);
 	return buf;
 }
 
 static int
-has_clause(int tok, Graph *p, Node *n)
-{	Node *q, *qq;
+has_clause(int tok, Graph* p, Node* n)
+{
+	Node* q, *qq;
 
-	switch (n->ntyp) {
+	switch(n->ntyp) {
 	case AND:
-		return	has_clause(tok, p, n->lft) &&
-			has_clause(tok, p, n->rgt);
+		return has_clause(tok, p, n->lft) && has_clause(tok, p, n->rgt);
 	case OR:
-		return	has_clause(tok, p, n->lft) ||
-			has_clause(tok, p, n->rgt);
+		return has_clause(tok, p, n->lft) || has_clause(tok, p, n->rgt);
 	}
 
-	for (q = p->Other; q; q = q->nxt)
-	{	qq = right_linked(q);
-		if (anywhere(tok, n, qq))
+	for(q = p->Other; q; q = q->nxt) {
+		qq = right_linked(q);
+		if(anywhere(tok, n, qq))
 			return 1;
 	}
 	return 0;
 }
 
 static void
-mk_grn(Node *n)
-{	Graph *p;
+mk_grn(Node* n)
+{
+	Graph* p;
 
 	n = right_linked(n);
 more:
-	for (p = Nodes_Set; p; p = p->nxt)
-		if (p->outgoing
-		&&  has_clause(AND, p, n))
-		{	p->isgrn[p->grncnt++] =
-				(unsigned char) Red_cnt;
+	for(p = Nodes_Set; p; p = p->nxt)
+		if(p->outgoing && has_clause(AND, p, n)) {
+			p->isgrn[p->grncnt++] = (unsigned char)Red_cnt;
 			Lab_cnt++;
 		}
 
-	if (n->ntyp == U_OPER)	/* 3.4.0 */
-	{	n = n->rgt;
+	if(n->ntyp == U_OPER) /* 3.4.0 */
+	{
+		n = n->rgt;
 		goto more;
 	}
 }
 
 static void
-mk_red(Node *n)
-{	Graph *p;
+mk_red(Node* n)
+{
+	Graph* p;
 
 	n = right_linked(n);
-	for (p = Nodes_Set; p; p = p->nxt)
-	{	if (p->outgoing
-		&&  has_clause(0, p, n))
-		{	if (p->redcnt >= 63)
-				Fatal("too many Untils", (char *)0);
-			p->isred[p->redcnt++] =
-				(unsigned char) Red_cnt;
-			Lab_cnt++; Max_Red = Red_cnt;
-	}	}
-}
-
-static void
-liveness(Node *n)
-{
-	if (n)
-	switch (n->ntyp) {
-#ifdef NXT
-	case NEXT:
-		liveness(n->lft);
-		break;
-#endif
-	case U_OPER:
-		Red_cnt++;
-		mk_red(n);
-		mk_grn(n->rgt);
-		/* fall through */
-	case V_OPER:
-	case OR: case AND:
-		liveness(n->lft);
-		liveness(n->rgt);
-		break;
+	for(p = Nodes_Set; p; p = p->nxt) {
+		if(p->outgoing && has_clause(0, p, n)) {
+			if(p->redcnt >= 63)
+				Fatal("too many Untils", (char*)0);
+			p->isred[p->redcnt++] = (unsigned char)Red_cnt;
+			Lab_cnt++;
+			Max_Red = Red_cnt;
+		}
 	}
 }
 
-static Graph *
-findgraph(char *nm)
-{	Graph	*p;
-	Mapping *m;
+static void
+liveness(Node* n)
+{
+	if(n)
+		switch(n->ntyp) {
+#ifdef NXT
+		case NEXT:
+			liveness(n->lft);
+			break;
+#endif
+		case U_OPER:
+			Red_cnt++;
+			mk_red(n);
+			mk_grn(n->rgt);
+		/* fall through */
+		case V_OPER:
+		case OR:
+		case AND:
+			liveness(n->lft);
+			liveness(n->rgt);
+			break;
+		}
+}
 
-	for (p = Nodes_Set; p; p = p->nxt)
-		if (!strcmp(p->name->name, nm))
+static Graph*
+findgraph(char* nm)
+{
+	Graph* p;
+	Mapping* m;
+
+	for(p = Nodes_Set; p; p = p->nxt)
+		if(!strcmp(p->name->name, nm))
 			return p;
-	for (m = Mapped; m; m = m->nxt)
-		if (strcmp(m->from, nm) == 0)
+	for(m = Mapped; m; m = m->nxt)
+		if(strcmp(m->from, nm) == 0)
 			return m->to;
 
 	printf("warning: node %s not found\n", nm);
-	return (Graph *) 0;
+	return (Graph*)0;
 }
 
 static void
-Addout(char *to, char *from)
-{	Graph	*p = findgraph(from);
-	Symbol	*s;
+Addout(char* to, char* from)
+{
+	Graph* p = findgraph(from);
+	Symbol* s;
 
-	if (!p) return;
+	if(!p)
+		return;
 	s = getsym(tl_lookup(to));
 	s->next = p->outgoing;
 	p->outgoing = s;
@@ -242,9 +260,9 @@ Addout(char *to, char *from)
 
 #ifdef NXT
 int
-only_nxt(Node *n)
+only_nxt(Node* n)
 {
-	switch (n->ntyp) {
+	switch(n->ntyp) {
 	case NEXT:
 		return 1;
 	case OR:
@@ -257,43 +275,46 @@ only_nxt(Node *n)
 #endif
 
 int
-dump_cond(Node *pp, Node *r, int first)
-{	Node *q;
+dump_cond(Node* pp, Node* r, int first)
+{
+	Node* q;
 	int frst = first;
 
-	if (!pp) return frst;
+	if(!pp)
+		return frst;
 
 	q = dupnode(pp);
 	q = rewrite(q);
 
-	if (q->ntyp == PREDICATE
-	||  q->ntyp == NOT
+	if(q->ntyp == PREDICATE || q->ntyp == NOT
 #ifndef NXT
-	||  q->ntyp == OR
+	   || q->ntyp == OR
 #endif
-	||  q->ntyp == FALSE)
-	{	if (!frst) fprintf(tl_out, " && ");
+	   || q->ntyp == FALSE) {
+		if(!frst)
+			fprintf(tl_out, " && ");
 		dump(q);
 		frst = 0;
 #ifdef NXT
-	} else if (q->ntyp == OR)
-	{	if (!frst) fprintf(tl_out, " && ");
+	} else if(q->ntyp == OR) {
+		if(!frst)
+			fprintf(tl_out, " && ");
 		fprintf(tl_out, "((");
 		frst = dump_cond(q->lft, r, 1);
 
-		if (!frst)
+		if(!frst)
 			fprintf(tl_out, ") || (");
-		else
-		{	if (only_nxt(q->lft))
-			{	fprintf(tl_out, "1))");
+		else {
+			if(only_nxt(q->lft)) {
+				fprintf(tl_out, "1))");
 				return 0;
 			}
 		}
 
 		frst = dump_cond(q->rgt, r, 1);
 
-		if (frst)
-		{	if (only_nxt(q->rgt))
+		if(frst) {
+			if(only_nxt(q->rgt))
 				fprintf(tl_out, "1");
 			else
 				fprintf(tl_out, "0");
@@ -302,11 +323,9 @@ dump_cond(Node *pp, Node *r, int first)
 
 		fprintf(tl_out, "))");
 #endif
-	} else  if (q->ntyp == V_OPER
-		&& !anywhere(AND, q->rgt, r))
-	{	frst = dump_cond(q->rgt, r, frst);
-	} else  if (q->ntyp == AND)
-	{
+	} else if(q->ntyp == V_OPER && !anywhere(AND, q->rgt, r)) {
+		frst = dump_cond(q->rgt, r, frst);
+	} else if(q->ntyp == AND) {
 		frst = dump_cond(q->lft, r, frst);
 		frst = dump_cond(q->rgt, r, frst);
 	}
@@ -315,30 +334,33 @@ dump_cond(Node *pp, Node *r, int first)
 }
 
 static int
-choueka(Graph *p, int count)
-{	int j, k, incr_cnt = 0;
+choueka(Graph* p, int count)
+{
+	int j, k, incr_cnt = 0;
 
-	for (j = count; j <= Max_Red; j++) /* for each acceptance class */
-	{	int delta = 0;
+	for(j = count; j <= Max_Red; j++) /* for each acceptance class */
+	{
+		int delta = 0;
 
 		/* is state p labeled Grn-j OR not Red-j ? */
 
-		for (k = 0; k < (int) p->grncnt; k++)
-			if (p->isgrn[k] == j)
-			{	delta = 1;
+		for(k = 0; k < (int)p->grncnt; k++)
+			if(p->isgrn[k] == j) {
+				delta = 1;
 				break;
 			}
-		if (delta)
-		{	incr_cnt++;
+		if(delta) {
+			incr_cnt++;
 			continue;
 		}
-		for (k = 0; k < (int) p->redcnt; k++)
-			if (p->isred[k] == j)
-			{	delta = 1;
+		for(k = 0; k < (int)p->redcnt; k++)
+			if(p->isred[k] == j) {
+				delta = 1;
 				break;
 			}
 
-		if (delta) break;
+		if(delta)
+			break;
 
 		incr_cnt++;
 	}
@@ -346,48 +368,49 @@ choueka(Graph *p, int count)
 }
 
 static int
-set_prefix(char *pref, int count, Graph *r2)
-{	int incr_cnt = 0;	/* acceptance class 'count' */
+set_prefix(char* pref, int count, Graph* r2)
+{
+	int incr_cnt = 0; /* acceptance class 'count' */
 
-	if (Lab_cnt == 0
-	||  Max_Red == 0)
-		sprintf(pref, "accept");	/* new */
-	else if (count >= Max_Red)
-		sprintf(pref, "T0");		/* cycle */
-	else
-	{	incr_cnt = choueka(r2, count+1);
-		if (incr_cnt + count >= Max_Red)
+	if(Lab_cnt == 0 || Max_Red == 0)
+		sprintf(pref, "accept"); /* new */
+	else if(count >= Max_Red)
+		sprintf(pref, "T0"); /* cycle */
+	else {
+		incr_cnt = choueka(r2, count + 1);
+		if(incr_cnt + count >= Max_Red)
 			sprintf(pref, "accept"); /* last hop */
 		else
-			sprintf(pref, "T%d", count+incr_cnt);
+			sprintf(pref, "T%d", count + incr_cnt);
 	}
 	return incr_cnt;
 }
 
 static void
-fsm_trans(Graph *p, int count, char *curnm)
-{	Graph	*r;
-	Symbol	*s;
-	char	prefix[128], nwnm[256];
+fsm_trans(Graph* p, int count, char* curnm)
+{
+	Graph* r;
+	Symbol* s;
+	char prefix[128], nwnm[256];
 
-	if (!p->outgoing)
+	if(!p->outgoing)
 		addtrans(p, curnm, False, "accept_all");
 
-	for (s = p->outgoing; s; s = s->next)
-	{	r = findgraph(s->name);
-		if (!r) continue;
-		if (r->outgoing)
-		{	(void) set_prefix(prefix, count, r);
+	for(s = p->outgoing; s; s = s->next) {
+		r = findgraph(s->name);
+		if(!r)
+			continue;
+		if(r->outgoing) {
+			(void)set_prefix(prefix, count, r);
 			sprintf(nwnm, "%s_%s", prefix, s->name);
 		} else
 			strcpy(nwnm, "accept_all");
 
-		if (tl_verbose)
-		{	printf("maxred=%d, count=%d, curnm=%s, nwnm=%s ",
-				Max_Red, count, curnm, nwnm);
-			printf("(greencnt=%d,%d, redcnt=%d,%d)\n",
-				r->grncnt, r->isgrn[0],
-				r->redcnt, r->isred[0]);
+		if(tl_verbose) {
+			printf("maxred=%d, count=%d, curnm=%s, nwnm=%s ",
+			       Max_Red, count, curnm, nwnm);
+			printf("(greencnt=%d,%d, redcnt=%d,%d)\n", r->grncnt,
+			       r->isgrn[0], r->redcnt, r->isred[0]);
 		}
 		addtrans(p, curnm, r->Old, nwnm);
 	}
@@ -395,42 +418,43 @@ fsm_trans(Graph *p, int count, char *curnm)
 
 static void
 mkbuchi(void)
-{	Graph	*p;
-	int	k;
-	char	curnm[64];
+{
+	Graph* p;
+	int k;
+	char curnm[64];
 
-	for (k = 0; k <= Max_Red; k++)
-	for (p = Nodes_Set; p; p = p->nxt)
-	{	if (!p->outgoing)
-			continue;
-		if (k != 0
-		&& !strcmp(p->name->name, "init")
-		&&  Max_Red != 0)
-			continue;
+	for(k = 0; k <= Max_Red; k++)
+		for(p = Nodes_Set; p; p = p->nxt) {
+			if(!p->outgoing)
+				continue;
+			if(k != 0 && !strcmp(p->name->name, "init") &&
+			   Max_Red != 0)
+				continue;
 
-		if (k == Max_Red
-		&&  strcmp(p->name->name, "init") != 0)
-			strcpy(curnm, "accept_");
-		else
-			sprintf(curnm, "T%d_", k);
+			if(k == Max_Red && strcmp(p->name->name, "init") != 0)
+				strcpy(curnm, "accept_");
+			else
+				sprintf(curnm, "T%d_", k);
 
-		strcat(curnm, p->name->name);
+			strcat(curnm, p->name->name);
 
-		fsm_trans(p, k, curnm);
-	}
+			fsm_trans(p, k, curnm);
+		}
 	fsm_print();
 }
 
-static Symbol *
-dupSlist(Symbol *s)
-{	Symbol *p1, *p2, *p3, *d = ZS;
+static Symbol*
+dupSlist(Symbol* s)
+{
+	Symbol* p1, *p2, *p3, * d = ZS;
 
-	for (p1 = s; p1; p1 = p1->next)
-	{	for (p3 = d; p3; p3 = p3->next)
-		{	if (!strcmp(p3->name, p1->name))
+	for(p1 = s; p1; p1 = p1->next) {
+		for(p3 = d; p3; p3 = p3->next) {
+			if(!strcmp(p3->name, p1->name))
 				break;
 		}
-		if (p3) continue;	/* a duplicate */
+		if(p3)
+			continue; /* a duplicate */
 
 		p2 = getsym(p1);
 		p2->next = d;
@@ -439,42 +463,47 @@ dupSlist(Symbol *s)
 	return d;
 }
 
-static Symbol *
-catSlist(Symbol *a, Symbol *b)
-{	Symbol *p1, *p2, *p3, *tmp;
+static Symbol*
+catSlist(Symbol* a, Symbol* b)
+{
+	Symbol* p1, *p2, *p3, *tmp;
 
 	/* remove duplicates from b */
-	for (p1 = a; p1; p1 = p1->next)
-	{	p3 = ZS;
-		for (p2 = b; p2; p2 = p2->next)
-		{	if (strcmp(p1->name, p2->name))
-			{	p3 = p2;
+	for(p1 = a; p1; p1 = p1->next) {
+		p3 = ZS;
+		for(p2 = b; p2; p2 = p2->next) {
+			if(strcmp(p1->name, p2->name)) {
+				p3 = p2;
 				continue;
 			}
 			tmp = p2->next;
-			tfree((void *) p2);
-			if (p3)
+			tfree((void*)p2);
+			if(p3)
 				p3->next = tmp;
 			else
 				b = tmp;
-	}	}
-	if (!a) return b;
-	if (!b) return a;
-	if (!b->next)
-	{	b->next = a;
+		}
+	}
+	if(!a)
+		return b;
+	if(!b)
+		return a;
+	if(!b->next) {
+		b->next = a;
 		return b;
 	}
 	/* find end of list */
-	for (p1 = a; p1->next; p1 = p1->next)
+	for(p1 = a; p1->next; p1 = p1->next)
 		;
 	p1->next = b;
 	return a;
 }
 
 static void
-fixinit(Node *orig)
-{	Graph	*p1, *g;
-	Symbol	*q1, *q2 = ZS;
+fixinit(Node* orig)
+{
+	Graph* p1, *g;
+	Symbol* q1, * q2 = ZS;
 
 	ng(tl_lookup("init"), ZS, ZN, ZN, ZN);
 	p1 = pop_stack();
@@ -482,40 +511,43 @@ fixinit(Node *orig)
 	p1->Other = p1->Old = orig;
 	Nodes_Set = p1;
 
-	for (g = Nodes_Set; g; g = g->nxt)
-	{	for (q1 = g->incoming; q1; q1 = q2)
-		{	q2 = q1->next;
+	for(g = Nodes_Set; g; g = g->nxt) {
+		for(q1 = g->incoming; q1; q1 = q2) {
+			q2 = q1->next;
 			Addout(g->name->name, q1->name);
-			tfree((void *) q1);
+			tfree((void*)q1);
 		}
 		g->incoming = ZS;
 	}
 }
 
-static Node *
-flatten(Node *p)
-{	Node *q, *r, *z = ZN;
+static Node*
+flatten(Node* p)
+{
+	Node* q, *r, * z = ZN;
 
-	for (q = p; q; q = q->nxt)
-	{	r = dupnode(q);
-		if (z)
+	for(q = p; q; q = q->nxt) {
+		r = dupnode(q);
+		if(z)
 			z = tl_nn(AND, r, z);
 		else
 			z = r;
 	}
-	if (!z) return z;
+	if(!z)
+		return z;
 	z = rewrite(z);
 	return z;
 }
 
-static Node *
-Duplicate(Node *n)
-{	Node *n1, *n2, *lst = ZN, *d = ZN;
+static Node*
+Duplicate(Node* n)
+{
+	Node* n1, *n2, * lst = ZN, * d = ZN;
 
-	for (n1 = n; n1; n1 = n1->nxt)
-	{	n2 = dupnode(n1);
-		if (lst)
-		{	lst->nxt = n2;
+	for(n1 = n; n1; n1 = n1->nxt) {
+		n2 = dupnode(n1);
+		if(lst) {
+			lst->nxt = n2;
 			lst = n2;
 		} else
 			d = lst = n2;
@@ -524,57 +556,77 @@ Duplicate(Node *n)
 }
 
 static void
-ng(Symbol *s, Symbol *in, Node *isnew, Node *isold, Node *next)
-{	Graph *g = (Graph *) tl_emalloc(sizeof(Graph));
+ng(Symbol* s, Symbol* in, Node* isnew, Node* isold, Node* next)
+{
+	Graph* g = (Graph*)tl_emalloc(sizeof(Graph));
 
-	if (s)     g->name = s;
-	else       g->name = tl_lookup(newname());
+	if(s)
+		g->name = s;
+	else
+		g->name = tl_lookup(newname());
 
-	if (in)    g->incoming = dupSlist(in);
-	if (isnew) g->New  = flatten(isnew);
-	if (isold) g->Old  = Duplicate(isold);
-	if (next)  g->Next = flatten(next);
+	if(in)
+		g->incoming = dupSlist(in);
+	if(isnew)
+		g->New = flatten(isnew);
+	if(isold)
+		g->Old = Duplicate(isold);
+	if(next)
+		g->Next = flatten(next);
 
 	push_stack(g);
 }
 
 static void
-sdump(Node *n)
+sdump(Node* n)
 {
-	switch (n->ntyp) {
-	case PREDICATE:	strcat(dumpbuf, n->sym->name);
-			break;
-	case U_OPER:	strcat(dumpbuf, "U");
-			goto common2;
-	case V_OPER:	strcat(dumpbuf, "V");
-			goto common2;
-	case OR:	strcat(dumpbuf, "|");
-			goto common2;
-	case AND:	strcat(dumpbuf, "&");
-common2:		sdump(n->rgt);
-common1:		sdump(n->lft);
-			break;
+	switch(n->ntyp) {
+	case PREDICATE:
+		strcat(dumpbuf, n->sym->name);
+		break;
+	case U_OPER:
+		strcat(dumpbuf, "U");
+		goto common2;
+	case V_OPER:
+		strcat(dumpbuf, "V");
+		goto common2;
+	case OR:
+		strcat(dumpbuf, "|");
+		goto common2;
+	case AND:
+		strcat(dumpbuf, "&");
+	common2:
+		sdump(n->rgt);
+	common1:
+		sdump(n->lft);
+		break;
 #ifdef NXT
-	case NEXT:	strcat(dumpbuf, "X");
-			goto common1;
+	case NEXT:
+		strcat(dumpbuf, "X");
+		goto common1;
 #endif
-	case NOT:	strcat(dumpbuf, "!");
-			goto common1;
-	case TRUE:	strcat(dumpbuf, "T");
-			break;
-	case FALSE:	strcat(dumpbuf, "F");
-			break;
-	default:	strcat(dumpbuf, "?");
-			break;
+	case NOT:
+		strcat(dumpbuf, "!");
+		goto common1;
+	case TRUE:
+		strcat(dumpbuf, "T");
+		break;
+	case FALSE:
+		strcat(dumpbuf, "F");
+		break;
+	default:
+		strcat(dumpbuf, "?");
+		break;
 	}
 }
 
-Symbol *
-DoDump(Node *n)
+Symbol*
+DoDump(Node* n)
 {
-	if (!n) return ZS;
+	if(!n)
+		return ZS;
 
-	if (n->ntyp == PREDICATE)
+	if(n->ntyp == PREDICATE)
 		return n->sym;
 
 	dumpbuf[0] = '\0';
@@ -583,12 +635,14 @@ DoDump(Node *n)
 }
 
 static int
-not_new(Graph *g)
-{	Graph	*q1; Node *tmp, *n1, *n2;
-	Mapping	*map;
+not_new(Graph* g)
+{
+	Graph* q1;
+	Node* tmp, *n1, *n2;
+	Mapping* map;
 
-	tmp = flatten(g->Old);	/* duplicate, collapse, normalize */
-	g->Other = g->Old;	/* non normalized full version */
+	tmp = flatten(g->Old); /* duplicate, collapse, normalize */
+	g->Other = g->Old;     /* non normalized full version */
 	g->Old = tmp;
 
 	g->oldstring = DoDump(g->Old);
@@ -596,68 +650,76 @@ not_new(Graph *g)
 	tmp = flatten(g->Next);
 	g->nxtstring = DoDump(tmp);
 
-	if (tl_verbose) dump_graph(g);
+	if(tl_verbose)
+		dump_graph(g);
 
-	Debug2("\tformula-old: [%s]\n", g->oldstring?g->oldstring->name:"true");
-	Debug2("\tformula-nxt: [%s]\n", g->nxtstring?g->nxtstring->name:"true");
-	for (q1 = Nodes_Set; q1; q1 = q1->nxt)
-	{	Debug2("	compare old to: %s", q1->name->name);
-		Debug2(" [%s]", q1->oldstring?q1->oldstring->name:"true");
+	Debug2("\tformula-old: [%s]\n",
+	       g->oldstring ? g->oldstring->name : "true");
+	Debug2("\tformula-nxt: [%s]\n",
+	       g->nxtstring ? g->nxtstring->name : "true");
+	for(q1 = Nodes_Set; q1; q1 = q1->nxt) {
+		Debug2("	compare old to: %s", q1->name->name);
+		Debug2(" [%s]", q1->oldstring ? q1->oldstring->name : "true");
 
 		Debug2("	compare nxt to: %s", q1->name->name);
-		Debug2(" [%s]", q1->nxtstring?q1->nxtstring->name:"true");
+		Debug2(" [%s]", q1->nxtstring ? q1->nxtstring->name : "true");
 
-		if (q1->oldstring != g->oldstring
-		||  q1->nxtstring != g->nxtstring)
-		{	Debug(" => different\n");
+		if(q1->oldstring != g->oldstring ||
+		   q1->nxtstring != g->nxtstring) {
+			Debug(" => different\n");
 			continue;
 		}
 		Debug(" => match\n");
 
-		if (g->incoming)
+		if(g->incoming)
 			q1->incoming = catSlist(g->incoming, q1->incoming);
 
 		/* check if there's anything in g->Other that needs
 		   adding to q1->Other
 		*/
-		for (n2 = g->Other; n2; n2 = n2->nxt)
-		{	for (n1 = q1->Other; n1; n1 = n1->nxt)
-				if (isequal(n1, n2))
+		for(n2 = g->Other; n2; n2 = n2->nxt) {
+			for(n1 = q1->Other; n1; n1 = n1->nxt)
+				if(isequal(n1, n2))
 					break;
-			if (!n1)
-			{	Node *n3 = dupnode(n2);
+			if(!n1) {
+				Node* n3 = dupnode(n2);
 				/* don't mess up n2->nxt */
 				n3->nxt = q1->Other;
 				q1->Other = n3;
-		}	}
+			}
+		}
 
-		map = (Mapping *) tl_emalloc(sizeof(Mapping));
-	  	map->from = g->name->name;
-	  	map->to   = q1;
-	  	map->nxt = Mapped;
-	  	Mapped = map;
+		map = (Mapping*)tl_emalloc(sizeof(Mapping));
+		map->from = g->name->name;
+		map->to = q1;
+		map->nxt = Mapped;
+		Mapped = map;
 
-		for (n1 = g->Other; n1; n1 = n2)
-		{	n2 = n1->nxt;
+		for(n1 = g->Other; n1; n1 = n2) {
+			n2 = n1->nxt;
 			releasenode(1, n1);
 		}
-		for (n1 = g->Old; n1; n1 = n2)
-		{	n2 = n1->nxt;
+		for(n1 = g->Old; n1; n1 = n2) {
+			n2 = n1->nxt;
 			releasenode(1, n1);
 		}
-		for (n1 = g->Next; n1; n1 = n2)
-		{	n2 = n1->nxt;
+		for(n1 = g->Next; n1; n1 = n2) {
+			n2 = n1->nxt;
 			releasenode(1, n1);
 		}
 		return 1;
 	}
 
-	if (newstates) tl_verbose=1;
+	if(newstates)
+		tl_verbose = 1;
 	Debug2("	New Node %s [", g->name->name);
-	for (n1 = g->Old; n1; n1 = n1->nxt)
-	{ Dump(n1); Debug(", "); }
+	for(n1 = g->Old; n1; n1 = n1->nxt) {
+		Dump(n1);
+		Debug(", ");
+	}
 	Debug2("] nr %d\n", Base);
-	if (newstates) tl_verbose=0;
+	if(newstates)
+		tl_verbose = 0;
 
 	Base++;
 	g->nxt = Nodes_Set;
@@ -667,21 +729,26 @@ not_new(Graph *g)
 }
 
 static void
-expand_g(Graph *g)
-{	Node *now, *n1, *n2, *nx;
+expand_g(Graph* g)
+{
+	Node* now, *n1, *n2, *nx;
 	int can_release;
 
-	if (!g->New)
-	{	Debug2("\nDone with %s", g->name->name);
-		if (tl_verbose) dump_graph(g);
-		if (not_new(g))
-		{	if (tl_verbose) printf("\tIs Not New\n");
+	if(!g->New) {
+		Debug2("\nDone with %s", g->name->name);
+		if(tl_verbose)
+			dump_graph(g);
+		if(not_new(g)) {
+			if(tl_verbose)
+				printf("\tIs Not New\n");
 			return;
 		}
-		if (g->Next)
-		{	Debug("	Has Next [");
-			for (n1 = g->Next; n1; n1 = n1->nxt)
-			{ Dump(n1); Debug(", "); }
+		if(g->Next) {
+			Debug("	Has Next [");
+			for(n1 = g->Next; n1; n1 = n1->nxt) {
+				Dump(n1);
+				Debug(", ");
+			}
 			Debug("]\n");
 
 			ng(ZS, getsym(g->name), g->Next, ZN, ZN);
@@ -689,24 +756,25 @@ expand_g(Graph *g)
 		return;
 	}
 
-	if (tl_verbose)
-	{	Symbol *z;
+	if(tl_verbose) {
+		Symbol* z;
 		printf("\nExpand %s, from ", g->name->name);
-		for (z = g->incoming; z; z = z->next)
+		for(z = g->incoming; z; z = z->next)
 			printf("%s, ", z->name);
-		printf("\n\thandle:\t"); Explain(g->New->ntyp);
+		printf("\n\thandle:\t");
+		Explain(g->New->ntyp);
 		dump_graph(g);
 	}
 
-	if (g->New->ntyp == AND)
-	{	if (g->New->nxt)
-		{	n2 = g->New->rgt;
-			while (n2->nxt)
+	if(g->New->ntyp == AND) {
+		if(g->New->nxt) {
+			n2 = g->New->rgt;
+			while(n2->nxt)
 				n2 = n2->nxt;
 			n2->nxt = g->New->nxt;
 		}
 		n1 = n2 = g->New->lft;
-		while (n2->nxt)
+		while(n2->nxt)
 			n2 = n2->nxt;
 		n2->nxt = g->New->rgt;
 
@@ -717,16 +785,16 @@ expand_g(Graph *g)
 		return;
 	}
 
-	can_release = 0;	/* unless it need not go into Old */
+	can_release = 0; /* unless it need not go into Old */
 	now = g->New;
 	g->New = g->New->nxt;
 	now->nxt = ZN;
 
-	if (now->ntyp != TRUE)
-	{	if (g->Old)
-		{	for (n1 = g->Old; n1->nxt; n1 = n1->nxt)
-				if (isequal(now, n1))
-				{	can_release = 1;
+	if(now->ntyp != TRUE) {
+		if(g->Old) {
+			for(n1 = g->Old; n1->nxt; n1 = n1->nxt)
+				if(isequal(now, n1)) {
+					can_release = 1;
 					goto out;
 				}
 			n1->nxt = now;
@@ -734,7 +802,7 @@ expand_g(Graph *g)
 			g->Old = now;
 	}
 out:
-	switch (now->ntyp) {
+	switch(now->ntyp) {
 	case FALSE:
 		push_stack(g);
 		break;
@@ -744,7 +812,8 @@ out:
 		break;
 	case PREDICATE:
 	case NOT:
-		if (can_release) releasenode(1, now);
+		if(can_release)
+			releasenode(1, now);
 		push_stack(g);
 		break;
 	case V_OPER:
@@ -755,7 +824,7 @@ out:
 		n1 = now->rgt;
 		n1->nxt = g->New;
 
-		if (can_release)
+		if(can_release)
 			nx = now;
 		else
 			nx = getnode(now); /* now also appears in Old */
@@ -774,7 +843,7 @@ out:
 		Assert(now->lft->nxt == ZN, now->ntyp);
 		n1 = now->lft;
 
-		if (can_release)
+		if(can_release)
 			nx = now;
 		else
 			nx = getnode(now); /* now also appears in Old */
@@ -791,7 +860,8 @@ out:
 		nx = dupnode(now->lft);
 		nx->nxt = g->Next;
 		g->Next = nx;
-		if (can_release) releasenode(0, now);
+		if(can_release)
+			releasenode(0, now);
 		push_stack(g);
 		break;
 #endif
@@ -804,26 +874,29 @@ out:
 
 		n2 = now->rgt;
 		n2->nxt = g->New;
-common:
+	common:
 		n1->nxt = g->New;
 
 		ng(ZS, g->incoming, n1, g->Old, nx);
 		g->New = flatten(n2);
 
-		if (can_release) releasenode(1, now);
+		if(can_release)
+			releasenode(1, now);
 
 		push_stack(g);
 		break;
 	}
 }
 
-Node *
-twocases(Node *p)
-{	Node *q;
+Node*
+twocases(Node* p)
+{
+	Node* q;
 	/* 1: ([]p1 && []p2) == [](p1 && p2) */
 	/* 2: (<>p1 || <>p2) == <>(p1 || p2) */
 
-	if (!p) return p;
+	if(!p)
+		return p;
 
 	switch(p->ntyp) {
 	case AND:
@@ -843,59 +916,54 @@ twocases(Node *p)
 	default:
 		break;
 	}
-	if (p->ntyp == AND	/* 1 */
-	&&  p->lft->ntyp == V_OPER
-	&&  p->lft->lft->ntyp == FALSE
-	&&  p->rgt->ntyp == V_OPER
-	&&  p->rgt->lft->ntyp == FALSE)
-	{	q = tl_nn(V_OPER, False,
-			tl_nn(AND, p->lft->rgt, p->rgt->rgt));
-	} else
-	if (p->ntyp == OR	/* 2 */
-	&&  p->lft->ntyp == U_OPER
-	&&  p->lft->lft->ntyp == TRUE
-	&&  p->rgt->ntyp == U_OPER
-	&&  p->rgt->lft->ntyp == TRUE)
-	{	q = tl_nn(U_OPER, True,
-			tl_nn(OR, p->lft->rgt, p->rgt->rgt));
+	if(p->ntyp == AND /* 1 */
+	   && p->lft->ntyp == V_OPER && p->lft->lft->ntyp == FALSE &&
+	   p->rgt->ntyp == V_OPER && p->rgt->lft->ntyp == FALSE) {
+		q = tl_nn(V_OPER, False, tl_nn(AND, p->lft->rgt, p->rgt->rgt));
+	} else if(p->ntyp == OR /* 2 */
+	          && p->lft->ntyp == U_OPER && p->lft->lft->ntyp == TRUE &&
+	          p->rgt->ntyp == U_OPER && p->rgt->lft->ntyp == TRUE) {
+		q = tl_nn(U_OPER, True, tl_nn(OR, p->lft->rgt, p->rgt->rgt));
 	} else
 		q = p;
 	return q;
 }
 
 void
-trans(Node *p)
-{	Node	*op;
-	Graph	*g;
+trans(Node* p)
+{
+	Node* op;
+	Graph* g;
 
-	if (!p || tl_errs) return;
+	if(!p || tl_errs)
+		return;
 
 	p = twocases(p);
 
-	if (tl_verbose || tl_terse)
-	{	fprintf(tl_out, "\t/* Normlzd: ");
+	if(tl_verbose || tl_terse) {
+		fprintf(tl_out, "\t/* Normlzd: ");
 		dump(p);
 		fprintf(tl_out, " */\n");
 	}
-	if (tl_terse)
+	if(tl_terse)
 		return;
 
 	op = dupnode(p);
 
 	ng(ZS, getsym(tl_lookup("init")), p, ZN, ZN);
-	while ((g = Nodes_Stack) != (Graph *) 0)
-	{	Nodes_Stack = g->nxt;
+	while((g = Nodes_Stack) != (Graph*)0) {
+		Nodes_Stack = g->nxt;
 		expand_g(g);
 	}
-	if (newstates)
+	if(newstates)
 		return;
 
 	fixinit(p);
-	liveness(flatten(op));	/* was: liveness(op); */
+	liveness(flatten(op)); /* was: liveness(op); */
 
 	mkbuchi();
-	if (tl_verbose)
-	{	printf("/*\n");
+	if(tl_verbose) {
+		printf("/*\n");
 		printf(" * %d states in Streett automaton\n", Base);
 		printf(" * %d Streett acceptance conditions\n", Max_Red);
 		printf(" * %d Buchi states\n", Total);

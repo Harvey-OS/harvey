@@ -7,47 +7,48 @@
  * in the LICENSE file.
  */
 
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	<unistd.h>
-#include	<errno.h>
-#include	<sys/types.h>
-#include	<fcntl.h>
-#include	"sys9.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include "sys9.h"
 
-enum {
-	Profoff,			/* No profiling */
-	Profuser,			/* Measure user time only (default) */
-	Profkernel,			/* Measure user + kernel time */
-	Proftime,			/* Measure total time */
-	Profsample,			/* Use clock interrupt to sample (default when there is no cycle counter) */
-}; /* what */
+enum { Profoff,    /* No profiling */
+       Profuser,   /* Measure user time only (default) */
+       Profkernel, /* Measure user + kernel time */
+       Proftime,   /* Measure total time */
+       Profsample, /* Use clock interrupt to sample (default when there is no
+                      cycle counter) */
+};                 /* what */
 
 typedef long long vlong;
 typedef unsigned long ulong;
 typedef unsigned long long uvlong;
 
-#include	"/sys/include/tos.h"
+#include "/sys/include/tos.h"
 
-extern	void*	sbrk(uint32_t);
-extern	int32_t	_callpc(void**);
-extern	int32_t	_savearg(void);
-extern	void	_cycles(uint64_t*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+extern void* sbrk(uint32_t);
+extern int32_t _callpc(void**);
+extern int32_t _savearg(void);
+extern void
+_cycles(uint64_t*); /* 64-bit value of the cycle counter if there is one, 0 if
+                       there isn't */
 
-static uint32_t	khz;
-static uint32_t	perr;
-static int	havecycles;
+static uint32_t khz;
+static uint32_t perr;
+static int havecycles;
 
-typedef	struct	Plink	Plink;
-struct	Plink
-{
-	Plink	*old;
-	Plink	*down;
-	Plink	*link;
-	int32_t	pc;
-	int32_t	count;
-	int64_t	time;
+typedef struct Plink Plink;
+struct Plink {
+	Plink* old;
+	Plink* down;
+	Plink* link;
+	int32_t pc;
+	int32_t count;
+	int64_t time;
 };
 
 #pragma profile off
@@ -55,9 +56,9 @@ struct	Plink
 uint32_t
 _profin(void)
 {
-	void *dummy;
+	void* dummy;
 	int32_t pc;
-	Plink *pp, *p;
+	Plink* pp, *p;
 	uint32_t arg;
 	int64_t t;
 
@@ -67,11 +68,11 @@ _profin(void)
 	if(pp == 0 || (_tos->prof.pid && _tos->pid != _tos->prof.pid))
 		return arg;
 
-	for(p=pp->down; p; p=p->link)
+	for(p = pp->down; p; p = p->link)
 		if(p->pc == pc)
 			goto out;
 	p = _tos->prof.next + 1;
-	if(p >= _tos->prof.last){
+	if(p >= _tos->prof.last) {
 		_tos->prof.pp = 0;
 		perr++;
 		return arg;
@@ -88,16 +89,16 @@ _profin(void)
 out:
 	_tos->prof.pp = p;
 	p->count++;
-	switch(_tos->prof.what){
+	switch(_tos->prof.what) {
 	case Profkernel:
 		p->time = p->time - _tos->pcycles;
 		goto proftime;
 	case Profuser:
 		/* Add kernel cycles on proc entry */
 		p->time = p->time + _tos->kcycles;
-		/* fall through */
-	case Proftime:	
-	proftime:		/* Subtract cycle counter on proc entry */
+	/* fall through */
+	case Proftime:
+	proftime: /* Subtract cycle counter on proc entry */
 		_cycles((uint64_t*)&t);
 		p->time = p->time - t;
 		break;
@@ -105,29 +106,29 @@ out:
 		p->time = p->time - _tos->clock;
 		break;
 	}
-	return arg;		/* disgusting linkage */
+	return arg; /* disgusting linkage */
 }
 
 uint32_t
 _profout(void)
 {
-	Plink *p;
+	Plink* p;
 	uint32_t arg;
 	int64_t t;
 
 	arg = _savearg();
 	p = _tos->prof.pp;
-	if (p == NULL || (_tos->prof.pid != 0 && _tos->pid != _tos->prof.pid))
-		return arg;	/* Not our process */
-	switch(_tos->prof.what){
-	case Profkernel:		/* Add proc cycles on proc entry */
+	if(p == NULL || (_tos->prof.pid != 0 && _tos->pid != _tos->prof.pid))
+		return arg; /* Not our process */
+	switch(_tos->prof.what) {
+	case Profkernel: /* Add proc cycles on proc entry */
 		p->time = p->time + _tos->pcycles;
 		goto proftime;
-	case Profuser:			/* Subtract kernel cycles on proc entry */
+	case Profuser: /* Subtract kernel cycles on proc entry */
 		p->time = p->time - _tos->kcycles;
-		/* fall through */
-	case Proftime:	
-	proftime:				/* Add cycle counter on proc entry */
+	/* fall through */
+	case Proftime:
+	proftime: /* Add cycle counter on proc entry */
 		_cycles((uint64_t*)&t);
 		p->time = p->time + t;
 		break;
@@ -141,7 +142,7 @@ _profout(void)
 
 /* stdio may not be ready for us yet */
 static void
-err(char *fmt, ...)
+err(char* fmt, ...)
 {
 	int fd;
 	va_list arg;
@@ -166,19 +167,20 @@ _profdump(void)
 {
 	int f;
 	int32_t n;
-	Plink *p;
-	char *vp;
+	Plink* p;
+	char* vp;
 	char filename[64];
 
-	if (_tos->prof.what == 0)
-		return;	/* No profiling */
-	if (_tos->prof.pid != 0 && _tos->pid != _tos->prof.pid)
-		return;	/* Not our process */
+	if(_tos->prof.what == 0)
+		return; /* No profiling */
+	if(_tos->prof.pid != 0 && _tos->pid != _tos->prof.pid)
+		return; /* Not our process */
 	if(perr)
 		err("%lud Prof errors\n", perr);
 	_tos->prof.pp = NULL;
-	if (_tos->prof.pid)
-		snprintf(filename, sizeof filename - 1, "prof.%ld", _tos->prof.pid);
+	if(_tos->prof.pid)
+		snprintf(filename, sizeof filename - 1, "prof.%ld",
+		         _tos->prof.pid);
 	else
 		snprintf(filename, sizeof filename - 1, "prof.out");
 	f = creat(filename, 0666);
@@ -186,8 +188,8 @@ _profdump(void)
 		err("%s: cannot create - %s\n", filename, strerror(errno));
 		return;
 	}
-	_tos->prof.pid = ~0;	/* make sure data gets dumped once */
-	switch(_tos->prof.what){
+	_tos->prof.pid = ~0; /* make sure data gets dumped once */
+	switch(_tos->prof.what) {
 	case Profkernel:
 		_cycles((uint64_t*)&_tos->prof.first->time);
 		_tos->prof.first->time = _tos->prof.first->time + _tos->pcycles;
@@ -213,7 +215,7 @@ _profdump(void)
 		n = 0xffff;
 		if(p->down)
 			n = p->down - _tos->prof.first;
-		vp[0] = n>>8;
+		vp[0] = n >> 8;
 		vp[1] = n;
 
 		/*
@@ -222,7 +224,7 @@ _profdump(void)
 		n = 0xffff;
 		if(p->link)
 			n = p->link - _tos->prof.first;
-		vp[2] = n>>8;
+		vp[2] = n >> 8;
 		vp[3] = n;
 		vp += 4;
 
@@ -230,9 +232,9 @@ _profdump(void)
 		 * long pc
 		 */
 		n = p->pc;
-		vp[0] = n>>24;
-		vp[1] = n>>16;
-		vp[2] = n>>8;
+		vp[0] = n >> 24;
+		vp[1] = n >> 16;
+		vp[2] = n >> 8;
 		vp[3] = n;
 		vp += 4;
 
@@ -240,38 +242,37 @@ _profdump(void)
 		 * long count
 		 */
 		n = p->count;
-		vp[0] = n>>24;
-		vp[1] = n>>16;
-		vp[2] = n>>8;
+		vp[0] = n >> 24;
+		vp[1] = n >> 16;
+		vp[2] = n >> 8;
 		vp[3] = n;
 		vp += 4;
 
 		/*
 		 * vlong time
 		 */
-		if (havecycles){
+		if(havecycles) {
 			n = (int64_t)(p->time / (int64_t)khz);
-		}else
+		} else
 			n = p->time;
 
-		vp[0] = n>>24;
-		vp[1] = n>>16;
-		vp[2] = n>>8;
+		vp[0] = n >> 24;
+		vp[1] = n >> 16;
+		vp[2] = n >> 8;
 		vp[3] = n;
 		vp += 4;
 	}
 	write(f, (char*)_tos->prof.first, vp - (char*)_tos->prof.first);
 	close(f);
-
 }
 
 void
 _profinit(int entries, int what)
 {
-	if (_tos->prof.what == 0)
-		return;	/* Profiling not linked in */
+	if(_tos->prof.what == 0)
+		return; /* Profiling not linked in */
 	_tos->prof.pp = NULL;
-	_tos->prof.first = calloc(entries*sizeof(Plink),1);
+	_tos->prof.first = calloc(entries * sizeof(Plink), 1);
 	_tos->prof.last = _tos->prof.first + entries;
 	_tos->prof.next = _tos->prof.first;
 	_tos->prof.pid = _tos->pid;
@@ -286,14 +287,14 @@ _profmain(void)
 	int n, f;
 
 	n = 2000;
-	if (_tos->cyclefreq != 0LL){
-		khz = _tos->cyclefreq / 1000;	/* Report times in milliseconds */
+	if(_tos->cyclefreq != 0LL) {
+		khz = _tos->cyclefreq / 1000; /* Report times in milliseconds */
 		havecycles = 1;
 	}
 	f = open("/env/profsize", OREAD);
 	if(f >= 0) {
 		memset(ename, 0, sizeof(ename));
-		read(f, ename, sizeof(ename)-1);
+		read(f, ename, sizeof(ename) - 1);
 		close(f);
 		n = atol(ename);
 	}
@@ -301,18 +302,19 @@ _profmain(void)
 	f = open("/env/proftype", OREAD);
 	if(f >= 0) {
 		memset(ename, 0, sizeof(ename));
-		read(f, ename, sizeof(ename)-1);
+		read(f, ename, sizeof(ename) - 1);
 		close(f);
-		if (strcmp(ename, "user") == 0)
+		if(strcmp(ename, "user") == 0)
 			_tos->prof.what = Profuser;
-		else if (strcmp(ename, "kernel") == 0)
+		else if(strcmp(ename, "kernel") == 0)
 			_tos->prof.what = Profkernel;
-		else if (strcmp(ename, "elapsed") == 0 || strcmp(ename, "time") == 0)
+		else if(strcmp(ename, "elapsed") == 0 ||
+		        strcmp(ename, "time") == 0)
 			_tos->prof.what = Proftime;
-		else if (strcmp(ename, "sample") == 0)
+		else if(strcmp(ename, "sample") == 0)
 			_tos->prof.what = Profsample;
 	}
-	_tos->prof.first = sbrk(n*sizeof(Plink));
+	_tos->prof.first = sbrk(n * sizeof(Plink));
 	_tos->prof.last = sbrk(0);
 	_tos->prof.next = _tos->prof.first;
 	_tos->prof.pp = NULL;
@@ -321,7 +323,8 @@ _profmain(void)
 	_tos->clock = 1;
 }
 
-void prof(void (*fn)(void*), void *arg, int entries, int what)
+void
+prof(void (*fn)(void*), void* arg, int entries, int what)
 {
 	_profinit(entries, what);
 	_tos->prof.pp = _tos->prof.next;
@@ -330,4 +333,3 @@ void prof(void (*fn)(void*), void *arg, int entries, int what)
 }
 
 #pragma profile on
-

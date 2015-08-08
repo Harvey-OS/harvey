@@ -21,19 +21,19 @@
 #include "dat.h"
 #include "fns.h"
 
-Window*	openfile(Text*, Expand*);
+Window* openfile(Text*, Expand*);
 
-int	nuntitled;
+int nuntitled;
 
 void
-look3(Text *t, uint q0, uint q1, int external)
+look3(Text* t, uint q0, uint q1, int external)
 {
 	int n, c, f, expanded;
-	Text *ct;
+	Text* ct;
 	Expand e;
-	Rune *r;
+	Rune* r;
 	uint p;
-	Plumbmsg *m;
+	Plumbmsg* m;
 	Runestr dir;
 	char buf[32];
 
@@ -41,60 +41,64 @@ look3(Text *t, uint q0, uint q1, int external)
 	if(ct == nil)
 		seltext = t;
 	expanded = expand(t, q0, q1, &e);
-	if(!external && t->w!=nil && t->w->nopen[QWevent]>0){
+	if(!external && t->w != nil && t->w->nopen[QWevent] > 0) {
 		/* send alphanumeric expansion to external client */
 		if(expanded == FALSE)
 			return;
 		f = 0;
-		if((e.at!=nil && t->w!=nil) || (e.nname>0 && lookfile(e.name, e.nname)!=nil))
-			f = 1;		/* acme can do it without loading a file */
-		if(q0!=e.q0 || q1!=e.q1)
-			f |= 2;	/* second (post-expand) message follows */
+		if((e.at != nil && t->w != nil) ||
+		   (e.nname > 0 && lookfile(e.name, e.nname) != nil))
+			f = 1; /* acme can do it without loading a file */
+		if(q0 != e.q0 || q1 != e.q1)
+			f |= 2; /* second (post-expand) message follows */
 		if(e.nname)
-			f |= 4;	/* it's a file name */
+			f |= 4; /* it's a file name */
 		c = 'l';
 		if(t->what == Body)
 			c = 'L';
-		n = q1-q0;
-		if(n <= EVENTSIZE){
+		n = q1 - q0;
+		if(n <= EVENTSIZE) {
 			r = runemalloc(n);
 			bufread(t->file, q0, r, n);
-			winevent(t->w, "%c%d %d %d %d %.*S\n", c, q0, q1, f, n, n, r);
+			winevent(t->w, "%c%d %d %d %d %.*S\n", c, q0, q1, f, n,
+			         n, r);
 			free(r);
-		}else
+		} else
 			winevent(t->w, "%c%d %d %d 0 \n", c, q0, q1, f, n);
-		if(q0==e.q0 && q1==e.q1)
+		if(q0 == e.q0 && q1 == e.q1)
 			return;
-		if(e.nname){
+		if(e.nname) {
 			n = e.nname;
 			if(e.a1 > e.a0)
-				n += 1+(e.a1-e.a0);
+				n += 1 + (e.a1 - e.a0);
 			r = runemalloc(n);
 			runemove(r, e.name, e.nname);
-			if(e.a1 > e.a0){
+			if(e.a1 > e.a0) {
 				r[e.nname] = ':';
-				bufread(e.at->file, e.a0, r+e.nname+1, e.a1-e.a0);
+				bufread(e.at->file, e.a0, r + e.nname + 1,
+				        e.a1 - e.a0);
 			}
-		}else{
+		} else {
 			n = e.q1 - e.q0;
 			r = runemalloc(n);
 			bufread(t->file, e.q0, r, n);
 		}
 		f &= ~2;
 		if(n <= EVENTSIZE)
-			winevent(t->w, "%c%d %d %d %d %.*S\n", c, e.q0, e.q1, f, n, n, r);
+			winevent(t->w, "%c%d %d %d %d %.*S\n", c, e.q0, e.q1, f,
+			         n, n, r);
 		else
 			winevent(t->w, "%c%d %d %d 0 \n", c, e.q0, e.q1, f, n);
 		free(r);
 		goto Return;
 	}
-	if(plumbsendfd >= 0){
+	if(plumbsendfd >= 0) {
 		/* send whitespace-delimited word to plumber */
 		m = emalloc(sizeof(Plumbmsg));
 		m->src = estrdup("acme");
 		m->dst = nil;
 		dir = dirname(t, nil, 0);
-		if(dir.nr==1 && dir.r[0]=='.'){	/* sigh */
+		if(dir.nr == 1 && dir.r[0] == '.') { /* sigh */
 			free(dir.r);
 			dir.r = nil;
 			dir.nr = 0;
@@ -107,30 +111,34 @@ look3(Text *t, uint q0, uint q1, int external)
 		m->type = estrdup("text");
 		m->attr = nil;
 		buf[0] = '\0';
-		if(q1 == q0){
-			if(t->q1>t->q0 && t->q0<=q0 && q0<=t->q1){
+		if(q1 == q0) {
+			if(t->q1 > t->q0 && t->q0 <= q0 && q0 <= t->q1) {
 				q0 = t->q0;
 				q1 = t->q1;
-			}else{
+			} else {
 				p = q0;
-				while(q0>0 && (c=tgetc(t, q0-1))!=' ' && c!='\t' && c!='\n')
+				while(q0 > 0 && (c = tgetc(t, q0 - 1)) != ' ' &&
+				      c != '\t' && c != '\n')
 					q0--;
-				while(q1<t->file->nc && (c=tgetc(t, q1))!=' ' && c!='\t' && c!='\n')
+				while(q1 < t->file->nc &&
+				      (c = tgetc(t, q1)) != ' ' && c != '\t' &&
+				      c != '\n')
 					q1++;
-				if(q1 == q0){
+				if(q1 == q0) {
 					plumbfree(m);
 					goto Return;
 				}
-				sprint(buf, "click=%d", p-q0);
+				sprint(buf, "click=%d", p - q0);
 				m->attr = plumbunpackattr(buf);
 			}
 		}
-		r = runemalloc(q1-q0);
-		bufread(t->file, q0, r, q1-q0);
-		m->data = runetobyte(r, q1-q0);
+		r = runemalloc(q1 - q0);
+		bufread(t->file, q0, r, q1 - q0);
+		m->data = runetobyte(r, q1 - q0);
 		m->ndata = strlen(m->data);
 		free(r);
-		if(m->ndata<messagesize-1024 && plumbsend(plumbsendfd, m) >= 0){
+		if(m->ndata < messagesize - 1024 &&
+		   plumbsend(plumbsendfd, m) >= 0) {
 			plumbfree(m);
 			goto Return;
 		}
@@ -143,7 +151,7 @@ look3(Text *t, uint q0, uint q1, int external)
 		return;
 	if(e.name || e.at)
 		openfile(t, &e);
-	else{
+	else {
 		if(t->w == nil)
 			return;
 		ct = &t->w->body;
@@ -155,36 +163,39 @@ look3(Text *t, uint q0, uint q1, int external)
 		r = runemalloc(n);
 		bufread(t->file, e.q0, r, n);
 		if(search(ct, r, n) && e.jump)
-			moveto(mousectl, addpt(frptofchar(ct, ct->p0), Pt(4, ct->font->height-4)));
+			moveto(mousectl, addpt(frptofchar(ct, ct->p0),
+			                       Pt(4, ct->font->height - 4)));
 		if(t->w != ct->w)
 			winunlock(ct->w);
 		free(r);
 	}
 
-   Return:
+Return:
 	free(e.name);
 	free(e.bname);
 }
 
 int
-plumbgetc(void *a, uint n)
+plumbgetc(void* a, uint n)
 {
-	Rune *r;
+	Rune* r;
 
 	r = a;
-	if(n>runestrlen(r))
+	if(n > runestrlen(r))
 		return 0;
 	return r[n];
 }
 
 void
-plumblook(Plumbmsg *m)
+plumblook(Plumbmsg* m)
 {
 	Expand e;
-	char *addr;
+	char* addr;
 
-	if(m->ndata >= BUFSIZE){
-		warning(nil, "insanely long file name (%d bytes) in plumb message (%.32s...)\n", m->ndata, m->data);
+	if(m->ndata >= BUFSIZE) {
+		warning(nil, "insanely long file name (%d bytes) in plumb "
+		             "message (%.32s...)\n",
+		        m->ndata, m->data);
 		return;
 	}
 	e.q0 = 0;
@@ -198,7 +209,7 @@ plumblook(Plumbmsg *m)
 	e.a0 = 0;
 	e.a1 = 0;
 	addr = plumblookup(m->attr, "addr");
-	if(addr != nil){
+	if(addr != nil) {
 		e.ar = bytetorune(addr, &e.a1);
 		e.agetc = plumbgetc;
 	}
@@ -208,23 +219,23 @@ plumblook(Plumbmsg *m)
 }
 
 void
-plumbshow(Plumbmsg *m)
+plumbshow(Plumbmsg* m)
 {
-	Window *w;
+	Window* w;
 	Rune rb[256], *r;
 	int nb, nr;
 	Runestr rs;
-	char *name, *p, namebuf[16];
+	char* name, *p, namebuf[16];
 
 	w = makenewwindow(nil);
 	name = plumblookup(m->attr, "filename");
-	if(name == nil){
+	if(name == nil) {
 		name = namebuf;
 		nuntitled++;
 		snprint(namebuf, sizeof namebuf, "Untitled-%d", nuntitled);
 	}
 	p = nil;
-	if(name[0]!='/' && m->wdir!=nil && m->wdir[0]!='\0'){
+	if(name[0] != '/' && m->wdir != nil && m->wdir[0] != '\0') {
 		nb = strlen(m->wdir) + 1 + strlen(name) + 1;
 		p = emalloc(nb);
 		snprint(p, nb, "%s/%s", m->wdir, name);
@@ -246,63 +257,63 @@ plumbshow(Plumbmsg *m)
 }
 
 int
-search(Text *ct, Rune *r, uint n)
+search(Text* ct, Rune* r, uint n)
 {
 	uint q, nb, maxn;
 	int around;
-	Rune *s, *b, *c;
+	Rune* s, *b, *c;
 
-	if(n==0 || n>ct->file->nc)
+	if(n == 0 || n > ct->file->nc)
 		return FALSE;
-	if(2*n > RBUFSIZE){
+	if(2 * n > RBUFSIZE) {
 		warning(nil, "string too long\n");
 		return FALSE;
 	}
-	maxn = max(2*n, RBUFSIZE);
+	maxn = max(2 * n, RBUFSIZE);
 	s = fbufalloc();
 	b = s;
 	nb = 0;
 	b[nb] = 0;
 	around = 0;
 	q = ct->q1;
-	for(;;){
-		if(q >= ct->file->nc){
+	for(;;) {
+		if(q >= ct->file->nc) {
 			q = 0;
 			around = 1;
 			nb = 0;
 			b[nb] = 0;
 		}
-		if(nb > 0){
+		if(nb > 0) {
 			c = runestrchr(b, r[0]);
-			if(c == nil){
+			if(c == nil) {
 				q += nb;
 				nb = 0;
 				b[nb] = 0;
-				if(around && q>=ct->q1)
+				if(around && q >= ct->q1)
 					break;
 				continue;
 			}
-			q += (c-b);
-			nb -= (c-b);
+			q += (c - b);
+			nb -= (c - b);
 			b = c;
 		}
 		/* reload if buffer covers neither string nor rest of file */
-		if(nb<n && nb!=ct->file->nc-q){
-			nb = ct->file->nc-q;
+		if(nb < n && nb != ct->file->nc - q) {
+			nb = ct->file->nc - q;
 			if(nb >= maxn)
-				nb = maxn-1;
+				nb = maxn - 1;
 			bufread(ct->file, q, s, nb);
 			b = s;
 			b[nb] = '\0';
 		}
 		/* this runeeq is fishy but the null at b[nb] makes it safe */
-		if(runeeq(b, n, r, n)==TRUE){
-			if(ct->w){
-				textshow(ct, q, q+n, 1);
+		if(runeeq(b, n, r, n) == TRUE) {
+			if(ct->w) {
+				textshow(ct, q, q + n, 1);
 				winsettag(ct->w);
-			}else{
+			} else {
 				ct->q0 = q;
-				ct->q1 = q+n;
+				ct->q1 = q + n;
 			}
 			seltext = ct;
 			fbuffree(s);
@@ -311,7 +322,7 @@ search(Text *ct, Rune *r, uint n)
 		--nb;
 		b++;
 		q++;
-		if(around && q>=ct->q1)
+		if(around && q >= ct->q1)
 			break;
 	}
 	fbuffree(s);
@@ -332,7 +343,7 @@ isfilec(Rune r)
 Runestr
 cleanrname(Runestr rs)
 {
-	char *s;
+	char* s;
 	int nb, nulls;
 
 	s = runetobyte(rs.r, rs.nr);
@@ -343,99 +354,99 @@ cleanrname(Runestr rs)
 }
 
 Runestr
-includefile(Rune *dir, Rune *file, int nfile)
+includefile(Rune* dir, Rune* file, int nfile)
 {
 	int m, n;
-	char *a;
-	Rune *r;
+	char* a;
+	Rune* r;
 
 	m = runestrlen(dir);
-	a = emalloc((m+1+nfile)*UTFmax+1);
+	a = emalloc((m + 1 + nfile) * UTFmax + 1);
 	sprint(a, "%S/%.*S", dir, nfile, file);
 	n = access(a, 0);
 	free(a);
 	if(n < 0)
 		return (Runestr){nil, 0};
-	r = runemalloc(m+1+nfile);
+	r = runemalloc(m + 1 + nfile);
 	runemove(r, dir, m);
-	runemove(r+m, L"/", 1);
-	runemove(r+m+1, file, nfile);
+	runemove(r + m, L"/", 1);
+	runemove(r + m + 1, file, nfile);
 	free(file);
-	return cleanrname((Runestr){r, m+1+nfile});
+	return cleanrname((Runestr){r, m + 1 + nfile});
 }
 
-static	Rune	*objdir;
+static Rune* objdir;
 
 Runestr
-includename(Text *t, Rune *r, int n)
+includename(Text* t, Rune* r, int n)
 {
-	Window *w;
+	Window* w;
 	char buf[128];
 	Runestr file;
 	int i;
 
-	if(objdir==nil && objtype!=nil){
+	if(objdir == nil && objtype != nil) {
 		sprint(buf, "/%s/include", objtype);
 		objdir = bytetorune(buf, &i);
-		objdir = runerealloc(objdir, i+1);
-		objdir[i] = '\0';	
+		objdir = runerealloc(objdir, i + 1);
+		objdir[i] = '\0';
 	}
 
 	w = t->w;
-	if(n==0 || r[0]=='/' || w==nil)
+	if(n == 0 || r[0] == '/' || w == nil)
 		goto Rescue;
-	if(n>2 && r[0]=='.' && r[1]=='/')
+	if(n > 2 && r[0] == '.' && r[1] == '/')
 		goto Rescue;
 	file.r = nil;
 	file.nr = 0;
-	for(i=0; i<w->nincl && file.r==nil; i++)
+	for(i = 0; i < w->nincl && file.r == nil; i++)
 		file = includefile(w->incl[i], r, n);
 
 	if(file.r == nil)
 		file = includefile(L"/sys/include", r, n);
-	if(file.r==nil && objdir!=nil)
+	if(file.r == nil && objdir != nil)
 		file = includefile(objdir, r, n);
 	if(file.r == nil)
 		goto Rescue;
 	return file;
 
-    Rescue:
+Rescue:
 	return (Runestr){r, n};
 }
 
 Runestr
-dirname(Text *t, Rune *r, int n)
+dirname(Text* t, Rune* r, int n)
 {
-	Rune *b, c;
+	Rune* b, c;
 	uint m, nt;
 	int slash;
 	Runestr tmp;
 
 	b = nil;
-	if(t==nil || t->w==nil)
+	if(t == nil || t->w == nil)
 		goto Rescue;
 	nt = t->w->tag.file->nc;
 	if(nt == 0)
 		goto Rescue;
-	if(n>=1 && r[0]=='/')
+	if(n >= 1 && r[0] == '/')
 		goto Rescue;
-	b = runemalloc(nt+n+1);
+	b = runemalloc(nt + n + 1);
 	bufread(t->w->tag.file, 0, b, nt);
 	slash = -1;
-	for(m=0; m<nt; m++){
+	for(m = 0; m < nt; m++) {
 		c = b[m];
 		if(c == '/')
 			slash = m;
-		if(c==' ' || c=='\t')
+		if(c == ' ' || c == '\t')
 			break;
 	}
 	if(slash < 0)
 		goto Rescue;
-	runemove(b+slash+1, r, n);
+	runemove(b + slash + 1, r, n);
 	free(r);
-	return cleanrname((Runestr){b, slash+1+n});
+	return cleanrname((Runestr){b, slash + 1 + n});
 
-    Rescue:
+Rescue:
 	free(b);
 	tmp = (Runestr){r, n};
 	if(r)
@@ -444,53 +455,59 @@ dirname(Text *t, Rune *r, int n)
 }
 
 int
-expandfile(Text *t, uint q0, uint q1, Expand *e)
+expandfile(Text* t, uint q0, uint q1, Expand* e)
 {
 	int i, n, nname, colon, eval;
 	uint amin, amax;
-	Rune *r, c;
-	Window *w;
+	Rune* r, c;
+	Window* w;
 	Runestr rs;
 
 	amax = q1;
-	if(q1 == q0){
+	if(q1 == q0) {
 		colon = -1;
-		while(q1<t->file->nc && isfilec(c=textreadc(t, q1))){
-			if(c == ':'){
+		while(q1 < t->file->nc && isfilec(c = textreadc(t, q1))) {
+			if(c == ':') {
 				colon = q1;
 				break;
 			}
 			q1++;
 		}
-		while(q0>0 && (isfilec(c=textreadc(t, q0-1)) || isaddrc(c) || isregexc(c))){
+		while(q0 > 0 && (isfilec(c = textreadc(t, q0 - 1)) ||
+		                 isaddrc(c) || isregexc(c))) {
 			q0--;
-			if(colon<0 && c==':')
+			if(colon < 0 && c == ':')
 				colon = q0;
 		}
 		/*
-		 * if it looks like it might begin file: , consume address chars after :
+		 * if it looks like it might begin file: , consume address chars
+		 * after :
 		 * otherwise terminate expansion at :
 		 */
-		if(colon >= 0){
+		if(colon >= 0) {
 			q1 = colon;
-			if(colon<t->file->nc-1 && isaddrc(textreadc(t, colon+1))){
-				q1 = colon+1;
-				while(q1<t->file->nc && isaddrc(textreadc(t, q1)))
+			if(colon < t->file->nc - 1 &&
+			   isaddrc(textreadc(t, colon + 1))) {
+				q1 = colon + 1;
+				while(q1 < t->file->nc &&
+				      isaddrc(textreadc(t, q1)))
 					q1++;
 			}
 		}
 		if(q1 > q0)
-			if(colon >= 0){	/* stop at white space */
-				for(amax=colon+1; amax<t->file->nc; amax++)
-					if((c=textreadc(t, amax))==' ' || c=='\t' || c=='\n')
+			if(colon >= 0) { /* stop at white space */
+				for(amax = colon + 1; amax < t->file->nc;
+				    amax++)
+					if((c = textreadc(t, amax)) == ' ' ||
+					   c == '\t' || c == '\n')
 						break;
-			}else
+			} else
 				amax = t->file->nc;
 	}
 	amin = amax;
 	e->q0 = q0;
 	e->q1 = q1;
-	n = q1-q0;
+	n = q1 - q0;
 	if(n == 0)
 		return FALSE;
 	/* see if it's a file name */
@@ -498,11 +515,12 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	bufread(t->file, q0, r, n);
 	/* first, does it have bad chars? */
 	nname = -1;
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		c = r[i];
-		if(c==':' && nname<0){
-			if(q0+i+1<t->file->nc && (i==n-1 || isaddrc(textreadc(t, q0+i+1))))
-				amin = q0+i;
+		if(c == ':' && nname < 0) {
+			if(q0 + i + 1 < t->file->nc &&
+			   (i == n - 1 || isaddrc(textreadc(t, q0 + i + 1))))
+				amin = q0 + i;
 			else
 				goto Isntfile;
 			nname = i;
@@ -510,7 +528,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	}
 	if(nname == -1)
 		nname = n;
-	for(i=0; i<nname; i++)
+	for(i = 0; i < nname; i++)
 		if(!isfilec(r[i]))
 			goto Isntfile;
 	/*
@@ -519,14 +537,14 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	 * restrictive enough syntax and checking for a #include earlier on the
 	 * line would be silly.
 	 */
-	if(q0>0 && textreadc(t, q0-1)=='<' && q1<t->file->nc && textreadc(t, q1)=='>'){
+	if(q0 > 0 && textreadc(t, q0 - 1) == '<' && q1 < t->file->nc &&
+	   textreadc(t, q1) == '>') {
 		rs = includename(t, r, nname);
 		r = rs.r;
 		nname = rs.nr;
-	}
-	else if(amin == q0)
+	} else if(amin == q0)
 		goto Isfile;
-	else{
+	else {
 		rs = dirname(t, r, nname);
 		r = rs.r;
 		nname = rs.nr;
@@ -537,34 +555,35 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	if(w != nil)
 		goto Isfile;
 	/* if it's the name of a file, it's a file */
-	if(access(e->bname, 0) < 0){
+	if(access(e->bname, 0) < 0) {
 		free(e->bname);
 		e->bname = nil;
 		goto Isntfile;
 	}
 
-  Isfile:
+Isfile:
 	e->name = r;
 	e->nname = nname;
 	e->at = t;
-	e->a0 = amin+1;
+	e->a0 = amin + 1;
 	eval = FALSE;
-	address(nil, nil, (Range){-1,-1}, (Range){0, 0}, t, e->a0, amax, tgetc, &eval, (uint*)&e->a1);
+	address(nil, nil, (Range){-1, -1}, (Range){0, 0}, t, e->a0, amax, tgetc,
+	        &eval, (uint*)&e->a1);
 	return TRUE;
 
-   Isntfile:
+Isntfile:
 	free(r);
 	return FALSE;
 }
 
 int
-expand(Text *t, uint q0, uint q1, Expand *e)
+expand(Text* t, uint q0, uint q1, Expand* e)
 {
 	memset(e, 0, sizeof *e);
 	e->agetc = tgetc;
 	/* if in selection, choose selection */
 	e->jump = TRUE;
-	if(q1==q0 && t->q1>t->q0 && t->q0<=q0 && q0<=t->q1){
+	if(q1 == q0 && t->q1 > t->q0 && t->q0 <= q0 && q0 <= t->q1) {
 		q0 = t->q0;
 		q1 = t->q1;
 		if(t->what == Tag)
@@ -574,10 +593,10 @@ expand(Text *t, uint q0, uint q1, Expand *e)
 	if(expandfile(t, q0, q1, e))
 		return TRUE;
 
-	if(q0 == q1){
-		while(q1<t->file->nc && isalnum(textreadc(t, q1)))
+	if(q0 == q1) {
+		while(q1 < t->file->nc && isalnum(textreadc(t, q1)))
 			q1++;
-		while(q0>0 && isalnum(textreadc(t, q0-1)))
+		while(q0 > 0 && isalnum(textreadc(t, q0 - 1)))
 			q0--;
 	}
 	e->q0 = q0;
@@ -586,27 +605,28 @@ expand(Text *t, uint q0, uint q1, Expand *e)
 }
 
 Window*
-lookfile(Rune *s, int n)
+lookfile(Rune* s, int n)
 {
 	int i, j, k;
-	Window *w;
-	Column *c;
-	Text *t;
+	Window* w;
+	Column* c;
+	Text* t;
 
 	/* avoid terminal slash on directories */
-	if(n>1 && s[n-1] == '/')
+	if(n > 1 && s[n - 1] == '/')
 		--n;
-	for(j=0; j<row.ncol; j++){
+	for(j = 0; j < row.ncol; j++) {
 		c = row.col[j];
-		for(i=0; i<c->nw; i++){
+		for(i = 0; i < c->nw; i++) {
 			w = c->w[i];
 			t = &w->body;
 			k = t->file->nname;
-			if(k>1 && t->file->name[k-1] == '/')
+			if(k > 1 && t->file->name[k - 1] == '/')
 				k--;
-			if(runeeq(t->file->name, k, s, n)){
+			if(runeeq(t->file->name, k, s, n)) {
 				w = w->body.file->curtext->w;
-				if(w->col != nil)	/* protect against race deleting w */
+				if(w->col !=
+				   nil) /* protect against race deleting w */
 					return w;
 			}
 		}
@@ -618,12 +638,12 @@ Window*
 lookid(int id, int dump)
 {
 	int i, j;
-	Window *w;
-	Column *c;
+	Window* w;
+	Column* c;
 
-	for(j=0; j<row.ncol; j++){
+	for(j = 0; j < row.ncol; j++) {
 		c = row.col[j];
-		for(i=0; i<c->nw; i++){
+		for(i = 0; i < c->nw; i++) {
 			w = c->w[i];
 			if(dump && w->dumpid == id)
 				return w;
@@ -634,27 +654,28 @@ lookid(int id, int dump)
 	return nil;
 }
 
-
 Window*
-openfile(Text *t, Expand *e)
+openfile(Text* t, Expand* e)
 {
 	Range r;
-	Window *w, *ow;
+	Window* w, *ow;
 	int eval, i, n;
-	Rune *rp;
+	Rune* rp;
 	uint dummy;
 
-	if(e->nname == 0){
+	if(e->nname == 0) {
 		w = t->w;
 		if(w == nil)
 			return nil;
-	}else
+	} else
 		w = lookfile(e->name, e->nname);
-	if(w){
+	if(w) {
 		t = &w->body;
-		if(!t->col->safe && t->maxlines==0) /* window is obscured by full-column window */
+		if(!t->col->safe &&
+		   t->maxlines ==
+		       0) /* window is obscured by full-column window */
 			colgrow(t->col, t->col->w[0], 1);
-	}else{
+	} else {
 		ow = nil;
 		if(t)
 			ow = t->w;
@@ -665,27 +686,29 @@ openfile(Text *t, Expand *e)
 		t->file->mod = FALSE;
 		t->w->dirty = FALSE;
 		winsettag(t->w);
-		textsetselect(&t->w->tag, t->w->tag.file->nc, t->w->tag.file->nc);
-		if(ow != nil){
-			for(i=ow->nincl; --i>=0; ){
+		textsetselect(&t->w->tag, t->w->tag.file->nc,
+		              t->w->tag.file->nc);
+		if(ow != nil) {
+			for(i = ow->nincl; --i >= 0;) {
 				n = runestrlen(ow->incl[i]);
 				rp = runemalloc(n);
 				runemove(rp, ow->incl[i], n);
 				winaddincl(w, rp, n);
 			}
 			w->autoindent = ow->autoindent;
-		}else
+		} else
 			w->autoindent = globalautoindent;
 	}
 	if(e->a1 == e->a0)
 		eval = FALSE;
-	else{
+	else {
 		eval = TRUE;
-		r = address(nil, t, (Range){-1, -1}, (Range){t->q0, t->q1}, e->at, e->a0, e->a1, e->agetc, &eval, &dummy);
+		r = address(nil, t, (Range){-1, -1}, (Range){t->q0, t->q1},
+		            e->at, e->a0, e->a1, e->agetc, &eval, &dummy);
 		if(eval == FALSE)
-			e->jump = FALSE;	/* don't jump if invalid address */
+			e->jump = FALSE; /* don't jump if invalid address */
 	}
-	if(eval == FALSE){
+	if(eval == FALSE) {
 		r.q0 = t->q0;
 		r.q1 = t->q1;
 	}
@@ -693,34 +716,35 @@ openfile(Text *t, Expand *e)
 	winsettag(t->w);
 	seltext = t;
 	if(e->jump)
-		moveto(mousectl, addpt(frptofchar(t, t->p0), Pt(4, font->height-4)));
+		moveto(mousectl,
+		       addpt(frptofchar(t, t->p0), Pt(4, font->height - 4)));
 	return w;
 }
 
-void
-new(Text *et, Text *t, Text *argt, int flag1, int flag2, Rune *arg, int narg)
+void new(Text* et, Text* t, Text* argt, int flag1, int flag2, Rune* arg,
+         int narg)
 {
 	int ndone;
-	Rune *a, *f;
+	Rune* a, *f;
 	int na, nf;
 	Expand e;
 	Runestr rs;
 
 	getarg(argt, FALSE, TRUE, &a, &na);
-	if(a){
+	if(a) {
 		new(et, t, nil, flag1, flag2, a, na);
 		if(narg == 0)
 			return;
 	}
 	/* loop condition: *arg is not a blank */
-	for(ndone=0; ; ndone++){
+	for(ndone = 0;; ndone++) {
 		a = findbl(arg, narg, &na);
-		if(a == arg){
-			if(ndone==0 && et->col!=nil)
+		if(a == arg) {
+			if(ndone == 0 && et->col != nil)
 				winsettag(coladd(et->col, nil, nil, -1));
 			break;
 		}
-		nf = narg-na;
+		nf = narg - na;
 		f = runemalloc(nf);
 		runemove(f, arg, nf);
 		rs = dirname(et, f, nf);

@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -24,13 +25,14 @@
 #include "fmt.h"
 
 int
-sprint(char *buf, char *fmt, ...)
+sprint(char* buf, char* fmt, ...)
 {
 	int n;
 	va_list args;
 
 	va_start(args, fmt);
-	n = vsnprint(buf, 65536, fmt, args);	/* big number, but sprint is deprecated anyway */
+	n = vsnprint(buf, 65536, fmt,
+	             args); /* big number, but sprint is deprecated anyway */
 	va_end(args);
 	return n;
 }

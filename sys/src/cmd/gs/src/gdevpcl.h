@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,7 +28,7 @@
 /* Requires gdevprn.h */
 
 #ifndef gdevpcl_INCLUDED
-#  define gdevpcl_INCLUDED
+#define gdevpcl_INCLUDED
 
 /*
  * Define the PCL paper size codes.  H-P's documentation and coding for the
@@ -38,11 +38,11 @@
  * "ledger" for 17x11.
  */
 #define PAPER_SIZE_EXECUTIVE 1
-#define PAPER_SIZE_LETTER 2	/* 8.5" x 11" */
-#define PAPER_SIZE_LEGAL 3	/* 8.5" x 14" */
-#define PAPER_SIZE_LEDGER 6	/* 11" x 17" */
-#define PAPER_SIZE_A4 26	/* 21.0 cm x 29.7 cm */
-#define PAPER_SIZE_A3 27	/* 29.7 cm x 42.0 cm */
+#define PAPER_SIZE_LETTER 2 /* 8.5" x 11" */
+#define PAPER_SIZE_LEGAL 3  /* 8.5" x 14" */
+#define PAPER_SIZE_LEDGER 6 /* 11" x 17" */
+#define PAPER_SIZE_A4 26    /* 21.0 cm x 29.7 cm */
+#define PAPER_SIZE_A3 27    /* 29.7 cm x 42.0 cm */
 #define PAPER_SIZE_A2 28
 #define PAPER_SIZE_A1 29
 #define PAPER_SIZE_A0 30
@@ -57,7 +57,7 @@
 #define PAPER_SIZE_B5 100
 
 /* Get the paper size code, based on width and height. */
-int gdev_pcl_paper_size(gx_device *);
+int gdev_pcl_paper_size(gx_device*);
 
 /* Color mapping procedures for 3-bit-per-pixel RGB printers */
 dev_proc_map_rgb_color(gdev_pcl_3bit_map_rgb_color);
@@ -65,10 +65,13 @@ dev_proc_map_color_rgb(gdev_pcl_3bit_map_color_rgb);
 
 /* Row compression routines */
 typedef uint32_t word;
-int
-    gdev_pcl_mode2compress(const word * row, const word * end_row, byte * compressed),
-    gdev_pcl_mode2compress_padded(const word * row, const word * end_row, byte * compressed, bool pad),
-    gdev_pcl_mode3compress(int bytecount, const byte * current, byte * previous, byte * compressed),
-    gdev_pcl_mode9compress(int bytecount, const byte * current, const byte * previous, byte * compressed);
+int gdev_pcl_mode2compress(const word* row, const word* end_row,
+                           byte* compressed),
+    gdev_pcl_mode2compress_padded(const word* row, const word* end_row,
+                                  byte* compressed, bool pad),
+    gdev_pcl_mode3compress(int bytecount, const byte* current, byte* previous,
+                           byte* compressed),
+    gdev_pcl_mode9compress(int bytecount, const byte* current,
+                           const byte* previous, byte* compressed);
 
 #endif /* gdevpcl_INCLUDED */

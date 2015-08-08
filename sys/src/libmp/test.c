@@ -25,22 +25,22 @@ srand(int32_t seed)
 int32_t
 lrand(void)
 {
-	randomreg = randomreg*104381 + 81761;
+	randomreg = randomreg * 104381 + 81761;
 	return randomreg;
 }
 
 void
-prng(uint8_t *p, int n)
+prng(uint8_t* p, int n)
 {
 	while(n-- > 0)
 		*p++ = lrand();
 }
 
 void
-testconv(char *str)
+testconv(char* str)
 {
-	mpint *b;
-	char *p;
+	mpint* b;
+	char* p;
 
 	b = strtomp(str, nil, 16, nil);
 
@@ -72,18 +72,18 @@ testconv(char *str)
 }
 
 void
-testshift(char *str)
+testshift(char* str)
 {
-	mpint *b1, *b2;
+	mpint* b1, *b2;
 	int i;
 
 	b1 = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
-	for(i = 0; i < 64; i++){
+	for(i = 0; i < 64; i++) {
 		mpleft(b1, i, b2);
 		print("%2.2d %B\n", i, b2);
 	}
-	for(i = 0; i < 64; i++){
+	for(i = 0; i < 64; i++) {
 		mpright(b2, i, b1);
 		print("%2.2d %B\n", i, b1);
 	}
@@ -92,18 +92,18 @@ testshift(char *str)
 }
 
 void
-testaddsub(char *str)
+testaddsub(char* str)
 {
-	mpint *b1, *b2;
+	mpint* b1, *b2;
 	int i;
 
 	b1 = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
-	for(i = 0; i < 16; i++){
+	for(i = 0; i < 16; i++) {
 		mpadd(b1, b2, b2);
 		print("%2.2d %B\n", i, b2);
 	}
-	for(i = 0; i < 16; i++){
+	for(i = 0; i < 16; i++) {
 		mpsub(b2, b1, b2);
 		print("%2.2d %B\n", i, b2);
 	}
@@ -112,23 +112,24 @@ testaddsub(char *str)
 }
 
 void
-testvecdigmuladd(char *str, mpdigit d)
+testvecdigmuladd(char* str, mpdigit d)
 {
-	mpint *b, *b2;
+	mpint* b, *b2;
 	int i;
 	int64_t now;
 
 	b = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
 
-	mpbits(b2, (b->top+1)*Dbits);
+	mpbits(b2, (b->top + 1) * Dbits);
 	now = nsec();
-	for(i = 0; i < loops; i++){
-		memset(b2->p, 0, b2->top*Dbytes);
+	for(i = 0; i < loops; i++) {
+		memset(b2->p, 0, b2->top * Dbytes);
 		mpvecdigmuladd(b->p, b->top, d, b2->p);
 	}
 	if(loops > 1)
-		print("%lld ns for a %d*%d vecdigmul\n", (nsec()-now)/loops, b->top*Dbits, Dbits);
+		print("%lld ns for a %d*%d vecdigmul\n", (nsec() - now) / loops,
+		      b->top * Dbits, Dbits);
 	mpnorm(b2);
 	print("0 + %B * %ux = %B\n", b, d, b2);
 
@@ -137,23 +138,24 @@ testvecdigmuladd(char *str, mpdigit d)
 }
 
 void
-testvecdigmulsub(char *str, mpdigit d)
+testvecdigmulsub(char* str, mpdigit d)
 {
-	mpint *b, *b2;
+	mpint* b, *b2;
 	int i;
 	int64_t now;
 
 	b = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
 
-	mpbits(b2, (b->top+1)*Dbits);
+	mpbits(b2, (b->top + 1) * Dbits);
 	now = nsec();
-	for(i = 0; i < loops; i++){
-		memset(b2->p, 0, b2->top*Dbytes);
+	for(i = 0; i < loops; i++) {
+		memset(b2->p, 0, b2->top * Dbytes);
 		mpvecdigmulsub(b->p, b->top, d, b2->p);
 	}
 	if(loops > 1)
-		print("%lld ns for a %d*%d vecdigmul\n", (nsec()-now)/loops, b->top*Dbits, Dbits);
+		print("%lld ns for a %d*%d vecdigmul\n", (nsec() - now) / loops,
+		      b->top * Dbits, Dbits);
 	mpnorm(b2);
 	print("0 - %B * %ux = %B\n", b, d, b2);
 
@@ -162,9 +164,9 @@ testvecdigmulsub(char *str, mpdigit d)
 }
 
 void
-testmul(char *str)
+testmul(char* str)
 {
-	mpint *b, *b1, *b2;
+	mpint* b, *b1, *b2;
 	int64_t now;
 	int i;
 
@@ -176,8 +178,9 @@ testmul(char *str)
 	for(i = 0; i < loops; i++)
 		mpmul(b, b1, b2);
 	if(loops > 1)
-		print("%lld µs for a %d*%d mult\n", (nsec()-now)/(loops*1000),
-			b->top*Dbits, b1->top*Dbits);
+		print("%lld µs for a %d*%d mult\n",
+		      (nsec() - now) / (loops * 1000), b->top * Dbits,
+		      b1->top * Dbits);
 	print("%B * %B = %B\n", b, b1, b2);
 
 	mpfree(b);
@@ -186,9 +189,9 @@ testmul(char *str)
 }
 
 void
-testmul2(mpint *b, mpint *b1)
+testmul2(mpint* b, mpint* b1)
 {
-	mpint *b2;
+	mpint* b2;
 	int64_t now;
 	int i;
 
@@ -198,7 +201,9 @@ testmul2(mpint *b, mpint *b1)
 	for(i = 0; i < loops; i++)
 		mpmul(b, b1, b2);
 	if(loops > 1)
-		print("%lld µs for a %d*%d mult\n", (nsec()-now)/(loops*1000), b->top*Dbits, b1->top*Dbits);
+		print("%lld µs for a %d*%d mult\n",
+		      (nsec() - now) / (loops * 1000), b->top * Dbits,
+		      b1->top * Dbits);
 	print("%B * ", b);
 	print("%B = ", b1);
 	print("%B\n", b2);
@@ -207,9 +212,9 @@ testmul2(mpint *b, mpint *b1)
 }
 
 void
-testdigdiv(char *str, mpdigit d)
+testdigdiv(char* str, mpdigit d)
 {
-	mpint *b;
+	mpint* b;
 	mpdigit q;
 	int i;
 	int64_t now;
@@ -219,15 +224,16 @@ testdigdiv(char *str, mpdigit d)
 	for(i = 0; i < loops; i++)
 		mpdigdiv(b->p, d, &q);
 	if(loops > 1)
-		print("%lld ns for a %d / %d div\n", (nsec()-now)/loops, 2*Dbits, Dbits);
+		print("%lld ns for a %d / %d div\n", (nsec() - now) / loops,
+		      2 * Dbits, Dbits);
 	print("%B / %ux = %ux\n", b, d, q);
 	mpfree(b);
 }
 
 void
-testdiv(mpint *x, mpint *y)
+testdiv(mpint* x, mpint* y)
 {
-	mpint *b2, *b3;
+	mpint* b2, *b3;
 	int64_t now;
 	int i;
 
@@ -237,17 +243,18 @@ testdiv(mpint *x, mpint *y)
 	for(i = 0; i < loops; i++)
 		mpdiv(x, y, b2, b3);
 	if(loops > 1)
-		print("%lld µs for a %d/%d div\n", (nsec()-now)/(1000*loops),
-			x->top*Dbits, y->top*Dbits);
+		print("%lld µs for a %d/%d div\n",
+		      (nsec() - now) / (1000 * loops), x->top * Dbits,
+		      y->top * Dbits);
 	print("%B / %B = %B %B\n", x, y, b2, b3);
 	mpfree(b2);
 	mpfree(b3);
 }
 
 void
-testmod(mpint *x, mpint *y)
+testmod(mpint* x, mpint* y)
 {
-	mpint *r;
+	mpint* r;
 	int64_t now;
 	int i;
 
@@ -256,16 +263,17 @@ testmod(mpint *x, mpint *y)
 	for(i = 0; i < loops; i++)
 		mpmod(x, y, r);
 	if(loops > 1)
-		print("%lld µs for a %d/%d mod\n", (nsec()-now)/(1000*loops),
-			x->top*Dbits, y->top*Dbits);
+		print("%lld µs for a %d/%d mod\n",
+		      (nsec() - now) / (1000 * loops), x->top * Dbits,
+		      y->top * Dbits);
 	print("%B mod %B = %B\n", x, y, r);
 	mpfree(r);
 }
 
 void
-testinvert(mpint *x, mpint *y)
+testinvert(mpint* x, mpint* y)
 {
-	mpint *r, *d1, *d2;
+	mpint* r, *d1, *d2;
 	int64_t now;
 	int i;
 
@@ -279,8 +287,9 @@ testinvert(mpint *x, mpint *y)
 	for(i = 0; i < loops; i++)
 		mpinvert(x, y, r);
 	if(loops > 1)
-		print("%lld µs for a %d in %d invert\n", (nsec()-now)/(1000*loops),
-			x->top*Dbits, y->top*Dbits);
+		print("%lld µs for a %d in %d invert\n",
+		      (nsec() - now) / (1000 * loops), x->top * Dbits,
+		      y->top * Dbits);
 	print("%B**-1 mod %B = %B\n", x, y, r);
 	mpmul(r, x, d1);
 	mpmod(d1, y, d2);
@@ -291,9 +300,9 @@ testinvert(mpint *x, mpint *y)
 }
 
 void
-testsub1(char *a, char *b)
+testsub1(char* a, char* b)
 {
-	mpint *b1, *b2, *b3;
+	mpint* b1, *b2, *b3;
 
 	b1 = strtomp(a, nil, 16, nil);
 	b2 = strtomp(b, nil, 16, nil);
@@ -303,9 +312,9 @@ testsub1(char *a, char *b)
 }
 
 void
-testmul1(char *a, char *b)
+testmul1(char* a, char* b)
 {
-	mpint *b1, *b2, *b3;
+	mpint* b1, *b2, *b3;
 
 	b1 = strtomp(a, nil, 16, nil);
 	b2 = strtomp(b, nil, 16, nil);
@@ -315,9 +324,9 @@ testmul1(char *a, char *b)
 }
 
 void
-testexp(char *base, char *exp, char *mod)
+testexp(char* base, char* exp, char* mod)
 {
-	mpint *b, *e, *m, *res;
+	mpint* b, *e, *m, *res;
 	int i;
 	uint64_t now;
 
@@ -332,8 +341,9 @@ testexp(char *base, char *exp, char *mod)
 	for(i = 0; i < loops; i++)
 		mpexp(b, e, m, res);
 	if(loops > 1)
-		print("%ulldµs for a %d to the %d bit exp\n", (nsec()-now)/(loops*1000),
-			b->top*Dbits, e->top*Dbits);
+		print("%ulldµs for a %d to the %d bit exp\n",
+		      (nsec() - now) / (loops * 1000), b->top * Dbits,
+		      e->top * Dbits);
 	if(m != nil)
 		print("%B ^ %B mod %B == %B\n", b, e, m, res);
 	else
@@ -348,7 +358,7 @@ testexp(char *base, char *exp, char *mod)
 void
 testgcd(void)
 {
-	mpint *a, *b, *d, *x, *y, *t1, *t2;
+	mpint* a, *b, *d, *x, *y, *t1, *t2;
 	int i;
 	uint64_t now, then;
 	uint64_t etime;
@@ -361,27 +371,38 @@ testgcd(void)
 
 	etime = 0;
 
-	a = strtomp("4EECAB3E04C4E6BC1F49D438731450396BF272B4D7B08F91C38E88ADCD281699889AFF872E2204C80CCAA8E460797103DE539D5DF8335A9B20C0B44886384F134C517287202FCA914D8A5096446B40CD861C641EF9C2730CB057D7B133F4C2B16BBD3D75FDDBD9151AAF0F9144AAA473AC93CF945DBFE0859FB685D5CBD0A8B3", nil, 16, nil);
-	b = strtomp("C41CFBE4D4846F67A3DF7DE9921A49D3B42DC33728427AB159CEC8CBBDB12B5F0C244F1A734AEB9840804EA3C25036AD1B61AFF3ABBC247CD4B384224567A863A6F020E7EE9795554BCD08ABAD7321AF27E1E92E3DB1C6E7E94FAAE590AE9C48F96D93D178E809401ABE8A534A1EC44359733475A36A70C7B425125062B1142D", nil, 16, nil);
+	a = strtomp("4EECAB3E04C4E6BC1F49D438731450396BF272B4D7B08F91C38E88ADCD"
+	            "281699889AFF872E2204C80CCAA8E460797103DE539D5DF8335A9B20C0"
+	            "B44886384F134C517287202FCA914D8A5096446B40CD861C641EF9C273"
+	            "0CB057D7B133F4C2B16BBD3D75FDDBD9151AAF0F9144AAA473AC93CF94"
+	            "5DBFE0859FB685D5CBD0A8B3",
+	            nil, 16, nil);
+	b = strtomp("C41CFBE4D4846F67A3DF7DE9921A49D3B42DC33728427AB159CEC8CBBD"
+	            "B12B5F0C244F1A734AEB9840804EA3C25036AD1B61AFF3ABBC247CD4B3"
+	            "84224567A863A6F020E7EE9795554BCD08ABAD7321AF27E1E92E3DB1C6"
+	            "E7E94FAAE590AE9C48F96D93D178E809401ABE8A534A1EC44359733475"
+	            "A36A70C7B425125062B1142D",
+	            nil, 16, nil);
 	mpextendedgcd(a, b, d, x, y);
 	print("gcd %B*%B+%B*%B = %B?\n", a, x, b, y, d);
 	mpfree(a);
 	mpfree(b);
 
-	for(i = 0; i < loops; i++){
+	for(i = 0; i < loops; i++) {
 		a = mprand(2048, prng, nil);
 		b = mprand(2048, prng, nil);
 		then = nsec();
 		mpextendedgcd(a, b, d, x, y);
 		now = nsec();
-		etime += now-then;
+		etime += now - then;
 		mpmul(a, x, t1);
 		mpmul(b, y, t2);
 		mpadd(t1, t2, t2);
 		if(mpcmp(d, t2) != 0)
 			print("%d gcd %B*%B+%B*%B != %B\n", i, a, x, b, y, d);
-//		else
-//			print("%d euclid %B*%B+%B*%B == %B\n", i, a, x, b, y, d);
+		//		else
+		//			print("%d euclid %B*%B+%B*%B == %B\n", i, a,
+		//x, b, y, d);
 		mpfree(a);
 		mpfree(b);
 	}
@@ -399,20 +420,22 @@ testgcd(void)
 extern int _unnormalizedwarning = 1;
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	mpint *x, *y;
+	mpint* x, *y;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'n':
 		loops = atoi(ARGF());
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	fmtinstall('B', mpconv);
 	fmtinstall('Q', mpconv);
 	srand(0);
-	mpsetminbits(2*Dbits);
+	mpsetminbits(2 * Dbits);
 	testshift("1111111111111111");
 	testaddsub("fffffffffffffffff");
 	testdigdiv("1234567812345678", 0x76543218);
@@ -424,27 +447,76 @@ main(int argc, char **argv)
 	testdigdiv("ffffffff", 0);
 	testdigdiv("200000000", 2);
 	testdigdiv("ffffff00fffffff1", 0xfffffff1);
-	testvecdigmuladd("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 2);
+	testvecdigmuladd(
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "fffffffffffffffffffffffffffffffffffffffffffffffffff",
+	    2);
 	testconv("0");
 	testconv("-abc0123456789abcedf");
 	testconv("abc0123456789abcedf");
-	testvecdigmulsub("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 2);
+	testvecdigmulsub(
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "fffffffffffffffffffffffffffffffffffffffffffffffffff",
+	    2);
 	testsub1("1FFFFFFFE00000000", "FFFFFFFE00000001");
 	testmul1("ffffffff", "f");
-	testmul("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-	testmul1("100000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000004FFFFFFFFFFFFFFFE0000000200000000000000000000000000000003FFFFFFFFFFFFFFFE0000000200000000000000000000000000000002FFFFFFFFFFFFFFFE0000000200000000000000000000000000000001FFFFFFFFFFFFFFFE0000000200000000000000000000000000000000FFFFFFFFFFFFFFFE0000000200000000FFFFFFFE00000001", "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-	testmul1("1000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001", "1000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001");
-	testmul1("1000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001", "1000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001000000000000000000000001");
-	testmul1("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+	testmul("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	        "ffffffff");
+	testmul1("1000000000000000000000000000000000000000000000000000000020000"
+	         "0000000000000000000000000000000000000000000000000003000000000"
+	         "0000000000000000000000000000000000000000000000400000000000000"
+	         "000000000000000000000000000000000000000004FFFFFFFFFFFFFFFE000"
+	         "0000200000000000000000000000000000003FFFFFFFFFFFFFFFE00000002"
+	         "00000000000000000000000000000002FFFFFFFFFFFFFFFE0000000200000"
+	         "000000000000000000000000001FFFFFFFFFFFFFFFE000000020000000000"
+	         "0000000000000000000000FFFFFFFFFFFFFFFE0000000200000000FFFFFFF"
+	         "E00000001",
+	         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+	testmul1("1000000000000000000000001000000000000000000000001000000000000"
+	         "0000000000010000000000000000000000010000000000000000000000010"
+	         "00000000000000000000001000000000000000000000001",
+	         "1000000000000000000000001000000000000000000000001000000000000"
+	         "0000000000010000000000000000000000010000000000000000000000010"
+	         "00000000000000000000001000000000000000000000001");
+	testmul1("1000000000000000000000001000000000000000000000001000000000000"
+	         "0000000000010000000000000000000000010000000000000000000000010"
+	         "00000000000000000000001000000000000000000000001",
+	         "1000000000000000000000001000000000000000000000001000000000000"
+	         "0000000000010000000000000000000000010000000000000000000000010"
+	         "00000000000000000000001000000000000000000000001");
+	testmul1(
+	    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+	    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000"
+	    "000000000000000000000000000000000000000000000000000000000000000000"
+	    "00000000000000000000000000000000000000000000000000",
+	    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+	    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000"
+	    "000000000000000000000000000000000000000000000000000000000000000000"
+	    "00000000000000000000000000000000000000000000000000");
 	x = mprand(256, prng, nil);
 	y = mprand(128, prng, nil);
 	testdiv(x, y);
 	x = mprand(2048, prng, nil);
 	y = mprand(1024, prng, nil);
 	testdiv(x, y);
-//	x = mprand(4*1024, prng, nil);
-//	y = mprand(4*1024, prng, nil);
-//	testmul2(x, y);
+	//	x = mprand(4*1024, prng, nil);
+	//	y = mprand(4*1024, prng, nil);
+	//	testmul2(x, y);
 	testsub1("677132C9", "-A26559B6");
 	testgcd();
 	x = mprand(512, prng, nil);
@@ -455,7 +527,19 @@ main(int argc, char **argv)
 	x->sign = 1;
 	testinvert(y, x);
 	testexp("111111111", "222", "1000000000000000000000");
-	testexp("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+	testexp(
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+	    "100000000000000000000000000000000000000000000000000000000000000000"
+	    "000000000000000000000000000000000000000000000000000000000000000000"
+	    "000000000000000000000000000000000000000000000000000000000000000000"
+	    "000000000000000000000000000000000000000000000000000000000000");
 #ifdef asdf
 #endif adsf
 	print("done\n");

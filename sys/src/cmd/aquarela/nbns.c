@@ -17,15 +17,15 @@ static struct {
 	int thread;
 	QLock;
 	int fd;
-} udp = { -1 };
+} udp = {-1};
 
 typedef struct Listen Listen;
 
 struct Listen {
 	NbName to;
-	int (*deliver)(void *magic, NbDgram *s);
-	void *magic;
-	Listen *next;
+	int (*deliver)(void* magic, NbDgram* s);
+	void* magic;
+	Listen* next;
 };
 
 static struct {
@@ -35,56 +35,58 @@ static struct {
 
 struct {
 	QLock;
-	NbnsTransaction *head;
+	NbnsTransaction* head;
 } transactionlist;
 
 static void
-udplistener(void *)
-{	
-	for (;;) {
+udplistener(void*)
+{
+	for(;;) {
 		uint8_t msg[Udphdrsize + 576];
 		int len = read(udp.fd, msg, sizeof(msg));
-		if (len < 0)
+		if(len < 0)
 			break;
-		if (len >= nbudphdrsize) {
-			NbnsMessage *s;
-//			Udphdr *uh;
-			uint8_t *p;
+		if(len >= nbudphdrsize) {
+			NbnsMessage* s;
+			//			Udphdr *uh;
+			uint8_t* p;
 
-//			uh = (Udphdr*)msg;
+			//			uh = (Udphdr*)msg;
 			p = msg + nbudphdrsize;
 			len -= nbudphdrsize;
 			s = nbnsconvM2S(p, len);
-			if (s) {
-//print("%I:%d -> %I:%d\n", uh->raddr, nhgets(uh->rport), uh->laddr, nhgets(uh->lport));
-//nbnsdumpmessage(s);
-				if (s->response) {
-					NbnsTransaction *t;
+			if(s) {
+				// print("%I:%d -> %I:%d\n", uh->raddr,
+				// nhgets(uh->rport), uh->laddr,
+				// nhgets(uh->lport));
+				// nbnsdumpmessage(s);
+				if(s->response) {
+					NbnsTransaction* t;
 					qlock(&transactionlist);
-					for (t = transactionlist.head; t; t = t->next)
-						if (t->id == s->id)
+					for(t = transactionlist.head; t;
+					    t = t->next)
+						if(t->id == s->id)
 							break;
-					if (t)
+					if(t)
 						sendp(t->c, s);
 					else
 						nbnsmessagefree(&s);
 					qunlock(&transactionlist);
-				}
-				else
+				} else
 					nbnsmessagefree(&s);
 			}
 		}
 	}
 }
 
-static char *
+static char*
 startlistener(void)
 {
 	qlock(&udp);
-	if (udp.thread < 0) {
-		char *e;
+	if(udp.thread < 0) {
+		char* e;
 		e = nbudpannounce(NbnsPort, &udp.fd);
-		if (e) {
+		if(e) {
 			qunlock(&udp);
 			return e;
 		}
@@ -103,25 +105,25 @@ nbnsnextid(void)
 	unlock(&id);
 	return rv;
 }
-	
-NbnsTransaction *
-nbnstransactionnew(NbnsMessage *s, uint8_t *ipaddr)
+
+NbnsTransaction*
+nbnstransactionnew(NbnsMessage* s, uint8_t* ipaddr)
 {
-	NbnsTransaction *t;
+	NbnsTransaction* t;
 	uint8_t msg[Udphdrsize + 576];
-	Udphdr *u;
+	Udphdr* u;
 	int len;
 
 	startlistener();
 	len = nbnsconvS2M(s, msg + nbudphdrsize, sizeof(msg) - nbudphdrsize);
-	if (len == 0)
+	if(len == 0)
 		return 0;
 	t = mallocz(sizeof(*t), 1);
-	if (t == nil)
+	if(t == nil)
 		return nil;
-	t->id = s->id;	
-	t->c = chancreate(sizeof(NbnsMessage *), 3);
-	if (t->c == nil) {
+	t->id = s->id;
+	t->c = chancreate(sizeof(NbnsMessage*), 3);
+	if(t->c == nil) {
 		free(t);
 		return nil;
 	}
@@ -129,10 +131,10 @@ nbnstransactionnew(NbnsMessage *s, uint8_t *ipaddr)
 	t->next = transactionlist.head;
 	transactionlist.head = t;
 	qunlock(&transactionlist);
-	u = (Udphdr *)msg;
+	u = (Udphdr*)msg;
 	ipmove(u->laddr, nbglobals.myipaddr);
 	hnputs(u->lport, NbnsPort);
-	if (s->broadcast || ipaddr == nil)
+	if(s->broadcast || ipaddr == nil)
 		ipmove(u->raddr, nbglobals.bcastaddr);
 	else
 		ipmove(u->raddr, ipaddr);
@@ -142,20 +144,21 @@ nbnstransactionnew(NbnsMessage *s, uint8_t *ipaddr)
 }
 
 void
-nbnstransactionfree(NbnsTransaction **tp)
+nbnstransactionfree(NbnsTransaction** tp)
 {
-	NbnsTransaction **tp2;
-	NbnsMessage *s;
-	NbnsTransaction *t;
+	NbnsTransaction** tp2;
+	NbnsMessage* s;
+	NbnsTransaction* t;
 
 	t = *tp;
-	if (t) {
+	if(t) {
 		qlock(&transactionlist);
-		while ((s = nbrecvp(t->c)) != nil)
+		while((s = nbrecvp(t->c)) != nil)
 			nbnsmessagefree(&s);
-		for (tp2 = &transactionlist.head; *tp2 && *tp2 != t; tp2 = &(*tp2)->next)
+		for(tp2 = &transactionlist.head; *tp2 && *tp2 != t;
+		    tp2 = &(*tp2)->next)
 			;
-		if (*tp2) {
+		if(*tp2) {
 			*tp2 = t->next;
 			free(t);
 		}

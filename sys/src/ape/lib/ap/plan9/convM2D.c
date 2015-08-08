@@ -16,16 +16,16 @@
 static char nullstring[] = "";
 
 uint
-_convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
+_convM2D(uint8_t* buf, uint nbuf, Dir* d, char* strs)
 {
-	uint8_t *p, *ebuf;
-	char *sv[4];
+	uint8_t* p, *ebuf;
+	char* sv[4];
 	int i, ns, nsv[4];
 
 	p = buf;
 	ebuf = buf + nbuf;
 
-	p += BIT16SZ;	/* ignore size */
+	p += BIT16SZ; /* ignore size */
 	d->type = GBIT16(p);
 	p += BIT16SZ;
 	d->dev = GBIT32(p);
@@ -50,14 +50,14 @@ _convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 	d->gid = nil;
 	d->muid = nil;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		if(p + BIT16SZ > ebuf)
 			return 0;
 		ns = GBIT16(p);
 		p += BIT16SZ;
 		if(p + ns > ebuf)
 			return 0;
-		if(strs){
+		if(strs) {
 			nsv[i] = ns;
 			sv[i] = strs;
 			memmove(strs, p, ns);
@@ -67,17 +67,17 @@ _convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 		p += ns;
 	}
 
-	if(strs){
+	if(strs) {
 		d->name = sv[0];
 		d->uid = sv[1];
 		d->gid = sv[2];
 		d->muid = sv[3];
-	}else{
+	} else {
 		d->name = nullstring;
 		d->uid = nullstring;
 		d->gid = nullstring;
 		d->muid = nullstring;
 	}
-	
+
 	return p - buf;
 }

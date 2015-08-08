@@ -20,23 +20,24 @@ usage(void)
 }
 
 void
-writeuncompressed(int fd, Memimage *m)
+writeuncompressed(int fd, Memimage* m)
 {
 	char chanstr[32];
 	int bpl, y, j;
-	uint8_t *buf;
+	uint8_t* buf;
 
 	if(chantostr(chanstr, m->chan) == nil)
 		sysfatal("can't convert channel descriptor: %r");
-	fprint(fd, "%11s %11d %11d %11d %11d ",
-		chanstr, m->r.min.x, m->r.min.y, m->r.max.x, m->r.max.y);
+	fprint(fd, "%11s %11d %11d %11d %11d ", chanstr, m->r.min.x, m->r.min.y,
+	       m->r.max.x, m->r.max.y);
 
 	bpl = bytesperline(m->r, m->depth);
 	buf = malloc(bpl);
 	if(buf == nil)
 		sysfatal("malloc failed: %r");
-	for(y=m->r.min.y; y<m->r.max.y; y++){
-		j = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y+1), buf, bpl);
+	for(y = m->r.min.y; y < m->r.max.y; y++) {
+		j = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y + 1),
+		                   buf, bpl);
 		if(j != bpl)
 			sysfatal("image unload failed: %r");
 		if(write(fd, buf, bpl) != bpl)
@@ -46,16 +47,17 @@ writeuncompressed(int fd, Memimage *m)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *tostr, *file;
+	char* tostr, *file;
 	int fd, uncompressed;
 	uint32_t tochan;
-	Memimage *m, *n;
+	Memimage* m, *n;
 
 	tostr = nil;
 	uncompressed = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		tostr = EARGF(usage());
 		break;
@@ -64,14 +66,15 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	memimageinit();
 
 	file = "<stdin>";
 	m = nil;
 
-	switch(argc){
+	switch(argc) {
 	case 0:
 		m = readmemimage(0);
 		break;
@@ -92,7 +95,7 @@ main(int argc, char *argv[])
 
 	if(tostr == nil)
 		tochan = m->chan;
-	else{
+	else {
 		tochan = strtochan(tostr);
 		if(tochan == 0)
 			sysfatal("bad channel descriptor '%s'", tostr);

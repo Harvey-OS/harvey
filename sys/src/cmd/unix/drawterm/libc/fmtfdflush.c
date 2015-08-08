@@ -17,7 +17,7 @@
  * to a file descriptor
  */
 int
-__fmtFdFlush(Fmt *f)
+__fmtFdFlush(Fmt* f)
 {
 	int n;
 

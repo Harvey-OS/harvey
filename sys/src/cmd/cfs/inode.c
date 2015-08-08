@@ -27,13 +27,13 @@
  *  nab is the first inode block.
  */
 int
-iinit(Icache *ic, int f, int psize, char* name)
+iinit(Icache* ic, int f, int psize, char* name)
 {
-	Ibuf *b;
-	Imap *m;
+	Ibuf* b;
+	Imap* m;
 	uint32_t ino;
-	Bbuf *bb;
-	Dinode *bi;
+	Bbuf* bb;
+	Dinode* bi;
 
 	/*
 	 *  get basic sizes and allocation info from disk
@@ -45,12 +45,12 @@ iinit(Icache *ic, int f, int psize, char* name)
 	 *  read first inode block to get number of inodes
 	 */
 	bb = bcread(ic, ic->nab);
-	if(bb == 0){
+	if(bb == 0) {
 		fprint(2, "iinit: can't read disk\n");
 		return -1;
 	}
 	bi = (Dinode*)bb->data;
-	if(bi->nino==0 || bi->nino>2048){
+	if(bi->nino == 0 || bi->nino > 2048) {
 		fprint(2, "iinit: bad nino\n");
 		return -1;
 	}
@@ -59,21 +59,21 @@ iinit(Icache *ic, int f, int psize, char* name)
 	/*
 	 *  set up sizing constants
 	 */
-	ic->i2b = (ic->bsize - sizeof(Dihdr))/sizeof(Inode);
-	ic->nib = (ic->nino + ic->i2b - 1)/ic->i2b;
+	ic->i2b = (ic->bsize - sizeof(Dihdr)) / sizeof(Inode);
+	ic->nib = (ic->nino + ic->i2b - 1) / ic->i2b;
 
 	/*
 	 *  allocate the in-core qid/inode map, build it's lru
 	 */
 	if(ic->map)
 		free(ic->map);
-	ic->map = malloc(sizeof(Imap)*ic->nino);
-	if(ic->map == 0){
+	ic->map = malloc(sizeof(Imap) * ic->nino);
+	if(ic->map == 0) {
 		fprint(2, "iinit: can't alloc map\n");
 		return -1;
 	}
 	lruinit(&ic->mlru);
-	for(m = ic->map; m < &ic->map[ic->nino]; m++){
+	for(m = ic->map; m < &ic->map[ic->nino]; m++) {
 		m->inuse = 0;
 		m->b = 0;
 		lruadd(&ic->mlru, m);
@@ -83,7 +83,7 @@ iinit(Icache *ic, int f, int psize, char* name)
 	 *  mark all cache buffers as empty, put them on the lru list
 	 */
 	lruinit(&ic->blru);
-	for(b = ic->ib; b < &ic->ib[Nicache]; b++){
+	for(b = ic->ib; b < &ic->ib[Nicache]; b++) {
 		b->inuse = 0;
 		lruadd(&ic->blru, b);
 	}
@@ -92,13 +92,13 @@ iinit(Icache *ic, int f, int psize, char* name)
 	 *  Read all inodes and
 	 *  build the in-core qid/inode map
 	 */
-	for(ino = 0; ino < ic->nino; ino++){
+	for(ino = 0; ino < ic->nino; ino++) {
 		b = iread(ic, ino);
-		if(b == 0){
+		if(b == 0) {
 			fprint(2, "iinit: can't read inode %ld\n", ino);
 			return -1;
 		}
-		if(b->inode.inuse){
+		if(b->inode.inuse) {
 			m = &ic->map[ino];
 			m->inuse = 1;
 			m->qid = b->inode.qid;
@@ -112,13 +112,12 @@ iinit(Icache *ic, int f, int psize, char* name)
  *  format the inode blocks
  */
 int
-iformat(Icache *ic, int f, uint32_t nino, char *name, int bsize,
-	int psize)
+iformat(Icache* ic, int f, uint32_t nino, char* name, int bsize, int psize)
 {
 	int nib;
 	uint32_t bno, i2b, i;
-	Bbuf *bb;
-	Dinode *bi;
+	Bbuf* bb;
+	Dinode* bi;
 
 	/*
 	 *  first format disk allocation
@@ -128,16 +127,16 @@ iformat(Icache *ic, int f, uint32_t nino, char *name, int bsize,
 
 	fprint(2, "formatting inodes\n");
 
-	i2b = (bsize - sizeof(Dihdr))/sizeof(Inode);
-	nib = (nino + i2b - 1)/i2b;
+	i2b = (bsize - sizeof(Dihdr)) / sizeof(Inode);
+	nib = (nino + i2b - 1) / i2b;
 
-	for(bno = ic->nab; bno < ic->nab + nib; bno++){
-		if(dalloc(ic, 0) == Notabno){
+	for(bno = ic->nab; bno < ic->nab + nib; bno++) {
+		if(dalloc(ic, 0) == Notabno) {
 			fprint(2, "iformat: balloc failed\n");
 			return -1;
 		}
 		bb = bcalloc(ic, bno);
-		if(bb == 0){
+		if(bb == 0) {
 			fprint(2, "iformat: bcalloc failed\n");
 			return -1;
 		}
@@ -158,10 +157,10 @@ iformat(Icache *ic, int f, uint32_t nino, char *name, int bsize,
  *  allocate a cache buffer, use least recently used
  */
 Ibuf*
-ialloc(Icache *ic, uint32_t ino)
+ialloc(Icache* ic, uint32_t ino)
 {
-	Imap *m;
-	Ibuf *b;
+	Imap* m;
+	Ibuf* b;
 
 	b = (Ibuf*)ic->blru.lnext;
 	if(b->inuse)
@@ -177,7 +176,7 @@ ialloc(Icache *ic, uint32_t ino)
  *  free a cache buffer
  */
 void
-ifree(Icache *ic, Ibuf *b)
+ifree(Icache* ic, Ibuf* b)
 {
 	b->inuse = 0;
 	if(b->inuse)
@@ -189,23 +188,23 @@ ifree(Icache *ic, Ibuf *b)
  *  get an inode into the cache.  if no inode exists for this qid, create one
  *  from an unused qid/inode map.
  */
-Ibuf *
-iget(Icache *ic, Qid qid)
+Ibuf*
+iget(Icache* ic, Qid qid)
 {
-	Imap *m, *me;
-	Ibuf *b;
+	Imap* m, *me;
+	Ibuf* b;
 
 	/*
 	 *  find map entry with same qid.path
 	 */
 	for(m = ic->map, me = &ic->map[ic->nino]; m < me; m++)
-		if(m->inuse && m->qid.path==qid.path){
-			if(m->qid.vers != qid.vers){
+		if(m->inuse && m->qid.path == qid.path) {
+			if(m->qid.vers != qid.vers) {
 				/*
 				 *  our info is old, forget it
 				 */
 				DPRINT(2, "updating old file %llud.%lud\n",
-					qid.path, qid.vers);
+				       qid.path, qid.vers);
 				m->qid = qid;
 				iupdate(ic, m - ic->map, qid);
 			}
@@ -213,7 +212,7 @@ iget(Icache *ic, Qid qid)
 		}
 
 	/*
- 	 *  if an already existing inode, just get it
+	 *  if an already existing inode, just get it
 	 */
 	if(m != me)
 		return iread(ic, m - ic->map);
@@ -223,9 +222,9 @@ iget(Icache *ic, Qid qid)
 	 *  if necessary
 	 */
 	m = (Imap*)ic->mlru.lnext;
-	if(m->inuse){
+	if(m->inuse) {
 		DPRINT(2, "superceding file %llud.%ld by %llud.%ld\n",
-			m->qid.path, m->qid.vers, qid.path, qid.vers);
+		       m->qid.path, m->qid.vers, qid.path, qid.vers);
 		if(iremove(ic, m - ic->map) < 0)
 			return 0;
 	}
@@ -235,8 +234,8 @@ iget(Icache *ic, Qid qid)
 	/*
 	 *  init inode and write to disk
 	 */
-	DPRINT(2, "new file %llud.%ld ino %ld\n",
-		qid.path, qid.vers, m - ic->map);
+	DPRINT(2, "new file %llud.%ld ino %ld\n", qid.path, qid.vers,
+	       m - ic->map);
 	b = ialloc(ic, m - ic->map);
 	b->inode.inuse = m->inuse = 1;
 	b->inode.qid = qid;
@@ -253,19 +252,19 @@ iget(Icache *ic, Qid qid)
  *  ASSUMPTION: the inode is valid
  */
 Ibuf*
-iread(Icache *ic, uint32_t ino)
+iread(Icache* ic, uint32_t ino)
 {
-	Ibuf *b;
-	Imap *m;
+	Ibuf* b;
+	Imap* m;
 	uint32_t bno;
-	Bbuf *bb;
-	Dinode *bi;
+	Bbuf* bb;
+	Dinode* bi;
 
 	/*
 	 *  first see if we already have it in a cache entry
 	 */
 	m = &ic->map[ino];
-	if(m->inuse && m->b){
+	if(m->inuse && m->b) {
 		b = m->b;
 		goto out;
 	}
@@ -274,9 +273,9 @@ iread(Icache *ic, uint32_t ino)
 	 *  read it
 	 */
 	b = ialloc(ic, ino);
-	bno = ic->nab + ino/ic->i2b;
+	bno = ic->nab + ino / ic->i2b;
 	bb = bcread(ic, bno);
-	if(bb == 0){
+	if(bb == 0) {
 		ifree(ic, b);
 		return 0;
 	}
@@ -286,7 +285,7 @@ iread(Icache *ic, uint32_t ino)
 	/*
 	 *  consistency check
 	 */
-	if(bi->nino!=ic->nino || bi->magic!=Imagic){
+	if(bi->nino != ic->nino || bi->magic != Imagic) {
 		fprint(2, "iread: inconsistent inode block\n");
 		ifree(ic, b);
 		return 0;
@@ -304,13 +303,13 @@ out:
  *  write an inode back to disk
  */
 int
-iwrite(Icache *ic, Ibuf *b)
+iwrite(Icache* ic, Ibuf* b)
 {
 	uint32_t bno;
-	Bbuf *bb;
-	Dinode *bi;
+	Bbuf* bb;
+	Dinode* bi;
 
-	bno = ic->nab + b->ino/ic->i2b;
+	bno = ic->nab + b->ino / ic->i2b;
 	bb = bcread(ic, bno);
 	if(bb == 0)
 		return 0;
@@ -328,10 +327,10 @@ iwrite(Icache *ic, Ibuf *b)
  *	N.B: ordering of iwrite and dfree is important
  */
 int
-iupdate(Icache *ic, uint32_t ino, Qid qid)
+iupdate(Icache* ic, uint32_t ino, Qid qid)
 {
-	Ibuf *b;
-	Imap *m;
+	Ibuf* b;
+	Imap* m;
 	Dptr d;
 
 	if(statson)
@@ -344,7 +343,7 @@ iupdate(Icache *ic, uint32_t ino, Qid qid)
 	 *  update inode and map
 	 */
 	b->inode.qid = qid;
-	b->inode.length = 0x7fffffffffffffffLL;	/* Set to maximum */
+	b->inode.length = 0x7fffffffffffffffLL; /* Set to maximum */
 	m = &ic->map[ino];
 	m->qid = qid;
 
@@ -366,10 +365,10 @@ iupdate(Icache *ic, uint32_t ino, Qid qid)
  *	N.B: ordering of iwrite and dfree is important
  */
 int
-iremove(Icache *ic, uint32_t ino)
+iremove(Icache* ic, uint32_t ino)
 {
-	Ibuf *b;
-	Imap *m;
+	Ibuf* b;
+	Imap* m;
 
 	if(statson)
 		cfsstat.ndelete++;
@@ -410,7 +409,7 @@ iremove(Icache *ic, uint32_t ino)
  *  increment our version number
  */
 void
-iinc(Icache *ic, Ibuf *b)
+iinc(Icache* ic, Ibuf* b)
 {
 	b->inode.qid.vers++;
 	ic->map[b->ino].qid = b->inode.qid;

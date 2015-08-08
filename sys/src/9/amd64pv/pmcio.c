@@ -11,21 +11,19 @@
  *  Performance counters non port part
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-#include	"amd64.h"
-#include	"../port/pmc.h"
-
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
+#include "amd64.h"
+#include "../port/pmc.h"
 
 /* non portable, for intel will be CPUID.0AH.EDX
  */
 
-enum {
-	PeNreg		= 4,	/* Number of Pe/Pct regs */
+enum { PeNreg = 4, /* Number of Pe/Pct regs */
 };
 
 int
@@ -33,17 +31,18 @@ pmcnregs(void)
 {
 	/* could run CPUID to see if there are registers,
 	 * PmcMaxCtrs
- 	*/
+	*/
 	return PeNreg;
 }
 
-//PeHo|PeGo
-#define PeAll	(PeOS|PeUsr)
-#define SetEvMsk(v, e) ((v)|(((e)&PeEvMskL)|(((e)<<(PeEvMsksh-8))&PeEvMskH)))
-#define SetUMsk(v, u) ((v)|(((u)<<8ull)&PeUnMsk))
+// PeHo|PeGo
+#define PeAll (PeOS | PeUsr)
+#define SetEvMsk(v, e)                                                         \
+	((v) | (((e)&PeEvMskL) | (((e) << (PeEvMsksh - 8)) & PeEvMskH)))
+#define SetUMsk(v, u) ((v) | (((u) << 8ull) & PeUnMsk))
 
-#define GetEvMsk(e) (((e)&PeEvMskL)|(((e)&PeEvMskH)>>(PeEvMsksh-8)))
-#define GetUMsk(u) (((u)&PeUnMsk)>>8ull)
+#define GetEvMsk(e) (((e)&PeEvMskL) | (((e)&PeEvMskH) >> (PeEvMsksh - 8)))
+#define GetUMsk(u) (((u)&PeUnMsk) >> 8ull)
 
 static int
 pmcuserenab(int enable)
@@ -51,50 +50,52 @@ pmcuserenab(int enable)
 	uint64_t cr4;
 
 	cr4 = cr4get();
-	if (enable){
+	if(enable) {
 		cr4 |= Pce;
 	} else
-		cr4 &=  ~Pce;
+		cr4 &= ~Pce;
 	cr4put(cr4);
-	return cr4&Pce;
+	return cr4 & Pce;
 }
 
 PmcCtlCtrId pmcids[] = {
-	{"locked instr", "0x024 0x1"},
-	{"locked cycles nonspec", "0x024 0x4"},	// cycles
-	{"SMI intr", "0x02b 0x0"},
-	{"DC access", "0x040 0x0"},
-	{"DC miss", "0x041 0x0"},
-	{"DC refills", "0x042 0x1f"},
-	{"DC evicted", "0x042 0x3f"},
-	{"L1 DTLB miss", "0x045 0x7"},		//DTLB L2 hit
-	{"L2 DTLB miss", "0x046 0x7"},
-	{"L1 DTLB hit", "0x04d 0x3"},
-	{"global TLB flush", "0x054 0x0"},
-	{"L2 hit", "0x07d 0x3f"},
-	{"L2 miss", "0x07e 0xf"},
-	{"IC miss", "0x081 0x0"},
-	{"IC refill from L2", "0x082 0x0"},
-	{"IC refill from system", "0x083 0x0"},
-	{"L1 ITLB miss", "0x084 0x0"},			//L2 ITLB hit
-	{"L2 ITLB miss", "0x085 0x3"},
-	{"DRAM access", "0x0e0 0x3f"},
-	{"L3 miss core 0", "0x4e1 0x13"},		//core 0 only
-	{"L3 miss core 1", "0x4e1 0x23"},
-	{"L3 miss core 2", "0x4e1 0x43"},
-	{"L3 miss core 3", "0x4e1 0x83"},
-	{"L3 miss socket", "0x4e1 0xf3"},		//all cores in the socket
-	{"", ""},
+    {"locked instr", "0x024 0x1"},
+    {"locked cycles nonspec", "0x024 0x4"}, // cycles
+    {"SMI intr", "0x02b 0x0"},
+    {"DC access", "0x040 0x0"},
+    {"DC miss", "0x041 0x0"},
+    {"DC refills", "0x042 0x1f"},
+    {"DC evicted", "0x042 0x3f"},
+    {"L1 DTLB miss", "0x045 0x7"}, // DTLB L2 hit
+    {"L2 DTLB miss", "0x046 0x7"},
+    {"L1 DTLB hit", "0x04d 0x3"},
+    {"global TLB flush", "0x054 0x0"},
+    {"L2 hit", "0x07d 0x3f"},
+    {"L2 miss", "0x07e 0xf"},
+    {"IC miss", "0x081 0x0"},
+    {"IC refill from L2", "0x082 0x0"},
+    {"IC refill from system", "0x083 0x0"},
+    {"L1 ITLB miss", "0x084 0x0"}, // L2 ITLB hit
+    {"L2 ITLB miss", "0x085 0x3"},
+    {"DRAM access", "0x0e0 0x3f"},
+    {"L3 miss core 0", "0x4e1 0x13"}, // core 0 only
+    {"L3 miss core 1", "0x4e1 0x23"},
+    {"L3 miss core 2", "0x4e1 0x43"},
+    {"L3 miss core 3", "0x4e1 0x83"},
+    {"L3 miss socket", "0x4e1 0xf3"}, // all cores in the socket
+    {"", ""},
 };
 
 int
-pmctrans(PmcCtl *p)
+pmctrans(PmcCtl* p)
 {
-	PmcCtlCtrId *pi;
+	PmcCtlCtrId* pi;
 
-	for (pi = &pmcids[0]; pi->portdesc[0] != '\0'; pi++){
-		if ( strncmp(p->descstr, pi->portdesc, strlen(pi->portdesc)) == 0){
-			strncpy(p->descstr, pi->archdesc, strlen(pi->archdesc) + 1);
+	for(pi = &pmcids[0]; pi->portdesc[0] != '\0'; pi++) {
+		if(strncmp(p->descstr, pi->portdesc, strlen(pi->portdesc)) ==
+		   0) {
+			strncpy(p->descstr, pi->archdesc,
+			        strlen(pi->archdesc) + 1);
 			return 0;
 		}
 	}
@@ -102,17 +103,17 @@ pmctrans(PmcCtl *p)
 }
 
 static int
-getctl(PmcCtl *p, uint32_t regno)
+getctl(PmcCtl* p, uint32_t regno)
 {
 	uint64_t r, e, u;
 
 	r = rdmsr(regno + PerfEvtbase);
-	p->enab = (r&PeCtEna) != 0;
-	p->user = (r&PeUsr) != 0;
-	p->os = (r&PeOS) != 0;
+	p->enab = (r & PeCtEna) != 0;
+	p->user = (r & PeUsr) != 0;
+	p->os = (r & PeOS) != 0;
 	e = GetEvMsk(r);
 	u = GetUMsk(r);
-	//TODO inverse translation
+	// TODO inverse translation
 	snprint(p->descstr, KNAMELEN, "%#ullx %#ullx", e, u);
 	p->nodesc = 0;
 	return 0;
@@ -124,10 +125,10 @@ pmcanyenab(void)
 	int i;
 	PmcCtl p;
 
-	for (i = 0; i < pmcnregs(); i++) {
-		if (getctl(&p, i) < 0)
+	for(i = 0; i < pmcnregs(); i++) {
+		if(getctl(&p, i) < 0)
 			return -1;
-		if (p.enab)
+		if(p.enab)
 			return 1;
 	}
 
@@ -137,79 +138,79 @@ pmcanyenab(void)
 extern int pmcdebug;
 
 static int
-setctl(PmcCtl *p, int regno)
+setctl(PmcCtl* p, int regno)
 {
 	uint64_t v, e, u;
-	char *toks[2];
+	char* toks[2];
 	char str[KNAMELEN];
 
-	if (regno >= pmcnregs())
+	if(regno >= pmcnregs())
 		error("invalid reg");
 
 	v = rdmsr(regno + PerfEvtbase);
-	v &= PeEvMskH|PeEvMskL|PeCtEna|PeOS|PeUsr|PeUnMsk;
-	if (p->enab != PmcCtlNullval)
-		if (p->enab)
+	v &= PeEvMskH | PeEvMskL | PeCtEna | PeOS | PeUsr | PeUnMsk;
+	if(p->enab != PmcCtlNullval)
+		if(p->enab)
 			v |= PeCtEna;
 		else
 			v &= ~PeCtEna;
 
-	if (p->user != PmcCtlNullval)
-		if (p->user)
+	if(p->user != PmcCtlNullval)
+		if(p->user)
 			v |= PeUsr;
 		else
 			v &= ~PeUsr;
 
-	if (p->os != PmcCtlNullval)
-		if (p->os)
+	if(p->os != PmcCtlNullval)
+		if(p->os)
 			v |= PeOS;
 		else
 			v &= ~PeOS;
 
-	if (pmctrans(p) < 0)
+	if(pmctrans(p) < 0)
 		return -1;
 
-	if (p->nodesc == 0) {
+	if(p->nodesc == 0) {
 		memmove(str, p->descstr, KNAMELEN);
-		if (tokenize(str, toks, 2) != 2)
+		if(tokenize(str, toks, 2) != 2)
 			return -1;
 		e = atoi(toks[0]);
 		u = atoi(toks[1]);
-		v &= ~(PeEvMskL|PeEvMskH|PeUnMsk);
+		v &= ~(PeEvMskL | PeEvMskH | PeUnMsk);
 		v |= SetEvMsk(v, e);
 		v |= SetUMsk(v, u);
 	}
-	if (p->reset != PmcCtlNullval && p->reset) {
+	if(p->reset != PmcCtlNullval && p->reset) {
 		v = 0;
-		wrmsr(regno+ PerfCtrbase, 0);
+		wrmsr(regno + PerfCtrbase, 0);
 		p->reset = PmcCtlNullval; /* only reset once */
 	}
-	wrmsr(regno+ PerfEvtbase, v);
+	wrmsr(regno + PerfEvtbase, v);
 	pmcuserenab(pmcanyenab());
-	if (pmcdebug) {
-		v = rdmsr(regno+ PerfEvtbase);
+	if(pmcdebug) {
+		v = rdmsr(regno + PerfEvtbase);
 		print("conf pmc[%#ux]: %#llux\n", regno, v);
 	}
 	return 0;
 }
 
 int
-pmcctlstr(char *str, int nstr, PmcCtl *p)
+pmcctlstr(char* str, int nstr, PmcCtl* p)
 {
 	int ns;
 
 	ns = 0;
-	if (p->enab && p->enab != PmcCtlNullval)
+	if(p->enab && p->enab != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "enable\n");
 	else
 		ns += snprint(str + ns, nstr - ns, "disable\n");
 
-	if (p->user && p->user != PmcCtlNullval)
+	if(p->user && p->user != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "user\n");
-	if (p->os && p->user != PmcCtlNullval)
+	if(p->os && p->user != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "os\n");
 
-	//TODO, inverse pmctrans?
+	// TODO, inverse pmctrans?
 	if(!p->nodesc)
 		ns += snprint(str + ns, nstr - ns, "%s\n", p->descstr);
 	else
@@ -218,15 +219,15 @@ pmcctlstr(char *str, int nstr, PmcCtl *p)
 }
 
 int
-pmcdescstr(char *str, int nstr)
+pmcdescstr(char* str, int nstr)
 {
-	PmcCtlCtrId *pi;
+	PmcCtlCtrId* pi;
 	int ns;
 
 	ns = 0;
 
-	for (pi = &pmcids[0]; pi->portdesc[0] != '\0'; pi++)
-		ns += snprint(str + ns, nstr - ns, "%s\n",pi->portdesc);
+	for(pi = &pmcids[0]; pi->portdesc[0] != '\0'; pi++)
+		ns += snprint(str + ns, nstr - ns, "%s\n", pi->portdesc);
 	return ns;
 }
 
@@ -244,25 +245,25 @@ setctr(uint64_t v, uint32_t regno)
 }
 
 static int
-notstale(void *x)
+notstale(void* x)
 {
-	PmcCtr *p;
-	p = (PmcCtr *)x;
+	PmcCtr* p;
+	p = (PmcCtr*)x;
 	return !p->stale;
 }
 
 static PmcWait*
 newpmcw(void)
 {
-	PmcWait *w;
+	PmcWait* w;
 
-	w = malloc(sizeof (PmcWait));
+	w = malloc(sizeof(PmcWait));
 	w->ref = 1;
 	return w;
 }
 
 static void
-pmcwclose(PmcWait *w)
+pmcwclose(PmcWait* w)
 {
 	if(decref(w))
 		return;
@@ -279,10 +280,10 @@ pmcwclose(PmcWait *w)
  */
 
 static void
-waitnotstale(Mach *mp, PmcCtr *p)
+waitnotstale(Mach* mp, PmcCtr* p)
 {
-	Proc *up = externup();
-	PmcWait *w;
+	Proc* up = externup();
+	PmcWait* w;
 
 	p->stale = 1;
 	w = newpmcw();
@@ -291,7 +292,7 @@ waitnotstale(Mach *mp, PmcCtr *p)
 	incref(w);
 	iunlock(&mp->pmclock);
 	apicipi(mp->apicno);
-	if(waserror()){
+	if(waserror()) {
 		pmcwclose(w);
 		nexterror();
 	}
@@ -315,7 +316,7 @@ waitnotstale(Mach *mp, PmcCtr *p)
  *	the case.
  */
 static int
-shouldipi(Mach *mp)
+shouldipi(Mach* mp)
 {
 	if(!mp->online)
 		return 0;
@@ -329,15 +330,16 @@ shouldipi(Mach *mp)
 uint64_t
 pmcgetctr(uint32_t coreno, uint32_t regno)
 {
-	Proc *up = externup();
-	PmcCtr *p;
-	Mach *mp;
+	Proc* up = externup();
+	PmcCtr* p;
+	Mach* mp;
 	uint64_t v;
 
-	if(coreno == machp()->machno){
+	if(coreno == machp()->machno) {
 		v = getctr(regno);
-		if (pmcdebug) {
-			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
+		if(pmcdebug) {
+			print("int getctr[%#ux, %#ux] = %#llux\n", regno,
+			      coreno, v);
 		}
 		return v;
 	}
@@ -346,13 +348,13 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 	p = &mp->pmc[regno];
 	ilock(&mp->pmclock);
 	p->ctrset |= PmcGet;
-	if(shouldipi(mp)){
+	if(shouldipi(mp)) {
 		waitnotstale(mp, p);
 		ilock(&mp->pmclock);
 	}
 	v = p->ctr;
 	iunlock(&mp->pmclock);
-	if (pmcdebug) {
+	if(pmcdebug) {
 		print("ext getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
 	}
 	return v;
@@ -361,20 +363,21 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 int
 pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 {
-	Proc *up = externup();
-	PmcCtr *p;
-	Mach *mp;
+	Proc* up = externup();
+	PmcCtr* p;
+	Mach* mp;
 
-	if(coreno == machp()->machno){
-		if (pmcdebug) {
-			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
+	if(coreno == machp()->machno) {
+		if(pmcdebug) {
+			print("int getctr[%#ux, %#ux] = %#llux\n", regno,
+			      coreno, v);
 		}
 		return setctr(v, regno);
 	}
 
 	mp = sys->machptr[coreno];
 	p = &mp->pmc[regno];
-	if (pmcdebug) {
+	if(pmcdebug) {
 		print("ext setctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
 	}
 	ilock(&mp->pmclock);
@@ -388,7 +391,7 @@ pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 }
 
 static void
-ctl2ctl(PmcCtl *dctl, PmcCtl *sctl)
+ctl2ctl(PmcCtl* dctl, PmcCtl* sctl)
 {
 	if(sctl->enab != PmcCtlNullval)
 		dctl->enab = sctl->enab;
@@ -403,11 +406,11 @@ ctl2ctl(PmcCtl *dctl, PmcCtl *sctl)
 }
 
 int
-pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
+pmcsetctl(uint32_t coreno, PmcCtl* pctl, uint32_t regno)
 {
-	Proc *up = externup();
-	PmcCtr *p;
-	Mach *mp;
+	Proc* up = externup();
+	PmcCtr* p;
+	Mach* mp;
 
 	if(coreno == machp()->machno)
 		return setctl(pctl, regno);
@@ -425,11 +428,11 @@ pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 }
 
 int
-pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
+pmcgetctl(uint32_t coreno, PmcCtl* pctl, uint32_t regno)
 {
-	Proc *up = externup();
-	PmcCtr *p;
-	Mach *mp;
+	Proc* up = externup();
+	PmcCtr* p;
+	Mach* mp;
 
 	if(coreno == machp()->machno)
 		return getctl(pctl, regno);
@@ -439,7 +442,7 @@ pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 
 	ilock(&mp->pmclock);
 	p->ctlset |= PmcGet;
-	if(shouldipi(mp)){
+	if(shouldipi(mp)) {
 		waitnotstale(mp, p);
 		ilock(&mp->pmclock);
 	}
@@ -449,15 +452,15 @@ pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 }
 
 void
-pmcupdate(Mach *m)
+pmcupdate(Mach* m)
 {
-	PmcCtr *p;
+	PmcCtr* p;
 	int i, maxct, wk;
-	PmcWait *w;
+	PmcWait* w;
 
 	return;
 	maxct = pmcnregs();
-	for (i = 0; i < maxct; i++) {
+	for(i = 0; i < maxct; i++) {
 		p = &m->pmc[i];
 		ilock(&m->pmclock);
 		if(p->ctrset & PmcSet)
@@ -470,8 +473,8 @@ pmcupdate(Mach *m)
 		p->ctlset = PmcIgn;
 		wk = p->stale;
 		p->stale = 0;
-		if(wk){
-			for(w = p->wq; w != nil; w = w->next){
+		if(wk) {
+			for(w = p->wq; w != nil; w = w->next) {
 				p->wq = w->next;
 				wakeup(&w->r);
 				pmcwclose(w);
@@ -480,4 +483,3 @@ pmcupdate(Mach *m)
 		iunlock(&m->pmclock);
 	}
 }
-

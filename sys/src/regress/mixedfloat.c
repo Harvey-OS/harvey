@@ -1,10 +1,10 @@
 #include <u.h>
 #include <libc.h>
 
-#define INT	2
-#define FLOAT	2.5
-#define A	4	// addition result
-#define M	5	// multiplication result
+#define INT 2
+#define FLOAT 2.5
+#define A 4 // addition result
+#define M 5 // multiplication result
 
 void
 main()

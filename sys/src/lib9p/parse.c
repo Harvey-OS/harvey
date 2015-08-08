@@ -17,40 +17,42 @@
  * Generous estimate of number of fields, including terminal nil pointer
  */
 static int
-ncmdfield(char *p, int n)
+ncmdfield(char* p, int n)
 {
 	int white, nwhite;
-	char *ep;
+	char* ep;
 	int nf;
 
 	if(p == nil)
 		return 1;
 
 	nf = 0;
-	ep = p+n;
-	white = 1;	/* first text will start field */
-	while(p < ep){
-		nwhite = (strchr(" \t\r\n", *p++ & 0xFF) != 0);	/* UTF is irrelevant */
-		if(white && !nwhite)	/* beginning of field */
+	ep = p + n;
+	white = 1; /* first text will start field */
+	while(p < ep) {
+		nwhite = (strchr(" \t\r\n", *p++ & 0xFF) !=
+		          0);        /* UTF is irrelevant */
+		if(white && !nwhite) /* beginning of field */
 			nf++;
 		white = nwhite;
 	}
-	return nf+1;	/* +1 for nil */
+	return nf + 1; /* +1 for nil */
 }
 
 /*
  *  parse a command written to a device
  */
 Cmdbuf*
-parsecmd(char *p, int n)
+parsecmd(char* p, int n)
 {
-	Cmdbuf *cb;
+	Cmdbuf* cb;
 	int nf;
-	char *sp;
+	char* sp;
 
 	nf = ncmdfield(p, n);
 
-	/* allocate Cmdbuf plus string pointers plus copy of string including \0 */
+	/* allocate Cmdbuf plus string pointers plus copy of string including \0
+	 */
 	sp = emalloc9p(sizeof(*cb) + nf * sizeof(char*) + n + 1);
 	cb = (Cmdbuf*)sp;
 	cb->f = (char**)(&cb[1]);
@@ -59,11 +61,11 @@ parsecmd(char *p, int n)
 	memmove(cb->buf, p, n);
 
 	/* dump new line and null terminate */
-	if(n > 0 && cb->buf[n-1] == '\n')
+	if(n > 0 && cb->buf[n - 1] == '\n')
 		n--;
 	cb->buf[n] = '\0';
 
-	cb->nf = tokenize(cb->buf, cb->f, nf-1);
+	cb->nf = tokenize(cb->buf, cb->f, nf - 1);
 	cb->f[cb->nf] = nil;
 
 	return cb;
@@ -73,20 +75,20 @@ parsecmd(char *p, int n)
  * Reconstruct original message, for error diagnostic
  */
 void
-respondcmderror(Req *r, Cmdbuf *cb, char *fmt, ...)
+respondcmderror(Req* r, Cmdbuf* cb, char* fmt, ...)
 {
 	int i;
 	va_list arg;
-	char *p, *e;
+	char* p, *e;
 	char err[ERRMAX];
-	
-	e = err+ERRMAX-10;
+
+	e = err + ERRMAX - 10;
 	va_start(arg, fmt);
 	p = vseprint(err, e, fmt, arg);
 	va_end(arg);
 	p = seprint(p, e, ": \"");
-	quotefmtinstall();	/* just in case */
-	for(i=0; i<cb->nf; i++){
+	quotefmtinstall(); /* just in case */
+	for(i = 0; i < cb->nf; i++) {
 		if(i > 0)
 			p = seprint(p, e, " ");
 		p = seprint(p, e, "%q", cb->f[i]);
@@ -99,21 +101,21 @@ respondcmderror(Req *r, Cmdbuf *cb, char *fmt, ...)
  * Look up entry in table
  */
 Cmdtab*
-lookupcmd(Cmdbuf *cb, Cmdtab *ctab, int nctab)
+lookupcmd(Cmdbuf* cb, Cmdtab* ctab, int nctab)
 {
 	int i;
-	Cmdtab *ct;
+	Cmdtab* ct;
 
-	if(cb->nf == 0){
+	if(cb->nf == 0) {
 		werrstr("empty control message");
 		return nil;
 	}
 
-	for(ct = ctab, i=0; i<nctab; i++, ct++){
-		if(strcmp(ct->cmd, "*") !=0)	/* wildcard always matches */
-		if(strcmp(ct->cmd, cb->f[0]) != 0)
-			continue;
-		if(ct->narg != 0 && ct->narg != cb->nf){
+	for(ct = ctab, i = 0; i < nctab; i++, ct++) {
+		if(strcmp(ct->cmd, "*") != 0) /* wildcard always matches */
+			if(strcmp(ct->cmd, cb->f[0]) != 0)
+				continue;
+		if(ct->narg != 0 && ct->narg != cb->nf) {
 			werrstr("bad # args to command");
 			return nil;
 		}

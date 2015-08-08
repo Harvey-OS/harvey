@@ -14,7 +14,7 @@
 #include "dir.h"
 
 int32_t
-_READ(int fd, void *buf, int32_t n)
+_READ(int fd, void* buf, int32_t n)
 {
 	return _PREAD(fd, buf, n, -1LL);
 }

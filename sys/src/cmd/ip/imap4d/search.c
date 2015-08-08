@@ -13,10 +13,10 @@
 #include <auth.h>
 #include "imap4d.h"
 
-static int	dateCmp(char *date, Search *s);
-static int	addrSearch(MAddr *a, char *s);
-static int	fileSearch(Msg *m, char *file, char *pat);
-static int	headerSearch(Msg *m, char *hdr, char *pat);
+static int dateCmp(char* date, Search* s);
+static int addrSearch(MAddr* a, char* s);
+static int fileSearch(Msg* m, char* file, char* pat);
+static int headerSearch(Msg* m, char* hdr, char* pat);
 
 /*
  * free to exit, parseErr, since called before starting any client reply
@@ -24,15 +24,15 @@ static int	headerSearch(Msg *m, char *hdr, char *pat);
  * the header and envelope searches should convert mime character set escapes.
  */
 int
-searchMsg(Msg *m, Search *s)
+searchMsg(Msg* m, Search* s)
 {
-	MsgSet *ms;
+	MsgSet* ms;
 	int ok;
 
 	if(!msgStruct(m, 1) || m->expunged)
 		return 0;
-	for(ok = 1; ok && s != nil; s = s->next){
-		switch(s->key){
+	for(ok = 1; ok && s != nil; s = s->next) {
+		switch(s->key) {
 		default:
 			ok = 0;
 			break;
@@ -61,7 +61,7 @@ searchMsg(Msg *m, Search *s)
 			ok = (m->flags & s->num) == s->num;
 			break;
 		case SKNew:
-			ok = (m->flags & (MRecent|MSeen)) == MRecent;
+			ok = (m->flags & (MRecent | MSeen)) == MRecent;
 			break;
 		case SKOld:
 			ok = (m->flags & MRecent) != MRecent;
@@ -138,8 +138,10 @@ searchMsg(Msg *m, Search *s)
 		case SKUid:
 		case SKSet:
 			for(ms = s->set; ms != nil; ms = ms->next)
-				if(s->key == SKUid && m->uid >= ms->from && m->uid <= ms->to
-				|| s->key == SKSet && m->seq >= ms->from && m->seq <= ms->to)
+				if(s->key == SKUid && m->uid >= ms->from &&
+				       m->uid <= ms->to ||
+				   s->key == SKSet && m->seq >= ms->from &&
+				       m->seq <= ms->to)
 					break;
 			ok = ms != nil;
 			break;
@@ -150,7 +152,7 @@ searchMsg(Msg *m, Search *s)
 
 		case SKBody:
 		case SKText:
-			if(s->key == SKText && cistrstr(m->head.buf, s->s)){
+			if(s->key == SKText && cistrstr(m->head.buf, s->s)) {
 				ok = 1;
 				break;
 			}
@@ -162,7 +164,7 @@ searchMsg(Msg *m, Search *s)
 }
 
 static int
-fileSearch(Msg *m, char *file, char *pat)
+fileSearch(Msg* m, char* file, char* pat)
 {
 	char buf[BufSize + 1];
 	int n, nbuf, npat, fd, ok;
@@ -176,17 +178,17 @@ fileSearch(Msg *m, char *file, char *pat)
 		return 0;
 	ok = 0;
 	nbuf = 0;
-	for(;;){
+	for(;;) {
 		n = read(fd, &buf[nbuf], BufSize - nbuf);
 		if(n <= 0)
 			break;
 		nbuf += n;
 		buf[nbuf] = '\0';
-		if(cistrstr(buf, pat) != nil){
+		if(cistrstr(buf, pat) != nil) {
 			ok = 1;
 			break;
 		}
-		if(nbuf > npat){
+		if(nbuf > npat) {
 			memmove(buf, &buf[nbuf - npat], npat);
 			nbuf = npat;
 		}
@@ -196,10 +198,10 @@ fileSearch(Msg *m, char *file, char *pat)
 }
 
 static int
-headerSearch(Msg *m, char *hdr, char *pat)
+headerSearch(Msg* m, char* hdr, char* pat)
 {
 	SList hdrs;
-	char *s, *t;
+	char* s, *t;
 	int ok, n;
 
 	n = m->head.size + 3;
@@ -207,9 +209,9 @@ headerSearch(Msg *m, char *hdr, char *pat)
 	hdrs.next = nil;
 	hdrs.s = hdr;
 	ok = 0;
-	if(selectFields(s, n, m->head.buf, &hdrs, 1) > 0){
+	if(selectFields(s, n, m->head.buf, &hdrs, 1) > 0) {
 		t = strchr(s, ':');
-		if(t != nil && cistrstr(t+1, pat) != nil)
+		if(t != nil && cistrstr(t + 1, pat) != nil)
 			ok = 1;
 	}
 	free(s);
@@ -217,11 +219,11 @@ headerSearch(Msg *m, char *hdr, char *pat)
 }
 
 static int
-addrSearch(MAddr *a, char *s)
+addrSearch(MAddr* a, char* s)
 {
-	char *ok, *addr;
+	char* ok, *addr;
 
-	for(; a != nil; a = a->next){
+	for(; a != nil; a = a->next) {
 		addr = maddrStr(a);
 		ok = cistrstr(addr, s);
 		free(addr);
@@ -232,7 +234,7 @@ addrSearch(MAddr *a, char *s)
 }
 
 static int
-dateCmp(char *date, Search *s)
+dateCmp(char* date, Search* s)
 {
 	Tm tm;
 

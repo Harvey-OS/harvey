@@ -18,20 +18,18 @@
 #include <stdlib.h>
 #include "antiword.h"
 
-
 /*
  * Private structure to hide the way the information
  * is stored from the rest of the program
  */
 typedef struct picture_mem_tag {
-	picture_block_type      tInfo;
-	struct picture_mem_tag *pNext;
+	picture_block_type tInfo;
+	struct picture_mem_tag* pNext;
 } picture_mem_type;
 
 /* Variables needed to write the Picture Information List */
-static picture_mem_type	*pAnchor = NULL;
-static picture_mem_type	*pPictureLast = NULL;
-
+static picture_mem_type* pAnchor = NULL;
+static picture_mem_type* pPictureLast = NULL;
 
 /*
  * vDestroyPictInfoList - destroy the Picture Information List
@@ -39,13 +37,13 @@ static picture_mem_type	*pPictureLast = NULL;
 void
 vDestroyPictInfoList(void)
 {
-	picture_mem_type	*pCurr, *pNext;
+	picture_mem_type* pCurr, *pNext;
 
 	DBG_MSG("vDestroyPictInfoList");
 
 	/* Free the Picture Information List */
 	pCurr = pAnchor;
-	while (pCurr != NULL) {
+	while(pCurr != NULL) {
 		pNext = pCurr->pNext;
 		pCurr = xfree(pCurr);
 		pCurr = pNext;
@@ -59,22 +57,22 @@ vDestroyPictInfoList(void)
  * vAdd2PictInfoList - Add an element to the Picture Information List
  */
 void
-vAdd2PictInfoList(const picture_block_type *pPictureBlock)
+vAdd2PictInfoList(const picture_block_type* pPictureBlock)
 {
-	picture_mem_type	*pListMember;
+	picture_mem_type* pListMember;
 
 	fail(pPictureBlock == NULL);
 
 	NO_DBG_MSG("bAdd2PictInfoList");
 
-	if (pPictureBlock->ulFileOffset == FC_INVALID) {
+	if(pPictureBlock->ulFileOffset == FC_INVALID) {
 		/*
 		 * This offset is really past the end of the file,
 		 * so don't waste any memory by storing it.
 		 */
 		return;
 	}
-	if (pPictureBlock->ulFileOffsetPicture == FC_INVALID) {
+	if(pPictureBlock->ulFileOffsetPicture == FC_INVALID) {
 		/*
 		 * The place where this picture is supposed to be stored
 		 * doesn't exist.
@@ -92,7 +90,7 @@ vAdd2PictInfoList(const picture_block_type *pPictureBlock)
 	pListMember->tInfo = *pPictureBlock;
 	pListMember->pNext = NULL;
 	/* Add the new member to the list */
-	if (pAnchor == NULL) {
+	if(pAnchor == NULL) {
 		pAnchor = pListMember;
 	} else {
 		fail(pPictureLast == NULL);
@@ -107,10 +105,10 @@ vAdd2PictInfoList(const picture_block_type *pPictureBlock)
 ULONG
 ulGetPictInfoListItem(ULONG ulFileOffset)
 {
-	picture_mem_type	*pCurr;
+	picture_mem_type* pCurr;
 
-	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
-		if (pCurr->tInfo.ulFileOffset == ulFileOffset) {
+	for(pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
+		if(pCurr->tInfo.ulFileOffset == ulFileOffset) {
 			return pCurr->tInfo.ulFileOffsetPicture;
 		}
 	}

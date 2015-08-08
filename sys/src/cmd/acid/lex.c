@@ -16,80 +16,52 @@
 #include "acid.h"
 #include "y.tab.h"
 
-struct keywd
-{
-	char	*name;
-	int	terminal;
-}
-keywds[] =
-{
-	"do",		Tdo,
-	"if",		Tif,
-	"then",		Tthen,
-	"else",		Telse,
-	"while",	Twhile,
-	"loop",		Tloop,
-	"head",		Thead,
-	"tail",		Ttail,
-	"append",	Tappend,
-	"defn",		Tfn,
-	"return",	Tret,
-	"local",	Tlocal,
-	"aggr",		Tcomplex,
-	"union",	Tcomplex,
-	"adt",		Tcomplex,
-	"complex",	Tcomplex,
-	"delete",	Tdelete,
-	"whatis",	Twhat,
-	"eval",		Teval,
-	"builtin",	Tbuiltin,
-	0,		0
-};
+struct keywd {
+	char* name;
+	int terminal;
+} keywds[] = {"do",      Tdo,      "if",      Tif,      "then",   Tthen,
+              "else",    Telse,    "while",   Twhile,   "loop",   Tloop,
+              "head",    Thead,    "tail",    Ttail,    "append", Tappend,
+              "defn",    Tfn,      "return",  Tret,     "local",  Tlocal,
+              "aggr",    Tcomplex, "union",   Tcomplex, "adt",    Tcomplex,
+              "complex", Tcomplex, "delete",  Tdelete,  "whatis", Twhat,
+              "eval",    Teval,    "builtin", Tbuiltin, 0,        0};
 
-char cmap[256] =
-{
-	['0']	'\0'+1,
-	['n']	'\n'+1,
-	['r']	'\r'+1,
-	['t']	'\t'+1,
-	['b']	'\b'+1,
-	['f']	'\f'+1,
-	['a']	'\a'+1,
-	['v']	'\v'+1,
-	['\\']	'\\'+1,
-	['"']	'"'+1,
+char cmap[256] = {
+        ['0'] '\0' + 1,  ['n'] '\n' + 1, ['r'] '\r' + 1, ['t'] '\t' + 1,
+        ['b'] '\b' + 1,  ['f'] '\f' + 1, ['a'] '\a' + 1, ['v'] '\v' + 1,
+        ['\\'] '\\' + 1, ['"'] '"' + 1,
 };
 
 void
 kinit(void)
 {
 	int i;
-	
-	for(i = 0; keywds[i].name; i++) 
+
+	for(i = 0; keywds[i].name; i++)
 		enter(keywds[i].name, keywds[i].terminal);
 }
 
 typedef struct IOstack IOstack;
-struct IOstack
-{
-	char	*name;
-	int	line;
-	char	*text;
-	char	*ip;
-	Biobuf	*fin;
-	IOstack	*prev;
+struct IOstack {
+	char* name;
+	int line;
+	char* text;
+	char* ip;
+	Biobuf* fin;
+	IOstack* prev;
 };
-IOstack *lexio;
+IOstack* lexio;
 
 void
-pushfile(char *file)
+pushfile(char* file)
 {
-	Biobuf *b;
-	IOstack *io;
+	Biobuf* b;
+	IOstack* io;
 
 	if(file)
 		b = Bopen(file, OREAD);
-	else{
+	else {
 		b = Bopen("/fd/0", OREAD);
 		file = "<stdin>";
 	}
@@ -112,9 +84,9 @@ pushfile(char *file)
 }
 
 void
-pushstr(Node *s)
+pushstr(Node* s)
 {
-	IOstack *io;
+	IOstack* io;
 
 	io = malloc(sizeof(IOstack));
 	if(io == 0)
@@ -145,12 +117,12 @@ restartio(void)
 int
 popio(void)
 {
-	IOstack *s;
+	IOstack* s;
 
 	if(lexio == 0)
 		return 0;
 
-	if(lexio->prev == 0){
+	if(lexio->prev == 0) {
 		if(lexio->fin)
 			restartio();
 		return 0;
@@ -169,11 +141,11 @@ popio(void)
 }
 
 int
-Lfmt(Fmt *f)
+Lfmt(Fmt* f)
 {
 	int i;
 	char buf[1024];
-	IOstack *e;
+	IOstack* e;
 
 	e = lexio;
 	if(e) {
@@ -182,10 +154,11 @@ Lfmt(Fmt *f)
 			e = e->prev;
 			if(initialising && e->prev == 0)
 				break;
-			i += snprint(buf+i, sizeof(buf)-i, " [%s:%d]", e->name, e->line);
+			i += snprint(buf + i, sizeof(buf) - i, " [%s:%d]",
+			             e->name, e->line);
 		}
 	} else
-		snprint(buf, sizeof(buf),  "no file:0");
+		snprint(buf, sizeof(buf), "no file:0");
 	fmtstrcpy(f, buf);
 	return 0;
 }
@@ -248,7 +221,7 @@ escchar(char c)
 	n = cmap[c];
 	if(n == 0)
 		return c;
-	return n-1;
+	return n - 1;
 }
 
 void
@@ -278,7 +251,7 @@ eatstring(void)
 			if(esc == 0)
 				goto done;
 
-			/* Fall through */
+		/* Fall through */
 		default:
 		Default:
 			if(esc) {
@@ -355,7 +328,7 @@ loop:
 			return numsym('.');
 
 		return '.';
- 
+
 	case '(':
 	case ')':
 	case '[':
@@ -481,8 +454,8 @@ int
 numsym(char first)
 {
 	int c, isbin, isfloat, ishex;
-	char *sel, *p;
-	Lsym *s;
+	char* sel, *p;
+	Lsym* s;
 
 	symbol[0] = first;
 	p = symbol;
@@ -528,7 +501,7 @@ numsym(char first)
 		}
 
 		if(isbin)
-			yylval.ival = strtoull(symbol+2, 0, 2);
+			yylval.ival = strtoull(symbol + 2, 0, 2);
 		else
 			yylval.ival = strtoull(symbol, 0, 0);
 		return Tconst;
@@ -540,7 +513,9 @@ numsym(char first)
 			error("%d <eof> eating symbols", line);
 		if(c == '\n')
 			line++;
-		if(c != '_' && c != '$' && c <= '~' && !isalnum(c)) {	/* checking against ~ lets UTF names through */
+		if(c != '_' && c != '$' && c <= '~' &&
+		   !isalnum(
+		       c)) { /* checking against ~ lets UTF names through */
 			unlexc(c);
 			break;
 		}
@@ -558,16 +533,16 @@ numsym(char first)
 }
 
 Lsym*
-enter(char *name, int t)
+enter(char* name, int t)
 {
-	Lsym *s;
+	Lsym* s;
 	uint h;
-	char *p;
-	Value *v;
+	char* p;
+	Value* v;
 
 	h = 0;
 	for(p = name; *p; p++)
-		h = h*3 + *p;
+		h = h * 3 + *p;
 	h %= Hashsize;
 
 	s = gmalloc(sizeof(Lsym));
@@ -589,15 +564,15 @@ enter(char *name, int t)
 }
 
 Lsym*
-look(char *name)
+look(char* name)
 {
-	Lsym *s;
+	Lsym* s;
 	uint h;
-	char *p;
+	char* p;
 
 	h = 0;
 	for(p = name; *p; p++)
-		h = h*3 + *p;
+		h = h * 3 + *p;
 	h %= Hashsize;
 
 	for(s = hash[h]; s; s = s->hash)
@@ -607,9 +582,9 @@ look(char *name)
 }
 
 Lsym*
-mkvar(char *s)
+mkvar(char* s)
 {
-	Lsym *l;
+	Lsym* l;
 
 	l = look(s);
 	if(l == 0)

@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1994, 1997 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,13 +27,13 @@
 /* Extended public interface to halftones */
 
 #ifndef gsht1_INCLUDED
-#  define gsht1_INCLUDED
+#define gsht1_INCLUDED
 
 #include "gsht.h"
 
 /* Procedural interface */
-int gs_setcolorscreen(gs_state *, gs_colorscreen_halftone *);
-int gs_currentcolorscreen(gs_state *, gs_colorscreen_halftone *);
+int gs_setcolorscreen(gs_state*, gs_colorscreen_halftone*);
+int gs_currentcolorscreen(gs_state*, gs_colorscreen_halftone*);
 
 /*
  * We include sethalftone here, even though it is a Level 2 feature,
@@ -41,7 +41,7 @@ int gs_currentcolorscreen(gs_state *, gs_colorscreen_halftone *);
  * using sethalftone.
  */
 #ifndef gs_halftone_DEFINED
-#  define gs_halftone_DEFINED
+#define gs_halftone_DEFINED
 typedef struct gs_halftone_s gs_halftone;
 
 #endif
@@ -54,8 +54,8 @@ typedef struct gs_halftone_s gs_halftone;
  * copy the top-level structure (using the appropriate allocator), but take
  * ownership of the substructures.
  */
-int gs_sethalftone(gs_state *, gs_halftone *);
-int gs_sethalftone_allocated(gs_state *, gs_halftone *);
-int gs_currenthalftone(gs_state *, gs_halftone *);
+int gs_sethalftone(gs_state*, gs_halftone*);
+int gs_sethalftone_allocated(gs_state*, gs_halftone*);
+int gs_currenthalftone(gs_state*, gs_halftone*);
 
 #endif /* gsht1_INCLUDED */

@@ -23,159 +23,144 @@ typedef struct Quick Quick;
 typedef struct Match Match;
 typedef struct Search Search;
 
-enum
-{
-	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	Nfidhash	= 32,
+enum { OPERM = 0x3, /* mask of all permission types in open mode */
+       Nfidhash = 32,
 
-	/*
-	 * qids
-	 */
-	Qroot	= 1,
-	Qsearch	= 2,
-	Qstats	= 3,
+       /*
+        * qids
+        */
+       Qroot = 1,
+       Qsearch = 2,
+       Qstats = 3,
 };
 
 /*
  * boyer-moore quick string matching
  */
-struct Quick
-{
-	char	*pat;
-	char	*up;		/* match string for upper case of pat */
-	int	len;		/* of pat (and up) -1; used for fast search */
-	uint8_t 	jump[256];	/* jump index table */
-	int	miss;		/* amount to jump if we falsely match the last char */
+struct Quick {
+	char* pat;
+	char* up;          /* match string for upper case of pat */
+	int len;           /* of pat (and up) -1; used for fast search */
+	uint8_t jump[256]; /* jump index table */
+	int miss; /* amount to jump if we falsely match the last char */
 };
-extern void	quickmk(Quick*, char*, int);
-extern void	quickfree(Quick*);
-extern char*	quicksearch(Quick*, char*, char*);
+extern void quickmk(Quick*, char*, int);
+extern void quickfree(Quick*);
+extern char* quicksearch(Quick*, char*, char*);
 
 /*
  * exact matching of a search string
  */
-struct Match
-{
-	Match	*next;
-	char	*pat;				/* null-terminated search string */
-	char	*up;				/* upper case of pat */
-	int	len;				/* length of both pat and up */
-	int	(*op)(Match*, char*, char*);		/* method for this partiticular search */
+struct Match {
+	Match* next;
+	char* pat; /* null-terminated search string */
+	char* up;  /* upper case of pat */
+	int len;   /* length of both pat and up */
+	int (*op)(Match*, char*,
+	          char*); /* method for this partiticular search */
 };
 
-struct Search
-{
-	Quick		quick;		/* quick match */
-	Match		*match;		/* exact matches */
-	int		skip;		/* number of matches to skip */
+struct Search {
+	Quick quick;  /* quick match */
+	Match* match; /* exact matches */
+	int skip;     /* number of matches to skip */
 };
 
-extern char*	searchsearch(Search*, char*, char*, int*);
-extern Search*	searchparse(char*, char*);
-extern void	searchfree(Search*);
+extern char* searchsearch(Search*, char*, char*, int*);
+extern Search* searchparse(char*, char*);
+extern void searchfree(Search*);
 
-struct Fid
-{
+struct Fid {
 	Lock;
-	Fid	*next;
-	Fid	**last;
-	uint	fid;
-	int	ref;		/* number of fcalls using the fid */
-	int	attached;		/* fid has beed attached or cloned and not clunked */
+	Fid* next;
+	Fid** last;
+	uint fid;
+	int ref;      /* number of fcalls using the fid */
+	int attached; /* fid has beed attached or cloned and not clunked */
 
-	int	open;
-	Qid	qid;
-	Search	*search;		/* search patterns */
-	char	*where;		/* current location in the database */
-	int	n;		/* number of bytes left in found item */
+	int open;
+	Qid qid;
+	Search* search; /* search patterns */
+	char* where;    /* current location in the database */
+	int n;          /* number of bytes left in found item */
 };
 
-int			dostat(int, uint8_t*, int);
-void*			emalloc(uint);
-void			fatal(char*, ...);
-Match*			mkmatch(Match*,
-				      int(*)(Match*, char*, char*),
-				      char*);
-Match*			mkstrmatch(Match*, char*);
-char*		nextsearch(char*, char*, char**, char**);
-int			strlook(Match*, char*, char*);
-char*			strndup(char*, int);
-int			tolower(int);
-int			toupper(int);
-char*			urlunesc(char*, char*);
-void			usage(void);
+int dostat(int, uint8_t*, int);
+void* emalloc(uint);
+void fatal(char*, ...);
+Match* mkmatch(Match*, int (*)(Match*, char*, char*), char*);
+Match* mkstrmatch(Match*, char*);
+char* nextsearch(char*, char*, char**, char**);
+int strlook(Match*, char*, char*);
+char* strndup(char*, int);
+int tolower(int);
+int toupper(int);
+char* urlunesc(char*, char*);
+void usage(void);
 
-struct Fs
-{
-	Lock;			/* for fids */
+struct Fs {
+	Lock; /* for fids */
 
-	Fid	*hash[Nfidhash];
-	unsigned char	statbuf[1024];	/* plenty big enough */
+	Fid* hash[Nfidhash];
+	unsigned char statbuf[1024]; /* plenty big enough */
 };
-extern	void	fsrun(Fs*, int);
-extern	Fid*	getfid(Fs*, uint);
-extern	Fid*	mkfid(Fs*, uint);
-extern	void	putfid(Fs*, Fid*);
-extern	char*	fsversion(Fs*, Fcall*);
-extern	char*	fsauth(Fs*, Fcall*);
-extern	char*	fsattach(Fs*, Fcall*);
-extern	char*	fswalk(Fs*, Fcall*);
-extern	char*	fsopen(Fs*, Fcall*);
-extern	char*	fscreate(Fs*, Fcall*);
-extern	char*	fsread(Fs*, Fcall*);
-extern	char*	fswrite(Fs*, Fcall*);
-extern	char*	fsclunk(Fs*, Fcall*);
-extern	char*	fsremove(Fs*, Fcall*);
-extern	char*	fsstat(Fs*, Fcall*);
-extern	char*	fswstat(Fs*, Fcall*);
+extern void fsrun(Fs*, int);
+extern Fid* getfid(Fs*, uint);
+extern Fid* mkfid(Fs*, uint);
+extern void putfid(Fs*, Fid*);
+extern char* fsversion(Fs*, Fcall*);
+extern char* fsauth(Fs*, Fcall*);
+extern char* fsattach(Fs*, Fcall*);
+extern char* fswalk(Fs*, Fcall*);
+extern char* fsopen(Fs*, Fcall*);
+extern char* fscreate(Fs*, Fcall*);
+extern char* fsread(Fs*, Fcall*);
+extern char* fswrite(Fs*, Fcall*);
+extern char* fsclunk(Fs*, Fcall*);
+extern char* fsremove(Fs*, Fcall*);
+extern char* fsstat(Fs*, Fcall*);
+extern char* fswstat(Fs*, Fcall*);
 
-char	*(*fcalls[])(Fs*, Fcall*) =
-{
-	[Tversion]		fsversion,
-	[Tattach]	fsattach,
-	[Tauth]	fsauth,
-	[Twalk]		fswalk,
-	[Topen]		fsopen,
-	[Tcreate]	fscreate,
-	[Tread]		fsread,
-	[Twrite]	fswrite,
-	[Tclunk]	fsclunk,
-	[Tremove]	fsremove,
-	[Tstat]		fsstat,
-	[Twstat]	fswstat
-};
+char* (*fcalls[])(Fs*, Fcall*) = {[Tversion] fsversion, [Tattach] fsattach,
+                                  [Tauth] fsauth,       [Twalk] fswalk,
+                                  [Topen] fsopen,       [Tcreate] fscreate,
+                                  [Tread] fsread,       [Twrite] fswrite,
+                                  [Tclunk] fsclunk,     [Tremove] fsremove,
+                                  [Tstat] fsstat,       [Twstat] fswstat};
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enotexist[] =	"file does not exist";
-char	Eisopen[] = 	"file already open for I/O";
-char	Einuse[] =	"fid is already in use";
-char	Enofid[] = 	"no such fid";
-char	Enotopen[] =	"file is not open";
-char	Ebadsearch[] =	"bad search string";
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enotexist[] = "file does not exist";
+char Eisopen[] = "file already open for I/O";
+char Einuse[] = "fid is already in use";
+char Enofid[] = "no such fid";
+char Enotopen[] = "file is not open";
+char Ebadsearch[] = "bad search string";
 
-Fs	fs;
-char	*database;
-char	*edatabase;
-int	messagesize = 8192+IOHDRSZ;
+Fs fs;
+char* database;
+char* edatabase;
+int messagesize = 8192 + IOHDRSZ;
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Dir *d;
+	Dir* d;
 	char buf[12], *mnt, *srv;
 	int fd, p[2], n;
 
 	mnt = "/tmp";
 	srv = nil;
-	ARGBEGIN{
-		case 's':
-			srv = ARGF();
-			mnt = nil;
-			break;
-		case 'm':
-			mnt = ARGF();
-			break;
-	}ARGEND
+	ARGBEGIN
+	{
+	case 's':
+		srv = ARGF();
+		mnt = nil;
+		break;
+	case 'm':
+		mnt = ARGF();
+		break;
+	}
+	ARGEND
 
 	fmtinstall('F', fcallfmt);
 
@@ -183,7 +168,7 @@ main(int argc, char **argv)
 		usage();
 	d = nil;
 	fd = open(argv[0], OREAD);
-	if(fd < 0 || (d=dirfstat(fd)) == nil)
+	if(fd < 0 || (d = dirfstat(fd)) == nil)
 		fatal("can't open %s: %r", argv[0]);
 	n = d->length;
 	free(d);
@@ -198,28 +183,28 @@ main(int argc, char **argv)
 	if(pipe(p) < 0)
 		fatal("pipe failed");
 
-	switch(rfork(RFPROC|RFMEM|RFNOTEG|RFNAMEG)){
+	switch(rfork(RFPROC | RFMEM | RFNOTEG | RFNAMEG)) {
 	case 0:
 		fsrun(&fs, p[0]);
 		exits(nil);
-	case -1:	
+	case -1:
 		fatal("fork failed");
 	}
 
-	if(mnt == nil){
+	if(mnt == nil) {
 		if(srv == nil)
 			usage();
 		fd = create(srv, OWRITE, 0666);
-		if(fd < 0){
+		if(fd < 0) {
 			remove(srv);
 			fd = create(srv, OWRITE, 0666);
-			if(fd < 0){
+			if(fd < 0) {
 				close(p[1]);
 				fatal("create of %s failed", srv);
 			}
 		}
 		sprint(buf, "%d", p[1]);
-		if(write(fd, buf, strlen(buf)) < 0){
+		if(write(fd, buf, strlen(buf)) < 0) {
 			close(p[1]);
 			fatal("writing %s", srv);
 		}
@@ -227,7 +212,7 @@ main(int argc, char **argv)
 		exits(nil);
 	}
 
-	if(mount(p[1], -1, mnt, MREPL, "") < 0){
+	if(mount(p[1], -1, mnt, MREPL, "") < 0) {
 		close(p[1]);
 		fatal("mount failed");
 	}
@@ -242,15 +227,15 @@ main(int argc, char **argv)
  * and try all of the exact matches
  */
 char*
-searchsearch(Search *search, char *where, char *end, int *np)
+searchsearch(Search* search, char* where, char* end, int* np)
 {
-	Match *m;
-	char *s, *e;
+	Match* m;
+	char* s, *e;
 
 	*np = 0;
 	if(search == nil || where == nil)
 		return nil;
-	for(;;){
+	for(;;) {
 		s = quicksearch(&search->quick, where, end);
 		if(s == nil)
 			return nil;
@@ -261,15 +246,15 @@ searchsearch(Search *search, char *where, char *end, int *np)
 			e++;
 		while(s > where && s[-1] != '\n')
 			s--;
-		for(m = search->match; m != nil; m = m->next){
+		for(m = search->match; m != nil; m = m->next) {
 			if((*m->op)(m, s, e) == 0)
 				break;
 		}
 
-		if(m == nil){
+		if(m == nil) {
 			if(search->skip > 0)
 				search->skip--;
-			else{
+			else {
 				*np = e - s;
 				return s;
 			}
@@ -284,11 +269,11 @@ searchsearch(Search *search, char *where, char *end, int *np)
  * tag=val&tag1=val1...
  */
 Search*
-searchparse(char *search, char *esearch)
+searchparse(char* search, char* esearch)
 {
-	Search *s;
-	Match *m, *next, **last;
-	char *tag, *val, *p;
+	Search* s;
+	Match* m, *next, **last;
+	char* tag, *val, *p;
 	int ok;
 
 	s = emalloc(sizeof *s);
@@ -299,32 +284,32 @@ searchparse(char *search, char *esearch)
 	 * repeated search queries are ingored.
 	 * the last search given is performed on the original object
 	 */
-	while((p = memchr(s, '?', esearch - search)) != nil){
+	while((p = memchr(s, '?', esearch - search)) != nil) {
 		search = p + 1;
 	}
-	while(search < esearch){
+	while(search < esearch) {
 		search = nextsearch(search, esearch, &tag, &val);
 		if(tag == nil)
 			continue;
 
 		ok = 0;
-		if(strcmp(tag, "skip") == 0){
+		if(strcmp(tag, "skip") == 0) {
 			s->skip = strtoul(val, &p, 10);
 			if(*p == 0)
 				ok = 1;
-		}else if(strcmp(tag, "search") == 0){
+		} else if(strcmp(tag, "search") == 0) {
 			s->match = mkstrmatch(s->match, val);
 			ok = 1;
 		}
 		free(tag);
 		free(val);
-		if(!ok){
+		if(!ok) {
 			searchfree(s);
 			return nil;
 		}
 	}
 
-	if(s->match == nil){
+	if(s->match == nil) {
 		free(s);
 		return nil;
 	}
@@ -333,11 +318,11 @@ searchparse(char *search, char *esearch)
 	 * order the matches by probability of occurance
 	 * first cut is just by length
 	 */
-	for(ok = 0; !ok; ){
+	for(ok = 0; !ok;) {
 		ok = 1;
 		last = &s->match;
-		for(m = *last; m && m->next; m = *last){
-			if(m->next->len > m->len){
+		for(m = *last; m && m->next; m = *last) {
+			if(m->next->len > m->len) {
 				next = m->next;
 				m->next = next->next;
 				next->next = m;
@@ -361,13 +346,13 @@ searchparse(char *search, char *esearch)
 }
 
 void
-searchfree(Search *s)
+searchfree(Search* s)
 {
-	Match *m, *next;
+	Match* m, *next;
 
 	if(s == nil)
 		return;
-	for(m = s->match; m; m = next){
+	for(m = s->match; m; m = next) {
 		next = m->next;
 		free(m->pat);
 		free(m->up);
@@ -378,9 +363,9 @@ searchfree(Search *s)
 }
 
 char*
-nextsearch(char *search, char *esearch, char **tagp, char **valp)
+nextsearch(char* search, char* esearch, char** tagp, char** valp)
 {
-	char *tag, *val;
+	char* tag, *val;
 
 	*tagp = nil;
 	*valp = nil;
@@ -401,26 +386,26 @@ nextsearch(char *search, char *esearch, char **tagp, char **valp)
 }
 
 Match*
-mkstrmatch(Match *m, char *pat)
+mkstrmatch(Match* m, char* pat)
 {
-	char *s;
+	char* s;
 
-	for(s = pat; *s; s++){
-		if(*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r'){
+	for(s = pat; *s; s++) {
+		if(*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r') {
 			*s = 0;
 			m = mkmatch(m, strlook, pat);
 			pat = s + 1;
-		}else
+		} else
 			*s = tolower(*s);
 	}
 	return mkmatch(m, strlook, pat);
 }
 
 Match*
-mkmatch(Match *next, int (*op)(Match*, char*, char*), char *pat)
+mkmatch(Match* next, int (*op)(Match*, char*, char*), char* pat)
 {
-	Match *m;
-	char *p;
+	Match* m;
+	char* p;
 	int n;
 
 	n = strlen(pat);
@@ -440,21 +425,21 @@ mkmatch(Match *next, int (*op)(Match*, char*, char*), char *pat)
 }
 
 int
-strlook(Match *m, char *str, char *e)
+strlook(Match* m, char* str, char* e)
 {
-	char *pat, *up, *s;
+	char* pat, *up, *s;
 	int c, pc, fc, fuc, n;
 
 	n = m->len;
 	fc = m->pat[0];
 	fuc = m->up[0];
-	for(; str + n <= e; str++){
+	for(; str + n <= e; str++) {
 		c = *str;
 		if(c != fc && c != fuc)
 			continue;
 		s = str + 1;
 		up = m->up + 1;
-		for(pat = m->pat + 1; pc = *pat; pat++){
+		for(pat = m->pat + 1; pc = *pat; pat++) {
 			c = *s;
 			if(c != pc && c != *up)
 				break;
@@ -475,30 +460,30 @@ strlook(Match *m, char *str, char *e)
  * it only implements an approximate match
  */
 void
-quickmk(Quick *q, char *spat, int ignorecase)
+quickmk(Quick* q, char* spat, int ignorecase)
 {
-	char *pat, *up;
-	uint8_t *j;	
+	char* pat, *up;
+	uint8_t* j;
 	int ep, ea, cp, ca, i, c, n;
 
 	/*
 	 * allocate the machine
 	 */
 	n = strlen(spat);
-	if(n == 0){
+	if(n == 0) {
 		q->pat = nil;
 		q->up = nil;
 		q->len = -1;
 		return;
 	}
-	pat = emalloc(2* n + 2);
+	pat = emalloc(2 * n + 2);
 	q->pat = pat;
 	up = pat;
 	if(ignorecase)
 		up = pat + n + 1;
 	q->up = up;
-	while(c = *spat++){
-		if(ignorecase){
+	while(c = *spat++) {
+		if(ignorecase) {
 			*up++ = toupper(c);
 			c = tolower(c);
 		}
@@ -517,18 +502,18 @@ quickmk(Quick *q, char *spat, int ignorecase)
 	memset(j, n, 256);
 	n--;
 	q->len = n;
-	for(i = 0; i <= n; i++){
+	for(i = 0; i <= n; i++) {
 		j[(uint8_t)pat[i]] = n - i;
 		j[(uint8_t)up[i]] = n - i;
 	}
-	
+
 	/*
 	 * find the minimum safe amount to skip
 	 * if we match the last char but not the whole pat
 	 */
 	ep = pat[n];
 	ea = up[n];
-	for(i = n - 1; i >= 0; i--){
+	for(i = n - 1; i >= 0; i--) {
 		cp = pat[i];
 		ca = up[i];
 		if(cp == ep || cp == ea || ca == ep || ca == ea)
@@ -538,18 +523,18 @@ quickmk(Quick *q, char *spat, int ignorecase)
 }
 
 void
-quickfree(Quick *q)
+quickfree(Quick* q)
 {
 	if(q->pat != nil)
 		free(q->pat);
 	q->pat = nil;
 }
 
-char *
-quicksearch(Quick *q, char *s, char *e)
+char*
+quicksearch(Quick* q, char* s, char* e)
 {
-	char *pat, *up, *m, *ee;
-	uint8_t *j;
+	char* pat, *up, *m, *ee;
+	uint8_t* j;
 	int len, n, c, mc;
 
 	len = q->len;
@@ -560,11 +545,11 @@ quicksearch(Quick *q, char *s, char *e)
 	up = q->up;
 	s += len;
 	ee = e - (len * 4 + 4);
-	while(s < e){
+	while(s < e) {
 		/*
 		 * look for a match on the last char
 		 */
-		while(s < ee && (n = j[(uint8_t)*s])){
+		while(s < ee && (n = j[(uint8_t)*s])) {
 			s += n;
 			s += j[(uint8_t)*s];
 			s += j[(uint8_t)*s];
@@ -572,7 +557,7 @@ quicksearch(Quick *q, char *s, char *e)
 		}
 		if(s >= e)
 			return nil;
-		while(n = j[(uint8_t)*s]){
+		while(n = j[(uint8_t)*s]) {
 			s += n;
 			if(s >= e)
 				return nil;
@@ -582,7 +567,7 @@ quicksearch(Quick *q, char *s, char *e)
 		 * does the string match?
 		 */
 		m = s - len;
-		for(n = 0; c = pat[n]; n++){
+		for(n = 0; c = pat[n]; n++) {
 			mc = *m++;
 			if(c != mc && mc != up[n])
 				break;
@@ -595,15 +580,15 @@ quicksearch(Quick *q, char *s, char *e)
 }
 
 void
-fsrun(Fs *fs, int fd)
+fsrun(Fs* fs, int fd)
 {
 	Fcall rpc;
-	char *err;
-	uint8_t *buf;
+	char* err;
+	uint8_t* buf;
 	int n;
 
 	buf = emalloc(messagesize);
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads
@@ -623,7 +608,6 @@ fsrun(Fs *fs, int fd)
 			continue;
 		// fprint(2, "recv: %F\n", &rpc);
 
-
 		/*
 		 * flushes are way too hard.
 		 * a reply to the original message seems to work
@@ -634,10 +618,10 @@ fsrun(Fs *fs, int fd)
 			err = "bad fcall type";
 		else
 			err = (*fcalls[rpc.type])(fs, &rpc);
-		if(err){
+		if(err) {
 			rpc.type = Rerror;
 			rpc.ename = err;
-		}else
+		} else
 			rpc.type++;
 		n = convS2M(&rpc, buf, messagesize);
 		// fprint(2, "send: %F\n", &rpc);
@@ -647,13 +631,13 @@ fsrun(Fs *fs, int fd)
 }
 
 Fid*
-mkfid(Fs *fs, uint fid)
+mkfid(Fs* fs, uint fid)
 {
-	Fid *f;
+	Fid* f;
 	int h;
 
 	h = fid % Nfidhash;
-	for(f = fs->hash[h]; f; f = f->next){
+	for(f = fs->hash[h]; f; f = f->next) {
 		if(f->fid == fid)
 			return nil;
 	}
@@ -673,14 +657,14 @@ mkfid(Fs *fs, uint fid)
 }
 
 Fid*
-getfid(Fs *fs, uint fid)
+getfid(Fs* fs, uint fid)
 {
-	Fid *f;
+	Fid* f;
 	int h;
 
 	h = fid % Nfidhash;
-	for(f = fs->hash[h]; f; f = f->next){
-		if(f->fid == fid){
+	for(f = fs->hash[h]; f; f = f->next) {
+		if(f->fid == fid) {
 			if(f->attached == 0)
 				break;
 			f->ref++;
@@ -691,10 +675,10 @@ getfid(Fs *fs, uint fid)
 }
 
 void
-putfid(Fs *fs, Fid *f)
+putfid(Fs* fs, Fid* f)
 {
 	f->ref--;
-	if(f->ref == 0 && f->attached == 0){
+	if(f->ref == 0 && f->attached == 0) {
 		*f->last = f->next;
 		if(f->next != nil)
 			f->next->last = f->last;
@@ -705,7 +689,7 @@ putfid(Fs *fs, Fid *f)
 }
 
 char*
-fsversion(Fs *fs, Fcall *rpc)
+fsversion(Fs* fs, Fcall* rpc)
 {
 	if(rpc->msize < 256)
 		return "version: message size too small";
@@ -719,15 +703,15 @@ fsversion(Fs *fs, Fcall *rpc)
 }
 
 char*
-fsauth(Fs *fs, Fcall *f)
+fsauth(Fs* fs, Fcall* f)
 {
 	return "searchfs: authentication not required";
 }
 
 char*
-fsattach(Fs *fs, Fcall *rpc)
+fsattach(Fs* fs, Fcall* rpc)
 {
-	Fid *f;
+	Fid* f;
 
 	f = mkfid(fs, rpc->fid);
 	if(f == nil)
@@ -742,58 +726,58 @@ fsattach(Fs *fs, Fcall *rpc)
 }
 
 char*
-fswalk(Fs *fs, Fcall *rpc)
+fswalk(Fs* fs, Fcall* rpc)
 {
-	Fid *f, *nf;
+	Fid* f, *nf;
 	int nqid, nwname, type;
-	char *err, *name;
+	char* err, *name;
 	uint32_t path;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
 	nf = nil;
-	if(rpc->fid != rpc->newfid){
+	if(rpc->fid != rpc->newfid) {
 		nf = mkfid(fs, rpc->newfid);
-		if(nf == nil){
+		if(nf == nil) {
 			putfid(fs, f);
 			return Einuse;
 		}
 		nf->qid = f->qid;
 		putfid(fs, f);
-		f = nf;	/* walk f */
+		f = nf; /* walk f */
 	}
 
 	err = nil;
 	path = f->qid.path;
 	nwname = rpc->nwname;
-	for(nqid=0; nqid<nwname; nqid++){
-		if(path != Qroot){
+	for(nqid = 0; nqid < nwname; nqid++) {
+		if(path != Qroot) {
 			err = Enotdir;
 			break;
 		}
 		name = rpc->wname[nqid];
-		if(strcmp(name, "search") == 0){
+		if(strcmp(name, "search") == 0) {
 			type = QTFILE;
 			path = Qsearch;
-		}else if(strcmp(name, "stats") == 0){
+		} else if(strcmp(name, "stats") == 0) {
 			type = QTFILE;
 			path = Qstats;
-		}else if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0){
+		} else if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 			type = QTDIR;
 			path = path;
-		}else{
+		} else {
 			err = Enotexist;
 			break;
 		}
 		rpc->wqid[nqid] = (Qid){path, 0, type};
 	}
 
-	if(nwname > 0){
+	if(nwname > 0) {
 		if(nf != nil && nqid < nwname)
 			nf->attached = 0;
 		if(nqid == nwname)
-			f->qid = rpc->wqid[nqid-1];
+			f->qid = rpc->wqid[nqid - 1];
 	}
 
 	putfid(fs, f);
@@ -802,22 +786,22 @@ fswalk(Fs *fs, Fcall *rpc)
 	return err;
 }
 
-char *
-fsopen(Fs *fs, Fcall *rpc)
+char*
+fsopen(Fs* fs, Fcall* rpc)
 {
-	Fid *f;
+	Fid* f;
 	int mode;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(f->open){
+	if(f->open) {
 		putfid(fs, f);
 		return Eisopen;
 	}
 	mode = rpc->mode & OPERM;
-	if(mode == OEXEC
-	|| f->qid.path == Qroot && (mode == OWRITE || mode == ORDWR)){
+	if(mode == OEXEC ||
+	   f->qid.path == Qroot && (mode == OWRITE || mode == ORDWR)) {
 		putfid(fs, f);
 		return Eperm;
 	}
@@ -826,57 +810,58 @@ fsopen(Fs *fs, Fcall *rpc)
 	f->n = 0;
 	f->search = nil;
 	rpc->qid = f->qid;
-	rpc->iounit = messagesize-IOHDRSZ;
+	rpc->iounit = messagesize - IOHDRSZ;
 	putfid(fs, f);
 	return nil;
 }
 
-char *
-fscreate(Fs *fs, Fcall *f)
+char*
+fscreate(Fs* fs, Fcall* f)
 {
 	return Eperm;
 }
 
 char*
-fsread(Fs *fs, Fcall *rpc)
+fsread(Fs* fs, Fcall* rpc)
 {
-	Fid *f;
+	Fid* f;
 	int n, off, count, len;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(!f->open){
+	if(!f->open) {
 		putfid(fs, f);
 		return Enotopen;
 	}
 	count = rpc->count;
 	off = rpc->offset;
 	rpc->count = 0;
-	if(f->qid.path == Qroot){
+	if(f->qid.path == Qroot) {
 		if(off > 0)
 			rpc->count = 0;
 		else
-			rpc->count = dostat(Qsearch, (uint8_t*)rpc->data,
-					    count);
+			rpc->count =
+			    dostat(Qsearch, (uint8_t*)rpc->data, count);
 		putfid(fs, f);
 		if(off == 0 && rpc->count <= BIT16SZ)
 			return "directory read count too small";
 		return nil;
 	}
-	if(f->qid.path == Qstats){
+	if(f->qid.path == Qstats) {
 		len = 0;
-	}else{
-		for(len = 0; len < count; len += n){
+	} else {
+		for(len = 0; len < count; len += n) {
 			if(f->where == nil || f->search == nil)
 				break;
 			if(f->n == 0)
-				f->where = searchsearch(f->search, f->where, edatabase, &f->n);
+				f->where = searchsearch(f->search, f->where,
+				                        edatabase, &f->n);
 			n = f->n;
-			if(n != 0){
-				if(n > count-len)
-					n = count-len;
-				memmove(rpc->data+len, f->where, n);
+			if(n != 0) {
+				if(n > count - len)
+					n = count - len;
+				memmove(rpc->data + len, f->where, n);
 				f->where += n;
 				f->n -= n;
 			}
@@ -888,14 +873,14 @@ fsread(Fs *fs, Fcall *rpc)
 }
 
 char*
-fswrite(Fs *fs, Fcall *rpc)
+fswrite(Fs* fs, Fcall* rpc)
 {
-	Fid *f;
+	Fid* f;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(!f->open || f->qid.path != Qsearch){
+	if(!f->open || f->qid.path != Qsearch) {
 		putfid(fs, f);
 		return Enotopen;
 	}
@@ -903,7 +888,7 @@ fswrite(Fs *fs, Fcall *rpc)
 	if(f->search != nil)
 		searchfree(f->search);
 	f->search = searchparse(rpc->data, rpc->data + rpc->count);
-	if(f->search == nil){
+	if(f->search == nil) {
 		putfid(fs, f);
 		return Ebadsearch;
 	}
@@ -913,29 +898,29 @@ fswrite(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char *
-fsclunk(Fs *fs, Fcall *rpc)
+char*
+fsclunk(Fs* fs, Fcall* rpc)
 {
-	Fid *f;
+	Fid* f;
 
 	f = getfid(fs, rpc->fid);
-	if(f != nil){
+	if(f != nil) {
 		f->attached = 0;
 		putfid(fs, f);
 	}
 	return nil;
 }
 
-char *
-fsremove(Fs *fs, Fcall *f)
+char*
+fsremove(Fs* fs, Fcall* f)
 {
 	return Eperm;
 }
 
-char *
-fsstat(Fs *fs, Fcall *rpc)
+char*
+fsstat(Fs* fs, Fcall* rpc)
 {
-	Fid *f;
+	Fid* f;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
@@ -948,21 +933,21 @@ fsstat(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char *
-fswstat(Fs *fs, Fcall *f)
+char*
+fswstat(Fs* fs, Fcall* f)
 {
 	return Eperm;
 }
 
 int
-dostat(int path, uint8_t *buf, int nbuf)
+dostat(int path, uint8_t* buf, int nbuf)
 {
 	Dir d;
 
-	switch(path){
+	switch(path) {
 	case Qroot:
 		d.name = ".";
-		d.mode = DMDIR|0555;
+		d.mode = DMDIR | 0555;
 		d.qid.type = QTDIR;
 		break;
 	case Qsearch:
@@ -984,16 +969,16 @@ dostat(int path, uint8_t *buf, int nbuf)
 	return convD2M(&d, buf, nbuf);
 }
 
-char *
-urlunesc(char *s, char *e)
+char*
+urlunesc(char* s, char* e)
 {
-	char *t, *v;
+	char* t, *v;
 	int c, n;
 
 	v = emalloc((e - s) + 1);
-	for(t = v; s < e; s++){
+	for(t = v; s < e; s++) {
 		c = *s;
-		if(c == '%'){
+		if(c == '%') {
 			if(s + 2 >= e)
 				break;
 			n = s[1];
@@ -1041,24 +1026,24 @@ tolower(int c)
 }
 
 void
-fatal(char *fmt, ...)
+fatal(char* fmt, ...)
 {
 	va_list arg;
 	char buf[1024];
 
 	write(2, "searchfs: ", 8);
 	va_start(arg, fmt);
-	vseprint(buf, buf+1024, fmt, arg);
+	vseprint(buf, buf + 1024, fmt, arg);
 	va_end(arg);
 	write(2, buf, strlen(buf));
 	write(2, "\n", 1);
 	exits(fmt);
 }
 
-void *
+void*
 emalloc(uint n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)

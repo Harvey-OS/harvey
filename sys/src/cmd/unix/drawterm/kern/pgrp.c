@@ -7,35 +7,35 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 static Ref pgrpid;
 static Ref mountid;
 
 #ifdef NOTDEF
 void
-pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
+pgrpnote(uint32_t noteid, char* a, int32_t n, int flag)
 {
-	Proc *p, *ep;
+	Proc* p, *ep;
 	char buf[ERRMAX];
 
-	if(n >= ERRMAX-1)
+	if(n >= ERRMAX - 1)
 		error(Etoobig);
 
 	memmove(buf, a, n);
 	buf[n] = 0;
 	p = proctab(0);
-	ep = p+conf.nproc;
+	ep = p + conf.nproc;
 	for(; p < ep; p++) {
 		if(p->state == Dead)
 			continue;
 		if(up != p && p->noteid == noteid && p->kp == 0) {
 			qlock(&p->debug);
-			if(p->pid == 0 || p->noteid != noteid){
+			if(p->pid == 0 || p->noteid != noteid) {
 				qunlock(&p->debug);
 				continue;
 			}
@@ -52,7 +52,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 Pgrp*
 newpgrp(void)
 {
-	Pgrp *p;
+	Pgrp* p;
 
 	p = smalloc(sizeof(Pgrp));
 	p->ref.ref = 1;
@@ -63,7 +63,7 @@ newpgrp(void)
 Rgrp*
 newrgrp(void)
 {
-	Rgrp *r;
+	Rgrp* r;
 
 	r = smalloc(sizeof(Rgrp));
 	r->ref.ref = 1;
@@ -71,16 +71,16 @@ newrgrp(void)
 }
 
 void
-closergrp(Rgrp *r)
+closergrp(Rgrp* r)
 {
 	if(decref(&r->ref) == 0)
 		free(r);
 }
 
 void
-closepgrp(Pgrp *p)
+closepgrp(Pgrp* p)
 {
-	Mhead **h, **e, *f, *next;
+	Mhead** h, **e, *f, *next;
 
 	if(decref(&p->ref) != 0)
 		return;
@@ -107,9 +107,9 @@ closepgrp(Pgrp *p)
 }
 
 void
-pgrpinsert(Mount **order, Mount *m)
+pgrpinsert(Mount** order, Mount* m)
 {
-	Mount *f;
+	Mount* f;
 
 	m->order = 0;
 	if(*order == 0) {
@@ -131,11 +131,11 @@ pgrpinsert(Mount **order, Mount *m)
  * pgrpcpy MUST preserve the mountid allocation order of the parent group
  */
 void
-pgrpcpy(Pgrp *to, Pgrp *from)
+pgrpcpy(Pgrp* to, Pgrp* from)
 {
 	int i;
-	Mount *n, *m, **link, *order;
-	Mhead *f, **tom, **l, *mh;
+	Mount* n, *m, **link, *order;
+	Mhead* f, **tom, **l, *mh;
 
 	wlock(&from->ns);
 	order = 0;
@@ -169,15 +169,15 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 }
 
 Fgrp*
-dupfgrp(Fgrp *f)
+dupfgrp(Fgrp* f)
 {
-	Fgrp *new;
-	Chan *c;
+	Fgrp* new;
+	Chan* c;
 	int i;
 
 	new = smalloc(sizeof(Fgrp));
-	if(f == nil){
-		new->fd = smalloc(DELTAFD*sizeof(Chan*));
+	if(f == nil) {
+		new->fd = smalloc(DELTAFD * sizeof(Chan*));
 		new->nfd = DELTAFD;
 		new->ref.ref = 1;
 		return new;
@@ -185,12 +185,12 @@ dupfgrp(Fgrp *f)
 
 	lock(&f->ref.lk);
 	/* Make new fd list shorter if possible, preserving quantization */
-	new->nfd = f->maxfd+1;
-	i = new->nfd%DELTAFD;
+	new->nfd = f->maxfd + 1;
+	i = new->nfd % DELTAFD;
 	if(i != 0)
 		new->nfd += DELTAFD - i;
-	new->fd = malloc(new->nfd*sizeof(Chan*));
-	if(new->fd == 0){
+	new->fd = malloc(new->nfd * sizeof(Chan*));
+	if(new->fd == 0) {
 		unlock(&f->ref.lk);
 		error("no memory for fgrp");
 	}
@@ -198,7 +198,7 @@ dupfgrp(Fgrp *f)
 
 	new->maxfd = f->maxfd;
 	for(i = 0; i <= f->maxfd; i++) {
-		if((c = f->fd[i])){
+		if((c = f->fd[i])) {
 			incref(&c->ref);
 			new->fd[i] = c;
 		}
@@ -209,10 +209,10 @@ dupfgrp(Fgrp *f)
 }
 
 void
-closefgrp(Fgrp *f)
+closefgrp(Fgrp* f)
 {
 	int i;
-	Chan *c;
+	Chan* c;
 
 	if(f == 0)
 		return;
@@ -229,9 +229,9 @@ closefgrp(Fgrp *f)
 }
 
 Mount*
-newmount(Mhead *mh, Chan *to, int flag, char *spec)
+newmount(Mhead* mh, Chan* to, int flag, char* spec)
 {
-	Mount *m;
+	Mount* m;
 
 	m = smalloc(sizeof(Mount));
 	m->to = to;
@@ -246,9 +246,9 @@ newmount(Mhead *mh, Chan *to, int flag, char *spec)
 }
 
 void
-mountfree(Mount *m)
+mountfree(Mount* m)
 {
-	Mount *f;
+	Mount* f;
 
 	while(m) {
 		f = m->next;
@@ -262,9 +262,9 @@ mountfree(Mount *m)
 
 #ifdef NOTDEF
 void
-resrcwait(char *reason)
+resrcwait(char* reason)
 {
-	char *p;
+	char* p;
 
 	if(up == 0)
 		panic("resrcwait");

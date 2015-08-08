@@ -12,10 +12,10 @@
 #include <oventi.h>
 
 char*
-vtStrDup(char *s)
+vtStrDup(char* s)
 {
 	int n;
-	char *ss;
+	char* ss;
 
 	if(s == nil)
 		return nil;
@@ -25,4 +25,3 @@ vtStrDup(char *s)
 	setmalloctag(ss, getcallerpc(&s));
 	return ss;
 }
-

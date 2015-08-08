@@ -16,11 +16,11 @@
 #include "defs.h"
 #include "fns.h"
 
-int	printcol = 0;
-int	infile = STDIN;
-int	maxpos = MAXPOS;
+int printcol = 0;
+int infile = STDIN;
+int maxpos = MAXPOS;
 
-Biobuf	stdout;
+Biobuf stdout;
 
 void
 printc(int c)
@@ -30,7 +30,7 @@ printc(int c)
 
 /* was move to next f1-sized tab stop; now just print a tab */
 int
-tconv(Fmt *f)
+tconv(Fmt* f)
 {
 	return fmtstrcpy(f, "\t");
 }
@@ -38,14 +38,14 @@ tconv(Fmt *f)
 void
 flushbuf(void)
 {
- 	if (printcol != 0)
+	if(printcol != 0)
 		printc(EOR);
 }
 
 void
-prints(char *s)
+prints(char* s)
 {
-	dprint("%s",s);
+	dprint("%s", s);
 }
 
 void
@@ -54,42 +54,42 @@ newline(void)
 	printc(EOR);
 }
 
-#define	MAXIFD	5
+#define MAXIFD 5
 struct {
-	int	fd;
-	int	r9;
+	int fd;
+	int r9;
 } istack[MAXIFD];
-int	ifiledepth;
+int ifiledepth;
 
 void
 iclose(int stack, int err)
 {
-	if (err) {
-		if (infile) {
+	if(err) {
+		if(infile) {
 			close(infile);
-			infile=STDIN;
+			infile = STDIN;
 		}
-		while (--ifiledepth >= 0)
-			if (istack[ifiledepth].fd)
+		while(--ifiledepth >= 0)
+			if(istack[ifiledepth].fd)
 				close(istack[ifiledepth].fd);
 		ifiledepth = 0;
-	} else if (stack == 0) {
-		if (infile) {
+	} else if(stack == 0) {
+		if(infile) {
 			close(infile);
-			infile=STDIN;
+			infile = STDIN;
 		}
-	} else if (stack > 0) {
-		if (ifiledepth >= MAXIFD)
+	} else if(stack > 0) {
+		if(ifiledepth >= MAXIFD)
 			error("$<< nested too deeply");
 		istack[ifiledepth].fd = infile;
 		ifiledepth++;
 		infile = STDIN;
 	} else {
-		if (infile) {
-			close(infile); 
-			infile=STDIN;
+		if(infile) {
+			close(infile);
+			infile = STDIN;
 		}
-		if (ifiledepth > 0) {
+		if(ifiledepth > 0) {
 			infile = istack[--ifiledepth].fd;
 		}
 	}
@@ -104,18 +104,18 @@ oclose(void)
 }
 
 void
-redirout(char *file)
+redirout(char* file)
 {
 	int fd;
 
-	if (file == 0){
+	if(file == 0) {
 		oclose();
 		return;
 	}
 	flushbuf();
-	if ((fd = open(file, 1)) >= 0)
+	if((fd = open(file, 1)) >= 0)
 		seek(fd, 0L, 2);
-	else if ((fd = create(file, 1, 0666)) < 0)
+	else if((fd = create(file, 1, 0666)) < 0)
 		error("cannot create");
 	Bterm(&stdout);
 	Binit(&stdout, fd, OWRITE);
@@ -125,7 +125,7 @@ void
 endline(void)
 {
 
-	if (maxpos <= printcol)
+	if(maxpos <= printcol)
 		newline();
 }
 
@@ -136,22 +136,22 @@ flush(void)
 }
 
 int
-dprint(char *fmt, ...)
+dprint(char* fmt, ...)
 {
 	int n, w;
-	char *p;
- 	char buf[4096];
+	char* p;
+	char buf[4096];
 	Rune r;
 	va_list arg;
 
 	if(mkfault)
 		return -1;
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	n = vseprint(buf, buf + sizeof buf, fmt, arg) - buf;
 	va_end(arg);
-//Bprint(&stdout, "[%s]", fmt);
+	// Bprint(&stdout, "[%s]", fmt);
 	Bwrite(&stdout, buf, n);
-	for(p=buf; *p; p+=w){
+	for(p = buf; *p; p += w) {
 		w = chartorune(&r, p);
 		if(r == '\n')
 			printcol = 0;

@@ -19,68 +19,38 @@
 typedef struct Input Input;
 typedef struct Var Var;
 
-struct Input
-{
-	char		*file;		/* name of file */
-	Biobuf	*fd;		/* input buffer, if from real file */
-	uint8_t	*s;		/* input string, if from /mnt/plumb/rules */
-	uint8_t	*end;	/* end of input string */
-	int		lineno;
-	Input	*next;	/* file to read after EOF on this one */
+struct Input {
+	char* file;   /* name of file */
+	Biobuf* fd;   /* input buffer, if from real file */
+	uint8_t* s;   /* input string, if from /mnt/plumb/rules */
+	uint8_t* end; /* end of input string */
+	int lineno;
+	Input* next; /* file to read after EOF on this one */
 };
 
-struct Var
-{
-	char	*name;
-	char	*value;
-	char *qvalue;
+struct Var {
+	char* name;
+	char* value;
+	char* qvalue;
 };
 
-static int		parsing;
-static int		nvars;
-static Var		*vars;
-static Input	*input;
+static int parsing;
+static int nvars;
+static Var* vars;
+static Input* input;
 
-static char 	ebuf[4096];
+static char ebuf[4096];
 
-char *badports[] =
-{
-	".",
-	"..",
-	"send",
-	nil
-};
+char* badports[] = {".", "..", "send", nil};
 
-char *objects[] =
-{
-	"arg",
-	"attr",
-	"data",
-	"dst",
-	"plumb",
-	"src",
-	"type",
-	"wdir",
-	nil
-};
+char* objects[] = {"arg", "attr", "data", "dst", "plumb",
+                   "src", "type", "wdir", nil};
 
-char *verbs[] =
-{
-	"add",
-	"client",
-	"delete",
-	"is",
-	"isdir",
-	"isfile",
-	"matches",
-	"set",
-	"start",
-	"to",
-	nil
-};
+char* verbs[] = {"add",     "client", "delete", "is", "isdir", "isfile",
+                 "matches", "set",    "start",  "to", nil};
 
 static void
-printinputstackrev(Input *in)
+printinputstackrev(Input* in)
 {
 	if(in == nil)
 		return;
@@ -95,14 +65,15 @@ printinputstack(void)
 }
 
 static void
-pushinput(char *name, int fd, uint8_t *str)
+pushinput(char* name, int fd, uint8_t* str)
 {
-	Input *in;
+	Input* in;
 	int depth;
 
 	depth = 0;
-	for(in=input; in; in=in->next)
-		if(depth++ >= 10)	/* prevent deep C stack in plumber and bad include structure */
+	for(in = input; in; in = in->next)
+		if(depth++ >= 10) /* prevent deep C stack in plumber and bad
+		                     include structure */
 			parseerror("include stack too deep; max 10");
 
 	in = emalloc(sizeof(Input));
@@ -111,24 +82,23 @@ pushinput(char *name, int fd, uint8_t *str)
 	input = in;
 	if(str)
 		in->s = str;
-	else{
+	else {
 		in->fd = emalloc(sizeof(Biobuf));
 		if(Binit(in->fd, fd, OREAD) < 0)
 			parseerror("can't initialize Bio for rules file: %r");
 	}
-
 }
 
 int
 popinput(void)
 {
-	Input *in;
+	Input* in;
 
 	in = input;
 	if(in == nil)
 		return 0;
 	input = in->next;
-	if(in->fd){
+	if(in->fd) {
 		Bterm(in->fd);
 		free(in->fd);
 	}
@@ -153,19 +123,19 @@ char*
 getline(void)
 {
 	static int n = 0;
-	static char *s, *incl;
+	static char* s, *incl;
 	int c, i;
 
 	i = 0;
-	for(;;){
+	for(;;) {
 		c = getc();
 		if(c < 0)
 			return nil;
-		if(i == n){
+		if(i == n) {
 			n += 100;
 			s = erealloc(s, n);
 		}
-		if(c<0 || c=='\0' || c=='\n')
+		if(c < 0 || c == '\0' || c == '\n')
 			break;
 		s[i++] = c;
 	}
@@ -174,31 +144,31 @@ getline(void)
 }
 
 int
-lookup(char *s, char *tab[])
+lookup(char* s, char* tab[])
 {
 	int i;
 
-	for(i=0; tab[i]!=nil; i++)
-		if(strcmp(s, tab[i])==0)
+	for(i = 0; tab[i] != nil; i++)
+		if(strcmp(s, tab[i]) == 0)
 			return i;
 	return -1;
 }
 
 Var*
-lookupvariable(char *s, int n)
+lookupvariable(char* s, int n)
 {
 	int i;
 
-	for(i=0; i<nvars; i++)
-		if(n==strlen(vars[i].name) && memcmp(s, vars[i].name, n)==0)
-			return vars+i;
+	for(i = 0; i < nvars; i++)
+		if(n == strlen(vars[i].name) && memcmp(s, vars[i].name, n) == 0)
+			return vars + i;
 	return nil;
 }
 
 char*
-variable(char *s, int n)
+variable(char* s, int n)
 {
-	Var *var;
+	Var* var;
 
 	var = lookupvariable(s, n);
 	if(var)
@@ -207,18 +177,18 @@ variable(char *s, int n)
 }
 
 void
-setvariable(char  *s, int n, char *val, char *qval)
+setvariable(char* s, int n, char* val, char* qval)
 {
-	Var *var;
+	Var* var;
 
 	var = lookupvariable(s, n);
-	if(var){
+	if(var) {
 		free(var->value);
 		free(var->qvalue);
-	}else{
-		vars = erealloc(vars, (nvars+1)*sizeof(Var));
-		var = vars+nvars++;
-		var->name = emalloc(n+1);
+	} else {
+		vars = erealloc(vars, (nvars + 1) * sizeof(Var));
+		var = vars + nvars++;
+		var->name = emalloc(n + 1);
 		memmove(var->name, s, n);
 	}
 	var->value = estrdup(val);
@@ -226,7 +196,7 @@ setvariable(char  *s, int n, char *val, char *qval)
 }
 
 static char*
-nonnil(char *s)
+nonnil(char* s)
 {
 	if(s == nil)
 		return "";
@@ -234,44 +204,45 @@ nonnil(char *s)
 }
 
 static char*
-filename(Exec *e, char *name)
+filename(Exec* e, char* name)
 {
-	static char *buf;	/* rock to hold value so we don't leak the strings */
+	static char* buf; /* rock to hold value so we don't leak the strings */
 
 	free(buf);
 	/* if name is defined, used it */
-	if(name!=nil && name[0]!='\0'){
+	if(name != nil && name[0] != '\0') {
 		buf = estrdup(name);
 		return cleanname(buf);
 	}
 	/* if data is an absolute file name, or wdir is empty, use it */
-	if(e->msg->data[0]=='/' || e->msg->wdir==nil || e->msg->wdir[0]=='\0'){
+	if(e->msg->data[0] == '/' || e->msg->wdir == nil ||
+	   e->msg->wdir[0] == '\0') {
 		buf = estrdup(e->msg->data);
 		return cleanname(buf);
 	}
-	buf = emalloc(strlen(e->msg->wdir)+1+strlen(e->msg->data)+1);
+	buf = emalloc(strlen(e->msg->wdir) + 1 + strlen(e->msg->data) + 1);
 	sprint(buf, "%s/%s", e->msg->wdir, e->msg->data);
 	return cleanname(buf);
 }
 
 char*
-dollar(Exec *e, char *s, int *namelen)
+dollar(Exec* e, char* s, int* namelen)
 {
 	int n;
-	static char *abuf;
-	char *t;
+	static char* abuf;
+	char* t;
 
 	*namelen = 1;
-	if(e!=nil && '0'<=s[0] && s[0]<='9')
-		return nonnil(e->match[s[0]-'0']);
+	if(e != nil && '0' <= s[0] && s[0] <= '9')
+		return nonnil(e->match[s[0] - '0']);
 
-	for(t=s; isalnum(*t); t++)
+	for(t = s; isalnum(*t); t++)
 		;
-	n = t-s;
+	n = t - s;
 	*namelen = n;
 
-	if(e != nil){
-		if(n == 3){
+	if(e != nil) {
+		if(n == 3) {
 			if(memcmp(s, "src", 3) == 0)
 				return nonnil(e->msg->src);
 			if(memcmp(s, "dst", 3) == 0)
@@ -279,8 +250,8 @@ dollar(Exec *e, char *s, int *namelen)
 			if(memcmp(s, "dir", 3) == 0)
 				return filename(e, e->dir);
 		}
-		if(n == 4){
-			if(memcmp(s, "attr", 4) == 0){
+		if(n == 4) {
+			if(memcmp(s, "attr", 4) == 0) {
 				free(abuf);
 				abuf = plumbpackattr(e->msg->attr);
 				return nonnil(abuf);
@@ -301,37 +272,37 @@ dollar(Exec *e, char *s, int *namelen)
 
 /* expand one blank-terminated string, processing quotes and $ signs */
 char*
-expand(Exec *e, char *s, char **ends)
+expand(Exec* e, char* s, char** ends)
 {
-	char *p, *ep, *val;
+	char* p, *ep, *val;
 	int namelen, quoting;
 
 	p = ebuf;
-	ep = ebuf+sizeof ebuf-1;
+	ep = ebuf + sizeof ebuf - 1;
 	quoting = 0;
-	while(p<ep && *s!='\0' && (quoting || (*s!=' ' && *s!='\t'))){
-		if(*s == '\''){
+	while(p < ep && *s != '\0' && (quoting || (*s != ' ' && *s != '\t'))) {
+		if(*s == '\'') {
 			s++;
 			if(!quoting)
 				quoting = 1;
-			else  if(*s == '\''){
+			else if(*s == '\'') {
 				*p++ = '\'';
 				s++;
-			}else
+			} else
 				quoting = 0;
 			continue;
 		}
-		if(quoting || *s!='$'){
+		if(quoting || *s != '$') {
 			*p++ = *s++;
 			continue;
 		}
 		s++;
 		val = dollar(e, s, &namelen);
-		if(val == nil){
+		if(val == nil) {
 			*p++ = '$';
 			continue;
 		}
-		if(ep-p < strlen(val))
+		if(ep - p < strlen(val))
 			return "string-too-long";
 		strcpy(p, val);
 		p += strlen(val);
@@ -344,9 +315,9 @@ expand(Exec *e, char *s, char **ends)
 }
 
 void
-regerror(char *msg)
+regerror(char* msg)
 {
-	if(parsing){
+	if(parsing) {
 		parsing = 0;
 		parseerror("%s", msg);
 	}
@@ -354,10 +325,10 @@ regerror(char *msg)
 }
 
 void
-parserule(Rule *r)
+parserule(Rule* r)
 {
 	r->qarg = estrdup(expand(nil, r->arg, nil));
-	switch(r->obj){
+	switch(r->obj) {
 	case OArg:
 	case OAttr:
 	case OData:
@@ -365,48 +336,51 @@ parserule(Rule *r)
 	case OType:
 	case OWdir:
 	case OSrc:
-		if(r->verb==VClient || r->verb==VStart || r->verb==VTo)
-			parseerror("%s not valid verb for object %s", verbs[r->verb], objects[r->obj]);
-		if(r->obj!=OAttr && (r->verb==VAdd || r->verb==VDelete))
-			parseerror("%s not valid verb for object %s", verbs[r->verb], objects[r->obj]);
-		if(r->verb == VMatches){
+		if(r->verb == VClient || r->verb == VStart || r->verb == VTo)
+			parseerror("%s not valid verb for object %s",
+			           verbs[r->verb], objects[r->obj]);
+		if(r->obj != OAttr && (r->verb == VAdd || r->verb == VDelete))
+			parseerror("%s not valid verb for object %s",
+			           verbs[r->verb], objects[r->obj]);
+		if(r->verb == VMatches) {
 			r->regex = regcomp(r->qarg);
 			return;
 		}
 		break;
 	case OPlumb:
-		if(r->verb!=VClient && r->verb!=VStart && r->verb!=VTo)
-			parseerror("%s not valid verb for object %s", verbs[r->verb], objects[r->obj]);
+		if(r->verb != VClient && r->verb != VStart && r->verb != VTo)
+			parseerror("%s not valid verb for object %s",
+			           verbs[r->verb], objects[r->obj]);
 		break;
 	}
 }
 
 int
-assignment(char *p)
+assignment(char* p)
 {
-	char *var, *qval;
+	char* var, *qval;
 	int n;
 
 	if(!isalpha(p[0]))
 		return 0;
-	for(var=p; isalnum(*p); p++)
+	for(var = p; isalnum(*p); p++)
 		;
-	n = p-var;
-	while(*p==' ' || *p=='\t')
-			p++;
+	n = p - var;
+	while(*p == ' ' || *p == '\t')
+		p++;
 	if(*p++ != '=')
 		return 0;
-	while(*p==' ' || *p=='\t')
-			p++;
+	while(*p == ' ' || *p == '\t')
+		p++;
 	qval = expand(nil, p, nil);
 	setvariable(var, n, p, qval);
 	return 1;
 }
 
 int
-include(char *s)
+include(char* s)
 {
-	char *t, *args[3], buf[128];
+	char* t, *args[3], buf[128];
 	int n, fd;
 
 	if(strncmp(s, "include", 7) != 0)
@@ -419,11 +393,12 @@ include(char *s)
 		goto Err;
 	if(args[1][0] == '#')
 		goto Err;
-	if(n>2 && args[2][0] != '#')
+	if(n > 2 && args[2][0] != '#')
 		goto Err;
 	t = args[1];
 	fd = open(t, OREAD);
-	if(fd<0 && t[0]!='/' && strncmp(t, "./", 2)!=0 && strncmp(t, "../", 3)!=0){
+	if(fd < 0 && t[0] != '/' && strncmp(t, "./", 2) != 0 &&
+	   strncmp(t, "../", 3) != 0) {
 		snprint(buf, sizeof buf, "/sys/lib/plumb/%s", t);
 		t = buf;
 		fd = open(t, OREAD);
@@ -433,36 +408,38 @@ include(char *s)
 	pushinput(t, fd, nil);
 	return 1;
 
-    Err:
+Err:
 	parseerror("malformed include statement");
 	return 0;
 }
 
 Rule*
-readrule(int *eof)
+readrule(int* eof)
 {
-	Rule *rp;
-	char *line, *p;
-	char *word;
+	Rule* rp;
+	char* line, *p;
+	char* word;
 
 Top:
 	line = getline();
-	if(line == nil){
+	if(line == nil) {
 		/*
-		 * if input is from string, and bytes remain (input->end is within string),
-		 * morerules() will pop input and save remaining data.  otherwise pop
+		 * if input is from string, and bytes remain (input->end is
+		 * within string),
+		 * morerules() will pop input and save remaining data.
+		 * otherwise pop
 		 * the stack here, and if there's more input, keep reading.
 		 */
-		if((input!=nil && input->end==nil) && popinput())
+		if((input != nil && input->end == nil) && popinput())
 			goto Top;
 		*eof = 1;
 		return nil;
 	}
 	input->lineno++;
 
-	for(p=line; *p==' ' || *p=='\t'; p++)
+	for(p = line; *p == ' ' || *p == '\t'; p++)
 		;
-	if(*p=='\0' || *p=='#')	/* empty or comment line */
+	if(*p == '\0' || *p == '#') /* empty or comment line */
 		return nil;
 
 	if(include(p))
@@ -474,22 +451,22 @@ Top:
 	rp = emalloc(sizeof(Rule));
 
 	/* object */
-	for(word=p; *p!=' ' && *p!='\t'; p++)
+	for(word = p; *p != ' ' && *p != '\t'; p++)
 		if(*p == '\0')
 			parseerror("malformed rule");
 	*p++ = '\0';
 	rp->obj = lookup(word, objects);
-	if(rp->obj < 0){
-		if(strcmp(word, "kind") == 0)	/* backwards compatibility */
+	if(rp->obj < 0) {
+		if(strcmp(word, "kind") == 0) /* backwards compatibility */
 			rp->obj = OType;
 		else
 			parseerror("unknown object %s", word);
 	}
 
 	/* verb */
-	while(*p==' ' || *p=='\t')
+	while(*p == ' ' || *p == '\t')
 		p++;
-	for(word=p; *p!=' ' && *p!='\t'; p++)
+	for(word = p; *p != ' ' && *p != '\t'; p++)
 		if(*p == '\0')
 			parseerror("malformed rule");
 	*p++ = '\0';
@@ -498,7 +475,7 @@ Top:
 		parseerror("unknown verb %s", word);
 
 	/* argument */
-	while(*p==' ' || *p=='\t')
+	while(*p == ' ' || *p == '\t')
 		p++;
 	if(*p == '\0')
 		parseerror("malformed rule");
@@ -510,7 +487,7 @@ Top:
 }
 
 void
-freerule(Rule *r)
+freerule(Rule* r)
 {
 	free(r->arg);
 	free(r->qarg);
@@ -518,14 +495,14 @@ freerule(Rule *r)
 }
 
 void
-freerules(Rule **r)
+freerules(Rule** r)
 {
 	while(*r)
 		freerule(*r++);
 }
 
 void
-freeruleset(Ruleset *rs)
+freeruleset(Ruleset* rs)
 {
 	freerules(rs->pat);
 	free(rs->pat);
@@ -538,28 +515,28 @@ freeruleset(Ruleset *rs)
 Ruleset*
 readruleset(void)
 {
-	Ruleset *rs;
-	Rule *r;
+	Ruleset* rs;
+	Rule* r;
 	int eof, inrule, i, ncmd;
 
-   Again:
+Again:
 	eof = 0;
 	rs = emalloc(sizeof(Ruleset));
 	rs->pat = emalloc(sizeof(Rule*));
 	rs->act = emalloc(sizeof(Rule*));
 	inrule = 0;
 	ncmd = 0;
-	for(;;){
+	for(;;) {
 		r = readrule(&eof);
 		if(eof)
 			break;
-		if(r==nil){
+		if(r == nil) {
 			if(inrule)
 				break;
 			continue;
 		}
 		inrule = 1;
-		switch(r->obj){
+		switch(r->obj) {
 		case OArg:
 		case OAttr:
 		case OData:
@@ -568,70 +545,75 @@ readruleset(void)
 		case OWdir:
 		case OSrc:
 			rs->npat++;
-			rs->pat = erealloc(rs->pat, (rs->npat+1)*sizeof(Rule*));
-			rs->pat[rs->npat-1] = r;
+			rs->pat =
+			    erealloc(rs->pat, (rs->npat + 1) * sizeof(Rule*));
+			rs->pat[rs->npat - 1] = r;
 			rs->pat[rs->npat] = nil;
 			break;
 		case OPlumb:
 			rs->nact++;
-			rs->act = erealloc(rs->act, (rs->nact+1)*sizeof(Rule*));
-			rs->act[rs->nact-1] = r;
+			rs->act =
+			    erealloc(rs->act, (rs->nact + 1) * sizeof(Rule*));
+			rs->act[rs->nact - 1] = r;
 			rs->act[rs->nact] = nil;
-			if(r->verb == VTo){
-				if(rs->npat>0 && rs->port != nil)	/* npat==0 implies port declaration */
+			if(r->verb == VTo) {
+				if(rs->npat > 0 &&
+				   rs->port != nil) /* npat==0 implies port
+				                       declaration */
 					parseerror("too many ports");
 				if(lookup(r->qarg, badports) >= 0)
-					parseerror("illegal port name %s", r->qarg);
+					parseerror("illegal port name %s",
+					           r->qarg);
 				if(rs->port)
 					free(rs->port);
 				rs->port = estrdup(r->qarg);
-			}else
-				ncmd++;	/* start or client rule */
+			} else
+				ncmd++; /* start or client rule */
 			break;
 		}
 	}
-	if(ncmd > 1){
+	if(ncmd > 1) {
 		freeruleset(rs);
 		parseerror("ruleset has more than one client or start action");
 	}
-	if(rs->npat>0 && rs->nact>0)
+	if(rs->npat > 0 && rs->nact > 0)
 		return rs;
-	if(rs->npat==0 && rs->nact==0){
+	if(rs->npat == 0 && rs->nact == 0) {
 		freeruleset(rs);
 		return nil;
 	}
-	if(rs->nact==0 || rs->port==nil){
+	if(rs->nact == 0 || rs->port == nil) {
 		freeruleset(rs);
 		parseerror("ruleset must have patterns and actions");
 		return nil;
 	}
 
 	/* declare ports */
-	for(i=0; i<rs->nact; i++)
-		if(rs->act[i]->verb != VTo){
+	for(i = 0; i < rs->nact; i++)
+		if(rs->act[i]->verb != VTo) {
 			freeruleset(rs);
 			parseerror("ruleset must have actions");
 			return nil;
 		}
-	for(i=0; i<rs->nact; i++)
+	for(i = 0; i < rs->nact; i++)
 		addport(rs->act[i]->qarg);
 	freeruleset(rs);
 	goto Again;
 }
 
 Ruleset**
-readrules(char *name, int fd)
+readrules(char* name, int fd)
 {
-	Ruleset *rs, **rules;
+	Ruleset* rs, **rules;
 	int n;
 
 	parsing = 1;
 	pushinput(name, fd, nil);
 	rules = emalloc(sizeof(Ruleset*));
-	for(n=0; (rs=readruleset())!=nil; n++){
-		rules = erealloc(rules, (n+2)*sizeof(Ruleset*));
+	for(n = 0; (rs = readruleset()) != nil; n++) {
+		rules = erealloc(rules, (n + 2) * sizeof(Ruleset*));
 		rules[n] = rs;
-		rules[n+1] = nil;
+		rules[n + 1] = nil;
 	}
 	popinput();
 	parsing = 0;
@@ -639,58 +621,59 @@ readrules(char *name, int fd)
 }
 
 char*
-concat(char *s, char *t)
+concat(char* s, char* t)
 {
 	if(t == nil)
 		return s;
 	if(s == nil)
 		s = estrdup(t);
-	else{
-		s = erealloc(s, strlen(s)+strlen(t)+1);
+	else {
+		s = erealloc(s, strlen(s) + strlen(t) + 1);
 		strcat(s, t);
 	}
 	return s;
 }
 
 char*
-printpat(Rule *r)
+printpat(Rule* r)
 {
-	char *s;
+	char* s;
 
-	s = emalloc(strlen(objects[r->obj])+1+strlen(verbs[r->verb])+1+strlen(r->arg)+1+1);
+	s = emalloc(strlen(objects[r->obj]) + 1 + strlen(verbs[r->verb]) + 1 +
+	            strlen(r->arg) + 1 + 1);
 	sprint(s, "%s\t%s\t%s\n", objects[r->obj], verbs[r->verb], r->arg);
 	return s;
 }
 
 char*
-printvar(Var *v)
+printvar(Var* v)
 {
-	char *s;
+	char* s;
 
-	s = emalloc(strlen(v->name)+1+strlen(v->value)+2+1);
+	s = emalloc(strlen(v->name) + 1 + strlen(v->value) + 2 + 1);
 	sprint(s, "%s=%s\n\n", v->name, v->value);
 	return s;
 }
 
 char*
-printrule(Ruleset *r)
+printrule(Ruleset* r)
 {
 	int i;
-	char *s;
+	char* s;
 
 	s = nil;
-	for(i=0; i<r->npat; i++)
+	for(i = 0; i < r->npat; i++)
 		s = concat(s, printpat(r->pat[i]));
-	for(i=0; i<r->nact; i++)
+	for(i = 0; i < r->nact; i++)
 		s = concat(s, printpat(r->act[i]));
 	s = concat(s, "\n");
 	return s;
 }
 
 char*
-printport(char *port)
+printport(char* port)
 {
-	char *s;
+	char* s;
 
 	s = nil;
 	s = concat(s, "plumb to ");
@@ -703,60 +686,62 @@ char*
 printrules(void)
 {
 	int i;
-	char *s;
+	char* s;
 
 	s = nil;
-	for(i=0; i<nvars; i++)
+	for(i = 0; i < nvars; i++)
 		s = concat(s, printvar(&vars[i]));
-	for(i=0; i<nports; i++)
+	for(i = 0; i < nports; i++)
 		s = concat(s, printport(ports[i]));
 	s = concat(s, "\n");
-	for(i=0; rules[i]; i++)
+	for(i = 0; rules[i]; i++)
 		s = concat(s, printrule(rules[i]));
 	return s;
 }
 
 char*
-stringof(char *s, int n)
+stringof(char* s, int n)
 {
-	char *t;
+	char* t;
 
-	t = emalloc(n+1);
+	t = emalloc(n + 1);
 	memmove(t, s, n);
 	return t;
 }
 
 uint8_t*
-morerules(uint8_t *text, int done)
+morerules(uint8_t* text, int done)
 {
 	int n;
-	Ruleset *rs;
-	uint8_t *otext, *s, *endofrule;
+	Ruleset* rs;
+	uint8_t* otext, *s, *endofrule;
 
 	pushinput("<rules input>", -1, text);
 	if(done)
-		input->end = text+strlen((char*)text);
-	else{
+		input->end = text + strlen((char*)text);
+	else {
 		/*
-		 * Help user by sending any full rules to parser so any parse errors will
-		 * occur on write rather than close. A heuristic will do: blank line ends rule.
+		 * Help user by sending any full rules to parser so any parse
+		 * errors will
+		 * occur on write rather than close. A heuristic will do: blank
+		 * line ends rule.
 		 */
 		endofrule = nil;
-		for(s=text; *s!='\0'; s++)
-			if(*s=='\n' && *++s=='\n')
-				endofrule = s+1;
+		for(s = text; *s != '\0'; s++)
+			if(*s == '\n' && *++s == '\n')
+				endofrule = s + 1;
 		if(endofrule == nil)
 			return text;
 		input->end = endofrule;
 	}
-	for(n=0; rules[n]; n++)
+	for(n = 0; rules[n]; n++)
 		;
-	while((rs=readruleset()) != nil){
-		rules = erealloc(rules, (n+2)*sizeof(Ruleset*));
+	while((rs = readruleset()) != nil) {
+		rules = erealloc(rules, (n + 2) * sizeof(Ruleset*));
 		rules[n++] = rs;
 		rules[n] = nil;
 	}
-	otext =text;
+	otext = text;
 	if(input == nil)
 		text = (uint8_t*)estrdup("");
 	else
@@ -767,21 +752,21 @@ morerules(uint8_t *text, int done)
 }
 
 char*
-writerules(char *s, int n)
+writerules(char* s, int n)
 {
-	static uint8_t *text;
-	char *tmp;
+	static uint8_t* text;
+	char* tmp;
 
 	free(lasterror);
 	lasterror = nil;
 	parsing = 1;
-	if(setjmp(parsejmp) == 0){
+	if(setjmp(parsejmp) == 0) {
 		tmp = stringof(s, n);
 		text = (uint8_t*)concat((char*)text, tmp);
 		free(tmp);
-		text = morerules(text, s==nil);
+		text = morerules(text, s == nil);
 	}
-	if(s == nil){
+	if(s == nil) {
 		free(text);
 		text = nil;
 	}

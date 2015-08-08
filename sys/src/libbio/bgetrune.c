@@ -7,38 +7,38 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int32_t
-Bgetrune(Biobufhdr *bp)
+Bgetrune(Biobufhdr* bp)
 {
 	int c, i;
 	Rune rune;
 	char str[UTFmax];
 
 	c = Bgetc(bp);
-	if(c < Runeself) {		/* one char */
+	if(c < Runeself) { /* one char */
 		bp->runesize = 1;
 		return c;
 	}
 	str[0] = c;
 	bp->runesize = 0;
 
-	for(i=1;;) {
+	for(i = 1;;) {
 		c = Bgetc(bp);
 		if(c < 0)
 			return c;
-		if (i >= sizeof str)
+		if(i >= sizeof str)
 			return Runeerror;
 		str[i++] = c;
 
 		if(fullrune(str, i)) {
 			/* utf is long enough to be a rune, but could be bad. */
 			bp->runesize = chartorune(&rune, str);
-			if (rune == Runeerror)
-				bp->runesize = 0;	/* push back nothing */
+			if(rune == Runeerror)
+				bp->runesize = 0; /* push back nothing */
 			else
 				/* push back bytes unconsumed by chartorune */
 				for(; i > bp->runesize; i--)
@@ -49,7 +49,7 @@ Bgetrune(Biobufhdr *bp)
 }
 
 int
-Bungetrune(Biobufhdr *bp)
+Bungetrune(Biobufhdr* bp)
 {
 
 	if(bp->state == Bracteof)

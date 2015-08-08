@@ -7,28 +7,27 @@
  * in the LICENSE file.
  */
 
-#ifndef	__DIRENT_H
-#define	__DIRENT_H
+#ifndef __DIRENT_H
+#define __DIRENT_H
 #pragma lib "/$M/lib/ape/libap.a"
 /*
  * this must be a power of 2 and a multiple of all the ones in the system
  */
 #define MAXNAMLEN 255
 
-struct	dirent {
-	char	d_name[MAXNAMLEN + 1];
+struct dirent {
+	char d_name[MAXNAMLEN + 1];
 };
 
 typedef struct _dirdesc {
-	int	dd_fd;		/* file descriptor */
-	int32_t	dd_loc;		/* buf offset of entry from last readdir() */
-	int32_t	dd_size;	/* amount of valid data in buffer */
-	char	*dd_buf;	/* directory data buffer */
-	void *dirs;
-	int	dirsize;
-	int	dirloc;
+	int dd_fd;       /* file descriptor */
+	int32_t dd_loc;  /* buf offset of entry from last readdir() */
+	int32_t dd_size; /* amount of valid data in buffer */
+	char* dd_buf;    /* directory data buffer */
+	void* dirs;
+	int dirsize;
+	int dirloc;
 } DIR;
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,10 +36,10 @@ extern "C" {
 /*
  * functions defined on directories
  */
-DIR		*opendir(const char *);
-struct dirent	*readdir(DIR *);
-void		rewinddir(DIR *);
-int		closedir(DIR *);
+DIR* opendir(const char*);
+struct dirent* readdir(DIR*);
+void rewinddir(DIR*);
+int closedir(DIR*);
 
 #ifdef __cplusplus
 }

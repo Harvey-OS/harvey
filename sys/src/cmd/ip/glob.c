@@ -22,7 +22,7 @@
 static Glob*
 globnew(void)
 {
-	Glob *g;
+	Glob* g;
 
 	g = mallocz(sizeof(*g), 1);
 	if(g == nil)
@@ -31,27 +31,27 @@ globnew(void)
 }
 
 static void
-globfree1(Glob *g)
+globfree1(Glob* g)
 {
 	s_free(g->glob);
 	free(g);
 }
 
 static void
-globfree(Glob *g)
+globfree(Glob* g)
 {
-	Glob *next;
+	Glob* next;
 
-	for(; g != nil; g = next){
+	for(; g != nil; g = next) {
 		next = g->next;
 		globfree1(g);
 	}
 }
 
 static Globlist*
-globlistnew(char *x)
+globlistnew(char* x)
 {
-	Globlist *gl;
+	Globlist* gl;
 
 	gl = mallocz(sizeof *gl, 1);
 	if(gl == nil)
@@ -63,7 +63,7 @@ globlistnew(char *x)
 }
 
 void
-globlistfree(Globlist *gl)
+globlistfree(Globlist* gl)
 {
 	if(gl == nil)
 		return;
@@ -72,9 +72,9 @@ globlistfree(Globlist *gl)
 }
 
 void
-globadd(Globlist *gl, char *dir, char *file)
+globadd(Globlist* gl, char* dir, char* file)
 {
-	Glob *g;
+	Glob* g;
 
 	g = globnew();
 	g->glob = s_copy(dir);
@@ -82,13 +82,13 @@ globadd(Globlist *gl, char *dir, char *file)
 		s_append(g->glob, "/");
 	s_append(g->glob, file);
 	*(gl->l) = g;
-	gl->l = &(g->next); 
+	gl->l = &(g->next);
 }
 
 static void
-globdir(Globlist *gl, char *dir, Reprog *re)
+globdir(Globlist* gl, char* dir, Reprog* re)
 {
-	Dir *d;
+	Dir* d;
 	int i, n, fd;
 
 	if(*dir == 0)
@@ -108,11 +108,11 @@ globdir(Globlist *gl, char *dir, Reprog *re)
 }
 
 static void
-globdot(Globlist *gl, char *dir)
+globdot(Globlist* gl, char* dir)
 {
-	Dir *d;
+	Dir* d;
 
-	if(*dir == 0){
+	if(*dir == 0) {
 		globadd(gl, "", ".");
 		return;
 	}
@@ -125,11 +125,11 @@ globdot(Globlist *gl, char *dir)
 }
 
 static void
-globnext(Globlist *gl, char *pattern)
+globnext(Globlist* gl, char* pattern)
 {
-	String *np;
-	Glob *g, *inlist;
-	Reprog *re;
+	String* np;
+	Glob* g, *inlist;
+	Reprog* re;
 	int c;
 
 	/* nothing left */
@@ -143,12 +143,12 @@ globnext(Globlist *gl, char *pattern)
 	/* pick off next pattern and turn into a reg exp */
 	np = s_new();
 	s_putc(np, '^');
-	for(; c = *pattern; pattern++){
-		if(c == '/'){
+	for(; c = *pattern; pattern++) {
+		if(c == '/') {
 			pattern++;
 			break;
 		}
-		switch(c){
+		switch(c) {
 		case '|':
 		case '+':
 		case '.':
@@ -173,7 +173,7 @@ globnext(Globlist *gl, char *pattern)
 	}
 	s_putc(np, '$');
 	s_terminate(np);
-	if(strcmp(s_to_c(np), "^\\.$") == 0){
+	if(strcmp(s_to_c(np), "^\\.$") == 0) {
 		/* anything that's a directory works */
 		for(g = inlist; g != nil; g = g->next)
 			globdot(gl, s_to_c(g->glob));
@@ -192,11 +192,11 @@ globnext(Globlist *gl, char *pattern)
 		globnext(gl, pattern);
 }
 
-char *
-globiter(Globlist *gl)
+char*
+globiter(Globlist* gl)
 {
-	Glob *g;
-	char *s;
+	Glob* g;
+	char* s;
 
 	if(gl->first == nil)
 		return nil;
@@ -212,13 +212,13 @@ globiter(Globlist *gl)
 }
 
 Globlist*
-glob(char *pattern)
+glob(char* pattern)
 {
-	Globlist *gl;
+	Globlist* gl;
 
 	if(pattern == nil || *pattern == 0)
 		return nil;
-	if(*pattern == '/'){
+	if(*pattern == '/') {
 		pattern++;
 		gl = globlistnew("/");
 	} else

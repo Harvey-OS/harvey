@@ -14,7 +14,7 @@
 #include <disk.h>
 
 static Disk*
-mkwidth(Disk *disk)
+mkwidth(Disk* disk)
 {
 	char buf[40];
 
@@ -25,52 +25,51 @@ mkwidth(Disk *disk)
 
 /*
  * Discover the disk geometry by various sleazeful means.
- * 
+ *
  * First, if there is a partition table in sector 0,
  * see if all the partitions have the same end head
- * and sector; if so, we'll assume that that's the 
+ * and sector; if so, we'll assume that that's the
  * right count.
- * 
+ *
  * If that fails, we'll try looking at the geometry that the ATA
  * driver supplied, if any, and translate that as a
- * BIOS might. 
- * 
+ * BIOS might.
+ *
  * If that too fails, which should only happen on a SCSI
  * disk with no currently defined partitions, we'll try
  * various common (h, s) pairs used by BIOSes when faking
  * the geometries.
  */
-typedef struct Table  Table;
+typedef struct Table Table;
 typedef struct Tentry Tentry;
 struct Tentry {
-	uint8_t	active;			/* active flag */
-	uint8_t	starth;			/* starting head */
-	uint8_t	starts;			/* starting sector */
-	uint8_t	startc;			/* starting cylinder */
-	uint8_t	type;			/* partition type */
-	uint8_t	endh;			/* ending head */
-	uint8_t	ends;			/* ending sector */
-	uint8_t	endc;			/* ending cylinder */
-	uint8_t	xlba[4];			/* starting LBA from beginning of disc */
-	uint8_t	xsize[4];		/* size in sectors */
+	uint8_t active;   /* active flag */
+	uint8_t starth;   /* starting head */
+	uint8_t starts;   /* starting sector */
+	uint8_t startc;   /* starting cylinder */
+	uint8_t type;     /* partition type */
+	uint8_t endh;     /* ending head */
+	uint8_t ends;     /* ending sector */
+	uint8_t endc;     /* ending cylinder */
+	uint8_t xlba[4];  /* starting LBA from beginning of disc */
+	uint8_t xsize[4]; /* size in sectors */
 };
-enum {
-	Toffset		= 446,		/* offset of partition table in sector */
-	Magic0		= 0x55,
-	Magic1		= 0xAA,
-	NTentry		= 4,
+enum { Toffset = 446, /* offset of partition table in sector */
+       Magic0 = 0x55,
+       Magic1 = 0xAA,
+       NTentry = 4,
 };
 struct Table {
-	Tentry	entry[NTentry];
-	uint8_t	magic[2];
+	Tentry entry[NTentry];
+	uint8_t magic[2];
 };
 static int
-partitiongeometry(Disk *disk)
+partitiongeometry(Disk* disk)
 {
-	char *rawname;
+	char* rawname;
 	int i, h, rawfd, s;
 	uint8_t buf[512];
-	Table *t;
+	Table* t;
 
 	if(disk->c == 0 || disk->h == 0 || disk->s == 0)
 		return -1;
@@ -81,7 +80,7 @@ partitiongeometry(Disk *disk)
 	 * look for an MBR first in the /dev/sdXX/data partition, otherwise
 	 * attempt to fall back on the current partition.
 	 */
-	rawname = malloc(strlen(disk->prefix) + 5);	/* prefix + "data" + nul */
+	rawname = malloc(strlen(disk->prefix) + 5); /* prefix + "data" + nul */
 	if(rawname == nil)
 		return -1;
 
@@ -89,25 +88,22 @@ partitiongeometry(Disk *disk)
 	strcat(rawname, "data");
 	rawfd = open(rawname, OREAD);
 	free(rawname);
-	if(rawfd >= 0
-	&& seek(rawfd, 0, 0) >= 0
-	&& readn(rawfd, buf, 512) == 512
-	&& t->magic[0] == Magic0
-	&& t->magic[1] == Magic1) {
+	if(rawfd >= 0 && seek(rawfd, 0, 0) >= 0 &&
+	   readn(rawfd, buf, 512) == 512 && t->magic[0] == Magic0 &&
+	   t->magic[1] == Magic1) {
 		close(rawfd);
 	} else {
 		if(rawfd >= 0)
 			close(rawfd);
-		if(seek(disk->fd, 0, 0) < 0
-		|| readn(disk->fd, buf, 512) != 512
-		|| t->magic[0] != Magic0
-		|| t->magic[1] != Magic1) {
+		if(seek(disk->fd, 0, 0) < 0 ||
+		   readn(disk->fd, buf, 512) != 512 || t->magic[0] != Magic0 ||
+		   t->magic[1] != Magic1) {
 			return -1;
 		}
 	}
 
 	h = s = -1;
-	for(i=0; i<NTentry; i++) {
+	for(i = 0; i < NTentry; i++) {
 		if(t->entry[i].type == 0)
 			continue;
 
@@ -128,9 +124,9 @@ partitiongeometry(Disk *disk)
 	if(h == -1)
 		return -1;
 
-	disk->h = h+1;	/* heads count from 0 */
-	disk->s = s;	/* sectors count from 1 */
-	disk->c = disk->secs / (disk->h*disk->s);
+	disk->h = h + 1; /* heads count from 0 */
+	disk->s = s;     /* sectors count from 1 */
+	disk->c = disk->secs / (disk->h * disk->s);
 	disk->chssrc = Gpart;
 	return 0;
 }
@@ -139,7 +135,7 @@ partitiongeometry(Disk *disk)
  * If there is ATA geometry, use it, perhaps massaged.
  */
 static int
-drivergeometry(Disk *disk)
+drivergeometry(Disk* disk)
 {
 	int m;
 
@@ -157,8 +153,8 @@ drivergeometry(Disk *disk)
 		return 0;
 
 	default:
-		for(m = 2; m*disk->h < 256; m *= 2) {
-			if(disk->c/m < 1024) {
+		for(m = 2; m * disk->h < 256; m *= 2) {
+			if(disk->c / m < 1024) {
 				disk->c /= m;
 				disk->h *= m;
 				return 0;
@@ -181,21 +177,18 @@ static struct {
 	int h;
 	int s;
 } guess[] = {
-	64, 32,
-	64, 63,
-	128, 63,
-	255, 63,
+    64, 32, 64, 63, 128, 63, 255, 63,
 };
 static int
-guessgeometry(Disk *disk)
+guessgeometry(Disk* disk)
 {
 	int i;
 	int32_t c;
 
 	disk->chssrc = Gguess;
 	c = 1024;
-	for(i=0; i<nelem(guess); i++)
-		if(c*guess[i].h*guess[i].s >= disk->secs) {
+	for(i = 0; i < nelem(guess); i++)
+		if(c * guess[i].h * guess[i].s >= disk->secs) {
 			disk->h = guess[i].h;
 			disk->s = guess[i].s;
 			disk->c = disk->secs / (disk->h * disk->s);
@@ -210,22 +203,21 @@ guessgeometry(Disk *disk)
 }
 
 static void
-findgeometry(Disk *disk)
+findgeometry(Disk* disk)
 {
-	if(partitiongeometry(disk) < 0
-	&& drivergeometry(disk) < 0
-	&& guessgeometry(disk) < 0) {	/* can't happen */
+	if(partitiongeometry(disk) < 0 && drivergeometry(disk) < 0 &&
+	   guessgeometry(disk) < 0) { /* can't happen */
 		print("we're completely confused about your disk; sorry\n");
 		assert(0);
 	}
 }
 
 static Disk*
-openfile(Disk *disk)
+openfile(Disk* disk)
 {
-	Dir *d;
+	Dir* d;
 
-	if((d = dirfstat(disk->fd)) == nil){
+	if((d = dirfstat(disk->fd)) == nil) {
 		free(disk);
 		return nil;
 	}
@@ -241,15 +233,15 @@ openfile(Disk *disk)
 }
 
 static Disk*
-opensd(Disk *disk)
+opensd(Disk* disk)
 {
 	Biobuf b;
-	char *p, *f[10];
+	char* p, *f[10];
 	int nf;
 
 	Binit(&b, disk->ctlfd, OREAD);
 	while(p = Brdline(&b, '\n')) {
-		p[Blinelen(&b)-1] = '\0';
+		p[Blinelen(&b) - 1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf >= 3 && strcmp(f[0], "geometry") == 0) {
 			disk->secsize = strtoll(f[2], 0, 0);
@@ -259,13 +251,13 @@ opensd(Disk *disk)
 				disk->s = strtol(f[5], 0, 0);
 			}
 		}
-		if(nf >= 4 && strcmp(f[0], "part") == 0 && strcmp(f[1], disk->part) == 0) {
+		if(nf >= 4 && strcmp(f[0], "part") == 0 &&
+		   strcmp(f[1], disk->part) == 0) {
 			disk->offset = strtoll(f[2], 0, 0);
 			disk->secs = strtoll(f[3], 0, 0) - disk->offset;
 		}
 	}
 
-	
 	disk->size = disk->secs * disk->secsize;
 	if(disk->size <= 0) {
 		strcpy(disk->part, "");
@@ -278,10 +270,10 @@ opensd(Disk *disk)
 }
 
 Disk*
-opendisk(char *disk, int rdonly, int noctl)
+opendisk(char* disk, int rdonly, int noctl)
 {
-	char *p, *q;
-	Disk *d;
+	char* p, *q;
+	Disk* d;
 
 	d = mallocz(sizeof(*d), 1);
 	if(d == nil)
@@ -306,7 +298,7 @@ opendisk(char *disk, int rdonly, int noctl)
 	if(noctl)
 		return openfile(d);
 
-	p = malloc(strlen(disk) + 4);	/* 4: slop for "ctl\0" */
+	p = malloc(strlen(disk) + 4); /* 4: slop for "ctl\0" */
 	if(p == nil) {
 		close(d->wfd);
 		close(d->fd);
@@ -317,9 +309,10 @@ opendisk(char *disk, int rdonly, int noctl)
 
 	/* check for floppy(3) disk */
 	if(strlen(p) >= 7) {
-		q = p+strlen(p)-7;
-		if(q[0] == 'f' && q[1] == 'd' && isdigit(q[2]) && strcmp(q+3, "disk") == 0) {
-			strcpy(q+3, "ctl");
+		q = p + strlen(p) - 7;
+		if(q[0] == 'f' && q[1] == 'd' && isdigit(q[2]) &&
+		   strcmp(q + 3, "disk") == 0) {
+			strcpy(q + 3, "ctl");
 			if((d->ctlfd = open(p, ORDWR)) >= 0) {
 				*q = '\0';
 				d->prefix = p;
@@ -340,8 +333,8 @@ opendisk(char *disk, int rdonly, int noctl)
 		*q = '\0';
 		d->prefix = p;
 		d->type = Tsd;
-		d->part = strdup(disk+(q-p));
-		if(d->part == nil){
+		d->part = strdup(disk + (q - p));
+		if(d->part == nil) {
 			close(d->ctlfd);
 			close(d->wfd);
 			close(d->fd);

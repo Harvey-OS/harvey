@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-typedef enum Err{
+typedef enum Err {
 	/* error_s */
 	Eopen,
 	Ecreate,
@@ -58,8 +58,8 @@ typedef enum Err{
 	Eappend,
 	Ecantplumb,
 	Ebufload,
-}Err;
-typedef enum Warn{
+} Err;
+typedef enum Warn {
 	/* warn_s */
 	Wdupname,
 	Wfile,
@@ -71,4 +71,4 @@ typedef enum Warn{
 	Wpwd,
 	Wnotnewline,
 	Wbadstatus,
-}Warn;
+} Warn;

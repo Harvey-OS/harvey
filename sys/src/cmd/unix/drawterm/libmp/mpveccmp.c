@@ -13,7 +13,7 @@
 
 // prereq: alen >= blen
 int
-mpveccmp(mpdigit *a, int alen, mpdigit *b, int blen)
+mpveccmp(mpdigit* a, int alen, mpdigit* b, int blen)
 {
 	mpdigit x;
 
@@ -23,7 +23,7 @@ mpveccmp(mpdigit *a, int alen, mpdigit *b, int blen)
 	while(blen > alen)
 		if(b[--blen] != 0)
 			return -1;
-	while(alen > 0){
+	while(alen > 0) {
 		--alen;
 		x = a[alen] - b[alen];
 		if(x == 0)

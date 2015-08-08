@@ -12,11 +12,11 @@
 #include <venti.h>
 
 VtConn*
-vtdial(char *addr)
+vtdial(char* addr)
 {
-	char *na;
+	char* na;
 	int fd;
-	VtConn *z;
+	VtConn* z;
 
 	if(addr == nil)
 		addr = getenv("venti");
@@ -29,6 +29,6 @@ vtdial(char *addr)
 
 	z = vtconn(fd, fd);
 	if(z)
-		strecpy(z->addr, z->addr+sizeof z->addr, na);
+		strecpy(z->addr, z->addr + sizeof z->addr, na);
 	return z;
 }

@@ -14,31 +14,30 @@
 /*
  *  make an address, add the defaults
  */
-char *
-netmkaddr(char *linear, char *defnet, char *defsrv)
+char*
+netmkaddr(char* linear, char* defnet, char* defsrv)
 {
 	static char addr[256];
-	char *cp;
+	char* cp;
 
 	/*
 	 *  dump network name
 	 */
 	cp = strchr(linear, '!');
-	if(cp == 0){
-		if(defnet==0){
+	if(cp == 0) {
+		if(defnet == 0) {
 			if(defsrv)
-				snprint(addr, sizeof(addr), "net!%s!%s",
-					linear, defsrv);
+				snprint(addr, sizeof(addr), "net!%s!%s", linear,
+				        defsrv);
 			else
 				snprint(addr, sizeof(addr), "net!%s", linear);
-		}
-		else {
+		} else {
 			if(defsrv)
 				snprint(addr, sizeof(addr), "%s!%s!%s", defnet,
-					linear, defsrv);
+				        linear, defsrv);
 			else
 				snprint(addr, sizeof(addr), "%s!%s", defnet,
-					linear);
+				        linear);
 		}
 		return addr;
 	}
@@ -46,7 +45,7 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	/*
 	 *  if there is already a service, use it
 	 */
-	cp = strchr(cp+1, '!');
+	cp = strchr(cp + 1, '!');
 	if(cp)
 		return linear;
 

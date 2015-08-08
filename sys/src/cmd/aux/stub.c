@@ -15,22 +15,20 @@
 
 uint time0;
 
-enum
-{
-	Qroot = 0,
-	Qkid,
+enum { Qroot = 0,
+       Qkid,
 };
 
-char *kidname;
+char* kidname;
 uint kidmode;
 
 void
-fsattach(Req *r)
+fsattach(Req* r)
 {
-	char *spec;
+	char* spec;
 
 	spec = r->ifcall.aname;
-	if(spec && spec[0]){
+	if(spec && spec[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -40,21 +38,21 @@ fsattach(Req *r)
 }
 
 char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+fswalk1(Fid* fid, char* name, Qid* qid)
 {
-	switch((int)fid->qid.path){
+	switch((int)fid->qid.path) {
 	default:
 		return "path not found";
 	case Qroot:
 		if(strcmp(name, "..") == 0)
 			break;
-		if(strcmp(name, kidname) == 0){
-			fid->qid = (Qid){Qkid, 0, kidmode>>24};
+		if(strcmp(name, kidname) == 0) {
+			fid->qid = (Qid){Qkid, 0, kidmode >> 24};
 			break;
 		}
 		return "path not found";
 	case Qkid:
-		if(strcmp(name, "..") == 0){
+		if(strcmp(name, "..") == 0) {
 			fid->qid = (Qid){Qroot, 0, QTDIR};
 			break;
 		}
@@ -65,19 +63,19 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 }
 
 void
-fsstat(Req *r)
+fsstat(Req* r)
 {
 	int q;
-	Dir *d;
+	Dir* d;
 
 	d = &r->d;
 	memset(d, 0, sizeof *d);
 	q = r->fid->qid.path;
 	d->qid = r->fid->qid;
-	switch(q){
+	switch(q) {
 	case Qroot:
 		d->name = estrdup9p("/");
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	case Qkid:
@@ -94,7 +92,7 @@ fsstat(Req *r)
 }
 
 int
-dirgen(int off, Dir *d, void *v)
+dirgen(int off, Dir* d, void* v)
 {
 	if(off != 0)
 		return -1;
@@ -103,8 +101,8 @@ dirgen(int off, Dir *d, void *v)
 	d->atime = d->mtime = time0;
 	d->name = estrdup9p(kidname);
 	d->mode = kidmode;
-	d->qid = (Qid){Qkid, 0, kidmode>>24};
-	d->qid.type = d->mode>>24;
+	d->qid = (Qid){Qkid, 0, kidmode >> 24};
+	d->qid.type = d->mode >> 24;
 	d->uid = estrdup9p("stub");
 	d->gid = estrdup9p("stub");
 	d->muid = estrdup9p("");
@@ -112,12 +110,12 @@ dirgen(int off, Dir *d, void *v)
 }
 
 void
-fsread(Req *r)
+fsread(Req* r)
 {
 	int q;
 
 	q = r->fid->qid.path;
-	switch(q){
+	switch(q) {
 	default:
 		respond(r, "bug");
 		return;
@@ -130,15 +128,15 @@ fsread(Req *r)
 }
 
 void
-fswrite(Req *r)
+fswrite(Req* r)
 {
 	respond(r, "no writing");
 }
 
 void
-fsopen(Req *r)
+fsopen(Req* r)
 {
-	if(r->fid->qid.path != Qroot){
+	if(r->fid->qid.path != Qroot) {
 		respond(r, "permission denied");
 		return;
 	}
@@ -150,12 +148,12 @@ fsopen(Req *r)
 }
 
 Srv fs = {
-	.attach=	fsattach,
-	.open=	fsopen,
-	.read=	fsread,
-	.write=	fswrite,
-	.stat=	fsstat,
-	.walk1=	fswalk1,
+    .attach = fsattach,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .stat = fsstat,
+    .walk1 = fswalk1,
 };
 
 void
@@ -166,14 +164,15 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *p, *mtpt;
+	char* p, *mtpt;
 
 	quotefmtinstall();
 
 	time0 = time(0);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -182,18 +181,19 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
-	if((p = strrchr(argv[0], '/')) == 0){
+	if((p = strrchr(argv[0], '/')) == 0) {
 		mtpt = ".";
 		kidname = argv[0];
-	}else if(p == argv[0]){
+	} else if(p == argv[0]) {
 		mtpt = "/";
-		kidname = argv[0]+1;
-	}else{
+		kidname = argv[0] + 1;
+	} else {
 		mtpt = argv[0];
 		*p++ = '\0';
 		kidname = p;

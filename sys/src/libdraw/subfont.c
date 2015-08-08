@@ -12,10 +12,10 @@
 #include <draw.h>
 
 Subfont*
-allocsubfont(char *name, int n, int height, int ascent, Fontchar *info,
-	     Image *i)
+allocsubfont(char* name, int n, int height, int ascent, Fontchar* info,
+             Image* i)
 {
-	Subfont *f;
+	Subfont* f;
 
 	assert(height != 0 /* allocsubfont */);
 
@@ -28,11 +28,11 @@ allocsubfont(char *name, int n, int height, int ascent, Fontchar *info,
 	f->info = info;
 	f->bits = i;
 	f->ref = 1;
-	if(name){
+	if(name) {
 		f->name = strdup(name);
 		if(lookupsubfont(i->display, name) == 0)
 			installsubfont(name, f);
-	}else
+	} else
 		f->name = 0;
 	return f;
 }

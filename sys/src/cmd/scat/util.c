@@ -12,65 +12,65 @@
 #include <bio.h>
 #include "sky.h"
 
-double	PI_180	= 0.0174532925199432957692369;
-double	TWOPI	= 6.2831853071795864769252867665590057683943387987502;
-double	LN2	= 0.69314718055994530941723212145817656807550013436025;
-static double angledangle=(180./PI)*MILLIARCSEC;
+double PI_180 = 0.0174532925199432957692369;
+double TWOPI = 6.2831853071795864769252867665590057683943387987502;
+double LN2 = 0.69314718055994530941723212145817656807550013436025;
+static double angledangle = (180. / PI) * MILLIARCSEC;
 
 int
-rint(char *p, int n)
+rint(char* p, int n)
 {
-	int i=0;
+	int i = 0;
 
-	while(*p==' ' && n)
+	while(*p == ' ' && n)
 		p++, --n;
 	while(n--)
-		i=i*10+*p++-'0';
+		i = i * 10 + *p++ - '0';
 	return i;
 }
 
 DAngle
 dangle(Angle angle)
 {
-	return angle*angledangle;
+	return angle * angledangle;
 }
 
 Angle
 angle(DAngle dangle)
 {
-	return dangle/angledangle;
+	return dangle / angledangle;
 }
 
 double
-rfloat(char *p, int n)
+rfloat(char* p, int n)
 {
-	double i, d=0;
+	double i, d = 0;
 
-	while(*p==' ' && n)
+	while(*p == ' ' && n)
 		p++, --n;
 	if(*p == '+')
-		return rfloat(p+1, n-1);
+		return rfloat(p + 1, n - 1);
 	if(*p == '-')
-		return -rfloat(p+1, n-1);
+		return -rfloat(p + 1, n - 1);
 	while(*p == ' ' && n)
 		p++, --n;
 	if(n == 0)
 		return 0.0;
-	while(n-- && *p!='.')
-		d = d*10+*p++-'0';
+	while(n-- && *p != '.')
+		d = d * 10 + *p++ - '0';
 	if(n <= 0)
 		return d;
 	p++;
 	i = 1;
 	while(n--)
-		d+=(*p++-'0')/(i*=10.);
+		d += (*p++ - '0') / (i *= 10.);
 	return d;
 }
 
 int
 sign(int c)
 {
-	if(c=='-')
+	if(c == '-')
 		return -1;
 	return 1;
 }
@@ -82,8 +82,8 @@ hms(Angle a)
 	double x;
 	int h, m, s, ts;
 
-	x=DEG(a)/15;
-	x += 0.5/36000.;	/* round up half of 0.1 sec */
+	x = DEG(a) / 15;
+	x += 0.5 / 36000.; /* round up half of 0.1 sec */
 	h = floor(x);
 	x -= h;
 	x *= 60;
@@ -92,7 +92,7 @@ hms(Angle a)
 	x *= 60;
 	s = floor(x);
 	x -= s;
-	ts = 10*x;
+	ts = 10 * x;
 	sprint(buf, "%dh%.2dm%.2d.%ds", h, m, s, ts);
 	return buf;
 }
@@ -105,12 +105,12 @@ dms(Angle a)
 	int sign, d, m, s, ts;
 
 	x = DEG(a);
-	sign='+';
-	if(a<0){
-		sign='-';
-		x=-x;
+	sign = '+';
+	if(a < 0) {
+		sign = '-';
+		x = -x;
 	}
-	x += 0.5/36000.;	/* round up half of 0.1 arcsecond */
+	x += 0.5 / 36000.; /* round up half of 0.1 arcsecond */
 	d = floor(x);
 	x -= d;
 	x *= 60;
@@ -119,7 +119,7 @@ dms(Angle a)
 	x *= 60;
 	s = floor(x);
 	x -= s;
-	ts = floor(10*x);
+	ts = floor(10 * x);
 	sprint(buf, "%c%d°%.2d'%.2d.%d\"", sign, d, m, s, ts);
 	return buf;
 }
@@ -132,7 +132,7 @@ ms(Angle a)
 	int d, m, s, ts;
 
 	x = DEG(a);
-	x += 0.5/36000.;	/* round up half of 0.1 arcsecond */
+	x += 0.5 / 36000.; /* round up half of 0.1 arcsecond */
 	d = floor(x);
 	x -= d;
 	x *= 60;
@@ -141,7 +141,7 @@ ms(Angle a)
 	x *= 60;
 	s = floor(x);
 	x -= s;
-	ts = floor(10*x);
+	ts = floor(10 * x);
 	if(d != 0)
 		sprint(buf, "%d°%.2d'%.2d.%d\"", d, m, s, ts);
 	else
@@ -156,8 +156,8 @@ hm(Angle a)
 	double x;
 	int h, m, n;
 
-	x = DEG(a)/15;
-	x += 0.5/600.;	/* round up half of tenth of minute */
+	x = DEG(a) / 15;
+	x += 0.5 / 600.; /* round up half of tenth of minute */
 	h = floor(x);
 	x -= h;
 	x *= 60;
@@ -176,8 +176,8 @@ hm5(Angle a)
 	double x;
 	int h, m;
 
-	x = DEG(a)/15;
-	x += 2.5/60.;	/* round up 2.5m */
+	x = DEG(a) / 15;
+	x += 2.5 / 60.; /* round up 2.5m */
 	h = floor(x);
 	x -= h;
 	x *= 60;
@@ -195,12 +195,12 @@ dm(Angle a)
 	int sign, d, m, n;
 
 	x = DEG(a);
-	sign='+';
-	if(a<0){
-		sign='-';
-		x=-x;
+	sign = '+';
+	if(a < 0) {
+		sign = '-';
+		x = -x;
 	}
-	x += 0.5/600.;	/* round up half of tenth of arcminute */
+	x += 0.5 / 600.; /* round up half of tenth of arcminute */
 	d = floor(x);
 	x -= d;
 	x *= 60;
@@ -220,19 +220,19 @@ deg(Angle a)
 	int sign, d;
 
 	x = DEG(a);
-	sign='+';
-	if(a<0){
-		sign='-';
-		x=-x;
+	sign = '+';
+	if(a < 0) {
+		sign = '-';
+		x = -x;
 	}
-	x += 0.5;	/* round up half degree */
+	x += 0.5; /* round up half degree */
 	d = floor(x);
 	sprint(buf, "%c%d°", sign, d);
 	return buf;
 }
 
 char*
-getword(char *ou, char *in)
+getword(char* ou, char* in)
 {
 	int c;
 
@@ -255,7 +255,7 @@ getword(char *ou, char *in)
 				return 0;
 			if(c == '\'') {
 				*ou = 0;
-				return in-1;
+				return in - 1;
 			}
 		}
 	for(;;) {
@@ -265,7 +265,7 @@ getword(char *ou, char *in)
 		c = *in++;
 		if(c == ' ' || c == '\t' || c == 0) {
 			*ou = 0;
-			return in-1;
+			return in - 1;
 		}
 	}
 }
@@ -274,10 +274,10 @@ getword(char *ou, char *in)
  * Read formatted angle.  Must contain no embedded blanks
  */
 Angle
-getra(char *p)
+getra(char* p)
 {
 	Rune r;
-	char *q;
+	char* q;
 	Angle f, d;
 	int neg;
 
@@ -286,7 +286,7 @@ getra(char *p)
 	while(*p == ' ')
 		p++;
 	for(;;) {
-		if(*p == ' ' || *p=='\0')
+		if(*p == ' ' || *p == '\0')
 			goto Return;
 		if(*p == '-') {
 			neg = 1;
@@ -309,22 +309,22 @@ getra(char *p)
 				d = -d;
 			return RAD(d);
 		case 'h':
-			d += f*15;
+			d += f * 15;
 			break;
 		case 'm':
-			d += f/4;
+			d += f / 4;
 			break;
 		case 's':
-			d += f/240;
+			d += f / 240;
 			break;
 		case L'°':
 			d += f;
 			break;
 		case '\'':
-			d += f/60;
+			d += f / 60;
 			break;
 		case '\"':
-			d += f/3600;
+			d += f / 3600;
 			break;
 		}
 	}
@@ -344,10 +344,8 @@ dist(Angle ra1, Angle dec1, Angle ra2, Angle dec2)
 {
 	double a;
 
-	a = sin(dec1) * sin(dec2) +
-		cos(dec1) * cos(dec2) *
-		cos(ra1 - ra2);
-	a = atan2(xsqrt(1 - a*a), a);
+	a = sin(dec1) * sin(dec2) + cos(dec1) * cos(dec2) * cos(ra1 - ra2);
+	a = atan2(xsqrt(1 - a * a), a);
 	if(a < 0)
 		a = -a;
 	return a;
@@ -365,10 +363,10 @@ dogamma(Pix c)
 	if(gam.absgamma == 1)
 		c = f * gam.mult2;
 	else
-		c = exp(log(f*gam.mult1) * gam.absgamma) * 255;
+		c = exp(log(f * gam.mult1) * gam.absgamma) * 255;
 	if(c > 255)
 		c = 255;
 	if(gam.neg)
-		c = 255-c;
+		c = 255 - c;
 	return c;
 }

@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-static Fcall	hdr;
+static Fcall hdr;
 
 static void
 rpc(int fd, int type)
@@ -39,17 +39,17 @@ rpc(int fd, int type)
 		p += n;
 		l += n;
 	}
-	if(convM2S(buf, &hdr, n) == 0){
+	if(convM2S(buf, &hdr, n) == 0) {
 		print("%ux %ux %ux\n", buf[0], buf[1], buf[2]);
 		fatal("rpc format");
 	}
 	if(hdr.tag != NOTAG)
 		fatal("rpc tag not NOTAG");
-	if(hdr.type == Rerror){
+	if(hdr.type == Rerror) {
 		print("error %s;", hdr.ename);
 		fatal("remote error");
 	}
-	if(hdr.type != type+1)
+	if(hdr.type != type + 1)
 		fatal("not reply");
 }
 

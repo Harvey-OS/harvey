@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<stdlib.h>
+#include <stdlib.h>
 
 int32_t
-itol(const char *s)
+itol(const char* s)
 {
-	return(strtol(s, (char **)0, 10));
+	return (strtol(s, (char**)0, 10));
 }

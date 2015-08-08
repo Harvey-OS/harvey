@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2001 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,7 +28,7 @@
 /* requires: gspsace.h, gscolor2.h */
 
 #ifndef gsicc_INCLUDED
-#  define gsicc_INCLUDED
+#define gsicc_INCLUDED
 
 #include "gscie.h"
 
@@ -86,7 +86,7 @@ struct _icmLuBase;
  *    the stream via save/restore.
  *
  *    The color space objects themselves (the top-level profile structure
- *    pointed to by picc and the lookup object pointed to by plu) are 
+ *    pointed to by picc and the lookup object pointed to by plu) are
  *    allocated in non-garbage collected ("foreign") memory, so we do not
  *    have to indicate access via this structure, nor do we have to be
  *    concerned about relocation of these structures.
@@ -116,29 +116,30 @@ struct _icmLuBase;
  *    error is generated.
  */
 struct gs_cie_icc_s {
-    gs_cie_common_elements;
+	gs_cie_common_elements;
 
-    /* number of components, and their associated range */
-    uint                num_components;
-    gs_range4           Range;
+	/* number of components, and their associated range */
+	uint num_components;
+	gs_range4 Range;
 
-    /* stream object, and the associated read id */
-    unsigned short      file_id;
-    stream *            instrp;
+	/* stream object, and the associated read id */
+	unsigned short file_id;
+	stream* instrp;
 
-    /* the following are set when the structure is initialized */
+	/* the following are set when the structure is initialized */
 
-    /* must the profile connection space undergo an L*a*b* ==> XYZ conversion */
-    bool                pcs_is_cielab;
+	/* must the profile connection space undergo an L*a*b* ==> XYZ
+	 * conversion */
+	bool pcs_is_cielab;
 
-    /* top-level icclib data structure for the profile */
-    struct _icc *       picc;
+	/* top-level icclib data structure for the profile */
+	struct _icc* picc;
 
-    /* "lookup" data structure in the ICC profile */
-    struct _icmLuBase * plu;
+	/* "lookup" data structure in the ICC profile */
+	struct _icmLuBase* plu;
 
-    /* icclib file object for ICC stream */
-    struct _icmFile   * pfile;
+	/* icclib file object for ICC stream */
+	struct _icmFile* pfile;
 };
 
 /*
@@ -147,20 +148,15 @@ struct gs_cie_icc_s {
  * structure that contains such pointers. We make use of the finalization
  * procedure to handle this task.
  */
-#define private_st_cie_icc()    /* in gscsicc.c */            \
-    gs_private_st_suffix_add1_final( st_cie_icc,              \
-                                     gs_cie_icc,              \
-                                     "gs_cie_icc",            \
-                                     cie_icc_enum_ptrs,       \
-                                     cie_icc_reloc_ptrs,      \
-                                     cie_icc_finalize,        \
-                                     st_cie_common_elements_t,\
-                                     instrp )
+#define private_st_cie_icc() /* in gscsicc.c */                                \
+	gs_private_st_suffix_add1_final(st_cie_icc, gs_cie_icc, "gs_cie_icc",  \
+	                                cie_icc_enum_ptrs, cie_icc_reloc_ptrs, \
+	                                cie_icc_finalize,                      \
+	                                st_cie_common_elements_t, instrp)
 
-/* typedef struct gs_cie_icc_s gs_cie_icc; */   /* in gscspace.h */
+/* typedef struct gs_cie_icc_s gs_cie_icc; */ /* in gscspace.h */
 
-
-/* 
+/*
  * Build an ICCBased color space.
  *
  * As with all of the CIE base color space constructurs, this will build
@@ -173,17 +169,14 @@ struct gs_cie_icc_s {
  * The client is responsible for initializing the alternative color space
  * information.
  */
-extern  int     gs_cspace_build_CIEICC( gs_color_space **   ppcspace,
-					void *              client_data,
-					gs_memory_t *       pmem );
+extern int gs_cspace_build_CIEICC(gs_color_space** ppcspace, void* client_data,
+                                  gs_memory_t* pmem);
 
-int
-gx_load_icc_profile(gs_cie_icc *picc_info);
+int gx_load_icc_profile(gs_cie_icc* picc_info);
 
 /*
  * Increment color space reference counts.
  */
-void
-gx_increment_cspace_count(const gs_color_space * pcs);
+void gx_increment_cspace_count(const gs_color_space* pcs);
 
 #endif /* gsicc_INCLUDED */

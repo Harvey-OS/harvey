@@ -16,56 +16,58 @@
 int readonly;
 
 static int
-deverror(char *name, Xfs *xf, int32_t addr, int32_t n, int32_t nret)
+deverror(char* name, Xfs* xf, int32_t addr, int32_t n, int32_t nret)
 {
 	errno = Eio;
-	if(nret < 0){
+	if(nret < 0) {
 		chat("%s errstr=\"%r\"...", name);
 		close(xf->dev);
 		xf->dev = -1;
 		return -1;
 	}
-	fprint(2, "dev %d sector %ld, %s: %ld, should be %ld\n", xf->dev, addr, name, nret, n);
+	fprint(2, "dev %d sector %ld, %s: %ld, should be %ld\n", xf->dev, addr,
+	       name, nret, n);
 	return -1;
 }
 
 int
-devread(Xfs *xf, int32_t addr, void *buf, int32_t n)
+devread(Xfs* xf, int32_t addr, void* buf, int32_t n)
 {
 	int32_t nread;
 
 	if(xf->dev < 0)
 		return -1;
-	nread = pread(xf->dev, buf, n, xf->offset+(int64_t)addr*Sectorsize);
-	if (nread == n)
+	nread = pread(xf->dev, buf, n, xf->offset + (int64_t)addr * Sectorsize);
+	if(nread == n)
 		return 0;
 	return deverror("read", xf, addr, n, nread);
 }
 
 int
-devwrite(Xfs *xf, int32_t addr, void *buf, int32_t n)
+devwrite(Xfs* xf, int32_t addr, void* buf, int32_t n)
 {
 	int32_t nwrite;
 
-	if(xf->omode==OREAD)
+	if(xf->omode == OREAD)
 		return -1;
 
 	if(xf->dev < 0)
 		return -1;
-	nwrite = pwrite(xf->dev, buf, n, xf->offset+(int64_t)addr*Sectorsize);
-	if (nwrite == n)
+	nwrite =
+	    pwrite(xf->dev, buf, n, xf->offset + (int64_t)addr * Sectorsize);
+	if(nwrite == n)
 		return 0;
 	return deverror("write", xf, addr, n, nwrite);
 }
 
 int
-devcheck(Xfs *xf)
+devcheck(Xfs* xf)
 {
 	char buf[Sectorsize];
 
 	if(xf->dev < 0)
 		return -1;
-	if(pread(xf->dev, buf, Sectorsize, 0) != Sectorsize){
+	if(pread(xf->dev, buf, Sectorsize, 0) != Sectorsize) {
 		close(xf->dev);
 		xf->dev = -1;
 		return -1;

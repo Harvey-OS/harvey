@@ -13,7 +13,7 @@
 void (*__assert)(char*);
 
 void
-_assert(char *s)
+_assert(char* s)
 {
 	if(__assert)
 		(*__assert)(s);

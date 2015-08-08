@@ -15,20 +15,20 @@
 #include "usbfs.h"
 #include "usbd.h"
 
-static Channel *portc;
+static Channel* portc;
 static int win;
 static int verbose;
 
 int mainstacksize = Stack;
-static Hub *hubs;
+static Hub* hubs;
 static int nhubs;
 static int mustdump;
 static int pollms = Pollms;
 
-static char *dsname[] = { "disabled", "attached", "configed" };
+static char* dsname[] = {"disabled", "attached", "configed"};
 
 static int
-hubfeature(Hub *h, int port, int f, int on)
+hubfeature(Hub* h, int port, int f, int on)
 {
 	int cmd;
 
@@ -36,21 +36,21 @@ hubfeature(Hub *h, int port, int f, int on)
 		cmd = Rsetfeature;
 	else
 		cmd = Rclearfeature;
-	return usbcmd(h->dev, Rh2d|Rclass|Rother, cmd, f, port, nil, 0);
+	return usbcmd(h->dev, Rh2d | Rclass | Rother, cmd, f, port, nil, 0);
 }
 
 /*
  * This may be used to detect overcurrent on the hub
  */
 static void
-checkhubstatus(Hub *h)
+checkhubstatus(Hub* h)
 {
 	uint8_t buf[4];
 	int sts;
 
-	if(h->isroot)	/* not for root hubs */
+	if(h->isroot) /* not for root hubs */
 		return;
-	if(usbcmd(h->dev, Rd2h|Rclass|Rdev, Rgetstatus, 0, 0, buf, 4) < 0){
+	if(usbcmd(h->dev, Rd2h | Rclass | Rdev, Rgetstatus, 0, 0, buf, 4) < 0) {
 		dprint(2, "%s: get hub status: %r\n", h->dev->dir);
 		return;
 	}
@@ -59,17 +59,17 @@ checkhubstatus(Hub *h)
 }
 
 static int
-confighub(Hub *h)
+confighub(Hub* h)
 {
 	int type;
-	uint8_t buf[128];	/* room for extra descriptors */
+	uint8_t buf[128]; /* room for extra descriptors */
 	int i;
-	Usbdev *d;
-	DHub *dd;
-	Port *pp;
+	Usbdev* d;
+	DHub* dd;
+	Port* pp;
 	int nr;
 	int nmap;
-	uint8_t *PortPwrCtrlMask;
+	uint8_t* PortPwrCtrlMask;
 	int offset;
 	int mask;
 
@@ -77,38 +77,38 @@ confighub(Hub *h)
 	for(i = 0; i < nelem(d->ddesc); i++)
 		if(d->ddesc[i] == nil)
 			break;
-		else if(d->ddesc[i]->data.bDescriptorType == Dhub){
+		else if(d->ddesc[i]->data.bDescriptorType == Dhub) {
 			dd = (DHub*)&d->ddesc[i]->data;
 			nr = Dhublen;
 			goto Config;
 		}
-	type = Rd2h|Rclass|Rdev;
-	nr = usbcmd(h->dev, type, Rgetdesc, Dhub<<8|0, 0, buf, sizeof buf);
-	if(nr < Dhublen){
+	type = Rd2h | Rclass | Rdev;
+	nr = usbcmd(h->dev, type, Rgetdesc, Dhub << 8 | 0, 0, buf, sizeof buf);
+	if(nr < Dhublen) {
 		dprint(2, "%s: %s: getdesc hub: %r\n", argv0, h->dev->dir);
 		return -1;
 	}
 	dd = (DHub*)buf;
 Config:
 	h->nport = dd->bNbrPorts;
-	nmap = 1 + h->nport/8;
-	if(nr < 7 + 2*nmap){
+	nmap = 1 + h->nport / 8;
+	if(nr < 7 + 2 * nmap) {
 		fprint(2, "%s: %s: descr. too small\n", argv0, h->dev->dir);
 		return -1;
 	}
-	h->port = emallocz((h->nport+1)*sizeof(Port), 1);
-	h->pwrms = dd->bPwrOn2PwrGood*2;
+	h->port = emallocz((h->nport + 1) * sizeof(Port), 1);
+	h->pwrms = dd->bPwrOn2PwrGood * 2;
 	if(h->pwrms < Powerdelay)
 		h->pwrms = Powerdelay;
 	h->maxcurrent = dd->bHubContrCurrent;
 	h->pwrmode = dd->wHubCharacteristics[0] & 3;
-	h->compound = (dd->wHubCharacteristics[0] & (1<<2))!=0;
-	h->leds = (dd->wHubCharacteristics[0] & (1<<7)) != 0;
+	h->compound = (dd->wHubCharacteristics[0] & (1 << 2)) != 0;
+	h->leds = (dd->wHubCharacteristics[0] & (1 << 7)) != 0;
 	PortPwrCtrlMask = dd->DeviceRemovable + nmap;
-	for(i = 1; i <= h->nport; i++){
+	for(i = 1; i <= h->nport; i++) {
 		pp = &h->port[i];
-		offset = i/8;
-		mask = 1<<(i%8);
+		offset = i / 8;
+		mask = 1 << (i % 8);
 		pp->removable = (dd->DeviceRemovable[offset] & mask) != 0;
 		pp->pwrctl = (PortPwrCtrlMask[offset] & mask) != 0;
 	}
@@ -116,18 +116,18 @@ Config:
 }
 
 static void
-configroothub(Hub *h)
+configroothub(Hub* h)
 {
-	Dev *d;
+	Dev* d;
 	char buf[128];
-	char *p;
+	char* p;
 	int nr;
 
 	d = h->dev;
 	h->nport = 2;
 	h->maxpkt = 8;
 	seek(d->cfd, 0, 0);
-	nr = read(d->cfd, buf, sizeof(buf)-1);
+	nr = read(d->cfd, buf, sizeof(buf) - 1);
 	if(nr < 0)
 		goto Done;
 	buf[nr] = 0;
@@ -136,56 +136,57 @@ configroothub(Hub *h)
 	if(p == nil)
 		fprint(2, "%s: %s: no port information\n", argv0, d->dir);
 	else
-		h->nport = atoi(p+6);
+		h->nport = atoi(p + 6);
 	p = strstr(buf, "maxpkt ");
 	if(p == nil)
 		fprint(2, "%s: %s: no maxpkt information\n", argv0, d->dir);
 	else
-		h->maxpkt = atoi(p+7);
+		h->maxpkt = atoi(p + 7);
 Done:
-	h->port = emallocz((h->nport+1)*sizeof(Port), 1);
-	dprint(2, "%s: %s: ports %d maxpkt %d\n", argv0, d->dir, h->nport, h->maxpkt);
+	h->port = emallocz((h->nport + 1) * sizeof(Port), 1);
+	dprint(2, "%s: %s: ports %d maxpkt %d\n", argv0, d->dir, h->nport,
+	       h->maxpkt);
 }
 
 Hub*
-newhub(char *fn, Dev *d)
+newhub(char* fn, Dev* d)
 {
-	Hub *h;
+	Hub* h;
 	int i;
-	Usbdev *ud;
+	Usbdev* ud;
 
 	h = emallocz(sizeof(Hub), 1);
 	h->isroot = (d == nil);
-	if(h->isroot){
+	if(h->isroot) {
 		h->dev = opendev(fn);
-		if(h->dev == nil){
+		if(h->dev == nil) {
 			fprint(2, "%s: opendev: %s: %r", argv0, fn);
 			goto Fail;
 		}
-		if(opendevdata(h->dev, ORDWR) < 0){
+		if(opendevdata(h->dev, ORDWR) < 0) {
 			fprint(2, "%s: opendevdata: %s: %r\n", argv0, fn);
 			goto Fail;
 		}
-		configroothub(h);	/* never fails */
-	}else{
+		configroothub(h); /* never fails */
+	} else {
 		h->dev = d;
-		if(confighub(h) < 0){
+		if(confighub(h) < 0) {
 			fprint(2, "%s: %s: config: %r\n", argv0, fn);
 			goto Fail;
 		}
 	}
-	if(h->dev == nil){
+	if(h->dev == nil) {
 		fprint(2, "%s: opendev: %s: %r\n", argv0, fn);
 		goto Fail;
 	}
 	devctl(h->dev, "hub");
 	ud = h->dev->usb;
 	if(h->isroot)
-		devctl(h->dev, "info roothub csp %#08ux ports %d",
-			0x000009, h->nport);
-	else{
-		devctl(h->dev, "info hub csp %#08ulx ports %d %q %q",
-			ud->csp, h->nport, ud->vendor, ud->product);
+		devctl(h->dev, "info roothub csp %#08ux ports %d", 0x000009,
+		       h->nport);
+	else {
+		devctl(h->dev, "info hub csp %#08ulx ports %d %q %q", ud->csp,
+		       h->nport, ud->vendor, ud->product);
 		for(i = 1; i <= h->nport; i++)
 			if(hubfeature(h, i, Fportpower, 1) < 0)
 				fprint(2, "%s: %s: power: %r\n", argv0, fn);
@@ -199,8 +200,8 @@ newhub(char *fn, Dev *d)
 	nhubs++;
 	dprint(2, "%s: hub %#p allocated:", argv0, h);
 	dprint(2, " ports %d pwrms %d max curr %d pwrm %d cmp %d leds %d\n",
-		h->nport, h->pwrms, h->maxcurrent,
-		h->pwrmode, h->compound, h->leds);
+	       h->nport, h->pwrms, h->maxcurrent, h->pwrmode, h->compound,
+	       h->leds);
 	incref(h->dev);
 	return h;
 Fail:
@@ -212,7 +213,7 @@ Fail:
 	return nil;
 }
 
-static void portdetach(Hub *h, int p);
+static void portdetach(Hub* h, int p);
 
 /*
  * If during enumeration we get an I/O error the hub is gone or
@@ -223,7 +224,7 @@ static void portdetach(Hub *h, int p);
  * close it later.
  */
 static void
-hubfail(Hub *h)
+hubfail(Hub* h)
 {
 	int i;
 
@@ -233,9 +234,9 @@ hubfail(Hub *h)
 }
 
 static void
-closehub(Hub *h)
+closehub(Hub* h)
 {
-	Hub **hl;
+	Hub** hl;
 
 	dprint(2, "%s: closing hub %#p\n", argv0, h);
 	for(hl = &hubs; *hl != nil; hl = &(*hl)->next)
@@ -245,7 +246,7 @@ closehub(Hub *h)
 		sysfatal("closehub: no hub");
 	*hl = h->next;
 	nhubs--;
-	hubfail(h);		/* detach all ports */
+	hubfail(h); /* detach all ports */
 	free(h->port);
 	assert(h->dev != nil);
 	devctl(h->dev, "detach");
@@ -254,9 +255,9 @@ closehub(Hub *h)
 }
 
 static int
-portstatus(Hub *h, int p)
+portstatus(Hub* h, int p)
 {
-	Dev *d;
+	Dev* d;
 	uint8_t buf[4];
 	int t;
 	int sts;
@@ -264,9 +265,9 @@ portstatus(Hub *h, int p)
 
 	dbg = usbdebug;
 	if(dbg != 0 && dbg < 4)
-		usbdebug = 1;	/* do not be too chatty */
+		usbdebug = 1; /* do not be too chatty */
 	d = h->dev;
-	t = Rd2h|Rclass|Rother;
+	t = Rd2h | Rclass | Rother;
 	if(usbcmd(d, t, Rgetstatus, 0, p, buf, sizeof(buf)) < 0)
 		sts = -1;
 	else
@@ -279,24 +280,24 @@ static char*
 stsstr(int sts)
 {
 	static char s[80];
-	char *e;
+	char* e;
 
 	e = s;
-	if(sts&PSsuspend)
+	if(sts & PSsuspend)
 		*e++ = 'z';
-	if(sts&PSreset)
+	if(sts & PSreset)
 		*e++ = 'r';
-	if(sts&PSslow)
+	if(sts & PSslow)
 		*e++ = 'l';
-	if(sts&PShigh)
+	if(sts & PShigh)
 		*e++ = 'h';
-	if(sts&PSchange)
+	if(sts & PSchange)
 		*e++ = 'c';
-	if(sts&PSenable)
+	if(sts & PSenable)
 		*e++ = 'e';
-	if(sts&PSstatuschg)
+	if(sts & PSstatuschg)
 		*e++ = 's';
-	if(sts&PSpresent)
+	if(sts & PSpresent)
 		*e++ = 'p';
 	if(e == s)
 		*e++ = '-';
@@ -305,17 +306,19 @@ stsstr(int sts)
 }
 
 static int
-getmaxpkt(Dev *d, int islow)
+getmaxpkt(Dev* d, int islow)
 {
-	uint8_t buf[64];	/* More room to try to get device-specific descriptors */
-	DDev *dd;
+	uint8_t
+	    buf[64]; /* More room to try to get device-specific descriptors */
+	DDev* dd;
 
 	dd = (DDev*)buf;
 	if(islow)
 		dd->bMaxPacketSize0 = 8;
 	else
 		dd->bMaxPacketSize0 = 64;
-	if(usbcmd(d, Rd2h|Rstd|Rdev, Rgetdesc, Ddev<<8|0, 0, buf, sizeof(buf)) < 0)
+	if(usbcmd(d, Rd2h | Rstd | Rdev, Rgetdesc, Ddev << 8 | 0, 0, buf,
+	          sizeof(buf)) < 0)
 		return -1;
 	return dd->bMaxPacketSize0;
 }
@@ -324,14 +327,14 @@ getmaxpkt(Dev *d, int islow)
  * BUG: does not consider max. power avail.
  */
 static Dev*
-portattach(Hub *h, int p, int sts)
+portattach(Hub* h, int p, int sts)
 {
-	Dev *d;
-	Port *pp;
-	Dev *nd;
+	Dev* d;
+	Port* pp;
+	Dev* nd;
 	char fname[80];
 	char buf[40];
-	char *sp;
+	char* sp;
 	int mp;
 	int nr;
 
@@ -344,7 +347,7 @@ portattach(Hub *h, int p, int sts)
 	if(hubfeature(h, p, Fportenable, 1) < 0)
 		dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
 	sleep(Enabledelay);
-	if(hubfeature(h, p, Fportreset, 1) < 0){
+	if(hubfeature(h, p, Fportreset, 1) < 0) {
 		dprint(2, "%s: %s: port %d: reset: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
@@ -352,7 +355,7 @@ portattach(Hub *h, int p, int sts)
 	sts = portstatus(h, p);
 	if(sts < 0)
 		goto Fail;
-	if((sts & PSenable) == 0){
+	if((sts & PSenable) == 0) {
 		dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
 		hubfeature(h, p, Fportenable, 1);
 		sts = portstatus(h, p);
@@ -364,78 +367,81 @@ portattach(Hub *h, int p, int sts)
 		sp = "low";
 	if(sts & PShigh)
 		sp = "high";
-	dprint(2, "%s: %s: port %d: attached status %#ux\n", argv0, d->dir, p, sts);
+	dprint(2, "%s: %s: port %d: attached status %#ux\n", argv0, d->dir, p,
+	       sts);
 
-	if(devctl(d, "newdev %s %d", sp, p) < 0){
+	if(devctl(d, "newdev %s %d", sp, p) < 0) {
 		fprint(2, "%s: %s: port %d: newdev: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
 	seek(d->cfd, 0, 0);
-	nr = read(d->cfd, buf, sizeof(buf)-1);
-	if(nr == 0){
+	nr = read(d->cfd, buf, sizeof(buf) - 1);
+	if(nr == 0) {
 		fprint(2, "%s: %s: port %d: newdev: eof\n", argv0, d->dir, p);
 		goto Fail;
 	}
-	if(nr < 0){
+	if(nr < 0) {
 		fprint(2, "%s: %s: port %d: newdev: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
 	buf[nr] = 0;
 	snprint(fname, sizeof(fname), "/dev/usb/%s", buf);
 	nd = opendev(fname);
-	if(nd == nil){
+	if(nd == nil) {
 		fprint(2, "%s: %s: port %d: opendev: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
 	if(usbdebug > 2)
 		devctl(nd, "debug 1");
-	if(opendevdata(nd, ORDWR) < 0){
+	if(opendevdata(nd, ORDWR) < 0) {
 		fprint(2, "%s: %s: opendevdata: %r\n", argv0, nd->dir);
 		goto Fail;
 	}
-	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetaddress, nd->id, 0, nil, 0) < 0){
-		dprint(2, "%s: %s: port %d: setaddress: %r\n", argv0, d->dir, p);
+	if(usbcmd(nd, Rh2d | Rstd | Rdev, Rsetaddress, nd->id, 0, nil, 0) < 0) {
+		dprint(2, "%s: %s: port %d: setaddress: %r\n", argv0, d->dir,
+		       p);
 		goto Fail;
 	}
-	if(devctl(nd, "address") < 0){
-		dprint(2, "%s: %s: port %d: set address: %r\n", argv0, d->dir, p);
+	if(devctl(nd, "address") < 0) {
+		dprint(2, "%s: %s: port %d: set address: %r\n", argv0, d->dir,
+		       p);
 		goto Fail;
 	}
 
-	mp=getmaxpkt(nd, strcmp(sp, "low") == 0);
-	if(mp < 0){
+	mp = getmaxpkt(nd, strcmp(sp, "low") == 0);
+	if(mp < 0) {
 		dprint(2, "%s: %s: port %d: getmaxpkt: %r\n", argv0, d->dir, p);
 		goto Fail;
-	}else{
+	} else {
 		dprint(2, "%s; %s: port %d: maxpkt %d\n", argv0, d->dir, p, mp);
 		devctl(nd, "maxpkt %d", mp);
 	}
 	if((sts & PSslow) != 0 && strcmp(sp, "full") == 0)
-		dprint(2, "%s: %s: port %d: %s is full speed when port is low\n",
-			argv0, d->dir, p, nd->dir);
-	if(configdev(nd) < 0){
+		dprint(2,
+		       "%s: %s: port %d: %s is full speed when port is low\n",
+		       argv0, d->dir, p, nd->dir);
+	if(configdev(nd) < 0) {
 		dprint(2, "%s: %s: port %d: configdev: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
 	/*
 	 * We always set conf #1. BUG.
 	 */
-	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0){
+	if(usbcmd(nd, Rh2d | Rstd | Rdev, Rsetconf, 1, 0, nil, 0) < 0) {
 		dprint(2, "%s: %s: port %d: setconf: %r\n", argv0, d->dir, p);
 		unstall(nd, nd, Eout);
-		if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0)
+		if(usbcmd(nd, Rh2d | Rstd | Rdev, Rsetconf, 1, 0, nil, 0) < 0)
 			goto Fail;
 	}
 	dprint(2, "%s: %U", argv0, nd);
 	pp->state = Pconfiged;
-	dprint(2, "%s: %s: port %d: configed: %s\n",
-			argv0, d->dir, p, nd->dir);
+	dprint(2, "%s: %s: port %d: configed: %s\n", argv0, d->dir, p, nd->dir);
 	return pp->dev = nd;
 Fail:
 	pp->state = Pdisabled;
 	pp->sts = 0;
 	if(pp->hub != nil)
-		pp->hub = nil;	/* hub closed by enumhub */
+		pp->hub = nil; /* hub closed by enumhub */
 	hubfeature(h, p, Fportenable, 0);
 	if(nd != nil)
 		devctl(nd, "detach");
@@ -444,10 +450,10 @@ Fail:
 }
 
 static void
-portdetach(Hub *h, int p)
+portdetach(Hub* h, int p)
 {
-	Dev *d;
-	Port *pp;
+	Dev* d;
+	Port* pp;
 	extern void usbfsgone(char*);
 	d = h->dev;
 	pp = &h->port[p];
@@ -455,21 +461,21 @@ portdetach(Hub *h, int p)
 	/*
 	 * Clear present, so that we detect an attach on reconnects.
 	 */
-	pp->sts &= ~(PSpresent|PSenable);
+	pp->sts &= ~(PSpresent | PSenable);
 
 	if(pp->state == Pdisabled)
 		return;
 	pp->state = Pdisabled;
 	dprint(2, "%s: %s: port %d: detached\n", argv0, d->dir, p);
 
-	if(pp->hub != nil){
+	if(pp->hub != nil) {
 		closehub(pp->hub);
 		pp->hub = nil;
 	}
 	if(pp->devmaskp != nil)
 		putdevnb(pp->devmaskp, pp->devnb);
 	pp->devmaskp = nil;
-	if(pp->dev != nil){
+	if(pp->dev != nil) {
 		devctl(pp->dev, "detach");
 		usbfsgone(pp->dev->dir);
 		closedev(pp->dev);
@@ -496,11 +502,11 @@ portdetach(Hub *h, int p)
  * yet implemented.
  */
 static int
-portresetwanted(Hub *h, int p)
+portresetwanted(Hub* h, int p)
 {
 	char buf[5];
-	Port *pp;
-	Dev *nd;
+	Port* pp;
+	Dev* nd;
 
 	pp = &h->port[p];
 	nd = pp->dev;
@@ -511,17 +517,17 @@ portresetwanted(Hub *h, int p)
 }
 
 static void
-portreset(Hub *h, int p)
+portreset(Hub* h, int p)
 {
 	int sts;
-	Dev *d, *nd;
-	Port *pp;
+	Dev* d, *nd;
+	Port* pp;
 
 	d = h->dev;
 	pp = &h->port[p];
 	nd = pp->dev;
 	dprint(2, "%s: %s: port %d: resetting\n", argv0, d->dir, p);
-	if(hubfeature(h, p, Fportreset, 1) < 0){
+	if(hubfeature(h, p, Fportreset, 1) < 0) {
 		dprint(2, "%s: %s: port %d: reset: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
@@ -529,7 +535,7 @@ portreset(Hub *h, int p)
 	sts = portstatus(h, p);
 	if(sts < 0)
 		goto Fail;
-	if((sts & PSenable) == 0){
+	if((sts & PSenable) == 0) {
 		dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
 		hubfeature(h, p, Fportenable, 1);
 		sts = portstatus(h, p);
@@ -538,18 +544,20 @@ portreset(Hub *h, int p)
 	}
 	nd = pp->dev;
 	opendevdata(nd, ORDWR);
-	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetaddress, nd->id, 0, nil, 0) < 0){
-		dprint(2, "%s: %s: port %d: setaddress: %r\n", argv0, d->dir, p);
+	if(usbcmd(nd, Rh2d | Rstd | Rdev, Rsetaddress, nd->id, 0, nil, 0) < 0) {
+		dprint(2, "%s: %s: port %d: setaddress: %r\n", argv0, d->dir,
+		       p);
 		goto Fail;
 	}
-	if(devctl(nd, "address") < 0){
-		dprint(2, "%s: %s: port %d: set address: %r\n", argv0, d->dir, p);
+	if(devctl(nd, "address") < 0) {
+		dprint(2, "%s: %s: port %d: set address: %r\n", argv0, d->dir,
+		       p);
 		goto Fail;
 	}
-	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0){
+	if(usbcmd(nd, Rh2d | Rstd | Rdev, Rsetconf, 1, 0, nil, 0) < 0) {
 		dprint(2, "%s: %s: port %d: setconf: %r\n", argv0, d->dir, p);
 		unstall(nd, nd, Eout);
-		if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0)
+		if(usbcmd(nd, Rh2d | Rstd | Rdev, Rsetconf, 1, 0, nil, 0) < 0)
 			goto Fail;
 	}
 	if(nd->dfd >= 0)
@@ -559,7 +567,7 @@ Fail:
 	pp->state = Pdisabled;
 	pp->sts = 0;
 	if(pp->hub != nil)
-		pp->hub = nil;	/* hub closed by enumhub */
+		pp->hub = nil; /* hub closed by enumhub */
 	hubfeature(h, p, Fportenable, 0);
 	if(nd != nil)
 		devctl(nd, "detach");
@@ -567,7 +575,7 @@ Fail:
 }
 
 static int
-portgone(Port *pp, int sts)
+portgone(Port* pp, int sts)
 {
 	if(sts < 0)
 		return 1;
@@ -581,11 +589,11 @@ portgone(Port *pp, int sts)
 }
 
 static int
-enumhub(Hub *h, int p)
+enumhub(Hub* h, int p)
 {
 	int sts;
-	Dev *d;
-	Port *pp;
+	Dev* d;
+	Port* pp;
 	int onhubs;
 
 	if(h->failed)
@@ -595,31 +603,33 @@ enumhub(Hub *h, int p)
 		fprint(2, "%s: %s: port %d enumhub\n", argv0, d->dir, p);
 
 	sts = portstatus(h, p);
-	if(sts < 0){
-		hubfail(h);		/* avoid delays on detachment */
+	if(sts < 0) {
+		hubfail(h); /* avoid delays on detachment */
 		return -1;
 	}
 	pp = &h->port[p];
 	onhubs = nhubs;
-	if((sts & PSsuspend) != 0){
+	if((sts & PSsuspend) != 0) {
 		if(hubfeature(h, p, Fportenable, 1) < 0)
-			dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
+			dprint(2, "%s: %s: port %d: enable: %r\n", argv0,
+			       d->dir, p);
 		sleep(Enabledelay);
 		sts = portstatus(h, p);
-		fprint(2, "%s: %s: port %d: resumed (sts %#ux)\n", argv0, d->dir, p, sts);
+		fprint(2, "%s: %s: port %d: resumed (sts %#ux)\n", argv0,
+		       d->dir, p, sts);
 	}
-	if((pp->sts & PSpresent) == 0 && (sts & PSpresent) != 0){
+	if((pp->sts & PSpresent) == 0 && (sts & PSpresent) != 0) {
 		if(portattach(h, p, sts) != nil)
 			if(startdev(pp) < 0)
 				portdetach(h, p);
-	}else if(portgone(pp, sts))
+	} else if(portgone(pp, sts))
 		portdetach(h, p);
 	else if(portresetwanted(h, p))
 		portreset(h, p);
-	else if(pp->sts != sts){
-		dprint(2, "%s: %s port %d: sts %s %#x ->",
-			argv0, d->dir, p, stsstr(pp->sts), pp->sts);
-		dprint(2, " %s %#x\n",stsstr(sts), sts);
+	else if(pp->sts != sts) {
+		dprint(2, "%s: %s port %d: sts %s %#x ->", argv0, d->dir, p,
+		       stsstr(pp->sts), pp->sts);
+		dprint(2, " %s %#x\n", stsstr(sts), sts);
 	}
 	pp->sts = sts;
 	if(onhubs != nhubs)
@@ -630,24 +640,23 @@ enumhub(Hub *h, int p)
 static void
 dump(void)
 {
-	Hub *h;
+	Hub* h;
 	int i;
 
 	mustdump = 0;
 	for(h = hubs; h != nil; h = h->next)
 		for(i = 1; i <= h->nport; i++)
-			fprint(2, "%s: hub %#p %s port %d: %U",
-				argv0, h, h->dev->dir, i, h->port[i].dev);
+			fprint(2, "%s: hub %#p %s port %d: %U", argv0, h,
+			       h->dev->dir, i, h->port[i].dev);
 	usbfsdirdump();
-
 }
 
 static void
-work(void *a)
+work(void* a)
 {
-	Channel *portc;
-	char *fn;
-	Hub *h;
+	Channel* portc;
+	char* fn;
+	Hub* h;
 	int i;
 
 	portc = a;
@@ -656,7 +665,7 @@ work(void *a)
 	/*
 	 * Receive requests for root hubs
 	 */
-	while((fn = recvp(portc)) != nil){
+	while((fn = recvp(portc)) != nil) {
 		dprint(2, "%s: %s starting\n", argv0, fn);
 		h = newhub(fn, nil);
 		if(h == nil)
@@ -673,15 +682,15 @@ work(void *a)
 	 * Do not use hub interrupt endpoint because we
 	 * have to poll the root hub(s) in any case.
 	 */
-	for(;;){
-Again:
+	for(;;) {
+	Again:
 		for(h = hubs; h != nil; h = h->next)
 			for(i = 1; i <= h->nport; i++)
-				if(enumhub(h, i) < 0){
+				if(enumhub(h, i) < 0) {
 					/* changes in hub list; repeat */
 					goto Again;
 				}
-		if(portc != nil){
+		if(portc != nil) {
 			sendp(portc, nil);
 			portc = nil;
 		}
@@ -692,28 +701,28 @@ Again:
 }
 
 static int
-cfswalk(Usbfs*, Fid *, char *)
+cfswalk(Usbfs*, Fid*, char*)
 {
 	werrstr(Enotfound);
 	return -1;
 }
 
 static int
-cfsopen(Usbfs*, Fid *, int)
+cfsopen(Usbfs*, Fid*, int)
 {
 	return 0;
 }
 
 static int32_t
-cfsread(Usbfs*, Fid *, void *, int32_t , int64_t )
+cfsread(Usbfs*, Fid*, void*, int32_t, int64_t)
 {
 	return 0;
 }
 
 static void
-setdrvargs(char *name, char *args)
+setdrvargs(char* name, char* args)
 {
-	Devtab *dt;
+	Devtab* dt;
 	extern Devtab devtab[];
 
 	for(dt = devtab; dt->name != nil; dt++)
@@ -722,9 +731,9 @@ setdrvargs(char *name, char *args)
 }
 
 static void
-setdrvauto(char *name, int on)
+setdrvauto(char* name, int on)
 {
-	Devtab *dt;
+	Devtab* dt;
 	extern Devtab devtab[];
 
 	for(dt = devtab; dt->name != nil; dt++)
@@ -733,31 +742,31 @@ setdrvauto(char *name, int on)
 }
 
 static int32_t
-cfswrite(Usbfs*, Fid *, void *data, int32_t cnt, int64_t )
+cfswrite(Usbfs*, Fid*, void* data, int32_t cnt, int64_t)
 {
-	char *cmd, *arg;
+	char* cmd, *arg;
 	char buf[80];
-	char *toks[4];
+	char* toks[4];
 
 	if(cnt > sizeof(buf))
 		cnt = sizeof(buf) - 1;
 	strncpy(buf, data, cnt);
 	buf[cnt] = 0;
-	if(cnt > 0 && buf[cnt-1] == '\n')
-		buf[cnt-1] = 0;
-	if(strncmp(buf, "dump", 4) == 0){
+	if(cnt > 0 && buf[cnt - 1] == '\n')
+		buf[cnt - 1] = 0;
+	if(strncmp(buf, "dump", 4) == 0) {
 		mustdump = 1;
 		return cnt;
 	}
-	if(strncmp(buf, "reset", 5) == 0){
+	if(strncmp(buf, "reset", 5) == 0) {
 		werrstr("reset not implemented");
 		return -1;
 	}
-	if(strncmp(buf, "exit", 4) == 0){
+	if(strncmp(buf, "exit", 4) == 0) {
 		threadexitsall(nil);
 		return cnt;
 	}
-	if(tokenize(buf, toks, nelem(toks)) != 2){
+	if(tokenize(buf, toks, nelem(toks)) != 2) {
 		werrstr("usage: auto|debug|diskargs|fsdebug|kbargs|noauto n");
 		return -1;
 	}
@@ -777,7 +786,7 @@ cfswrite(Usbfs*, Fid *, void *data, int32_t cnt, int64_t )
 		setdrvargs("kb", arg);
 	else if(strcmp(cmd, "noauto") == 0)
 		setdrvauto(arg, 0);
-	else{
+	else {
 		werrstr("unknown ctl '%s'", buf);
 		return -1;
 	}
@@ -786,7 +795,7 @@ cfswrite(Usbfs*, Fid *, void *data, int32_t cnt, int64_t )
 }
 
 static int
-cfsstat(Usbfs* fs, Qid qid, Dir *d)
+cfsstat(Usbfs* fs, Qid qid, Dir* d)
 {
 	d->qid = qid;
 	d->qid.path |= fs->qid;
@@ -798,30 +807,27 @@ cfsstat(Usbfs* fs, Qid qid, Dir *d)
 	return 0;
 }
 
-static Usbfs ctlfs =
-{
-	.walk = cfswalk,
-	.open = cfsopen,
-	.read = cfsread,
-	.write = cfswrite,
-	.stat = cfsstat
-};
+static Usbfs ctlfs = {.walk = cfswalk,
+                      .open = cfsopen,
+                      .read = cfsread,
+                      .write = cfswrite,
+                      .stat = cfsstat};
 
 static void
-getenvint(char *env, int *lp)
+getenvint(char* env, int* lp)
 {
-	char *s;
+	char* s;
 
 	s = getenv(env);
-	if (s != nil)
+	if(s != nil)
 		*lp = atoi(s);
 	free(s);
 }
 
 static void
-getenvdrvargs(char *env, char *argname)
+getenvdrvargs(char* env, char* argname)
 {
-	char *s;
+	char* s;
 
 	s = getenv(env);
 	if(s != nil)
@@ -832,10 +838,10 @@ getenvdrvargs(char *env, char *argname)
 static void
 args(void)
 {
-	getenvint("usbdebug",	&usbdebug);
-	getenvint("usbfsdebug",	&usbfsdebug);
-	getenvdrvargs("kbargs",    "kb");
-	getenvdrvargs("diskargs",  "disk");
+	getenvint("usbdebug", &usbdebug);
+	getenvint("usbfsdebug", &usbfsdebug);
+	getenvdrvargs("kbargs", "kb");
+	getenvdrvargs("diskargs", "disk");
 	getenvdrvargs("etherargs", "ether");
 }
 
@@ -849,15 +855,16 @@ usage(void)
 extern void usbfsexits(int);
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
 	int fd, i, nd;
-	char *err, *mnt, *srv;
-	Dir *d;
+	char* err, *mnt, *srv;
+	Dir* d;
 
 	srv = "usb";
 	mnt = "/dev";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		usbfsdebug++;
 		break;
@@ -875,7 +882,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
 		sysfatal("#u: %r");
 
@@ -884,11 +892,11 @@ threadmain(int argc, char **argv)
 	fmtinstall('U', Ufmt);
 	quotefmtinstall();
 	rfork(RFNOTEG);
-	portc = chancreate(sizeof(char *), 0);
+	portc = chancreate(sizeof(char*), 0);
 	if(portc == nil)
 		sysfatal("chancreate");
 	proccreate(work, portc, Stack);
-	if(argc == 0){
+	if(argc == 0) {
 		fd = open("/dev/usb", OREAD);
 		if(fd < 0)
 			sysfatal("/dev/usb: %r");
@@ -900,7 +908,7 @@ threadmain(int argc, char **argv)
 			if(strcmp(d[i].name, "ctl") != 0)
 				sendp(portc, smprint("/dev/usb/%s", d[i].name));
 		free(d);
-	}else
+	} else
 		for(i = 0; i < argc; i++)
 			sendp(portc, strdup(argv[i]));
 	sendp(portc, nil);

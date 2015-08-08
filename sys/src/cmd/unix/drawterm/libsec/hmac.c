@@ -12,11 +12,9 @@
 
 /* rfc2104 */
 static DigestState*
-hmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-       uint8_t *digest,
-       DigestState *s,
-	DigestState*(*x)(uint8_t*, uint32_t, uint8_t*, DigestState*),
-       int xlen)
+hmac_x(uint8_t* p, uint32_t len, uint8_t* key, uint32_t klen, uint8_t* digest,
+       DigestState* s,
+       DigestState* (*x)(uint8_t*, uint32_t, uint8_t*, DigestState*), int xlen)
 {
 	int i;
 	uint8_t pad[65], innerdigest[256];
@@ -24,15 +22,15 @@ hmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 	if(xlen > sizeof(innerdigest))
 		return nil;
 
-	if(klen>64)
+	if(klen > 64)
 		return nil;
 
 	/* first time through */
-	if(s == nil){
-		for(i=0; i<64; i++)
+	if(s == nil) {
+		for(i = 0; i < 64; i++)
 			pad[i] = 0x36;
 		pad[64] = 0;
-		for(i=0; i<klen; i++)
+		for(i = 0; i < klen; i++)
 			pad[i] ^= key[i];
 		s = (*x)(pad, 64, nil, nil);
 		if(s == nil)
@@ -44,10 +42,10 @@ hmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 		return s;
 
 	/* last time through */
-	for(i=0; i<64; i++)
+	for(i = 0; i < 64; i++)
 		pad[i] = 0x5c;
 	pad[64] = 0;
-	for(i=0; i<klen; i++)
+	for(i = 0; i < klen; i++)
 		pad[i] ^= key[i];
 	(*x)(nil, 0, innerdigest, s);
 	s = (*x)(pad, 64, nil, nil);
@@ -56,17 +54,15 @@ hmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 }
 
 DigestState*
-hmac_sha1(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	  uint8_t *digest,
-	  DigestState *s)
+hmac_sha1(uint8_t* p, uint32_t len, uint8_t* key, uint32_t klen,
+          uint8_t* digest, DigestState* s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha1, SHA1dlen);
 }
 
 DigestState*
-hmac_md5(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	 uint8_t *digest,
-	 DigestState *s)
+hmac_md5(uint8_t* p, uint32_t len, uint8_t* key, uint32_t klen, uint8_t* digest,
+         DigestState* s)
 {
 	return hmac_x(p, len, key, klen, digest, s, md5, MD5dlen);
 }

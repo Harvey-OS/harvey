@@ -13,10 +13,10 @@
 #include "threadimpl.h"
 
 static int32_t
-_iodial(va_list *arg)
+_iodial(va_list* arg)
 {
-	char *addr, *local, *dir;
-	int *cdfp;
+	char* addr, *local, *dir;
+	int* cdfp;
 
 	addr = va_arg(*arg, char*);
 	local = va_arg(*arg, char*);
@@ -27,7 +27,7 @@ _iodial(va_list *arg)
 }
 
 int
-iodial(Ioproc *io, char *addr, char *local, char *dir, int *cdfp)
+iodial(Ioproc* io, char* addr, char* local, char* dir, int* cdfp)
 {
 	return iocall(io, _iodial, addr, local, dir, cdfp);
 }

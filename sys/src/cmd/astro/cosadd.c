@@ -9,9 +9,8 @@
 
 #include "astro.h"
 
-
 void
-icosadd(double *fp, char *cp)
+icosadd(double* fp, char* cp)
 {
 
 	cafp = fp;
@@ -21,8 +20,8 @@ icosadd(double *fp, char *cp)
 double
 cosadd(int n, double coef, ...)
 {
-	double *coefp;
-	char *cp;
+	double* coefp;
+	char* cp;
 	int i;
 	double sum, a1, a2;
 
@@ -48,8 +47,8 @@ loop:
 double
 sinadd(int n, double coef, ...)
 {
-	double *coefp;
-	char *cp;
+	double* coefp;
+	char* cp;
 	int i;
 	double sum, a1, a2;
 

@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1989, 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1989, 1995, 1998, 1999 Aladdin Enterprises.  All rights
+  reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +28,7 @@
 /* Definition of error codes */
 
 #ifndef ierrors_INCLUDED
-#  define ierrors_INCLUDED
+#define ierrors_INCLUDED
 
 /*
  * DO NOT USE THIS FILE IN THE GRAPHICS LIBRARY.
@@ -43,11 +44,11 @@
  */
 
 /* Define the error name table */
-extern const char *const gs_error_names[];
+extern const char* const gs_error_names[];
 
-		/* ------ PostScript Level 1 errors ------ */
+/* ------ PostScript Level 1 errors ------ */
 
-#define e_unknownerror (-1)	/* unknown error */
+#define e_unknownerror (-1) /* unknown error */
 #define e_dictfull (-2)
 #define e_dictstackoverflow (-3)
 #define e_dictstackunderflow (-4)
@@ -76,15 +77,16 @@ extern const char *const gs_error_names[];
 #define e_unmatchedmark (-24)
 #define e_VMerror (-25)
 
-#define LEVEL1_ERROR_NAMES\
- "unknownerror", "dictfull", "dictstackoverflow", "dictstackunderflow",\
- "execstackoverflow", "interrupt", "invalidaccess", "invalidexit",\
- "invalidfileaccess", "invalidfont", "invalidrestore", "ioerror",\
- "limitcheck", "nocurrentpoint", "rangecheck", "stackoverflow",\
- "stackunderflow", "syntaxerror", "timeout", "typecheck", "undefined",\
- "undefinedfilename", "undefinedresult", "unmatchedmark", "VMerror"
+#define LEVEL1_ERROR_NAMES                                                     \
+	"unknownerror", "dictfull", "dictstackoverflow", "dictstackunderflow", \
+	    "execstackoverflow", "interrupt", "invalidaccess", "invalidexit",  \
+	    "invalidfileaccess", "invalidfont", "invalidrestore", "ioerror",   \
+	    "limitcheck", "nocurrentpoint", "rangecheck", "stackoverflow",     \
+	    "stackunderflow", "syntaxerror", "timeout", "typecheck",           \
+	    "undefined", "undefinedfilename", "undefinedresult",               \
+	    "unmatchedmark", "VMerror"
 
-		/* ------ Additional Level 2 and DPS errors ------ */
+/* ------ Additional Level 2 and DPS errors ------ */
 
 #define e_configurationerror (-26)
 #define e_invalidcontext (-27)
@@ -93,13 +95,13 @@ extern const char *const gs_error_names[];
 /* invalidid is for the NeXT DPS extension. */
 #define e_invalidid (-30)
 
-#define LEVEL2_ERROR_NAMES\
- "configurationerror", "invalidcontext", "undefinedresource",\
- "unregistered", "invalidid"
+#define LEVEL2_ERROR_NAMES                                                     \
+	"configurationerror", "invalidcontext", "undefinedresource",           \
+	    "unregistered", "invalidid"
 
-#define ERROR_NAMES   LEVEL1_ERROR_NAMES, LEVEL2_ERROR_NAMES
+#define ERROR_NAMES LEVEL1_ERROR_NAMES, LEVEL2_ERROR_NAMES
 
-		/* ------ Pseudo-errors used internally ------ */
+/* ------ Pseudo-errors used internally ------ */
 
 /*
  * Internal code for a fatal error.
@@ -171,7 +173,7 @@ extern const char *const gs_error_names[];
 /*
  * Define which error codes require re-executing the current object.
  */
-#define ERROR_IS_INTERRUPT(ecode)\
-  ((ecode) == e_interrupt || (ecode) == e_timeout)
+#define ERROR_IS_INTERRUPT(ecode)                                              \
+	((ecode) == e_interrupt || (ecode) == e_timeout)
 
 #endif /* ierrors_INCLUDED */

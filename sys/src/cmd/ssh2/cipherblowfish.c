@@ -17,16 +17,16 @@
 #include "netssh.h"
 
 struct CipherState {
-	BFstate	state;
+	BFstate state;
 };
 
 static CipherState*
-initblowfish(Conn *c, int dir)
+initblowfish(Conn* c, int dir)
 {
 	int i;
-	CipherState *cs;
+	CipherState* cs;
 
-	if (debug > 1) {
+	if(debug > 1) {
 		fprint(2, "initblowfish dir:%d\ns2cek: ", dir);
 		for(i = 0; i < 16; ++i)
 			fprint(2, "%02x", c->s2cek[i]);
@@ -52,24 +52,22 @@ initblowfish(Conn *c, int dir)
 }
 
 static void
-encryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
+encryptblowfish(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	bfCBCencrypt(buf, nbuf, &cs->state);
 }
 
 static void
-decryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
+decryptblowfish(CipherState* cs, uint8_t* buf, int nbuf)
 {
-fprint(2, "cs: %p, nb:%d\n", cs, nbuf);
-fprint(2, "before decrypt: %02ux %02ux %02ux %02ux\n", buf[0], buf[1], buf[2], buf[3]);
+	fprint(2, "cs: %p, nb:%d\n", cs, nbuf);
+	fprint(2, "before decrypt: %02ux %02ux %02ux %02ux\n", buf[0], buf[1],
+	       buf[2], buf[3]);
 	bfCBCdecrypt(buf, nbuf, &cs->state);
-fprint(2, "after decrypt: %02ux %02ux %02ux %02ux\n", buf[0], buf[1], buf[2], buf[3]);
+	fprint(2, "after decrypt: %02ux %02ux %02ux %02ux\n", buf[0], buf[1],
+	       buf[2], buf[3]);
 }
 
 Cipher cipherblowfish = {
-	"blowfish-cbc",
-	8,
-	initblowfish,
-	encryptblowfish,
-	decryptblowfish,
+    "blowfish-cbc", 8, initblowfish, encryptblowfish, decryptblowfish,
 };

@@ -11,18 +11,18 @@
 #include <libc.h>
 #include "flashfs.h"
 
-char*	prog;
-uint32_t	sectsize;
-uint32_t	nsects;
-uint8_t*	sectbuff;
-int	readonly;
-uint32_t	delta;
-int	eparity;
+char* prog;
+uint32_t sectsize;
+uint32_t nsects;
+uint8_t* sectbuff;
+int readonly;
+uint32_t delta;
+int eparity;
 
-uint8_t	magic[]	= { MAGIC0, MAGIC1, MAGIC2, FFSVERS };
+uint8_t magic[] = {MAGIC0, MAGIC1, MAGIC2, FFSVERS};
 
 int
-putc3(uint8_t *buff, uint32_t v)
+putc3(uint8_t* buff, uint32_t v)
 {
 	if(v < (1 << 7)) {
 		buff[0] = v;
@@ -42,13 +42,14 @@ putc3(uint8_t *buff, uint32_t v)
 		return 3;
 	}
 
-	fprint(2, "%s: putc3 fail 0x%lux, called from %#p\n", prog, v, getcallerpc(&buff));
+	fprint(2, "%s: putc3 fail 0x%lux, called from %#p\n", prog, v,
+	       getcallerpc(&buff));
 	abort();
 	return -1;
 }
 
 int
-getc3(uint8_t *buff, uint32_t *p)
+getc3(uint8_t* buff, uint32_t* p)
 {
 	int c, d;
 
@@ -71,19 +72,16 @@ getc3(uint8_t *buff, uint32_t *p)
 }
 
 uint32_t
-get4(uint8_t *b)
+get4(uint8_t* b)
 {
-	return	(b[0] <<  0) |
-		(b[1] <<  8) |
-		(b[2] << 16) |
-		(b[3] << 24);
+	return (b[0] << 0) | (b[1] << 8) | (b[2] << 16) | (b[3] << 24);
 }
 
 void
-put4(uint8_t *b, uint32_t v)
+put4(uint8_t* b, uint32_t v)
 {
-	b[0] = v >>  0;
-	b[1] = v >>  8;
+	b[0] = v >> 0;
+	b[1] = v >> 8;
 	b[2] = v >> 16;
 	b[3] = v >> 24;
 }

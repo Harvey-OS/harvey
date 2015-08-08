@@ -12,9 +12,9 @@
 #include <libsec.h>
 
 RSApub*
-rsaprivtopub(RSApriv *priv)
+rsaprivtopub(RSApriv* priv)
 {
-	RSApub *pub;
+	RSApub* pub;
 
 	pub = rsapuballoc();
 	if(pub == nil)

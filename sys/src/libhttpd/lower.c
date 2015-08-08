@@ -13,10 +13,10 @@
 #include <httpd.h>
 
 char*
-hlower(char *p)
+hlower(char* p)
 {
 	char c;
-	char *x;
+	char* x;
 
 	if(p == nil)
 		return p;

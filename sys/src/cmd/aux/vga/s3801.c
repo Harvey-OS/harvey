@@ -26,7 +26,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 static void
 options(Vga* vga, Ctlr* ctlr)
 {
-	ctlr->flag |= Henhanced|Foptions;
+	ctlr->flag |= Henhanced | Foptions;
 }
 
 static void
@@ -35,7 +35,7 @@ init(Vga* vga, Ctlr* ctlr)
 	uint32_t x;
 
 	s3generic.init(vga, ctlr);
-	vga->crt[0x3B] = vga->crt[0]-5;
+	vga->crt[0x3B] = vga->crt[0] - 5;
 
 	if(vga->mode->z > 8)
 		error("depth %d not supported\n", vga->mode->z);
@@ -48,8 +48,8 @@ init(Vga* vga, Ctlr* ctlr)
 	 * registers.
 	 */
 	vga->crt[0x60] = 0xFF;
-	x = (vga->mode->x)/4;
-	vga->crt[0x61] = 0x80|((x>>8) & 0x07);
+	x = (vga->mode->x) / 4;
+	vga->crt[0x61] = 0x80 | ((x >> 8) & 0x07);
 	vga->crt[0x62] = (x & 0xFF);
 
 	if(vga->mode->x <= 800)
@@ -71,7 +71,7 @@ load(Vga* vga, Ctlr* ctlr)
 	vgaxo(Crtx, 0x62, vga->crt[0x62]);
 
 	advfunc = 0x0000;
-	if(ctlr->flag & Uenhanced){
+	if(ctlr->flag & Uenhanced) {
 		if(vga->mode->x == 1024 || vga->mode->x == 800)
 			advfunc = 0x0057;
 		else
@@ -87,19 +87,19 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr s3801 = {
-	"s3801",			/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "s3801", /* name */
+    snarf,   /* snarf */
+    options, /* options */
+    init,    /* init */
+    load,    /* load */
+    dump,    /* dump */
 };
 
 Ctlr s3805 = {
-	"s3805",			/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "s3805", /* name */
+    snarf,   /* snarf */
+    options, /* options */
+    init,    /* init */
+    load,    /* load */
+    dump,    /* dump */
 };

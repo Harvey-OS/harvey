@@ -7,28 +7,30 @@
  * in the LICENSE file.
  */
 
-typedef	unsigned long	ulong;
-typedef	unsigned int	uint;
-typedef	unsigned short	ushort;
-typedef	unsigned char	uchar;
-typedef	signed char	schar;
+typedef unsigned long ulong;
+typedef unsigned int uint;
+typedef unsigned short ushort;
+typedef unsigned char uchar;
+typedef signed char schar;
 
-#define	SIGN(n)	(1UL<<(n-1))
+#define SIGN(n) (1UL << (n - 1))
 
-typedef	struct	Vlong	Vlong;
-struct	Vlong
-{
-	uint32_t	hi;
-	uint32_t	lo;
+typedef struct Vlong Vlong;
+struct Vlong {
+	uint32_t hi;
+	uint32_t lo;
 };
 
-void	abort(void);
-void	_divu64(Vlong, Vlong, Vlong*, Vlong*);
+void abort(void);
+void _divu64(Vlong, Vlong, Vlong*, Vlong*);
 
 void
-_d2v(Vlong *y, double d)
+_d2v(Vlong* y, double d)
 {
-	union { double d; Vlong; } x;
+	union {
+		double d;
+		Vlong;
+	} x;
 	uint32_t xhi, xlo, ylo, yhi;
 	int sh;
 
@@ -47,15 +49,14 @@ _d2v(Vlong *y, double d)
 				ylo = xlo;
 				yhi = xhi;
 			} else {
-				ylo = (xlo >> sh) | (xhi << (32-sh));
+				ylo = (xlo >> sh) | (xhi << (32 - sh));
 				yhi = xhi >> sh;
 			}
 		} else {
 			if(sh == 32) {
 				ylo = xhi;
-			} else
-			if(sh < 64) {
-				ylo = xhi >> (sh-32);
+			} else if(sh < 64) {
+				ylo = xhi >> (sh - 32);
 			}
 		}
 	} else {
@@ -63,10 +64,10 @@ _d2v(Vlong *y, double d)
 		sh = -sh;
 		if(sh <= 10) {
 			ylo = xlo << sh;
-			yhi = (xhi << sh) | (xlo >> (32-sh));
+			yhi = (xhi << sh) | (xlo >> (32 - sh));
 		} else {
 			/* overflow */
-			yhi = d;	/* causes something awful */
+			yhi = d; /* causes something awful */
 		}
 	}
 	if(x.hi & SIGN(32)) {
@@ -82,7 +83,7 @@ _d2v(Vlong *y, double d)
 }
 
 void
-_f2v(Vlong *y, float f)
+_f2v(Vlong* y, float f)
 {
 
 	_d2v(y, f);
@@ -97,9 +98,9 @@ _v2d(Vlong x)
 			x.hi = ~x.hi;
 		} else
 			x.hi = -x.hi;
-		return -((int32_t)x.hi*4294967296. + x.lo);
+		return -((int32_t)x.hi * 4294967296. + x.lo);
 	}
-	return (int32_t)x.hi*4294967296. + x.lo;
+	return (int32_t)x.hi * 4294967296. + x.lo;
 }
 
 float
@@ -109,7 +110,7 @@ _v2f(Vlong x)
 }
 
 void
-_divvu(Vlong *q, Vlong n, Vlong d)
+_divvu(Vlong* q, Vlong n, Vlong d)
 {
 
 	if(n.hi == 0 && d.hi == 0) {
@@ -121,7 +122,7 @@ _divvu(Vlong *q, Vlong n, Vlong d)
 }
 
 void
-_modvu(Vlong *r, Vlong n, Vlong d)
+_modvu(Vlong* r, Vlong n, Vlong d)
 {
 
 	if(n.hi == 0 && d.hi == 0) {
@@ -133,7 +134,7 @@ _modvu(Vlong *r, Vlong n, Vlong d)
 }
 
 static void
-vneg(Vlong *v)
+vneg(Vlong* v)
 {
 
 	if(v->lo == 0) {
@@ -145,11 +146,11 @@ vneg(Vlong *v)
 }
 
 void
-_divv(Vlong *q, Vlong n, Vlong d)
+_divv(Vlong* q, Vlong n, Vlong d)
 {
 	int32_t nneg, dneg;
 
-	if(n.hi == (((int32_t)n.lo)>>31) && d.hi == (((int32_t)d.lo)>>31)) {
+	if(n.hi == (((int32_t)n.lo) >> 31) && d.hi == (((int32_t)d.lo) >> 31)) {
 		q->lo = (int32_t)n.lo / (int32_t)d.lo;
 		q->hi = ((int32_t)q->lo) >> 31;
 		return;
@@ -166,11 +167,11 @@ _divv(Vlong *q, Vlong n, Vlong d)
 }
 
 void
-_modv(Vlong *r, Vlong n, Vlong d)
+_modv(Vlong* r, Vlong n, Vlong d)
 {
 	int32_t nneg, dneg;
 
-	if(n.hi == (((int32_t)n.lo)>>31) && d.hi == (((int32_t)d.lo)>>31)) {
+	if(n.hi == (((int32_t)n.lo) >> 31) && d.hi == (((int32_t)d.lo) >> 31)) {
 		r->lo = (int32_t)n.lo % (int32_t)d.lo;
 		r->hi = ((int32_t)r->lo) >> 31;
 		return;
@@ -187,7 +188,7 @@ _modv(Vlong *r, Vlong n, Vlong d)
 }
 
 void
-_vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
+_vasop(Vlong* ret, void* lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 {
 	Vlong t, u;
 
@@ -197,64 +198,64 @@ _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 		abort();
 		break;
 
-	case 1:	/* schar */
+	case 1: /* schar */
 		t.lo = *(schar*)lv;
 		t.hi = t.lo >> 31;
 		fn(&u, t, rv);
 		*(schar*)lv = u.lo;
 		break;
 
-	case 2:	/* uchar */
+	case 2: /* uchar */
 		t.lo = *(uint8_t*)lv;
 		t.hi = 0;
 		fn(&u, t, rv);
 		*(uint8_t*)lv = u.lo;
 		break;
 
-	case 3:	/* short */
+	case 3: /* short */
 		t.lo = *(int16_t*)lv;
 		t.hi = t.lo >> 31;
 		fn(&u, t, rv);
 		*(int16_t*)lv = u.lo;
 		break;
 
-	case 4:	/* ushort */
+	case 4: /* ushort */
 		t.lo = *(uint16_t*)lv;
 		t.hi = 0;
 		fn(&u, t, rv);
 		*(uint16_t*)lv = u.lo;
 		break;
 
-	case 9:	/* int */
+	case 9: /* int */
 		t.lo = *(int*)lv;
 		t.hi = t.lo >> 31;
 		fn(&u, t, rv);
 		*(int*)lv = u.lo;
 		break;
 
-	case 10:	/* uint */
+	case 10: /* uint */
 		t.lo = *(uint*)lv;
 		t.hi = 0;
 		fn(&u, t, rv);
 		*(uint*)lv = u.lo;
 		break;
 
-	case 5:	/* long */
+	case 5: /* long */
 		t.lo = *(int32_t*)lv;
 		t.hi = t.lo >> 31;
 		fn(&u, t, rv);
 		*(int32_t*)lv = u.lo;
 		break;
 
-	case 6:	/* ulong */
+	case 6: /* ulong */
 		t.lo = *(uint32_t*)lv;
 		t.hi = 0;
 		fn(&u, t, rv);
 		*(uint32_t*)lv = u.lo;
 		break;
 
-	case 7:	/* vlong */
-	case 8:	/* uvlong */
+	case 7: /* vlong */
+	case 8: /* uvlong */
 		fn(&u, *(Vlong*)lv, rv);
 		*(Vlong*)lv = u;
 		break;

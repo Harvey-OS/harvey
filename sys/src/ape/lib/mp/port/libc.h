@@ -17,19 +17,19 @@
 typedef unsigned int u32int;
 typedef unsigned long long u64int;
 
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
+#define nelem(x) (sizeof(x) / sizeof((x)[0]))
 
-extern	uint32_t	getcallerpc(void*);
-extern	void*	mallocz(uint32_t, int);
-extern	void	setmalloctag(void*, uint32_t);
+extern uint32_t getcallerpc(void*);
+extern void* mallocz(uint32_t, int);
+extern void setmalloctag(void*, uint32_t);
 
-extern int  dec16(uchar *, int, char *, int);
-extern int  enc16(char *, int, uchar *, int);
-extern int  dec32(uchar *, int, char *, int);
-extern int  enc32(char *, int, uchar *, int);
-extern int  dec64(uchar *, int, char *, int);
-extern int  enc64(char *, int, uchar *, int);
+extern int dec16(uchar*, int, char*, int);
+extern int enc16(char*, int, uchar*, int);
+extern int dec32(uchar*, int, char*, int);
+extern int enc32(char*, int, uchar*, int);
+extern int dec64(uchar*, int, char*, int);
+extern int enc64(char*, int, uchar*, int);
 
-extern	vlong	nsec(void);
+extern vlong nsec(void);
 
 extern void sysfatal(char*, ...);

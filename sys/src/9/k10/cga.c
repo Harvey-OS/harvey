@@ -13,37 +13,35 @@
 #include "dat.h"
 #include "fns.h"
 
-enum {
-	Black		= 0x00,
-	Blue		= 0x01,
-	Green		= 0x02,
-	Cyan		= 0x03,
-	Red		= 0x04,
-	Magenta		= 0x05,
-	Brown		= 0x06,
-	Grey		= 0x07,
+enum { Black = 0x00,
+       Blue = 0x01,
+       Green = 0x02,
+       Cyan = 0x03,
+       Red = 0x04,
+       Magenta = 0x05,
+       Brown = 0x06,
+       Grey = 0x07,
 
-	Bright 		= 0x08,
-	Blinking	= 0x80,
+       Bright = 0x08,
+       Blinking = 0x80,
 
-	Attr		= (Black<<4)|Grey,	/* (background<<4)|foreground */
+       Attr = (Black << 4) | Grey, /* (background<<4)|foreground */
 };
 
-enum {
-	Index		= 0x3d4,
-	Data		= Index+1,
+enum { Index = 0x3d4,
+       Data = Index + 1,
 
-	Width		= 80*2,
-	Height		= 25,
+       Width = 80 * 2,
+       Height = 25,
 
-	Poststrlen	= 0,
-	Postcodelen	= 2,
-	Postlen		= Poststrlen+Postcodelen,
+       Poststrlen = 0,
+       Postcodelen = 2,
+       Postlen = Poststrlen + Postcodelen,
 
-	Cgasize		= 16384,
+       Cgasize = 16384,
 };
 
-#define CGA		(BIOSSEG(0xb800))
+#define CGA (BIOSSEG(0xb800))
 
 static Lock cgalock;
 static int cgapos;
@@ -66,19 +64,19 @@ cgaregw(int index, int data)
 static void
 cgablinkoff(void)
 {
-	cgaregw(0x0a, 1<<5);
+	cgaregw(0x0a, 1 << 5);
 }
 
 static void
 cgacursor(void)
 {
-	uint8_t *cga;
+	uint8_t* cga;
 
-	cgaregw(0x0e, (cgapos/2>>8) & 0xff);
-	cgaregw(0x0f, cgapos/2 & 0xff);
+	cgaregw(0x0e, (cgapos / 2 >> 8) & 0xff);
+	cgaregw(0x0f, cgapos / 2 & 0xff);
 
 	cga = CGA;
-	cga[cgapos+1] = Attr;
+	cga[cgapos + 1] = Attr;
 }
 
 /*
@@ -89,33 +87,30 @@ void
 cgaputc(int c)
 {
 	int i;
-	uint8_t *cga, *p;
+	uint8_t* cga, *p;
 
 	cga = CGA;
 
-	if(c == '\n'){
-		cgapos = cgapos/Width;
-		cgapos = (cgapos+1)*Width;
-	}
-	else if(c == '\t'){
-		i = 8 - ((cgapos/2)&7);
+	if(c == '\n') {
+		cgapos = cgapos / Width;
+		cgapos = (cgapos + 1) * Width;
+	} else if(c == '\t') {
+		i = 8 - ((cgapos / 2) & 7);
 		while(i-- > 0)
 			cgaputc(' ');
-	}
-	else if(c == '\b'){
+	} else if(c == '\b') {
 		if(cgapos >= 2)
 			cgapos -= 2;
 		cgaputc(' ');
 		cgapos -= 2;
-	}
-	else{
+	} else {
 		cga[cgapos++] = c;
 		cga[cgapos++] = Attr;
 	}
-	if(cgapos >= (Width*Height)-Postlen*2){
-		memmove(cga, &cga[Width], Width*(Height-1));
-		p = &cga[Width*(Height-1)-Postlen*2];
-		for(i = 0; i < Width/2; i++){
+	if(cgapos >= (Width * Height) - Postlen * 2) {
+		memmove(cga, &cga[Width], Width * (Height - 1));
+		p = &cga[Width * (Height - 1) - Postlen * 2];
+		for(i = 0; i < Width / 2; i++) {
 			*p++ = ' ';
 			*p++ = Attr;
 		}
@@ -125,11 +120,11 @@ cgaputc(int c)
 }
 
 int
-cgaprint(int off, char *fmt, ...)
+cgaprint(int off, char* fmt, ...)
 {
 	va_list va;
 	char buf[128];
-	uint8_t *cga;
+	uint8_t* cga;
 	int i, n;
 
 	va_start(va, fmt);
@@ -137,9 +132,9 @@ cgaprint(int off, char *fmt, ...)
 	va_end(va);
 
 	cga = CGA;
-	for(i = 0; (2*(i+off))+1 < Cgasize && i < n; i++){
-		cga[2*(i+off)+0] = buf[i];
-		cga[2*(i+off)+1] = Attr;
+	for(i = 0; (2 * (i + off)) + 1 < Cgasize && i < n; i++) {
+		cga[2 * (i + off) + 0] = buf[i];
+		cga[2 * (i + off) + 1] = Attr;
 	}
 	return n;
 }
@@ -147,15 +142,15 @@ cgaprint(int off, char *fmt, ...)
 int
 cgaclearln(int off, int c)
 {
-	uint8_t  *cga;
+	uint8_t* cga;
 	int i;
 
 	cga = CGA;
-	for(i = off; (2*i)+1 < Cgasize && i%80 != 0; i++){
-		cga[2*i+0] = c;
-		cga[2*i+1] = Attr;
+	for(i = off; (2 * i) + 1 < Cgasize && i % 80 != 0; i++) {
+		cga[2 * i + 0] = c;
+		cga[2 * i + 1] = Attr;
 	}
-	return i-off;
+	return i - off;
 }
 
 /*
@@ -165,13 +160,13 @@ void
 cgaprinthex(uintptr_t x)
 {
 	char str[30];
-	char *s;
+	char* s;
 	static char dig[] = "0123456789abcdef";
 
 	str[29] = 0;
 	s = &str[29];
-	while(x != 0){
-		*--s = dig[x&0xF];
+	while(x != 0) {
+		*--s = dig[x & 0xF];
 		x >>= 4;
 	}
 	while(*s != 0)
@@ -191,27 +186,27 @@ cgaconsputs(char* s, int n)
 void
 cgapost(int code)
 {
-	uint8_t *cga;
+	uint8_t* cga;
 
 	static char hex[] = "0123456789ABCDEF";
 
 	cga = CGA;
-	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0f];
-	cga[Width*Height-Postcodelen*2+1] = Attr;
-	cga[Width*Height-Postcodelen*2+2] = hex[code & 0x0f];
-	cga[Width*Height-Postcodelen*2+3] = Attr;
+	cga[Width * Height - Postcodelen * 2] = hex[(code >> 4) & 0x0f];
+	cga[Width * Height - Postcodelen * 2 + 1] = Attr;
+	cga[Width * Height - Postcodelen * 2 + 2] = hex[code & 0x0f];
+	cga[Width * Height - Postcodelen * 2 + 3] = Attr;
 }
 
 static int32_t
-cgaread(Chan* c, void *vbuf, int32_t len, int64_t off)
+cgaread(Chan* c, void* vbuf, int32_t len, int64_t off)
 {
-	uint8_t *cga;
+	uint8_t* cga;
 	extern int panicking;
 	if(panicking)
 		error("cgaread: kernel panic");
 	if(off < 0 || off > Cgasize)
 		error("cgaread: offset out of bounds");
-	if(off+len > Cgasize)
+	if(off + len > Cgasize)
 		len = Cgasize - off;
 	cga = CGA;
 	memmove(vbuf, cga + off, len);
@@ -219,15 +214,15 @@ cgaread(Chan* c, void *vbuf, int32_t len, int64_t off)
 }
 
 static int32_t
-cgawrite(Chan* c, void *vbuf, int32_t len, int64_t off)
+cgawrite(Chan* c, void* vbuf, int32_t len, int64_t off)
 {
-	uint8_t *cga;
+	uint8_t* cga;
 	extern int panicking;
 	if(panicking)
 		error("cgawrite: kernel panic");
 	if(off < 0 || off > Cgasize)
 		error("cgawrite: offset out of bounds");
-	if(off+len > Cgasize)
+	if(off + len > Cgasize)
 		len = Cgasize - off;
 	cga = CGA;
 	memmove(cga + off, vbuf, len);
@@ -239,7 +234,7 @@ cgainit(void)
 {
 	ilock(&cgalock);
 
-	cgapos = cgaregr(0x0e)<<8;
+	cgapos = cgaregr(0x0e) << 8;
 	cgapos |= cgaregr(0x0f);
 	cgapos *= 2;
 	cgablinkoff();

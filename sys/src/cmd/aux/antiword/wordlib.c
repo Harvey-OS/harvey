@@ -17,24 +17,23 @@
 
 #include "antiword.h"
 
-static BOOL	bOldMacFile = FALSE;
-
+static BOOL bOldMacFile = FALSE;
 
 /*
  * Common part of the file checking functions
  */
 static BOOL
-bCheckBytes(FILE *pFile, const UCHAR *aucBytes, size_t tBytes)
+bCheckBytes(FILE* pFile, const UCHAR* aucBytes, size_t tBytes)
 {
-	int	iIndex, iChar;
+	int iIndex, iChar;
 
 	fail(pFile == NULL || aucBytes == NULL || tBytes == 0);
 
 	rewind(pFile);
 
-	for (iIndex = 0; iIndex < (int)tBytes; iIndex++) {
+	for(iIndex = 0; iIndex < (int)tBytes; iIndex++) {
 		iChar = getc(pFile);
-		if (iChar == EOF || iChar != (int)aucBytes[iIndex]) {
+		if(iChar == EOF || iChar != (int)aucBytes[iIndex]) {
 			NO_DBG_HEX(iChar);
 			NO_DBG_HEX(aucBytes[iIndex]);
 			return FALSE;
@@ -48,18 +47,18 @@ bCheckBytes(FILE *pFile, const UCHAR *aucBytes, size_t tBytes)
  * document
  */
 BOOL
-bIsWordForDosFile(FILE *pFile, int32_t lFilesize)
+bIsWordForDosFile(FILE* pFile, int32_t lFilesize)
 {
-	static UCHAR	aucBytes[] =
-		{ 0x31, 0xbe, 0x00, 0x00, 0x00, 0xab };	/* Word for DOS */
+	static UCHAR aucBytes[] = {0x31, 0xbe, 0x00,
+	                           0x00, 0x00, 0xab}; /* Word for DOS */
 
 	DBG_MSG("bIsWordForDosFile");
 
-	if (pFile == NULL || lFilesize < 0) {
+	if(pFile == NULL || lFilesize < 0) {
 		DBG_MSG("No proper file given");
 		return FALSE;
 	}
-	if (lFilesize < 128) {
+	if(lFilesize < 128) {
 		DBG_MSG("File too small to be a Word document");
 		return FALSE;
 	}
@@ -71,28 +70,28 @@ bIsWordForDosFile(FILE *pFile, int32_t lFilesize)
  * OLE envelope (That is a document made by Word 6 or later)
  */
 static BOOL
-bIsWordFileWithOLE(FILE *pFile, int32_t lFilesize)
+bIsWordFileWithOLE(FILE* pFile, int32_t lFilesize)
 {
-	static UCHAR	aucBytes[] =
-		{ 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 };
-	int	iTailLen;
+	static UCHAR aucBytes[] = {0xd0, 0xcf, 0x11, 0xe0,
+	                           0xa1, 0xb1, 0x1a, 0xe1};
+	int iTailLen;
 
-	if (pFile == NULL || lFilesize < 0) {
+	if(pFile == NULL || lFilesize < 0) {
 		DBG_MSG("No proper file given");
 		return FALSE;
 	}
-	if (lFilesize < (int32_t)BIG_BLOCK_SIZE * 3) {
+	if(lFilesize < (int32_t)BIG_BLOCK_SIZE * 3) {
 		DBG_MSG("This file is too small to be a Word document");
 		return FALSE;
 	}
 
 	iTailLen = (int)(lFilesize % BIG_BLOCK_SIZE);
-	switch (iTailLen) {
-	case 0:		/* No tail, as it should be */
+	switch(iTailLen) {
+	case 0: /* No tail, as it should be */
 		break;
 	case 1:
-	case 2:		/* Filesize mismatch or a buggy email program */
-		if ((int)(lFilesize % 3) == iTailLen) {
+	case 2: /* Filesize mismatch or a buggy email program */
+		if((int)(lFilesize % 3) == iTailLen) {
 			DBG_DEC(lFilesize);
 			return FALSE;
 		}
@@ -103,7 +102,7 @@ bIsWordFileWithOLE(FILE *pFile, int32_t lFilesize)
 		 */
 		DBG_MSG("Document with extra bytes");
 		break;
-	default:	/* Wrong filesize for a Word document */
+	default: /* Wrong filesize for a Word document */
 		DBG_DEC(lFilesize);
 		DBG_DEC(iTailLen);
 		return FALSE;
@@ -115,10 +114,9 @@ bIsWordFileWithOLE(FILE *pFile, int32_t lFilesize)
  * This function checks whether the given file is or is not a RTF document
  */
 BOOL
-bIsRtfFile(FILE *pFile)
+bIsRtfFile(FILE* pFile)
 {
-	static UCHAR	aucBytes[] =
-		{ '{', '\\', 'r', 't', 'f', '1' };
+	static UCHAR aucBytes[] = {'{', '\\', 'r', 't', 'f', '1'};
 
 	DBG_MSG("bIsRtfFile");
 
@@ -129,10 +127,9 @@ bIsRtfFile(FILE *pFile)
  * This function checks whether the given file is or is not a WP document
  */
 BOOL
-bIsWordPerfectFile(FILE *pFile)
+bIsWordPerfectFile(FILE* pFile)
 {
-	static UCHAR	aucBytes[] =
-		{ 0xff, 'W', 'P', 'C' };
+	static UCHAR aucBytes[] = {0xff, 'W', 'P', 'C'};
 
 	DBG_MSG("bIsWordPerfectFile");
 
@@ -144,29 +141,28 @@ bIsWordPerfectFile(FILE *pFile)
  * document
  */
 BOOL
-bIsWinWord12File(FILE *pFile, int32_t lFilesize)
+bIsWinWord12File(FILE* pFile, int32_t lFilesize)
 {
-	static UCHAR	aucBytes[2][4] = {
-		{ 0x9b, 0xa5, 0x21, 0x00 },	/* Win Word 1.x */
-		{ 0xdb, 0xa5, 0x2d, 0x00 },	/* Win Word 2.0 */
+	static UCHAR aucBytes[2][4] = {
+	    {0x9b, 0xa5, 0x21, 0x00}, /* Win Word 1.x */
+	    {0xdb, 0xa5, 0x2d, 0x00}, /* Win Word 2.0 */
 	};
-	int	iIndex;
+	int iIndex;
 
 	DBG_MSG("bIsWinWord12File");
 
-	if (pFile == NULL || lFilesize < 0) {
+	if(pFile == NULL || lFilesize < 0) {
 		DBG_MSG("No proper file given");
 		return FALSE;
 	}
-	if (lFilesize < 384) {
+	if(lFilesize < 384) {
 		DBG_MSG("This file is too small to be a Word document");
 		return FALSE;
 	}
 
-	for (iIndex = 0; iIndex < (int)elementsof(aucBytes); iIndex++) {
-		if (bCheckBytes(pFile,
-				aucBytes[iIndex],
-				elementsof(aucBytes[iIndex]))) {
+	for(iIndex = 0; iIndex < (int)elementsof(aucBytes); iIndex++) {
+		if(bCheckBytes(pFile, aucBytes[iIndex],
+		               elementsof(aucBytes[iIndex]))) {
 			return TRUE;
 		}
 	}
@@ -178,20 +174,19 @@ bIsWinWord12File(FILE *pFile, int32_t lFilesize)
  * document
  */
 BOOL
-bIsMacWord45File(FILE *pFile)
+bIsMacWord45File(FILE* pFile)
 {
-	static UCHAR	aucBytes[2][6] = {
-		{ 0xfe, 0x37, 0x00, 0x1c, 0x00, 0x00 },	/* Mac Word 4 */
-		{ 0xfe, 0x37, 0x00, 0x23, 0x00, 0x00 },	/* Mac Word 5 */
+	static UCHAR aucBytes[2][6] = {
+	    {0xfe, 0x37, 0x00, 0x1c, 0x00, 0x00}, /* Mac Word 4 */
+	    {0xfe, 0x37, 0x00, 0x23, 0x00, 0x00}, /* Mac Word 5 */
 	};
-	int	iIndex;
+	int iIndex;
 
 	DBG_MSG("bIsMacWord45File");
 
-	for (iIndex = 0; iIndex < (int)elementsof(aucBytes); iIndex++) {
-		if (bCheckBytes(pFile,
-				aucBytes[iIndex],
-				elementsof(aucBytes[iIndex]))) {
+	for(iIndex = 0; iIndex < (int)elementsof(aucBytes); iIndex++) {
+		if(bCheckBytes(pFile, aucBytes[iIndex],
+		               elementsof(aucBytes[iIndex]))) {
 			return TRUE;
 		}
 	}
@@ -204,18 +199,18 @@ bIsMacWord45File(FILE *pFile)
  * Returns the guessed version number or -1 when no guess it possible
  */
 int
-iGuessVersionNumber(FILE *pFile, int32_t lFilesize)
+iGuessVersionNumber(FILE* pFile, int32_t lFilesize)
 {
 	if(bIsWordForDosFile(pFile, lFilesize)) {
 		return 0;
 	}
-	if (bIsWinWord12File(pFile, lFilesize)) {
+	if(bIsWinWord12File(pFile, lFilesize)) {
 		return 2;
 	}
-	if (bIsMacWord45File(pFile)) {
+	if(bIsMacWord45File(pFile)) {
 		return 5;
 	}
-	if (bIsWordFileWithOLE(pFile, lFilesize)) {
+	if(bIsWordFileWithOLE(pFile, lFilesize)) {
 		return 6;
 	}
 	return -1;
@@ -227,34 +222,34 @@ iGuessVersionNumber(FILE *pFile, int32_t lFilesize)
  * Returns the version number or -1 when unknown
  */
 int
-iGetVersionNumber(const UCHAR *aucHeader)
+iGetVersionNumber(const UCHAR* aucHeader)
 {
-	USHORT	usFib, usChse;
+	USHORT usFib, usChse;
 
 	usFib = usGetWord(0x02, aucHeader);
-	if (usFib >= 0x1000) {
+	if(usFib >= 0x1000) {
 		/* To big: must be MacWord using Big Endian */
 		DBG_HEX(usFib);
 		usFib = usGetWordBE(0x02, aucHeader);
 	}
 	DBG_DEC(usFib);
 	bOldMacFile = FALSE;
-	switch (usFib) {
-	case   0:
+	switch(usFib) {
+	case 0:
 		DBG_MSG("Word for DOS");
 		return 0;
-	case  28:
+	case 28:
 		DBG_MSG("Word 4 for Macintosh");
 		bOldMacFile = TRUE;
 		return 4;
-	case  33:
+	case 33:
 		DBG_MSG("Word 1.x for Windows");
 		return 1;
-	case  35:
+	case 35:
 		DBG_MSG("Word 5 for Macintosh");
 		bOldMacFile = TRUE;
 		return 5;
-	case  45:
+	case 45:
 		DBG_MSG("Word 2 for Windows");
 		return 2;
 	case 101:
@@ -265,7 +260,7 @@ iGetVersionNumber(const UCHAR *aucHeader)
 	case 104:
 		usChse = usGetWord(0x14, aucHeader);
 		DBG_DEC(usChse);
-		switch (usChse) {
+		switch(usChse) {
 		case 0:
 			DBG_MSG("Word 7 for Win95");
 			return 7;
@@ -275,7 +270,7 @@ iGetVersionNumber(const UCHAR *aucHeader)
 			return 6;
 		default:
 			DBG_FIXME();
-			if ((int)ucGetByte(0x05, aucHeader) == 0xe0) {
+			if((int)ucGetByte(0x05, aucHeader) == 0xe0) {
 				DBG_MSG("Word 7 for Win95");
 				return 7;
 			}
@@ -286,7 +281,7 @@ iGetVersionNumber(const UCHAR *aucHeader)
 	default:
 		usChse = usGetWord(0x14, aucHeader);
 		DBG_DEC(usChse);
-		if (usFib < 192) {
+		if(usFib < 192) {
 			/* Unknown or unsupported version of Word */
 			DBG_DEC(usFib);
 			return -1;
@@ -315,12 +310,12 @@ bIsOldMacFile(void)
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocument(FILE *pFile, int32_t lFilesize)
+iInitDocument(FILE* pFile, int32_t lFilesize)
 {
-	int	iGuess, iWordVersion;
+	int iGuess, iWordVersion;
 
 	iGuess = iGuessVersionNumber(pFile, lFilesize);
-	switch (iGuess) {
+	switch(iGuess) {
 	case 0:
 		iWordVersion = iInitDocumentDOS(pFile, lFilesize);
 		break;

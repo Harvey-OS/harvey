@@ -13,20 +13,21 @@
 #include <thread.h>
 #include "netbios.h"
 
-NbnsMessage *
+NbnsMessage*
 nbnsmessagenamequeryrequestnew(uint16_t id, int broadcast, NbName name)
 {
-	NbnsMessage *s;
-	NbnsMessageQuestion *q;
+	NbnsMessage* s;
+	NbnsMessageQuestion* q;
 	s = nbnsmessagenew();
-	if (s == nil)
+	if(s == nil)
 		return nil;
 	s->id = id;
 	s->opcode = NbnsOpQuery;
 	s->broadcast = broadcast;
 	s->recursiondesired = 1;
-	q =  nbnsmessagequestionnew(name, NbnsQuestionTypeNb, NbnsQuestionClassIn);
-	if (q == nil) {
+	q = nbnsmessagequestionnew(name, NbnsQuestionTypeNb,
+	                           NbnsQuestionClassIn);
+	if(q == nil) {
 		nbnsmessagefree(&s);
 		return nil;
 	}
@@ -34,25 +35,25 @@ nbnsmessagenamequeryrequestnew(uint16_t id, int broadcast, NbName name)
 	return s;
 }
 
-NbnsMessage *
-nbnsmessagenameregistrationrequestnew(uint16_t id, int broadcast,
-				      NbName name,
-				      uint32_t ttl, uint8_t *ipaddr)
+NbnsMessage*
+nbnsmessagenameregistrationrequestnew(uint16_t id, int broadcast, NbName name,
+                                      uint32_t ttl, uint8_t* ipaddr)
 {
-	NbnsMessage *s;
-	NbnsMessageQuestion *q;
+	NbnsMessage* s;
+	NbnsMessageQuestion* q;
 	uint8_t rdata[6];
-	NbnsMessageResource *r;
+	NbnsMessageResource* r;
 
 	s = nbnsmessagenew();
-	if (s == nil)
+	if(s == nil)
 		return nil;
 	s->id = id;
 	s->opcode = NbnsOpRegistration;
 	s->broadcast = broadcast;
 	s->recursiondesired = 1;
-	q =  nbnsmessagequestionnew(name, NbnsQuestionTypeNb, NbnsQuestionClassIn);
-	if (q == nil) {
+	q = nbnsmessagequestionnew(name, NbnsQuestionTypeNb,
+	                           NbnsQuestionClassIn);
+	if(q == nil) {
 		nbnsmessagefree(&s);
 		return nil;
 	}
@@ -60,7 +61,8 @@ nbnsmessagenameregistrationrequestnew(uint16_t id, int broadcast,
 	rdata[0] = 0;
 	rdata[1] = 0;
 	v6tov4(rdata + 2, ipaddr);
-	r = nbnsmessageresourcenew(name, NbnsResourceTypeNb, NbnsResourceClassIn, ttl, 6, rdata);
+	r = nbnsmessageresourcenew(name, NbnsResourceTypeNb,
+	                           NbnsResourceClassIn, ttl, 6, rdata);
 	nbnsmessageaddresource(&s->ar, r);
 	return s;
 }

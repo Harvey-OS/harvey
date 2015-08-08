@@ -36,7 +36,7 @@ tty_echooff(int)
 
 tty_echoon(int)
 {
-	if(ctlfd >= 0){
+	if(ctlfd >= 0) {
 		write(ctlfd, "rawoff", 6);
 		close(ctlfd);
 		ctlfd = -1;

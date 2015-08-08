@@ -13,39 +13,38 @@
 
 static char vcmagic[] = "venti config\n";
 
-enum {
-	Maxconfig = 8 * 1024,
-	Maglen = sizeof vcmagic - 1,
+enum { Maxconfig = 8 * 1024,
+       Maglen = sizeof vcmagic - 1,
 };
 
 int
-readifile(IFile *f, char *name)
+readifile(IFile* f, char* name)
 {
-	Part *p;
-	ZBlock *b;
-	uint8_t *z;
+	Part* p;
+	ZBlock* b;
+	uint8_t* z;
 
 	p = initpart(name, OREAD);
 	if(p == nil)
 		return -1;
-	b = alloczblock(Maxconfig+1, 1, 0);
-	if(b == nil){
+	b = alloczblock(Maxconfig + 1, 1, 0);
+	if(b == nil) {
 		seterr(EOk, "can't alloc for %s: %R", name);
 		return -1;
 	}
-	if(p->size > PartBlank){
+	if(p->size > PartBlank) {
 		/*
 		 * this is likely a real venti partition, in which case we're
 		 * looking for the config file stored as 8k at end of PartBlank.
 		 */
-		if(readpart(p, PartBlank-Maxconfig, b->data, Maxconfig) < 0){
+		if(readpart(p, PartBlank - Maxconfig, b->data, Maxconfig) < 0) {
 			seterr(EOk, "can't read %s: %r", name);
 			freezblock(b);
 			freepart(p);
 			return -1;
 		}
 		b->data[Maxconfig] = '\0';
-		if(memcmp(b->data, vcmagic, Maglen) != 0){
+		if(memcmp(b->data, vcmagic, Maglen) != 0) {
 			seterr(EOk, "bad venti config magic in %s", name);
 			freezblock(b);
 			freepart(p);
@@ -55,21 +54,21 @@ readifile(IFile *f, char *name)
 		 * if we change b->data+b->_size, freezblock
 		 * will blow an assertion, so don't.
 		 */
-		b->data  += Maglen;
+		b->data += Maglen;
 		b->_size -= Maglen;
-		b->len   -= Maglen;
+		b->len -= Maglen;
 		z = memchr(b->data, '\0', b->len);
 		if(z)
 			b->len = z - b->data;
-	}else if(p->size > Maxconfig){
+	} else if(p->size > Maxconfig) {
 		seterr(EOk, "config file is too large");
 		freepart(p);
 		freezblock(b);
 		return -1;
-	}else{
+	} else {
 		freezblock(b);
 		b = readfile(name);
-		if(b == nil){
+		if(b == nil) {
 			freepart(p);
 			return -1;
 		}
@@ -82,7 +81,7 @@ readifile(IFile *f, char *name)
 }
 
 void
-freeifile(IFile *f)
+freeifile(IFile* f)
 {
 	freezblock(f->b);
 	f->b = nil;
@@ -90,14 +89,14 @@ freeifile(IFile *f)
 }
 
 int
-partifile(IFile *f, Part *part, uint64_t start, uint32_t size)
+partifile(IFile* f, Part* part, uint64_t start, uint32_t size)
 {
-	ZBlock *b;
+	ZBlock* b;
 
 	b = alloczblock(size, 0, part->blocksize);
 	if(b == nil)
 		return -1;
-	if(readpart(part, start, b->data, size) < 0){
+	if(readpart(part, start, b->data, size) < 0) {
 		seterr(EAdmin, "can't read %s: %r", part->name);
 		freezblock(b);
 		return -1;
@@ -113,12 +112,12 @@ partifile(IFile *f, Part *part, uint64_t start, uint32_t size)
  * stripped of leading white space and with # comments eliminated
  */
 char*
-ifileline(IFile *f)
+ifileline(IFile* f)
 {
-	char *s, *e, *t;
+	char* s, *e, *t;
 	int c;
 
-	for(;;){
+	for(;;) {
 		s = (char*)&f->b->data[f->pos];
 		e = memchr(s, '\n', f->b->len - f->pos);
 		if(e == nil)
@@ -135,9 +134,9 @@ ifileline(IFile *f)
 }
 
 int
-ifilename(IFile *f, char *dst)
+ifilename(IFile* f, char* dst)
 {
-	char *s;
+	char* s;
 
 	s = ifileline(f);
 	if(s == nil || strlen(s) >= ANameSize)
@@ -147,9 +146,9 @@ ifilename(IFile *f, char *dst)
 }
 
 int
-ifileu32int(IFile *f, uint32_t *r)
+ifileu32int(IFile* f, uint32_t* r)
 {
-	char *s;
+	char* s;
 
 	s = ifileline(f);
 	if(s == nil)

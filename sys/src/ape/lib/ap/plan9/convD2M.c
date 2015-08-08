@@ -13,10 +13,10 @@
 #include "dir.h"
 
 uint
-_convD2M(Dir *d, uint8_t *buf, uint nbuf)
+_convD2M(Dir* d, uint8_t* buf, uint nbuf)
 {
-	uint8_t *p, *ebuf;
-	char *sv[4];
+	uint8_t* p, *ebuf;
+	char* sv[4];
 	int i, ns, nsv[4], ss;
 
 	if(nbuf < BIT16SZ)
@@ -31,7 +31,7 @@ _convD2M(Dir *d, uint8_t *buf, uint nbuf)
 	sv[3] = d->muid;
 
 	ns = 0;
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		nsv[i] = strlen(sv[i]);
 		ns += nsv[i];
 	}
@@ -40,7 +40,7 @@ _convD2M(Dir *d, uint8_t *buf, uint nbuf)
 
 	/* set size befor erroring, so user can know how much is needed */
 	/* note that length excludes count field itself */
-	PBIT16(p, ss-BIT16SZ);
+	PBIT16(p, ss - BIT16SZ);
 	p += BIT16SZ;
 
 	if(ss > nbuf)
@@ -65,7 +65,7 @@ _convD2M(Dir *d, uint8_t *buf, uint nbuf)
 	PBIT64(p, d->length);
 	p += BIT64SZ;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		ns = nsv[i];
 		if(p + ns + BIT16SZ > ebuf)
 			return 0;
@@ -82,9 +82,9 @@ _convD2M(Dir *d, uint8_t *buf, uint nbuf)
 }
 
 uint
-_sizeD2M(Dir *d)
+_sizeD2M(Dir* d)
 {
-	char *sv[4];
+	char* sv[4];
 	int i, ns;
 
 	sv[0] = d->name;
@@ -99,4 +99,3 @@ _sizeD2M(Dir *d)
 
 	return STATFIXLEN + ns;
 }
-

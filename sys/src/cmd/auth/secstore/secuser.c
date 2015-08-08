@@ -16,55 +16,57 @@
 
 int verbose;
 
-static void userinput(char *, int);
+static void userinput(char*, int);
 
 static void
-ensure_exists(char *f, uint32_t perm)
+ensure_exists(char* f, uint32_t perm)
 {
 	int fd;
 
 	if(access(f, AEXIST) >= 0)
 		return;
 	if(verbose)
-		fprint(2,"first time setup for secstore: create %s %lo\n", f, perm);
+		fprint(2, "first time setup for secstore: create %s %lo\n", f,
+		       perm);
 	fd = create(f, OREAD, perm);
 	if(fd < 0)
 		sysfatal("unable to create %s: %r", f);
 	close(fd);
 }
 
-
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int isnew;
-	char *id, buf[Maxmsg], home[Maxmsg], prompt[100], *hexHi;
-	char *pass, *passck;
+	char* id, buf[Maxmsg], home[Maxmsg], prompt[100], *hexHi;
+	char* pass, *passck;
 	uint32_t expsecs;
-	mpint *H = mpnew(0), *Hi = mpnew(0);
-	PW *pw;
-	Tm *tm;
+	mpint* H = mpnew(0), * Hi = mpnew(0);
+	PW* pw;
+	Tm* tm;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		verbose++;
 		break;
-	}ARGEND;
-	if(argc!=1){
+	}
+	ARGEND;
+	if(argc != 1) {
 		fprint(2, "usage: secuser [-v] <user>\n");
 		exits("usage");
 	}
 
-	ensure_exists(SECSTORE_DIR, DMDIR|0755L);
+	ensure_exists(SECSTORE_DIR, DMDIR | 0755L);
 	snprint(home, sizeof(home), "%s/who", SECSTORE_DIR);
-	ensure_exists(home, DMDIR|0755L);
+	ensure_exists(home, DMDIR | 0755L);
 	snprint(home, sizeof(home), "%s/store", SECSTORE_DIR);
-	ensure_exists(home, DMDIR|0700L);
+	ensure_exists(home, DMDIR | 0700L);
 
 	id = argv[0];
 	if(verbose)
-		fprint(2,"secuser %s\n", id);
-	if((pw = getPW(id,1)) == nil){
+		fprint(2, "secuser %s\n", id);
+	if((pw = getPW(id, 1)) == nil) {
 		isnew = 1;
 		print("new account (because %s/%s %r)\n", SECSTORE_DIR, id);
 		pw = emalloc(sizeof(*pw));
@@ -72,17 +74,18 @@ main(int argc, char **argv)
 		snprint(home, sizeof(home), "%s/store/%s", SECSTORE_DIR, id);
 		if(access(home, AEXIST) == 0)
 			sysfatal("new user, but directory %s already exists",
-				home);
-	}else{
+			         home);
+	} else {
 		isnew = 0;
 	}
 
 	/* get main password for id */
-	for(;;){
+	for(;;) {
 		if(isnew)
 			snprint(prompt, sizeof(prompt), "%s password: ", id);
 		else
-			snprint(prompt, sizeof(prompt), "%s password [default = don't change]: ", id);
+			snprint(prompt, sizeof(prompt),
+			        "%s password [default = don't change]: ", id);
 		pass = getpassm(prompt);
 		if(pass == nil)
 			sysfatal("getpassm failed");
@@ -95,7 +98,7 @@ main(int argc, char **argv)
 		print("password must be at least 7 characters\n");
 	}
 
-	if(pass[0] != '\0'){
+	if(pass[0] != '\0') {
 		snprint(prompt, sizeof(prompt), "retype password: ");
 		if(verbose)
 			print("confirming...\n");
@@ -116,33 +119,33 @@ main(int argc, char **argv)
 
 	/* get expiration time (midnight of date specified) */
 	if(isnew)
-		expsecs = time(0) + 365*24*60*60;
+		expsecs = time(0) + 365 * 24 * 60 * 60;
 	else
 		expsecs = pw->expire;
 
-	for(;;){
+	for(;;) {
 		tm = localtime(expsecs);
 		print("expires [DDMMYYYY, default = %2.2d%2.2d%4.4d]: ",
-				tm->mday, tm->mon+1, tm->year+1900);
+		      tm->mday, tm->mon + 1, tm->year + 1900);
 		userinput(buf, sizeof(buf));
 		if(strlen(buf) == 0)
 			break;
-		if(strlen(buf) != 8){
+		if(strlen(buf) != 8) {
 			print("!bad date format: %s\n", buf);
 			continue;
 		}
-		tm->mday = (buf[0]-'0')*10 + (buf[1]-'0');
-		if(tm->mday > 31 || tm->mday < 1){
+		tm->mday = (buf[0] - '0') * 10 + (buf[1] - '0');
+		if(tm->mday > 31 || tm->mday < 1) {
 			print("!bad day of month: %d\n", tm->mday);
 			continue;
 		}
-		tm->mon = (buf[2]-'0')*10 + (buf[3]-'0') - 1;
-		if(tm->mon > 11 || tm->mon < 0){
+		tm->mon = (buf[2] - '0') * 10 + (buf[3] - '0') - 1;
+		if(tm->mon > 11 || tm->mon < 0) {
 			print("!bad month: %d\n", tm->mon + 1);
 			continue;
 		}
-		tm->year = atoi(buf+4) - 1900;
-		if(tm->year < 70){
+		tm->year = atoi(buf + 4) - 1900;
+		if(tm->year < 70) {
 			print("!bad year: %d\n", tm->year + 1900);
 			continue;
 		}
@@ -156,39 +159,39 @@ main(int argc, char **argv)
 	pw->expire = expsecs;
 
 	/* failed logins */
-	if(pw->failed != 0 )
+	if(pw->failed != 0)
 		print("clearing %d failed login attempts\n", pw->failed);
 	pw->failed = 0;
 
 	/* status bits */
 	if(isnew)
 		pw->status = Enabled;
-	for(;;){
+	for(;;) {
 		print("Enabled or Disabled [default %s]: ",
-			(pw->status & Enabled) ? "Enabled" : "Disabled" );
+		      (pw->status & Enabled) ? "Enabled" : "Disabled");
 		userinput(buf, sizeof(buf));
 		if(strlen(buf) == 0)
 			break;
-		if(buf[0]=='E' || buf[0]=='e'){
+		if(buf[0] == 'E' || buf[0] == 'e') {
 			pw->status |= Enabled;
 			break;
 		}
-		if(buf[0]=='D' || buf[0]=='d'){
+		if(buf[0] == 'D' || buf[0] == 'd') {
 			pw->status = pw->status & ~Enabled;
 			break;
 		}
 	}
-	for(;;){
+	for(;;) {
 		print("require STA? [default %s]: ",
-			(pw->status & STA) ? "yes" : "no" );
+		      (pw->status & STA) ? "yes" : "no");
 		userinput(buf, sizeof(buf));
 		if(strlen(buf) == 0)
 			break;
-		if(buf[0]=='Y' || buf[0]=='y'){
+		if(buf[0] == 'Y' || buf[0] == 'y') {
 			pw->status |= STA;
 			break;
 		}
-		if(buf[0]=='N' || buf[0]=='n'){
+		if(buf[0] == 'N' || buf[0] == 'n') {
 			pw->status = pw->status & ~STA;
 			break;
 		}
@@ -198,7 +201,7 @@ main(int argc, char **argv)
 	if(isnew)
 		pw->other = nil;
 	print("comments [default = %s]: ", (pw->other == nil) ? "" : pw->other);
-	userinput(buf, 72);  /* 72 comes from password.h */
+	userinput(buf, 72); /* 72 comes from password.h */
 	if(buf[0])
 		if((pw->other = strdup(buf)) == nil)
 			sysfatal("strdup");
@@ -206,7 +209,7 @@ main(int argc, char **argv)
 	syslog(0, LOG, "CHANGELOGIN for '%s'", pw->id);
 	if(putPW(pw) < 0)
 		sysfatal("can't write password file: %r");
-	else{
+	else {
 		print("change written\n");
 		if(isnew && create(home, OREAD, DMDIR | 0775L) < 0)
 			sysfatal("unable to create %s: %r", home);
@@ -215,22 +218,22 @@ main(int argc, char **argv)
 	exits("");
 }
 
-
 static void
-userinput(char *buf, int blen)
+userinput(char* buf, int blen)
 {
 	int n;
 
-	for(;;){
+	for(;;) {
 		n = read(0, buf, blen);
-		if(n<=0)
+		if(n <= 0)
 			exits("read error");
-		if(buf[n-1]=='\n'){
-			buf[n-1] = '\0';
+		if(buf[n - 1] == '\n') {
+			buf[n - 1] = '\0';
 			return;
 		}
-		buf += n;  blen -= n;
-		if(blen<=0)
+		buf += n;
+		blen -= n;
+		if(blen <= 0)
 			exits("input too large");
 	}
 }

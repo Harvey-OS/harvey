@@ -12,10 +12,10 @@
 #include "fmtdef.h"
 
 Rune*
-runesmprint(char *fmt, ...)
+runesmprint(char* fmt, ...)
 {
 	va_list args;
-	Rune *p;
+	Rune* p;
 
 	va_start(args, fmt);
 	p = runevsmprint(fmt, args);

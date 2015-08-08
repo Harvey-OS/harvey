@@ -14,7 +14,7 @@
 DSApub*
 dsapuballoc(void)
 {
-	DSApub *dsa;
+	DSApub* dsa;
 
 	dsa = mallocz(sizeof(*dsa), 1);
 	if(dsa == nil)
@@ -23,7 +23,7 @@ dsapuballoc(void)
 }
 
 void
-dsapubfree(DSApub *dsa)
+dsapubfree(DSApub* dsa)
 {
 	if(dsa == nil)
 		return;
@@ -34,11 +34,10 @@ dsapubfree(DSApub *dsa)
 	free(dsa);
 }
 
-
 DSApriv*
 dsaprivalloc(void)
 {
-	DSApriv *dsa;
+	DSApriv* dsa;
 
 	dsa = mallocz(sizeof(*dsa), 1);
 	if(dsa == nil)
@@ -47,7 +46,7 @@ dsaprivalloc(void)
 }
 
 void
-dsaprivfree(DSApriv *dsa)
+dsaprivfree(DSApriv* dsa)
 {
 	if(dsa == nil)
 		return;
@@ -62,7 +61,7 @@ dsaprivfree(DSApriv *dsa)
 DSAsig*
 dsasigalloc(void)
 {
-	DSAsig *dsa;
+	DSAsig* dsa;
 
 	dsa = mallocz(sizeof(*dsa), 1);
 	if(dsa == nil)
@@ -71,7 +70,7 @@ dsasigalloc(void)
 }
 
 void
-dsasigfree(DSAsig *dsa)
+dsasigfree(DSAsig* dsa)
 {
 	if(dsa == nil)
 		return;

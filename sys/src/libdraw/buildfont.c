@@ -12,19 +12,19 @@
 #include <draw.h>
 
 static char*
-skip(char *s)
+skip(char* s)
 {
-	while(*s==' ' || *s=='\n' || *s=='\t')
+	while(*s == ' ' || *s == '\n' || *s == '\t')
 		s++;
 	return s;
 }
 
 Font*
-buildfont(Display *d, char *buf, char *name)
+buildfont(Display* d, char* buf, char* name)
 {
-	Font *fnt;
-	Cachefont *c;
-	char *s, *t;
+	Font* fnt;
+	Cachefont* c;
+	char* s, *t;
 	uint32_t min, max;
 	int offset;
 	char badform[] = "bad font format: number expected (char position %d)";
@@ -36,12 +36,12 @@ buildfont(Display *d, char *buf, char *name)
 	memset(fnt, 0, sizeof(Font));
 	fnt->display = d;
 	fnt->name = strdup(name);
-	fnt->ncache = NFCACHE+NFLOOK;
+	fnt->ncache = NFCACHE + NFLOOK;
 	fnt->nsubf = NFSUBF;
 	fnt->cache = malloc(fnt->ncache * sizeof(fnt->cache[0]));
 	fnt->subf = malloc(fnt->nsubf * sizeof(fnt->subf[0]));
-	if(fnt->name==0 || fnt->cache==0 || fnt->subf==0){
-    Err2:
+	if(fnt->name == 0 || fnt->cache == 0 || fnt->subf == 0) {
+	Err2:
 		free(fnt->name);
 		free(fnt->cache);
 		free(fnt->subf);
@@ -53,7 +53,7 @@ buildfont(Display *d, char *buf, char *name)
 	s = skip(s);
 	fnt->ascent = strtol(s, &s, 0);
 	s = skip(s);
-	if(fnt->height<=0 || fnt->ascent<=0){
+	if(fnt->height <= 0 || fnt->ascent <= 0) {
 		werrstr("bad height or ascent in font file");
 		goto Err2;
 	}
@@ -62,38 +62,40 @@ buildfont(Display *d, char *buf, char *name)
 	fnt->sub = 0;
 
 	memset(fnt->subf, 0, fnt->nsubf * sizeof(fnt->subf[0]));
-	memset(fnt->cache, 0, fnt->ncache*sizeof(fnt->cache[0]));
+	memset(fnt->cache, 0, fnt->ncache * sizeof(fnt->cache[0]));
 	fnt->age = 1;
-	do{
+	do {
 		/* must be looking at a number now */
-		if(*s<'0' || '9'<*s){
-			werrstr(badform, s-buf);
+		if(*s < '0' || '9' < *s) {
+			werrstr(badform, s - buf);
 			goto Err3;
 		}
 		min = strtol(s, &s, 0);
 		s = skip(s);
 		/* must be looking at a number now */
-		if(*s<'0' || '9'<*s){
-			werrstr(badform, s-buf);
+		if(*s < '0' || '9' < *s) {
+			werrstr(badform, s - buf);
 			goto Err3;
 		}
 		max = strtol(s, &s, 0);
 		s = skip(s);
-		if(*s==0 || min>=Runemax || max>=Runemax || min>max){
+		if(*s == 0 || min >= Runemax || max >= Runemax || min > max) {
 			werrstr("illegal subfont range");
-    Err3:
+		Err3:
 			freefont(fnt);
 			return 0;
 		}
 		t = s;
 		offset = strtol(s, &t, 0);
-		if(t>s && (*t==' ' || *t=='\t' || *t=='\n'))
+		if(t > s && (*t == ' ' || *t == '\t' || *t == '\n'))
 			s = skip(t);
 		else
 			offset = 0;
-		fnt->sub = realloc(fnt->sub, (fnt->nsub+1)*sizeof(Cachefont*));
-		if(fnt->sub == 0){
-			/* realloc manual says fnt->sub may have been destroyed */
+		fnt->sub =
+		    realloc(fnt->sub, (fnt->nsub + 1) * sizeof(Cachefont*));
+		if(fnt->sub == 0) {
+			/* realloc manual says fnt->sub may have been destroyed
+			 */
 			fnt->nsub = 0;
 			goto Err3;
 		}
@@ -105,40 +107,40 @@ buildfont(Display *d, char *buf, char *name)
 		c->max = max;
 		c->offset = offset;
 		t = s;
-		while(*s && *s!=' ' && *s!='\n' && *s!='\t')
+		while(*s && *s != ' ' && *s != '\n' && *s != '\t')
 			s++;
 		*s++ = 0;
 		c->subfontname = 0;
 		c->name = strdup(t);
-		if(c->name == 0){
+		if(c->name == 0) {
 			free(c);
 			goto Err3;
 		}
 		s = skip(s);
 		fnt->nsub++;
-	}while(*s);
+	} while(*s);
 	return fnt;
 }
 
 void
-freefont(Font *f)
+freefont(Font* f)
 {
 	int i;
-	Cachefont *c;
-	Subfont *s;
+	Cachefont* c;
+	Subfont* s;
 
 	if(f == 0)
 		return;
 
-	for(i=0; i<f->nsub; i++){
+	for(i = 0; i < f->nsub; i++) {
 		c = f->sub[i];
 		free(c->subfontname);
 		free(c->name);
 		free(c);
 	}
-	for(i=0; i<f->nsubf; i++){
+	for(i = 0; i < f->nsubf; i++) {
 		s = f->subf[i].f;
-		if(s && display && s!=display->defaultsubfont)
+		if(s && display && s != display->defaultsubfont)
 			freesubfont(s);
 	}
 	freeimage(f->cacheimage);

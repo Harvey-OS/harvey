@@ -18,50 +18,48 @@
 #include "9c/9.out.h"
 #include "obj.h"
 
-typedef struct Addr	Addr;
-struct Addr
-{
-	char	type;
-	char	sym;
-	char	name;
+typedef struct Addr Addr;
+struct Addr {
+	char type;
+	char sym;
+	char name;
 };
 static Addr addr(Biobuf*);
 static char type2char(int);
 static void skip(Biobuf*, int);
 
 int
-_is9(char *s)
+_is9(char* s)
 {
-	return  (s[0]&0377) == ANAME			/* ANAME */
-		&& (s[1]&0377) == ANAME>>8
-		&& s[2] == D_FILE			/* type */
-		&& s[3] == 1				/* sym */
-		&& s[4] == '<';				/* name of file */
+	return (s[0] & 0377) == ANAME                           /* ANAME */
+	       && (s[1] & 0377) == ANAME >> 8 && s[2] == D_FILE /* type */
+	       && s[3] == 1                                     /* sym */
+	       && s[4] == '<'; /* name of file */
 }
 
 int
-_read9(Biobuf *bp, Prog *p)
+_read9(Biobuf* bp, Prog* p)
 {
 	int as, n, c;
 	Addr a;
 
-	as = Bgetc(bp);					/* as(low) */
+	as = Bgetc(bp); /* as(low) */
 	if(as < 0)
 		return 0;
-	c = Bgetc(bp);					/* as(high) */
+	c = Bgetc(bp); /* as(high) */
 	if(c < 0)
 		return 0;
 	as |= ((c & 0xff) << 8);
 	p->kind = aNone;
 	p->sig = 0;
-	if(as == ANAME || as == ASIGNAME){
-		if(as == ASIGNAME){
+	if(as == ANAME || as == ASIGNAME) {
+		if(as == ASIGNAME) {
 			Bread(bp, &p->sig, 4);
 			p->sig = beswal(p->sig);
 		}
 		p->kind = aName;
-		p->type = type2char(Bgetc(bp));		/* type */
-		p->sym = Bgetc(bp);			/* sym */
+		p->type = type2char(Bgetc(bp)); /* type */
+		p->sym = Bgetc(bp);             /* sym */
 		n = 0;
 		for(;;) {
 			as = Bgetc(bp);
@@ -83,8 +81,8 @@ _read9(Biobuf *bp, Prog *p)
 		p->kind = aText;
 	else if(as == AGLOBL)
 		p->kind = aData;
-	n = Bgetc(bp);					/* reg and flag */
-	skip(bp, 4);					/* lineno(4) */
+	n = Bgetc(bp); /* reg and flag */
+	skip(bp, 4);   /* lineno(4) */
 	a = addr(bp);
 	if(n & 0x40)
 		addr(bp);
@@ -96,20 +94,24 @@ _read9(Biobuf *bp, Prog *p)
 }
 
 static Addr
-addr(Biobuf *bp)
+addr(Biobuf* bp)
 {
 	Addr a;
 	int64_t off;
 	int32_t l;
 
-	a.type = Bgetc(bp);				/* a.type */
-	skip(bp,1);					/* reg */
-	a.sym = Bgetc(bp);				/* sym index */
-	a.name = Bgetc(bp);				/* sym type */
-	switch(a.type){
+	a.type = Bgetc(bp); /* a.type */
+	skip(bp, 1);        /* reg */
+	a.sym = Bgetc(bp);  /* sym index */
+	a.name = Bgetc(bp); /* sym type */
+	switch(a.type) {
 	default:
-	case D_NONE: case D_REG: case D_FREG: case D_CREG:
-	case D_FPSCR: case D_MSR:
+	case D_NONE:
+	case D_REG:
+	case D_FREG:
+	case D_CREG:
+	case D_FPSCR:
+	case D_MSR:
 		break;
 	case D_SPR:
 	case D_OREG:
@@ -122,17 +124,17 @@ addr(Biobuf *bp)
 		l |= Bgetc(bp) << 16;
 		l |= Bgetc(bp) << 24;
 		off = l;
-		if(a.type == D_DCONST){
+		if(a.type == D_DCONST) {
 			l = Bgetc(bp);
 			l |= Bgetc(bp) << 8;
 			l |= Bgetc(bp) << 16;
 			l |= Bgetc(bp) << 24;
 			off = ((int64_t)l << 32) | (off & 0xFFFFFFFF);
-			a.type = D_CONST;		/* perhaps */
+			a.type = D_CONST; /* perhaps */
 		}
 		if(off < 0)
 			off = -off;
-		if(a.sym && (a.name==D_PARAM || a.name==D_AUTO))
+		if(a.sym && (a.name == D_PARAM || a.name == D_AUTO))
 			_offset(a.sym, off);
 		break;
 	case D_SCONST:
@@ -148,18 +150,23 @@ addr(Biobuf *bp)
 static char
 type2char(int t)
 {
-	switch(t){
-	case D_EXTERN:		return 'U';
-	case D_STATIC:		return 'b';
-	case D_AUTO:		return 'a';
-	case D_PARAM:		return 'p';
-	default:		return UNKNOWN;
+	switch(t) {
+	case D_EXTERN:
+		return 'U';
+	case D_STATIC:
+		return 'b';
+	case D_AUTO:
+		return 'a';
+	case D_PARAM:
+		return 'p';
+	default:
+		return UNKNOWN;
 	}
 }
 
 static void
-skip(Biobuf *bp, int n)
+skip(Biobuf* bp, int n)
 {
-	while (n-- > 0)
+	while(n-- > 0)
 		Bgetc(bp);
 }

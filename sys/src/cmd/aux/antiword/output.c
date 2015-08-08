@@ -17,18 +17,16 @@
 
 #include "antiword.h"
 
-static conversion_type	eConversionType = conversion_unknown;
-static encoding_type	eEncoding = encoding_neutral;
-
+static conversion_type eConversionType = conversion_unknown;
+static encoding_type eEncoding = encoding_neutral;
 
 /*
  * vPrologue1 - get options and call a specific initialization
  */
 static void
-vPrologue1(diagram_type *pDiag, const char *szTask,
-	   const char *szFilename)
+vPrologue1(diagram_type* pDiag, const char* szTask, const char* szFilename)
 {
-	options_type	tOptions;
+	options_type tOptions;
 
 	fail(pDiag == NULL);
 	fail(szTask == NULL || szTask[0] == '\0');
@@ -37,7 +35,7 @@ vPrologue1(diagram_type *pDiag, const char *szTask,
 	eConversionType = tOptions.eConversionType;
 	eEncoding = tOptions.eEncoding;
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 		vPrologueTXT(pDiag, &tOptions);
 		break;
@@ -63,9 +61,9 @@ vPrologue1(diagram_type *pDiag, const char *szTask,
  * vEpilogue - clean up after everything is done
  */
 static void
-vEpilogue(diagram_type *pDiag)
+vEpilogue(diagram_type* pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vEpilogueTXT(pDiag->pOutFile);
@@ -89,9 +87,9 @@ vEpilogue(diagram_type *pDiag)
  * vImagePrologue - perform image initialization
  */
 void
-vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
+vImagePrologue(diagram_type* pDiag, const imagedata_type* pImg)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -113,9 +111,9 @@ vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
  * vImageEpilogue - clean up an image
  */
 void
-vImageEpilogue(diagram_type *pDiag)
+vImageEpilogue(diagram_type* pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -139,9 +137,9 @@ vImageEpilogue(diagram_type *pDiag)
  * return TRUE when successful, otherwise FALSE
  */
 BOOL
-bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
+bAddDummyImage(diagram_type* pDiag, const imagedata_type* pImg)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		return FALSE;
@@ -162,10 +160,10 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
  *
  * remark: does not return if the diagram can't be created
  */
-diagram_type *
-pCreateDiagram(const char *szTask, const char *szFilename)
+diagram_type*
+pCreateDiagram(const char* szTask, const char* szFilename)
 {
-	diagram_type	*pDiag;
+	diagram_type* pDiag;
 
 	fail(szTask == NULL || szTask[0] == '\0');
 	DBG_MSG("pCreateDiagram");
@@ -183,13 +181,13 @@ pCreateDiagram(const char *szTask, const char *szFilename)
  * vDestroyDiagram - remove a diagram by freeing the memory it uses
  */
 void
-vDestroyDiagram(diagram_type *pDiag)
+vDestroyDiagram(diagram_type* pDiag)
 {
 	DBG_MSG("vDestroyDiagram");
 
 	fail(pDiag == NULL);
 
-	if (pDiag == NULL) {
+	if(pDiag == NULL) {
 		return;
 	}
 	vEpilogue(pDiag);
@@ -200,9 +198,9 @@ vDestroyDiagram(diagram_type *pDiag)
  * vPrologue2 - call a specific initialization
  */
 void
-vPrologue2(diagram_type *pDiag, int iWordVersion)
+vPrologue2(diagram_type* pDiag, int iWordVersion)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -226,14 +224,14 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
  * vMove2NextLine - move to the next line
  */
 void
-vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
-	USHORT usFontSize)
+vMove2NextLine(diagram_type* pDiag, drawfile_fontref tFontRef,
+               USHORT usFontSize)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vMove2NextLineTXT(pDiag);
@@ -257,32 +255,32 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
  * vSubstring2Diagram - put a sub string into a diagram
  */
 void
-vSubstring2Diagram(diagram_type *pDiag,
-	char *szString, size_t tStringLength, int32_t lStringWidth,
-	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
-	USHORT usFontSize, USHORT usMaxFontSize)
+vSubstring2Diagram(diagram_type* pDiag, char* szString, size_t tStringLength,
+                   int32_t lStringWidth, UCHAR ucFontColor, USHORT usFontstyle,
+                   drawfile_fontref tFontRef, USHORT usFontSize,
+                   USHORT usMaxFontSize)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 		vSubstringTXT(pDiag, szString, tStringLength, lStringWidth);
 		break;
 	case conversion_fmt_text:
 		vSubstringFMT(pDiag, szString, tStringLength, lStringWidth,
-				usFontstyle);
+		              usFontstyle);
 		break;
 	case conversion_ps:
 		vSubstringPS(pDiag, szString, tStringLength, lStringWidth,
-				ucFontColor, usFontstyle, tFontRef,
-				usFontSize, usMaxFontSize);
+		             ucFontColor, usFontstyle, tFontRef, usFontSize,
+		             usMaxFontSize);
 		break;
 	case conversion_xml:
 		vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
-				usFontstyle);
+		              usFontstyle);
 		break;
 	case conversion_pdf:
 		vSubstringPDF(pDiag, szString, tStringLength, lStringWidth,
-				ucFontColor, usFontstyle, tFontRef,
-				usFontSize, usMaxFontSize);
+		              ucFontColor, usFontstyle, tFontRef, usFontSize,
+		              usMaxFontSize);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -296,11 +294,11 @@ vSubstring2Diagram(diagram_type *pDiag,
  * Before indentation, list numbering, bullets etc.
  */
 void
-vStartOfParagraph1(diagram_type *pDiag, int32_t lBeforeIndentation)
+vStartOfParagraph1(diagram_type* pDiag, int32_t lBeforeIndentation)
 {
 	fail(pDiag == NULL);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vStartOfParagraphTXT(pDiag, lBeforeIndentation);
@@ -324,11 +322,11 @@ vStartOfParagraph1(diagram_type *pDiag, int32_t lBeforeIndentation)
  * After indentation, list numbering, bullets etc.
  */
 void
-vStartOfParagraph2(diagram_type *pDiag)
+vStartOfParagraph2(diagram_type* pDiag)
 {
 	fail(pDiag == NULL);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -349,16 +347,15 @@ vStartOfParagraph2(diagram_type *pDiag)
  * Create an end of paragraph
  */
 void
-vEndOfParagraph(diagram_type *pDiag,
-	drawfile_fontref tFontRef, USHORT usFontSize,
-		int32_t lAfterIndentation)
+vEndOfParagraph(diagram_type* pDiag, drawfile_fontref tFontRef,
+                USHORT usFontSize, int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 	fail(lAfterIndentation < 0);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vEndOfParagraphTXT(pDiag, lAfterIndentation);
@@ -382,9 +379,9 @@ vEndOfParagraph(diagram_type *pDiag,
  * Create an end of page
  */
 void
-vEndOfPage(diagram_type *pDiag, int32_t lAfterIndentation, BOOL bNewSection)
+vEndOfPage(diagram_type* pDiag, int32_t lAfterIndentation, BOOL bNewSection)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vEndOfPageTXT(pDiag, lAfterIndentation);
@@ -408,9 +405,9 @@ vEndOfPage(diagram_type *pDiag, int32_t lAfterIndentation, BOOL bNewSection)
  * vSetHeaders - set the headers
  */
 void
-vSetHeaders(diagram_type *pDiag, USHORT usIstd)
+vSetHeaders(diagram_type* pDiag, USHORT usIstd)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -431,9 +428,9 @@ vSetHeaders(diagram_type *pDiag, USHORT usIstd)
  * Create a start of list
  */
 void
-vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
+vStartOfList(diagram_type* pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -454,9 +451,9 @@ vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
  * Create an end of list
  */
 void
-vEndOfList(diagram_type *pDiag)
+vEndOfList(diagram_type* pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -477,9 +474,9 @@ vEndOfList(diagram_type *pDiag)
  * Create a start of a list item
  */
 void
-vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
+vStartOfListItem(diagram_type* pDiag, BOOL bNoMarks)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -500,9 +497,9 @@ vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
  * Create an end of a table
  */
 void
-vEndOfTable(diagram_type *pDiag)
+vEndOfTable(diagram_type* pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -525,19 +522,18 @@ vEndOfTable(diagram_type *pDiag)
  * Returns TRUE when conversion type is XML
  */
 BOOL
-bAddTableRow(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
+bAddTableRow(diagram_type* pDiag, char** aszColTxt, int iNbrOfColumns,
+             const int16_t* asColumnWidth, UCHAR ucBorderInfo)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
-		vAddTableRowXML(pDiag, aszColTxt,
-				iNbrOfColumns, asColumnWidth,
-				ucBorderInfo);
+		vAddTableRowXML(pDiag, aszColTxt, iNbrOfColumns, asColumnWidth,
+		                ucBorderInfo);
 		return TRUE;
 	case conversion_pdf:
 		break;

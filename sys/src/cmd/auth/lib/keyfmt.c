@@ -16,24 +16,24 @@
  * print a key in des standard form
  */
 int
-keyfmt(Fmt *f)
+keyfmt(Fmt* f)
 {
 	uint8_t key[8];
 	char buf[32];
-	uint8_t *k;
+	uint8_t* k;
 	int i;
 
 	k = va_arg(f->args, uint8_t*);
 	key[0] = 0;
-	for(i = 0; i < 7; i++){
+	for(i = 0; i < 7; i++) {
 		key[i] |= k[i] >> i;
 		key[i] &= ~1;
-		key[i+1] = k[i] << (7 - i);
+		key[i + 1] = k[i] << (7 - i);
 	}
 	key[7] &= ~1;
 	snprint(buf, sizeof buf,
-		"%.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo",
-		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
+	        "%.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo", key[0],
+	        key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
 	fmtstrcpy(f, buf);
 	return 0;
 }

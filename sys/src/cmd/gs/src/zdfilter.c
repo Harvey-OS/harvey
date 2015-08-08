@@ -9,14 +9,14 @@
 
 /*
   Copyright (C) 2001 artofcode LLC.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -48,16 +48,14 @@
 /* pushpdf14devicefilter is defined in ztrans.c */
 
 /* - .popdevicefilter - */
-private int
-zpopdevicefilter(i_ctx_t *i_ctx_p)
+private
+int
+zpopdevicefilter(i_ctx_t* i_ctx_p)
 {
-    gs_memory_t *mem = gs_memory_stable(imemory);
+	gs_memory_t* mem = gs_memory_stable(imemory);
 
-    return gs_pop_device_filter(mem, igs);
+	return gs_pop_device_filter(mem, igs);
 }
 
-const op_def zdfilter_op_defs[] =
-{
-    {"0.popdevicefilter", zpopdevicefilter},
-    op_def_end(0)
-};
+const op_def zdfilter_op_defs[] = {{"0.popdevicefilter", zpopdevicefilter},
+                                   op_def_end(0)};

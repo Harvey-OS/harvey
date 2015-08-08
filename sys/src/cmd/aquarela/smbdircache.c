@@ -9,25 +9,25 @@
 
 #include "headers.h"
 
-SmbDirCache *
-smbmkdircache(SmbTree *t, char *path)
+SmbDirCache*
+smbmkdircache(SmbTree* t, char* path)
 {
 	int32_t n;
-	SmbDirCache *c;
-	Dir *buf;
+	SmbDirCache* c;
+	Dir* buf;
 	int fd;
-	char *fullpath = nil;
+	char* fullpath = nil;
 
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
-//smblogprintif(1, "smbmkdircache: path %s\n", fullpath);
+	// smblogprintif(1, "smbmkdircache: path %s\n", fullpath);
 	fd = open(fullpath, OREAD);
 	free(fullpath);
 
-	if (fd < 0)
+	if(fd < 0)
 		return nil;
 	n = dirreadall(fd, &buf);
 	close(fd);
-	if (n < 0) {
+	if(n < 0) {
 		free(buf);
 		return nil;
 	}
@@ -39,14 +39,13 @@ smbmkdircache(SmbTree *t, char *path)
 }
 
 void
-smbdircachefree(SmbDirCache **cp)
+smbdircachefree(SmbDirCache** cp)
 {
-	SmbDirCache *c;
+	SmbDirCache* c;
 	c = *cp;
-	if (c) {
+	if(c) {
 		free(c->buf);
 		free(c);
 		*cp = nil;
 	}
 }
-

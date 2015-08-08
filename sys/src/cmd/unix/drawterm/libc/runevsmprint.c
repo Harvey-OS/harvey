@@ -12,9 +12,9 @@
 #include "fmtdef.h"
 
 static int
-runeFmtStrFlush(Fmt *f)
+runeFmtStrFlush(Fmt* f)
 {
-	Rune *s;
+	Rune* s;
 	int n;
 
 	if(f->start == nil)
@@ -22,8 +22,8 @@ runeFmtStrFlush(Fmt *f)
 	n = (uintptr)f->farg;
 	n *= 2;
 	s = (Rune*)f->start;
-	f->start = realloc(s, sizeof(Rune)*n);
-	if(f->start == nil){
+	f->start = realloc(s, sizeof(Rune) * n);
+	if(f->start == nil) {
 		f->farg = nil;
 		f->to = nil;
 		f->stop = nil;
@@ -37,14 +37,14 @@ runeFmtStrFlush(Fmt *f)
 }
 
 int
-runefmtstrinit(Fmt *f)
+runefmtstrinit(Fmt* f)
 {
 	int n;
 
 	memset(f, 0, sizeof *f);
 	f->runes = 1;
 	n = 32;
-	f->start = malloc(sizeof(Rune)*n);
+	f->start = malloc(sizeof(Rune) * n);
 	if(f->start == nil)
 		return -1;
 	f->to = f->start;
@@ -59,19 +59,19 @@ runefmtstrinit(Fmt *f)
  * print into an allocated string buffer
  */
 Rune*
-runevsmprint(char *fmt, va_list args)
+runevsmprint(char* fmt, va_list args)
 {
 	Fmt f;
 	int n;
 
 	if(runefmtstrinit(&f) < 0)
 		return nil;
-	VA_COPY(f.args,args);
+	VA_COPY(f.args, args);
 	n = dofmt(&f, fmt);
 	VA_END(f.args);
 	if(f.start == nil)
 		return nil;
-	if(n < 0){
+	if(n < 0) {
 		free(f.start);
 		return nil;
 	}

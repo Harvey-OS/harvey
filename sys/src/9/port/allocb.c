@@ -7,36 +7,34 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-enum
-{
-	Hdrspc		= 64,		/* leave room for high-level headers */
-	Bdead		= 0x51494F42,	/* "QIOB" */
+enum { Hdrspc = 64,        /* leave room for high-level headers */
+       Bdead = 0x51494F42, /* "QIOB" */
 };
 
-struct
-{
+struct {
 	Lock;
-	uint32_t	bytes;
+	uint32_t bytes;
 } ialloc;
 
 static Block*
 _allocb(int size)
 {
-	Block *b;
-	uint8_t *p;
+	Block* b;
+	uint8_t* p;
 	int n;
 
-	n = BLOCKALIGN + ROUNDUP(size+Hdrspc, BLOCKALIGN) + sizeof(Block);
+	n = BLOCKALIGN + ROUNDUP(size + Hdrspc, BLOCKALIGN) + sizeof(Block);
 	if((p = malloc(n)) == nil)
 		return nil;
 
-	b = (Block*)(p + n - sizeof(Block));	/* block at end of allocated space */
+	b = (Block*)(p + n -
+	             sizeof(Block)); /* block at end of allocated space */
 	b->base = p;
 	b->next = nil;
 	b->list = nil;
@@ -44,9 +42,10 @@ _allocb(int size)
 	b->flag = 0;
 
 	/* align base and bounds of data */
-	b->lim = (uint8_t*)(PTR2UINT(b) & ~(BLOCKALIGN-1));
+	b->lim = (uint8_t*)(PTR2UINT(b) & ~(BLOCKALIGN - 1));
 
-	/* align start of writable data, leaving space below for added headers */
+	/* align start of writable data, leaving space below for added headers
+	 */
 	b->rp = b->lim - ROUNDUP(size, BLOCKALIGN);
 	b->wp = b->rp;
 
@@ -59,8 +58,8 @@ _allocb(int size)
 Block*
 allocb(int size)
 {
-	Proc *up = externup();
-	Block *b;
+	Proc* up = externup();
+	Block* b;
 
 	/*
 	 * Check in a process and wait until successful.
@@ -68,7 +67,7 @@ allocb(int size)
 	 */
 	if(up == nil)
 		panic("allocb without up: %#p\n", getcallerpc(&size));
-	if((b = _allocb(size)) == nil){
+	if((b = _allocb(size)) == nil) {
 		mallocsummary();
 		panic("allocb: no memory for %d bytes\n", size);
 	}
@@ -79,29 +78,29 @@ allocb(int size)
 Block*
 iallocb(int size)
 {
-	Block *b;
+	Block* b;
 	static int m1, m2, mp;
 
-	if(ialloc.bytes > conf.ialloc){
-		if((m1++%10000)==0){
-			if(mp++ > 1000){
+	if(ialloc.bytes > conf.ialloc) {
+		if((m1++ % 10000) == 0) {
+			if(mp++ > 1000) {
 				active.exiting = 1;
 				exit(0);
 			}
-			iprint("iallocb: limited %lud/%lud\n",
-				ialloc.bytes, conf.ialloc);
+			iprint("iallocb: limited %lud/%lud\n", ialloc.bytes,
+			       conf.ialloc);
 		}
 		return nil;
 	}
 
-	if((b = _allocb(size)) == nil){
-		if((m2++%10000)==0){
-			if(mp++ > 1000){
+	if((b = _allocb(size)) == nil) {
+		if((m2++ % 10000) == 0) {
+			if(mp++ > 1000) {
 				active.exiting = 1;
 				exit(0);
 			}
-			iprint("iallocb: no memory %lud/%lud\n",
-				ialloc.bytes, conf.ialloc);
+			iprint("iallocb: no memory %lud/%lud\n", ialloc.bytes,
+			       conf.ialloc);
 		}
 		return nil;
 	}
@@ -115,10 +114,10 @@ iallocb(int size)
 }
 
 void
-freeb(Block *b)
+freeb(Block* b)
 {
-	void *dead = (void*)Bdead;
-	uint8_t *p;
+	void* dead = (void*)Bdead;
+	uint8_t* p;
 
 	if(b == nil)
 		return;
@@ -150,16 +149,16 @@ freeb(Block *b)
 }
 
 void
-checkb(Block *b, char *msg)
+checkb(Block* b, char* msg)
 {
-	void *dead = (void*)Bdead;
+	void* dead = (void*)Bdead;
 
 	if(b == dead)
 		panic("checkb b %s %#p", msg, b);
-	if(b->base == dead || b->lim == dead || b->next == dead
-	  || b->rp == dead || b->wp == dead){
-		print("checkb: base %#p lim %#p next %#p\n",
-			b->base, b->lim, b->next);
+	if(b->base == dead || b->lim == dead || b->next == dead ||
+	   b->rp == dead || b->wp == dead) {
+		print("checkb: base %#p lim %#p next %#p\n", b->base, b->lim,
+		      b->next);
 		print("checkb: rp %#p wp %#p\n", b->rp, b->wp);
 		panic("checkb dead: %s\n", msg);
 	}

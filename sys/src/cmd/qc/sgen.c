@@ -41,9 +41,9 @@ noretval(int n)
  *	calculate complexity (number of registers)
  */
 void
-xcom(Node *n)
+xcom(Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 	int v, nr;
 
 	if(n == Z)
@@ -203,18 +203,18 @@ xcom(Node *n)
 		n->complex = l->complex;
 	if(r != Z) {
 		nr = 1;
-		if(r->type != T && typev[r->type->etype] || n->type != T && typev[n->type->etype]) {
+		if(r->type != T && typev[r->type->etype] ||
+		   n->type != T && typev[n->type->etype]) {
 			nr = 2;
 			if(n->op == OMUL || n->op == OLMUL)
 				nr += 3;
 		}
 		if(r->complex == n->complex)
-			n->complex = r->complex+nr;
-		else
-		if(r->complex > n->complex)
+			n->complex = r->complex + nr;
+		else if(r->complex > n->complex)
 			n->complex = r->complex;
 	}
-	if(n->complex == 0){
+	if(n->complex == 0) {
 		n->complex++;
 		if(n->type != T && typev[n->type->etype])
 			n->complex++;
@@ -263,4 +263,3 @@ xcom(Node *n)
 		break;
 	}
 }
-

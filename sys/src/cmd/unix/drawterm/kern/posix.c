@@ -13,7 +13,7 @@
 
 #include "u.h"
 
-#ifndef _XOPEN_SOURCE	/* for Apple and OpenBSD; not sure if needed */
+#ifndef _XOPEN_SOURCE /* for Apple and OpenBSD; not sure if needed */
 #define _XOPEN_SOURCE 500
 #endif
 
@@ -30,8 +30,7 @@
 #include "fns.h"
 
 typedef struct Oproc Oproc;
-struct Oproc
-{
+struct Oproc {
 	int nsleep;
 	int nwakeup;
 	pthread_mutex_t mutex;
@@ -43,7 +42,7 @@ static pthread_key_t prdakey;
 Proc*
 _getproc(void)
 {
-	void *v;
+	void* v;
 
 	if((v = pthread_getspecific(prdakey)) == nil)
 		panic("cannot getspecific");
@@ -51,7 +50,7 @@ _getproc(void)
 }
 
 void
-_setproc(Proc *p)
+_setproc(Proc* p)
 {
 	if(pthread_setspecific(prdakey, p) != 0)
 		panic("cannot setspecific");
@@ -66,9 +65,9 @@ osinit(void)
 
 #undef pipe
 void
-osnewproc(Proc *p)
+osnewproc(Proc* p)
 {
-	Oproc *op;
+	Oproc* op;
 	pthread_mutexattr_t attr;
 
 	op = (Oproc*)p->oproc;
@@ -99,10 +98,10 @@ osyield(void)
 void
 oserrstr(void)
 {
-	char *p;
+	char* p;
 
 	if((p = strerror(errno)) != nil)
-		strecpy(up->errstr, up->errstr+ERRMAX, p);
+		strecpy(up->errstr, up->errstr + ERRMAX, p);
 	else
 		snprint(up->errstr, ERRMAX, "unix error %d", errno);
 }
@@ -117,11 +116,11 @@ oserror(void)
 static void* tramp(void*);
 
 void
-osproc(Proc *p)
+osproc(Proc* p)
 {
 	pthread_t pid;
 
-	if(pthread_create(&pid, nil, tramp, p)){
+	if(pthread_create(&pid, nil, tramp, p)) {
 		oserrstr();
 		panic("osproc: %r");
 	}
@@ -129,9 +128,9 @@ osproc(Proc *p)
 }
 
 static void*
-tramp(void *vp)
+tramp(void* vp)
 {
-	Proc *p;
+	Proc* p;
 
 	p = vp;
 	if(pthread_setspecific(prdakey, p))
@@ -146,8 +145,8 @@ tramp(void *vp)
 void
 procsleep(void)
 {
-	Proc *p;
-	Oproc *op;
+	Proc* p;
+	Oproc* op;
 
 	p = up;
 	op = (Oproc*)p->oproc;
@@ -159,9 +158,9 @@ procsleep(void)
 }
 
 void
-procwakeup(Proc *p)
+procwakeup(Proc* p)
 {
-	Oproc *op;
+	Oproc* op;
 
 	op = (Oproc*)p->oproc;
 	pthread_mutex_lock(&op->mutex);
@@ -177,22 +176,22 @@ void
 randominit(void)
 {
 #ifdef USE_RANDOM
-	srandom(getpid()+fastticks(nil)+ticks());
+	srandom(getpid() + fastticks(nil) + ticks());
 #else
 	if((randfd = open("/dev/urandom", OREAD)) < 0)
-	if((randfd = open("/dev/random", OREAD)) < 0)
-		panic("open /dev/random: %r");
+		if((randfd = open("/dev/random", OREAD)) < 0)
+			panic("open /dev/random: %r");
 #endif
 }
 
 #undef read
 uint32_t
-randomread(void *v, uint32_t n)
+randomread(void* v, uint32_t n)
 {
 #ifdef USE_RANDOM
 	int i;
 
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		((uint8_t*)v)[i] = random();
 	return n;
 #else
@@ -219,15 +218,15 @@ ticks(void)
 
 	if(gettimeofday(&t, nil) < 0)
 		return 0;
-	if(sec0 == 0){
+	if(sec0 == 0) {
 		sec0 = t.tv_sec;
 		usec0 = t.tv_usec;
 	}
-	return (t.tv_sec-sec0)*1000+(t.tv_usec-usec0+500)/1000;
+	return (t.tv_sec - sec0) * 1000 + (t.tv_usec - usec0 + 500) / 1000;
 }
 
 int32_t
-showfilewrite(char *a, int n)
+showfilewrite(char* a, int n)
 {
 	error("not implemented");
 	return -1;

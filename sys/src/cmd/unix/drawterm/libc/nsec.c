@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-static uint64_t order = (uint64_t) 0x0001020304050607ULL;
+static uint64_t order = (uint64_t)0x0001020304050607ULL;
 
 static void
-be2vlong(int64_t *to, uint8_t *f)
+be2vlong(int64_t* to, uint8_t* f)
 {
-	uint8_t *t, *o;
+	uint8_t* t, *o;
 	int i;
 
 	t = (uint8_t*)to;
@@ -36,32 +36,33 @@ be2vlong(int64_t *to, uint8_t *f)
 int64_t
 nsec(void)
 {
-	char b[12+1];
+	char b[12 + 1];
 	static int f = -1;
 	static int usebintime;
 	int retries;
 	int64_t t;
 
-	if(f < 0){
+	if(f < 0) {
 		usebintime = 1;
-		f = open("/dev/bintime", OREAD|OCEXEC);
-		if(f < 0){
+		f = open("/dev/bintime", OREAD | OCEXEC);
+		if(f < 0) {
 			usebintime = 0;
-			f = open("/dev/nsec", OREAD|OCEXEC);
+			f = open("/dev/nsec", OREAD | OCEXEC);
 			if(f < 0)
 				return 0;
 		}
 	}
 
-	if(usebintime){
+	if(usebintime) {
 		if(read(f, b, sizeof(uint64_t)) < 0)
 			goto error;
 		be2vlong(&t, (uint8_t*)b);
 		return t;
 	} else {
-		for(retries = 0; retries < 100; retries++){
-			if(seek(f, 0, 0) >= 0 && read(f, b, sizeof(b)-1) >= 0){
-				b[sizeof(b)-1] = 0;
+		for(retries = 0; retries < 100; retries++) {
+			if(seek(f, 0, 0) >= 0 &&
+			   read(f, b, sizeof(b) - 1) >= 0) {
+				b[sizeof(b) - 1] = 0;
 				return strtoll(b, 0, 0);
 			}
 		}

@@ -12,23 +12,21 @@
 #include <ctype.h>
 #include "fmtdef.h"
 
-enum
-{
-	FDIGIT	= 30,
-	FDEFLT	= 6,
-	NSIGNIF	= 17,
-	NEXP10	= 308,
+enum { FDIGIT = 30,
+       FDEFLT = 6,
+       NSIGNIF = 17,
+       NEXP10 = 308,
 };
 
 static int
-xadd(char *a, int n, int v)
+xadd(char* a, int n, int v)
 {
-	char *b;
+	char* b;
 	int c;
 
 	if(n < 0 || n >= NSIGNIF)
 		return 0;
-	for(b = a+n; b >= a; b--) {
+	for(b = a + n; b >= a; b--) {
 		c = *b + v;
 		if(c <= '9') {
 			*b = c;
@@ -37,17 +35,17 @@ xadd(char *a, int n, int v)
 		*b = '0';
 		v = 1;
 	}
-	*a = '1';	// overflow adding
+	*a = '1'; // overflow adding
 	return 1;
 }
 
 static int
-xsub(char *a, int n, int v)
+xsub(char* a, int n, int v)
 {
-	char *b;
+	char* b;
 	int c;
 
-	for(b = a+n; b >= a; b--) {
+	for(b = a + n; b >= a; b--) {
 		c = *b - v;
 		if(c >= '0') {
 			*b = c;
@@ -56,14 +54,14 @@ xsub(char *a, int n, int v)
 		*b = '9';
 		v = 1;
 	}
-	*a = '9';	// underflow subtracting
+	*a = '9'; // underflow subtracting
 	return 1;
 }
 
 static void
-xdtoa(Fmt *fmt, char *s2, double f)
+xdtoa(Fmt* fmt, char* s2, double f)
 {
-	char s1[NSIGNIF+10];
+	char s1[NSIGNIF + 10];
 	double g, h;
 	int e, d, i, n;
 	int c1, c2, c3, c4, ucase, sign, chr, prec;
@@ -106,17 +104,17 @@ xdtoa(Fmt *fmt, char *s2, double f)
 			d = 0;
 			h = f;
 		} else {
-			d = e/2;
+			d = e / 2;
 			h = f * pow10(-d);
 		}
-		g = h * pow10(d-e);
+		g = h * pow10(d - e);
 		while(g < 1) {
 			e--;
-			g = h * pow10(d-e);
+			g = h * pow10(d - e);
 		}
 		while(g >= 10) {
 			e++;
-			g = h * pow10(d-e);
+			g = h * pow10(d - e);
 		}
 	}
 
@@ -124,7 +122,7 @@ xdtoa(Fmt *fmt, char *s2, double f)
 	 * convert NSIGNIF digits and convert
 	 * back to get accuracy.
 	 */
-	for(i=0; i<NSIGNIF; i++) {
+	for(i = 0; i < NSIGNIF; i++) {
 		d = g;
 		s1[i] = d + '0';
 		g = (g - d) * 10;
@@ -137,18 +135,18 @@ xdtoa(Fmt *fmt, char *s2, double f)
 	c2 = prec + 1;
 	if(chr == 'f')
 		c2 += e;
-	if(c2 >= NSIGNIF-2) {
+	if(c2 >= NSIGNIF - 2) {
 		strcpy(s2, s1);
 		d = e;
-		s1[NSIGNIF-2] = '0';
-		s1[NSIGNIF-1] = '0';
-		sprint(s1+NSIGNIF, "e%d", e-NSIGNIF+1);
+		s1[NSIGNIF - 2] = '0';
+		s1[NSIGNIF - 1] = '0';
+		sprint(s1 + NSIGNIF, "e%d", e - NSIGNIF + 1);
 		g = strtod(s1, nil);
 		if(g == f)
 			goto found;
-		if(xadd(s1, NSIGNIF-3, 1)) {
+		if(xadd(s1, NSIGNIF - 3, 1)) {
 			e++;
-			sprint(s1+NSIGNIF, "e%d", e-NSIGNIF+1);
+			sprint(s1 + NSIGNIF, "e%d", e - NSIGNIF + 1);
 		}
 		g = strtod(s1, nil);
 		if(g == f)
@@ -161,15 +159,15 @@ xdtoa(Fmt *fmt, char *s2, double f)
 	 * convert back so s1 gets exact answer
 	 */
 	for(;;) {
-		sprint(s1+NSIGNIF, "e%d", e-NSIGNIF+1);
+		sprint(s1 + NSIGNIF, "e%d", e - NSIGNIF + 1);
 		g = strtod(s1, nil);
 		if(f > g) {
-			if(xadd(s1, NSIGNIF-1, 1))
+			if(xadd(s1, NSIGNIF - 1, 1))
 				e--;
 			continue;
 		}
 		if(f < g) {
-			if(xsub(s1, NSIGNIF-1, 1))
+			if(xsub(s1, NSIGNIF - 1, 1))
 				e++;
 			continue;
 		}
@@ -214,11 +212,11 @@ found:
 		if(e >= -5 && e <= prec) {
 			c1 = -e - 1;
 			c4 = prec - e;
-			chr = 'h';	// flag for 'f' style
+			chr = 'h'; // flag for 'f' style
 		}
 		break;
 	case 'f':
-		if(xadd(s1, c2+e, 5))
+		if(xadd(s1, c2 + e, 5))
 			e++;
 		c1 = -e;
 		if(c1 > prec)
@@ -235,7 +233,7 @@ found:
 	if(c2 < 0)
 		c2 = 0;
 	if(c2 > NSIGNIF) {
-		c3 = c2-NSIGNIF;
+		c3 = c2 - NSIGNIF;
 		c2 = NSIGNIF;
 	}
 
@@ -243,13 +241,13 @@ found:
 	 * copy digits
 	 */
 	while(c1 > 0) {
-		if(c1+c2+c3 == c4)
+		if(c1 + c2 + c3 == c4)
 			s2[d++] = '.';
 		s2[d++] = '0';
 		c1--;
 	}
 	while(c2 > 0) {
-		if(c2+c3 == c4)
+		if(c2 + c3 == c4)
 			s2[d++] = '.';
 		s2[d++] = s1[i++];
 		c2--;
@@ -267,12 +265,11 @@ found:
 	if(fmt->flags & FmtSharp) {
 		if(0 == c4)
 			s2[d++] = '.';
-	} else
-	if(chr == 'g' || chr == 'h') {
-		for(n=d-1; n>=0; n--)
+	} else if(chr == 'g' || chr == 'h') {
+		for(n = d - 1; n >= 0; n--)
 			if(s2[n] != '0')
 				break;
-		for(i=n; i>=0; i--)
+		for(i = n; i >= 0; i--)
 			if(s2[i] == '.') {
 				d = n;
 				if(i != n)
@@ -292,33 +289,33 @@ found:
 		} else
 			s2[d++] = '+';
 		if(c1 >= 100) {
-			s2[d++] = c1/100 + '0';
-			c1 = c1%100;
+			s2[d++] = c1 / 100 + '0';
+			c1 = c1 % 100;
 		}
-		s2[d++] = c1/10 + '0';
-		s2[d++] = c1%10 + '0';
+		s2[d++] = c1 / 10 + '0';
+		s2[d++] = c1 % 10 + '0';
 	}
 	s2[d] = 0;
 }
 
 int
-_floatfmt(Fmt *fmt, double f)
+_floatfmt(Fmt* fmt, double f)
 {
-	char s[1+NEXP10+1+FDIGIT+1];
+	char s[1 + NEXP10 + 1 + FDIGIT + 1];
 
 	/*
 	 * The max length of a %f string is
 	 *	'[+-]'+"max exponent"+'.'+"max precision"+'\0'
 	 * which is 341 currently.
-	 */	
+	 */
 	xdtoa(fmt, s, f);
-	fmt->flags &= FmtWidth|FmtLeft;
+	fmt->flags &= FmtWidth | FmtLeft;
 	_fmtcpy(fmt, s, strlen(s), strlen(s));
 	return 0;
 }
 
 int
-_efgfmt(Fmt *f)
+_efgfmt(Fmt* f)
 {
 	double d;
 

@@ -15,22 +15,21 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	Srv	flashsrv;
+static Srv flashsrv;
 
-typedef struct	State	State;
+typedef struct State State;
 
-struct State
-{
-	Entry	*e;
-	Dirr	*r;
+struct State {
+	Entry* e;
+	Dirr* r;
 };
 
-#define	writeable(e)	((e)->mode & 0222)
+#define writeable(e) ((e)->mode & 0222)
 
-static State *
-state(Entry *e)
+static State*
+state(Entry* e)
 {
-	State *s;
+	State* s;
 
 	s = emalloc9p(sizeof(State));
 	s->e = e;
@@ -39,12 +38,12 @@ state(Entry *e)
 }
 
 static void
-destroy(Fid *f)
+destroy(Fid* f)
 {
-	State *s;
+	State* s;
 
 	s = f->aux;
-	if(s == nil)		/* Tauth fids have no state */
+	if(s == nil) /* Tauth fids have no state */
 		return;
 
 	f->aux = nil;
@@ -56,7 +55,7 @@ destroy(Fid *f)
 }
 
 static void
-trace(Req *r)
+trace(Req* r)
 {
 	edump();
 }
@@ -64,7 +63,7 @@ trace(Req *r)
 /** T_ **/
 
 static void
-flattach(Req *r)
+flattach(Req* r)
 {
 	root->ref++;
 	r->ofcall.qid = eqid(root);
@@ -74,13 +73,13 @@ flattach(Req *r)
 }
 
 static void
-flopen(Req *r)
+flopen(Req* r)
 {
 	Jrec j;
 	int m, p;
-	Entry *e;
-	State *s;
-	char *err;
+	Entry* e;
+	State* s;
+	char* err;
 
 	s = r->fid->aux;
 	e = s->e;
@@ -94,7 +93,7 @@ flopen(Req *r)
 		p = AWRITE;
 		break;
 	case ORDWR:
-		p = AREAD|AWRITE;
+		p = AREAD | AWRITE;
 		break;
 	case OEXEC:
 		p = AEXEC;
@@ -121,8 +120,7 @@ flopen(Req *r)
 			return;
 		}
 		s->r = ediropen(s->e);
-	}
-	else if(r->ifcall.mode & OTRUNC) {
+	} else if(r->ifcall.mode & OTRUNC) {
 		err = need(Ntrunc);
 		if(err != nil) {
 			respond(r, err);
@@ -143,12 +141,12 @@ flopen(Req *r)
 }
 
 static void
-flcreate(Req *r)
+flcreate(Req* r)
 {
 	Jrec j;
-	State *s;
-	char *err;
-	Entry *e, *f;
+	State* s;
+	char* err;
+	Entry* e, *f;
 
 	if(readonly) {
 		respond(r, Erofs);
@@ -198,36 +196,38 @@ flcreate(Req *r)
 }
 
 static void
-flread(Req *r)
+flread(Req* r)
 {
-	Entry *e;
-	State *s;
+	Entry* e;
+	State* s;
 
 	s = r->fid->aux;
 	e = s->e;
 
 	if(e->mode & DMDIR)
-		r->ofcall.count = edirread(s->r, r->ofcall.data, r->ifcall.count);
+		r->ofcall.count =
+		    edirread(s->r, r->ofcall.data, r->ifcall.count);
 	else
-		r->ofcall.count = eread(e, eparity, r->ofcall.data, r->ifcall.count, r->ifcall.offset);
+		r->ofcall.count = eread(e, eparity, r->ofcall.data,
+		                        r->ifcall.count, r->ifcall.offset);
 
 	respond(r, nil);
 }
 
 static void
-flwrite(Req *r)
+flwrite(Req* r)
 {
 	Jrec j;
-	uint8_t *a;
-	Entry *e;
-	State *s;
-	Extent *x;
-	char *err;
+	uint8_t* a;
+	Entry* e;
+	State* s;
+	Extent* x;
+	char* err;
 	uint32_t c, n, o, mtime;
 
 	c = r->ifcall.count;
 	o = r->ifcall.offset;
-	a = (uint8_t *)r->ifcall.data;
+	a = (uint8_t*)r->ifcall.data;
 
 	if(c == 0) {
 		respond(r, nil);
@@ -283,12 +283,12 @@ flwrite(Req *r)
 }
 
 static void
-flremove(Req *r)
+flremove(Req* r)
 {
 	Jrec j;
-	State *s;
-	Entry *e;
-	char *d, *err;
+	State* s;
+	Entry* e;
+	char* d, *err;
 
 	if(readonly) {
 		respond(r, Erofs);
@@ -311,15 +311,14 @@ flremove(Req *r)
 			put(&j, 0);
 		}
 		respond(r, d);
-	}
-	else
+	} else
 		respond(r, Eperm);
 }
 
 static void
-flstat(Req *r)
+flstat(Req* r)
 {
-	State *s;
+	State* s;
 
 	s = r->fid->aux;
 	estat(s->e, &r->d, 1);
@@ -327,13 +326,13 @@ flstat(Req *r)
 }
 
 static void
-flwstat(Req *r)
+flwstat(Req* r)
 {
 	int m;
 	Jrec j;
-	State *s;
-	Entry *e;
-	char *err;
+	State* s;
+	Entry* e;
+	char* err;
 
 	s = r->fid->aux;
 	e = s->e;
@@ -367,12 +366,12 @@ flwstat(Req *r)
 }
 
 static void
-flwalk(Req *r)
+flwalk(Req* r)
 {
 	int i;
-	State *s;
-	char *err;
-	Entry *e, *f;
+	State* s;
+	char* err;
+	Entry* e, *f;
 
 	if(r->ifcall.fid != r->ifcall.newfid)
 		r->newfid->aux = state(nil);
@@ -387,22 +386,21 @@ flwalk(Req *r)
 		if(f) {
 			r->ofcall.wqid[i] = eqid(f);
 			e = f;
-		}
-		else {
+		} else {
 			e->ref--;
 			break;
 		}
 	}
 	r->ofcall.nwqid = i;
-	if (i) err = nil;
+	if(i)
+		err = nil;
 
 	if(f) {
 		if(r->ifcall.fid != r->ifcall.newfid) {
 			s = r->newfid->aux;
 			s->e = f;
 			r->newfid->qid = eqid(f);
-		}
-		else {
+		} else {
 			s = r->fid->aux;
 			s->e->ref--;
 			s->e = f;
@@ -413,7 +411,7 @@ flwalk(Req *r)
 }
 
 void
-serve(char *mount)
+serve(char* mount)
 {
 	flashsrv.attach = flattach;
 	flashsrv.open = flopen;
@@ -427,5 +425,5 @@ serve(char *mount)
 
 	flashsrv.destroyfid = destroy;
 	flashsrv.destroyreq = trace;
-	postmountsrv(&flashsrv, "brzr", mount, MREPL|MCREATE);
+	postmountsrv(&flashsrv, "brzr", mount, MREPL | MCREATE);
 }

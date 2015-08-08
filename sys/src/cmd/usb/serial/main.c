@@ -18,8 +18,7 @@
 #include "ftdi.h"
 #include "silabs.h"
 
-enum {
-	Arglen = 80,
+enum { Arglen = 80,
 };
 
 typedef struct Parg Parg;
@@ -28,23 +27,24 @@ typedef struct Parg Parg;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dD] [-N nb] [-m mtpt] [-s srv] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-dD] [-N nb] [-m mtpt] [-s srv] [dev...]\n",
+	       argv0);
 	threadexitsall("usage");
 }
 
 static int
-matchserial(char *info, void*)
+matchserial(char* info, void*)
 {
 	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
-	    ftmatch(nil, info) == 0 || slmatch(info) == 0)
+	   ftmatch(nil, info) == 0 || slmatch(info) == 0)
 		return 0;
 	return -1;
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	char *mnt, *srv, *as, *ae;
+	char* mnt, *srv, *as, *ae;
 	char args[Arglen];
 
 	mnt = "/dev";
@@ -53,7 +53,8 @@ threadmain(int argc, char **argv)
 	quotefmtinstall();
 	ae = args + sizeof args;
 	as = seprint(args, ae, "serial");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		usbfsdebug++;
 		break;
@@ -73,13 +74,14 @@ threadmain(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	rfork(RFNOTEG);
 	fmtinstall('U', Ufmt);
 	threadsetgrp(threadid());
 
-	usbfsinit(srv, mnt, &usbdirfs, MAFTER|MCREATE);
+	usbfsinit(srv, mnt, &usbdirfs, MAFTER | MCREATE);
 	startdevs(args, argv, argc, matchserial, nil, serialmain);
 	threadexits(nil);
 }

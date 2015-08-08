@@ -15,44 +15,24 @@
 #define Extern extern
 #include "acid.h"
 
-static char *binop[] =
-{
-	[OMUL]	"*",
-	[ODIV]	"/",
-	[OMOD]	"%",
-	[OADD]	"+",
-	[OSUB]	"-",
-	[ORSH]	">>",
-	[OLSH]	"<<",
-	[OLT]	"<",
-	[OGT]	">",
-	[OLEQ]	"<=",
-	[OGEQ]	">=",
-	[OEQ]	"==",
-	[ONEQ]	"!=",
-	[OLAND]	"&",
-	[OXOR]	"^",
-	[OLOR]	"|",
-	[OCAND]	"&&",
-	[OCOR]	"||",
-	[OASGN]	" = ",
+static char* binop[] = {
+        [OMUL] "*",  [ODIV] "/",   [OMOD] "%",  [OADD] "+",    [OSUB] "-",
+        [ORSH] ">>", [OLSH] "<<",  [OLT] "<",   [OGT] ">",     [OLEQ] "<=",
+        [OGEQ] ">=", [OEQ] "==",   [ONEQ] "!=", [OLAND] "&",   [OXOR] "^",
+        [OLOR] "|",  [OCAND] "&&", [OCOR] "||", [OASGN] " = ",
 };
 
-static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-char *typenames[] =
-{
-	[TINT]		"integer",
-	[TFLOAT]	"float",
-	[TSTRING]	"string",
-	[TLIST]		"list",
-	[TCODE]		"code",
+static char* tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+char* typenames[] = {
+        [TINT] "integer", [TFLOAT] "float", [TSTRING] "string",
+        [TLIST] "list",   [TCODE] "code",
 };
 
 int
-cmp(const void *va, const void *vb)
+cmp(const void* va, const void* vb)
 {
-	char **a = va;
-	char **b = vb;
+	char** a = va;
+	char** b = vb;
 
 	return strcmp(*a, *b);
 }
@@ -60,14 +40,14 @@ cmp(const void *va, const void *vb)
 void
 fundefs(void)
 {
-	Lsym *l;
-	char **vec;
+	Lsym* l;
+	char** vec;
 	int i, j, n, max, col, f, g, s;
 
 	max = 0;
 	f = 0;
 	g = 100;
-	vec = malloc(sizeof(char*)*g);
+	vec = malloc(sizeof(char*) * g);
 	if(vec == 0)
 		fatal("out of memory");
 
@@ -80,17 +60,17 @@ fundefs(void)
 				max = n;
 			if(f >= g) {
 				g *= 2;
-				vec = realloc(vec, sizeof(char*)*g);
+				vec = realloc(vec, sizeof(char*) * g);
 				if(vec == 0)
 					fatal("out of memory");
 			}
 			vec[f++] = l->name;
 		}
 	}
-        qsort(vec, f, sizeof(char*), cmp);
+	qsort(vec, f, sizeof(char*), cmp);
 	max++;
-	col = 60/max;
-	s = (f+col-1)/col;
+	col = 60 / max;
+	s = (f + col - 1) / col;
 
 	for(i = 0; i < s; i++) {
 		for(j = i; j < f; j += s)
@@ -100,11 +80,11 @@ fundefs(void)
 }
 
 void
-whatis(Lsym *l)
+whatis(Lsym* l)
 {
 	int t;
 	int def;
-	Type *ti;
+	Type* ti;
 
 	if(l == 0) {
 		fundefs();
@@ -128,18 +108,16 @@ whatis(Lsym *l)
 			if(ti->type) {
 				if(ti->fmt == 'a') {
 					Bprint(bout, "\t%s %d %s;\n",
-					ti->type->name, ti->offset,
-					ti->tag->name);
-				}
-				else {
+					       ti->type->name, ti->offset,
+					       ti->tag->name);
+				} else {
 					Bprint(bout, "\t'%c' %s %d %s;\n",
-					ti->fmt, ti->type->name, ti->offset,
-					ti->tag->name);
+					       ti->fmt, ti->type->name,
+					       ti->offset, ti->tag->name);
 				}
-			}
-			else
-				Bprint(bout, "\t'%c' %d %s;\n",
-				ti->fmt, ti->offset, ti->tag->name);
+			} else
+				Bprint(bout, "\t'%c' %d %s;\n", ti->fmt,
+				       ti->offset, ti->tag->name);
 		}
 		Bprint(bout, "};\n");
 		def = 1;
@@ -161,21 +139,21 @@ whatis(Lsym *l)
 }
 
 void
-slist(Node *n, int d)
+slist(Node* n, int d)
 {
 	if(n == 0)
 		return;
 	if(n->op == OLIST)
-		Bprint(bout, "%.*s{\n", d-1, tabs);
+		Bprint(bout, "%.*s{\n", d - 1, tabs);
 	pcode(n, d);
 	if(n->op == OLIST)
-		Bprint(bout, "%.*s}\n", d-1, tabs);
+		Bprint(bout, "%.*s}\n", d - 1, tabs);
 }
 
 void
-pcode(Node *n, int d)
+pcode(Node* n, int d)
 {
-	Node *r, *l;
+	Node* r, *l;
 
 	if(n == 0)
 		return;
@@ -205,7 +183,8 @@ pcode(Node *n, int d)
 		}
 		break;
 	case OCOMPLEX:
-		Bprint(bout, "%.*scomplex %s %s;\n", d, tabs, n->sym->name, l->sym->name);
+		Bprint(bout, "%.*scomplex %s %s;\n", d, tabs, n->sym->name,
+		       l->sym->name);
 		break;
 	case OIF:
 		Bprint(bout, "%.*sif ", d, tabs);
@@ -214,10 +193,9 @@ pcode(Node *n, int d)
 		Bprint(bout, " then\n");
 		if(r && r->op == OELSE) {
 			slist(r->left, d);
-			Bprint(bout, "%.*selse\n", d-1, tabs);
+			Bprint(bout, "%.*selse\n", d - 1, tabs);
 			slist(r->right, d);
-		}
-		else
+		} else
 			slist(r, d);
 		break;
 	case OWHILE:
@@ -238,14 +216,14 @@ pcode(Node *n, int d)
 		Bprint(bout, ", ");
 		pexpr(l->right);
 		Bprint(bout, " do\n");
-		slist(r, d+1);
+		slist(r, d + 1);
 	}
 }
 
 void
-pexpr(Node *n)
+pexpr(Node* n)
 {
-	Node *r, *l;
+	Node* r, *l;
 
 	if(n == 0)
 		return;
@@ -405,7 +383,7 @@ pexpr(Node *n)
 }
 
 void
-pstr(String *s)
+pstr(String* s)
 {
 	int i, c;
 

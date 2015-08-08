@@ -14,10 +14,9 @@
 
 struct {
 	int version;
-	char *s;
+	char* s;
 } vtVersions[] = {
-	VtVersion02, "02",
-	0, 0,
+    VtVersion02, "02", 0, 0,
 };
 
 static char EBigString[] = "string too long";
@@ -25,17 +24,17 @@ static char EBigPacket[] = "packet too long";
 static char ENullString[] = "missing string";
 static char EBadVersion[] = "bad format in version string";
 
-VtSession *
+VtSession*
 vtAlloc(void)
 {
-	VtSession *z;
+	VtSession* z;
 
 	z = vtMemAllocZ(sizeof(VtSession));
 	z->lk = vtLockAlloc();
-//	z->inHash = vtSha1Alloc();
+	//	z->inHash = vtSha1Alloc();
 	z->inLock = vtLockAlloc();
 	z->part = packetAlloc();
-//	z->outHash = vtSha1Alloc();
+	//	z->outHash = vtSha1Alloc();
 	z->outLock = vtLockAlloc();
 	z->fd = -1;
 	z->uid = vtStrDup("anonymous");
@@ -44,11 +43,11 @@ vtAlloc(void)
 }
 
 void
-vtReset(VtSession *z)
+vtReset(VtSession* z)
 {
 	vtLock(z->lk);
 	z->cstate = VtStateAlloc;
-	if(z->fd >= 0){
+	if(z->fd >= 0) {
 		vtFdClose(z->fd);
 		z->fd = -1;
 	}
@@ -56,18 +55,18 @@ vtReset(VtSession *z)
 }
 
 int
-vtConnected(VtSession *z)
+vtConnected(VtSession* z)
 {
 	return z->cstate == VtStateConnected;
 }
 
 void
-vtDisconnect(VtSession *z, int error)
+vtDisconnect(VtSession* z, int error)
 {
-	Packet *p;
-	uint8_t *b;
+	Packet* p;
+	uint8_t* b;
 
-vtDebug(z, "vtDisconnect\n");
+	vtDebug(z, "vtDisconnect\n");
 	vtLock(z->lk);
 	if(z->cstate == VtStateConnected && !error && z->vtbl == nil) {
 		/* clean shutdown */
@@ -85,13 +84,13 @@ vtDebug(z, "vtDisconnect\n");
 }
 
 void
-vtClose(VtSession *z)
+vtClose(VtSession* z)
 {
 	vtDisconnect(z, 0);
 }
 
 void
-vtFree(VtSession *z)
+vtFree(VtSession* z)
 {
 	if(z == nil)
 		return;
@@ -111,20 +110,20 @@ vtFree(VtSession *z)
 	vtMemFree(z);
 }
 
-char *
-vtGetUid(VtSession *s)
+char*
+vtGetUid(VtSession* s)
 {
 	return s->uid;
 }
 
-char *
-vtGetSid(VtSession *z)
+char*
+vtGetSid(VtSession* z)
 {
 	return z->sid;
 }
 
 int
-vtSetDebug(VtSession *z, int debug)
+vtSetDebug(VtSession* z, int debug)
 {
 	int old;
 	vtLock(z->lk);
@@ -135,7 +134,7 @@ vtSetDebug(VtSession *z, int debug)
 }
 
 int
-vtSetFd(VtSession *z, int fd)
+vtSetFd(VtSession* z, int fd)
 {
 	vtLock(z->lk);
 	if(z->cstate != VtStateAlloc) {
@@ -151,13 +150,13 @@ vtSetFd(VtSession *z, int fd)
 }
 
 int
-vtGetFd(VtSession *z)
+vtGetFd(VtSession* z)
 {
 	return z->fd;
 }
 
 int
-vtSetCryptoStrength(VtSession *z, int c)
+vtSetCryptoStrength(VtSession* z, int c)
 {
 	if(z->cstate != VtStateAlloc) {
 		vtSetError("bad state");
@@ -171,13 +170,13 @@ vtSetCryptoStrength(VtSession *z, int c)
 }
 
 int
-vtGetCryptoStrength(VtSession *s)
+vtGetCryptoStrength(VtSession* s)
 {
 	return s->cryptoStrength;
 }
 
 int
-vtSetCompression(VtSession *z, int fd)
+vtSetCompression(VtSession* z, int fd)
 {
 	vtLock(z->lk);
 	if(z->cstate != VtStateAlloc) {
@@ -191,32 +190,32 @@ vtSetCompression(VtSession *z, int fd)
 }
 
 int
-vtGetCompression(VtSession *s)
+vtGetCompression(VtSession* s)
 {
 	return s->compression;
 }
 
 int
-vtGetCrypto(VtSession *s)
+vtGetCrypto(VtSession* s)
 {
 	return s->crypto;
 }
 
 int
-vtGetCodec(VtSession *s)
+vtGetCodec(VtSession* s)
 {
 	return s->codec;
 }
 
-char *
-vtGetVersion(VtSession *z)
+char*
+vtGetVersion(VtSession* z)
 {
 	int v, i;
-	
+
 	v = z->version;
 	if(v == 0)
 		return "unknown";
-	for(i=0; vtVersions[i].version; i++)
+	for(i = 0; vtVersions[i].version; i++)
 		if(vtVersions[i].version == v)
 			return vtVersions[i].s;
 	assert(0);
@@ -225,11 +224,11 @@ vtGetVersion(VtSession *z)
 
 /* hold z->inLock */
 static int
-vtVersionRead(VtSession *z, char *prefix, int *ret)
+vtVersionRead(VtSession* z, char* prefix, int* ret)
 {
 	char c;
 	char buf[VtMaxStringSize];
-	char *q, *p, *pp;
+	char* q, *p, *pp;
 	int i;
 
 	q = prefix;
@@ -255,17 +254,17 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 		if(*q)
 			q++;
 	}
-		
+
 	vtDebug(z, "version string in: %s\n", buf);
 
 	p = buf + strlen(prefix);
 	for(;;) {
-		for(pp=p; *pp && *pp != ':'  && *pp != '-'; pp++)
+		for(pp = p; *pp && *pp != ':' && *pp != '-'; pp++)
 			;
-		for(i=0; vtVersions[i].version; i++) {
-			if(strlen(vtVersions[i].s) != pp-p)
+		for(i = 0; vtVersions[i].version; i++) {
+			if(strlen(vtVersions[i].s) != pp - p)
 				continue;
-			if(memcmp(vtVersions[i].s, p, pp-p) == 0) {
+			if(memcmp(vtVersions[i].s, p, pp - p) == 0) {
 				*ret = vtVersions[i].version;
 				return 1;
 			}
@@ -274,15 +273,15 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 		if(*p != ':')
 			return 0;
 		p++;
-	}	
+	}
 }
 
 Packet*
-vtRecvPacket(VtSession *z)
+vtRecvPacket(VtSession* z)
 {
 	uint8_t buf[10], *b;
 	int n;
-	Packet *p;
+	Packet* p;
 	int size, len;
 
 	if(z->cstate != VtStateConnected) {
@@ -321,26 +320,26 @@ vtRecvPacket(VtSession *z)
 	p = packetSplit(p, len);
 	vtUnlock(z->inLock);
 	return p;
-Err:	
+Err:
 	vtUnlock(z->inLock);
-	return nil;	
+	return nil;
 }
 
 int
-vtSendPacket(VtSession *z, Packet *p)
+vtSendPacket(VtSession* z, Packet* p)
 {
 	IOchunk ioc;
 	int n;
 	uint8_t buf[2];
-	
+
 	/* add framing */
 	n = packetSize(p);
-	if(n >= (1<<16)) {
+	if(n >= (1 << 16)) {
 		vtSetError(EBigPacket);
 		packetFree(p);
 		return 0;
 	}
-	buf[0] = n>>8;
+	buf[0] = n >> 8;
 	buf[1] = n;
 	packetPrefix(p, buf, 2);
 
@@ -358,22 +357,21 @@ vtSendPacket(VtSession *z, Packet *p)
 	return 1;
 }
 
-
 int
-vtGetString(Packet *p, char **ret)
+vtGetString(Packet* p, char** ret)
 {
 	uint8_t buf[2];
 	int n;
-	char *s;
+	char* s;
 
 	if(!packetConsume(p, buf, 2))
 		return 0;
-	n = (buf[0]<<8) + buf[1];
+	n = (buf[0] << 8) + buf[1];
 	if(n > VtMaxStringSize) {
 		vtSetError(EBigString);
 		return 0;
 	}
-	s = vtMemAlloc(n+1);
+	s = vtMemAlloc(n + 1);
 	setmalloctag(s, getcallerpc(&p));
 	if(!packetConsume(p, (uint8_t*)s, n)) {
 		vtMemFree(s);
@@ -385,7 +383,7 @@ vtGetString(Packet *p, char **ret)
 }
 
 int
-vtAddString(Packet *p, char *s)
+vtAddString(Packet* p, char* s)
 {
 	uint8_t buf[2];
 	int n;
@@ -399,7 +397,7 @@ vtAddString(Packet *p, char *s)
 		vtSetError(EBigString);
 		return 0;
 	}
-	buf[0] = n>>8;
+	buf[0] = n >> 8;
 	buf[1] = n;
 	packetAppend(p, buf, 2);
 	packetAppend(p, (uint8_t*)s, n);
@@ -407,7 +405,7 @@ vtAddString(Packet *p, char *s)
 }
 
 int
-vtConnect(VtSession *z, char *password)
+vtConnect(VtSession* z, char* password)
 {
 	char buf[VtMaxStringSize], *p, *ep, *prefix;
 	int i;
@@ -419,7 +417,7 @@ vtConnect(VtSession *z, char *password)
 		vtUnlock(z->lk);
 		return 0;
 	}
-	if(z->fd < 0){
+	if(z->fd < 0) {
 		vtSetError("%s", z->fderror);
 		vtUnlock(z->lk);
 		return 0;
@@ -434,23 +432,23 @@ vtConnect(VtSession *z, char *password)
 	ep = buf + sizeof(buf);
 	p = seprint(p, ep, "%s", prefix);
 	p += strlen(p);
-	for(i=0; vtVersions[i].version; i++) {
+	for(i = 0; vtVersions[i].version; i++) {
 		if(i != 0)
 			*p++ = ':';
 		p = seprint(p, ep, "%s", vtVersions[i].s);
 	}
 	p = seprint(p, ep, "-libventi\n");
-	assert(p-buf < sizeof(buf));
+	assert(p - buf < sizeof(buf));
 	if(z->outHash)
-		vtSha1Update(z->outHash, (uint8_t*)buf, p-buf);
-	if(!vtFdWrite(z->fd, (uint8_t*)buf, p-buf))
+		vtSha1Update(z->outHash, (uint8_t*)buf, p - buf);
+	if(!vtFdWrite(z->fd, (uint8_t*)buf, p - buf))
 		goto Err;
-	
+
 	vtDebug(z, "version string out: %s", buf);
 
 	if(!vtVersionRead(z, prefix, &z->version))
 		goto Err;
-		
+
 	vtDebug(z, "version = %d: %s\n", z->version, vtGetVersion(z));
 
 	vtUnlock(z->inLock);
@@ -463,7 +461,7 @@ vtConnect(VtSession *z, char *password)
 
 	if(!vtHello(z))
 		goto Err;
-	return 1;	
+	return 1;
 Err:
 	if(z->fd >= 0)
 		vtFdClose(z->fd);
@@ -472,6 +470,5 @@ Err:
 	vtUnlock(z->outLock);
 	z->cstate = VtStateClosed;
 	vtUnlock(z->lk);
-	return 0;	
+	return 0;
 }
-

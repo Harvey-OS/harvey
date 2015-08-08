@@ -15,32 +15,33 @@
  * the signal #define'd as i in signal.h is inluded.
  */
 
-static sigset_t stdsigs = SIGHUP|SIGINT|SIGQUIT|SIGILL|SIGABRT|SIGFPE|SIGKILL|
-		SIGSEGV|SIGPIPE|SIGALRM|SIGTERM|SIGUSR1|SIGUSR2;
+static sigset_t stdsigs = SIGHUP | SIGINT | SIGQUIT | SIGILL | SIGABRT |
+                          SIGFPE | SIGKILL | SIGSEGV | SIGPIPE | SIGALRM |
+                          SIGTERM | SIGUSR1 | SIGUSR2;
 
-#define BITSIG(s) (2<<(s))
+#define BITSIG(s) (2 << (s))
 
 int
-sigemptyset(sigset_t *set)
+sigemptyset(sigset_t* set)
 {
 	*set = 0;
 	return 0;
 }
 
 int
-sigfillset(sigset_t *set)
+sigfillset(sigset_t* set)
 {
 	*set = stdsigs;
 	return 0;
 }
 
 int
-sigaddset(sigset_t *set, int signo)
+sigaddset(sigset_t* set, int signo)
 {
 	int b;
 
 	b = BITSIG(signo);
-	if(!(b&stdsigs)){
+	if(!(b & stdsigs)) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -49,12 +50,12 @@ sigaddset(sigset_t *set, int signo)
 }
 
 int
-sigdelset(sigset_t *set, int signo)
+sigdelset(sigset_t* set, int signo)
 {
 	int b;
 
 	b = BITSIG(signo);
-	if(!(b&stdsigs)){
+	if(!(b & stdsigs)) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -63,14 +64,14 @@ sigdelset(sigset_t *set, int signo)
 }
 
 int
-sigismember(sigset_t *set, int signo)
+sigismember(sigset_t* set, int signo)
 {
 	int b;
 
 	b = BITSIG(signo);
-	if(!(b&stdsigs)){
+	if(!(b & stdsigs)) {
 		errno = EINVAL;
 		return -1;
 	}
-	return (b&*set)? 1 : 0;
+	return (b & *set) ? 1 : 0;
 }

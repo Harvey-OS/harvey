@@ -15,20 +15,18 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	int	nextfnum;
-static	Intmap*	map;
-static	Dir	dirproto;
+static int nextfnum;
+static Intmap* map;
+static Dir dirproto;
 
-static	char	user[]	= "flash";
+static char user[] = "flash";
 
-	Entry	*root;
-	uint32_t	used;
-	uint32_t	limit;
-	uint32_t	maxwrite;
+Entry* root;
+uint32_t used;
+uint32_t limit;
+uint32_t maxwrite;
 
-enum
-{
-	debug	= 0,
+enum { debug = 0,
 };
 
 static int
@@ -45,7 +43,7 @@ maxfnum(int n)
 }
 
 static int
-hash(char *s)
+hash(char* s)
 {
 	int c, d, h;
 
@@ -63,9 +61,9 @@ hash(char *s)
 }
 
 static void
-dirinit(Entry *e)
+dirinit(Entry* e)
 {
-	Entry **t;
+	Entry** t;
 
 	e->size = 0;
 	t = emalloc9p(HSIZE * sizeof(Entry*));
@@ -76,7 +74,7 @@ dirinit(Entry *e)
 }
 
 static void
-fileinit(Entry *e)
+fileinit(Entry* e)
 {
 	e->size = 0;
 	e->gen[0].head = nil;
@@ -86,9 +84,9 @@ fileinit(Entry *e)
 }
 
 static void
-elfree(Extent *x)
+elfree(Extent* x)
 {
-	Extent *t;
+	Extent* t;
 
 	while(x != nil) {
 		t = x->next;
@@ -99,14 +97,14 @@ elfree(Extent *x)
 }
 
 static void
-extfree(Entry *e)
+extfree(Entry* e)
 {
 	elfree(e->gen[0].head);
 	elfree(e->gen[1].head);
 }
 
 static void
-efree(Entry *e)
+efree(Entry* e)
 {
 	if(debug)
 		fprint(2, "free %s\n", e->name);
@@ -123,7 +121,7 @@ efree(Entry *e)
 void
 einit(void)
 {
-	Entry *e;
+	Entry* e;
 
 	e = emalloc9p(sizeof(Entry));
 	e->ref = 1;
@@ -139,9 +137,9 @@ einit(void)
 }
 
 static void
-dumptree(Entry *e, int n)
+dumptree(Entry* e, int n)
 {
-	Entry *l;
+	Entry* l;
 
 	if(debug)
 		fprint(2, "%d %s %d\n", n, e->name, e->ref);
@@ -160,7 +158,7 @@ edump(void)
 		dumptree(root, 0);
 }
 
-Entry *
+Entry*
 elookup(uint32_t key)
 {
 	if(key == 0)
@@ -169,11 +167,11 @@ elookup(uint32_t key)
 	return lookupkey(map, key);
 }
 
-Extent *
-esum(Entry *e, int sect, uint32_t addr, int *more)
+Extent*
+esum(Entry* e, int sect, uint32_t addr, int* more)
 {
-	Exts *x;
-	Extent *t, *u;
+	Exts* x;
+	Extent* t, *u;
 
 	x = &e->gen[eparity];
 	t = x->tail;
@@ -183,13 +181,12 @@ esum(Entry *e, int sect, uint32_t addr, int *more)
 	if(u != nil) {
 		u->next = nil;
 		*more = 1;
-	}
-	else {
+	} else {
 		x->head = nil;
 		*more = 0;
 	}
 	x->tail = u;
-	x = &e->gen[eparity^1];
+	x = &e->gen[eparity ^ 1];
 	u = x->head;
 	t->next = u;
 	x->head = t;
@@ -201,19 +198,19 @@ esum(Entry *e, int sect, uint32_t addr, int *more)
 }
 
 void
-edestroy(Entry *e)
+edestroy(Entry* e)
 {
 	e->ref--;
 	if(e->ref == 0)
 		efree(e);
 }
 
-Entry *
-ecreate(Entry *d, char *name, uint32_t n, uint32_t mode, uint32_t mtime,
-	char **err)
+Entry*
+ecreate(Entry* d, char* name, uint32_t n, uint32_t mode, uint32_t mtime,
+        char** err)
 {
 	int h;
-	Entry *e, *f;
+	Entry* e, *f;
 
 	h = hash(name) & HMASK;
 	for(e = d->htab[h]; e != nil; e = e->hnext) {
@@ -263,7 +260,7 @@ ecreate(Entry *d, char *name, uint32_t n, uint32_t mode, uint32_t mtime,
 }
 
 void
-etrunc(Entry *e, uint32_t n, uint32_t mtime)
+etrunc(Entry* e, uint32_t n, uint32_t mtime)
 {
 	extfree(e);
 	deletekey(map, e->fnum);
@@ -279,11 +276,11 @@ etrunc(Entry *e, uint32_t n, uint32_t mtime)
 	e->parent->mtime = mtime;
 }
 
-char *
-eremove(Entry *e)
+char*
+eremove(Entry* e)
 {
-	Dirr *r;
-	Entry *d, *n, *p;
+	Dirr* r;
+	Entry* d, *n, *p;
 
 	d = e->parent;
 	if(d == nil)
@@ -322,10 +319,10 @@ eremove(Entry *e)
 	return nil;
 }
 
-Entry *
-ewalk(Entry *d, char *name, char **err)
+Entry*
+ewalk(Entry* d, char* name, char** err)
 {
-	Entry *e;
+	Entry* e;
 
 	if((d->mode & DMDIR) == 0) {
 		*err = Enotdir;
@@ -354,9 +351,9 @@ ewalk(Entry *d, char *name, char **err)
 }
 
 static void
-eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
+eread0(Extent* e, Extent* x, uint8_t* a, uint32_t n, uint32_t off)
 {
-	uint8_t *a0, *a1;
+	uint8_t* a0, *a1;
 	uint32_t n0, n1, o0, o1, d, z;
 
 	for(;;) {
@@ -366,15 +363,15 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 					d = off - e->off;
 					z = e->size - d;
 					if(n <= z) {
-						readdata(e->sect, a, n, e->addr + d);
+						readdata(e->sect, a, n,
+						         e->addr + d);
 						return;
 					}
 					readdata(e->sect, a, z, e->addr + d);
 					a += z;
 					n -= z;
 					off += z;
-				}
-				else {
+				} else {
 					a0 = a;
 					n0 = e->off - off;
 					o0 = off;
@@ -383,24 +380,26 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 					off += n0;
 					z = e->size;
 					if(n <= z) {
-						readdata(e->sect, a, n, e->addr);
+						readdata(e->sect, a, n,
+						         e->addr);
 						a = a0;
 						n = n0;
 						off = o0;
-					}
-					else {
-						readdata(e->sect, a, z, e->addr);
+					} else {
+						readdata(e->sect, a, z,
+						         e->addr);
 						a1 = a + z;
 						n1 = n - z;
 						o1 = off + z;
 						if(n0 < n1) {
-							eread0(e->next, x, a0, n0, o0);
+							eread0(e->next, x, a0,
+							       n0, o0);
 							a = a1;
 							n = n1;
 							off = o1;
-						}
-						else {
-							eread0(e->next, x, a1, n1, o1);
+						} else {
+							eread0(e->next, x, a1,
+							       n1, o1);
 							a = a0;
 							n = n0;
 							off = o0;
@@ -422,21 +421,21 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 }
 
 uint32_t
-eread(Entry *e, int parity, void *a, uint32_t n, uint32_t off)
+eread(Entry* e, int parity, void* a, uint32_t n, uint32_t off)
 {
 	if(n + off >= e->size)
 		n = e->size - off;
 	if(n <= 0)
 		return 0;
-	eread0(e->gen[parity].head, e->gen[parity^1].head, a, n, off);
+	eread0(e->gen[parity].head, e->gen[parity ^ 1].head, a, n, off);
 	return n;
 }
 
 void
-ewrite(Entry *e, Extent *x, int parity, uint32_t mtime)
+ewrite(Entry* e, Extent* x, int parity, uint32_t mtime)
 {
 	uint32_t z;
-	Extent *t;
+	Extent* t;
 
 	t = e->gen[parity].head;
 	x->next = t;
@@ -455,7 +454,7 @@ ewrite(Entry *e, Extent *x, int parity, uint32_t mtime)
 }
 
 uint32_t
-echmod(Entry *e, uint32_t mode, uint32_t mnum)
+echmod(Entry* e, uint32_t mode, uint32_t mnum)
 {
 	if(mnum != 0)
 		e->mnum = mnum;
@@ -467,7 +466,7 @@ echmod(Entry *e, uint32_t mode, uint32_t mnum)
 }
 
 Qid
-eqid(Entry *e)
+eqid(Entry* e)
 {
 	Qid qid;
 
@@ -480,7 +479,7 @@ eqid(Entry *e)
 }
 
 void
-estat(Entry *e, Dir *d, int alloc)
+estat(Entry* e, Dir* d, int alloc)
 {
 	d->type = 'z';
 	d->dev = 0;
@@ -489,8 +488,7 @@ estat(Entry *e, Dir *d, int alloc)
 		d->gid = estrdup9p(user);
 		d->muid = estrdup9p(user);
 		d->name = estrdup9p(e->name);
-	}
-	else {
+	} else {
 		d->uid = user;
 		d->gid = user;
 		d->muid = user;
@@ -503,10 +501,10 @@ estat(Entry *e, Dir *d, int alloc)
 	d->qid = eqid(e);
 }
 
-Dirr *
-ediropen(Entry *e)
+Dirr*
+ediropen(Entry* e)
 {
-	Dirr *d, *t;
+	Dirr* d, *t;
 
 	d = emalloc9p(sizeof(Dirr));
 	d->dir = e;
@@ -522,16 +520,16 @@ ediropen(Entry *e)
 }
 
 int
-edirread(Dirr *r, char *a, int32_t n)
+edirread(Dirr* r, char* a, int32_t n)
 {
 	Dir d;
-	Entry *e;
+	Entry* e;
 	int m, x;
 
 	m = 0;
 	for(e = r->cur; e != nil; e = e->fnext) {
 		estat(e, &d, 0);
-		x = convD2M(&d, (uint8_t *)a, n);
+		x = convD2M(&d, (uint8_t*)a, n);
 		if(x <= BIT16SZ)
 			break;
 		a += x;
@@ -544,10 +542,10 @@ edirread(Dirr *r, char *a, int32_t n)
 }
 
 void
-edirclose(Dirr *d)
+edirclose(Dirr* d)
 {
-	Entry *e;
-	Dirr *p, *n;
+	Entry* e;
+	Dirr* p, *n;
 
 	e = d->dir;
 	p = d->prev;
@@ -563,10 +561,10 @@ edirclose(Dirr *d)
 	free(d);
 }
 
-static	Renum	R;
+static Renum R;
 
 static void
-xrenum(Extent *x)
+xrenum(Extent* x)
 {
 	while(x != nil) {
 		if(x->sect == R.old)
@@ -576,20 +574,19 @@ xrenum(Extent *x)
 }
 
 static void
-renum(Entry *e)
+renum(Entry* e)
 {
 	if(e->mode & DMDIR) {
 		for(e = e->files; e != nil; e = e->fnext)
 			renum(e);
-	}
-	else {
+	} else {
 		xrenum(e->gen[0].head);
 		xrenum(e->gen[1].head);
 	}
 }
 
 void
-erenum(Renum *r)
+erenum(Renum* r)
 {
 	R = *r;
 	renum(root);

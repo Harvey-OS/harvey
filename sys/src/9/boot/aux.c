@@ -15,44 +15,44 @@
 int
 plumb(char *dir, char *dest, int *efd, char *here)
 {
-	char buf[128];
-	char name[128];
-	int n;
+        char buf[128];
+        char name[128];
+        int n;
 
-	sprint(name, "%s/clone", dir);
-	efd[0] = open(name, ORDWR);
-	if(efd[0] < 0)
-		return -1;
-	n = read(efd[0], buf, sizeof(buf)-1);
-	if(n < 0){
-		close(efd[0]);
-		return -1;
-	}
-	buf[n] = 0;
-	sprint(name, "%s/%s/data", dir, buf);
-	if(here){
-		sprint(buf, "announce %s", here);
-		if(sendmsg(efd[0], buf) < 0){
-			close(efd[0]);
-			return -1;
-		}
-	}
-	sprint(buf, "connect %s", dest);
-	if(sendmsg(efd[0], buf) < 0){
-		close(efd[0]);
-		return -1;
-	}
-	efd[1] = open(name, ORDWR);
-	if(efd[1] < 0){
-		close(efd[0]);
-		return -1;
-	}
-	return efd[1];
+        sprint(name, "%s/clone", dir);
+        efd[0] = open(name, ORDWR);
+        if(efd[0] < 0)
+                return -1;
+        n = read(efd[0], buf, sizeof(buf)-1);
+        if(n < 0){
+                close(efd[0]);
+                return -1;
+        }
+        buf[n] = 0;
+        sprint(name, "%s/%s/data", dir, buf);
+        if(here){
+                sprint(buf, "announce %s", here);
+                if(sendmsg(efd[0], buf) < 0){
+                        close(efd[0]);
+                        return -1;
+                }
+        }
+        sprint(buf, "connect %s", dest);
+        if(sendmsg(efd[0], buf) < 0){
+                close(efd[0]);
+                return -1;
+        }
+        efd[1] = open(name, ORDWR);
+        if(efd[1] < 0){
+                close(efd[0]);
+                return -1;
+        }
+        return efd[1];
 }
  */
 
 int
-sendmsg(int fd, char *msg)
+sendmsg(int fd, char* msg)
 {
 	int n;
 
@@ -63,7 +63,7 @@ sendmsg(int fd, char *msg)
 }
 
 void
-warning(char *s)
+warning(char* s)
 {
 	char buf[ERRMAX];
 
@@ -73,7 +73,7 @@ warning(char *s)
 }
 
 void
-fatal(char *s)
+fatal(char* s)
 {
 	char buf[ERRMAX];
 
@@ -84,7 +84,7 @@ fatal(char *s)
 }
 
 int
-readfile(char *name, char *buf, int len)
+readfile(char* name, char* buf, int len)
 {
 	int f, n;
 
@@ -92,7 +92,7 @@ readfile(char *name, char *buf, int len)
 	f = open(name, OREAD);
 	if(f < 0)
 		return -1;
-	n = read(f, buf, len-1);
+	n = read(f, buf, len - 1);
 	if(n >= 0)
 		buf[n] = 0;
 	close(f);
@@ -100,7 +100,7 @@ readfile(char *name, char *buf, int len)
 }
 
 int
-writefile(char *name, char *buf, int len)
+writefile(char* name, char* buf, int len)
 {
 	int f, n;
 
@@ -113,14 +113,14 @@ writefile(char *name, char *buf, int len)
 }
 
 void
-setenv(char *name, char *val)
+setenv(char* name, char* val)
 {
 	int f;
 	char ename[64];
 
 	snprint(ename, sizeof ename, "#e/%s", name);
 	f = create(ename, 1, 0666);
-	if(f < 0){
+	if(f < 0) {
 		fprint(2, "create %s: %r\n", ename);
 		return;
 	}
@@ -129,9 +129,9 @@ setenv(char *name, char *val)
 }
 
 void
-srvcreate(char *name, int fd)
+srvcreate(char* name, int fd)
 {
-	char *srvname;
+	char* srvname;
 	int f;
 	char buf[64];
 
@@ -152,7 +152,7 @@ srvcreate(char *name, int fd)
 }
 
 void
-catchint(void *a, char *note)
+catchint(void* a, char* note)
 {
 	USED(a);
 	if(strcmp(note, "alarm") == 0)
@@ -161,32 +161,32 @@ catchint(void *a, char *note)
 }
 
 int
-outin(char *prompt, char *def, int len)
+outin(char* prompt, char* def, int len)
 {
 	int n;
 	char buf[256];
 
 	if(len >= sizeof buf)
-		len = sizeof(buf)-1;
+		len = sizeof(buf) - 1;
 
-	if(cpuflag){
+	if(cpuflag) {
 		notify(catchint);
-		alarm(15*1000);
+		alarm(15 * 1000);
 	}
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
 	n = read(0, buf, len);
-	if(cpuflag){
+	if(cpuflag) {
 		alarm(0);
 		notify(0);
 	}
 
-	if(n < 0){
+	if(n < 0) {
 		print("\n");
 		return 1;
 	}
-	if(n > 1){
-		buf[n-1] = 0;
+	if(n > 1) {
+		buf[n - 1] = 0;
 		strcpy(def, buf);
 	}
 	return n;

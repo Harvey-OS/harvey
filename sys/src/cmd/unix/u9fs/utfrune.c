@@ -10,18 +10,18 @@
 #include <plan9.h>
 
 char*
-utfrune(char *s, int32_t c)
+utfrune(char* s, int32_t c)
 {
 	int32_t c1;
 	Rune r;
 	int n;
 
-	if(c < Runesync)		/* not part of utf sequence */
+	if(c < Runesync) /* not part of utf sequence */
 		return strchr(s, c);
 
 	for(;;) {
 		c1 = *(uint8_t*)s;
-		if(c1 < Runeself) {	/* one byte rune */
+		if(c1 < Runeself) { /* one byte rune */
 			if(c1 == 0)
 				return 0;
 			if(c1 == c)

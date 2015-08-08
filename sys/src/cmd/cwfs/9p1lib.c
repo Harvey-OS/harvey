@@ -15,23 +15,49 @@
 
 #include "9p1.h"
 
-#define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	{ uint32_t vvv = f->x; *p++ = vvv; *p++ = vvv>>8; }
-#define	LONGINT(q) {*p++ = (q); *p++ = (q)>>8; *p++ = (q)>>16; *p++ = (q)>>24;}
-#define	LONG(x)		{ uint32_t vvv = f->x; LONGINT(vvv); }
-#define	VLONG(x) { \
-	uint64_t q = f->x; \
-	*p++ = (q)>> 0; *p++ = (q)>> 8; *p++ = (q)>>16; *p++ = (q)>>24; \
-	*p++ = (q)>>32; *p++ = (q)>>40; *p++ = (q)>>48; *p++ = (q)>>56; \
+#define CHAR(x) *p++ = f->x
+#define SHORT(x)                                                               \
+	{                                                                      \
+		uint32_t vvv = f->x;                                           \
+		*p++ = vvv;                                                    \
+		*p++ = vvv >> 8;                                               \
+	}
+#define LONGINT(q)                                                             \
+	{                                                                      \
+		*p++ = (q);                                                    \
+		*p++ = (q) >> 8;                                               \
+		*p++ = (q) >> 16;                                              \
+		*p++ = (q) >> 24;                                              \
+	}
+#define LONG(x)                                                                \
+	{                                                                      \
+		uint32_t vvv = f->x;                                           \
+		LONGINT(vvv);                                                  \
+	}
+#define VLONG(x)                                                               \
+	{                                                                      \
+		uint64_t q = f->x;                                             \
+		*p++ = (q) >> 0;                                               \
+		*p++ = (q) >> 8;                                               \
+		*p++ = (q) >> 16;                                              \
+		*p++ = (q) >> 24;                                              \
+		*p++ = (q) >> 32;                                              \
+		*p++ = (q) >> 40;                                              \
+		*p++ = (q) >> 48;                                              \
+		*p++ = (q) >> 56;                                              \
 	}
 
-#define	BYTES(x,n)	memmove(p, f->x, n); p += n
-#define	STRING(x,n)	strncpy((char*)p, f->x, n); p += n
+#define BYTES(x, n)                                                            \
+	memmove(p, f->x, n);                                                   \
+	p += n
+#define STRING(x, n)                                                           \
+	strncpy((char*)p, f->x, n);                                            \
+	p += n
 
 int
-convS2M9p1(Fcall *f, uint8_t *ap)
+convS2M9p1(Fcall* f, uint8_t* ap)
 {
-	uint8_t *p;
+	uint8_t* p;
 	int t;
 
 	p = ap;
@@ -126,8 +152,8 @@ convS2M9p1(Fcall *f, uint8_t *ap)
 		SHORT(fid);
 		BYTES(stat, sizeof(f->stat));
 		break;
-/*
- */
+	/*
+	 */
 	case Rnop:
 	case Rosession:
 	case Rflush:
@@ -201,34 +227,34 @@ convS2M9p1(Fcall *f, uint8_t *ap)
  * the top 2 levels of the dump fs
  */
 static uint32_t
-fakeqid9p1(Dentry *f)
+fakeqid9p1(Dentry* f)
 {
 	uint32_t q;
 	int c;
 
 	q = f->qid.path;
-	if(q == (QPROOT|QPDIR)) {
+	if(q == (QPROOT | QPDIR)) {
 		c = f->name[0];
 		if(isascii(c) && isdigit(c)) {
-			q = 3|QPDIR;
-			c = (c-'0')*10 + (f->name[1]-'0');
+			q = 3 | QPDIR;
+			c = (c - '0') * 10 + (f->name[1] - '0');
 			if(c >= 1 && c <= 12)
-				q = 4|QPDIR;
+				q = 4 | QPDIR;
 		}
 	}
 	return q;
 }
 
 int
-convD2M9p1(Dentry *f, char *ap)
+convD2M9p1(Dentry* f, char* ap)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t q;
 
 	p = (uint8_t*)ap;
 	STRING(name, sizeof(f->name));
 
-	memset(p, 0, 2*NAMELEN);
+	memset(p, 0, 2 * NAMELEN);
 	uidtostr((char*)p, f->uid, 1);
 	p += NAMELEN;
 
@@ -256,10 +282,10 @@ convD2M9p1(Dentry *f, char *ap)
 }
 
 int
-convA2M9p1(Authenticator *f, char *ap, char *key)
+convA2M9p1(Authenticator* f, char* ap, char* key)
 {
 	int n;
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)ap;
 	CHAR(num);
@@ -271,30 +297,41 @@ convA2M9p1(Authenticator *f, char *ap, char *key)
 	return n;
 }
 
-#undef	CHAR
-#undef	SHORT
-#undef	LONG
-#undef	LONGINT
-#undef	VLONG
-#undef	BYTES
-#undef	STRING
+#undef CHAR
+#undef SHORT
+#undef LONG
+#undef LONGINT
+#undef VLONG
+#undef BYTES
+#undef STRING
 
-#define	CHAR(x)		f->x = *p++
-#define	SHORT(x)	f->x = (p[0] | (p[1]<<8)); p += 2
-#define	LONG(x)	f->x = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24); p += 4
-#define	VLONG(x) { \
-	f->x =	    (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)) | \
-	    (uint64_t)(p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24)) << 32; \
-	p += 8; \
-}
+#define CHAR(x) f->x = *p++
+#define SHORT(x)                                                               \
+	f->x = (p[0] | (p[1] << 8));                                           \
+	p += 2
+#define LONG(x)                                                                \
+	f->x = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);               \
+	p += 4
+#define VLONG(x)                                                               \
+	{                                                                      \
+		f->x = (p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24)) |    \
+		       (uint64_t)(p[4] | (p[5] << 8) | (p[6] << 16) |          \
+		                  (p[7] << 24))                                \
+		           << 32;                                              \
+		p += 8;                                                        \
+	}
 
-#define	BYTES(x,n)	memmove(f->x, p, n); p += n
-#define	STRING(x,n)	memmove(f->x, p, n); p += n
+#define BYTES(x, n)                                                            \
+	memmove(f->x, p, n);                                                   \
+	p += n
+#define STRING(x, n)                                                           \
+	memmove(f->x, p, n);                                                   \
+	p += n
 
 int
-convM2S9p1(uint8_t *ap, Fcall *f, int n)
+convM2S9p1(uint8_t* ap, Fcall* f, int n)
 {
-	uint8_t *p;
+	uint8_t* p;
 	int t;
 
 	p = ap;
@@ -380,7 +417,8 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		VLONG(offset);
 		SHORT(count);
 		p++;
-		f->data = (char*)p; p += f->count;
+		f->data = (char*)p;
+		p += f->count;
 		break;
 
 	case Tclunk:
@@ -393,8 +431,8 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		BYTES(stat, sizeof(f->stat));
 		break;
 
-/*
- */
+	/*
+	 */
 	case Rnop:
 	case Rosession:
 		break;
@@ -445,7 +483,8 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;
-		f->data = (char*)p; p += f->count;
+		f->data = (char*)p;
+		p += f->count;
 		break;
 
 	case Rwrite:
@@ -458,15 +497,15 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		BYTES(stat, sizeof(f->stat));
 		break;
 	}
-	if((uint8_t*)ap+n == p)
+	if((uint8_t*)ap + n == p)
 		return n;
 	return 0;
 }
 
 int
-convM2D9p1(char *ap, Dentry *f)
+convM2D9p1(char* ap, Dentry* f)
 {
-	uint8_t *p;
+	uint8_t* p;
 	char str[NAMELEN];
 
 	p = (uint8_t*)ap;
@@ -500,9 +539,9 @@ convM2D9p1(char *ap, Dentry *f)
 }
 
 void
-convM2A9p1(char *ap, Authenticator *f, char *key)
+convM2A9p1(char* ap, Authenticator* f, char* key)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	if(key)
 		decrypt(key, ap, AUTHENTLEN);
@@ -514,9 +553,9 @@ convM2A9p1(char *ap, Authenticator *f, char *key)
 }
 
 void
-convM2T9p1(char *ap, Ticket *f, char *key)
+convM2T9p1(char* ap, Ticket* f, char* key)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	if(key)
 		decrypt(key, ap, TICKETLEN);
@@ -524,9 +563,9 @@ convM2T9p1(char *ap, Ticket *f, char *key)
 	CHAR(num);
 	BYTES(chal, CHALLEN);
 	STRING(cuid, NAMELEN);
-	f->cuid[NAMELEN-1] = 0;
+	f->cuid[NAMELEN - 1] = 0;
 	STRING(suid, NAMELEN);
-	f->suid[NAMELEN-1] = 0;
+	f->suid[NAMELEN - 1] = 0;
 	BYTES(key, DESKEYLEN);
 	USED(p);
 }

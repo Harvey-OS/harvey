@@ -23,7 +23,7 @@ int goodps = 1;
 int ppi = 100;
 int teegs = 0;
 int truetoboundingbox;
-int textbits=4, gfxbits=4;
+int textbits = 4, gfxbits = 4;
 int wctlfd = -1;
 int stdinfd;
 int truecolor;
@@ -32,7 +32,7 @@ int notewatcher;
 int notegp;
 
 int
-watcher(void*, char *x)
+watcher(void*, char* x)
 {
 	if(strcmp(x, "die") != 0)
 		postnote(PNGROUP, notegp, x);
@@ -41,7 +41,7 @@ watcher(void*, char *x)
 }
 
 int
-bell(void *u, char *x)
+bell(void* u, char* x)
 {
 	if(x && strcmp(x, "hangup") == 0)
 		_exits(0);
@@ -50,7 +50,7 @@ bell(void *u, char *x)
 		fprint(2, "postnote %d: %s\n", getpid(), x);
 
 	/* alarms come from the gs monitor */
-	if(x && strstr(x, "alarm")){
+	if(x && strstr(x, "alarm")) {
 		postnote(PNGROUP, getpid(), "die (gs error)");
 		postnote(PNPROC, notewatcher, "die (gs error)");
 	}
@@ -59,15 +59,15 @@ bell(void *u, char *x)
 	if((u == nil || u != x) && doabort)
 		abort();
 
-/*	fprint(2, "exiting %d\n", getpid()); */
+	/*	fprint(2, "exiting %d\n", getpid()); */
 	wexits("note");
 	return 0;
 }
 
 static int
-afmt(Fmt *fmt)
+afmt(Fmt* fmt)
 {
-	char *s;
+	char* s;
 
 	s = va_arg(fmt->args, char*);
 	if(s == nil || s[0] == '\0')
@@ -84,15 +84,16 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Document *doc;
-	Biobuf *b;
+	Document* doc;
+	Biobuf* b;
 	enum { Ninput = 16 };
-	uchar buf[Ninput+1];
+	uchar buf[Ninput + 1];
 	int readstdin;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	/* "temporary" debugging options */
 	case 'P':
 		goodps = 0;
@@ -133,11 +134,12 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	notegp = getpid();
 
-	switch(notewatcher = fork()){
+	switch(notewatcher = fork()) {
 	case -1:
 		sysfatal("fork");
 		exits(0);
@@ -154,7 +156,7 @@ main(int argc, char **argv)
 	atnotify(bell, 1);
 
 	readstdin = 0;
-	if(imagemode == 0 && argc == 0){
+	if(imagemode == 0 && argc == 0) {
 		readstdin = 1;
 		stdinfd = dup(0, -1);
 		close(0);
@@ -169,23 +171,23 @@ main(int argc, char **argv)
 	if(mknewwindow)
 		newwin();
 
-	if(readstdin){
+	if(readstdin) {
 		b = nil;
-		if(readn(stdinfd, buf, Ninput) != Ninput){
+		if(readn(stdinfd, buf, Ninput) != Ninput) {
 			fprint(2, "page: short read reading %s\n", argv[0]);
 			wexits("read");
 		}
-	}else if(argc != 0){
+	} else if(argc != 0) {
 		if(!(b = Bopen(argv[0], OREAD))) {
 			fprint(2, "page: cannot open \"%s\"\n", argv[0]);
 			wexits("open");
-		}	
+		}
 
 		if(Bread(b, buf, Ninput) != Ninput) {
 			fprint(2, "page: short read reading %s\n", argv[0]);
 			wexits("read");
 		}
-	}else
+	} else
 		b = nil;
 
 	buf[Ninput] = '\0';
@@ -207,7 +209,9 @@ main(int argc, char **argv)
 		doc = inittroff(b, argc, argv, buf, Ninput);
 	else {
 		if(ppi != 100) {
-			fprint(2, "page: you can't specify -p with graphic files\n");
+			fprint(
+			    2,
+			    "page: you can't specify -p with graphic files\n");
 			wexits("-p and graphics");
 		}
 		doc = initgfx(b, argc, argv, buf, Ninput);
@@ -226,7 +230,7 @@ main(int argc, char **argv)
 	if(reverse == -1) /* neither cmdline nor ps reader set it */
 		reverse = 0;
 
-	if(initdraw(0, 0, "page") < 0){
+	if(initdraw(0, 0, "page") < 0) {
 		fprint(2, "page: initdraw failed: %r\n");
 		wexits("initdraw");
 	}
@@ -238,10 +242,10 @@ main(int argc, char **argv)
 }
 
 void
-wexits(char *s)
+wexits(char* s)
 {
 	if(s && *s && strcmp(s, "note") != 0 && mknewwindow)
-		sleep(10*1000);
+		sleep(10 * 1000);
 	postnote(PNPROC, notewatcher, "die");
 	exits(s);
 }

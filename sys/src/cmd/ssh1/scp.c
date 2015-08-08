@@ -18,58 +18,57 @@ isatty(int fd)
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
-	if(strlen(buf)>=9 && strcmp(buf+strlen(buf)-9, "/dev/cons")==0)
+	if(strlen(buf) >= 9 && strcmp(buf + strlen(buf) - 9, "/dev/cons") == 0)
 		return 1;
 	return 0;
 }
 
-#define	OK	0x00
-#define	ERROR	0x01
-#define	FATAL	0x02
+#define OK 0x00
+#define ERROR 0x01
+#define FATAL 0x02
 
-char	*progname;
+char* progname;
 
-int	dflag;
-int	fflag;
-int	iflag;
-int	pflag;
-int	rflag;
-int	tflag;
-int	vflag;
+int dflag;
+int fflag;
+int iflag;
+int pflag;
+int rflag;
+int tflag;
+int vflag;
 
-int	remote;
+int remote;
 
-char	*exitflag = nil;
+char* exitflag = nil;
 
-void	scperror(int, char*, ...);
-void	mustbedir(char*);
-void	receive(char*);
-char	*fileaftercolon(char*);
-void	destislocal(char *cmd, int argc, char *argv[], char *dest);
-void	destisremote(char *cmd, int argc, char *argv[],
-			 char *host, char *dest);
-int	remotessh(char *host, char *cmd);
-void	send(char*);
-void	senddir(char*, int, Dir*);
-int 	getresponse(void);
+void scperror(int, char*, ...);
+void mustbedir(char*);
+void receive(char*);
+char* fileaftercolon(char*);
+void destislocal(char* cmd, int argc, char* argv[], char* dest);
+void destisremote(char* cmd, int argc, char* argv[], char* host, char* dest);
+int remotessh(char* host, char* cmd);
+void send(char*);
+void senddir(char*, int, Dir*);
+int getresponse(void);
 
-char	theuser[32];
+char theuser[32];
 
-char	ssh[] = "/bin/ssh";
+char ssh[] = "/bin/ssh";
 
-int	remotefd0;
-int	remotefd1;
+int remotefd0;
+int remotefd1;
 
 int
-runcommand(char *cmd)
+runcommand(char* cmd)
 {
-	Waitmsg *w;
+	Waitmsg* w;
 	int pid;
-	char *argv[4];
+	char* argv[4];
 
-	if (cmd == nil)
+	if(cmd == nil)
 		return -1;
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		return -1;
 	case 0:
@@ -80,7 +79,7 @@ runcommand(char *cmd)
 		exec("/bin/rc", argv);
 		exits("exec failed");
 	}
-	for(;;){
+	for(;;) {
 		w = wait();
 		if(w == nil)
 			return -1;
@@ -88,7 +87,7 @@ runcommand(char *cmd)
 			break;
 		free(w);
 	}
-	if(w->msg[0]){
+	if(w->msg[0]) {
 		free(w);
 		return -1;
 	}
@@ -97,20 +96,20 @@ runcommand(char *cmd)
 }
 
 void
-vprint(char *fmt, ...)
+vprint(char* fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
-	static char *name;
+	static char* name;
 
 	if(vflag == 0)
 		return;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	if(name == nil){
+	if(name == nil) {
 		name = sysname();
 		if(name == nil)
 			name = "<unknown>";
@@ -125,14 +124,13 @@ usage(void)
 	exits("usage");
 }
 
-
-#pragma	varargck	type	"F"	int
-#pragma	varargck	type	"V"	char*
+#pragma varargck type "F" int
+#pragma varargck type "V" char *
 static int flag;
 
 /* flag: if integer flag, take following char *value */
 int
-flagfmt(Fmt *f)
+flagfmt(Fmt* f)
 {
 	flag = va_arg(f->args, int);
 	return 0;
@@ -140,9 +138,9 @@ flagfmt(Fmt *f)
 
 /* flag: if previous integer flag, take char *value */
 int
-valfmt(Fmt *f)
+valfmt(Fmt* f)
 {
-	char *value;
+	char* value;
 
 	value = va_arg(f->args, char*);
 	if(flag)
@@ -159,18 +157,19 @@ sendokresponse(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i, fd;
 	char cmd[32];
-	char *p;
+	char* p;
 
 	progname = argv[0];
 	fmtinstall('F', flagfmt);
 	fmtinstall('V', valfmt);
 	iflag = -1;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'I':
 		iflag = 0;
 		break;
@@ -199,7 +198,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		scperror(1, "unknown option %c", ARGC());
-	} ARGEND
+	}
+	ARGEND
 
 	if(iflag == -1)
 		iflag = isatty(0);
@@ -207,27 +207,27 @@ main(int argc, char *argv[])
 	remotefd0 = 0;
 	remotefd1 = 1;
 
-	if(fflag){
+	if(fflag) {
 		getresponse();
-		for(i=0; i<argc; i++)
+		for(i = 0; i < argc; i++)
 			send(argv[i]);
 		exits(0);
 	}
-	if(tflag){
+	if(tflag) {
 		if(argc != 1)
 			usage();
 		receive(argv[0]);
 		exits(0);
 	}
 
-	if (argc < 2)
+	if(argc < 2)
 		usage();
-	if (argc > 2)
+	if(argc > 2)
 		dflag = 1;
 
 	i = 0;
 	fd = open("/dev/user", OREAD);
-	if(fd >= 0){
+	if(fd >= 0) {
 		i = read(fd, theuser, sizeof theuser - 1);
 		close(fd);
 	}
@@ -237,48 +237,43 @@ main(int argc, char *argv[])
 	remotefd0 = -1;
 	remotefd1 = -1;
 
-	snprint(cmd, sizeof cmd, "scp%F%V%F%V%F%V%F%V",
-		dflag, "-d",
-		pflag, "-p",
-		rflag, "-r",
-		vflag, "-v");
+	snprint(cmd, sizeof cmd, "scp%F%V%F%V%F%V%F%V", dflag, "-d", pflag,
+	        "-p", rflag, "-r", vflag, "-v");
 
-	p = fileaftercolon(argv[argc-1]);
-	if(p != nil)	/* send to remote machine. */
-		destisremote(cmd, argc-1, argv, argv[argc-1], p);
-	else{
+	p = fileaftercolon(argv[argc - 1]);
+	if(p != nil) /* send to remote machine. */
+		destisremote(cmd, argc - 1, argv, argv[argc - 1], p);
+	else {
 		if(dflag)
-			mustbedir(argv[argc-1]);
-		destislocal(cmd, argc-1, argv, argv[argc-1]);
+			mustbedir(argv[argc - 1]);
+		destislocal(cmd, argc - 1, argv, argv[argc - 1]);
 	}
 
 	exits(exitflag);
 }
 
 void
-destislocal(char *cmd, int argc, char *argv[], char *dst)
+destislocal(char* cmd, int argc, char* argv[], char* dst)
 {
 	int i;
-	char *src;
+	char* src;
 	char buf[4096];
 
-	for(i = 0; i<argc; i++){
+	for(i = 0; i < argc; i++) {
 		src = fileaftercolon(argv[i]);
-		if(src == nil){
+		if(src == nil) {
 			/* local file; no network */
-			snprint(buf, sizeof buf, "exec cp%F%V%F%V %s %s",
-				rflag, "-r",
-				pflag, "-p",
-				argv[i], dst);
-	  		vprint("remotetolocal: %s", buf);
+			snprint(buf, sizeof buf, "exec cp%F%V%F%V %s %s", rflag,
+			        "-r", pflag, "-p", argv[i], dst);
+			vprint("remotetolocal: %s", buf);
 			if(runcommand(buf) < 0)
 				exitflag = "local cp exec";
-		}else{
+		} else {
 			/* remote file; use network */
 			snprint(buf, sizeof buf, "%s -f %s", cmd, src);
-		  	if(remotessh(argv[i], buf) < 0)
+			if(remotessh(argv[i], buf) < 0)
 				exitflag = "remote ssh exec";
-			else{
+			else {
 				receive(dst);
 				close(remotefd0);
 				remotefd0 = -1;
@@ -289,30 +284,28 @@ destislocal(char *cmd, int argc, char *argv[], char *dst)
 }
 
 void
-destisremote(char *cmd, int argc, char *argv[], char *host,
-	     char *dest)
+destisremote(char* cmd, int argc, char* argv[], char* host, char* dest)
 {
 	int i;
-	char *src;
+	char* src;
 	char buf[4096];
 
-	for(i = 0; i < argc; i++){
-		vprint("remote destination: send %s to %s:%s", argv[i], host, dest);
+	for(i = 0; i < argc; i++) {
+		vprint("remote destination: send %s to %s:%s", argv[i], host,
+		       dest);
 		/* destination is remote, but source may be local */
 		src = fileaftercolon(argv[i]);
-		if(src != nil){
+		if(src != nil) {
 			/* remote to remote */
-			snprint(buf, sizeof buf, "exec %s%F%V%F%V %s %s %s '%s:%s'",
-				ssh,
-				iflag, " -i",
-				vflag, "-v",
-				argv[i], cmd, src,
-				host, dest);
+			snprint(buf, sizeof buf,
+			        "exec %s%F%V%F%V %s %s %s '%s:%s'", ssh, iflag,
+			        " -i", vflag, "-v", argv[i], cmd, src, host,
+			        dest);
 			vprint("localtoremote: %s", buf);
 			runcommand(buf);
-		}else{
+		} else {
 			/* local to remote */
-			if(remotefd0 == -1){
+			if(remotefd0 == -1) {
 				snprint(buf, sizeof buf, "%s -t %s", cmd, dest);
 				if(remotessh(host, buf) < 0)
 					exits("remotessh");
@@ -325,14 +318,14 @@ destisremote(char *cmd, int argc, char *argv[], char *host,
 }
 
 void
-readhdr(char *p, int n)
+readhdr(char* p, int n)
 {
 	int i;
 
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		if(read(remotefd0, &p[i], 1) != 1)
 			break;
-		if(p[i] == '\n'){
+		if(p[i] == '\n') {
 			p[i] = '\0';
 			return;
 		}
@@ -343,49 +336,51 @@ readhdr(char *p, int n)
 	scperror(1, "read error on receive header: %r");
 }
 
-Dir *
-receivedir(char *dir, int exists, Dir *d, int settimes, uint32_t atime,
-	   uint32_t mtime, uint32_t mode)
+Dir*
+receivedir(char* dir, int exists, Dir* d, int settimes, uint32_t atime,
+           uint32_t mtime, uint32_t mode)
 {
 	Dir nd;
 	int setmodes;
 	int fd;
 
 	setmodes = pflag;
-	if(exists){
+	if(exists) {
 		if(!(d->qid.type & QTDIR)) {
-			scperror(0, "%s: protocol botch: directory requrest for non-directory", dir);
+			scperror(0, "%s: protocol botch: directory requrest "
+			            "for non-directory",
+			         dir);
 			return d;
 		}
-	}else{
+	} else {
 		/* create it writeable; will fix later */
 		setmodes = 1;
-		fd = create(dir, OREAD, DMDIR|mode|0700);
-		if (fd < 0){
+		fd = create(dir, OREAD, DMDIR | mode | 0700);
+		if(fd < 0) {
 			scperror(0, "%s: can't create: %r", dir);
 			return d;
 		}
 		d = dirfstat(fd);
 		close(fd);
-		if(d == nil){
+		if(d == nil) {
 			scperror(0, "%s: can't stat: %r", dir);
 			return d;
 		}
 	}
 	receive(dir);
-	if(settimes || setmodes){
+	if(settimes || setmodes) {
 		nulldir(&nd);
-		if(settimes){
+		if(settimes) {
 			nd.atime = atime;
 			nd.mtime = mtime;
 			d->atime = nd.atime;
 			d->mtime = nd.mtime;
 		}
-		if(setmodes){
+		if(setmodes) {
 			nd.mode = DMDIR | (mode & 0777);
 			d->mode = nd.mode;
 		}
-		if(dirwstat(dir, &nd) < 0){
+		if(dirwstat(dir, &nd) < 0) {
 			scperror(0, "can't wstat %s: %r", dir);
 			free(d);
 			return nil;
@@ -395,7 +390,7 @@ receivedir(char *dir, int exists, Dir *d, int settimes, uint32_t atime,
 }
 
 void
-receive(char *dest)
+receive(char* dest)
 {
 	int isdir, settimes, mode;
 	int exists, n, i, fd, m;
@@ -403,14 +398,14 @@ receive(char *dest)
 	uint32_t atime, mtime, size;
 	char buf[8192], *p;
 	char name[1024];
-	Dir *d;
+	Dir* d;
 	Dir nd;
 
 	mtime = 0L;
 	atime = 0L;
 	settimes = 0;
 	isdir = 0;
-	if ((d = dirstat(dest)) && (d->qid.type & QTDIR)) {
+	if((d = dirstat(dest)) && (d->qid.type & QTDIR)) {
 		isdir = 1;
 	}
 	if(dflag && !isdir)
@@ -418,14 +413,14 @@ receive(char *dest)
 
 	sendokresponse();
 
-	for (;;) {
+	for(;;) {
 		readhdr(buf, sizeof buf);
 
-		switch(buf[0]){
+		switch(buf[0]) {
 		case ERROR:
 		case FATAL:
 			if(!remote)
-				fprint(2, "%s\n", buf+1);
+				fprint(2, "%s\n", buf + 1);
 			exitflag = "bad receive";
 			if(buf[0] == FATAL)
 				exits(exitflag);
@@ -439,9 +434,9 @@ receive(char *dest)
 			settimes = 1;
 			p = buf + 1;
 			mtime = strtol(p, &p, 10);
-			if(*p++ != ' '){
-		Badtime:
-				scperror(1, "bad time format: %s", buf+1);
+			if(*p++ != ' ') {
+			Badtime:
+				scperror(1, "bad time format: %s", buf + 1);
 			}
 			strtol(p, &p, 10);
 			if(*p++ != ' ')
@@ -460,22 +455,24 @@ receive(char *dest)
 		case 'C':
 			p = buf + 1;
 			mode = strtol(p, &p, 8);
-			if (*p++ != ' '){
-		Badmode:
-				scperror(1, "bad mode/size format: %s", buf+1);
+			if(*p++ != ' ') {
+			Badmode:
+				scperror(1, "bad mode/size format: %s",
+				         buf + 1);
 			}
 			size = strtoll(p, &p, 10);
 			if(*p++ != ' ')
 				goto Badmode;
 
-			if(isdir){
+			if(isdir) {
 				if(dest[0] == '\0')
 					snprint(name, sizeof name, "%s", p);
 				else
-					snprint(name, sizeof name, "%s/%s", dest, p);
-			}else
+					snprint(name, sizeof name, "%s/%s",
+					        dest, p);
+			} else
 				snprint(name, sizeof name, "%s", dest);
-			if(strlen(name) > sizeof name-UTFmax)
+			if(strlen(name) > sizeof name - UTFmax)
 				scperror(1, "file name too long: %s", dest);
 
 			exists = 1;
@@ -483,16 +480,17 @@ receive(char *dest)
 			if((d = dirstat(name)) == nil)
 				exists = 0;
 
-			if(buf[0] == 'D'){
+			if(buf[0] == 'D') {
 				vprint("receive directory %s", name);
-				d = receivedir(name, exists, d, settimes, atime, mtime, mode);
+				d = receivedir(name, exists, d, settimes, atime,
+				               mtime, mode);
 				settimes = 0;
 				continue;
 			}
 
 			vprint("receive file %s by %s", name, getuser());
 			fd = create(name, OWRITE, mode);
-			if(fd < 0){
+			if(fd < 0) {
 				scperror(0, "can't create %s: %r", name);
 				continue;
 			}
@@ -502,14 +500,15 @@ receive(char *dest)
 			 * Committed to receive size bytes
 			 */
 			errors = 0;
-			for(i = 0; i < size; i += m){
+			for(i = 0; i < size; i += m) {
 				n = sizeof buf;
 				if(n > size - i)
 					n = size - i;
 				m = readn(remotefd0, buf, n);
 				if(m <= 0)
-					scperror(1, "read error on connection: %r");
-				if(errors == 0){
+					scperror(
+					    1, "read error on connection: %r");
+				if(errors == 0) {
 					n = write(fd, buf, m);
 					if(n != m)
 						errors = 1;
@@ -519,15 +518,17 @@ receive(char *dest)
 			/* if file exists, modes could be wrong */
 			if(errors)
 				scperror(0, "%s: write error: %r", name);
-			else if(settimes || (exists && (d->mode&0777) != (mode&0777))){
+			else if(settimes ||
+			        (exists && (d->mode & 0777) != (mode & 0777))) {
 				nulldir(&nd);
-				if(settimes){
+				if(settimes) {
 					settimes = 0;
 					nd.atime = atime;
 					nd.mtime = mtime;
 				}
-				if(exists && (d->mode&0777) != (mode&0777))
-					nd.mode = (d->mode & ~0777) | (mode&0777);
+				if(exists && (d->mode & 0777) != (mode & 0777))
+					nd.mode =
+					    (d->mode & ~0777) | (mode & 0777);
 				if(dirwstat(name, &nd) < 0)
 					scperror(0, "can't wstat %s: %r", name);
 			}
@@ -541,8 +542,8 @@ receive(char *dest)
 			break;
 
 		default:
-			scperror(0, "unrecognized header type char %c", buf[0]);	
-			scperror(1, "input line: %s", buf);	
+			scperror(0, "unrecognized header type char %c", buf[0]);
+			scperror(1, "input line: %s", buf);
 		}
 	}
 }
@@ -553,34 +554,34 @@ receive(char *dest)
  * the contents of the stat buffer, so do this lexically.
  */
 char*
-lastelem(char *file)
+lastelem(char* file)
 {
-	char *elem;
+	char* elem;
 
 	elem = strrchr(file, '/');
 	if(elem == nil)
 		return file;
-	return elem+1;
+	return elem + 1;
 }
 
 void
-send(char *file)
+send(char* file)
 {
-	Dir *d;
+	Dir* d;
 	uint32_t i;
 	int m, n, fd;
 	char buf[8192];
 
-	if((fd = open(file, OREAD)) < 0){
+	if((fd = open(file, OREAD)) < 0) {
 		scperror(0, "can't open %s: %r", file);
 		return;
 	}
-	if((d = dirfstat(fd)) == nil){
+	if((d = dirfstat(fd)) == nil) {
 		scperror(0, "can't fstat %s: %r", file);
 		goto Return;
 	}
 
-	if(d->qid.type & QTDIR){
+	if(d->qid.type & QTDIR) {
 		if(rflag)
 			senddir(file, fd, d);
 		else
@@ -588,20 +589,21 @@ send(char *file)
 		goto Return;
 	}
 
-	if(pflag){
+	if(pflag) {
 		fprint(remotefd1, "T%lud 0 %lud 0\n", d->mtime, d->atime);
 		if(getresponse() < 0)
 			goto Return;
 	}
 
-	fprint(remotefd1, "C%.4luo %lld %s\n", d->mode&0777, d->length, lastelem(file));
+	fprint(remotefd1, "C%.4luo %lld %s\n", d->mode & 0777, d->length,
+	       lastelem(file));
 	if(getresponse() < 0)
 		goto Return;
 
 	/*
 	 * We are now committed to send d.length bytes, regardless
 	 */
-	for(i=0; i<d->length; i+=m){
+	for(i = 0; i < d->length; i += m) {
 		n = sizeof buf;
 		if(n > d->length - i)
 			n = d->length - i;
@@ -613,9 +615,9 @@ send(char *file)
 
 	if(i == d->length)
 		sendokresponse();
-	else{
+	else {
 		/* continue to send gibberish up to d.length */
-		for(; i<d->length; i+=n){
+		for(; i < d->length; i += n) {
 			n = sizeof buf;
 			if(n > d->length - i)
 				n = d->length - i;
@@ -623,10 +625,10 @@ send(char *file)
 		}
 		scperror(0, "%s: %r", file);
 	}
-		
+
 	getresponse();
 
-    Return:
+Return:
 	free(d);
 	close(fd);
 }
@@ -637,20 +639,21 @@ getresponse(void)
 	uint8_t first, byte, buf[256];
 	int i;
 
-	if (read(remotefd0, &first, 1) != 1)
+	if(read(remotefd0, &first, 1) != 1)
 		scperror(1, "lost connection");
 
 	if(first == 0)
 		return 0;
 
 	i = 0;
-	if(first > FATAL){
-		fprint(2, "scp: unexpected response character 0x%.2ux\n", first);
+	if(first > FATAL) {
+		fprint(2, "scp: unexpected response character 0x%.2ux\n",
+		       first);
 		buf[i++] = first;
 	}
 
 	/* read error message up to newline */
-	for(;;){
+	for(;;) {
 		if(read(remotefd0, &byte, 1) != 1)
 			scperror(1, "response: dropped connection");
 		if(byte == '\n')
@@ -663,38 +666,42 @@ getresponse(void)
 	if(!remote)
 		fprint(2, "%.*s\n", utfnlen((char*)buf, i), (char*)buf);
 
-	if (first == ERROR)
+	if(first == ERROR)
 		return -1;
 	exits(exitflag);
-	return 0;	/* not reached */
+	return 0; /* not reached */
 }
 
 void
-senddir(char *name, int fd, Dir *dirp)
+senddir(char* name, int fd, Dir* dirp)
 {
-	Dir *d, *dir;
+	Dir* d, *dir;
 	int n;
 	char file[256];
 
-	if(pflag){
+	if(pflag) {
 		fprint(remotefd1, "T%lud 0 %lud 0\n", dirp->mtime, dirp->atime);
 		if(getresponse() < 0)
 			return;
 	}
 
-	vprint("directory %s mode: D%.4lo %d %.1024s", name, dirp->mode&0777, 0, lastelem(name));
+	vprint("directory %s mode: D%.4lo %d %.1024s", name, dirp->mode & 0777,
+	       0, lastelem(name));
 
-	fprint(remotefd1, "D%.4lo %d %.1024s\n", dirp->mode&0777, 0, dirp->name);
+	fprint(remotefd1, "D%.4lo %d %.1024s\n", dirp->mode & 0777, 0,
+	       dirp->name);
 	if(getresponse() < 0)
 		return;
 
 	n = dirreadall(fd, &dir);
-	for(d = dir; d < &dir[n]; d++){
+	for(d = dir; d < &dir[n]; d++) {
 		/* shouldn't happen with plan 9, but worth checking anyway */
-		if(strcmp(d->name, ".")==0 || strcmp(d->name, "..")==0)
+		if(strcmp(d->name, ".") == 0 || strcmp(d->name, "..") == 0)
 			continue;
-		if(snprint(file, sizeof file, "%s/%s", name, d->name) > sizeof file-UTFmax){
-			scperror(0, "%.20s.../%s: name too long; skipping file", file, d->name);
+		if(snprint(file, sizeof file, "%s/%s", name, d->name) >
+		   sizeof file - UTFmax) {
+			scperror(0, "%.20s.../%s: name too long; skipping file",
+			         file, d->name);
 			continue;
 		}
 		send(file);
@@ -705,17 +712,17 @@ senddir(char *name, int fd, Dir *dirp)
 }
 
 int
-remotessh(char *host, char *cmd)
+remotessh(char* host, char* cmd)
 {
 	int i, p[2];
-	char *arg[32];
+	char* arg[32];
 
 	vprint("remotessh: %s: %s", host, cmd);
 
 	if(pipe(p) < 0)
 		scperror(1, "pipe: %r");
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		scperror(1, "fork: %r");
 
@@ -724,9 +731,9 @@ remotessh(char *host, char *cmd)
 		close(p[0]);
 		dup(p[1], 0);
 		dup(p[1], 1);
-		for (i = 3; i < 100; i++)
+		for(i = 3; i < 100; i++)
 			close(i);
-	
+
 		i = 0;
 		arg[i++] = ssh;
 		arg[i++] = "-x";
@@ -739,7 +746,7 @@ remotessh(char *host, char *cmd)
 		arg[i++] = host;
 		arg[i++] = cmd;
 		arg[i] = nil;
-	
+
 		exec(ssh, arg);
 		exits("exec failed");
 
@@ -753,29 +760,28 @@ remotessh(char *host, char *cmd)
 }
 
 void
-scperror(int exit, char *fmt, ...)
+scperror(int exit, char* fmt, ...)
 {
 	char buf[2048];
 	va_list arg;
 
-
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 
 	fprint(remotefd1, "%cscp: %s\n", ERROR, buf);
 
-	if (!remote)
+	if(!remote)
 		fprint(2, "scp: %s\n", buf);
 	exitflag = buf;
 	if(exit)
 		exits(exitflag);
 }
 
-char *
-fileaftercolon(char *file)
+char*
+fileaftercolon(char* file)
 {
-	char *c, *s;
+	char* c, *s;
 
 	c = utfrune(file, ':');
 	if(c == nil)
@@ -797,11 +803,11 @@ fileaftercolon(char *file)
 }
 
 void
-mustbedir(char *file)
+mustbedir(char* file)
 {
-	Dir *d;
+	Dir* d;
 
-	if((d = dirstat(file)) == nil){
+	if((d = dirstat(file)) == nil) {
 		scperror(1, "%s: %r", file);
 		return;
 	}

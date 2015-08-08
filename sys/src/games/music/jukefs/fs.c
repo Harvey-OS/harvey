@@ -18,34 +18,30 @@ extern int debug;
 
 extern int mfd[];
 
-enum {
-	DbgFs = 0x1000
-};
+enum { DbgFs = 0x1000 };
 
 typedef struct Fid Fid;
 
-enum {
-	Busy =	0x01,
-	Open =	0x02,
-	Endf =	0x04,
+enum { Busy = 0x01,
+       Open = 0x02,
+       Endf = 0x04,
 };
 
-struct Fid
-{
+struct Fid {
 	QLock;
-	Qid	qid;
-	int	fid;
-	ushort	flags;
-	vlong	offset;		// offset of data[0]
-	Fid	*next;
+	Qid qid;
+	int fid;
+	ushort flags;
+	vlong offset; // offset of data[0]
+	Fid* next;
 };
 
-Fcall	thdr;
-Fcall	rhdr;
+Fcall thdr;
+Fcall rhdr;
 
 enum {
 	/* Files making up an object */
-	Qchildren,		/* Each of these must be in dirtab */
+	Qchildren, /* Each of these must be in dirtab */
 	Qdigest,
 	Qfiles,
 	Qfulltext,
@@ -57,91 +53,71 @@ enum {
 	Qtype,
 
 	/* Other files */
-	Qtop,	/* Must follow Qtype */
+	Qtop, /* Must follow Qtype */
 	Qclassical,
 	Qdir,
 	Qroot,
 	Qctl,
 };
 
-#define PATH(id, f)	(((id)<<8) | (f))
-#define FILE(p)		((p) & 0xff)
-#define NUM(p)		((p) >> 8)
+#define PATH(id, f) (((id) << 8) | (f))
+#define FILE(p) ((p)&0xff)
+#define NUM(p) ((p) >> 8)
 
-char *dirtab[] =
-{
-[Qchildren]	"children",
-[Qdigest]	"digest",
-[Qdir]		".",
-[Qfiles]	"files",
-[Qfulltext]	"fulltext",
-[Qkey]		"key",
-[Qminiparentage]"miniparentage",
-[Qparent]	"parent",
-[Qparentage]	"parentage",
-[Qtext]		"text",
-[Qtype]		"type",
-[Qtop]		nil,
+char* dirtab[] = {
+        [Qchildren] "children", [Qdigest] "digest", [Qdir] ".",
+        [Qfiles] "files", [Qfulltext] "fulltext", [Qkey] "key",
+        [Qminiparentage] "miniparentage", [Qparent] "parent",
+        [Qparentage] "parentage", [Qtext] "text", [Qtype] "type", [Qtop] nil,
 };
 
-char	*rflush(Fid*), *rauth(Fid*),
-	*rattach(Fid*), *rwalk(Fid*),
-	*ropen(Fid*), *rcreate(Fid*),
-	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
-	*rversion(Fid*);
+char* rflush(Fid*), *rauth(Fid*), *rattach(Fid*), *rwalk(Fid*), *ropen(Fid*),
+    *rcreate(Fid*), *rread(Fid*), *rwrite(Fid*), *rclunk(Fid*), *rremove(Fid*),
+    *rstat(Fid*), *rwstat(Fid*), *rversion(Fid*);
 
-char 	*(*fcalls[])(Fid*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tauth]		rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char* (*fcalls[])(Fid*) = {
+        [Tflush] rflush,   [Tversion] rversion, [Tauth] rauth,
+        [Tattach] rattach, [Twalk] rwalk,       [Topen] ropen,
+        [Tcreate] rcreate, [Tread] rread,       [Twrite] rwrite,
+        [Tclunk] rclunk,   [Tremove] rremove,   [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
-int	messagesize = 8*1024+IOHDRSZ;
-uint8_t	mdata[8*1024+IOHDRSZ];
-uint8_t	mbuf[8*1024+IOHDRSZ];
-char	bigbuf[1<<23];	/* 8 megabytes */
-Fid	*fids;
+int messagesize = 8 * 1024 + IOHDRSZ;
+uint8_t mdata[8 * 1024 + IOHDRSZ];
+uint8_t mbuf[8 * 1024 + IOHDRSZ];
+char bigbuf[1 << 23]; /* 8 megabytes */
+Fid* fids;
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"no authentication required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Ebadctl[] =	"unknown control message";
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enoauth[] = "no authentication required";
+char Enotexist[] = "file does not exist";
+char Einuse[] = "file in use";
+char Eexist[] = "file exists";
+char Enotowner[] = "not owner";
+char Eisopen[] = "file already open for I/O";
+char Excl[] = "exclusive use file already open";
+char Ename[] = "illegal name";
+char Ebadctl[] = "unknown control message";
 
-Fid *newfid(int fid);
+Fid* newfid(int fid);
 
 static int
-lookup(char *cmd, char *list[])
+lookup(char* cmd, char* list[])
 {
 	int i;
 
-	for (i = 0; list[i] != nil; i++)
-		if (strcmp(cmd, list[i]) == 0)
+	for(i = 0; list[i] != nil; i++)
+		if(strcmp(cmd, list[i]) == 0)
 			return i;
 	return -1;
 }
 
 char*
-rversion(Fid *)
+rversion(Fid*)
 {
-	Fid *f;
+	Fid* f;
 
 	if(thdr.msize < 256)
 		return "max messagesize too small";
@@ -165,13 +141,13 @@ rauth(Fid*)
 }
 
 char*
-rflush(Fid *)
+rflush(Fid*)
 {
 	return 0;
 }
 
 char*
-rattach(Fid *f)
+rattach(Fid* f)
 {
 	f->flags |= Busy;
 	f->qid.type = QTDIR;
@@ -182,9 +158,9 @@ rattach(Fid *f)
 }
 
 static Fid*
-doclone(Fid *f, int nfid)
+doclone(Fid* f, int nfid)
 {
-	Fid *nf;
+	Fid* nf;
 
 	nf = newfid(nfid);
 	nf->qid = f->qid;
@@ -196,19 +172,19 @@ doclone(Fid *f, int nfid)
 }
 
 char*
-dowalk(Fid *f, char *name)
+dowalk(Fid* f, char* name)
 {
 	int t, n, m;
-	char *rv, *p;
+	char* rv, *p;
 
-	t = FILE(f->qid.path);	/* Type */
+	t = FILE(f->qid.path); /* Type */
 
 	rv = Enotexist;
 
 	if(strcmp(name, ".") == 0 && f->qid.type == QTDIR)
 		return nil;
-	if(strcmp(name, "..") == 0){
-		switch(t){
+	if(strcmp(name, "..") == 0) {
+		switch(t) {
 		case Qtop:
 		case Qclassical:
 			f->qid.path = PATH(0, Qtop);
@@ -226,10 +202,10 @@ dowalk(Fid *f, char *name)
 		}
 		return rv;
 	}
-	switch(t){
+	switch(t) {
 	case Qtop:
 		/* Contains classical */
-		if(strcmp(name, "juke") == 0){
+		if(strcmp(name, "juke") == 0) {
 			f->qid.path = PATH(root->tabno, Qclassical);
 			f->qid.type = QTDIR;
 			f->qid.vers = 0;
@@ -239,14 +215,14 @@ dowalk(Fid *f, char *name)
 		break;
 	case Qclassical:
 		/* main dir, contains `root' and object dirs */
-		if(strcmp(name, "root") == 0){
+		if(strcmp(name, "root") == 0) {
 			f->qid.path = PATH(root->tabno, Qroot);
 			f->qid.type = QTDIR;
 			f->qid.vers = 0;
 			rv = nil;
 			break;
 		}
-		if(strcmp(name, "ctl") == 0){
+		if(strcmp(name, "ctl") == 0) {
 			f->qid.path = PATH(root->tabno, Qctl);
 			f->qid.type = QTFILE;
 			f->qid.vers = 0;
@@ -255,18 +231,18 @@ dowalk(Fid *f, char *name)
 		}
 		n = strtol(name, &p, 0);
 		if(*p)
-			break;	/* Not a number */
+			break; /* Not a number */
 		if(n < 0 || n >= notab)
-			break;	/* Outside range */
+			break; /* Outside range */
 		if(otab[n] == nil)
-			break;	/* Not in object table */
+			break; /* Not in object table */
 		f->qid.path = PATH(n, Qdir);
 		f->qid.type = QTDIR;
 		f->qid.vers = 0;
 		rv = nil;
 		break;
-	case Qroot:	/* Root of the object hierarchy */
-	case Qdir:	/* Object directory */
+	case Qroot: /* Root of the object hierarchy */
+	case Qdir:  /* Object directory */
 		if((m = lookup(name, dirtab)) < 0)
 			break;
 		n = NUM(f->qid.path);
@@ -280,10 +256,10 @@ dowalk(Fid *f, char *name)
 }
 
 char*
-rwalk(Fid *f)
+rwalk(Fid* f)
 {
-	Fid *nf;
-	char *rv;
+	Fid* nf;
+	char* rv;
 	int i;
 
 	if(f->flags & Open)
@@ -293,7 +269,7 @@ rwalk(Fid *f)
 	nf = nil;
 
 	/* clone if requested */
-	if(thdr.newfid != thdr.fid){
+	if(thdr.newfid != thdr.fid) {
 		nf = doclone(f, thdr.newfid);
 		if(nf == nil)
 			return "new fid in use";
@@ -306,10 +282,10 @@ rwalk(Fid *f)
 
 	/* walk each element */
 	rv = nil;
-	for(i = 0; i < thdr.nwname; i++){
+	for(i = 0; i < thdr.nwname; i++) {
 		rv = dowalk(f, thdr.wname[i]);
-		if(rv != nil){
-			if(nf != nil)	
+		if(rv != nil) {
+			if(nf != nil)
 				rclunk(nf);
 			break;
 		}
@@ -324,8 +300,8 @@ rwalk(Fid *f)
 	return rv;
 }
 
-char *
-ropen(Fid *f)
+char*
+ropen(Fid* f)
 {
 	if(f->flags & Open)
 		return Eisopen;
@@ -339,19 +315,19 @@ ropen(Fid *f)
 	return nil;
 }
 
-char *
+char*
 rcreate(Fid*)
 {
 	return Eperm;
 }
 
 static int32_t
-fileinfo(char *buf, int bufsize, int onum, int t)
+fileinfo(char* buf, int bufsize, int onum, int t)
 {
 	int32_t n;
 
 	n = 0;
-	switch(t){
+	switch(t) {
 	case Qchildren:
 		n = printchildren(buf, bufsize, otab[onum]);
 		break;
@@ -389,7 +365,7 @@ fileinfo(char *buf, int bufsize, int onum, int t)
 }
 
 static void
-mkstat(Dir *d, int n, int t)
+mkstat(Dir* d, int n, int t)
 {
 	static char buf[16];
 
@@ -402,10 +378,10 @@ mkstat(Dir *d, int n, int t)
 	d->dev = 0;
 	d->atime = time(0);
 	d->mtime = d->atime;
-	switch(t){
+	switch(t) {
 	case Qtop:
 		d->name = ".";
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		d->atime = d->mtime = time(0);
 		d->length = 0;
 		d->qid.path = PATH(0, Qtop);
@@ -413,7 +389,7 @@ mkstat(Dir *d, int n, int t)
 		break;
 	case Qclassical:
 		d->name = "juke";
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		d->atime = d->mtime = time(0);
 		d->length = 0;
 		d->qid.path = PATH(0, Qclassical);
@@ -422,14 +398,14 @@ mkstat(Dir *d, int n, int t)
 	case Qdir:
 		snprint(buf, sizeof buf, "%d", n);
 		d->name = buf;
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		d->length = 0;
 		d->qid.path = PATH(n, Qdir);
 		d->qid.type = QTDIR;
 		break;
 	case Qroot:
 		d->name = "root";
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		d->length = 0;
 		d->qid.path = PATH(0, Qroot);
 		d->qid.type = QTDIR;
@@ -466,7 +442,7 @@ mkstat(Dir *d, int n, int t)
 }
 
 int
-readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
+readtopdir(Fid*, uint8_t* buf, int32_t off, int cnt, int blen)
 {
 	int m, n;
 	Dir d;
@@ -474,7 +450,7 @@ readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 	n = 0;
 	mkstat(&d, 0, Qclassical);
 	m = convD2M(&d, &buf[n], blen);
-	if(off <= 0){
+	if(off <= 0) {
 		if(m <= BIT16SZ || m > cnt)
 			return n;
 		n += m;
@@ -483,18 +459,18 @@ readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 int
-readclasdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
+readclasdir(Fid*, uint8_t* buf, int32_t off, int cnt, int blen)
 {
 	int m, n;
 	int32_t pos;
 	Dir d;
-	Fid *fid;
+	Fid* fid;
 
 	n = 0;
 	pos = 0;
 	mkstat(&d, 0, Qctl);
 	m = convD2M(&d, &buf[n], blen);
-	if(off <= pos){
+	if(off <= pos) {
 		if(m <= BIT16SZ || m > cnt)
 			return 0;
 		n += m;
@@ -503,19 +479,19 @@ readclasdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 	pos += m;
 	mkstat(&d, 0, Qroot);
 	m = convD2M(&d, &buf[n], blen);
-	if(off <= pos){
+	if(off <= pos) {
 		if(m <= BIT16SZ || m > cnt)
 			return n;
 		n += m;
 		cnt -= m;
 	}
 	pos += m;
-	for (fid = fids; fid; fid = fid->next){
+	for(fid = fids; fid; fid = fid->next) {
 		if(FILE(fid->qid.path) != Qdir)
 			continue;
 		mkstat(&d, NUM(fid->qid.path), Qdir);
-		m = convD2M(&d, &buf[n], blen-n);
-		if(off <= pos){
+		m = convD2M(&d, &buf[n], blen - n);
+		if(off <= pos) {
 			if(m <= BIT16SZ || m > cnt)
 				break;
 			n += m;
@@ -527,7 +503,7 @@ readclasdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 int
-readdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
+readdir(Fid* f, uint8_t* buf, int32_t off, int cnt, int blen)
 {
 	int i, m, n;
 	int32_t pos;
@@ -535,10 +511,10 @@ readdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 
 	n = 0;
 	pos = 0;
-	for (i = 0; i < Qtop; i++){
+	for(i = 0; i < Qtop; i++) {
 		mkstat(&d, NUM(f->qid.path), i);
-		m = convD2M(&d, &buf[n], blen-n);
-		if(off <= pos){
+		m = convD2M(&d, &buf[n], blen - n);
+		if(off <= pos) {
 			if(m <= BIT16SZ || m > cnt)
 				break;
 			n += m;
@@ -550,20 +526,20 @@ readdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 void
-readbuf(char *s, int32_t n)
+readbuf(char* s, int32_t n)
 {
 	rhdr.count = thdr.count;
-	if(thdr.offset >= n){
+	if(thdr.offset >= n) {
 		rhdr.count = 0;
 		return;
 	}
-	if(thdr.offset+rhdr.count > n)
+	if(thdr.offset + rhdr.count > n)
 		rhdr.count = n - thdr.offset;
 	rhdr.data = s + thdr.offset;
 }
 
 char*
-rread(Fid *f)
+rread(Fid* f)
 {
 	int32_t off;
 	int n, cnt, t;
@@ -579,7 +555,7 @@ rread(Fid *f)
 
 	n = 0;
 	t = FILE(f->qid.path);
-	switch(t){
+	switch(t) {
 	case Qtop:
 		n = readtopdir(f, mbuf, off, cnt, messagesize - IOHDRSZ);
 		rhdr.count = n;
@@ -594,7 +570,8 @@ rread(Fid *f)
 		rhdr.count = n;
 		return nil;
 	case Qctl:
-		snprint(bigbuf, sizeof bigbuf, "%d objects in tree (%d holes)\n", notab, hotab);
+		snprint(bigbuf, sizeof bigbuf,
+		        "%d objects in tree (%d holes)\n", notab, hotab);
 		break;
 	case Qchildren:
 	case Qdigest:
@@ -616,10 +593,10 @@ rread(Fid *f)
 }
 
 char*
-rwrite(Fid *f)
+rwrite(Fid* f)
 {
 	int32_t cnt;
-	char *p;
+	char* p;
 
 	if(FILE(f->qid.path) != Qctl)
 		return Eperm;
@@ -637,21 +614,21 @@ rwrite(Fid *f)
 	return nil;
 }
 
-char *
-rclunk(Fid *f)
+char*
+rclunk(Fid* f)
 {
-	f->flags &= ~(Open|Busy);
+	f->flags &= ~(Open | Busy);
 	return 0;
 }
 
-char *
-rremove(Fid *)
+char*
+rremove(Fid*)
 {
 	return Eperm;
 }
 
-char *
-rstat(Fid *f)
+char*
+rstat(Fid* f)
 {
 	Dir d;
 
@@ -661,26 +638,26 @@ rstat(Fid *f)
 	return 0;
 }
 
-char *
+char*
 rwstat(Fid*)
 {
 	return Eperm;
 }
 
-Fid *
+Fid*
 newfid(int fid)
 {
-	Fid *f, *ff;
+	Fid* f, *ff;
 
 	ff = nil;
 	for(f = fids; f; f = f->next)
-		if(f->fid == fid){
+		if(f->fid == fid) {
 			return f;
-		}else if(ff == nil && (f->flags & Busy) == 0)
+		} else if(ff == nil && (f->flags & Busy) == 0)
 			ff = f;
-	if(ff == nil){
+	if(ff == nil) {
 		ff = malloc(sizeof *ff);
-		if (ff == nil)
+		if(ff == nil)
 			sysfatal("malloc: %r");
 		memset(ff, 0, sizeof *ff);
 		ff->next = fids;
@@ -691,16 +668,16 @@ newfid(int fid)
 }
 
 void
-io(void *)
+io(void*)
 {
-	char *err, e[32];
+	char* err, e[32];
 	int n;
 	extern int p[];
-	Fid *f;
+	Fid* f;
 
 	threadsetname("file server");
 	close(p[1]);
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads
@@ -712,10 +689,11 @@ io(void *)
 		n = read9pmsg(mfd[0], mdata, messagesize);
 		if(n == 0)
 			continue;
-		if(n < 0){
+		if(n < 0) {
 			rerrstr(e, sizeof e);
-			if (strcmp(e, "interrupted") == 0){
-				if (debug & DbgFs) fprint(2, "read9pmsg interrupted\n");
+			if(strcmp(e, "interrupted") == 0) {
+				if(debug & DbgFs)
+					fprint(2, "read9pmsg interrupted\n");
 				continue;
 			}
 			return;
@@ -734,16 +712,16 @@ io(void *)
 			f = newfid(thdr.fid);
 			err = (*fcalls[thdr.type])(f);
 		}
-		if(err){
+		if(err) {
 			rhdr.type = Rerror;
 			rhdr.ename = err;
-		}else{
+		} else {
 			rhdr.type = thdr.type + 1;
 			rhdr.fid = thdr.fid;
 		}
 		rhdr.tag = thdr.tag;
 		if(debug & DbgFs)
-			fprint(2, "io:->%F\n", &rhdr);/**/
+			fprint(2, "io:->%F\n", &rhdr); /**/
 		n = convS2M(&rhdr, mdata, messagesize);
 		if(write(mfd[1], mdata, n) != n)
 			sysfatal("mount write");

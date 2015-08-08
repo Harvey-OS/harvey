@@ -13,21 +13,20 @@
 #include "threadimpl.h"
 
 static void
-launcher386(void (*f)(void *arg), void *arg)
+launcher386(void (*f)(void* arg), void* arg)
 {
 	(*f)(arg);
 	threadexits(nil);
 }
 
 void
-_threadinitstack(Thread *t, void (*f)(void*), void *arg)
+_threadinitstack(Thread* t, void (*f)(void*), void* arg)
 {
-	uint32_t *tos;
+	uint32_t* tos;
 
-	tos = (uint32_t*)&t->stk[t->stksize&~7];
+	tos = (uint32_t*)&t->stk[t->stksize & ~7];
 	*--tos = (uint32_t)arg;
 	*--tos = (uint32_t)f;
-	t->sched[JMPBUFPC] = (uint32_t)launcher386+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (uint32_t)tos - 8;		/* old PC and new PC */
+	t->sched[JMPBUFPC] = (uint32_t)launcher386 + JMPBUFDPC;
+	t->sched[JMPBUFSP] = (uint32_t)tos - 8; /* old PC and new PC */
 }
-

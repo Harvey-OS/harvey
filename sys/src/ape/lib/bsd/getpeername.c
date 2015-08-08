@@ -26,20 +26,20 @@
 #include "priv.h"
 
 int
-getpeername(int fd, void *addr, int *alen)
+getpeername(int fd, void* addr, int* alen)
 {
-	Rock *r;
+	Rock* r;
 	int i;
-	struct sockaddr_in *rip;
-	struct sockaddr_un *runix;
+	struct sockaddr_in* rip;
+	struct sockaddr_un* runix;
 
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
 
-	switch(r->domain){
+	switch(r->domain) {
 	case PF_INET:
 		rip = (struct sockaddr_in*)&r->raddr;
 		memmove(addr, rip, sizeof(struct sockaddr_in));

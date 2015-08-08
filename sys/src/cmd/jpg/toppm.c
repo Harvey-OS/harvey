@@ -23,28 +23,30 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	Biobuf bout;
-	Memimage *i, *ni;
+	Memimage* i, *ni;
 	int fd;
 	char buf[256];
-	char *err, *comment;
+	char* err, *comment;
 
 	comment = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		comment = ARGF();
 		if(comment == nil)
 			usage();
-		if(strchr(comment, '\n') != nil){
+		if(strchr(comment, '\n') != nil) {
 			fprint(2, "ppm: comment cannot contain newlines\n");
 			usage();
 		}
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
@@ -56,20 +58,20 @@ main(int argc, char *argv[])
 
 	err = nil;
 
-	if(argc == 0){
+	if(argc == 0) {
 		i = readmemimage(0);
 		if(i == nil)
 			sysfatal("reading input: %r");
 		ni = memmultichan(i);
 		if(ni == nil)
 			sysfatal("converting image to RGBV: %r");
-		if(i != ni){
+		if(i != ni) {
 			freememimage(i);
 			i = ni;
 		}
 		if(err == nil)
 			err = memwriteppm(&bout, i, comment);
-	}else{
+	} else {
 		fd = open(argv[0], OREAD);
 		if(fd < 0)
 			sysfatal("can't open %s: %r", argv[0]);
@@ -80,14 +82,15 @@ main(int argc, char *argv[])
 		ni = memmultichan(i);
 		if(ni == nil)
 			sysfatal("converting image to RGBV: %r");
-		if(i != ni){
+		if(i != ni) {
 			freememimage(i);
 			i = ni;
 		}
 		if(comment)
 			err = memwriteppm(&bout, i, comment);
-		else{
-			snprint(buf, sizeof buf, "Converted by Plan 9 from %s", argv[0]);
+		else {
+			snprint(buf, sizeof buf, "Converted by Plan 9 from %s",
+			        argv[0]);
 			err = memwriteppm(&bout, i, buf);
 		}
 		freememimage(i);

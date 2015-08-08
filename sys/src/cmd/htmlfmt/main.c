@@ -14,7 +14,7 @@
 #include <html.h>
 #include "dat.h"
 
-char *url = "";
+char* url = "";
 int aflag;
 int width = 70;
 int defcharset;
@@ -22,18 +22,20 @@ int defcharset;
 void
 usage(void)
 {
-	fprint(2, "usage: htmlfmt [-c charset] [-u URL] [-a] [-l length] [file ...]\n");
+	fprint(2, "usage: htmlfmt [-c charset] [-u URL] [-a] [-l length] [file "
+	          "...]\n");
 	exits("usage");
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i, fd;
-	char *p, *err, *file;
+	char* p, *err, *file;
 	char errbuf[ERRMAX];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		aflag++;
 		break;
@@ -42,7 +44,8 @@ main(int argc, char *argv[])
 		defcharset = charset(p);
 		free(p);
 		break;
-	case 'l': case 'w':
+	case 'l':
+	case 'w':
 		err = EARGF(usage());
 		width = atoi(err);
 		if(width <= 0)
@@ -54,17 +57,18 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	err = nil;
 	file = "<stdin>";
 	if(argc == 0)
 		err = loadhtml(0);
 	else
-		for(i=0; err==nil && i<argc; i++){
+		for(i = 0; err == nil && i < argc; i++) {
 			file = argv[i];
 			fd = open(file, OREAD);
-			if(fd < 0){
+			if(fd < 0) {
 				errstr(errbuf, sizeof errbuf);
 				err = errbuf;
 				break;

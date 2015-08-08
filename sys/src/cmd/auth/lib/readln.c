@@ -14,29 +14,29 @@
 #include "authcmdlib.h"
 
 void
-getpass(char *key, char *pass, int check, int confirm)
+getpass(char* key, char* pass, int check, int confirm)
 {
 	char rpass[32], npass[32];
-	char *err;
+	char* err;
 
 	if(pass == nil)
 		pass = npass;
 
-	for(;;){
+	for(;;) {
 		readln("Password: ", pass, sizeof npass, 1);
-		if(confirm){
+		if(confirm) {
 			readln("Confirm password: ", rpass, sizeof rpass, 1);
-			if(strcmp(pass, rpass) != 0){
+			if(strcmp(pass, rpass) != 0) {
 				print("mismatch, try again\n");
 				continue;
 			}
 		}
-		if(!passtokey(key, pass)){
+		if(!passtokey(key, pass)) {
 			print("bad password, try again\n");
 			continue;
 		}
 		if(check)
-			if(err = okpasswd(pass)){
+			if(err = okpasswd(pass)) {
 				print("%s, try again\n", err);
 				continue;
 			}
@@ -45,7 +45,7 @@ getpass(char *key, char *pass, int check, int confirm)
 }
 
 int
-getsecret(int passvalid, char *p9pass)
+getsecret(int passvalid, char* p9pass)
 {
 	char answer[32];
 
@@ -53,16 +53,16 @@ getsecret(int passvalid, char *p9pass)
 	if(*answer != 'y' && *answer != 'Y')
 		return 0;
 
-	if(passvalid){
+	if(passvalid) {
 		readln("make it the same as the plan 9 password? (y/n) ",
-			answer, sizeof answer, 0);
+		       answer, sizeof answer, 0);
 		if(*answer == 'y' || *answer == 'Y')
 			return 1;
 	}
 
-	for(;;){
-		readln("Secret(0 to 256 characters): ", p9pass,
-			sizeof answer, 1);
+	for(;;) {
+		readln("Secret(0 to 256 characters): ", p9pass, sizeof answer,
+		       1);
 		readln("Confirm: ", answer, sizeof answer, 1);
 		if(strcmp(p9pass, answer) == 0)
 			break;
@@ -72,15 +72,15 @@ getsecret(int passvalid, char *p9pass)
 }
 
 void
-readln(char *prompt, char *line, int len, int raw)
+readln(char* prompt, char* line, int len, int raw)
 {
-	char *p;
+	char* p;
 	int fdin, fdout, ctl, n, nr;
 
 	fdin = open("/dev/cons", OREAD);
 	fdout = open("/dev/cons", OWRITE);
 	fprint(fdout, "%s", prompt);
-	if(raw){
+	if(raw) {
 		ctl = open("/dev/consctl", OWRITE);
 		if(ctl < 0)
 			error("couldn't set raw mode");
@@ -89,33 +89,33 @@ readln(char *prompt, char *line, int len, int raw)
 		ctl = -1;
 	nr = 0;
 	p = line;
-	for(;;){
+	for(;;) {
 		n = read(fdin, p, 1);
-		if(n < 0){
+		if(n < 0) {
 			close(ctl);
 			error("can't read cons\n");
 		}
 		if(*p == 0x7f)
 			exits(0);
-		if(n == 0 || *p == '\n' || *p == '\r'){
+		if(n == 0 || *p == '\n' || *p == '\r') {
 			*p = '\0';
-			if(raw){
+			if(raw) {
 				write(ctl, "rawoff", 6);
 				write(fdout, "\n", 1);
 			}
 			close(ctl);
 			return;
 		}
-		if(*p == '\b'){
-			if(nr > 0){
+		if(*p == '\b') {
+			if(nr > 0) {
 				nr--;
 				p--;
 			}
-		}else{
+		} else {
 			nr++;
 			p++;
 		}
-		if(nr == len){
+		if(nr == len) {
 			fprint(fdout, "line too long; try again\n");
 			nr = 0;
 			p = line;

@@ -13,12 +13,12 @@
 #include "threadimpl.h"
 
 int32_t
-iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
+iocall(Ioproc* io, int32_t (*op)(va_list*), ...)
 {
 	int ret, inted;
-	Ioproc *msg;
+	Ioproc* msg;
 
-	if(send(io->c, &io) == -1){
+	if(send(io->c, &io) == -1) {
 		werrstr("interrupted");
 		return -1;
 	}
@@ -28,11 +28,11 @@ iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
 	va_start(io->arg, op);
 	msg = io;
 	inted = 0;
-	while(send(io->creply, &msg) == -1){
+	while(send(io->creply, &msg) == -1) {
 		msg = nil;
 		inted = 1;
 	}
-	if(inted){
+	if(inted) {
 		werrstr("interrupted");
 		return -1;
 	}
@@ -43,7 +43,7 @@ iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
 	 * and try again.
 	 */
 	inted = 0;
-	while(recv(io->creply, nil) == -1){
+	while(recv(io->creply, nil) == -1) {
 		inted = 1;
 		iointerrupt(io);
 	}

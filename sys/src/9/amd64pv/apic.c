@@ -16,85 +16,85 @@
 #include "apic.h"
 #include "io.h"
 
-enum {						/* Local APIC registers */
-	Id		= 0x0020,		/* Identification */
-	Ver		= 0x0030,		/* Version */
-	Tp		= 0x0080,		/* Task Priority */
-	Ap		= 0x0090,		/* Arbitration Priority */
-	Pp		= 0x00a0,		/* Processor Priority */
-	Eoi		= 0x00b0,		/* EOI */
-	Ld		= 0x00d0,		/* Logical Destination */
-	Df		= 0x00e0,		/* Destination Format */
-	Siv		= 0x00f0,		/* Spurious Interrupt Vector */
-	Is		= 0x0100,		/* Interrupt Status (8) */
-	Tm		= 0x0180,		/* Trigger Mode (8) */
-	Ir		= 0x0200,		/* Interrupt Request (8) */
-	Es		= 0x0280,		/* Error Status */
-	Iclo		= 0x0300,		/* Interrupt Command */
-	Ichi		= 0x0310,		/* Interrupt Command [63:32] */
-	Lvt0		= 0x0320,		/* Local Vector Table 0 */
-	Lvt5		= 0x0330,		/* Local Vector Table 5 */
-	Lvt4		= 0x0340,		/* Local Vector Table 4 */
-	Lvt1		= 0x0350,		/* Local Vector Table 1 */
-	Lvt2		= 0x0360,		/* Local Vector Table 2 */
-	Lvt3		= 0x0370,		/* Local Vector Table 3 */
-	Tic		= 0x0380,		/* Timer Initial Count */
-	Tcc		= 0x0390,		/* Timer Current Count */
-	Tdc		= 0x03e0,		/* Timer Divide Configuration */
+enum {                /* Local APIC registers */
+       Id = 0x0020,   /* Identification */
+       Ver = 0x0030,  /* Version */
+       Tp = 0x0080,   /* Task Priority */
+       Ap = 0x0090,   /* Arbitration Priority */
+       Pp = 0x00a0,   /* Processor Priority */
+       Eoi = 0x00b0,  /* EOI */
+       Ld = 0x00d0,   /* Logical Destination */
+       Df = 0x00e0,   /* Destination Format */
+       Siv = 0x00f0,  /* Spurious Interrupt Vector */
+       Is = 0x0100,   /* Interrupt Status (8) */
+       Tm = 0x0180,   /* Trigger Mode (8) */
+       Ir = 0x0200,   /* Interrupt Request (8) */
+       Es = 0x0280,   /* Error Status */
+       Iclo = 0x0300, /* Interrupt Command */
+       Ichi = 0x0310, /* Interrupt Command [63:32] */
+       Lvt0 = 0x0320, /* Local Vector Table 0 */
+       Lvt5 = 0x0330, /* Local Vector Table 5 */
+       Lvt4 = 0x0340, /* Local Vector Table 4 */
+       Lvt1 = 0x0350, /* Local Vector Table 1 */
+       Lvt2 = 0x0360, /* Local Vector Table 2 */
+       Lvt3 = 0x0370, /* Local Vector Table 3 */
+       Tic = 0x0380,  /* Timer Initial Count */
+       Tcc = 0x0390,  /* Timer Current Count */
+       Tdc = 0x03e0,  /* Timer Divide Configuration */
 
-	Tlvt		= Lvt0,			/* Timer */
-	Lint0		= Lvt1,			/* Local Interrupt 0 */
-	Lint1		= Lvt2,			/* Local Interrupt 1 */
-	Elvt		= Lvt3,			/* Error */
-	Pclvt		= Lvt4,			/* Performance Counter */
-	Tslvt		= Lvt5,			/* Thermal Sensor */
+       Tlvt = Lvt0,  /* Timer */
+       Lint0 = Lvt1, /* Local Interrupt 0 */
+       Lint1 = Lvt2, /* Local Interrupt 1 */
+       Elvt = Lvt3,  /* Error */
+       Pclvt = Lvt4, /* Performance Counter */
+       Tslvt = Lvt5, /* Thermal Sensor */
 };
 
-enum {						/* Siv */
-	Swen		= 0x00000100,		/* Software Enable */
-	Fdis		= 0x00000200,		/* Focus Disable */
+enum {                    /* Siv */
+       Swen = 0x00000100, /* Software Enable */
+       Fdis = 0x00000200, /* Focus Disable */
 };
 
-enum {						/* Iclo */
-	Lassert		= 0x00004000,		/* Assert level */
+enum {                       /* Iclo */
+       Lassert = 0x00004000, /* Assert level */
 
-	DSnone		= 0x00000000,		/* Use Destination Field */
-	DSself		= 0x00040000,		/* Self is only destination */
-	DSallinc	= 0x00080000,		/* All including self */
-	DSallexc	= 0x000c0000,		/* All Excluding self */
+       DSnone = 0x00000000,   /* Use Destination Field */
+       DSself = 0x00040000,   /* Self is only destination */
+       DSallinc = 0x00080000, /* All including self */
+       DSallexc = 0x000c0000, /* All Excluding self */
 };
 
-enum {						/* Tlvt */
-	Periodic	= 0x00020000,		/* Periodic Timer Mode */
+enum {                        /* Tlvt */
+       Periodic = 0x00020000, /* Periodic Timer Mode */
 };
 
-enum {						/* Tdc */
-	DivX2		= 0x00000000,		/* Divide by 2 */
-	DivX4		= 0x00000001,		/* Divide by 4 */
-	DivX8		= 0x00000002,		/* Divide by 8 */
-	DivX16		= 0x00000003,		/* Divide by 16 */
-	DivX32		= 0x00000008,		/* Divide by 32 */
-	DivX64		= 0x00000009,		/* Divide by 64 */
-	DivX128		= 0x0000000a,		/* Divide by 128 */
-	DivX1		= 0x0000000b,		/* Divide by 1 */
+enum {                       /* Tdc */
+       DivX2 = 0x00000000,   /* Divide by 2 */
+       DivX4 = 0x00000001,   /* Divide by 4 */
+       DivX8 = 0x00000002,   /* Divide by 8 */
+       DivX16 = 0x00000003,  /* Divide by 16 */
+       DivX32 = 0x00000008,  /* Divide by 32 */
+       DivX64 = 0x00000009,  /* Divide by 64 */
+       DivX128 = 0x0000000a, /* Divide by 128 */
+       DivX1 = 0x0000000b,   /* Divide by 1 */
 };
 
 static uint8_t* apicbase;
 static int apmachno = 1;
 
-Apic	xlapic[Napic];
-Mach	*xlapicmachptr[Napic];		/* maintained, but unused */
+Apic xlapic[Napic];
+Mach* xlapicmachptr[Napic]; /* maintained, but unused */
 
 static uint32_t
 apicrget(int r)
 {
-	return *((uint32_t*)(apicbase+r));
+	return *((uint32_t*)(apicbase + r));
 }
 
 static void
 apicrput(int r, uint32_t data)
 {
-	*((uint32_t*)(apicbase+r)) = data;
+	*((uint32_t*)(apicbase + r)) = data;
 }
 
 int
@@ -110,16 +110,16 @@ apicisr(int vecno)
 {
 	int isr;
 
-	isr = apicrget(Is + (vecno/32)*16);
+	isr = apicrget(Is + (vecno / 32) * 16);
 
-	return isr & (1<<(vecno%32));
+	return isr & (1 << (vecno % 32));
 }
 
 void
 apicinit(int apicno, uintmem pa, int isbp)
 {
-	Proc *up = externup();
-	Apic *apic;
+	Proc* up = externup();
+	Apic* apic;
 
 	/*
 	 * Mark the APIC useable if it has a good ID
@@ -130,16 +130,16 @@ apicinit(int apicno, uintmem pa, int isbp)
 	 * to be dealt with sometime.
 	 */
 	DBG("apicinit: apicno %d pa %#p isbp %d\n", apicno, pa, isbp);
-	if(apicno >= Napic){
+	if(apicno >= Napic) {
 		print("apicinit%d: out of range\n", apicno);
 		return;
 	}
-	if((apic = &xlapic[apicno])->useable){
+	if((apic = &xlapic[apicno])->useable) {
 		print("apicinit%d: already initialised\n", apicno);
 		return;
 	}
-	if(apicbase == nil){
-		if((apicbase = vmap(pa, 1024)) == nil){
+	if(apicbase == nil) {
+		if((apicbase = vmap(pa, 1024)) == nil) {
 			print("apicinit%d: can't map apicbase\n", apicno);
 			return;
 		}
@@ -152,26 +152,24 @@ apicinit(int apicno, uintmem pa, int isbp)
 	 * APIC, it may not be an identity map.
 	 * Machno 0 is always the bootstrap processor.
 	 */
-	if(isbp){
+	if(isbp) {
 		apic->machno = 0;
 		m->apicno = apicno;
-	}
-	else
+	} else
 		apic->machno = apmachno++;
 }
 
 static void
-apicdump0(Apic *apic, int i)
+apicdump0(Apic* apic, int i)
 {
 	if(!apic->useable || apic->addr != 0)
 		return;
-	DBG("apic%d: machno %d lint0 %#8.8ux lint1 %#8.8ux\n",
-		i, apic->machno, apic->lvt[0], apic->lvt[1]);
-	DBG(" tslvt %#8.8ux pclvt %#8.8ux elvt %#8.8ux\n",
-		apicrget(Tslvt), apicrget(Pclvt), apicrget(Elvt));
+	DBG("apic%d: machno %d lint0 %#8.8ux lint1 %#8.8ux\n", i, apic->machno,
+	    apic->lvt[0], apic->lvt[1]);
+	DBG(" tslvt %#8.8ux pclvt %#8.8ux elvt %#8.8ux\n", apicrget(Tslvt),
+	    apicrget(Pclvt), apicrget(Elvt));
 	DBG(" tlvt %#8.8ux lint0 %#8.8ux lint1 %#8.8ux siv %#8.8ux\n",
-		apicrget(Tlvt), apicrget(Lint0),
-		apicrget(Lint1), apicrget(Siv));
+	    apicrget(Tlvt), apicrget(Lint0), apicrget(Lint1), apicrget(Siv));
 }
 
 void
@@ -198,15 +196,15 @@ apictimer(Ureg* ureg, void* v)
 int
 apiconline(void)
 {
-	Proc *up = externup();
-	Apic *apic;
+	Proc* up = externup();
+	Apic* apic;
 	uint64_t tsc;
 	uint32_t dfr, ver;
 	int apicno, nlvt;
 
 	if(apicbase == nil)
 		return 0;
-	if((apicno = ((apicrget(Id)>>24) & 0xff)) >= Napic)
+	if((apicno = ((apicrget(Id) >> 24) & 0xff)) >= Napic)
 		return 0;
 	apic = &xlapic[apicno];
 	if(!apic->useable || apic->addr != nil)
@@ -218,10 +216,10 @@ apiconline(void)
 	 * processor.
 	 */
 	ver = apicrget(Ver);
-	nlvt = ((ver>>16) & 0xff) + 1;
-	if(nlvt > nelem(apic->lvt)){
-		print("apicinit%d: nlvt %d > max (%d)\n",
-			apicno, nlvt, nelem(apic->lvt));
+	nlvt = ((ver >> 16) & 0xff) + 1;
+	if(nlvt > nelem(apic->lvt)) {
+		print("apicinit%d: nlvt %d > max (%d)\n", apicno, nlvt,
+		      nelem(apic->lvt));
 		nlvt = nelem(apic->lvt);
 	}
 	apic->nlvt = nlvt;
@@ -250,7 +248,7 @@ apiconline(void)
 	 * bits 3-0 0x0f unless the Extended Spurious Vector Enable bit
 	 * is set in the HyperTransport Transaction Control register.
 	 */
-	apicrput(Siv, Swen|IdtSPURIOUS);
+	apicrput(Siv, Swen | IdtSPURIOUS);
 
 	/*
 	 * Acknowledge any outstanding interrupts.
@@ -264,20 +262,20 @@ apiconline(void)
 	 */
 	apicrput(Tdc, DivX1);
 	apicrput(Tlvt, Im);
-	tsc = rdtsc() + m->cpuhz/10;
+	tsc = rdtsc() + m->cpuhz / 10;
 	apicrput(Tic, 0xffffffff);
 
 	while(rdtsc() < tsc)
 		;
 
-	apic->hz = (0xffffffff-apicrget(Tcc))*10;
-	apic->max = apic->hz/HZ;
-	apic->min = apic->hz/(100*HZ);
-	apic->div = ((m->cpuhz/apic->max)+HZ/2)/HZ;
+	apic->hz = (0xffffffff - apicrget(Tcc)) * 10;
+	apic->max = apic->hz / HZ;
+	apic->min = apic->hz / (100 * HZ);
+	apic->div = ((m->cpuhz / apic->max) + HZ / 2) / HZ;
 
-	if(machp()->machno == 0 || DBGFLG){
+	if(machp()->machno == 0 || DBGFLG) {
 		print("apic%d: hz %lld max %lld min %lld div %lld\n", apicno,
-			apic->hz, apic->max, apic->min, apic->div);
+		      apic->hz, apic->max, apic->min, apic->div);
 	}
 
 	/*
@@ -287,18 +285,18 @@ apiconline(void)
 	 * Clear any Error Status (write followed by read) and enable
 	 * the Error interrupt.
 	 */
-	switch(apic->nlvt){
+	switch(apic->nlvt) {
 	case 6:
 		apicrput(Tslvt, Im);
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	case 5:
 		apicrput(Pclvt, Im);
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	default:
 		break;
 	}
-	apicrput(Lint1, apic->lvt[1]|Im|IdtLINT1);
-	apicrput(Lint0, apic->lvt[0]|Im|IdtLINT0);
+	apicrput(Lint1, apic->lvt[1] | Im | IdtLINT1);
+	apicrput(Lint0, apic->lvt[0] | Im | IdtLINT0);
 
 	apicrput(Es, 0);
 	apicrget(Es);
@@ -311,7 +309,7 @@ apiconline(void)
 	apicrput(Ichi, 0);
 	apicrput(Iclo, DSallinc|Lassert|MTir);
 	while(apicrget(Iclo) & Ds)
-		;
+	        ;
 	 */
 
 	/*
@@ -319,12 +317,12 @@ apiconline(void)
 	 * then lower the task priority to allow interrupts to be
 	 * accepted by the APIC.
 	 */
-	microdelay((TK2MS(1)*1000/apmachno) * machp()->machno);
+	microdelay((TK2MS(1) * 1000 / apmachno) * machp()->machno);
 
-	if(apic->machno == 0){
+	if(apic->machno == 0) {
 		apicrput(Tic, apic->max);
 		intrenable(IdtTIMER, apictimer, 0, -1, "APIC timer");
-		apicrput(Tlvt, Periodic|IrqTIMER);
+		apicrput(Tlvt, Periodic | IrqTIMER);
 	}
 
 	if(machp()->machno == 0)
@@ -339,32 +337,31 @@ apiconline(void)
 void
 apictimerenab(void)
 {
-	Apic *apic;
+	Apic* apic;
 
-	apic = &xlapic[(apicrget(Id)>>24) & 0xff];
+	apic = &xlapic[(apicrget(Id) >> 24) & 0xff];
 
 	apiceoi(IdtTIMER);
 	apicrput(Tic, apic->max);
-	apicrput(Tlvt, Periodic|IrqTIMER);
-
+	apicrput(Tlvt, Periodic | IrqTIMER);
 }
 
 void
 apictimerset(uint64_t next)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	Mpl pl;
-	Apic *apic;
+	Apic* apic;
 	int64_t period;
 
-	apic = &xlapic[(apicrget(Id)>>24) & 0xff];
+	apic = &xlapic[(apicrget(Id) >> 24) & 0xff];
 
 	pl = splhi();
 	lock(&m->apictimerlock);
 
 	period = apic->max;
-	if(next != 0){
-		period = next - fastticks(nil);	/* fastticks is just rdtsc() */
+	if(next != 0) {
+		period = next - fastticks(nil); /* fastticks is just rdtsc() */
 		period /= apic->div;
 
 		if(period < apic->min)
@@ -388,15 +385,15 @@ apicsipi(int apicno, uintmem pa)
 	 * SIPI - Start-up IPI.
 	 * To do: checks on apic validity.
 	 */
-	crhi = apicno<<24;
+	crhi = apicno << 24;
 	apicrput(Ichi, crhi);
-	apicrput(Iclo, DSnone|TMlevel|Lassert|MTir);
+	apicrput(Iclo, DSnone | TMlevel | Lassert | MTir);
 	microdelay(200);
-	apicrput(Iclo, DSnone|TMlevel|MTir);
+	apicrput(Iclo, DSnone | TMlevel | MTir);
 	millidelay(10);
 
-	crlo = DSnone|TMedge|MTsipi|((uint32_t)pa/(4*KiB));
-	for(i = 0; i < 2; i++){
+	crlo = DSnone | TMedge | MTsipi | ((uint32_t)pa / (4 * KiB));
+	for(i = 0; i < 2; i++) {
 		apicrput(Ichi, crhi);
 		apicrput(Iclo, crlo);
 		microdelay(200);
@@ -406,8 +403,8 @@ apicsipi(int apicno, uintmem pa)
 void
 apicipi(int apicno)
 {
-	apicrput(Ichi, apicno<<24);
-	apicrput(Iclo, DSnone|TMedge|Lassert|MTf|IdtIPI);
+	apicrput(Ichi, apicno << 24);
+	apicrput(Iclo, DSnone | TMedge | Lassert | MTf | IdtIPI);
 	while(apicrget(Iclo) & Ds)
 		;
 }

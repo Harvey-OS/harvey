@@ -13,19 +13,19 @@
 
 /* one entry buffer for reading directories */
 struct DirBuf {
-	DirEntryEnum*	dee;
-	int		valid;
-	DirEntry	de;
+	DirEntryEnum* dee;
+	int valid;
+	DirEntry de;
 };
 
 static DirBuf*
 dirBufAlloc(File* file)
 {
-	DirBuf *db;
+	DirBuf* db;
 
 	db = vtMemAllocZ(sizeof(DirBuf));
 	db->dee = deeOpen(file);
-	if(db->dee == nil){
+	if(db->dee == nil) {
 		/* can happen if dir is removed from under us */
 		vtMemFree(db);
 		return nil;
@@ -56,23 +56,23 @@ dirDe2M(DirEntry* de, uint8_t* p, int np)
 	dir.qid.path = de->qid;
 	dir.qid.vers = de->mcount;
 	dir.mode = de->mode & 0777;
-	if(de->mode & ModeAppend){
+	if(de->mode & ModeAppend) {
 		dir.qid.type |= QTAPPEND;
 		dir.mode |= DMAPPEND;
 	}
-	if(de->mode & ModeExclusive){
+	if(de->mode & ModeExclusive) {
 		dir.qid.type |= QTEXCL;
 		dir.mode |= DMEXCL;
 	}
-	if(de->mode & ModeDir){
+	if(de->mode & ModeDir) {
 		dir.qid.type |= QTDIR;
 		dir.mode |= DMDIR;
 	}
-	if(de->mode & ModeSnapshot){
-		dir.qid.type |= QTMOUNT;	/* just for debugging */
+	if(de->mode & ModeSnapshot) {
+		dir.qid.type |= QTMOUNT; /* just for debugging */
 		dir.mode |= DMMOUNT;
 	}
-	if(de->mode & ModeTemporary){
+	if(de->mode & ModeTemporary) {
 		dir.qid.type |= QTTMP;
 		dir.mode |= DMTMP;
 	}
@@ -102,18 +102,18 @@ int
 dirRead(Fid* fid, uint8_t* p, int count, int64_t offset)
 {
 	int n, nb;
-	DirBuf *db;
+	DirBuf* db;
 
 	/*
 	 * special case of rewinding a directory
 	 * otherwise ignore the offset
 	 */
-	if(offset == 0 && fid->db){
+	if(offset == 0 && fid->db) {
 		dirBufFree(fid->db);
 		fid->db = nil;
 	}
 
-	if(fid->db == nil){
+	if(fid->db == nil) {
 		fid->db = dirBufAlloc(fid->file);
 		if(fid->db == nil)
 			return -1;
@@ -121,8 +121,8 @@ dirRead(Fid* fid, uint8_t* p, int count, int64_t offset)
 
 	db = fid->db;
 
-	for(nb = 0; nb < count; nb += n){
-		if(!db->valid){
+	for(nb = 0; nb < count; nb += n) {
+		if(!db->valid) {
 			n = deeRead(db->dee, &db->de);
 			if(n < 0)
 				return -1;
@@ -130,7 +130,7 @@ dirRead(Fid* fid, uint8_t* p, int count, int64_t offset)
 				break;
 			db->valid = 1;
 		}
-		n = dirDe2M(&db->de, p+nb, count-nb);
+		n = dirDe2M(&db->de, p + nb, count - nb);
 		if(n <= BIT16SZ)
 			break;
 		db->valid = 0;

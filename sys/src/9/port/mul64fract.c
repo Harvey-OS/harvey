@@ -28,7 +28,7 @@
  */
 
 void
-mul64fract(uint64_t *r, uint64_t a, uint64_t b)
+mul64fract(uint64_t* r, uint64_t a, uint64_t b)
 {
 	uint64_t bh, bl;
 	uint64_t ah, al;
@@ -39,10 +39,10 @@ mul64fract(uint64_t *r, uint64_t a, uint64_t b)
 	al = a & 0xffffffffULL;
 	ah = a >> 32;
 
-	res = (al*bl)>>32;
-	res += (al*bh);
-	res += (ah*bl);
-	res += (ah*bh)<<32;
+	res = (al * bl) >> 32;
+	res += (al * bh);
+	res += (ah * bl);
+	res += (ah * bh) << 32;
 
 	*r = res;
 }

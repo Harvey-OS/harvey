@@ -19,17 +19,17 @@
 #include "fns.h"
 
 int nclient;
-Client **client;
+Client** client;
 
 static void clientthread(void*);
 int
 newclient(int plumbed)
 {
 	int i;
-	Client *c;
+	Client* c;
 
-	for(i=0; i<nclient; i++)
-		if(client[i]->ref==0)
+	for(i = 0; i < nclient; i++)
+		if(client[i]->ref == 0)
 			return i;
 
 	c = emalloc(sizeof(Client));
@@ -41,17 +41,17 @@ newclient(int plumbed)
 	c->num = nclient;
 	c->ctl = globalctl;
 	clonectl(&c->ctl);
-	if(nclient%16 == 0)
-		client = erealloc(client, (nclient+16)*sizeof(client[0]));
+	if(nclient % 16 == 0)
+		client = erealloc(client, (nclient + 16) * sizeof(client[0]));
 	client[nclient++] = c;
-	return nclient-1;
+	return nclient - 1;
 }
 
 void
-closeclient(Client *c)
+closeclient(Client* c)
 {
-	if(--c->ref == 0){
-		if(c->bodyopened){
+	if(--c->ref == 0) {
+		if(c->bodyopened) {
 			if(c->url && c->url->close)
 				(*c->url->close)(c);
 			c->bodyopened = 0;
@@ -73,33 +73,33 @@ closeclient(Client *c)
 }
 
 void
-clonectl(Ctl *c)
+clonectl(Ctl* c)
 {
 	if(c->useragent)
 		c->useragent = estrdup(c->useragent);
 }
 
 void
-clientbodyopen(Client *c, Req *r)
+clientbodyopen(Client* c, Req* r)
 {
 	char e[ERRMAX], *next;
 	int i, nauth;
-	Url *u;
+	Url* u;
 
 	nauth = 0;
 	next = nil;
-	for(i=0; i<=c->ctl.redirectlimit; i++){
-		if(c->url == nil){
+	for(i = 0; i <= c->ctl.redirectlimit; i++) {
+		if(c->url == nil) {
 			werrstr("nil url");
 			goto Error;
 		}
-		if(c->url->open == nil){
+		if(c->url->open == nil) {
 			werrstr("unsupported url type");
 			goto Error;
 		}
 		if(fsdebug)
 			fprint(2, "try %s\n", c->url->url);
-		if(c->url->open(c, c->url) < 0){
+		if(c->url->open(c, c->url) < 0) {
 		Error:
 			if(next)
 				fprint(2, "next %s (but for error)\n", next);
@@ -108,30 +108,31 @@ clientbodyopen(Client *c, Req *r)
 			c->iobusy = 0;
 			if(r != nil)
 				r->fid->omode = -1;
-			closeclient(c);	/* not opening */
+			closeclient(c); /* not opening */
 			if(r != nil)
 				respond(r, e);
 			return;
 		}
-		if (c->authenticate && nauth++ < 1)
-				continue;
+		if(c->authenticate && nauth++ < 1)
+			continue;
 		if(!c->redirect)
 			break;
 		next = c->redirect;
 		c->redirect = nil;
-		if(i==c->ctl.redirectlimit){
+		if(i == c->ctl.redirectlimit) {
 			werrstr("redirect limit reached");
 			goto Error;
 		}
 		if((u = parseurl(next, c->url)) == nil)
 			goto Error;
 		if(urldebug)
-			fprint(2, "parseurl %s got scheme %d\n", next, u->ischeme);
-		if(u->ischeme == USunknown){
+			fprint(2, "parseurl %s got scheme %d\n", next,
+			       u->ischeme);
+		if(u->ischeme == USunknown) {
 			werrstr("redirect with unknown URL scheme");
 			goto Error;
 		}
-		if(u->ischeme == UScurrent){
+		if(u->ischeme == UScurrent) {
 			werrstr("redirect to URL relative to current document");
 			goto Error;
 		}
@@ -145,20 +146,20 @@ clientbodyopen(Client *c, Req *r)
 }
 
 void
-plumburl(char *url, char *base)
+plumburl(char* url, char* base)
 {
 	int i;
-	Client *c;
-	Url *ubase, *uurl;
+	Client* c;
+	Url* ubase, *uurl;
 
 	ubase = nil;
-	if(base){
+	if(base) {
 		ubase = parseurl(base, nil);
 		if(ubase == nil)
 			return;
 	}
 	uurl = parseurl(url, ubase);
-	if(uurl == nil){
+	if(uurl == nil) {
 		freeurl(ubase);
 		return;
 	}
@@ -171,15 +172,15 @@ plumburl(char *url, char *base)
 }
 
 void
-clientbodyread(Client *c, Req *r)
+clientbodyread(Client* c, Req* r)
 {
 	char e[ERRMAX];
 
-	if(c->url->read == nil){
+	if(c->url->read == nil) {
 		respond(r, "unsupported url type");
 		return;
 	}
-	if(c->url->read(c, r) < 0){
+	if(c->url->read(c, r) < 0) {
 		rerrstr(e, sizeof e);
 		c->iobusy = 0;
 		respond(r, e);
@@ -190,32 +191,31 @@ clientbodyread(Client *c, Req *r)
 }
 
 static void
-clientthread(void *a)
+clientthread(void* a)
 {
-	Client *c;
-	Req *r;
+	Client* c;
+	Req* r;
 
 	c = a;
 	if(c->plumbed) {
 		recvp(c->creq);
-		if(c->url == nil){
+		if(c->url == nil) {
 			fprint(2, "bad url got plumbed\n");
 			return;
 		}
 		clientbodyopen(c, nil);
 		replumb(c);
 	}
-	while((r = recvp(c->creq)) != nil){
+	while((r = recvp(c->creq)) != nil) {
 		if(fsdebug)
 			fprint(2, "clientthread %F\n", &r->ifcall);
-		switch(r->ifcall.type){
+		switch(r->ifcall.type) {
 		case Topen:
 			if(c->plumbed) {
 				c->plumbed = 0;
-				c->ref--;			/* from plumburl() */
+				c->ref--; /* from plumburl() */
 				respond(r, nil);
-			}
-			else
+			} else
 				clientbodyopen(c, r);
 			break;
 		case Tread:
@@ -228,63 +228,59 @@ clientthread(void *a)
 			fprint(2, "clientthread finished req\n");
 	}
 }
-	
-enum
-{
-	Bool,
-	Int,
-	String,
-	XUrl,
-	Fn,
+
+enum { Bool,
+       Int,
+       String,
+       XUrl,
+       Fn,
 };
 
 typedef struct Ctab Ctab;
 struct Ctab {
-	char *name;
+	char* name;
 	int type;
-	void *offset;
+	void* offset;
 };
 
 Ctab ctltab[] = {
-	"acceptcookies",	Bool,		(void*)offsetof(Ctl, acceptcookies),
-	"sendcookies",		Bool,		(void*)offsetof(Ctl, sendcookies),
-	"redirectlimit",		Int,		(void*)offsetof(Ctl, redirectlimit),
-	"useragent",		String,	(void*)offsetof(Ctl, useragent),
+    "acceptcookies", Bool, (void*)offsetof(Ctl, acceptcookies), "sendcookies",
+    Bool, (void*)offsetof(Ctl, sendcookies), "redirectlimit", Int,
+    (void*)offsetof(Ctl, redirectlimit), "useragent", String,
+    (void*)offsetof(Ctl, useragent),
 };
 
 Ctab globaltab[] = {
-	"chatty9p",		Int,		&chatty9p,
-	"fsdebug",		Int,		&fsdebug,
-	"cookiedebug",		Int,		&cookiedebug,
-	"urldebug",		Int,		&urldebug,
-	"httpdebug",		Int,		&httpdebug,
+    "chatty9p", Int,           &chatty9p,   "fsdebug",    Int,
+    &fsdebug,   "cookiedebug", Int,         &cookiedebug, "urldebug",
+    Int,        &urldebug,     "httpdebug", Int,          &httpdebug,
 };
 
 Ctab clienttab[] = {
-	"baseurl",			XUrl,		(void*)offsetof(Client, baseurl),
-	"url",				XUrl,		(void*)offsetof(Client, url),
+    "baseurl", XUrl, (void*)offsetof(Client, baseurl), "url", XUrl,
+    (void*)offsetof(Client, url),
 };
 
 static Ctab*
-findcmd(char *cmd, Ctab *tab, int ntab)
+findcmd(char* cmd, Ctab* tab, int ntab)
 {
 	int i;
 
-	for(i=0; i<ntab; i++)
+	for(i = 0; i < ntab; i++)
 		if(strcmp(tab[i].name, cmd) == 0)
 			return &tab[i];
 	return nil;
 }
 
 static void
-parseas(Req *r, char *arg, int type, void *a)
+parseas(Req* r, char* arg, int type, void* a)
 {
-	Url *u;
+	Url* u;
 	char e[ERRMAX];
 
-	switch(type){
+	switch(type) {
 	case Bool:
-		if(strcmp(arg, "on")==0 || strcmp(arg, "1")==0)
+		if(strcmp(arg, "on") == 0 || strcmp(arg, "1") == 0)
 			*(int*)a = 1;
 		else
 			*(int*)a = 0;
@@ -295,7 +291,7 @@ parseas(Req *r, char *arg, int type, void *a)
 		break;
 	case XUrl:
 		u = parseurl(arg, nil);
-		if(u == nil){
+		if(u == nil) {
 			snprint(e, sizeof e, "parseurl: %r");
 			respond(r, e);
 			return;
@@ -304,7 +300,7 @@ parseas(Req *r, char *arg, int type, void *a)
 		*(Url**)a = u;
 		break;
 	case Int:
-		if(strcmp(arg, "on")==0)
+		if(strcmp(arg, "on") == 0)
 			*(int*)a = 1;
 		else
 			*(int*)a = atoi(arg);
@@ -314,36 +310,36 @@ parseas(Req *r, char *arg, int type, void *a)
 }
 
 int
-ctlwrite(Req *r, Ctl *ctl, char *cmd, char *arg)
+ctlwrite(Req* r, Ctl* ctl, char* cmd, char* arg)
 {
-	void *a;
-	Ctab *t;
+	void* a;
+	Ctab* t;
 
 	if((t = findcmd(cmd, ctltab, nelem(ctltab))) == nil)
 		return 0;
-	a = (void*)((uintptr)ctl+(uintptr)t->offset);
+	a = (void*)((uintptr)ctl + (uintptr)t->offset);
 	parseas(r, arg, t->type, a);
 	return 1;
 }
 
 int
-clientctlwrite(Req *r, Client *c, char *cmd, char *arg)
+clientctlwrite(Req* r, Client* c, char* cmd, char* arg)
 {
-	void *a;
-	Ctab *t;
+	void* a;
+	Ctab* t;
 
 	if((t = findcmd(cmd, clienttab, nelem(clienttab))) == nil)
 		return 0;
-	a = (void*)((uintptr)c+(uintptr)t->offset);
+	a = (void*)((uintptr)c + (uintptr)t->offset);
 	parseas(r, arg, t->type, a);
 	return 1;
 }
 
 int
-globalctlwrite(Req *r, char *cmd, char *arg)
+globalctlwrite(Req* r, char* cmd, char* arg)
 {
-	void *a;
-	Ctab *t;
+	void* a;
+	Ctab* t;
 
 	if((t = findcmd(cmd, globaltab, nelem(globaltab))) == nil)
 		return 0;
@@ -353,17 +349,18 @@ globalctlwrite(Req *r, char *cmd, char *arg)
 }
 
 static void
-ctlfmt(Ctl *c, char *s)
+ctlfmt(Ctl* c, char* s)
 {
 	int i;
-	void *a;
-	char *t;
+	void* a;
+	char* t;
 
-	for(i=0; i<nelem(ctltab); i++){
-		a = (void*)((uintptr)c+(uintptr)ctltab[i].offset);
-		switch(ctltab[i].type){
+	for(i = 0; i < nelem(ctltab); i++) {
+		a = (void*)((uintptr)c + (uintptr)ctltab[i].offset);
+		switch(ctltab[i].type) {
 		case Bool:
-			s += sprint(s, "%s %s\n", ctltab[i].name, *(int*)a ? "on" : "off");
+			s += sprint(s, "%s %s\n", ctltab[i].name,
+			            *(int*)a ? "on" : "off");
 			break;
 		case Int:
 			s += sprint(s, "%s %d\n", ctltab[i].name, *(int*)a);
@@ -371,32 +368,35 @@ ctlfmt(Ctl *c, char *s)
 		case String:
 			t = *(char**)a;
 			if(t != nil)
-				s += sprint(s, "%s %.*s%s\n", ctltab[i].name, utfnlen(t, 100), t, strlen(t)>100 ? "..." : "");
+				s += sprint(s, "%s %.*s%s\n", ctltab[i].name,
+				            utfnlen(t, 100), t,
+				            strlen(t) > 100 ? "..." : "");
 			break;
 		}
 	}
 }
 
 void
-ctlread(Req *r, Client *c)
+ctlread(Req* r, Client* c)
 {
 	char buf[1024];
 
 	sprint(buf, "%11d \n", c->num);
-	ctlfmt(&c->ctl, buf+strlen(buf));
+	ctlfmt(&c->ctl, buf + strlen(buf));
 	readstr(r, buf);
 	respond(r, nil);
 }
 
 void
-globalctlread(Req *r)
+globalctlread(Req* r)
 {
 	char buf[1024], *s;
 	int i;
 
 	s = buf;
-	for(i=0; i<nelem(globaltab); i++)
-		s += sprint(s, "%s %d\n", globaltab[i].name, *(int*)globaltab[i].offset);
+	for(i = 0; i < nelem(globaltab); i++)
+		s += sprint(s, "%s %d\n", globaltab[i].name,
+		            *(int*)globaltab[i].offset);
 	ctlfmt(&globalctl, s);
 	readstr(r, buf);
 	respond(r, nil);

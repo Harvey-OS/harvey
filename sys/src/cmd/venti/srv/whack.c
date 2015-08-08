@@ -10,58 +10,51 @@
 #include "stdinc.h"
 #include "whack.h"
 
-typedef struct Huff	Huff;
+typedef struct Huff Huff;
 int compressblocks = 1;
 
-enum
-{
-	MaxFastLen	= 9,
-	BigLenCode	= 0x1f4,	/* minimum code for large lenth encoding */
-	BigLenBits	= 9,
-	BigLenBase	= 4,		/* starting items to encode for big lens */
+enum { MaxFastLen = 9,
+       BigLenCode = 0x1f4, /* minimum code for large lenth encoding */
+       BigLenBits = 9,
+       BigLenBase = 4, /* starting items to encode for big lens */
 
-	MinOffBits	= 6,
-	MaxOffBits	= MinOffBits + 8,
+       MinOffBits = 6,
+       MaxOffBits = MinOffBits + 8,
 
-	MaxLen		= 2051		/* max. length encodable in 24 bits */
+       MaxLen = 2051 /* max. length encodable in 24 bits */
 };
 
-enum
-{
-	StatBytes,
-	StatOutBytes,
-	StatLits,
-	StatMatches,
-	StatLitBits,
-	StatOffBits,
-	StatLenBits,
+enum { StatBytes,
+       StatOutBytes,
+       StatLits,
+       StatMatches,
+       StatLitBits,
+       StatOffBits,
+       StatLenBits,
 
-	MaxStat
+       MaxStat };
+
+struct Huff {
+	int16_t bits;    /* length of the code */
+	uint32_t encode; /* the code */
 };
 
-struct Huff
-{
-	int16_t	bits;				/* length of the code */
-	uint32_t	encode;				/* the code */
+static Huff lentab[MaxFastLen] = {
+    {2, 0x2},  /* 10 */
+    {3, 0x6},  /* 110 */
+    {5, 0x1c}, /* 11100 */
+    {5, 0x1d}, /* 11101 */
+    {6, 0x3c}, /* 111100 */
+    {7, 0x7a}, /* 1111010 */
+    {7, 0x7b}, /* 1111011 */
+    {8, 0xf8}, /* 11111000 */
+    {8, 0xf9}, /* 11111001 */
 };
 
-static	Huff	lentab[MaxFastLen] =
-{
-	{2,	0x2},		/* 10 */
-	{3,	0x6},		/* 110 */
-	{5,	0x1c},		/* 11100 */
-	{5,	0x1d},		/* 11101 */
-	{6,	0x3c},		/* 111100 */
-	{7,	0x7a},		/* 1111010 */
-	{7,	0x7b},		/* 1111011 */
-	{8,	0xf8},		/* 11111000 */
-	{8,	0xf9},		/* 11111001 */
-};
-
-static int	thwmaxcheck;
+static int thwmaxcheck;
 
 void
-whackinit(Whack *tw, int level)
+whackinit(Whack* tw, int level)
 {
 	thwmaxcheck = (1 << level);
 	thwmaxcheck -= thwmaxcheck >> 2;
@@ -77,11 +70,11 @@ whackinit(Whack *tw, int level)
  * find a string in the dictionary
  */
 static int
-whackmatch(Whack *b, uint8_t **ss, uint8_t *esrc, uint32_t h, uint32_t now)
+whackmatch(Whack* b, uint8_t** ss, uint8_t* esrc, uint32_t h, uint32_t now)
 {
 	uint16_t then, off, last;
 	int bestoff, bestlen, check;
-	uint8_t *s, *t;
+	uint8_t* s, *t;
 
 	s = *ss;
 	if(esrc < s + MinMatch)
@@ -93,7 +86,8 @@ whackmatch(Whack *b, uint8_t **ss, uint8_t *esrc, uint32_t h, uint32_t now)
 	bestlen = 0;
 	check = thwmaxcheck;
 	last = 0;
-	for(then = b->hash[h]; check-- > 0; then = b->next[then & (WhackMaxOff - 1)]){
+	for(then = b->hash[h]; check-- > 0;
+	    then = b->next[then & (WhackMaxOff - 1)]) {
 		off = now - then;
 		if(off <= last || off > WhackMaxOff)
 			break;
@@ -103,15 +97,16 @@ whackmatch(Whack *b, uint8_t **ss, uint8_t *esrc, uint32_t h, uint32_t now)
 		 * 1) s too close check above
 		 */
 		t = s - off;
-		if(s[0] == t[0] && s[1] == t[1] && s[2] == t[2]){
-			if(!bestlen || esrc - s > bestlen && s[bestlen] == t[bestlen]){
+		if(s[0] == t[0] && s[1] == t[1] && s[2] == t[2]) {
+			if(!bestlen ||
+			   esrc - s > bestlen && s[bestlen] == t[bestlen]) {
 				t += 3;
-				for(s += 3; s < esrc; s++){
+				for(s += 3; s < esrc; s++) {
 					if(*s != *t)
 						break;
 					t++;
 				}
-				if(s - *ss > bestlen){
+				if(s - *ss > bestlen) {
 					bestlen = s - *ss;
 					bestoff = off;
 					if(bestlen > thwmaxcheck)
@@ -138,19 +133,20 @@ whackmatch(Whack *b, uint8_t **ss, uint8_t *esrc, uint32_t h, uint32_t now)
 /*
 #define hashit(c)	((((ulong)(c) * 0x6b43a9) >> (24 - HashLog)) & HashMask)
 */
-#define hashit(c)	(((((uint32_t)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog)) & HashMask)
+#define hashit(c)                                                              \
+	(((((uint32_t)(c)&0xffffff) * 0x6b43a9b5) >> (32 - HashLog)) & HashMask)
 
 /*
  * lz77 compression with single lookup in a hash table for each block
  */
 int
-whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
-      uint32_t stats[WhackStats])
+whack(Whack* w, uint8_t* dst, uint8_t* src, int n, uint32_t stats[WhackStats])
 {
-	uint8_t *s, *ss, *sss, *esrc, *half, *wdst, *wdmax;
+	uint8_t* s, *ss, *sss, *esrc, *half, *wdst, *wdmax;
 	uint32_t cont, code, wbits;
 	uint16_t now;
-	int toff, lithist, h, len, bits, use, wnbits, lits, matches, offbits, lenbits;
+	int toff, lithist, h, len, bits, use, wnbits, lits, matches, offbits,
+	    lenbits;
 
 	if(!compressblocks || n < MinMatch)
 		return -1;
@@ -173,7 +169,7 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 	offbits = 0;
 	lenbits = 0;
 	lithist = ~0;
-	while(s < esrc){
+	while(s < esrc) {
 		h = hashit(cont);
 
 		sss = s;
@@ -181,29 +177,29 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 		ss = sss;
 
 		len = ss - s;
-		for(; wnbits >= 8; wnbits -= 8){
-			if(wdst >= wdmax){
+		for(; wnbits >= 8; wnbits -= 8) {
+			if(wdst >= wdmax) {
 				w->begin = now;
 				return -1;
 			}
 			*wdst++ = wbits >> (wnbits - 8);
 		}
-		if(len < MinMatch){
+		if(len < MinMatch) {
 			toff = *s;
-			lithist = (lithist << 1) | toff < 32 | toff > 127;
-			if(lithist & 0x1e){
+			lithist = (lithist << 1) | toff<32 | toff> 127;
+			if(lithist & 0x1e) {
 				wbits = (wbits << 9) | toff;
 				wnbits += 9;
-			}else if(lithist & 1){
+			} else if(lithist & 1) {
 				toff = (toff + 64) & 0xff;
-				if(toff < 96){
+				if(toff < 96) {
 					wbits = (wbits << 10) | toff;
 					wnbits += 10;
-				}else{
+				} else {
 					wbits = (wbits << 11) | toff;
 					wnbits += 11;
 				}
-			}else{
+			} else {
 				wbits = (wbits << 8) | toff;
 				wnbits += 8;
 			}
@@ -213,15 +209,15 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 			 * speed hack
 			 * check for compression progress, bail if none achieved
 			 */
-			if(s > half){
-				if(4 * (s - src) < 5 * lits){
+			if(s > half) {
+				if(4 * (s - src) < 5 * lits) {
 					w->begin = now;
 					return -1;
 				}
 				half = esrc;
 			}
 
-			if(s + MinMatch <= esrc){
+			if(s + MinMatch <= esrc) {
 				w->next[now & (WhackMaxOff - 1)] = w->hash[h];
 				w->hash[h] = now;
 				if(s + MinMatch < esrc)
@@ -237,22 +233,22 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 		/*
 		 * length of match
 		 */
-		if(len > MaxLen){
+		if(len > MaxLen) {
 			len = MaxLen;
 			ss = s + len;
 		}
 		len -= MinMatch;
-		if(len < MaxFastLen){
+		if(len < MaxFastLen) {
 			bits = lentab[len].bits;
 			wbits = (wbits << bits) | lentab[len].encode;
 			wnbits += bits;
 			lenbits += bits;
-		}else{
+		} else {
 			code = BigLenCode;
 			bits = BigLenBits;
 			use = BigLenBase;
 			len -= MaxFastLen;
-			while(len >= use){
+			while(len >= use) {
 				len -= use;
 				code = (code + use) << 1;
 				use <<= (bits & 1) ^ 1;
@@ -263,8 +259,8 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 			wnbits += bits;
 			lenbits += bits;
 
-			for(; wnbits >= 8; wnbits -= 8){
-				if(wdst >= wdmax){
+			for(; wnbits >= 8; wnbits -= 8) {
+				if(wdst >= wdmax) {
 					w->begin = now;
 					return -1;
 				}
@@ -278,22 +274,22 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 		toff--;
 		for(bits = MinOffBits; toff >= (1 << bits); bits++)
 			;
-		if(bits < MaxOffBits-1){
+		if(bits < MaxOffBits - 1) {
 			wbits = (wbits << 3) | (bits - MinOffBits);
 			if(bits != MinOffBits)
 				bits--;
 			wnbits += bits + 3;
 			offbits += bits + 3;
-		}else{
-			wbits = (wbits << 4) | 0xe | (bits - (MaxOffBits-1));
+		} else {
+			wbits = (wbits << 4) | 0xe | (bits - (MaxOffBits - 1));
 			bits--;
 			wnbits += bits + 4;
 			offbits += bits + 4;
 		}
 		wbits = (wbits << bits) | toff & ((1 << bits) - 1);
 
-		for(; s != ss; s++){
-			if(s + MinMatch <= esrc){
+		for(; s != ss; s++) {
+			if(s + MinMatch <= esrc) {
 				h = hashit(cont);
 				w->next[now & (WhackMaxOff - 1)] = w->hash[h];
 				w->hash[h] = now;
@@ -309,15 +305,16 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 	stats[StatBytes] += esrc - src;
 	stats[StatLits] += lits;
 	stats[StatMatches] += matches;
-	stats[StatLitBits] += (wdst - (dst + 2)) * 8 + wnbits - offbits - lenbits;
+	stats[StatLitBits] +=
+	    (wdst - (dst + 2)) * 8 + wnbits - offbits - lenbits;
 	stats[StatOffBits] += offbits;
 	stats[StatLenBits] += lenbits;
 
-	if(wnbits & 7){
+	if(wnbits & 7) {
 		wbits <<= 8 - (wnbits & 7);
 		wnbits += 8 - (wnbits & 7);
 	}
-	for(; wnbits >= 8; wnbits -= 8){
+	for(; wnbits >= 8; wnbits -= 8) {
 		if(wdst >= wdmax)
 			return -1;
 		*wdst++ = wbits >> (wnbits - 8);
@@ -329,7 +326,7 @@ whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
 }
 
 int
-whackblock(uint8_t *dst, uint8_t *src, int ssize)
+whackblock(uint8_t* dst, uint8_t* src, int ssize)
 {
 	Whack w;
 	uint32_t stats[MaxStat];

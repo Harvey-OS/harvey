@@ -12,19 +12,19 @@
 #include <libsec.h>
 
 RSApriv*
-rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q)
+rsafill(mpint* n, mpint* e, mpint* d, mpint* p, mpint* q)
 {
-	mpint *c2, *kq, *kp, *x;
-	RSApriv *rsa;
+	mpint* c2, *kq, *kp, *x;
+	RSApriv* rsa;
 
 	// make sure we're not being hoodwinked
-	if(!probably_prime(p, 10) || !probably_prime(q, 10)){
+	if(!probably_prime(p, 10) || !probably_prime(q, 10)) {
 		werrstr("rsafill: p or q not prime");
 		return nil;
 	}
 	x = mpnew(0);
 	mpmul(p, q, x);
-	if(mpcmp(n, x) != 0){
+	if(mpcmp(n, x) != 0) {
 		werrstr("rsafill: n != p*q");
 		mpfree(x);
 		return nil;
@@ -35,7 +35,7 @@ rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q)
 	mpmul(c2, x, x);
 	mpmul(e, d, c2);
 	mpmod(c2, x, x);
-	if(mpcmp(x, mpone) != 0){
+	if(mpcmp(x, mpone) != 0) {
 		werrstr("rsafill: e*d != 1 mod (p-1)*(q-1)");
 		mpfree(x);
 		mpfree(c2);
@@ -67,4 +67,3 @@ rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q)
 
 	return rsa;
 }
-

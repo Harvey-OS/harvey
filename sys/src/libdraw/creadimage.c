@@ -11,17 +11,17 @@
 #include <libc.h>
 #include <draw.h>
 
-Image *
-creadimage(Display *d, int fd, int dolock)
+Image*
+creadimage(Display* d, int fd, int dolock)
 {
-	char hdr[5*12+1];
+	char hdr[5 * 12 + 1];
 	Rectangle r;
 	int m, nb, miny, maxy, new, ldepth, ncblock;
-	uint8_t *buf, *a;
-	Image *i;
+	uint8_t* buf, *a;
+	Image* i;
 	uint32_t chan;
 
-	if(readn(fd, hdr, 5*12) != 5*12)
+	if(readn(fd, hdr, 5 * 12) != 5 * 12)
 		return nil;
 
 	/*
@@ -30,40 +30,40 @@ creadimage(Display *d, int fd, int dolock)
 	 * while ldepths are a single digit formatted as %-11d.
 	 */
 	new = 0;
-	for(m=0; m<10; m++){
-		if(hdr[m] != ' '){
+	for(m = 0; m < 10; m++) {
+		if(hdr[m] != ' ') {
 			new = 1;
 			break;
 		}
 	}
-	if(hdr[11] != ' '){
+	if(hdr[11] != ' ') {
 		werrstr("creadimage: bad format");
 		return nil;
 	}
-	if(new){
+	if(new) {
 		hdr[11] = '\0';
-		if((chan = strtochan(hdr)) == 0){
+		if((chan = strtochan(hdr)) == 0) {
 			werrstr("creadimage: bad channel string %s", hdr);
 			return nil;
 		}
-	}else{
-		ldepth = ((int)hdr[10])-'0';
-		if(ldepth<0 || ldepth>3){
+	} else {
+		ldepth = ((int)hdr[10]) - '0';
+		if(ldepth < 0 || ldepth > 3) {
 			werrstr("creadimage: bad ldepth %d", ldepth);
 			return nil;
 		}
 		chan = drawld2chan[ldepth];
 	}
-	r.min.x=atoi(hdr+1*12);
-	r.min.y=atoi(hdr+2*12);
-	r.max.x=atoi(hdr+3*12);
-	r.max.y=atoi(hdr+4*12);
-	if(r.min.x>r.max.x || r.min.y>r.max.y){
+	r.min.x = atoi(hdr + 1 * 12);
+	r.min.y = atoi(hdr + 2 * 12);
+	r.max.x = atoi(hdr + 3 * 12);
+	r.max.y = atoi(hdr + 4 * 12);
+	if(r.min.x > r.max.x || r.min.y > r.max.y) {
 		werrstr("creadimage: bad rectangle");
 		return nil;
 	}
 
-	if(d){
+	if(d) {
 		if(dolock)
 			lockdisplay(d);
 		i = allocimage(d, r, chan, 0, 0);
@@ -72,7 +72,7 @@ creadimage(Display *d, int fd, int dolock)
 			unlockdisplay(d);
 		if(i == nil)
 			return nil;
-	}else{
+	} else {
 		i = mallocz(sizeof(Image), 1);
 		if(i == nil)
 			return nil;
@@ -82,8 +82,8 @@ creadimage(Display *d, int fd, int dolock)
 	if(buf == nil)
 		goto Errout;
 	miny = r.min.y;
-	while(miny != r.max.y){
-		if(readn(fd, hdr, 2*12) != 2*12){
+	while(miny != r.max.y) {
+		if(readn(fd, hdr, 2 * 12) != 2 * 12) {
 		Errout:
 			if(dolock)
 				lockdisplay(d);
@@ -94,33 +94,33 @@ creadimage(Display *d, int fd, int dolock)
 			free(buf);
 			return nil;
 		}
-		maxy = atoi(hdr+0*12);
-		nb = atoi(hdr+1*12);
-		if(maxy<=miny || r.max.y<maxy){
+		maxy = atoi(hdr + 0 * 12);
+		nb = atoi(hdr + 1 * 12);
+		if(maxy <= miny || r.max.y < maxy) {
 			werrstr("creadimage: bad maxy %d", maxy);
 			goto Errout;
 		}
-		if(nb<=0 || ncblock<nb){
+		if(nb <= 0 || ncblock < nb) {
 			werrstr("creadimage: bad count %d", nb);
 			goto Errout;
 		}
-		if(readn(fd, buf, nb)!=nb)
+		if(readn(fd, buf, nb) != nb)
 			goto Errout;
-		if(d){
+		if(d) {
 			if(dolock)
 				lockdisplay(d);
-			a = bufimage(i->display, 21+nb);
+			a = bufimage(i->display, 21 + nb);
 			if(a == nil)
 				goto Erroutlock;
 			a[0] = 'Y';
-			BPLONG(a+1, i->id);
-			BPLONG(a+5, r.min.x);
-			BPLONG(a+9, miny);
-			BPLONG(a+13, r.max.x);
-			BPLONG(a+17, maxy);
-			if(!new)	/* old image: flip the data bits */
+			BPLONG(a + 1, i->id);
+			BPLONG(a + 5, r.min.x);
+			BPLONG(a + 9, miny);
+			BPLONG(a + 13, r.max.x);
+			BPLONG(a + 17, maxy);
+			if(!new) /* old image: flip the data bits */
 				_twiddlecompressed(buf, nb);
-			memmove(a+21, buf, nb);
+			memmove(a + 21, buf, nb);
 			if(dolock)
 				unlockdisplay(d);
 		}

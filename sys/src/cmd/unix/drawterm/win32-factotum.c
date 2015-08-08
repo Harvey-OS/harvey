@@ -28,4 +28,3 @@ dialfactotum(void)
 {
 	return -1;
 }
-

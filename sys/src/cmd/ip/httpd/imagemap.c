@@ -13,43 +13,40 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-typedef struct Point	Point;
-typedef struct OkPoint	OkPoint;
-typedef struct Strings	Strings;
+typedef struct Point Point;
+typedef struct OkPoint OkPoint;
+typedef struct Strings Strings;
 
-struct Point 
-{
-	int	x;
-	int	y;
+struct Point {
+	int x;
+	int y;
 };
 
-struct OkPoint 
-{
-	Point	p;
-	int	ok;
+struct OkPoint {
+	Point p;
+	int ok;
 };
 
-struct Strings
-{
-	char	*s1;
-	char	*s2;
+struct Strings {
+	char* s1;
+	char* s2;
 };
 
-static	char *me;
+static char* me;
 
-int		polytest(int, Point, Point, Point);
-Strings		getfield(char*);
-OkPoint		pt(char*);
-char*		translate(HConnect*, char*, char*);
-Point		sub(Point, Point);
-float		dist(Point, Point);
+int polytest(int, Point, Point, Point);
+Strings getfield(char*);
+OkPoint pt(char*);
+char* translate(HConnect*, char*, char*);
+Point sub(Point, Point);
+float dist(Point, Point);
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	HConnect *c;
-	Hio *hout;
-	char *dest;
+	HConnect* c;
+	Hio* hout;
+	char* dest;
 
 	me = "imagemap";
 	c = init(argc, argv);
@@ -58,26 +55,30 @@ main(int argc, char **argv)
 		exits("failed");
 	anonymous(c);
 
-	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0){
+	if(strcmp(c->req.meth, "GET") != 0 &&
+	   strcmp(c->req.meth, "HEAD") != 0) {
 		hunallowed(c, "GET, HEAD");
 		exits("unallowed");
 	}
-	if(c->head.expectother || c->head.expectcont){
+	if(c->head.expectother || c->head.expectcont) {
 		hfail(c, HExpectFail, nil);
 		exits("failed");
 	}
 	dest = translate(c, c->req.uri, c->req.search);
 
-	if(dest == nil){
-		if(c->req.vermaj){
+	if(dest == nil) {
+		if(c->req.vermaj) {
 			hokheaders(c);
 			hprint(hout, "Content-type: text/html\r\n");
 			hprint(hout, "\r\n");
 		}
-		hprint(hout, "<head><title>Nothing Found</title></head><body>\n");
-		hprint(hout, "Nothing satisfying your search request could be found.\n</body>\n");
+		hprint(hout,
+		       "<head><title>Nothing Found</title></head><body>\n");
+		hprint(hout, "Nothing satisfying your search request could be "
+		             "found.\n</body>\n");
 		hflush(hout);
-		writelog(c, "Reply: 200 imagemap %ld %ld\n", hout->seek, hout->seek);
+		writelog(c, "Reply: 200 imagemap %ld %ld\n", hout->seek,
+		         hout->seek);
 		exits(nil);
 	}
 
@@ -89,29 +90,29 @@ main(int argc, char **argv)
 }
 
 char*
-translate(HConnect *c, char *uri, char *search)
+translate(HConnect* c, char* uri, char* search)
 {
-	Biobuf *b;
+	Biobuf* b;
 	Strings ss;
 	OkPoint okp;
 	Point p, cen, q, start;
 	float close, d;
-	char *line, *to, *def, *s, *dst;
+	char* line, *to, *def, *s, *dst;
 	int n, inside, r, ncsa;
 
-	if(search == nil){
+	if(search == nil) {
 		hfail(c, HNoData, me);
 		exits("failed");
 	}
 	okp = pt(search);
-	if(!okp.ok){
+	if(!okp.ok) {
 		hfail(c, HBadSearch, me);
 		exits("failed");
 	}
 	p = okp.p;
 
 	b = Bopen(uri, OREAD);
-	if(b == nil){
+	if(b == nil) {
 		hfail(c, HNotFound, uri);
 		exits("failed");
 	}
@@ -121,22 +122,22 @@ translate(HConnect *c, char *uri, char *search)
 	dst = nil;
 	close = 0.;
 	ncsa = 1;
-	while(line = Brdline(b, '\n')){
-		line[Blinelen(b)-1] = 0;
+	while(line = Brdline(b, '\n')) {
+		line[Blinelen(b) - 1] = 0;
 
 		ss = getfield(line);
 		s = ss.s1;
 		line = ss.s2;
-		if(ncsa){
+		if(ncsa) {
 			ss = getfield(line);
 			dst = ss.s1;
 			line = ss.s2;
 		}
-		if(strcmp(s, "#cern") == 0){
+		if(strcmp(s, "#cern") == 0) {
 			ncsa = 0;
 			continue;
 		}
-		if(strcmp(s, "rect") == 0){
+		if(strcmp(s, "rect") == 0) {
 			ss = getfield(line);
 			s = ss.s1;
 			line = ss.s2;
@@ -151,12 +152,12 @@ translate(HConnect *c, char *uri, char *search)
 			q = okp.p;
 			if(!okp.ok || q.x < p.x || q.y < p.y)
 				continue;
-			if(!ncsa){
+			if(!ncsa) {
 				ss = getfield(line);
 				dst = ss.s1;
 			}
 			return dst;
-		}else if(strcmp(s, "circle") == 0){
+		} else if(strcmp(s, "circle") == 0) {
 			ss = getfield(line);
 			s = ss.s1;
 			line = ss.s2;
@@ -167,13 +168,13 @@ translate(HConnect *c, char *uri, char *search)
 			ss = getfield(line);
 			s = ss.s1;
 			line = ss.s2;
-			if(ncsa){
+			if(ncsa) {
 				okp = pt(s);
 				if(!okp.ok)
 					continue;
 				if(dist(okp.p, cen) >= dist(p, cen))
 					return dst;
-			}else{
+			} else {
 				r = strtol(s, nil, 10);
 				ss = getfield(line);
 				dst = ss.s1;
@@ -181,7 +182,7 @@ translate(HConnect *c, char *uri, char *search)
 				if(d >= dist(p, cen))
 					return dst;
 			}
-		}else if(strcmp(s, "poly") == 0){
+		} else if(strcmp(s, "poly") == 0) {
 			ss = getfield(line);
 			s = ss.s1;
 			line = ss.s2;
@@ -191,7 +192,7 @@ translate(HConnect *c, char *uri, char *search)
 				continue;
 			inside = 0;
 			cen = start;
-			for(n = 1; ; n++){
+			for(n = 1;; n++) {
 				ss = getfield(line);
 				s = ss.s1;
 				line = ss.s2;
@@ -207,7 +208,7 @@ translate(HConnect *c, char *uri, char *search)
 				dst = s;
 			if(n >= 3 && inside)
 				return dst;
-		}else if(strcmp(s, "point") == 0){
+		} else if(strcmp(s, "point") == 0) {
 			ss = getfield(line);
 			s = ss.s1;
 			line = ss.s2;
@@ -216,18 +217,18 @@ translate(HConnect *c, char *uri, char *search)
 			if(!okp.ok)
 				continue;
 			d = dist(p, q);
-			if(!ncsa){
+			if(!ncsa) {
 				ss = getfield(line);
 				dst = ss.s1;
 			}
 			if(d == 0.)
 				return dst;
-			if(close == 0. || d < close){
+			if(close == 0. || d < close) {
 				close = d;
 				to = dst;
 			}
-		}else if(strcmp(s, "default") == 0){
-			if(!ncsa){
+		} else if(strcmp(s, "default") == 0) {
+			if(!ncsa) {
 				ss = getfield(line);
 				dst = ss.s1;
 			}
@@ -244,14 +245,14 @@ polytest(int inside, Point p, Point b, Point a)
 {
 	Point pa, ba;
 
-	if(b.y>a.y){
-		pa=sub(p, a);
-		ba=sub(b, a);
-	}else{
-		pa=sub(p, b);
-		ba=sub(a, b);
+	if(b.y > a.y) {
+		pa = sub(p, a);
+		ba = sub(b, a);
+	} else {
+		pa = sub(p, b);
+		ba = sub(a, b);
 	}
-	if(0<=pa.y && pa.y<ba.y && pa.y*ba.x<=pa.x*ba.y)
+	if(0 <= pa.y && pa.y < ba.y && pa.y * ba.x <= pa.x * ba.y)
 		inside = !inside;
 	return inside;
 }
@@ -273,11 +274,11 @@ dist(Point p, Point q)
 }
 
 OkPoint
-pt(char *s)
+pt(char* s)
 {
 	OkPoint okp;
 	Point p;
-	char *t, *e;
+	char* t, *e;
 
 	if(*s == '(')
 		s++;
@@ -287,20 +288,20 @@ pt(char *s)
 	p.x = 0;
 	p.y = 0;
 	t = strchr(s, ',');
-	if(t == nil){
+	if(t == nil) {
 		okp.p = p;
 		okp.ok = 0;
 		return okp;
 	}
 	e = nil;
 	p.x = strtol(s, &e, 10);
-	if(e != t){
+	if(e != t) {
 		okp.p = p;
 		okp.ok = 0;
 		return okp;
 	}
-	p.y = strtol(t+1, &e, 10);
-	if(e == nil || *e != 0){
+	p.y = strtol(t + 1, &e, 10);
+	if(e == nil || *e != 0) {
 		okp.p = p;
 		okp.ok = 0;
 		return okp;
@@ -311,10 +312,10 @@ pt(char *s)
 }
 
 Strings
-getfield(char *s)
+getfield(char* s)
 {
 	Strings ss;
-	char *f;
+	char* f;
 
 	while(*s == '\t' || *s == ' ')
 		s++;

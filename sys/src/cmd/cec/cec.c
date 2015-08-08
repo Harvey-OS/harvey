@@ -14,59 +14,58 @@
  */
 #include <u.h>
 #include <libc.h>
-#include <ip.h>		/* really! */
+#include <ip.h> /* really! */
 #include <ctype.h>
 #include "cec.h"
 
-enum {
-	Tinita		= 0,
-	Tinitb,
-	Tinitc,
-	Tdata,
-	Tack,
-	Tdiscover,
-	Toffer,
-	Treset,
+enum { Tinita = 0,
+       Tinitb,
+       Tinitc,
+       Tdata,
+       Tack,
+       Tdiscover,
+       Toffer,
+       Treset,
 
-	Hdrsz		= 18,
-	Eaddrlen	= 6,
+       Hdrsz = 18,
+       Eaddrlen = 6,
 };
 
-typedef struct{
-	uint8_t	ea[Eaddrlen];
-	int	major;
-	char	name[28];
+typedef struct {
+	uint8_t ea[Eaddrlen];
+	int major;
+	char name[28];
 } Shelf;
 
-int 	conn(int);
-void 	gettingkilled(int);
-int 	pickone(void);
-void 	probe(void);
-void	sethdr(Pkt *, int);
-int	shelfidx(void);
+int conn(int);
+void gettingkilled(int);
+int pickone(void);
+void probe(void);
+void sethdr(Pkt*, int);
+int shelfidx(void);
 
-Shelf	*con;
-Shelf	tab[1000];
+Shelf* con;
+Shelf tab[1000];
 
-char	*host;
-char	*srv;
-char	*svc;
+char* host;
+char* srv;
+char* svc;
 
-char	pflag;
+char pflag;
 
-int	ntab;
-int	shelf = -1;
+int ntab;
+int shelf = -1;
 
-uint8_t	bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-uint8_t	contag;
-uint8_t 	esc = '';
-uint8_t	ea[Eaddrlen];
-uint8_t	unsetea[Eaddrlen];
+uint8_t bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+uint8_t contag;
+uint8_t esc = '';
+uint8_t ea[Eaddrlen];
+uint8_t unsetea[Eaddrlen];
 
-extern 	int fd;		/* set in netopen */
+extern int fd; /* set in netopen */
 
 void
-post(char *srv, int fd)
+post(char* srv, int fd)
 {
 	char buf[32];
 	int f;
@@ -80,13 +79,13 @@ post(char *srv, int fd)
 }
 
 void
-dosrv(char *s)
+dosrv(char* s)
 {
 	int p[2];
 
 	if(pipe(p) < 0)
 		sysfatal("pipe: %r");
-	if (srv[0] != '/')
+	if(srv[0] != '/')
 		svc = smprint("/srv/%s", s);
 	else
 		svc = smprint("%s", s);
@@ -95,7 +94,7 @@ dosrv(char *s)
 	dup(p[1], 0);
 	dup(p[1], 1);
 
-	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
+	switch(rfork(RFFDG | RFPROC | RFNAMEG | RFNOTEG)) {
 	case -1:
 		sysfatal("fork: %r");
 	case 0:
@@ -110,12 +109,11 @@ void
 usage(void)
 {
 	fprint(2, "usage: cec [-dp] [-c esc] [-e ea] [-h host] [-s shelf] "
-		"[-S srv] interface\n");
+	          "[-S srv] interface\n");
 	exits0("usage");
 }
 
-void
-catch(void*, char *note)
+void catch(void*, char* note)
 {
 	if(strcmp(note, "alarm") == 0)
 		noted(NCONT);
@@ -123,17 +121,18 @@ catch(void*, char *note)
 }
 
 int
-nilea(uint8_t *ea)
+nilea(uint8_t* ea)
 {
 	return memcmp(ea, unsetea, Eaddrlen) == 0;
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int r, n;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'S':
 		srv = EARGF(usage());
 		break;
@@ -161,7 +160,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	if(argc == 0)
 		*argv = "/net/ether0";
 	else if(argc != 1)
@@ -171,20 +171,20 @@ main(int argc, char **argv)
 	if(srv != nil)
 		dosrv(srv);
 	r = netopen(*argv);
-	if(r == -1){
+	if(r == -1) {
 		fprint(2, "cec: can't netopen %s\n", *argv);
 		exits0("open");
 	}
 	notify(catch);
 	probe();
-	for(;;){
+	for(;;) {
 		n = 0;
 		if(shelf == -1 && host == 0 && nilea(ea))
 			n = pickone();
 		rawon();
 		conn(n);
 		rawoff();
-		if(pflag == 0){
+		if(pflag == 0) {
 			if(shelf != -1)
 				exits0("shelf not found");
 			if(host)
@@ -208,7 +208,7 @@ didtimeout(void)
 	char buf[ERRMAX];
 
 	rerrstr(buf, sizeof buf);
-	if(strcmp(buf, "interrupted") == 0){
+	if(strcmp(buf, "interrupted") == 0) {
 		werrstr(buf, 0);
 		return 1;
 	}
@@ -219,7 +219,7 @@ uint16_t
 htons(uint16_t h)
 {
 	uint16_t n;
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)&n;
 	p[0] = h >> 8;
@@ -231,7 +231,7 @@ uint16_t
 ntohs(int h)
 {
 	uint16_t n;
-	uint8_t *p;
+	uint8_t* p;
 
 	n = h;
 	p = (uint8_t*)&n;
@@ -239,9 +239,9 @@ ntohs(int h)
 }
 
 int
-tcmp(const void *a, const void *b)
+tcmp(const void* a, const void* b)
 {
-	Shelf *s, *t;
+	Shelf* s, *t;
 	int d;
 
 	s = a;
@@ -257,10 +257,10 @@ tcmp(const void *a, const void *b)
 void
 probe(void)
 {
-	char *sh, *other;
+	char* sh, *other;
 	int n;
 	Pkt q;
-	Shelf *p;
+	Shelf* p;
 
 	do {
 		ntab = 0;
@@ -273,13 +273,13 @@ probe(void)
 		q.seq = 0;
 		netsend(&q, 60);
 		timewait(Iowait);
-		while((n = netget(&q, sizeof q)) >= 0){
+		while((n = netget(&q, sizeof q)) >= 0) {
 			if((n <= 0 && didtimeout()) || ntab == nelem(tab))
 				break;
 			if(n < 60 || q.len == 0 || q.type != Toffer)
 				continue;
 			q.data[q.len] = 0;
-			sh = strtok((char *)q.data, " \t");
+			sh = strtok((char*)q.data, " \t");
 			if(sh == nil)
 				continue;
 			if(!nilea(ea) && memcmp(ea, q.src, Eaddrlen) != 0)
@@ -299,8 +299,8 @@ probe(void)
 				snprint(p->name, sizeof p->name, "%s", other);
 		}
 		alarm(0);
-	} while (ntab == 0 && pflag);
-	if(ntab == 0){
+	} while(ntab == 0 && pflag);
+	if(ntab == 0) {
 		fprint(2, "none found.\n");
 		exits0("none found");
 	}
@@ -313,7 +313,8 @@ showtable(void)
 	int i;
 
 	for(i = 0; i < ntab; i++)
-		print("%2d   %5d %E %s\n", i, tab[i].major, tab[i].ea, tab[i].name);
+		print("%2d   %5d %E %s\n", i, tab[i].major, tab[i].ea,
+		      tab[i].name);
 }
 
 int
@@ -322,27 +323,27 @@ pickone(void)
 	char buf[80];
 	int n, i;
 
-	for(;;){
+	for(;;) {
 		showtable();
 		print("[#qp]: ");
-		switch(n = read(0, buf, sizeof buf)){
+		switch(n = read(0, buf, sizeof buf)) {
 		case 1:
 			if(buf[0] == '\n')
 				continue;
-			/* fall through */
+		/* fall through */
 		case 2:
-			if(buf[0] == 'p'){
+			if(buf[0] == 'p') {
 				probe();
 				break;
 			}
 			if(buf[0] == 'q')
-				/* fall through */
-		case 0:
+			/* fall through */
+			case 0:
 		case -1:
-				exits0(0);
+			exits0(0);
 			break;
 		}
-		if(isdigit(buf[0])){
+		if(isdigit(buf[0])) {
 			buf[n] = 0;
 			i = atoi(buf);
 			if(i >= 0 && i < ntab)
@@ -353,7 +354,7 @@ pickone(void)
 }
 
 void
-sethdr(Pkt *pp, int type)
+sethdr(Pkt* pp, int type)
 {
 	memmove(pp->dst, con->ea, Eaddrlen);
 	memset(pp->src, 0, Eaddrlen);
@@ -384,7 +385,7 @@ ethopen(void)
 	contag = (getpid() >> 8) ^ (getpid() & 0xff);
 	sethdr(&tpk, Tinita);
 	sethdr(&rpk, 0);
-	for(i = 0; i < 3 && rpk.type != Tinitb; i++){
+	for(i = 0; i < 3 && rpk.type != Tinitb; i++) {
 		netsend(&tpk, 60);
 		timewait(Iowait);
 		n = netget(&rpk, 1000);
@@ -405,7 +406,7 @@ escape(void)
 	char buf[64];
 	int r;
 
-	for(;;){
+	for(;;) {
 		fprint(2, ">>> ");
 		buf[0] = '.';
 		rawoff();
@@ -413,7 +414,7 @@ escape(void)
 		rawon();
 		if(r == -1)
 			exits0("kbd: %r");
-		switch(buf[0]){
+		switch(buf[0]) {
 		case 'i':
 		case 'q':
 		case '.':
@@ -429,7 +430,7 @@ escape(void)
 static uint8_t crbuf[256];
 
 void
-nocrwrite(int fd, uint8_t *buf, int n)
+nocrwrite(int fd, uint8_t* buf, int n)
 {
 	int i, j, c;
 
@@ -447,7 +448,7 @@ doloop(void)
 	uint8_t c, tseq, rseq;
 	uint8_t ea[Eaddrlen];
 	Pkt tpk, spk;
-	Mux *m;
+	Mux* m;
 
 	memmove(ea, con->ea, Eaddrlen);
 	retries = 0;
@@ -457,14 +458,14 @@ doloop(void)
 	set[0] = 0;
 	set[1] = fd;
 top:
-	if ((m = mux(set)) == 0)
+	if((m = mux(set)) == 0)
 		exits0("mux: %r");
-	for (; ; )
-		switch (muxread(m, &spk)) {
+	for(;;)
+		switch(muxread(m, &spk)) {
 		case -1:
-			if (unacked == 0)
+			if(unacked == 0)
 				break;
-			if (retries-- == 0) {
+			if(retries-- == 0) {
 				fprint(2, "Connection timed out\n");
 				muxfree(m);
 				return 0;
@@ -473,9 +474,9 @@ top:
 			break;
 		case Fkbd:
 			c = spk.data[0];
-			if (c == esc) {
+			if(c == esc) {
 				muxfree(m);
-				switch (escape()) {
+				switch(escape()) {
 				case 'q':
 					tpk.len = 0;
 					tpk.type = Treset;
@@ -484,7 +485,7 @@ top:
 				case '.':
 					goto top;
 				case 'i':
-					if ((m = mux(set)) == 0)
+					if((m = mux(set)) == 0)
 						exits0("mux: %r");
 					break;
 				}
@@ -498,19 +499,19 @@ top:
 			netsend(&tpk, Hdrsz + spk.len);
 			break;
 		case Fcec:
-			if (memcmp(spk.src, ea, Eaddrlen) != 0 ||
-			    ntohs(spk.etype) != Etype)
+			if(memcmp(spk.src, ea, Eaddrlen) != 0 ||
+			   ntohs(spk.etype) != Etype)
 				continue;
-			if (spk.type == Toffer &&
-			    memcmp(spk.dst, bcast, Eaddrlen) != 0) {
+			if(spk.type == Toffer &&
+			   memcmp(spk.dst, bcast, Eaddrlen) != 0) {
 				muxfree(m);
 				return 1;
 			}
-			if (spk.conn != contag)
+			if(spk.conn != contag)
 				continue;
-			switch (spk.type) {
+			switch(spk.type) {
 			case Tdata:
-				if (spk.seq == rseq)
+				if(spk.seq == rseq)
 					break;
 				nocrwrite(1, spk.data, spk.len);
 				memmove(spk.dst, spk.src, Eaddrlen);
@@ -521,7 +522,7 @@ top:
 				netsend(&spk, 60);
 				break;
 			case Tack:
-				if (spk.seq == tseq)
+				if(spk.seq == tseq)
 					unacked = 0;
 				break;
 			case Treset:
@@ -541,11 +542,11 @@ conn(int n)
 {
 	int r;
 
-	for(;;){
+	for(;;) {
 		if(con)
 			ethclose();
 		con = tab + n;
-		if(ethopen() < 0){
+		if(ethopen() < 0) {
 			fprint(2, "connection failed\n");
 			return 0;
 		}
@@ -556,7 +557,7 @@ conn(int n)
 }
 
 void
-exits0(char *s)
+exits0(char* s)
 {
 	if(con != nil)
 		ethclose();

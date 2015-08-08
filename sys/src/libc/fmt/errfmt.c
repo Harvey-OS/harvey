@@ -12,7 +12,7 @@
 #include "fmtdef.h"
 
 int
-errfmt(Fmt *f)
+errfmt(Fmt* f)
 {
 	char buf[ERRMAX];
 

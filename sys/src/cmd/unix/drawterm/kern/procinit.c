@@ -13,12 +13,12 @@
 #include "fns.h"
 #include "error.h"
 
-Rgrp *thergrp;
+Rgrp* thergrp;
 
 void
 procinit0(void)
 {
-	Proc *p;
+	Proc* p;
 
 	p = newproc();
 	p->fgrp = dupfgrp(nil);
@@ -37,7 +37,7 @@ Ref pidref;
 Proc*
 newproc(void)
 {
-	Proc *p;
+	Proc* p;
 
 	p = mallocz(sizeof(Proc), 1);
 	p->pid = incref(&pidref);
@@ -50,9 +50,9 @@ newproc(void)
 }
 
 int
-kproc(char *name, void (*fn)(void*), void *arg)
+kproc(char* name, void (*fn)(void*), void* arg)
 {
-	Proc *p;
+	Proc* p;
 
 	p = newproc();
 	p->fn = fn;
@@ -68,9 +68,8 @@ kproc(char *name, void (*fn)(void*), void *arg)
 	p->fgrp = up->fgrp;
 	if(p->fgrp)
 		incref(&p->fgrp->ref);
-	strecpy(p->text, p->text+sizeof p->text, name);
+	strecpy(p->text, p->text + sizeof p->text, name);
 
 	osproc(p);
 	return p->pid;
 }
-

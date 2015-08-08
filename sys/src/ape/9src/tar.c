@@ -9,7 +9,7 @@
 
 /*
  * Attempt at emulation of Unix tar by calling Plan 9 tar.
- * 
+ *
  * The differences from Plan 9 tar are:
  *	In the absence of an "f" flag, the file /dev/tape is used.
  *	An "f" flag with argument "-" causes use of stdin/stdout
@@ -29,11 +29,11 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i, j, verb, vflag, fflag, Tflag, nargc;
-	char *p, *file, **nargv, *cpu, flagbuf[10], execbuf[128];
-	Waitmsg *w;
+	char* p, *file, **nargv, *cpu, flagbuf[10], execbuf[128];
+	Waitmsg* w;
 
 	argv++, argc--;
 	if(argc < 1)
@@ -71,7 +71,8 @@ main(int argc, char **argv)
 			argv++, argc--;
 			if(strcmp(file, "-") == 0) {
 				/*
-				 * plan9 doesn't know about "-" meaning stdin/stdout,
+				 * plan9 doesn't know about "-" meaning
+				 * stdin/stdout,
 				 * but it's the default,
 				 * so rewrite to not use f flag at all.
 				 */
@@ -82,7 +83,7 @@ main(int argc, char **argv)
 		case 'm':
 			Tflag = 0;
 			break;
-		case 'p':		/* pretend nothing's wrong */
+		case 'p': /* pretend nothing's wrong */
 			break;
 		}
 	}
@@ -102,20 +103,21 @@ main(int argc, char **argv)
 	snprint(execbuf, sizeof execbuf, "/%s/bin/tar", cpu);
 
 	nargv[0] = "tar";
-	sprint(flagbuf, "%c%s%s%s", verb, vflag ? "v" : "", Tflag ? "T" : "", fflag ? "f" : "");
+	sprint(flagbuf, "%c%s%s%s", verb, vflag ? "v" : "", Tflag ? "T" : "",
+	       fflag ? "f" : "");
 	nargv[1] = flagbuf;
 
 	i = 2;
 	if(fflag)
 		nargv[i++] = file;
 
-	for(j=0; j<argc; j++, i++)
+	for(j = 0; j < argc; j++, i++)
 		nargv[i] = argv[j];
 
 	nargv[i++] = nil;
 	assert(i == nargc);
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "ape/tar: fork failed: %r\n");
 		exits("fork");

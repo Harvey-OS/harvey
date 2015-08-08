@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1993, 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Generic substitute for Unix errno.h */
 
 #ifndef errno__INCLUDED
-#  define errno__INCLUDED
+#define errno__INCLUDED
 
 /* We must include std.h before any file that includes sys/types.h. */
 #include "std.h"
@@ -35,7 +35,7 @@
 /* All environments provide errno.h, but in some of them, errno.h */
 /* only defines the error numbers, and doesn't declare errno. */
 #include <errno.h>
-#ifndef errno			/* in case it was #defined (very implausible!) */
+#ifndef errno /* in case it was #defined (very implausible!) */
 extern int errno;
 
 #endif

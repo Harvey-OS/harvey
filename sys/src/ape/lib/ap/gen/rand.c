@@ -7,25 +7,25 @@
  * in the LICENSE file.
  */
 
-#include	<stdlib.h>
+#include <stdlib.h>
 
 /*
  *	algorithm by
  *	D. P. Mitchell & J. A. Reeds
  */
-#define	LEN	607
-#define	TAP	273
-#define	MASK	0x7fffffffL
-#define	A	48271
-#define	M	2147483647
-#define	Q	44488
-#define	R	3399
+#define LEN 607
+#define TAP 273
+#define MASK 0x7fffffffL
+#define A 48271
+#define M 2147483647
+#define Q 44488
+#define R 3399
 
-typedef unsigned long	ulong;
+typedef unsigned long ulong;
 
-static	uint32_t	rng_vec[LEN];
-static	uint32_t*	rng_tap = rng_vec;
-static	uint32_t*	rng_feed = 0;
+static uint32_t rng_vec[LEN];
+static uint32_t* rng_tap = rng_vec;
+static uint32_t* rng_feed = 0;
 
 void
 srand(unsigned int seed)
@@ -34,9 +34,9 @@ srand(unsigned int seed)
 	int i;
 
 	rng_tap = rng_vec;
-	rng_feed = rng_vec+LEN-TAP;
-	seed = seed%M;
-	if(0 && seed < 0)			/* seed is unsigned */
+	rng_feed = rng_vec + LEN - TAP;
+	seed = seed % M;
+	if(0 && seed < 0) /* seed is unsigned */
 		seed += M;
 	if(seed == 0)
 		seed = 89482311;
@@ -47,7 +47,7 @@ srand(unsigned int seed)
 	for(i = -20; i < LEN; i++) {
 		hi = x / Q;
 		lo = x % Q;
-		x = A*lo - R*hi;
+		x = A * lo - R * hi;
 		if(x < 0)
 			x += M;
 		if(i >= 0)
@@ -61,19 +61,19 @@ lrand(void)
 	uint32_t x;
 
 	rng_tap--;
-        if(rng_tap < rng_vec) {
-                if(rng_feed == 0) {
+	if(rng_tap < rng_vec) {
+		if(rng_feed == 0) {
 			srand(1);
 			rng_tap--;
 		}
-                rng_tap += LEN;
-        }
+		rng_tap += LEN;
+	}
 	rng_feed--;
-        if(rng_feed < rng_vec)
-                rng_feed += LEN;
+	if(rng_feed < rng_vec)
+		rng_feed += LEN;
 	x = (*rng_feed + *rng_tap) & MASK;
 	*rng_feed = x;
-        return x;
+	return x;
 }
 
 int

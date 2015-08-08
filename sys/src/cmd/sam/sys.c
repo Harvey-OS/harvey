@@ -9,7 +9,7 @@
 
 #include "sam.h"
 
-static int inerror=FALSE;
+static int inerror = FALSE;
 
 /*
  * A reasonable interface to the system calls
@@ -22,12 +22,12 @@ resetsys(void)
 }
 
 void
-syserror(char *a)
+syserror(char* a)
 {
 	char buf[ERRMAX];
 
-	if(!inerror){
-		inerror=TRUE;
+	if(!inerror) {
+		inerror = TRUE;
 		errstr(buf, sizeof buf);
 		dprint("%s: ", a);
 		error_s(Eio, buf);
@@ -35,15 +35,15 @@ syserror(char *a)
 }
 
 int
-Read(int f, void *a, int n)
+Read(int f, void* a, int n)
 {
 	char buf[ERRMAX];
 
-	if(read(f, (char *)a, n)!=n) {
-		if (lastfile)
+	if(read(f, (char*)a, n) != n) {
+		if(lastfile)
 			lastfile->rescuing = 1;
 		errstr(buf, sizeof buf);
-		if (downloaded)
+		if(downloaded)
 			fprint(2, "read error: %s\n", buf);
 		rescue();
 		exits("read");
@@ -52,11 +52,11 @@ Read(int f, void *a, int n)
 }
 
 int
-Write(int f, void *a, int n)
+Write(int f, void* a, int n)
 {
 	int m;
 
-	if((m=write(f, (char *)a, n))!=n)
+	if((m = write(f, (char*)a, n)) != n)
 		syserror("write");
 	return m;
 }
@@ -64,6 +64,6 @@ Write(int f, void *a, int n)
 void
 Seek(int f, int32_t n, int w)
 {
-	if(seek(f, n, w)==-1)
+	if(seek(f, n, w) == -1)
 		syserror("seek");
 }

@@ -26,30 +26,28 @@ rogetprintentry(Entry e, int cmd)
 	spc = 0;
 	p = e.start;
 
-	if(cmd == 'h'){
+	if(cmd == 'h') {
 		while(!isspace(*p) && p < e.end)
 			p++;
-		while(strncmp(p, " -- ", 4) != 0 && p < e.end){
+		while(strncmp(p, " -- ", 4) != 0 && p < e.end) {
 			while(isspace(*p) && p < e.end)
 				p++;
-			if (*p == '[' || *p == '{'){	
-				c = (*p == '[')? ']': '}';
+			if(*p == '[' || *p == '{') {
+				c = (*p == '[') ? ']' : '}';
 				while(*p != c && p < e.end)
 					p++;
 				p++;
 				continue;
 			}
-			if (isdigit(*p) || ispunct(*p)){
+			if(isdigit(*p) || ispunct(*p)) {
 				while(!isspace(*p) && p < e.end)
 					p++;
 				continue;
 			}
 
-
-			if (isspace(*p))
+			if(isspace(*p))
 				spc = 1;
-			else
-			if (spc){
+			else if(spc) {
 				outchar(' ');
 				spc = 0;
 			}
@@ -58,27 +56,30 @@ rogetprintentry(Entry e, int cmd)
 				outchar(*p++);
 		}
 		return;
-	}	
+	}
 
 	while(p < e.end && !isspace(*p))
 		p++;
 	while(p < e.end && isspace(*p))
 		p++;
 
-	while (p < e.end){
-		if (p < e.end -4 && strncmp(p, " -- ", 4) == 0){	/* first line */
+	while(p < e.end) {
+		if(p < e.end - 4 &&
+		   strncmp(p, " -- ", 4) == 0) { /* first line */
 			outnl(2);
 			p += 4;
 			spc = 0;
 		}
-			
-		if (p < e.end -2 && strncmp(p, "[ ", 4) == 0){		/* twiddle layout */
+
+		if(p < e.end - 2 &&
+		   strncmp(p, "[ ", 4) == 0) { /* twiddle layout */
 			outchars(" [");
 			continue;
 		}
 
-		if (p < e.end -4 && strncmp(p, "&c (", 4) == 0){	/* usefull xref */
-			if (spc)
+		if(p < e.end - 4 &&
+		   strncmp(p, "&c (", 4) == 0) { /* usefull xref */
+			if(spc)
 				outchar(' ');
 			outchar('/');
 			while(p < e.end && *p != '(')
@@ -95,7 +96,8 @@ rogetprintentry(Entry e, int cmd)
 			continue;
 		}
 
-		if (p < e.end -3 && strncmp(p, "&c ", 3) == 0){		/* less usefull xref */
+		if(p < e.end - 3 &&
+		   strncmp(p, "&c ", 3) == 0) { /* less usefull xref */
 			while(p < e.end && !isdigit(*p))
 				p++;
 			while(p < e.end && isdigit(*p))
@@ -103,24 +105,23 @@ rogetprintentry(Entry e, int cmd)
 			continue;
 		}
 
-		if (*p == '\n' && p < (e.end -1)){			/* their newlines */
+		if(*p == '\n' && p < (e.end - 1)) { /* their newlines */
 			spc = 0;
 			p++;
-			if (isspace(*p)){				/* their continuation line */
-				while (isspace(*p))
+			if(isspace(*p)) { /* their continuation line */
+				while(isspace(*p))
 					p++;
 				p--;
-			}
-			else{
+			} else {
 				outnl(2);
 			}
 		}
-		if (spc && *p != ';' && *p != '.' &&
-		    *p != ',' && !isspace(*p)){				/* drop spaces before punct */
+		if(spc && *p != ';' && *p != '.' && *p != ',' &&
+		   !isspace(*p)) { /* drop spaces before punct */
 			spc = 0;
 			outchar(' ');
 		}
-		if (isspace(*p))
+		if(isspace(*p))
 			spc = 1;
 		else
 			outchar(*p);
@@ -134,17 +135,17 @@ rogetnextoff(int32_t fromoff)
 {
 	int i;
 	int64_t l;
-	char *p;
+	char* p;
 
 	Bseek(bdict, fromoff, 0);
 	Brdline(bdict, '\n');
-	while ((p = Brdline(bdict, '\n')) != nil){
+	while((p = Brdline(bdict, '\n')) != nil) {
 		l = Blinelen(bdict);
-		if (!isdigit(*p))
+		if(!isdigit(*p))
 			continue;
-		for (i = 0; i < l-4; i++)
-			if (strncmp(p+i, " -- ", 4) == 0)
-				return Boffset(bdict)-l;
+		for(i = 0; i < l - 4; i++)
+			if(strncmp(p + i, " -- ", 4) == 0)
+				return Boffset(bdict) - l;
 	}
 	return Boffset(bdict);
 }

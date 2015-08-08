@@ -1,6 +1,7 @@
 #include "hello.h"
 
-int main()
+int
+main()
 {
 	printf("Be Galician!!\n");
 	return 0;

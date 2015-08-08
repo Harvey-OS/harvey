@@ -15,7 +15,7 @@
 #include <9p.h>
 #include "flashfs.h"
 
-int	chatty9p	= 0;
+int chatty9p = 0;
 
 static void
 usage(void)
@@ -25,21 +25,23 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *file;
+	char* file;
 
 	prog = "dummyfs";
 	file = "/n/brzr";
-	limit = 100*1024;
+	limit = 100 * 1024;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'm':
 		file = ARGF();
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();

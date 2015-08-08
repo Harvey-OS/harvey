@@ -13,7 +13,7 @@
 void*
 mallocz(uint32_t n, int clr)
 {
-	void *v;
+	void* v;
 
 	v = malloc(n);
 	if(v && clr)

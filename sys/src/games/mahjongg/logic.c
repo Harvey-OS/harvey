@@ -14,7 +14,9 @@
 
 #include "mahjongg.h"
 
-Click NC = { -1, 0, 0, };
+Click NC = {
+    -1, 0, 0,
+};
 
 Click
 Cl(int d, int x, int y)
@@ -31,10 +33,11 @@ eqcl(Click c1, Click c2)
 int
 freeup(Click c)
 {
-	if(c.d == Depth -1 || (level.board[c.d+1][c.x][c.y].which == None &&
-	    level.board[c.d+1][c.x+1][c.y].which == None &&
-	    level.board[c.d+1][c.x][c.y+1].which == None &&
-	    level.board[c.d+1][c.x+1][c.y+1].which == None))
+	if(c.d == Depth - 1 ||
+	   (level.board[c.d + 1][c.x][c.y].which == None &&
+	    level.board[c.d + 1][c.x + 1][c.y].which == None &&
+	    level.board[c.d + 1][c.x][c.y + 1].which == None &&
+	    level.board[c.d + 1][c.x + 1][c.y + 1].which == None))
 		return 1;
 	return 0;
 }
@@ -42,8 +45,8 @@ freeup(Click c)
 int
 freeleft(Click c)
 {
-	if(c.x == 0 || (level.board[c.d][c.x-1][c.y].which == None &&
-	    level.board[c.d][c.x-1][c.y+1].which == None))
+	if(c.x == 0 || (level.board[c.d][c.x - 1][c.y].which == None &&
+	                level.board[c.d][c.x - 1][c.y + 1].which == None))
 		return 1;
 	return 0;
 }
@@ -51,8 +54,8 @@ freeleft(Click c)
 int
 freeright(Click c)
 {
-	if(c.x == Lx-2 || (level.board[c.d][c.x+2][c.y].which == None &&
-	    level.board[c.d][c.x+2][c.y+1].which == None))
+	if(c.x == Lx - 2 || (level.board[c.d][c.x + 2][c.y].which == None &&
+	                     level.board[c.d][c.x + 2][c.y + 1].which == None))
 		return 1;
 	return 0;
 }
@@ -73,15 +76,15 @@ cmatch(Click c, int dtop)
 		for(lc.y = 0; lc.y < Ly; lc.y++)
 			for(lc.x = 0; lc.x < Lx; lc.x++)
 				if(level.board[lc.d][lc.x][lc.y].which == TL &&
-				    isfree(lc) && !eqcl(c, lc) &&
-				    level.board[c.d][c.x][c.y].type ==
-				    level.board[lc.d][lc.x][lc.y].type)
+				   isfree(lc) && !eqcl(c, lc) &&
+				   level.board[c.d][c.x][c.y].type ==
+				       level.board[lc.d][lc.x][lc.y].type)
 					return lc;
 	} while(--lc.d >= 0);
 	return NC;
 }
 
-Brick *
+Brick*
 bmatch(Click c)
 {
 	Click lc;
@@ -102,7 +105,7 @@ canmove(void)
 		for(c.y = 0; c.y < Ly; c.y++)
 			for(c.x = 0; c.x < Lx; c.x++)
 				if(level.board[c.d][c.x][c.y].which == TL &&
-				    isfree(c) && bmatch(c) != nil)
+				   isfree(c) && bmatch(c) != nil)
 					return 1;
 	return 0;
 }

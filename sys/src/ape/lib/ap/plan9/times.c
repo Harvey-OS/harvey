@@ -16,9 +16,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-static
-char*
-skip(char *p)
+static char*
+skip(char* p)
 {
 
 	while(*p == ' ')
@@ -29,7 +28,7 @@ skip(char *p)
 }
 
 clock_t
-times(struct tms *buf)
+times(struct tms* buf)
 {
 	char b[200], *p;
 	int f;
@@ -50,7 +49,7 @@ times(struct tms *buf)
 		buf->tms_stime = atol(p);
 	p = skip(p);
 	r = atol(p);
-	if(buf){
+	if(buf) {
 		p = skip(p);
 		buf->tms_cutime = atol(p);
 		p = skip(p);

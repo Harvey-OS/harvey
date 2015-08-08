@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Shared implementation definitions for pdfwrite text and fonts */
 
 #ifndef gdevpdtx_INCLUDED
-#  define gdevpdtx_INCLUDED
+#define gdevpdtx_INCLUDED
 
 #include "gdevpdt.h"
 
@@ -68,28 +68,29 @@
  */
 
 #ifndef pdf_bitmap_fonts_DEFINED
-#  define pdf_bitmap_fonts_DEFINED
+#define pdf_bitmap_fonts_DEFINED
 typedef struct pdf_bitmap_fonts_s pdf_bitmap_fonts_t;
 #endif
 #ifndef pdf_outline_fonts_DEFINED
-#  define pdf_outline_fonts_DEFINED
+#define pdf_outline_fonts_DEFINED
 typedef struct pdf_outline_fonts_s pdf_outline_fonts_t;
 #endif
 #ifndef pdf_text_state_DEFINED
-#  define pdf_text_state_DEFINED
+#define pdf_text_state_DEFINED
 typedef struct pdf_text_state_s pdf_text_state_t;
 #endif
 
-/*typedef struct pdf_text_data_s pdf_text_data_t;*/  /* gdevpdfx.h */
+/*typedef struct pdf_text_data_s pdf_text_data_t;*/ /* gdevpdfx.h */
 struct pdf_text_data_s {
-    pdf_outline_fonts_t *outline_fonts;	/* gdevpdtf.c */
-    pdf_bitmap_fonts_t *bitmap_fonts; /* gdevpdti.c */
-    pdf_text_state_t *text_state; /* gdevpdts.c */
+	pdf_outline_fonts_t* outline_fonts; /* gdevpdtf.c */
+	pdf_bitmap_fonts_t* bitmap_fonts;   /* gdevpdti.c */
+	pdf_text_state_t* text_state;       /* gdevpdts.c */
 };
-#define private_st_pdf_text_data() /* gdevpdt.c */\
-  gs_private_st_ptrs3(st_pdf_text_data, pdf_text_data_t, "pdf_text_data_t",\
-    pdf_text_data_enum_ptrs, pdf_text_data_reloc_ptrs,\
-    outline_fonts, bitmap_fonts, text_state)
+#define private_st_pdf_text_data() /* gdevpdt.c */                             \
+	gs_private_st_ptrs3(st_pdf_text_data, pdf_text_data_t,                 \
+	                    "pdf_text_data_t", pdf_text_data_enum_ptrs,        \
+	                    pdf_text_data_reloc_ptrs, outline_fonts,           \
+	                    bitmap_fonts, text_state)
 
 /* ================ Procedures (internal utilities) ================ */
 
@@ -99,8 +100,9 @@ typedef struct pdf_font_resource_s pdf_font_resource_t;
 /* ---------------- Font accessing ---------------- */
 
 /* Get the object ID of a font resource. */
-long pdf_font_id(const pdf_font_resource_t *pdfont);
+long pdf_font_id(const pdf_font_resource_t* pdfont);
 /* Register charproc fonts with the page or substream. */
-int pdf_used_charproc_resources(gx_device_pdf *pdev, pdf_font_resource_t *pdfont);
+int pdf_used_charproc_resources(gx_device_pdf* pdev,
+                                pdf_font_resource_t* pdfont);
 
 #endif /* gdevpdtx_INCLUDED */

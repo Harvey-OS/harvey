@@ -12,10 +12,10 @@
 #include "fmtdef.h"
 
 char*
-smprint(char *fmt, ...)
+smprint(char* fmt, ...)
 {
 	va_list args;
-	char *p;
+	char* p;
 
 	va_start(args, fmt);
 	p = vsmprint(fmt, args);

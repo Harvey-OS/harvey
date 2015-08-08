@@ -17,25 +17,24 @@ typedef struct ICache ICache;
 typedef struct IHash IHash;
 typedef struct ISum ISum;
 
-struct ICache
-{
-	QLock	lock;
-	Rendez	full;
-	IHash	*hash;
-	IEntry	*entries;
-	int		nentries;
-	IEntry	free;
-	IEntry	clean;
-	IEntry	dirty;
-	uint32_t	maxdirty;
-	uint32_t	ndirty;
-	AState	as;
+struct ICache {
+	QLock lock;
+	Rendez full;
+	IHash* hash;
+	IEntry* entries;
+	int nentries;
+	IEntry free;
+	IEntry clean;
+	IEntry dirty;
+	uint32_t maxdirty;
+	uint32_t ndirty;
+	AState as;
 
-	ISum	**sum;
-	int		nsum;
-	IHash	*shash;
-	IEntry	*sentries;
-	int		nsentries;
+	ISum** sum;
+	int nsum;
+	IHash* shash;
+	IEntry* sentries;
+	int nsentries;
 };
 
 static ICache icache;
@@ -44,11 +43,10 @@ static ICache icache;
  * Hash table of IEntries
  */
 
-struct IHash
-{
+struct IHash {
 	int bits;
 	uint32_t size;
-	IEntry **table;
+	IEntry** table;
 };
 
 static IHash*
@@ -56,44 +54,45 @@ mkihash(int size1)
 {
 	uint32_t size;
 	int bits;
-	IHash *ih;
-	
+	IHash* ih;
+
 	bits = 0;
 	size = 1;
-	while(size < size1){
+	while(size < size1) {
 		bits++;
 		size <<= 1;
 	}
-	
-	ih = vtmallocz(sizeof(IHash)+size*sizeof(ih->table[0]));
-	ih->table = (IEntry**)(ih+1);
+
+	ih = vtmallocz(sizeof(IHash) + size * sizeof(ih->table[0]));
+	ih->table = (IEntry**)(ih + 1);
 	ih->bits = bits;
 	ih->size = size;
 	return ih;
 }
 
 static IEntry*
-ihashlookup(IHash *ih, uint8_t score[VtScoreSize], int type)
+ihashlookup(IHash* ih, uint8_t score[VtScoreSize], int type)
 {
 	uint32_t h;
-	IEntry *ie;
-	
+	IEntry* ie;
+
 	h = hashbits(score, ih->bits);
-	for(ie=ih->table[h]; ie; ie=ie->nexthash)
-		if((type == -1 || type == ie->ia.type) && scorecmp(score, ie->score) == 0)
+	for(ie = ih->table[h]; ie; ie = ie->nexthash)
+		if((type == -1 || type == ie->ia.type) &&
+		   scorecmp(score, ie->score) == 0)
 			return ie;
 	return nil;
 }
 
 static void
-ihashdelete(IHash *ih, IEntry *ie, char *what)
+ihashdelete(IHash* ih, IEntry* ie, char* what)
 {
 	uint32_t h;
-	IEntry **l;
-	
+	IEntry** l;
+
 	h = hashbits(ie->score, ih->bits);
-	for(l=&ih->table[h]; *l; l=&(*l)->nexthash)
-		if(*l == ie){
+	for(l = &ih->table[h]; *l; l = &(*l)->nexthash)
+		if(*l == ie) {
 			*l = ie->nexthash;
 			return;
 		}
@@ -101,22 +100,21 @@ ihashdelete(IHash *ih, IEntry *ie, char *what)
 }
 
 static void
-ihashinsert(IHash *ih, IEntry *ie)
+ihashinsert(IHash* ih, IEntry* ie)
 {
 	uint32_t h;
-	
+
 	h = hashbits(ie->score, ih->bits);
 	ie->nexthash = ih->table[h];
 	ih->table[h] = ie;
 }
-
 
 /*
  * IEntry lists.
  */
 
 static IEntry*
-popout(IEntry *ie)
+popout(IEntry* ie)
 {
 	if(ie->prev == nil && ie->next == nil)
 		return ie;
@@ -128,7 +126,7 @@ popout(IEntry *ie)
 }
 
 static IEntry*
-poplast(IEntry *list)
+poplast(IEntry* list)
 {
 	if(list->prev == list)
 		return nil;
@@ -136,7 +134,7 @@ poplast(IEntry *list)
 }
 
 static IEntry*
-pushfirst(IEntry *list, IEntry *ie)
+pushfirst(IEntry* list, IEntry* ie)
 {
 	popout(ie);
 	ie->prev = list;
@@ -149,15 +147,14 @@ pushfirst(IEntry *list, IEntry *ie)
 /*
  * Arena summary cache.
  */
-struct ISum
-{
-	QLock	lock;
-	IEntry	*entries;
-	int	nentries;
-	int	loaded;
+struct ISum {
+	QLock lock;
+	IEntry* entries;
+	int nentries;
+	int loaded;
 	uint64_t addr;
 	uint64_t limit;
-	Arena *arena;
+	Arena* arena;
 	int g;
 };
 
@@ -165,13 +162,14 @@ static ISum*
 scachelookup(uint64_t addr)
 {
 	int i;
-	ISum *s;
+	ISum* s;
 
-	for(i=0; i<icache.nsum; i++){
+	for(i = 0; i < icache.nsum; i++) {
 		s = icache.sum[i];
-		if(s->addr <= addr && addr < s->limit){
-			if(i > 0){
-				memmove(icache.sum+1, icache.sum, i*sizeof icache.sum[0]);
+		if(s->addr <= addr && addr < s->limit) {
+			if(i > 0) {
+				memmove(icache.sum + 1, icache.sum,
+				        i * sizeof icache.sum[0]);
 				icache.sum[0] = s;
 			}
 			return s;
@@ -181,11 +179,11 @@ scachelookup(uint64_t addr)
 }
 
 static void
-sumclear(ISum *s)
+sumclear(ISum* s)
 {
 	int i;
 
-	for(i=0; i<s->nentries; i++)
+	for(i = 0; i < s->nentries; i++)
 		ihashdelete(icache.shash, &s->entries[i], "scache");
 	s->nentries = 0;
 	s->loaded = 0;
@@ -198,14 +196,15 @@ sumclear(ISum *s)
 static ISum*
 scacheevict(void)
 {
-	ISum *s;
+	ISum* s;
 	int i;
-	
-	for(i=icache.nsum-1; i>=0; i--){
+
+	for(i = icache.nsum - 1; i >= 0; i--) {
 		s = icache.sum[i];
-		if(canqlock(&s->lock)){
-			if(i > 0){
-				memmove(icache.sum+1, icache.sum, i*sizeof icache.sum[0]);
+		if(canqlock(&s->lock)) {
+			if(i > 0) {
+				memmove(icache.sum + 1, icache.sum,
+				        i * sizeof icache.sum[0]);
 				icache.sum[0] = s;
 			}
 			sumclear(s);
@@ -218,11 +217,11 @@ scacheevict(void)
 static void
 scachehit(uint64_t addr)
 {
-	scachelookup(addr);	/* for move-to-front */
+	scachelookup(addr); /* for move-to-front */
 }
 
 static void
-scachesetup(ISum *s, uint64_t addr)
+scachesetup(ISum* s, uint64_t addr)
 {
 	uint64_t addr0, limit;
 	int g;
@@ -234,7 +233,7 @@ scachesetup(ISum *s, uint64_t addr)
 }
 
 static void
-scacheload(ISum *s)
+scacheload(ISum* s)
 {
 	int i, n;
 
@@ -245,11 +244,12 @@ scacheload(ISum *s)
 	 * is the last in the arena and is only partially filled, or if there
 	 * are corrupt clumps in the group -- those are not returned.
 	 */
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		s->entries[i].ia.addr += s->addr;
 		ihashinsert(icache.shash, &s->entries[i]);
 	}
-//fprint(2, "%T scacheload %s %d - %d entries\n", s->arena->name, s->g, n);
+	// fprint(2, "%T scacheload %s %d - %d entries\n", s->arena->name, s->g,
+	// n);
 	addstat(StatScachePrefetch, n);
 	s->nentries = n;
 }
@@ -257,13 +257,14 @@ scacheload(ISum *s)
 static ISum*
 scachemiss(uint64_t addr)
 {
-	ISum *s;
+	ISum* s;
 
 	if(!icacheprefetch)
 		return nil;
 	s = scachelookup(addr);
-	if(s == nil){
-		/* first time: make an entry in the cache but don't populate it yet */
+	if(s == nil) {
+		/* first time: make an entry in the cache but don't populate it
+		 * yet */
 		s = scacheevict();
 		if(s == nil)
 			return nil;
@@ -274,12 +275,12 @@ scachemiss(uint64_t addr)
 
 	/* second time: load from disk */
 	qlock(&s->lock);
-	if(s->loaded || !icacheprefetch){
+	if(s->loaded || !icacheprefetch) {
 		qunlock(&s->lock);
 		return nil;
 	}
-	
-	return s;	/* locked */
+
+	return s; /* locked */
 }
 
 /*
@@ -291,51 +292,52 @@ initicache(uint32_t mem0)
 {
 	uint32_t mem;
 	int i, entries, scache;
-	
+
 	icache.full.l = &icache.lock;
 
 	mem = mem0;
-	entries = mem / (sizeof(IEntry)+sizeof(IEntry*));
-	scache = (entries/8) / ArenaCIGSize;
-	entries -= entries/8;
+	entries = mem / (sizeof(IEntry) + sizeof(IEntry*));
+	scache = (entries / 8) / ArenaCIGSize;
+	entries -= entries / 8;
 	if(scache < 4)
 		scache = 4;
 	if(scache > 16)
 		scache = 16;
 	if(entries < 1000)
 		entries = 1000;
-fprint(2, "icache %,d bytes = %,d entries; %d scache\n", mem0, entries, scache);
+	fprint(2, "icache %,d bytes = %,d entries; %d scache\n", mem0, entries,
+	       scache);
 
 	icache.clean.prev = icache.clean.next = &icache.clean;
 	icache.dirty.prev = icache.dirty.next = &icache.dirty;
 	icache.free.prev = icache.free.next = &icache.free;
-	
+
 	icache.hash = mkihash(entries);
 	icache.nentries = entries;
 	setstat(StatIcacheSize, entries);
-	icache.entries = vtmallocz(entries*sizeof icache.entries[0]);
+	icache.entries = vtmallocz(entries * sizeof icache.entries[0]);
 	icache.maxdirty = entries / 2;
-	for(i=0; i<entries; i++)
+	for(i = 0; i < entries; i++)
 		pushfirst(&icache.free, &icache.entries[i]);
 
 	icache.nsum = scache;
-	icache.sum = vtmallocz(scache*sizeof icache.sum[0]);
-	icache.sum[0] = vtmallocz(scache*sizeof icache.sum[0][0]);
+	icache.sum = vtmallocz(scache * sizeof icache.sum[0]);
+	icache.sum[0] = vtmallocz(scache * sizeof icache.sum[0][0]);
 	icache.nsentries = scache * ArenaCIGSize;
-	icache.sentries = vtmallocz(scache*ArenaCIGSize*sizeof icache.sentries[0]);
-	icache.shash = mkihash(scache*ArenaCIGSize);
-	for(i=0; i<scache; i++){
+	icache.sentries =
+	    vtmallocz(scache * ArenaCIGSize * sizeof icache.sentries[0]);
+	icache.shash = mkihash(scache * ArenaCIGSize);
+	for(i = 0; i < scache; i++) {
 		icache.sum[i] = icache.sum[0] + i;
-		icache.sum[i]->entries = icache.sentries + i*ArenaCIGSize;
+		icache.sum[i]->entries = icache.sentries + i * ArenaCIGSize;
 	}
 }
-
 
 static IEntry*
 evictlru(void)
 {
-	IEntry *ie;
-	
+	IEntry* ie;
+
 	ie = poplast(&icache.clean);
 	if(ie == nil)
 		return nil;
@@ -344,16 +346,17 @@ evictlru(void)
 }
 
 static void
-icacheinsert(uint8_t score[VtScoreSize], IAddr *ia, int state)
+icacheinsert(uint8_t score[VtScoreSize], IAddr* ia, int state)
 {
-	IEntry *ie;
+	IEntry* ie;
 
-	if((ie = poplast(&icache.free)) == nil && (ie = evictlru()) == nil){
+	if((ie = poplast(&icache.free)) == nil && (ie = evictlru()) == nil) {
 		addstat(StatIcacheStall, 1);
-		while((ie = poplast(&icache.free)) == nil && (ie = evictlru()) == nil){
+		while((ie = poplast(&icache.free)) == nil &&
+		      (ie = evictlru()) == nil) {
 			// Could safely return here if state == IEClean.
 			// But if state == IEDirty, have to wait to make
-			// sure we don't lose an index write.  
+			// sure we don't lose an index write.
 			// Let's wait all the time.
 			flushdcache();
 			kickicache();
@@ -365,10 +368,10 @@ icacheinsert(uint8_t score[VtScoreSize], IAddr *ia, int state)
 	memmove(ie->score, score, VtScoreSize);
 	ie->state = state;
 	ie->ia = *ia;
-	if(state == IEClean){
+	if(state == IEClean) {
 		addstat(StatIcachePrefetch, 1);
 		pushfirst(&icache.clean, ie);
-	}else{
+	} else {
 		addstat(StatIcacheWrite, 1);
 		assert(state == IEDirty);
 		icache.ndirty++;
@@ -380,13 +383,13 @@ icacheinsert(uint8_t score[VtScoreSize], IAddr *ia, int state)
 }
 
 int
-icachelookup(uint8_t score[VtScoreSize], int type, IAddr *ia)
+icachelookup(uint8_t score[VtScoreSize], int type, IAddr* ia)
 {
-	IEntry *ie;
+	IEntry* ie;
 
 	qlock(&icache.lock);
 	addstat(StatIcacheLookup, 1);
-	if((ie = ihashlookup(icache.hash, score, type)) != nil){
+	if((ie = ihashlookup(icache.hash, score, type)) != nil) {
 		*ia = ie->ia;
 		if(ie->state == IEClean)
 			pushfirst(&icache.clean, ie);
@@ -395,7 +398,7 @@ icachelookup(uint8_t score[VtScoreSize], int type, IAddr *ia)
 		return 0;
 	}
 
-	if((ie = ihashlookup(icache.shash, score, type)) != nil){
+	if((ie = ihashlookup(icache.shash, score, type)) != nil) {
 		*ia = ie->ia;
 		icacheinsert(score, &ie->ia, IEClean);
 		scachehit(ie->ia.addr);
@@ -410,32 +413,35 @@ icachelookup(uint8_t score[VtScoreSize], int type, IAddr *ia)
 }
 
 int
-insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
+insertscore(uint8_t score[VtScoreSize], IAddr* ia, int state, AState* as)
 {
-	ISum *toload;
+	ISum* toload;
 
 	qlock(&icache.lock);
 	icacheinsert(score, ia, state);
 	if(state == IEClean)
 		toload = scachemiss(ia->addr);
-	else{
+	else {
 		assert(state == IEDirty);
 		toload = nil;
 		if(as == nil)
-			fprint(2, "%T insertscore IEDirty without as; called from %#p\n",
-				getcallerpc(&score));
-		else{
+			fprint(2, "%T insertscore IEDirty without as; called "
+			          "from %#p\n",
+			       getcallerpc(&score));
+		else {
 			if(icache.as.aa > as->aa)
-				fprint(2, "%T insertscore: aa moving backward: %#llux -> %#llux\n", icache.as.aa, as->aa);
+				fprint(2, "%T insertscore: aa moving backward: "
+				          "%#llux -> %#llux\n",
+				       icache.as.aa, as->aa);
 			icache.as = *as;
 		}
 	}
 	qunlock(&icache.lock);
-	if(toload){
+	if(toload) {
 		scacheload(toload);
 		qunlock(&toload->lock);
 	}
-	
+
 	if(icache.ndirty >= icache.maxdirty)
 		kickicache();
 
@@ -452,12 +458,12 @@ insertscore(uint8_t score[VtScoreSize], IAddr *ia, int state, AState *as)
 }
 
 int
-lookupscore(uint8_t score[VtScoreSize], int type, IAddr *ia)
+lookupscore(uint8_t score[VtScoreSize], int type, IAddr* ia)
 {
 	int ms, ret;
 	IEntry d;
 
-	if(icachelookup(score, type, ia) >= 0){
+	if(icachelookup(score, type, ia) >= 0) {
 		addstat(StatIcacheRead, 1);
 		return 0;
 	}
@@ -466,7 +472,7 @@ lookupscore(uint8_t score[VtScoreSize], int type, IAddr *ia)
 	addstat(StatIcacheFill, 1);
 	if(loadientry(mainindex, score, type, &d) < 0)
 		ret = -1;
-	else{
+	else {
 		ret = 0;
 		insertscore(score, &d.ia, IEClean, nil);
 		*ia = d.ia;
@@ -474,22 +480,22 @@ lookupscore(uint8_t score[VtScoreSize], int type, IAddr *ia)
 	addstat2(StatIcacheRead, 1, StatIcacheReadTime, msec() - ms);
 	return ret;
 }
-	
+
 uint32_t
-hashbits(uint8_t *sc, int bits)
+hashbits(uint8_t* sc, int bits)
 {
 	uint32_t v;
 
 	v = (sc[0] << 24) | (sc[1] << 16) | (sc[2] << 8) | sc[3];
 	if(bits < 32)
-		 v >>= (32 - bits);
+		v >>= (32 - bits);
 	return v;
 }
 
 uint32_t
 icachedirtyfrac(void)
 {
-	return (int64_t)icache.ndirty*IcacheFrac / icache.nentries;
+	return (int64_t)icache.ndirty * IcacheFrac / icache.nentries;
 }
 
 /*
@@ -501,15 +507,15 @@ IEntry*
 icachedirty(uint32_t lo, uint32_t hi, uint64_t limit)
 {
 	uint32_t h;
-	IEntry *ie, *dirty;
+	IEntry* ie, *dirty;
 
 	dirty = nil;
 	trace(TraceProc, "icachedirty enter");
 	qlock(&icache.lock);
-	for(ie = icache.dirty.next; ie != &icache.dirty; ie=ie->next){
-		if(ie->state == IEDirty && ie->ia.addr <= limit){
+	for(ie = icache.dirty.next; ie != &icache.dirty; ie = ie->next) {
+		if(ie->state == IEDirty && ie->ia.addr <= limit) {
 			h = hashbits(ie->score, 32);
-			if(lo <= h && h <= hi){
+			if(lo <= h && h <= hi) {
 				ie->nextdirty = dirty;
 				dirty = ie;
 			}
@@ -538,13 +544,13 @@ icachestate(void)
  * has been written to disk.  Move them to the clean list.
  */
 void
-icacheclean(IEntry *ie)
+icacheclean(IEntry* ie)
 {
-	IEntry *next;
-	
+	IEntry* next;
+
 	trace(TraceProc, "icacheclean enter");
 	qlock(&icache.lock);
-	for(; ie; ie=next){
+	for(; ie; ie = next) {
 		assert(ie->state == IEDirty);
 		next = ie->nextdirty;
 		ie->nextdirty = nil;
@@ -563,13 +569,13 @@ void
 emptyicache(void)
 {
 	int i;
-	IEntry *ie;
-	ISum *s;
-	
+	IEntry* ie;
+	ISum* s;
+
 	qlock(&icache.lock);
 	while((ie = evictlru()) != nil)
 		pushfirst(&icache.free, ie);
-	for(i=0; i<icache.nsum; i++){
+	for(i = 0; i < icache.nsum; i++) {
 		s = icache.sum[i];
 		qlock(&s->lock);
 		sumclear(s);
@@ -577,4 +583,3 @@ emptyicache(void)
 	}
 	qunlock(&icache.lock);
 }
-

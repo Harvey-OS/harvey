@@ -8,7 +8,7 @@
  */
 
 /*
- * The `cd' shell.  
+ * The `cd' shell.
  * Just has cd and lc.
  */
 
@@ -16,8 +16,8 @@
 #include <libc.h>
 #include <bio.h>
 
-char *pwd;
-char *root = "/";
+char* pwd;
+char* root = "/";
 
 void
 usage(void)
@@ -27,7 +27,7 @@ usage(void)
 }
 
 int
-system(char *cmd)
+system(char* cmd)
 {
 	int pid;
 	if((pid = fork()) < 0)
@@ -43,25 +43,26 @@ system(char *cmd)
 }
 
 int
-cd(char *s)
+cd(char* s)
 {
-	char *newpwd;
+	char* newpwd;
 	int l;
 
 	if(s[0] == '/') {
 		cleanname(s);
 		newpwd = strdup(s);
 	} else {
-		l = strlen(pwd)+1+strlen(s)+1+50;	/* 50 = crud for unicode mistakes */
+		l = strlen(pwd) + 1 + strlen(s) + 1 +
+		    50; /* 50 = crud for unicode mistakes */
 		newpwd = malloc(l);
 		snprint(newpwd, l, "%s/%s", pwd, s);
 		cleanname(newpwd);
 		assert(newpwd[0] == '/');
 	}
 
-	if(chdir(root) < 0 || (newpwd[1] != '\0' && chdir(newpwd+1) < 0)) {
+	if(chdir(root) < 0 || (newpwd[1] != '\0' && chdir(newpwd + 1) < 0)) {
 		chdir(root);
-		chdir(pwd+1);
+		chdir(pwd + 1);
 		free(newpwd);
 		return -1;
 	} else {
@@ -72,14 +73,15 @@ cd(char *s)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *p;
+	char* p;
 	Biobuf bin;
-	char *f[2];
+	char* f[2];
 	int nf;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'r':
 		root = ARGF();
 		if(root == nil)
@@ -91,7 +93,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 0)
 		usage();
@@ -104,7 +107,7 @@ main(int argc, char **argv)
 
 	Binit(&bin, 0, OREAD);
 	while(fprint(2, "%s%% ", pwd), (p = Brdline(&bin, '\n'))) {
-		p[Blinelen(&bin)-1] = '\0';
+		p[Blinelen(&bin) - 1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf < 1)
 			continue;
@@ -116,7 +119,8 @@ main(int argc, char **argv)
 					fprint(2, "lc: %r\n");
 			} else if(nf == 2) {
 				if(strpbrk(p, "'`{}^@$#&()|\\;><"))
-					fprint(2, "no shell characters allowed\n");
+					fprint(2,
+					       "no shell characters allowed\n");
 				else {
 					p = f[1];
 					*--p = ' ';

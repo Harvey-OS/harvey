@@ -44,20 +44,19 @@ extern "C" {
 /*
  * Protocols
  */
-#define	IPPROTO_IP		0		/* dummy for IP */
-#define	IPPROTO_ICMP		1		/* control message protocol */
-#define	IPPROTO_GGP		3		/* gateway^2 (deprecated) */
-#define	IPPROTO_TCP		6		/* tcp */
-#define	IPPROTO_EGP		8		/* exterior gateway protocol */
-#define	IPPROTO_PUP		12		/* pup */
-#define	IPPROTO_UDP		17		/* user datagram protocol */
-#define	IPPROTO_IDP		22		/* xns idp */
-#define	IPPROTO_TP		29 		/* tp-4 w/ class negotiation */
-#define	IPPROTO_EON		80		/* ISO cnlp */
+#define IPPROTO_IP 0   /* dummy for IP */
+#define IPPROTO_ICMP 1 /* control message protocol */
+#define IPPROTO_GGP 3  /* gateway^2 (deprecated) */
+#define IPPROTO_TCP 6  /* tcp */
+#define IPPROTO_EGP 8  /* exterior gateway protocol */
+#define IPPROTO_PUP 12 /* pup */
+#define IPPROTO_UDP 17 /* user datagram protocol */
+#define IPPROTO_IDP 22 /* xns idp */
+#define IPPROTO_TP 29  /* tp-4 w/ class negotiation */
+#define IPPROTO_EON 80 /* ISO cnlp */
 
-#define	IPPROTO_RAW		255		/* raw IP packet */
-#define	IPPROTO_MAX		256
-
+#define IPPROTO_RAW 255 /* raw IP packet */
+#define IPPROTO_MAX 256
 
 /*
  * Local port number conventions:
@@ -66,8 +65,8 @@ extern "C" {
  * Ports > IPPORT_USERRESERVED are reserved
  * for servers, not necessarily privileged.
  */
-#define	IPPORT_RESERVED		1024
-#define	IPPORT_USERRESERVED	5000
+#define IPPORT_RESERVED 1024
+#define IPPORT_USERRESERVED 5000
 
 /*
  * Internet address (a structure for historical reasons)
@@ -81,42 +80,42 @@ struct in_addr {
  * On subnets, the decomposition of addresses to host and net parts
  * is done according to subnet mask, not the masks here.
  */
-#define	IN_CLASSA(i)		(((int32_t)(i) & 0x80000000) == 0)
-#define	IN_CLASSA_NET		0xff000000
-#define	IN_CLASSA_NSHIFT	24
-#define	IN_CLASSA_HOST		0x00ffffff
-#define	IN_CLASSA_MAX		128
+#define IN_CLASSA(i) (((int32_t)(i)&0x80000000) == 0)
+#define IN_CLASSA_NET 0xff000000
+#define IN_CLASSA_NSHIFT 24
+#define IN_CLASSA_HOST 0x00ffffff
+#define IN_CLASSA_MAX 128
 
-#define	IN_CLASSB(i)		(((int32_t)(i) & 0xc0000000) == 0x80000000)
-#define	IN_CLASSB_NET		0xffff0000
-#define	IN_CLASSB_NSHIFT	16
-#define	IN_CLASSB_HOST		0x0000ffff
-#define	IN_CLASSB_MAX		65536
+#define IN_CLASSB(i) (((int32_t)(i)&0xc0000000) == 0x80000000)
+#define IN_CLASSB_NET 0xffff0000
+#define IN_CLASSB_NSHIFT 16
+#define IN_CLASSB_HOST 0x0000ffff
+#define IN_CLASSB_MAX 65536
 
-#define	IN_CLASSC(i)		(((int32_t)(i) & 0xe0000000) == 0xc0000000)
-#define	IN_CLASSC_NET		0xffffff00
-#define	IN_CLASSC_NSHIFT	8
-#define	IN_CLASSC_HOST		0x000000ff
+#define IN_CLASSC(i) (((int32_t)(i)&0xe0000000) == 0xc0000000)
+#define IN_CLASSC_NET 0xffffff00
+#define IN_CLASSC_NSHIFT 8
+#define IN_CLASSC_HOST 0x000000ff
 
-#define	IN_CLASSD(i)		(((int32_t)(i) & 0xf0000000) == 0xe0000000)
-#define	IN_MULTICAST(i)		IN_CLASSD(i)
+#define IN_CLASSD(i) (((int32_t)(i)&0xf0000000) == 0xe0000000)
+#define IN_MULTICAST(i) IN_CLASSD(i)
 
-#define	IN_EXPERIMENTAL(i)	(((int32_t)(i) & 0xe0000000) == 0xe0000000)
-#define	IN_BADCLASS(i)		(((int32_t)(i) & 0xf0000000) == 0xf0000000)
+#define IN_EXPERIMENTAL(i) (((int32_t)(i)&0xe0000000) == 0xe0000000)
+#define IN_BADCLASS(i) (((int32_t)(i)&0xf0000000) == 0xf0000000)
 
-#define	INADDR_ANY		(unsigned long)0x00000000
-#define	INADDR_BROADCAST	(unsigned long)0xffffffff	/* must be masked */
+#define INADDR_ANY (unsigned long)0x00000000
+#define INADDR_BROADCAST (unsigned long)0xffffffff /* must be masked */
 
-#define	IN_LOOPBACKNET		127			/* official! */
+#define IN_LOOPBACKNET 127 /* official! */
 
 /*
  * Socket address, internet style.
  */
 struct sockaddr_in {
-	int16_t	sin_family;
-	unsigned short	sin_port;
-	struct	in_addr sin_addr;
-	char	sin_zero[8];
+	int16_t sin_family;
+	unsigned short sin_port;
+	struct in_addr sin_addr;
+	char sin_zero[8];
 };
 
 /*
@@ -127,26 +126,26 @@ struct sockaddr_in {
  * (this gets put into the header proper).
  */
 struct ip_opts {
-	struct	in_addr ip_dst;		/* first hop, 0 w/o src rt */
-	char	ip_opts[40];		/* actually variable in size */
+	struct in_addr ip_dst; /* first hop, 0 w/o src rt */
+	char ip_opts[40];      /* actually variable in size */
 };
 
 /*
  * Options for use with [gs]etsockopt at the IP level.
  * First word of comment is data type; bool is stored in int.
  */
-#define	IP_OPTIONS	1	/* buf/ip_opts; set/get IP per-packet options */
-#define	IP_HDRINCL	7	/* int; header is included with data (raw) */
-#define	IP_TOS		8	/* int; IP type of service and precedence */
-#define	IP_TTL		9	/* int; IP time to live */
+#define IP_OPTIONS 1 /* buf/ip_opts; set/get IP per-packet options */
+#define IP_HDRINCL 7 /* int; header is included with data (raw) */
+#define IP_TOS 8     /* int; IP type of service and precedence */
+#define IP_TTL 9     /* int; IP time to live */
 
-extern unsigned long	ntohl(unsigned long x);
-extern unsigned short	ntohs(unsigned short x);
-extern unsigned long	htonl(unsigned long x);
-extern unsigned short	htons(unsigned short x);
-extern unsigned long	inet_addr(char*);
-extern char*		inet_ntoa(struct in_addr);
-extern unsigned long	nptohl(void*);
+extern unsigned long ntohl(unsigned long x);
+extern unsigned short ntohs(unsigned short x);
+extern unsigned long htonl(unsigned long x);
+extern unsigned short htons(unsigned short x);
+extern unsigned long inet_addr(char*);
+extern char* inet_ntoa(struct in_addr);
+extern unsigned long nptohl(void*);
 
 #ifdef __cplusplus
 }

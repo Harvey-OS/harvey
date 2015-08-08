@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
 dodata(void)
 {
 	int i, t;
-	Sym *s;
-	Prog *p, *p1;
+	Sym* s;
+	Prog* p, *p1;
 	int32_t orig, orig1, v;
 
 	if(debug['v'])
@@ -27,12 +27,12 @@ dodata(void)
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
-			diag("initialize non-data (%d): %s\n%P",
-				s->type, s->name, p);
+			diag("initialize non-data (%d): %s\n%P", s->type,
+			     s->name, p);
 		v = p->from.offset + p->reg;
 		if(v > s->value)
-			diag("initialize bounds (%ld): %s\n%P",
-				s->value, s->name, p);
+			diag("initialize bounds (%ld): %s\n%P", s->value,
+			     s->name, p);
 	}
 
 	/*
@@ -42,50 +42,50 @@ dodata(void)
 	 *	 addressed through offset on REGSB)
 	 */
 	orig = 0;
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		t = s->type;
-		if(t != SDATA && t != SBSS)
-			continue;
-		v = s->value;
-		if(v == 0) {
-			diag("%s: no size", s->name);
-			v = 1;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			t = s->type;
+			if(t != SDATA && t != SBSS)
+				continue;
+			v = s->value;
+			if(v == 0) {
+				diag("%s: no size", s->name);
+				v = 1;
+			}
+			while(v & 3)
+				v++;
+			s->value = v;
+			if(v > MINSIZ)
+				continue;
+			if(v >= 8)
+				while(orig & 7)
+					orig++;
+			s->value = orig;
+			orig += v;
+			s->type = SDATA1;
 		}
-		while(v & 3)
-			v++;
-		s->value = v;
-		if(v > MINSIZ)
-			continue;
-		if(v >= 8)
-			while(orig & 7)
-				orig++;
-		s->value = orig;
-		orig += v;
-		s->type = SDATA1;
-	}
 	orig1 = orig;
 
 	/*
 	 * pass 2
 	 *	assign 'data' variables to data segment
 	 */
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		t = s->type;
-		if(t != SDATA) {
-			if(t == SDATA1)
-				s->type = SDATA;
-			continue;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			t = s->type;
+			if(t != SDATA) {
+				if(t == SDATA1)
+					s->type = SDATA;
+				continue;
+			}
+			v = s->value;
+			if(v >= 8)
+				while(orig & 7)
+					orig++;
+			s->value = orig;
+			orig += v;
+			s->type = SDATA1;
 		}
-		v = s->value;
-		if(v >= 8)
-			while(orig & 7)
-				orig++;
-		s->value = orig;
-		orig += v;
-		s->type = SDATA1;
-	}
 
 	while(orig & 7)
 		orig++;
@@ -95,20 +95,20 @@ dodata(void)
 	 * pass 3
 	 *	everything else to bss segment
 	 */
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		if(s->type != SBSS)
-			continue;
-		v = s->value;
-		if(v >= 8)
-			while(orig & 7)
-				orig++;
-		s->value = orig;
-		orig += v;
-	}
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type != SBSS)
+				continue;
+			v = s->value;
+			if(v >= 8)
+				while(orig & 7)
+					orig++;
+			s->value = orig;
+			orig += v;
+		}
 	while(orig & 7)
 		orig++;
-	bsssize = orig-datsize;
+	bsssize = orig - datsize;
 
 	/*
 	 * pass 4
@@ -139,10 +139,11 @@ dodata(void)
 			if(!strcmp(s->name, "setSB"))
 				continue;
 			/* size should be 19 max */
-			if(strlen(s->name) >= 10)	/* has loader address */ 
+			if(strlen(s->name) >= 10) /* has loader address */
 				sprint(literal, "$%p.%lux", s, p->from.offset);
 			else
-				sprint(literal, "$%s.%d.%lux", s->name, s->version, p->from.offset);
+				sprint(literal, "$%s.%d.%lux", s->name,
+				       s->version, p->from.offset);
 		} else {
 			if(p->from.name != D_NONE)
 				continue;
@@ -159,7 +160,7 @@ dodata(void)
 		s = lookup(literal, 0);
 		if(s->type == 0) {
 			s->type = SDATA;
-			s->value = orig1+orig;
+			s->value = orig1 + orig;
 			orig += 4;
 			p1 = prg();
 			p1->as = ADATA;
@@ -186,24 +187,24 @@ dodata(void)
 	 * pass 5
 	 *	re-adjust offsets
 	 */
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		t = s->type;
-		if(t == SBSS) {
-			s->value += orig;
-			continue;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			t = s->type;
+			if(t == SBSS) {
+				s->value += orig;
+				continue;
+			}
+			if(t == SDATA1) {
+				s->type = SDATA;
+				s->value += orig;
+				continue;
+			}
 		}
-		if(t == SDATA1) {
-			s->type = SDATA;
-			s->value += orig;
-			continue;
-		}
-	}
 	datsize += orig;
-	xdefine("setSB", SDATA, 0L+BIG);
+	xdefine("setSB", SDATA, 0L + BIG);
 	xdefine("bdata", SDATA, 0L);
 	xdefine("edata", SDATA, datsize);
-	xdefine("end", SBSS, datsize+bsssize);
+	xdefine("end", SBSS, datsize + bsssize);
 	xdefine("etext", STEXT, 0L);
 }
 
@@ -211,12 +212,12 @@ void
 undef(void)
 {
 	int i;
-	Sym *s;
+	Sym* s;
 
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link)
-		if(s->type == SXREF)
-			diag("%s: not defined", s->name);
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->type == SXREF)
+				diag("%s: not defined", s->name);
 }
 
 int
@@ -224,44 +225,68 @@ relinv(int a)
 {
 
 	switch(a) {
-	case ABA:	return ABN;
-	case ABN:	return ABA;
+	case ABA:
+		return ABN;
+	case ABN:
+		return ABA;
 
-	case ABE:	return ABNE;
-	case ABNE:	return ABE;
+	case ABE:
+		return ABNE;
+	case ABNE:
+		return ABE;
 
-	case ABLE:	return ABG;
-	case ABG:	return ABLE;
+	case ABLE:
+		return ABG;
+	case ABG:
+		return ABLE;
 
-	case ABL:	return ABGE;
-	case ABGE:	return ABL;
+	case ABL:
+		return ABGE;
+	case ABGE:
+		return ABL;
 
-	case ABLEU:	return ABGU;
-	case ABGU:	return ABLEU;
+	case ABLEU:
+		return ABGU;
+	case ABGU:
+		return ABLEU;
 
-	case ABCS:	return ABCC;
-	case ABCC:	return ABCS;
+	case ABCS:
+		return ABCC;
+	case ABCC:
+		return ABCS;
 
-	case ABNEG:	return ABPOS;
-	case ABPOS:	return ABNEG;
+	case ABNEG:
+		return ABPOS;
+	case ABPOS:
+		return ABNEG;
 
-	case ABVC:	return ABVS;
-	case ABVS:	return ABVC;
+	case ABVC:
+		return ABVS;
+	case ABVS:
+		return ABVC;
 
-	case AFBN:	return AFBA;
-	case AFBA:	return AFBN;
+	case AFBN:
+		return AFBA;
+	case AFBA:
+		return AFBN;
 
-	case AFBE:	return AFBLG;
-	case AFBLG:	return AFBE;
+	case AFBE:
+		return AFBLG;
+	case AFBLG:
+		return AFBE;
 
-	case AFBG:	return AFBLE;
-	case AFBLE:	return AFBG;
+	case AFBG:
+		return AFBLE;
+	case AFBLE:
+		return AFBG;
 
-	case AFBGE:	return AFBL;
-	case AFBL:	return AFBGE;
+	case AFBGE:
+		return AFBL;
+	case AFBL:
+		return AFBGE;
 
-	/* unordered fp compares have no inverse
-		that traps in the same way */
+		/* unordered fp compares have no inverse
+		        that traps in the same way */
 	}
 	return 0;
 }
@@ -284,9 +309,9 @@ follow(void)
 }
 
 void
-xfol(Prog *p)
+xfol(Prog* p)
 {
-	Prog *q, *r;
+	Prog* q, *r;
 	int a, b, i;
 
 loop:
@@ -297,7 +322,7 @@ loop:
 		curtext = p;
 	if(a == AJMP) {
 		q = p->cond;
-		if((p->mark&NOSCHED) || q && (q->mark&NOSCHED)){
+		if((p->mark & NOSCHED) || q && (q->mark & NOSCHED)) {
 			p->mark |= FOLL;
 			lastp->link = p;
 			lastp = p;
@@ -316,10 +341,10 @@ loop:
 		}
 	}
 	if(p->mark & FOLL) {
-		for(i=0,q=p; i<4; i++,q=q->link) {
-			if(q == lastp || (q->mark&NOSCHED))
+		for(i = 0, q = p; i < 4; i++, q = q->link) {
+			if(q == lastp || (q->mark & NOSCHED))
 				break;
-			b = 0;		/* set */
+			b = 0; /* set */
 			a = q->as;
 			if(a == ANOP) {
 				i--;
@@ -327,7 +352,7 @@ loop:
 			}
 			if(a == AJMP || a == ARETURN || a == ARETT)
 				goto copy;
-			if(!q->cond || (q->cond->mark&FOLL))
+			if(!q->cond || (q->cond->mark & FOLL))
 				continue;
 			b = relinv(a);
 			if(!b)
@@ -336,7 +361,7 @@ loop:
 			for(;;) {
 				r = prg();
 				*r = *p;
-				if(!(r->mark&FOLL))
+				if(!(r->mark & FOLL))
 					print("cant happen 1\n");
 				r->mark |= FOLL;
 				if(p != q) {
@@ -352,9 +377,9 @@ loop:
 				r->as = b;
 				r->cond = p->link;
 				r->link = p->cond;
-				if(!(r->link->mark&FOLL))
+				if(!(r->link->mark & FOLL))
 					xfol(r->link);
-				if(!(r->cond->mark&FOLL))
+				if(!(r->cond->mark & FOLL))
 					print("cant happen 2\n");
 				return;
 			}
@@ -372,21 +397,21 @@ loop:
 	p->mark |= FOLL;
 	lastp->link = p;
 	lastp = p;
-	if(a == AJMP || a == ARETURN || a == ARETT){
-		if(p->mark & NOSCHED){
+	if(a == AJMP || a == ARETURN || a == ARETT) {
+		if(p->mark & NOSCHED) {
 			p = p->link;
 			goto loop;
 		}
 		return;
 	}
 	if(p->cond != P)
-	if(a != AJMPL && p->link != P) {
-		xfol(p->link);
-		p = p->cond;
-		if(p == P || (p->mark&FOLL))
-			return;
-		goto loop;
-	}
+		if(a != AJMPL && p->link != P) {
+			xfol(p->link);
+			p = p->cond;
+			if(p == P || (p->mark & FOLL))
+				return;
+			goto loop;
+		}
 	p = p->link;
 	goto loop;
 }
@@ -395,8 +420,8 @@ void
 patch(void)
 {
 	int32_t c, vexit;
-	Prog *p, *q;
-	Sym *s;
+	Prog* p, *q;
+	Sym* s;
 	int a;
 
 	if(debug['v'])
@@ -424,10 +449,10 @@ patch(void)
 		c = p->to.offset;
 		for(q = firstp; q != P;) {
 			if(q->forwd != P)
-			if(c >= q->forwd->pc) {
-				q = q->forwd;
-				continue;
-			}
+				if(c >= q->forwd->pc) {
+					q = q->forwd;
+					continue;
+				}
 			if(c == q->pc)
 				break;
 			q = q->link;
@@ -445,24 +470,25 @@ patch(void)
 		if(p->cond != P) {
 			p->cond = brloop(p->cond);
 			if(p->cond != P)
-			if(p->to.type == D_BRANCH)
-				p->to.offset = p->cond->pc;
+				if(p->to.type == D_BRANCH)
+					p->to.offset = p->cond->pc;
 		}
 	}
 }
 
-#define	LOG	5
+#define LOG 5
 void
 mkfwd(void)
 {
-	Prog *p;
+	Prog* p;
 	int32_t dwn[LOG], cnt[LOG], i;
-	Prog *lst[LOG];
+	Prog* lst[LOG];
 
-	for(i=0; i<LOG; i++) {
+	for(i = 0; i < LOG; i++) {
 		if(i == 0)
-			cnt[i] = 1; else
-			cnt[i] = LOG * cnt[i-1];
+			cnt[i] = 1;
+		else
+			cnt[i] = LOG * cnt[i - 1];
 		dwn[i] = 1;
 		lst[i] = P;
 	}
@@ -472,7 +498,7 @@ mkfwd(void)
 			curtext = p;
 		i--;
 		if(i < 0)
-			i = LOG-1;
+			i = LOG - 1;
 		p->forwd = P;
 		dwn[i]--;
 		if(dwn[i] <= 0) {
@@ -485,13 +511,13 @@ mkfwd(void)
 }
 
 Prog*
-brloop(Prog *p)
+brloop(Prog* p)
 {
-	Prog *q;
+	Prog* q;
 	int c;
 
-	for(c=0; p!=P;) {
-		if(p->as != AJMP || (p->mark&NOSCHED))
+	for(c = 0; p != P;) {
+		if(p->as != AJMP || (p->mark & NOSCHED))
 			return p;
 		q = p->cond;
 		if(q <= p) {
@@ -505,7 +531,7 @@ brloop(Prog *p)
 }
 
 int32_t
-atolwhex(char *s)
+atolwhex(char* s)
 {
 	int32_t n;
 	int f;
@@ -520,25 +546,25 @@ atolwhex(char *s)
 		while(*s == ' ' || *s == '\t')
 			s++;
 	}
-	if(s[0]=='0' && s[1]){
-		if(s[1]=='x' || s[1]=='X'){
+	if(s[0] == '0' && s[1]) {
+		if(s[1] == 'x' || s[1] == 'X') {
 			s += 2;
-			for(;;){
+			for(;;) {
 				if(*s >= '0' && *s <= '9')
-					n = n*16 + *s++ - '0';
+					n = n * 16 + *s++ - '0';
 				else if(*s >= 'a' && *s <= 'f')
-					n = n*16 + *s++ - 'a' + 10;
+					n = n * 16 + *s++ - 'a' + 10;
 				else if(*s >= 'A' && *s <= 'F')
-					n = n*16 + *s++ - 'A' + 10;
+					n = n * 16 + *s++ - 'A' + 10;
 				else
 					break;
 			}
 		} else
 			while(*s >= '0' && *s <= '7')
-				n = n*8 + *s++ - '0';
+				n = n * 8 + *s++ - '0';
 	} else
 		while(*s >= '0' && *s <= '9')
-			n = n*10 + *s++ - '0';
+			n = n * 10 + *s++ - '0';
 	if(f)
 		n = -n;
 	return n;

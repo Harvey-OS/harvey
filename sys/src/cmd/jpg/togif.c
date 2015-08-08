@@ -18,29 +18,31 @@
 void
 usage(void)
 {
-	fprint(2, "usage: togif [-l loopcount] [-c 'comment'] [-d Δt (ms)] [-t transparency-index] [file ... [-d Δt] file ...]\n");
+	fprint(2, "usage: togif [-l loopcount] [-c 'comment'] [-d Δt (ms)] [-t "
+	          "transparency-index] [file ... [-d Δt] file ...]\n");
 	exits("usage");
 }
 
-#define	UNSET (-12345678)
+#define UNSET (-12345678)
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	Biobuf bout;
-	Memimage *i, *ni;
+	Memimage* i, *ni;
 	int fd, j, dt, trans, loop;
 	char buf[256];
-	char *err, *comment, *s;
+	char* err, *comment, *s;
 
 	comment = nil;
 	dt = -1;
 	trans = -1;
 	loop = UNSET;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'l':
 		s = ARGF();
-		if(s==nil || (!isdigit(s[0]) && s[0]!='-'))
+		if(s == nil || (!isdigit(s[0]) && s[0] != '-'))
 			usage();
 		loop = atoi(s);
 		break;
@@ -51,13 +53,13 @@ main(int argc, char *argv[])
 		break;
 	case 'd':
 		s = ARGF();
-		if(s==nil || !isdigit(s[0]))
+		if(s == nil || !isdigit(s[0]))
 			usage();
 		dt = atoi(s);
 		break;
 	case 't':
 		s = ARGF();
-		if(s==nil || !isdigit(s[0]))
+		if(s == nil || !isdigit(s[0]))
 			usage();
 		trans = atoi(s);
 		if(trans > 255)
@@ -65,7 +67,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(Binit(&bout, 1, OWRITE) < 0)
 		sysfatal("Binit failed: %r");
@@ -74,46 +77,50 @@ main(int argc, char *argv[])
 
 	err = nil;
 
-	if(argc == 0){
+	if(argc == 0) {
 		i = readmemimage(0);
 		if(i == nil)
 			sysfatal("reading input: %r");
 		ni = memonechan(i);
 		if(ni == nil)
 			sysfatal("converting image to RGBV: %r");
-		if(i != ni){
+		if(i != ni) {
 			freememimage(i);
 			i = ni;
 		}
 		err = memstartgif(&bout, i, -1);
-		if(err == nil){
+		if(err == nil) {
 			if(comment)
 				err = memwritegif(&bout, i, comment, dt, trans);
-			else{
-				snprint(buf, sizeof buf, "Converted by Plan 9 from <stdin>");
+			else {
+				snprint(buf, sizeof buf,
+				        "Converted by Plan 9 from <stdin>");
 				err = memwritegif(&bout, i, buf, dt, trans);
 			}
 		}
-	}else{
-		if(loop == UNSET){
+	} else {
+		if(loop == UNSET) {
 			if(argc == 1)
-				loop = -1;	/* no loop for single image */
+				loop = -1; /* no loop for single image */
 			else
-				loop = 0;	/* the default case: 0 means infinite loop */
+				loop =
+				    0; /* the default case: 0 means infinite
+				          loop */
 		}
-		for(j=0; j<argc; j++){
-			if(argv[j][0] == '-' && argv[j][1]=='d'){
+		for(j = 0; j < argc; j++) {
+			if(argv[j][0] == '-' && argv[j][1] == 'd') {
 				/* time change */
-				if(argv[j][2] == '\0'){
+				if(argv[j][2] == '\0') {
 					s = argv[++j];
 					if(j == argc)
 						usage();
-				}else
+				} else
 					s = &argv[j][2];
 				if(!isdigit(s[0]))
 					usage();
 				dt = atoi(s);
-				if(j == argc-1)	/* last argument must be file */
+				if(j ==
+				   argc - 1) /* last argument must be file */
 					usage();
 				continue;
 			}
@@ -127,19 +134,20 @@ main(int argc, char *argv[])
 			ni = memonechan(i);
 			if(ni == nil)
 				sysfatal("converting image to RGBV: %r");
-			if(i != ni){
+			if(i != ni) {
 				freememimage(i);
 				i = ni;
 			}
-			if(j == 0){
+			if(j == 0) {
 				err = memstartgif(&bout, i, loop);
 				if(err != nil)
 					break;
 			}
 			if(comment)
 				err = memwritegif(&bout, i, comment, dt, trans);
-			else{
-				snprint(buf, sizeof buf, "Converted by Plan 9 from %s", argv[j]);
+			else {
+				snprint(buf, sizeof buf,
+				        "Converted by Plan 9 from %s", argv[j]);
 				err = memwritegif(&bout, i, buf, dt, trans);
 			}
 			if(err != nil)

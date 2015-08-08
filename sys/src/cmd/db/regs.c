@@ -18,18 +18,18 @@
  * translate a name to a magic register offset
  */
 Reglist*
-rname(char *name)
+rname(char* name)
 {
-	Reglist *rp;
+	Reglist* rp;
 
-	for (rp = mach->reglist; rp->rname; rp++)
-		if (strcmp(name, rp->rname) == 0)
+	for(rp = mach->reglist; rp->rname; rp++)
+		if(strcmp(name, rp->rname) == 0)
 			return rp;
 	return 0;
 }
 
 static uint64_t
-getreg(Map *map, Reglist *rp)
+getreg(Map* map, Reglist* rp)
 {
 	uint64_t v;
 	uint32_t w;
@@ -38,8 +38,7 @@ getreg(Map *map, Reglist *rp)
 
 	v = 0;
 	ret = 0;
-	switch (rp->rformat)
-	{
+	switch(rp->rformat) {
 	case 'x':
 		ret = get2(map, rp->roffs, &s);
 		v = s;
@@ -58,7 +57,7 @@ getreg(Map *map, Reglist *rp)
 		werrstr("can't retrieve register %s", rp->rname);
 		error("%r");
 	}
-	if (ret < 0) {
+	if(ret < 0) {
 		werrstr("Register %s: %r", rp->rname);
 		error("%r");
 	}
@@ -66,36 +65,35 @@ getreg(Map *map, Reglist *rp)
 }
 
 uint64_t
-rget(Map *map, char *name)
+rget(Map* map, char* name)
 {
-	Reglist *rp;
+	Reglist* rp;
 
 	rp = rname(name);
-	if (!rp)
+	if(!rp)
 		error("invalid register name");
 	return getreg(map, rp);
 }
 
 void
-rput(Map *map, char *name, int64_t v)
+rput(Map* map, char* name, int64_t v)
 {
-	Reglist *rp;
+	Reglist* rp;
 	int ret;
 
 	rp = rname(name);
-	if (!rp)
+	if(!rp)
 		error("invalid register name");
-	if (rp->rflags & RRDONLY)
+	if(rp->rflags & RRDONLY)
 		error("register is read-only");
-	switch (rp->rformat)
-	{
+	switch(rp->rformat) {
 	case 'x':
-		ret = put2(map, rp->roffs, (uint16_t) v);
+		ret = put2(map, rp->roffs, (uint16_t)v);
 		break;
 	case 'X':
 	case 'f':
 	case 'F':
-		ret = put4(map, rp->roffs, (int32_t) v);
+		ret = put4(map, rp->roffs, (int32_t)v);
 		break;
 	case 'Y':
 		ret = put8(map, rp->roffs, v);
@@ -103,7 +101,7 @@ rput(Map *map, char *name, int64_t v)
 	default:
 		ret = -1;
 	}
-	if (ret < 0)
+	if(ret < 0)
 		error("can't write register");
 }
 /*
@@ -112,15 +110,15 @@ rput(Map *map, char *name, int64_t v)
 void
 printregs(int c)
 {
-	Reglist *rp;
+	Reglist* rp;
 	int i;
 	uint64_t v;
 
-	for (i = 1, rp = mach->reglist; rp->rname; rp++, i++) {
-		if ((rp->rflags & RFLT)) {
-			if (c != 'R')
+	for(i = 1, rp = mach->reglist; rp->rname; rp++, i++) {
+		if((rp->rflags & RFLT)) {
+			if(c != 'R')
 				continue;
-			if (rp->rformat == '8' || rp->rformat == '3')
+			if(rp->rformat == '8' || rp->rformat == '3')
 				continue;
 		}
 		v = getreg(cormap, rp);
@@ -128,13 +126,13 @@ printregs(int c)
 			dprint("%-8s %-20#llux", rp->rname, v);
 		else
 			dprint("%-8s %-12#lux", rp->rname, (uint32_t)v);
-		if ((i % 3) == 0) {
+		if((i % 3) == 0) {
 			dprint("\n");
 			i = 0;
 		}
 	}
-	if (i != 1)
+	if(i != 1)
 		dprint("\n");
-	dprint ("%s\n", machdata->excep(cormap, rget));
+	dprint("%s\n", machdata->excep(cormap, rget));
 	printpc();
 }

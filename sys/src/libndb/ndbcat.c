@@ -14,9 +14,9 @@
 #include <ndb.h>
 
 Ndb*
-ndbcat(Ndb *a, Ndb *b)
+ndbcat(Ndb* a, Ndb* b)
 {
-	Ndb *db = a;
+	Ndb* db = a;
 
 	if(a == nil)
 		return b;

@@ -17,17 +17,15 @@
 void
 usage(void)
 {
-	fprint(2, "vac [-imqsv] [-a archive.vac] [-b bsize] [-d old.vac] [-f new.vac] [-e exclude]... [-h host] file...\n");
+	fprint(2, "vac [-imqsv] [-a archive.vac] [-b bsize] [-d old.vac] [-f "
+	          "new.vac] [-e exclude]... [-h host] file...\n");
 	threadexitsall("usage");
 }
 
-enum
-{
-	BlockSize = 8*1024,
+enum { BlockSize = 8 * 1024,
 };
 
-struct
-{
+struct {
 	int nfile;
 	int ndir;
 	int64_t data;
@@ -38,36 +36,35 @@ struct
 int qdiff;
 int merge;
 int verbose;
-char *host;
-VtConn *z;
-VacFs *fs;
-char *archivefile;
-char *vacfile;
+char* host;
+VtConn* z;
+VacFs* fs;
+char* archivefile;
+char* vacfile;
 
 int vacmerge(VacFile*, char*);
 void vac(VacFile*, VacFile*, char*, Dir*);
 void vacstdin(VacFile*, char*);
-VacFile *recentarchive(VacFs*, char*);
+VacFile* recentarchive(VacFs*, char*);
 
 static uint64_t unittoull(char*);
-static void warn(char *fmt, ...);
+static void warn(char* fmt, ...);
 static void removevacfile(void);
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
 	int i, j, fd, n, printstats;
-	Dir *d;
-	char *s;
+	Dir* d;
+	char* s;
 	uvlong u;
-	VacFile *f, *fdiff;
-	VacFs *fsdiff;
+	VacFile* f, *fdiff;
+	VacFs* fsdiff;
 	int blocksize;
 	int outfd;
-	char *stdinname;
-	char *diffvac;
+	char* stdinname;
+	char* diffvac;
 	uvlong qid;
-
 
 	fmtinstall('F', vtfcallfmt);
 	fmtinstall('H', encodefmt);
@@ -79,7 +76,8 @@ threadmain(int argc, char **argv)
 	fsdiff = nil;
 	diffvac = nil;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'V':
 		chattyventi++;
 		break;
@@ -126,12 +124,13 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
-	
+	}
+	ARGEND
+
 	if(argc == 0 && !stdinname)
 		usage();
-	
-	if(archivefile && (vacfile || diffvac)){
+
+	if(archivefile && (vacfile || diffvac)) {
 		fprint(2, "cannot use -a with -f, -d\n");
 		usage();
 	}
@@ -146,58 +145,59 @@ threadmain(int argc, char **argv)
 	//	fs is the output vac file system
 	//	f is directory in output vac to write new files
 	//	fdiff is corresponding directory in existing vac
-	if(archivefile){
-		VacFile *fp;
+	if(archivefile) {
+		VacFile* fp;
 		char yyyy[5];
 		char mmdd[10];
 		char oldpath[40];
 		Tm tm;
 
 		fdiff = nil;
-		if((outfd = open(archivefile, ORDWR)) < 0){
+		if((outfd = open(archivefile, ORDWR)) < 0) {
 			if(access(archivefile, 0) >= 0)
 				sysfatal("open %s: %r", archivefile);
 			if((outfd = create(archivefile, OWRITE, 0666)) < 0)
 				sysfatal("create %s: %r", archivefile);
-			atexit(removevacfile);	// because it is new
+			atexit(removevacfile); // because it is new
 			if((fs = vacfscreate(z, blocksize, 512)) == nil)
 				sysfatal("vacfscreate: %r");
-		}else{
-			if((fs = vacfsopen(z, archivefile, VtORDWR, 512)) == nil)
+		} else {
+			if((fs = vacfsopen(z, archivefile, VtORDWR, 512)) ==
+			   nil)
 				sysfatal("vacfsopen %s: %r", archivefile);
-			if((fdiff = recentarchive(fs, oldpath)) != nil){
+			if((fdiff = recentarchive(fs, oldpath)) != nil) {
 				if(verbose)
 					fprint(2, "diff %s\n", oldpath);
-			}else
-				if(verbose)
-					fprint(2, "no recent archive to diff against\n");
+			} else if(verbose)
+				fprint(2,
+				       "no recent archive to diff against\n");
 		}
 
 		// Create yyyy/mmdd.
 		tm = *localtime(time(0));
-		snprint(yyyy, sizeof yyyy, "%04d", tm.year+1900);
+		snprint(yyyy, sizeof yyyy, "%04d", tm.year + 1900);
 		fp = vacfsgetroot(fs);
-		if((f = vacfilewalk(fp, yyyy)) == nil
-		&& (f = vacfilecreate(fp, yyyy, ModeDir|0555)) == nil)
+		if((f = vacfilewalk(fp, yyyy)) == nil &&
+		   (f = vacfilecreate(fp, yyyy, ModeDir | 0555)) == nil)
 			sysfatal("vacfscreate %s: %r", yyyy);
 		vacfiledecref(fp);
 		fp = f;
 
-		snprint(mmdd, sizeof mmdd, "%02d%02d", tm.mon+1, tm.mday);
+		snprint(mmdd, sizeof mmdd, "%02d%02d", tm.mon + 1, tm.mday);
 		n = 0;
-		while((f = vacfilewalk(fp, mmdd)) != nil){
+		while((f = vacfilewalk(fp, mmdd)) != nil) {
 			vacfiledecref(f);
 			n++;
-			snprint(mmdd+4, sizeof mmdd-4, ".%d", n);
+			snprint(mmdd + 4, sizeof mmdd - 4, ".%d", n);
 		}
-		f = vacfilecreate(fp, mmdd, ModeDir|0555);
+		f = vacfilecreate(fp, mmdd, ModeDir | 0555);
 		if(f == nil)
 			sysfatal("vacfscreate %s/%s: %r", yyyy, mmdd);
 		vacfiledecref(fp);
 
 		if(verbose)
 			fprint(2, "archive %s/%s\n", yyyy, mmdd);
-	}else{
+	} else {
 		if(vacfile == nil)
 			outfd = 1;
 		else if((outfd = create(vacfile, OWRITE, 0666)) < 0)
@@ -208,8 +208,9 @@ threadmain(int argc, char **argv)
 		f = vacfsgetroot(fs);
 
 		fdiff = nil;
-		if(diffvac){
-			if((fsdiff = vacfsopen(z, diffvac, VtOREAD, 128)) == nil)
+		if(diffvac) {
+			if((fsdiff = vacfsopen(z, diffvac, VtOREAD, 128)) ==
+			   nil)
 				warn("vacfsopen %s: %r", diffvac);
 			else
 				fdiff = vacfsgetroot(fsdiff);
@@ -218,25 +219,26 @@ threadmain(int argc, char **argv)
 
 	if(stdinname)
 		vacstdin(f, stdinname);
-	for(i=0; i<argc; i++){
+	for(i = 0; i < argc; i++) {
 		// We can't use / and . and .. and ../.. as valid archive
 		// names, so expand to the list of files in the directory.
-		if(argv[i][0] == 0){
+		if(argv[i][0] == 0) {
 			warn("empty string given as command-line argument");
 			continue;
 		}
 		cleanname(argv[i]);
-		if(strcmp(argv[i], "/") == 0
-		|| strcmp(argv[i], ".") == 0
-		|| strcmp(argv[i], "..") == 0
-		|| (strlen(argv[i]) > 3 && strcmp(argv[i]+strlen(argv[i])-3, "/..") == 0)){
-			if((fd = open(argv[i], OREAD)) < 0){
+		if(strcmp(argv[i], "/") == 0 || strcmp(argv[i], ".") == 0 ||
+		   strcmp(argv[i], "..") == 0 ||
+		   (strlen(argv[i]) > 3 &&
+		    strcmp(argv[i] + strlen(argv[i]) - 3, "/..") == 0)) {
+			if((fd = open(argv[i], OREAD)) < 0) {
 				warn("open %s: %r", argv[i]);
 				continue;
 			}
-			while((n = dirread(fd, &d)) > 0){
-				for(j=0; j<n; j++){
-					s = vtmalloc(strlen(argv[i])+1+strlen(d[j].name)+1);
+			while((n = dirread(fd, &d)) > 0) {
+				for(j = 0; j < n; j++) {
+					s = vtmalloc(strlen(argv[i]) + 1 +
+					             strlen(d[j].name) + 1);
 					strcpy(s, argv[i]);
 					strcat(s, "/");
 					strcat(s, d[j].name);
@@ -248,7 +250,7 @@ threadmain(int argc, char **argv)
 			close(fd);
 			continue;
 		}
-		if((d = dirstat(argv[i])) == nil){
+		if((d = dirstat(argv[i])) == nil) {
 			warn("stat %s: %r", argv[i]);
 			continue;
 		}
@@ -257,7 +259,7 @@ threadmain(int argc, char **argv)
 	}
 	if(fdiff)
 		vacfiledecref(fdiff);
-	
+
 	/*
 	 * Record the maximum qid so that vacs can be merged
 	 * without introducing overlapping qids.  Older versions
@@ -284,11 +286,11 @@ threadmain(int argc, char **argv)
 	vacfsclose(fs);
 	vthangup(z);
 
-	if(printstats){
-		fprint(2,
-			"%d files, %d files skipped, %d directories\n"
-			"%lld data bytes written, %lld data bytes skipped\n",
-			stats.nfile, stats.skipfiles, stats.ndir, stats.data, stats.skipdata);
+	if(printstats) {
+		fprint(2, "%d files, %d files skipped, %d directories\n"
+		          "%lld data bytes written, %lld data bytes skipped\n",
+		       stats.nfile, stats.skipfiles, stats.ndir, stats.data,
+		       stats.skipdata);
 		dup(2, 1);
 		packetstats();
 	}
@@ -296,20 +298,20 @@ threadmain(int argc, char **argv)
 }
 
 VacFile*
-recentarchive(VacFs *fs, char *path)
+recentarchive(VacFs* fs, char* path)
 {
-	VacFile *fp, *f;
-	VacDirEnum *de;
+	VacFile* fp, *f;
+	VacDirEnum* de;
 	VacDir vd;
 	char buf[10];
 	int year, mmdd, nn, n, n1;
-	char *p;
-	
+	char* p;
+
 	fp = vacfsgetroot(fs);
 	de = vdeopen(fp);
 	year = 0;
-	if(de){
-		for(; vderead(de, &vd) > 0; vdcleanup(&vd)){
+	if(de) {
+		for(; vderead(de, &vd) > 0; vdcleanup(&vd)) {
 			if(strlen(vd.elem) != 4)
 				continue;
 			if((n = strtol(vd.elem, &p, 10)) < 1900 || *p != 0)
@@ -319,31 +321,33 @@ recentarchive(VacFs *fs, char *path)
 		}
 	}
 	vdeclose(de);
-	if(year == 0){
+	if(year == 0) {
 		vacfiledecref(fp);
 		return nil;
 	}
 	snprint(buf, sizeof buf, "%04d", year);
-	if((f = vacfilewalk(fp, buf)) == nil){
+	if((f = vacfilewalk(fp, buf)) == nil) {
 		fprint(2, "warning: dirread %s but cannot walk", buf);
 		vacfiledecref(fp);
 		return nil;
 	}
 	fp = f;
-	
+
 	de = vdeopen(fp);
 	mmdd = 0;
 	nn = 0;
-	if(de){
-		for(; vderead(de, &vd) > 0; vdcleanup(&vd)){
+	if(de) {
+		for(; vderead(de, &vd) > 0; vdcleanup(&vd)) {
 			if(strlen(vd.elem) < 4)
 				continue;
-			if((n = strtol(vd.elem, &p, 10)) < 100 || n > 1231 || p != vd.elem+4)
+			if((n = strtol(vd.elem, &p, 10)) < 100 || n > 1231 ||
+			   p != vd.elem + 4)
 				continue;
-			if(*p == '.'){
-				if(p[1] == '0' || (n1 = strtol(p+1, &p, 10)) == 0 || *p != 0)
+			if(*p == '.') {
+				if(p[1] == '0' ||
+				   (n1 = strtol(p + 1, &p, 10)) == 0 || *p != 0)
 					continue;
-			}else{
+			} else {
 				if(*p != 0)
 					continue;
 				n1 = 0;
@@ -355,7 +359,7 @@ recentarchive(VacFs *fs, char *path)
 		}
 	}
 	vdeclose(de);
-	if(mmdd == 0){
+	if(mmdd == 0) {
 		vacfiledecref(fp);
 		return nil;
 	}
@@ -363,7 +367,7 @@ recentarchive(VacFs *fs, char *path)
 		snprint(buf, sizeof buf, "%04d", mmdd);
 	else
 		snprint(buf, sizeof buf, "%04d.%d", mmdd, nn);
-	if((f = vacfilewalk(fp, buf)) == nil){
+	if((f = vacfilewalk(fp, buf)) == nil) {
 		fprint(2, "warning: dirread %s but cannot walk", buf);
 		vacfiledecref(fp);
 		return nil;
@@ -382,7 +386,7 @@ removevacfile(void)
 }
 
 void
-plan9tovacdir(VacDir *vd, Dir *dir)
+plan9tovacdir(VacDir* vd, Dir* dir)
 {
 	memset(vd, 0, sizeof *vd);
 
@@ -394,7 +398,7 @@ plan9tovacdir(VacDir *vd, Dir *dir)
 		vd->mid = "";
 	vd->mtime = dir->mtime;
 	vd->mcount = 0;
-	vd->ctime = dir->mtime;		/* ctime: not available on plan 9 */
+	vd->ctime = dir->mtime; /* ctime: not available on plan 9 */
 	vd->atime = dir->atime;
 	vd->size = dir->length;
 
@@ -411,43 +415,42 @@ plan9tovacdir(VacDir *vd, Dir *dir)
 	vd->p9version = dir->qid.vers;
 }
 
-
 /*
  * Archive the file named name, which has stat info d,
- * into the vac directory fp (p = parent).  
+ * into the vac directory fp (p = parent).
  *
  * If we're doing a vac -d against another archive, the
  * equivalent directory to fp in that archive is diffp.
  */
 void
-vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
+vac(VacFile* fp, VacFile* diffp, char* name, Dir* d)
 {
-	char *elem, *s;
+	char* elem, *s;
 	static char buf[65536];
 	int fd, i, n, bsize;
 	int64_t off;
-	Dir *dk;	// kids
+	Dir* dk; // kids
 	VacDir vd, vddiff;
-	VacFile *f, *fdiff;
+	VacFile* f, *fdiff;
 	VtEntry e;
 
-	if(!includefile(name)){
-		warn("excluding %s%s", name, (d->mode&DMDIR) ? "/" : "");
+	if(!includefile(name)) {
+		warn("excluding %s%s", name, (d->mode & DMDIR) ? "/" : "");
 		return;
 	}
 
-	if(d->mode&DMDIR)
+	if(d->mode & DMDIR)
 		stats.ndir++;
 	else
 		stats.nfile++;
 
 	if(merge && vacmerge(fp, name) >= 0)
 		return;
-	
-	if(verbose)
-		fprint(2, "%s%s\n", name, (d->mode&DMDIR) ? "/" : "");
 
-	if((fd = open(name, OREAD)) < 0){
+	if(verbose)
+		fprint(2, "%s%s\n", name, (d->mode & DMDIR) ? "/" : "");
+
+	if((fd = open(name, OREAD)) < 0) {
 		warn("open %s: %r", name);
 		return;
 	}
@@ -459,7 +462,7 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 		elem = name;
 
 	plan9tovacdir(&vd, d);
-	if((f = vacfilecreate(fp, elem, vd.mode)) == nil){
+	if((f = vacfilecreate(fp, elem, vd.mode)) == nil) {
 		warn("vacfilecreate %s: %r", name);
 		return;
 	}
@@ -470,11 +473,12 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 
 	if(vacfilesetdir(f, &vd) < 0)
 		warn("vacfilesetdir %s: %r", name);
-	
-	if(d->mode&DMDIR){
-		while((n = dirread(fd, &dk)) > 0){
-			for(i=0; i<n; i++){
-				s = vtmalloc(strlen(name)+1+strlen(dk[i].name)+1);
+
+	if(d->mode & DMDIR) {
+		while((n = dirread(fd, &dk)) > 0) {
+			for(i = 0; i < n; i++) {
+				s = vtmalloc(strlen(name) + 1 +
+				             strlen(dk[i].name) + 1);
 				strcpy(s, name);
 				strcat(s, "/");
 				strcat(s, dk[i].name);
@@ -483,63 +487,94 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 			}
 			free(dk);
 		}
-	}else{
+	} else {
 		off = 0;
 		bsize = fs->bsize;
-		if(fdiff){
+		if(fdiff) {
 			/*
 			 * Copy fdiff's contents into f by moving the score.
 			 * We'll diff and update below.
 			 */
 			if(vacfilegetentries(fdiff, &e, nil) >= 0)
-			if(vacfilesetentries(f, &e, nil) >= 0){
-				bsize = e.dsize;
-			
-				/*
-				 * Or if -q is set, and the metadata looks the same,
-				 * don't even bother reading the file.
-				 */
-				if(qdiff && vacfilegetdir(fdiff, &vddiff) >= 0){
-					if(vddiff.mtime == vd.mtime)
-					if(vddiff.size == vd.size)
-					if(!vddiff.plan9 || (/* vddiff.p9path == vd.p9path && */ vddiff.p9version == vd.p9version)){
-						stats.skipfiles++;
-						stats.nfile--;
-						vdcleanup(&vddiff);
-						goto Out;
-					}
-					
-					/*
-					 * Skip over presumably-unchanged prefix
-					 * of an append-only file.
-					 */
-					if(vd.mode&ModeAppend)
-					if(vddiff.size < vd.size)
-					if(vddiff.plan9 && vd.plan9)
-					if(vddiff.p9path == vd.p9path){
-						off = vd.size/bsize*bsize;
-						if(seek(fd, off, 0) >= 0)
-							stats.skipdata += off;
-						else{
-							seek(fd, 0, 0);	// paranoia
-							off = 0;
-						}
-					}
+				if(vacfilesetentries(f, &e, nil) >= 0) {
+					bsize = e.dsize;
 
-					vdcleanup(&vddiff);
-					// XXX different verbose chatty prints for kaminsky?
+					/*
+					 * Or if -q is set, and the metadata
+					 * looks the same,
+					 * don't even bother reading the file.
+					 */
+					if(qdiff &&
+					   vacfilegetdir(fdiff, &vddiff) >= 0) {
+						if(vddiff.mtime == vd.mtime)
+							if(vddiff.size ==
+							   vd.size)
+								if(!vddiff
+								        .plan9 ||
+								   (/* vddiff.p9path == vd.p9path && */ vddiff
+								        .p9version ==
+								    vd.p9version)) {
+									stats
+									    .skipfiles++;
+									stats
+									    .nfile--;
+									vdcleanup(
+									    &vddiff);
+									goto Out;
+								}
+
+						/*
+						 * Skip over
+						 * presumably-unchanged prefix
+						 * of an append-only file.
+						 */
+						if(vd.mode & ModeAppend)
+							if(vddiff.size <
+							   vd.size)
+								if(vddiff
+								       .plan9 &&
+								   vd.plan9)
+									if(vddiff
+									       .p9path ==
+									   vd.p9path) {
+										off =
+										    vd.size /
+										    bsize *
+										    bsize;
+										if(seek(
+										       fd,
+										       off,
+										       0) >=
+										   0)
+											stats
+											    .skipdata +=
+											    off;
+										else {
+											seek(
+											    fd,
+											    0,
+											    0); // paranoia
+											off =
+											    0;
+										}
+									}
+
+						vdcleanup(&vddiff);
+						// XXX different verbose chatty
+						// prints for kaminsky?
+					}
 				}
-			}
 		}
 		if(qdiff && verbose)
 			fprint(2, "+%s\n", name);
-		while((n = readn(fd, buf, bsize)) > 0){
-			if(fdiff && sha1matches(f, off/bsize, (uint8_t*)buf, n)){
+		while((n = readn(fd, buf, bsize)) > 0) {
+			if(fdiff &&
+			   sha1matches(f, off / bsize, (uint8_t*)buf, n)) {
 				off += n;
 				stats.skipdata += n;
 				continue;
 			}
-			if(vacfilewrite(f, buf, n, off) < 0){
+			if(vacfilewrite(f, buf, n, off) < 0) {
 				warn("venti write %s: %r", name);
 				goto Out;
 			}
@@ -563,21 +598,21 @@ Out:
 }
 
 void
-vacstdin(VacFile *fp, char *name)
+vacstdin(VacFile* fp, char* name)
 {
 	int64_t off;
-	VacFile *f;
+	VacFile* f;
 	static char buf[8192];
 	int n;
 
-	if((f = vacfilecreate(fp, name, 0666)) == nil){
+	if((f = vacfilecreate(fp, name, 0666)) == nil) {
 		warn("vacfilecreate %s: %r", name);
 		return;
 	}
-	
+
 	off = 0;
-	while((n = read(0, buf, sizeof buf)) > 0){
-		if(vacfilewrite(f, buf, n, off) < 0){
+	while((n = read(0, buf, sizeof buf)) > 0) {
+		if(vacfilewrite(f, buf, n, off) < 0) {
 			warn("venti write %s: %r", name);
 			vacfiledecref(f);
 			return;
@@ -597,61 +632,60 @@ vacstdin(VacFile *fp, char *name)
  * max is the maximum qid we expect to see (not really needed).
  */
 int
-vacmergefile(VacFile *fp, VacFile *mp, VacDir *d, char *vacfile,
-	int64_t offset, int64_t max)
+vacmergefile(VacFile* fp, VacFile* mp, VacDir* d, char* vacfile, int64_t offset,
+             int64_t max)
 {
 	VtEntry ed, em;
-	VacFile *mf;
-	VacFile *f;
-	
+	VacFile* mf;
+	VacFile* f;
+
 	mf = vacfilewalk(mp, d->elem);
-	if(mf == nil){
+	if(mf == nil) {
 		warn("could not walk %s in %s", d->elem, vacfile);
 		return -1;
 	}
-	if(vacfilegetentries(mf, &ed, &em) < 0){
+	if(vacfilegetentries(mf, &ed, &em) < 0) {
 		warn("could not get entries for %s in %s", d->elem, vacfile);
 		vacfiledecref(mf);
 		return -1;
 	}
-	
-	if((f = vacfilecreate(fp, d->elem, d->mode)) == nil){
+
+	if((f = vacfilecreate(fp, d->elem, d->mode)) == nil) {
 		warn("vacfilecreate %s: %r", d->elem);
 		vacfiledecref(mf);
 		return -1;
 	}
-	if(d->qidspace){
+	if(d->qidspace) {
 		d->qidoffset += offset;
 		d->qidmax += offset;
-	}else{
+	} else {
 		d->qidspace = 1;
 		d->qidoffset = offset;
 		d->qidmax = max;
 	}
-	if(vacfilesetdir(f, d) < 0
-	|| vacfilesetentries(f, &ed, &em) < 0
-	|| vacfilesetqidspace(f, d->qidoffset, d->qidmax) < 0){
+	if(vacfilesetdir(f, d) < 0 || vacfilesetentries(f, &ed, &em) < 0 ||
+	   vacfilesetqidspace(f, d->qidoffset, d->qidmax) < 0) {
 		warn("vacmergefile %s: %r", d->elem);
 		vacfiledecref(mf);
 		vacfiledecref(f);
 		return -1;
 	}
-	
+
 	vacfiledecref(mf);
 	vacfiledecref(f);
 	return 0;
 }
 
 int
-vacmerge(VacFile *fp, char *name)
+vacmerge(VacFile* fp, char* name)
 {
-	VacFs *mfs;
+	VacFs* mfs;
 	VacDir vd;
-	VacDirEnum *de;
-	VacFile *mp;
+	VacDirEnum* de;
+	VacFile* mp;
 	uint64_t maxqid, offset;
 
-	if(strlen(name) < 4 || strcmp(name+strlen(name)-4, ".vac") != 0)
+	if(strlen(name) < 4 || strcmp(name + strlen(name) - 4, ".vac") != 0)
 		return -1;
 	if((mfs = vacfsopen(z, name, VtOREAD, 100)) == nil)
 		return -1;
@@ -660,21 +694,20 @@ vacmerge(VacFile *fp, char *name)
 
 	mp = vacfsgetroot(mfs);
 	de = vdeopen(mp);
-	if(de){
+	if(de) {
 		offset = 0;
-		if(vacfsgetmaxqid(mfs, &maxqid) >= 0){
+		if(vacfsgetmaxqid(mfs, &maxqid) >= 0) {
 			_vacfsnextqid(fs, &offset);
-			vacfsjumpqid(fs, maxqid+1);
+			vacfsjumpqid(fs, maxqid + 1);
 		}
-		while(vderead(de, &vd) > 0){
-			if(vd.qid > maxqid){
+		while(vderead(de, &vd) > 0) {
+			if(vd.qid > maxqid) {
 				warn("vacmerge %s: maxqid=%lld but %s has %lld",
-					name, maxqid, vd.elem, vd.qid);
+				     name, maxqid, vd.elem, vd.qid);
 				vacfsjumpqid(fs, vd.qid - maxqid);
 				maxqid = vd.qid;
 			}
-			vacmergefile(fp, mp, &vd, name,
-				offset, maxqid);
+			vacmergefile(fp, mp, &vd, name, offset, maxqid);
 			vdcleanup(&vd);
 		}
 		vdeclose(de);
@@ -684,25 +717,25 @@ vacmerge(VacFile *fp, char *name)
 	return 0;
 }
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64 ((uint64_t) ~(uint64_t)0)
 
 static uint64_t
-unittoull(char *s)
+unittoull(char* s)
 {
-	char *es;
+	char* es;
 	uint64_t n;
 
 	if(s == nil)
 		return TWID64;
 	n = strtoul(s, &es, 0);
-	if(*es == 'k' || *es == 'K'){
+	if(*es == 'k' || *es == 'K') {
 		n *= 1024;
 		es++;
-	}else if(*es == 'm' || *es == 'M'){
-		n *= 1024*1024;
+	} else if(*es == 'm' || *es == 'M') {
+		n *= 1024 * 1024;
 		es++;
-	}else if(*es == 'g' || *es == 'G'){
-		n *= 1024*1024*1024;
+	} else if(*es == 'g' || *es == 'G') {
+		n *= 1024 * 1024 * 1024;
 		es++;
 	}
 	if(*es != '\0')
@@ -711,7 +744,7 @@ unittoull(char *s)
 }
 
 static void
-warn(char *fmt, ...)
+warn(char* fmt, ...)
 {
 	va_list arg;
 
@@ -721,4 +754,3 @@ warn(char *fmt, ...)
 	fprint(2, "\n");
 	va_end(arg);
 }
-

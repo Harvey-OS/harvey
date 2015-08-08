@@ -39,11 +39,11 @@
 #include <io.h>
 #endif /* __dos */
 #if defined(__CYGWIN__) || defined(__CYGMING__)
-#  ifdef X_LOCALE
-#    include <X11/Xlocale.h>
-#  else
-#    include <locale.h>
-#  endif
+#ifdef X_LOCALE
+#include <X11/Xlocale.h>
+#else
+#include <locale.h>
+#endif
 #else
 #include <locale.h>
 #endif /* __CYGWIN__ || __CYGMING__ */
@@ -57,26 +57,24 @@
 #include "antiword.h"
 
 /* The name of this program */
-static const char	*szTask = NULL;
-
+static const char* szTask = NULL;
 
 static void
 vUsage(void)
 {
 	fprintf(stderr, "\tName: %s\n", szTask);
-	fprintf(stderr, "\tPurpose: "PURPOSESTRING"\n");
-	fprintf(stderr, "\tAuthor: "AUTHORSTRING"\n");
-	fprintf(stderr, "\tVersion: "VERSIONSTRING);
+	fprintf(stderr, "\tPurpose: " PURPOSESTRING "\n");
+	fprintf(stderr, "\tAuthor: " AUTHORSTRING "\n");
+	fprintf(stderr, "\tVersion: " VERSIONSTRING);
 #if defined(__dos)
 	fprintf(stderr, VERSIONSTRING2);
 #endif /* __dos */
 	fprintf(stderr, "\n");
-	fprintf(stderr, "\tStatus: "STATUSSTRING"\n");
-	fprintf(stderr,
-		"\tUsage: %s [switches] wordfile1 [wordfile2 ...]\n", szTask);
-	fprintf(stderr,
-		"\tSwitches: [-f|-t|-a papersize|-p papersize|-x dtd]"
-		"[-m mapping][-w #][-i #][-Ls]\n");
+	fprintf(stderr, "\tStatus: " STATUSSTRING "\n");
+	fprintf(stderr, "\tUsage: %s [switches] wordfile1 [wordfile2 ...]\n",
+	        szTask);
+	fprintf(stderr, "\tSwitches: [-f|-t|-a papersize|-p papersize|-x dtd]"
+	                "[-m mapping][-w #][-i #][-Ls]\n");
 	fprintf(stderr, "\t\t-f formatted text output\n");
 	fprintf(stderr, "\t\t-t text output (default)\n");
 	fprintf(stderr, "\t\t-a <paper size name> Adobe PDF output\n");
@@ -97,13 +95,13 @@ vUsage(void)
  *
  * returns: the pointer to the temporary file or NULL
  */
-static FILE *
-pStdin2TmpFile(int32_t *lFilesize)
+static FILE*
+pStdin2TmpFile(int32_t* lFilesize)
 {
-	FILE	*pTmpFile;
-	size_t	tSize;
-	BOOL	bFailure;
-	UCHAR	aucBytes[BUFSIZ];
+	FILE* pTmpFile;
+	size_t tSize;
+	BOOL bFailure;
+	UCHAR aucBytes[BUFSIZ];
 
 	DBG_MSG("pStdin2TmpFile");
 
@@ -111,7 +109,7 @@ pStdin2TmpFile(int32_t *lFilesize)
 
 	/* Open the temporary file */
 	pTmpFile = tmpfile();
-	if (pTmpFile == NULL) {
+	if(pTmpFile == NULL) {
 		return NULL;
 	}
 
@@ -123,13 +121,13 @@ pStdin2TmpFile(int32_t *lFilesize)
 	/* Copy stdin to the temporary file */
 	*lFilesize = 0;
 	bFailure = TRUE;
-	for (;;) {
+	for(;;) {
 		tSize = fread(aucBytes, 1, sizeof(aucBytes), stdin);
-		if (tSize == 0) {
+		if(tSize == 0) {
 			bFailure = feof(stdin) == 0;
 			break;
 		}
-		if (fwrite(aucBytes, 1, tSize, pTmpFile) != tSize) {
+		if(fwrite(aucBytes, 1, tSize, pTmpFile) != tSize) {
 			bFailure = TRUE;
 			break;
 		}
@@ -142,7 +140,7 @@ pStdin2TmpFile(int32_t *lFilesize)
 #endif /* __dos */
 
 	/* Deal with the result of the copy action */
-	if (bFailure) {
+	if(bFailure) {
 		*lFilesize = 0;
 		(void)fclose(pTmpFile);
 		return NULL;
@@ -157,33 +155,33 @@ pStdin2TmpFile(int32_t *lFilesize)
  * returns: TRUE when the given file is a supported Word file, otherwise FALSE
  */
 static BOOL
-bProcessFile(const char *szFilename)
+bProcessFile(const char* szFilename)
 {
-	FILE		*pFile;
-	diagram_type	*pDiag;
-	int32_t		lFilesize;
-	int		iWordVersion;
-	BOOL		bResult;
+	FILE* pFile;
+	diagram_type* pDiag;
+	int32_t lFilesize;
+	int iWordVersion;
+	BOOL bResult;
 
 	fail(szFilename == NULL || szFilename[0] == '\0');
 
 	DBG_MSG(szFilename);
 
-	if (szFilename[0] == '-' && szFilename[1] == '\0') {
+	if(szFilename[0] == '-' && szFilename[1] == '\0') {
 		pFile = pStdin2TmpFile(&lFilesize);
-		if (pFile == NULL) {
+		if(pFile == NULL) {
 			werr(0, "I can't save the standard input to a file");
 			return FALSE;
 		}
 	} else {
 		pFile = fopen(szFilename, "rb");
-		if (pFile == NULL) {
+		if(pFile == NULL) {
 			werr(0, "I can't open '%s' for reading", szFilename);
 			return FALSE;
 		}
 
 		lFilesize = lGetFilesize(szFilename);
-		if (lFilesize < 0) {
+		if(lFilesize < 0) {
 			(void)fclose(pFile);
 			werr(0, "I can't get the size of '%s'", szFilename);
 			return FALSE;
@@ -191,19 +189,21 @@ bProcessFile(const char *szFilename)
 	}
 
 	iWordVersion = iGuessVersionNumber(pFile, lFilesize);
-	if (iWordVersion < 0 || iWordVersion == 3) {
-		if (bIsRtfFile(pFile)) {
+	if(iWordVersion < 0 || iWordVersion == 3) {
+		if(bIsRtfFile(pFile)) {
 			werr(0, "%s is not a Word Document."
-				" It is probably a Rich Text Format file",
-				szFilename);
-		} if (bIsWordPerfectFile(pFile)) {
+			        " It is probably a Rich Text Format file",
+			     szFilename);
+		}
+		if(bIsWordPerfectFile(pFile)) {
 			werr(0, "%s is not a Word Document."
-				" It is probably a Word Perfect file",
-				szFilename);
+			        " It is probably a Word Perfect file",
+			     szFilename);
 		} else {
 #if defined(__dos)
 			werr(0, "%s is not a Word Document or the filename"
-				" is not in the 8+3 format.", szFilename);
+			        " is not in the 8+3 format.",
+			     szFilename);
 #else
 			werr(0, "%s is not a Word Document.", szFilename);
 #endif /* __dos */
@@ -215,7 +215,7 @@ bProcessFile(const char *szFilename)
 	rewind(pFile);
 
 	pDiag = pCreateDiagram(szTask, szFilename);
-	if (pDiag == NULL) {
+	if(pDiag == NULL) {
 		(void)fclose(pFile);
 		return FALSE;
 	}
@@ -228,27 +228,27 @@ bProcessFile(const char *szFilename)
 } /* end of bProcessFile */
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	options_type	tOptions;
-	const char	*szWordfile;
-	int	iFirst, iIndex, iGoodCount;
-	BOOL	bUsage, bMultiple, bUseTXT, bUseXML;
+	options_type tOptions;
+	const char* szWordfile;
+	int iFirst, iIndex, iGoodCount;
+	BOOL bUsage, bMultiple, bUseTXT, bUseXML;
 
-	if (argc <= 0) {
+	if(argc <= 0) {
 		return EXIT_FAILURE;
 	}
 
 	szTask = szBasename(argv[0]);
 
-	if (argc <= 1) {
+	if(argc <= 1) {
 		iFirst = 1;
 		bUsage = TRUE;
 	} else {
 		iFirst = iReadOptions(argc, argv);
 		bUsage = iFirst <= 0;
 	}
-	if (bUsage) {
+	if(bUsage) {
 		vUsage();
 		return iFirst < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 	}
@@ -260,16 +260,16 @@ main(int argc, char **argv)
 	vGetOptions(&tOptions);
 
 #if !defined(__dos)
-	if (is_locale_utf8()) {
+	if(is_locale_utf8()) {
 #if defined(__STDC_ISO_10646__)
 		/*
 		 * If the user wants UTF-8 and the envirionment variables
 		 * support UTF-8, than set the locale accordingly
 		 */
-		if (tOptions.eEncoding == encoding_utf_8) {
-			if (setlocale(LC_CTYPE, "") == NULL) {
+		if(tOptions.eEncoding == encoding_utf_8) {
+			if(setlocale(LC_CTYPE, "") == NULL) {
 				werr(1, "Can't set the UTF-8 locale! "
-					"Check LANG, LC_CTYPE, LC_ALL.");
+				        "Check LANG, LC_CTYPE, LC_ALL.");
 			}
 			DBG_MSG("The UTF-8 locale has been set");
 		} else {
@@ -277,7 +277,7 @@ main(int argc, char **argv)
 		}
 #endif /* __STDC_ISO_10646__ */
 	} else {
-		if (setlocale(LC_CTYPE, "") == NULL) {
+		if(setlocale(LC_CTYPE, "") == NULL) {
 			werr(0, "Can't set the locale! Will use defaults");
 			(void)setlocale(LC_CTYPE, "C");
 		}
@@ -287,41 +287,42 @@ main(int argc, char **argv)
 
 	bMultiple = argc - iFirst > 1;
 	bUseTXT = tOptions.eConversionType == conversion_text ||
-		tOptions.eConversionType == conversion_fmt_text;
+	          tOptions.eConversionType == conversion_fmt_text;
 	bUseXML = tOptions.eConversionType == conversion_xml;
 	iGoodCount = 0;
 
 #if defined(__dos)
-	if (tOptions.eConversionType == conversion_pdf) {
+	if(tOptions.eConversionType == conversion_pdf) {
 		/* PDF must be written as a binary stream */
 		setmode(fileno(stdout), O_BINARY);
 	}
 #endif /* __dos */
 
-	if (bUseXML) {
-		fprintf(stdout,
-	"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-	"<!DOCTYPE %s PUBLIC \"-//OASIS//DTD DocBook XML V4.1.2//EN\"\n"
-	"\t\"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd\">\n",
-		bMultiple ? "set" : "book");
-		if (bMultiple) {
+	if(bUseXML) {
+		fprintf(stdout, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		                "<!DOCTYPE %s PUBLIC \"-//OASIS//DTD DocBook "
+		                "XML V4.1.2//EN\"\n"
+		                "\t\"http://www.oasis-open.org/docbook/xml/"
+		                "4.1.2/docbookx.dtd\">\n",
+		        bMultiple ? "set" : "book");
+		if(bMultiple) {
 			fprintf(stdout, "<set>\n");
 		}
 	}
 
-	for (iIndex = iFirst; iIndex < argc; iIndex++) {
-		if (bMultiple && bUseTXT) {
+	for(iIndex = iFirst; iIndex < argc; iIndex++) {
+		if(bMultiple && bUseTXT) {
 			szWordfile = szBasename(argv[iIndex]);
 			fprintf(stdout, "::::::::::::::\n");
 			fprintf(stdout, "%s\n", szWordfile);
 			fprintf(stdout, "::::::::::::::\n");
 		}
-		if (bProcessFile(argv[iIndex])) {
+		if(bProcessFile(argv[iIndex])) {
 			iGoodCount++;
 		}
 	}
 
-	if (bMultiple && bUseXML) {
+	if(bMultiple && bUseXML) {
 		fprintf(stdout, "</set>\n");
 	}
 

@@ -15,17 +15,17 @@
 #define Extern extern
 #include "mips.h"
 
-char	buf[128], lastcmd[128];
-char	fmt = 'X';
-int	width = 60;
-int	inc;
+char buf[128], lastcmd[128];
+char fmt = 'X';
+int width = 60;
+int inc;
 
-uint32_t	expr(char*);
-uint32_t	expr1(char*);
-char*	term(char*, uint32_t*);
+uint32_t expr(char*);
+uint32_t expr1(char*);
+char* term(char*, uint32_t*);
 
-char *
-nextc(char *p)
+char*
+nextc(char* p)
 {
 	while(*p && (*p == ' ' || *p == '\t') && *p != '\n')
 		p++;
@@ -36,11 +36,11 @@ nextc(char *p)
 	return p;
 }
 
-char *
-numsym(char *addr, uint32_t *val)
+char*
+numsym(char* addr, uint32_t* val)
 {
 	char tsym[128], *t;
-	static char *delim = "`'<>/\\@*|-~+-/=?\n";
+	static char* delim = "`'<>/\\@*|-~+-/=?\n";
 	Symbol s;
 	char c;
 
@@ -62,7 +62,7 @@ numsym(char *addr, uint32_t *val)
 		*val = s.value;
 	else {
 		if(tsym[0] == '#')
-			*val = strtoul(tsym+1, 0, 16);
+			*val = strtoul(tsym + 1, 0, 16);
 		else
 			*val = strtoul(tsym, 0, 0);
 	}
@@ -70,7 +70,7 @@ numsym(char *addr, uint32_t *val)
 }
 
 uint32_t
-expr(char *addr)
+expr(char* addr)
 {
 	uint32_t t, t2;
 	char op;
@@ -111,19 +111,21 @@ expr(char *addr)
 }
 
 int
-buildargv(char *str, char **args, int max)
+buildargv(char* str, char** args, int max)
 {
 	int na = 0;
 
-	while (na < max) {
-		while((*str == ' ' || *str == '\t' || *str == '\n') && *str != '\0')
+	while(na < max) {
+		while((*str == ' ' || *str == '\t' || *str == '\n') &&
+		      *str != '\0')
 			str++;
 
 		if(*str == '\0')
 			return na;
 
 		args[na++] = str;
-		while(!(*str == ' ' || *str == '\t'|| *str == '\n') && *str != '\0')
+		while(!(*str == ' ' || *str == '\t' || *str == '\n') &&
+		      *str != '\0')
 			str++;
 
 		if(*str == '\n')
@@ -138,10 +140,10 @@ buildargv(char *str, char **args, int max)
 }
 
 void
-colon(char *addr, char *cp)
+colon(char* addr, char* cp)
 {
 	int argc;
-	char *argv[100];
+	char* argv[100];
 	char tbuf[512];
 
 	cp = nextc(cp);
@@ -150,7 +152,7 @@ colon(char *addr, char *cp)
 		Bprint(bioout, "?\n");
 		return;
 	case 'b':
-		breakpoint(addr, cp+1);
+		breakpoint(addr, cp + 1);
 		return;
 
 	case 'd':
@@ -160,7 +162,7 @@ colon(char *addr, char *cp)
 	/* These fall through to print the stopped address */
 	case 'r':
 		reset();
-		argc = buildargv(cp+1, argv, 100);
+		argc = buildargv(cp + 1, argv, 100);
 		initstk(argc, argv);
 		count = 0;
 		atbpt = 0;
@@ -172,7 +174,7 @@ colon(char *addr, char *cp)
 		run();
 		break;
 	case 's':
-		cp = nextc(cp+1);
+		cp = nextc(cp + 1);
 		count = 0;
 		if(*cp)
 			count = strtoul(cp, 0, 0);
@@ -193,9 +195,8 @@ colon(char *addr, char *cp)
 	Bprint(bioout, "\n");
 }
 
-
 void
-dollar(char *cp)
+dollar(char* cp)
 {
 	int nr;
 
@@ -212,7 +213,7 @@ dollar(char *cp)
 	case 'C':
 		stktrace(*cp);
 		break;
-		
+
 	case 'b':
 		dobplist();
 		break;
@@ -266,12 +267,12 @@ dollar(char *cp)
 			calltree = 1;
 			break;
 		case 'r':
-			nr = atoi(cp+1);
+			nr = atoi(cp + 1);
 			if(nr < 0 || nr > 31) {
 				print("bad register\n");
 				break;
 			}
-			rtrace ^= (1<<nr);
+			rtrace ^= (1 << nr);
 			print("%.8ux\n", rtrace);
 			break;
 		}
@@ -310,7 +311,7 @@ pfmt(char fmt, int mem, uint32_t val)
 {
 	int c, i;
 	Symbol s;
-	char *p, ch, str[1024];
+	char* p, ch, str[1024];
 
 	c = 0;
 	switch(fmt) {
@@ -319,7 +320,7 @@ pfmt(char fmt, int mem, uint32_t val)
 		return 0;
 	case 'o':
 		c = Bprint(bioout, "%-4lo ",
-			   mem ? (uint16_t)getmem_2(dot) : val);
+		           mem ? (uint16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
@@ -330,50 +331,49 @@ pfmt(char fmt, int mem, uint32_t val)
 
 	case 'q':
 		c = Bprint(bioout, "%-4lo ",
-			   mem ? (int16_t)getmem_2(dot) : val);
+		           mem ? (int16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'Q':
 		c = Bprint(bioout, "%-8lo ",
-			   mem ? (int32_t)getmem_4(dot) : val);
+		           mem ? (int32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'd':
 		c = Bprint(bioout, "%-5ld ",
-			   mem ? (int16_t)getmem_2(dot) : val);
+		           mem ? (int16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
-
 	case 'D':
 		c = Bprint(bioout, "%-8ld ",
-			   mem ? (int32_t)getmem_4(dot) : val);
+		           mem ? (int32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'x':
 		c = Bprint(bioout, "#%-4lux ",
-			   mem ? (int32_t)getmem_2(dot) : val);
+		           mem ? (int32_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'X':
 		c = Bprint(bioout, "#%-8lux ",
-			   mem ? (int32_t)getmem_4(dot) : val);
+		           mem ? (int32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'u':
 		c = Bprint(bioout, "%-5ld ",
-			   mem ? (uint16_t)getmem_2(dot) : val);
+		           mem ? (uint16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'U':
 		c = Bprint(bioout, "%-8ld ",
-			   mem ? (uint32_t)getmem_4(dot) : val);
+		           mem ? (uint32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
@@ -398,7 +398,7 @@ pfmt(char fmt, int mem, uint32_t val)
 
 	case 's':
 		i = 0;
-		while(ch = getmem_b(dot+i))
+		while(ch = getmem_b(dot + i))
 			str[i++] = ch;
 		str[i] = '\0';
 		dot += i;
@@ -408,7 +408,7 @@ pfmt(char fmt, int mem, uint32_t val)
 
 	case 'S':
 		i = 0;
-		while(ch = getmem_b(dot+i))
+		while(ch = getmem_b(dot + i))
 			str[i++] = ch;
 		str[i] = '\0';
 		dot += i;
@@ -434,14 +434,15 @@ pfmt(char fmt, int mem, uint32_t val)
 		break;
 
 	case 'e':
-		for (i = 0; globalsym(&s, i); i++)
-			Bprint(bioout, "%-15s #%lux\n", s.name,	getmem_4(s.value));
+		for(i = 0; globalsym(&s, i); i++)
+			Bprint(bioout, "%-15s #%lux\n", s.name,
+			       getmem_4(s.value));
 		inc = 0;
 		break;
 
 	case 'i':
 		inc = _mipscoinst(symmap, dot, str, sizeof(str));
-		if (inc < 0) {
+		if(inc < 0) {
 			Bprint(bioout, "vi: %r\n");
 			return 0;
 		}
@@ -449,7 +450,7 @@ pfmt(char fmt, int mem, uint32_t val)
 		break;
 
 	case 'n':
-		c = width+1;
+		c = width + 1;
 		inc = 0;
 		break;
 
@@ -470,7 +471,7 @@ pfmt(char fmt, int mem, uint32_t val)
 		break;
 
 	case 'z':
-		if (findsym(dot, CTEXT, &s))
+		if(findsym(dot, CTEXT, &s))
 			Bprint(bioout, "  %s() ", s.name);
 		printsource(dot);
 		inc = 0;
@@ -480,7 +481,7 @@ pfmt(char fmt, int mem, uint32_t val)
 }
 
 void
-eval(char *addr, char *p)
+eval(char* addr, char* p)
 {
 	uint32_t val;
 
@@ -495,7 +496,7 @@ eval(char *addr, char *p)
 }
 
 void
-quesie(char *p)
+quesie(char* p)
 {
 	int c, count, i;
 	char tbuf[512];
@@ -517,7 +518,7 @@ quesie(char *p)
 		}
 		count = 0;
 		while(*p >= '0' && *p <= '9')
-			count = count*10 + (*p++ - '0');
+			count = count * 10 + (*p++ - '0');
 		if(count == 0)
 			count = 1;
 		p = nextc(p);
@@ -542,7 +543,7 @@ quesie(char *p)
 }
 
 void
-catcher(void *a, char *msg)
+catcher(void* a, char* msg)
 {
 	USED(a);
 	if(strcmp(msg, "interrupt") != 0)
@@ -554,7 +555,7 @@ catcher(void *a, char *msg)
 }
 
 void
-setreg(char *addr, char *cp)
+setreg(char* addr, char* cp)
 {
 	int rn;
 
@@ -589,9 +590,9 @@ setreg(char *addr, char *cp)
 void
 cmd(void)
 {
-	char *p, *a, *cp, *gotint;
+	char* p, *a, *cp, *gotint;
 	char addr[128];
-	static char *cmdlet = ":$?/=>";
+	static char* cmdlet = ":$?/=>";
 	int n, i;
 
 	notify(catcher);
@@ -616,7 +617,7 @@ cmd(void)
 		if(buf[0] == '\n')
 			strcpy(buf, lastcmd);
 		else {
-			buf[n-1] = '\0';
+			buf[n - 1] = '\0';
 			strcpy(lastcmd, buf);
 		}
 		p = buf;
@@ -634,30 +635,30 @@ cmd(void)
 		cp = strchr(addr, ',');
 		if(cp != 0) {
 			if(cp[1] == '#')
-				cmdcount = strtoul(cp+2, &gotint, 16);
+				cmdcount = strtoul(cp + 2, &gotint, 16);
 			else
-				cmdcount = strtoul(cp+1, &gotint, 0);
+				cmdcount = strtoul(cp + 1, &gotint, 0);
 			*cp = '\0';
 		}
 
 		switch(*p) {
 		case '$':
-			dollar(p+1);
+			dollar(p + 1);
 			break;
 		case ':':
-			colon(addr, p+1);
+			colon(addr, p + 1);
 			break;
 		case '/':
 		case '?':
 			dot = expr(addr);
 			for(i = 0; i < cmdcount; i++)
-				quesie(p+1);
+				quesie(p + 1);
 			break;
 		case '=':
-			eval(addr, p+1);
+			eval(addr, p + 1);
 			break;
 		case '>':
-			setreg(addr, p+1);
+			setreg(addr, p + 1);
 			break;
 		default:
 			Bprint(bioout, "?\n");

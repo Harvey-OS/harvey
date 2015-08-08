@@ -40,15 +40,15 @@
  * saving, so it does not have to be restored.
  */
 
-extern char* acfpunm(Ureg* ureg, void *unused_voidp);
-extern char* acfpumf(Ureg* ureg, void *unused_voidp);
-extern char* acfpuxf(Ureg* ureg, void *unused_voidp);
+extern char* acfpunm(Ureg* ureg, void* unused_voidp);
+extern char* acfpumf(Ureg* ureg, void* unused_voidp);
+extern char* acfpuxf(Ureg* ureg, void* unused_voidp);
 extern void acfpusysprocsetup(Proc*);
 
 extern void _acsysret(void);
 extern void _actrapret(void);
 
-ACVctl *acvctl[256];
+ACVctl* acvctl[256];
 
 /*
  * Test inter core calls by calling a cores to print something, and then
@@ -57,22 +57,22 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-	print("called: %s\n", ( char *)machp()->icc->data);
+	print("called: %s\n", (char*)machp()->icc->data);
 }
 
 void
 testicc(int i)
 {
-	Mach *mp;
+	Mach* mp;
 
-	if((mp = sys->machptr[i]) != nil && mp->online != 0){
-		if(mp->nixtype != NIXAC){
+	if((mp = sys->machptr[i]) != nil && mp->online != 0) {
+		if(mp->nixtype != NIXAC) {
 			print("testicc: core %d is not an AC\n", i);
 			return;
 		}
 		print("calling core %d... ", i);
 		mp->icc->flushtlb = 0;
-		snprint(( char *)mp->icc->data, ICCLNSZ, "<%d>", i);
+		snprint((char*)mp->icc->data, ICCLNSZ, "<%d>", i);
 		mfence();
 		mp->icc->fn = testiccfn;
 		mwait(&mp->icc->fn);
@@ -87,11 +87,12 @@ static void
 acstackok(void)
 {
 	char dummy;
-	char *sstart;
+	char* sstart;
 
-	sstart = (char *)machp() - PGSZ - 4*PTSZ - MACHSTKSZ;
-	if(&dummy < sstart + 4*KiB){
-		print("ac kernel stack overflow, cpu%d stopped\n", machp()->machno);
+	sstart = (char*)machp() - PGSZ - 4 * PTSZ - MACHSTKSZ;
+	if(&dummy < sstart + 4 * KiB) {
+		print("ac kernel stack overflow, cpu%d stopped\n",
+		      machp()->machno);
 		DONE();
 	}
 }
@@ -108,12 +109,13 @@ void
 acsched(void)
 {
 	acmmuswitch();
-	for(;;){
+	for(;;) {
 		acstackok();
 		mwait(&machp()->icc->fn);
 		if(machp()->icc->flushtlb)
 			acmmuswitch();
-		DBG("acsched: cpu%d: fn %#p\n", machp()->machno, machp()->icc->fn);
+		DBG("acsched: cpu%d: fn %#p\n", machp()->machno,
+		    machp()->icc->fn);
 		machp()->icc->fn();
 		DBG("acsched: cpu%d: idle\n", machp()->machno);
 		mfence();
@@ -126,8 +128,8 @@ acmmuswitch(void)
 {
 	extern Page mach0pml4;
 
-	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
-
+	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n",
+	    machp()->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
 
 	cr3put(machp()->pml4->pa);
 }
@@ -168,7 +170,7 @@ actrapret(void)
  * All interrupts are masked while in the "kernel"
  */
 void
-actrap(Ureg *u)
+actrap(Ureg* u)
 {
 	panic("actrap");
 #if 0
@@ -279,7 +281,7 @@ acsyscall(void)
 void
 acsysret(void)
 {
-panic("acsysret");
+	panic("acsysret");
 #if 0
 	DBG("acsysret\n");
 	if(m->proc != nil)
@@ -289,24 +291,20 @@ panic("acsysret");
 }
 
 void
-dumpreg(void *u)
+dumpreg(void* u)
 {
 	print("reg is %p\n", u);
 	ndnr();
 }
 
-char *rolename[] =
-{
-	[NIXAC]	"AC",
-	[NIXTC]	"TC",
-	[NIXKC]	"KC",
-	[NIXXC]	"XC",
+char* rolename[] = {
+        [NIXAC] "AC", [NIXTC] "TC", [NIXKC] "KC", [NIXXC] "XC",
 };
 
 void
 acmodeset(int mode)
 {
-	switch(mode){
+	switch(mode) {
 	case NIXAC:
 	case NIXKC:
 	case NIXTC:
@@ -321,8 +319,8 @@ acmodeset(int mode)
 void
 acinit(void)
 {
-	Mach *mp;
-	Proc *pp;
+	Mach* mp;
+	Proc* pp;
 
 	/*
 	 * Lower the priority of the apic to 0,

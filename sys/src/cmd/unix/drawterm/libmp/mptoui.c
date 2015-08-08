@@ -17,7 +17,7 @@
  */
 
 mpint*
-uitomp(uint i, mpint *b)
+uitomp(uint i, mpint* b)
 {
 	if(b == nil)
 		b = mpnew(0);
@@ -29,16 +29,16 @@ uitomp(uint i, mpint *b)
 }
 
 uint
-mptoui(mpint *b)
+mptoui(mpint* b)
 {
 	uint x;
 
 	x = *b->p;
-	if(b->sign < 0){
+	if(b->sign < 0) {
 		x = 0;
 	} else {
 		if(b->top > 1 || x > MAXUINT)
-			x =  MAXUINT;
+			x = MAXUINT;
 	}
 	return x;
 }

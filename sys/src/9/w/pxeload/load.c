@@ -27,66 +27,38 @@ uint32_t memend;
 int vflag = 0;
 int debug = 0;
 
-static char *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
-static char *etherparts[] = { "*", 0 };
+static char* diskparts[] = {"dos", "9fat", "fs", "data", "cdboot", 0};
+static char* etherparts[] = {"*", 0};
 
-static char *diskinis[] = {
-	"plan9/plan9.ini",
-	"plan9.ini",
-	0
-};
-static char *etherinis[] = {
-	"/cfg/pxe/%E",
-	0
-};
+static char* diskinis[] = {"plan9/plan9.ini", "plan9.ini", 0};
+static char* etherinis[] = {"/cfg/pxe/%E", 0};
 
 #define NODISCS
 
 Type types[] = {
-	{	Tfloppy,
-		Fini|Ffs,
-		floppyinit, floppyinitdev,
-		floppygetfspart, 0, floppyboot,
-		floppyprintdevs,
-		diskparts,
-		diskinis,
-	},
+    {
+     Tfloppy, Fini | Ffs, floppyinit, floppyinitdev, floppygetfspart, 0,
+     floppyboot, floppyprintdevs, diskparts, diskinis,
+    },
 #ifndef NODISCS
-	{	Tcd,
-		Fini|Ffs,
-		cdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
-		sdprintdevs,
-		diskparts,
-		diskinis,
-	},
+    {
+     Tcd, Fini | Ffs, cdinit, sdinitdev, sdgetfspart, sdaddconf, sdboot,
+     sdprintdevs, diskparts, diskinis,
+    },
 #endif /* NODISCS */
-	{	Tether,
-		Fini|Fbootp,
-		etherinit, etherinitdev,
-		pxegetfspart, 0, bootpboot,
-		etherprintdevs,
-		etherparts,
-		etherinis,
-	},
+    {
+     Tether, Fini | Fbootp, etherinit, etherinitdev, pxegetfspart, 0, bootpboot,
+     etherprintdevs, etherparts, etherinis,
+    },
 #ifndef NODISCS
-	{	Tsd,
-		Fini|Ffs,
-		sdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
-		sdprintdevs,
-		diskparts,
-		diskinis,
-	},
+    {
+     Tsd, Fini | Ffs, sdinit, sdinitdev, sdgetfspart, sdaddconf, sdboot,
+     sdprintdevs, diskparts, diskinis,
+    },
 #endif /* NODISCS */
-	{	Tnil,
-		0,
-		nil, nil, nil, nil, nil, nil,
-		nil,
-		nil,
-		0,
-		nil,
-	},
+    {
+     Tnil, 0, nil, nil, nil, nil, nil, nil, nil, nil, 0, nil,
+    },
 };
 
 #ifndef NODISCS
@@ -98,8 +70,7 @@ extern SDifc sdataifc;
 #ifdef NOSCSI
 
 SDifc* sdifc[] = {
-	&sdataifc,
-	nil,
+    &sdataifc, nil,
 };
 
 #else
@@ -107,10 +78,7 @@ SDifc* sdifc[] = {
 extern SDifc sdmylexifc;
 extern SDifc sd53c8xxifc;
 SDifc* sdifc[] = {
-	&sdataifc,
-	&sdmylexifc,
-	&sd53c8xxifc,
-	nil,
+    &sdataifc, &sdmylexifc, &sd53c8xxifc, nil,
 };
 
 #endif NOSCSI
@@ -118,60 +86,58 @@ SDifc* sdifc[] = {
 
 typedef struct Mode Mode;
 
-enum {
-	Maxdev		= 7,
-	Dany		= -1,
-	Nmedia		= 16,
-	Nini		= 10,
+enum { Maxdev = 7,
+       Dany = -1,
+       Nmedia = 16,
+       Nini = 10,
 };
 
-enum {					/* mode */
-	Mauto		= 0x00,
-	Mlocal		= 0x01,
-	Manual		= 0x02,
-	NMode		= 0x03,
+enum { /* mode */
+       Mauto = 0x00,
+       Mlocal = 0x01,
+       Manual = 0x02,
+       NMode = 0x03,
 };
 
 typedef struct Medium Medium;
 struct Medium {
-	Type*	type;
-	int	flag;
-	int	dev;
+	Type* type;
+	int flag;
+	int dev;
 	char name[NAMELEN];
 
-	Fs *inifs;
-	char *part;
-	char *ini;
+	Fs* inifs;
+	char* part;
+	char* ini;
 
-	Medium*	next;
+	Medium* next;
 };
 
 typedef struct Mode {
-	char*	name;
-	int	mode;
+	char* name;
+	int mode;
 } Mode;
 
 static Medium media[Nmedia];
-static Medium *curmedium = media;
+static Medium* curmedium = media;
 
-static Mode modes[NMode+1] = {
-	[Mauto]		{ "auto",   Mauto,  },
-	[Mlocal]	{ "local",  Mlocal, },
-	[Manual]	{ "manual", Manual, },
+static Mode modes[NMode + 1] = {
+    [Mauto] { "auto", Mauto, }, [Mlocal] { "local", Mlocal, },
+    [Manual] { "manual", Manual, },
 };
 
-char **ini;
+char** ini;
 
 int scsi0port;
-char *defaultpartition;
+char* defaultpartition;
 int iniread;
 
 static Medium*
-parse(char *line, char **file)
+parse(char* line, char** file)
 {
-	char *p;
-	Type *tp;
-	Medium *mp;
+	char* p;
+	Type* tp;
+	Medium* mp;
 
 	if(p = strchr(line, '!')) {
 		*p++ = 0;
@@ -189,13 +155,13 @@ parse(char *line, char **file)
 }
 
 static int
-boot(Medium *mp, char *file)
+boot(Medium* mp, char* file)
 {
-	Type *tp;
-	Medium *xmp;
+	Type* tp;
+	Medium* xmp;
 	static int didaddconf;
 	Boot b;
-	char *p;
+	char* p;
 
 	memset(&b, 0, sizeof b);
 	b.state = INITKERNEL;
@@ -209,7 +175,7 @@ boot(Medium *mp, char *file)
 	}
 
 	sprint(BOOTLINE, "%s!%s", mp->name, file);
-	for(p = file; *p != '\0'; p++){
+	for(p = file; *p != '\0'; p++) {
 		if(*p != ' ' && *p != '\t')
 			continue;
 		*p = '\0';
@@ -219,9 +185,9 @@ boot(Medium *mp, char *file)
 }
 
 static Medium*
-allocm(Type *tp)
+allocm(Type* tp)
 {
-	Medium **l;
+	Medium** l;
 
 	if(curmedium >= &media[Nmedia])
 		return 0;
@@ -235,33 +201,34 @@ allocm(Type *tp)
 Medium*
 probe(int type, int flag, int dev)
 {
-	Type *tp;
+	Type* tp;
 	int i;
-	Medium *mp;
+	Medium* mp;
 	File f;
-	Fs *fs;
-	char **partp;
+	Fs* fs;
+	char** partp;
 
-	for(tp = types; tp->type != Tnil; tp++){
+	for(tp = types; tp->type != Tnil; tp++) {
 		if(type != Tany && type != tp->type)
 			continue;
 
-		if(flag != Fnone){
-			for(mp = tp->media; mp; mp = mp->next){
-				if((flag & mp->flag) && (dev == Dany || dev == mp->dev))
+		if(flag != Fnone) {
+			for(mp = tp->media; mp; mp = mp->next) {
+				if((flag & mp->flag) &&
+				   (dev == Dany || dev == mp->dev))
 					return mp;
 			}
 		}
 
-		if((tp->flag & Fprobe) == 0){
+		if((tp->flag & Fprobe) == 0) {
 			tp->flag |= Fprobe;
 			tp->mask = (*tp->init)();
 		}
 
-		for(i = 0; tp->mask; i++){
-			if((tp->mask & (1<<i)) == 0)
+		for(i = 0; tp->mask; i++) {
+			if((tp->mask & (1 << i)) == 0)
 				continue;
-			tp->mask &= ~(1<<i);
+			tp->mask &= ~(1 << i);
 
 			if((mp = allocm(tp)) == 0)
 				continue;
@@ -271,14 +238,15 @@ probe(int type, int flag, int dev)
 			mp->type = tp;
 			(*tp->initdev)(i, mp->name);
 
-			if(mp->flag & Fini){
+			if(mp->flag & Fini) {
 				mp->flag &= ~Fini;
-				for(partp = tp->parts; *partp; partp++){
-					if((fs = (*tp->getfspart)(i, *partp, 0)) == nil)
+				for(partp = tp->parts; *partp; partp++) {
+					if((fs = (*tp->getfspart)(i, *partp,
+					                          0)) == nil)
 						continue;
 
-					for(ini = tp->inis; *ini; ini++){
-						if(fswalk(fs, *ini, &f) > 0){
+					for(ini = tp->inis; *ini; ini++) {
+						if(fswalk(fs, *ini, &f) > 0) {
 							mp->inifs = fs;
 							mp->part = *partp;
 							mp->ini = f.path;
@@ -300,10 +268,10 @@ probe(int type, int flag, int dev)
 void
 main(void)
 {
-	Medium *mp;
+	Medium* mp;
 	int cons, flag, i, mode, tried;
-	char def[2*NAMELEN], line[80], *p, *file;
-	Type *tp;
+	char def[2 * NAMELEN], line[80], *p, *file;
+	Type* tp;
 
 	i8042a20();
 	cgapost(0x9B);
@@ -330,8 +298,8 @@ main(void)
 	memstart = KZERO|(3*MiB+512*KiB);
 	memend = KZERO|(4*MiB);
 	 */
-	memstart = KZERO|(8*MiB);
-	memend = KZERO|(16*MiB);
+	memstart = KZERO | (8 * MiB);
+	memend = KZERO | (16 * MiB);
 
 	cgainit();
 	trapinit();
@@ -339,17 +307,17 @@ main(void)
 	alarminit();
 	spllo();
 	kbdinit();
-cons = consinit("0", 0);
+	cons = consinit("0", 0);
 	readlsconf();
 	meminit(0);
 
-	if(end > KADDR(640*1024))
+	if(end > KADDR(640 * 1024))
 		panic("i'm too big\n");
 
-	for(tp = types; tp->type != Tnil; tp++){
-		//if(tp->type == Tether)
+	for(tp = types; tp->type != Tnil; tp++) {
+		// if(tp->type == Tether)
 		//	continue;
-		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
+		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)) {
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 			iniread = !dotini(mp->inifs);
 			break;
@@ -360,15 +328,15 @@ cons = consinit("0", 0);
 	if(iniread && !cons && (p = getconf("console")) != nil)
 		cons = consinit(p, getconf("baud"));
 	USED(cons);
-	//devpccardlink();
-	//devi82365link();
-if(vflag){
-    pcihinv(nil);
-    delay(5000);
-}
+	// devpccardlink();
+	// devi82365link();
+	if(vflag) {
+		pcihinv(nil);
+		delay(5000);
+	}
 
 	/*
- 	 * Even after we find the ini file, we keep probing disks,
+	 * Even after we find the ini file, we keep probing disks,
 	 * because we have to collect the partition tables and
 	 * have boot devices for parse.
 	 */
@@ -379,12 +347,12 @@ if(vflag){
 	p = getconf("bootfile");
 
 	if(p != 0) {
-		strecpy(line, line+sizeof(line), p);
+		strecpy(line, line + sizeof(line), p);
 		p = line;
 
 		mode = Manual;
-		for(i = 0; i < NMode; i++){
-			if(strcmp(p, modes[i].name) == 0){
+		for(i = 0; i < NMode; i++) {
+			if(strcmp(p, modes[i].name) == 0) {
 				mode = modes[i].mode;
 				goto done;
 			}
@@ -396,7 +364,7 @@ if(vflag){
 		tried = boot(mp, file);
 	}
 done:
-	if(tried == 0 && mode != Manual){
+	if(tried == 0 && mode != Manual) {
 		flag = Fany;
 		if(mode == Mlocal)
 			flag &= ~Fbootp;
@@ -407,12 +375,12 @@ done:
 	def[0] = 0;
 	probe(Tany, Fnone, Dany);
 	if(p = getconf("bootdef"))
-		strecpy(def, def+sizeof(def), p);
+		strecpy(def, def + sizeof(def), p);
 
 	flag = 0;
-	for(tp = types; tp->type != Tnil; tp++){
-		for(mp = tp->media; mp; mp = mp->next){
-			if(flag == 0){
+	for(tp = types; tp->type != Tnil; tp++) {
+		for(mp = tp->media; mp; mp = mp->next) {
+			if(flag == 0) {
 				flag = 1;
 				print("Boot devices:");
 			}
@@ -422,8 +390,9 @@ done:
 	if(flag)
 		print("\n");
 
-	for(;;){
-		if(getstr("boot from", line, sizeof(line), def, (mode != Manual)*15) >= 0)
+	for(;;) {
+		if(getstr("boot from", line, sizeof(line), def,
+		          (mode != Manual) * 15) >= 0)
 			if(mp = parse(line, &file))
 				boot(mp, file);
 		def[0] = 0;
@@ -431,18 +400,18 @@ done:
 }
 
 int
-getfields(char *lp, char **fields, int n, char sep)
+getfields(char* lp, char** fields, int n, char sep)
 {
 	int i;
 
-	for(i = 0; lp && *lp && i < n; i++){
+	for(i = 0; lp && *lp && i < n; i++) {
 		while(*lp == sep)
 			*lp++ = 0;
 		if(*lp == 0)
 			break;
 		fields[i] = lp;
-		while(*lp && *lp != sep){
-			if(*lp == '\\' && *(lp+1) == '\n')
+		while(*lp && *lp != sep) {
+			if(*lp == '\\' && *(lp + 1) == '\n')
 				*lp++ = ' ';
 			lp++;
 		}
@@ -451,11 +420,11 @@ getfields(char *lp, char **fields, int n, char sep)
 }
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(char* a, char* b)
 {
 	int ac, bc;
 
-	for(;;){
+	for(;;) {
 		ac = *a++;
 		bc = *b++;
 
@@ -473,11 +442,11 @@ cistrcmp(char *a, char *b)
 }
 
 int
-cistrncmp(char *a, char *b, int n)
+cistrncmp(char* a, char* b, int n)
 {
 	unsigned ac, bc;
 
-	while(n > 0){
+	while(n > 0) {
 		ac = *a++;
 		bc = *b++;
 		n--;
@@ -516,11 +485,10 @@ ialloc(uint32_t n, int align)
 	if(a = p % align)
 		p += align - a;
 
-
-	palloc = p+n;
+	palloc = p + n;
 	if(palloc > memend)
-		panic("ialloc(%lud, %d) called from 0x%lux\n",
-			n, align, getcallerpc(&n));
+		panic("ialloc(%lud, %d) called from 0x%lux\n", n, align,
+		      getcallerpc(&n));
 	return memset((void*)p, 0, n);
 }
 
@@ -529,48 +497,48 @@ xspanalloc(uint32_t size, int align, uint32_t span)
 {
 	uint32_t a, v;
 
-	if((palloc + (size+align+span)) > memend)
-		panic("xspanalloc(%lud, %d, 0x%lux) called from 0x%lux\n",
-			size, align, span, getcallerpc(&size));
+	if((palloc + (size + align + span)) > memend)
+		panic("xspanalloc(%lud, %d, 0x%lux) called from 0x%lux\n", size,
+		      align, span, getcallerpc(&size));
 
-	a = (uint32_t)ialloc(size+align+span, 0);
+	a = (uint32_t)ialloc(size + align + span, 0);
 
 	if(span > 2)
-		v = (a + span) & ~(span-1);
+		v = (a + span) & ~(span - 1);
 	else
 		v = a;
 
 	if(align > 1)
-		v = (v + align) & ~(align-1);
+		v = (v + align) & ~(align - 1);
 
 	return (void*)v;
 }
 
-static Block *allocbp;
+static Block* allocbp;
 
 Block*
 allocb(int size)
 {
-	Block *bp, **lbp;
+	Block* bp, **lbp;
 	uint32_t addr;
 
 	lbp = &allocbp;
-	for(bp = *lbp; bp; bp = bp->next){
-		if((bp->lim - bp->base) >= size){
+	for(bp = *lbp; bp; bp = bp->next) {
+		if((bp->lim - bp->base) >= size) {
 			*lbp = bp->next;
 			break;
 		}
 		lbp = &bp->next;
 	}
-	if(bp == 0){
-		if((palloc + (sizeof(Block)+size+64)) > memend)
-			panic("allocb(%d) called from 0x%lux\n",
-				size, getcallerpc(&size));
-		bp = ialloc(sizeof(Block)+size+64, 0);
+	if(bp == 0) {
+		if((palloc + (sizeof(Block) + size + 64)) > memend)
+			panic("allocb(%d) called from 0x%lux\n", size,
+			      getcallerpc(&size));
+		bp = ialloc(sizeof(Block) + size + 64, 0);
 		addr = (uint32_t)bp;
 		addr = ROUNDUP(addr + sizeof(Block), 8);
 		bp->base = (uint8_t*)addr;
-		bp->lim = ((uint8_t*)bp) + sizeof(Block)+size+64;
+		bp->lim = ((uint8_t*)bp) + sizeof(Block) + size + 64;
 	}
 
 	if(bp->flag)
@@ -593,9 +561,8 @@ freeb(Block* bp)
 	bp->flag = 0;
 }
 
-enum {
-	Paddr=		0x70,	/* address port */
-	Pdata=		0x71,	/* data port */
+enum { Paddr = 0x70, /* address port */
+       Pdata = 0x71, /* data port */
 };
 
 uint8_t
@@ -645,10 +612,10 @@ warp9(uint32_t entry)
 	/*
 	 * Instead, this is where to push things on the stack to
 	 * boot *BSD systems, e.g.
-	(*(void(*)(void*, void*, void*, void*, ulong, ulong))(PADDR(entry)))(0, 0, 0, 0, 8196, 640);
+	(*(void(*)(void*, void*, void*, void*, ulong, ulong))(PADDR(entry)))(0,
+	0, 0, 0, 8196, 640);
 	 * will enable NetBSD boot (the real memory size needs to
 	 * go in the 5th argument).
 	(*(void(*)(void))(PADDR(entry)))();
 	 */
-
 }

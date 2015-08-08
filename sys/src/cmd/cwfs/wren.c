@@ -14,27 +14,27 @@
  */
 #include "all.h"
 
-enum { Sectorsz = 512, };		/* usual disk sector size */
+enum { Sectorsz = 512,
+}; /* usual disk sector size */
 
-typedef	struct	Wren	Wren;
-struct	Wren
-{
-	int32_t	block;			/* size of a block -- from config */
-	Devsize	nblock;			/* number of blocks -- from config */
-	int32_t	mult;			/* multiplier to get physical blocks */
-	Devsize	max;			/* number of logical blocks */
+typedef struct Wren Wren;
+struct Wren {
+	int32_t block;  /* size of a block -- from config */
+	Devsize nblock; /* number of blocks -- from config */
+	int32_t mult;   /* multiplier to get physical blocks */
+	Devsize max;    /* number of logical blocks */
 
-//	char	*sddir;			/* /dev/sdXX name */
+	//	char	*sddir;			/* /dev/sdXX name */
 };
 
-char *
-dataof(char *file)
+char*
+dataof(char* file)
 {
-	char *datanm;
-	Dir *dir;
+	char* datanm;
+	Dir* dir;
 
 	dir = dirstat(file);
-	if (dir != nil && dir->mode & DMDIR)
+	if(dir != nil && dir->mode & DMDIR)
 		datanm = smprint("%s/data", file);
 	else
 		datanm = strdup(file);
@@ -43,16 +43,16 @@ dataof(char *file)
 }
 
 void
-wreninit(Device *d)
+wreninit(Device* d)
 {
-	Wren *dr;
-	Dir *dir;
+	Wren* dr;
+	Dir* dir;
 
 	if(d->private)
 		return;
 	d->private = dr = malloc(sizeof(Wren));
 
-	if (d->wren.file)
+	if(d->wren.file)
 		d->wren.sddata = dataof(d->wren.file);
 	else {
 		d->wren.sddir = sdof(d);
@@ -61,13 +61,13 @@ wreninit(Device *d)
 
 	assert(d->wren.fd <= 0);
 	d->wren.fd = open(d->wren.sddata, ORDWR);
-	if (d->wren.fd < 0)
+	if(d->wren.fd < 0)
 		panic("wreninit: can't open %s for %Z: %r", d->wren.sddata, d);
 
 	dr->block = inqsize(d->wren.sddata);
-	if(dr->block <= 0 || dr->block >= 16*1024) {
-		print("\twreninit %Z block size %ld, setting to %d\n",
-			d, dr->block, Sectorsz);
+	if(dr->block <= 0 || dr->block >= 16 * 1024) {
+		print("\twreninit %Z block size %ld, setting to %d\n", d,
+		      dr->block, Sectorsz);
 		dr->block = Sectorsz;
 	}
 
@@ -77,30 +77,31 @@ wreninit(Device *d)
 
 	dr->mult = (RBUFSIZE + dr->block - 1) / dr->block;
 	dr->max = (dr->nblock + 1) / dr->mult;
-	print("\tdisk drive %Z: %,lld %ld-byte sectors, ",
-		d, (Wideoff)dr->nblock, dr->block);
+	print("\tdisk drive %Z: %,lld %ld-byte sectors, ", d,
+	      (Wideoff)dr->nblock, dr->block);
 	print("%,lld %d-byte blocks\n", (Wideoff)dr->max, RBUFSIZE);
 	print("\t\t%ld multiplier\n", dr->mult);
 }
 
 Devsize
-wrensize(Device *d)
+wrensize(Device* d)
 {
-	return ((Wren *)d->private)->max;
+	return ((Wren*)d->private)->max;
 }
 
 int
-wrenread(Device *d, Off b, void *c)
+wrenread(Device* d, Off b, void* c)
 {
 	int r = 0;
-	Wren *dr = d->private;
+	Wren* dr = d->private;
 
-	if (dr == nil)
+	if(dr == nil)
 		panic("wrenread: no drive (%Z) block %lld", d, (Wideoff)b);
 	if(b >= dr->max) {
 		print("wrenread: block out of range %Z(%lld)\n", d, (Wideoff)b);
 		r = 0x040;
-	} else if (pread(d->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
+	} else if(pread(d->wren.fd, c, RBUFSIZE, (int64_t)b * RBUFSIZE) !=
+	          RBUFSIZE) {
 		print("wrenread: error on %Z(%lld): %r\n", d, (Wideoff)b);
 		cons.nwrenre++;
 		r = 1;
@@ -109,18 +110,19 @@ wrenread(Device *d, Off b, void *c)
 }
 
 int
-wrenwrite(Device *d, Off b, void *c)
+wrenwrite(Device* d, Off b, void* c)
 {
 	int r = 0;
-	Wren *dr = d->private;
+	Wren* dr = d->private;
 
-	if (dr == nil)
+	if(dr == nil)
 		panic("wrenwrite: no drive (%Z) block %lld", d, (Wideoff)b);
 	if(b >= dr->max) {
-		print("wrenwrite: block out of range %Z(%lld)\n",
-			d, (Wideoff)b);
+		print("wrenwrite: block out of range %Z(%lld)\n", d,
+		      (Wideoff)b);
 		r = 0x040;
-	} else if (pwrite(d->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
+	} else if(pwrite(d->wren.fd, c, RBUFSIZE, (int64_t)b * RBUFSIZE) !=
+	          RBUFSIZE) {
 		print("wrenwrite: error on %Z(%lld): %r\n", d, (Wideoff)b);
 		cons.nwrenwe++;
 		r = 1;

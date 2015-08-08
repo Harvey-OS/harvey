@@ -13,8 +13,7 @@
  * 17.  Environment switching.
  */
 typedef struct Env Env;
-struct Env
-{
+struct Env {
 	int s;
 	int s0;
 	int f;
@@ -43,28 +42,16 @@ struct Env
 	/* - mc */
 };
 
-Env defenv =
-{
-	10,
-	10,
-	1,
-	1,
-	1,
-	1,
-	0,
-	12,
-	12,
-	0,
-	0,
-	0,
+Env defenv = {
+    10, 10, 1, 1, 1, 1, 0, 12, 12, 0, 0, 0,
 };
 
 Env env[3];
-Env *evstack[20];
+Env* evstack[20];
 int nevstack;
 
 void
-saveenv(Env *e)
+saveenv(Env* e)
 {
 	e->s = getnr(L(".s"));
 	e->s0 = getnr(L(".s0"));
@@ -81,7 +68,7 @@ saveenv(Env *e)
 }
 
 void
-restoreenv(Env *e)
+restoreenv(Env* e)
 {
 	nr(L(".s"), e->s);
 	nr(L(".s0"), e->s0);
@@ -96,20 +83,20 @@ restoreenv(Env *e)
 	nr(L(".ls0"), e->ls0);
 	nr(L(".it"), e->it);
 
-	nr(L(".ev"), e-env);
+	nr(L(".ev"), e - env);
 	runmacro1(L("font"));
 }
 
-
 void
-r_ev(int argc, Rune **argv)
+r_ev(int argc, Rune** argv)
 {
 	int i;
-	Env *e;
-	
-	if(argc == 1){
-		if(nevstack <= 0){
-			if(verbose) warn(".ev stack underflow");
+	Env* e;
+
+	if(argc == 1) {
+		if(nevstack <= 0) {
+			if(verbose)
+				warn(".ev stack underflow");
 			return;
 		}
 		restoreenv(evstack[--nevstack]);
@@ -118,7 +105,7 @@ r_ev(int argc, Rune **argv)
 	if(nevstack >= nelem(evstack))
 		sysfatal(".ev stack overflow");
 	i = eval(argv[1]);
-	if(i < 0 || i > 2){
+	if(i < 0 || i > 2) {
 		warn(".ev bad environment %d", i);
 		i = 0;
 	}
@@ -132,8 +119,8 @@ void
 t17init(void)
 {
 	int i;
-	
-	for(i=0; i<nelem(env); i++)
+
+	for(i = 0; i < nelem(env); i++)
 		env[i] = defenv;
 
 	addreq(L("ev"), r_ev, -1);

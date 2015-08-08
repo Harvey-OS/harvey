@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-DSApriv*getdsakey(int argc, char **argv, int needprivate, Attr **pa);
-RSApriv*getkey(int argc, char **argv, int needprivate, Attr **pa);
-unsigned char*	put4(unsigned char *p, uint n);
-unsigned char*	putmp2(unsigned char *p, mpint *b);
-unsigned char*	putn(unsigned char *p, void *v, uint n);
-unsigned char*	putstr(unsigned char *p, char *s);
+DSApriv* getdsakey(int argc, char** argv, int needprivate, Attr** pa);
+RSApriv* getkey(int argc, char** argv, int needprivate, Attr** pa);
+unsigned char* put4(unsigned char* p, uint n);
+unsigned char* putmp2(unsigned char* p, mpint* b);
+unsigned char* putn(unsigned char* p, void* v, uint n);
+unsigned char* putstr(unsigned char* p, char* s);

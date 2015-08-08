@@ -15,11 +15,11 @@
 #include "dir.h"
 
 int
-stat(const char *path, struct stat *buf)
+stat(const char* path, struct stat* buf)
 {
-	Dir *d;
+	Dir* d;
 
-	if((d = _dirstat(path)) == nil){
+	if((d = _dirstat(path)) == nil) {
 		_syserrno();
 		return -1;
 	}

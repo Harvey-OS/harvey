@@ -13,16 +13,16 @@
 #include "scsireq.h"
 
 int32_t
-SRblank(ScsiReq *rp, uint8_t type, uint8_t track)
+SRblank(ScsiReq* rp, uint8_t type, uint8_t track)
 {
 	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdBlank;
 	cmd[1] = type;
-	cmd[2] = track>>24;
-	cmd[3] = track>>16;
-	cmd[4] = track>>8;
+	cmd[2] = track >> 24;
+	cmd[3] = track >> 16;
+	cmd[4] = track >> 8;
 	cmd[5] = track;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -33,7 +33,7 @@ SRblank(ScsiReq *rp, uint8_t type, uint8_t track)
 }
 
 int32_t
-SRsynccache(ScsiReq *rp)
+SRsynccache(ScsiReq* rp)
 {
 	uint8_t cmd[10];
 
@@ -48,7 +48,7 @@ SRsynccache(ScsiReq *rp)
 }
 
 int32_t
-SRTOC(ScsiReq *rp, void *data, int nbytes, uint8_t format, uint8_t track)
+SRTOC(ScsiReq* rp, void* data, int nbytes, uint8_t format, uint8_t track)
 {
 	uint8_t cmd[10];
 
@@ -56,7 +56,7 @@ SRTOC(ScsiReq *rp, void *data, int nbytes, uint8_t format, uint8_t track)
 	cmd[0] = ScmdRTOC;
 	cmd[2] = format;
 	cmd[6] = track;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -67,13 +67,13 @@ SRTOC(ScsiReq *rp, void *data, int nbytes, uint8_t format, uint8_t track)
 }
 
 int32_t
-SRrdiscinfo(ScsiReq *rp, void *data, int nbytes)
+SRrdiscinfo(ScsiReq* rp, void* data, int nbytes)
 {
 	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRdiscinfo;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -84,18 +84,18 @@ SRrdiscinfo(ScsiReq *rp, void *data, int nbytes)
 }
 
 int32_t
-SRrtrackinfo(ScsiReq *rp, void *data, int nbytes, int track)
+SRrtrackinfo(ScsiReq* rp, void* data, int nbytes, int track)
 {
 	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRtrackinfo;
 	cmd[1] = 0x01;
-	cmd[2] = track>>24;
-	cmd[3] = track>>16;
-	cmd[4] = track>>8;
+	cmd[2] = track >> 24;
+	cmd[3] = track >> 16;
+	cmd[4] = track >> 8;
 	cmd[5] = track;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -106,8 +106,7 @@ SRrtrackinfo(ScsiReq *rp, void *data, int nbytes, int track)
 }
 
 int32_t
-SRfwaddr(ScsiReq *rp, uint8_t track, uint8_t mode, uint8_t npa,
-	 uint8_t *data)
+SRfwaddr(ScsiReq* rp, uint8_t track, uint8_t mode, uint8_t npa, uint8_t* data)
 {
 	uint8_t cmd[10];
 
@@ -125,21 +124,21 @@ SRfwaddr(ScsiReq *rp, uint8_t track, uint8_t mode, uint8_t npa,
 }
 
 int32_t
-SRtreserve(ScsiReq *rp, int32_t nbytes)
+SRtreserve(ScsiReq* rp, int32_t nbytes)
 {
 	uint8_t cmd[10];
 	int32_t n;
 
-	if((nbytes % rp->lbsize)){
+	if((nbytes % rp->lbsize)) {
 		rp->status = Status_BADARG;
 		return -1;
 	}
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdTreserve;
-	n = nbytes/rp->lbsize;
-	cmd[5] = n>>24;
-	cmd[6] = n>>16;
-	cmd[7] = n>>8;
+	n = nbytes / rp->lbsize;
+	cmd[5] = n >> 24;
+	cmd[6] = n >> 16;
+	cmd[7] = n >> 8;
 	cmd[8] = n;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -150,7 +149,7 @@ SRtreserve(ScsiReq *rp, int32_t nbytes)
 }
 
 int32_t
-SRtinfo(ScsiReq *rp, uint8_t track, uint8_t *data)
+SRtinfo(ScsiReq* rp, uint8_t track, uint8_t* data)
 {
 	uint8_t cmd[10];
 
@@ -167,12 +166,12 @@ SRtinfo(ScsiReq *rp, uint8_t track, uint8_t *data)
 }
 
 int32_t
-SRwtrack(ScsiReq *rp, void *buf, int32_t nbytes, uint8_t track, uint8_t mode)
+SRwtrack(ScsiReq* rp, void* buf, int32_t nbytes, uint8_t track, uint8_t mode)
 {
 	uint8_t cmd[10];
 	int32_t m, n;
 
-	if((nbytes % rp->lbsize) || nbytes > maxiosize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize) {
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -180,8 +179,8 @@ SRwtrack(ScsiReq *rp, void *buf, int32_t nbytes, uint8_t track, uint8_t mode)
 	cmd[0] = ScmdTwrite;
 	cmd[5] = track;
 	cmd[6] = mode;
-	n = nbytes/rp->lbsize;
-	cmd[7] = n>>8;
+	n = nbytes / rp->lbsize;
+	cmd[7] = n >> 8;
 	cmd[8] = n;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -196,7 +195,7 @@ SRwtrack(ScsiReq *rp, void *buf, int32_t nbytes, uint8_t track, uint8_t mode)
 }
 
 int32_t
-SRmload(ScsiReq *rp, uint8_t code)
+SRmload(ScsiReq* rp, uint8_t code)
 {
 	uint8_t cmd[12];
 
@@ -212,7 +211,7 @@ SRmload(ScsiReq *rp, uint8_t code)
 }
 
 int32_t
-SRfixation(ScsiReq *rp, uint8_t type)
+SRfixation(ScsiReq* rp, uint8_t type)
 {
 	uint8_t cmd[10];
 

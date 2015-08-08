@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,7 +28,7 @@
 /* Requires gsmemory.h, gstypes.h */
 
 #ifndef srdline_INCLUDED
-#  define srdline_INCLUDED
+#define srdline_INCLUDED
 
 /*
  * Read a line from s_in, starting at index *pcount in buf.  Start by
@@ -42,14 +42,13 @@
  * an obscure condition in the default implementation.
  */
 #ifndef stream_DEFINED
-#  define stream_DEFINED
+#define stream_DEFINED
 typedef struct stream_s stream;
 #endif
-#define sreadline_proc(proc)\
-  int proc(stream *s_in, stream *s_out, void *readline_data,\
-	   gs_const_string *prompt, gs_string *buf,\
-	   gs_memory_t *bufmem, uint *pcount, bool *pin_eol,\
-	   bool (*is_stdin)(const stream *))
+#define sreadline_proc(proc)                                                   \
+	int proc(stream* s_in, stream* s_out, void* readline_data,             \
+	         gs_const_string* prompt, gs_string* buf, gs_memory_t* bufmem, \
+	         uint* pcount, bool* pin_eol, bool (*is_stdin)(const stream*))
 
 /* Declare the default implementation. */
 extern sreadline_proc(sreadline);

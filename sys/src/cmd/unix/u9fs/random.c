@@ -23,13 +23,13 @@ getseed(void)
 
 	len = 0;
 	fd = open("/dev/urandom", O_RDONLY);
-	if(fd > 0){
+	if(fd > 0) {
 		len = readn(fd, &seed, sizeof(seed));
 		close(fd);
 	}
-	if(len != sizeof(seed)){
+	if(len != sizeof(seed)) {
 		gettimeofday(&tv, nil);
-		seed = tv.tv_sec ^ tv.tv_usec ^ (getpid()<<8);
+		seed = tv.tv_sec ^ tv.tv_usec ^ (getpid() << 8);
 	}
 	return seed;
 }
@@ -37,29 +37,29 @@ getseed(void)
 static int seeded;
 
 void
-randombytes(uint8_t *r, uint nr)
+randombytes(uint8_t* r, uint nr)
 {
 	int i;
 	uint32_t l;
 
-	if(!seeded){
-		seeded=1;
+	if(!seeded) {
+		seeded = 1;
 		srandom(getseed());
 	}
-	for(i=0; i+4<=nr; i+=4,r+=4){
+	for(i = 0; i + 4 <= nr; i += 4, r += 4) {
 		l = (uint32_t)random();
 		r[0] = l;
-		r[1] = l>>8;
-		r[2] = l>>16;
-		r[3] = l>>24;
+		r[1] = l >> 8;
+		r[2] = l >> 16;
+		r[3] = l >> 24;
 	}
-	if(i<nr){
+	if(i < nr) {
 		l = (uint32_t)random();
-		switch(nr-i){
+		switch(nr - i) {
 		case 3:
-			r[2] = l>>16;
+			r[2] = l >> 16;
 		case 2:
-			r[1] = l>>8;
+			r[1] = l >> 8;
 		case 1:
 			r[0] = l;
 		}

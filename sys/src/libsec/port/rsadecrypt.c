@@ -15,9 +15,9 @@
 //	seminumerical algorithms, knuth, pp 253-254
 //	applied cryptography, menezes et al, pg 612
 mpint*
-rsadecrypt(RSApriv *rsa, mpint *in, mpint *out)
+rsadecrypt(RSApriv* rsa, mpint* in, mpint* out)
 {
-	mpint *v1, *v2;
+	mpint* v1, *v2;
 
 	if(out == nil)
 		out = mpnew(0);
@@ -31,7 +31,7 @@ rsadecrypt(RSApriv *rsa, mpint *in, mpint *out)
 	// exponentiate the modular rep
 	mpexp(v1, rsa->kp, rsa->p, v1);
 	mpexp(v2, rsa->kq, rsa->q, v2);
-	
+
 	// out = v1 + p*((v2-v1)*c2 mod q)
 	mpsub(v2, v1, v2);
 	mpmul(v2, rsa->c2, v2);

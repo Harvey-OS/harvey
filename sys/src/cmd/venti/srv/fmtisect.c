@@ -19,12 +19,12 @@ usage(void)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	int vers;
-	ISect *is;
-	Part *part;
-	char *file, *name;
+	ISect* is;
+	Part* part;
+	char* file, *name;
 	int blocksize, setsize, zero;
 
 	ventifmtinstall();
@@ -34,13 +34,15 @@ threadmain(int argc, char *argv[])
 	setsize = 512 * 1024;
 	zero = -1;
 	vers = ISectVersion2;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		blocksize = unittoull(ARGF());
 		if(blocksize == ~0)
 			usage();
-		if(blocksize > MaxDiskBlock){
-			fprint(2, "block size too large, max %d\n", MaxDiskBlock);
+		if(blocksize > MaxDiskBlock) {
+			fprint(2, "block size too large, max %d\n",
+			       MaxDiskBlock);
 			threadexitsall("usage");
 		}
 		break;
@@ -53,9 +55,10 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(zero == -1){
+	if(zero == -1) {
 		if(vers == ISectVersion1)
 			zero = 1;
 		else
@@ -71,7 +74,7 @@ threadmain(int argc, char *argv[])
 	if(nameok(name) < 0)
 		sysfatal("illegal name %s", name);
 
-	part = initpart(file, ORDWR|ODIRECT);
+	part = initpart(file, ORDWR | ODIRECT);
 	if(part == nil)
 		sysfatal("can't open partition %s: %r", file);
 
@@ -82,11 +85,13 @@ threadmain(int argc, char *argv[])
 	if(is == nil)
 		sysfatal("can't initialize new index: %r");
 
-	fprint(2, "fmtisect %s: %,d buckets of %,d entries, %,d bytes for index map\n",
-		file, is->blocks, is->buckmax, setsize);
+	fprint(2, "fmtisect %s: %,d buckets of %,d entries, %,d bytes for "
+	          "index map\n",
+	       file, is->blocks, is->buckmax, setsize);
 
 	if(wbisect(is) < 0)
-		fprint(2, "can't write back index section header for %s: %r\n", file);
+		fprint(2, "can't write back index section header for %s: %r\n",
+		       file);
 
 	threadexitsall(0);
 }

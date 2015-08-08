@@ -10,7 +10,7 @@
 /*
  * Now thread-safe.
  *
- * The codeqlock guarantees that once codes != nil, that pointer will never 
+ * The codeqlock guarantees that once codes != nil, that pointer will never
  * change nor become invalid.
  *
  * The QLock in the Scsi structure moderates access to the raw device.
@@ -24,37 +24,37 @@
 
 enum {
 	/* commands */
-	Testrdy		= 0x00,
-	Reqsense	= 0x03,
-	Write10		= 0x2a,
-	Writever10	= 0x2e,
-	Readtoc		= 0x43,
+	Testrdy = 0x00,
+	Reqsense = 0x03,
+	Write10 = 0x2a,
+	Writever10 = 0x2e,
+	Readtoc = 0x43,
 
 	/* sense[2] (key) sense codes */
-	Sensenone	= 0,
-	Sensenotrdy	= 2,
-	Sensebadreq	= 5,
+	Sensenone = 0,
+	Sensenotrdy = 2,
+	Sensebadreq = 5,
 
 	/* sense[12] (asc) sense codes */
-	Lunnotrdy	= 0x04,
-	Recovnoecc	= 0x17,
-	Recovecc	= 0x18,
-	Badcdb		= 0x24,
-	Newmedium	= 0x28,
-	Nomedium	= 0x3a,
+	Lunnotrdy = 0x04,
+	Recovnoecc = 0x17,
+	Recovecc = 0x18,
+	Badcdb = 0x24,
+	Newmedium = 0x28,
+	Nomedium = 0x3a,
 };
 
 int scsiverbose;
 
 #define codefile "/sys/lib/scsicodes"
 
-static char *codes;
+static char* codes;
 static QLock codeqlock;
 
 static void
 getcodes(void)
 {
-	Dir *d;
+	Dir* d;
 	int n, fd;
 
 	if(codes != nil)
@@ -71,7 +71,7 @@ getcodes(void)
 		return;
 	}
 
-	codes = malloc(1+d->length+1);
+	codes = malloc(1 + d->length + 1);
 	if(codes == nil) {
 		close(fd);
 		qunlock(&codeqlock);
@@ -79,8 +79,8 @@ getcodes(void)
 		return;
 	}
 
-	codes[0] = '\n';	/* for searches */
-	n = readn(fd, codes+1, d->length);
+	codes[0] = '\n'; /* for searches */
+	n = readn(fd, codes + 1, d->length);
 	close(fd);
 	free(d);
 
@@ -93,11 +93,11 @@ getcodes(void)
 	codes[n] = '\0';
 	qunlock(&codeqlock);
 }
-	
+
 char*
 scsierror(int asc, int ascq)
 {
-	char *p, *q;
+	char* p, *q;
 	static char search[32];
 	static char buf[128];
 
@@ -108,8 +108,8 @@ scsierror(int asc, int ascq)
 		if(p = strstr(codes, search)) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
-				q = p+strlen(p);
-			snprint(buf, sizeof buf, "%.*s", (int)(q-p), p);
+				q = p + strlen(p);
+			snprint(buf, sizeof buf, "%.*s", (int)(q - p), p);
 			return buf;
 		}
 
@@ -117,8 +117,9 @@ scsierror(int asc, int ascq)
 		if(p = strstr(codes, search)) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
-				q = p+strlen(p);
-			snprint(buf, sizeof buf, "(ascq #%.2ux) %.*s", ascq, (int)(q-p), p);
+				q = p + strlen(p);
+			snprint(buf, sizeof buf, "(ascq #%.2ux) %.*s", ascq,
+			        (int)(q - p), p);
 			return buf;
 		}
 	}
@@ -127,10 +128,9 @@ scsierror(int asc, int ascq)
 	return buf;
 }
 
-
 static int
-_scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
-	 int io, int dolock)
+_scsicmd(Scsi* s, uint8_t* cmd, int ccount, void* data, int dcount, int io,
+         int dolock)
 {
 	uint8_t resp[16];
 	int n;
@@ -145,12 +145,12 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 		return -1;
 	}
 
-	switch(io){
+	switch(io) {
 	case Sread:
 		n = read(s->rawfd, data, dcount);
 		/* read toc errors are frequent and not very interesting */
-		if(n < 0 && (scsiverbose == 1 ||
-		    scsiverbose == 2 && cmd[0] != Readtoc))
+		if(n < 0 &&
+		   (scsiverbose == 1 || scsiverbose == 2 && cmd[0] != Readtoc))
 			fprint(2, "dat read: %r: cmd 0x%2.2uX\n", cmd[0]);
 		break;
 	case Swrite:
@@ -176,23 +176,24 @@ _scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
 	if(dolock)
 		qunlock(s);
 
-	resp[sizeof(resp)-1] = '\0';
+	resp[sizeof(resp) - 1] = '\0';
 	status = atoi((char*)resp);
 	if(status == 0)
 		return n;
 
-	werrstr("cmd %2.2uX: status %luX dcount %d n %d", cmd[0], status, dcount, n);
+	werrstr("cmd %2.2uX: status %luX dcount %d n %d", cmd[0], status,
+	        dcount, n);
 	return -1;
 }
 
 int
-scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount, int io)
+scsicmd(Scsi* s, uint8_t* cmd, int ccount, void* data, int dcount, int io)
 {
 	return _scsicmd(s, cmd, ccount, data, dcount, io, 1);
 }
 
 static int
-_scsiready(Scsi *s, int dolock)
+_scsiready(Scsi* s, int dolock)
 {
 	char err[ERRMAX];
 	uint8_t cmd[6], resp[16];
@@ -201,9 +202,9 @@ _scsiready(Scsi *s, int dolock)
 	if(dolock)
 		qlock(s);
 	werrstr("");
-	for(i=0; i<3; i++) {
+	for(i = 0; i < 3; i++) {
 		memset(cmd, 0, sizeof(cmd));
-		cmd[0] = Testrdy;	/* unit ready */
+		cmd[0] = Testrdy; /* unit ready */
 		if(write(s->rawfd, cmd, sizeof(cmd)) != sizeof(cmd)) {
 			if(scsiverbose)
 				fprint(2, "ur cmd write: %r\n");
@@ -216,7 +217,7 @@ _scsiready(Scsi *s, int dolock)
 				fprint(2, "ur resp read: %r\n");
 			continue;
 		}
-		resp[sizeof(resp)-1] = '\0';
+		resp[sizeof(resp) - 1] = '\0';
 		status = atoi((char*)resp);
 		if(status == 0 || status == 0x02) {
 			if(dolock)
@@ -235,22 +236,23 @@ _scsiready(Scsi *s, int dolock)
 }
 
 int
-scsiready(Scsi *s)
+scsiready(Scsi* s)
 {
 	return _scsiready(s, 1);
 }
 
 int
-scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
+scsi(Scsi* s, uint8_t* cmd, int ccount, void* v, int dcount, int io)
 {
 	uint8_t req[6], sense[255], *data;
 	int tries, code, key, n;
-	char *p;
+	char* p;
 
 	data = v;
-	SET(key); SET(code);
+	SET(key);
+	SET(code);
 	qlock(s);
-	for(tries=0; tries<2; tries++) {
+	for(tries = 0; tries < 2; tries++) {
 		n = _scsicmd(s, cmd, ccount, data, dcount, io, 0);
 		if(n >= 0) {
 			qunlock(s);
@@ -264,17 +266,19 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 		req[0] = Reqsense;
 		req[4] = sizeof(sense);
 		memset(sense, 0xFF, sizeof(sense));
-		if((n=_scsicmd(s, req, sizeof(req), sense, sizeof(sense), Sread, 0)) < 14)
+		if((n = _scsicmd(s, req, sizeof(req), sense, sizeof(sense),
+		                 Sread, 0)) < 14)
 			if(scsiverbose)
 				fprint(2, "reqsense scsicmd %d: %r\n", n);
-	
+
 		if(_scsiready(s, 0) < 0)
 			if(scsiverbose)
 				fprint(2, "unit not ready\n");
-	
+
 		key = sense[2] & 0xf;
-		code = sense[12];			/* asc */
-		if(code == Recovnoecc || code == Recovecc) { /* recovered errors */
+		code = sense[12]; /* asc */
+		if(code == Recovnoecc ||
+		   code == Recovecc) { /* recovered errors */
 			qunlock(s);
 			return dcount;
 		}
@@ -285,8 +289,8 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 			s->nchange++;
 			s->changetime = time(0);
 		} else if((cmd[0] == Write10 || cmd[0] == Writever10) &&
-		    key == Sensenotrdy &&
-		    code == Lunnotrdy && sense[13] == 0x08) {
+		          key == Sensenotrdy && code == Lunnotrdy &&
+		          sense[13] == 0x08) {
 			/* long write in progress, per mmc-6 */
 			tries = 0;
 			sleep(1);
@@ -295,7 +299,7 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 
 	/* drive not ready, or medium not present */
 	if(cmd[0] == Readtoc && key == Sensenotrdy &&
-	    (code == Nomedium || code == Lunnotrdy)) {
+	   (code == Nomedium || code == Lunnotrdy)) {
 		s->changetime = 0;
 		qunlock(s);
 		return -1;
@@ -303,29 +307,29 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 	qunlock(s);
 
 	if(cmd[0] == Readtoc && key == Sensebadreq && code == Badcdb)
-		return -1;			/* blank media */
+		return -1; /* blank media */
 
 	p = scsierror(code, sense[13]);
 
 	werrstr("cmd #%.2ux: %s", cmd[0], p);
 
 	if(scsiverbose)
-		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n",
-			cmd[0], key, code, sense[13], p);
+		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n", cmd[0],
+		       key, code, sense[13], p);
 
-//	if(key == Sensenone)
-//		return dcount;
+	//	if(key == Sensenone)
+	//		return dcount;
 	return -1;
 }
 
 Scsi*
-openscsi(char *dev)
+openscsi(char* dev)
 {
-	Scsi *s;
+	Scsi* s;
 	int rawfd, ctlfd, l, n;
-	char *name, *p, buf[512];
+	char* name, *p, buf[512];
 
-	l = strlen(dev)+1+3+1;
+	l = strlen(dev) + 1 + 3 + 1;
 	name = malloc(l);
 	if(name == nil)
 		return nil;
@@ -360,7 +364,7 @@ openscsi(char *dev)
 	free(name);
 	name = nil;
 
-	if((p = strdup(buf+8)) == nil)
+	if((p = strdup(buf + 8)) == nil)
 		goto Error;
 
 	s = mallocz(sizeof(*s), 1);
@@ -373,7 +377,7 @@ openscsi(char *dev)
 	s->rawfd = rawfd;
 	s->inquire = p;
 	s->changetime = time(0);
-	
+
 	if(scsiready(s) < 0)
 		goto Error1;
 
@@ -381,7 +385,7 @@ openscsi(char *dev)
 }
 
 void
-closescsi(Scsi *s)
+closescsi(Scsi* s)
 {
 	close(s->rawfd);
 	free(s->inquire);

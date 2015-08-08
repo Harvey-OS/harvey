@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1996, 1999, 2001 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -34,7 +34,7 @@
  */
 
 #ifndef gsgc_INCLUDED
-#  define gsgc_INCLUDED
+#define gsgc_INCLUDED
 
 /*
  * Define the VM space numbers, in increasing order of dynamism.  Pointers
@@ -45,11 +45,11 @@
  * refs (PostScript objects).
  */
 typedef enum {
-    i_vm_foreign = 0,		/* must be 0 */
-    i_vm_system,
-    i_vm_global,
-    i_vm_local,
-    i_vm_max = i_vm_local
+	i_vm_foreign = 0, /* must be 0 */
+	i_vm_system,
+	i_vm_global,
+	i_vm_local,
+	i_vm_max = i_vm_local
 } i_vm_space;
 
 /*
@@ -60,7 +60,7 @@ typedef enum {
  * malloc by some piece of code other than Ghostscript).
  */
 #ifndef gs_ref_memory_DEFINED
-#  define gs_ref_memory_DEFINED
+#define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;
 #endif
 /*
@@ -68,28 +68,27 @@ typedef struct gs_ref_memory_s gs_ref_memory_t;
  * defined, we want to make sure it's 2.
  */
 #ifdef r_space_bits
-#  if r_space_bits != 2
+#if r_space_bits != 2
 Error_r_space_bits_is_not_2;
-#  endif
+#endif
 #endif
 typedef struct vm_spaces_s vm_spaces;
 /*
  * The garbage collection procedure is named vm_reclaim so as not to
  * collide with the reclaim member of gs_dual_memory_t.
  */
-#define vm_reclaim_proc(proc)\
-  void proc(vm_spaces *pspaces, bool global)
+#define vm_reclaim_proc(proc) void proc(vm_spaces* pspaces, bool global)
 struct vm_spaces_s {
-    vm_reclaim_proc((*vm_reclaim));
-    union {
-	gs_ref_memory_t *indexed[4 /*1 << r_space_bits */ ];
-	struct _ssn {
-	    gs_ref_memory_t *foreign;
-	    gs_ref_memory_t *system;
-	    gs_ref_memory_t *global;
-	    gs_ref_memory_t *local;
-	} named;
-    } memories;
+	vm_reclaim_proc((*vm_reclaim));
+	union {
+		gs_ref_memory_t* indexed[4 /*1 << r_space_bits */];
+		struct _ssn {
+			gs_ref_memory_t* foreign;
+			gs_ref_memory_t* system;
+			gs_ref_memory_t* global;
+			gs_ref_memory_t* local;
+		} named;
+	} memories;
 };
 
 /*

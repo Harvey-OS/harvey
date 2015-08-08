@@ -28,12 +28,12 @@ char*
 getuser(void)
 {
 	static char user[64];
-	struct passwd *pw;
+	struct passwd* pw;
 
 	pw = getpwuid(getuid());
 	if(pw == nil)
 		return "none";
-	strecpy(user, user+sizeof user, pw->pw_name);
+	strecpy(user, user + sizeof user, pw->pw_name);
 	return user;
 }
 /*
@@ -47,16 +47,16 @@ getuser(void)
 static char*
 nsfromdisplay(void)
 {
-	char *disp, *p;
+	char* disp, *p;
 
-	if((disp = getenv("DISPLAY")) == nil){
+	if((disp = getenv("DISPLAY")) == nil) {
 		werrstr("$DISPLAY not set");
 		return nil;
 	}
 
 	/* canonicalize: xxx:0.0 => xxx:0 */
 	p = strrchr(disp, ':');
-	if(p){
+	if(p) {
 		p++;
 		while(isdigit((uchar)*p))
 			p++;
@@ -70,12 +70,12 @@ nsfromdisplay(void)
 char*
 getns(void)
 {
-	char *ns;
+	char* ns;
 
 	ns = getenv("NAMESPACE");
 	if(ns == nil)
 		ns = nsfromdisplay();
-	if(ns == nil){
+	if(ns == nil) {
 		werrstr("$NAMESPACE not set, %r");
 		return nil;
 	}
@@ -87,24 +87,24 @@ dialfactotum(void)
 {
 	int fd;
 	struct sockaddr_un su;
-	char *name;
-	
+	char* name;
+
 	name = smprint("%s/factotum", getns());
 
 	if(name == nil || access(name, 0) < 0)
 		return -1;
 	memset(&su, 0, sizeof su);
 	su.sun_family = AF_UNIX;
-	if(strlen(name)+1 > sizeof su.sun_path){
+	if(strlen(name) + 1 > sizeof su.sun_path) {
 		werrstr("socket name too long");
 		return -1;
 	}
 	strcpy(su.sun_path, name);
-	if((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0){
+	if((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
 		werrstr("socket: %r");
 		return -1;
 	}
-	if(connect(fd, (struct sockaddr*)&su, sizeof su) < 0){
+	if(connect(fd, (struct sockaddr*)&su, sizeof su) < 0) {
 		werrstr("connect %s: %r", name);
 		close(fd);
 		return -1;
@@ -112,4 +112,3 @@ dialfactotum(void)
 
 	return lfdfd(fd);
 }
-

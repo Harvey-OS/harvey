@@ -22,11 +22,11 @@ Mbi multibootheader;
 void
 mkmultiboot(void)
 {
-	if(nmmap != 0){
+	if(nmmap != 0) {
 		multibootheader.cmdline = PADDR(BOOTLINE);
 		multibootheader.flags |= Fcmdline;
 		multibootheader.mmapaddr = PADDR(mmap);
-		multibootheader.mmaplength = nmmap*sizeof(MMap);
+		multibootheader.mmaplength = nmmap * sizeof(MMap);
 		multibootheader.flags |= Fmmap;
 		if(vflag)
 			print("&multibootheader %#p\n", &multibootheader);

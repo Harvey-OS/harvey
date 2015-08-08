@@ -7,54 +7,50 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	"compat.h"
-#include	"kbd.h"
-#include	"error.h"
+#include <u.h>
+#include <libc.h>
+#include "compat.h"
+#include "kbd.h"
+#include "error.h"
 
-typedef struct Queue	Queue;
-struct Queue
-{
-	QLock	qwait;
-	Rendez	rwait;
+typedef struct Queue Queue;
+struct Queue {
+	QLock qwait;
+	Rendez rwait;
 
-	Lock	lock;
-	int	notempty;
-	char	buf[1024];
-	char	*w;
-	char	*r;
-	char	*e;
+	Lock lock;
+	int notempty;
+	char buf[1024];
+	char* w;
+	char* r;
+	char* e;
 };
 
-Queue*	kbdq;			/* unprocessed console input */
-Queue*	lineq;			/* processed console input */
-Snarf	snarf = {
-	.vers =	1
-};
+Queue* kbdq;  /* unprocessed console input */
+Queue* lineq; /* processed console input */
+Snarf snarf = {.vers = 1};
 
-static struct
-{
+static struct {
 	QLock;
-	int	raw;		/* true if we shouldn't process input */
-	int	ctl;		/* number of opens to the control file */
-	int	x;		/* index into line */
-	char	line[1024];	/* current input line */
+	int raw;         /* true if we shouldn't process input */
+	int ctl;         /* number of opens to the control file */
+	int x;           /* index into line */
+	char line[1024]; /* current input line */
 } kbd;
 
 /*
  * cheapo fixed-length queues
  */
 static void
-qwrite(Queue *q, void *v, int n)
+qwrite(Queue* q, void* v, int n)
 {
-	char *buf, *next;
+	char* buf, *next;
 	int i;
 
 	buf = v;
 	lock(&q->lock);
-	for(i = 0; i < n; i++){
-		next = q->w+1;
+	for(i = 0; i < n; i++) {
+		next = q->w + 1;
 		if(next >= q->e)
 			next = q->buf;
 		if(next == q->r)
@@ -68,9 +64,9 @@ qwrite(Queue *q, void *v, int n)
 }
 
 static int
-qcanread(void *vq)
+qcanread(void* vq)
 {
-	Queue *q;
+	Queue* q;
 	int ne;
 
 	q = vq;
@@ -81,19 +77,19 @@ qcanread(void *vq)
 }
 
 static int
-qread(Queue *q, void *v, int n)
+qread(Queue* q, void* v, int n)
 {
-	char *a;
+	char* a;
 	int nn, notempty;
 
 	if(n == 0)
 		return 0;
 	a = v;
 	nn = 0;
-	for(;;){
+	for(;;) {
 		lock(&q->lock);
 
-		while(nn < n && q->r != q->w){
+		while(nn < n && q->r != q->w) {
 			a[nn++] = *q->r++;
 			if(q->r >= q->e)
 				q->r = q->buf;
@@ -109,7 +105,7 @@ qread(Queue *q, void *v, int n)
 		 * wait for something to show up in the kbd buffer.
 		 */
 		qlock(&q->qwait);
-		if(waserror()){
+		if(waserror()) {
 			qunlock(&q->qwait);
 			nexterror();
 		}
@@ -120,10 +116,10 @@ qread(Queue *q, void *v, int n)
 	return nn;
 }
 
-static Queue *
+static Queue*
 mkqueue(void)
 {
-	Queue *q;
+	Queue* q;
 
 	q = smalloc(sizeof(Queue));
 	q->r = q->buf;
@@ -134,21 +130,21 @@ mkqueue(void)
 }
 
 static void
-echoscreen(char *buf, int n)
+echoscreen(char* buf, int n)
 {
-	char *e, *p;
+	char* e, *p;
 	char ebuf[128];
 	int x;
 
 	p = ebuf;
 	e = ebuf + sizeof(ebuf) - 4;
-	while(n-- > 0){
-		if(p >= e){
+	while(n-- > 0) {
+		if(p >= e) {
 			screenputs(ebuf, p - ebuf);
 			p = ebuf;
 		}
 		x = *buf++;
-		if(x == 0x15){
+		if(x == 0x15) {
 			*p++ = '^';
 			*p++ = 'U';
 			*p++ = '\n';
@@ -187,20 +183,34 @@ kbdputcinit(void)
 	kbd.x = 0;
 }
 
-enum{
-	Qdir,
-	Qcons,
-	Qconsctl,
-	Qsnarf,
-	Qwinname,
+enum { Qdir,
+       Qcons,
+       Qconsctl,
+       Qsnarf,
+       Qwinname,
 };
 
-static Dirtab consdir[]={
-	".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"cons",		{Qcons},	0,		0660,
-	"consctl",	{Qconsctl},	0,		0220,
-	"snarf",	{Qsnarf},	0,		0600,
-	"winname",	{Qwinname},	0,		0000,
+static Dirtab consdir[] = {
+    ".",
+    {Qdir, 0, QTDIR},
+    0,
+    DMDIR | 0555,
+    "cons",
+    {Qcons},
+    0,
+    0660,
+    "consctl",
+    {Qconsctl},
+    0,
+    0220,
+    "snarf",
+    {Qsnarf},
+    0,
+    0600,
+    "winname",
+    {Qwinname},
+    0,
+    0000,
 };
 
 static void
@@ -210,36 +220,36 @@ consinit(void)
 }
 
 static Chan*
-consattach(char *spec)
+consattach(char* spec)
 {
 	return devattach('c', spec);
 }
 
 static Walkqid*
-conswalk(Chan *c, Chan *nc, char **name, int nname)
+conswalk(Chan* c, Chan* nc, char** name, int nname)
 {
-	return devwalk(c, nc, name,nname, consdir, nelem(consdir), devgen);
+	return devwalk(c, nc, name, nname, consdir, nelem(consdir), devgen);
 }
 
 static int
-consstat(Chan *c, uint8_t *dp, int n)
+consstat(Chan* c, uint8_t* dp, int n)
 {
 	return devstat(c, dp, n, consdir, nelem(consdir), devgen);
 }
 
 static Chan*
-consopen(Chan *c, int omode)
+consopen(Chan* c, int omode)
 {
 	c->aux = nil;
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qconsctl:
 		qlock(&kbd);
 		kbd.ctl++;
 		qunlock(&kbd);
 		break;
 	case Qsnarf:
-		if((c->mode&3) == OWRITE || (c->mode&3) == ORDWR)
+		if((c->mode & 3) == OWRITE || (c->mode & 3) == ORDWR)
 			c->aux = smalloc(sizeof(Snarf));
 		break;
 	}
@@ -247,16 +257,16 @@ consopen(Chan *c, int omode)
 }
 
 void
-setsnarf(char *buf, int n, int *vers)
+setsnarf(char* buf, int n, int* vers)
 {
 	int i;
 
 	qlock(&snarf);
 	snarf.vers++;
 	if(vers)
-		*vers = snarf.vers;	
-	for(i = 0; i < nelem(consdir); i++){
-		if(consdir[i].qid.type == Qsnarf){
+		*vers = snarf.vers;
+	for(i = 0; i < nelem(consdir); i++) {
+		if(consdir[i].qid.type == Qsnarf) {
 			consdir[i].qid.vers = snarf.vers;
 			break;
 		}
@@ -268,27 +278,28 @@ setsnarf(char *buf, int n, int *vers)
 }
 
 static void
-consclose(Chan *c)
+consclose(Chan* c)
 {
-	Snarf *t;
+	Snarf* t;
 
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	/* last close of control file turns off raw */
 	case Qconsctl:
-		if(c->flag&COPEN){
+		if(c->flag & COPEN) {
 			qlock(&kbd);
 			if(--kbd.ctl == 0)
 				kbd.raw = 0;
 			qunlock(&kbd);
 		}
 		break;
-	/* odd behavior but really ok: replace snarf buffer when /dev/snarf is closed */
+	/* odd behavior but really ok: replace snarf buffer when /dev/snarf is
+	 * closed */
 	case Qsnarf:
 		t = c->aux;
 		if(t == nil)
 			break;
 		setsnarf(t->buf, t->n, 0);
-		t->buf = nil;	/* setsnarf took it */
+		t->buf = nil; /* setsnarf took it */
 		free(t);
 		c->aux = nil;
 		break;
@@ -296,21 +307,21 @@ consclose(Chan *c)
 }
 
 static int32_t
-consread(Chan *c, void *buf, int32_t n, int64_t off)
+consread(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	char ch;
-	int	send;
+	int send;
 
 	if(n <= 0)
 		return n;
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qsnarf:
 		qlock(&snarf);
-		if(off < snarf.n){
+		if(off < snarf.n) {
 			if(off + n > snarf.n)
 				n = snarf.n - off;
-			memmove(buf, snarf.buf+off, n);
-		}else
+			memmove(buf, snarf.buf + off, n);
+		} else
 			n = 0;
 		qunlock(&snarf);
 		return n;
@@ -320,31 +331,31 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	case Qcons:
 		qlock(&kbd);
-		if(waserror()){
+		if(waserror()) {
 			qunlock(&kbd);
 			nexterror();
 		}
-		while(!qcanread(lineq)){
+		while(!qcanread(lineq)) {
 			qread(kbdq, &ch, 1);
 			send = 0;
-			if(ch == 0){
+			if(ch == 0) {
 				/* flush output on rawoff -> rawon */
 				if(kbd.x > 0)
 					send = !qcanread(kbdq);
-			}else if(kbd.raw){
+			} else if(kbd.raw) {
 				kbd.line[kbd.x++] = ch;
 				send = !qcanread(kbdq);
-			}else{
-				switch(ch){
+			} else {
+				switch(ch) {
 				case '\b':
 					if(kbd.x > 0)
 						kbd.x--;
 					break;
-				case 0x15:	/* ^U */
+				case 0x15: /* ^U */
 					kbd.x = 0;
 					break;
 				case '\n':
-				case 0x04:	/* ^D */
+				case 0x04: /* ^D */
 					send = 1;
 				default:
 					if(ch != 0x04)
@@ -352,7 +363,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 					break;
 				}
 			}
-			if(send || kbd.x == sizeof kbd.line){
+			if(send || kbd.x == sizeof kbd.line) {
 				qwrite(lineq, kbd.line, kbd.x);
 				kbd.x = 0;
 			}
@@ -366,33 +377,33 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		print("consread 0x%llux\n", c->qid.path);
 		error(Egreg);
 	}
-	return -1;		/* never reached */
+	return -1; /* never reached */
 }
 
 static int32_t
-conswrite(Chan *c, void *va, int32_t n, int64_t)
+conswrite(Chan* c, void* va, int32_t n, int64_t)
 {
-	Snarf *t;
+	Snarf* t;
 	char buf[256], *a;
 	char ch;
 
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qcons:
 		screenputs(va, n);
 		break;
 
 	case Qconsctl:
 		if(n >= sizeof(buf))
-			n = sizeof(buf)-1;
+			n = sizeof(buf) - 1;
 		strncpy(buf, va, n);
 		buf[n] = 0;
-		for(a = buf; a;){
-			if(strncmp(a, "rawon", 5) == 0){
+		for(a = buf; a;) {
+			if(strncmp(a, "rawon", 5) == 0) {
 				kbd.raw = 1;
 				/* clumsy hack - wake up reader */
 				ch = 0;
-				qwrite(kbdq, &ch, 1);			
-			} else if(strncmp(a, "rawoff", 6) == 0){
+				qwrite(kbdq, &ch, 1);
+			} else if(strncmp(a, "rawoff", 6) == 0) {
 				kbd.raw = 0;
 			}
 			if(a = strchr(a, ' '))
@@ -403,13 +414,14 @@ conswrite(Chan *c, void *va, int32_t n, int64_t)
 	case Qsnarf:
 		t = c->aux;
 		/* always append only */
-		if(t->n > MAXSNARF)	/* avoid thrashing when people cut huge text */
+		if(t->n >
+		   MAXSNARF) /* avoid thrashing when people cut huge text */
 			error("snarf buffer too big");
 		a = realloc(t->buf, t->n + n + 1);
 		if(a == nil)
 			error("snarf buffer too big");
 		t->buf = a;
-		memmove(t->buf+t->n, va, n);
+		memmove(t->buf + t->n, va, n);
 		t->n += n;
 		t->buf[t->n] = '\0';
 		break;
@@ -421,21 +433,8 @@ conswrite(Chan *c, void *va, int32_t n, int64_t)
 }
 
 Dev consdevtab = {
-	'c',
-	"cons",
+    'c',       "cons",
 
-	devreset,
-	consinit,
-	consattach,
-	conswalk,
-	consstat,
-	consopen,
-	devcreate,
-	consclose,
-	consread,
-	devbread,
-	conswrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    devreset,  consinit, consattach, conswalk,  consstat,  consopen,  devcreate,
+    consclose, consread, devbread,   conswrite, devbwrite, devremove, devwstat,
 };

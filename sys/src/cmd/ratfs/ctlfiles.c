@@ -10,33 +10,26 @@
 #include "ratfs.h"
 #include <ip.h>
 
-enum {
-	ACCEPT = 0,		/* verbs in control file */
-	REFUSED,
-	DENIED,
-	DIALUP,
-	BLOCKED,
-	DELAY,
-	NONE,
+enum { ACCEPT = 0, /* verbs in control file */
+       REFUSED,
+       DENIED,
+       DIALUP,
+       BLOCKED,
+       DELAY,
+       NONE,
 
-	Subchar	=	'#',	/* character substituted for '/' in file names */
+       Subchar = '#', /* character substituted for '/' in file names */
 };
 
-static	Keyword actions[] = {
-	"allow",		ACCEPT,
-	"accept",		ACCEPT,
-	"block",		BLOCKED,
-	"deny",			DENIED,
-	"dial",			DIALUP,
-	"relay",		DELAY,
-	"delay",		DELAY,
-	0,			NONE,
+static Keyword actions[] = {
+    "allow", ACCEPT, "accept", ACCEPT, "block", BLOCKED, "deny", DENIED,
+    "dial",  DIALUP, "relay",  DELAY,  "delay", DELAY,   0,      NONE,
 };
 
-static void	acctinsert(Node*, char*);
-static char*	getline(Biobuf*);
-static void	ipinsert(Node*, char*);
-static void	ipsort(void);
+static void acctinsert(Node*, char*);
+static char* getline(Biobuf*);
+static void ipinsert(Node*, char*);
+static void ipsort(void);
 
 /*
  *	Input the configuration file
@@ -46,9 +39,9 @@ static void	ipsort(void);
 void
 getconf(void)
 {
-	Biobuf *bp;
-	char *cp;
-	Node *np, *dir, **l;
+	Biobuf* bp;
+	char* cp;
+	Node* np, *dir, **l;
 
 	if(debugfd >= 0)
 		fprint(debugfd, "loading %s\n", conffile);
@@ -65,10 +58,10 @@ getconf(void)
 	 * if this isn't the first time, purge permanent entries
 	 */
 	trustedqid = Qtrustedfile;
-	if(lastconftime){
+	if(lastconftime) {
 		l = &dir->children;
-		for(np = dir->children; np; np = *l){
-			if(np->d.type == Trustedperm){
+		for(np = dir->children; np; np = *l) {
+			if(np->d.type == Trustedperm) {
 				*l = np->sibs;
 				free(np);
 			} else {
@@ -79,13 +72,15 @@ getconf(void)
 		dir->count = 0;
 	}
 
-	for(;;){
+	for(;;) {
 		cp = getline(bp);
 		if(cp == 0)
 			break;
-		if (strcmp(cp, "ournets") == 0){
-			for(cp += strlen(cp)+1; cp && *cp; cp += strlen(cp)+1){
-				np = newnode(dir, cp, Trustedperm, 0111, trustedqid++);
+		if(strcmp(cp, "ournets") == 0) {
+			for(cp += strlen(cp) + 1; cp && *cp;
+			    cp += strlen(cp) + 1) {
+				np = newnode(dir, cp, Trustedperm, 0111,
+				             trustedqid++);
 				cidrparse(&np->ip, cp);
 				subslash(cp);
 				np->d.name = atom(cp);
@@ -103,50 +98,49 @@ void
 reload(void)
 {
 	int type, action;
-	Biobuf *bp;
-	char *cp;
-	Node *np, *dir;
+	Biobuf* bp;
+	char* cp;
+	Node* np, *dir;
 
 	if(debugfd >= 0)
-		fprint(debugfd,"loading %s\n", ctlfile);
+		fprint(debugfd, "loading %s\n", ctlfile);
 
 	bp = Bopen(ctlfile, OREAD);
 	if(bp == 0)
 		return;
-	
-	if(lastctltime){
-		for(dir = root->children; dir; dir = dir->sibs){
-			if (dir->d.type != Addrdir)
+
+	if(lastctltime) {
+		for(dir = root->children; dir; dir = dir->sibs) {
+			if(dir->d.type != Addrdir)
 				continue;
 			for(np = dir->children; np; np = np->sibs)
 				np->count = 0;
 		}
 	}
 
-	for(;;){
+	for(;;) {
 		cp = getline(bp);
 		if(cp == 0)
 			break;
 		type = *cp;
-		if(type == '*'){
+		if(type == '*') {
 			cp++;
-			if(*cp == 0)		/* space before keyword */
+			if(*cp == 0) /* space before keyword */
 				cp++;
 		}
 		action = findkey(cp, actions);
-		if (action == NONE)
+		if(action == NONE)
 			continue;
-		if (action == ACCEPT)
+		if(action == ACCEPT)
 			dir = dirwalk("allow", root);
-		else
-		if (action == DELAY)
+		else if(action == DELAY)
 			dir = dirwalk("delay", root);
 		else
 			dir = dirwalk(cp, root);
 		if(dir == 0)
 			continue;
-		
-		for(cp += strlen(cp)+1; cp && *cp; cp += strlen(cp)+1){
+
+		for(cp += strlen(cp) + 1; cp && *cp; cp += strlen(cp) + 1) {
 			if(type == '*')
 				acctinsert(dir, cp);
 			else
@@ -163,45 +157,43 @@ reload(void)
  * tokens with a two null bytes at the end.
  */
 static char*
-getline(Biobuf *bp)
+getline(Biobuf* bp)
 {
 	char c, *cp, *p, *q;
 	int n;
 
-	static char *buf;
+	static char* buf;
 	static int bufsize;
 
-	for(;;){
+	for(;;) {
 		cp = Brdline(bp, '\n');
 		if(cp == 0)
 			return 0;
 		n = Blinelen(bp);
-		cp[n-1] = 0;
-		if(buf == 0 || bufsize < n+1){
+		cp[n - 1] = 0;
+		if(buf == 0 || bufsize < n + 1) {
 			bufsize += 512;
-			if(bufsize < n+1)
-				bufsize = n+1;
+			if(bufsize < n + 1)
+				bufsize = n + 1;
 			buf = realloc(buf, bufsize);
 			if(buf == 0)
 				break;
 		}
 		q = buf;
-		for (p = cp; *p; p++){
+		for(p = cp; *p; p++) {
 			c = *p;
-			if(c == '\\' && p[1])	/* we don't allow \<newline> */
+			if(c == '\\' && p[1]) /* we don't allow \<newline> */
 				c = *++p;
-			else
-			if(c == '#')
+			else if(c == '#')
 				break;
-			else
-			if(c == ' ' || c == '\t' || c == ',')
+			else if(c == ' ' || c == '\t' || c == ',')
 				if(q == buf || q[-1] == 0)
 					continue;
 				else
 					c = 0;
 			*q++ = tolower(c);
 		}
-		if(q != buf){
+		if(q != buf) {
 			if(q[-1])
 				*q++ = 0;
 			*q = 0;
@@ -215,12 +207,12 @@ getline(Biobuf *bp)
  *	Match a keyword
  */
 int
-findkey(char *val, Keyword *p)
+findkey(char* val, Keyword* p)
 {
 
 	for(; p->name; p++)
 		if(strcmp(val, p->name) == 0)
-				break;
+			break;
 	return p->code;
 }
 
@@ -228,10 +220,10 @@ findkey(char *val, Keyword *p)
  *	parse a cidr specification in either IP/mask or IP#mask format
  */
 void
-cidrparse(Cidraddr *cidr, char *cp)
+cidrparse(Cidraddr* cidr, char* cp)
 {
 
-	char *p, *slash;
+	char* p, *slash;
 	int c;
 	uint32_t a, m;
 	uint8_t addr[IPv4addrlen];
@@ -242,7 +234,7 @@ cidrparse(Cidraddr *cidr, char *cp)
 	 * find '/' or '#' character in the cidr specification
 	 */
 	slash = 0;
-	for(p = buf; p < buf+sizeof(buf)-1 && *cp; p++) {
+	for(p = buf; p < buf + sizeof(buf) - 1 && *cp; p++) {
 		c = *cp++;
 		switch(c) {
 		case Subchar:
@@ -267,11 +259,11 @@ cidrparse(Cidraddr *cidr, char *cp)
 	 * instead of using the default mask for that net.  in this
 	 * case we never allow a class A mask (0xff000000).
 	 */
-	if(slash == 0){
+	if(slash == 0) {
 		m = 0xff000000;
 		p = buf;
-		for(p = strchr(p, '.'); p && p[1]; p = strchr(p+1, '.'))
-				m = (m>>8)|0xff000000;
+		for(p = strchr(p, '.'); p && p[1]; p = strchr(p + 1, '.'))
+			m = (m >> 8) | 0xff000000;
 
 		/* force at least a class B */
 		m |= 0xffff0000;
@@ -284,11 +276,11 @@ cidrparse(Cidraddr *cidr, char *cp)
  *	Substitute Subchar ('#') for '/'
  */
 char*
-subslash(char *os)
+subslash(char* os)
 {
-	char *s;
+	char* s;
 
-	for(s=os; *s; s++)
+	for(s = os; *s; s++)
 		if(*s == '/')
 			*s = Subchar;
 	return os;
@@ -298,20 +290,20 @@ subslash(char *os)
  *	Insert an account pseudo-file in a directory
  */
 static void
-acctinsert(Node *np, char *cp)
+acctinsert(Node* np, char* cp)
 {
 	int i;
-	char *tmp;
-	Address *ap;
+	char* tmp;
+	Address* ap;
 
-	static char *dangerous[] = { "*", "!", "*!", "!*", "*!*", 0 };
+	static char* dangerous[] = {"*", "!", "*!", "!*", "*!*", 0};
 
 	if(cp == 0 || *cp == 0)
 		return;
 
 	/* rule out dangerous patterns */
-	for (i = 0; dangerous[i]; i++)
-		if(strcmp(cp, dangerous[i])== 0)
+	for(i = 0; dangerous[i]; i++)
+		if(strcmp(cp, dangerous[i]) == 0)
 			return;
 
 	np = dirwalk("account", np);
@@ -319,14 +311,14 @@ acctinsert(Node *np, char *cp)
 		return;
 
 	i = np->count++;
-	if(i >= np->allocated){
+	if(i >= np->allocated) {
 		np->allocated = np->count;
-		np->addrs = realloc(np->addrs, np->allocated*sizeof(Address));
+		np->addrs = realloc(np->addrs, np->allocated * sizeof(Address));
 		if(np->addrs == 0)
 			fatal("out of memory");
 	}
 
-	ap = &np->addrs[i];			/* new entry on end */
+	ap = &np->addrs[i]; /* new entry on end */
 	tmp = strdup(cp);
 	if(tmp == nil)
 		fatal("out of memory");
@@ -339,11 +331,11 @@ acctinsert(Node *np, char *cp)
  *	Insert an IP address pseudo-file in a directory
  */
 static void
-ipinsert(Node *np, char *cp)
+ipinsert(Node* np, char* cp)
 {
-	char *tmp;
+	char* tmp;
 	int i;
-	Address *ap;
+	Address* ap;
 	if(cp == 0 || *cp == 0)
 		return;
 
@@ -352,14 +344,14 @@ ipinsert(Node *np, char *cp)
 		return;
 
 	i = np->count++;
-	if(i >= np->allocated){
+	if(i >= np->allocated) {
 		np->allocated = np->count;
-		np->addrs = realloc(np->addrs, np->allocated*sizeof(Address));
+		np->addrs = realloc(np->addrs, np->allocated * sizeof(Address));
 		if(np->addrs == 0)
 			fatal("out of memory");
 	}
 
-	ap = &np->addrs[i];				/* new entry on end */
+	ap = &np->addrs[i]; /* new entry on end */
 	tmp = strdup(cp);
 	if(tmp == nil)
 		fatal("out of memory");
@@ -370,7 +362,7 @@ ipinsert(Node *np, char *cp)
 }
 
 int
-ipcomp(const void *a, const void *b)
+ipcomp(const void* a, const void* b)
 {
 	uint32_t aip, bip;
 
@@ -390,15 +382,16 @@ static void
 ipsort(void)
 {
 	int base;
-	Node *dir, *np;
+	Node* dir, *np;
 
 	base = Qaddrfile;
-	for(dir = root->children; dir; dir = dir->sibs){
-		if (dir->d.type != Addrdir)
+	for(dir = root->children; dir; dir = dir->sibs) {
+		if(dir->d.type != Addrdir)
 			continue;
-		for(np = dir->children; np; np = np->sibs){
+		for(np = dir->children; np; np = np->sibs) {
 			if(np->d.type == IPaddr && np->count && np->addrs)
-				qsort(np->addrs, np->count, sizeof(Address), ipcomp);
+				qsort(np->addrs, np->count, sizeof(Address),
+				      ipcomp);
 			np->baseqid = base;
 			base += np->count;
 		}

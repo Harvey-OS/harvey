@@ -14,31 +14,31 @@
 int ventidoublechecksha1 = 1;
 
 static int
-vtfcallrpc(VtConn *z, VtFcall *ou, VtFcall *in)
+vtfcallrpc(VtConn* z, VtFcall* ou, VtFcall* in)
 {
-	Packet *p;
+	Packet* p;
 
 	p = vtfcallpack(ou);
 	if(p == nil)
 		return -1;
 	if((p = _vtrpc(z, p, ou)) == nil)
 		return -1;
-	if(vtfcallunpack(in, p) < 0){
+	if(vtfcallunpack(in, p) < 0) {
 		packetfree(p);
 		return -1;
 	}
 	if(chattyventi)
 		fprint(2, "%s <- %F\n", argv0, in);
-	if(in->msgtype == VtRerror){
+	if(in->msgtype == VtRerror) {
 		werrstr(in->error);
 		vtfcallclear(in);
 		packetfree(p);
 		return -1;
 	}
-	if(in->msgtype != ou->msgtype+1){
+	if(in->msgtype != ou->msgtype + 1) {
 		werrstr("type mismatch: sent %c%d got %c%d",
-			"TR"[ou->msgtype&1], ou->msgtype>>1,
-			"TR"[in->msgtype&1], in->msgtype>>1);
+		        "TR"[ou->msgtype & 1], ou->msgtype >> 1,
+		        "TR"[in->msgtype & 1], in->msgtype >> 1);
 		vtfcallclear(in);
 		packetfree(p);
 		return -1;
@@ -48,7 +48,7 @@ vtfcallrpc(VtConn *z, VtFcall *ou, VtFcall *in)
 }
 
 int
-vthello(VtConn *z)
+vthello(VtConn* z)
 {
 	VtFcall tx, rx;
 
@@ -67,7 +67,7 @@ vthello(VtConn *z)
 }
 
 Packet*
-vtreadpacket(VtConn *z, uint8_t score[VtScoreSize], uint type, int n)
+vtreadpacket(VtConn* z, uint8_t score[VtScoreSize], uint type, int n)
 {
 	VtFcall tx, rx;
 
@@ -81,14 +81,14 @@ vtreadpacket(VtConn *z, uint8_t score[VtScoreSize], uint type, int n)
 	memmove(tx.score, score, VtScoreSize);
 	if(vtfcallrpc(z, &tx, &rx) < 0)
 		return nil;
-	if(packetsize(rx.data) > n){
+	if(packetsize(rx.data) > n) {
 		werrstr("read returned too much data");
 		packetfree(rx.data);
 		return nil;
 	}
-	if(ventidoublechecksha1){
+	if(ventidoublechecksha1) {
 		packetsha1(rx.data, tx.score);
-		if(memcmp(score, tx.score, VtScoreSize) != 0){
+		if(memcmp(score, tx.score, VtScoreSize) != 0) {
 			werrstr("read asked for %V got %V", score, tx.score);
 			packetfree(rx.data);
 			return nil;
@@ -98,11 +98,10 @@ vtreadpacket(VtConn *z, uint8_t score[VtScoreSize], uint type, int n)
 }
 
 int
-vtread(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
-       int n)
+vtread(VtConn* z, uint8_t score[VtScoreSize], uint type, uint8_t* buf, int n)
 {
 	int nn;
-	Packet *p;
+	Packet* p;
 
 	if((p = vtreadpacket(z, score, type, n)) == nil)
 		return -1;
@@ -114,11 +113,11 @@ vtread(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
 }
 
 int
-vtwritepacket(VtConn *z, uint8_t score[VtScoreSize], uint type, Packet *p)
+vtwritepacket(VtConn* z, uint8_t score[VtScoreSize], uint type, Packet* p)
 {
 	VtFcall tx, rx;
 
-	if(packetsize(p) == 0){
+	if(packetsize(p) == 0) {
 		memmove(score, vtzeroscore, VtScoreSize);
 		return 0;
 	}
@@ -129,21 +128,21 @@ vtwritepacket(VtConn *z, uint8_t score[VtScoreSize], uint type, Packet *p)
 		packetsha1(p, score);
 	if(vtfcallrpc(z, &tx, &rx) < 0)
 		return -1;
-	if(ventidoublechecksha1){
-		if(memcmp(score, rx.score, VtScoreSize) != 0){
-			werrstr("sha1 hash mismatch: want %V got %V", score, rx.score);
+	if(ventidoublechecksha1) {
+		if(memcmp(score, rx.score, VtScoreSize) != 0) {
+			werrstr("sha1 hash mismatch: want %V got %V", score,
+			        rx.score);
 			return -1;
 		}
-	}else
+	} else
 		memmove(score, rx.score, VtScoreSize);
 	return 0;
 }
 
 int
-vtwrite(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
-	int n)
+vtwrite(VtConn* z, uint8_t score[VtScoreSize], uint type, uint8_t* buf, int n)
 {
-	Packet *p;
+	Packet* p;
 	int nn;
 
 	p = packetforeign(buf, n, 0, nil);
@@ -153,7 +152,7 @@ vtwrite(VtConn *z, uint8_t score[VtScoreSize], uint type, uint8_t *buf,
 }
 
 int
-vtsync(VtConn *z)
+vtsync(VtConn* z)
 {
 	VtFcall tx, rx;
 
@@ -162,7 +161,7 @@ vtsync(VtConn *z)
 }
 
 int
-vtping(VtConn *z)
+vtping(VtConn* z)
 {
 	VtFcall tx, rx;
 
@@ -171,7 +170,7 @@ vtping(VtConn *z)
 }
 
 int
-vtconnect(VtConn *z)
+vtconnect(VtConn* z)
 {
 	if(vtversion(z) < 0)
 		return -1;
@@ -181,11 +180,11 @@ vtconnect(VtConn *z)
 }
 
 int
-vtgoodbye(VtConn *z)
+vtgoodbye(VtConn* z)
 {
 	VtFcall tx, rx;
-	
+
 	tx.msgtype = VtTgoodbye;
-	vtfcallrpc(z, &tx, &rx);	/* always fails: no VtRgoodbye */
+	vtfcallrpc(z, &tx, &rx); /* always fails: no VtRgoodbye */
 	return 0;
 }

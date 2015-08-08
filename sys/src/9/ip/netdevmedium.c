@@ -16,30 +16,28 @@
 
 #include "ip.h"
 
-static void	netdevbind(Ipifc *ifc, int argc, char **argv);
-static void	netdevunbind(Ipifc *ifc);
-static void	netdevbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
-static void	netdevread(void *a);
+static void netdevbind(Ipifc* ifc, int argc, char** argv);
+static void netdevunbind(Ipifc* ifc);
+static void netdevbwrite(Ipifc* ifc, Block* bp, int version, uint8_t* ip);
+static void netdevread(void* a);
 
-typedef struct	Netdevrock Netdevrock;
-struct Netdevrock
-{
-	Fs	*f;		/* file system we belong to */
-	Proc	*readp;		/* reading process */
-	Chan	*mchan;		/* Data channel */
+typedef struct Netdevrock Netdevrock;
+struct Netdevrock {
+	Fs* f;       /* file system we belong to */
+	Proc* readp; /* reading process */
+	Chan* mchan; /* Data channel */
 };
 
-Medium netdevmedium =
-{
-.name=		"netdev",
-.hsize=		0,
-.mintu=	0,
-.maxtu=	64000,
-.maclen=	0,
-.bind=		netdevbind,
-.unbind=	netdevunbind,
-.bwrite=	netdevbwrite,
-.unbindonclose=	0,
+Medium netdevmedium = {
+    .name = "netdev",
+    .hsize = 0,
+    .mintu = 0,
+    .maxtu = 64000,
+    .maclen = 0,
+    .bind = netdevbind,
+    .unbind = netdevunbind,
+    .bwrite = netdevbwrite,
+    .unbindonclose = 0,
 };
 
 /*
@@ -47,10 +45,10 @@ Medium netdevmedium =
  *  called with ifc qlock'd
  */
 static void
-netdevbind(Ipifc *ifc, int argc, char **argv)
+netdevbind(Ipifc* ifc, int argc, char** argv)
 {
-	Chan *mchan;
-	Netdevrock *er;
+	Chan* mchan;
+	Netdevrock* er;
 
 	if(argc < 2)
 		error(Ebadarg);
@@ -70,10 +68,10 @@ netdevbind(Ipifc *ifc, int argc, char **argv)
  *  called with ifc wlock'd
  */
 static void
-netdevunbind(Ipifc *ifc)
+netdevunbind(Ipifc* ifc)
 {
-	Proc *up = externup();
-	Netdevrock *er = ifc->arg;
+	Proc* up = externup();
+	Netdevrock* er = ifc->arg;
 
 	if(er->readp != nil)
 		postnote(er->readp, 1, "unbind", 0);
@@ -92,9 +90,9 @@ netdevunbind(Ipifc *ifc)
  *  called by ipoput with a single block to write
  */
 static void
-netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
+netdevbwrite(Ipifc* ifc, Block* bp, int i, uint8_t* c)
 {
-	Netdevrock *er = ifc->arg;
+	Netdevrock* er = ifc->arg;
 
 	if(bp->next)
 		bp = concatblock(bp);
@@ -109,24 +107,24 @@ netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
  *  process to read from the device
  */
 static void
-netdevread(void *a)
+netdevread(void* a)
 {
-	Proc *up = externup();
-	Ipifc *ifc;
-	Block *bp;
-	Netdevrock *er;
-	char *argv[1];
+	Proc* up = externup();
+	Ipifc* ifc;
+	Block* bp;
+	Netdevrock* er;
+	char* argv[1];
 
 	ifc = a;
 	er = ifc->arg;
-	er->readp = up;	/* hide identity under a rock for unbind */
-	if(waserror()){
+	er->readp = up; /* hide identity under a rock for unbind */
+	if(waserror()) {
 		er->readp = nil;
 		pexit("hangup", 1);
 	}
-	for(;;){
+	for(;;) {
 		bp = er->mchan->dev->bread(er->mchan, ifc->maxtu, 0);
-		if(bp == nil){
+		if(bp == nil) {
 			/*
 			 * get here if mchan is a pipe and other side hangs up
 			 * clean up this interface & get out
@@ -139,11 +137,11 @@ ZZZ is this a good idea?
 				ifc->conv->p->ctl(ifc->conv, argv, 1);
 			pexit("hangup", 1);
 		}
-		if(!canrlock(ifc)){
+		if(!canrlock(ifc)) {
 			freeb(bp);
 			continue;
 		}
-		if(waserror()){
+		if(waserror()) {
 			runlock(ifc);
 			nexterror();
 		}

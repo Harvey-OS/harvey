@@ -17,7 +17,7 @@ truerand(void)
 	static int randfd = -1;
 
 	if(randfd < 0)
-		randfd = open("/dev/random", OREAD|OCEXEC);
+		randfd = open("/dev/random", OREAD | OCEXEC);
 	if(randfd < 0)
 		sysfatal("can't open /dev/random");
 	if(read(randfd, &x, sizeof(x)) != sizeof(x))

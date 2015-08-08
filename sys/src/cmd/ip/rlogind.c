@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-void	getstr(int, char*, int);
+void getstr(int, char*, int);
 
 void
 main(void)
@@ -25,7 +25,7 @@ main(void)
 
 	if(luser[0] == '\0')
 		strncpy(luser, ruser, sizeof luser);
-	luser[sizeof luser-1] = '\0';
+	luser[sizeof luser - 1] = '\0';
 	syslog(0, "telnet", "rlogind %s", luser);
 	execl("/bin/ip/telnetd", "telnetd", "-n", "-u", luser, nil);
 	fprint(2, "can't exec con service: %r\n");
@@ -33,12 +33,12 @@ main(void)
 }
 
 void
-getstr(int fd, char *str, int len)
+getstr(int fd, char* str, int len)
 {
 	char c;
 	int n;
 
-	while(--len > 0){
+	while(--len > 0) {
 		n = read(fd, &c, 1);
 		if(n < 0)
 			return;

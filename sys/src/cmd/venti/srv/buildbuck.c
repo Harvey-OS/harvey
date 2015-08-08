@@ -14,23 +14,22 @@
 /*
  * An IEStream is a sorted list of index entries.
  */
-struct IEStream
-{
-	Part	*part;
-	uint64_t	off;		/* read position within part */
-	uint64_t	n;		/* number of valid ientries left to read */
-	uint32_t	size;		/* allocated space in buffer */
-	uint8_t	*buf;
-	uint8_t	*pos;		/* current place in buffer */
-	uint8_t	*epos;		/* end of valid buffer contents */
+struct IEStream {
+	Part* part;
+	uint64_t off;  /* read position within part */
+	uint64_t n;    /* number of valid ientries left to read */
+	uint32_t size; /* allocated space in buffer */
+	uint8_t* buf;
+	uint8_t* pos;  /* current place in buffer */
+	uint8_t* epos; /* end of valid buffer contents */
 };
 
 IEStream*
-initiestream(Part *part, uint64_t off, uint64_t clumps, uint32_t size)
+initiestream(Part* part, uint64_t off, uint64_t clumps, uint32_t size)
 {
-	IEStream *ies;
+	IEStream* ies;
 
-/* out of memory? */
+	/* out of memory? */
 	ies = MKZ(IEStream);
 	ies->buf = MKN(uint8_t, size);
 	ies->epos = ies->buf;
@@ -43,7 +42,7 @@ initiestream(Part *part, uint64_t off, uint64_t clumps, uint32_t size)
 }
 
 void
-freeiestream(IEStream *ies)
+freeiestream(IEStream* ies)
 {
 	if(ies == nil)
 		return;
@@ -55,12 +54,12 @@ freeiestream(IEStream *ies)
  * Return the next IEntry (still packed) in the stream.
  */
 static uint8_t*
-peekientry(IEStream *ies)
+peekientry(IEStream* ies)
 {
 	uint32_t n, nn;
 
 	n = ies->epos - ies->pos;
-	if(n < IEntrySize){
+	if(n < IEntrySize) {
 		memmove(ies->buf, ies->pos, n);
 		ies->epos = &ies->buf[n];
 		ies->pos = ies->buf;
@@ -70,8 +69,9 @@ peekientry(IEStream *ies)
 		nn -= n;
 		if(nn == 0)
 			return nil;
-//fprint(2, "peek %d from %llud into %p\n", nn, ies->off, ies->epos);
-		if(readpart(ies->part, ies->off, ies->epos, nn) < 0){
+		// fprint(2, "peek %d from %llud into %p\n", nn, ies->off,
+		// ies->epos);
+		if(readpart(ies->part, ies->off, ies->epos, nn) < 0) {
 			seterr(EOk, "can't read sorted index entries: %r");
 			return nil;
 		}
@@ -87,7 +87,7 @@ peekientry(IEStream *ies)
  * representation.
  */
 static uint32_t
-iebuck(Index *ix, uint8_t *b, IBucket *ib, IEStream *ies)
+iebuck(Index* ix, uint8_t* b, IBucket* ib, IEStream* ies)
 {
 	USED(ies);
 	USED(ib);
@@ -98,37 +98,45 @@ iebuck(Index *ix, uint8_t *b, IBucket *ib, IEStream *ies)
  * Fill ib with the next bucket in the stream.
  */
 uint32_t
-buildbucket(Index *ix, IEStream *ies, IBucket *ib, uint maxdata)
+buildbucket(Index* ix, IEStream* ies, IBucket* ib, uint maxdata)
 {
 	IEntry ie1, ie2;
-	uint8_t *b;
+	uint8_t* b;
 	uint32_t buck;
 
 	buck = TWID32;
 	ib->n = 0;
-	while(ies->n){
+	while(ies->n) {
 		b = peekientry(ies);
 		if(b == nil)
 			return TWID32;
-/* fprint(2, "b=%p ies->n=%lld ib.n=%d buck=%d score=%V\n", b, ies->n, ib->n, iebuck(ix, b, ib, ies), b); */
+		/* fprint(2, "b=%p ies->n=%lld ib.n=%d buck=%d score=%V\n", b,
+		 * ies->n, ib->n, iebuck(ix, b, ib, ies), b); */
 		if(ib->n == 0)
 			buck = iebuck(ix, b, ib, ies);
-		else{
+		else {
 			if(buck != iebuck(ix, b, ib, ies))
 				break;
-			if(ientrycmp(&ib->data[(ib->n - 1)* IEntrySize], b) == 0){
+			if(ientrycmp(&ib->data[(ib->n - 1) * IEntrySize], b) ==
+			   0) {
 				/*
-				 * guess that the larger address is the correct one to use
+				 * guess that the larger address is the correct
+				 * one to use
 				 */
-				unpackientry(&ie1, &ib->data[(ib->n - 1)* IEntrySize]);
+				unpackientry(
+				    &ie1, &ib->data[(ib->n - 1) * IEntrySize]);
 				unpackientry(&ie2, b);
-				seterr(EOk, "duplicate index entry for score=%V type=%d", ie1.score, ie1.ia.type);
+				seterr(EOk, "duplicate index entry for "
+				            "score=%V type=%d",
+				       ie1.score, ie1.ia.type);
 				ib->n--;
 				if(ie1.ia.addr > ie2.ia.addr)
-					memmove(b, &ib->data[ib->n * IEntrySize], IEntrySize);
+					memmove(b,
+					        &ib->data[ib->n * IEntrySize],
+					        IEntrySize);
 			}
 		}
-		if((ib->n+1)*IEntrySize > maxdata){
+		if((ib->n + 1) * IEntrySize > maxdata) {
 			seterr(EOk, "bucket overflow");
 			return TWID32;
 		}

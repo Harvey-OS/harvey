@@ -12,18 +12,18 @@
 #include <libsec.h>
 
 void
-testcrt(mpint **p)
+testcrt(mpint** p)
 {
-	CRTpre *crt;
-	CRTres *res;
-	mpint *m, *x, *y;
+	CRTpre* crt;
+	CRTres* res;
+	mpint* m, *x, *y;
 
 	fmtinstall('B', mpfmt);
 
 	// get a modulus and a test number
-	m = mpnew(1024+160);
+	m = mpnew(1024 + 160);
 	mpmul(p[0], p[1], m);
-	x = mpnew(1024+160);
+	x = mpnew(1024 + 160);
 	mpadd(m, mpone, x);
 
 	// do the precomputation for crt conversion
@@ -33,7 +33,7 @@ testcrt(mpint **p)
 	res = crtin(crt, x);
 
 	// convert back
-	y = mpnew(1024+160);
+	y = mpnew(1024 + 160);
 	crtout(crt, res, y);
 	print("x %B\ny %B\n", x, y);
 	mpfree(m);
@@ -45,11 +45,11 @@ void
 main(void)
 {
 	int i;
-	mpint *p[2];
+	mpint* p[2];
 	int32_t start;
 
 	start = time(0);
-	for(i = 0; i < 10; i++){
+	for(i = 0; i < 10; i++) {
 		p[0] = mpnew(1024);
 		p[1] = mpnew(1024);
 		DSAprimes(p[0], p[1], nil);
@@ -57,6 +57,6 @@ main(void)
 		mpfree(p[0]);
 		mpfree(p[1]);
 	}
-	print("%ld secs with more\n", time(0)-start);
+	print("%ld secs with more\n", time(0) - start);
 	exits(0);
 }

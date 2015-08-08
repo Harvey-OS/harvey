@@ -7,15 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 static int semtrytimes = 100;
-
 
 /*
  * Support for user-level optimistic semaphores.
@@ -30,12 +29,11 @@ static int semtrytimes = 100;
  * trap if the integer is negative, but that's ok for semaphores.
  */
 
-
 static void
-semwakeup(Sem *s, int didwake, int dolock)
+semwakeup(Sem* s, int didwake, int dolock)
 {
-	Proc *up = externup();
-	Proc *p;
+	Proc* up = externup();
+	Proc* p;
 
 	DBG("semwakeup up %#p sem %#p\n", up, s->np);
 	if(dolock)
@@ -45,11 +43,11 @@ semwakeup(Sem *s, int didwake, int dolock)
 	 * there are ups not yet seen by sleepers, wake up those that
 	 * have tickets.
 	 */
-	while(s->nq > 0 && s->nq > - *s->np){
+	while(s->nq > 0 && s->nq > -*s->np) {
 		p = s->q[0];
 		s->nq--;
 		s->q[0] = s->q[s->nq];
-		if(didwake){
+		if(didwake) {
 			DBG("semwakeup up %#p waking up %#p\n", up, p);
 			p->waitsem = s;
 			/*
@@ -70,11 +68,11 @@ semwakeup(Sem *s, int didwake, int dolock)
 }
 
 static void
-semsleep(Sem *s, int dontblock)
+semsleep(Sem* s, int dontblock)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	DBG("semsleep up %#p sem %#p\n", up, s->np);
-	if(dontblock){
+	if(dontblock) {
 		/*
 		 * User tried to down non-blocking, but someone else
 		 * got the ticket between looking at n and adec(n).
@@ -89,7 +87,7 @@ semsleep(Sem *s, int dontblock)
 		return;
 	}
 	lock(s);
-	if(*s->np >= 0){
+	if(*s->np >= 0) {
 		/*
 		 * A ticket came, either it came while calling the kernel,
 		 * or it was a temporary sleep that didn't block.
@@ -102,7 +100,7 @@ semsleep(Sem *s, int dontblock)
 	 * Commited to wait, we'll have to wait until
 	 * some other process changes our state.
 	 */
-	s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
+	s->q = realloc(s->q, (s->nq + 1) * sizeof s->q[0]);
 	if(s->q == nil)
 		panic("semsleep: no memory");
 	s->q[s->nq++] = up;
@@ -113,13 +111,13 @@ semsleep(Sem *s, int dontblock)
 	sched();
 Done:
 	DBG("semsleep up %#p awaken\n", up);
-	if(up->waitsem == nil){
+	if(up->waitsem == nil) {
 		/*
 		 * nobody did awake us, we are probably being
 		 * killed; we no longer want a ticket.
 		 */
 		lock(s);
-		semainc(s->np);	/* we are no longer waiting; killed */
+		semainc(s->np); /* we are no longer waiting; killed */
 		semwakeup(s, 1, 0);
 		unlock(s);
 	}
@@ -128,11 +126,11 @@ Done:
 void
 syssemsleep(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	int *np;
+	Proc* up = externup();
+	int* np;
 	int dontblock;
-	Sem *s;
-	Segment *sg;
+	Sem* s;
+	Segment* sg;
 	va_list list;
 	va_start(list, ar0);
 
@@ -153,10 +151,10 @@ syssemsleep(Ar0* ar0, ...)
 void
 syssemwakeup(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	int *np;
-	Sem *s;
-	Segment *sg;
+	Proc* up = externup();
+	int* np;
+	Sem* s;
+	Segment* sg;
 	va_list list;
 	va_start(list, ar0);
 
@@ -174,9 +172,9 @@ syssemwakeup(Ar0* ar0, ...)
 }
 
 static void
-semdequeue(Sem *s)
+semdequeue(Sem* s)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
 
 	assert(s != nil);
@@ -185,7 +183,7 @@ semdequeue(Sem *s)
 		if(s->q[i] == up)
 			break;
 
-	if(i == s->nq){
+	if(i == s->nq) {
 		/*
 		 * We didn't perform a down on s, yet we are no longer queued
 		 * on it; it must be because someone gave us its
@@ -193,7 +191,7 @@ semdequeue(Sem *s)
 		 */
 		semainc(s->np);
 		semwakeup(s, 0, 0);
-	}else{
+	} else {
 		s->nq--;
 		s->q[i] = s->q[s->nq];
 	}
@@ -205,23 +203,23 @@ semdequeue(Sem *s)
  * The logic is similar to multiple downs, see comments in semsleep().
  */
 static int
-semalt(Sem *ss[], int n)
+semalt(Sem* ss[], int n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i, j, r;
-	Sem *s;
+	Sem* s;
 
 	DBG("semalt up %#p ss[0] %#p\n", up, ss[0]->np);
 	r = -1;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		s = ss[i];
 		n = semadec(s->np);
-		if(n >= 0){
+		if(n >= 0) {
 			r = i;
 			goto Done;
 		}
 		lock(s);
-		s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
+		s->q = realloc(s->q, (s->nq + 1) * sizeof s->q[0]);
 		if(s->q == nil)
 			panic("semalt: not enough memory");
 		s->q[s->nq++] = up;
@@ -234,7 +232,7 @@ semalt(Sem *ss[], int n)
 
 Done:
 	DBG("semalt up %#p awaken\n", up);
-	for(j = 0; j < i; j++){
+	for(j = 0; j < i; j++) {
 		assert(ss[j] != nil);
 		if(ss[j] != up->waitsem)
 			semdequeue(ss[j]);
@@ -247,13 +245,13 @@ Done:
 }
 
 void
-syssemalt(Ar0 *ar0, ...)
+syssemalt(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	int **sl;
+	Proc* up = externup();
+	int** sl;
 	int i, *np, ns;
-	Segment *sg;
-	Sem *ksl[16];
+	Segment* sg;
+	Sem* ksl[16];
 	va_list list;
 	va_start(list, ar0);
 
@@ -266,7 +264,7 @@ syssemalt(Ar0 *ar0, ...)
 	sl = validaddr(sl, ns * sizeof(int*), 1);
 	if(ns > nelem(ksl))
 		panic("syssemalt: bug: too many semaphores in alt");
-	for(i = 0; i < ns; i++){
+	for(i = 0; i < ns; i++) {
 		np = sl[i];
 		np = validaddr(np, sizeof(int), 1);
 		evenaddr(PTR2UINT(np));
@@ -289,7 +287,7 @@ syssemalt(Ar0 *ar0, ...)
  */
 
 void
-upsem(Sem *s)
+upsem(Sem* s)
 {
 	int n;
 
@@ -299,7 +297,7 @@ upsem(Sem *s)
 }
 
 int
-downsem(Sem *s, int dontblock)
+downsem(Sem* s, int dontblock)
 {
 	int n, i;
 
@@ -314,12 +312,12 @@ downsem(Sem *s, int dontblock)
 }
 
 int
-altsems(Sem *ss[], int n)
+altsems(Sem* ss[], int n)
 {
 	int i, w;
 
 	/* busy wait */
-	for(w = 0; w < semtrytimes; w++){
+	for(w = 0; w < semtrytimes; w++) {
 		for(i = 0; i < n; i++)
 			if(*ss[i]->np > 0)
 				break;
@@ -331,4 +329,3 @@ altsems(Sem *ss[], int n)
 			return i;
 	return semalt(ss, n);
 }
-

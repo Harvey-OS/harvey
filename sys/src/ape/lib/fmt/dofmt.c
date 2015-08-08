@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -28,43 +29,43 @@
 
 /* format the output into f->to and return the number of characters fmted  */
 int
-dofmt(Fmt *f, char *fmt)
+dofmt(Fmt* f, char* fmt)
 {
 	Rune rune, *rt, *rs;
 	int r;
-	char *t, *s;
+	char* t, *s;
 	int n, nfmt;
 
 	nfmt = f->nfmt;
-	for(;;){
-		if(f->runes){
+	for(;;) {
+		if(f->runes) {
 			rt = (Rune*)f->to;
 			rs = (Rune*)f->stop;
-			while((r = *(uint8_t*)fmt) && r != '%'){
+			while((r = *(uint8_t*)fmt) && r != '%') {
 				if(r < Runeself)
 					fmt++;
-				else{
+				else {
 					fmt += chartorune(&rune, fmt);
 					r = rune;
 				}
 				FMTRCHAR(f, rt, rs, r);
 			}
 			fmt++;
-			f->nfmt += rt - (Rune *)f->to;
+			f->nfmt += rt - (Rune*)f->to;
 			f->to = rt;
 			if(!r)
 				return f->nfmt - nfmt;
 			f->stop = rs;
-		}else{
+		} else {
 			t = (char*)f->to;
 			s = (char*)f->stop;
-			while((r = *(uint8_t*)fmt) && r != '%'){
-				if(r < Runeself){
+			while((r = *(uint8_t*)fmt) && r != '%') {
+				if(r < Runeself) {
 					FMTCHAR(f, t, s, r);
 					fmt++;
-				}else{
+				} else {
 					n = chartorune(&rune, fmt);
-					if(t + n > s){
+					if(t + n > s) {
 						t = (char*)__fmtflush(f, t, n);
 						if(t != nil)
 							s = (char*)f->stop;
@@ -76,7 +77,7 @@ dofmt(Fmt *f, char *fmt)
 				}
 			}
 			fmt++;
-			f->nfmt += t - (char *)f->to;
+			f->nfmt += t - (char*)f->to;
 			f->to = t;
 			if(!r)
 				return f->nfmt - nfmt;
@@ -89,15 +90,16 @@ dofmt(Fmt *f, char *fmt)
 	}
 }
 
-void *
-__fmtflush(Fmt *f, void *t, int len)
+void*
+__fmtflush(Fmt* f, void* t, int len)
 {
 	if(f->runes)
 		f->nfmt += (Rune*)t - (Rune*)f->to;
 	else
-		f->nfmt += (char*)t - (char *)f->to;
+		f->nfmt += (char*)t - (char*)f->to;
 	f->to = t;
-	if(f->flush == 0 || (*f->flush)(f) == 0 || (char*)f->to + len > (char*)f->stop){
+	if(f->flush == 0 || (*f->flush)(f) == 0 ||
+	   (char*)f->to + len > (char*)f->stop) {
 		f->stop = f->to;
 		return nil;
 	}
@@ -105,44 +107,45 @@ __fmtflush(Fmt *f, void *t, int len)
 }
 
 /*
- * put a formatted block of memory sz bytes long of n runes into the output buffer,
+ * put a formatted block of memory sz bytes long of n runes into the output
+ * buffer,
  * left/right justified in a field of at least f->width charactes
  */
 int
-__fmtpad(Fmt *f, int n)
+__fmtpad(Fmt* f, int n)
 {
-	char *t, *s;
+	char* t, *s;
 	int i;
 
 	t = (char*)f->to;
 	s = (char*)f->stop;
 	for(i = 0; i < n; i++)
 		FMTCHAR(f, t, s, ' ');
-	f->nfmt += t - (char *)f->to;
+	f->nfmt += t - (char*)f->to;
 	f->to = t;
 	return 0;
 }
 
 int
-__rfmtpad(Fmt *f, int n)
+__rfmtpad(Fmt* f, int n)
 {
-	Rune *t, *s;
+	Rune* t, *s;
 	int i;
 
 	t = (Rune*)f->to;
 	s = (Rune*)f->stop;
 	for(i = 0; i < n; i++)
 		FMTRCHAR(f, t, s, ' ');
-	f->nfmt += t - (Rune *)f->to;
+	f->nfmt += t - (Rune*)f->to;
 	f->to = t;
 	return 0;
 }
 
 int
-__fmtcpy(Fmt *f, const void *vm, int n, int sz)
+__fmtcpy(Fmt* f, const void* vm, int n, int sz)
 {
-	Rune *rt, *rs, r;
-	char *t, *s, *m, *me;
+	Rune* rt, *rs, r;
+	char* t, *s, *m, *me;
 	uint32_t fl;
 	int nc, w;
 
@@ -152,43 +155,43 @@ __fmtcpy(Fmt *f, const void *vm, int n, int sz)
 	fl = f->flags;
 	if((fl & FmtPrec) && n > f->prec)
 		n = f->prec;
-	if(f->runes){
+	if(f->runes) {
 		if(!(fl & FmtLeft) && __rfmtpad(f, w - n) < 0)
 			return -1;
 		rt = (Rune*)f->to;
 		rs = (Rune*)f->stop;
-		for(nc = n; nc > 0; nc--){
+		for(nc = n; nc > 0; nc--) {
 			r = *(uint8_t*)m;
 			if(r < Runeself)
 				m++;
-			else if((me - m) >= UTFmax || fullrune(m, me-m))
+			else if((me - m) >= UTFmax || fullrune(m, me - m))
 				m += chartorune(&r, m);
 			else
 				break;
 			FMTRCHAR(f, rt, rs, r);
 		}
-		f->nfmt += rt - (Rune *)f->to;
+		f->nfmt += rt - (Rune*)f->to;
 		f->to = rt;
 		if(m < me)
 			return -1;
 		if(fl & FmtLeft && __rfmtpad(f, w - n) < 0)
 			return -1;
-	}else{
+	} else {
 		if(!(fl & FmtLeft) && __fmtpad(f, w - n) < 0)
 			return -1;
 		t = (char*)f->to;
 		s = (char*)f->stop;
-		for(nc = n; nc > 0; nc--){
+		for(nc = n; nc > 0; nc--) {
 			r = *(uint8_t*)m;
 			if(r < Runeself)
 				m++;
-			else if((me - m) >= UTFmax || fullrune(m, me-m))
+			else if((me - m) >= UTFmax || fullrune(m, me - m))
 				m += chartorune(&r, m);
 			else
 				break;
 			FMTRUNE(f, t, s, r);
 		}
-		f->nfmt += t - (char *)f->to;
+		f->nfmt += t - (char*)f->to;
 		f->to = t;
 		if(fl & FmtLeft && __fmtpad(f, w - n) < 0)
 			return -1;
@@ -197,10 +200,10 @@ __fmtcpy(Fmt *f, const void *vm, int n, int sz)
 }
 
 int
-__fmtrcpy(Fmt *f, const void *vm, int n)
+__fmtrcpy(Fmt* f, const void* vm, int n)
 {
 	Rune r, *m, *me, *rt, *rs;
-	char *t, *s;
+	char* t, *s;
 	uint32_t fl;
 	int w;
 
@@ -209,27 +212,27 @@ __fmtrcpy(Fmt *f, const void *vm, int n)
 	fl = f->flags;
 	if((fl & FmtPrec) && n > f->prec)
 		n = f->prec;
-	if(f->runes){
+	if(f->runes) {
 		if(!(fl & FmtLeft) && __rfmtpad(f, w - n) < 0)
 			return -1;
 		rt = (Rune*)f->to;
 		rs = (Rune*)f->stop;
 		for(me = m + n; m < me; m++)
 			FMTRCHAR(f, rt, rs, *m);
-		f->nfmt += rt - (Rune *)f->to;
+		f->nfmt += rt - (Rune*)f->to;
 		f->to = rt;
 		if(fl & FmtLeft && __rfmtpad(f, w - n) < 0)
 			return -1;
-	}else{
+	} else {
 		if(!(fl & FmtLeft) && __fmtpad(f, w - n) < 0)
 			return -1;
 		t = (char*)f->to;
 		s = (char*)f->stop;
-		for(me = m + n; m < me; m++){
+		for(me = m + n; m < me; m++) {
 			r = *m;
 			FMTRUNE(f, t, s, r);
 		}
-		f->nfmt += t - (char *)f->to;
+		f->nfmt += t - (char*)f->to;
 		f->to = t;
 		if(fl & FmtLeft && __fmtpad(f, w - n) < 0)
 			return -1;
@@ -239,7 +242,7 @@ __fmtrcpy(Fmt *f, const void *vm, int n)
 
 /* fmt out one character */
 int
-__charfmt(Fmt *f)
+__charfmt(Fmt* f)
 {
 	char x[1];
 
@@ -250,7 +253,7 @@ __charfmt(Fmt *f)
 
 /* fmt out one rune */
 int
-__runefmt(Fmt *f)
+__runefmt(Fmt* f)
 {
 	Rune x[1];
 
@@ -260,18 +263,20 @@ __runefmt(Fmt *f)
 
 /* public helper routine: fmt out a null terminated string already in hand */
 int
-fmtstrcpy(Fmt *f, char *s)
+fmtstrcpy(Fmt* f, char* s)
 {
 	int p, i;
 	if(!s)
 		return __fmtcpy(f, "<nil>", 5, 5);
 	/* if precision is specified, make sure we don't wander off the end */
-	if(f->flags & FmtPrec){
+	if(f->flags & FmtPrec) {
 		p = f->prec;
 		for(i = 0; i < p; i++)
 			if(s[i] == 0)
 				break;
-		return __fmtcpy(f, s, utfnlen(s, i), i);	/* BUG?: won't print a partial rune at end */
+		return __fmtcpy(
+		    f, s, utfnlen(s, i),
+		    i); /* BUG?: won't print a partial rune at end */
 	}
 
 	return __fmtcpy(f, s, utflen(s), strlen(s));
@@ -279,30 +284,31 @@ fmtstrcpy(Fmt *f, char *s)
 
 /* fmt out a null terminated utf string */
 int
-__strfmt(Fmt *f)
+__strfmt(Fmt* f)
 {
-	char *s;
+	char* s;
 
-	s = va_arg(f->args, char *);
+	s = va_arg(f->args, char*);
 	return fmtstrcpy(f, s);
 }
 
-/* public helper routine: fmt out a null terminated rune string already in hand */
+/* public helper routine: fmt out a null terminated rune string already in hand
+ */
 int
-fmtrunestrcpy(Fmt *f, Rune *s)
+fmtrunestrcpy(Fmt* f, Rune* s)
 {
-	Rune *e;
+	Rune* e;
 	int n, p;
 
 	if(!s)
 		return __fmtcpy(f, "<nil>", 5, 5);
 	/* if precision is specified, make sure we don't wander off the end */
-	if(f->flags & FmtPrec){
+	if(f->flags & FmtPrec) {
 		p = f->prec;
 		for(n = 0; n < p; n++)
 			if(s[n] == 0)
 				break;
-	}else{
+	} else {
 		for(e = s; *e; e++)
 			;
 		n = e - s;
@@ -312,17 +318,17 @@ fmtrunestrcpy(Fmt *f, Rune *s)
 
 /* fmt out a null terminated rune string */
 int
-__runesfmt(Fmt *f)
+__runesfmt(Fmt* f)
 {
-	Rune *s;
+	Rune* s;
 
-	s = va_arg(f->args, Rune *);
+	s = va_arg(f->args, Rune*);
 	return fmtrunestrcpy(f, s);
 }
 
 /* fmt a % */
 int
-__percentfmt(Fmt *f)
+__percentfmt(Fmt* f)
 {
 	Rune x[1];
 
@@ -333,7 +339,7 @@ __percentfmt(Fmt *f)
 
 /* fmt an integer */
 int
-__ifmt(Fmt *f)
+__ifmt(Fmt* f)
 {
 	char buf[70], *p, *conv;
 	uint64_t vu;
@@ -348,7 +354,7 @@ __ifmt(Fmt *f)
 	/*
 	 * Unsigned verbs
 	 */
-	switch(f->r){
+	switch(f->r) {
 	case 'o':
 	case 'u':
 	case 'x':
@@ -356,39 +362,39 @@ __ifmt(Fmt *f)
 		fl |= FmtUnsigned;
 		break;
 	}
-	if(f->r == 'p'){
+	if(f->r == 'p') {
 		u = (uint32_t)va_arg(f->args, void*);
 		f->r = 'x';
 		fl |= FmtUnsigned;
-	}else if(fl & FmtVLong){
+	} else if(fl & FmtVLong) {
 		isv = 1;
 		if(fl & FmtUnsigned)
 			vu = va_arg(f->args, uint64_t);
 		else
 			vu = va_arg(f->args, int64_t);
-	}else if(fl & FmtLong){
+	} else if(fl & FmtLong) {
 		if(fl & FmtUnsigned)
 			u = va_arg(f->args, uint32_t);
 		else
 			u = va_arg(f->args, int32_t);
-	}else if(fl & FmtByte){
+	} else if(fl & FmtByte) {
 		if(fl & FmtUnsigned)
 			u = (uint8_t)va_arg(f->args, int);
 		else
 			u = (char)va_arg(f->args, int);
-	}else if(fl & FmtShort){
+	} else if(fl & FmtShort) {
 		if(fl & FmtUnsigned)
 			u = (uint16_t)va_arg(f->args, int);
 		else
 			u = (int16_t)va_arg(f->args, int);
-	}else{
+	} else {
 		if(fl & FmtUnsigned)
 			u = va_arg(f->args, uint);
 		else
 			u = va_arg(f->args, int);
 	}
 	conv = "0123456789abcdef";
-	switch(f->r){
+	switch(f->r) {
 	case 'd':
 	case 'i':
 		base = 10;
@@ -412,35 +418,35 @@ __ifmt(Fmt *f)
 	default:
 		return -1;
 	}
-	if(!(fl & FmtUnsigned)){
-		if(isv && (int64_t)vu < 0){
+	if(!(fl & FmtUnsigned)) {
+		if(isv && (int64_t)vu < 0) {
 			vu = -(int64_t)vu;
 			neg = 1;
-		}else if(!isv && (int32_t)u < 0){
+		} else if(!isv && (int32_t)u < 0) {
 			u = -(int32_t)u;
 			neg = 1;
 		}
-	}else{
-		fl &= ~(FmtSign|FmtSpace);	/* no + for unsigned conversions */
+	} else {
+		fl &= ~(FmtSign | FmtSpace); /* no + for unsigned conversions */
 	}
 	p = buf + sizeof buf - 1;
 	n = 0;
-	if(isv){
-		while(vu){
+	if(isv) {
+		while(vu) {
 			i = vu % base;
 			vu /= base;
-			if((fl & FmtComma) && n % 4 == 3){
+			if((fl & FmtComma) && n % 4 == 3) {
 				*p-- = ',';
 				n++;
 			}
 			*p-- = conv[i];
 			n++;
 		}
-	}else{
-		while(u){
+	} else {
+		while(u) {
 			i = u % base;
 			u /= base;
-			if((fl & FmtComma) && n % 4 == 3){
+			if((fl & FmtComma) && n % 4 == 3) {
 				*p-- = ',';
 				n++;
 			}
@@ -448,33 +454,33 @@ __ifmt(Fmt *f)
 			n++;
 		}
 	}
-	if(n == 0){
-		if(!(fl & FmtPrec) || f->prec != 0){
+	if(n == 0) {
+		if(!(fl & FmtPrec) || f->prec != 0) {
 			*p-- = '0';
 			n = 1;
 		}
 		fl &= ~FmtSharp;
 	}
-	for(w = f->prec; n < w && p > buf+3; n++)
+	for(w = f->prec; n < w && p > buf + 3; n++)
 		*p-- = '0';
-	if(neg || (fl & (FmtSign|FmtSpace)))
+	if(neg || (fl & (FmtSign | FmtSpace)))
 		n++;
-	if(fl & FmtSharp){
+	if(fl & FmtSharp) {
 		if(base == 16)
 			n += 2;
-		else if(base == 8){
+		else if(base == 8) {
 			if(p[1] == '0')
 				fl &= ~FmtSharp;
 			else
 				n++;
 		}
 	}
-	if((fl & FmtZero) && !(fl & (FmtLeft|FmtPrec))){
-		for(w = f->width; n < w && p > buf+3; n++)
+	if((fl & FmtZero) && !(fl & (FmtLeft | FmtPrec))) {
+		for(w = f->width; n < w && p > buf + 3; n++)
 			*p-- = '0';
 		f->width = 0;
 	}
-	if(fl & FmtSharp){
+	if(fl & FmtSharp) {
 		if(base == 16)
 			*p-- = f->r;
 		if(base == 16 || base == 8)
@@ -491,31 +497,31 @@ __ifmt(Fmt *f)
 }
 
 int
-__countfmt(Fmt *f)
+__countfmt(Fmt* f)
 {
-	void *p;
+	void* p;
 	uint32_t fl;
 
 	fl = f->flags;
 	p = va_arg(f->args, void*);
-	if(fl & FmtVLong){
+	if(fl & FmtVLong) {
 		*(int64_t*)p = f->nfmt;
-	}else if(fl & FmtLong){
+	} else if(fl & FmtLong) {
 		*(int32_t*)p = f->nfmt;
-	}else if(fl & FmtByte){
+	} else if(fl & FmtByte) {
 		*(char*)p = f->nfmt;
-	}else if(fl & FmtShort){
+	} else if(fl & FmtShort) {
 		*(int16_t*)p = f->nfmt;
-	}else{
+	} else {
 		*(int*)p = f->nfmt;
 	}
 	return 0;
 }
 
 int
-__flagfmt(Fmt *f)
+__flagfmt(Fmt* f)
 {
-	switch(f->r){
+	switch(f->r) {
 	case ',':
 		f->flags |= FmtComma;
 		break;
@@ -553,7 +559,7 @@ __flagfmt(Fmt *f)
 
 /* default error format */
 int
-__badfmt(Fmt *f)
+__badfmt(Fmt* f)
 {
 	char x[3];
 

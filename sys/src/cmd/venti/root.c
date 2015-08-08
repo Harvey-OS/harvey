@@ -21,13 +21,13 @@ usage(void)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	int i, n;
 	uchar score[VtScoreSize];
-	uchar *buf;
-	VtConn *z;
-	char *host;
+	uchar* buf;
+	VtConn* z;
+	char* host;
 	VtRoot root;
 
 	fmtinstall('F', vtfcallfmt);
@@ -35,14 +35,16 @@ threadmain(int argc, char *argv[])
 	quotefmtinstall();
 
 	host = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'h':
 		host = EARGF(usage());
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		usage();
@@ -56,25 +58,27 @@ threadmain(int argc, char *argv[])
 	if(vtconnect(z) < 0)
 		sysfatal("vtconnect: %r");
 
-	for(i=0; i<argc; i++){
-		if(vtparsescore(argv[i], nil, score) < 0){
+	for(i = 0; i < argc; i++) {
+		if(vtparsescore(argv[i], nil, score) < 0) {
 			fprint(2, "cannot parse score '%s': %r\n", argv[i]);
 			continue;
 		}
 		n = vtread(z, score, VtRootType, buf, VtMaxLumpSize);
-		if(n < 0){
+		if(n < 0) {
 			fprint(2, "could not read block %V: %r\n", score);
 			continue;
 		}
-		if(n != VtRootSize){
-			fprint(2, "block %V is wrong size %d != 300\n", score, n);
+		if(n != VtRootSize) {
+			fprint(2, "block %V is wrong size %d != 300\n", score,
+			       n);
 			continue;
 		}
-		if(vtrootunpack(&root, buf) < 0){
+		if(vtrootunpack(&root, buf) < 0) {
 			fprint(2, "unpacking block %V: %r\n", score);
 			continue;
 		}
-		print("%V: %q %q %V %d %V\n", score, root.name, root.type, root.score, root.blocksize, root.prev);
+		print("%V: %q %q %V %d %V\n", score, root.name, root.type,
+		      root.score, root.blocksize, root.prev);
 	}
 	vthangup(z);
 	threadexitsall(0);

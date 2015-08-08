@@ -12,9 +12,9 @@
 #include <ctype.h>
 
 char*
-strupr(char *s)
+strupr(char* s)
 {
-	char *p;
+	char* p;
 
 	for(p = s; *p; p++)
 		if(*p >= 0 && islower(*p))
@@ -23,9 +23,9 @@ strupr(char *s)
 }
 
 char*
-strlwr(char *s)
+strlwr(char* s)
 {
-	char *p;
+	char* p;
 
 	for(p = s; *p; p++)
 		if(*p >= 0 && isupper(*p))

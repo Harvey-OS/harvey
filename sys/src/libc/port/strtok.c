@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-#define	N	256
+#define N 256
 
 char*
-strtok(char *s, char *b)
+strtok(char* s, char* b)
 {
-	static char *under_rock;
+	static char* under_rock;
 	char map[N], *os;
 
 	memset(map, 0, N);
@@ -30,7 +30,7 @@ strtok(char *s, char *b)
 	os = s;
 	while(map[*(uint8_t*)s] == 0)
 		if(*s++ == 0) {
-			under_rock = s-1;
+			under_rock = s - 1;
 			return os;
 		}
 	*s++ = 0;

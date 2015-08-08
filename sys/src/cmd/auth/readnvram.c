@@ -14,7 +14,7 @@
 #include <authsrv.h>
 
 void
-main(int n, char **g)
+main(int n, char** g)
 {
 	int i;
 	Nvrsafe safe;
@@ -26,7 +26,7 @@ main(int n, char **g)
 	 * readnvram can return -1 meaning nvram wasn't written,
 	 * but safe still holds good data.
 	 */
-	if(readnvram(&safe, 0) < 0 && safe.authid[0] == '\0') 
+	if(readnvram(&safe, 0) < 0 && safe.authid[0] == '\0')
 		sysfatal("readnvram: %r");
 
 	/*
@@ -39,7 +39,7 @@ main(int n, char **g)
 		sysfatal("bad key");
 
 	fmtinstall('H', encodefmt);
-	print("key proto=p9sk1 user=%q dom=%q !hex=%.*H !password=______\n", 
-		safe.authid, safe.authdom, DESKEYLEN, safe.machkey);
+	print("key proto=p9sk1 user=%q dom=%q !hex=%.*H !password=______\n",
+	      safe.authid, safe.authdom, DESKEYLEN, safe.machkey);
 	exits(0);
 }

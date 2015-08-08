@@ -15,20 +15,20 @@
 int _threaddebuglevel;
 
 void
-_threaddebug(uint32_t flag, char *fmt, ...)
+_threaddebug(uint32_t flag, char* fmt, ...)
 {
 	char buf[128];
 	va_list arg;
 	Fmt f;
-	Proc *p;
+	Proc* p;
 
-	if((_threaddebuglevel&flag) == 0)
+	if((_threaddebuglevel & flag) == 0)
 		return;
 
 	fmtfdinit(&f, 2, buf, sizeof buf);
 
 	p = _threadgetproc();
-	if(p==nil)
+	if(p == nil)
 		fmtprint(&f, "noproc ");
 	else if(p->thread)
 		fmtprint(&f, "%d.%d ", p->pid, p->thread->id);
@@ -43,18 +43,18 @@ _threaddebug(uint32_t flag, char *fmt, ...)
 }
 
 void
-_threadassert(char *s)
+_threadassert(char* s)
 {
 	char buf[256];
 	int n;
-	Proc *p;
+	Proc* p;
 
 	p = _threadgetproc();
 	if(p && p->thread)
 		n = sprint(buf, "%d.%d ", p->pid, p->thread->id);
 	else
 		n = 0;
-	snprint(buf+n, sizeof(buf)-n, "%s: assertion failed\n", s);
+	snprint(buf + n, sizeof(buf) - n, "%s: assertion failed\n", s);
 	write(2, buf, strlen(buf));
 	abort();
 }

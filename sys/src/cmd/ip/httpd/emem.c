@@ -14,7 +14,7 @@
 void*
 ezalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(p == nil)
@@ -24,11 +24,10 @@ ezalloc(uint32_t n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	s = strdup(s);
 	if(s == nil)
 		sysfatal("out of memory");
 	return s;
 }
-

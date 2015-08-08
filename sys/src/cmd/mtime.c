@@ -18,22 +18,24 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int errors, i;
-	Dir *d;
+	Dir* d;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	errors = 0;
-	for(i=0; i<argc; i++){
-		if((d = dirstat(argv[i])) == nil){
+	for(i = 0; i < argc; i++) {
+		if((d = dirstat(argv[i])) == nil) {
 			fprint(2, "stat %s: %r\n", argv[i]);
 			errors = 1;
-		}else{
+		} else {
 			print("%11lud %s\n", d->mtime, argv[i]);
 			free(d);
 		}

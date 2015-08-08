@@ -14,7 +14,7 @@
 RSApub*
 rsapuballoc(void)
 {
-	RSApub *rsa;
+	RSApub* rsa;
 
 	rsa = mallocz(sizeof(*rsa), 1);
 	if(rsa == nil)
@@ -23,7 +23,7 @@ rsapuballoc(void)
 }
 
 void
-rsapubfree(RSApub *rsa)
+rsapubfree(RSApub* rsa)
 {
 	if(rsa == nil)
 		return;
@@ -32,11 +32,10 @@ rsapubfree(RSApub *rsa)
 	free(rsa);
 }
 
-
 RSApriv*
 rsaprivalloc(void)
 {
-	RSApriv *rsa;
+	RSApriv* rsa;
 
 	rsa = mallocz(sizeof(*rsa), 1);
 	if(rsa == nil)
@@ -45,7 +44,7 @@ rsaprivalloc(void)
 }
 
 void
-rsaprivfree(RSApriv *rsa)
+rsaprivfree(RSApriv* rsa)
 {
 	if(rsa == nil)
 		return;

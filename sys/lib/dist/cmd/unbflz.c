@@ -19,42 +19,44 @@ usage(void)
 }
 
 int
-Bgetint(Biobuf *b)
+Bgetint(Biobuf* b)
 {
 	uchar p[4];
 
 	if(Bread(b, p, 4) != 4)
 		sysfatal("short read");
-	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
+	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 }
 
 /*
  * memmove but make sure overlap works properly.
  */
 void
-copy(uchar *dst, uchar *src, int n)
+copy(uchar* dst, uchar* src, int n)
 {
 	while(n-- > 0)
 		*dst++ = *src++;
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Biobuf *b, bin;
+	Biobuf* b, bin;
 	char buf[5];
-	uchar *data;
-	ulong *blk, l;
+	uchar* data;
+	ulong* blk, l;
 	int nblk, mblk;
 	int sum;
 	int i, j, length, m, n, o;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	switch(argc){
+	switch(argc) {
 	default:
 		usage();
 	case 0:
@@ -81,17 +83,17 @@ main(int argc, char **argv)
 	nblk = 0;
 	mblk = 0;
 	blk = nil;
-	while(sum < length){
-		if(nblk>=mblk){
+	while(sum < length) {
+		if(nblk >= mblk) {
 			mblk += 16384;
-			blk = realloc(blk, (mblk+1)*sizeof(blk[0]));
+			blk = realloc(blk, (mblk + 1) * sizeof(blk[0]));
 			if(blk == nil)
 				sysfatal("out of memory");
 		}
 		l = Bgetint(b);
 		blk[nblk++] = l;
-		if(l&(1<<31))
-			l &= ~(1<<31);
+		if(l & (1 << 31))
+			l &= ~(1 << 31);
 		else
 			blk[nblk++] = Bgetint(b);
 		sum += l;
@@ -100,16 +102,16 @@ main(int argc, char **argv)
 		sysfatal("bad compressed data %d %d", sum, length);
 	i = 0;
 	j = 0;
-	while(i < length){
+	while(i < length) {
 		assert(j < nblk);
 		n = blk[j++];
-		if(n&(1<<31)){
-			n &= ~(1<<31);
-			if((m=Bread(b, data+i, n)) != n)
+		if(n & (1 << 31)) {
+			n &= ~(1 << 31);
+			if((m = Bread(b, data + i, n)) != n)
 				sysfatal("short read %d %d", n, m);
-		}else{
+		} else {
 			o = blk[j++];
-			copy(data+i, data+o, n);
+			copy(data + i, data + o, n);
 		}
 		i += n;
 	}

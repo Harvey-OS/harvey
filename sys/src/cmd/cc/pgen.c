@@ -10,10 +10,10 @@
 #include "gc.h"
 
 void
-codgen(Node *n, Node *nn)
+codgen(Node* n, Node* nn)
 {
-	Prog *sp;
-	Node *n1, nod, nod1;
+	Prog* sp;
+	Node* n1, nod, nod1;
 
 	cursafe = 0;
 	curarg = 0;
@@ -56,13 +56,12 @@ codgen(Node *n, Node *nn)
 	/*
 	 * isolate first argument
 	 */
-	if(REGARG >= 0) {	
+	if(REGARG >= 0) {
 		if(typecmplx[thisfn->link->etype]) {
 			nod1 = *nodret->left;
 			nodreg(&nod, &nod1, REGARG);
 			gmove(&nod, &nod1);
-		} else
-		if(firstarg && typeword[firstargtype->etype]) {
+		} else if(firstarg && typeword[firstargtype->etype]) {
 			nod1 = znode;
 			nod1.op = ONAME;
 			nod1.sym = firstarg;
@@ -79,29 +78,32 @@ codgen(Node *n, Node *nn)
 	canreach = 1;
 	warnreach = 1;
 	gen(n);
-	if(canreach && thisfn->link->etype != TVOID){
+	if(canreach && thisfn->link->etype != TVOID) {
 		if(debug['B'])
-			warn(Z, "no return at end of function: %s", n1->sym->name);
+			warn(Z, "no return at end of function: %s",
+			     n1->sym->name);
 		else
-			diag(Z, "no return at end of function: %s", n1->sym->name);
+			diag(Z, "no return at end of function: %s",
+			     n1->sym->name);
 	}
 	noretval(3);
 	gbranch(ORETURN);
 
 	if(!debug['N'] || debug['R'] || debug['P'])
 		regopt(sp);
-	
-	if(thechar=='6' || thechar=='7' || thechar=='9' || hasdoubled)	/* [sic] */
+
+	if(thechar == '6' || thechar == '7' || thechar == '9' ||
+	   hasdoubled) /* [sic] */
 		maxargsafe = round(maxargsafe, 8);
 	sp->to.offset += maxargsafe;
 }
 
 void
-supgen(Node *n)
+supgen(Node* n)
 {
 	int owarn;
 	int32_t spc;
-	Prog *sp;
+	Prog* sp;
 
 	if(n == Z)
 		return;
@@ -119,7 +121,7 @@ supgen(Node *n)
 }
 
 Node*
-uncomma(Node *n)
+uncomma(Node* n)
 {
 	while(n != Z && n->op == OCOMMA) {
 		cgen(n->left, Z);
@@ -129,11 +131,11 @@ uncomma(Node *n)
 }
 
 void
-gen(Node *n)
+gen(Node* n)
 {
-	Node *l, nod, rn;
-	Prog *sp, *spc, *spb;
-	Case *cn;
+	Node* l, nod, rn;
+	Prog* sp, *spc, *spb;
+	Case* cn;
 	int32_t sbc, scc;
 	int snbreak, sncontin;
 	int f, o, oldreach;
@@ -206,7 +208,7 @@ loop:
 			gbranch(ORETURN);
 			break;
 		}
-		if(newvlongcode && !typefd[n->type->etype]){
+		if(newvlongcode && !typefd[n->type->etype]) {
 			regret(&rn, n);
 			regfree(&rn);
 			nod = znode;
@@ -238,7 +240,7 @@ loop:
 			if(l->label)
 				patch(l->label, pc);
 		}
-		gbranch(OGOTO);	/* prevent self reference in reg */
+		gbranch(OGOTO); /* prevent self reference in reg */
 		patch(p, pc);
 		goto rloop;
 
@@ -260,7 +262,7 @@ loop:
 			return;
 		}
 		if(n->label)
-			patch(n->label, pc-1);
+			patch(n->label, pc - 1);
 		n->label = p;
 		return;
 
@@ -301,7 +303,7 @@ loop:
 			break;
 		}
 
-		gbranch(OGOTO);		/* entry */
+		gbranch(OGOTO); /* entry */
 		sp = p;
 
 		cn = cases;
@@ -315,8 +317,8 @@ loop:
 		gbranch(OGOTO);
 		spb = p;
 
-		gen(n->right);		/* body */
-		if(canreach){
+		gen(n->right); /* body */
+		if(canreach) {
 			gbranch(OGOTO);
 			patch(p, breakpc);
 			nbreak++;
@@ -336,7 +338,7 @@ loop:
 
 		cases = cn;
 		breakpc = sbc;
-		canreach = nbreak!=0;
+		canreach = nbreak != 0;
 		if(canreach == 0)
 			warnreach = !suppress;
 		nbreak = snbreak;
@@ -345,7 +347,7 @@ loop:
 	case OWHILE:
 	case ODWHILE:
 		l = n->left;
-		gbranch(OGOTO);		/* entry */
+		gbranch(OGOTO); /* entry */
 		sp = p;
 
 		scc = continpc;
@@ -363,21 +365,21 @@ loop:
 		patch(spc, pc);
 		if(n->op == OWHILE)
 			patch(sp, pc);
-		bcomplex(l, Z);		/* test */
+		bcomplex(l, Z); /* test */
 		patch(p, breakpc);
 		if(l->op != OCONST || vconst(l) == 0)
 			nbreak++;
 
 		if(n->op == ODWHILE)
 			patch(sp, pc);
-		gen(n->right);		/* body */
+		gen(n->right); /* body */
 		gbranch(OGOTO);
 		patch(p, continpc);
 
 		patch(spb, pc);
 		continpc = scc;
 		breakpc = sbc;
-		canreach = nbreak!=0;
+		canreach = nbreak != 0;
 		if(canreach == 0)
 			warnreach = !suppress;
 		nbreak = snbreak;
@@ -389,12 +391,12 @@ loop:
 			warn(n, "unreachable code FOR");
 			warnreach = 0;
 		}
-		gen(l->right->left);	/* init */
-		gbranch(OGOTO);		/* entry */
+		gen(l->right->left); /* init */
+		gbranch(OGOTO);      /* entry */
 		sp = p;
 
-		/* 
-		 * if there are no incoming labels in the 
+		/*
+		 * if there are no incoming labels in the
 		 * body and the top's not reachable, warn
 		 */
 		if(!canreach && warnreach && deadheads(n)) {
@@ -417,17 +419,17 @@ loop:
 		spb = p;
 
 		patch(spc, pc);
-		gen(l->right->right);	/* inc */
-		patch(sp, pc);	
-		if(l->left != Z) {	/* test */
+		gen(l->right->right); /* inc */
+		patch(sp, pc);
+		if(l->left != Z) { /* test */
 			bcomplex(l->left, Z);
 			patch(p, breakpc);
 			if(l->left->op != OCONST || vconst(l->left) == 0)
 				nbreak++;
 		}
 		canreach = 1;
-		gen(n->right);		/* body */
-		if(canreach){
+		gen(n->right); /* body */
+		if(canreach) {
 			gbranch(OGOTO);
 			patch(p, continpc);
 			ncontin++;
@@ -440,7 +442,7 @@ loop:
 		patch(spb, pc);
 		continpc = scc;
 		breakpc = sbc;
-		canreach = nbreak!=0;
+		canreach = nbreak != 0;
 		if(canreach == 0)
 			warnreach = !suppress;
 		nbreak = snbreak;
@@ -468,7 +470,7 @@ loop:
 		 * Don't complain about unreachable break statements.
 		 * There are breaks hidden in yacc's output and some people
 		 * write return; break; in their switch statements out of habit.
-		 * However, don't confuse the analysis by inserting an 
+		 * However, don't confuse the analysis by inserting an
 		 * unreachable reference to breakpc either.
 		 */
 		if(!canreach)
@@ -488,7 +490,8 @@ loop:
 			else
 				f = !l->vconst;
 			if(debug['c'])
-				print("%L const if %s\n", nearln, f ? "false" : "true");
+				print("%L const if %s\n", nearln,
+				      f ? "false" : "true");
 			if(f) {
 				canreach = 1;
 				supgen(n->right->left);
@@ -496,28 +499,26 @@ loop:
 				canreach = 1;
 				gen(n->right->right);
 				/*
-				 * treat constant ifs as regular ifs for 
+				 * treat constant ifs as regular ifs for
 				 * reachability warnings.
 				 */
 				if(!canreach && oldreach && debug['w'] < 2)
 					warnreach = 0;
-			}
-			else {
+			} else {
 				canreach = 1;
 				gen(n->right->left);
 				oldreach = canreach;
 				canreach = 1;
 				supgen(n->right->right);
 				/*
-				 * treat constant ifs as regular ifs for 
+				 * treat constant ifs as regular ifs for
 				 * reachability warnings.
 				 */
 				if(!oldreach && canreach && debug['w'] < 2)
 					warnreach = 0;
 				canreach = oldreach;
 			}
-		}
-		else {
+		} else {
 			sp = p;
 			canreach = 1;
 			if(n->right->left != Z)
@@ -545,7 +546,7 @@ loop:
 }
 
 void
-usedset(Node *n, int o)
+usedset(Node* n, int o)
 {
 	if(n->op == OLIST) {
 		usedset(n->left, o);
@@ -554,7 +555,7 @@ usedset(Node *n, int o)
 	}
 	complex(n);
 	switch(n->op) {
-	case OADDR:	/* volatile */
+	case OADDR: /* volatile */
 		gins(ANOP, n, Z);
 		break;
 	case ONAME:
@@ -567,15 +568,14 @@ usedset(Node *n, int o)
 }
 
 int
-bcomplex(Node *n, Node *c)
+bcomplex(Node* n, Node* c)
 {
-	Node *b, nod;
-
+	Node* b, nod;
 
 	complex(n);
 	if(n->type != T)
-	if(tcompat(n, T, n->type, tnot))
-		n->type = T;
+		if(tcompat(n, T, n->type, tnot))
+			n->type = T;
 	if(n->type == T) {
 		gbranch(OGOTO);
 		return 0;

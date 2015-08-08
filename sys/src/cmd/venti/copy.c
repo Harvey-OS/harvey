@@ -22,24 +22,23 @@ int verbose;
 int nskip;
 int nwrite;
 
-VtConn *zsrc, *zdst;
-uint8_t zeroscore[VtScoreSize];	/* all zeros */
+VtConn* zsrc, *zdst;
+uint8_t zeroscore[VtScoreSize]; /* all zeros */
 
 typedef struct ScoreTree ScoreTree;
-struct ScoreTree
-{
+struct ScoreTree {
 	Avl avl;
 	uint8_t score[VtScoreSize];
 	int type;
 };
 
-Avltree *scoretree;
-Bin *scorebin;
+Avltree* scoretree;
+Bin* scorebin;
 
 static int
-scoretreecmp(Avl *va, Avl *vb)
+scoretreecmp(Avl* va, Avl* vb)
 {
-	ScoreTree *a, *b;
+	ScoreTree* a, *b;
 	int i;
 
 	a = (ScoreTree*)va;
@@ -55,7 +54,7 @@ static int
 havevisited(uint8_t score[VtScoreSize], int type)
 {
 	ScoreTree a;
-	
+
 	if(scoretree == nil)
 		return 0;
 	memmove(a.score, score, VtScoreSize);
@@ -66,8 +65,8 @@ havevisited(uint8_t score[VtScoreSize], int type)
 static void
 markvisited(uint8_t score[VtScoreSize], int type)
 {
-	ScoreTree *a;
-	Avl *old;
+	ScoreTree* a;
+	Avl* old;
 
 	if(scoretree == nil)
 		return;
@@ -80,7 +79,8 @@ markvisited(uint8_t score[VtScoreSize], int type)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-fimrv] [-t type] srchost dsthost score\n", argv0);
+	fprint(2, "usage: %s [-fimrv] [-t type] srchost dsthost score\n",
+	       argv0);
 	exits("usage");
 }
 
@@ -88,21 +88,22 @@ void
 walk(uint8_t score[VtScoreSize], uint type, int base)
 {
 	int i, n;
-	uint8_t *buf;
+	uint8_t* buf;
 	uint8_t nscore[VtScoreSize];
 	VtEntry e;
 	VtRoot root;
 
-	if(memcmp(score, vtzeroscore, VtScoreSize) == 0 || memcmp(score, zeroscore, VtScoreSize) == 0)
+	if(memcmp(score, vtzeroscore, VtScoreSize) == 0 ||
+	   memcmp(score, zeroscore, VtScoreSize) == 0)
 		return;
-	
-	if(havevisited(score, type)){
+
+	if(havevisited(score, type)) {
 		nskip++;
 		return;
 	}
 
 	buf = vtmallocz(VtMaxLumpSize);
-	if(fast && vtread(zdst, score, type, buf, VtMaxLumpSize) >= 0){
+	if(fast && vtread(zdst, score, type, buf, VtMaxLumpSize) >= 0) {
 		if(verbose)
 			fprint(2, "skip %V\n", score);
 		free(buf);
@@ -110,38 +111,42 @@ walk(uint8_t score[VtScoreSize], uint type, int base)
 	}
 
 	n = vtread(zsrc, score, type, buf, VtMaxLumpSize);
-	if(n < 0){
-		if(rewrite){
+	if(n < 0) {
+		if(rewrite) {
 			changes++;
 			memmove(score, vtzeroscore, VtScoreSize);
-		}else if(!ignoreerrors)
+		} else if(!ignoreerrors)
 			sysfatal("reading block %V (type %d): %r", score, type);
 		return;
 	}
 
-	switch(type){
+	switch(type) {
 	case VtRootType:
-		if(vtrootunpack(&root, buf) < 0){
-			fprint(2, "warning: could not unpack root in %V %d\n", score, type);
+		if(vtrootunpack(&root, buf) < 0) {
+			fprint(2, "warning: could not unpack root in %V %d\n",
+			       score, type);
 			break;
 		}
 		walk(root.prev, VtRootType, 0);
 		walk(root.score, VtDirType, 0);
 		if(rewrite)
-			vtrootpack(&root, buf);	/* walk might have changed score */
+			vtrootpack(&root,
+			           buf); /* walk might have changed score */
 		break;
 
 	case VtDirType:
-		for(i=0; i*VtEntrySize<n; i++){
-			if(vtentryunpack(&e, buf, i) < 0){
-				fprint(2, "warning: could not unpack entry #%d in %V %d\n", i, score, type);
+		for(i = 0; i * VtEntrySize < n; i++) {
+			if(vtentryunpack(&e, buf, i) < 0) {
+				fprint(2, "warning: could not unpack entry #%d "
+				          "in %V %d\n",
+				       i, score, type);
 				continue;
 			}
 			if(!(e.flags & VtEntryActive))
 				continue;
-			walk(e.score, e.type, e.type&VtTypeBaseMask);
+			walk(e.score, e.type, e.type & VtTypeBaseMask);
 			/*
-			 * Don't repack unless we're rewriting -- some old 
+			 * Don't repack unless we're rewriting -- some old
 			 * vac files have psize==0 and dsize==0, and these
 			 * get rewritten by vtentryunpack to have less strange
 			 * block sizes.  So vtentryunpack; vtentrypack does not
@@ -155,44 +160,45 @@ walk(uint8_t score[VtScoreSize], uint type, int base)
 	case VtDataType:
 		break;
 
-	default:	/* pointers */
-		for(i=0; i<n; i+=VtScoreSize)
-			if(memcmp(buf+i, vtzeroscore, VtScoreSize) != 0)
-				walk(buf+i, type-1, base);
+	default: /* pointers */
+		for(i = 0; i < n; i += VtScoreSize)
+			if(memcmp(buf + i, vtzeroscore, VtScoreSize) != 0)
+				walk(buf + i, type - 1, base);
 		break;
 	}
 
 	nwrite++;
-	if(vtwrite(zdst, nscore, type, buf, n) < 0){
+	if(vtwrite(zdst, nscore, type, buf, n) < 0) {
 		/* figure out score for better error message */
 		/* can't use input argument - might have changed contents */
 		n = vtzerotruncate(type, buf, n);
 		sha1(buf, n, score, nil);
 		sysfatal("writing block %V (type %d): %r", score, type);
 	}
-	if(!rewrite && memcmp(score, nscore, VtScoreSize) != 0){
+	if(!rewrite && memcmp(score, nscore, VtScoreSize) != 0) {
 		fprint(2, "not rewriting: wrote %V got %V\n", score, nscore);
 		abort();
 		sysfatal("not rewriting: wrote %V got %V", score, nscore);
 	}
-	
+
 	markvisited(score, type);
 	free(buf);
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int type, n;
 	uchar score[VtScoreSize];
-	uchar *buf;
-	char *prefix;
+	uchar* buf;
+	char* prefix;
 
 	fmtinstall('F', vtfcallfmt);
 	fmtinstall('V', vtscorefmt);
 
 	type = -1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'V':
 		chattyventi++;
 		break;
@@ -221,7 +227,8 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 3)
 		usage();
@@ -243,12 +250,12 @@ main(int argc, char *argv[])
 	if(vtconnect(zdst) < 0)
 		sysfatal("vtconnect dst: %r");
 
-	if(type != -1){
+	if(type != -1) {
 		n = vtread(zsrc, score, type, buf, VtMaxLumpSize);
 		if(n < 0)
 			sysfatal("could not read block: %r");
-	}else{
-		for(type=0; type<VtMaxType; type++){
+	} else {
+		for(type = 0; type < VtMaxType; type++) {
 			n = vtread(zsrc, score, type, buf, VtMaxLumpSize);
 			if(n >= 0)
 				break;
@@ -259,7 +266,8 @@ main(int argc, char *argv[])
 
 	walk(score, type, VtDirType);
 	if(changes)
-		print("%s:%V (%d pointers rewritten)\n", prefix, score, changes);
+		print("%s:%V (%d pointers rewritten)\n", prefix, score,
+		      changes);
 
 	if(verbose)
 		print("%d skipped, %d written\n", nskip, nwrite);

@@ -7,27 +7,25 @@
  * in the LICENSE file.
  */
 
-#include	<libl.h>
-#include	<stdio.h>
+#include <libl.h>
+#include <stdio.h>
 
-extern	FILE*	yyout;
-extern	FILE*	yyin;
-extern	int	yyprevious, *yyfnd;
-extern	char	yyextra[];
-extern	char	yytext[];
-extern	int	yyleng;
+extern FILE* yyout;
+extern FILE* yyin;
+extern int yyprevious, *yyfnd;
+extern char yyextra[];
+extern char yytext[];
+extern int yyleng;
 
-extern
-struct
-{
-	int *yyaa, *yybb;
-	int *yystops;
-} *yylstate [], **yylsp, **yyolsp;
+extern struct {
+	int* yyaa, *yybb;
+	int* yystops;
+} * yylstate[], **yylsp, **yyolsp;
 
-int	yyback(int *p, int m);
-int	yyinput(void);
-void	yyoutput(int c);
-void	yyunput(int c);
+int yyback(int* p, int m);
+int yyinput(void);
+void yyoutput(int c);
+void yyunput(int c);
 
 int
 yyracc(int m)
@@ -40,7 +38,7 @@ yyracc(int m)
 			yyunput(yytext[--yyleng]);
 		}
 	}
-	yyprevious = yytext[yyleng-1];
+	yyprevious = yytext[yyleng - 1];
 	yytext[yyleng] = 0;
 	return m;
 }
@@ -53,7 +51,7 @@ yyreject(void)
 	if(*yyfnd > 0)
 		return yyracc(*yyfnd++);
 	while(yylsp-- > yylstate) {
-		yyunput(yytext[yyleng-1]);
+		yyunput(yytext[yyleng - 1]);
 		yytext[--yyleng] = 0;
 		if(*yylsp != 0 && (yyfnd = (*yylsp)->yystops) && *yyfnd > 0)
 			return yyracc(*yyfnd++);

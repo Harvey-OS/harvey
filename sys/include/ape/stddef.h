@@ -18,7 +18,7 @@
 #endif
 #endif
 #ifndef offsetof
-#define offsetof(ty,mem) ((size_t) &(((ty *)0)->mem))
+#define offsetof(ty, mem) ((size_t) & (((ty*)0)->mem))
 #endif
 
 typedef long ptrdiff_t;

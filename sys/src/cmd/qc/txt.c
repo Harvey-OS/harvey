@@ -9,16 +9,16 @@
 
 #include "gc.h"
 
-static	int	resvreg[nelem(reg)];
+static int resvreg[nelem(reg)];
 
-static	void	gopcode64(int, Node*, Node*, Node*);
-static	void	gori64(int, Node*, Node*, Node*);
-static	void	gandi64(int, Node*, Node*, Node*);
+static void gopcode64(int, Node*, Node*, Node*);
+static void gori64(int, Node*, Node*, Node*);
+static void gandi64(int, Node*, Node*, Node*);
 
 void
 ginit(void)
 {
-	Type *t;
+	Type* t;
 
 	thechar = 'q';
 	thestring = "power";
@@ -90,13 +90,13 @@ ginit(void)
 	com64init();
 
 	memset(reg, 0, sizeof(reg));
-	reg[REGZERO] = 1;	/* don't use */
+	reg[REGZERO] = 1; /* don't use */
 	reg[REGTMP] = 1;
-	reg[FREGCVI+NREG] = 1;
-	reg[FREGZERO+NREG] = 1;
-	reg[FREGHALF+NREG] = 1;
-	reg[FREGONE+NREG] = 1;
-	reg[FREGTWO+NREG] = 1;
+	reg[FREGCVI + NREG] = 1;
+	reg[FREGZERO + NREG] = 1;
+	reg[FREGHALF + NREG] = 1;
+	reg[FREGONE + NREG] = 1;
+	reg[FREGTWO + NREG] = 1;
 	memmove(resvreg, reg, sizeof(reg));
 }
 
@@ -104,30 +104,30 @@ void
 gclean(void)
 {
 	int i;
-	Sym *s;
+	Sym* s;
 
-	for(i=0; i<NREG; i++)
+	for(i = 0; i < NREG; i++)
 		if(reg[i] && !resvreg[i])
 			diag(Z, "reg %d left allocated", i);
-	for(i=NREG; i<NREG+NREG; i++)
+	for(i = NREG; i < NREG + NREG; i++)
 		if(reg[i] && !resvreg[i])
-			diag(Z, "freg %d left allocated", i-NREG);
+			diag(Z, "freg %d left allocated", i - NREG);
 	while(mnstring)
 		outstring("", 1L);
 	symstring->type->width = nstring;
 	symrathole->type->width = nrathole;
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		if(s->type == T)
-			continue;
-		if(s->type->width == 0)
-			continue;
-		if(s->class != CGLOBL && s->class != CSTATIC)
-			continue;
-		if(s->type == types[TENUM])
-			continue;
-		gpseudo(AGLOBL, s, nodconst(s->type->width));
-	}
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type == T)
+				continue;
+			if(s->type->width == 0)
+				continue;
+			if(s->class != CGLOBL && s->class != CSTATIC)
+				continue;
+			if(s->type == types[TENUM])
+				continue;
+			gpseudo(AGLOBL, s, nodconst(s->type->width));
+		}
 	nextpc();
 	p->as = AEND;
 	outcode();
@@ -151,7 +151,7 @@ nextpc(void)
 }
 
 void
-gargs(Node *n, Node *tn1, Node *tn2)
+gargs(Node* n, Node* tn1, Node* tn2)
 {
 	int32_t regs;
 	Node fnxargs[20], *fnxp;
@@ -159,17 +159,17 @@ gargs(Node *n, Node *tn1, Node *tn2)
 	regs = cursafe;
 
 	fnxp = fnxargs;
-	garg1(n, tn1, tn2, 0, &fnxp);	/* compile fns to temps */
+	garg1(n, tn1, tn2, 0, &fnxp); /* compile fns to temps */
 
 	curarg = 0;
 	fnxp = fnxargs;
-	garg1(n, tn1, tn2, 1, &fnxp);	/* compile normal args and temps */
+	garg1(n, tn1, tn2, 1, &fnxp); /* compile normal args and temps */
 
 	cursafe = regs;
 }
 
 void
-garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
+garg1(Node* n, Node* tn1, Node* tn2, int f, Node** fnxp)
 {
 	Node nod;
 
@@ -249,7 +249,7 @@ nodfconst(double d)
 }
 
 void
-nodreg(Node *n, Node *nn, int reg)
+nodreg(Node* n, Node* nn, int reg)
 {
 	*n = regnode;
 	n->reg = reg;
@@ -258,19 +258,19 @@ nodreg(Node *n, Node *nn, int reg)
 }
 
 void
-regret(Node *n, Node *nn)
+regret(Node* n, Node* nn)
 {
 	int r;
 
 	r = REGRET;
 	if(typefd[nn->type->etype])
-		r = FREGRET+NREG;
+		r = FREGRET + NREG;
 	nodreg(n, nn, r);
 	reg[r]++;
 }
 
 void
-regalloc(Node *n, Node *tn, Node *o)
+regalloc(Node* n, Node* tn, Node* o)
 {
 	int i, j;
 	static int lasti;
@@ -290,10 +290,10 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(i > 0 && i < NREG)
 				goto out;
 		}
-		j = lasti + REGRET+1;
-		for(i=REGRET+1; i<NREG; i++) {
+		j = lasti + REGRET + 1;
+		for(i = REGRET + 1; i < NREG; i++) {
 			if(j >= NREG)
-				j = REGRET+1;
+				j = REGRET + 1;
 			if(reg[j] == 0) {
 				i = j;
 				goto out;
@@ -307,12 +307,12 @@ regalloc(Node *n, Node *tn, Node *o)
 	case TDOUBLE:
 		if(o != Z && o->op == OREGISTER) {
 			i = o->reg;
-			if(i >= NREG && i < NREG+NREG)
+			if(i >= NREG && i < NREG + NREG)
 				goto out;
 		}
 		j = lasti + NREG;
-		for(i=NREG; i<NREG+NREG; i++) {
-			if(j >= NREG+NREG)
+		for(i = NREG; i < NREG + NREG; i++) {
+			if(j >= NREG + NREG)
 				j = NREG;
 			if(reg[j] == 0) {
 				i = j;
@@ -326,7 +326,7 @@ regalloc(Node *n, Node *tn, Node *o)
 	case TVLONG:
 	case TUVLONG:
 		n->op = OREGPAIR;
-		n->complex = 0;	/* already in registers */
+		n->complex = 0; /* already in registers */
 		n->addable = 11;
 		n->type = tn->type;
 		n->lineno = nearln;
@@ -341,7 +341,8 @@ regalloc(Node *n, Node *tn, Node *o)
 		}
 		n->right->type = types[TULONG];
 		if(tn->type->etype == TUVLONG)
-			n->left->type = types[TULONG];	/* TO DO: is this a bad idea? */
+			n->left->type =
+			    types[TULONG]; /* TO DO: is this a bad idea? */
 		return;
 	}
 	diag(tn, "unknown type in regalloc: %T", tn->type);
@@ -357,7 +358,7 @@ out:
 }
 
 void
-regialloc(Node *n, Node *tn, Node *o)
+regialloc(Node* n, Node* tn, Node* o)
 {
 	Node nod;
 
@@ -367,7 +368,7 @@ regialloc(Node *n, Node *tn, Node *o)
 }
 
 void
-regfree(Node *n)
+regfree(Node* n)
 {
 	int i;
 
@@ -392,14 +393,15 @@ err:
 }
 
 void
-regsalloc(Node *n, Node *nn)
+regsalloc(Node* n, Node* nn)
 {
-	cursafe = align(cursafe+stkoff, nn->type, Aaut3)-stkoff;
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
-//	if(nn->type->etype == TDOUBLE || nn->type->etype == TVLONG){
-//		extern int hasdoubled;
-//		fprint(2, "stkoff=%ld cursafe=%ld curarg=%ld %d\n", stkoff, cursafe, curarg, hasdoubled);
-//	}
+	cursafe = align(cursafe + stkoff, nn->type, Aaut3) - stkoff;
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
+	//	if(nn->type->etype == TDOUBLE || nn->type->etype == TVLONG){
+	//		extern int hasdoubled;
+	//		fprint(2, "stkoff=%ld cursafe=%ld curarg=%ld %d\n",
+	//stkoff, cursafe, curarg, hasdoubled);
+	//	}
 	*n = *nodsafe;
 	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
@@ -408,17 +410,17 @@ regsalloc(Node *n, Node *nn)
 }
 
 void
-regaalloc1(Node *n, Node *nn)
+regaalloc1(Node* n, Node* nn)
 {
 	nodreg(n, nn, REGARG);
 	reg[REGARG]++;
 	curarg = align(curarg, nn->type, Aarg1);
 	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 }
 
 void
-regaalloc(Node *n, Node *nn)
+regaalloc(Node* n, Node* nn)
 {
 	curarg = align(curarg, nn->type, Aarg1);
 	*n = *nn;
@@ -428,11 +430,11 @@ regaalloc(Node *n, Node *nn)
 	n->complex = 0;
 	n->addable = 20;
 	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 }
 
 void
-regind(Node *n, Node *nn)
+regind(Node* n, Node* nn)
 {
 
 	if(n->op != OREGISTER) {
@@ -444,7 +446,7 @@ regind(Node *n, Node *nn)
 }
 
 void
-raddr(Node *n, Prog *p)
+raddr(Node* n, Prog* p)
 {
 	Adr a;
 
@@ -464,7 +466,7 @@ raddr(Node *n, Prog *p)
 }
 
 void
-naddr(Node *n, Adr *a)
+naddr(Node* n, Adr* a)
 {
 	int32_t v;
 
@@ -489,7 +491,7 @@ naddr(Node *n, Adr *a)
 
 	case OIND:
 		naddr(n->left, a);
-		a->offset += n->xoffset;	/* little hack for reglcgenv */
+		a->offset += n->xoffset; /* little hack for reglcgenv */
 		if(a->type == D_REG) {
 			a->type = D_OREG;
 			break;
@@ -561,18 +563,17 @@ naddr(Node *n, Adr *a)
 		}
 		a->offset += v;
 		break;
-
 	}
 }
 
 void
-gloadhi(Node *f, Node *t, int c)
+gloadhi(Node* f, Node* t, int c)
 {
-	Type *ot;
+	Type* ot;
 
-	if(f->op == OCONST){
-		f = nodconst((int32_t)(f->vconst>>32));
-		if(c==1 && sconst(f) || c==2 && uconst(f)){
+	if(f->op == OCONST) {
+		f = nodconst((int32_t)(f->vconst >> 32));
+		if(c == 1 && sconst(f) || c == 2 && uconst(f)) {
 			if(t->op == OREGISTER)
 				regfree(t);
 			*t = *f;
@@ -590,13 +591,13 @@ gloadhi(Node *f, Node *t, int c)
 }
 
 void
-gloadlo(Node *f, Node *t, int c)
+gloadlo(Node* f, Node* t, int c)
 {
-	Type *ot;
+	Type* ot;
 
-	if(f->op == OCONST){
+	if(f->op == OCONST) {
 		f = nodconst((int32_t)f->vconst);
-		if(c && uconst(f)){
+		if(c && uconst(f)) {
 			if(t->op == OREGISTER)
 				regfree(t);
 			*t = *f;
@@ -610,8 +611,9 @@ gloadlo(Node *f, Node *t, int c)
 	ot = f->type;
 	f->type = types[TLONG];
 	f->xoffset += SZ_LONG;
-	if(0){
-		prtree(f, "gloadlo f"); prtree(t, "gloadlo t");
+	if(0) {
+		prtree(f, "gloadlo f");
+		prtree(t, "gloadlo t");
 	}
 	gmove(f, t);
 	f->xoffset -= SZ_LONG;
@@ -619,12 +621,12 @@ gloadlo(Node *f, Node *t, int c)
 }
 
 void
-fop(int as, int f1, int f2, Node *t)
+fop(int as, int f1, int f2, Node* t)
 {
 	Node nod1, nod2, nod3;
 
-	nodreg(&nod1, t, NREG+f1);
-	nodreg(&nod2, t, NREG+f2);
+	nodreg(&nod1, t, NREG + f1);
+	nodreg(&nod2, t, NREG + f2);
 	regalloc(&nod3, t, t);
 	gopcode(as, &nod1, &nod2, &nod3);
 	gmove(&nod3, t);
@@ -632,11 +634,11 @@ fop(int as, int f1, int f2, Node *t)
 }
 
 void
-gmove(Node *f, Node *t)
+gmove(Node* f, Node* t)
 {
 	int ft, tt, a;
 	Node nod, fxc0, fxc1, fxc2, fxrat;
-	Prog *p1;
+	Prog* p1;
 	double d;
 
 	ft = f->type->etype;
@@ -690,20 +692,21 @@ gmove(Node *f, Node *t)
 		if(d == 0) {
 			a = FREGZERO;
 		ffreg:
-			nodreg(&nod, f, NREG+a);
+			nodreg(&nod, f, NREG + a);
 			gmove(&nod, t);
 			return;
 		}
 	}
-	if((ft == TVLONG || ft == TUVLONG) && f->op == OCONST && t->op == OREGPAIR) {
-		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-			gmove(nod32const(f->vconst>>32), t->left);
+	if((ft == TVLONG || ft == TUVLONG) && f->op == OCONST &&
+	   t->op == OREGPAIR) {
+		if(align(0, types[TCHAR], Aarg1)) /* isbigendian */
+			gmove(nod32const(f->vconst >> 32), t->left);
 		else
 			gmove(nod32const(f->vconst), t->left);
-		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+		if(align(0, types[TCHAR], Aarg1)) /* isbigendian */
 			gmove(nod32const(f->vconst), t->right);
 		else
-			gmove(nod32const(f->vconst>>32), t->right);
+			gmove(nod32const(f->vconst >> 32), t->right);
 		return;
 	}
 	/*
@@ -738,7 +741,8 @@ gmove(Node *f, Node *t)
 		if(typev[ft]) {
 			if(typev[tt]) {
 				regalloc(&nod, f, t);
-				/* low order first, because its value will be used first */
+				/* low order first, because its value will be
+				 * used first */
 				f->xoffset += SZ_LONG;
 				gins(AMOVW, f, nod.right);
 				f->xoffset -= SZ_LONG;
@@ -824,7 +828,7 @@ gmove(Node *f, Node *t)
 		case TDOUBLE:
 			a = AFMOVD;
 			if(ft == TFLOAT)
-				a = AFMOVS;	/* AFMOVSD */
+				a = AFMOVS; /* AFMOVSD */
 			break;
 		case TFLOAT:
 			a = AFRSP;
@@ -841,7 +845,7 @@ gmove(Node *f, Node *t)
 		case TCHAR:
 		case TUCHAR:
 			/* BUG: not right for unsigned long */
-			regalloc(&nod, f, Z);	/* should be type float */
+			regalloc(&nod, f, Z); /* should be type float */
 			regsalloc(&fxrat, &fconstnode);
 			gins(AFCTIWZ, f, &nod);
 			gins(AFMOVD, &nod, &fxrat);
@@ -949,7 +953,8 @@ gmove(Node *f, Node *t)
 			 */
 			regalloc(&fxc0, f, Z);
 			regalloc(&fxc2, f, Z);
-			regsalloc(&fxrat, &fconstnode);	/* should be type float */
+			regsalloc(&fxrat,
+			          &fconstnode); /* should be type float */
 			gins(AMOVW, nodconst(0x43300000L), &fxc0);
 			gins(AMOVW, f, &fxc2);
 			gins(AMOVW, &fxc0, &fxrat);
@@ -961,9 +966,9 @@ gmove(Node *f, Node *t)
 			gins(AMOVW, &fxc2, &fxc1);
 			regfree(&fxc2);
 			regfree(&fxc0);
-			regalloc(&nod, t, t);	/* should be type float */
+			regalloc(&nod, t, t); /* should be type float */
 			gins(AFMOVD, &fxrat, &nod);
-			nodreg(&fxc1, t, NREG+FREGCVI);
+			nodreg(&fxc1, t, NREG + FREGCVI);
 			gins(AFSUB, &fxc1, &nod);
 			a = AFMOVD;
 			if(tt == TFLOAT)
@@ -978,7 +983,8 @@ gmove(Node *f, Node *t)
 					p->to.reg = FREGZERO;
 					gins(ABGE, Z, Z);
 					p1 = p;
-					gins(AFMOVS, nodfconst(4294967296.), &nod);
+					gins(AFMOVS, nodfconst(4294967296.),
+					     &nod);
 					gins(AFADDS, &nod, t);
 				} else {
 					gins(AFCMPU, t, Z);
@@ -986,7 +992,8 @@ gmove(Node *f, Node *t)
 					p->to.reg = FREGZERO;
 					gins(ABGE, Z, Z);
 					p1 = p;
-					gins(AFMOVD, nodfconst(4294967296.), &nod);
+					gins(AFMOVD, nodfconst(4294967296.),
+					     &nod);
 					gins(AFADD, &nod, t);
 				}
 				patch(p1, pc);
@@ -1021,8 +1028,8 @@ gmove(Node *f, Node *t)
 	if(a == AGOK)
 		diag(Z, "bad opcode in gmove %T -> %T", f->type, t->type);
 	if(a == AMOVW || a == AFMOVS || a == AFMOVD)
-	if(samaddr(f, t))
-		return;
+		if(samaddr(f, t))
+			return;
 	if(typev[ft]) {
 		if(f->op != OREGPAIR || t->op != OREGPAIR)
 			diag(Z, "bad vlong in gmove (%O->%O)", f->op, t->op);
@@ -1033,7 +1040,7 @@ gmove(Node *f, Node *t)
 }
 
 void
-gins(int a, Node *f, Node *t)
+gins(int a, Node* f, Node* t)
 {
 
 	nextpc();
@@ -1047,7 +1054,7 @@ gins(int a, Node *f, Node *t)
 }
 
 void
-gins3(int a, Node *f1, Node *f2, Node *t)
+gins3(int a, Node* f1, Node* f2, Node* t)
 {
 	Adr ta;
 
@@ -1056,7 +1063,7 @@ gins3(int a, Node *f1, Node *f2, Node *t)
 	if(f1 != Z)
 		naddr(f1, &p->from);
 	if(f2 != Z && (f2->op != OREGISTER || !samaddr(f2, t))) {
-		ta = zprog.from;	/* TO DO */
+		ta = zprog.from; /* TO DO */
 		naddr(f2, &ta);
 		p->reg = ta.reg;
 		if(ta.type == D_CONST && ta.offset == 0) {
@@ -1064,7 +1071,7 @@ gins3(int a, Node *f1, Node *f2, Node *t)
 				p->reg = REGZERO;
 			else
 				diag(Z, "REGZERO in gins3 %A", a);
-		}else if(ta.type == D_CONST)
+		} else if(ta.type == D_CONST)
 			p->from3 = ta;
 	}
 	if(t != Z)
@@ -1074,7 +1081,7 @@ gins3(int a, Node *f1, Node *f2, Node *t)
 }
 
 void
-gins4(int a, Node *f1, Node *f2, Node *f3, Node *t)
+gins4(int a, Node* f1, Node* f2, Node* f3, Node* t)
 {
 	Adr ta;
 
@@ -1094,7 +1101,7 @@ gins4(int a, Node *f1, Node *f2, Node *f3, Node *t)
 }
 
 void
-gopcode(int o, Node *f1, Node *f2, Node *t)
+gopcode(int o, Node* f1, Node* f2, Node* t)
 {
 	int a, et, uns;
 
@@ -1122,8 +1129,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = AADD;
 		if(et == TFLOAT)
 			a = AFADDS;
-		else
-		if(et == TDOUBLE)
+		else if(et == TDOUBLE)
 			a = AFADD;
 		break;
 
@@ -1132,8 +1138,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = ASUB;
 		if(et == TFLOAT)
 			a = AFSUBS;
-		else
-		if(et == TDOUBLE)
+		else if(et == TDOUBLE)
 			a = AFSUB;
 		break;
 
@@ -1180,8 +1185,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		if(et == TFLOAT) {
 			a = AFMULS;
 			break;
-		} else
-		if(et == TDOUBLE) {
+		} else if(et == TDOUBLE) {
 			a = AFMUL;
 			break;
 		}
@@ -1193,8 +1197,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		if(et == TFLOAT) {
 			a = AFDIVS;
 			break;
-		} else
-		if(et == TDOUBLE) {
+		} else if(et == TDOUBLE) {
 			a = AFDIV;
 			break;
 		}
@@ -1228,13 +1231,13 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	case OEQ:
 		a = ABEQ;
-		if(t->op == OCONST && t->vconst >= (1<<15))
+		if(t->op == OCONST && t->vconst >= (1 << 15))
 			goto cmpu;
 		goto cmp;
 
 	case ONE:
 		a = ABNE;
-		if(t->op == OCONST && t->vconst >= (1<<15))
+		if(t->op == OCONST && t->vconst >= (1 << 15))
 			goto cmpu;
 		goto cmp;
 
@@ -1274,11 +1277,10 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		uns = 1;
 	cmp:
 		nextpc();
-		p->as = uns? ACMPU: ACMP;
+		p->as = uns ? ACMPU : ACMP;
 		if(et == TFLOAT)
 			p->as = AFCMPU;
-		else
-		if(et == TDOUBLE)
+		else if(et == TDOUBLE)
 			p->as = AFCMPU;
 		if(f1 != Z)
 			naddr(f1, &p->from);
@@ -1299,19 +1301,20 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 }
 
 static void
-gopcode64(int o, Node *f1, Node *f2, Node *t)
+gopcode64(int o, Node* f1, Node* f2, Node* t)
 {
 	int a1, a2;
 	Node nod, nod1, nod2, sh;
 	uint32_t m;
-	Prog *p1;
+	Prog* p1;
 
 	if(t->op != OREGPAIR || f2 != Z && f2->op != OREGPAIR) {
 		diag(Z, "bad f2/dest in gopcode64 %O", o);
 		return;
 	}
 	if(f1->op != OCONST &&
-	   (typev[f1->type->etype] && f1->op != OREGPAIR || !typev[f1->type->etype] && f1->op != OREGISTER)) {
+	   (typev[f1->type->etype] && f1->op != OREGPAIR ||
+	    !typev[f1->type->etype] && f1->op != OREGISTER)) {
 		diag(Z, "bad f1[%O] in gopcode64 %O", f1->op, o);
 		return;
 	}
@@ -1325,9 +1328,9 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 			if(f2 == Z)
 				f2 = t;
 			gins3(AADDC, f1, f2->right, t->right);
-			if((f1->vconst>>32) == 0)
+			if((f1->vconst >> 32) == 0)
 				gins(AADDZE, f2->left, t->left);
-			else if((f1->vconst>>32) == -1)
+			else if((f1->vconst >> 32) == -1)
 				gins(AADDME, f2->left, t->left);
 			else
 				diag(t, "odd vlong ADD: %lld", f1->vconst);
@@ -1379,7 +1382,8 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 				if(f1->vconst == 32)
 					gmove(f2->left, t->right);
 				else if(f1->vconst < 64)
-					gins3(ASRW, nodconst(f1->vconst-32), f2->left, t->right);
+					gins3(ASRW, nodconst(f1->vconst - 32),
+					      f2->left, t->right);
 				else
 					gmove(nodconst(0), t->right);
 				gmove(nodconst(0), t->left);
@@ -1420,7 +1424,8 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 				if(f1->vconst == 32)
 					gmove(f2->left, t->right);
 				else if(f1->vconst < 64)
-					gins3(ASRAW, nodconst(f1->vconst-32), f2->left, t->right);
+					gins3(ASRAW, nodconst(f1->vconst - 32),
+					      f2->left, t->right);
 				gins3(ASRAW, nodconst(31), f2->left, t->left);
 				if(f1->vconst >= 64) {
 					gmove(t->left, t->right);
@@ -1468,7 +1473,8 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 				else if(f1->vconst >= 64)
 					gmove(nodconst(0), t->left);
 				else
-					gins3(ASLW, nodconst(f1->vconst-32), f2->right, t->left);
+					gins3(ASLW, nodconst(f1->vconst - 32),
+					      f2->right, t->left);
 				gmove(nodconst(0), t->right);
 				return;
 			}
@@ -1504,13 +1510,17 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 		if(f2 == Z)
 			f2 = t;
 		regalloc(&nod, &regnode, Z);
-		gins3(AMULLW, f1->right, f2->right, &nod);	/* lo(f2.low*f1.low) */
+		gins3(AMULLW, f1->right, f2->right,
+		      &nod); /* lo(f2.low*f1.low) */
 		regalloc(&nod1, &regnode, Z);
-		gins3(AMULHWU, f1->right, f2->right, &nod1);		/* hi(f2.low*f1.low) */
+		gins3(AMULHWU, f1->right, f2->right,
+		      &nod1); /* hi(f2.low*f1.low) */
 		regalloc(&nod2, &regnode, Z);
-		gins3(AMULLW, f2->right, f1->left, &nod2);	/* lo(f2.low*f1.high) */
+		gins3(AMULLW, f2->right, f1->left,
+		      &nod2); /* lo(f2.low*f1.high) */
 		gins(AADD, &nod2, &nod1);
-		gins3(AMULLW, f1->right, f2->left, &nod2);	/* lo(f2.high*f1.low) */
+		gins3(AMULLW, f1->right, f2->left,
+		      &nod2); /* lo(f2.high*f1.low) */
 		gins(AADD, &nod2, &nod1);
 		regfree(&nod2);
 		gmove(&nod, t->right);
@@ -1534,7 +1544,7 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 		if(f2 != Z & f2 != t)
 			diag(Z, "bad const in gopcode64 %O", o);
 		gins(a1, nod32const(f1->vconst), t->right);
-		gins(a2, nod32const(f1->vconst>>32), t->left);
+		gins(a2, nod32const(f1->vconst >> 32), t->left);
 	} else {
 		if(f2 != Z && f2 != t) {
 			gins3(a1, f1->right, f2->right, t->right);
@@ -1546,7 +1556,7 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 	}
 }
 
-samaddr(Node *f, Node *t)
+samaddr(Node* f, Node* t)
 {
 
 	if(f->op != t->op)
@@ -1565,7 +1575,7 @@ samaddr(Node *f, Node *t)
 }
 
 static void
-gori64(int a, Node *f1, Node *f2, Node *t)
+gori64(int a, Node* f1, Node* f2, Node* t)
 {
 	uint32_t lo, hi;
 
@@ -1584,7 +1594,7 @@ gori64(int a, Node *f1, Node *f2, Node *t)
 }
 
 static void
-gandi64(int a, Node *f1, Node *f2, Node *t)
+gandi64(int a, Node* f1, Node* f2, Node* t)
 {
 	uint32_t lo, hi;
 
@@ -1618,14 +1628,14 @@ gbranch(int o)
 	}
 	nextpc();
 	if(a == AGOK) {
-		diag(Z, "bad in gbranch %O",  o);
+		diag(Z, "bad in gbranch %O", o);
 		nextpc();
 	}
 	p->as = a;
 }
 
 void
-patch(Prog *op, int32_t pc)
+patch(Prog* op, int32_t pc)
 {
 
 	op->to.offset = pc;
@@ -1633,7 +1643,7 @@ patch(Prog *op, int32_t pc)
 }
 
 void
-gpseudo(int a, Sym *s, Node *n)
+gpseudo(int a, Sym* s, Node* n)
 {
 
 	nextpc();
@@ -1654,20 +1664,21 @@ int
 sval(int32_t v)
 {
 
-	if(v >= -(1<<15) && v < (1<<15))
+	if(v >= -(1 << 15) && v < (1 << 15))
 		return 1;
 	return 0;
 }
 
 int
-sconst(Node *n)
+sconst(Node* n)
 {
 	int64_t vv;
 
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= -(((int64_t)1)<<15) && vv < (((int64_t)1)<<15))
+			if(vv >= -(((int64_t)1) << 15) &&
+			   vv < (((int64_t)1) << 15))
 				return 1;
 		}
 	}
@@ -1675,14 +1686,14 @@ sconst(Node *n)
 }
 
 int
-uconst(Node *n)
+uconst(Node* n)
 {
 	int64_t vv;
 
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= 0 && vv < (((int64_t)1)<<16))
+			if(vv >= 0 && vv < (((int64_t)1) << 16))
 				return 1;
 		}
 	}
@@ -1690,7 +1701,7 @@ uconst(Node *n)
 }
 
 int32_t
-exreg(Type *t)
+exreg(Type* t)
 {
 	int32_t o;
 
@@ -1711,49 +1722,47 @@ exreg(Type *t)
 	return 0;
 }
 
-schar	ewidth[NTYPE] =
-{
-	-1,		/* [TXXX] */
-	SZ_CHAR,	/* [TCHAR] */
-	SZ_CHAR,	/* [TUCHAR] */
-	SZ_SHORT,	/* [TSHORT] */
-	SZ_SHORT,	/* [TUSHORT] */
-	SZ_INT,		/* [TINT] */
-	SZ_INT,		/* [TUINT] */
-	SZ_LONG,	/* [TLONG] */
-	SZ_LONG,	/* [TULONG] */
-	SZ_VLONG,	/* [TVLONG] */
-	SZ_VLONG,	/* [TUVLONG] */
-	SZ_FLOAT,	/* [TFLOAT] */
-	SZ_DOUBLE,	/* [TDOUBLE] */
-	SZ_IND,		/* [TIND] */
-	0,		/* [TFUNC] */
-	-1,		/* [TARRAY] */
-	0,		/* [TVOID] */
-	-1,		/* [TSTRUCT] */
-	-1,		/* [TUNION] */
-	SZ_INT,		/* [TENUM] */
+schar ewidth[NTYPE] = {
+    -1,        /* [TXXX] */
+    SZ_CHAR,   /* [TCHAR] */
+    SZ_CHAR,   /* [TUCHAR] */
+    SZ_SHORT,  /* [TSHORT] */
+    SZ_SHORT,  /* [TUSHORT] */
+    SZ_INT,    /* [TINT] */
+    SZ_INT,    /* [TUINT] */
+    SZ_LONG,   /* [TLONG] */
+    SZ_LONG,   /* [TULONG] */
+    SZ_VLONG,  /* [TVLONG] */
+    SZ_VLONG,  /* [TUVLONG] */
+    SZ_FLOAT,  /* [TFLOAT] */
+    SZ_DOUBLE, /* [TDOUBLE] */
+    SZ_IND,    /* [TIND] */
+    0,         /* [TFUNC] */
+    -1,        /* [TARRAY] */
+    0,         /* [TVOID] */
+    -1,        /* [TSTRUCT] */
+    -1,        /* [TUNION] */
+    SZ_INT,    /* [TENUM] */
 };
-int32_t	ncast[NTYPE] =
-{
-	0,				/* [TXXX] */
-	BCHAR|BUCHAR,			/* [TCHAR] */
-	BCHAR|BUCHAR,			/* [TUCHAR] */
-	BSHORT|BUSHORT,			/* [TSHORT] */
-	BSHORT|BUSHORT,			/* [TUSHORT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TINT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TUINT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TLONG] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TULONG] */
-	BVLONG|BUVLONG,			/* [TVLONG] */
-	BVLONG|BUVLONG,			/* [TUVLONG] */
-	BFLOAT,				/* [TFLOAT] */
-	BDOUBLE,			/* [TDOUBLE] */
-	BLONG|BULONG|BIND,		/* [TIND] */
-	0,				/* [TFUNC] */
-	0,				/* [TARRAY] */
-	0,				/* [TVOID] */
-	BSTRUCT,			/* [TSTRUCT] */
-	BUNION,				/* [TUNION] */
-	0,				/* [TENUM] */
+int32_t ncast[NTYPE] = {
+    0,                                    /* [TXXX] */
+    BCHAR | BUCHAR,                       /* [TCHAR] */
+    BCHAR | BUCHAR,                       /* [TUCHAR] */
+    BSHORT | BUSHORT,                     /* [TSHORT] */
+    BSHORT | BUSHORT,                     /* [TUSHORT] */
+    BINT | BUINT | BLONG | BULONG | BIND, /* [TINT] */
+    BINT | BUINT | BLONG | BULONG | BIND, /* [TUINT] */
+    BINT | BUINT | BLONG | BULONG | BIND, /* [TLONG] */
+    BINT | BUINT | BLONG | BULONG | BIND, /* [TULONG] */
+    BVLONG | BUVLONG,                     /* [TVLONG] */
+    BVLONG | BUVLONG,                     /* [TUVLONG] */
+    BFLOAT,                               /* [TFLOAT] */
+    BDOUBLE,                              /* [TDOUBLE] */
+    BLONG | BULONG | BIND,                /* [TIND] */
+    0,                                    /* [TFUNC] */
+    0,                                    /* [TARRAY] */
+    0,                                    /* [TVOID] */
+    BSTRUCT,                              /* [TSTRUCT] */
+    BUNION,                               /* [TUNION] */
+    0,                                    /* [TENUM] */
 };

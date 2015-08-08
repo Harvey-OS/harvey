@@ -20,26 +20,24 @@
 #include <thread.h>
 #include "usb.h"
 
-enum
-{
-	Qdir = 0,
-	Qctl,
-	Qraw,
-	Qdata,
-	Qmax,
+enum { Qdir = 0,
+       Qctl,
+       Qraw,
+       Qdata,
+       Qmax,
 };
 
 int
-findendpoints(Dev *dev, int devid)
+findendpoints(Dev* dev, int devid)
 {
-	Ep *ep;
-	Dev *d;
-	Usbdev *ud;
+	Ep* ep;
+	Dev* d;
+	Usbdev* ud;
 	int i, epout;
 
 	epout = -1;
 	ud = dev->usb;
-	for(i = 0; i < nelem(ud->ep); i++){
+	for(i = 0; i < nelem(ud->ep); i++) {
 		if((ep = ud->ep[i]) == nil)
 			break;
 		if(ep->iface->csp != 0x020107)
@@ -52,12 +50,12 @@ findendpoints(Dev *dev, int devid)
 	if(epout == -1)
 		return -1;
 	d = openep(dev, epout);
-	if(d == nil){
+	if(d == nil) {
 		fprint(2, "print: openep %d: %r\n", epout);
 		return -1;
 	}
 	opendevdata(d, OWRITE);
-	if(d->dfd < 0){
+	if(d->dfd < 0) {
 		fprint(2, "print: open i/o ep data: %r\n");
 		closedev(d);
 		return -1;
@@ -77,22 +75,24 @@ usage(void)
 }
 
 int
-printmain(Dev *dev, int argc, char **argv)
+printmain(Dev* dev, int argc, char** argv)
 {
 	int devid;
 
 	devid = dev->id;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'N':
 		devid = atoi(EARGF(usage()));
 		break;
 	default:
 		return usage();
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 0)
 		return usage();
 
-	if(findendpoints(dev, devid) < 0){
+	if(findendpoints(dev, devid) < 0) {
 		werrstr("print: endpoints not found");
 		return -1;
 	}

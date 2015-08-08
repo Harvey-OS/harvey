@@ -16,7 +16,7 @@
 extern Biobuf bout;
 
 int32_t
-SRcdpause(ScsiReq *rp, int resume)
+SRcdpause(ScsiReq* rp, int resume)
 {
 	uint8_t cmd[10];
 
@@ -32,7 +32,7 @@ SRcdpause(ScsiReq *rp, int resume)
 }
 
 int32_t
-SRcdstop(ScsiReq *rp)
+SRcdstop(ScsiReq* rp)
 {
 	uint8_t cmd[10];
 
@@ -47,19 +47,19 @@ SRcdstop(ScsiReq *rp)
 }
 
 static int32_t
-_SRcdplay(ScsiReq *rp, int32_t lba, int32_t length)
+_SRcdplay(ScsiReq* rp, int32_t lba, int32_t length)
 {
 	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDplay;
-	cmd[2] = lba>>24;
-	cmd[3] = lba>>16;
-	cmd[4] = lba>>8;
+	cmd[2] = lba >> 24;
+	cmd[3] = lba >> 16;
+	cmd[4] = lba >> 8;
 	cmd[5] = lba;
-	cmd[6] = length>>24;
-	cmd[7] = length>>16;
-	cmd[8] = length>>8;
+	cmd[6] = length >> 24;
+	cmd[7] = length >> 16;
+	cmd[8] = length >> 8;
 	cmd[9] = length;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -71,40 +71,41 @@ _SRcdplay(ScsiReq *rp, int32_t lba, int32_t length)
 }
 
 static struct {
-	int	trackno;
-	int32_t	lba;
-	int32_t	length;
+	int trackno;
+	int32_t lba;
+	int32_t length;
 } tracks[100];
 static int ntracks;
 
 int32_t
-SRcdplay(ScsiReq *rp, int raw, int32_t start, int32_t length)
+SRcdplay(ScsiReq* rp, int raw, int32_t start, int32_t length)
 {
-	uint8_t d[100*8+4], *p;
+	uint8_t d[100 * 8 + 4], *p;
 	int lba, n, tdl;
 
 	if(raw || start == 0)
 		return _SRcdplay(rp, start, length);
 
 	ntracks = 0;
-	if(SRTOC(rp, d, sizeof(d), 0, 0) == -1){
+	if(SRTOC(rp, d, sizeof(d), 0, 0) == -1) {
 		if(rp->status == STok)
 			Bprint(&bout, "\t(probably empty)\n");
 		return -1;
 	}
-	tdl = (d[0]<<8)|d[1];
-	for(p = &d[4], n = tdl-2; n; n -= 8, p += 8){
+	tdl = (d[0] << 8) | d[1];
+	for(p = &d[4], n = tdl - 2; n; n -= 8, p += 8) {
 		tracks[ntracks].trackno = p[2];
-		lba = (p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7];
+		lba = (p[4] << 24) | (p[5] << 16) | (p[6] << 8) | p[7];
 		tracks[ntracks].lba = lba;
 		if(ntracks > 0)
-			tracks[ntracks-1].length = lba-tracks[ntracks-1].lba;
+			tracks[ntracks - 1].length =
+			    lba - tracks[ntracks - 1].lba;
 		ntracks++;
 	}
 	if(ntracks > 0)
-		tracks[ntracks-1].length = 0xFFFFFFFF;
+		tracks[ntracks - 1].length = 0xFFFFFFFF;
 
-	for(n = 0; n < ntracks; n++){
+	for(n = 0; n < ntracks; n++) {
 		if(start != tracks[n].trackno)
 			continue;
 		return _SRcdplay(rp, tracks[n].lba, tracks[n].length);
@@ -114,7 +115,7 @@ SRcdplay(ScsiReq *rp, int raw, int32_t start, int32_t length)
 }
 
 int32_t
-SRcdload(ScsiReq *rp, int load, int slot)
+SRcdload(ScsiReq* rp, int load, int slot)
 {
 	uint8_t cmd[12];
 
@@ -134,13 +135,13 @@ SRcdload(ScsiReq *rp, int load, int slot)
 }
 
 int32_t
-SRcdstatus(ScsiReq *rp, uint8_t *list, int nbytes)
+SRcdstatus(ScsiReq* rp, uint8_t* list, int nbytes)
 {
 	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDstatus;
-	cmd[8] = nbytes>>8;
+	cmd[8] = nbytes >> 8;
 	cmd[9] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -151,13 +152,13 @@ SRcdstatus(ScsiReq *rp, uint8_t *list, int nbytes)
 }
 
 int32_t
-SRgetconf(ScsiReq *rp, uint8_t *list, int nbytes)
+SRgetconf(ScsiReq* rp, uint8_t* list, int nbytes)
 {
 	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = Scmdgetconf;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);

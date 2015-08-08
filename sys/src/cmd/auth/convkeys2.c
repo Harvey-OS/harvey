@@ -15,23 +15,24 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-char	authkey[DESKEYLEN];
-int	verb;
-int	usepass;
+char authkey[DESKEYLEN];
+int verb;
+int usepass;
 
-int	convert(char*, char*, char*, int);
-int	dofcrypt(int, char*, char*, int);
-void	usage(void);
-void	randombytes(uint8_t*, int);
+int convert(char*, char*, char*, int);
+int dofcrypt(int, char*, char*, int);
+void usage(void);
+void randombytes(uint8_t*, int);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	Dir *d;
-	char *p, *np, *file, key[DESKEYLEN];
+	Dir* d;
+	char* p, *np, *file, key[DESKEYLEN];
 	int fd, len;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		verb = 1;
 		break;
@@ -40,14 +41,15 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 	file = argv[0];
 
 	/* get original key */
-	if(usepass){
+	if(usepass) {
 		print("enter password file is encoded with\n");
 		getpass(authkey, nil, 0, 1);
 	} else
@@ -65,7 +67,7 @@ main(int argc, char *argv[])
 	p = malloc(len);
 	if(!p)
 		error("out of memory");
-	np = malloc((len/OKEYDBLEN)*KEYDBLEN + KEYDBOFF);
+	np = malloc((len / OKEYDBLEN) * KEYDBLEN + KEYDBOFF);
 	if(!np)
 		error("out of memory");
 	if(read(fd, p, len) != len)
@@ -80,7 +82,7 @@ main(int argc, char *argv[])
 }
 
 void
-oldCBCencrypt(char *key7, char *p, int len)
+oldCBCencrypt(char* key7, char* p, int len)
 {
 	uint8_t ivec[8];
 	uint8_t key[8];
@@ -93,25 +95,26 @@ oldCBCencrypt(char *key7, char *p, int len)
 }
 
 int
-convert(char *p, char *np, char *key, int len)
+convert(char* p, char* np, char* key, int len)
 {
 	int i, off, noff;
 
 	if(len % OKEYDBLEN)
-		fprint(2, "convkeys2: file odd length; not converting %d bytes\n",
-			len % KEYDBLEN);
+		fprint(2,
+		       "convkeys2: file odd length; not converting %d bytes\n",
+		       len % KEYDBLEN);
 	len /= OKEYDBLEN;
-	for(i = 0; i < len; i ++){
-		off = i*OKEYDBLEN;
-		noff = KEYDBOFF+i*(KEYDBLEN);
+	for(i = 0; i < len; i++) {
+		off = i * OKEYDBLEN;
+		noff = KEYDBOFF + i * (KEYDBLEN);
 		decrypt(authkey, &p[off], OKEYDBLEN);
 		memmove(&np[noff], &p[off], OKEYDBLEN);
-		memset(&np[noff-SECRETLEN], 0, SECRETLEN);
+		memset(&np[noff - SECRETLEN], 0, SECRETLEN);
 		if(verb)
 			print("%s\n", &p[off]);
 	}
 	randombytes((uint8_t*)np, KEYDBOFF);
-	len = (len*KEYDBLEN) + KEYDBOFF;
+	len = (len * KEYDBLEN) + KEYDBOFF;
 	oldCBCencrypt(key, np, len);
 	return len;
 }
@@ -124,12 +127,12 @@ usage(void)
 }
 
 void
-randombytes(uint8_t *p, int len)
+randombytes(uint8_t* p, int len)
 {
 	int i, fd;
 
 	fd = open("/dev/random", OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "convkeys2: can't open /dev/random, using rand()\n");
 		srand(time(0));
 		for(i = 0; i < len; i++)

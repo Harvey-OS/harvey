@@ -12,7 +12,7 @@
 #include <../boot/boot.h>
 
 void
-getpasswd(char *p, int len)
+getpasswd(char* p, int len)
 {
 	char c;
 	int i, n, fd;
@@ -21,16 +21,16 @@ getpasswd(char *p, int len)
 	if(fd < 0)
 		fatal("can't open consctl; please reboot");
 	write(fd, "rawon", 5);
- Prompt:
+Prompt:
 	print("password: ");
 	n = 0;
-	for(;;){
-		do{
+	for(;;) {
+		do {
 			i = read(0, &c, 1);
 			if(i < 0)
 				fatal("can't read cons; please reboot");
-		}while(i == 0);
-		switch(c){
+		} while(i == 0);
+		switch(c) {
 		case '\n':
 			p[n] = '\0';
 			close(fd);
@@ -40,7 +40,7 @@ getpasswd(char *p, int len)
 			if(n > 0)
 				n--;
 			break;
-		case 'u' - 'a' + 1:		/* cntrl-u */
+		case 'u' - 'a' + 1: /* cntrl-u */
 			print("\n");
 			goto Prompt;
 		default:

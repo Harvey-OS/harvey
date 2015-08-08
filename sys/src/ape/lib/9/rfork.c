@@ -9,7 +9,7 @@
 
 #include <lib9.h>
 
-extern	int	_RFORK(int);
+extern int _RFORK(int);
 
 int
 rfork(int flags)

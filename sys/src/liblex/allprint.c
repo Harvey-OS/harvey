@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	"../cmd/lex/ldefs.h"
+#include "../cmd/lex/ldefs.h"
 //#include	<ldefs.h>
-#include	<stdio.h>
+#include <stdio.h>
 
-extern	FILE*	yyout;
+extern FILE* yyout;
 
 int
 printable(int c)
@@ -25,23 +25,23 @@ allprint(int c)
 
 	switch(c) {
 	case '\n':
-		fprintf(yyout,"\\n");
+		fprintf(yyout, "\\n");
 		break;
 	case '\t':
-		fprintf(yyout,"\\t");
+		fprintf(yyout, "\\t");
 		break;
 	case '\b':
-		fprintf(yyout,"\\b");
+		fprintf(yyout, "\\b");
 		break;
 	case ' ':
-		fprintf(yyout,"\\\bb");
+		fprintf(yyout, "\\\bb");
 		break;
 	default:
 		if(!printable(c))
-			fprintf(yyout,"\\%-3o",c);
-		else 
-			c = putc(c,yyout);
-			USED(c);
+			fprintf(yyout, "\\%-3o", c);
+		else
+			c = putc(c, yyout);
+		USED(c);
 		break;
 	}
 	return;

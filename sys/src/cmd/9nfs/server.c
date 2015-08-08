@@ -10,34 +10,33 @@
 #include "all.h"
 #include <ndb.h>
 
-static int	alarmflag;
+static int alarmflag;
 
-static int	Iconv(Fmt*);
-//static void	openudp(int);
-static void	cachereply(Rpccall*, void*, int);
-static int	replycache(int, Rpccall*, int32_t (*)(int, void*, int32_t));
-static void	udpserver(int, Progmap*);
-static void	tcpserver(int, Progmap*);
-static void	getendpoints(Udphdr*, char*);
-static int32_t	readtcp(int, void*, int32_t);
-static int32_t	writetcp(int, void*, int32_t);
-static int	servemsg(int, int32_t (*)(int, void*, int32_t),
-			   int32_t (*)(int, void*, int32_t),
-		int, Progmap*);
-void	(*rpcalarm)(void);
-int	rpcdebug;
-int	rejectall;
-int	p9debug;
+static int Iconv(Fmt*);
+// static void	openudp(int);
+static void cachereply(Rpccall*, void*, int);
+static int replycache(int, Rpccall*, int32_t (*)(int, void*, int32_t));
+static void udpserver(int, Progmap*);
+static void tcpserver(int, Progmap*);
+static void getendpoints(Udphdr*, char*);
+static int32_t readtcp(int, void*, int32_t);
+static int32_t writetcp(int, void*, int32_t);
+static int servemsg(int, int32_t (*)(int, void*, int32_t),
+                    int32_t (*)(int, void*, int32_t), int, Progmap*);
+void (*rpcalarm)(void);
+int rpcdebug;
+int rejectall;
+int p9debug;
 
-int	nocache;
+int nocache;
 
-uint8_t	buf[9000];
-uint8_t	rbuf[9000];
-uint8_t	resultbuf[9000];
+uint8_t buf[9000];
+uint8_t rbuf[9000];
+uint8_t resultbuf[9000];
 
 static int tcp;
 
-char *commonopts = "[-9CDrtv]";			/* for usage() messages */
+char* commonopts = "[-9CDrtv]"; /* for usage() messages */
 
 /*
  * this recognises common, nominally rcp-related options.
@@ -46,7 +45,7 @@ char *commonopts = "[-9CDrtv]";			/* for usage() messages */
 int
 argopt(int c)
 {
-	switch(c){
+	switch(c) {
 	case '9':
 		++p9debug;
 		return 0;
@@ -75,15 +74,15 @@ argopt(int c)
  * here to argopt for common options.
  */
 void
-server(int argc, char **argv, int myport, Progmap *progmap)
+server(int argc, char** argv, int myport, Progmap* progmap)
 {
-	Progmap *pg;
+	Progmap* pg;
 
 	fmtinstall('I', Iconv);
 	fmtinstall('F', fcallfmt);
 	fmtinstall('D', dirfmt);
 
-	switch(rfork(RFNOWAIT|RFENVG|RFNAMEG|RFNOTEG|RFFDG|RFPROC)){
+	switch(rfork(RFNOWAIT | RFENVG | RFNAMEG | RFNOTEG | RFFDG | RFPROC)) {
 	case -1:
 		panic("fork");
 	default:
@@ -92,17 +91,17 @@ server(int argc, char **argv, int myport, Progmap *progmap)
 		break;
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case 0:
-		for(;;){
-			sleep(30*1000);
+		for(;;) {
+			sleep(30 * 1000);
 			alarmflag = 1;
 		}
 	case -1:
 		sysfatal("rfork: %r");
 	}
 
-	for(pg=progmap; pg->init; pg++)
+	for(pg = progmap; pg->init; pg++)
 		(*pg->init)(argc, argv);
 	if(tcp)
 		tcpserver(myport, progmap);
@@ -111,7 +110,7 @@ server(int argc, char **argv, int myport, Progmap *progmap)
 }
 
 static void
-udpserver(int myport, Progmap *progmap)
+udpserver(int myport, Progmap* progmap)
 {
 	char service[128];
 	char data[128];
@@ -133,13 +132,13 @@ udpserver(int myport, Progmap *progmap)
 
 	chatsrv(0);
 	clog("%s: listening to port %d\n", argv0, myport);
-	while (servemsg(datafd, read, write, myport, progmap) >= 0)
+	while(servemsg(datafd, read, write, myport, progmap) >= 0)
 		continue;
 	exits(0);
 }
 
 static void
-tcpserver(int myport, Progmap *progmap)
+tcpserver(int myport, Progmap* progmap)
 {
 	char adir[40];
 	char ldir[40];
@@ -149,26 +148,26 @@ tcpserver(int myport, Progmap *progmap)
 	snprint(ds, sizeof ds, "tcp!*!%d", myport);
 	chatsrv(0);
 	actl = -1;
-	for(;;){
-		if(actl < 0){
+	for(;;) {
+		if(actl < 0) {
 			actl = announce(ds, adir);
-			if(actl < 0){
-				clog("%s: listening to tcp port %d\n",
-					argv0, myport);
+			if(actl < 0) {
+				clog("%s: listening to tcp port %d\n", argv0,
+				     myport);
 				clog("announcing: %r");
 				break;
 			}
 		}
 		lctl = listen(adir, ldir);
-		if(lctl < 0){
+		if(lctl < 0) {
 			close(actl);
 			actl = -1;
 			continue;
 		}
-		switch(fork()){
+		switch(fork()) {
 		case -1:
 			clog("%s!%d: %r\n", argv0, myport);
-			/* fall through */
+		/* fall through */
 		default:
 			close(lctl);
 			continue;
@@ -182,8 +181,8 @@ tcpserver(int myport, Progmap *progmap)
 			/* pretend it's udp; fill in Udphdr */
 			getendpoints((Udphdr*)buf, ldir);
 
-			while (servemsg(data, readtcp, writetcp, myport,
-			    progmap) >= 0)
+			while(servemsg(data, readtcp, writetcp, myport,
+			               progmap) >= 0)
 				continue;
 			close(data);
 			exits(0);
@@ -194,41 +193,38 @@ tcpserver(int myport, Progmap *progmap)
 
 static int
 servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
-	 int32_t (*writemsg)(int, void*, int32_t),
-		int myport, Progmap * progmap)
+         int32_t (*writemsg)(int, void*, int32_t), int myport, Progmap* progmap)
 {
 	int i, n, nreply;
 	Rpccall rcall, rreply;
 	int vlo, vhi;
-	Progmap *pg;
-	Procmap *pp;
+	Progmap* pg;
+	Procmap* pp;
 	char errbuf[ERRMAX];
 
-	if(alarmflag){
+	if(alarmflag) {
 		alarmflag = 0;
 		if(rpcalarm)
 			(*rpcalarm)();
 	}
 	n = (*readmsg)(fd, buf, sizeof buf);
-	if(n < 0){
+	if(n < 0) {
 		errstr(errbuf, sizeof errbuf);
 		if(strcmp(errbuf, "interrupted") == 0)
 			return 0;
 		clog("port %d: error: %s\n", myport, errbuf);
 		return -1;
 	}
-	if(n == 0){
+	if(n == 0) {
 		clog("port %d: EOF\n", myport);
 		return -1;
 	}
 	if(rpcdebug == 1)
-		fprint(2, "%s: rpc from %d.%d.%d.%d/%d\n",
-			argv0, buf[12], buf[13], buf[14], buf[15],
-			(buf[32]<<8)|buf[33]);
+		fprint(2, "%s: rpc from %d.%d.%d.%d/%d\n", argv0, buf[12],
+		       buf[13], buf[14], buf[15], (buf[32] << 8) | buf[33]);
 	i = rpcM2S(buf, &rcall, n);
-	if(i != 0){
-		clog("udp port %d: message format error %d\n",
-			myport, i);
+	if(i != 0) {
+		clog("udp port %d: message format error %d\n", myport, i);
 		return 0;
 	}
 	if(rpcdebug > 1)
@@ -244,20 +240,20 @@ servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
 	rreply.lport = rcall.lport;
 	rreply.xid = rcall.xid;
 	rreply.mtype = REPLY;
-	if(rcall.rpcvers != 2){
+	if(rcall.rpcvers != 2) {
 		rreply.stat = MSG_DENIED;
 		rreply.rstat = RPC_MISMATCH;
 		rreply.rlow = 2;
 		rreply.rhigh = 2;
 		goto send_reply;
 	}
-	if(rejectall){
+	if(rejectall) {
 		rreply.stat = MSG_DENIED;
 		rreply.rstat = AUTH_ERROR;
 		rreply.authstat = AUTH_TOOWEAK;
 		goto send_reply;
 	}
-	i = n - (((uint8_t *)rcall.args) - buf);
+	i = n - (((uint8_t*)rcall.args) - buf);
 	if(rpcdebug > 1)
 		fprint(2, "arg size = %d\n", i);
 	rreply.stat = MSG_ACCEPTED;
@@ -266,7 +262,7 @@ servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
 	rreply.results = resultbuf;
 	vlo = 0x7fffffff;
 	vhi = -1;
-	for(pg=progmap; pg->pmap; pg++){
+	for(pg = progmap; pg->pmap; pg++) {
 		if(pg->progno != rcall.prog)
 			continue;
 		if(pg->vers == rcall.vers)
@@ -276,10 +272,10 @@ servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
 		if(pg->vers > vhi)
 			vhi = pg->vers;
 	}
-	if(pg->pmap == 0){
+	if(pg->pmap == 0) {
 		if(vhi < 0)
 			rreply.astat = PROG_UNAVAIL;
-		else{
+		else {
 			rreply.astat = PROG_MISMATCH;
 			rreply.plow = vlo;
 			rreply.phigh = vhi;
@@ -287,7 +283,7 @@ servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
 		goto send_reply;
 	}
 	for(pp = pg->pmap; pp->procp; pp++)
-		if(rcall.proc == pp->procno){
+		if(rcall.proc == pp->procno) {
 			if(rpcdebug > 1)
 				fprint(2, "process %d\n", pp->procno);
 			rreply.astat = SUCCESS;
@@ -296,7 +292,7 @@ servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
 		}
 	rreply.astat = PROC_UNAVAIL;
 send_reply:
-	if(nreply >= 0){
+	if(nreply >= 0) {
 		i = rpcS2M(&rreply, nreply, rbuf);
 		if(rpcdebug > 1)
 			rpcprint(2, &rreply);
@@ -307,22 +303,22 @@ send_reply:
 }
 
 static void
-getendpoint(char *dir, char *file, uint8_t *addr, uint8_t *port)
+getendpoint(char* dir, char* file, uint8_t* addr, uint8_t* port)
 {
 	int fd, n;
 	char buf[128];
-	char *sys, *serv;
+	char* sys, *serv;
 
 	sys = serv = 0;
 
 	snprint(buf, sizeof buf, "%s/%s", dir, file);
 	fd = open(buf, OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n>0){
-			buf[n-1] = 0;
+	if(fd >= 0) {
+		n = read(fd, buf, sizeof(buf) - 1);
+		if(n > 0) {
+			buf[n - 1] = 0;
 			serv = strchr(buf, '!');
-			if(serv){
+			if(serv) {
 				*serv++ = 0;
 				serv = strdup(serv);
 			}
@@ -341,35 +337,35 @@ getendpoint(char *dir, char *file, uint8_t *addr, uint8_t *port)
 
 /* set Udphdr values from protocol dir local & remote files */
 static void
-getendpoints(Udphdr *ep, char *dir)
+getendpoints(Udphdr* ep, char* dir)
 {
 	getendpoint(dir, "local", ep->laddr, ep->lport);
 	getendpoint(dir, "remote", ep->raddr, ep->rport);
 }
 
 static int32_t
-readtcp(int fd, void *vbuf, int32_t blen)
+readtcp(int fd, void* vbuf, int32_t blen)
 {
 	uint8_t mk[4];
 	int n, m, sofar;
 	uint32_t done;
-	char *buf;
+	char* buf;
 
 	buf = vbuf;
 	buf += Udphdrsize;
 	blen -= Udphdrsize;
 
 	done = 0;
-	for(sofar = 0; !done; sofar += n){
+	for(sofar = 0; !done; sofar += n) {
 		m = readn(fd, mk, 4);
 		if(m < 4)
 			return 0;
-		done = (mk[0]<<24)|(mk[1]<<16)|(mk[2]<<8)|mk[3];
+		done = (mk[0] << 24) | (mk[1] << 16) | (mk[2] << 8) | mk[3];
 		m = done & 0x7fffffff;
 		done &= 0x80000000;
-		if(m > blen-sofar)
+		if(m > blen - sofar)
 			return -1;
-		n = readn(fd, buf+sofar, m);
+		n = readn(fd, buf + sofar, m);
 		if(m != n)
 			return 0;
 	}
@@ -377,18 +373,18 @@ readtcp(int fd, void *vbuf, int32_t blen)
 }
 
 static int32_t
-writetcp(int fd, void *vbuf, int32_t len)
+writetcp(int fd, void* vbuf, int32_t len)
 {
-	char *buf;
+	char* buf;
 
 	buf = vbuf;
 	buf += Udphdrsize;
 	len -= Udphdrsize;
 
 	buf -= 4;
-	buf[0] = 0x80 | (len>>24);
-	buf[1] = len>>16;
-	buf[2] = len>>8;
+	buf[0] = 0x80 | (len >> 24);
+	buf[1] = len >> 16;
+	buf[2] = len >> 8;
 	buf[3] = len;
 	len += 4;
 	return write(fd, buf, len);
@@ -415,35 +411,35 @@ writetcp(int fd, void *vbuf, int32_t len)
  *}
  */
 int32_t
-niwrite(int fd, void *buf, int32_t n)
+niwrite(int fd, void* buf, int32_t n)
 {
-//	int savalarm;
+	//	int savalarm;
 
-// 	savalarm = alarm(0);
+	// 	savalarm = alarm(0);
 	n = write(fd, buf, n);
-// 	if(savalarm > 0)
-//		alarm(savalarm);
+	// 	if(savalarm > 0)
+	//		alarm(savalarm);
 	return n;
 }
 
-typedef struct Namecache	Namecache;
+typedef struct Namecache Namecache;
 struct Namecache {
 	char dom[256];
 	uint32_t ipaddr;
-	Namecache *next;
+	Namecache* next;
 };
 
-Namecache *dnscache;
+Namecache* dnscache;
 
 static Namecache*
-domlookupl(void *name, int len)
+domlookupl(void* name, int len)
 {
-	Namecache *n, **ln;
+	Namecache* n, **ln;
 
 	if(len >= sizeof(n->dom))
 		return nil;
 
-	for(ln=&dnscache, n=*ln; n; ln=&(*ln)->next, n=*ln) {
+	for(ln = &dnscache, n = *ln; n; ln = &(*ln)->next, n = *ln) {
 		if(strncmp(n->dom, name, len) == 0 && n->dom[len] == 0) {
 			*ln = n->next;
 			n->next = dnscache;
@@ -455,7 +451,7 @@ domlookupl(void *name, int len)
 }
 
 static Namecache*
-domlookup(void *name)
+domlookup(void* name)
 {
 	return domlookupl(name, strlen(name));
 }
@@ -463,9 +459,9 @@ domlookup(void *name)
 static Namecache*
 iplookup(uint32_t ip)
 {
-	Namecache *n, **ln;
+	Namecache* n, **ln;
 
-	for(ln=&dnscache, n=*ln; n; ln=&(*ln)->next, n=*ln) {
+	for(ln = &dnscache, n = *ln; n; ln = &(*ln)->next, n = *ln) {
 		if(n->ipaddr == ip) {
 			*ln = n->next;
 			n->next = dnscache;
@@ -477,9 +473,9 @@ iplookup(uint32_t ip)
 }
 
 static Namecache*
-addcacheentry(void *name, int len, uint32_t ip)
+addcacheentry(void* name, int len, uint32_t ip)
 {
-	Namecache *n;
+	Namecache* n;
 
 	if(len >= sizeof(n->dom))
 		return nil;
@@ -496,15 +492,15 @@ addcacheentry(void *name, int len, uint32_t ip)
 }
 
 int
-getdnsdom(uint32_t ip, char *name, int len)
+getdnsdom(uint32_t ip, char* name, int len)
 {
 	char buf[128];
-	Namecache *nc;
-	char *p;
+	Namecache* nc;
+	char* p;
 
-	if(nc=iplookup(ip)) {
+	if(nc = iplookup(ip)) {
 		strncpy(name, nc->dom, len);
-		name[len-1] = 0;
+		name[len - 1] = 0;
 		return 0;
 	}
 	clog("getdnsdom: %I\n", ip);
@@ -512,7 +508,7 @@ getdnsdom(uint32_t ip, char *name, int len)
 	p = csgetvalue("/net", "ip", buf, "dom", nil);
 	if(p == nil)
 		return -1;
-	strncpy(name, p, len-1);
+	strncpy(name, p, len - 1);
 	name[len] = 0;
 	free(p);
 	addcacheentry(name, strlen(name), ip);
@@ -520,50 +516,49 @@ getdnsdom(uint32_t ip, char *name, int len)
 }
 
 int
-getdom(uint32_t ip, char *dom, int len)
+getdom(uint32_t ip, char* dom, int len)
 {
 	int i;
-	static char *prefix[] = { "", "gate-", "fddi-", "u-", 0 };
-	char **pr;
+	static char* prefix[] = {"", "gate-", "fddi-", "u-", 0};
+	char** pr;
 
-	if(getdnsdom(ip, dom, len)<0)
+	if(getdnsdom(ip, dom, len) < 0)
 		return -1;
 
-	for(pr=prefix; *pr; pr++){
+	for(pr = prefix; *pr; pr++) {
 		i = strlen(*pr);
 		if(strncmp(dom, *pr, i) == 0) {
-			memmove(dom, dom+i, len-i);
+			memmove(dom, dom + i, len - i);
 			break;
 		}
 	}
 	return 0;
 }
 
-#define	MAXCACHE	64
+#define MAXCACHE 64
 
-static Rpccache *head, *tail;
-static int	ncache;
+static Rpccache* head, *tail;
+static int ncache;
 
 static void
-cachereply(Rpccall *rp, void *buf, int len)
+cachereply(Rpccall* rp, void* buf, int len)
 {
-	Rpccache *cp;
+	Rpccache* cp;
 
 	if(nocache)
 		return;
 
-	if(ncache >= MAXCACHE){
+	if(ncache >= MAXCACHE) {
 		if(rpcdebug)
-			fprint(2, "%s: drop  %I/%ld, xid %uld, len %d\n",
-				argv0, tail->host,
-				tail->port, tail->xid, tail->n);
+			fprint(2, "%s: drop  %I/%ld, xid %uld, len %d\n", argv0,
+			       tail->host, tail->port, tail->xid, tail->n);
 		tail = tail->prev;
 		free(tail->next);
 		tail->next = 0;
 		--ncache;
 	}
-	cp = malloc(sizeof(Rpccache)+len-4);
-	if(cp == 0){
+	cp = malloc(sizeof(Rpccache) + len - 4);
+	if(cp == 0) {
 		clog("cachereply: malloc %d failed\n", len);
 		return;
 	}
@@ -581,23 +576,22 @@ cachereply(Rpccall *rp, void *buf, int len)
 	cp->n = len;
 	memmove(cp->data, buf, len);
 	if(rpcdebug)
-		fprint(2, "%s: cache %I/%ld, xid %uld, len %d\n",
-			argv0, cp->host, cp->port, cp->xid, cp->n);
+		fprint(2, "%s: cache %I/%ld, xid %uld, len %d\n", argv0,
+		       cp->host, cp->port, cp->xid, cp->n);
 }
 
 static int
-replycache(int fd, Rpccall *rp, int32_t (*writemsg)(int, void*, int32_t))
+replycache(int fd, Rpccall* rp, int32_t (*writemsg)(int, void*, int32_t))
 {
-	Rpccache *cp;
+	Rpccache* cp;
 
-	for(cp=head; cp; cp=cp->next)
-		if(cp->host == rp->host &&
-		   cp->port == rp->port &&
+	for(cp = head; cp; cp = cp->next)
+		if(cp->host == rp->host && cp->port == rp->port &&
 		   cp->xid == rp->xid)
 			break;
 	if(cp == 0)
 		return 0;
-	if(cp->prev){	/* move to front */
+	if(cp->prev) { /* move to front */
 		cp->prev->next = cp->next;
 		if(cp->next)
 			cp->next->prev = cp->prev;
@@ -610,20 +604,19 @@ replycache(int fd, Rpccall *rp, int32_t (*writemsg)(int, void*, int32_t))
 	}
 	(*writemsg)(fd, cp->data, cp->n);
 	if(rpcdebug)
-		fprint(2, "%s: reply %I/%ld, xid %uld, len %d\n",
-			argv0, cp->host, cp->port, cp->xid, cp->n);
+		fprint(2, "%s: reply %I/%ld, xid %uld, len %d\n", argv0,
+		       cp->host, cp->port, cp->xid, cp->n);
 	return 1;
 }
 
 static int
-Iconv(Fmt *f)
+Iconv(Fmt* f)
 {
 	char buf[16];
 	uint32_t h;
 
 	h = va_arg(f->args, uint32_t);
-	snprint(buf, sizeof buf, "%ld.%ld.%ld.%ld",
-		(h>>24)&0xff, (h>>16)&0xff,
-		(h>>8)&0xff, h&0xff);
+	snprint(buf, sizeof buf, "%ld.%ld.%ld.%ld", (h >> 24) & 0xff,
+	        (h >> 16) & 0xff, (h >> 8) & 0xff, h & 0xff);
 	return fmtstrcpy(f, buf);
 }

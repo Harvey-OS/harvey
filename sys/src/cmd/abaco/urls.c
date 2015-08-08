@@ -21,14 +21,14 @@
 #include "dat.h"
 #include "fns.h"
 
-Url *
-urlalloc(Runestr *src, Runestr *post, int m)
+Url*
+urlalloc(Runestr* src, Runestr* post, int m)
 {
-	Url *u;
+	Url* u;
 
 	u = emalloc(sizeof(Url));
 	copyrunestr(&u->src, src);
-	if(m==HPost)
+	if(m == HPost)
 		copyrunestr(&u->post, post);
 	u->method = m;
 	incref(u);
@@ -36,9 +36,9 @@ urlalloc(Runestr *src, Runestr *post, int m)
 }
 
 void
-urlfree(Url *u)
+urlfree(Url* u)
 {
-	if(u && decref(u)==0){
+	if(u && decref(u) == 0) {
 		closerunestr(&u->src);
 		closerunestr(&u->act);
 		closerunestr(&u->post);
@@ -47,10 +47,10 @@ urlfree(Url *u)
 	}
 }
 
-Url *
-urldup(Url *a)
+Url*
+urldup(Url* a)
 {
-	Url *b;
+	Url* b;
 
 	b = emalloc(sizeof(Url));
 	b->method = a->method;
@@ -61,9 +61,8 @@ urldup(Url *a)
 	return b;
 }
 
-static
-Runestr
-getattr(int conn, char *s)
+static Runestr
+getattr(int conn, char* s)
 {
 	char buf[BUFSIZE];
 	int fd, n;
@@ -73,7 +72,7 @@ getattr(int conn, char *s)
 	if(fd < 0)
 		error("can't open attr file");
 
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	if(n < 0)
 		error("can't read");
 
@@ -83,7 +82,7 @@ getattr(int conn, char *s)
 }
 
 int
-urlopen(Url *u)
+urlopen(Url* u)
 {
 	char buf[BUFSIZE];
 	int cfd, fd, conn, n;
@@ -93,7 +92,7 @@ urlopen(Url *u)
 	if(cfd < 0)
 		error("can't open clone file");
 
-	n = read(cfd, buf, sizeof(buf)-1);
+	n = read(cfd, buf, sizeof(buf) - 1);
 	if(n <= 0)
 		error("reading clone");
 
@@ -101,17 +100,18 @@ urlopen(Url *u)
 	conn = atoi(buf);
 
 	snprint(buf, sizeof(buf), "url %S", u->src.r);
-	if(write(cfd, buf, strlen(buf)) < 0){
-//		fprint(2, "write: %s: %r\n", buf);
-    Err:
+	if(write(cfd, buf, strlen(buf)) < 0) {
+	//		fprint(2, "write: %s: %r\n", buf);
+	Err:
 		close(cfd);
 		return -1;
 	}
-	if(u->method==HPost && u->post.r != nil){
+	if(u->method == HPost && u->post.r != nil) {
 		snprint(buf, sizeof(buf), "%s/%d/postbody", webmountpt, conn);
 		fd = open(buf, OWRITE);
-		if(fd < 0){
-//			fprint(2, "urlopen: bad query: %s: %r\n", buf);
+		if(fd < 0) {
+			//			fprint(2, "urlopen: bad query: %s:
+			//%r\n", buf);
 			goto Err;
 		}
 		snprint(buf, sizeof(buf), "%S", u->post.r);
@@ -122,8 +122,8 @@ urlopen(Url *u)
 	}
 	snprint(buf, sizeof(buf), "%s/%d/body", webmountpt, conn);
 	fd = open(buf, OREAD);
-	if(fd < 0){
-//		fprint(2, "open: %S: %r\n", u->src.r);
+	if(fd < 0) {
+		//		fprint(2, "open: %S: %r\n", u->src.r);
 		goto Err;
 	}
 	u->ctype = getattr(conn, "contenttype");
@@ -135,65 +135,69 @@ urlopen(Url *u)
 }
 
 void
-urlcanon(Rune *name){
-	Rune *s, *t;
-	Rune **comp, **p, **q;
+urlcanon(Rune* name)
+{
+	Rune* s, *t;
+	Rune** comp, **p, **q;
 	int rooted;
 
-	name = runestrchr(name, L'/')+2;
-	rooted=name[0]==L'/';
+	name = runestrchr(name, L'/') + 2;
+	rooted = name[0] == L'/';
 	/*
 	 * Break the name into a list of components
 	 */
-	comp=emalloc(runestrlen(name)*sizeof(char *));
-	p=comp;
-	*p++=name;
-	for(s=name;;s++){
-		if(*s==L'/'){
-			*p++=s+1;
-			*s='\0';
-		}
-		else if(*s=='\0')
+	comp = emalloc(runestrlen(name) * sizeof(char*));
+	p = comp;
+	*p++ = name;
+	for(s = name;; s++) {
+		if(*s == L'/') {
+			*p++ = s + 1;
+			*s = '\0';
+		} else if(*s == '\0')
 			break;
 	}
-	*p=0;
+	*p = 0;
 	/*
-	 * go through the component list, deleting components that are empty (except
+	 * go through the component list, deleting components that are empty
+	 * (except
 	 * the last component) or ., and any .. and its non-.. predecessor.
 	 */
-	p=q=comp;
-	while(*p){
-		if(runestrcmp(*p, L"")==0 && p[1]!=0
-		|| runestrcmp(*p, L".")==0)
+	p = q = comp;
+	while(*p) {
+		if(runestrcmp(*p, L"") == 0 && p[1] != 0 ||
+		   runestrcmp(*p, L".") == 0)
 			p++;
-		else if(runestrcmp(*p, L"..")==0 && q!=comp && runestrcmp(q[-1], L"..")!=0){
+		else if(runestrcmp(*p, L"..") == 0 && q != comp &&
+		        runestrcmp(q[-1], L"..") != 0) {
 			--q;
 			p++;
-		}
-		else
-			*q++=*p++;
+		} else
+			*q++ = *p++;
 	}
-	*q=0;
+	*q = 0;
 	/*
 	 * rebuild the path name
 	 */
-	s=name;
-	if(rooted) *s++='/';
-	for(p=comp;*p;p++){
-		t=*p;
-		while(*t) *s++=*t++;
-		if(p[1]!=0) *s++='/';
+	s = name;
+	if(rooted)
+		*s++ = '/';
+	for(p = comp; *p; p++) {
+		t = *p;
+		while(*t)
+			*s++ = *t++;
+		if(p[1] != 0)
+			*s++ = '/';
 	}
-	*s='\0';
+	*s = '\0';
 	free(comp);
 }
 
 /* this is a HACK */
-Rune *
-urlcombine(Rune *b, Rune *u)
+Rune*
+urlcombine(Rune* b, Rune* u)
 {
-	Rune *p, *q, *sep, *s;
-	Rune endrune[] = { L'?', L'#' };
+	Rune* p, *q, *sep, *s;
+	Rune endrune[] = {L'?', L'#'};
 	int i, restore;
 
 	if(u == nil)
@@ -202,27 +206,27 @@ urlcombine(Rune *b, Rune *u)
 	if(validurl(u))
 		return erunestrdup(u);
 
-	if(b==nil || !validurl(b))
+	if(b == nil || !validurl(b))
 		error("urlcombine: b==nil || !validurl(b)");
 
-	if(runestrncmp(u, L"//", 2) == 0){
-		q =  runestrchr(b, L':');
-		return runesmprint("%.*S:%S", (int)(q-b), b, u);
+	if(runestrncmp(u, L"//", 2) == 0) {
+		q = runestrchr(b, L':');
+		return runesmprint("%.*S:%S", (int)(q - b), b, u);
 	}
-	p = runestrstr(b, L"://")+3;
+	p = runestrstr(b, L"://") + 3;
 	sep = L"";
 	q = nil;
-	if(*u ==L'/')
+	if(*u == L'/')
 		q = runestrchr(p, L'/');
-	else if(*u==L'#' || *u==L'?'){
-		for(i=0; i<nelem(endrune); i++)
+	else if(*u == L'#' || *u == L'?') {
+		for(i = 0; i < nelem(endrune); i++)
 			if(q = runestrchr(p, endrune[i]))
 				break;
-	}else{
+	} else {
 		sep = L"/";
 		restore = 0;
 		s = runestrchr(p, L'?');
-		if(s != nil){
+		if(s != nil) {
 			*s = '\0';
 			restore = 1;
 		}
@@ -233,7 +237,7 @@ urlcombine(Rune *b, Rune *u)
 	if(q == nil)
 		p = runesmprint("%S%S%S", b, sep, u);
 	else
-		p = runesmprint("%.*S%S%S", (int)(q-b), b, sep, u);
+		p = runesmprint("%.*S%S%S", (int)(q - b), b, sep, u);
 	urlcanon(p);
 	return p;
 }

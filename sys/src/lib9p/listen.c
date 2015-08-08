@@ -16,12 +16,12 @@
 
 static void listenproc(void*);
 static void srvproc(void*);
-static char *getremotesys(char*);
+static char* getremotesys(char*);
 
 void
-_listensrv(Srv *os, char *addr)
+_listensrv(Srv* os, char* addr)
 {
-	Srv *s;
+	Srv* s;
 
 	if(_forker == nil)
 		sysfatal("no forker");
@@ -32,28 +32,28 @@ _listensrv(Srv *os, char *addr)
 }
 
 static void
-listenproc(void *v)
+listenproc(void* v)
 {
 	char ndir[NETPATHLEN], dir[NETPATHLEN];
 	int ctl, data, nctl;
-	Srv *os, *s;
-	
+	Srv* os, *s;
+
 	os = v;
 	ctl = announce(os->addr, dir);
-	if(ctl < 0){
+	if(ctl < 0) {
 		fprint(2, "%s: announce %s: %r", argv0, os->addr);
 		return;
 	}
 
-	for(;;){
+	for(;;) {
 		nctl = listen(dir, ndir);
-		if(nctl < 0){
+		if(nctl < 0) {
 			fprint(2, "%s: listen %s: %r", argv0, os->addr);
 			break;
 		}
-		
+
 		data = accept(ctl, ndir);
-		if(data < 0){
+		if(data < 0) {
 			fprint(2, "%s: accept %s: %r\n", argv0, ndir);
 			continue;
 		}
@@ -73,11 +73,11 @@ listenproc(void *v)
 }
 
 static void
-srvproc(void *v)
+srvproc(void* v)
 {
 	int data;
-	Srv *s;
-	
+	Srv* s;
+
 	s = v;
 	data = s->infd;
 	srv(s);
@@ -87,7 +87,7 @@ srvproc(void *v)
 }
 
 static char*
-getremotesys(char *ndir)
+getremotesys(char* ndir)
 {
 	char buf[128], *serv, *sys;
 	int fd, n;
@@ -95,10 +95,10 @@ getremotesys(char *ndir)
 	snprint(buf, sizeof buf, "%s/remote", ndir);
 	sys = nil;
 	fd = open(buf, OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n>0){
-			buf[n-1] = 0;
+	if(fd >= 0) {
+		n = read(fd, buf, sizeof(buf) - 1);
+		if(n > 0) {
+			buf[n - 1] = 0;
 			serv = strchr(buf, '!');
 			if(serv)
 				*serv = 0;

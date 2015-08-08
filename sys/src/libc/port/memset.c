@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
 void*
-memset(void *ap, int c, uint32_t n)
+memset(void* ap, int c, uint32_t n)
 {
-	char *p;
+	char* p;
 
 	p = ap;
 	while(n > 0) {

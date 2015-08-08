@@ -13,22 +13,20 @@
 #include "../plan9/sys9.h"
 #include <lock.h>
 
-enum
-{
-	Pagesize	= 4096,
-	Semperpg	= Pagesize/(16*sizeof(unsigned int)),
-	Lockaddr	= 0x60000000,
+enum { Pagesize = 4096,
+       Semperpg = Pagesize / (16 * sizeof(unsigned int)),
+       Lockaddr = 0x60000000,
 
-	POWER		= 0x320,
-	MAGNUM		= 0x330,
-	MAGNUMII	= 0x340,
-	R4K		= 0x500,
+       POWER = 0x320,
+       MAGNUM = 0x330,
+       MAGNUMII = 0x340,
+       R4K = 0x500,
 };
 
-static	int arch;
-extern	int C_3ktas(int*);
-extern	int C_4ktas(int*);
-extern	int C_fcr0(void);
+static int arch;
+extern int C_3ktas(int*);
+extern int C_4ktas(int*);
+extern int C_fcr0(void);
 
 static void
 lockinit(void)
@@ -36,11 +34,11 @@ lockinit(void)
 	int n;
 
 	if(arch != 0)
-		return;	/* allow multiple calls */
+		return; /* allow multiple calls */
 	arch = C_fcr0();
 	switch(arch) {
 	case POWER:
-		n = _SEGATTACH(0,  "lock", (void*)Lockaddr, Pagesize);
+		n = _SEGATTACH(0, "lock", (void*)Lockaddr, Pagesize);
 		if(n < 0) {
 			arch = MAGNUM;
 			break;
@@ -55,13 +53,12 @@ lockinit(void)
 		arch = R4K;
 		break;
 	}
-	
 }
 
 void
-lock(Lock *lk)
+lock(Lock* lk)
 {
-	int *hwsem;
+	int* hwsem;
 	int hash;
 
 retry:
@@ -75,7 +72,7 @@ retry:
 			_SLEEP(0);
 		return;
 	case R4K:
-		for(;;){
+		for(;;) {
 			while(lk->val)
 				;
 			if(C_4ktas(&lk->val) == 0)
@@ -84,8 +81,8 @@ retry:
 		break;
 	case POWER:
 		/* Use low order lock bits to generate hash */
-		hash = ((int)lk/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
+		hash = ((int)lk / sizeof(int)) & (Semperpg - 1);
+		hwsem = (int*)Lockaddr + hash;
 
 		for(;;) {
 			if((*hwsem & 1) == 0) {
@@ -100,13 +97,13 @@ retry:
 			while(lk->val)
 				;
 		}
-	}	
+	}
 }
 
 int
-canlock(Lock *lk)
+canlock(Lock* lk)
 {
-	int *hwsem;
+	int* hwsem;
 	int hash;
 
 retry:
@@ -125,8 +122,8 @@ retry:
 		return 1;
 	case POWER:
 		/* Use low order lock bits to generate hash */
-		hash = ((int)lk/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
+		hash = ((int)lk / sizeof(int)) & (Semperpg - 1);
+		hwsem = (int*)Lockaddr + hash;
 
 		if((*hwsem & 1) == 0) {
 			if(lk->val)
@@ -140,19 +137,19 @@ retry:
 		return 0;
 	default:
 		return 0;
-	}	
+	}
 }
 
 void
-unlock(Lock *lk)
+unlock(Lock* lk)
 {
 	lk->val = 0;
 }
 
 int
-tas(int *p)
+tas(int* p)
 {
-	int *hwsem;
+	int* hwsem;
 	int hash;
 
 retry:
@@ -167,8 +164,8 @@ retry:
 		return C_4ktas(p);
 	case POWER:
 		/* Use low order lock bits to generate hash */
-		hash = ((int)p/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
+		hash = ((int)p / sizeof(int)) & (Semperpg - 1);
+		hwsem = (int*)Lockaddr + hash;
 
 		if((*hwsem & 1) == 0) {
 			if(*p)
@@ -182,5 +179,5 @@ retry:
 		return 1;
 	default:
 		return 0;
-	}	
+	}
 }

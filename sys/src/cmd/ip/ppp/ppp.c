@@ -21,115 +21,99 @@
 
 #define PATH 128
 
-static	int	baud;
-static	int	nocompress;
-static 	int	pppframing = 1;
-static	int	noipcompress;
-static	int	server;
-static	int noauth;
-static	int	nip;		/* number of ip interfaces */
-static	int	dying;		/* flag to signal to all threads its time to go */
-static	int	primary;	/* this is the primary IP interface */
-static	char	*chatfile;
+static int baud;
+static int nocompress;
+static int pppframing = 1;
+static int noipcompress;
+static int server;
+static int noauth;
+static int nip;     /* number of ip interfaces */
+static int dying;   /* flag to signal to all threads its time to go */
+static int primary; /* this is the primary IP interface */
+static char* chatfile;
 
-int	debug;
-char*	LOG = "ppp";
-char*	keyspec = "";
+int debug;
+char* LOG = "ppp";
+char* keyspec = "";
 
-enum
-{
-	Rmagic=	0x12345
-};
+enum { Rmagic = 0x12345 };
 
 /*
  * Calculate FCS - rfc 1331
  */
-uint16_t fcstab[256] =
-{
-      0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
-      0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
-      0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,
-      0x9cc9, 0x8d40, 0xbfdb, 0xae52, 0xdaed, 0xcb64, 0xf9ff, 0xe876,
-      0x2102, 0x308b, 0x0210, 0x1399, 0x6726, 0x76af, 0x4434, 0x55bd,
-      0xad4a, 0xbcc3, 0x8e58, 0x9fd1, 0xeb6e, 0xfae7, 0xc87c, 0xd9f5,
-      0x3183, 0x200a, 0x1291, 0x0318, 0x77a7, 0x662e, 0x54b5, 0x453c,
-      0xbdcb, 0xac42, 0x9ed9, 0x8f50, 0xfbef, 0xea66, 0xd8fd, 0xc974,
-      0x4204, 0x538d, 0x6116, 0x709f, 0x0420, 0x15a9, 0x2732, 0x36bb,
-      0xce4c, 0xdfc5, 0xed5e, 0xfcd7, 0x8868, 0x99e1, 0xab7a, 0xbaf3,
-      0x5285, 0x430c, 0x7197, 0x601e, 0x14a1, 0x0528, 0x37b3, 0x263a,
-      0xdecd, 0xcf44, 0xfddf, 0xec56, 0x98e9, 0x8960, 0xbbfb, 0xaa72,
-      0x6306, 0x728f, 0x4014, 0x519d, 0x2522, 0x34ab, 0x0630, 0x17b9,
-      0xef4e, 0xfec7, 0xcc5c, 0xddd5, 0xa96a, 0xb8e3, 0x8a78, 0x9bf1,
-      0x7387, 0x620e, 0x5095, 0x411c, 0x35a3, 0x242a, 0x16b1, 0x0738,
-      0xffcf, 0xee46, 0xdcdd, 0xcd54, 0xb9eb, 0xa862, 0x9af9, 0x8b70,
-      0x8408, 0x9581, 0xa71a, 0xb693, 0xc22c, 0xd3a5, 0xe13e, 0xf0b7,
-      0x0840, 0x19c9, 0x2b52, 0x3adb, 0x4e64, 0x5fed, 0x6d76, 0x7cff,
-      0x9489, 0x8500, 0xb79b, 0xa612, 0xd2ad, 0xc324, 0xf1bf, 0xe036,
-      0x18c1, 0x0948, 0x3bd3, 0x2a5a, 0x5ee5, 0x4f6c, 0x7df7, 0x6c7e,
-      0xa50a, 0xb483, 0x8618, 0x9791, 0xe32e, 0xf2a7, 0xc03c, 0xd1b5,
-      0x2942, 0x38cb, 0x0a50, 0x1bd9, 0x6f66, 0x7eef, 0x4c74, 0x5dfd,
-      0xb58b, 0xa402, 0x9699, 0x8710, 0xf3af, 0xe226, 0xd0bd, 0xc134,
-      0x39c3, 0x284a, 0x1ad1, 0x0b58, 0x7fe7, 0x6e6e, 0x5cf5, 0x4d7c,
-      0xc60c, 0xd785, 0xe51e, 0xf497, 0x8028, 0x91a1, 0xa33a, 0xb2b3,
-      0x4a44, 0x5bcd, 0x6956, 0x78df, 0x0c60, 0x1de9, 0x2f72, 0x3efb,
-      0xd68d, 0xc704, 0xf59f, 0xe416, 0x90a9, 0x8120, 0xb3bb, 0xa232,
-      0x5ac5, 0x4b4c, 0x79d7, 0x685e, 0x1ce1, 0x0d68, 0x3ff3, 0x2e7a,
-      0xe70e, 0xf687, 0xc41c, 0xd595, 0xa12a, 0xb0a3, 0x8238, 0x93b1,
-      0x6b46, 0x7acf, 0x4854, 0x59dd, 0x2d62, 0x3ceb, 0x0e70, 0x1ff9,
-      0xf78f, 0xe606, 0xd49d, 0xc514, 0xb1ab, 0xa022, 0x92b9, 0x8330,
-      0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
+uint16_t fcstab[256] = {
+    0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf, 0x8c48,
+    0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7, 0x1081, 0x0108,
+    0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e, 0x9cc9, 0x8d40, 0xbfdb,
+    0xae52, 0xdaed, 0xcb64, 0xf9ff, 0xe876, 0x2102, 0x308b, 0x0210, 0x1399,
+    0x6726, 0x76af, 0x4434, 0x55bd, 0xad4a, 0xbcc3, 0x8e58, 0x9fd1, 0xeb6e,
+    0xfae7, 0xc87c, 0xd9f5, 0x3183, 0x200a, 0x1291, 0x0318, 0x77a7, 0x662e,
+    0x54b5, 0x453c, 0xbdcb, 0xac42, 0x9ed9, 0x8f50, 0xfbef, 0xea66, 0xd8fd,
+    0xc974, 0x4204, 0x538d, 0x6116, 0x709f, 0x0420, 0x15a9, 0x2732, 0x36bb,
+    0xce4c, 0xdfc5, 0xed5e, 0xfcd7, 0x8868, 0x99e1, 0xab7a, 0xbaf3, 0x5285,
+    0x430c, 0x7197, 0x601e, 0x14a1, 0x0528, 0x37b3, 0x263a, 0xdecd, 0xcf44,
+    0xfddf, 0xec56, 0x98e9, 0x8960, 0xbbfb, 0xaa72, 0x6306, 0x728f, 0x4014,
+    0x519d, 0x2522, 0x34ab, 0x0630, 0x17b9, 0xef4e, 0xfec7, 0xcc5c, 0xddd5,
+    0xa96a, 0xb8e3, 0x8a78, 0x9bf1, 0x7387, 0x620e, 0x5095, 0x411c, 0x35a3,
+    0x242a, 0x16b1, 0x0738, 0xffcf, 0xee46, 0xdcdd, 0xcd54, 0xb9eb, 0xa862,
+    0x9af9, 0x8b70, 0x8408, 0x9581, 0xa71a, 0xb693, 0xc22c, 0xd3a5, 0xe13e,
+    0xf0b7, 0x0840, 0x19c9, 0x2b52, 0x3adb, 0x4e64, 0x5fed, 0x6d76, 0x7cff,
+    0x9489, 0x8500, 0xb79b, 0xa612, 0xd2ad, 0xc324, 0xf1bf, 0xe036, 0x18c1,
+    0x0948, 0x3bd3, 0x2a5a, 0x5ee5, 0x4f6c, 0x7df7, 0x6c7e, 0xa50a, 0xb483,
+    0x8618, 0x9791, 0xe32e, 0xf2a7, 0xc03c, 0xd1b5, 0x2942, 0x38cb, 0x0a50,
+    0x1bd9, 0x6f66, 0x7eef, 0x4c74, 0x5dfd, 0xb58b, 0xa402, 0x9699, 0x8710,
+    0xf3af, 0xe226, 0xd0bd, 0xc134, 0x39c3, 0x284a, 0x1ad1, 0x0b58, 0x7fe7,
+    0x6e6e, 0x5cf5, 0x4d7c, 0xc60c, 0xd785, 0xe51e, 0xf497, 0x8028, 0x91a1,
+    0xa33a, 0xb2b3, 0x4a44, 0x5bcd, 0x6956, 0x78df, 0x0c60, 0x1de9, 0x2f72,
+    0x3efb, 0xd68d, 0xc704, 0xf59f, 0xe416, 0x90a9, 0x8120, 0xb3bb, 0xa232,
+    0x5ac5, 0x4b4c, 0x79d7, 0x685e, 0x1ce1, 0x0d68, 0x3ff3, 0x2e7a, 0xe70e,
+    0xf687, 0xc41c, 0xd595, 0xa12a, 0xb0a3, 0x8238, 0x93b1, 0x6b46, 0x7acf,
+    0x4854, 0x59dd, 0x2d62, 0x3ceb, 0x0e70, 0x1ff9, 0xf78f, 0xe606, 0xd49d,
+    0xc514, 0xb1ab, 0xa022, 0x92b9, 0x8330, 0x7bc7, 0x6a4e, 0x58d5, 0x495c,
+    0x3de3, 0x2c6a, 0x1ef1, 0x0f78};
+
+static char* snames[] = {
+    "Sclosed", "Sclosing", "Sreqsent", "Sackrcvd", "Sacksent", "Sopened",
 };
 
-static char *snames[] =
-{
-	"Sclosed",
-	"Sclosing",
-	"Sreqsent",
-	"Sackrcvd",
-	"Sacksent",
-	"Sopened",
-};
-
-static	void		authtimer(PPP*);
-static	void		chapinit(PPP*);
-static	void		config(PPP*, Pstate*, int);
-static	uint8_t*		escapeuint8_t(PPP*, uint32_t, uint8_t*,
-						uint16_t*);
-static	void		getchap(PPP*, Block*);
-static	Block*		getframe(PPP*, int*);
-static	void		getlqm(PPP*, Block*);
-static	int		getopts(PPP*, Pstate*, Block*);
-static	void		getpap(PPP*, Block*);
-static	void		init(PPP*);
-static	void		invalidate(Ipaddr);
-static	void		ipinproc(PPP*);
-static	char*		ipopen(PPP*);
-static	void		mediainproc(PPP*);
-static	void		newstate(PPP*, Pstate*, int);
-static	int		nipifcs(char*);
-static	void		papinit(PPP*);
-static	void		pinit(PPP*, Pstate*);
-static	void		ppptimer(PPP*);
-static	void		printopts(Pstate*, Block*, int);
-static	void		ptimer(PPP*, Pstate*);
-static	int		putframe(PPP*, int, Block*);
-static	void		putlqm(PPP*);
-static	void		putndb(PPP*, char*);
-static	void		putpaprequest(PPP*);
-static	void		rcv(PPP*, Pstate*, Block*);
-static	void		rejopts(PPP*, Pstate*, Block*, int);
-static	void		sendechoreq(PPP*, Pstate*);
-static	void		sendtermreq(PPP*, Pstate*);
-static	void		setphase(PPP*, int);
-static	void		terminate(PPP*, int);
-static	int		validv4(Ipaddr);
-static  void		dmppkt(char *s, uint8_t *a, int na);
-static	void		getauth(PPP*);
+static void authtimer(PPP*);
+static void chapinit(PPP*);
+static void config(PPP*, Pstate*, int);
+static uint8_t* escapeuint8_t(PPP*, uint32_t, uint8_t*, uint16_t*);
+static void getchap(PPP*, Block*);
+static Block* getframe(PPP*, int*);
+static void getlqm(PPP*, Block*);
+static int getopts(PPP*, Pstate*, Block*);
+static void getpap(PPP*, Block*);
+static void init(PPP*);
+static void invalidate(Ipaddr);
+static void ipinproc(PPP*);
+static char* ipopen(PPP*);
+static void mediainproc(PPP*);
+static void newstate(PPP*, Pstate*, int);
+static int nipifcs(char*);
+static void papinit(PPP*);
+static void pinit(PPP*, Pstate*);
+static void ppptimer(PPP*);
+static void printopts(Pstate*, Block*, int);
+static void ptimer(PPP*, Pstate*);
+static int putframe(PPP*, int, Block*);
+static void putlqm(PPP*);
+static void putndb(PPP*, char*);
+static void putpaprequest(PPP*);
+static void rcv(PPP*, Pstate*, Block*);
+static void rejopts(PPP*, Pstate*, Block*, int);
+static void sendechoreq(PPP*, Pstate*);
+static void sendtermreq(PPP*, Pstate*);
+static void setphase(PPP*, int);
+static void terminate(PPP*, int);
+static int validv4(Ipaddr);
+static void dmppkt(char* s, uint8_t* a, int na);
+static void getauth(PPP*);
 
 void
-pppopen(PPP *ppp, int mediain, int mediaout, char *net,
-	Ipaddr ipaddr, Ipaddr remip,
-	int mtu, int framing)
+pppopen(PPP* ppp, int mediain, int mediaout, char* net, Ipaddr ipaddr,
+        Ipaddr remip, int mtu, int framing)
 {
 	ppp->ipfd = -1;
 	ppp->ipcfd = -1;
@@ -144,11 +128,11 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 
 	ppp->mediain = mediain;
 	ppp->mediaout = mediaout;
-	if(validv4(remip)){
+	if(validv4(remip)) {
 		ipmove(ppp->remote, remip);
 		ppp->remotefrozen = 1;
 	}
-	if(validv4(ipaddr)){
+	if(validv4(ipaddr)) {
 		ipmove(ppp->local, ipaddr);
 		ppp->localfrozen = 1;
 	}
@@ -158,7 +142,7 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	ppp->net = net;
 
 	init(ppp);
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+	switch(rfork(RFPROC | RFMEM | RFNOWAIT)) {
 	case -1:
 		sysfatal("forking mediainproc");
 	case 0:
@@ -171,7 +155,7 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 static void
 init(PPP* ppp)
 {
-	if(ppp->inbuf == nil){
+	if(ppp->inbuf == nil) {
 		ppp->inbuf = allocb(4096);
 		if(ppp->inbuf == nil)
 			abort();
@@ -206,7 +190,7 @@ init(PPP* ppp)
 		auth_freechal(ppp->chap->cs);
 		ppp->chap->cs = nil;
 
-		switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+		switch(rfork(RFPROC | RFMEM | RFNOWAIT)) {
 		case -1:
 			sysfatal("forking ppptimer");
 		case 0:
@@ -221,14 +205,14 @@ init(PPP* ppp)
 }
 
 static void
-setphase(PPP *ppp, int phase)
+setphase(PPP* ppp, int phase)
 {
 	int oldphase;
 
 	oldphase = ppp->phase;
 
 	ppp->phase = phase;
-	switch(phase){
+	switch(phase) {
 	default:
 		sysfatal("ppp: unknown phase %d", phase);
 	case Pdead:
@@ -271,18 +255,18 @@ setphase(PPP *ppp, int phase)
 }
 
 static void
-pinit(PPP *ppp, Pstate *p)
+pinit(PPP* ppp, Pstate* p)
 {
 	p->timeout = 0;
 
-	switch(p->proto){
+	switch(p->proto) {
 	case Plcp:
 		ppp->magic = truerand();
 		ppp->xctlmap = 0xffffffff;
 		ppp->period = 0;
 		p->optmask = 0xffffffff;
 		if(!server)
-			p->optmask &=  ~(Fauth|Fmtu);
+			p->optmask &= ~(Fauth | Fmtu);
 		ppp->rctlmap = 0;
 		ppp->ipcp->state = Sclosed;
 		ppp->ipcp->optmask = 0xffffffff;
@@ -328,22 +312,21 @@ pinit(PPP *ppp, Pstate *p)
  *  change protocol to a new state.
  */
 static void
-newstate(PPP *ppp, Pstate *p, int state)
+newstate(PPP* ppp, Pstate* p, int state)
 {
-	char *err;
+	char* err;
 
 	netlog("ppp: %ux %s->%s ctlmap %lux/%lux flags %lux mtu %ld mru %ld\n",
-		p->proto, snames[p->state], snames[state], ppp->rctlmap,
-		ppp->xctlmap, p->flags,
-		ppp->mtu, ppp->mru);
-	syslog(0, "ppp", "%ux %s->%s ctlmap %lux/%lux flags %lux mtu %ld mru %ld",
-		p->proto, snames[p->state], snames[state], ppp->rctlmap,
-		ppp->xctlmap, p->flags,
-		ppp->mtu, ppp->mru);
+	       p->proto, snames[p->state], snames[state], ppp->rctlmap,
+	       ppp->xctlmap, p->flags, ppp->mtu, ppp->mru);
+	syslog(0, "ppp",
+	       "%ux %s->%s ctlmap %lux/%lux flags %lux mtu %ld mru %ld",
+	       p->proto, snames[p->state], snames[state], ppp->rctlmap,
+	       ppp->xctlmap, p->flags, ppp->mtu, ppp->mru);
 
 	if(p->proto == Plcp) {
 		if(state == Sopened)
-			setphase(ppp, noauth? Pnet : Pauth);
+			setphase(ppp, noauth ? Pnet : Pauth);
 		else if(state == Sclosed)
 			setphase(ppp, Pdead);
 		else if(p->state == Sopened)
@@ -359,7 +342,7 @@ newstate(PPP *ppp, Pstate *p, int state)
 			ppp->unctype = &uncmppc;
 			ppp->uncstate = (*uncmppc.init)(ppp);
 		}
-		if(p->optmask & Fcthwack){
+		if(p->optmask & Fcthwack) {
 			ppp->unctype = &uncthwack;
 			ppp->uncstate = (*uncthwack.init)(ppp);
 		}
@@ -379,13 +362,13 @@ newstate(PPP *ppp, Pstate *p, int state)
 
 /* returns (protocol, information) */
 static Block*
-getframe(PPP *ppp, int *protop)
+getframe(PPP* ppp, int* protop)
 {
-	uint8_t *p, *from, *to;
+	uint8_t* p, *from, *to;
 	int n, len, proto;
 	uint32_t c;
 	uint16_t fcs;
-	Block *buf, *b;
+	Block* buf, *b;
 
 	*protop = 0;
 	if(ppp->framing == 0) {
@@ -393,8 +376,8 @@ getframe(PPP *ppp, int *protop)
 		b = allocb(2000);
 		len = b->lim - b->wptr;
 		n = read(ppp->mediain, b->wptr, len);
- 		dmppkt("RX", b->wptr, n);
-		if(n <= 0 || n == len){
+		dmppkt("RX", b->wptr, n);
+		if(n <= 0 || n == len) {
 			freeb(b);
 
 			return nil;
@@ -403,13 +386,14 @@ getframe(PPP *ppp, int *protop)
 
 		/* should probably copy to another block if small */
 
-		if(pppframing && b->rptr[0] == PPP_addr && b->rptr[1] == PPP_ctl)
+		if(pppframing && b->rptr[0] == PPP_addr &&
+		   b->rptr[1] == PPP_ctl)
 			b->rptr += 2;
 		proto = *b->rptr++;
 		if((proto & 0x1) == 0)
-			proto = (proto<<8) | *b->rptr++;
+			proto = (proto << 8) | *b->rptr++;
 
-		if(b->rptr >= b->wptr){
+		if(b->rptr >= b->wptr) {
 			freeb(b);
 			return nil;
 		}
@@ -422,9 +406,9 @@ getframe(PPP *ppp, int *protop)
 	}
 
 	buf = ppp->inbuf;
-	for(;;){
+	for(;;) {
 		/* read till we hit a frame uint8_t or run out of room */
-		for(p = buf->rptr; buf->wptr < buf->lim;){
+		for(p = buf->rptr; buf->wptr < buf->lim;) {
 			for(; p < buf->wptr; p++)
 				if(*p == HDLC_frame)
 					break;
@@ -433,12 +417,12 @@ getframe(PPP *ppp, int *protop)
 
 			len = buf->lim - buf->wptr;
 			n = read(ppp->mediain, buf->wptr, len);
-			if(n <= 0){
+			if(n <= 0) {
 				syslog(0, LOG, "medium read returns %d: %r", n);
 				buf->wptr = buf->rptr;
 				return nil;
 			}
- 			dmppkt("RX", buf->wptr, n);
+			dmppkt("RX", buf->wptr, n);
 			buf->wptr += n;
 		}
 
@@ -446,9 +430,9 @@ getframe(PPP *ppp, int *protop)
 		fcs = PPP_initfcs;
 		b = allocb(p - buf->rptr);
 		to = b->wptr;
-		for(from = buf->rptr; from != p;){
+		for(from = buf->rptr; from != p;) {
 			c = *from++;
-			if(c == HDLC_esc){
+			if(c == HDLC_esc) {
 				if(from == p)
 					break;
 				c = *from++ ^ 0x20;
@@ -466,26 +450,27 @@ getframe(PPP *ppp, int *protop)
 		b->wptr = to - 2;
 
 		/* return to caller if checksum matches */
-		if(fcs == PPP_goodfcs){
+		if(fcs == PPP_goodfcs) {
 			if(b->rptr[0] == PPP_addr && b->rptr[1] == PPP_ctl)
 				b->rptr += 2;
 			proto = *b->rptr++;
 			if((proto & 0x1) == 0)
-				proto = (proto<<8) | *b->rptr++;
-			if(b->rptr < b->wptr){
+				proto = (proto << 8) | *b->rptr++;
+			if(b->rptr < b->wptr) {
 				ppp->in.uint8_ts += n;
 				ppp->in.packets++;
 				*protop = proto;
 				netlog("getframe 0x%x\n", proto);
 				return b;
 			}
-		} else if(BLEN(b) > 0){
+		} else if(BLEN(b) > 0) {
 			if(ppp->ctcp)
 				compress_error(ppp->ctcp);
 			ppp->in.discards++;
-			netlog("ppp: discard len %ld/%ld cksum %ux (%ux %ux %ux %ux)\n",
-				BLEN(b), BLEN(buf), fcs, b->rptr[0],
-				b->rptr[1], b->rptr[2], b->rptr[3]);
+			netlog("ppp: discard len %ld/%ld cksum %ux (%ux %ux "
+			       "%ux %ux)\n",
+			       BLEN(b), BLEN(buf), fcs, b->rptr[0], b->rptr[1],
+			       b->rptr[2], b->rptr[3]);
 		}
 
 		freeb(b);
@@ -494,14 +479,14 @@ getframe(PPP *ppp, int *protop)
 
 /* send a PPP frame */
 static int
-putframe(PPP *ppp, int proto, Block *b)
+putframe(PPP* ppp, int proto, Block* b)
 {
-	Block *buf;
-	uint8_t *to, *from;
+	Block* buf;
+	uint8_t* to, *from;
 	uint16_t fcs;
 	uint32_t ctlmap;
 	uint8_t c;
-	Block *bp;
+	Block* bp;
 
 	ppp->out.packets++;
 
@@ -511,19 +496,19 @@ putframe(PPP *ppp, int proto, Block *b)
 		ctlmap = ppp->xctlmap;
 
 	/* make sure we have head room */
-	if(b->rptr - b->base < 4){
+	if(b->rptr - b->base < 4) {
 		b = padb(b, 4);
 		b->rptr += 4;
 	}
 
-	netlog("ppp: putframe 0x%ux %ld\n", proto, b->wptr-b->rptr);
+	netlog("ppp: putframe 0x%ux %ld\n", proto, b->wptr - b->rptr);
 
 	/* add in the protocol and address, we'd better have left room */
 	from = b->rptr;
 	*--from = proto;
-	if(!(ppp->lcp->flags&Fpc) || proto > 0x100 || proto == Plcp)
-		*--from = proto>>8;
-	if(pppframing && (!(ppp->lcp->flags&Fac) || proto == Plcp)){
+	if(!(ppp->lcp->flags & Fpc) || proto > 0x100 || proto == Plcp)
+		*--from = proto >> 8;
+	if(pppframing && (!(ppp->lcp->flags & Fac) || proto == Plcp)) {
 		*--from = PPP_ctl;
 		*--from = PPP_addr;
 	}
@@ -533,30 +518,30 @@ putframe(PPP *ppp, int proto, Block *b)
 
 	if(ppp->framing == 0) {
 		to = buf->rptr;
-		for(bp = b; bp; bp = bp->next){
+		for(bp = b; bp; bp = bp->next) {
 			if(bp != b)
 				from = bp->rptr;
-			memmove(to, from, bp->wptr-from);
-			to += bp->wptr-from;
+			memmove(to, from, bp->wptr - from);
+			to += bp->wptr - from;
 		}
 	} else {
 		/* escape and checksum the body */
 		fcs = PPP_initfcs;
 		to = buf->rptr;
-	
+
 		/* add frame marker */
 		*to++ = HDLC_frame;
 
-		for(bp = b; bp; bp = bp->next){
+		for(bp = b; bp; bp = bp->next) {
 			if(bp != b)
 				from = bp->rptr;
-			for(; from < bp->wptr; from++){
+			for(; from < bp->wptr; from++) {
 				c = *from;
-				if(c == HDLC_frame || c == HDLC_esc
-				   || (c < 0x20 && ((1<<c) & ctlmap))){
+				if(c == HDLC_frame || c == HDLC_esc ||
+				   (c < 0x20 && ((1 << c) & ctlmap))) {
 					*to++ = HDLC_esc;
 					*to++ = c ^ 0x20;
-				} else 
+				} else
 					*to++ = c;
 				fcs = (fcs >> 8) ^ fcstab[(fcs ^ c) & 0xff];
 			}
@@ -565,28 +550,28 @@ putframe(PPP *ppp, int proto, Block *b)
 		/* add on and escape the checksum */
 		fcs = ~fcs;
 		c = fcs;
-		if(c == HDLC_frame || c == HDLC_esc
-		   || (c < 0x20 && ((1<<c) & ctlmap))){
+		if(c == HDLC_frame || c == HDLC_esc ||
+		   (c < 0x20 && ((1 << c) & ctlmap))) {
 			*to++ = HDLC_esc;
 			*to++ = c ^ 0x20;
-		} else 
+		} else
 			*to++ = c;
-		c = fcs>>8;
-		if(c == HDLC_frame || c == HDLC_esc
-		   || (c < 0x20 && ((1<<c) & ctlmap))){
+		c = fcs >> 8;
+		if(c == HDLC_frame || c == HDLC_esc ||
+		   (c < 0x20 && ((1 << c) & ctlmap))) {
 			*to++ = HDLC_esc;
 			*to++ = c ^ 0x20;
-		} else 
+		} else
 			*to++ = c;
-	
+
 		/* add frame marker */
 		*to++ = HDLC_frame;
 	}
 
 	/* send */
 	buf->wptr = to;
- 	dmppkt("TX", buf->rptr, BLEN(buf));
-	if(write(ppp->mediaout, buf->rptr, BLEN(buf)) < 0){
+	dmppkt("TX", buf->rptr, BLEN(buf));
+	if(write(ppp->mediaout, buf->rptr, BLEN(buf)) < 0) {
 		qunlock(&ppp->outlock);
 		return -1;
 	}
@@ -597,10 +582,10 @@ putframe(PPP *ppp, int proto, Block *b)
 }
 
 Block*
-alloclcp(int code, int id, int len, Lcpmsg **mp)
+alloclcp(int code, int id, int len, Lcpmsg** mp)
 {
-	Block *b;
-	Lcpmsg *m;
+	Block* b;
+	Lcpmsg* m;
 
 	/*
 	 *  leave room for header
@@ -616,9 +601,8 @@ alloclcp(int code, int id, int len, Lcpmsg **mp)
 	return b;
 }
 
-
 static void
-putlo(Block *b, int type, uint32_t val)
+putlo(Block* b, int type, uint32_t val)
 {
 	*b->wptr++ = type;
 	*b->wptr++ = 6;
@@ -627,7 +611,7 @@ putlo(Block *b, int type, uint32_t val)
 }
 
 static void
-putv4o(Block *b, int type, Ipaddr val)
+putv4o(Block* b, int type, Ipaddr val)
 {
 	*b->wptr++ = type;
 	*b->wptr++ = 6;
@@ -636,7 +620,7 @@ putv4o(Block *b, int type, Ipaddr val)
 }
 
 static void
-putso(Block *b, int type, uint32_t val)
+putso(Block* b, int type, uint32_t val)
 {
 	*b->wptr++ = type;
 	*b->wptr++ = 4;
@@ -645,7 +629,7 @@ putso(Block *b, int type, uint32_t val)
 }
 
 static void
-puto(Block *b, int type)
+puto(Block* b, int type)
 {
 	*b->wptr++ = type;
 	*b->wptr++ = 2;
@@ -655,13 +639,13 @@ puto(Block *b, int type)
  *  send configuration request
  */
 static void
-config(PPP *ppp, Pstate *p, int newid)
+config(PPP* ppp, Pstate* p, int newid)
 {
-	Block *b;
-	Lcpmsg *m;
+	Block* b;
+	Lcpmsg* m;
 	int id;
 
-	if(newid){
+	if(newid) {
 		id = p->id++;
 		p->confid = id;
 		p->timeout = Timeout;
@@ -670,10 +654,11 @@ config(PPP *ppp, Pstate *p, int newid)
 	b = alloclcp(Lconfreq, id, 256, &m);
 	USED(m);
 
-	switch(p->proto){
+	switch(p->proto) {
 	case Plcp:
 		if(p->optmask & Fctlmap)
-			putlo(b, Octlmap, 0);	/* we don't want anything escaped */
+			putlo(b, Octlmap,
+			      0); /* we don't want anything escaped */
 		if(p->optmask & Fmagic)
 			putlo(b, Omagic, ppp->magic);
 		if(p->optmask & Fmtu)
@@ -703,10 +688,10 @@ config(PPP *ppp, Pstate *p, int newid)
 		}
 		break;
 	case Pipcp:
-		if(p->optmask & Fipaddr)
-{syslog(0, "ppp", "requesting %I", ppp->local);
+		if(p->optmask & Fipaddr) {
+			syslog(0, "ppp", "requesting %I", ppp->local);
 			putv4o(b, Oipaddr, ppp->local);
-}
+		}
 		if(primary && (p->optmask & Fipdns))
 			putv4o(b, Oipdns, ppp->dns[0]);
 		if(primary && (p->optmask & Fipdns2))
@@ -716,15 +701,18 @@ config(PPP *ppp, Pstate *p, int newid)
 		if(primary && (p->optmask & Fipwins2))
 			putv4o(b, Oipwins2, ppp->wins[1]);
 		/*
-		 * don't ask for header compression while data compression is still pending.
-		 * perhaps we should restart ipcp negotiation if compression negotiation fails.
+		 * don't ask for header compression while data compression is
+		 * still pending.
+		 * perhaps we should restart ipcp negotiation if compression
+		 * negotiation fails.
 		 */
-		if(!noipcompress && !ppp->ccp->optmask && (p->optmask & Fipcompress)) {
+		if(!noipcompress && !ppp->ccp->optmask &&
+		   (p->optmask & Fipcompress)) {
 			*b->wptr++ = Oipcompress;
 			*b->wptr++ = 6;
 			hnputs(b->wptr, Pvjctcp);
 			b->wptr += 2;
-			*b->wptr++ = MAX_STATES-1;
+			*b->wptr++ = MAX_STATES - 1;
 			*b->wptr++ = 1;
 		}
 		break;
@@ -736,12 +724,12 @@ config(PPP *ppp, Pstate *p, int newid)
 }
 
 static void
-getipinfo(PPP *ppp)
+getipinfo(PPP* ppp)
 {
-	char *av[3];
+	char* av[3];
 	int ndns, nwins;
 	char ip[64];
-	Ndbtuple *t, *nt;
+	Ndbtuple* t, *nt;
 
 	if(!validv4(ppp->local))
 		return;
@@ -751,11 +739,11 @@ getipinfo(PPP *ppp)
 	sprint(ip, "%I", ppp->local);
 	t = csipinfo(ppp->net, "ip", ip, av, 2);
 	ndns = nwins = 0;
-	for(nt = t; nt != nil; nt = nt->entry){
-		if(strcmp(nt->attr, "dns") == 0){
+	for(nt = t; nt != nil; nt = nt->entry) {
+		if(strcmp(nt->attr, "dns") == 0) {
 			if(ndns < 2)
 				parseip(ppp->dns[ndns++], nt->val);
-		} else if(strcmp(nt->attr, "wins") == 0){
+		} else if(strcmp(nt->attr, "wins") == 0) {
 			if(nwins < 2)
 				parseip(ppp->wins[nwins++], nt->val);
 		}
@@ -772,16 +760,16 @@ getipinfo(PPP *ppp)
  *			 1 if packet was rejected
  */
 static int
-getopts(PPP *ppp, Pstate *p, Block *b)
+getopts(PPP* ppp, Pstate* p, Block* b)
 {
-	Lcpmsg *m, *repm;	
-	Lcpopt *o;
-	uint8_t *cp, *ap;
+	Lcpmsg* m, *repm;
+	Lcpopt* o;
+	uint8_t* cp, *ap;
 	uint32_t rejecting, nacking, flags, proto, chapproto;
 	uint32_t mtu, ctlmap, period;
 	uint32_t x;
-	Block *repb;
-	Comptype *ctype;
+	Block* repb;
+	Comptype* ctype;
 	Ipaddr ipaddr;
 
 	rejecting = 0;
@@ -804,17 +792,17 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	repb->wptr += b->wptr - m->data;
 
 	/* look for options we don't recognize or like */
-	for(cp = m->data; cp < b->wptr; cp += o->len){
+	for(cp = m->data; cp < b->wptr; cp += o->len) {
 		o = (Lcpopt*)cp;
-		if(cp + o->len > b->wptr || o->len==0){
+		if(cp + o->len > b->wptr || o->len == 0) {
 			freeb(repb);
 			netlog("ppp: bad option length %ux\n", o->type);
 			return -1;
 		}
 
-		switch(p->proto){
+		switch(p->proto) {
 		case Plcp:
-			switch(o->type){
+			switch(o->type) {
 			case Oac:
 				flags |= Fac;
 				continue;
@@ -835,18 +823,19 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				proto = nhgets(o->data);
 				if(proto != Plqm)
 					break;
-				x = nhgetl(o->data+2)*10;
-				period = (x+Period-1)/Period;
+				x = nhgetl(o->data + 2) * 10;
+				period = (x + Period - 1) / Period;
 				continue;
 			case Oauth:
 				proto = nhgets(o->data);
-				if(proto == Ppasswd && !server){
+				if(proto == Ppasswd && !server) {
 					chapproto = APpasswd;
 					continue;
 				}
 				if(proto != Pchap)
 					break;
-				if(o->data[2] != APmd5 && o->data[2] != APmschap)
+				if(o->data[2] != APmd5 &&
+				   o->data[2] != APmschap)
 					break;
 				chapproto = o->data[2];
 				continue;
@@ -855,21 +844,21 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 		case Pccp:
 			if(nocompress)
 				break;
-			switch(o->type){
+			switch(o->type) {
 			case Octhwack:
 				break;
 			/*
-				if(o->len == 2){
-					ctype = &cthwack;
-					continue;
-				}
-				if(!nacking){
-					nacking = 1;
-					repb->wptr = repm->data;
-					repm->code = Lconfnak;
-				}
-				puto(repb, Octhwack);
-				continue;
+			        if(o->len == 2){
+			                ctype = &cthwack;
+			                continue;
+			        }
+			        if(!nacking){
+			                nacking = 1;
+			                repb->wptr = repm->data;
+			                repm->code = Lconfnak;
+			        }
+			        puto(repb, Octhwack);
+			        continue;
 			*/
 			case Ocmppc:
 				x = nhgetl(o->data);
@@ -879,9 +868,10 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				//	continue;
 
 				/* stop ppp loops */
-				if((x&0x41) == 0 || ppp->ctries++ > 5) {
+				if((x & 0x41) == 0 || ppp->ctries++ > 5) {
 					/*
-					 * turn off requests as well - I don't think this
+					 * turn off requests as well - I don't
+					 * think this
 					 * is needed in the standard
 					 */
 					p->optmask &= ~Fcmppc;
@@ -891,10 +881,11 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 					continue;
 				if(x & 1) {
 					ctype = &cmppc;
-					ppp->sendencrypted = (o->data[3]&0x40) == 0x40;
+					ppp->sendencrypted =
+					    (o->data[3] & 0x40) == 0x40;
 					continue;
 				}
-				if(!nacking){
+				if(!nacking) {
 					nacking = 1;
 					repb->wptr = repm->data;
 					repm->code = Lconfnak;
@@ -909,14 +900,14 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			}
 			break;
 		case Pipcp:
-			switch(o->type){
-			case Oipaddr:	
+			switch(o->type) {
+			case Oipaddr:
 				v4tov6(ipaddr, o->data);
 				if(!validv4(ppp->remote))
 					continue;
-				if(!validv4(ipaddr) && !rejecting){
+				if(!validv4(ipaddr) && !rejecting) {
 					/* other side requesting an address */
-					if(!nacking){
+					if(!nacking) {
 						nacking = 1;
 						repb->wptr = repm->data;
 						repm->code = Lconfnak;
@@ -927,10 +918,10 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			case Oipdns:
 				ap = ppp->dns[0];
 				goto ipinfo;
-			case Oipdns2:	
+			case Oipdns2:
 				ap = ppp->dns[1];
 				goto ipinfo;
-			case Oipwins:	
+			case Oipwins:
 				ap = ppp->wins[0];
 				goto ipinfo;
 			case Oipwins2:
@@ -942,9 +933,9 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				if(!validv4(ap))
 					break;
 				v4tov6(ipaddr, o->data);
-				if(!validv4(ipaddr) && !rejecting){
+				if(!validv4(ipaddr) && !rejecting) {
 					/* other side requesting an address */
-					if(!nacking){
+					if(!nacking) {
 						nacking = 1;
 						repb->wptr = repm->data;
 						repm->code = Lconfnak;
@@ -954,13 +945,17 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				continue;
 			case Oipcompress:
 				/*
-				 * don't compress tcp header if we've negotiated data compression.
-				 * tcp header compression has very poor performance if there is an error.
+				 * don't compress tcp header if we've negotiated
+				 * data compression.
+				 * tcp header compression has very poor
+				 * performance if there is an error.
 				 */
 				proto = nhgets(o->data);
-				if(noipcompress || proto != Pvjctcp || ppp->ctype != nil)
+				if(noipcompress || proto != Pvjctcp ||
+				   ppp->ctype != nil)
 					break;
-				if(compress_negotiate(ppp->ctcp, o->data+2) < 0)
+				if(compress_negotiate(ppp->ctcp, o->data + 2) <
+				   0)
 					break;
 				flags |= Fipcompress;
 				continue;
@@ -969,7 +964,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 		}
 
 		/* come here if option is not recognized */
-		if(!rejecting){
+		if(!rejecting) {
 			rejecting = 1;
 			repb->wptr = repm->data;
 			repm->code = Lconfrej;
@@ -980,8 +975,8 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	}
 
 	/* permanent changes only after we know that we liked the packet */
-	if(!rejecting && !nacking){
-		switch(p->proto){
+	if(!rejecting && !nacking) {
+		switch(p->proto) {
 		case Plcp:
 			ppp->period = period;
 			ppp->xctlmap = ctlmap;
@@ -992,10 +987,10 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			ppp->mtu = mtu;
 			if(chapproto)
 				ppp->chap->proto = chapproto;
-			
+
 			break;
 		case Pccp:
-			if(ppp->ctype != nil){
+			if(ppp->ctype != nil) {
 				(*ppp->ctype->fini)(ppp->cstate);
 				ppp->cstate = nil;
 			}
@@ -1005,7 +1000,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			break;
 		case Pipcp:
 			if(validv4(ipaddr) && ppp->remotefrozen == 0)
- 				ipmove(ppp->remote, ipaddr);
+				ipmove(ppp->remote, ipaddr);
 			break;
 		}
 		p->flags = flags;
@@ -1019,11 +1014,11 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	return rejecting || nacking;
 }
 static void
-dmppkt(char *s, uint8_t *a, int na)
+dmppkt(char* s, uint8_t* a, int na)
 {
 	int i;
 
-	if (debug < 3)
+	if(debug < 3)
 		return;
 
 	fprint(2, "%s", s);
@@ -1033,11 +1028,11 @@ dmppkt(char *s, uint8_t *a, int na)
 }
 
 static void
-dropoption(Pstate *p, Lcpopt *o)
+dropoption(Pstate* p, Lcpopt* o)
 {
 	unsigned n = o->type;
 
-	switch(n){
+	switch(n) {
 	case Oipaddr:
 		break;
 	case Oipdns:
@@ -1053,8 +1048,8 @@ dropoption(Pstate *p, Lcpopt *o)
 		p->optmask &= ~Fipwins2;
 		break;
 	default:
-		if(o->type < 8*sizeof(p->optmask))
-			p->optmask &= ~(1<<o->type);
+		if(o->type < 8 * sizeof(p->optmask))
+			p->optmask &= ~(1 << o->type);
 		break;
 	}
 }
@@ -1064,31 +1059,30 @@ dropoption(Pstate *p, Lcpopt *o)
  *  don't like (except for ipcp address nak).
  */
 static void
-rejopts(PPP *ppp, Pstate *p, Block *b, int code)
+rejopts(PPP* ppp, Pstate* p, Block* b, int code)
 {
-	Lcpmsg *m;
-	Lcpopt *o;
+	Lcpmsg* m;
+	Lcpopt* o;
 	uint8_t newip[IPaddrlen];
 
 	/* just give up trying what the other side doesn't like */
 	m = (Lcpmsg*)b->rptr;
-	for(b->rptr = m->data; b->rptr < b->wptr; b->rptr += o->len){
+	for(b->rptr = m->data; b->rptr < b->wptr; b->rptr += o->len) {
 		o = (Lcpopt*)b->rptr;
-		if(b->rptr + o->len > b->wptr){
+		if(b->rptr + o->len > b->wptr) {
 			netlog("ppp: bad roption length %ux\n", o->type);
 			return;
 		}
 
-		if(code == Lconfrej){
+		if(code == Lconfrej) {
 			dropoption(p, o);
-			netlog("ppp: %ux rejecting %d\n",
-					p->proto, o->type);
+			netlog("ppp: %ux rejecting %d\n", p->proto, o->type);
 			continue;
 		}
 
-		switch(p->proto){
+		switch(p->proto) {
 		case Plcp:
-			switch(o->type){
+			switch(o->type) {
 			case Octlmap:
 				ppp->rctlmap = nhgetl(o->data);
 				break;
@@ -1099,54 +1093,58 @@ rejopts(PPP *ppp, Pstate *p, Block *b, int code)
 				exits("ppp: CHAP");
 				break;
 			default:
-				if(o->type < 8*sizeof(p->optmask))
-					p->optmask &= ~(1<<o->type);
+				if(o->type < 8 * sizeof(p->optmask))
+					p->optmask &= ~(1 << o->type);
 				break;
 			};
 			break;
 		case Pccp:
-			switch(o->type){
+			switch(o->type) {
 			default:
 				dropoption(p, o);
 				break;
 			}
 			break;
 		case Pipcp:
-			switch(o->type){
+			switch(o->type) {
 			case Oipaddr:
-syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
-				/* if we're a server, don't let other end change our addr */
-				if(ppp->localfrozen){
+				syslog(0, "ppp", "rejected addr %I with %V",
+				       ppp->local, o->data);
+				/* if we're a server, don't let other end change
+				 * our addr */
+				if(ppp->localfrozen) {
 					dropoption(p, o);
 					break;
 				}
 
 				/* accept whatever server tells us */
-				if(!validv4(ppp->local)){
+				if(!validv4(ppp->local)) {
 					v4tov6(ppp->local, o->data);
 					dropoption(p, o);
 					break;
 				}
 
-				/* if he didn't like our addr, ask for a generic one */
+				/* if he didn't like our addr, ask for a generic
+				 * one */
 				v4tov6(newip, o->data);
-				if(!validv4(newip)){
+				if(!validv4(newip)) {
 					invalidate(ppp->local);
 					break;
 				}
 
-				/* if he gives us something different, use it anyways */
+				/* if he gives us something different, use it
+				 * anyways */
 				v4tov6(ppp->local, o->data);
 				dropoption(p, o);
 				break;
 			case Oipdns:
-				if (!validv4(ppp->dns[0])){
+				if(!validv4(ppp->dns[0])) {
 					v4tov6(ppp->dns[0], o->data);
 					dropoption(p, o);
 					break;
 				}
 				v4tov6(newip, o->data);
-				if(!validv4(newip)){
+				if(!validv4(newip)) {
 					invalidate(ppp->dns[0]);
 					break;
 				}
@@ -1154,13 +1152,13 @@ syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
 				dropoption(p, o);
 				break;
 			case Oipwins:
-				if (!validv4(ppp->wins[0])){
+				if(!validv4(ppp->wins[0])) {
 					v4tov6(ppp->wins[0], o->data);
 					dropoption(p, o);
 					break;
 				}
 				v4tov6(newip, o->data);
-				if(!validv4(newip)){
+				if(!validv4(newip)) {
 					invalidate(ppp->wins[0]);
 					break;
 				}
@@ -1168,13 +1166,13 @@ syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
 				dropoption(p, o);
 				break;
 			case Oipdns2:
-				if (!validv4(ppp->dns[1])){
+				if(!validv4(ppp->dns[1])) {
 					v4tov6(ppp->dns[1], o->data);
 					dropoption(p, o);
 					break;
 				}
 				v4tov6(newip, o->data);
-				if(!validv4(newip)){
+				if(!validv4(newip)) {
 					invalidate(ppp->dns[1]);
 					break;
 				}
@@ -1182,13 +1180,13 @@ syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
 				dropoption(p, o);
 				break;
 			case Oipwins2:
-				if (!validv4(ppp->wins[1])){
+				if(!validv4(ppp->wins[1])) {
 					v4tov6(ppp->wins[1], o->data);
 					dropoption(p, o);
 					break;
 				}
 				v4tov6(newip, o->data);
-				if(!validv4(newip)){
+				if(!validv4(newip)) {
 					invalidate(ppp->wins[1]);
 					break;
 				}
@@ -1204,43 +1202,42 @@ syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
 	}
 }
 
-
 /*
  *  put a messages through the lcp or ipcp state machine.  They are
  *  very similar.
  */
 static void
-rcv(PPP *ppp, Pstate *p, Block *b)
+rcv(PPP* ppp, Pstate* p, Block* b)
 {
 	uint32_t len;
 	int err;
-	Lcpmsg *m;
+	Lcpmsg* m;
 	int proto;
 
-	if(BLEN(b) < 4){
+	if(BLEN(b) < 4) {
 		netlog("ppp: short lcp message\n");
 		freeb(b);
 		return;
 	}
 	m = (Lcpmsg*)b->rptr;
 	len = nhgets(m->len);
-	if(BLEN(b) < len){
+	if(BLEN(b) < len) {
 		netlog("ppp: short lcp message\n");
 		freeb(b);
 		return;
 	}
 
-	netlog("ppp: %ux rcv %d len %ld id %d/%d/%d\n",
-		p->proto, m->code, len, m->id, p->confid, p->id);
+	netlog("ppp: %ux rcv %d len %ld id %d/%d/%d\n", p->proto, m->code, len,
+	       m->id, p->confid, p->id);
 
-	if(p->proto != Plcp && ppp->lcp->state != Sopened){
+	if(p->proto != Plcp && ppp->lcp->state != Sopened) {
 		netlog("ppp: non-lcp with lcp not open\n");
 		freeb(b);
 		return;
 	}
 
 	qlock(ppp);
-	switch(m->code){
+	switch(m->code) {
 	case Lconfreq:
 		printopts(p, b, 0);
 		err = getopts(ppp, p, b);
@@ -1248,9 +1245,9 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 			break;
 
 		if(m->id == p->rcvdconfid)
-			break;			/* don't change state for duplicates */
+			break; /* don't change state for duplicates */
 
-		switch(p->state){
+		switch(p->state) {
 		case Sackrcvd:
 			if(err)
 				break;
@@ -1274,16 +1271,16 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 		}
 		break;
 	case Lconfack:
-		if(p->confid != m->id){
+		if(p->confid != m->id) {
 			/* ignore if it isn't the message we're sending */
 			netlog("ppp: dropping confack\n");
 			break;
 		}
-		p->confid = -1;		/* ignore duplicates */
-		p->id++;		/* avoid sending duplicates */
+		p->confid = -1; /* ignore duplicates */
+		p->id++;        /* avoid sending duplicates */
 
 		netlog("ppp: recv confack\n");
-		switch(p->state){
+		switch(p->state) {
 		case Sopened:
 		case Sackrcvd:
 			config(ppp, p, 1);
@@ -1304,10 +1301,10 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 			netlog("ppp: dropping confrej or confnak\n");
 			break;
 		}
-		p->confid = -1;		/* ignore duplicates */
-		p->id++;		/* avoid sending duplicates */
+		p->confid = -1; /* ignore duplicates */
+		p->id++;        /* avoid sending duplicates */
 
-		switch(p->state){
+		switch(p->state) {
 		case Sopened:
 		case Sackrcvd:
 			config(ppp, p, 1);
@@ -1325,7 +1322,7 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 		m->code = Ltermack;
 		putframe(ppp, p->proto, b);
 
-		switch(p->state){
+		switch(p->state) {
 		case Sackrcvd:
 		case Sacksent:
 			newstate(ppp, p, Sreqsent);
@@ -1336,12 +1333,13 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 		}
 		break;
 	case Ltermack:
-		if(p->termid != m->id)	/* ignore if it isn't the message we're sending */
+		if(p->termid !=
+		   m->id) /* ignore if it isn't the message we're sending */
 			break;
 
 		if(p->proto == Plcp)
 			ppp->ipcp->state = Sclosed;
-		switch(p->state){
+		switch(p->state) {
 		case Sclosing:
 			newstate(ppp, p, Sclosed);
 			break;
@@ -1355,7 +1353,7 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 		}
 		break;
 	case Lcoderej:
-		//newstate(ppp, p, Sclosed);
+		// newstate(ppp, p, Sclosed);
 		syslog(0, LOG, "code reject %d\n", m->data[0]);
 		break;
 	case Lprotorej:
@@ -1365,7 +1363,7 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 			newstate(ppp, ppp->ccp, Sclosed);
 		break;
 	case Lechoreq:
-		if(BLEN(b) < 8){
+		if(BLEN(b) < 8) {
 			netlog("ppp: short lcp echo request\n");
 			freeb(b);
 			return;
@@ -1408,13 +1406,13 @@ rcv(PPP *ppp, Pstate *p, Block *b)
  *  timer for protocol state machine
  */
 static void
-ptimer(PPP *ppp, Pstate *p)
+ptimer(PPP* ppp, Pstate* p)
 {
 	if(p->state == Sopened || p->state == Sclosed)
 		return;
 
 	p->timeout--;
-	switch(p->state){
+	switch(p->state) {
 	case Sclosing:
 		sendtermreq(ppp, p);
 		break;
@@ -1458,21 +1456,20 @@ authtimer(PPP* ppp)
 	}
 }
 
-
 /*
  *  timer for ppp
  */
 static void
-ppptimer(PPP *ppp)
+ppptimer(PPP* ppp)
 {
-	while(!dying){
+	while(!dying) {
 		sleep(Period);
 		qlock(ppp);
 
 		netlog("ppp: ppptimer\n");
 		ptimer(ppp, ppp->lcp);
 		if(ppp->lcp->state == Sopened) {
-			switch(ppp->phase){
+			switch(ppp->phase) {
 			case Pnet:
 				ptimer(ppp, ppp->ccp);
 				ptimer(ppp, ppp->ipcp);
@@ -1484,7 +1481,7 @@ ppptimer(PPP *ppp)
 		}
 
 		/* link quality measurement */
-		if(ppp->period && --(ppp->timeout) <= 0){
+		if(ppp->period && --(ppp->timeout) <= 0) {
 			ppp->timeout = ppp->period;
 			putlqm(ppp);
 		}
@@ -1494,7 +1491,7 @@ ppptimer(PPP *ppp)
 }
 
 static void
-setdefroute(char *net, Ipaddr gate)
+setdefroute(char* net, Ipaddr gate)
 {
 	int fd;
 	char path[128];
@@ -1507,56 +1504,54 @@ setdefroute(char *net, Ipaddr gate)
 	close(fd);
 }
 
-enum
-{
-	Mofd=	32,
+enum { Mofd = 32,
 };
-struct
-{
+struct {
 	Lock;
 
-	int	fd[Mofd];
-	int	cfd[Mofd];
-	int	n;
+	int fd[Mofd];
+	int cfd[Mofd];
+	int n;
 } old;
 
 static char*
-ipopen(PPP *ppp)
+ipopen(PPP* ppp)
 {
 	static int ipinprocpid;
 	int n, cfd, fd;
 	char path[128];
 	char buf[128];
 
-	if(ipinprocpid <= 0){
+	if(ipinprocpid <= 0) {
 		snprint(path, sizeof path, "%s/ipifc/clone", ppp->net);
 		cfd = open(path, ORDWR);
 		if(cfd < 0)
 			return "can't open ip interface";
 
 		n = read(cfd, buf, sizeof(buf) - 1);
-		if(n <= 0){
+		if(n <= 0) {
 			close(cfd);
 			return "can't open ip interface";
 		}
 		buf[n] = 0;
 
-		netlog("ppp: setting up IP interface local %I remote %I (valid %d)\n",
-			ppp->local, ppp->remote, validv4(ppp->remote));
+		netlog("ppp: setting up IP interface local %I remote %I (valid "
+		       "%d)\n",
+		       ppp->local, ppp->remote, validv4(ppp->remote));
 		if(!validv4(ppp->remote))
 			ipmove(ppp->remote, ppp->local);
 
 		snprint(path, sizeof path, "%s/ipifc/%s/data", ppp->net, buf);
 		fd = open(path, ORDWR);
-		if(fd < 0){
+		if(fd < 0) {
 			close(cfd);
 			return "can't open ip interface";
 		}
 
 		if(fprint(cfd, "bind pkt") < 0)
 			return "binding pkt to ip interface";
-		if(fprint(cfd, "add %I 255.255.255.255 %I %lud proxy", ppp->local,
-			ppp->remote, ppp->mtu-10) < 0){
+		if(fprint(cfd, "add %I 255.255.255.255 %I %lud proxy",
+		          ppp->local, ppp->remote, ppp->mtu - 10) < 0) {
 			close(cfd);
 			return "can't set addresses";
 		}
@@ -1568,7 +1563,7 @@ ipopen(PPP *ppp)
 		/* signal main() that ip is configured */
 		rendezvous((void*)Rmagic, 0);
 
-		switch(ipinprocpid = rfork(RFPROC|RFMEM|RFNOWAIT)){
+		switch(ipinprocpid = rfork(RFPROC | RFMEM | RFNOWAIT)) {
 		case -1:
 			sysfatal("forking ipinproc");
 		case 0:
@@ -1579,18 +1574,19 @@ ipopen(PPP *ppp)
 	} else {
 		/* we may have changed addresses */
 		if(ipcmp(ppp->local, ppp->curlocal) != 0 ||
-		   ipcmp(ppp->remote, ppp->curremote) != 0){
+		   ipcmp(ppp->remote, ppp->curremote) != 0) {
 			snprint(buf, sizeof buf, "remove %I 255.255.255.255 %I",
-			    ppp->curlocal, ppp->curremote);
+			        ppp->curlocal, ppp->curremote);
 			if(fprint(ppp->ipcfd, "%s", buf) < 0)
 				syslog(0, "ppp", "can't %s: %r", buf);
-			snprint(buf, sizeof buf, "add %I 255.255.255.255 %I %lud proxy",
-			    ppp->local, ppp->remote, ppp->mtu-10);
+			snprint(buf, sizeof buf,
+			        "add %I 255.255.255.255 %I %lud proxy",
+			        ppp->local, ppp->remote, ppp->mtu - 10);
 			if(fprint(ppp->ipcfd, "%s", buf) < 0)
 				syslog(0, "ppp", "can't %s: %r", buf);
 		}
-		syslog(0, "ppp", "%I/%I -> %I/%I", ppp->curlocal, ppp->curremote,
-		   ppp->local, ppp->remote);
+		syslog(0, "ppp", "%I/%I -> %I/%I", ppp->curlocal,
+		       ppp->curremote, ppp->local, ppp->remote);
 	}
 	ipmove(ppp->curlocal, ppp->local);
 	ipmove(ppp->curremote, ppp->remote);
@@ -1600,19 +1596,19 @@ ipopen(PPP *ppp)
 
 /* return next input IP packet */
 Block*
-pppread(PPP *ppp)
+pppread(PPP* ppp)
 {
-	Block *b, *reply;
+	Block* b, *reply;
 	int proto, len;
-	Lcpmsg *m;
+	Lcpmsg* m;
 
-	while(!dying){
+	while(!dying) {
 		b = getframe(ppp, &proto);
 		if(b == nil)
 			return nil;
 
-Again:
-		switch(proto){
+	Again:
+		switch(proto) {
 		case Plcp:
 			rcv(ppp, ppp->lcp, b);
 			break;
@@ -1639,7 +1635,7 @@ Again:
 			break;
 		case Pvjctcp:
 		case Pvjutcp:
-			if(ppp->ipcp->state != Sopened){
+			if(ppp->ipcp->state != Sopened) {
 				netlog("ppp: VJ tcp recved: link not up\n");
 				freeb(b);
 				break;
@@ -1652,19 +1648,21 @@ Again:
 			break;
 		case Pcdata:
 			ppp->stat.uncomp++;
-			if(ppp->ccp->state != Sopened){
-				netlog("ppp: compressed data recved: link not up\n");
+			if(ppp->ccp->state != Sopened) {
+				netlog("ppp: compressed data recved: link not "
+				       "up\n");
 				freeb(b);
 				break;
 			}
 			if(ppp->unctype == nil) {
-				netlog("ppp: compressed data recved: no compression\n");
+				netlog("ppp: compressed data recved: no "
+				       "compression\n");
 				freeb(b);
 				break;
 			}
 			len = BLEN(b);
 			b = (*ppp->unctype->uncompress)(ppp, b, &proto, &reply);
-			if(reply != nil){
+			if(reply != nil) {
 				/* send resetreq */
 				ppp->stat.uncompreset++;
 				putframe(ppp, Pccp, reply);
@@ -1674,11 +1672,13 @@ Again:
 				break;
 			ppp->stat.uncompin += len;
 			ppp->stat.uncompout += BLEN(b);
-/* netlog("ppp: uncompressed frame %ux %d %d (%d uint8_ts)\n", proto, b->rptr[0], b->rptr[1], BLEN(b)); */
-			goto Again;	
+			/* netlog("ppp: uncompressed frame %ux %d %d (%d
+			 * uint8_ts)\n", proto, b->rptr[0], b->rptr[1],
+			 * BLEN(b)); */
+			goto Again;
 		default:
 			syslog(0, LOG, "unknown proto %ux", proto);
-			if(ppp->lcp->state == Sopened){
+			if(ppp->lcp->state == Sopened) {
 				/* reject the protocol */
 				b->rptr -= 6;
 				m = (Lcpmsg*)b->rptr;
@@ -1697,7 +1697,7 @@ Again:
 
 /* transmit an IP packet */
 int
-pppwrite(PPP *ppp, Block *b)
+pppwrite(PPP* ppp, Block* b)
 {
 	int proto;
 	int len;
@@ -1715,9 +1715,9 @@ pppwrite(PPP *ppp, Block *b)
 	proto = Pip;
 	ppp->stat.ipsend++;
 
-	if(ppp->ipcp->flags & Fipcompress){
+	if(ppp->ipcp->flags & Fipcompress) {
 		b = compress(ppp->ctcp, b, &proto);
-		if(b == nil){
+		if(b == nil) {
 			qunlock(ppp);
 			return 0;
 		}
@@ -1733,7 +1733,7 @@ pppwrite(PPP *ppp, Block *b)
 			ppp->stat.compin += len;
 			ppp->stat.compout += blen(b);
 		}
-	} 
+	}
 
 	if(putframe(ppp, proto, b) < 0) {
 		qunlock(ppp);
@@ -1748,7 +1748,7 @@ pppwrite(PPP *ppp, Block *b)
 }
 
 static void
-terminate(PPP *ppp, int kill)
+terminate(PPP* ppp, int kill)
 {
 	close(ppp->ipfd);
 	ppp->ipfd = -1;
@@ -1765,31 +1765,30 @@ terminate(PPP *ppp, int kill)
 }
 
 typedef struct Iphdr Iphdr;
-struct Iphdr
-{
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;		/* Time to live */
-	uint8_t	proto;		/* Protocol */
-	uint8_t	cksum[2];	/* Header checksum */
-	uint8_t	src[4];		/* Ip source (uint8_t ordering unimportant) */
-	uint8_t	dst[4];		/* Ip destination (uint8_t ordering unimportant) */
+struct Iphdr {
+	uint8_t vihl;      /* Version and header length */
+	uint8_t tos;       /* Type of service */
+	uint8_t length[2]; /* packet length */
+	uint8_t id[2];     /* Identification */
+	uint8_t frag[2];   /* Fragment information */
+	uint8_t ttl;       /* Time to live */
+	uint8_t proto;     /* Protocol */
+	uint8_t cksum[2];  /* Header checksum */
+	uint8_t src[4];    /* Ip source (uint8_t ordering unimportant) */
+	uint8_t dst[4];    /* Ip destination (uint8_t ordering unimportant) */
 };
 
 static void
-ipinproc(PPP *ppp)
+ipinproc(PPP* ppp)
 {
-	Block *b;
+	Block* b;
 	int m, n;
-	Iphdr *ip;
+	Iphdr* ip;
 
-	while(!dying){
+	while(!dying) {
 
 		b = allocb(Buflen);
-		n = read(ppp->ipfd, b->wptr, b->lim-b->wptr);
+		n = read(ppp->ipfd, b->wptr, b->lim - b->wptr);
 		if(n < 0)
 			break;
 
@@ -1806,7 +1805,7 @@ ipinproc(PPP *ppp)
 }
 
 static void
-catchdie(void *v, char *msg)
+catchdie(void* v, char* msg)
 {
 	if(strstr(msg, "die") != nil)
 		noted(NCONT);
@@ -1815,39 +1814,39 @@ catchdie(void *v, char *msg)
 }
 
 static void
-hexdump(uint8_t *a, int na)
+hexdump(uint8_t* a, int na)
 {
 	int i;
 	char buf[80];
 
 	fprint(2, "dump %p %d\n", a, na);
 	buf[0] = '\0';
-	for(i=0; i<na; i++){
-		sprint(buf+strlen(buf), " %.2ux", a[i]);
-		if(i%16 == 7)
-			sprint(buf+strlen(buf), " --");
-		if(i%16==15){
-			sprint(buf+strlen(buf), "\n");
+	for(i = 0; i < na; i++) {
+		sprint(buf + strlen(buf), " %.2ux", a[i]);
+		if(i % 16 == 7)
+			sprint(buf + strlen(buf), " --");
+		if(i % 16 == 15) {
+			sprint(buf + strlen(buf), "\n");
 			write(2, buf, strlen(buf));
 			buf[0] = '\0';
 		}
 	}
-	if(i%16){
-		sprint(buf+strlen(buf), "\n");
+	if(i % 16) {
+		sprint(buf + strlen(buf), "\n");
 		write(2, buf, strlen(buf));
 	}
 }
 
 static void
-mediainproc(PPP *ppp)
+mediainproc(PPP* ppp)
 {
-	Block *b;
+	Block* b;
 	Ipaddr remote;
 
 	notify(catchdie);
-	while(!dying){
+	while(!dying) {
 		b = pppread(ppp);
-		if(b == nil){
+		if(b == nil) {
 			syslog(0, LOG, "pppread return nil");
 			break;
 		}
@@ -1859,14 +1858,14 @@ mediainproc(PPP *ppp)
 		}
 
 		if(server) {
-			v4tov6(remote, b->rptr+12);
+			v4tov6(remote, b->rptr + 12);
 			if(ipcmp(remote, ppp->remote) != 0) {
 				ppp->stat.iprecvbadsrc++;
 				freeb(b);
 				continue;
 			}
 		}
-		if(debug > 1){
+		if(debug > 1) {
 			netlog("ip write pkt %p %d\n", b->rptr, blen(b));
 			hexdump(b->rptr, blen(b));
 		}
@@ -1882,30 +1881,31 @@ mediainproc(PPP *ppp)
 	netlog(": remote=%I: ppp shutting down\n", ppp->remote);
 	syslog(0, LOG, ": remote=%I: ppp shutting down", ppp->remote);
 	syslog(0, LOG, "\t\tppp send = %lud/%lud recv= %lud/%lud",
-		ppp->out.packets, ppp->out.uint8_ts,
-		ppp->in.packets, ppp->in.uint8_ts);
+	       ppp->out.packets, ppp->out.uint8_ts, ppp->in.packets,
+	       ppp->in.uint8_ts);
 	syslog(0, LOG, "\t\tip send=%lud", ppp->stat.ipsend);
 	syslog(0, LOG, "\t\tip recv=%lud notup=%lud badsrc=%lud",
-		ppp->stat.iprecv, ppp->stat.iprecvnotup, ppp->stat.iprecvbadsrc);
+	       ppp->stat.iprecv, ppp->stat.iprecvnotup, ppp->stat.iprecvbadsrc);
 	syslog(0, LOG, "\t\tcompress=%lud in=%lud out=%lud reset=%lud",
-		ppp->stat.comp, ppp->stat.compin, ppp->stat.compout, ppp->stat.compreset);
+	       ppp->stat.comp, ppp->stat.compin, ppp->stat.compout,
+	       ppp->stat.compreset);
 	syslog(0, LOG, "\t\tuncompress=%lud in=%lud out=%lud reset=%lud",
-		ppp->stat.uncomp, ppp->stat.uncompin, ppp->stat.uncompout,
-		ppp->stat.uncompreset);
-	syslog(0, LOG, "\t\tvjin=%lud vjout=%lud vjfail=%lud", 
-		ppp->stat.vjin, ppp->stat.vjout, ppp->stat.vjfail);
+	       ppp->stat.uncomp, ppp->stat.uncompin, ppp->stat.uncompout,
+	       ppp->stat.uncompreset);
+	syslog(0, LOG, "\t\tvjin=%lud vjout=%lud vjfail=%lud", ppp->stat.vjin,
+	       ppp->stat.vjout, ppp->stat.vjfail);
 }
 
 /*
  *  link quality management
  */
 static void
-getlqm(PPP *ppp, Block *b)
+getlqm(PPP* ppp, Block* b)
 {
-	Qualpkt *p;
+	Qualpkt* p;
 
 	p = (Qualpkt*)b->rptr;
-	if(BLEN(b) == sizeof(Qualpkt)){
+	if(BLEN(b) == sizeof(Qualpkt)) {
 		ppp->in.reports++;
 		ppp->pout.reports = nhgetl(p->peeroutreports);
 		ppp->pout.packets = nhgetl(p->peeroutpackets);
@@ -1918,19 +1918,17 @@ getlqm(PPP *ppp, Block *b)
 
 		/* save our numbers at time of reception */
 		memmove(&ppp->sin, &ppp->in, sizeof(Qualstats));
-
 	}
 	freeb(b);
 	if(ppp->period == 0)
 		putlqm(ppp);
-
 }
 
 static void
-putlqm(PPP *ppp)
+putlqm(PPP* ppp)
 {
-	Qualpkt *p;
-	Block *b;
+	Qualpkt* p;
+	Block* b;
 
 	b = allocb(sizeof(Qualpkt));
 	b->wptr += sizeof(Qualpkt);
@@ -1950,9 +1948,9 @@ putlqm(PPP *ppp)
 	hnputl(p->peerinuint8_ts, ppp->sin.uint8_ts);
 
 	/* our numbers now */
-	hnputl(p->peeroutreports, ppp->out.reports+1);
-	hnputl(p->peeroutpackets, ppp->out.packets+1);
-	hnputl(p->peeroutuint8_ts, ppp->out.uint8_ts+53/*hack*/);
+	hnputl(p->peeroutreports, ppp->out.reports + 1);
+	hnputl(p->peeroutpackets, ppp->out.packets + 1);
+	hnputl(p->peeroutuint8_ts, ppp->out.uint8_ts + 53 /*hack*/);
 
 	putframe(ppp, Plqm, b);
 	freeb(b);
@@ -1963,20 +1961,20 @@ putlqm(PPP *ppp)
  * init challenge response dialog
  */
 static void
-chapinit(PPP *ppp)
+chapinit(PPP* ppp)
 {
-	Block *b;
-	Lcpmsg *m;
-	Chap *c;
+	Block* b;
+	Lcpmsg* m;
+	Chap* c;
 	int len;
-	char *aproto;
+	char* aproto;
 
 	getauth(ppp);
 
 	c = ppp->chap;
 	c->id++;
 
-	switch(c->proto){
+	switch(c->proto) {
 	default:
 		abort();
 	case APmd5:
@@ -1988,7 +1986,8 @@ chapinit(PPP *ppp)
 	}
 	if((c->cs = auth_challenge("proto=%q role=server", aproto)) == nil)
 		sysfatal("auth_challenge: %r");
-	syslog(0, LOG, ": remote=%I: sending %d byte challenge", ppp->remote, c->cs->nchal);
+	syslog(0, LOG, ": remote=%I: sending %d byte challenge", ppp->remote,
+	       c->cs->nchal);
 	len = 4 + 1 + c->cs->nchal + strlen(ppp->chapname);
 	b = alloclcp(Cchallenge, c->id, len, &m);
 
@@ -2007,10 +2006,9 @@ chapinit(PPP *ppp)
 /*
  * BUG factotum should do this
  */
-enum {
-	MShashlen = 16,
-	MSresplen = 24,
-	MSchallen = 8,
+enum { MShashlen = 16,
+       MSresplen = 24,
+       MSchallen = 8,
 };
 
 void
@@ -2023,12 +2021,12 @@ desencrypt(uint8_t data[8], uint8_t key[7])
 }
 
 void
-nthash(uint8_t hash[MShashlen], char *passwd)
+nthash(uint8_t hash[MShashlen], char* passwd)
 {
 	uint8_t buf[512];
 	int i;
-	
-	for(i=0; *passwd && i<sizeof(buf); passwd++) {
+
+	for(i = 0; *passwd && i < sizeof(buf); passwd++) {
 		buf[i++] = *passwd;
 		buf[i++] = 0;
 	}
@@ -2038,44 +2036,44 @@ nthash(uint8_t hash[MShashlen], char *passwd)
 
 void
 mschalresp(uint8_t resp[MSresplen], uint8_t hash[MShashlen],
-	   uint8_t chal[MSchallen])
+           uint8_t chal[MSchallen])
 {
 	int i;
 	uint8_t buf[21];
-	
+
 	memset(buf, 0, sizeof(buf));
 	memcpy(buf, hash, MShashlen);
 
-	for(i=0; i<3; i++) {
-		memmove(resp+i*MSchallen, chal, MSchallen);
-		desencrypt(resp+i*MSchallen, buf+i*7);
+	for(i = 0; i < 3; i++) {
+		memmove(resp + i * MSchallen, chal, MSchallen);
+		desencrypt(resp + i * MSchallen, buf + i * 7);
 	}
 }
 
 /*
  *  challenge response dialog
  */
-extern	int	_asrdresp(int, uint8_t*, int);
+extern int _asrdresp(int, uint8_t*, int);
 
 static void
-getchap(PPP *ppp, Block *b)
+getchap(PPP* ppp, Block* b)
 {
-	AuthInfo *ai;
-	Lcpmsg *m;
+	AuthInfo* ai;
+	Lcpmsg* m;
 	int len, vlen, i, id, n, nresp;
 	char md5buf[512], code;
-	Chap *c;
+	Chap* c;
 	Chapreply cr;
 	MSchapreply mscr;
 	char uid[PATH];
 	uint8_t digest[16], *p, *resp, sdigest[SHA1dlen];
 	uint8_t mshash[MShashlen], mshash2[MShashlen];
-	DigestState *s;
-	uint8_t msresp[2*MSresplen+1];
+	DigestState* s;
+	uint8_t msresp[2 * MSresplen + 1];
 
 	m = (Lcpmsg*)b->rptr;
 	len = nhgets(m->len);
-	if(BLEN(b) < len){
+	if(BLEN(b) < len) {
 		syslog(0, LOG, "short chap message");
 		freeb(b);
 		return;
@@ -2083,7 +2081,7 @@ getchap(PPP *ppp, Block *b)
 
 	qlock(ppp);
 
-	switch(m->code){
+	switch(m->code) {
 	case Cchallenge:
 		getauth(ppp);
 
@@ -2094,14 +2092,14 @@ getchap(PPP *ppp, Block *b)
 		}
 
 		id = m->id;
-		switch(ppp->chap->proto){
+		switch(ppp->chap->proto) {
 		default:
 			abort();
 		case APmd5:
 			md5buf[0] = m->id;
-			strcpy(md5buf+1, ppp->secret);
+			strcpy(md5buf + 1, ppp->secret);
 			n = strlen(ppp->secret) + 1;
-			memmove(md5buf+n, m->data+1, vlen);
+			memmove(md5buf + n, m->data + 1, vlen);
 			n += vlen;
 			md5((uint8_t*)md5buf, n, digest, nil);
 			resp = digest;
@@ -2110,14 +2108,14 @@ getchap(PPP *ppp, Block *b)
 		case APmschap:
 			nthash(mshash, ppp->secret);
 			memset(msresp, 0, sizeof msresp);
-			mschalresp(msresp+MSresplen, mshash, m->data+1);
+			mschalresp(msresp + MSresplen, mshash, m->data + 1);
 			resp = msresp;
 			nresp = sizeof msresp;
 			nthash(mshash, ppp->secret);
 			md4(mshash, 16, mshash2, 0);
 			s = sha1(mshash2, 16, 0, 0);
 			sha1(mshash2, 16, 0, s);
-			sha1(m->data+1, 8, sdigest, s);
+			sha1(m->data + 1, 8, sdigest, s);
 			memmove(ppp->key, sdigest, 16);
 			break;
 		}
@@ -2150,12 +2148,12 @@ getchap(PPP *ppp, Block *b)
 			}
 
 			cr.id = m->id;
-			memmove(cr.resp, m->data+1, 16);
+			memmove(cr.resp, m->data + 1, 16);
 			memset(uid, 0, sizeof(uid));
-			n = len-5-vlen;
+			n = len - 5 - vlen;
 			if(n >= PATH)
-				n = PATH-1;
-			memmove(uid, m->data+1+vlen, n);
+				n = PATH - 1;
+			memmove(uid, m->data + 1 + vlen, n);
 			c->cs->user = uid;
 			c->cs->resp = &cr;
 			c->cs->nresp = sizeof cr;
@@ -2166,40 +2164,47 @@ getchap(PPP *ppp, Block *b)
 				break;
 			}
 			memset(&mscr, 0, sizeof(mscr));
-			memmove(mscr.LMresp, m->data+1, 24);
-			memmove(mscr.NTresp, m->data+24+1, 24);
-			n = len-5-vlen;
-			p = m->data+1+vlen;
+			memmove(mscr.LMresp, m->data + 1, 24);
+			memmove(mscr.NTresp, m->data + 24 + 1, 24);
+			n = len - 5 - vlen;
+			p = m->data + 1 + vlen;
 			/* remove domain name */
-			for(i=0; i<n; i++) {
+			for(i = 0; i < n; i++) {
 				if(p[i] == '\\') {
-					p += i+1;
-					n -= i+1;
+					p += i + 1;
+					n -= i + 1;
 					break;
 				}
 			}
 			if(n >= PATH)
-				n = PATH-1;
+				n = PATH - 1;
 			memset(uid, 0, sizeof(uid));
 			memmove(uid, p, n);
 			c->cs->user = uid;
 			c->cs->resp = &mscr;
 			c->cs->nresp = sizeof mscr;
 			break;
-		} 
+		}
 
-		syslog(0, LOG, ": remote=%I vlen %d proto %d response user %s nresp %d", ppp->remote, vlen, c->proto, c->cs->user, c->cs->nresp);
-		if((ai = auth_response(c->cs)) == nil || auth_chuid(ai, nil) < 0){
+		syslog(0, LOG,
+		       ": remote=%I vlen %d proto %d response user %s nresp %d",
+		       ppp->remote, vlen, c->proto, c->cs->user, c->cs->nresp);
+		if((ai = auth_response(c->cs)) == nil ||
+		   auth_chuid(ai, nil) < 0) {
 			c->state = Cunauth;
 			code = Cfailure;
-			syslog(0, LOG, ": remote=%I: auth failed: %r, uid=%s", ppp->remote, uid);
-		}else{
+			syslog(0, LOG, ": remote=%I: auth failed: %r, uid=%s",
+			       ppp->remote, uid);
+		} else {
 			c->state = Cauthok;
 			code = Csuccess;
-			syslog(0, LOG, ": remote=%I: auth ok: uid=%s nsecret=%d", ppp->remote, uid, ai->nsecret);
-			if(c->proto == APmschap){
+			syslog(0, LOG,
+			       ": remote=%I: auth ok: uid=%s nsecret=%d",
+			       ppp->remote, uid, ai->nsecret);
+			if(c->proto == APmschap) {
 				if(ai->nsecret != sizeof(ppp->key))
-					sysfatal("could not get the encryption key");
+					sysfatal(
+					    "could not get the encryption key");
 				memmove(ppp->key, ai->secret, sizeof(ppp->key));
 			}
 		}
@@ -2220,7 +2225,7 @@ getchap(PPP *ppp, Block *b)
 			/* restart chapp negotiation */
 			chapinit(ppp);
 		}
-		
+
 		break;
 	case Csuccess:
 		netlog("ppp: chap succeeded\n");
@@ -2237,18 +2242,19 @@ getchap(PPP *ppp, Block *b)
 }
 
 static void
-putpaprequest(PPP *ppp)
+putpaprequest(PPP* ppp)
 {
-	Block *b;
-	Lcpmsg *m;
-	Chap *c;
+	Block* b;
+	Lcpmsg* m;
+	Chap* c;
 	int len, nlen, slen;
 
 	getauth(ppp);
 
 	c = ppp->chap;
 	c->id++;
-	netlog("PPP: pap: send authreq %d %s %s\n", c->id, ppp->chapname, "****");
+	netlog("PPP: pap: send authreq %d %s %s\n", c->id, ppp->chapname,
+	       "****");
 
 	nlen = strlen(ppp->chapname);
 	slen = strlen(ppp->secret);
@@ -2268,21 +2274,21 @@ putpaprequest(PPP *ppp)
 }
 
 static void
-papinit(PPP *ppp)
+papinit(PPP* ppp)
 {
 	ppp->chap->id = 0;
 	putpaprequest(ppp);
 }
 
 static void
-getpap(PPP *ppp, Block *b)
+getpap(PPP* ppp, Block* b)
 {
-	Lcpmsg *m;
+	Lcpmsg* m;
 	int len;
 
 	m = (Lcpmsg*)b->rptr;
 	len = 4;
-	if(BLEN(b) < 4 || BLEN(b) < (len = nhgets(m->len))){
+	if(BLEN(b) < 4 || BLEN(b) < (len = nhgets(m->len))) {
 		syslog(0, LOG, "short pap message (%ld < %d)", BLEN(b), len);
 		freeb(b);
 		return;
@@ -2291,24 +2297,22 @@ getpap(PPP *ppp, Block *b)
 		m->data[0] = 0;
 
 	qlock(ppp);
-	switch(m->code){
+	switch(m->code) {
 	case Pauthreq:
 		netlog("PPP: pap auth request, not supported\n");
 		break;
 	case Pauthack:
-		if(ppp->phase == Pauth
-		&& ppp->chap->proto == APpasswd
-		&& m->id <= ppp-> chap->id){
+		if(ppp->phase == Pauth && ppp->chap->proto == APpasswd &&
+		   m->id <= ppp->chap->id) {
 			netlog("PPP: pap succeeded\n");
 			setphase(ppp, Pnet);
 		}
 		break;
 	case Pauthnak:
-		if(ppp->phase == Pauth
-		&& ppp->chap->proto == APpasswd
-		&& m->id <= ppp-> chap->id){
-			netlog("PPP: pap failed (%d:%.*s)\n",
-				m->data[0], m->data[0], (char*)m->data+1);
+		if(ppp->phase == Pauth && ppp->chap->proto == APpasswd &&
+		   m->id <= ppp->chap->id) {
+			netlog("PPP: pap failed (%d:%.*s)\n", m->data[0],
+			       m->data[0], (char*)m->data + 1);
 			terminate(ppp, 0);
 		}
 		break;
@@ -2320,21 +2324,31 @@ getpap(PPP *ppp, Block *b)
 }
 
 static void
-printopts(Pstate *p, Block *b, int send)
+printopts(Pstate* p, Block* b, int send)
 {
-	Lcpmsg *m;	
-	Lcpopt *o;
+	Lcpmsg* m;
+	Lcpopt* o;
 	int proto, x, period;
-	uint8_t *cp;
-	char *code, *dir;
+	uint8_t* cp;
+	char* code, *dir;
 
 	m = (Lcpmsg*)b->rptr;
 	switch(m->code) {
-	default: code = "<unknown>"; break;
-	case Lconfreq: code = "confrequest"; break;
-	case Lconfack: code = "confack"; break;
-	case Lconfnak: code = "confnak"; break;
-	case Lconfrej: code = "confreject"; break;
+	default:
+		code = "<unknown>";
+		break;
+	case Lconfreq:
+		code = "confrequest";
+		break;
+	case Lconfack:
+		code = "confack";
+		break;
+	case Lconfnak:
+		code = "confnak";
+		break;
+	case Lconfrej:
+		code = "confreject";
+		break;
 	}
 
 	if(send)
@@ -2344,18 +2358,19 @@ printopts(Pstate *p, Block *b, int send)
 
 	netlog("ppp: %s %s: id=%d\n", dir, code, m->id);
 
-	for(cp = m->data; cp < b->wptr; cp += o->len){
+	for(cp = m->data; cp < b->wptr; cp += o->len) {
 		o = (Lcpopt*)cp;
-		if(cp + o->len > b->wptr){
+		if(cp + o->len > b->wptr) {
 			netlog("\tbad option length %ux\n", o->type);
 			return;
 		}
 
-		switch(p->proto){
+		switch(p->proto) {
 		case Plcp:
-			switch(o->type){
+			switch(o->type) {
 			default:
-				netlog("\tunknown %d len=%d\n", o->type, o->len);
+				netlog("\tunknown %d len=%d\n", o->type,
+				       o->len);
 				break;
 			case Omtu:
 				netlog("\tmtu = %d\n", nhgets(o->data));
@@ -2368,7 +2383,8 @@ printopts(Pstate *p, Block *b, int send)
 				proto = nhgets(o->data);
 				switch(proto) {
 				default:
-					netlog("unknown auth proto %d\n", proto);
+					netlog("unknown auth proto %d\n",
+					       proto);
 					break;
 				case Ppasswd:
 					netlog("password\n");
@@ -2382,11 +2398,12 @@ printopts(Pstate *p, Block *b, int send)
 				proto = nhgets(o->data);
 				switch(proto) {
 				default:
-					netlog("\tunknown quality proto %d\n", proto);
+					netlog("\tunknown quality proto %d\n",
+					       proto);
 					break;
 				case Plqm:
-					x = nhgetl(o->data+2)*10;
-					period = (x+Period-1)/Period;
+					x = nhgetl(o->data + 2) * 10;
+					period = (x + Period - 1) / Period;
 					netlog("\tlqm period = %d\n", period);
 					break;
 				}
@@ -2402,30 +2419,33 @@ printopts(Pstate *p, Block *b, int send)
 			}
 			break;
 		case Pccp:
-			switch(o->type){
+			switch(o->type) {
 			default:
-				netlog("\tunknown %d len=%d\n", o->type, o->len);
+				netlog("\tunknown %d len=%d\n", o->type,
+				       o->len);
 				break;
-			case Ocoui:	
+			case Ocoui:
 				netlog("\tOUI\n");
 				break;
 			case Ocstac:
 				netlog("\tstac LZS\n");
 				break;
-			case Ocmppc:	
-				netlog("\tMicrosoft PPC len=%d %ux\n", o->len, nhgetl(o->data));
+			case Ocmppc:
+				netlog("\tMicrosoft PPC len=%d %ux\n", o->len,
+				       nhgetl(o->data));
 				break;
-			case Octhwack:	
+			case Octhwack:
 				netlog("\tThwack\n");
 				break;
 			}
 			break;
 		case Pecp:
-			switch(o->type){
+			switch(o->type) {
 			default:
-				netlog("\tunknown %d len=%d\n", o->type, o->len);
+				netlog("\tunknown %d len=%d\n", o->type,
+				       o->len);
 				break;
-			case Oeoui:	
+			case Oeoui:
 				netlog("\tOUI\n");
 				break;
 			case Oedese:
@@ -2434,29 +2454,30 @@ printopts(Pstate *p, Block *b, int send)
 			}
 			break;
 		case Pipcp:
-			switch(o->type){
+			switch(o->type) {
 			default:
-				netlog("\tunknown %d len=%d\n", o->type, o->len);
+				netlog("\tunknown %d len=%d\n", o->type,
+				       o->len);
 				break;
-			case Oipaddrs:	
+			case Oipaddrs:
 				netlog("\tip addrs - deprecated\n");
 				break;
 			case Oipcompress:
 				netlog("\tip compress\n");
 				break;
-			case Oipaddr:	
+			case Oipaddr:
 				netlog("\tip addr %V\n", o->data);
 				break;
-			case Oipdns:	
+			case Oipdns:
 				netlog("\tdns addr %V\n", o->data);
 				break;
-			case Oipwins:	
+			case Oipwins:
 				netlog("\twins addr %V\n", o->data);
 				break;
-			case Oipdns2:	
+			case Oipdns2:
 				netlog("\tdns2 addr %V\n", o->data);
 				break;
-			case Oipwins2:	
+			case Oipwins2:
 				netlog("\twins2 addr %V\n", o->data);
 				break;
 			}
@@ -2466,10 +2487,10 @@ printopts(Pstate *p, Block *b, int send)
 }
 
 static void
-sendtermreq(PPP *ppp, Pstate *p)
+sendtermreq(PPP* ppp, Pstate* p)
 {
-	Block *b;
-	Lcpmsg *m;
+	Block* b;
+	Lcpmsg* m;
 
 	p->termid = ++(p->id);
 	b = alloclcp(Ltermreq, p->termid, 4, &m);
@@ -2480,10 +2501,10 @@ sendtermreq(PPP *ppp, Pstate *p)
 }
 
 static void
-sendechoreq(PPP *ppp, Pstate *p)
+sendechoreq(PPP* ppp, Pstate* p)
 {
-	Block *b;
-	Lcpmsg *m;
+	Block* b;
+	Lcpmsg* m;
 
 	p->termid = ++(p->id);
 	b = alloclcp(Lechoreq, p->id, 4, &m);
@@ -2492,13 +2513,11 @@ sendechoreq(PPP *ppp, Pstate *p)
 	freeb(b);
 }
 
-enum
-{
-	CtrlD	= 0x4,
-	CtrlE	= 0x5,
-	CtrlO	= 0xf,
-	Cr	= 13,
-	View	= 0x80,
+enum { CtrlD = 0x4,
+       CtrlE = 0x5,
+       CtrlO = 0xf,
+       Cr = 13,
+       View = 0x80,
 };
 
 int conndone;
@@ -2524,14 +2543,14 @@ xfer(int fd)
 }
 
 static int
-readcr(int fd, char *buf, int nbuf)
+readcr(int fd, char* buf, int nbuf)
 {
 	char c;
 	int n, tot;
 
 	tot = 0;
-	while((n=read(fd, &c, 1)) == 1){
-		if(c == '\n'){
+	while((n = read(fd, &c, 1)) == 1) {
+		if(c == '\n') {
 			buf[tot] = 0;
 			return tot;
 		}
@@ -2548,21 +2567,21 @@ connect(int fd, int cfd)
 	int n, ctl;
 	char xbuf[128];
 
-	if (chatfile) {
+	if(chatfile) {
 		int chatfd, lineno, nb;
-		char *buf, *p, *s, response[128];
-		Dir *dir;
+		char* buf, *p, *s, response[128];
+		Dir* dir;
 
-		if ((chatfd = open(chatfile, OREAD)) < 0)
+		if((chatfd = open(chatfile, OREAD)) < 0)
 			sysfatal("cannot open %s: %r", chatfile);
 
-		if ((dir = dirfstat(chatfd)) == nil)
-			sysfatal("cannot fstat %s: %r",chatfile);
+		if((dir = dirfstat(chatfd)) == nil)
+			sysfatal("cannot fstat %s: %r", chatfile);
 
-		buf = (char *)malloc(dir->length + 1);
+		buf = (char*)malloc(dir->length + 1);
 		assert(buf);
 
-		if ((nb = read(chatfd, buf, dir->length)) < 0)
+		if((nb = read(chatfd, buf, dir->length)) < 0)
 			sysfatal("cannot read chatfile %s: %r", chatfile);
 		assert(nb == dir->length);
 		buf[dir->length] = '\0';
@@ -2572,43 +2591,48 @@ connect(int fd, int cfd)
 		p = buf;
 		lineno = 0;
 		for(;;) {
-			char *_args[3];
+			char* _args[3];
 
-			if ((s = strchr(p, '\n')) == nil)
+			if((s = strchr(p, '\n')) == nil)
 				break;
 			*s++ = '\0';
-		
+
 			lineno++;
 
-			if (*p == '#') {
-				p = s; 
+			if(*p == '#') {
+				p = s;
 				continue;
 			}
 
-			if (tokenize(p, _args, 3) != 2)
-				sysfatal("invalid line %d (line expected: 'send' 'expect')", 
-						lineno);
+			if(tokenize(p, _args, 3) != 2)
+				sysfatal("invalid line %d (line expected: "
+				         "'send' 'expect')",
+				         lineno);
 
-			if (debug)
-				print("sending %s, expecting %s\n", _args[0], _args[1]);
+			if(debug)
+				print("sending %s, expecting %s\n", _args[0],
+				      _args[1]);
 
-			if(strlen(_args[0])){
+			if(strlen(_args[0])) {
 				nb = fprint(fd, "%s\r", _args[0]);
 				assert(nb > 0);
 			}
 
-			if (strlen(_args[1]) > 0) {
-				if ((nb = readcr(fd, response, sizeof response-1)) < 0)
-					sysfatal("cannot read response from: %r");
+			if(strlen(_args[1]) > 0) {
+				if((nb = readcr(fd, response,
+				                sizeof response - 1)) < 0)
+					sysfatal(
+					    "cannot read response from: %r");
 
-				if (debug)
+				if(debug)
 					print("response %s\n", response);
 
-				if (nb == 0)
+				if(nb == 0)
 					sysfatal("eof on input?");
 
-				if (cistrstr(response, _args[1]) == nil)
-					sysfatal("expected %s, got %s", _args[1], response);
+				if(cistrstr(response, _args[1]) == nil)
+					sysfatal("expected %s, got %s",
+					         _args[1], response);
 			}
 			p = s;
 		}
@@ -2627,7 +2651,7 @@ connect(int fd, int cfd)
 
 	fd = dup(fd, -1);
 	conndone = 0;
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+	switch(rfork(RFPROC | RFMEM | RFNOWAIT)) {
 	case -1:
 		sysfatal("forking xfer");
 	case 0:
@@ -2635,21 +2659,21 @@ connect(int fd, int cfd)
 		_exits(nil);
 	}
 
-	for(;;){
+	for(;;) {
 		read(0, xbuf, 1);
-		switch(xbuf[0]&0xff) {
-		case CtrlD:	/* done */
+		switch(xbuf[0] & 0xff) {
+		case CtrlD: /* done */
 			conndone = 1;
 			close(ctl);
 			print("\n");
 			return;
-		case CtrlE:	/* set even parity */
+		case CtrlE: /* set even parity */
 			fprint(cfd, "pe");
 			break;
-		case CtrlO:	/* set odd parity */
+		case CtrlO: /* set odd parity */
 			fprint(cfd, "po");
 			break;
-		case View:	/* send a break */
+		case View: /* send a break */
 			fprint(cfd, "k500");
 			break;
 		default:
@@ -2671,22 +2695,22 @@ void
 usage(void)
 {
 	fprint(2, "usage: ppp [-CPSacdfu] [-b baud] [-k keyspec] [-m mtu] "
-		"[-M chatfile] [-p dev] [-x netmntpt] [-t modemcmd] "
-		"[local-addr [remote-addr]]\n");
+	          "[-M chatfile] [-p dev] [-x netmntpt] [-t modemcmd] "
+	          "[local-addr [remote-addr]]\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int mtu, baud, framing, user, mediain, mediaout, cfd;
 	Ipaddr ipaddr, remip;
-	char *dev, *modemcmd;
+	char* dev, *modemcmd;
 	char net[128];
-	PPP *ppp;
+	PPP* ppp;
 	char buf[128];
 
-	rfork(RFREND|RFNOTEG|RFNAMEG);
+	rfork(RFREND | RFNOTEG | RFNAMEG);
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
@@ -2704,7 +2728,8 @@ main(int argc, char **argv)
 	user = 0;
 	modemcmd = nil;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		noauth = 1;
 		break;
@@ -2762,14 +2787,15 @@ main(int argc, char **argv)
 	default:
 		fprint(2, "unknown option %c\n", ARGC());
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
-	switch(argc){
+	switch(argc) {
 	case 2:
-		if (parseip(remip, argv[1]) == -1)
+		if(parseip(remip, argv[1]) == -1)
 			sysfatal("bad remote ip %s", argv[1]);
 	case 1:
-		if (parseip(ipaddr, argv[0]) == -1)
+		if(parseip(ipaddr, argv[0]) == -1)
 			sysfatal("bad ip %s", argv[0]);
 	case 0:
 		break;
@@ -2781,12 +2807,13 @@ main(int argc, char **argv)
 	if(nip == 0 && !server)
 		primary = 1;
 
-	if(dev != nil){
+	if(dev != nil) {
 		mediain = open(dev, ORDWR);
-		if(mediain < 0){
-			if(strchr(dev, '!')){
-				if((mediain = dial(dev, 0, 0, &cfd)) == -1){
-					fprint(2, "ppp: couldn't dial %s: %r\n", dev);
+		if(mediain < 0) {
+			if(strchr(dev, '!')) {
+				if((mediain = dial(dev, 0, 0, &cfd)) == -1) {
+					fprint(2, "ppp: couldn't dial %s: %r\n",
+					       dev);
 					exits(dev);
 				}
 			} else {
@@ -2797,15 +2824,16 @@ main(int argc, char **argv)
 			snprint(buf, sizeof buf, "%sctl", dev);
 			cfd = open(buf, ORDWR);
 		}
-		if(cfd > 0){
+		if(cfd > 0) {
 			if(baud)
 				fprint(cfd, "b%d", baud);
-			fprint(cfd, "m1");	/* cts/rts flow control (and fifo's) on */
-			fprint(cfd, "q64000");	/* increase q size to 64k */
-			fprint(cfd, "n1");	/* nonblocking writes on */
-			fprint(cfd, "r1");	/* rts on */
-			fprint(cfd, "d1");	/* dtr on */
-			fprint(cfd, "c1");	/* dcdhup on */
+			fprint(cfd,
+			       "m1"); /* cts/rts flow control (and fifo's) on */
+			fprint(cfd, "q64000"); /* increase q size to 64k */
+			fprint(cfd, "n1");     /* nonblocking writes on */
+			fprint(cfd, "r1");     /* rts on */
+			fprint(cfd, "d1");     /* dtr on */
+			fprint(cfd, "c1");     /* dcdhup on */
 			if(user || chatfile)
 				connect(mediain, cfd);
 			close(cfd);
@@ -2816,12 +2844,12 @@ main(int argc, char **argv)
 		mediaout = mediain;
 	} else {
 		mediain = open("/fd/0", OREAD);
-		if(mediain < 0){
+		if(mediain < 0) {
 			fprint(2, "ppp: couldn't open /fd/0\n");
 			exits("/fd/0");
 		}
 		mediaout = open("/fd/1", OWRITE);
-		if(mediaout < 0){
+		if(mediaout < 0) {
 			fprint(2, "ppp: couldn't open /fd/0\n");
 			exits("/fd/1");
 		}
@@ -2836,7 +2864,7 @@ main(int argc, char **argv)
 	/* wait until ip is configured */
 	rendezvous((void*)Rmagic, 0);
 
-	if(primary){
+	if(primary) {
 		/* create a /net/ndb entry */
 		putndb(ppp, net);
 	}
@@ -2845,10 +2873,10 @@ main(int argc, char **argv)
 }
 
 void
-netlog(char *fmt, ...)
+netlog(char* fmt, ...)
 {
 	va_list arg;
-	char *m;
+	char* m;
 	static int32_t start;
 	int32_t now;
 
@@ -2861,7 +2889,7 @@ netlog(char *fmt, ...)
 
 	va_start(arg, fmt);
 	m = vsmprint(fmt, arg);
-	fprint(2, "%ld %s", now-start, m);
+	fprint(2, "%ld %s", now - start, m);
 	free(m);
 	va_end(arg);
 }
@@ -2872,7 +2900,8 @@ netlog(char *fmt, ...)
 static int
 validv4(Ipaddr addr)
 {
-	return memcmp(addr, v4prefix, IPv4off) == 0 && memcmp(addr, v4prefix, IPaddrlen) != 0;
+	return memcmp(addr, v4prefix, IPv4off) == 0 &&
+	       memcmp(addr, v4prefix, IPaddrlen) != 0;
 }
 
 static void
@@ -2885,11 +2914,11 @@ invalidate(Ipaddr addr)
  *  return number of networks
  */
 static int
-nipifcs(char *net)
+nipifcs(char* net)
 {
-	static Ipifc *ifc;
-	Ipifc *nifc;
-	Iplifc *lifc;
+	static Ipifc* ifc;
+	Ipifc* nifc;
+	Iplifc* lifc;
 	int n;
 
 	n = 0;
@@ -2904,17 +2933,17 @@ nipifcs(char *net)
  *   make an ndb entry and put it into /net/ndb for the servers to see
  */
 static void
-putndb(PPP *ppp, char *net)
+putndb(PPP* ppp, char* net)
 {
 	char buf[1024];
 	char file[64];
-	char *p, *e;
+	char* p, *e;
 	int fd;
 
 	e = buf + sizeof(buf);
 	p = buf;
 	p = seprint(p, e, "ip=%I ipmask=255.255.255.255 ipgw=%I\n", ppp->local,
-			ppp->remote);
+	            ppp->remote);
 	if(validv4(ppp->dns[0]))
 		p = seprint(p, e, "\tdns=%I\n", ppp->dns[0]);
 	if(validv4(ppp->dns[1]))
@@ -2923,33 +2952,34 @@ putndb(PPP *ppp, char *net)
 		p = seprint(p, e, "\twins=%I\n", ppp->wins[0]);
 	if(validv4(ppp->wins[1]))
 		p = seprint(p, e, "\twins=%I\n", ppp->wins[1]);
-	seprint(file, file+sizeof file, "%s/ndb", net);
+	seprint(file, file + sizeof file, "%s/ndb", net);
 	fd = open(file, OWRITE);
 	if(fd < 0)
 		return;
-	write(fd, buf, p-buf);
+	write(fd, buf, p - buf);
 	close(fd);
-	seprint(file, file+sizeof file, "%s/cs", net);
+	seprint(file, file + sizeof file, "%s/cs", net);
 	fd = open(file, OWRITE);
 	write(fd, "refresh", 7);
 	close(fd);
-	seprint(file, file+sizeof file, "%s/dns", net);
+	seprint(file, file + sizeof file, "%s/dns", net);
 	fd = open(file, OWRITE);
 	write(fd, "refresh", 7);
 	close(fd);
 }
 
 static void
-getauth(PPP *ppp)
+getauth(PPP* ppp)
 {
-	UserPasswd *up;
+	UserPasswd* up;
 
 	if(*ppp->chapname)
 		return;
 
-	up = auth_getuserpasswd(auth_getkey,"proto=pass service=ppp %s", keyspec);
-	if(up != nil){
+	up = auth_getuserpasswd(auth_getkey, "proto=pass service=ppp %s",
+	                        keyspec);
+	if(up != nil) {
 		strcpy(ppp->chapname, up->user);
 		strcpy(ppp->secret, up->passwd);
-	}		
+	}
 }

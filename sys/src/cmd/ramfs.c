@@ -19,130 +19,104 @@
  * meaning that each user is the leader of his own group.
  */
 
-enum
-{
-	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	Nram	= 4096,
-	Maxsize	= 768*1024*1024,
-	Maxfdata	= 8192,
-	Maxuint32_t= (1ULL << 32) - 1,
+enum { OPERM = 0x3, /* mask of all permission types in open mode */
+       Nram = 4096,
+       Maxsize = 768 * 1024 * 1024,
+       Maxfdata = 8192,
+       Maxuint32_t = (1ULL << 32) - 1,
 };
 
 typedef struct Fid Fid;
 typedef struct Ram Ram;
 
-struct Fid
-{
-	int16_t	busy;
-	int16_t	open;
-	int16_t	rclose;
-	int	fid;
-	Fid	*next;
-	char	*user;
-	Ram	*ram;
+struct Fid {
+	int16_t busy;
+	int16_t open;
+	int16_t rclose;
+	int fid;
+	Fid* next;
+	char* user;
+	Ram* ram;
 };
 
-struct Ram
-{
-	int16_t	busy;
-	int16_t	open;
-	int32_t	parent;		/* index in Ram array */
-	Qid	qid;
-	int32_t	perm;
-	char	*name;
-	uint32_t	atime;
-	uint32_t	mtime;
-	char	*user;
-	char	*group;
-	char	*muid;
-	char	*data;
-	int32_t	ndata;
+struct Ram {
+	int16_t busy;
+	int16_t open;
+	int32_t parent; /* index in Ram array */
+	Qid qid;
+	int32_t perm;
+	char* name;
+	uint32_t atime;
+	uint32_t mtime;
+	char* user;
+	char* group;
+	char* muid;
+	char* data;
+	int32_t ndata;
 };
 
-enum
-{
-	Pexec =		1,
-	Pwrite = 	2,
-	Pread = 	4,
-	Pother = 	1,
-	Pgroup = 	8,
-	Powner =	64,
+enum { Pexec = 1,
+       Pwrite = 2,
+       Pread = 4,
+       Pother = 1,
+       Pgroup = 8,
+       Powner = 64,
 };
 
-uint32_t	path;		/* incremented for each new file */
-Fid	*fids;
-Ram	ram[Nram];
-int	nram;
-int	mfd[2];
-char	*user;
-uint8_t	mdata[IOHDRSZ+Maxfdata];
-uint8_t	rdata[Maxfdata];	/* buffer for data in reply */
+uint32_t path; /* incremented for each new file */
+Fid* fids;
+Ram ram[Nram];
+int nram;
+int mfd[2];
+char* user;
+uint8_t mdata[IOHDRSZ + Maxfdata];
+uint8_t rdata[Maxfdata]; /* buffer for data in reply */
 uint8_t statbuf[STATMAX];
 Fcall thdr;
-Fcall	rhdr;
-int	messagesize = sizeof mdata;
+Fcall rhdr;
+int messagesize = sizeof mdata;
 
-Fid *	newfid(int);
-uint	ramstat(Ram*, uint8_t*, uint);
-void	error(char*);
-void	io(void);
-void	*erealloc(void *c, uint32_t);
-void	*emalloc(uint32_t);
-char	*estrdup(char*);
-void	usage(void);
-int	perm(Fid*, Ram*, int);
+Fid* newfid(int);
+uint ramstat(Ram*, uint8_t*, uint);
+void error(char*);
+void io(void);
+void* erealloc(void* c, uint32_t);
+void* emalloc(uint32_t);
+char* estrdup(char*);
+void usage(void);
+int perm(Fid*, Ram*, int);
 
-char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
-	*rattach(Fid*), *rwalk(Fid*),
-	*ropen(Fid*), *rcreate(Fid*),
-	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
+char* rflush(Fid*), *rversion(Fid*), *rauth(Fid*), *rattach(Fid*), *rwalk(Fid*),
+    *ropen(Fid*), *rcreate(Fid*), *rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
+    *rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
 int needfid[] = {
-	[Tversion] 0,
-	[Tflush] 0,
-	[Tauth] 0,
-	[Tattach] 0,
-	[Twalk] 1,
-	[Topen] 1,
-	[Tcreate] 1,
-	[Tread] 1,
-	[Twrite] 1,
-	[Tclunk] 1,
-	[Tremove] 1,
-	[Tstat] 1,
-	[Twstat] 1,
+        [Tversion] 0, [Tflush] 0,  [Tauth] 0,  [Tattach] 0, [Twalk] 1,
+        [Topen] 1,    [Tcreate] 1, [Tread] 1,  [Twrite] 1,  [Tclunk] 1,
+        [Tremove] 1,  [Tstat] 1,   [Twstat] 1,
 };
 
-char 	*(*fcalls[])(Fid*) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char* (*fcalls[])(Fid*) = {
+        [Tversion] rversion, [Tflush] rflush,   [Tauth] rauth,
+        [Tattach] rattach,   [Twalk] rwalk,     [Topen] ropen,
+        [Tcreate] rcreate,   [Tread] rread,     [Twrite] rwrite,
+        [Tclunk] rclunk,     [Tremove] rremove, [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"ramfs: authentication not required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Eisdir[] =	"file is a directory";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Eversion[] =	"unknown 9P version";
-char	Enotempty[] =	"directory not empty";
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enoauth[] = "ramfs: authentication not required";
+char Enotexist[] = "file does not exist";
+char Einuse[] = "file in use";
+char Eexist[] = "file exists";
+char Eisdir[] = "file is a directory";
+char Enotowner[] = "not owner";
+char Eisopen[] = "file already open for I/O";
+char Excl[] = "exclusive use file already open";
+char Ename[] = "illegal name";
+char Eversion[] = "unknown 9P version";
+char Enotempty[] = "directory not empty";
 
 int debug;
 int private;
@@ -150,7 +124,7 @@ int private;
 static int memlim = 1;
 
 void
-notifyf(void *a, char *s)
+notifyf(void* a, char* s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -159,17 +133,18 @@ notifyf(void *a, char *s)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	Ram *r;
-	char *defmnt, *service;
+	Ram* r;
+	char* defmnt, *service;
 	int p[2];
 	int fd;
 	int stdio = 0;
 
 	service = "ramfs";
 	defmnt = "/tmp";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'i':
 		defmnt = 0;
 		stdio = 1;
@@ -180,13 +155,14 @@ main(int argc, char *argv[])
 		defmnt = EARGF(usage());
 		break;
 	case 'p':
-		private++;
+	      private
+		++;
 		break;
 	case 's':
 		defmnt = 0;
 		break;
 	case 'u':
-		memlim = 0;		/* unlimited memory consumption */
+		memlim = 0; /* unlimited memory consumption */
 		break;
 	case 'D':
 		debug = 1;
@@ -197,17 +173,18 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(pipe(p) < 0)
 		error("pipe failed");
-	if(!stdio){
+	if(!stdio) {
 		mfd[0] = p[0];
 		mfd[1] = p[0];
-		if(defmnt == 0){
+		if(defmnt == 0) {
 			char buf[64];
 			snprint(buf, sizeof buf, "#s/%s", service);
-			fd = create(buf, OWRITE|ORCLOSE, 0666);
+			fd = create(buf, OWRITE | ORCLOSE, 0666);
 			if(fd < 0)
 				error("create failed");
 			sprint(buf, "%d", p[1]);
@@ -239,7 +216,7 @@ main(int argc, char *argv[])
 		fmtinstall('F', fcallfmt);
 		fmtinstall('M', dirmodefmt);
 	}
-	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
+	switch(rfork(RFFDG | RFPROC | RFNAMEG | RFNOTEG)) {
 	case -1:
 		error("fork");
 	case 0:
@@ -247,17 +224,17 @@ main(int argc, char *argv[])
 		io();
 		break;
 	default:
-		close(p[0]);	/* don't deadlock if child fails */
-		if(defmnt && mount(p[1], -1, defmnt, MREPL|MCREATE, "") < 0)
+		close(p[0]); /* don't deadlock if child fails */
+		if(defmnt && mount(p[1], -1, defmnt, MREPL | MCREATE, "") < 0)
 			error("mount failed");
 	}
 	exits(0);
 }
 
 char*
-rversion(Fid *fi)
+rversion(Fid* fi)
 {
-	Fid *f;
+	Fid* f;
 
 	for(f = fids; f; f = f->next)
 		if(f->busy)
@@ -274,20 +251,20 @@ rversion(Fid *fi)
 }
 
 char*
-rauth(Fid *f)
+rauth(Fid* f)
 {
 	return "ramfs: no authentication required";
 }
 
 char*
-rflush(Fid *f)
+rflush(Fid* f)
 {
 	USED(f);
 	return 0;
 }
 
 char*
-rattach(Fid *f)
+rattach(Fid* f)
 {
 	/* no authentication! */
 	f->busy = 1;
@@ -304,7 +281,7 @@ rattach(Fid *f)
 }
 
 char*
-clone(Fid *f, Fid **nf)
+clone(Fid* f, Fid** nf)
 {
 	if(f->open)
 		return Eisopen;
@@ -315,85 +292,87 @@ clone(Fid *f, Fid **nf)
 	(*nf)->open = 0;
 	(*nf)->rclose = 0;
 	(*nf)->ram = f->ram;
-	(*nf)->user = f->user;	/* no ref count; the leakage is minor */
+	(*nf)->user = f->user; /* no ref count; the leakage is minor */
 	return 0;
 }
 
 char*
-rwalk(Fid *f)
+rwalk(Fid* f)
 {
-	Ram *r, *fram;
-	char *name;
-	Ram *parent;
-	Fid *nf;
-	char *err;
+	Ram* r, *fram;
+	char* name;
+	Ram* parent;
+	Fid* nf;
+	char* err;
 	uint32_t t;
 	int i;
 
 	err = nil;
 	nf = nil;
 	rhdr.nwqid = 0;
-	if(thdr.newfid != thdr.fid){
+	if(thdr.newfid != thdr.fid) {
 		err = clone(f, &nf);
 		if(err)
 			return err;
-		f = nf;	/* walk the new fid */
+		f = nf; /* walk the new fid */
 	}
 	fram = f->ram;
-	if(thdr.nwname > 0){
+	if(thdr.nwname > 0) {
 		t = time(0);
-		for(i=0; i<thdr.nwname && i<MAXWELEM; i++){
-			if((fram->qid.type & QTDIR) == 0){
+		for(i = 0; i < thdr.nwname && i < MAXWELEM; i++) {
+			if((fram->qid.type & QTDIR) == 0) {
 				err = Enotdir;
- 				break;
+				break;
 			}
-			if(fram->busy == 0){
+			if(fram->busy == 0) {
 				err = Enotexist;
 				break;
 			}
 			fram->atime = t;
 			name = thdr.wname[i];
-			if(strcmp(name, ".") == 0){
-    Found:
+			if(strcmp(name, ".") == 0) {
+			Found:
 				rhdr.nwqid++;
 				rhdr.wqid[i] = fram->qid;
 				continue;
 			}
 			parent = &ram[fram->parent];
-			if(!perm(f, parent, Pexec)){
+			if(!perm(f, parent, Pexec)) {
 				err = Eperm;
 				break;
 			}
-			if(strcmp(name, "..") == 0){
+			if(strcmp(name, "..") == 0) {
 				fram = parent;
 				goto Found;
 			}
-			for(r=ram; r < &ram[nram]; r++)
-				if(r->busy && r->parent==fram-ram && strcmp(name, r->name)==0){
+			for(r = ram; r < &ram[nram]; r++)
+				if(r->busy && r->parent == fram - ram &&
+				   strcmp(name, r->name) == 0) {
 					fram = r;
 					goto Found;
 				}
 			break;
 		}
-		if(i==0 && err == nil)
+		if(i == 0 && err == nil)
 			err = Enotexist;
 	}
-	if(nf != nil && (err!=nil || rhdr.nwqid<thdr.nwname)){
+	if(nf != nil && (err != nil || rhdr.nwqid < thdr.nwname)) {
 		/* clunk the new fid, which is the one we walked */
 		f->busy = 0;
 		f->ram = nil;
 	}
 	if(rhdr.nwqid > 0)
-		err = nil;	/* didn't get everything in 9P2000 right! */
-	if(rhdr.nwqid == thdr.nwname)	/* update the fid after a successful walk */
+		err = nil; /* didn't get everything in 9P2000 right! */
+	if(rhdr.nwqid ==
+	   thdr.nwname) /* update the fid after a successful walk */
 		f->ram = fram;
 	return err;
 }
 
-char *
-ropen(Fid *f)
+char*
+ropen(Fid* f)
 {
-	Ram *r;
+	Ram* r;
 	int mode, trunc;
 
 	if(f->open)
@@ -405,30 +384,30 @@ ropen(Fid *f)
 		if(r->open)
 			return Excl;
 	mode = thdr.mode;
-	if(r->qid.type & QTDIR){
+	if(r->qid.type & QTDIR) {
 		if(mode != OREAD)
 			return Eperm;
 		rhdr.qid = r->qid;
 		return 0;
 	}
-	if(mode & ORCLOSE){
+	if(mode & ORCLOSE) {
 		/* can't remove root; must be able to write parent */
-		if(r->qid.path==0 || !perm(f, &ram[r->parent], Pwrite))
+		if(r->qid.path == 0 || !perm(f, &ram[r->parent], Pwrite))
 			return Eperm;
 		f->rclose = 1;
 	}
 	trunc = mode & OTRUNC;
 	mode &= OPERM;
-	if(mode==OWRITE || mode==ORDWR || trunc)
+	if(mode == OWRITE || mode == ORDWR || trunc)
 		if(!perm(f, r, Pwrite))
 			return Eperm;
-	if(mode==OREAD || mode==ORDWR)
+	if(mode == OREAD || mode == ORDWR)
 		if(!perm(f, r, Pread))
 			return Eperm;
-	if(mode==OEXEC)
+	if(mode == OEXEC)
 		if(!perm(f, r, Pexec))
 			return Eperm;
-	if(trunc && (r->perm&DMAPPEND)==0){
+	if(trunc && (r->perm & DMAPPEND) == 0) {
 		r->ndata = 0;
 		if(r->data)
 			free(r->data);
@@ -436,17 +415,17 @@ ropen(Fid *f)
 		r->qid.vers++;
 	}
 	rhdr.qid = r->qid;
-	rhdr.iounit = messagesize-IOHDRSZ;
+	rhdr.iounit = messagesize - IOHDRSZ;
 	f->open = 1;
 	r->open++;
 	return 0;
 }
 
-char *
-rcreate(Fid *f)
+char*
+rcreate(Fid* f)
 {
-	Ram *r;
-	char *name;
+	Ram* r;
+	char* name;
 	int32_t parent, prm;
 
 	if(f->open)
@@ -454,21 +433,21 @@ rcreate(Fid *f)
 	if(f->ram->busy == 0)
 		return Enotexist;
 	parent = f->ram - ram;
-	if((f->ram->qid.type&QTDIR) == 0)
+	if((f->ram->qid.type & QTDIR) == 0)
 		return Enotdir;
 	/* must be able to write parent */
 	if(!perm(f, f->ram, Pwrite))
 		return Eperm;
 	prm = thdr.perm;
 	name = thdr.name;
-	if(strcmp(name, ".")==0 || strcmp(name, "..")==0)
+	if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
 		return Ename;
-	for(r=ram; r<&ram[nram]; r++)
-		if(r->busy && parent==r->parent)
-		if(strcmp((char*)name, r->name)==0)
-			return Einuse;
-	for(r=ram; r->busy; r++)
-		if(r == &ram[Nram-1])
+	for(r = ram; r < &ram[nram]; r++)
+		if(r->busy && parent == r->parent)
+			if(strcmp((char*)name, r->name) == 0)
+				return Einuse;
+	for(r = ram; r->busy; r++)
+		if(r == &ram[Nram - 1])
 			return "no free ram resources";
 	r->busy = 1;
 	r->qid.path = ++path;
@@ -482,19 +461,19 @@ rcreate(Fid *f)
 	r->group = f->ram->group;
 	r->muid = f->ram->muid;
 	if(prm & DMDIR)
-		prm = (prm&~0777) | (f->ram->perm&prm&0777);
+		prm = (prm & ~0777) | (f->ram->perm & prm & 0777);
 	else
-		prm = (prm&(~0777|0111)) | (f->ram->perm&prm&0666);
+		prm = (prm & (~0777 | 0111)) | (f->ram->perm & prm & 0666);
 	r->perm = prm;
 	r->ndata = 0;
-	if(r-ram >= nram)
+	if(r - ram >= nram)
 		nram = r - ram + 1;
 	r->atime = time(0);
 	r->mtime = r->atime;
 	f->ram->mtime = r->atime;
 	f->ram = r;
 	rhdr.qid = r->qid;
-	rhdr.iounit = messagesize-IOHDRSZ;
+	rhdr.iounit = messagesize - IOHDRSZ;
 	f->open = 1;
 	if(thdr.mode & ORCLOSE)
 		f->rclose = 1;
@@ -503,10 +482,10 @@ rcreate(Fid *f)
 }
 
 char*
-rread(Fid *f)
+rread(Fid* f)
 {
-	Ram *r;
-	uint8_t *buf;
+	Ram* r;
+	uint8_t* buf;
 	int64_t off;
 	int n, m, cnt;
 
@@ -515,26 +494,26 @@ rread(Fid *f)
 	n = 0;
 	rhdr.count = 0;
 	rhdr.data = (char*)rdata;
-	if (thdr.offset < 0)
+	if(thdr.offset < 0)
 		return "negative seek offset";
 	off = thdr.offset;
 	buf = rdata;
 	cnt = thdr.count;
-	if(cnt > messagesize)	/* shouldn't happen, anyway */
+	if(cnt > messagesize) /* shouldn't happen, anyway */
 		cnt = messagesize;
 	if(cnt < 0)
 		return "negative read count";
-	if(f->ram->qid.type & QTDIR){
-		for(r=ram+1; off > 0; r++){
-			if(r->busy && r->parent==f->ram-ram)
+	if(f->ram->qid.type & QTDIR) {
+		for(r = ram + 1; off > 0; r++) {
+			if(r->busy && r->parent == f->ram - ram)
 				off -= ramstat(r, statbuf, sizeof statbuf);
-			if(r == &ram[nram-1])
+			if(r == &ram[nram - 1])
 				return 0;
 		}
-		for(; r<&ram[nram] && n < cnt; r++){
-			if(!r->busy || r->parent!=f->ram-ram)
+		for(; r < &ram[nram] && n < cnt; r++) {
+			if(!r->busy || r->parent != f->ram - ram)
 				continue;
-			m = ramstat(r, buf+n, cnt-n);
+			m = ramstat(r, buf + n, cnt - n);
 			if(m == 0)
 				break;
 			n += m;
@@ -548,17 +527,17 @@ rread(Fid *f)
 		return 0;
 	r->atime = time(0);
 	n = cnt;
-	if(off+n > r->ndata)
+	if(off + n > r->ndata)
 		n = r->ndata - off;
-	rhdr.data = r->data+off;
+	rhdr.data = r->data + off;
 	rhdr.count = n;
 	return 0;
 }
 
 char*
-rwrite(Fid *f)
+rwrite(Fid* f)
 {
-	Ram *r;
+	Ram* r;
 	int64_t off;
 	int cnt;
 
@@ -566,7 +545,7 @@ rwrite(Fid *f)
 	rhdr.count = 0;
 	if(r->busy == 0)
 		return Enotexist;
-	if (thdr.offset < 0)
+	if(thdr.offset < 0)
 		return "negative seek offset";
 	off = thdr.offset;
 	if(r->perm & DMAPPEND)
@@ -576,15 +555,15 @@ rwrite(Fid *f)
 		return "negative write count";
 	if(r->qid.type & QTDIR)
 		return Eisdir;
-	if(memlim && off+cnt >= Maxsize)		/* sanity check */
+	if(memlim && off + cnt >= Maxsize) /* sanity check */
 		return "write too big";
-	if(off+cnt > r->ndata)
-		r->data = erealloc(r->data, off+cnt);
+	if(off + cnt > r->ndata)
+		r->data = erealloc(r->data, off + cnt);
 	if(off > r->ndata)
-		memset(r->data+r->ndata, 0, off-r->ndata);
-	if(off+cnt > r->ndata)
-		r->ndata = off+cnt;
-	memmove(r->data+off, thdr.data, cnt);
+		memset(r->data + r->ndata, 0, off - r->ndata);
+	if(off + cnt > r->ndata)
+		r->ndata = off + cnt;
+	memmove(r->data + off, thdr.data, cnt);
 	r->qid.vers++;
 	r->mtime = time(0);
 	rhdr.count = cnt;
@@ -592,19 +571,19 @@ rwrite(Fid *f)
 }
 
 static int
-emptydir(Ram *dr)
+emptydir(Ram* dr)
 {
 	int32_t didx = dr - ram;
-	Ram *r;
+	Ram* r;
 
-	for(r=ram; r<&ram[nram]; r++)
-		if(r->busy && didx==r->parent)
+	for(r = ram; r < &ram[nram]; r++)
+		if(r->busy && didx == r->parent)
 			return 0;
 	return 1;
 }
 
-char *
-realremove(Ram *r)
+char*
+realremove(Ram* r)
 {
 	if(r->qid.type & QTDIR && !emptydir(r))
 		return Enotempty;
@@ -620,10 +599,10 @@ realremove(Ram *r)
 	return nil;
 }
 
-char *
-rclunk(Fid *f)
+char*
+rclunk(Fid* f)
 {
-	char *e = nil;
+	char* e = nil;
 
 	if(f->open)
 		f->ram->open--;
@@ -635,10 +614,10 @@ rclunk(Fid *f)
 	return e;
 }
 
-char *
-rremove(Fid *f)
+char*
+rremove(Fid* f)
 {
-	Ram *r;
+	Ram* r;
 
 	if(f->open)
 		f->ram->open--;
@@ -652,8 +631,8 @@ rremove(Fid *f)
 	return realremove(r);
 }
 
-char *
-rstat(Fid *f)
+char*
+rstat(Fid* f)
 {
 	if(f->ram->busy == 0)
 		return Enotexist;
@@ -662,10 +641,10 @@ rstat(Fid *f)
 	return 0;
 }
 
-char *
-rwstat(Fid *f)
+char*
+rwstat(Fid* f)
 {
-	Ram *r, *s;
+	Ram* r, *s;
 	Dir dir;
 
 	if(f->ram->busy == 0)
@@ -676,8 +655,8 @@ rwstat(Fid *f)
 	/*
 	 * To change length, must have write permission on file.
 	 */
-	if(dir.length!=~0 && dir.length!=r->ndata){
-	 	if(!perm(f, r, Pwrite))
+	if(dir.length != ~0 && dir.length != r->ndata) {
+		if(!perm(f, r, Pwrite))
 			return Eperm;
 	}
 
@@ -685,23 +664,23 @@ rwstat(Fid *f)
 	 * To change name, must have write permission in parent
 	 * and name must be unique.
 	 */
-	if(dir.name[0]!='\0' && strcmp(dir.name, r->name)!=0){
-	 	if(!perm(f, &ram[r->parent], Pwrite))
+	if(dir.name[0] != '\0' && strcmp(dir.name, r->name) != 0) {
+		if(!perm(f, &ram[r->parent], Pwrite))
 			return Eperm;
-		for(s=ram; s<&ram[nram]; s++)
-			if(s->busy && s->parent==r->parent)
-			if(strcmp(dir.name, s->name)==0)
-				return Eexist;
+		for(s = ram; s < &ram[nram]; s++)
+			if(s->busy && s->parent == r->parent)
+				if(strcmp(dir.name, s->name) == 0)
+					return Eexist;
 	}
 
 	/*
 	 * To change mode, must be owner or group leader.
 	 * Because of lack of users file, leader=>group itself.
 	 */
-	if(dir.mode!=~0 && r->perm!=dir.mode){
+	if(dir.mode != ~0 && r->perm != dir.mode) {
 		if(strcmp(f->user, r->user) != 0)
-		if(strcmp(f->user, r->group) != 0)
-			return Enotowner;
+			if(strcmp(f->user, r->group) != 0)
+				return Enotowner;
 	}
 
 	/*
@@ -709,33 +688,34 @@ rwstat(Fid *f)
 	 * or leader of current group and leader of new group.
 	 * Second case cannot happen, but we check anyway.
 	 */
-	if(dir.gid[0]!='\0' && strcmp(r->group, dir.gid)!=0){
+	if(dir.gid[0] != '\0' && strcmp(r->group, dir.gid) != 0) {
 		if(strcmp(f->user, r->user) == 0)
-	//	if(strcmp(f->user, dir.gid) == 0)
+			//	if(strcmp(f->user, dir.gid) == 0)
 			goto ok;
 		if(strcmp(f->user, r->group) == 0)
-		if(strcmp(f->user, dir.gid) == 0)
-			goto ok;
+			if(strcmp(f->user, dir.gid) == 0)
+				goto ok;
 		return Enotowner;
-		ok:;
+	ok:
+		;
 	}
 
 	/* all ok; do it */
-	if(dir.mode != ~0){
-		dir.mode &= ~DMDIR;	/* cannot change dir bit */
-		dir.mode |= r->perm&DMDIR;
+	if(dir.mode != ~0) {
+		dir.mode &= ~DMDIR; /* cannot change dir bit */
+		dir.mode |= r->perm & DMDIR;
 		r->perm = dir.mode;
 	}
-	if(dir.name[0] != '\0'){
+	if(dir.name[0] != '\0') {
 		free(r->name);
 		r->name = estrdup(dir.name);
 	}
 	if(dir.gid[0] != '\0')
 		r->group = estrdup(dir.gid);
-	if(dir.length!=~0 && dir.length!=r->ndata){
+	if(dir.length != ~0 && dir.length != r->ndata) {
 		r->data = erealloc(r->data, dir.length);
 		if(r->ndata < dir.length)
-			memset(r->data+r->ndata, 0, dir.length-r->ndata);
+			memset(r->data + r->ndata, 0, dir.length - r->ndata);
 		r->ndata = dir.length;
 	}
 	ram[r->parent].mtime = time(0);
@@ -743,7 +723,7 @@ rwstat(Fid *f)
 }
 
 uint
-ramstat(Ram *r, uint8_t *buf, uint nbuf)
+ramstat(Ram* r, uint8_t* buf, uint nbuf)
 {
 	int n;
 	Dir dir;
@@ -763,10 +743,10 @@ ramstat(Ram *r, uint8_t *buf, uint nbuf)
 	return 0;
 }
 
-Fid *
+Fid*
 newfid(int fid)
 {
-	Fid *f, *ff;
+	Fid* f, *ff;
 
 	ff = 0;
 	for(f = fids; f; f = f->next)
@@ -774,7 +754,7 @@ newfid(int fid)
 			return f;
 		else if(!ff && !f->busy)
 			ff = f;
-	if(ff){
+	if(ff) {
 		ff->fid = fid;
 		return ff;
 	}
@@ -789,24 +769,24 @@ newfid(int fid)
 void
 io(void)
 {
-	char *err, buf[40];
+	char* err, buf[40];
 	int n, pid, ctl;
-	Fid *fid;
+	Fid* fid;
 
 	pid = getpid();
-	if(private){
+	if(private) {
 		snprint(buf, sizeof buf, "/proc/%d/ctl", pid);
 		ctl = open(buf, OWRITE);
-		if(ctl < 0){
+		if(ctl < 0) {
 			fprint(2, "can't protect ramfs\n");
-		}else{
+		} else {
 			fprint(ctl, "noswap\n");
 			fprint(ctl, "private\n");
 			close(ctl);
 		}
 	}
 
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads.
@@ -816,9 +796,9 @@ io(void)
 		 * so we wait for the error.
 		 */
 		n = read9pmsg(mfd[0], mdata, messagesize);
-		if(n < 0){
+		if(n < 0) {
 			rerrstr(buf, sizeof buf);
-			if(buf[0]=='\0' || strstr(buf, "hungup"))
+			if(buf[0] == '\0' || strstr(buf, "hungup"))
 				exits("");
 			error("mount read");
 		}
@@ -830,22 +810,24 @@ io(void)
 		if(debug)
 			fprint(2, "ramfs %d:<-%F\n", pid, &thdr);
 
-		if(thdr.type<0 || thdr.type>=nelem(fcalls) || !fcalls[thdr.type])
+		if(thdr.type < 0 || thdr.type >= nelem(fcalls) ||
+		   !fcalls[thdr.type])
 			err = "bad fcall type";
-		else if(((fid=newfid(thdr.fid))==nil || !fid->ram) && needfid[thdr.type])
+		else if(((fid = newfid(thdr.fid)) == nil || !fid->ram) &&
+		        needfid[thdr.type])
 			err = "fid not in use";
 		else
 			err = (*fcalls[thdr.type])(fid);
-		if(err){
+		if(err) {
 			rhdr.type = Rerror;
 			rhdr.ename = err;
-		}else{
+		} else {
 			rhdr.type = thdr.type + 1;
 			rhdr.fid = thdr.fid;
 		}
 		rhdr.tag = thdr.tag;
 		if(debug)
-			fprint(2, "ramfs %d:->%F\n", pid, &rhdr);/**/
+			fprint(2, "ramfs %d:->%F\n", pid, &rhdr); /**/
 		n = convS2M(&rhdr, mdata, messagesize);
 		if(n == 0)
 			error("convS2M error on write");
@@ -855,28 +837,28 @@ io(void)
 }
 
 int
-perm(Fid *f, Ram *r, int p)
+perm(Fid* f, Ram* r, int p)
 {
-	if((p*Pother) & r->perm)
+	if((p * Pother) & r->perm)
 		return 1;
-	if(strcmp(f->user, r->group)==0 && ((p*Pgroup) & r->perm))
+	if(strcmp(f->user, r->group) == 0 && ((p * Pgroup) & r->perm))
 		return 1;
-	if(strcmp(f->user, r->user)==0 && ((p*Powner) & r->perm))
+	if(strcmp(f->user, r->user) == 0 && ((p * Powner) & r->perm))
 		return 1;
 	return 0;
 }
 
 void
-error(char *s)
+error(char* s)
 {
 	fprint(2, "%s: %s: %r\n", argv0, s);
 	exits(s);
 }
 
-void *
+void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(!p)
@@ -885,8 +867,8 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void *
-erealloc(void *p, uint32_t n)
+void*
+erealloc(void* p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)
@@ -894,13 +876,13 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-char *
-estrdup(char *q)
+char*
+estrdup(char* q)
 {
-	char *p;
+	char* p;
 	int n;
 
-	n = strlen(q)+1;
+	n = strlen(q) + 1;
 	p = malloc(n);
 	if(!p)
 		error("out of memory");

@@ -15,14 +15,14 @@
 #include <bio.h>
 #include "faces.h"
 
-static int		showfd = -1;
-static int		seefd = -1;
-static int		logfd = -1;
-static char	*user;
-static char	*logtag;
+static int showfd = -1;
+static int seefd = -1;
+static int logfd = -1;
+static char* user;
+static char* logtag;
 
-char		**maildirs;
-int		nmaildirs;
+char** maildirs;
+int nmaildirs;
 
 void
 initplumb(void)
@@ -30,32 +30,32 @@ initplumb(void)
 	showfd = plumbopen("send", OWRITE);
 	seefd = plumbopen("seemail", OREAD);
 
-	if(seefd < 0){
+	if(seefd < 0) {
 		logfd = open("/sys/log/mail", OREAD);
 		seek(logfd, 0LL, 2);
 		user = getenv("user");
-		if(user == nil){
+		if(user == nil) {
 			fprint(2, "faces: can't find user name: %r\n");
 			exits("$user");
 		}
-		logtag = emalloc(32+strlen(user)+1);
+		logtag = emalloc(32 + strlen(user) + 1);
 		sprint(logtag, " delivered %s From ", user);
 	}
 }
 
 void
-addmaildir(char *dir)
+addmaildir(char* dir)
 {
-	maildirs = erealloc(maildirs, (nmaildirs+1)*sizeof(char*));
+	maildirs = erealloc(maildirs, (nmaildirs + 1) * sizeof(char*));
 	maildirs[nmaildirs++] = dir;
 }
 
 char*
-attr(Face *f)
+attr(Face* f)
 {
 	static char buf[128];
 
-	if(f->str[Sdigest]){
+	if(f->str[Sdigest]) {
 		snprint(buf, sizeof buf, "digest=%s", f->str[Sdigest]);
 		return buf;
 	}
@@ -63,23 +63,24 @@ attr(Face *f)
 }
 
 void
-showmail(Face *f)
+showmail(Face* f)
 {
-	char *s;
+	char* s;
 	int n;
 
-	if(showfd<0 || f->str[Sshow]==nil || f->str[Sshow][0]=='\0')
+	if(showfd < 0 || f->str[Sshow] == nil || f->str[Sshow][0] == '\0')
 		return;
-	s = emalloc(128+strlen(f->str[Sshow])+1);
-	n = sprint(s, "faces\nshowmail\n/mail/fs/\ntext\n%s\n%ld\n%s", attr(f), strlen(f->str[Sshow]), f->str[Sshow]);
+	s = emalloc(128 + strlen(f->str[Sshow]) + 1);
+	n = sprint(s, "faces\nshowmail\n/mail/fs/\ntext\n%s\n%ld\n%s", attr(f),
+	           strlen(f->str[Sshow]), f->str[Sshow]);
 	write(showfd, s, n);
 	free(s);
 }
 
 char*
-value(Plumbattr *attr, char *key, char *def)
+value(Plumbattr* attr, char* key, char* def)
 {
-	char *v;
+	char* v;
 
 	v = plumblookup(attr, key);
 	if(v)
@@ -88,23 +89,23 @@ value(Plumbattr *attr, char *key, char *def)
 }
 
 void
-setname(Face *f, char *sender)
+setname(Face* f, char* sender)
 {
-	char *at, *bang;
-	char *p;
+	char* at, *bang;
+	char* p;
 
 	/* works with UTF-8, although it's written as ASCII */
-	for(p=sender; *p!='\0'; p++)
+	for(p = sender; *p != '\0'; p++)
 		*p = tolower(*p);
 	f->str[Suser] = sender;
 	at = strchr(sender, '@');
-	if(at){
+	if(at) {
 		*at++ = '\0';
 		f->str[Sdomain] = estrdup(at);
 		return;
 	}
 	bang = strchr(sender, '!');
-	if(bang){
+	if(bang) {
 		*bang++ = '\0';
 		f->str[Suser] = estrdup(bang);
 		f->str[Sdomain] = sender;
@@ -119,10 +120,10 @@ getc(void)
 	static int nbuf = 0;
 	static int i = 0;
 
-	while(i == nbuf){
+	while(i == nbuf) {
 		i = 0;
 		nbuf = read(logfd, buf, sizeof buf);
-		if(nbuf == 0){
+		if(nbuf == 0) {
 			sleep(15000);
 			continue;
 		}
@@ -133,11 +134,11 @@ getc(void)
 }
 
 char*
-getline(char *buf, int n)
+getline(char* buf, int n)
 {
 	int i, c;
 
-	for(i=0; i<n-1; i++){
+	for(i = 0; i < n - 1; i++) {
 		c = getc();
 		if(c <= 0)
 			return nil;
@@ -149,18 +150,15 @@ getline(char *buf, int n)
 	return buf;
 }
 
-static char* months[] = {
-	"jan", "feb", "mar", "apr",
-	"may", "jun", "jul", "aug", 
-	"sep", "oct", "nov", "dec"
-};
+static char* months[] = {"jan", "feb", "mar", "apr", "may", "jun",
+                         "jul", "aug", "sep", "oct", "nov", "dec"};
 
 static int
-getmon(char *s)
+getmon(char* s)
 {
 	int i;
 
-	for(i=0; i<nelem(months); i++)
+	for(i = 0; i < nelem(months); i++)
 		if(cistrcmp(months[i], s) == 0)
 			return i;
 	return -1;
@@ -168,13 +166,13 @@ getmon(char *s)
 
 /* Fri Jul 23 14:05:14 EDT 1999 */
 uint32_t
-parsedatev(char **a)
+parsedatev(char** a)
 {
-	char *p;
+	char* p;
 	Tm tm;
 
 	memset(&tm, 0, sizeof tm);
-	if((tm.mon=getmon(a[1])) == -1)
+	if((tm.mon = getmon(a[1])) == -1)
 		goto Err;
 	tm.mday = strtol(a[2], &p, 10);
 	if(*p != '\0')
@@ -182,10 +180,10 @@ parsedatev(char **a)
 	tm.hour = strtol(a[3], &p, 10);
 	if(*p != ':')
 		goto Err;
-	tm.min = strtol(p+1, &p, 10);
+	tm.min = strtol(p + 1, &p, 10);
 	if(*p != ':')
 		goto Err;
-	tm.sec = strtol(p+1, &p, 10);
+	tm.sec = strtol(p + 1, &p, 10);
 	if(*p != '\0')
 		goto Err;
 	if(strlen(a[4]) != 3)
@@ -203,9 +201,9 @@ Err:
 }
 
 uint32_t
-parsedate(char *s)
+parsedate(char* s)
 {
-	char *f[10];
+	char* f[10];
 	int nf;
 
 	nf = getfields(s, f, nelem(f), 1, " ");
@@ -214,12 +212,14 @@ parsedate(char *s)
 	return parsedatev(f);
 }
 
-/* achille Jul 23 14:05:15 delivered jmk From ms.com!bub Fri Jul 23 14:05:14 EDT 1999 (plan9.bell-labs.com!jmk) 1352 */
-/* achille Oct 26 13:45:42 remote local!rsc From rsc Sat Oct 26 13:45:41 EDT 2002 (rsc) 170 */
+/* achille Jul 23 14:05:15 delivered jmk From ms.com!bub Fri Jul 23 14:05:14 EDT
+ * 1999 (plan9.bell-labs.com!jmk) 1352 */
+/* achille Oct 26 13:45:42 remote local!rsc From rsc Sat Oct 26 13:45:41 EDT
+ * 2002 (rsc) 170 */
 int
-parselog(char *s, char **sender, uint32_t *xtime)
+parselog(char* s, char** sender, uint32_t* xtime)
 {
-	char *f[20];
+	char* f[20];
 	int nf;
 
 	nf = getfields(s, f, nelem(f), 1, " ");
@@ -227,7 +227,8 @@ parselog(char *s, char **sender, uint32_t *xtime)
 		return 0;
 	if(strcmp(f[4], "delivered") == 0 && strcmp(f[5], user) == 0)
 		goto Found;
-	if(strcmp(f[4], "remote") == 0 && strncmp(f[5], "local!", 6) == 0 && strcmp(f[5]+6, user) == 0)
+	if(strcmp(f[4], "remote") == 0 && strncmp(f[5], "local!", 6) == 0 &&
+	   strcmp(f[5] + 6, user) == 0)
 		goto Found;
 	return 0;
 
@@ -238,11 +239,11 @@ Found:
 }
 
 int
-logrecv(char **sender, uint32_t *xtime)
+logrecv(char** sender, uint32_t* xtime)
 {
 	char buf[4096];
 
-	for(;;){
+	for(;;) {
 		if(getline(buf, sizeof buf) == nil)
 			return 0;
 		if(parselog(buf, sender, xtime))
@@ -251,7 +252,7 @@ logrecv(char **sender, uint32_t *xtime)
 }
 
 char*
-tweakdate(char *d)
+tweakdate(char* d)
 {
 	char e[8];
 
@@ -259,10 +260,10 @@ tweakdate(char *d)
 
 	if(strlen(d) < strlen("Mon Aug  2 23:46:55 EDT 1999"))
 		return estrdup("");
-	if(strncmp(date, d, 4+4+3) == 0)
-		snprint(e, sizeof e, "%.5s", d+4+4+3);	/* 23:46 */
+	if(strncmp(date, d, 4 + 4 + 3) == 0)
+		snprint(e, sizeof e, "%.5s", d + 4 + 4 + 3); /* 23:46 */
 	else
-		snprint(e, sizeof e, "%.6s", d+4);	/* Aug  2 */
+		snprint(e, sizeof e, "%.6s", d + 4); /* Aug  2 */
 	return estrdup(e);
 }
 
@@ -270,14 +271,14 @@ Face*
 nextface(void)
 {
 	int i;
-	Face *f;
-	Plumbmsg *m;
-	char *t, *senderp, *showmailp, *digestp;
+	Face* f;
+	Plumbmsg* m;
+	char* t, *senderp, *showmailp, *digestp;
 	uint32_t xtime;
 
 	f = emalloc(sizeof(Face));
-	for(;;){
-		if(seefd >= 0){
+	for(;;) {
+		if(seefd >= 0) {
 			m = plumbrecv(seefd);
 			if(m == nil)
 				killall("error on seemail plumb port");
@@ -285,18 +286,23 @@ nextface(void)
 			if(strcmp(t, "delete") == 0)
 				delete(m->data, value(m->attr, "digest", nil));
 			else if(strcmp(t, "new") != 0)
-				fprint(2, "faces: unknown plumb message type %s\n", t);
-			else for(i=0; i<nmaildirs; i++)
-				if(strncmp(m->data, maildirs[i], strlen(maildirs[i])) == 0)
-					goto Found;
+				fprint(2,
+				       "faces: unknown plumb message type %s\n",
+				       t);
+			else
+				for(i = 0; i < nmaildirs; i++)
+					if(strncmp(m->data, maildirs[i],
+					           strlen(maildirs[i])) == 0)
+						goto Found;
 			plumbfree(m);
 			continue;
 
 		Found:
 			xtime = parsedate(value(m->attr, "date", date));
 			digestp = value(m->attr, "digest", nil);
-			if(alreadyseen(digestp)){
-				/* duplicate upas/fs can send duplicate messages */
+			if(alreadyseen(digestp)) {
+				/* duplicate upas/fs can send duplicate messages
+				 */
 				plumbfree(m);
 				continue;
 			}
@@ -305,7 +311,7 @@ nextface(void)
 			if(digestp)
 				digestp = estrdup(digestp);
 			plumbfree(m);
-		}else{
+		} else {
 			if(logrecv(&senderp, &xtime) <= 0)
 				killall("error reading log file");
 			showmailp = estrdup("");
@@ -321,11 +327,11 @@ nextface(void)
 }
 
 char*
-iline(char *data, char **pp)
+iline(char* data, char** pp)
 {
-	char *p;
+	char* p;
 
-	for(p=data; *p!='\0' && *p!='\n'; p++)
+	for(p = data; *p != '\0' && *p != '\n'; p++)
 		;
 	if(*p == '\n')
 		*p++ = '\0';
@@ -334,10 +340,10 @@ iline(char *data, char **pp)
 }
 
 Face*
-dirface(char *dir, char *num)
+dirface(char* dir, char* num)
 {
-	Face *f;
-	char *from, *date;
+	Face* f;
+	char* from, *date;
 	char buf[1024], pwd[1024], *info, *p, *digest;
 	int n, fd;
 	uint32_t len;
@@ -357,30 +363,30 @@ dirface(char *dir, char *num)
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return nil;
-	info = emalloc(len+1);
+	info = emalloc(len + 1);
 	n = readn(fd, info, len);
 	close(fd);
-	if(n < 0){
+	if(n < 0) {
 		free(info);
 		return nil;
 	}
 	info[n] = '\0';
 	f = emalloc(sizeof(Face));
-	from = iline(info, &p);	/* from */
-	iline(p, &p);	/* to */
-	iline(p, &p);	/* cc */
-	iline(p, &p);	/* replyto */
-	date = iline(p, &p);	/* date */
+	from = iline(info, &p); /* from */
+	iline(p, &p);           /* to */
+	iline(p, &p);           /* cc */
+	iline(p, &p);           /* replyto */
+	date = iline(p, &p);    /* date */
 	setname(f, estrdup(from));
 	f->time = parsedate(date);
 	f->tm = *localtime(f->time);
 	sprint(buf, "%s/%s", dir, num);
 	f->str[Sshow] = estrdup(buf);
-	iline(p, &p);	/* subject */
-	iline(p, &p);	/* mime content type */
-	iline(p, &p);	/* mime disposition */
-	iline(p, &p);	/* filename */
-	digest = iline(p, &p);	/* digest */
+	iline(p, &p);          /* subject */
+	iline(p, &p);          /* mime content type */
+	iline(p, &p);          /* mime disposition */
+	iline(p, &p);          /* filename */
+	digest = iline(p, &p); /* digest */
 	f->str[Sdigest] = estrdup(digest);
 	free(info);
 	return f;

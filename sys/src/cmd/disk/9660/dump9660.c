@@ -21,40 +21,40 @@ int docolon;
 int mk9660;
 int64_t dataoffset;
 int blocksize;
-Conform *map;
+Conform* map;
 
-static void addprotofile(char *new, char *old, Dir *d, void *a);
+static void addprotofile(char* new, char* old, Dir* d, void* a);
 void usage(void);
 
-char *argv0;
+char* argv0;
 
 void
 usage(void)
 {
 	if(mk9660)
 		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] "
-			"[-[bB] bootfile] [-o offset blocksize] "
-			"[-p proto] [-s src] cdimage\n");
+		          "[-[bB] bootfile] [-o offset blocksize] "
+		          "[-p proto] [-s src] cdimage\n");
 	else
 		fprint(2, "usage: disk/dump9660 [-D:] [-9cjr] "
-			"[-m maxsize] [-n now] "
-			"[-p proto] [-s src] cdimage\n");
+		          "[-m maxsize] [-n now] "
+		          "[-p proto] [-s src] cdimage\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int fix;
 	uint32_t block, newnull, cblock;
 	int64_t maxsize;
 	uint64_t length, clength;
 	char buf[256], *dumpname, *proto, *s, *src, *status;
-	Cdimg *cd;
+	Cdimg* cd;
 	Cdinfo info;
 	XDir dir;
-	Direc *iconform, idumproot, iroot, *jconform, jdumproot, jroot, *r;
-	Dump *dump;
+	Direc* iconform, idumproot, iroot, *jconform, jdumproot, jroot, *r;
+	Dump* dump;
 
 	fix = 0;
 	status = nil;
@@ -72,7 +72,8 @@ main(int argc, char **argv)
 	mk9660 = 0;
 	fmtinstall('H', encodefmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty++;
 		break;
@@ -92,7 +93,7 @@ main(int argc, char **argv)
 		break;
 	case 'B':
 		info.flags |= CDbootnoemu;
-		/* fall through */
+	/* fall through */
 	case 'b':
 		if(!mk9660)
 			usage();
@@ -117,8 +118,10 @@ main(int argc, char **argv)
 	case 'o':
 		dataoffset = atoll(EARGF(usage()));
 		blocksize = atoi(EARGF(usage()));
-		if(blocksize%Blocksize)
-			sysfatal("bad block size %d -- must be multiple of 2048", blocksize);
+		if(blocksize % Blocksize)
+			sysfatal(
+			    "bad block size %d -- must be multiple of 2048",
+			    blocksize);
 		blocksize /= Blocksize;
 		break;
 	case 'p':
@@ -139,7 +142,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(info.flags & CDpbs && !(info.flags & CDbootnoemu))
 		usage();
@@ -152,10 +156,10 @@ main(int argc, char **argv)
 
 	if(now == 0)
 		now = (uint32_t)time(0);
-	if(mk9660){
+	if(mk9660) {
 		if((cd = createcd(argv[0], info)) == nil)
 			sysfatal("cannot create '%s': %r", argv[0]);
-	}else{
+	} else {
 		if((cd = opencd(argv[0], info)) == nil)
 			sysfatal("cannot open '%s': %r", argv[0]);
 		if(!(cd->flags & CDdump))
@@ -183,10 +187,10 @@ main(int argc, char **argv)
 	if(rdproto(proto, src, addprotofile, nil, &iroot) < 0)
 		sysfatal("rdproto: %r");
 
-	if(mk9660){
+	if(mk9660) {
 		dump = emalloc(sizeof *dump);
 		dumpname = nil;
-	}else{
+	} else {
 		/*
 		 * Read current dump tree and _conform.map.
 		 */
@@ -195,36 +199,38 @@ main(int argc, char **argv)
 		if(cd->flags & CDjoliet)
 			jdumproot = readdumpdirs(cd, &dir, jolietstring);
 
-		if(fix){
+		if(fix) {
 			dumpname = nil;
-			cd->nextblock = cd->nulldump+1;
+			cd->nextblock = cd->nulldump + 1;
 			cd->nulldump = 0;
 			Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 			goto Dofix;
 		}
-	
+
 		dumpname = adddumpdir(&idumproot, now, &dir);
-		/* note that we assume all names are conforming and thus sorted */
+		/* note that we assume all names are conforming and thus sorted
+		 */
 		if(cd->flags & CDjoliet) {
 			s = adddumpdir(&jdumproot, now, &dir);
 			if(s != dumpname)
-				sysfatal("dumpnames don't match %s %s", dumpname, s);
+				sysfatal("dumpnames don't match %s %s",
+				         dumpname, s);
 		}
 		dump = dumpcd(cd, &idumproot);
-		cd->nextblock = cd->nulldump+1;
+		cd->nextblock = cd->nulldump + 1;
 	}
 
 	/*
 	 * Write new files, starting where the dump tree was.
- 	 * Must be done before creation of the Joliet tree so that
- 	 * blocks and lengths are correct.
+	 * Must be done before creation of the Joliet tree so that
+	 * blocks and lengths are correct.
 	 */
 	if(dataoffset > (int64_t)cd->nextblock * Blocksize)
-		cd->nextblock = (dataoffset+Blocksize-1)/Blocksize;
+		cd->nextblock = (dataoffset + Blocksize - 1) / Blocksize;
 	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 	writefiles(dump, cd, &iroot);
 
-	if(cd->bootimage){
+	if(cd->bootimage) {
 		findbootimage(cd, &iroot);
 		if(cd->loader)
 			findloader(cd, &iroot);
@@ -239,21 +245,21 @@ main(int argc, char **argv)
 		checknames(&iroot, isbadiso9660);
 		convertnames(&iroot, struprcpy);
 	} else
-		convertnames(&iroot, (void *) strcpy);
+		convertnames(&iroot, (void*)strcpy);
 
-//	isoabstract = findconform(&iroot, abstract);
-//	isobiblio = findconform(&iroot, biblio);
-//	isonotice = findconform(&iroot, notice);
+	//	isoabstract = findconform(&iroot, abstract);
+	//	isobiblio = findconform(&iroot, biblio);
+	//	isonotice = findconform(&iroot, notice);
 
 	dsort(&iroot, isocmp);
 
 	if(cd->flags & CDjoliet) {
-	//	jabstract = findconform(&jroot, abstract);
-	//	jbiblio = findconform(&jroot, biblio);
-	//	jnotice = findconform(&jroot, notice);
+		//	jabstract = findconform(&jroot, abstract);
+		//	jbiblio = findconform(&jroot, biblio);
+		//	jnotice = findconform(&jroot, notice);
 
 		checknames(&jroot, isbadjoliet);
-		convertnames(&jroot, (void *) strcpy);
+		convertnames(&jroot, (void*)strcpy);
 		dsort(&jroot, jolietcmp);
 	}
 
@@ -264,23 +270,25 @@ main(int argc, char **argv)
 	if(cd->flags & CDjoliet)
 		writedirs(cd, &jroot, Cputjolietdir);
 
-	if(mk9660){
+	if(mk9660) {
 		cblock = 0;
 		clength = 0;
 		newnull = 0;
-	}else{
+	} else {
 		/*
 		 * Write incremental _conform.map block.
 		 */
 		wrconform(cd, cd->nconform, &cblock, &clength);
-	
-		/* jump here if we're just fixing up the cd */
-Dofix:
+
+	/* jump here if we're just fixing up the cd */
+	Dofix:
 		/*
-		 * Write null dump header block; everything after this will be 
-		 * overwritten at the next dump.  Because of this, it needs to be
-		 * reconstructable.  We reconstruct the _conform.map and dump trees
-		 * from the header blocks in dump.c, and we reconstruct the path 
+		 * Write null dump header block; everything after this will be
+		 * overwritten at the next dump.  Because of this, it needs to
+		 * be
+		 * reconstructable.  We reconstruct the _conform.map and dump
+		 * trees
+		 * from the header blocks in dump.c, and we reconstruct the path
 		 * tables by walking the cd.
 		 */
 		newnull = Cputdumpblock(cd);
@@ -292,26 +300,30 @@ Dofix:
 	 * Write _conform.map.
 	 */
 	dir.mode = 0444;
-	if(cd->flags & (CDconform|CDjoliet)) {
-		if(!mk9660 && cd->nconform == 0){
-			block = cblock;	
+	if(cd->flags & (CDconform | CDjoliet)) {
+		if(!mk9660 && cd->nconform == 0) {
+			block = cblock;
 			length = clength;
-		}else
+		} else
 			wrconform(cd, 0, &block, &length);
 
-		if(mk9660) 
-{
+		if(mk9660) {
 			idumproot = iroot;
 			jdumproot = jroot;
 		}
 		if(length) {
-			/* The ISO9660 name will get turned into uppercase when written. */
-			if((iconform = walkdirec(&idumproot, "_conform.map")) == nil)
-				iconform = adddirec(&idumproot, "_conform.map", &dir);
+			/* The ISO9660 name will get turned into uppercase when
+			 * written. */
+			if((iconform = walkdirec(&idumproot, "_conform.map")) ==
+			   nil)
+				iconform =
+				    adddirec(&idumproot, "_conform.map", &dir);
 			jconform = nil;
 			if(cd->flags & CDjoliet) {
-				if((jconform = walkdirec(&jdumproot, "_conform.map")) == nil)
-					jconform = adddirec(&jdumproot, "_conform.map", &dir);
+				if((jconform = walkdirec(
+				        &jdumproot, "_conform.map")) == nil)
+					jconform = adddirec(
+					    &jdumproot, "_conform.map", &dir);
 			}
 			iconform->block = block;
 			iconform->length = length;
@@ -326,36 +338,38 @@ Dofix:
 		}
 	}
 
-	if(mk9660){
+	if(mk9660) {
 		/*
 		 * Patch in root directories.
 		 */
 		setroot(cd, cd->iso9660pvd, iroot.block, iroot.length);
 		setvolsize(cd, cd->iso9660pvd, cd->nextblock);
-		if(cd->flags & CDjoliet){
+		if(cd->flags & CDjoliet) {
 			setroot(cd, cd->jolietsvd, jroot.block, jroot.length);
 			setvolsize(cd, cd->jolietsvd, cd->nextblock);
 		}
-	}else{
+	} else {
 		/*
 		 * Write dump tree at end.  We assume the name characters
 		 * are all conforming, so everything is already sorted properly.
 		 */
-		convertnames(&idumproot, (info.flags & CDconform) ? (void *) struprcpy : (void *) strcpy);
+		convertnames(&idumproot, (info.flags & CDconform)
+		                             ? (void*)struprcpy
+		                             : (void*)strcpy);
 		if(cd->nulldump) {
 			r = walkdirec(&idumproot, dumpname);
 			assert(r != nil);
 			copybutname(r, &iroot);
 		}
 		if(cd->flags & CDjoliet) {
-			convertnames(&jdumproot, (void *) strcpy);
+			convertnames(&jdumproot, (void*)strcpy);
 			if(cd->nulldump) {
 				r = walkdirec(&jdumproot, dumpname);
 				assert(r != nil);
 				copybutname(r, &jroot);
 			}
 		}
-	
+
 		writedumpdirs(cd, &idumproot, Cputisodir);
 		if(cd->flags & CDjoliet)
 			writedumpdirs(cd, &jdumproot, Cputjolietdir);
@@ -365,44 +379,47 @@ Dofix:
 		 */
 		setroot(cd, cd->iso9660pvd, idumproot.block, idumproot.length);
 		setvolsize(cd, cd->iso9660pvd, cd->nextblock);
-		if(cd->flags & CDjoliet){
-			setroot(cd, cd->jolietsvd, jdumproot.block, jdumproot.length);
+		if(cd->flags & CDjoliet) {
+			setroot(cd, cd->jolietsvd, jdumproot.block,
+			        jdumproot.length);
 			setvolsize(cd, cd->jolietsvd, cd->nextblock);
 		}
 	}
-	writepathtables(cd);	
+	writepathtables(cd);
 
-	if(!mk9660){
+	if(!mk9660) {
 		/*
-		 * If we've gotten too big, truncate back to what we started with,
+		 * If we've gotten too big, truncate back to what we started
+		 * with,
 		 * fix up the cd, and exit with a non-zero status.
 		 */
 		Cwflush(cd);
-		if(cd->nulldump && maxsize && Cwoffset(cd) > maxsize){
+		if(cd->nulldump && maxsize && Cwoffset(cd) > maxsize) {
 			fprint(2, "too big; writing old tree back\n");
 			status = "cd too big; aborted";
-	
+
 			rmdumpdir(&idumproot, dumpname);
 			rmdumpdir(&jdumproot, dumpname);
-	
-			cd->nextblock = cd->nulldump+1;
+
+			cd->nextblock = cd->nulldump + 1;
 			cd->nulldump = 0;
 			Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 			goto Dofix;
 		}
-	
+
 		/*
 		 * Write old null header block; this commits all our changes.
 		 */
-		if(cd->nulldump){
+		if(cd->nulldump) {
 			Cwseek(cd, (int64_t)cd->nulldump * Blocksize);
 			sprint(buf, "plan 9 dump cd\n");
-			sprint(buf+strlen(buf), "%s %lud %lud %lud %llud %lud %lud",
-				dumpname, now, newnull, cblock, clength,
-				iroot.block, iroot.length);
+			sprint(buf + strlen(buf),
+			       "%s %lud %lud %lud %llud %lud %lud", dumpname,
+			       now, newnull, cblock, clength, iroot.block,
+			       iroot.length);
 			if(cd->flags & CDjoliet)
-				sprint(buf+strlen(buf), " %lud %lud",
-					jroot.block, jroot.length);
+				sprint(buf + strlen(buf), " %lud %lud",
+				       jroot.block, jroot.length);
 			strcat(buf, "\n");
 			Cwrite(cd, buf, strlen(buf));
 			Cpadblock(cd);
@@ -414,19 +431,19 @@ Dofix:
 }
 
 static void
-addprotofile(char *new, char *old, Dir *d, void *a)
+addprotofile(char* new, char* old, Dir* d, void* a)
 {
-	char *name, *p;
-	Direc *direc;
+	char* name, *p;
+	Direc* direc;
 	XDir xd;
 
 	dirtoxdir(&xd, d);
 	name = nil;
 	if(docolon && strchr(new, ':')) {
-		name = emalloc(strlen(new)+1);
+		name = emalloc(strlen(new) + 1);
 		strcpy(name, new);
-		while((p=strchr(name, ':')))
-			*p=' ';
+		while((p = strchr(name, ':')))
+			*p = ' ';
 		new = name;
 	}
 	if((direc = adddirec((Direc*)a, new, &xd))) {

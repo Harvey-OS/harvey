@@ -7,15 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int32_t
-Bwrite(Biobufhdr *bp, void *ap, int32_t count)
+Bwrite(Biobufhdr* bp, void* ap, int32_t count)
 {
 	int32_t c;
-	uint8_t *p;
+	uint8_t* p;
 	int i, n, oc;
 	char errbuf[ERRMAX];
 
@@ -42,11 +42,11 @@ Bwrite(Biobufhdr *bp, void *ap, int32_t count)
 			oc = -bp->bsize;
 			continue;
 		}
-		memmove(bp->ebuf+oc, p, n);
+		memmove(bp->ebuf + oc, p, n);
 		oc += n;
 		c -= n;
 		p += n;
 	}
 	bp->ocount = oc;
-	return count-c;
+	return count - c;
 }

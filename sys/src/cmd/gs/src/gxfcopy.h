@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,17 +27,17 @@
 /* Font copying for high-level output */
 
 #ifndef gxfcopy_INCLUDED
-#  define gxfcopy_INCLUDED
+#define gxfcopy_INCLUDED
 
 #include "gsccode.h"
 
 #ifndef gs_font_DEFINED
-#  define gs_font_DEFINED
+#define gs_font_DEFINED
 typedef struct gs_font_s gs_font;
 #endif
 
 #ifndef gs_matrix_DEFINED
-#  define gs_matrix_DEFINED
+#define gs_matrix_DEFINED
 typedef struct gs_matrix_s gs_matrix;
 #endif
 
@@ -74,8 +74,8 @@ typedef struct gs_matrix_s gs_matrix;
  * The resulting font supports querying (font_info, glyph_info, etc.) and
  * rendering (glyph_outline, etc.), but it does not support make_font.
  */
-int gs_copy_font(gs_font *font, const gs_matrix *orig_matrix, 
-		    gs_memory_t *mem, gs_font **pfont_new);
+int gs_copy_font(gs_font* font, const gs_matrix* orig_matrix, gs_memory_t* mem,
+                 gs_font** pfont_new);
 
 /*
  * Copy a glyph, including any sub-glyphs.  The destination font ("copied"
@@ -114,7 +114,7 @@ int gs_copy_font(gs_font *font, const gs_matrix *orig_matrix,
  * for CIDFontType 2 fonts with MetricsCount != 0, the metrics attached to
  * the individual glyph outlines are also ignored (not copied).
  */
-int gs_copy_glyph(gs_font *font, gs_glyph glyph, gs_font *copied);
+int gs_copy_glyph(gs_font* font, gs_glyph glyph, gs_font* copied);
 
 /*
  * Copy a glyph with additional checking options.  If options includes
@@ -126,8 +126,8 @@ int gs_copy_glyph(gs_font *font, gs_glyph glyph, gs_font *copied);
 #define COPY_GLYPH_NO_OLD 1
 #define COPY_GLYPH_NO_NEW 2
 #define COPY_GLYPH_BY_INDEX 4
-int gs_copy_glyph_options(gs_font *font, gs_glyph glyph, gs_font *copied,
-			  int options);
+int gs_copy_glyph_options(gs_font* font, gs_glyph glyph, gs_font* copied,
+                          int options);
 
 /*
  * Add an encoding entry to a copied font.  If the given encoding entry is
@@ -146,31 +146,29 @@ int gs_copy_glyph_options(gs_font *font, gs_glyph glyph, gs_font *copied,
  *
  *	CIDFontType 2 - gives an error.
  */
-int gs_copied_font_add_encoding(gs_font *copied, gs_char chr, gs_glyph glyph);
+int gs_copied_font_add_encoding(gs_font* copied, gs_char chr, gs_glyph glyph);
 
 /*
  * Copy all the glyphs and, if relevant, Encoding entries from a font.  This
  * is equivalent to copying the glyphs and Encoding entries individually,
  * and returns errors under the same conditions.
  */
-int gs_copy_font_complete(gs_font *font, gs_font *copied);
-
+int gs_copy_font_complete(gs_font* font, gs_font* copied);
 
 /*
  * Check whether specified glyphs can be copied from another font.
- * It means that (1) fonts have same hinting parameters and 
- * (2) font subsets for the specified glyph set don't include different 
- * outlines or metrics. Possible returned values : 
+ * It means that (1) fonts have same hinting parameters and
+ * (2) font subsets for the specified glyph set don't include different
+ * outlines or metrics. Possible returned values :
  * 0 (incompatible), 1 (compatible), < 0 (error)
  */
-int gs_copied_can_copy_glyphs(const gs_font *cfont, const gs_font *ofont, 
-		    gs_glyph *glyphs, int num_glyphs, int glyphs_step, 
-		    bool check_hinting);
+int gs_copied_can_copy_glyphs(const gs_font* cfont, const gs_font* ofont,
+                              gs_glyph* glyphs, int num_glyphs, int glyphs_step,
+                              bool check_hinting);
 
-/* Extension glyphs may be added to a font to resolve 
+/* Extension glyphs may be added to a font to resolve
    glyph name conflicts while conwerting a PDF Widths into Metrics.
    This function drops them before writing out an embedded font. */
-int copied_drop_extension_glyphs(gs_font *cfont);
-
+int copied_drop_extension_glyphs(gs_font* cfont);
 
 #endif /* gxfcopy_INCLUDED */

@@ -14,30 +14,34 @@
 void
 usage(void)
 {
-	fprint(2, "usage: fmtarenas [-Z] [-b blocksize] [-a arenasize] name file\n");
+	fprint(
+	    2,
+	    "usage: fmtarenas [-Z] [-b blocksize] [-a arenasize] name file\n");
 	threadexitsall(0);
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	int vers;
-	ArenaPart *ap;
-	Part *part;
-	Arena *arena;
+	ArenaPart* ap;
+	Part* part;
+	Arena* arena;
 	u64int addr, limit, asize, apsize;
-	char *file, *name, aname[ANameSize];
+	char* file, *name, aname[ANameSize];
 	int i, n, blocksize, tabsize, zero;
 
 	ventifmtinstall();
 	statsinit();
 
 	blocksize = 8 * 1024;
-	asize = 512 * 1024 *1024;
-	tabsize = 512 * 1024;		/* BUG: should be determine from number of arenas */
+	asize = 512 * 1024 * 1024;
+	tabsize =
+	    512 * 1024; /* BUG: should be determine from number of arenas */
 	zero = -1;
 	vers = ArenaVersion5;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		settrace(EARGF(usage()));
 		break;
@@ -50,8 +54,9 @@ threadmain(int argc, char *argv[])
 		blocksize = unittoull(EARGF(usage()));
 		if(blocksize == ~0)
 			usage();
-		if(blocksize > MaxDiskBlock){
-			fprint(2, "block size too large, max %d\n", MaxDiskBlock);
+		if(blocksize > MaxDiskBlock) {
+			fprint(2, "block size too large, max %d\n",
+			       MaxDiskBlock);
 			threadexitsall("usage");
 		}
 		break;
@@ -64,9 +69,10 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(zero == -1){
+	if(zero == -1) {
 		if(vers == ArenaVersion4)
 			zero = 1;
 		else
@@ -82,7 +88,7 @@ threadmain(int argc, char *argv[])
 	if(nameok(name) < 0)
 		sysfatal("illegal name template %s", name);
 
-	part = initpart(file, ORDWR|ODIRECT);
+	part = initpart(file, ORDWR | ODIRECT);
 	if(part == nil)
 		sysfatal("can't open partition %s: %r", file);
 
@@ -90,7 +96,7 @@ threadmain(int argc, char *argv[])
 		zeropart(part, blocksize);
 
 	maxblocksize = blocksize;
-	initdcache(20*blocksize);
+	initdcache(20 * blocksize);
 
 	ap = newarenapart(part, blocksize, tabsize);
 	if(ap == nil)
@@ -101,27 +107,33 @@ threadmain(int argc, char *argv[])
 	if(apsize - (n * asize) >= MinArenaSize)
 		n++;
 
-	fprint(2, "fmtarenas %s: %,d arenas, %,lld bytes storage, %,d bytes for index map\n",
-		file, n, apsize, ap->tabsize);
+	fprint(2, "fmtarenas %s: %,d arenas, %,lld bytes storage, %,d bytes "
+	          "for index map\n",
+	       file, n, apsize, ap->tabsize);
 
 	ap->narenas = n;
 	ap->map = MKNZ(AMap, n);
 	ap->arenas = MKNZ(Arena*, n);
 
 	addr = ap->arenabase;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		limit = addr + asize;
-		if(limit >= ap->size || ap->size - limit < MinArenaSize){
+		if(limit >= ap->size || ap->size - limit < MinArenaSize) {
 			limit = ap->size;
 			if(limit - addr < MinArenaSize)
-				sysfatal("bad arena set math: runt arena at %lld,%lld %lld", addr, limit, ap->size);
+				sysfatal("bad arena set math: runt arena at "
+				         "%lld,%lld %lld",
+				         addr, limit, ap->size);
 		}
 
 		snprint(aname, ANameSize, "%s%d", name, i);
 
-		if(0) fprint(2, "adding arena %s at [%lld,%lld)\n", aname, addr, limit);
+		if(0)
+			fprint(2, "adding arena %s at [%lld,%lld)\n", aname,
+			       addr, limit);
 
-		arena = newarena(part, vers, aname, addr, limit - addr, blocksize);
+		arena =
+		    newarena(part, vers, aname, addr, limit - addr, blocksize);
 		if(!arena)
 			fprint(2, "can't make new arena %s: %r", aname);
 		freearena(arena);
@@ -134,7 +146,9 @@ threadmain(int argc, char *argv[])
 	}
 
 	if(wbarenapart(ap) < 0)
-		fprint(2, "can't write back arena partition header for %s: %r\n", file);
+		fprint(2,
+		       "can't write back arena partition header for %s: %r\n",
+		       file);
 
 	flushdcache();
 	threadexitsall(0);

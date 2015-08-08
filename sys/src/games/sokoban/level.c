@@ -15,7 +15,7 @@
 #include "sokoban.h"
 
 void
-consumeline(Biobuf *b)
+consumeline(Biobuf* b)
 {
 	while(Bgetc(b) != '\n')
 		;
@@ -23,12 +23,12 @@ consumeline(Biobuf *b)
 
 /* parse a level file */
 int
-loadlevels(char *path)
+loadlevels(char* path)
 {
-	Biobuf *b;
+	Biobuf* b;
 	int x = 0, y = 0, lnum = 0;
 	char c;
-		
+
 	if(path == nil)
 		return 0;
 
@@ -38,12 +38,13 @@ loadlevels(char *path)
 		return 0;
 	}
 
-	memset(levels, 0, Maxlevels*sizeof(Level));
-	
+	memset(levels, 0, Maxlevels * sizeof(Level));
+
 	while((c = Bgetc(b)) > 0) {
-		switch(c)  {
+		switch(c) {
 		case ';':
-			consumeline(b); 	/* no ';'-comments in the middle of a level */
+			consumeline(
+			    b); /* no ';'-comments in the middle of a level */
 			break;
 		case '\n':
 			levels[lnum].index = lnum;
@@ -93,7 +94,8 @@ loadlevels(char *path)
 			x++;
 			break;
 		default:
-			fprint(2, "impossible character for level %d: %c\n", lnum+1, c);
+			fprint(2, "impossible character for level %d: %c\n",
+			       lnum + 1, c);
 			return 0;
 		}
 		if(x > levels[lnum].max.x)

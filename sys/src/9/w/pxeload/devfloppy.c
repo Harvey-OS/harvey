@@ -9,16 +9,15 @@
 
 #include <u.h>
 
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "ureg.h"
 
-#include	"fs.h"
-#include	"devfloppy.h"
-
+#include "fs.h"
+#include "devfloppy.h"
 
 /* Intel 82077A (8272A compatible) floppy controller */
 
@@ -42,25 +41,40 @@
 
 enum {
 	/* file types */
-	Qdir=		0,
-	Qdata=		(1<<2),
-	Qctl=		(2<<2),
-	Qmask=		(3<<2),
+	Qdir = 0,
+	Qdata = (1 << 2),
+	Qctl = (2 << 2),
+	Qmask = (3 << 2),
 
-	DMAchan=	2,	/* floppy dma channel */
+	DMAchan = 2, /* floppy dma channel */
 };
 
-#define DPRINT if(0)print
+#define DPRINT                                                                 \
+	if(0)                                                                  \
+	print
 
-FType floppytype[] =
-{
- { "3½HD",	T1440kb, 512, 18, 2, 1, 80, 0x1B, 0x54,	0, },
- { "3½DD",	T1440kb, 512,  9, 2, 1, 80, 0x1B, 0x54, 2, },
- { "3½DD",	T720kb,  512,  9, 2, 1, 80, 0x1B, 0x54, 2, },
- { "5¼HD",	T1200kb, 512, 15, 2, 1, 80, 0x2A, 0x50, 0, },
- { "5¼DD",	T1200kb, 512,  9, 2, 2, 40, 0x2A, 0x50, 1, },
- { "ATT3B1",	T1200kb, 512,  8, 2, 2, 48, 0x2A, 0x50, 1, },
- { "5¼DD",	T360kb,  512,  9, 2, 1, 40, 0x2A, 0x50, 2, },
+FType floppytype[] = {
+    {
+     "3½HD", T1440kb, 512, 18, 2, 1, 80, 0x1B, 0x54, 0,
+    },
+    {
+     "3½DD", T1440kb, 512, 9, 2, 1, 80, 0x1B, 0x54, 2,
+    },
+    {
+     "3½DD", T720kb, 512, 9, 2, 1, 80, 0x1B, 0x54, 2,
+    },
+    {
+     "5¼HD", T1200kb, 512, 15, 2, 1, 80, 0x2A, 0x50, 0,
+    },
+    {
+     "5¼DD", T1200kb, 512, 9, 2, 2, 40, 0x2A, 0x50, 1,
+    },
+    {
+     "ATT3B1", T1200kb, 512, 8, 2, 2, 48, 0x2A, 0x50, 1,
+    },
+    {
+     "5¼DD", T360kb, 512, 9, 2, 1, 40, 0x2A, 0x50, 2,
+    },
 };
 
 /*
@@ -68,58 +82,51 @@ FType floppytype[] =
  *  - index for b2c is is (bytes per sector/128).
  *  - index for c2b is code from b2c
  */
-static int b2c[] =
-{
-[1]	0,
-[2]	1,
-[4]	2,
-[8]	3,
+static int b2c[] = {
+        [1] 0, [2] 1, [4] 2, [8] 3,
 };
-static int c2b[] =
-{
-	128,
-	256,
-	512,
-	1024,
+static int c2b[] = {
+    128, 256, 512, 1024,
 };
 
-FController	fl;
+FController fl;
 
-#define MOTORBIT(i)	(1<<((i)+4))
+#define MOTORBIT(i) (1 << ((i) + 4))
 
 /*
  *  predeclared
  */
-static int	cmddone(void*);
-static void	floppyformat(FDrive*, char*);
-static void	floppykproc(void*);
-static void	floppypos(FDrive*,int32_t);
-static int	floppyrecal(FDrive*);
-static int	floppyresult(void);
-static void	floppyrevive(void);
-static int64_t	pcfloppyseek(FDrive*, int64_t);
-static int	floppysense(void);
-static void	floppywait(int);
-static int32_t	floppyxfer(FDrive*, int, void*, int32_t, int32_t);
+static int cmddone(void*);
+static void floppyformat(FDrive*, char*);
+static void floppykproc(void*);
+static void floppypos(FDrive*, int32_t);
+static int floppyrecal(FDrive*);
+static int floppyresult(void);
+static void floppyrevive(void);
+static int64_t pcfloppyseek(FDrive*, int64_t);
+static int floppysense(void);
+static void floppywait(int);
+static int32_t floppyxfer(FDrive*, int, void*, int32_t, int32_t);
 
 static void
 fldump(void)
 {
-	DPRINT("sra %ux srb %ux dor %ux msr %ux dir %ux\n", inb(Psra), inb(Psrb),
-		inb(Pdor), inb(Pmsr), inb(Pdir));
+	DPRINT("sra %ux srb %ux dor %ux msr %ux dir %ux\n", inb(Psra),
+	       inb(Psrb), inb(Pdor), inb(Pmsr), inb(Pdir));
 }
 
 static void
 floppyalarm(Alarm* a)
 {
-	FDrive *dp;
+	FDrive* dp;
 
-	for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++){
-		if((fl.motor&MOTORBIT(dp->dev)) && TK2SEC(machp()->ticks - dp->lasttouched) > 5)
+	for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++) {
+		if((fl.motor & MOTORBIT(dp->dev)) &&
+		   TK2SEC(machp()->ticks - dp->lasttouched) > 5)
 			floppyoff(dp);
 	}
 
-	alarm(5*1000, floppyalarm, 0);
+	alarm(5 * 1000, floppyalarm, 0);
 	cancel(a);
 }
 
@@ -127,12 +134,12 @@ floppyalarm(Alarm* a)
  *  set floppy drive to its default type
  */
 static void
-floppysetdef(FDrive *dp)
+floppysetdef(FDrive* dp)
 {
-	FType *t;
+	FType* t;
 
 	for(t = floppytype; t < &floppytype[nelem(floppytype)]; t++)
-		if(dp->dt == t->dt){
+		if(dp->dt == t->dt) {
 			dp->t = t;
 			break;
 		}
@@ -153,8 +160,8 @@ _floppydetach(void)
 int
 floppyinit(void)
 {
-	FDrive *dp;
-	FType *t;
+	FDrive* dp;
+	FType* t;
 	uint32_t maxtsize;
 	int mask;
 
@@ -166,9 +173,9 @@ floppyinit(void)
 	 *  init dependent parameters
 	 */
 	maxtsize = 0;
-	for(t = floppytype; t < &floppytype[nelem(floppytype)]; t++){
+	for(t = floppytype; t < &floppytype[nelem(floppytype)]; t++) {
 		t->cap = t->bytes * t->heads * t->sectors * t->tracks;
-		t->bcode = b2c[t->bytes/128];
+		t->bcode = b2c[t->bytes / 128];
 		t->tsize = t->bytes * t->sectors;
 		if(maxtsize < t->tsize)
 			maxtsize = t->tsize;
@@ -183,14 +190,14 @@ floppyinit(void)
 	 *  init drives
 	 */
 	mask = 0;
-	for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++){
+	for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++) {
 		dp->dev = dp - fl.d;
 		if(dp->dt == Tnone)
 			continue;
-		mask |= 1<<dp->dev;
+		mask |= 1 << dp->dev;
 		floppysetdef(dp);
-		dp->cyl = -1;			/* because we don't know */
-		dp->cache = (uint8_t*)xspanalloc(maxtsize, BY2PG, 64*1024);
+		dp->cyl = -1; /* because we don't know */
+		dp->cache = (uint8_t*)xspanalloc(maxtsize, BY2PG, 64 * 1024);
 		dp->ccyl = -1;
 		dp->vers = 0;
 		dp->maxtries = 5;
@@ -204,13 +211,13 @@ floppyinit(void)
 	floppysetup1(&fl);
 
 	/* to turn the motor off when inactive */
-	alarm(5*1000, floppyalarm, 0);
+	alarm(5 * 1000, floppyalarm, 0);
 
 	return mask;
 }
 
 void
-floppyinitdev(int i, char *name)
+floppyinitdev(int i, char* name)
 {
 	if(i >= fl.ndrive)
 		panic("floppyinitdev");
@@ -226,13 +233,13 @@ floppyprintdevs(int i)
 }
 
 int
-floppyboot(int dev, char *file, Boot *b)
+floppyboot(int dev, char* file, Boot* b)
 {
-	Fs *fs;
+	Fs* fs;
 
 	if(strncmp(file, "dos!", 4) == 0)
 		file += 4;
-	else if(strchr(file, '!') || strcmp(file, "")==0) {
+	else if(strchr(file, '!') || strcmp(file, "") == 0) {
 		print("syntax is fd0!file\n");
 		return -1;
 	}
@@ -262,14 +269,14 @@ floppyprintbootdevs(int dev)
  *  possibilities for this drive.
  */
 static int
-changed(FDrive *dp)
+changed(FDrive* dp)
 {
-	FType *start;
+	FType* start;
 
 	/*
 	 *  if floppy has changed or first time through
 	 */
-	if((inb(Pdir)&Fchange) || dp->vers == 0){
+	if((inb(Pdir) & Fchange) || dp->vers == 0) {
 		DPRINT("changed\n");
 		fldump();
 		dp->vers++;
@@ -278,22 +285,22 @@ changed(FDrive *dp)
 		start = dp->t;
 
 		/* flopppyon fails if there's no drive */
-		dp->confused = 1;	/* make floppyon recal */
+		dp->confused = 1; /* make floppyon recal */
 		if(floppyon(dp) < 0)
 			return -1;
 
-		pcfloppyseek(dp, dp->t->heads*dp->t->tsize);
+		pcfloppyseek(dp, dp->t->heads * dp->t->tsize);
 
-		while(floppyxfer(dp, Fread, dp->cache, 0, dp->t->tsize) <= 0){
+		while(floppyxfer(dp, Fread, dp->cache, 0, dp->t->tsize) <= 0) {
 
 			/*
 			 *  if the xfer attempt doesn't clear the changed bit,
 			 *  there's no floppy in the drive
 			 */
-			if(inb(Pdir)&Fchange)
+			if(inb(Pdir) & Fchange)
 				return -1;
 
-			while(++dp->t){
+			while(++dp->t) {
 				if(dp->t == &floppytype[nelem(floppytype)])
 					dp->t = floppytype;
 				if(dp->dt == dp->t->dt)
@@ -315,18 +322,19 @@ changed(FDrive *dp)
 }
 
 static int
-readtrack(FDrive *dp, int cyl, int head)
+readtrack(FDrive* dp, int cyl, int head)
 {
 	int i, nn, sofar;
 	uint32_t pos;
 
 	nn = dp->t->tsize;
-	if(dp->ccyl==cyl && dp->chead==head)
+	if(dp->ccyl == cyl && dp->chead == head)
 		return nn;
-	pos = (cyl*dp->t->heads+head) * nn;
-	for(sofar = 0; sofar < nn; sofar += i){
+	pos = (cyl * dp->t->heads + head) * nn;
+	for(sofar = 0; sofar < nn; sofar += i) {
 		dp->ccyl = -1;
-		i = floppyxfer(dp, Fread, dp->cache + sofar, pos + sofar, nn - sofar);
+		i = floppyxfer(dp, Fread, dp->cache + sofar, pos + sofar,
+		               nn - sofar);
 		if(i <= 0)
 			return -1;
 	}
@@ -336,13 +344,13 @@ readtrack(FDrive *dp, int cyl, int head)
 }
 
 int32_t
-floppyread(Fs *fs, void *a, int32_t n)
+floppyread(Fs* fs, void* a, int32_t n)
 {
-	FDrive *dp;
+	FDrive* dp;
 	int32_t rv, offset;
 	int sec, head, cyl;
 	int32_t len;
-	uint8_t *aa;
+	uint8_t* aa;
 
 	aa = a;
 	dp = &fl.d[fs->dev];
@@ -352,33 +360,34 @@ floppyread(Fs *fs, void *a, int32_t n)
 	if(changed(dp))
 		return -1;
 
-	for(rv = 0; rv < n; rv += len){
+	for(rv = 0; rv < n; rv += len) {
 		/*
 		 *  all xfers come out of the track cache
 		 */
 		dp->len = n - rv;
-		floppypos(dp, offset+rv);
+		floppypos(dp, offset + rv);
 		cyl = dp->tcyl;
 		head = dp->thead;
 		len = dp->len;
 		sec = dp->tsec;
 		if(readtrack(dp, cyl, head) < 0)
 			break;
-		memmove(aa+rv, dp->cache + (sec-1)*dp->t->bytes, len);
+		memmove(aa + rv, dp->cache + (sec - 1) * dp->t->bytes, len);
 	}
-	dp->offset = offset+rv;
+	dp->offset = offset + rv;
 
 	return rv;
 }
 
 void*
-floppygetfspart(int i, char *name, int chatty)
+floppygetfspart(int i, char* name, int chatty)
 {
 	static Fs fs;
 
-	if(strcmp(name, "dos") != 0){
+	if(strcmp(name, "dos") != 0) {
 		if(chatty)
-			print("unknown partition fd%d!%s (use fd%d!dos)\n", i, name, i);
+			print("unknown partition fd%d!%s (use fd%d!dos)\n", i,
+			      name, i);
 		return nil;
 	}
 
@@ -387,9 +396,10 @@ floppygetfspart(int i, char *name, int chatty)
 	fs.diskseek = floppyseek;
 
 	/* sometimes we get spurious errors and doing it again works */
-	if(dosinit(&fs) < 0 && dosinit(&fs) < 0){
+	if(dosinit(&fs) < 0 && dosinit(&fs) < 0) {
 		if(chatty)
-			print("fd%d!%s does not contain a FAT file system\n", i, name);
+			print("fd%d!%s does not contain a FAT file system\n", i,
+			      name);
 		return nil;
 	}
 	return &fs;
@@ -408,7 +418,7 @@ timedsleep(int (*f)(void*), void* arg, int ms)
 	uint32_t end;
 
 	end = machp()->ticks + 1 + MS2TK(ms);
-	while(machp()->ticks < end && !(*f)(arg)){
+	while(machp()->ticks < end && !(*f)(arg)) {
 		s = spllo();
 		delay(10);
 		splx(s);
@@ -419,7 +429,7 @@ timedsleep(int (*f)(void*), void* arg, int ms)
  *  start a floppy drive's motor.
  */
 static int
-floppyon(FDrive *dp)
+floppyon(FDrive* dp)
 {
 	int alreadyon;
 	int tries;
@@ -430,7 +440,7 @@ floppyon(FDrive *dp)
 	/* start motor and select drive */
 	dp->lasttouched = machp()->ticks;
 	alreadyon = fl.motor & MOTORBIT(dp->dev);
-	if(!alreadyon){
+	if(!alreadyon) {
 		fl.motor |= MOTORBIT(dp->dev);
 		outb(Pdor, fl.motor | Fintena | Fena | dp->dev);
 		/* wait for drive to spin up */
@@ -441,7 +451,7 @@ floppyon(FDrive *dp)
 	}
 
 	/* set transfer rate */
-	if(fl.rate != dp->t->rate){
+	if(fl.rate != dp->t->rate) {
 		fl.rate = dp->t->rate;
 		outb(Pdsr, fl.rate);
 	}
@@ -462,7 +472,7 @@ floppyon(FDrive *dp)
  *  stop the floppy if it hasn't been used in 5 seconds
  */
 static void
-floppyoff(FDrive *dp)
+floppyoff(FDrive* dp)
 {
 	fl.motor &= ~MOTORBIT(dp->dev);
 	outb(Pdor, fl.motor | Fintena | Fena | dp->dev);
@@ -478,12 +488,13 @@ floppycmd(void)
 	int tries;
 
 	fl.nstat = 0;
-	for(i = 0; i < fl.ncmd; i++){
-		for(tries = 0; ; tries++){
-			if((inb(Pmsr)&(Ffrom|Fready)) == Fready)
+	for(i = 0; i < fl.ncmd; i++) {
+		for(tries = 0;; tries++) {
+			if((inb(Pmsr) & (Ffrom | Fready)) == Fready)
 				break;
-			if(tries > 1000){
-				DPRINT("cmd %ux can't be sent (%d)\n", fl.cmd[0], i);
+			if(tries > 1000) {
+				DPRINT("cmd %ux can't be sent (%d)\n",
+				       fl.cmd[0], i);
 				fldump();
 
 				/* empty fifo, might have been a bad command */
@@ -511,17 +522,17 @@ floppyresult(void)
 	int tries;
 
 	/* get the result of the operation */
-	for(i = 0; i < sizeof(fl.stat); i++){
+	for(i = 0; i < sizeof(fl.stat); i++) {
 		/* wait for status byte */
-		for(tries = 0; ; tries++){
-			s = inb(Pmsr)&(Ffrom|Fready);
-			if(s == Fready){
+		for(tries = 0;; tries++) {
+			s = inb(Pmsr) & (Ffrom | Fready);
+			if(s == Fready) {
 				fl.nstat = i;
 				return fl.nstat;
 			}
-			if(s == (Ffrom|Fready))
+			if(s == (Ffrom | Fready))
 				break;
-			if(tries > 1000){
+			if(tries > 1000) {
 				DPRINT("floppyresult: %d stats\n", i);
 				fldump();
 				fl.confused = 1;
@@ -541,24 +552,24 @@ floppyresult(void)
  *  truncate dp->length if it crosses a track boundary
  */
 static void
-floppypos(FDrive *dp, int32_t off)
+floppypos(FDrive* dp, int32_t off)
 {
 	int lsec;
 	int ltrack;
 	int end;
 
-	lsec = off/dp->t->bytes;
-	ltrack = lsec/dp->t->sectors;
-	dp->tcyl = ltrack/dp->t->heads;
+	lsec = off / dp->t->bytes;
+	ltrack = lsec / dp->t->sectors;
+	dp->tcyl = ltrack / dp->t->heads;
 	dp->tsec = (lsec % dp->t->sectors) + 1;
-	dp->thead = (lsec/dp->t->sectors) % dp->t->heads;
+	dp->thead = (lsec / dp->t->sectors) % dp->t->heads;
 
 	/*
 	 *  can't read across track boundaries.
 	 *  if so, decrement the bytes to be read.
 	 */
-	end = (ltrack+1)*dp->t->sectors*dp->t->bytes;
-	if(off+dp->len > end)
+	end = (ltrack + 1) * dp->t->sectors * dp->t->bytes;
+	if(off + dp->len > end)
 		dp->len = end - off;
 }
 
@@ -572,7 +583,7 @@ floppysense(void)
 	fl.cmd[fl.ncmd++] = Fsense;
 	if(floppycmd() < 0)
 		return -1;
-	if(floppyresult() < 2){
+	if(floppyresult() < 2) {
 		DPRINT("can't read sense response\n");
 		fldump();
 		fl.confused = 1;
@@ -582,7 +593,7 @@ floppysense(void)
 }
 
 static int
-cmddone(void *a)
+cmddone(void* a)
 {
 	USED(a);
 	return fl.ncmd == 0;
@@ -598,7 +609,7 @@ static void
 floppywait(int slow)
 {
 	timedsleep(cmddone, 0, slow ? 5000 : 1000);
-	if(!cmddone(0)){
+	if(!cmddone(0)) {
 		floppyintr(0);
 		fl.confused = 1;
 	}
@@ -608,7 +619,7 @@ floppywait(int slow)
  *  we've lost the floppy position, go to cylinder 0.
  */
 static int
-floppyrecal(FDrive *dp)
+floppyrecal(FDrive* dp)
 {
 	dp->ccyl = -1;
 	dp->cyl = -1;
@@ -619,18 +630,18 @@ floppyrecal(FDrive *dp)
 	if(floppycmd() < 0)
 		return -1;
 	floppywait(1);
-	if(fl.nstat < 2){
+	if(fl.nstat < 2) {
 		DPRINT("recalibrate: confused %ux\n", inb(Pmsr));
 		fl.confused = 1;
 		return -1;
 	}
-	if((fl.stat[0] & (Codemask|Seekend)) != Seekend){
+	if((fl.stat[0] & (Codemask | Seekend)) != Seekend) {
 		DPRINT("recalibrate: failed\n");
 		dp->confused = 1;
 		return -1;
 	}
 	dp->cyl = fl.stat[1];
-	if(dp->cyl != 0){
+	if(dp->cyl != 0) {
 		DPRINT("recalibrate: wrong cylinder %d\n", dp->cyl);
 		dp->cyl = -1;
 		dp->confused = 1;
@@ -648,12 +659,12 @@ floppyrecal(FDrive *dp)
 static void
 floppyrevive(void)
 {
-	FDrive *dp;
+	FDrive* dp;
 
 	/*
 	 *  reset the controller if it's confused
 	 */
-	if(fl.confused){
+	if(fl.confused) {
 		DPRINT("floppyrevive in\n");
 		fldump();
 
@@ -663,7 +674,7 @@ floppyrevive(void)
 		fl.cmd[0] = 0;
 		outb(Pdor, 0);
 		delay(10);
-		outb(Pdor, Fintena|Fena);
+		outb(Pdor, Fintena | Fena);
 		delay(10);
 		spllo();
 		fl.motor = 0;
@@ -689,10 +700,10 @@ floppyrevive(void)
  *	interrupt, no results
  */
 static int64_t
-pcfloppyseek(FDrive *dp, int64_t off)
+pcfloppyseek(FDrive* dp, int64_t off)
 {
 	floppypos(dp, off);
-	if(dp->cyl == dp->tcyl){
+	if(dp->cyl == dp->tcyl) {
 		dp->offset = off;
 		return off;
 	}
@@ -700,17 +711,17 @@ pcfloppyseek(FDrive *dp, int64_t off)
 
 	fl.ncmd = 0;
 	fl.cmd[fl.ncmd++] = Fseek;
-	fl.cmd[fl.ncmd++] = (dp->thead<<2) | dp->dev;
+	fl.cmd[fl.ncmd++] = (dp->thead << 2) | dp->dev;
 	fl.cmd[fl.ncmd++] = dp->tcyl * dp->t->steps;
 	if(floppycmd() < 0)
 		return -1;
 	floppywait(1);
-	if(fl.nstat < 2){
+	if(fl.nstat < 2) {
 		DPRINT("seek: confused\n");
 		fl.confused = 1;
 		return -1;
 	}
-	if((fl.stat[0] & (Codemask|Seekend)) != Seekend){
+	if((fl.stat[0] & (Codemask | Seekend)) != Seekend) {
 		DPRINT("seek: failed\n");
 		dp->confused = 1;
 		return -1;
@@ -727,7 +738,7 @@ pcfloppyseek(FDrive *dp, int64_t off)
  *  read or write to floppy.  try up to three times.
  */
 static int32_t
-floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
+floppyxfer(FDrive* dp, int cmd, void* a, int32_t off, int32_t n)
 {
 	int32_t offset;
 	int tries;
@@ -738,10 +749,10 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 		n = dp->t->cap - off;
 
 	/* retry on error (until it gets ridiculous) */
-	for(tries = 0; tries < dp->maxtries; tries++){
+	for(tries = 0; tries < dp->maxtries; tries++) {
 
 		dp->len = n;
-		if(pcfloppyseek(dp, off) < 0){
+		if(pcfloppyseek(dp, off) < 0) {
 			DPRINT("xfer: seek failed\n");
 			dp->confused = 1;
 			continue;
@@ -750,9 +761,9 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 		/*
 		 *  set up the dma (dp->len may be trimmed)
 		 */
-		dp->len = dmasetup(DMAchan, a, dp->len, cmd==Fread);
-		if(dp->len < 0){
-	buggery:
+		dp->len = dmasetup(DMAchan, a, dp->len, cmd == Fread);
+		if(dp->len < 0) {
+		buggery:
 			dmaend(DMAchan);
 			continue;
 		}
@@ -762,7 +773,7 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 		 */
 		fl.ncmd = 0;
 		fl.cmd[fl.ncmd++] = cmd | (dp->t->heads > 1 ? Fmulti : 0);
-		fl.cmd[fl.ncmd++] = (dp->thead<<2) | dp->dev;
+		fl.cmd[fl.ncmd++] = (dp->thead << 2) | dp->dev;
 		fl.cmd[fl.ncmd++] = dp->tcyl;
 		fl.cmd[fl.ncmd++] = dp->thead;
 		fl.cmd[fl.ncmd++] = dp->tsec;
@@ -782,16 +793,17 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 		/*
 		 *  check for errors
 		 */
-		if(fl.nstat < 7){
+		if(fl.nstat < 7) {
 			DPRINT("xfer: confused\n");
 			fl.confused = 1;
 			continue;
 		}
-		if((fl.stat[0] & Codemask)!=0 || fl.stat[1] || fl.stat[2]){
+		if((fl.stat[0] & Codemask) != 0 || fl.stat[1] || fl.stat[2]) {
 			DPRINT("xfer: failed %ux %ux %ux\n", fl.stat[0],
-				fl.stat[1], fl.stat[2]);
+			       fl.stat[1], fl.stat[2]);
 			DPRINT("offset %lud len %ld\n", off, dp->len);
-			if((fl.stat[0]&Codemask)==Cmdexec && fl.stat[1]==Overrun){
+			if((fl.stat[0] & Codemask) == Cmdexec &&
+			   fl.stat[1] == Overrun) {
 				DPRINT("DMA overrun: retry\n");
 			} else
 				dp->confused = 1;
@@ -802,9 +814,9 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 		 *  check for correct cylinder
 		 */
 		offset = fl.stat[3] * dp->t->heads + fl.stat[4];
-		offset = offset*dp->t->sectors + fl.stat[5] - 1;
+		offset = offset * dp->t->sectors + fl.stat[5] - 1;
 		offset = offset * c2b[fl.stat[6]];
-		if(offset != off+dp->len){
+		if(offset != off + dp->len) {
 			DPRINT("xfer: ends on wrong cyl\n");
 			dp->confused = 1;
 			continue;
@@ -822,30 +834,30 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 void
 floppymemwrite(void)
 {
-	int i;
-	int n;
-	uchar *a;
-	FDrive *dp;
+        int i;
+        int n;
+        uchar *a;
+        FDrive *dp;
 
-	dp = &fl.d[0];
-	a = (uchar*)0x80000000;
-	n = 0;
-	while(n < 1440*1024){
-		i = floppyxfer(dp, Fwrite, a+n, n, 1440*1024-n);
-		if(i <= 0)
-			break;
-		n += i;
-	}
-	print("floppymemwrite wrote %d bytes\n", n);
+        dp = &fl.d[0];
+        a = (uchar*)0x80000000;
+        n = 0;
+        while(n < 1440*1024){
+                i = floppyxfer(dp, Fwrite, a+n, n, 1440*1024-n);
+                if(i <= 0)
+                        break;
+                n += i;
+        }
+        print("floppymemwrite wrote %d bytes\n", n);
 splhi(); for(;;);
 }
 */
 
 static void
-floppyintr(Ureg *ur)
+floppyintr(Ureg* ur)
 {
 	USED(ur);
-	switch(fl.cmd[0]&~Fmulti){
+	switch(fl.cmd[0] & ~Fmulti) {
 	case Fread:
 	case Fwrite:
 	case Fformat:
@@ -855,7 +867,7 @@ floppyintr(Ureg *ur)
 	case Fseek:
 	case Frecal:
 	default:
-		floppysense();	/* to clear interrupt */
+		floppysense(); /* to clear interrupt */
 		break;
 	}
 	fl.ncmd = 0;

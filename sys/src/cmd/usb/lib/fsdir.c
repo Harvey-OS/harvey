@@ -16,11 +16,9 @@
 
 typedef struct Rpc Rpc;
 
-enum
-{
-	Incr = 3,	/* increments for fs array */
-	Dtop = 0,	/* high 32 bits for / 	*/
-	Qdir = 0,	/* low 32 bits for /devdir */
+enum { Incr = 3, /* increments for fs array */
+       Dtop = 0, /* high 32 bits for / 	*/
+       Qdir = 0, /* low 32 bits for /devdir */
 };
 
 QLock fslck;
@@ -38,7 +36,7 @@ usbfsexits(int y)
 static int
 qiddev(uint64_t path)
 {
-	return (int)(path>>32) & 0xFF;
+	return (int)(path >> 32) & 0xFF;
 }
 
 static int
@@ -63,15 +61,16 @@ usbfsdirdump(void)
 	for(i = 1; i < nfs; i++)
 		if(fs[i] != nil)
 			if(fs[i]->dev != nil)
-				fprint(2, "%s\t%s dev %#p refs %ld\n",
-					argv0, fs[i]->name, fs[i]->dev, fs[i]->dev->ref);
+				fprint(2, "%s\t%s dev %#p refs %ld\n", argv0,
+				       fs[i]->name, fs[i]->dev,
+				       fs[i]->dev->ref);
 			else
 				fprint(2, "%s:\t%s\n", argv0, fs[i]->name);
 	qunlock(&fslck);
 }
 
 void
-usbfsadd(Usbfs *dfs)
+usbfsadd(Usbfs* dfs)
 {
 	int i, j;
 
@@ -80,18 +79,18 @@ usbfsadd(Usbfs *dfs)
 	for(i = 1; i < nfs; i++)
 		if(fs[i] == nil)
 			break;
-	if(i >= nfs){
-		if((nfs%Incr) == 0){
-			fs = realloc(fs, sizeof(Usbfs*) * (nfs+Incr));
+	if(i >= nfs) {
+		if((nfs % Incr) == 0) {
+			fs = realloc(fs, sizeof(Usbfs*) * (nfs + Incr));
 			if(fs == nil)
 				sysfatal("realloc: %r");
-			for(j = nfs; j < nfs+Incr; j++)
+			for(j = nfs; j < nfs + Incr; j++)
 				fs[j] = nil;
 		}
-		if(nfs == 0)	/* do not use entry 0 */
+		if(nfs == 0) /* do not use entry 0 */
 			nfs++;
 		fs[nfs++] = dfs;
-	}else
+	} else
 		fs[i] = dfs;
 	dfs->qid = mkqid(i, 0);
 	fsused++;
@@ -101,12 +100,12 @@ usbfsadd(Usbfs *dfs)
 static void
 usbfsdelnth(int i)
 {
-	if(fs[i] != nil){
+	if(fs[i] != nil) {
 		dprint(2, "%s: fsdel %s", argv0, fs[i]->name);
-		if(fs[i]->dev != nil){
-			dprint(2, " dev %#p ref %ld\n",
-				fs[i]->dev, fs[i]->dev->ref);
-		}else
+		if(fs[i]->dev != nil) {
+			dprint(2, " dev %#p ref %ld\n", fs[i]->dev,
+			       fs[i]->dev->ref);
+		} else
 			dprint(2, "no dev\n");
 		if(fs[i]->end != nil)
 			fs[i]->end(fs[i]);
@@ -114,20 +113,20 @@ usbfsdelnth(int i)
 		fsused--;
 	}
 	fs[i] = nil;
-	if(fsused == 0 && exitonclose != 0){
+	if(fsused == 0 && exitonclose != 0) {
 		fprint(2, "%s: all file systems gone: exiting\n", argv0);
 		threadexitsall(nil);
 	}
 }
 
 void
-usbfsdel(Usbfs *dfs)
+usbfsdel(Usbfs* dfs)
 {
 	int i;
 
 	qlock(&fslck);
 	for(i = 0; i < nfs; i++)
-		if(dfs == nil || fs[i] == dfs){
+		if(dfs == nil || fs[i] == dfs) {
 			usbfsdelnth(i);
 			if(dfs != nil)
 				break;
@@ -143,7 +142,7 @@ fsend(Usbfs*)
 }
 
 void
-usbfsgone(char *dir)
+usbfsgone(char* dir)
 {
 	int i;
 
@@ -151,30 +150,30 @@ usbfsgone(char *dir)
 	/* devices may have more than one fs */
 	for(i = 0; i < nfs; i++)
 		if(fs[i] != nil && fs[i]->dev != nil)
-		if(strcmp(fs[i]->dev->dir, dir) == 0)
-			usbfsdelnth(i);
+			if(strcmp(fs[i]->dev->dir, dir) == 0)
+				usbfsdelnth(i);
 	qunlock(&fslck);
 }
 
 static void
-fsclone(Usbfs*, Fid *o, Fid *n)
+fsclone(Usbfs*, Fid* o, Fid* n)
 {
 	int qd;
-	Dev *dev;
-	void (*xfsclone)(Usbfs *fs, Fid *of, Fid *nf);
+	Dev* dev;
+	void (*xfsclone)(Usbfs* fs, Fid* of, Fid* nf);
 
 	xfsclone = nil;
 	dev = nil;
 	qd = qiddev(o->qid.path);
 	qlock(&fslck);
-	if(qd != Dtop && fs[qd] != nil && fs[qd]->clone != nil){
+	if(qd != Dtop && fs[qd] != nil && fs[qd]->clone != nil) {
 		dev = fs[qd]->dev;
 		if(dev != nil)
 			incref(dev);
 		xfsclone = fs[qd]->clone;
 	}
 	qunlock(&fslck);
-	if(xfsclone != nil){
+	if(xfsclone != nil) {
 		xfsclone(fs[qd], o, n);
 	}
 	if(dev != nil)
@@ -182,15 +181,15 @@ fsclone(Usbfs*, Fid *o, Fid *n)
 }
 
 static int
-fswalk(Usbfs*, Fid *fid, char *name)
+fswalk(Usbfs*, Fid* fid, char* name)
 {
 	Qid q;
 	int qd, qf;
 	int i;
 	int rc;
-	Dev *dev;
+	Dev* dev;
 	Dir d;
-	int (*xfswalk)(Usbfs *fs, Fid *f, char *name);
+	int (*xfswalk)(Usbfs* fs, Fid* f, char* name);
 
 	q = fid->qid;
 	qd = qiddev(q.path);
@@ -199,14 +198,14 @@ fswalk(Usbfs*, Fid *fid, char *name)
 	q.type = QTDIR;
 	q.vers = 0;
 	if(strcmp(name, "..") == 0)
-		if(qd == Dtop || qf == Qdir){
+		if(qd == Dtop || qf == Qdir) {
 			q.path = mkqid(Dtop, Qdir);
 			fid->qid = q;
 			return 0;
 		}
-	if(qd != 0){
+	if(qd != 0) {
 		qlock(&fslck);
-		if(fs[qd] == nil){
+		if(fs[qd] == nil) {
 			qunlock(&fslck);
 			werrstr(Eio);
 			return -1;
@@ -223,7 +222,7 @@ fswalk(Usbfs*, Fid *fid, char *name)
 	}
 	qlock(&fslck);
 	for(i = 0; i < nfs; i++)
-		if(fs[i] != nil && strcmp(name, fs[i]->name) == 0){
+		if(fs[i] != nil && strcmp(name, fs[i]->name) == 0) {
 			q.path = mkqid(i, Qdir);
 			fs[i]->stat(fs[i], q, &d); /* may be a file */
 			fid->qid = d.qid;
@@ -236,18 +235,18 @@ fswalk(Usbfs*, Fid *fid, char *name)
 }
 
 static int
-fsopen(Usbfs*, Fid *fid, int mode)
+fsopen(Usbfs*, Fid* fid, int mode)
 {
 	int qd;
 	int rc;
-	Dev *dev;
-	int (*xfsopen)(Usbfs *fs, Fid *f, int mode);
+	Dev* dev;
+	int (*xfsopen)(Usbfs* fs, Fid* f, int mode);
 
 	qd = qiddev(fid->qid.path);
 	if(qd == Dtop)
 		return 0;
 	qlock(&fslck);
-	if(fs[qd] == nil){
+	if(fs[qd] == nil) {
 		qunlock(&fslck);
 		werrstr(Eio);
 		return -1;
@@ -267,15 +266,15 @@ fsopen(Usbfs*, Fid *fid, int mode)
 }
 
 static int
-dirgen(Usbfs*, Qid, int n, Dir *d, void *)
+dirgen(Usbfs*, Qid, int n, Dir* d, void*)
 {
 	int i;
-	Dev *dev;
-	char *nm;
+	Dev* dev;
+	char* nm;
 
 	qlock(&fslck);
 	for(i = 0; i < nfs; i++)
-		if(fs[i] != nil && n-- == 0){
+		if(fs[i] != nil && n-- == 0) {
 			d->qid.type = QTDIR;
 			d->qid.path = mkqid(i, Qdir);
 			d->qid.vers = 0;
@@ -296,21 +295,21 @@ dirgen(Usbfs*, Qid, int n, Dir *d, void *)
 }
 
 static int32_t
-fsread(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
+fsread(Usbfs*, Fid* fid, void* data, int32_t cnt, int64_t off)
 {
 	int qd;
 	int rc;
-	Dev *dev;
+	Dev* dev;
 	Qid q;
-	int32_t (*xfsread)(Usbfs *fs, Fid *f, void *data, int32_t count,
-			   int64_t );
+	int32_t (*xfsread)(Usbfs* fs, Fid* f, void* data, int32_t count,
+	                   int64_t);
 
 	q = fid->qid;
 	qd = qiddev(q.path);
 	if(qd == Dtop)
 		return usbdirread(nil, q, data, cnt, off, dirgen, nil);
 	qlock(&fslck);
-	if(fs[qd] == nil){
+	if(fs[qd] == nil) {
 		qunlock(&fslck);
 		werrstr(Eio);
 		return -1;
@@ -327,19 +326,19 @@ fsread(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
 }
 
 static int32_t
-fswrite(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
+fswrite(Usbfs*, Fid* fid, void* data, int32_t cnt, int64_t off)
 {
 	int qd;
 	int rc;
-	Dev *dev;
-	int32_t (*xfswrite)(Usbfs *fs, Fid *f, void *data, int32_t count,
-			    int64_t );
+	Dev* dev;
+	int32_t (*xfswrite)(Usbfs* fs, Fid* f, void* data, int32_t count,
+	                    int64_t);
 
 	qd = qiddev(fid->qid.path);
 	if(qd == Dtop)
 		sysfatal("fswrite: not for usbd /");
 	qlock(&fslck);
-	if(fs[qd] == nil){
+	if(fs[qd] == nil) {
 		qunlock(&fslck);
 		werrstr(Eio);
 		return -1;
@@ -355,26 +354,25 @@ fswrite(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
 	return rc;
 }
 
-
 static void
 fsclunk(Usbfs*, Fid* fid)
 {
 	int qd;
-	Dev *dev;
-	void (*xfsclunk)(Usbfs *fs, Fid *f);
+	Dev* dev;
+	void (*xfsclunk)(Usbfs* fs, Fid* f);
 
 	dev = nil;
 	qd = qiddev(fid->qid.path);
 	qlock(&fslck);
-	if(qd != Dtop && fs[qd] != nil){
-		dev=fs[qd]->dev;
+	if(qd != Dtop && fs[qd] != nil) {
+		dev = fs[qd]->dev;
 		if(dev != nil)
 			incref(dev);
 		xfsclunk = fs[qd]->clunk;
-	}else
+	} else
 		xfsclunk = nil;
 	qunlock(&fslck);
-	if(xfsclunk != nil){
+	if(xfsclunk != nil) {
 		xfsclunk(fs[qd], fid);
 	}
 	if(dev != nil)
@@ -382,23 +380,23 @@ fsclunk(Usbfs*, Fid* fid)
 }
 
 static int
-fsstat(Usbfs*, Qid qid, Dir *d)
+fsstat(Usbfs*, Qid qid, Dir* d)
 {
 	int qd;
 	int rc;
-	Dev *dev;
-	int (*xfsstat)(Usbfs *fs, Qid q, Dir *d);
+	Dev* dev;
+	int (*xfsstat)(Usbfs* fs, Qid q, Dir* d);
 
 	qd = qiddev(qid.path);
-	if(qd == Dtop){
+	if(qd == Dtop) {
 		d->qid = qid;
 		d->name = "usb";
 		d->length = 0;
-		d->mode = 0555|DMDIR;
+		d->mode = 0555 | DMDIR;
 		return 0;
 	}
 	qlock(&fslck);
-	if(fs[qd] == nil){
+	if(fs[qd] == nil) {
 		qunlock(&fslck);
 		werrstr(Eio);
 		return -1;
@@ -414,15 +412,13 @@ fsstat(Usbfs*, Qid qid, Dir *d)
 	return rc;
 }
 
-Usbfs usbdirfs =
-{
-	.walk = fswalk,
-	.clone = fsclone,
-	.clunk = fsclunk,
-	.open = fsopen,
-	.read = fsread,
-	.write = fswrite,
-	.stat = fsstat,
-	.end = fsend,
+Usbfs usbdirfs = {
+    .walk = fswalk,
+    .clone = fsclone,
+    .clunk = fsclunk,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .stat = fsstat,
+    .end = fsend,
 };
-

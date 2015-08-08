@@ -12,21 +12,20 @@
 #include "9.h"
 
 static struct {
-	VtLock*	lock;
+	VtLock* lock;
 
-	Fid*	free;
-	int	nfree;
-	int	inuse;
+	Fid* free;
+	int nfree;
+	int inuse;
 } fbox;
 
 static void
 fidLock(Fid* fid, int flags)
 {
-	if(flags & FidFWlock){
+	if(flags & FidFWlock) {
 		vtLock(fid->lock);
 		fid->flags = flags;
-	}
-	else
+	} else
 		vtRLock(fid->lock);
 
 	/*
@@ -54,7 +53,7 @@ fidUnlock(Fid* fid)
 {
 	if(!(fid->flags & FidFCreate))
 		fsysFsRUnlock(fid->fsys);
-	if(fid->flags & FidFWlock){
+	if(fid->flags & FidFWlock) {
 		fid->flags = 0;
 		vtUnlock(fid->lock);
 		return;
@@ -65,15 +64,14 @@ fidUnlock(Fid* fid)
 static Fid*
 fidAlloc(void)
 {
-	Fid *fid;
+	Fid* fid;
 
 	vtLock(fbox.lock);
-	if(fbox.nfree > 0){
+	if(fbox.nfree > 0) {
 		fid = fbox.free;
 		fbox.free = fid->hash;
 		fbox.nfree--;
-	}
-	else{
+	} else {
 		fid = vtMemAllocZ(sizeof(Fid));
 		fid->lock = vtLockAlloc();
 		fid->alock = vtLockAlloc();
@@ -103,48 +101,47 @@ fidAlloc(void)
 static void
 fidFree(Fid* fid)
 {
-	if(fid->file != nil){
+	if(fid->file != nil) {
 		fileDecRef(fid->file);
 		fid->file = nil;
 	}
-	if(fid->db != nil){
+	if(fid->db != nil) {
 		dirBufFree(fid->db);
 		fid->db = nil;
 	}
 	fidUnlock(fid);
 
-	if(fid->uid != nil){
+	if(fid->uid != nil) {
 		vtMemFree(fid->uid);
 		fid->uid = nil;
 	}
-	if(fid->uname != nil){
+	if(fid->uname != nil) {
 		vtMemFree(fid->uname);
 		fid->uname = nil;
 	}
 	if(fid->excl != nil)
 		exclFree(fid);
-	if(fid->rpc != nil){
+	if(fid->rpc != nil) {
 		close(fid->rpc->afd);
 		auth_freerpc(fid->rpc);
 		fid->rpc = nil;
 	}
-	if(fid->fsys != nil){
+	if(fid->fsys != nil) {
 		fsysPut(fid->fsys);
 		fid->fsys = nil;
 	}
-	if(fid->cuname != nil){
+	if(fid->cuname != nil) {
 		vtMemFree(fid->cuname);
 		fid->cuname = nil;
 	}
 
 	vtLock(fbox.lock);
 	fbox.inuse--;
-	if(fbox.nfree < 10){
+	if(fbox.nfree < 10) {
 		fid->hash = fbox.free;
 		fbox.free = fid;
 		fbox.nfree++;
-	}
-	else{
+	} else {
 		vtLockFree(fid->alock);
 		vtLockFree(fid->lock);
 		vtMemFree(fid);
@@ -155,13 +152,13 @@ fidFree(Fid* fid)
 static void
 fidUnHash(Fid* fid)
 {
-	Fid *fp, **hash;
+	Fid* fp, **hash;
 
 	assert(fid->ref == 0);
 
 	hash = &fid->con->fidhash[fid->fidno % NFidHash];
-	for(fp = *hash; fp != nil; fp = fp->hash){
-		if(fp == fid){
+	for(fp = *hash; fp != nil; fp = fp->hash) {
+		if(fp == fid) {
 			*hash = fp->hash;
 			break;
 		}
@@ -185,14 +182,14 @@ fidUnHash(Fid* fid)
 Fid*
 fidGet(Con* con, uint32_t fidno, int flags)
 {
-	Fid *fid, **hash;
+	Fid* fid, **hash;
 
 	if(fidno == NOFID)
 		return nil;
 
 	hash = &con->fidhash[fidno % NFidHash];
 	vtLock(con->fidlock);
-	for(fid = *hash; fid != nil; fid = fid->hash){
+	for(fid = *hash; fid != nil; fid = fid->hash) {
 		if(fid->fidno != fidno)
 			continue;
 
@@ -200,7 +197,7 @@ fidGet(Con* con, uint32_t fidno, int flags)
 		 * Already in use is an error
 		 * when called from attach, clone or walk.
 		 */
-		if(flags & FidFCreate){
+		if(flags & FidFCreate) {
 			vtUnlock(con->fidlock);
 			vtSetError("%s: fid 0x%ud in use", argv0, fidno);
 			return nil;
@@ -209,7 +206,7 @@ fidGet(Con* con, uint32_t fidno, int flags)
 		vtUnlock(con->fidlock);
 
 		fidLock(fid, flags);
-		if((fid->open & FidOCreate) || fid->fidno == NOFID){
+		if((fid->open & FidOCreate) || fid->fidno == NOFID) {
 			fidPut(fid);
 			vtSetError("%s: fid invalid", argv0);
 			return nil;
@@ -217,7 +214,7 @@ fidGet(Con* con, uint32_t fidno, int flags)
 		return fid;
 	}
 
-	if((flags & FidFCreate) && (fid = fidAlloc()) != nil){
+	if((flags & FidFCreate) && (fid = fidAlloc()) != nil) {
 		assert(flags & FidFWlock);
 		fid->con = con;
 		fid->fidno = fidno;
@@ -225,11 +222,10 @@ fidGet(Con* con, uint32_t fidno, int flags)
 
 		fid->hash = *hash;
 		*hash = fid;
-		if(con->ftail != nil){
+		if(con->ftail != nil) {
 			fid->prev = con->ftail;
 			con->ftail->next = fid;
-		}
-		else{
+		} else {
 			con->fhead = fid;
 			fid->prev = nil;
 		}
@@ -262,7 +258,7 @@ fidPut(Fid* fid)
 	fid->ref--;
 	vtUnlock(fid->con->fidlock);
 
-	if(fid->ref == 0 && fid->fidno == NOFID){
+	if(fid->ref == 0 && fid->fidno == NOFID) {
 		fidFree(fid);
 		return;
 	}
@@ -281,7 +277,7 @@ fidClunk(Fid* fid)
 	fid->fidno = NOFID;
 	vtUnlock(fid->con->fidlock);
 
-	if(fid->ref > 0){
+	if(fid->ref > 0) {
 		/* not reached - fidUnHash requires ref == 0 */
 		fidUnlock(fid);
 		return;
@@ -292,11 +288,11 @@ fidClunk(Fid* fid)
 void
 fidClunkAll(Con* con)
 {
-	Fid *fid;
+	Fid* fid;
 	uint32_t fidno;
 
 	vtLock(con->fidlock);
-	while(con->fhead != nil){
+	while(con->fhead != nil) {
 		fidno = con->fhead->fidno;
 		vtUnlock(con->fidlock);
 		if((fid = fidGet(con, fidno, FidFWlock)) != nil)

@@ -14,105 +14,102 @@
 #define Extern extern
 #include "mips.h"
 
-void	Snor(ulong);
-void	Ssll(ulong);
-void	Ssra(ulong);
-void	Sslt(ulong);
-void	Ssltu(ulong);
-void	Sand(ulong);
-void	Saddu(ulong);
-void	Sadd(ulong);
-void	Sjr(ulong);
-void	Sor(ulong);
-void	Ssubu(ulong);
-void	Sjalr(ulong);
-void	Sdivu(ulong);
-void	Smfhi(ulong);
-void	Smflo(ulong);
-void	Sxor(ulong);
-void	Smult(ulong);
-void	Smultu(ulong);
-void	Sdiv(ulong);
-void	Ssrl(ulong);
-void	Ssllv(ulong);
-void	Ssrlv(ulong);
-void	Ssrav(ulong);
+void Snor(ulong);
+void Ssll(ulong);
+void Ssra(ulong);
+void Sslt(ulong);
+void Ssltu(ulong);
+void Sand(ulong);
+void Saddu(ulong);
+void Sadd(ulong);
+void Sjr(ulong);
+void Sor(ulong);
+void Ssubu(ulong);
+void Sjalr(ulong);
+void Sdivu(ulong);
+void Smfhi(ulong);
+void Smflo(ulong);
+void Sxor(ulong);
+void Smult(ulong);
+void Smultu(ulong);
+void Sdiv(ulong);
+void Ssrl(ulong);
+void Ssllv(ulong);
+void Ssrlv(ulong);
+void Ssrav(ulong);
 
-Inst ispec[] = 
-{
-	{ Ssll,		"sll",	Iarith },
-	{ undef,		"" },
-	{ Ssrl,		"srl",	Iarith },
-	{ Ssra,		"sra",	Iarith },
-	{ Ssllv,	"sllv",	Iarith },
-	{ undef,	"" },
-	{ Ssrlv,	"srlv",	Iarith },
-	{ Ssrav,	"srav",	Iarith },
-	{ Sjr,		"jr",	Ibranch },
-	{ Sjalr,	"jalr",	Ibranch },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Ssyscall,	"sysc", Isyscall },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Smfhi,	"mfhi",	Ireg },
-	{ undef,	"" },
-	{ Smflo,	"mflo",	Ireg },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Smult,	"mult",	Iarith },
-	{ Smultu,	"multu" },
-	{ Sdiv,		"div",	Iarith },
-	{ Sdivu,	"divu", Iarith },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Sadd,		"add",	Iarith },
-	{ Saddu,	"addu", Iarith },
-	{ undef,	"" },
-	{ Ssubu,	"subu", Iarith },
-	{ Sand,		"and",	Iarith },
-	{ Sor,		"or", 	Iarith },
-	{ Sxor,		"xor",	Iarith },
-	{ Snor,		"nor",	Iarith },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Sslt,		"slt", 	Iarith },
-	{ Ssltu,	"sltu",	Iarith },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ 0 }
-};
+Inst ispec[] = {{Ssll, "sll", Iarith},
+                {undef, ""},
+                {Ssrl, "srl", Iarith},
+                {Ssra, "sra", Iarith},
+                {Ssllv, "sllv", Iarith},
+                {undef, ""},
+                {Ssrlv, "srlv", Iarith},
+                {Ssrav, "srav", Iarith},
+                {Sjr, "jr", Ibranch},
+                {Sjalr, "jalr", Ibranch},
+                {undef, ""},
+                {undef, ""},
+                {Ssyscall, "sysc", Isyscall},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {Smfhi, "mfhi", Ireg},
+                {undef, ""},
+                {Smflo, "mflo", Ireg},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {Smult, "mult", Iarith},
+                {Smultu, "multu"},
+                {Sdiv, "div", Iarith},
+                {Sdivu, "divu", Iarith},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {Sadd, "add", Iarith},
+                {Saddu, "addu", Iarith},
+                {undef, ""},
+                {Ssubu, "subu", Iarith},
+                {Sand, "and", Iarith},
+                {Sor, "or", Iarith},
+                {Sxor, "xor", Iarith},
+                {Snor, "nor", Iarith},
+                {undef, ""},
+                {undef, ""},
+                {Sslt, "slt", Iarith},
+                {Ssltu, "sltu", Iarith},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {undef, ""},
+                {0}};
 
 void
 Ispecial(uint32_t inst)
 {
-	Inst *i;
+	Inst* i;
 
-	i = &ispec[inst&0x3f];
+	i = &ispec[inst & 0x3f];
 	reg.ip = i;
 	i->count++;
 	(*i->func)(inst);
@@ -130,7 +127,7 @@ Snor(uint32_t inst)
 	if(inst == INOP)
 		nopcount++;
 	else
-		reg.r[rd] = ~(reg.r[rt]|reg.r[rs]);
+		reg.r[rd] = ~(reg.r[rt] | reg.r[rs]);
 }
 
 void
@@ -139,11 +136,11 @@ Ssll(uint32_t inst)
 	int rd, rt, shamt;
 
 	SpecialGetrtrd(rt, rd, inst);
-	shamt = (inst>>6)&0x1f;
+	shamt = (inst >> 6) & 0x1f;
 	if(trace)
 		itrace("sll\tr%d,r%d,%d", rd, rt, shamt);
 
-	reg.r[rd] = reg.r[rt]<<shamt;
+	reg.r[rd] = reg.r[rt] << shamt;
 }
 
 void
@@ -155,7 +152,7 @@ Ssllv(uint32_t inst)
 	if(trace)
 		itrace("sllv\tr%d,r%d,r%d", rd, rt, rs);
 
-	reg.r[rd] = reg.r[rt]<<(reg.r[rs]&0x1f);
+	reg.r[rd] = reg.r[rt] << (reg.r[rs] & 0x1f);
 }
 
 void
@@ -167,7 +164,7 @@ Ssrlv(uint32_t inst)
 	if(trace)
 		itrace("srlv\tr%d,r%d,r%d", rd, rt, rs);
 
-	reg.r[rd] = (uint32_t)reg.r[rt] >> (reg.r[rs]&0x1f);
+	reg.r[rd] = (uint32_t)reg.r[rt] >> (reg.r[rs] & 0x1f);
 }
 
 void
@@ -179,11 +176,11 @@ Ssrav(uint32_t inst)
 	if(trace)
 		itrace("srav\tr%d,r%d,r%d", rd, rt, rs);
 
-	shamt = reg.r[rs]&0x1f;
+	shamt = reg.r[rs] & 0x1f;
 	if(shamt != 0 && (reg.r[rt] & SIGNBIT))
-		reg.r[rd] = reg.r[rt]>>shamt | ~((1<<(32-shamt))-1);
+		reg.r[rd] = reg.r[rt] >> shamt | ~((1 << (32 - shamt)) - 1);
 	else
-		reg.r[rd] = reg.r[rt]>>shamt;
+		reg.r[rd] = reg.r[rt] >> shamt;
 }
 
 void
@@ -192,7 +189,7 @@ Ssrl(uint32_t inst)
 	int rd, rt, shamt;
 
 	SpecialGetrtrd(rt, rd, inst);
-	shamt = (inst>>6)&0x1f;
+	shamt = (inst >> 6) & 0x1f;
 	if(trace)
 		itrace("srl\tr%d,r%d,%d", rd, rt, shamt);
 
@@ -205,14 +202,14 @@ Ssra(uint32_t inst)
 	int rd, rt, shamt;
 
 	SpecialGetrtrd(rt, rd, inst);
-	shamt = (inst>>6)&0x1f;
+	shamt = (inst >> 6) & 0x1f;
 	if(trace)
 		itrace("sra\tr%d,r%d,%d", rd, rt, shamt);
 
 	if(shamt != 0 && (reg.r[rt] & SIGNBIT))
-		reg.r[rd] = reg.r[rt]>>shamt | ~((1<<(32-shamt))-1);
+		reg.r[rd] = reg.r[rt] >> shamt | ~((1 << (32 - shamt)) - 1);
 	else
-		reg.r[rd] = reg.r[rt]>>shamt;
+		reg.r[rd] = reg.r[rt] >> shamt;
 }
 
 void
@@ -318,24 +315,24 @@ Sjr(uint32_t inst)
 	int rs;
 	Symbol s;
 
-	rs = (inst>>21)&0x1f;
+	rs = (inst >> 21) & 0x1f;
 	npc = reg.r[rs];
 
 	if(trace)
 		itrace("jr\t0x%lux", npc);
 
 	/* Do the delay slot */
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	Statbra();
 	Iexec(reg.ir);
 	if(calltree) {
 		if(rs == 31 || rs == 2) {
 			findsym(npc, CTEXT, &s);
 			Bprint(bioout, "%8lux return to %lux %s r1=%lux\n",
-						reg.pc, npc, s.name, reg.r[1]);
+			       reg.pc, npc, s.name, reg.r[1]);
 		}
 	}
-	reg.pc = npc-4;
+	reg.pc = npc - 4;
 }
 
 void
@@ -345,31 +342,31 @@ Sjalr(uint32_t inst)
 	int rs, rd;
 	Symbol s;
 
-	rs = (inst>>21)&0x1f;
-	rd = (inst>>11)&0x1f;
+	rs = (inst >> 21) & 0x1f;
+	rd = (inst >> 11) & 0x1f;
 	npc = reg.r[rs];
 
 	if(trace)
 		itrace("jalr\tr%d,r%d", rd, rs);
 
-	reg.r[rd] = reg.pc+8;
+	reg.r[rd] = reg.pc + 8;
 	/* Do the delay slot */
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	Statbra();
 	Iexec(reg.ir);
 
 	if(calltree) {
 		findsym(npc, CTEXT, &s);
 		if(rs == 31)
-			Bprint(bioout, "%8lux return to %8lux %s\n",
-						reg.pc, npc, s.name);
+			Bprint(bioout, "%8lux return to %8lux %s\n", reg.pc,
+			       npc, s.name);
 		else {
 			printparams(&s, reg.r[29]);
 			Bputc(bioout, '\n');
 		}
 	}
 
-	reg.pc = npc-4;
+	reg.pc = npc - 4;
 }
 
 void
@@ -377,12 +374,12 @@ Sdivu(uint32_t inst)
 {
 	int rs, rt;
 
-	Getrsrt(rs,rt,inst);
+	Getrsrt(rs, rt, inst);
 	if(trace)
 		itrace("divu\tr%d,r%d", rs, rt);
 
-	reg.mlo = (uint32_t)reg.r[rs]/(uint32_t)reg.r[rt];
-	reg.mhi = (uint32_t)reg.r[rs]%(uint32_t)reg.r[rt];
+	reg.mlo = (uint32_t)reg.r[rs] / (uint32_t)reg.r[rt];
+	reg.mhi = (uint32_t)reg.r[rs] % (uint32_t)reg.r[rt];
 }
 
 void
@@ -390,12 +387,12 @@ Sdiv(uint32_t inst)
 {
 	int rs, rt;
 
-	Getrsrt(rs,rt,inst);
+	Getrsrt(rs, rt, inst);
 	if(trace)
 		itrace("div\tr%d,r%d", rs, rt);
 
-	reg.mlo = reg.r[rs]/reg.r[rt];
-	reg.mhi = reg.r[rs]%reg.r[rt];
+	reg.mlo = reg.r[rs] / reg.r[rt];
+	reg.mhi = reg.r[rs] % reg.r[rt];
 }
 
 void
@@ -403,7 +400,7 @@ Smfhi(uint32_t inst)
 {
 	int rd;
 
-	rd = (inst>>11)&0x1ff;
+	rd = (inst >> 11) & 0x1ff;
 	if(trace)
 		itrace("mfhi\tr%d", rd);
 
@@ -415,7 +412,7 @@ Smflo(uint32_t inst)
 {
 	int rd;
 
-	rd = (inst>>11)&0x1ff;
+	rd = (inst >> 11) & 0x1ff;
 	if(trace)
 		itrace("mflo\tr%d", rd);
 
@@ -428,9 +425,9 @@ Smult(uint32_t inst)
 	int rs, rt;
 	Mul m;
 
-	Getrsrt(rs,rt,inst);
+	Getrsrt(rs, rt, inst);
 	if(trace)
-		itrace("mult\tr%d,r%d", rs,rt);
+		itrace("mult\tr%d,r%d", rs, rt);
 
 	m = mul(reg.r[rs], reg.r[rt]);
 	reg.mlo = m.lo;
@@ -443,9 +440,9 @@ Smultu(uint32_t inst)
 	int rs, rt;
 	Mulu m;
 
-	Getrsrt(rs,rt,inst);
+	Getrsrt(rs, rt, inst);
 	if(trace)
-		itrace("multu\tr%d,r%d", rs,rt);
+		itrace("multu\tr%d,r%d", rs, rt);
 
 	m = mulu(reg.r[rs], reg.r[rt]);
 	reg.mlo = m.lo;

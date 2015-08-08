@@ -51,38 +51,36 @@
 #include "version.h"
 #include "antiword.h"
 
-
 /* The name of this program */
-static char	*szTask = "!Antiword";
+static char* szTask = "!Antiword";
 
 /* The window handle of the choices window */
-static window_handle	tChoicesWindow = 0;
+static window_handle tChoicesWindow = 0;
 
 /* Dummy diagram with the iconbar menu pointer */
-static diagram_type	tDummyDiagram;
+static diagram_type tDummyDiagram;
 
 /* Program information Box */
-static dialog2_block	*pInfoBox = NULL;
+static dialog2_block* pInfoBox = NULL;
 
 /* Info box fields */
-#define PURPOSE_INFO_FIELD	2
-#define AUTHOR_INFO_FIELD	3
-#define VERSION_INFO_FIELD	4
-#define STATUS_INFO_FIELD	5
+#define PURPOSE_INFO_FIELD 2
+#define AUTHOR_INFO_FIELD 3
+#define VERSION_INFO_FIELD 4
+#define STATUS_INFO_FIELD 5
 
 /* Iconbar menu fields */
-#define ICONBAR_INFO_FIELD	0
-#define ICONBAR_CHOICES_FIELD	1
-#define ICONBAR_QUIT_FIELD	2
-
+#define ICONBAR_INFO_FIELD 0
+#define ICONBAR_CHOICES_FIELD 1
+#define ICONBAR_QUIT_FIELD 2
 
 /*
  * bBarInfo - Show iconbar information
  */
 static BOOL
-bBarInfo(event_pollblock *pEvent, void *pvReference)
+bBarInfo(event_pollblock* pEvent, void* pvReference)
 {
-	diagram_type	*pDiag;
+	diagram_type* pDiag;
 
 	TRACE_MSG("bBarInfo");
 
@@ -91,10 +89,11 @@ bBarInfo(event_pollblock *pEvent, void *pvReference)
 	fail(pEvent->data.message.header.action != message_MENUWARN);
 	fail(pvReference == NULL);
 
-	pDiag = (diagram_type *)pvReference;
+	pDiag = (diagram_type*)pvReference;
 
-	if (menu_currentopen != pDiag->pSaveMenu ||
-	    pEvent->data.message.data.menuwarn.selection[0] != ICONBAR_INFO_FIELD) {
+	if(menu_currentopen != pDiag->pSaveMenu ||
+	   pEvent->data.message.data.menuwarn.selection[0] !=
+	       ICONBAR_INFO_FIELD) {
 		return FALSE;
 	}
 
@@ -106,7 +105,7 @@ bBarInfo(event_pollblock *pEvent, void *pvReference)
  * vBarInfoSetText - Set the iconbar infobox text
  */
 static void
-vBarInfoSetText(dialog2_block *pBox)
+vBarInfoSetText(dialog2_block* pBox)
 {
 	TRACE_MSG("vBarInfoSetText");
 
@@ -123,11 +122,11 @@ vBarInfoSetText(dialog2_block *pBox)
  * bMouseButtonClick - respond to mouse button click
  */
 static BOOL
-bMouseButtonClick(event_pollblock *pEvent, void *pvReference)
+bMouseButtonClick(event_pollblock* pEvent, void* pvReference)
 {
-	diagram_type	*pDiag;
-	menu_ptr	pMenu;
-	int		iPosY;
+	diagram_type* pDiag;
+	menu_ptr pMenu;
+	int iPosY;
 
 	TRACE_MSG("bMouseButtonClick");
 
@@ -135,22 +134,23 @@ bMouseButtonClick(event_pollblock *pEvent, void *pvReference)
 	fail(pEvent->type != event_CLICK);
 	fail(pvReference == NULL);
 
-	pDiag = (diagram_type *)pvReference;
+	pDiag = (diagram_type*)pvReference;
 
-	if (pEvent->data.mouse.button.data.menu) {
+	if(pEvent->data.mouse.button.data.menu) {
 		pMenu = pDiag->pSaveMenu;
-		iPosY = (pMenu == tDummyDiagram.pSaveMenu) ?
-					-1 : pEvent->data.mouse.pos.y;
+		iPosY = (pMenu == tDummyDiagram.pSaveMenu)
+		            ? -1
+		            : pEvent->data.mouse.pos.y;
 		Menu_Show(pMenu, pEvent->data.mouse.pos.x, iPosY);
 		return TRUE;
 	}
-	if (pEvent->data.mouse.window == pDiag->tMainWindow &&
-	    pEvent->data.mouse.icon == -1) {
+	if(pEvent->data.mouse.window == pDiag->tMainWindow &&
+	   pEvent->data.mouse.icon == -1) {
 		vMainButtonClick(&pEvent->data.mouse);
 		return TRUE;
 	}
-	if (pEvent->data.mouse.window == pDiag->tScaleWindow &&
-	    pEvent->data.mouse.icon >= 0) {
+	if(pEvent->data.mouse.window == pDiag->tScaleWindow &&
+	   pEvent->data.mouse.icon >= 0) {
 		vScaleButtonClick(&pEvent->data.mouse, pDiag);
 		return TRUE;
 	}
@@ -161,13 +161,13 @@ bMouseButtonClick(event_pollblock *pEvent, void *pvReference)
  * bAutoRedrawWindow - the redraw is handled by the WIMP
  */
 static BOOL
-bAutoRedrawWindow(event_pollblock *pEvent, void *pvReference)
+bAutoRedrawWindow(event_pollblock* pEvent, void* pvReference)
 {
 	return TRUE;
 } /* end of bAutoRedrawWindow */
 
 static BOOL
-bSaveSelect(event_pollblock *pEvent, void *pvReference)
+bSaveSelect(event_pollblock* pEvent, void* pvReference)
 {
 	TRACE_MSG("bSaveSelect");
 
@@ -177,7 +177,7 @@ bSaveSelect(event_pollblock *pEvent, void *pvReference)
 
 	DBG_DEC(pEvent->data.selection[0]);
 
-	switch (pEvent->data.selection[0]) {
+	switch(pEvent->data.selection[0]) {
 	case SAVEMENU_SCALEVIEW:
 		return bScaleOpenAction(pEvent, pvReference);
 	case SAVEMENU_SAVEDRAW:
@@ -193,54 +193,53 @@ bSaveSelect(event_pollblock *pEvent, void *pvReference)
 /*
  * Create the window for the text from the given file
  */
-static diagram_type *
-pCreateTextWindow(const char *szFilename)
+static diagram_type*
+pCreateTextWindow(const char* szFilename)
 {
-	diagram_type	*pDiag;
+	diagram_type* pDiag;
 
 	TRACE_MSG("pCreateTextWindow");
 
 	fail(szFilename == NULL || szFilename[0] == '\0');
 
 	/* Create the diagram */
-	pDiag = pCreateDiagram(szTask+1, szFilename);
-	if (pDiag == NULL) {
+	pDiag = pCreateDiagram(szTask + 1, szFilename);
+	if(pDiag == NULL) {
 		werr(0, "Sorry, no new diagram object");
 		return NULL;
 	}
 
 	/* Prepare a save menu for this diagram */
-	pDiag->pSaveMenu = Menu_New(szTask+1,
-		">Scale view,"
-		">Save (Drawfile)   F3,"
-		">Save (Text only) \213F3");
-	if (pDiag->pSaveMenu == NULL) {
+	pDiag->pSaveMenu = Menu_New(szTask + 1, ">Scale view,"
+	                                        ">Save (Drawfile)   F3,"
+	                                        ">Save (Text only) \213F3");
+	if(pDiag->pSaveMenu == NULL) {
 		werr(1, "Sorry, no Savemenu object");
 	}
-	Menu_Warn(pDiag->pSaveMenu, SAVEMENU_SCALEVIEW,
-					TRUE, bScaleOpenAction, pDiag);
-	Menu_Warn(pDiag->pSaveMenu, SAVEMENU_SAVEDRAW,
-					TRUE, bSaveDrawfile, pDiag);
-	Menu_Warn(pDiag->pSaveMenu, SAVEMENU_SAVETEXT,
-					TRUE, bSaveTextfile, pDiag);
+	Menu_Warn(pDiag->pSaveMenu, SAVEMENU_SCALEVIEW, TRUE, bScaleOpenAction,
+	          pDiag);
+	Menu_Warn(pDiag->pSaveMenu, SAVEMENU_SAVEDRAW, TRUE, bSaveDrawfile,
+	          pDiag);
+	Menu_Warn(pDiag->pSaveMenu, SAVEMENU_SAVETEXT, TRUE, bSaveTextfile,
+	          pDiag);
 
 	/* Claim events for the main window */
-        Event_Claim(event_REDRAW, pDiag->tMainWindow, icon_ANY,
-                                        bRedrawMainWindow, pDiag);
-        Event_Claim(event_CLOSE, pDiag->tMainWindow, icon_ANY,
-                                        bDestroyDiagram, pDiag);
-        Event_Claim(event_CLICK, pDiag->tMainWindow, icon_ANY,
-                                        bMouseButtonClick, pDiag);
-        Event_Claim(event_KEY, pDiag->tMainWindow, icon_ANY,
-                                        bMainKeyPressed, pDiag);
+	Event_Claim(event_REDRAW, pDiag->tMainWindow, icon_ANY,
+	            bRedrawMainWindow, pDiag);
+	Event_Claim(event_CLOSE, pDiag->tMainWindow, icon_ANY, bDestroyDiagram,
+	            pDiag);
+	Event_Claim(event_CLICK, pDiag->tMainWindow, icon_ANY,
+	            bMouseButtonClick, pDiag);
+	Event_Claim(event_KEY, pDiag->tMainWindow, icon_ANY, bMainKeyPressed,
+	            pDiag);
 
 	/* Claim events for the scale window */
 	Event_Claim(event_REDRAW, pDiag->tScaleWindow, icon_ANY,
-					bAutoRedrawWindow, NULL);
-        Event_Claim(event_CLICK, pDiag->tScaleWindow, icon_ANY,
-                                        bMouseButtonClick, pDiag);
-        Event_Claim(event_KEY, pDiag->tScaleWindow, icon_ANY,
-                                        bScaleKeyPressed, pDiag);
+	            bAutoRedrawWindow, NULL);
+	Event_Claim(event_CLICK, pDiag->tScaleWindow, icon_ANY,
+	            bMouseButtonClick, pDiag);
+	Event_Claim(event_KEY, pDiag->tScaleWindow, icon_ANY, bScaleKeyPressed,
+	            pDiag);
 
 	/* Set the window title */
 	vSetTitle(pDiag);
@@ -251,13 +250,13 @@ pCreateTextWindow(const char *szFilename)
  * vProcessFile - process one file
  */
 static void
-vProcessFile(const char *szFilename, int iFiletype)
+vProcessFile(const char* szFilename, int iFiletype)
 {
-	options_type	tOptions;
-	FILE		*pFile;
-	diagram_type	*pDiag;
-	int32_t		lFilesize;
-	int		iWordVersion;
+	options_type tOptions;
+	FILE* pFile;
+	diagram_type* pDiag;
+	int32_t lFilesize;
+	int iWordVersion;
 
 	TRACE_MSG("vProcessFile");
 
@@ -266,28 +265,29 @@ vProcessFile(const char *szFilename, int iFiletype)
 	DBG_MSG(szFilename);
 
 	pFile = fopen(szFilename, "rb");
-	if (pFile == NULL) {
+	if(pFile == NULL) {
 		werr(0, "I can't open '%s' for reading", szFilename);
 		return;
 	}
 
 	lFilesize = lGetFilesize(szFilename);
-	if (lFilesize < 0) {
+	if(lFilesize < 0) {
 		(void)fclose(pFile);
 		werr(0, "I can't get the size of '%s'", szFilename);
 		return;
 	}
 
 	iWordVersion = iGuessVersionNumber(pFile, lFilesize);
-	if (iWordVersion < 0 || iWordVersion == 3) {
-		if (bIsRtfFile(pFile)) {
+	if(iWordVersion < 0 || iWordVersion == 3) {
+		if(bIsRtfFile(pFile)) {
 			werr(0, "%s is not a Word Document."
-				" It is probably a Rich Text Format file",
-				szFilename);
-		} if (bIsWordPerfectFile(pFile)) {
+			        " It is probably a Rich Text Format file",
+			     szFilename);
+		}
+		if(bIsWordPerfectFile(pFile)) {
 			werr(0, "%s is not a Word Document."
-				" It is probably a Word Perfect file",
-				szFilename);
+			        " It is probably a Word Perfect file",
+			     szFilename);
 		} else {
 			werr(0, "%s is not a Word Document.", szFilename);
 		}
@@ -297,15 +297,15 @@ vProcessFile(const char *szFilename, int iFiletype)
 	/* Reset any reading done during file-testing */
 	rewind(pFile);
 
-	if (iFiletype != FILETYPE_MSWORD) {
+	if(iFiletype != FILETYPE_MSWORD) {
 		vGetOptions(&tOptions);
-		if (tOptions.bAutofiletypeAllowed) {
+		if(tOptions.bAutofiletypeAllowed) {
 			vSetFiletype(szFilename, FILETYPE_MSWORD);
 		}
 	}
 
 	pDiag = pCreateTextWindow(szFilename);
-	if (pDiag == NULL) {
+	if(pDiag == NULL) {
 		(void)fclose(pFile);
 		return;
 	}
@@ -326,43 +326,43 @@ vProcessFile(const char *szFilename, int iFiletype)
  * vSendAck - send an acknowledge
  */
 static void
-vSendAck(event_pollblock *pEvent)
+vSendAck(event_pollblock* pEvent)
 {
-	message_block	tMessage;
+	message_block tMessage;
 
 	TRACE_MSG("vSendAck");
 
 	fail(pEvent == NULL);
 	fail(pEvent->type != event_SEND && pEvent->type != event_SENDWANTACK);
 	fail(pEvent->data.message.header.action != message_DATALOAD &&
-		pEvent->data.message.header.action != message_DATAOPEN);
+	     pEvent->data.message.header.action != message_DATAOPEN);
 
 	tMessage.header.action = message_DATALOADACK;
 	tMessage.header.size = sizeof(tMessage);
 	tMessage.header.yourref = pEvent->data.message.header.myref;
-	Error_CheckFatal(Wimp_SendMessage(event_SEND, &tMessage,
-				pEvent->data.message.header.sender, 0));
+	Error_CheckFatal(Wimp_SendMessage(
+	    event_SEND, &tMessage, pEvent->data.message.header.sender, 0));
 } /* end of vSendAck */
 
 static BOOL
-bEventMsgHandler(event_pollblock *pEvent, void *pvReference)
+bEventMsgHandler(event_pollblock* pEvent, void* pvReference)
 {
 	TRACE_MSG("bEventMsgHandler");
 
 	fail(pEvent == NULL);
 
-	switch (pEvent->type) {
+	switch(pEvent->type) {
 	case event_SEND:
 	case event_SENDWANTACK:
-		switch (pEvent->data.message.header.action) {
+		switch(pEvent->data.message.header.action) {
 		case message_CLOSEDOWN:
 			exit(EXIT_SUCCESS);
 			break;
 		case message_DATALOAD:
 		case message_DATAOPEN:
 			vProcessFile(
-				pEvent->data.message.data.dataload.filename,
-				pEvent->data.message.data.dataload.filetype);
+			    pEvent->data.message.data.dataload.filename,
+			    pEvent->data.message.data.dataload.filetype);
 			vSendAck(pEvent);
 			break;
 		default:
@@ -380,7 +380,7 @@ bEventMsgHandler(event_pollblock *pEvent, void *pvReference)
  * bMenuSelect - select from the iconbar menu
  */
 static BOOL
-bMenuSelect(event_pollblock *pEvent, void *pvReference)
+bMenuSelect(event_pollblock* pEvent, void* pvReference)
 {
 	TRACE_MSG("bMenuSelect");
 
@@ -389,7 +389,7 @@ bMenuSelect(event_pollblock *pEvent, void *pvReference)
 
 	DBG_DEC(pEvent->data.selection[0]);
 
-	switch (pEvent->data.selection[0]) {
+	switch(pEvent->data.selection[0]) {
 	case ICONBAR_INFO_FIELD:
 		return bBarInfo(pEvent, pvReference);
 	case ICONBAR_CHOICES_FIELD:
@@ -411,16 +411,16 @@ bMenuSelect(event_pollblock *pEvent, void *pvReference)
  * bMenuClick - respond to an menu click
  */
 static BOOL
-bMenuClick(event_pollblock *pEvent, void *pvReference)
+bMenuClick(event_pollblock* pEvent, void* pvReference)
 {
 	TRACE_MSG("bMenuClick");
 
 	fail(pEvent == NULL);
 	fail(pEvent->type != event_MENU);
 
-	if (menu_currentopen == tDummyDiagram.pSaveMenu) {
+	if(menu_currentopen == tDummyDiagram.pSaveMenu) {
 		return bMenuSelect(pEvent, pvReference);
-	} else if (pvReference == NULL) {
+	} else if(pvReference == NULL) {
 		return FALSE;
 	}
 	return bSaveSelect(pEvent, pvReference);
@@ -435,34 +435,33 @@ vTemplates(void)
 	Template_LoadFile("Templates");
 
 	tChoicesWindow = Window_Create("Choices", template_TITLEMIN);
-	if (tChoicesWindow == 0) {
+	if(tChoicesWindow == 0) {
 		werr(1, "I can't find the 'Choices' template");
 	}
 
 	/* Claim events for the choices window */
-	Event_Claim(event_REDRAW, tChoicesWindow, icon_ANY,
-					bAutoRedrawWindow, NULL);
-	Event_Claim(event_CLICK, tChoicesWindow, icon_ANY,
-					bChoicesMouseClick, NULL);
-	Event_Claim(event_KEY, tChoicesWindow, icon_ANY,
-					bChoicesKeyPressed, NULL);
+	Event_Claim(event_REDRAW, tChoicesWindow, icon_ANY, bAutoRedrawWindow,
+	            NULL);
+	Event_Claim(event_CLICK, tChoicesWindow, icon_ANY, bChoicesMouseClick,
+	            NULL);
+	Event_Claim(event_KEY, tChoicesWindow, icon_ANY, bChoicesKeyPressed,
+	            NULL);
 } /* end of vTemplates */
 
 static void
 vInitialise(void)
 {
-	int	aiMessages[] = {0};
-	icon_handle	tBarIcon;
-
+	int aiMessages[] = {0};
+	icon_handle tBarIcon;
 
 	TRACE_MSG("vInitialise");
 
-	Resource_Initialise(szTask+1);
-	Event_Initialise3(szTask+1, 310, aiMessages);
+	Resource_Initialise(szTask + 1);
+	Event_Initialise3(szTask + 1, 310, aiMessages);
 	EventMsg_Initialise();
 	Screen_CacheModeInfo();
 #if defined(__GNUC__)
-	flex_init(szTask+1, 0, 0);
+	flex_init(szTask + 1, 0, 0);
 	flex_set_budge(1);
 #endif /* __GNUC__ */
 	vTemplates();
@@ -470,60 +469,58 @@ vInitialise(void)
 	/* Prepare iconbar menu */
 	tDummyDiagram.tInfo.data = NULL;
 	tDummyDiagram.tInfo.length = 0;
-	tDummyDiagram.pSaveMenu = Menu_New(szTask+1, ">Info,Choices...,Quit");
-	if (tDummyDiagram.pSaveMenu == NULL) {
+	tDummyDiagram.pSaveMenu = Menu_New(szTask + 1, ">Info,Choices...,Quit");
+	if(tDummyDiagram.pSaveMenu == NULL) {
 		werr(1, "Sorry, no Barmenu object");
 	}
 	pInfoBox = Dialog2_CreateDialogBlock("ProgInfo", -1, -1,
-					vBarInfoSetText, NULL, NULL);
+	                                     vBarInfoSetText, NULL, NULL);
 
-	if (pInfoBox == NULL) {
+	if(pInfoBox == NULL) {
 		werr(1, "Sorry, no Infobox object");
 	}
-	Menu_Warn(tDummyDiagram.pSaveMenu, ICONBAR_INFO_FIELD,
-					TRUE, bBarInfo, &tDummyDiagram);
+	Menu_Warn(tDummyDiagram.pSaveMenu, ICONBAR_INFO_FIELD, TRUE, bBarInfo,
+	          &tDummyDiagram);
 
 	/* Create an icon on the icon bar */
 	tBarIcon = Icon_BarIcon(szTask, iconbar_RIGHT);
-	Event_Claim(event_CLICK, window_ICONBAR, tBarIcon,
-					bMouseButtonClick, &tDummyDiagram);
+	Event_Claim(event_CLICK, window_ICONBAR, tBarIcon, bMouseButtonClick,
+	            &tDummyDiagram);
 
 	/* Generic claims */
-	Event_Claim(event_OPEN, window_ANY, icon_ANY,
-					Handler_OpenWindow, NULL);
-	Event_Claim(event_CLOSE, window_ANY, icon_ANY,
-					Handler_CloseWindow, NULL);
-	Event_Claim(event_MENU, window_ANY, icon_ANY,
-					bMenuClick, NULL);
-	EventMsg_Claim(message_DATALOAD, window_ICONBAR,
-					bEventMsgHandler, NULL);
-	EventMsg_Claim(message_MODECHANGE, window_ANY,
-					Handler_ModeChange, NULL);
+	Event_Claim(event_OPEN, window_ANY, icon_ANY, Handler_OpenWindow, NULL);
+	Event_Claim(event_CLOSE, window_ANY, icon_ANY, Handler_CloseWindow,
+	            NULL);
+	Event_Claim(event_MENU, window_ANY, icon_ANY, bMenuClick, NULL);
+	EventMsg_Claim(message_DATALOAD, window_ICONBAR, bEventMsgHandler,
+	               NULL);
+	EventMsg_Claim(message_MODECHANGE, window_ANY, Handler_ModeChange,
+	               NULL);
 } /* end of vInitialise */
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	int	iFirst, iFiletype;
+	int iFirst, iFiletype;
 
 	TRACE_MSG("main");
 
 	vInitialise();
 	iFirst = iReadOptions(argc, argv);
-	if (iFirst != 1) {
+	if(iFirst != 1) {
 		return EXIT_FAILURE;
 	}
 
-	if (argc > 1) {
+	if(argc > 1) {
 		iFiletype = iGetFiletype(argv[1]);
-		if (iFiletype < 0) {
+		if(iFiletype < 0) {
 			return EXIT_FAILURE;
 		}
 		vProcessFile(argv[1], iFiletype);
 		TRACE_MSG("main after vProcessFile");
 	}
 
-	for (;;) {
+	for(;;) {
 		Event_Poll();
 	}
 } /* end of main */

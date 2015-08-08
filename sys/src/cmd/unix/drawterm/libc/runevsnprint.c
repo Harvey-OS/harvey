@@ -12,7 +12,7 @@
 #include "fmtdef.h"
 
 int
-runevsnprint(Rune *buf, int len, char *fmt, va_list args)
+runevsnprint(Rune* buf, int len, char* fmt, va_list args)
 {
 	Fmt f;
 
@@ -25,7 +25,7 @@ runevsnprint(Rune *buf, int len, char *fmt, va_list args)
 	f.flush = 0;
 	f.farg = nil;
 	f.nfmt = 0;
-	VA_COPY(f.args,args);
+	VA_COPY(f.args, args);
 	dofmt(&f, fmt);
 	VA_END(f.args);
 	*(Rune*)f.to = '\0';

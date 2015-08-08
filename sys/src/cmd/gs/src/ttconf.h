@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2003 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -25,7 +25,8 @@
 
 /* $Id: ttconf.h,v 1.2 2003/11/13 22:41:41 igor Exp $ */
 /* Configuration of the True Type interpreter. */
-/* This file is copied from the FreeType project and modified to satisfy Ghostscript needs. */
+/* This file is copied from the FreeType project and modified to satisfy
+ * Ghostscript needs. */
 
 #ifndef TTCONF_H
 #define TTCONF_H
@@ -69,14 +70,13 @@
 #undef HAVE_PRINT_FUNCTION
 
 /* The number of bytes in a int. */
-#define SIZEOF_INT  (1 << ARCH_LOG2_SIZEOF_INT)
+#define SIZEOF_INT (1 << ARCH_LOG2_SIZEOF_INT)
 
 /* The number of bytes in a long.  */
 #define SIZEOF_LONG (1 << ARCH_LOG2_SIZEOF_LONG)
 
 /* Define if you have the basename function.  */
 #undef HAVE_BASENAME
-
 
 /* End of ft_conf.h */
 

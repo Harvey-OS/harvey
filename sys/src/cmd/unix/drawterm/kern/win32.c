@@ -17,12 +17,12 @@
 typedef struct Oproc Oproc;
 struct Oproc {
 	int tid;
-	HANDLE	*sema;
+	HANDLE* sema;
 };
 
 static int tlsx = TLS_OUT_OF_INDEXES;
 
-char	*argv0;
+char* argv0;
 
 Proc*
 _getproc(void)
@@ -33,9 +33,9 @@ _getproc(void)
 }
 
 void
-_setproc(Proc *p)
+_setproc(Proc* p)
 {
-	if(tlsx == TLS_OUT_OF_INDEXES){
+	if(tlsx == TLS_OUT_OF_INDEXES) {
 		tlsx = TlsAlloc();
 		if(tlsx == TLS_OUT_OF_INDEXES)
 			panic("out of indexes");
@@ -53,7 +53,7 @@ oserror(void)
 void
 osinit(void)
 {
-	Oproc *t;
+	Oproc* t;
 	static Proc firstprocCTstore;
 
 	_setproc(&firstprocCTstore);
@@ -69,13 +69,13 @@ osinit(void)
 }
 
 void
-osnewproc(Proc *p)
+osnewproc(Proc* p)
 {
-	Oproc *op;
+	Oproc* op;
 
 	op = (Oproc*)p->oproc;
 	op->sema = CreateSemaphore(0, 0, 1000, 0);
-	if (op->sema == 0) {
+	if(op->sema == 0) {
 		oserror();
 		panic("could not create semaphore: %r");
 	}
@@ -84,7 +84,7 @@ osnewproc(Proc *p)
 void
 osmsleep(int ms)
 {
-	Sleep((DWORD) ms);
+	Sleep((DWORD)ms);
 }
 
 void
@@ -96,7 +96,7 @@ osyield(void)
 static DWORD WINAPI tramp(LPVOID vp);
 
 void
-osproc(Proc *p)
+osproc(Proc* p)
 {
 	DWORD tid;
 
@@ -111,8 +111,8 @@ osproc(Proc *p)
 static DWORD WINAPI
 tramp(LPVOID vp)
 {
-	Proc *p = (Proc *) vp;
-	Oproc *op = (Oproc*) p->oproc;
+	Proc* p = (Proc*)vp;
+	Oproc* op = (Oproc*)p->oproc;
 
 	_setproc(p);
 	op->tid = GetCurrentThreadId();
@@ -122,7 +122,7 @@ tramp(LPVOID vp)
 		panic("could not create semaphore: %r");
 	}
 
- 	(*p->fn)(p->arg);
+	(*p->fn)(p->arg);
 	ExitThread(0);
 	return 0;
 }
@@ -130,36 +130,37 @@ tramp(LPVOID vp)
 void
 procsleep(void)
 {
-	Proc *p;
-	Oproc *op;
+	Proc* p;
+	Oproc* op;
 
 	p = up;
 	op = (Oproc*)p->oproc;
-	WaitForSingleObject(op->sema, INFINITE);}
+	WaitForSingleObject(op->sema, INFINITE);
+}
 
 void
-procwakeup(Proc *p)
+procwakeup(Proc* p)
 {
-	Oproc *op;
+	Oproc* op;
 
 	op = (Oproc*)p->oproc;
 	ReleaseSemaphore(op->sema, 1, 0);
 }
 
 void
-random20(uint8_t *p)
+random20(uint8_t* p)
 {
 	LARGE_INTEGER ti;
 	int i, j;
 	FILETIME ft;
 	DigestState ds;
 	int64_t tsc;
-	
+
 	GetSystemTimeAsFileTime(&ft);
 	memset(&ds, 0, sizeof ds);
 	sha1((uint8_t*)&ft, sizeof(ft), 0, &ds);
-	for(i=0; i<50; i++) {
-		for(j=0; j<10; j++) {
+	for(i = 0; i < 50; i++) {
+		for(j = 0; j < 10; j++) {
 			QueryPerformanceCounter(&ti);
 			sha1((uint8_t*)&ti, sizeof(ti), 0, &ds);
 			tsc = GetTickCount();
@@ -176,17 +177,17 @@ randominit(void)
 }
 
 uint32_t
-randomread(void *v, uint32_t n)
+randomread(void* v, uint32_t n)
 {
 	int i;
 	uint8_t p[20];
-	
-	for(i=0; i<n; i+=20){
+
+	for(i = 0; i < n; i += 20) {
 		random20(p);
-		if(i+20 <= n)
-			memmove((char*)v+i, p, 20);
+		if(i + 20 <= n)
+			memmove((char*)v + i, p, 20);
 		else
-			memmove((char*)v+i, p, n-i);
+			memmove((char*)v + i, p, n - i);
 	}
 	return n;
 }
@@ -216,32 +217,31 @@ fastticks(uvlong *v)
 }
 #endif
 
-extern int	main(int, char*[]);
-
+extern int main(int, char* []);
 
 int
-wstrutflen(Rune *s)
+wstrutflen(Rune* s)
 {
 	int n;
-	
-	for(n=0; *s; n+=runelen(*s),s++)
+
+	for(n = 0; *s; n += runelen(*s), s++)
 		;
 	return n;
 }
 
 int
-wstrtoutf(char *s, Rune *t, int n)
+wstrtoutf(char* s, Rune* t, int n)
 {
 	int i;
-	char *s0;
+	char* s0;
 
 	s0 = s;
 	if(n <= 0)
-		return wstrutflen(t)+1;
+		return wstrutflen(t) + 1;
 	while(*t) {
-		if(n < UTFmax+1 && n < runelen(*t)+1) {
+		if(n < UTFmax + 1 && n < runelen(*t) + 1) {
 			*s = 0;
-			return s-s0+wstrutflen(t)+1;
+			return s - s0 + wstrutflen(t) + 1;
 		}
 		i = runetochar(s, t);
 		s += i;
@@ -249,7 +249,7 @@ wstrtoutf(char *s, Rune *t, int n)
 		t++;
 	}
 	*s = 0;
-	return s-s0;
+	return s - s0;
 }
 
 int
@@ -278,36 +278,36 @@ win_hasunicode(void)
 }
 
 int
-wstrlen(Rune *s)
+wstrlen(Rune* s)
 {
 	int n;
 
-	for(n=0; *s; s++,n++)
+	for(n = 0; *s; s++, n++)
 		;
 	return n;
 }
-static int	args(char *argv[], int n, char *p);
+static int args(char* argv[], int n, char* p);
 
 int APIENTRY
 WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
 {
 	int argc, n;
-	char *arg, *p, **argv;
-	Rune *warg;
+	char* arg, *p, **argv;
+	Rune* warg;
 
-	if(0 && win_hasunicode()){
+	if(0 && win_hasunicode()) {
 		warg = GetCommandLineW();
-		n = (wstrlen(warg)+1)*UTFmax;
+		n = (wstrlen(warg) + 1) * UTFmax;
 		arg = malloc(n);
 		wstrtoutf(arg, warg, n);
-	}else
+	} else
 		arg = GetCommandLineA();
 
 	/* conservative guess at the number of args */
-	for(argc=4,p=arg; *p; p++)
+	for(argc = 4, p = arg; *p; p++)
 		if(*p == ' ' || *p == '\t')
 			argc++;
-	argv = malloc(argc*sizeof(char*));
+	argv = malloc(argc * sizeof(char*));
 	argc = args(argv, argc, arg);
 
 	mymain(argc, argv);
@@ -326,30 +326,30 @@ WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
  * N backslashes not followed by " ==> N backslashes
  */
 static int
-args(char *argv[], int n, char *p)
+args(char* argv[], int n, char* p)
 {
-	char *p2;
+	char* p2;
 	int i, j, quote, nbs;
 
-	for(i=0; *p && i<n-1; i++) {
+	for(i = 0; *p && i < n - 1; i++) {
 		while(*p == ' ' || *p == '\t')
 			p++;
 		quote = 0;
 		argv[i] = p2 = p;
-		for(;*p; p++) {
+		for(; *p; p++) {
 			if(!quote && (*p == ' ' || *p == '\t'))
 				break;
-			for(nbs=0; *p == '\\'; p++,nbs++)
+			for(nbs = 0; *p == '\\'; p++, nbs++)
 				;
 			if(*p == '"') {
-				for(j=0; j<(nbs>>1); j++)
+				for(j = 0; j < (nbs >> 1); j++)
 					*p2++ = '\\';
-				if(nbs&1)
+				if(nbs & 1)
 					*p2++ = *p;
 				else
 					quote = !quote;
 			} else {
-				for(j=0; j<nbs; j++)
+				for(j = 0; j < nbs; j++)
 					*p2++ = '\\';
 				*p2++ = *p;
 			}
@@ -357,7 +357,7 @@ args(char *argv[], int n, char *p)
 		/* move p up one to avoid pointing to null at end of p2 */
 		if(*p)
 			p++;
-		*p2 = 0;	
+		*p2 = 0;
 	}
 	argv[i] = 0;
 
@@ -370,74 +370,74 @@ args(char *argv[], int n, char *p)
  */
 static struct {
 	int e;
-	char *s;
+	char* s;
 } tab[] = {
-	{ 10004, "interrupted function call" },
-	{ 10013, "permission denied" },
-	{ 10014, "bad address" },
-	{ 10022, "invalid argument" },
-	{ 10024, "too many open files" },
-	{ 10035, "resource temporarily unavailable" },
-	{ 10036, "operation now in progress" },
-	{ 10037, "operation already in progress" },
-	{ 10038, "socket operation on nonsocket" },
-	{ 10039, "destination address required" },
-	{ 10040, "message too long" },
-	{ 10041, "protocol wrong type for socket" },
-	{ 10042, "bad protocol option" },
-	{ 10043, "protocol not supported" },
-	{ 10044, "socket type not supported" },
-	{ 10045, "operation not supported" },
-	{ 10046, "protocol family not supported" },
-	{ 10047, "address family not supported by protocol family" },
-	{ 10048, "address already in use" },
-	{ 10049, "cannot assign requested address" },
-	{ 10050, "network is down" },
-	{ 10051, "network is unreachable" },
-	{ 10052, "network dropped connection on reset" },
-	{ 10053, "software caused connection abort" },
-	{ 10054, "connection reset by peer" },
-	{ 10055, "no buffer space available" },
-	{ 10056, "socket is already connected" },
-	{ 10057, "socket is not connected" },
-	{ 10058, "cannot send after socket shutdown" },
-	{ 10060, "connection timed out" },
-	{ 10061, "connection refused" },
-	{ 10064, "host is down" },
-	{ 10065, "no route to host" },
-	{ 10067, "too many processes" },
-	{ 10091, "network subsystem is unavailable" },
-	{ 10092, "winsock.dll version out of range" },
-	{ 10093, "wsastartup not called" },
-	{ 10101, "graceful shutdown in progress" },
-	{ 10109, "class type not found" },
-	{ 11001, "host name not found" },
-	{ 11002, "host not found (non-authoritative)" },
-	{ 11003, "nonrecoverable error" },
-	{ 11004, "valid name, but no data record of requested type" },
+    {10004, "interrupted function call"},
+    {10013, "permission denied"},
+    {10014, "bad address"},
+    {10022, "invalid argument"},
+    {10024, "too many open files"},
+    {10035, "resource temporarily unavailable"},
+    {10036, "operation now in progress"},
+    {10037, "operation already in progress"},
+    {10038, "socket operation on nonsocket"},
+    {10039, "destination address required"},
+    {10040, "message too long"},
+    {10041, "protocol wrong type for socket"},
+    {10042, "bad protocol option"},
+    {10043, "protocol not supported"},
+    {10044, "socket type not supported"},
+    {10045, "operation not supported"},
+    {10046, "protocol family not supported"},
+    {10047, "address family not supported by protocol family"},
+    {10048, "address already in use"},
+    {10049, "cannot assign requested address"},
+    {10050, "network is down"},
+    {10051, "network is unreachable"},
+    {10052, "network dropped connection on reset"},
+    {10053, "software caused connection abort"},
+    {10054, "connection reset by peer"},
+    {10055, "no buffer space available"},
+    {10056, "socket is already connected"},
+    {10057, "socket is not connected"},
+    {10058, "cannot send after socket shutdown"},
+    {10060, "connection timed out"},
+    {10061, "connection refused"},
+    {10064, "host is down"},
+    {10065, "no route to host"},
+    {10067, "too many processes"},
+    {10091, "network subsystem is unavailable"},
+    {10092, "winsock.dll version out of range"},
+    {10093, "wsastartup not called"},
+    {10101, "graceful shutdown in progress"},
+    {10109, "class type not found"},
+    {11001, "host name not found"},
+    {11002, "host not found (non-authoritative)"},
+    {11003, "nonrecoverable error"},
+    {11004, "valid name, but no data record of requested type"},
 };
 
 void
-osrerrstr(char *buf, uint nbuf)
+osrerrstr(char* buf, uint nbuf)
 {
-	char *p, *q;
+	char* p, *q;
 	int e, i, r;
 
 	e = GetLastError();
-	r = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
-		0, e, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		buf, nbuf, 0);
-	if(r == 0){
-		for(i=0; i<nelem(tab); i++)
-			if(tab[i].e == e){
-				strecpy(buf, buf+nbuf, tab[i].s);
+	r = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, e,
+	                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, nbuf,
+	                   0);
+	if(r == 0) {
+		for(i = 0; i < nelem(tab); i++)
+			if(tab[i].e == e) {
+				strecpy(buf, buf + nbuf, tab[i].s);
 				break;
 			}
-		if(i==nelem(tab))
+		if(i == nelem(tab))
 			snprint(buf, nbuf, "windows error %d", e);
 	}
 
-	for(p=q=buf; *p; p++) {
+	for(p = q = buf; *p; p++) {
 		if(*p == '\r')
 			continue;
 		if(*p == '\n')
@@ -455,22 +455,22 @@ oserrstr(void)
 }
 
 int32_t
-showfilewrite(char *a, int n)
+showfilewrite(char* a, int n)
 {
-	Rune *action, *arg, *cmd, *p;
-	static Rune Lopen[] = { 'o', 'p', 'e', 'n', 0 };
+	Rune* action, *arg, *cmd, *p;
+	static Rune Lopen[] = {'o', 'p', 'e', 'n', 0};
 
 	cmd = runesmprint("%.*s", n, a);
 	if(cmd == nil)
 		error("out of memory");
-	if(cmd[runestrlen(cmd)-1] == '\n')
+	if(cmd[runestrlen(cmd) - 1] == '\n')
 		cmd[runestrlen(cmd)] = 0;
 	p = runestrchr(cmd, ' ');
-	if(p){
+	if(p) {
 		action = cmd;
 		*p++ = 0;
 		arg = p;
-	}else{
+	} else {
 		action = Lopen;
 		arg = cmd;
 	}

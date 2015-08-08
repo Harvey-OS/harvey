@@ -21,10 +21,10 @@ ffs(unsigned int mask)
 {
 	int i;
 
-	if (!mask)
+	if(!mask)
 		return 0;
 	i = 1;
-	while (!(mask & 1)){
+	while(!(mask & 1)) {
 		i++;
 		mask = mask >> 1;
 	}

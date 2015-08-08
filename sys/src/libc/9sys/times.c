@@ -10,9 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-static
-char*
-skip(char *p)
+static char*
+skip(char* p)
 {
 
 	while(*p == ' ')
@@ -30,7 +29,7 @@ skip(char *p)
  *  in the middle of this routine.
  */
 int32_t
-times(int32_t *t)
+times(int32_t* t)
 {
 	char b[200], *p;
 	static int f = -1;
@@ -38,12 +37,12 @@ times(int32_t *t)
 	uint32_t r;
 
 	memset(b, 0, sizeof(b));
-	for(retries = 0; retries < 100; retries++){
+	for(retries = 0; retries < 100; retries++) {
 		if(f < 0)
-			f = open("/dev/cputime", OREAD|OCEXEC);
+			f = open("/dev/cputime", OREAD | OCEXEC);
 		if(f < 0)
 			break;
-		if(seek(f, 0, 0) < 0 || (i = read(f, b, sizeof(b))) < 0){
+		if(seek(f, 0, 0) < 0 || (i = read(f, b, sizeof(b))) < 0) {
 			close(f);
 			f = -1;
 		} else {
@@ -59,7 +58,7 @@ times(int32_t *t)
 		t[1] = atol(p);
 	p = skip(p);
 	r = atol(p);
-	if(t){
+	if(t) {
 		p = skip(p);
 		t[2] = atol(p);
 		p = skip(p);

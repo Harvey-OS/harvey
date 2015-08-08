@@ -13,39 +13,39 @@
 #include "fns.h"
 #include "9.h"
 
-char *foptname;
+char* foptname;
 
 struct Fsys {
 	VtLock* lock;
 
-	char*	name;		/* copy here & Fs to ease error reporting */
-	char*	dev;
-	char*	venti;
+	char* name; /* copy here & Fs to ease error reporting */
+	char* dev;
+	char* venti;
 
-	Fs*	fs;
+	Fs* fs;
 	VtSession* session;
-	int	ref;
+	int ref;
 
-	int	noauth;
-	int	noperm;
-	int	wstatallow;
+	int noauth;
+	int noperm;
+	int wstatallow;
 
-	Fsys*	next;
+	Fsys* next;
 };
 
-int mempcnt;			/* from fossil.c */
+int mempcnt; /* from fossil.c */
 
-int	fsGetBlockSize(Fs *fs);
+int fsGetBlockSize(Fs* fs);
 
 static struct {
-	VtLock*	lock;
-	Fsys*	head;
-	Fsys*	tail;
+	VtLock* lock;
+	Fsys* head;
+	Fsys* tail;
 
-	char*	curfsys;
+	char* curfsys;
 } sbox;
 
-static char *_argv0;
+static char* _argv0;
 #define argv0 _argv0
 
 static char FsysAll[] = "all";
@@ -56,8 +56,8 @@ static char EFsysNoCurrent[] = "fsys: no current fsys";
 static char EFsysNotFound[] = "fsys: '%s' not found";
 static char EFsysNotOpen[] = "fsys: '%s' not open";
 
-static char *
-ventihost(char *host)
+static char*
+ventihost(char* host)
 {
 	if(host != nil)
 		return vtStrDup(host);
@@ -68,25 +68,25 @@ ventihost(char *host)
 }
 
 static void
-prventihost(char *host)
+prventihost(char* host)
 {
-	char *vh;
+	char* vh;
 
 	vh = ventihost(host);
-	fprint(2, "%s: dialing venti at %s\n",
-		argv0, netmkaddr(vh, 0, "venti"));
+	fprint(2, "%s: dialing venti at %s\n", argv0,
+	       netmkaddr(vh, 0, "venti"));
 	free(vh);
 }
 
-static VtSession *
-myDial(char *host, int canfail)
+static VtSession*
+myDial(char* host, int canfail)
 {
 	prventihost(host);
 	return vtDial(host, canfail);
 }
 
 static int
-myRedial(VtSession *z, char *host)
+myRedial(VtSession* z, char* host)
 {
 	prventihost(host);
 	return vtRedial(z, host);
@@ -95,14 +95,14 @@ myRedial(VtSession *z, char *host)
 static Fsys*
 _fsysGet(char* name)
 {
-	Fsys *fsys;
+	Fsys* fsys;
 
 	if(name == nil || name[0] == '\0')
 		name = "main";
 
 	vtRLock(sbox.lock);
-	for(fsys = sbox.head; fsys != nil; fsys = fsys->next){
-		if(strcmp(name, fsys->name) == 0){
+	for(fsys = sbox.head; fsys != nil; fsys = fsys->next) {
+		if(strcmp(name, fsys->name) == 0) {
 			fsys->ref++;
 			break;
 		}
@@ -116,23 +116,25 @@ _fsysGet(char* name)
 static int
 cmdPrintConfig(int argc, char* argv[])
 {
-	Fsys *fsys;
-	char *usage = "usage: printconfig";
+	Fsys* fsys;
+	char* usage = "usage: printconfig";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc)
 		return cliError(usage);
 
 	vtRLock(sbox.lock);
-	for(fsys = sbox.head; fsys != nil; fsys = fsys->next){
+	for(fsys = sbox.head; fsys != nil; fsys = fsys->next) {
 		consPrint("\tfsys %s config %s\n", fsys->name, fsys->dev);
 		if(fsys->venti && fsys->venti[0])
 			consPrint("\tfsys %s venti %q\n", fsys->name,
-				fsys->venti);
+			          fsys->venti);
 	}
 	vtRUnlock(sbox.lock);
 	return 1;
@@ -141,13 +143,13 @@ cmdPrintConfig(int argc, char* argv[])
 Fsys*
 fsysGet(char* name)
 {
-	Fsys *fsys;
+	Fsys* fsys;
 
 	if((fsys = _fsysGet(name)) == nil)
 		return nil;
 
 	vtLock(fsys->lock);
-	if(fsys->fs == nil){
+	if(fsys->fs == nil) {
 		vtSetError(EFsysNotOpen, fsys->name);
 		vtUnlock(fsys->lock);
 		fsysPut(fsys);
@@ -223,32 +225,21 @@ fsysWstatAllow(Fsys* fsys)
 
 static char modechars[] = "YUGalLdHSATs";
 static uint32_t modebits[] = {
-	ModeSticky,
-	ModeSetUid,
-	ModeSetGid,
-	ModeAppend,
-	ModeExclusive,
-	ModeLink,
-	ModeDir,
-	ModeHidden,
-	ModeSystem,
-	ModeArchive,
-	ModeTemporary,
-	ModeSnapshot,
-	0
-};
+    ModeSticky,    ModeSetUid,   ModeSetGid, ModeAppend, ModeExclusive,
+    ModeLink,      ModeDir,      ModeHidden, ModeSystem, ModeArchive,
+    ModeTemporary, ModeSnapshot, 0};
 
 char*
-fsysModeString(uint32_t mode, char *buf)
+fsysModeString(uint32_t mode, char* buf)
 {
 	int i;
-	char *p;
+	char* p;
 
 	p = buf;
-	for(i=0; modebits[i]; i++)
+	for(i = 0; modebits[i]; i++)
 		if(mode & modebits[i])
 			*p++ = modechars[i];
-	sprint(p, "%luo", mode&0777);
+	sprint(p, "%luo", mode & 0777);
 	return buf;
 }
 
@@ -256,28 +247,28 @@ int
 fsysParseMode(char* s, uint32_t* mode)
 {
 	uint32_t x, y;
-	char *p;
+	char* p;
 
 	x = 0;
-	for(; *s < '0' || *s > '9'; s++){
+	for(; *s < '0' || *s > '9'; s++) {
 		if(*s == 0)
 			return 0;
 		p = strchr(modechars, *s);
 		if(p == nil)
 			return 0;
-		x |= modebits[p-modechars];
+		x |= modebits[p - modechars];
 	}
 	y = strtoul(s, &p, 8);
 	if(*p != '\0' || y > 0777)
 		return 0;
-	*mode = x|y;
+	*mode = x | y;
 	return 1;
 }
 
 File*
 fsysGetRoot(Fsys* fsys, char* name)
 {
-	File *root, *sub;
+	File* root, *sub;
 
 	assert(fsys != nil && fsys->fs != nil);
 
@@ -294,10 +285,10 @@ fsysGetRoot(Fsys* fsys, char* name)
 static Fsys*
 fsysAlloc(char* name, char* dev)
 {
-	Fsys *fsys;
+	Fsys* fsys;
 
 	vtLock(sbox.lock);
-	for(fsys = sbox.head; fsys != nil; fsys = fsys->next){
+	for(fsys = sbox.head; fsys != nil; fsys = fsys->next) {
 		if(strcmp(fsys->name, name) != 0)
 			continue;
 		vtSetError(EFsysExists, name);
@@ -325,17 +316,19 @@ fsysAlloc(char* name, char* dev)
 static int
 fsysClose(Fsys* fsys, int argc, char* argv[])
 {
-	char *usage = "usage: [fsys name] close";
+	char* usage = "usage: [fsys name] close";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
 	return cliError("close isn't working yet; halt %s and then kill fossil",
-		fsys->name);
+	                fsys->name);
 
 	/*
 	 * Oooh. This could be hard. What if fsys->ref != 1?
@@ -349,8 +342,8 @@ fsysClose(Fsys* fsys, int argc, char* argv[])
 	fsys->session = nil;
 
 	if(sbox.curfsys != nil && strcmp(fsys->name, sbox.curfsys) == 0){
-		sbox.curfsys = nil;
-		consPrompt(nil);
+	        sbox.curfsys = nil;
+	        consPrompt(nil);
 	}
 
 	return 1;
@@ -361,12 +354,14 @@ static int
 fsysVac(Fsys* fsys, int argc, char* argv[])
 {
 	unsigned char score[VtScoreSize];
-	char *usage = "usage: [fsys name] vac path";
+	char* usage = "usage: [fsys name] vac path";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 1)
 		return cliError(usage);
 
@@ -381,13 +376,15 @@ static int
 fsysSnap(Fsys* fsys, int argc, char* argv[])
 {
 	int doarchive;
-	char *usage = "usage: [fsys name] snap [-a] [-s /active] [-d /archive/yyyy/mmmm]";
-	char *src, *dst;
+	char* usage =
+	    "usage: [fsys name] snap [-a] [-s /active] [-d /archive/yyyy/mmmm]";
+	char* src, *dst;
 
 	src = nil;
 	dst = nil;
 	doarchive = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'a':
@@ -401,7 +398,8 @@ fsysSnap(Fsys* fsys, int argc, char* argv[])
 		if((src = ARGF()) == nil)
 			return cliError(usage);
 		break;
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
@@ -412,15 +410,17 @@ fsysSnap(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysSnapClean(Fsys *fsys, int argc, char* argv[])
+fsysSnapClean(Fsys* fsys, int argc, char* argv[])
 {
 	uint32_t arch, snap, life;
-	char *usage = "usage: [fsys name] snapclean [maxminutes]\n";
+	char* usage = "usage: [fsys name] snapclean [maxminutes]\n";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		return cliError(usage);
@@ -439,34 +439,36 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 	char buf[128], *x;
 	int hh, mm, changed;
 	uint32_t arch, snap, life;
-	char *usage = "usage: [fsys name] snaptime [-a hhmm] [-s snapminutes] [-t maxminutes]";
+	char* usage = "usage: [fsys name] snaptime [-a hhmm] [-s snapminutes] "
+	              "[-t maxminutes]";
 
 	changed = 0;
 	snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		changed = 1;
 		x = ARGF();
 		if(x == nil)
 			return cliError(usage);
-		if(strcmp(x, "none") == 0){
+		if(strcmp(x, "none") == 0) {
 			arch = ~(uint32_t)0;
 			break;
 		}
 		if(strlen(x) != 4 || strspn(x, "0123456789") != 4)
 			return cliError(usage);
-		hh = (x[0]-'0')*10 + x[1]-'0';
-		mm = (x[2]-'0')*10 + x[3]-'0';
+		hh = (x[0] - '0') * 10 + x[1] - '0';
+		mm = (x[2] - '0') * 10 + x[3] - '0';
 		if(hh >= 24 || mm >= 60)
 			return cliError(usage);
-		arch = hh*60+mm;
+		arch = hh * 60 + mm;
 		break;
 	case 's':
 		changed = 1;
 		x = ARGF();
 		if(x == nil)
 			return cliError(usage);
-		if(strcmp(x, "none") == 0){
+		if(strcmp(x, "none") == 0) {
 			snap = ~(uint32_t)0;
 			break;
 		}
@@ -477,7 +479,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		x = ARGF();
 		if(x == nil)
 			return cliError(usage);
-		if(strcmp(x, "none") == 0){
+		if(strcmp(x, "none") == 0) {
 			life = ~(uint32_t)0;
 			break;
 		}
@@ -485,27 +487,28 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		break;
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc > 0)
 		return cliError(usage);
 
-	if(changed){
+	if(changed) {
 		snapSetTimes(fsys->fs->snap, arch, snap, life);
 		return 1;
 	}
 	snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
 	if(arch != ~(uint32_t)0)
-		sprint(buf, "-a %02d%02d", arch/60, arch%60);
+		sprint(buf, "-a %02d%02d", arch / 60, arch % 60);
 	else
 		sprint(buf, "-a none");
 	if(snap != ~(uint32_t)0)
-		sprint(buf+strlen(buf), " -s %d", snap);
+		sprint(buf + strlen(buf), " -s %d", snap);
 	else
-		sprint(buf+strlen(buf), " -s none");
+		sprint(buf + strlen(buf), " -s none");
 	if(life != ~(uint32_t)0)
-		sprint(buf+strlen(buf), " -t %ud", life);
+		sprint(buf + strlen(buf), " -t %ud", life);
 	else
-		sprint(buf+strlen(buf), " -t none");
+		sprint(buf + strlen(buf), " -t none");
 	consPrint("\tsnaptime %s\n", buf);
 	return 1;
 }
@@ -513,13 +516,15 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 static int
 fsysSync(Fsys* fsys, int argc, char* argv[])
 {
-	char *usage = "usage: [fsys name] sync";
+	char* usage = "usage: [fsys name] sync";
 	int n;
-	
-	ARGBEGIN{
+
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc > 0)
 		return cliError(usage);
 
@@ -530,14 +535,16 @@ fsysSync(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysHalt(Fsys *fsys, int argc, char* argv[])
+fsysHalt(Fsys* fsys, int argc, char* argv[])
 {
-	char *usage = "usage: [fsys name] halt";
+	char* usage = "usage: [fsys name] halt";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc > 0)
 		return cliError(usage);
 
@@ -546,14 +553,16 @@ fsysHalt(Fsys *fsys, int argc, char* argv[])
 }
 
 static int
-fsysUnhalt(Fsys *fsys, int argc, char* argv[])
+fsysUnhalt(Fsys* fsys, int argc, char* argv[])
 {
-	char *usage = "usage: [fsys name] unhalt";
+	char* usage = "usage: [fsys name] unhalt";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc > 0)
 		return cliError(usage);
 
@@ -567,21 +576,23 @@ fsysUnhalt(Fsys *fsys, int argc, char* argv[])
 static int
 fsysRemove(Fsys* fsys, int argc, char* argv[])
 {
-	File *file;
-	char *usage = "usage: [fsys name] remove path ...";
+	File* file;
+	char* usage = "usage: [fsys name] remove path ...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc == 0)
 		return cliError(usage);
 
 	vtRLock(fsys->fs->elk);
-	while(argc > 0){
+	while(argc > 0) {
 		if((file = fileOpen(fsys->fs, argv[0])) == nil)
 			consPrint("%s: %R\n", argv[0]);
-		else{
+		else {
 			if(!fileRemove(file, uidadm))
 				consPrint("%s: %R\n", argv[0]);
 			fileDecRef(file);
@@ -597,17 +608,19 @@ fsysRemove(Fsys* fsys, int argc, char* argv[])
 static int
 fsysClri(Fsys* fsys, int argc, char* argv[])
 {
-	char *usage = "usage: [fsys name] clri path ...";
+	char* usage = "usage: [fsys name] clri path ...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc == 0)
 		return cliError(usage);
 
 	vtRLock(fsys->fs->elk);
-	while(argc > 0){
+	while(argc > 0) {
 		if(!fileClriPath(fsys->fs, argv[0], uidadm))
 			consPrint("clri %s: %R\n", argv[0]);
 		argc--;
@@ -624,17 +637,20 @@ fsysClri(Fsys* fsys, int argc, char* argv[])
 static int
 fsysLabel(Fsys* fsys, int argc, char* argv[])
 {
-	Fs *fs;
+	Fs* fs;
 	Label l;
 	int n, r;
 	uint32_t addr;
-	Block *b, *bb;
-	char *usage = "usage: [fsys name] label addr [type state epoch epochClose tag]";
+	Block* b, *bb;
+	char* usage =
+	    "usage: [fsys name] label addr [type state epoch epochClose tag]";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 1 && argc != 6)
 		return cliError(usage);
 
@@ -649,10 +665,10 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 
 	l = b->l;
 	consPrint("%slabel %#ux %ud %ud %ud %ud %#x\n",
-		argc==6 ? "old: " : "", addr, l.type, l.state,
-		l.epoch, l.epochClose, l.tag);
+	          argc == 6 ? "old: " : "", addr, l.type, l.state, l.epoch,
+	          l.epochClose, l.tag);
 
-	if(argc == 6){
+	if(argc == 6) {
 		if(strcmp(argv[1], "-") != 0)
 			l.type = atoi(argv[1]);
 		if(strcmp(argv[2], "-") != 0)
@@ -664,26 +680,26 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 		if(strcmp(argv[5], "-") != 0)
 			l.tag = strtoul(argv[5], 0, 0);
 
-		consPrint("new: label %#ux %ud %ud %ud %ud %#x\n",
-			addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
+		consPrint("new: label %#ux %ud %ud %ud %ud %#x\n", addr, l.type,
+		          l.state, l.epoch, l.epochClose, l.tag);
 		bb = _blockSetLabel(b, &l);
 		if(bb == nil)
 			goto Out1;
 		n = 0;
-		for(;;){
-			if(blockWrite(bb, Waitlock)){
-				while(bb->iostate != BioClean){
+		for(;;) {
+			if(blockWrite(bb, Waitlock)) {
+				while(bb->iostate != BioClean) {
 					assert(bb->iostate == BioWriting);
 					vtSleep(bb->ioready);
 				}
 				break;
 			}
 			consPrint("blockWrite: %R\n");
-			if(n++ >= 5){
+			if(n++ >= 5) {
 				consPrint("giving up\n");
 				break;
 			}
-			sleep(5*1000);
+			sleep(5 * 1000);
 		}
 		blockPut(bb);
 	}
@@ -702,25 +718,27 @@ Out0:
 static int
 fsysBlock(Fsys* fsys, int argc, char* argv[])
 {
-	Fs *fs;
-	char *s;
-	Block *b;
-	unsigned char *buf;
+	Fs* fs;
+	char* s;
+	Block* b;
+	unsigned char* buf;
 	uint32_t addr;
 	int c, count, i, offset;
-	char *usage = "usage: [fsys name] block addr offset [count [data]]";
+	char* usage = "usage: [fsys name] block addr offset [count [data]]";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc < 2 || argc > 4)
 		return cliError(usage);
 
 	fs = fsys->fs;
 	addr = strtoul(argv[0], 0, 0);
 	offset = strtoul(argv[1], 0, 0);
-	if(offset < 0 || offset >= fs->blockSize){
+	if(offset < 0 || offset >= fs->blockSize) {
 		vtSetError("bad offset");
 		return 0;
 	}
@@ -728,47 +746,48 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 		count = strtoul(argv[2], 0, 0);
 	else
 		count = 100000000;
-	if(offset+count > fs->blockSize)
+	if(offset + count > fs->blockSize)
 		count = fs->blockSize - count;
 
 	vtRLock(fs->elk);
 
-	b = cacheLocal(fs->cache, PartData, addr, argc==4 ? OReadWrite : OReadOnly);
-	if(b == nil){
+	b = cacheLocal(fs->cache, PartData, addr,
+	               argc == 4 ? OReadWrite : OReadOnly);
+	if(b == nil) {
 		vtSetError("cacheLocal %#ux: %R", addr);
 		vtRUnlock(fs->elk);
 		return 0;
 	}
 
-	consPrint("\t%sblock %#ux %ud %ud %.*H\n",
-		argc==4 ? "old: " : "", addr, offset, count, count, b->data+offset);
+	consPrint("\t%sblock %#ux %ud %ud %.*H\n", argc == 4 ? "old: " : "",
+	          addr, offset, count, count, b->data + offset);
 
-	if(argc == 4){
+	if(argc == 4) {
 		s = argv[3];
-		if(strlen(s) != 2*count){
+		if(strlen(s) != 2 * count) {
 			vtSetError("bad data count");
 			goto Out;
 		}
 		buf = vtMemAllocZ(count);
-		for(i = 0; i < count*2; i++){
+		for(i = 0; i < count * 2; i++) {
 			if(s[i] >= '0' && s[i] <= '9')
 				c = s[i] - '0';
 			else if(s[i] >= 'a' && s[i] <= 'f')
 				c = s[i] - 'a' + 10;
 			else if(s[i] >= 'A' && s[i] <= 'F')
 				c = s[i] - 'A' + 10;
-			else{
+			else {
 				vtSetError("bad hex");
 				vtMemFree(buf);
 				goto Out;
 			}
 			if((i & 1) == 0)
 				c <<= 4;
-			buf[i>>1] |= c;
+			buf[i >> 1] |= c;
 		}
-		memmove(b->data+offset, buf, count);
-		consPrint("\tnew: block %#ux %ud %ud %.*H\n",
-			addr, offset, count, count, b->data+offset);
+		memmove(b->data + offset, buf, count);
+		consPrint("\tnew: block %#ux %ud %ud %.*H\n", addr, offset,
+		          count, count, b->data + offset);
 		blockDirty(b);
 	}
 
@@ -785,41 +804,44 @@ Out:
 static int
 fsysBfree(Fsys* fsys, int argc, char* argv[])
 {
-	Fs *fs;
+	Fs* fs;
 	Label l;
-	char *p;
-	Block *b;
+	char* p;
+	Block* b;
 	uint32_t addr;
-	char *usage = "usage: [fsys name] bfree addr ...";
+	char* usage = "usage: [fsys name] bfree addr ...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc == 0)
 		return cliError(usage);
 
 	fs = fsys->fs;
 	vtRLock(fs->elk);
-	while(argc > 0){
+	while(argc > 0) {
 		addr = strtoul(argv[0], &p, 0);
-		if(*p != '\0'){
+		if(*p != '\0') {
 			consPrint("bad address - '%ud'\n", addr);
 			/* syntax error; let's stop */
 			vtRUnlock(fs->elk);
 			return 0;
 		}
 		b = cacheLocal(fs->cache, PartData, addr, OReadOnly);
-		if(b == nil){
+		if(b == nil) {
 			consPrint("loading %#ux: %R\n", addr);
 			continue;
 		}
 		l = b->l;
 		if(l.state == BsFree)
 			consPrint("%#ux is already free\n", addr);
-		else{
-			consPrint("label %#ux %ud %ud %ud %ud %#x\n",
-				addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
+		else {
+			consPrint("label %#ux %ud %ud %ud %ud %#x\n", addr,
+			          l.type, l.state, l.epoch, l.epochClose,
+			          l.tag);
 			l.state = BsFree;
 			l.type = BtMax;
 			l.tag = 0;
@@ -838,24 +860,27 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysDf(Fsys *fsys, int argc, char* argv[])
+fsysDf(Fsys* fsys, int argc, char* argv[])
 {
-	char *usage = "usage: [fsys name] df";
+	char* usage = "usage: [fsys name] df";
 	uint32_t used, tot, bsize;
-	Fs *fs;
+	Fs* fs;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 0)
 		return cliError(usage);
 
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
 	consPrint("\t%s: %,llud used + %,llud free = %,llud (%.1f%% used)\n",
-		fsys->name, used*(int64_t)bsize, (tot-used)*(int64_t)bsize,
-		tot*(int64_t)bsize, used*100.0/tot);
+	          fsys->name, used * (int64_t)bsize,
+	          (tot - used) * (int64_t)bsize, tot * (int64_t)bsize,
+	          used * 100.0 / tot);
 	return 1;
 }
 
@@ -865,18 +890,20 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 static int
 fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 {
-	Fs *fs;
+	Fs* fs;
 	Entry e;
-	Block *b;
+	Block* b;
 	uint32_t addr;
 	int i, max, offset, sz;
 	unsigned char zero[VtEntrySize];
-	char *usage = "usage: [fsys name] clr%c addr offset ...";
+	char* usage = "usage: [fsys name] clr%c addr offset ...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage, ch);
-	}ARGEND
+	}
+	ARGEND
 	if(argc < 2)
 		return cliError(usage, ch);
 
@@ -884,20 +911,21 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 	vtRLock(fsys->fs->elk);
 
 	addr = strtoul(argv[0], 0, 0);
-	b = cacheLocal(fs->cache, PartData, addr, argc==4 ? OReadWrite : OReadOnly);
-	if(b == nil){
+	b = cacheLocal(fs->cache, PartData, addr,
+	               argc == 4 ? OReadWrite : OReadOnly);
+	if(b == nil) {
 		vtSetError("cacheLocal %#ux: %R", addr);
 	Err:
 		vtRUnlock(fsys->fs->elk);
 		return 0;
 	}
 
-	switch(ch){
+	switch(ch) {
 	default:
 		vtSetError("clrep");
 		goto Err;
 	case 'e':
-		if(b->l.type != BtDir){
+		if(b->l.type != BtDir) {
 			vtSetError("wrong block type");
 			goto Err;
 		}
@@ -906,7 +934,7 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 		entryPack(&e, zero, 0);
 		break;
 	case 'p':
-		if(b->l.type == BtDir || b->l.type == BtData){
+		if(b->l.type == BtDir || b->l.type == BtData) {
 			vtSetError("wrong block type");
 			goto Err;
 		}
@@ -914,16 +942,17 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 		memmove(zero, vtZeroScore, VtScoreSize);
 		break;
 	}
-	max = fs->blockSize/sz;
+	max = fs->blockSize / sz;
 
-	for(i = 1; i < argc; i++){
+	for(i = 1; i < argc; i++) {
 		offset = atoi(argv[i]);
-		if(offset >= max){
+		if(offset >= max) {
 			consPrint("\toffset %d too large (>= %d)\n", i, max);
 			continue;
 		}
-		consPrint("\tblock %#ux %d %d %.*H\n", addr, offset*sz, sz, sz, b->data+offset*sz);
-		memmove(b->data+offset*sz, zero, sz);
+		consPrint("\tblock %#ux %d %d %.*H\n", addr, offset * sz, sz,
+		          sz, b->data + offset * sz);
+		memmove(b->data + offset * sz, zero, sz);
 	}
 	blockDirty(b);
 	blockPut(b);
@@ -949,41 +978,45 @@ fsysEsearch1(File* f, char* s, uint32_t elo)
 {
 	int n, r;
 	DirEntry de;
-	DirEntryEnum *dee;
-	File *ff;
+	DirEntryEnum* dee;
+	File* ff;
 	Entry e, ee;
-	char *t;
+	char* t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
 		return 0;
 
 	n = 0;
-	for(;;){
+	for(;;) {
 		r = deeRead(dee, &de);
-		if(r < 0){
+		if(r < 0) {
 			consPrint("\tdeeRead %s/%s: %R\n", s, de.elem);
 			break;
 		}
 		if(r == 0)
 			break;
-		if(de.mode & ModeSnapshot){
+		if(de.mode & ModeSnapshot) {
 			if((ff = fileWalk(f, de.elem)) == nil)
-				consPrint("\tcannot walk %s/%s: %R\n", s, de.elem);
-			else{
+				consPrint("\tcannot walk %s/%s: %R\n", s,
+				          de.elem);
+			else {
 				if(!fileGetSources(ff, &e, &ee))
-					consPrint("\tcannot get sources for %s/%s: %R\n", s, de.elem);
-				else if(e.snap != 0 && e.snap < elo){
-					consPrint("\t%ud\tclri %s/%s\n", e.snap, s, de.elem);
+					consPrint("\tcannot get sources for "
+					          "%s/%s: %R\n",
+					          s, de.elem);
+				else if(e.snap != 0 && e.snap < elo) {
+					consPrint("\t%ud\tclri %s/%s\n", e.snap,
+					          s, de.elem);
 					n++;
 				}
 				fileDecRef(ff);
 			}
-		}
-		else if(de.mode & ModeDir){
+		} else if(de.mode & ModeDir) {
 			if((ff = fileWalk(f, de.elem)) == nil)
-				consPrint("\tcannot walk %s/%s: %R\n", s, de.elem);
-			else{
+				consPrint("\tcannot walk %s/%s: %R\n", s,
+				          de.elem);
+			else {
 				t = smprint("%s/%s", s, de.elem);
 				n += fsysEsearch1(ff, t, elo);
 				vtMemFree(t);
@@ -1003,18 +1036,18 @@ static int
 fsysEsearch(Fs* fs, char* path, uint32_t elo)
 {
 	int n;
-	File *f;
+	File* f;
 	DirEntry de;
 
 	f = fileOpen(fs, path);
 	if(f == nil)
 		return 0;
-	if(!fileGetDir(f, &de)){
+	if(!fileGetDir(f, &de)) {
 		consPrint("\tfileGetDir %s failed: %R\n", path);
 		fileDecRef(f);
 		return 0;
 	}
-	if((de.mode & ModeDir) == 0){
+	if((de.mode & ModeDir) == 0) {
 		fileDecRef(f);
 		deCleanup(&de);
 		return 0;
@@ -1028,14 +1061,15 @@ fsysEsearch(Fs* fs, char* path, uint32_t elo)
 static int
 fsysEpoch(Fsys* fsys, int argc, char* argv[])
 {
-	Fs *fs;
+	Fs* fs;
 	int force, n, remove;
 	uint32_t low, old;
-	char *usage = "usage: [fsys name] epoch [[-ry] low]";
+	char* usage = "usage: [fsys name] epoch [[-ry] low]";
 
 	force = 0;
 	remove = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'y':
 		force = 1;
 		break;
@@ -1044,7 +1078,8 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 		break;
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc > 1)
 		return cliError(usage);
 	if(argc > 0)
@@ -1059,13 +1094,14 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 
 	vtRLock(fs->elk);
 	consPrint("\tlow %ud hi %ud\n", fs->elo, fs->ehi);
-	if(low == ~(uint32_t)0){
+	if(low == ~(uint32_t)0) {
 		vtRUnlock(fs->elk);
 		return 1;
 	}
 	n = fsysEsearch(fsys->fs, "/archive", low);
 	n += fsysEsearch(fsys->fs, "/snapshot", low);
-	consPrint("\t%d snapshot%s found with epoch < %ud\n", n, n==1 ? "" : "s", low);
+	consPrint("\t%d snapshot%s found with epoch < %ud\n", n,
+	          n == 1 ? "" : "s", low);
 	vtRUnlock(fs->elk);
 
 	/*
@@ -1075,14 +1111,14 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	 * to be equal to the current fs->ehi _and_ a snapshot has to
 	 * run right now.  This is a small enough window that I don't care.
 	 */
-	if(n != 0 && !force){
+	if(n != 0 && !force) {
 		consPrint("\tnot setting low epoch\n");
 		return 1;
 	}
 	old = fs->elo;
 	if(!fsEpochLow(fs, low))
 		consPrint("\tfsEpochLow: %R\n");
-	else{
+	else {
 		consPrint("\told: epoch%s %ud\n", force ? " -y" : "", old);
 		consPrint("\tnew: epoch%s %ud\n", force ? " -y" : "", fs->elo);
 		if(fs->elo < low)
@@ -1099,21 +1135,23 @@ fsysCreate(Fsys* fsys, int argc, char* argv[])
 {
 	int r;
 	uint32_t mode;
-	char *elem, *p, *path;
-	char *usage = "usage: [fsys name] create path uid gid perm";
+	char* elem, *p, *path;
+	char* usage = "usage: [fsys name] create path uid gid perm";
 	DirEntry de;
-	File *file, *parent;
+	File* file, *parent;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 4)
 		return cliError(usage);
 
 	if(!fsysParseMode(argv[3], &mode))
 		return cliError(usage);
-	if(mode&ModeSnapshot)
+	if(mode & ModeSnapshot)
 		return cliError("create - cannot create with snapshot bit set");
 
 	if(strcmp(argv[1], uidnoworld) == 0)
@@ -1121,14 +1159,13 @@ fsysCreate(Fsys* fsys, int argc, char* argv[])
 
 	vtRLock(fsys->fs->elk);
 	path = vtStrDup(argv[0]);
-	if((p = strrchr(path, '/')) != nil){
+	if((p = strrchr(path, '/')) != nil) {
 		*p++ = '\0';
 		elem = p;
 		p = path;
 		if(*p == '\0')
 			p = "/";
-	}
-	else{
+	} else {
 		p = "/";
 		elem = path;
 	}
@@ -1139,20 +1176,20 @@ fsysCreate(Fsys* fsys, int argc, char* argv[])
 
 	file = fileCreate(parent, elem, mode, argv[1]);
 	fileDecRef(parent);
-	if(file == nil){
+	if(file == nil) {
 		vtSetError("create %s/%s: %R", p, elem);
 		goto out;
 	}
 
-	if(!fileGetDir(file, &de)){
+	if(!fileGetDir(file, &de)) {
 		vtSetError("stat failed after create: %R");
 		goto out1;
 	}
 
-	if(strcmp(de.gid, argv[2]) != 0){
+	if(strcmp(de.gid, argv[2]) != 0) {
 		vtMemFree(de.gid);
 		de.gid = vtStrDup(argv[2]);
-		if(!fileSetDir(file, &de, argv[1])){
+		if(!fileSetDir(file, &de, argv[1])) {
 			vtSetError("wstat failed after create: %R");
 			goto out2;
 		}
@@ -1171,39 +1208,41 @@ out:
 }
 
 static void
-fsysPrintStat(char *prefix, char *file, DirEntry *de)
+fsysPrintStat(char* prefix, char* file, DirEntry* de)
 {
 	char buf[64];
 
 	if(prefix == nil)
 		prefix = "";
-	consPrint("%sstat %q %q %q %q %s %llud\n", prefix,
-		file, de->elem, de->uid, de->gid, fsysModeString(de->mode, buf), de->size);
+	consPrint("%sstat %q %q %q %q %s %llud\n", prefix, file, de->elem,
+	          de->uid, de->gid, fsysModeString(de->mode, buf), de->size);
 }
 
 static int
 fsysStat(Fsys* fsys, int argc, char* argv[])
 {
 	int i;
-	File *f;
+	File* f;
 	DirEntry de;
-	char *usage = "usage: [fsys name] stat files...";
+	char* usage = "usage: [fsys name] stat files...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		return cliError(usage);
 
 	vtRLock(fsys->fs->elk);
-	for(i=0; i<argc; i++){
-		if((f = fileOpen(fsys->fs, argv[i])) == nil){
+	for(i = 0; i < argc; i++) {
+		if((f = fileOpen(fsys->fs, argv[i])) == nil) {
 			consPrint("%s: %R\n", argv[i]);
 			continue;
 		}
-		if(!fileGetDir(f, &de)){
+		if(!fileGetDir(f, &de)) {
 			consPrint("%s: %R\n", argv[i]);
 			fileDecRef(f);
 			continue;
@@ -1217,29 +1256,31 @@ fsysStat(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysWstat(Fsys *fsys, int argc, char* argv[])
+fsysWstat(Fsys* fsys, int argc, char* argv[])
 {
-	File *f;
-	char *p;
+	File* f;
+	char* p;
 	DirEntry de;
-	char *usage = "usage: [fsys name] wstat file elem uid gid mode length\n"
-		"\tuse - for any field to mean don't change";
+	char* usage = "usage: [fsys name] wstat file elem uid gid mode length\n"
+	              "\tuse - for any field to mean don't change";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 6)
 		return cliError(usage);
 
 	vtRLock(fsys->fs->elk);
-	if((f = fileOpen(fsys->fs, argv[0])) == nil){
+	if((f = fileOpen(fsys->fs, argv[0])) == nil) {
 		vtSetError("console wstat - walk - %R");
 		vtRUnlock(fsys->fs->elk);
 		return 0;
 	}
-	if(!fileGetDir(f, &de)){
+	if(!fileGetDir(f, &de)) {
 		vtSetError("console wstat - stat - %R");
 		fileDecRef(f);
 		vtRUnlock(fsys->fs->elk);
@@ -1247,51 +1288,51 @@ fsysWstat(Fsys *fsys, int argc, char* argv[])
 	}
 	fsysPrintStat("\told: w", argv[0], &de);
 
-	if(strcmp(argv[1], "-") != 0){
-		if(!validFileName(argv[1])){
+	if(strcmp(argv[1], "-") != 0) {
+		if(!validFileName(argv[1])) {
 			vtSetError("console wstat - bad elem");
 			goto error;
 		}
 		vtMemFree(de.elem);
 		de.elem = vtStrDup(argv[1]);
 	}
-	if(strcmp(argv[2], "-") != 0){
-		if(!validUserName(argv[2])){
+	if(strcmp(argv[2], "-") != 0) {
+		if(!validUserName(argv[2])) {
 			vtSetError("console wstat - bad uid");
 			goto error;
 		}
 		vtMemFree(de.uid);
 		de.uid = vtStrDup(argv[2]);
 	}
-	if(strcmp(argv[3], "-") != 0){
-		if(!validUserName(argv[3])){
+	if(strcmp(argv[3], "-") != 0) {
+		if(!validUserName(argv[3])) {
 			vtSetError("console wstat - bad gid");
 			goto error;
 		}
 		vtMemFree(de.gid);
 		de.gid = vtStrDup(argv[3]);
 	}
-	if(strcmp(argv[4], "-") != 0){
-		if(!fsysParseMode(argv[4], &de.mode)){
+	if(strcmp(argv[4], "-") != 0) {
+		if(!fsysParseMode(argv[4], &de.mode)) {
 			vtSetError("console wstat - bad mode");
 			goto error;
 		}
 	}
-	if(strcmp(argv[5], "-") != 0){
+	if(strcmp(argv[5], "-") != 0) {
 		de.size = strtoull(argv[5], &p, 0);
-		if(argv[5][0] == '\0' || *p != '\0' || (int64_t)de.size < 0){
+		if(argv[5][0] == '\0' || *p != '\0' || (int64_t)de.size < 0) {
 			vtSetError("console wstat - bad length");
 			goto error;
 		}
 	}
 
-	if(!fileSetDir(f, &de, uidadm)){
+	if(!fileSetDir(f, &de, uidadm)) {
 		vtSetError("console wstat - %R");
 		goto error;
 	}
 	deCleanup(&de);
 
-	if(!fileGetDir(f, &de)){
+	if(!fileGetDir(f, &de)) {
 		vtSetError("console wstat - stat2 - %R");
 		goto error;
 	}
@@ -1303,55 +1344,55 @@ fsysWstat(Fsys *fsys, int argc, char* argv[])
 	return 1;
 
 error:
-	deCleanup(&de);	/* okay to do this twice */
+	deCleanup(&de); /* okay to do this twice */
 	fileDecRef(f);
 	vtRUnlock(fsys->fs->elk);
 	return 0;
 }
 
 static void
-fsckClri(Fsck *fsck, char *name, MetaBlock *mb, int i, Block *b)
+fsckClri(Fsck* fsck, char* name, MetaBlock* mb, int i, Block* b)
 {
 	USED(name);
 
-	if((fsck->flags&DoClri) == 0)
+	if((fsck->flags & DoClri) == 0)
 		return;
 
 	mbDelete(mb, i);
 	mbPack(mb);
-	blockDirty(b);	
+	blockDirty(b);
 }
 
 static void
-fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
+fsckClose(Fsck* fsck, Block* b, uint32_t epoch)
 {
 	Label l;
 
-	if((fsck->flags&DoClose) == 0)
+	if((fsck->flags & DoClose) == 0)
 		return;
 	l = b->l;
-	if(l.state == BsFree || (l.state&BsClosed)){
+	if(l.state == BsFree || (l.state & BsClosed)) {
 		consPrint("%#ux is already closed\n", b->addr);
 		return;
 	}
-	if(epoch){	
+	if(epoch) {
 		l.state |= BsClosed;
 		l.epochClose = epoch;
-	}else
+	} else
 		l.state = BsFree;
-		
+
 	if(!blockSetLabel(b, &l, 0))
 		consPrint("%#ux setlabel: %R\n", b->addr);
 }
 
 static void
-fsckClre(Fsck *fsck, Block *b, int offset)
+fsckClre(Fsck* fsck, Block* b, int offset)
 {
 	Entry e;
 
-	if((fsck->flags&DoClre) == 0)
+	if((fsck->flags & DoClre) == 0)
 		return;
-	if(offset<0 || offset*VtEntrySize >= fsck->bsize){
+	if(offset < 0 || offset * VtEntrySize >= fsck->bsize) {
 		consPrint("bad clre\n");
 		return;
 	}
@@ -1361,25 +1402,25 @@ fsckClre(Fsck *fsck, Block *b, int offset)
 }
 
 static void
-fsckClrp(Fsck *fsck, Block *b, int offset)
+fsckClrp(Fsck* fsck, Block* b, int offset)
 {
-	if((fsck->flags&DoClrp) == 0)
+	if((fsck->flags & DoClrp) == 0)
 		return;
-	if(offset<0 || offset*VtScoreSize >= fsck->bsize){
+	if(offset < 0 || offset * VtScoreSize >= fsck->bsize) {
 		consPrint("bad clre\n");
 		return;
 	}
-	memmove(b->data+offset*VtScoreSize, vtZeroScore, VtScoreSize);
+	memmove(b->data + offset * VtScoreSize, vtZeroScore, VtScoreSize);
 	blockDirty(b);
 }
 
 static int
-fsysCheck(Fsys *fsys, int argc, char *argv[])
+fsysCheck(Fsys* fsys, int argc, char* argv[])
 {
 	int i, halting;
-	char *usage = "usage: [fsys name] check [-v] [options]";
+	char* usage = "usage: [fsys name] check [-v] [options]";
 	Fsck fsck;
-	Block *b;
+	Block* b;
 	Super super;
 
 	memset(&fsck, 0, sizeof fsck);
@@ -1390,12 +1431,14 @@ fsysCheck(Fsys *fsys, int argc, char *argv[])
 	fsck.close = fsckClose;
 	fsck.print = consPrint;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
-	for(i=0; i<argc; i++){
+	for(i = 0; i < argc; i++) {
 		if(strcmp(argv[i], "pblock") == 0)
 			fsck.printblocks = 1;
 		else if(strcmp(argv[i], "pdir") == 0)
@@ -1411,36 +1454,36 @@ fsysCheck(Fsys *fsys, int argc, char *argv[])
 		else if(strcmp(argv[i], "clrp") == 0)
 			fsck.flags |= DoClrp;
 		else if(strcmp(argv[i], "fix") == 0)
-			fsck.flags |= DoClose|DoClri|DoClre|DoClrp;
+			fsck.flags |= DoClose | DoClri | DoClre | DoClrp;
 		else if(strcmp(argv[i], "venti") == 0)
 			fsck.useventi = 1;
 		else if(strcmp(argv[i], "snapshot") == 0)
 			fsck.walksnapshots = 1;
-		else{
+		else {
 			consPrint("unknown option '%s'\n", argv[i]);
 			return cliError(usage);
 		}
 	}
 
-	halting = fsys->fs->halted==0;
+	halting = fsys->fs->halted == 0;
 	if(halting)
 		fsHalt(fsys->fs);
-	if(fsys->fs->arch){
+	if(fsys->fs->arch) {
 		b = superGet(fsys->fs->cache, &super);
-		if(b == nil){
+		if(b == nil) {
 			consPrint("could not load super block\n");
 			goto Out;
 		}
 		blockPut(b);
-		if(super.current != NilBlock){
+		if(super.current != NilBlock) {
 			consPrint("cannot check fs while archiver is running; "
-				"wait for it to finish\n");
+			          "wait for it to finish\n");
 			goto Out;
 		}
 	}
 	fsCheck(&fsck);
-	consPrint("fsck: %d clri, %d clre, %d clrp, %d bclose\n",
-		fsck.nclri, fsck.nclre, fsck.nclrp, fsck.nclose);
+	consPrint("fsck: %d clri, %d clre, %d clrp, %d bclose\n", fsck.nclri,
+	          fsck.nclre, fsck.nclrp, fsck.nclose);
 Out:
 	if(halting)
 		fsUnhalt(fsys->fs);
@@ -1451,14 +1494,16 @@ static int
 fsysVenti(char* name, int argc, char* argv[])
 {
 	int r;
-	char *host;
-	char *usage = "usage: [fsys name] venti [address]";
-	Fsys *fsys;
+	char* host;
+	char* usage = "usage: [fsys name] venti [address]";
+	Fsys* fsys;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		host = nil;
@@ -1473,26 +1518,26 @@ fsysVenti(char* name, int argc, char* argv[])
 	vtLock(fsys->lock);
 	if(host == nil)
 		host = fsys->venti;
-	else{
+	else {
 		vtMemFree(fsys->venti);
 		if(host[0])
 			fsys->venti = vtStrDup(host);
-		else{
+		else {
 			host = nil;
 			fsys->venti = nil;
 		}
 	}
 
 	/* already open: do a redial */
-	if(fsys->fs != nil){
-		if(fsys->session == nil){
+	if(fsys->fs != nil) {
+		if(fsys->session == nil) {
 			vtSetError("file system was opened with -V");
 			r = 0;
 			goto out;
 		}
 		r = 1;
-		if(!myRedial(fsys->session, host)
-		|| !vtConnect(fsys->session, 0))
+		if(!myRedial(fsys->session, host) ||
+		   !vtConnect(fsys->session, 0))
 			r = 0;
 		goto out;
 	}
@@ -1501,8 +1546,8 @@ fsysVenti(char* name, int argc, char* argv[])
 	if(fsys->session)
 		vtClose(fsys->session);
 	r = 1;
-	if((fsys->session = myDial(host, 0)) == nil
-	|| !vtConnect(fsys->session, 0))
+	if((fsys->session = myDial(host, 0)) == nil ||
+	   !vtConnect(fsys->session, 0))
 		r = 0;
 out:
 	vtUnlock(fsys->lock);
@@ -1515,34 +1560,34 @@ freemem(void)
 {
 	int nf, pgsize = 0;
 	uint64_t size, userpgs = 0, userused = 0;
-	char *ln, *sl;
-	char *fields[2];
-	Biobuf *bp;
+	char* ln, *sl;
+	char* fields[2];
+	Biobuf* bp;
 
-	size = 64*1024*1024;
+	size = 64 * 1024 * 1024;
 	bp = Bopen("#c/swap", OREAD);
-	if (bp != nil) {
-		while ((ln = Brdline(bp, '\n')) != nil) {
-			ln[Blinelen(bp)-1] = '\0';
+	if(bp != nil) {
+		while((ln = Brdline(bp, '\n')) != nil) {
+			ln[Blinelen(bp) - 1] = '\0';
 			nf = tokenize(ln, fields, nelem(fields));
-			if (nf != 2)
+			if(nf != 2)
 				continue;
-			if (strcmp(fields[1], "pagesize") == 0)
+			if(strcmp(fields[1], "pagesize") == 0)
 				pgsize = atoi(fields[0]);
-			else if (strcmp(fields[1], "user") == 0) {
+			else if(strcmp(fields[1], "user") == 0) {
 				sl = strchr(fields[0], '/');
-				if (sl == nil)
+				if(sl == nil)
 					continue;
-				userpgs = atoll(sl+1);
+				userpgs = atoll(sl + 1);
 				userused = atoll(fields[0]);
 			}
 		}
 		Bterm(bp);
-		if (pgsize > 0 && userpgs > 0)
+		if(pgsize > 0 && userpgs > 0)
 			size = (userpgs - userused) * pgsize;
 	}
 	/* cap it to keep the size within 32 bits */
-	if (size >= 3840UL * 1024 * 1024)
+	if(size >= 3840UL * 1024 * 1024)
 		size = 3840UL * 1024 * 1024;
 	return size;
 }
@@ -1550,17 +1595,18 @@ freemem(void)
 static int
 fsysOpen(char* name, int argc, char* argv[])
 {
-	char *p, *host;
-	Fsys *fsys;
+	char* p, *host;
+	Fsys* fsys;
 	int noauth, noventi, noperm, rflag, wstatallow, noatimeupd;
 	int32_t ncache;
-	char *usage = "usage: fsys name open [-APVWr] [-c ncache]";
+	char* usage = "usage: fsys name open [-APVWr] [-c ncache]";
 
 	ncache = 1000;
 	noauth = noperm = wstatallow = noventi = noatimeupd = 0;
 	rflag = OReadWrite;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'A':
@@ -1589,7 +1635,8 @@ fsysOpen(char* name, int argc, char* argv[])
 	case 'r':
 		rflag = OReadOnly;
 		break;
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
@@ -1599,26 +1646,25 @@ fsysOpen(char* name, int argc, char* argv[])
 	/* automatic memory sizing? */
 	if(mempcnt > 0) {
 		/* TODO: 8K is a hack; use the actual block size */
-		ncache = (((int64_t)freemem() * mempcnt) / 100) / (8*1024);
-		if (ncache < 100)
+		ncache = (((int64_t)freemem() * mempcnt) / 100) / (8 * 1024);
+		if(ncache < 100)
 			ncache = 100;
 	}
 
 	vtLock(fsys->lock);
-	if(fsys->fs != nil){
+	if(fsys->fs != nil) {
 		vtSetError(EFsysBusy, fsys->name);
 		vtUnlock(fsys->lock);
 		fsysPut(fsys);
 		return 0;
 	}
 
-	if(noventi){
-		if(fsys->session){
+	if(noventi) {
+		if(fsys->session) {
 			vtClose(fsys->session);
 			fsys->session = nil;
 		}
-	}
-	else if(fsys->session == nil){
+	} else if(fsys->session == nil) {
 		if(fsys->venti && fsys->venti[0])
 			host = fsys->venti;
 		else
@@ -1627,13 +1673,14 @@ fsysOpen(char* name, int argc, char* argv[])
 		if(!vtConnect(fsys->session, nil) && !noventi)
 			fprint(2, "warning: connecting to venti: %R\n");
 	}
-	if((fsys->fs = fsOpen(fsys->dev, fsys->session, ncache, rflag)) == nil){
+	if((fsys->fs = fsOpen(fsys->dev, fsys->session, ncache, rflag)) ==
+	   nil) {
 		vtSetError("fsOpen: %R");
 		vtUnlock(fsys->lock);
 		fsysPut(fsys);
 		return 0;
 	}
-	fsys->fs->name = fsys->name;	/* for better error messages */
+	fsys->fs->name = fsys->name; /* for better error messages */
 	fsys->noauth = noauth;
 	fsys->noperm = noperm;
 	fsys->wstatallow = wstatallow;
@@ -1650,29 +1697,31 @@ fsysOpen(char* name, int argc, char* argv[])
 static int
 fsysUnconfig(char* name, int argc, char* argv[])
 {
-	Fsys *fsys, **fp;
-	char *usage = "usage: fsys name unconfig";
+	Fsys* fsys, **fp;
+	char* usage = "usage: fsys name unconfig";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
 	vtLock(sbox.lock);
 	fp = &sbox.head;
-	for(fsys = *fp; fsys != nil; fsys = fsys->next){
+	for(fsys = *fp; fsys != nil; fsys = fsys->next) {
 		if(strcmp(fsys->name, name) == 0)
 			break;
 		fp = &fsys->next;
 	}
-	if(fsys == nil){
+	if(fsys == nil) {
 		vtSetError(EFsysNotFound, name);
 		vtUnlock(sbox.lock);
 		return 0;
 	}
-	if(fsys->ref != 0 || fsys->fs != nil){
+	if(fsys->ref != 0 || fsys->fs != nil) {
 		vtSetError(EFsysBusy, fsys->name);
 		vtUnlock(sbox.lock);
 		return 0;
@@ -1680,7 +1729,7 @@ fsysUnconfig(char* name, int argc, char* argv[])
 	*fp = fsys->next;
 	vtUnlock(sbox.lock);
 
-	if(fsys->session != nil){
+	if(fsys->session != nil) {
 		vtClose(fsys->session);
 		vtFree(fsys->session);
 	}
@@ -1698,14 +1747,16 @@ fsysUnconfig(char* name, int argc, char* argv[])
 static int
 fsysConfig(char* name, int argc, char* argv[])
 {
-	Fsys *fsys;
-	char *part;
-	char *usage = "usage: fsys name config [dev]";
+	Fsys* fsys;
+	char* part;
+	char* usage = "usage: fsys name config [dev]";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc > 1)
 		return cliError(usage);
 
@@ -1714,9 +1765,9 @@ fsysConfig(char* name, int argc, char* argv[])
 	else
 		part = argv[0];
 
-	if((fsys = _fsysGet(part)) != nil){
+	if((fsys = _fsysGet(part)) != nil) {
 		vtLock(fsys->lock);
-		if(fsys->fs != nil){
+		if(fsys->fs != nil) {
 			vtSetError(EFsysBusy, fsys->name);
 			vtUnlock(fsys->lock);
 			fsysPut(fsys);
@@ -1725,8 +1776,7 @@ fsysConfig(char* name, int argc, char* argv[])
 		vtMemFree(fsys->dev);
 		fsys->dev = vtStrDup(part);
 		vtUnlock(fsys->lock);
-	}
-	else if((fsys = fsysAlloc(name, part)) == nil)
+	} else if((fsys = fsysAlloc(name, part)) == nil)
 		return 0;
 
 	fsysPut(fsys);
@@ -1734,54 +1784,106 @@ fsysConfig(char* name, int argc, char* argv[])
 }
 
 static struct {
-	char*	cmd;
-	int	(*f)(Fsys*, int, char**);
-	int	(*f1)(char*, int, char**);
+	char* cmd;
+	int (*f)(Fsys*, int, char**);
+	int (*f1)(char*, int, char**);
 } fsyscmd[] = {
-	{ "close",	fsysClose, },
-	{ "config",	nil, fsysConfig, },
-	{ "open",	nil, fsysOpen, },
-	{ "unconfig",	nil, fsysUnconfig, },
-	{ "venti",	nil, fsysVenti, },
+    {
+     "close", fsysClose,
+    },
+    {
+     "config", nil, fsysConfig,
+    },
+    {
+     "open", nil, fsysOpen,
+    },
+    {
+     "unconfig", nil, fsysUnconfig,
+    },
+    {
+     "venti", nil, fsysVenti,
+    },
 
-	{ "bfree",	fsysBfree, },
-	{ "block",	fsysBlock, },
-	{ "check",	fsysCheck, },
-	{ "clre",	fsysClre, },
-	{ "clri",	fsysClri, },
-	{ "clrp",	fsysClrp, },
-	{ "create",	fsysCreate, },
-	{ "df",		fsysDf, },
-	{ "epoch",	fsysEpoch, },
-	{ "halt",	fsysHalt, },
-	{ "label",	fsysLabel, },
-	{ "remove",	fsysRemove, },
-	{ "snap",	fsysSnap, },
-	{ "snaptime",	fsysSnapTime, },
-	{ "snapclean",	fsysSnapClean, },
-	{ "stat",	fsysStat, },
-	{ "sync",	fsysSync, },
-	{ "unhalt",	fsysUnhalt, },
-	{ "wstat",	fsysWstat, },
-	{ "vac",	fsysVac, },
+    {
+     "bfree", fsysBfree,
+    },
+    {
+     "block", fsysBlock,
+    },
+    {
+     "check", fsysCheck,
+    },
+    {
+     "clre", fsysClre,
+    },
+    {
+     "clri", fsysClri,
+    },
+    {
+     "clrp", fsysClrp,
+    },
+    {
+     "create", fsysCreate,
+    },
+    {
+     "df", fsysDf,
+    },
+    {
+     "epoch", fsysEpoch,
+    },
+    {
+     "halt", fsysHalt,
+    },
+    {
+     "label", fsysLabel,
+    },
+    {
+     "remove", fsysRemove,
+    },
+    {
+     "snap", fsysSnap,
+    },
+    {
+     "snaptime", fsysSnapTime,
+    },
+    {
+     "snapclean", fsysSnapClean,
+    },
+    {
+     "stat", fsysStat,
+    },
+    {
+     "sync", fsysSync,
+    },
+    {
+     "unhalt", fsysUnhalt,
+    },
+    {
+     "wstat", fsysWstat,
+    },
+    {
+     "vac", fsysVac,
+    },
 
-	{ nil,		nil, },
+    {
+     nil, nil,
+    },
 };
 
 static int
-fsysXXX1(Fsys *fsys, int i, int argc, char* argv[])
+fsysXXX1(Fsys* fsys, int i, int argc, char* argv[])
 {
 	int r;
 
 	vtLock(fsys->lock);
-	if(fsys->fs == nil){
+	if(fsys->fs == nil) {
 		vtUnlock(fsys->lock);
 		vtSetError(EFsysNotOpen, fsys->name);
 		return 0;
 	}
 
-	if(fsys->fs->halted
-	&& fsyscmd[i].f != fsysUnhalt && fsyscmd[i].f != fsysCheck){
+	if(fsys->fs->halted && fsyscmd[i].f != fsysUnhalt &&
+	   fsyscmd[i].f != fsysCheck) {
 		vtSetError("file system %s is halted", fsys->name);
 		vtUnlock(fsys->lock);
 		return 0;
@@ -1796,38 +1898,39 @@ static int
 fsysXXX(char* name, int argc, char* argv[])
 {
 	int i, r;
-	Fsys *fsys;
+	Fsys* fsys;
 
-	for(i = 0; fsyscmd[i].cmd != nil; i++){
+	for(i = 0; fsyscmd[i].cmd != nil; i++) {
 		if(strcmp(fsyscmd[i].cmd, argv[0]) == 0)
 			break;
 	}
 
-	if(fsyscmd[i].cmd == nil){
+	if(fsyscmd[i].cmd == nil) {
 		vtSetError("unknown command - '%s'", argv[0]);
 		return 0;
 	}
 
 	/* some commands want the name... */
-	if(fsyscmd[i].f1 != nil){
-		if(strcmp(name, FsysAll) == 0){
-			vtSetError("cannot use fsys %#q with %#q command", FsysAll, argv[0]);
+	if(fsyscmd[i].f1 != nil) {
+		if(strcmp(name, FsysAll) == 0) {
+			vtSetError("cannot use fsys %#q with %#q command",
+			           FsysAll, argv[0]);
 			return 0;
 		}
 		return (*fsyscmd[i].f1)(name, argc, argv);
 	}
 
 	/* ... but most commands want the Fsys */
-	if(strcmp(name, FsysAll) == 0){
+	if(strcmp(name, FsysAll) == 0) {
 		r = 1;
 		vtRLock(sbox.lock);
-		for(fsys = sbox.head; fsys != nil; fsys = fsys->next){
+		for(fsys = sbox.head; fsys != nil; fsys = fsys->next) {
 			fsys->ref++;
 			r = fsysXXX1(fsys, i, argc, argv) && r;
 			fsys->ref--;
 		}
 		vtRUnlock(sbox.lock);
-	}else{
+	} else {
 		if((fsys = _fsysGet(name)) == nil)
 			return 0;
 		r = fsysXXX1(fsys, i, argc, argv);
@@ -1839,9 +1942,9 @@ fsysXXX(char* name, int argc, char* argv[])
 static int
 cmdFsysXXX(int argc, char* argv[])
 {
-	char *name;
+	char* name;
 
-	if((name = sbox.curfsys) == nil){
+	if((name = sbox.curfsys) == nil) {
 		vtSetError(EFsysNoCurrent, argv[0]);
 		return 0;
 	}
@@ -1852,15 +1955,17 @@ cmdFsysXXX(int argc, char* argv[])
 static int
 cmdFsys(int argc, char* argv[])
 {
-	Fsys *fsys;
-	char *usage = "usage: fsys [name ...]";
+	Fsys* fsys;
+	char* usage = "usage: fsys [name ...]";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc == 0){
+	if(argc == 0) {
 		vtRLock(sbox.lock);
 		currfsysname = sbox.head->name;
 		for(fsys = sbox.head; fsys != nil; fsys = fsys->next)
@@ -1868,9 +1973,10 @@ cmdFsys(int argc, char* argv[])
 		vtRUnlock(sbox.lock);
 		return 1;
 	}
-	if(argc == 1){
+	if(argc == 1) {
 		fsys = nil;
-		if(strcmp(argv[0], FsysAll) != 0 && (fsys = fsysGet(argv[0])) == nil)
+		if(strcmp(argv[0], FsysAll) != 0 &&
+		   (fsys = fsysGet(argv[0])) == nil)
 			return 0;
 		sbox.curfsys = vtStrDup(argv[0]);
 		consPrompt(sbox.curfsys);
@@ -1879,7 +1985,7 @@ cmdFsys(int argc, char* argv[])
 		return 1;
 	}
 
-	return fsysXXX(argv[0], argc-1, argv+1);
+	return fsysXXX(argv[0], argc - 1, argv + 1);
 }
 
 int
@@ -1895,7 +2001,7 @@ fsysInit(void)
 	sbox.lock = vtLockAlloc();
 
 	cliAddCmd("fsys", cmdFsys);
-	for(i = 0; fsyscmd[i].cmd != nil; i++){
+	for(i = 0; fsyscmd[i].cmd != nil; i++) {
 		if(fsyscmd[i].f != nil)
 			cliAddCmd(fsyscmd[i].cmd, cmdFsysXXX);
 	}

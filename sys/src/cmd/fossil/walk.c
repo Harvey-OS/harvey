@@ -16,22 +16,22 @@
 #include "fns.h"
 
 static uint
-etype(Entry *e)
+etype(Entry* e)
 {
 	uint t;
 
-	if(e->flags&VtEntryDir)
+	if(e->flags & VtEntryDir)
 		t = BtDir;
 	else
 		t = BtData;
-	return t+e->depth;
+	return t + e->depth;
 }
 
 void
-initWalk(WalkPtr *w, Block *b, uint size)
+initWalk(WalkPtr* w, Block* b, uint size)
 {
 	memset(w, 0, sizeof *w);
-	switch(b->l.type){
+	switch(b->l.type) {
 	case BtData:
 		return;
 
@@ -51,25 +51,24 @@ initWalk(WalkPtr *w, Block *b, uint size)
 }
 
 int
-nextWalk(WalkPtr *w, uint8_t score[VtScoreSize], uint8_t *type, uint32_t *tag,
-	 Entry **e)
+nextWalk(WalkPtr* w, uint8_t score[VtScoreSize], uint8_t* type, uint32_t* tag,
+         Entry** e)
 {
 	if(w->n >= w->m)
 		return 0;
 
-	if(w->isEntry){
+	if(w->isEntry) {
 		*e = &w->e;
 		entryUnpack(&w->e, w->data, w->n);
 		memmove(score, w->e.score, VtScoreSize);
 		*type = etype(&w->e);
 		*tag = w->e.tag;
-	}else{
+	} else {
 		*e = nil;
-		memmove(score, w->data+w->n*VtScoreSize, VtScoreSize);
-		*type = w->type-1;
+		memmove(score, w->data + w->n * VtScoreSize, VtScoreSize);
+		*type = w->type - 1;
 		*tag = w->tag;
 	}
 	w->n++;
 	return 1;
 }
-

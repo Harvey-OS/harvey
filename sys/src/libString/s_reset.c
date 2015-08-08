@@ -12,9 +12,9 @@
 #include "String.h"
 
 String*
-s_reset(String *s)
+s_reset(String* s)
 {
-	if(s != nil){
+	if(s != nil) {
 		s = s_unique(s);
 		s->ptr = s->base;
 		*s->ptr = '\0';
@@ -24,7 +24,7 @@ s_reset(String *s)
 }
 
 String*
-s_restart(String *s)
+s_restart(String* s)
 {
 	s = s_unique(s);
 	s->ptr = s->base;

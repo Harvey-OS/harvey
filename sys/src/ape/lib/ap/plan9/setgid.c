@@ -15,8 +15,7 @@
  * BUG: never works
  */
 
-int
-setgid(gid_t)
+int setgid(gid_t)
 {
 	errno = EPERM;
 	return -1;

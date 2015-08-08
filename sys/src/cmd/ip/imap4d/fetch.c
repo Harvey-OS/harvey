@@ -13,14 +13,8 @@
 #include <auth.h>
 #include "imap4d.h"
 
-char *fetchPartNames[FPMax] =
-{
-	"",
-	"HEADER",
-	"HEADER.FIELDS",
-	"HEADER.FIELDS.NOT",
-	"MIME",
-	"TEXT",
+char* fetchPartNames[FPMax] = {
+    "", "HEADER", "HEADER.FIELDS", "HEADER.FIELDS.NOT", "MIME", "TEXT",
 };
 
 /*
@@ -29,16 +23,16 @@ char *fetchPartNames[FPMax] =
  * messages are sent to the client.
  */
 int
-fetchSeen(Box *box, Msg *m, int uids, void *vf)
+fetchSeen(Box* box, Msg* m, int uids, void* vf)
 {
-	Fetch *f;
+	Fetch* f;
 
 	USED(uids);
 
 	if(m->expunged)
 		return uids;
-	for(f = vf; f != nil; f = f->next){
-		switch(f->op){
+	for(f = vf; f != nil; f = f->next) {
+		switch(f->op) {
 		case FRfc822:
 		case FRfc822Text:
 		case FBodySect:
@@ -61,19 +55,19 @@ breakout:
  *	body[id] === body[id.header] + body[id.text]
 */
 int
-fetchMsg(Box *b, Msg *m, int uids, void *vf)
+fetchMsg(Box* b, Msg* m, int uids, void* vf)
 {
 	Tm tm;
-	Fetch *f;
-	char *sep;
+	Fetch* f;
+	char* sep;
 	int todo;
 
 	if(m->expunged)
 		return uids;
 
 	todo = 0;
-	for(f = vf; f != nil; f = f->next){
-		switch(f->op){
+	for(f = vf; f != nil; f = f->next) {
+		switch(f->op) {
 		case FFlags:
 			todo = 1;
 			break;
@@ -91,7 +85,7 @@ fetchMsg(Box *b, Msg *m, int uids, void *vf)
 		case FBody:
 		case FBodyStruct:
 			todo = 1;
-			if(!msgStruct(m, 1)){
+			if(!msgStruct(m, 1)) {
 				msgDead(m);
 				return uids;
 			}
@@ -113,12 +107,12 @@ fetchMsg(Box *b, Msg *m, int uids, void *vf)
 	 */
 	Bprint(&bout, "* %lud FETCH (", m->seq);
 	sep = "";
-	if(uids){
+	if(uids) {
 		Bprint(&bout, "UID %lud", m->uid);
 		sep = " ";
 	}
-	for(f = vf; f != nil; f = f->next){
-		switch(f->op){
+	for(f = vf; f != nil; f = f->next) {
+		switch(f->op) {
 		default:
 			bye("bad implementation of fetch");
 			break;
@@ -183,16 +177,16 @@ fetchMsg(Box *b, Msg *m, int uids, void *vf)
  * print out section, part, headers;
  * find and return message section
  */
-Msg *
-fetchSect(Msg *m, Fetch *f)
+Msg*
+fetchSect(Msg* m, Fetch* f)
 {
 	Bputc(&bout, '[');
 	BNList(&bout, f->sect, ".");
-	if(f->part != FPAll){
+	if(f->part != FPAll) {
 		if(f->sect != nil)
 			Bputc(&bout, '.');
 		Bprint(&bout, "%s", fetchPartNames[f->part]);
-		if(f->hdrs != nil){
+		if(f->hdrs != nil) {
 			Bprint(&bout, " (");
 			BSList(&bout, f->hdrs, " ");
 			Bputc(&bout, ')');
@@ -206,23 +200,24 @@ fetchSect(Msg *m, Fetch *f)
  * actually return the body pieces
  */
 void
-fetchBody(Msg *m, Fetch *f)
+fetchBody(Msg* m, Fetch* f)
 {
 	Pair p;
-	char *s, *t, *e, buf[BufSize + 2];
+	char* s, *t, *e, buf[BufSize + 2];
 	uint32_t n, start, stop, pos;
 	int fd, nn;
 
-	if(m == nil){
+	if(m == nil) {
 		fetchBodyStr(f, "", 0);
 		return;
 	}
-	switch(f->part){
+	switch(f->part) {
 	case FPHeadFields:
 	case FPHeadFieldsNot:
 		n = m->head.size + 3;
 		s = emalloc(n);
-		n = selectFields(s, n, m->head.buf, f->hdrs, f->part == FPHeadFields);
+		n = selectFields(s, n, m->head.buf, f->hdrs,
+		                 f->part == FPHeadFields);
 		fetchBodyStr(f, s, n);
 		free(s);
 		return;
@@ -234,31 +229,31 @@ fetchBody(Msg *m, Fetch *f)
 		return;
 	case FPAll:
 		fd = msgFile(m, "rawbody");
-		if(fd < 0){
+		if(fd < 0) {
 			msgDead(m);
 			fetchBodyStr(f, "", 0);
 			return;
 		}
 		p = fetchBodyPart(f, msgSize(m));
 		start = p.start;
-		if(start < m->head.size){
+		if(start < m->head.size) {
 			stop = p.stop;
 			if(stop > m->head.size)
 				stop = m->head.size;
 			Bwrite(&bout, &m->head.buf[start], stop - start);
 			start = 0;
 			stop = p.stop;
-			if(stop <= m->head.size){
+			if(stop <= m->head.size) {
 				close(fd);
 				return;
 			}
-		}else
+		} else
 			start -= m->head.size;
 		stop = p.stop - m->head.size;
 		break;
 	case FPText:
 		fd = msgFile(m, "rawbody");
-		if(fd < 0){
+		if(fd < 0) {
 			msgDead(m);
 			fetchBodyStr(f, "", 0);
 			return;
@@ -278,27 +273,27 @@ fetchBody(Msg *m, Fetch *f)
 	 * through stop, since we don't know how many \r's will be added
 	 */
 	buf[0] = ' ';
-	for(pos = 0; pos < stop; ){
+	for(pos = 0; pos < stop;) {
 		n = BufSize;
 		if(n > stop - pos)
 			n = stop - pos;
 		n = read(fd, &buf[1], n);
-		if(n <= 0){
+		if(n <= 0) {
 			fetchBodyFill(stop - pos);
 			break;
 		}
 		e = &buf[n + 1];
 		*e = '\0';
-		for(s = &buf[1]; s < e && pos < stop; s = t + 1){
+		for(s = &buf[1]; s < e && pos < stop; s = t + 1) {
 			t = memchr(s, '\n', e - s);
 			if(t == nil)
 				t = e;
 			n = t - s;
-			if(pos < start){
-				if(pos + n <= start){
+			if(pos < start) {
+				if(pos + n <= start) {
 					s = t;
 					pos += n;
-				}else{
+				} else {
 					s += start - pos;
 					pos = start;
 				}
@@ -310,8 +305,8 @@ fetchBody(Msg *m, Fetch *f)
 			if(Bwrite(&bout, s, nn) != nn)
 				writeErr();
 			pos += n;
-			if(*t == '\n'){
-				if(t[-1] != '\r'){
+			if(*t == '\n') {
+				if(t[-1] != '\r') {
 					if(pos >= start && pos < stop)
 						Bputc(&bout, '\r');
 					pos++;
@@ -331,14 +326,14 @@ fetchBody(Msg *m, Fetch *f)
  * and print out the bounds & size of string returned
  */
 Pair
-fetchBodyPart(Fetch *f, uint32_t size)
+fetchBodyPart(Fetch* f, uint32_t size)
 {
 	Pair p;
 	uint32_t start, stop;
 
 	start = 0;
 	stop = size;
-	if(f->partial){
+	if(f->partial) {
 		start = f->start;
 		if(start > size)
 			start = size;
@@ -369,21 +364,21 @@ fetchBodyFill(uint32_t n)
  * return a simple string
  */
 void
-fetchBodyStr(Fetch *f, char *buf, uint32_t size)
+fetchBodyStr(Fetch* f, char* buf, uint32_t size)
 {
 	Pair p;
 
 	p = fetchBodyPart(f, size);
-	Bwrite(&bout, &buf[p.start], p.stop-p.start);
+	Bwrite(&bout, &buf[p.start], p.stop - p.start);
 }
 
 char*
-printnlist(NList *sect)
+printnlist(NList* sect)
 {
 	static char buf[100];
-	char *p;
+	char* p;
 
-	for(p= buf; sect; sect=sect->next){
+	for(p = buf; sect; sect = sect->next) {
 		p += sprint(p, "%ld", sect->n);
 		if(sect->next)
 			*p++ = '.';
@@ -396,22 +391,28 @@ printnlist(NList *sect)
  * find the numbered sub-part of the message
  */
 Msg*
-findMsgSect(Msg *m, NList *sect)
+findMsgSect(Msg* m, NList* sect)
 {
 	uint32_t id;
 
-	for(; sect != nil; sect = sect->next){
+	for(; sect != nil; sect = sect->next) {
 		id = sect->n;
 #ifdef HACK
-		/* HACK to solve extra level of structure not visible from upas/fs  */
-		if(m->kids == 0 && id == 1 && sect->next == nil){
-			if(m->mime.type->s && strcmp(m->mime.type->s, "message")==0)
-			if(m->mime.type->t && strcmp(m->mime.type->t, "rfc822")==0)
-			if(m->head.type->s && strcmp(m->head.type->s, "text")==0)
-			if(m->head.type->t && strcmp(m->head.type->t, "plain")==0)
-				break;
+		/* HACK to solve extra level of structure not visible from
+		 * upas/fs  */
+		if(m->kids == 0 && id == 1 && sect->next == nil) {
+			if(m->mime.type->s &&
+			   strcmp(m->mime.type->s, "message") == 0)
+				if(m->mime.type->t &&
+				   strcmp(m->mime.type->t, "rfc822") == 0)
+					if(m->head.type->s &&
+					   strcmp(m->head.type->s, "text") == 0)
+						if(m->head.type->t &&
+						   strcmp(m->head.type->t,
+						          "plain") == 0)
+							break;
 		}
-		/* end of HACK */
+/* end of HACK */
 #endif
 		for(m = m->kids; m != nil; m = m->next)
 			if(m->id == id)
@@ -423,7 +424,7 @@ findMsgSect(Msg *m, NList *sect)
 }
 
 void
-fetchEnvelope(Msg *m)
+fetchEnvelope(Msg* m)
 {
 	Tm tm;
 
@@ -451,12 +452,12 @@ fetchEnvelope(Msg *m)
 }
 
 void
-fetchBodyStruct(Msg *m, Header *h, int extensions)
+fetchBodyStruct(Msg* m, Header* h, int extensions)
 {
-	Msg *k;
+	Msg* k;
 	uint32_t len;
 
-	if(msgIsMulti(h)){
+	if(msgIsMulti(h)) {
 		Bputc(&bout, '(');
 		for(k = m->kids; k != nil; k = k->next)
 			fetchBodyStruct(k, &k->mime, extensions);
@@ -464,7 +465,7 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
 		Bputc(&bout, ' ');
 		Bimapstr(&bout, h->type->t);
 
-		if(extensions){
+		if(extensions) {
 			Bputc(&bout, ' ');
 			BimapMimeParams(&bout, h->type->next);
 			fetchStructExt(h);
@@ -475,13 +476,13 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
 	}
 
 	Bputc(&bout, '(');
-	if(h->type != nil){
+	if(h->type != nil) {
 		Bimapstr(&bout, h->type->s);
 		Bputc(&bout, ' ');
 		Bimapstr(&bout, h->type->t);
 		Bputc(&bout, ' ');
 		BimapMimeParams(&bout, h->type->next);
-	}else
+	} else
 		Bprint(&bout, "\"text\" \"plain\" NIL");
 
 	Bputc(&bout, ' ');
@@ -504,7 +505,8 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
 
 	/*
 	 * this is so strange: return lengths for a body[text] response,
-	 * except in the case of a multipart message, when return lengths for a body[] response
+	 * except in the case of a multipart message, when return lengths for a
+	 * body[] response
 	 */
 	len = m->size;
 	if(h == &m->mime)
@@ -515,16 +517,18 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
 	if(h == &m->mime)
 		len += m->head.lines;
 
-	if(h->type == nil || cistrcmp(h->type->s, "text") == 0){
+	if(h->type == nil || cistrcmp(h->type->s, "text") == 0) {
 		Bprint(&bout, " %lud", len);
-	}else if(msgIsRfc822(h)){
+	} else if(msgIsRfc822(h)) {
 		Bputc(&bout, ' ');
 		k = m;
 		if(h != &m->mime)
 			k = m->kids;
 		if(k == nil)
-			Bprint(&bout, "(NIL NIL NIL NIL NIL NIL NIL NIL NIL NIL) (\"text\" \"plain\" NIL NIL NIL NIL 0 0) 0");
-		else{
+			Bprint(&bout, "(NIL NIL NIL NIL NIL NIL NIL NIL NIL "
+			              "NIL) (\"text\" \"plain\" NIL NIL NIL "
+			              "NIL 0 0) 0");
+		else {
 			fetchEnvelope(k);
 			Bputc(&bout, ' ');
 			fetchBodyStruct(k, &k->head, extensions);
@@ -532,7 +536,7 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
 		}
 	}
 
-	if(extensions){
+	if(extensions) {
 		Bputc(&bout, ' ');
 
 		/*
@@ -550,31 +554,31 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
  * common part of bodystructure extensions
  */
 void
-fetchStructExt(Header *h)
+fetchStructExt(Header* h)
 {
 	Bputc(&bout, ' ');
-	if(h->disposition != nil){
+	if(h->disposition != nil) {
 		Bputc(&bout, '(');
 		Bimapstr(&bout, h->disposition->s);
 		Bputc(&bout, ' ');
 		BimapMimeParams(&bout, h->disposition->next);
 		Bputc(&bout, ')');
-	}else
+	} else
 		Bprint(&bout, "NIL");
 	Bputc(&bout, ' ');
-	if(h->language != nil){
+	if(h->language != nil) {
 		if(h->language->next != nil)
 			BimapMimeParams(&bout, h->language->next);
 		else
 			Bimapstr(&bout, h->language->s);
-	}else
+	} else
 		Bprint(&bout, "NIL");
 }
 
 int
-BimapMimeParams(Biobuf *b, MimeHdr *mh)
+BimapMimeParams(Biobuf* b, MimeHdr* mh)
 {
-	char *sep;
+	char* sep;
 	int n;
 
 	if(mh == nil)
@@ -583,7 +587,7 @@ BimapMimeParams(Biobuf *b, MimeHdr *mh)
 	n = Bputc(b, '(');
 
 	sep = "";
-	for(; mh != nil; mh = mh->next){
+	for(; mh != nil; mh = mh->next) {
 		n += Bprint(b, sep);
 		n += Bimapstr(b, mh->s);
 		n += Bputc(b, ' ');
@@ -597,13 +601,14 @@ BimapMimeParams(Biobuf *b, MimeHdr *mh)
 
 /*
  * print a list of addresses;
- * each address is printed as '(' personalName AtDomainList mboxName hostName ')'
+ * each address is printed as '(' personalName AtDomainList mboxName hostName
+ * ')'
  * the AtDomainList is always NIL
  */
 int
-Bimapaddr(Biobuf *b, MAddr *a)
+Bimapaddr(Biobuf* b, MAddr* a)
 {
-	char *host, *sep;
+	char* host, *sep;
 	int n;
 
 	if(a == nil)
@@ -611,10 +616,10 @@ Bimapaddr(Biobuf *b, MAddr *a)
 
 	n = Bputc(b, '(');
 	sep = "";
-	for(; a != nil; a = a->next){
+	for(; a != nil; a = a->next) {
 		n += Bprint(b, "%s(", sep);
 		n += Bimapstr(b, a->personal);
-		n += Bprint(b," NIL ");
+		n += Bprint(b, " NIL ");
 		n += Bimapstr(b, a->box);
 		n += Bputc(b, ' ');
 

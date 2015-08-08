@@ -17,80 +17,71 @@
 
 typedef struct Box Box;
 
-struct Box
-{
+struct Box {
 	Control;
-	int		border;
-	CImage	*bordercolor;
-	CImage	*image;
-	int		align;
+	int border;
+	CImage* bordercolor;
+	CImage* image;
+	int align;
 };
 
-enum{
-	EAlign,
-	EBorder,
-	EBordercolor,
-	EFocus,
-	EHide,
-	EImage,
-	ERect,
-	EReveal,
-	EShow,
-	ESize,
+enum { EAlign,
+       EBorder,
+       EBordercolor,
+       EFocus,
+       EHide,
+       EImage,
+       ERect,
+       EReveal,
+       EShow,
+       ESize,
 };
 
-static char *cmds[] = {
-	[EAlign] =		"align",
-	[EBorder] =	"border",
-	[EBordercolor] ="bordercolor",
-	[EFocus] = 	"focus",
-	[EHide] =		"hide",
-	[EImage] =	"image",
-	[ERect] =		"rect",
-	[EReveal] =	"reveal",
-	[EShow] =		"show",
-	[ESize] =		"size",
-	nil
-};
+static char* cmds[] = {[EAlign] = "align", [EBorder] = "border",
+                       [EBordercolor] = "bordercolor", [EFocus] = "focus",
+                       [EHide] = "hide", [EImage] = "image", [ERect] = "rect",
+                       [EReveal] = "reveal", [EShow] = "show", [ESize] = "size",
+                       nil};
 
 static void
-boxkey(Control *c, Rune *rp)
+boxkey(Control* c, Rune* rp)
 {
-	Box *b;
+	Box* b;
 
 	b = (Box*)c;
 	chanprint(b->event, "%q: key 0x%x", b->name, rp[0]);
 }
 
 static void
-boxmouse(Control *c, Mouse *m)
+boxmouse(Control* c, Mouse* m)
 {
-	Box *b;
+	Box* b;
 
 	b = (Box*)c;
-	if (ptinrect(m->xy,b->rect))
-		chanprint(b->event, "%q: mouse %P %d %ld", b->name,
-			m->xy, m->buttons, m->msec);
+	if(ptinrect(m->xy, b->rect))
+		chanprint(b->event, "%q: mouse %P %d %ld", b->name, m->xy,
+		          m->buttons, m->msec);
 }
 
 static void
-boxfree(Control *c)
+boxfree(Control* c)
 {
 	_putctlimage(((Box*)c)->image);
 }
 
 static void
-boxshow(Box *b)
+boxshow(Box* b)
 {
-	Image *i;
+	Image* i;
 	Rectangle r;
 
 	if(b->hidden)
 		return;
-	if(b->border > 0){
-		border(b->screen, b->rect, b->border, b->bordercolor->image, ZP);
+	if(b->border > 0) {
+		border(b->screen, b->rect, b->border, b->bordercolor->image,
+		       ZP);
 		r = insetrect(b->rect, b->border);
-	}else
+	} else
 		r = b->rect;
 	i = b->image->image;
 	/* BUG: ALIGNMENT AND CLIPPING */
@@ -98,15 +89,15 @@ boxshow(Box *b)
 }
 
 static void
-boxctl(Control *c, CParse *cp)
+boxctl(Control* c, CParse* cp)
 {
 	int cmd;
 	Rectangle r;
-	Box *b;
+	Box* b;
 
 	b = (Box*)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
-	switch(cmd){
+	switch(cmd) {
 	default:
 		ctlerror("%q: unrecognized message '%s'", b->name, cp->str);
 		break;
@@ -142,7 +133,7 @@ boxctl(Control *c, CParse *cp)
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
-		if(Dx(r)<0 || Dy(r)<0)
+		if(Dx(r) < 0 || Dy(r) < 0)
 			ctlerror("%q: bad rectangle: %s", b->name, cp->str);
 		b->rect = r;
 		break;
@@ -156,16 +147,17 @@ boxctl(Control *c, CParse *cp)
 		boxshow(b);
 		break;
 	case ESize:
-		if (cp->nargs == 3)
+		if(cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
-		else{
+		else {
 			_ctlargcount(b, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
-		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+		if(r.min.x <= 0 || r.min.y <= 0 || r.max.x <= 0 ||
+		   r.max.y <= 0 || r.max.x < r.min.x || r.max.y < r.min.y)
 			ctlerror("%q: bad sizes: %s", b->name, cp->str);
 		b->size.min = r.min;
 		b->size.max = r.max;
@@ -174,11 +166,11 @@ boxctl(Control *c, CParse *cp)
 }
 
 Control*
-createbox(Controlset *cs, char *name)
+createbox(Controlset* cs, char* name)
 {
-	Box *b;
+	Box* b;
 
-	b = (Box *)_createctl(cs, "box", sizeof(Box), name);
+	b = (Box*)_createctl(cs, "box", sizeof(Box), name);
 	b->image = _getctlimage("white");
 	b->bordercolor = _getctlimage("black");
 	b->align = Aupperleft;
@@ -186,5 +178,5 @@ createbox(Controlset *cs, char *name)
 	b->mouse = boxmouse;
 	b->ctl = boxctl;
 	b->exit = boxfree;
-	return (Control *)b;
+	return (Control*)b;
 }

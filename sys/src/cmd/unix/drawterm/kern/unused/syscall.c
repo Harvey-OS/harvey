@@ -7,23 +7,23 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 Chan*
 fdtochan(int fd, int mode, int chkmnt, int iref)
 {
-	Fgrp *f;
-	Chan *c;
+	Fgrp* f;
+	Chan* c;
 
 	c = 0;
 	f = up->fgrp;
 
 	lock(&f->ref.lk);
-	if(fd<0 || NFD<=fd || (c = f->fd[fd])==0) {
+	if(fd < 0 || NFD <= fd || (c = f->fd[fd]) == 0) {
 		unlock(&f->ref.lk);
 		error(Ebadfd);
 	}
@@ -31,13 +31,13 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 		refinc(&c->ref);
 	unlock(&f->ref.lk);
 
-	if(chkmnt && (c->flag&CMSG))
+	if(chkmnt && (c->flag & CMSG))
 		goto bad;
-	if(mode<0 || c->mode==ORDWR)
+	if(mode < 0 || c->mode == ORDWR)
 		return c;
-	if((mode&OTRUNC) && c->mode==OREAD)
+	if((mode & OTRUNC) && c->mode == OREAD)
 		goto bad;
-	if((mode&~OTRUNC) != c->mode)
+	if((mode & ~OTRUNC) != c->mode)
 		goto bad;
 	return c;
 bad:
@@ -51,8 +51,8 @@ static void
 fdclose(int fd, int flag)
 {
 	int i;
-	Chan *c;
-	Fgrp *f;
+	Chan* c;
+	Fgrp* f;
 
 	f = up->fgrp;
 
@@ -63,14 +63,14 @@ fdclose(int fd, int flag)
 		return;
 	}
 	if(flag) {
-		if(c==0 || !(c->flag&flag)) {
+		if(c == 0 || !(c->flag & flag)) {
 			unlock(&f->ref.lk);
 			return;
 		}
 	}
 	f->fd[fd] = 0;
 	if(fd == f->maxfd)
-		for(i=fd; --i>=0 && f->fd[i]==0; )
+		for(i = fd; --i >= 0 && f->fd[i] == 0;)
 			f->maxfd = i;
 
 	unlock(&f->ref.lk);
@@ -78,15 +78,15 @@ fdclose(int fd, int flag)
 }
 
 static int
-newfd(Chan *c)
+newfd(Chan* c)
 {
 	int i;
-	Fgrp *f;
+	Fgrp* f;
 
 	f = up->fgrp;
 	lock(&f->ref.lk);
-	for(i=0; i<NFD; i++)
-		if(f->fd[i] == 0){
+	for(i = 0; i < NFD; i++)
+		if(f->fd[i] == 0) {
 			if(i > f->maxfd)
 				f->maxfd = i;
 			f->fd[i] = c;
@@ -111,17 +111,17 @@ sysclose(int fd)
 }
 
 int
-syscreate(char *path, int mode, uint32_t perm)
+syscreate(char* path, int mode, uint32_t perm)
 {
 	int fd;
-	Chan *c = 0;
+	Chan* c = 0;
 
 	if(waserror()) {
 		cclose(c);
 		return -1;
 	}
 
-	openmode(mode);			/* error check only */
+	openmode(mode); /* error check only */
 	c = namec(path, Acreate, mode, perm);
 	fd = newfd((Chan*)c);
 	poperror();
@@ -131,9 +131,9 @@ syscreate(char *path, int mode, uint32_t perm)
 int
 sysdup(int old, int new)
 {
-	Chan *oc;
-	Fgrp *f = up->fgrp;
-	Chan *c = 0;
+	Chan* oc;
+	Fgrp* f = up->fgrp;
+	Chan* c = 0;
 
 	if(waserror())
 		return -1;
@@ -152,8 +152,7 @@ sysdup(int old, int new)
 		unlock(&f->ref.lk);
 		if(oc != 0)
 			cclose(oc);
-	}
-	else {
+	} else {
 		if(waserror()) {
 			cclose(c);
 			nexterror();
@@ -166,9 +165,9 @@ sysdup(int old, int new)
 }
 
 int
-sysfstat(int fd, char *buf)
+sysfstat(int fd, char* buf)
 {
-	Chan *c = 0;
+	Chan* c = 0;
 
 	if(waserror()) {
 		cclose(c);
@@ -182,9 +181,9 @@ sysfstat(int fd, char *buf)
 }
 
 int
-sysfwstat(int fd, char *buf)
+sysfwstat(int fd, char* buf)
 {
-	Chan *c = 0;
+	Chan* c = 0;
 
 	if(waserror()) {
 		cclose(c);
@@ -199,22 +198,22 @@ sysfwstat(int fd, char *buf)
 }
 
 int
-syschdir(char *dir)
+syschdir(char* dir)
 {
 	return 0;
 }
 
 int32_t
-bindmount(Chan *c0, char *old, int flag, char *spec)
+bindmount(Chan* c0, char* old, int flag, char* spec)
 {
 	int ret;
-	Chan *c1 = 0;
+	Chan* c1 = 0;
 
-	if(flag>MMASK || (flag&MORDER) == (MBEFORE|MAFTER))
+	if(flag > MMASK || (flag & MORDER) == (MBEFORE | MAFTER))
 		error(Ebadarg);
 
 	c1 = namec(old, Amount, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c1);
 		nexterror();
 	}
@@ -227,10 +226,10 @@ bindmount(Chan *c0, char *old, int flag, char *spec)
 }
 
 int
-sysbind(char *new, char *old, int flags)
+sysbind(char* new, char* old, int flags)
 {
 	int32_t r;
-	Chan *c0 = 0;
+	Chan* c0 = 0;
 
 	if(waserror()) {
 		cclose(c0);
@@ -244,14 +243,14 @@ sysbind(char *new, char *old, int flags)
 }
 
 int
-sysmount(int fd, char *old, int flags, char *spec)
+sysmount(int fd, char* old, int flags, char* spec)
 {
 	int32_t r;
-	Chan *c0 = 0, *bc = 0;
+	Chan* c0 = 0, * bc = 0;
 	struct {
-		Chan*	chan;
-		char*	spec;
-		int	flags;
+		Chan* chan;
+		char* spec;
+		int flags;
 	} mntparam;
 
 	if(waserror()) {
@@ -273,9 +272,9 @@ sysmount(int fd, char *old, int flags, char *spec)
 }
 
 int
-sysunmount(char *old, char *new)
+sysunmount(char* old, char* new)
 {
-	Chan *cmount = 0, *cmounted = 0;
+	Chan* cmount = 0, * cmounted = 0;
 
 	if(waserror()) {
 		cclose(cmount);
@@ -288,23 +287,23 @@ sysunmount(char *old, char *new)
 		cmounted = namec(old, Aopen, OREAD, 0);
 
 	cunmount(cmount, cmounted);
-	poperror();	
+	poperror();
 	cclose(cmount);
 	cclose(cmounted);
 	return 0;
 }
 
 int
-sysopen(char *path, int mode)
+sysopen(char* path, int mode)
 {
 	int fd;
-	Chan *c = 0;
+	Chan* c = 0;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		return -1;
 	}
-	openmode(mode);				/* error check only */
+	openmode(mode); /* error check only */
 	c = namec(path, Aopen, mode, 0);
 	fd = newfd((Chan*)c);
 	poperror();
@@ -312,11 +311,11 @@ sysopen(char *path, int mode)
 }
 
 int32_t
-unionread(Chan *c, void *va, int32_t n)
+unionread(Chan* c, void* va, int32_t n)
 {
 	int32_t nr;
-	Chan *nc = 0;
-	Pgrp *pg = 0;
+	Chan* nc = 0;
+	Pgrp* pg = 0;
 
 	pg = up->pgrp;
 	rlock(&pg->ns);
@@ -336,7 +335,7 @@ unionread(Chan *c, void *va, int32_t n)
 		}
 
 		/* Error causes component of union to be skipped */
-		if(waserror()) {	
+		if(waserror()) {
 			cclose(nc);
 			goto next;
 		}
@@ -345,7 +344,7 @@ unionread(Chan *c, void *va, int32_t n)
 		nc->offset = c->offset;
 		nr = (*devtab[nc->type].read)((Chan*)nc, va, n, nc->offset);
 		/* devdirread e.g. changes it */
-		c->offset = nc->offset;	
+		c->offset = nc->offset;
 		poperror();
 
 		cclose(nc);
@@ -353,7 +352,7 @@ unionread(Chan *c, void *va, int32_t n)
 			runlock(&pg->ns);
 			return nr;
 		}
-		/* Advance to next element */
+	/* Advance to next element */
 	next:
 		c->mnt = c->mnt->next;
 		if(c->mnt == 0)
@@ -366,11 +365,11 @@ unionread(Chan *c, void *va, int32_t n)
 }
 
 int32_t
-sysread(int fd, void *va, int32_t n)
+sysread(int fd, void* va, int32_t n)
 {
 	int dir;
-	Lock *cl;
-	Chan *c = 0;
+	Lock* cl;
+	Chan* c = 0;
 
 	if(waserror()) {
 		cclose(c);
@@ -378,10 +377,10 @@ sysread(int fd, void *va, int32_t n)
 	}
 	c = fdtochan(fd, OREAD, 1, 1);
 
-	dir = c->qid.path&CHDIR;
+	dir = c->qid.path & CHDIR;
 	if(dir) {
-		n -= n%DIRLEN;
-		if(c->offset%DIRLEN || n==0)
+		n -= n % DIRLEN;
+		if(c->offset % DIRLEN || n == 0)
 			error(Etoosmall);
 	}
 
@@ -402,13 +401,13 @@ sysread(int fd, void *va, int32_t n)
 }
 
 int
-sysremove(char *path)
+sysremove(char* path)
 {
-	Chan *c = 0;
+	Chan* c = 0;
 
 	if(waserror()) {
 		if(c != 0)
-			c->type = 0;	/* see below */
+			c->type = 0; /* see below */
 		cclose(c);
 		return -1;
 	}
@@ -428,7 +427,7 @@ int32_t
 sysseek(int fd, int32_t off, int whence)
 {
 	Dir dir;
-	Chan *c;
+	Chan* c;
 	char buf[DIRLEN];
 
 	if(waserror())
@@ -444,7 +443,7 @@ sysseek(int fd, int32_t off, int whence)
 		break;
 
 	case 1:
-		lock(&c->r.l);	/* lock for read/write update */
+		lock(&c->r.l); /* lock for read/write update */
 		c->offset += off;
 		off = c->offset;
 		unlock(&c->r.l);
@@ -462,11 +461,11 @@ sysseek(int fd, int32_t off, int whence)
 }
 
 int
-sysstat(char *path, char *buf)
+sysstat(char* path, char* buf)
 {
-	Chan *c = 0;
+	Chan* c = 0;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		return -1;
 	}
@@ -478,10 +477,10 @@ sysstat(char *path, char *buf)
 }
 
 int32_t
-syswrite(int fd, void *va, int32_t n)
+syswrite(int fd, void* va, int32_t n)
 {
-	Lock *cl;
-	Chan *c = 0;
+	Lock* cl;
+	Chan* c = 0;
 
 	if(waserror()) {
 		cclose(c);
@@ -505,9 +504,9 @@ syswrite(int fd, void *va, int32_t n)
 }
 
 int
-syswstat(char *path, char *buf)
+syswstat(char* path, char* buf)
 {
-	Chan *c = 0;
+	Chan* c = 0;
 
 	if(waserror()) {
 		cclose(c);
@@ -523,7 +522,7 @@ syswstat(char *path, char *buf)
 }
 
 int
-sysdirstat(char *name, Dir *dir)
+sysdirstat(char* name, Dir* dir)
 {
 	char buf[DIRLEN];
 
@@ -534,7 +533,7 @@ sysdirstat(char *name, Dir *dir)
 }
 
 int
-sysdirfstat(int fd, Dir *dir)
+sysdirfstat(int fd, Dir* dir)
 {
 	char buf[DIRLEN];
 
@@ -546,7 +545,7 @@ sysdirfstat(int fd, Dir *dir)
 }
 
 int
-sysdirwstat(char *name, Dir *dir)
+sysdirwstat(char* name, Dir* dir)
 {
 	char buf[DIRLEN];
 
@@ -555,7 +554,7 @@ sysdirwstat(char *name, Dir *dir)
 }
 
 int
-sysdirfwstat(int fd, Dir *dir)
+sysdirfwstat(int fd, Dir* dir)
 {
 	char buf[DIRLEN];
 
@@ -564,13 +563,13 @@ sysdirfwstat(int fd, Dir *dir)
 }
 
 int32_t
-sysdirread(int fd, Dir *dbuf, int32_t count)
+sysdirread(int fd, Dir* dbuf, int32_t count)
 {
 	int c, n, i, r;
-	char buf[DIRLEN*50];
+	char buf[DIRLEN * 50];
 
 	n = 0;
-	count = (count/sizeof(Dir)) * DIRLEN;
+	count = (count / sizeof(Dir)) * DIRLEN;
 	while(n < count) {
 		c = count - n;
 		if(c > sizeof(buf))
@@ -580,8 +579,8 @@ sysdirread(int fd, Dir *dbuf, int32_t count)
 			break;
 		if(r < 0 || r % DIRLEN)
 			return -1;
-		for(i=0; i<r; i+=DIRLEN) {
-			convM2D(buf+i, dbuf);
+		for(i = 0; i < r; i += DIRLEN) {
+			convM2D(buf + i, dbuf);
 			dbuf++;
 		}
 		n += r;
@@ -589,23 +588,23 @@ sysdirread(int fd, Dir *dbuf, int32_t count)
 			break;
 	}
 
-	return (n/DIRLEN) * sizeof(Dir);
+	return (n / DIRLEN) * sizeof(Dir);
 }
 
 static int
-call(char *clone, char *dest, int *cfdp, char *dir, char *local)
+call(char* clone, char* dest, int* cfdp, char* dir, char* local)
 {
 	int fd, cfd, n;
-	char *p, name[3*NAMELEN+5], data[3*NAMELEN+10];
+	char* p, name[3 * NAMELEN + 5], data[3 * NAMELEN + 10];
 
 	cfd = sysopen(clone, ORDWR);
-	if(cfd < 0){
+	if(cfd < 0) {
 		werrstr("%s: %r", clone);
 		return -1;
 	}
 
 	/* get directory name */
-	n = sysread(cfd, name, sizeof(name)-1);
+	n = sysread(cfd, name, sizeof(name) - 1);
 	if(n < 0) {
 		sysclose(cfd);
 		return -1;
@@ -615,7 +614,7 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 	p = strrchr(clone, '/');
 	*p = 0;
 	if(dir)
-		snprint(dir, 2*NAMELEN, "%s/%s", clone, name);
+		snprint(dir, 2 * NAMELEN, "%s/%s", clone, name);
 	snprint(data, sizeof(data), "%s/%s/data", clone, name);
 
 	/* connect */
@@ -624,7 +623,7 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 		snprint(name, sizeof(name), "connect %s %s", dest, local);
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
-	if(syswrite(cfd, name, strlen(name)) < 0){
+	if(syswrite(cfd, name, strlen(name)) < 0) {
 		werrstr("%s failed: %r", name);
 		sysclose(cfd);
 		return -1;
@@ -632,7 +631,7 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 
 	/* open data connection */
 	fd = sysopen(data, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		werrstr("can't open %s: %r", data);
 		sysclose(cfd);
 		return -1;
@@ -645,23 +644,23 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 }
 
 int
-sysdial(char *dest, char *local, char *dir, int *cfdp)
+sysdial(char* dest, char* local, char* dir, int* cfdp)
 {
 	int n, fd, rv;
-	char *p, net[128], clone[NAMELEN+12];
+	char* p, net[128], clone[NAMELEN + 12];
 
 	/* go for a standard form net!... */
 	p = strchr(dest, '!');
-	if(p == 0){
+	if(p == 0) {
 		snprint(net, sizeof(net), "net!%s", dest);
 	} else {
-		strncpy(net, dest, sizeof(net)-1);
-		net[sizeof(net)-1] = 0;
+		strncpy(net, dest, sizeof(net) - 1);
+		net[sizeof(net) - 1] = 0;
 	}
 
 	/* call the connection server */
 	fd = sysopen("/net/cs", ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		/* no connection server, don't translate */
 		p = strchr(net, '!');
 		*p++ = 0;
@@ -672,7 +671,7 @@ sysdial(char *dest, char *local, char *dir, int *cfdp)
 	/*
 	 *  send dest to connection to translate
 	 */
-	if(syswrite(fd, net, strlen(net)) < 0){
+	if(syswrite(fd, net, strlen(net)) < 0) {
 		werrstr("%s: %r", net);
 		sysclose(fd);
 		return -1;
@@ -684,7 +683,7 @@ sysdial(char *dest, char *local, char *dir, int *cfdp)
 	 */
 	rv = -1;
 	sysseek(fd, 0, 0);
-	while((n = sysread(fd, net, sizeof(net) - 1)) > 0){
+	while((n = sysread(fd, net, sizeof(net) - 1)) > 0) {
 		net[n] = 0;
 		p = strchr(net, ' ');
 		if(p == 0)
@@ -699,31 +698,31 @@ sysdial(char *dest, char *local, char *dir, int *cfdp)
 }
 
 static int
-identtrans(char *addr, char *naddr, int na, char *file, int nf)
+identtrans(char* addr, char* naddr, int na, char* file, int nf)
 {
-	char *p;
-	char reply[4*NAMELEN];
+	char* p;
+	char reply[4 * NAMELEN];
 
 	/* parse the network */
 	strncpy(reply, addr, sizeof(reply));
-	reply[sizeof(reply)-1] = 0;
+	reply[sizeof(reply) - 1] = 0;
 	p = strchr(reply, '!');
 	if(p)
 		*p++ = 0;
 
 	sprint(file, "/net/%.*s/clone", na - sizeof("/net//clone"), reply);
 	strncpy(naddr, p, na);
-	naddr[na-1] = 0;
+	naddr[na - 1] = 0;
 	return 1;
 }
 
 static int
-nettrans(char *addr, char *naddr, int na, char *file, int nf)
+nettrans(char* addr, char* naddr, int na, char* file, int nf)
 {
 	int32_t n;
 	int fd;
-	char *cp;
-	char reply[4*NAMELEN];
+	char* cp;
+	char reply[4 * NAMELEN];
 
 	/*
 	 *  ask the connection server
@@ -731,12 +730,12 @@ nettrans(char *addr, char *naddr, int na, char *file, int nf)
 	fd = sysopen("/net/cs", ORDWR);
 	if(fd < 0)
 		return identtrans(addr, naddr, na, file, nf);
-	if(syswrite(fd, addr, strlen(addr)) < 0){
+	if(syswrite(fd, addr, strlen(addr)) < 0) {
 		sysclose(fd);
 		return -1;
 	}
 	sysseek(fd, 0, 0);
-	n = sysread(fd, reply, sizeof(reply)-1);
+	n = sysread(fd, reply, sizeof(reply) - 1);
 	sysclose(fd);
 	if(n <= 0)
 		return -1;
@@ -750,26 +749,26 @@ nettrans(char *addr, char *naddr, int na, char *file, int nf)
 		return -1;
 	*cp++ = 0;
 	strncpy(naddr, cp, na);
-	naddr[na-1] = 0;
+	naddr[na - 1] = 0;
 	strncpy(file, reply, nf);
-	file[nf-1] = 0;
+	file[nf - 1] = 0;
 	return 0;
 }
 
 int
-sysannounce(char *addr, char *dir)
+sysannounce(char* addr, char* dir)
 {
-	char *cp;
+	char* cp;
 	int ctl, n, m;
-	char buf[3*NAMELEN];
-	char buf2[3*NAMELEN];
-	char netdir[2*NAMELEN];
-	char naddr[3*NAMELEN];
+	char buf[3 * NAMELEN];
+	char buf2[3 * NAMELEN];
+	char netdir[2 * NAMELEN];
+	char naddr[3 * NAMELEN];
 
 	/*
 	 *  translate the address
 	 */
-	if(nettrans(addr, naddr, sizeof(naddr), netdir, sizeof(netdir)) < 0){
+	if(nettrans(addr, naddr, sizeof(naddr), netdir, sizeof(netdir)) < 0) {
 		werrstr("can't translate address");
 		return -1;
 	}
@@ -778,7 +777,7 @@ sysannounce(char *addr, char *dir)
 	 * get a control channel
 	 */
 	ctl = sysopen(netdir, ORDWR);
-	if(ctl<0){
+	if(ctl < 0) {
 		werrstr("can't open control channel");
 		return -1;
 	}
@@ -788,19 +787,19 @@ sysannounce(char *addr, char *dir)
 	/*
 	 *  find out which line we have
 	 */
-	n = sprint(buf, "%.*s/", 2*NAMELEN+1, netdir);
-	m = sysread(ctl, &buf[n], sizeof(buf)-n-1);
+	n = sprint(buf, "%.*s/", 2 * NAMELEN + 1, netdir);
+	m = sysread(ctl, &buf[n], sizeof(buf) - n - 1);
 	if(m <= 0) {
 		sysclose(ctl);
 		werrstr("can't read control file");
 		return -1;
 	}
-	buf[n+m] = 0;
+	buf[n + m] = 0;
 
 	/*
 	 *  make the call
 	 */
-	n = sprint(buf2, "announce %.*s", 2*NAMELEN, naddr);
+	n = sprint(buf2, "announce %.*s", 2 * NAMELEN, naddr);
 	if(syswrite(ctl, buf2, n) != n) {
 		sysclose(ctl);
 		werrstr("announcement fails");
@@ -813,16 +812,16 @@ sysannounce(char *addr, char *dir)
 }
 
 int
-syslisten(char *dir, char *newdir)
+syslisten(char* dir, char* newdir)
 {
-	char *cp;
+	char* cp;
 	int ctl, n, m;
-	char buf[3*NAMELEN];
+	char buf[3 * NAMELEN];
 
 	/*
 	 *  open listen, wait for a call
 	 */
-	sprint(buf, "%.*s/listen", 2*NAMELEN+1, dir);
+	sprint(buf, "%.*s/listen", 2 * NAMELEN + 1, dir);
 	ctl = sysopen(buf, ORDWR);
 	if(ctl < 0)
 		return -1;
@@ -833,13 +832,13 @@ syslisten(char *dir, char *newdir)
 	strcpy(buf, dir);
 	cp = strrchr(buf, '/');
 	*++cp = 0;
-	n = cp-buf;
+	n = cp - buf;
 	m = sysread(ctl, cp, sizeof(buf) - n - 1);
-	if(n<=0){
+	if(n <= 0) {
 		sysclose(ctl);
 		return -1;
 	}
-	buf[n+m] = 0;
+	buf[n + m] = 0;
 
 	strcpy(newdir, buf);
 	return ctl;

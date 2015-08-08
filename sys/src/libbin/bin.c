@@ -14,31 +14,39 @@
 enum
 {
 	StructAlign = sizeof(union {int64_t vl; double d; uint32_t p; void *v;
-				struct{int64_t v;}vs; struct{double d;}ds; struct{uint32_t p;}ss; struct{void *v;}xs;})
-};
+				struct{int64_t v;}
+vs;
+struct {
+	double d;
+} ds;
+struct {
+	uint32_t p;
+} ss;
+struct {
+	void* v;
+} xs;
+})
+}
+;
 
-enum
-{
-	BinSize	= 8*1024
-};
+enum { BinSize = 8 * 1024 };
 
-struct Bin
-{
-	Bin	*next;
-	uint32_t	total;			/* total bytes allocated in can->next */
-	uintptr	pos;
-	uintptr	end;
-	uintptr	v;			/* last value allocated */
-	uint8_t	body[BinSize];
+struct Bin {
+	Bin* next;
+	uint32_t total; /* total bytes allocated in can->next */
+	uintptr pos;
+	uintptr end;
+	uintptr v; /* last value allocated */
+	uint8_t body[BinSize];
 };
 
 /*
  * allocator which allows an entire set to be freed at one time
  */
 static Bin*
-mkbin(Bin *bin, uint32_t size)
+mkbin(Bin* bin, uint32_t size)
 {
-	Bin *b;
+	Bin* b;
 
 	size = ((size << 1) + (BinSize - 1)) & ~(BinSize - 1);
 	b = malloc(sizeof(Bin) + size - BinSize);
@@ -54,15 +62,15 @@ mkbin(Bin *bin, uint32_t size)
 }
 
 void*
-binalloc(Bin **bin, uint32_t size, int zero)
+binalloc(Bin** bin, uint32_t size, int zero)
 {
-	Bin *b;
+	Bin* b;
 	uintptr p;
 
 	if(size == 0)
 		size = 1;
 	b = *bin;
-	if(b == nil){
+	if(b == nil) {
 		b = mkbin(nil, size);
 		if(b == nil)
 			return nil;
@@ -70,7 +78,7 @@ binalloc(Bin **bin, uint32_t size, int zero)
 	}
 	p = b->pos;
 	p = (p + (StructAlign - 1)) & ~(StructAlign - 1);
-	if(p + size > b->end){
+	if(p + size > b->end) {
 		b = mkbin(b, size);
 		if(b == nil)
 			return nil;
@@ -85,15 +93,15 @@ binalloc(Bin **bin, uint32_t size, int zero)
 }
 
 void*
-bingrow(Bin **bin, void *op, uint32_t osize, uint32_t size, int zero)
+bingrow(Bin** bin, void* op, uint32_t osize, uint32_t size, int zero)
 {
-	Bin *b;
-	void *np;
+	Bin* b;
+	void* np;
 	uintptr p;
 
 	p = (uintptr)op;
 	b = *bin;
-	if(b != nil && p == b->v && p + size <= b->end){
+	if(b != nil && p == b->v && p + size <= b->end) {
 		b->pos = p + size;
 		if(zero)
 			memset((char*)p + osize, 0, size - osize);
@@ -107,11 +115,11 @@ bingrow(Bin **bin, void *op, uint32_t osize, uint32_t size, int zero)
 }
 
 void
-binfree(Bin **bin)
+binfree(Bin** bin)
 {
-	Bin *last;
+	Bin* last;
 
-	while(*bin != nil){
+	while(*bin != nil) {
 		last = *bin;
 		*bin = (*bin)->next;
 		last->pos = (uintptr)last->body;

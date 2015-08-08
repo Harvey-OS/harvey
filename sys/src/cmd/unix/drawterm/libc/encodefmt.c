@@ -12,18 +12,18 @@
 #include <ctype.h>
 
 int
-encodefmt(Fmt *f)
+encodefmt(Fmt* f)
 {
-	char *out;
-	char *buf;
+	char* out;
+	char* buf;
 	int len;
 	int ilen;
 	int rv;
-	uint8_t *b;
-	char *p;
-	char obuf[64];	// rsc optimization
+	uint8_t* b;
+	char* p;
+	char obuf[64]; // rsc optimization
 
-	if(!(f->flags&FmtPrec) || f->prec < 1)
+	if(!(f->flags & FmtPrec) || f->prec < 1)
 		goto error;
 
 	b = va_arg(f->args, uint8_t*);
@@ -33,21 +33,21 @@ encodefmt(Fmt *f)
 	ilen = f->prec;
 	f->prec = 0;
 	f->flags &= ~FmtPrec;
-	switch(f->r){
+	switch(f->r) {
 	case '<':
-		len = (8*ilen+4)/5 + 3;
+		len = (8 * ilen + 4) / 5 + 3;
 		break;
 	case '[':
-		len = (8*ilen+5)/6 + 4;
+		len = (8 * ilen + 5) / 6 + 4;
 		break;
 	case 'H':
-		len = 2*ilen + 1;
+		len = 2 * ilen + 1;
 		break;
 	default:
 		goto error;
 	}
 
-	if(len > sizeof(obuf)){
+	if(len > sizeof(obuf)) {
 		buf = malloc(len);
 		if(buf == nil)
 			goto error;
@@ -56,7 +56,7 @@ encodefmt(Fmt *f)
 
 	// convert
 	out = buf;
-	switch(f->r){
+	switch(f->r) {
 	case '<':
 		rv = enc32(out, len, b, ilen);
 		break;

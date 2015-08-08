@@ -20,9 +20,9 @@ typedef unsigned char uchar;
 static uint64_t order = 0x0001020304050607ULL;
 
 static void
-be2vlong(int64_t *to, uint8_t *f)
+be2vlong(int64_t* to, uint8_t* f)
 {
-	uint8_t *t, *o;
+	uint8_t* t, *o;
 	int i;
 
 	t = (uint8_t*)to;
@@ -32,7 +32,7 @@ be2vlong(int64_t *to, uint8_t *f)
 }
 
 int
-gettimeofday(struct timeval *tp, struct timezone *tzp)
+gettimeofday(struct timeval* tp, struct timezone* tzp)
 {
 	uint8_t b[8];
 	int64_t t;
@@ -43,21 +43,21 @@ gettimeofday(struct timeval *tp, struct timezone *tzp)
 	for(;;) {
 		if(fd < 0)
 			if(opened++ ||
-			    (fd = _OPEN("/dev/bintime", OREAD|OCEXEC)) < 0)
+			   (fd = _OPEN("/dev/bintime", OREAD | OCEXEC)) < 0)
 				return 0;
 		if(_PREAD(fd, b, sizeof b, 0) == sizeof b)
-			break;		/* leave fd open for future use */
+			break; /* leave fd open for future use */
 		/* short read, perhaps try again */
 		_CLOSE(fd);
 		fd = -1;
 	}
 	be2vlong(&t, b);
 
-	tp->tv_sec = t/1000000000;
-	tp->tv_usec = (t/1000)%1000000;
+	tp->tv_sec = t / 1000000000;
+	tp->tv_usec = (t / 1000) % 1000000;
 
 	if(tzp) {
-		tzp->tz_minuteswest = 4*60;	/* BUG */
+		tzp->tz_minuteswest = 4 * 60; /* BUG */
 		tzp->tz_dsttime = 1;
 	}
 

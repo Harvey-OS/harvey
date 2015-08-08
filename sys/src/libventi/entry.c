@@ -23,11 +23,11 @@ checksize(int n)
 }
 
 void
-vtentrypack(VtEntry *e, uint8_t *p, int index)
+vtentrypack(VtEntry* e, uint8_t* p, int index)
 {
 	uint32_t t32;
 	int flags;
-	uint8_t *op;
+	uint8_t* op;
 	int depth;
 
 	p += index * VtEntrySize;
@@ -39,8 +39,8 @@ vtentrypack(VtEntry *e, uint8_t *p, int index)
 	p += 2;
 	U16PUT(p, e->dsize);
 	p += 2;
-	depth = e->type&VtTypeDepthMask;
-	flags = (e->flags&~(_VtEntryDir|_VtEntryDepthMask));
+	depth = e->type & VtTypeDepthMask;
+	flags = (e->flags & ~(_VtEntryDir | _VtEntryDepthMask));
 	flags |= depth << _VtEntryDepthShift;
 	if(e->type - depth == VtDirType)
 		flags |= _VtEntryDir;
@@ -53,13 +53,13 @@ vtentrypack(VtEntry *e, uint8_t *p, int index)
 	memmove(p, e->score, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtEntrySize);
+	assert(p - op == VtEntrySize);
 }
 
 int
-vtentryunpack(VtEntry *e, uint8_t *p, int index)
+vtentryunpack(VtEntry* e, uint8_t* p, int index)
 {
-	uint8_t *op;
+	uint8_t* op;
 
 	p += index * VtEntrySize;
 	op = p;
@@ -71,9 +71,9 @@ vtentryunpack(VtEntry *e, uint8_t *p, int index)
 	e->dsize = U16GET(p);
 	p += 2;
 	e->flags = U8GET(p);
-	e->type = (e->flags&_VtEntryDir) ? VtDirType : VtDataType;
+	e->type = (e->flags & _VtEntryDir) ? VtDirType : VtDataType;
 	e->type += (e->flags & _VtEntryDepthMask) >> _VtEntryDepthShift;
-	e->flags &= ~(_VtEntryDir|_VtEntryDepthMask);
+	e->flags &= ~(_VtEntryDir | _VtEntryDepthMask);
 	p++;
 	p += 5;
 	e->size = U48GET(p);
@@ -81,18 +81,18 @@ vtentryunpack(VtEntry *e, uint8_t *p, int index)
 	memmove(e->score, p, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtEntrySize);
-	
+	assert(p - op == VtEntrySize);
+
 	if(!(e->flags & VtEntryActive))
 		return 0;
 
-	/* 
+	/*
 	 * Some old vac files use psize==0 and dsize==0 when the
 	 * file itself has size 0 or is zeros.  Just to make programs not
 	 * have to figure out what block sizes of 0 means, rewrite them.
 	 */
-	if(e->psize == 0 && e->dsize == 0
-	&& memcmp(e->score, vtzeroscore, VtScoreSize) == 0){
+	if(e->psize == 0 && e->dsize == 0 &&
+	   memcmp(e->score, vtzeroscore, VtScoreSize) == 0) {
 		e->psize = 4096;
 		e->dsize = 4096;
 	}
@@ -101,4 +101,3 @@ vtentryunpack(VtEntry *e, uint8_t *p, int index)
 
 	return 0;
 }
-

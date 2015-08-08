@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1997 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -32,30 +32,30 @@
 #include "gp.h"
 
 /* Import the C getenv function. */
-extern char *getenv(const char *);
+extern char* getenv(const char*);
 
 /* Get the value of an environment variable.  See gp.h for details. */
 int
-gp_getenv(const char *key, char *ptr, int *plen)
+gp_getenv(const char* key, char* ptr, int* plen)
 {
-    const char *str = getenv(key);
+	const char* str = getenv(key);
 
-    if (str) {
-	int len = strlen(str);
+	if(str) {
+		int len = strlen(str);
 
-	if (len < *plen) {
-	    /* string fits */
-	    strcpy(ptr, str);
-	    *plen = len + 1;
-	    return 0;
+		if(len < *plen) {
+			/* string fits */
+			strcpy(ptr, str);
+			*plen = len + 1;
+			return 0;
+		}
+		/* string doesn't fit */
+		*plen = len + 1;
+		return -1;
 	}
-	/* string doesn't fit */
-	*plen = len + 1;
-	return -1;
-    }
-    /* missing key */
-    if (*plen > 0)
-	*ptr = 0;
-    *plen = 1;
-    return 1;
+	/* missing key */
+	if(*plen > 0)
+		*ptr = 0;
+	*plen = 1;
+	return 1;
 }

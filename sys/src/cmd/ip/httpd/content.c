@@ -13,27 +13,26 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-typedef struct Suffix	Suffix;
-struct Suffix 
-{
-	Suffix	*next;
-	char	*suffix;
-	char	*generic;
-	char	*specific;
-	char	*encoding;
+typedef struct Suffix Suffix;
+struct Suffix {
+	Suffix* next;
+	char* suffix;
+	char* generic;
+	char* specific;
+	char* encoding;
 };
 
-Suffix	*suffixes = nil;
+Suffix* suffixes = nil;
 
-static	Suffix*			parsesuffix(char*, Suffix*);
-static	char*			skipwhite(char*);
-static	HContents		suffixclass(char*);
-static	char*			towhite(char*);
+static Suffix* parsesuffix(char*, Suffix*);
+static char* skipwhite(char*);
+static HContents suffixclass(char*);
+static char* towhite(char*);
 
 int
-updateQid(int fd, Qid *q)
+updateQid(int fd, Qid* q)
 {
-	Dir *dir;
+	Dir* dir;
 	Qid dq;
 
 	dir = dirfstat(fd);
@@ -50,13 +49,13 @@ updateQid(int fd, Qid *q)
 void
 contentinit(void)
 {
-	static Biobuf *b = nil;
+	static Biobuf* b = nil;
 	static Qid qid;
-	char *file, *s;
-	Suffix *this;
+	char* file, *s;
+	Suffix* this;
 
 	file = "/sys/lib/mimetype";
-	if(b == nil){ /* first time */
+	if(b == nil) { /* first time */
 		b = Bopen(file, OREAD);
 		if(b == nil)
 			sysfatal("can't read from %s", file);
@@ -64,7 +63,7 @@ contentinit(void)
 	if(updateQid(Bfildes(b), &qid) == 0)
 		return;
 	Bseek(b, 0, 0);
-	while(suffixes!=nil){
+	while(suffixes != nil) {
 		this = suffixes;
 		suffixes = suffixes->next;
 		free(this->suffix);
@@ -74,17 +73,17 @@ contentinit(void)
 		free(this);
 	}
 
-	while((s = Brdline(b, '\n')) != nil){
+	while((s = Brdline(b, '\n')) != nil) {
 		s[Blinelen(b) - 1] = 0;
 		suffixes = parsesuffix(s, suffixes);
 	}
 }
 
 static Suffix*
-parsesuffix(char *line, Suffix *suffix)
+parsesuffix(char* line, Suffix* suffix)
 {
-	Suffix *s;
-	char *p, *fields[5];
+	Suffix* s;
+	char* p, *fields[5];
 	int i, nf;
 
 	p = strchr(line, '#');
@@ -105,7 +104,7 @@ parsesuffix(char *line, Suffix *suffix)
 	s = ezalloc(sizeof *s);
 	s->next = suffix;
 	s->suffix = estrdup(fields[0]);
-	if(fields[1] != nil){
+	if(fields[1] != nil) {
 		s->generic = estrdup(fields[1]);
 		s->specific = estrdup(fields[2]);
 	}
@@ -118,25 +117,27 @@ parsesuffix(char *line, Suffix *suffix)
  * classify by file name extensions
  */
 HContents
-uriclass(HConnect *hc, char *name)
+uriclass(HConnect* hc, char* name)
 {
 	HContents conts;
-	Suffix *s;
-	HContent *type, *enc;
-	char *buf, *p;
+	Suffix* s;
+	HContent* type, *enc;
+	char* buf, *p;
 
 	type = nil;
 	enc = nil;
 	if((p = strrchr(name, '/')) != nil)
 		name = p + 1;
 	buf = hstrdup(hc, name);
-	while((p = strrchr(buf, '.')) != nil){
-		for(s = suffixes; s; s = s->next){
-			if(strcmp(p, s->suffix) == 0){
+	while((p = strrchr(buf, '.')) != nil) {
+		for(s = suffixes; s; s = s->next) {
+			if(strcmp(p, s->suffix) == 0) {
 				if(s->generic != nil && type == nil)
-					type = hmkcontent(hc, s->generic, s->specific, nil);
+					type = hmkcontent(hc, s->generic,
+					                  s->specific, nil);
 				if(s->encoding != nil && enc == nil)
-					enc = hmkcontent(hc, s->encoding, nil, nil);
+					enc = hmkcontent(hc, s->encoding, nil,
+					                 nil);
 			}
 		}
 		*p = 0;
@@ -150,24 +151,25 @@ uriclass(HConnect *hc, char *name)
  * classify by initial contents of file
  */
 HContents
-dataclass(HConnect *hc, char *buf, int n)
+dataclass(HConnect* hc, char* buf, int n)
 {
 	HContents conts;
 	Rune r;
 	int c, m;
 
-	for(; n > 0; n -= m){
+	for(; n > 0; n -= m) {
 		c = *buf;
-		if(c < Runeself){
-			if(c < 32 && c != '\n' && c != '\r' && c != '\t' && c != '\v'){
+		if(c < Runeself) {
+			if(c < 32 && c != '\n' && c != '\r' && c != '\t' &&
+			   c != '\v') {
 				conts.type = nil;
 				conts.encoding = nil;
 				return conts;
 			}
 			m = 1;
-		}else{
+		} else {
 			m = chartorune(&r, buf);
-			if(r == Runeerror){
+			if(r == Runeerror) {
 				conts.type = nil;
 				conts.encoding = nil;
 				return conts;

@@ -13,10 +13,10 @@
 #include <venti.h>
 #include <bio.h>
 
-char *host;
+char* host;
 Biobuf b;
-VtConn *z;
-uint8_t *buf;
+VtConn* z;
+uint8_t* buf;
 void run(Biobuf*);
 int nn;
 
@@ -28,17 +28,17 @@ usage(void)
 }
 
 int
-parsescore(uint8_t *score, char *buf, int n)
+parsescore(uint8_t* score, char* buf, int n)
 {
 	int i, c;
 
 	memset(score, 0, VtScoreSize);
 
-	if(n != VtScoreSize*2){
+	if(n != VtScoreSize * 2) {
 		werrstr("score wrong length %d", n);
 		return -1;
 	}
-	for(i=0; i<VtScoreSize*2; i++) {
+	for(i = 0; i < VtScoreSize * 2; i++) {
 		if(buf[i] >= '0' && buf[i] <= '9')
 			c = buf[i] - '0';
 		else if(buf[i] >= 'a' && buf[i] <= 'f')
@@ -53,25 +53,27 @@ parsescore(uint8_t *score, char *buf, int n)
 
 		if((i & 1) == 0)
 			c <<= 4;
-	
-		score[i>>1] |= c;
+
+		score[i >> 1] |= c;
 	}
 	return 0;
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	int fd, i;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'h':
 		host = EARGF(usage());
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	fmtinstall('V', vtscorefmt);
 	buf = vtmallocz(VtMaxLumpSize);
@@ -81,11 +83,11 @@ threadmain(int argc, char *argv[])
 	if(vtconnect(z) < 0)
 		sysfatal("vtconnect: %r");
 
-	if(argc == 0){
+	if(argc == 0) {
 		Binit(&b, 0, OREAD);
 		run(&b);
-	}else{
-		for(i=0; i<argc; i++){
+	} else {
+		for(i = 0; i < argc; i++) {
 			if((fd = open(argv[i], OREAD)) < 0)
 				sysfatal("open %s: %r", argv[i]);
 			Binit(&b, fd, OREAD);
@@ -96,15 +98,15 @@ threadmain(int argc, char *argv[])
 }
 
 void
-run(Biobuf *b)
+run(Biobuf* b)
 {
-	char *p, *f[10];
+	char* p, *f[10];
 	int nf;
 	uint8_t score[20];
 	int type, n;
 
-	while((p = Brdline(b, '\n')) != nil){
-		p[Blinelen(b)-1] = 0;
+	while((p = Brdline(b, '\n')) != nil) {
+		p[Blinelen(b) - 1] = 0;
 		nf = tokenize(p, f, nelem(f));
 		if(nf != 2)
 			sysfatal("syntax error in work list");
@@ -115,7 +117,7 @@ run(Biobuf *b)
 		if(n < 0)
 			sysfatal("could not read %s %s: %r", f[0], f[1]);
 		/* write(1, buf, n); */
-		if(++nn%1000 == 0)
+		if(++nn % 1000 == 0)
 			print("%d...", nn);
 	}
 }

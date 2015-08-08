@@ -40,7 +40,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 static void
 options(Vga* vga, Ctlr* ctlr)
 {
-	ctlr->flag |= Hlinear|Hpclk2x8|Henhanced|Foptions;
+	ctlr->flag |= Hlinear | Hpclk2x8 | Henhanced | Foptions;
 }
 
 void
@@ -77,9 +77,9 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 	 * First determine R:
 	 *	vga->f[1] < 2**R x Fout <= vga->f[1]*2
 	 */
-	for(r = 0; r <= vga->r[1]; r++){
-		f = vga->f[0]*(1<<r);
-		if(vga->f[1] < f && f <= vga->f[1]*2)
+	for(r = 0; r <= vga->r[1]; r++) {
+		f = vga->f[0] * (1 << r);
+		if(vga->f[1] < f && f <= vga->f[1] * 2)
 			vga->r[0] = r;
 	}
 	if(vga->r[0] > vga->r[1])
@@ -88,35 +88,35 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Now find the closest match for M and N.
 	 */
-	vga->d[0] = vga->f[0]+1;
-	for(n = 1; n <= vga->n[1]; n++){
-		trouble = vga->f[0]*(n+2)*(1<<vga->r[0]);
+	vga->d[0] = vga->f[0] + 1;
+	for(n = 1; n <= vga->n[1]; n++) {
+		trouble = vga->f[0] * (n + 2) * (1 << vga->r[0]);
 		trouble /= RefFreq;
-		m = (trouble+0.5) - 2;
+		m = (trouble + 0.5) - 2;
 		if(m > vga->m[1])
 			continue;
 
-		trouble = (m+2)*RefFreq;
-		trouble /= (n+2)*(1<<vga->r[0]);
-		f = trouble+0.5;
+		trouble = (m + 2) * RefFreq;
+		trouble /= (n + 2) * (1 << vga->r[0]);
+		f = trouble + 0.5;
 
 		d = vga->f[0] - f;
 		if(d < 0)
 			d = -d;
-		if(d <= vga->d[0]){
+		if(d <= vga->d[0]) {
 			vga->m[0] = m;
 			vga->n[0] = n;
 			vga->d[0] = d;
 		}
 	}
 
-	trouble = vga->f[0]*1.005;
+	trouble = vga->f[0] * 1.005;
 	fmax = trouble;
-	trouble = vga->f[0]*0.995;
+	trouble = vga->f[0] * 0.995;
 	fmin = trouble;
-	trouble = (vga->m[0]+2)*RefFreq;
-	trouble /= (vga->n[0]+2)*(1<<vga->r[0]);
-	f = trouble+0.5;
+	trouble = (vga->m[0] + 2) * RefFreq;
+	trouble /= (vga->n[0] + 2) * (1 << vga->r[0]);
+	f = trouble + 0.5;
 	if(fmin >= f || f >= fmax)
 		error("%s: pclk %lud out of range\n", ctlr->name, vga->f[0]);
 }
@@ -140,34 +140,32 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vga->f[0] == 0)
 		vga->f[0] = vga->mode->frequency;
 	vga->misc &= ~0x0C;
-	if(vga->f[0] == VgaFreq0){
+	if(vga->f[0] == VgaFreq0) {
 		/* nothing to do */;
-	}
-	else if(vga->f[0] == VgaFreq1)
+	} else if(vga->f[0] == VgaFreq1)
 		vga->misc |= 0x04;
-	else{
+	else {
 		/*
 		 * Part comes in -135MHz speed grade. In 8-bit mode
 		 * the maximum DCLK is 80MHz. In 2x8-bit mode the maximum
 		 * DCLK is 135MHz using the internal clock doubler.
 		 */
-		if((ctlr->flag & Hpclk2x8) && vga->mode->z == 8){
+		if((ctlr->flag & Hpclk2x8) && vga->mode->z == 8) {
 			pclk = 135000000;
 			if(vga->f[0] > 80000000)
 				ctlr->flag |= Upclk2x8;
-		}
-		else
+		} else
 			pclk = 80000000;
 		if(vga->f[0] > pclk)
-			error("%s: invalid pclk - %lud\n",
-				ctlr->name, vga->f[0]);
+			error("%s: invalid pclk - %lud\n", ctlr->name,
+			      vga->f[0]);
 
 		vga->f[1] = 135000000;
 		vga->r[1] = 3;
 		vga->n[1] = 31;
 		vga->m[1] = 127;
 		trio64clock(vga, ctlr);
-		vga->sequencer[0x12] = (vga->r[0]<<5)|vga->n[0];
+		vga->sequencer[0x12] = (vga->r[0] << 5) | vga->n[0];
 		vga->sequencer[0x13] = vga->m[0];
 		vga->misc |= 0x0C;
 	}
@@ -179,7 +177,7 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->sequencer[0x15] |= 0x02;
 	vga->sequencer[0x18] &= ~0x80;
 	vga->crt[0x67] &= ~0xF2;
-	if(ctlr->flag & Upclk2x8){
+	if(ctlr->flag & Upclk2x8) {
 		vga->sequencer[0x15] |= 0x10;
 		vga->sequencer[0x18] |= 0x80;
 		/*
@@ -200,7 +198,7 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Start display FIFO fetch.
 	 */
-	x = vga->crt[0]-5;
+	x = vga->crt[0] - 5;
 	vga->crt[0x3B] = x;
 	if(x & 0x100)
 		vga->crt[0x5D] |= 0x40;
@@ -218,7 +216,7 @@ init(Vga* vga, Ctlr* ctlr)
 	else if(vga->mode->x <= 1024)
 		vga->crt[0x54] = 0xA8;
 	else
-		vga->crt[0x54] = 0x00/*0x48*/;
+		vga->crt[0x54] = 0x00 /*0x48*/;
 
 	ctlr->flag |= Finit;
 }
@@ -242,7 +240,7 @@ load(Vga* vga, Ctlr* ctlr)
 	vgaxo(Seqx, 0x12, vga->sequencer[0x12]);
 	vgaxo(Seqx, 0x13, vga->sequencer[0x13]);
 	if((vga->misc & 0x0C) == 0x0C)
-		vgaxo(Seqx, 0x15, vga->sequencer[0x15]|0x20);
+		vgaxo(Seqx, 0x15, vga->sequencer[0x15] | 0x20);
 	vgaxo(Seqx, 0x15, vga->sequencer[0x15]);
 	vgaxo(Seqx, 0x18, vga->sequencer[0x18]);
 
@@ -270,19 +268,19 @@ dump(Vga* vga, Ctlr* ctlr)
 	printreg(vga->crt[0x2F]);
 
 	n = vga->sequencer[0x12] & 0x1F;
-	r = (vga->sequencer[0x12]>>5) & 0x03;
+	r = (vga->sequencer[0x12] >> 5) & 0x03;
 	m = vga->sequencer[0x13] & 0x7F;
-	dclk = (m+2)*RefFreq;
-	dclk /= (n+2)*(1<<r);
+	dclk = (m + 2) * RefFreq;
+	dclk /= (n + 2) * (1 << r);
 	printitem(ctlr->name, "dclk m n r");
 	Bprint(&stdout, "%9ld %8ld       - %8ld %8ld\n", dclk, m, n, r);
 }
 
 Ctlr trio64 = {
-	"trio64",			/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "trio64", /* name */
+    snarf,    /* snarf */
+    options,  /* options */
+    init,     /* init */
+    load,     /* load */
+    dump,     /* dump */
 };

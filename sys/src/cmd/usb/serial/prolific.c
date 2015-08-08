@@ -16,60 +16,60 @@
 #include "prolific.h"
 
 Cinfo plinfo[] = {
-	{ PL2303Vid,	PL2303Did },
-	{ PL2303Vid,	PL2303DidRSAQ2 },
-	{ PL2303Vid,	PL2303DidDCU11 },
-	{ PL2303Vid,	PL2303DidRSAQ3 },
-	{ PL2303Vid,	PL2303DidPHAROS },
-	{ PL2303Vid,	PL2303DidALDIGA },
-	{ PL2303Vid,	PL2303DidMMX },
-	{ PL2303Vid,	PL2303DidGPRS },
-	{ IODATAVid,	IODATADid },
-	{ IODATAVid,	IODATADidRSAQ5 },
-	{ ATENVid,	ATENDid },
-	{ ATENVid2,	ATENDid },
-	{ ELCOMVid,	ELCOMDid },
-	{ ELCOMVid,	ELCOMDidUCSGT },
-	{ ITEGNOVid,	ITEGNODid },
-	{ ITEGNOVid,	ITEGNODid2080 },
-	{ MA620Vid,	MA620Did },
-	{ RATOCVid,	RATOCDid },
-	{ TRIPPVid,	TRIPPDid },
-	{ RADIOSHACKVid,RADIOSHACKDid },
-	{ DCU10Vid,	DCU10Did },
-	{ SITECOMVid,	SITECOMDid },
-	{ ALCATELVid,	ALCATELDid },
-	{ SAMSUNGVid,	SAMSUNGDid },
-	{ SIEMENSVid,	SIEMENSDidSX1 },
-	{ SIEMENSVid,	SIEMENSDidX65 },
-	{ SIEMENSVid,	SIEMENSDidX75 },
-	{ SIEMENSVid,	SIEMENSDidEF81 },
-	{ SYNTECHVid,	SYNTECHDid },
-	{ NOKIACA42Vid,	NOKIACA42Did },
-	{ CA42CA42Vid,	CA42CA42Did },
-	{ SAGEMVid,	SAGEMDid },
-	{ LEADTEKVid,	LEADTEK9531Did },
-	{ SPEEDDRAGONVid,SPEEDDRAGONDid },
-	{ DATAPILOTU2Vid,DATAPILOTU2Did },
-	{ BELKINVid,	BELKINDid },
-	{ ALCORVid,	ALCORDid },
-	{ WS002INVid,	WS002INDid },
-	{ COREGAVid,	COREGADid },
-	{ YCCABLEVid,	YCCABLEDid },
-	{ SUPERIALVid,	SUPERIALDid },
-	{ HPVid,	HPLD220Did },
-	{ 0,		0 },
+    {PL2303Vid, PL2303Did},
+    {PL2303Vid, PL2303DidRSAQ2},
+    {PL2303Vid, PL2303DidDCU11},
+    {PL2303Vid, PL2303DidRSAQ3},
+    {PL2303Vid, PL2303DidPHAROS},
+    {PL2303Vid, PL2303DidALDIGA},
+    {PL2303Vid, PL2303DidMMX},
+    {PL2303Vid, PL2303DidGPRS},
+    {IODATAVid, IODATADid},
+    {IODATAVid, IODATADidRSAQ5},
+    {ATENVid, ATENDid},
+    {ATENVid2, ATENDid},
+    {ELCOMVid, ELCOMDid},
+    {ELCOMVid, ELCOMDidUCSGT},
+    {ITEGNOVid, ITEGNODid},
+    {ITEGNOVid, ITEGNODid2080},
+    {MA620Vid, MA620Did},
+    {RATOCVid, RATOCDid},
+    {TRIPPVid, TRIPPDid},
+    {RADIOSHACKVid, RADIOSHACKDid},
+    {DCU10Vid, DCU10Did},
+    {SITECOMVid, SITECOMDid},
+    {ALCATELVid, ALCATELDid},
+    {SAMSUNGVid, SAMSUNGDid},
+    {SIEMENSVid, SIEMENSDidSX1},
+    {SIEMENSVid, SIEMENSDidX65},
+    {SIEMENSVid, SIEMENSDidX75},
+    {SIEMENSVid, SIEMENSDidEF81},
+    {SYNTECHVid, SYNTECHDid},
+    {NOKIACA42Vid, NOKIACA42Did},
+    {CA42CA42Vid, CA42CA42Did},
+    {SAGEMVid, SAGEMDid},
+    {LEADTEKVid, LEADTEK9531Did},
+    {SPEEDDRAGONVid, SPEEDDRAGONDid},
+    {DATAPILOTU2Vid, DATAPILOTU2Did},
+    {BELKINVid, BELKINDid},
+    {ALCORVid, ALCORDid},
+    {WS002INVid, WS002INDid},
+    {COREGAVid, COREGADid},
+    {YCCABLEVid, YCCABLEDid},
+    {SUPERIALVid, SUPERIALDid},
+    {HPVid, HPLD220Did},
+    {0, 0},
 };
 
 int
-plmatch(char *info)
+plmatch(char* info)
 {
-	Cinfo *ip;
+	Cinfo* ip;
 	char buf[50];
 
-	for(ip = plinfo; ip->vid != 0; ip++){
-		snprint(buf, sizeof buf, "vid %#06x did %#06x",
-			ip->vid, ip->did);
+	for(ip = plinfo; ip->vid != 0; ip++) {
+		snprint(buf, sizeof buf, "vid %#06x did %#06x", ip->vid,
+		        ip->did);
 		dsprint(2, "serial: %s %s\n", buf, info);
 		if(strstr(info, buf) != nil)
 			return 0;
@@ -77,83 +77,82 @@ plmatch(char *info)
 	return -1;
 }
 
-static void	statusreader(void *u);
+static void statusreader(void* u);
 
 static void
-dumpbuf(uint8_t *buf, int bufsz)
+dumpbuf(uint8_t* buf, int bufsz)
 {
 	int i;
 
-	for(i=0; i<bufsz; i++)
+	for(i = 0; i < bufsz; i++)
 		print("buf[%d]=%#ux ", i, buf[i]);
 	print("\n");
 }
 
 static int
-vendorread(Serialport *p, int val, int index, uint8_t *buf)
+vendorread(Serialport* p, int val, int index, uint8_t* buf)
 {
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
-	dsprint(2, "serial: vendorread val: 0x%x idx:%d buf:%p\n",
-		val, index, buf);
-	res = usbcmd(ser->dev,  Rd2h | Rvendor | Rdev, VendorReadReq,
-		val, index, buf, 1);
+	dsprint(2, "serial: vendorread val: 0x%x idx:%d buf:%p\n", val, index,
+	        buf);
+	res = usbcmd(ser->dev, Rd2h | Rvendor | Rdev, VendorReadReq, val, index,
+	             buf, 1);
 	dsprint(2, "serial: vendorread res:%d\n", res);
 	return res;
 }
 
 static int
-vendorwrite(Serialport *p, int val, int index)
+vendorwrite(Serialport* p, int val, int index)
 {
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
 	dsprint(2, "serial: vendorwrite val: 0x%x idx:%d\n", val, index);
-	res = usbcmd(ser->dev, Rh2d | Rvendor | Rdev, VendorWriteReq,
-		val, index, nil, 0);
+	res = usbcmd(ser->dev, Rh2d | Rvendor | Rdev, VendorWriteReq, val,
+	             index, nil, 0);
 	dsprint(2, "serial: vendorwrite res:%d\n", res);
 	return res;
 }
 
 /* BUG: I could probably read Dcr0 and set only the bits */
 static int
-plmodemctl(Serialport *p, int set)
+plmodemctl(Serialport* p, int set)
 {
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
-	if(set == 0){
+	if(set == 0) {
 		p->mctl = 0;
-		vendorwrite(p, Dcr0Idx|DcrSet, Dcr0Init);
+		vendorwrite(p, Dcr0Idx | DcrSet, Dcr0Init);
 		return 0;
 	}
 
 	p->mctl = 1;
 	if(ser->type == TypeHX)
-		vendorwrite(p, Dcr0Idx|DcrSet, Dcr0Init|Dcr0HwFcX);
+		vendorwrite(p, Dcr0Idx | DcrSet, Dcr0Init | Dcr0HwFcX);
 	else
-		vendorwrite(p, Dcr0Idx|DcrSet, Dcr0Init|Dcr0HwFcH);
+		vendorwrite(p, Dcr0Idx | DcrSet, Dcr0Init | Dcr0HwFcH);
 	return 0;
 }
 
 static int
-plgetparam(Serialport *p)
+plgetparam(Serialport* p)
 {
 	uint8_t buf[ParamReqSz];
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
-
-	res = usbcmd(ser->dev, Rd2h | Rclass | Riface, GetLineReq,
-		0, 0, buf, sizeof buf);
+	res = usbcmd(ser->dev, Rd2h | Rclass | Riface, GetLineReq, 0, 0, buf,
+	             sizeof buf);
 	p->baud = GET4(buf);
 
 	/*
@@ -180,11 +179,11 @@ plgetparam(Serialport *p)
 }
 
 static int
-plsetparam(Serialport *p)
+plsetparam(Serialport* p)
 {
 	uint8_t buf[ParamReqSz];
 	int res;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
@@ -193,17 +192,17 @@ plsetparam(Serialport *p)
 	if(p->stop == 1)
 		buf[4] = 0;
 	else if(p->stop == 2)
-		buf[4] = 2; 			/* see comment in getparam */
+		buf[4] = 2; /* see comment in getparam */
 	buf[5] = p->parity;
 	buf[6] = p->bits;
 
 	dsprint(2, "serial: setparam: ");
 	if(serialdebug)
 		dumpbuf(buf, sizeof buf);
-	res = usbcmd(ser->dev, Rh2d | Rclass | Riface, SetLineReq,
-		0, 0, buf, sizeof buf);
+	res = usbcmd(ser->dev, Rh2d | Rclass | Riface, SetLineReq, 0, 0, buf,
+	             sizeof buf);
 	plmodemctl(p, p->mctl);
-	plgetparam(p);		/* make sure our state corresponds */
+	plgetparam(p); /* make sure our state corresponds */
 
 	dsprint(2, "serial: setparam res: %d\n", res);
 	return res;
@@ -212,7 +211,7 @@ plsetparam(Serialport *p)
 static int
 revid(uint32_t devno)
 {
-	switch(devno){
+	switch(devno) {
 	case RevH:
 		return TypeH;
 	case RevX:
@@ -234,19 +233,19 @@ heuristicid(uint32_t csp, uint32_t maxpkt)
 		return TypeHX;
 	else if(Class(csp) == 0x00 || Class(csp) == 0xFF)
 		return TypeH;
-	else{
+	else {
 		fprint(2, "serial: chip unknown, setting to HX version\n");
 		return TypeHX;
 	}
 }
 
 static int
-plinit(Serialport *p)
+plinit(Serialport* p)
 {
-	char *st;
-	uint8_t *buf;
+	char* st;
+	uint8_t* buf;
 	uint32_t csp, maxpkt, dno;
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 	buf = emallocz(VendorReqSz, 1);
@@ -270,13 +269,13 @@ plinit(Serialport *p)
 	vendorread(p, 0x8484, 0, buf);
 	vendorread(p, 0x8383, 0, buf);
 
-	vendorwrite(p, Dcr0Idx|DcrSet, Dcr0Init);
-	vendorwrite(p, Dcr1Idx|DcrSet, Dcr1Init);
+	vendorwrite(p, Dcr0Idx | DcrSet, Dcr0Init);
+	vendorwrite(p, Dcr1Idx | DcrSet, Dcr1Init);
 
 	if(ser->type == TypeHX)
-		vendorwrite(p, Dcr2Idx|DcrSet, Dcr2InitX);
+		vendorwrite(p, Dcr2Idx | DcrSet, Dcr2InitX);
 	else
-		vendorwrite(p, Dcr2Idx|DcrSet, Dcr2InitH);
+		vendorwrite(p, Dcr2Idx | DcrSet, Dcr2InitH);
 
 	plgetparam(p);
 	qunlock(ser);
@@ -289,31 +288,31 @@ plinit(Serialport *p)
 	free(st);
 	/* p gets freed by closedev, the process has a reference */
 	incref(ser->dev);
-	proccreate(statusreader, p, 8*1024);
+	proccreate(statusreader, p, 8 * 1024);
 	return 0;
 }
 
 static int
-plsetbreak(Serialport *p, int val)
+plsetbreak(Serialport* p, int val)
 {
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 	return usbcmd(ser->dev, Rh2d | Rclass | Riface,
-		(val != 0? BreakOn: BreakOff), val, 0, nil, 0);
+	              (val != 0 ? BreakOn : BreakOff), val, 0, nil, 0);
 }
 
 static int
-plclearpipes(Serialport *p)
+plclearpipes(Serialport* p)
 {
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
-	if(ser->type == TypeHX){
+	if(ser->type == TypeHX) {
 		vendorwrite(p, PipeDSRst, 0);
 		vendorwrite(p, PipeUSRst, 0);
-	}else{
+	} else {
 		if(unstall(ser->dev, p->epout, Eout) < 0)
 			dprint(2, "disk: unstall epout: %r\n");
 		if(unstall(ser->dev, p->epin, Ein) < 0)
@@ -325,17 +324,17 @@ plclearpipes(Serialport *p)
 }
 
 static int
-setctlline(Serialport *p, uint8_t val)
+setctlline(Serialport* p, uint8_t val)
 {
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
-	return usbcmd(ser->dev, Rh2d | Rclass | Riface, SetCtlReq,
-		val, 0, nil, 0);
+	return usbcmd(ser->dev, Rh2d | Rclass | Riface, SetCtlReq, val, 0, nil,
+	              0);
 }
 
 static void
-composectl(Serialport *p)
+composectl(Serialport* p)
 {
 	if(p->rts)
 		p->ctlstate |= CtlRTS;
@@ -348,7 +347,7 @@ composectl(Serialport *p)
 }
 
 static int
-plsendlines(Serialport *p)
+plsendlines(Serialport* p)
 {
 	int res;
 
@@ -360,12 +359,12 @@ plsendlines(Serialport *p)
 }
 
 static int
-plreadstatus(Serialport *p)
+plreadstatus(Serialport* p)
 {
 	int nr, dfd;
 	char err[40];
 	uint8_t buf[VendorReqSz];
-	Serial *ser;
+	Serial* ser;
 
 	ser = p->s;
 
@@ -379,16 +378,16 @@ plreadstatus(Serialport *p)
 	snprint(err, sizeof err, "%r");
 	dsprint(2, "serial: interrupt read %d %r\n", nr);
 
-	if(nr < 0 && strstr(err, "timed out") == nil){
+	if(nr < 0 && strstr(err, "timed out") == nil) {
 		dsprint(2, "serial: need to recover, status read %d %r\n", nr);
-		if(serialrecover(ser, nil, nil, err) < 0){
+		if(serialrecover(ser, nil, nil, err) < 0) {
 			qunlock(ser);
 			return -1;
 		}
 	}
 	if(nr < 0)
 		dsprint(2, "serial: reading status: %r");
-	else if(nr >= sizeof buf - 1){
+	else if(nr >= sizeof buf - 1) {
 		p->dcd = buf[8] & DcdStatus;
 		p->dsr = buf[8] & DsrStatus;
 		p->cts = buf[8] & BreakerrStatus;
@@ -408,10 +407,10 @@ plreadstatus(Serialport *p)
 }
 
 static void
-statusreader(void *u)
+statusreader(void* u)
 {
-	Serialport *p;
-	Serial *ser;
+	Serialport* p;
+	Serial* ser;
 
 	p = u;
 	ser = p->s;
@@ -428,20 +427,20 @@ statusreader(void *u)
  */
 
 static int
-plseteps(Serialport *p)
+plseteps(Serialport* p)
 {
-	devctl(p->epin,  "maxpkt 256");
+	devctl(p->epin, "maxpkt 256");
 	devctl(p->epout, "maxpkt 256");
 	return 0;
 }
 
 Serialops plops = {
-	.init		= plinit,
-	.getparam	= plgetparam,
-	.setparam	= plsetparam,
-	.clearpipes	= plclearpipes,
-	.sendlines	= plsendlines,
-	.modemctl	= plmodemctl,
-	.setbreak	= plsetbreak,
-	.seteps		= plseteps,
+    .init = plinit,
+    .getparam = plgetparam,
+    .setparam = plsetparam,
+    .clearpipes = plclearpipes,
+    .sendlines = plsendlines,
+    .modemctl = plmodemctl,
+    .setbreak = plsetbreak,
+    .seteps = plseteps,
 };

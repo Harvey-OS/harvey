@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#define	NFLAG	128
+#define NFLAG 128
 
-extern char **flag[NFLAG];
-extern char *cmdname;
-extern char *flagset[];
+extern char** flag[NFLAG];
+extern char* cmdname;
+extern char* flagset[];
 
-int getflags(int, char*[], char*, int);
+int getflags(int, char* [], char*, int);

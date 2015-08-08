@@ -17,51 +17,51 @@
 
 /*
  * Vac file system.  This is a simplified version of the same code in Fossil.
- * 
+ *
  * The locking order in the tree is upward: a thread can hold the lock
  * for a VacFile and then acquire the lock of f->up (the parent),
  * but not vice-versa.
- * 
+ *
  * A vac file is one or two venti files.  Plain data files are one venti file,
  * while directores are two: a venti data file containing traditional
- * directory entries, and a venti directory file containing venti 
+ * directory entries, and a venti directory file containing venti
  * directory entries.  The traditional directory entries in the data file
  * contain integers indexing into the venti directory entry file.
  * It's a little complicated, but it makes the data usable by standard
  * tools like venti/copy.
  *
  */
- 
+
 static int filemetaflush(VacFile*, char*);
 
-struct VacFile
-{
-	VacFs	*fs;	/* immutable */
+struct VacFile {
+	VacFs* fs; /* immutable */
 
 	/* meta data for file: protected by the lk in the parent */
-	int		ref;	/* holds this data structure up */
+	int ref; /* holds this data structure up */
 
-	int		partial;	/* file was never really open */
-	int		removed;	/* file has been removed */
-	int		dirty;	/* dir is dirty with respect to meta data in block */
-	uint32_t	boff;		/* block offset within msource for this file's metadata */
-	VacDir	dir;		/* metadata for this file */
-	VacFile	*up;		/* parent file */
-	VacFile	*next;	/* sibling */
+	int partial; /* file was never really open */
+	int removed; /* file has been removed */
+	int dirty;   /* dir is dirty with respect to meta data in block */
+	uint32_t
+	    boff;    /* block offset within msource for this file's metadata */
+	VacDir dir;  /* metadata for this file */
+	VacFile* up; /* parent file */
+	VacFile* next; /* sibling */
 
-	RWLock	lk;		/* lock for the following */
-	VtFile	*source;	/* actual data */
-	VtFile	*msource;	/* metadata for children in a directory */
-	VacFile	*down;	/* children */
-	int		mode;
-	
-	uint64_t	qidoffset;	/* qid offset */
+	RWLock lk;       /* lock for the following */
+	VtFile* source;  /* actual data */
+	VtFile* msource; /* metadata for children in a directory */
+	VacFile* down;   /* children */
+	int mode;
+
+	uint64_t qidoffset; /* qid offset */
 };
 
 static VacFile*
-filealloc(VacFs *fs)
+filealloc(VacFs* fs)
 {
-	VacFile *f;
+	VacFile* f;
 
 	f = vtmallocz(sizeof(VacFile));
 	f->ref = 1;
@@ -72,23 +72,22 @@ filealloc(VacFs *fs)
 }
 
 static void
-filefree(VacFile *f)
+filefree(VacFile* f)
 {
 	vtfileclose(f->source);
 	vtfileclose(f->msource);
 	vdcleanup(&f->dir);
-	memset(f, ~0, sizeof *f);	/* paranoia */
+	memset(f, ~0, sizeof *f); /* paranoia */
 	vtfree(f);
 }
 
 static int
-chksource(VacFile *f)
+chksource(VacFile* f)
 {
 	if(f->partial)
 		return 0;
 
-	if(f->source == nil
-	|| ((f->dir.mode & ModeDir) && f->msource == nil)){
+	if(f->source == nil || ((f->dir.mode & ModeDir) && f->msource == nil)) {
 		werrstr(ERemoved);
 		return -1;
 	}
@@ -96,10 +95,10 @@ chksource(VacFile *f)
 }
 
 static int
-filelock(VacFile *f)
+filelock(VacFile* f)
 {
 	wlock(&f->lk);
-	if(chksource(f) < 0){
+	if(chksource(f) < 0) {
 		wunlock(&f->lk);
 		return -1;
 	}
@@ -107,16 +106,16 @@ filelock(VacFile *f)
 }
 
 static void
-fileunlock(VacFile *f)
+fileunlock(VacFile* f)
 {
 	wunlock(&f->lk);
 }
 
 static int
-filerlock(VacFile *f)
+filerlock(VacFile* f)
 {
 	rlock(&f->lk);
-	if(chksource(f) < 0){
+	if(chksource(f) < 0) {
 		runlock(&f->lk);
 		return -1;
 	}
@@ -124,7 +123,7 @@ filerlock(VacFile *f)
 }
 
 static void
-filerunlock(VacFile *f)
+filerunlock(VacFile* f)
 {
 	runlock(&f->lk);
 }
@@ -135,33 +134,33 @@ filerunlock(VacFile *f)
  * This is why locking order goes up.
  */
 static void
-filemetalock(VacFile *f)
+filemetalock(VacFile* f)
 {
 	assert(f->up != nil);
 	wlock(&f->up->lk);
 }
 
 static void
-filemetaunlock(VacFile *f)
+filemetaunlock(VacFile* f)
 {
 	wunlock(&f->up->lk);
 }
 
 uint64_t
-vacfilegetid(VacFile *f)
+vacfilegetid(VacFile* f)
 {
 	/* immutable */
 	return f->qidoffset + f->dir.qid;
 }
 
 uint64_t
-vacfilegetqidoffset(VacFile *f)
+vacfilegetqidoffset(VacFile* f)
 {
 	return f->qidoffset;
 }
 
 uint32_t
-vacfilegetmcount(VacFile *f)
+vacfilegetmcount(VacFile* f)
 {
 	uint32_t mcount;
 
@@ -172,7 +171,7 @@ vacfilegetmcount(VacFile *f)
 }
 
 uint32_t
-vacfilegetmode(VacFile *f)
+vacfilegetmode(VacFile* f)
 {
 	uint32_t mode;
 
@@ -183,14 +182,14 @@ vacfilegetmode(VacFile *f)
 }
 
 int
-vacfileisdir(VacFile *f)
+vacfileisdir(VacFile* f)
 {
 	/* immutable */
 	return (f->dir.mode & ModeDir) != 0;
 }
 
 int
-vacfileisroot(VacFile *f)
+vacfileisroot(VacFile* f)
 {
 	return f == f->fs->root;
 }
@@ -204,7 +203,7 @@ vacfileisroot(VacFile *f)
  * Each VacFile holds a reference to its parent.
  */
 VacFile*
-vacfileincref(VacFile *vf)
+vacfileincref(VacFile* vf)
 {
 	filemetalock(vf);
 	assert(vf->ref > 0);
@@ -214,31 +213,31 @@ vacfileincref(VacFile *vf)
 }
 
 int
-vacfiledecref(VacFile *f)
+vacfiledecref(VacFile* f)
 {
-	VacFile *p, *q, **qq;
+	VacFile* p, *q, **qq;
 
-	if(f->up == nil){
+	if(f->up == nil) {
 		/* never linked in */
 		assert(f->ref == 1);
 		filefree(f);
 		return 0;
 	}
-	
+
 	filemetalock(f);
 	f->ref--;
-	if(f->ref > 0){
+	if(f->ref > 0) {
 		filemetaunlock(f);
 		return -1;
 	}
 	assert(f->ref == 0);
 	assert(f->down == nil);
 
-	if(f->source && vtfilelock(f->source, -1) >= 0){
+	if(f->source && vtfilelock(f->source, -1) >= 0) {
 		vtfileflush(f->source);
 		vtfileunlock(f->source);
 	}
-	if(f->msource && vtfilelock(f->msource, -1) >= 0){
+	if(f->msource && vtfilelock(f->msource, -1) >= 0) {
 		vtfileflush(f->msource);
 		vtfileunlock(f->msource);
 	}
@@ -250,7 +249,7 @@ vacfiledecref(VacFile *f)
 
 	p = f->up;
 	qq = &p->down;
-	for(q = *qq; q; q = *qq){
+	for(q = *qq; q; q = *qq) {
 		if(q == f)
 			break;
 		qq = &q->next;
@@ -264,13 +263,12 @@ vacfiledecref(VacFile *f)
 	return 0;
 }
 
-
-/* 
- * Construct a vacfile for the root of a vac tree, given the 
- * venti file for the root information.  That venti file is a 
+/*
+ * Construct a vacfile for the root of a vac tree, given the
+ * venti file for the root information.  That venti file is a
  * directory file containing VtEntries for three more venti files:
- * the two venti files making up the root directory, and a 
- * third venti file that would be the metadata half of the 
+ * the two venti files making up the root directory, and a
+ * third venti file that would be the metadata half of the
  * "root's parent".
  *
  * Fossil generates slightly different vac files, due to a now
@@ -279,15 +277,15 @@ vacfiledecref(VacFile *f)
  * three directory entries.  Sigh.
  */
 VacFile*
-_vacfileroot(VacFs *fs, VtFile *r)
+_vacfileroot(VacFs* fs, VtFile* r)
 {
 	int redirected;
-	char err[ERRMAX];	
-	VtBlock *b;
-	VtFile *r0, *r1, *r2;
+	char err[ERRMAX];
+	VtBlock* b;
+	VtFile* r0, *r1, *r2;
 	MetaBlock mb;
 	MetaEntry me;
-	VacFile *root, *mr;
+	VacFile* root, *mr;
 
 	redirected = 0;
 Top:
@@ -307,13 +305,13 @@ Top:
 	r2 = vtfileopen(r, 2, fs->mode);
 	if(debug)
 		fprint(2, "r2 %p\n", r2);
-	if(r2 == nil){
+	if(r2 == nil) {
 		/*
 		 * some vac files (e.g., from fossil)
 		 * have an extra layer of indirection.
 		 */
 		rerrstr(err, sizeof err);
-		if(!redirected && strstr(err, "not active")){
+		if(!redirected && strstr(err, "not active")) {
 			redirected = 1;
 			vtfileunlock(r);
 			r = r0;
@@ -383,37 +381,37 @@ Err1:
  * to look at every block to find a given name.
  * Dirlookup looks in f for an element name elem.
  * It returns a new VacFile with the dir, boff, and mode
- * filled in, but the sources (venti files) are not, and f is 
+ * filled in, but the sources (venti files) are not, and f is
  * not yet linked into the tree.  These details must be taken
  * care of by the caller.
  *
  * f must be locked, f->msource must not.
  */
 static VacFile*
-dirlookup(VacFile *f, char *elem)
+dirlookup(VacFile* f, char* elem)
 {
 	int i;
 	MetaBlock mb;
 	MetaEntry me;
-	VtBlock *b;
-	VtFile *meta;
-	VacFile *ff;
+	VtBlock* b;
+	VtFile* meta;
+	VacFile* ff;
 	uint32_t bo, nb;
 
 	meta = f->msource;
 	b = nil;
 	if(vtfilelock(meta, -1) < 0)
 		return nil;
-	nb = (vtfilegetsize(meta)+meta->dsize-1)/meta->dsize;
-	for(bo=0; bo<nb; bo++){
+	nb = (vtfilegetsize(meta) + meta->dsize - 1) / meta->dsize;
+	for(bo = 0; bo < nb; bo++) {
 		b = vtfileblock(meta, bo, VtOREAD);
 		if(b == nil)
 			goto Err;
 		if(mbunpack(&mb, b->data, meta->dsize) < 0)
 			goto Err;
-		if(mbsearch(&mb, elem, &i, &me) >= 0){
+		if(mbsearch(&mb, elem, &i, &me) >= 0) {
 			ff = filealloc(f->fs);
-			if(vdunpack(&ff->dir, &me) < 0){
+			if(vdunpack(&ff->dir, &me) < 0) {
 				filefree(ff);
 				goto Err;
 			}
@@ -428,7 +426,7 @@ dirlookup(VacFile *f, char *elem)
 		b = nil;
 	}
 	werrstr(ENoFile);
-	/* fall through */
+/* fall through */
 Err:
 	vtfileunlock(meta);
 	vtblockput(b);
@@ -439,22 +437,21 @@ Err:
  * Open the venti file at offset in the directory f->source.
  * f is locked.
  */
-static VtFile *
-fileopensource(VacFile *f, uint32_t offset, uint32_t gen, int dir,
-	       uint mode)
+static VtFile*
+fileopensource(VacFile* f, uint32_t offset, uint32_t gen, int dir, uint mode)
 {
-	VtFile *r;
+	VtFile* r;
 
 	if((r = vtfileopen(f->source, offset, mode)) == nil)
 		return nil;
 	if(r == nil)
 		return nil;
-	if(r->gen != gen){
+	if(r->gen != gen) {
 		werrstr(ERemoved);
 		vtfileclose(r);
 		return nil;
 	}
-	if(r->dir != dir && r->mode != -1){
+	if(r->dir != dir && r->mode != -1) {
 		werrstr(EBadMeta);
 		vtfileclose(r);
 		return nil;
@@ -463,7 +460,7 @@ fileopensource(VacFile *f, uint32_t offset, uint32_t gen, int dir,
 }
 
 VacFile*
-vacfilegetparent(VacFile *f)
+vacfilegetparent(VacFile* f)
 {
 	if(vacfileisroot(f))
 		return vacfileincref(f);
@@ -476,16 +473,16 @@ vacfilegetparent(VacFile *f)
  * Interprets . and .. as a convenience to callers.
  */
 VacFile*
-vacfilewalk(VacFile *f, char *elem)
+vacfilewalk(VacFile* f, char* elem)
 {
-	VacFile *ff;
+	VacFile* ff;
 
-	if(elem[0] == 0){
+	if(elem[0] == 0) {
 		werrstr(EBadPath);
 		return nil;
 	}
 
-	if(!vacfileisdir(f)){
+	if(!vacfileisdir(f)) {
 		werrstr(ENotDir);
 		return nil;
 	}
@@ -499,8 +496,8 @@ vacfilewalk(VacFile *f, char *elem)
 	if(filelock(f) < 0)
 		return nil;
 
-	for(ff = f->down; ff; ff=ff->next){
-		if(strcmp(elem, ff->dir.elem) == 0 && !ff->removed){
+	for(ff = f->down; ff; ff = ff->next) {
+		if(strcmp(elem, ff->dir.elem) == 0 && !ff->removed) {
 			ff->ref++;
 			goto Exit;
 		}
@@ -515,13 +512,16 @@ vacfilewalk(VacFile *f, char *elem)
 
 	if(vtfilelock(f->source, f->mode) < 0)
 		goto Err;
-	if(ff->dir.mode & ModeDir){
-		ff->source = fileopensource(f, ff->dir.entry, ff->dir.gen, 1, ff->mode);
-		ff->msource = fileopensource(f, ff->dir.mentry, ff->dir.mgen, 0, ff->mode);
+	if(ff->dir.mode & ModeDir) {
+		ff->source =
+		    fileopensource(f, ff->dir.entry, ff->dir.gen, 1, ff->mode);
+		ff->msource = fileopensource(f, ff->dir.mentry, ff->dir.mgen, 0,
+		                             ff->mode);
 		if(ff->source == nil || ff->msource == nil)
 			goto Err1;
-	}else{
-		ff->source = fileopensource(f, ff->dir.entry, ff->dir.gen, 0, ff->mode);
+	} else {
+		ff->source =
+		    fileopensource(f, ff->dir.entry, ff->dir.gen, 0, ff->mode);
 		if(ff->source == nil)
 			goto Err1;
 	}
@@ -545,34 +545,35 @@ Err:
 	return nil;
 }
 
-/* 
- * Open a path in the vac file system: 
+/*
+ * Open a path in the vac file system:
  * just walk each element one at a time.
  */
 VacFile*
-vacfileopen(VacFs *fs, char *path)
+vacfileopen(VacFs* fs, char* path)
 {
-	VacFile *f, *ff;
-	char *p, elem[VtMaxStringSize], *opath;
+	VacFile* f, *ff;
+	char* p, elem[VtMaxStringSize], *opath;
 	int n;
 
 	f = fs->root;
 	vacfileincref(f);
 	opath = path;
-	while(*path != 0){
+	while(*path != 0) {
 		for(p = path; *p && *p != '/'; p++)
 			;
 		n = p - path;
-		if(n > 0){
-			if(n > VtMaxStringSize){
+		if(n > 0) {
+			if(n > VtMaxStringSize) {
 				werrstr("%s: element too long", EBadPath);
 				goto Err;
 			}
 			memmove(elem, path, n);
 			elem[n] = 0;
 			ff = vacfilewalk(f, elem);
-			if(ff == nil){
-				werrstr("%.*s: %r", utfnlen(opath, p-opath), opath);
+			if(ff == nil) {
+				werrstr("%.*s: %r", utfnlen(opath, p - opath),
+				        opath);
 				goto Err;
 			}
 			vacfiledecref(f);
@@ -592,9 +593,9 @@ Err:
  * Extract the score for the bn'th block in f.
  */
 int
-vacfileblockscore(VacFile *f, uint32_t bn, uint8_t *score)
+vacfileblockscore(VacFile* f, uint32_t bn, uint8_t* score)
 {
-	VtFile *s;
+	VtFile* s;
 	uint64_t size;
 	int dsize, ret;
 
@@ -607,7 +608,7 @@ vacfileblockscore(VacFile *f, uint32_t bn, uint8_t *score)
 	s = f->source;
 	dsize = s->dsize;
 	size = vtfilegetsize(s);
-	if((uint64_t)bn*dsize >= size)
+	if((uint64_t)bn * dsize >= size)
 		goto out1;
 	ret = vtfileblockscore(f->source, bn, score);
 
@@ -622,17 +623,17 @@ out:
  * Read data from f.
  */
 int
-vacfileread(VacFile *f, void *buf, int cnt, int64_t offset)
+vacfileread(VacFile* f, void* buf, int cnt, int64_t offset)
 {
 	int n;
 
-	if(offset < 0){
+	if(offset < 0) {
 		werrstr(EBadOffset);
 		return -1;
 	}
 	if(filerlock(f) < 0)
 		return -1;
-	if(vtfilelock(f->source, VtOREAD) < 0){
+	if(vtfilelock(f->source, VtOREAD) < 0) {
 		filerunlock(f);
 		return -1;
 	}
@@ -643,16 +644,16 @@ vacfileread(VacFile *f, void *buf, int cnt, int64_t offset)
 }
 
 static int
-getentry(VtFile *f, VtEntry *e)
+getentry(VtFile* f, VtEntry* e)
 {
 	if(vtfilelock(f, VtOREAD) < 0)
 		return -1;
-	if(vtfilegetentry(f, e) < 0){
+	if(vtfilegetentry(f, e) < 0) {
 		vtfileunlock(f);
 		return -1;
 	}
 	vtfileunlock(f);
-	if(vtglobaltolocal(e->score) != NilBlock){
+	if(vtglobaltolocal(e->score) != NilBlock) {
 		werrstr("internal error - data not on venti");
 		return -1;
 	}
@@ -663,18 +664,18 @@ getentry(VtFile *f, VtEntry *e)
  * Get the VtEntries for the data contained in f.
  */
 int
-vacfilegetentries(VacFile *f, VtEntry *e, VtEntry *me)
+vacfilegetentries(VacFile* f, VtEntry* e, VtEntry* me)
 {
 	if(filerlock(f) < 0)
 		return -1;
-	if(e && getentry(f->source, e) < 0){
+	if(e && getentry(f->source, e) < 0) {
 		filerunlock(f);
 		return -1;
 	}
-	if(me){
+	if(me) {
 		if(f->msource == nil)
 			memset(me, 0, sizeof *me);
-		else if(getentry(f->msource, me) < 0){
+		else if(getentry(f->msource, me) < 0) {
 			filerunlock(f);
 			return -1;
 		}
@@ -687,11 +688,11 @@ vacfilegetentries(VacFile *f, VtEntry *e, VtEntry *me)
  * Get the file's size.
  */
 int
-vacfilegetsize(VacFile *f, uint64_t *size)
+vacfilegetsize(VacFile* f, uint64_t* size)
 {
 	if(filerlock(f) < 0)
 		return -1;
-	if(vtfilelock(f->source, VtOREAD) < 0){
+	if(vtfilelock(f->source, VtOREAD) < 0) {
 		filerunlock(f);
 		return -1;
 	}
@@ -706,21 +707,21 @@ vacfilegetsize(VacFile *f, uint64_t *size)
  * Directory reading.
  *
  * A VacDirEnum is a buffer containing directory entries.
- * Directory entries contain malloced strings and need to 
- * be cleaned up with vdcleanup.  The invariant in the 
+ * Directory entries contain malloced strings and need to
+ * be cleaned up with vdcleanup.  The invariant in the
  * VacDirEnum is that the directory entries between
  * vde->i and vde->n are owned by the vde and need to
  * be cleaned up if it is closed.  Those from 0 up to vde->i
- * have been handed to the reader, and the reader must 
+ * have been handed to the reader, and the reader must
  * take care of calling vdcleanup as appropriate.
  */
 VacDirEnum*
-vdeopen(VacFile *f)
+vdeopen(VacFile* f)
 {
-	VacDirEnum *vde;
-	VacFile *p;
+	VacDirEnum* vde;
+	VacFile* p;
 
-	if(!vacfileisdir(f)){
+	if(!vacfileisdir(f)) {
 		werrstr(ENotDir);
 		return nil;
 	}
@@ -728,13 +729,13 @@ vdeopen(VacFile *f)
 	/*
 	 * There might be changes to this directory's children
 	 * that have not been flushed out into the cache yet.
-	 * Those changes are only available if we look at the 
+	 * Those changes are only available if we look at the
 	 * VacFile structures directory.  But the directory reader
 	 * is going to read the cache blocks directly, so update them.
 	 */
 	if(filelock(f) < 0)
 		return nil;
-	for(p=f->down; p; p=p->next)
+	for(p = f->down; p; p = p->next)
 		filemetaflush(p, nil);
 	fileunlock(f);
 
@@ -752,16 +753,16 @@ vdeopen(VacFile *f)
  * each time the file size changes.
  */
 static int
-direntrysize(VtFile *s, uint32_t offset, uint32_t gen, uint64_t *size)
+direntrysize(VtFile* s, uint32_t offset, uint32_t gen, uint64_t* size)
 {
-	VtBlock *b;
+	VtBlock* b;
 	uint32_t bn;
 	VtEntry e;
 	int epb;
 
-	epb = s->dsize/VtEntrySize;
-	bn = offset/epb;
-	offset -= bn*epb;
+	epb = s->dsize / VtEntrySize;
+	bn = offset / epb;
+	offset -= bn * epb;
 
 	b = vtfileblock(s, bn, VtOREAD);
 	if(b == nil)
@@ -786,19 +787,19 @@ Err:
  * Fill in vde with a new batch of directory entries.
  */
 static int
-vdefill(VacDirEnum *vde)
+vdefill(VacDirEnum* vde)
 {
 	int i, n;
-	VtFile *meta, *source;
+	VtFile* meta, *source;
 	MetaBlock mb;
 	MetaEntry me;
-	VacFile *f;
-	VtBlock *b;
-	VacDir *de;
+	VacFile* f;
+	VtBlock* b;
+	VacDir* de;
 
 	/* clean up first */
-	for(i=vde->i; i<vde->n; i++)
-		vdcleanup(vde->buf+i);
+	for(i = vde->i; i < vde->n; i++)
+		vdcleanup(vde->buf + i);
 	vtfree(vde->buf);
 	vde->buf = nil;
 	vde->i = 0;
@@ -818,15 +819,16 @@ vdefill(VacDirEnum *vde)
 	n = mb.nindex;
 	vde->buf = vtmalloc(n * sizeof(VacDir));
 
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		de = vde->buf + i;
 		meunpack(&me, &mb, i);
 		if(vdunpack(de, &me) < 0)
 			goto Err;
 		vde->n++;
 		if(!(de->mode & ModeDir))
-		if(direntrysize(source, de->entry, de->gen, &de->size) < 0)
-			goto Err;
+			if(direntrysize(source, de->entry, de->gen, &de->size) <
+			   0)
+				goto Err;
 	}
 	vde->boff++;
 	vtblockput(b);
@@ -844,29 +846,30 @@ Err:
  * inside, or else to call vdunread to give it back.
  */
 int
-vderead(VacDirEnum *vde, VacDir *de)
+vderead(VacDirEnum* vde, VacDir* de)
 {
 	int ret;
-	VacFile *f;
+	VacFile* f;
 	uint32_t nb;
 
 	f = vde->file;
 	if(filerlock(f) < 0)
 		return -1;
 
-	if(vtfilelock2(f->source, f->msource, VtOREAD) < 0){
+	if(vtfilelock2(f->source, f->msource, VtOREAD) < 0) {
 		filerunlock(f);
 		return -1;
 	}
 
-	nb = (vtfilegetsize(f->msource)+f->msource->dsize-1)/f->msource->dsize;
+	nb = (vtfilegetsize(f->msource) + f->msource->dsize - 1) /
+	     f->msource->dsize;
 
-	while(vde->i >= vde->n){
-		if(vde->boff >= nb){
+	while(vde->i >= vde->n) {
+		if(vde->boff >= nb) {
 			ret = 0;
 			goto Return;
 		}
-		if(vdefill(vde) < 0){
+		if(vdefill(vde) < 0) {
 			ret = -1;
 			goto Return;
 		}
@@ -891,9 +894,9 @@ Return:
  * vdcleanup on the entry being "unread".
  */
 int
-vdeunread(VacDirEnum *vde)
+vdeunread(VacDirEnum* vde)
 {
-	if(vde->i > 0){
+	if(vde->i > 0) {
 		vde->i--;
 		return 0;
 	}
@@ -904,37 +907,36 @@ vdeunread(VacDirEnum *vde)
  * Close the enumerator.
  */
 void
-vdeclose(VacDirEnum *vde)
+vdeclose(VacDirEnum* vde)
 {
 	int i;
 	if(vde == nil)
 		return;
 	/* free the strings */
-	for(i=vde->i; i<vde->n; i++)
-		vdcleanup(vde->buf+i);
+	for(i = vde->i; i < vde->n; i++)
+		vdcleanup(vde->buf + i);
 	vtfree(vde->buf);
 	vacfiledecref(vde->file);
 	vtfree(vde);
 }
 
-
 /*
  * On to mutation.  If the vac file system has been opened
  * read-write, then the files and directories can all be edited.
  * Changes are kept in the in-memory cache until flushed out
- * to venti, so we must be careful to explicitly flush data 
+ * to venti, so we must be careful to explicitly flush data
  * that we're not likely to modify again.
  *
  * Each VacFile has its own copy of its VacDir directory entry
  * in f->dir, but otherwise the cache is the authoratative source
- * for data.  Thus, for the most part, it suffices if we just 
+ * for data.  Thus, for the most part, it suffices if we just
  * call vtfileflushbefore and vtfileflush when we modify things.
  * There are a few places where we have to remember to write
  * changed VacDirs back into the cache.  If f->dir *is* out of sync,
  * then f->dirty should be set.
  *
  * The metadata in a directory is, to venti, a plain data file,
- * but as mentioned above it is actually a sequence of 
+ * but as mentioned above it is actually a sequence of
  * MetaBlocks that contain sorted lists of VacDir entries.
  * The filemetaxxx routines manipulate that stream.
  */
@@ -949,38 +951,38 @@ vdeclose(VacDirEnum *vde)
  * vtfilelock'ed f->up->msource.
  */
 static uint32_t
-filemetaalloc(VacFile *fp, VacDir *dir, uint32_t start)
+filemetaalloc(VacFile* fp, VacDir* dir, uint32_t start)
 {
 	uint32_t nb, bo;
-	VtBlock *b;
+	VtBlock* b;
 	MetaBlock mb;
 	int nn;
-	uint8_t *p;
+	uint8_t* p;
 	int i, n;
 	MetaEntry me;
-	VtFile *ms;
-	
+	VtFile* ms;
+
 	ms = fp->msource;
 	n = vdsize(dir, VacDirVersion);
-	
+
 	/* Look for a block with room for a new entry of size n. */
-	nb = (vtfilegetsize(ms)+ms->dsize-1)/ms->dsize;
-	if(start == NilBlock){
+	nb = (vtfilegetsize(ms) + ms->dsize - 1) / ms->dsize;
+	if(start == NilBlock) {
 		if(nb > 0)
 			start = nb - 1;
 		else
 			start = 0;
 	}
-	
+
 	if(start > nb)
 		start = nb;
-	for(bo=start; bo<nb; bo++){
+	for(bo = start; bo < nb; bo++) {
 		if((b = vtfileblock(ms, bo, VtOREAD)) == nil)
 			goto Err;
 		if(mbunpack(&mb, b->data, ms->dsize) < 0)
 			goto Err;
-		nn = (mb.maxsize*FullPercentage/100) - mb.size + mb.free;
-		if(n <= nn && mb.nindex < mb.maxindex){
+		nn = (mb.maxsize * FullPercentage / 100) - mb.size + mb.free;
+		if(n <= nn && mb.nindex < mb.maxindex) {
 			/* reopen for writing */
 			vtblockput(b);
 			if((b = vtfileblock(ms, bo, VtORDWR)) == nil)
@@ -992,16 +994,16 @@ filemetaalloc(VacFile *fp, VacDir *dir, uint32_t start)
 	}
 
 	/* No block found, extend the file by one metablock. */
-	vtfileflushbefore(ms, nb*(uint64_t)ms->dsize);
+	vtfileflushbefore(ms, nb * (uint64_t)ms->dsize);
 	if((b = vtfileblock(ms, nb, VtORDWR)) == nil)
 		goto Err;
-	vtfilesetsize(ms, (nb+1)*ms->dsize);
-	mbinit(&mb, b->data, ms->dsize, ms->dsize/BytesPerEntry);
+	vtfilesetsize(ms, (nb + 1) * ms->dsize);
+	mbinit(&mb, b->data, ms->dsize, ms->dsize / BytesPerEntry);
 
 Found:
 	/* Now we have a block; allocate space to write the entry. */
 	p = mballoc(&mb, n);
-	if(p == nil){
+	if(p == nil) {
 		/* mballoc might have changed block */
 		mbpack(&mb);
 		werrstr(EBadMeta);
@@ -1010,7 +1012,7 @@ Found:
 
 	/* Figure out where to put the index entry, and write it. */
 	mbsearch(&mb, dir->elem, &i, &me);
-	assert(me.p == nil);	/* not already there */
+	assert(me.p == nil); /* not already there */
 	me.p = p;
 	me.size = n;
 	vdpack(dir, &me, VacDirVersion);
@@ -1025,20 +1027,20 @@ Err:
 }
 
 /*
- * Update f's directory entry in the block cache. 
+ * Update f's directory entry in the block cache.
  * We look for the directory entry by name;
  * if we're trying to rename the file, oelem is the old name.
  *
  * Assumes caller has filemetalock'ed f.
  */
 static int
-filemetaflush(VacFile *f, char *oelem)
+filemetaflush(VacFile* f, char* oelem)
 {
 	int i, n;
 	MetaBlock mb;
 	MetaEntry me, me2;
-	VacFile *fp;
-	VtBlock *b;
+	VacFile* fp;
+	VtBlock* b;
 	uint32_t bo;
 
 	if(!f->dirty)
@@ -1067,11 +1069,11 @@ filemetaflush(VacFile *f, char *oelem)
 		goto Err;
 
 	/*
-	 * Check whether we can resize the entry and keep it 
+	 * Check whether we can resize the entry and keep it
 	 * in this block.
 	 */
 	n = vdsize(&f->dir, VacDirVersion);
-	if(mbresize(&mb, &me, n) >= 0){
+	if(mbresize(&mb, &me, n) >= 0) {
 		/* Okay, can be done without moving to another block. */
 
 		/* Remove old data */
@@ -1083,25 +1085,25 @@ filemetaflush(VacFile *f, char *oelem)
 
 		/* Pack new data into new location. */
 		vdpack(&f->dir, &me, VacDirVersion);
-vdunpack(&f->dir, &me);
+		vdunpack(&f->dir, &me);
 		mbinsert(&mb, i, &me);
 		mbpack(&mb);
-		
+
 		/* Done */
 		vtblockput(b);
 		vtfileunlock(fp->msource);
 		f->dirty = 0;
 		return 0;
 	}
-	
+
 	/*
 	 * The entry must be moved to another block.
 	 * This can only really happen on renames that
 	 * make the name very long.
 	 */
-	
+
 	/* Allocate a spot in a new block. */
-	if((bo = filemetaalloc(fp, &f->dir, f->boff+1)) == NilBlock){
+	if((bo = filemetaalloc(fp, &f->dir, f->boff + 1)) == NilBlock) {
 		/* mbresize above might have modified block */
 		mbpack(&mb);
 		goto Err;
@@ -1128,13 +1130,13 @@ Err1:
  * Remove the directory entry for f.
  */
 static int
-filemetaremove(VacFile *f)
+filemetaremove(VacFile* f)
 {
-	VtBlock *b;
+	VtBlock* b;
 	MetaBlock mb;
 	MetaEntry me;
 	int i;
-	VacFile *fp;
+	VacFile* fp;
 
 	b = nil;
 	fp = f->up;
@@ -1180,12 +1182,12 @@ Err:
  * Vacfiledecref knows how to flush source and msource too.
  */
 int
-vacfileflush(VacFile *f, int recursive)
+vacfileflush(VacFile* f, int recursive)
 {
 	int ret;
-	VacFile **kids, *p;
+	VacFile** kids, *p;
 	int i, nkids;
-	
+
 	if(f->mode == VtOREAD)
 		return 0;
 
@@ -1204,20 +1206,20 @@ vacfileflush(VacFile *f, int recursive)
 	 */
 	nkids = 0;
 	kids = nil;
-	if(recursive){
+	if(recursive) {
 		nkids = 0;
-		for(p=f->down; p; p=p->next)
+		for(p = f->down; p; p = p->next)
 			nkids++;
-		kids = vtmalloc(nkids*sizeof(VacFile*));
+		kids = vtmalloc(nkids * sizeof(VacFile*));
 		i = 0;
-		for(p=f->down; p; p=p->next){
+		for(p = f->down; p; p = p->next) {
 			kids[i++] = p;
 			p->ref++;
 		}
 	}
-	if(nkids > 0){
+	if(nkids > 0) {
 		fileunlock(f);
-		for(i=0; i<nkids; i++){
+		for(i = 0; i < nkids; i++) {
 			if(vacfileflush(kids[i], 1) < 0)
 				ret = -1;
 			vacfiledecref(kids[i]);
@@ -1228,12 +1230,12 @@ vacfileflush(VacFile *f, int recursive)
 
 	/*
 	 * Now we can flush our own data.
-	 */	
+	 */
 	vtfilelock(f->source, -1);
 	if(vtfileflush(f->source) < 0)
 		ret = -1;
 	vtfileunlock(f->source);
-	if(f->msource){
+	if(f->msource) {
 		vtfilelock(f->msource, -1);
 		if(vtfileflush(f->msource) < 0)
 			ret = -1;
@@ -1243,17 +1245,17 @@ vacfileflush(VacFile *f, int recursive)
 
 	return ret;
 }
-		
+
 /*
  * Create a new file named elem in fp with the given mode.
  * The mode can be changed later except for the ModeDir bit.
  */
 VacFile*
-vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
+vacfilecreate(VacFile* fp, char* elem, uint32_t mode)
 {
-	VacFile *ff;
-	VacDir *dir;
-	VtFile *pr, *r, *mr;
+	VacFile* ff;
+	VacDir* dir;
+	VtFile* pr, *r, *mr;
 	int type;
 	uint32_t bo;
 
@@ -1264,8 +1266,8 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	 * First, look to see that there's not a file in memory
 	 * with the same name.
 	 */
-	for(ff = fp->down; ff; ff=ff->next){
-		if(strcmp(elem, ff->dir.elem) == 0 && !ff->removed){
+	for(ff = fp->down; ff; ff = ff->next) {
+		if(strcmp(elem, ff->dir.elem) == 0 && !ff->removed) {
 			ff = nil;
 			werrstr(EExists);
 			goto Err1;
@@ -1276,7 +1278,7 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	 * Next check the venti blocks.
 	 */
 	ff = dirlookup(fp, elem);
-	if(ff != nil){
+	if(ff != nil) {
 		werrstr(EExists);
 		goto Err1;
 	}
@@ -1285,7 +1287,7 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	 * By the way, you can't create in a read-only file system.
 	 */
 	pr = fp->source;
-	if(pr->mode != VtORDWR){
+	if(pr->mode != VtORDWR) {
 		werrstr(EReadOnly);
 		goto Err1;
 	}
@@ -1297,7 +1299,7 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	if(vtfilelock2(fp->source, fp->msource, -1) < 0)
 		goto Err1;
 	ff = filealloc(fp->fs);
-	ff->qidoffset = fp->qidoffset;	/* hopefully fp->qidoffset == 0 */
+	ff->qidoffset = fp->qidoffset; /* hopefully fp->qidoffset == 0 */
 	type = VtDataType;
 	if(mode & ModeDir)
 		type = VtDirType;
@@ -1305,8 +1307,9 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	if((r = vtfilecreate(pr, pr->psize, pr->dsize, type)) == nil)
 		goto Err;
 	if(mode & ModeDir)
-	if((mr = vtfilecreate(pr, pr->psize, pr->dsize, VtDataType)) == nil)
-		goto Err;
+		if((mr = vtfilecreate(pr, pr->psize, pr->dsize, VtDataType)) ==
+		   nil)
+			goto Err;
 
 	/*
 	 * Fill in the directory entry and write it to disk.
@@ -1315,7 +1318,7 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	dir->elem = vtstrdup(elem);
 	dir->entry = r->offset;
 	dir->gen = r->gen;
-	if(mode & ModeDir){
+	if(mode & ModeDir) {
 		dir->mentry = mr->offset;
 		dir->mgen = mr->gen;
 	}
@@ -1349,7 +1352,7 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 	vacfileincref(fp);
 
 	fileunlock(fp);
-	
+
 	filelock(ff);
 	vtfilelock(ff->source, -1);
 	vtfileunlock(ff->source);
@@ -1360,11 +1363,11 @@ vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 Err:
 	vtfileunlock(fp->source);
 	vtfileunlock(fp->msource);
-	if(r){
+	if(r) {
 		vtfilelock(r, -1);
 		vtfileremove(r);
 	}
-	if(mr){
+	if(mr) {
 		vtfilelock(mr, -1);
 		vtfileremove(mr);
 	}
@@ -1379,23 +1382,23 @@ Err1:
  * Change the size of the file f.
  */
 int
-vacfilesetsize(VacFile *f, uint64_t size)
+vacfilesetsize(VacFile* f, uint64_t size)
 {
-	if(vacfileisdir(f)){
+	if(vacfileisdir(f)) {
 		werrstr(ENotFile);
 		return -1;
 	}
-	
+
 	if(filelock(f) < 0)
 		return -1;
 
-	if(f->source->mode != VtORDWR){
+	if(f->source->mode != VtORDWR) {
 		werrstr(EReadOnly);
 		goto Err;
 	}
 	if(vtfilelock(f->source, -1) < 0)
 		goto Err;
-	if(vtfilesetsize(f->source, size) < 0){
+	if(vtfilesetsize(f->source, size) < 0) {
 		vtfileunlock(f->source);
 		goto Err;
 	}
@@ -1412,19 +1415,19 @@ Err:
  * Write data to f.
  */
 int
-vacfilewrite(VacFile *f, void *buf, int cnt, int64_t offset)
+vacfilewrite(VacFile* f, void* buf, int cnt, int64_t offset)
 {
-	if(vacfileisdir(f)){
+	if(vacfileisdir(f)) {
 		werrstr(ENotFile);
 		return -1;
 	}
 	if(filelock(f) < 0)
 		return -1;
-	if(f->source->mode != VtORDWR){
+	if(f->source->mode != VtORDWR) {
 		werrstr(EReadOnly);
 		goto Err;
 	}
-	if(offset < 0){
+	if(offset < 0) {
 		werrstr(EBadOffset);
 		goto Err;
 	}
@@ -1433,8 +1436,8 @@ vacfilewrite(VacFile *f, void *buf, int cnt, int64_t offset)
 		goto Err;
 	if(f->dir.mode & ModeAppend)
 		offset = vtfilegetsize(f->source);
-	if(vtfilewrite(f->source, buf, cnt, offset) != cnt
-	|| vtfileflushbefore(f->source, offset) < 0){
+	if(vtfilewrite(f->source, buf, cnt, offset) != cnt ||
+	   vtfileflushbefore(f->source, offset) < 0) {
 		vtfileunlock(f->source);
 		goto Err;
 	}
@@ -1452,36 +1455,37 @@ Err:
  * This let's us efficiently copy data from one file to another.
  */
 int
-vacfilesetentries(VacFile *f, VtEntry *e, VtEntry *me)
+vacfilesetentries(VacFile* f, VtEntry* e, VtEntry* me)
 {
 	int ret;
 
-	vacfileflush(f, 0);	/* flush blocks to venti, since we won't see them again */
+	vacfileflush(
+	    f, 0); /* flush blocks to venti, since we won't see them again */
 
-	if(!(e->flags&VtEntryActive)){
+	if(!(e->flags & VtEntryActive)) {
 		werrstr("missing entry for source");
 		return -1;
 	}
-	if(me && !(me->flags&VtEntryActive))
+	if(me && !(me->flags & VtEntryActive))
 		me = nil;
-	if(f->msource && !me){
+	if(f->msource && !me) {
 		werrstr("missing entry for msource");
 		return -1;
 	}
-	if(me && !f->msource){
+	if(me && !f->msource) {
 		werrstr("no msource to set");
 		return -1;
 	}
 
 	if(filelock(f) < 0)
 		return -1;
-	if(f->source->mode != VtORDWR
-	|| (f->msource && f->msource->mode != VtORDWR)){
+	if(f->source->mode != VtORDWR ||
+	   (f->msource && f->msource->mode != VtORDWR)) {
 		werrstr(EReadOnly);
 		fileunlock(f);
 		return -1;
 	}
-	if(vtfilelock2(f->source, f->msource, -1) < 0){
+	if(vtfilelock2(f->source, f->msource, -1) < 0) {
 		fileunlock(f);
 		return -1;
 	}
@@ -1502,7 +1506,7 @@ vacfilesetentries(VacFile *f, VtEntry *e, VtEntry *me)
  * Get the directory entry for f.
  */
 int
-vacfilegetdir(VacFile *f, VacDir *dir)
+vacfilegetdir(VacFile* f, VacDir* dir)
 {
 	if(filerlock(f) < 0)
 		return -1;
@@ -1511,8 +1515,8 @@ vacfilegetdir(VacFile *f, VacDir *dir)
 	vdcopy(dir, &f->dir);
 	filemetaunlock(f);
 
-	if(!vacfileisdir(f)){
-		if(vtfilelock(f->source, VtOREAD) < 0){
+	if(!vacfileisdir(f)) {
+		if(vtfilelock(f->source, VtOREAD) < 0) {
 			filerunlock(f);
 			return -1;
 		}
@@ -1528,15 +1532,15 @@ vacfilegetdir(VacFile *f, VacDir *dir)
  * Set the directory entry for f.
  */
 int
-vacfilesetdir(VacFile *f, VacDir *dir)
+vacfilesetdir(VacFile* f, VacDir* dir)
 {
-	VacFile *ff;
-	char *oelem;
+	VacFile* ff;
+	char* oelem;
 	uint32_t mask;
 	uint64_t size;
 
 	/* can not set permissions for the root */
-	if(vacfileisroot(f)){
+	if(vacfileisroot(f)) {
 		werrstr(ERoot);
 		return -1;
 	}
@@ -1544,36 +1548,37 @@ vacfilesetdir(VacFile *f, VacDir *dir)
 	if(filelock(f) < 0)
 		return -1;
 	filemetalock(f);
-	
-	if(f->source->mode != VtORDWR){
+
+	if(f->source->mode != VtORDWR) {
 		werrstr(EReadOnly);
 		goto Err;
 	}
 
 	/* On rename, check new name does not already exist */
-	if(strcmp(f->dir.elem, dir->elem) != 0){
-		for(ff = f->up->down; ff; ff=ff->next){
-			if(strcmp(dir->elem, ff->dir.elem) == 0 && !ff->removed){
+	if(strcmp(f->dir.elem, dir->elem) != 0) {
+		for(ff = f->up->down; ff; ff = ff->next) {
+			if(strcmp(dir->elem, ff->dir.elem) == 0 &&
+			   !ff->removed) {
 				werrstr(EExists);
 				goto Err;
 			}
 		}
 		ff = dirlookup(f->up, dir->elem);
-		if(ff != nil){
+		if(ff != nil) {
 			vacfiledecref(ff);
 			werrstr(EExists);
 			goto Err;
 		}
-		werrstr("");	/* "failed" dirlookup poisoned it */
+		werrstr(""); /* "failed" dirlookup poisoned it */
 	}
 
 	/* Get ready... */
 	if(vtfilelock2(f->source, f->msource, -1) < 0)
 		goto Err;
-	if(!vacfileisdir(f)){
+	if(!vacfileisdir(f)) {
 		size = vtfilegetsize(f->source);
-		if(size != dir->size){
-			if(vtfilesetsize(f->source, dir->size) < 0){
+		if(size != dir->size) {
+			if(vtfilesetsize(f->source, dir->size) < 0) {
 				vtfileunlock(f->source);
 				if(f->msource)
 					vtfileunlock(f->msource);
@@ -1587,22 +1592,22 @@ vacfilesetdir(VacFile *f, VacDir *dir)
 		vtfileunlock(f->msource);
 
 	oelem = nil;
-	if(strcmp(f->dir.elem, dir->elem) != 0){
+	if(strcmp(f->dir.elem, dir->elem) != 0) {
 		oelem = f->dir.elem;
 		f->dir.elem = vtstrdup(dir->elem);
 	}
 
-	if(strcmp(f->dir.uid, dir->uid) != 0){
+	if(strcmp(f->dir.uid, dir->uid) != 0) {
 		vtfree(f->dir.uid);
 		f->dir.uid = vtstrdup(dir->uid);
 	}
 
-	if(strcmp(f->dir.gid, dir->gid) != 0){
+	if(strcmp(f->dir.gid, dir->gid) != 0) {
 		vtfree(f->dir.gid);
 		f->dir.gid = vtstrdup(dir->gid);
 	}
 
-	if(strcmp(f->dir.mid, dir->mid) != 0){
+	if(strcmp(f->dir.mid, dir->mid) != 0) {
 		vtfree(f->dir.mid);
 		f->dir.mid = vtstrdup(dir->mid);
 	}
@@ -1610,14 +1615,14 @@ vacfilesetdir(VacFile *f, VacDir *dir)
 	f->dir.mtime = dir->mtime;
 	f->dir.atime = dir->atime;
 
-	mask = ~(ModeDir|ModeSnapshot);
+	mask = ~(ModeDir | ModeSnapshot);
 	f->dir.mode &= ~mask;
 	f->dir.mode |= mask & dir->mode;
 	f->dirty = 1;
 
-	if(filemetaflush(f, oelem) < 0){
+	if(filemetaflush(f, oelem) < 0) {
 		vtfree(oelem);
-		goto Err;	/* that sucks */
+		goto Err; /* that sucks */
 	}
 	vtfree(oelem);
 
@@ -1635,13 +1640,13 @@ Err:
  * Set the qid space.
  */
 int
-vacfilesetqidspace(VacFile *f, uint64_t offset, uint64_t max)
+vacfilesetqidspace(VacFile* f, uint64_t offset, uint64_t max)
 {
 	int ret;
 
 	if(filelock(f) < 0)
 		return -1;
-	if(f->source->mode != VtORDWR){
+	if(f->source->mode != VtORDWR) {
 		fileunlock(f);
 		werrstr(EReadOnly);
 		return -1;
@@ -1662,22 +1667,22 @@ vacfilesetqidspace(VacFile *f, uint64_t offset, uint64_t max)
  * Returns -1 on error (and not being empty is an error).
  */
 static int
-filecheckempty(VacFile *f)
+filecheckempty(VacFile* f)
 {
 	uint32_t i, n;
-	VtBlock *b;
+	VtBlock* b;
 	MetaBlock mb;
-	VtFile *r;
+	VtFile* r;
 
 	r = f->msource;
-	n = (vtfilegetsize(r)+r->dsize-1)/r->dsize;
-	for(i=0; i<n; i++){
+	n = (vtfilegetsize(r) + r->dsize - 1) / r->dsize;
+	for(i = 0; i < n; i++) {
 		b = vtfileblock(r, i, VtOREAD);
 		if(b == nil)
 			return -1;
 		if(mbunpack(&mb, b->data, r->dsize) < 0)
 			goto Err;
-		if(mb.nindex > 0){
+		if(mb.nindex > 0) {
 			werrstr(ENotEmpty);
 			goto Err;
 		}
@@ -1694,33 +1699,33 @@ Err:
  * Remove the vac file f.
  */
 int
-vacfileremove(VacFile *f)
+vacfileremove(VacFile* f)
 {
-	VacFile *ff;
+	VacFile* ff;
 
 	/* Cannot remove the root */
-	if(vacfileisroot(f)){
+	if(vacfileisroot(f)) {
 		werrstr(ERoot);
 		return -1;
 	}
 
 	if(filelock(f) < 0)
 		return -1;
-	if(f->source->mode != VtORDWR){
+	if(f->source->mode != VtORDWR) {
 		werrstr(EReadOnly);
 		goto Err1;
 	}
 	if(vtfilelock2(f->source, f->msource, -1) < 0)
 		goto Err1;
-	if(vacfileisdir(f) && filecheckempty(f)<0)
+	if(vacfileisdir(f) && filecheckempty(f) < 0)
 		goto Err;
 
-	for(ff=f->down; ff; ff=ff->next)
+	for(ff = f->down; ff; ff = ff->next)
 		assert(ff->removed);
 
 	vtfileremove(f->source);
 	f->source = nil;
-	if(f->msource){
+	if(f->msource) {
 		vtfileremove(f->msource);
 		f->msource = nil;
 	}
@@ -1744,10 +1749,10 @@ Err1:
  */
 static char EBadVacFormat[] = "bad format for vac file";
 
-static VacFs *
-vacfsalloc(VtConn *z, int bsize, int ncache, int mode)
+static VacFs*
+vacfsalloc(VtConn* z, int bsize, int ncache, int mode)
 {
-	VacFs *fs;
+	VacFs* fs;
 
 	fs = vtmallocz(sizeof(VacFs));
 	fs->z = z;
@@ -1763,18 +1768,18 @@ readscore(int fd, uint8_t score[VtScoreSize])
 	char buf[45], *pref;
 	int n;
 
-	n = readn(fd, buf, sizeof(buf)-1);
-	if(n < sizeof(buf)-1) {
+	n = readn(fd, buf, sizeof(buf) - 1);
+	if(n < sizeof(buf) - 1) {
 		werrstr("short read");
 		return -1;
 	}
 	buf[n] = 0;
 
-	if(vtparsescore(buf, &pref, score) < 0){
+	if(vtparsescore(buf, &pref, score) < 0) {
 		werrstr(EBadVacFormat);
 		return -1;
 	}
-	if(pref==nil || strcmp(pref, "vac") != 0) {
+	if(pref == nil || strcmp(pref, "vac") != 0) {
 		werrstr("not a vac file");
 		return -1;
 	}
@@ -1782,22 +1787,22 @@ readscore(int fd, uint8_t score[VtScoreSize])
 }
 
 VacFs*
-vacfsopen(VtConn *z, char *file, int mode, int ncache)
+vacfsopen(VtConn* z, char* file, int mode, int ncache)
 {
 	int fd;
 	uint8_t score[VtScoreSize];
-	char *prefix;
-	
-	if(vtparsescore(file, &prefix, score) >= 0){
-		if(prefix == nil || strcmp(prefix, "vac") != 0){
+	char* prefix;
+
+	if(vtparsescore(file, &prefix, score) >= 0) {
+		if(prefix == nil || strcmp(prefix, "vac") != 0) {
 			werrstr("not a vac file");
 			return nil;
 		}
-	}else{
+	} else {
 		fd = open(file, OREAD);
 		if(fd < 0)
 			return nil;
-		if(readscore(fd, score) < 0){
+		if(readscore(fd, score) < 0) {
 			close(fd);
 			return nil;
 		}
@@ -1807,20 +1812,20 @@ vacfsopen(VtConn *z, char *file, int mode, int ncache)
 }
 
 VacFs*
-vacfsopenscore(VtConn *z, uint8_t *score, int mode, int ncache)
+vacfsopenscore(VtConn* z, uint8_t* score, int mode, int ncache)
 {
-	VacFs *fs;
+	VacFs* fs;
 	int n;
 	VtRoot rt;
 	uint8_t buf[VtRootSize];
-	VacFile *root;
-	VtFile *r;
+	VacFile* root;
+	VtFile* r;
 	VtEntry e;
 
 	n = vtread(z, score, VtRootType, buf, VtRootSize);
 	if(n < 0)
 		return nil;
-	if(n != VtRootSize){
+	if(n != VtRootSize) {
 		werrstr("vtread on root too short");
 		return nil;
 	}
@@ -1843,7 +1848,7 @@ vacfsopenscore(VtConn *z, uint8_t *score, int mode, int ncache)
 	e.dsize = rt.blocksize;
 	e.type = VtDirType;
 	e.flags = VtEntryActive;
-	e.size = 3*VtEntrySize;
+	e.size = 3 * VtEntrySize;
 
 	root = nil;
 	if((r = vtfileopenroot(fs->cache, &e)) == nil)
@@ -1866,32 +1871,32 @@ Err:
 }
 
 int
-vacfsmode(VacFs *fs)
+vacfsmode(VacFs* fs)
 {
 	return fs->mode;
 }
 
 VacFile*
-vacfsgetroot(VacFs *fs)
+vacfsgetroot(VacFs* fs)
 {
 	return vacfileincref(fs->root);
 }
 
 int
-vacfsgetblocksize(VacFs *fs)
+vacfsgetblocksize(VacFs* fs)
 {
 	return fs->bsize;
 }
 
 int
-vacfsgetscore(VacFs *fs, uint8_t *score)
+vacfsgetscore(VacFs* fs, uint8_t* score)
 {
 	memmove(score, fs->score, VtScoreSize);
 	return 0;
 }
 
 int
-_vacfsnextqid(VacFs *fs, uint64_t *qid)
+_vacfsnextqid(VacFs* fs, uint64_t* qid)
 {
 	++fs->qid;
 	*qid = fs->qid;
@@ -1899,7 +1904,7 @@ _vacfsnextqid(VacFs *fs, uint64_t *qid)
 }
 
 void
-vacfsjumpqid(VacFs *fs, uint64_t step)
+vacfsjumpqid(VacFs* fs, uint64_t step)
 {
 	fs->qid += step;
 }
@@ -1911,10 +1916,10 @@ vacfsjumpqid(VacFs *fs, uint64_t step)
  * got created last, so it had the maximum qid.
  */
 int
-vacfsgetmaxqid(VacFs *fs, uint64_t *maxqid)
+vacfsgetmaxqid(VacFs* fs, uint64_t* maxqid)
 {
 	VacDir vd;
-	
+
 	if(vacfilegetdir(fs->root, &vd) < 0)
 		return -1;
 	if(vd.qidspace)
@@ -1925,9 +1930,8 @@ vacfsgetmaxqid(VacFs *fs, uint64_t *maxqid)
 	return 0;
 }
 
-
 void
-vacfsclose(VacFs *fs)
+vacfsclose(VacFs* fs)
 {
 	if(fs->root)
 		vacfiledecref(fs->root);
@@ -1939,41 +1943,41 @@ vacfsclose(VacFs *fs)
 /*
  * Create a fresh vac fs.
  */
-VacFs *
-vacfscreate(VtConn *z, int bsize, int ncache)
+VacFs*
+vacfscreate(VtConn* z, int bsize, int ncache)
 {
-	VacFs *fs;
-	VtFile *f;
+	VacFs* fs;
+	VtFile* f;
 	uint8_t buf[VtEntrySize], metascore[VtScoreSize];
 	VtEntry e;
-	VtBlock *b;
+	VtBlock* b;
 	MetaBlock mb;
 	VacDir vd;
 	MetaEntry me;
 	int psize;
 	int mbsize;
-	
+
 	if((fs = vacfsalloc(z, bsize, ncache, VtORDWR)) == nil)
 		return nil;
-	
+
 	/*
 	 * Fake up an empty vac fs.
 	 */
 	psize = bsize;
 	f = vtfilecreateroot(fs->cache, psize, bsize, VtDirType);
 	vtfilelock(f, VtORDWR);
-	
+
 	/* Metablocks can't be too big -- they have 16-bit offsets in them. */
 	mbsize = bsize;
-	if(mbsize >= 56*1024)
-		mbsize = 56*1024;
+	if(mbsize >= 56 * 1024)
+		mbsize = 56 * 1024;
 
 	/* Write metablock containing root directory VacDir. */
 	b = vtcacheallocblock(fs->cache, VtDataType);
-	mbinit(&mb, b->data, mbsize, mbsize/BytesPerEntry);
+	mbinit(&mb, b->data, mbsize, mbsize / BytesPerEntry);
 	memset(&vd, 0, sizeof vd);
 	vd.elem = "/";
-	vd.mode = 0777|ModeDir;
+	vd.mode = 0777 | ModeDir;
 	vd.uid = "vac";
 	vd.gid = "vac";
 	vd.mid = "";
@@ -1985,7 +1989,7 @@ vacfscreate(VtConn *z, int bsize, int ncache)
 	vtblockwrite(b);
 	memmove(metascore, b->score, VtScoreSize);
 	vtblockput(b);
-	
+
 	/* First entry: empty venti directory stream. */
 	memset(&e, 0, sizeof e);
 	e.flags = VtEntryActive;
@@ -1995,7 +1999,7 @@ vacfscreate(VtConn *z, int bsize, int ncache)
 	memmove(e.score, vtzeroscore, VtScoreSize);
 	vtentrypack(&e, buf, 0);
 	vtfilewrite(f, buf, VtEntrySize, 0);
-	
+
 	/* Second entry: empty metadata stream. */
 	e.type = VtDataType;
 	e.dsize = mbsize;
@@ -2006,14 +2010,14 @@ vacfscreate(VtConn *z, int bsize, int ncache)
 	memmove(e.score, metascore, VtScoreSize);
 	e.size = mbsize;
 	vtentrypack(&e, buf, 0);
-	vtfilewrite(f, buf, VtEntrySize, VtEntrySize*2);
+	vtfilewrite(f, buf, VtEntrySize, VtEntrySize * 2);
 
 	vtfileflush(f);
 	vtfileunlock(f);
-	
+
 	/* Now open it as a vac fs. */
 	fs->root = _vacfileroot(fs, f);
-	if(fs->root == nil){
+	if(fs->root == nil) {
 		werrstr("vacfileroot: %r");
 		vacfsclose(fs);
 		return nil;
@@ -2023,11 +2027,11 @@ vacfscreate(VtConn *z, int bsize, int ncache)
 }
 
 int
-vacfssync(VacFs *fs)
+vacfssync(VacFs* fs)
 {
 	uint8_t buf[1024];
 	VtEntry e;
-	VtFile *f;
+	VtFile* f;
 	VtRoot root;
 
 	/* Sync the entire vacfs to disk. */
@@ -2035,7 +2039,7 @@ vacfssync(VacFs *fs)
 		return -1;
 	if(vtfilelock(fs->root->up->msource, -1) < 0)
 		return -1;
-	if(vtfileflush(fs->root->up->msource) < 0){
+	if(vtfileflush(fs->root->up->msource) < 0) {
 		vtfileunlock(fs->root->up->msource);
 		return -1;
 	}
@@ -2054,14 +2058,13 @@ vacfssync(VacFs *fs)
 
 	f = vtfilecreateroot(fs->cache, fs->bsize, fs->bsize, VtDirType);
 	vtfilelock(f, VtORDWR);
-	if(vtfilewrite(f, buf, 3*VtEntrySize, 0) < 0
-	|| vtfileflush(f) < 0){
+	if(vtfilewrite(f, buf, 3 * VtEntrySize, 0) < 0 || vtfileflush(f) < 0) {
 		vtfileunlock(f);
 		vtfileclose(f);
 		return -1;
 	}
 	vtfileunlock(f);
-	if(getentry(f, &e) < 0){
+	if(getentry(f, &e) < 0) {
 		vtfileclose(f);
 		return -1;
 	}
@@ -2075,7 +2078,7 @@ vacfssync(VacFs *fs)
 	root.blocksize = fs->bsize;
 	memmove(root.prev, fs->score, VtScoreSize);
 	vtrootpack(&root, buf);
-	if(vtwrite(fs->z, fs->score, VtRootType, buf, VtRootSize) < 0){
+	if(vtwrite(fs->z, fs->score, VtRootType, buf, VtRootSize) < 0) {
 		werrstr("writing root: %r");
 		return -1;
 	}
@@ -2085,11 +2088,11 @@ vacfssync(VacFs *fs)
 }
 
 int
-vacfiledsize(VacFile *f)
+vacfiledsize(VacFile* f)
 {
 	VtEntry e;
 
-	if(vacfilegetentries(f,&e,nil) < 0)
+	if(vacfilegetentries(f, &e, nil) < 0)
 		return -1;
 	return e.dsize;
 }
@@ -2098,11 +2101,11 @@ vacfiledsize(VacFile *f)
  * Does block b of f have the same SHA1 hash as the n bytes at buf?
  */
 int
-sha1matches(VacFile *f, uint32_t b, uint8_t *buf, int n)
+sha1matches(VacFile* f, uint32_t b, uint8_t* buf, int n)
 {
 	uint8_t fscore[VtScoreSize];
 	uint8_t bufscore[VtScoreSize];
-	
+
 	if(vacfileblockscore(f, b, fscore) < 0)
 		return 0;
 	n = vtzerotruncate(VtDataType, buf, n);
@@ -2111,4 +2114,3 @@ sha1matches(VacFile *f, uint32_t b, uint8_t *buf, int n)
 		return 1;
 	return 0;
 }
-

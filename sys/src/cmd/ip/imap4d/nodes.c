@@ -20,28 +20,26 @@
  * otherwise, that's an error
  */
 int
-forMsgs(Box *box, MsgSet *ms, uint32_t max, int uids,
-	int (*f)(Box*, Msg*, int, void*), void *rock)
+forMsgs(Box* box, MsgSet* ms, uint32_t max, int uids,
+        int (*f)(Box*, Msg*, int, void*), void* rock)
 {
-	Msg *m;
+	Msg* m;
 	uint32_t id;
 	int ok, rok;
 
 	ok = 1;
-	for(; ms != nil; ms = ms->next){
+	for(; ms != nil; ms = ms->next) {
 		id = ms->from;
 		rok = 0;
-		for(m = box->msgs; m != nil && m->seq <= max; m = m->next){
-			if(!uids && m->seq > id
-			|| uids && m->uid > ms->to)
+		for(m = box->msgs; m != nil && m->seq <= max; m = m->next) {
+			if(!uids && m->seq > id || uids && m->uid > ms->to)
 				break;
-			if(!uids && m->seq == id
-			|| uids && m->uid >= id){
+			if(!uids && m->seq == id || uids && m->uid >= id) {
 				if(!(*f)(box, m, uids, rock))
 					ok = 0;
 				if(uids)
 					id = m->uid;
-				if(id >= ms->to){
+				if(id >= ms->to) {
 					rok = 1;
 					break;
 				}
@@ -56,10 +54,10 @@ forMsgs(Box *box, MsgSet *ms, uint32_t max, int uids,
 	return ok;
 }
 
-Store *
+Store*
 mkStore(int sign, int op, int flags)
 {
-	Store *st;
+	Store* st;
 
 	st = binalloc(&parseBin, sizeof(Store), 1);
 	if(st == nil)
@@ -70,10 +68,10 @@ mkStore(int sign, int op, int flags)
 	return st;
 }
 
-Fetch *
-mkFetch(int op, Fetch *next)
+Fetch*
+mkFetch(int op, Fetch* next)
 {
-	Fetch *f;
+	Fetch* f;
 
 	f = binalloc(&parseBin, sizeof(Fetch), 1);
 	if(f == nil)
@@ -84,12 +82,12 @@ mkFetch(int op, Fetch *next)
 }
 
 Fetch*
-revFetch(Fetch *f)
+revFetch(Fetch* f)
 {
-	Fetch *last, *next;
+	Fetch* last, *next;
 
 	last = nil;
-	for(; f != nil; f = next){
+	for(; f != nil; f = next) {
 		next = f->next;
 		f->next = last;
 		last = f;
@@ -98,9 +96,9 @@ revFetch(Fetch *f)
 }
 
 NList*
-mkNList(uint32_t n, NList *next)
+mkNList(uint32_t n, NList* next)
 {
-	NList *nl;
+	NList* nl;
 
 	nl = binalloc(&parseBin, sizeof(NList), 0);
 	if(nl == nil)
@@ -111,12 +109,12 @@ mkNList(uint32_t n, NList *next)
 }
 
 NList*
-revNList(NList *nl)
+revNList(NList* nl)
 {
-	NList *last, *next;
+	NList* last, *next;
 
 	last = nil;
-	for(; nl != nil; nl = next){
+	for(; nl != nil; nl = next) {
 		next = nl->next;
 		nl->next = last;
 		last = nl;
@@ -125,9 +123,9 @@ revNList(NList *nl)
 }
 
 SList*
-mkSList(char *s, SList *next)
+mkSList(char* s, SList* next)
 {
-	SList *sl;
+	SList* sl;
 
 	sl = binalloc(&parseBin, sizeof(SList), 0);
 	if(sl == nil)
@@ -138,12 +136,12 @@ mkSList(char *s, SList *next)
 }
 
 SList*
-revSList(SList *sl)
+revSList(SList* sl)
 {
-	SList *last, *next;
+	SList* last, *next;
 
 	last = nil;
-	for(; sl != nil; sl = next){
+	for(; sl != nil; sl = next) {
 		next = sl->next;
 		sl->next = last;
 		last = sl;
@@ -152,14 +150,14 @@ revSList(SList *sl)
 }
 
 int
-BNList(Biobuf *b, NList *nl, char *sep)
+BNList(Biobuf* b, NList* nl, char* sep)
 {
-	char *s;
+	char* s;
 	int n;
 
 	s = "";
 	n = 0;
-	for(; nl != nil; nl = nl->next){
+	for(; nl != nil; nl = nl->next) {
 		n += Bprint(b, "%s%lud", s, nl->n);
 		s = sep;
 	}
@@ -167,14 +165,14 @@ BNList(Biobuf *b, NList *nl, char *sep)
 }
 
 int
-BSList(Biobuf *b, SList *sl, char *sep)
+BSList(Biobuf* b, SList* sl, char* sep)
 {
-	char *s;
+	char* s;
 	int n;
 
 	s = "";
 	n = 0;
-	for(; sl != nil; sl = sl->next){
+	for(; sl != nil; sl = sl->next) {
 		n += Bprint(b, "%s", s);
 		n += Bimapstr(b, sl->s);
 		s = sep;
@@ -183,7 +181,7 @@ BSList(Biobuf *b, SList *sl, char *sep)
 }
 
 int
-Bimapdate(Biobuf *b, Tm *tm)
+Bimapdate(Biobuf* b, Tm* tm)
 {
 	char buf[64];
 
@@ -194,7 +192,7 @@ Bimapdate(Biobuf *b, Tm *tm)
 }
 
 int
-Brfc822date(Biobuf *b, Tm *tm)
+Brfc822date(Biobuf* b, Tm* tm)
 {
 	char buf[64];
 
@@ -205,14 +203,14 @@ Brfc822date(Biobuf *b, Tm *tm)
 }
 
 int
-Bimapstr(Biobuf *b, char *s)
+Bimapstr(Biobuf* b, char* s)
 {
-	char *t;
+	char* t;
 	int c;
 
 	if(s == nil)
 		return Bprint(b, "NIL");
-	for(t = s; ; t++){
+	for(t = s;; t++) {
 		c = *t;
 		if(c == '\0')
 			return Bprint(b, "\"%s\"", s);

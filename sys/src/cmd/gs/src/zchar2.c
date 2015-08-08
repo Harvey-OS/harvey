@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -35,16 +35,14 @@
 #include "ichar1.h"
 
 /* <font> <code|name> <name> <charstring> .type2execchar - */
-private int
-ztype2execchar(i_ctx_t *i_ctx_p)
+private
+int
+ztype2execchar(i_ctx_t* i_ctx_p)
 {
-    return charstring_execchar(i_ctx_p, (1 << (int)ft_encrypted2));
+	return charstring_execchar(i_ctx_p, (1 << (int)ft_encrypted2));
 }
 
 /* ------ Initialization procedure ------ */
 
-const op_def zchar2_op_defs[] =
-{
-    {"4.type2execchar", ztype2execchar},
-    op_def_end(0)
-};
+const op_def zchar2_op_defs[] = {{"4.type2execchar", ztype2execchar},
+                                 op_def_end(0)};

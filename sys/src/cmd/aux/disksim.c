@@ -21,59 +21,51 @@ typedef struct Ind Ind;
 
 /*
  * with 8192-byte blocks and 4-byte pointers,
- * double-indirect gets us 34 GB. 
+ * double-indirect gets us 34 GB.
  * triple-indirect gets us 70,368 GB.
  */
 
-enum
-{
-	LOGBLKSZ = 13,
-	BLKSZ = 1<<LOGBLKSZ,	/* 8192 */
-	LOGNPTR = LOGBLKSZ-2,	/* assume sizeof(void*) == 4 */
-	NPTR = 1<<LOGNPTR,
+enum { LOGBLKSZ = 13,
+       BLKSZ = 1 << LOGBLKSZ,  /* 8192 */
+       LOGNPTR = LOGBLKSZ - 2, /* assume sizeof(void*) == 4 */
+       NPTR = 1 << LOGNPTR,
 };
 static uint8_t zero[BLKSZ];
 
-struct Trip
-{
-	Dbl *dbl[NPTR];	
+struct Trip {
+	Dbl* dbl[NPTR];
 };
 
-struct Dbl
-{
-	Ind *ind[NPTR];
+struct Dbl {
+	Ind* ind[NPTR];
 };
 
-struct Ind
-{
-	uint8_t *blk[NPTR];
+struct Ind {
+	uint8_t* blk[NPTR];
 };
 
 Trip trip;
 
-struct Part
-{
+struct Part {
 	int inuse;
 	int vers;
 	uint32_t mode;
-	char *name;
-	int64_t offset;	/* in sectors */
-	int64_t length;	/* in sectors */
+	char* name;
+	int64_t offset; /* in sectors */
+	int64_t length; /* in sectors */
 };
 
-enum
-{
-	Qroot = 0,
-	Qdir,
-	Qctl,
-	Qpart,
+enum { Qroot = 0,
+       Qdir,
+       Qctl,
+       Qpart,
 };
 
 Part tab[64];
 int fd = -1;
-char *sdname = "sdXX";
+char* sdname = "sdXX";
 uint32_t ctlmode = 0666;
-char *inquiry = "aux/disksim hard drive";
+char* inquiry = "aux/disksim hard drive";
 int64_t nsect, sectsize, c, h, s;
 uint32_t time0;
 int rdonly;
@@ -86,29 +78,31 @@ ctlstring(void)
 
 	fmtstrinit(&fmt);
 	fmtprint(&fmt, "inquiry %s\n", inquiry);
-	fmtprint(&fmt, "geometry %lld %lld %lld %lld %lld\n", nsect, sectsize, c, h, s);
-	for(i=0; i<nelem(tab); i++)
+	fmtprint(&fmt, "geometry %lld %lld %lld %lld %lld\n", nsect, sectsize,
+	         c, h, s);
+	for(i = 0; i < nelem(tab); i++)
 		if(tab[i].inuse)
-			fmtprint(&fmt, "part %s %lld %lld\n", tab[i].name, tab[i].offset, tab[i].length);
+			fmtprint(&fmt, "part %s %lld %lld\n", tab[i].name,
+			         tab[i].offset, tab[i].length);
 	return fmtstrflush(&fmt);
 }
 
 int
-addpart(char *name, int64_t start, int64_t end)
+addpart(char* name, int64_t start, int64_t end)
 {
 	int i;
 
-	if(start < 0 || start > end || end > nsect){
+	if(start < 0 || start > end || end > nsect) {
 		werrstr("bad partition boundaries");
 		return -1;
 	}
 
-	for(i=0; i<nelem(tab); i++)
+	for(i = 0; i < nelem(tab); i++)
 		if(tab[i].inuse == 0)
 			break;
-	if(i == nelem(tab)){
+	if(i == nelem(tab)) {
 		werrstr("no free partition slots");
-		return -1;	
+		return -1;
 	}
 
 	free(tab[i].name);
@@ -123,14 +117,14 @@ addpart(char *name, int64_t start, int64_t end)
 }
 
 int
-delpart(char *s)
+delpart(char* s)
 {
 	int i;
 
-	for(i=0; i<nelem(tab); i++)
+	for(i = 0; i < nelem(tab); i++)
 		if(tab[i].inuse && strcmp(tab[i].name, s) == 0)
 			break;
-	if(i==nelem(tab)){
+	if(i == nelem(tab)) {
 		werrstr("partition not found");
 		return -1;
 	}
@@ -142,57 +136,54 @@ delpart(char *s)
 }
 
 void
-ctlwrite(Req *r)
+ctlwrite(Req* r)
 {
 	int i;
-	Cmdbuf *cb;
+	Cmdbuf* cb;
 	int64_t start, end;
 
 	r->ofcall.count = r->ifcall.count;
 	cb = parsecmd(r->ifcall.data, r->ifcall.count);
-	if(cb->nf < 1){
+	if(cb->nf < 1) {
 		respond(r, "empty control message");
 		free(cb);
 		return;
 	}
 
-	if(strcmp(cb->f[0], "part") == 0){
-		if(cb->nf != 4){
+	if(strcmp(cb->f[0], "part") == 0) {
+		if(cb->nf != 4) {
 			respondcmderror(r, cb, "part takes 3 args");
 			free(cb);
 			return;
 		}
 		start = strtoll(cb->f[2], 0, 0);
 		end = strtoll(cb->f[3], 0, 0);
-		if(addpart(cb->f[1], start, end) < 0){
+		if(addpart(cb->f[1], start, end) < 0) {
 			respondcmderror(r, cb, "%r");
 			free(cb);
 			return;
 		}
-	}
-	else if(strcmp(cb->f[0], "delpart") == 0){
-		if(cb->nf != 2){
+	} else if(strcmp(cb->f[0], "delpart") == 0) {
+		if(cb->nf != 2) {
 			respondcmderror(r, cb, "delpart takes 1 arg");
 			free(cb);
 			return;
 		}
-		if(delpart(cb->f[1]) < 0){
+		if(delpart(cb->f[1]) < 0) {
 			respondcmderror(r, cb, "%r");
 			free(cb);
 			return;
 		}
-	}
-	else if(strcmp(cb->f[0], "inquiry") == 0){
-		if(cb->nf != 2){
+	} else if(strcmp(cb->f[0], "inquiry") == 0) {
+		if(cb->nf != 2) {
 			respondcmderror(r, cb, "inquiry takes 1 arg");
 			free(cb);
 			return;
 		}
 		free(inquiry);
 		inquiry = estrdup9p(cb->f[1]);
-	}
-	else if(strcmp(cb->f[0], "geometry") == 0){
-		if(cb->nf != 6){
+	} else if(strcmp(cb->f[0], "geometry") == 0) {
+		if(cb->nf != 6) {
 			respondcmderror(r, cb, "geometry takes 5 args");
 			free(cb);
 			return;
@@ -202,19 +193,20 @@ ctlwrite(Req *r)
 		c = strtoll(cb->f[3], 0, 0);
 		h = strtoll(cb->f[4], 0, 0);
 		s = strtoll(cb->f[5], 0, 0);
-		if(tab[0].inuse && strcmp(tab[0].name, "data") == 0 && tab[0].vers == 0){
+		if(tab[0].inuse && strcmp(tab[0].name, "data") == 0 &&
+		   tab[0].vers == 0) {
 			tab[0].offset = 0;
 			tab[0].length = nsect;
 		}
-		for(i=0; i<nelem(tab); i++){
-			if(tab[i].inuse && tab[i].offset+tab[i].length > nsect){
+		for(i = 0; i < nelem(tab); i++) {
+			if(tab[i].inuse &&
+			   tab[i].offset + tab[i].length > nsect) {
 				tab[i].inuse = 0;
 				free(tab[i].name);
 				tab[i].name = 0;
 			}
 		}
-	}
-	else{
+	} else {
 		respondcmderror(r, cb, "unknown control message");
 		free(cb);
 		return;
@@ -223,19 +215,19 @@ ctlwrite(Req *r)
 	free(cb);
 	respond(r, nil);
 }
-	
+
 void*
 allocblk(int64_t addr)
 {
-	uint8_t *op;
-	static uint8_t *p;
+	uint8_t* op;
+	static uint8_t* p;
 	static uint32_t n;
 
-	if(n == 0){
-		p = malloc(4*1024*1024);
+	if(n == 0) {
+		p = malloc(4 * 1024 * 1024);
 		if(p == 0)
 			sysfatal("out of memory");
-		n = 4*1024*1024;
+		n = 4 * 1024 * 1024;
 	}
 	op = p;
 	p += BLKSZ;
@@ -249,9 +241,9 @@ allocblk(int64_t addr)
 uint8_t*
 getblock(int64_t addr, int alloc)
 {
- 	Dbl *p2;
-	Ind *p1;
-	uint8_t *p0;
+	Dbl* p2;
+	Ind* p1;
+	uint8_t* p0;
 	uint i0, i1, i2;
 	int64_t oaddr;
 
@@ -259,28 +251,28 @@ getblock(int64_t addr, int alloc)
 		alloc = 1;
 
 	addr >>= LOGBLKSZ;
-	oaddr = addr<<LOGBLKSZ;
-	i0 = addr & (NPTR-1);
+	oaddr = addr << LOGBLKSZ;
+	i0 = addr & (NPTR - 1);
 	addr >>= LOGNPTR;
-	i1 = addr & (NPTR-1);
+	i1 = addr & (NPTR - 1);
 	addr >>= LOGNPTR;
-	i2 = addr & (NPTR-1);
+	i2 = addr & (NPTR - 1);
 	addr >>= LOGNPTR;
 	assert(addr == 0);
 
-	if((p2 = trip.dbl[i2]) == 0){
+	if((p2 = trip.dbl[i2]) == 0) {
 		if(!alloc)
 			return zero;
 		trip.dbl[i2] = p2 = allocblk(-1);
 	}
 
-	if((p1 = p2->ind[i1]) == 0){
+	if((p1 = p2->ind[i1]) == 0) {
 		if(!alloc)
 			return zero;
 		p2->ind[i1] = p1 = allocblk(-1);
 	}
 
-	if((p0 = p1->blk[i0]) == 0){
+	if((p0 = p1->blk[i0]) == 0) {
 		if(!alloc)
 			return zero;
 		p1->blk[i0] = p0 = allocblk(oaddr);
@@ -289,26 +281,26 @@ getblock(int64_t addr, int alloc)
 }
 
 void
-dirty(int64_t addr, uint8_t *buf)
+dirty(int64_t addr, uint8_t* buf)
 {
 	int64_t oaddr;
 
 	if(fd == -1 || rdonly)
 		return;
-	oaddr = addr&~((int64_t)BLKSZ-1);
+	oaddr = addr & ~((int64_t)BLKSZ - 1);
 	if(pwrite(fd, buf, BLKSZ, oaddr) != BLKSZ)
 		sysfatal("write: %r");
 }
-	
+
 int
-rootgen(int off, Dir *d, void *v)
+rootgen(int off, Dir* d, void* v)
 {
 	memset(d, 0, sizeof *d);
 	d->atime = time0;
 	d->mtime = time0;
-	if(off == 0){
+	if(off == 0) {
 		d->name = estrdup9p(sdname);
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		d->qid.path = Qdir;
 		d->qid.type = QTDIR;
 		d->uid = estrdup9p("disksim");
@@ -317,17 +309,17 @@ rootgen(int off, Dir *d, void *v)
 		return 0;
 	}
 	return -1;
-}	
-		
+}
+
 int
-dirgen(int off, Dir *d, void *v)
+dirgen(int off, Dir* d, void* v)
 {
 	int n, j;
 
 	memset(d, 0, sizeof *d);
 	d->atime = time0;
 	d->mtime = time0;
-	if(off == 0){
+	if(off == 0) {
 		d->name = estrdup9p("ctl");
 		d->mode = ctlmode;
 		d->qid.path = Qctl;
@@ -336,14 +328,14 @@ dirgen(int off, Dir *d, void *v)
 
 	off--;
 	n = 0;
-	for(j=0; j<nelem(tab); j++){
-		if(tab[j].inuse==0)
+	for(j = 0; j < nelem(tab); j++) {
+		if(tab[j].inuse == 0)
 			continue;
-		if(n == off){
+		if(n == off) {
 			d->name = estrdup9p(tab[j].name);
-			d->length = tab[j].length*sectsize;
+			d->length = tab[j].length * sectsize;
 			d->mode = tab[j].mode;
-			d->qid.path = Qpart+j;
+			d->qid.path = Qpart + j;
 			d->qid.vers = tab[j].vers;
 			goto Have;
 		}
@@ -359,36 +351,37 @@ Have:
 }
 
 void*
-evommem(void *a, void *b, uint32_t n)
+evommem(void* a, void* b, uint32_t n)
 {
 	return memmove(b, a, n);
 }
 
 int
-isnonzero(void *v, uint32_t n)
+isnonzero(void* v, uint32_t n)
 {
-	uint8_t *a, *ea;
-	
+	uint8_t* a, *ea;
+
 	a = v;
-	ea = a+n;
-	for(; a<ea; a++)
+	ea = a + n;
+	for(; a < ea; a++)
 		if(*a)
 			return 1;
 	return 0;
 }
 
 int
-rdwrpart(Req *r)
+rdwrpart(Req* r)
 {
 	int q, nonzero;
-	Part *p;
+	Part* p;
 	int64_t offset;
 	int32_t count, tot, n, o;
-	uint8_t *blk, *dat;
-	void *(*move)(void*, void*, uint32_t);
+	uint8_t* blk, *dat;
+	void* (*move)(void*, void*, uint32_t);
 
-	q = r->fid->qid.path-Qpart;
-	if(q < 0 || q > nelem(tab) || !tab[q].inuse || tab[q].vers != r->fid->qid.vers){
+	q = r->fid->qid.path - Qpart;
+	if(q < 0 || q > nelem(tab) || !tab[q].inuse ||
+	   tab[q].vers != r->fid->qid.vers) {
 		respond(r, "unknown partition");
 		return -1;
 	}
@@ -396,21 +389,21 @@ rdwrpart(Req *r)
 	p = &tab[q];
 	offset = r->ifcall.offset;
 	count = r->ifcall.count;
-	if(offset < 0){
+	if(offset < 0) {
 		respond(r, "negative offset");
 		return -1;
 	}
-	if(count < 0){
+	if(count < 0) {
 		respond(r, "negative count");
 		return -1;
 	}
-	if(offset > p->length*sectsize){
+	if(offset > p->length * sectsize) {
 		respond(r, "offset past end of partition");
 		return -1;
 	}
-	if(offset+count > p->length*sectsize)
-		count = p->length*sectsize - offset;
-	offset += p->offset*sectsize;
+	if(offset + count > p->length * sectsize)
+		count = p->length * sectsize - offset;
+	offset += p->offset * sectsize;
 
 	if(r->ifcall.type == Tread)
 		move = memmove;
@@ -421,34 +414,35 @@ rdwrpart(Req *r)
 	nonzero = 1;
 	if(r->ifcall.type == Tread)
 		dat = (uint8_t*)r->ofcall.data;
-	else{
+	else {
 		dat = (uint8_t*)r->ifcall.data;
 		nonzero = isnonzero(dat, r->ifcall.count);
 	}
-	o = offset & (BLKSZ-1);
+	o = offset & (BLKSZ - 1);
 
 	/* left fringe block */
-	if(o && count){
-		blk = getblock(offset, r->ifcall.type==Twrite && nonzero);
+	if(o && count) {
+		blk = getblock(offset, r->ifcall.type == Twrite && nonzero);
 		n = BLKSZ - o;
 		if(n > count)
 			n = count;
 		if(r->ifcall.type != Twrite || blk != zero)
-			(*move)(dat, blk+o, n);
+			(*move)(dat, blk + o, n);
 		if(r->ifcall.type == Twrite)
 			dirty(offset, blk);
 		tot += n;
 	}
 	/* full and right fringe blocks */
-	while(tot < count){
-		blk = getblock(offset+tot, r->ifcall.type==Twrite && nonzero);
+	while(tot < count) {
+		blk =
+		    getblock(offset + tot, r->ifcall.type == Twrite && nonzero);
 		n = BLKSZ;
-		if(n > count-tot)
-			n = count-tot;
+		if(n > count - tot)
+			n = count - tot;
 		if(r->ifcall.type != Twrite || blk != zero)
-			(*move)(dat+tot, blk, n);
+			(*move)(dat + tot, blk, n);
 		if(r->ifcall.type == Twrite)
-			dirty(offset+tot, blk);
+			dirty(offset + tot, blk);
 		tot += n;
 	}
 	r->ofcall.count = tot;
@@ -457,11 +451,11 @@ rdwrpart(Req *r)
 }
 
 void
-fsread(Req *r)
+fsread(Req* r)
 {
-	char *s;
+	char* s;
 
-	switch((int)r->fid->qid.path){
+	switch((int)r->fid->qid.path) {
 	case Qroot:
 		dirread9p(r, rootgen, nil);
 		respond(r, nil);
@@ -486,9 +480,9 @@ fsread(Req *r)
 }
 
 void
-fswrite(Req *r)
+fswrite(Req* r)
 {
-	switch((int)r->fid->qid.path){
+	switch((int)r->fid->qid.path) {
 	case Qroot:
 	case Qdir:
 		respond(r, "write to a directory?");
@@ -505,15 +499,15 @@ fswrite(Req *r)
 }
 
 void
-fsopen(Req *r)
+fsopen(Req* r)
 {
-	if(r->ifcall.mode&ORCLOSE)
+	if(r->ifcall.mode & ORCLOSE)
 		respond(r, "cannot open ORCLOSE");
 
-	switch((int)r->fid->qid.path){
+	switch((int)r->fid->qid.path) {
 	case Qroot:
 	case Qdir:
-		if(r->ifcall.mode != OREAD){
+		if(r->ifcall.mode != OREAD) {
 			respond(r, "bad mode for directory open");
 			return;
 		}
@@ -523,31 +517,32 @@ fsopen(Req *r)
 }
 
 void
-fsstat(Req *r)
+fsstat(Req* r)
 {
 	int q;
-	Dir *d;
-	Part *p;
+	Dir* d;
+	Part* p;
 
 	d = &r->d;
 	memset(d, 0, sizeof *d);
 	d->qid = r->fid->qid;
 	d->atime = d->mtime = time0;
 	q = r->fid->qid.path;
-	switch(q){
+	switch(q) {
 	case Qroot:
 		d->name = estrdup9p("/");
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	case Qdir:
 		d->name = estrdup9p(sdname);
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	default:
 		q -= Qpart;
-		if(q < 0 || q > nelem(tab) || tab[q].inuse==0 || r->fid->qid.vers != tab[q].vers){
+		if(q < 0 || q > nelem(tab) || tab[q].inuse == 0 ||
+		   r->fid->qid.vers != tab[q].vers) {
 			respond(r, "partition no longer exists");
 			return;
 		}
@@ -557,7 +552,7 @@ fsstat(Req *r)
 		d->mode = p->mode;
 		break;
 	}
-		
+
 	d->uid = estrdup9p("disksim");
 	d->gid = estrdup9p("disksim");
 	d->muid = estrdup9p("");
@@ -565,12 +560,12 @@ fsstat(Req *r)
 }
 
 void
-fsattach(Req *r)
+fsattach(Req* r)
 {
-	char *spec;
+	char* spec;
 
 	spec = r->ifcall.aname;
-	if(spec && spec[0]){
+	if(spec && spec[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -580,12 +575,12 @@ fsattach(Req *r)
 }
 
 char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+fswalk1(Fid* fid, char* name, Qid* qid)
 {
 	int i;
-	switch((int)fid->qid.path){
+	switch((int)fid->qid.path) {
 	case Qroot:
-		if(strcmp(name, sdname) == 0){
+		if(strcmp(name, sdname) == 0) {
 			fid->qid.path = Qdir;
 			fid->qid.type = QTDIR;
 			*qid = fid->qid;
@@ -593,16 +588,16 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 		break;
 	case Qdir:
-		if(strcmp(name, "ctl") == 0){
+		if(strcmp(name, "ctl") == 0) {
 			fid->qid.path = Qctl;
 			fid->qid.vers = 0;
 			fid->qid.type = 0;
 			*qid = fid->qid;
 			return nil;
 		}
-		for(i=0; i<nelem(tab); i++){
-			if(tab[i].inuse && strcmp(tab[i].name, name) == 0){
-				fid->qid.path = i+Qpart;
+		for(i = 0; i < nelem(tab); i++) {
+			if(tab[i].inuse && strcmp(tab[i].name, name) == 0) {
+				fid->qid.path = i + Qpart;
 				fid->qid.vers = tab[i].vers;
 				fid->qid.type = 0;
 				*qid = fid->qid;
@@ -615,37 +610,39 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 }
 
 Srv fs = {
-	.attach=	fsattach,
-	.open=	fsopen,
-	.read=	fsread,
-	.write=	fswrite,
-	.stat=	fsstat,
-	.walk1=	fswalk1,
+    .attach = fsattach,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .stat = fsstat,
+    .walk1 = fswalk1,
 };
 
-char *mtpt = "/dev";
-char *srvname;
+char* mtpt = "/dev";
+char* srvname;
 
 void
 usage(void)
 {
-	fprint(2, "usage: aux/disksim [-D] [-f file] [-s srvname] [-m mtpt] [sdXX]\n");
+	fprint(2, "usage: aux/disksim [-D] [-f file] [-s srvname] [-m mtpt] "
+	          "[sdXX]\n");
 	fprint(2, "\tdefault mtpt is /dev\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *file;
+	char* file;
 
 	file = nil;
 	quotefmtinstall();
 	time0 = time(0);
-	if(NPTR != BLKSZ/sizeof(void*))
+	if(NPTR != BLKSZ / sizeof(void*))
 		sysfatal("unexpected pointer size");
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -663,14 +660,15 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
 	if(argc == 1)
 		sdname = argv[0];
 
-	if(file){
+	if(file) {
 		if((fd = open(file, rdonly ? OREAD : ORDWR)) < 0)
 			sysfatal("open %s: %r", file);
 	}

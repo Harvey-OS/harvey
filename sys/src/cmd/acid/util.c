@@ -19,9 +19,9 @@
 static int syren;
 
 Lsym*
-unique(char *buf, Sym *s)
+unique(char* buf, Sym* s)
 {
-	Lsym *l;
+	Lsym* l;
 	int i, renamed;
 
 	renamed = 0;
@@ -35,8 +35,8 @@ unique(char *buf, Sym *s)
 			print("Symbol renames:\n");
 			syren = 1;
 		}
-		i = strlen(buf)+1;
-		memmove(buf+1, buf, i);
+		i = strlen(buf) + 1;
+		memmove(buf + 1, buf, i);
 		buf[0] = '$';
 		renamed++;
 		if(renamed > 5 && !quiet) {
@@ -48,19 +48,19 @@ unique(char *buf, Sym *s)
 		print("\t%s=%s %c/%llux\n", s->name, buf, s->type, s->value);
 	if(l == 0)
 		l = enter(buf, Tid);
-	return l;	
+	return l;
 }
 
 void
 varsym(void)
 {
 	int i;
-	Sym *s;
+	Sym* s;
 	int32_t n;
-	Lsym *l;
+	Lsym* l;
 	uint64_t v;
 	char buf[1024];
-	List *list, **tail, *l2, *tl;
+	List* list, **tail, *l2, *tl;
 
 	tail = &l2;
 	l2 = 0;
@@ -106,7 +106,6 @@ varsym(void)
 			list = list->next;
 			list->fmt = 'X';
 			list->ival = v;
-
 		}
 	}
 	l = mkvar("symbols");
@@ -120,10 +119,10 @@ varsym(void)
 void
 varreg(void)
 {
-	Lsym *l;
-	Value *v;
-	Reglist *r;
-	List **tail, *li;
+	Lsym* l;
+	Value* v;
+	Reglist* r;
+	List** tail, *li;
 
 	l = mkvar("registers");
 	v = l->v;
@@ -150,7 +149,7 @@ varreg(void)
 	if(machdata == 0)
 		return;
 
-	l = mkvar("bpinst");	/* Breakpoint text */
+	l = mkvar("bpinst"); /* Breakpoint text */
 	v = l->v;
 	v->type = TSTRING;
 	v->fmt = 's';
@@ -164,33 +163,33 @@ varreg(void)
 void
 loadvars(void)
 {
-	Lsym *l;
-	Value *v;
+	Lsym* l;
+	Value* v;
 
-	l =  mkvar("proc");
+	l = mkvar("proc");
 	v = l->v;
 	v->type = TINT;
 	v->fmt = 'X';
 	v->set = 1;
 	v->ival = 0;
 
-	l = mkvar("pid");		/* Current process */
+	l = mkvar("pid"); /* Current process */
 	v = l->v;
 	v->type = TINT;
 	v->fmt = 'D';
 	v->set = 1;
 	v->ival = 0;
 
-	mkvar("notes");			/* Pending notes */
+	mkvar("notes"); /* Pending notes */
 
-	l = mkvar("proclist");		/* Attached processes */
+	l = mkvar("proclist"); /* Attached processes */
 	l->v->type = TLIST;
 }
 
 uint64_t
-rget(Map *map, char *reg)
+rget(Map* map, char* reg)
 {
-	Lsym *s;
+	Lsym* s;
 	uint32_t x;
 	uint64_t v;
 	int ret;
@@ -199,7 +198,7 @@ rget(Map *map, char *reg)
 	if(s == 0)
 		fatal("rget: %s\n", reg);
 
-	switch(s->v->fmt){
+	switch(s->v->fmt) {
 	default:
 		ret = get4(map, s->v->ival, &x);
 		v = x;
@@ -217,12 +216,12 @@ rget(Map *map, char *reg)
 }
 
 String*
-strnodlen(char *name, int len)
+strnodlen(char* name, int len)
 {
-	String *s;
+	String* s;
 
-	s = gmalloc(sizeof(String)+len+1);
-	s->string = (char*)s+sizeof(String);
+	s = gmalloc(sizeof(String) + len + 1);
+	s->string = (char*)s + sizeof(String);
 	s->len = len;
 	if(name != 0)
 		memmove(s->string, name, len);
@@ -235,17 +234,17 @@ strnodlen(char *name, int len)
 }
 
 String*
-strnode(char *name)
+strnode(char* name)
 {
 	return strnodlen(name, strlen(name));
 }
 
 String*
-runenode(Rune *name)
+runenode(Rune* name)
 {
 	int len;
-	Rune *p;
-	String *s;
+	Rune* p;
+	String* s;
 
 	p = name;
 	for(len = 0; *p; p++)
@@ -253,8 +252,8 @@ runenode(Rune *name)
 
 	len++;
 	len *= sizeof(Rune);
-	s = gmalloc(sizeof(String)+len);
-	s->string = (char*)s+sizeof(String);
+	s = gmalloc(sizeof(String) + len);
+	s->string = (char*)s + sizeof(String);
 	s->len = len;
 	memmove(s->string, name, len);
 
@@ -265,43 +264,43 @@ runenode(Rune *name)
 }
 
 String*
-stradd(String *l, String *r)
+stradd(String* l, String* r)
 {
 	int len;
-	String *s;
+	String* s;
 
-	len = l->len+r->len;
-	s = gmalloc(sizeof(String)+len+1);
+	len = l->len + r->len;
+	s = gmalloc(sizeof(String) + len + 1);
 	s->gclink = gcl;
 	gcl = s;
 	s->len = len;
-	s->string = (char*)s+sizeof(String);
+	s->string = (char*)s + sizeof(String);
 	memmove(s->string, l->string, l->len);
-	memmove(s->string+l->len, r->string, r->len);
+	memmove(s->string + l->len, r->string, r->len);
 	s->string[s->len] = 0;
 	return s;
 }
 
 String*
-straddrune(String *l, Rune r)
+straddrune(String* l, Rune r)
 {
 	int len;
-	String *s;
+	String* s;
 
-	len = l->len+runelen(r);
-	s = gmalloc(sizeof(String)+len+1);
+	len = l->len + runelen(r);
+	s = gmalloc(sizeof(String) + len + 1);
 	s->gclink = gcl;
 	gcl = s;
 	s->len = len;
-	s->string = (char*)s+sizeof(String);
+	s->string = (char*)s + sizeof(String);
 	memmove(s->string, l->string, l->len);
-	runetochar(s->string+l->len, &r);
+	runetochar(s->string + l->len, &r);
 	s->string[s->len] = 0;
 	return s;
 }
 
 int
-scmp(String *sr, String *sl)
+scmp(String* sr, String* sl)
 {
 	if(sr->len != sl->len)
 		return 0;

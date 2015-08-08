@@ -9,7 +9,7 @@
 
 /*
  * pdf.c
- * 
+ *
  * pdf file support for page
  */
 
@@ -20,34 +20,34 @@
 #include <bio.h>
 #include "page.h"
 
-typedef struct PDFInfo	PDFInfo;
+typedef struct PDFInfo PDFInfo;
 struct PDFInfo {
 	GSInfo;
-	Rectangle *pagebbox;
+	Rectangle* pagebbox;
 };
 
-static Image*	pdfdrawpage(Document *d, int page);
-static char*	pdfpagename(Document*, int);
+static Image* pdfdrawpage(Document* d, int page);
+static char* pdfpagename(Document*, int);
 
-char *pdfprolog = 
+char* pdfprolog =
 #include "pdfprolog.c"
-	;
+    ;
 
 Rectangle
-pdfbbox(GSInfo *gs)
+pdfbbox(GSInfo* gs)
 {
-	char *p;
-	char *f[4];
+	char* p;
+	char* f[4];
 	Rectangle r;
-	
-	r = Rect(0,0,0,0);
+
+	r = Rect(0, 0, 0, 0);
 	waitgs(gs);
 	gscmd(gs, "/CropBox knownoget {} {[0 0 0 0]} ifelse PAGE==\n");
 	p = Brdline(&gs->gsrd, '\n');
-	p[Blinelen(&gs->gsrd)-1] ='\0';
+	p[Blinelen(&gs->gsrd) - 1] = '\0';
 	if(p[0] != '[')
 		return r;
-	if(tokenize(p+1, f, 4) != 4)
+	if(tokenize(p + 1, f, 4) != 4)
 		return r;
 	r = Rect(atoi(f[0]), atoi(f[1]), atoi(f[2]), atoi(f[3]));
 	waitgs(gs);
@@ -55,12 +55,12 @@ pdfbbox(GSInfo *gs)
 }
 
 Document*
-initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
+initpdf(Biobuf* b, int argc, char** argv, uint8_t* buf, int nbuf)
 {
-	Document *d;
-	PDFInfo *pdf;
-	char *p;
-	char *fn;
+	Document* d;
+	PDFInfo* pdf;
+	char* p;
+	char* fn;
 	char fdbuf[20];
 	int fd;
 	int i, npage;
@@ -72,15 +72,15 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	}
 
 	fprint(2, "reading through pdf...\n");
-	if(b == nil){	/* standard input; spool to disk (ouch) */
+	if(b == nil) { /* standard input; spool to disk (ouch) */
 		fd = spooltodisk(buf, nbuf, &fn);
 		sprint(fdbuf, "/fd/%d", fd);
 		b = Bopen(fdbuf, OREAD);
-		if(b == nil){
+		if(b == nil) {
 			fprint(2, "cannot open disk spool file\n");
 			wexits("Bopen temp");
 		}
-	}else
+	} else
 		fn = argv[0];
 
 	/* sanity check */
@@ -96,9 +96,9 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 
 	/* setup structures so one free suffices */
 	p = emalloc(sizeof(*d) + sizeof(*pdf));
-	d = (Document*) p;
+	d = (Document*)p;
 	p += sizeof(*d);
-	pdf = (PDFInfo*) p;
+	pdf = (PDFInfo*)p;
 
 	d->extra = pdf;
 	d->b = b;
@@ -112,11 +112,13 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	gscmd(pdf, "%s", pdfprolog);
 	waitgs(pdf);
 
-	setdim(pdf, Rect(0,0,0,0), ppi, 0);
-	gscmd(pdf, "(%s) (r) file { DELAYSAFER { .setsafe } if } stopped pop pdfopen begin\n", fn);
+	setdim(pdf, Rect(0, 0, 0, 0), ppi, 0);
+	gscmd(pdf, "(%s) (r) file { DELAYSAFER { .setsafe } if } stopped pop "
+	           "pdfopen begin\n",
+	      fn);
 	gscmd(pdf, "pdfpagecount PAGE==\n");
 	p = Brdline(&pdf->gsrd, '\n');
-	npage = (p != nil? atoi(p): 0);
+	npage = (p != nil ? atoi(p) : 0);
 	if(npage < 1) {
 		fprint(2, "no pages?\n");
 		return nil;
@@ -127,9 +129,9 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	gscmd(pdf, "Trailer\n");
 	bbox = pdfbbox(pdf);
 
-	pdf->pagebbox = emalloc(sizeof(Rectangle)*npage);
-	for(i=0; i<npage; i++) {
-		gscmd(pdf, "%d pdfgetpage\n", i+1);
+	pdf->pagebbox = emalloc(sizeof(Rectangle) * npage);
+	for(i = 0; i < npage; i++) {
+		gscmd(pdf, "%d pdfgetpage\n", i + 1);
 		pdf->pagebbox[i] = pdfbbox(pdf);
 		if(Dx(pdf->pagebbox[i]) <= 0)
 			pdf->pagebbox[i] = bbox;
@@ -138,12 +140,12 @@ initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 }
 
 static Image*
-pdfdrawpage(Document *doc, int page)
+pdfdrawpage(Document* doc, int page)
 {
-	PDFInfo *pdf = doc->extra;
-	Image *im;
+	PDFInfo* pdf = doc->extra;
+	Image* im;
 
-	gscmd(pdf, "%d DoPDFPage\n", page+1);
+	gscmd(pdf, "%d DoPDFPage\n", page + 1);
 	im = readimage(display, pdf->gsdfd, 0);
 	if(im == nil) {
 		fprint(2, "fatal: readimage error %r\n");
@@ -157,6 +159,6 @@ static char*
 pdfpagename(Document*, int page)
 {
 	static char str[15];
-	sprint(str, "p %d", page+1);
+	sprint(str, "p %d", page + 1);
 	return str;
 }

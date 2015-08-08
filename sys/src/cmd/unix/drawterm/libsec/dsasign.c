@@ -12,12 +12,12 @@
 #include <libsec.h>
 
 DSAsig*
-dsasign(DSApriv *priv, mpint *m)
+dsasign(DSApriv* priv, mpint* m)
 {
-	DSApub *pub = &priv->pub;
-	DSAsig *sig;
-	mpint *qm1, *k, *kinv, *r, *s;
-	mpint *q = pub->q, *p = pub->p, *alpha = pub->alpha;
+	DSApub* pub = &priv->pub;
+	DSAsig* sig;
+	mpint* qm1, *k, *kinv, *r, *s;
+	mpint* q = pub->q, * p = pub->p, * alpha = pub->alpha;
 	int qlen = mpsignif(q);
 
 	qm1 = mpnew(0);
@@ -28,7 +28,7 @@ dsasign(DSApriv *priv, mpint *m)
 	mpsub(pub->q, mpone, qm1);
 
 	// find a k that has an inverse mod q
-	while(1){
+	while(1) {
 		mprand(qlen, genrandom, k);
 		if((mpcmp(mpone, k) > 0) || (mpcmp(k, qm1) >= 0))
 			continue;
@@ -38,7 +38,7 @@ dsasign(DSApriv *priv, mpint *m)
 		break;
 	}
 
-  	// make kinv positive
+	// make kinv positive
 	mpmod(kinv, qm1, kinv);
 
 	// r = ((alpha**k) mod p) mod q

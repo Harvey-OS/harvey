@@ -13,25 +13,26 @@
 
 static char channames[] = "rgbkamx";
 char*
-chantostr(char *buf, uint32_t cc)
+chantostr(char* buf, uint32_t cc)
 {
 	uint32_t c, rc;
-	char *p;
+	char* p;
 
 	if(chantodepth(cc) == 0)
 		return nil;
 
-	/* reverse the channel descriptor so we can easily generate the string in the right order */
+	/* reverse the channel descriptor so we can easily generate the string
+	 * in the right order */
 	rc = 0;
-	for(c=cc; c; c>>=8){
+	for(c = cc; c; c >>= 8) {
 		rc <<= 8;
-		rc |= c&0xFF;
+		rc |= c & 0xFF;
 	}
 
 	p = buf;
-	for(c=rc; c; c>>=8) {
+	for(c = rc; c; c >>= 8) {
 		*p++ = channames[TYPE(c)];
-		*p++ = '0'+NBITS(c);
+		*p++ = '0' + NBITS(c);
 	}
 	*p = 0;
 
@@ -42,29 +43,29 @@ chantostr(char *buf, uint32_t cc)
 static int
 xisspace(char c)
 {
-	return c==' ' || c== '\t' || c=='\r' || c=='\n';
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
 
 uint32_t
-strtochan(char *s)
+strtochan(char* s)
 {
-	char *p, *q;
+	char* p, *q;
 	uint32_t c;
 	int t, n;
 
 	c = 0;
-	p=s;
+	p = s;
 	while(*p && xisspace(*p))
 		p++;
 
-	while(*p && !xisspace(*p)){
-		if((q = strchr(channames, p[0])) == nil) 
+	while(*p && !xisspace(*p)) {
+		if((q = strchr(channames, p[0])) == nil)
 			return 0;
-		t = q-channames;
+		t = q - channames;
 		if(p[1] < '0' || p[1] > '9')
 			return 0;
-		n = p[1]-'0';
-		c = (c<<8) | __DC(t, n);
+		n = p[1] - '0';
+		c = (c << 8) | __DC(t, n);
 		p += 2;
 	}
 	return c;
@@ -75,12 +76,12 @@ chantodepth(uint32_t c)
 {
 	int n;
 
-	for(n=0; c; c>>=8){
+	for(n = 0; c; c >>= 8) {
 		if(TYPE(c) >= NChan || NBITS(c) > 8 || NBITS(c) <= 0)
 			return 0;
 		n += NBITS(c);
 	}
-	if(n==0 || (n>8 && n%8) || (n<8 && 8%n))
+	if(n == 0 || (n > 8 && n % 8) || (n < 8 && 8 % n))
 		return 0;
 	return n;
 }

@@ -15,108 +15,129 @@
 #include "ftpfs.h"
 
 /* an active fid */
-typedef struct Fid	Fid;
-struct Fid
-{
-	int	fid;
-	Node	*node;		/* path to remote file */
-	int	busy;
-	Fid	*next;
-	int	open;
+typedef struct Fid Fid;
+struct Fid {
+	int fid;
+	Node* node; /* path to remote file */
+	int busy;
+	Fid* next;
+	int open;
 };
 
-Fid	*fids;			/* linked list of fids */
-char	errstring[128];		/* error to return */
-int	mfd;			/* fd for 9fs */
-int	messagesize = 4*1024*IOHDRSZ;
-uint8_t	mdata[8*1024*IOHDRSZ];
-uint8_t	mbuf[8*1024*IOHDRSZ];
-Fcall	rhdr;
-Fcall	thdr;
-int	debug;
-int	usenlst;
-int	usetls;
-char	*ext;
-int	quiet;
-int	kapid = -1;
-int	dying;		/* set when any process decides to die */
-int	dokeepalive;
+Fid* fids;           /* linked list of fids */
+char errstring[128]; /* error to return */
+int mfd;             /* fd for 9fs */
+int messagesize = 4 * 1024 * IOHDRSZ;
+uint8_t mdata[8 * 1024 * IOHDRSZ];
+uint8_t mbuf[8 * 1024 * IOHDRSZ];
+Fcall rhdr;
+Fcall thdr;
+int debug;
+int usenlst;
+int usetls;
+char* ext;
+int quiet;
+int kapid = -1;
+int dying; /* set when any process decides to die */
+int dokeepalive;
 
-char	*rflush(Fid*), *rnop(Fid*), *rversion(Fid*),
-	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
-	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
-	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
-	*rauth(Fid*);;
-void	mountinit(char*);
-void	io(void);
-int	readpdir(Node*);
+char* rflush(Fid*), *rnop(Fid*), *rversion(Fid*), *rattach(Fid*), *rclone(Fid*),
+    *rwalk(Fid*), *rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*), *rread(Fid*),
+    *rwrite(Fid*), *rclunk(Fid*), *rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
+    *rauth(Fid*);
+;
+void mountinit(char*);
+void io(void);
+int readpdir(Node*);
 
-char 	*(*fcalls[])(Fid*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tattach]	rattach,
-	[Tauth]		rauth,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char* (*fcalls[])(Fid*) = {
+        [Tflush] rflush, [Tversion] rversion, [Tattach] rattach, [Tauth] rauth,
+        [Twalk] rwalk,   [Topen] ropen,       [Tcreate] rcreate, [Tread] rread,
+        [Twrite] rwrite, [Tclunk] rclunk,     [Tremove] rremove, [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
 /* these names are matched as prefixes, so VMS must precede VM */
 OS oslist[] = {
-	{ Plan9,	"Plan 9", },
-	{ Plan9,	"Plan9", },
-	{ Plan9,	"UNIX Type: L8 Version: Plan 9", },
-	{ Unix,		"SUN", },
-	{ Unix,		"UNIX", },
-	{ VMS,		"VMS", },
-	{ VM,		"VM", },
-	{ Tops,		"TOPS", },
-	{ MVS,		"MVS", },
-	{ NetWare,	"NetWare", },
-	{ NetWare,	"NETWARE", },
-	{ OS2,		"OS/2", },
-	{ TSO,		"TSO", },
-	{ NT,		"Windows_NT", },	/* DOS like interface */
-	{ NT,		"WINDOWS_NT", },	/* Unix like interface */
-	{ Unknown,	0 },
+    {
+     Plan9, "Plan 9",
+    },
+    {
+     Plan9, "Plan9",
+    },
+    {
+     Plan9, "UNIX Type: L8 Version: Plan 9",
+    },
+    {
+     Unix, "SUN",
+    },
+    {
+     Unix, "UNIX",
+    },
+    {
+     VMS, "VMS",
+    },
+    {
+     VM, "VM",
+    },
+    {
+     Tops, "TOPS",
+    },
+    {
+     MVS, "MVS",
+    },
+    {
+     NetWare, "NetWare",
+    },
+    {
+     NetWare, "NETWARE",
+    },
+    {
+     OS2, "OS/2",
+    },
+    {
+     TSO, "TSO",
+    },
+    {
+     NT, "Windows_NT",
+    }, /* DOS like interface */
+    {
+     NT, "WINDOWS_NT",
+    }, /* Unix like interface */
+    {Unknown, 0},
 };
 
-char *nouid = "?uid?";
+char* nouid = "?uid?";
 
 #define S2P(x) (((ulong)(x)) & 0xffffff)
 
-char *nosuchfile = "file does not exist";
-char *keyspec = "";
+char* nosuchfile = "file does not exist";
+char* keyspec = "";
 
 void
 usage(void)
 {
-	fprint(2, "ftpfs [-/dqnt] [-a passwd] [-m mountpoint] [-e ext] [-k keyspec] [-o os] [-r root] [net!]address\n");
+	fprint(2, "ftpfs [-/dqnt] [-a passwd] [-m mountpoint] [-e ext] [-k "
+	          "keyspec] [-o os] [-r root] [net!]address\n");
 	exits("usage");
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *mountroot = 0;
-	char *mountpoint = "/n/ftp";
-	char *cpassword = 0;
-	char *cp;
+	char* mountroot = 0;
+	char* mountpoint = "/n/ftp";
+	char* cpassword = 0;
+	char* cp;
 	int p[2];
-	OS *o;
+	OS* o;
 
 	defos = Unix;
 	user = strdup(getuser());
 	usetls = 0;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case '/':
 		mountroot = "/";
 		break;
@@ -147,7 +168,7 @@ main(int argc, char *argv[])
 	case 'o':
 		cp = ARGF();
 		for(o = oslist; o->os != Unknown; o++)
-			if(strncmp(cp, o->name, strlen(o->name)) == 0){
+			if(strncmp(cp, o->name, strlen(o->name)) == 0) {
 				defos = o->os;
 				break;
 			}
@@ -158,7 +179,8 @@ main(int argc, char *argv[])
 	case 'q':
 		quiet = 1;
 		break;
-	} ARGEND
+	}
+	ARGEND
 	if(argc != 1)
 		usage();
 
@@ -176,7 +198,7 @@ main(int argc, char *argv[])
 	preamble(mountroot);
 
 	/* start the 9fs protocol */
-	switch(rfork(RFPROC|RFNAMEG|RFENVG|RFFDG|RFNOTEG|RFREND)){
+	switch(rfork(RFPROC | RFNAMEG | RFENVG | RFFDG | RFNOTEG | RFREND)) {
 	case -1:
 		fatal("fork: %r");
 	case 0:
@@ -187,15 +209,15 @@ main(int argc, char *argv[])
 		open("/dev/null", OWRITE);
 
 		close(p[1]);
-		fmtinstall('F', fcallfmt); /* debugging */
-		fmtinstall('D', dirfmt); /* expected by %F */
+		fmtinstall('F', fcallfmt);   /* debugging */
+		fmtinstall('D', dirfmt);     /* expected by %F */
 		fmtinstall('M', dirmodefmt); /* expected by %F */
 		io();
 		quit();
 		break;
 	default:
 		close(p[0]);
-		if(mount(p[1], -1, mountpoint, MREPL|MCREATE, "") < 0)
+		if(mount(p[1], -1, mountpoint, MREPL | MCREATE, "") < 0)
 			fatal("mount failed: %r");
 	}
 	exits(0);
@@ -204,24 +226,24 @@ main(int argc, char *argv[])
 /*
  *  lookup an fid. if not found, create a new one.
  */
-Fid *
+Fid*
 newfid(int fid)
 {
-	Fid *f, *ff;
+	Fid* f, *ff;
 
 	ff = 0;
-	for(f = fids; f; f = f->next){
-		if(f->fid == fid){
+	for(f = fids; f; f = f->next) {
+		if(f->fid == fid) {
 			if(f->busy)
 				return f;
-			else{
+			else {
 				ff = f;
 				break;
 			}
 		} else if(!ff && !f->busy)
 			ff = f;
 	}
-	if(ff == 0){
+	if(ff == 0) {
 		ff = mallocz(sizeof(*f), 1);
 		ff->next = fids;
 		fids = ff;
@@ -243,7 +265,7 @@ kaproc(void)
 	if(!dokeepalive)
 		return -1;
 
-	switch(pid = rfork(RFPROC|RFMEM)){
+	switch(pid = rfork(RFPROC | RFMEM)) {
 	case -1:
 		return -1;
 	case 0:
@@ -252,7 +274,7 @@ kaproc(void)
 		return pid;
 	}
 
-	while(!dying){
+	while(!dying) {
 		sleep(5000);
 		nop();
 	}
@@ -264,16 +286,16 @@ kaproc(void)
 void
 io(void)
 {
-	char *err, buf[ERRMAX];
+	char* err, buf[ERRMAX];
 	int n;
 
 	kapid = kaproc();
 
-	while(!dying){
+	while(!dying) {
 		n = read9pmsg(mfd, mdata, messagesize);
-		if(n <= 0){
+		if(n <= 0) {
 			errstr(buf, sizeof buf);
-			if(buf[0]=='\0' || strstr(buf, "hungup"))
+			if(buf[0] == '\0' || strstr(buf, "hungup"))
 				exits("");
 			fatal("mount read: %s\n", buf);
 		}
@@ -281,22 +303,22 @@ io(void)
 			continue;
 
 		if(debug)
-			fprint(2, "<-%F\n", &thdr);/**/
+			fprint(2, "<-%F\n", &thdr); /**/
 
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
 			err = (*fcalls[thdr.type])(newfid(thdr.fid));
-		if(err){
+		if(err) {
 			rhdr.type = Rerror;
 			rhdr.ename = err;
-		}else{
+		} else {
 			rhdr.type = thdr.type + 1;
 			rhdr.fid = thdr.fid;
 		}
 		rhdr.tag = thdr.tag;
 		if(debug)
-			fprint(2, "->%F\n", &rhdr);/**/
+			fprint(2, "->%F\n", &rhdr); /**/
 		n = convS2M(&rhdr, mdata, messagesize);
 		if(write(mfd, mdata, n) != n)
 			fatal("mount write");
@@ -304,14 +326,14 @@ io(void)
 }
 
 char*
-rnop(Fid *f)
+rnop(Fid* f)
 {
 	USED(f);
 	return 0;
 }
 
 char*
-rversion(Fid *f)
+rversion(Fid* f)
 {
 	if(thdr.msize > sizeof(mdata))
 		rhdr.msize = messagesize;
@@ -326,19 +348,19 @@ rversion(Fid *f)
 }
 
 char*
-rflush(Fid *f)
+rflush(Fid* f)
 {
 	return 0;
 }
 
 char*
-rauth(Fid *f)
+rauth(Fid* f)
 {
 	return "auth unimplemented";
 }
 
 char*
-rattach(Fid *f)
+rattach(Fid* f)
 {
 	f->busy = 1;
 	f->node = remroot;
@@ -347,18 +369,18 @@ rattach(Fid *f)
 }
 
 char*
-rwalk(Fid *f)
+rwalk(Fid* f)
 {
-	Node *np;
-	Fid *nf;
-	char **elems;
+	Node* np;
+	Fid* nf;
+	char** elems;
 	int i, nelems;
-	char *err;
-	Node *node;
+	char* err;
+	Node* node;
 
 	/* clone fid */
 	nf = nil;
-	if(thdr.newfid != thdr.fid){
+	if(thdr.newfid != thdr.fid) {
 		nf = newfid(thdr.newfid);
 		if(nf->busy)
 			return "newfid in use";
@@ -372,24 +394,24 @@ rwalk(Fid *f)
 	nelems = thdr.nwname;
 	node = f->node;
 	rhdr.nwqid = 0;
-	if(nelems > 0){
+	if(nelems > 0) {
 		/* walk fid */
-		for(i=0; i<nelems && i<MAXWELEM; i++){
-			if((node->d->qid.type & QTDIR) == 0){
+		for(i = 0; i < nelems && i < MAXWELEM; i++) {
+			if((node->d->qid.type & QTDIR) == 0) {
 				err = "not a directory";
 				break;
 			}
-			if(strcmp(elems[i], ".") == 0){
-   Found:
+			if(strcmp(elems[i], ".") == 0) {
+			Found:
 				rhdr.wqid[i] = node->d->qid;
 				rhdr.nwqid++;
 				continue;
 			}
-			if(strcmp(elems[i], "..") == 0){
+			if(strcmp(elems[i], "..") == 0) {
 				node = node->parent;
 				goto Found;
 			}
-			if(strcmp(elems[i], ".flush.ftpfs") == 0){
+			if(strcmp(elems[i], ".flush.ftpfs") == 0) {
 				/* hack to flush the cache */
 				invalidate(node);
 				readdir(node);
@@ -397,9 +419,10 @@ rwalk(Fid *f)
 			}
 
 			/* some top level names are special */
-			if((os == Tops || os == VM || os == VMS) && node == remroot){
+			if((os == Tops || os == VM || os == VMS) &&
+			   node == remroot) {
 				np = newtopsdir(elems[i]);
-				if(np){
+				if(np) {
 					node = np;
 					goto Found;
 				} else {
@@ -410,20 +433,22 @@ rwalk(Fid *f)
 
 			/* everything else */
 			node = extendpath(node, s_copy(elems[i]));
-			if(ISCACHED(node->parent)){
-				/* the cache of the parent is good, believe it */
-				if(!ISVALID(node)){
+			if(ISCACHED(node->parent)) {
+				/* the cache of the parent is good, believe it
+				 */
+				if(!ISVALID(node)) {
 					err = nosuchfile;
 					break;
 				}
-				if(node->parent->chdirunknown || (node->d->mode & DMSYML))
+				if(node->parent->chdirunknown ||
+				   (node->d->mode & DMSYML))
 					fixsymbolic(node);
-			} else if(!ISVALID(node)){
+			} else if(!ISVALID(node)) {
 				/* this isn't a valid node, try cd'ing */
-				if(changedir(node) == 0){
+				if(changedir(node) == 0) {
 					node->d->qid.type = QTDIR;
 					node->d->mode |= DMDIR;
-				}else{
+				} else {
 					node->d->qid.type = QTFILE;
 					node->d->mode &= ~DMDIR;
 				}
@@ -435,7 +460,7 @@ rwalk(Fid *f)
 	}
 
 	/* clunk a newly cloned fid if the walk didn't succeed */
-	if(nf != nil && (err != nil || rhdr.nwqid<nelems)){
+	if(nf != nil && (err != nil || rhdr.nwqid < nelems)) {
 		nf->busy = 0;
 		nf->fid = 0;
 	}
@@ -447,8 +472,8 @@ rwalk(Fid *f)
 	return err;
 }
 
-char *
-ropen(Fid *f)
+char*
+ropen(Fid* f)
 {
 	int mode;
 
@@ -457,15 +482,15 @@ ropen(Fid *f)
 		if(mode != OREAD)
 			return "permission denied";
 
-	if(mode & OTRUNC){
+	if(mode & OTRUNC) {
 		uncache(f->node);
 		uncache(f->node->parent);
 		filedirty(f->node);
 	} else {
 		/* read the remote file or directory */
-		if(!ISCACHED(f->node)){
+		if(!ISCACHED(f->node)) {
 			filefree(f->node);
-			if(f->node->d->qid.type & QTDIR){
+			if(f->node->d->qid.type & QTDIR) {
 				invalidate(f->node);
 				if(readdir(f->node) < 0)
 					return nosuchfile;
@@ -484,17 +509,17 @@ ropen(Fid *f)
 }
 
 char*
-rcreate(Fid *f)
+rcreate(Fid* f)
 {
-	char *name;
+	char* name;
 
-	if((f->node->d->qid.type&QTDIR) == 0)
+	if((f->node->d->qid.type & QTDIR) == 0)
 		return "not a directory";
 
 	name = thdr.name;
 	f->node = extendpath(f->node, s_copy(name));
 	uncache(f->node);
-	if(thdr.perm & DMDIR){
+	if(thdr.perm & DMDIR) {
 		if(createdir(f->node) < 0)
 			return "permission denied";
 	} else
@@ -509,34 +534,34 @@ rcreate(Fid *f)
 }
 
 char*
-rread(Fid *f)
+rread(Fid* f)
 {
 	int32_t off;
 	int n, cnt, rv;
-	Node *np;
+	Node* np;
 
 	rhdr.count = 0;
 	off = thdr.offset;
 	cnt = thdr.count;
-	if(cnt > messagesize-IOHDRSZ)
-		cnt = messagesize-IOHDRSZ;
+	if(cnt > messagesize - IOHDRSZ)
+		cnt = messagesize - IOHDRSZ;
 
-	if(f->node->d->qid.type & QTDIR){
+	if(f->node->d->qid.type & QTDIR) {
 		rv = 0;
-		for(np = f->node->children; np != nil; np = np->sibs){
+		for(np = f->node->children; np != nil; np = np->sibs) {
 			if(!ISVALID(np))
 				continue;
 			if(off <= BIT16SZ)
 				break;
-			n = convD2M(np->d, mbuf, messagesize-IOHDRSZ);
+			n = convD2M(np->d, mbuf, messagesize - IOHDRSZ);
 			off -= n;
 		}
-		for(; rv < cnt && np != nil; np = np->sibs){
+		for(; rv < cnt && np != nil; np = np->sibs) {
 			if(!ISVALID(np))
 				continue;
 			if(np->d->mode & DMSYML)
 				fixsymbolic(np);
-			n = convD2M(np->d, mbuf + rv, cnt-rv);
+			n = convD2M(np->d, mbuf + rv, cnt - rv);
 			if(n <= BIT16SZ)
 				break;
 			rv += n;
@@ -558,7 +583,7 @@ rread(Fid *f)
 }
 
 char*
-rwrite(Fid *f)
+rwrite(Fid* f)
 {
 	int32_t off;
 	int cnt;
@@ -577,16 +602,17 @@ rwrite(Fid *f)
 	return 0;
 }
 
-char *
-rclunk(Fid *f)
+char*
+rclunk(Fid* f)
 {
-	if(fileisdirty(f->node)){
+	if(fileisdirty(f->node)) {
 		if(createfile(f->node) < 0)
-			fprint(2, "ftpfs: couldn't create %s\n", f->node->d->name);
+			fprint(2, "ftpfs: couldn't create %s\n",
+			       f->node->d->name);
 		fileclean(f->node);
 		uncache(f->node);
 	}
-	if(f->open){
+	if(f->open) {
 		f->open = 0;
 		f->node->opens--;
 	}
@@ -597,12 +623,12 @@ rclunk(Fid *f)
 /*
  *  remove is an implicit clunk
  */
-char *
-rremove(Fid *f)
+char*
+rremove(Fid* f)
 {
-	char *e;
+	char* e;
 	e = nil;
-	if(QTDIR & f->node->d->qid.type){
+	if(QTDIR & f->node->d->qid.type) {
 		if(removedir(f->node) < 0)
 			e = errstring;
 	} else {
@@ -617,13 +643,13 @@ rremove(Fid *f)
 	return e;
 }
 
-char *
-rstat(Fid *f)
+char*
+rstat(Fid* f)
 {
-	Node *p;
+	Node* p;
 
 	p = f->node->parent;
-	if(!ISCACHED(p)){
+	if(!ISCACHED(p)) {
 		invalidate(p);
 		readdir(p);
 		CACHED(p);
@@ -632,13 +658,13 @@ rstat(Fid *f)
 		return nosuchfile;
 	if(p->chdirunknown)
 		fixsymbolic(f->node);
-	rhdr.nstat = convD2M(f->node->d, mbuf, messagesize-IOHDRSZ);
+	rhdr.nstat = convD2M(f->node->d, mbuf, messagesize - IOHDRSZ);
 	rhdr.stat = mbuf;
 	return 0;
 }
 
-char *
-rwstat(Fid *f)
+char*
+rwstat(Fid* f)
 {
 	USED(f);
 	return "wstat not implemented";
@@ -648,15 +674,15 @@ rwstat(Fid *f)
  *  print message and die
  */
 void
-fatal(char *fmt, ...)
+fatal(char* fmt, ...)
 {
 	va_list arg;
-	char buf[8*1024];
+	char buf[8 * 1024];
 
 	dying = 1;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf + (sizeof(buf)-1) / sizeof(*buf), fmt, arg);
+	vseprint(buf, buf + (sizeof(buf) - 1) / sizeof(*buf), fmt, arg);
 	va_end(arg);
 
 	fprint(2, "ftpfs: %s\n", buf);
@@ -669,9 +695,9 @@ fatal(char *fmt, ...)
  *  like strncpy but make sure there's a terminating null
  */
 void*
-safecpy(void *to, void *from, int n)
+safecpy(void* to, void* from, int n)
 {
-	char *a = ((char*)to) + n - 1;
+	char* a = ((char*)to) + n - 1;
 
 	strncpy(to, from, n);
 	*a = 0;
@@ -682,7 +708,7 @@ safecpy(void *to, void *from, int n)
  *  set the error string
  */
 int
-seterr(char *fmt, ...)
+seterr(char* fmt, ...)
 {
 	va_list arg;
 
@@ -696,9 +722,9 @@ seterr(char *fmt, ...)
  *  create a new node
  */
 Node*
-newnode(Node *parent, String *name)
+newnode(Node* parent, String* name)
 {
-	Node *np;
+	Node* np;
 	static uint32_t path;
 	Dir d;
 
@@ -707,12 +733,12 @@ newnode(Node *parent, String *name)
 		fatal("out of memory");
 
 	np->children = 0;
-	if(parent){
+	if(parent) {
 		np->parent = parent;
 		np->sibs = parent->children;
 		parent->children = np;
 		np->depth = parent->depth + 1;
-		d.dev = 0;		/* not stat'd */
+		d.dev = 0; /* not stat'd */
 	} else {
 		/* the root node */
 		np->parent = np;
@@ -741,12 +767,12 @@ newnode(Node *parent, String *name)
  *  walk one down the local mirror of the remote directory tree
  */
 Node*
-extendpath(Node *parent, String *elem)
+extendpath(Node* parent, String* elem)
 {
-	Node *np;
+	Node* np;
 
 	for(np = parent->children; np; np = np->sibs)
-		if(strcmp(s_to_c(np->remname), s_to_c(elem)) == 0){
+		if(strcmp(s_to_c(np->remname), s_to_c(elem)) == 0) {
 			s_free(elem);
 			return np;
 		}
@@ -758,7 +784,7 @@ extendpath(Node *parent, String *elem)
  *  flush the cached file, write it back if it's dirty
  */
 void
-uncache(Node *np)
+uncache(Node* np)
 {
 	if(fileisdirty(np))
 		createfile(np);
@@ -770,19 +796,19 @@ uncache(Node *np)
  *  invalidate all children of a node
  */
 void
-invalidate(Node *node)
+invalidate(Node* node)
 {
-	Node *np;
+	Node* np;
 
 	if(node->opens)
-		return;		/* don't invalidate something that's open */
+		return; /* don't invalidate something that's open */
 
 	uncachedir(node, 0);
 
 	/* invalidate children */
-	for(np = node->children; np; np = np->sibs){
+	for(np = node->children; np; np = np->sibs) {
 		if(np->opens)
-			continue;	/* don't invalidate something that's open */
+			continue; /* don't invalidate something that's open */
 		UNCACHED(np);
 		invalidate(np);
 		np->d->dev = 0;
@@ -793,22 +819,22 @@ invalidate(Node *node)
  *  make a top level tops-20 directory.  They are automaticly valid.
  */
 Node*
-newtopsdir(char *name)
+newtopsdir(char* name)
 {
-	Node *np;
+	Node* np;
 
 	np = extendpath(remroot, s_copy(name));
-	if(!ISVALID(np)){
+	if(!ISVALID(np)) {
 		np->d->qid.type = QTDIR;
 		np->d->atime = time(0);
 		np->d->mtime = np->d->atime;
 		np->d->uid = "?uid?";
 		np->d->gid = "?uid?";
 		np->d->muid = "?uid?";
-		np->d->mode = DMDIR|0777;
+		np->d->mode = DMDIR | 0777;
 		np->d->length = 0;
 		np->d = reallocdir(np->d, 1);
-		
+
 		if(changedir(np) >= 0)
 			VALID(np);
 	}
@@ -819,12 +845,12 @@ newtopsdir(char *name)
  *  figure out if a symbolic link is to a directory or a file
  */
 void
-fixsymbolic(Node *node)
+fixsymbolic(Node* node)
 {
-	if(changedir(node) == 0){
+	if(changedir(node) == 0) {
 		node->d->mode |= DMDIR;
 		node->d->qid.type = QTDIR;
 	} else
 		node->d->qid.type = QTFILE;
-	node->d->mode &= ~DMSYML; 
+	node->d->mode &= ~DMSYML;
 }

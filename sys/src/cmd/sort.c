@@ -7,159 +7,152 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 /*
 bugs:
-	00/ff for end of file can conflict with 00/ff characters
+        00/ff for end of file can conflict with 00/ff characters
 */
 
-static Rune ljan[] = {'J','A','N'};
-static Rune lfeb[] = {'F','E','B'};
-static Rune lmar[] = {'M','A','R'};
-static Rune lapr[] = {'A','P','R'};
-static Rune lmay[] = {'M','A','Y'};
-static Rune ljun[] = {'J','U','N'};
-static Rune ljul[] = {'J','U','L'};
-static Rune laug[] = {'A','U','G'};
-static Rune lsep[] = {'S','E','P'};
-static Rune loct[] = {'O','C','T'};
-static Rune lnov[] = {'N','O','V'};
-static Rune ldec[] = {'D','E','C'};
+static Rune ljan[] = {'J', 'A', 'N'};
+static Rune lfeb[] = {'F', 'E', 'B'};
+static Rune lmar[] = {'M', 'A', 'R'};
+static Rune lapr[] = {'A', 'P', 'R'};
+static Rune lmay[] = {'M', 'A', 'Y'};
+static Rune ljun[] = {'J', 'U', 'N'};
+static Rune ljul[] = {'J', 'U', 'L'};
+static Rune laug[] = {'A', 'U', 'G'};
+static Rune lsep[] = {'S', 'E', 'P'};
+static Rune loct[] = {'O', 'C', 'T'};
+static Rune lnov[] = {'N', 'O', 'V'};
+static Rune ldec[] = {'D', 'E', 'C'};
 
-enum
-{
-	Nline	= 100000,		/* default max number of lines saved in memory */
-	Nmerge	= 10,			/* max number of temporary files merged */
-	Nfield	= 20,			/* max number of argument fields */
+enum { Nline = 100000, /* default max number of lines saved in memory */
+       Nmerge = 10,    /* max number of temporary files merged */
+       Nfield = 20,    /* max number of argument fields */
 
-	Bflag	= 1<<0,			/* flags per field */
-	B1flag	= 1<<1,
+       Bflag = 1 << 0, /* flags per field */
+       B1flag = 1 << 1,
 
-	Dflag	= 1<<2,
-	Fflag	= 1<<3,
-	Gflag	= 1<<4,
-	Iflag	= 1<<5,
-	Mflag	= 1<<6,
-	Nflag	= 1<<7,
-	Rflag	= 1<<8,
-	Wflag	= 1<<9,
+       Dflag = 1 << 2,
+       Fflag = 1 << 3,
+       Gflag = 1 << 4,
+       Iflag = 1 << 5,
+       Mflag = 1 << 6,
+       Nflag = 1 << 7,
+       Rflag = 1 << 8,
+       Wflag = 1 << 9,
 
-	NSstart	= 0,			/* states for number to key decoding */
-	NSsign,
-	NSzero,
-	NSdigit,
-	NSpoint,
-	NSfract,
-	NSzerofract,
-	NSexp,
-	NSexpsign,
-	NSexpdigit,
+       NSstart = 0, /* states for number to key decoding */
+       NSsign,
+       NSzero,
+       NSdigit,
+       NSpoint,
+       NSfract,
+       NSzerofract,
+       NSexp,
+       NSexpsign,
+       NSexpdigit,
 };
 
-typedef	struct	Line	Line;
-typedef	struct	Key	Key;
-typedef	struct	Merge	Merge;
-typedef	struct	Field	Field;
+typedef struct Line Line;
+typedef struct Key Key;
+typedef struct Merge Merge;
+typedef struct Field Field;
 
-struct	Line
-{
-	Key*	key;
-	int	llen;		/* always >= 1 */
-	uint8_t	line[1];	/* always ends in '\n' */
+struct Line {
+	Key* key;
+	int llen;        /* always >= 1 */
+	uint8_t line[1]; /* always ends in '\n' */
 };
 
-struct	Merge
-{
-	Key*	key;		/* copy of line->key so (Line*) looks like (Merge*) */
-	Line*	line;		/* line at the head of a merged temp file */
-	int	fd;		/* file descriptor */
-	Biobuf	b;		/* iobuf for reading a temp file */
+struct Merge {
+	Key* key;   /* copy of line->key so (Line*) looks like (Merge*) */
+	Line* line; /* line at the head of a merged temp file */
+	int fd;     /* file descriptor */
+	Biobuf b;   /* iobuf for reading a temp file */
 };
 
-struct	Key
-{
-	int	klen;
-	uint8_t	key[1];
+struct Key {
+	int klen;
+	uint8_t key[1];
 };
 
-struct	Field
-{
-	int	beg1;
-	int	beg2;
-	int	end1;
-	int	end2;
+struct Field {
+	int beg1;
+	int beg2;
+	int end1;
+	int end2;
 
-	int32_t	flags;
-	uint8_t	mapto[1+255];
+	int32_t flags;
+	uint8_t mapto[1 + 255];
 
-	void	(*dokey)(Key*, uint8_t*, uint8_t*, Field*);
+	void (*dokey)(Key*, uint8_t*, uint8_t*, Field*);
 };
 
-struct args
-{
-	char*	ofile;
-	char*	tname;
-	Rune	tabchar;
-	char	cflag;
-	char	uflag;
-	char	vflag;
-	int	nfield;
-	int	nfile;
-	Field	field[Nfield];
+struct args {
+	char* ofile;
+	char* tname;
+	Rune tabchar;
+	char cflag;
+	char uflag;
+	char vflag;
+	int nfield;
+	int nfile;
+	Field field[Nfield];
 
-	Line**	linep;
-	int32_t	nline;			/* number of lines in this temp file */
-	int32_t	lineno;			/* overall ordinal for -s option */
-	int	ntemp;
-	int32_t	mline;			/* max lines per file */
+	Line** linep;
+	int32_t nline;  /* number of lines in this temp file */
+	int32_t lineno; /* overall ordinal for -s option */
+	int ntemp;
+	int32_t mline; /* max lines per file */
 } args;
 
-extern	Rune*	month[12];
+extern Rune* month[12];
 
-void	buildkey(Line*);
-void	doargs(int, char*[]);
-void	dofield(char*, int*, int*, int, int);
-void	dofile(Biobuf*);
-void	dokey_(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_dfi(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_gn(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_m(Key*, uint8_t*, uint8_t*, Field*);
-void	dokey_r(Key*, uint8_t*, uint8_t*, Field*);
-void	done(char*);
-int	kcmp(Key*, Key*);
-void	makemapd(Field*);
-void	makemapm(Field*);
-void	mergefiles(int, int, Biobuf*);
-void	mergeout(Biobuf*);
-void	newfield(void);
-Line*	newline(Biobuf*);
-void	nomem(void);
-void	notifyf(void *c, char*);
-void	printargs(void);
-void	printout(Biobuf*);
-void	setfield(int, int);
-uint8_t*	skip(uint8_t*, int, int, int, int);
-void	sort4(void *c, uint32_t);
-char*	tempfile(int);
-void	tempout(void);
-void	lineout(Biobuf*, Line*);
+void buildkey(Line*);
+void doargs(int, char* []);
+void dofield(char*, int*, int*, int, int);
+void dofile(Biobuf*);
+void dokey_(Key*, uint8_t*, uint8_t*, Field*);
+void dokey_dfi(Key*, uint8_t*, uint8_t*, Field*);
+void dokey_gn(Key*, uint8_t*, uint8_t*, Field*);
+void dokey_m(Key*, uint8_t*, uint8_t*, Field*);
+void dokey_r(Key*, uint8_t*, uint8_t*, Field*);
+void done(char*);
+int kcmp(Key*, Key*);
+void makemapd(Field*);
+void makemapm(Field*);
+void mergefiles(int, int, Biobuf*);
+void mergeout(Biobuf*);
+void newfield(void);
+Line* newline(Biobuf*);
+void nomem(void);
+void notifyf(void* c, char*);
+void printargs(void);
+void printout(Biobuf*);
+void setfield(int, int);
+uint8_t* skip(uint8_t*, int, int, int, int);
+void sort4(void* c, uint32_t);
+char* tempfile(int);
+void tempout(void);
+void lineout(Biobuf*, Line*);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i, f;
-	char *s;
+	char* s;
 	Biobuf bbuf;
 
-	notify(notifyf);	/**/
+	notify(notifyf); /**/
 	doargs(argc, argv);
 	if(args.vflag)
 		printargs();
 
-	for(i=1; i<argc; i++) {
+	for(i = 1; i < argc; i++) {
 		s = argv[i];
 		if(s == 0)
 			continue;
@@ -210,9 +203,9 @@ main(int argc, char *argv[])
 }
 
 void
-dofile(Biobuf *b)
+dofile(Biobuf* b)
 {
-	Line *l, *ol;
+	Line* l, *ol;
 	int n;
 
 	if(args.cflag) {
@@ -253,7 +246,7 @@ dofile(Biobuf *b)
 }
 
 void
-notifyf(void *c, char *s)
+notifyf(void* c, char* s)
 {
 
 	if(strcmp(s, "interrupt") == 0)
@@ -269,10 +262,10 @@ notifyf(void *c, char *s)
 }
 
 Line*
-newline(Biobuf *b)
+newline(Biobuf* b)
 {
-	Line *l;
-	char *p;
+	Line* l;
+	char* p;
 	int n, c;
 
 	p = Brdline(b, '\n');
@@ -281,10 +274,11 @@ newline(Biobuf *b)
 		if(n == 0)
 			return 0;
 		l = 0;
-		for(n=0;;) {
+		for(n = 0;;) {
 			if((n & 31) == 0) {
-				l = realloc(l, sizeof(Line) +
-					(n+31)*sizeof(l->line[0]));
+				l = realloc(l,
+				            sizeof(Line) +
+				                (n + 31) * sizeof(l->line[0]));
 				if(l == 0)
 					nomem();
 			}
@@ -301,8 +295,7 @@ newline(Biobuf *b)
 		buildkey(l);
 		return l;
 	}
-	l = malloc(sizeof(Line) +
-		(n-1)*sizeof(l->line[0]));
+	l = malloc(sizeof(Line) + (n - 1) * sizeof(l->line[0]));
 	if(l == 0)
 		nomem();
 	l->llen = n;
@@ -312,7 +305,7 @@ newline(Biobuf *b)
 }
 
 void
-lineout(Biobuf *b, Line *l)
+lineout(Biobuf* b, Line* l)
 {
 	int n, m;
 
@@ -326,8 +319,8 @@ void
 tempout(void)
 {
 	int32_t n;
-	Line **lp, *l;
-	char *tf;
+	Line** lp, *l;
+	char* tf;
 	int f;
 	Biobuf tb;
 
@@ -342,7 +335,7 @@ tempout(void)
 
 	Binit(&tb, f, OWRITE);
 	lp = args.linep;
-	for(n=args.nline; n>0; n--) {
+	for(n = args.nline; n > 0; n--) {
 		l = *lp++;
 		lineout(&tb, l);
 		free(l->key);
@@ -354,11 +347,11 @@ tempout(void)
 }
 
 void
-done(char *xs)
+done(char* xs)
 {
 	int i;
 
-	for(i=0; i<args.ntemp; i++)
+	for(i = 0; i < args.ntemp; i++)
 		remove(tempfile(i));
 	exits(xs);
 }
@@ -375,12 +368,12 @@ tempfile(int n)
 {
 	static char file[100];
 	static uint pid;
-	char *dir;
+	char* dir;
 
 	dir = "/tmp";
 	if(args.tname)
 		dir = args.tname;
-	if(strlen(dir) >= nelem(file)-20) {
+	if(strlen(dir) >= nelem(file) - 20) {
 		fprint(2, "temp file directory name is too int32_t: %s\n", dir);
 		done("tdir");
 	}
@@ -394,18 +387,18 @@ tempfile(int n)
 		}
 	}
 
-	sprint(file, "%s/sort.%.4d.%.4d", dir, pid%10000, n);
+	sprint(file, "%s/sort.%.4d.%.4d", dir, pid % 10000, n);
 	return file;
 }
 
 void
-mergeout(Biobuf *b)
+mergeout(Biobuf* b)
 {
 	int n, i, f;
-	char *tf;
+	char* tf;
 	Biobuf tb;
 
-	for(i=0; i<args.ntemp; i+=n) {
+	for(i = 0; i < args.ntemp; i += n) {
 		n = args.ntemp - i;
 		if(n > Nmerge) {
 			tf = tempfile(args.ntemp);
@@ -428,23 +421,23 @@ mergeout(Biobuf *b)
 }
 
 void
-mergefiles(int t, int n, Biobuf *b)
+mergefiles(int t, int n, Biobuf* b)
 {
-	Merge *m, *mp, **mmp;
-	Key *ok;
-	Line *l;
-	char *tf;
+	Merge* m, *mp, **mmp;
+	Key* ok;
+	Line* l;
+	char* tf;
 	int i, f, nn;
 
-	mmp = malloc(n*sizeof(*mmp));
-	mp = malloc(n*sizeof(*mp));
+	mmp = malloc(n * sizeof(*mmp));
+	mp = malloc(n * sizeof(*mp));
 	if(mmp == 0 || mp == 0)
 		nomem();
 
 	nn = 0;
 	m = mp;
-	for(i=0; i<n; i++,m++) {
-		tf = tempfile(t+i);
+	for(i = 0; i < n; i++, m++) {
+		tf = tempfile(t + i);
 		f = open(tf, OREAD);
 		if(f < 0) {
 			fprint(2, "sort: reopen %s: %r\n", tf);
@@ -497,7 +490,7 @@ mergefiles(int t, int n, Biobuf *b)
 		free(ok);
 
 	m = mp;
-	for(i=0; i<n; i++,m++) {
+	for(i = 0; i < n; i++, m++) {
 		Bterm(&m->b);
 		close(m->fd);
 	}
@@ -507,7 +500,7 @@ mergefiles(int t, int n, Biobuf *b)
 }
 
 int
-kcmp(Key *ka, Key *kb)
+kcmp(Key* ka, Key* kb)
 {
 	int n, m;
 
@@ -522,16 +515,16 @@ kcmp(Key *ka, Key *kb)
 }
 
 void
-printout(Biobuf *b)
+printout(Biobuf* b)
 {
 	int32_t n;
-	Line **lp, *l;
-	Key *ok;
+	Line** lp, *l;
+	Key* ok;
 
 	sort4(args.linep, args.nline);
 	lp = args.linep;
 	ok = 0;
-	for(n=args.nline; n>0; n--) {
+	for(n = args.nline; n > 0; n--) {
 		l = *lp++;
 		if(args.uflag && ok && kcmp(ok, l->key) == 0)
 			continue;
@@ -543,45 +536,45 @@ printout(Biobuf *b)
 void
 setfield(int n, int c)
 {
-	Field *f;
+	Field* f;
 
 	f = &args.field[n];
 	switch(c) {
 	default:
 		fprint(2, "sort: unknown option: field.%C\n", c);
 		done("option");
-	case 'b':	/* skip blanks */
+	case 'b': /* skip blanks */
 		f->flags |= Bflag;
 		break;
-	case 'd':	/* directory order */
+	case 'd': /* directory order */
 		f->flags |= Dflag;
 		break;
-	case 'f':	/* fold case */
+	case 'f': /* fold case */
 		f->flags |= Fflag;
 		break;
-	case 'g':	/* floating point -n case */
+	case 'g': /* floating point -n case */
 		f->flags |= Gflag;
 		break;
-	case 'i':	/* ignore non-ascii */
+	case 'i': /* ignore non-ascii */
 		f->flags |= Iflag;
 		break;
-	case 'M':	/* month */
+	case 'M': /* month */
 		f->flags |= Mflag;
 		break;
-	case 'n':	/* numbers */
+	case 'n': /* numbers */
 		f->flags |= Nflag;
 		break;
-	case 'r':	/* reverse */
+	case 'r': /* reverse */
 		f->flags |= Rflag;
 		break;
-	case 'w':	/* ignore white */
+	case 'w': /* ignore white */
 		f->flags |= Wflag;
 		break;
 	}
 }
 
 void
-dofield(char *s, int *n1, int *n2, int off1, int off2)
+dofield(char* s, int* n1, int* n2, int off1, int off2)
 {
 	int c, n;
 
@@ -589,10 +582,10 @@ dofield(char *s, int *n1, int *n2, int off1, int off2)
 	if(c >= '0' && c <= '9') {
 		n = 0;
 		while(c >= '0' && c <= '9') {
-			n = n*10 + (c-'0');
+			n = n * 10 + (c - '0');
 			c = *s++;
 		}
-		n -= off1;	/* posix committee: rot in hell */
+		n -= off1; /* posix committee: rot in hell */
 		if(n < 0) {
 			fprint(2, "sort: field offset must be positive\n");
 			done("option");
@@ -604,12 +597,13 @@ dofield(char *s, int *n1, int *n2, int off1, int off2)
 		if(c >= '0' && c <= '9') {
 			n = 0;
 			while(c >= '0' && c <= '9') {
-				n = n*10 + (c-'0');
+				n = n * 10 + (c - '0');
 				c = *s++;
 			}
 			n -= off2;
 			if(n < 0) {
-				fprint(2, "sort: character offset must be positive\n");
+				fprint(2, "sort: character offset must be "
+				          "positive\n");
 				done("option");
 			}
 			*n2 = n;
@@ -625,11 +619,11 @@ void
 printargs(void)
 {
 	int i, n;
-	Field *f;
-	char *prefix;
+	Field* f;
+	char* prefix;
 
 	fprint(2, "sort");
-	for(i=0; i<=args.nfield; i++) {
+	for(i = 0; i <= args.nfield; i++) {
 		f = &args.field[i];
 		prefix = " -";
 		if(i) {
@@ -693,7 +687,7 @@ void
 newfield(void)
 {
 	int n;
-	Field *f;
+	Field* f;
 
 	n = args.nfield + 1;
 	if(n >= Nfield) {
@@ -709,22 +703,22 @@ newfield(void)
 }
 
 void
-doargs(int argc, char *argv[])
+doargs(int argc, char* argv[])
 {
 	int i, c, hadplus;
-	char *s, *p, *q;
-	Field *f;
+	char* s, *p, *q;
+	Field* f;
 
 	hadplus = 0;
 	args.mline = Nline;
-	for(i=1; i<argc; i++) {
+	for(i = 1; i < argc; i++) {
 		s = argv[i];
 		c = *s++;
 		if(c == '-') {
 			c = *s;
-			if(c == 0)		/* forced end of arg marker */
+			if(c == 0) /* forced end of arg marker */
 				break;
-			argv[i] = 0;		/* clobber args processed */
+			argv[i] = 0; /* clobber args processed */
 			if(c == '.' || (c >= '0' && c <= '9')) {
 				if(!hadplus)
 					newfield();
@@ -735,122 +729,131 @@ doargs(int argc, char *argv[])
 			}
 
 			while(c = *s++)
-			switch(c) {
-			case '-':	/* end of options */
-				i = argc;
-				continue;
-			case 'T':	/* temp directory */
-				if(*s == 0) {
-					i++;
-					if(i < argc) {
-						args.tname = argv[i];
-						argv[i] = 0;
+				switch(c) {
+				case '-': /* end of options */
+					i = argc;
+					continue;
+				case 'T': /* temp directory */
+					if(*s == 0) {
+						i++;
+						if(i < argc) {
+							args.tname = argv[i];
+							argv[i] = 0;
+						}
+					} else
+						args.tname = s;
+					s = strchr(s, 0);
+					break;
+				case 'o': /* output file */
+					if(*s == 0) {
+						i++;
+						if(i < argc) {
+							args.ofile = argv[i];
+							argv[i] = 0;
+						}
+					} else
+						args.ofile = s;
+					s = strchr(s, 0);
+					break;
+				case 'k': /* posix key (what were they
+				             thinking?) */
+					p = 0;
+					if(*s == 0) {
+						i++;
+						if(i < argc) {
+							p = argv[i];
+							argv[i] = 0;
+						}
+					} else
+						p = s;
+					s = strchr(s, 0);
+					if(p == 0)
+						break;
+
+					newfield();
+					q = strchr(p, ',');
+					if(q)
+						*q++ = 0;
+					f = &args.field[args.nfield];
+					dofield(p, &f->beg1, &f->beg2, 1, 1);
+					if(f->flags & Bflag) {
+						f->flags |= B1flag;
+						f->flags &= ~Bflag;
 					}
-				} else
-					args.tname = s;
-				s = strchr(s, 0);
-				break;
-			case 'o':	/* output file */
-				if(*s == 0) {
-					i++;
-					if(i < argc) {
-						args.ofile = argv[i];
-						argv[i] = 0;
+					if(q) {
+						dofield(q, &f->end1, &f->end2,
+						        1, 0);
+						if(f->end2 <= 0)
+							f->end1++;
 					}
-				} else
-					args.ofile = s;
-				s = strchr(s, 0);
-				break;
-			case 'k':	/* posix key (what were they thinking?) */
-				p = 0;
-				if(*s == 0) {
-					i++;
-					if(i < argc) {
-						p = argv[i];
-						argv[i] = 0;
+					hadplus = 0;
+					break;
+				case 't': /* tab character */
+					if(*s == 0) {
+						i++;
+						if(i < argc) {
+							chartorune(
+							    &args.tabchar,
+							    argv[i]);
+							argv[i] = 0;
+						}
+					} else
+						s += chartorune(&args.tabchar,
+						                s);
+					if(args.tabchar == '\n') {
+						fprint(2, "aw come on, rob\n");
+						done("rob");
 					}
-				} else
-					p = s;
-				s = strchr(s, 0);
-				if(p == 0)
+					break;
+				case 'c': /* check order */
+					args.cflag = 1;
+					break;
+				case 'u': /* unique */
+					args.uflag = 1;
+					break;
+				case 'v': /* debugging noise */
+					args.vflag = 1;
+					break;
+				case 'l':
+					if(*s == 0) {
+						i++;
+						if(i < argc) {
+							args.mline =
+							    atol(argv[i]);
+							argv[i] = 0;
+						}
+					} else
+						args.mline = atol(s);
+					s = strchr(s, 0);
 					break;
 
-				newfield();
-				q = strchr(p, ',');
-				if(q)
-					*q++ = 0;
-				f = &args.field[args.nfield];
-				dofield(p, &f->beg1, &f->beg2, 1, 1);
-				if(f->flags & Bflag) {
-					f->flags |= B1flag;
-					f->flags &= ~Bflag;
+				case 'M': /* month */
+				case 'b': /* skip blanks */
+				case 'd': /* directory order */
+				case 'f': /* fold case */
+				case 'g': /* floating numbers */
+				case 'i': /* ignore non-ascii */
+				case 'n': /* numbers */
+				case 'r': /* reverse */
+				case 'w': /* ignore white */
+					if(args.nfield > 0)
+						fprint(2, "sort: global field "
+						          "set after -k\n");
+					setfield(0, c);
+					break;
+				case 'm':
+					/* option m silently ignored but
+					 * required by posix */
+					break;
+				default:
+					fprint(2, "sort: unknown option: -%C\n",
+					       c);
+					done("option");
 				}
-				if(q) {
-					dofield(q, &f->end1, &f->end2, 1, 0);
-					if(f->end2 <= 0)
-						f->end1++;
-				}
-				hadplus = 0;
-				break;
-			case 't':	/* tab character */
-				if(*s == 0) {
-					i++;
-					if(i < argc) {
-						chartorune(&args.tabchar, argv[i]);
-						argv[i] = 0;
-					}
-				} else
-					s += chartorune(&args.tabchar, s);
-				if(args.tabchar == '\n') {
-					fprint(2, "aw come on, rob\n");
-					done("rob");
-				}
-				break;
-			case 'c':	/* check order */
-				args.cflag = 1;
-				break;
-			case 'u':	/* unique */
-				args.uflag = 1;
-				break;
-			case 'v':	/* debugging noise */
-				args.vflag = 1;
-				break;
-			case 'l':
-				if(*s == 0) {
-					i++;
-					if(i < argc) {
-						args.mline = atol(argv[i]);
-						argv[i] = 0;
-					}
-				} else
-					args.mline = atol(s);
-				s = strchr(s, 0);
-				break;
-
-			case 'M':	/* month */
-			case 'b':	/* skip blanks */
-			case 'd':	/* directory order */
-			case 'f':	/* fold case */
-			case 'g':	/* floating numbers */
-			case 'i':	/* ignore non-ascii */
-			case 'n':	/* numbers */
-			case 'r':	/* reverse */
-			case 'w':	/* ignore white */
-				if(args.nfield > 0)
-					fprint(2, "sort: global field set after -k\n");
-				setfield(0, c);
-				break;
-			case 'm':
-				/* option m silently ignored but required by posix */
-				break;
-			default:
-				fprint(2, "sort: unknown option: -%C\n", c);
-				done("option");
-			}
 			continue;
 		}
 		if(c == '+') {
-			argv[i] = 0;		/* clobber args processed */
+			argv[i] = 0; /* clobber args processed */
 			c = *s;
 			if(c == '.' || (c >= '0' && c <= '9')) {
 				newfield();
@@ -869,7 +872,7 @@ doargs(int argc, char *argv[])
 		args.nfile++;
 	}
 
-	for(i=0; i<=args.nfield; i++) {
+	for(i = 0; i <= args.nfield; i++) {
 		f = &args.field[i];
 
 		/*
@@ -882,13 +885,13 @@ doargs(int argc, char *argv[])
 				f->flags |= B1flag;
 		}
 
-
 		/*
 		 * build buildkey specification
 		 */
-		switch(f->flags & ~(Bflag|B1flag)) {
+		switch(f->flags & ~(Bflag | B1flag)) {
 		default:
-			fprint(2, "sort: illegal combination of flags: %lx\n", f->flags);
+			fprint(2, "sort: illegal combination of flags: %lx\n",
+			       f->flags);
 			done("option");
 		case 0:
 			f->dokey = dokey_;
@@ -898,45 +901,45 @@ doargs(int argc, char *argv[])
 			break;
 		case Gflag:
 		case Nflag:
-		case Gflag|Nflag:
-		case Gflag|Rflag:
-		case Nflag|Rflag:
-		case Gflag|Nflag|Rflag:
+		case Gflag | Nflag:
+		case Gflag | Rflag:
+		case Nflag | Rflag:
+		case Gflag | Nflag | Rflag:
 			f->dokey = dokey_gn;
 			break;
 		case Mflag:
-		case Mflag|Rflag:
+		case Mflag | Rflag:
 			f->dokey = dokey_m;
 			makemapm(f);
 			break;
 		case Dflag:
-		case Dflag|Fflag:
-		case Dflag|Fflag|Iflag:
-		case Dflag|Fflag|Iflag|Rflag:
-		case Dflag|Fflag|Iflag|Rflag|Wflag:
-		case Dflag|Fflag|Iflag|Wflag:
-		case Dflag|Fflag|Rflag:
-		case Dflag|Fflag|Rflag|Wflag:
-		case Dflag|Fflag|Wflag:
-		case Dflag|Iflag:
-		case Dflag|Iflag|Rflag:
-		case Dflag|Iflag|Rflag|Wflag:
-		case Dflag|Iflag|Wflag:
-		case Dflag|Rflag:
-		case Dflag|Rflag|Wflag:
-		case Dflag|Wflag:
+		case Dflag | Fflag:
+		case Dflag | Fflag | Iflag:
+		case Dflag | Fflag | Iflag | Rflag:
+		case Dflag | Fflag | Iflag | Rflag | Wflag:
+		case Dflag | Fflag | Iflag | Wflag:
+		case Dflag | Fflag | Rflag:
+		case Dflag | Fflag | Rflag | Wflag:
+		case Dflag | Fflag | Wflag:
+		case Dflag | Iflag:
+		case Dflag | Iflag | Rflag:
+		case Dflag | Iflag | Rflag | Wflag:
+		case Dflag | Iflag | Wflag:
+		case Dflag | Rflag:
+		case Dflag | Rflag | Wflag:
+		case Dflag | Wflag:
 		case Fflag:
-		case Fflag|Iflag:
-		case Fflag|Iflag|Rflag:
-		case Fflag|Iflag|Rflag|Wflag:
-		case Fflag|Iflag|Wflag:
-		case Fflag|Rflag:
-		case Fflag|Rflag|Wflag:
-		case Fflag|Wflag:
+		case Fflag | Iflag:
+		case Fflag | Iflag | Rflag:
+		case Fflag | Iflag | Rflag | Wflag:
+		case Fflag | Iflag | Wflag:
+		case Fflag | Rflag:
+		case Fflag | Rflag | Wflag:
+		case Fflag | Wflag:
 		case Iflag:
-		case Iflag|Rflag:
-		case Iflag|Rflag|Wflag:
-		case Iflag|Wflag:
+		case Iflag | Rflag:
+		case Iflag | Rflag | Wflag:
+		case Iflag | Wflag:
 		case Wflag:
 			f->dokey = dokey_dfi;
 			makemapd(f);
@@ -955,7 +958,7 @@ doargs(int argc, char *argv[])
 }
 
 uint8_t*
-skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
+skip(uint8_t* l, int n1, int n2, int bflag, int endfield)
 {
 	int i, c, tc;
 	Rune r;
@@ -967,7 +970,7 @@ skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 	tc = args.tabchar;
 	if(tc) {
 		if(tc < Runeself) {
-			for(i=n1; i>0; i--) {
+			for(i = n1; i > 0; i--) {
 				while(c != tc) {
 					if(c == '\n')
 						return 0;
@@ -979,7 +982,7 @@ skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 		} else {
 			l--;
 			l += chartorune(&r, (char*)l);
-			for(i=n1; i>0; i--) {
+			for(i = n1; i > 0; i--) {
 				while(r != tc) {
 					if(r == '\n')
 						return 0;
@@ -991,7 +994,7 @@ skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 			c = r;
 		}
 	} else {
-		for(i=n1; i>0; i--) {
+		for(i = n1; i > 0; i--) {
 			while(c == ' ' || c == '\t')
 				c = *l++;
 			while(c != ' ' && c != '\t') {
@@ -1007,7 +1010,7 @@ skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 			c = *l++;
 
 	l--;
-	for(i=n2; i>0; i--) {
+	for(i = n2; i > 0; i--) {
 		c = *l;
 		if(c < Runeself) {
 			if(c == '\n')
@@ -1021,20 +1024,20 @@ skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 }
 
 void
-dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_gn(Key* k, uint8_t* lp, uint8_t* lpe, Field* f)
 {
-	uint8_t *kp;
+	uint8_t* kp;
 	int c, cl, dp;
 	int state, nzero, exp, expsign, rflag;
 
 	cl = k->klen + 3;
-	kp = k->key + cl;	/* skip place for sign, exponent[2] */
+	kp = k->key + cl; /* skip place for sign, exponent[2] */
 
-	nzero = 0;		/* number of trailing zeros */
-	exp = 0;		/* value of the exponent */
-	expsign = 0;		/* sign of the exponent */
-	dp = 0x4040;		/* location of decimal point */
-	rflag = f->flags&Rflag;	/* xor of rflag and - sign */
+	nzero = 0;                /* number of trailing zeros */
+	exp = 0;                  /* value of the exponent */
+	expsign = 0;              /* sign of the exponent */
+	dp = 0x4040;              /* location of decimal point */
+	rflag = f->flags & Rflag; /* xor of rflag and - sign */
 	state = NSstart;
 
 	for(;; lp++) {
@@ -1097,7 +1100,7 @@ dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 			case NSexpsign:
 			case NSexp:
 			case NSexpdigit:
-				exp = exp*10 + (c - '0');
+				exp = exp * 10 + (c - '0');
 				state = NSexpdigit;
 				continue;
 			}
@@ -1130,7 +1133,7 @@ dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 			case NSexpsign:
 			case NSexp:
 			case NSexpdigit:
-				exp = exp*10 + (c - '0');
+				exp = exp * 10 + (c - '0');
 				state = NSexpdigit;
 				continue;
 			}
@@ -1174,7 +1177,7 @@ dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 	case NSpoint:
 		kp = k->key + k->klen;
 		k->klen += 2;
-		kp[0] = 0x20;	/* between + and - */
+		kp[0] = 0x20; /* between + and - */
 		kp[1] = 0;
 		return;
 	/*
@@ -1217,18 +1220,18 @@ dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 	kp[0] = c;
 	kp[1] = (dp >> 8);
 	kp[2] = dp;
-	k->klen = cl+1;
+	k->klen = cl + 1;
 }
 
 void
-dokey_m(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_m(Key* k, uint8_t* lp, uint8_t* lpe, Field* f)
 {
-	uint8_t *kp;
+	uint8_t* kp;
 	Rune r, place[3];
 	int c, cl, pc;
 	int rflag;
 
-	rflag = f->flags&Rflag;
+	rflag = f->flags & Rflag;
 	pc = 0;
 
 	cl = k->klen;
@@ -1255,7 +1258,7 @@ dokey_m(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 		place[pc++] = c;
 		if(pc < 3)
 			continue;
-		for(c=11; c>=0; c--)
+		for(c = 11; c >= 0; c--)
 			if(memcmp(month[c], place, sizeof(place)) == 0)
 				break;
 		c += 10;
@@ -1270,13 +1273,13 @@ dokey_m(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 	if(rflag)
 		c = ~c;
 	*kp = c;
-	k->klen = cl+1;
+	k->klen = cl + 1;
 }
 
 void
-dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_dfi(Key* k, uint8_t* lp, uint8_t* lpe, Field* f)
 {
-	uint8_t *kp;
+	uint8_t* kp;
 	Rune r;
 	int c, cl, n, rflag;
 
@@ -1321,7 +1324,7 @@ dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 			if(c == 0)
 				continue;
 		} else {
-			if(f->mapto[nelem(f->mapto)-1] == 0)
+			if(f->mapto[nelem(f->mapto) - 1] == 0)
 				continue;
 			/*
 			 * consider building maps as necessary
@@ -1329,7 +1332,7 @@ dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 			if(f->flags & Fflag)
 				c = tolowerrune(tobaserune(c));
 			if(f->flags & Dflag && !isalpharune(c) &&
-			    !isdigitrune(c) && !isspacerune(c))
+			   !isdigitrune(c) && !isspacerune(c))
 				continue;
 			if((f->flags & Wflag) && isspacerune(c))
 				continue;
@@ -1352,7 +1355,7 @@ dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 	/*
 	 * end of key
 	 */
-	k->klen = cl+1;
+	k->klen = cl + 1;
 	if(rflag) {
 		*kp = ~0;
 		return;
@@ -1361,17 +1364,17 @@ dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_r(Key* k, uint8_t* lp, uint8_t* lpe, Field* f)
 {
 	int cl, n;
-	uint8_t *kp;
+	uint8_t* kp;
 
 	n = lpe - lp;
 	if(n < 0)
 		n = 0;
 	cl = k->klen;
 	kp = k->key + cl;
-	k->klen = cl+n+1;
+	k->klen = cl + n + 1;
 
 	lpe -= 3;
 	while(lp < lpe) {
@@ -1390,49 +1393,49 @@ dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
+dokey_(Key* k, uint8_t* lp, uint8_t* lpe, Field* f)
 {
 	int n, cl;
-	uint8_t *kp;
+	uint8_t* kp;
 
 	n = lpe - lp;
 	if(n < 0)
 		n = 0;
 	cl = k->klen;
 	kp = k->key + cl;
-	k->klen = cl+n+1;
+	k->klen = cl + n + 1;
 	memmove(kp, lp, n);
 	kp[n] = 0;
 }
 
 void
-buildkey(Line *l)
+buildkey(Line* l)
 {
-	Key *k;
-	uint8_t *lp, *lpe;
+	Key* k;
+	uint8_t* lp, *lpe;
 	int ll, kl, cl, i, n;
-	Field *f;
+	Field* f;
 
 	ll = l->llen - 1;
-	kl = 0;			/* allocated length */
-	cl = 0;			/* current length */
+	kl = 0; /* allocated length */
+	cl = 0; /* current length */
 	k = 0;
 
-	for(i=1; i<=args.nfield; i++) {
+	for(i = 1; i <= args.nfield; i++) {
 		f = &args.field[i];
-		lp = skip(l->line, f->beg1, f->beg2, f->flags&B1flag, 0);
+		lp = skip(l->line, f->beg1, f->beg2, f->flags & B1flag, 0);
 		if(lp == 0)
 			lp = l->line + ll;
-		lpe = skip(l->line, f->end1, f->end2, f->flags&Bflag, 1);
+		lpe = skip(l->line, f->end1, f->end2, f->flags & Bflag, 1);
 		if(lpe == 0)
 			lpe = l->line + ll;
 		n = (lpe - lp) + 1;
 		if(n <= 0)
 			n = 1;
-		if(cl+(n+4) > kl) {
-			kl = cl+(n+4);
-			k = realloc(k, sizeof(Key) +
-				(kl-1)*sizeof(k->key[0]));
+		if(cl + (n + 4) > kl) {
+			kl = cl + (n + 4);
+			k = realloc(k,
+			            sizeof(Key) + (kl - 1) * sizeof(k->key[0]));
 			if(k == 0)
 				nomem();
 		}
@@ -1446,15 +1449,15 @@ buildkey(Line *l)
 	 */
 	if(!(args.uflag && cl > 0)) {
 		f = &args.field[0];
-		if(cl+(ll+4) > kl) {
-			kl = cl+(ll+4);
-			k = realloc(k, sizeof(Key) +
-				(kl-1)*sizeof(k->key[0]));
+		if(cl + (ll + 4) > kl) {
+			kl = cl + (ll + 4);
+			k = realloc(k,
+			            sizeof(Key) + (kl - 1) * sizeof(k->key[0]));
 			if(k == 0)
 				nomem();
 		}
 		k->klen = cl;
-		(*f->dokey)(k, l->line, l->line+ll, f);
+		(*f->dokey)(k, l->line, l->line + ll, f);
 		cl = k->klen;
 	}
 
@@ -1464,7 +1467,7 @@ buildkey(Line *l)
 	if(args.vflag) {
 		if(write(2, l->line, l->llen) != l->llen)
 			exits("write");
-		for(i=0; i<k->klen; i++) {
+		for(i = 0; i < k->klen; i++) {
 			fprint(2, " %.2x", k->key[i]);
 			if(k->key[i] == 0x00 || k->key[i] == 0xff)
 				fprint(2, "\n");
@@ -1473,11 +1476,11 @@ buildkey(Line *l)
 }
 
 void
-makemapm(Field *f)
+makemapm(Field* f)
 {
 	int i, c;
 
-	for(i=0; i<nelem(f->mapto); i++) {
+	for(i = 0; i < nelem(f->mapto); i++) {
 		c = 1;
 		if(i == ' ' || i == '\t')
 			c = 0;
@@ -1497,11 +1500,11 @@ makemapm(Field *f)
 }
 
 void
-makemapd(Field *f)
+makemapd(Field* f)
 {
 	int i, c;
 
-	for(i=0; i<nelem(f->mapto); i++) {
+	for(i = 0; i < nelem(f->mapto); i++) {
 		c = i;
 		if(f->flags & Iflag)
 			if(c < 040 || c > 0176)
@@ -1510,10 +1513,9 @@ makemapd(Field *f)
 			if(c == ' ' || c == '\t')
 				c = -1;
 		if((f->flags & Dflag) && c >= 0)
-			if(!(c == ' ' || c == '\t' ||
-			    (c >= 'a' && c <= 'z') ||
-			    (c >= 'A' && c <= 'Z') ||
-			    (c >= '0' && c <= '9'))){
+			if(!(c == ' ' || c == '\t' || (c >= 'a' && c <= 'z') ||
+			     (c >= 'A' && c <= 'Z') ||
+			     (c >= '0' && c <= '9'))) {
 				if(!isupperrune(c = toupperrune(c)))
 					c = -1;
 			}
@@ -1534,34 +1536,20 @@ makemapd(Field *f)
 	}
 }
 
-Rune*	month[12] =
-{
-	ljan,
-	lfeb,
-	lmar,
-	lapr,
-	lmay,
-	ljun,
-	ljul,
-	laug,
-	lsep,
-	loct,
-	lnov,
-	ldec,
+Rune* month[12] = {
+    ljan, lfeb, lmar, lapr, lmay, ljun, ljul, laug, lsep, loct, lnov, ldec,
 };
 
 /************** radix sort ***********/
 
-enum
-{
-	Threshold	= 14,
+enum { Threshold = 14,
 };
 
-void	rsort4(Key***, uint32_t, int);
-void	bsort4(Key***, uint32_t, int);
+void rsort4(Key***, uint32_t, int);
+void bsort4(Key***, uint32_t, int);
 
 void
-sort4(void *a, uint32_t n)
+sort4(void* a, uint32_t n)
 {
 	if(n > Threshold)
 		rsort4((Key***)a, n, 0);
@@ -1570,12 +1558,12 @@ sort4(void *a, uint32_t n)
 }
 
 void
-rsort4(Key ***a, uint32_t n, int b)
+rsort4(Key*** a, uint32_t n, int b)
 {
-	Key ***ea, ***t, ***u, **t1, **u1, *k;
-	Key ***part[257];
+	Key*** ea, ***t, ***u, **t1, **u1, *k;
+	Key*** part[257];
 	static int32_t count[257];
-	int32_t clist[257+257], *cp, *cp1;
+	int32_t clist[257 + 257], *cp, *cp1;
 	int c, lowc, higc;
 
 	/*
@@ -1585,8 +1573,8 @@ rsort4(Key ***a, uint32_t n, int b)
 	 */
 	lowc = 256;
 	higc = 0;
-	ea = a+n;
-	for(t=a; t<ea; t++) {
+	ea = a + n;
+	for(t = a; t < ea; t++) {
 		k = **t;
 		n = k->klen;
 		if(b >= n) {
@@ -1615,9 +1603,9 @@ rsort4(Key ***a, uint32_t n, int b)
 	part[256] = t;
 	t += n;
 
-	cp1 = clist+1;
-	cp = count+lowc;
-	for(c=lowc; c<=higc; c++,cp++) {
+	cp1 = clist + 1;
+	cp = count + lowc;
+	for(c = lowc; c <= higc; c++, cp++) {
 		n = *cp;
 		if(n) {
 			cp1[0] = n;
@@ -1638,9 +1626,9 @@ rsort4(Key ***a, uint32_t n, int b)
 	 * reduced to zero entries except maybe
 	 * count[256].
 	 */
-	for(cp1=clist+1; cp1[0]; cp1+=2) {
+	for(cp1 = clist + 1; cp1[0]; cp1 += 2) {
 		c = cp1[1];
-		cp = count+c;
+		cp = count + c;
 		while(*cp) {
 			t1 = *part[c];
 			for(;;) {
@@ -1666,11 +1654,10 @@ rsort4(Key ***a, uint32_t n, int b)
 	b++;
 	t = a + clist[0];
 	count[256] = 0;
-	for(cp1=clist+1; n=cp1[0]; cp1+=2) {
+	for(cp1 = clist + 1; n = cp1[0]; cp1 += 2) {
 		if(n > Threshold)
 			rsort4(t, n, b);
-		else
-		if(n > 1)
+		else if(n > 1)
 			bsort4(t, n, b);
 		t += n;
 	}
@@ -1681,13 +1668,13 @@ rsort4(Key ***a, uint32_t n, int b)
  * the pieces.
  */
 void
-bsort4(Key ***a, uint32_t n, int b)
+bsort4(Key*** a, uint32_t n, int b)
 {
-	Key ***i, ***j, ***k, ***l, **t;
-	Key *ka, *kb;
+	Key*** i, ***j, ***k, ***l, **t;
+	Key* ka, *kb;
 	int n1, n2;
 
-	l = a+n;
+	l = a + n;
 	j = a;
 
 loop:
@@ -1706,12 +1693,12 @@ loop:
 		goto loop;
 	n2 = ka->key[b] - kb->key[b];
 	if(n2 == 0)
-		n2 = memcmp(ka->key+b, kb->key+b, n1);
+		n2 = memcmp(ka->key + b, kb->key + b, n1);
 	if(n2 <= 0)
 		goto loop;
 
 	for(;;) {
-		k = i+1;
+		k = i + 1;
 
 		t = *k;
 		*k = *i;
@@ -1731,7 +1718,7 @@ loop:
 			goto loop;
 		n2 = ka->key[b] - kb->key[b];
 		if(n2 == 0)
-			n2 = memcmp(ka->key+b, kb->key+b, n1);
+			n2 = memcmp(ka->key + b, kb->key + b, n1);
 		if(n2 <= 0)
 			goto loop;
 	}

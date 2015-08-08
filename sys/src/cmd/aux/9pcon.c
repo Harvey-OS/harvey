@@ -13,23 +13,24 @@
 #include <fcall.h>
 #include <bio.h>
 
-uint messagesize = 65536;	/* just a buffer size */
+uint messagesize = 65536; /* just a buffer size */
 
 void
 usage(void)
 {
-	fprint(2, "usage: aux/9pcon [-m messagesize] /srv/service | -c command | -n networkaddress\n");
+	fprint(2, "usage: aux/9pcon [-m messagesize] /srv/service | -c command "
+	          "| -n networkaddress\n");
 	exits("usage");
 }
 
 int
-connectcmd(char *cmd)
+connectcmd(char* cmd)
 {
 	int p[2];
 
 	if(pipe(p) < 0)
 		return -1;
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "fork failed: %r\n");
 		_exits("exec");
@@ -50,15 +51,15 @@ void
 watch(int fd)
 {
 	int n;
-	uint8_t *buf;
+	uint8_t* buf;
 	Fcall f;
-	
+
 	buf = malloc(messagesize);
 	if(buf == nil)
 		sysfatal("out of memory");
 
-	while((n = read9pmsg(fd, buf, messagesize)) > 0){
-		if(convM2S(buf, n, &f) == 0){
+	while((n = read9pmsg(fd, buf, messagesize)) > 0) {
+		if(convM2S(buf, n, &f) == 0) {
 			print("convM2S: %r\n");
 			continue;
 		}
@@ -71,7 +72,7 @@ watch(int fd)
 }
 
 char*
-tversion(Fcall *f, int p, char **argv)
+tversion(Fcall* f, int p, char** argv)
 {
 	f->msize = atoi(argv[0]);
 	if(f->msize > messagesize)
@@ -81,7 +82,7 @@ tversion(Fcall *f, int p, char **argv)
 }
 
 char*
-tauth(Fcall *f, int p, char **argv)
+tauth(Fcall* f, int p, char** argv)
 {
 	f->afid = atoi(argv[0]);
 	f->uname = argv[1];
@@ -90,14 +91,14 @@ tauth(Fcall *f, int p, char **argv)
 }
 
 char*
-tflush(Fcall *f, int p, char **argv)
+tflush(Fcall* f, int p, char** argv)
 {
 	f->oldtag = atoi(argv[0]);
 	return nil;
 }
 
 char*
-tattach(Fcall *f, int p, char **argv)
+tattach(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	f->afid = atoi(argv[1]);
@@ -107,7 +108,7 @@ tattach(Fcall *f, int p, char **argv)
 }
 
 char*
-twalk(Fcall *f, int argc, char **argv)
+twalk(Fcall* f, int argc, char** argv)
 {
 	int i;
 
@@ -115,16 +116,16 @@ twalk(Fcall *f, int argc, char **argv)
 		return "usage: Twalk tag fid newfid [name...]";
 	f->fid = atoi(argv[0]);
 	f->newfid = atoi(argv[1]);
-	f->nwname = argc-2;
+	f->nwname = argc - 2;
 	if(f->nwname > MAXWELEM)
 		return "too many names";
-	for(i=0; i<argc-2; i++)
-		f->wname[i] = argv[2+i];
+	for(i = 0; i < argc - 2; i++)
+		f->wname[i] = argv[2 + i];
 	return nil;
 }
 
 char*
-topen(Fcall *f, int p, char **argv)
+topen(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	f->mode = atoi(argv[1]);
@@ -132,7 +133,7 @@ topen(Fcall *f, int p, char **argv)
 }
 
 char*
-tcreate(Fcall *f, int p, char **argv)
+tcreate(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	f->name = argv[1];
@@ -142,7 +143,7 @@ tcreate(Fcall *f, int p, char **argv)
 }
 
 char*
-tread(Fcall *f, int p, char **argv)
+tread(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -151,7 +152,7 @@ tread(Fcall *f, int p, char **argv)
 }
 
 char*
-twrite(Fcall *f, int p, char **argv)
+twrite(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -161,28 +162,28 @@ twrite(Fcall *f, int p, char **argv)
 }
 
 char*
-tclunk(Fcall *f, int p, char **argv)
+tclunk(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
 char*
-tremove(Fcall *f, int p, char **argv)
+tremove(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
 char*
-tstat(Fcall *f, int p, char **argv)
+tstat(Fcall* f, int p, char** argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
 uint32_t
-xstrtoul(char *s)
+xstrtoul(char* s)
 {
 	if(strcmp(s, "~0") == 0)
 		return ~0UL;
@@ -190,7 +191,7 @@ xstrtoul(char *s)
 }
 
 uint64_t
-xstrtoull(char *s)
+xstrtoull(char* s)
 {
 	if(strcmp(s, "~0") == 0)
 		return ~0ULL;
@@ -198,7 +199,7 @@ xstrtoull(char *s)
 }
 
 char*
-twstat(Fcall *f, int p, char **argv)
+twstat(Fcall* f, int p, char** argv)
 {
 	static uint8_t buf[DIRMAX];
 	Dir d;
@@ -224,68 +225,63 @@ twstat(Fcall *f, int p, char **argv)
 int taggen;
 
 char*
-settag(Fcall *f, int p, char **argv)
+settag(Fcall* f, int p, char** argv)
 {
 	static char buf[120];
 
-	taggen = atoi(argv[0])-1;
-	snprint(buf, sizeof buf, "next tag is %d", taggen+1);
+	taggen = atoi(argv[0]) - 1;
+	snprint(buf, sizeof buf, "next tag is %d", taggen + 1);
 	return buf;
 }
 
 typedef struct Cmd Cmd;
 struct Cmd {
-	char *name;
+	char* name;
 	int type;
 	int argc;
-	char *usage;
-	char *(*fn)(Fcall *f, int p, char**);
+	char* usage;
+	char* (*fn)(Fcall* f, int p, char**);
 };
 
 Cmd msg9p[] = {
-	"Tversion", Tversion, 2, "messagesize version", tversion,
-	"Tauth", Tauth, 3, "afid uname aname", tauth,
-	"Tflush", Tflush, 1, "oldtag", tflush,
-	"Tattach", Tattach, 4, "fid afid uname aname", tattach,
-	"Twalk", Twalk, 0, "fid newfid [name...]", twalk,
-	"Topen", Topen, 2, "fid mode", topen,
-	"Tcreate", Tcreate, 4, "fid name perm mode", tcreate,
-	"Tread", Tread, 3, "fid offset count", tread,
-	"Twrite", Twrite, 3, "fid offset data", twrite,
-	"Tclunk", Tclunk, 1, "fid", tclunk,
-	"Tremove", Tremove, 1, "fid", tremove,
-	"Tstat", Tstat, 1, "fid", tstat,
-	"Twstat", Twstat, 7, "fid name uid gid mode mtime length", twstat,
-	"nexttag", 0, 0, "", settag,
+    "Tversion", Tversion, 2, "messagesize version", tversion, "Tauth", Tauth, 3,
+    "afid uname aname", tauth, "Tflush", Tflush, 1, "oldtag", tflush, "Tattach",
+    Tattach, 4, "fid afid uname aname", tattach, "Twalk", Twalk, 0,
+    "fid newfid [name...]", twalk, "Topen", Topen, 2, "fid mode", topen,
+    "Tcreate", Tcreate, 4, "fid name perm mode", tcreate, "Tread", Tread, 3,
+    "fid offset count", tread, "Twrite", Twrite, 3, "fid offset data", twrite,
+    "Tclunk", Tclunk, 1, "fid", tclunk, "Tremove", Tremove, 1, "fid", tremove,
+    "Tstat", Tstat, 1, "fid", tstat, "Twstat", Twstat, 7,
+    "fid name uid gid mode mtime length", twstat, "nexttag", 0, 0, "", settag,
 };
 
 void
 shell9p(int fd)
 {
-	char *e, *f[10], *p;
-	uint8_t *buf;
+	char* e, *f[10], *p;
+	uint8_t* buf;
 	int i, n, nf;
 	Biobuf b;
 	Fcall t;
 
 	buf = malloc(messagesize);
-	if(buf == nil){
+	if(buf == nil) {
 		fprint(2, "out of memory\n");
 		return;
 	}
 
 	taggen = 0;
 	Binit(&b, 0, OREAD);
-	while(p = Brdline(&b, '\n')){
-		p[Blinelen(&b)-1] = '\0';
+	while(p = Brdline(&b, '\n')) {
+		p[Blinelen(&b) - 1] = '\0';
 		if(p[0] == '#')
 			continue;
 		if((nf = tokenize(p, f, nelem(f))) == 0)
 			continue;
-		for(i=0; i<nelem(msg9p); i++)
+		for(i = 0; i < nelem(msg9p); i++)
 			if(strcmp(f[0], msg9p[i].name) == 0)
 				break;
-		if(i == nelem(msg9p)){
+		if(i == nelem(msg9p)) {
 			fprint(2, "?unknown message\n");
 			continue;
 		}
@@ -295,35 +291,37 @@ shell9p(int fd)
 			t.tag = NOTAG;
 		else
 			t.tag = ++taggen;
-		if(nf < 1 || (msg9p[i].argc && nf != 1+msg9p[i].argc)){
-			fprint(2, "?usage: %s %s\n", msg9p[i].name, msg9p[i].usage);
+		if(nf < 1 || (msg9p[i].argc && nf != 1 + msg9p[i].argc)) {
+			fprint(2, "?usage: %s %s\n", msg9p[i].name,
+			       msg9p[i].usage);
 			continue;
 		}
-		if(e = msg9p[i].fn(&t, nf-1, f+1)){
+		if(e = msg9p[i].fn(&t, nf - 1, f + 1)) {
 			fprint(2, "?%s\n", e);
 			continue;
 		}
 		n = convS2M(&t, buf, messagesize);
-		if(n <= BIT16SZ){
+		if(n <= BIT16SZ) {
 			fprint(2, "?message too large for buffer\n");
 			continue;
 		}
-		if(write(fd, buf, n) != n){
+		if(write(fd, buf, n) != n) {
 			fprint(2, "?write fails: %r\n");
 			break;
 		}
 		print("\t-> %F\n", &t);
 	}
 }
-		
+
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int fd, pid, cmd, net;
 
 	cmd = 0;
 	net = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		cmd = 1;
 		break;
@@ -335,7 +333,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	fmtinstall('F', fcallfmt);
 	fmtinstall('D', dirfmt);
@@ -349,17 +348,17 @@ main(int argc, char **argv)
 
 	if(cmd)
 		fd = connectcmd(argv[0]);
-	else if(net){
+	else if(net) {
 		fd = dial(netmkaddr(argv[0], "net", "9fs"), 0, 0, 0);
 		if(fd < 0)
 			sysfatal("dial: %r");
-	}else{
+	} else {
 		fd = open(argv[0], ORDWR);
 		if(fd < 0)
 			sysfatal("open: %r");
 	}
 
-	switch(pid = rfork(RFPROC|RFMEM)){
+	switch(pid = rfork(RFPROC | RFMEM)) {
 	case -1:
 		sysfatal("rfork: %r");
 		break;

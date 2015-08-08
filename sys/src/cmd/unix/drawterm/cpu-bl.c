@@ -26,63 +26,67 @@
 #define Maxfdata 8192
 #define MaxStr 128
 
-static void	fatal(int, char*, ...);
-static void	usage(void);
-static void	writestr(int, char*, char*, int);
-static int	readstr(int, char*, int);
-static char	*rexcall(int*, char*, char*);
-static char *keyspec = "";
-static AuthInfo *p9any(int);
+static void fatal(int, char*, ...);
+static void usage(void);
+static void writestr(int, char*, char*, int);
+static int readstr(int, char*, int);
+static char* rexcall(int*, char*, char*);
+static char* keyspec = "";
+static AuthInfo* p9any(int);
 
 #define system csystem
-static char	*system;
-static int	cflag;
-extern int	dbg;
-extern char*	base;	// fs base for devroot
+static char* system;
+static int cflag;
+extern int dbg;
+extern char* base; // fs base for devroot
 
-static char	*srvname = "ncpu";
-static char	*ealgs = "rc4_256 sha1";
+static char* srvname = "ncpu";
+static char* ealgs = "rc4_256 sha1";
 
-/* message size for exportfs; may be larger so we can do big graphics in CPU window */
-static int	msgsize = Maxfdata+IOHDRSZ;
+/* message size for exportfs; may be larger so we can do big graphics in CPU
+ * window */
+static int msgsize = Maxfdata + IOHDRSZ;
 
 /* authentication mechanisms */
-static int	netkeyauth(int);
-static int	netkeysrvauth(int, char*);
-static int	p9auth(int);
-static int	srvp9auth(int, char*);
+static int netkeyauth(int);
+static int netkeysrvauth(int, char*);
+static int p9auth(int);
+static int srvp9auth(int, char*);
 
-char *authserver;
+char* authserver;
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
-	char	*name;			/* name of method */
-	int	(*cf)(int);		/* client side authentication */
-	int	(*sf)(int, char*);	/* server side authentication */
-} authmethod[] =
-{
-	{ "p9",		p9auth,		srvp9auth,},
-	{ "netkey",	netkeyauth,	netkeysrvauth,},
-//	{ "none",	noauth,		srvnoauth,},
-	{ nil,	nil}
-};
-AuthMethod *am = authmethod;	/* default is p9 */
+	char* name;            /* name of method */
+	int (*cf)(int);        /* client side authentication */
+	int (*sf)(int, char*); /* server side authentication */
+} authmethod[] = {{
+                   "p9", p9auth, srvp9auth,
+                  },
+                  {
+                   "netkey", netkeyauth, netkeysrvauth,
+                  },
+                  //	{ "none",	noauth,		srvnoauth,},
+                  {nil, nil}};
+AuthMethod* am = authmethod; /* default is p9 */
 
-char *p9authproto = "p9any";
+char* p9authproto = "p9any";
 
 int setam(char*);
 
 void
-exits(char *s)
+exits(char* s)
 {
 	print("\ngoodbye\n");
-	for(;;) osyield();
+	for(;;)
+		osyield();
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: drawterm [-a authserver] [-c cpuserver] [-s secstore] [-u user]\n");
+	fprint(2, "usage: drawterm [-a authserver] [-c cpuserver] [-s "
+	          "secstore] [-u user]\n");
 	exits("usage");
 }
 int fdd;
@@ -91,14 +95,14 @@ int
 mountfactotum(void)
 {
 	int fd;
-	
+
 	if((fd = dialfactotum()) < 0)
 		return -1;
-	if(sysmount(fd, -1, "/mnt/factotum", MREPL, "") < 0){
+	if(sysmount(fd, -1, "/mnt/factotum", MREPL, "") < 0) {
 		fprint(2, "mount factotum: %r\n");
 		return -1;
 	}
-	if((fd = open("/mnt/factotum/ctl", OREAD)) < 0){
+	if((fd = open("/mnt/factotum/ctl", OREAD)) < 0) {
 		fprint(2, "open /mnt/factotum/ctl: %r\n");
 		return -1;
 	}
@@ -107,17 +111,18 @@ mountfactotum(void)
 }
 
 void
-cpumain(int argc, char **argv)
+cpumain(int argc, char** argv)
 {
-	char dat[MaxStr], buf[MaxStr], cmd[MaxStr], *err, *secstoreserver, *p, *s;
+	char dat[MaxStr], buf[MaxStr], cmd[MaxStr], *err, *secstoreserver, *p,
+	    *s;
 	int fd, ms, data;
 
 	/* see if we should use a larger message size */
 	fd = open("/dev/draw", OREAD);
-	if(fd > 0){
+	if(fd > 0) {
 		ms = iounit(fd);
-		if(msgsize < ms+IOHDRSZ)
-			msgsize = ms+IOHDRSZ;
+		if(msgsize < ms + IOHDRSZ)
+			msgsize = ms + IOHDRSZ;
 		close(fd);
 	}
 
@@ -129,7 +134,8 @@ cpumain(int argc, char **argv)
 	system = getenv("cpu");
 	if(system == nil)
 		system = "plan9.bell-labs.com";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		authserver = EARGF(usage());
 		break;
@@ -167,7 +173,8 @@ cpumain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 0)
 		usage();
@@ -175,23 +182,24 @@ cpumain(int argc, char **argv)
 	if(user == nil)
 		user = readcons("user", nil, 0);
 
-	if(mountfactotum() < 0){
+	if(mountfactotum() < 0) {
 		if(secstoreserver == nil)
 			secstoreserver = authserver;
-	        if(havesecstore(secstoreserver, user)){
-	                s = secstorefetch(secstoreserver, user, nil);
-	                if(s){
-	                        if(strlen(s) >= sizeof secstorebuf)
-	                                sysfatal("secstore data too big");
-	                        strcpy(secstorebuf, s);
-	                }
-	        }
+		if(havesecstore(secstoreserver, user)) {
+			s = secstorefetch(secstoreserver, user, nil);
+			if(s) {
+				if(strlen(s) >= sizeof secstorebuf)
+					sysfatal("secstore data too big");
+				strcpy(secstorebuf, s);
+			}
+		}
 	}
 
 	if((err = rexcall(&data, system, srvname)))
 		fatal(1, "%s: %s", err, system);
 
-	/* Tell the remote side the command to execute and where our working directory is */
+	/* Tell the remote side the command to execute and where our working
+	 * directory is */
 	if(cflag)
 		writestr(data, cmd, "command", 0);
 	if(getcwd(dat, sizeof(dat)) == 0)
@@ -199,7 +207,7 @@ cpumain(int argc, char **argv)
 	else
 		writestr(data, dat, "dir", 0);
 
-	/* 
+	/*
 	 *  Wait for the other end to execute and start our file service
 	 *  of /mnt/term
 	 */
@@ -212,8 +220,8 @@ cpumain(int argc, char **argv)
 
 	if(readstr(data, buf, sizeof buf) < 0)
 		fatal(1, "waiting for remote export: %r");
-	if(strcmp(buf, "/") != 0){
-		print("remote cpu: %s" , buf);
+	if(strcmp(buf, "/") != 0) {
+		print("remote cpu: %s", buf);
 		exits(buf);
 	}
 	write(data, "OK", 2);
@@ -224,10 +232,10 @@ cpumain(int argc, char **argv)
 }
 
 void
-fatal(int syserr, char *fmt, ...)
+fatal(int syserr, char* fmt, ...)
 {
 	Fmt f;
-	char *str;
+	char* str;
 	va_list arg;
 
 	fmtstrinit(&f);
@@ -243,14 +251,14 @@ fatal(int syserr, char *fmt, ...)
 	exits(str);
 }
 
-char *negstr = "negotiating authentication method";
+char* negstr = "negotiating authentication method";
 
 char bug[256];
 
 char*
-rexcall(int *fd, char *host, char *service)
+rexcall(int* fd, char* host, char* service)
 {
-	char *na;
+	char* na;
 	char dir[MaxStr];
 	char err[ERRMAX];
 	char msg[MaxStr];
@@ -269,7 +277,7 @@ rexcall(int *fd, char *host, char *service)
 	n = readstr(*fd, err, sizeof err);
 	if(n < 0)
 		return negstr;
-	if(*err){
+	if(*err) {
 		werrstr(err);
 		return negstr;
 	}
@@ -282,24 +290,24 @@ rexcall(int *fd, char *host, char *service)
 }
 
 void
-writestr(int fd, char *str, char *thing, int ignore)
+writestr(int fd, char* str, char* thing, int ignore)
 {
 	int l, n;
 
 	l = strlen(str);
-	n = write(fd, str, l+1);
+	n = write(fd, str, l + 1);
 	if(!ignore && n < 0)
 		fatal(1, "writing network: %s", thing);
 }
 
 int
-readstr(int fd, char *str, int len)
+readstr(int fd, char* str, int len)
 {
 	int n;
 
 	while(len) {
 		n = read(fd, str, 1);
-		if(n < 0) 
+		if(n < 0)
 			return -1;
 		if(*str == '\0')
 			return 0;
@@ -310,14 +318,14 @@ readstr(int fd, char *str, int len)
 }
 
 static int
-readln(char *buf, int n)
+readln(char* buf, int n)
 {
 	int i;
-	char *p;
+	char* p;
 
-	n--;	/* room for \0 */
+	n--; /* room for \0 */
 	p = buf;
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		if(read(0, p, 1) != 1)
 			break;
 		if(*p == '\n' || *p == '\r')
@@ -325,7 +333,7 @@ readln(char *buf, int n)
 		p++;
 	}
 	*p = '\0';
-	return p-buf;
+	return p - buf;
 }
 
 /*
@@ -337,7 +345,7 @@ netkeyauth(int fd)
 	char chall[32];
 	char resp[32];
 
-	strecpy(chall, chall+sizeof chall, getuser());
+	strecpy(chall, chall + sizeof chall, getuser());
 	print("user[%s]: ", chall);
 	if(readln(resp, sizeof(resp)) < 0)
 		return -1;
@@ -345,7 +353,7 @@ netkeyauth(int fd)
 		strcpy(chall, resp);
 	writestr(fd, chall, "challenge/response", 1);
 
-	for(;;){
+	for(;;) {
 		if(readstr(fd, chall, sizeof chall) < 0)
 			break;
 		if(*chall == 0)
@@ -359,16 +367,17 @@ netkeyauth(int fd)
 }
 
 static int
-netkeysrvauth(int fd, char *user)
+netkeysrvauth(int fd, char* user)
 {
 	return -1;
 }
 
 static void
-mksecret(char *t, uint8_t *f)
+mksecret(char* t, uint8_t* f)
 {
-	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
-		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
+	sprint(t,
+	       "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+	       f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
 }
 
 /*
@@ -382,12 +391,12 @@ p9auth(int fd)
 	char fromclientsecret[21];
 	char fromserversecret[21];
 	int i;
-	AuthInfo *ai;
+	AuthInfo* ai;
 
 	ai = p9any(fd);
 	if(ai == nil)
 		return -1;
-	memmove(key+4, ai->secret, ai->nsecret);
+	memmove(key + 4, ai->secret, ai->nsecret);
 	if(ealgs == nil)
 		return fd;
 
@@ -396,13 +405,13 @@ p9auth(int fd)
 		key[i] = fastrand();
 	if(write(fd, key, 4) != 4)
 		return -1;
-	if(readn(fd, key+12, 4) != 4)
+	if(readn(fd, key + 12, 4) != 4)
 		return -1;
 
 	/* scramble into two secrets */
 	sha1(key, sizeof(key), digest, nil);
 	mksecret(fromclientsecret, digest);
-	mksecret(fromserversecret, digest+10);
+	mksecret(fromserversecret, digest + 10);
 
 	/* set up encryption */
 	i = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
@@ -412,19 +421,19 @@ p9auth(int fd)
 }
 
 int
-authdial(char *net, char *dom)
+authdial(char* net, char* dom)
 {
 	int fd;
 	fd = dial(netmkaddr(authserver, "tcp", "567"), 0, 0, 0);
-	//print("authdial %d\n", fd);
+	// print("authdial %d\n", fd);
 	return fd;
 }
 
 static int
-getastickets(Ticketreq *tr, char *trbuf, char *tbuf)
+getastickets(Ticketreq* tr, char* trbuf, char* tbuf)
 {
 	int asfd, rv;
-	char *dom;
+	char* dom;
 
 	dom = tr->authdom;
 	asfd = authdial(nil, dom);
@@ -436,7 +445,7 @@ getastickets(Ticketreq *tr, char *trbuf, char *tbuf)
 }
 
 static int
-mkserverticket(Ticketreq *tr, char *authkey, char *tbuf)
+mkserverticket(Ticketreq* tr, char* authkey, char* tbuf)
 {
 	int i;
 	Ticket t;
@@ -447,17 +456,17 @@ mkserverticket(Ticketreq *tr, char *authkey, char *tbuf)
 	memmove(t.chal, tr->chal, CHALLEN);
 	strcpy(t.cuid, tr->uid);
 	strcpy(t.suid, tr->uid);
-	for(i=0; i<DESKEYLEN; i++)
+	for(i = 0; i < DESKEYLEN; i++)
 		t.key[i] = fastrand();
 	t.num = AuthTc;
 	convT2M(&t, tbuf, authkey);
 	t.num = AuthTs;
-	convT2M(&t, tbuf+TICKETLEN, authkey);
+	convT2M(&t, tbuf + TICKETLEN, authkey);
 	return 0;
 }
 
 static int
-gettickets(Ticketreq *tr, char *key, char *trbuf, char *tbuf)
+gettickets(Ticketreq* tr, char* key, char* trbuf, char* tbuf)
 {
 	if(getastickets(tr, trbuf, tbuf) >= 0)
 		return 0;
@@ -468,12 +477,12 @@ gettickets(Ticketreq *tr, char *key, char *trbuf, char *tbuf)
  *  prompt user for a key.  don't care about memory leaks, runs standalone
  */
 static Attr*
-promptforkey(char *params)
+promptforkey(char* params)
 {
-	char *v;
+	char* v;
 	int fd;
-	Attr *a, *attr;
-	char *def;
+	Attr* a, *attr;
+	char* def;
 
 	fd = open("/dev/cons", ORDWR);
 	if(fd < 0)
@@ -481,14 +490,14 @@ promptforkey(char *params)
 
 	attr = _parseattr(params);
 	fprint(fd, "\n!Adding key:");
-	for(a=attr; a; a=a->next)
+	for(a = attr; a; a = a->next)
 		if(a->type != AttrQuery && a->name[0] != '!')
 			fprint(fd, " %q=%q", a->name, a->val);
 	fprint(fd, "\n");
 
-	for(a=attr; a; a=a->next){
+	for(a = attr; a; a = a->next) {
 		v = a->name;
-		if(a->type != AttrQuery || v[0]=='!')
+		if(a->type != AttrQuery || v[0] == '!')
 			continue;
 		def = nil;
 		if(strcmp(v, "user") == 0)
@@ -498,14 +507,14 @@ promptforkey(char *params)
 			sysfatal("user terminated key input");
 		a->type = AttrNameval;
 	}
-	for(a=attr; a; a=a->next){
+	for(a = attr; a; a = a->next) {
 		v = a->name;
-		if(a->type != AttrQuery || v[0]!='!')
+		if(a->type != AttrQuery || v[0] != '!')
 			continue;
 		def = nil;
-		if(strcmp(v+1, "user") == 0)
+		if(strcmp(v + 1, "user") == 0)
 			def = getuser();
-		a->val = readcons(v+1, def, 1);
+		a->val = readcons(v + 1, def, 1);
 		if(a->val == nil)
 			sysfatal("user terminated key input");
 		a->type = AttrNameval;
@@ -519,7 +528,7 @@ promptforkey(char *params)
  *  send a key to the mounted factotum
  */
 static int
-sendkey(Attr *attr)
+sendkey(Attr* attr)
 {
 	int fd, rv;
 	char buf[1024];
@@ -534,12 +543,12 @@ sendkey(Attr *attr)
 }
 
 int
-askuser(char *params)
+askuser(char* params)
 {
-	Attr *attr;
-	
+	Attr* attr;
+
 	fmtinstall('A', _attrfmt);
-	
+
 	attr = promptforkey(params);
 	if(attr == nil)
 		sysfatal("no key supplied");
@@ -558,14 +567,14 @@ AuthInfo*
 p9any(int fd)
 {
 	char buf[1024], buf2[1024], cchal[CHALLEN], *bbuf, *p, *dom, *u;
-	char *pass;
-	char tbuf[TICKETLEN+TICKETLEN+AUTHENTLEN], trbuf[TICKREQLEN];
+	char* pass;
+	char tbuf[TICKETLEN + TICKETLEN + AUTHENTLEN], trbuf[TICKREQLEN];
 	char authkey[DESKEYLEN];
 	Authenticator auth;
 	int afd, i, n, v2;
 	Ticketreq tr;
 	Ticket t;
-	AuthInfo *ai;
+	AuthInfo* ai;
 
 	if((afd = open("/mnt/factotum/ctl", ORDWR)) >= 0)
 		return p9anyfactotum(fd, afd);
@@ -574,7 +583,7 @@ p9any(int fd)
 		fatal(1, "cannot read p9any negotiation");
 	bbuf = buf;
 	v2 = 0;
-	if(strncmp(buf, "v.2 ", 4) == 0){
+	if(strncmp(buf, "v.2 ", 4) == 0) {
 		v2 = 1;
 		bbuf += 4;
 	}
@@ -588,15 +597,15 @@ p9any(int fd)
 		fatal(1, "server did not offer p9sk1");
 
 	sprint(buf2, "%s %s", p, dom);
-	if(write(fd, buf2, strlen(buf2)+1) != strlen(buf2)+1)
+	if(write(fd, buf2, strlen(buf2) + 1) != strlen(buf2) + 1)
 		fatal(1, "cannot write user/domain choice in p9any");
-	if(v2){
+	if(v2) {
 		if(readstr(fd, buf, sizeof buf) != 3)
 			fatal(1, "cannot read OK in p9any");
 		if(memcmp(buf, "OK\0", 3) != 0)
 			fatal(1, "did not get OK in p9any");
 	}
-	for(i=0; i<CHALLEN; i++)
+	for(i = 0; i < CHALLEN; i++)
 		cchal[i] = fastrand();
 	if(write(fd, cchal, 8) != 8)
 		fatal(1, "cannot write p9sk1 challenge");
@@ -604,13 +613,12 @@ p9any(int fd)
 	if(readn(fd, trbuf, TICKREQLEN) != TICKREQLEN)
 		fatal(1, "cannot read ticket request in p9sk1");
 
-
 	convM2TR(trbuf, &tr);
 	u = user;
 	pass = findkey(&u, tr.authdom);
 	if(pass == nil)
 	again:
-		pass = getkey(u, tr.authdom);
+	pass = getkey(u, tr.authdom);
 	if(pass == nil)
 		fatal(1, "no password");
 
@@ -618,30 +626,30 @@ p9any(int fd)
 	memset(pass, 0, strlen(pass));
 
 	tr.type = AuthTreq;
-	strecpy(tr.hostid, tr.hostid+sizeof tr.hostid, u);
-	strecpy(tr.uid, tr.uid+sizeof tr.uid, u);
+	strecpy(tr.hostid, tr.hostid + sizeof tr.hostid, u);
+	strecpy(tr.uid, tr.uid + sizeof tr.uid, u);
 	convTR2M(&tr, trbuf);
 
 	if(gettickets(&tr, authkey, trbuf, tbuf) < 0)
 		fatal(1, "cannot get auth tickets in p9sk1");
 
 	convM2T(tbuf, &t, authkey);
-	if(t.num != AuthTc){
+	if(t.num != AuthTc) {
 		print("?password mismatch with auth server\n");
 		goto again;
 	}
-	memmove(tbuf, tbuf+TICKETLEN, TICKETLEN);
+	memmove(tbuf, tbuf + TICKETLEN, TICKETLEN);
 
 	auth.num = AuthAc;
 	memmove(auth.chal, tr.chal, CHALLEN);
 	auth.id = 0;
-	convA2M(&auth, tbuf+TICKETLEN, t.key);
+	convA2M(&auth, tbuf + TICKETLEN, t.key);
 
-	if(write(fd, tbuf, TICKETLEN+AUTHENTLEN) != TICKETLEN+AUTHENTLEN)
+	if(write(fd, tbuf, TICKETLEN + AUTHENTLEN) != TICKETLEN + AUTHENTLEN)
 		fatal(1, "cannot send ticket and authenticator back in p9sk1");
 
-	if((n=readn(fd, tbuf, AUTHENTLEN)) != AUTHENTLEN ||
-			memcmp(tbuf, "cpu:", 4) == 0){
+	if((n = readn(fd, tbuf, AUTHENTLEN)) != AUTHENTLEN ||
+	   memcmp(tbuf, "cpu:", 4) == 0) {
 		if(n <= 4)
 			fatal(1, "cannot read authenticator in p9sk1");
 
@@ -650,24 +658,23 @@ p9any(int fd)
 		 * sent back fatal error message.
 		 */
 		memmove(buf, tbuf, n);
-		i = readn(fd, buf+n, sizeof buf-n-1);
+		i = readn(fd, buf + n, sizeof buf - n - 1);
 		if(i > 0)
 			n += i;
 		buf[n] = 0;
 		werrstr("");
 		fatal(0, "server says: %s", buf);
 	}
-	
+
 	convM2A(tbuf, &auth, t.key);
-	if(auth.num != AuthAs
-	|| memcmp(auth.chal, cchal, CHALLEN) != 0
-	|| auth.id != 0){
+	if(auth.num != AuthAs || memcmp(auth.chal, cchal, CHALLEN) != 0 ||
+	   auth.id != 0) {
 		print("?you and auth server agree about password.\n");
 		print("?server is confused.\n");
 		fatal(0, "server lies got %llux.%d want %llux.%d",
 		      *(int64_t*)auth.chal, auth.id, *(int64_t*)cchal, 0);
 	}
-	//print("i am %s there.\n", t.suid);
+	// print("i am %s there.\n", t.suid);
 	ai = mallocz(sizeof(AuthInfo), 1);
 	ai->secret = mallocz(8, 1);
 	des56to64((uint8_t*)t.key, ai->secret);
@@ -682,32 +689,32 @@ p9any(int fd)
 static int
 noauth(int fd)
 {
-	ealgs = nil;
-	return fd;
+        ealgs = nil;
+        return fd;
 }
 
 static int
 srvnoauth(int fd, char *user)
 {
-	strecpy(user, user+MaxStr, getuser());
-	ealgs = nil;
-	return fd;
+        strecpy(user, user+MaxStr, getuser());
+        ealgs = nil;
+        return fd;
 }
 */
 
 void
-loghex(uint8_t *p, int n)
+loghex(uint8_t* p, int n)
 {
 	char buf[100];
 	int i;
 
 	for(i = 0; i < n; i++)
-		sprint(buf+2*i, "%2.2ux", p[i]);
-//	syslog(0, "cpu", buf);
+		sprint(buf + 2 * i, "%2.2ux", p[i]);
+	//	syslog(0, "cpu", buf);
 }
 
 static int
-srvp9auth(int fd, char *user)
+srvp9auth(int fd, char* user)
 {
 	return -1;
 }
@@ -716,7 +723,7 @@ srvp9auth(int fd, char *user)
  *  set authentication mechanism
  */
 int
-setam(char *name)
+setam(char* name)
 {
 	for(am = authmethod; am->name != nil; am++)
 		if(strcmp(am->name, name) == 0)
@@ -731,10 +738,10 @@ setam(char *name)
 int
 setamalg(char *s)
 {
-	ealgs = strchr(s, ' ');
-	if(ealgs != nil)
-		*ealgs++ = 0;
-	return setam(s);
+        ealgs = strchr(s, ' ');
+        if(ealgs != nil)
+                *ealgs++ = 0;
+        return setam(s);
 }
 
 */

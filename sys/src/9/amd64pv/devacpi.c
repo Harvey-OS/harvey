@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
 #include "mp.h"
 #include "acpi.h"
 
@@ -26,9 +26,8 @@
  * for the user-level interpreter.
  */
 
-
-#define l16get(p)	(((p)[1]<<8)|(p)[0])
-#define l32get(p)	(((uint32_t)l16get(p+2)<<16)|l16get(p))
+#define l16get(p) (((p)[1] << 8) | (p)[0])
+#define l32get(p) (((uint32_t)l16get(p + 2) << 16) | l16get(p))
 static Atable* acpifadt(uint8_t*, int);
 static Atable* acpitable(uint8_t*, int);
 static Atable* acpimadt(uint8_t*, int);
@@ -36,19 +35,29 @@ static Atable* acpimsct(uint8_t*, int);
 static Atable* acpisrat(uint8_t*, int);
 static Atable* acpislit(uint8_t*, int);
 
-#pragma	varargck	type	"G"	Gas*
+#pragma varargck type "G" Gas *
 
-static Cmdtab ctls[] =
-{
-	{CMregion,	"region",	6},
-	{CMgpe,		"gpe",		3},
+static Cmdtab ctls[] = {
+    {CMregion, "region", 6}, {CMgpe, "gpe", 3},
 };
 
-static Dirtab acpidir[]={
-	".",		{Qdir, 0, QTDIR},	0,	DMDIR|0555,
-	"acpictl",	{Qctl},			0,	0666,
-	"acpitbl",	{Qtbl},			0,	0444,
-	"acpiregio",	{Qio},			0,	0666,
+static Dirtab acpidir[] = {
+    ".",
+    {Qdir, 0, QTDIR},
+    0,
+    DMDIR | 0555,
+    "acpictl",
+    {Qctl},
+    0,
+    0666,
+    "acpitbl",
+    {Qtbl},
+    0,
+    0444,
+    "acpiregio",
+    {Qio},
+    0,
+    0666,
 };
 
 /*
@@ -59,47 +68,41 @@ static Dirtab acpidir[]={
  * Other tables are given to the user level interpreter for
  * execution.
  */
-static Parse ptables[] =
-{
-	"FACP", acpifadt,
-	"APIC",	acpimadt,
-	"SRAT",	acpisrat,
-	"SLIT",	acpislit,
-	"MSCT",	acpimsct,
-	"SSDT", acpitable,
+static Parse ptables[] = {
+    "FACP", acpifadt, "APIC", acpimadt, "SRAT", acpisrat,
+    "SLIT", acpislit, "MSCT", acpimsct, "SSDT", acpitable,
 };
 
-static Facs*	facs;	/* Firmware ACPI control structure */
-static Fadt	fadt;	/* Fixed ACPI description. To reach ACPI registers */
-static Xsdt*	xsdt;	/* XSDT table */
-static Atable*	tfirst;	/* loaded DSDT/SSDT/... tables */
-static Atable*	tlast;	/* pointer to last table */
-static Madt*	apics;	/* APIC info */
-static Srat*	srat;	/* System resource affinity, used by physalloc */
-static Slit*	slit;	/* System locality information table used by the scheduler */
-static Msct*	msct;	/* Maximum system characteristics table */
-static Reg*	reg;	/* region used for I/O */
-static Gpe*	gpes;	/* General purpose events */
-static int	ngpes;
+static Facs* facs;     /* Firmware ACPI control structure */
+static Fadt fadt;      /* Fixed ACPI description. To reach ACPI registers */
+static Xsdt* xsdt;     /* XSDT table */
+static Atable* tfirst; /* loaded DSDT/SSDT/... tables */
+static Atable* tlast;  /* pointer to last table */
+static Madt* apics;    /* APIC info */
+static Srat* srat;     /* System resource affinity, used by physalloc */
+static Slit* slit; /* System locality information table used by the scheduler */
+static Msct* msct; /* Maximum system characteristics table */
+static Reg* reg;   /* region used for I/O */
+static Gpe* gpes;  /* General purpose events */
+static int ngpes;
 
 static char* regnames[] = {
-	"mem", "io", "pcicfg", "embed",
-	"smb", "cmos", "pcibar",
+    "mem", "io", "pcicfg", "embed", "smb", "cmos", "pcibar",
 };
 
 static char*
 acpiregstr(int id)
 {
-	static char buf[20];	/* BUG */
+	static char buf[20]; /* BUG */
 
 	if(id >= 0 && id < nelem(regnames))
 		return regnames[id];
-	seprint(buf, buf+sizeof(buf), "spc:%#x", id);
+	seprint(buf, buf + sizeof(buf), "spc:%#x", id);
 	return buf;
 }
 
 static int
-acpiregid(char *s)
+acpiregid(char* s)
 {
 	int i;
 
@@ -118,97 +121,97 @@ l64get(uint8_t* p)
 	 * causes 8c to abort with "out of fixed registers" in
 	 * rsdlink() below.
 	 */
-	return (((uint64_t)l32get(p+4)<<32)|l32get(p));
+	return (((uint64_t)l32get(p + 4) << 32) | l32get(p));
 }
 
 static uint8_t
-mget8(uintptr_t p, void *j)
+mget8(uintptr_t p, void* j)
 {
-	uint8_t *cp = (uint8_t*)p;
+	uint8_t* cp = (uint8_t*)p;
 	return *cp;
 }
 
 static void
-mset8(uintptr_t p, uint8_t v, void *j)
+mset8(uintptr_t p, uint8_t v, void* j)
 {
-	uint8_t *cp = (uint8_t*)p;
+	uint8_t* cp = (uint8_t*)p;
 	*cp = v;
 }
 
 static uint16_t
-mget16(uintptr_t p, void *j)
+mget16(uintptr_t p, void* j)
 {
-	uint16_t *cp = (uint16_t*)p;
+	uint16_t* cp = (uint16_t*)p;
 	return *cp;
 }
 
 static void
-mset16(uintptr_t p, uint16_t v, void *j)
+mset16(uintptr_t p, uint16_t v, void* j)
 {
-	uint16_t *cp = (uint16_t*)p;
+	uint16_t* cp = (uint16_t*)p;
 	*cp = v;
 }
 
 static uint32_t
-mget32(uintptr_t p, void *j)
+mget32(uintptr_t p, void* j)
 {
-	uint32_t *cp = (uint32_t*)p;
+	uint32_t* cp = (uint32_t*)p;
 	return *cp;
 }
 
 static void
-mset32(uintptr_t p, uint32_t v, void *j)
+mset32(uintptr_t p, uint32_t v, void* j)
 {
-	uint32_t *cp = (uint32_t*)p;
+	uint32_t* cp = (uint32_t*)p;
 	*cp = v;
 }
 
 static uint64_t
-mget64(uintptr_t p, void *j)
+mget64(uintptr_t p, void* j)
 {
-	uint64_t *cp = (uint64_t*)p;
+	uint64_t* cp = (uint64_t*)p;
 	return *cp;
 }
 
 static void
-mset64(uintptr_t p, uint64_t v, void *j)
+mset64(uintptr_t p, uint64_t v, void* j)
 {
-	uint64_t *cp = (uint64_t*)p;
+	uint64_t* cp = (uint64_t*)p;
 	*cp = v;
 }
 
 static uint8_t
-ioget8(uintptr_t p, void *j)
+ioget8(uintptr_t p, void* j)
 {
 	return inb(p);
 }
 
 static void
-ioset8(uintptr_t p, uint8_t v, void *j)
+ioset8(uintptr_t p, uint8_t v, void* j)
 {
 	outb(p, v);
 }
 
 static uint16_t
-ioget16(uintptr_t p, void *j)
+ioget16(uintptr_t p, void* j)
 {
 	return ins(p);
 }
 
 static void
-ioset16(uintptr_t p, uint16_t v, void *j)
+ioset16(uintptr_t p, uint16_t v, void* j)
 {
 	outs(p, v);
 }
 
 static uint32_t
-ioget32(uintptr_t p, void *j)
+ioget32(uintptr_t p, void* j)
 {
 	return inl(p);
 }
 
 static void
-ioset32(uintptr_t p, uint32_t v, void *j)
+ioset32(uintptr_t p, uint32_t v, void* j)
 {
 	outl(p, v);
 }
@@ -216,7 +219,7 @@ ioset32(uintptr_t p, uint32_t v, void *j)
 static uint8_t
 cfgget8(uintptr_t p, void* r)
 {
-	Reg *ro = r;
+	Reg* ro = r;
 	Pcidev d;
 
 	d.tbdf = ro->tbdf;
@@ -226,7 +229,7 @@ cfgget8(uintptr_t p, void* r)
 static void
 cfgset8(uintptr_t p, uint8_t v, void* r)
 {
-	Reg *ro = r;
+	Reg* ro = r;
 	Pcidev d;
 
 	d.tbdf = ro->tbdf;
@@ -236,7 +239,7 @@ cfgset8(uintptr_t p, uint8_t v, void* r)
 static uint16_t
 cfgget16(uintptr_t p, void* r)
 {
-	Reg *ro = r;
+	Reg* ro = r;
 	Pcidev d;
 
 	d.tbdf = ro->tbdf;
@@ -246,7 +249,7 @@ cfgget16(uintptr_t p, void* r)
 static void
 cfgset16(uintptr_t p, uint16_t v, void* r)
 {
-	Reg *ro = r;
+	Reg* ro = r;
 	Pcidev d;
 
 	d.tbdf = ro->tbdf;
@@ -256,7 +259,7 @@ cfgset16(uintptr_t p, uint16_t v, void* r)
 static uint32_t
 cfgget32(uintptr_t p, void* r)
 {
-	Reg *ro = r;
+	Reg* ro = r;
 	Pcidev d;
 
 	d.tbdf = ro->tbdf;
@@ -266,49 +269,37 @@ cfgget32(uintptr_t p, void* r)
 static void
 cfgset32(uintptr_t p, uint32_t v, void* r)
 {
-	Reg *ro = r;
+	Reg* ro = r;
 	Pcidev d;
 
 	d.tbdf = ro->tbdf;
 	pcicfgw32(&d, p, v);
 }
 
-static Regio memio =
-{
-	nil,
-	mget8, mset8, mget16, mset16,
-	mget32, mset32, mget64, mset64
-};
+static Regio memio = {nil,    mget8,  mset8,  mget16, mset16,
+                      mget32, mset32, mget64, mset64};
 
-static Regio ioio =
-{
-	nil,
-	ioget8, ioset8, ioget16, ioset16,
-	ioget32, ioset32, nil, nil
-};
+static Regio ioio = {nil,     ioget8,  ioset8, ioget16, ioset16,
+                     ioget32, ioset32, nil,    nil};
 
-static Regio cfgio =
-{
-	nil,
-	cfgget8, cfgset8, cfgget16, cfgset16,
-	cfgget32, cfgset32, nil, nil
-};
+static Regio cfgio = {nil,      cfgget8,  cfgset8, cfgget16, cfgset16,
+                      cfgget32, cfgset32, nil,     nil};
 
 /*
  * Copy memory, 1/2/4/8-bytes at a time, to/from a region.
  */
 static int32_t
-regcpy(Regio *dio, uintptr_t da, Regio *sio, uintptr_t sa, int32_t len,
+regcpy(Regio* dio, uintptr_t da, Regio* sio, uintptr_t sa, int32_t len,
        int align)
 {
 	int n, i;
 
 	DBG("regcpy %#ullx %#ullx %#ulx %#ux\n", da, sa, len, align);
-	if((len%align) != 0)
+	if((len % align) != 0)
 		print("regcpy: bug: copy not aligned. truncated\n");
-	n = len/align;
-	for(i = 0; i < n; i++){
-		switch(align){
+	n = len / align;
+	for(i = 0; i < n; i++) {
+		switch(align) {
 		case 1:
 			DBG("cpy8 %#p %#p\n", da, sa);
 			dio->set8(da, sio->get8(sa, sio->arg), dio->arg);
@@ -323,7 +314,8 @@ regcpy(Regio *dio, uintptr_t da, Regio *sio, uintptr_t sa, int32_t len,
 			break;
 		case 8:
 			DBG("cpy64 %#p %#p\n", da, sa);
-		//	dio->set64(da, sio->get64(sa, sio->arg), dio->arg);
+			//	dio->set64(da, sio->get64(sa, sio->arg),
+			//dio->arg);
 			break;
 		default:
 			panic("regcpy: align bug");
@@ -331,7 +323,7 @@ regcpy(Regio *dio, uintptr_t da, Regio *sio, uintptr_t sa, int32_t len,
 		da += align;
 		sa += align;
 	}
-	return n*align;
+	return n * align;
 }
 
 /*
@@ -339,23 +331,23 @@ regcpy(Regio *dio, uintptr_t da, Regio *sio, uintptr_t sa, int32_t len,
  * All units in bytes.
  */
 static int32_t
-regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
+regio(Reg* r, void* p, uint32_t len, uintptr_t off, int iswr)
 {
 	Regio rio;
 	uintptr_t rp;
 
-	DBG("reg%s %s %#p %#ullx %#lx sz=%d\n",
-		iswr ? "out" : "in", r->name, p, off, len, r->accsz);
+	DBG("reg%s %s %#p %#ullx %#lx sz=%d\n", iswr ? "out" : "in", r->name, p,
+	    off, len, r->accsz);
 	rp = 0;
-	if(off + len > r->len){
+	if(off + len > r->len) {
 		print("regio: access outside limits");
 		len = r->len - off;
 	}
-	if(len <= 0){
+	if(len <= 0) {
 		print("regio: zero len\n");
 		return 0;
 	}
-	switch(r->spc){
+	switch(r->spc) {
 	case Rsysmem:
 		// XXX should map only what we are going to use
 		// A region might be too large.
@@ -392,10 +384,10 @@ regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
 }
 
 static Atable*
-newtable(uint8_t *p)
+newtable(uint8_t* p)
 {
-	Atable *t;
-	Sdthdr *h;
+	Atable* t;
+	Sdthdr* h;
 
 	t = malloc(sizeof(Atable));
 	if(t == nil)
@@ -405,15 +397,15 @@ newtable(uint8_t *p)
 	t->is64 = h->rev >= 2;
 	t->dlen = l32get(h->length) - Sdthdrsz;
 	memmove(t->sig, h->sig, sizeof(h->sig));
-	t->sig[sizeof(t->sig)-1] = 0;
+	t->sig[sizeof(t->sig) - 1] = 0;
 	memmove(t->oemid, h->oemid, sizeof(h->oemid));
-	t->oemtblid[sizeof(t->oemtblid)-1] = 0;
+	t->oemtblid[sizeof(t->oemtblid) - 1] = 0;
 	memmove(t->oemtblid, h->oemtblid, sizeof(h->oemtblid));
-	t->oemtblid[sizeof(t->oemtblid)-1] = 0;
+	t->oemtblid[sizeof(t->oemtblid) - 1] = 0;
 	t->next = nil;
 	if(tfirst == nil)
 		tfirst = tlast = t;
-	else{
+	else {
 		tlast->next = t;
 		tlast = t;
 	}
@@ -423,7 +415,7 @@ newtable(uint8_t *p)
 static void*
 sdtchecksum(void* addr, int len)
 {
-	uint8_t *p, sum;
+	uint8_t* p, sum;
 
 	sum = 0;
 	for(p = addr; len-- > 0; p++)
@@ -434,23 +426,23 @@ sdtchecksum(void* addr, int len)
 	return nil;
 }
 
-static void *
-sdtmap(uintptr_t pa, int *n, int cksum)
+static void*
+sdtmap(uintptr_t pa, int* n, int cksum)
 {
 	Sdthdr* sdt;
 
 	sdt = vmap(pa, sizeof(Sdthdr));
-	if(sdt == nil){
+	if(sdt == nil) {
 		DBG("acpi: vmap1: nil\n");
 		return nil;
 	}
 	*n = l32get(sdt->length);
 	vunmap(sdt, sizeof(Sdthdr));
-	if((sdt = vmap(pa, *n)) == nil){
+	if((sdt = vmap(pa, *n)) == nil) {
 		DBG("acpi: nil vmap\n");
 		return nil;
 	}
-	if(cksum != 0 && sdtchecksum(sdt, *n) == nil){
+	if(cksum != 0 && sdtchecksum(sdt, *n) == nil) {
 		DBG("acpi: SDT: bad checksum\n");
 		vunmap(sdt, sizeof(Sdthdr));
 		return nil;
@@ -466,7 +458,7 @@ loadfacs(uintptr_t pa)
 	facs = sdtmap(pa, &n, 0);
 	if(facs == nil)
 		return -1;
-	if(memcmp(facs, "FACS", 4) != 0){
+	if(memcmp(facs, "FACS", 4) != 0) {
 		vunmap(facs, n);
 		facs = nil;
 		return -1;
@@ -487,7 +479,7 @@ static void
 loaddsdt(uintptr_t pa)
 {
 	int n;
-	uint8_t *dsdtp;
+	uint8_t* dsdtp;
 
 	dsdtp = sdtmap(pa, &n, 1);
 	if(dsdtp == nil)
@@ -497,17 +489,17 @@ loaddsdt(uintptr_t pa)
 }
 
 static void
-gasget(Gas *gas, uint8_t *p)
+gasget(Gas* gas, uint8_t* p)
 {
 	gas->spc = p[0];
 	gas->len = p[1];
 	gas->off = p[2];
 	gas->accsz = p[3];
-	gas->addr = l64get(p+4);
+	gas->addr = l64get(p + 4);
 }
 
 static void
-dumpfadt(Fadt *fp)
+dumpfadt(Fadt* fp)
 {
 	if(DBGFLG == 0)
 		return;
@@ -563,28 +555,28 @@ dumpfadt(Fadt *fp)
 }
 
 static Atable*
-acpifadt(uint8_t *p, int i)
+acpifadt(uint8_t* p, int i)
 {
-	Fadt *fp;
+	Fadt* fp;
 
 	fp = &fadt;
 	fp->facs = l32get(p + 36);
 	fp->dsdt = l32get(p + 40);
 	fp->pmprofile = p[45];
-	fp->sciint = l16get(p+46);
-	fp->smicmd = l32get(p+48);
+	fp->sciint = l16get(p + 46);
+	fp->smicmd = l32get(p + 48);
 	fp->acpienable = p[52];
 	fp->acpidisable = p[53];
 	fp->s4biosreq = p[54];
 	fp->pstatecnt = p[55];
-	fp->pm1aevtblk = l32get(p+56);
-	fp->pm1bevtblk = l32get(p+60);
-	fp->pm1acntblk = l32get(p+64);
-	fp->pm1bcntblk = l32get(p+68);
-	fp->pm2cntblk = l32get(p+72);
-	fp->pmtmrblk = l32get(p+76);
-	fp->gpe0blk = l32get(p+80);
-	fp->gpe1blk = l32get(p+84);
+	fp->pm1aevtblk = l32get(p + 56);
+	fp->pm1bevtblk = l32get(p + 60);
+	fp->pm1acntblk = l32get(p + 64);
+	fp->pm1bcntblk = l32get(p + 68);
+	fp->pm2cntblk = l32get(p + 72);
+	fp->pmtmrblk = l32get(p + 76);
+	fp->gpe0blk = l32get(p + 80);
+	fp->gpe1blk = l32get(p + 84);
 	fp->pm1evtlen = p[88];
 	fp->pm1cntlen = p[89];
 	fp->pm2cntlen = p[90];
@@ -593,29 +585,29 @@ acpifadt(uint8_t *p, int i)
 	fp->gpe1blklen = p[93];
 	fp->gp1base = p[94];
 	fp->cstcnt = p[95];
-	fp->plvl2lat = l16get(p+96);
-	fp->plvl3lat = l16get(p+98);
-	fp->flushsz = l16get(p+100);
-	fp->flushstride = l16get(p+102);
+	fp->plvl2lat = l16get(p + 96);
+	fp->plvl3lat = l16get(p + 98);
+	fp->flushsz = l16get(p + 100);
+	fp->flushstride = l16get(p + 102);
 	fp->dutyoff = p[104];
 	fp->dutywidth = p[105];
 	fp->dayalrm = p[106];
 	fp->monalrm = p[107];
 	fp->century = p[108];
-	fp->iapcbootarch = l16get(p+109);
-	fp->flags = l32get(p+112);
-	gasget(&fp->resetreg, p+116);
+	fp->iapcbootarch = l16get(p + 109);
+	fp->flags = l32get(p + 112);
+	gasget(&fp->resetreg, p + 116);
 	fp->resetval = p[128];
-	fp->xfacs = l64get(p+132);
-	fp->xdsdt = l64get(p+140);
-	gasget(&fp->xpm1aevtblk, p+148);
-	gasget(&fp->xpm1bevtblk, p+160);
-	gasget(&fp->xpm1acntblk, p+172);
-	gasget(&fp->xpm1bcntblk, p+184);
-	gasget(&fp->xpm2cntblk, p+196);
-	gasget(&fp->xpmtmrblk, p+208);
-	gasget(&fp->xgpe0blk, p+220);
-	gasget(&fp->xgpe1blk, p+232);
+	fp->xfacs = l64get(p + 132);
+	fp->xdsdt = l64get(p + 140);
+	gasget(&fp->xpm1aevtblk, p + 148);
+	gasget(&fp->xpm1bevtblk, p + 160);
+	gasget(&fp->xpm1acntblk, p + 172);
+	gasget(&fp->xpm1bcntblk, p + 184);
+	gasget(&fp->xpm2cntblk, p + 196);
+	gasget(&fp->xpmtmrblk, p + 208);
+	gasget(&fp->xgpe0blk, p + 220);
+	gasget(&fp->xgpe1blk, p + 232);
 
 	dumpfadt(fp);
 	if(fp->xfacs != 0)
@@ -628,19 +620,19 @@ acpifadt(uint8_t *p, int i)
 	else
 		loaddsdt(fp->dsdt);
 
-	return nil;	/* can be unmapped once parsed */
+	return nil; /* can be unmapped once parsed */
 }
 
 static void
-dumpmsct(Msct *msct)
+dumpmsct(Msct* msct)
 {
-	Mdom *st;
+	Mdom* st;
 
-	DBG("acpi: msct: %d doms %d clkdoms %#ullx maxpa\n",
-		msct->ndoms, msct->nclkdoms, msct->maxpa);
+	DBG("acpi: msct: %d doms %d clkdoms %#ullx maxpa\n", msct->ndoms,
+	    msct->nclkdoms, msct->maxpa);
 	for(st = msct->dom; st != nil; st = st->next)
-		DBG("\t[%d:%d] %d maxproc %#ullx maxmmem\n",
-			st->start, st->end, st->maxproc, st->maxmem);
+		DBG("\t[%d:%d] %d maxproc %#ullx maxmmem\n", st->start, st->end,
+		    st->maxproc, st->maxmem);
 	DBG("\n");
 }
 
@@ -649,56 +641,56 @@ dumpmsct(Msct *msct)
  * Else we should remove this code.
  */
 static Atable*
-acpimsct(uint8_t *p, int len)
+acpimsct(uint8_t* p, int len)
 {
-	uint8_t *pe;
-	Mdom **stl, *st;
+	uint8_t* pe;
+	Mdom** stl, *st;
 	int off;
 
 	msct = mallocz(sizeof(Msct), 1);
-	msct->ndoms = l32get(p+40) + 1;
-	msct->nclkdoms = l32get(p+44) + 1;
-	msct->maxpa = l64get(p+48);
+	msct->ndoms = l32get(p + 40) + 1;
+	msct->nclkdoms = l32get(p + 44) + 1;
+	msct->maxpa = l64get(p + 48);
 	msct->dom = nil;
 	stl = &msct->dom;
 	pe = p + len;
-	off = l32get(p+36);
-	for(p += off; p < pe; p += 22){
+	off = l32get(p + 36);
+	for(p += off; p < pe; p += 22) {
 		st = mallocz(sizeof(Mdom), 1);
 		st->next = nil;
-		st->start = l32get(p+2);
-		st->end = l32get(p+6);
-		st->maxproc = l32get(p+10);
-		st->maxmem = l64get(p+14);
+		st->start = l32get(p + 2);
+		st->end = l32get(p + 6);
+		st->maxproc = l32get(p + 10);
+		st->maxmem = l64get(p + 14);
 		*stl = st;
 		stl = &st->next;
 	}
 
 	dumpmsct(msct);
-	return nil;	/* can be unmapped once parsed */
+	return nil; /* can be unmapped once parsed */
 }
 
 static void
-dumpsrat(Srat *st)
+dumpsrat(Srat* st)
 {
 	DBG("acpi: srat:\n");
 	for(; st != nil; st = st->next)
-		switch(st->type){
+		switch(st->type) {
 		case SRlapic:
 			DBG("\tlapic: dom %d apic %d sapic %d clk %d\n",
-				st->lapic.dom, st->lapic.apic,
-				st->lapic.sapic, st->lapic.clkdom);
+			    st->lapic.dom, st->lapic.apic, st->lapic.sapic,
+			    st->lapic.clkdom);
 			break;
 		case SRmem:
-			DBG("\tmem: dom %d %#ullx %#ullx %c%c\n",
-				st->mem.dom, st->mem.addr, st->mem.len,
-				st->mem.hplug?'h':'-',
-				st->mem.nvram?'n':'-');
+			DBG("\tmem: dom %d %#ullx %#ullx %c%c\n", st->mem.dom,
+			    st->mem.addr, st->mem.len,
+			    st->mem.hplug ? 'h' : '-',
+			    st->mem.nvram ? 'n' : '-');
 			break;
 		case SRlx2apic:
 			DBG("\tlx2apic: dom %d apic %d clk %d\n",
-				st->lx2apic.dom, st->lx2apic.apic,
-				st->lx2apic.clkdom);
+			    st->lx2apic.dom, st->lx2apic.apic,
+			    st->lx2apic.clkdom);
 			break;
 		default:
 			DBG("\t<unknown srat entry>\n");
@@ -707,53 +699,54 @@ dumpsrat(Srat *st)
 }
 
 static Atable*
-acpisrat(uint8_t *p, int len)
+acpisrat(uint8_t* p, int len)
 {
-	Srat **stl, *st;
-	uint8_t *pe;
+	Srat** stl, *st;
+	uint8_t* pe;
 	int stlen, flags;
 
-	if(srat != nil){
+	if(srat != nil) {
 		print("acpi: two SRATs?\n");
 		return nil;
 	}
 
 	stl = &srat;
 	pe = p + len;
-	for(p += 48; p < pe; p += stlen){
+	for(p += 48; p < pe; p += stlen) {
 		st = mallocz(sizeof(Srat), 1);
 		st->type = p[0];
 		st->next = nil;
 		stlen = p[1];
-		switch(st->type){
+		switch(st->type) {
 		case SRlapic:
-			st->lapic.dom = p[2] | p[9]<<24| p[10]<<16 | p[11]<<8;
+			st->lapic.dom =
+			    p[2] | p[9] << 24 | p[10] << 16 | p[11] << 8;
 			st->lapic.apic = p[3];
 			st->lapic.sapic = p[8];
-			st->lapic.clkdom = l32get(p+12);
-			if(l32get(p+4) == 0){
+			st->lapic.clkdom = l32get(p + 12);
+			if(l32get(p + 4) == 0) {
 				free(st);
 				st = nil;
 			}
 			break;
 		case SRmem:
-			st->mem.dom = l32get(p+2);
-			st->mem.addr = l64get(p+8);
-			st->mem.len = l64get(p+16);
-			flags = l32get(p+28);
-			if((flags&1) == 0){	/* not enabled */
+			st->mem.dom = l32get(p + 2);
+			st->mem.addr = l64get(p + 8);
+			st->mem.len = l64get(p + 16);
+			flags = l32get(p + 28);
+			if((flags & 1) == 0) { /* not enabled */
 				free(st);
 				st = nil;
-			}else{
+			} else {
 				st->mem.hplug = flags & 2;
 				st->mem.nvram = flags & 4;
 			}
 			break;
 		case SRlx2apic:
-			st->lx2apic.dom = l32get(p+4);
-			st->lx2apic.apic = l32get(p+8);
-			st->lx2apic.clkdom = l32get(p+16);
-			if(l32get(p+12) == 0){
+			st->lx2apic.dom = l32get(p + 4);
+			st->lx2apic.apic = l32get(p + 8);
+			st->lx2apic.clkdom = l32get(p + 16);
+			if(l32get(p + 12) == 0) {
 				free(st);
 				st = nil;
 			}
@@ -763,31 +756,31 @@ acpisrat(uint8_t *p, int len)
 			free(st);
 			st = nil;
 		}
-		if(st != nil){
+		if(st != nil) {
 			*stl = st;
 			stl = &st->next;
 		}
 	}
 
 	dumpsrat(srat);
-	return nil;	/* can be unmapped once parsed */
+	return nil; /* can be unmapped once parsed */
 }
 
 static void
-dumpslit(Slit *sl)
+dumpslit(Slit* sl)
 {
 	int i;
 
 	DBG("acpi slit:\n");
-	for(i = 0; i < sl->rowlen*sl->rowlen; i++){
-		DBG("slit: %ux\n", sl->e[i/sl->rowlen][i%sl->rowlen].dist);
+	for(i = 0; i < sl->rowlen * sl->rowlen; i++) {
+		DBG("slit: %ux\n", sl->e[i / sl->rowlen][i % sl->rowlen].dist);
 	}
 }
 
 static int
 cmpslitent(const void* v1, const void* v2)
 {
-	SlEntry *se1, *se2;
+	SlEntry* se1, *se2;
 
 	se1 = v1;
 	se2 = v2;
@@ -795,49 +788,50 @@ cmpslitent(const void* v1, const void* v2)
 }
 
 static Atable*
-acpislit(uint8_t *p, int len)
+acpislit(uint8_t* p, int len)
 {
-	uint8_t *pe;
+	uint8_t* pe;
 	int i, j, k;
-	SlEntry *se;
+	SlEntry* se;
 
 	pe = p + len;
 	slit = malloc(sizeof(*slit));
-	slit->rowlen = l64get(p+36);
-	slit->e = malloc(slit->rowlen*sizeof(SlEntry*));
+	slit->rowlen = l64get(p + 36);
+	slit->e = malloc(slit->rowlen * sizeof(SlEntry*));
 	for(i = 0; i < slit->rowlen; i++)
-		slit->e[i] = malloc(sizeof(SlEntry)*slit->rowlen);
+		slit->e[i] = malloc(sizeof(SlEntry) * slit->rowlen);
 
 	i = 0;
-	for(p += 44; p < pe; p++, i++){
-		j = i/slit->rowlen;
-		k = i%slit->rowlen;
+	for(p += 44; p < pe; p++, i++) {
+		j = i / slit->rowlen;
+		k = i % slit->rowlen;
 		se = &slit->e[j][k];
 		se->dom = k;
 		se->dist = *p;
 	}
 	dumpslit(slit);
 	for(i = 0; i < slit->rowlen; i++)
-		qsort(slit->e[i], slit->rowlen, sizeof(slit->e[0][0]), cmpslitent);
+		qsort(slit->e[i], slit->rowlen, sizeof(slit->e[0][0]),
+		      cmpslitent);
 
 	dumpslit(slit);
-	return nil;	/* can be unmapped once parsed */
+	return nil; /* can be unmapped once parsed */
 }
 
 uintmem
-acpimblocksize(uintmem addr, int *dom)
+acpimblocksize(uintmem addr, int* dom)
 {
-	Srat *sl;
+	Srat* sl;
 
 	for(sl = srat; sl != nil; sl = sl->next)
 		if(sl->type == SRmem)
-		if(sl->mem.addr <= addr && sl->mem.addr + sl->mem.len > addr){
-			*dom = sl->mem.dom;
-			return sl->mem.len - (addr - sl->mem.addr);
-		}
+			if(sl->mem.addr <= addr &&
+			   sl->mem.addr + sl->mem.len > addr) {
+				*dom = sl->mem.dom;
+				return sl->mem.len - (addr - sl->mem.addr);
+			}
 	return 0;
 }
-
 
 /*
  * we use mp->machno (or index in Mach array) as the identifier,
@@ -846,8 +840,8 @@ acpimblocksize(uintmem addr, int *dom)
 int
 corecolor(int core)
 {
-	Proc *up = externup();
-	Srat *sl;
+	Proc* up = externup();
+	Srat* sl;
 	static int colors[32];
 
 	if(core < 0 || core >= MACHMAX)
@@ -860,14 +854,13 @@ corecolor(int core)
 		return colors[core] - 1;
 
 	for(sl = srat; sl != nil; sl = sl->next)
-		if(sl->type == SRlapic && sl->lapic.apic == m->apicno){
+		if(sl->type == SRlapic && sl->lapic.apic == m->apicno) {
 			if(core >= 0 && core < nelem(colors))
 				colors[core] = 1 + sl->lapic.dom;
 			return sl->lapic.dom;
 		}
 	return -1;
 }
-
 
 int
 pickcore(int mycolor, int index)
@@ -877,58 +870,59 @@ pickcore(int mycolor, int index)
 
 	if(slit == nil)
 		return 0;
-	ncorepercol = MACHMAX/slit->rowlen;
-	color = slit->e[mycolor][index/ncorepercol].dom;
+	ncorepercol = MACHMAX / slit->rowlen;
+	color = slit->e[mycolor][index / ncorepercol].dom;
 	return color * ncorepercol + index % ncorepercol;
 }
 
-
 static void
-dumpmadt(Madt *apics)
+dumpmadt(Madt* apics)
 {
-	Apicst *st;
+	Apicst* st;
 
-	DBG("acpi: madt lapic paddr %llux pcat %d:\n", apics->lapicpa, apics->pcat);
+	DBG("acpi: madt lapic paddr %llux pcat %d:\n", apics->lapicpa,
+	    apics->pcat);
 	for(st = apics->st; st != nil; st = st->next)
-		switch(st->type){
+		switch(st->type) {
 		case ASlapic:
-			DBG("\tlapic pid %d id %d\n", st->lapic.pid, st->lapic.id);
+			DBG("\tlapic pid %d id %d\n", st->lapic.pid,
+			    st->lapic.id);
 			break;
 		case ASioapic:
 		case ASiosapic:
 			DBG("\tioapic id %d addr %#llux ibase %d\n",
-				st->ioapic.id, st->ioapic.addr, st->ioapic.ibase);
+			    st->ioapic.id, st->ioapic.addr, st->ioapic.ibase);
 			break;
 		case ASintovr:
 			DBG("\tintovr irq %d intr %d flags %#ux\n",
-				st->intovr.irq, st->intovr.intr,st->intovr.flags);
+			    st->intovr.irq, st->intovr.intr, st->intovr.flags);
 			break;
 		case ASnmi:
-			DBG("\tnmi intr %d flags %#ux\n",
-				st->nmi.intr, st->nmi.flags);
+			DBG("\tnmi intr %d flags %#ux\n", st->nmi.intr,
+			    st->nmi.flags);
 			break;
 		case ASlnmi:
-			DBG("\tlnmi pid %d lint %d flags %#ux\n",
-				st->lnmi.pid, st->lnmi.lint, st->lnmi.flags);
+			DBG("\tlnmi pid %d lint %d flags %#ux\n", st->lnmi.pid,
+			    st->lnmi.lint, st->lnmi.flags);
 			break;
 		case ASlsapic:
 			DBG("\tlsapic pid %d id %d eid %d puid %d puids %s\n",
-				st->lsapic.pid, st->lsapic.id,
-				st->lsapic.eid, st->lsapic.puid,
-				st->lsapic.puids);
+			    st->lsapic.pid, st->lsapic.id, st->lsapic.eid,
+			    st->lsapic.puid, st->lsapic.puids);
 			break;
 		case ASintsrc:
-			DBG("\tintr type %d pid %d peid %d iosv %d intr %d %#x\n",
-				st->type, st->intsrc.pid,
-				st->intsrc.peid, st->intsrc.iosv,
-				st->intsrc.intr, st->intsrc.flags);
+			DBG("\tintr type %d pid %d peid %d iosv %d intr %d "
+			    "%#x\n",
+			    st->type, st->intsrc.pid, st->intsrc.peid,
+			    st->intsrc.iosv, st->intsrc.intr, st->intsrc.flags);
 			break;
 		case ASlx2apic:
-			DBG("\tlx2apic puid %d id %d\n", st->lx2apic.puid, st->lx2apic.id);
+			DBG("\tlx2apic puid %d id %d\n", st->lx2apic.puid,
+			    st->lx2apic.id);
 			break;
 		case ASlx2nmi:
 			DBG("\tlx2nmi puid %d intr %d flags %#ux\n",
-				st->lx2nmi.puid, st->lx2nmi.intr, st->lx2nmi.flags);
+			    st->lx2nmi.puid, st->lx2nmi.intr, st->lx2nmi.flags);
 			break;
 		default:
 			DBG("\t<unknown madt entry>\n");
@@ -937,71 +931,73 @@ dumpmadt(Madt *apics)
 }
 
 static Atable*
-acpimadt(uint8_t *p, int len)
+acpimadt(uint8_t* p, int len)
 {
-	uint8_t *pe;
-	Apicst *st, *l, **stl;
+	uint8_t* pe;
+	Apicst* st, *l, **stl;
 	int stlen, id;
 
 	apics = mallocz(sizeof(Madt), 1);
-	apics->lapicpa = l32get(p+36);
-	apics->pcat = l32get(p+40);
+	apics->lapicpa = l32get(p + 36);
+	apics->pcat = l32get(p + 40);
 	apics->st = nil;
 	stl = &apics->st;
 	pe = p + len;
-	for(p += 44; p < pe; p += stlen){
+	for(p += 44; p < pe; p += stlen) {
 		st = mallocz(sizeof(Apicst), 1);
 		st->type = p[0];
 		st->next = nil;
 		stlen = p[1];
-		switch(st->type){
+		switch(st->type) {
 		case ASlapic:
 			st->lapic.pid = p[2];
 			st->lapic.id = p[3];
-			if(l32get(p+4) == 0){
+			if(l32get(p + 4) == 0) {
 				free(st);
 				st = nil;
 			}
 			break;
 		case ASioapic:
 			st->ioapic.id = id = p[2];
-			st->ioapic.addr = l32get(p+4);
-			st->ioapic.ibase = l32get(p+8);
+			st->ioapic.addr = l32get(p + 4);
+			st->ioapic.ibase = l32get(p + 8);
 			/* iosapic overrides any ioapic entry for the same id */
 			for(l = apics->st; l != nil; l = l->next)
-				if(l->type == ASiosapic && l->iosapic.id == id){
+				if(l->type == ASiosapic &&
+				   l->iosapic.id == id) {
 					st->ioapic = l->iosapic;
-					/* we leave it linked; could be removed */
+					/* we leave it linked; could be removed
+					 */
 					break;
 				}
 			break;
 		case ASintovr:
 			st->intovr.irq = p[3];
-			st->intovr.intr = l32get(p+4);
-			st->intovr.flags = l16get(p+8);
+			st->intovr.intr = l32get(p + 4);
+			st->intovr.flags = l16get(p + 8);
 			break;
 		case ASnmi:
-			st->nmi.flags = l16get(p+2);
-			st->nmi.intr = l32get(p+4);
+			st->nmi.flags = l16get(p + 2);
+			st->nmi.intr = l32get(p + 4);
 			break;
 		case ASlnmi:
 			st->lnmi.pid = p[2];
-			st->lnmi.flags = l16get(p+3);
+			st->lnmi.flags = l16get(p + 3);
 			st->lnmi.lint = p[5];
 			break;
 		case ASladdr:
 			/* This is for 64 bits, perhaps we should not
 			 * honor it on 32 bits.
 			 */
-			apics->lapicpa = l64get(p+8);
+			apics->lapicpa = l64get(p + 8);
 			break;
 		case ASiosapic:
 			id = st->iosapic.id = p[2];
-			st->iosapic.ibase = l32get(p+4);
-			st->iosapic.addr = l64get(p+8);
+			st->iosapic.ibase = l32get(p + 4);
+			st->iosapic.addr = l64get(p + 8);
 			/* iosapic overrides any ioapic entry for the same id */
 			for(l = apics->st; l != nil; l = l->next)
-				if(l->type == ASioapic && l->ioapic.id == id){
+				if(l->type == ASioapic && l->ioapic.id == id) {
 					l->ioapic = st->iosapic;
 					free(st);
 					st = nil;
@@ -1012,33 +1008,33 @@ acpimadt(uint8_t *p, int len)
 			st->lsapic.pid = p[2];
 			st->lsapic.id = p[3];
 			st->lsapic.eid = p[4];
-			st->lsapic.puid = l32get(p+12);
-			if(l32get(p+8) == 0){
+			st->lsapic.puid = l32get(p + 12);
+			if(l32get(p + 8) == 0) {
 				free(st);
 				st = nil;
-			}else
-				kstrdup(&st->lsapic.puids, (char*)p+16);
+			} else
+				kstrdup(&st->lsapic.puids, (char*)p + 16);
 			break;
 		case ASintsrc:
-			st->intsrc.flags = l16get(p+2);
+			st->intsrc.flags = l16get(p + 2);
 			st->type = p[4];
 			st->intsrc.pid = p[5];
 			st->intsrc.peid = p[6];
 			st->intsrc.iosv = p[7];
-			st->intsrc.intr = l32get(p+8);
-			st->intsrc.any = l32get(p+12);
+			st->intsrc.intr = l32get(p + 8);
+			st->intsrc.any = l32get(p + 12);
 			break;
 		case ASlx2apic:
-			st->lx2apic.id = l32get(p+4);
-			st->lx2apic.puid = l32get(p+12);
-			if(l32get(p+8) == 0){
+			st->lx2apic.id = l32get(p + 4);
+			st->lx2apic.puid = l32get(p + 12);
+			if(l32get(p + 8) == 0) {
 				free(st);
 				st = nil;
 			}
 			break;
 		case ASlx2nmi:
-			st->lx2nmi.flags = l16get(p+2);
-			st->lx2nmi.puid = l32get(p+4);
+			st->lx2nmi.flags = l16get(p + 2);
+			st->lx2nmi.puid = l32get(p + 4);
 			st->lx2nmi.intr = p[8];
 			break;
 		default:
@@ -1046,21 +1042,21 @@ acpimadt(uint8_t *p, int len)
 			free(st);
 			st = nil;
 		}
-		if(st != nil){
+		if(st != nil) {
 			*stl = st;
 			stl = &st->next;
 		}
 	}
 
 	dumpmadt(apics);
-	return nil;	/* can be unmapped once parsed */
+	return nil; /* can be unmapped once parsed */
 }
 
 /*
  * Map the table and keep it there.
  */
 static Atable*
-acpitable(uint8_t *p, int len)
+acpitable(uint8_t* p, int len)
 {
 	if(len < Sdthdrsz)
 		return nil;
@@ -1068,17 +1064,17 @@ acpitable(uint8_t *p, int len)
 }
 
 static void
-dumptable(char *sig, uint8_t *p, int l)
+dumptable(char* sig, uint8_t* p, int l)
 {
 	int n, i;
 
-	if(DBGFLG > 1){
+	if(DBGFLG > 1) {
 		DBG("%s @ %#p\n", sig, p);
 		if(DBGFLG > 2)
 			n = l;
 		else
 			n = 256;
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			if((i % 16) == 0)
 				DBG("%x: ", i);
 			DBG(" %2.2ux", p[i]);
@@ -1091,15 +1087,15 @@ dumptable(char *sig, uint8_t *p, int l)
 }
 
 static char*
-seprinttable(char *s, char *e, Atable *t)
+seprinttable(char* s, char* e, Atable* t)
 {
-	uint8_t *p;
+	uint8_t* p;
 	int i, n;
 
-	p = (uint8_t*)t->tbl;	/* include header */
+	p = (uint8_t*)t->tbl; /* include header */
 	n = Sdthdrsz + t->dlen;
 	s = seprint(s, e, "%s @ %#p\n", t->sig, p);
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		if((i % 16) == 0)
 			s = seprint(s, e, "%x: ", i);
 		s = seprint(s, e, " %2.2ux", p[i]);
@@ -1114,28 +1110,28 @@ seprinttable(char *s, char *e, Atable *t)
  * (XXX: should be able to search for sig, oemid, oemtblid)
  */
 static int
-acpixsdtload(char *sig)
+acpixsdtload(char* sig)
 {
 	int i, l, t, unmap, found;
 	uintptr_t dhpa;
-	uint8_t *sdt;
+	uint8_t* sdt;
 	char tsig[5];
 
 	found = 0;
-	for(i = 0; i < xsdt->len; i += xsdt->asize){
+	for(i = 0; i < xsdt->len; i += xsdt->asize) {
 		if(xsdt->asize == 8)
-			dhpa = l64get(xsdt->p+i);
+			dhpa = l64get(xsdt->p + i);
 		else
-			dhpa = l32get(xsdt->p+i);
+			dhpa = l32get(xsdt->p + i);
 		if((sdt = sdtmap(dhpa, &l, 1)) == nil)
 			continue;
 		unmap = 1;
 		memmove(tsig, sdt, 4);
 		tsig[4] = 0;
-		if(sig == nil || strcmp(sig, tsig) == 0){
+		if(sig == nil || strcmp(sig, tsig) == 0) {
 			DBG("acpi: %s addr %#p\n", tsig, sdt);
 			for(t = 0; t < nelem(ptables); t++)
-				if(strcmp(tsig, ptables[t].sig) == 0){
+				if(strcmp(tsig, ptables[t].sig) == 0) {
 					dumptable(tsig, sdt, l);
 					unmap = ptables[t].f(sdt, l) == nil;
 					found = 1;
@@ -1152,11 +1148,11 @@ static void*
 rsdscan(uint8_t* addr, int len, char* signature)
 {
 	int sl;
-	uint8_t *e, *p;
+	uint8_t* e, *p;
 
-	e = addr+len;
+	e = addr + len;
 	sl = strlen(signature);
-	for(p = addr; p+sl < e; p += 16){
+	for(p = addr; p + sl < e; p += 16) {
 		if(memcmp(p, signature, sl))
 			continue;
 		return p;
@@ -1169,17 +1165,17 @@ static void*
 rsdsearch(char* signature)
 {
 	uintptr_t p;
-	uint8_t *bda;
-	void *rsd;
+	uint8_t* bda;
+	void* rsd;
 
 	/*
 	 * Search for the data structure signature:
 	 * 1) in the first KB of the EBDA;
 	 * 2) in the BIOS ROM between 0xE0000 and 0xFFFFF.
 	 */
-	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4) == 0){
+	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4) == 0) {
 		bda = BIOSSEG(0x40);
-		if((p = (bda[0x0F]<<8)|bda[0x0E])){
+		if((p = (bda[0x0F] << 8) | bda[0x0E])) {
 			if(rsd = rsdscan(KADDR(p), 1024, signature))
 				return rsd;
 		}
@@ -1190,7 +1186,7 @@ rsdsearch(char* signature)
 static void
 acpirsdptr(void)
 {
-	Rsdp *rsd;
+	Rsdp* rsd;
 	int asize;
 	uintptr_t sdtpa;
 
@@ -1199,20 +1195,19 @@ acpirsdptr(void)
 
 	assert(sizeof(Sdthdr) == 36);
 
-	DBG("acpi: RSD PTR@ %#p, physaddr %#ux length %ud %#llux rev %d\n",
-		rsd, l32get(rsd->raddr), l32get(rsd->length),
-		l64get(rsd->xaddr), rsd->revision);
+	DBG("acpi: RSD PTR@ %#p, physaddr %#ux length %ud %#llux rev %d\n", rsd,
+	    l32get(rsd->raddr), l32get(rsd->length), l64get(rsd->xaddr),
+	    rsd->revision);
 
-	if(rsd->revision >= 2){
-		if(sdtchecksum(rsd, 36) == nil){
+	if(rsd->revision >= 2) {
+		if(sdtchecksum(rsd, 36) == nil) {
 			DBG("acpi: RSD: bad checksum\n");
 			return;
 		}
 		sdtpa = l64get(rsd->xaddr);
 		asize = 8;
-	}
-	else{
-		if(sdtchecksum(rsd, 20) == nil){
+	} else {
+		if(sdtchecksum(rsd, 20) == nil) {
 			DBG("acpi: RSD: bad checksum\n");
 			return;
 		}
@@ -1224,17 +1219,18 @@ acpirsdptr(void)
 	 * process the RSDT or XSDT table.
 	 */
 	xsdt = malloc(sizeof(Xsdt));
-	if(xsdt == nil){
+	if(xsdt == nil) {
 		DBG("acpi: malloc failed\n");
 		return;
 	}
-	if((xsdt->p = sdtmap(sdtpa, &xsdt->len, 1)) == nil){
+	if((xsdt->p = sdtmap(sdtpa, &xsdt->len, 1)) == nil) {
 		DBG("acpi: sdtmap failed\n");
 		return;
 	}
-	if((xsdt->p[0] != 'R' && xsdt->p[0] != 'X') || memcmp(xsdt->p+1, "SDT", 3) != 0){
-		DBG("acpi: xsdt sig: %c%c%c%c\n",
-			xsdt->p[0], xsdt->p[1], xsdt->p[2], xsdt->p[3]);
+	if((xsdt->p[0] != 'R' && xsdt->p[0] != 'X') ||
+	   memcmp(xsdt->p + 1, "SDT", 3) != 0) {
+		DBG("acpi: xsdt sig: %c%c%c%c\n", xsdt->p[0], xsdt->p[1],
+		    xsdt->p[2], xsdt->p[3]);
 		free(xsdt);
 		xsdt = nil;
 		vunmap(xsdt, xsdt->len);
@@ -1246,21 +1242,20 @@ acpirsdptr(void)
 	DBG("acpi: XSDT %#p\n", xsdt);
 	acpixsdtload(nil);
 	/* xsdt is kept and not unmapped */
-
 }
 
 static int
-acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
+acpigen(Chan* c, char* d, Dirtab* tab, int ntab, int i, Dir* dp)
 {
 	Qid qid;
 
-	if(i == DEVDOTDOT){
+	if(i == DEVDOTDOT) {
 		mkqid(&qid, Qdir, 0, QTDIR);
 		devdir(c, qid, ".", 0, eve, 0555, dp);
 		return 1;
 	}
 	i++; /* skip first element for . itself */
-	if(tab==0 || i>=ntab)
+	if(tab == 0 || i >= ntab)
 		return -1;
 	tab += i;
 	qid = tab->qid;
@@ -1273,13 +1268,12 @@ acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 static int
 Gfmt(Fmt* f)
 {
-	static char* rnames[] = {
-			"mem", "io", "pcicfg", "embed",
-			"smb", "cmos", "pcibar", "ipmi"};
-	Gas *g;
+	static char* rnames[] = {"mem", "io",   "pcicfg", "embed",
+	                         "smb", "cmos", "pcibar", "ipmi"};
+	Gas* g;
 
 	g = va_arg(f->args, Gas*);
-	switch(g->spc){
+	switch(g->spc) {
 	case Rsysmem:
 	case Rsysio:
 	case Rembed:
@@ -1293,8 +1287,8 @@ Gfmt(Fmt* f)
 		fmtprint(f, "[pci ");
 		fmtprint(f, "dev %#ulx ", (uint32_t)(g->addr >> 32) & 0xFFFF);
 		fmtprint(f, "fn %#ulx ",
-			 (uint32_t)(g->addr & 0xFFFF0000) >> 16);
-		fmtprint(f, "adr %#ulx ", (uint32_t)(g->addr &0xFFFF));
+		         (uint32_t)(g->addr & 0xFFFF0000) >> 16);
+		fmtprint(f, "adr %#ulx ", (uint32_t)(g->addr & 0xFFFF));
 		break;
 	case Rfixedhw:
 		fmtprint(f, "[hw ");
@@ -1302,8 +1296,8 @@ Gfmt(Fmt* f)
 	default:
 		fmtprint(f, "[spc=%#ux ", g->spc);
 	}
-	return fmtprint(f, "off %d len %d addr %#ullx sz%d]",
-		g->off, g->len, g->addr, g->accsz);
+	return fmtprint(f, "off %d len %d addr %#ullx sz%d]", g->off, g->len,
+	                g->addr, g->accsz);
 }
 
 static uint
@@ -1312,7 +1306,7 @@ getbanked(uintptr_t ra, uintptr_t rb, int sz)
 	uint r;
 
 	r = 0;
-	switch(sz){
+	switch(sz) {
 	case 1:
 		if(ra != 0)
 			r |= inb(ra);
@@ -1343,7 +1337,7 @@ setbanked(uintptr_t ra, uintptr_t rb, int sz, int v)
 	uint r;
 
 	r = -1;
-	switch(sz){
+	switch(sz) {
 	case 1:
 		if(ra != 0)
 			outb(ra, v);
@@ -1378,13 +1372,13 @@ static void
 setpm1sts(uint v)
 {
 	DBG("acpi: setpm1sts %#ux\n", v);
-	setbanked(fadt.pm1aevtblk, fadt.pm1bevtblk, fadt.pm1evtlen/2, v);
+	setbanked(fadt.pm1aevtblk, fadt.pm1bevtblk, fadt.pm1evtlen / 2, v);
 }
 
 static uint
 getpm1sts(void)
 {
-	return getbanked(fadt.pm1aevtblk, fadt.pm1bevtblk, fadt.pm1evtlen/2);
+	return getbanked(fadt.pm1aevtblk, fadt.pm1bevtblk, fadt.pm1evtlen / 2);
 }
 
 static uint
@@ -1392,14 +1386,14 @@ getpm1en(void)
 {
 	int sz;
 
-	sz = fadt.pm1evtlen/2;
-	return getbanked(fadt.pm1aevtblk+sz, fadt.pm1bevtblk+sz, sz);
+	sz = fadt.pm1evtlen / 2;
+	return getbanked(fadt.pm1aevtblk + sz, fadt.pm1bevtblk + sz, sz);
 }
 
 static int
 getgpeen(int n)
 {
-	return inb(gpes[n].enio) & 1<<gpes[n].enbit;
+	return inb(gpes[n].enio) & 1 << gpes[n].enbit;
 }
 
 static void
@@ -1410,25 +1404,25 @@ setgpeen(int n, uint v)
 	DBG("acpi: setgpe %d %d\n", n, v);
 	old = inb(gpes[n].enio);
 	if(v)
-		outb(gpes[n].enio, old | 1<<gpes[n].enbit);
+		outb(gpes[n].enio, old | 1 << gpes[n].enbit);
 	else
-		outb(gpes[n].enio, old & ~(1<<gpes[n].enbit));
+		outb(gpes[n].enio, old & ~(1 << gpes[n].enbit));
 }
 
 static void
 clrgpests(int n)
 {
-	outb(gpes[n].stsio, 1<<gpes[n].stsbit);
+	outb(gpes[n].stsio, 1 << gpes[n].stsbit);
 }
 
 static uint
 getgpests(int n)
 {
-	return inb(gpes[n].stsio) & 1<<gpes[n].stsbit;
+	return inb(gpes[n].stsio) & 1 << gpes[n].stsbit;
 }
 
 static void
-acpiintr(Ureg* ureg, void *j)
+acpiintr(Ureg* ureg, void* j)
 {
 	int i;
 	uint sts, en;
@@ -1436,23 +1430,23 @@ acpiintr(Ureg* ureg, void *j)
 	print("acpi: intr\n");
 
 	for(i = 0; i < ngpes; i++)
-		if(getgpests(i)){
+		if(getgpests(i)) {
 			print("gpe %d on\n", i);
- 			en = getgpeen(i);
+			en = getgpeen(i);
 			setgpeen(i, 0);
 			clrgpests(i);
 			if(en != 0)
 				print("acpiitr: calling gpe %d\n", i);
-		//	queue gpe for calling gpe->ho in the
-		//	aml process.
-		//	enable it again when it returns.
+			//	queue gpe for calling gpe->ho in the
+			//	aml process.
+			//	enable it again when it returns.
 		}
 	sts = getpm1sts();
 	en = getpm1en();
 	print("acpiitr: pm1sts %#ux pm1en %#ux\n", sts, en);
-	if(sts&en)
+	if(sts & en)
 		print("have enabled events\n");
-	if(sts&1)
+	if(sts & 1)
 		print("power button\n");
 	// XXX serve other interrupts here.
 	setpm1sts(sts);
@@ -1463,25 +1457,25 @@ initgpes(void)
 {
 	int i, n0, n1;
 
-	n0 = fadt.gpe0blklen/2;
-	n1 = fadt.gpe1blklen/2;
+	n0 = fadt.gpe0blklen / 2;
+	n1 = fadt.gpe1blklen / 2;
 	ngpes = n0 + n1;
 	gpes = mallocz(sizeof(Gpe) * ngpes, 1);
-	for(i = 0; i < n0; i++){
+	for(i = 0; i < n0; i++) {
 		gpes[i].nb = i;
-		gpes[i].stsbit = i&7;
-		gpes[i].stsio = fadt.gpe0blk + (i>>3);
-		gpes[i].enbit = (n0 + i)&7;
-		gpes[i].enio = fadt.gpe0blk + ((n0 + i)>>3);
+		gpes[i].stsbit = i & 7;
+		gpes[i].stsio = fadt.gpe0blk + (i >> 3);
+		gpes[i].enbit = (n0 + i) & 7;
+		gpes[i].enio = fadt.gpe0blk + ((n0 + i) >> 3);
 	}
-	for(i = 0; i + n0 < ngpes; i++){
+	for(i = 0; i + n0 < ngpes; i++) {
 		gpes[i + n0].nb = fadt.gp1base + i;
-		gpes[i + n0].stsbit = i&7;
-		gpes[i + n0].stsio = fadt.gpe1blk + (i>>3);
-		gpes[i + n0].enbit = (n1 + i)&7;
-		gpes[i + n0].enio = fadt.gpe1blk + ((n1 + i)>>3);
+		gpes[i + n0].stsbit = i & 7;
+		gpes[i + n0].stsio = fadt.gpe1blk + (i >> 3);
+		gpes[i + n0].enbit = (n1 + i) & 7;
+		gpes[i + n0].enio = fadt.gpe1blk + ((n1 + i) >> 3);
 	}
-	for(i = 0; i < ngpes; i++){
+	for(i = 0; i < ngpes; i++) {
 		setgpeen(i, 0);
 		clrgpests(i);
 	}
@@ -1497,7 +1491,7 @@ acpiioalloc(uint addr, int len)
 int
 acpiinit(void)
 {
-	if(fadt.smicmd == 0){
+	if(fadt.smicmd == 0) {
 		fmtinstall('G', Gfmt);
 		acpirsdptr();
 		if(fadt.smicmd == 0)
@@ -1507,7 +1501,7 @@ acpiinit(void)
 }
 
 static Chan*
-acpiattach(char *spec)
+acpiattach(char* spec)
 {
 	int i;
 
@@ -1525,7 +1519,7 @@ acpiattach(char *spec)
 	DBG("acpi io alloc\n");
 	acpiioalloc(fadt.smicmd, 1);
 	acpiioalloc(fadt.pm1aevtblk, fadt.pm1evtlen);
-	acpiioalloc(fadt.pm1bevtblk, fadt.pm1evtlen );
+	acpiioalloc(fadt.pm1bevtblk, fadt.pm1evtlen);
 	acpiioalloc(fadt.pm1acntblk, fadt.pm1cntlen);
 	acpiioalloc(fadt.pm1bcntblk, fadt.pm1cntlen);
 	acpiioalloc(fadt.pm2cntblk, fadt.pm2cntlen);
@@ -1553,58 +1547,59 @@ acpiattach(char *spec)
 }
 
 static Walkqid*
-acpiwalk(Chan *c, Chan *nc, char **name, int nname)
+acpiwalk(Chan* c, Chan* nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, acpidir, nelem(acpidir), acpigen);
 }
 
 static int32_t
-acpistat(Chan *c, uint8_t *dp, int32_t n)
+acpistat(Chan* c, uint8_t* dp, int32_t n)
 {
 	return devstat(c, dp, n, acpidir, nelem(acpidir), acpigen);
 }
 
 static Chan*
-acpiopen(Chan *c, int omode)
+acpiopen(Chan* c, int omode)
 {
 	return devopen(c, omode, acpidir, nelem(acpidir), acpigen);
 }
 
 static void
-acpiclose(Chan *c)
+acpiclose(Chan* c)
 {
 }
 
-static char*ttext;
+static char* ttext;
 static int tlen;
 
 static int32_t
-acpiread(Chan *c, void *a, int32_t n, int64_t off)
+acpiread(Chan* c, void* a, int32_t n, int64_t off)
 {
 	int32_t q;
-	Atable *t;
-	char *ns, *s, *e, *ntext;
+	Atable* t;
+	char* ns, *s, *e, *ntext;
 
 	q = c->qid.path;
-	switch(q){
+	switch(q) {
 	case Qdir:
 		return devdirread(c, a, n, acpidir, nelem(acpidir), acpigen);
 	case Qtbl:
-		if(ttext == nil){
+		if(ttext == nil) {
 			tlen = 1024;
 			ttext = malloc(tlen);
-			if(ttext == nil){
+			if(ttext == nil) {
 				print("acpi: no memory\n");
 				return 0;
 			}
 			s = ttext;
 			e = ttext + tlen;
 			strcpy(s, "no tables\n");
-			for(t = tfirst; t != nil; t = t->next){
+			for(t = tfirst; t != nil; t = t->next) {
 				ns = seprinttable(s, e, t);
-				while(ns == e - 1){
-					DBG("acpiread: allocated %d\n", tlen*2);
-					ntext = realloc(ttext, tlen*2);
+				while(ns == e - 1) {
+					DBG("acpiread: allocated %d\n",
+					    tlen * 2);
+					ntext = realloc(ttext, tlen * 2);
 					if(ntext == nil)
 						panic("acpi: no memory\n");
 					s = ntext + (ttext - s);
@@ -1615,7 +1610,6 @@ acpiread(Chan *c, void *a, int32_t n, int64_t off)
 				}
 				s = ns;
 			}
-
 		}
 		return readstr(off, a, n, ttext);
 	case Qio:
@@ -1628,15 +1622,15 @@ acpiread(Chan *c, void *a, int32_t n, int64_t off)
 }
 
 static int32_t
-acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
+acpiwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
-	Proc *up = externup();
-	Cmdtab *ct;
-	Cmdbuf *cb;
-	Reg *r;
+	Proc* up = externup();
+	Cmdtab* ct;
+	Cmdbuf* cb;
+	Reg* r;
 	uint rno, fun, dev, bus, i;
 
-	if(c->qid.path == Qio){
+	if(c->qid.path == Qio) {
 		if(reg == nil)
 			error("region not configured");
 		return regio(reg, a, n, off, 1);
@@ -1645,45 +1639,45 @@ acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 		error(Eperm);
 
 	cb = parsecmd(a, n);
-	if(waserror()){
+	if(waserror()) {
 		free(cb);
 		nexterror();
 	}
 	ct = lookupcmd(cb, ctls, nelem(ctls));
 	DBG("acpi ctl %s\n", cb->f[0]);
-	switch(ct->index){
+	switch(ct->index) {
 	case CMregion:
 		r = reg;
-		if(r == nil){
+		if(r == nil) {
 			r = smalloc(sizeof(Reg));
 			r->name = nil;
 		}
 		kstrdup(&r->name, cb->f[1]);
 		r->spc = acpiregid(cb->f[2]);
-		if(r->spc < 0){
+		if(r->spc < 0) {
 			free(r);
 			reg = nil;
 			error("bad region type");
 		}
-		if(r->spc == Rpcicfg || r->spc == Rpcibar){
-			rno = r->base>>Rpciregshift & Rpciregmask;
-			fun = r->base>>Rpcifunshift & Rpcifunmask;
-			dev = r->base>>Rpcidevshift & Rpcidevmask;
-			bus = r->base>>Rpcibusshift & Rpcibusmask;
+		if(r->spc == Rpcicfg || r->spc == Rpcibar) {
+			rno = r->base >> Rpciregshift & Rpciregmask;
+			fun = r->base >> Rpcifunshift & Rpcifunmask;
+			dev = r->base >> Rpcidevshift & Rpcidevmask;
+			bus = r->base >> Rpcibusshift & Rpcibusmask;
 			r->tbdf = MKBUS(BusPCI, bus, dev, fun);
-			r->base = rno;	/* register ~ our base addr */
+			r->base = rno; /* register ~ our base addr */
 		}
 		r->base = strtoull(cb->f[3], nil, 0);
 		r->len = strtoull(cb->f[4], nil, 0);
 		r->accsz = strtoul(cb->f[5], nil, 0);
-		if(r->accsz < 1 || r->accsz > 4){
+		if(r->accsz < 1 || r->accsz > 4) {
 			free(r);
 			reg = nil;
 			error("bad region access size");
 		}
 		reg = r;
-		DBG("region %s %s %llux %llux sz%d",
-			r->name, acpiregstr(r->spc), r->base, r->len, r->accsz);
+		DBG("region %s %s %llux %llux sz%d", r->name,
+		    acpiregstr(r->spc), r->base, r->len, r->accsz);
 		break;
 	case CMgpe:
 		i = strtoul(cb->f[1], nil, 0);
@@ -1701,24 +1695,10 @@ acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 	return n;
 }
 
-
 Dev acpidevtab = {
-	L'α',
-	"acpi",
+    L'α',     "acpi",
 
-	devreset,
-	devinit,
-	devshutdown,
-	acpiattach,
-	acpiwalk,
-	acpistat,
-	acpiopen,
-	devcreate,
-	acpiclose,
-	acpiread,
-	devbread,
-	acpiwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    devreset, devinit,   devshutdown, acpiattach, acpiwalk,
+    acpistat, acpiopen,  devcreate,   acpiclose,  acpiread,
+    devbread, acpiwrite, devbwrite,   devremove,  devwstat,
 };

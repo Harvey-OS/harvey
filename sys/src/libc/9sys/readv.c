@@ -10,16 +10,15 @@
 #include <u.h>
 #include <libc.h>
 
-static
-int32_t
-ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
+static int32_t
+ioreadv(int fd, IOchunk* io, int nio, int64_t offset)
 {
 	int i;
 	int32_t m, n, tot;
-	char *buf, *p;
+	char* buf, *p;
 
 	tot = 0;
-	for(i=0; i<nio; i++)
+	for(i = 0; i < nio; i++)
 		tot += io[i].len;
 	buf = malloc(tot);
 	if(buf == nil)
@@ -29,7 +28,7 @@ ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 
 	p = buf;
 	n = tot;
-	for(i=0; i<nio; i++){
+	for(i = 0; i < nio; i++) {
 		if(n <= 0)
 			break;
 		m = io->len;
@@ -46,13 +45,13 @@ ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 }
 
 int32_t
-readv(int fd, IOchunk *io, int nio)
+readv(int fd, IOchunk* io, int nio)
 {
 	return ioreadv(fd, io, nio, -1LL);
 }
 
 int32_t
-preadv(int fd, IOchunk *io, int nio, int64_t off)
+preadv(int fd, IOchunk* io, int nio, int64_t off)
 {
 	return ioreadv(fd, io, nio, off);
 }

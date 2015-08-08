@@ -14,12 +14,12 @@
 #include "authcmdlib.h"
 
 int
-readfile(char *file, char *buf, int n)
+readfile(char* file, char* buf, int n)
 {
 	int fd;
 
 	fd = open(file, OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		werrstr("%s: %r", file);
 		return -1;
 	}
@@ -29,7 +29,7 @@ readfile(char *file, char *buf, int n)
 }
 
 int
-writefile(char *file, char *buf, int n)
+writefile(char* file, char* buf, int n)
 {
 	int fd;
 
@@ -42,7 +42,7 @@ writefile(char *file, char *buf, int n)
 }
 
 char*
-findkey(char *db, char *user, char *key)
+findkey(char* db, char* user, char* key)
 {
 	int n;
 	char filename[Maxpath];
@@ -56,14 +56,14 @@ findkey(char *db, char *user, char *key)
 }
 
 char*
-findsecret(char *db, char *user, char *secret)
+findsecret(char* db, char* user, char* secret)
 {
 	int n;
 	char filename[Maxpath];
 
 	snprint(filename, sizeof filename, "%s/%s/secret", db, user);
-	n = readfile(filename, secret, SECRETLEN-1);
-	secret[n]=0;
+	n = readfile(filename, secret, SECRETLEN - 1);
+	secret[n] = 0;
 	if(n <= 0)
 		return 0;
 	else
@@ -71,7 +71,7 @@ findsecret(char *db, char *user, char *secret)
 }
 
 char*
-setkey(char *db, char *user, char *key)
+setkey(char* db, char* user, char* key)
 {
 	int n;
 	char filename[Maxpath];
@@ -85,7 +85,7 @@ setkey(char *db, char *user, char *key)
 }
 
 char*
-setsecret(char *db, char *user, char *secret)
+setsecret(char* db, char* user, char* secret)
 {
 	int n;
 	char filename[Maxpath];

@@ -13,27 +13,26 @@
 #include <auth.h>
 #include <fcall.h>
 
-#pragma	varargck	type	"P"	char*
+#pragma varargck type "P" char *
 
-int	nsrv;
-Dir	*srv;
-Biobuf	stdout;
+int nsrv;
+Dir* srv;
+Biobuf stdout;
 
 typedef struct Mount Mount;
 
-struct Mount
-{
-	char	*cmd;
-	char	*flag;
-	char	*new;
-	char	*old;
-	char	*spec;
+struct Mount {
+	char* cmd;
+	char* flag;
+	char* new;
+	char* old;
+	char* spec;
 };
 
-void	xlatemnt(Mount*);
-char	*quote(char*);
+void xlatemnt(Mount*);
+char* quote(char*);
 
-int	rflag;
+int rflag;
 
 void
 usage(void)
@@ -43,27 +42,29 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Mount *m;
+	Mount* m;
 	int line, fd, n, pid;
 	char buf[1024], *av[5];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'r':
 		rflag++;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
-	if(argc == 1){
+	if(argc == 1) {
 		pid = atoi(argv[0]);
 		if(pid == 0)
 			usage();
-	}else
+	} else
 		pid = getpid();
 
 	Binit(&stdout, 1, OWRITE);
@@ -75,7 +76,7 @@ main(int argc, char **argv)
 		exits("open ns");
 	}
 
-	for(line=1; ; line++) {
+	for(line = 1;; line++) {
 		n = read(fd, buf, sizeof(buf));
 		if(n == sizeof(buf)) {
 			fprint(2, "ns: ns string too int32_t\n");
@@ -96,15 +97,17 @@ main(int argc, char **argv)
 		}
 
 		n = tokenize(buf, av, 5);
-		switch(n){
+		switch(n) {
 		case 2:
-			if(strcmp(av[0], "cd") == 0){
+			if(strcmp(av[0], "cd") == 0) {
 				Bprint(&stdout, "%s %s\n", av[0], av[1]);
 				continue;
 			}
-			/* fall through */
+		/* fall through */
 		default:
-			fprint(2, "ns: unrecognized format of ns file: %d elements on line %d\n", n, line);
+			fprint(2, "ns: unrecognized format of ns file: %d "
+			          "elements on line %d\n",
+			       n, line);
 			exits("format");
 		case 5:
 			m->cmd = strdup(av[0]);
@@ -114,13 +117,13 @@ main(int argc, char **argv)
 			m->spec = strdup(av[4]);
 			break;
 		case 4:
-			if(av[1][0] == '-'){
+			if(av[1][0] == '-') {
 				m->cmd = strdup(av[0]);
 				m->flag = strdup(av[1]);
 				m->new = strdup(av[2]);
 				m->old = strdup(av[3]);
 				m->spec = strdup("");
-			}else{
+			} else {
 				m->cmd = strdup(av[0]);
 				m->flag = strdup("");
 				m->new = strdup(av[1]);
@@ -137,11 +140,11 @@ main(int argc, char **argv)
 			break;
 		}
 
-		if(!rflag && strcmp(m->cmd, "mount")==0)
+		if(!rflag && strcmp(m->cmd, "mount") == 0)
 			xlatemnt(m);
 
 		Bprint(&stdout, "%s %s %s %s %s\n", m->cmd, m->flag,
-			quote(m->new), quote(m->old), quote(m->spec));
+		       quote(m->new), quote(m->old), quote(m->spec));
 
 		free(m->cmd);
 		free(m->flag);
@@ -155,27 +158,27 @@ main(int argc, char **argv)
 }
 
 void
-xlatemnt(Mount *m)
+xlatemnt(Mount* m)
 {
 	int n, fd;
-	char *s, *t, *net, *port;
+	char* s, *t, *net, *port;
 	char buf[256];
 
 	if(strncmp(m->new, "/net/", 5) != 0)
 		return;
 
 	s = strdup(m->new);
-	net = s+5;
-	for(t=net; *t!='/'; t++)
+	net = s + 5;
+	for(t = net; *t != '/'; t++)
 		if(*t == '\0')
 			goto Return;
 	*t = '\0';
-	port = t+1;
-	for(t=port; *t!='/'; t++)
+	port = t + 1;
+	for(t = port; *t != '/'; t++)
 		if(*t == '\0')
 			goto Return;
 	*t = '\0';
-	if(strcmp(t+1, "data") != 0)
+	if(strcmp(t + 1, "data") != 0)
 		goto Return;
 	snprint(buf, sizeof buf, "/net/%s/%s/remote", net, port);
 	fd = open(buf, OREAD);
@@ -183,37 +186,37 @@ xlatemnt(Mount *m)
 		goto Return;
 	n = read(fd, buf, sizeof buf);
 	close(fd);
-	if(n<=1 || n>sizeof buf)
+	if(n <= 1 || n > sizeof buf)
 		goto Return;
-	if(buf[n-1] == '\n')
+	if(buf[n - 1] == '\n')
 		--n;
 	buf[n] = '\0';
-	t = malloc(strlen(net)+1+n+1);
+	t = malloc(strlen(net) + 1 + n + 1);
 	if(t == nil)
 		goto Return;
 	sprint(t, "%s!%s", net, buf);
 	free(m->new);
 	m->new = t;
 
-Return:	
+Return:
 	free(s);
 }
 
 char*
-quote(char *s)
+quote(char* s)
 {
 	static char buf[3][1024];
 	static int i;
-	char *p, *ep;
+	char* p, *ep;
 
 	if(strpbrk(s, " '\\\t#$") == nil)
 		return s;
-	i = (i+1)%3;
+	i = (i + 1) % 3;
 	p = &buf[i][0];
 	ep = &buf[i][1024];
 	*p++ = '\'';
-	while(p < ep-5){
-		switch(*s){
+	while(p < ep - 5) {
+		switch(*s) {
 		case '\0':
 			goto out;
 		case '\'':
@@ -222,7 +225,7 @@ quote(char *s)
 		}
 		*p++ = *s++;
 	}
-    out:
+out:
 	*p++ = '\'';
 	*p = '\0';
 	return buf[i];

@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -56,233 +56,235 @@ const int32_t rand_state_initial = 1;
 
 /* <num> sqrt <real> */
 int
-zsqrt(i_ctx_t *i_ctx_p)
+zsqrt(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double num;
-    int code = real_param(op, &num);
+	os_ptr op = osp;
+	double num;
+	int code = real_param(op, &num);
 
-    if (code < 0)
-	return code;
-    if (num < 0.0)
-	return_error(e_rangecheck);
-    make_real(op, sqrt(num));
-    return 0;
+	if(code < 0)
+		return code;
+	if(num < 0.0)
+		return_error(e_rangecheck);
+	make_real(op, sqrt(num));
+	return 0;
 }
 
 /* <num> arccos <real> */
-private int
-zarccos(i_ctx_t *i_ctx_p)
+private
+int
+zarccos(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double num, result;
-    int code = real_param(op, &num);
+	os_ptr op = osp;
+	double num, result;
+	int code = real_param(op, &num);
 
-    if (code < 0)
-	return code;
-    result = acos(num) * radians_to_degrees;
-    make_real(op, result);
-    return 0;
+	if(code < 0)
+		return code;
+	result = acos(num) * radians_to_degrees;
+	make_real(op, result);
+	return 0;
 }
 
 /* <num> arcsin <real> */
-private int
-zarcsin(i_ctx_t *i_ctx_p)
+private
+int
+zarcsin(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double num, result;
-    int code = real_param(op, &num);
+	os_ptr op = osp;
+	double num, result;
+	int code = real_param(op, &num);
 
-    if (code < 0)
-	return code;
-    result = asin(num) * radians_to_degrees;
-    make_real(op, result);
-    return 0;
+	if(code < 0)
+		return code;
+	result = asin(num) * radians_to_degrees;
+	make_real(op, result);
+	return 0;
 }
 
 /* <num> <denom> atan <real> */
 int
-zatan(i_ctx_t *i_ctx_p)
+zatan(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double args[2];
-    double result;
-    int code = num_params(op, 2, args);
+	os_ptr op = osp;
+	double args[2];
+	double result;
+	int code = num_params(op, 2, args);
 
-    if (code < 0)
-	return code;
-    code = gs_atan2_degrees(args[0], args[1], &result);
-    if (code < 0)
-	return code;
-    make_real(op - 1, result);
-    pop(1);
-    return 0;
+	if(code < 0)
+		return code;
+	code = gs_atan2_degrees(args[0], args[1], &result);
+	if(code < 0)
+		return code;
+	make_real(op - 1, result);
+	pop(1);
+	return 0;
 }
 
 /* <num> cos <real> */
 int
-zcos(i_ctx_t *i_ctx_p)
+zcos(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double angle;
-    int code = real_param(op, &angle);
+	os_ptr op = osp;
+	double angle;
+	int code = real_param(op, &angle);
 
-    if (code < 0)
-	return code;
-    make_real(op, gs_cos_degrees(angle));
-    return 0;
+	if(code < 0)
+		return code;
+	make_real(op, gs_cos_degrees(angle));
+	return 0;
 }
 
 /* <num> sin <real> */
 int
-zsin(i_ctx_t *i_ctx_p)
+zsin(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double angle;
-    int code = real_param(op, &angle);
+	os_ptr op = osp;
+	double angle;
+	int code = real_param(op, &angle);
 
-    if (code < 0)
-	return code;
-    make_real(op, gs_sin_degrees(angle));
-    return 0;
+	if(code < 0)
+		return code;
+	make_real(op, gs_sin_degrees(angle));
+	return 0;
 }
 
 /* <base> <exponent> exp <real> */
 int
-zexp(i_ctx_t *i_ctx_p)
+zexp(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double args[2];
-    double result;
-    double ipart;
-    int code = num_params(op, 2, args);
+	os_ptr op = osp;
+	double args[2];
+	double result;
+	double ipart;
+	int code = num_params(op, 2, args);
 
-    if (code < 0)
-	return code;
-    if (args[0] == 0.0 && args[1] == 0.0)
-	return_error(e_undefinedresult);
-    if (args[0] < 0.0 && modf(args[1], &ipart) != 0.0)
-	return_error(e_undefinedresult);
-    result = pow(args[0], args[1]);
-    make_real(op - 1, result);
-    pop(1);
-    return 0;
+	if(code < 0)
+		return code;
+	if(args[0] == 0.0 && args[1] == 0.0)
+		return_error(e_undefinedresult);
+	if(args[0] < 0.0 && modf(args[1], &ipart) != 0.0)
+		return_error(e_undefinedresult);
+	result = pow(args[0], args[1]);
+	make_real(op - 1, result);
+	pop(1);
+	return 0;
 }
 
 /* <posnum> ln <real> */
 int
-zln(i_ctx_t *i_ctx_p)
+zln(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double num;
-    int code = real_param(op, &num);
+	os_ptr op = osp;
+	double num;
+	int code = real_param(op, &num);
 
-    if (code < 0)
-	return code;
-    if (num <= 0.0)
-	return_error(e_rangecheck);
-    make_real(op, log(num));
-    return 0;
+	if(code < 0)
+		return code;
+	if(num <= 0.0)
+		return_error(e_rangecheck);
+	make_real(op, log(num));
+	return 0;
 }
 
 /* <posnum> log <real> */
 int
-zlog(i_ctx_t *i_ctx_p)
+zlog(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    double num;
-    int code = real_param(op, &num);
+	os_ptr op = osp;
+	double num;
+	int code = real_param(op, &num);
 
-    if (code < 0)
-	return code;
-    if (num <= 0.0)
-	return_error(e_rangecheck);
-    make_real(op, log10(num));
-    return 0;
+	if(code < 0)
+		return code;
+	if(num <= 0.0)
+		return_error(e_rangecheck);
+	make_real(op, log10(num));
+	return 0;
 }
 
 /* - rand <int> */
-private int
-zrand(i_ctx_t *i_ctx_p)
+private
+int
+zrand(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
+	os_ptr op = osp;
 
-	/*
-	 * We use an algorithm from CACM 31 no. 10, pp. 1192-1201,
-	 * October 1988.  According to a posting by Ed Taft on
-	 * comp.lang.postscript, Level 2 (Adobe) PostScript interpreters
-	 * use this algorithm too:
-	 *      x[n+1] = (16807 * x[n]) mod (2^31 - 1)
-	 */
+/*
+ * We use an algorithm from CACM 31 no. 10, pp. 1192-1201,
+ * October 1988.  According to a posting by Ed Taft on
+ * comp.lang.postscript, Level 2 (Adobe) PostScript interpreters
+ * use this algorithm too:
+ *      x[n+1] = (16807 * x[n]) mod (2^31 - 1)
+ */
 #define A 16807
 #define M 0x7fffffff
-#define Q 127773		/* M / A */
-#define R 2836			/* M % A */
-    zrand_state = A * (zrand_state % Q) - R * (zrand_state / Q);
-    /* Note that zrand_state cannot be 0 here. */
-    if (zrand_state <= 0)
-	zrand_state += M;
+#define Q 127773 /* M / A */
+#define R 2836   /* M % A */
+	zrand_state = A * (zrand_state % Q) - R * (zrand_state / Q);
+	/* Note that zrand_state cannot be 0 here. */
+	if(zrand_state <= 0)
+		zrand_state += M;
 #undef A
 #undef M
 #undef Q
 #undef R
-    push(1);
-    make_int(op, zrand_state);
-    return 0;
+	push(1);
+	make_int(op, zrand_state);
+	return 0;
 }
 
 /* <int> srand - */
-private int
-zsrand(i_ctx_t *i_ctx_p)
+private
+int
+zsrand(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
-    int32_t state;
+	os_ptr op = osp;
+	int32_t state;
 
-    check_type(*op, t_integer);
-    state = op->value.intval;
+	check_type(*op, t_integer);
+	state = op->value.intval;
 #if arch_sizeof_long > 4
-    /* Trim the state back to 32 bits. */
-    state = (int)state;
+	/* Trim the state back to 32 bits. */
+	state = (int)state;
 #endif
-    /*
-     * The following somewhat bizarre adjustments are according to
-     * public information from Adobe describing their implementation.
-     */
-    if (state < 1)
-	state = -(state % 0x7ffffffe) + 1;
-    else if (state > 0x7ffffffe)
-	state = 0x7ffffffe;
-    zrand_state = state;
-    pop(1);
-    return 0;
+	/*
+	 * The following somewhat bizarre adjustments are according to
+	 * public information from Adobe describing their implementation.
+	 */
+	if(state < 1)
+		state = -(state % 0x7ffffffe) + 1;
+	else if(state > 0x7ffffffe)
+		state = 0x7ffffffe;
+	zrand_state = state;
+	pop(1);
+	return 0;
 }
 
 /* - rrand <int> */
-private int
-zrrand(i_ctx_t *i_ctx_p)
+private
+int
+zrrand(i_ctx_t* i_ctx_p)
 {
-    os_ptr op = osp;
+	os_ptr op = osp;
 
-    push(1);
-    make_int(op, zrand_state);
-    return 0;
+	push(1);
+	make_int(op, zrand_state);
+	return 0;
 }
 
 /* ------ Initialization procedure ------ */
 
-const op_def zmath_op_defs[] =
-{
-    {"1arccos", zarccos},	/* extension */
-    {"1arcsin", zarcsin},	/* extension */
-    {"2atan", zatan},
-    {"1cos", zcos},
-    {"2exp", zexp},
-    {"1ln", zln},
-    {"1log", zlog},
-    {"0rand", zrand},
-    {"0rrand", zrrand},
-    {"1sin", zsin},
-    {"1sqrt", zsqrt},
-    {"1srand", zsrand},
-    op_def_end(0)
-};
+const op_def zmath_op_defs[] = {{"1arccos", zarccos}, /* extension */
+                                {"1arcsin", zarcsin}, /* extension */
+                                {"2atan", zatan},
+                                {"1cos", zcos},
+                                {"2exp", zexp},
+                                {"1ln", zln},
+                                {"1log", zlog},
+                                {"0rand", zrand},
+                                {"0rrand", zrrand},
+                                {"1sin", zsin},
+                                {"1sqrt", zsqrt},
+                                {"1srand", zsrand},
+                                op_def_end(0)};

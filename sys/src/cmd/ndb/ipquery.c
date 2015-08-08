@@ -25,9 +25,9 @@ usage(void)
 }
 
 void
-search(Ndb *db, char *attr, char *val, char **rattr, int nrattr)
+search(Ndb* db, char* attr, char* val, char** rattr, int nrattr)
 {
-	Ndbtuple *t, *tt;
+	Ndbtuple* t, *tt;
 
 	tt = ndbipinfo(db, attr, val, rattr, nrattr);
 	for(t = tt; t; t = t->entry)
@@ -37,29 +37,31 @@ search(Ndb *db, char *attr, char *val, char **rattr, int nrattr)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Ndb *db;
-	char *dbfile = 0;
+	Ndb* db;
+	char* dbfile = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'f':
 		dbfile = ARGF();
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 3)
 		usage();
 
 	db = ndbopen(dbfile);
-	if(db == 0){
+	if(db == 0) {
 		fprint(2, "no db files\n");
 		exits("no db");
 	}
-	search(db, argv[0], argv[1], argv+2, argc-2);
+	search(db, argv[0], argv[1], argv + 2, argc - 2);
 	ndbclose(db);
 
 	exits(0);

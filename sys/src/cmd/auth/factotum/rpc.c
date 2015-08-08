@@ -26,9 +26,11 @@
  * Return values are:
  *	error message - an error happened.
  *	ok [data] - success, possible data is request dependent.
- *	needkey proto domain user - request aborted, get me this key and try again
+ *	needkey proto domain user - request aborted, get me this key and try
+ *again
  *	badkey proto domain user - request aborted, this key might be bad
- *	done [haveai] - authentication is done [haveai: you can get an ai with authinfo]
+ *	done [haveai] - authentication is done [haveai: you can get an ai with
+ *authinfo]
  * Request RPCs are:
  *	start attrs - initializes protocol for authentication, can fail.
  *		returns "ok read" or "ok write" on success.
@@ -40,63 +42,59 @@
 
 #include "dat.h"
 
-Req *rpcwait;
+Req* rpcwait;
 
 typedef struct Verb Verb;
 struct Verb {
-	char *verb;
+	char* verb;
 	int iverb;
 };
 
-enum {
-	Vunknown = -1,
-	Vauthinfo = 0,
-	Vread,
-	Vstart,
-	Vwrite,
-	Vattr,
+enum { Vunknown = -1,
+       Vauthinfo = 0,
+       Vread,
+       Vstart,
+       Vwrite,
+       Vattr,
 };
 
 Verb rpctab[] = {
-	"authinfo",	Vauthinfo,
-	"read",		Vread,
-	"start",		Vstart,
-	"write",		Vwrite,
-	"attr",		Vattr,
+    "authinfo", Vauthinfo, "read", Vread,  "start",
+    Vstart,     "write",   Vwrite, "attr", Vattr,
 };
 
 static int
-classify(char *s, Verb *verbtab, int nverbtab)
+classify(char* s, Verb* verbtab, int nverbtab)
 {
 	int i;
 
-	for(i=0; i<nverbtab; i++)
+	for(i = 0; i < nverbtab; i++)
 		if(strcmp(s, verbtab[i].verb) == 0)
 			return verbtab[i].iverb;
 	return Vunknown;
 }
 
 void
-rpcwrite(Req *r)
+rpcwrite(Req* r)
 {
-	Fsstate *fss;
+	Fsstate* fss;
 
-	if(r->ifcall.count >= Maxrpc){
+	if(r->ifcall.count >= Maxrpc) {
 		respond(r, Etoolarge);
 		return;
 	}
 	fss = r->fid->aux;
-	if(fss->pending){
+	if(fss->pending) {
 		respond(r, "rpc already pending; read to clear");
 		return;
 	}
 	memmove(fss->rpc.buf, r->ifcall.data, r->ifcall.count);
 	fss->rpc.buf[r->ifcall.count] = '\0';
 	fss->rpc.verb = fss->rpc.buf;
-	if(fss->rpc.arg = strchr(fss->rpc.buf, ' ')){
+	if(fss->rpc.arg = strchr(fss->rpc.buf, ' ')) {
 		*fss->rpc.arg++ = '\0';
 		fss->rpc.narg = r->ifcall.count - (fss->rpc.arg - fss->rpc.buf);
-	}else{
+	} else {
 		fss->rpc.arg = "";
 		fss->rpc.narg = 0;
 	}
@@ -107,7 +105,7 @@ rpcwrite(Req *r)
 }
 
 static void
-retstring(Req *r, Fsstate *fss, char *s)
+retstring(Req* r, Fsstate* fss, char* s)
 {
 	int n;
 
@@ -122,9 +120,9 @@ retstring(Req *r, Fsstate *fss, char *s)
 }
 
 static void
-retrpc(Req *r, int ret, Fsstate *fss)
+retrpc(Req* r, int ret, Fsstate* fss)
 {
-	switch(ret){
+	switch(ret) {
 	default:
 		snprint(fss->rpc.buf, Maxrpc, "internal error %d", ret);
 		retstring(r, fss, fss->rpc.buf);
@@ -138,8 +136,9 @@ retrpc(Req *r, int ret, Fsstate *fss)
 		retstring(r, fss, fss->rpc.buf);
 		return;
 	case RpcNeedkey:
-		if(needkeyqueue(r, fss) < 0){
-			snprint(fss->rpc.buf, Maxrpc, "needkey %s", fss->keyinfo);
+		if(needkeyqueue(r, fss) < 0) {
+			snprint(fss->rpc.buf, Maxrpc, "needkey %s",
+			        fss->keyinfo);
 			retstring(r, fss, fss->rpc.buf);
 		}
 		return;
@@ -161,22 +160,22 @@ retrpc(Req *r, int ret, Fsstate *fss)
 }
 
 int
-rdwrcheck(Req *r, Fsstate *fss)
+rdwrcheck(Req* r, Fsstate* fss)
 {
-	if(fss->ps == nil){
+	if(fss->ps == nil) {
 		retstring(r, fss, "error no current protocol");
 		return -1;
 	}
-	if(fss->phase == Notstarted){
+	if(fss->phase == Notstarted) {
 		retstring(r, fss, "protocol not started");
 		return -1;
 	}
-	if(fss->phase == Broken){
+	if(fss->phase == Broken) {
 		snprint(fss->rpc.buf, Maxrpc, "error %s", fss->err);
 		retstring(r, fss, fss->rpc.buf);
 		return -1;
 	}
-	if(fss->phase == Established){
+	if(fss->phase == Established) {
 		if(fss->haveai)
 			retstring(r, fss, "done haveai");
 		else
@@ -187,9 +186,9 @@ rdwrcheck(Req *r, Fsstate *fss)
 }
 
 static void
-logret(char *pre, Fsstate *fss, int ret)
+logret(char* pre, Fsstate* fss, int ret)
 {
-	switch(ret){
+	switch(ret) {
 	default:
 		flog("%s: code %d", pre, ret);
 		break;
@@ -218,60 +217,63 @@ logret(char *pre, Fsstate *fss, int ret)
 }
 
 void
-rpcrdwrlog(Fsstate *fss, char *rdwr, uint n, int ophase, int ret)
+rpcrdwrlog(Fsstate* fss, char* rdwr, uint n, int ophase, int ret)
 {
 	char buf0[40], buf1[40], pre[300];
 
 	if(!debug)
 		return;
 	snprint(pre, sizeof pre, "%d: %s %ud in phase %s yields phase %s",
-		fss->seqnum, rdwr, n, phasename(fss, ophase, buf0), phasename(fss, fss->phase, buf1));
+	        fss->seqnum, rdwr, n, phasename(fss, ophase, buf0),
+	        phasename(fss, fss->phase, buf1));
 	logret(pre, fss, ret);
 }
 
 void
-rpcstartlog(Attr *attr, Fsstate *fss, int ret)
+rpcstartlog(Attr* attr, Fsstate* fss, int ret)
 {
 	char pre[300], tmp[40];
 
 	if(!debug)
 		return;
 	snprint(pre, sizeof pre, "%d: start %A yields phase %s", fss->seqnum,
-		attr, phasename(fss, fss->phase, tmp));
-	logret(pre, fss, ret);		
+	        attr, phasename(fss, fss->phase, tmp));
+	logret(pre, fss, ret);
 }
 
 int seqnum;
 
 void
-rpcread(Req *r)
+rpcread(Req* r)
 {
-	Attr *attr;
-	char *p;
+	Attr* attr;
+	char* p;
 	int ophase, ret;
-	uint8_t *e;
+	uint8_t* e;
 	uint count;
-	Fsstate *fss;
-	Proto *proto;
+	Fsstate* fss;
+	Proto* proto;
 
-	if(r->ifcall.count < 64){
+	if(r->ifcall.count < 64) {
 		respond(r, "rpc read too small");
 		return;
 	}
 	fss = r->fid->aux;
-	if(!fss->pending){
+	if(!fss->pending) {
 		respond(r, "no rpc pending");
 		return;
 	}
-	switch(fss->rpc.iverb){
+	switch(fss->rpc.iverb) {
 	default:
 	case Vunknown:
 		retstring(r, fss, "error unknown verb");
 		break;
 
 	case Vstart:
-		if(fss->phase != Notstarted){
-			flog("%d: implicit close due to second start; old attr '%A'", fss->seqnum, fss->attr);
+		if(fss->phase != Notstarted) {
+			flog("%d: implicit close due to second start; old attr "
+			     "'%A'",
+			     fss->seqnum, fss->attr);
 			if(fss->proto && fss->ps)
 				(*fss->proto->close)(fss);
 			fss->ps = nil;
@@ -279,15 +281,16 @@ rpcread(Req *r)
 			_freeattr(fss->attr);
 			fss->attr = nil;
 			fss->phase = Notstarted;
-		}	
+		}
 		attr = _parseattr(fss->rpc.arg);
-		if((p = _strfindattr(attr, "proto")) == nil){
+		if((p = _strfindattr(attr, "proto")) == nil) {
 			retstring(r, fss, "error did not specify proto");
 			_freeattr(attr);
 			break;
 		}
-		if((proto = findproto(p)) == nil){
-			snprint(fss->rpc.buf, Maxrpc, "error unknown protocol %q", p);
+		if((proto = findproto(p)) == nil) {
+			snprint(fss->rpc.buf, Maxrpc,
+			        "error unknown protocol %q", p);
 			retstring(r, fss, fss->rpc.buf);
 			_freeattr(attr);
 			break;
@@ -297,7 +300,7 @@ rpcread(Req *r)
 		fss->seqnum = ++seqnum;
 		ret = (*proto->init)(proto, fss);
 		rpcstartlog(attr, fss, ret);
-		if(ret != RpcOk){
+		if(ret != RpcOk) {
 			_freeattr(fss->attr);
 			fss->attr = nil;
 			fss->phase = Notstarted;
@@ -306,7 +309,7 @@ rpcread(Req *r)
 		break;
 
 	case Vread:
-		if(fss->rpc.arg && fss->rpc.arg[0]){
+		if(fss->rpc.arg && fss->rpc.arg[0]) {
 			retstring(r, fss, "error read needs no parameters");
 			break;
 		}
@@ -314,18 +317,18 @@ rpcread(Req *r)
 			break;
 		count = r->ifcall.count - 3;
 		ophase = fss->phase;
-		ret = fss->proto->read(fss, (uint8_t*)r->ofcall.data+3,
-				       &count);
+		ret =
+		    fss->proto->read(fss, (uint8_t*)r->ofcall.data + 3, &count);
 		rpcrdwrlog(fss, "read", count, ophase, ret);
-		if(ret == RpcOk){
+		if(ret == RpcOk) {
 			memmove(r->ofcall.data, "ok ", 3);
 			if(count == 0)
 				r->ofcall.count = 2;
 			else
-				r->ofcall.count = 3+count;
+				r->ofcall.count = 3 + count;
 			fss->pending = 0;
 			respond(r, nil);
-		}else
+		} else
 			retrpc(r, ret, fss);
 		break;
 
@@ -339,21 +342,21 @@ rpcread(Req *r)
 		break;
 
 	case Vauthinfo:
-		if(fss->phase != Established){
+		if(fss->phase != Established) {
 			retstring(r, fss, "error authentication unfinished");
 			break;
 		}
-		if(!fss->haveai){
+		if(!fss->haveai) {
 			retstring(r, fss, "error no authinfo available");
 			break;
 		}
 		memmove(r->ofcall.data, "ok ", 3);
 		fss->ai.cap = mkcap(r->fid->uid, fss->ai.suid);
-		e = convAI2M(&fss->ai, (uint8_t*)r->ofcall.data+3,
-			     r->ifcall.count-3);
+		e = convAI2M(&fss->ai, (uint8_t*)r->ofcall.data + 3,
+		             r->ifcall.count - 3);
 		free(fss->ai.cap);
 		fss->ai.cap = nil;
-		if(e == nil){
+		if(e == nil) {
 			retstring(r, fss, "error read too small");
 			break;
 		}
@@ -369,16 +372,13 @@ rpcread(Req *r)
 	}
 }
 
-enum {
-	Vdelkey,
-	Vaddkey,
-	Vdebug,
+enum { Vdelkey,
+       Vaddkey,
+       Vdebug,
 };
 
 Verb ctltab[] = {
-	"delkey",		Vdelkey,
-	"key",		Vaddkey,
-	"debug",	Vdebug,
+    "delkey", Vdelkey, "key", Vaddkey, "debug", Vdebug,
 };
 
 /*
@@ -386,20 +386,21 @@ Verb ctltab[] = {
  *		the attr=val pairs are protocol-specific.
  *		for example, both of these are valid:
  *			key p9sk1 gre cs.bell-labs.com mysecret
- *			key p9sk1 gre cs.bell-labs.com 11223344556677 fmt=des7hex
+ *			key p9sk1 gre cs.bell-labs.com 11223344556677
+ *fmt=des7hex
  *	delkey ... - delete a key
  *		if given, the attr=val pairs are used to narrow the search
  *		[maybe should require a password?]
  */
 
 int
-ctlwrite(char *a, int atzero)
+ctlwrite(char* a, int atzero)
 {
-	char *p;
+	char* p;
 	int i, nmatch, ret;
-	Attr *attr, **l, **lpriv, **lprotos, *pa, *priv, *protos;
-	Key *k;
-	Proto *proto;
+	Attr* attr, **l, **lpriv, **lprotos, *pa, *priv, *protos;
+	Key* k;
+	Proto* proto;
 
 	if(a[0] == '#' || a[0] == '\0')
 		return 0;
@@ -410,8 +411,8 @@ ctlwrite(char *a, int atzero)
 	 * both with things like "echo delkey >/mnt/factotum/ctl"
 	 * and writes that (incorrectly) contain multiple key lines.
 	 */
-	if(p = strchr(a, '\n')){
-		if(p[1] != '\0'){
+	if(p = strchr(a, '\n')) {
+		if(p[1] != '\0') {
 			werrstr("multiline write not allowed");
 			return -1;
 		}
@@ -422,7 +423,7 @@ ctlwrite(char *a, int atzero)
 		p = "";
 	else
 		*p++ = '\0';
-	switch(classify(a, ctltab, nelem(ctltab))){
+	switch(classify(a, ctltab, nelem(ctltab))) {
 	default:
 	case Vunknown:
 		werrstr("unknown verb");
@@ -433,24 +434,28 @@ ctlwrite(char *a, int atzero)
 	case Vdelkey:
 		nmatch = 0;
 		attr = _parseattr(p);
-		for(pa=attr; pa; pa=pa->next){
-			if(pa->type != AttrQuery && pa->name[0]=='!'){
-				werrstr("only !private? patterns are allowed for private fields");
+		for(pa = attr; pa; pa = pa->next) {
+			if(pa->type != AttrQuery && pa->name[0] == '!') {
+				werrstr("only !private? patterns are allowed "
+				        "for private fields");
 				_freeattr(attr);
 				return -1;
 			}
 		}
-		for(i=0; i<ring->nkey; ){
-			if(matchattr(attr, ring->key[i]->attr, ring->key[i]->privattr)){
+		for(i = 0; i < ring->nkey;) {
+			if(matchattr(attr, ring->key[i]->attr,
+			             ring->key[i]->privattr)) {
 				nmatch++;
 				closekey(ring->key[i]);
 				ring->nkey--;
-				memmove(&ring->key[i], &ring->key[i+1], (ring->nkey-i)*sizeof(ring->key[0]));
-			}else
+				memmove(&ring->key[i], &ring->key[i + 1],
+				        (ring->nkey - i) *
+				            sizeof(ring->key[0]));
+			} else
 				i++;
 		}
 		_freeattr(attr);
-		if(nmatch == 0){
+		if(nmatch == 0) {
 			werrstr("found no keys to delete");
 			return -1;
 		}
@@ -459,16 +464,16 @@ ctlwrite(char *a, int atzero)
 		attr = _parseattr(p);
 		/* separate out proto= attributes */
 		lprotos = &protos;
-		for(l=&attr; (*l); ){
-			if(strcmp((*l)->name, "proto") == 0){
+		for(l = &attr; (*l);) {
+			if(strcmp((*l)->name, "proto") == 0) {
 				*lprotos = *l;
 				lprotos = &(*l)->next;
 				*l = (*l)->next;
-			}else
+			} else
 				l = &(*l)->next;
 		}
 		*lprotos = nil;
-		if(protos == nil){
+		if(protos == nil) {
 			werrstr("key without protos");
 			_freeattr(attr);
 			return -1;
@@ -476,35 +481,37 @@ ctlwrite(char *a, int atzero)
 
 		/* separate out private attributes */
 		lpriv = &priv;
-		for(l=&attr; (*l); ){
-			if((*l)->name[0] == '!'){
+		for(l = &attr; (*l);) {
+			if((*l)->name[0] == '!') {
 				*lpriv = *l;
 				lpriv = &(*l)->next;
 				*l = (*l)->next;
-			}else
+			} else
 				l = &(*l)->next;
 		}
 		*lpriv = nil;
 
 		/* add keys */
 		ret = 0;
-		for(pa=protos; pa; pa=pa->next){
-			if((proto = findproto(pa->val)) == nil){
+		for(pa = protos; pa; pa = pa->next) {
+			if((proto = findproto(pa->val)) == nil) {
 				werrstr("unknown proto %s", pa->val);
 				ret = -1;
 				continue;
 			}
-			if(proto->addkey == nil){
-				werrstr("proto %s doesn't take keys", proto->name);
+			if(proto->addkey == nil) {
+				werrstr("proto %s doesn't take keys",
+				        proto->name);
 				ret = -1;
 				continue;
 			}
 			k = emalloc(sizeof(Key));
-			k->attr = _mkattr(AttrNameval, "proto", proto->name, _copyattr(attr));
+			k->attr = _mkattr(AttrNameval, "proto", proto->name,
+			                  _copyattr(attr));
 			k->privattr = _copyattr(priv);
 			k->ref = 1;
 			k->proto = proto;
-			if(proto->addkey(k, atzero) < 0){
+			if(proto->addkey(k, atzero) < 0) {
 				ret = -1;
 				closekey(k);
 				continue;

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-getwd(char *buf, int nbuf)
+getwd(char* buf, int nbuf)
 {
 	int n, fd;
 

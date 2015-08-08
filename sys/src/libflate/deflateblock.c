@@ -11,18 +11,17 @@
 #include <libc.h>
 #include <flate.h>
 
-typedef struct Block	Block;
+typedef struct Block Block;
 
-struct Block
-{
-	uint8_t	*pos;
-	uint8_t	*limit;
+struct Block {
+	uint8_t* pos;
+	uint8_t* limit;
 };
 
 static int
-blread(void *vb, void *buf, int n)
+blread(void* vb, void* buf, int n)
 {
-	Block *b;
+	Block* b;
 
 	b = vb;
 	if(n > b->limit - b->pos)
@@ -33,9 +32,9 @@ blread(void *vb, void *buf, int n)
 }
 
 static int
-blwrite(void *vb, void *buf, int n)
+blwrite(void* vb, void* buf, int n)
 {
-	Block *b;
+	Block* b;
 
 	b = vb;
 
@@ -47,8 +46,8 @@ blwrite(void *vb, void *buf, int n)
 }
 
 int
-deflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize, int level,
-	     int debug)
+deflateblock(uint8_t* dst, int dsize, uint8_t* src, int ssize, int level,
+             int debug)
 {
 	Block bd, bs;
 	int ok;

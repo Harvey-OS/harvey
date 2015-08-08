@@ -7,75 +7,75 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
 /* augmented Dentry */
 typedef struct {
-	Dentry	*d;
-	Off	qpath;
-	int	ns;
+	Dentry* d;
+	Off qpath;
+	int ns;
 } Extdentry;
 
-static	char*	abits;
-static	int32_t	sizabits;
-static	char*	qbits;
-static	int32_t	sizqbits;
+static char* abits;
+static int32_t sizabits;
+static char* qbits;
+static int32_t sizqbits;
 
-static	char*	name;
-static	int32_t	sizname;
+static char* name;
+static int32_t sizname;
 
-static	Off	fstart;
-static	Off	fsize;
-static	Off	nfiles;
-static	Off	maxq;
-static	Device*	dev;
-static	Off	ndup;
-static	Off	nused;
-static	Off	nfdup;
-static	Off	nqbad;
-static	Off	nfree;
-static	Off	nbad;
-static	int	mod;
-static	int	flags;
-static	int	ronly;
-static	int	cwflag;
-static	Devsize	sbaddr;
-static	Devsize	oldblock;
+static Off fstart;
+static Off fsize;
+static Off nfiles;
+static Off maxq;
+static Device* dev;
+static Off ndup;
+static Off nused;
+static Off nfdup;
+static Off nqbad;
+static Off nfree;
+static Off nbad;
+static int mod;
+static int flags;
+static int ronly;
+static int cwflag;
+static Devsize sbaddr;
+static Devsize oldblock;
 
-static	int	depth;
-static	int	maxdepth;
-static	uint8_t	*lowstack, *startstack;
+static int depth;
+static int maxdepth;
+static uint8_t* lowstack, *startstack;
 
 /* local prototypes */
-static	int	amark(Off);
-static	void*	chkalloc(ulong);
-static	void	ckfreelist(Superb*);
-static	int	fmark(Off);
-static	int	fsck(Dentry*);
-static	int	ftest(Off);
-static	Dentry*	maked(Off, int, Off);
-static	void	missing(void);
-static	void	mkfreelist(Superb*);
-static	void	modd(Off, int, Dentry*);
-static	void	qmark(Off);
-static	void	trfreelist(Superb*);
-static	void	xaddfree(Device*, Off, Superb*, Iobuf*);
-static	void	xflush(Device*, Superb*, Iobuf*);
-static	void	xread(Off, Off);
-static	Iobuf*	xtag(Off, int, Off);
+static int amark(Off);
+static void* chkalloc(ulong);
+static void ckfreelist(Superb*);
+static int fmark(Off);
+static int fsck(Dentry*);
+static int ftest(Off);
+static Dentry* maked(Off, int, Off);
+static void missing(void);
+static void mkfreelist(Superb*);
+static void modd(Off, int, Dentry*);
+static void qmark(Off);
+static void trfreelist(Superb*);
+static void xaddfree(Device*, Off, Superb*, Iobuf*);
+static void xflush(Device*, Superb*, Iobuf*);
+static void xread(Off, Off);
+static Iobuf* xtag(Off, int, Off);
 
-static void *
+static void*
 chkalloc(uint32_t n)
 {
-	char *p = mallocz(n, 1);
+	char* p = mallocz(n, 1);
 
-	if (p == nil)
+	if(p == nil)
 		panic("chkalloc: out of memory");
 	return p;
 }
 
 void
-chkfree(void *p)
+chkfree(void* p)
 {
 	free(p);
 }
@@ -83,54 +83,44 @@ chkfree(void *p)
 /*
  * check flags
  */
-enum
-{
-	Crdall	= (1<<0),	/* read all files */
-	Ctag	= (1<<1),	/* rebuild tags */
-	Cpfile	= (1<<2),	/* print files */
-	Cpdir	= (1<<3),	/* print directories */
-	Cfree	= (1<<4),	/* rebuild free list */
-//	Csetqid	= (1<<5),	/* resequence qids */
-	Cream	= (1<<6),	/* clear all bad tags */
-	Cbad	= (1<<7),	/* clear all bad blocks */
-	Ctouch	= (1<<8),	/* touch old dir and indir */
-	Ctrim	= (1<<9),   /* trim fsize back to fit when checking free list */
+enum { Crdall = (1 << 0), /* read all files */
+       Ctag = (1 << 1),   /* rebuild tags */
+       Cpfile = (1 << 2), /* print files */
+       Cpdir = (1 << 3),  /* print directories */
+       Cfree = (1 << 4),  /* rebuild free list */
+	                  //	Csetqid	= (1<<5),	/* resequence qids */
+       Cream = (1 << 6),  /* clear all bad tags */
+       Cbad = (1 << 7),   /* clear all bad blocks */
+       Ctouch = (1 << 8), /* touch old dir and indir */
+       Ctrim = (1 << 9),  /* trim fsize back to fit when checking free list */
 };
 
 static struct {
-	char*	option;
-	int32_t	flag;
+	char* option;
+	int32_t flag;
 } ckoption[] = {
-	"rdall",	Crdall,
-	"tag",		Ctag,
-	"pfile",	Cpfile,
-	"pdir",		Cpdir,
-	"free",		Cfree,
-//	"setqid",	Csetqid,
-	"ream",		Cream,
-	"bad",		Cbad,
-	"touch",	Ctouch,
-	"trim",		Ctrim,
-	0,
+    "rdall", Crdall, "tag", Ctag, "pfile", Cpfile, "pdir", Cpdir, "free", Cfree,
+    //	"setqid",	Csetqid,
+    "ream",  Cream,  "bad", Cbad, "touch", Ctouch, "trim", Ctrim, 0,
 };
 
 void
-cmd_check(int argc, char *argv[])
+cmd_check(int argc, char* argv[])
 {
 	int32_t f, i, flag;
 	Off raddr;
-	Filsys *fs;
-	Iobuf *p;
-	Superb *sb;
-	Dentry *d;
+	Filsys* fs;
+	Iobuf* p;
+	Superb* sb;
+	Dentry* d;
 
 	flag = 0;
-	for(i=1; i<argc; i++) {
-		for(f=0; ckoption[f].option; f++)
+	for(i = 1; i < argc; i++) {
+		for(f = 0; ckoption[f].option; f++)
 			if(strcmp(argv[i], ckoption[f].option) == 0)
 				goto found;
 		print("unknown check option %s\n", argv[i]);
-		for(f=0; ckoption[f].option; f++)
+		for(f = 0; ckoption[f].option; f++)
 			print("\t%s\n", ckoption[f].option);
 		return;
 	found:
@@ -142,10 +132,10 @@ cmd_check(int argc, char *argv[])
 	ronly = (dev->type == Devro);
 	cwflag = (dev->type == Devcw) | (dev->type == Devro);
 	if(!ronly)
-		wlock(&mainlock);		/* check */
+		wlock(&mainlock); /* check */
 	flags = flag;
 
-	name = abits = qbits = nil;		/* in case of goto */
+	name = abits = qbits = nil; /* in case of goto */
 	sbaddr = superaddr(dev);
 	raddr = getraddr(dev);
 	p = xtag(sbaddr, Tsuper, QPSUPER);
@@ -156,16 +146,16 @@ cmd_check(int argc, char *argv[])
 	cons.noage = 1;
 
 	/* 200 is slop since qidgen is likely to be a little bit low */
-	sizqbits = (sb->qidgen+200 + 7) / 8;
+	sizqbits = (sb->qidgen + 200 + 7) / 8;
 	qbits = chkalloc(sizqbits);
 
 	fsize = sb->fsize;
-	sizabits = (fsize-fstart + 7)/8;
+	sizabits = (fsize - fstart + 7) / 8;
 	abits = chkalloc(sizabits);
 
 	sizname = 4000;
 	name = chkalloc(sizname);
-	sizname -= NAMELEN+10;	/* for safety */
+	sizname -= NAMELEN + 10; /* for safety */
 
 	mod = 0;
 	nfree = 0;
@@ -183,8 +173,9 @@ cmd_check(int argc, char *argv[])
 		Devsize dsize;
 
 		oldblock = 0;
-		for (s = 0; dsize = wormsizeside(dev, s),
-		     dsize > 0 && oldblock + dsize < fsize; s++)
+		for(s = 0; dsize = wormsizeside(dev, s),
+		dsize > 0 && oldblock + dsize < fsize;
+		    s++)
 			oldblock += dsize;
 		print("oldblock = %lld\n", (Wideoff)oldblock);
 	}
@@ -217,7 +208,7 @@ cmd_check(int argc, char *argv[])
 
 	if(sb->qidgen < maxq)
 		print("qid generator low path=%lld maxq=%lld\n",
-			(Wideoff)sb->qidgen, (Wideoff)maxq);
+		      (Wideoff)sb->qidgen, (Wideoff)maxq);
 	if(!(flags & Cfree))
 		ckfreelist(sb);
 	if(mod) {
@@ -233,14 +224,14 @@ cmd_check(int argc, char *argv[])
 	print("nfree  = %lld\n", (Wideoff)nfree);
 	print("tfree  = %lld\n", (Wideoff)sb->tfree);
 	print("nfdup  = %lld\n", (Wideoff)nfdup);
-	print("nmiss  = %lld\n", (Wideoff)fsize-fstart-nused-nfree);
+	print("nmiss  = %lld\n", (Wideoff)fsize - fstart - nused - nfree);
 	print("nbad   = %lld\n", (Wideoff)nbad);
 	print("nqbad  = %lld\n", (Wideoff)nqbad);
 	print("maxq   = %lld\n", (Wideoff)maxq);
 	print("base stack=%llud\n", (int64_t)startstack);
 	/* high-water mark of stack usage */
 	print("high stack=%llud\n", (int64_t)lowstack);
-	print("deepest recursion=%d\n", maxdepth-1);	/* one-origin */
+	print("deepest recursion=%d\n", maxdepth - 1); /* one-origin */
 	if(!cwflag)
 		missing();
 
@@ -260,7 +251,7 @@ out:
  * returns *blkp if it's free, else 0.
  */
 static Off
-blkck(Off *blkp, int *flgp)
+blkck(Off* blkp, int* flgp)
 {
 	Off a = *blkp;
 
@@ -281,7 +272,7 @@ blkck(Off *blkp, int *flgp)
  * returns dmod count.
  */
 static int
-daddrck(Off *blkp, Off *resp)
+daddrck(Off* blkp, Off* resp)
 {
 	int dmod = 0;
 
@@ -303,8 +294,8 @@ daddrck(Off *blkp, Off *resp)
 static int
 touch(Off a)
 {
-	if((flags&Ctouch) && a < oldblock) {
-		Iobuf *pd = getbuf(dev, a, Brd|Bmod);
+	if((flags & Ctouch) && a < oldblock) {
+		Iobuf* pd = getbuf(dev, a, Brd | Bmod);
 
 		if(pd)
 			putbuf(pd);
@@ -319,14 +310,14 @@ touch(Off a)
  * returns dmod count.
  */
 static int
-dirck(Extdentry *ed, Off a)
+dirck(Extdentry* ed, Off a)
 {
 	int k, dmod = 0;
 
 	if(ed->d->mode & DDIR) {
 		dmod += touch(a);
-		for(k=0; k<DIRPERBUF; k++) {
-			Dentry *nd = maked(a, k, ed->qpath);
+		for(k = 0; k < DIRPERBUF; k++) {
+			Dentry* nd = maked(a, k, ed->qpath);
 
 			if(nd == nil)
 				break;
@@ -349,26 +340,26 @@ dirck(Extdentry *ed, Off a)
  * and check each block (mostly in case we are reading a huge directory).
  */
 static int
-indirck(Extdentry *ed, Off a, int tag)
+indirck(Extdentry* ed, Off a, int tag)
 {
 	int i, dmod = 0;
-	Iobuf *p1;
+	Iobuf* p1;
 
-	if (a == 0)
+	if(a == 0)
 		return dmod;
 	dmod = touch(a);
-	if (p1 = xtag(a, tag, ed->qpath)) {
-		for(i=0; i<INDPERBUF; i++) {
-			a = blkck(&((Off *)p1->iobuf)[i], &p1->flags);
-			if (a)
+	if(p1 = xtag(a, tag, ed->qpath)) {
+		for(i = 0; i < INDPERBUF; i++) {
+			a = blkck(&((Off*)p1->iobuf)[i], &p1->flags);
+			if(a)
 				/*
 				 * check each block named in this
 				 * indirect(^n) block (a).
 				 */
-				if (tag == Tind1)
-					dmod +=   dirck(ed, a);
+				if(tag == Tind1)
+					dmod += dirck(ed, a);
 				else
-					dmod += indirck(ed, a, tag-1);
+					dmod += indirck(ed, a, tag - 1);
 		}
 		putbuf(p1);
 	}
@@ -376,7 +367,7 @@ indirck(Extdentry *ed, Off a, int tag)
 }
 
 static int
-indiraddrck(Extdentry *ed, Off *indirp, int tag)
+indiraddrck(Extdentry* ed, Off* indirp, int tag)
 {
 	int dmod;
 	Off a;
@@ -387,7 +378,7 @@ indiraddrck(Extdentry *ed, Off *indirp, int tag)
 
 /* if result is true, *d was modified */
 static int
-fsck(Dentry *d)
+fsck(Dentry* d)
 {
 	int i, dmod;
 	Extdentry edent;
@@ -395,11 +386,11 @@ fsck(Dentry *d)
 	depth++;
 	if(depth >= maxdepth)
 		maxdepth = depth;
-	if (lowstack == nil)
-		startstack = lowstack = (uint8_t *)&edent;
+	if(lowstack == nil)
+		startstack = lowstack = (uint8_t*)&edent;
 	/* more precise check, assumes downward-growing stack */
-	if ((uint8_t *)&edent < lowstack)
-		lowstack = (uint8_t *)&edent;
+	if((uint8_t*)&edent < lowstack)
+		lowstack = (uint8_t*)&edent;
 
 	/* check that entry is allocated */
 	if(!(d->mode & DALLOC))
@@ -414,7 +405,7 @@ fsck(Dentry *d)
 	edent.ns = strlen(name);
 	i = strlen(d->name);
 	if(i >= NAMELEN) {
-		d->name[NAMELEN-1] = 0;
+		d->name[NAMELEN - 1] = 0;
 		print("%s->name (%s) not terminated\n", name, d->name);
 		return 0;
 	}
@@ -450,31 +441,31 @@ fsck(Dentry *d)
 	{
 		Off a;
 
-		for(i=0; i<NDBLOCK; i++) {
+		for(i = 0; i < NDBLOCK; i++) {
 			dmod += daddrck(&d->dblock[i], &a);
-			if (a)
+			if(a)
 				dmod += dirck(&edent, a);
 		}
 	}
 	/* check indirect^n blocks, if any */
-	for (i = 0; i < NIBLOCK; i++)
-		dmod += indiraddrck(&edent, &d->iblocks[i], Tind1+i);
+	for(i = 0; i < NIBLOCK; i++)
+		dmod += indiraddrck(&edent, &d->iblocks[i], Tind1 + i);
 	return dmod;
 }
 
 enum { XFEN = FEPERBUF + 6 };
 
 typedef struct {
-	int	flag;
-	int	count;
-	int	next;
-	Off	addr[XFEN];
+	int flag;
+	int count;
+	int next;
+	Off addr[XFEN];
 } Xfree;
 
 static void
-xaddfree(Device *dev, Off a, Superb *sb, Iobuf *p)
+xaddfree(Device* dev, Off a, Superb* sb, Iobuf* p)
 {
-	Xfree *x;
+	Xfree* x;
 
 	x = (Xfree*)p->iobuf;
 	if(x->count < XFEN) {
@@ -493,10 +484,10 @@ xaddfree(Device *dev, Off a, Superb *sb, Iobuf *p)
 }
 
 static void
-xflush(Device *dev, Superb *sb, Iobuf *p)
+xflush(Device* dev, Superb* sb, Iobuf* p)
 {
 	int i;
-	Xfree *x;
+	Xfree* x;
 
 	x = (Xfree*)p->iobuf;
 	if(!x->flag) {
@@ -505,7 +496,7 @@ xflush(Device *dev, Superb *sb, Iobuf *p)
 		sb->fbuf.nfree = 1;
 		sb->tfree = 0;
 	}
-	for(i=0; i<x->count; i++)
+	for(i = 0; i < x->count; i++)
 		addfree(dev, x->addr[i], sb);
 }
 
@@ -515,13 +506,12 @@ xflush(Device *dev, Superb *sb, Iobuf *p)
  * (cw devices)
  */
 static void
-trfreelist(Superb *sb)
+trfreelist(Superb* sb)
 {
 	Off a, n;
 	int i;
-	Iobuf *p, *xp;
-	Fbuf *fb;
-
+	Iobuf* p, *xp;
+	Fbuf* fb;
 
 	xp = getbuf(devnone, Cckbuf, 0);
 	memset(xp->iobuf, 0, BUFSIZE);
@@ -531,7 +521,7 @@ trfreelist(Superb *sb)
 		n = fb->nfree;
 		if(n < 0 || n > FEPERBUF)
 			break;
-		for(i=1; i<n; i++) {
+		for(i = 1; i < n; i++) {
 			a = fb->free[i];
 			if(a && !ftest(a))
 				xaddfree(dev, a, sb, xp);
@@ -558,12 +548,12 @@ trfreelist(Superb *sb)
 }
 
 static void
-ckfreelist(Superb *sb)
+ckfreelist(Superb* sb)
 {
 	Off a, lo, hi;
 	int n, i;
-	Iobuf *p;
-	Fbuf *fb;
+	Iobuf* p;
+	Fbuf* fb;
 
 	strcpy(name, "free list");
 	print("check %s\n", name);
@@ -578,7 +568,7 @@ ckfreelist(Superb *sb)
 			print("check: nfree bad %lld\n", (Wideoff)a);
 			break;
 		}
-		for(i=1; i<n; i++) {
+		for(i = 1; i < n; i++) {
 			a = fb->free[i];
 			if(a && !fmark(a)) {
 				if(!lo || lo > a)
@@ -605,8 +595,8 @@ ckfreelist(Superb *sb)
 	}
 	if(p)
 		putbuf(p);
-	if (flags & Ctrim) {
-		fsize = hi--;		/* fsize = hi + 1 */
+	if(flags & Ctrim) {
+		fsize = hi--; /* fsize = hi + 1 */
 		sb->fsize = fsize;
 		mod++;
 		print("set fsize to %lld\n", (Wideoff)fsize);
@@ -618,7 +608,7 @@ ckfreelist(Superb *sb)
  * make freelist from scratch
  */
 static void
-mkfreelist(Superb *sb)
+mkfreelist(Superb* sb)
 {
 	Off a;
 	int i, b;
@@ -632,14 +622,14 @@ mkfreelist(Superb *sb)
 	sb->fbuf.free[0] = 0L;
 	sb->fbuf.nfree = 1;
 	sb->tfree = 0;
-	for(a=fsize-fstart-1; a >= 0; a--) {
-		i = a/8;
+	for(a = fsize - fstart - 1; a >= 0; a--) {
+		i = a / 8;
 		if(i < 0 || i >= sizabits)
 			continue;
-		b = 1 << (a&7);
+		b = 1 << (a & 7);
 		if(abits[i] & b)
 			continue;
-		addfree(dev, fstart+a, sb);
+		addfree(dev, fstart + a, sb);
 	}
 	print("%lld blocks free\n", (Wideoff)sb->tfree);
 	mod++;
@@ -648,8 +638,8 @@ mkfreelist(Superb *sb)
 static Dentry*
 maked(Off a, int s, Off qpath)
 {
-	Iobuf *p;
-	Dentry *d, *d1;
+	Iobuf* p;
+	Dentry* d, *d1;
 
 	p = xtag(a, Tdir, qpath);
 	if(!p)
@@ -662,10 +652,10 @@ maked(Off a, int s, Off qpath)
 }
 
 static void
-modd(Off a, int s, Dentry *d1)
+modd(Off a, int s, Dentry* d1)
 {
-	Iobuf *p;
-	Dentry *d;
+	Iobuf* p;
+	Dentry* d;
 
 	if(!(flags & Cbad))
 		return;
@@ -684,7 +674,7 @@ modd(Off a, int s, Dentry *d1)
 static void
 xread(Off a, Off qpath)
 {
-	Iobuf *p;
+	Iobuf* p;
 
 	p = xtag(a, Tfile, qpath);
 	if(p)
@@ -694,14 +684,14 @@ xread(Off a, Off qpath)
 static Iobuf*
 xtag(Off a, int tag, Off qpath)
 {
-	Iobuf *p;
+	Iobuf* p;
 
 	if(a == 0)
 		return 0;
 	p = getbuf(dev, a, Brd);
 	if(!p) {
 		print("check: \"%s\": xtag: p null\n", name);
-		if(flags & (Cream|Ctag)) {
+		if(flags & (Cream | Ctag)) {
 			p = getbuf(dev, a, Bmod);
 			if(p) {
 				memset(p->iobuf, 0, RBUFSIZE);
@@ -714,7 +704,7 @@ xtag(Off a, int tag, Off qpath)
 	}
 	if(checktag(p, tag, qpath)) {
 		print("check: \"%s\": xtag: checktag\n", name);
-		if(flags & (Cream|Ctag)) {
+		if(flags & (Cream | Ctag)) {
 			if(flags & Cream)
 				memset(p->iobuf, 0, RBUFSIZE);
 			settag(p, tag, qpath);
@@ -735,19 +725,18 @@ amark(Off a)
 	if(a < fstart || a >= fsize) {
 		if(a == 0)
 			return 0;
-		print("check: \"%s\": range %lld\n",
-			name, (Wideoff)a);
+		print("check: \"%s\": range %lld\n", name, (Wideoff)a);
 		nbad++;
 		return 1;
 	}
 	a -= fstart;
-	i = a/8;
-	b = 1 << (a&7);
+	i = a / 8;
+	b = 1 << (a & 7);
 	if(abits[i] & b) {
 		if(!ronly)
 			if(ndup < 10)
-				print("check: \"%s\": address dup %lld\n",
-					name, (Wideoff)fstart+a);
+				print("check: \"%s\": address dup %lld\n", name,
+				      (Wideoff)fstart + a);
 			else if(ndup == 10)
 				print("...");
 		ndup++;
@@ -765,17 +754,16 @@ fmark(Off a)
 	int b;
 
 	if(a < fstart || a >= fsize) {
-		print("check: \"%s\": range %lld\n",
-			name, (Wideoff)a);
+		print("check: \"%s\": range %lld\n", name, (Wideoff)a);
 		nbad++;
 		return 1;
 	}
 	a -= fstart;
-	i = a/8;
-	b = 1 << (a&7);
+	i = a / 8;
+	b = 1 << (a & 7);
 	if(abits[i] & b) {
-		print("check: \"%s\": address dup %lld\n",
-			name, (Wideoff)fstart+a);
+		print("check: \"%s\": address dup %lld\n", name,
+		      (Wideoff)fstart + a);
 		nfdup++;
 		return 1;
 	}
@@ -793,8 +781,8 @@ ftest(Off a)
 	if(a < fstart || a >= fsize)
 		return 1;
 	a -= fstart;
-	i = a/8;
-	b = 1 << (a&7);
+	i = a / 8;
+	b = 1 << (a & 7);
 	if(abits[i] & b)
 		return 1;
 	abits[i] |= b;
@@ -808,11 +796,11 @@ missing(void)
 	int b, n;
 
 	n = 0;
-	for(a=fsize-fstart-1; a>=0; a--) {
-		i = a/8;
-		b = 1 << (a&7);
+	for(a = fsize - fstart - 1; a >= 0; a--) {
+		i = a / 8;
+		b = 1 << (a & 7);
 		if(!(abits[i] & b)) {
-			print("missing: %lld\n", (Wideoff)fstart+a);
+			print("missing: %lld\n", (Wideoff)fstart + a);
 			n++;
 		}
 		if(n > 10) {
@@ -828,20 +816,20 @@ qmark(Off qpath)
 	int b;
 	Off i;
 
-	i = qpath/8;
-	b = 1 << (qpath&7);
+	i = qpath / 8;
+	b = 1 << (qpath & 7);
 	if(i < 0 || i >= sizqbits) {
 		nqbad++;
 		if(nqbad < 20)
-			print("check: \"%s\": qid out of range %llux\n",
-				name, (Wideoff)qpath);
+			print("check: \"%s\": qid out of range %llux\n", name,
+			      (Wideoff)qpath);
 		return;
 	}
 	if((qbits[i] & b) && !ronly) {
 		nqbad++;
 		if(nqbad < 20)
 			print("check: \"%s\": qid dup %llux\n", name,
-				(Wideoff)qpath);
+			      (Wideoff)qpath);
 	}
 	qbits[i] |= b;
 }

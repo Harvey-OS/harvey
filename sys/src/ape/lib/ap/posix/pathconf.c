@@ -7,16 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	<unistd.h>
-#include	<limits.h>
-#include	<errno.h>
-#include	<sys/limits.h>
+#include <unistd.h>
+#include <limits.h>
+#include <errno.h>
+#include <sys/limits.h>
 
 int32_t
-pathconf(const char *, int name)
+pathconf(const char*, int name)
 {
-	switch(name)
-	{
+	switch(name) {
 	case _PC_LINK_MAX:
 		return LINK_MAX;
 	case _PC_MAX_CANON:
@@ -57,4 +56,3 @@ fpathconf(int, int name)
 {
 	return pathconf(0, name);
 }
-

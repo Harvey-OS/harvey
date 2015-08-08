@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-cistrstr(char *s, char *sub)
+cistrstr(char* s, char* sub)
 {
 	int c, csub, n;
 
@@ -22,10 +22,10 @@ cistrstr(char *s, char *sub)
 		csub -= 'A' - 'a';
 	sub++;
 	n = strlen(sub);
-	for(; c = *s; s++){
+	for(; c = *s; s++) {
 		if(c >= 'A' && c <= 'Z')
 			c -= 'A' - 'a';
-		if(c == csub && cistrncmp(s+1, sub, n) == 0)
+		if(c == csub && cistrncmp(s + 1, sub, n) == 0)
 			return s;
 	}
 	return nil;

@@ -12,9 +12,9 @@
 #include <libsec.h>
 
 DSApub*
-dsaprivtopub(DSApriv *priv)
+dsaprivtopub(DSApriv* priv)
 {
-	DSApub *pub;
+	DSApub* pub;
 
 	pub = dsapuballoc();
 	pub->p = mpcopy(priv->pub.p);

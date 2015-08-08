@@ -13,11 +13,8 @@
 #include <auth.h>
 #include "imap4d.h"
 
-static	int	copyData(int ffd, int tfd, MbLock *ml);
-static	MbLock	mLock =
-{
-	.fd = -1
-};
+static int copyData(int ffd, int tfd, MbLock* ml);
+static MbLock mLock = {.fd = -1};
 
 static char curDir[MboxNameLen];
 
@@ -28,14 +25,14 @@ resetCurDir(void)
 }
 
 int
-myChdir(char *dir)
+myChdir(char* dir)
 {
 	if(strcmp(dir, curDir) == 0)
 		return 0;
 	if(dir[0] != '/' || strlen(dir) > MboxNameLen)
 		return -1;
 	strcpy(curDir, dir);
-	if(chdir(dir) < 0){
+	if(chdir(dir) < 0) {
 		werrstr("mychdir failed: %r");
 		return -1;
 	}
@@ -43,7 +40,7 @@ myChdir(char *dir)
 }
 
 int
-cdCreate(char *dir, char *file, int mode, uint32_t perm)
+cdCreate(char* dir, char* file, int mode, uint32_t perm)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -51,7 +48,7 @@ cdCreate(char *dir, char *file, int mode, uint32_t perm)
 }
 
 Dir*
-cdDirstat(char *dir, char *file)
+cdDirstat(char* dir, char* file)
 {
 	if(myChdir(dir) < 0)
 		return nil;
@@ -59,9 +56,9 @@ cdDirstat(char *dir, char *file)
 }
 
 int
-cdExists(char *dir, char *file)
+cdExists(char* dir, char* file)
 {
-	Dir *d;
+	Dir* d;
 
 	d = cdDirstat(dir, file);
 	if(d == nil)
@@ -71,7 +68,7 @@ cdExists(char *dir, char *file)
 }
 
 int
-cdDirwstat(char *dir, char *file, Dir *d)
+cdDirwstat(char* dir, char* file, Dir* d)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -79,7 +76,7 @@ cdDirwstat(char *dir, char *file, Dir *d)
 }
 
 int
-cdOpen(char *dir, char *file, int mode)
+cdOpen(char* dir, char* file, int mode)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -87,7 +84,7 @@ cdOpen(char *dir, char *file, int mode)
 }
 
 int
-cdRemove(char *dir, char *file)
+cdRemove(char* dir, char* file)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -104,7 +101,7 @@ mbLock(void)
 
 	if(mLock.fd >= 0)
 		bye("mail lock deadlock");
-	for(i = 0; i < 5; i++){
+	for(i = 0; i < 5; i++) {
 		mLock.fd = openLocked(mboxDir, "L.mbox", OREAD);
 		if(mLock.fd >= 0)
 			return &mLock;
@@ -114,7 +111,7 @@ mbLock(void)
 }
 
 void
-mbUnlock(MbLock *ml)
+mbUnlock(MbLock* ml)
 {
 	if(ml != &mLock)
 		bye("bad mail unlock");
@@ -125,7 +122,7 @@ mbUnlock(MbLock *ml)
 }
 
 void
-mbLockRefresh(MbLock *ml)
+mbLockRefresh(MbLock* ml)
 {
 	char buf[1];
 
@@ -140,9 +137,9 @@ mbLocked(void)
 }
 
 char*
-impName(char *name)
+impName(char* name)
 {
-	char *s;
+	char* s;
 	int n;
 
 	if(cistrcmp(name, "inbox") == 0)
@@ -162,10 +159,10 @@ impName(char *name)
  * massage the mailbox name into something valid
  * eliminates all .', and ..',s, redundatant and trailing /'s.
  */
-char *
-mboxName(char *s)
+char*
+mboxName(char* s)
 {
-	char *ss;
+	char* ss;
 
 	ss = mutf7str(s);
 	if(ss == nil)
@@ -174,10 +171,10 @@ mboxName(char *s)
 	return ss;
 }
 
-char *
-strmutf7(char *s)
+char*
+strmutf7(char* s)
 {
-	char *m;
+	char* m;
 	int n;
 
 	n = strlen(s) * MUtf7Max + 1;
@@ -189,10 +186,10 @@ strmutf7(char *s)
 	return m;
 }
 
-char *
-mutf7str(char *s)
+char*
+mutf7str(char* s)
 {
-	char *m;
+	char* m;
 	int n;
 
 	/*
@@ -210,9 +207,9 @@ mutf7str(char *s)
 }
 
 void
-splitr(char *s, int c, char **left, char **right)
+splitr(char* s, int c, char** left, char** right)
 {
-	char *d;
+	char* d;
 	int n;
 
 	n = strlen(s);
@@ -221,11 +218,11 @@ splitr(char *s, int c, char **left, char **right)
 		parseErr("out of memory");
 	strcpy(d, s);
 	s = strrchr(d, c);
-	if(s != nil){
+	if(s != nil) {
 		*left = d;
 		*s++ = '\0';
 		*right = s;
-	}else{
+	} else {
 		*right = d;
 		*left = d + n;
 	}
@@ -239,19 +236,20 @@ splitr(char *s, int c, char **left, char **right)
  * return with the file open for write, or directory open for read.
  */
 int
-createBox(char *mbox, int dir)
+createBox(char* mbox, int dir)
 {
-	char *m;
+	char* m;
 	int fd;
 
 	fd = -1;
-	for(m = mbox; *m; m++){
-		if(*m == '/'){
+	for(m = mbox; *m; m++) {
+		if(*m == '/') {
 			*m = '\0';
-			if(access(mbox, AEXIST) < 0){
+			if(access(mbox, AEXIST) < 0) {
 				if(fd >= 0)
 					close(fd);
-				fd = cdCreate(mboxDir, mbox, OREAD, DMDIR|0775);
+				fd = cdCreate(mboxDir, mbox, OREAD,
+				              DMDIR | 0775);
 				if(fd < 0)
 					return -1;
 			}
@@ -259,7 +257,7 @@ createBox(char *mbox, int dir)
 		}
 	}
 	if(dir)
-		fd = cdCreate(mboxDir, mbox, OREAD, DMDIR|0775);
+		fd = cdCreate(mboxDir, mbox, OREAD, DMDIR | 0775);
 	else
 		fd = cdCreate(mboxDir, mbox, OWRITE, 0664);
 	return fd;
@@ -273,10 +271,10 @@ createBox(char *mbox, int dir)
  * or a completely different directory.
  */
 int
-moveBox(char *from, char *to)
+moveBox(char* from, char* to)
 {
-	Dir *d;
-	char *fd, *fe, *td, *te, *fimp;
+	Dir* d;
+	char* fd, *fe, *td, *te, *fimp;
 
 	splitr(from, '/', &fd, &fe);
 	splitr(to, '/', &td, &te);
@@ -287,10 +285,10 @@ moveBox(char *from, char *to)
 	d = cdDirstat(mboxDir, from);
 	if(d == nil)
 		return 0;
-	if(strcmp(fd, td) == 0){
+	if(strcmp(fd, td) == 0) {
 		nulldir(d);
 		d->name = te;
-		if(cdDirwstat(mboxDir, from, d) >= 0){
+		if(cdDirwstat(mboxDir, from, d) >= 0) {
 			fimp = impName(from);
 			d->name = impName(te);
 			cdDirwstat(mboxDir, fimp, d);
@@ -314,10 +312,10 @@ moveBox(char *from, char *to)
  * either truncates or removes the source box if it succeeds.
  */
 int
-copyBox(char *from, char *to, int doremove)
+copyBox(char* from, char* to, int doremove)
 {
-	MbLock *ml;
-	char *fimp, *timp;
+	MbLock* ml;
+	char* fimp, *timp;
 	int ffd, tfd, ok;
 
 	if(cistrcmp(from, "inbox") == 0)
@@ -330,12 +328,12 @@ copyBox(char *from, char *to, int doremove)
 	if(ml == nil)
 		return 0;
 	ffd = openLocked(mboxDir, from, OREAD);
-	if(ffd < 0){
+	if(ffd < 0) {
 		mbUnlock(ml);
 		return 0;
 	}
 	tfd = createBox(to, 0);
-	if(tfd < 0){
+	if(tfd < 0) {
 		mbUnlock(ml);
 		close(ffd);
 		return 0;
@@ -344,18 +342,18 @@ copyBox(char *from, char *to, int doremove)
 	ok = copyData(ffd, tfd, ml);
 	close(ffd);
 	close(tfd);
-	if(!ok){
+	if(!ok) {
 		mbUnlock(ml);
 		return 0;
 	}
 
 	fimp = impName(from);
 	timp = impName(to);
-	if(fimp != nil && timp != nil){
+	if(fimp != nil && timp != nil) {
 		ffd = cdOpen(mboxDir, fimp, OREAD);
-		if(ffd >= 0){
+		if(ffd >= 0) {
 			tfd = cdCreate(mboxDir, timp, OWRITE, 0664);
-			if(tfd >= 0){
+			if(tfd >= 0) {
 				copyData(ffd, tfd, ml);
 				close(tfd);
 			}
@@ -366,7 +364,7 @@ copyBox(char *from, char *to, int doremove)
 	if(doremove)
 		cdRemove(mboxDir, from);
 	else
-		close(cdOpen(mboxDir, from, OWRITE|OTRUNC));
+		close(cdOpen(mboxDir, from, OWRITE | OTRUNC));
 	mbUnlock(ml);
 	return 1;
 }
@@ -376,15 +374,15 @@ copyBox(char *from, char *to, int doremove)
  * then tries to copy permissions and group ownership
  */
 static int
-copyData(int ffd, int tfd, MbLock *ml)
+copyData(int ffd, int tfd, MbLock* ml)
 {
-	Dir *fd, td;
+	Dir* fd, td;
 	char buf[BufSize];
 	int n;
 
-	for(;;){
+	for(;;) {
 		n = read(ffd, buf, BufSize);
-		if(n <= 0){
+		if(n <= 0) {
 			if(n < 0)
 				return 0;
 			break;
@@ -394,10 +392,10 @@ copyData(int ffd, int tfd, MbLock *ml)
 		mbLockRefresh(ml);
 	}
 	fd = dirfstat(ffd);
-	if(fd != nil){
+	if(fd != nil) {
 		nulldir(&td);
 		td.mode = fd->mode;
-		if(dirfwstat(tfd, &td) >= 0){
+		if(dirfwstat(tfd, &td) >= 0) {
 			nulldir(&td);
 			td.gid = fd->gid;
 			dirfwstat(tfd, &td);

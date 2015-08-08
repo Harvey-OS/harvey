@@ -20,21 +20,23 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *s, *tag;
-	DSApriv *key;
+	char* s, *tag;
+	DSApriv* key;
 
 	tag = nil;
 	fmtinstall('B', mpfmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 't':
 		tag = EARGF(usage());
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();
@@ -42,14 +44,13 @@ main(int argc, char **argv)
 	key = dsagen(nil);
 
 	s = smprint("key proto=dsa %s%sp=%B q=%B alpha=%B key=%B !secret=%B\n",
-		tag ? tag : "", tag ? " " : "",
-		key->pub.p, key->pub.q, key->pub.alpha, key->pub.key,
-		key->secret);
+	            tag ? tag : "", tag ? " " : "", key->pub.p, key->pub.q,
+	            key->pub.alpha, key->pub.key, key->secret);
 	if(s == nil)
 		sysfatal("smprint: %r");
 
 	if(write(1, s, strlen(s)) != strlen(s))
 		sysfatal("write: %r");
-	
+
 	exits(nil);
 }

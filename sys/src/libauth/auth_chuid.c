@@ -15,24 +15,24 @@
  *  become the authenticated user
  */
 int
-auth_chuid(AuthInfo *ai, char *ns)
+auth_chuid(AuthInfo* ai, char* ns)
 {
 	int rv, fd;
 
-	if(ai == nil || ai->cap == nil || *ai->cap == 0){
+	if(ai == nil || ai->cap == nil || *ai->cap == 0) {
 		werrstr("no capability");
 		return -1;
 	}
 
 	/* change uid */
 	fd = open("#¤/capuse", OWRITE);
-	if(fd < 0){
+	if(fd < 0) {
 		werrstr("opening #¤/capuse: %r");
 		return -1;
 	}
 	rv = write(fd, ai->cap, strlen(ai->cap));
 	close(fd);
-	if(rv < 0){
+	if(rv < 0) {
 		werrstr("writing %s to #¤/capuse: %r", ai->cap);
 		return -1;
 	}

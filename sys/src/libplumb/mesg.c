@@ -12,21 +12,21 @@
 #include "plumb.h"
 
 int
-plumbopen(char *name, int omode)
+plumbopen(char* name, int omode)
 {
 	int fd, f;
-	char *s, *plumber;
+	char* s, *plumber;
 	char buf[128], err[ERRMAX];
 
 	if(name[0] == '/')
 		return open(name, omode);
-		
+
 	/* find elusive plumber */
 	if(access("/mnt/plumb/send", AWRITE) >= 0)
 		plumber = "/mnt/plumb";
 	else if(access("/mnt/term/mnt/plumb/send", AWRITE) >= 0)
 		plumber = "/mnt/term/mnt/plumb";
-	else{
+	else {
 		/* last resort: try mounting service */
 		plumber = "/mnt/plumb";
 		s = getenv("plumbsrv");
@@ -36,7 +36,7 @@ plumbopen(char *name, int omode)
 		free(s);
 		if(f < 0)
 			return -1;
-		if(mount(f, -1, "/mnt/plumb", MREPL, "") < 0){
+		if(mount(f, -1, "/mnt/plumb", MREPL, "") < 0) {
 			close(f);
 			return -1;
 		}
@@ -60,7 +60,7 @@ plumbopen(char *name, int omode)
 }
 
 static int
-Strlen(char *s)
+Strlen(char* s)
 {
 	if(s == nil)
 		return 0;
@@ -68,7 +68,7 @@ Strlen(char *s)
 }
 
 static char*
-Strcpy(char *s, char *t)
+Strcpy(char* s, char* t)
 {
 	if(t == nil)
 		return s;
@@ -77,12 +77,12 @@ Strcpy(char *s, char *t)
 
 /* quote attribute value, if necessary */
 static char*
-quote(char *s, char *buf, char *bufe)
+quote(char* s, char* buf, char* bufe)
 {
-	char *t;
+	char* t;
 	int c;
 
-	if(s == nil){
+	if(s == nil) {
 		buf[0] = '\0';
 		return buf;
 	}
@@ -90,7 +90,7 @@ quote(char *s, char *buf, char *bufe)
 		return s;
 	t = buf;
 	*t++ = '\'';
-	while(t < bufe-2){
+	while(t < bufe - 2) {
 		c = *s++;
 		if(c == '\0')
 			break;
@@ -104,11 +104,11 @@ quote(char *s, char *buf, char *bufe)
 }
 
 char*
-plumbpackattr(Plumbattr *attr)
+plumbpackattr(Plumbattr* attr)
 {
 	int n;
-	Plumbattr *a;
-	char *s, *t, *buf, *bufe;
+	Plumbattr* a;
+	char* s, *t, *buf, *bufe;
 
 	if(attr == nil)
 		return nil;
@@ -116,8 +116,9 @@ plumbpackattr(Plumbattr *attr)
 		return nil;
 	bufe = buf + 4096;
 	n = 0;
-	for(a=attr; a!=nil; a=a->next)
-		n += Strlen(a->name) + 1 + Strlen(quote(a->value, buf, bufe)) + 1;
+	for(a = attr; a != nil; a = a->next)
+		n += Strlen(a->name) + 1 + Strlen(quote(a->value, buf, bufe)) +
+		     1;
 	s = malloc(n);
 	if(s == nil) {
 		free(buf);
@@ -125,7 +126,7 @@ plumbpackattr(Plumbattr *attr)
 	}
 	t = s;
 	*t = '\0';
-	for(a=attr; a!=nil; a=a->next){
+	for(a = attr; a != nil; a = a->next) {
 		if(t != s)
 			*t++ = ' ';
 		strcpy(t, a->name);
@@ -133,16 +134,16 @@ plumbpackattr(Plumbattr *attr)
 		strcat(t, quote(a->value, buf, bufe));
 		t += strlen(t);
 	}
-	if(t > s+n)
+	if(t > s + n)
 		abort();
 	free(buf);
 	return s;
 }
 
 char*
-plumblookup(Plumbattr *attr, char *name)
+plumblookup(Plumbattr* attr, char* name)
 {
-	while(attr){
+	while(attr) {
 		if(strcmp(attr->name, name) == 0)
 			return attr->value;
 		attr = attr->next;
@@ -151,19 +152,19 @@ plumblookup(Plumbattr *attr, char *name)
 }
 
 char*
-plumbpack(Plumbmsg *m, int *np)
+plumbpack(Plumbmsg* m, int* np)
 {
 	int n, ndata;
-	char *buf, *p, *attr;
+	char* buf, *p, *attr;
 
 	ndata = m->ndata;
 	if(ndata < 0)
 		ndata = Strlen(m->data);
 	attr = plumbpackattr(m->attr);
-	n = Strlen(m->src)+1 + Strlen(m->dst)+1 + Strlen(m->wdir)+1 +
-		Strlen(m->type)+1 + Strlen(attr)+1 + 16 + ndata;
-	buf = malloc(n+1);	/* +1 for '\0' */
-	if(buf == nil){
+	n = Strlen(m->src) + 1 + Strlen(m->dst) + 1 + Strlen(m->wdir) + 1 +
+	    Strlen(m->type) + 1 + Strlen(attr) + 1 + 16 + ndata;
+	buf = malloc(n + 1); /* +1 for '\0' */
+	if(buf == nil) {
 		free(attr);
 		return nil;
 	}
@@ -179,18 +180,18 @@ plumbpack(Plumbmsg *m, int *np)
 	*p++ = '\n';
 	p += sprint(p, "%d\n", ndata);
 	memmove(p, m->data, ndata);
-	*np = (p-buf)+ndata;
-	buf[*np] = '\0';	/* null terminate just in case */
-	if(*np >= n+1)
+	*np = (p - buf) + ndata;
+	buf[*np] = '\0'; /* null terminate just in case */
+	if(*np >= n + 1)
 		abort();
 	free(attr);
 	return buf;
 }
 
 int
-plumbsend(int fd, Plumbmsg *m)
+plumbsend(int fd, Plumbmsg* m)
 {
-	char *buf;
+	char* buf;
 	int n;
 
 	buf = plumbpack(m, &n);
@@ -202,23 +203,23 @@ plumbsend(int fd, Plumbmsg *m)
 }
 
 static int
-plumbline(char **linep, char *buf, int i, int n, int *bad)
+plumbline(char** linep, char* buf, int i, int n, int* bad)
 {
 	int starti;
-	char *p;
+	char* p;
 
 	starti = i;
-	while(i<n && buf[i]!='\n')
+	while(i < n && buf[i] != '\n')
 		i++;
 	if(i == n)
 		*bad = 1;
-	else{
-		p = malloc((i-starti) + 1);
+	else {
+		p = malloc((i - starti) + 1);
 		if(p == nil)
 			*bad = 1;
-		else{
-			memmove(p, buf+starti, i-starti);
-			p[i-starti] = '\0';
+		else {
+			memmove(p, buf + starti, i - starti);
+			p[i - starti] = '\0';
 		}
 		*linep = p;
 		i++;
@@ -227,15 +228,15 @@ plumbline(char **linep, char *buf, int i, int n, int *bad)
 }
 
 void
-plumbfree(Plumbmsg *m)
+plumbfree(Plumbmsg* m)
 {
-	Plumbattr *a, *next;
+	Plumbattr* a, *next;
 
 	free(m->src);
 	free(m->dst);
 	free(m->wdir);
 	free(m->type);
-	for(a=m->attr; a!=nil; a=next){
+	for(a = m->attr; a != nil; a = next) {
 		next = a->next;
 		free(a->name);
 		free(a->value);
@@ -246,10 +247,10 @@ plumbfree(Plumbmsg *m)
 }
 
 Plumbattr*
-plumbunpackattr(char *p)
+plumbunpackattr(char* p)
 {
-	Plumbattr *attr, *prev, *a;
-	char *q, *v, *buf, *bufe;
+	Plumbattr* attr, *prev, *a;
+	char* q, *v, *buf, *bufe;
 	int c, quoting;
 
 	buf = malloc(4096);
@@ -257,61 +258,62 @@ plumbunpackattr(char *p)
 		return nil;
 	bufe = buf + 4096;
 	attr = prev = nil;
-	while(*p!='\0' && *p!='\n'){
-		while(*p==' ' || *p=='\t')
+	while(*p != '\0' && *p != '\n') {
+		while(*p == ' ' || *p == '\t')
 			p++;
 		if(*p == '\0')
 			break;
-		for(q=p; *q!='\0' && *q!='\n' && *q!=' ' && *q!='\t'; q++)
+		for(q = p; *q != '\0' && *q != '\n' && *q != ' ' && *q != '\t';
+		    q++)
 			if(*q == '=')
 				break;
 		if(*q != '=')
-			break;	/* malformed attribute */
+			break; /* malformed attribute */
 		a = malloc(sizeof(Plumbattr));
 		if(a == nil)
 			break;
-		a->name = malloc(q-p+1);
-		if(a->name == nil){
+		a->name = malloc(q - p + 1);
+		if(a->name == nil) {
 			free(a);
 			break;
 		}
-		memmove(a->name, p, q-p);
-		a->name[q-p] = '\0';
+		memmove(a->name, p, q - p);
+		a->name[q - p] = '\0';
 		/* process quotes in value */
-		q++;	/* skip '=' */
+		q++; /* skip '=' */
 		v = buf;
 		quoting = 0;
-		while(*q!='\0' && *q!='\n'){
+		while(*q != '\0' && *q != '\n') {
 			if(v >= bufe)
 				break;
 			c = *q++;
-			if(quoting){
-				if(c == '\''){
+			if(quoting) {
+				if(c == '\'') {
 					if(*q == '\'')
 						q++;
-					else{
+					else {
 						quoting = 0;
 						continue;
 					}
 				}
-			}else{
-				if(c==' ' || c=='\t')
+			} else {
+				if(c == ' ' || c == '\t')
 					break;
-				if(c == '\''){
+				if(c == '\'') {
 					quoting = 1;
 					continue;
 				}
 			}
 			*v++ = c;
 		}
-		a->value = malloc(v-buf+1);
-		if(a->value == nil){
+		a->value = malloc(v - buf + 1);
+		if(a->value == nil) {
 			free(a->name);
 			free(a);
 			break;
 		}
-		memmove(a->value, buf, v-buf);
-		a->value[v-buf] = '\0';
+		memmove(a->value, buf, v - buf);
+		a->value[v - buf] = '\0';
 		a->next = nil;
 		if(prev == nil)
 			attr = a;
@@ -325,9 +327,9 @@ plumbunpackattr(char *p)
 }
 
 Plumbattr*
-plumbaddattr(Plumbattr *attr, Plumbattr *new)
+plumbaddattr(Plumbattr* attr, Plumbattr* new)
 {
-	Plumbattr *l;
+	Plumbattr* l;
 
 	l = attr;
 	if(l == nil)
@@ -339,12 +341,12 @@ plumbaddattr(Plumbattr *attr, Plumbattr *new)
 }
 
 Plumbattr*
-plumbdelattr(Plumbattr *attr, char *name)
+plumbdelattr(Plumbattr* attr, char* name)
 {
-	Plumbattr *l, *prev;
+	Plumbattr* l, *prev;
 
 	prev = nil;
-	for(l=attr; l!=nil; l=l->next){
+	for(l = attr; l != nil; l = l->next) {
 		if(strcmp(name, l->name) == 0)
 			break;
 		prev = l;
@@ -362,11 +364,11 @@ plumbdelattr(Plumbattr *attr, char *name)
 }
 
 Plumbmsg*
-plumbunpackpartial(char *buf, int n, int *morep)
+plumbunpackpartial(char* buf, int n, int* morep)
 {
-	Plumbmsg *m;
+	Plumbmsg* m;
 	int i, bad;
-	char *ntext, *attr;
+	char* ntext, *attr;
 
 	m = malloc(sizeof(Plumbmsg));
 	if(m == nil)
@@ -381,31 +383,31 @@ plumbunpackpartial(char *buf, int n, int *morep)
 	i = plumbline(&m->type, buf, i, n, &bad);
 	i = plumbline(&attr, buf, i, n, &bad);
 	i = plumbline(&ntext, buf, i, n, &bad);
-	if(bad){
+	if(bad) {
 		plumbfree(m);
 		return nil;
 	}
 	m->attr = plumbunpackattr(attr);
 	free(attr);
 	m->ndata = atoi(ntext);
-	if(m->ndata != n-i){
+	if(m->ndata != n - i) {
 		bad = 1;
-		if(morep!=nil && m->ndata>n-i)
-			*morep = m->ndata - (n-i);
+		if(morep != nil && m->ndata > n - i)
+			*morep = m->ndata - (n - i);
 	}
 	free(ntext);
-	if(!bad){
-		m->data = malloc(n-i+1);	/* +1 for '\0' */
+	if(!bad) {
+		m->data = malloc(n - i + 1); /* +1 for '\0' */
 		if(m->data == nil)
 			bad = 1;
-		else{
-			memmove(m->data, buf+i, m->ndata);
-			m->ndata = n-i;
+		else {
+			memmove(m->data, buf + i, m->ndata);
+			m->ndata = n - i;
 			/* null-terminate in case it's text */
 			m->data[m->ndata] = '\0';
 		}
 	}
-	if(bad){
+	if(bad) {
 		plumbfree(m);
 		m = nil;
 	}
@@ -413,7 +415,7 @@ plumbunpackpartial(char *buf, int n, int *morep)
 }
 
 Plumbmsg*
-plumbunpack(char *buf, int n)
+plumbunpack(char* buf, int n)
 {
 	return plumbunpackpartial(buf, n, nil);
 }
@@ -421,8 +423,8 @@ plumbunpack(char *buf, int n)
 Plumbmsg*
 plumbrecv(int fd)
 {
-	char *buf;
-	Plumbmsg *m;
+	char* buf;
+	Plumbmsg* m;
 	int n, more;
 
 	buf = malloc(8192);
@@ -430,15 +432,16 @@ plumbrecv(int fd)
 		return nil;
 	n = read(fd, buf, 8192);
 	m = nil;
-	if(n > 0){
+	if(n > 0) {
 		m = plumbunpackpartial(buf, n, &more);
-		if(m==nil && more>0){
-			/* we now know how many more bytes to read for complete message */
-			buf = realloc(buf, n+more);
+		if(m == nil && more > 0) {
+			/* we now know how many more bytes to read for complete
+			 * message */
+			buf = realloc(buf, n + more);
 			if(buf == nil)
 				return nil;
-			if(readn(fd, buf+n, more) == more)
-				m = plumbunpackpartial(buf, n+more, nil);
+			if(readn(fd, buf + n, more) == more)
+				m = plumbunpackpartial(buf, n + more, nil);
 		}
 	}
 	free(buf);

@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-#define	N	256
+#define N 256
 
 int32_t
-strcspn(char *s, char *b)
+strcspn(char* s, char* b)
 {
 	char map[N], *os;
 

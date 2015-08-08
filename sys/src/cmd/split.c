@@ -12,38 +12,39 @@
 #include <bio.h>
 #include <regexp.h>
 
-char	digit[] = "0123456789";
-char	*suffix = "";
-char	*stem = "x";
-char	suff[] = "aa";
-char	name[200];
-Biobuf	bout;
-Biobuf	*output = &bout;
+char digit[] = "0123456789";
+char* suffix = "";
+char* stem = "x";
+char suff[] = "aa";
+char name[200];
+Biobuf bout;
+Biobuf* output = &bout;
 
 extern int nextfile(void);
 extern int matchfile(Resub*);
 extern void openf(void);
-extern char *fold(char*,int);
+extern char* fold(char*, int);
 extern void usage(void);
 extern void badexp(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	Reprog *exp;
-	char *pattern = 0;
+	Reprog* exp;
+	char* pattern = 0;
 	int n = 1000;
-	char *line;
+	char* line;
 	int xflag = 0;
 	int iflag = 0;
 	Biobuf bin;
-	Biobuf *b = &bin;
+	Biobuf* b = &bin;
 	char buf[256];
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'l':
 	case 'n':
-		n=atoi(EARGF(usage()));
+		n = atoi(EARGF(usage()));
 		break;
 	case 'e':
 		pattern = strdup(EARGF(usage()));
@@ -63,8 +64,8 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-
-	} ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 0 || argc > 1)
 		usage();
@@ -81,27 +82,28 @@ main(int argc, char *argv[])
 	if(pattern) {
 		Resub match[2];
 
-		if(!(exp = regcomp(iflag? fold(pattern, strlen(pattern)):
-		    pattern)))
+		if(!(exp = regcomp(iflag ? fold(pattern, strlen(pattern))
+		                         : pattern)))
 			badexp();
 		memset(match, 0, sizeof match);
 		matchfile(match);
-		while((line=Brdline(b,'\n')) != 0) {
+		while((line = Brdline(b, '\n')) != 0) {
 			memset(match, 0, sizeof match);
-			line[Blinelen(b)-1] = 0;
-			if(regexec(exp, iflag? fold(line, Blinelen(b)-1): line,
-			    match, 2)) {
+			line[Blinelen(b) - 1] = 0;
+			if(regexec(exp,
+			           iflag ? fold(line, Blinelen(b) - 1) : line,
+			           match, 2)) {
 				if(matchfile(match) && xflag)
 					continue;
 			} else if(output == 0)
-				nextfile();	/* at most once */
-			Bwrite(output, line, Blinelen(b)-1);
+				nextfile(); /* at most once */
+			Bwrite(output, line, Blinelen(b) - 1);
 			Bputc(output, '\n');
 		}
 	} else {
 		int linecnt = n;
 
-		while((line=Brdline(b,'\n')) != 0) {
+		while((line = Brdline(b, '\n')) != 0) {
 			if(++linecnt > n) {
 				nextfile();
 				linecnt = 1;
@@ -110,7 +112,7 @@ main(int argc, char *argv[])
 		}
 
 		/*
-		 * in case we didn't end with a newline, tack whatever's 
+		 * in case we didn't end with a newline, tack whatever's
 		 * left onto the last file
 		 */
 		while((n = Bread(b, buf, sizeof(buf))) > 0)
@@ -128,11 +130,11 @@ nextfile(void)
 
 	if(suff[0] > 'z') {
 		if(canopen)
-			fprint(2, "split: file %szz not split\n",stem);
+			fprint(2, "split: file %szz not split\n", stem);
 		canopen = 0;
 	} else {
 		snprint(name, sizeof name, "%s%s", stem, suff);
-		if(++suff[1] > 'z') 
+		if(++suff[1] > 'z')
 			suff[1] = 'a', ++suff[0];
 		openf();
 	}
@@ -140,16 +142,16 @@ nextfile(void)
 }
 
 int
-matchfile(Resub *match)
+matchfile(Resub* match)
 {
 	if(match[1].sp) {
 		int len = match[1].ep - match[1].sp;
 
 		strncpy(name, match[1].sp, len);
-		strcpy(name+len, suffix);
+		strcpy(name + len, suffix);
 		openf();
 		return 1;
-	} 
+	}
 	return nextfile();
 }
 
@@ -162,7 +164,7 @@ openf(void)
 	Bterm(output);
 	if(fd > 0)
 		close(fd);
-	fd = create(name,OWRITE,0666);
+	fd = create(name, OWRITE, 0666);
 	if(fd < 0) {
 		fprint(2, "grep: can't create %s: %r\n", name);
 		exits("create");
@@ -170,29 +172,30 @@ openf(void)
 	Binit(output, fd, OWRITE);
 }
 
-char *
-fold(char *s, int n)
+char*
+fold(char* s, int n)
 {
-	static char *fline;
+	static char* fline;
 	static int linesize = 0;
-	char *t;
+	char* t;
 
-	if(linesize < n+1){
-		fline = realloc(fline,n+1);
-		linesize = n+1;
+	if(linesize < n + 1) {
+		fline = realloc(fline, n + 1);
+		linesize = n + 1;
 	}
-	for(t=fline; *t++ = tolower(*s++); )
+	for(t = fline;* t++ = tolower(*s++);)
 		continue;
-		/* we assume the 'A'-'Z' only appear as themselves
-		 * in a utf encoding.
-		 */
+	/* we assume the 'A'-'Z' only appear as themselves
+	 * in a utf encoding.
+	 */
 	return fline;
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: split [-n num] [-e exp] [-f stem] [-s suff] [-x] [-i] [file]\n");
+	fprint(2, "usage: split [-n num] [-e exp] [-f stem] [-s suff] [-x] "
+	          "[-i] [file]\n");
 	exits("usage");
 }
 

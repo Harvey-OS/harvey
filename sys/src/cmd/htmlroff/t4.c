@@ -10,7 +10,7 @@
 #include "a.h"
 
 /*
- * 4 - Text filling, centering, and adjusting.  
+ * 4 - Text filling, centering, and adjusting.
  * 	"\ " - unbreakable space
  * 	.n register - length of last line
  *	nl register - text baseline position on this page
@@ -26,7 +26,7 @@
 int
 e_space(void)
 {
-	return 0xA0;	/* non-breaking space */
+	return 0xA0; /* non-breaking space */
 }
 
 int
@@ -44,7 +44,7 @@ e_c(void)
 }
 
 void
-r_br(int argc, Rune **argv)
+r_br(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
@@ -53,17 +53,17 @@ r_br(int argc, Rune **argv)
 
 /* fill mode on */
 void
-r_fi(int argc, Rune **argv)
+r_fi(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
 	nr(L(".fi"), 1);
-// warn(".fi");
+	// warn(".fi");
 }
 
 /* no-fill mode */
 void
-r_nf(int argc, Rune **argv)
+r_nf(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
@@ -72,30 +72,30 @@ r_nf(int argc, Rune **argv)
 
 /* adjust */
 void
-r_ad(int argc, Rune **argv)
+r_ad(int argc, Rune** argv)
 {
 	int c, n;
-	
-	nr(L(".j"), getnr(L(".j"))|1);
+
+	nr(L(".j"), getnr(L(".j")) | 1);
 	if(argc < 2)
 		return;
 	c = argv[1][0];
-	switch(c){
+	switch(c) {
 	default:
 		fprint(2, "%L: bad adjust %C\n", c);
 		return;
 	case 'r':
-		n = 2*2|1;
+		n = 2 * 2 | 1;
 		break;
 	case 'l':
 		n = 0;
 		break;
 	case 'c':
-		n = 1*2|1;
+		n = 1 * 2 | 1;
 		break;
 	case 'b':
 	case 'n':
-		n = 0*2|1;
+		n = 0 * 2 | 1;
 		break;
 	case '0':
 	case '1':
@@ -103,7 +103,7 @@ r_ad(int argc, Rune **argv)
 	case '3':
 	case '4':
 	case '5':
-		n = c-'0';
+		n = c - '0';
 		break;
 	}
 	nr(L(".j"), n);
@@ -111,17 +111,17 @@ r_ad(int argc, Rune **argv)
 
 /* no adjust */
 void
-r_na(int argc, Rune **argv)
+r_na(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
 
-	nr(L(".j"), getnr(L(".j"))&~1);
+	nr(L(".j"), getnr(L(".j")) & ~1);
 }
 
 /* center next N lines */
 void
-r_ce(int argc, Rune **argv)
+r_ce(int argc, Rune** argv)
 {
 	if(argc < 2)
 		nr(L(".ce"), 1);
@@ -142,10 +142,9 @@ t4init(void)
 	addreq(L("ad"), r_ad, -1);
 	addreq(L("na"), r_na, 0);
 	addreq(L("ce"), r_ce, -1);
-	
+
 	addesc(' ', e_space, 0);
 	addesc('p', e_warn, 0);
 	addesc('&', e_amp, 0);
 	addesc('c', e_c, 0);
 }
-

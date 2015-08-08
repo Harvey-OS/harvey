@@ -13,30 +13,31 @@
 #include <memdraw.h>
 #include <memlayer.h>
 
-typedef struct Seg	Seg;
+typedef struct Seg Seg;
 
-struct Seg
-{
-	Point	p0;
-	Point	p1;
-	int32_t	num;
-	int32_t	den;
-	int32_t	dz;
-	int32_t	dzrem;
-	int32_t	z;
-	int32_t	zerr;
-	int32_t	d;
+struct Seg {
+	Point p0;
+	Point p1;
+	int32_t num;
+	int32_t den;
+	int32_t dz;
+	int32_t dzrem;
+	int32_t z;
+	int32_t zerr;
+	int32_t d;
 };
 
-static	void	zsort(Seg **seg, Seg **ep);
-static	int	ycompare(const void*, const void*);
-static	int	xcompare(const void*, const void*);
-static	int	zcompare(const void*, const void*);
-static	void	xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int, int, int);
-static	void	yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int);
+static void zsort(Seg** seg, Seg** ep);
+static int ycompare(const void*, const void*);
+static int xcompare(const void*, const void*);
+static int zcompare(const void*, const void*);
+static void xscan(Memimage* dst, Seg** seg, Seg* segtab, int nseg, int wind,
+                  Memimage* src, Point sp, int, int, int, int);
+static void yscan(Memimage* dst, Seg** seg, Seg* segtab, int nseg, int wind,
+                  Memimage* src, Point sp, int, int);
 
 static void
-fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
+fillcolor(Memimage* dst, int left, int right, int y, Memimage* src, Point p)
 {
 	int srcval;
 
@@ -44,57 +45,60 @@ fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
 	srcval = p.x;
 	p.x = left;
 	p.y = y;
-	memset(byteaddr(dst, p), srcval, right-left);
+	memset(byteaddr(dst, p), srcval, right - left);
 }
 
 static void
-fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p, int op)
+fillline(Memimage* dst, int left, int right, int y, Memimage* src, Point p,
+         int op)
 {
 	Rectangle r;
 
 	r.min.x = left;
 	r.min.y = y;
 	r.max.x = right;
-	r.max.y = y+1;
+	r.max.y = y + 1;
 	p.x += left;
 	p.y += y;
 	memdraw(dst, r, src, p, memopaque, p, op);
 }
 
 static void
-fillpoint(Memimage *dst, int x, int y, Memimage *src, Point p, int op)
+fillpoint(Memimage* dst, int x, int y, Memimage* src, Point p, int op)
 {
 	Rectangle r;
 
 	r.min.x = x;
 	r.min.y = y;
-	r.max.x = x+1;
-	r.max.y = y+1;
+	r.max.x = x + 1;
+	r.max.y = y + 1;
 	p.x += x;
 	p.y += y;
 	memdraw(dst, r, src, p, memopaque, p, op);
 }
 
 void
-memfillpoly(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Point sp, int op)
+memfillpoly(Memimage* dst, Point* vert, int nvert, int w, Memimage* src,
+            Point sp, int op)
 {
 	_memfillpolysc(dst, vert, nvert, w, src, sp, 0, 0, 0, op);
 }
 
 void
-_memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Point sp, int detail, int fixshift, int clipped, int op)
+_memfillpolysc(Memimage* dst, Point* vert, int nvert, int w, Memimage* src,
+               Point sp, int detail, int fixshift, int clipped, int op)
 {
-	Seg **seg, *segtab;
+	Seg** seg, *segtab;
 	Point p0;
 	int i;
 
 	if(nvert == 0)
 		return;
 
-	seg = malloc((nvert+2)*sizeof(Seg*));
+	seg = malloc((nvert + 2) * sizeof(Seg*));
 	if(seg == nil)
 		return;
-	segtab = malloc((nvert+1)*sizeof(Seg));
+	segtab = malloc((nvert + 1) * sizeof(Seg));
 	if(segtab == nil) {
 		free(seg);
 		return;
@@ -102,7 +106,7 @@ _memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Poin
 
 	sp.x = (sp.x - vert[0].x) >> fixshift;
 	sp.y = (sp.y - vert[0].y) >> fixshift;
-	p0 = vert[nvert-1];
+	p0 = vert[nvert - 1];
 	if(!fixshift) {
 		p0.x <<= 1;
 		p0.y <<= 1;
@@ -120,7 +124,8 @@ _memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Poin
 	if(!fixshift)
 		fixshift = 1;
 
-	xscan(dst, seg, segtab, nvert, w, src, sp, detail, fixshift, clipped, op);
+	xscan(dst, seg, segtab, nvert, w, src, sp, detail, fixshift, clipped,
+	      op);
 	if(detail)
 		yscan(dst, seg, segtab, nvert, w, src, sp, fixshift, op);
 
@@ -133,8 +138,8 @@ mod(int32_t x, int32_t y)
 {
 	int32_t z;
 
-	z = x%y;
-	if((int32_t)(((uint32_t)z)^((uint32_t)y)) > 0 || z == 0)
+	z = x % y;
+	if((int32_t)(((uint32_t)z) ^ ((uint32_t)y)) > 0 || z == 0)
 		return z;
 	return z + y;
 }
@@ -142,18 +147,18 @@ mod(int32_t x, int32_t y)
 static int32_t
 sdiv(int32_t x, int32_t y)
 {
-	if((int32_t)(((uint32_t)x)^((uint32_t)y)) >= 0 || x == 0)
-		return x/y;
+	if((int32_t)(((uint32_t)x) ^ ((uint32_t)y)) >= 0 || x == 0)
+		return x / y;
 
-	return (x+((y>>30)|1))/y-1;
+	return (x + ((y >> 30) | 1)) / y - 1;
 }
 
 static int32_t
-smuldivmod(int32_t x, int32_t y, int32_t z, int32_t *mod)
+smuldivmod(int32_t x, int32_t y, int32_t z, int32_t* mod)
 {
 	int64_t vx;
 
-	if(x == 0 || y == 0){
+	if(x == 0 || y == 0) {
 		*mod = 0;
 		return 0;
 	}
@@ -161,40 +166,41 @@ smuldivmod(int32_t x, int32_t y, int32_t z, int32_t *mod)
 	vx *= y;
 	*mod = vx % z;
 	if(*mod < 0)
-		*mod += z;	/* z is always >0 */
+		*mod += z; /* z is always >0 */
 	if((vx < 0) == (z < 0))
-		return vx/z;
-	return -((-vx)/z);
+		return vx / z;
+	return -((-vx) / z);
 }
 
 static void
-xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int detail, int fixshift, int clipped, int op)
+xscan(Memimage* dst, Seg** seg, Seg* segtab, int nseg, int wind, Memimage* src,
+      Point sp, int detail, int fixshift, int clipped, int op)
 {
 	int32_t y, maxy, x, x2, xerr, xden, onehalf;
-	Seg **ep, **next, **p, **q, *s;
+	Seg** ep, **next, **p, **q, *s;
 	int32_t n, i, iy, cnt, ix, ix2, minx, maxx;
 	Point pt;
-	void	(*fill)(Memimage*, int, int, int, Memimage*, Point, int);
+	void (*fill)(Memimage*, int, int, int, Memimage*, Point, int);
 
 	fill = fillline;
-/*
- * This can only work on 8-bit destinations, since fillcolor is
- * just using memset on sp.x.
- *
- * I'd rather not even enable it then, since then if the general
- * code is too slow, someone will come up with a better improvement
- * than this sleazy hack.	-rsc
- *
-	if(clipped && (src->flags&Frepl) && src->depth==8 && Dx(src->r)==1 && Dy(src->r)==1) {
-		fill = fillcolor;
-		sp.x = membyteval(src);
-	}
- *
- */
+	/*
+	 * This can only work on 8-bit destinations, since fillcolor is
+	 * just using memset on sp.x.
+	 *
+	 * I'd rather not even enable it then, since then if the general
+	 * code is too slow, someone will come up with a better improvement
+	 * than this sleazy hack.	-rsc
+	 *
+	        if(clipped && (src->flags&Frepl) && src->depth==8 &&
+	 Dx(src->r)==1 && Dy(src->r)==1) {
+	                fill = fillcolor;
+	                sp.x = membyteval(src);
+	        }
+	 *
+	 */
 	USED(clipped);
 
-
-	for(i=0, s=segtab, p=seg; i<nseg; i++, s++) {
+	for(i = 0, s = segtab, p = seg; i < nseg; i++, s++) {
 		*p = s;
 		if(s->p0.y == s->p1.y)
 			continue;
@@ -212,15 +218,15 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 		s->dzrem = mod(s->dzrem, s->den);
 		p++;
 	}
-	n = p-seg;
+	n = p - seg;
 	if(n == 0)
 		return;
 	*p = 0;
-	qsort(seg, p-seg , sizeof(Seg*), ycompare);
+	qsort(seg, p - seg, sizeof(Seg*), ycompare);
 
 	onehalf = 0;
 	if(fixshift)
-		onehalf = 1 << (fixshift-1);
+		onehalf = 1 << (fixshift - 1);
 
 	minx = dst->clipr.min.x;
 	maxx = dst->clipr.max.x;
@@ -234,7 +240,7 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 
 	ep = next = seg;
 
-	while(y<maxy) {
+	while(y < maxy) {
 		for(q = p = seg; p < ep; p++) {
 			s = *p;
 			if(s->p1.y < y)
@@ -245,7 +251,9 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 				s->z++;
 				s->zerr -= s->den;
 				if(s->zerr < 0 || s->zerr >= s->den)
-					print("bad ratzerr1: %ld den %ld dzrem %ld\n", s->zerr, s->den, s->dzrem);
+					print("bad ratzerr1: %ld den %ld dzrem "
+					      "%ld\n",
+					      s->zerr, s->den, s->dzrem);
 			}
 			*q++ = s;
 		}
@@ -257,9 +265,12 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 			if(s->p1.y < y)
 				continue;
 			s->z = s->p0.x;
-			s->z += smuldivmod(y - s->p0.y, s->num, s->den, &s->zerr);
+			s->z +=
+			    smuldivmod(y - s->p0.y, s->num, s->den, &s->zerr);
 			if(s->zerr < 0 || s->zerr >= s->den)
-				print("bad ratzerr2: %ld den %ld ratdzrem %ld\n", s->zerr, s->den, s->dzrem);
+				print(
+				    "bad ratzerr2: %ld den %ld ratdzrem %ld\n",
+				    s->zerr, s->den, s->dzrem);
 			*q++ = s;
 		}
 		ep = q;
@@ -293,7 +304,7 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 					return;
 				}
 				cnt += p[0]->d;
-				if((cnt&wind) == 0)
+				if((cnt & wind) == 0)
 					break;
 				p++;
 			}
@@ -304,27 +315,29 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 			if(ix2 > maxx)
 				ix2 = maxx;
 			if(ix == ix2 && detail) {
-				if(xerr*p[0]->den + p[0]->zerr*xden > p[0]->den*xden)
+				if(xerr * p[0]->den + p[0]->zerr * xden >
+				   p[0]->den * xden)
 					x++;
-				ix = (x + x2) >> (fixshift+1);
-				ix2 = ix+1;
+				ix = (x + x2) >> (fixshift + 1);
+				ix2 = ix + 1;
 			}
 			(*fill)(dst, ix, ix2, iy, src, sp, op);
 		}
-		y += (1<<fixshift);
+		y += (1 << fixshift);
 		iy++;
 	}
 }
 
 static void
-yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int fixshift, int op)
+yscan(Memimage* dst, Seg** seg, Seg* segtab, int nseg, int wind, Memimage* src,
+      Point sp, int fixshift, int op)
 {
 	int32_t x, maxx, y, y2, yerr, yden, onehalf;
-	Seg **ep, **next, **p, **q, *s;
+	Seg** ep, **next, **p, **q, *s;
 	int n, i, ix, cnt, iy, iy2, miny, maxy;
 	Point pt;
 
-	for(i=0, s=segtab, p=seg; i<nseg; i++, s++) {
+	for(i = 0, s = segtab, p = seg; i < nseg; i++, s++) {
 		*p = s;
 		if(s->p0.x == s->p1.x)
 			continue;
@@ -342,15 +355,15 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 		s->dzrem = mod(s->dzrem, s->den);
 		p++;
 	}
-	n = p-seg;
+	n = p - seg;
 	if(n == 0)
 		return;
 	*p = 0;
-	qsort(seg, n , sizeof(Seg*), xcompare);
+	qsort(seg, n, sizeof(Seg*), xcompare);
 
 	onehalf = 0;
 	if(fixshift)
-		onehalf = 1 << (fixshift-1);
+		onehalf = 1 << (fixshift - 1);
 
 	miny = dst->clipr.min.y;
 	maxy = dst->clipr.max.y;
@@ -364,7 +377,7 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 
 	ep = next = seg;
 
-	while(x<maxx) {
+	while(x < maxx) {
 		for(q = p = seg; p < ep; p++) {
 			s = *p;
 			if(s->p1.x < x)
@@ -375,7 +388,9 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 				s->z++;
 				s->zerr -= s->den;
 				if(s->zerr < 0 || s->zerr >= s->den)
-					print("bad ratzerr1: %ld den %ld ratdzrem %ld\n", s->zerr, s->den, s->dzrem);
+					print("bad ratzerr1: %ld den %ld "
+					      "ratdzrem %ld\n",
+					      s->zerr, s->den, s->dzrem);
 			}
 			*q++ = s;
 		}
@@ -387,9 +402,12 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 			if(s->p1.x < x)
 				continue;
 			s->z = s->p0.y;
-			s->z += smuldivmod(x - s->p0.x, s->num, s->den, &s->zerr);
+			s->z +=
+			    smuldivmod(x - s->p0.x, s->num, s->den, &s->zerr);
 			if(s->zerr < 0 || s->zerr >= s->den)
-				print("bad ratzerr2: %ld den %ld ratdzrem %ld\n", s->zerr, s->den, s->dzrem);
+				print(
+				    "bad ratzerr2: %ld den %ld ratdzrem %ld\n",
+				    s->zerr, s->den, s->dzrem);
 			*q++ = s;
 		}
 		ep = q;
@@ -423,7 +441,7 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 					return;
 				}
 				cnt += p[0]->d;
-				if((cnt&wind) == 0)
+				if((cnt & wind) == 0)
 					break;
 				p++;
 			}
@@ -434,24 +452,25 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 			if(iy2 > maxy)
 				iy2 = maxy;
 			if(iy == iy2) {
-				if(yerr*p[0]->den + p[0]->zerr*yden > p[0]->den*yden)
+				if(yerr * p[0]->den + p[0]->zerr * yden >
+				   p[0]->den * yden)
 					y++;
-				iy = (y + y2) >> (fixshift+1);
+				iy = (y + y2) >> (fixshift + 1);
 				fillpoint(dst, ix, iy, src, sp, op);
 			}
 		}
-		x += (1<<fixshift);
+		x += (1 << fixshift);
 		ix++;
 	}
 }
 
 static void
-zsort(Seg **seg, Seg **ep)
+zsort(Seg** seg, Seg** ep)
 {
 	int done;
-	Seg **q, **p, *s;
+	Seg** q, **p, *s;
 
-	if(ep-seg < 20) {
+	if(ep - seg < 20) {
 		/* bubble sort by z - they should be almost sorted already */
 		q = ep;
 		do {
@@ -467,10 +486,10 @@ zsort(Seg **seg, Seg **ep)
 			}
 		} while(!done);
 	} else {
-		q = ep-1;
+		q = ep - 1;
 		for(p = seg; p < q; p++) {
 			if(p[0]->z > p[1]->z) {
-				qsort(seg, ep-seg, sizeof(Seg*), zcompare);
+				qsort(seg, ep - seg, sizeof(Seg*), zcompare);
 				break;
 			}
 		}
@@ -478,9 +497,9 @@ zsort(Seg **seg, Seg **ep)
 }
 
 static int
-ycompare(const void *a, const void *b)
+ycompare(const void* a, const void* b)
 {
-	Seg **s0, **s1;
+	Seg** s0, **s1;
 	int32_t y0, y1;
 
 	s0 = a;
@@ -496,9 +515,9 @@ ycompare(const void *a, const void *b)
 }
 
 static int
-xcompare(const void *a, const void *b)
+xcompare(const void* a, const void* b)
 {
-	Seg **s0, **s1;
+	Seg** s0, **s1;
 	int32_t x0, x1;
 
 	s0 = a;
@@ -514,9 +533,9 @@ xcompare(const void *a, const void *b)
 }
 
 static int
-zcompare(const void *a, const void *b)
+zcompare(const void* a, const void* b)
 {
-	Seg **s0, **s1;
+	Seg** s0, **s1;
 	int32_t z0, z1;
 
 	s0 = a;

@@ -13,16 +13,16 @@ typedef double Matrix[4][4];
 typedef struct Point3 Point3;
 typedef struct Quaternion Quaternion;
 typedef struct Space Space;
-struct Point3{
+struct Point3 {
 	double x, y, z, w;
 };
-struct Quaternion{
+struct Quaternion {
 	double r, i, j, k;
 };
-struct Space{
+struct Space {
 	Matrix t;
 	Matrix tinv;
-	Space *next;
+	Space* next;
 };
 /*
  * 3-d point arithmetic
@@ -68,7 +68,7 @@ double qlen(Quaternion);
 Quaternion slerp(Quaternion, Quaternion, double);
 Quaternion qmid(Quaternion, Quaternion);
 Quaternion qsqrt(Quaternion);
-void qball(Rectangle, Mouse *, Quaternion *, void (*)(void), Quaternion *);
+void qball(Rectangle, Mouse*, Quaternion*, void (*)(void), Quaternion*);
 /*
  * Matrix arithmetic
  */
@@ -81,18 +81,18 @@ double invertmat(Matrix, Matrix);
 /*
  * Space stack routines
  */
-Space *pushmat(Space *);
-Space *popmat(Space *);
-void rot(Space *, double, int);
-void qrot(Space *, Quaternion);
-void scale(Space *, double, double, double);
-void move(Space *, double, double, double);
-void xform(Space *, Matrix);
-void ixform(Space *, Matrix, Matrix);
-void look(Space *, Point3, Point3, Point3);
-int persp(Space *, double, double, double);
-void viewport(Space *, Rectangle, double);
-Point3 xformpoint(Point3, Space *, Space *);
-Point3 xformpointd(Point3, Space *, Space *);
-Point3 xformplane(Point3, Space *, Space *);
-#define	radians(d)	((d)*.01745329251994329572)
+Space* pushmat(Space*);
+Space* popmat(Space*);
+void rot(Space*, double, int);
+void qrot(Space*, Quaternion);
+void scale(Space*, double, double, double);
+void move(Space*, double, double, double);
+void xform(Space*, Matrix);
+void ixform(Space*, Matrix, Matrix);
+void look(Space*, Point3, Point3, Point3);
+int persp(Space*, double, double, double);
+void viewport(Space*, Rectangle, double);
+Point3 xformpoint(Point3, Space*, Space*);
+Point3 xformpointd(Point3, Space*, Space*);
+Point3 xformplane(Point3, Space*, Space*);
+#define radians(d) ((d)*.01745329251994329572)

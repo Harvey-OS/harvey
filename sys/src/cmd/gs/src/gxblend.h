@@ -9,14 +9,14 @@
 
 /*
   Copyright (C) 2001 artofcode LLC.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -29,7 +29,7 @@
 /* PDF 1.4 blending functions */
 
 #ifndef gxblend_INCLUDED
-#  define gxblend_INCLUDED
+#define gxblend_INCLUDED
 
 typedef bits16 ArtPixMaxDepth;
 
@@ -60,10 +60,9 @@ typedef bits16 ArtPixMaxDepth;
  * 3. I haven't really figured out how to handle the Compatible blend
  * mode. I wouldn't be surprised if it required an API change.
  **/
-void
-art_blend_pixel(ArtPixMaxDepth * dst, const ArtPixMaxDepth * backdrop,
-		const ArtPixMaxDepth * src, int n_chan,
-		gs_blend_mode_t blend_mode);
+void art_blend_pixel(ArtPixMaxDepth* dst, const ArtPixMaxDepth* backdrop,
+                     const ArtPixMaxDepth* src, int n_chan,
+                     gs_blend_mode_t blend_mode);
 
 /**
  * art_blend_pixel_8: Compute PDF 1.4 blending function on 8-bit pixels.
@@ -90,9 +89,8 @@ art_blend_pixel(ArtPixMaxDepth * dst, const ArtPixMaxDepth * backdrop,
  * 3. I haven't really figured out how to handle the Compatible blend
  * mode. I wouldn't be surprised if it required an API change.
  **/
-void
-art_blend_pixel_8(byte *dst, const byte *backdrop,
-		  const byte *src, int n_chan, gs_blend_mode_t blend_mode);
+void art_blend_pixel_8(byte* dst, const byte* backdrop, const byte* src,
+                       int n_chan, gs_blend_mode_t blend_mode);
 
 /**
  * art_pdf_union_8: Union together two alpha values.
@@ -133,10 +131,9 @@ byte art_pdf_union_mul_8(byte alpha1, byte alpha2, byte alpha_mask);
  * 32 bit boundaries, ie bytes from [0] to [(n_chan + 3) & -4] may
  * be accessed.
  **/
-void
-art_pdf_composite_pixel_alpha_8(byte *dst, const byte *src, int n_chan,
+void art_pdf_composite_pixel_alpha_8(byte* dst, const byte* src, int n_chan,
 
-				gs_blend_mode_t blend_mode);
+                                     gs_blend_mode_t blend_mode);
 
 /**
  * art_pdf_uncomposite_group_8: Uncomposite group pixel.
@@ -148,11 +145,9 @@ art_pdf_composite_pixel_alpha_8(byte *dst, const byte *src, int n_chan,
  *
  * Performs uncompositing operation as described in 5.3 of the Adobe spec.
  **/
-void
-art_pdf_uncomposite_group_8(byte *dst,
-			    const byte *backdrop,
+void art_pdf_uncomposite_group_8(byte* dst, const byte* backdrop,
 
-			    const byte *src, byte src_alpha_g, int n_chan);
+                                 const byte* src, byte src_alpha_g, int n_chan);
 
 /**
  * art_pdf_recomposite_group_8: Recomposite group pixel.
@@ -170,12 +165,10 @@ art_pdf_uncomposite_group_8(byte *dst,
  *
  * @alpha corresponds to $fk_i \cdot fm_i \cdot qk_i \cdot qm_i$.
  **/
-void
-art_pdf_recomposite_group_8(byte *dst, byte *dst_alpha_g,
-			    const byte *src, byte src_alpha_g,
-			    int n_chan,
+void art_pdf_recomposite_group_8(byte* dst, byte* dst_alpha_g, const byte* src,
+                                 byte src_alpha_g, int n_chan,
 
-			    byte alpha, gs_blend_mode_t blend_mode);
+                                 byte alpha, gs_blend_mode_t blend_mode);
 
 /**
  * art_pdf_composite_group_8: Composite group pixel.
@@ -189,15 +182,14 @@ art_pdf_recomposite_group_8(byte *dst, byte *dst_alpha_g,
  *
  * @alpha corresponds to $fk_i \cdot fm_i \cdot qk_i \cdot qm_i$.
  **/
-void
-art_pdf_composite_group_8(byte *dst, byte *alpha_g,
-			  const byte *src,
+void art_pdf_composite_group_8(byte* dst, byte* alpha_g, const byte* src,
 
-			  int n_chan, byte alpha, gs_blend_mode_t blend_mode);
+                               int n_chan, byte alpha,
+                               gs_blend_mode_t blend_mode);
 
 /**
  * art_pdf_composite_knockout_simple_8: Simple knockout compositing.
- * @dst: Destination pixel. 
+ * @dst: Destination pixel.
  * @dst_shape: Shape associated with @dst.
  * @src: Source pixel.
  * @n_chan: Number of channels.
@@ -207,16 +199,14 @@ art_pdf_composite_group_8(byte *dst, byte *alpha_g,
  * knockout group, and an elementary shape. The alpha channel of @src
  * is interpreted as shape.
  **/
-void
-art_pdf_composite_knockout_simple_8(byte *dst,
-				    byte *dst_shape,
+void art_pdf_composite_knockout_simple_8(byte* dst, byte* dst_shape,
 
-				    const byte *src,
-				    int n_chan, byte opacity);
+                                         const byte* src, int n_chan,
+                                         byte opacity);
 
 /**
  * art_pdf_composite_knockout_isolated_8: Simple knockout compositing.
- * @dst: Destination pixel. 
+ * @dst: Destination pixel.
  * @dst_shape: Shape associated with @dst.
  * @src: Source pixel.
  * @n_chan: Number of channels.
@@ -227,17 +217,14 @@ art_pdf_composite_knockout_simple_8(byte *dst,
  * This function handles compositin in an isolated knockout case. The
  * alpha channel of @src is interpreted as alpha.
  **/
-void
-art_pdf_composite_knockout_isolated_8(byte *dst,
-				      byte *dst_shape,
-				      const byte *src,
-				      int n_chan,
-				      byte shape,
-				      byte alpha_mask, byte shape_mask);
+void art_pdf_composite_knockout_isolated_8(byte* dst, byte* dst_shape,
+                                           const byte* src, int n_chan,
+                                           byte shape, byte alpha_mask,
+                                           byte shape_mask);
 
 /**
  * art_pdf_composite_knockout_8: General knockout compositing.
- * @dst: Destination pixel. 
+ * @dst: Destination pixel.
  * @dst_alpha_g: Pointer to alpha g value associated with @dst.
  * @backdrop: Backdrop pixel (initial backdrop of knockout group).
  * @src: Source pixel.
@@ -252,15 +239,11 @@ art_pdf_composite_knockout_isolated_8(byte *dst,
  * non-isolated group, they should be uncomposited before calling this
  * routine.
  **/
-void
-art_pdf_composite_knockout_8(byte *dst,
-			     byte *dst_alpha_g,
-			     const byte *backdrop,
-			     const byte *src,
-			     int n_chan,
-			     byte shape,
+void art_pdf_composite_knockout_8(byte* dst, byte* dst_alpha_g,
+                                  const byte* backdrop, const byte* src,
+                                  int n_chan, byte shape,
 
-			     byte alpha_mask,
-			     byte shape_mask, gs_blend_mode_t blend_mode);
+                                  byte alpha_mask, byte shape_mask,
+                                  gs_blend_mode_t blend_mode);
 
 #endif /* gxblend_INCLUDED */

@@ -3,7 +3,8 @@
 
 /*
  *	The whole regression test I am after here is to call regress/args with
- *	arguments of various lengths, in order to trigger different stack alignments
+ *	arguments of various lengths, in order to trigger different stack
+ *alignments
  *	due to varying amounts of stuff in args.
  *
  *	It turned out that gcc compiles fprintf into something that uses
@@ -14,20 +15,20 @@
  */
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *p;
+	char* p;
 	int i;
 	double sum;
 
-	if(((uintptr_t)&p & 15) != 0){
+	if(((uintptr_t)&p & 15) != 0) {
 		fprint(2, "%p not 16-aligned\n", &p);
 		print("FAIL\n");
 		exits("FAIL");
 	}
 
 	sum = 0.0;
-	for(i = 0; i < argc; i++){
+	for(i = 0; i < argc; i++) {
 		p = argv[i];
 		sum += strtod(p, nil);
 	}

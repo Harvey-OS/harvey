@@ -12,7 +12,7 @@
 #include <libsec.h>
 
 mpint*
-rsaencrypt(RSApub *rsa, mpint *in, mpint *out)
+rsaencrypt(RSApub* rsa, mpint* in, mpint* out)
 {
 	if(out == nil)
 		out = mpnew(0);

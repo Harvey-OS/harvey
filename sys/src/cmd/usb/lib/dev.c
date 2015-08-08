@@ -16,15 +16,15 @@
  * epN.M -> N
  */
 static int
-nameid(char *s)
+nameid(char* s)
 {
-	char *r;
+	char* r;
 	char nm[20];
 
 	r = strrchr(s, 'p');
 	if(r == nil)
 		return -1;
-	strecpy(nm, nm+sizeof(nm), r+1);
+	strecpy(nm, nm + sizeof(nm), r + 1);
 	r = strchr(nm, '.');
 	if(r == nil)
 		return -1;
@@ -33,23 +33,23 @@ nameid(char *s)
 }
 
 Dev*
-openep(Dev *d, int id)
+openep(Dev* d, int id)
 {
-	char *mode;	/* How many modes? */
-	Ep *ep;
-	Altc *ac;
-	Dev *epd;
-	Usbdev *ud;
+	char* mode; /* How many modes? */
+	Ep* ep;
+	Altc* ac;
+	Dev* epd;
+	Usbdev* ud;
 	char name[40];
 
 	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
 		return nil;
-	if(d->cfd < 0 || d->usb == nil){
+	if(d->cfd < 0 || d->usb == nil) {
 		werrstr("device not configured");
 		return nil;
 	}
 	ud = d->usb;
-	if(id < 0 || id >= nelem(ud->ep) || ud->ep[id] == nil){
+	if(id < 0 || id >= nelem(ud->ep) || ud->ep[id] == nil) {
 		werrstr("bad enpoint number");
 		return nil;
 	}
@@ -60,14 +60,15 @@ openep(Dev *d, int id)
 	if(ep->dir == Eout)
 		mode = "w";
 	snprint(name, sizeof(name), "/dev/usb/ep%d.%d", d->id, id);
-	if(access(name, AEXIST) == 0){
-		dprint(2, "%s: %s already exists; trying to open\n", argv0, name);
+	if(access(name, AEXIST) == 0) {
+		dprint(2, "%s: %s already exists; trying to open\n", argv0,
+		       name);
 		epd = opendev(name);
 		if(epd != nil)
-			epd->maxpkt = ep->maxpkt;	/* guess */
+			epd->maxpkt = ep->maxpkt; /* guess */
 		return epd;
 	}
-	if(devctl(d, "new %d %d %s", id, ep->type, mode) < 0){
+	if(devctl(d, "new %d %d %s", id, ep->type, mode) < 0) {
 		dprint(2, "%s: %s: new: %r\n", argv0, d->dir);
 		return nil;
 	}
@@ -93,16 +94,18 @@ openep(Dev *d, int id)
 	 * It's simpler this way.
 	 */
 
-	if(ac != nil && (ep->type == Eintr || ep->type == Eiso) && ac->interval != 0)
+	if(ac != nil && (ep->type == Eintr || ep->type == Eiso) &&
+	   ac->interval != 0)
 		if(devctl(epd, "pollival %d", ac->interval) < 0)
-			fprint(2, "%s: %s: openep: pollival: %r\n", argv0, epd->dir);
+			fprint(2, "%s: %s: openep: pollival: %r\n", argv0,
+			       epd->dir);
 	return epd;
 }
 
 Dev*
-opendev(char *fn)
+opendev(char* fn)
 {
-	Dev *d;
+	Dev* d;
 	int l;
 
 	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
@@ -120,11 +123,11 @@ opendev(char *fn)
 	 */
 	d->dir = emallocz(l + 30, 0);
 	strcpy(d->dir, fn);
-	strcpy(d->dir+l, "/ctl");
-	d->cfd = open(d->dir, ORDWR|OCEXEC);
+	strcpy(d->dir + l, "/ctl");
+	d->cfd = open(d->dir, ORDWR | OCEXEC);
 	d->dir[l] = 0;
 	d->id = nameid(fn);
-	if(d->cfd < 0){
+	if(d->cfd < 0) {
 		werrstr("can't open endpoint %s: %r", d->dir);
 		free(d->dir);
 		free(d);
@@ -135,40 +138,39 @@ opendev(char *fn)
 }
 
 int
-opendevdata(Dev *d, int mode)
+opendevdata(Dev* d, int mode)
 {
 	char buf[80]; /* more than enough for a usb path */
 
-	seprint(buf, buf+sizeof(buf), "%s/data", d->dir);
-	d->dfd = open(buf, mode|OCEXEC);
+	seprint(buf, buf + sizeof(buf), "%s/data", d->dir);
+	d->dfd = open(buf, mode | OCEXEC);
 	return d->dfd;
 }
 
-enum
-{
+enum {
 	/*
-	 * Max device conf is also limited by max control request size as
-	 * limited by Maxctllen in the kernel usb.h (both limits are arbitrary).
-	 */
-	Maxdevconf = 4 * 1024,	/* asking for 16K kills Newsham's disk */
+         * Max device conf is also limited by max control request size as
+         * limited by Maxctllen in the kernel usb.h (both limits are arbitrary).
+         */
+	Maxdevconf = 4 * 1024, /* asking for 16K kills Newsham's disk */
 };
 
 int
-loaddevconf(Dev *d, int n)
+loaddevconf(Dev* d, int n)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int nr;
 	int type;
 
-	if(n >= nelem(d->usb->conf)){
+	if(n >= nelem(d->usb->conf)) {
 		werrstr("loaddevconf: bug: out of configurations in device");
 		fprint(2, "%s: %r\n", argv0);
 		return -1;
 	}
 	buf = emallocz(Maxdevconf, 0);
-	type = Rd2h|Rstd|Rdev;
-	nr = usbcmd(d, type, Rgetdesc, Dconf<<8|n, 0, buf, Maxdevconf);
-	if(nr < Dconflen){
+	type = Rd2h | Rstd | Rdev;
+	nr = usbcmd(d, type, Rgetdesc, Dconf << 8 | n, 0, buf, Maxdevconf);
+	if(nr < Dconflen) {
 		free(buf);
 		return -1;
 	}
@@ -180,9 +182,9 @@ loaddevconf(Dev *d, int n)
 }
 
 Ep*
-mkep(Usbdev *d, int id)
+mkep(Usbdev* d, int id)
 {
-	Ep *ep;
+	Ep* ep;
 
 	d->ep[id] = ep = emallocz(sizeof(Ep), 1);
 	ep->id = id;
@@ -190,20 +192,20 @@ mkep(Usbdev *d, int id)
 }
 
 static char*
-mkstr(uint8_t *b, int n)
+mkstr(uint8_t* b, int n)
 {
 	Rune r;
-	char *us;
-	char *s;
-	char *e;
+	char* us;
+	char* s;
+	char* e;
 
 	if(n <= 2 || (n & 1) != 0)
 		return strdup("none");
-	n = (n - 2)/2;
+	n = (n - 2) / 2;
 	b += 2;
-	us = s = emallocz(n*UTFmax+1, 0);
-	e = s + n*UTFmax+1;
-	for(; --n >= 0; b += 2){
+	us = s = emallocz(n * UTFmax + 1, 0);
+	e = s + n * UTFmax + 1;
+	for(; --n >= 0; b += 2) {
 		r = GET2(b);
 		s = seprint(s, e, "%C", r);
 	}
@@ -211,7 +213,7 @@ mkstr(uint8_t *b, int n)
 }
 
 char*
-loaddevstr(Dev *d, int sid)
+loaddevstr(Dev* d, int sid)
 {
 	uint8_t buf[128];
 	int type;
@@ -219,33 +221,33 @@ loaddevstr(Dev *d, int sid)
 
 	if(sid == 0)
 		return estrdup("none");
-	type = Rd2h|Rstd|Rdev;
-	nr=usbcmd(d, type, Rgetdesc, Dstr<<8|sid, 0, buf, sizeof(buf));
+	type = Rd2h | Rstd | Rdev;
+	nr = usbcmd(d, type, Rgetdesc, Dstr << 8 | sid, 0, buf, sizeof(buf));
 	return mkstr(buf, nr);
 }
 
 int
-loaddevdesc(Dev *d)
+loaddevdesc(Dev* d)
 {
-	uint8_t buf[Ddevlen+255];
+	uint8_t buf[Ddevlen + 255];
 	int nr;
 	int type;
-	Ep *ep0;
+	Ep* ep0;
 
-	type = Rd2h|Rstd|Rdev;
+	type = Rd2h | Rstd | Rdev;
 	nr = sizeof(buf);
 	memset(buf, 0, Ddevlen);
-	if((nr=usbcmd(d, type, Rgetdesc, Ddev<<8|0, 0, buf, nr)) < 0)
+	if((nr = usbcmd(d, type, Rgetdesc, Ddev << 8 | 0, 0, buf, nr)) < 0)
 		return -1;
 	/*
 	 * Several hubs are returning descriptors of 17 bytes, not 18.
 	 * We accept them and leave number of configurations as zero.
 	 * (a get configuration descriptor also fails for them!)
 	 */
-	if(nr < Ddevlen){
-		print("%s: %s: warning: device with short descriptor\n",
-			argv0, d->dir);
-		if(nr < Ddevlen-1){
+	if(nr < Ddevlen) {
+		print("%s: %s: warning: device with short descriptor\n", argv0,
+		      d->dir);
+		if(nr < Ddevlen - 1) {
 			werrstr("short device descriptor (%d bytes)", nr);
 			return -1;
 		}
@@ -254,11 +256,11 @@ loaddevdesc(Dev *d)
 	ep0 = mkep(d->usb, 0);
 	ep0->dir = Eboth;
 	ep0->type = Econtrol;
-	ep0->maxpkt = d->maxpkt = 8;		/* a default */
+	ep0->maxpkt = d->maxpkt = 8; /* a default */
 	nr = parsedev(d, buf, nr);
-	if(nr >= 0){
+	if(nr >= 0) {
 		d->usb->vendor = loaddevstr(d, d->usb->vsid);
-		if(strcmp(d->usb->vendor, "none") != 0){
+		if(strcmp(d->usb->vendor, "none") != 0) {
 			d->usb->product = loaddevstr(d, d->usb->psid);
 			d->usb->serial = loaddevstr(d, d->usb->ssid);
 		}
@@ -267,7 +269,7 @@ loaddevdesc(Dev *d)
 }
 
 int
-configdev(Dev *d)
+configdev(Dev* d)
 {
 	int i;
 
@@ -282,7 +284,7 @@ configdev(Dev *d)
 }
 
 static void
-closeconf(Conf *c)
+closeconf(Conf* c)
 {
 	int i;
 	int a;
@@ -290,7 +292,7 @@ closeconf(Conf *c)
 	if(c == nil)
 		return;
 	for(i = 0; i < nelem(c->iface); i++)
-		if(c->iface[i] != nil){
+		if(c->iface[i] != nil) {
 			for(a = 0; a < nelem(c->iface[i]->altc); a++)
 				free(c->iface[i]->altc[a]);
 			free(c->iface[i]);
@@ -299,12 +301,12 @@ closeconf(Conf *c)
 }
 
 void
-closedev(Dev *d)
+closedev(Dev* d)
 {
 	int i;
-	Usbdev *ud;
+	Usbdev* ud;
 
-	if(d==nil || decref(d) != 0)
+	if(d == nil || decref(d) != 0)
 		return;
 	dprint(2, "%s: closedev %#p %s\n", argv0, d, d->dir);
 	if(d->free != nil)
@@ -318,7 +320,7 @@ closedev(Dev *d)
 	d->dir = nil;
 	ud = d->usb;
 	d->usb = nil;
-	if(ud != nil){
+	if(ud != nil) {
 		free(ud->vendor);
 		free(ud->product);
 		free(ud->serial);
@@ -337,76 +339,96 @@ closedev(Dev *d)
 static char*
 reqstr(int type, int req)
 {
-	char *s;
-	static char* ds[] = { "dev", "if", "ep", "oth" };
+	char* s;
+	static char* ds[] = {"dev", "if", "ep", "oth"};
 	static char buf[40];
 
-	if(type&Rd2h)
-		s = seprint(buf, buf+sizeof(buf), "d2h");
+	if(type & Rd2h)
+		s = seprint(buf, buf + sizeof(buf), "d2h");
 	else
-		s = seprint(buf, buf+sizeof(buf), "h2d");
-	if(type&Rclass)
-		s = seprint(s, buf+sizeof(buf), "|cls");
-	else if(type&Rvendor)
-		s = seprint(s, buf+sizeof(buf), "|vnd");
+		s = seprint(buf, buf + sizeof(buf), "h2d");
+	if(type & Rclass)
+		s = seprint(s, buf + sizeof(buf), "|cls");
+	else if(type & Rvendor)
+		s = seprint(s, buf + sizeof(buf), "|vnd");
 	else
-		s = seprint(s, buf+sizeof(buf), "|std");
-	s = seprint(s, buf+sizeof(buf), "|%s", ds[type&3]);
+		s = seprint(s, buf + sizeof(buf), "|std");
+	s = seprint(s, buf + sizeof(buf), "|%s", ds[type & 3]);
 
-	switch(req){
-	case Rgetstatus: s = seprint(s, buf+sizeof(buf), " getsts"); break;
-	case Rclearfeature: s = seprint(s, buf+sizeof(buf), " clrfeat"); break;
-	case Rsetfeature: s = seprint(s, buf+sizeof(buf), " setfeat"); break;
-	case Rsetaddress: s = seprint(s, buf+sizeof(buf), " setaddr"); break;
-	case Rgetdesc: s = seprint(s, buf+sizeof(buf), " getdesc"); break;
-	case Rsetdesc: s = seprint(s, buf+sizeof(buf), " setdesc"); break;
-	case Rgetconf: s = seprint(s, buf+sizeof(buf), " getcnf"); break;
-	case Rsetconf: s = seprint(s, buf+sizeof(buf), " setcnf"); break;
-	case Rgetiface: s = seprint(s, buf+sizeof(buf), " getif"); break;
-	case Rsetiface: s = seprint(s, buf+sizeof(buf), " setif"); break;
+	switch(req) {
+	case Rgetstatus:
+		s = seprint(s, buf + sizeof(buf), " getsts");
+		break;
+	case Rclearfeature:
+		s = seprint(s, buf + sizeof(buf), " clrfeat");
+		break;
+	case Rsetfeature:
+		s = seprint(s, buf + sizeof(buf), " setfeat");
+		break;
+	case Rsetaddress:
+		s = seprint(s, buf + sizeof(buf), " setaddr");
+		break;
+	case Rgetdesc:
+		s = seprint(s, buf + sizeof(buf), " getdesc");
+		break;
+	case Rsetdesc:
+		s = seprint(s, buf + sizeof(buf), " setdesc");
+		break;
+	case Rgetconf:
+		s = seprint(s, buf + sizeof(buf), " getcnf");
+		break;
+	case Rsetconf:
+		s = seprint(s, buf + sizeof(buf), " setcnf");
+		break;
+	case Rgetiface:
+		s = seprint(s, buf + sizeof(buf), " getif");
+		break;
+	case Rsetiface:
+		s = seprint(s, buf + sizeof(buf), " setif");
+		break;
 	}
 	USED(s);
 	return buf;
 }
 
 static int
-cmdreq(Dev *d, int type, int req, int value, int index, uint8_t *data,
+cmdreq(Dev* d, int type, int req, int value, int index, uint8_t* data,
        int count)
 {
 	int ndata, n;
-	uint8_t *wp;
+	uint8_t* wp;
 	uint8_t buf[8];
-	char *hd, *rs;
+	char* hd, *rs;
 
 	assert(d != nil);
-	if(data == nil){
+	if(data == nil) {
 		wp = buf;
 		ndata = 0;
-	}else{
+	} else {
 		ndata = count;
-		wp = emallocz(8+ndata, 0);
+		wp = emallocz(8 + ndata, 0);
 	}
 	wp[0] = type;
 	wp[1] = req;
-	PUT2(wp+2, value);
-	PUT2(wp+4, index);
-	PUT2(wp+6, count);
+	PUT2(wp + 2, value);
+	PUT2(wp + 4, index);
+	PUT2(wp + 6, count);
 	if(data != nil)
-		memmove(wp+8, data, ndata);
-	if(usbdebug>2){
-		hd = hexstr(wp, ndata+8);
+		memmove(wp + 8, data, ndata);
+	if(usbdebug > 2) {
+		hd = hexstr(wp, ndata + 8);
 		rs = reqstr(type, req);
-		fprint(2, "%s: %s val %d|%d idx %d cnt %d out[%d] %s\n",
-			d->dir, rs, value>>8, value&0xFF,
-			index, count, ndata+8, hd);
+		fprint(2, "%s: %s val %d|%d idx %d cnt %d out[%d] %s\n", d->dir,
+		       rs, value >> 8, value & 0xFF, index, count, ndata + 8,
+		       hd);
 		free(hd);
 	}
-	n = write(d->dfd, wp, 8+ndata);
+	n = write(d->dfd, wp, 8 + ndata);
 	if(wp != buf)
 		free(wp);
 	if(n < 0)
 		return -1;
-	if(n != 8+ndata){
+	if(n != 8 + ndata) {
 		dprint(2, "%s: cmd: short write: %d\n", argv0, n);
 		return -1;
 	}
@@ -414,12 +436,12 @@ cmdreq(Dev *d, int type, int req, int value, int index, uint8_t *data,
 }
 
 static int
-cmdrep(Dev *d, void *buf, int nb)
+cmdrep(Dev* d, void* buf, int nb)
 {
-	char *hd;
+	char* hd;
 
 	nb = read(d->dfd, buf, nb);
-	if(nb >0 && usbdebug > 2){
+	if(nb > 0 && usbdebug > 2) {
 		hd = hexstr(buf, nb);
 		fprint(2, "%s: in[%d] %s\n", d->dir, nb, hd);
 		free(hd);
@@ -428,7 +450,7 @@ cmdrep(Dev *d, void *buf, int nb)
 }
 
 int
-usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data,
+usbcmd(Dev* d, int type, int req, int value, int index, uint8_t* data,
        int count)
 {
 	int i, r, nerr;
@@ -440,12 +462,12 @@ usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data,
 	 */
 	r = -1;
 	*err = 0;
-	for(i = nerr = 0; i < Uctries; i++){
+	for(i = nerr = 0; i < Uctries; i++) {
 		if(type & Rd2h)
 			r = cmdreq(d, type, req, value, index, nil, count);
 		else
 			r = cmdreq(d, type, req, value, index, data, count);
-		if(r > 0){
+		if(r > 0) {
 			if((type & Rd2h) == 0)
 				break;
 			r = cmdrep(d, data, count);
@@ -461,13 +483,13 @@ usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data,
 	}
 	if(r > 0 && i >= 2)
 		/* let the user know the device is not in good shape */
-		fprint(2, "%s: usbcmd: %s: required %d attempts (%s)\n",
-			argv0, d->dir, i, err);
+		fprint(2, "%s: usbcmd: %s: required %d attempts (%s)\n", argv0,
+		       d->dir, i, err);
 	return r;
 }
 
 int
-unstall(Dev *dev, Dev *ep, int dir)
+unstall(Dev* dev, Dev* ep, int dir)
 {
 	int r;
 
@@ -475,12 +497,12 @@ unstall(Dev *dev, Dev *ep, int dir)
 		dir = 0x80;
 	else
 		dir = 0;
-	r = Rh2d|Rstd|Rep;
-	if(usbcmd(dev, r, Rclearfeature, Fhalt, ep->id|dir, nil, 0)<0){
+	r = Rh2d | Rstd | Rep;
+	if(usbcmd(dev, r, Rclearfeature, Fhalt, ep->id | dir, nil, 0) < 0) {
 		werrstr("unstall: %s: %r", ep->dir);
 		return -1;
 	}
-	if(devctl(ep, "clrhalt") < 0){
+	if(devctl(ep, "clrhalt") < 0) {
 		werrstr("clrhalt: %s: %r", ep->dir);
 		return -1;
 	}
@@ -491,14 +513,14 @@ unstall(Dev *dev, Dev *ep, int dir)
  * To be sure it uses a single write.
  */
 int
-devctl(Dev *dev, char *fmt, ...)
+devctl(Dev* dev, char* fmt, ...)
 {
 	char buf[128];
 	va_list arg;
-	char *e;
+	char* e;
 
 	va_start(arg, fmt);
-	e = vseprint(buf, buf+sizeof(buf), fmt, arg);
+	e = vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
-	return write(dev->cfd, buf, e-buf);
+	return write(dev->cfd, buf, e - buf);
 }

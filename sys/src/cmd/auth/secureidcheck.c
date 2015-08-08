@@ -30,42 +30,41 @@
 
 #define AUTHLOG "auth"
 
-enum{
-	R_AccessRequest	=1,	/* Packet code */
-	R_AccessAccept	=2,
-	R_AccessReject	=3,
-	R_AccessChallenge=11,
-	R_UserName	=1,
-	R_UserPassword	=2,
-	R_NASIPAddress	=4,
-	R_ReplyMessage	=18,
-	R_State		=24,
-	R_NASIdentifier	=32,
+enum { R_AccessRequest = 1, /* Packet code */
+       R_AccessAccept = 2,
+       R_AccessReject = 3,
+       R_AccessChallenge = 11,
+       R_UserName = 1,
+       R_UserPassword = 2,
+       R_NASIPAddress = 4,
+       R_ReplyMessage = 18,
+       R_State = 24,
+       R_NASIdentifier = 32,
 };
 
-typedef struct Secret{
-	uint8_t	*s;
-	int	len;
+typedef struct Secret {
+	uint8_t* s;
+	int len;
 } Secret;
 
-typedef struct Attribute{
-	struct Attribute *next;
-	uint8_t	type;
-	uint8_t	len;		/* number of bytes in value */
-	uint8_t	val[256];
+typedef struct Attribute {
+	struct Attribute* next;
+	uint8_t type;
+	uint8_t len; /* number of bytes in value */
+	uint8_t val[256];
 } Attribute;
 
-typedef struct Packet{
-	uint8_t	code, ID;
-	uint8_t	authenticator[16];
+typedef struct Packet {
+	uint8_t code, ID;
+	uint8_t authenticator[16];
 	Attribute first;
 } Packet;
 
 /* assumes pass is at most 16 chars */
 void
-hide(Secret *shared, uint8_t *auth, Secret *pass, uint8_t *x)
+hide(Secret* shared, uint8_t* auth, Secret* pass, uint8_t* x)
 {
-	DigestState *M;
+	DigestState* M;
 	int i, n = pass->len;
 
 	M = md5(shared->s, shared->len, nil, nil);
@@ -77,23 +76,23 @@ hide(Secret *shared, uint8_t *auth, Secret *pass, uint8_t *x)
 }
 
 int
-authcmp(Secret *shared, uint8_t *buf, int m, uint8_t *auth)
+authcmp(Secret* shared, uint8_t* buf, int m, uint8_t* auth)
 {
-	DigestState *M;
+	DigestState* M;
 	uint8_t x[16];
 
-	M = md5(buf, 4, nil, nil);	/* Code+ID+Length */
-	M = md5(auth, 16, nil, M);	/* RequestAuth */
-	M = md5(buf+20, m-20, nil, M);	/* Attributes */
+	M = md5(buf, 4, nil, nil);         /* Code+ID+Length */
+	M = md5(auth, 16, nil, M);         /* RequestAuth */
+	M = md5(buf + 20, m - 20, nil, M); /* Attributes */
 	md5(shared->s, shared->len, x, M);
-	return memcmp(x, buf+4, 16);
+	return memcmp(x, buf + 4, 16);
 }
 
 Packet*
-newRequest(uint8_t *auth)
+newRequest(uint8_t* auth)
 {
 	static uint8_t ID = 0;
-	Packet *p;
+	Packet* p;
 
 	p = (Packet*)malloc(sizeof(*p));
 	if(p == nil)
@@ -107,14 +106,14 @@ newRequest(uint8_t *auth)
 }
 
 void
-freePacket(Packet *p)
+freePacket(Packet* p)
 {
-	Attribute *a, *x;
+	Attribute* a, *x;
 
 	if(!p)
 		return;
 	a = p->first.next;
-	while(a){
+	while(a) {
 		x = a;
 		a = a->next;
 		free(x);
@@ -123,7 +122,7 @@ freePacket(Packet *p)
 }
 
 int
-ding(void *v, char *msg)
+ding(void* v, char* msg)
 {
 	syslog(0, AUTHLOG, "ding %s", msg);
 	if(strstr(msg, "alarm"))
@@ -131,21 +130,22 @@ ding(void *v, char *msg)
 	return 0;
 }
 
-Packet *
-rpc(char *dest, Secret *shared, Packet *req)
+Packet*
+rpc(char* dest, Secret* shared, Packet* req)
 {
 	uint8_t buf[4096], buf2[4096], *b, *e;
-	Packet *resp;
-	Attribute *a;
-	int m, n, fd, try;
+	Packet* resp;
+	Attribute* a;
+	int m, n, fd, try
+		;
 
 	/* marshal request */
 	e = buf + sizeof buf;
 	buf[0] = req->code;
 	buf[1] = req->ID;
-	memmove(buf+4, req->authenticator, 16);
-	b = buf+20;
-	for(a = &req->first; a; a = a->next){
+	memmove(buf + 4, req->authenticator, 16);
+	b = buf + 20;
+	for(a = &req->first; a; a = a->next) {
 		if(b + 2 + a->len > e)
 			return nil;
 		*b++ = a->type;
@@ -153,42 +153,42 @@ rpc(char *dest, Secret *shared, Packet *req)
 		memmove(b, a->val, a->len);
 		b += a->len;
 	}
-	n = b-buf;
-	buf[2] = n>>8;
+	n = b - buf;
+	buf[2] = n >> 8;
 	buf[3] = n;
 
 	/* send request, wait for reply */
 	fd = dial(dest, 0, 0, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		syslog(0, AUTHLOG, "%s: rpc can't get udp channel", dest);
 		return nil;
 	}
 	atnotify(ding, 1);
 	m = -1;
-	for(try = 0; try < 2; try++){
+	for(try = 0; try < 2; try ++) {
 		/*
 		 * increased timeout from 4sec to 15sec because
 		 * corporate server really takes that long.
 		 */
 		alarm(15000);
 		m = write(fd, buf, n);
-		if(m != n){
-			syslog(0, AUTHLOG, "%s: rpc write err %d %d: %r",
-				dest, m, n);
+		if(m != n) {
+			syslog(0, AUTHLOG, "%s: rpc write err %d %d: %r", dest,
+			       m, n);
 			m = -1;
 			break;
 		}
 		m = read(fd, buf2, sizeof buf2);
 		alarm(0);
-		if(m < 0){
+		if(m < 0) {
 			syslog(0, AUTHLOG, "%s rpc read err %d: %r", dest, m);
-			break;			/* failure */
+			break; /* failure */
 		}
-		if(m == 0 || buf2[1] != buf[1]){	/* need matching ID */
+		if(m == 0 || buf2[1] != buf[1]) { /* need matching ID */
 			syslog(0, AUTHLOG, "%s unmatched reply %d", dest, m);
 			continue;
 		}
-		if(authcmp(shared, buf2, m, buf+4) == 0)
+		if(authcmp(shared, buf2, m, buf + 4) == 0)
 			break;
 		syslog(0, AUTHLOG, "%s bad rpc chksum", dest);
 	}
@@ -198,40 +198,40 @@ rpc(char *dest, Secret *shared, Packet *req)
 
 	/* unmarshal reply */
 	b = buf2;
-	e = buf2+m;
+	e = buf2 + m;
 	resp = (Packet*)malloc(sizeof(*resp));
 	if(resp == nil)
 		return nil;
 	resp->code = *b++;
 	resp->ID = *b++;
 	n = *b++;
-	n = (n<<8) | *b++;
-	if(m != n){
+	n = (n << 8) | *b++;
+	if(m != n) {
 		syslog(0, AUTHLOG, "rpc got %d bytes, length said %d", m, n);
 		if(m > n)
-			e = buf2+n;
+			e = buf2 + n;
 	}
 	memmove(resp->authenticator, b, 16);
 	b += 16;
 	a = &resp->first;
 	a->type = 0;
-	for(;;){
-		if(b >= e){
+	for(;;) {
+		if(b >= e) {
 			a->next = nil;
-			break;		/* exit loop */
+			break; /* exit loop */
 		}
 		a->type = *b++;
 		a->len = (*b++) - 2;
-		if(b + a->len > e){	/* corrupt packet */
+		if(b + a->len > e) { /* corrupt packet */
 			a->next = nil;
 			freePacket(resp);
 			return nil;
 		}
 		memmove(a->val, b, a->len);
 		b += a->len;
-		if(b < e){		/* any more attributes? */
+		if(b < e) { /* any more attributes? */
 			a->next = (Attribute*)malloc(sizeof(*a));
-			if(a->next == nil){
+			if(a->next == nil) {
 				free(req);
 				return nil;
 			}
@@ -242,12 +242,12 @@ rpc(char *dest, Secret *shared, Packet *req)
 }
 
 int
-setAttribute(Packet *p, uint8_t type, uint8_t *s, int n)
+setAttribute(Packet* p, uint8_t type, uint8_t* s, int n)
 {
-	Attribute *a;
+	Attribute* a;
 
 	a = &p->first;
-	if(a->type != 0){
+	if(a->type != 0) {
 		a = (Attribute*)malloc(sizeof(*a));
 		if(a == nil)
 			return -1;
@@ -256,7 +256,7 @@ setAttribute(Packet *p, uint8_t type, uint8_t *s, int n)
 	}
 	a->type = type;
 	a->len = n;
-	if(a->len > 253)	/* RFC2138, section 5 */
+	if(a->len > 253) /* RFC2138, section 5 */
 		a->len = 253;
 	memmove(a->val, s, a->len);
 	return 0;
@@ -264,15 +264,15 @@ setAttribute(Packet *p, uint8_t type, uint8_t *s, int n)
 
 /* return a reply message attribute string */
 char*
-replymsg(Packet *p)
+replymsg(Packet* p)
 {
-	Attribute *a;
+	Attribute* a;
 	static char buf[255];
 
 	for(a = &p->first; a; a = a->next)
-		if(a->type == R_ReplyMessage){
+		if(a->type == R_ReplyMessage) {
 			if(a->len >= sizeof buf)
-				a->len = sizeof(buf)-1;
+				a->len = sizeof(buf) - 1;
 			memmove(buf, a->val, a->len);
 			buf[a->len] = 0;
 		}
@@ -280,23 +280,23 @@ replymsg(Packet *p)
 }
 
 /* for convenience while debugging */
-char *replymess;
-Attribute *stateattr;
+char* replymess;
+Attribute* stateattr;
 
 void
-logPacket(Packet *p)
+logPacket(Packet* p)
 {
 	int i;
-	char *np, *e;
-	char buf[255], pbuf[4*1024];
-	uint8_t *au = p->authenticator;
-	Attribute *a;
+	char* np, *e;
+	char buf[255], pbuf[4 * 1024];
+	uint8_t* au = p->authenticator;
+	Attribute* a;
 
 	e = pbuf + sizeof(pbuf);
 
-	np = seprint(pbuf, e, "Packet ID=%d auth=%x %x %x... ",
-		p->ID, au[0], au[1], au[2]);
-	switch(p->code){
+	np = seprint(pbuf, e, "Packet ID=%d auth=%x %x %x... ", p->ID, au[0],
+	             au[1], au[2]);
+	switch(p->code) {
 	case R_AccessRequest:
 		np = seprint(np, e, "request\n");
 		break;
@@ -314,8 +314,8 @@ logPacket(Packet *p)
 		break;
 	}
 	replymess = "0000000";
-	for(a = &p->first; a; a = a->next){
-		if(a->len > 253 )
+	for(a = &p->first; a; a = a->next) {
+		if(a->len > 253)
 			a->len = 253;
 		memmove(buf, a->val, a->len);
 		np = seprint(np, e, " [%d]", a->type);
@@ -338,47 +338,48 @@ logPacket(Packet *p)
 static uint8_t*
 getipv4addr(void)
 {
-	Ipifc *nifc;
-	Iplifc *lifc;
-	static Ipifc *ifc;
+	Ipifc* nifc;
+	Iplifc* lifc;
+	static Ipifc* ifc;
 
 	ifc = readipifc("/net", ifc, -1);
 	for(nifc = ifc; nifc; nifc = nifc->next)
 		for(lifc = nifc->lifc; lifc; lifc = lifc->next)
-			if (ipcmp(lifc->ip, IPnoaddr) != 0 &&
-			    ipcmp(lifc->ip, v4prefix) != 0)
+			if(ipcmp(lifc->ip, IPnoaddr) != 0 &&
+			   ipcmp(lifc->ip, v4prefix) != 0)
 				return lifc->ip;
 	return nil;
 }
 
-extern Ndb *db;
+extern Ndb* db;
 
 /* returns 0 on success, error message on failure */
 char*
-secureidcheck(char *user, char *response)
+secureidcheck(char* user, char* response)
 {
-	char *radiussecret = nil;
-	char *rv = "authentication failed";
-	char dest[3*IPaddrlen+20], ruser[64];
-	uint8_t *ip;
+	char* radiussecret = nil;
+	char* rv = "authentication failed";
+	char dest[3 * IPaddrlen + 20], ruser[64];
+	uint8_t* ip;
 	uint8_t x[16];
 	uint32_t u[4];
 	Ndbs s;
-	Ndbtuple *t = nil, *nt, *tt;
-	Packet *req = nil, *resp = nil;
+	Ndbtuple* t = nil, *nt, *tt;
+	Packet* req = nil, * resp = nil;
 	Secret shared, pass;
-	static Ndb *netdb;
+	static Ndb* netdb;
 
 	if(netdb == nil)
 		netdb = ndbopen(0);
 
 	/* bad responses make them disable the fob, avoid silly checks */
-	if(strlen(response) < 4 || strpbrk(response,"abcdefABCDEF") != nil)
+	if(strlen(response) < 4 || strpbrk(response, "abcdefABCDEF") != nil)
 		goto out;
 
 	/* get radius secret */
-	radiussecret = ndbgetvalue(db, &s, "radius", "lra-radius", "secret", &t);
-	if(radiussecret == nil){
+	radiussecret =
+	    ndbgetvalue(db, &s, "radius", "lra-radius", "secret", &t);
+	if(radiussecret == nil) {
 		syslog(0, AUTHLOG, "secureidcheck: nil radius secret: %r");
 		goto out;
 	}
@@ -388,7 +389,7 @@ secureidcheck(char *user, char *response)
 	for(nt = t; nt; nt = nt->entry)
 		if(strcmp(nt->attr, "uid") == 0 && strcmp(nt->val, user) == 0)
 			for(tt = nt->line; tt != nt; tt = tt->line)
-				if(strcmp(tt->attr, "rid") == 0){
+				if(strcmp(tt->attr, "rid") == 0) {
 					strcpy(ruser, tt->val);
 					break;
 				}
@@ -405,7 +406,7 @@ secureidcheck(char *user, char *response)
 	shared.s = (uint8_t*)radiussecret;
 	shared.len = strlen(radiussecret);
 	ip = getipv4addr();
-	if(ip == nil){
+	if(ip == nil) {
 		syslog(0, AUTHLOG, "no interfaces: %r\n");
 		goto out;
 	}
@@ -421,52 +422,53 @@ secureidcheck(char *user, char *response)
 		goto out;
 
 	t = ndbsearch(netdb, &s, "sys", "lra-radius");
-	if(t == nil){
-		syslog(0, AUTHLOG, "secureidcheck: nil radius sys search: %r\n");
+	if(t == nil) {
+		syslog(0, AUTHLOG,
+		       "secureidcheck: nil radius sys search: %r\n");
 		goto out;
 	}
-	for(nt = t; nt; nt = nt->entry){
+	for(nt = t; nt; nt = nt->entry) {
 		if(strcmp(nt->attr, "ip") != 0)
 			continue;
 
 		snprint(dest, sizeof dest, "udp!%s!radius", nt->val);
 		resp = rpc(dest, &shared, req);
-		if(resp == nil){
+		if(resp == nil) {
 			syslog(0, AUTHLOG, "%s nil response", dest);
 			continue;
 		}
-		if(resp->ID != req->ID){
+		if(resp->ID != req->ID) {
 			syslog(0, AUTHLOG, "%s mismatched ID  req=%d resp=%d",
-				dest, req->ID, resp->ID);
+			       dest, req->ID, resp->ID);
 			freePacket(resp);
 			resp = nil;
 			continue;
 		}
 
-		switch(resp->code){
+		switch(resp->code) {
 		case R_AccessAccept:
 			syslog(0, AUTHLOG, "%s accepted ruser=%s", dest, ruser);
 			rv = nil;
 			break;
 		case R_AccessReject:
-			syslog(0, AUTHLOG, "%s rejected ruser=%s %s",
-				dest, ruser, replymsg(resp));
+			syslog(0, AUTHLOG, "%s rejected ruser=%s %s", dest,
+			       ruser, replymsg(resp));
 			rv = "secureid failed";
 			break;
 		case R_AccessChallenge:
-			syslog(0, AUTHLOG, "%s challenge ruser=%s %s",
-				dest, ruser, replymsg(resp));
+			syslog(0, AUTHLOG, "%s challenge ruser=%s %s", dest,
+			       ruser, replymsg(resp));
 			rv = "secureid out of sync";
 			break;
 		default:
-			syslog(0, AUTHLOG, "%s code=%d ruser=%s %s",
-				dest, resp->code, ruser, replymsg(resp));
+			syslog(0, AUTHLOG, "%s code=%d ruser=%s %s", dest,
+			       resp->code, ruser, replymsg(resp));
 			break;
 		}
-		break;	/* we have a proper reply, no need to ask again */
+		break; /* we have a proper reply, no need to ask again */
 	}
 out:
-	if (t)
+	if(t)
 		ndbfree(t);
 	free(radiussecret);
 	freePacket(req);

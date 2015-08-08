@@ -13,7 +13,7 @@
 #include "authcmdlib.h"
 
 void
-error(char *fmt, ...)
+error(char* fmt, ...)
 {
 	char buf[8192], *s;
 	va_list arg;

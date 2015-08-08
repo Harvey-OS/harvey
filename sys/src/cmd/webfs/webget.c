@@ -16,7 +16,7 @@
 void
 xfer(int from, int to)
 {
-	char buf[12*1024];
+	char buf[12 * 1024];
 	int n;
 
 	while((n = read(from, buf, sizeof buf)) > 0)
@@ -34,7 +34,7 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int conn, ctlfd, fd, n;
 	char buf[128], *base, *mtpt, *post, *url;
@@ -42,7 +42,8 @@ main(int argc, char **argv)
 	mtpt = "/mnt/web";
 	post = nil;
 	base = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'b':
@@ -54,17 +55,18 @@ main(int argc, char **argv)
 	case 'p':
 		post = EARGF(usage());
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
-	if (argc != 1) 
+	if(argc != 1)
 		usage();
 
 	url = argv[0];
- 
+
 	snprint(buf, sizeof buf, "%s/clone", mtpt);
 	if((ctlfd = open(buf, ORDWR)) < 0)
 		sysfatal("couldn't open %s: %r", buf);
-	if((n = read(ctlfd, buf, sizeof buf-1)) < 0)
+	if((n = read(ctlfd, buf, sizeof buf - 1)) < 0)
 		sysfatal("reading clone: %r");
 	if(n == 0)
 		sysfatal("short read on clone");
@@ -78,7 +80,7 @@ main(int argc, char **argv)
 	if(fprint(ctlfd, "url %s", url) <= 0)
 		sysfatal("get ctl write: %r");
 
-	if(post){
+	if(post) {
 		snprint(buf, sizeof buf, "%s/%d/postbody", mtpt, conn);
 		if((fd = open(buf, OWRITE)) < 0)
 			sysfatal("open %s: %r", buf);

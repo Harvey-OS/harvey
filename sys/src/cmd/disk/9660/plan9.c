@@ -15,7 +15,7 @@
 #include "iso9660.h"
 
 void
-dirtoxdir(XDir *xd, Dir *d)
+dirtoxdir(XDir* xd, Dir* d)
 {
 	xd->name = atom(d->name);
 	xd->uid = atom(d->uid);
@@ -32,5 +32,6 @@ dirtoxdir(XDir *xd, Dir *d)
 void
 fdtruncate(int fd, uint32_t size)
 {
-	USED(fd); USED(size);
+	USED(fd);
+	USED(size);
 }

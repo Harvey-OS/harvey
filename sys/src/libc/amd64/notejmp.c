@@ -3,9 +3,9 @@
 #include <ureg.h>
 
 void
-notejmp(void *vr, jmp_buf j, int ret)
+notejmp(void* vr, jmp_buf j, int ret)
 {
-	struct Ureg *r = vr;
+	struct Ureg* r = vr;
 
 	r->ax = ret;
 	if(ret == 0)

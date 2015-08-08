@@ -13,7 +13,7 @@
 #include "regexp.h"
 
 void
-regerror(char *s)
+regerror(char* s)
 {
 	char buf[132];
 

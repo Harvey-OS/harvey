@@ -13,23 +13,21 @@
 #include <regexp.h>
 #include <ctype.h>
 
-typedef struct Date	Date;
+typedef struct Date Date;
 struct Date {
-	Reprog *p;	/* an RE to match this date */
-	Date *next;	/* pointer to next in list */
+	Reprog* p;  /* an RE to match this date */
+	Date* next; /* pointer to next in list */
 };
 
-enum{
-	Secondsperday = 24*60*60
-};
+enum { Secondsperday = 24 * 60 * 60 };
 
-Date *Base = nil;
+Date* Base = nil;
 Biobuf in;
 int debug, matchyear;
 
 void dates(Tm*);
 void upper2lower(char*, char*, int);
-void *emalloc(unsigned int);
+void* emalloc(unsigned int);
 
 void
 usage(void)
@@ -39,17 +37,18 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i, fd, ahead;
 	int32_t now;
-	char *line;
-	Tm *tm;
-	Date *d;
+	char* line;
+	Tm* tm;
+	Date* d;
 	char buf[1024];
 
 	ahead = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'y':
 		matchyear = 1;
 		break;
@@ -61,7 +60,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	/* make a list of dates */
 	now = time(0);
@@ -70,41 +70,41 @@ main(int argc, char *argv[])
 	now += Secondsperday;
 	tm = localtime(now);
 	dates(tm);
-	if(tm->wday == 6){
+	if(tm->wday == 6) {
 		now += Secondsperday;
 		tm = localtime(now);
 		dates(tm);
 	}
-	if(tm->wday == 0){
+	if(tm->wday == 0) {
 		now += Secondsperday;
 		tm = localtime(now);
 		dates(tm);
 	}
-	if(ahead){
+	if(ahead) {
 		now = time(0);
 		now += ahead * Secondsperday;
 		tm = localtime(now);
 		dates(tm);
 	}
 
-	for(i=0; i<argc || (i==0 && argc==0); i++){
-		if(i==0 && argc==0)
-			snprint(buf, sizeof buf,
-				"/usr/%s/lib/calendar", getuser());
+	for(i = 0; i < argc || (i == 0 && argc == 0); i++) {
+		if(i == 0 && argc == 0)
+			snprint(buf, sizeof buf, "/usr/%s/lib/calendar",
+			        getuser());
 		else
-			strecpy(buf, buf+sizeof buf, argv[i]);
+			strecpy(buf, buf + sizeof buf, argv[i]);
 		fd = open(buf, OREAD);
-		if(fd<0 || Binit(&in, fd, OREAD)<0){
+		if(fd < 0 || Binit(&in, fd, OREAD) < 0) {
 			fprint(2, "calendar: can't open %s: %r\n", buf);
 			exits("open");
 		}
 
 		/* go through the file */
-		while(line = Brdline(&in, '\n')){
+		while(line = Brdline(&in, '\n')) {
 			line[Blinelen(&in) - 1] = 0;
 			upper2lower(buf, line, sizeof buf);
-			for(d=Base; d; d=d->next)
-				if(regexec(d->p, buf, 0, 0)){
+			for(d = Base; d; d = d->next)
+				if(regexec(d->p, buf, 0, 0)) {
 					print("%s\n", line);
 					break;
 				}
@@ -114,37 +114,12 @@ main(int argc, char *argv[])
 	exits("");
 }
 
-char *months[] = 
-{
-	"january",
-	"february",
-	"march",
-	"april",
-	"may",
-	"june",
-	"july",
-	"august",
-	"september",
-	"october",
-	"november",
-	"december"
-};
-char *nth[] = {
-	"first", 
-	"second",
-	"third",
-	"fourth",
-	"fifth"
-};
-char *days[] = {
-	"sunday",
-	"monday",
-	"tuesday",
-	"wednesday",
-	"thursday",
-	"friday",
-	"saturday"
-};
+char* months[] = {"january",   "february", "march",    "april",
+                  "may",       "june",     "july",     "august",
+                  "september", "october",  "november", "december"};
+char* nth[] = {"first", "second", "third", "fourth", "fifth"};
+char* days[] = {"sunday",   "monday", "tuesday", "wednesday",
+                "thursday", "friday", "saturday"};
 
 /*
  * Generate two Date structures.  First has month followed by day;
@@ -152,67 +127,70 @@ char *days[] = {
  * last, and return the first.
  */
 void
-dates(Tm *tm)
+dates(Tm* tm)
 {
-	Date *nd;
+	Date* nd;
 	char mo[128], day[128], buf[128];
 
 	if(utflen(days[tm->wday]) > 3)
-		snprint(day, sizeof day, "%3.3s(%s)?",
-			days[tm->wday], days[tm->wday]+3);
+		snprint(day, sizeof day, "%3.3s(%s)?", days[tm->wday],
+		        days[tm->wday] + 3);
 	else
 		snprint(day, sizeof day, "%3.3s", days[tm->wday]);
 
 	if(utflen(months[tm->mon]) > 3)
-		snprint(mo, sizeof mo, "%3.3s(%s)?",
-			months[tm->mon], months[tm->mon]+3);
+		snprint(mo, sizeof mo, "%3.3s(%s)?", months[tm->mon],
+		        months[tm->mon] + 3);
 	else
 		snprint(mo, sizeof mo, "%3.3s", months[tm->mon]);
-	if (matchyear)
-		snprint(buf, sizeof buf,
-			"^[\t ]*((%s( |\t)+)|(%d/))%d( |\t|$)(((%d|%d|%02d)( |\t|$))|[^0-9]|([0-9]+[^0-9 \t]))",
-			mo, tm->mon+1, tm->mday, tm->year+1900, tm->year%100, tm->year%100);
+	if(matchyear)
+		snprint(buf, sizeof buf, "^[\t ]*((%s( |\t)+)|(%d/))%d( "
+		                         "|\t|$)(((%d|%d|%02d)( "
+		                         "|\t|$))|[^0-9]|([0-9]+[^0-9 \t]))",
+		        mo, tm->mon + 1, tm->mday, tm->year + 1900,
+		        tm->year % 100, tm->year % 100);
 	else
-		snprint(buf, sizeof buf,
-			"^[\t ]*((%s( |\t)+)|(%d/))%d( |\t|$)",
-			mo, tm->mon+1, tm->mday);
+		snprint(buf, sizeof buf, "^[\t ]*((%s( |\t)+)|(%d/))%d( |\t|$)",
+		        mo, tm->mon + 1, tm->mday);
 	if(debug)
 		print("%s\n", buf);
 
 	nd = emalloc(sizeof(Date));
 	nd->p = regcomp(buf);
-	nd->next = Base;	
+	nd->next = Base;
 	Base = nd;
 
-	if (matchyear)
-		snprint(buf, sizeof buf,
-			"^[\t ]*%d( |\t)+(%s)( |\t|$)(((%d|%d|%02d)( |\t|$))|[^0-9]|([0-9]+[^0-9 \t]))",
-			tm->mday, mo, tm->year+1900, tm->year%100, tm->year%100);
+	if(matchyear)
+		snprint(buf, sizeof buf, "^[\t ]*%d( |\t)+(%s)( "
+		                         "|\t|$)(((%d|%d|%02d)( "
+		                         "|\t|$))|[^0-9]|([0-9]+[^0-9 \t]))",
+		        tm->mday, mo, tm->year + 1900, tm->year % 100,
+		        tm->year % 100);
 	else
-		snprint(buf, sizeof buf,
-			"^[\t ]*%d( |\t)+(%s)( |\t|$)",
-			tm->mday, mo);
+		snprint(buf, sizeof buf, "^[\t ]*%d( |\t)+(%s)( |\t|$)",
+		        tm->mday, mo);
 	if(debug)
 		print("%s\n", buf);
 	nd = emalloc(sizeof(Date));
-	nd->p = regcomp(buf);	
-	nd->next = Base;	
+	nd->p = regcomp(buf);
+	nd->next = Base;
 	Base = nd;
 
 	snprint(buf, sizeof buf, "^[\t ]*every[ \t]+%s", day);
 	if(debug)
 		print("%s\n", buf);
 	nd = emalloc(sizeof(Date));
-	nd->p = regcomp(buf);	
-	nd->next = Base;	
+	nd->p = regcomp(buf);
+	nd->next = Base;
 	Base = nd;
 
-	snprint(buf, sizeof buf, "[\t ]*the[\t ]+%s[\t ]+%s", nth[(tm->mday-1)/7], day);
+	snprint(buf, sizeof buf, "[\t ]*the[\t ]+%s[\t ]+%s",
+	        nth[(tm->mday - 1) / 7], day);
 	if(debug)
 		print("%s\n", buf);
 	nd = emalloc(sizeof(Date));
-	nd->p = regcomp(buf);	
-	nd->next = Base;	
+	nd->p = regcomp(buf);
+	nd->next = Base;
 	Base = nd;
 }
 
@@ -220,9 +198,9 @@ dates(Tm *tm)
  * Copy 'from' to 'to', converting to lower case
  */
 void
-upper2lower(char *to, char *from, int len)
+upper2lower(char* to, char* from, int len)
 {
-	while(--len>0 && *from!='\0')
+	while(--len > 0 && *from != '\0')
 		*to++ = tolower(*from++);
 	*to = 0;
 }
@@ -233,10 +211,10 @@ upper2lower(char *to, char *from, int len)
 void*
 emalloc(unsigned int n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
-	if(p == 0){
+	if(p == 0) {
 		fprint(2, "calendar: malloc failed: %r\n");
 		exits("malloc");
 	}

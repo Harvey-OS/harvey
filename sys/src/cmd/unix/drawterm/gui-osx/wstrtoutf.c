@@ -11,28 +11,28 @@
 #include <libc.h>
 
 int
-wstrutflen(Rune *s)
+wstrutflen(Rune* s)
 {
 	int n;
-	
-	for(n=0; *s; n+=runelen(*s),s++)
+
+	for(n = 0; *s; n += runelen(*s), s++)
 		;
 	return n;
 }
 
 int
-wstrtoutf(char *s, Rune *t, int n)
+wstrtoutf(char* s, Rune* t, int n)
 {
 	int i;
-	char *s0;
+	char* s0;
 
 	s0 = s;
 	if(n <= 0)
-		return wstrutflen(t)+1;
+		return wstrutflen(t) + 1;
 	while(*t) {
-		if(n < UTFmax+1 && n < runelen(*t)+1) {
+		if(n < UTFmax + 1 && n < runelen(*t) + 1) {
 			*s = 0;
-			return i+wstrutflen(t)+1;
+			return i + wstrutflen(t) + 1;
 		}
 		i = runetochar(s, t);
 		s += i;
@@ -40,5 +40,5 @@ wstrtoutf(char *s, Rune *t, int n)
 		t++;
 	}
 	*s = 0;
-	return s-s0;
+	return s - s0;
 }

@@ -7,67 +7,55 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-enum
-{
-	Qdir = 0,
-	Qboot = 0x1000,
+enum { Qdir = 0,
+       Qboot = 0x1000,
 
-	Nrootfiles = 32,
-	Nbootfiles = 32,
+       Nrootfiles = 32,
+       Nbootfiles = 32,
 };
 
 typedef struct Dirlist Dirlist;
-struct Dirlist
-{
+struct Dirlist {
 	uint base;
-	Dirtab *dir;
-	uint8_t **data;
+	Dirtab* dir;
+	uint8_t** data;
 	int ndir;
 	int mdir;
 };
 
 static Dirtab rootdir[Nrootfiles] = {
-	"#/",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
+    "#/",
+    {Qdir, 0, QTDIR},
+    0,
+    DMDIR | 0555,
+    "boot",
+    {Qboot, 0, QTDIR},
+    0,
+    DMDIR | 0555,
 };
-static uint8_t *rootdata[Nrootfiles];
-static Dirlist rootlist =
-{
-	0,
-	rootdir,
-	rootdata,
-	2,
-	Nrootfiles
-};
+static uint8_t* rootdata[Nrootfiles];
+static Dirlist rootlist = {0, rootdir, rootdata, 2, Nrootfiles};
 
 static Dirtab bootdir[Nbootfiles] = {
-	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
+    "boot", {Qboot, 0, QTDIR}, 0, DMDIR | 0555,
 };
-static uint8_t *bootdata[Nbootfiles];
-static Dirlist bootlist =
-{
-	Qboot,
-	bootdir,
-	bootdata,
-	1,
-	Nbootfiles
-};
+static uint8_t* bootdata[Nbootfiles];
+static Dirlist bootlist = {Qboot, bootdir, bootdata, 1, Nbootfiles};
 
 /*
  *  add a file to the list
  */
 static void
-addlist(Dirlist *l, char *name, uint8_t *contents, uint32_t len,
-        int perm)
+addlist(Dirlist* l, char* name, uint8_t* contents, uint32_t len, int perm)
 {
-	Dirtab *d;
+	Dirtab* d;
 
 	if(l->ndir >= l->mdir)
 		panic("too many root files");
@@ -87,7 +75,7 @@ addlist(Dirlist *l, char *name, uint8_t *contents, uint32_t len,
  *  add a root file
  */
 void
-addbootfile(char *name, uint8_t *contents, uint32_t len)
+addbootfile(char* name, uint8_t* contents, uint32_t len)
 {
 	addlist(&bootlist, name, contents, len, 0555);
 }
@@ -96,9 +84,9 @@ addbootfile(char *name, uint8_t *contents, uint32_t len)
  *  add a root directory
  */
 static void
-addrootdir(char *name)
+addrootdir(char* name)
 {
-	addlist(&rootlist, name, nil, 0, DMDIR|0555);
+	addlist(&rootlist, name, nil, 0, DMDIR | 0555);
 }
 
 static void
@@ -117,54 +105,58 @@ rootreset(void)
 }
 
 static Chan*
-rootattach(char *spec)
+rootattach(char* spec)
 {
 	return devattach('/', spec);
 }
 
 static int
-rootgen(Chan *c, char *name, Dirtab* dir, int j, int s, Dir *dp)
+rootgen(Chan* c, char* name, Dirtab* dir, int j, int s, Dir* dp)
 {
 	int t;
-	Dirtab *d;
-	Dirlist *l;
+	Dirtab* d;
+	Dirlist* l;
 
-	switch((int)c->qid.path){
+	switch((int)c->qid.path) {
 	case Qdir:
-		if(s == DEVDOTDOT){
-			devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555, dp);
+		if(s == DEVDOTDOT) {
+			devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555,
+			       dp);
 			return 1;
 		}
 		return devgen(c, name, rootlist.dir, rootlist.ndir, s, dp);
 	case Qboot:
-		if(s == DEVDOTDOT){
-			devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555, dp);
+		if(s == DEVDOTDOT) {
+			devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555,
+			       dp);
 			return 1;
 		}
 		return devgen(c, name, bootlist.dir, bootlist.ndir, s, dp);
 	default:
-		if(s == DEVDOTDOT){
+		if(s == DEVDOTDOT) {
 			if((int)c->qid.path < Qboot)
-				devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555, dp);
+				devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve,
+				       0555, dp);
 			else
-				devdir(c, (Qid){Qboot, 0, QTDIR}, "#/", 0, eve, 0555, dp);
+				devdir(c, (Qid){Qboot, 0, QTDIR}, "#/", 0, eve,
+				       0555, dp);
 			return 1;
 		}
 		if(s != 0)
 			return -1;
-		if((int)c->qid.path < Qboot){
-			t = c->qid.path-1;
+		if((int)c->qid.path < Qboot) {
+			t = c->qid.path - 1;
 			l = &rootlist;
-		}else{
+		} else {
 			t = c->qid.path - Qboot - 1;
 			l = &bootlist;
 		}
 		if(t >= l->ndir)
 			return -1;
-if(t < 0){
-print("rootgen %#llux %d %d\n", c->qid.path, s, t);
-panic("whoops");
-}
+		if(t < 0) {
+			print("rootgen %#llux %d %d\n", c->qid.path, s, t);
+			panic("whoops");
+		}
 		d = &l->dir[t];
 		devdir(c, d->qid, d->name, d->length, eve, d->perm, dp);
 		return 1;
@@ -172,19 +164,19 @@ panic("whoops");
 }
 
 static Walkqid*
-rootwalk(Chan *c, Chan *nc, char **name, int nname)
+rootwalk(Chan* c, Chan* nc, char** name, int nname)
 {
-	return devwalk(c,  nc, name, nname, nil, 0, rootgen);
+	return devwalk(c, nc, name, nname, nil, 0, rootgen);
 }
 
 static int32_t
-rootstat(Chan *c, uint8_t *dp, int32_t n)
+rootstat(Chan* c, uint8_t* dp, int32_t n)
 {
 	return devstat(c, dp, n, nil, 0, rootgen);
 }
 
 static Chan*
-rootopen(Chan *c, int omode)
+rootopen(Chan* c, int omode)
 {
 	return devopen(c, omode, nil, 0, devgen);
 }
@@ -198,24 +190,24 @@ rootclose(Chan* c)
 }
 
 static int32_t
-rootread(Chan *c, void *buf, int32_t n, int64_t off)
+rootread(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	uint32_t t;
-	Dirtab *d;
-	Dirlist *l;
-	uint8_t *data;
+	Dirtab* d;
+	Dirlist* l;
+	uint8_t* data;
 	uint32_t offset = off;
 
 	t = c->qid.path;
-	switch(t){
+	switch(t) {
 	case Qdir:
 	case Qboot:
 		return devdirread(c, buf, n, nil, 0, rootgen);
 	}
 
-	if(t<Qboot)
+	if(t < Qboot)
 		l = &rootlist;
-	else{
+	else {
 		t -= Qboot;
 		l = &bootlist;
 	}
@@ -228,9 +220,9 @@ rootread(Chan *c, void *buf, int32_t n, int64_t off)
 	data = l->data[t];
 	if(offset >= d->length)
 		return 0;
-	if(offset+n > d->length)
+	if(offset + n > d->length)
 		n = d->length - offset;
-	memmove(buf, data+offset, n);
+	memmove(buf, data + offset, n);
 	return n;
 }
 
@@ -242,23 +234,9 @@ rootwrite(Chan* c, void* v, int32_t n, int64_t m)
 }
 
 Dev rootdevtab = {
-	'/',
-	"root",
+    '/',       "root",
 
-	rootreset,
-	devinit,
-	devshutdown,
-	rootattach,
-	rootwalk,
-	rootstat,
-	rootopen,
-	devcreate,
-	rootclose,
-	rootread,
-	devbread,
-	rootwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    rootreset, devinit,   devshutdown, rootattach, rootwalk,
+    rootstat,  rootopen,  devcreate,   rootclose,  rootread,
+    devbread,  rootwrite, devbwrite,   devremove,  devwstat,
 };
-

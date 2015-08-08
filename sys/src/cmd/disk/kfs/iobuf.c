@@ -7,28 +7,25 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-#define	DEBUG	0
+#define DEBUG 0
 
-int32_t	niob;
-int32_t	nhiob;
-Hiob	*hiob;
+int32_t niob;
+int32_t nhiob;
+Hiob* hiob;
 
 Iobuf*
 getbuf(Device dev, int32_t addr, int flag)
 {
-	Iobuf *p, *s;
-	Hiob *hp;
+	Iobuf* p, *s;
+	Hiob* hp;
 	int32_t h;
 
 	if(DEBUG)
 		print("getbuf %D(%ld) f=%x\n", dev, addr, flag);
-	h = addr +
-		dev.type*1009L +
-		dev.ctrl*10007L +
-		dev.unit*100003L +
-		dev.part*1000003L;
+	h = addr + dev.type * 1009L + dev.ctrl * 10007L + dev.unit * 100003L +
+	    dev.part * 1000003L;
 	if(h < 0)
 		h = ~h;
 	h %= nhiob;
@@ -37,11 +34,11 @@ getbuf(Device dev, int32_t addr, int flag)
 loop:
 	lock(hp);
 
-/*
- * look for it in the active list
- */
+	/*
+	 * look for it in the active list
+	 */
 	s = hp->link;
-	for(p=s;;) {
+	for(p = s;;) {
 		if(p->addr == addr && !devcmp(p->dev, dev)) {
 			if(p != s) {
 				p->back->fore = p->fore;
@@ -105,7 +102,7 @@ xloop:
 	if(p->flags & Bmod) {
 		unlock(hp);
 		if(!devwrite(p->dev, p->addr, p->xiobuf))
-			p->flags &= ~(Bimm|Bmod);
+			p->flags &= ~(Bimm | Bmod);
 		qunlock(p);
 		goto loop;
 	}
@@ -139,21 +136,21 @@ xloop:
 int
 syncblock(void)
 {
-	Iobuf *p, *s, *q;
-	Hiob *hp;
+	Iobuf* p, *s, *q;
+	Hiob* hp;
 	int32_t h;
 	int flag;
 
 	flag = 0;
-	for(h=0; h<nhiob; h++) {
+	for(h = 0; h < nhiob; h++) {
 		q = 0;
 		hp = &hiob[h];
 		lock(hp);
 		s = hp->link;
-		for(p=s;;) {
+		for(p = s;;) {
 			if(p->flags & Bmod) {
 				if(q)
-					flag = 1;	/* more than 1 mod/line */
+					flag = 1; /* more than 1 mod/line */
 				q = p;
 			}
 			p = p->fore;
@@ -163,7 +160,7 @@ syncblock(void)
 		unlock(hp);
 		if(q) {
 			if(!canqlock(q)) {
-				flag = 1;		/* missed -- was locked */
+				flag = 1; /* missed -- was locked */
 				continue;
 			}
 			if(!(q->flags & Bmod)) {
@@ -171,7 +168,7 @@ syncblock(void)
 				continue;
 			}
 			if(!devwrite(q->dev, q->addr, q->xiobuf))
-				q->flags &= ~(Bmod|Bimm);
+				q->flags &= ~(Bmod | Bimm);
 			qunlock(q);
 		}
 	}
@@ -179,19 +176,19 @@ syncblock(void)
 }
 
 void
-sync(char *reason)
+sync(char* reason)
 {
 	int32_t i;
 
 	print("sync: %s\n", reason);
-	for(i=10*nhiob; i>0; i--)
+	for(i = 10 * nhiob; i > 0; i--)
 		if(!syncblock())
 			return;
 	print("sync shorted\n");
 }
 
 void
-putbuf(Iobuf *p)
+putbuf(Iobuf* p)
 {
 	if(canqlock(p))
 		print("buffer not locked %D(%ld)\n", p->dev, p->addr);
@@ -199,32 +196,32 @@ putbuf(Iobuf *p)
 		if(!(p->flags & Bmod))
 			print("imm and no mod %D(%ld)\n", p->dev, p->addr);
 		if(!devwrite(p->dev, p->addr, p->iobuf))
-			p->flags &= ~(Bmod|Bimm);
+			p->flags &= ~(Bmod | Bimm);
 	}
 	p->iobuf = (char*)-1;
 	qunlock(p);
 }
 
 int
-checktag(Iobuf *p, int tag, int32_t qpath)
+checktag(Iobuf* p, int tag, int32_t qpath)
 {
-	Tag *t;
+	Tag* t;
 
-	t = (Tag*)(p->iobuf+BUFSIZE);
+	t = (Tag*)(p->iobuf + BUFSIZE);
 	if(t->tag != tag) {
 		if(1 || CHAT(0))
-			print("	tag = %G; expected %G; addr = %lud\n",
-				t->tag, tag, p->addr);
+			print("	tag = %G; expected %G; addr = %lud\n", t->tag,
+			      tag, p->addr);
 		return 2;
 	}
 	if(qpath != QPNONE) {
 		qpath &= ~QPDIR;
 		if(qpath != t->path) {
-			if(qpath == (t->path&~QPDIR))	/* old bug */
+			if(qpath == (t->path & ~QPDIR)) /* old bug */
 				return 0;
 			if(1 || CHAT(0))
 				print("	tag/path = %lux; expected %G/%lux\n",
-					t->path, tag, qpath);
+				      t->path, tag, qpath);
 			return 1;
 		}
 	}
@@ -232,11 +229,11 @@ checktag(Iobuf *p, int tag, int32_t qpath)
 }
 
 void
-settag(Iobuf *p, int tag, int32_t qpath)
+settag(Iobuf* p, int tag, int32_t qpath)
 {
-	Tag *t;
+	Tag* t;
 
-	t = (Tag*)(p->iobuf+BUFSIZE);
+	t = (Tag*)(p->iobuf + BUFSIZE);
 	t->tag = tag;
 	if(qpath != QPNONE)
 		t->path = qpath & ~QPDIR;

@@ -19,18 +19,20 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	char buf[128], bufu[128];
 	int afd, n;
-	AuthInfo *ai;
-	AuthRpc *rpc;
-	Chalstate *c;
+	AuthInfo* ai;
+	AuthRpc* rpc;
+	Chalstate* c;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -48,8 +50,8 @@ main(int argc, char **argv)
 	print("challenge: %s\n", c->chal);
 	print("user:");
 	n = read(0, bufu, sizeof bufu);
-	if(n > 0){
-		bufu[n-1] = '\0';
+	if(n > 0) {
+		bufu[n - 1] = '\0';
 		c->user = bufu;
 	}
 
@@ -59,7 +61,7 @@ main(int argc, char **argv)
 		sysfatal("read: %r");
 	if(n == 0)
 		exits(nil);
-	c->nresp = n-1;
+	c->nresp = n - 1;
 	c->resp = buf;
 	if((ai = auth_response(c)) == nil)
 		sysfatal("auth_response: %r");

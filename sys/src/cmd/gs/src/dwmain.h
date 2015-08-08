@@ -11,11 +11,11 @@
 
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -26,12 +26,12 @@
 /* $Id: dwmain.h,v 1.6 2002/02/21 22:24:51 giles Exp $ */
 
 #ifndef dwmain_INCLUDED
-#  define dwmain_INCLUDED
+#define dwmain_INCLUDED
 
 /* Icon index definitions - needed by resources */
 
-#define GSTEXT_ICON	50
-#define GSIMAGE_ICON	51
+#define GSTEXT_ICON 50
+#define GSIMAGE_ICON 51
 
 extern HWND hwndtext;
 

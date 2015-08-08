@@ -14,7 +14,6 @@
 
 #include "mahjongg.h"
 
-
 /*
  * mark tiles that partially obscure the given tile.
  * relies on Depth*Dxy <= Tilex/2
@@ -27,9 +26,10 @@ markabove(int d, int x, int y)
 	for(d++; d < Depth; d++)
 		for(dx = -1; dx <= 2; dx++)
 			for(dy = -1; dy <= 2; dy++)
-				if(x+dx < Lx && x+dx >= 0 &&
-				    y+dy < Ly && y+dy >= 0)
-					level.board[d][x+dx][y+dy].redraw = 1;
+				if(x + dx < Lx && x + dx >= 0 && y + dy < Ly &&
+				   y + dy >= 0)
+					level.board[d][x + dx][y + dy].redraw =
+					    1;
 }
 
 void
@@ -40,9 +40,10 @@ markbelow(int d, int x, int y)
 	for(d--; d >= 0; d--)
 		for(dx = -2; dx <= 1; dx++)
 			for(dy = -2; dy <= 1; dy++)
-				if(x+dx < Lx && x+dx >= 0 &&
-				    y+dy < Ly && y+dy >= 0)
-					level.board[d][x+dx][y+dy].redraw = 1;
+				if(x + dx < Lx && x + dx >= 0 && y + dy < Ly &&
+				   y + dy >= 0)
+					level.board[d][x + dx][y + dy].redraw =
+					    1;
 }
 
 Rectangle
@@ -51,9 +52,10 @@ tilerect(Click c)
 	Point p;
 	Rectangle r;
 
-	p = Pt(c.x*(Facex/2)-(c.d*TileDxy), c.y*(Facey/2)-(c.d*TileDxy));
+	p = Pt(c.x * (Facex / 2) - (c.d * TileDxy),
+	       c.y * (Facey / 2) - (c.d * TileDxy));
 	r = Rpt(p, addpt(p, Pt(Facex, Facey)));
-	return rectaddpt(r, Pt(Depth*TileDxy, Depth*TileDxy));
+	return rectaddpt(r, Pt(Depth * TileDxy, Depth * TileDxy));
 }
 
 void
@@ -64,9 +66,9 @@ clearbrick(Click c)
 	level.hist[--level.remaining] = c;
 
 	level.board[c.d][c.x][c.y].which = None;
-	level.board[c.d][c.x+1][c.y].which = None;
-	level.board[c.d][c.x][c.y+1].which = None;
-	level.board[c.d][c.x+1][c.y+1].which = None;
+	level.board[c.d][c.x + 1][c.y].which = None;
+	level.board[c.d][c.x][c.y + 1].which = None;
+	level.board[c.d][c.x + 1][c.y + 1].which = None;
 
 	r = tilerect(c);
 	draw(img, r, background, nil, r.min);
@@ -90,14 +92,14 @@ drawbrick(Click c)
 		border(img, r, 2, litbrdr, level.board[c.d][c.x][c.y].start);
 
 	/* looks better without borders, uncomment to check it out with'em */
-//	r = Rpt(r.min, addpt(r.min, Pt(Tilex, Tiley)));
-//	draw(img, r, brdr, nil, ZP);
+	//	r = Rpt(r.min, addpt(r.min, Pt(Tilex, Tiley)));
+	//	draw(img, r, brdr, nil, ZP);
 }
 
 void
 redrawlevel(int all)
 {
-	Brick *b;
+	Brick* b;
 	int d, x, y;
 
 	for(d = 0; d < Depth; d++)
@@ -105,8 +107,8 @@ redrawlevel(int all)
 			for(x = 0; x < Lx; x++) {
 				b = &level.board[d][x][y];
 				if(b->which == TL && (all || b->redraw)) {
-					drawbrick(Cl(d,x,y));
-					markabove(d,x,y);
+					drawbrick(Cl(d, x, y));
+					markabove(d, x, y);
 				}
 				b->redraw = 0;
 			}
@@ -134,7 +136,7 @@ resize(Point p)
 	int fd;
 
 	fd = open("/dev/wctl", OWRITE);
-	if(fd >= 0){
+	if(fd >= 0) {
 		fprint(fd, "resize -dx %d -dy %d", p.x, p.y);
 		close(fd);
 	}
@@ -144,7 +146,7 @@ void
 hint(void)
 {
 	int d = 0, x = 0, y = 0;
-	Brick *b = nil;
+	Brick* b = nil;
 
 	if(level.c.d != -1) {
 		if((b = bmatch(level.c)) != nil) {
@@ -152,16 +154,16 @@ hint(void)
 			x = level.c.x;
 			y = level.c.y;
 		}
-	} else 
+	} else
 		for(d = Depth - 1; d >= 0; d--)
 			for(y = 0; y < Ly; y++)
 				for(x = 0; x < Lx; x++)
 					if(level.board[d][x][y].which == TL &&
-					    isfree(Cl(d,x,y)) &&
-					    (b = bmatch(Cl(d,x,y))) != nil)
+					   isfree(Cl(d, x, y)) &&
+					   (b = bmatch(Cl(d, x, y))) != nil)
 						goto Matched;
 Matched:
-	if (b == nil)
+	if(b == nil)
 		return;
 	level.board[d][x][y].clicked = 1;
 	b->clicked = 1;
@@ -200,8 +202,8 @@ findclick(Point coord)
 	Click c;
 
 	for(c.d = Depth - 1; c.d >= 0; c.d--) {
-		c.x = (coord.x + TileDxy*c.d)/(Facex/2);
-		c.y = (coord.y + TileDxy*c.d)/(Facey/2);
+		c.x = (coord.x + TileDxy * c.d) / (Facex / 2);
+		c.y = (coord.y + TileDxy * c.d) / (Facey / 2);
 		switch(level.board[c.d][c.x][c.y].which) {
 		case None:
 			break;
@@ -226,10 +228,10 @@ void
 clicked(Point coord)
 {
 	Click c;
-	Brick *b, *bc;
+	Brick* b, *bc;
 
 	c = findclick(coord);
-	if (c.d == -1)
+	if(c.d == -1)
 		return;
 
 	b = &level.board[c.d][c.x][c.y];
@@ -271,15 +273,15 @@ undo(void)
 	if(level.remaining >= Tiles)
 		return;
 
-	for(i=1; i<=2; i++) {
+	for(i = 1; i <= 2; i++) {
 		j = level.remaining++;
 		d = level.hist[j].d;
 		x = level.hist[j].x;
 		y = level.hist[j].y;
 		level.board[d][x][y].which = TL;
-		level.board[d][x+1][y].which = TR;
-		level.board[d][x+1][y+1].which = BR;
-		level.board[d][x][y+1].which = BL;
+		level.board[d][x + 1][y].which = TR;
+		level.board[d][x + 1][y + 1].which = BR;
+		level.board[d][x][y + 1].which = BL;
 		level.board[d][x][y].redraw = 1;
 	}
 	updatelevel();
@@ -288,7 +290,7 @@ undo(void)
 void
 deselect(void)
 {
-	Brick *b;
+	Brick* b;
 
 	if(level.c.d == -1)
 		return;
@@ -303,13 +305,13 @@ void
 light(Point coord)
 {
 	Click c = findclick(coord);
-	if (c.d == -1)
+	if(c.d == -1)
 		return;
 
 	if(eqcl(level.l, c))
 		return;
 
-	if (level.l.d != -1) {
+	if(level.l.d != -1) {
 		level.board[level.l.d][level.l.x][level.l.y].redraw = 1;
 		level.l = NC;
 	}
@@ -331,7 +333,7 @@ clearlevel(void)
 		for(c.y = 0; c.y < Ly; c.y++)
 			for(c.x = 0; c.x < Lx; c.x++)
 				if(level.board[c.d][c.x][c.y].which == TL &&
-				    isfree(c)) {
+				   isfree(c)) {
 					cm = cmatch(c, c.d);
 					if(cm.d != -1) {
 						clearbrick(cm);

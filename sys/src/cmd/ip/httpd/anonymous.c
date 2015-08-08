@@ -13,9 +13,9 @@
 #include "httpsrv.h"
 
 void
-anonymous(HConnect *c)
+anonymous(HConnect* c)
 {
-	if(bind(webroot, "/", MREPL) < 0){
+	if(bind(webroot, "/", MREPL) < 0) {
 		hfail(c, HInternal);
 		exits(nil);
 	}

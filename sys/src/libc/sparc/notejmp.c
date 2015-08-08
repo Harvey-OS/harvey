@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <ureg.h>
 
-int	__noterestore(void);
+int __noterestore(void);
 
 void
-notejmp(void *vr, jmp_buf j, int ret)
+notejmp(void* vr, jmp_buf j, int ret)
 {
-	struct Ureg *r = vr;
+	struct Ureg* r = vr;
 
 	/*
 	 * song and dance to get around the kernel smashing r7 in noted

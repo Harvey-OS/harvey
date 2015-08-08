@@ -7,28 +7,28 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
 int
-match(char *name, char *template, char *stem)
+match(char* name, char* template, char* stem)
 {
 	Rune r;
 	int n;
 
-	while(*name && *template){
+	while(*name && *template) {
 		n = chartorune(&r, template);
-		if (PERCENT(r))
+		if(PERCENT(r))
 			break;
-		while (n--)
-			if(*name++ != *template++)
+		while(n--)
+			if(*name++ != *template ++)
 				return 0;
 	}
 	if(!PERCENT(*template))
 		return 0;
-	n = strlen(name)-strlen(template+1);
-	if (n < 0)
+	n = strlen(name) - strlen(template + 1);
+	if(n < 0)
 		return 0;
-	if (strcmp(template+1, name+n))
+	if(strcmp(template + 1, name + n))
 		return 0;
 	strncpy(stem, name, n);
 	stem[n] = 0;
@@ -38,25 +38,25 @@ match(char *name, char *template, char *stem)
 }
 
 void
-subst(char *stem, char *template, char *dest, int dlen)
+subst(char* stem, char* template, char* dest, int dlen)
 {
 	Rune r;
-	char *s, *e;
+	char* s, *e;
 	int n;
 
-	e = dest+dlen-1;
-	while(*template){
+	e = dest + dlen - 1;
+	while(*template) {
 		n = chartorune(&r, template);
-		if (PERCENT(r)) {
+		if(PERCENT(r)) {
 			template += n;
-			for (s = stem; *s; s++)
+			for(s = stem; *s; s++)
 				if(dest < e)
 					*dest++ = *s;
 		} else
-			while (n--){
+			while(n--) {
 				if(dest < e)
 					*dest++ = *template;
-				template++;
+				template ++;
 			}
 	}
 	*dest = 0;

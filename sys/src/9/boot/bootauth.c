@@ -13,16 +13,16 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-char	*authaddr;
+char* authaddr;
 static void glenda(void);
 
 void
 authentication(int cpuflag)
 {
-	char *argv[16], **av;
+	char* argv[16], **av;
 	int ac;
 
-	if(access("/boot/factotum", AEXEC) < 0){
+	if(access("/boot/factotum", AEXEC) < 0) {
 		glenda();
 		return;
 	}
@@ -33,19 +33,19 @@ authentication(int cpuflag)
 	av[ac++] = "factotum";
 	if(getenv("debugfactotum"))
 		av[ac++] = "-p";
-//	av[ac++] = "-d";		/* debug traces */
-//	av[ac++] = "-D";		/* 9p messages */
+	//	av[ac++] = "-d";		/* debug traces */
+	//	av[ac++] = "-D";		/* 9p messages */
 	if(cpuflag)
 		av[ac++] = "-S";
 	else
 		av[ac++] = "-u";
 	av[ac++] = "-sfactotum";
-	if(authaddr != nil){
+	if(authaddr != nil) {
 		av[ac++] = "-a";
 		av[ac++] = authaddr;
 	}
 	av[ac] = 0;
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fatal("starting factotum");
 	case 0:
@@ -67,14 +67,14 @@ static void
 glenda(void)
 {
 	int fd;
-	char *s;
+	char* s;
 
 	s = getenv("user");
 	if(s == nil)
 		s = "glenda";
 
 	fd = open("#c/hostowner", OWRITE);
-	if(fd >= 0){
+	if(fd >= 0) {
 		if(write(fd, s, strlen(s)) != strlen(s))
 			fprint(2, "setting #c/hostowner to %s: %r\n", s);
 		close(fd);

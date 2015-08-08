@@ -25,23 +25,23 @@
 #include "priv.h"
 
 void
-_sock_ingetaddr(Rock *r, struct sockaddr_in *ip, int *alen, char *a)
+_sock_ingetaddr(Rock* r, struct sockaddr_in* ip, int* alen, char* a)
 {
 	int n, fd;
-	char *p;
+	char* p;
 	char name[Ctlsize];
 
 	/* get remote address */
 	strcpy(name, r->ctl);
 	p = strrchr(name, '/');
-	strcpy(p+1, a);
+	strcpy(p + 1, a);
 	fd = open(name, O_RDONLY);
-	if(fd >= 0){
-		n = read(fd, name, sizeof(name)-1);
-		if(n > 0){
+	if(fd >= 0) {
+		n = read(fd, name, sizeof(name) - 1);
+		if(n > 0) {
 			name[n] = 0;
 			p = strchr(name, '!');
-			if(p){
+			if(p) {
 				*p++ = 0;
 				ip->sin_family = AF_INET;
 				ip->sin_port = htons(atoi(p));
@@ -52,5 +52,4 @@ _sock_ingetaddr(Rock *r, struct sockaddr_in *ip, int *alen, char *a)
 		}
 		close(fd);
 	}
-
 }

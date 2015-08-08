@@ -15,12 +15,12 @@
  * SIGPLAN Notices, Vol. 29, June 1994, page 61.
  */
 
-#define	TN(n)	((uint64_t)1 << (n))
-#define	T31	TN(31)
-#define	T32	TN(32)
+#define TN(n) ((uint64_t)1 << (n))
+#define T31 TN(31)
+#define T32 TN(32)
 
 int
-multiplier(uint32_t d, int p, uint64_t *mp)
+multiplier(uint32_t d, int p, uint64_t* mp)
 {
 	int l;
 	uint64_t mlo, mhi, tlo, thi;
@@ -46,7 +46,7 @@ multiplier(uint32_t d, int p, uint64_t *mp)
 }
 
 int
-sdiv(uint32_t d, uint32_t *mp, int *sp)
+sdiv(uint32_t d, uint32_t* mp, int* sp)
 {
 	int s;
 	uint64_t m;
@@ -61,7 +61,7 @@ sdiv(uint32_t d, uint32_t *mp, int *sp)
 }
 
 int
-udiv(uint32_t d, uint32_t *mp, int *sp, int *pp)
+udiv(uint32_t d, uint32_t* mp, int* sp, int* pp)
 {
 	int p, s;
 	uint64_t m;
@@ -81,15 +81,14 @@ udiv(uint32_t d, uint32_t *mp, int *sp, int *pp)
 		assert(p == 0);
 		*sp = s - 1;
 		return 1;
-	}
-	else {
+	} else {
 		*sp = s;
 		return 0;
 	}
 }
 
 void
-sdivgen(Node *l, Node *r, Node *ax, Node *dx)
+sdivgen(Node* l, Node* r, Node* ax, Node* dx)
 {
 	int a, s;
 	uint32_t m;
@@ -99,7 +98,7 @@ sdivgen(Node *l, Node *r, Node *ax, Node *dx)
 	if(c < 0)
 		c = -c;
 	a = sdiv(c, &m, &s);
-//print("a=%d i=%ld s=%d m=%lux\n", a, (long)r->vconst, s, m);
+	// print("a=%d i=%ld s=%d m=%lux\n", a, (long)r->vconst, s, m);
 	gins(AMOVL, nodconst(m), ax);
 	gins(AIMULL, l, Z);
 	gins(AMOVL, l, ax);
@@ -113,21 +112,20 @@ sdivgen(Node *l, Node *r, Node *ax, Node *dx)
 }
 
 void
-udivgen(Node *l, Node *r, Node *ax, Node *dx)
+udivgen(Node* l, Node* r, Node* ax, Node* dx)
 {
 	int a, s, t;
 	uint32_t m;
 	Node nod;
 
 	a = udiv(r->vconst, &m, &s, &t);
-//print("a=%ud i=%ld p=%d s=%d m=%lux\n", a, (long)r->vconst, t, s, m);
+	// print("a=%ud i=%ld p=%d s=%d m=%lux\n", a, (long)r->vconst, t, s, m);
 	if(t != 0) {
 		gins(AMOVL, l, ax);
 		gins(ASHRL, nodconst(t), ax);
 		gins(AMOVL, nodconst(m), dx);
 		gins(AMULL, dx, Z);
-	}
-	else if(a) {
+	} else if(a) {
 		if(l->op != OREGISTER) {
 			regalloc(&nod, l, Z);
 			gins(AMOVL, l, &nod);
@@ -139,8 +137,7 @@ udivgen(Node *l, Node *r, Node *ax, Node *dx)
 		gins(ARCRL, nodconst(1), dx);
 		if(l == &nod)
 			regfree(l);
-	}
-	else {
+	} else {
 		gins(AMOVL, nodconst(m), ax);
 		gins(AMULL, l, Z);
 	}
@@ -149,13 +146,12 @@ udivgen(Node *l, Node *r, Node *ax, Node *dx)
 }
 
 void
-sext(Node *d, Node *s, Node *l)
+sext(Node* d, Node* s, Node* l)
 {
 	if(s->reg == D_AX && !nodreg(d, Z, D_DX)) {
 		reg[D_DX]++;
 		gins(ACDQ, Z, Z);
-	}
-	else {
+	} else {
 		regalloc(d, l, Z);
 		gins(AMOVL, s, d);
 		gins(ASARL, nodconst(31), d);
@@ -163,7 +159,7 @@ sext(Node *d, Node *s, Node *l)
 }
 
 void
-sdiv2(int32_t c, int v, Node *l, Node *n)
+sdiv2(int32_t c, int v, Node* l, Node* n)
 {
 	Node nod;
 
@@ -173,8 +169,7 @@ sdiv2(int32_t c, int v, Node *l, Node *n)
 			gins(AANDL, nodconst((1 << v) - 1), &nod);
 			gins(AADDL, &nod, n);
 			regfree(&nod);
-		}
-		else {
+		} else {
 			gins(ACMPL, n, nodconst(0x80000000));
 			gins(ASBBL, nodconst(-1), n);
 		}
@@ -185,7 +180,7 @@ sdiv2(int32_t c, int v, Node *l, Node *n)
 }
 
 void
-smod2(int32_t c, int v, Node *l, Node *n)
+smod2(int32_t c, int v, Node* l, Node* n)
 {
 	Node nod;
 
@@ -199,14 +194,12 @@ smod2(int32_t c, int v, Node *l, Node *n)
 		zeroregm(n);
 		gins(AXORL, &nod, n);
 		gins(ASUBL, &nod, n);
-	}
-	else if(v > 1) {
+	} else if(v > 1) {
 		gins(AANDL, nodconst((1 << v) - 1), &nod);
 		gins(AADDL, &nod, n);
 		gins(AANDL, nodconst((1 << v) - 1), n);
 		gins(ASUBL, &nod, n);
-	}
-	else {
+	} else {
 		gins(AANDL, nodconst(1), n);
 		gins(AXORL, &nod, n);
 		gins(ASUBL, &nod, n);

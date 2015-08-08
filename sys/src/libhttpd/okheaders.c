@@ -16,9 +16,9 @@
  * write initial part of successful header
  */
 void
-hokheaders(HConnect *c)
+hokheaders(HConnect* c)
 {
-	Hio *hout;
+	Hio* hout;
 
 	hout = &c->hout;
 	hprint(hout, "%s 200 OK\r\n", hversion);

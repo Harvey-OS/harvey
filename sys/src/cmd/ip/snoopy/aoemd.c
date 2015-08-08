@@ -14,28 +14,29 @@
 #include "protos.h"
 
 typedef struct {
-	uint8_t	res;
-	uint8_t	cmd;
-	uint8_t	ea[6];
+	uint8_t res;
+	uint8_t cmd;
+	uint8_t ea[6];
 } Hdr;
 
-enum {
-	Ocmd,
-	Oea,
+enum { Ocmd,
+       Oea,
 
-	Hsize	= 8,
+       Hsize = 8,
 };
 
-static Field p_fields[] = {
-	{"cmd",	Fnum,	Ocmd,	"command",	},
-	{"ea",	Fnum,	Oea,	"ethernet addr", },
-	nil
-};
+static Field p_fields[] = {{
+                            "cmd", Fnum, Ocmd, "command",
+                           },
+                           {
+                            "ea", Fnum, Oea, "ethernet addr",
+                           },
+                           nil};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(aoemd.name, f, p_fields);
 		return;
 	}
@@ -43,11 +44,11 @@ p_compile(Filter *f)
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
 	uint8_t buf[6];
 	int i;
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -55,28 +56,26 @@ p_filter(Filter *f, Msg *m)
 	h = (Hdr*)m->ps;
 	m->ps += Hsize;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Ocmd:
 		return h->cmd == f->ulv;
 	case Oea:
 		for(i = 0; i < 6; i++)
-			buf[i] = f->ulv >> ((5 - i)*8);
+			buf[i] = f->ulv >> ((5 - i) * 8);
 		return memcmp(buf, h->ea, 6) == 0;
 	}
 	return 0;
 }
 
-static char *ctab[] = {
-	"  ",
-	" +",
-	" -",
+static char* ctab[] = {
+    "  ", " +", " -",
 };
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
-	char *s;
-	Hdr *h;
+	char* s;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -95,12 +94,5 @@ p_seprint(Msg *m)
 }
 
 Proto aoemd = {
-	"aoemd",
-	p_compile,
-	p_filter,
-	p_seprint,
-	nil,
-	nil,
-	p_fields,
-	defaultframer,
+    "aoemd", p_compile, p_filter, p_seprint, nil, nil, p_fields, defaultframer,
 };

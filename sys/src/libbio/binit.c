@@ -7,21 +7,20 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
-static	Biobufhdr*	wbufs[20];
-static	int		atexitflag;
+static Biobufhdr* wbufs[20];
+static int atexitflag;
 
-static
-void
+static void
 batexit(void)
 {
-	Biobufhdr *bp;
+	Biobufhdr* bp;
 	int i;
 
-	for(i=0; i<nelem(wbufs); i++) {
+	for(i = 0; i < nelem(wbufs); i++) {
 		bp = wbufs[i];
 		if(bp != 0) {
 			wbufs[i] = 0;
@@ -30,25 +29,23 @@ batexit(void)
 	}
 }
 
-static
-void
-deinstall(Biobufhdr *bp)
+static void
+deinstall(Biobufhdr* bp)
 {
 	int i;
 
-	for(i=0; i<nelem(wbufs); i++)
+	for(i = 0; i < nelem(wbufs); i++)
 		if(wbufs[i] == bp)
 			wbufs[i] = 0;
 }
 
-static
-void
-install(Biobufhdr *bp)
+static void
+install(Biobufhdr* bp)
 {
 	int i;
 
 	deinstall(bp);
-	for(i=0; i<nelem(wbufs); i++)
+	for(i = 0; i < nelem(wbufs); i++)
 		if(wbufs[i] == 0) {
 			wbufs[i] = bp;
 			break;
@@ -60,13 +57,13 @@ install(Biobufhdr *bp)
 }
 
 int
-Binits(Biobufhdr *bp, int f, int mode, uint8_t *p, int size)
+Binits(Biobufhdr* bp, int f, int mode, uint8_t* p, int size)
 {
 
-	p += Bungetsize;	/* make room for Bungets */
+	p += Bungetsize; /* make room for Bungets */
 	size -= Bungetsize;
 
-	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
+	switch(mode & ~(OCEXEC | ORCLOSE | OTRUNC)) {
 	default:
 		fprint(2, "Binits: unknown mode %d\n", mode);
 		return Beof;
@@ -83,7 +80,7 @@ Binits(Biobufhdr *bp, int f, int mode, uint8_t *p, int size)
 		break;
 	}
 	bp->bbuf = p;
-	bp->ebuf = p+size;
+	bp->ebuf = p + size;
 	bp->bsize = size;
 	bp->icount = 0;
 	bp->gbuf = bp->ebuf;
@@ -95,20 +92,19 @@ Binits(Biobufhdr *bp, int f, int mode, uint8_t *p, int size)
 	return 0;
 }
 
-
 int
-Binit(Biobuf *bp, int f, int mode)
+Binit(Biobuf* bp, int f, int mode)
 {
 	return Binits(bp, f, mode, bp->b, sizeof(bp->b));
 }
 
 Biobuf*
-Bopen(char *name, int mode)
+Bopen(char* name, int mode)
 {
-	Biobuf *bp;
+	Biobuf* bp;
 	int f;
 
-	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
+	switch(mode & ~(OCEXEC | ORCLOSE | OTRUNC)) {
 	default:
 		fprint(2, "Bopen: unknown mode %#x\n", mode);
 		return 0;
@@ -123,12 +119,12 @@ Bopen(char *name, int mode)
 		return 0;
 	bp = malloc(sizeof(Biobuf));
 	Binits(bp, f, mode, bp->b, sizeof(bp->b));
-	bp->flag = Bmagic;			/* mark bp open & malloced */
+	bp->flag = Bmagic; /* mark bp open & malloced */
 	return bp;
 }
 
 int
-Bterm(Biobufhdr *bp)
+Bterm(Biobufhdr* bp)
 {
 	int r;
 
@@ -137,7 +133,7 @@ Bterm(Biobufhdr *bp)
 	if(bp->flag == Bmagic) {
 		bp->flag = 0;
 		close(bp->fid);
-		bp->fid = -1;			/* prevent accidents */
+		bp->fid = -1; /* prevent accidents */
 		free(bp);
 	}
 	/* otherwise opened with Binit(s) */

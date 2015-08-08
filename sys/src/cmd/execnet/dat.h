@@ -8,40 +8,38 @@
  */
 
 typedef struct Msg Msg;
-struct Msg
-{
-	Msg *link;
-	uchar *rp;
-	uchar *ep;
+struct Msg {
+	Msg* link;
+	uchar* rp;
+	uchar* ep;
 };
 
 typedef struct Client Client;
-struct Client
-{
+struct Client {
 	int moribund;
 	int activethread;
 	int num;
 	int ref;
 	int status;
 	int pid;
-	char *cmd;
+	char* cmd;
 	int fd[2];
 	char err[ERRMAX];
 
-	Req *execreq;
-	Channel *execpid;
+	Req* execreq;
+	Channel* execpid;
 
-	Req *rq, **erq;		/* reading */
-	Msg *mq, **emq;
-	Ioproc *readerproc;
+	Req* rq, **erq; /* reading */
+	Msg* mq, **emq;
+	Ioproc* readerproc;
 
-	Channel *writerkick;
-	Req *wq, **ewq;	/* writing */
-	Req *curw;		/* currently writing */
-	Ioproc *writerproc;	/* writing */
+	Channel* writerkick;
+	Req* wq, **ewq;     /* writing */
+	Req* curw;          /* currently writing */
+	Ioproc* writerproc; /* writing */
 };
 extern int nclient;
-extern Client **client;
+extern Client** client;
 extern void dataread(Req*, Client*);
 extern int newclient(void);
 extern void closeclient(Client*);
@@ -57,16 +55,12 @@ extern Srv fs;
 extern void initfs(void);
 extern void setexecname(char*);
 
-enum
-{
-	STACK = 8192,
+enum { STACK = 8192,
 };
 
-enum	/* Client.status */
-{
-	Closed,
-	Exec,
-	Established,
-	Hangup,
+enum /* Client.status */
+{ Closed,
+  Exec,
+  Established,
+  Hangup,
 };
-

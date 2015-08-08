@@ -8,12 +8,12 @@
  */
 
 #include <string.h>
-#define	N	10000
+#define N 10000
 
 static void*
-pmemccpy(void *a1, void *a2, int c, size_t n)
+pmemccpy(void* a1, void* a2, int c, size_t n)
 {
-	char *s1, *s2;
+	char* s1, *s2;
 
 	s1 = a1;
 	s2 = a2;
@@ -26,9 +26,9 @@ pmemccpy(void *a1, void *a2, int c, size_t n)
 }
 
 char*
-strcpy(char *s1, const char *s2)
+strcpy(char* s1, const char* s2)
 {
-	char *os1;
+	char* os1;
 
 	os1 = s1;
 	while(!pmemccpy(s1, s2, 0, N)) {

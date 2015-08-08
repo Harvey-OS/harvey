@@ -33,16 +33,15 @@ ding(int)
 }
 
 int
-rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
-     int *fd2p)
+rcmd(char** dst, int port, char* luser, char* ruser, char* cmd, int* fd2p)
 {
 	char c;
 	int i, fd, lfd, fd2, port2;
-	struct hostent *h;
-	Rock *r;
+	struct hostent* h;
+	Rock* r;
 	struct sockaddr_in in;
 	char buf[128];
-	void	(*x)(int);
+	void (*x)(int);
 
 	h = gethostbyname(*dst);
 	if(h == 0)
@@ -54,7 +53,7 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
 	if(fd < 0)
 		return -1;
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
@@ -62,16 +61,16 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
 	in.sin_family = AF_INET;
 	in.sin_port = htons(port);
 	memmove(&in.sin_addr, h->h_addr_list[0], sizeof(in.sin_addr));
-	if(connect(fd, &in, sizeof(in)) < 0){
+	if(connect(fd, &in, sizeof(in)) < 0) {
 		close(fd);
 		return -1;
 	}
 
 	/* error stream */
 	lfd = -1;
-	if(fd2p){
+	if(fd2p) {
 		/* create an error stream and wait for a call in */
-		for(i = 0; i < 10; i++){
+		for(i = 0; i < 10; i++) {
 			lfd = rresvport(&port2);
 			if(lfd < 0)
 				continue;
@@ -79,35 +78,35 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
 				break;
 			close(lfd);
 		}
-		if(i >= 10){
+		if(i >= 10) {
 			fprintf(stderr, pbotch);
 			return -1;
 		}
 
 		snprintf(buf, sizeof buf, "%d", port2);
-		if(write(fd, buf, strlen(buf)+1) < 0){
+		if(write(fd, buf, strlen(buf) + 1) < 0) {
 			close(fd);
 			close(lfd);
 			fprintf(stderr, lbotch);
 			return -1;
 		}
 	} else {
-		if(write(fd, "", 1) < 0){
+		if(write(fd, "", 1) < 0) {
 			fprintf(stderr, pbotch);
 			return -1;
 		}
 	}
 
 	/* pass id's and command */
-	if(write(fd, luser, strlen(luser)+1) < 0
-	|| write(fd, ruser, strlen(ruser)+1) < 0
-	|| write(fd, cmd, strlen(cmd)+1) < 0){
+	if(write(fd, luser, strlen(luser) + 1) < 0 ||
+	   write(fd, ruser, strlen(ruser) + 1) < 0 ||
+	   write(fd, cmd, strlen(cmd) + 1) < 0) {
 		fprintf(stderr, pbotch);
 		return -1;
 	}
 
 	fd2 = -1;
-	if(fd2p){
+	if(fd2p) {
 		x = signal(SIGALRM, ding);
 		alarm(15);
 		fd2 = accept(lfd, &in, &i);
@@ -115,7 +114,7 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
 		close(lfd);
 		signal(SIGALRM, x);
 
-		if(fd2 < 0){
+		if(fd2 < 0) {
 			close(fd);
 			close(lfd);
 			fprintf(stderr, lbotch);
@@ -125,8 +124,8 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
 	}
 
 	/* get reply */
-	if(read(fd, &c, 1) != 1){
-		if(fd2p){
+	if(read(fd, &c, 1) != 1) {
+		if(fd2p) {
 			close(fd2);
 			*fd2p = -1;
 		}
@@ -136,11 +135,11 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
 	if(c == 0)
 		return fd;
 	i = 0;
-	while(c){
+	while(c) {
 		buf[i++] = c;
 		if(read(fd, &c, 1) != 1)
 			break;
-		if(i >= sizeof(buf)-1)
+		if(i >= sizeof(buf) - 1)
 			break;
 	}
 	buf[i] = 0;

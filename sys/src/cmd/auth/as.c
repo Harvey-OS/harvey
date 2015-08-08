@@ -19,24 +19,24 @@
 #include <auth.h>
 #include "authcmdlib.h"
 
-int	debug;
+int debug;
 
-int	becomeuser(char*);
-void	createuser(void);
-void	*emalloc(uint32_t);
-void	*erealloc(void*, uint32_t);
-void	initcap(void);
-int	mkcmd(char*, char*, int);
-int	myauth(int, char*);
-int	qidcmp(Qid, Qid);
-void	runas(char *, char *);
-void	usage(void);
+int becomeuser(char*);
+void createuser(void);
+void* emalloc(uint32_t);
+void* erealloc(void*, uint32_t);
+void initcap(void);
+int mkcmd(char*, char*, int);
+int myauth(int, char*);
+int qidcmp(Qid, Qid);
+void runas(char*, char*);
+void usage(void);
 
-#pragma varargck	argpos clog 1
-#pragma varargck	argpos fatal 1
+#pragma varargck argpos clog 1
+#pragma varargck argpos fatal 1
 
 static void
-fatal(char *fmt, ...)
+fatal(char* fmt, ...)
 {
 	char msg[256];
 	va_list arg;
@@ -48,24 +48,26 @@ fatal(char *fmt, ...)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	debug = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug = 1;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	initcap();
-	srand(getpid()*time(0));
+	srand(getpid() * time(0));
 	runas(argv[0], argv[1]);
 }
 
 void
-runas(char *user, char *cmd)
+runas(char* user, char* cmd)
 {
 	if(becomeuser(user) < 0)
 		sysfatal("can't change uid for %s: %r", user);
@@ -74,10 +76,10 @@ runas(char *user, char *cmd)
 	sysfatal("exec /bin/rc: %r");
 }
 
-void *
+void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	if(p = mallocz(n, 1))
 		return p;
@@ -85,8 +87,8 @@ emalloc(uint32_t n)
 	return 0;
 }
 
-void *
-erealloc(void *p, uint32_t n)
+void*
+erealloc(void* p, uint32_t n)
 {
 	if(p = realloc(p, n))
 		return p;
@@ -102,9 +104,9 @@ usage(void)
 }
 
 void
-memrandom(void *p, int n)
+memrandom(void* p, int n)
 {
-	uint8_t *cp;
+	uint8_t* cp;
 
 	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
@@ -118,20 +120,20 @@ static int caphashfd;
 void
 initcap(void)
 {
-	caphashfd = open("#¤/caphash", OCEXEC|OWRITE);
+	caphashfd = open("#¤/caphash", OCEXEC | OWRITE);
 	if(caphashfd < 0)
 		fprint(2, "%s: opening #¤/caphash: %r\n", argv0);
 }
 
 /*
- *  create a change uid capability 
+ *  create a change uid capability
  */
 char*
-mkcap(char *from, char *to)
+mkcap(char* from, char* to)
 {
 	uint8_t rand[20];
-	char *cap;
-	char *key;
+	char* cap;
+	char* key;
 	int nfrom, nto, ncap;
 	uint8_t hash[SHA1dlen];
 
@@ -141,20 +143,20 @@ mkcap(char *from, char *to)
 	/* create the capability */
 	nto = strlen(to);
 	nfrom = strlen(from);
-	ncap = nfrom + 1 + nto + 1 + sizeof(rand)*3 + 1;
+	ncap = nfrom + 1 + nto + 1 + sizeof(rand) * 3 + 1;
 	cap = emalloc(ncap);
 	snprint(cap, ncap, "%s@%s", from, to);
 	memrandom(rand, sizeof(rand));
-	key = cap+nfrom+1+nto+1;
-	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
+	key = cap + nfrom + 1 + nto + 1;
+	enc64(key, sizeof(rand) * 3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
-		  hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key), hash,
+	          nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
-	if(write(caphashfd, hash, SHA1dlen) < 0){
+	if(write(caphashfd, hash, SHA1dlen) < 0) {
 		free(cap);
 		return nil;
 	}
@@ -163,7 +165,7 @@ mkcap(char *from, char *to)
 }
 
 int
-usecap(char *cap)
+usecap(char* cap)
 {
 	int fd, rv;
 
@@ -176,9 +178,9 @@ usecap(char *cap)
 }
 
 int
-becomeuser(char *new)
+becomeuser(char* new)
 {
-	char *cap;
+	char* cap;
 	int rv;
 
 	cap = mkcap(getuser(), new);

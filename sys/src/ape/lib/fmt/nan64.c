@@ -9,7 +9,7 @@
 
 /*
  * 64-bit IEEE not-a-number routines.
- * This is big/little-endian portable assuming that 
+ * This is big/little-endian portable assuming that
  * the 64-bit doubles and 64-bit integers have the
  * same byte ordering.
  */
@@ -19,14 +19,14 @@
 typedef unsigned long long uvlong;
 typedef unsigned long ulong;
 
-static uint64_t uvnan    = 0x7FF0000000000001LL;
-static uint64_t uvinf    = 0x7FF0000000000000LL;
+static uint64_t uvnan = 0x7FF0000000000001LL;
+static uint64_t uvinf = 0x7FF0000000000000LL;
 static uint64_t uvneginf = 0xFFF0000000000000LL;
 
 double
 __NaN(void)
 {
-	uint64_t *p;
+	uint64_t* p;
 
 	/* gcc complains about "return *(double*)&uvnan;" */
 	p = &uvnan;
@@ -37,17 +37,17 @@ int
 __isNaN(double d)
 {
 	uint64_t x;
-	double *p;
+	double* p;
 
 	p = &d;
 	x = *(uint64_t*)p;
-	return (uint32_t)(x>>32)==0x7FF00000 && !__isInf(d, 0);
+	return (uint32_t)(x >> 32) == 0x7FF00000 && !__isInf(d, 0);
 }
 
 double
 __Inf(int sign)
 {
-	uint64_t *p;
+	uint64_t* p;
 
 	if(sign < 0)
 		p = &uvinf;
@@ -60,16 +60,14 @@ int
 __isInf(double d, int sign)
 {
 	uint64_t x;
-	double *p;
+	double* p;
 
 	p = &d;
 	x = *(uint64_t*)p;
 	if(sign == 0)
-		return x==uvinf || x==uvneginf;
+		return x == uvinf || x == uvneginf;
 	else if(sign > 0)
-		return x==uvinf;
+		return x == uvinf;
 	else
-		return x==uvneginf;
+		return x == uvneginf;
 }
-
-

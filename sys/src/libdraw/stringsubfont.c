@@ -12,21 +12,21 @@
 #include <draw.h>
 
 Point
-stringsubfont(Image *b, Point p, Image *color, Subfont *f, char *cs)
+stringsubfont(Image* b, Point p, Image* color, Subfont* f, char* cs)
 {
 	int w, width;
-	uint8_t *s;
+	uint8_t* s;
 	Rune c;
-	Fontchar *i;
+	Fontchar* i;
 
 	s = (uint8_t*)cs;
-	for(; c=*s; p.x+=width){
+	for(; c = *s; p.x += width) {
 		width = 0;
 		if(c < Runeself)
 			s++;
-		else{
+		else {
 			w = chartorune(&c, (char*)s);
-			if(w == 0){
+			if(w == 0) {
 				s++;
 				continue;
 			}
@@ -34,32 +34,34 @@ stringsubfont(Image *b, Point p, Image *color, Subfont *f, char *cs)
 		}
 		if(c >= f->n)
 			continue;
-		i = f->info+c;
+		i = f->info + c;
 		width = i->width;
-		draw(b, Rect(p.x+i->left, p.y+i->top, p.x+i->left+(i[1].x-i[0].x), p.y+i->bottom),
-			color, f->bits, Pt(i->x, i->top));
+		draw(b,
+		     Rect(p.x + i->left, p.y + i->top,
+		          p.x + i->left + (i[1].x - i[0].x), p.y + i->bottom),
+		     color, f->bits, Pt(i->x, i->top));
 	}
 	return p;
 }
 
 Point
-strsubfontwidth(Subfont *f, char *cs)
+strsubfontwidth(Subfont* f, char* cs)
 {
 	Rune c;
 	Point p;
-	uint8_t *s;
-	Fontchar *i;
+	uint8_t* s;
+	Fontchar* i;
 	int w, width;
 
 	p = Pt(0, f->height);
 	s = (uint8_t*)cs;
-	for(; c=*s; p.x+=width){
+	for(; c = *s; p.x += width) {
 		width = 0;
 		if(c < Runeself)
 			s++;
-		else{
+		else {
 			w = chartorune(&c, (char*)s);
-			if(w == 0){
+			if(w == 0) {
 				s++;
 				continue;
 			}
@@ -67,7 +69,7 @@ strsubfontwidth(Subfont *f, char *cs)
 		}
 		if(c >= f->n)
 			continue;
-		i = f->info+c;
+		i = f->info + c;
 		width = i->width;
 	}
 	return p;

@@ -12,10 +12,10 @@
 #include <auth.h>
 
 int
-login(char *user, char *password, char *namespace)
+login(char* user, char* password, char* namespace)
 {
 	int rv;
-	AuthInfo *ai;
+	AuthInfo* ai;
 
 	if((ai = auth_userpasswd(user, password)) == nil)
 		return -1;

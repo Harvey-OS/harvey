@@ -15,17 +15,17 @@ main(void)
 {
 	Fmt fmt;
 	char buf[512];
-	char *argv0, *args, *flags, *p, *p0;
+	char* argv0, *args, *flags, *p, *p0;
 	int single;
 	Rune r;
-	
+
 	argv0 = getenv("0");
 	if((p = strrchr(argv0, '/')) != nil)
-		argv0 = p+1;
+		argv0 = p + 1;
 	flags = getenv("flagfmt");
 	args = getenv("args");
-	
-	if(argv0 == nil){
+
+	if(argv0 == nil) {
 		fprint(2, "aux/usage: $0 not set\n");
 		exits("$0");
 	}
@@ -36,12 +36,12 @@ main(void)
 
 	fmtfdinit(&fmt, 2, buf, sizeof buf);
 	fmtprint(&fmt, "usage: %s", argv0);
-	if(flags[0]){
+	if(flags[0]) {
 		single = 0;
-		for(p=flags; *p; ){
+		for(p = flags; *p;) {
 			p += chartorune(&r, p);
-			if(*p == ',' || *p == 0){
-				if(!single){
+			if(*p == ',' || *p == 0) {
+				if(!single) {
 					fmtprint(&fmt, " [-");
 					single = 1;
 				}
@@ -52,7 +52,7 @@ main(void)
 			}
 			while(*p == ' ')
 				p++;
-			if(single){
+			if(single) {
 				fmtprint(&fmt, "]");
 				single = 0;
 			}

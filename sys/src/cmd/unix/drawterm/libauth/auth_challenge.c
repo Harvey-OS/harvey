@@ -14,13 +14,13 @@
 #include "authlocal.h"
 
 Chalstate*
-auth_challenge(char *fmt, ...)
+auth_challenge(char* fmt, ...)
 {
-	char *p;
+	char* p;
 	va_list arg;
-	Chalstate *c;
+	Chalstate* c;
 
-	quotefmtinstall();	/* just in case */
+	quotefmtinstall(); /* just in case */
 	va_start(arg, fmt);
 	p = vsmprint(fmt, arg);
 	va_end(arg);
@@ -28,24 +28,24 @@ auth_challenge(char *fmt, ...)
 		return nil;
 
 	c = mallocz(sizeof(*c), 1);
-	if(c == nil){
+	if(c == nil) {
 		free(p);
 		return nil;
 	}
 
-	if((c->afd = open("/mnt/factotum/rpc", ORDWR)) < 0){
+	if((c->afd = open("/mnt/factotum/rpc", ORDWR)) < 0) {
 	Error:
 		auth_freechal(c);
 		free(p);
 		return nil;
 	}
 
-	if((c->rpc=auth_allocrpc(c->afd)) == nil
-	|| auth_rpc(c->rpc, "start", p, strlen(p)) != ARok
-	|| auth_rpc(c->rpc, "read", nil, 0) != ARok)
+	if((c->rpc = auth_allocrpc(c->afd)) == nil ||
+	   auth_rpc(c->rpc, "start", p, strlen(p)) != ARok ||
+	   auth_rpc(c->rpc, "read", nil, 0) != ARok)
 		goto Error;
 
-	if(c->rpc->narg > sizeof(c->chal)-1){
+	if(c->rpc->narg > sizeof(c->chal) - 1) {
 		werrstr("buffer too small for challenge");
 		goto Error;
 	}
@@ -56,27 +56,28 @@ auth_challenge(char *fmt, ...)
 }
 
 AuthInfo*
-auth_response(Chalstate *c)
+auth_response(Chalstate* c)
 {
 	int ret;
-	AuthInfo *ai;
+	AuthInfo* ai;
 
 	ai = nil;
-	if(c->afd < 0){
+	if(c->afd < 0) {
 		werrstr("auth_response: connection not open");
 		return nil;
 	}
-	if(c->resp == nil){
+	if(c->resp == nil) {
 		werrstr("auth_response: nil response");
 		return nil;
 	}
-	if(c->nresp == 0){
+	if(c->nresp == 0) {
 		werrstr("auth_response: unspecified response length");
 		return nil;
 	}
 
-	if(c->user){
-		if(auth_rpc(c->rpc, "write", c->user, strlen(c->user)) != ARok){
+	if(c->user) {
+		if(auth_rpc(c->rpc, "write", c->user, strlen(c->user)) !=
+		   ARok) {
 			/*
 			 * if this fails we're out of phase with factotum.
 			 * give up.
@@ -85,14 +86,14 @@ auth_response(Chalstate *c)
 		}
 	}
 
-	if(auth_rpc(c->rpc, "write", c->resp, c->nresp) != ARok){
+	if(auth_rpc(c->rpc, "write", c->resp, c->nresp) != ARok) {
 		/*
 		 * don't close the connection -- maybe we'll try again.
 		 */
 		return nil;
 	}
 
-	switch(ret = auth_rpc(c->rpc, "read", nil, 0)){
+	switch(ret = auth_rpc(c->rpc, "read", nil, 0)) {
 	case ARok:
 	default:
 		werrstr("factotum protocol botch %d %s", ret, c->rpc->ibuf);
@@ -111,7 +112,7 @@ Out:
 }
 
 void
-auth_freechal(Chalstate *c)
+auth_freechal(Chalstate* c)
 {
 	if(c == nil)
 		return;

@@ -19,14 +19,13 @@ allocmemimage(Rectangle r, uint32_t chan)
 }
 
 void
-freememimage(Memimage *i)
+freememimage(Memimage* i)
 {
 	_freememimage(i);
 }
 
 void
-memfillcolor(Memimage *i, uint32_t val)
+memfillcolor(Memimage* i, uint32_t val)
 {
 	_memfillcolor(i, val);
 }
-

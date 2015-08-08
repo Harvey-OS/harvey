@@ -16,10 +16,10 @@
 #include "dat.h"
 #include "fns.h"
 
-static uint8_t	isdos[256];
+static uint8_t isdos[256];
 
 int
-isdosfs(uint8_t *buf)
+isdosfs(uint8_t* buf)
 {
 	/*
 	 * When dynamic disc managers move the disc partition,
@@ -46,17 +46,17 @@ isdosfs(uint8_t *buf)
 }
 
 int
-dosfs(Xfs *xf)
+dosfs(Xfs* xf)
 {
-	Iosect *p, *p1;
-	Dosboot *b;
-	Fatinfo *fi;
-	Dosboot32 *b32;
-	Dosbpb *bp;
+	Iosect* p, *p1;
+	Dosboot* b;
+	Fatinfo* fi;
+	Dosboot32* b32;
+	Dosbpb* bp;
 	int32_t fisec, extflags;
 	int i;
 
-	if(!isdos['a']){
+	if(!isdos['a']) {
 		for(i = 'a'; i <= 'z'; i++)
 			isdos[i] = 1;
 		for(i = 'A'; i <= 'Z'; i++)
@@ -86,13 +86,13 @@ dosfs(Xfs *xf)
 		return -1;
 
 	b = (Dosboot*)p->iobuf;
-	if(b->clustsize == 0 || isdosfs(p->iobuf) == 0){
+	if(b->clustsize == 0 || isdosfs(p->iobuf) == 0) {
 		putsect(p);
 		return -1;
 	}
 
 	bp = malloc(sizeof(Dosbpb));
-	memset(bp, 0, sizeof(Dosbpb));	/* clear lock */
+	memset(bp, 0, sizeof(Dosbpb)); /* clear lock */
 	xf->ptr = bp;
 	xf->fmt = 1;
 
@@ -110,19 +110,19 @@ dosfs(Xfs *xf)
 
 	bp->fatinfo = 0;
 
-	if(bp->fatsize == 0){	/* is FAT32 */
+	if(bp->fatsize == 0) { /* is FAT32 */
 		if(chatty)
 			bootsecdump32(2, xf, (Dosboot32*)b);
 		xf->isfat32 = 1;
 		b32 = (Dosboot32*)b;
 		bp->fatsize = GLONG(b32->fatsize32);
-		if(bp->fatsize == 0){
+		if(bp->fatsize == 0) {
 			putsect(p);
 			if(chatty)
 				fprint(2, "fatsize 0\n");
 			return -1;
 		}
-		bp->dataaddr = bp->fataddr + bp->nfats*bp->fatsize;
+		bp->dataaddr = bp->fataddr + bp->nfats * bp->fatsize;
 		bp->rootaddr = 0;
 		bp->rootstart = GLONG(b32->rootstart);
 
@@ -130,9 +130,9 @@ dosfs(Xfs *xf)
 		 * disable fat mirroring?
 		 */
 		extflags = GSHORT(b32->extflags);
-		if(extflags & 0x0080){
-			for(i = 0; i < 4; i++){
-				if(extflags & (1 << i)){
+		if(extflags & 0x0080) {
+			for(i = 0; i < 4; i++) {
+				if(extflags & (1 << i)) {
 					bp->fataddr += i * bp->fatsize;
 					bp->nfats = 1;
 					break;
@@ -145,30 +145,34 @@ dosfs(Xfs *xf)
 		 */
 		bp->freeptr = FATRESRV;
 		fisec = GSHORT(b32->infospec);
-		if(fisec != 0 && fisec < GSHORT(b32->nresrv)){
+		if(fisec != 0 && fisec < GSHORT(b32->nresrv)) {
 			p1 = getsect(xf, fisec);
-			if(p1 != nil){
+			if(p1 != nil) {
 				fi = (Fatinfo*)p1->iobuf;
-				if(GLONG(fi->sig1) == FATINFOSIG1 && GLONG(fi->sig) == FATINFOSIG){
+				if(GLONG(fi->sig1) == FATINFOSIG1 &&
+				   GLONG(fi->sig) == FATINFOSIG) {
 					bp->fatinfo = fisec;
 					bp->freeptr = GLONG(fi->nextfree);
 					bp->freeclusters = GLONG(fi->freeclust);
-					chat("fat info: %ld free clusters, next free %ld\n", bp->freeclusters, bp->freeptr);
+					chat("fat info: %ld free clusters, "
+					     "next free %ld\n",
+					     bp->freeclusters, bp->freeptr);
 				}
 				putsect(p1);
 			}
 		}
-	}else{
+	} else {
 		if(chatty)
 			bootdump(2, b);
-		bp->rootaddr = bp->fataddr + bp->nfats*bp->fatsize;
+		bp->rootaddr = bp->fataddr + bp->nfats * bp->fatsize;
 		bp->rootstart = 0;
-		i = bp->rootsize*DOSDIRSIZE + bp->sectsize-1;
+		i = bp->rootsize * DOSDIRSIZE + bp->sectsize - 1;
 		i /= bp->sectsize;
 		bp->dataaddr = bp->rootaddr + i;
 		bp->freeptr = FATRESRV;
 	}
-	bp->fatclusters = FATRESRV+(bp->volsize - bp->dataaddr)/bp->clustsize;
+	bp->fatclusters =
+	    FATRESRV + (bp->volsize - bp->dataaddr) / bp->clustsize;
 
 	if(xf->isfat32)
 		bp->fatbits = 32;
@@ -178,8 +182,8 @@ dosfs(Xfs *xf)
 		bp->fatbits = 16;
 
 	chat("fatbits=%d (%d clusters)...", bp->fatbits, bp->fatclusters);
-	for(i=0; i<b->nfats; i++)
-		chat("fat %d: %ld...", i, bp->fataddr+i*bp->fatsize);
+	for(i = 0; i < b->nfats; i++)
+		chat("fat %d: %ld...", i, bp->fataddr + i * bp->fatsize);
 	chat("root: %ld...", bp->rootaddr);
 	chat("data: %ld...", bp->dataaddr);
 	putsect(p);
@@ -192,9 +196,9 @@ dosfs(Xfs *xf)
  * so we special case it all over.
  */
 void
-rootfile(Xfile *f)
+rootfile(Xfile* f)
 {
-	Dosptr *dp;
+	Dosptr* dp;
 
 	dp = f->ptr;
 	memset(dp, 0, sizeof(Dosptr));
@@ -208,10 +212,10 @@ isroot(uint32_t addr)
 }
 
 int
-getfile(Xfile *f)
+getfile(Xfile* f)
 {
-	Dosptr *dp;
-	Iosect *p;
+	Dosptr* dp;
+	Iosect* p;
 
 	dp = f->ptr;
 	if(dp->p)
@@ -224,23 +228,24 @@ getfile(Xfile *f)
 	 * we could also make up a Dosdir for the root
 	 */
 	dp->d = nil;
-	if(!isroot(dp->addr)){
-		if(f->qid.path != QIDPATH(dp)){
-			chat("qid mismatch f=%#llux d=%#lux...", f->qid.path, QIDPATH(dp));
+	if(!isroot(dp->addr)) {
+		if(f->qid.path != QIDPATH(dp)) {
+			chat("qid mismatch f=%#llux d=%#lux...", f->qid.path,
+			     QIDPATH(dp));
 			putsect(p);
 			errno = Enonexist;
 			return -1;
 		}
-		dp->d = (Dosdir *)&p->iobuf[dp->offset];
+		dp->d = (Dosdir*)&p->iobuf[dp->offset];
 	}
 	dp->p = p;
 	return 0;
 }
 
 void
-putfile(Xfile *f)
+putfile(Xfile* f)
 {
-	Dosptr *dp;
+	Dosptr* dp;
 
 	dp = f->ptr;
 	if(!dp->p)
@@ -251,33 +256,33 @@ putfile(Xfile *f)
 }
 
 int32_t
-getstart(Xfs *xf, Dosdir *d)
+getstart(Xfs* xf, Dosdir* d)
 {
 	int32_t start;
 
 	start = GSHORT(d->start);
 	if(xf->isfat32)
-		start |= GSHORT(d->hstart)<<16;
+		start |= GSHORT(d->hstart) << 16;
 	return start;
 }
 
 void
-putstart(Xfs *xf, Dosdir *d, int32_t start)
+putstart(Xfs* xf, Dosdir* d, int32_t start)
 {
 	PSHORT(d->start, start);
 	if(xf->isfat32)
-		PSHORT(d->hstart, start>>16);
+		PSHORT(d->hstart, start >> 16);
 }
 
 /*
  * return the disk cluster for the iclust cluster in f
  */
 int32_t
-fileclust(Xfile *f, int32_t iclust, int cflag)
+fileclust(Xfile* f, int32_t iclust, int cflag)
 {
-	Dosbpb *bp;
-	Dosptr *dp;
-	Dosdir *d;
+	Dosbpb* bp;
+	Dosptr* dp;
+	Dosdir* d;
 	int32_t start, clust, nskip, next;
 
 	bp = f->xf->ptr;
@@ -285,7 +290,7 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 	d = dp->d;
 	next = 0;
 
-	/* 
+	/*
 	 * asking for the cluster of the root directory
 	 * is not a well-formed question, since the root directory
 	 * does not begin on a cluster boundary.
@@ -293,11 +298,11 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 	if(!f->xf->isfat32 && isroot(dp->addr))
 		return -1;
 
-	if(f->xf->isfat32 && isroot(dp->addr)){
+	if(f->xf->isfat32 && isroot(dp->addr)) {
 		start = bp->rootstart;
-	}else{
+	} else {
 		start = getstart(f->xf, d);
-		if(start == 0){
+		if(start == 0) {
 			if(!cflag)
 				return -1;
 			mlock(bp);
@@ -311,10 +316,10 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 			dp->clust = 0;
 		}
 	}
-	if(dp->clust == 0 || iclust < dp->iclust){
+	if(dp->clust == 0 || iclust < dp->iclust) {
 		clust = start;
 		nskip = iclust;
-	}else{
+	} else {
 		clust = dp->clust;
 		nskip = iclust - dp->iclust;
 	}
@@ -322,22 +327,23 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 		chat("clust %#lx, skip %ld...", clust, nskip);
 	if(clust <= 0)
 		return -1;
-	if(nskip > 0){
+	if(nskip > 0) {
 		mlock(bp);
-		while(--nskip >= 0){
+		while(--nskip >= 0) {
 			next = getfat(f->xf, clust);
 			if(chatty > 1)
 				chat("->%#lx", next);
-			if(next > 0){
+			if(next > 0) {
 				clust = next;
 				continue;
-			}else if(!cflag)
+			} else if(!cflag)
 				break;
-			if(d && (d->attr&DSYSTEM)){
+			if(d && (d->attr & DSYSTEM)) {
 				next = cfalloc(f);
 				if(next < 0)
 					break;
-				/* cfalloc will call putfat for us, since clust may change */
+				/* cfalloc will call putfat for us, since clust
+				 * may change */
 			} else {
 				next = falloc(f->xf);
 				if(next < 0)
@@ -358,40 +364,40 @@ fileclust(Xfile *f, int32_t iclust, int cflag)
 }
 
 /*
- * return the disk sector for the isect disk sector in f 
+ * return the disk sector for the isect disk sector in f
  */
 int32_t
-fileaddr(Xfile *f, int32_t isect, int cflag)
+fileaddr(Xfile* f, int32_t isect, int cflag)
 {
-	Dosbpb *bp;
-	Dosptr *dp;
+	Dosbpb* bp;
+	Dosptr* dp;
 	int32_t clust;
 
 	bp = f->xf->ptr;
 	dp = f->ptr;
-	if(!f->xf->isfat32 && isroot(dp->addr)){
-		if(isect*bp->sectsize >= bp->rootsize*DOSDIRSIZE)
+	if(!f->xf->isfat32 && isroot(dp->addr)) {
+		if(isect * bp->sectsize >= bp->rootsize * DOSDIRSIZE)
 			return -1;
 		return bp->rootaddr + isect;
 	}
-	clust = fileclust(f, isect/bp->clustsize, cflag);
+	clust = fileclust(f, isect / bp->clustsize, cflag);
 	if(clust < 0)
 		return -1;
 
-	return clust2sect(bp, clust) + isect%bp->clustsize;
+	return clust2sect(bp, clust) + isect % bp->clustsize;
 }
 
 /*
  * translate names
  */
 void
-fixname(char *buf)
+fixname(char* buf)
 {
 	int c;
-	char *p;
+	char* p;
 
 	p = buf;
-	while(c = *p){
+	while(c = *p) {
 		if(c == ':' && trspaces)
 			*p = ' ';
 		p++;
@@ -399,16 +405,16 @@ fixname(char *buf)
 }
 
 /*
- * classify the file name as one of 
+ * classify the file name as one of
  *	Invalid - contains a bad character
  *	Short - short valid 8.3 name, no lowercase letters
  *	ShortLower - short valid 8.3 name except for lowercase letters
- *	Long - long name 
+ *	Long - long name
  */
 int
-classifyname(char *buf)
+classifyname(char* buf)
 {
-	char *p, *dot;
+	char* p, *dot;
 	int c, isextended, is8dot3, islower, ndot;
 
 	p = buf;
@@ -416,13 +422,13 @@ classifyname(char *buf)
 	islower = 0;
 	dot = nil;
 	ndot = 0;
-	while(c = (uint8_t)*p){
-		if(c&0x80)	/* UTF8 */
+	while(c = (uint8_t)*p) {
+		if(c & 0x80) /* UTF8 */
 			isextended = 1;
-		else if(c == '.'){
+		else if(c == '.') {
 			dot = p;
 			ndot++;
-		}else if(strchr("+,:;=[] ", c))
+		} else if(strchr("+,:;=[] ", c))
 			isextended = 1;
 		else if(!isdos[c])
 			return Invalid;
@@ -431,24 +437,25 @@ classifyname(char *buf)
 		p++;
 	}
 
-	is8dot3 = (ndot==0 && p-buf <= 8) || (ndot==1 && dot-buf <= 8 && p-(dot+1) <= 3);
-	
-	if(!isextended && is8dot3){
+	is8dot3 = (ndot == 0 && p - buf <= 8) ||
+	          (ndot == 1 && dot - buf <= 8 && p - (dot + 1) <= 3);
+
+	if(!isextended && is8dot3) {
 		if(islower)
 			return ShortLower;
 		return Short;
 	}
 	return Long;
 }
-		
+
 /*
  * make an alias for a valid long file name
  */
 void
-mkalias(char *name, char *sname, int id)
+mkalias(char* name, char* sname, int id)
 {
 	Rune r;
-	char *s, *e, sid[10];
+	char* s, *e, sid[10];
 	int i, esuf, v;
 
 	e = strrchr(name, '.');
@@ -457,7 +464,7 @@ mkalias(char *name, char *sname, int id)
 
 	s = name;
 	i = 0;
-	while(s < e && i < 6){
+	while(s < e && i < 6) {
 		if(isdos[(uint8_t)*s])
 			sname[i++] = *s++;
 		else
@@ -475,13 +482,13 @@ mkalias(char *name, char *sname, int id)
 	esuf = i + 3;
 	if(esuf > 12)
 		panic("bad mkalias");
-	while(*e && i < esuf){
+	while(*e && i < esuf) {
 		if(isdos[(uint8_t)*e])
 			sname[i++] = *e++;
 		else
 			e += chartorune(&r, e);
 	}
-	if(sname[i-1] == '.')
+	if(sname[i - 1] == '.')
 		i--;
 	sname[i] = '\0';
 }
@@ -490,18 +497,17 @@ mkalias(char *name, char *sname, int id)
  * check for valid plan 9 names,
  * rewrite ' ' to ':'
  */
-char isfrog[256]={
-	/*NUL*/	1, 1, 1, 1, 1, 1, 1, 1,
-	/*BKS*/	1, 1, 1, 1, 1, 1, 1, 1,
-	/*DLE*/	1, 1, 1, 1, 1, 1, 1, 1,
-	/*CAN*/	1, 1, 1, 1, 1, 1, 1, 1,
-/*	[' ']	1,	let's try this -rsc */
-	['/']	1,
-	[0x7f]	1,
+char isfrog[256] = {
+    /*NUL*/ 1, 1,        1, 1, 1, 1, 1, 1,
+    /*BKS*/ 1, 1,        1, 1, 1, 1, 1, 1,
+    /*DLE*/ 1, 1,        1, 1, 1, 1, 1, 1,
+    /*CAN*/ 1, 1,        1, 1, 1, 1, 1, 1,
+    /*	[' ']	1,	let's try this -rsc */
+    ['/'] 1,   [0x7f] 1,
 };
 
 int
-nameok(char *elem)
+nameok(char* elem)
 {
 	while(*elem) {
 		if(*elem == ' ' && trspaces)
@@ -518,14 +524,15 @@ nameok(char *elem)
  * always searches for long names which match a short name
  */
 int
-searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
+searchdir(Xfile* f, char* name, Dosptr* dp, int cflag, int longtype)
 {
-	Xfs *xf;
-	Iosect *p;
-	Dosbpb *bp;
-	Dosdir *d;
+	Xfs* xf;
+	Iosect* p;
+	Dosbpb* bp;
+	Dosdir* d;
 	char buf[261], *bname;
-	int isect, addr, o, addr1, addr2, prevaddr, prevaddr1, o1, islong, have, need, sum;
+	int isect, addr, o, addr1, addr2, prevaddr, prevaddr1, o1, islong, have,
+	    need, sum;
 
 	xf = f->xf;
 	bp = xf->ptr;
@@ -537,19 +544,19 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 	sum = -1;
 
 	need = 1;
-	if(longtype!=Short && cflag)
-		need += (utflen(name) + DOSRUNE-1) / DOSRUNE;
+	if(longtype != Short && cflag)
+		need += (utflen(name) + DOSRUNE - 1) / DOSRUNE;
 
 	memset(dp, 0, sizeof(Dosptr));
 	dp->prevaddr = -1;
 	dp->naddr = -1;
-	dp->paddr = ((Dosptr *)f->ptr)->addr;
-	dp->poffset = ((Dosptr *)f->ptr)->offset;
+	dp->paddr = ((Dosptr*)f->ptr)->addr;
+	dp->poffset = ((Dosptr*)f->ptr)->offset;
 
 	have = 0;
 	addr = -1;
 	bname = nil;
-	for(isect=0;; isect++){
+	for(isect = 0;; isect++) {
 		prevaddr = addr;
 		addr = fileaddr(f, isect, cflag);
 		if(addr < 0)
@@ -557,9 +564,9 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 		p = getsect(xf, addr);
 		if(p == 0)
 			break;
-		for(o=0; o<bp->sectsize; o+=DOSDIRSIZE){
-			d = (Dosdir *)&p->iobuf[o];
-			if(d->name[0] == 0x00){
+		for(o = 0; o < bp->sectsize; o += DOSDIRSIZE) {
+			d = (Dosdir*)&p->iobuf[o];
+			if(d->name[0] == 0x00) {
 				chat("end dir(0)...");
 				putsect(p);
 				if(!cflag)
@@ -567,22 +574,27 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 
 				/*
 				 * addr1 & o1 are the start of the dirs
-				 * addr2 is the optional second cluster used if the long name
+				 * addr2 is the optional second cluster used if
+				 *the long name
 				 * entry does not fit within the addr1 cluster
 				 *
-				 * have tells us the number of contiguous free dirs
-				 * starting at addr1.o1; need are necessary to hold the long name.
+				 * have tells us the number of contiguous free
+				 *dirs
+				 * starting at addr1.o1; need are necessary to
+				 *hold the long name.
 				 */
-				if(addr1 < 0){
+				if(addr1 < 0) {
 					addr1 = addr;
 					prevaddr1 = prevaddr;
 					o1 = o;
 				}
-				if(addr2 < 0 && (bp->sectsize-o)/DOSDIRSIZE + have < need){
-					addr2 = fileaddr(f, isect+1, cflag);
+				if(addr2 < 0 &&
+				   (bp->sectsize - o) / DOSDIRSIZE + have <
+				       need) {
+					addr2 = fileaddr(f, isect + 1, cflag);
 					if(addr2 < 0)
 						goto breakout;
-				}else if(addr2 < 0)
+				} else if(addr2 < 0)
 					addr2 = addr;
 				if(addr2 == addr1)
 					addr2 = -1;
@@ -592,12 +604,12 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 				dp->naddr = addr2;
 				return 0;
 			}
-			if(d->name[0] == DOSEMPTY){
+			if(d->name[0] == DOSEMPTY) {
 				if(chatty)
 					fprint(2, "empty dir\n");
 
 				have++;
-				if(addr1 == -1){
+				if(addr1 == -1) {
 					addr1 = addr;
 					o1 = o;
 					prevaddr1 = prevaddr;
@@ -611,15 +623,17 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 				addr1 = -1;
 
 			dirdump(d);
-			if((d->attr & 0xf) == 0xf){
-				bname = getnamesect(buf, bname, p->iobuf + o, &islong, &sum, 1);
+			if((d->attr & 0xf) == 0xf) {
+				bname = getnamesect(buf, bname, p->iobuf + o,
+				                    &islong, &sum, 1);
 				continue;
 			}
-			if(d->attr & DVLABEL){
+			if(d->attr & DVLABEL) {
 				islong = 0;
 				continue;
 			}
-			if(islong != 1 || sum != aliassum(d) || cistrcmp(bname, name) != 0){
+			if(islong != 1 || sum != aliassum(d) ||
+			   cistrcmp(bname, name) != 0) {
 				bname = buf;
 				getname(buf, d);
 			}
@@ -628,7 +642,7 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 				continue;
 			if(chatty)
 				fprint(2, "found\n");
-			if(cflag){
+			if(cflag) {
 				putsect(p);
 				return -1;
 			}
@@ -647,24 +661,24 @@ breakout:
 }
 
 int
-emptydir(Xfile *f)
+emptydir(Xfile* f)
 {
-	Xfs *xf = f->xf;
-	Dosbpb *bp = xf->ptr;
+	Xfs* xf = f->xf;
+	Dosbpb* bp = xf->ptr;
 	int isect, addr, o;
-	Iosect *p;
-	Dosdir *d;
+	Iosect* p;
+	Dosdir* d;
 
-	for(isect=0;; isect++){
+	for(isect = 0;; isect++) {
 		addr = fileaddr(f, isect, 0);
 		if(addr < 0)
 			break;
 		p = getsect(xf, addr);
 		if(p == 0)
 			return -1;
-		for(o=0; o<bp->sectsize; o+=DOSDIRSIZE){
-			d = (Dosdir *)&p->iobuf[o];
-			if(d->name[0] == 0x00){
+		for(o = 0; o < bp->sectsize; o += DOSDIRSIZE) {
+			d = (Dosdir*)&p->iobuf[o];
+			if(d->name[0] == 0x00) {
 				putsect(p);
 				return 0;
 			}
@@ -672,7 +686,7 @@ emptydir(Xfile *f)
 				continue;
 			if(d->name[0] == '.')
 				continue;
-			if(d->attr&DVLABEL)
+			if(d->attr & DVLABEL)
 				continue;
 			putsect(p);
 			return -1;
@@ -683,17 +697,17 @@ emptydir(Xfile *f)
 }
 
 int32_t
-readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
+readdir(Xfile* f, void* vbuf, int32_t offset, int32_t count)
 {
-	Xfs *xf;
-	Dosbpb *bp;
+	Xfs* xf;
+	Dosbpb* bp;
 	Dir dir;
 	int isect, addr, o, islong, sum;
-	Iosect *p;
-	Dosdir *d;
+	Iosect* p;
+	Dosdir* d;
 	int32_t rcnt, n;
-	char *name, snamebuf[8+1+3+1], namebuf[DOSNAMELEN];
-	uint8_t *buf;
+	char* name, snamebuf[8 + 1 + 3 + 1], namebuf[DOSNAMELEN];
+	uint8_t* buf;
 
 	buf = vbuf;
 	rcnt = 0;
@@ -704,34 +718,35 @@ readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	islong = 0;
 	sum = -1;
 	name = nil;
-	for(isect=0;; isect++){
+	for(isect = 0;; isect++) {
 		addr = fileaddr(f, isect, 0);
 		if(addr < 0)
 			break;
 		p = getsect(xf, addr);
 		if(p == 0)
 			return -1;
-		for(o=0; o<bp->sectsize; o+=DOSDIRSIZE){
-			d = (Dosdir *)&p->iobuf[o];
-			if(d->name[0] == 0x00){
+		for(o = 0; o < bp->sectsize; o += DOSDIRSIZE) {
+			d = (Dosdir*)&p->iobuf[o];
+			if(d->name[0] == 0x00) {
 				putsect(p);
 				return rcnt;
 			}
 			if(d->name[0] == DOSEMPTY)
 				continue;
 			dirdump(d);
-			if(d->name[0] == '.'){
+			if(d->name[0] == '.') {
 				if(d->name[1] == ' ' || d->name[1] == 0)
 					continue;
 				if(d->name[1] == '.' &&
-				  (d->name[2] == ' ' || d->name[2] == 0))
+				   (d->name[2] == ' ' || d->name[2] == 0))
 					continue;
 			}
-			if((d->attr & 0xf) == 0xf){
-				name = getnamesect(namebuf, name, p->iobuf+o, &islong, &sum, 1);
+			if((d->attr & 0xf) == 0xf) {
+				name = getnamesect(namebuf, name, p->iobuf + o,
+				                   &islong, &sum, 1);
 				continue;
 			}
-			if(d->attr & DVLABEL){
+			if(d->attr & DVLABEL) {
 				islong = 0;
 				continue;
 			}
@@ -742,18 +757,18 @@ readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 			islong = 0;
 			n = convD2M(&dir, &buf[rcnt], count - rcnt);
 			name = nil;
-			if(n <= BIT16SZ){	/* no room for next entry */
+			if(n <= BIT16SZ) { /* no room for next entry */
 				putsect(p);
 				return rcnt;
 			}
 			rcnt += n;
-			if(offset > 0){
+			if(offset > 0) {
 				offset -= rcnt;
 				rcnt = 0;
 				islong = 0;
 				continue;
 			}
-			if(rcnt == count){
+			if(rcnt == count) {
 				putsect(p);
 				return rcnt;
 			}
@@ -768,12 +783,12 @@ readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
  * the hardest part is setting up paddr
  */
 int
-walkup(Xfile *f, Dosptr *ndp)
+walkup(Xfile* f, Dosptr* ndp)
 {
-	Dosbpb *bp;
-	Dosptr *dp;
-	Dosdir *xd;
-	Iosect *p;
+	Dosbpb* bp;
+	Dosptr* dp;
+	Dosdir* xd;
+	Iosect* p;
 	int32_t k, o, so, start, pstart, ppstart, st, ppclust;
 
 	bp = f->xf->ptr;
@@ -798,7 +813,7 @@ walkup(Xfile *f, Dosptr *ndp)
 	p = getsect(f->xf, dp->paddr);
 	if(p == nil)
 		goto error;
-	xd = (Dosdir *)&p->iobuf[dp->poffset];
+	xd = (Dosdir*)&p->iobuf[dp->poffset];
 	dirdump(xd);
 	start = getstart(f->xf, xd);
 	chat("start=%#lx...", start);
@@ -812,10 +827,10 @@ walkup(Xfile *f, Dosptr *ndp)
 	p = getsect(f->xf, clust2sect(bp, start));
 	if(p == nil)
 		goto error;
-	xd = (Dosdir *)p->iobuf;
+	xd = (Dosdir*)p->iobuf;
 	dirdump(xd);
 	st = getstart(f->xf, xd);
-	if(xd->name[0]!='.' || xd->name[1]!=' ' || start!=st)
+	if(xd->name[0] != '.' || xd->name[1] != ' ' || start != st)
 		goto error;
 
 	/*
@@ -838,18 +853,19 @@ walkup(Xfile *f, Dosptr *ndp)
 	 * verify that parent's . points to itself
 	 */
 	p = getsect(f->xf, clust2sect(bp, pstart));
-	if(p == 0){
+	if(p == 0) {
 		chat("getsect %ld failed\n", pstart);
 		goto error;
 	}
-	xd = (Dosdir *)p->iobuf;
+	xd = (Dosdir*)p->iobuf;
 	dirdump(xd);
 	st = getstart(f->xf, xd);
-	if(xd->name[0]!='.' || xd->name[1]!=' ' || pstart!=st)
+	if(xd->name[0] != '.' || xd->name[1] != ' ' || pstart != st)
 		goto error;
 
 	/*
-	 * parent's parent's .. is the next entry, and has start of parent's parent's parent
+	 * parent's parent's .. is the next entry, and has start of parent's
+	 * parent's parent
 	 */
 	xd++;
 	dirdump(xd);
@@ -859,31 +875,32 @@ walkup(Xfile *f, Dosptr *ndp)
 	putsect(p);
 
 	/*
-	 * open parent's parent's parent, and walk through it until parent's parent is found
+	 * open parent's parent's parent, and walk through it until parent's
+	 * parent is found
 	 * need this to find parent's parent's addr and offset
 	 */
 	ppclust = ppstart;
-	if(f->xf->isfat32 && ppclust == 0){
+	if(f->xf->isfat32 && ppclust == 0) {
 		ppclust = bp->rootstart;
 		chat("ppclust 0, resetting to rootstart\n");
 	}
 	k = ppclust ? clust2sect(bp, ppclust) : bp->rootaddr;
 	p = getsect(f->xf, k);
-	if(p == nil){
+	if(p == nil) {
 		chat("getsect %ld failed\n", k);
 		goto error;
 	}
-	xd = (Dosdir *)p->iobuf;
+	xd = (Dosdir*)p->iobuf;
 	dirdump(xd);
-	if(ppstart){
+	if(ppstart) {
 		st = getstart(f->xf, xd);
-		if(xd->name[0]!='.' || xd->name[1]!=' ' || ppstart!=st)
+		if(xd->name[0] != '.' || xd->name[1] != ' ' || ppstart != st)
 			goto error;
 	}
-	for(so=1;; so++){
-		for(o=0; o<bp->sectsize; o+=DOSDIRSIZE){
-			xd = (Dosdir *)&p->iobuf[o];
-			if(xd->name[0] == 0x00){
+	for(so = 1;; so++) {
+		for(o = 0; o < bp->sectsize; o += DOSDIRSIZE) {
+			xd = (Dosdir*)&p->iobuf[o];
+			if(xd->name[0] == 0x00) {
 				chat("end dir\n");
 				goto error;
 			}
@@ -893,26 +910,25 @@ walkup(Xfile *f, Dosptr *ndp)
 			if(st == pstart)
 				goto out;
 		}
-		if(ppclust){
-			if(so%bp->clustsize == 0){
+		if(ppclust) {
+			if(so % bp->clustsize == 0) {
 				mlock(bp);
 				ppclust = getfat(f->xf, ppclust);
 				unmlock(bp);
-				if(ppclust < 0){
+				if(ppclust < 0) {
 					chat("getfat %ld failed\n", ppclust);
 					goto error;
 				}
 			}
-			k = clust2sect(bp, ppclust) + 
-				so%bp->clustsize;
-		}else{
-			if(so*bp->sectsize >= bp->rootsize*DOSDIRSIZE)
+			k = clust2sect(bp, ppclust) + so % bp->clustsize;
+		} else {
+			if(so * bp->sectsize >= bp->rootsize * DOSDIRSIZE)
 				goto error;
 			k = bp->rootaddr + so;
 		}
 		putsect(p);
 		p = getsect(f->xf, k);
-		if(p == 0){
+		if(p == 0) {
 			chat("getsect %ld failed\n", k);
 			goto error;
 		}
@@ -930,15 +946,15 @@ error:
 }
 
 int32_t
-readfile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
+readfile(Xfile* f, void* vbuf, int32_t offset, int32_t count)
 {
-	Xfs *xf = f->xf;
-	Dosbpb *bp = xf->ptr;
-	Dosptr *dp = f->ptr;
-	Dosdir *d = dp->d;
+	Xfs* xf = f->xf;
+	Dosbpb* bp = xf->ptr;
+	Dosptr* dp = f->ptr;
+	Dosdir* d = dp->d;
 	int isect, addr, o, c;
-	Iosect *p;
-	uint8_t *buf;
+	Iosect* p;
+	uint8_t* buf;
 	int32_t length, rcnt;
 
 	rcnt = 0;
@@ -946,11 +962,11 @@ readfile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	buf = vbuf;
 	if(offset >= length)
 		return 0;
-	if(offset+count >= length)
+	if(offset + count >= length)
 		count = length - offset;
-	isect = offset/bp->sectsize;
-	o = offset%bp->sectsize;
-	while(count > 0){
+	isect = offset / bp->sectsize;
+	o = offset % bp->sectsize;
+	while(count > 0) {
 		addr = fileaddr(f, isect++, 0);
 		if(addr < 0)
 			break;
@@ -970,31 +986,31 @@ readfile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 }
 
 int32_t
-writefile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
+writefile(Xfile* f, void* vbuf, int32_t offset, int32_t count)
 {
-	Xfs *xf = f->xf;
-	Dosbpb *bp = xf->ptr;
-	Dosptr *dp = f->ptr;
-	Dosdir *d = dp->d;
+	Xfs* xf = f->xf;
+	Dosbpb* bp = xf->ptr;
+	Dosptr* dp = f->ptr;
+	Dosdir* d = dp->d;
 	int isect, addr = 0, o, c;
-	Iosect *p;
-	uint8_t *buf;
+	Iosect* p;
+	uint8_t* buf;
 	int32_t length, rcnt = 0, dlen;
 
 	buf = vbuf;
-	isect = offset/bp->sectsize;
-	o = offset%bp->sectsize;
-	while(count > 0){
+	isect = offset / bp->sectsize;
+	o = offset % bp->sectsize;
+	while(count > 0) {
 		addr = fileaddr(f, isect++, 1);
 		if(addr < 0)
 			break;
 		c = bp->sectsize - o;
 		if(c > count)
 			c = count;
-		if(c == bp->sectsize){
+		if(c == bp->sectsize) {
 			p = getosect(xf, addr);
 			p->flags = 0;
-		}else{
+		} else {
 			p = getsect(xf, addr);
 			if(p == nil)
 				return -1;
@@ -1011,11 +1027,11 @@ writefile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	length = 0;
 	dlen = GLONG(d->length);
 	if(rcnt > 0)
-		length = offset+rcnt;
-	else if(dp->addr && dp->clust){
-		c = bp->clustsize*bp->sectsize;
-		if(dp->iclust > (dlen+c-1)/c)
-			length = c*dp->iclust;
+		length = offset + rcnt;
+	else if(dp->addr && dp->clust) {
+		c = bp->clustsize * bp->sectsize;
+		if(dp->iclust > (dlen + c - 1) / c)
+			length = c * dp->iclust;
 	}
 	if(length > dlen)
 		PLONG(d->length, length);
@@ -1025,12 +1041,12 @@ writefile(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 }
 
 int
-truncfile(Xfile *f, int32_t length)
+truncfile(Xfile* f, int32_t length)
 {
-	Xfs *xf = f->xf;
-	Dosbpb *bp = xf->ptr;
-	Dosptr *dp = f->ptr;
-	Dosdir *d = dp->d;
+	Xfs* xf = f->xf;
+	Dosbpb* bp = xf->ptr;
+	Dosptr* dp = f->ptr;
+	Dosdir* d = dp->d;
 	int32_t clust, next, n;
 
 	mlock(bp);
@@ -1040,12 +1056,12 @@ truncfile(Xfile *f, int32_t length)
 		putstart(f->xf, d, 0);
 	else
 		n -= bp->sectsize;
-	while(clust > 0){
+	while(clust > 0) {
 		next = getfat(xf, clust);
 		if(n <= 0)
 			putfat(xf, clust, 0);
 		else
-			n -= bp->clustsize*bp->sectsize;
+			n -= bp->clustsize * bp->sectsize;
 		clust = next;
 	}
 	unmlock(bp);
@@ -1057,9 +1073,9 @@ truncfile(Xfile *f, int32_t length)
 }
 
 void
-putdir(Dosdir *d, Dir *dp)
+putdir(Dosdir* d, Dir* dp)
 {
-	if(dp->mode != ~0){
+	if(dp->mode != ~0) {
 		if(dp->mode & 2)
 			d->attr &= ~DRONLY;
 		else
@@ -1078,7 +1094,7 @@ putdir(Dosdir *d, Dir *dp)
  * creation and access dates
  */
 void
-getdir(Xfs *xfs, Dir *dp, Dosdir *d, int addr, int offset)
+getdir(Xfs* xfs, Dir* dp, Dosdir* d, int addr, int offset)
 {
 	if(d == nil || addr == 0)
 		panic("getdir on root");
@@ -1086,8 +1102,7 @@ getdir(Xfs *xfs, Dir *dp, Dosdir *d, int addr, int offset)
 	dp->dev = 0;
 	getname(dp->name, d);
 
-	dp->qid.path = addr*(Sectorsize/DOSDIRSIZE) +
-			offset/DOSDIRSIZE;
+	dp->qid.path = addr * (Sectorsize / DOSDIRSIZE) + offset / DOSDIRSIZE;
 	dp->qid.vers = 0;
 
 	if(d->attr & DRONLY)
@@ -1097,13 +1112,13 @@ getdir(Xfs *xfs, Dir *dp, Dosdir *d, int addr, int offset)
 	dp->atime = gtime(d);
 	dp->mtime = dp->atime;
 	dp->qid.type = QTFILE;
-	if(d->attr & DDIR){
+	if(d->attr & DDIR) {
 		dp->qid.type = QTDIR;
-		dp->mode |= DMDIR|0111;
+		dp->mode |= DMDIR | 0111;
 		dp->length = 0;
-	}else
+	} else
 		dp->length = GLONG(d->length);
-	if(d->attr & DSYSTEM){
+	if(d->attr & DSYSTEM) {
 		dp->mode |= DMEXCL;
 		if(iscontig(xfs, d))
 			dp->mode |= DMAPPEND;
@@ -1115,11 +1130,11 @@ getdir(Xfs *xfs, Dir *dp, Dosdir *d, int addr, int offset)
 }
 
 void
-getname(char *p, Dosdir *d)
+getname(char* p, Dosdir* d)
 {
 	int c, i;
 
-	for(i=0; i<8; i++){
+	for(i = 0; i < 8; i++) {
 		c = d->name[i];
 		if(c == '\0' || c == ' ')
 			break;
@@ -1127,7 +1142,7 @@ getname(char *p, Dosdir *d)
 			c = 0xe5;
 		*p++ = c;
 	}
-	for(i=0; i<3; i++){
+	for(i = 0; i < 3; i++) {
 		c = d->ext[i];
 		if(c == '\0' || c == ' ')
 			break;
@@ -1139,7 +1154,7 @@ getname(char *p, Dosdir *d)
 }
 
 static char*
-getnamerunes(char *dst, uint8_t *buf, int step)
+getnamerunes(char* dst, uint8_t* buf, int step)
 {
 	int i;
 	Rune r;
@@ -1147,16 +1162,16 @@ getnamerunes(char *dst, uint8_t *buf, int step)
 
 	d = dbuf;
 	r = 1;
-	for(i = 1; r && i < 11; i += 2){
-		r = buf[i] | (buf[i+1] << 8);
+	for(i = 1; r && i < 11; i += 2) {
+		r = buf[i] | (buf[i + 1] << 8);
 		d += runetochar(d, &r);
 	}
-	for(i = 14; r && i < 26; i += 2){
-		r = buf[i] | (buf[i+1] << 8);
+	for(i = 14; r && i < 26; i += 2) {
+		r = buf[i] | (buf[i + 1] << 8);
 		d += runetochar(d, &r);
 	}
-	for(i = 28; r && i < 32; i += 2){
-		r = buf[i] | (buf[i+1] << 8);
+	for(i = 28; r && i < 32; i += 2) {
+		r = buf[i] | (buf[i + 1] << 8);
 		d += runetochar(d, &r);
 	}
 
@@ -1165,7 +1180,7 @@ getnamerunes(char *dst, uint8_t *buf, int step)
 
 	memmove(dst, dbuf, d - dbuf);
 
-	if(step == -1){
+	if(step == -1) {
 		dst += d - dbuf;
 		*dst = '\0';
 	}
@@ -1174,41 +1189,40 @@ getnamerunes(char *dst, uint8_t *buf, int step)
 }
 
 char*
-getnamesect(char *dbuf, char *d, uint8_t *buf, int *islong, int *sum,
-	    int step)
+getnamesect(char* dbuf, char* d, uint8_t* buf, int* islong, int* sum, int step)
 {
 	/*
 	 * validation checks to make sure we're
 	 * making up a consistent name
 	 */
-	if(buf[11] != 0xf || buf[12] != 0){
+	if(buf[11] != 0xf || buf[12] != 0) {
 		*islong = 0;
 		return nil;
 	}
-	if(step == 1){
-		if((buf[0] & 0xc0) == 0x40){
+	if(step == 1) {
+		if((buf[0] & 0xc0) == 0x40) {
 			*islong = buf[0] & 0x3f;
 			*sum = buf[13];
 			d = dbuf + DOSNAMELEN;
 			*--d = '\0';
-		}else if(*islong && *islong == buf[0] + 1 && *sum == buf[13]){
+		} else if(*islong && *islong == buf[0] + 1 && *sum == buf[13]) {
 			*islong = buf[0];
-		}else{
+		} else {
 			*islong = 0;
 			return nil;
 		}
-	}else{
-		if(*islong + 1 == (buf[0] & 0xbf) && *sum == buf[13]){
+	} else {
+		if(*islong + 1 == (buf[0] & 0xbf) && *sum == buf[13]) {
 			*islong = buf[0] & 0x3f;
 			if(buf[0] & 0x40)
 				*sum = -1;
-		}else{
+		} else {
 			*islong = 0;
 			*sum = -1;
 			return nil;
 		}
 	}
-	if(*islong > 20){
+	if(*islong > 20) {
 		*islong = 0;
 		*sum = -1;
 		return nil;
@@ -1218,19 +1232,19 @@ getnamesect(char *dbuf, char *d, uint8_t *buf, int *islong, int *sum,
 }
 
 void
-putname(char *p, Dosdir *d)
+putname(char* p, Dosdir* d)
 {
 	int i;
 
-	memset(d->name, ' ', sizeof d->name+sizeof d->ext);
-	for(i=0; i<sizeof d->name; i++){
+	memset(d->name, ' ', sizeof d->name + sizeof d->ext);
+	for(i = 0; i < sizeof d->name; i++) {
 		if(*p == 0 || *p == '.')
 			break;
 		d->name[i] = toupper(*p++);
 	}
 	p = strrchr(p, '.');
-	if(p){
-		for(i=0; i<sizeof d->ext; i++){
+	if(p) {
+		for(i = 0; i < sizeof d->ext; i++) {
 			if(*++p == 0)
 				break;
 			d->ext[i] = toupper(*p);
@@ -1239,7 +1253,7 @@ putname(char *p, Dosdir *d)
 }
 
 static void
-putnamesect(uint8_t *slot, Rune *longname, int curslot, int first, int sum)
+putnamesect(uint8_t* slot, Rune* longname, int curslot, int first, int sum)
 {
 	Rune r;
 	Dosdir ds;
@@ -1253,37 +1267,37 @@ putnamesect(uint8_t *slot, Rune *longname, int curslot, int first, int sum)
 	ds.start[1] = 0;
 	if(first)
 		ds.name[0] = 0x40 | curslot;
-	else 
+	else
 		ds.name[0] = curslot;
 	memmove(slot, &ds, sizeof ds);
 
-	j = (curslot-1) * DOSRUNE;
+	j = (curslot - 1) * DOSRUNE;
 
-	for(i = 1; i < 11; i += 2){
+	for(i = 1; i < 11; i += 2) {
 		r = longname[j++];
 		slot[i] = r;
-		slot[i+1] = r >> 8;
+		slot[i + 1] = r >> 8;
 		if(r == 0)
 			return;
 	}
-	for(i = 14; i < 26; i += 2){
+	for(i = 14; i < 26; i += 2) {
 		r = longname[j++];
 		slot[i] = r;
-		slot[i+1] = r >> 8;
+		slot[i + 1] = r >> 8;
 		if(r == 0)
 			return;
 	}
-	for(i = 28; i < 32; i += 2){
+	for(i = 28; i < 32; i += 2) {
 		r = longname[j++];
 		slot[i] = r;
-		slot[i+1] = r >> 8;
+		slot[i + 1] = r >> 8;
 		if(r == 0)
 			return;
 	}
 }
 
 int
-aliassum(Dosdir *d)
+aliassum(Dosdir* d)
 {
 	int i, sum;
 
@@ -1291,16 +1305,16 @@ aliassum(Dosdir *d)
 		return -1;
 	sum = 0;
 	for(i = 0; i < 11; i++)
-		sum = (((sum&1)<<7) | ((sum&0xfe)>>1)) + d->name[i];
+		sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + d->name[i];
 	return sum & 0xff;
 }
 
 int
-putlongname(Xfs *xf, Dosptr *ndp, char *name, char sname[13])
+putlongname(Xfs* xf, Dosptr* ndp, char* name, char sname[13])
 {
-	Dosbpb *bp;
+	Dosbpb* bp;
 	Dosdir tmpd;
-	Rune longname[DOSNAMELEN+1];
+	Rune longname[DOSNAMELEN + 1];
 	int i, first, sum, nds, len;
 
 	/* calculate checksum */
@@ -1310,17 +1324,18 @@ putlongname(Xfs *xf, Dosptr *ndp, char *name, char sname[13])
 	bp = xf->ptr;
 	first = 1;
 	len = utftorunes(longname, name, DOSNAMELEN);
-	if(chatty){
+	if(chatty) {
 		chat("utftorunes %s =", name);
-		for(i=0; i<len; i++)
+		for(i = 0; i < len; i++)
 			chat(" %.4X", longname[i]);
 		chat("\n");
 	}
-	for(nds = (len + DOSRUNE-1) / DOSRUNE; nds > 0; nds--){
-		putnamesect(&ndp->p->iobuf[ndp->offset], longname, nds, first, sum);
+	for(nds = (len + DOSRUNE - 1) / DOSRUNE; nds > 0; nds--) {
+		putnamesect(&ndp->p->iobuf[ndp->offset], longname, nds, first,
+		            sum);
 		first = 0;
 		ndp->offset += 32;
-		if(ndp->offset == bp->sectsize){
+		if(ndp->offset == bp->sectsize) {
 			chat("long name moving over sector boundary\n");
 			ndp->p->flags |= BMOD;
 			putsect(ndp->p);
@@ -1339,17 +1354,17 @@ putlongname(Xfs *xf, Dosptr *ndp, char *name, char sname[13])
 			if(ndp->p == nil)
 				return -1;
 			ndp->offset = 0;
-			ndp->d = (Dosdir *)&ndp->p->iobuf[ndp->offset];
+			ndp->d = (Dosdir*)&ndp->p->iobuf[ndp->offset];
 		}
 	}
 	return 0;
 }
 
 int32_t
-getfat(Xfs *xf, int n)
+getfat(Xfs* xf, int n)
 {
-	Dosbpb *bp = xf->ptr;
-	Iosect *p;
+	Dosbpb* bp = xf->ptr;
+	Iosect* p;
 	uint32_t k, sect;
 	int o, fb;
 
@@ -1357,31 +1372,31 @@ getfat(Xfs *xf, int n)
 		return -1;
 	fb = bp->fatbits;
 	k = (fb * n) >> 3;
-	if(k >= bp->fatsize*bp->sectsize)
+	if(k >= bp->fatsize * bp->sectsize)
 		panic("getfat");
-	sect = k/bp->sectsize + bp->fataddr;
-	o = k%bp->sectsize;
+	sect = k / bp->sectsize + bp->fataddr;
+	o = k % bp->sectsize;
 	p = getsect(xf, sect);
 	if(p == nil)
 		return -1;
 	k = p->iobuf[o++];
-	if(o >= bp->sectsize){
+	if(o >= bp->sectsize) {
 		putsect(p);
-		p = getsect(xf, sect+1);
+		p = getsect(xf, sect + 1);
 		if(p == nil)
 			return -1;
 		o = 0;
 	}
-	k |= p->iobuf[o++]<<8;
-	if(fb == 32){
+	k |= p->iobuf[o++] << 8;
+	if(fb == 32) {
 		/* fat32 is really fat28 */
 		k |= p->iobuf[o++] << 16;
 		k |= (p->iobuf[o] & 0x0f) << 24;
 		fb = 28;
 	}
 	putsect(p);
-	if(fb == 12){
-		if(n&1)
+	if(fb == 12) {
+		if(n & 1)
 			k >>= 4;
 		else
 			k &= 0xfff;
@@ -1402,11 +1417,11 @@ getfat(Xfs *xf, int n)
 }
 
 void
-putfat(Xfs *xf, int n, uint32_t val)
+putfat(Xfs* xf, int n, uint32_t val)
 {
-	Fatinfo *fi;
-	Dosbpb *bp;
-	Iosect *p;
+	Fatinfo* fi;
+	Dosbpb* bp;
+	Iosect* p;
 	uint32_t k, sect, esect;
 	int o;
 
@@ -1414,52 +1429,53 @@ putfat(Xfs *xf, int n, uint32_t val)
 	if(n < FATRESRV || n >= bp->fatclusters)
 		panic("putfat n=%d", n);
 	k = (bp->fatbits * n) >> 3;
-	if(k >= bp->fatsize*bp->sectsize)
+	if(k >= bp->fatsize * bp->sectsize)
 		panic("putfat");
-	sect = k/bp->sectsize + bp->fataddr;
+	sect = k / bp->sectsize + bp->fataddr;
 	esect = sect + bp->nfats * bp->fatsize;
-	for(; sect<esect; sect+=bp->fatsize){
-		o = k%bp->sectsize;
+	for(; sect < esect; sect += bp->fatsize) {
+		o = k % bp->sectsize;
 		p = getsect(xf, sect);
 		if(p == nil)
 			continue;
-		switch(bp->fatbits){
+		switch(bp->fatbits) {
 		case 12:
-			if(n&1){
+			if(n & 1) {
 				p->iobuf[o] &= 0x0f;
-				p->iobuf[o++] |= val<<4;
-				if(o >= bp->sectsize){
+				p->iobuf[o++] |= val << 4;
+				if(o >= bp->sectsize) {
 					p->flags |= BMOD;
 					putsect(p);
-					p = getsect(xf, sect+1);
+					p = getsect(xf, sect + 1);
 					if(p == nil)
 						continue;
 					o = 0;
 				}
-				p->iobuf[o] = val>>4;
-			}else{
+				p->iobuf[o] = val >> 4;
+			} else {
 				p->iobuf[o++] = val;
-				if(o >= bp->sectsize){
+				if(o >= bp->sectsize) {
 					p->flags |= BMOD;
 					putsect(p);
-					p = getsect(xf, sect+1);
+					p = getsect(xf, sect + 1);
 					if(p == nil)
 						continue;
 					o = 0;
 				}
 				p->iobuf[o] &= 0xf0;
-				p->iobuf[o] |= (val>>8) & 0x0f;
+				p->iobuf[o] |= (val >> 8) & 0x0f;
 			}
 			break;
 		case 16:
 			p->iobuf[o++] = val;
-			p->iobuf[o] = val>>8;
+			p->iobuf[o] = val >> 8;
 			break;
-		case 32:	/* fat32 is really fat28 */
+		case 32: /* fat32 is really fat28 */
 			p->iobuf[o++] = val;
-			p->iobuf[o++] = val>>8;
-			p->iobuf[o++] = val>>16;
-			p->iobuf[o] = (p->iobuf[o] & 0xf0) | ((val>>24) & 0x0f);
+			p->iobuf[o++] = val >> 8;
+			p->iobuf[o++] = val >> 16;
+			p->iobuf[o] =
+			    (p->iobuf[o] & 0xf0) | ((val >> 24) & 0x0f);
 			break;
 		default:
 			panic("putfat fatbits");
@@ -1473,9 +1489,9 @@ putfat(Xfs *xf, int n, uint32_t val)
 	else
 		bp->freeclusters--;
 
-	if(bp->fatinfo){
+	if(bp->fatinfo) {
 		p = getsect(xf, bp->fatinfo);
-		if(p != nil){
+		if(p != nil) {
 			fi = (Fatinfo*)p->iobuf;
 			PLONG(fi->nextfree, bp->freeptr);
 			PLONG(fi->freeclust, bp->freeclusters);
@@ -1492,11 +1508,11 @@ putfat(Xfs *xf, int n, uint32_t val)
  * anywhere on disk, fail.
  */
 int
-cfalloc(Xfile *f)
+cfalloc(Xfile* f)
 {
 	int l;
 
-	if((l=makecontig(f, 8)) >= 0)
+	if((l = makecontig(f, 8)) >= 0)
 		return l;
 	return makecontig(f, 1);
 }
@@ -1505,7 +1521,7 @@ cfalloc(Xfile *f)
  * Check whether a file is contiguous.
  */
 int
-iscontig(Xfs *xf, Dosdir *d)
+iscontig(Xfs* xf, Dosdir* d)
 {
 	int32_t clust, next;
 
@@ -1517,25 +1533,25 @@ iscontig(Xfs *xf, Dosdir *d)
 		next = getfat(xf, clust);
 		if(next < 0)
 			return 1;
-		if(next != clust+1)
+		if(next != clust + 1)
 			return 0;
 		clust = next;
 	}
 }
 
 /*
- * Make a file contiguous, with nextra clusters of 
+ * Make a file contiguous, with nextra clusters of
  * free space after it for later expansion.
  * Return the number of the first new cluster.
  */
 int
-makecontig(Xfile *f, int nextra)
+makecontig(Xfile* f, int nextra)
 {
-	Dosbpb *bp;
-	Dosdir *d;
-	Dosptr *dp;
-	Xfs *xf;
-	Iosect *wp, *rp;
+	Dosbpb* bp;
+	Dosdir* d;
+	Dosptr* dp;
+	Xfs* xf;
+	Iosect* wp, *rp;
 	int32_t clust, next, last, start, rclust, wclust, eclust, ostart;
 	int isok, i, n, nclust, nrun, rs, ws;
 
@@ -1555,7 +1571,7 @@ makecontig(Xfile *f, int nextra)
 			next = getfat(xf, clust);
 			if(next <= 0)
 				break;
-			if(next != clust+1)
+			if(next != clust + 1)
 				isok = 0;
 			clust = next;
 		}
@@ -1563,17 +1579,19 @@ makecontig(Xfile *f, int nextra)
 	chat("nclust %d\n", nclust);
 
 	if(isok && clust != -1) {
-		eclust = clust+1;	/* eclust = first cluster past file */
-		assert(eclust == fileclust(f, 0, 0)+nclust);
-		for(i=0; i<nextra; i++)
-			if(getfat(xf, eclust+i) != 0)
+		eclust = clust + 1; /* eclust = first cluster past file */
+		assert(eclust == fileclust(f, 0, 0) + nclust);
+		for(i = 0; i < nextra; i++)
+			if(getfat(xf, eclust + i) != 0)
 				break;
-		if(i == nextra) {	/* they were all free */
-			chat("eclust=%#lx, getfat eclust-1 = %#lux\n", eclust, getfat(xf, eclust-1));
-			assert(getfat(xf, eclust-1) == 0xffffffff);
-			putfat(xf, eclust-1, eclust);
+		if(i == nextra) { /* they were all free */
+			chat("eclust=%#lx, getfat eclust-1 = %#lux\n", eclust,
+			     getfat(xf, eclust - 1));
+			assert(getfat(xf, eclust - 1) == 0xffffffff);
+			putfat(xf, eclust - 1, eclust);
 			putfat(xf, eclust, 0xffffffff);
-			bp->freeptr = clust+1;	/* to help keep the blocks free */
+			bp->freeptr =
+			    clust + 1; /* to help keep the blocks free */
 			return eclust;
 		}
 	}
@@ -1582,13 +1600,13 @@ makecontig(Xfile *f, int nextra)
 	last = -1;
 	n = bp->freeptr;
 	nrun = 0;
-	for(;;){
+	for(;;) {
 		if(getfat(xf, n) == 0) {
-			if(last+1 == n)
+			if(last + 1 == n)
 				nrun++;
 			else
 				nrun = 1;
-			if(nrun >= nclust+nextra)
+			if(nrun >= nclust + nextra)
 				break;
 			last = n;
 		}
@@ -1599,22 +1617,23 @@ makecontig(Xfile *f, int nextra)
 			return -1;
 		}
 	}
-	bp->freeptr = n+1;
+	bp->freeptr = n + 1;
 
 	/* copy old data over */
-	start = n+1 - nrun;
+	start = n + 1 - nrun;
 
 	/* sanity check */
-	for(i=0; i<nclust+nextra; i++)
-		assert(getfat(xf, start+i) == 0);
+	for(i = 0; i < nclust + nextra; i++)
+		assert(getfat(xf, start + i) == 0);
 
-	chat("relocate chain %lux -> 0x%lux len %d\n", fileclust(f, 0, 0), start, nclust);
+	chat("relocate chain %lux -> 0x%lux len %d\n", fileclust(f, 0, 0),
+	     start, nclust);
 
 	wclust = start;
-	for(rclust = fileclust(f, 0, 0); rclust > 0; rclust = next){
+	for(rclust = fileclust(f, 0, 0); rclust > 0; rclust = next) {
 		rs = clust2sect(bp, rclust);
 		ws = clust2sect(bp, wclust);
-		for(i=0; i<bp->clustsize; i++, rs++, ws++){
+		for(i = 0; i < bp->clustsize; i++, rs++, ws++) {
 			rp = getsect(xf, rs);
 			if(rp == nil)
 				return -1;
@@ -1627,14 +1646,15 @@ makecontig(Xfile *f, int nextra)
 		}
 		chat("move cluster %#lx -> %#lx...", rclust, wclust);
 		next = getfat(xf, rclust);
-		putfat(xf, wclust, wclust+1);
+		putfat(xf, wclust, wclust + 1);
 		wclust++;
 	}
 
 	/* now wclust points at the first new cluster; chain it in */
-	chat("wclust 0x%lux start 0x%lux (fat->0x%lux) nclust %d\n", wclust, start, getfat(xf, start), nclust);
-	assert(wclust == start+nclust);
-	putfat(xf, wclust, 0xffffffff);	/* end of file */
+	chat("wclust 0x%lux start 0x%lux (fat->0x%lux) nclust %d\n", wclust,
+	     start, getfat(xf, start), nclust);
+	assert(wclust == start + nclust);
+	putfat(xf, wclust, 0xffffffff); /* end of file */
 
 	/* update directory entry to point at new start */
 	ostart = fileclust(f, 0, 0);
@@ -1649,31 +1669,31 @@ makecontig(Xfile *f, int nextra)
 			next = getfat(xf, clust);
 			if(next <= 0)
 				break;
-			assert(next == clust+1);
+			assert(next == clust + 1);
 			clust = next;
 		}
 	}
 	chat("chain check: len %d\n", i);
-	assert(i == nclust+1);
+	assert(i == nclust + 1);
 
 	/* succeeded; remove old chain. */
-	for(rclust = ostart; rclust > 0; rclust = next){
+	for(rclust = ostart; rclust > 0; rclust = next) {
 		next = getfat(xf, rclust);
-		putfat(xf, rclust, 0);	/* free cluster */
+		putfat(xf, rclust, 0); /* free cluster */
 	}
 
-	return start+nclust;
-}	
+	return start + nclust;
+}
 
 int
-falloc(Xfs *xf)
+falloc(Xfs* xf)
 {
-	Dosbpb *bp = xf->ptr;
-	Iosect *p;
+	Dosbpb* bp = xf->ptr;
+	Iosect* p;
 	int n, i, k;
 
 	n = bp->freeptr;
-	for(;;){
+	for(;;) {
 		if(getfat(xf, n) == 0)
 			break;
 		if(++n >= bp->fatclusters)
@@ -1681,13 +1701,13 @@ falloc(Xfs *xf)
 		if(n == bp->freeptr)
 			return -1;
 	}
-	bp->freeptr = n+1;
+	bp->freeptr = n + 1;
 	if(bp->freeptr >= bp->fatclusters)
 		bp->freeptr = FATRESRV;
 	putfat(xf, n, 0xffffffff);
 	k = clust2sect(bp, n);
-	for(i=0; i<bp->clustsize; i++){
-		p = getosect(xf, k+i);
+	for(i = 0; i < bp->clustsize; i++) {
+		p = getosect(xf, k + i);
 		memset(p->iobuf, 0, bp->sectsize);
 		p->flags = BMOD;
 		putsect(p);
@@ -1696,19 +1716,19 @@ falloc(Xfs *xf)
 }
 
 void
-ffree(Xfs *xf, int32_t start)
+ffree(Xfs* xf, int32_t start)
 {
 	putfat(xf, start, 0);
 }
 
 int32_t
-clust2sect(Dosbpb *bp, int32_t clust)
+clust2sect(Dosbpb* bp, int32_t clust)
 {
 	return bp->dataaddr + (clust - FATRESRV) * bp->clustsize;
 }
 
 int32_t
-sect2clust(Dosbpb *bp, int32_t sect)
+sect2clust(Dosbpb* bp, int32_t sect)
 {
 	int32_t c;
 
@@ -1718,23 +1738,23 @@ sect2clust(Dosbpb *bp, int32_t sect)
 }
 
 void
-puttime(Dosdir *d, int32_t s)
+puttime(Dosdir* d, int32_t s)
 {
-	Tm *t;
+	Tm* t;
 	uint16_t x;
 
 	if(s == 0)
 		s = time(0);
 	t = localtime(s);
 
-	x = (t->hour<<11) | (t->min<<5) | (t->sec>>1);
+	x = (t->hour << 11) | (t->min << 5) | (t->sec >> 1);
 	PSHORT(d->time, x);
-	x = ((t->year-80)<<9) | ((t->mon+1)<<5) | t->mday;
+	x = ((t->year - 80) << 9) | ((t->mon + 1) << 5) | t->mday;
 	PSHORT(d->date, x);
 }
 
 int32_t
-gtime(Dosdir *dp)
+gtime(Dosdir* dp)
 {
 	Tm tm;
 	int i;
@@ -1758,13 +1778,13 @@ gtime(Dosdir *dp)
  * structure dumps for debugging
  */
 void
-bootdump(int fd, Dosboot *b)
+bootdump(int fd, Dosboot* b)
 {
 	Biobuf bp;
 
 	Binit(&bp, fd, OWRITE);
-	Bprint(&bp, "magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
-		b->magic[0], b->magic[1], b->magic[2]);
+	Bprint(&bp, "magic: 0x%2.2x 0x%2.2x 0x%2.2x\n", b->magic[0],
+	       b->magic[1], b->magic[2]);
 	Bprint(&bp, "version: \"%8.8s\"\n", (char*)b->version);
 	Bprint(&bp, "sectsize: %d\n", GSHORT(b->sectsize));
 	Bprint(&bp, "clustsize: %d\n", b->clustsize);
@@ -1787,13 +1807,13 @@ bootdump(int fd, Dosboot *b)
 }
 
 void
-bootdump32(int fd, Dosboot32 *b)
+bootdump32(int fd, Dosboot32* b)
 {
 	Biobuf bp;
 
 	Binit(&bp, fd, OWRITE);
-	Bprint(&bp, "magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
-		b->magic[0], b->magic[1], b->magic[2]);
+	Bprint(&bp, "magic: 0x%2.2x 0x%2.2x 0x%2.2x\n", b->magic[0],
+	       b->magic[1], b->magic[2]);
 	Bprint(&bp, "version: \"%8.8s\"\n", (char*)b->version);
 	Bprint(&bp, "sectsize: %d\n", GSHORT(b->sectsize));
 	Bprint(&bp, "clustsize: %d\n", b->clustsize);
@@ -1814,61 +1834,67 @@ bootdump32(int fd, Dosboot32 *b)
 	Bprint(&bp, "infospec: %d\n", GSHORT(b->infospec));
 	Bprint(&bp, "backupboot: %d\n", GSHORT(b->backupboot));
 	Bprint(&bp, "reserved: %d %d %d %d %d %d %d %d %d %d %d %d\n",
-		b->reserved[0], b->reserved[1], b->reserved[2], b->reserved[3],
-		b->reserved[4], b->reserved[5], b->reserved[6], b->reserved[7],
-		b->reserved[8], b->reserved[9], b->reserved[10], b->reserved[11]);
+	       b->reserved[0], b->reserved[1], b->reserved[2], b->reserved[3],
+	       b->reserved[4], b->reserved[5], b->reserved[6], b->reserved[7],
+	       b->reserved[8], b->reserved[9], b->reserved[10],
+	       b->reserved[11]);
 	Bterm(&bp);
 }
 
 void
-bootsecdump32(int fd, Xfs *xf, Dosboot32 *b32)
+bootsecdump32(int fd, Xfs* xf, Dosboot32* b32)
 {
-	Fatinfo *fi;
-	Iosect *p1;
+	Fatinfo* fi;
+	Iosect* p1;
 	int fisec, bsec, res;
 
 	fprint(fd, "\nfat32\n");
 	bootdump32(fd, b32);
 	res = GSHORT(b32->nresrv);
 	bsec = GSHORT(b32->backupboot);
-	if(bsec < res && bsec != 0){
+	if(bsec < res && bsec != 0) {
 		p1 = getsect(xf, bsec);
 		if(p1 == nil)
 			fprint(fd, "\ncouldn't get backup boot sector: %r\n");
-		else{
+		else {
 			fprint(fd, "\nbackup boot\n");
 			bootdump32(fd, (Dosboot32*)p1->iobuf);
 			putsect(p1);
 		}
-	}else if(bsec != 0xffff)
-		fprint(fd, "bad backup boot sector: %d reserved %d\n", bsec, res);
+	} else if(bsec != 0xffff)
+		fprint(fd, "bad backup boot sector: %d reserved %d\n", bsec,
+		       res);
 	fisec = GSHORT(b32->infospec);
-	if(fisec < res && fisec != 0){
+	if(fisec < res && fisec != 0) {
 		p1 = getsect(xf, fisec);
 		if(p1 == nil)
 			fprint(fd, "\ncouldn't get fat info sector: %r\n");
-		else{
+		else {
 			fprint(fd, "\nfat info %d\n", fisec);
 			fi = (Fatinfo*)p1->iobuf;
-			fprint(fd, "sig1: 0x%lux sb 0x%lux\n", GLONG(fi->sig1), FATINFOSIG1);
-			fprint(fd, "sig: 0x%lux sb 0x%lux\n", GLONG(fi->sig), FATINFOSIG);
+			fprint(fd, "sig1: 0x%lux sb 0x%lux\n", GLONG(fi->sig1),
+			       FATINFOSIG1);
+			fprint(fd, "sig: 0x%lux sb 0x%lux\n", GLONG(fi->sig),
+			       FATINFOSIG);
 			fprint(fd, "freeclust: %lud\n", GLONG(fi->freeclust));
 			fprint(fd, "nextfree: %lud\n", GLONG(fi->nextfree));
-			fprint(fd, "reserved: %lud %lud %lud\n", GLONG(fi->resrv), GLONG(fi->resrv+4), GLONG(fi->resrv+8));
+			fprint(fd, "reserved: %lud %lud %lud\n",
+			       GLONG(fi->resrv), GLONG(fi->resrv + 4),
+			       GLONG(fi->resrv + 8));
 			putsect(p1);
 		}
-	}else if(fisec != 0xffff)
+	} else if(fisec != 0xffff)
 		fprint(2, "bad fat info sector: %d reserved %d\n", bsec, res);
 }
 
 void
-dirdump(void *vdbuf)
+dirdump(void* vdbuf)
 {
 	static char attrchar[] = "rhsvda67";
-	Dosdir *d;
-	char *name, namebuf[DOSNAMELEN];
+	Dosdir* d;
+	char* name, namebuf[DOSNAMELEN];
 	char buf[128], *s, *ebuf;
-	uint8_t *dbuf;
+	uint8_t* dbuf;
 	int i;
 
 	if(!chatty)
@@ -1877,30 +1903,36 @@ dirdump(void *vdbuf)
 	d = vdbuf;
 
 	ebuf = buf + sizeof(buf);
-	if(d->attr == 0xf){
+	if(d->attr == 0xf) {
 		dbuf = vdbuf;
 		name = namebuf + DOSNAMELEN;
 		*--name = '\0';
 		name = getnamerunes(name, dbuf, 1);
-		seprint(buf, ebuf, "\"%s\" %2.2x %2.2ux %2.2ux %d", name, dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
-	}else{
+		seprint(buf, ebuf, "\"%s\" %2.2x %2.2ux %2.2ux %d", name,
+		        dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
+	} else {
 		s = seprint(buf, ebuf, "\"%.8s.%.3s\" ", (char*)d->name,
-				(char*)d->ext);
-		for(i=7; i>=0; i--)
-			*s++ = d->attr&(1<<i) ? attrchar[i] : '-';
+		            (char*)d->ext);
+		for(i = 7; i >= 0; i--)
+			*s++ = d->attr&(1 << i) ? attrchar[i] : '-';
 
 		i = GSHORT(d->time);
-		s = seprint(s, ebuf, " %2.2d:%2.2d:%2.2d", i>>11, (i>>5)&63, (i&31)<<1);
+		s = seprint(s, ebuf, " %2.2d:%2.2d:%2.2d", i >> 11,
+		            (i >> 5) & 63, (i & 31) << 1);
 		i = GSHORT(d->date);
-		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80+(i>>9), (i>>5)&15, i&31);
+		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80 + (i >> 9),
+		            (i >> 5) & 15, i & 31);
 
 		i = GSHORT(d->ctime);
-		s = seprint(s, ebuf, " %2.2d:%2.2d:%2.2d", i>>11, (i>>5)&63, (i&31)<<1);
+		s = seprint(s, ebuf, " %2.2d:%2.2d:%2.2d", i >> 11,
+		            (i >> 5) & 63, (i & 31) << 1);
 		i = GSHORT(d->cdate);
-		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80+(i>>9), (i>>5)&15, i&31);
+		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80 + (i >> 9),
+		            (i >> 5) & 15, i & 31);
 
 		i = GSHORT(d->adate);
-		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80+(i>>9), (i>>5)&15, i&31);
+		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80 + (i >> 9),
+		            (i >> 5) & 15, i & 31);
 
 		seprint(s, ebuf, " %d %d", GSHORT(d->start), GSHORT(d->length));
 	}
@@ -1908,11 +1940,11 @@ dirdump(void *vdbuf)
 }
 
 int
-cistrcmp(char *s1, char *s2)
+cistrcmp(char* s1, char* s2)
 {
 	int c1, c2;
 
-	while(*s1){
+	while(*s1) {
 		c1 = *s1++;
 		c2 = *s2++;
 
@@ -1929,18 +1961,18 @@ cistrcmp(char *s1, char *s2)
 }
 
 int
-utftorunes(Rune *rr, char *s, int n)
+utftorunes(Rune* rr, char* s, int n)
 {
-	Rune *r, *re;
+	Rune* r, *re;
 	int c;
 
 	r = rr;
 	re = r + n - 1;
-	while(c = (uint8_t)*s){
-		if(c < Runeself){
+	while(c = (uint8_t)*s) {
+		if(c < Runeself) {
 			*r = c;
 			s++;
-		}else
+		} else
 			s += chartorune(r, s);
 		r++;
 		if(r >= re)

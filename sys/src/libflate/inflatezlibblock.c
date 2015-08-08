@@ -12,18 +12,17 @@
 #include <flate.h>
 #include "zlib.h"
 
-typedef struct Block	Block;
+typedef struct Block Block;
 
-struct Block
-{
-	uint8_t	*pos;
-	uint8_t	*limit;
+struct Block {
+	uint8_t* pos;
+	uint8_t* limit;
 };
 
 static int
-blgetc(void *vb)
+blgetc(void* vb)
 {
-	Block *b;
+	Block* b;
 
 	b = vb;
 	if(b->pos >= b->limit)
@@ -32,9 +31,9 @@ blgetc(void *vb)
 }
 
 static int
-blwrite(void *vb, void *buf, int n)
+blwrite(void* vb, void* buf, int n)
 {
-	Block *b;
+	Block* b;
 
 	b = vb;
 
@@ -46,7 +45,7 @@ blwrite(void *vb, void *buf, int n)
 }
 
 int
-inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src, int ssize)
+inflatezlibblock(uint8_t* dst, int dsize, uint8_t* src, int ssize)
 {
 	Block bd, bs;
 	int ok;
@@ -56,8 +55,8 @@ inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src, int ssize)
 
 	if(((src[0] << 8) | src[1]) % 31)
 		return FlateCorrupted;
-	if((src[0] & ZlibMeth) != ZlibDeflate
-	|| (src[0] & ZlibCInfo) > ZlibWin32k)
+	if((src[0] & ZlibMeth) != ZlibDeflate ||
+	   (src[0] & ZlibCInfo) > ZlibWin32k)
 		return FlateCorrupted;
 
 	bs.pos = src + 2;
@@ -70,7 +69,9 @@ inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src, int ssize)
 	if(ok != FlateOk)
 		return ok;
 
-	if(adler32(1, dst, bs.pos - dst) != ((bs.pos[0] << 24) | (bs.pos[1] << 16) | (bs.pos[2] << 8) | bs.pos[3]))
+	if(adler32(1, dst, bs.pos - dst) !=
+	   ((bs.pos[0] << 24) | (bs.pos[1] << 16) | (bs.pos[2] << 8) |
+	    bs.pos[3]))
 		return FlateCorrupted;
 
 	return bd.pos - dst;

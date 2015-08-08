@@ -11,21 +11,20 @@
 #include <libc.h>
 #include <draw.h>
 
-static
-int
+static int
 unitsperline(Rectangle r, int d, int bitsperunit)
 {
 	uint32_t l, t;
 
-	if(d <= 0 || d > 32)	/* being called wrong.  d is image depth. */
+	if(d <= 0 || d > 32) /* being called wrong.  d is image depth. */
 		abort();
 
-	if(r.min.x >= 0){
-		l = (r.max.x*d+bitsperunit-1)/bitsperunit;
-		l -= (r.min.x*d)/bitsperunit;
-	}else{			/* make positive before divide */
-		t = (-r.min.x*d+bitsperunit-1)/bitsperunit;
-		l = t+(r.max.x*d+bitsperunit-1)/bitsperunit;
+	if(r.min.x >= 0) {
+		l = (r.max.x * d + bitsperunit - 1) / bitsperunit;
+		l -= (r.min.x * d) / bitsperunit;
+	} else { /* make positive before divide */
+		t = (-r.min.x * d + bitsperunit - 1) / bitsperunit;
+		l = t + (r.max.x * d + bitsperunit - 1) / bitsperunit;
 	}
 	return l;
 }
@@ -33,7 +32,7 @@ unitsperline(Rectangle r, int d, int bitsperunit)
 int
 wordsperline(Rectangle r, int d)
 {
-	return unitsperline(r, d, 8*sizeof(uint32_t));
+	return unitsperline(r, d, 8 * sizeof(uint32_t));
 }
 
 int

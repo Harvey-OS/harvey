@@ -12,7 +12,7 @@
 #include "plumb.h"
 
 int
-plumbsendtext(int fd, char *src, char *dst, char *wdir, char *data)
+plumbsendtext(int fd, char* src, char* dst, char* wdir, char* data)
 {
 	Plumbmsg m;
 

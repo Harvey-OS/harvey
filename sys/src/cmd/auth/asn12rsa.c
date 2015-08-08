@@ -21,25 +21,27 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *s;
-	unsigned char *buf;
+	char* s;
+	unsigned char* buf;
 	int fd;
 	int32_t n, tot;
-	char *tag, *file;
-	RSApriv *key;
+	char* tag, *file;
+	RSApriv* key;
 
 	fmtinstall('B', mpfmt);
 
 	tag = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 't':
 		tag = EARGF(usage());
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0 && argc != 1)
 		usage();
@@ -53,11 +55,11 @@ main(int argc, char **argv)
 		sysfatal("open %s: %r", file);
 	buf = nil;
 	tot = 0;
-	for(;;){
-		buf = realloc(buf, tot+8192);
+	for(;;) {
+		buf = realloc(buf, tot + 8192);
 		if(buf == nil)
 			sysfatal("realloc: %r");
-		if((n = read(fd, buf+tot, 8192)) < 0)
+		if((n = read(fd, buf + tot, 8192)) < 0)
 			sysfatal("read: %r");
 		if(n == 0)
 			break;
@@ -68,11 +70,11 @@ main(int argc, char **argv)
 	if(key == nil)
 		sysfatal("couldn't parse asn1 key");
 
-	s = smprint("key proto=rsa %s%ssize=%d ek=%B !dk=%B n=%B !p=%B !q=%B !kp=%B !kq=%B !c2=%B\n",
-		tag ? tag : "", tag ? " " : "",
-		mpsignif(key->pub.n), key->pub.ek,
-		key->dk, key->pub.n, key->p, key->q,
-		key->kp, key->kq, key->c2);
+	s = smprint("key proto=rsa %s%ssize=%d ek=%B !dk=%B n=%B !p=%B !q=%B "
+	            "!kp=%B !kq=%B !c2=%B\n",
+	            tag ? tag : "", tag ? " " : "", mpsignif(key->pub.n),
+	            key->pub.ek, key->dk, key->pub.n, key->p, key->q, key->kp,
+	            key->kq, key->c2);
 	if(s == nil)
 		sysfatal("smprint: %r");
 	write(1, s, strlen(s));

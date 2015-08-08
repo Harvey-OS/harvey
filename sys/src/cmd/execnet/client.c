@@ -15,7 +15,7 @@
 #include "dat.h"
 
 int nclient;
-Client **client;
+Client** client;
 #define Zmsg ((Msg*)~0)
 char nocmd[] = "";
 
@@ -27,10 +27,10 @@ int
 newclient(void)
 {
 	int i;
-	Client *c;
+	Client* c;
 
-	for(i=0; i<nclient; i++)
-		if(client[i]->ref==0 && !client[i]->moribund)
+	for(i = 0; i < nclient; i++)
+		if(client[i]->ref == 0 && !client[i]->moribund)
 			return i;
 
 	c = emalloc(sizeof(Client));
@@ -41,44 +41,44 @@ newclient(void)
 	c->readerproc = ioproc();
 	c->writerproc = ioproc();
 	c->num = nclient;
-	if(nclient%16 == 0)
-		client = erealloc(client, (nclient+16)*sizeof(client[0]));
+	if(nclient % 16 == 0)
+		client = erealloc(client, (nclient + 16) * sizeof(client[0]));
 	client[nclient++] = c;
-	return nclient-1;
+	return nclient - 1;
 }
 
 void
-die(Client *c)
+die(Client* c)
 {
-	Msg *m, *next;
-	Req *r, *rnext;
+	Msg* m, *next;
+	Req* r, *rnext;
 
 	c->moribund = 1;
 	kickwriter(c);
 	iointerrupt(c->readerproc);
 	iointerrupt(c->writerproc);
-	if(--c->activethread == 0){
-		if(c->cmd != nocmd){
+	if(--c->activethread == 0) {
+		if(c->cmd != nocmd) {
 			free(c->cmd);
 			c->cmd = nocmd;
 		}
 		c->pid = 0;
 		c->moribund = 0;
 		c->status = Closed;
-		for(m=c->mq; m && m != Zmsg; m=next){
+		for(m = c->mq; m && m != Zmsg; m = next) {
 			next = m->link;
 			free(m);
 		}
 		c->mq = nil;
-		if(c->rq != nil){
-			for(r=c->rq; r; r=rnext){
+		if(c->rq != nil) {
+			for(r = c->rq; r; r = rnext) {
 				rnext = r->aux;
 				respond(r, "hangup");
 			}
 			c->rq = nil;
 		}
-		if(c->wq != nil){
-			for(r=c->wq; r; r=rnext){
+		if(c->wq != nil) {
+			for(r = c->wq; r; r = rnext) {
 				rnext = r->aux;
 				respond(r, "hangup");
 			}
@@ -93,9 +93,9 @@ die(Client *c)
 }
 
 void
-closeclient(Client *c)
+closeclient(Client* c)
 {
-	if(--c->ref == 0){
+	if(--c->ref == 0) {
 		if(c->pid > 0)
 			postnote(PNPROC, c->pid, "kill");
 		c->status = Hangup;
@@ -104,16 +104,16 @@ closeclient(Client *c)
 		c->moribund = 1;
 		kickwriter(c);
 		iointerrupt(c->readerproc);
-		iointerrupt(c->writerproc);		
+		iointerrupt(c->writerproc);
 		c->activethread++;
 		die(c);
 	}
 }
 
 void
-queuerdreq(Client *c, Req *r)
+queuerdreq(Client* c, Req* r)
 {
-	if(c->rq==nil)
+	if(c->rq == nil)
 		c->erq = &c->rq;
 	*c->erq = r;
 	r->aux = nil;
@@ -121,9 +121,9 @@ queuerdreq(Client *c, Req *r)
 }
 
 void
-queuewrreq(Client *c, Req *r)
+queuewrreq(Client* c, Req* r)
 {
-	if(c->wq==nil)
+	if(c->wq == nil)
 		c->ewq = &c->wq;
 	*c->ewq = r;
 	r->aux = nil;
@@ -131,37 +131,37 @@ queuewrreq(Client *c, Req *r)
 }
 
 void
-queuemsg(Client *c, Msg *m)
+queuemsg(Client* c, Msg* m)
 {
-	if(c->mq==nil)
+	if(c->mq == nil)
 		c->emq = &c->mq;
 	*c->emq = m;
-	if(m != Zmsg){
+	if(m != Zmsg) {
 		m->link = nil;
 		c->emq = (Msg**)&m->link;
-	}else
+	} else
 		c->emq = nil;
 }
 
 void
-matchmsgs(Client *c)
+matchmsgs(Client* c)
 {
-	Req *r;
-	Msg *m;
+	Req* r;
+	Msg* m;
 	int n, rm;
 
-	while(c->rq && c->mq){
+	while(c->rq && c->mq) {
 		r = c->rq;
 		c->rq = r->aux;
 
 		rm = 0;
 		m = c->mq;
-		if(m == Zmsg){
+		if(m == Zmsg) {
 			respond(r, "execnet: no more data");
 			break;
 		}
 		n = r->ifcall.count;
-		if(n >= m->ep - m->rp){
+		if(n >= m->ep - m->rp) {
 			n = m->ep - m->rp;
 			c->mq = m->link;
 			rm = 1;
@@ -178,12 +178,12 @@ matchmsgs(Client *c)
 }
 
 void
-findrdreq(Client *c, Req *r)
+findrdreq(Client* c, Req* r)
 {
-	Req **l;
+	Req** l;
 
-	for(l=&c->rq; *l; l=(Req**)&(*l)->aux){
-		if(*l == r){
+	for(l = &c->rq; *l; l = (Req**)&(*l)->aux) {
+		if(*l == r) {
 			*l = r->aux;
 			if(*l == nil)
 				c->erq = l;
@@ -194,12 +194,12 @@ findrdreq(Client *c, Req *r)
 }
 
 void
-findwrreq(Client *c, Req *r)
+findwrreq(Client* c, Req* r)
 {
-	Req **l;
+	Req** l;
 
-	for(l=&c->wq; *l; l=(Req**)&(*l)->aux){
-		if(*l == r){
+	for(l = &c->wq; *l; l = (Req**)&(*l)->aux) {
+		if(*l == r) {
 			*l = r->aux;
 			if(*l == nil)
 				c->ewq = l;
@@ -210,20 +210,20 @@ findwrreq(Client *c, Req *r)
 }
 
 void
-dataread(Req *r, Client *c)
+dataread(Req* r, Client* c)
 {
 	queuerdreq(c, r);
 	matchmsgs(c);
 }
 
 static void
-readthread(void *a)
+readthread(void* a)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int n;
-	Client *c;
-	Ioproc *io;
-	Msg *m;
+	Client* c;
+	Ioproc* io;
+	Msg* m;
 	char tmp[32];
 
 	c = a;
@@ -232,8 +232,8 @@ readthread(void *a)
 
 	buf = emalloc(8192);
 	io = c->readerproc;
-	while((n = ioread(io, c->fd[0], buf, 8192)) >= 0){
-		m = emalloc(sizeof(Msg)+n);
+	while((n = ioread(io, c->fd[0], buf, 8192)) >= 0) {
+		m = emalloc(sizeof(Msg) + n);
 		m->rp = (uint8_t*)&m[1];
 		m->ep = m->rp + n;
 		if(n)
@@ -247,23 +247,23 @@ readthread(void *a)
 }
 
 static void
-kickwriter(Client *c)
+kickwriter(Client* c)
 {
 	nbsendp(c->writerkick, nil);
 }
 
 void
-clientflush(Req *or, Client *c)
+clientflush(Req* or, Client* c)
 {
 	if(or->ifcall.type == Tread)
-		findrdreq(c, or);
-	else{
-		if(c->execreq == or){
+		findrdreq(c, or );
+	else {
+		if(c->execreq == or ) {
 			c->execreq = nil;
 			iointerrupt(c->writerproc);
 		}
-		findwrreq(c, or);
-		if(c->curw == or){
+		findwrreq(c, or );
+		if(c->curw == or ) {
 			c->curw = nil;
 			iointerrupt(c->writerproc);
 			kickwriter(c);
@@ -272,21 +272,21 @@ clientflush(Req *or, Client *c)
 }
 
 void
-datawrite(Req *r, Client *c)
+datawrite(Req* r, Client* c)
 {
 	queuewrreq(c, r);
 	kickwriter(c);
 }
 
 static void
-writethread(void *a)
+writethread(void* a)
 {
 	char e[ERRMAX];
-	uint8_t *buf;
+	uint8_t* buf;
 	int n;
-	Ioproc *io;
-	Req *r;
-	Client *c;
+	Ioproc* io;
+	Req* r;
+	Client* c;
 	char tmp[32];
 
 	c = a;
@@ -295,8 +295,8 @@ writethread(void *a)
 
 	buf = emalloc(8192);
 	io = c->writerproc;
-	for(;;){
-		while(c->wq == nil){
+	for(;;) {
+		while(c->wq == nil) {
 			if(c->moribund)
 				goto Out;
 			recvp(c->writerkick);
@@ -309,10 +309,10 @@ writethread(void *a)
 		n = iowrite(io, c->fd[1], r->ifcall.data, r->ifcall.count);
 		if(chatty9p)
 			fprint(2, "io->write returns %d\n", n);
-		if(n >= 0){
+		if(n >= 0) {
 			r->ofcall.count = n;
 			respond(r, nil);
-		}else{
+		} else {
 			rerrstr(e, sizeof e);
 			respond(r, e);
 		}
@@ -323,16 +323,16 @@ Out:
 }
 
 static void
-execproc(void *a)
+execproc(void* a)
 {
 	int i, fd;
-	Client *c;
+	Client* c;
 	char tmp[32];
 
 	c = a;
 	snprint(tmp, sizeof tmp, "execproc%d", c->num);
 	threadsetname(tmp);
-	if(pipe(c->fd) < 0){
+	if(pipe(c->fd) < 0) {
 		rerrstr(c->err, sizeof c->err);
 		sendul(c->execpid, -1);
 		return;
@@ -342,16 +342,16 @@ execproc(void *a)
 	close(c->fd[0]);
 	dup(fd, 0);
 	dup(fd, 1);
-	for(i=3; i<100; i++)	/* should do better */
+	for(i = 3; i < 100; i++) /* should do better */
 		close(i);
 	strcpy(c->err, "exec failed");
 	procexecl(c->execpid, "/bin/rc", "rc", "-c", c->cmd, nil);
 }
 
 static void
-execthread(void *a)
+execthread(void* a)
 {
-	Client *c;
+	Client* c;
 	int p;
 	char tmp[32];
 
@@ -365,26 +365,26 @@ execthread(void *a)
 	c->execpid = nil;
 	close(c->fd[1]);
 	c->fd[1] = c->fd[0];
-	if(p != -1){
+	if(p != -1) {
 		c->pid = p;
 		c->activethread = 2;
 		threadcreate(readthread, c, STACK);
 		threadcreate(writethread, c, STACK);
 		if(c->execreq)
 			respond(c->execreq, nil);
-	}else{
+	} else {
 		if(c->execreq)
 			respond(c->execreq, c->err);
 	}
 }
 
 void
-ctlwrite(Req *r, Client *c)
+ctlwrite(Req* r, Client* c)
 {
-	char *f[3], *s, *p;
+	char* f[3], *s, *p;
 	int nf;
 
-	s = emalloc(r->ifcall.count+1);
+	s = emalloc(r->ifcall.count + 1);
 	memmove(s, r->ifcall.data, r->ifcall.count);
 	s[r->ifcall.count] = '\0';
 
@@ -392,21 +392,21 @@ ctlwrite(Req *r, Client *c)
 	p = strchr(s, ' ');
 	if(p == nil)
 		nf = 1;
-	else{
+	else {
 		*p++ = '\0';
 		f[1] = p;
 		nf = 2;
 	}
 
-	if(f[0][0] == '\0'){
+	if(f[0][0] == '\0') {
 		free(s);
 		respond(r, nil);
 		return;
 	}
 
 	r->ofcall.count = r->ifcall.count;
-	if(strcmp(f[0], "hangup") == 0){
-		if(c->pid == 0){
+	if(strcmp(f[0], "hangup") == 0) {
+		if(c->pid == 0) {
 			respond(r, "connection already hung up");
 			goto Out;
 		}
@@ -415,19 +415,19 @@ ctlwrite(Req *r, Client *c)
 		goto Out;
 	}
 
-	if(strcmp(f[0], "connect") == 0){
-		if(c->cmd != nocmd){
+	if(strcmp(f[0], "connect") == 0) {
+		if(c->cmd != nocmd) {
 			respond(r, "already have connection");
 			goto Out;
 		}
-		if(nf == 1){
+		if(nf == 1) {
 			respond(r, "need argument to connect");
 			goto Out;
 		}
 		c->status = Exec;
 		if(p = strrchr(f[1], '!'))
 			*p = '\0';
-		c->cmd = emalloc(4+1+strlen(f[1])+1);
+		c->cmd = emalloc(4 + 1 + strlen(f[1]) + 1);
 		strcpy(c->cmd, "exec ");
 		strcat(c->cmd, f[1]);
 		c->execreq = r;

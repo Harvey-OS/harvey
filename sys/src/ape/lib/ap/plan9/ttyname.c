@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-char *
+char*
 ttyname(int fd)
 {
 	static char buf[100];

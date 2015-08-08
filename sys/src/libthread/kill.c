@@ -17,14 +17,14 @@ static void tinterrupt(Proc*, Thread*);
 static void
 threadxxxgrp(int grp, int dokill)
 {
-	Proc *p;
-	Thread *t;
+	Proc* p;
+	Thread* t;
 
 	lock(&_threadpq.lock);
-	for(p=_threadpq.head; p; p=p->next){
+	for(p = _threadpq.head; p; p = p->next) {
 		lock(&p->lock);
-		for(t=p->threads.head; t; t=t->nextt)
-			if(t->grp == grp){
+		for(t = p->threads.head; t; t = t->nextt)
+			if(t->grp == grp) {
 				if(dokill)
 					t->moribund = 1;
 				tinterrupt(p, t);
@@ -38,14 +38,14 @@ threadxxxgrp(int grp, int dokill)
 static void
 threadxxx(int id, int dokill)
 {
-	Proc *p;
-	Thread *t;
+	Proc* p;
+	Thread* t;
 
 	lock(&_threadpq.lock);
-	for(p=_threadpq.head; p; p=p->next){
+	for(p = _threadpq.head; p; p = p->next) {
 		lock(&p->lock);
-		for(t=p->threads.head; t; t=t->nextt)
-			if(t->id == id){
+		for(t = p->threads.head; t; t = t->nextt)
+			if(t->id == id) {
 				if(dokill)
 					t->moribund = 1;
 				tinterrupt(p, t);
@@ -86,9 +86,9 @@ threadint(int id)
 }
 
 static void
-tinterrupt(Proc *p, Thread *t)
+tinterrupt(Proc* p, Thread* t)
 {
-	switch(t->state){
+	switch(t->state) {
 	case Running:
 		postnote(PNPROC, p->pid, "threadint");
 		break;

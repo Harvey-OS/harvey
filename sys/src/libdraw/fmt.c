@@ -12,7 +12,7 @@
 #include <draw.h>
 
 int
-Rfmt(Fmt *f)
+Rfmt(Fmt* f)
 {
 	Rectangle r;
 
@@ -21,11 +21,10 @@ Rfmt(Fmt *f)
 }
 
 int
-Pfmt(Fmt *f)
+Pfmt(Fmt* f)
 {
 	Point p;
 
 	p = va_arg(f->args, Point);
 	return fmtprint(f, "[%d %d]", p.x, p.y);
 }
-

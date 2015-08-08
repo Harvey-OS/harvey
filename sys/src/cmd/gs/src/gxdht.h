@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1995, 1996, 1997, 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1995, 1996, 1997, 1999, 2000 Aladdin Enterprises.  All rights
+  reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,11 +28,11 @@
 /* Definition of device halftones */
 
 #ifndef gxdht_INCLUDED
-#  define gxdht_INCLUDED
+#define gxdht_INCLUDED
 
 #include "gsrefct.h"
 #include "gsmatrix.h"
-#include "gxarith.h"		/* for igcd */
+#include "gxarith.h" /* for igcd */
 #include "gxhttype.h"
 #include "gscspace.h"
 #include "gxcindex.h"
@@ -84,20 +85,20 @@
  * do the shifting at rendering time.
  */
 typedef struct gx_ht_cell_params_s {
-    /* Defining values.  M * M1 != 0 or N * N1 != 0; R > 0, R1 > 0. */
-    /* R and D are short rather than ushort so that we don't get */
-    /* unsigned results from arithmetic. */
-    short M, N, R;
-    short M1, N1, R1;
-    /* Derived values. */
-    uint32_t C;
-    short D, D1;
-    uint W, W1;
-    int S;
+	/* Defining values.  M * M1 != 0 or N * N1 != 0; R > 0, R1 > 0. */
+	/* R and D are short rather than ushort so that we don't get */
+	/* unsigned results from arithmetic. */
+	short M, N, R;
+	short M1, N1, R1;
+	/* Derived values. */
+	uint32_t C;
+	short D, D1;
+	uint W, W1;
+	int S;
 } gx_ht_cell_params_t;
 
 /* Compute the derived values from the defining values. */
-void gx_compute_cell_values(gx_ht_cell_params_t *);
+void gx_compute_cell_values(gx_ht_cell_params_t*);
 
 /*
  * The whitening order is represented by a pair of arrays.
@@ -122,8 +123,8 @@ typedef uint ht_mask_t;
 
 #define ht_mask_bits (sizeof(ht_mask_t) * 8)
 typedef struct gx_ht_bit_s {
-    uint offset;
-    ht_mask_t mask;
+	uint offset;
+	ht_mask_t mask;
 } gx_ht_bit;
 
 /* During sampling, bits[i].mask is used to hold a normalized sample value. */
@@ -133,12 +134,12 @@ typedef ht_mask_t ht_sample_t;
 #define max_ht_sample (ht_sample_t)(((1 << (ht_mask_bits - 2)) - 1) * 2 + 1)
 
 #ifndef wts_screen_t_DEFINED
-#  define wts_screen_t_DEFINED
+#define wts_screen_t_DEFINED
 typedef struct wts_screen_s wts_screen_t;
 #endif
 
 #ifndef gs_wts_screen_enum_t_DEFINED
-#  define gs_wts_screen_enum_t_DEFINED
+#define gs_wts_screen_enum_t_DEFINED
 typedef struct gs_wts_screen_enum_s gs_wts_screen_enum_t;
 #endif
 
@@ -174,41 +175,40 @@ typedef struct gs_wts_screen_enum_s gs_wts_screen_enum_t;
  */
 typedef struct gx_ht_cache_s gx_ht_cache;
 #ifndef gx_ht_order_DEFINED
-#  define gx_ht_order_DEFINED
+#define gx_ht_order_DEFINED
 typedef struct gx_ht_order_s gx_ht_order;
 #endif
 #ifndef gx_ht_tile_DEFINED
-#  define gx_ht_tile_DEFINED
+#define gx_ht_tile_DEFINED
 typedef struct gx_ht_tile_s gx_ht_tile;
 #endif
 typedef struct gx_ht_order_procs_s {
 
-    /* Define the size of each element of bit_data. */
+	/* Define the size of each element of bit_data. */
 
-    uint bit_data_elt_size;
+	uint bit_data_elt_size;
 
-    /* Construct the order from the threshold array. */
-    /* Note that for 16-bit threshold values, */
-    /* each value is 2 bytes in big-endian order (Adobe spec). */
+	/* Construct the order from the threshold array. */
+	/* Note that for 16-bit threshold values, */
+	/* each value is 2 bytes in big-endian order (Adobe spec). */
 
-    int (*construct_order)(gx_ht_order *order, const byte *thresholds);
+	int (*construct_order)(gx_ht_order* order, const byte* thresholds);
 
-    /* Return the (x,y) coordinate of an element of bit_data. */
+	/* Return the (x,y) coordinate of an element of bit_data. */
 
-    int (*bit_index)(const gx_ht_order *order, uint index,
-		     gs_int_point *ppt);
+	int (*bit_index)(const gx_ht_order* order, uint index,
+	                 gs_int_point* ppt);
 
-    /* Update a halftone cache tile to match this order. */
+	/* Update a halftone cache tile to match this order. */
 
-    int (*render)(gx_ht_tile *tile, int new_bit_level,
-		  const gx_ht_order *order);
+	int (*render)(gx_ht_tile* tile, int new_bit_level,
+	              const gx_ht_order* order);
 
-    /* Draw a halftone shade into a 1 bit deep buffer. */
-    /* Note: this is a tentative design for a new method. I may not
-       keep it. */
-    int (*draw)(gx_ht_order *order, frac shade,
-		byte *data, int data_raster,
-		int x, int y, int w, int h);
+	/* Draw a halftone shade into a 1 bit deep buffer. */
+	/* Note: this is a tentative design for a new method. I may not
+	   keep it. */
+	int (*draw)(gx_ht_order* order, frac shade, byte* data, int data_raster,
+	            int x, int y, int w, int h);
 
 } gx_ht_order_procs_t;
 /*
@@ -216,47 +216,50 @@ typedef struct gx_ht_order_procs_s {
  * (in gxhtbit.c).
  */
 extern const gx_ht_order_procs_t ht_order_procs_table[2];
-#define ht_order_procs_default ht_order_procs_table[0]	/* bit_data is gx_ht_bit[] */
-#define ht_order_procs_short ht_order_procs_table[1]	/* bit_data is ushort[] */
+#define ht_order_procs_default                                                 \
+	ht_order_procs_table[0] /* bit_data is gx_ht_bit[] */
+#define ht_order_procs_short ht_order_procs_table[1] /* bit_data is ushort[]   \
+                                                        */
 /* For screen/spot halftones, we must record additional parameters. */
 typedef struct gx_ht_order_screen_params_s {
-    gs_matrix matrix;		/* CTM when the function was sampled */
-    uint32_t max_size;		/* max bitmap size */
+	gs_matrix matrix;  /* CTM when the function was sampled */
+	uint32_t max_size; /* max bitmap size */
 } gx_ht_order_screen_params_t;
 struct gx_ht_order_s {
-    gx_ht_cell_params_t params;	/* parameters defining the cells */
-    gs_wts_screen_enum_t *wse;
-    wts_screen_t *wts;            /* if non-NULL, then rest of the structure is irrelevant */
-    ushort width;
-    ushort height;
-    ushort raster;
-    ushort shift;
-    ushort orig_height;
-    ushort orig_shift;
-    uint full_height;
-    uint num_levels;		/* = levels size */
-    uint num_bits;		/* = countof(bit_data) = width * height */
-    const gx_ht_order_procs_t *procs;
-    gs_memory_t *data_memory;	/* for levels and bit_data, may be 0 */
-    uint *levels;
-    void *bit_data;
-    gx_ht_cache *cache;		/* cache to use */
-    gx_transfer_map *transfer;	/* TransferFunction or 0 */
-    gx_ht_order_screen_params_t screen_params;
+	gx_ht_cell_params_t params; /* parameters defining the cells */
+	gs_wts_screen_enum_t* wse;
+	wts_screen_t*
+	    wts; /* if non-NULL, then rest of the structure is irrelevant */
+	ushort width;
+	ushort height;
+	ushort raster;
+	ushort shift;
+	ushort orig_height;
+	ushort orig_shift;
+	uint full_height;
+	uint num_levels; /* = levels size */
+	uint num_bits;   /* = countof(bit_data) = width * height */
+	const gx_ht_order_procs_t* procs;
+	gs_memory_t* data_memory; /* for levels and bit_data, may be 0 */
+	uint* levels;
+	void* bit_data;
+	gx_ht_cache* cache;        /* cache to use */
+	gx_transfer_map* transfer; /* TransferFunction or 0 */
+	gx_ht_order_screen_params_t screen_params;
 };
 
-#define ht_order_is_complete(porder)\
-  ((porder)->shift == 0)
-#define ht_order_full_height(porder)\
-  ((porder)->shift == 0 ? (porder)->height :\
-   (porder)->width / igcd((porder)->width, (porder)->shift) *\
-     (porder)->height)
+#define ht_order_is_complete(porder) ((porder)->shift == 0)
+#define ht_order_full_height(porder)                                           \
+	((porder)->shift == 0                                                  \
+	     ? (porder)->height                                                \
+	     : (porder)->width / igcd((porder)->width, (porder)->shift) *      \
+	           (porder)->height)
 
 /* We only export st_ht_order for use in st_screen_enum. */
 extern_st(st_ht_order);
-#define public_st_ht_order()	/* in gsht.c */\
-  gs_public_st_composite(st_ht_order, gx_ht_order, "gx_ht_order",\
-    ht_order_enum_ptrs, ht_order_reloc_ptrs)
+#define public_st_ht_order() /* in gsht.c */                                   \
+	gs_public_st_composite(st_ht_order, gx_ht_order, "gx_ht_order",        \
+	                       ht_order_enum_ptrs, ht_order_reloc_ptrs)
 #define st_ht_order_max_ptrs 4
 
 /*
@@ -279,25 +282,27 @@ extern_st(st_ht_order);
  * itself.
  */
 typedef struct gx_ht_order_component_s {
-    gx_ht_order corder;
-    int comp_number;
-    int cname;
+	gx_ht_order corder;
+	int comp_number;
+	int cname;
 } gx_ht_order_component;
 
-#define private_st_ht_order_component()	/* in gsht.c */\
-  gs_private_st_ptrs_add0(st_ht_order_component, gx_ht_order_component,\
-    "gx_ht_order_component", ht_order_component_enum_ptrs,\
-     ht_order_component_reloc_ptrs, st_ht_order, corder)
+#define private_st_ht_order_component() /* in gsht.c */                        \
+	gs_private_st_ptrs_add0(                                               \
+	    st_ht_order_component, gx_ht_order_component,                      \
+	    "gx_ht_order_component", ht_order_component_enum_ptrs,             \
+	    ht_order_component_reloc_ptrs, st_ht_order, corder)
 #define st_ht_order_component_max_ptrs st_ht_order_max_ptrs
 /* We only export st_ht_order_component_element for use in banding. */
 extern_st(st_ht_order_component_element);
-#define public_st_ht_order_comp_element() /* in gsht.c */\
-  gs_public_st_element(st_ht_order_component_element, gx_ht_order_component,\
-    "gx_ht_order_component[]", ht_order_element_enum_ptrs,\
-    ht_order_element_reloc_ptrs, st_ht_order_component)
+#define public_st_ht_order_comp_element() /* in gsht.c */                      \
+	gs_public_st_element(                                                  \
+	    st_ht_order_component_element, gx_ht_order_component,              \
+	    "gx_ht_order_component[]", ht_order_element_enum_ptrs,             \
+	    ht_order_element_reloc_ptrs, st_ht_order_component)
 
 #ifndef gx_device_halftone_DEFINED
-#  define gx_device_halftone_DEFINED
+#define gx_device_halftone_DEFINED
 typedef struct gx_device_halftone_s gx_device_halftone;
 #endif
 
@@ -307,35 +312,36 @@ typedef struct gx_device_halftone_s gx_device_halftone;
  * fields.
  */
 struct gx_device_halftone_s {
-    gx_ht_order order;		/* must be first, for subclassing */
-    rc_header rc;
-    gs_id id;			/* the id changes whenever the data change */
-    /*
-     * We have to keep the halftone type so that we can pass it
-     * through the band list for gx_imager_dev_ht_install.
-     */
-    gs_halftone_type type;
-    gx_ht_order_component *components;
+	gx_ht_order order; /* must be first, for subclassing */
+	rc_header rc;
+	gs_id id; /* the id changes whenever the data change */
+	          /*
+	           * We have to keep the halftone type so that we can pass it
+	           * through the band list for gx_imager_dev_ht_install.
+	           */
+	gs_halftone_type type;
+	gx_ht_order_component* components;
 
-    uint num_comp;		/* Number of components in the halftone */
-    uint num_dev_comp;		/* Number of process color model components */
-    /* The following are computed from the above. */
-    int lcm_width, lcm_height;	/* LCM of primary color tile sizes, */
-    /* max_int if overflowed */
+	uint num_comp;     /* Number of components in the halftone */
+	uint num_dev_comp; /* Number of process color model components */
+	/* The following are computed from the above. */
+	int lcm_width, lcm_height; /* LCM of primary color tile sizes, */
+	                           /* max_int if overflowed */
 };
 
 extern_st(st_device_halftone);
-#define public_st_device_halftone() /* in gsht.c */\
-  gs_public_st_ptrs_add1(st_device_halftone, gx_device_halftone,\
-    "gx_device_halftone", device_halftone_enum_ptrs,\
-    device_halftone_reloc_ptrs, st_ht_order, order, components)
+#define public_st_device_halftone() /* in gsht.c */                            \
+	gs_public_st_ptrs_add1(                                                \
+	    st_device_halftone, gx_device_halftone, "gx_device_halftone",      \
+	    device_halftone_enum_ptrs, device_halftone_reloc_ptrs,             \
+	    st_ht_order, order, components)
 #define st_device_halftone_max_ptrs (st_ht_order_max_ptrs + 1)
 
 /* Complete a halftone order defined by a threshold array. */
-void gx_ht_complete_threshold_order(gx_ht_order *porder);
+void gx_ht_complete_threshold_order(gx_ht_order* porder);
 
 /* Release a gx_device_halftone by freeing its components. */
 /* (Don't free the gx_device_halftone itself.) */
-void gx_device_halftone_release(gx_device_halftone * pdht, gs_memory_t * mem);
+void gx_device_halftone_release(gx_device_halftone* pdht, gs_memory_t* mem);
 
 #endif /* gxdht_INCLUDED */

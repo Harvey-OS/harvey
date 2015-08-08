@@ -10,48 +10,45 @@
 /*
  * powerpc 64
  */
-#define	NSNAME	8
-#define	NSYM	50
-#define	NREG	32
+#define NSNAME 8
+#define NSYM 50
+#define NREG 32
 
-#define NOPROF	(1<<0)
-#define DUPOK	(1<<1)
+#define NOPROF (1 << 0)
+#define DUPOK (1 << 1)
 
-enum
-{
-	REGZERO		= 0,	/* set to zero */
-	REGSP		= 1,
-	REGSB		= 2,
-	REGRET		= 3,
-	REGARG		= 3,
-	REGMIN		= 7,	/* register variables allocated from here to REGMAX */
-	REGMAX		= 27,
-	REGEXT		= 30,	/* external registers allocated from here down */
-	REGTMP		= 31,	/* used by the linker */
+enum { REGZERO = 0, /* set to zero */
+       REGSP = 1,
+       REGSB = 2,
+       REGRET = 3,
+       REGARG = 3,
+       REGMIN = 7, /* register variables allocated from here to REGMAX */
+       REGMAX = 27,
+       REGEXT = 30, /* external registers allocated from here down */
+       REGTMP = 31, /* used by the linker */
 
-	FREGRET		= 0,
-	FREGMIN		= 17,	/* first register variable */
-	FREGEXT		= 26,	/* first external register */
-	FREGCVI		= 27, /* floating conversion constant */
-	FREGZERO	= 28,	/* both float and double */
-	FREGHALF	= 29,	/* double */
-	FREGONE		= 30,	/* double */
-	FREGTWO		= 31	/* double */
-/*
- * GENERAL:
- *
- * compiler allocates R3 up as temps
- * compiler allocates register variables R7-R27
- * compiler allocates external registers R30 down
- *
- * compiler allocates register variables F17-F26
- * compiler allocates external registers F26 down
- */
+       FREGRET = 0,
+       FREGMIN = 17,  /* first register variable */
+       FREGEXT = 26,  /* first external register */
+       FREGCVI = 27,  /* floating conversion constant */
+       FREGZERO = 28, /* both float and double */
+       FREGHALF = 29, /* double */
+       FREGONE = 30,  /* double */
+       FREGTWO = 31   /* double */
+	              /*
+                       * GENERAL:
+                       *
+                       * compiler allocates R3 up as temps
+                       * compiler allocates register variables R7-R27
+                       * compiler allocates external registers R30 down
+                       *
+                       * compiler allocates register variables F17-F26
+                       * compiler allocates external registers F26 down
+                       */
 };
 
-enum	as
-{
-	AXXX	= 0,
+enum as {
+	AXXX = 0,
 	AADD,
 	AADDCC,
 	AADDV,
@@ -298,10 +295,10 @@ enum	as
 	AFSQRTSCC,
 
 	/* 64-bit */
-	
+
 	ACNTLZD,
 	ACNTLZDCC,
-	ACMPW,	/* CMP with L=0 */
+	ACMPW, /* CMP with L=0 */
 	ACMPWU,
 	ADIVD,
 	ADIVDCC,
@@ -374,55 +371,52 @@ enum	as
 };
 
 /* type/name */
-enum
-{
-	D_GOK	= 0,
-	D_NONE,
+enum { D_GOK = 0,
+       D_NONE,
 
-/* name */
-	D_EXTERN,
-	D_STATIC,
-	D_AUTO,
-	D_PARAM,
+       /* name */
+       D_EXTERN,
+       D_STATIC,
+       D_AUTO,
+       D_PARAM,
 
-/* type */
-	D_BRANCH,
-	D_OREG,
-	D_CONST,
-	D_FCONST,
-	D_SCONST,
-	D_REG,
-	D_FPSCR,
-	D_MSR,
-	D_FREG,
-	D_CREG,
-	D_SPR,
-	D_OPT,	/* branch/trap option */
-	D_FILE,
-	D_FILE1,
-	D_DCR,	/* device control register */
-	D_DCONST,
+       /* type */
+       D_BRANCH,
+       D_OREG,
+       D_CONST,
+       D_FCONST,
+       D_SCONST,
+       D_REG,
+       D_FPSCR,
+       D_MSR,
+       D_FREG,
+       D_CREG,
+       D_SPR,
+       D_OPT, /* branch/trap option */
+       D_FILE,
+       D_FILE1,
+       D_DCR, /* device control register */
+       D_DCONST,
 
-/* reg names iff type is D_SPR */
-	D_XER	= 1,
-	D_LR	= 8,
-	D_CTR	= 9
-	/* and many supervisor level registers */
+       /* reg names iff type is D_SPR */
+       D_XER = 1,
+       D_LR = 8,
+       D_CTR = 9
+       /* and many supervisor level registers */
 };
 
 /*
  * this is the ranlib header
  */
-#define	SYMDEF	"__.SYMDEF"
+#define SYMDEF "__.SYMDEF"
 
 /*
  * this is the simulated IEEE floating point
  */
-typedef	struct	ieee	Ieee;
-struct	ieee
-{
-	long	l;	/* contains ls-man	0xffffffff */
-	long	h;	/* contains sign	0x80000000
-				    exp		0x7ff00000
-				    ms-man	0x000fffff */
+typedef struct ieee Ieee;
+struct ieee {
+	long l; /* contains ls-man	0xffffffff */
+	long h; /* contains sign	0x80000000
+	                    exp		0x7ff00000
+	                    ms-man	0x000fffff */
 };

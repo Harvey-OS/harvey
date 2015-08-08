@@ -7,7 +7,9 @@
  * in the LICENSE file.
  */
 
-#define GS_LIB_DEFAULT "/sys/lib/ghostscript:/sys/lib/ghostscript/font:/sys/lib/postscript/font"
+#define GS_LIB_DEFAULT                                                         \
+	"/sys/lib/ghostscript:/sys/lib/ghostscript/font:/sys/lib/postscript/"  \
+	"font"
 #define GS_CACHE_DIR ""
 #define SEARCH_HERE_FIRST 1
 #define GS_DOCDIR "/sys/src/cmd/gs/doc"

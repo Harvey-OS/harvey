@@ -15,7 +15,7 @@ cputime(void)
 	int i;
 
 	times(t);
-	for(i=1; i<4; i++)
+	for(i = 1; i < 4; i++)
 		t[0] += t[i];
 	return t[0] / 100.;
 }
@@ -29,7 +29,7 @@ seek(int f, int32_t o, int p)
 }
 
 int
-create(char *n, int m, int32_t p)
+create(char* n, int m, int32_t p)
 {
 	int creat(char*, int);
 

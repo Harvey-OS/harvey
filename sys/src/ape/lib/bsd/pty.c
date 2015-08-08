@@ -28,15 +28,15 @@
 char*
 ptsname(int fd)
 {
-	Dir *d;
+	Dir* d;
 	static char buf[32];
 
-	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
+	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4) {
 		free(d);
 		_syserrno();
 		return 0;
 	}
-	snprintf(buf, sizeof buf, "/dev/ptty%d", atoi(d->name+4));
+	snprintf(buf, sizeof buf, "/dev/ptty%d", atoi(d->name + 4));
 	free(d);
 	return buf;
 }
@@ -47,16 +47,16 @@ ptsname(int fd)
 char*
 ptmname(int fd)
 {
-	Dir *d;
+	Dir* d;
 	static char buf[32];
 
-	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
+	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4) {
 		free(d);
 		_syserrno();
 		return 0;
 	}
 
-	snprintf(buf, sizeof buf, "/dev/ttym%d", atoi(d->name+4));
+	snprintf(buf, sizeof buf, "/dev/ttym%d", atoi(d->name + 4));
 	return buf;
 }
 
@@ -67,7 +67,7 @@ static void
 mkserver(void)
 {
 	int fd, i;
-	char *argv[3];
+	char* argv[3];
 
 	fd = _OPEN(fssrv, O_RDWR);
 	if(_MOUNT(fd, -1, "/dev", MAFTER, "") < 0) {
@@ -81,7 +81,7 @@ mkserver(void)
 		 */
 		_CLOSE(fd);
 		_REMOVE(fssrv);
-		switch(_RFORK(RFPROC|RFFDG)) {
+		switch(_RFORK(RFPROC | RFFDG)) {
 		case -1:
 			return;
 		case 0:

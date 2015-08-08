@@ -10,9 +10,9 @@
 #include <float.h>
 #include <math.h>
 
-#define	NANEXP	(2047<<20)
-#define	NANMASK	(2047<<20)
-#define	NANSIGN	(1<<31)
+#define NANEXP (2047 << 20)
+#define NANMASK (2047 << 20)
+#define NANSIGN (1 << 31)
 
 double
 NaN(void)
@@ -57,7 +57,7 @@ isInf(double d, int sign)
 		return 0;
 	if(a.hi == NANEXP)
 		return sign >= 0;
-	if(a.hi == (NANEXP|NANSIGN))
+	if(a.hi == (NANEXP | NANSIGN))
 		return sign <= 0;
 	return 0;
 }

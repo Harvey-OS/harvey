@@ -15,48 +15,22 @@
 #define Extern extern
 #include "acid.h"
 
-static int fsize[] =
-{
-	['A'] 4,
-	['B'] 4,
-	['C'] 1,
-	['D'] 4,
-	['F'] 8,
-	['G'] 8,
-	['O'] 4,
-	['Q'] 4,
-	['R'] 4,
-	['S'] 4,
-	['U'] 4,
-	['V'] 8,
-	['W'] 8,
-	['X'] 4,
-	['Y'] 8,
-	['Z'] 8,
-	['a'] 4,
-	['b'] 1,
-	['c'] 1,
-	['d'] 2,
-	['f'] 4,
-	['g'] 4,
-	['o'] 2,
-	['q'] 2,
-	['r'] 2,
-	['s'] 4,
-	['u'] 2,
-	['x'] 2,
-	['3'] 10,
-	['8'] 10,
+static int fsize[] = {
+        ['A'] 4, ['B'] 4, ['C'] 1, ['D'] 4, ['F'] 8,  ['G'] 8,
+        ['O'] 4, ['Q'] 4, ['R'] 4, ['S'] 4, ['U'] 4,  ['V'] 8,
+        ['W'] 8, ['X'] 4, ['Y'] 8, ['Z'] 8, ['a'] 4,  ['b'] 1,
+        ['c'] 1, ['d'] 2, ['f'] 4, ['g'] 4, ['o'] 2,  ['q'] 2,
+        ['r'] 2, ['s'] 4, ['u'] 2, ['x'] 2, ['3'] 10, ['8'] 10,
 };
 
 int
-fmtsize(Value *v)
+fmtsize(Value* v)
 {
 	int ret;
 
 	switch(v->fmt) {
 	default:
-		return  fsize[v->fmt];
+		return fsize[v->fmt];
 	case 'i':
 	case 'I':
 		if(v->type != TINT || machdata == 0)
@@ -72,21 +46,21 @@ fmtsize(Value *v)
 }
 
 void
-chklval(Node *lp)
+chklval(Node* lp)
 {
 	if(lp->op != ONAME)
 		error("need l-value");
 }
 
 void
-olist(Node *n, Node *res)
+olist(Node* n, Node* res)
 {
 	expr(n->left, res);
 	expr(n->right, res);
 }
 
 void
-oeval(Node *n, Node *res)
+oeval(Node* n, Node* res)
 {
 	expr(n->left, res);
 	if(res->type != TCODE)
@@ -95,7 +69,7 @@ oeval(Node *n, Node *res)
 }
 
 void
-ocast(Node *n, Node *res)
+ocast(Node* n, Node* res)
 {
 	if(n->sym->lt == 0)
 		error("%s is not a complex type", n->sym->name);
@@ -106,9 +80,9 @@ ocast(Node *n, Node *res)
 }
 
 void
-oindm(Node *n, Node *res)
+oindm(Node* n, Node* res)
 {
-	Map *m;
+	Map* m;
 	Node l;
 
 	m = cormap;
@@ -124,9 +98,9 @@ oindm(Node *n, Node *res)
 }
 
 void
-oindc(Node *n, Node *res)
+oindc(Node* n, Node* res)
 {
-	Map *m;
+	Map* m;
 	Node l;
 
 	m = symmap;
@@ -142,12 +116,12 @@ oindc(Node *n, Node *res)
 }
 
 void
-oframe(Node *n, Node *res)
+oframe(Node* n, Node* res)
 {
-	char *p;
-	Node *lp;
+	char* p;
+	Node* lp;
 	uint64_t ival;
-	Frtype *f;
+	Frtype* f;
 
 	p = n->sym->name;
 	while(*p && *p == '$')
@@ -172,7 +146,7 @@ oframe(Node *n, Node *res)
 }
 
 void
-oindex(Node *n, Node *res)
+oindex(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -186,7 +160,7 @@ oindex(Node *n, Node *res)
 	default:
 		error("lhs[] has bad type");
 	case TINT:
-		indir(cormap, l.ival+(r.ival*fsize[l.fmt]), l.fmt, res);
+		indir(cormap, l.ival + (r.ival * fsize[l.fmt]), l.fmt, res);
 		res->comt = l.comt;
 		res->fmt = l.fmt;
 		break;
@@ -196,7 +170,7 @@ oindex(Node *n, Node *res)
 	case TSTRING:
 		res->ival = 0;
 		if(r.ival >= 0 && r.ival < l.string->len) {
-			int xx8;	/* to get around bug in vc */
+			int xx8; /* to get around bug in vc */
 			xx8 = r.ival;
 			res->ival = l.string->string[xx8];
 		}
@@ -208,11 +182,11 @@ oindex(Node *n, Node *res)
 }
 
 void
-oappend(Node *n, Node *res)
+oappend(Node* n, Node* res)
 {
-	Value *v;
+	Value* v;
 	Node r, l;
-	int  empty;
+	int empty;
 
 	expr(n->left, &l);
 	expr(n->right, &r);
@@ -229,7 +203,7 @@ oappend(Node *n, Node *res)
 }
 
 void
-odelete(Node *n, Node *res)
+odelete(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -244,7 +218,7 @@ odelete(Node *n, Node *res)
 }
 
 void
-ohead(Node *n, Node *res)
+ohead(Node* n, Node* res)
 {
 	Node l;
 
@@ -255,15 +229,14 @@ ohead(Node *n, Node *res)
 	if(l.l) {
 		res->type = l.l->type;
 		res->Store = l.l->Store;
-	}
-	else {
+	} else {
 		res->type = TLIST;
 		res->l = 0;
 	}
 }
 
 void
-otail(Node *n, Node *res)
+otail(Node* n, Node* res)
 {
 	Node l;
 
@@ -279,7 +252,7 @@ otail(Node *n, Node *res)
 }
 
 void
-oconst(Node *n, Node *res)
+oconst(Node* n, Node* res)
 {
 	res->op = OCONST;
 	res->type = n->type;
@@ -288,9 +261,9 @@ oconst(Node *n, Node *res)
 }
 
 void
-oname(Node *n, Node *res)
+oname(Node* n, Node* res)
 {
-	Value *v;
+	Value* v;
 
 	v = n->sym->v;
 	if(v->set == 0)
@@ -302,7 +275,7 @@ oname(Node *n, Node *res)
 }
 
 void
-octruct(Node *n, Node *res)
+octruct(Node* n, Node* res)
 {
 	res->op = OCONST;
 	res->type = TLIST;
@@ -310,10 +283,10 @@ octruct(Node *n, Node *res)
 }
 
 void
-oasgn(Node *n, Node *res)
+oasgn(Node* n, Node* res)
 {
-	Node *lp, r;
-	Value *v;
+	Node* lp, r;
+	Value* v;
 
 	lp = n->left;
 	switch(lp->op) {
@@ -338,11 +311,11 @@ oasgn(Node *n, Node *res)
 }
 
 void
-oadd(Node *n, Node *res)
+oadd(Node* n, Node* res)
 {
 	Node l, r;
 
-	if(n->right == nil){		/* unary + */
+	if(n->right == nil) { /* unary + */
 		expr(n->left, res);
 		return;
 	}
@@ -358,10 +331,10 @@ oadd(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			res->ival = l.ival+r.ival;
+			res->ival = l.ival + r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.ival+r.fval;
+			res->fval = l.ival + r.fval;
 			break;
 		default:
 			error("bad rhs type +");
@@ -370,10 +343,10 @@ oadd(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval+r.ival;
+			res->fval = l.fval + r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval+r.fval;
+			res->fval = l.fval + r.fval;
 			break;
 		default:
 			error("bad rhs type +");
@@ -383,7 +356,7 @@ oadd(Node *n, Node *res)
 		if(r.type == TSTRING) {
 			res->type = TSTRING;
 			res->fmt = 's';
-			res->string = stradd(l.string, r.string); 
+			res->string = stradd(l.string, r.string);
 			break;
 		}
 		if(r.type == TINT) {
@@ -409,7 +382,7 @@ oadd(Node *n, Node *res)
 }
 
 void
-osub(Node *n, Node *res)
+osub(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -425,10 +398,10 @@ osub(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			res->ival = l.ival-r.ival;
+			res->ival = l.ival - r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.ival-r.fval;
+			res->fval = l.ival - r.fval;
 			break;
 		default:
 			error("bad rhs type -");
@@ -437,10 +410,10 @@ osub(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval-r.ival;
+			res->fval = l.fval - r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval-r.fval;
+			res->fval = l.fval - r.fval;
 			break;
 		default:
 			error("bad rhs type -");
@@ -450,7 +423,7 @@ osub(Node *n, Node *res)
 }
 
 void
-omul(Node *n, Node *res)
+omul(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -466,10 +439,10 @@ omul(Node *n, Node *res)
 		switch(r.type) {
 		case TINT:
 			res->type = TINT;
-			res->ival = l.ival*r.ival;
+			res->ival = l.ival * r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.ival*r.fval;
+			res->fval = l.ival * r.fval;
 			break;
 		default:
 			error("bad rhs type *");
@@ -478,10 +451,10 @@ omul(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval*r.ival;
+			res->fval = l.fval * r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval*r.fval;
+			res->fval = l.fval * r.fval;
 			break;
 		default:
 			error("bad rhs type *");
@@ -491,7 +464,7 @@ omul(Node *n, Node *res)
 }
 
 void
-odiv(Node *n, Node *res)
+odiv(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -509,12 +482,12 @@ odiv(Node *n, Node *res)
 			res->type = TINT;
 			if(r.ival == 0)
 				error("zero divide");
-			res->ival = l.ival/r.ival;
+			res->ival = l.ival / r.ival;
 			break;
 		case TFLOAT:
 			if(r.fval == 0)
 				error("zero divide");
-			res->fval = l.ival/r.fval;
+			res->fval = l.ival / r.fval;
 			break;
 		default:
 			error("bad rhs type /");
@@ -523,10 +496,10 @@ odiv(Node *n, Node *res)
 	case TFLOAT:
 		switch(r.type) {
 		case TINT:
-			res->fval = l.fval/r.ival;
+			res->fval = l.fval / r.ival;
 			break;
 		case TFLOAT:
-			res->fval = l.fval/r.fval;
+			res->fval = l.fval / r.fval;
 			break;
 		default:
 			error("bad rhs type /");
@@ -536,7 +509,7 @@ odiv(Node *n, Node *res)
 }
 
 void
-omod(Node *n, Node *res)
+omod(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -547,11 +520,11 @@ omod(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type %");
-	res->ival = l.ival%r.ival;
+	res->ival = l.ival % r.ival;
 }
 
 void
-olsh(Node *n, Node *res)
+olsh(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -562,11 +535,11 @@ olsh(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type <<");
-	res->ival = l.ival<<r.ival;
+	res->ival = l.ival << r.ival;
 }
 
 void
-orsh(Node *n, Node *res)
+orsh(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -577,11 +550,11 @@ orsh(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type >>");
-	res->ival = (uint64_t)l.ival>>r.ival;
+	res->ival = (uint64_t)l.ival >> r.ival;
 }
 
 void
-olt(Node *n, Node *res)
+olt(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -622,7 +595,7 @@ olt(Node *n, Node *res)
 }
 
 void
-ogt(Node *n, Node *res)
+ogt(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -662,7 +635,7 @@ ogt(Node *n, Node *res)
 }
 
 void
-oleq(Node *n, Node *res)
+oleq(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -702,7 +675,7 @@ oleq(Node *n, Node *res)
 }
 
 void
-ogeq(Node *n, Node *res)
+ogeq(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -742,7 +715,7 @@ ogeq(Node *n, Node *res)
 }
 
 void
-oeq(Node *n, Node *res)
+oeq(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -796,9 +769,8 @@ oeq(Node *n, Node *res)
 		res->ival = !res->ival;
 }
 
-
 void
-oland(Node *n, Node *res)
+oland(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -809,11 +781,11 @@ oland(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type &");
-	res->ival = l.ival&r.ival;
+	res->ival = l.ival & r.ival;
 }
 
 void
-oxor(Node *n, Node *res)
+oxor(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -824,11 +796,11 @@ oxor(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type ^");
-	res->ival = l.ival^r.ival;
+	res->ival = l.ival ^ r.ival;
 }
 
 void
-olor(Node *n, Node *res)
+olor(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -839,11 +811,11 @@ olor(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type |");
-	res->ival = l.ival|r.ival;
+	res->ival = l.ival | r.ival;
 }
 
 void
-ocand(Node *n, Node *res)
+ocand(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -861,7 +833,7 @@ ocand(Node *n, Node *res)
 }
 
 void
-onot(Node *n, Node *res)
+onot(Node* n, Node* res)
 {
 	Node l;
 
@@ -875,7 +847,7 @@ onot(Node *n, Node *res)
 }
 
 void
-ocor(Node *n, Node *res)
+ocor(Node* n, Node* res)
 {
 	Node l, r;
 
@@ -896,9 +868,9 @@ ocor(Node *n, Node *res)
 }
 
 void
-oeinc(Node *n, Node *res)
+oeinc(Node* n, Node* res)
 {
-	Value *v;
+	Value* v;
 
 	chklval(n->left);
 	v = n->left->sym->v;
@@ -910,7 +882,7 @@ oeinc(Node *n, Node *res)
 			v->ival -= fmtsize(v);
 		else
 			v->ival += fmtsize(v);
-		break;			
+		break;
 	case TFLOAT:
 		if(n->op == OEDEC)
 			v->fval--;
@@ -924,9 +896,9 @@ oeinc(Node *n, Node *res)
 }
 
 void
-opinc(Node *n, Node *res)
+opinc(Node* n, Node* res)
 {
-	Value *v;
+	Value* v;
 
 	chklval(n->left);
 	v = n->left->sym->v;
@@ -939,7 +911,7 @@ opinc(Node *n, Node *res)
 			v->ival -= fmtsize(v);
 		else
 			v->ival += fmtsize(v);
-		break;			
+		break;
 	case TFLOAT:
 		if(n->op == OPDEC)
 			v->fval--;
@@ -952,19 +924,19 @@ opinc(Node *n, Node *res)
 }
 
 void
-ocall(Node *n, Node *res)
+ocall(Node* n, Node* res)
 {
-	Lsym *s;
-	Rplace *rsav;
+	Lsym* s;
+	Rplace* rsav;
 
-	res->op = OCONST;		/* Default return value */
+	res->op = OCONST; /* Default return value */
 	res->type = TLIST;
 	res->l = 0;
 
 	chklval(n->left);
 	s = n->left->sym;
 
-	if(n->builtin && !s->builtin){
+	if(n->builtin && !s->builtin) {
 		error("no builtin %s", s->name);
 		return;
 	}
@@ -981,70 +953,33 @@ ocall(Node *n, Node *res)
 }
 
 void
-ofmt(Node *n, Node *res)
+ofmt(Node* n, Node* res)
 {
 	expr(n->left, res);
 	res->fmt = n->right->ival;
 }
 
 void
-owhat(Node *n, Node *res)
+owhat(Node* n, Node* res)
 {
-	res->op = OCONST;		/* Default return value */
+	res->op = OCONST; /* Default return value */
 	res->type = TLIST;
 	res->l = 0;
 	whatis(n->sym);
 }
 
-void (*expop[])(Node*, Node*) =
-{
-	[ONAME]		oname,
-	[OCONST]	oconst,
-	[OMUL]		omul,
-	[ODIV]		odiv,
-	[OMOD]		omod,
-	[OADD]		oadd,
-	[OSUB]		osub,
-	[ORSH]		orsh,
-	[OLSH]		olsh,
-	[OLT]		olt,
-	[OGT]		ogt,
-	[OLEQ]		oleq,
-	[OGEQ]		ogeq,
-	[OEQ]		oeq,
-	[ONEQ]		oeq,
-	[OLAND]		oland,
-	[OXOR]		oxor,
-	[OLOR]		olor,
-	[OCAND]		ocand,
-	[OCOR]		ocor,
-	[OASGN]		oasgn,
-	[OINDM]		oindm,
-	[OEDEC]		oeinc,
-	[OEINC]		oeinc,
-	[OPINC]		opinc,
-	[OPDEC]		opinc,
-	[ONOT]		onot,
-	[OIF]		0,
-	[ODO]		0,
-	[OLIST]		olist,
-	[OCALL]		ocall,
-	[OCTRUCT]	octruct,
-	[OWHILE]	0,
-	[OELSE]		0,
-	[OHEAD]		ohead,
-	[OTAIL]		otail,
-	[OAPPEND]	oappend,
-	[ORET]		0,
-	[OINDEX]	oindex,
-	[OINDC]		oindc,
-	[ODOT]		odot,
-	[OLOCAL]	0,
-	[OFRAME]	oframe,
-	[OCOMPLEX]	0,
-	[ODELETE]	odelete,
-	[OCAST]		ocast,
-	[OFMT]		ofmt,
-	[OEVAL]		oeval,
-	[OWHAT]		owhat,
+void (*expop[])(Node*, Node*) = {
+        [ONAME] oname,     [OCONST] oconst, [OMUL] omul,     [ODIV] odiv,
+        [OMOD] omod,       [OADD] oadd,     [OSUB] osub,     [ORSH] orsh,
+        [OLSH] olsh,       [OLT] olt,       [OGT] ogt,       [OLEQ] oleq,
+        [OGEQ] ogeq,       [OEQ] oeq,       [ONEQ] oeq,      [OLAND] oland,
+        [OXOR] oxor,       [OLOR] olor,     [OCAND] ocand,   [OCOR] ocor,
+        [OASGN] oasgn,     [OINDM] oindm,   [OEDEC] oeinc,   [OEINC] oeinc,
+        [OPINC] opinc,     [OPDEC] opinc,   [ONOT] onot,     [OIF] 0,
+        [ODO] 0,           [OLIST] olist,   [OCALL] ocall,   [OCTRUCT] octruct,
+        [OWHILE] 0,        [OELSE] 0,       [OHEAD] ohead,   [OTAIL] otail,
+        [OAPPEND] oappend, [ORET] 0,        [OINDEX] oindex, [OINDC] oindc,
+        [ODOT] odot,       [OLOCAL] 0,      [OFRAME] oframe, [OCOMPLEX] 0,
+        [ODELETE] odelete, [OCAST] ocast,   [OFMT] ofmt,     [OEVAL] oeval,
+        [OWHAT] owhat,
 };

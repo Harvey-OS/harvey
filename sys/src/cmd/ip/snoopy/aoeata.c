@@ -13,45 +13,54 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct{
-	uint8_t	aflag;
-	uint8_t	feat;
-	uint8_t	sectors;
-	uint8_t	cmd;
-	uint8_t	lba[6];
-}Hdr;
+typedef struct {
+	uint8_t aflag;
+	uint8_t feat;
+	uint8_t sectors;
+	uint8_t cmd;
+	uint8_t lba[6];
+} Hdr;
 
-enum{
-	Hsize	= 10,
+enum { Hsize = 10,
 };
 
-enum{
-	Oaflag,
-	Ocmd,
-	Ofeat,
-	Osectors,
-	Olba,
+enum { Oaflag,
+       Ocmd,
+       Ofeat,
+       Osectors,
+       Olba,
 
-	Ostat,
-	Oerr,
+       Ostat,
+       Oerr,
 };
 
-static Field p_fields[] =
-{
-	{"aflag",	Fnum,	Oaflag,		"aflag",		},
-	{"cmd",		Fnum,	Ocmd,		"command register",	},
-	{"feat",	Fnum,	Ofeat,		"features",		},
-	{"sectors",	Fnum,	Osectors,	"number of sectors",	},
-	{"lba",		Fnum,	Olba,		"lba",			},
-	{"stat",	Fnum,	Ostat,		"status",		},
-	{"err",		Fnum,	Oerr,		"error",		},
-	{0}
-};
+static Field p_fields[] = {{
+                            "aflag", Fnum, Oaflag, "aflag",
+                           },
+                           {
+                            "cmd", Fnum, Ocmd, "command register",
+                           },
+                           {
+                            "feat", Fnum, Ofeat, "features",
+                           },
+                           {
+                            "sectors", Fnum, Osectors, "number of sectors",
+                           },
+                           {
+                            "lba", Fnum, Olba, "lba",
+                           },
+                           {
+                            "stat", Fnum, Ostat, "status",
+                           },
+                           {
+                            "err", Fnum, Oerr, "error",
+                           },
+                           {0}};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(aoeata.name, f, p_fields);
 		return;
 	}
@@ -59,23 +68,23 @@ p_compile(Filter *f)
 }
 
 uint64_t
-llba(uint8_t *c)
+llba(uint8_t* c)
 {
 	uint64_t l;
 
 	l = c[0];
-	l |= c[1]<<8;
-	l |= c[2]<<16;
-	l |= c[3]<<24;
-	l |= (uint64_t)c[4]<<32;
-	l |= (uint64_t)c[5]<<40;
+	l |= c[1] << 8;
+	l |= c[2] << 16;
+	l |= c[3] << 24;
+	l |= (uint64_t)c[4] << 32;
+	l |= (uint64_t)c[5] << 40;
 	return l;
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -83,7 +92,7 @@ p_filter(Filter *f, Msg *m)
 	h = (Hdr*)m->ps;
 	m->ps += Hsize;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Oaflag:
 		return h->aflag == f->ulv;
 	case Ocmd:
@@ -105,9 +114,9 @@ p_filter(Filter *f, Msg *m)
 }
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -118,19 +127,12 @@ p_seprint(Msg *m)
 	/* no next protocol */
 	m->pr = nil;
 
-	m->p = seprint(m->p, m->e, "aflag=%ux errfeat=%ux sectors=%ux cmdstat=%ux lba=%lld",
-		h->aflag, h->feat, h->sectors, h->cmd, llba(h->lba));
+	m->p = seprint(m->p, m->e,
+	               "aflag=%ux errfeat=%ux sectors=%ux cmdstat=%ux lba=%lld",
+	               h->aflag, h->feat, h->sectors, h->cmd, llba(h->lba));
 	return 0;
 }
 
-Proto aoeata =
-{
-	"aoeata",
-	p_compile,
-	p_filter,
-	p_seprint,
-	nil,
-	nil,
-	p_fields,
-	defaultframer,
+Proto aoeata = {
+    "aoeata", p_compile, p_filter, p_seprint, nil, nil, p_fields, defaultframer,
 };

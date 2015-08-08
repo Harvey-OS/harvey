@@ -17,33 +17,30 @@
 #include <sunrpc.h>
 #include <nfs3.h>
 
-SunClient *nfscli;
-SunClient *mntcli;
-char *defaultpath = "/";
-Channel *fschan;
-char *sys;
+SunClient* nfscli;
+SunClient* mntcli;
+char* defaultpath = "/";
+Channel* fschan;
+char* sys;
 int verbose;
 int readplus = 0;
 
-
 typedef struct Auth Auth;
-struct Auth
-{
+struct Auth {
 	int ref;
-	unsigned char *data;
+	unsigned char* data;
 	int ndata;
 };
 
 typedef struct FidAux FidAux;
-struct FidAux
-{
+struct FidAux {
 	Nfs3Handle handle;
 
-	uint64_t cookie;	/* for continuing directory reads */
-	char *name;	/* botch: for remove and rename */
-	Nfs3Handle parent;	/* botch: for remove and rename */
-	char err[ERRMAX];	/* for walk1 */
-	Auth *auth;
+	uint64_t cookie;   /* for continuing directory reads */
+	char* name;        /* botch: for remove and rename */
+	Nfs3Handle parent; /* botch: for remove and rename */
+	char err[ERRMAX];  /* for walk1 */
+	Auth* auth;
 };
 
 /*
@@ -51,17 +48,17 @@ struct FidAux
  */
 
 void
-portCall(SunCall *c, PortCallType type)
+portCall(SunCall* c, PortCallType type)
 {
 	c->rpc.prog = PortProgram;
 	c->rpc.vers = PortVersion;
-	c->rpc.proc = type>>1;
-	c->rpc.iscall = !(type&1);
+	c->rpc.proc = type >> 1;
+	c->rpc.iscall = !(type & 1);
 	c->type = type;
 }
 
 int
-getport(SunClient *client, uint prog, uint vers, uint prot, uint *port)
+getport(SunClient* client, uint prog, uint vers, uint prot, uint* port)
 {
 	PortTGetport tx;
 	PortRGetport rx;
@@ -82,13 +79,13 @@ getport(SunClient *client, uint prog, uint vers, uint prot, uint *port)
 }
 
 void
-mountCall(Auth *a, SunCall *c, NfsMount3CallType type)
+mountCall(Auth* a, SunCall* c, NfsMount3CallType type)
 {
-	c->rpc.iscall = !(type&1);
-	c->rpc.proc = type>>1;
+	c->rpc.iscall = !(type & 1);
+	c->rpc.proc = type >> 1;
 	c->rpc.prog = NfsMount3Program;
 	c->rpc.vers = NfsMount3Version;
-	if(c->rpc.iscall && a){
+	if(c->rpc.iscall && a) {
 		c->rpc.cred.flavor = SunAuthSys;
 		c->rpc.cred.data = a->data;
 		c->rpc.cred.ndata = a->ndata;
@@ -112,9 +109,9 @@ mountNull(uint32_t tag)
 }
 
 int
-mountMnt(Auth *a, uint32_t tag, char *path, Nfs3Handle *h)
+mountMnt(Auth* a, uint32_t tag, char* path, Nfs3Handle* h)
 {
-	unsigned char *freeme;
+	unsigned char* freeme;
 	NfsMount3TMnt tx;
 	NfsMount3RMnt rx;
 
@@ -126,12 +123,13 @@ mountMnt(Auth *a, uint32_t tag, char *path, Nfs3Handle *h)
 	mountCall(a, &rx.call, NfsMount3CallRMnt);
 	if(sunClientRpc(mntcli, tag, &tx.call, &rx.call, &freeme) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
-if(verbose)print("handle %.*H\n", rx.len, rx.handle);
-	if(rx.len >= Nfs3MaxHandleSize){
+	if(verbose)
+		print("handle %.*H\n", rx.len, rx.handle);
+	if(rx.len >= Nfs3MaxHandleSize) {
 		free(freeme);
 		werrstr("server-returned handle too long");
 		return -1;
@@ -143,13 +141,13 @@ if(verbose)print("handle %.*H\n", rx.len, rx.handle);
 }
 
 void
-nfs3Call(Auth *a, SunCall *c, Nfs3CallType type)
+nfs3Call(Auth* a, SunCall* c, Nfs3CallType type)
 {
-	c->rpc.iscall = !(type&1);
-	c->rpc.proc = type>>1;
+	c->rpc.iscall = !(type & 1);
+	c->rpc.proc = type >> 1;
 	c->rpc.prog = Nfs3Program;
 	c->rpc.vers = Nfs3Version;
-	if(c->rpc.iscall && a){
+	if(c->rpc.iscall && a) {
 		c->rpc.cred.flavor = SunAuthSys;
 		c->rpc.cred.data = a->data;
 		c->rpc.cred.ndata = a->ndata;
@@ -173,21 +171,21 @@ nfsNull(uint32_t tag)
 }
 
 int
-nfsGetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3Attr *attr)
+nfsGetattr(Auth* a, uint32_t tag, Nfs3Handle* h, Nfs3Attr* attr)
 {
 	Nfs3TGetattr tx;
 	Nfs3RGetattr rx;
 
 	memset(&tx, 0, sizeof tx);
 	nfs3Call(a, &tx.call, Nfs3CallTGetattr);
-	tx.handle = *h;	
+	tx.handle = *h;
 
 	memset(&rx, 0, sizeof rx);
 	nfs3Call(a, &rx.call, Nfs3CallRGetattr);
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -197,8 +195,8 @@ nfsGetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3Attr *attr)
 }
 
 int
-nfsAccess(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t want,
-	  uint32_t *got, u1int *have, Nfs3Attr *attr)
+nfsAccess(Auth* a, uint32_t tag, Nfs3Handle* h, uint32_t want, uint32_t* got,
+          u1int* have, Nfs3Attr* attr)
 {
 	Nfs3TAccess tx;
 	Nfs3RAccess rx;
@@ -213,7 +211,7 @@ nfsAccess(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t want,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -227,9 +225,8 @@ nfsAccess(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t want,
 }
 
 int
-nfsMkdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
-	 uint32_t mode, uint gid,
-	u1int *have, Nfs3Attr *attr)
+nfsMkdir(Auth* a, uint32_t tag, Nfs3Handle* h, char* name, Nfs3Handle* nh,
+         uint32_t mode, uint gid, u1int* have, Nfs3Attr* attr)
 {
 	Nfs3TMkdir tx;
 	Nfs3RMkdir rx;
@@ -248,12 +245,12 @@ nfsMkdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
 
-	if(!rx.haveHandle){
+	if(!rx.haveHandle) {
 		werrstr("nfs mkdir did not return handle");
 		return -1;
 	}
@@ -266,9 +263,8 @@ nfsMkdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 }
 
 int
-nfsCreate(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
-	  uint32_t mode, uint gid,
-	u1int *have, Nfs3Attr *attr)
+nfsCreate(Auth* a, uint32_t tag, Nfs3Handle* h, char* name, Nfs3Handle* nh,
+          uint32_t mode, uint gid, u1int* have, Nfs3Attr* attr)
 {
 	Nfs3TCreate tx;
 	Nfs3RCreate rx;
@@ -287,12 +283,12 @@ nfsCreate(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
 
-	if(!rx.haveHandle){
+	if(!rx.haveHandle) {
 		werrstr("nfs create did not return handle");
 		return -1;
 	}
@@ -305,10 +301,10 @@ nfsCreate(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 }
 
 int
-nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count, uint64_t offset,
-	unsigned char **pp, uint32_t *pcount, unsigned char **pfreeme)
+nfsRead(Auth* a, uint32_t tag, Nfs3Handle* h, uint32_t count, uint64_t offset,
+        unsigned char** pp, uint32_t* pcount, unsigned char** pfreeme)
 {
-	unsigned char *freeme;
+	unsigned char* freeme;
 	Nfs3TRead tx;
 	Nfs3RRead rx;
 
@@ -323,12 +319,13 @@ nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count, uint64_t offset,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, &freeme) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
-	if(rx.count != rx.ndata){
-		werrstr("nfs read returned count=%ud ndata=%ud", (uint)rx.count, (uint)rx.ndata);
+	if(rx.count != rx.ndata) {
+		werrstr("nfs read returned count=%ud ndata=%ud", (uint)rx.count,
+		        (uint)rx.ndata);
 		free(freeme);
 		return -1;
 	}
@@ -339,8 +336,8 @@ nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count, uint64_t offset,
 }
 
 int
-nfsWrite(Auth *a, uint32_t tag, Nfs3Handle *h, unsigned char *data, uint32_t count,
-	 uint64_t offset, uint32_t *pcount)
+nfsWrite(Auth* a, uint32_t tag, Nfs3Handle* h, unsigned char* data,
+         uint32_t count, uint64_t offset, uint32_t* pcount)
 {
 	Nfs3TWrite tx;
 	Nfs3RWrite rx;
@@ -358,7 +355,7 @@ nfsWrite(Auth *a, uint32_t tag, Nfs3Handle *h, unsigned char *data, uint32_t cou
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -368,7 +365,7 @@ nfsWrite(Auth *a, uint32_t tag, Nfs3Handle *h, unsigned char *data, uint32_t cou
 }
 
 int
-nfsRmdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
+nfsRmdir(Auth* a, uint32_t tag, Nfs3Handle* h, char* name)
 {
 	Nfs3TRmdir tx;
 	Nfs3RRmdir rx;
@@ -383,7 +380,7 @@ nfsRmdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -391,7 +388,7 @@ nfsRmdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
 }
 
 int
-nfsRemove(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
+nfsRemove(Auth* a, uint32_t tag, Nfs3Handle* h, char* name)
 {
 	Nfs3TRemove tx;
 	Nfs3RRemove rx;
@@ -406,7 +403,7 @@ nfsRemove(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -414,8 +411,8 @@ nfsRemove(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
 }
 
 int
-nfsRename(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *th,
-	  char *tname)
+nfsRename(Auth* a, uint32_t tag, Nfs3Handle* h, char* name, Nfs3Handle* th,
+          char* tname)
 {
 	Nfs3TRename tx;
 	Nfs3RRename rx;
@@ -432,7 +429,7 @@ nfsRename(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *th,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -440,7 +437,7 @@ nfsRename(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *th,
 }
 
 int
-nfsSetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3SetAttr *attr)
+nfsSetattr(Auth* a, uint32_t tag, Nfs3Handle* h, Nfs3SetAttr* attr)
 {
 	Nfs3TSetattr tx;
 	Nfs3RSetattr rx;
@@ -455,7 +452,7 @@ nfsSetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3SetAttr *attr)
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -463,7 +460,7 @@ nfsSetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3SetAttr *attr)
 }
 
 int
-nfsCommit(Auth *a, uint32_t tag, Nfs3Handle *h)
+nfsCommit(Auth* a, uint32_t tag, Nfs3Handle* h)
 {
 	Nfs3TCommit tx;
 	Nfs3RCommit rx;
@@ -478,7 +475,7 @@ nfsCommit(Auth *a, uint32_t tag, Nfs3Handle *h)
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
 
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -486,8 +483,8 @@ nfsCommit(Auth *a, uint32_t tag, Nfs3Handle *h)
 }
 
 int
-nfsLookup(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
-	  u1int *have, Nfs3Attr *attr)
+nfsLookup(Auth* a, uint32_t tag, Nfs3Handle* h, char* name, Nfs3Handle* nh,
+          u1int* have, Nfs3Attr* attr)
 {
 	Nfs3TLookup tx;
 	Nfs3RLookup rx;
@@ -503,7 +500,7 @@ nfsLookup(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, nil) < 0)
 		return -1;
 
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		nfs3Errstr(rx.status);
 		return -1;
 	}
@@ -515,9 +512,11 @@ nfsLookup(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 }
 
 int
-nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
-	       uint64_t cookie, unsigned char **pp,
-	uint32_t *pcount, int (**unpack)(unsigned char*, unsigned char*, unsigned char**, Nfs3Entry*), unsigned char **pfreeme)
+nfsReadDirPlus(Auth* a, uint32_t tag, Nfs3Handle* h, uint32_t count,
+               uint64_t cookie, unsigned char** pp, uint32_t* pcount,
+               int (**unpack)(unsigned char*, unsigned char*, unsigned char**,
+                              Nfs3Entry*),
+               unsigned char** pfreeme)
 {
 	Nfs3TReadDirPlus tx;
 	Nfs3RReadDirPlus rx;
@@ -534,7 +533,7 @@ nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, pfreeme) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		free(*pfreeme);
 		*pfreeme = 0;
 		nfs3Errstr(rx.status);
@@ -548,23 +547,27 @@ nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
 }
 
 int
-nfsReadDir(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
-	   uint64_t cookie, unsigned char **pp,
-	uint32_t *pcount, int (**unpack)(unsigned char*, unsigned char*, unsigned char**, Nfs3Entry*), unsigned char **pfreeme)
+nfsReadDir(Auth* a, uint32_t tag, Nfs3Handle* h, uint32_t count,
+           uint64_t cookie, unsigned char** pp, uint32_t* pcount,
+           int (**unpack)(unsigned char*, unsigned char*, unsigned char**,
+                          Nfs3Entry*),
+           unsigned char** pfreeme)
 {
 	/* BUG: try readdirplus */
 	char e[ERRMAX];
 	Nfs3TReadDir tx;
 	Nfs3RReadDir rx;
 
-	if(readplus!=-1){
-		if(nfsReadDirPlus(a, tag, h, count, cookie, pp, pcount, unpack, pfreeme) == 0){
+	if(readplus != -1) {
+		if(nfsReadDirPlus(a, tag, h, count, cookie, pp, pcount, unpack,
+		                  pfreeme) == 0) {
 			readplus = 1;
 			return 0;
 		}
-		if(readplus == 0){
+		if(readplus == 0) {
 			rerrstr(e, sizeof e);
-			if(strstr(e, "procedure unavailable") || strstr(e, "not supported"))
+			if(strstr(e, "procedure unavailable") ||
+			   strstr(e, "not supported"))
 				readplus = -1;
 		}
 		if(readplus == 0)
@@ -584,7 +587,7 @@ nfsReadDir(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
 
 	if(sunClientRpc(nfscli, tag, &tx.call, &rx.call, pfreeme) < 0)
 		return -1;
-	if(rx.status != Nfs3Ok){
+	if(rx.status != Nfs3Ok) {
 		free(*pfreeme);
 		*pfreeme = 0;
 		nfs3Errstr(rx.status);
@@ -607,52 +610,49 @@ typedef struct Map Map;
 typedef struct User User;
 typedef struct Group Group;
 
-Map *map;
+Map* map;
 Map emptymap;
 
-struct User
-{
-	char *name;
+struct User {
+	char* name;
 	uint uid;
 	uint gid;
 	uint g[16];
 	uint ng;
-	unsigned char *auth;
+	unsigned char* auth;
 	int nauth;
 };
 
-struct Group
-{
-	char *name;	/* same pos as in User struct */
-	uint gid;	/* same pos as in User struct */
+struct Group {
+	char* name; /* same pos as in User struct */
+	uint gid;   /* same pos as in User struct */
 };
 
-struct Map
-{
+struct Map {
 	int nuser;
 	int ngroup;
-	User *user;
-	User **ubyname;
-	User **ubyid;
-	Group *group;
-	Group **gbyname;
-	Group **gbyid;
+	User* user;
+	User** ubyname;
+	User** ubyid;
+	Group* group;
+	Group** gbyname;
+	Group** gbyid;
 };
 
 User*
-finduser(User **u, int nu, char *s)
+finduser(User** u, int nu, char* s)
 {
 	int lo, hi, mid, n;
 
 	hi = nu;
 	lo = 0;
-	while(hi > lo){
-		mid = (lo+hi)/2;
+	while(hi > lo) {
+		mid = (lo + hi) / 2;
 		n = strcmp(u[mid]->name, s);
 		if(n == 0)
 			return u[mid];
 		if(n < 0)
-			lo = mid+1;
+			lo = mid + 1;
 		else
 			hi = mid;
 	}
@@ -660,14 +660,14 @@ finduser(User **u, int nu, char *s)
 }
 
 int
-strtoid(User **u, int nu, char *s, uint32_t *id)
+strtoid(User** u, int nu, char* s, uint32_t* id)
 {
 	uint32_t x;
-	char *p;
-	User *uu;
+	char* p;
+	User* uu;
 
 	x = strtoul(s, &p, 10);
-	if(*s != 0 && *p == 0){
+	if(*s != 0 && *p == 0) {
 		*id = x;
 		return 0;
 	}
@@ -680,25 +680,25 @@ strtoid(User **u, int nu, char *s, uint32_t *id)
 }
 
 char*
-idtostr(User **u, int nu, uint32_t id)
+idtostr(User** u, int nu, uint32_t id)
 {
 	char buf[32];
 	int lo, hi, mid;
 
 	hi = nu;
 	lo = 0;
-	while(hi > lo){
-		mid = (lo+hi)/2;
+	while(hi > lo) {
+		mid = (lo + hi) / 2;
 		if(u[mid]->uid == id)
 			return estrdup9p(u[mid]->name);
 		if(u[mid]->uid < id)
-			lo = mid+1;
+			lo = mid + 1;
 		else
 			hi = mid;
 	}
-	snprint(buf, sizeof buf, "%ud", id);	
+	snprint(buf, sizeof buf, "%ud", id);
 	return estrdup9p(buf);
-}		
+}
 char*
 uidtostr(uint32_t uid)
 {
@@ -712,22 +712,21 @@ gidtostr(uint32_t gid)
 }
 
 int
-strtouid(char *s, uint32_t *id)
+strtouid(char* s, uint32_t* id)
 {
 	return strtoid(map->ubyname, map->nuser, s, id);
 }
 
 int
-strtogid(char *s, uint32_t *id)
+strtogid(char* s, uint32_t* id)
 {
 	return strtoid((User**)map->gbyid, map->ngroup, s, id);
 }
 
-
 int
-idcmp(const void *va, const void *vb)
+idcmp(const void* va, const void* vb)
 {
-	User **a, **b;
+	User** a, **b;
 
 	a = (User**)va;
 	b = (User**)vb;
@@ -735,9 +734,9 @@ idcmp(const void *va, const void *vb)
 }
 
 int
-namecmp(const void *va, const void *vb)
+namecmp(const void* va, const void* vb)
 {
-	User **a, **b;
+	User** a, **b;
 
 	a = (User**)va;
 	b = (User**)vb;
@@ -745,15 +744,15 @@ namecmp(const void *va, const void *vb)
 }
 
 void
-closemap(Map *m)
+closemap(Map* m)
 {
 	int i;
 
-	for(i=0; i<m->nuser; i++){
+	for(i = 0; i < m->nuser; i++) {
 		free(m->user[i].name);
 		free(m->user[i].auth);
 	}
-	for(i=0; i<m->ngroup; i++)
+	for(i = 0; i < m->ngroup; i++)
 		free(m->group[i].name);
 	free(m->user);
 	free(m->group);
@@ -765,25 +764,25 @@ closemap(Map *m)
 }
 
 Map*
-readmap(char *passwd, char *group)
+readmap(char* passwd, char* group)
 {
-	char *s, *f[10], *p, *nextp, *name;
-	unsigned char *q, *eq;
+	char* s, *f[10], *p, *nextp, *name;
+	unsigned char* q, *eq;
 	int i, n, nf, line, uid, gid;
-	Biobuf *b;
-	Map *m;
-	User *u;
-	Group *g;
+	Biobuf* b;
+	Map* m;
+	User* u;
+	Group* g;
 	SunAuthUnix au;
 
 	m = emalloc(sizeof(Map));
 
-	if((b = Bopen(passwd, OREAD)) == nil){
+	if((b = Bopen(passwd, OREAD)) == nil) {
 		free(m);
 		return nil;
 	}
 	line = 0;
-	for(; (s = Brdstr(b, '\n', 1)) != nil; free(s)){
+	for(; (s = Brdstr(b, '\n', 1)) != nil; free(s)) {
 		line++;
 		if(s[0] == '#')
 			continue;
@@ -792,17 +791,20 @@ readmap(char *passwd, char *group)
 			continue;
 		name = f[0];
 		uid = strtol(f[2], &p, 10);
-		if(f[2][0] == 0 || *p != 0){
-			fprint(2, "%s:%d: non-numeric id in third field\n", passwd, line);
+		if(f[2][0] == 0 || *p != 0) {
+			fprint(2, "%s:%d: non-numeric id in third field\n",
+			       passwd, line);
 			continue;
 		}
 		gid = strtol(f[3], &p, 10);
-		if(f[3][0] == 0 || *p != 0){
-			fprint(2, "%s:%d: non-numeric id in fourth field\n", passwd, line);
+		if(f[3][0] == 0 || *p != 0) {
+			fprint(2, "%s:%d: non-numeric id in fourth field\n",
+			       passwd, line);
 			continue;
 		}
-		if(m->nuser%32 == 0)
-			m->user = erealloc(m->user, (m->nuser+32)*sizeof(m->user[0]));
+		if(m->nuser % 32 == 0)
+			m->user = erealloc(m->user, (m->nuser + 32) *
+			                                sizeof(m->user[0]));
 		u = &m->user[m->nuser++];
 		u->name = estrdup9p(name);
 		u->uid = uid;
@@ -812,21 +814,21 @@ readmap(char *passwd, char *group)
 		u->nauth = 0;
 	}
 	Bterm(b);
-	m->ubyname = emalloc(m->nuser*sizeof(User*));
-	m->ubyid = emalloc(m->nuser*sizeof(User*));
-	for(i=0; i<m->nuser; i++){
+	m->ubyname = emalloc(m->nuser * sizeof(User*));
+	m->ubyid = emalloc(m->nuser * sizeof(User*));
+	for(i = 0; i < m->nuser; i++) {
 		m->ubyname[i] = &m->user[i];
 		m->ubyid[i] = &m->user[i];
 	}
 	qsort(m->ubyname, m->nuser, sizeof(m->ubyname[0]), namecmp);
 	qsort(m->ubyid, m->nuser, sizeof(m->ubyid[0]), idcmp);
 
-	if((b = Bopen(group, OREAD)) == nil){
+	if((b = Bopen(group, OREAD)) == nil) {
 		closemap(m);
 		return nil;
 	}
 	line = 0;
-	for(; (s = Brdstr(b, '\n', 1)) != nil; free(s)){
+	for(; (s = Brdstr(b, '\n', 1)) != nil; free(s)) {
 		line++;
 		if(s[0] == '#')
 			continue;
@@ -835,45 +837,50 @@ readmap(char *passwd, char *group)
 			continue;
 		name = f[0];
 		gid = strtol(f[2], &p, 10);
-		if(f[2][0] == 0 || *p != 0){
-			fprint(2, "%s:%d: non-numeric id in third field\n", group, line);
+		if(f[2][0] == 0 || *p != 0) {
+			fprint(2, "%s:%d: non-numeric id in third field\n",
+			       group, line);
 			continue;
 		}
-		if(m->ngroup%32 == 0)
-			m->group = erealloc(m->group, (m->ngroup+32)*sizeof(m->group[0]));
+		if(m->ngroup % 32 == 0)
+			m->group = erealloc(m->group, (m->ngroup + 32) *
+			                                  sizeof(m->group[0]));
 		g = &m->group[m->ngroup++];
 		g->name = estrdup9p(name);
 		g->gid = gid;
 
-		for(p=f[3]; *p; p=nextp){
+		for(p = f[3]; *p; p = nextp) {
 			if((nextp = strchr(p, ',')) != nil)
 				*nextp++ = 0;
 			else
-				nextp = p+strlen(p);
+				nextp = p + strlen(p);
 			u = finduser(m->ubyname, m->nuser, p);
-			if(u == nil){
+			if(u == nil) {
 				if(verbose)
-					fprint(2, "%s:%d: unknown user %s\n", group, line, p);
+					fprint(2, "%s:%d: unknown user %s\n",
+					       group, line, p);
 				continue;
 			}
-			if(u->ng >= nelem(u->g)){
-				fprint(2, "%s:%d: user %s is in too many groups; ignoring %s\n", group, line, p, name);
+			if(u->ng >= nelem(u->g)) {
+				fprint(2, "%s:%d: user %s is in too many "
+				          "groups; ignoring %s\n",
+				       group, line, p, name);
 				continue;
 			}
 			u->g[u->ng++] = gid;
 		}
 	}
 	Bterm(b);
-	m->gbyname = emalloc(m->ngroup*sizeof(Group*));
-	m->gbyid = emalloc(m->ngroup*sizeof(Group*));
-	for(i=0; i<m->ngroup; i++){
+	m->gbyname = emalloc(m->ngroup * sizeof(Group*));
+	m->gbyid = emalloc(m->ngroup * sizeof(Group*));
+	for(i = 0; i < m->ngroup; i++) {
 		m->gbyname[i] = &m->group[i];
 		m->gbyid[i] = &m->group[i];
 	}
 	qsort(m->gbyname, m->ngroup, sizeof(m->gbyname[0]), namecmp);
 	qsort(m->gbyid, m->ngroup, sizeof(m->gbyid[0]), idcmp);
 
-	for(i=0; i<m->nuser; i++){
+	for(i = 0; i < m->nuser; i++) {
 		au.stamp = 0;
 		au.sysname = sys;
 		au.uid = m->user[i].uid;
@@ -882,11 +889,12 @@ readmap(char *passwd, char *group)
 		au.ng = m->user[i].ng;
 		n = sunAuthUnixSize(&au);
 		q = emalloc(n);
-		eq = q+n;
+		eq = q + n;
 		m->user[i].auth = q;
 		m->user[i].nauth = n;
-		if(sunAuthUnixPack(q, eq, &q, &au) < 0 || q != eq){
-			fprint(2, "sunAuthUnixPack failed for %s\n", m->user[i].name);
+		if(sunAuthUnixPack(q, eq, &q, &au) < 0 || q != eq) {
+			fprint(2, "sunAuthUnixPack failed for %s\n",
+			       m->user[i].name);
 			free(m->user[i].auth);
 			m->user[i].auth = 0;
 			m->user[i].nauth = 0;
@@ -897,16 +905,16 @@ readmap(char *passwd, char *group)
 }
 
 Auth*
-mkauth(char *user)
+mkauth(char* user)
 {
-	Auth *a;
-	unsigned char *p;
+	Auth* a;
+	unsigned char* p;
 	int n;
 	SunAuthUnix au;
-	User *u;
+	User* u;
 
 	u = finduser(map->ubyname, map->nuser, user);
-	if(u == nil || u->nauth == 0){
+	if(u == nil || u->nauth == 0) {
 		/* nobody */
 		au.stamp = 0;
 		au.uid = -1;
@@ -914,30 +922,32 @@ mkauth(char *user)
 		au.ng = 0;
 		au.sysname = sys;
 		n = sunAuthUnixSize(&au);
-		a = emalloc(sizeof(Auth)+n);
+		a = emalloc(sizeof(Auth) + n);
 		a->data = (unsigned char*)&a[1];
 		a->ndata = n;
-		if(sunAuthUnixPack(a->data, a->data+a->ndata, &p, &au) < 0
-		|| p != a->data+a->ndata){
+		if(sunAuthUnixPack(a->data, a->data + a->ndata, &p, &au) < 0 ||
+		   p != a->data + a->ndata) {
 			free(a);
 			return nil;
 		}
 		a->ref = 1;
-if(verbose)print("creds for %s: %.*H\n", user, a->ndata, a->data);
+		if(verbose)
+			print("creds for %s: %.*H\n", user, a->ndata, a->data);
 		return a;
 	}
 
-	a = emalloc(sizeof(Auth)+u->nauth);
+	a = emalloc(sizeof(Auth) + u->nauth);
 	a->data = (unsigned char*)&a[1];
 	a->ndata = u->nauth;
 	memmove(a->data, u->auth, a->ndata);
 	a->ref = 1;
-if(verbose)print("creds for %s: %.*H\n", user, a->ndata, a->data);
+	if(verbose)
+		print("creds for %s: %.*H\n", user, a->ndata, a->data);
 	return a;
 }
 
 void
-freeauth(Auth *a)
+freeauth(Auth* a)
 {
 	if(--a->ref > 0)
 		return;
@@ -948,7 +958,7 @@ freeauth(Auth *a)
  * 9P server
  */
 void
-responderrstr(Req *r)
+responderrstr(Req* r)
 {
 	char e[ERRMAX];
 
@@ -957,9 +967,9 @@ responderrstr(Req *r)
 }
 
 void
-fsdestroyfid(Fid *fid)
+fsdestroyfid(Fid* fid)
 {
-	FidAux *aux;
+	FidAux* aux;
 
 	aux = fid->aux;
 	if(aux == nil)
@@ -970,7 +980,7 @@ fsdestroyfid(Fid *fid)
 }
 
 void
-attrToQid(Nfs3Attr *attr, Qid *qid)
+attrToQid(Nfs3Attr* attr, Qid* qid)
 {
 	qid->path = attr->fileid;
 	qid->vers = attr->mtime.sec;
@@ -980,7 +990,7 @@ attrToQid(Nfs3Attr *attr, Qid *qid)
 }
 
 void
-attrToDir(Nfs3Attr *attr, Dir *d)
+attrToDir(Nfs3Attr* attr, Dir* d)
 {
 	d->mode = attr->mode & 0777;
 	if(attr->type == Nfs3FileDir)
@@ -995,22 +1005,22 @@ attrToDir(Nfs3Attr *attr, Dir *d)
 }
 
 void
-fsattach(Req *r)
+fsattach(Req* r)
 {
-	char *path;
-	Auth *auth;
-	FidAux *aux;
+	char* path;
+	Auth* auth;
+	FidAux* aux;
 	Nfs3Attr attr;
 	Nfs3Handle h;
 
 	path = r->ifcall.aname;
-	if(path==nil || path[0]==0)
+	if(path == nil || path[0] == 0)
 		path = defaultpath;
 
 	auth = mkauth(r->ifcall.uname);
 
-	if(mountMnt(auth, r->tag, path, &h) < 0
-	|| nfsGetattr(auth, r->tag, &h, &attr) < 0){
+	if(mountMnt(auth, r->tag, path, &h) < 0 ||
+	   nfsGetattr(auth, r->tag, &h, &attr) < 0) {
 		freeauth(auth);
 		responderrstr(r);
 		return;
@@ -1029,9 +1039,9 @@ fsattach(Req *r)
 }
 
 void
-fsopen(Req *r)
+fsopen(Req* r)
 {
-	FidAux *aux;
+	FidAux* aux;
 	Nfs3Attr attr;
 	Nfs3SetAttr sa;
 	u1int have;
@@ -1039,7 +1049,7 @@ fsopen(Req *r)
 
 	aux = r->fid->aux;
 	a = 0;
-	switch(r->ifcall.mode&OMASK){
+	switch(r->ifcall.mode & OMASK) {
 	case OREAD:
 		a = 0x0001;
 		break;
@@ -1047,26 +1057,27 @@ fsopen(Req *r)
 		a = 0x0004;
 		break;
 	case ORDWR:
-		a = 0x0001|0x0004;
+		a = 0x0001 | 0x0004;
 		break;
 	case OEXEC:
 		a = 0x20;
 		break;
 	}
-	if(r->ifcall.mode&OTRUNC)
+	if(r->ifcall.mode & OTRUNC)
 		a |= 0x0004;
 
-	if(nfsAccess(aux->auth, r->tag, &aux->handle, a, &b, &have, &attr) < 0
-	|| (!have && nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0)){
-    Error:
+	if(nfsAccess(aux->auth, r->tag, &aux->handle, a, &b, &have, &attr) <
+	       0 ||
+	   (!have && nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0)) {
+	Error:
 		responderrstr(r);
 		return;
 	}
-	if(a != b){
+	if(a != b) {
 		respond(r, "permission denied");
 		return;
 	}
-	if(r->ifcall.mode&OTRUNC){
+	if(r->ifcall.mode & OTRUNC) {
 		memset(&sa, 0, sizeof sa);
 		sa.setSize = 1;
 		if(nfsSetattr(aux->auth, r->tag, &aux->handle, &sa) < 0)
@@ -1078,16 +1089,16 @@ fsopen(Req *r)
 }
 
 void
-fscreate(Req *r)
+fscreate(Req* r)
 {
-	FidAux *aux;
+	FidAux* aux;
 	u1int have;
 	Nfs3Attr attr;
 	Nfs3Handle h;
 	uint32_t mode;
 	uint gid;
-	int (*mk)(Auth*, uint32_t, Nfs3Handle*, char*, Nfs3Handle*,
-		  uint32_t, uint, u1int*, Nfs3Attr*);
+	int (*mk)(Auth*, uint32_t, Nfs3Handle*, char*, Nfs3Handle*, uint32_t,
+	          uint, u1int*, Nfs3Attr*);
 
 	aux = r->fid->aux;
 
@@ -1098,24 +1109,25 @@ fscreate(Req *r)
 	 * (Unix will let us set the group to anything
 	 * since we're the owner!)
 	 */
-	if(nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0){
+	if(nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0) {
 		responderrstr(r);
 		return;
 	}
-	mode = r->ifcall.perm&0777;
-	if(r->ifcall.perm&DMDIR)
-		mode &= (attr.mode&0666) | ~0666;
+	mode = r->ifcall.perm & 0777;
+	if(r->ifcall.perm & DMDIR)
+		mode &= (attr.mode & 0666) | ~0666;
 	else
-		mode &= (attr.mode&0777) | ~0777;
+		mode &= (attr.mode & 0777) | ~0777;
 	gid = attr.gid;
 
-	if(r->ifcall.perm&DMDIR)
+	if(r->ifcall.perm & DMDIR)
 		mk = nfsMkdir;
 	else
 		mk = nfsCreate;
 
-	if((*mk)(aux->auth, r->tag, &aux->handle, r->ifcall.name, &h, mode, gid, &have, &attr) < 0
-	|| (!have && nfsGetattr(aux->auth, r->tag, &h, &attr) < 0)){
+	if((*mk)(aux->auth, r->tag, &aux->handle, r->ifcall.name, &h, mode, gid,
+	         &have, &attr) < 0 ||
+	   (!have && nfsGetattr(aux->auth, r->tag, &h, &attr) < 0)) {
 		responderrstr(r);
 		return;
 	}
@@ -1129,13 +1141,14 @@ fscreate(Req *r)
 }
 
 void
-fsreaddir(Req *r)
+fsreaddir(Req* r)
 {
-	FidAux *aux;
-	unsigned char *p, *freeme, *ep, *p9, *ep9;
-	char *s;
+	FidAux* aux;
+	unsigned char* p, *freeme, *ep, *p9, *ep9;
+	char* s;
 	uint count;
-	int n, (*unpack)(unsigned char*, unsigned char*, unsigned char**, Nfs3Entry*);
+	int n, (*unpack)(unsigned char*, unsigned char*, unsigned char**,
+	                 Nfs3Entry*);
 	Nfs3Entry e;
 	uint64_t cookie;
 	Dir d;
@@ -1150,38 +1163,40 @@ fsreaddir(Req *r)
 	else
 		cookie = 0;
 	if(nfsReadDir(aux->auth, r->tag, &aux->handle, r->ifcall.count, cookie,
-		&p, &count, &unpack, &freeme) < 0){
+	              &p, &count, &unpack, &freeme) < 0) {
 		responderrstr(r);
 		return;
 	}
-	ep = p+count;
+	ep = p + count;
 
 	p9 = (unsigned char*)r->ofcall.data;
-	ep9 = p9+r->ifcall.count;
+	ep9 = p9 + r->ifcall.count;
 
 	/*
 	 * BUG: Issue all of the stat requests in parallel.
 	 */
-	while(p < ep && p9 < ep9){
+	while(p < ep && p9 < ep9) {
 		if((*unpack)(p, ep, &p, &e) < 0)
 			break;
 		aux->cookie = e.cookie;
 		if(strcmp(e.name, ".") == 0 || strcmp(e.name, "..") == 0)
 			continue;
-		for(s=e.name; (unsigned char)*s >= ' '; s++)
+		for(s = e.name; (unsigned char)*s >= ' '; s++)
 			;
-		if(*s != 0)	/* bad character in name */
+		if(*s != 0) /* bad character in name */
 			continue;
 		if(!e.haveAttr && !e.haveHandle)
-			if(nfsLookup(aux->auth, r->tag, &aux->handle, e.name, &e.handle, &e.haveAttr, &e.attr) < 0)
+			if(nfsLookup(aux->auth, r->tag, &aux->handle, e.name,
+			             &e.handle, &e.haveAttr, &e.attr) < 0)
 				continue;
 		if(!e.haveAttr)
-			if(nfsGetattr(aux->auth, r->tag, &e.handle, &e.attr) < 0)
+			if(nfsGetattr(aux->auth, r->tag, &e.handle, &e.attr) <
+			   0)
 				continue;
 		memset(&d, 0, sizeof d);
 		attrToDir(&e.attr, &d);
 		d.name = e.name;
-		if((n = convD2M(&d, p9, ep9-p9)) <= BIT16SZ)
+		if((n = convD2M(&d, p9, ep9 - p9)) <= BIT16SZ)
 			break;
 		p9 += n;
 	}
@@ -1189,21 +1204,22 @@ fsreaddir(Req *r)
 	r->ofcall.count = p9 - (unsigned char*)r->ofcall.data;
 	respond(r, nil);
 }
-	
-void
-fsread(Req *r)
-{
-	unsigned char *p, *freeme;
-	uint count;
-	FidAux *aux;
 
-	if(r->fid->qid.type&QTDIR){
+void
+fsread(Req* r)
+{
+	unsigned char* p, *freeme;
+	uint count;
+	FidAux* aux;
+
+	if(r->fid->qid.type & QTDIR) {
 		fsreaddir(r);
 		return;
 	}
 
 	aux = r->fid->aux;
-	if(nfsRead(aux->auth, r->tag, &aux->handle, r->ifcall.count, r->ifcall.offset, &p, &count, &freeme) < 0){
+	if(nfsRead(aux->auth, r->tag, &aux->handle, r->ifcall.count,
+	           r->ifcall.offset, &p, &count, &freeme) < 0) {
 		responderrstr(r);
 		return;
 	}
@@ -1214,13 +1230,15 @@ fsread(Req *r)
 }
 
 void
-fswrite(Req *r)
+fswrite(Req* r)
 {
 	uint count;
-	FidAux *aux;
+	FidAux* aux;
 
 	aux = r->fid->aux;
-	if(nfsWrite(aux->auth, r->tag, &aux->handle, (unsigned char*)r->ifcall.data, r->ifcall.count, r->ifcall.offset, &count) < 0){
+	if(nfsWrite(aux->auth, r->tag, &aux->handle,
+	            (unsigned char*)r->ifcall.data, r->ifcall.count,
+	            r->ifcall.offset, &count) < 0) {
 		responderrstr(r);
 		return;
 	}
@@ -1229,21 +1247,23 @@ fswrite(Req *r)
 }
 
 void
-fsremove(Req *r)
+fsremove(Req* r)
 {
 	int n;
-	FidAux *aux;
+	FidAux* aux;
 
 	aux = r->fid->aux;
-	if(aux->name == nil){
-		respond(r, "nfs3client botch -- don't know parent handle in remove");
+	if(aux->name == nil) {
+		respond(
+		    r,
+		    "nfs3client botch -- don't know parent handle in remove");
 		return;
 	}
-	if(r->fid->qid.type&QTDIR)
+	if(r->fid->qid.type & QTDIR)
 		n = nfsRmdir(aux->auth, r->tag, &aux->parent, aux->name);
 	else
 		n = nfsRemove(aux->auth, r->tag, &aux->parent, aux->name);
-	if(n < 0){
+	if(n < 0) {
 		responderrstr(r);
 		return;
 	}
@@ -1251,13 +1271,13 @@ fsremove(Req *r)
 }
 
 void
-fsstat(Req *r)
+fsstat(Req* r)
 {
-	FidAux *aux;
+	FidAux* aux;
 	Nfs3Attr attr;
 
 	aux = r->fid->aux;
-	if(nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0){
+	if(nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0) {
 		responderrstr(r);
 		return;
 	}
@@ -1268,10 +1288,10 @@ fsstat(Req *r)
 }
 
 void
-fswstat(Req *r)
+fswstat(Req* r)
 {
 	int op, sync;
-	FidAux *aux;
+	FidAux* aux;
 	Nfs3SetAttr attr;
 
 	memset(&attr, 0, sizeof attr);
@@ -1280,9 +1300,11 @@ fswstat(Req *r)
 	/* Fill out stat first to catch errors */
 	op = 0;
 	sync = 1;
-	if(~r->d.mode){
-		if(r->d.mode&(DMAPPEND|DMEXCL)){
-			respond(r, "wstat -- DMAPPEND and DMEXCL bits not supported");
+	if(~r->d.mode) {
+		if(r->d.mode & (DMAPPEND | DMEXCL)) {
+			respond(
+			    r,
+			    "wstat -- DMAPPEND and DMEXCL bits not supported");
 			return;
 		}
 		op = 1;
@@ -1290,37 +1312,37 @@ fswstat(Req *r)
 		attr.setMode = 1;
 		attr.mode = r->d.mode & 0777;
 	}
-	if(r->d.uid && r->d.uid[0]){
+	if(r->d.uid && r->d.uid[0]) {
 		attr.setUid = 1;
-		if(strtouid(r->d.uid, &attr.uid) < 0){
+		if(strtouid(r->d.uid, &attr.uid) < 0) {
 			respond(r, "wstat -- unknown uid");
 			return;
 		}
 		op = 1;
 		sync = 0;
 	}
-	if(r->d.gid && r->d.gid[0]){
+	if(r->d.gid && r->d.gid[0]) {
 		attr.setGid = 1;
-		if(strtogid(r->d.gid, &attr.gid) < 0){
+		if(strtogid(r->d.gid, &attr.gid) < 0) {
 			respond(r, "wstat -- unknown gid");
 			return;
 		}
 		op = 1;
 		sync = 0;
 	}
-	if(~r->d.length){
+	if(~r->d.length) {
 		attr.setSize = 1;
 		attr.size = r->d.length;
 		op = 1;
 		sync = 0;
 	}
-	if(~r->d.mtime){
+	if(~r->d.mtime) {
 		attr.setMtime = Nfs3SetTimeClient;
 		attr.mtime.sec = r->d.mtime;
 		op = 1;
 		sync = 0;
 	}
-	if(~r->d.atime){
+	if(~r->d.atime) {
 		attr.setAtime = Nfs3SetTimeClient;
 		attr.atime.sec = r->d.atime;
 		op = 1;
@@ -1328,12 +1350,14 @@ fswstat(Req *r)
 	}
 
 	/* Try rename first because it's more likely to fail (?) */
-	if(r->d.name && r->d.name[0]){
-		if(aux->name == nil){
-			respond(r, "nfsclient botch -- don't know parent handle in rename");
+	if(r->d.name && r->d.name[0]) {
+		if(aux->name == nil) {
+			respond(r, "nfsclient botch -- don't know parent "
+			           "handle in rename");
 			return;
 		}
-		if(nfsRename(aux->auth, r->tag, &aux->parent, aux->name, &aux->parent, r->d.name) < 0){
+		if(nfsRename(aux->auth, r->tag, &aux->parent, aux->name,
+		             &aux->parent, r->d.name) < 0) {
 			responderrstr(r);
 			return;
 		}
@@ -1346,16 +1370,16 @@ fswstat(Req *r)
 	 * Now we have a problem.  The rename succeeded
 	 * but the setattr could fail.  Sic transit atomicity.
 	 */
-	if(op){
-		if(nfsSetattr(aux->auth, r->tag, &aux->handle, &attr) < 0){
+	if(op) {
+		if(nfsSetattr(aux->auth, r->tag, &aux->handle, &attr) < 0) {
 			responderrstr(r);
 			return;
 		}
 	}
 
-	if(sync){
+	if(sync) {
 		/* NFS commit */
-		if(nfsCommit(aux->auth, r->tag, &aux->handle) < 0){
+		if(nfsCommit(aux->auth, r->tag, &aux->handle) < 0) {
 			responderrstr(r);
 			return;
 		}
@@ -1365,19 +1389,20 @@ fswstat(Req *r)
 }
 
 char*
-fswalk1(Fid *fid, char *name, void *v)
+fswalk1(Fid* fid, char* name, void* v)
 {
 	u1int have;
 	uint32_t tag;
-	FidAux *aux;
+	FidAux* aux;
 	Nfs3Attr attr;
 	Nfs3Handle h;
 
 	tag = *(uint32_t*)v;
 	aux = fid->aux;
 
-	if(nfsLookup(aux->auth, tag, &aux->handle, name, &h, &have, &attr) < 0
-	|| (!have && nfsGetattr(aux->auth, tag, &h, &attr) < 0)){
+	if(nfsLookup(aux->auth, tag, &aux->handle, name, &h, &have, &attr) <
+	       0 ||
+	   (!have && nfsGetattr(aux->auth, tag, &h, &attr) < 0)) {
 		rerrstr(aux->err, sizeof aux->err);
 		return aux->err;
 	}
@@ -1394,9 +1419,9 @@ fswalk1(Fid *fid, char *name, void *v)
 }
 
 char*
-fsclone(Fid *fid, Fid *newfid, void *v)
+fsclone(Fid* fid, Fid* newfid, void* v)
 {
-	FidAux *a, *na;
+	FidAux* a, *na;
 
 	a = fid->aux;
 	na = emalloc9p(sizeof(FidAux));
@@ -1410,15 +1435,15 @@ fsclone(Fid *fid, Fid *newfid, void *v)
 }
 
 void
-fswalk(Req *r)
+fswalk(Req* r)
 {
 	walkandclone(r, fswalk1, fsclone, &r->tag);
 }
 
 void
-fsflush(Req *r)
+fsflush(Req* r)
 {
-	Req *or;
+	Req* or ;
 
 	/*
 	 * Send on the flush channel(s).
@@ -1427,104 +1452,124 @@ fsflush(Req *r)
 	 */
 	or = r->oldreq;
 	if(nfscli)
-		sendul(nfscli->flushchan, (uint32_t)or->tag);
+		sendul(nfscli->flushchan, (uint32_t) or->tag);
 	if(mntcli)
-		sendul(mntcli->flushchan, (uint32_t)or->tag);
+		sendul(mntcli->flushchan, (uint32_t) or->tag);
 	respond(r, nil);
 }
 
 void
-fsdispatch(void *v)
+fsdispatch(void* v)
 {
-	Req *r;
+	Req* r;
 
 	r = v;
-	switch(r->ifcall.type){
-	default:	respond(r, "unknown type");	break;
-	case Tattach:	fsattach(r);	break;
-	case Topen:	fsopen(r);	break;
-	case Tcreate:	fscreate(r);	break;
-	case Tread:	fsread(r);	break;
-	case Twrite:	fswrite(r);	break;
-	case Tremove:	fsremove(r);	break;
-	case Tflush:	fsflush(r);	break;
-	case Tstat:	fsstat(r);	break;
-	case Twstat:	fswstat(r);	break;
-	case Twalk:	fswalk(r);	break;
+	switch(r->ifcall.type) {
+	default:
+		respond(r, "unknown type");
+		break;
+	case Tattach:
+		fsattach(r);
+		break;
+	case Topen:
+		fsopen(r);
+		break;
+	case Tcreate:
+		fscreate(r);
+		break;
+	case Tread:
+		fsread(r);
+		break;
+	case Twrite:
+		fswrite(r);
+		break;
+	case Tremove:
+		fsremove(r);
+		break;
+	case Tflush:
+		fsflush(r);
+		break;
+	case Tstat:
+		fsstat(r);
+		break;
+	case Twstat:
+		fswstat(r);
+		break;
+	case Twalk:
+		fswalk(r);
+		break;
 	}
 }
 
 void
-fsthread(void *v)
+fsthread(void* v)
 {
-	Req *r;
+	Req* r;
 
 	while((r = recvp(fschan)) != nil)
 		threadcreate(fsdispatch, r, SunStackSize);
 }
 
 void
-fssend(Req *r)
+fssend(Req* r)
 {
 	sendp(fschan, r);
 }
 
 void
-fsdie(Srv *s)
+fsdie(Srv* s)
 {
 	threadexitsall(nil);
 }
 
-Srv fs =
-{
-.destroyfid =	fsdestroyfid,
-.attach=		fssend,
-.open=		fssend,
-.create=		fssend,
-.read=		fssend,
-.write=		fssend,
-.remove=		fssend,
-.flush=		fssend,
-.stat=		fssend,
-.wstat=		fssend,
-.walk=		fssend,
-.end=		fsdie
-};
+Srv fs = {.destroyfid = fsdestroyfid,
+          .attach = fssend,
+          .open = fssend,
+          .create = fssend,
+          .read = fssend,
+          .write = fssend,
+          .remove = fssend,
+          .flush = fssend,
+          .stat = fssend,
+          .wstat = fssend,
+          .walk = fssend,
+          .end = fsdie};
 
 void
 usage(void)
 {
-	fprint(2, "usage: nfs [-DRv] [-p perm] [-s srvname] [-u passwd group] addr [addr]\n");
+	fprint(2, "usage: nfs [-DRv] [-p perm] [-s srvname] [-u passwd group] "
+	          "addr [addr]\n");
 	fprint(2, "\taddr - address of portmapper server\n");
 	fprint(2, "\taddr addr - addresses of mount server and nfs server\n");
 	exits("usage");
 }
 
 char*
-netchangeport(char *addr, uint port, char *buf, uint nbuf)
+netchangeport(char* addr, uint port, char* buf, uint nbuf)
 {
-	char *r;
+	char* r;
 
-	strecpy(buf, buf+nbuf, addr);
+	strecpy(buf, buf + nbuf, addr);
 	r = strrchr(buf, '!');
 	if(r == nil)
 		return nil;
 	r++;
-	seprint(r, buf+nbuf, "%ud", port);
+	seprint(r, buf + nbuf, "%ud", port);
 	return buf;
 }
 
 char mbuf[256], nbuf[256];
-char *mountaddr, *nfsaddr;
-Channel *csync;
+char* mountaddr, *nfsaddr;
+Channel* csync;
 int chattyrpc;
 void dialproc(void*);
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	char *srvname, *passwd, *group, *addr, *p;
-	SunClient *cli;
+	char* srvname, *passwd, *group, *addr, *p;
+	SunClient* cli;
 	int proto;
 	uint mport, nport;
 	uint32_t perm;
@@ -1537,7 +1582,8 @@ threadmain(int argc, char **argv)
 	sys = sysname();
 	if(sys == nil)
 		sys = "plan9";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'D':
@@ -1548,7 +1594,7 @@ threadmain(int argc, char **argv)
 		break;
 	case 'p':
 		perm = strtol(EARGF(usage()), &p, 8);
-		if(perm==0 || *p != 0)
+		if(perm == 0 || *p != 0)
 			usage();
 		break;
 	case 's':
@@ -1561,7 +1607,8 @@ threadmain(int argc, char **argv)
 	case 'v':
 		verbose++;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1 && argc != 2)
 		usage();
@@ -1582,7 +1629,7 @@ threadmain(int argc, char **argv)
 	if(map == nil)
 		map = &emptymap;
 
-	if(argc == 1){
+	if(argc == 1) {
 		addr = netmkaddr(argv[0], "udp", "portmap");
 		if((cli = sunDial(addr)) == nil)
 			sysfatal("dial %s: %r", addr);
@@ -1592,7 +1639,8 @@ threadmain(int argc, char **argv)
 			proto = PortProtoUdp;
 		else
 			proto = PortProtoTcp;
-		if(getport(cli, NfsMount3Program, NfsMount3Version, proto, &mport) < 0)
+		if(getport(cli, NfsMount3Program, NfsMount3Version, proto,
+		           &mport) < 0)
 			sysfatal("lookup mount program port: %r");
 		if(getport(cli, Nfs3Program, Nfs3Version, proto, &nport) < 0)
 			sysfatal("lookup nfs program port: %r");
@@ -1603,7 +1651,7 @@ threadmain(int argc, char **argv)
 		strcat(nfsaddr, "!r");
 		if(verbose)
 			fprint(2, "nfs %s %s\n", mountaddr, nfsaddr);
-	}else{
+	} else {
 		mountaddr = argv[0];
 		nfsaddr = argv[1];
 	}
@@ -1614,9 +1662,9 @@ threadmain(int argc, char **argv)
 	recvp(csync);
 
 	threadpostmountsrv(&fs, srvname, nil, 0);
-	if(perm != 0600){
+	if(perm != 0600) {
 		p = smprint("/srv/%s", srvname);
-		if(p){
+		if(p) {
 			nulldir(&d);
 			d.mode = perm;
 			dirwstat(p, &d);
@@ -1626,7 +1674,7 @@ threadmain(int argc, char **argv)
 }
 
 void
-dialproc(void *v)
+dialproc(void* v)
 {
 	rfork(RFNAMEG);
 	rfork(RFNOTEG);
@@ -1636,7 +1684,7 @@ dialproc(void *v)
 	sunClientProg(mntcli, &nfsMount3Prog);
 	if(mountNull(0) < 0)
 		sysfatal("execute nop with mnt server at %s: %r", mountaddr);
-	
+
 	if((nfscli = sunDial(nfsaddr)) == nil)
 		sysfatal("dial nfs program at %s: %r", nfsaddr);
 	nfscli->chatty = chattyrpc;

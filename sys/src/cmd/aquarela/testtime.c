@@ -10,16 +10,15 @@
 #include "headers.h"
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
 	uint32_t now, now2;
 	int64_t nttime;
-	if (argc > 1) {
+	if(argc > 1) {
 		nttime = strtoull(argv[1], 0, 0);
 		now2 = smbtime2plan9time(nttime);
 		print("%ld %s", now2, ctime(now2));
-	}
-	else {
+	} else {
 		now = 1032615845;
 		nttime = smbplan9time2time(now);
 		print("0x%.llux\n", nttime);
@@ -28,5 +27,3 @@ threadmain(int argc, char **argv)
 		print("now2 %ld %s", now2, ctime(now2));
 	}
 }
-
-

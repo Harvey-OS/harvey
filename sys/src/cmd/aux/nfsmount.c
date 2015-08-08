@@ -15,34 +15,34 @@
 #include <nfs3.h>
 
 int chatty;
-SunClient *client;
+SunClient* client;
 
 void
 usage(void)
 {
 	fprint(2, "usage: nfsmount address [cmd]\n"
-		"cmd is one of:\n"
-		"\tnull\n"
-		"\tmnt path\n"
-		"\tdump\n"
-		"\tumnt path\n"
-		"\tumntall\n"
-		"\texport (default)\n");
+	          "cmd is one of:\n"
+	          "\tnull\n"
+	          "\tmnt path\n"
+	          "\tdump\n"
+	          "\tumnt path\n"
+	          "\tumntall\n"
+	          "\texport (default)\n");
 	threadexitsall("usage");
 }
 
 void
-portCall(SunCall *c, PortCallType type)
+portCall(SunCall* c, PortCallType type)
 {
 	c->rpc.prog = PortProgram;
 	c->rpc.vers = PortVersion;
-	c->rpc.proc = type>>1;
-	c->rpc.iscall = !(type&1);
+	c->rpc.proc = type >> 1;
+	c->rpc.iscall = !(type & 1);
 	c->type = type;
 }
 
 int
-getport(SunClient *client, uint prog, uint vers, uint prot, uint *port)
+getport(SunClient* client, uint prog, uint vers, uint prot, uint* port)
 {
 	PortTGetport tx;
 	PortRGetport rx;
@@ -63,21 +63,20 @@ getport(SunClient *client, uint prog, uint vers, uint prot, uint *port)
 }
 
 uint8_t unixauth[] = {
-	0x12, 0x23, 0x34, 0x45,	/* stamp */
-	0x00, 0x00, 0x00, 0x04,	/* gnot */
-	0x67, 0x6e, 0x6f, 0x74,
-	0x00, 0x00, 0x03, 0xE9,	/* 1001 */
-	0x00, 0x00, 0x03, 0xE9,	/* 1001 */
-	0x00, 0x00, 0x00, 0x00,	/* gid list */
+    0x12, 0x23, 0x34, 0x45,                         /* stamp */
+    0x00, 0x00, 0x00, 0x04,                         /* gnot */
+    0x67, 0x6e, 0x6f, 0x74, 0x00, 0x00, 0x03, 0xE9, /* 1001 */
+    0x00, 0x00, 0x03, 0xE9,                         /* 1001 */
+    0x00, 0x00, 0x00, 0x00,                         /* gid list */
 };
 void
-mountCall(SunCall *c, NfsMount3CallType type)
+mountCall(SunCall* c, NfsMount3CallType type)
 {
 	c->rpc.prog = NfsMount3Program;
 	c->rpc.vers = NfsMount3Version;
-	c->rpc.proc = type>>1;
-	c->rpc.iscall = !(type&1);
-	if(c->rpc.iscall){
+	c->rpc.proc = type >> 1;
+	c->rpc.iscall = !(type & 1);
+	if(c->rpc.iscall) {
 		c->rpc.cred.flavor = SunAuthSys;
 		c->rpc.cred.data = unixauth;
 		c->rpc.cred.ndata = sizeof unixauth;
@@ -86,7 +85,7 @@ mountCall(SunCall *c, NfsMount3CallType type)
 }
 
 void
-tnull(char **argv)
+tnull(char** argv)
 {
 	NfsMount3TNull tx;
 	NfsMount3RNull rx;
@@ -104,7 +103,7 @@ tnull(char **argv)
 }
 
 void
-tmnt(char **argv)
+tmnt(char** argv)
 {
 	int i;
 	NfsMount3TMnt tx;
@@ -120,22 +119,22 @@ tmnt(char **argv)
 	if(sunClientRpc(client, 0, &tx.call, &rx.call, nil) < 0)
 		sysfatal("rpc: %r");
 
-	if(rx.status != 0){
+	if(rx.status != 0) {
 		nfs3Errstr(rx.status);
 		sysfatal("mnt: %r");
 	}
 
 	print("handle %.*H\n", rx.len, rx.handle);
 	print("auth:");
-	for(i=0; i<rx.nauth; i++)
+	for(i = 0; i < rx.nauth; i++)
 		print(" %ud", (uint)rx.auth[i]);
 	print("\n");
 }
 
 void
-tdump(char **argv)
+tdump(char** argv)
 {
-	uint8_t *p, *ep;
+	uint8_t* p, *ep;
 	NfsMount3TDump tx;
 	NfsMount3RDump rx;
 	NfsMount3Entry e;
@@ -151,8 +150,8 @@ tdump(char **argv)
 		sysfatal("rpc: %r");
 
 	p = rx.data;
-	ep = p+rx.count;
-	while(p < ep){
+	ep = p + rx.count;
+	while(p < ep) {
 		if(nfsMount3EntryUnpack(p, ep, &p, &e) < 0)
 			sysfatal("unpack entry structure failed");
 		print("%s %s\n", e.host, e.path);
@@ -160,7 +159,7 @@ tdump(char **argv)
 }
 
 void
-tumnt(char **argv)
+tumnt(char** argv)
 {
 	NfsMount3TUmnt tx;
 	NfsMount3RUmnt rx;
@@ -179,7 +178,7 @@ tumnt(char **argv)
 }
 
 void
-tumntall(char **argv)
+tumntall(char** argv)
 {
 	NfsMount3TUmntall tx;
 	NfsMount3RUmntall rx;
@@ -198,10 +197,10 @@ tumntall(char **argv)
 }
 
 void
-texport(char **argv)
+texport(char** argv)
 {
-	uint8_t *p, *ep, *tofree;
-	char **g, **gg;
+	uint8_t* p, *ep, *tofree;
+	char** g, **gg;
 	int ng, i, n;
 	NfsMount3TDump tx;
 	NfsMount3RDump rx;
@@ -218,19 +217,19 @@ texport(char **argv)
 		sysfatal("rpc: %r");
 
 	p = rx.data;
-	ep = p+rx.count;
+	ep = p + rx.count;
 	g = nil;
 	ng = 0;
-	while(p < ep){
+	while(p < ep) {
 		n = nfsMount3ExportGroupSize(p);
-		if(n > ng){
+		if(n > ng) {
 			ng = n;
-			g = erealloc(g, sizeof(g[0])*ng);
+			g = erealloc(g, sizeof(g[0]) * ng);
 		}
 		if(nfsMount3ExportUnpack(p, ep, &p, g, &gg, &e) < 0)
 			sysfatal("unpack export structure failed");
 		print("%s", e.path);
-		for(i=0; i<e.ng; i++)
+		for(i = 0; i < e.ng; i++)
 			print(" %s", e.g[i]);
 		print("\n");
 	}
@@ -238,52 +237,52 @@ texport(char **argv)
 }
 
 static struct {
-	char *cmd;
+	char* cmd;
 	int narg;
 	void (*fn)(char**);
 } tab[] = {
-	"null",	0,	tnull,
-	"mnt",	1,	tmnt,
-	"dump",	0,	tdump,
-	"umnt",	1,	tumnt,
-	"umntall",	1,	tumntall,
-	"export",	0,	texport,
+    "null", 0, tnull, "mnt",     1, tmnt,     "dump",   0, tdump,
+    "umnt", 1, tumnt, "umntall", 1, tumntall, "export", 0, texport,
 };
 
 char*
-netchangeport(char *addr, char *port)
+netchangeport(char* addr, char* port)
 {
 	static char buf[256];
-	char *r;
+	char* r;
 
-	strecpy(buf, buf+sizeof buf, addr);
+	strecpy(buf, buf + sizeof buf, addr);
 	r = strrchr(buf, '!');
 	if(r == nil)
 		return nil;
 	r++;
-	strecpy(r, buf+sizeof buf, port);
+	strecpy(r, buf + sizeof buf, port);
 	return buf;
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	char *dflt[] = { "export", };
-	char *addr, *cmd;
+	char* dflt[] = {
+	    "export",
+	};
+	char* addr, *cmd;
 	int i, proto;
 	uint port;
 	char buf[32];
 	int mapit;
 
 	mapit = 1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'R':
 		chatty++;
 		break;
 	case 'm':
 		mapit = 0;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -295,7 +294,7 @@ threadmain(int argc, char **argv)
 	sunFmtInstall(&nfsMount3Prog);
 
 	addr = netmkaddr(argv[0], "udp", "portmap");
-	if(mapit){
+	if(mapit) {
 		/* translate with port mapper */
 		fprint(2, "connecting to %s\n", addr);
 		if((client = sunDial(addr)) == nil)
@@ -306,7 +305,8 @@ threadmain(int argc, char **argv)
 			proto = PortProtoUdp;
 		else
 			proto = PortProtoTcp;
-		if(getport(client, NfsMount3Program, NfsMount3Version, proto, &port) < 0)
+		if(getport(client, NfsMount3Program, NfsMount3Version, proto,
+		           &port) < 0)
 			sysfatal("getport: %r");
 		snprint(buf, sizeof buf, "%ud!r", port);
 		addr = netchangeport(addr, buf);
@@ -323,7 +323,7 @@ threadmain(int argc, char **argv)
 	argv++;
 	argc--;
 
-	if(argc == 0){
+	if(argc == 0) {
 		argc = 1;
 		argv = dflt;
 	}
@@ -331,8 +331,8 @@ threadmain(int argc, char **argv)
 	argv++;
 	argc--;
 
-	for(i=0; i<nelem(tab); i++){
-		if(strcmp(tab[i].cmd, cmd) == 0){
+	for(i = 0; i < nelem(tab); i++) {
+		if(strcmp(tab[i].cmd, cmd) == 0) {
 			if(tab[i].narg != argc)
 				usage();
 			(*tab[i].fn)(argv);

@@ -17,18 +17,18 @@
  * copy results into header log buffer.
  */
 int
-hgethead(HConnect *c, int many)
+hgethead(HConnect* c, int many)
 {
-	Hio *hin;
-	char *s, *p, *pp;
+	Hio* hin;
+	char* s, *p, *pp;
 	int n;
 
 	hin = &c->hin;
-	for(;;){
+	for(;;) {
 		s = (char*)hin->pos;
 		pp = s;
-		while(p = memchr(pp, '\n', (char*)hin->stop - pp)){
-			if(!many || p == pp || (p == pp + 1 && *pp == '\r')){
+		while(p = memchr(pp, '\n', (char*)hin->stop - pp)) {
+			if(!many || p == pp || (p == pp + 1 && *pp == '\r')) {
 				pp = p + 1;
 				break;
 			}

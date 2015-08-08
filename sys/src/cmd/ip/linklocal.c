@@ -16,13 +16,12 @@
 #include <libc.h>
 #include <ip.h>
 
-enum {
-	Mac0mcast	= 1<<0,		/* multicast address */
-	Mac0localadm	= 1<<1,		/* locally-administered address, */
-	V60globaladm	= 1<<1,		/* but ipv6 reverses the meaning */
+enum { Mac0mcast = 1 << 0,    /* multicast address */
+       Mac0localadm = 1 << 1, /* locally-administered address, */
+       V60globaladm = 1 << 1, /* but ipv6 reverses the meaning */
 };
 
-static char *v4_6to4;
+static char* v4_6to4;
 
 static void
 usage(void)
@@ -32,23 +31,23 @@ usage(void)
 }
 
 void
-ea2eui64(uint8_t *lla, uint8_t *ea)
+ea2eui64(uint8_t* lla, uint8_t* ea)
 {
-	*lla++ = *ea++ | V60globaladm;	/* oui (company id) */
-	*lla++ = *ea++;			/* " */
-	*lla++ = *ea++;			/* " */
-	*lla++ = 0xFF;			/* mac-48 in eui-64 (sic) */
-	*lla++ = 0xFE;			/* " */
-	*lla++ = *ea++;			/* manufacturer-assigned */
-	*lla++ = *ea++;			/* " */
-	*lla = *ea;			/* " */
+	*lla++ = *ea++ | V60globaladm; /* oui (company id) */
+	*lla++ = *ea++;                /* " */
+	*lla++ = *ea++;                /* " */
+	*lla++ = 0xFF;                 /* mac-48 in eui-64 (sic) */
+	*lla++ = 0xFE;                 /* " */
+	*lla++ = *ea++;                /* manufacturer-assigned */
+	*lla++ = *ea++;                /* " */
+	*lla = *ea;                    /* " */
 }
 
 void
-eaip26to4(uint8_t *lla, uint8_t *ea, uint8_t *ipv4)
+eaip26to4(uint8_t* lla, uint8_t* ea, uint8_t* ipv4)
 {
-	*lla++ = 0x20;			/* 6to4 address */
-	*lla++ = 0x02;			/* " */
+	*lla++ = 0x20; /* 6to4 address */
+	*lla++ = 0x02; /* " */
 	memmove(lla, ipv4, IPv4addrlen);
 	lla += IPv4addrlen;
 	memset(lla, 0, 2);
@@ -56,22 +55,22 @@ eaip26to4(uint8_t *lla, uint8_t *ea, uint8_t *ipv4)
 }
 
 void
-ea2lla(uint8_t *lla, uint8_t *ea)
+ea2lla(uint8_t* lla, uint8_t* ea)
 {
-	*lla++ = 0xFE;			/* link-local v6 */
-	*lla++ = 0x80;			/* " */
+	*lla++ = 0xFE; /* link-local v6 */
+	*lla++ = 0x80; /* " */
 	memset(lla, 0, 6);
 	ea2eui64(lla + 6, ea);
 }
 
 static void
-process(char *ether)
+process(char* ether)
 {
 	uint8_t ethaddr[6], ipaddr[IPaddrlen], ipv4[IPv4addrlen];
 
-	if (parseether(ethaddr, ether) < 0)
+	if(parseether(ethaddr, ether) < 0)
 		sysfatal("%s: not an ether address", ether);
-	if (v4_6to4) {
+	if(v4_6to4) {
 		v4parseip(ipv4, v4_6to4);
 		eaip26to4(ipaddr, ethaddr, ipv4);
 	} else
@@ -80,24 +79,26 @@ process(char *ether)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 't':
 		v4_6to4 = EARGF(usage());
 		break;
 	default:
 		usage();
 		break;
-	} ARGEND
+	}
+	ARGEND
 
 	fmtinstall('I', eipfmt);
-	if (argc <= 0)
+	if(argc <= 0)
 		usage();
 
-	for (i = 0; i < argc; i++)
+	for(i = 0; i < argc; i++)
 		process(argv[i]);
 	exits(0);
 }

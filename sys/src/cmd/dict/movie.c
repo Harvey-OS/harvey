@@ -13,81 +13,59 @@
 #include "dict.h"
 
 /* Possible tags */
-enum {
-	BEG,	/* beginning of entry */
-	AB,	/* abstract */
-	AN,	/* database serial number */
-	AS,	/* author (one at a time) */
-	AU,	/* all authors */
-	AW,	/* award_awardee */
-	BW,	/* bw or c */
-	CA,	/* cast: character_actor */
-	CN,	/* cinematography */
-	CO,	/* country */
-	CR,	/* miscellaneous job_name */
-	DE,	/* topic keyword */
-	DR,	/* director */
-	ED,	/* editor */
-	MP,	/* MPAA rating (R, PG, etc.) */
-	NT,	/* note */
-	PR,	/* producer and for ...*/
-	PS,	/* producer (repeats info in PR) */
-	RA,	/* rating (letter) */
-	RD,	/* release date */
-	RT,	/* running time */
-	RV,	/* review citation */
-	ST,	/* production or release company (repeats info in PR) */
-	TI,	/* title[; original foreign title] */
-	TX,	/* paragraph of descriptive text */
-	VD,	/* video information (format_time_company; or "Not Avail.") */
-	NTAG	/* number of tags */
+enum { BEG, /* beginning of entry */
+       AB,  /* abstract */
+       AN,  /* database serial number */
+       AS,  /* author (one at a time) */
+       AU,  /* all authors */
+       AW,  /* award_awardee */
+       BW,  /* bw or c */
+       CA,  /* cast: character_actor */
+       CN,  /* cinematography */
+       CO,  /* country */
+       CR,  /* miscellaneous job_name */
+       DE,  /* topic keyword */
+       DR,  /* director */
+       ED,  /* editor */
+       MP,  /* MPAA rating (R, PG, etc.) */
+       NT,  /* note */
+       PR,  /* producer and for ...*/
+       PS,  /* producer (repeats info in PR) */
+       RA,  /* rating (letter) */
+       RD,  /* release date */
+       RT,  /* running time */
+       RV,  /* review citation */
+       ST,  /* production or release company (repeats info in PR) */
+       TI,  /* title[; original foreign title] */
+       TX,  /* paragraph of descriptive text */
+       VD,  /* video information (format_time_company; or "Not Avail.") */
+       NTAG /* number of tags */
 };
 
 /* Assoc tables must be sorted on first field */
 
-static char *tagtab[] = {
-[BEG]	"$$",
-[AB]	"AB",
-[AN]	"AN",
-[AS]	"AS",
-[AU]	"AU",
-[AW]	"AW",
-[BW]	"BW",
-[CA]	"CA",
-[CN]	"CN",
-[CO]	"CO",
-[CR]	"CR",
-[DE]	"DE",
-[DR]	"DR",
-[ED]	"ED",
-[MP]	"MP",
-[NT]	"NT",
-[PR]	"PR",
-[PS]	"PS",
-[RA]	"RA",
-[RD]	"RD",
-[RT]	"RT",
-[RV]	"RV",
-[ST]	"ST",
-[TI]	"TI",
-[TX]	"TX",
-[VD]	"VD",
+static char* tagtab[] = {
+        [BEG] "$$", [AB] "AB", [AN] "AN", [AS] "AS", [AU] "AU", [AW] "AW",
+        [BW] "BW",  [CA] "CA", [CN] "CN", [CO] "CO", [CR] "CR", [DE] "DE",
+        [DR] "DR",  [ED] "ED", [MP] "MP", [NT] "NT", [PR] "PR", [PS] "PS",
+        [RA] "RA",  [RD] "RD", [RT] "RT", [RV] "RV", [ST] "ST", [TI] "TI",
+        [TX] "TX",  [VD] "VD",
 };
 
-static char	*mget(int, char *, char *, char **);
-static void	moutall(int, char *, char *);
-static void	moutall2(int, char *, char *);
+static char* mget(int, char*, char*, char**);
+static void moutall(int, char*, char*);
+static void moutall2(int, char*, char*);
 
 void
 movieprintentry(Entry ent, int cmd)
 {
-	char *p, *e, *ps, *pe, *pn;
+	char* p, *e, *ps, *pe, *pn;
 	int n;
 
 	ps = ent.start;
 	pe = ent.end;
 	if(cmd == 'r') {
-		Bwrite(bout, ps, pe-ps);
+		Bwrite(bout, ps, pe - ps);
 		return;
 	}
 	p = mget(TI, ps, pe, &e);
@@ -213,7 +191,7 @@ int32_t
 movienextoff(int32_t fromoff)
 {
 	int32_t a;
-	char *p;
+	char* p;
 
 	a = Bseek(bdict, fromoff, 0);
 	if(a < 0)
@@ -223,7 +201,7 @@ movienextoff(int32_t fromoff)
 		if(!p)
 			break;
 		if(p[0] == '$' && p[1] == '$')
-			return (Boffset(bdict)-Blinelen(bdict));
+			return (Boffset(bdict) - Blinelen(bdict));
 	}
 	return -1;
 }
@@ -238,9 +216,9 @@ movieprintkey(void)
  * write a comma-separated list of all tag values between b and e
  */
 static void
-moutall(int tag, char *b, char *e)
+moutall(int tag, char* b, char* e)
 {
-	char *p, *pn;
+	char* p, *pn;
 	int n;
 
 	n = 0;
@@ -259,9 +237,9 @@ moutall(int tag, char *b, char *e)
  * (sometimes field1 has underscores, so search from end)
  */
 static void
-moutall2(int tag, char *b, char *e)
+moutall2(int tag, char* b, char* e)
 {
-	char *p, *pn, *us, *q;
+	char* p, *pn, *us, *q;
 	int n;
 
 	n = 0;
@@ -270,7 +248,7 @@ moutall2(int tag, char *b, char *e)
 		if(n++)
 			outchars(", ");
 		us = 0;
-		for(q = pn-1; q >= p; q--)
+		for(q = pn - 1; q >= p; q--)
 			if(*q == '_') {
 				us = q;
 				break;
@@ -279,14 +257,14 @@ moutall2(int tag, char *b, char *e)
 			/*
 			 * Hack to fix cast list Himself/Herself
 			 */
-			if(strncmp(us+1, "Himself", 7) == 0 ||
-			   strncmp(us+1, "Herself", 7) == 0) {
+			if(strncmp(us + 1, "Himself", 7) == 0 ||
+			   strncmp(us + 1, "Herself", 7) == 0) {
 				outpiece(p, us);
 				outchars(" (");
-				outpiece(us+1, pn);
+				outpiece(us + 1, pn);
 				outchar(')');
 			} else {
-				outpiece(us+1, pn);
+				outpiece(us + 1, pn);
 				outchars(" (");
 				outpiece(p, us);
 				outchar(')');
@@ -303,10 +281,10 @@ moutall2(int tag, char *b, char *e)
  * Return pointer to beginning of value (after tag), and set
  * eptr to point at newline that ends the value
  */
-static char *
-mget(int tag, char *b, char *e, char **eptr)
+static char*
+mget(int tag, char* b, char* e, char** eptr)
 {
-	char *p, *t, *ans;
+	char* p, *t, *ans;
 
 	if(tag < 0 || tag >= NTAG)
 		return 0;
@@ -316,15 +294,15 @@ mget(int tag, char *b, char *e, char **eptr)
 		p = strchr(p, '\n');
 		if(!p || ++p >= e) {
 			if(ans)
-				*eptr = e-1;
+				*eptr = e - 1;
 			break;
 		}
 		if(!ans) {
 			if(p[0] == t[0] && p[1] == t[1])
-				ans = p+3;
+				ans = p + 3;
 		} else {
 			if(p[0] != ' ') {
-				*eptr = p-1;
+				*eptr = p - 1;
 				break;
 			}
 		}

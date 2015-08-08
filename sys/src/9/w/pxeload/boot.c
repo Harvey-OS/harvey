@@ -16,11 +16,9 @@
 
 #include "/sys/src/libmach/elf.h"
 
-static uint8_t elfident[7] = {
-	'\177', 'E', 'L', 'F', '\1', '\1', '\1'
-};
+static uint8_t elfident[7] = {'\177', 'E', 'L', 'F', '\1', '\1', '\1'};
 static Ehdr ehdr, rehdr;
-static Phdr *phdr;
+static Phdr* phdr;
 static int curphdr;
 static uint32_t curoff;
 static uint32_t elftotal;
@@ -33,10 +31,10 @@ static uint16_t (*swab)(uint16_t);
 uint16_t
 beswab(uint16_t s)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)&s;
-	return (p[0]<<8) | p[1];
+	return (p[0] << 8) | p[1];
 }
 
 /*
@@ -45,10 +43,10 @@ beswab(uint16_t s)
 int32_t
 beswal(int32_t l)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)&l;
-	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
+	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 }
 
 /*
@@ -57,13 +55,13 @@ beswal(int32_t l)
 uint64_t
 beswav(uint64_t v)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)&v;
-	return ((uint64_t)p[0]<<56) | ((uint64_t)p[1]<<48) | ((uint64_t)p[2]<<40)
-				  | ((uint64_t)p[3]<<32) | ((uint64_t)p[4]<<24)
-				  | ((uint64_t)p[5]<<16) | ((uint64_t)p[6]<<8)
-				  | (uint64_t)p[7];
+	return ((uint64_t)p[0] << 56) | ((uint64_t)p[1] << 48) |
+	       ((uint64_t)p[2] << 40) | ((uint64_t)p[3] << 32) |
+	       ((uint64_t)p[4] << 24) | ((uint64_t)p[5] << 16) |
+	       ((uint64_t)p[6] << 8) | (uint64_t)p[7];
 }
 
 /*
@@ -72,10 +70,10 @@ beswav(uint64_t v)
 uint16_t
 leswab(uint16_t s)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)&s;
-	return (p[1]<<8) | p[0];
+	return (p[1] << 8) | p[0];
 }
 
 /*
@@ -84,26 +82,26 @@ leswab(uint16_t s)
 int32_t
 leswal(int32_t l)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = (uint8_t*)&l;
-	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
+	return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
 }
 
 /*
  * Convert header to canonical form
  */
 static void
-hswal(int32_t *lp, int n, int32_t (*swap) (int32_t))
+hswal(int32_t* lp, int n, int32_t (*swap)(int32_t))
 {
-	while (n--) {
-		*lp = (*swap) (*lp);
+	while(n--) {
+		*lp = (*swap)(*lp);
 		lp++;
 	}
 }
 
 static int
-readehdr(Boot *b)
+readehdr(Boot* b)
 {
 	int i;
 
@@ -146,12 +144,12 @@ readehdr(Boot *b)
 		print("readehdr OK entry 0x%lux\n", ehdr.elfentry);
 
 	curoff = sizeof(Ehdr);
-	i = ehdr.phoff+ehdr.phentsize*ehdr.phnum - curoff;
+	i = ehdr.phoff + ehdr.phentsize * ehdr.phnum - curoff;
 	b->state = READPHDR;
 	b->bp = (char*)malloc(i);
 	b->wp = b->bp;
 	b->ep = b->wp + i;
-	phdr = (Phdr*)(b->bp + ehdr.phoff-sizeof(Ehdr));
+	phdr = (Phdr*)(b->bp + ehdr.phoff - sizeof(Ehdr));
 	if(debug)
 		print("phdr...");
 
@@ -159,22 +157,22 @@ readehdr(Boot *b)
 }
 
 static int
-nextphdr(Boot *b)
+nextphdr(Boot* b)
 {
-	Phdr *php;
+	Phdr* php;
 	uint32_t entry, offset;
-	char *paddr;
+	char* paddr;
 
 	if(debug)
 		print("readedata %d\n", curphdr);
 
-	for(; curphdr < ehdr.phnum; curphdr++){
-		php = phdr+curphdr;
+	for(; curphdr < ehdr.phnum; curphdr++) {
+		php = phdr + curphdr;
 		if(php->type != LOAD)
 			continue;
 		offset = php->offset;
 		paddr = (char*)PADDR(php->paddr);
-		if(offset < curoff){
+		if(offset < curoff) {
 			/*
 			 * Can't (be bothered to) rewind the
 			 * input, it might be from tftp. If we
@@ -183,7 +181,7 @@ nextphdr(Boot *b)
 			 */
 			return 0;
 		}
-		if(php->offset > curoff){
+		if(php->offset > curoff) {
 			b->state = READEPAD;
 			b->bp = (char*)malloc(offset - curoff);
 			b->wp = b->bp;
@@ -195,7 +193,7 @@ nextphdr(Boot *b)
 		b->state = READEDATA;
 		b->bp = paddr;
 		b->wp = b->bp;
-		b->ep = b->wp+php->filesz;
+		b->ep = b->wp + php->filesz;
 		print("%ud+", php->filesz);
 		elftotal += php->filesz;
 		if(debug)
@@ -204,7 +202,7 @@ nextphdr(Boot *b)
 		return 1;
 	}
 
-	if(curphdr != 0){
+	if(curphdr != 0) {
 		print("=%lud\n", elftotal);
 		b->state = TRYEBOOT;
 		entry = ehdr.elfentry & ~0xF0000000;
@@ -216,11 +214,11 @@ nextphdr(Boot *b)
 }
 
 static int
-readepad(Boot *b)
+readepad(Boot* b)
 {
-	Phdr *php;
+	Phdr* php;
 
-	php = phdr+curphdr;
+	php = phdr + curphdr;
 	if(debug)
 		print("readepad %d\n", curphdr);
 	curoff = php->offset;
@@ -229,44 +227,45 @@ readepad(Boot *b)
 }
 
 static int
-readedata(Boot *b)
+readedata(Boot* b)
 {
-	Phdr *php;
+	Phdr* php;
 
-	php = phdr+curphdr;
+	php = phdr + curphdr;
 	if(debug)
 		print("readedata %d\n", curphdr);
-	if(php->filesz < php->memsz){
-		print("%lud",  php->memsz-php->filesz);
-		elftotal += php->memsz-php->filesz;
-		memset((char*)(PADDR(php->paddr)+php->filesz), 0,
-		       php->memsz-php->filesz);
+	if(php->filesz < php->memsz) {
+		print("%lud", php->memsz - php->filesz);
+		elftotal += php->memsz - php->filesz;
+		memset((char*)(PADDR(php->paddr) + php->filesz), 0,
+		       php->memsz - php->filesz);
 	}
-	curoff = php->offset+php->filesz;
+	curoff = php->offset + php->filesz;
 	curphdr++;
 
 	return nextphdr(b);
 }
 
 static int
-readphdr(Boot *b)
+readphdr(Boot* b)
 {
-	Phdr *php;
+	Phdr* php;
 
 	php = phdr;
-	hswal((int32_t*)php, ehdr.phentsize*ehdr.phnum/sizeof(int32_t), swal);
+	hswal((int32_t*)php, ehdr.phentsize * ehdr.phnum / sizeof(int32_t),
+	      swal);
 	if(debug)
-		print("phdr curoff %lud vaddr 0x%lux paddr 0x%lux\n",
-			curoff, php->vaddr, php->paddr);
+		print("phdr curoff %lud vaddr 0x%lux paddr 0x%lux\n", curoff,
+		      php->vaddr, php->paddr);
 
-	curoff = ehdr.phoff+ehdr.phentsize*ehdr.phnum;
+	curoff = ehdr.phoff + ehdr.phentsize * ehdr.phnum;
 	curphdr = 0;
 
 	return nextphdr(b);
 }
 
 static int
-addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
+addbytes(char** dbuf, char* edbuf, char** sbuf, char* esbuf)
 {
 	int n;
 
@@ -285,10 +284,10 @@ addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
 }
 
 int
-bootpass(Boot *b, void *vbuf, int nbuf)
+bootpass(Boot* b, void* vbuf, int nbuf)
 {
-	char *buf, *ebuf;
-	Hdr *hdr;
+	char* buf, *ebuf;
+	Hdr* hdr;
 	uint32_t magic, entry, data, text, bss;
 	uint64_t entry64;
 
@@ -299,14 +298,14 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		goto Endofinput;
 
 	buf = vbuf;
-	ebuf = buf+nbuf;
+	ebuf = buf + nbuf;
 	while(addbytes(&b->wp, b->ep, &buf, ebuf) == 0) {
 		switch(b->state) {
 		case INITKERNEL:
 			b->state = READEXEC;
 			b->bp = (char*)&b->hdr;
 			b->wp = b->bp;
-			b->ep = b->bp+sizeof(Hdr);
+			b->ep = b->bp + sizeof(Hdr);
 			break;
 		case READEXEC:
 			hdr = &b->hdr;
@@ -315,10 +314,11 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 				b->state = READ9TEXT;
 				b->bp = (char*)PADDR(GLLONG(hdr->entry));
 				b->wp = b->bp;
-				b->ep = b->wp+GLLONG(hdr->text);
+				b->ep = b->wp + GLLONG(hdr->text);
 
-				if(magic == I_MAGIC){
-					memmove(b->bp, b->hdr.uvl, sizeof(b->hdr.uvl));
+				if(magic == I_MAGIC) {
+					memmove(b->bp, b->hdr.uvl,
+					        sizeof(b->hdr.uvl));
 					b->wp += sizeof(b->hdr.uvl);
 				}
 
@@ -327,11 +327,12 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			}
 
 			/* check for gzipped kernel */
-			if(b->bp[0] == 0x1F && (uint8_t)b->bp[1] == 0x8B && b->bp[2] == 0x08) {
+			if(b->bp[0] == 0x1F && (uint8_t)b->bp[1] == 0x8B &&
+			   b->bp[2] == 0x08) {
 				b->state = READGZIP;
-				b->bp = (char*)malloc(1440*1024);
+				b->bp = (char*)malloc(1440 * 1024);
 				b->wp = b->bp;
-				b->ep = b->wp + 1440*1024;
+				b->ep = b->wp + 1440 * 1024;
 				memmove(b->bp, &b->hdr, sizeof(Hdr));
 				b->wp += sizeof(Hdr);
 				print("gz...");
@@ -341,7 +342,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			/*
 			 * Check for ELF.
 			 */
-			if(memcmp(b->bp, elfident, 4) == 0){
+			if(memcmp(b->bp, elfident, 4) == 0) {
 				b->state = READEHDR;
 				b->bp = (char*)&ehdr;
 				b->wp = b->bp;
@@ -359,7 +360,8 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		case READ9TEXT:
 			hdr = &b->hdr;
 			b->state = READ9DATA;
-			b->bp = (char*)PGROUND(PADDR(GLLONG(hdr->entry))+GLLONG(hdr->text));
+			b->bp = (char*)PGROUND(PADDR(GLLONG(hdr->entry)) +
+			                       GLLONG(hdr->text));
 			b->wp = b->bp;
 			b->ep = b->wp + GLLONG(hdr->data);
 			print("+%ld", GLLONG(hdr->data));
@@ -369,13 +371,13 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			hdr = &b->hdr;
 			bss = GLLONG(hdr->bss);
 			memset(b->ep, 0, bss);
-			print("+%ld=%ld\n",
-				bss, GLLONG(hdr->text)+GLLONG(hdr->data)+bss);
+			print("+%ld=%ld\n", bss,
+			      GLLONG(hdr->text) + GLLONG(hdr->data) + bss);
 			b->state = TRYBOOT;
 			return ENOUGH;
 
 		case READEHDR:
-			if(!readehdr(b)){
+			if(!readehdr(b)) {
 				print("readehdr failed\n");
 				b->state = FAILED;
 				return FAIL;
@@ -383,21 +385,21 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			break;
 
 		case READPHDR:
-			if(!readphdr(b)){
+			if(!readphdr(b)) {
 				b->state = FAILED;
 				return FAIL;
 			}
 			break;
 
 		case READEPAD:
-			if(!readepad(b)){
+			if(!readepad(b)) {
 				b->state = FAILED;
 				return FAIL;
 			}
 			break;
 
 		case READEDATA:
-			if(!readedata(b)){
+			if(!readedata(b)) {
 				b->state = FAILED;
 				return FAIL;
 			}
@@ -420,7 +422,6 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 	}
 	return MORE;
 
-
 Endofinput:
 	/* end of input */
 	switch(b->state) {
@@ -439,11 +440,10 @@ Endofinput:
 	case TRYBOOT:
 		entry = GLLONG(b->hdr.entry);
 		magic = GLLONG(b->hdr.magic);
-		if(magic == I_MAGIC){
+		if(magic == I_MAGIC) {
 			print("entry: 0x%lux\n", entry);
 			warp9(PADDR(entry));
-		}
-		else if(magic == S_MAGIC){
+		} else if(magic == S_MAGIC) {
 			entry64 = beswav(b->hdr.uvl[0]);
 			warp64(entry64);
 		}
@@ -452,11 +452,10 @@ Endofinput:
 
 	case TRYEBOOT:
 		entry = GLLONG(b->hdr.entry);
-		if(ehdr.machine == I386){
+		if(ehdr.machine == I386) {
 			print("entry: 0x%lux\n", entry);
 			warp9(PADDR(entry));
-		}
-		else if(ehdr.machine == AMD64){
+		} else if(ehdr.machine == AMD64) {
 			print("entry: 0x%lux\n", entry);
 			warp64(entry);
 		}
@@ -465,11 +464,13 @@ Endofinput:
 
 	case READGZIP:
 		hdr = &b->hdr;
-		if(b->bp[0] != 0x1F || (uint8_t)b->bp[1] != 0x8B || b->bp[2] != 0x08)
+		if(b->bp[0] != 0x1F || (uint8_t)b->bp[1] != 0x8B ||
+		   b->bp[2] != 0x08)
 			print("lost magic\n");
 
 		print("%ld => ", b->wp - b->bp);
-		if(gunzip((uint8_t*)hdr, sizeof(*hdr), (uint8_t*)b->bp, b->wp - b->bp) < sizeof(*hdr)) {
+		if(gunzip((uint8_t*)hdr, sizeof(*hdr), (uint8_t*)b->bp,
+		          b->wp - b->bp) < sizeof(*hdr)) {
 			print("badly compressed kernel\n");
 			return FAIL;
 		}
@@ -478,24 +479,26 @@ Endofinput:
 		text = GLLONG(hdr->text);
 		data = GLLONG(hdr->data);
 		bss = GLLONG(hdr->bss);
-		print("%lud+%lud+%lud=%lud\n", text, data, bss, text+data+bss);
+		print("%lud+%lud+%lud=%lud\n", text, data, bss,
+		      text + data + bss);
 
-		if(gunzip((uint8_t*)PADDR(entry)-sizeof(Exec), sizeof(Exec)+text+data,
-		     (uint8_t*)b->bp, b->wp-b->bp) < sizeof(Exec)+text+data) {
+		if(gunzip((uint8_t*)PADDR(entry) - sizeof(Exec),
+		          sizeof(Exec) + text + data, (uint8_t*)b->bp,
+		          b->wp - b->bp) < sizeof(Exec) + text + data) {
 			print("error uncompressing kernel\n");
 			return FAIL;
 		}
 
 		/* relocate data to start at page boundary */
-		memmove((void*)PGROUND(PADDR(entry+text)), (void*)(PADDR(entry+text)), data);
+		memmove((void*)PGROUND(PADDR(entry + text)),
+		        (void*)(PADDR(entry + text)), data);
 
 		entry = GLLONG(b->hdr.entry);
 		magic = GLLONG(b->hdr.magic);
-		if(magic == I_MAGIC){
+		if(magic == I_MAGIC) {
 			print("entry: 0x%lux\n", entry);
 			warp9(PADDR(entry));
-		}
-		else if(magic == S_MAGIC){
+		} else if(magic == S_MAGIC) {
 			entry64 = beswav(b->hdr.uvl[0]);
 			warp64(entry64);
 		}

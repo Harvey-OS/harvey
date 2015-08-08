@@ -28,57 +28,58 @@
  * where a new such entry would go.
  */
 static Tx*
-txsearch(char *atom, Tx *t, int n)
+txsearch(char* atom, Tx* t, int n)
 {
 	while(n > 0) {
-		if(atom < t[n/2].bad)
-			n = n/2;
-		else if(atom > t[n/2].bad) {
-			t += n/2+1;
-			n -= (n/2+1);
+		if(atom < t[n / 2].bad)
+			n = n / 2;
+		else if(atom > t[n / 2].bad) {
+			t += n / 2 + 1;
+			n -= (n / 2 + 1);
 		} else
-			return &t[n/2];
+			return &t[n / 2];
 	}
 	return t;
 }
 
 void
-addtx(char *b, char *g)
+addtx(char* b, char* g)
 {
-	Tx *t;
-	Conform *c;
+	Tx* t;
+	Conform* c;
 
 	if(map == nil)
 		map = emalloc(sizeof(*map));
 	c = map;
 
-	if(c->nt%32 == 0)
-		c->t = erealloc(c->t, (c->nt+32)*sizeof(c->t[0]));
+	if(c->nt % 32 == 0)
+		c->t = erealloc(c->t, (c->nt + 32) * sizeof(c->t[0]));
 	t = txsearch(b, c->t, c->nt);
-	if(t < c->t+c->nt && t->bad == b) {
-		fprint(2, "warning: duplicate entry for %s in _conform.map\n", b);
+	if(t < c->t + c->nt && t->bad == b) {
+		fprint(2, "warning: duplicate entry for %s in _conform.map\n",
+		       b);
 		return;
 	}
 
-	if(t != c->t+c->nt)
-		memmove(t+1, t, (c->t+c->nt - t)*sizeof(Tx));
+	if(t != c->t + c->nt)
+		memmove(t + 1, t, (c->t + c->nt - t) * sizeof(Tx));
 	t->bad = b;
 	t->good = g;
 	c->nt++;
 }
 
 char*
-conform(char *s, int isdir)
+conform(char* s, int isdir)
 {
-	Tx *t;
+	Tx* t;
 	char buf[10], *g;
-	Conform *c;
+	Conform* c;
 
 	c = map;
 	s = atom(s);
-	if(c){
+	if(c) {
 		t = txsearch(s, c->t, c->nt);
-		if(t < c->t+c->nt && t->bad == s)
+		if(t < c->t + c->nt && t->bad == s)
 			return t->good;
 	}
 
@@ -90,7 +91,7 @@ conform(char *s, int isdir)
 
 #ifdef NOTUSED
 static int
-isalldigit(char *s)
+isalldigit(char* s)
 {
 	while(*s)
 		if(!isdigit(*s++))
@@ -100,9 +101,9 @@ isalldigit(char *s)
 #endif
 
 static int
-goodcmp(const void *va, const void *vb)
+goodcmp(const void* va, const void* vb)
 {
-	Tx *a, *b;
+	Tx* a, *b;
 
 	a = (Tx*)va;
 	b = (Tx*)vb;
@@ -110,9 +111,9 @@ goodcmp(const void *va, const void *vb)
 }
 
 static int
-badatomcmp(const void *va, const void *vb)
+badatomcmp(const void* va, const void* vb)
 {
-	Tx *a, *b;
+	Tx* a, *b;
 
 	a = (Tx*)va;
 	b = (Tx*)vb;
@@ -124,22 +125,22 @@ badatomcmp(const void *va, const void *vb)
 }
 
 void
-wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
+wrconform(Cdimg* cd, int n, uint32_t* pblock, uint64_t* plength)
 {
 	char buf[1024];
 	int i;
-	Conform *c;
+	Conform* c;
 
 	c = map;
 	*pblock = cd->nextblock;
-	if(c==nil || n==c->nt){
+	if(c == nil || n == c->nt) {
 		*plength = 0;
 		return;
 	}
 
 	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 	qsort(c->t, c->nt, sizeof(c->t[0]), goodcmp);
-	for(i=n; i<c->nt; i++) {
+	for(i = n; i < c->nt; i++) {
 		snprint(buf, sizeof buf, "%s %s\n", c->t[i].good, c->t[i].bad);
 		Cwrite(cd, buf, strlen(buf));
 	}

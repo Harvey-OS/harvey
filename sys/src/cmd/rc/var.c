@@ -12,30 +12,30 @@
 #include "fns.h"
 
 unsigned
-hash(char *as, int n)
+hash(char* as, int n)
 {
 	int i = 1;
 	unsigned h = 0;
-	uint8_t *s;
+	uint8_t* s;
 
-	s = (uint8_t *)as;
-	while (*s)
+	s = (uint8_t*)as;
+	while(*s)
 		h += *s++ * i++;
 	return h % n;
 }
 
-#define	NKW	30
-struct kw{
-	char *name;
+#define NKW 30
+struct kw {
+	char* name;
 	int type;
-	struct kw *next;
-}*kw[NKW];
+	struct kw* next;
+} * kw[NKW];
 
 void
-kenter(int type, char *name)
+kenter(int type, char* name)
 {
 	int h = hash(name, NKW);
-	struct kw *p = new(struct kw);
+	struct kw* p = new(struct kw);
 	p->type = type;
 	p->name = name;
 	p->next = kw[h];
@@ -58,12 +58,12 @@ kinit(void)
 }
 
 tree*
-klook(char *name)
+klook(char* name)
 {
-	struct kw *p;
-	tree *t = token(name, WORD);
-	for(p = kw[hash(name, NKW)];p;p = p->next)
-		if(strcmp(p->name, name)==0){
+	struct kw* p;
+	tree* t = token(name, WORD);
+	for(p = kw[hash(name, NKW)]; p; p = p->next)
+		if(strcmp(p->name, name) == 0) {
 			t->type = p->type;
 			t->iskw = 1;
 			break;
@@ -72,28 +72,31 @@ klook(char *name)
 }
 
 var*
-gvlook(char *name)
+gvlook(char* name)
 {
 	int h = hash(name, NVAR);
-	var *v;
-	for(v = gvar[h];v;v = v->next) if(strcmp(v->name, name)==0) return v;
+	var* v;
+	for(v = gvar[h]; v; v = v->next)
+		if(strcmp(v->name, name) == 0)
+			return v;
 	return gvar[h] = newvar(strdup(name), gvar[h]);
 }
 
 var*
-vlook(char *name)
+vlook(char* name)
 {
-	var *v;
+	var* v;
 	if(runq)
-		for(v = runq->local;v;v = v->next)
-			if(strcmp(v->name, name)==0) return v;
+		for(v = runq->local; v; v = v->next)
+			if(strcmp(v->name, name) == 0)
+				return v;
 	return gvlook(name);
 }
 
 void
-setvar(char *name, word *val)
+setvar(char* name, word* val)
 {
-	struct var *v = vlook(name);
+	struct var* v = vlook(name);
 	freewords(v->val);
 	v->val = val;
 	v->changed = 1;

@@ -9,50 +9,44 @@
 
 #include "ratfs.h"
 
-#define	SRVFILE		"/srv/ratify"
-#define MOUNTPOINT	"/mail/ratify"
-#define	CTLFILE		"/mail/lib/blocked"
-#define	CONFFILE	"/mail/lib/smtpd.conf.ext"
+#define SRVFILE "/srv/ratify"
+#define MOUNTPOINT "/mail/ratify"
+#define CTLFILE "/mail/lib/blocked"
+#define CONFFILE "/mail/lib/smtpd.conf.ext"
 
-typedef struct Filetree	Filetree;
+typedef struct Filetree Filetree;
 
-	/* prototype file tree */
-struct	Filetree
-{
-	int	level;
-	char	*name;
-	uint16_t	type;
-	int	mode;
-	uint32_t	qid;
+/* prototype file tree */
+struct Filetree {
+	int level;
+	char* name;
+	uint16_t type;
+	int mode;
+	uint32_t qid;
 };
 
-	/* names of first-level directories - must be in order of level*/
-Filetree	filetree[] =
-{
-	0,	"/",		Directory,	0555|DMDIR,	Qroot,
-	1,	"allow",	Addrdir,	0555|DMDIR,	Qallow,
-	1,	"delay",	Addrdir,	0555|DMDIR,	Qdelay,
-	1,	"block",	Addrdir,	0555|DMDIR,	Qblock,
-	1,	"dial",		Addrdir,	0555|DMDIR,	Qdial,
-	1,	"deny",		Addrdir,	0555|DMDIR,	Qdeny,
-	1,	"trusted",	Trusted,	0777|DMDIR,	Qtrusted,	/* creation allowed */
-	1,	"ctl",		Ctlfile,	0222,		Qctl,
-	2,	"ip",		IPaddr,		0555|DMDIR,	Qaddr,
-	2,	"account",	Acctaddr,	0555|DMDIR,	Qaddr,
-	0,	0,		0,		0,		0,
-	
+/* names of first-level directories - must be in order of level*/
+Filetree filetree[] = {
+    0, "/", Directory, 0555 | DMDIR, Qroot, 1, "allow", Addrdir, 0555 | DMDIR,
+    Qallow, 1, "delay", Addrdir, 0555 | DMDIR, Qdelay, 1, "block", Addrdir,
+    0555 | DMDIR, Qblock, 1, "dial", Addrdir, 0555 | DMDIR, Qdial, 1, "deny",
+    Addrdir, 0555 | DMDIR, Qdeny, 1, "trusted", Trusted, 0777 | DMDIR,
+    Qtrusted, /* creation allowed */
+    1, "ctl", Ctlfile, 0222, Qctl, 2, "ip", IPaddr, 0555 | DMDIR, Qaddr, 2,
+    "account", Acctaddr, 0555 | DMDIR, Qaddr, 0, 0, 0, 0, 0,
+
 };
 
-int	debugfd = -1;
-int	trustedqid = Qtrustedfile;
-char	*ctlfile =	CTLFILE;
-char	*conffile =	CONFFILE;
+int debugfd = -1;
+int trustedqid = Qtrustedfile;
+char* ctlfile = CTLFILE;
+char* conffile = CONFFILE;
 
-#pragma	varargck	type	"I"	Cidraddr*
+#pragma varargck type "I" Cidraddr *
 
-static	int	ipconv(Fmt*);
-static	void	post(int, char*);
-static	void	setroot(void);
+static int ipconv(Fmt*);
+static void post(int, char*);
+static void setroot(void);
 
 void
 usage(void)
@@ -62,17 +56,18 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *mountpoint = MOUNTPOINT;
+	char* mountpoint = MOUNTPOINT;
 	int p[2];
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'c':
 		conffile = ARGF();
 		break;
 	case 'd':
-		debugfd = 2;		/* stderr*/
+		debugfd = 2; /* stderr*/
 		break;
 	case 'f':
 		ctlfile = ARGF();
@@ -80,7 +75,8 @@ main(int argc, char *argv[])
 	case 'm':
 		mountpoint = ARGF();
 		break;
-	} ARGEND
+	}
+	ARGEND
 	if(argc != 0)
 		usage();
 
@@ -96,7 +92,7 @@ main(int argc, char *argv[])
 	post(p[1], mountpoint);
 
 	/* start the 9fs protocol */
-	switch(rfork(RFPROC|RFNAMEG|RFENVG|RFFDG|RFNOTEG|RFREND)){
+	switch(rfork(RFPROC | RFNAMEG | RFENVG | RFFDG | RFNOTEG | RFREND)) {
 	case -1:
 		fatal("fork: %r");
 	case 0:
@@ -113,7 +109,7 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(p[0]);
-		if(mount(p[1], -1, mountpoint, MREPL|MCREATE, "") < 0)
+		if(mount(p[1], -1, mountpoint, MREPL | MCREATE, "") < 0)
 			fatal("mount failed: %r");
 	}
 	exits(0);
@@ -122,22 +118,23 @@ main(int argc, char *argv[])
 static void
 setroot(void)
 {
-	Filetree *fp;
-	Node *np;
+	Filetree* fp;
+	Node* np;
 	int qid;
 
 	root = 0;
 	qid = Qaddr;
 	for(fp = filetree; fp->name; fp++) {
 		switch(fp->level) {
-		case 0:		/* root */
-		case 1:		/* second level directory */
+		case 0: /* root */
+		case 1: /* second level directory */
 			newnode(root, fp->name, fp->type, fp->mode, fp->qid);
 			break;
-		case 2:		/* lay down the Ipaddr and Acctaddr subdirectories */
-			for (np = root->children; np; np = np->sibs){
+		case 2: /* lay down the Ipaddr and Acctaddr subdirectories */
+			for(np = root->children; np; np = np->sibs) {
 				if(np->d.type == Addrdir)
-					newnode(np, fp->name, fp->type, fp->mode, qid++);
+					newnode(np, fp->name, fp->type,
+					        fp->mode, qid++);
 			}
 			break;
 		default:
@@ -149,26 +146,27 @@ setroot(void)
 	dummy.d.uid = "upas";
 	dummy.d.gid = "upas";
 	dummy.d.atime = dummy.d.mtime = time(0);
-	dummy.d.qid.path = Qdummy;				/* for now */
+	dummy.d.qid.path = Qdummy; /* for now */
 }
 
 static void
-post(int fd, char *mountpoint)
+post(int fd, char* mountpoint)
 {
 
 	int f;
 	char buf[128];
 
-	if(access(SRVFILE,0) >= 0){
+	if(access(SRVFILE, 0) >= 0) {
 		/*
 		 * If we can open and mount the /srv node,
 		 * another server is already running, so just exit.
 		 */
 		f = open(SRVFILE, ORDWR);
-		if(f >= 0 && mount(f, -1, mountpoint, MREPL|MCREATE, "") >= 0){
-				unmount(0, mountpoint);
-				close(f);
-				exits(0);
+		if(f >= 0 &&
+		   mount(f, -1, mountpoint, MREPL | MCREATE, "") >= 0) {
+			unmount(0, mountpoint);
+			close(f);
+			exits(0);
 		}
 		remove(SRVFILE);
 	}
@@ -191,13 +189,13 @@ post(int fd, char *mountpoint)
  *  print message and die
  */
 void
-fatal(char *fmt, ...)
+fatal(char* fmt, ...)
 {
 	va_list arg;
-	char buf[8*1024];
+	char buf[8 * 1024];
 
 	va_start(arg, fmt);
-	vseprint(buf, buf + (sizeof(buf)-1) / sizeof(*buf), fmt, arg);
+	vseprint(buf, buf + (sizeof(buf) - 1) / sizeof(*buf), fmt, arg);
 	va_end(arg);
 
 	fprint(2, "%s: %s\n", argv0, buf);
@@ -208,9 +206,9 @@ fatal(char *fmt, ...)
  *  create a new directory node
  */
 Node*
-newnode(Node *parent, char *name, uint16_t type, int mode, uint32_t qid)
+newnode(Node* parent, char* name, uint16_t type, int mode, uint32_t qid)
 {
-	Node *np;
+	Node* np;
 
 	np = mallocz(sizeof(Node), 1);
 	if(np == 0)
@@ -222,11 +220,11 @@ newnode(Node *parent, char *name, uint16_t type, int mode, uint32_t qid)
 	np->d.uid = atom("upas");
 	np->d.gid = atom("upas");
 	np->d.muid = atom("upas");
-	if(np->d.mode&DMDIR)
+	if(np->d.mode & DMDIR)
 		np->d.qid.type = QTDIR;
 	np->d.qid.path = qid;
 	np->d.qid.vers = 0;
-	if(parent){
+	if(parent) {
 		np->parent = parent;
 		np->sibs = parent->children;
 		parent->children = np;
@@ -242,18 +240,18 @@ newnode(Node *parent, char *name, uint16_t type, int mode, uint32_t qid)
 }
 
 void
-printnode(Node *np)
+printnode(Node* np)
 {
-	fprint(debugfd, "Node at %p: %s (%s %s)", np, np->d.name, np->d.uid, np->d.gid);
-	if(np->d.qid.type&QTDIR)
+	fprint(debugfd, "Node at %p: %s (%s %s)", np, np->d.name, np->d.uid,
+	       np->d.gid);
+	if(np->d.qid.type & QTDIR)
 		fprint(debugfd, " QTDIR");
 	fprint(debugfd, "\n");
-	fprint(debugfd,"\tQID: %llud.%lud Mode: %lo Type: %d\n", np->d.qid.path,
-			np->d.qid.vers, np->d.mode, np->d.type);
-	fprint(debugfd, "\tMod: %.15s  Acc: %.15s Count: %d\n", ctime(np->d.mtime)+4,
-			ctime(np->d.atime)+4, np->count);
-	switch(np->d.type)
-	{
+	fprint(debugfd, "\tQID: %llud.%lud Mode: %lo Type: %d\n",
+	       np->d.qid.path, np->d.qid.vers, np->d.mode, np->d.type);
+	fprint(debugfd, "\tMod: %.15s  Acc: %.15s Count: %d\n",
+	       ctime(np->d.mtime) + 4, ctime(np->d.atime) + 4, np->count);
+	switch(np->d.type) {
 	case Directory:
 		fprint(debugfd, "\tDirectory Child: %p", np->children);
 		break;
@@ -261,12 +259,12 @@ printnode(Node *np)
 		fprint(debugfd, "\tAddrdir Child: %p", np->children);
 		break;
 	case IPaddr:
-		fprint(debugfd, "\tIPaddr Base: %p Alloc: %d BaseQid %lud", np->addrs,
-			np->allocated, np->baseqid);
+		fprint(debugfd, "\tIPaddr Base: %p Alloc: %d BaseQid %lud",
+		       np->addrs, np->allocated, np->baseqid);
 		break;
 	case Acctaddr:
-		fprint(debugfd, "\tAcctaddr Base: %p Alloc: %d BaseQid %lud", np->addrs,
-			np->allocated, np->baseqid);
+		fprint(debugfd, "\tAcctaddr Base: %p Alloc: %d BaseQid %lud",
+		       np->addrs, np->allocated, np->baseqid);
 		break;
 	case Trusted:
 		fprint(debugfd, "\tTrusted Child: %p", np->children);
@@ -291,37 +289,36 @@ printnode(Node *np)
 }
 
 void
-printfid(Fid *fp)
+printfid(Fid* fp)
 {
-	fprint(debugfd, "FID: %d (%s %s) Busy: %d Open: %d\n", fp->fid, fp->name,
-		fp->uid, fp->busy, fp->open);
+	fprint(debugfd, "FID: %d (%s %s) Busy: %d Open: %d\n", fp->fid,
+	       fp->name, fp->uid, fp->busy, fp->open);
 	printnode(fp->node);
 }
 
 void
-printtree(Node *np)
+printtree(Node* np)
 {
 	printnode(np);
-	if(np->d.type == IPaddr
-		|| np->d.type == Acctaddr
-		|| np->d.type == Trustedperm
-		|| np->d.type == Trustedtemp)
-			return;
-	for (np = np->children; np; np = np->sibs)
+	if(np->d.type == IPaddr || np->d.type == Acctaddr ||
+	   np->d.type == Trustedperm || np->d.type == Trustedtemp)
+		return;
+	for(np = np->children; np; np = np->sibs)
 		printtree(np);
 }
 
 static int
-ipconv(Fmt *f)
+ipconv(Fmt* f)
 {
-	Cidraddr *ip;
+	Cidraddr* ip;
 	int i, j;
-	char *p;
+	char* p;
 
 	ip = va_arg(f->args, Cidraddr*);
 	p = (char*)&ip->ipaddr;
 	i = 0;
-	for (j = ip->mask; j; j <<= 1)
+	for(j = ip->mask; j; j <<= 1)
 		i++;
-	return fmtprint(f, "%d.%d.%d.%d/%d", p[3]&0xff, p[2]&0xff, p[1]&0xff, p[0]&0xff, i);
+	return fmtprint(f, "%d.%d.%d.%d/%d", p[3] & 0xff, p[2] & 0xff,
+	                p[1] & 0xff, p[0] & 0xff, i);
 }

@@ -9,8 +9,8 @@
 
 typedef struct Auth Auth;
 struct Auth {
-	char *name;
+	char* name;
 
-	char *(*session)(Fcall*, Fcall*);
-	char *(*attach)(Fcall*, Fcall*);
+	char* (*session)(Fcall*, Fcall*);
+	char* (*attach)(Fcall*, Fcall*);
 };

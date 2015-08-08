@@ -15,7 +15,7 @@
 #include "iso9660.h"
 
 void
-mkdirec(Direc *direc, XDir *d)
+mkdirec(Direc* direc, XDir* d)
 {
 	memset(direc, 0, sizeof(Direc));
 	direc->name = atom(d->name);
@@ -32,14 +32,14 @@ mkdirec(Direc *direc, XDir *d)
 }
 
 static int
-strecmp(char *a, char *ea, char *b)
+strecmp(char* a, char* ea, char* b)
 {
 	int r;
 
-	if((r = strncmp(a, b, ea-a)) != 0)
+	if((r = strncmp(a, b, ea - a)) != 0)
 		return r;
 
-	if(b[ea-a] == '\0')
+	if(b[ea - a] == '\0')
 		return 0;
 	return 1;
 }
@@ -51,19 +51,19 @@ strecmp(char *a, char *ea, char *b)
  * where a new such entry would go.
  */
 static Direc*
-dbsearch(char *name, int nname, Direc *d, int n)
+dbsearch(char* name, int nname, Direc* d, int n)
 {
 	int i;
 
 	while(n > 0) {
-		i = strecmp(name, name+nname, d[n/2].name);
+		i = strecmp(name, name + nname, d[n / 2].name);
 		if(i < 0)
-			n = n/2;
+			n = n / 2;
 		else if(i > 0) {
-			d += n/2+1;
-			n -= (n/2+1);
+			d += n / 2 + 1;
+			n -= (n / 2 + 1);
 		} else
-			return &d[n/2];
+			return &d[n / 2];
 	}
 	return d;
 }
@@ -72,19 +72,20 @@ dbsearch(char *name, int nname, Direc *d, int n)
  * Walk to name, starting at d.
  */
 Direc*
-walkdirec(Direc *d, char *name)
+walkdirec(Direc* d, char* name)
 {
-	char *p, *nextp, *slashp;
-	Direc *nd;
+	char* p, *nextp, *slashp;
+	Direc* nd;
 
-	for(p=name; p && *p; p=nextp) {
+	for(p = name; p && *p; p = nextp) {
 		if((slashp = strchr(p, '/')) != nil)
-			nextp = slashp+1;
+			nextp = slashp + 1;
 		else
-			nextp = slashp = p+strlen(p);
+			nextp = slashp = p + strlen(p);
 
-		nd = dbsearch(p, slashp-p, d->child, d->nchild);
-		if(nd >= d->child+d->nchild || strecmp(p, slashp, nd->name) != 0)
+		nd = dbsearch(p, slashp - p, d->child, d->nchild);
+		if(nd >= d->child + d->nchild ||
+		   strecmp(p, slashp, nd->name) != 0)
 			return nil;
 		d = nd;
 	}
@@ -95,14 +96,14 @@ walkdirec(Direc *d, char *name)
  * Add the file ``name'' with attributes d to the
  * directory ``root''.  Name may contain multiple
  * elements; all but the last must exist already.
- * 
+ *
  * The child lists are kept sorted by utfname.
- */	
+ */
 Direc*
-adddirec(Direc *root, char *name, XDir *d)
+adddirec(Direc* root, char* name, XDir* d)
 {
-	char *p;
-	Direc *nd;
+	char* p;
+	Direc* nd;
 	int off;
 
 	if(name[0] == '/')
@@ -111,7 +112,9 @@ adddirec(Direc *root, char *name, XDir *d)
 		*p = '\0';
 		root = walkdirec(root, name);
 		if(root == nil) {
-			sysfatal("error in proto file: no entry for /%s but /%s/%s", name, name, p+1);
+			sysfatal(
+			    "error in proto file: no entry for /%s but /%s/%s",
+			    name, name, p + 1);
 			return nil;
 		}
 		*p = '/';
@@ -122,28 +125,29 @@ adddirec(Direc *root, char *name, XDir *d)
 	nd = dbsearch(p, strlen(p), root->child, root->nchild);
 	off = nd - root->child;
 	if(off < root->nchild && strcmp(nd->name, p) == 0) {
-		if ((d->mode & DMDIR) == 0)
+		if((d->mode & DMDIR) == 0)
 			fprint(2, "warning: proto lists %s twice\n", name);
 		return nil;
 	}
 
-	if(root->nchild%Ndirblock == 0) {
-		root->child = erealloc(root->child, (root->nchild+Ndirblock)*sizeof(Direc));
+	if(root->nchild % Ndirblock == 0) {
+		root->child = erealloc(root->child, (root->nchild + Ndirblock) *
+		                                        sizeof(Direc));
 		nd = root->child + off;
 	}
 
-	memmove(nd+1, nd, (root->nchild - off)*sizeof(Direc));
+	memmove(nd + 1, nd, (root->nchild - off) * sizeof(Direc));
 	mkdirec(nd, d);
 	nd->name = atom(p);
 	root->nchild++;
 	return nd;
 }
 
-/* 
+/*
  * Copy the tree src into dst.
  */
 void
-copydirec(Direc *dst, Direc *src)
+copydirec(Direc* dst, Direc* src)
 {
 	int i, n;
 
@@ -153,11 +157,11 @@ copydirec(Direc *dst, Direc *src)
 		return;
 
 	n = (src->nchild + Ndirblock - 1);
-	n -= n%Ndirblock;
-	dst->child = emalloc(n*sizeof(Direc));
+	n -= n % Ndirblock;
+	dst->child = emalloc(n * sizeof(Direc));
 
 	n = dst->nchild;
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		copydirec(&dst->child[i], &src->child[i]);
 }
 
@@ -166,7 +170,7 @@ copydirec(Direc *dst, Direc *src)
  * that have non-conforming names.
  */
 static void
-_checknames(Direc *d, int (*isbadname)(char*), int isroot)
+_checknames(Direc* d, int (*isbadname)(char*), int isroot)
 {
 	int i;
 
@@ -176,12 +180,12 @@ _checknames(Direc *d, int (*isbadname)(char*), int isroot)
 	if(strcmp(d->name, "_conform.map") == 0)
 		d->flags |= Dbadname;
 
-	for(i=0; i<d->nchild; i++)
+	for(i = 0; i < d->nchild; i++)
 		_checknames(&d->child[i], isbadname, 0);
 }
 
 void
-checknames(Direc *d, int (*isbadname)(char*))
+checknames(Direc* d, int (*isbadname)(char*))
 {
 	_checknames(d, isbadname, 1);
 }
@@ -197,7 +201,7 @@ checknames(Direc *d, int (*isbadname)(char*))
  * interoperability with other systems now.
  */
 void
-convertnames(Direc *d, char* (*cvt)(char*, char*))
+convertnames(Direc* d, char* (*cvt)(char*, char*))
 {
 	int i;
 	char new[1024];
@@ -208,7 +212,7 @@ convertnames(Direc *d, char* (*cvt)(char*, char*))
 		cvt(new, d->name);
 	d->confname = atom(new);
 
-	for(i=0; i<d->nchild; i++)
+	for(i = 0; i < d->nchild; i++)
 		convertnames(&d->child[i], cvt);
 }
 
@@ -218,14 +222,13 @@ convertnames(Direc *d, char* (*cvt)(char*, char*))
  * since the entries may no longer be sorted as adddirec expects.
  */
 void
-dsort(Direc *d, int (*cmp)(const void*, const void*))
+dsort(Direc* d, int (*cmp)(const void*, const void*))
 {
 	int i, n;
 
 	n = d->nchild;
 	qsort(d->child, n, sizeof(d[0]), cmp);
 
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		dsort(&d->child[i], cmp);
 }
-

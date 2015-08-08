@@ -7,30 +7,30 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
 
-#include	"fs.h"
+#include "fs.h"
 
 /*
  *  grab next element from a path, return the pointer to unprocessed portion of
  *  path.
  */
-char *
-nextelem(char *path, char *elem)
+char*
+nextelem(char* path, char* elem)
 {
 	int i;
 
 	while(*path == '/')
 		path++;
-	if(*path==0 || *path==' ')
+	if(*path == 0 || *path == ' ')
 		return 0;
-	for(i=0; *path!='\0' && *path!='/' && *path!=' '; i++){
-		if(i==NAMELEN){
+	for(i = 0; *path != '\0' && *path != '/' && *path != ' '; i++) {
+		if(i == NAMELEN) {
 			print("name component too long\n");
 			return 0;
 		}
@@ -41,7 +41,7 @@ nextelem(char *path, char *elem)
 }
 
 int
-fswalk(Fs *fs, char *path, File *f)
+fswalk(Fs* fs, char* path, File* f)
 {
 	char element[NAMELEN];
 
@@ -50,8 +50,8 @@ fswalk(Fs *fs, char *path, File *f)
 		panic("fswalk bad pointer fs->walk");
 
 	f->path = path;
-	while(path = nextelem(path, element)){
-		switch(fs->walk(f, element)){
+	while(path = nextelem(path, element)) {
+		switch(fs->walk(f, element)) {
 		case -1:
 			return -1;
 		case 0:
@@ -65,13 +65,13 @@ fswalk(Fs *fs, char *path, File *f)
  *  boot
  */
 int
-fsboot(Fs *fs, char *path, Boot *b)
+fsboot(Fs* fs, char* path, Boot* b)
 {
 	File file;
 	int32_t n;
 	static char buf[8192];
 
-	switch(fswalk(fs, path, &file)){
+	switch(fswalk(fs, path, &file)) {
 	case -1:
 		print("error walking to %s\n", path);
 		return -1;
@@ -88,12 +88,12 @@ fsboot(Fs *fs, char *path, Boot *b)
 			break;
 	}
 
-	bootpass(b, nil, 0);	/* tries boot */
+	bootpass(b, nil, 0); /* tries boot */
 	return -1;
 }
 
 int
-fsread(File *file, void *a, int32_t n)
+fsread(File* file, void* a, int32_t n)
 {
 	if(BADPTR(file->fs))
 		panic("bad pointer file->fs in fsread");

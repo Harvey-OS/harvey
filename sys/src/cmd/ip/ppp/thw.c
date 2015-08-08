@@ -15,67 +15,54 @@
 #include "thwack.h"
 
 typedef struct Cstate Cstate;
-struct Cstate
-{
-	uint32_t		seq;
-	Thwack		th;
-	uint32_t		stats[ThwStats];
+struct Cstate {
+	uint32_t seq;
+	Thwack th;
+	uint32_t stats[ThwStats];
 };
 
 typedef struct Uncstate Uncstate;
-struct Uncstate
+struct Uncstate {
+	QLock ackl;      /* lock for acks sent back to compressor */
+	int doack;       /* send an ack? */
+	int badpacks;    /* bad packets seen in a row */
+	uint32_t ackseq; /* packets to ack */
+	int ackmask;
+
+	int active;  /* 0 => waiting for resetack */
+	int resetid; /* id of most recent reset */
+	Unthwack ut;
+};
+
+enum { ThwAcked = 1UL << 23,
+       ThwCompMask = 3UL << 21,
+       ThwCompressed = 0UL << 21,
+       ThwUncomp = 1UL << 21,
+       ThwUncompAdd =
+	   2UL << 21, /* uncompressed, but add to decompression buffer */
+       ThwSeqMask = 0x0fffff,
+       ThwSmallPack = 96,
+};
+
+static void* compinit(PPP*);
+static Block* comp(PPP*, uint16_t, Block*, int*);
+static Block* compresetreq(void*, Block*);
+static void compcompack(void*, Block*);
+static void compfini(void*);
+
+static void* uncinit(PPP*);
+static Block* uncomp(PPP*, Block*, int* protop, Block**);
+static void uncfini(void*);
+static void uncresetack(void*, Block*);
+
+Comptype cthwack = {compinit, comp, compresetreq, compfini};
+
+Uncomptype uncthwack = {uncinit, uncomp, uncresetack, uncfini};
+
+static void*
+compinit(PPP* p)
 {
-	QLock		ackl;			/* lock for acks sent back to compressor */
-	int		doack;			/* send an ack? */
-	int		badpacks;		/* bad packets seen in a row */
-	uint32_t		ackseq;			/* packets to ack */
-	int		ackmask;
-
-	int		active;			/* 0 => waiting for resetack */
-	int		resetid;		/* id of most recent reset */
-	Unthwack	ut;
-};
-
-enum
-{
-	ThwAcked	= 1UL << 23,
-	ThwCompMask	= 3UL << 21,
-	ThwCompressed	= 0UL << 21,
-	ThwUncomp	= 1UL << 21,
-	ThwUncompAdd	= 2UL << 21,		/* uncompressed, but add to decompression buffer */
-	ThwSeqMask	= 0x0fffff,
-	ThwSmallPack	= 96,
-};
-
-static	void		*compinit(PPP*);
-static	Block*		comp(PPP*, uint16_t, Block*, int*);
-static	Block		*compresetreq(void*, Block*);
-static	void		compcompack(void*, Block*);
-static	void		compfini(void*);
-
-static	void		*uncinit(PPP*);
-static	Block*		uncomp(PPP*, Block*, int *protop, Block**);
-static	void		uncfini(void*);
-static	void		uncresetack(void*, Block*);
-
-Comptype cthwack = {
-	compinit,
-	comp,
-	compresetreq,
-	compfini
-};
-
-Uncomptype uncthwack = {
-	uncinit,
-	uncomp,
-	uncresetack,
-	uncfini
-};
-
-static void *
-compinit(PPP *p)
-{
-	Cstate *cs;
+	Cstate* cs;
 
 	cs = mallocz(sizeof(Cstate), 1);
 	thwackinit(&cs->th);
@@ -83,21 +70,20 @@ compinit(PPP *p)
 }
 
 static void
-compfini(void *as)
+compfini(void* as)
 {
-	Cstate *cs;
+	Cstate* cs;
 
 	cs = as;
 	thwackcleanup(&cs->th);
 	free(cs);
 }
 
-
-static Block *
-compresetreq(void *as, Block *b)
+static Block*
+compresetreq(void* as, Block* b)
 {
-	Cstate *cs;
-	Lcpmsg *m;
+	Cstate* cs;
+	Lcpmsg* m;
 	int id;
 
 	cs = as;
@@ -117,11 +103,11 @@ compresetreq(void *as, Block *b)
 }
 
 static Block*
-comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
+comp(PPP* ppp, uint16_t proto, Block* b, int* protop)
 {
-	Uncstate *uncs;
-	Cstate *cs;
-	Block *bb;
+	Uncstate* uncs;
+	Cstate* cs;
+	Block* bb;
 	uint32_t seq, acked;
 	int n, nn, mustadd;
 
@@ -130,13 +116,13 @@ comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 
 	/* put ack and protocol into b */
 	n = BLEN(b);
-	if(b->rptr - (2+4) < b->base)
+	if(b->rptr - (2 + 4) < b->base)
 		sysfatal("thwack: not enough header in block");
 	acked = 0;
-	if(ppp->unctype == &uncthwack){
+	if(ppp->unctype == &uncthwack) {
 		uncs = ppp->uncstate;
 		qlock(&uncs->ackl);
-		if(uncs->doack){
+		if(uncs->doack) {
 			uncs->doack = 0;
 			b->rptr -= 4;
 			b->rptr[0] = uncs->ackseq >> 16;
@@ -147,11 +133,11 @@ comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 		}
 		qunlock(&uncs->ackl);
 	}
-	if(proto > 0xff){
+	if(proto > 0xff) {
 		b->rptr -= 2;
 		b->rptr[0] = proto >> 8;
 		b->rptr[1] = proto;
-	}else{
+	} else {
 		b->rptr--;
 		b->rptr[0] = proto;
 	}
@@ -159,15 +145,16 @@ comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 	bb = allocb(BLEN(b) + 3);
 
 	seq = cs->seq;
-	if(n <= 3){
+	if(n <= 3) {
 		mustadd = 0;
 		nn = -1;
-	}else{
+	} else {
 		mustadd = n < ThwSmallPack;
-		nn = thwack(&cs->th, mustadd, bb->wptr + 3, n - 3, b, seq, cs->stats);
+		nn = thwack(&cs->th, mustadd, bb->wptr + 3, n - 3, b, seq,
+		            cs->stats);
 	}
-	if(nn < 0 && !mustadd){
-		if(!acked || BLEN(b) + 1 > ppp->mtu){
+	if(nn < 0 && !mustadd) {
+		if(!acked || BLEN(b) + 1 > ppp->mtu) {
 			freeb(bb);
 			if(acked)
 				b->rptr += 4;
@@ -184,17 +171,17 @@ comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 
 		bb->wptr += BLEN(b) + 1;
 		freeb(b);
-	}else{
+	} else {
 		cs->seq = (seq + 1) & ThwSeqMask;
-		if(nn < 0){
+		if(nn < 0) {
 			nn = BLEN(b);
 			memmove(bb->wptr + 3, b->rptr, nn);
 			seq |= ThwUncompAdd;
-		}else
+		} else
 			seq |= ThwCompressed;
 		seq |= acked;
-		bb->wptr[0] = seq>>16;
-		bb->wptr[1] = seq>>8;
+		bb->wptr[0] = seq >> 16;
+		bb->wptr[1] = seq >> 8;
 		bb->wptr[2] = seq;
 
 		bb->wptr += nn + 3;
@@ -204,10 +191,10 @@ comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 	return bb;
 }
 
-static	void *
-uncinit(PPP *p)
+static void*
+uncinit(PPP* p)
 {
-	Uncstate *s;
+	Uncstate* s;
 
 	s = mallocz(sizeof(Uncstate), 1);
 
@@ -218,17 +205,17 @@ uncinit(PPP *p)
 	return s;
 }
 
-static	void
-uncfini(void *as)
+static void
+uncfini(void* as)
 {
 	free(as);
 }
 
-static	void
-uncresetack(void *as, Block *b)
+static void
+uncresetack(void* as, Block* b)
 {
-	Uncstate *s;
-	Lcpmsg *m;
+	Uncstate* s;
+	Lcpmsg* m;
 
 	s = as;
 	m = (Lcpmsg*)b->rptr;
@@ -238,20 +225,21 @@ uncresetack(void *as, Block *b)
 	 * we don't since we may have acked some messages
 	 * which the compressor will use in the future.
 	 */
-	netlog("unthwack resetack id=%d resetid=%d active=%d\n", m->id, s->resetid, s->active);
-	if(m->id == (uint8_t)s->resetid && !s->active){
+	netlog("unthwack resetack id=%d resetid=%d active=%d\n", m->id,
+	       s->resetid, s->active);
+	if(m->id == (uint8_t)s->resetid && !s->active) {
 		s->active = 1;
 		unthwackinit(&s->ut);
 	}
 }
 
-static	Block*
-uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
+static Block*
+uncomp(PPP* ppp, Block* bb, int* protop, Block** reply)
 {
-	Lcpmsg *m;
-	Cstate *cs;
-	Uncstate *uncs;
-	Block *b, *r;
+	Lcpmsg* m;
+	Cstate* cs;
+	Uncstate* uncs;
+	Block* b, *r;
 	uint32_t seq, mseq;
 	uint16_t proto;
 	uint8_t mask;
@@ -261,13 +249,13 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 	*protop = 0;
 	uncs = ppp->uncstate;
 
-	if(BLEN(bb) < 4){
+	if(BLEN(bb) < 4) {
 		syslog(0, "ppp", ": thwack: short packet\n");
 		freeb(bb);
 		return nil;
 	}
 
-	if(!uncs->active){
+	if(!uncs->active) {
 		netlog("unthwack: inactive, killing packet\n");
 		freeb(bb);
 		r = alloclcp(Lresetreq, uncs->resetid, 4, &m);
@@ -277,19 +265,25 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 	}
 
 	seq = bb->rptr[0] << 16;
-	if((seq & ThwCompMask) == ThwUncomp){
+	if((seq & ThwCompMask) == ThwUncomp) {
 		bb->rptr++;
 		b = bb;
-	}else{
-		seq |= (bb->rptr[1]<<8) | bb->rptr[2];
+	} else {
+		seq |= (bb->rptr[1] << 8) | bb->rptr[2];
 		bb->rptr += 3;
-		if((seq & ThwCompMask) == ThwCompressed){
+		if((seq & ThwCompMask) == ThwCompressed) {
 			b = allocb(ThwMaxBlock);
-			n = unthwack(&uncs->ut, b->wptr, ThwMaxBlock, bb->rptr, BLEN(bb), seq & ThwSeqMask);
+			n = unthwack(&uncs->ut, b->wptr, ThwMaxBlock, bb->rptr,
+			             BLEN(bb), seq & ThwSeqMask);
 			freeb(bb);
-			if(n < 2){
-				syslog(0, "ppp", ": unthwack: short or corrupted packet %d seq=%ld\n", n, seq);
-				netlog("unthwack: short or corrupted packet n=%d seq=%ld: %s\n", n, seq, uncs->ut.err);
+			if(n < 2) {
+				syslog(0, "ppp", ": unthwack: short or "
+				                 "corrupted packet %d "
+				                 "seq=%ld\n",
+				       n, seq);
+				netlog("unthwack: short or corrupted packet "
+				       "n=%d seq=%ld: %s\n",
+				       n, seq, uncs->ut.err);
 				freeb(b);
 
 				r = alloclcp(Lresetreq, ++uncs->resetid, 4, &m);
@@ -299,8 +293,9 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 				return nil;
 			}
 			b->wptr += n;
-		}else{
-			unthwackadd(&uncs->ut, bb->rptr, BLEN(bb), seq & ThwSeqMask);
+		} else {
+			unthwackadd(&uncs->ut, bb->rptr, BLEN(bb),
+			            seq & ThwSeqMask);
 			b = bb;
 		}
 
@@ -326,10 +321,11 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 	/*
 	 * decode the ack, and forward to compressor
 	 */
-	if(seq & ThwAcked){
-		if(ppp->ctype == &cthwack){
+	if(seq & ThwAcked) {
+		if(ppp->ctype == &cthwack) {
 			cs = ppp->cstate;
-			mseq = (b->rptr[0]<<16) | (b->rptr[1]<<8) | b->rptr[2];
+			mseq =
+			    (b->rptr[0] << 16) | (b->rptr[1] << 8) | b->rptr[2];
 			mask = b->rptr[3];
 			thwackack(&cs->th, mseq, mask);
 		}

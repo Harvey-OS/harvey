@@ -10,21 +10,21 @@
 #include <stddef.h>
 #include <grp.h>
 
-extern int _getpw(int *, char **, char **);
-extern char **_grpmems(char *);
+extern int _getpw(int*, char**, char**);
+extern char** _grpmems(char*);
 
 static struct group holdgroup;
 
-struct group *
-getgrnam(const char *name)
+struct group*
+getgrnam(const char* name)
 {
 	int num;
-	char *nam, *mem;
+	char* nam, *mem;
 
 	num = 0;
-	nam = (char *)name;
+	nam = (char*)name;
 	mem = 0;
-	if(_getpw(&num, &nam, &mem)){
+	if(_getpw(&num, &nam, &mem)) {
 		holdgroup.gr_name = nam;
 		holdgroup.gr_gid = num;
 		holdgroup.gr_mem = _grpmems(mem);

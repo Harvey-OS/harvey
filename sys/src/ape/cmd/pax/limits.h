@@ -15,10 +15,10 @@
  *
  * DESCRIPTION
  *
- * 	We need to include <limits.h> if this system is being compiled with an 
- * 	ANSI standard C compiler, or if we are running on a POSIX confomrming 
- * 	system.  If the manifest constant _POSIX_SOURCE is not defined when 
- * 	<limits.h> is included, then none of the POSIX constants are defined 
+ * 	We need to include <limits.h> if this system is being compiled with an
+ * 	ANSI standard C compiler, or if we are running on a POSIX confomrming
+ * 	system.  If the manifest constant _POSIX_SOURCE is not defined when
+ * 	<limits.h> is included, then none of the POSIX constants are defined
  *	and we need to define them here.  It's a bit wierd, but it works.
  *
  * 	These values where taken from the IEEE P1003.1 standard, draft 12.
@@ -32,7 +32,7 @@
  *
  *     Mark H. Colburn, NAPS International (mark@jhereg.mn.org)
  *
- * Sponsored by The USENIX Association for public distribution. 
+ * Sponsored by The USENIX Association for public distribution.
  *
  * Copyright (c) 1989 Mark H. Colburn.
  * All rights reserved.
@@ -42,7 +42,7 @@
  * duplicated in all such forms and that any documentation,
  * advertising materials, and other materials related to such
  * distribution and use acknowledge that the software was developed
- * by Mark H. Colburn and sponsored by The USENIX Association. 
+ * by Mark H. Colburn and sponsored by The USENIX Association.
  *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
@@ -55,27 +55,26 @@
 /* Headers */
 
 #if defined(__STDC__) || defined(_POSIX_SOURCE)
-#   include <limits.h>
+#include <limits.h>
 #endif
-
 
 /* Defines */
 
 #ifndef _POSIX_SOURCE
 
-#define MAX_INPUT	256	/* Max numbef of bytes in terminal input */
-#define NGROUPS_MAX	1	/* Max number of suplemental group id's */
-#define PASS_MAX	8	/* Max number of bytes in a password */
-#define PID_MAX		30000	/* Max value for a process ID */
-#define UID_MAX		32000	/* Max value for a user or group ID */
-#define ARG_MAX		4096	/* Nax number of bytes passed to exec */
-#define CHILD_MAX	6	/* Max number of simultaneous processes */
-#define MAX_CANON	256	/* Max numbef of bytes in a cononical queue */
-#define OPEN_MAX	16	/* Nax number of open files per process */
-#define NAME_MAX	14	/* Max number of bytes in a file name */
-#define PATH_MAX	255	/* Max number of bytes in pathname */
-#define LINK_MAX	8	/* Max value of a file's link count */
-#define PIPE_BUF	512	/* Max number of bytes for pipe reads */
+#define MAX_INPUT 256 /* Max numbef of bytes in terminal input */
+#define NGROUPS_MAX 1 /* Max number of suplemental group id's */
+#define PASS_MAX 8    /* Max number of bytes in a password */
+#define PID_MAX 30000 /* Max value for a process ID */
+#define UID_MAX 32000 /* Max value for a user or group ID */
+#define ARG_MAX 4096  /* Nax number of bytes passed to exec */
+#define CHILD_MAX 6   /* Max number of simultaneous processes */
+#define MAX_CANON 256 /* Max numbef of bytes in a cononical queue */
+#define OPEN_MAX 16   /* Nax number of open files per process */
+#define NAME_MAX 14   /* Max number of bytes in a file name */
+#define PATH_MAX 255  /* Max number of bytes in pathname */
+#define LINK_MAX 8    /* Max value of a file's link count */
+#define PIPE_BUF 512  /* Max number of bytes for pipe reads */
 
 #endif /* _POSIX_SOURCE */
 #endif /* _PAX_LIMITS_H */

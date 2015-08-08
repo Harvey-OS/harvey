@@ -10,42 +10,42 @@
 #include "headers.h"
 
 #ifndef LEAK
-void *
+void*
 smbemallocz(uint32_t size, int clear)
 {
-	void *p = nbemalloc(size);
-	if (clear && p)
+	void* p = nbemalloc(size);
+	if(clear && p)
 		memset(p, 0, size);
 	return p;
 }
 
-void *
+void*
 smbemalloc(uint32_t size)
 {
 	return smbemallocz(size, 0);
 }
 
-char *
-smbestrdup(char *p)
+char*
+smbestrdup(char* p)
 {
-	char *q;
+	char* q;
 	q = smbemalloc(strlen(p) + 1);
 	return strcpy(q, p);
 }
 #endif
 
 void
-smbfree(void **pp)
+smbfree(void** pp)
 {
-	void *p = *pp;
-	if (p) {
+	void* p = *pp;
+	if(p) {
 		free(p);
 		*pp = nil;
 	}
 }
 
 void
-smberealloc(void **pp, uint32_t size)
+smberealloc(void** pp, uint32_t size)
 {
 	*pp = realloc(*pp, size);
 	assert(size == 0 || *pp);

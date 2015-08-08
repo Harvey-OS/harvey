@@ -14,12 +14,12 @@
 
 /* remove a from t and free it */
 Ndbtuple*
-ndbdiscard(Ndbtuple *t, Ndbtuple *a)
+ndbdiscard(Ndbtuple* t, Ndbtuple* a)
 {
-	Ndbtuple *nt;
+	Ndbtuple* nt;
 
 	/* unchain a */
-	for(nt = t; nt != nil; nt = nt->entry){
+	for(nt = t; nt != nil; nt = nt->entry) {
 		if(nt->line == a)
 			nt->line = a->line;
 		if(nt->entry == a)

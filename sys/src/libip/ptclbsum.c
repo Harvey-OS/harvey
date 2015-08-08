@@ -7,16 +7,16 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<ip.h>
+#include <u.h>
+#include <libc.h>
+#include <ip.h>
 
-static	int16_t	endian	= 1;
-static	uint8_t*	aendian	= (uint8_t*)&endian;
-#define	LITTLE	*aendian
+static int16_t endian = 1;
+static uint8_t* aendian = (uint8_t*)&endian;
+#define LITTLE *aendian
 
 uint16_t
-ptclbsum(uint8_t *addr, int len)
+ptclbsum(uint8_t* addr, int len)
 {
 	uint32_t losum, hisum, mdsum, x;
 	uint32_t t1, t2;
@@ -35,14 +35,21 @@ ptclbsum(uint8_t *addr, int len)
 		x = 1;
 	}
 	while(len >= 16) {
-		t1 = *(uint16_t*)(addr+0);
-		t2 = *(uint16_t*)(addr+2);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+4);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+6);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+8);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+10);	mdsum += t1;
-		t1 = *(uint16_t*)(addr+12);	mdsum += t2;
-		t2 = *(uint16_t*)(addr+14);	mdsum += t1;
+		t1 = *(uint16_t*)(addr + 0);
+		t2 = *(uint16_t*)(addr + 2);
+		mdsum += t1;
+		t1 = *(uint16_t*)(addr + 4);
+		mdsum += t2;
+		t2 = *(uint16_t*)(addr + 6);
+		mdsum += t1;
+		t1 = *(uint16_t*)(addr + 8);
+		mdsum += t2;
+		t2 = *(uint16_t*)(addr + 10);
+		mdsum += t1;
+		t1 = *(uint16_t*)(addr + 12);
+		mdsum += t2;
+		t2 = *(uint16_t*)(addr + 14);
+		mdsum += t1;
 		mdsum += t2;
 		len -= 16;
 		addr += 16;
@@ -70,7 +77,7 @@ ptclbsum(uint8_t *addr, int len)
 
 	losum += hisum >> 8;
 	losum += (hisum & 0xff) << 8;
-	while(hisum = losum>>16)
+	while(hisum = losum >> 16)
 		losum = hisum + (losum & 0xffff);
 
 	return losum & 0xffff;

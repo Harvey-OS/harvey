@@ -14,67 +14,68 @@
 #include "a.h"
 
 typedef struct Tag Tag;
-struct Tag
-{
-	Tag *next;
-	Rune *id;
-	Rune *open;
-	Rune *close;
+struct Tag {
+	Tag* next;
+	Rune* id;
+	Rune* open;
+	Rune* close;
 };
 
-Tag *tagstack;
-Tag *tagset;
+Tag* tagstack;
+Tag* tagset;
 int hidingset;
 
 static Rune*
-closingtag(Rune *s)
+closingtag(Rune* s)
 {
-	Rune *t;
-	Rune *p0, *p;
-	
+	Rune* t;
+	Rune* p0, *p;
+
 	t = runemalloc(sizeof(Rune));
 	if(s == nil)
 		return t;
-	for(p=s; *p; p++){
-		if(*p == Ult){
+	for(p = s; *p; p++) {
+		if(*p == Ult) {
 			p++;
-			if(*p == '/'){
+			if(*p == '/') {
 				while(*p && *p != Ugt)
 					p++;
 				goto close;
 			}
 			p0 = p;
-			while(*p && !isspacerune(*p) && *p != Uspace && *p != Ugt)
+			while(*p && !isspacerune(*p) && *p != Uspace &&
+			      *p != Ugt)
 				p++;
-			t = runerealloc(t, 1+(p-p0)+2+runestrlen(t)+1);
-			runemove(t+(p-p0)+3, t, runestrlen(t)+1);
+			t = runerealloc(t,
+			                1 + (p - p0) + 2 + runestrlen(t) + 1);
+			runemove(t + (p - p0) + 3, t, runestrlen(t) + 1);
 			t[0] = Ult;
 			t[1] = '/';
-			runemove(t+2, p0, p-p0);
-			t[2+(p-p0)] = Ugt;
+			runemove(t + 2, p0, p - p0);
+			t[2 + (p - p0)] = Ugt;
 		}
-		
-		if(*p == Ugt && p>s && *(p-1) == '/'){
+
+		if(*p == Ugt && p > s && *(p - 1) == '/') {
 		close:
-			for(p0=t+1; *p0 && *p0 != Ult; p0++)
+			for(p0 = t + 1; *p0 && *p0 != Ult; p0++)
 				;
-			runemove(t, p0, runestrlen(p0)+1);
+			runemove(t, p0, runestrlen(p0) + 1);
 		}
 	}
-	return t;	
+	return t;
 }
 
 void
-html(Rune *id, Rune *s)
+html(Rune* id, Rune* s)
 {
-	Rune *es;
-	Tag *t, *tt, *next;
+	Rune* es;
+	Tag* t, *tt, *next;
 
 	br();
-	hideihtml();	/* br already did, but be paranoid */
-	for(t=tagstack; t; t=t->next){
-		if(runestrcmp(t->id, id) == 0){
-			for(tt=tagstack;; tt=next){
+	hideihtml(); /* br already did, but be paranoid */
+	for(t = tagstack; t; t = t->next) {
+		if(runestrcmp(t->id, id) == 0) {
+			for(tt = tagstack;; tt = next) {
 				next = tt->next;
 				free(tt->id);
 				free(tt->open);
@@ -82,7 +83,7 @@ html(Rune *id, Rune *s)
 				outrune('\n');
 				free(tt->close);
 				free(tt);
-				if(tt == t){
+				if(tt == t) {
 					tagstack = next;
 					goto cleared;
 				}
@@ -96,11 +97,11 @@ cleared:
 	out(s);
 	outrune('\n');
 	es = closingtag(s);
-	if(es[0] == 0){
+	if(es[0] == 0) {
 		free(es);
 		return;
 	}
-	if(runestrcmp(id, L("-")) == 0){
+	if(runestrcmp(id, L("-")) == 0) {
 		out(es);
 		outrune('\n');
 		free(es);
@@ -116,11 +117,11 @@ cleared:
 void
 closehtml(void)
 {
-	Tag *t, *next;
-	
+	Tag* t, *next;
+
 	br();
 	hideihtml();
-	for(t=tagstack; t; t=next){
+	for(t = tagstack; t; t = next) {
 		next = t->next;
 		out(t->close);
 		outrune('\n');
@@ -131,7 +132,7 @@ closehtml(void)
 }
 
 static void
-rshow(Tag *t, Tag *end)
+rshow(Tag* t, Tag* end)
 {
 	if(t == nil || t == end)
 		return;
@@ -140,15 +141,15 @@ rshow(Tag *t, Tag *end)
 }
 
 void
-ihtml(Rune *id, Rune *s)
+ihtml(Rune* id, Rune* s)
 {
-	Tag *t, *tt, **l;
+	Tag* t, *tt, **l;
 
-	for(t=tagset; t; t=t->next){
-		if(runestrcmp(t->id, id) == 0){
+	for(t = tagset; t; t = t->next) {
+		if(runestrcmp(t->id, id) == 0) {
 			if(s && t->open && runestrcmp(t->open, s) == 0)
 				return;
-			for(l=&tagset; (tt=*l); l=&tt->next){
+			for(l = &tagset; (tt = *l); l = &tt->next) {
 				if(!hidingset)
 					out(tt->close);
 				if(tt == t)
@@ -181,12 +182,12 @@ cleared:
 void
 hideihtml(void)
 {
-	Tag *t;
+	Tag* t;
 
 	if(hidingset)
 		return;
 	hidingset = 1;
-	for(t=tagset; t; t=t->next)
+	for(t = tagset; t; t = t->next)
 		out(t->close);
 }
 
@@ -236,14 +237,14 @@ e_minus(void)
 }
 
 void
-r_html(Rune *name)
+r_html(Rune* name)
 {
-	Rune *id, *line, *p;
-	
+	Rune* id, *line, *p;
+
 	id = copyarg();
 	line = readline(HtmlMode);
-	for(p=line; *p; p++){
-		switch(*p){
+	for(p = line; *p; p++) {
+		switch(*p) {
 		case '<':
 			*p = Ult;
 			break;
@@ -266,17 +267,15 @@ r_html(Rune *name)
 	free(line);
 }
 
-char defaultfont[] =
-	".ihtml f1\n"
-	".ihtml f\n"
-	".ihtml f <span style=\"font-size: \\n(.spt\">\n"
-	".if \\n(.f==2 .ihtml f1 <i>\n"
-	".if \\n(.f==3 .ihtml f1 <b>\n"
-	".if \\n(.f==4 .ihtml f1 <b><i>\n"
-	".if \\n(.f==5 .ihtml f1 <tt>\n"
-	".if \\n(.f==6 .ihtml f1 <tt><i>\n"
-	"..\n"
-;
+char defaultfont[] = ".ihtml f1\n"
+                     ".ihtml f\n"
+                     ".ihtml f <span style=\"font-size: \\n(.spt\">\n"
+                     ".if \\n(.f==2 .ihtml f1 <i>\n"
+                     ".if \\n(.f==3 .ihtml f1 <b>\n"
+                     ".if \\n(.f==4 .ihtml f1 <b><i>\n"
+                     ".if \\n(.f==5 .ihtml f1 <tt>\n"
+                     ".if \\n(.f==6 .ihtml f1 <tt><i>\n"
+                     "..\n";
 
 void
 htmlinit(void)
@@ -290,7 +289,6 @@ htmlinit(void)
 	addesc('`', e_btick, CopyMode);
 	addesc('-', e_minus, CopyMode);
 	addesc('@', e_at, CopyMode);
-	
+
 	ds(L("font"), L(defaultfont));
 }
-

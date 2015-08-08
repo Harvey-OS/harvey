@@ -14,7 +14,8 @@
 #include <memlayer.h>
 
 /*
- * Hide puts that portion of screenr now on the screen into the window's save area.
+ * Hide puts that portion of screenr now on the screen into the window's save
+ *area.
  * Expose puts that portion of screenr now in the save area onto the screen.
  *
  * Hide and Expose both require that the layer structures in the screen
@@ -23,24 +24,24 @@
  * This means they must be called at the correct time during window shuffles.
  */
 
-static
-void
-lhideop(Memimage *src, Rectangle screenr, Rectangle clipr, void *etc, int insave)
+static void
+lhideop(Memimage* src, Rectangle screenr, Rectangle clipr, void* etc,
+        int insave)
 {
 	Rectangle r;
-	Memlayer *l;
+	Memlayer* l;
 
 	USED(clipr.min.x);
 	USED(insave);
 	l = etc;
-	if(src != l->save){	/* do nothing if src is already in save area */
+	if(src != l->save) { /* do nothing if src is already in save area */
 		r = rectsubpt(screenr, l->delta);
 		memdraw(l->save, r, src, screenr.min, nil, screenr.min, S);
 	}
 }
 
 void
-memlhide(Memimage *i, Rectangle screenr)
+memlhide(Memimage* i, Rectangle screenr)
 {
 	if(i->layer->save == nil)
 		return;
@@ -49,15 +50,15 @@ memlhide(Memimage *i, Rectangle screenr)
 	_memlayerop(lhideop, i, screenr, screenr, i->layer);
 }
 
-static
-void
-lexposeop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insave)
+static void
+lexposeop(Memimage* dst, Rectangle screenr, Rectangle clipr, void* etc,
+          int insave)
 {
-	Memlayer *l;
+	Memlayer* l;
 	Rectangle r;
 
 	USED(clipr.min.x);
-	if(insave)	/* if dst is save area, don't bother */
+	if(insave) /* if dst is save area, don't bother */
 		return;
 	l = etc;
 	r = rectsubpt(screenr, l->delta);
@@ -68,7 +69,7 @@ lexposeop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insa
 }
 
 void
-memlexpose(Memimage *i, Rectangle screenr)
+memlexpose(Memimage* i, Rectangle screenr)
 {
 	if(rectclip(&screenr, i->layer->screen->image->r) == 0)
 		return;

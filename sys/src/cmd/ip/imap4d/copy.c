@@ -14,18 +14,16 @@
 #include <libsec.h>
 #include "imap4d.h"
 
-static int	saveMsg(char *dst, char *digest, int flags,
-			  char *head, int nhead, Biobuf *b,
-			  int32_t n);
-static int	saveb(int fd, DigestState *dstate, char *buf, int nr,
-			int nw);
-static int32_t	appSpool(Biobuf *bout, Biobuf *bin, int32_t n);
+static int saveMsg(char* dst, char* digest, int flags, char* head, int nhead,
+                   Biobuf* b, int32_t n);
+static int saveb(int fd, DigestState* dstate, char* buf, int nr, int nw);
+static int32_t appSpool(Biobuf* bout, Biobuf* bin, int32_t n);
 
 /*
  * check if the message exists
  */
 int
-copyCheck(Box *box, Msg *m, int uids, void *v)
+copyCheck(Box* box, Msg* m, int uids, void* v)
 {
 	int fd;
 
@@ -36,7 +34,7 @@ copyCheck(Box *box, Msg *m, int uids, void *v)
 	if(m->expunged)
 		return 0;
 	fd = msgFile(m, "raw");
-	if(fd < 0){
+	if(fd < 0) {
 		msgDead(m);
 		return 0;
 	}
@@ -45,12 +43,12 @@ copyCheck(Box *box, Msg *m, int uids, void *v)
 }
 
 int
-copySave(Box *box, Msg *m, int uids, void *vs)
+copySave(Box* box, Msg* m, int uids, void* vs)
 {
-	Dir *d;
+	Dir* d;
 	Biobuf b;
 	int64_t length;
-	char *head;
+	char* head;
 	int ok, hfd, bfd, nhead;
 
 	USED(box);
@@ -60,12 +58,12 @@ copySave(Box *box, Msg *m, int uids, void *vs)
 		return 0;
 
 	hfd = msgFile(m, "unixheader");
-	if(hfd < 0){
+	if(hfd < 0) {
 		msgDead(m);
 		return 0;
 	}
 	head = readFile(hfd);
-	if(head == nil){
+	if(head == nil) {
 		close(hfd);
 		return 0;
 	}
@@ -75,18 +73,18 @@ copySave(Box *box, Msg *m, int uids, void *vs)
 	 * since it is a runt and the "header" will show up in the raw file.
 	 */
 	nhead = strlen(head);
-	if(nhead > 0 && head[nhead-1] != '\n')
+	if(nhead > 0 && head[nhead - 1] != '\n')
 		nhead = 0;
 
 	bfd = msgFile(m, "raw");
 	close(hfd);
-	if(bfd < 0){
+	if(bfd < 0) {
 		msgDead(m);
 		return 0;
 	}
 
 	d = dirfstat(bfd);
-	if(d == nil){
+	if(d == nil) {
 		close(bfd);
 		return 0;
 	}
@@ -106,7 +104,7 @@ copySave(Box *box, Msg *m, int uids, void *vs)
  * then save to real box.
  */
 int
-appendSave(char *mbox, int flags, char *head, Biobuf *b, int32_t n)
+appendSave(char* mbox, int flags, char* head, Biobuf* b, int32_t n)
 {
 	Biobuf btmp;
 	int fd, ok;
@@ -120,7 +118,7 @@ appendSave(char *mbox, int flags, char *head, Biobuf *b, int32_t n)
 	Binit(&btmp, fd, OWRITE);
 	n = appSpool(&btmp, b, n);
 	Bterm(&btmp);
-	if(n < 0){
+	if(n < 0) {
 		close(fd);
 		return 0;
 	}
@@ -142,16 +140,16 @@ appendSave(char *mbox, int flags, char *head, Biobuf *b, int32_t n)
  * unless an input error occurs.
  */
 static int32_t
-appSpool(Biobuf *bout, Biobuf *bin, int32_t n)
+appSpool(Biobuf* bout, Biobuf* bin, int32_t n)
 {
 	int i, c;
 
 	c = '\n';
-	while(n > 0){
-		if(c == '\n' && n >= STRLEN("From ")){
-			for(i = 0; i < STRLEN("From "); i++){
+	while(n > 0) {
+		if(c == '\n' && n >= STRLEN("From ")) {
+			for(i = 0; i < STRLEN("From "); i++) {
 				c = Bgetc(bin);
-				if(c != "From "[i]){
+				if(c != "From "[i]) {
 					if(c < 0)
 						return -1;
 					Bungetc(bin);
@@ -165,7 +163,7 @@ appSpool(Biobuf *bout, Biobuf *bin, int32_t n)
 		}
 		c = Bgetc(bin);
 		n--;
-		if(c == '\r' && n-- > 0){
+		if(c == '\r' && n-- > 0) {
 			c = Bgetc(bin);
 			if(c != '\n')
 				Bputc(bout, '\r');
@@ -183,12 +181,11 @@ appSpool(Biobuf *bout, Biobuf *bin, int32_t n)
 }
 
 static int
-saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
-	Biobuf *b,
-	int32_t n)
+saveMsg(char* dst, char* digest, int flags, char* head, int nhead, Biobuf* b,
+        int32_t n)
 {
-	DigestState *dstate;
-	MbLock *ml;
+	DigestState* dstate;
+	MbLock* ml;
 	uint8_t shadig[SHA1dlen];
 	char buf[BufSize + 1], digbuf[NDigest + 1];
 	int i, fd, nr, nw, ok;
@@ -197,7 +194,7 @@ saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
 	if(ml == nil)
 		return 0;
 	fd = openLocked(mboxDir, dst, OWRITE);
-	if(fd < 0){
+	if(fd < 0) {
 		mbUnlock(ml);
 		return 0;
 	}
@@ -206,7 +203,7 @@ saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
 	dstate = nil;
 	if(digest == nil)
 		dstate = sha1(nil, 0, nil, nil);
-	if(!saveb(fd, dstate, head, nhead, nhead)){
+	if(!saveb(fd, dstate, head, nhead, nhead)) {
 		if(dstate != nil)
 			sha1(nil, 0, shadig, dstate);
 		mbUnlock(ml);
@@ -216,24 +213,24 @@ saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
 	ok = 1;
 	if(n == 0)
 		ok = saveb(fd, dstate, "\n", 0, 1);
-	while(n > 0){
+	while(n > 0) {
 		nr = n;
 		if(nr > BufSize)
 			nr = BufSize;
 		nr = Bread(b, buf, nr);
-		if(nr <= 0){
+		if(nr <= 0) {
 			saveb(fd, dstate, "\n\n", 0, 2);
 			ok = 0;
 			break;
 		}
 		n -= nr;
 		nw = nr;
-		if(n == 0){
+		if(n == 0) {
 			if(buf[nw - 1] != '\n')
 				buf[nw++] = '\n';
 			buf[nw++] = '\n';
 		}
-		if(!saveb(fd, dstate, buf, nr, nw)){
+		if(!saveb(fd, dstate, buf, nr, nw)) {
 			ok = 0;
 			break;
 		}
@@ -241,20 +238,22 @@ saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
 	}
 	close(fd);
 
-	if(dstate != nil){
+	if(dstate != nil) {
 		digest = digbuf;
 		sha1(nil, 0, shadig, dstate);
 		for(i = 0; i < SHA1dlen; i++)
-			snprint(digest+2*i, NDigest+1-2*i, "%2.2ux", shadig[i]);
+			snprint(digest + 2 * i, NDigest + 1 - 2 * i, "%2.2ux",
+			        shadig[i]);
 	}
-	if(ok){
+	if(ok) {
 		fd = cdOpen(mboxDir, impName(dst), OWRITE);
 		if(fd < 0)
 			fd = emptyImp(dst);
-		if(fd >= 0){
+		if(fd >= 0) {
 			seek(fd, 0, 2);
 			wrImpFlags(buf, flags, 1);
-			fprint(fd, "%.*s %.*lud %s\n", NDigest, digest, NUid, 0UL, buf);
+			fprint(fd, "%.*s %.*lud %s\n", NDigest, digest, NUid,
+			       0UL, buf);
 			close(fd);
 		}
 	}
@@ -263,7 +262,7 @@ saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
 }
 
 static int
-saveb(int fd, DigestState *dstate, char *buf, int nr, int nw)
+saveb(int fd, DigestState* dstate, char* buf, int nr, int nw)
 {
 	if(dstate != nil)
 		sha1((uint8_t*)buf, nr, nil, dstate);

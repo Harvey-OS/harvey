@@ -10,14 +10,14 @@
 #include "gc.h"
 
 void
-swit1(C1 *q, int nc, int32_t def, Node *n)
+swit1(C1* q, int nc, int32_t def, Node* n)
 {
-	C1 *r;
+	C1* r;
 	int i;
-	Prog *sp;
+	Prog* sp;
 
 	if(nc < 5) {
-		for(i=0; i<nc; i++) {
+		for(i = 0; i < nc; i++) {
 			if(debug['K'])
 				print("case = %.8llux\n", q->val);
 			gcmp(OEQ, n, q->val);
@@ -29,7 +29,7 @@ swit1(C1 *q, int nc, int32_t def, Node *n)
 		return;
 	}
 	i = nc / 2;
-	r = q+i;
+	r = q + i;
 	if(debug['K'])
 		print("case > %.8llux\n", r->val);
 	gcmp(OGT, n, r->val);
@@ -42,15 +42,15 @@ swit1(C1 *q, int nc, int32_t def, Node *n)
 	if(debug['K'])
 		print("case < %.8llux\n", r->val);
 	patch(sp, pc);
-	swit1(r+1, nc-i-1, def, n);
+	swit1(r + 1, nc - i - 1, def, n);
 }
 
 void
-bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
+bitload(Node* b, Node* n1, Node* n2, Node* n3, Node* nn)
 {
 	int sh;
 	int32_t v;
-	Node *l;
+	Node* l;
 
 	/*
 	 * n1 gets adjusted/masked value
@@ -85,7 +85,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 }
 
 void
-bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
+bitstore(Node* b, Node* n1, Node* n2, Node* n3, Node* nn)
 {
 	int32_t v;
 	Node nod;
@@ -112,7 +112,7 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 }
 
 int32_t
-outstring(char *s, int32_t n)
+outstring(char* s, int32_t n)
 {
 	int32_t r;
 
@@ -137,7 +137,7 @@ outstring(char *s, int32_t n)
 }
 
 void
-gextern(Sym *s, Node *a, int32_t o, int32_t w)
+gextern(Sym* s, Node* a, int32_t o, int32_t w)
 {
 	if(0 && a->op == OCONST && typev[a->type->etype]) {
 		gpseudo(ADATA, s, lo64(a));
@@ -162,16 +162,19 @@ gextern(Sym *s, Node *a, int32_t o, int32_t w)
 	}
 }
 
-void	zname(Biobuf*, Sym*, int);
-void	zaddr(Biobuf*, Adr*, int);
-void	outhist(Biobuf*);
+void zname(Biobuf*, Sym*, int);
+void zaddr(Biobuf*, Adr*, int);
+void outhist(Biobuf*);
 
 void
 outcode(void)
 {
-	struct { Sym *sym; int16_t type; } h[NSYM];
-	Prog *p;
-	Sym *s;
+	struct {
+		Sym* sym;
+		int16_t type;
+	} h[NSYM];
+	Prog* p;
+	Sym* s;
 	int f, sf, st, t, sym;
 	Biobuf b;
 
@@ -193,7 +196,7 @@ outcode(void)
 	Binit(&b, f, OWRITE);
 	Bseek(&b, 0L, 2);
 	outhist(&b);
-	for(sym=0; sym<NSYM; sym++) {
+	for(sym = 0; sym < NSYM; sym++) {
 		h[sym].sym = S;
 		h[sym].type = 0;
 	}
@@ -210,8 +213,8 @@ outcode(void)
 			if(t == D_ADDR)
 				t = p->from.index;
 			if(h[sf].type == t)
-			if(h[sf].sym == s)
-				break;
+				if(h[sf].sym == s)
+					break;
 			s->sym = sym;
 			zname(&b, s, t);
 			h[sym].sym = s;
@@ -232,8 +235,8 @@ outcode(void)
 			if(t == D_ADDR)
 				t = p->to.index;
 			if(h[st].type == t)
-			if(h[st].sym == s)
-				break;
+				if(h[st].sym == s)
+					break;
 			s->sym = sym;
 			zname(&b, s, t);
 			h[sym].sym = s;
@@ -247,11 +250,11 @@ outcode(void)
 			break;
 		}
 		Bputc(&b, p->as);
-		Bputc(&b, p->as>>8);
+		Bputc(&b, p->as >> 8);
 		Bputc(&b, p->lineno);
-		Bputc(&b, p->lineno>>8);
-		Bputc(&b, p->lineno>>16);
-		Bputc(&b, p->lineno>>24);
+		Bputc(&b, p->lineno >> 8);
+		Bputc(&b, p->lineno >> 16);
+		Bputc(&b, p->lineno >> 24);
 		zaddr(&b, &p->from, sf);
 		zaddr(&b, &p->to, st);
 	}
@@ -262,10 +265,10 @@ outcode(void)
 }
 
 void
-outhist(Biobuf *b)
+outhist(Biobuf* b)
 {
-	Hist *h;
-	char *p, *q, *op, c;
+	Hist* h;
+	char* p, *q, *op, c;
 	Prog pg;
 	int n;
 
@@ -276,17 +279,17 @@ outhist(Biobuf *b)
 		p = h->name;
 		op = 0;
 		/* on windows skip drive specifier in pathname */
-		if(systemtype(Windows) && p && p[1] == ':'){
+		if(systemtype(Windows) && p && p[1] == ':') {
 			p += 2;
 			c = *p;
 		}
-		if(p && p[0] != c && h->offset == 0 && pathname){
+		if(p && p[0] != c && h->offset == 0 && pathname) {
 			/* on windows skip drive specifier in pathname */
 			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
-				p = pathname+2;
+				p = pathname + 2;
 				c = *p;
-			} else if(pathname[0] == c){
+			} else if(pathname[0] == c) {
 				op = p;
 				p = pathname;
 			}
@@ -294,10 +297,11 @@ outhist(Biobuf *b)
 		while(p) {
 			q = utfrune(p, c);
 			if(q) {
-				n = q-p;
-				if(n == 0){
-					n = 1;	/* leading "/" */
-					*p = '/';	/* don't emit "\" on windows */
+				n = q - p;
+				if(n == 0) {
+					n = 1; /* leading "/" */
+					*p =
+					    '/'; /* don't emit "\" on windows */
 				}
 				q++;
 			} else {
@@ -306,7 +310,7 @@ outhist(Biobuf *b)
 			}
 			if(n) {
 				Bputc(b, ANAME);
-				Bputc(b, ANAME>>8);
+				Bputc(b, ANAME >> 8);
 				Bputc(b, D_FILE);
 				Bputc(b, 1);
 				Bputc(b, '<');
@@ -326,38 +330,38 @@ outhist(Biobuf *b)
 			pg.to.type = D_CONST;
 
 		Bputc(b, pg.as);
-		Bputc(b, pg.as>>8);
+		Bputc(b, pg.as >> 8);
 		Bputc(b, pg.lineno);
-		Bputc(b, pg.lineno>>8);
-		Bputc(b, pg.lineno>>16);
-		Bputc(b, pg.lineno>>24);
+		Bputc(b, pg.lineno >> 8);
+		Bputc(b, pg.lineno >> 16);
+		Bputc(b, pg.lineno >> 24);
 		zaddr(b, &pg.from, 0);
 		zaddr(b, &pg.to, 0);
 	}
 }
 
 void
-zname(Biobuf *b, Sym *s, int t)
+zname(Biobuf* b, Sym* s, int t)
 {
-	char *n;
+	char* n;
 	uint32_t sig;
 
-	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
+	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE &&
+	   s->type != types[TENUM] && s != symrathole) {
 		sig = sign(s);
 		Bputc(b, ASIGNAME);
-		Bputc(b, ASIGNAME>>8);
+		Bputc(b, ASIGNAME >> 8);
 		Bputc(b, sig);
-		Bputc(b, sig>>8);
-		Bputc(b, sig>>16);
-		Bputc(b, sig>>24);
+		Bputc(b, sig >> 8);
+		Bputc(b, sig >> 16);
+		Bputc(b, sig >> 24);
 		s->sig = SIGDONE;
+	} else {
+		Bputc(b, ANAME);      /* as */
+		Bputc(b, ANAME >> 8); /* as */
 	}
-	else{
-		Bputc(b, ANAME);	/* as */
-		Bputc(b, ANAME>>8);	/* as */
-	}
-	Bputc(b, t);			/* type */
-	Bputc(b, s->sym);		/* sym */
+	Bputc(b, t);      /* type */
+	Bputc(b, s->sym); /* sym */
 	n = s->name;
 	while(*n) {
 		Bputc(b, *n);
@@ -367,11 +371,11 @@ zname(Biobuf *b, Sym *s, int t)
 }
 
 void
-zaddr(Biobuf *b, Adr *a, int s)
+zaddr(Biobuf* b, Adr* a, int s)
 {
 	int32_t l;
 	int i, t;
-	char *n;
+	char* n;
 	Ieee e;
 
 	t = 0;
@@ -400,43 +404,43 @@ zaddr(Biobuf *b, Adr *a, int s)
 	}
 	Bputc(b, t);
 
-	if(t & T_INDEX) {	/* implies index, scale */
+	if(t & T_INDEX) { /* implies index, scale */
 		Bputc(b, a->index);
 		Bputc(b, a->scale);
 	}
-	if(t & T_OFFSET) {	/* implies offset */
+	if(t & T_OFFSET) { /* implies offset */
 		l = a->offset;
 		Bputc(b, l);
-		Bputc(b, l>>8);
-		Bputc(b, l>>16);
-		Bputc(b, l>>24);
+		Bputc(b, l >> 8);
+		Bputc(b, l >> 16);
+		Bputc(b, l >> 24);
 		if(t & T_64) {
-			l = a->offset>>32;
+			l = a->offset >> 32;
 			Bputc(b, l);
-			Bputc(b, l>>8);
-			Bputc(b, l>>16);
-			Bputc(b, l>>24);
+			Bputc(b, l >> 8);
+			Bputc(b, l >> 16);
+			Bputc(b, l >> 24);
 		}
 	}
-	if(t & T_SYM)		/* implies sym */
+	if(t & T_SYM) /* implies sym */
 		Bputc(b, s);
 	if(t & T_FCONST) {
 		ieeedtod(&e, a->dval);
 		l = e.l;
 		Bputc(b, l);
-		Bputc(b, l>>8);
-		Bputc(b, l>>16);
-		Bputc(b, l>>24);
+		Bputc(b, l >> 8);
+		Bputc(b, l >> 16);
+		Bputc(b, l >> 24);
 		l = e.h;
 		Bputc(b, l);
-		Bputc(b, l>>8);
-		Bputc(b, l>>16);
-		Bputc(b, l>>24);
+		Bputc(b, l >> 8);
+		Bputc(b, l >> 16);
+		Bputc(b, l >> 24);
 		return;
 	}
 	if(t & T_SCONST) {
 		n = a->sval;
-		for(i=0; i<NSNAME; i++) {
+		for(i = 0; i < NSNAME; i++) {
 			Bputc(b, *n);
 			n++;
 		}
@@ -447,10 +451,10 @@ zaddr(Biobuf *b, Adr *a, int s)
 }
 
 int32_t
-align(int32_t i, Type *t, int op)
+align(int32_t i, Type* t, int op)
 {
 	int32_t o;
-	Type *v;
+	Type* v;
 	int w;
 
 	o = i;
@@ -460,14 +464,14 @@ align(int32_t i, Type *t, int op)
 		diag(Z, "unknown align opcode %d", op);
 		break;
 
-	case Asu2:	/* padding at end of a struct */
+	case Asu2: /* padding at end of a struct */
 		w = SZ_VLONG;
 		if(packflg)
 			w = packflg;
 		break;
 
-	case Ael1:	/* initial align of struct element */
-		for(v=t; v->etype==TARRAY; v=v->link)
+	case Ael1: /* initial align of struct element */
+		for(v = t; v->etype == TARRAY; v = v->link)
 			;
 		w = ewidth[v->etype];
 		if(w <= 0 || w >= SZ_VLONG)
@@ -476,32 +480,32 @@ align(int32_t i, Type *t, int op)
 			w = packflg;
 		break;
 
-	case Ael2:	/* width of a struct element */
+	case Ael2: /* width of a struct element */
 		o += t->width;
 		break;
 
-	case Aarg0:	/* initial passbyptr argument in arg list */
+	case Aarg0: /* initial passbyptr argument in arg list */
 		if(typesu[t->etype]) {
 			o = align(o, types[TIND], Aarg1);
 			o = align(o, types[TIND], Aarg2);
 		}
 		break;
 
-	case Aarg1:	/* initial align of parameter */
+	case Aarg1: /* initial align of parameter */
 		w = ewidth[t->etype];
 		if(w <= 0 || w >= SZ_VLONG) {
 			w = SZ_VLONG;
 			break;
 		}
-		w = 1;		/* little endian no adjustment */
+		w = 1; /* little endian no adjustment */
 		break;
 
-	case Aarg2:	/* width of a parameter */
+	case Aarg2: /* width of a parameter */
 		o += t->width;
 		w = SZ_VLONG;
 		break;
 
-	case Aaut3:	/* total allign of automatic */
+	case Aaut3: /* total allign of automatic */
 		o = align(o, t, Ael1);
 		o = align(o, t, Ael2);
 		break;

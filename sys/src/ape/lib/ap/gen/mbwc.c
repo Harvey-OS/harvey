@@ -30,28 +30,26 @@
  *	00200000	03FFFFFF	T4 Tx Tx Tx Tx		26
  *	04000000	7FFFFFFF	T5 Tx Tx  Tx Tx Tx	31
  */
-int
-mbtowc(wchar_t *pwc, const char *s, size_t n);
+int mbtowc(wchar_t* pwc, const char* s, size_t n);
 
 int
-mblen(const char *s, size_t n)
+mblen(const char* s, size_t n)
 {
 	return mbtowc(0, s, n);
 }
 
-enum {
-	C0MSK = 0x7F,
-	C1MSK = 0x7FF,
-	T1 = 0xC0,
-	T2 = 0xE0,
-	NT1BITS = 11,
-	NSHFT = 5,
-	NCSHFT = NSHFT + 1,
-	WCHARMSK = (1<< (8*MB_LEN_MAX - 1)) - 1,
+enum { C0MSK = 0x7F,
+       C1MSK = 0x7FF,
+       T1 = 0xC0,
+       T2 = 0xE0,
+       NT1BITS = 11,
+       NSHFT = 5,
+       NCSHFT = NSHFT + 1,
+       WCHARMSK = (1 << (8 * MB_LEN_MAX - 1)) - 1,
 };
 
 int
-mbtowc(wchar_t *pwc, const char *s, size_t n)
+mbtowc(wchar_t* pwc, const char* s, size_t n)
 {
 	unsigned long long c[MB_LEN_MAX];
 	unsigned long long l, m, wm, b;
@@ -63,7 +61,7 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 	if(n < 1)
 		goto bad;
 
-	c[0] = s[0] & 0xff;		/* first one is special */
+	c[0] = s[0] & 0xff; /* first one is special */
 	if((c[0] & 0x80) == 0x00) {
 		if(pwc)
 			*pwc = c[0];
@@ -73,11 +71,11 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 	}
 
 	m = T2;
-	b = m^0x20;
+	b = m ^ 0x20;
 	l = c[0];
 	wm = C1MSK;
-	for(i = 1; i < MB_LEN_MAX + 1; i++){
-		if(n < i+1)
+	for(i = 1; i < MB_LEN_MAX + 1; i++) {
+		if(n < i + 1)
 			goto bad;
 		c[i] = (s[i] ^ 0x80) & 0xff;
 		l = (l << NCSHFT) | c[i];
@@ -85,7 +83,7 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 			goto bad;
 		if((c[0] & m) == b) {
 			if(pwc)
-				*pwc = l & wm;
+				*pwc = l& wm;
 			return i + 1;
 		}
 		b = m;
@@ -93,16 +91,15 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 		wm = (wm << NSHFT) | wm;
 	}
 
-	/*
-	 * bad decoding
-	 */
+/*
+ * bad decoding
+ */
 bad:
 	return -1;
-
 }
 
 int
-wctomb(char *s, wchar_t wchar)
+wctomb(char* s, wchar_t wchar)
 {
 	unsigned long long c, maxc, m;
 	int i, j;
@@ -118,12 +115,12 @@ wctomb(char *s, wchar_t wchar)
 	}
 
 	m = T1;
-	for(i = 2; i < MB_LEN_MAX + 1; i++){
+	for(i = 2; i < MB_LEN_MAX + 1; i++) {
 		maxc <<= 4;
-		if(c < maxc || i == MB_LEN_MAX){
+		if(c < maxc || i == MB_LEN_MAX) {
 			s[0] = m | (c >> ((i - 1) * NCSHFT));
-			for(j = i - 1; j >= 1; j--){
-				s[i - j] = 0x80|((c>>(6 * (j - 1)))&0x3f);
+			for(j = i - 1; j >= 1; j--) {
+				s[i - j] = 0x80 | ((c >> (6 * (j - 1))) & 0x3f);
 			}
 			return i;
 		}
@@ -133,11 +130,11 @@ wctomb(char *s, wchar_t wchar)
 }
 
 size_t
-mbstowcs(wchar_t *pwcs, const char *s, size_t n)
+mbstowcs(wchar_t* pwcs, const char* s, size_t n)
 {
 	int i, d, c;
 
-	for(i=0; i < n; i++) {
+	for(i = 0; i < n; i++) {
 		c = *s & 0xff;
 		if(c < 0x80) {
 			*pwcs = c;
@@ -147,7 +144,7 @@ mbstowcs(wchar_t *pwcs, const char *s, size_t n)
 		} else {
 			d = mbtowc(pwcs, s, MB_LEN_MAX);
 			if(d <= 0)
-				return (size_t)((d<0) ? -1 : i);
+				return (size_t)((d < 0) ? -1 : i);
 			s += d;
 		}
 		pwcs++;
@@ -156,15 +153,15 @@ mbstowcs(wchar_t *pwcs, const char *s, size_t n)
 }
 
 size_t
-wcstombs(char *s, const wchar_t *pwcs, size_t n)
+wcstombs(char* s, const wchar_t* pwcs, size_t n)
 {
 	int i, d;
 	int32_t c;
-	char *p, *pe;
+	char* p, *pe;
 	char buf[MB_LEN_MAX];
 
 	p = s;
-	pe = p+n-MB_LEN_MAX;
+	pe = p + n - MB_LEN_MAX;
 	while(p < pe) {
 		c = *pwcs++;
 		if(c < 0x80)
@@ -172,15 +169,15 @@ wcstombs(char *s, const wchar_t *pwcs, size_t n)
 		else
 			p += wctomb(p, c);
 		if(c == 0)
-			return p-s;
+			return p - s;
 	}
-	while(p < pe+MB_LEN_MAX) {
+	while(p < pe + MB_LEN_MAX) {
 		c = *pwcs++;
 		d = wctomb(buf, c);
-		if(p+d <= pe+MB_LEN_MAX) {
-			*p++ = buf[0];		/* first one is special */
-			for(i = 2; i < MB_LEN_MAX + 1; i++){
-				if(d <= i -1)
+		if(p + d <= pe + MB_LEN_MAX) {
+			*p++ = buf[0]; /* first one is special */
+			for(i = 2; i < MB_LEN_MAX + 1; i++) {
+				if(d <= i - 1)
 					break;
 				*p++ = buf[i];
 			}
@@ -188,5 +185,5 @@ wcstombs(char *s, const wchar_t *pwcs, size_t n)
 		if(c == 0)
 			break;
 	}
-	return p-s;
+	return p - s;
 }

@@ -33,113 +33,108 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    known to be nonexistent, so set DIRDATA to an empty vector.
    Return -1 (setting errno) if error, 0 otherwise.  */
 
-struct dirdata
-{
-  char const **names;	/* Sorted names of files in dir, 0-terminated.  */
-  char *data;	/* Allocated storage for file names.  */
+struct dirdata {
+	char const** names; /* Sorted names of files in dir, 0-terminated.  */
+	char* data;         /* Allocated storage for file names.  */
 };
 
-static int compare_names PARAMS((const void *, const void *));
-static int dir_sort PARAMS((struct file_data const *, struct dirdata *));
+static int compare_names PARAMS((const void*, const void*));
+static int dir_sort PARAMS((struct file_data const*, struct dirdata*));
 
-static int
-dir_sort (dir, dirdata)
-     struct file_data const *dir;
-     struct dirdata *dirdata;
+static int dir_sort(dir, dirdata) struct file_data const* dir;
+struct dirdata* dirdata;
 {
-  register struct dirent *next;
-  register int i;
+	register struct dirent* next;
+	register int i;
 
-  /* Address of block containing the files that are described.  */
-  char const **names;
+	/* Address of block containing the files that are described.  */
+	char const** names;
 
-  /* Number of files in directory.  */
-  size_t nnames;
+	/* Number of files in directory.  */
+	size_t nnames;
 
-  /* Allocated and used storage for file name data.  */
-  char *data;
-  size_t data_alloc, data_used;
+	/* Allocated and used storage for file name data.  */
+	char* data;
+	size_t data_alloc, data_used;
 
-  dirdata->names = 0;
-  dirdata->data = 0;
-  nnames = 0;
-  data = 0;
+	dirdata->names = 0;
+	dirdata->data = 0;
+	nnames = 0;
+	data = 0;
 
-  if (dir->desc != -1)
-    {
-      /* Open the directory and check for errors.  */
-      register DIR *reading = opendir (dir->name);
-      if (!reading)
-	return -1;
+	if(dir->desc != -1) {
+		/* Open the directory and check for errors.  */
+		register DIR* reading = opendir(dir->name);
+		if(!reading)
+			return -1;
 
-      /* Initialize the table of filenames.  */
+		/* Initialize the table of filenames.  */
 
-      data_alloc = max (1, (size_t) dir->stat.st_size);
-      data_used = 0;
-      dirdata->data = data = xmalloc (data_alloc);
+		data_alloc = max(1, (size_t)dir->stat.st_size);
+		data_used = 0;
+		dirdata->data = data = xmalloc(data_alloc);
 
-      /* Read the directory entries, and insert the subfiles
-	 into the `data' table.  */
+		/* Read the directory entries, and insert the subfiles
+		   into the `data' table.  */
 
-      while ((errno = 0, (next = readdir (reading)) != 0))
-	{
-	  char *d_name = next->d_name;
-	  size_t d_size = NAMLEN (next) + 1;
+		while((errno = 0, (next = readdir(reading)) != 0)) {
+			char* d_name = next->d_name;
+			size_t d_size = NAMLEN(next) + 1;
 
-	  /* Ignore the files `.' and `..' */
-	  if (d_name[0] == '.'
-	      && (d_name[1] == 0 || (d_name[1] == '.' && d_name[2] == 0)))
-	    continue;
+			/* Ignore the files `.' and `..' */
+			if(d_name[0] == '.' &&
+			   (d_name[1] == 0 ||
+			    (d_name[1] == '.' && d_name[2] == 0)))
+				continue;
 
-	  if (excluded_filename (d_name))
-	    continue;
+			if(excluded_filename(d_name))
+				continue;
 
-	  while (data_alloc < data_used + d_size)
-	    dirdata->data = data = xrealloc (data, data_alloc *= 2);
-	  memcpy (data + data_used, d_name, d_size);
-	  data_used += d_size;
-	  nnames++;
-	}
-      if (errno)
-	{
-	  int e = errno;
-	  closedir (reading);
-	  errno = e;
-	  return -1;
-	}
+			while(data_alloc < data_used + d_size)
+				dirdata->data = data =
+				    xrealloc(data, data_alloc *= 2);
+			memcpy(data + data_used, d_name, d_size);
+			data_used += d_size;
+			nnames++;
+		}
+		if(errno) {
+			int e = errno;
+			closedir(reading);
+			errno = e;
+			return -1;
+		}
 #if CLOSEDIR_VOID
-      closedir (reading);
+		closedir(reading);
 #else
-      if (closedir (reading) != 0)
-	return -1;
+		if(closedir(reading) != 0)
+			return -1;
 #endif
-    }
+	}
 
-  /* Create the `names' table from the `data' table.  */
-  dirdata->names = names = (char const **) xmalloc (sizeof (char *)
-						    * (nnames + 1));
-  for (i = 0;  i < nnames;  i++)
-    {
-      names[i] = data;
-      data += strlen (data) + 1;
-    }
-  names[nnames] = 0;
+	/* Create the `names' table from the `data' table.  */
+	dirdata->names = names =
+	    (char const**)xmalloc(sizeof(char*) * (nnames + 1));
+	for(i = 0; i < nnames; i++) {
+		names[i] = data;
+		data += strlen(data) + 1;
+	}
+	names[nnames] = 0;
 
-  /* Sort the table.  */
-  qsort (names, nnames, sizeof (char *), compare_names);
+	/* Sort the table.  */
+	qsort(names, nnames, sizeof(char*), compare_names);
 
-  return 0;
+	return 0;
 }
 
 /* Sort the files now in the table.  */
 
 static int
-compare_names (const void *file1, const void *file2)
+compare_names(const void* file1, const void* file2)
 {
-  return filename_cmp (* (char const *const *) file1,
-		       * (char const *const *) file2);
+	return filename_cmp(*(char const* const*)file1,
+	                    *(char const* const*)file2);
 }
-
+
 /* Compare the contents of two directories named in FILEVEC[0] and FILEVEC[1].
    This is a top-level routine; it does everything necessary for diff
    on two directories.
@@ -160,65 +155,65 @@ compare_names (const void *file1, const void *file2)
    Returns the maximum of all the values returned by HANDLE_FILE,
    or 2 if trouble is encountered in opening files.  */
 
-int
-diff_dirs (filevec, handle_file, depth)
-     struct file_data const filevec[];
-     int (*handle_file) PARAMS((char const *, char const *, char const *, char const *, int));
-     int depth;
+int diff_dirs(filevec, handle_file, depth) struct file_data const filevec[];
+int(*handle_file)
+    PARAMS((char const*, char const*, char const*, char const*, int));
+int depth;
 {
-  struct dirdata dirdata[2];
-  int val = 0;			/* Return value.  */
-  int i;
+	struct dirdata dirdata[2];
+	int val = 0; /* Return value.  */
+	int i;
 
-  /* Get sorted contents of both dirs.  */
-  for (i = 0; i < 2; i++)
-    if (dir_sort (&filevec[i], &dirdata[i]) != 0)
-      {
-	perror_with_name (filevec[i].name);
-	val = 2;
-      }
+	/* Get sorted contents of both dirs.  */
+	for(i = 0; i < 2; i++)
+		if(dir_sort(&filevec[i], &dirdata[i]) != 0) {
+			perror_with_name(filevec[i].name);
+			val = 2;
+		}
 
-  if (val == 0)
-    {
-      register char const * const *names0 = dirdata[0].names;
-      register char const * const *names1 = dirdata[1].names;
-      char const *name0 = filevec[0].name;
-      char const *name1 = filevec[1].name;
+	if(val == 0) {
+		register char const* const* names0 = dirdata[0].names;
+		register char const* const* names1 = dirdata[1].names;
+		char const* name0 = filevec[0].name;
+		char const* name1 = filevec[1].name;
 
-      /* If `-S name' was given, and this is the topmost level of comparison,
-	 ignore all file names less than the specified starting name.  */
+		/* If `-S name' was given, and this is the topmost level of
+		   comparison,
+		   ignore all file names less than the specified starting name.
+		   */
 
-      if (dir_start_file && depth == 0)
-	{
-	  while (*names0 && filename_cmp (*names0, dir_start_file) < 0)
-	    names0++;
-	  while (*names1 && filename_cmp (*names1, dir_start_file) < 0)
-	    names1++;
+		if(dir_start_file && depth == 0) {
+			while(*names0 &&
+			      filename_cmp(*names0, dir_start_file) < 0)
+				names0++;
+			while(*names1 &&
+			      filename_cmp(*names1, dir_start_file) < 0)
+				names1++;
+		}
+
+		/* Loop while files remain in one or both dirs.  */
+		while(*names0 || *names1) {
+			/* Compare next name in dir 0 with next name in dir 1.
+			   At the end of a dir,
+			   pretend the "next name" in that dir is very large. */
+			int nameorder =
+			    (!*names0 ? 1 : !*names1 ? -1
+			                             : filename_cmp(*names0,
+			                                            *names1));
+			int v1 = (*handle_file)(
+			    name0, 0 < nameorder ? 0 : *names0++, name1,
+			    nameorder < 0 ? 0 : *names1++, depth + 1);
+			if(v1 > val)
+				val = v1;
+		}
 	}
 
-      /* Loop while files remain in one or both dirs.  */
-      while (*names0 || *names1)
-	{
-	  /* Compare next name in dir 0 with next name in dir 1.
-	     At the end of a dir,
-	     pretend the "next name" in that dir is very large.  */
-	  int nameorder = (!*names0 ? 1 : !*names1 ? -1
-			   : filename_cmp (*names0, *names1));
-	  int v1 = (*handle_file) (name0, 0 < nameorder ? 0 : *names0++,
-				   name1, nameorder < 0 ? 0 : *names1++,
-				   depth + 1);
-	  if (v1 > val)
-	    val = v1;
+	for(i = 0; i < 2; i++) {
+		if(dirdata[i].names)
+			free(dirdata[i].names);
+		if(dirdata[i].data)
+			free(dirdata[i].data);
 	}
-    }
 
-  for (i = 0; i < 2; i++)
-    {
-      if (dirdata[i].names)
-	free (dirdata[i].names);
-      if (dirdata[i].data)
-	free (dirdata[i].data);
-    }
-
-  return val;
+	return val;
 }

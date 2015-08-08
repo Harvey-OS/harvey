@@ -7,52 +7,51 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-static	Word	*nextword(char**);
+static Word* nextword(char**);
 
 Word*
-newword(char *s)
+newword(char* s)
 {
-	Word *w;
+	Word* w;
 
-	w = (Word *)Malloc(sizeof(Word));
+	w = (Word*)Malloc(sizeof(Word));
 	w->s = strdup(s);
 	w->next = 0;
-	return(w);
+	return (w);
 }
 
-Word *
-stow(char *s)
+Word*
+stow(char* s)
 {
-	Word *head, *w, *new;
+	Word* head, *w, *new;
 
 	w = head = 0;
-	while(*s){
+	while(*s) {
 		new = nextword(&s);
 		if(new == 0)
 			break;
-		if (w)
+		if(w)
 			w->next = new;
 		else
 			head = w = new;
 		while(w->next)
 			w = w->next;
-		
 	}
-	if (!head)
+	if(!head)
 		head = newword("");
-	return(head);
+	return (head);
 }
 
-char *
-wtos(Word *w, int sep)
+char*
+wtos(Word* w, int sep)
 {
-	Bufblock *buf;
-	char *cp;
+	Bufblock* buf;
+	char* cp;
 
 	buf = newbuf();
-	for(; w; w = w->next){
+	for(; w; w = w->next) {
 		for(cp = w->s; *cp; cp++)
 			insert(buf, *cp);
 		if(w->next)
@@ -61,16 +60,16 @@ wtos(Word *w, int sep)
 	insert(buf, 0);
 	cp = strdup(buf->start);
 	freebuf(buf);
-	return(cp);
+	return (cp);
 }
 
 Word*
-wdup(Word *w)
+wdup(Word* w)
 {
-	Word *v, *new, *base;
+	Word* v, *new, *base;
 
 	v = base = 0;
-	while(w){
+	while(w) {
 		new = newword(w->s);
 		if(v)
 			v->next = new;
@@ -83,11 +82,11 @@ wdup(Word *w)
 }
 
 void
-delword(Word *w)
+delword(Word* w)
 {
-	Word *v;
+	Word* v;
 
-	while(v = w){
+	while(v = w) {
 		w = w->next;
 		if(v->s)
 			free(v->s);
@@ -100,25 +99,24 @@ delword(Word *w)
  *	and variable expansions.
  */
 static Word*
-nextword(char **s)
+nextword(char** s)
 {
-	Bufblock *b;
-	Word *head, *tail, *w;
+	Bufblock* b;
+	Word* head, *tail, *w;
 	Rune r;
-	char *cp;
+	char* cp;
 	int empty;
 
 	cp = *s;
 	b = newbuf();
 restart:
 	head = tail = 0;
-	while(*cp == ' ' || *cp == '\t')		/* leading white space */
+	while(*cp == ' ' || *cp == '\t') /* leading white space */
 		cp++;
 	empty = 1;
-	while(*cp){
+	while(*cp) {
 		cp += chartorune(&r, cp);
-		switch(r)
-		{
+		switch(r) {
 		case ' ':
 		case '\t':
 		case '\n':
@@ -128,27 +126,27 @@ restart:
 		case '"':
 			empty = 0;
 			cp = expandquote(cp, r, b);
-			if(cp == 0){
+			if(cp == 0) {
 				fprint(2, "missing closing quote: %s\n", *s);
 				Exit();
 			}
 			break;
 		case '$':
 			w = varsub(&cp);
-			if(w == 0){
+			if(w == 0) {
 				if(empty)
 					goto restart;
 				break;
 			}
 			empty = 0;
-			if(b->current != b->start){
+			if(b->current != b->start) {
 				bufcpy(b, w->s, strlen(w->s));
 				insert(b, 0);
 				free(w->s);
 				w->s = strdup(b->start);
 				b->current = b->start;
 			}
-			if(head){
+			if(head) {
 				bufcpy(b, tail->s, strlen(tail->s));
 				bufcpy(b, w->s, strlen(w->s));
 				insert(b, 0);
@@ -171,11 +169,11 @@ restart:
 	}
 out:
 	*s = cp;
-	if(b->current != b->start){
-		if(head){
+	if(b->current != b->start) {
+		if(head) {
 			cp = b->current;
 			bufcpy(b, tail->s, strlen(tail->s));
-			bufcpy(b, b->start, cp-b->start);
+			bufcpy(b, b->start, cp - b->start);
 			insert(b, 0);
 			free(tail->s);
 			tail->s = strdup(cp);
@@ -189,7 +187,7 @@ out:
 }
 
 void
-dumpw(char *s, Word *w)
+dumpw(char* s, Word* w)
 {
 	Bprint(&bout, "%s", s);
 	for(; w; w = w->next)

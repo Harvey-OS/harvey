@@ -19,13 +19,11 @@
 #include <string.h>
 #include "antiword.h"
 
-static char *szMessage =
-	"Memory allocation failed, unable to continue";
+static char* szMessage = "Memory allocation failed, unable to continue";
 #if defined(__dos) && !defined(__DJGPP__)
-static char *szDosMessage =
-	"DOS can't allocate this kind of memory, unable to continue";
+static char* szDosMessage =
+    "DOS can't allocate this kind of memory, unable to continue";
 #endif /* __dos && !__DJGPP__ */
-
 
 /*
  * xmalloc - Allocates dynamic memory
@@ -33,18 +31,18 @@ static char *szDosMessage =
  * See malloc(3), but unlike malloc(3) xmalloc does not return in case
  * of error.
  */
-void *
+void*
 xmalloc(size_t tSize)
 {
-	void	*pvTmp;
+	void* pvTmp;
 
 	TRACE_MSG("xmalloc");
 
-	if (tSize == 0) {
+	if(tSize == 0) {
 		tSize = 1;
 	}
 	pvTmp = malloc(tSize);
-	if (pvTmp == NULL) {
+	if(pvTmp == NULL) {
 		DBG_MSG("xmalloc returned NULL");
 		DBG_DEC(tSize);
 		werr(1, szMessage);
@@ -57,26 +55,26 @@ xmalloc(size_t tSize)
  *
  * See calloc(3), but unlike calloc(3) xcalloc does not return in case of error
  */
-void *
+void*
 xcalloc(size_t tNmemb, size_t tSize)
 {
-	void	*pvTmp;
+	void* pvTmp;
 
 	TRACE_MSG("xcalloc");
 
 #if defined(__dos) && !defined(__DJGPP__)
-	if ((ULONG)tNmemb * (ULONG)tSize > 0xffffUL) {
+	if((ULONG)tNmemb * (ULONG)tSize > 0xffffUL) {
 		DBG_DEC((ULONG)tNmemb * (ULONG)tSize);
 		werr(1, szDosMessage);
 	}
 #endif /* __dos && !__DJGPP__ */
 
-	if (tNmemb == 0 || tSize == 0) {
+	if(tNmemb == 0 || tSize == 0) {
 		tNmemb = 1;
 		tSize = 1;
 	}
 	pvTmp = calloc(tNmemb, tSize);
-	if (pvTmp == NULL) {
+	if(pvTmp == NULL) {
 		DBG_MSG("xcalloc returned NULL");
 		werr(1, szMessage);
 	}
@@ -89,15 +87,15 @@ xcalloc(size_t tNmemb, size_t tSize)
  * See realloc(3), but unlike realloc(3) xrealloc does not return in case
  * of error.
  */
-void *
-xrealloc(void *pvArg, size_t tSize)
+void*
+xrealloc(void* pvArg, size_t tSize)
 {
-	void	*pvTmp;
+	void* pvTmp;
 
 	TRACE_MSG("xrealloc");
 
 	pvTmp = realloc(pvArg, tSize);
-	if (pvTmp == NULL) {
+	if(pvTmp == NULL) {
 		DBG_MSG("realloc returned NULL");
 		werr(1, szMessage);
 	}
@@ -113,10 +111,10 @@ xrealloc(void *pvArg, size_t tSize)
  * NOTE:
  * Does not use strdup(3), because some systems don't have it.
  */
-char *
-xstrdup(const char *szArg)
+char*
+xstrdup(const char* szArg)
 {
-	char	*szTmp;
+	char* szTmp;
 
 	TRACE_MSG("xstrdup");
 
@@ -133,12 +131,12 @@ xstrdup(const char *szArg)
  * returns NULL;
  * This makes p=xfree(p) possible, free memory and overwrite the pointer to it.
  */
-void *
-xfree(void *pvArg)
+void*
+xfree(void* pvArg)
 {
 	TRACE_MSG("xfree");
 
-	if (pvArg != NULL) {
+	if(pvArg != NULL) {
 		free(pvArg);
 	}
 	return NULL;

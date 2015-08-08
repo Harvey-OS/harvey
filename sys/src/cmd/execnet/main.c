@@ -22,24 +22,26 @@ usage(void)
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	char *net;
+	char* net;
 
-//extern long _threaddebuglevel;
-//_threaddebuglevel = 1<<20;	/* DBGNOTE */
+	// extern long _threaddebuglevel;
+	//_threaddebuglevel = 1<<20;	/* DBGNOTE */
 
 	rfork(RFNOTEG);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
 	case 'n':
 		setexecname(EARGF(usage()));
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	switch(argc){
+	switch(argc) {
 	default:
 		usage();
 	case 0:
@@ -56,5 +58,3 @@ threadmain(int argc, char **argv)
 	threadpostmountsrv(&fs, nil, net, MBEFORE);
 	threadexits(nil);
 }
-
-

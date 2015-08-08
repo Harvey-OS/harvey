@@ -13,34 +13,34 @@
  * 18. Insertions from the standard input
  */
 void
-r_rd(int argc, Rune **argv)
+r_rd(int argc, Rune** argv)
 {
 	char buf[100];
-	char *s;
-	Rune *p;
+	char* s;
+	Rune* p;
 	Fmt fmt;
 	static int didstdin;
 	static Biobuf bstdin;
-	
+
 	/*
 	 * print prompt, then read until double newline,
 	 * then run the text just read as though it were
 	 * a macro body, using the remaining arguments.
 	 */
-	if(fd2path(0, buf, sizeof buf) >= 0 && strstr(buf, "/dev/cons")){
+	if(fd2path(0, buf, sizeof buf) >= 0 && strstr(buf, "/dev/cons")) {
 		if(argc > 1)
 			fprint(2, "%S", argv[1]);
 		else
-			fprint(2, "%c", 7/*BEL*/);
+			fprint(2, "%c", 7 /*BEL*/);
 	}
-	
-	if(!didstdin){
+
+	if(!didstdin) {
 		Binit(&bstdin, 0, OREAD);
 		didstdin = 1;
 	}
 	runefmtstrinit(&fmt);
-	while((s = Brdstr(&bstdin, '\n', 0)) != nil){
-		if(s[0] == '\n'){
+	while((s = Brdstr(&bstdin, '\n', 0)) != nil) {
+		if(s[0] == '\n') {
 			free(s);
 			break;
 		}
@@ -60,11 +60,11 @@ r_rd(int argc, Rune **argv)
 
 /* terminate exactly as if input had ended */
 void
-r_ex(int argc, Rune **argv)
+r_ex(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
-	
+
 	while(popinput())
 		;
 }

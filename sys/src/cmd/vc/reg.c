@@ -9,12 +9,12 @@
 
 #include "gc.h"
 
-void	addsplits(void);
+void addsplits(void);
 
 Reg*
 rega(void)
 {
-	Reg *r;
+	Reg* r;
 
 	r = freer;
 	if(r == R) {
@@ -27,9 +27,9 @@ rega(void)
 }
 
 int
-rcmp(const void *a1, const void *a2)
+rcmp(const void* a1, const void* a2)
 {
-	Rgn *p1, *p2;
+	Rgn* p1, *p2;
 	int c1, c2;
 
 	p1 = (Rgn*)a1;
@@ -42,26 +42,25 @@ rcmp(const void *a1, const void *a2)
 }
 
 void
-regopt(Prog *p)
+regopt(Prog* p)
 {
-	Reg *r, *r1, *r2;
-	Prog *p1;
+	Reg* r, *r1, *r2;
+	Prog* p1;
 	int i, z;
 	int32_t initpc, val, npc;
 	uint32_t vreg;
 	Bits bit;
-	struct
-	{
-		int32_t	m;
-		int32_t	c;
-		Reg*	p;
+	struct {
+		int32_t m;
+		int32_t c;
+		Reg* p;
 	} log5[6], *lp;
 
 	firstr = R;
 	lastr = R;
 	nvar = 0;
 	regbits = 0;
-	for(z=0; z<BITS; z++) {
+	for(z = 0; z < BITS; z++) {
 		externs.b[z] = 0;
 		params.b[z] = 0;
 		consts.b[z] = 0;
@@ -76,7 +75,7 @@ regopt(Prog *p)
 	 */
 	val = 5L * 5L * 5L * 5L * 5L;
 	lp = log5;
-	for(i=0; i<5; i++) {
+	for(i = 0; i < 5; i++) {
 		lp->m = val;
 		lp->c = 0;
 		lp->p = R;
@@ -107,14 +106,14 @@ regopt(Prog *p)
 		val++;
 
 		lp = log5;
-		for(i=0; i<5; i++) {
+		for(i = 0; i < 5; i++) {
 			lp->c--;
 			if(lp->c <= 0) {
 				lp->c = lp->m;
 				if(lp->p != R)
 					lp->p->log5 = r;
 				lp->p = r;
-				(lp+1)->c = 0;
+				(lp + 1)->c = 0;
 				break;
 			}
 			lp++;
@@ -122,19 +121,19 @@ regopt(Prog *p)
 
 		r1 = r->p1;
 		if(r1 != R)
-		switch(r1->prog->as) {
-		case ARET:
-		case AJMP:
-		case ARFE:
-			r->p1 = R;
-			r1->s1 = R;
-		}
+			switch(r1->prog->as) {
+			case ARET:
+			case AJMP:
+			case ARFE:
+				r->p1 = R;
+				r1->s1 = R;
+			}
 
 		/*
 		 * left side always read
 		 */
-		bit = mkvar(&p->from, p->as==AMOVW);
-		for(z=0; z<BITS; z++)
+		bit = mkvar(&p->from, p->as == AMOVW);
+		for(z = 0; z < BITS; z++)
 			r->use1.b[z] |= bit.b[z];
 
 		/*
@@ -142,34 +141,34 @@ regopt(Prog *p)
 		 */
 		bit = mkvar(&p->to, 0);
 		if(bany(&bit))
-		switch(p->as) {
-		default:
-			diag(Z, "reg: unknown asop: %A", p->as);
-			break;
+			switch(p->as) {
+			default:
+				diag(Z, "reg: unknown asop: %A", p->as);
+				break;
 
-		/*
-		 * right side write
-		 */
-		case ANOP:
-		case AMOVB:
-		case AMOVBU:
-		case AMOVH:
-		case AMOVHU:
-		case AMOVW:
-		case AMOVF:
-		case AMOVD:
-			for(z=0; z<BITS; z++)
-				r->set.b[z] |= bit.b[z];
-			break;
+			/*
+			 * right side write
+			 */
+			case ANOP:
+			case AMOVB:
+			case AMOVBU:
+			case AMOVH:
+			case AMOVHU:
+			case AMOVW:
+			case AMOVF:
+			case AMOVD:
+				for(z = 0; z < BITS; z++)
+					r->set.b[z] |= bit.b[z];
+				break;
 
-		/*
-		 * funny
-		 */
-		case AJAL:
-			for(z=0; z<BITS; z++)
-				addrs.b[z] |= bit.b[z];
-			break;
-		}
+			/*
+			 * funny
+			 */
+			case AJAL:
+				for(z = 0; z < BITS; z++)
+					addrs.b[z] |= bit.b[z];
+				break;
+			}
 	}
 	if(firstr == R)
 		return;
@@ -225,11 +224,11 @@ regopt(Prog *p)
 	change = 0;
 	loopit(firstr, npc);
 
-	/*
-	 * pass 3
-	 * iterate propagating usage
-	 * 	back until flow graph is complete
-	 */
+/*
+ * pass 3
+ * iterate propagating usage
+ * 	back until flow graph is complete
+ */
 loop1:
 	change = 0;
 	for(r = firstr; r != R; r = r->link)
@@ -252,12 +251,11 @@ loop11:
 	if(change)
 		goto loop1;
 
-
-	/*
-	 * pass 4
-	 * iterate propagating register/variable synchrony
-	 * 	forward until graph is complete
-	 */
+/*
+ * pass 4
+ * iterate propagating register/variable synchrony
+ * 	forward until graph is complete
+ */
 loop2:
 	change = 0;
 	for(r = firstr; r != R; r = r->link)
@@ -272,11 +270,12 @@ loop2:
 		print("\nprop structure:\n");
 		for(r = firstr; r != R; r = r->link) {
 			print("%ld:%P", r->loop, r->prog);
-			for(z=0; z<BITS; z++)
-				bit.b[z] = r->set.b[z] |
-					r->refahead.b[z] | r->calahead.b[z] |
-					r->refbehind.b[z] | r->calbehind.b[z] |
-					r->use1.b[z] | r->use2.b[z];
+			for(z = 0; z < BITS; z++)
+				bit.b[z] = r->set.b[z] | r->refahead.b[z] |
+				           r->calahead.b[z] |
+				           r->refbehind.b[z] |
+				           r->calbehind.b[z] | r->use1.b[z] |
+				           r->use2.b[z];
 			if(bany(&bit)) {
 				print("\t");
 				if(bany(&r->use1))
@@ -307,9 +306,10 @@ loop2:
 	 */
 	r = firstr;
 	if(r) {
-		for(z=0; z<BITS; z++)
+		for(z = 0; z < BITS; z++)
 			bit.b[z] = (r->refahead.b[z] | r->calahead.b[z]) &
-			  ~(externs.b[z] | params.b[z] | addrs.b[z] | consts.b[z]);
+			           ~(externs.b[z] | params.b[z] | addrs.b[z] |
+			             consts.b[z]);
 		if(bany(&bit)) {
 			nearln = r->prog->lineno;
 			warn(Z, "used and not set: %B", bit);
@@ -323,9 +323,10 @@ loop2:
 	rgp = region;
 	nregion = 0;
 	for(r = firstr; r != R; r = r->link) {
-		for(z=0; z<BITS; z++)
-			bit.b[z] = r->set.b[z] &
-			  ~(r->refahead.b[z] | r->calahead.b[z] | addrs.b[z]);
+		for(z = 0; z < BITS; z++)
+			bit.b[z] =
+			    r->set.b[z] &
+			    ~(r->refahead.b[z] | r->calahead.b[z] | addrs.b[z]);
 		if(bany(&bit)) {
 			nearln = r->prog->lineno;
 			warn(Z, "set and not used: %B", bit);
@@ -333,7 +334,7 @@ loop2:
 				print("set and not used: %B\n", bit);
 			excise(r);
 		}
-		for(z=0; z<BITS; z++)
+		for(z = 0; z < BITS; z++)
 			bit.b[z] = LOAD(r) & ~(r->act.b[z] | addrs.b[z]);
 		while(bany(&bit)) {
 			i = bnum(bit);
@@ -343,11 +344,11 @@ loop2:
 			if(debug['R'] && debug['v'])
 				print("\n");
 			paint1(r, i);
-			bit.b[i/32] &= ~(1L<<(i%32));
+			bit.b[i / 32] &= ~(1L << (i % 32));
 			if(change <= 0) {
 				if(debug['R'])
-					print("%L $%d: %B\n",
-						r->prog->lineno, change, blsh(i));
+					print("%L $%d: %B\n", r->prog->lineno,
+					      change, blsh(i));
 				continue;
 			}
 			rgp->cost = change;
@@ -368,23 +369,19 @@ brk:
 	 * replace code (paint3)
 	 */
 	rgp = region;
-	for(i=0; i<nregion; i++) {
+	for(i = 0; i < nregion; i++) {
 		bit = blsh(rgp->varno);
 		vreg = paint2(rgp->enter, rgp->varno);
 		vreg = allreg(vreg, rgp);
 		if(debug['R']) {
 			if(rgp->regno >= NREG)
 				print("%L $%d F%d: %B\n",
-					rgp->enter->prog->lineno,
-					rgp->cost,
-					rgp->regno-NREG,
-					bit);
+				      rgp->enter->prog->lineno, rgp->cost,
+				      rgp->regno - NREG, bit);
 			else
 				print("%L $%d R%d: %B\n",
-					rgp->enter->prog->lineno,
-					rgp->cost,
-					rgp->regno,
-					bit);
+				      rgp->enter->prog->lineno, rgp->cost,
+				      rgp->regno, bit);
 		}
 		if(rgp->regno != 0)
 			paint3(rgp->enter, rgp->varno, vreg, rgp->regno);
@@ -446,7 +443,7 @@ brk:
 	 * eliminate nops
 	 * free aux structures
 	 */
-	for(p = firstr->prog; p != P; p = p->link){
+	for(p = firstr->prog; p != P; p = p->link) {
 		while(p->link && p->link->as == ANOP)
 			p->link = p->link->link;
 	}
@@ -459,7 +456,7 @@ brk:
 void
 addsplits(void)
 {
-	Reg *r, *r1;
+	Reg* r, *r1;
 	int z, i;
 	Bits bit;
 
@@ -471,13 +468,14 @@ addsplits(void)
 		for(r1 = r->p2; r1 != R; r1 = r1->p2link) {
 			if(r1->loop <= 1)
 				continue;
-			for(z=0; z<BITS; z++)
+			for(z = 0; z < BITS; z++)
 				bit.b[z] = r1->calbehind.b[z] &
-					(r->refahead.b[z] | r->use1.b[z] | r->use2.b[z]) &
-					~(r->calahead.b[z] & addrs.b[z]);
+				           (r->refahead.b[z] | r->use1.b[z] |
+				            r->use2.b[z]) &
+				           ~(r->calahead.b[z] & addrs.b[z]);
 			while(bany(&bit)) {
 				i = bnum(bit);
-				bit.b[i/32] &= ~(1L << (i%32));
+				bit.b[i / 32] &= ~(1L << (i % 32));
 			}
 		}
 	}
@@ -488,11 +486,11 @@ addsplits(void)
  * just after r
  */
 void
-addmove(Reg *r, int bn, int rn, int f)
+addmove(Reg* r, int bn, int rn, int f)
 {
-	Prog *p, *p1;
-	Adr *a;
-	Var *v;
+	Prog* p, *p1;
+	Adr* a;
+	Var* v;
 
 	p1 = alloc(sizeof(*p1));
 	*p1 = zprog;
@@ -527,7 +525,7 @@ addmove(Reg *r, int bn, int rn, int f)
 	p1->from.reg = rn;
 	if(rn >= NREG) {
 		p1->from.type = D_FREG;
-		p1->from.reg = rn-NREG;
+		p1->from.reg = rn - NREG;
 	}
 	if(!f) {
 		p1->from = *a;
@@ -536,7 +534,7 @@ addmove(Reg *r, int bn, int rn, int f)
 		a->reg = rn;
 		if(rn >= NREG) {
 			a->type = D_FREG;
-			a->reg = rn-NREG;
+			a->reg = rn - NREG;
 		}
 		if(v->etype == TUCHAR)
 			p1->as = AMOVBU;
@@ -548,13 +546,13 @@ addmove(Reg *r, int bn, int rn, int f)
 }
 
 Bits
-mkvar(Adr *a, int docon)
+mkvar(Adr* a, int docon)
 {
-	Var *v;
+	Var* v;
 	int i, t, n, et, z;
 	int32_t o;
 	Bits bit;
-	Sym *s;
+	Sym* s;
 
 	t = a->type;
 	if(t == D_REG && a->reg != NREG)
@@ -576,11 +574,11 @@ mkvar(Adr *a, int docon)
 
 	n = a->name;
 	v = var;
-	for(i=0; i<nvar; i++) {
+	for(i = 0; i < nvar; i++) {
 		if(s == v->sym)
-		if(n == v->name)
-		if(o == v->offset)
-			goto out;
+			if(n == v->name)
+				if(o == v->offset)
+					goto out;
 		v++;
 	}
 	if(s)
@@ -603,24 +601,24 @@ mkvar(Adr *a, int docon)
 out:
 	bit = blsh(i);
 	if(n == D_EXTERN || n == D_STATIC)
-		for(z=0; z<BITS; z++)
+		for(z = 0; z < BITS; z++)
 			externs.b[z] |= bit.b[z];
 	if(n == D_PARAM)
-		for(z=0; z<BITS; z++)
+		for(z = 0; z < BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(v->etype != et || !typechlpfd[et])	/* funny punning */
-		for(z=0; z<BITS; z++)
+	if(v->etype != et || !typechlpfd[et]) /* funny punning */
+		for(z = 0; z < BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	if(t == D_CONST) {
 		if(s == S) {
-			for(z=0; z<BITS; z++)
+			for(z = 0; z < BITS; z++)
 				consts.b[z] |= bit.b[z];
 			return bit;
 		}
 		if(et != TARRAY)
-			for(z=0; z<BITS; z++)
+			for(z = 0; z < BITS; z++)
 				addrs.b[z] |= bit.b[z];
-		for(z=0; z<BITS; z++)
+		for(z = 0; z < BITS; z++)
 			params.b[z] |= bit.b[z];
 		return bit;
 	}
@@ -632,13 +630,13 @@ none:
 }
 
 void
-prop(Reg *r, Bits ref, Bits cal)
+prop(Reg* r, Bits ref, Bits cal)
 {
-	Reg *r1, *r2;
+	Reg* r1, *r2;
 	int z;
 
 	for(r1 = r; r1 != R; r1 = r1->p1) {
-		for(z=0; z<BITS; z++) {
+		for(z = 0; z < BITS; z++) {
 			ref.b[z] |= r1->refahead.b[z];
 			if(ref.b[z] != r1->refahead.b[z]) {
 				r1->refahead.b[z] = ref.b[z];
@@ -652,29 +650,30 @@ prop(Reg *r, Bits ref, Bits cal)
 		}
 		switch(r1->prog->as) {
 		case AJAL:
-			for(z=0; z<BITS; z++) {
+			for(z = 0; z < BITS; z++) {
 				cal.b[z] |= ref.b[z] | externs.b[z];
 				ref.b[z] = 0;
 			}
 			break;
 
 		case ATEXT:
-			for(z=0; z<BITS; z++) {
+			for(z = 0; z < BITS; z++) {
 				cal.b[z] = 0;
 				ref.b[z] = 0;
 			}
 			break;
 
 		case ARET:
-			for(z=0; z<BITS; z++) {
+			for(z = 0; z < BITS; z++) {
 				cal.b[z] = externs.b[z];
 				ref.b[z] = 0;
 			}
 		}
-		for(z=0; z<BITS; z++) {
-			ref.b[z] = (ref.b[z] & ~r1->set.b[z]) |
-				r1->use1.b[z] | r1->use2.b[z];
-			cal.b[z] &= ~(r1->set.b[z] | r1->use1.b[z] | r1->use2.b[z]);
+		for(z = 0; z < BITS; z++) {
+			ref.b[z] = (ref.b[z] & ~r1->set.b[z]) | r1->use1.b[z] |
+			           r1->use2.b[z];
+			cal.b[z] &=
+			    ~(r1->set.b[z] | r1->use1.b[z] | r1->use2.b[z]);
 			r1->refbehind.b[z] = ref.b[z];
 			r1->calbehind.b[z] = cal.b[z];
 		}
@@ -696,16 +695,17 @@ prop(Reg *r, Bits ref, Bits cal)
  *	otherwise, dominators plus some other non-dominators.
  *	See Matthew S. Hecht and Jeffrey D. Ullman,
  *	"Analysis of a Simple Algorithm for Global Data Flow Problems",
- *	Conf.  Record of ACM Symp. on Principles of Prog. Langs, Boston, Massachusetts,
+ *	Conf.  Record of ACM Symp. on Principles of Prog. Langs, Boston,
+ *Massachusetts,
  *	Oct. 1-3, 1973, pp.  207-217.
  * 3) find all nodes with a predecessor dominated by the current node.
  *	such a node is a loop head.
  *	recursively, all preds with a greater rpo number are in the loop
  */
 int32_t
-postorder(Reg *r, Reg **rpo2r, int32_t n)
+postorder(Reg* r, Reg** rpo2r, int32_t n)
 {
-	Reg *r1;
+	Reg* r1;
 
 	r->rpo = 1;
 	r1 = r->s1;
@@ -720,19 +720,19 @@ postorder(Reg *r, Reg **rpo2r, int32_t n)
 }
 
 int32_t
-rpolca(int32_t *idom, int32_t rpo1, int32_t rpo2)
+rpolca(int32_t* idom, int32_t rpo1, int32_t rpo2)
 {
 	int32_t t;
 
 	if(rpo1 == -1)
 		return rpo2;
-	while(rpo1 != rpo2){
-		if(rpo1 > rpo2){
+	while(rpo1 != rpo2) {
+		if(rpo1 > rpo2) {
 			t = rpo2;
 			rpo2 = rpo1;
 			rpo1 = t;
 		}
-		while(rpo1 < rpo2){
+		while(rpo1 < rpo2) {
 			t = idom[rpo2];
 			if(t >= rpo2)
 				fatal(Z, "bad idom");
@@ -743,7 +743,7 @@ rpolca(int32_t *idom, int32_t rpo1, int32_t rpo2)
 }
 
 int
-doms(int32_t *idom, int32_t r, int32_t s)
+doms(int32_t* idom, int32_t r, int32_t s)
 {
 	while(s > r)
 		s = idom[s];
@@ -751,7 +751,7 @@ doms(int32_t *idom, int32_t r, int32_t s)
 }
 
 int
-loophead(int32_t *idom, Reg *r)
+loophead(int32_t* idom, Reg* r)
 {
 	int32_t src;
 
@@ -765,7 +765,7 @@ loophead(int32_t *idom, Reg *r)
 }
 
 void
-loopmark(Reg **rpo2r, int32_t head, Reg *r)
+loopmark(Reg** rpo2r, int32_t head, Reg* r)
 {
 	if(r->rpo < head || r->active == head)
 		return;
@@ -778,9 +778,9 @@ loopmark(Reg **rpo2r, int32_t head, Reg *r)
 }
 
 void
-loopit(Reg *r, int32_t nr)
+loopit(Reg* r, int32_t nr)
 {
-	Reg *r1;
+	Reg* r1;
 	int32_t i, d, me;
 
 	if(nr > maxnr) {
@@ -793,7 +793,7 @@ loopit(Reg *r, int32_t nr)
 	if(d > nr)
 		fatal(Z, "too many reg nodes");
 	nr = d;
-	for(i = 0; i < nr / 2; i++){
+	for(i = 0; i < nr / 2; i++) {
 		r1 = rpo2r[i];
 		rpo2r[i] = rpo2r[nr - 1 - i];
 		rpo2r[nr - 1 - i] = r1;
@@ -802,7 +802,7 @@ loopit(Reg *r, int32_t nr)
 		rpo2r[i]->rpo = i;
 
 	idom[0] = 0;
-	for(i = 0; i < nr; i++){
+	for(i = 0; i < nr; i++) {
 		r1 = rpo2r[i];
 		me = r1->rpo;
 		d = -1;
@@ -814,7 +814,7 @@ loopit(Reg *r, int32_t nr)
 		idom[i] = d;
 	}
 
-	for(i = 0; i < nr; i++){
+	for(i = 0; i < nr; i++) {
 		r1 = rpo2r[i];
 		r1->loop++;
 		if(r1->p2 != R && loophead(idom, r1))
@@ -823,16 +823,17 @@ loopit(Reg *r, int32_t nr)
 }
 
 void
-synch(Reg *r, Bits dif)
+synch(Reg* r, Bits dif)
 {
-	Reg *r1;
+	Reg* r1;
 	int z;
 
 	for(r1 = r; r1 != R; r1 = r1->s1) {
-		for(z=0; z<BITS; z++) {
-			dif.b[z] = (dif.b[z] &
-				~(~r1->refbehind.b[z] & r1->refahead.b[z])) |
-					r1->set.b[z] | r1->regdiff.b[z];
+		for(z = 0; z < BITS; z++) {
+			dif.b[z] =
+			    (dif.b[z] &
+			     ~(~r1->refbehind.b[z] & r1->refahead.b[z])) |
+			    r1->set.b[z] | r1->regdiff.b[z];
 			if(dif.b[z] != r1->regdiff.b[z]) {
 				r1->regdiff.b[z] = dif.b[z];
 				change++;
@@ -841,7 +842,7 @@ synch(Reg *r, Bits dif)
 		if(r1->active)
 			break;
 		r1->active = 1;
-		for(z=0; z<BITS; z++)
+		for(z = 0; z < BITS; z++)
 			dif.b[z] &= ~(~r1->calbehind.b[z] & r1->calahead.b[z]);
 		if(r1->s2 != R)
 			synch(r1->s2, dif);
@@ -849,9 +850,9 @@ synch(Reg *r, Bits dif)
 }
 
 uint32_t
-allreg(uint32_t b, Rgn *r)
+allreg(uint32_t b, Rgn* r)
 {
-	Var *v;
+	Var* v;
 	int i;
 
 	v = var + r->varno;
@@ -883,7 +884,7 @@ allreg(uint32_t b, Rgn *r)
 	case TFLOAT:
 		i = BtoF(~b);
 		if(i && r->cost >= 0) {
-			r->regno = i+NREG;
+			r->regno = i + NREG;
 			return FtoB(i);
 		}
 		break;
@@ -892,15 +893,15 @@ allreg(uint32_t b, Rgn *r)
 }
 
 void
-paint1(Reg *r, int bn)
+paint1(Reg* r, int bn)
 {
-	Reg *r1;
-	Prog *p;
+	Reg* r1;
+	Prog* p;
 	int z;
 	uint32_t bb;
 
-	z = bn/32;
-	bb = 1L<<(bn%32);
+	z = bn / 32;
+	bb = 1L << (bn % 32);
 	if(r->act.b[z] & bb)
 		return;
 	for(;;) {
@@ -916,11 +917,11 @@ paint1(Reg *r, int bn)
 		r = r1;
 	}
 
-	if(LOAD(r) & ~(r->set.b[z] & ~(r->use1.b[z]|r->use2.b[z])) & bb) {
+	if(LOAD(r) & ~(r->set.b[z] & ~(r->use1.b[z] | r->use2.b[z])) & bb) {
 		change -= CLOAD * r->loop;
 		if(debug['R'] && debug['v'])
-			print("%ld%P\tld %B $%d\n", r->loop,
-				r->prog, blsh(bn), change);
+			print("%ld%P\tld %B $%d\n", r->loop, r->prog, blsh(bn),
+			      change);
 	}
 	for(;;) {
 		r->act.b[z] |= bb;
@@ -929,22 +930,22 @@ paint1(Reg *r, int bn)
 		if(r->use1.b[z] & bb) {
 			change += CREF * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tu1 %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P\tu1 %B $%d\n", r->loop, p,
+				      blsh(bn), change);
 		}
 
-		if((r->use2.b[z]|r->set.b[z]) & bb) {
+		if((r->use2.b[z] | r->set.b[z]) & bb) {
 			change += CREF * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tu2 %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P\tu2 %B $%d\n", r->loop, p,
+				      blsh(bn), change);
 		}
 
 		if(STORE(r) & r->regdiff.b[z] & bb) {
 			change -= CLOAD * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tst %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P\tst %B $%d\n", r->loop, p,
+				      blsh(bn), change);
 		}
 
 		if(r->refbehind.b[z] & bb)
@@ -969,14 +970,14 @@ paint1(Reg *r, int bn)
 }
 
 uint32_t
-paint2(Reg *r, int bn)
+paint2(Reg* r, int bn)
 {
-	Reg *r1;
+	Reg* r1;
 	int z;
 	uint32_t bb, vreg;
 
-	z = bn/32;
-	bb = 1L << (bn%32);
+	z = bn / 32;
+	bb = 1L << (bn % 32);
 	vreg = regbits;
 	if(!(r->act.b[z] & bb))
 		return vreg;
@@ -1020,15 +1021,15 @@ paint2(Reg *r, int bn)
 }
 
 void
-paint3(Reg *r, int bn, int32_t rb, int rn)
+paint3(Reg* r, int bn, int32_t rb, int rn)
 {
-	Reg *r1;
-	Prog *p;
+	Reg* r1;
+	Prog* p;
 	int z;
 	uint32_t bb;
 
-	z = bn/32;
-	bb = 1L << (bn%32);
+	z = bn / 32;
+	bb = 1L << (bn % 32);
 	if(r->act.b[z] & bb)
 		return;
 	for(;;) {
@@ -1044,7 +1045,7 @@ paint3(Reg *r, int bn, int32_t rb, int rn)
 		r = r1;
 	}
 
-	if(LOAD(r) & ~(r->set.b[z] & ~(r->use1.b[z]|r->use2.b[z])) & bb)
+	if(LOAD(r) & ~(r->set.b[z] & ~(r->use1.b[z] | r->use2.b[z])) & bb)
 		addmove(r, bn, rn, 0);
 	for(;;) {
 		r->act.b[z] |= bb;
@@ -1057,7 +1058,7 @@ paint3(Reg *r, int bn, int32_t rb, int rn)
 			if(debug['R'])
 				print("\t.c%P\n", p);
 		}
-		if((r->use2.b[z]|r->set.b[z]) & bb) {
+		if((r->use2.b[z] | r->set.b[z]) & bb) {
 			if(debug['R'])
 				print("%P", p);
 			addreg(&p->to, rn);
@@ -1091,7 +1092,7 @@ paint3(Reg *r, int bn, int32_t rb, int rn)
 }
 
 void
-addreg(Adr *a, int rn)
+addreg(Adr* a, int rn)
 {
 
 	a->sym = 0;
@@ -1100,7 +1101,7 @@ addreg(Adr *a, int rn)
 	a->reg = rn;
 	if(rn >= NREG) {
 		a->type = D_FREG;
-		a->reg = rn-NREG;
+		a->reg = rn - NREG;
 	}
 }
 
@@ -1118,7 +1119,7 @@ RtoB(int r)
 
 	if(r < 3 || r > 23)
 		return 0;
-	return 1L << (r-3);
+	return 1L << (r - 3);
 }
 
 BtoR(long b)
@@ -1141,9 +1142,9 @@ int32_t
 FtoB(int f)
 {
 
-	if(f < 4 || f > 22 || (f&1))
+	if(f < 4 || f > 22 || (f & 1))
 		return 0;
-	return 1L << (f/2 + 20);
+	return 1L << (f / 2 + 20);
 }
 
 int
@@ -1153,5 +1154,5 @@ BtoF(int32_t b)
 	b &= 0xffc00000L;
 	if(b == 0)
 		return 0;
-	return bitno(b)*2 - 40;
+	return bitno(b) * 2 - 40;
 }

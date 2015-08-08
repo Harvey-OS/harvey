@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,27 +27,27 @@
 /* Device color representation for drivers */
 
 #ifndef gsdcolor_INCLUDED
-#  define gsdcolor_INCLUDED
+#define gsdcolor_INCLUDED
 
 #include "gsccolor.h"
-#include "gxarith.h"		/* for imod */
+#include "gxarith.h" /* for imod */
 #include "gxbitmap.h"
 #include "gxhttile.h"
 #include "gxcindex.h"
 #include "gxwts.h"
 
 #ifndef gx_device_color_DEFINED
-#  define gx_device_color_DEFINED
+#define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
 #endif
 
 #ifndef gx_device_saved_color_DEFINED
-#  define gx_device_saved_color_DEFINED
-typedef struct gx_device_color_saved_s  gx_device_color_saved;
+#define gx_device_saved_color_DEFINED
+typedef struct gx_device_color_saved_s gx_device_color_saved;
 #endif
 
 #ifndef gx_device_halftone_DEFINED
-#  define gx_device_halftone_DEFINED
+#define gx_device_halftone_DEFINED
 typedef struct gx_device_halftone_s gx_device_halftone;
 #endif
 
@@ -65,30 +65,21 @@ typedef struct gx_device_halftone_s gx_device_halftone;
  */
 
 /* Accessing a pure color. */
-#define gx_dc_is_pure(pdc)\
-  ((pdc)->type == gx_dc_type_pure)
-#define gx_dc_writes_pure(pdc, lop)\
-  (gx_dc_is_pure(pdc) && lop_no_S_is_T(lop))
-#define gx_dc_pure_color(pdc)\
-  ((pdc)->colors.pure)
+#define gx_dc_is_pure(pdc) ((pdc)->type == gx_dc_type_pure)
+#define gx_dc_writes_pure(pdc, lop) (gx_dc_is_pure(pdc) && lop_no_S_is_T(lop))
+#define gx_dc_pure_color(pdc) ((pdc)->colors.pure)
 
 /* Accessing the phase of a halftone. */
-#define gx_dc_phase(pdc)\
-  ((pdc)->phase)
+#define gx_dc_phase(pdc) ((pdc)->phase)
 
 /* Accessing a binary halftone. */
-#define gx_dc_is_binary_halftone(pdc)\
-  ((pdc)->type == gx_dc_type_ht_binary)
-#define gx_dc_binary_tile(pdc)\
-  (&(pdc)->colors.binary.b_tile->tiles)
-#define gx_dc_binary_color0(pdc)\
-  ((pdc)->colors.binary.color[0])
-#define gx_dc_binary_color1(pdc)\
-  ((pdc)->colors.binary.color[1])
+#define gx_dc_is_binary_halftone(pdc) ((pdc)->type == gx_dc_type_ht_binary)
+#define gx_dc_binary_tile(pdc) (&(pdc)->colors.binary.b_tile->tiles)
+#define gx_dc_binary_color0(pdc) ((pdc)->colors.binary.color[0])
+#define gx_dc_binary_color1(pdc) ((pdc)->colors.binary.color[1])
 
 /* Accessing a colored halftone. */
-#define gx_dc_is_colored_halftone(pdc)\
-  ((pdc)->type == gx_dc_type_ht_colored)
+#define gx_dc_is_colored_halftone(pdc) ((pdc)->type == gx_dc_type_ht_colored)
 
 /*
  * Test device colors for equality.  Testing for equality is done
@@ -96,8 +87,8 @@ typedef struct gx_device_halftone_s gx_device_halftone;
  * routines should err toward false responses if there is any question
  * about the equality of the two device colors.
  */
-bool gx_device_color_equal(const gx_device_color *pdevc1,
-			   const gx_device_color *pdevc2);
+bool gx_device_color_equal(const gx_device_color* pdevc1,
+                           const gx_device_color* pdevc2);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * The definitions in the following section of the file, plus the ones
@@ -105,16 +96,12 @@ bool gx_device_color_equal(const gx_device_color *pdevc1,
  * set as well as read device colors.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define color_is_set(pdc)\
-  ((pdc)->type != gx_dc_type_none)
-#define color_unset(pdc)\
-  ((pdc)->type = gx_dc_type_none)
+#define color_is_set(pdc) ((pdc)->type != gx_dc_type_none)
+#define color_unset(pdc) ((pdc)->type = gx_dc_type_none)
 
-#define gx_dc_is_null(pdc)\
-  ((pdc)->type == gx_dc_type_null)
+#define gx_dc_is_null(pdc) ((pdc)->type == gx_dc_type_null)
 #define color_is_null(pdc) gx_dc_is_null(pdc)
-#define color_set_null(pdc)\
-  ((pdc)->type = gx_dc_type_null)
+#define color_set_null(pdc) ((pdc)->type = gx_dc_type_null)
 
 #define color_is_pure(pdc) gx_dc_is_pure(pdc)
 #define color_writes_pure(pdc, lop) gx_dc_writes_pure(pdc, lop)
@@ -123,58 +110,55 @@ bool gx_device_color_equal(const gx_device_color *pdevc1,
  * This macro assumes the colorspace and client color information is already
  * defined in the device color strucTure.  If not then see the next macro.
  */
-#define color_set_pure(pdc, color)\
-  ((pdc)->colors.pure = (color),\
-   (pdc)->type = gx_dc_type_pure)
+#define color_set_pure(pdc, color)                                             \
+	((pdc)->colors.pure = (color), (pdc)->type = gx_dc_type_pure)
 /*
  * Used to create special case device colors for which the colorspace
  * and client colors are not already contained in the device color.
  */
-#define set_nonclient_dev_color(pdc, color)\
-    color_set_pure(pdc, color);\
-    (pdc)->ccolor_valid = false
+#define set_nonclient_dev_color(pdc, color)                                    \
+	color_set_pure(pdc, color);                                            \
+	(pdc)->ccolor_valid = false
 
 /* Set the phase to an offset from the tile origin. */
-#define color_set_phase(pdc, px, py)\
-  ((pdc)->phase.x = (px),\
-   (pdc)->phase.y = (py))
+#define color_set_phase(pdc, px, py)                                           \
+	((pdc)->phase.x = (px), (pdc)->phase.y = (py))
 /* Set the phase from the halftone phase in a graphics state. */
-#define color_set_phase_mod(pdc, px, py, tw, th)\
-  color_set_phase(pdc, imod(-(px), tw), imod(-(py), th))
+#define color_set_phase_mod(pdc, px, py, tw, th)                               \
+	color_set_phase(pdc, imod(-(px), tw), imod(-(py), th))
 
 #define color_is_binary_halftone(pdc) gx_dc_is_binary_halftone(pdc)
-#define color_set_binary_halftone_component(pdc, ht, index, color0, color1, level)\
-  ((pdc)->colors.binary.b_ht = (ht),\
-   (pdc)->colors.binary.b_index = (index),\
-   (pdc)->colors.binary.color[0] = (color0),\
-   (pdc)->colors.binary.color[1] = (color1),\
-   (pdc)->colors.binary.b_level = (level),\
-   (pdc)->type = gx_dc_type_ht_binary)
-#define color_set_binary_halftone(pdc, ht, color0, color1, level)\
-  color_set_binary_halftone_component(pdc, ht, -1, color0, color1, level)
-#define color_set_binary_tile(pdc, color0, color1, tile)\
-  ((pdc)->colors.binary.b_ht = 0,\
-   (pdc)->colors.binary.color[0] = (color0),\
-   (pdc)->colors.binary.color[1] = (color1),\
-   (pdc)->colors.binary.b_index = -1, /* irrelevant */\
-   (pdc)->colors.binary.b_tile = (tile),\
-   (pdc)->type = gx_dc_type_ht_binary)
+#define color_set_binary_halftone_component(pdc, ht, index, color0, color1,    \
+                                            level)                             \
+	((pdc)->colors.binary.b_ht = (ht),                                     \
+	 (pdc)->colors.binary.b_index = (index),                               \
+	 (pdc)->colors.binary.color[0] = (color0),                             \
+	 (pdc)->colors.binary.color[1] = (color1),                             \
+	 (pdc)->colors.binary.b_level = (level),                               \
+	 (pdc)->type = gx_dc_type_ht_binary)
+#define color_set_binary_halftone(pdc, ht, color0, color1, level)              \
+	color_set_binary_halftone_component(pdc, ht, -1, color0, color1, level)
+#define color_set_binary_tile(pdc, color0, color1, tile)                       \
+	((pdc)->colors.binary.b_ht = 0,                                        \
+	 (pdc)->colors.binary.color[0] = (color0),                             \
+	 (pdc)->colors.binary.color[1] = (color1),                             \
+	 (pdc)->colors.binary.b_index = -1, /* irrelevant */                   \
+	 (pdc)->colors.binary.b_tile = (tile),                                 \
+	 (pdc)->type = gx_dc_type_ht_binary)
 
 #define color_is_colored_halftone(pdc) gx_dc_is_colored_halftone(pdc)
-#define _color_set_c(pdc, i, b, l)\
-  ((pdc)->colors.colored.c_base[i] = (b),\
-   (pdc)->colors.colored.c_level[i] = (l))
+#define _color_set_c(pdc, i, b, l)                                             \
+	((pdc)->colors.colored.c_base[i] = (b),                                \
+	 (pdc)->colors.colored.c_level[i] = (l))
 
 /* Some special clients set the individual components separately. */
-void gx_complete_halftone(gx_device_color *pdevc, int num_comps,
-                          gx_device_halftone *pdht);
+void gx_complete_halftone(gx_device_color* pdevc, int num_comps,
+                          gx_device_halftone* pdht);
 
 /* Note that color_set_null_pattern doesn't set mask.ccolor. */
-#define color_set_null_pattern(pdc)\
- ((pdc)->mask.id = gx_no_bitmap_id,\
-  (pdc)->mask.m_tile = 0,\
-  (pdc)->colors.pattern.p_tile = 0,\
-  (pdc)->type = gx_dc_type_pattern)
+#define color_set_null_pattern(pdc)                                            \
+	((pdc)->mask.id = gx_no_bitmap_id, (pdc)->mask.m_tile = 0,             \
+	 (pdc)->colors.pattern.p_tile = 0, (pdc)->type = gx_dc_type_pattern)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * The remaining definitions are internal ones that are included in this
@@ -186,12 +170,12 @@ void gx_complete_halftone(gx_device_color *pdevc, int num_comps,
 /* Define opaque types for objects referenced by device colors. */
 
 #ifndef gx_ht_tile_DEFINED
-#  define gx_ht_tile_DEFINED
+#define gx_ht_tile_DEFINED
 typedef struct gx_ht_tile_s gx_ht_tile;
 #endif
 
 #ifndef gx_color_tile_DEFINED
-#  define gx_color_tile_DEFINED
+#define gx_color_tile_DEFINED
 typedef struct gx_color_tile_s gx_color_tile;
 #endif
 
@@ -263,87 +247,91 @@ typedef struct gx_color_tile_s gx_color_tile;
 /* Define the (opaque) type for device color types. */
 /* The name is an unfortunate anachronism. */
 typedef struct gx_device_color_type_s gx_device_color_type_t;
-typedef const gx_device_color_type_t *gx_device_color_type;
+typedef const gx_device_color_type_t* gx_device_color_type;
 
 struct gx_device_color_s {
-    /*
-     * Since some compilers don't allow static initialization of a
-     * union, we put the type first.
-     */
-    gx_device_color_type type;
-    /*
-     * See the comment above for descriptions of the members.  We use
-     * b_, c_, and p_ member names because some old compilers don't
-     * allow the same name to be used for two different structure
-     * members even when it's unambiguous.
-     */
-    union _c {
-	gx_color_index pure;
-	struct _bin {
-	    const gx_device_halftone *b_ht;
-	    gx_color_index color[2];
-	    uint b_level;
-	    int b_index;
-	    gx_ht_tile *b_tile;
-	} binary;
-	struct _col {
-	    gx_device_halftone *c_ht; /* non-const for setting cache ptr */
-	    ushort num_components;
-	    byte c_base[GX_DEVICE_COLOR_MAX_COMPONENTS];
-	    uint c_level[GX_DEVICE_COLOR_MAX_COMPONENTS];
-	    ushort /*gx_color_value */ alpha;
+	/*
+	 * Since some compilers don't allow static initialization of a
+	 * union, we put the type first.
+	 */
+	gx_device_color_type type;
+	/*
+	 * See the comment above for descriptions of the members.  We use
+	 * b_, c_, and p_ member names because some old compilers don't
+	 * allow the same name to be used for two different structure
+	 * members even when it's unambiguous.
+	 */
+	union _c {
+		gx_color_index pure;
+		struct _bin {
+			const gx_device_halftone* b_ht;
+			gx_color_index color[2];
+			uint b_level;
+			int b_index;
+			gx_ht_tile* b_tile;
+		} binary;
+		struct _col {
+			gx_device_halftone*
+			    c_ht; /* non-const for setting cache ptr */
+			ushort num_components;
+			byte c_base[GX_DEVICE_COLOR_MAX_COMPONENTS];
+			uint c_level[GX_DEVICE_COLOR_MAX_COMPONENTS];
+			ushort /*gx_color_value */ alpha;
 #if GX_DEVICE_COLOR_MAX_COMPONENTS <= ARCH_SIZEOF_SHORT * 8
-	    ushort plane_mask;
+			ushort plane_mask;
 #else
 #if GX_DEVICE_COLOR_MAX_COMPONENTS <= ARCH_SIZEOF_INT * 8
-	    uint plane_mask;
+			uint plane_mask;
 #else
-	    gx_color_index plane_mask;
+			gx_color_index plane_mask;
 #endif
 #endif
-	} colored;
-	struct _wts {
-	    const gx_device_halftone *w_ht;
-	    wts_screen_sample_t levels[GX_DEVICE_COLOR_MAX_COMPONENTS];
-	    ushort num_components;
+		} colored;
+		struct _wts {
+			const gx_device_halftone* w_ht;
+			wts_screen_sample_t
+			    levels[GX_DEVICE_COLOR_MAX_COMPONENTS];
+			ushort num_components;
 
-	    /* plane_mask and base_color would be an optimization */
-	    gx_color_index plane_vector[GX_DEVICE_COLOR_MAX_COMPONENTS];
-	} wts;
-	struct _pat {
-	    gx_color_tile *p_tile;
-	} /*(colored) */ pattern;
-    } colors;
-    gs_int_point phase;
-    /*
-     * This flag indicates if the paint values in ccolor are valid.  They
-     * are valid for most cases.  However there are some special cases
-     * in which a device color is initialized to specific values (usually
-     * black or white) instead of being created from a color space and
-     * color values.
-     */
-    bool ccolor_valid;
-    /*
-     * 'ccolor' (a "client color") is valid iff 'ccolor_valid' is true.
-     * For non-pattern colors, it contains the original paint values.
-     * For pattern colors, it contains information required for remapping
-     * the pattern.
-     */
-    gs_client_color ccolor;
+			/* plane_mask and base_color would be an optimization */
+			gx_color_index
+			    plane_vector[GX_DEVICE_COLOR_MAX_COMPONENTS];
+		} wts;
+		struct _pat {
+			gx_color_tile* p_tile;
+		} /*(colored) */ pattern;
+	} colors;
+	gs_int_point phase;
+	/*
+	 * This flag indicates if the paint values in ccolor are valid.  They
+	 * are valid for most cases.  However there are some special cases
+	 * in which a device color is initialized to specific values (usually
+	 * black or white) instead of being created from a color space and
+	 * color values.
+	 */
+	bool ccolor_valid;
+	/*
+	 * 'ccolor' (a "client color") is valid iff 'ccolor_valid' is true.
+	 * For non-pattern colors, it contains the original paint values.
+	 * For pattern colors, it contains information required for remapping
+	 * the pattern.
+	 */
+	gs_client_color ccolor;
 
-    struct _mask {
-	struct mp_ {
-	    short x, y;
-	} m_phase;
-	gx_bitmap_id id;
-	gx_color_tile *m_tile;
-    } mask;
+	struct _mask {
+		struct mp_ {
+			short x, y;
+		} m_phase;
+		gx_bitmap_id id;
+		gx_color_tile* m_tile;
+	} mask;
 };
 
-/*extern_st(st_device_color); *//* in gxdcolor.h */
-#define public_st_device_color() /* in gxcmap.c */\
-  gs_public_st_composite(st_device_color, gx_device_color, "gx_device_color",\
-    device_color_enum_ptrs, device_color_reloc_ptrs)
+/*extern_st(st_device_color); */ /* in gxdcolor.h */
+#define public_st_device_color() /* in gxcmap.c */                             \
+	gs_public_st_composite(st_device_color, gx_device_color,               \
+	                       "gx_device_color", device_color_enum_ptrs,      \
+	                       device_color_reloc_ptrs)
 #define st_device_color_max_ptrs (st_client_color_max_ptrs + 2)
 
 /*
@@ -384,33 +372,33 @@ struct gx_device_color_s {
  */
 
 struct gx_device_color_saved_s {
-    gx_device_color_type    type;
-    union _svc {
-        gx_color_index  pure;
-        struct _svbin {
-            gx_color_index  b_color[2];
-            uint            b_level;
-            int             b_index;
-        }               binary;
-        struct _svcol {
-            byte    c_base[GX_DEVICE_COLOR_MAX_COMPONENTS];
-            uint    c_level[GX_DEVICE_COLOR_MAX_COMPONENTS];
-            ushort  alpha;
-        }               colored;
-        struct _swts {
-            wts_screen_sample_t levels[GX_DEVICE_COLOR_MAX_COMPONENTS];
-        }               wts;
-	struct _pattern {
-	    gs_id id;
-	    gs_int_point phase;
-	}		pattern;
-	struct _pattern2 {
-	    gs_id id;
-	}		pattern2;
-    }                       colors;
-    gs_int_point            phase;
+	gx_device_color_type type;
+	union _svc {
+		gx_color_index pure;
+		struct _svbin {
+			gx_color_index b_color[2];
+			uint b_level;
+			int b_index;
+		} binary;
+		struct _svcol {
+			byte c_base[GX_DEVICE_COLOR_MAX_COMPONENTS];
+			uint c_level[GX_DEVICE_COLOR_MAX_COMPONENTS];
+			ushort alpha;
+		} colored;
+		struct _swts {
+			wts_screen_sample_t
+			    levels[GX_DEVICE_COLOR_MAX_COMPONENTS];
+		} wts;
+		struct _pattern {
+			gs_id id;
+			gs_int_point phase;
+		} pattern;
+		struct _pattern2 {
+			gs_id id;
+		} pattern2;
+	} colors;
+	gs_int_point phase;
 };
-
 
 /*
  * Define the standard device color types.
@@ -422,29 +410,30 @@ struct gx_device_color_saved_s {
  * C compilers can't handle the typedef correctly.
  */
 #ifndef gx_dc_type_none
-extern const gx_device_color_type_t *const gx_dc_type_none;	/* gxdcolor.c */
+extern const gx_device_color_type_t* const gx_dc_type_none; /* gxdcolor.c */
 #endif
 #ifndef gx_dc_type_null
-extern const gx_device_color_type_t *const gx_dc_type_null;	/* gxdcolor.c */
+extern const gx_device_color_type_t* const gx_dc_type_null; /* gxdcolor.c */
 #endif
 #ifndef gx_dc_type_pure
-extern const gx_device_color_type_t *const gx_dc_type_pure;	/* gxdcolor.c */
+extern const gx_device_color_type_t* const gx_dc_type_pure; /* gxdcolor.c */
 #endif
-		/*
-		 * We don't declare gx_dc_pattern here, so as not to create
-		 * a spurious external reference in Level 1 systems.
-		 */
+/*
+ * We don't declare gx_dc_pattern here, so as not to create
+ * a spurious external reference in Level 1 systems.
+ */
 #ifndef gx_dc_type_pattern
-/*extern const gx_device_color_type_t * const gx_dc_type_pattern; *//* gspcolor.c */
+/*extern const gx_device_color_type_t * const gx_dc_type_pattern; */ /* gspcolor.c
+                                                                        */
 #endif
 #ifndef gx_dc_type_ht_binary
-extern const gx_device_color_type_t *const gx_dc_type_ht_binary;	/* gxht.c */
+extern const gx_device_color_type_t* const gx_dc_type_ht_binary; /* gxht.c */
 #endif
 #ifndef gx_dc_type_ht_colored
-extern const gx_device_color_type_t *const gx_dc_type_ht_colored;	/* gxcht.c */
+extern const gx_device_color_type_t* const gx_dc_type_ht_colored; /* gxcht.c */
 #endif
 #ifndef gx_dc_type_ht_colored
-extern const gx_device_color_type_t *const gx_dc_type_wts;	/* gxwts.c */
+extern const gx_device_color_type_t* const gx_dc_type_wts; /* gxwts.c */
 #endif
 
 #endif /* gsdcolor_INCLUDED */

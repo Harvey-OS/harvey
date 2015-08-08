@@ -16,22 +16,23 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-char	authkey[DESKEYLEN];
-int	verb;
-int	usepass;
+char authkey[DESKEYLEN];
+int verb;
+int usepass;
 
-int	convert(char*, char*, int);
-int	dofcrypt(int, char*, char*, int);
-void	usage(void);
+int convert(char*, char*, int);
+int dofcrypt(int, char*, char*, int);
+void usage(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	Dir *d;
-	char *p, *file, key[DESKEYLEN];
+	Dir* d;
+	char* p, *file, key[DESKEYLEN];
 	int fd, len;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		usepass = 1;
 		break;
@@ -40,19 +41,20 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 	file = argv[0];
 
 	/* get original key */
-	if(usepass){
+	if(usepass) {
 		print("enter password file is encoded with\n");
 		getpass(authkey, nil, 0, 1);
 	} else
 		getauthkey(authkey);
-	if(!verb){
+	if(!verb) {
 		print("enter password to reencode with\n");
 		getpass(key, nil, 0, 1);
 	}
@@ -79,12 +81,12 @@ main(int argc, char *argv[])
 }
 
 void
-randombytes(uint8_t *p, int len)
+randombytes(uint8_t* p, int len)
 {
 	int i, fd;
 
 	fd = open("/dev/random", OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "convkeys: can't open /dev/random, using rand()\n");
 		srand(time(0));
 		for(i = 0; i < len; i++)
@@ -96,7 +98,7 @@ randombytes(uint8_t *p, int len)
 }
 
 void
-oldCBCencrypt(char *key7, char *p, int len)
+oldCBCencrypt(char* key7, char* p, int len)
 {
 	uint8_t ivec[8];
 	uint8_t key[8];
@@ -109,7 +111,7 @@ oldCBCencrypt(char *key7, char *p, int len)
 }
 
 void
-oldCBCdecrypt(char *key7, char *p, int len)
+oldCBCdecrypt(char* key7, char* p, int len)
 {
 	uint8_t ivec[8];
 	uint8_t key[8];
@@ -119,38 +121,38 @@ oldCBCdecrypt(char *key7, char *p, int len)
 	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
 	desCBCdecrypt((uint8_t*)p, len, &s);
-
 }
 
 static int
-badname(char *s)
+badname(char* s)
 {
 	int n;
 	Rune r;
 
-	for (; *s != '\0'; s += n) {
+	for(; *s != '\0'; s += n) {
 		n = chartorune(&r, s);
-		if (n == 1 && r == Runeerror)
+		if(n == 1 && r == Runeerror)
 			return 1;
 	}
 	return 0;
 }
 
 int
-convert(char *p, char *key, int len)
+convert(char* p, char* key, int len)
 {
 	int i;
 
 	len -= KEYDBOFF;
-	if(len % KEYDBLEN){
-		fprint(2, "convkeys: file odd length; not converting %d bytes\n",
-			len % KEYDBLEN);
+	if(len % KEYDBLEN) {
+		fprint(2,
+		       "convkeys: file odd length; not converting %d bytes\n",
+		       len % KEYDBLEN);
 		len -= len % KEYDBLEN;
 	}
 	len += KEYDBOFF;
 	oldCBCdecrypt(authkey, p, len);
 	for(i = KEYDBOFF; i < len; i += KEYDBLEN)
-		if (badname(&p[i])) {
+		if(badname(&p[i])) {
 			print("bad name %.30s... - aborting\n", &p[i]);
 			return 0;
 		}

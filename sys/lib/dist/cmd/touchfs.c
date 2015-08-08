@@ -12,7 +12,7 @@
 #include <bio.h>
 
 void
-Bpass(Biobuf *bin, Biobuf *bout, int n)
+Bpass(Biobuf* bin, Biobuf* bout, int n)
 {
 	char buf[8192];
 	int m;
@@ -33,15 +33,16 @@ Bpass(Biobuf *bin, Biobuf *bout, int n)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *p, *f[10];
+	char* p, *f[10];
 	Biobuf bin, bout;
 	int nf;
 	uint32_t d, size;
 
 	if(argc != 2) {
-		fprint(2, "usage: cat mkfs-archive | touchfs date (in seconds)\n");
+		fprint(2,
+		       "usage: cat mkfs-archive | touchfs date (in seconds)\n");
 		exits("usage");
 	}
 
@@ -52,7 +53,7 @@ main(int argc, char **argv)
 	Binit(&bout, 1, OWRITE);
 
 	while(p = Brdline(&bin, '\n')) {
-		p[Blinelen(&bin)-1] = '\0';
+		p[Blinelen(&bin) - 1] = '\0';
 		if(strcmp(p, "end of archive") == 0) {
 			Bprint(&bout, "end of archive\n");
 			exits(0);
@@ -64,8 +65,8 @@ main(int argc, char **argv)
 			exits("notdone");
 		}
 
-		Bprint(&bout, "%q %q %q %q %lud %q\n",
-			f[0], f[1], f[2], f[3], d, f[5]);
+		Bprint(&bout, "%q %q %q %q %lud %q\n", f[0], f[1], f[2], f[3],
+		       d, f[5]);
 
 		size = strtoul(f[5], 0, 0);
 		Bpass(&bin, &bout, size);

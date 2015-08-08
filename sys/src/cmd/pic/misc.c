@@ -14,42 +14,54 @@
 #include "pic.h"
 #include "y.tab.h"
 
-int whatpos(obj *p, int corner, double *px, double *py);
+int whatpos(obj* p, int corner, double* px, double* py);
 void makeattr(int type, int sub, YYSTYPE val);
-YYSTYPE getblk(obj *, char *);
+YYSTYPE getblk(obj*, char*);
 
-setdir(int n)	/* set direction (hvmode) from LEFT, RIGHT, etc. */
+setdir(int n) /* set direction (hvmode) from LEFT, RIGHT, etc. */
 {
-	switch (n) {
-	case UP:	hvmode = U_DIR; break;
-	case DOWN:	hvmode = D_DIR; break;
-	case LEFT:	hvmode = L_DIR; break;
-	case RIGHT:	hvmode = R_DIR; break;
+	switch(n) {
+	case UP:
+		hvmode = U_DIR;
+		break;
+	case DOWN:
+		hvmode = D_DIR;
+		break;
+	case LEFT:
+		hvmode = L_DIR;
+		break;
+	case RIGHT:
+		hvmode = R_DIR;
+		break;
 	}
- 	return(hvmode);
+	return (hvmode);
 }
 
-curdir(void)	/* convert current dir (hvmode) to RIGHT, LEFT, etc. */
+curdir(void) /* convert current dir (hvmode) to RIGHT, LEFT, etc. */
 {
-	switch (hvmode) {
-	case R_DIR:	return RIGHT;
-	case L_DIR:	return LEFT;
-	case U_DIR:	return UP;
-	case D_DIR:	return DOWN;
+	switch(hvmode) {
+	case R_DIR:
+		return RIGHT;
+	case L_DIR:
+		return LEFT;
+	case U_DIR:
+		return UP;
+	case D_DIR:
+		return DOWN;
 	}
 	ERROR "can't happen curdir" FATAL;
 	return 0;
 }
 
-double getcomp(obj *p, int t)	/* return component of a position */
+double getcomp(obj* p, int t) /* return component of a position */
 {
-	switch (t) {
+	switch(t) {
 	case DOTX:
 		return p->o_x;
 	case DOTY:
 		return p->o_y;
 	case DOTWID:
-		switch (p->o_type) {
+		switch(p->o_type) {
 		case BOX:
 		case BLOCK:
 		case TEXT:
@@ -64,7 +76,7 @@ double getcomp(obj *p, int t)	/* return component of a position */
 			return 0;
 		}
 	case DOTHT:
-		switch (p->o_type) {
+		switch(p->o_type) {
 		case BOX:
 		case BLOCK:
 		case TEXT:
@@ -79,7 +91,7 @@ double getcomp(obj *p, int t)	/* return component of a position */
 			return 0;
 		}
 	case DOTRAD:
-		switch (p->o_type) {
+		switch(p->o_type) {
 		case CIRCLE:
 		case ELLIPSE:
 			return p->o_val[0];
@@ -89,73 +101,76 @@ double getcomp(obj *p, int t)	/* return component of a position */
 	return 0;
 }
 
-double	exprlist[100];
-int	nexpr	= 0;
+double exprlist[100];
+int nexpr = 0;
 
-void exprsave(double f)
+void
+exprsave(double f)
 {
 	exprlist[nexpr++] = f;
 }
 
-char *sprintgen(char *fmt)
+char*
+sprintgen(char* fmt)
 {
 	char buf[1000];
 
-	sprintf(buf, fmt, exprlist[0], exprlist[1], exprlist[2], exprlist[3], exprlist[4]);
+	sprintf(buf, fmt, exprlist[0], exprlist[1], exprlist[2], exprlist[3],
+	        exprlist[4]);
 	nexpr = 0;
 	free(fmt);
 	return tostring(buf);
 }
 
-void makefattr(int type, int sub, double f)	/* double attr */
+void makefattr(int type, int sub, double f) /* double attr */
 {
 	YYSTYPE val;
 	val.f = f;
 	makeattr(type, sub, val);
 }
 
-void makeoattr(int type, obj *o)	/* obj* attr */
+void makeoattr(int type, obj* o) /* obj* attr */
 {
 	YYSTYPE val;
 	val.o = o;
 	makeattr(type, 0, val);
 }
 
-void makeiattr(int type, int i)	/* int attr */
+void makeiattr(int type, int i) /* int attr */
 {
 	YYSTYPE val;
 	val.i = i;
 	makeattr(type, 0, val);
 }
 
-void maketattr(int sub, char *p)	/* text attribute: takes two */
+void maketattr(int sub, char* p) /* text attribute: takes two */
 {
 	YYSTYPE val;
 	val.p = p;
 	makeattr(TEXTATTR, sub, val);
 }
 
-void addtattr(int sub)		/* add text attrib to existing item */
+void addtattr(int sub) /* add text attrib to existing item */
 {
-	attr[nattr-1].a_sub |= sub;
+	attr[nattr - 1].a_sub |= sub;
 }
 
-void makevattr(char *p)	/* varname attribute */
+void makevattr(char* p) /* varname attribute */
 {
 	YYSTYPE val;
 	val.p = p;
 	makeattr(VARNAME, 0, val);
 }
 
-void makeattr(int type, int sub, YYSTYPE val)	/* add attribute type and val */
+void makeattr(int type, int sub, YYSTYPE val) /* add attribute type and val */
 {
-	if (type == 0 && val.i == 0) {	/* clear table for next stat */
+	if(type == 0 && val.i == 0) { /* clear table for next stat */
 		nattr = 0;
 		return;
 	}
-	if (nattr >= nattrlist)
-		attr = (Attr *) grow((char *)attr, "attr",
-				     nattrlist += 100, sizeof(Attr));
+	if(nattr >= nattrlist)
+		attr = (Attr*)grow((char*)attr, "attr", nattrlist += 100,
+		                   sizeof(Attr));
 	dprintf("attr %d:  %d %d %d\n", nattr, type, sub, val.i);
 	attr[nattr].a_type = type;
 	attr[nattr].a_sub = sub;
@@ -163,49 +178,51 @@ void makeattr(int type, int sub, YYSTYPE val)	/* add attribute type and val */
 	nattr++;
 }
 
-void printexpr(double f)	/* print expression for debugging */
+void printexpr(double f) /* print expression for debugging */
 {
 	printf("%g\n", f);
 }
 
-void printpos(obj *p)	/* print position for debugging */
+void printpos(obj* p) /* print position for debugging */
 {
 	printf("%g, %g\n", p->o_x, p->o_y);
 }
 
-char *tostring(char *s)
+char*
+tostring(char* s)
 {
-	register char *p;
+	register char* p;
 
-	p = malloc(strlen(s)+1);
-	if (p == NULL)
+	p = malloc(strlen(s) + 1);
+	if(p == NULL)
 		ERROR "out of space in tostring on %s", s FATAL;
 	strcpy(p, s);
-	return(p);
+	return (p);
 }
 
-obj *makepos(double x, double y)	/* make a position cell */
+obj* makepos(double x, double y) /* make a position cell */
 {
-	obj *p;
+	obj* p;
 
 	p = makenode(PLACE, 0);
 	p->o_x = x;
 	p->o_y = y;
-	return(p);
+	return (p);
 }
 
-obj *makebetween(double f, obj *p1, obj *p2)	/* make position between p1 and p2 */
+obj* makebetween(double f, obj* p1,
+                 obj* p2) /* make position between p1 and p2 */
 {
-	obj *p;
+	obj* p;
 
 	dprintf("fraction = %.2f\n", f);
 	p = makenode(PLACE, 0);
 	p->o_x = p1->o_x + f * (p2->o_x - p1->o_x);
 	p->o_y = p1->o_y + f * (p2->o_y - p1->o_y);
-	return(p);
+	return (p);
 }
 
-obj *getpos(obj *p, int corner)	/* find position of point */
+obj* getpos(obj* p, int corner) /* find position of point */
 {
 	double x, y;
 
@@ -213,88 +230,162 @@ obj *getpos(obj *p, int corner)	/* find position of point */
 	return makepos(x, y);
 }
 
-int whatpos(obj *p, int corner, double *px, double *py)	/* what is the position (no side effect) */
+int whatpos(obj* p, int corner, double* px,
+            double* py) /* what is the position (no side effect) */
 {
 	double x, y, x1, y1;
 
-	if (p == NULL)
+	if(p == NULL)
 		ERROR "null object" FATAL;
 	dprintf("whatpos %o %d %d\n", p, p->o_type, corner);
 	x = p->o_x;
 	y = p->o_y;
-	if (p->o_type != PLACE && p->o_type != MOVE) {
+	if(p->o_type != PLACE && p->o_type != MOVE) {
 		x1 = p->o_val[0];
 		y1 = p->o_val[1];
 	}
-	switch (p->o_type) {
+	switch(p->o_type) {
 	case PLACE:
 		break;
 	case BOX:
 	case BLOCK:
 	case TEXT:
-		switch (corner) {
-		case NORTH:	y += y1 / 2; break;
-		case SOUTH:	y -= y1 / 2; break;
-		case EAST:	x += x1 / 2; break;
-		case WEST:	x -= x1 / 2; break;
-		case NE:	x += x1 / 2; y += y1 / 2; break;
-		case SW:	x -= x1 / 2; y -= y1 / 2; break;
-		case SE:	x += x1 / 2; y -= y1 / 2; break;
-		case NW:	x -= x1 / 2; y += y1 / 2; break;
+		switch(corner) {
+		case NORTH:
+			y += y1 / 2;
+			break;
+		case SOUTH:
+			y -= y1 / 2;
+			break;
+		case EAST:
+			x += x1 / 2;
+			break;
+		case WEST:
+			x -= x1 / 2;
+			break;
+		case NE:
+			x += x1 / 2;
+			y += y1 / 2;
+			break;
+		case SW:
+			x -= x1 / 2;
+			y -= y1 / 2;
+			break;
+		case SE:
+			x += x1 / 2;
+			y -= y1 / 2;
+			break;
+		case NW:
+			x -= x1 / 2;
+			y += y1 / 2;
+			break;
 		case START:
-			if (p->o_type == BLOCK)
-				return whatpos(objlist[(int)p->o_val[2]], START, px, py);
+			if(p->o_type == BLOCK)
+				return whatpos(objlist[(int)p->o_val[2]], START,
+				               px, py);
 		case END:
-			if (p->o_type == BLOCK)
-				return whatpos(objlist[(int)p->o_val[3]], END, px, py);
+			if(p->o_type == BLOCK)
+				return whatpos(objlist[(int)p->o_val[3]], END,
+				               px, py);
 		}
 		break;
 	case ARC:
-		switch (corner) {
+		switch(corner) {
 		case START:
-			if (p->o_attr & CW_ARC) {
-				x = p->o_val[2]; y = p->o_val[3];
+			if(p->o_attr & CW_ARC) {
+				x = p->o_val[2];
+				y = p->o_val[3];
 			} else {
-				x = x1; y = y1;
+				x = x1;
+				y = y1;
 			}
 			break;
 		case END:
-			if (p->o_attr & CW_ARC) {
-				x = x1; y = y1;
+			if(p->o_attr & CW_ARC) {
+				x = x1;
+				y = y1;
 			} else {
-				x = p->o_val[2]; y = p->o_val[3];
+				x = p->o_val[2];
+				y = p->o_val[3];
 			}
 			break;
 		}
-		if (corner == START || corner == END)
+		if(corner == START || corner == END)
 			break;
-		x1 = y1 = sqrt((x1-x)*(x1-x) + (y1-y)*(y1-y));
-		/* Fall Through! */
+		x1 = y1 = sqrt((x1 - x) * (x1 - x) + (y1 - y) * (y1 - y));
+	/* Fall Through! */
 	case CIRCLE:
 	case ELLIPSE:
-		switch (corner) {
-		case NORTH:	y += y1; break;
-		case SOUTH:	y -= y1; break;
-		case EAST:	x += x1; break;
-		case WEST:	x -= x1; break;
-		case NE:	x += 0.707 * x1; y += 0.707 * y1; break;
-		case SE:	x += 0.707 * x1; y -= 0.707 * y1; break;
-		case NW:	x -= 0.707 * x1; y += 0.707 * y1; break;
-		case SW:	x -= 0.707 * x1; y -= 0.707 * y1; break;
+		switch(corner) {
+		case NORTH:
+			y += y1;
+			break;
+		case SOUTH:
+			y -= y1;
+			break;
+		case EAST:
+			x += x1;
+			break;
+		case WEST:
+			x -= x1;
+			break;
+		case NE:
+			x += 0.707 * x1;
+			y += 0.707 * y1;
+			break;
+		case SE:
+			x += 0.707 * x1;
+			y -= 0.707 * y1;
+			break;
+		case NW:
+			x -= 0.707 * x1;
+			y += 0.707 * y1;
+			break;
+		case SW:
+			x -= 0.707 * x1;
+			y -= 0.707 * y1;
+			break;
 		}
 		break;
 	case LINE:
 	case SPLINE:
 	case ARROW:
-		switch (corner) {
-		case START:	break;	/* already in place */
-		case END:	x = x1; y = y1; break;
+		switch(corner) {
+		case START:
+			break; /* already in place */
+		case END:
+			x = x1;
+			y = y1;
+			break;
 		default: /* change! */
-		case CENTER:	x = (x+x1)/2; y = (y+y1)/2; break;
-		case NORTH:	if (y1 > y) { x = x1; y = y1; } break;
-		case SOUTH:	if (y1 < y) { x = x1; y = y1; } break;
-		case EAST:	if (x1 > x) { x = x1; y = y1; } break;
-		case WEST:	if (x1 < x) { x = x1; y = y1; } break;
+		case CENTER:
+			x = (x + x1) / 2;
+			y = (y + y1) / 2;
+			break;
+		case NORTH:
+			if(y1 > y) {
+				x = x1;
+				y = y1;
+			}
+			break;
+		case SOUTH:
+			if(y1 < y) {
+				x = x1;
+				y = y1;
+			}
+			break;
+		case EAST:
+			if(x1 > x) {
+				x = x1;
+				y = y1;
+			}
+			break;
+		case WEST:
+			if(x1 < x) {
+				x = x1;
+				y = y1;
+			}
+			break;
 		}
 		break;
 	case MOVE:
@@ -307,59 +398,59 @@ int whatpos(obj *p, int corner, double *px, double *py)	/* what is the position 
 	return 1;
 }
 
-obj *gethere(void)	/* make a place for curx,cury */
+obj* gethere(void) /* make a place for curx,cury */
 {
 	dprintf("gethere %g %g\n", curx, cury);
-	return(makepos(curx, cury));
+	return (makepos(curx, cury));
 }
 
-obj *getlast(int n, int t)	/* find n-th previous occurrence of type t */
+obj* getlast(int n, int t) /* find n-th previous occurrence of type t */
 {
 	int i, k;
-	obj *p;
+	obj* p;
 
 	k = n;
-	for (i = nobj-1; i >= 0; i--) {
+	for(i = nobj - 1; i >= 0; i--) {
 		p = objlist[i];
-		if (p->o_type == BLOCKEND) {
+		if(p->o_type == BLOCKEND) {
 			i = p->o_val[4];
 			continue;
 		}
-		if (p->o_type != t)
+		if(p->o_type != t)
 			continue;
-		if (--k > 0)
-			continue;	/* not there yet */
+		if(--k > 0)
+			continue; /* not there yet */
 		dprintf("got a last of x,y= %g,%g\n", p->o_x, p->o_y);
-		return(p);
+		return (p);
 	}
 	ERROR "there is no %dth last", n FATAL;
-	return(NULL);
+	return (NULL);
 }
 
-obj *getfirst(int n, int t)	/* find n-th occurrence of type t */
+obj* getfirst(int n, int t) /* find n-th occurrence of type t */
 {
 	int i, k;
-	obj *p;
+	obj* p;
 
 	k = n;
-	for (i = 0; i < nobj; i++) {
+	for(i = 0; i < nobj; i++) {
 		p = objlist[i];
-		if (p->o_type == BLOCK && t != BLOCK) {	/* skip whole block */
+		if(p->o_type == BLOCK && t != BLOCK) { /* skip whole block */
 			i = p->o_val[5] + 1;
 			continue;
 		}
-		if (p->o_type != t)
+		if(p->o_type != t)
 			continue;
-		if (--k > 0)
-			continue;	/* not there yet */
+		if(--k > 0)
+			continue; /* not there yet */
 		dprintf("got a first of x,y= %g,%g\n", p->o_x, p->o_y);
-		return(p);
+		return (p);
 	}
 	ERROR "there is no %dth ", n FATAL;
-	return(NULL);
+	return (NULL);
 }
 
-double getblkvar(obj *p, char *s)	/* find variable s2 in block p */
+double getblkvar(obj* p, char* s) /* find variable s2 in block p */
 {
 	YYSTYPE y;
 
@@ -367,7 +458,7 @@ double getblkvar(obj *p, char *s)	/* find variable s2 in block p */
 	return y.f;
 }
 
-obj *getblock(obj *p, char *s)	/* find variable s in block p */
+obj* getblock(obj* p, char* s) /* find variable s in block p */
 {
 	YYSTYPE y;
 
@@ -375,49 +466,53 @@ obj *getblock(obj *p, char *s)	/* find variable s in block p */
 	return y.o;
 }
 
-YYSTYPE getblk(obj *p, char *s)	/* find union type for s in p */
+YYSTYPE getblk(obj* p, char* s) /* find union type for s in p */
 {
 	static YYSTYPE bug;
-	struct symtab *stp;
+	struct symtab* stp;
 
-	if (p->o_type != BLOCK) {
+	if(p->o_type != BLOCK) {
 		ERROR ".%s is not in that block", s WARNING;
-		return(bug);
+		return (bug);
 	}
-	for (stp = p->o_symtab; stp != NULL; stp = stp->s_next)
-		if (strcmp(s, stp->s_name) == 0) {
-			dprintf("getblk %s found x,y= %g,%g\n",
-				s, (stp->s_val.o)->o_x, (stp->s_val.o)->o_y);
-			return(stp->s_val);
+	for(stp = p->o_symtab; stp != NULL; stp = stp->s_next)
+		if(strcmp(s, stp->s_name) == 0) {
+			dprintf("getblk %s found x,y= %g,%g\n", s,
+			        (stp->s_val.o)->o_x, (stp->s_val.o)->o_y);
+			return (stp->s_val);
 		}
 	ERROR "there is no .%s in that []", s WARNING;
-	return(bug);
+	return (bug);
 }
 
-obj *fixpos(obj *p, double x, double y)
+obj*
+fixpos(obj* p, double x, double y)
 {
 	dprintf("fixpos returns %g %g\n", p->o_x + x, p->o_y + y);
 	return makepos(p->o_x + x, p->o_y + y);
 }
 
-obj *addpos(obj *p, obj *q)
+obj*
+addpos(obj* p, obj* q)
 {
-	dprintf("addpos returns %g %g\n", p->o_x+q->o_x, p->o_y+q->o_y);
-	return makepos(p->o_x+q->o_x, p->o_y+q->o_y);
+	dprintf("addpos returns %g %g\n", p->o_x + q->o_x, p->o_y + q->o_y);
+	return makepos(p->o_x + q->o_x, p->o_y + q->o_y);
 }
 
-obj *subpos(obj *p, obj *q)
+obj*
+subpos(obj* p, obj* q)
 {
-	dprintf("subpos returns %g %g\n", p->o_x-q->o_x, p->o_y-q->o_y);
-	return makepos(p->o_x-q->o_x, p->o_y-q->o_y);
+	dprintf("subpos returns %g %g\n", p->o_x - q->o_x, p->o_y - q->o_y);
+	return makepos(p->o_x - q->o_x, p->o_y - q->o_y);
 }
 
-obj *makenode(int type, int n)
+obj*
+makenode(int type, int n)
 {
-	obj *p;
+	obj* p;
 
-	p = (obj *) calloc(1, sizeof(obj) + (n-1)*sizeof(ofloat));
-	if (p == NULL)
+	p = (obj*)calloc(1, sizeof(obj) + (n - 1) * sizeof(ofloat));
+	if(p == NULL)
 		ERROR "out of space in makenode" FATAL;
 	p->o_type = type;
 	p->o_count = n;
@@ -427,22 +522,22 @@ obj *makenode(int type, int n)
 	p->o_y = cury;
 	p->o_nt1 = ntext1;
 	p->o_nt2 = ntext;
-	ntext1 = ntext;	/* ready for next caller */
-	if (nobj >= nobjlist)
-		objlist = (obj **) grow((char *) objlist, "objlist",
-			nobjlist *= 2, sizeof(obj *));
+	ntext1 = ntext; /* ready for next caller */
+	if(nobj >= nobjlist)
+		objlist = (obj**)grow((char*)objlist, "objlist", nobjlist *= 2,
+		                      sizeof(obj*));
 	objlist[nobj++] = p;
-	return(p);
+	return (p);
 }
 
-void extreme(double x, double y)	/* record max and min x and y values */
+void extreme(double x, double y) /* record max and min x and y values */
 {
-	if (x > xmax)
+	if(x > xmax)
 		xmax = x;
-	if (y > ymax)
+	if(y > ymax)
 		ymax = y;
-	if (x < xmin)
+	if(x < xmin)
 		xmin = x;
-	if (y < ymin)
+	if(y < ymin)
 		ymin = y;
 }

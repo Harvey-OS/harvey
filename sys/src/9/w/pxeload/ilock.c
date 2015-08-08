@@ -15,7 +15,7 @@
 #include "io.h"
 
 void
-ilock(Lock *lk)
+ilock(Lock* lk)
 {
 	if(lk->locked != 0)
 		panic("ilock");
@@ -24,7 +24,7 @@ ilock(Lock *lk)
 }
 
 void
-iunlock(Lock *lk)
+iunlock(Lock* lk)
 {
 	if(lk->locked != 1)
 		panic("iunlock");

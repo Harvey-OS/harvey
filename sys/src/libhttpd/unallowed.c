@@ -13,14 +13,16 @@
 #include <httpd.h>
 
 int
-hunallowed(HConnect *c, char *allowed)
+hunallowed(HConnect* c, char* allowed)
 {
-	Hio *hout;
+	Hio* hout;
 	int n;
 
-	n = snprint(c->xferbuf, HBufSize, "<head><title>Method Not Allowed</title></head>\r\n"
-		"<body><h1>Method Not Allowed</h1>\r\n"
-		"You can't %s on <a href=\"%U\"> here</a>.<p></body>\r\n", c->req.meth, c->req.uri);
+	n = snprint(c->xferbuf, HBufSize,
+	            "<head><title>Method Not Allowed</title></head>\r\n"
+	            "<body><h1>Method Not Allowed</h1>\r\n"
+	            "You can't %s on <a href=\"%U\"> here</a>.<p></body>\r\n",
+	            c->req.meth, c->req.uri);
 
 	hout = &c->hout;
 	hprint(hout, "%s 405 Method Not Allowed\r\n", hversion);
@@ -39,6 +41,7 @@ hunallowed(HConnect *c, char *allowed)
 		hwrite(hout, c->xferbuf, n);
 
 	if(c->replog)
-		c->replog(c, "Reply: 405 Method Not Allowed\nReason: Method Not Allowed\n");
+		c->replog(c, "Reply: 405 Method Not Allowed\nReason: Method "
+		             "Not Allowed\n");
 	return hflush(hout);
 }

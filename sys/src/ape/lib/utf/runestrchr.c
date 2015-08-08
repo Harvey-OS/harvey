@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -26,7 +27,7 @@
 #include "utfdef.h"
 
 Rune*
-runestrchr(Rune *s, Rune c)
+runestrchr(Rune* s, Rune c)
 {
 	Rune c0 = c;
 	Rune c1;
@@ -34,11 +35,11 @@ runestrchr(Rune *s, Rune c)
 	if(c == 0) {
 		while(*s++)
 			;
-		return s-1;
+		return s - 1;
 	}
 
 	while(c1 = *s++)
 		if(c1 == c0)
-			return s-1;
+			return s - 1;
 	return 0;
 }

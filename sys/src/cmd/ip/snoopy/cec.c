@@ -13,37 +13,40 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct{
-	uint8_t	type;
-	uint8_t	conn;
-	uint8_t	seq;
-	uint8_t	len;
-}Hdr;
+typedef struct {
+	uint8_t type;
+	uint8_t conn;
+	uint8_t seq;
+	uint8_t len;
+} Hdr;
 
-enum{
-	Hsize	= 4,
+enum { Hsize = 4,
 };
 
-enum{
-	Otype,
-	Oconn,
-	Oseq,
-	Olen,
+enum { Otype,
+       Oconn,
+       Oseq,
+       Olen,
 };
 
-static Field p_fields[] =
-{
-	{"type",	Fnum,	Otype,		"type",	},
-	{"conn",	Fnum,	Oconn,		"conn",	},
-	{"seq",		Fnum,	Oseq,		"seq",	},
-	{"len",		Fnum,	Olen,		"len",	},
-	{0}
-};
+static Field p_fields[] = {{
+                            "type", Fnum, Otype, "type",
+                           },
+                           {
+                            "conn", Fnum, Oconn, "conn",
+                           },
+                           {
+                            "seq", Fnum, Oseq, "seq",
+                           },
+                           {
+                            "len", Fnum, Olen, "len",
+                           },
+                           {0}};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(aoe.name, f, p_fields);
 		return;
 	}
@@ -51,9 +54,9 @@ p_compile(Filter *f)
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -61,7 +64,7 @@ p_filter(Filter *f, Msg *m)
 	h = (Hdr*)m->ps;
 	m->ps += Hsize;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Otype:
 		return h->type == f->ulv;
 	case Oconn:
@@ -75,21 +78,15 @@ p_filter(Filter *f, Msg *m)
 }
 
 static char* ttab[] = {
-	"Tinita",
-	"Tinitb",
-	"Tinitc",
-	"Tdata",
-	"Tack",
-	"Tdiscover",
-	"Toffer",
-	"Treset",
+    "Tinita", "Tinitb",    "Tinitc", "Tdata",
+    "Tack",   "Tdiscover", "Toffer", "Treset",
 };
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
-	char *s, *p, buf[4];
-	Hdr *h;
+	char* s, *p, buf[4];
+	Hdr* h;
 
 	if(m->pe - m->ps < Hsize)
 		return 0;
@@ -101,26 +98,17 @@ p_seprint(Msg *m)
 
 	if(h->type < nelem(ttab))
 		s = ttab[h->type];
-	else{
+	else {
 		snprint(buf, sizeof buf, "%d", h->type);
 		s = buf;
 	}
 
 	p = (char*)m->ps;
-	m->p = seprint(m->p, m->e, "type=%s conn=%d seq=%d len=%d %.*s",
-		s, h->conn, h->seq, h->len,
-		(int)utfnlen(p, h->len), p);
+	m->p = seprint(m->p, m->e, "type=%s conn=%d seq=%d len=%d %.*s", s,
+	               h->conn, h->seq, h->len, (int)utfnlen(p, h->len), p);
 	return 0;
 }
 
-Proto cec =
-{
-	"cec",
-	p_compile,
-	p_filter,
-	p_seprint,
-	nil,
-	nil,
-	p_fields,
-	defaultframer,
+Proto cec = {
+    "cec", p_compile, p_filter, p_seprint, nil, nil, p_fields, defaultframer,
 };

@@ -17,26 +17,26 @@
 static char qsep[] = " \t\r\n";
 
 static char*
-qtoken(char *s)
+qtoken(char* s)
 {
 	int quoting;
-	char *t;
+	char* t;
 
 	quoting = 0;
-	t = s;	/* s is output string, t is input string */
-	while(*t!='\0' && (quoting || strchr(qsep, *t)==nil)){
-		if(*t != '\''){
+	t = s; /* s is output string, t is input string */
+	while(*t != '\0' && (quoting || strchr(qsep, *t) == nil)) {
+		if(*t != '\'') {
 			*s++ = *t++;
 			continue;
 		}
 		/* *t is a quote */
-		if(!quoting){
+		if(!quoting) {
 			quoting = 1;
 			t++;
 			continue;
 		}
 		/* quoting and we're on a quote */
-		if(t[1] != '\''){
+		if(t[1] != '\'') {
 			/* end of quoted section; absorb closing quote */
 			t++;
 			quoting = 0;
@@ -46,7 +46,7 @@ qtoken(char *s)
 		t++;
 		*s++ = *t++;
 	}
-	if(*s != '\0'){
+	if(*s != '\0') {
 		*s = '\0';
 		if(t == s)
 			t++;
@@ -55,12 +55,12 @@ qtoken(char *s)
 }
 
 static int
-tokenize(char *s, char **args, int maxargs)
+tokenize(char* s, char** args, int maxargs)
 {
 	int nargs;
 
-	for(nargs=0; nargs<maxargs; nargs++){
-		while(*s!='\0' && strchr(qsep, *s)!=nil)
+	for(nargs = 0; nargs < maxargs; nargs++) {
+		while(*s != '\0' && strchr(qsep, *s) != nil)
 			s++;
 		if(*s == '\0')
 			break;
@@ -76,19 +76,19 @@ _WAIT(void)
 {
 	int n, l;
 	char buf[512], *fld[5];
-	Waitmsg *w;
+	Waitmsg* w;
 
-	n = _AWAIT(buf, sizeof buf-1);
+	n = _AWAIT(buf, sizeof buf - 1);
 	if(n < 0)
 		return nil;
 	buf[n] = '\0';
-	if(tokenize(buf, fld, 5) != 5){
+	if(tokenize(buf, fld, 5) != 5) {
 		strcpy(buf, "couldn't parse wait message");
 		_ERRSTR(buf, sizeof buf);
 		return nil;
 	}
-	l = strlen(fld[4])+1;
-	w = malloc(sizeof(Waitmsg)+l);
+	l = strlen(fld[4]) + 1;
+	w = malloc(sizeof(Waitmsg) + l);
 	if(w == nil)
 		return nil;
 	w->pid = atoi(fld[0]);
@@ -99,4 +99,3 @@ _WAIT(void)
 	memmove(w->msg, fld[4], l);
 	return w;
 }
-

@@ -8,23 +8,23 @@
  */
 
 /* vl - mips linker */
-#define	EXTERN
-#include	"l.h"
-#include	<ar.h>
+#define EXTERN
+#include "l.h"
+#include <ar.h>
 
-#ifndef	DEFAULT
-#define	DEFAULT	'9'
+#ifndef DEFAULT
+#define DEFAULT '9'
 #endif
 
-char	*noname		= "<none>";
-char	symname[]	= SYMDEF;
-char	thechar		= 'v';
-char	*thestring 	= "mips";
+char* noname = "<none>";
+char symname[] = SYMDEF;
+char thechar = 'v';
+char* thestring = "mips";
 int little;
 
-char**	libdir;
-int	nlibdir	= 0;
-static	int	maxlibdir = 0;
+char** libdir;
+int nlibdir = 0;
+static int maxlibdir = 0;
 
 /*
  * -H0 -T0x40004C -D0x10000000 is abbrev unix		(boot image)
@@ -45,10 +45,10 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int c;
-	char *a;
+	char* a;
 	char name[LIBNAMELEN];
 
 	Binit(&bso, 1, OWRITE);
@@ -64,7 +64,8 @@ main(int argc, char *argv[])
 	INITRND = -1;
 	INITENTRY = 0;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	default:
 		c = ARGC();
 		if(c >= 0 && c < sizeof(debug))
@@ -78,7 +79,7 @@ main(int argc, char *argv[])
 		if(a)
 			INITENTRY = a;
 		break;
-	case  'm':			/* for little-endian mips */
+	case 'm': /* for little-endian mips */
 		thechar = '0';
 		thestring = "spim";
 		little = 1;
@@ -112,7 +113,8 @@ main(int argc, char *argv[])
 	case 'L':
 		addlibpath(EARGF(usage()));
 		break;
-	} ARGEND
+	}
+	ARGEND
 
 	USED(argc);
 
@@ -126,7 +128,7 @@ main(int argc, char *argv[])
 			diag("nonexistent $ccroot: %s", a);
 			errorexit();
 		}
-	}else
+	} else
 		a = "";
 	snprint(name, sizeof(name), "%s/%s/lib", a, thestring);
 	addlibpath(name);
@@ -143,8 +145,8 @@ main(int argc, char *argv[])
 		diag("unknown -H option");
 		errorexit();
 
-	case 0:	/* unix simple */
-		HEADR = 20L+56L;
+	case 0: /* unix simple */
+		HEADR = 20L + 56L;
 		if(INITTEXT == -1)
 			INITTEXT = 0x40004CL;
 		if(INITDAT == -1)
@@ -152,8 +154,8 @@ main(int argc, char *argv[])
 		if(INITRND == -1)
 			INITRND = 0;
 		break;
-	case 1:	/* boot for 3k */
-		HEADR = 20L+60L;
+	case 1: /* boot for 3k */
+		HEADR = 20L + 60L;
 		if(INITTEXT == -1)
 			INITTEXT = 0x80020000L;
 		if(INITDAT == -1)
@@ -161,17 +163,17 @@ main(int argc, char *argv[])
 		if(INITRND == -1)
 			INITRND = 4;
 		break;
-	case 2:	/* plan 9 */
+	case 2: /* plan 9 */
 		HEADR = 32L;
 		if(INITDAT == -1)
 			INITDAT = 0;
 		if(INITRND == -1)
-			INITRND = 16*1024;
+			INITRND = 16 * 1024;
 		if(INITTEXT == -1)
 			INITTEXT = INITRND + HEADR;
 		break;
-	case 3:	/* boot for 4k */
-		HEADR = 20L+56L+3*40L;
+	case 3: /* boot for 4k */
+		HEADR = 20L + 56L + 3 * 40L;
 		if(INITTEXT == -1)
 			INITTEXT = 0x80020000L;
 		if(INITDAT == -1)
@@ -179,51 +181,51 @@ main(int argc, char *argv[])
 		if(INITRND == -1)
 			INITRND = 8;
 		break;
-	case 4:	/* sgi unix coff executable */
-		HEADR = 20L+56L+3*40L;
+	case 4: /* sgi unix coff executable */
+		HEADR = 20L + 56L + 3 * 40L;
 		if(INITTEXT == -1)
-			INITTEXT = 0x00400000L+HEADR;
+			INITTEXT = 0x00400000L + HEADR;
 		if(INITDAT == -1)
 			INITDAT = 0x10000000;
 		if(INITRND == -1)
 			INITRND = 0;
 		break;
-	case 5:	/* sgi unix elf executable */
-		HEADR = rnd(Ehdr32sz+3*Phdr32sz, 16);
+	case 5: /* sgi unix elf executable */
+		HEADR = rnd(Ehdr32sz + 3 * Phdr32sz, 16);
 		if(INITTEXT == -1)
-			INITTEXT = 0x00400000L+HEADR;
+			INITTEXT = 0x00400000L + HEADR;
 		if(INITDAT == -1)
 			INITDAT = 0x10000000;
 		if(INITRND == -1)
 			INITRND = 0;
 		break;
-	case 6:	/* headerless */
+	case 6: /* headerless */
 		HEADR = 0;
 		if(INITTEXT == -1)
-			INITTEXT = 0x80000000L+HEADR;
+			INITTEXT = 0x80000000L + HEADR;
 		if(INITDAT == -1)
 			INITDAT = 0;
 		if(INITRND == -1)
 			INITRND = 4096;
 		break;
-	case 7:	/* 64-bit elf executable */
-		HEADR = rnd(Ehdr64sz+3*Phdr64sz, 16);
+	case 7: /* 64-bit elf executable */
+		HEADR = rnd(Ehdr64sz + 3 * Phdr64sz, 16);
 		if(INITTEXT == -1)
-			INITTEXT = 0x00400000L+HEADR;
+			INITTEXT = 0x00400000L + HEADR;
 		if(INITDAT == -1)
 			INITDAT = 0x10000000;
 		if(INITRND == -1)
 			INITRND = 0;
 		break;
 	}
-	if (INITTEXTP == -1)
+	if(INITTEXTP == -1)
 		INITTEXTP = INITTEXT;
 	if(INITDAT != 0 && INITRND != 0)
 		print("warning: -D%#llux is ignored because of -R%#llux\n",
-			INITDAT, INITRND);
+		      INITDAT, INITRND);
 	if(debug['v'])
 		Bprint(&bso, "HEADER = -H%d -T%#llux -D%#llux -R%#llux\n",
-			HEADTYPE, INITTEXT, INITDAT, INITRND);
+		       HEADTYPE, INITTEXT, INITDAT, INITRND);
 	Bflush(&bso);
 	zprg.as = AGOK;
 	zprg.reg = NREG;
@@ -299,21 +301,21 @@ out:
 }
 
 void
-addlibpath(char *arg)
+addlibpath(char* arg)
 {
-	char **p;
+	char** p;
 
 	if(nlibdir >= maxlibdir) {
 		if(maxlibdir == 0)
 			maxlibdir = 8;
 		else
 			maxlibdir *= 2;
-		p = malloc(maxlibdir*sizeof(*p));
+		p = malloc(maxlibdir * sizeof(*p));
 		if(p == nil) {
 			diag("out of memory");
 			errorexit();
 		}
-		memmove(p, libdir, nlibdir*sizeof(*p));
+		memmove(p, libdir, nlibdir * sizeof(*p));
 		free(libdir);
 		libdir = p;
 	}
@@ -321,7 +323,7 @@ addlibpath(char *arg)
 }
 
 char*
-findlib(char *file)
+findlib(char* file)
 {
 	int i;
 	char name[LIBNAMELEN];
@@ -339,20 +341,21 @@ loadlib(void)
 {
 	int i;
 	int32_t h;
-	Sym *s;
+	Sym* s;
 
 loop:
 	xrefresolv = 0;
-	for(i=0; i<libraryp; i++) {
+	for(i = 0; i < libraryp; i++) {
 		if(debug['v'])
-			Bprint(&bso, "%5.2f autolib: %s (from %s)\n", cputime(), library[i], libraryobj[i]);
+			Bprint(&bso, "%5.2f autolib: %s (from %s)\n", cputime(),
+			       library[i], libraryobj[i]);
 		objfile(library[i]);
 	}
 	if(xrefresolv)
-	for(h=0; h<nelem(hash); h++)
-	for(s = hash[h]; s != S; s = s->link)
-		if(s->type == SXREF)
-			goto loop;
+		for(h = 0; h < nelem(hash); h++)
+			for(s = hash[h]; s != S; s = s->link)
+				if(s->type == SXREF)
+					goto loop;
 }
 
 void
@@ -368,22 +371,22 @@ errorexit(void)
 }
 
 void
-objfile(char *file)
+objfile(char* file)
 {
 	int32_t off, esym, cnt, l;
 	int f, work;
-	Sym *s;
+	Sym* s;
 	char magbuf[SARMAG];
 	char name[100], pname[150];
 	struct ar_hdr arhdr;
-	char *e, *start, *stop;
+	char* e, *start, *stop;
 
 	if(file[0] == '-' && file[1] == 'l') {
 		if(debug['9'])
 			sprint(name, "/%s/lib/lib", thestring);
 		else
 			sprint(name, "/usr/%clib/lib", thechar);
-		strcat(name, file+2);
+		strcat(name, file + 2);
 		strcat(name, ".a");
 		file = name;
 	}
@@ -396,7 +399,7 @@ objfile(char *file)
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
-	if(l != SARMAG || strncmp(magbuf, ARMAG, SARMAG)){
+	if(l != SARMAG || strncmp(magbuf, ARMAG, SARMAG)) {
 		/* load it as a regular file */
 		l = seek(f, 0L, 2);
 		seek(f, 0L, 0);
@@ -427,7 +430,7 @@ objfile(char *file)
 	cnt = esym - off;
 	start = malloc(cnt + 10);
 	cnt = read(f, start, cnt);
-	if(cnt <= 0){
+	if(cnt <= 0) {
 		close(f);
 		return;
 	}
@@ -435,18 +438,20 @@ objfile(char *file)
 	memset(stop, 0, 10);
 
 	work = 1;
-	while(work){
+	while(work) {
 		if(debug['v'])
-			Bprint(&bso, "%5.2f library pass: %s\n", cputime(), file);
+			Bprint(&bso, "%5.2f library pass: %s\n", cputime(),
+			       file);
 		Bflush(&bso);
 		work = 0;
-		for(e = start; e < stop; e = strchr(e+5, 0) + 1) {
-			s = lookup(e+5, 0);
+		for(e = start; e < stop; e = strchr(e + 5, 0) + 1) {
+			s = lookup(e + 5, 0);
 			if(s->type != SXREF)
 				continue;
 			sprint(pname, "%s(%s)", file, s->name);
 			if(debug['v'])
-				Bprint(&bso, "%5.2f library: %s\n", cputime(), pname);
+				Bprint(&bso, "%5.2f library: %s\n", cputime(),
+				       pname);
 			Bflush(&bso);
 			l = e[1] & 0xff;
 			l |= (e[2] & 0xff) << 8;
@@ -478,17 +483,17 @@ out:
 }
 
 int
-zaddr(uint8_t *p, Adr *a, Sym *h[])
+zaddr(uint8_t* p, Adr* a, Sym* h[])
 {
 	int i, c;
 	int l;
-	Sym *s;
-	Auto *u;
+	Sym* s;
+	Auto* u;
 
 	c = p[2];
-	if(c < 0 || c > NSYM){
+	if(c < 0 || c > NSYM) {
 		print("sym out of range: %d\n", c);
-		p[0] = ALAST+1;
+		p[0] = ALAST + 1;
 		return 0;
 	}
 	a->type = p[0];
@@ -499,15 +504,15 @@ zaddr(uint8_t *p, Adr *a, Sym *h[])
 
 	if(a->reg < 0 || a->reg > NREG) {
 		print("register out of range %d\n", a->reg);
-		p[0] = ALAST+1;
-		return 0;	/*  force real diagnostic */
+		p[0] = ALAST + 1;
+		return 0; /*  force real diagnostic */
 	}
 
 	switch(a->type) {
 	default:
 		print("unknown type %d\n", a->type);
-		p[0] = ALAST+1;
-		return 0;	/*  force real diagnostic */
+		p[0] = ALAST + 1;
+		return 0; /*  force real diagnostic */
 
 	case D_NONE:
 	case D_REG:
@@ -522,8 +527,7 @@ zaddr(uint8_t *p, Adr *a, Sym *h[])
 	case D_OREG:
 	case D_CONST:
 	case D_OCONST:
-		a->offset = p[4] | (p[5]<<8) |
-			(p[6]<<16) | (p[7]<<24);
+		a->offset = p[4] | (p[5] << 8) | (p[6] << 16) | (p[7] << 24);
 		c += 4;
 		break;
 
@@ -534,7 +538,7 @@ zaddr(uint8_t *p, Adr *a, Sym *h[])
 		nhunk -= NSNAME;
 		hunk += NSNAME;
 
-		memmove(a->sval, p+4, NSNAME);
+		memmove(a->sval, p + 4, NSNAME);
 		c += NSNAME;
 		break;
 
@@ -545,10 +549,8 @@ zaddr(uint8_t *p, Adr *a, Sym *h[])
 		nhunk -= NSNAME;
 		hunk += NSNAME;
 
-		a->ieee->l = p[4] | (p[5]<<8) |
-			(p[6]<<16) | (p[7]<<24);
-		a->ieee->h = p[8] | (p[9]<<8) |
-			(p[10]<<16) | (p[11]<<24);
+		a->ieee->l = p[4] | (p[5] << 8) | (p[6] << 16) | (p[7] << 24);
+		a->ieee->h = p[8] | (p[9] << 8) | (p[10] << 16) | (p[11] << 24);
 		c += 8;
 		break;
 	}
@@ -560,13 +562,13 @@ zaddr(uint8_t *p, Adr *a, Sym *h[])
 		return c;
 
 	l = a->offset;
-	for(u=curauto; u; u=u->link)
+	for(u = curauto; u; u = u->link)
 		if(u->asym == s)
-		if(u->type == i) {
-			if(u->aoffset > l)
-				u->aoffset = l;
-			return c;
-		}
+			if(u->type == i) {
+				if(u->aoffset > l)
+					u->aoffset = l;
+				return c;
+			}
 
 	while(nhunk < sizeof(Auto))
 		gethunk();
@@ -583,7 +585,7 @@ zaddr(uint8_t *p, Adr *a, Sym *h[])
 }
 
 void
-addlib(char *obj)
+addlib(char* obj)
 {
 	char fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
 	int i, search;
@@ -605,24 +607,26 @@ addlib(char *obj)
 		search = 1;
 	}
 
-	for(; i<histfrogp; i++) {
-		snprint(comp, sizeof comp, histfrog[i]->name+1);
+	for(; i < histfrogp; i++) {
+		snprint(comp, sizeof comp, histfrog[i]->name + 1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
 				break;
-			memmove(p+1, p+2, strlen(p+2)+1);
+			memmove(p + 1, p + 2, strlen(p + 2) + 1);
 			p[0] = thechar;
 		}
 		for(;;) {
 			p = strstr(comp, "$M");
 			if(p == 0)
 				break;
-			if(strlen(comp)+strlen(thestring)-2+1 >= sizeof comp) {
+			if(strlen(comp) + strlen(thestring) - 2 + 1 >=
+			   sizeof comp) {
 				diag("library component too long");
 				return;
 			}
-			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
+			memmove(p + strlen(thestring), p + 2,
+			        strlen(p + 2) + 1);
 			memmove(p, thestring, strlen(thestring));
 		}
 		if(strlen(fn1) + strlen(comp) + 3 >= sizeof(fn1)) {
@@ -636,18 +640,18 @@ addlib(char *obj)
 
 	cleanname(name);
 
-	if(search){
+	if(search) {
 		p = findlib(name);
-		if(p != nil){
+		if(p != nil) {
 			snprint(fn2, sizeof(fn2), "%s/%s", p, name);
 			name = fn2;
 		}
 	}
 
-	for(i=0; i<libraryp; i++)
+	for(i = 0; i < libraryp; i++)
 		if(strcmp(name, library[i]) == 0)
 			return;
-	if(libraryp == nelem(library)){
+	if(libraryp == nelem(library)) {
 		diag("too many autolibs; skipping %s", name);
 		return;
 	}
@@ -664,13 +668,13 @@ addlib(char *obj)
 void
 addhist(int32_t line, int type)
 {
-	Auto *u;
-	Sym *s;
+	Auto* u;
+	Sym* s;
 	int i, j, k;
 
 	u = malloc(sizeof(Auto));
 	s = malloc(sizeof(Sym));
-	s->name = malloc(2*(histfrogp+1) + 1);
+	s->name = malloc(2 * (histfrogp + 1) + 1);
 
 	u->asym = s;
 	u->type = type;
@@ -679,10 +683,10 @@ addhist(int32_t line, int type)
 	curhist = u;
 
 	j = 1;
-	for(i=0; i<histfrogp; i++) {
+	for(i = 0; i < histfrogp; i++) {
 		k = histfrog[i]->value;
-		s->name[j+0] = k>>8;
-		s->name[j+1] = k;
+		s->name[j + 0] = k >> 8;
+		s->name[j + 1] = k;
 		j += 2;
 	}
 }
@@ -690,7 +694,7 @@ addhist(int32_t line, int type)
 void
 histtoauto(void)
 {
-	Auto *l;
+	Auto* l;
 
 	while(l = curhist) {
 		curhist = l->link;
@@ -700,7 +704,7 @@ histtoauto(void)
 }
 
 void
-collapsefrog(Sym *s)
+collapsefrog(Sym* s)
 {
 	int i;
 
@@ -709,10 +713,10 @@ collapsefrog(Sym *s)
 	 * MAXHIST components. if there is an overflow,
 	 * first try to collapse xxx/..
 	 */
-	for(i=1; i<histfrogp; i++)
-		if(strcmp(histfrog[i]->name+1, "..") == 0) {
-			memmove(histfrog+i-1, histfrog+i+1,
-				(histfrogp-i-1)*sizeof(histfrog[0]));
+	for(i = 1; i < histfrogp; i++)
+		if(strcmp(histfrog[i]->name + 1, "..") == 0) {
+			memmove(histfrog + i - 1, histfrog + i + 1,
+			        (histfrogp - i - 1) * sizeof(histfrog[0]));
 			histfrogp--;
 			goto out;
 		}
@@ -720,25 +724,25 @@ collapsefrog(Sym *s)
 	/*
 	 * next try to collapse .
 	 */
-	for(i=0; i<histfrogp; i++)
-		if(strcmp(histfrog[i]->name+1, ".") == 0) {
-			memmove(histfrog+i, histfrog+i+1,
-				(histfrogp-i-1)*sizeof(histfrog[0]));
+	for(i = 0; i < histfrogp; i++)
+		if(strcmp(histfrog[i]->name + 1, ".") == 0) {
+			memmove(histfrog + i, histfrog + i + 1,
+			        (histfrogp - i - 1) * sizeof(histfrog[0]));
 			goto out;
 		}
 
 	/*
 	 * last chance, just truncate from front
 	 */
-	memmove(histfrog+0, histfrog+1,
-		(histfrogp-1)*sizeof(histfrog[0]));
+	memmove(histfrog + 0, histfrog + 1,
+	        (histfrogp - 1) * sizeof(histfrog[0]));
 
 out:
-	histfrog[histfrogp-1] = s;
+	histfrog[histfrogp - 1] = s;
 }
 
 void
-nopout(Prog *p)
+nopout(Prog* p)
 {
 	p->as = ANOP;
 	p->from.type = D_NONE;
@@ -746,7 +750,7 @@ nopout(Prog *p)
 }
 
 uint8_t*
-readsome(int f, uint8_t *buf, uint8_t *good, uint8_t *stop, int max)
+readsome(int f, uint8_t* buf, uint8_t* good, uint8_t* stop, int max)
 {
 	int n;
 
@@ -763,12 +767,12 @@ readsome(int f, uint8_t *buf, uint8_t *good, uint8_t *stop, int max)
 }
 
 void
-ldobj(int f, int32_t c, char *pn)
+ldobj(int f, int32_t c, char* pn)
 {
 	int64_t ipc;
-	Prog *p, *t;
-	uint8_t *bloc, *bsize, *stop;
-	Sym *h[NSYM], *s, *di;
+	Prog* p, *t;
+	uint8_t* bloc, *bsize, *stop;
+	Sym* h[NSYM], *s, *di;
 	int v, o, r, skip;
 
 	bsize = buf.xbuf;
@@ -786,16 +790,16 @@ loop:
 	if(c <= 0)
 		goto eof;
 	r = bsize - bloc;
-	if(r < 100 && r < c) {		/* enough for largest prog */
+	if(r < 100 && r < c) { /* enough for largest prog */
 		bsize = readsome(f, buf.xbuf, bloc, bsize, c);
 		if(bsize == 0)
 			goto eof;
 		bloc = buf.xbuf;
 		goto loop;
 	}
-	o = bloc[0];		/* as */
+	o = bloc[0]; /* as */
 	if(o <= AXXX || o >= ALAST) {
-		diag("%s: line %lld: opcode out of range %d", pn, pc-ipc, o);
+		diag("%s: line %lld: opcode out of range %d", pn, pc - ipc, o);
 		print("	probably not a .%c file\n", thechar);
 		errorexit();
 	}
@@ -804,20 +808,20 @@ loop:
 			bloc += 4;
 			c -= 4;
 		}
-		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
-		if(stop == 0){
+		stop = memchr(&bloc[3], 0, bsize - &bloc[3]);
+		if(stop == 0) {
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);
 			if(bsize == 0)
 				goto eof;
 			bloc = buf.xbuf;
-			stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
-			if(stop == 0){
+			stop = memchr(&bloc[3], 0, bsize - &bloc[3]);
+			if(stop == 0) {
 				fprint(2, "%s: name too long\n", pn);
 				errorexit();
 			}
 		}
-		v = bloc[1];	/* type */
-		o = bloc[2];	/* sym */
+		v = bloc[1]; /* type */
+		o = bloc[2]; /* sym */
 		bloc += 3;
 		c -= 3;
 
@@ -858,10 +862,10 @@ loop:
 	p->reg = bloc[1] & 0x7f;
 	if(bloc[1] & 0x80)
 		p->mark = NOSCHED;
-	p->line = bloc[2] | (bloc[3]<<8) | (bloc[4]<<16) | (bloc[5]<<24);
+	p->line = bloc[2] | (bloc[3] << 8) | (bloc[4] << 16) | (bloc[5] << 24);
 
-	r = zaddr(bloc+6, &p->from, h) + 6;
-	r += zaddr(bloc+r, &p->to, h);
+	r = zaddr(bloc + 6, &p->from, h) + 6;
+	r += zaddr(bloc + r, &p->to, h);
 	bloc += r;
 	c -= r;
 
@@ -881,9 +885,9 @@ loop:
 			histfrogp = 0;
 			goto loop;
 		}
-		addhist(p->line, D_FILE);		/* 'z' */
+		addhist(p->line, D_FILE); /* 'z' */
 		if(p->to.offset)
-			addhist(p->to.offset, D_FILE1);	/* 'Z' */
+			addhist(p->to.offset, D_FILE1); /* 'Z' */
 		histfrogp = 0;
 		goto loop;
 
@@ -959,7 +963,7 @@ loop:
 		p->link = datap;
 		datap = p;
 		break;
-	
+
 	case ADATA:
 		if(p->from.sym == S) {
 			diag("DATA without a sym\n%P", p);
@@ -983,7 +987,7 @@ loop:
 		}
 		skip = 0;
 		curtext = p;
-		autosize = (p->to.offset+3L) & ~3L;
+		autosize = (p->to.offset + 3L) & ~3L;
 		p->to.offset = autosize;
 		autosize += 4;
 		s = p->from.sym;
@@ -1016,13 +1020,13 @@ loop:
 	case ASUB:
 	case ASUBU:
 		if(p->from.type == D_CONST)
-		if(p->from.name == D_NONE) {
-			p->from.offset = -p->from.offset;
-			if(p->as == ASUB)
-				p->as = AADD;
-			else
-				p->as = AADDU;
-		}
+			if(p->from.name == D_NONE) {
+				p->from.offset = -p->from.offset;
+				if(p->as == ASUB)
+					p->as = AADD;
+				else
+					p->as = AADDU;
+			}
 		goto casedef;
 
 	case AMOVF:
@@ -1060,8 +1064,8 @@ loop:
 
 		if(p->from.type == D_FCONST) {
 			/* size sb 18 max */
-			sprint(literal, "$%lux.%lux",
-				p->from.ieee->l, p->from.ieee->h);
+			sprint(literal, "$%lux.%lux", p->from.ieee->l,
+			       p->from.ieee->h);
 			s = lookup(literal, 0);
 			if(s->type == 0) {
 				s->type = SBSS;
@@ -1104,23 +1108,23 @@ eof:
 }
 
 Sym*
-lookup(char *symb, int v)
+lookup(char* symb, int v)
 {
-	Sym *s;
-	char *p;
+	Sym* s;
+	char* p;
 	int32_t h;
 	int c, l;
 
 	h = v;
-	for(p=symb; c = *p; p++)
-		h = h+h+h + c;
+	for(p = symb; c = *p; p++)
+		h = h + h + h + c;
 	l = (p - symb) + 1;
 	h &= 0xffffff;
 	h %= NHASH;
 	for(s = hash[h]; s != S; s = s->link)
 		if(s->version == v)
-		if(memcmp(s->name, symb, l) == 0)
-			return s;
+			if(memcmp(s->name, symb, l) == 0)
+				return s;
 
 	while(nhunk < sizeof(Sym))
 		gethunk();
@@ -1142,7 +1146,7 @@ lookup(char *symb, int v)
 Prog*
 prg(void)
 {
-	Prog *p;
+	Prog* p;
 
 	while(nhunk < sizeof(Prog))
 		gethunk();
@@ -1157,14 +1161,14 @@ prg(void)
 void
 gethunk(void)
 {
-	char *h;
+	char* h;
 	int32_t nh;
 
 	nh = NHUNK;
-	if(thunk >= 5L*NHUNK) {
-		nh = 5L*NHUNK;
-		if(thunk >= 25L*NHUNK)
-			nh = 25L*NHUNK;
+	if(thunk >= 5L * NHUNK) {
+		nh = 5L * NHUNK;
+		if(thunk >= 25L * NHUNK)
+			nh = 25L * NHUNK;
 	}
 	h = mysbrk(nh);
 	if(h == (char*)-1) {
@@ -1179,9 +1183,9 @@ gethunk(void)
 void
 doprof1(void)
 {
-	Sym *s;
+	Sym* s;
 	int32_t n;
-	Prog *p, *q;
+	Prog* p, *q;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f profile 1\n", cputime());
@@ -1197,7 +1201,7 @@ doprof1(void)
 			q->as = ADATA;
 			q->from.type = D_OREG;
 			q->from.name = D_EXTERN;
-			q->from.offset = n*4;
+			q->from.offset = n * 4;
 			q->from.sym = s;
 			q->reg = 4;
 			q->to = p->from;
@@ -1213,7 +1217,7 @@ doprof1(void)
 			p->from.type = D_OREG;
 			p->from.name = D_EXTERN;
 			p->from.sym = s;
-			p->from.offset = n*4 + 4;
+			p->from.offset = n * 4 + 4;
 			p->to.type = D_REG;
 			p->to.reg = REGTMP;
 
@@ -1241,7 +1245,7 @@ doprof1(void)
 			p->to.type = D_OREG;
 			p->to.name = D_EXTERN;
 			p->to.sym = s;
-			p->to.offset = n*4 + 4;
+			p->to.offset = n * 4 + 4;
 
 			n += 2;
 			continue;
@@ -1261,29 +1265,30 @@ doprof1(void)
 	q->to.offset = n;
 
 	s->type = SBSS;
-	s->value = n*4;
+	s->value = n * 4;
 }
 
 void
 doprof2(void)
 {
-	Sym *s2, *s4;
-	Prog *p, *q, *q2, *ps2, *ps4;
+	Sym* s2, *s4;
+	Prog* p, *q, *q2, *ps2, *ps4;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f profile 2\n", cputime());
 	Bflush(&bso);
 
-	if(debug['e']){
+	if(debug['e']) {
 		s2 = lookup("_tracein", 0);
 		s4 = lookup("_traceout", 0);
-	}else{
+	} else {
 		s2 = lookup("_profin", 0);
 		s4 = lookup("_profout", 0);
 	}
 	if(s2->type != STEXT || s4->type != STEXT) {
 		if(debug['e'])
-			diag("_tracein/_traceout not defined %d %d", s2->type, s4->type);
+			diag("_tracein/_traceout not defined %d %d", s2->type,
+			     s4->type);
 		else
 			diag("_profin/_profout not defined");
 		return;
@@ -1324,7 +1329,7 @@ doprof2(void)
 			q->line = p->line;
 			q->pc = p->pc;
 			q->link = p->link;
-			if(debug['e']){		/* embedded tracing */
+			if(debug['e']) { /* embedded tracing */
 				q2 = prg();
 				p->link = q2;
 				q2->link = q;
@@ -1336,7 +1341,7 @@ doprof2(void)
 				q2->to.type = D_BRANCH;
 				q2->to.sym = p->to.sym;
 				q2->cond = q->link;
-			}else
+			} else
 				p->link = q;
 			p = q;
 			p->as = AJAL;
@@ -1350,7 +1355,7 @@ doprof2(void)
 			/*
 			 * RET (default)
 			 */
-			if(debug['e']){		/* embedded tracing */
+			if(debug['e']) { /* embedded tracing */
 				q = prg();
 				q->line = p->line;
 				q->pc = p->pc;
@@ -1390,18 +1395,18 @@ nuxiinit(void)
 {
 	int i, c;
 
-	for(i=0; i<4; i++)
-		if (!little) {			/* normal big-endian case */
-			c = find1(0x01020304L, i+1);
+	for(i = 0; i < 4; i++)
+		if(!little) { /* normal big-endian case */
+			c = find1(0x01020304L, i + 1);
 			if(i >= 2)
-				inuxi2[i-2] = c;
+				inuxi2[i - 2] = c;
 			if(i >= 3)
-				inuxi1[i-3] = c;
+				inuxi1[i - 3] = c;
 			inuxi4[i] = c;
-			fnuxi8[i] = c+4;
-			fnuxi8[i+4] = c;
-		} else {			/* oddball little-endian case */
-			c = find1(0x04030201L, i+1);
+			fnuxi8[i] = c + 4;
+			fnuxi8[i + 4] = c;
+		} else { /* oddball little-endian case */
+			c = find1(0x04030201L, i + 1);
 			if(i < 2)
 				inuxi2[i] = c;
 			if(i < 1)
@@ -1409,20 +1414,20 @@ nuxiinit(void)
 			inuxi4[i] = c;
 			fnuxi4[i] = c;
 			fnuxi8[i] = c;
-			fnuxi8[i+4] = c+4;
+			fnuxi8[i + 4] = c + 4;
 		}
 	if(debug['v']) {
 		Bprint(&bso, "inuxi = ");
-		for(i=0; i<1; i++)
+		for(i = 0; i < 1; i++)
 			Bprint(&bso, "%d", inuxi1[i]);
 		Bprint(&bso, " ");
-		for(i=0; i<2; i++)
+		for(i = 0; i < 2; i++)
 			Bprint(&bso, "%d", inuxi2[i]);
 		Bprint(&bso, " ");
-		for(i=0; i<4; i++)
+		for(i = 0; i < 4; i++)
 			Bprint(&bso, "%d", inuxi4[i]);
 		Bprint(&bso, "\nfnuxi = ");
-		for(i=0; i<8; i++)
+		for(i = 0; i < 8; i++)
 			Bprint(&bso, "%d", fnuxi8[i]);
 		Bprint(&bso, "\n");
 	}
@@ -1431,26 +1436,26 @@ nuxiinit(void)
 
 find1(long l, int c)
 {
-	char *p;
+	char* p;
 	int i;
 
 	p = (char*)&l;
-	for(i=0; i<4; i++)
+	for(i = 0; i < 4; i++)
 		if(*p++ == c)
 			return i;
 	return 0;
 }
 
 int32_t
-ieeedtof(Ieee *ieeep)
+ieeedtof(Ieee* ieeep)
 {
 	int exp;
 	int32_t v;
 
 	if(ieeep->h == 0)
 		return 0;
-	exp = (ieeep->h>>20) & ((1L<<11)-1L);
-	exp -= (1L<<10) - 2L;
+	exp = (ieeep->h >> 20) & ((1L << 11) - 1L);
+	exp -= (1L << 10) - 2L;
 	v = (ieeep->h & 0xfffffL) << 3;
 	v |= (ieeep->l >> 29) & 0x7L;
 	if((ieeep->l >> 28) & 1) {
@@ -1468,26 +1473,26 @@ ieeedtof(Ieee *ieeep)
 }
 
 double
-ieeedtod(Ieee *ieeep)
+ieeedtod(Ieee* ieeep)
 {
 	Ieee e;
 	double fr;
 	int exp;
 
-	if(ieeep->h & (1L<<31)) {
-		e.h = ieeep->h & ~(1L<<31);
+	if(ieeep->h & (1L << 31)) {
+		e.h = ieeep->h & ~(1L << 31);
 		e.l = ieeep->l;
 		return -ieeedtod(&e);
 	}
 	if(ieeep->l == 0 && ieeep->h == 0)
 		return 0;
-	fr = ieeep->l & ((1L<<16)-1L);
-	fr /= 1L<<16;
-	fr += (ieeep->l>>16) & ((1L<<16)-1L);
-	fr /= 1L<<16;
-	fr += (ieeep->h & (1L<<20)-1L) | (1L<<20);
-	fr /= 1L<<21;
-	exp = (ieeep->h>>20) & ((1L<<11)-1L);
-	exp -= (1L<<10) - 2L;
+	fr = ieeep->l & ((1L << 16) - 1L);
+	fr /= 1L << 16;
+	fr += (ieeep->l >> 16) & ((1L << 16) - 1L);
+	fr /= 1L << 16;
+	fr += (ieeep->h & (1L << 20) - 1L) | (1L << 20);
+	fr /= 1L << 21;
+	exp = (ieeep->h >> 20) & ((1L << 11) - 1L);
+	exp -= (1L << 10) - 2L;
 	return ldexp(fr, exp);
 }

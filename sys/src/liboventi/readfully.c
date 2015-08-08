@@ -13,7 +13,7 @@
 #include "session.h"
 
 int
-vtFdReadFully(int fd, uint8_t *p, int n)
+vtFdReadFully(int fd, uint8_t* p, int n)
 {
 	int nn;
 

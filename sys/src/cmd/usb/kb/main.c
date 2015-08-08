@@ -15,11 +15,9 @@
 
 typedef struct Parg Parg;
 
-enum
-{
-	Ndevs = 10,
-	Arglen = 80,
-	Nargs = 10,
+enum { Ndevs = 10,
+       Arglen = 80,
+       Nargs = 10,
 };
 
 static void
@@ -30,18 +28,19 @@ usage(void)
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
 	char args[Arglen];
-	char *as, *ae;
+	char* as, *ae;
 	int accel, pena, devid;
-	int csps[] = { KbdCSP, PtrCSP, 0 };
+	int csps[] = {KbdCSP, PtrCSP, 0};
 
 	quotefmtinstall();
 	pena = 1;
-	ae = args+sizeof(args);
+	ae = args + sizeof(args);
 	as = seprint(args, ae, "kb");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		accel = strtol(EARGF(usage()), nil, 0);
 		as = seprint(as, ae, " -a %d", accel);
@@ -59,7 +58,7 @@ threadmain(int argc, char **argv)
 		pena = 1;
 		break;
 	case 'N':
-		devid = atoi(EARGF(usage()));		/* ignore dev number */
+		devid = atoi(EARGF(usage())); /* ignore dev number */
 		USED(devid);
 		break;
 	case 'b':
@@ -67,7 +66,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	rfork(RFNOTEG);
 	fmtinstall('U', Ufmt);

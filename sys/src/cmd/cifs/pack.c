@@ -13,11 +13,11 @@
 #include <ctype.h>
 #include "cifs.h"
 
-void *
-pmem(Pkt *p, void *v, int len)
+void*
+pmem(Pkt* p, void* v, int len)
 {
-	uint8_t *str = v;
-	void *s = p->pos;
+	uint8_t* str = v;
+	void* s = p->pos;
 
 	if(!len || !v)
 		return s;
@@ -26,20 +26,20 @@ pmem(Pkt *p, void *v, int len)
 	return s;
 }
 
-void *
-ppath(Pkt *p, char *str)
+void*
+ppath(Pkt* p, char* str)
 {
 	char c;
 	Rune r;
-	void *s = p->pos;
+	void* s = p->pos;
 
 	if(!str)
 		return s;
 
-	if(p->s->caps & CAP_UNICODE){
-		if(((p->pos - p->buf) % 2) != 0)	/* pad to even offset */
+	if(p->s->caps & CAP_UNICODE) {
+		if(((p->pos - p->buf) % 2) != 0) /* pad to even offset */
 			p8(p, 0);
-		while(*str){
+		while(*str) {
 			str += chartorune(&r, str);
 			if(r == L'/')
 				r = L'\\';
@@ -47,7 +47,7 @@ ppath(Pkt *p, char *str)
 		}
 		pl16(p, 0);
 	} else {
-		while((c = *str++) != 0){
+		while((c = *str++) != 0) {
 			if(c == '/')
 				c = '\\';
 			*p->pos++ = c;
@@ -57,19 +57,19 @@ ppath(Pkt *p, char *str)
 	return s;
 }
 
-void *
-pstr(Pkt *p, char *str)
+void*
+pstr(Pkt* p, char* str)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 	Rune r;
 
 	if(!str)
 		return s;
 
-	if(p->s->caps & CAP_UNICODE){
+	if(p->s->caps & CAP_UNICODE) {
 		if(((p->pos - p->buf) % 2) != 0)
-			p8(p, 0);		/* pad to even offset */
-		while(*str){
+			p8(p, 0); /* pad to even offset */
+		while(*str) {
 			str += chartorune(&r, str);
 			pl16(p, r);
 		}
@@ -82,10 +82,10 @@ pstr(Pkt *p, char *str)
 	return s;
 }
 
-void *
-pascii(Pkt *p, char *str)
+void*
+pascii(Pkt* p, char* str)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	while(*str)
 		*p->pos++ = *str++;
@@ -93,11 +93,10 @@ pascii(Pkt *p, char *str)
 	return s;
 }
 
-
-void *
-pl64(Pkt *p, uint64_t n)
+void*
+pl64(Pkt* p, uint64_t n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = n;
 	*p->pos++ = n >> 8;
@@ -110,10 +109,10 @@ pl64(Pkt *p, uint64_t n)
 	return s;
 }
 
-void *
-pb32(Pkt *p, uint n)
+void*
+pb32(Pkt* p, uint n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = n >> 24;
 	*p->pos++ = n >> 16;
@@ -122,10 +121,10 @@ pb32(Pkt *p, uint n)
 	return s;
 }
 
-void *
-pl32(Pkt *p, uint n)
+void*
+pl32(Pkt* p, uint n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = n;
 	*p->pos++ = n >> 8;
@@ -134,30 +133,30 @@ pl32(Pkt *p, uint n)
 	return s;
 }
 
-void *
-pb16(Pkt *p, uint n)
+void*
+pb16(Pkt* p, uint n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = n >> 8;
 	*p->pos++ = n;
 	return s;
 }
 
-void *
-pl16(Pkt *p, uint n)
+void*
+pl16(Pkt* p, uint n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = n;
 	*p->pos++ = n >> 8;
 	return s;
 }
 
-void *
-p8(Pkt *p, uint n)
+void*
+p8(Pkt* p, uint n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = n;
 	return s;
@@ -166,12 +165,12 @@ p8(Pkt *p, uint n)
 /*
  * Encode a Netbios name
  */
-void *
-pname(Pkt *p, char *name, char pad)
+void*
+pname(Pkt* p, char* name, char pad)
 {
 	int i, done = 0;
 	char c;
-	void *s = p->pos;
+	void* s = p->pos;
 
 	*p->pos++ = ' ';
 	for(i = 0; i < 16; i++) {
@@ -179,7 +178,7 @@ pname(Pkt *p, char *name, char pad)
 		if(!done && name[i] == '\0')
 			done = 1;
 		if(!done)
-			c = islower(name[i])? toupper(name[i]): name[i];
+			c = islower(name[i]) ? toupper(name[i]) : name[i];
 		*p->pos++ = ((uint8_t)c >> 4) + 'A';
 		*p->pos++ = (c & 0xf) + 'A';
 	}
@@ -187,10 +186,10 @@ pname(Pkt *p, char *name, char pad)
 	return s;
 }
 
-void *
-pvtime(Pkt *p, uint64_t n)
+void*
+pvtime(Pkt* p, uint64_t n)
 {
-	void *s = p->pos;
+	void* s = p->pos;
 
 	n += 11644473600LL;
 	n *= 10000000LL;
@@ -200,32 +199,31 @@ pvtime(Pkt *p, uint64_t n)
 	return s;
 }
 
-void *
-pdatetime(Pkt *p, int32_t utc)
+void*
+pdatetime(Pkt* p, int32_t utc)
 {
-	void *s = p->pos;
-	Tm *tm = localtime(utc);
+	void* s = p->pos;
+	Tm* tm = localtime(utc);
 	int t = tm->hour << 11 | tm->min << 5 | (tm->sec / 2);
 	int d = (tm->year - 80) << 9 | (tm->mon + 1) << 5 | tm->mday;
 
 	/*
 	 * bug in word swapping in Win95 requires this
 	 */
-	if(p->s->caps & CAP_NT_SMBS){
+	if(p->s->caps & CAP_NT_SMBS) {
 		pl16(p, d);
 		pl16(p, t);
-	} else{
+	} else {
 		pl16(p, t);
 		pl16(p, d);
 	}
 	return s;
 }
 
-
 void
-gmem(Pkt *p, void *v, int n)
+gmem(Pkt* p, void* v, int n)
 {
-	uint8_t *str = v;
+	uint8_t* str = v;
 
 	if(!n || !v)
 		return;
@@ -239,7 +237,7 @@ gmem(Pkt *p, void *v, int n)
  * of the output buffer but this is not so in Unicode mode!
  */
 void
-gstr(Pkt *p, char *str, int n)
+gstr(Pkt* p, char* str, int n)
 {
 	int i;
 	Rune r;
@@ -247,11 +245,11 @@ gstr(Pkt *p, char *str, int n)
 	if(!n || !str)
 		return;
 
-	if(p->s->caps & CAP_UNICODE){
+	if(p->s->caps & CAP_UNICODE) {
 		i = 0;
-		while(*p->pos && n && p->pos < p->eop){
+		while(*p->pos && n && p->pos < p->eop) {
 			r = gl16(p);
-			i += runetochar(str +i, &r);
+			i += runetochar(str + i, &r);
 			n -= 2;
 		}
 		*(str + i) = 0;
@@ -276,7 +274,7 @@ gstr(Pkt *p, char *str, int n)
 }
 
 void
-gascii(Pkt *p, char *str, int n)
+gascii(Pkt* p, char* str, int n)
 {
 	if(!n || !str)
 		return;
@@ -288,16 +286,15 @@ gascii(Pkt *p, char *str, int n)
 		continue;
 }
 
-
 uint64_t
-gl64(Pkt *p)
+gl64(Pkt* p)
 {
 	uint64_t n;
 
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	n  = (uint64_t)*p->pos++;
+	n = (uint64_t)*p->pos++;
 	n |= (uint64_t)*p->pos++ << 8;
 	n |= (uint64_t)*p->pos++ << 16;
 	n |= (uint64_t)*p->pos++ << 24;
@@ -309,14 +306,14 @@ gl64(Pkt *p)
 }
 
 uint64_t
-gb48(Pkt *p)
+gb48(Pkt* p)
 {
 	uint64_t n;
 
 	if(p->pos + 6 > p->eop)
 		return 0;
 
-	n  = (uint64_t)*p->pos++ << 40;
+	n = (uint64_t)*p->pos++ << 40;
 	n |= (uint64_t)*p->pos++ << 24;
 	n |= (uint64_t)*p->pos++ << 32;
 	n |= (uint64_t)*p->pos++ << 16;
@@ -326,14 +323,14 @@ gb48(Pkt *p)
 }
 
 uint
-gb32(Pkt *p)
+gb32(Pkt* p)
 {
 	uint n;
 
 	if(p->pos + 4 > p->eop)
 		return 0;
 
-	n  = (uint)*p->pos++ << 24;
+	n = (uint)*p->pos++ << 24;
 	n |= (uint)*p->pos++ << 16;
 	n |= (uint)*p->pos++ << 8;
 	n |= (uint)*p->pos++;
@@ -341,14 +338,14 @@ gb32(Pkt *p)
 }
 
 uint
-gl32(Pkt *p)
+gl32(Pkt* p)
 {
 	uint n;
 
 	if(p->pos + 4 > p->eop)
 		return 0;
 
-	n  = (uint)*p->pos++;
+	n = (uint)*p->pos++;
 	n |= (uint)*p->pos++ << 8;
 	n |= (uint)*p->pos++ << 16;
 	n |= (uint)*p->pos++ << 24;
@@ -356,31 +353,31 @@ gl32(Pkt *p)
 }
 
 uint
-gb16(Pkt *p)
+gb16(Pkt* p)
 {
 	uint n;
 
 	if(p->pos + 2 > p->eop)
 		return 0;
-	n  = (uint)*p->pos++ << 8;
+	n = (uint)*p->pos++ << 8;
 	n |= (uint)*p->pos++;
 	return n;
 }
 
 uint
-gl16(Pkt *p)
+gl16(Pkt* p)
 {
 	uint n;
 
 	if(p->pos + 2 > p->eop)
 		return 0;
-	n  = (uint)*p->pos++;
+	n = (uint)*p->pos++;
 	n |= (uint)*p->pos++ << 8;
 	return n;
 }
 
 uint
-g8(Pkt *p)
+g8(Pkt* p)
 {
 	if(p->pos + 1 > p->eop)
 		return 0;
@@ -388,7 +385,7 @@ g8(Pkt *p)
 }
 
 int32_t
-gdatetime(Pkt *p)
+gdatetime(Pkt* p)
 {
 	Tm tm;
 	uint d, t;
@@ -399,10 +396,10 @@ gdatetime(Pkt *p)
 	/*
 	 * bug in word swapping in Win95 requires this
 	 */
-	if(p->s->caps & CAP_NT_SMBS){
+	if(p->s->caps & CAP_NT_SMBS) {
 		d = gl16(p);
 		t = gl16(p);
-	}else{
+	} else {
 		t = gl16(p);
 		d = gl16(p);
 	}
@@ -421,14 +418,14 @@ gdatetime(Pkt *p)
 }
 
 int32_t
-gvtime(Pkt *p)
+gvtime(Pkt* p)
 {
 	uint64_t vl;
 
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	vl  = (uint64_t)gl32(p);
+	vl = (uint64_t)gl32(p);
 	vl |= (uint64_t)gl32(p) << 32;
 
 	vl /= 10000000LL;
@@ -437,13 +434,13 @@ gvtime(Pkt *p)
 }
 
 void
-gconv(Pkt *p, int conv, char *str, int n)
+gconv(Pkt* p, int conv, char* str, int n)
 {
 	int off;
-	uint8_t *pos;
+	uint8_t* pos;
 
 	off = gl32(p) & 0xffff;
-	if(off == 0 || p->tdata - conv + off > p->eop){
+	if(off == 0 || p->tdata - conv + off > p->eop) {
 		memset(str, 0, n);
 		return;
 	}
@@ -455,13 +452,13 @@ gconv(Pkt *p, int conv, char *str, int n)
 }
 
 void
-goff(Pkt *p, uint8_t *base, char *str, int n)
+goff(Pkt* p, uint8_t* base, char* str, int n)
 {
 	int off;
-	uint8_t *pos;
+	uint8_t* pos;
 
 	off = gl16(p);
-	if(off == 0 || base + off > p->eop){
+	if(off == 0 || base + off > p->eop) {
 		memset(str, 0, n);
 		return;
 	}

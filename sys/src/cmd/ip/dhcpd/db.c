@@ -22,9 +22,9 @@
  *	char hwa[32];
  *	char otime[10];
  */
-Binding *bcache;
+Binding* bcache;
 uint8_t bfirst[IPaddrlen];
-char *binddir = "/lib/ndb/dhcp";
+char* binddir = "/lib/ndb/dhcp";
 
 /*
  *  convert a byte array to hex
@@ -37,18 +37,18 @@ hex(int x)
 	return x - 10 + 'a';
 }
 extern char*
-tohex(char *hdr, uint8_t *p, int len)
+tohex(char* hdr, uint8_t* p, int len)
 {
-	char *s, *sp;
+	char* s, *sp;
 	int hlen;
 
 	hlen = strlen(hdr);
-	s = malloc(hlen + 2*len + 1);
+	s = malloc(hlen + 2 * len + 1);
 	sp = s;
 	strcpy(sp, hdr);
 	sp += hlen;
-	for(; len > 0; len--){
-		*sp++ = hex(*p>>4);
+	for(; len > 0; len--) {
+		*sp++ = hex(*p >> 4);
 		*sp++ = hex(*p & 0xf);
 		p++;
 	}
@@ -61,10 +61,10 @@ tohex(char *hdr, uint8_t *p, int len)
  *  ascii, leave it be.  Otherwise, convert it to hex.
  */
 extern char*
-toid(uint8_t *p, int n)
+toid(uint8_t* p, int n)
 {
 	int i;
-	char *s;
+	char* s;
 
 	for(i = 0; i < n; i++)
 		if(!isprint(p[i]))
@@ -79,11 +79,11 @@ toid(uint8_t *p, int n)
  *  increment an ip address
  */
 static void
-incip(uint8_t *ip)
+incip(uint8_t* ip)
 {
 	int i, x;
 
-	for(i = IPaddrlen-1; i >= 0; i--){
+	for(i = IPaddrlen - 1; i >= 0; i--) {
 		x = ip[i];
 		x++;
 		ip[i] = x;
@@ -96,26 +96,26 @@ incip(uint8_t *ip)
  *  find a binding for an id or hardware address
  */
 static int
-lockopen(char *file)
+lockopen(char* file)
 {
 	char err[ERRMAX];
 	int fd, tries;
 
-	for(tries = 0; tries < 5; tries++){
+	for(tries = 0; tries < 5; tries++) {
 		fd = open(file, ORDWR);
 		if(fd >= 0)
 			return fd;
 		errstr(err, sizeof err);
-		if(strstr(err, "lock")){
+		if(strstr(err, "lock")) {
 			/* wait for other process to let go of lock */
 			sleep(250);
 
 			/* try again */
 			continue;
 		}
-		if(strstr(err, "exist")){
+		if(strstr(err, "exist")) {
 			/* no file, create an exclusive access file */
-			fd = create(file, ORDWR, DMEXCL|0664);
+			fd = create(file, ORDWR, DMEXCL | 0664);
 			if(fd >= 0)
 				return fd;
 		}
@@ -124,7 +124,7 @@ lockopen(char *file)
 }
 
 void
-setbinding(Binding *b, char *id, int32_t t)
+setbinding(Binding* b, char* id, int32_t t)
 {
 	if(b->boundto)
 		free(b->boundto);
@@ -134,15 +134,15 @@ setbinding(Binding *b, char *id, int32_t t)
 }
 
 static void
-parsebinding(Binding *b, char *buf)
+parsebinding(Binding* b, char* buf)
 {
 	int32_t t;
-	char *id, *p;
+	char* id, *p;
 
 	/* parse */
 	t = atoi(buf);
 	id = strchr(buf, '\n');
-	if(id){
+	if(id) {
 		*id++ = 0;
 		p = strchr(id, '\n');
 		if(p)
@@ -155,9 +155,9 @@ parsebinding(Binding *b, char *buf)
 }
 
 static int
-writebinding(int fd, Binding *b)
+writebinding(int fd, Binding* b)
 {
-	Dir *d;
+	Dir* d;
 
 	seek(fd, 0, 0);
 	if(fprint(fd, "%ld\n%s\n", b->lease, b->boundto) < 0)
@@ -176,15 +176,15 @@ writebinding(int fd, Binding *b)
  *  synchronize cached binding with file.  the file always wins.
  */
 int
-syncbinding(Binding *b, int returnfd)
+syncbinding(Binding* b, int returnfd)
 {
 	char buf[512];
 	int i, fd;
-	Dir *d;
+	Dir* d;
 
 	snprint(buf, sizeof(buf), "%s/%I", binddir, b->ip);
 	fd = lockopen(buf);
-	if(fd < 0){
+	if(fd < 0) {
 		/* assume someone else is using it */
 		b->lease = time(0) + OfferTimeout;
 		return -1;
@@ -192,17 +192,18 @@ syncbinding(Binding *b, int returnfd)
 
 	/* reread if changed */
 	d = dirfstat(fd);
-	if(d != nil)	/* BUG? */
-	if(d->qid.type != b->q.type || d->qid.path != b->q.path || d->qid.vers != b->q.vers){
-		i = read(fd, buf, sizeof(buf)-1);
-		if(i < 0)
-			i = 0;
-		buf[i] = 0;
-		parsebinding(b, buf);
-		b->lasttouched = d->mtime;
-		b->q.path = d->qid.path;
-		b->q.vers = d->qid.vers;
-	}
+	if(d != nil) /* BUG? */
+		if(d->qid.type != b->q.type || d->qid.path != b->q.path ||
+		   d->qid.vers != b->q.vers) {
+			i = read(fd, buf, sizeof(buf) - 1);
+			if(i < 0)
+				i = 0;
+			buf[i] = 0;
+			parsebinding(b, buf);
+			b->lasttouched = d->mtime;
+			b->q.path = d->qid.path;
+			b->q.vers = d->qid.vers;
+		}
 
 	free(d);
 
@@ -214,7 +215,7 @@ syncbinding(Binding *b, int returnfd)
 }
 
 extern int
-samenet(uint8_t *ip, Info *iip)
+samenet(uint8_t* ip, Info* iip)
 {
 	uint8_t x[IPaddrlen];
 
@@ -226,9 +227,9 @@ samenet(uint8_t *ip, Info *iip)
  *  create a record for each binding
  */
 extern void
-initbinding(uint8_t *first, int n)
+initbinding(uint8_t* first, int n)
 {
-	while(n-- > 0){
+	while(n-- > 0) {
 		iptobinding(first, 1);
 		incip(first);
 	}
@@ -238,12 +239,12 @@ initbinding(uint8_t *first, int n)
  *  find a binding for a specific ip address
  */
 extern Binding*
-iptobinding(uint8_t *ip, int mk)
+iptobinding(uint8_t* ip, int mk)
 {
-	Binding *b;
+	Binding* b;
 
-	for(b = bcache; b; b = b->next){
-		if(ipcmp(b->ip, ip) == 0){
+	for(b = bcache; b; b = b->next) {
+		if(ipcmp(b->ip, ip) == 0) {
 			syncbinding(b, 0);
 			return b;
 		}
@@ -261,17 +262,18 @@ iptobinding(uint8_t *ip, int mk)
 }
 
 static void
-lognolease(Binding *b)
+lognolease(Binding* b)
 {
 	/* renew the old binding, and hope it eventually goes away */
-	b->offer = 5*60;
+	b->offer = 5 * 60;
 	commitbinding(b);
 
 	/* complain if we haven't in the last 5 minutes */
-	if(now - b->lastcomplained < 5*60)
+	if(now - b->lastcomplained < 5 * 60)
 		return;
-	syslog(0, blog, "dhcp: lease for %I to %s ended at %ld but still in use\n",
-		b->ip, b->boundto != nil ? b->boundto : "?", b->lease);
+	syslog(0, blog,
+	       "dhcp: lease for %I to %s ended at %ld but still in use\n",
+	       b->ip, b->boundto != nil ? b->boundto : "?", b->lease);
 	b->lastcomplained = now;
 }
 
@@ -279,17 +281,17 @@ lognolease(Binding *b)
  *  find a free binding for a hw addr or id on the same network as iip
  */
 extern Binding*
-idtobinding(char *id, Info *iip, int ping)
+idtobinding(char* id, Info* iip, int ping)
 {
-	Binding *b, *oldest;
+	Binding* b, *oldest;
 	int oldesttime;
 
 	/*
 	 *  first look for an old binding that matches.  that way
 	 *  clients will tend to keep the same ip addresses.
 	 */
-	for(b = bcache; b; b = b->next){
-		if(b->boundto && strcmp(b->boundto, id) == 0){
+	for(b = bcache; b; b = b->next) {
+		if(b->boundto && strcmp(b->boundto, id) == 0) {
 			if(!samenet(b->ip, iip))
 				continue;
 
@@ -303,21 +305,28 @@ idtobinding(char *id, Info *iip, int ping)
 	/*
 	 *  look for oldest binding that we think is unused
 	 */
-	for(;;){
+	for(;;) {
 		oldest = nil;
 		oldesttime = 0;
-		for(b = bcache; b; b = b->next){
+		for(b = bcache; b; b = b->next) {
 			if(b->tried != now)
-			if(b->lease < now && b->expoffer < now && samenet(b->ip, iip))
-			if(oldest == nil || b->lasttouched < oldesttime){
-				/* sync and check again */
-				syncbinding(b, 0);
-				if(b->lease < now && b->expoffer < now && samenet(b->ip, iip))
-				if(oldest == nil || b->lasttouched < oldesttime){
-					oldest = b;
-					oldesttime = b->lasttouched;
-				}
-			}
+				if(b->lease < now && b->expoffer < now &&
+				   samenet(b->ip, iip))
+					if(oldest == nil ||
+					   b->lasttouched < oldesttime) {
+						/* sync and check again */
+						syncbinding(b, 0);
+						if(b->lease < now &&
+						   b->expoffer < now &&
+						   samenet(b->ip, iip))
+							if(oldest == nil ||
+							   b->lasttouched <
+							       oldesttime) {
+								oldest = b;
+								oldesttime =
+								    b->lasttouched;
+							}
+					}
 		}
 		if(oldest == nil)
 			break;
@@ -327,20 +336,21 @@ idtobinding(char *id, Info *iip, int ping)
 		if(ping == 0 || icmpecho(oldest->ip) == 0)
 			return oldest;
 
-		lognolease(oldest);	/* sets lastcomplained */
+		lognolease(oldest); /* sets lastcomplained */
 	}
 
 	/* try all bindings */
-	for(b = bcache; b; b = b->next){
+	for(b = bcache; b; b = b->next) {
 		syncbinding(b, 0);
 		if(b->tried != now)
-		if(b->lease < now && b->expoffer < now && samenet(b->ip, iip)){
-			b->tried = now;
-			if(ping == 0 || icmpecho(b->ip) == 0)
-				return b;
+			if(b->lease < now && b->expoffer < now &&
+			   samenet(b->ip, iip)) {
+				b->tried = now;
+				if(ping == 0 || icmpecho(b->ip) == 0)
+					return b;
 
-			lognolease(b);
-		}
+				lognolease(b);
+			}
 	}
 
 	/* nothing worked, give up */
@@ -351,9 +361,9 @@ idtobinding(char *id, Info *iip, int ping)
  *  create an offer
  */
 extern void
-mkoffer(Binding *b, char *id, int32_t leasetime)
+mkoffer(Binding* b, char* id, int32_t leasetime)
 {
-	if(leasetime <= 0){
+	if(leasetime <= 0) {
 		if(b->lease > now + minlease)
 			leasetime = b->lease - now;
 		else
@@ -370,17 +380,19 @@ mkoffer(Binding *b, char *id, int32_t leasetime)
  *  find an offer for this id
  */
 extern Binding*
-idtooffer(char *id, Info *iip)
+idtooffer(char* id, Info* iip)
 {
-	Binding *b;
+	Binding* b;
 
 	/* look for an offer to this id */
-	for(b = bcache; b; b = b->next){
-		if(b->offeredto && strcmp(b->offeredto, id) == 0 && samenet(b->ip, iip)){
+	for(b = bcache; b; b = b->next) {
+		if(b->offeredto && strcmp(b->offeredto, id) == 0 &&
+		   samenet(b->ip, iip)) {
 			/* make sure some other system hasn't stolen it */
 			syncbinding(b, 0);
-			if(b->lease < now
-			|| (b->boundto && strcmp(b->boundto, b->offeredto) == 0))
+			if(b->lease < now ||
+			   (b->boundto &&
+			    strcmp(b->boundto, b->offeredto) == 0))
 				return b;
 		}
 	}
@@ -391,7 +403,7 @@ idtooffer(char *id, Info *iip)
  *  commit a lease, this could fail
  */
 extern int
-commitbinding(Binding *b)
+commitbinding(Binding* b)
 {
 	int fd;
 	int32_t now;
@@ -403,14 +415,15 @@ commitbinding(Binding *b)
 	fd = syncbinding(b, 1);
 	if(fd < 0)
 		return -1;
-	if(b->lease > now && b->boundto && strcmp(b->boundto, b->offeredto) != 0){
+	if(b->lease > now && b->boundto &&
+	   strcmp(b->boundto, b->offeredto) != 0) {
 		close(fd);
 		return -1;
 	}
 	setbinding(b, b->offeredto, now + b->offer);
 	b->lasttouched = now;
-	
-	if(writebinding(fd, b) < 0){
+
+	if(writebinding(fd, b) < 0) {
 		close(fd);
 		return -1;
 	}
@@ -422,7 +435,7 @@ commitbinding(Binding *b)
  *  commit a lease, this could fail
  */
 extern int
-releasebinding(Binding *b, char *id)
+releasebinding(Binding* b, char* id)
 {
 	int fd;
 	int32_t now;
@@ -432,14 +445,14 @@ releasebinding(Binding *b, char *id)
 	fd = syncbinding(b, 1);
 	if(fd < 0)
 		return -1;
-	if(b->lease > now && b->boundto && strcmp(b->boundto, id) != 0){
+	if(b->lease > now && b->boundto && strcmp(b->boundto, id) != 0) {
 		close(fd);
 		return -1;
 	}
 	b->lease = 0;
 	b->expoffer = 0;
-	
-	if(writebinding(fd, b) < 0){
+
+	if(writebinding(fd, b) < 0) {
 		close(fd);
 		return -1;
 	}

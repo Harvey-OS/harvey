@@ -12,7 +12,7 @@
 #include <auth.h>
 
 int
-netcrypt(void *key, void *chal)
+netcrypt(void* key, void* chal)
 {
 	uint8_t buf[8], *p;
 

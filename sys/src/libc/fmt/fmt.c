@@ -11,56 +11,32 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-enum
-{
-	Maxfmt = 64
-};
+enum { Maxfmt = 64 };
 
 typedef struct Convfmt Convfmt;
-struct Convfmt
-{
-	int	c;
-	volatile	Fmts	fmt;	/* for spin lock in fmtfmt; avoids race due to write order */
+struct Convfmt {
+	int c;
+	volatile Fmts
+	    fmt; /* for spin lock in fmtfmt; avoids race due to write order */
 };
 
-struct
-{
+struct {
 	/* lock by calling _fmtlock, _fmtunlock */
-	int	nfmt;
-	Convfmt	fmt[Maxfmt];
+	int nfmt;
+	Convfmt fmt[Maxfmt];
 } fmtalloc;
 
 static Convfmt knownfmt[] = {
-	' ',	_flagfmt,
-	'#',	_flagfmt,
-	'%',	_percentfmt,
-	'+',	_flagfmt,
-	',',	_flagfmt,
-	'-',	_flagfmt,
-	'C',	_runefmt,
-	'E',	_efgfmt,
-	'G',	_efgfmt,
-	'S',	_runesfmt,
-	'X',	_ifmt,
-	'b',	_ifmt,
-	'c',	_charfmt,
-	'd',	_ifmt,
-	'e',	_efgfmt,
-	'f',	_efgfmt,
-	'g',	_efgfmt,
-	'h',	_flagfmt,
-	'l',	_flagfmt,
-	'n',	_countfmt,
-	'o',	_ifmt,
-	'p',	_ifmt,
-	'r',	errfmt,
-	's',	_strfmt,
-	'u',	_flagfmt,
-	'x',	_ifmt,
-	0,	nil,
+    ' ', _flagfmt, '#', _flagfmt,  '%', _percentfmt, '+', _flagfmt,
+    ',', _flagfmt, '-', _flagfmt,  'C', _runefmt,    'E', _efgfmt,
+    'G', _efgfmt,  'S', _runesfmt, 'X', _ifmt,       'b', _ifmt,
+    'c', _charfmt, 'd', _ifmt,     'e', _efgfmt,     'f', _efgfmt,
+    'g', _efgfmt,  'h', _flagfmt,  'l', _flagfmt,    'n', _countfmt,
+    'o', _ifmt,    'p', _ifmt,     'r', errfmt,      's', _strfmt,
+    'u', _flagfmt, 'x', _ifmt,     0,   nil,
 };
 
-int	(*doquote)(int);
+int (*doquote)(int);
 
 /*
  * _fmtlock() must be set
@@ -68,15 +44,15 @@ int	(*doquote)(int);
 static int
 _fmtinstall(int c, Fmts f)
 {
-	Convfmt *p, *ep;
+	Convfmt* p, *ep;
 
-	if(c<=0 || c>=65536)
+	if(c <= 0 || c >= 65536)
 		return -1;
 	if(!f)
 		f = _badfmt;
 
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
-	for(p=fmtalloc.fmt; p<ep; p++)
+	for(p = fmtalloc.fmt; p < ep; p++)
 		if(p->c == c)
 			break;
 
@@ -84,7 +60,7 @@ _fmtinstall(int c, Fmts f)
 		return -1;
 
 	p->fmt = f;
-	if(p == ep){	/* installing a new format character */
+	if(p == ep) { /* installing a new format character */
 		fmtalloc.nfmt++;
 		p->c = c;
 	}
@@ -106,20 +82,20 @@ fmtinstall(int c, Fmts f)
 static Fmts
 fmtfmt(int c)
 {
-	Convfmt *p, *ep;
+	Convfmt* p, *ep;
 
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
-	for(p=fmtalloc.fmt; p<ep; p++)
-		if(p->c == c){
-			while(p->fmt == nil)	/* loop until value is updated */
+	for(p = fmtalloc.fmt; p < ep; p++)
+		if(p->c == c) {
+			while(p->fmt == nil) /* loop until value is updated */
 				;
 			return p->fmt;
 		}
 
 	/* is this a predefined format char? */
 	_fmtlock();
-	for(p=knownfmt; p->c; p++)
-		if(p->c == c){
+	for(p = knownfmt; p->c; p++)
+		if(p->c == c) {
 			_fmtinstall(p->c, p->fmt);
 			_fmtunlock();
 			return p->fmt;
@@ -130,12 +106,12 @@ fmtfmt(int c)
 }
 
 void*
-_fmtdispatch(Fmt *f, void *fmt, int isrunes)
+_fmtdispatch(Fmt* f, void* fmt, int isrunes)
 {
 	Rune rune, r;
 	int i, n, w, p;
 	uint32_t fl;
-	void *ret;
+	void* ret;
 
 	w = f->width;
 	p = f->prec;
@@ -144,37 +120,44 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 	f->flags = 0;
 	f->width = f->prec = 0;
 
-	for(;;){
-		if(isrunes){
+	for(;;) {
+		if(isrunes) {
 			r = *(Rune*)fmt;
 			fmt = (Rune*)fmt + 1;
-		}else{
+		} else {
 			fmt = (char*)fmt + chartorune(&rune, fmt);
 			r = rune;
 		}
 		f->r = r;
-		switch(r){
+		switch(r) {
 		case '\0':
 			ret = nil;
 			goto end;
 		case '.':
-			f->flags |= FmtWidth|FmtPrec;
+			f->flags |= FmtWidth | FmtPrec;
 			continue;
 		case '0':
-			if(!(f->flags & FmtWidth)){
+			if(!(f->flags & FmtWidth)) {
 				f->flags |= FmtZero;
 				continue;
 			}
-			/* fall through */
-		case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
+		/* fall through */
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
 			i = 0;
-			while(r >= '0' && r <= '9'){
+			while(r >= '0' && r <= '9') {
 				i = i * 10 + r - '0';
-				if(isrunes){
+				if(isrunes) {
 					r = *(Rune*)fmt;
 					fmt = (Rune*)fmt + 1;
-				}else{
+				} else {
 					r = *(char*)fmt;
 					fmt = (char*)fmt + 1;
 				}
@@ -184,22 +167,22 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 			else
 				fmt = (char*)fmt - 1;
 		numflag:
-			if(f->flags & FmtWidth){
+			if(f->flags & FmtWidth) {
 				f->flags |= FmtPrec;
 				f->prec = i;
-			}else{
+			} else {
 				f->flags |= FmtWidth;
 				f->width = i;
 			}
 			continue;
 		case '*':
 			i = va_arg(f->args, int);
-			if(i < 0){
+			if(i < 0) {
 				/*
 				 * negative precision =>
 				 * ignore the precision.
 				 */
-				if(f->flags & FmtPrec){
+				if(f->flags & FmtPrec) {
 					f->flags &= ~FmtPrec;
 					f->prec = 0;
 					continue;
@@ -210,11 +193,11 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 			goto numflag;
 		}
 		n = (*fmtfmt(r))(f);
-		if(n < 0){
+		if(n < 0) {
 			ret = nil;
 			break;
 		}
-		if(n == 0){
+		if(n == 0) {
 			ret = fmt;
 			break;
 		}

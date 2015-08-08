@@ -9,33 +9,28 @@
 
 #include "ssh.h"
 
-char *cipherlist = "blowfish rc4 3des";
-char *authlist = "tis";
+char* cipherlist = "blowfish rc4 3des";
+char* authlist = "tis";
 
 void fromnet(Conn*);
 void startcmd(Conn*, char*, int*, int*);
-int maxmsg = 256*1024;
+int maxmsg = 256 * 1024;
 
-Cipher *allcipher[] = {
-	&cipherrc4,
-	&cipherblowfish,
-	&cipher3des,
-	&cipherdes,
-	&ciphernone,
-	&ciphertwiddle,
+Cipher* allcipher[] = {
+    &cipherrc4, &cipherblowfish, &cipher3des,
+    &cipherdes, &ciphernone,     &ciphertwiddle,
 };
 
-Authsrv *allauthsrv[] = {
-	&authsrvpassword,
-	&authsrvtis,
+Authsrv* allauthsrv[] = {
+    &authsrvpassword, &authsrvtis,
 };
 
 Cipher*
-findcipher(char *name, Cipher **list, int nlist)
+findcipher(char* name, Cipher** list, int nlist)
 {
 	int i;
 
-	for(i=0; i<nlist; i++)
+	for(i = 0; i < nlist; i++)
 		if(strcmp(name, list[i]->name) == 0)
 			return list[i];
 	error("unknown cipher %s", name);
@@ -43,11 +38,11 @@ findcipher(char *name, Cipher **list, int nlist)
 }
 
 Authsrv*
-findauthsrv(char *name, Authsrv **list, int nlist)
+findauthsrv(char* name, Authsrv** list, int nlist)
 {
 	int i;
 
-	for(i=0; i<nlist; i++)
+	for(i = 0; i < nlist; i++)
 		if(strcmp(name, list[i]->name) == 0)
 			return list[i];
 	error("unknown authsrv %s", name);
@@ -57,14 +52,15 @@ findauthsrv(char *name, Authsrv **list, int nlist)
 void
 usage(void)
 {
-	fprint(2, "usage: sshserve [-A authlist] [-c cipherlist] client-ip-address\n");
+	fprint(2, "usage: sshserve [-A authlist] [-c cipherlist] "
+	          "client-ip-address\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *f[16];
+	char* f[16];
 	int i;
 	Conn c;
 
@@ -75,7 +71,8 @@ main(int argc, char **argv)
 
 	memset(&c, 0, sizeof c);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debuglevel = atoi(EARGF(usage()));
 		break;
@@ -87,7 +84,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -102,14 +100,15 @@ main(int argc, char **argv)
 	c.serverkey = &c.serverpriv->pub;
 
 	c.nokcipher = getfields(cipherlist, f, nelem(f), 1, ", ");
-	c.okcipher = emalloc(sizeof(Cipher*)*c.nokcipher);
-	for(i=0; i<c.nokcipher; i++)
+	c.okcipher = emalloc(sizeof(Cipher*) * c.nokcipher);
+	for(i = 0; i < c.nokcipher; i++)
 		c.okcipher[i] = findcipher(f[i], allcipher, nelem(allcipher));
 
 	c.nokauthsrv = getfields(authlist, f, nelem(f), 1, ", ");
-	c.okauthsrv = emalloc(sizeof(Authsrv*)*c.nokauthsrv);
-	for(i=0; i<c.nokauthsrv; i++)
-		c.okauthsrv[i] = findauthsrv(f[i], allauthsrv, nelem(allauthsrv));
+	c.okauthsrv = emalloc(sizeof(Authsrv*) * c.nokauthsrv);
+	for(i = 0; i < c.nokauthsrv; i++)
+		c.okauthsrv[i] =
+		    findauthsrv(f[i], allauthsrv, nelem(allauthsrv));
 
 	sshserverhandshake(&c);
 
@@ -117,20 +116,20 @@ main(int argc, char **argv)
 }
 
 void
-fromnet(Conn *c)
+fromnet(Conn* c)
 {
 	int infd, kidpid, n;
-	char *cmd;
-	Msg *m;
+	char* cmd;
+	Msg* m;
 
 	infd = kidpid = -1;
-	for(;;){
+	for(;;) {
 		m = recvmsg(c, -1);
 		if(m == nil)
 			exits(nil);
-		switch(m->type){
+		switch(m->type) {
 		default:
-			//badmsg(m, 0);
+			// badmsg(m, 0);
 			sendmsg(allocmsg(c, SSH_SMSG_FAILURE, 0));
 			break;
 
@@ -167,12 +166,12 @@ fromnet(Conn *c)
 	}
 
 InteractiveMode:
-	for(;;){
+	for(;;) {
 		free(m);
 		m = recvmsg(c, -1);
 		if(m == nil)
 			exits(nil);
-		switch(m->type){
+		switch(m->type) {
 		default:
 			badmsg(m, 0);
 
@@ -181,7 +180,7 @@ InteractiveMode:
 			sysfatal("client disconnected");
 
 		case SSH_CMSG_STDIN_DATA:
-			if(infd != 0){
+			if(infd != 0) {
 				n = getlong(m);
 				write(infd, getbytes(m, n), n);
 			}
@@ -195,7 +194,7 @@ InteractiveMode:
 		case SSH_CMSG_EXIT_CONFIRMATION:
 			/* sent by some clients as dying breath */
 			exits(nil);
-	
+
 		case SSH_CMSG_WINDOW_SIZE:
 			/* we don't care */
 			break;
@@ -204,19 +203,19 @@ InteractiveMode:
 }
 
 void
-copyout(Conn *c, int fd, int mtype)
+copyout(Conn* c, int fd, int mtype)
 {
 	char buf[8192];
 	int n, max, pid;
-	Msg *m;
+	Msg* m;
 
 	max = sizeof buf;
-	if(max > maxmsg - 32)	/* 32 is an overestimate of packet overhead */
+	if(max > maxmsg - 32) /* 32 is an overestimate of packet overhead */
 		max = maxmsg - 32;
 	if(max <= 0)
 		sysfatal("maximum message size too small");
-	
-	switch(pid = rfork(RFPROC|RFMEM|RFNOWAIT)){
+
+	switch(pid = rfork(RFPROC | RFMEM | RFNOWAIT)) {
 	case -1:
 		sysfatal("fork: %r");
 	case 0:
@@ -226,8 +225,8 @@ copyout(Conn *c, int fd, int mtype)
 		return;
 	}
 
-	while((n = read(fd, buf, max)) > 0){
-		m = allocmsg(c, mtype, 4+n);
+	while((n = read(fd, buf, max)) > 0) {
+		m = allocmsg(c, mtype, 4 + n);
 		putlong(m, n);
 		putbytes(m, buf, n);
 		sendmsg(m);
@@ -236,31 +235,31 @@ copyout(Conn *c, int fd, int mtype)
 }
 
 void
-startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
+startcmd(Conn* c, char* cmd, int* kidpid, int* kidin)
 {
 	int i, pid, kpid;
 	int pfd[3][2];
-	char *dir;
-	char *sysname, *tz;
-	Msg *m;
-	Waitmsg *w;
+	char* dir;
+	char* sysname, *tz;
+	Msg* m;
+	Waitmsg* w;
 
-	for(i=0; i<3; i++)
+	for(i = 0; i < 3; i++)
 		if(pipe(pfd[i]) < 0)
 			sysfatal("pipe: %r");
 
 	sysname = getenv("sysname");
 	tz = getenv("timezone");
 
-	switch(pid = rfork(RFPROC|RFMEM|RFNOWAIT)){
+	switch(pid = rfork(RFPROC | RFMEM | RFNOWAIT)) {
 	case -1:
 		sysfatal("fork: %r");
 	case 0:
-		switch(kpid = rfork(RFPROC|RFNOTEG|RFENVG|RFFDG)){
+		switch(kpid = rfork(RFPROC | RFNOTEG | RFENVG | RFFDG)) {
 		case -1:
 			sysfatal("fork: %r");
 		case 0:
-			for(i=0; i<3; i++){
+			for(i = 0; i < 3; i++) {
 				if(dup(pfd[i][1], i) < 0)
 					sysfatal("dup: %r");
 				close(pfd[i][0]);
@@ -271,15 +270,15 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 				putenv("sysname", sysname);
 			if(tz)
 				putenv("tz", tz);
-	
+
 			dir = smprint("/usr/%s", c->user);
 			if(dir == nil || chdir(dir) < 0)
 				chdir("/");
-			if(cmd){
+			if(cmd) {
 				putenv("service", "rx");
 				execl("/bin/rc", "rc", "-lc", cmd, nil);
 				sysfatal("cannot exec /bin/rc: %r");
-			}else{
+			} else {
 				putenv("service", "con");
 				execl("/bin/ip/telnetd", "telnetd", "-tn", nil);
 				sysfatal("cannot exec /bin/ip/telnetd: %r");
@@ -287,26 +286,27 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 		default:
 			*kidpid = kpid;
 			rendezvous(kidpid, 0);
-			for(;;){
+			for(;;) {
 				if((w = wait()) == nil)
 					sysfatal("wait: %r");
 				if(w->pid == kpid)
 					break;
 				free(w);
 			}
-			if(w->msg[0]){
-				m = allocmsg(c, SSH_MSG_DISCONNECT, 4+strlen(w->msg));
+			if(w->msg[0]) {
+				m = allocmsg(c, SSH_MSG_DISCONNECT,
+				             4 + strlen(w->msg));
 				putstring(m, w->msg);
 				sendmsg(m);
-			}else{
+			} else {
 				m = allocmsg(c, SSH_SMSG_EXITSTATUS, 4);
 				putlong(m, 0);
 				sendmsg(m);
 			}
-			for(i=0; i<3; i++)
+			for(i = 0; i < 3; i++)
 				close(pfd[i][0]);
 			free(w);
-			exits(nil);	
+			exits(nil);
 			break;
 		}
 	default:
@@ -315,7 +315,7 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 		break;
 	}
 
-	for(i=0; i<3; i++)
+	for(i = 0; i < 3; i++)
 		close(pfd[i][1]);
 
 	copyout(c, pfd[1][0], SSH_SMSG_STDOUT_DATA);

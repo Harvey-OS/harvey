@@ -14,7 +14,7 @@
 EGpub*
 egpuballoc(void)
 {
-	EGpub *eg;
+	EGpub* eg;
 
 	eg = mallocz(sizeof(*eg), 1);
 	if(eg == nil)
@@ -23,7 +23,7 @@ egpuballoc(void)
 }
 
 void
-egpubfree(EGpub *eg)
+egpubfree(EGpub* eg)
 {
 	if(eg == nil)
 		return;
@@ -33,11 +33,10 @@ egpubfree(EGpub *eg)
 	free(eg);
 }
 
-
 EGpriv*
 egprivalloc(void)
 {
-	EGpriv *eg;
+	EGpriv* eg;
 
 	eg = mallocz(sizeof(*eg), 1);
 	if(eg == nil)
@@ -46,7 +45,7 @@ egprivalloc(void)
 }
 
 void
-egprivfree(EGpriv *eg)
+egprivfree(EGpriv* eg)
 {
 	if(eg == nil)
 		return;
@@ -60,7 +59,7 @@ egprivfree(EGpriv *eg)
 EGsig*
 egsigalloc(void)
 {
-	EGsig *eg;
+	EGsig* eg;
 
 	eg = mallocz(sizeof(*eg), 1);
 	if(eg == nil)
@@ -69,7 +68,7 @@ egsigalloc(void)
 }
 
 void
-egsigfree(EGsig *eg)
+egsigfree(EGsig* eg)
 {
 	if(eg == nil)
 		return;

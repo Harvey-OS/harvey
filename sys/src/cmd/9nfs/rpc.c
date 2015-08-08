@@ -9,18 +9,23 @@
 
 #include "all.h"
 
-#define	SHORT(x)	r->x = (p[1] | (p[0]<<8)); p += 2
-#define	LONG(x)		r->x = (p[3] | (p[2]<<8) |\
-				(p[1]<<16) | (p[0]<<24)); p += 4
-#define SKIPLONG	p += 4
-#define	PTR(x, n)	r->x = (void *)(p); p += ROUNDUP(n)
+#define SHORT(x)                                                               \
+	r->x = (p[1] | (p[0] << 8));                                           \
+	p += 2
+#define LONG(x)                                                                \
+	r->x = (p[3] | (p[2] << 8) | (p[1] << 16) | (p[0] << 24));             \
+	p += 4
+#define SKIPLONG p += 4
+#define PTR(x, n)                                                              \
+	r->x = (void*)(p);                                                     \
+	p += ROUNDUP(n)
 
 int
-rpcM2S(void *ap, Rpccall *r, int n)
+rpcM2S(void* ap, Rpccall* r, int n)
 {
 	int k;
-	uint8_t *p;
-	Udphdr *up;
+	uint8_t* p;
+	Udphdr* up;
 
 	/* copy IPv4 header fields from Udphdr */
 	up = ap;
@@ -37,7 +42,7 @@ rpcM2S(void *ap, Rpccall *r, int n)
 
 	LONG(xid);
 	LONG(mtype);
-	switch(r->mtype){
+	switch(r->mtype) {
 	case CALL:
 		LONG(rpcvers);
 		if(r->rpcvers != 2)
@@ -52,22 +57,22 @@ rpcM2S(void *ap, Rpccall *r, int n)
 		LONG(verf.count);
 		PTR(verf.data, r->verf.count);
 		r->up = 0;
-		k = n - (p - (uint8_t *)ap);
+		k = n - (p - (uint8_t*)ap);
 		if(k < 0)
 			break;
 		PTR(args, k);
 		break;
 	case REPLY:
 		LONG(stat);
-		switch(r->stat){
+		switch(r->stat) {
 		case MSG_ACCEPTED:
 			LONG(averf.flavor);
 			LONG(averf.count);
 			PTR(averf.data, r->averf.count);
 			LONG(astat);
-			switch(r->astat){
+			switch(r->astat) {
 			case SUCCESS:
-				k = n - (p - (uint8_t *)ap);
+				k = n - (p - (uint8_t*)ap);
 				if(k < 0)
 					break;
 				PTR(results, k);
@@ -80,7 +85,7 @@ rpcM2S(void *ap, Rpccall *r, int n)
 			break;
 		case MSG_DENIED:
 			LONG(rstat);
-			switch(r->rstat){
+			switch(r->rstat) {
 			case RPC_MISMATCH:
 				LONG(rlow);
 				LONG(rhigh);
@@ -93,15 +98,15 @@ rpcM2S(void *ap, Rpccall *r, int n)
 		}
 		break;
 	}
-	n -= p - (uint8_t *)ap;
+	n -= p - (uint8_t*)ap;
 	return n;
 }
 
 int
-auth2unix(Auth *arg, Authunix *r)
+auth2unix(Auth* arg, Authunix* r)
 {
 	int i, n;
-	uint8_t *p;
+	uint8_t* p;
 
 	if(arg->flavor != AUTH_UNIX)
 		return -1;
@@ -113,49 +118,59 @@ auth2unix(Auth *arg, Authunix *r)
 	LONG(gid);
 	LONG(gidlen);
 	n = r->gidlen;
-	for(i=0; i<n && i < nelem(r->gids); i++){
+	for(i = 0; i < n && i < nelem(r->gids); i++) {
 		LONG(gids[i]);
 	}
-	for(; i<n; i++){
+	for(; i < n; i++) {
 		SKIPLONG;
 	}
-	return arg->count - (p - (uint8_t *)arg->data);
+	return arg->count - (p - (uint8_t*)arg->data);
 }
 
 int
-string2S(void *arg, String *r)
+string2S(void* arg, String* r)
 {
-	uint8_t *p;
-	char *s;
+	uint8_t* p;
+	char* s;
 
 	p = arg;
 	LONG(n);
 	PTR(s, r->n);
 	/* must NUL terminate */
-	s = malloc(r->n+1);
+	s = malloc(r->n + 1);
 	if(s == nil)
-		panic("malloc(%ld) failed in string2S\n", r->n+1);
+		panic("malloc(%ld) failed in string2S\n", r->n + 1);
 	memmove(s, r->s, r->n);
 	s[r->n] = '\0';
 	r->s = strstore(s);
 	free(s);
-	return p - (uint8_t *)arg;
+	return p - (uint8_t*)arg;
 }
 
-#undef	SHORT
-#undef	LONG
-#undef	PTR
+#undef SHORT
+#undef LONG
+#undef PTR
 
-#define	SHORT(x)	p[1] = r->x; p[0] = r->x>>8; p += 2
-#define	LONG(x)		p[3] = r->x; p[2] = r->x>>8; p[1] = r->x>>16; p[0] = r->x>>24; p += 4
+#define SHORT(x)                                                               \
+	p[1] = r->x;                                                           \
+	p[0] = r->x >> 8;                                                      \
+	p += 2
+#define LONG(x)                                                                \
+	p[3] = r->x;                                                           \
+	p[2] = r->x >> 8;                                                      \
+	p[1] = r->x >> 16;                                                     \
+	p[0] = r->x >> 24;                                                     \
+	p += 4
 
-#define	PTR(x,n)	memmove(p, r->x, n); p += ROUNDUP(n)
+#define PTR(x, n)                                                              \
+	memmove(p, r->x, n);                                                   \
+	p += ROUNDUP(n)
 
 int
-rpcS2M(Rpccall *r, int ndata, void *ap)
+rpcS2M(Rpccall* r, int ndata, void* ap)
 {
-	uint8_t *p;
-	Udphdr *up;
+	uint8_t* p;
+	Udphdr* up;
 
 	/* copy header fields to Udphdr */
 	up = ap;
@@ -174,7 +189,7 @@ rpcS2M(Rpccall *r, int ndata, void *ap)
 
 	LONG(xid);
 	LONG(mtype);
-	switch(r->mtype){
+	switch(r->mtype) {
 	case CALL:
 		LONG(rpcvers);
 		LONG(prog);
@@ -190,13 +205,13 @@ rpcS2M(Rpccall *r, int ndata, void *ap)
 		break;
 	case REPLY:
 		LONG(stat);
-		switch(r->stat){
+		switch(r->stat) {
 		case MSG_ACCEPTED:
 			LONG(averf.flavor);
 			LONG(averf.count);
 			PTR(averf.data, r->averf.count);
 			LONG(astat);
-			switch(r->astat){
+			switch(r->astat) {
 			case SUCCESS:
 				PTR(results, ndata);
 				break;
@@ -208,7 +223,7 @@ rpcS2M(Rpccall *r, int ndata, void *ap)
 			break;
 		case MSG_DENIED:
 			LONG(rstat);
-			switch(r->rstat){
+			switch(r->rstat) {
 			case RPC_MISMATCH:
 				LONG(rlow);
 				LONG(rhigh);
@@ -221,25 +236,24 @@ rpcS2M(Rpccall *r, int ndata, void *ap)
 		}
 		break;
 	}
-	return p - (uint8_t *)ap;
+	return p - (uint8_t*)ap;
 }
 
-#undef	SHORT
-#undef	LONG
-#undef	PTR
+#undef SHORT
+#undef LONG
+#undef PTR
 
-#define	LONG(m, x)	fprint(fd, "%s = %ld\n", m, r->x)
+#define LONG(m, x) fprint(fd, "%s = %ld\n", m, r->x)
 
-#define	PTR(m, count)	fprint(fd, "%s [%ld]\n", m, count)
+#define PTR(m, count) fprint(fd, "%s [%ld]\n", m, count)
 
 void
-rpcprint(int fd, Rpccall *r)
+rpcprint(int fd, Rpccall* r)
 {
-	fprint(fd, "%s: host = %I, port = %ld\n", 
-		argv0, r->host, r->port);
+	fprint(fd, "%s: host = %I, port = %ld\n", argv0, r->host, r->port);
 	LONG("xid", xid);
 	LONG("mtype", mtype);
-	switch(r->mtype){
+	switch(r->mtype) {
 	case CALL:
 		LONG("rpcvers", rpcvers);
 		LONG("prog", prog);
@@ -253,12 +267,12 @@ rpcprint(int fd, Rpccall *r)
 		break;
 	case REPLY:
 		LONG("stat", stat);
-		switch(r->stat){
+		switch(r->stat) {
 		case MSG_ACCEPTED:
 			LONG("averf.flavor", averf.flavor);
 			PTR("averf.data", r->averf.count);
 			LONG("astat", astat);
-			switch(r->astat){
+			switch(r->astat) {
 			case SUCCESS:
 				fprint(fd, "results...\n");
 				break;
@@ -270,7 +284,7 @@ rpcprint(int fd, Rpccall *r)
 			break;
 		case MSG_DENIED:
 			LONG("rstat", rstat);
-			switch(r->rstat){
+			switch(r->rstat) {
 			case RPC_MISMATCH:
 				LONG("rlow", rlow);
 				LONG("rhigh", rhigh);
@@ -285,27 +299,26 @@ rpcprint(int fd, Rpccall *r)
 }
 
 void
-showauth(Auth *ap)
+showauth(Auth* ap)
 {
 	Authunix au;
 	int i;
 
-	if(auth2unix(ap, &au) != 0){
-		chat("auth flavor=%ld, count=%ld",
-			ap->flavor, ap->count);
-		for(i=0; i<ap->count; i++)
-			chat(" %.2ux", ((uint8_t *)ap->data)[i]);
-	}else{
-		chat("auth: %ld %.*s u=%ld g=%ld",
-			au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
-		for(i=0; i<au.gidlen; i++)
+	if(auth2unix(ap, &au) != 0) {
+		chat("auth flavor=%ld, count=%ld", ap->flavor, ap->count);
+		for(i = 0; i < ap->count; i++)
+			chat(" %.2ux", ((uint8_t*)ap->data)[i]);
+	} else {
+		chat("auth: %ld %.*s u=%ld g=%ld", au.stamp,
+		     utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
+		for(i = 0; i < au.gidlen; i++)
 			chat(", %ld", au.gids[i]);
 	}
 	chat("...");
 }
 
 int
-garbage(Rpccall *reply, char *msg)
+garbage(Rpccall* reply, char* msg)
 {
 	chat("%s\n", msg ? msg : "garbage");
 	reply->astat = GARBAGE_ARGS;
@@ -313,11 +326,11 @@ garbage(Rpccall *reply, char *msg)
 }
 
 int
-error(Rpccall *reply, int errno)
+error(Rpccall* reply, int errno)
 {
-	uint8_t *dataptr = reply->results;
+	uint8_t* dataptr = reply->results;
 
 	chat("error %d\n", errno);
 	PLONG(errno);
-	return dataptr - (uint8_t *)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }

@@ -20,8 +20,7 @@ int diffbflag;
 int diffwflag;
 
 void copy(Biobuf*, char*, Biobuf*, char*);
-void idiff(Biobuf*, char*, Biobuf*, char*, Biobuf*, char*, Biobuf*,
-	   char*);
+void idiff(Biobuf*, char*, Biobuf*, char*, Biobuf*, char*, Biobuf*, char*);
 int opentemp(char*, int, int32_t);
 void rundiff(char*, char*, int);
 
@@ -33,14 +32,15 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int fd, ofd;
 	char diffout[40], idiffout[40];
-	Biobuf *b1, *b2, bdiff, bout, bstdout;
-	Dir *d;
+	Biobuf* b1, *b2, bdiff, bout, bstdout;
+	Dir* d;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'b':
@@ -49,19 +49,20 @@ main(int argc, char **argv)
 	case 'w':
 		diffwflag++;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 2)
 		usage();
 
 	if((d = dirstat(argv[0])) == nil)
 		sysfatal("stat %s: %r", argv[0]);
-	if(d->mode&DMDIR)
+	if(d->mode & DMDIR)
 		sysfatal("%s is a directory", argv[0]);
 	free(d);
 	if((d = dirstat(argv[1])) == nil)
 		sysfatal("stat %s: %r", argv[1]);
-	if(d->mode&DMDIR)
+	if(d->mode & DMDIR)
 		sysfatal("%s is a directory", argv[1]);
 	free(d);
 
@@ -71,9 +72,9 @@ main(int argc, char **argv)
 		sysfatal("open %s: %r", argv[1]);
 
 	strcpy(diffout, "/tmp/idiff.XXXXXX");
-	fd = opentemp(diffout, ORDWR|ORCLOSE, 0);
+	fd = opentemp(diffout, ORDWR | ORCLOSE, 0);
 	strcpy(idiffout, "/tmp/idiff.XXXXXX");
-	ofd = opentemp(idiffout, ORDWR|ORCLOSE, 0);
+	ofd = opentemp(idiffout, ORDWR | ORCLOSE, 0);
 	rundiff(argv[0], argv[1], fd);
 	seek(fd, 0, 0);
 	Binit(&bdiff, fd, OREAD);
@@ -89,18 +90,18 @@ main(int argc, char **argv)
 }
 
 int
-opentemp(char *template, int mode, int32_t perm)
+opentemp(char* template, int mode, int32_t perm)
 {
 	int fd, i;
-	char *p;	
+	char* p;
 
 	p = strdup(template);
 	if(p == nil)
 		sysfatal("strdup out of memory");
 	fd = -1;
-	for(i=0; i<10; i++){
+	for(i = 0; i < 10; i++) {
 		mktemp(p);
-		if(access(p, 0) < 0 && (fd=create(p, mode, perm)) >= 0)
+		if(access(p, 0) < 0 && (fd = create(p, mode, perm)) >= 0)
 			break;
 		strcpy(p, template);
 	}
@@ -113,11 +114,11 @@ opentemp(char *template, int mode, int32_t perm)
 }
 
 void
-rundiff(char *arg1, char *arg2, int outfd)
+rundiff(char* arg1, char* arg2, int outfd)
 {
-	char *arg[10], *p;
+	char* arg[10], *p;
 	int narg, pid;
-	Waitmsg *w;
+	Waitmsg* w;
 
 	narg = 0;
 	arg[narg++] = "/bin/diff";
@@ -130,7 +131,7 @@ rundiff(char *arg1, char *arg2, int outfd)
 	arg[narg++] = arg2;
 	arg[narg] = nil;
 
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		sysfatal("fork: %r");
 
@@ -142,7 +143,7 @@ rundiff(char *arg1, char *arg2, int outfd)
 
 	default:
 		w = wait();
-		if(w==nil)
+		if(w == nil)
 			sysfatal("wait: %r");
 		if(w->pid != pid)
 			sysfatal("wait got unexpected pid %d", w->pid);
@@ -153,9 +154,9 @@ rundiff(char *arg1, char *arg2, int outfd)
 }
 
 void
-runcmd(char *cmd)
+runcmd(char* cmd)
 {
-	char *arg[10];
+	char* arg[10];
 	int narg, pid, wpid;
 
 	narg = 0;
@@ -164,7 +165,7 @@ runcmd(char *cmd)
 	arg[narg++] = cmd;
 	arg[narg] = nil;
 
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		sysfatal("fork: %r");
 
@@ -182,8 +183,7 @@ runcmd(char *cmd)
 }
 
 void
-parse(char *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
-      int *pto2)
+parse(char* s, int* pfrom1, int* pto1, int* pcmd, int* pfrom2, int* pto2)
 {
 	*pfrom1 = *pto1 = *pfrom2 = *pto2 = 0;
 
@@ -192,10 +192,10 @@ parse(char *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
 		sysfatal("bad diff output0");
 	s++;
 	*pfrom1 = strtol(s, &s, 10);
-	if(*s == ','){
+	if(*s == ',') {
 		s++;
 		*pto1 = strtol(s, &s, 10);
-	}else
+	} else
 		*pto1 = *pfrom1;
 	if(*s++ != ' ')
 		sysfatal("bad diff output1");
@@ -207,20 +207,20 @@ parse(char *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
 		sysfatal("bad diff output3");
 	s++;
 	*pfrom2 = strtol(s, &s, 10);
-	if(*s == ','){
+	if(*s == ',') {
 		s++;
 		*pto2 = strtol(s, &s, 10);
-	}else
+	} else
 		*pto2 = *pfrom2;
 }
 
 void
-skiplines(Biobuf *b, char *name, int n)
+skiplines(Biobuf* b, char* name, int n)
 {
 	int i;
 
-	for(i=0; i<n; i++){
-		while(Brdline(b, '\n')==nil){
+	for(i = 0; i < n; i++) {
+		while(Brdline(b, '\n') == nil) {
 			if(Blinelen(b) <= 0)
 				sysfatal("early end of file on %s", name);
 			Bseek(b, Blinelen(b), 1);
@@ -229,13 +229,13 @@ skiplines(Biobuf *b, char *name, int n)
 }
 
 void
-copylines(Biobuf *bin, char *nin, Biobuf *bout, char *nout, int n)
+copylines(Biobuf* bin, char* nin, Biobuf* bout, char* nout, int n)
 {
 	char buf[4096], *p;
 	int i, m;
 
-	for(i=0; i<n; i++){
-		while((p=Brdline(bin, '\n'))==nil){
+	for(i = 0; i < n; i++) {
+		while((p = Brdline(bin, '\n')) == nil) {
 			if(Blinelen(bin) <= 0)
 				sysfatal("early end of file on %s", nin);
 			m = Blinelen(bin);
@@ -251,7 +251,7 @@ copylines(Biobuf *bin, char *nin, Biobuf *bout, char *nout, int n)
 }
 
 void
-copy(Biobuf *bin, char *nin, Biobuf *bout, char *nout)
+copy(Biobuf* bin, char* nin, Biobuf* bout, char* nout)
 {
 	char buf[4096];
 	int m;
@@ -263,8 +263,8 @@ copy(Biobuf *bin, char *nin, Biobuf *bout, char *nout)
 }
 
 void
-idiff(Biobuf *b1, char *name1, Biobuf *b2, char *name2, Biobuf *bdiff,
-      char *namediff, Biobuf *bout, char *nameout)
+idiff(Biobuf* b1, char* name1, Biobuf* b2, char* name2, Biobuf* bdiff,
+      char* namediff, Biobuf* bout, char* nameout)
 {
 	char buf[256], *p;
 	int interactive, defaultanswer, cmd, diffoffset;
@@ -276,70 +276,76 @@ idiff(Biobuf *b1, char *name1, Biobuf *b2, char *name2, Biobuf *bdiff,
 	interactive = 1;
 	defaultanswer = 0;
 	Binit(&berr, 2, OWRITE);
-	while(diffoffset = Boffset(bdiff), p = Brdline(bdiff, '\n')){
-		p[Blinelen(bdiff)-1] = '\0';
+	while(diffoffset = Boffset(bdiff), p = Brdline(bdiff, '\n')) {
+		p[Blinelen(bdiff) - 1] = '\0';
 		parse(p, &from1, &to1, &cmd, &from2, &to2);
-		p[Blinelen(bdiff)-1] = '\n';
-		n = to1-from1 + to2-from2 + 1;	/* #lines from diff */
+		p[Blinelen(bdiff) - 1] = '\n';
+		n = to1 - from1 + to2 - from2 + 1; /* #lines from diff */
 		if(cmd == 'c')
 			n += 2;
 		else if(cmd == 'a')
 			from1++;
 		else if(cmd == 'd')
 			from2++;
-		to1++;	/* make half-open intervals */
+		to1++; /* make half-open intervals */
 		to2++;
-		if(interactive){
-			p[Blinelen(bdiff)-1] = '\0';
+		if(interactive) {
+			p[Blinelen(bdiff) - 1] = '\0';
 			fprint(2, "%s\n", p);
-			p[Blinelen(bdiff)-1] = '\n';
+			p[Blinelen(bdiff) - 1] = '\n';
 			copylines(bdiff, namediff, &berr, "<stderr>", n);
 			Bflush(&berr);
-		}else
+		} else
 			skiplines(bdiff, namediff, n);
-		do{
-			if(interactive){
+		do {
+			if(interactive) {
 				fprint(2, "? ");
 				memset(buf, 0, sizeof buf);
 				if(read(0, buf, sizeof buf - 1) < 0)
 					sysfatal("read console: %r");
-			}else
+			} else
 				buf[0] = defaultanswer;
 
-			switch(buf[0]){
+			switch(buf[0]) {
 			case '>':
-				copylines(b1, name1, bout, nameout, from1-nf1);
-				skiplines(b1, name1, to1-from1);
-				skiplines(b2, name2, from2-nf2);
-				copylines(b2, name2, bout, nameout, to2-from2);
+				copylines(b1, name1, bout, nameout,
+				          from1 - nf1);
+				skiplines(b1, name1, to1 - from1);
+				skiplines(b2, name2, from2 - nf2);
+				copylines(b2, name2, bout, nameout,
+				          to2 - from2);
 				break;
 			case '<':
-				copylines(b1, name1, bout, nameout, to1-nf1);
-				skiplines(b2, name2, to2-nf2);
+				copylines(b1, name1, bout, nameout, to1 - nf1);
+				skiplines(b2, name2, to2 - nf2);
 				break;
 			case '=':
-				copylines(b1, name1, bout, nameout, from1-nf1);
-				skiplines(b1, name1, to1-from1);
-				skiplines(b2, name2, to2-nf2);
+				copylines(b1, name1, bout, nameout,
+				          from1 - nf1);
+				skiplines(b1, name1, to1 - from1);
+				skiplines(b2, name2, to2 - nf2);
 				if(Bseek(bdiff, diffoffset, 0) != diffoffset)
 					sysfatal("seek in diff output: %r");
-				copylines(bdiff, namediff, bout, nameout, n+1);
+				copylines(bdiff, namediff, bout, nameout,
+				          n + 1);
 				break;
 			case '!':
-				runcmd(buf+1);
+				runcmd(buf + 1);
 				break;
 			case 'q':
-				if(buf[1]=='<' || buf[1]=='>' || buf[1]=='='){
+				if(buf[1] == '<' || buf[1] == '>' ||
+				   buf[1] == '=') {
 					interactive = 0;
 					defaultanswer = buf[1];
-				}else
+				} else
 					fprint(2, "must be q<, q>, or q=\n");
 				break;
 			default:
-				fprint(2, "expect: <, >, =, q<, q>, q=, !cmd\n");
+				fprint(2,
+				       "expect: <, >, =, q<, q>, q=, !cmd\n");
 				break;
 			}
-		}while(buf[0] != '<' && buf[0] != '>' && buf[0] != '=');
+		} while(buf[0] != '<' && buf[0] != '>' && buf[0] != '=');
 		nf1 = to1;
 		nf2 = to2;
 	}

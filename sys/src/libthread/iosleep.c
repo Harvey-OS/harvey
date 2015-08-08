@@ -13,7 +13,7 @@
 #include "threadimpl.h"
 
 static int32_t
-_iosleep(va_list *arg)
+_iosleep(va_list* arg)
 {
 	int32_t n;
 
@@ -22,7 +22,7 @@ _iosleep(va_list *arg)
 }
 
 int
-iosleep(Ioproc *io, int32_t n)
+iosleep(Ioproc* io, int32_t n)
 {
 	return iocall(io, _iosleep, n);
 }

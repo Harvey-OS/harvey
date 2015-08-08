@@ -15,14 +15,14 @@
 
 static Modem modems[1];
 
-static char *spool = "/mail/faxqueue";
-static char *type = "default";
-static char *receiverc = "/sys/lib/fax/receiverc";
+static char* spool = "/mail/faxqueue";
+static char* type = "default";
+static char* receiverc = "/sys/lib/fax/receiverc";
 
 static void
-receivedone(Modem *m, int ok)
+receivedone(Modem* m, int ok)
 {
-	char *argv[10], *p, time[16], pages[16];
+	char* argv[10], *p, time[16], pages[16];
 	int argc;
 
 	faxrlog(m, ok);
@@ -31,13 +31,13 @@ receivedone(Modem *m, int ok)
 
 	argc = 0;
 	if(p = strrchr(receiverc, '/'))
-		argv[argc++] = p+1;
+		argv[argc++] = p + 1;
 	else
 		argv[argc++] = receiverc;
 	sprint(time, "%lud.%d", m->time, m->pid);
 	argv[argc++] = time;
 	argv[argc++] = "Y";
-	sprint(pages, "%d", m->pageno-1);
+	sprint(pages, "%d", m->pageno - 1);
 	argv[argc++] = pages;
 	if(m->valid & Vftsi)
 		argv[argc++] = m->ftsi;
@@ -54,13 +54,14 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	Modem *m;
+	Modem* m;
 
 	m = &modems[0];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		vflag = 1;
 		break;
@@ -72,8 +73,8 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-
-	}ARGEND
+	}
+	ARGEND
 
 	initmodem(m, 0, -1, type, 0);
 	receivedone(m, faxreceive(m, spool));

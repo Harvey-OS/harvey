@@ -13,14 +13,16 @@
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dR] [-p perm] [-P patternfile] [-e exportfs] srvname path\n", argv0);
+	fprint(2, "usage: %s [-dR] [-p perm] [-P patternfile] [-e exportfs] "
+	          "srvname path\n",
+	       argv0);
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *ename, *arglist[16], **argp;
+	char* ename, *arglist[16], **argp;
 	int n, fd, pipefd[2];
 	char buf[64];
 	int perm = 0600;
@@ -28,7 +30,8 @@ main(int argc, char **argv)
 	argp = arglist;
 	ename = "/bin/exportfs";
 	*argp++ = "exportfs";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'd':
@@ -46,18 +49,19 @@ main(int argc, char **argv)
 		break;
 	case 'R':
 		*argp++ = "-R";
-		 break;
-	}ARGEND
+		break;
+	}
+	ARGEND
 	*argp = 0;
 	if(argc != 2)
 		usage();
 
-	if(pipe(pipefd) < 0){
+	if(pipe(pipefd) < 0) {
 		fprint(2, "can't pipe: %r\n");
 		exits("pipe");
 	}
 
-	switch(rfork(RFPROC|RFNOWAIT|RFNOTEG|RFFDG)){
+	switch(rfork(RFPROC | RFNOWAIT | RFNOTEG | RFFDG)) {
 	case -1:
 		fprint(2, "can't rfork: %r\n");
 		exits("rfork");
@@ -73,26 +77,26 @@ main(int argc, char **argv)
 		break;
 	}
 	close(pipefd[0]);
-	if(fprint(pipefd[1], "%s", argv[1]) < 0){
+	if(fprint(pipefd[1], "%s", argv[1]) < 0) {
 		fprint(2, "can't write pipe: %r\n");
 		exits("write");
 	}
-	n = read(pipefd[1], buf, sizeof buf-1);
-	if(n < 0){
+	n = read(pipefd[1], buf, sizeof buf - 1);
+	if(n < 0) {
 		fprint(2, "can't read pipe: %r\n");
 		exits("read");
 	}
 	buf[n] = 0;
-	if(n != 2 || strcmp(buf, "OK") != 0){
+	if(n != 2 || strcmp(buf, "OK") != 0) {
 		fprint(2, "not OK (%d): %s\n", n, buf);
 		exits("OK");
 	}
 	if(argv[0][0] == '/')
-		strecpy(buf, buf+sizeof buf, argv[0]);
+		strecpy(buf, buf + sizeof buf, argv[0]);
 	else
 		snprint(buf, sizeof buf, "/srv/%s", argv[0]);
 	fd = create(buf, OWRITE, perm);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "can't create %s: %r\n", buf);
 		exits("create");
 	}

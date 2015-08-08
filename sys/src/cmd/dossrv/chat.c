@@ -13,16 +13,16 @@
 #include "dat.h"
 #include "fns.h"
 
-#define	SIZE	1024
-int	chatty;
-extern int	doabort;
+#define SIZE 1024
+int chatty;
+extern int doabort;
 
 void
-chat(char *fmt, ...)
+chat(char* fmt, ...)
 {
 	va_list arg;
 
-	if (!chatty)
+	if(!chatty)
 		return;
 	va_start(arg, fmt);
 	vfprint(2, fmt, arg);
@@ -30,7 +30,7 @@ chat(char *fmt, ...)
 }
 
 void
-panic(char *fmt, ...)
+panic(char* fmt, ...)
 {
 	va_list arg;
 

@@ -7,12 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	<plan9.h>
-#include	<fcall.h>
+#include <plan9.h>
+#include <fcall.h>
 
-static
-uint8_t*
-pstring(uint8_t *p, char *s)
+static uint8_t*
+pstring(uint8_t* p, char* s)
 {
 	uint n;
 
@@ -24,9 +23,8 @@ pstring(uint8_t *p, char *s)
 	return p;
 }
 
-static
-uint8_t*
-pqid(uint8_t *p, Qid *q)
+static uint8_t*
+pqid(uint8_t* p, Qid* q)
 {
 	PBIT8(p, q->type);
 	p += BIT8SZ;
@@ -37,27 +35,24 @@ pqid(uint8_t *p, Qid *q)
 	return p;
 }
 
-static
-uint
-stringsz(char *s)
+static uint
+stringsz(char* s)
 {
-	return BIT16SZ+strlen(s);
+	return BIT16SZ + strlen(s);
 }
 
-static
-uint
-sizeS2M(Fcall *f)
+static uint
+sizeS2M(Fcall* f)
 {
 	uint n;
 	int i;
 
 	n = 0;
-	n += BIT32SZ;	/* size */
-	n += BIT8SZ;	/* type */
-	n += BIT16SZ;	/* tag */
+	n += BIT32SZ; /* size */
+	n += BIT8SZ;  /* type */
+	n += BIT16SZ; /* tag */
 
-	switch(f->type)
-	{
+	switch(f->type) {
 	default:
 		return 0;
 
@@ -66,12 +61,12 @@ sizeS2M(Fcall *f)
 		n += stringsz(f->version);
 		break;
 
-/*
-	case Tsession:
-		n += BIT16SZ;
-		n += f->nchal;
-		break;
-*/
+	/*
+	        case Tsession:
+	                n += BIT16SZ;
+	                n += f->nchal;
+	                break;
+	*/
 
 	case Tflush:
 		n += BIT16SZ;
@@ -90,12 +85,11 @@ sizeS2M(Fcall *f)
 		n += stringsz(f->aname);
 		break;
 
-
 	case Twalk:
 		n += BIT32SZ;
 		n += BIT32SZ;
 		n += BIT16SZ;
-		for(i=0; i<f->nwname; i++)
+		for(i = 0; i < f->nwname; i++)
 			n += stringsz(f->wname[i]);
 		break;
 
@@ -138,23 +132,23 @@ sizeS2M(Fcall *f)
 		n += BIT16SZ;
 		n += f->nstat;
 		break;
-/*
- */
+	/*
+	 */
 
 	case Rversion:
 		n += BIT32SZ;
 		n += stringsz(f->version);
 		break;
 
-/*
-	case Rsession:
-		n += BIT16SZ;
-		n += f->nchal;
-		n += stringsz(f->authid);
-		n += stringsz(f->authdom);
-		break;
+	/*
+	        case Rsession:
+	                n += BIT16SZ;
+	                n += f->nchal;
+	                n += stringsz(f->authid);
+	                n += stringsz(f->authdom);
+	                break;
 
-*/
+	*/
 	case Rerror:
 		n += stringsz(f->ename);
 		break;
@@ -166,22 +160,21 @@ sizeS2M(Fcall *f)
 		n += QIDSZ;
 		break;
 
-/*
-	case Rattach:
-		n += QIDSZ;
-		n += BIT16SZ;
-		n += f->nrauth;
-		break;
-*/
+	/*
+	        case Rattach:
+	                n += QIDSZ;
+	                n += BIT16SZ;
+	                n += f->nrauth;
+	                break;
+	*/
 
 	case Rattach:
 		n += QIDSZ;
 		break;
-
 
 	case Rwalk:
 		n += BIT16SZ;
-		n += f->nwqid*QIDSZ;
+		n += f->nwqid * QIDSZ;
 		break;
 
 	case Ropen:
@@ -217,9 +210,9 @@ sizeS2M(Fcall *f)
 }
 
 uint
-convS2M(Fcall *f, uint8_t *ap, uint nap)
+convS2M(Fcall* f, uint8_t* ap, uint nap)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint i, size;
 
 	size = sizeS2M(f);
@@ -237,8 +230,7 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 	PBIT16(p, f->tag);
 	p += BIT16SZ;
 
-	switch(f->type)
-	{
+	switch(f->type) {
 	default:
 		return 0;
 
@@ -248,14 +240,14 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p = pstring(p, f->version);
 		break;
 
-/*
-	case Tsession:
-		PBIT16(p, f->nchal);
-		p += BIT16SZ;
-		f->chal = p;
-		p += f->nchal;
-		break;
-*/
+	/*
+	        case Tsession:
+	                PBIT16(p, f->nchal);
+	                p += BIT16SZ;
+	                f->chal = p;
+	                p += f->nchal;
+	                break;
+	*/
 
 	case Tflush:
 		PBIT16(p, f->oldtag);
@@ -265,8 +257,8 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 	case Tauth:
 		PBIT32(p, f->afid);
 		p += BIT32SZ;
-		p  = pstring(p, f->uname);
-		p  = pstring(p, f->aname);
+		p = pstring(p, f->uname);
+		p = pstring(p, f->aname);
 		break;
 
 	case Tattach:
@@ -274,8 +266,8 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p += BIT32SZ;
 		PBIT32(p, f->afid);
 		p += BIT32SZ;
-		p  = pstring(p, f->uname);
-		p  = pstring(p, f->aname);
+		p = pstring(p, f->uname);
+		p = pstring(p, f->aname);
 		break;
 
 	case Twalk:
@@ -287,7 +279,7 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p += BIT16SZ;
 		if(f->nwname > MAXWELEM)
 			return 0;
-		for(i=0; i<f->nwname; i++)
+		for(i = 0; i < f->nwname; i++)
 			p = pstring(p, f->wname[i]);
 		break;
 
@@ -347,8 +339,8 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		memmove(p, f->stat, f->nstat);
 		p += f->nstat;
 		break;
-/*
- */
+	/*
+	 */
 
 	case Rversion:
 		PBIT32(p, f->msize);
@@ -356,16 +348,16 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p = pstring(p, f->version);
 		break;
 
-/*
-	case Rsession:
-		PBIT16(p, f->nchal);
-		p += BIT16SZ;
-		f->chal = p;
-		p += f->nchal;
-		p = pstring(p, f->authid);
-		p = pstring(p, f->authdom);
-		break;
-*/
+	/*
+	        case Rsession:
+	                PBIT16(p, f->nchal);
+	                p += BIT16SZ;
+	                f->chal = p;
+	                p += f->nchal;
+	                p = pstring(p, f->authid);
+	                p = pstring(p, f->authdom);
+	                break;
+	*/
 
 	case Rerror:
 		p = pstring(p, f->ename);
@@ -387,7 +379,7 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 		p += BIT16SZ;
 		if(f->nwqid > MAXWELEM)
 			return 0;
-		for(i=0; i<f->nwqid; i++)
+		for(i = 0; i < f->nwqid; i++)
 			p = pqid(p, &f->wqid[i]);
 		break;
 
@@ -426,7 +418,7 @@ convS2M(Fcall *f, uint8_t *ap, uint nap)
 	case Rwstat:
 		break;
 	}
-	if(size != p-ap)
+	if(size != p - ap)
 		return 0;
 	return size;
 }

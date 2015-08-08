@@ -12,12 +12,12 @@
 #include <libsec.h>
 
 EGsig*
-egsign(EGpriv *priv, mpint *m)
+egsign(EGpriv* priv, mpint* m)
 {
-	EGpub *pub = &priv->pub;
-	EGsig *sig;
-	mpint *pm1, *k, *kinv, *r, *s;
-	mpint *p = pub->p, *alpha = pub->alpha;
+	EGpub* pub = &priv->pub;
+	EGsig* sig;
+	mpint* pm1, *k, *kinv, *r, *s;
+	mpint* p = pub->p, * alpha = pub->alpha;
 	int plen = mpsignif(p);
 
 	pm1 = mpnew(0);
@@ -26,7 +26,7 @@ egsign(EGpriv *priv, mpint *m)
 	s = mpnew(0);
 	k = mpnew(0);
 	mpsub(p, mpone, pm1);
-	while(1){
+	while(1) {
 		mprand(plen, genrandom, k);
 		if((mpcmp(mpone, k) > 0) || (mpcmp(k, pm1) >= 0))
 			continue;
@@ -35,7 +35,7 @@ egsign(EGpriv *priv, mpint *m)
 			continue;
 		break;
 	}
-	mpmod(kinv, pm1, kinv);  // make kinv positive
+	mpmod(kinv, pm1, kinv); // make kinv positive
 	mpexp(alpha, k, p, r);
 	mpmul(priv->secret, r, s);
 	mpmod(s, pm1, s);

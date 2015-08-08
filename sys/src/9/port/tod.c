@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
 /*
  * Compute nanosecond epoch time from the fastest ticking clock
@@ -39,24 +39,25 @@
  */
 
 /* frequency of the tod clock */
-#define TODFREQ		1000000000ULL
-#define MicroFREQ	1000000ULL
+#define TODFREQ 1000000000ULL
+#define MicroFREQ 1000000ULL
 
 struct {
-	int	init;		/* true if initialized */
-	uint32_t	cnt;
+	int init; /* true if initialized */
+	uint32_t cnt;
 	Lock;
-	uint64_t	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
-	uint64_t	divider;	/* ticks = (divider*(ns-off))>>31 */
-	uint64_t	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
-	uint64_t	udivider;	/* ticks = (µdivider*µs)>>31 */
-	int64_t	hz;		/* frequency of fast clock */
-	int64_t	last;		/* last reading of fast clock */
-	int64_t	off;		/* offset from epoch to last */
-	int64_t	lasttime;	/* last return value from todget */
-	int64_t	delta;	/* add 'delta' each slow clock tick from sstart to send */
-	uint32_t	sstart;		/* ... */
-	uint32_t	send;		/* ... */
+	uint64_t multiplier;  /* ns = off + (multiplier*ticks)>>31 */
+	uint64_t divider;     /* ticks = (divider*(ns-off))>>31 */
+	uint64_t umultiplier; /* µs = (µmultiplier*ticks)>>31 */
+	uint64_t udivider;    /* ticks = (µdivider*µs)>>31 */
+	int64_t hz;           /* frequency of fast clock */
+	int64_t last;         /* last reading of fast clock */
+	int64_t off;          /* offset from epoch to last */
+	int64_t lasttime;     /* last return value from todget */
+	int64_t
+	    delta; /* add 'delta' each slow clock tick from sstart to send */
+	uint32_t sstart; /* ... */
+	uint32_t send;   /* ... */
 } tod;
 
 static void todfix(void);
@@ -67,7 +68,7 @@ todinit(void)
 	if(tod.init)
 		return;
 	ilock(&tod);
-	tod.last = fastticks((uint64_t *)&tod.hz);
+	tod.last = fastticks((uint64_t*)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
 	tod.init = 1;
@@ -101,7 +102,7 @@ todset(int64_t t, int64_t delta, int n)
 		todinit();
 
 	ilock(&tod);
-	if(t >= 0){
+	if(t >= 0) {
 		tod.off = t;
 		tod.last = fastticks(nil);
 		tod.lasttime = 0;
@@ -115,7 +116,7 @@ todset(int64_t t, int64_t delta, int n)
 			n = -delta;
 		if(delta > 0 && n > delta)
 			n = delta;
-		delta = delta/n;
+		delta = delta / n;
 		tod.sstart = sys->ticks;
 		tod.send = tod.sstart + n;
 		tod.delta = delta;
@@ -127,7 +128,7 @@ todset(int64_t t, int64_t delta, int n)
  *  get time of day
  */
 int64_t
-todget(int64_t *ticksp)
+todget(int64_t* ticksp)
 {
 	uint64_t x;
 	int64_t ticks, diff;
@@ -146,11 +147,11 @@ todget(int64_t *ticksp)
 	ticks = fastticks(nil);
 
 	/* add in correction */
-	if(tod.sstart != tod.send){
+	if(tod.sstart != tod.send) {
 		t = sys->ticks;
 		if(t >= tod.send)
 			t = tod.send;
-		tod.off = tod.off + tod.delta*(t - tod.sstart);
+		tod.off = tod.off + tod.delta * (t - tod.sstart);
 		tod.sstart = t;
 	}
 
@@ -184,7 +185,7 @@ tod2fastticks(int64_t ns)
 	uint64_t x;
 
 	ilock(&tod);
-	mul64fract(&x, ns-tod.off, tod.divider);
+	mul64fract(&x, ns - tod.off, tod.divider);
 	x += tod.last;
 	iunlock(&tod);
 	return x;
@@ -202,12 +203,13 @@ todfix(void)
 	ticks = fastticks(nil);
 
 	diff = ticks - tod.last;
-	if(diff > tod.hz){
+	if(diff > tod.hz) {
 		ilock(&tod);
 
 		/* convert to epoch */
 		mul64fract(&x, diff, tod.multiplier);
-if(x > 30000000000ULL) print("todfix %llud\n", x);
+		if(x > 30000000000ULL)
+			print("todfix %llud\n", x);
 		x += tod.off;
 
 		/* protect against overflows */
@@ -225,7 +227,7 @@ seconds(void)
 	int i;
 
 	x = todget(nil);
-	x = x/TODFREQ;
+	x = x / TODFREQ;
 	i = x;
 	return i;
 }
@@ -260,7 +262,7 @@ ms2fastticks(uint32_t ms)
 {
 	if(!tod.init)
 		todinit();
-	return (tod.hz*ms)/1000ULL;
+	return (tod.hz * ms) / 1000ULL;
 }
 
 /*
@@ -301,23 +303,23 @@ fastticks2ns(uint64_t ticks)
 uint64_t
 mk64fract(uint64_t to, uint64_t from)
 {
-/*
-	int shift;
+	/*
+	        int shift;
 
-	if(to == 0ULL)
-		return 0ULL;
+	        if(to == 0ULL)
+	                return 0ULL;
 
-	shift = 0;
-	while(shift < 32 && to < (1ULL<<(32+24))){
-		to <<= 8;
-		shift += 8;
-	}
-	while(shift < 32 && to < (1ULL<<(32+31))){
-		to <<= 1;
-		shift += 1;
-	}
+	        shift = 0;
+	        while(shift < 32 && to < (1ULL<<(32+24))){
+	                to <<= 8;
+	                shift += 8;
+	        }
+	        while(shift < 32 && to < (1ULL<<(32+31))){
+	                to <<= 1;
+	                shift += 1;
+	        }
 
-	return (to/from)<<(32-shift);
- */
-	return (to<<32) / from;
+	        return (to/from)<<(32-shift);
+	 */
+	return (to << 32) / from;
 }

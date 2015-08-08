@@ -7,35 +7,34 @@
  * in the LICENSE file.
  */
 
-#ifdef	PLAN9
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#ifdef PLAN9
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 #else
-#include	<stdio.h>
-#include	<unistd.h>
-#include	"plan9.h"
+#include <stdio.h>
+#include <unistd.h>
+#include "plan9.h"
 #endif
-#include	"hdr.h"
-#include	"conv.h"
-#include	"gb.h"
+#include "hdr.h"
+#include "conv.h"
+#include "gb.h"
 
 /*
-	a state machine for interpreting gb.
+        a state machine for interpreting gb.
 */
 void
-gbproc(int c, Rune **r, long input_loc)
+gbproc(int c, Rune** r, long input_loc)
 {
 	static enum { state0, state1 } state = state0;
 	static int lastc;
 	long n, ch, cold = c;
 
-	switch(state)
-	{
-	case state0:	/* idle state */
+	switch(state) {
+	case state0: /* idle state */
 		if(c < 0)
 			return;
-		if(c >= 0xA1){
+		if(c >= 0xA1) {
 			lastc = c;
 			state = state1;
 			return;
@@ -43,9 +42,9 @@ gbproc(int c, Rune **r, long input_loc)
 		emit(c);
 		return;
 
-	case state1:	/* seen a font spec */
+	case state1: /* seen a font spec */
 		if(c >= 0xA1)
-			n = (lastc-0xA0)*100 + (c-0xA0);
+			n = (lastc - 0xA0) * 100 + (c - 0xA0);
 		else {
 			nerrors++;
 			if(squawk)
@@ -56,7 +55,7 @@ gbproc(int c, Rune **r, long input_loc)
 			return;
 		}
 		ch = tabgb[n];
-		if(ch < 0){
+		if(ch < 0) {
 			nerrors++;
 			if(squawk)
 				EPR "%s: unknown gb %ld (from 0x%x,0x%lx) near byte %ld in %s\n", argv0, n, lastc, cold, input_loc, file);
@@ -69,47 +68,47 @@ gbproc(int c, Rune **r, long input_loc)
 }
 
 void
-gb_in(int fd, int32_t *notused, struct convert *out)
+gb_in(int fd, int32_t* notused, struct convert* out)
 {
 	Rune ob[N];
-	Rune *r, *re;
+	Rune* r, *re;
 	uint8_t ibuf[N];
 	int n, i;
 	int32_t nin;
 
 	USED(notused);
 	r = ob;
-	re = ob+N-3;
+	re = ob + N - 3;
 	nin = 0;
-	while((n = read(fd, ibuf, sizeof ibuf)) > 0){
-		for(i = 0; i < n; i++){
+	while((n = read(fd, ibuf, sizeof ibuf)) > 0) {
+		for(i = 0; i < n; i++) {
 			gbproc(ibuf[i], &r, nin++);
-			if(r >= re){
-				OUT(out, ob, r-ob);
+			if(r >= re) {
+				OUT(out, ob, r - ob);
 				r = ob;
 			}
 		}
-		if(r > ob){
-			OUT(out, ob, r-ob);
+		if(r > ob) {
+			OUT(out, ob, r - ob);
 			r = ob;
 		}
 	}
 	gbproc(-1, &r, nin);
 	if(r > ob)
-		OUT(out, ob, r-ob);
+		OUT(out, ob, r - ob);
 	OUT(out, ob, 0);
 }
 
 void
-gb_out(Rune *base, int n, long *notused)
+gb_out(Rune* base, int n, long* notused)
 {
-	char *p;
+	char* p;
 	int i;
 	Rune r;
 	static int first = 1;
 
 	USED(notused);
-	if(first){
+	if(first) {
 		first = 0;
 		for(i = 0; i < NRUNE; i++)
 			tab[i] = -1;
@@ -119,15 +118,15 @@ gb_out(Rune *base, int n, long *notused)
 	}
 	nrunes += n;
 	p = obuf;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		r = base[i];
 		if(r < 128)
 			*p++ = r;
 		else {
-			if(tab[r] != -1){
+			if(tab[r] != -1) {
 				r = tab[r];
-				*p++ = 0xA0 + (r/100);
-				*p++ = 0xA0 + (r%100);
+				*p++ = 0xA0 + (r / 100);
+				*p++ = 0xA0 + (r % 100);
 				continue;
 			}
 			if(squawk)
@@ -138,7 +137,7 @@ gb_out(Rune *base, int n, long *notused)
 			*p++ = BYTEBADMAP;
 		}
 	}
-	noutput += p-obuf;
+	noutput += p - obuf;
 	if(p > obuf)
-		write(1, obuf, p-obuf);
+		write(1, obuf, p - obuf);
 }

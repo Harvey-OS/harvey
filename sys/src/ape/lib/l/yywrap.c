@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#include	<libl.h>
-#include	<stdio.h>
+#include <libl.h>
+#include <stdio.h>
 
 int
 yywrap(void)

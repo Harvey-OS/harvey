@@ -7,47 +7,43 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"io.h"
+#include "io.h"
+
+enum { Data = 0x60, /* data port */
+
+       Status = 0x64,   /* status port */
+       Inready = 0x01,  /*  input character ready */
+       Outbusy = 0x02,  /*  output busy */
+       Sysflag = 0x04,  /*  system flag */
+       Cmddata = 0x08,  /*  cmd==0, data==1 */
+       Inhibit = 0x10,  /*  keyboard/mouse inhibited */
+       Minready = 0x20, /*  mouse character ready */
+       Rtimeout = 0x40, /*  general timeout */
+       Parity = 0x80,
+
+       Cmd = 0x64, /* command port (write only) */
+
+};
 
 enum {
-	Data=		0x60,		/* data port */
-
-	Status=		0x64,		/* status port */
-		Inready=	0x01,		/*  input character ready */
-		Outbusy=	0x02,		/*  output busy */
-		Sysflag=	0x04,		/*  system flag */
-		Cmddata=	0x08,		/*  cmd==0, data==1 */
-		Inhibit=	0x10,		/*  keyboard/mouse inhibited */
-		Minready=	0x20,		/*  mouse character ready */
-		Rtimeout=	0x40,		/*  general timeout */
-		Parity=	0x80,
-
-	Cmd=		0x64,		/* command port (write only) */
-
-};
-
-
-enum
-{
 	/* controller command byte */
-	Cscs1=		(1<<6),		/* scan code set 1 */
-	Cauxdis=	(1<<5),		/* mouse disable */
-	Ckeybdis=	(1<<4),		/* keyb disable */
-	Csf=		(1<<2),		/* system flag */
-	Cauxint=	(1<<1),		/* mouse interrupt enable */
-	Ckeybint=	(1<<0),		/* keyb interrupt enable */
+	Cscs1 = (1 << 6),    /* scan code set 1 */
+	Cauxdis = (1 << 5),  /* mouse disable */
+	Ckeybdis = (1 << 4), /* keyb disable */
+	Csf = (1 << 2),      /* system flag */
+	Cauxint = (1 << 1),  /* mouse interrupt enable */
+	Ckeybint = (1 << 0), /* keyb interrupt enable */
 };
 
-static Queue *keybq;
-static Queue *mouseq;
-
+static Queue* keybq;
+static Queue* mouseq;
 
 static int nokeyb = 1;
 
@@ -62,7 +58,7 @@ outready(void)
 {
 	int tries;
 
-	for(tries = 0; (inb(Status) & Outbusy); tries++){
+	for(tries = 0; (inb(Status) & Outbusy); tries++) {
 		if(tries > 500)
 			return -1;
 		delay(2);
@@ -78,7 +74,7 @@ inready(void)
 {
 	int tries;
 
-	for(tries = 0; !(inb(Status) & Inready); tries++){
+	for(tries = 0; !(inb(Status) & Inready); tries++) {
 		if(tries > 500)
 			return -1;
 		delay(2);
@@ -89,13 +85,13 @@ inready(void)
 void
 i8042systemreset(void)
 {
-	uint16_t *s = KADDR(0x472);
+	uint16_t* s = KADDR(0x472);
 	int i, x;
 
 	if(nokeyb)
 		return;
 
-	*s = 0x1234;		/* BIOS warm-boot flag */
+	*s = 0x1234; /* BIOS warm-boot flag */
 
 	/* newer reset the machine command */
 	outready();
@@ -104,23 +100,23 @@ i8042systemreset(void)
 
 	/* Pulse it by hand (old somewhat reliable) */
 	x = 0xDF;
-	for(i = 0; i < 5; i++){
+	for(i = 0; i < 5; i++) {
 		x ^= 1;
 		outready();
 		outb(Cmd, 0xD1);
 		outready();
-		outb(Data, x);	/* toggle reset */
+		outb(Data, x); /* toggle reset */
 		delay(100);
 	}
 }
 
 static int
-mousecmds(uint8_t *cmd, int ncmd)
+mousecmds(uint8_t* cmd, int ncmd)
 {
 	int i;
 
 	ilock(&i8042lock);
-	for(i=0; i<ncmd; i++){
+	for(i = 0; i < ncmd; i++) {
 		if(outready() == -1)
 			break;
 		outb(Cmd, 0xD4);
@@ -139,14 +135,14 @@ i8042intr(Ureg* u, void* v)
 
 	ilock(&i8042lock);
 	stat = inb(Status);
-	if((stat&Inready) == 0){
+	if((stat & Inready) == 0) {
 		iunlock(&i8042lock);
 		return;
 	}
 	data = inb(Data);
 	iunlock(&i8042lock);
 
-	if(stat & Minready){
+	if(stat & Minready) {
 		if(mouseq != nil)
 			qiwrite(mouseq, &data, 1);
 	} else {
@@ -169,13 +165,13 @@ outbyte(int port, int c)
 }
 
 static int32_t
-mouserwrite(Chan* c, void *vbuf, int32_t len, int64_t off64)
+mouserwrite(Chan* c, void* vbuf, int32_t len, int64_t off64)
 {
 	return mousecmds(vbuf, len);
 }
 
 static int32_t
-mouseread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+mouseread(Chan* c, void* vbuf, int32_t len, int64_t off64)
 {
 	return qread(mouseq, vbuf, len);
 }
@@ -194,14 +190,14 @@ mouseenable(void)
 	ilock(&i8042lock);
 	if(outready() == -1)
 		iprint("mouseenable: failed 0\n");
-	outb(Cmd, 0x60);	/* write control register */
+	outb(Cmd, 0x60); /* write control register */
 	if(outready() == -1)
 		iprint("mouseenable: failed 1\n");
 	outb(Data, ccc);
 	if(outready() == -1)
 		iprint("mouseenable: failed 2\n");
-	outb(Cmd, 0xA8);	/* auxilliary device enable */
-	if(outready() == -1){
+	outb(Cmd, 0xA8); /* auxilliary device enable */
+	if(outready() == -1) {
 		iprint("mouseenable: failed 3\n");
 		iunlock(&i8042lock);
 		return;
@@ -215,18 +211,20 @@ mouseenable(void)
 void
 keybinit(void)
 {
-	int c, try;
+	int c, try
+		;
 
 	/* wait for a quiescent controller */
 	ilock(&i8042lock);
 
-	try = 1000;
-	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
+	try
+		= 1000;
+	while(try -- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
 			inb(Data);
 		delay(1);
 	}
-	if (try <= 0) {
+	if(try <= 0) {
 		iunlock(&i8042lock);
 		print("keybinit failed 0\n");
 		return;
@@ -234,7 +232,7 @@ keybinit(void)
 
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
-	if(inready() == -1){
+	if(inready() == -1) {
 		iunlock(&i8042lock);
 		print("keybinit failed 1\n");
 		ccc = 0;
@@ -250,12 +248,12 @@ keybinit(void)
 		return;
 	}
 
-	if (outbyte(Cmd, 0x60) == -1){
+	if(outbyte(Cmd, 0x60) == -1) {
 		iunlock(&i8042lock);
 		print("keybinit failed 3\n");
 		return;
 	}
-	if (outbyte(Data, ccc) == -1){
+	if(outbyte(Data, ccc) == -1) {
 		iunlock(&i8042lock);
 		print("keybinit failed 4\n");
 		return;
@@ -267,7 +265,7 @@ keybinit(void)
 }
 
 static int32_t
-keybread(Chan* c, void *vbuf, int32_t len, int64_t off64)
+keybread(Chan* c, void* vbuf, int32_t len, int64_t off64)
 {
 	return qread(keybq, vbuf, len);
 }
@@ -286,5 +284,4 @@ keybenable(void)
 	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "keyb");
 
 	addarchfile("ps2keyb", 0666, keybread, nil);
-
 }

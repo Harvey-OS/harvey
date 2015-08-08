@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,10 +27,10 @@
 /* Definitions for planar rendering */
 
 #ifndef gxrplane_INCLUDED
-#  define gxrplane_INCLUDED
+#define gxrplane_INCLUDED
 
 #ifndef gx_device_DEFINED
-#  define gx_device_DEFINED
+#define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
 #endif
 
@@ -40,9 +40,9 @@ typedef struct gx_device_s gx_device;
  * initialized with the procedure.
  */
 typedef struct gx_render_plane_s {
-    int depth;
-    int shift;			/* bit position of l.s.b. from low end */
-    int index;			/* index within multi-screen halftone */
+	int depth;
+	int shift; /* bit position of l.s.b. from low end */
+	int index; /* index within multi-screen halftone */
 } gx_render_plane_t;
 
 /*
@@ -52,7 +52,7 @@ typedef struct gx_render_plane_s {
  * it will be made a property of the device somehow, perhaps in the
  * color_info.)
  */
-int gx_render_plane_init(gx_render_plane_t *render_plane,
-			 const gx_device *dev, int index);
+int gx_render_plane_init(gx_render_plane_t* render_plane, const gx_device* dev,
+                         int index);
 
 #endif /* gxrplane_INCLUDED */

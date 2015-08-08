@@ -14,109 +14,107 @@
 #define Extern extern
 #include "mips.h"
 
-void	Iaddi(ulong);
-void	Isw(ulong);
-void	Ilui(ulong);
-void	Iori(ulong);
-void	Ixori(ulong);
-void	Ilw(ulong);
-void	Ijal(ulong);
-void	Ispecial(ulong);
-void	Ibeq(ulong);
-void	Ibeql(ulong);
-void	Iaddiu(ulong);
-void	Ilb(ulong);
-void	Iandi(ulong);
-void	Ij(ulong);
-void	Ibne(ulong);
-void	Ibnel(ulong);
-void	Isb(ulong);
-void	Islti(ulong);
-void	Ibcond(ulong);
-void	Ibgtz(ulong);
-void	Ibgtzl(ulong);
-void	Ilbu(ulong);
-void	Ilhu(ulong);
-void	Ish(ulong);
-void	Ilh(ulong);
-void	Iblez(ulong);
-void	Iblezl(ulong);
-void	Isltiu(ulong);
-void	Iswc1(ulong);
-void	Ilwc1(ulong);
-void	Icop1(ulong);
-void	Ilwl(ulong);
-void	Ilwr(ulong);
-void	Ill(ulong);
-void	Isc(ulong);
+void Iaddi(ulong);
+void Isw(ulong);
+void Ilui(ulong);
+void Iori(ulong);
+void Ixori(ulong);
+void Ilw(ulong);
+void Ijal(ulong);
+void Ispecial(ulong);
+void Ibeq(ulong);
+void Ibeql(ulong);
+void Iaddiu(ulong);
+void Ilb(ulong);
+void Iandi(ulong);
+void Ij(ulong);
+void Ibne(ulong);
+void Ibnel(ulong);
+void Isb(ulong);
+void Islti(ulong);
+void Ibcond(ulong);
+void Ibgtz(ulong);
+void Ibgtzl(ulong);
+void Ilbu(ulong);
+void Ilhu(ulong);
+void Ish(ulong);
+void Ilh(ulong);
+void Iblez(ulong);
+void Iblezl(ulong);
+void Isltiu(ulong);
+void Iswc1(ulong);
+void Ilwc1(ulong);
+void Icop1(ulong);
+void Ilwl(ulong);
+void Ilwr(ulong);
+void Ill(ulong);
+void Isc(ulong);
 
-Inst itab[] = {
-	{ Ispecial,	0 },
-	{ Ibcond,	"bcond",	Ibranch },
-	{ Ij,		"j",		Ibranch },
-	{ Ijal,		"jal",		Ibranch },
-	{ Ibeq,		"beq",		Ibranch },
-	{ Ibne,		"bne",		Ibranch },
-	{ Iblez,	"blez",		Ibranch },
-	{ Ibgtz,	"bgtz",		Ibranch },
-	{ Iaddi,	"addi",		Iarith },	/* 8 */
-	{ Iaddiu,	"addiu",	Iarith },
-	{ Islti,	"slti",		Iarith },
-	{ Isltiu,	"sltiu",	Iarith },
-	{ Iandi,	"andi",		Iarith },
-	{ Iori,		"ori",		Iarith },
-	{ Ixori,	"xori",		Iarith },
-	{ Ilui,		"lui",		Iload },	/* 15 */
-	{ undef,	"" },
-	{ Icop1,	"cop1",		Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Ibeql,	"beql" },
-	{ Ibnel,	"bnel" },
-	{ Iblezl,	"blezl" },
-	{ Ibgtzl,	"bgtzl" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Ilb,		"lb",		Iload },
-	{ Ilh,		"lh",		Iload },
-	{ Ilwl,		"lwl", 		Iload },
-	{ Ilw,		"lw",		Iload },
-	{ Ilbu,		"lbu",		Iload },
-	{ Ilhu,		"lhu",		Iload },
-	{ Ilwr,		"lwr",		Iload },
-	{ undef,	"" },
-	{ Isb,		"sb",		Istore },
-	{ Ish,		"sh",		Istore },
-	{ undef,	"" },
-	{ Isw,		"sw",		Istore },	/* 43 */
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Ill,			"ll",			Iload},
-	{ Ilwc1,		"lwc1",		Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ Isc,		"sc",		Istore },
-	{ Iswc1,	"swc1",		Ifloat },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ 0 }
-};
+Inst itab[] = {{Ispecial, 0},
+               {Ibcond, "bcond", Ibranch},
+               {Ij, "j", Ibranch},
+               {Ijal, "jal", Ibranch},
+               {Ibeq, "beq", Ibranch},
+               {Ibne, "bne", Ibranch},
+               {Iblez, "blez", Ibranch},
+               {Ibgtz, "bgtz", Ibranch},
+               {Iaddi, "addi", Iarith}, /* 8 */
+               {Iaddiu, "addiu", Iarith},
+               {Islti, "slti", Iarith},
+               {Isltiu, "sltiu", Iarith},
+               {Iandi, "andi", Iarith},
+               {Iori, "ori", Iarith},
+               {Ixori, "xori", Iarith},
+               {Ilui, "lui", Iload}, /* 15 */
+               {undef, ""},
+               {Icop1, "cop1", Ifloat},
+               {undef, ""},
+               {undef, ""},
+               {Ibeql, "beql"},
+               {Ibnel, "bnel"},
+               {Iblezl, "blezl"},
+               {Ibgtzl, "bgtzl"},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {Ilb, "lb", Iload},
+               {Ilh, "lh", Iload},
+               {Ilwl, "lwl", Iload},
+               {Ilw, "lw", Iload},
+               {Ilbu, "lbu", Iload},
+               {Ilhu, "lhu", Iload},
+               {Ilwr, "lwr", Iload},
+               {undef, ""},
+               {Isb, "sb", Istore},
+               {Ish, "sh", Istore},
+               {undef, ""},
+               {Isw, "sw", Istore}, /* 43 */
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {Ill, "ll", Iload},
+               {Ilwc1, "lwc1", Ifloat},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {Isc, "sc", Istore},
+               {Iswc1, "swc1", Ifloat},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {undef, ""},
+               {0}};
 
 void
 dortrace(void)
@@ -124,7 +122,7 @@ dortrace(void)
 	int i;
 
 	for(i = 0; i < 32; i++)
-		if(rtrace & (1<<i))
+		if(rtrace & (1 << i))
 			Bprint(bioout, "R%.2d %.8lux\n", i, reg.r[i]);
 }
 
@@ -140,22 +138,22 @@ run(void)
 			brkchk(reg.pc, Instruction);
 		if(rtrace)
 			dortrace();
-Bflush(bioout);
-	}while(--count);
+		Bflush(bioout);
+	} while(--count);
 }
 
 void
 undef(uint32_t inst)
 {
 
-/*
-	if((reg.ir>>26) == 0)
-		Bprint(bioout, "special=%d,%d table=%d\n",
-		(reg.ir>>3)&0x7, reg.ir&0x7, reg.ir&0x3f);
-	else
-		Bprint(bioout, "code=%d,%d table=%d\n",
-		reg.ir>>29, (reg.ir>>26)&0x7, reg.ir>>26);
-*/
+	/*
+	        if((reg.ir>>26) == 0)
+	                Bprint(bioout, "special=%d,%d table=%d\n",
+	                (reg.ir>>3)&0x7, reg.ir&0x7, reg.ir&0x3f);
+	        else
+	                Bprint(bioout, "code=%d,%d table=%d\n",
+	                reg.ir>>29, (reg.ir>>26)&0x7, reg.ir>>26);
+	*/
 
 	Bprint(bioout, "Undefined Instruction Trap IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
@@ -168,7 +166,7 @@ Iaddi(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (int16_t)(inst&0xffff);
+	imm = (int16_t)(inst & 0xffff);
 
 	if(trace)
 		itrace("addi\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -183,7 +181,7 @@ Iandi(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = inst&0xffff;
+	imm = inst & 0xffff;
 
 	if(trace)
 		itrace("andi\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -199,14 +197,14 @@ Isw(uint32_t inst)
 	uint32_t v;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	v = reg.r[rt];
 	if(trace)
-		itrace("sw\tr%d,0x%x(r%d) %lux=%lux",
-				rt, off, rb, reg.r[rb]+off, v);
+		itrace("sw\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb,
+		       reg.r[rb] + off, v);
 
-	putmem_w(reg.r[rb]+off, v);
+	putmem_w(reg.r[rb] + off, v);
 }
 
 void
@@ -217,13 +215,14 @@ Isb(uint32_t inst)
 	uint8_t value;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	value = reg.r[rt];
 	if(trace)
-		itrace("sb\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, reg.r[rb]+off, value);
+		itrace("sb\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb,
+		       reg.r[rb] + off, value);
 
-	putmem_b(reg.r[rb]+off, value);
+	putmem_b(reg.r[rb] + off, value);
 }
 
 void
@@ -234,14 +233,14 @@ Ish(uint32_t inst)
 	uint16_t value;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	value = reg.r[rt];
 	if(trace)
-		itrace("sh\tr%d,0x%x(r%d) %lux=%lux",
-				rt, off, rb, reg.r[rb]+off, value&0xffff);
+		itrace("sh\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb,
+		       reg.r[rb] + off, value & 0xffff);
 
-	putmem_h(reg.r[rb]+off, value);
+	putmem_h(reg.r[rb] + off, value);
 }
 
 void
@@ -252,7 +251,7 @@ Ilui(uint32_t inst)
 
 	Getrsrt(rs, rt, inst);
 	USED(rs);
-	imm = inst<<16;
+	imm = inst << 16;
 
 	if(trace)
 		itrace("lui\tr%d,#0x%x", rt, imm);
@@ -267,7 +266,7 @@ Iori(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = inst&0xffff;
+	imm = inst & 0xffff;
 
 	if(trace)
 		itrace("ori\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -282,7 +281,7 @@ Ixori(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = inst&0xffff;
+	imm = inst & 0xffff;
 
 	if(trace)
 		itrace("xori\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -298,9 +297,9 @@ Ilw(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -320,9 +319,9 @@ Ilwl(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -337,13 +336,13 @@ Ilwl(uint32_t inst)
 		reg.r[rt] = v;
 		break;
 	case 1:
-		reg.r[rt] = (v<<8) | (reg.r[rt] & 0xff);
+		reg.r[rt] = (v << 8) | (reg.r[rt] & 0xff);
 		break;
 	case 2:
-		reg.r[rt] = (v<<16) | (reg.r[rt] & 0xffff);
+		reg.r[rt] = (v << 16) | (reg.r[rt] & 0xffff);
 		break;
 	case 3:
-		reg.r[rt] = (v<<24) | (reg.r[rt] & 0xffffff);
+		reg.r[rt] = (v << 24) | (reg.r[rt] & 0xffffff);
 		break;
 	}
 }
@@ -356,9 +355,9 @@ Ilwr(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -372,13 +371,13 @@ Ilwr(uint32_t inst)
 	case 0:
 		break;
 	case 1:
-		reg.r[rt] = (v>>24) | (reg.r[rt] & 0xffffff00);
+		reg.r[rt] = (v >> 24) | (reg.r[rt] & 0xffffff00);
 		break;
 	case 2:
-		reg.r[rt] = (v>>16) | (reg.r[rt] & 0xffff0000);
+		reg.r[rt] = (v >> 16) | (reg.r[rt] & 0xffff0000);
 		break;
 	case 3:
-		reg.r[rt] = (v>>8) | (reg.r[rt] & 0xff000000);
+		reg.r[rt] = (v >> 8) | (reg.r[rt] & 0xff000000);
 		break;
 	}
 }
@@ -391,9 +390,9 @@ Ilh(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -413,9 +412,9 @@ Ilhu(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -435,9 +434,9 @@ Ilb(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -457,9 +456,9 @@ Ilbu(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -477,13 +476,13 @@ Ijal(uint32_t inst)
 	uint32_t npc;
 	Symbol s;
 
-	npc = (reg.pc&0xF0000000)|((inst&0x3FFFFFF)<<2);
+	npc = (reg.pc & 0xF0000000) | ((inst & 0x3FFFFFF) << 2);
 	if(trace)
 		itrace("jal\t0x%lux", npc);
 
-	reg.r[31] = reg.pc+8;
+	reg.r[31] = reg.pc + 8;
 	/* Do the delay slot */
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	Statbra();
 	Iexec(reg.ir);
 
@@ -496,7 +495,7 @@ Ijal(uint32_t inst)
 		Bputc(bioout, '\n');
 	}
 
-	reg.pc = npc-4;
+	reg.pc = npc - 4;
 }
 
 void
@@ -504,15 +503,15 @@ Ij(uint32_t inst)
 {
 	uint32_t npc;
 
-	npc = (reg.pc&0xF0000000)|((inst&0x3FFFFFF)<<2);
+	npc = (reg.pc & 0xF0000000) | ((inst & 0x3FFFFFF) << 2);
 	if(trace)
 		itrace("j\t0x%lux", npc);
 
 	/* Do the delay slot */
-	reg.ir = ifetch(reg.pc+4);
+	reg.ir = ifetch(reg.pc + 4);
 	Statbra();
 	Iexec(reg.ir);
-	reg.pc = npc-4;
+	reg.pc = npc - 4;
 }
 
 void
@@ -523,18 +522,18 @@ Ibeq(uint32_t inst)
 	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("beq\tr%d,r%d,0x%lux", rs, rt, npc);
 
 	if(reg.r[rs] == reg.r[rt]) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	}
 }
 
@@ -546,18 +545,18 @@ Ibeql(uint32_t inst)
 	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("beq\tr%d,r%d,0x%lux", rs, rt, npc);
 
 	if(reg.r[rs] == reg.r[rt]) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	} else
 		reg.pc += 4;
 }
@@ -569,19 +568,19 @@ Ibgtz(uint32_t inst)
 	int off;
 	uint32_t npc, r;
 
-	rs = (inst>>21)&0x1f;
-	off = (int16_t)(inst&0xffff);
+	rs = (inst >> 21) & 0x1f;
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("bgtz\tr%d,0x%lux", rs, npc);
 
 	r = reg.r[rs];
-	if(!(r&SIGNBIT) && r != 0) {
+	if(!(r & SIGNBIT) && r != 0) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	}
 }
 
@@ -592,19 +591,19 @@ Ibgtzl(uint32_t inst)
 	int off;
 	uint32_t npc, r;
 
-	rs = (inst>>21)&0x1f;
-	off = (int16_t)(inst&0xffff);
+	rs = (inst >> 21) & 0x1f;
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("bgtz\tr%d,0x%lux", rs, npc);
 
 	r = reg.r[rs];
-	if(!(r&SIGNBIT) && r != 0) {
+	if(!(r & SIGNBIT) && r != 0) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	} else
 		reg.pc += 4;
 }
@@ -616,20 +615,20 @@ Iblez(uint32_t inst)
 	int off;
 	uint32_t npc, r;
 
-	rs = (inst>>21)&0x1f;
-	off = (int16_t)(inst&0xffff);
+	rs = (inst >> 21) & 0x1f;
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("blez\tr%d,0x%lux", rs, npc);
 
 	r = reg.r[rs];
-	if((r&SIGNBIT) || r == 0) {
+	if((r & SIGNBIT) || r == 0) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	}
 }
 
@@ -640,20 +639,20 @@ Iblezl(uint32_t inst)
 	int off;
 	uint32_t npc, r;
 
-	rs = (inst>>21)&0x1f;
-	off = (int16_t)(inst&0xffff);
+	rs = (inst >> 21) & 0x1f;
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("blez\tr%d,0x%lux", rs, npc);
 
 	r = reg.r[rs];
-	if((r&SIGNBIT) || r == 0) {
+	if((r & SIGNBIT) || r == 0) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	} else
 		reg.pc += 4;
 }
@@ -666,18 +665,18 @@ Ibne(uint32_t inst)
 	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("bne\tr%d,r%d,0x%lux", rs, rt, npc);
 
 	if(reg.r[rs] != reg.r[rt]) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	}
 }
 
@@ -689,18 +688,18 @@ Ibnel(uint32_t inst)
 	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	if(trace)
 		itrace("bne\tr%d,r%d,0x%lux", rs, rt, npc);
 
 	if(reg.r[rs] != reg.r[rt]) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	} else
 		reg.pc += 4;
 }
@@ -712,12 +711,12 @@ Iaddiu(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (int16_t)(inst&0xffff);
+	imm = (int16_t)(inst & 0xffff);
 
 	if(trace)
 		itrace("addiu\tr%d,r%d,#0x%x", rt, rs, imm);
 
-	reg.r[rt] = reg.r[rs]+imm;
+	reg.r[rt] = reg.r[rs] + imm;
 }
 
 void
@@ -727,7 +726,7 @@ Islti(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (int16_t)(inst&0xffff);
+	imm = (int16_t)(inst & 0xffff);
 
 	if(trace)
 		itrace("slti\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -742,7 +741,7 @@ Isltiu(uint32_t inst)
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (int16_t)(inst&0xffff);
+	imm = (int16_t)(inst & 0xffff);
 
 	if(trace)
 		itrace("sltiu\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -760,9 +759,9 @@ Ill(uint32_t inst)
 	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
-	va = reg.r[rb]+off;
+	va = reg.r[rb] + off;
 
 	if(trace) {
 		v = 0;
@@ -782,38 +781,29 @@ Isc(uint32_t inst)
 	uint32_t v;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	v = reg.r[rt];
 	if(trace)
-		itrace("sc\tr%d,0x%x(r%d) %lux=%lux",
-				rt, off, rb, reg.r[rb]+off, v);
+		itrace("sc\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb,
+		       reg.r[rb] + off, v);
 
-	putmem_w(reg.r[rb]+off, v);
+	putmem_w(reg.r[rb] + off, v);
 }
 
-enum
-{
-	Bltz	= 0,
-	Bgez	= 1,
-	Bltzal	= 0x10,
-	Bgezal	= 0x11,
-	Bltzl	= 2,
-	Bgezl	= 3,
-	Bltzall	= 0x12,
-	Bgezall	= 0x13,
+enum { Bltz = 0,
+       Bgez = 1,
+       Bltzal = 0x10,
+       Bgezal = 0x11,
+       Bltzl = 2,
+       Bgezl = 3,
+       Bltzall = 0x12,
+       Bgezall = 0x13,
 };
 
-static char *sbcond[] =
-{
-	[Bltz]		"ltz",
-	[Bgez]		"gez",
-	[Bltzal]	"ltzal",
-	[Bgezal]	"gezal",
-	[Bltzl]		"ltzl",
-	[Bgezl]		"gezl",
-	[Bltzall]	"ltzall",
-	[Bgezall]	"gezall",
+static char* sbcond[] = {
+        [Bltz] "ltz",   [Bgez] "gez",   [Bltzal] "ltzal",   [Bgezal] "gezal",
+        [Bltzl] "ltzl", [Bgezl] "gezl", [Bltzall] "ltzall", [Bgezall] "gezall",
 };
 
 void
@@ -823,13 +813,13 @@ Ibcond(uint32_t inst)
 	int off, doit, likely;
 	uint32_t npc;
 
-	rs = (inst>>21)&0x1f;
-	bran = (inst>>16)&0x1f;
-	off = (int16_t)(inst&0xffff);
+	rs = (inst >> 21) & 0x1f;
+	bran = (inst >> 16) & 0x1f;
+	off = (int16_t)(inst & 0xffff);
 	doit = 0;
 	likely = 0;
 
-	npc = reg.pc + (off<<2) + 4;
+	npc = reg.pc + (off << 2) + 4;
 	switch(bran) {
 	default:
 		Bprint(bioout, "bcond=%d\n", bran);
@@ -837,27 +827,27 @@ Ibcond(uint32_t inst)
 	case Bltzl:
 		likely = 1;
 	case Bltz:
-		if(reg.r[rs]&SIGNBIT)
+		if(reg.r[rs] & SIGNBIT)
 			doit = 1;
 		break;
 	case Bgezl:
 		likely = 1;
 	case Bgez:
-		if(!(reg.r[rs]&SIGNBIT))
+		if(!(reg.r[rs] & SIGNBIT))
 			doit = 1;
 		break;
 	case Bltzall:
 		likely = 1;
 	case Bltzal:
-		reg.r[31] = reg.pc+8;
-		if(reg.r[rs]&SIGNBIT)
+		reg.r[31] = reg.pc + 8;
+		if(reg.r[rs] & SIGNBIT)
 			doit = 1;
 		break;
 	case Bgezall:
 		likely = 1;
 	case Bgezal:
-		reg.r[31] = reg.pc+8;
-		if(!(reg.r[rs]&SIGNBIT))
+		reg.r[31] = reg.pc + 8;
+		if(!(reg.r[rs] & SIGNBIT))
 			doit = 1;
 		break;
 	}
@@ -867,12 +857,10 @@ Ibcond(uint32_t inst)
 
 	if(doit) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
-	} else
-	if(likely)
+		reg.pc = npc - 4;
+	} else if(likely)
 		reg.pc += 4;
-
 }

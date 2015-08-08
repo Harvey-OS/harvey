@@ -11,11 +11,10 @@
 #include <libc.h>
 #include <fcall.h>
 
-static
-int32_t
-dirpackage(uint8_t *buf, int32_t ts, Dir **d)
+static int32_t
+dirpackage(uint8_t* buf, int32_t ts, Dir** d)
 {
-	char *s;
+	char* s;
 	int32_t ss, i, n, nn, m;
 
 	*d = nil;
@@ -23,11 +22,12 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 		return 0;
 
 	/*
-	 * first find number of all stats, check they look like stats, & size all associated strings
+	 * first find number of all stats, check they look like stats, & size
+	 * all associated strings
 	 */
 	ss = 0;
 	n = 0;
-	for(i = 0; i < ts; i += m){
+	for(i = 0; i < ts; i += m) {
 		m = BIT16SZ + GBIT16(&buf[i]);
 		if(statcheck(&buf[i], m) < 0)
 			break;
@@ -47,9 +47,9 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 	 */
 	s = (char*)*d + n * sizeof(Dir);
 	nn = 0;
-	for(i = 0; i < ts; i += m){
+	for(i = 0; i < ts; i += m) {
 		m = BIT16SZ + GBIT16((uint8_t*)&buf[i]);
-		if(nn >= n || convM2D(&buf[i], m, *d + nn, s) != m){
+		if(nn >= n || convM2D(&buf[i], m, *d + nn, s) != m) {
 			free(*d);
 			*d = nil;
 			return -1;
@@ -62,9 +62,9 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 }
 
 int32_t
-dirread(int fd, Dir **d)
+dirread(int fd, Dir** d)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int32_t ts;
 
 	buf = malloc(DIRMAX);
@@ -78,21 +78,21 @@ dirread(int fd, Dir **d)
 }
 
 int32_t
-dirreadall(int fd, Dir **d)
+dirreadall(int fd, Dir** d)
 {
-	uint8_t *buf, *nbuf;
+	uint8_t* buf, *nbuf;
 	int32_t n, ts;
 
 	buf = nil;
 	ts = 0;
-	for(;;){
-		nbuf = realloc(buf, ts+DIRMAX);
-		if(nbuf == nil){
+	for(;;) {
+		nbuf = realloc(buf, ts + DIRMAX);
+		if(nbuf == nil) {
 			free(buf);
 			return -1;
 		}
 		buf = nbuf;
-		n = read(fd, buf+ts, DIRMAX);
+		n = read(fd, buf + ts, DIRMAX);
 		if(n <= 0)
 			break;
 		ts += n;

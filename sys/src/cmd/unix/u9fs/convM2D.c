@@ -7,20 +7,20 @@
  * in the LICENSE file.
  */
 
-#include	<plan9.h>
-#include	<fcall.h>
+#include <plan9.h>
+#include <fcall.h>
 
 int
-statcheck(uint8_t *buf, uint nbuf)
+statcheck(uint8_t* buf, uint nbuf)
 {
-	uint8_t *ebuf;
+	uint8_t* ebuf;
 	int i;
 
 	ebuf = buf + nbuf;
 
 	buf += STATFIXLEN - 4 * BIT16SZ;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		if(buf + BIT16SZ > ebuf)
 			return -1;
 		buf += BIT16SZ + GBIT16(buf);
@@ -35,16 +35,16 @@ statcheck(uint8_t *buf, uint nbuf)
 static char nullstring[] = "";
 
 uint
-convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
+convM2D(uint8_t* buf, uint nbuf, Dir* d, char* strs)
 {
-	uint8_t *p, *ebuf;
-	char *sv[4];
+	uint8_t* p, *ebuf;
+	char* sv[4];
 	int i, ns;
 
 	p = buf;
 	ebuf = buf + nbuf;
 
-	p += BIT16SZ;	/* ignore size */
+	p += BIT16SZ; /* ignore size */
 	d->type = GBIT16(p);
 	p += BIT16SZ;
 	d->dev = GBIT32(p);
@@ -69,14 +69,14 @@ convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 	d->gid = nil;
 	d->muid = nil;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		if(p + BIT16SZ > ebuf)
 			return 0;
 		ns = GBIT16(p);
 		p += BIT16SZ;
 		if(p + ns > ebuf)
 			return 0;
-		if(strs){
+		if(strs) {
 			sv[i] = strs;
 			memmove(strs, p, ns);
 			strs += ns;
@@ -85,17 +85,17 @@ convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 		p += ns;
 	}
 
-	if(strs){
+	if(strs) {
 		d->name = sv[0];
 		d->uid = sv[1];
 		d->gid = sv[2];
 		d->muid = sv[3];
-	}else{
+	} else {
 		d->name = nullstring;
 		d->uid = nullstring;
 		d->gid = nullstring;
 		d->muid = nullstring;
 	}
-	
+
 	return p - buf;
 }

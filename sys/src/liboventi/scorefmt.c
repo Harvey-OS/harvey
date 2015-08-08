@@ -12,15 +12,15 @@
 #include <oventi.h>
 
 int
-vtScoreFmt(Fmt *f)
+vtScoreFmt(Fmt* f)
 {
-	uint8_t *v;
+	uint8_t* v;
 	int i;
 
 	v = va_arg(f->args, uint8_t*);
-	if(v == nil){
+	if(v == nil) {
 		fmtprint(f, "*");
-	}else{
+	} else {
 		for(i = 0; i < VtScoreSize; i++)
 			fmtprint(f, "%2.2ux", v[i]);
 	}

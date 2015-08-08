@@ -20,15 +20,15 @@ typedef struct PD PD;
 struct PD {
 	int isproc;
 	union {
-		Proc *p;
-		Data *d;
+		Proc* p;
+		Data* d;
 	};
 };
 
 PD*
-PDProc(Proc *p)
+PDProc(Proc* p)
 {
-	PD *pd;
+	PD* pd;
 
 	pd = emalloc(sizeof(*pd));
 	pd->isproc = 1;
@@ -37,9 +37,9 @@ PDProc(Proc *p)
 }
 
 PD*
-PDData(Data *d)
+PDData(Data* d)
 {
-	PD *pd;
+	PD* pd;
 
 	pd = emalloc(sizeof(*pd));
 	pd->isproc = 0;
@@ -55,24 +55,24 @@ usage(void)
 }
 
 char*
-memread(Proc *p, File *f, void *buf, int32_t *count, int64_t offset)
+memread(Proc* p, File* f, void* buf, int32_t* count, int64_t offset)
 {
-	Page *pg;
+	Page* pg;
 	int po;
 
-	po = offset%Pagesize;
-	if(!(pg = findpage(p, p->pid, f->name[0], offset-po)))
+	po = offset % Pagesize;
+	if(!(pg = findpage(p, p->pid, f->name[0], offset - po)))
 		return "address not mapped";
 
-	if(*count > Pagesize-po)
-		*count = Pagesize-po;
+	if(*count > Pagesize - po)
+		*count = Pagesize - po;
 
-	memmove(buf, pg->data+po, *count);
+	memmove(buf, pg->data + po, *count);
 	return nil;
 }
 
 char*
-dataread(Data *d, void *buf, int32_t *count, int64_t offset)
+dataread(Data* d, void* buf, int32_t* count, int64_t offset)
 {
 	assert(d != nil);
 
@@ -81,20 +81,20 @@ dataread(Data *d, void *buf, int32_t *count, int64_t offset)
 		return nil;
 	}
 
-	if(offset+*count >= d->len)
+	if(offset + *count >= d->len)
 		*count = d->len - offset;
 
-	memmove(buf, d->data+offset, *count);
+	memmove(buf, d->data + offset, *count);
 	return nil;
 }
 
 void
-fsread(Req *r)
+fsread(Req* r)
 {
-	char *e;
-	PD *pd;
-	Fid *fid;
-	void *data;
+	char* e;
+	PD* pd;
+	Fid* fid;
+	void* data;
 	int64_t offset;
 	int32_t count;
 
@@ -115,13 +115,13 @@ fsread(Req *r)
 }
 
 Srv fs = {
-	.read = fsread,
+    .read = fsread,
 };
 
 File*
-ecreatefile(File *a, char *b, char *c, uint32_t d, void *e)
+ecreatefile(File* a, char* b, char* c, uint32_t d, void* e)
 {
-	File *f;
+	File* f;
 
 	f = createfile(a, b, c, d, e);
 	if(f == nil)
@@ -130,20 +130,21 @@ ecreatefile(File *a, char *b, char *c, uint32_t d, void *e)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Biobuf *b;
-	Data *d;
-	File *fdir, *f;
-	Proc *p, *plist;
-	Tree *tree;
-	char *mtpt, buf[32];
+	Biobuf* b;
+	Data* d;
+	File* fdir, *f;
+	Proc* p, *plist;
+	Tree* tree;
+	char* mtpt, buf[32];
 	int i, mflag;
 
 	mtpt = "/proc";
 	mflag = MBEFORE;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -158,7 +159,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -174,22 +176,24 @@ main(int argc, char **argv)
 		exits("readsnap");
 	}
 
-	tree = alloctree(nil, nil, DMDIR|0555, nil);
+	tree = alloctree(nil, nil, DMDIR | 0555, nil);
 	fs.tree = tree;
 
-	for(p=plist; p; p=p->link) {
-		print("process %ld %.*s\n", p->pid, 28, p->d[Pstatus] ? p->d[Pstatus]->data : "");
+	for(p = plist; p; p = p->link) {
+		print("process %ld %.*s\n", p->pid, 28,
+		      p->d[Pstatus] ? p->d[Pstatus]->data : "");
 
 		snprint(buf, sizeof buf, "%ld", p->pid);
-		fdir = ecreatefile(tree->root, buf, nil, DMDIR|0555, nil);
+		fdir = ecreatefile(tree->root, buf, nil, DMDIR | 0555, nil);
 		ecreatefile(fdir, "ctl", nil, 0777, nil);
 		if(p->text)
 			ecreatefile(fdir, "text", nil, 0777, PDProc(p));
 
 		ecreatefile(fdir, "mem", nil, 0666, PDProc(p));
-		for(i=0; i<Npfile; i++) {
+		for(i = 0; i < Npfile; i++) {
 			if(d = p->d[i]) {
-				f = ecreatefile(fdir, pfile[i], nil, 0666, PDData(d));
+				f = ecreatefile(fdir, pfile[i], nil, 0666,
+				                PDData(d));
 				f->length = d->len;
 			}
 		}

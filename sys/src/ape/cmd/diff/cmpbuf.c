@@ -29,21 +29,19 @@
 
 /* Least common multiple of two buffer sizes A and B.  */
 
-size_t
-buffer_lcm (a, b)
-     size_t a, b;
+size_t buffer_lcm(a, b) size_t a, b;
 {
-  size_t m, n, r;
+	size_t m, n, r;
 
-  /* Yield reasonable values if buffer sizes are zero.  */
-  if (!a)
-    return b ? b : 8 * 1024;
-  if (!b)
-    return a;
+	/* Yield reasonable values if buffer sizes are zero.  */
+	if(!a)
+		return b ? b : 8 * 1024;
+	if(!b)
+		return a;
 
-  /* n = gcd (a, b) */
-  for (m = a, n = b;  (r = m % n) != 0;  m = n, n = r)
-    continue;
+	/* n = gcd (a, b) */
+	for(m = a, n = b; (r = m % n) != 0; m = n, n = r)
+		continue;
 
-  return a/n * b;
+	return a / n * b;
 }

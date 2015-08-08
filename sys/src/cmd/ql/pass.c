@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
 dodata(void)
 {
 	int i, t;
-	Sym *s;
-	Prog *p, *p1;
+	Sym* s;
+	Prog* p, *p1;
 	int32_t orig, orig1, v;
 
 	if(debug['v'])
@@ -27,12 +27,12 @@ dodata(void)
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
-			diag("initialize non-data (%d): %s\n%P",
-				s->type, s->name, p);
+			diag("initialize non-data (%d): %s\n%P", s->type,
+			     s->name, p);
 		v = p->from.offset + p->reg;
 		if(v > s->value)
-			diag("initialize bounds (%ld): %s\n%P",
-				s->value, s->name, p);
+			diag("initialize bounds (%ld): %s\n%P", s->value,
+			     s->name, p);
 	}
 
 	/*
@@ -42,50 +42,50 @@ dodata(void)
 	 *	 addressed through offset on REGSB)
 	 */
 	orig = 0;
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		t = s->type;
-		if(t != SDATA && t != SBSS)
-			continue;
-		v = s->value;
-		if(v == 0) {
-			diag("%s: no size", s->name);
-			v = 1;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			t = s->type;
+			if(t != SDATA && t != SBSS)
+				continue;
+			v = s->value;
+			if(v == 0) {
+				diag("%s: no size", s->name);
+				v = 1;
+			}
+			while(v & 3)
+				v++;
+			s->value = v;
+			if(v > MINSIZ)
+				continue;
+			if(v >= 8)
+				while(orig & 7)
+					orig++;
+			s->value = orig;
+			orig += v;
+			s->type = SDATA1;
 		}
-		while(v & 3)
-			v++;
-		s->value = v;
-		if(v > MINSIZ)
-			continue;
-		if(v >= 8)
-			while(orig & 7)
-				orig++;
-		s->value = orig;
-		orig += v;
-		s->type = SDATA1;
-	}
 	orig1 = orig;
 
 	/*
 	 * pass 2
 	 *	assign 'data' variables to data segment
 	 */
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		t = s->type;
-		if(t != SDATA) {
-			if(t == SDATA1)
-				s->type = SDATA;
-			continue;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			t = s->type;
+			if(t != SDATA) {
+				if(t == SDATA1)
+					s->type = SDATA;
+				continue;
+			}
+			v = s->value;
+			if(v >= 8)
+				while(orig & 7)
+					orig++;
+			s->value = orig;
+			orig += v;
+			s->type = SDATA1;
 		}
-		v = s->value;
-		if(v >= 8)
-			while(orig & 7)
-				orig++;
-		s->value = orig;
-		orig += v;
-		s->type = SDATA1;
-	}
 
 	while(orig & 7)
 		orig++;
@@ -95,20 +95,20 @@ dodata(void)
 	 * pass 3
 	 *	everything else to bss segment
 	 */
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		if(s->type != SBSS)
-			continue;
-		v = s->value;
-		if(v >= 8)
-			while(orig & 7)
-				orig++;
-		s->value = orig;
-		orig += v;
-	}
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type != SBSS)
+				continue;
+			v = s->value;
+			if(v >= 8)
+				while(orig & 7)
+					orig++;
+			s->value = orig;
+			orig += v;
+		}
 	while(orig & 7)
 		orig++;
-	bsssize = orig-datsize;
+	bsssize = orig - datsize;
 
 	/*
 	 * pass 4
@@ -139,29 +139,30 @@ dodata(void)
 			if(!strcmp(s->name, "setSB"))
 				continue;
 			/* size should be 19 max */
-			if(strlen(s->name) >= 10)	/* has loader address */ 
+			if(strlen(s->name) >= 10) /* has loader address */
 				sprint(literal, "$%p.%lux", s, p->from.offset);
 			else
-				sprint(literal, "$%s.%d.%lux", s->name, s->version, p->from.offset);
+				sprint(literal, "$%s.%d.%lux", s->name,
+				       s->version, p->from.offset);
 		} else {
 			if(p->from.name != D_NONE)
 				continue;
 			if(p->from.reg != NREG)
 				continue;
 			v = p->from.offset;
-			if(v >= -0x7fff-1 && v <= 0x7fff)
+			if(v >= -0x7fff - 1 && v <= 0x7fff)
 				continue;
 			if(!(v & 0xffff))
 				continue;
 			if(v)
-				continue;	/* quicker to build it than load it */
+				continue; /* quicker to build it than load it */
 			/* size should be 9 max */
 			sprint(literal, "$%lux", v);
 		}
 		s = lookup(literal, 0);
 		if(s->type == 0) {
 			s->type = SDATA;
-			s->value = orig1+orig;
+			s->value = orig1 + orig;
 			orig += 4;
 			p1 = prg();
 			p1->as = ADATA;
@@ -188,24 +189,24 @@ dodata(void)
 	 * pass 5
 	 *	re-adjust offsets
 	 */
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		t = s->type;
-		if(t == SBSS) {
-			s->value += orig;
-			continue;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			t = s->type;
+			if(t == SBSS) {
+				s->value += orig;
+				continue;
+			}
+			if(t == SDATA1) {
+				s->type = SDATA;
+				s->value += orig;
+				continue;
+			}
 		}
-		if(t == SDATA1) {
-			s->type = SDATA;
-			s->value += orig;
-			continue;
-		}
-	}
 	datsize += orig;
-	xdefine("setSB", SDATA, 0L+BIG);
+	xdefine("setSB", SDATA, 0L + BIG);
 	xdefine("bdata", SDATA, 0L);
 	xdefine("edata", SDATA, datsize);
-	xdefine("end", SBSS, datsize+bsssize);
+	xdefine("end", SBSS, datsize + bsssize);
 	xdefine("etext", STEXT, 0L);
 }
 
@@ -213,12 +214,12 @@ void
 undef(void)
 {
 	int i;
-	Sym *s;
+	Sym* s;
 
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link)
-		if(s->type == SXREF)
-			diag("%s: not defined", s->name);
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->type == SXREF)
+				diag("%s: not defined", s->name);
 }
 
 int
@@ -226,17 +227,25 @@ relinv(int a)
 {
 
 	switch(a) {
-	case ABEQ:	return ABNE;
-	case ABNE:	return ABEQ;
+	case ABEQ:
+		return ABNE;
+	case ABNE:
+		return ABEQ;
 
-	case ABGE:	return ABLT;
-	case ABLT:	return ABGE;
+	case ABGE:
+		return ABLT;
+	case ABLT:
+		return ABGE;
 
-	case ABGT:	return ABLE;
-	case ABLE:	return ABGT;
+	case ABGT:
+		return ABLE;
+	case ABLE:
+		return ABGT;
 
-	case ABVC:	return ABVS;
-	case ABVS:	return ABVC;
+	case ABVC:
+		return ABVS;
+	case ABVS:
+		return ABVC;
 	}
 	return 0;
 }
@@ -259,9 +268,9 @@ follow(void)
 }
 
 void
-xfol(Prog *p)
+xfol(Prog* p)
 {
-	Prog *q, *r;
+	Prog* q, *r;
 	int a, b, i;
 
 loop:
@@ -272,7 +281,7 @@ loop:
 		curtext = p;
 	if(a == ABR) {
 		q = p->cond;
-		if((p->mark&NOSCHED) || q && (q->mark&NOSCHED)){
+		if((p->mark & NOSCHED) || q && (q->mark & NOSCHED)) {
 			p->mark |= FOLL;
 			lastp->link = p;
 			lastp = p;
@@ -291,10 +300,10 @@ loop:
 		}
 	}
 	if(p->mark & FOLL) {
-		for(i=0,q=p; i<4; i++,q=q->link) {
-			if(q == lastp || (q->mark&NOSCHED))
+		for(i = 0, q = p; i < 4; i++, q = q->link) {
+			if(q == lastp || (q->mark & NOSCHED))
 				break;
-			b = 0;		/* set */
+			b = 0; /* set */
 			a = q->as;
 			if(a == ANOP) {
 				i--;
@@ -302,7 +311,7 @@ loop:
 			}
 			if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI)
 				goto copy;
-			if(!q->cond || (q->cond->mark&FOLL))
+			if(!q->cond || (q->cond->mark & FOLL))
 				continue;
 			b = relinv(a);
 			if(!b)
@@ -311,7 +320,7 @@ loop:
 			for(;;) {
 				r = prg();
 				*r = *p;
-				if(!(r->mark&FOLL))
+				if(!(r->mark & FOLL))
 					print("cant happen 1\n");
 				r->mark |= FOLL;
 				if(p != q) {
@@ -322,14 +331,15 @@ loop:
 				}
 				lastp->link = r;
 				lastp = r;
-				if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI)
+				if(a == ABR || a == ARETURN || a == ARFI ||
+				   a == ARFCI)
 					return;
 				r->as = b;
 				r->cond = p->link;
 				r->link = p->cond;
-				if(!(r->link->mark&FOLL))
+				if(!(r->link->mark & FOLL))
 					xfol(r->link);
-				if(!(r->cond->mark&FOLL))
+				if(!(r->cond->mark & FOLL))
 					print("cant happen 2\n");
 				return;
 			}
@@ -347,21 +357,21 @@ loop:
 	p->mark |= FOLL;
 	lastp->link = p;
 	lastp = p;
-	if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI){
-		if(p->mark & NOSCHED){
+	if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI) {
+		if(p->mark & NOSCHED) {
 			p = p->link;
 			goto loop;
 		}
 		return;
 	}
 	if(p->cond != P)
-	if(a != ABL && p->link != P) {
-		xfol(p->link);
-		p = p->cond;
-		if(p == P || (p->mark&FOLL))
-			return;
-		goto loop;
-	}
+		if(a != ABL && p->link != P) {
+			xfol(p->link);
+			p = p->cond;
+			if(p == P || (p->mark & FOLL))
+				return;
+			goto loop;
+		}
 	p = p->link;
 	goto loop;
 }
@@ -370,8 +380,8 @@ void
 patch(void)
 {
 	int32_t c, vexit;
-	Prog *p, *q;
-	Sym *s;
+	Prog* p, *q;
+	Sym* s;
 	int a;
 
 	if(debug['v'])
@@ -391,11 +401,10 @@ patch(void)
 				s->type = STEXT;
 				s->value = vexit;
 			}
-			if(s->type == SUNDEF){
+			if(s->type == SUNDEF) {
 				p->to.offset = 0;
 				p->cond = UP;
-			}
-			else
+			} else
 				p->to.offset = s->value;
 			p->to.type = D_BRANCH;
 		}
@@ -404,10 +413,10 @@ patch(void)
 		c = p->to.offset;
 		for(q = firstp; q != P;) {
 			if(q->forwd != P)
-			if(c >= q->forwd->pc) {
-				q = q->forwd;
-				continue;
-			}
+				if(c >= q->forwd->pc) {
+					q = q->forwd;
+					continue;
+				}
 			if(c == q->pc)
 				break;
 			q = q->link;
@@ -422,28 +431,29 @@ patch(void)
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
-		p->mark = 0;	/* initialization for follow */
+		p->mark = 0; /* initialization for follow */
 		if(p->cond != P && p->cond != UP) {
 			p->cond = brloop(p->cond);
 			if(p->cond != P)
-			if(p->to.type == D_BRANCH)
-				p->to.offset = p->cond->pc;
+				if(p->to.type == D_BRANCH)
+					p->to.offset = p->cond->pc;
 		}
 	}
 }
 
-#define	LOG	5
+#define LOG 5
 void
 mkfwd(void)
 {
-	Prog *p;
+	Prog* p;
 	int32_t dwn[LOG], cnt[LOG], i;
-	Prog *lst[LOG];
+	Prog* lst[LOG];
 
-	for(i=0; i<LOG; i++) {
+	for(i = 0; i < LOG; i++) {
 		if(i == 0)
-			cnt[i] = 1; else
-			cnt[i] = LOG * cnt[i-1];
+			cnt[i] = 1;
+		else
+			cnt[i] = LOG * cnt[i - 1];
 		dwn[i] = 1;
 		lst[i] = P;
 	}
@@ -453,7 +463,7 @@ mkfwd(void)
 			curtext = p;
 		i--;
 		if(i < 0)
-			i = LOG-1;
+			i = LOG - 1;
 		p->forwd = P;
 		dwn[i]--;
 		if(dwn[i] <= 0) {
@@ -466,13 +476,13 @@ mkfwd(void)
 }
 
 Prog*
-brloop(Prog *p)
+brloop(Prog* p)
 {
-	Prog *q;
+	Prog* q;
 	int c;
 
-	for(c=0; p!=P;) {
-		if(p->as != ABR || (p->mark&NOSCHED))
+	for(c = 0; p != P;) {
+		if(p->as != ABR || (p->mark & NOSCHED))
 			return p;
 		q = p->cond;
 		if(q <= p) {
@@ -486,7 +496,7 @@ brloop(Prog *p)
 }
 
 int32_t
-atolwhex(char *s)
+atolwhex(char* s)
 {
 	int32_t n;
 	int f;
@@ -501,25 +511,25 @@ atolwhex(char *s)
 		while(*s == ' ' || *s == '\t')
 			s++;
 	}
-	if(s[0]=='0' && s[1]){
-		if(s[1]=='x' || s[1]=='X'){
+	if(s[0] == '0' && s[1]) {
+		if(s[1] == 'x' || s[1] == 'X') {
 			s += 2;
-			for(;;){
+			for(;;) {
 				if(*s >= '0' && *s <= '9')
-					n = n*16 + *s++ - '0';
+					n = n * 16 + *s++ - '0';
 				else if(*s >= 'a' && *s <= 'f')
-					n = n*16 + *s++ - 'a' + 10;
+					n = n * 16 + *s++ - 'a' + 10;
 				else if(*s >= 'A' && *s <= 'F')
-					n = n*16 + *s++ - 'A' + 10;
+					n = n * 16 + *s++ - 'A' + 10;
 				else
 					break;
 			}
 		} else
 			while(*s >= '0' && *s <= '7')
-				n = n*8 + *s++ - '0';
+				n = n * 8 + *s++ - '0';
 	} else
 		while(*s >= '0' && *s <= '9')
-			n = n*10 + *s++ - '0';
+			n = n * 10 + *s++ - '0';
 	if(f)
 		n = -n;
 	return n;
@@ -544,27 +554,29 @@ void
 import(void)
 {
 	int i;
-	Sym *s;
+	Sym* s;
 
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type == SXREF && (nimports == 0 || s->subtype == SIMPORT)){
+			if(s->sig != 0 && s->type == SXREF &&
+			   (nimports == 0 || s->subtype == SIMPORT)) {
 				undefsym(s);
-				Bprint(&bso, "IMPORT: %s sig=%lux v=%ld\n", s->name, s->sig, s->value);
+				Bprint(&bso, "IMPORT: %s sig=%lux v=%ld\n",
+				       s->name, s->sig, s->value);
 			}
 }
 
 void
-ckoff(Sym *s, int32_t v)
+ckoff(Sym* s, int32_t v)
 {
-	if(v < 0 || v >= 1<<Roffset)
+	if(v < 0 || v >= 1 << Roffset)
 		diag("relocation offset %ld for %s out of range", v, s->name);
 }
 
 static Prog*
-newdata(Sym *s, int o, int w, int t)
+newdata(Sym* s, int o, int w, int t)
 {
-	Prog *p;
+	Prog* p;
 
 	p = prg();
 	p->link = datap;
@@ -580,29 +592,32 @@ newdata(Sym *s, int o, int w, int t)
 	return p;
 }
 
-void
-export(void)
+void export(void)
 {
 	int i, j, n, off, nb, sv, ne;
-	Sym *s, *et, *str, **esyms;
-	Prog *p;
+	Sym* s, *et, *str, **esyms;
+	Prog* p;
 	char buf[NSNAME], *t;
 
 	n = 0;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+			if(s->sig != 0 && s->type != SXREF &&
+			   s->type != SUNDEF &&
+			   (nexports == 0 || s->subtype == SEXPORT))
 				n++;
-	esyms = malloc(n*sizeof(Sym*));
+	esyms = malloc(n * sizeof(Sym*));
 	ne = n;
 	n = 0;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+			if(s->sig != 0 && s->type != SXREF &&
+			   s->type != SUNDEF &&
+			   (nexports == 0 || s->subtype == SEXPORT))
 				esyms[n++] = s;
-	for(i = 0; i < ne-1; i++)
-		for(j = i+1; j < ne; j++)
-			if(strcmp(esyms[i]->name, esyms[j]->name) > 0){
+	for(i = 0; i < ne - 1; i++)
+		for(j = i + 1; j < ne; j++)
+			if(strcmp(esyms[i]->name, esyms[j]->name) > 0) {
 				s = esyms[i];
 				esyms[i] = esyms[j];
 				esyms[j] = s;
@@ -618,9 +633,10 @@ export(void)
 	if(str->type == 0)
 		str->type = SDATA;
 	sv = str->value;
-	for(i = 0; i < ne; i++){
+	for(i = 0; i < ne; i++) {
 		s = esyms[i];
-		Bprint(&bso, "EXPORT: %s sig=%lux t=%d\n", s->name, s->sig, s->type);
+		Bprint(&bso, "EXPORT: %s sig=%lux t=%d\n", s->name, s->sig,
+		       s->type);
 
 		/* signature */
 		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
@@ -635,12 +651,12 @@ export(void)
 
 		/* string */
 		t = s->name;
-		n = strlen(t)+1;
-		for(;;){
+		n = strlen(t) + 1;
+		for(;;) {
 			buf[nb++] = *t;
 			sv++;
-			if(nb >= NSNAME){
-				p = newdata(str, sv-NSNAME, NSNAME, D_STATIC);
+			if(nb >= NSNAME) {
+				p = newdata(str, sv - NSNAME, NSNAME, D_STATIC);
 				p->to.type = D_SCONST;
 				memmove(p->to.sval, buf, NSNAME);
 				nb = 0;
@@ -654,16 +670,16 @@ export(void)
 		off += sizeof(int32_t);
 		p->to.name = D_STATIC;
 		p->to.sym = str;
-		p->to.offset = sv-n;
+		p->to.offset = sv - n;
 	}
 
-	if(nb > 0){
-		p = newdata(str, sv-nb, nb, D_STATIC);
+	if(nb > 0) {
+		p = newdata(str, sv - nb, nb, D_STATIC);
 		p->to.type = D_SCONST;
 		memmove(p->to.sval, buf, nb);
 	}
 
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 3; i++) {
 		newdata(et, off, sizeof(int32_t), D_EXTERN);
 		off += sizeof(int32_t);
 	}

@@ -11,11 +11,11 @@
 #include <libc.h>
 
 int
-cistrcmp(char *s1, char *s2)
+cistrcmp(char* s1, char* s2)
 {
 	int c1, c2;
 
-	while(*s1){
+	while(*s1) {
 		c1 = *(uint8_t*)s1++;
 		c2 = *(uint8_t*)s2++;
 

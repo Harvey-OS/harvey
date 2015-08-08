@@ -26,19 +26,7 @@ extern Dev mntdevtab;
 extern Dev lfddevtab;
 extern Dev audiodevtab;
 
-Dev *devtab[] = {
-	&rootdevtab,
-	&consdevtab,
-	&pipedevtab,
-	&ssldevtab,
-	&tlsdevtab,
-	&mousedevtab,
-	&drawdevtab,
-	&ipdevtab,
-	&fsdevtab,
-	&mntdevtab,
-	&lfddevtab,
-	&audiodevtab,
-	0
-};
-
+Dev* devtab[] = {&rootdevtab, &consdevtab,  &pipedevtab, &ssldevtab,
+                 &tlsdevtab,  &mousedevtab, &drawdevtab, &ipdevtab,
+                 &fsdevtab,   &mntdevtab,   &lfddevtab,  &audiodevtab,
+                 0};

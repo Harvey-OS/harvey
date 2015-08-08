@@ -16,7 +16,7 @@
 #include "wiki.h"
 
 void*
-erealloc(void *v, uint32_t n)
+erealloc(void* v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -28,7 +28,7 @@ erealloc(void *v, uint32_t n)
 void*
 emalloc(uint32_t n)
 {
-	void *v;
+	void* v;
 
 	v = malloc(n);
 	if(v == nil)
@@ -39,14 +39,14 @@ emalloc(uint32_t n)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	int l;
-	char *t;
+	char* t;
 
-	if (s == nil)
+	if(s == nil)
 		return nil;
-	l = strlen(s)+1;
+	l = strlen(s) + 1;
 	t = emalloc(l);
 	memmove(t, s, l);
 	setmalloctag(t, getcallerpc(&s));
@@ -54,15 +54,15 @@ estrdup(char *s)
 }
 
 char*
-estrdupn(char *s, int n)
+estrdupn(char* s, int n)
 {
 	int l;
-	char *t;
+	char* t;
 
 	l = strlen(s);
 	if(l > n)
 		l = n;
-	t = emalloc(l+1);
+	t = emalloc(l + 1);
 	memmove(t, s, l);
 	t[l] = '\0';
 	setmalloctag(t, getcallerpc(&s));
@@ -70,35 +70,36 @@ estrdupn(char *s, int n)
 }
 
 char*
-strlower(char *s)
+strlower(char* s)
 {
-	char *p;
+	char* p;
 
-	for(p=s; *p; p++)
+	for(p = s; *p; p++)
 		if('A' <= *p && *p <= 'Z')
-			*p += 'a'-'A';
+			*p += 'a' - 'A';
 	return s;
 }
 
 String*
-s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
+s_appendsub(String* s, char* p, int n, Sub* sub, int nsub)
 {
 	int i, m;
-	char *q, *r, *ep;
+	char* q, *r, *ep;
 
-	ep = p+n;
-	while(p<ep){
+	ep = p + n;
+	while(p < ep) {
 		q = ep;
 		m = -1;
-		for(i=0; i<nsub; i++){
-			if(sub[i].sub && (r = strstr(p, sub[i].match)) && r < q){
+		for(i = 0; i < nsub; i++) {
+			if(sub[i].sub && (r = strstr(p, sub[i].match)) &&
+			   r < q) {
 				q = r;
 				m = i;
 			}
 		}
-		s = s_nappend(s, p, q-p);
+		s = s_nappend(s, p, q - p);
 		p = q;
-		if(m >= 0){
+		if(m >= 0) {
 			s = s_append(s, sub[m].sub);
 			p += strlen(sub[m].match);
 		}
@@ -107,9 +108,9 @@ s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
 }
 
 String*
-s_appendlist(String *s, ...)
+s_appendlist(String* s, ...)
 {
-	char *x;
+	char* x;
 	va_list arg;
 
 	va_start(arg, s);
@@ -120,16 +121,17 @@ s_appendlist(String *s, ...)
 }
 
 int
-opentemp(char *template)
+opentemp(char* template)
 {
 	int fd, i;
-	char *p;
+	char* p;
 
 	p = estrdup(template);
 	fd = -1;
-	for(i=0; i<10; i++){
+	for(i = 0; i < 10; i++) {
 		mktemp(p);
-		if(access(p, 0) < 0 && (fd=create(p, ORDWR|ORCLOSE, 0444)) >= 0)
+		if(access(p, 0) < 0 &&
+		   (fd = create(p, ORDWR | ORCLOSE, 0444)) >= 0)
 			break;
 		strcpy(p, template);
 	}
@@ -139,4 +141,3 @@ opentemp(char *template)
 
 	return fd;
 }
-

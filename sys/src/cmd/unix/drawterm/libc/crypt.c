@@ -26,10 +26,10 @@
  * must be at least 8 characters long.
  */
 int
-encrypt(void *key, void *vbuf, int n)
+encrypt(void* key, void* vbuf, int n)
 {
 	uint32_t ekey[32];
-	uint8_t *buf;
+	uint8_t* buf;
 	int i, r;
 
 	if(n < 8)
@@ -39,7 +39,7 @@ encrypt(void *key, void *vbuf, int n)
 	n--;
 	r = n % 7;
 	n /= 7;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		block_cipher(ekey, buf, 0);
 		buf += 7;
 	}
@@ -53,10 +53,10 @@ encrypt(void *key, void *vbuf, int n)
  * must be at least 8 characters long.
  */
 int
-decrypt(void *key, void *vbuf, int n)
+decrypt(void* key, void* vbuf, int n)
 {
 	uint32_t ekey[128];
-	uint8_t *buf;
+	uint8_t* buf;
 	int i, r;
 
 	if(n < 8)
@@ -69,7 +69,7 @@ decrypt(void *key, void *vbuf, int n)
 	buf += n * 7;
 	if(r)
 		block_cipher(ekey, buf - 7 + r, 1);
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		buf -= 7;
 		block_cipher(ekey, buf, 1);
 	}

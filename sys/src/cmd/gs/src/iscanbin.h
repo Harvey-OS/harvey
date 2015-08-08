@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Interface to binary token scanner */
 
 #ifndef iscanbin_INCLUDED
-#  define iscanbin_INCLUDED
+#define iscanbin_INCLUDED
 
 /*
  * Scan a binary token.  The main scanner calls this iff recognize_btokens()
@@ -38,7 +38,7 @@
  * this procedure: a dummy one for Level 1 systems, and the real one.
  * The interface is entirely internal to the scanner.
  */
-int scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
-		      scanner_state *pstate);
+int scan_binary_token(i_ctx_t* i_ctx_p, stream* s, ref* pref,
+                      scanner_state* pstate);
 
 #endif /* iscanbin_INCLUDED */

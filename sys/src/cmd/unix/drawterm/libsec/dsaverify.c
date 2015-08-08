@@ -12,10 +12,10 @@
 #include <libsec.h>
 
 int
-dsaverify(DSApub *pub, DSAsig *sig, mpint *m)
+dsaverify(DSApub* pub, DSAsig* sig, mpint* m)
 {
 	int rv = -1;
-	mpint *u1, *u2, *v, *sinv;
+	mpint* u1, *u2, *v, *sinv;
 
 	if(sig->r->sign < 0 || mpcmp(sig->r, pub->q) >= 0)
 		return rv;

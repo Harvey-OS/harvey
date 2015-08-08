@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <httpd.h>
 
-static	char	hstates[] = "nrewE";
-static	char	hxfers[] = " x";
+static char hstates[] = "nrewE";
+static char hxfers[] = " x";
 static int _hflush(Hio*, int, int);
 
 int
-hinit(Hio *h, int fd, int mode)
+hinit(Hio* h, int fd, int mode)
 {
 	if(fd == -1 || mode != Hread && mode != Hwrite)
 		return -1;
@@ -24,29 +24,29 @@ hinit(Hio *h, int fd, int mode)
 	h->fd = fd;
 	h->seek = 0;
 	h->state = mode;
-	h->start = h->buf + 16;		/* leave space for chunk length */
+	h->start = h->buf + 16; /* leave space for chunk length */
 	h->stop = h->pos = h->start;
-	if(mode == Hread){
+	if(mode == Hread) {
 		h->bodylen = ~0UL;
 		*h->pos = '\0';
-	}else
+	} else
 		h->stop = h->start + Hsize;
 	return 0;
 }
 
 int
-hiserror(Hio *h)
+hiserror(Hio* h)
 {
 	return h->state == Herr;
 }
 
 int
-hgetc(Hio *h)
+hgetc(Hio* h)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = h->pos;
-	if(p < h->stop){
+	if(p < h->stop) {
 		h->pos = p + 1;
 		return *p;
 	}
@@ -59,13 +59,13 @@ hgetc(Hio *h)
 }
 
 int
-hungetc(Hio *h)
+hungetc(Hio* h)
 {
 	if(h->state == Hend)
 		h->state = Hread;
 	else if(h->state == Hread)
 		h->pos--;
-	if(h->pos < h->start || h->state != Hread){
+	if(h->pos < h->start || h->state != Hread) {
 		h->state = Herr;
 		h->pos = h->stop;
 		return -1;
@@ -80,16 +80,16 @@ hungetc(Hio *h)
  *
  * understands message body sizes and chunked transfer encoding
  */
-void *
-hreadbuf(Hio *h, void *vsave)
+void*
+hreadbuf(Hio* h, void* vsave)
 {
-	Hio *hh;
-	uint8_t *save;
+	Hio* hh;
+	uint8_t* save;
 	int c, in, cpy, dpos;
 
 	save = vsave;
-	if(save && (save < h->start || save > h->stop)
-	|| h->state != Hread && h->state != Hend){
+	if(save && (save < h->start || save > h->stop) ||
+	   h->state != Hread && h->state != Hend) {
 		h->state = Herr;
 		h->pos = h->stop;
 		return nil;
@@ -99,7 +99,7 @@ hreadbuf(Hio *h, void *vsave)
 	if(save && h->pos > save)
 		dpos = h->pos - save;
 	cpy = 0;
-	if(save){
+	if(save) {
 		cpy = h->stop - save;
 		memmove(h->start, save, cpy);
 	}
@@ -117,13 +117,13 @@ hreadbuf(Hio *h, void *vsave)
 	 * then read in new chunk length and wipe out that line
 	 */
 	hh = h->hh;
-	if(hh != nil){
-		if(!in && h->xferenc && h->state != Hend){
-			if(h->xferenc == 2){
+	if(hh != nil) {
+		if(!in && h->xferenc && h->state != Hend) {
+			if(h->xferenc == 2) {
 				c = hgetc(hh);
 				if(c == '\r')
 					c = hgetc(hh);
-				if(c != '\n'){
+				if(c != '\n') {
 					h->pos = h->stop;
 					h->state = Herr;
 					return nil;
@@ -131,7 +131,7 @@ hreadbuf(Hio *h, void *vsave)
 			}
 			h->xferenc = 2;
 			in = 0;
-			while((c = hgetc(hh)) != '\n'){
+			while((c = hgetc(hh)) != '\n') {
 				if(c >= '0' && c <= '9')
 					c -= '0';
 				else if(c >= 'a' && c <= 'f')
@@ -142,8 +142,8 @@ hreadbuf(Hio *h, void *vsave)
 					break;
 				in = in * 16 + c;
 			}
-			while(c != '\n'){
-				if(c < 0){
+			while(c != '\n') {
+				if(c < 0) {
 					h->pos = h->stop;
 					h->state = Herr;
 					return nil;
@@ -156,9 +156,9 @@ hreadbuf(Hio *h, void *vsave)
 			if(in > h->bodylen)
 				in = h->bodylen;
 		}
-		if(in){
-			while(hh->pos + in > hh->stop){
-				if(hreadbuf(hh, hh->pos) == nil){
+		if(in) {
+			while(hh->pos + in > hh->stop) {
+				if(hreadbuf(hh, hh->pos) == nil) {
 					h->pos = h->stop;
 					h->state = Herr;
 					return nil;
@@ -167,8 +167,8 @@ hreadbuf(Hio *h, void *vsave)
 			memmove(h->start + cpy, hh->pos, in);
 			hh->pos += in;
 		}
-	}else if(in){
-		if((in = read(h->fd, h->start + cpy, in)) < 0){
+	} else if(in) {
+		if((in = read(h->fd, h->start + cpy, in)) < 0) {
 			h->state = Herr;
 			h->pos = h->stop;
 			return nil;
@@ -187,7 +187,7 @@ hreadbuf(Hio *h, void *vsave)
 }
 
 int
-hbuflen(Hio *h, void *p)
+hbuflen(Hio* h, void* p)
 {
 	return h->stop - (uint8_t*)p;
 }
@@ -199,23 +199,23 @@ hbuflen(Hio *h, void *p)
  * returns < 0 if setup failed
  */
 Hio*
-hbodypush(Hio *hh, uint32_t len, HFields *te)
+hbodypush(Hio* hh, uint32_t len, HFields* te)
 {
-	Hio *h;
+	Hio* h;
 	int xe;
 
 	if(hh->state != Hread)
 		return nil;
 	xe = 0;
-	if(te != nil){
+	if(te != nil) {
 		if(te->params != nil || te->next != nil)
 			return nil;
-		if(cistrcmp(te->s, "chunked") == 0){
+		if(cistrcmp(te->s, "chunked") == 0) {
 			xe = 1;
 			len = 0;
-		}else if(cistrcmp(te->s, "identity") == 0){
+		} else if(cistrcmp(te->s, "identity") == 0) {
 			;
-		}else
+		} else
 			return nil;
 	}
 
@@ -228,7 +228,7 @@ hbodypush(Hio *hh, uint32_t len, HFields *te)
 	h->seek = 0;
 	h->state = Hread;
 	h->xferenc = xe;
-	h->start = h->buf + 16;		/* leave space for chunk length */
+	h->start = h->buf + 16; /* leave space for chunk length */
 	h->stop = h->pos = h->start;
 	*h->pos = '\0';
 	h->bodylen = len;
@@ -238,15 +238,15 @@ hbodypush(Hio *hh, uint32_t len, HFields *te)
 /*
  * dump the state of the io buffer into a string
  */
-char *
-hunload(Hio *h)
+char*
+hunload(Hio* h)
 {
-	uint8_t *p, *t, *stop, *buf;
+	uint8_t* p, *t, *stop, *buf;
 	int ne, n, c;
 
 	stop = h->stop;
 	ne = 0;
-	for(p = h->pos; p < stop; p++){
+	for(p = h->pos; p < stop; p++) {
 		c = *p;
 		if(c == 0x80)
 			ne++;
@@ -261,13 +261,13 @@ hunload(Hio *h)
 	buf[1] = hxfers[h->xferenc];
 
 	t = &buf[2];
-	for(; p < stop; p++){
+	for(; p < stop; p++) {
 		c = *p;
-		if(c == 0 || c == 0x80){
+		if(c == 0 || c == 0x80) {
 			*t++ = 0x80;
 			if(c == 0x80)
 				*t++ = 0x80;
-		}else
+		} else
 			*t++ = c;
 	}
 	*t++ = '\0';
@@ -280,10 +280,10 @@ hunload(Hio *h)
  * read the io buffer state from a string
  */
 int
-hload(Hio *h, char *buf)
+hload(Hio* h, char* buf)
 {
-	uint8_t *p, *t, *stop;
-	char *s;
+	uint8_t* p, *t, *stop;
+	char* s;
 	int c;
 
 	s = strchr(hstates, buf[0]);
@@ -298,8 +298,8 @@ hload(Hio *h, char *buf)
 
 	t = h->start;
 	stop = t + Hsize;
-	for(p = (uint8_t*)&buf[2]; c = *p; p++){
-		if(c == 0x80){
+	for(p = (uint8_t*)&buf[2]; c = *p; p++) {
+		if(c == 0x80) {
 			if(p[1] != 0x80)
 				c = 0;
 			else
@@ -317,9 +317,9 @@ hload(Hio *h, char *buf)
 }
 
 void
-hclose(Hio *h)
+hclose(Hio* h)
 {
-	if(h->fd >= 0){
+	if(h->fd >= 0) {
 		if(h->state == Hwrite)
 			hxferenc(h, 0);
 		close(h->fd);
@@ -332,7 +332,7 @@ hclose(Hio *h)
  * flush the buffer and possibly change encoding modes
  */
 int
-hxferenc(Hio *h, int on)
+hxferenc(Hio* h, int on)
 {
 	if(h->xferenc && !on && h->pos != h->start)
 		hflush(h);
@@ -343,24 +343,24 @@ hxferenc(Hio *h, int on)
 }
 
 int
-hputc(Hio *h, int c)
+hputc(Hio* h, int c)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = h->pos;
-	if(p < h->stop){
+	if(p < h->stop) {
 		h->pos = p + 1;
-		return *p = c;
+		return * p = c;
 	}
 	if(hflush(h) < 0)
 		return -1;
-	return *h->pos++ = c;
+	return * h->pos++ = c;
 }
 
 static int
-fmthflush(Fmt *f)
+fmthflush(Fmt* f)
 {
-	Hio *h;
+	Hio* h;
 
 	h = f->farg;
 	h->pos = f->to;
@@ -373,7 +373,7 @@ fmthflush(Fmt *f)
 }
 
 int
-hvprint(Hio *h, char *fmt, va_list args)
+hvprint(Hio* h, char* fmt, va_list args)
 {
 	int n;
 	Fmt f;
@@ -385,14 +385,14 @@ hvprint(Hio *h, char *fmt, va_list args)
 	f.flush = fmthflush;
 	f.farg = h;
 	f.nfmt = 0;
-//	fmtlocaleinit(&f, nil, nil, nil);
+	//	fmtlocaleinit(&f, nil, nil, nil);
 	n = fmtvprint(&f, fmt, args);
 	h->pos = f.to;
 	return n;
 }
 
 int
-hprint(Hio *h, char *fmt, ...)
+hprint(Hio* h, char* fmt, ...)
 {
 	int n;
 	va_list arg;
@@ -404,14 +404,14 @@ hprint(Hio *h, char *fmt, ...)
 }
 
 static int
-_hflush(Hio *h, int force, int dolength)
+_hflush(Hio* h, int force, int dolength)
 {
-	uint8_t *s;
+	uint8_t* s;
 	int w;
 
 	if(h == nil)
 		return -1;
-	if(h->state != Hwrite){
+	if(h->state != Hwrite) {
 		h->state = Herr;
 		h->stop = h->pos;
 		return -1;
@@ -420,20 +420,20 @@ _hflush(Hio *h, int force, int dolength)
 	w = h->pos - s;
 	if(w == 0 && !force)
 		return 0;
-	if(h->xferenc){
+	if(h->xferenc) {
 		*--s = '\n';
 		*--s = '\r';
-		do{
+		do {
 			*--s = "0123456789abcdef"[w & 0xf];
 			w >>= 4;
-		}while(w);
+		} while(w);
 		h->pos[0] = '\r';
 		h->pos[1] = '\n';
 		w = &h->pos[2] - s;
 	}
 	if(dolength)
 		fprint(h->fd, "Content-Length: %d\r\n\r\n", w);
-	if(write(h->fd, s, w) != w){
+	if(write(h->fd, s, w) != w) {
 		h->state = Herr;
 		h->stop = h->pos;
 		return -1;
@@ -444,7 +444,7 @@ _hflush(Hio *h, int force, int dolength)
 }
 
 int
-hflush(Hio *h)
+hflush(Hio* h)
 {
 	return _hflush(h, 0, 0);
 }
@@ -456,31 +456,31 @@ hlflush(Hio* h)
 }
 
 int
-hwrite(Hio *h, void *vbuf, int len)
+hwrite(Hio* h, void* vbuf, int len)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int n, m;
 
 	buf = vbuf;
 	n = len;
-	if(n < 0 || h->state != Hwrite){
+	if(n < 0 || h->state != Hwrite) {
 		h->state = Herr;
 		h->stop = h->pos;
 		return -1;
 	}
-	if(h->pos + n >= h->stop){
+	if(h->pos + n >= h->stop) {
 		if(h->start != h->pos)
 			if(hflush(h) < 0)
 				return -1;
-		while(h->pos + n >= h->stop){
+		while(h->pos + n >= h->stop) {
 			m = h->stop - h->pos;
-			if(h->xferenc){
+			if(h->xferenc) {
 				memmove(h->pos, buf, m);
 				h->pos += m;
 				if(hflush(h) < 0)
 					return -1;
-			}else{
-				if(write(h->fd, buf, m) != m){
+			} else {
+				if(write(h->fd, buf, m) != m) {
 					h->state = Herr;
 					h->stop = h->pos;
 					return -1;

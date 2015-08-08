@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-fmtstrflush(Fmt *f)
+fmtstrflush(Fmt* f)
 {
 	if(f->start == nil)
 		return nil;

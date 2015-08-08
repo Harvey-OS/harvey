@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -37,17 +37,14 @@
 
 /* <source> MD5Encode/filter <file> */
 /* <source> <dict> MD5Encode/filter <file> */
-private int
-zMD5E(i_ctx_t *i_ctx_p)
+private
+int
+zMD5E(i_ctx_t* i_ctx_p)
 {
-    return filter_write_simple(i_ctx_p, &s_MD5E_template);
+	return filter_write_simple(i_ctx_p, &s_MD5E_template);
 }
 
 /* ------ Initialization procedure ------ */
 
-const op_def zfmd5_op_defs[] =
-{
-    op_def_begin_filter(),
-    {"1MD5Encode", zMD5E},
-    op_def_end(0)
-};
+const op_def zfmd5_op_defs[] = {
+    op_def_begin_filter(), {"1MD5Encode", zMD5E}, op_def_end(0)};

@@ -9,8 +9,10 @@
 
 #include "all.h"
 
-void *ialloc(uint32_t n){
-	void *p;
+void*
+ialloc(uint32_t n)
+{
+	void* p;
 
 	if(p = malloc(n))
 		memset(p, 0, n);

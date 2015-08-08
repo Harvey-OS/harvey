@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 /*
  * flag: insert nops to prevent three consecutive stores.
@@ -15,16 +15,15 @@
  * so only enable this if you need it.  test cases are "hoc -e '7^6'"
  * and "{ echo moon; echo plot } | scat".
  */
-enum {
-	Mips24k	= 0,
+enum { Mips24k = 0,
 };
 
 static int
-isdblwrdmov(Prog *p)
+isdblwrdmov(Prog* p)
 {
 	if(p == nil)
 		return 0;
-	switch(p->as){
+	switch(p->as) {
 	case AMOVD:
 	case AMOVDF:
 	case AMOVDW:
@@ -43,11 +42,11 @@ isdblwrdmov(Prog *p)
 }
 
 static int
-ismove(Prog *p)
+ismove(Prog* p)
 {
 	if(p == nil)
 		return 0;
-	switch(p->as){
+	switch(p->as) {
 	case AMOVB:
 	case AMOVBU:
 	case AMOVF:
@@ -67,7 +66,7 @@ ismove(Prog *p)
 }
 
 static int
-isstore(Prog *p)
+isstore(Prog* p)
 {
 	if(p == nil)
 		return 0;
@@ -84,11 +83,11 @@ isstore(Prog *p)
 }
 
 static int
-iscondbranch(Prog *p)
+iscondbranch(Prog* p)
 {
 	if(p == nil)
 		return 0;
-	switch(p->as){
+	switch(p->as) {
 	case ABEQ:
 	case ABFPF:
 	case ABFPT:
@@ -105,11 +104,11 @@ iscondbranch(Prog *p)
 }
 
 static int
-isbranch(Prog *p)
+isbranch(Prog* p)
 {
 	if(p == nil)
 		return 0;
-	switch(p->as){
+	switch(p->as) {
 	case AJAL:
 	case AJMP:
 	case ARET:
@@ -122,9 +121,9 @@ isbranch(Prog *p)
 }
 
 static void
-nopafter(Prog *p)
+nopafter(Prog* p)
 {
-	p->mark |= LABEL|SYNC;
+	p->mark |= LABEL | SYNC;
 	addnop(p);
 }
 
@@ -134,9 +133,9 @@ nopafter(Prog *p)
  * double-word stores complicate things.
  */
 static int
-no3stores(Prog *p)
+no3stores(Prog* p)
 {
-	Prog *p1;
+	Prog* p1;
 
 	if(!isstore(p))
 		return 0;
@@ -166,7 +165,7 @@ no3stores(Prog *p)
 void
 storesnosched(void)
 {
-	Prog *p;
+	Prog* p;
 
 	for(p = firstp; p != P; p = p->link)
 		if(isstore(p))
@@ -177,15 +176,15 @@ int
 triplestorenops(void)
 {
 	int r;
-	Prog *p, *p1;
+	Prog* p, *p1;
 
 	r = 0;
 	for(p = firstp; p != P; p = p1) {
 		p1 = p->link;
-//		if (p->mark & NOSCHED)
-//			continue;
+		//		if (p->mark & NOSCHED)
+		//			continue;
 		if(ismove(p) && isstore(p)) {
-			if (no3stores(p))
+			if(no3stores(p))
 				r++;
 			/*
 			 * given storenosched, the next two
@@ -205,19 +204,19 @@ triplestorenops(void)
 			 * in case a branch leading here has a store in its
 			 * delay slot and we have consecutive stores here.
 			 */
-			if(p->mark & (LABEL|SYNC) && !isnop(p1)) {
+			if(p->mark & (LABEL | SYNC) && !isnop(p1)) {
 				nopafter(p);
 				nop.branch.count++;
 				nop.branch.outof++;
 				r++;
 			}
-		} else if (isbranch(p))
+		} else if(isbranch(p))
 			/*
 			 * can't ignore delay slot of a conditional branch;
 			 * the branch could fail and fall through.
 			 */
-			if (!iscondbranch(p) && p1)
-				p1 = p1->link;	/* skip its delay slot */
+			if(!iscondbranch(p) && p1)
+				p1 = p1->link; /* skip its delay slot */
 	}
 	return r;
 }
@@ -225,7 +224,7 @@ triplestorenops(void)
 void
 noops(void)
 {
-	Prog *p, *p1, *q, *q1;
+	Prog* p, *p1, *q, *q1;
 	int o, curframe, curbecome, maxbecome;
 
 	/*
@@ -265,7 +264,7 @@ noops(void)
 			curframe = 0;
 			curbecome = 0;
 
-			p->mark |= LABEL|LEAF|SYNC;
+			p->mark |= LABEL | LEAF | SYNC;
 			if(p->link)
 				p->link->mark |= LABEL;
 			curtext = p;
@@ -273,14 +272,12 @@ noops(void)
 
 		/* too hard, just leave alone */
 		case AMOVW:
-			if(p->to.type == D_FCREG ||
-			   p->to.type == D_MREG) {
-				p->mark |= LABEL|SYNC;
+			if(p->to.type == D_FCREG || p->to.type == D_MREG) {
+				p->mark |= LABEL | SYNC;
 				break;
 			}
-			if(p->from.type == D_FCREG ||
-			   p->from.type == D_MREG) {
-				p->mark |= LABEL|SYNC;
+			if(p->from.type == D_FCREG || p->from.type == D_MREG) {
+				p->mark |= LABEL | SYNC;
 				addnop(p);
 				addnop(p);
 				nop.mfrom.count += 2;
@@ -297,12 +294,12 @@ noops(void)
 		case ATLBWI:
 		case ATLBP:
 		case ATLBR:
-			p->mark |= LABEL|SYNC;
+			p->mark |= LABEL | SYNC;
 			break;
 
 		case ANOR:
 			if(p->to.type == D_REG && p->to.reg == REGZERO)
-				p->mark |= LABEL|SYNC;
+				p->mark |= LABEL | SYNC;
 			break;
 
 		case ARET:
@@ -317,12 +314,12 @@ noops(void)
 
 		case ANOP:
 			q1 = p->link;
-			q->link = q1;		/* q is non-nop */
+			q->link = q1; /* q is non-nop */
 			q1->mark |= p->mark;
 			continue;
 
 		case ABCASE:
-			p->mark |= LABEL|SYNC;
+			p->mark |= LABEL | SYNC;
 			goto dstlab;
 
 		case ABGEZAL:
@@ -379,7 +376,8 @@ noops(void)
 			curtext = p;
 			break;
 		case AJAL:
-			if(curtext != P && curtext->from.sym != S && curtext->to.offset >= 0) {
+			if(curtext != P && curtext->from.sym != S &&
+			   curtext->to.offset >= 0) {
 				o = maxbecome - curtext->from.sym->frame;
 				if(o <= 0)
 					break;
@@ -388,8 +386,10 @@ noops(void)
 					curtext->to.offset += o;
 					if(debug['b']) {
 						curp = p;
-						print("%D calling %D increase %d\n",
-							&curtext->from, &p->to, o);
+						print("%D calling %D increase "
+						      "%d\n",
+						      &curtext->from, &p->to,
+						      o);
 					}
 				}
 			}
@@ -404,10 +404,10 @@ noops(void)
 			curtext = p;
 			autosize = p->to.offset + 4;
 			if(autosize <= 4)
-			if(curtext->mark & LEAF) {
-				p->to.offset = -4;
-				autosize = 0;
-			}
+				if(curtext->mark & LEAF) {
+					p->to.offset = -4;
+					autosize = 0;
+				}
 
 			q = p;
 			if(autosize) {
@@ -421,11 +421,10 @@ noops(void)
 
 				q->link = p->link;
 				p->link = q;
-			} else
-			if(!(curtext->mark & LEAF)) {
+			} else if(!(curtext->mark & LEAF)) {
 				if(debug['v'])
 					Bprint(&bso, "save suppressed in: %s\n",
-						curtext->from.sym->name);
+					       curtext->from.sym->name);
 				Bflush(&bso);
 				curtext->mark |= LEAF;
 			}
@@ -570,21 +569,21 @@ noops(void)
 			break;
 		}
 	}
-	if (Mips24k)
+	if(Mips24k)
 		storesnosched();
 
 	curtext = P;
-	q = P;		/* p - 1 */
-	q1 = firstp;	/* top of block */
-	o = 0;		/* count of instructions */
+	q = P;       /* p - 1 */
+	q1 = firstp; /* top of block */
+	o = 0;       /* count of instructions */
 	for(p = firstp; p != P; p = p1) {
 		p1 = p->link;
 		o++;
-		if(p->mark & NOSCHED){
-			if(q1 != p){
+		if(p->mark & NOSCHED) {
+			if(q1 != p) {
 				sched(q1, q);
 			}
-			for(; p != P; p = p->link){
+			for(; p != P; p = p->link) {
 				if(!(p->mark & NOSCHED))
 					break;
 				q = p;
@@ -594,13 +593,13 @@ noops(void)
 			o = 0;
 			continue;
 		}
-		if(p->mark & (LABEL|SYNC)) {
+		if(p->mark & (LABEL | SYNC)) {
 			if(q1 != p)
 				sched(q1, q);
 			q1 = p;
 			o = 1;
 		}
-		if(p->mark & (BRANCH|SYNC)) {
+		if(p->mark & (BRANCH | SYNC)) {
 			sched(q1, p);
 			q1 = p1;
 			o = 0;
@@ -613,14 +612,14 @@ noops(void)
 		q = p;
 	}
 
-	if (Mips24k)
+	if(Mips24k)
 		triplestorenops();
 }
 
 void
-addnop(Prog *p)
+addnop(Prog* p)
 {
-	Prog *q;
+	Prog* q;
 
 	q = prg();
 	q->as = ANOR;
@@ -635,7 +634,7 @@ addnop(Prog *p)
 }
 
 void
-nocache(Prog *p)
+nocache(Prog* p)
 {
 	p->optab = 0;
 	p->from.class = 0;

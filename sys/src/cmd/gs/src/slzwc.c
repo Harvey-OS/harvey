@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1995, 1996, 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -34,18 +34,18 @@ public_st_LZW_state();
 
 /* Set defaults */
 void
-s_LZW_set_defaults(stream_state * st)
+s_LZW_set_defaults(stream_state* st)
 {
-    stream_LZW_state *const ss = (stream_LZW_state *) st;
+	stream_LZW_state* const ss = (stream_LZW_state*)st;
 
-    s_LZW_set_defaults_inline(ss);
+	s_LZW_set_defaults_inline(ss);
 }
 
 /* Release a LZW filter. */
 void
-s_LZW_release(stream_state * st)
+s_LZW_release(stream_state* st)
 {
-    stream_LZW_state *const ss = (stream_LZW_state *) st;
+	stream_LZW_state* const ss = (stream_LZW_state*)st;
 
-    gs_free_object(st->memory, ss->table.decode, "LZW(close)");
+	gs_free_object(st->memory, ss->table.decode, "LZW(close)");
 }

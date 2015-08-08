@@ -7,21 +7,21 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
-#include	"9p1.h"
+#include "all.h"
+#include "9p1.h"
 
 void
-fcall9p1(Chan *cp, Oldfcall *in, Oldfcall *ou)
+fcall9p1(Chan* cp, Oldfcall* in, Oldfcall* ou)
 {
 	int t;
 
 	rlock(&mainlock);
 	t = in->type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !call9p1[t]) {
+	if(t < 0 || t >= MAXSYSCALL || (t & 1) || !call9p1[t]) {
 		print("bad message type %d\n", t);
 		panic("");
 	}
-	ou->type = t+1;
+	ou->type = t + 1;
 	ou->err = 0;
 
 	rlock(&cp->reflock);
@@ -46,7 +46,7 @@ con_session(void)
 }
 
 int
-con_attach(int fid, char *uid, char *arg)
+con_attach(int fid, char* uid, char* arg)
 {
 	Oldfcall in, ou;
 
@@ -71,10 +71,10 @@ con_clone(int fid1, int fid2)
 }
 
 int
-con_path(int fid, char *path)
+con_path(int fid, char* path)
 {
 	Oldfcall in, ou;
-	char *p;
+	char* p;
 
 	in.type = Twalk9p1;
 	in.fid = fid;
@@ -84,7 +84,7 @@ loop:
 		return 0;
 	strncpy(in.name, path, NAMELEN);
 	if(p = strchr(path, '/')) {
-		path = p+1;
+		path = p + 1;
 		if(p = strchr(in.name, '/'))
 			*p = 0;
 	} else
@@ -98,7 +98,7 @@ loop:
 }
 
 int
-con_walk(int fid, char *name)
+con_walk(int fid, char* name)
 {
 	Oldfcall in, ou;
 
@@ -110,7 +110,7 @@ con_walk(int fid, char *name)
 }
 
 int
-con_stat(int fid, char *data)
+con_stat(int fid, char* data)
 {
 	Oldfcall in, ou;
 
@@ -123,7 +123,7 @@ con_stat(int fid, char *data)
 }
 
 int
-con_wstat(int fid, char *data)
+con_wstat(int fid, char* data)
 {
 	Oldfcall in, ou;
 
@@ -147,7 +147,7 @@ con_open(int fid, int mode)
 }
 
 int
-con_read(int fid, char *data, int32_t offset, int count)
+con_read(int fid, char* data, int32_t offset, int count)
 {
 	Oldfcall in, ou;
 
@@ -163,7 +163,7 @@ con_read(int fid, char *data, int32_t offset, int count)
 }
 
 int
-con_write(int fid, char *data, int32_t offset, int count)
+con_write(int fid, char* data, int32_t offset, int count)
 {
 	Oldfcall in, ou;
 
@@ -190,8 +190,7 @@ con_remove(int fid)
 }
 
 int
-con_create(int fid, char *name, int uid, int gid, int32_t perm,
-	   int mode)
+con_create(int fid, char* name, int uid, int gid, int32_t perm, int mode)
 {
 	Oldfcall in, ou;
 
@@ -200,17 +199,17 @@ con_create(int fid, char *name, int uid, int gid, int32_t perm,
 	strncpy(in.name, name, NAMELEN);
 	in.perm = perm;
 	in.mode = mode;
-	cons.uid = uid;			/* beyond ugly */
+	cons.uid = uid; /* beyond ugly */
 	cons.gid = gid;
 	fcall9p1(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
-doclri(File *f)
+doclri(File* f)
 {
-	Iobuf *p, *p1;
-	Dentry *d, *d1;
+	Iobuf* p, *p1;
+	Dentry* d, *d1;
 	int err;
 
 	err = 0;
@@ -244,7 +243,6 @@ doclri(File *f)
 	p = getbuf(f->fs->dev, f->addr, Bread);
 	d = getdir(p, f->slot);
 
-
 	/*
 	 * do it
 	 */
@@ -262,9 +260,9 @@ out:
 }
 
 void
-f_clri(Chan *cp, Oldfcall *in, Oldfcall *ou)
+f_clri(Chan* cp, Oldfcall* in, Oldfcall* ou)
 {
-	File *f;
+	File* f;
 
 	if(CHAT(cp)) {
 		print("c_clri %d\n", cp->chan);
@@ -288,14 +286,14 @@ int
 con_clri(int fid)
 {
 	Oldfcall in, ou;
-	Chan *cp;
+	Chan* cp;
 
 	in.type = Tremove9p1;
 	in.fid = fid;
 	cp = cons.chan;
 
 	rlock(&mainlock);
-	ou.type = Tremove9p1+1;
+	ou.type = Tremove9p1 + 1;
 	ou.err = 0;
 
 	rlock(&cp->reflock);
@@ -313,11 +311,11 @@ int
 con_swap(int fid1, int fid2)
 {
 	int err;
-	Iobuf *p1, *p2;
-	File *f1, *f2;
-	Dentry *d1, *d2;
+	Iobuf* p1, *p2;
+	File* f1, *f2;
+	Dentry* d1, *d2;
 	Dentry dt1, dt2;
-	Chan *cp;
+	Chan* cp;
 
 	cp = cons.chan;
 	err = 0;
@@ -327,29 +325,28 @@ con_swap(int fid1, int fid2)
 	f2 = nil;
 	p1 = p2 = nil;
 	f1 = filep(cp, fid1, 0);
-	if(!f1){
+	if(!f1) {
 		err = Efid;
 		goto out;
 	}
-	p1 = getbuf(f1->fs->dev, f1->addr, Bread|Bmod);
+	p1 = getbuf(f1->fs->dev, f1->addr, Bread | Bmod);
 	d1 = getdir(p1, f1->slot);
-	if(!d1 || !(d1->mode&DALLOC)){
+	if(!d1 || !(d1->mode & DALLOC)) {
 		err = Ealloc;
 		goto out;
 	}
 
 	f2 = filep(cp, fid2, 0);
-	if(!f2){
+	if(!f2) {
 		err = Efid;
 		goto out;
 	}
-	if(memcmp(&f1->fs->dev, &f2->fs->dev, 4)==0
-	&& f2->addr == f1->addr)
+	if(memcmp(&f1->fs->dev, &f2->fs->dev, 4) == 0 && f2->addr == f1->addr)
 		p2 = p1;
 	else
-		p2 = getbuf(f2->fs->dev, f2->addr, Bread|Bmod);
+		p2 = getbuf(f2->fs->dev, f2->addr, Bread | Bmod);
 	d2 = getdir(p2, f2->slot);
-	if(!d2 || !(d2->mode&DALLOC)){
+	if(!d2 || !(d2->mode & DALLOC)) {
 		err = Ealloc;
 		goto out;
 	}
@@ -370,7 +367,7 @@ out:
 		qunlock(f2);
 	if(p1)
 		putbuf(p1);
-	if(p2 && p2!=p1)
+	if(p2 && p2 != p1)
 		putbuf(p2);
 
 	runlock(&cp->reflock);

@@ -21,14 +21,11 @@
 #include <libc.h>
 
 struct {
-	char *file;
+	char* file;
 	char name[512];
-} keep[] = {
-	{ "/dev/label" },
-	{ "/dev/wdir" }
-};
+} keep[] = {{"/dev/label"}, {"/dev/wdir"}};
 
-char *prog = "/bin/rwd";
+char* prog = "/bin/rwd";
 
 void
 usage(void)
@@ -41,9 +38,9 @@ void
 save(void)
 {
 	int i, fd;
-	for(i = 0; i < nelem(keep); i++){
+	for(i = 0; i < nelem(keep); i++) {
 		*keep[i].name = 0;
-		if((fd = open(keep[i].file, OREAD)) != -1){
+		if((fd = open(keep[i].file, OREAD)) != -1) {
 			read(fd, keep[i].name, sizeof(keep[i].name));
 			close(fd);
 		}
@@ -55,46 +52,43 @@ rest(void)
 {
 	int i, fd;
 	for(i = 0; i < nelem(keep); i++)
-		if((fd = open(keep[i].file, OWRITE)) != -1){
+		if((fd = open(keep[i].file, OWRITE)) != -1) {
 			write(fd, keep[i].name, strlen(keep[i].name));
 			close(fd);
 		}
-
 }
 
 void
-setpath(char *s)
+setpath(char* s)
 {
-	switch(rfork(RFPROC|RFFDG|RFNOWAIT)){
+	switch(rfork(RFPROC | RFFDG | RFNOWAIT)) {
 	case 0:
 		execl(prog, prog, s, nil);
 		_exits(nil);
 	}
 }
 
-enum
-{
-	None,
-	Esc,
-	Brack,
-	Semi,
-	Bell,
+enum { None,
+       Esc,
+       Brack,
+       Semi,
+       Bell,
 };
 
 int
-process(char *buf, int n, int *pn)
+process(char* buf, int n, int* pn)
 {
-	char *p;
+	char* p;
 	char path[4096];
 	int start, state;
 
 	start = 0;
 	state = None;
-	for(p=buf; p<buf+n; p++){
-		switch(state){
+	for(p = buf; p < buf + n; p++) {
+		switch(state) {
 		case None:
-			if(*p == '\033'){
-				start = p-buf;
+			if(*p == '\033') {
+				start = p - buf;
 				state++;
 			}
 			break;
@@ -117,13 +111,13 @@ process(char *buf, int n, int *pn)
 				state = None;
 			break;
 		}
-		if(state == Bell){
-			memmove(path, buf+start+3, p - (buf+start+3));
-			path[p-(buf+start+3)] = 0;
+		if(state == Bell) {
+			memmove(path, buf + start + 3, p - (buf + start + 3));
+			path[p - (buf + start + 3)] = 0;
 			p++;
-			memmove(buf+start, p, n-(p-buf));
-			n -= p-(buf+start);
-			p = buf+start;
+			memmove(buf + start, p, n - (p - buf));
+			n -= p - (buf + start);
+			p = buf + start;
 			p--;
 			start = 0;
 			state = None;
@@ -132,14 +126,14 @@ process(char *buf, int n, int *pn)
 	}
 	/* give up if we go too long without seeing the close */
 	*pn = n;
-	if(state == None || p-(buf+start) >= 2048)
+	if(state == None || p - (buf + start) >= 2048)
 		return (p - buf);
 	else
 		return start;
 }
 
 static void
-catchint(void *v, char *msg)
+catchint(void* v, char* msg)
 {
 	if(strstr(msg, "interrupt"))
 		noted(NCONT);
@@ -150,17 +144,19 @@ catchint(void *v, char *msg)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	char buf[4096];
 	int n, m;
 
 	notify(catchint);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
@@ -169,9 +165,9 @@ main(int argc, char **argv)
 
 	save();
 	n = 0;
-	for(;;){
-		m = read(0, buf+n, sizeof buf-n);
-		if(m < 0){
+	for(;;) {
+		m = read(0, buf + n, sizeof buf - n);
+		if(m < 0) {
 			rerrstr(buf, sizeof buf);
 			if(strstr(buf, "interrupt"))
 				continue;
@@ -179,9 +175,9 @@ main(int argc, char **argv)
 		}
 		n += m;
 		m = process(buf, n, &n);
-		if(m > 0){
+		if(m > 0) {
 			write(1, buf, m);
-			memmove(buf, buf+m, n-m);
+			memmove(buf, buf + m, n - m);
 			n -= m;
 		}
 	}

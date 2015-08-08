@@ -26,24 +26,24 @@
 #include "priv.h"
 
 int
-accept(int fd, void *a, int *alen)
+accept(int fd, void* a, int* alen)
 {
 	int n, nfd, cfd;
-	Rock *r, *nr;
-	struct sockaddr_in *ip;
+	Rock* r, *nr;
+	struct sockaddr_in* ip;
 	char name[Ctlsize];
-	char file[8+Ctlsize+1];
-	char *net;
+	char file[8 + Ctlsize + 1];
+	char* net;
 
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
 
-	switch(r->domain){
+	switch(r->domain) {
 	case PF_INET:
-		switch(r->stype){
+		switch(r->stype) {
 		case SOCK_DGRAM:
 			net = "udp";
 			break;
@@ -56,25 +56,26 @@ accept(int fd, void *a, int *alen)
 		}
 
 		/* get control file name from listener process */
-		n = read(fd, name, sizeof(name)-1);
-		if(n <= 0){
+		n = read(fd, name, sizeof(name) - 1);
+		if(n <= 0) {
 			_syserrno();
 			return -1;
 		}
 		name[n] = 0;
 		cfd = open(name, O_RDWR);
-		if(cfd < 0){
+		if(cfd < 0) {
 			_syserrno();
 			return -1;
 		}
 
-		nfd = _sock_data(cfd, net, r->domain, r->stype, r->protocol, &nr);
-		if(nfd < 0){
+		nfd =
+		    _sock_data(cfd, net, r->domain, r->stype, r->protocol, &nr);
+		if(nfd < 0) {
 			_syserrno();
 			return -1;
 		}
 
-		if(write(fd, "OK", 2) < 0){
+		if(write(fd, "OK", 2) < 0) {
 			close(nfd);
 			_syserrno();
 			return -1;
@@ -83,19 +84,19 @@ accept(int fd, void *a, int *alen)
 		/* get remote address */
 		ip = (struct sockaddr_in*)&nr->raddr;
 		_sock_ingetaddr(nr, ip, &n, "remote");
-		if(a){
+		if(a) {
 			memmove(a, ip, sizeof(struct sockaddr_in));
 			*alen = sizeof(struct sockaddr_in);
 		}
 
 		return nfd;
 	case PF_UNIX:
-		if(r->other >= 0){
+		if(r->other >= 0) {
 			errno = EGREG;
 			return -1;
 		}
 
-		for(;;){
+		for(;;) {
 			/* read path to new connection */
 			n = read(fd, name, sizeof(name) - 1);
 			if(n < 0)
@@ -118,7 +119,7 @@ accept(int fd, void *a, int *alen)
 		}
 
 		nr = _sock_newrock(nfd);
-		if(nr == 0){
+		if(nr == 0) {
 			close(nfd);
 			return -1;
 		}

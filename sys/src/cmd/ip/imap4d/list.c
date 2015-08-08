@@ -13,24 +13,20 @@
 #include <auth.h>
 #include "imap4d.h"
 
-#define SUBSCRIBED	"imap.subscribed"
+#define SUBSCRIBED "imap.subscribed"
 
-static int	matches(char *ref, char *pat, char *name);
-static int	mayMatch(char *pat, char *name, int star);
-static int	checkMatch(char *cmd, char *ref, char *pat,
-			     char *mbox,
-			     int32_t mtime, int isdir);
-static int	listAll(char *cmd, char *ref, char *pat,
-			  char *mbox,
-			  int32_t mtime);
-static int	listMatch(char *cmd, char *ref, char *pat,
-			    char *mbox, char *mm);
-static int	mkSubscribed(void);
+static int matches(char* ref, char* pat, char* name);
+static int mayMatch(char* pat, char* name, int star);
+static int checkMatch(char* cmd, char* ref, char* pat, char* mbox,
+                      int32_t mtime, int isdir);
+static int listAll(char* cmd, char* ref, char* pat, char* mbox, int32_t mtime);
+static int listMatch(char* cmd, char* ref, char* pat, char* mbox, char* mm);
+static int mkSubscribed(void);
 
 static int32_t
-listMtime(char *file)
+listMtime(char* file)
 {
-	Dir *d;
+	Dir* d;
 	int32_t mtime;
 
 	d = cdDirstat(mboxDir, file);
@@ -47,12 +43,12 @@ listMtime(char *file)
  * or is a subscribed mailbox name
  */
 int
-lsubBoxes(char *cmd, char *ref, char *pat)
+lsubBoxes(char* cmd, char* ref, char* pat)
 {
-	MbLock *mb;
-	Dir *d;
+	MbLock* mb;
+	Dir* d;
 	Biobuf bin;
-	char *s;
+	char* s;
 	int32_t mtime;
 	int fd, ok, isdir;
 
@@ -62,31 +58,31 @@ lsubBoxes(char *cmd, char *ref, char *pat)
 	fd = cdOpen(mboxDir, SUBSCRIBED, OREAD);
 	if(fd < 0)
 		fd = mkSubscribed();
-	if(fd < 0){
+	if(fd < 0) {
 		mbUnlock(mb);
 		return 0;
 	}
 	ok = 0;
 	Binit(&bin, fd, OREAD);
-	while(s = Brdline(&bin, '\n')){
+	while(s = Brdline(&bin, '\n')) {
 		s[Blinelen(&bin) - 1] = '\0';
 		if(s[0] == '#')
 			continue;
 		isdir = 1;
-		if(cistrcmp(s, "INBOX") == 0){
+		if(cistrcmp(s, "INBOX") == 0) {
 			if(access("msgs", AEXIST) == 0)
 				mtime = listMtime("msgs");
 			else
 				mtime = listMtime("mbox");
 			isdir = 0;
-		}else{
+		} else {
 			d = cdDirstat(mboxDir, s);
-			if(d != nil){
+			if(d != nil) {
 				mtime = d->mtime;
 				if(!(d->mode & DMDIR))
 					isdir = 0;
 				free(d);
-			}else
+			} else
 				mtime = 0;
 		}
 		ok |= checkMatch(cmd, ref, pat, s, mtime, isdir);
@@ -114,10 +110,10 @@ mkSubscribed(void)
  * either subscribe or unsubscribe to a mailbox
  */
 int
-subscribe(char *mbox, int how)
+subscribe(char* mbox, int how)
 {
-	MbLock *mb;
-	char *s, *in, *ein;
+	MbLock* mb;
+	char* s, *in, *ein;
 	int fd, tfd, ok, nmbox;
 
 	if(cistrcmp(mbox, "inbox") == 0)
@@ -128,33 +124,34 @@ subscribe(char *mbox, int how)
 	fd = cdOpen(mboxDir, SUBSCRIBED, ORDWR);
 	if(fd < 0)
 		fd = mkSubscribed();
-	if(fd < 0){
+	if(fd < 0) {
 		mbUnlock(mb);
 		return 0;
 	}
 	in = readFile(fd);
-	if(in == nil){
+	if(in == nil) {
 		mbUnlock(mb);
 		return 0;
 	}
 	nmbox = strlen(mbox);
 	s = strstr(in, mbox);
 	while(s != nil && (s != in && s[-1] != '\n' || s[nmbox] != '\n'))
-		s = strstr(s+1, mbox);
+		s = strstr(s + 1, mbox);
 	ok = 0;
-	if(how == 's' && s == nil){
+	if(how == 's' && s == nil) {
 		if(fprint(fd, "%s\n", mbox) > 0)
 			ok = 1;
-	}else if(how == 'u' && s != nil){
+	} else if(how == 'u' && s != nil) {
 		ein = strchr(s, '\0');
-		memmove(s, &s[nmbox+1], ein - &s[nmbox+1]);
-		ein -= nmbox+1;
-		tfd = cdOpen(mboxDir, SUBSCRIBED, OWRITE|OTRUNC);
-		if(tfd >= 0 && seek(fd, 0, 0) >= 0 && write(fd, in, ein-in) == ein-in)
+		memmove(s, &s[nmbox + 1], ein - &s[nmbox + 1]);
+		ein -= nmbox + 1;
+		tfd = cdOpen(mboxDir, SUBSCRIBED, OWRITE | OTRUNC);
+		if(tfd >= 0 && seek(fd, 0, 0) >= 0 &&
+		   write(fd, in, ein - in) == ein - in)
 			ok = 1;
 		if(tfd > 0)
 			close(tfd);
-	}else
+	} else
 		ok = 1;
 	close(fd);
 	mbUnlock(mb);
@@ -168,7 +165,7 @@ subscribe(char *mbox, int how)
  * but here INBOX is checked for a case-sensitve match.
  */
 int
-listBoxes(char *cmd, char *ref, char *pat)
+listBoxes(char* cmd, char* ref, char* pat)
 {
 	int ok;
 
@@ -181,23 +178,23 @@ listBoxes(char *cmd, char *ref, char *pat)
  * punt when a * is reached
  */
 static int
-listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
+listMatch(char* cmd, char* ref, char* pat, char* mbox, char* mm)
 {
-	Dir *dir, *dirs;
-	char *mdir, *m, *mb, *wc;
+	Dir* dir, *dirs;
+	char* mdir, *m, *mb, *wc;
 	int32_t mode;
 	int c, i, nmb, nmdir, nd, ok, fd;
 
 	mdir = nil;
-	for(m = mm; c = *m; m++){
-		if(c == '%' || c == '*'){
-			if(mdir == nil){
+	for(m = mm; c = *m; m++) {
+		if(c == '%' || c == '*') {
+			if(mdir == nil) {
 				fd = cdOpen(mboxDir, ".", OREAD);
 				if(fd < 0)
 					return 0;
 				mbox = "";
 				nmdir = 0;
-			}else{
+			} else {
 				*mdir = '\0';
 				fd = cdOpen(mboxDir, mbox, OREAD);
 				*mdir = '/';
@@ -205,7 +202,7 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 				if(fd < 0)
 					return 0;
 				dir = dirfstat(fd);
-				if(dir == nil){
+				if(dir == nil) {
 					close(fd);
 					return 0;
 				}
@@ -222,10 +219,10 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 			mb = emalloc(nmb);
 			strncpy(mb, mbox, nmdir);
 			ok = 0;
-			while((nd = dirread(fd, &dirs)) > 0){
-				for(i = 0; i < nd; i++){
+			while((nd = dirread(fd, &dirs)) > 0) {
+				for(i = 0; i < nd; i++) {
 					if(strcmp(mbox, "") == 0 &&
-					    !okMbox(dirs[i].name))
+					   !okMbox(dirs[i].name))
 						continue;
 					/* Safety: ignore message dirs */
 					if(strstr(dirs[i].name, "mails") != 0 ||
@@ -236,25 +233,29 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 					if(strcmp(dirs[i].name, "msgs") == 0)
 						dirs[i].mode &= ~DMDIR;
 					if(*wc == '*' && dirs[i].mode & DMDIR &&
-					    mayMatch(mm, dirs[i].name, 1)){
-						snprint(mb+nmdir, nmb-nmdir,
-							"%s", dirs[i].name);
+					   mayMatch(mm, dirs[i].name, 1)) {
+						snprint(mb + nmdir, nmb - nmdir,
+						        "%s", dirs[i].name);
 						ok |= listAll(cmd, ref, pat, mb,
-							dirs[i].mtime);
-					}else if(mayMatch(mm, dirs[i].name, 0)){
-						snprint(mb+nmdir, nmb-nmdir,
-							"%s%s", dirs[i].name, m);
+						              dirs[i].mtime);
+					} else if(mayMatch(mm, dirs[i].name,
+					                   0)) {
+						snprint(mb + nmdir, nmb - nmdir,
+						        "%s%s", dirs[i].name,
+						        m);
 						if(*m == '\0')
-							ok |= checkMatch(cmd,
-								ref, pat, mb,
-								dirs[i].mtime,
-								dirs[i].mode &
-								DMDIR);
+							ok |= checkMatch(
+							    cmd, ref, pat, mb,
+							    dirs[i].mtime,
+							    dirs[i].mode &
+							        DMDIR);
 						else if(dirs[i].mode & DMDIR)
-							ok |= listMatch(cmd,
-								ref, pat, mb, mb
-								+ nmdir + strlen(
-								dirs[i].name));
+							ok |= listMatch(
+							    cmd, ref, pat, mb,
+							    mb + nmdir +
+							        strlen(
+							            dirs[i]
+							                .name));
 					}
 				}
 				free(dirs);
@@ -263,7 +264,7 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 			free(mb);
 			return ok;
 		}
-		if(c == '/'){
+		if(c == '/') {
 			mdir = m;
 			mm = m + 1;
 		}
@@ -274,7 +275,8 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 	dir = cdDirstat(mboxDir, m);
 	if(dir == nil)
 		return 0;
-	ok = checkMatch(cmd, ref, pat, mbox, dir->mtime, (dir->mode & DMDIR) == DMDIR);
+	ok = checkMatch(cmd, ref, pat, mbox, dir->mtime,
+	                (dir->mode & DMDIR) == DMDIR);
 	free(dir);
 	return ok;
 }
@@ -284,10 +286,10 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
  * and list checkMatch figure it out
  */
 static int
-listAll(char *cmd, char *ref, char *pat, char *mbox, int32_t mtime)
+listAll(char* cmd, char* ref, char* pat, char* mbox, int32_t mtime)
 {
-	Dir *dirs;
-	char *mb;
+	Dir* dirs;
+	char* mb;
 	int i, nmb, nd, ok, fd;
 
 	ok = checkMatch(cmd, ref, pat, mbox, mtime, 1);
@@ -297,14 +299,15 @@ listAll(char *cmd, char *ref, char *pat, char *mbox, int32_t mtime)
 
 	nmb = strlen(mbox) + MboxNameLen + 2;
 	mb = emalloc(nmb);
-	while((nd = dirread(fd, &dirs)) > 0){
-		for(i = 0; i < nd; i++){
+	while((nd = dirread(fd, &dirs)) > 0) {
+		for(i = 0; i < nd; i++) {
 			snprint(mb, nmb, "%s/%s", mbox, dirs[i].name);
 			/* safety: do not recurr */
 			if(0 && dirs[i].mode & DMDIR)
 				ok |= listAll(cmd, ref, pat, mb, dirs[i].mtime);
 			else
-				ok |= checkMatch(cmd, ref, pat, mb, dirs[i].mtime, 0);
+				ok |= checkMatch(cmd, ref, pat, mb,
+				                 dirs[i].mtime, 0);
 		}
 		free(dirs);
 	}
@@ -314,23 +317,23 @@ listAll(char *cmd, char *ref, char *pat, char *mbox, int32_t mtime)
 }
 
 static int
-mayMatch(char *pat, char *name, int star)
+mayMatch(char* pat, char* name, int star)
 {
 	Rune r;
 	int i, n;
 
-	for(; *pat && *pat != '/'; pat += n){
+	for(; *pat && *pat != '/'; pat += n) {
 		r = *(uint8_t*)pat;
 		if(r < Runeself)
 			n = 1;
 		else
 			n = chartorune(&r, pat);
 
-		if(r == '*' || r == '%'){
+		if(r == '*' || r == '%') {
 			pat += n;
 			if(r == '*' && star || *pat == '\0' || *pat == '/')
 				return 1;
-			while(*name){
+			while(*name) {
 				if(mayMatch(pat, name, star))
 					return 1;
 				name += chartorune(&r, name);
@@ -353,11 +356,10 @@ mayMatch(char *pat, char *name, int star)
  * generates response
  */
 static int
-checkMatch(char *cmd, char *ref, char *pat, char *mbox,
-	   int32_t mtime,
-	   int isdir)
+checkMatch(char* cmd, char* ref, char* pat, char* mbox, int32_t mtime,
+           int isdir)
 {
-	char *s, *flags;
+	char* s, *flags;
 
 	if(!matches(ref, pat, mbox) || !okMbox(mbox))
 		return 0;
@@ -366,7 +368,7 @@ checkMatch(char *cmd, char *ref, char *pat, char *mbox,
 
 	if(isdir)
 		flags = "(\\Noselect)";
-	else{
+	else {
 		s = impName(mbox);
 		if(s != nil && listMtime(s) < mtime)
 			flags = "(\\Noinferiors \\Marked)";
@@ -381,7 +383,7 @@ checkMatch(char *cmd, char *ref, char *pat, char *mbox,
 }
 
 static int
-matches(char *ref, char *pat, char *name)
+matches(char* ref, char* pat, char* name)
 {
 	Rune r;
 	int i, n;
@@ -389,27 +391,27 @@ matches(char *ref, char *pat, char *name)
 	while(ref != pat)
 		if(*name++ != *ref++)
 			return 0;
-	for(; *pat; pat += n){
+	for(; *pat; pat += n) {
 		r = *(uint8_t*)pat;
 		if(r < Runeself)
 			n = 1;
 		else
 			n = chartorune(&r, pat);
 
-		if(r == '*'){
+		if(r == '*') {
 			pat += n;
 			if(*pat == '\0')
 				return 1;
-			while(*name){
+			while(*name) {
 				if(matches(pat, pat, name))
 					return 1;
 				name += chartorune(&r, name);
 			}
 			return 0;
 		}
-		if(r == '%'){
+		if(r == '%') {
 			pat += n;
-			while(*name && *name != '/'){
+			while(*name && *name != '/') {
 				if(matches(pat, pat, name))
 					return 1;
 				name += chartorune(&r, name);

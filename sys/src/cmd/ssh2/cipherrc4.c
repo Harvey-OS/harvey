@@ -21,9 +21,9 @@ struct CipherState {
 };
 
 static CipherState*
-initrc4(Conn *c, int dir)
+initrc4(Conn* c, int dir)
 {
-	CipherState *cs;
+	CipherState* cs;
 
 	cs = emalloc9p(sizeof(CipherState));
 	if(dir)
@@ -34,22 +34,17 @@ initrc4(Conn *c, int dir)
 }
 
 static void
-encryptrc4(CipherState *cs, uint8_t *buf, int nbuf)
+encryptrc4(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	rc4(&cs->state, buf, nbuf);
 }
 
 static void
-decryptrc4(CipherState *cs, uint8_t *buf, int nbuf)
+decryptrc4(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	rc4(&cs->state, buf, nbuf);
 }
 
 Cipher cipherrc4 = {
-	"arcfour",
-	8,
-	initrc4,
-	encryptrc4,
-	decryptrc4,
+    "arcfour", 8, initrc4, encryptrc4, decryptrc4,
 };
-

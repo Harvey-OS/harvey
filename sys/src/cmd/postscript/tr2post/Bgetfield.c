@@ -16,23 +16,24 @@
 int
 isspace(Rune r)
 {
- 	return r==' ' || r=='\t' || r=='\n' || r=='\r' || r=='\f';
+	return r == ' ' || r == '\t' || r == '\n' || r == '\r' || r == '\f';
 }
 
 int
-Bskipws(Biobufhdr *bp) {
+Bskipws(Biobufhdr* bp)
+{
 	int r, sindex = 0;
 
 	/* skip over initial white space */
 	do {
 		r = Bgetrune(bp);
-		if (r == '\n')
+		if(r == '\n')
 			inputlineno++;
 		sindex++;
-	} while (r>=0 && isspace(r));
-	if (r<0)
-		return(-1);
-	else if (!isspace(r)) {
+	} while(r >= 0 && isspace(r));
+	if(r < 0)
+		return (-1);
+	else if(!isspace(r)) {
 		Bungetrune(bp);
 		--sindex;
 	}
@@ -40,18 +41,19 @@ Bskipws(Biobufhdr *bp) {
 }
 
 int
-asc2dig(char c, int base) {
-	if (c >= '0' && c <= '9')
-		if (base == 8 && c > '7')
-			return(-1);
+asc2dig(char c, int base)
+{
+	if(c >= '0' && c <= '9')
+		if(base == 8 && c > '7')
+			return (-1);
 		else
-			return(c - '0');
-	if (base == 16)
-		if (c >= 'a' && c <= 'f')
-			return(10 + c - 'a');
-		else if (c >= 'A' && c <= 'F')
-			return(10 + c - 'A');
-	return(-1);
+			return (c - '0');
+	if(base == 16)
+		if(c >= 'a' && c <= 'f')
+			return (10 + c - 'a');
+		else if(c >= 'A' && c <= 'F')
+			return (10 + c - 'A');
+	return (-1);
 }
 
 /*
@@ -63,7 +65,8 @@ asc2dig(char c, int base) {
  */
 
 int
-Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
+Bgetfield(Biobufhdr* bp, int type, void* thing, int size)
+{
 	int base = 10;
 	int dig;
 	int negate = 0;
@@ -75,16 +78,16 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 	char c[UTFmax];
 
 	/* skip over initial white space */
-	if (Bskipws(bp) < 0)
-		return(-1);
+	if(Bskipws(bp) < 0)
+		return (-1);
 
 	r = 0;
-	switch (type) {
+	switch(type) {
 	case 'd':
-		while (!bailout && (r = Bgetrune(bp))>=0) {
-			switch (sindex++) {
+		while(!bailout && (r = Bgetrune(bp)) >= 0) {
+			switch(sindex++) {
 			case 0:
-				switch (r) {
+				switch(r) {
 				case '-':
 					negate = 1;
 					continue;
@@ -98,79 +101,79 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 				}
 				break;
 			case 1:
-				if ((r == 'x' || r == 'X') && base == 8) {
+				if((r == 'x' || r == 'X') && base == 8) {
 					base = 16;
 					continue;
 				}
 				break;
 			}
-			if ((dig = asc2dig(r, base)) == -1)
+			if((dig = asc2dig(r, base)) == -1)
 				bailout = TRUE;
 			else
 				n = dig + (n * base);
 		}
-		if (r < 0)
-			return(-1);
-		*(int *)thing = (negate)?-n:n;
+		if(r < 0)
+			return (-1);
+		*(int*)thing = (negate) ? -n : n;
 		Bungetrune(bp);
 		break;
 	case 'u':
-		while (!bailout && (r = Bgetrune(bp))>=0) {
-			switch (sindex++) {
+		while(!bailout && (r = Bgetrune(bp)) >= 0) {
+			switch(sindex++) {
 			case 0:
-				if (*c == '0') {
+				if(*c == '0') {
 					base = 8;
 					continue;
 				}
 				break;
 			case 1:
-				if ((r == 'x' || r == 'X') && base == 8) {
+				if((r == 'x' || r == 'X') && base == 8) {
 					base = 16;
 					continue;
 				}
 				break;
 			}
-			if ((dig = asc2dig(r, base)) == -1)
+			if((dig = asc2dig(r, base)) == -1)
 				bailout = TRUE;
 			else
 				u = dig + (n * base);
 		}
-		*(int *)thing = u;
-		if (r < 0)
-			return(-1);
+		*(int*)thing = u;
+		if(r < 0)
+			return (-1);
 		Bungetrune(bp);
 		break;
 	case 's':
 		j = 0;
-		while (size > j+UTFmax && (r = Bgetrune(bp)) >= 0 &&
-		    !isspace(r)) {
+		while(size > j + UTFmax && (r = Bgetrune(bp)) >= 0 &&
+		      !isspace(r)) {
 			R = r;
-			i = runetochar(&(((char *)thing)[j]), &R);
+			i = runetochar(&(((char*)thing)[j]), &R);
 			j += i;
 			sindex++;
 		}
-		((char *)thing)[j] = '\0';
-		if (r < 0)
-			return(-1);
+		((char*)thing)[j] = '\0';
+		if(r < 0)
+			return (-1);
 		Bungetrune(bp);
 		break;
 	case 'r':
-		if ((r = Bgetrune(bp))>=0) {
-			*(Rune *)thing = r;
+		if((r = Bgetrune(bp)) >= 0) {
+			*(Rune*)thing = r;
 			sindex++;
-			return(sindex);
+			return (sindex);
 		}
-		if (r <= 0)
-			return(-1);
+		if(r <= 0)
+			return (-1);
 		Bungetrune(bp);
 		break;
 	default:
-		return(-2);
+		return (-2);
 	}
-	if (r < 0 && sindex == 0)
-		return(r);
-	else if (bailout && sindex == 1) {
-		return(0);
+	if(r < 0 && sindex == 0)
+		return (r);
+	else if(bailout && sindex == 1) {
+		return (0);
 	} else
-		return(sindex);
+		return (sindex);
 }

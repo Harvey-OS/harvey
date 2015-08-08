@@ -14,129 +14,110 @@
 #include <libsec.h>
 #include "9p1.h"
 
-char	*user;
-int	newfd;
-int	roldfd;
-int	woldfd;
-int	debug;
-int	dofcall;
-QLock	servelock;
-QLock	fidlock;
-QLock	taglock;
-int	mainpid;
-int	ntag;
-int	nfork;
+char* user;
+int newfd;
+int roldfd;
+int woldfd;
+int debug;
+int dofcall;
+QLock servelock;
+QLock fidlock;
+QLock taglock;
+int mainpid;
+int ntag;
+int nfork;
 char FLUSHED[] = "FLUSHED";
 
-enum{
-	Maxfdata = 8192
-};
+enum { Maxfdata = 8192 };
 
-enum{
-	Command,
-	Network,
-	File,
-	Stdio,
+enum { Command,
+       Network,
+       File,
+       Stdio,
 };
 
 typedef struct Tag Tag;
-struct Tag
-{
-	int	tag;
-	int	flushed;
-	int	received;
-	int	ref;
-	Tag	*next;
+struct Tag {
+	int tag;
+	int flushed;
+	int received;
+	int ref;
+	Tag* next;
 };
 
 typedef struct Message Message;
-struct Message
-{
-	char	*data;
-	int	n;
+struct Message {
+	char* data;
+	int n;
 };
 
 typedef struct Fid Fid;
 
-struct Fid
-{
-	int16_t	busy;
-	int16_t	allocated;
-	int	fid;
-	Qid	qid;
-	uint32_t	newoffset;
-	uint32_t	oldoffset;
-	Fid	*next;
+struct Fid {
+	int16_t busy;
+	int16_t allocated;
+	int fid;
+	Qid qid;
+	uint32_t newoffset;
+	uint32_t oldoffset;
+	Fid* next;
 };
 
-Fid	*fids;
-Tag	*tags;
+Fid* fids;
+Tag* tags;
 
-char	*rflush(Fcall*, Fcall*, char*),
-	*rversion(Fcall*, Fcall*, char*),
-	*rauth(Fcall*, Fcall*, char*),
-	*rattach(Fcall*, Fcall*, char*),
-	*rwalk(Fcall*, Fcall*, char*),
-	*ropen(Fcall*, Fcall*, char*),
-	*rcreate(Fcall*, Fcall*, char*),
-	*rread(Fcall*, Fcall*, char*),
-	*rwrite(Fcall*, Fcall*, char*),
-	*rclunk(Fcall*, Fcall*, char*),
-	*rremove(Fcall*, Fcall*, char*),
-	*rstat(Fcall*, Fcall*, char*),
-	*rwstat(Fcall*, Fcall*, char*);
+char* rflush(Fcall*, Fcall*, char*), *rversion(Fcall*, Fcall*, char*),
+    *rauth(Fcall*, Fcall*, char*), *rattach(Fcall*, Fcall*, char*),
+    *rwalk(Fcall*, Fcall*, char*), *ropen(Fcall*, Fcall*, char*),
+    *rcreate(Fcall*, Fcall*, char*), *rread(Fcall*, Fcall*, char*),
+    *rwrite(Fcall*, Fcall*, char*), *rclunk(Fcall*, Fcall*, char*),
+    *rremove(Fcall*, Fcall*, char*), *rstat(Fcall*, Fcall*, char*),
+    *rwstat(Fcall*, Fcall*, char*);
 
-char 	*(*fcalls[])(Fcall*, Fcall*, char*) = {
-	[Tversion]	rversion,
-	[Tflush]	rflush,
-	[Tauth]	rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char* (*fcalls[])(Fcall*, Fcall*, char*) = {
+        [Tversion] rversion, [Tflush] rflush,   [Tauth] rauth,
+        [Tattach] rattach,   [Twalk] rwalk,     [Topen] ropen,
+        [Tcreate] rcreate,   [Tread] rread,     [Twrite] rwrite,
+        [Tclunk] rclunk,     [Tremove] rremove, [Tstat] rstat,
+        [Twstat] rwstat,
 };
 
 char Etoolong[] = "name too long";
 
-void	connect(int, char*);
-void	post(int, char*);
-void	serve(void);
-void	demux(void);
-void*	emalloc(uint32_t);
-char*	transact9p1(Fcall9p1*, Fcall9p1*, char*);
-Fid*	newfid(int);
+void connect(int, char*);
+void post(int, char*);
+void serve(void);
+void demux(void);
+void* emalloc(uint32_t);
+char* transact9p1(Fcall9p1*, Fcall9p1*, char*);
+Fid* newfid(int);
 
-struct
-{
-	char	chal[CHALLEN];		/* my challenge */
-	char	rchal[CHALLEN];		/* his challenge */
-	char	authid[NAMEREC];
-	char	authdom[DOMLEN];
-	int	id;
+struct {
+	char chal[CHALLEN];  /* my challenge */
+	char rchal[CHALLEN]; /* his challenge */
+	char authid[NAMEREC];
+	char authdom[DOMLEN];
+	int id;
 } ai;
 
 void
 usage(void)
 {
-	fprint(2, "usage: srvold9p [-abcCd] [-u user] [-s | [-m mountpoint]] [-x 'command' | -n network-addr | -f file] [-F] [-p servicename]\n");
+	fprint(2, "usage: srvold9p [-abcCd] [-u user] [-s | [-m mountpoint]] "
+	          "[-x 'command' | -n network-addr | -f file] [-F] [-p "
+	          "servicename]\n");
 	exits("usage");
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int method;
-	char *oldstring;
-	char *mountpoint, *postname;
+	char* oldstring;
+	char* mountpoint, *postname;
 	int mountflag, mountfd;
 	int p[2];
-int i;
+	int i;
 
 	fmtinstall('F', fcallfmt);
 	fmtinstall('G', fcallfmt9p1);
@@ -150,7 +131,8 @@ int i;
 	method = -1;
 	mountfd = -1;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		mountflag |= MAFTER;
 		break;
@@ -197,23 +179,25 @@ int i;
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
-	if(method == Stdio){
-		if(mountpoint!=nil || argc!=0)
+	if(method == Stdio) {
+		if(mountpoint != nil || argc != 0)
 			usage();
-	}else{
-		if(oldstring == nil || argc != 0 || (mountflag!=0 && mountpoint==nil))
+	} else {
+		if(oldstring == nil || argc != 0 ||
+		   (mountflag != 0 && mountpoint == nil))
 			usage();
 	}
 
-	rfork(RFNOTEG|RFREND);
+	rfork(RFNOTEG | RFREND);
 
 	connect(method, oldstring);
 
 	if(method == Stdio)
 		newfd = 0;
-	else{
+	else {
 		if(pipe(p) < 0)
 			fatal("pipe: %r");
 		if(postname != nil)
@@ -224,16 +208,17 @@ int i;
 	if(debug)
 		fprint(2, "connected and posted\n");
 
-	switch(rfork(RFPROC|RFMEM|RFNAMEG|RFFDG)){
+	switch(rfork(RFPROC | RFMEM | RFNAMEG | RFFDG)) {
 	case 0:
 		mainpid = getpid();
 		/* child does all the work */
 		if(mountfd >= 0)
 			close(mountfd);
-		switch(rfork(RFPROC|RFMEM|RFFDG)){
+		switch(rfork(RFPROC | RFMEM | RFFDG)) {
 		case 0:
 			for(i = 0; i < 20; i++)
-				if (i != roldfd) close(i);
+				if(i != roldfd)
+					close(i);
 			demux();
 			return;
 		case -1:
@@ -241,7 +226,8 @@ int i;
 			break;
 		}
 		for(i = 0; i < 20; i++)
-			if (i != newfd && i != woldfd && (debug == 0 || i != 2)) close(i);
+			if(i != newfd && i != woldfd && (debug == 0 || i != 2))
+				close(i);
 		serve();
 		break;
 	case -1:
@@ -249,7 +235,7 @@ int i;
 		break;
 	default:
 		/* parent mounts if required, then exits */
-		if(mountpoint){
+		if(mountpoint) {
 			if(mount(mountfd, -1, mountpoint, mountflag, "") < 0)
 				fatal("can't mount: %r");
 		}
@@ -259,12 +245,12 @@ int i;
 }
 
 void
-connect(int method, char *oldstring)
+connect(int method, char* oldstring)
 {
-	char *s;
+	char* s;
 	char dir[256];
 
-	switch(method){
+	switch(method) {
 	default:
 		roldfd = -1;
 		woldfd = -1;
@@ -295,7 +281,7 @@ connect(int method, char *oldstring)
 }
 
 void
-post(int fd, char *srv)
+post(int fd, char* srv)
 {
 	int f;
 	char buf[128];
@@ -310,22 +296,21 @@ post(int fd, char *srv)
 	close(f);
 }
 
-Fid *
+Fid*
 newfid(int fid)
 {
-	Fid *f, *ff;
+	Fid* f, *ff;
 
 	ff = 0;
 	qlock(&fidlock);
 	for(f = fids; f; f = f->next)
-		if(f->fid == fid){
+		if(f->fid == fid) {
 			f->allocated = 1;
 			qunlock(&fidlock);
 			return f;
-		}
-		else if(!ff && !f->allocated)
+		} else if(!ff && !f->allocated)
 			ff = f;
-	if(ff){
+	if(ff) {
 		ff->fid = fid;
 		ff->allocated = 1;
 		qunlock(&fidlock);
@@ -348,16 +333,16 @@ void
 demux(void)
 {
 	int m, n;
-	char *data;
+	char* data;
 	Fcall9p1 r;
-	Message *msg;
-	Tag *t;
+	Message* msg;
+	Tag* t;
 
-	for(;;){
-		data = malloc(IOHDRSZ+Maxfdata);	/* no need to clear memory */
+	for(;;) {
+		data = malloc(IOHDRSZ + Maxfdata); /* no need to clear memory */
 		if(data == nil)
 			fatal("demux malloc: %r");
-		m = read(roldfd, data, IOHDRSZ+Maxfdata);
+		m = read(roldfd, data, IOHDRSZ + Maxfdata);
 		if(m <= 0)
 			fatal("read error talking to old system: %r");
 		n = convM2S9p1(data, &r, m);
@@ -366,8 +351,8 @@ demux(void)
 		if(debug)
 			fprint(2, "srvold9p:<=%G\n", &r);
 		qlock(&taglock);
-		for(t=tags; t!=nil; t=t->next)
-			if(t->tag == r.tag){
+		for(t = tags; t != nil; t = t->next)
+			if(t->tag == r.tag) {
 				t->received = 1;
 				break;
 			}
@@ -386,7 +371,7 @@ demux(void)
 Tag*
 newtag(int tag)
 {
-	Tag *t;
+	Tag* t;
 
 	t = emalloc(sizeof(Tag));
 	t->tag = tag;
@@ -400,15 +385,14 @@ newtag(int tag)
 	return t;
 }
 
-void
-freetag(Tag *tag)	/* called with taglock set */
+void freetag(Tag* tag) /* called with taglock set */
 {
-	Tag *t, *prev;
+	Tag* t, *prev;
 
-	if(tag->ref-- == 1){
+	if(tag->ref-- == 1) {
 		prev = nil;
-		for(t=tags; t!=nil; t=t->next){
-			if(t == tag){
+		for(t = tags; t != nil; t = t->next) {
+			if(t == tag) {
 				if(prev == nil)
 					tags = t->next;
 				else
@@ -426,17 +410,17 @@ freetag(Tag *tag)	/* called with taglock set */
 void
 serve(void)
 {
-	char *err;
+	char* err;
 	int n;
 	Fcall thdr;
-	Fcall	rhdr;
-	uint8_t mdata[IOHDRSZ+Maxfdata];
-	char mdata9p1[IOHDRSZ+Maxfdata];
-	Tag *tag;
+	Fcall rhdr;
+	uint8_t mdata[IOHDRSZ + Maxfdata];
+	char mdata9p1[IOHDRSZ + Maxfdata];
+	Tag* tag;
 
-	for(;;){
+	for(;;) {
 		qlock(&servelock);
-		for(;;){
+		for(;;) {
 			n = read9pmsg(newfd, mdata, sizeof mdata);
 
 			if(n == 0)
@@ -446,8 +430,10 @@ serve(void)
 			if(n > 0 && convM2S(mdata, n, &thdr) > 0)
 				break;
 		}
-		if(n>0 && servelock.head==nil)	/* no other processes waiting to read */
-			switch(rfork(RFPROC|RFMEM)){
+		if(n > 0 &&
+		   servelock.head ==
+		       nil) /* no other processes waiting to read */
+			switch(rfork(RFPROC | RFMEM)) {
 			case 0:
 				/* child starts serving */
 				continue;
@@ -461,7 +447,9 @@ serve(void)
 		qunlock(&servelock);
 
 		if(n < 0)
-			fatal(nil);	/* exit quietly; remote end has just hung up */
+			fatal(
+			    nil); /* exit quietly; remote end has just hung up
+			             */
 
 		if(debug)
 			fprint(2, "srvold9p:<-%F\n", &thdr);
@@ -474,23 +462,23 @@ serve(void)
 			err = (*fcalls[thdr.type])(&thdr, &rhdr, mdata9p1);
 
 		qlock(&taglock);
-		if(tag->flushed){
+		if(tag->flushed) {
 			freetag(tag);
 			qunlock(&taglock);
 			continue;
 		}
 		qunlock(&taglock);
 
-		if(err){
+		if(err) {
 			rhdr.type = Rerror;
 			rhdr.ename = err;
-		}else{
+		} else {
 			rhdr.type = thdr.type + 1;
 			rhdr.fid = thdr.fid;
 		}
 		rhdr.tag = thdr.tag;
 		if(debug)
-			fprint(2, "srvold9p:->%F\n", &rhdr);/**/
+			fprint(2, "srvold9p:->%F\n", &rhdr); /**/
 		n = convS2M(&rhdr, mdata, sizeof mdata);
 		if(n == 0)
 			fatal("convS2M error on write");
@@ -504,7 +492,7 @@ serve(void)
 }
 
 void
-send9p1(Fcall9p1 *t, char *data)
+send9p1(Fcall9p1* t, char* data)
 {
 	int m, n;
 
@@ -519,15 +507,15 @@ send9p1(Fcall9p1 *t, char *data)
 }
 
 int
-recv9p1(Fcall9p1 *r, int tag, char *data)
+recv9p1(Fcall9p1* r, int tag, char* data)
 {
 	int n;
-	Message *msg;
+	Message* msg;
 
 	msg = rendezvous((void*)tag, 0);
 	if(msg == (void*)~0)
 		fatal("rendezvous: %r");
-	if(msg == nil){
+	if(msg == nil) {
 		if(debug)
 			fprint(2, "recv flushed\n");
 		return -1;
@@ -543,46 +531,47 @@ recv9p1(Fcall9p1 *r, int tag, char *data)
 }
 
 char*
-transact9p1(Fcall9p1 *t, Fcall9p1 *r, char *mdata9p1)
+transact9p1(Fcall9p1* t, Fcall9p1* r, char* mdata9p1)
 {
 	send9p1(t, mdata9p1);
 	if(recv9p1(r, t->tag, mdata9p1) < 0)
 		return FLUSHED;
 	if(r->type == Rerror9p1)
 		return r->ename;
-	if(r->type != t->type+1)
-		fatal("bad message type; expected %d got %d", t->type+1, r->type);
+	if(r->type != t->type + 1)
+		fatal("bad message type; expected %d got %d", t->type + 1,
+		      r->type);
 	return nil;
 }
 
 char*
-rflush(Fcall *t, Fcall *, char *mdata9p1)
+rflush(Fcall* t, Fcall*, char* mdata9p1)
 {
 	Fcall9p1 t9, r9;
-	Tag *oldt;
+	Tag* oldt;
 
 	t9.type = Tflush9p1;
 	t9.tag = t->tag;
 	t9.oldtag = t->oldtag;
 	qlock(&taglock);
-	for(oldt=tags; oldt!=nil; oldt=oldt->next)
-		if(oldt->tag == t->oldtag){
+	for(oldt = tags; oldt != nil; oldt = oldt->next)
+		if(oldt->tag == t->oldtag) {
 			oldt->flushed = 1;
 			oldt->ref++;
 			break;
 		}
 	qunlock(&taglock);
 
-	if(oldt == nil){	/* nothing to flush */
+	if(oldt == nil) { /* nothing to flush */
 		if(debug)
 			fprint(2, "no such tag to flush\n");
 		return 0;
 	}
 
-	transact9p1(&t9, &r9, mdata9p1);	/* can't error */
+	transact9p1(&t9, &r9, mdata9p1); /* can't error */
 
 	qlock(&taglock);
-	if(oldt->received == 0){	/* wake up receiver */
+	if(oldt->received == 0) { /* wake up receiver */
 		if(debug)
 			fprint(2, "wake up receiver\n");
 		oldt->received = 1;
@@ -594,13 +583,13 @@ rflush(Fcall *t, Fcall *, char *mdata9p1)
 }
 
 char*
-rversion(Fcall *t, Fcall *r, char*)
+rversion(Fcall* t, Fcall* r, char*)
 {
-	Fid *f;
+	Fid* f;
 
 	/* just ack; this one doesn't go to old service */
-	if(t->msize > IOHDRSZ+Maxfdata)
-		r->msize = IOHDRSZ+Maxfdata;
+	if(t->msize > IOHDRSZ + Maxfdata)
+		r->msize = IOHDRSZ + Maxfdata;
 	else
 		r->msize = t->msize;
 	if(strncmp(t->version, "9P2000", 6) != 0)
@@ -608,7 +597,7 @@ rversion(Fcall *t, Fcall *r, char*)
 	r->version = "9P2000";
 
 	qlock(&fidlock);
-	for(f = fids; f; f = f->next){
+	for(f = fids; f; f = f->next) {
 		f->busy = 0;
 		f->allocated = 0;
 	}
@@ -618,7 +607,7 @@ rversion(Fcall *t, Fcall *r, char*)
 }
 
 char*
-rauth(Fcall *, Fcall *, char *)
+rauth(Fcall*, Fcall*, char*)
 {
 	return "srvold9p: authentication not supported";
 }
@@ -626,10 +615,10 @@ rauth(Fcall *, Fcall *, char *)
 #ifdef asdf
 
 void
-memrandom(void *p, int n)
+memrandom(void* p, int n)
 {
-	uint32_t *lp;
-	uint8_t *cp;
+	uint32_t* lp;
+	uint8_t* cp;
 
 	for(lp = p; n >= sizeof(uint32_t); n -= sizeof(uint32_t))
 		*lp++ = fastrand();
@@ -638,11 +627,11 @@ memrandom(void *p, int n)
 }
 
 char*
-rsession(Fcall *t, Fcall *r, char *mdata9p1)
+rsession(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	t9.type = Tsession9p1;
 	t9.tag = t->tag;
@@ -655,13 +644,13 @@ rsession(Fcall *t, Fcall *r, char *mdata9p1)
 		return err;
 
 	qlock(&fidlock);
-	for(f = fids; f; f = f->next){
+	for(f = fids; f; f = f->next) {
 		f->busy = 0;
 		f->allocated = 0;
 	}
 	qunlock(&fidlock);
 
-	if(doauth){
+	if(doauth) {
 		memmove(ai.authid, r9.authid, sizeof ai.authid);
 		memmove(ai.authdom, r9.authdom, sizeof ai.authid);
 		memmove(ai.rchal, r9.chal, sizeof ai.rchal);
@@ -681,11 +670,11 @@ rsession(Fcall *t, Fcall *r, char *mdata9p1)
 #endif
 
 char*
-rattach(Fcall *t, Fcall *r, char *mdata9p1)
+rattach(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(f->busy)
@@ -713,13 +702,13 @@ rattach(Fcall *t, Fcall *r, char *mdata9p1)
 }
 
 char*
-rwalk(Fcall *t, Fcall *r, char *mdata9p1)
+rwalk(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
 	int i, fid;
-	Qid *q;
-	Fid *f, *nf;
+	Qid* q;
+	Fid* f, *nf;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -727,7 +716,7 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 
 	fid = t->fid;
 	nf = nil;
-	if(t->fid != t->newfid){
+	if(t->fid != t->newfid) {
 		nf = newfid(t->newfid);
 		if(nf->busy)
 			return "walk: newfid in use";
@@ -736,7 +725,7 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 		t9.fid = t->fid;
 		t9.newfid = t->newfid;
 		err = transact9p1(&t9, &r9, mdata9p1);
-		if(err){
+		if(err) {
 			nf->busy = 0;
 			nf->allocated = 0;
 			return err;
@@ -747,7 +736,7 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 
 	err = nil;
 	r->nwqid = 0;
-	for(i=0; i<t->nwname && err==nil; i++){
+	for(i = 0; i < t->nwname && err == nil; i++) {
 		if(i > MAXWELEM)
 			break;
 		t9.type = Twalk9p1;
@@ -755,11 +744,11 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 		t9.fid = fid;
 		strncpy(t9.name, t->wname[i], NAMEREC);
 		err = transact9p1(&t9, &r9, mdata9p1);
-		if(err == FLUSHED){
-			i = -1;	/* guarantee cleanup */
+		if(err == FLUSHED) {
+			i = -1; /* guarantee cleanup */
 			break;
 		}
-		if(err == nil){
+		if(err == nil) {
 			q = &r->wqid[r->nwqid++];
 			q->type = QTFILE;
 			if(r9.qid.path & 0x80000000)
@@ -769,7 +758,7 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 		}
 	}
 
-	if(nf!=nil && (err!=nil || i<t->nwname)){
+	if(nf != nil && (err != nil || i < t->nwname)) {
 		/* clunk the new fid */
 		t9.type = Tclunk9p1;
 		t9.tag = t->tag;
@@ -780,19 +769,19 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 		nf->allocated = 0;
 	}
 
-	if(i>0 && i==t->nwname && err==nil)
-		f->qid = r->wqid[r->nwqid-1];
+	if(i > 0 && i == t->nwname && err == nil)
+		f->qid = r->wqid[r->nwqid - 1];
 	if(i > 0)
 		return 0;
 	return err;
 }
 
 char*
-ropen(Fcall *t, Fcall *r, char *mdata9p1)
+ropen(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -819,11 +808,11 @@ ropen(Fcall *t, Fcall *r, char *mdata9p1)
 }
 
 char*
-rcreate(Fcall *t, Fcall *r, char *mdata9p1)
+rcreate(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -832,7 +821,7 @@ rcreate(Fcall *t, Fcall *r, char *mdata9p1)
 	t9.type = Tcreate9p1;
 	t9.tag = t->tag;
 	t9.fid = t->fid;
-	if(strlen(t->name)+1 >= NAMEREC)
+	if(strlen(t->name) + 1 >= NAMEREC)
 		return "file name element too long";
 	strncpy(t9.name, t->name, NAMEREC);
 	t9.perm = t->perm;
@@ -856,15 +845,15 @@ rcreate(Fcall *t, Fcall *r, char *mdata9p1)
 }
 
 char*
-dirrread(Fcall *t, Fcall *r, char *mdata9p1)
+dirrread(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 	int i, ndir, n, count;
 	Dir d;
 	uint8_t buf[Maxfdata];
-	char *old;
+	char* old;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -877,37 +866,39 @@ dirrread(Fcall *t, Fcall *r, char *mdata9p1)
 	t9.tag = t->tag;
 	t9.fid = t->fid;
 	t9.offset = f->oldoffset;
-	t9.count = t->count;	/* new directories tend to be smaller, so this may overshoot */
+	t9.count =
+	    t->count; /* new directories tend to be smaller, so this may
+	                 overshoot */
 	err = transact9p1(&t9, &r9, mdata9p1);
 	if(err)
 		return err;
 
-	ndir = r9.count/DIRREC;
+	ndir = r9.count / DIRREC;
 	old = r9.data;
 	count = 0;
-	for(i=0; i<ndir; i++){
+	for(i = 0; i < ndir; i++) {
 		if(convM2D9p1(old, &d) != DIRREC)
 			return "bad dir conversion in read";
-		n = convD2M(&d, buf+count, sizeof buf-count);
-		if(n<=BIT16SZ || count+n>t->count)
+		n = convD2M(&d, buf + count, sizeof buf - count);
+		if(n <= BIT16SZ || count + n > t->count)
 			break;
 		old += DIRREC;
 		f->oldoffset += DIRREC;
 		f->newoffset += n;
 		count += n;
 	}
-	memmove(r9.data, buf, count);	/* put it back in stable storage */
+	memmove(r9.data, buf, count); /* put it back in stable storage */
 	r->data = r9.data;
 	r->count = count;
 	return 0;
 }
 
 char*
-rread(Fcall *t, Fcall *r, char *mdata9p1)
+rread(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -926,16 +917,16 @@ rread(Fcall *t, Fcall *r, char *mdata9p1)
 		return err;
 
 	r->count = r9.count;
-	r->data = r9.data;	/* points to stable storage */
+	r->data = r9.data; /* points to stable storage */
 	return 0;
 }
 
 char*
-rwrite(Fcall *t, Fcall *r, char *mdata9p1)
+rwrite(Fcall* t, Fcall* r, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -956,10 +947,10 @@ rwrite(Fcall *t, Fcall *r, char *mdata9p1)
 }
 
 char*
-rclunk(Fcall *t, Fcall *, char *mdata9p1)
+rclunk(Fcall* t, Fcall*, char* mdata9p1)
 {
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -975,11 +966,11 @@ rclunk(Fcall *t, Fcall *, char *mdata9p1)
 }
 
 char*
-rremove(Fcall *t, Fcall*, char *mdata9p1)
+rremove(Fcall* t, Fcall*, char* mdata9p1)
 {
-	char *err;
+	char* err;
 	Fcall9p1 t9, r9;
-	Fid *f;
+	Fid* f;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -994,13 +985,13 @@ rremove(Fcall *t, Fcall*, char *mdata9p1)
 }
 
 char*
-rstat(Fcall *t, Fcall *r, char *mdata9p1)
+rstat(Fcall* t, Fcall* r, char* mdata9p1)
 {
 	Fcall9p1 t9, r9;
-	char *err;
-	Fid *f;
+	char* err;
+	Fid* f;
 	Dir d;
-	uint8_t buf[256];	/* big enough; there's no long names */
+	uint8_t buf[256]; /* big enough; there's no long names */
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -1021,7 +1012,7 @@ rstat(Fcall *t, Fcall *r, char *mdata9p1)
 }
 
 int
-anydefault(Dir *d)
+anydefault(Dir* d)
 {
 	if(d->name[0] == '\0')
 		return 1;
@@ -1037,12 +1028,12 @@ anydefault(Dir *d)
 }
 
 char*
-rwstat(Fcall *t, Fcall *, char *mdata9p1)
+rwstat(Fcall* t, Fcall*, char* mdata9p1)
 {
 	Fcall9p1 t9, r9;
 	char strs[DIRREC];
-	char *err;
-	Fid *f;
+	char* err;
+	Fid* f;
 	Dir d, cd;
 
 	f = newfid(t->fid);
@@ -1051,7 +1042,7 @@ rwstat(Fcall *t, Fcall *, char *mdata9p1)
 
 	convM2D(t->stat, t->nstat, &d, strs);
 	cd = d;
-	if(anydefault(&d)){
+	if(anydefault(&d)) {
 		/* must first stat file so we can copy current values */
 		t9.type = Tstat9p1;
 		t9.tag = t->tag;
@@ -1061,19 +1052,19 @@ rwstat(Fcall *t, Fcall *, char *mdata9p1)
 			return err;
 		if(convM2D9p1(r9.stat, &cd) != DIRREC)
 			return "bad in conversion in wstat";
-	
+
 		/* fill in default values */
-		if(d.name[0] != '\0'){
+		if(d.name[0] != '\0') {
 			if(strlen(d.name) >= NAMEREC)
 				return Etoolong;
 			cd.name = d.name;
 		}
-		if(d.uid[0] != '\0'){
+		if(d.uid[0] != '\0') {
 			if(strlen(d.uid) >= NAMEREC)
 				return Etoolong;
 			cd.uid = d.uid;
 		}
-		if(d.gid[0] != '\0'){
+		if(d.gid[0] != '\0') {
 			if(strlen(d.gid) >= NAMEREC)
 				return Etoolong;
 			cd.gid = d.gid;
@@ -1098,10 +1089,10 @@ rwstat(Fcall *t, Fcall *, char *mdata9p1)
 	return 0;
 }
 
-void *
+void*
 emalloc(uint32_t n)
 {
-	void *p;
+	void* p;
 
 	p = malloc(n);
 	if(!p)
@@ -1111,19 +1102,19 @@ emalloc(uint32_t n)
 }
 
 void
-fatal(char *fmt, ...)
+fatal(char* fmt, ...)
 {
 	char buf[1024];
 	va_list arg;
 
-	if(fmt){
+	if(fmt) {
 		va_start(arg, fmt);
-		vseprint(buf, buf+sizeof(buf), fmt, arg);
+		vseprint(buf, buf + sizeof(buf), fmt, arg);
 		va_end(arg);
 		fprint(2, "%s: (pid %d) %s\n", argv0, getpid(), buf);
-	}else
+	} else
 		buf[0] = '\0';
-	if(mainpid){
+	if(mainpid) {
 		/* two hits are sometimes needed */
 		postnote(PNGROUP, mainpid, "die1 - from srvold9p");
 		postnote(PNGROUP, mainpid, "die2 - from srvold9p");

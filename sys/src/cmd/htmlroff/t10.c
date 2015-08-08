@@ -15,7 +15,7 @@
 
 /* set escape character */
 void
-r_ec(int argc, Rune **argv)
+r_ec(int argc, Rune** argv)
 {
 	if(argc == 1)
 		backslash = '\\';
@@ -25,7 +25,7 @@ r_ec(int argc, Rune **argv)
 
 /* turn off escape character */
 void
-r_eo(int argc, Rune **argv)
+r_eo(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
@@ -35,7 +35,7 @@ r_eo(int argc, Rune **argv)
 /* continuous underline (same as ul in troff) for the next N lines */
 /* set underline font */
 void
-g_uf(int argc, Rune **argv)
+g_uf(int argc, Rune** argv)
 {
 	USED(argc);
 	USED(argv);
@@ -43,7 +43,7 @@ g_uf(int argc, Rune **argv)
 
 /* set control character */
 void
-r_cc(int argc, Rune **argv)
+r_cc(int argc, Rune** argv)
 {
 	if(argc == 1)
 		dot = '.';
@@ -53,7 +53,7 @@ r_cc(int argc, Rune **argv)
 
 /* set no-break control character */
 void
-r_c2(int argc, Rune **argv)
+r_c2(int argc, Rune** argv)
 {
 	if(argc == 1)
 		tick = '\'';
@@ -66,8 +66,8 @@ r_c2(int argc, Rune **argv)
 int
 e_bang(void)
 {
-	Rune *line;
-	
+	Rune* line;
+
 	line = readline(CopyMode);
 	out(line);
 	outrune('\n');
@@ -79,10 +79,10 @@ int
 e_X(void)
 {
 	int c;
-	
+
 	while((c = getrune()) >= 0 && c != '\'' && c != '\n')
 		outrune(c);
-	if(c == '\n'){
+	if(c == '\n') {
 		warn("newline in %CX'...'", backslash);
 		outrune(c);
 	}
@@ -96,7 +96,7 @@ e_quote(void)
 {
 	int c;
 
-	if(inputmode&ArgMode){
+	if(inputmode & ArgMode) {
 		/* Leave \" around for argument parsing */
 		ungetrune('"');
 		return '\\';
@@ -119,10 +119,10 @@ e_e(void)
 }
 
 void
-r_comment(Rune *name)
+r_comment(Rune* name)
 {
 	int c;
-	
+
 	USED(name);
 	while((c = getrune()) >= 0 && c != '\n')
 		;
@@ -139,11 +139,10 @@ t10init(void)
 	addreq(L("tr"), r_warn, -1);
 	addreq(L("ul"), r_nop, -1);
 	addraw(L("\\\""), r_comment);
-	
+
 	addesc('!', e_bang, 0);
 	addesc('X', e_X, 0);
-	addesc('\"', e_quote, CopyMode|ArgMode);
-	addesc('\n', e_newline, CopyMode|ArgMode|HtmlMode);
+	addesc('\"', e_quote, CopyMode | ArgMode);
+	addesc('\n', e_newline, CopyMode | ArgMode | HtmlMode);
 	addesc('e', e_e, 0);
 }
-

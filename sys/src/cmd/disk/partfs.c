@@ -18,22 +18,19 @@
 #include <9p.h>
 
 typedef struct Part Part;
-struct Part
-{
-	int	inuse;
-	int	vers;
-	uint32_t	mode;
-	char	*name;
-	int64_t	offset;		/* in sectors */
-	int64_t	length;		/* in sectors */
+struct Part {
+	int inuse;
+	int vers;
+	uint32_t mode;
+	char* name;
+	int64_t offset; /* in sectors */
+	int64_t length; /* in sectors */
 };
 
-enum
-{
-	Qroot = 0,
-	Qdir,
-	Qctl,
-	Qpart,
+enum { Qroot = 0,
+       Qdir,
+       Qctl,
+       Qpart,
 };
 
 int fd = -1, ctlfd = -1;
@@ -42,46 +39,46 @@ uint32_t ctlmode = 0666;
 uint32_t time0;
 int64_t nsect, sectsize;
 
-char *inquiry = "partfs hard drive";
-char *sdname = "sdXX";
+char* inquiry = "partfs hard drive";
+char* sdname = "sdXX";
 Part tab[64];
 
 char*
 ctlstring(void)
 {
-	Part *p;
+	Part* p;
 	Fmt fmt;
 
 	fmtstrinit(&fmt);
 	fmtprint(&fmt, "inquiry %s\n", inquiry);
 	fmtprint(&fmt, "geometry %lld %lld\n", nsect, sectsize);
-	for (p = tab; p < tab + nelem(tab); p++)
-		if (p->inuse)
-			fmtprint(&fmt, "part %s %lld %lld\n",
-				p->name, p->offset, p->length);
+	for(p = tab; p < tab + nelem(tab); p++)
+		if(p->inuse)
+			fmtprint(&fmt, "part %s %lld %lld\n", p->name,
+			         p->offset, p->length);
 	return fmtstrflush(&fmt);
 }
 
 int
-addpart(char *name, int64_t start, int64_t end)
+addpart(char* name, int64_t start, int64_t end)
 {
-	Part *p;
+	Part* p;
 
-	if(start < 0 || start > end || end > nsect){
+	if(start < 0 || start > end || end > nsect) {
 		werrstr("bad partition boundaries");
 		return -1;
 	}
 
-	if (strcmp(name, "ctl") == 0 || strcmp(name, "data") == 0) {
+	if(strcmp(name, "ctl") == 0 || strcmp(name, "data") == 0) {
 		werrstr("partition name already in use");
 		return -1;
 	}
-	for (p = tab; p < tab + nelem(tab) && p->inuse; p++)
-		if (strcmp(p->name, name) == 0) {
+	for(p = tab; p < tab + nelem(tab) && p->inuse; p++)
+		if(strcmp(p->name, name) == 0) {
 			werrstr("partition name already in use");
 			return -1;
 		}
-	if(p == tab + nelem(tab)){
+	if(p == tab + nelem(tab)) {
 		werrstr("no free partition slots");
 		return -1;
 	}
@@ -97,14 +94,14 @@ addpart(char *name, int64_t start, int64_t end)
 }
 
 int
-delpart(char *s)
+delpart(char* s)
 {
-	Part *p;
+	Part* p;
 
-	for (p = tab; p < tab + nelem(tab); p++)
+	for(p = tab; p < tab + nelem(tab); p++)
 		if(p->inuse && strcmp(p->name, s) == 0)
 			break;
-	if(p == tab + nelem(tab)){
+	if(p == tab + nelem(tab)) {
 		werrstr("partition not found");
 		return -1;
 	}
@@ -116,9 +113,9 @@ delpart(char *s)
 }
 
 static void
-addparts(char *buf)
+addparts(char* buf)
 {
-	char *f[4], *p, *q;
+	char* f[4], *p, *q;
 
 	/*
 	 * Use partitions passed from boot program,
@@ -127,94 +124,92 @@ addparts(char *buf)
 	 * This happens before /boot sets hostname so the
 	 * partitions will have the null-string for user.
 	 */
-	for(p = buf; p != nil; p = q){
+	for(p = buf; p != nil; p = q) {
 		if(q = strchr(p, '/'))
 			*q++ = '\0';
 		if(tokenize(p, f, nelem(f)) >= 3 &&
-		    addpart(f[0], strtoull(f[1], 0, 0), strtoull(f[2], 0, 0)) < 0)
+		   addpart(f[0], strtoull(f[1], 0, 0), strtoull(f[2], 0, 0)) <
+		       0)
 			fprint(2, "%s: addpart %s: %r\n", argv0, f[0]);
 	}
 }
 
 static void
-ctlwrite0(Req *r, char *msg, Cmdbuf *cb)
+ctlwrite0(Req* r, char* msg, Cmdbuf* cb)
 {
 	int64_t start, end;
-	Part *p;
+	Part* p;
 
 	r->ofcall.count = r->ifcall.count;
 
-	if(cb->nf < 1){
+	if(cb->nf < 1) {
 		respond(r, "empty control message");
 		return;
 	}
 
-	if(strcmp(cb->f[0], "part") == 0){
-		if(cb->nf != 4){
+	if(strcmp(cb->f[0], "part") == 0) {
+		if(cb->nf != 4) {
 			respondcmderror(r, cb, "part takes 3 args");
 			return;
 		}
 		start = strtoll(cb->f[2], 0, 0);
 		end = strtoll(cb->f[3], 0, 0);
-		if(addpart(cb->f[1], start, end) < 0){
+		if(addpart(cb->f[1], start, end) < 0) {
 			respondcmderror(r, cb, "%r");
 			return;
 		}
-	}
-	else if(strcmp(cb->f[0], "delpart") == 0){
-		if(cb->nf != 2){
+	} else if(strcmp(cb->f[0], "delpart") == 0) {
+		if(cb->nf != 2) {
 			respondcmderror(r, cb, "delpart takes 1 arg");
 			return;
 		}
-		if(delpart(cb->f[1]) < 0){
+		if(delpart(cb->f[1]) < 0) {
 			respondcmderror(r, cb, "%r");
 			return;
 		}
-	}
-	else if(strcmp(cb->f[0], "inquiry") == 0){
-		if(cb->nf != 2){
+	} else if(strcmp(cb->f[0], "inquiry") == 0) {
+		if(cb->nf != 2) {
 			respondcmderror(r, cb, "inquiry takes 1 arg");
 			return;
 		}
 		free(inquiry);
 		inquiry = estrdup9p(cb->f[1]);
-	}
-	else if(strcmp(cb->f[0], "geometry") == 0){
-		if(cb->nf != 3){
+	} else if(strcmp(cb->f[0], "geometry") == 0) {
+		if(cb->nf != 3) {
 			respondcmderror(r, cb, "geometry takes 2 args");
 			return;
 		}
 		nsect = strtoll(cb->f[1], 0, 0);
 		sectsize = strtoll(cb->f[2], 0, 0);
 		if(tab[0].inuse && strcmp(tab[0].name, "data") == 0 &&
-		    tab[0].vers == 0){
+		   tab[0].vers == 0) {
 			tab[0].offset = 0;
 			tab[0].length = nsect;
 		}
 		for(p = tab; p < tab + nelem(tab); p++)
-			if(p->inuse && p->offset + p->length > nsect){
+			if(p->inuse && p->offset + p->length > nsect) {
 				p->inuse = 0;
 				free(p->name);
 				p->name = nil;
 			}
 	} else
-		/* pass through to underlying ctl file, if any */
-		if (write(ctlfd, msg, r->ifcall.count) != r->ifcall.count) {
-			respondcmderror(r, cb, "%r");
-			return;
-		}
+	    /* pass through to underlying ctl file, if any */
+	    if(write(ctlfd, msg, r->ifcall.count) != r->ifcall.count) {
+		respondcmderror(r, cb, "%r");
+		return;
+	}
 	respond(r, nil);
 }
 
 void
-ctlwrite(Req *r)
+ctlwrite(Req* r)
 {
-	char *msg;
-	Cmdbuf *cb;
+	char* msg;
+	Cmdbuf* cb;
 
 	r->ofcall.count = r->ifcall.count;
 
-	msg = emalloc9p(r->ifcall.count+1);
+	msg = emalloc9p(r->ifcall.count + 1);
 	memmove(msg, r->ifcall.data, r->ifcall.count);
 	msg[r->ifcall.count] = '\0';
 
@@ -226,14 +221,14 @@ ctlwrite(Req *r)
 }
 
 int
-rootgen(int off, Dir *d, void *v)
+rootgen(int off, Dir* d, void* v)
 {
 	memset(d, 0, sizeof *d);
 	d->atime = time0;
 	d->mtime = time0;
-	if(off == 0){
+	if(off == 0) {
 		d->name = estrdup9p(sdname);
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		d->qid.path = Qdir;
 		d->qid.type = QTDIR;
 		d->uid = estrdup9p("partfs");
@@ -245,15 +240,15 @@ rootgen(int off, Dir *d, void *v)
 }
 
 int
-dirgen(int off, Dir *d, void *v)
+dirgen(int off, Dir* d, void* v)
 {
 	int n;
-	Part *p;
+	Part* p;
 
 	memset(d, 0, sizeof *d);
 	d->atime = time0;
 	d->mtime = time0;
-	if(off == 0){
+	if(off == 0) {
 		d->name = estrdup9p("ctl");
 		d->mode = ctlmode;
 		d->qid.path = Qctl;
@@ -262,12 +257,12 @@ dirgen(int off, Dir *d, void *v)
 
 	off--;
 	n = 0;
-	for(p = tab; p < tab + nelem(tab); p++, n++){
+	for(p = tab; p < tab + nelem(tab); p++, n++) {
 		if(!p->inuse)
 			continue;
-		if(n == off){
+		if(n == off) {
 			d->name = estrdup9p(p->name);
-			d->length = p->length*sectsize;
+			d->length = p->length * sectsize;
 			d->mode = p->mode;
 			d->qid.path = Qpart + p - tab;
 			d->qid.vers = p->vers;
@@ -284,17 +279,17 @@ Have:
 }
 
 int
-rdwrpart(Req *r)
+rdwrpart(Req* r)
 {
 	int q;
 	int32_t count, tot;
 	int64_t offset;
-	uint8_t *dat;
-	Part *p;
+	uint8_t* dat;
+	Part* p;
 
 	q = r->fid->qid.path - Qpart;
 	if(q < 0 || q > nelem(tab) || !tab[q].inuse ||
-	    tab[q].vers != r->fid->qid.vers){
+	   tab[q].vers != r->fid->qid.vers) {
 		respond(r, "unknown partition");
 		return -1;
 	}
@@ -302,21 +297,21 @@ rdwrpart(Req *r)
 
 	offset = r->ifcall.offset;
 	count = r->ifcall.count;
-	if(offset < 0){
+	if(offset < 0) {
 		respond(r, "negative offset");
 		return -1;
 	}
-	if(count < 0){
+	if(count < 0) {
 		respond(r, "negative count");
 		return -1;
 	}
-	if(offset > p->length*sectsize){
+	if(offset > p->length * sectsize) {
 		respond(r, "offset past end of partition");
 		return -1;
 	}
-	if(offset+count > p->length*sectsize)
-		count = p->length*sectsize - offset;
-	offset += p->offset*sectsize;
+	if(offset + count > p->length * sectsize)
+		count = p->length * sectsize - offset;
+	offset += p->offset * sectsize;
 
 	if(r->ifcall.type == Tread)
 		dat = (uint8_t*)r->ofcall.data;
@@ -325,15 +320,15 @@ rdwrpart(Req *r)
 
 	/* pass i/o through to underlying file */
 	seek(fd, offset, 0);
-	if (r->ifcall.type == Twrite) {
+	if(r->ifcall.type == Twrite) {
 		tot = write(fd, dat, count);
-		if (tot != count) {
+		if(tot != count) {
 			respond(r, "%r");
 			return -1;
 		}
 	} else {
 		tot = read(fd, dat, count);
-		if (tot < 0) {
+		if(tot < 0) {
 			respond(r, "%r");
 			return -1;
 		}
@@ -344,11 +339,11 @@ rdwrpart(Req *r)
 }
 
 void
-fsread(Req *r)
+fsread(Req* r)
 {
-	char *s;
+	char* s;
 
-	switch((int)r->fid->qid.path){
+	switch((int)r->fid->qid.path) {
 	case Qroot:
 		dirread9p(r, rootgen, nil);
 		break;
@@ -368,9 +363,9 @@ fsread(Req *r)
 }
 
 void
-fswrite(Req *r)
+fswrite(Req* r)
 {
-	switch((int)r->fid->qid.path){
+	switch((int)r->fid->qid.path) {
 	case Qroot:
 	case Qdir:
 		respond(r, "write to a directory?");
@@ -385,15 +380,15 @@ fswrite(Req *r)
 }
 
 void
-fsopen(Req *r)
+fsopen(Req* r)
 {
-	if(r->ifcall.mode&ORCLOSE)
+	if(r->ifcall.mode & ORCLOSE)
 		respond(r, "cannot open ORCLOSE");
 
-	switch((int)r->fid->qid.path){
+	switch((int)r->fid->qid.path) {
 	case Qroot:
 	case Qdir:
-		if(r->ifcall.mode != OREAD){
+		if(r->ifcall.mode != OREAD) {
 			respond(r, "bad mode for directory open");
 			return;
 		}
@@ -403,26 +398,26 @@ fsopen(Req *r)
 }
 
 void
-fsstat(Req *r)
+fsstat(Req* r)
 {
 	int q;
-	Dir *d;
-	Part *p;
+	Dir* d;
+	Part* p;
 
 	d = &r->d;
 	memset(d, 0, sizeof *d);
 	d->qid = r->fid->qid;
 	d->atime = d->mtime = time0;
 	q = r->fid->qid.path;
-	switch(q){
+	switch(q) {
 	case Qroot:
 		d->name = estrdup9p("/");
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	case Qdir:
 		d->name = estrdup9p(sdname);
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	case Qctl:
@@ -433,7 +428,7 @@ fsstat(Req *r)
 	default:
 		q -= Qpart;
 		if(q < 0 || q > nelem(tab) || tab[q].inuse == 0 ||
-		    r->fid->qid.vers != tab[q].vers){
+		   r->fid->qid.vers != tab[q].vers) {
 			respond(r, "partition no longer exists");
 			return;
 		}
@@ -451,12 +446,12 @@ fsstat(Req *r)
 }
 
 void
-fsattach(Req *r)
+fsattach(Req* r)
 {
-	char *spec;
+	char* spec;
 
 	spec = r->ifcall.aname;
-	if(spec && spec[0]){
+	if(spec && spec[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -466,13 +461,13 @@ fsattach(Req *r)
 }
 
 char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+fswalk1(Fid* fid, char* name, Qid* qid)
 {
-	Part *p;
+	Part* p;
 
-	switch((int)fid->qid.path){
+	switch((int)fid->qid.path) {
 	case Qroot:
-		if(strcmp(name, sdname) == 0){
+		if(strcmp(name, sdname) == 0) {
 			fid->qid.path = Qdir;
 			fid->qid.type = QTDIR;
 			*qid = fid->qid;
@@ -480,7 +475,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 		break;
 	case Qdir:
-		if(strcmp(name, "ctl") == 0){
+		if(strcmp(name, "ctl") == 0) {
 			fid->qid.path = Qctl;
 			fid->qid.vers = 0;
 			fid->qid.type = 0;
@@ -488,7 +483,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			return nil;
 		}
 		for(p = tab; p < tab + nelem(tab); p++)
-			if(p->inuse && strcmp(p->name, name) == 0){
+			if(p->inuse && strcmp(p->name, name) == 0) {
 				fid->qid.path = p - tab + Qpart;
 				fid->qid.vers = p->vers;
 				fid->qid.type = 0;
@@ -501,38 +496,40 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 }
 
 Srv fs = {
-	.attach=fsattach,
-	.open=	fsopen,
-	.read=	fsread,
-	.write=	fswrite,
-	.stat=	fsstat,
-	.walk1=	fswalk1,
+    .attach = fsattach,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .stat = fsstat,
+    .walk1 = fswalk1,
 };
 
-char *mtpt = "/dev";
-char *srvname;
+char* mtpt = "/dev";
+char* srvname;
 
 void
 usage(void)
 {
 	fprint(2, "usage: %s [-Dr] [-d sdname] [-m mtpt] [-p 9parts] "
-		"[-s srvname] diskimage\n", argv0);
+	          "[-s srvname] diskimage\n",
+	       argv0);
 	fprint(2, "\tdefault mtpt is /dev\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int isdir;
-	char *file, *cname, *parts;
-	Dir *dir;
+	char* file, *cname, *parts;
+	Dir* dir;
 
 	quotefmtinstall();
 	time0 = time(0);
 	parts = nil;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -553,7 +550,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -564,18 +562,18 @@ main(int argc, char **argv)
 	isdir = (dir->mode & DMDIR) != 0;
 	free(dir);
 
-	if (isdir) {
+	if(isdir) {
 		cname = smprint("%s/ctl", file);
-		if ((ctlfd = open(cname, ORDWR)) < 0)
+		if((ctlfd = open(cname, ORDWR)) < 0)
 			sysfatal("open %s: %r", cname);
 		file = smprint("%s/data", file);
 	}
-	if((fd = open(file, rdonly? OREAD: ORDWR)) < 0)
+	if((fd = open(file, rdonly ? OREAD : ORDWR)) < 0)
 		sysfatal("open %s: %r", file);
 
-	sectsize = 512;			/* conventional */
+	sectsize = 512; /* conventional */
 	dir = dirfstat(fd);
-	if (dir)
+	if(dir)
 		nsect = dir->length / sectsize;
 	free(dir);
 

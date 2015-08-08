@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2001 artofcode LLC.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -36,11 +36,11 @@
 #include "gp.h"
 
 /* Read bytes from stdin, using unbuffered if possible.
- * This implementation doesn't do unbuffered, so if 
+ * This implementation doesn't do unbuffered, so if
  * interactive read one byte at a time.
  */
-int gp_stdin_read(char *buf, int len, int interactive, FILE *f)
+int
+gp_stdin_read(char* buf, int len, int interactive, FILE* f)
 {
-    return fread(buf, 1, interactive ? 1 : len, f);
+	return fread(buf, 1, interactive ? 1 : len, f);
 }
-

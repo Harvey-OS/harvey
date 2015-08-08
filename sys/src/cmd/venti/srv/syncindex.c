@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-static	int	verbose;
+static int verbose;
 void
 usage(void)
 {
@@ -22,13 +22,14 @@ usage(void)
 Config conf;
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	u32int bcmem, icmem;
 
 	bcmem = 0;
 	icmem = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'B':
 		bcmem = unittoull(EARGF(usage()));
 		break;
@@ -41,7 +42,8 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -52,11 +54,14 @@ threadmain(int argc, char *argv[])
 	if(mainindex->bloom && loadbloom(mainindex->bloom) < 0)
 		sysfatal("can't load bloom filter: %r");
 
-	if(bcmem < maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16))
-		bcmem = maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16);
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(bcmem <
+	   maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16))
+		bcmem = maxblocksize *
+		        (mainindex->narenas + mainindex->nsects * 4 + 16);
+	if(0)
+		fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
 	initdcache(bcmem);
-	initlumpcache(1*1024*1024, 1024/8);
+	initlumpcache(1 * 1024 * 1024, 1024 / 8);
 	initicache(icmem);
 	initicachewrite();
 	if(mainindex->bloom)

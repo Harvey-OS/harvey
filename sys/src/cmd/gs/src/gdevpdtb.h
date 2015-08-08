@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* BaseFont structure and API for pdfwrite */
 
 #ifndef gdevpdtb_INCLUDED
-#  define gdevpdtb_INCLUDED
+#define gdevpdtb_INCLUDED
 
 #include "gdevpdtx.h"
 
@@ -70,7 +70,7 @@
  */
 
 #ifndef pdf_base_font_DEFINED
-#  define pdf_base_font_DEFINED
+#define pdf_base_font_DEFINED
 typedef struct pdf_base_font_s pdf_base_font_t;
 #endif
 
@@ -82,32 +82,32 @@ typedef struct pdf_base_font_s pdf_base_font_t;
  * font name prefix from the copy.  If complete is true, the copy is
  * a complete one, and adding glyphs or Encoding entries is not allowed.
  */
-int pdf_base_font_alloc(gx_device_pdf *pdev, pdf_base_font_t **ppbfont,
-		    gs_font_base *font, const gs_matrix *orig_matrix, 
-		    bool is_standard, bool orig_name);
+int pdf_base_font_alloc(gx_device_pdf* pdev, pdf_base_font_t** ppbfont,
+                        gs_font_base* font, const gs_matrix* orig_matrix,
+                        bool is_standard, bool orig_name);
 
 /*
  * Return a reference to the name of a base font.  This name is guaranteed
  * not to have a XXXXXX+ prefix.  The client may change the name at will,
  * but must not add a XXXXXX+ prefix.
  */
-gs_string *pdf_base_font_name(pdf_base_font_t *pbfont);
+gs_string* pdf_base_font_name(pdf_base_font_t* pbfont);
 
 /*
  * Return the (copied, subset or complete) font associated with a base font.
  * This procedure probably shouldn't exist....
  */
-gs_font_base *pdf_base_font_font(const pdf_base_font_t *pbfont, bool complete);
+gs_font_base* pdf_base_font_font(const pdf_base_font_t* pbfont, bool complete);
 
 /*
  * Check for subset font.
  */
-bool pdf_base_font_is_subset(const pdf_base_font_t *pbfont);
+bool pdf_base_font_is_subset(const pdf_base_font_t* pbfont);
 
 /*
  * Drop the copied complete font associated with a base font.
  */
-void pdf_base_font_drop_complete(pdf_base_font_t *pbfont);
+void pdf_base_font_drop_complete(pdf_base_font_t* pbfont);
 
 /*
  * Copy a glyph (presumably one that was just used) into a saved base
@@ -115,54 +115,55 @@ void pdf_base_font_drop_complete(pdf_base_font_t *pbfont);
  * the source font is compatible with the target font.  (Normally they
  * will be the same.)
  */
-int pdf_base_font_copy_glyph(pdf_base_font_t *pbfont, gs_glyph glyph,
-			     gs_font_base *font);
+int pdf_base_font_copy_glyph(pdf_base_font_t* pbfont, gs_glyph glyph,
+                             gs_font_base* font);
 
 /*
  * Determine whether a font is a subset font by examining the name.
  */
-bool pdf_has_subset_prefix(const byte *str, uint size);
+bool pdf_has_subset_prefix(const byte* str, uint size);
 
 /*
  * Add the XXXXXX+ prefix for a subset font.
  */
-int pdf_add_subset_prefix(const gx_device_pdf *pdev, gs_string *pstr, 
-			byte *used, int count);
+int pdf_add_subset_prefix(const gx_device_pdf* pdev, gs_string* pstr,
+                          byte* used, int count);
 
 /*
  * Determine whether a copied font should be subsetted.
  */
-bool pdf_do_subset_font(gx_device_pdf *pdev, pdf_base_font_t *pbfont, 
-			gs_id rid);
+bool pdf_do_subset_font(gx_device_pdf* pdev, pdf_base_font_t* pbfont,
+                        gs_id rid);
 
 /*
  * Write the FontFile entry for an embedded font, /FontFile<n> # # R.
  */
-int pdf_write_FontFile_entry(gx_device_pdf *pdev, pdf_base_font_t *pbfont);
+int pdf_write_FontFile_entry(gx_device_pdf* pdev, pdf_base_font_t* pbfont);
 
 /*
  * Write an embedded font, possibly subsetted.
  */
-int pdf_write_embedded_font(gx_device_pdf *pdev, pdf_base_font_t *pbfont,
-			gs_int_rect *FontBBox, gs_id rid, cos_dict_t **ppcd);
+int pdf_write_embedded_font(gx_device_pdf* pdev, pdf_base_font_t* pbfont,
+                            gs_int_rect* FontBBox, gs_id rid,
+                            cos_dict_t** ppcd);
 
 /*
  * Write the CharSet data for a subsetted font, as a PDF string.
  */
-int pdf_write_CharSet(gx_device_pdf *pdev, pdf_base_font_t *pbfont);
+int pdf_write_CharSet(gx_device_pdf* pdev, pdf_base_font_t* pbfont);
 
 /*
  * Write the CIDSet object for a subsetted CIDFont.
  */
-int pdf_write_CIDSet(gx_device_pdf *pdev, pdf_base_font_t *pbfont,
-		     long *pcidset_id);
+int pdf_write_CIDSet(gx_device_pdf* pdev, pdf_base_font_t* pbfont,
+                     long* pcidset_id);
 
 /*
  * Check whether a base font is standard.
  */
-bool pdf_is_standard_font(pdf_base_font_t *bfont);
+bool pdf_is_standard_font(pdf_base_font_t* bfont);
 
-void pdf_set_FontFile_object(pdf_base_font_t *bfont, cos_dict_t *pcd);
-const cos_dict_t * pdf_get_FontFile_object(pdf_base_font_t *bfont);
+void pdf_set_FontFile_object(pdf_base_font_t* bfont, cos_dict_t* pcd);
+const cos_dict_t* pdf_get_FontFile_object(pdf_base_font_t* bfont);
 
 #endif /* gdevpdtb_INCLUDED */

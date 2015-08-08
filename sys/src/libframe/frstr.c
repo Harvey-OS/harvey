@@ -14,13 +14,13 @@
 #include <mouse.h>
 #include <frame.h>
 
-#define	CHUNK	16
-#define	ROUNDUP(n)	((n+CHUNK)&~(CHUNK-1))
+#define CHUNK 16
+#define ROUNDUP(n) ((n + CHUNK) & ~(CHUNK - 1))
 
-uint8_t *
-_frallocstr(Frame *f, unsigned n)
+uint8_t*
+_frallocstr(Frame* f, unsigned n)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = malloc(ROUNDUP(n));
 	if(p == 0)
@@ -29,19 +29,19 @@ _frallocstr(Frame *f, unsigned n)
 }
 
 void
-_frinsure(Frame *f, int bn, unsigned n)
+_frinsure(Frame* f, int bn, unsigned n)
 {
-	Frbox *b;
-	uint8_t *p;
+	Frbox* b;
+	uint8_t* p;
 
 	b = &f->box[bn];
 	if(b->nrune < 0)
 		drawerror(f->display, "_frinsure");
-	if(ROUNDUP(b->nrune) > n)	/* > guarantees room for terminal NUL */
+	if(ROUNDUP(b->nrune) > n) /* > guarantees room for terminal NUL */
 		return;
 	p = _frallocstr(f, n);
 	b = &f->box[bn];
-	memmove(p, b->ptr, NBYTE(b)+1);
+	memmove(p, b->ptr, NBYTE(b) + 1);
 	free(b->ptr);
 	b->ptr = p;
 }

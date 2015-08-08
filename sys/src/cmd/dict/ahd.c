@@ -17,32 +17,25 @@
  */
 
 static Rune intab[256] = {
-	[0x82] L'é',
-	[0x85] L'à',
-	[0x89] L'ë',
-	[0x8a] L'è',
-	[0xa4] L'ñ',
-	[0xf8] L'°',
-	[0xf9] L'·',
+        [0x82] L'é', [0x85] L'à', [0x89] L'ë', [0x8a] L'è',
+        [0xa4] L'ñ', [0xf8] L'°', [0xf9] L'·',
 };
 
-static char	tag[64];
+static char tag[64];
 
-enum{
-	Run, Openper, Openat, Closeat
-};
+enum { Run, Openper, Openat, Closeat };
 
 void
 ahdprintentry(Entry e, int cmd)
 {
 	static int inited;
 	int32_t addr;
-	char *p, *t = tag;
+	char* p, * t = tag;
 	int obreaklen;
 	int c, state = Run;
 
-	if(!inited){
-		for(c=0; c<256; c++)
+	if(!inited) {
+		for(c = 0; c < 256; c++)
 			if(intab[c] == 0)
 				intab[c] = c;
 		inited = 1;
@@ -50,11 +43,11 @@ ahdprintentry(Entry e, int cmd)
 	obreaklen = breaklen;
 	breaklen = 80;
 	addr = e.doff;
-	for(p=e.start; p<e.end; p++){
-		c = intab[(*p ^ (addr++>>1))&0xff];
-		switch(state){
+	for(p = e.start; p < e.end; p++) {
+		c = intab[(*p ^ (addr++ >> 1)) & 0xff];
+		switch(state) {
 		case Run:
-			if(c == '%'){
+			if(c == '%') {
 				t = tag;
 				state = Openper;
 				break;
@@ -71,7 +64,7 @@ ahdprintentry(Entry e, int cmd)
 		case Openper:
 			if(c == '@')
 				state = Openat;
-			else{
+			else {
 				outchar('%');
 				state = Run;
 				goto Putchar;
@@ -81,14 +74,14 @@ ahdprintentry(Entry e, int cmd)
 		case Openat:
 			if(c == '@')
 				state = Closeat;
-			else if(t < &tag[sizeof tag-1])
+			else if(t < &tag[sizeof tag - 1])
 				*t++ = c;
 			break;
 
 		case Closeat:
-			if(c == '%'){
+			if(c == '%') {
 				*t = 0;
-				switch(cmd){
+				switch(cmd) {
 				case 'h':
 					if(strcmp("EH", tag) == 0)
 						goto out;
@@ -98,10 +91,10 @@ ahdprintentry(Entry e, int cmd)
 					break;
 				}
 				state = Run;
-			}else{
-				if(t < &tag[sizeof tag-1])
+			} else {
+				if(t < &tag[sizeof tag - 1])
 					*t++ = '@';
-				if(t < &tag[sizeof tag-1])
+				if(t < &tag[sizeof tag - 1])
 					*t++ = c;
 				state = Openat;
 			}
@@ -116,27 +109,27 @@ out:
 int32_t
 ahdnextoff(int32_t fromoff)
 {
-	static char *patterns[] = { "%@NL@%", "%@2@%", 0 };
+	static char* patterns[] = {"%@NL@%", "%@2@%", 0};
 	int c, k = 0, state = 0;
-	char *pat = patterns[0];
+	char* pat = patterns[0];
 	int32_t defoff = -1;
 
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;
-	while((c = Bgetc(bdict)) >= 0){
-		c ^= (fromoff++>>1)&0xff;
-		if(c != pat[state]){
+	while((c = Bgetc(bdict)) >= 0) {
+		c ^= (fromoff++ >> 1) & 0xff;
+		if(c != pat[state]) {
 			state = 0;
 			continue;
 		}
 		if(pat[++state])
 			continue;
-		if(pat = patterns[++k]){	/* assign = */
+		if(pat = patterns[++k]) { /* assign = */
 			state = 0;
-			defoff = fromoff-6;
+			defoff = fromoff - 6;
 			continue;
 		}
-		return fromoff-5;
+		return fromoff - 5;
 	}
 	return defoff;
 }

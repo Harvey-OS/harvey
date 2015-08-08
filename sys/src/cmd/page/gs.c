@@ -10,8 +10,8 @@
 /*
  * gs interface for page.
  * ps.c and pdf.c both use these routines.
- * a caveat: if you run more than one gs, only the last 
- * one gets killed by killgs 
+ * a caveat: if you run more than one gs, only the last
+ * one gets killed by killgs
  */
 #include <u.h>
 #include <libc.h>
@@ -20,9 +20,9 @@
 #include <bio.h>
 #include "page.h"
 
-static int gspid;	/* globals for atexit */
+static int gspid; /* globals for atexit */
 static int gsfd;
-static void	killgs(void);
+static void killgs(void);
 
 static void
 killgs(void)
@@ -34,35 +34,42 @@ killgs(void)
 
 	/*
 	 * from ghostscript's use.txt:
-	 * ``Ghostscript currently doesn't do a very good job of deleting temporary
-	 * files when it exits; you may have to delete them manually from time to
+	 * ``Ghostscript currently doesn't do a very good job of deleting
+	 * temporary
+	 * files when it exits; you may have to delete them manually from time
+	 * to
 	 * time.''
 	 */
-	sprint(tmpfile, "/tmp/gs_%.5da", (gspid+300000)%100000);
-	if(chatty) fprint(2, "remove %s...\n", tmpfile);
+	sprint(tmpfile, "/tmp/gs_%.5da", (gspid + 300000) % 100000);
+	if(chatty)
+		fprint(2, "remove %s...\n", tmpfile);
 	remove(tmpfile);
 	sleep(100);
 	postnote(PNPROC, gspid, "die yankee pig dog");
 }
 
 int
-spawnwriter(GSInfo *g, Biobuf *b)
+spawnwriter(GSInfo* g, Biobuf* b)
 {
 	char buf[4096];
 	int n;
 	int fd;
 
-	switch(fork()){
-	case -1:	return -1;
-	case 0:	break;
-	default:	return 0;
+	switch(fork()) {
+	case -1:
+		return -1;
+	case 0:
+		break;
+	default:
+		return 0;
 	}
 
 	Bseek(b, 0, 0);
 	fd = g->gsfd;
 	while((n = Bread(b, buf, sizeof buf)) > 0)
 		write(fd, buf, n);
-	fprint(fd, "(/fd/3) (w) file dup (THIS IS NOT AN INFERNO BITMAP\\n) writestring flushfile\n");
+	fprint(fd, "(/fd/3) (w) file dup (THIS IS NOT AN INFERNO BITMAP\\n) "
+	           "writestring flushfile\n");
 	_exits(0);
 	return -1;
 }
@@ -73,9 +80,9 @@ spawnreader(int fd)
 	int n, pfd[2];
 	char buf[1024];
 
-	if(pipe(pfd)<0)
+	if(pipe(pfd) < 0)
 		return -1;
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		return -1;
 	case 0:
@@ -86,17 +93,17 @@ spawnreader(int fd)
 	}
 
 	close(pfd[1]);
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		wexits("fork failed");
 	case 0:
-		while((n=read(fd, buf, sizeof buf)) > 0) {
+		while((n = read(fd, buf, sizeof buf)) > 0) {
 			write(1, buf, n);
 			write(pfd[0], buf, n);
 		}
 		break;
 	default:
-		while((n=read(pfd[0], buf, sizeof buf)) > 0) {
+		while((n = read(pfd[0], buf, sizeof buf)) > 0) {
 			write(1, buf, n);
 			write(fd, buf, n);
 		}
@@ -111,12 +118,12 @@ void
 spawnmonitor(int fd)
 {
 	char buf[4096];
-	char *xbuf;
+	char* xbuf;
 	int n;
 	int out;
 	int first;
 
-	switch(rfork(RFFDG|RFNOTEG|RFPROC)){
+	switch(rfork(RFFDG | RFNOTEG | RFPROC)) {
 	case -1:
 	default:
 		return;
@@ -129,10 +136,10 @@ spawnmonitor(int fd)
 	if(out < 0)
 		out = 2;
 
-	xbuf = buf;	/* for ease of acid */
+	xbuf = buf; /* for ease of acid */
 	first = 1;
-	while((n = read(fd, xbuf, sizeof buf)) > 0){
-		if(first){
+	while((n = read(fd, xbuf, sizeof buf)) > 0) {
+		if(first) {
 			first = 0;
 			fprint(2, "Ghostscript Error:\n");
 		}
@@ -142,10 +149,10 @@ spawnmonitor(int fd)
 	_exits(0);
 }
 
-int 
-spawngs(GSInfo *g, char *safer)
+int
+spawngs(GSInfo* g, char* safer)
 {
-	char *args[16];
+	char* args[16];
 	char tb[32], gb[32];
 	int i, nargs;
 	int devnull;
@@ -156,12 +163,14 @@ spawngs(GSInfo *g, char *safer)
 	/*
 	 * spawn gs
 	 *
- 	 * gs's standard input is fed from stdinout.
-	 * gs output written to fd-2 (i.e. output we generate intentionally) is fed to stdinout.
-	 * gs output written to fd 1 (i.e. ouptut gs generates on error) is fed to errout.
+	 * gs's standard input is fed from stdinout.
+	 * gs output written to fd-2 (i.e. output we generate intentionally) is
+	 *fed to stdinout.
+	 * gs output written to fd 1 (i.e. ouptut gs generates on error) is fed
+	 *to errout.
 	 * gs data output is written to fd 3, which is dataout.
 	 */
-	if(pipe(stdinout) < 0 || pipe(dataout)<0 || pipe(errout)<0)
+	if(pipe(stdinout) < 0 || pipe(dataout) < 0 || pipe(errout) < 0)
 		return -1;
 
 	nargs = 0;
@@ -203,10 +212,10 @@ spawngs(GSInfo *g, char *safer)
 
 		dup(stdinout[0], 0);
 		dup(errout[0], 1);
-		dup(devnull, 2);	/* never anything useful */
+		dup(devnull, 2); /* never anything useful */
 		dup(dataout[0], 3);
 		dup(stdinout[0], 4);
-		for(i=5; i<20; i++)
+		for(i = 5; i < 20; i++)
 			close(i);
 		exec("/bin/gs", args);
 		wexits("exec");
@@ -227,21 +236,22 @@ spawngs(GSInfo *g, char *safer)
 	Binit(&g->gsrd, g->gsfd, OREAD);
 
 	gscmd(g, "/PAGEOUT (/fd/4) (w) file def\n");
-	gscmd(g, "/PAGE== { PAGEOUT exch write==only PAGEOUT (\\n) writestring PAGEOUT flushfile } def\n");
+	gscmd(g, "/PAGE== { PAGEOUT exch write==only PAGEOUT (\\n) writestring "
+	         "PAGEOUT flushfile } def\n");
 	waitgs(g);
 
 	return 0;
 }
 
 int
-gscmd(GSInfo *gs, char *fmt, ...)
+gscmd(GSInfo* gs, char* fmt, ...)
 {
 	char buf[1024];
 	int n;
 
 	va_list v;
 	va_start(v, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, v) - buf;
+	n = vseprint(buf, buf + sizeof buf, fmt, v) - buf;
 	if(n <= 0)
 		return n;
 
@@ -260,7 +270,7 @@ gscmd(GSInfo *gs, char *fmt, ...)
  * set the dimensions of the bitmap we expect to get back from GS.
  */
 void
-setdim(GSInfo *gs, Rectangle bbox, int ppi, int landscape)
+setdim(GSInfo* gs, Rectangle bbox, int ppi, int landscape)
 {
 	Rectangle pbox;
 
@@ -275,9 +285,9 @@ setdim(GSInfo *gs, Rectangle bbox, int ppi, int landscape)
 		gscmd(gs, "/HWResolution [%d %d]\n", ppi, ppi);
 
 	if(!Dx(bbox))
-		bbox = Rect(0, 0, 612, 792);	/* 8½×11 */
+		bbox = Rect(0, 0, 612, 792); /* 8½×11 */
 
-	switch(landscape){
+	switch(landscape) {
 	case 0:
 		pbox = bbox;
 		break;
@@ -293,7 +303,7 @@ setdim(GSInfo *gs, Rectangle bbox, int ppi, int landscape)
 	if(!eqpt(bbox.min, ZP))
 		gscmd(gs, "%d %d translate\n", -bbox.min.x, -bbox.min.y);
 
-	switch(landscape){
+	switch(landscape) {
 	case 0:
 		break;
 	case 1:
@@ -306,22 +316,22 @@ setdim(GSInfo *gs, Rectangle bbox, int ppi, int landscape)
 }
 
 void
-waitgs(GSInfo *gs)
+waitgs(GSInfo* gs)
 {
 	/* we figure out that gs is done by telling it to
 	 * print something and waiting until it does.
 	 */
-	char *p;
-	Biobuf *b = &gs->gsrd;
+	char* p;
+	Biobuf* b = &gs->gsrd;
 	uint8_t buf[1024];
 	int n;
 
-//	gscmd(gs, "(\\n**bstack\\n) print flush\n");
-//	gscmd(gs, "stack flush\n");
-//	gscmd(gs, "(**estack\\n) print flush\n");
+	//	gscmd(gs, "(\\n**bstack\\n) print flush\n");
+	//	gscmd(gs, "stack flush\n");
+	//	gscmd(gs, "(**estack\\n) print flush\n");
 	gscmd(gs, "(\\n//GO.SYSIN DD\\n) PAGE==\n");
 
-	alarm(300*1000);
+	alarm(300 * 1000);
 	for(;;) {
 		p = Brdline(b, '\n');
 		if(p == nil) {
@@ -333,10 +343,13 @@ waitgs(GSInfo *gs)
 			Bread(b, buf, n);
 			continue;
 		}
-		p[Blinelen(b)-1] = 0;
-		if(chatty) fprint(2, "p: ");
-		if(chatty) write(2, p, Blinelen(b)-1);
-		if(chatty) fprint(2, "\n");
+		p[Blinelen(b) - 1] = 0;
+		if(chatty)
+			fprint(2, "p: ");
+		if(chatty)
+			write(2, p, Blinelen(b) - 1);
+		if(chatty)
+			fprint(2, "\n");
 		if(strstr(p, "Error:")) {
 			alarm(0);
 			fprint(2, "ghostscript error: %s\n", p);

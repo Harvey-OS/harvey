@@ -23,56 +23,56 @@
 #include "amd64.h"
 #include "ureg.h"
 
-enum {						/* FCW, FSW and MXCSR */
-	I		= 0x00000001,		/* Invalid-Operation */
-	D		= 0x00000002,		/* Denormalized-Operand */
-	Z		= 0x00000004,		/* Zero-Divide */
-	O		= 0x00000008,		/* Overflow */
-	U		= 0x00000010,		/* Underflow */
-	P		= 0x00000020,		/* Precision */
+enum {                 /* FCW, FSW and MXCSR */
+       I = 0x00000001, /* Invalid-Operation */
+       D = 0x00000002, /* Denormalized-Operand */
+       Z = 0x00000004, /* Zero-Divide */
+       O = 0x00000008, /* Overflow */
+       U = 0x00000010, /* Underflow */
+       P = 0x00000020, /* Precision */
 };
 
-enum {						/* FCW */
-	PCs		= 0x00000000,		/* Precision Control -Single */
-	PCd		= 0x00000200,		/* -Double */
-	PCde		= 0x00000300,		/* -Double Extended */
-	RCn		= 0x00000000,		/* Rounding Control -Nearest */
-	RCd		= 0x00000400,		/* -Down */
-	RCu		= 0x00000800,		/* -Up */
-	RCz		= 0x00000C00,		/* -Toward Zero */
+enum {                    /* FCW */
+       PCs = 0x00000000,  /* Precision Control -Single */
+       PCd = 0x00000200,  /* -Double */
+       PCde = 0x00000300, /* -Double Extended */
+       RCn = 0x00000000,  /* Rounding Control -Nearest */
+       RCd = 0x00000400,  /* -Down */
+       RCu = 0x00000800,  /* -Up */
+       RCz = 0x00000C00,  /* -Toward Zero */
 };
 
-enum {						/* FSW */
-	Sff		= 0x00000040,		/* Stack Fault Flag */
-	Es		= 0x00000080,		/* Error Summary Status */
-	C0		= 0x00000100,		/* ZF - Condition Code Bits */
-	C1		= 0x00000200,		/* O/U# */
-	C2		= 0x00000400,		/* PF */
-	C3		= 0x00004000,		/* ZF */
-	B		= 0x00008000,		/* Busy */
+enum {                   /* FSW */
+       Sff = 0x00000040, /* Stack Fault Flag */
+       Es = 0x00000080,  /* Error Summary Status */
+       C0 = 0x00000100,  /* ZF - Condition Code Bits */
+       C1 = 0x00000200,  /* O/U# */
+       C2 = 0x00000400,  /* PF */
+       C3 = 0x00004000,  /* ZF */
+       B = 0x00008000,   /* Busy */
 };
 
-enum {						/* MXCSR */
-	Daz		= 0x00000040,		/* Denormals are Zeros */
-	Im		= 0x00000080,		/* I Mask */
-	Dm		= 0x00000100,		/* D Mask */
-	Zm		= 0x00000200,		/* Z Mask */
-	Om		= 0x00000400,		/* O Mask */
-	Um		= 0x00000800,		/* U Mask */
-	Pm		= 0x00001000,		/* P Mask */
-	Rn		= 0x00000000,		/* Round to Nearest */
-	Rd		= 0x00002000,		/* Round Down */
-	Ru		= 0x00004000,		/* Round Up */
-	Rz		= 0x00006000,		/* Round toward Zero */
-	Fz		= 0x00008000,		/* Flush to Zero for Um */
+enum {                   /* MXCSR */
+       Daz = 0x00000040, /* Denormals are Zeros */
+       Im = 0x00000080,  /* I Mask */
+       Dm = 0x00000100,  /* D Mask */
+       Zm = 0x00000200,  /* Z Mask */
+       Om = 0x00000400,  /* O Mask */
+       Um = 0x00000800,  /* U Mask */
+       Pm = 0x00001000,  /* P Mask */
+       Rn = 0x00000000,  /* Round to Nearest */
+       Rd = 0x00002000,  /* Round Down */
+       Ru = 0x00004000,  /* Round Up */
+       Rz = 0x00006000,  /* Round toward Zero */
+       Fz = 0x00008000,  /* Flush to Zero for Um */
 };
 
-enum {						/* PFPU.state */
-	Init		= 0,			/* The FPU has not been used */
-	Busy		= 1,			/* The FPU is being used */
-	Idle		= 2,			/* The FPU has been used */
+enum {           /* PFPU.state */
+       Init = 0, /* The FPU has not been used */
+       Busy = 1, /* The FPU is being used */
+       Idle = 2, /* The FPU has been used */
 
-	Hold		= 4,			/* Handling an FPU note */
+       Hold = 4, /* Handling an FPU note */
 };
 
 extern void _clts(void);
@@ -88,7 +88,7 @@ extern void _stts(void);
 int
 fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	/*
 	 * Called from procdevtab.read and procdevtab.write
@@ -101,16 +101,16 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 		return 0;
 	if((p = proc->fpusave) == nil)
 		return 0;
-	switch(write){
+	switch(write) {
 	default:
-		if(offset+n > sizeof(Fxsave))
+		if(offset + n > sizeof(Fxsave))
 			n = sizeof(Fxsave) - offset;
-		memmove(p+offset, a, n);
+		memmove(p + offset, a, n);
 		break;
 	case 0:
-		if(offset+n > sizeof(Fxsave))
+		if(offset + n > sizeof(Fxsave))
 			n = sizeof(Fxsave) - offset;
-		memmove(a, p+offset, n);
+		memmove(a, p + offset, n);
 		break;
 	}
 
@@ -120,7 +120,7 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 void
 fpunotify(Ureg* u)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	/*
 	 * Called when a note is about to be delivered to a
 	 * user process, usually at the end of a system call.
@@ -128,7 +128,7 @@ fpunotify(Ureg* u)
 	 * the state is marked (after saving if necessary) and
 	 * checked in the Device Not Available handler.
 	 */
-	if(up->fpustate == Busy){
+	if(up->fpustate == Busy) {
 		_fxsave(up->fpusave);
 		_stts();
 		up->fpustate = Idle;
@@ -139,7 +139,7 @@ fpunotify(Ureg* u)
 void
 fpunoted(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	/*
 	 * Called from sysnoted() via the machine-dependent
 	 * noted() routine.
@@ -151,7 +151,7 @@ fpunoted(void)
 void
 fpusysrfork(Ureg* u)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	/*
 	 * Called early in the non-interruptible path of
 	 * sysrfork() via the machine-dependent syscall() routine.
@@ -169,7 +169,7 @@ fpusysrfork(Ureg* u)
 void
 fpusysrforkchild(Proc* child, Proc* parent)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	/*
 	 * Called later in sysrfork() via the machine-dependent
 	 * sysrforkchild() routine.
@@ -201,7 +201,7 @@ fpuprocsave(Proc* p)
 	 * and set the state for whoever gets this proc struct
 	 * next.
 	 */
-	if(p->state == Moribund){
+	if(p->state == Moribund) {
 		_clts();
 		_fnclex();
 		_stts();
@@ -243,7 +243,7 @@ fpusysprocsetup(Proc* p)
 	 * Called from sysexec() via sysprocsetup() to
 	 * set the FPU for the new process.
 	 */
-	if(p->fpustate != Init){
+	if(p->fpustate != Init) {
 		_clts();
 		_fnclex();
 		_stts();
@@ -252,9 +252,9 @@ fpusysprocsetup(Proc* p)
 }
 
 void
-acfpusysprocsetup(Proc *p)
+acfpusysprocsetup(Proc* p)
 {
-	if(p->fpustate == Init){
+	if(p->fpustate == Init) {
 		/* The FPU is initialized in the TC but we must initialize
 		 * it in the AC.
 		 */
@@ -266,10 +266,10 @@ acfpusysprocsetup(Proc *p)
 static char*
 fpunote(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	uint16_t fsw;
-	Fxsave *fpusave;
-	char *cm;
+	Fxsave* fpusave;
+	char* cm;
 
 	/*
 	 * The Sff bit is sticky, meaning it should be explicitly
@@ -277,18 +277,16 @@ fpunote(void)
 	 * invalid operation or a stack fault.
 	 */
 	fpusave = up->fpusave;
-	fsw = (fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I);
-	if(fsw & I){
-		if(fsw & Sff){
+	fsw = (fpusave->fsw & ~fpusave->fcw) & (Sff | P | U | O | Z | D | I);
+	if(fsw & I) {
+		if(fsw & Sff) {
 			if(fsw & C1)
 				cm = "Stack Overflow";
 			else
 				cm = "Stack Underflow";
-		}
-		else
+		} else
 			cm = "Invalid Operation";
-	}
-	else if(fsw & D)
+	} else if(fsw & D)
 		cm = "Denormal Operand";
 	else if(fsw & Z)
 		cm = "Divide-By-Zero";
@@ -299,21 +297,21 @@ fpunote(void)
 	else if(fsw & P)
 		cm = "Precision";
 	else
-		cm =  "Unknown";
+		cm = "Unknown";
 
 	snprint(up->genbuf, sizeof(up->genbuf),
-		"sys: fp: %s Exception ipo=%#llux fsw=%#ux",
-		cm, fpusave->rip, fsw);
+	        "sys: fp: %s Exception ipo=%#llux fsw=%#ux", cm, fpusave->rip,
+	        fsw);
 	return up->genbuf;
 }
 
 char*
 xfpuxf(Ureg* ureg, void* v)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	uint32_t mxcsr;
-	Fxsave *fpusave;
-	char *cm;
+	Fxsave* fpusave;
+	char* cm;
 
 	/*
 	 * #XF - SIMD Floating Point Exception (Vector 18).
@@ -337,31 +335,31 @@ xfpuxf(Ureg* ureg, void* v)
 	 * call.
 	 */
 	mxcsr = fpusave->mxcsr;
-	if((mxcsr & (Im|I)) == I)
+	if((mxcsr & (Im | I)) == I)
 		cm = "Invalid Operation";
-	else if((mxcsr & (Dm|D)) == D)
+	else if((mxcsr & (Dm | D)) == D)
 		cm = "Denormal Operand";
-	else if((mxcsr & (Zm|Z)) == Z)
+	else if((mxcsr & (Zm | Z)) == Z)
 		cm = "Divide-By-Zero";
-	else if((mxcsr & (Om|O)) == O)
+	else if((mxcsr & (Om | O)) == O)
 		cm = "Numeric Overflow";
-	else if((mxcsr & (Um|U)) == U)
+	else if((mxcsr & (Um | U)) == U)
 		cm = "Numeric Underflow";
-	else if((mxcsr & (Pm|P)) == P)
+	else if((mxcsr & (Pm | P)) == P)
 		cm = "Precision";
 	else
-		cm =  "Unknown";
+		cm = "Unknown";
 
 	snprint(up->genbuf, sizeof(up->genbuf),
-		"sys: fp: %s Exception mxcsr=%#ux", cm, mxcsr);
+	        "sys: fp: %s Exception mxcsr=%#ux", cm, mxcsr);
 	return up->genbuf;
 }
 
 void
-fpuxf(Ureg *ureg, void *p)
+fpuxf(Ureg* ureg, void* p)
 {
-	Proc *up = externup();
-	char *n;
+	Proc* up = externup();
+	char* n;
 
 	n = xfpuxf(ureg, p);
 	if(n != nil)
@@ -369,7 +367,7 @@ fpuxf(Ureg *ureg, void *p)
 }
 
 char*
-acfpuxf(Ureg *ureg, void *p)
+acfpuxf(Ureg* ureg, void* p)
 {
 	return xfpuxf(ureg, p);
 }
@@ -377,8 +375,8 @@ acfpuxf(Ureg *ureg, void *p)
 static char*
 xfpumf(Ureg* ureg, void* v)
 {
-	Proc *up = externup();
-	Fxsave *fpusave;
+	Proc* up = externup();
+	Fxsave* fpusave;
 
 	/*
 	 * #MF - x87 Floating Point Exception Pending (Vector 16).
@@ -412,10 +410,10 @@ xfpumf(Ureg* ureg, void* v)
 }
 
 void
-fpumf(Ureg *ureg, void *p)
+fpumf(Ureg* ureg, void* p)
 {
-	Proc *up = externup();
-	char *n;
+	Proc* up = externup();
+	char* n;
 
 	n = xfpumf(ureg, p);
 	if(n != nil)
@@ -423,7 +421,7 @@ fpumf(Ureg *ureg, void *p)
 }
 
 char*
-acfpumf(Ureg *ureg, void *p)
+acfpumf(Ureg* ureg, void* p)
 {
 	return xfpumf(ureg, p);
 }
@@ -431,8 +429,8 @@ acfpumf(Ureg *ureg, void *p)
 static char*
 xfpunm(Ureg* ureg, void* v)
 {
-	Proc *up = externup();
-	Fxsave *fpusave;
+	Proc* up = externup();
+	Fxsave* fpusave;
 
 	/*
 	 * #NM - Device Not Available (Vector 7).
@@ -448,10 +446,10 @@ xfpunm(Ureg* ureg, void* v)
 		return "sys: floating point in note handler";
 
 	if(ureg->ip & KZERO)
-		panic("#NM: proc %d %s state %d ip %#p\n",
-			up->pid, up->text, up->fpustate, ureg->ip);
+		panic("#NM: proc %d %s state %d ip %#p\n", up->pid, up->text,
+		      up->fpustate, ureg->ip);
 
-	switch(up->fpustate){
+	switch(up->fpustate) {
 	case Busy:
 	default:
 		panic("#NM: state %d ip %#p\n", up->fpustate, ureg->ip);
@@ -480,7 +478,8 @@ xfpunm(Ureg* ureg, void* v)
 		 * generating an unmasked exception.
 		 */
 		fpusave = up->fpusave;
-		if((fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I))
+		if((fpusave->fsw & ~fpusave->fcw) &
+		   (Sff | P | U | O | Z | D | I))
 			return fpunote();
 
 		/*
@@ -496,10 +495,10 @@ xfpunm(Ureg* ureg, void* v)
 }
 
 void
-fpunm(Ureg *ureg, void *p)
+fpunm(Ureg* ureg, void* p)
 {
-	Proc *up = externup();
-	char *n;
+	Proc* up = externup();
+	char* n;
 
 	n = xfpunm(ureg, p);
 	if(n != nil)
@@ -507,7 +506,7 @@ fpunm(Ureg *ureg, void *p)
 }
 
 char*
-acfpunm(Ureg *ureg, void *p)
+acfpunm(Ureg* ureg, void* p)
 {
 	return xfpunm(ureg, p);
 }
@@ -516,31 +515,31 @@ void
 fpuinit(void)
 {
 	uint64_t r;
-	Fxsave *fxsave;
-	uint8_t buf[sizeof(Fxsave)+15];
+	Fxsave* fxsave;
+	uint8_t buf[sizeof(Fxsave) + 15];
 
 	/*
 	 * It's assumed there is an integrated FPU, so Em is cleared;
 	 */
 	r = cr0get();
-	r &= ~(Ts|Em);
-	r |= Ne|Mp;
+	r &= ~(Ts | Em);
+	r |= Ne | Mp;
 	cr0put(r);
 
 	r = cr4get();
-	r |= Osxmmexcpt|Osfxsr;
+	r |= Osxmmexcpt | Osfxsr;
 	cr4put(r);
 
 	_fninit();
 	fxsave = (Fxsave*)((PTR2UINT(buf) + 15) & ~15);
 	memset(fxsave, 0, sizeof(Fxsave));
 	_fxsave(fxsave);
-	machp()->fcw = RCn|PCd|P|U|D;
+	machp()->fcw = RCn | PCd | P | U | D;
 	if(fxsave->mxcsrmask == 0)
 		machp()->mxcsrmask = 0x0000FFBF;
 	else
 		machp()->mxcsrmask = fxsave->mxcsrmask;
-	machp()->mxcsr = (Rn|Pm|Um|Dm) & machp()->mxcsrmask;
+	machp()->mxcsr = (Rn | Pm | Um | Dm) & machp()->mxcsrmask;
 	_stts();
 
 	if(machp()->machno != 0)

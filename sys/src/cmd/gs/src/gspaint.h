@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1989, 1992, 1993 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,16 +28,13 @@
 /* Requires gsstate.h */
 
 #ifndef gspaint_INCLUDED
-#  define gspaint_INCLUDED
+#define gspaint_INCLUDED
 
 /* Painting */
-int gs_erasepage(gs_state *),
-    gs_fillpage(gs_state *),
-    gs_fill(gs_state *),
-    gs_eofill(gs_state *),
-    gs_stroke(gs_state *);
+int gs_erasepage(gs_state*), gs_fillpage(gs_state*), gs_fill(gs_state*),
+    gs_eofill(gs_state*), gs_stroke(gs_state*);
 
 /* Image tracing */
-int gs_imagepath(gs_state *, int, int, const byte *);
+int gs_imagepath(gs_state*, int, int, const byte*);
 
 #endif /* gspaint_INCLUDED */

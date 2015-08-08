@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 static int
-fmtBflush(Fmt *f)
+fmtBflush(Fmt* f)
 {
-	Biobufhdr *bp;
+	Biobufhdr* bp;
 
 	bp = f->farg;
 	bp->ocount = (char*)f->to - (char*)f->stop;
@@ -27,7 +27,7 @@ fmtBflush(Fmt *f)
 }
 
 int
-Bvprint(Biobufhdr *bp, char *fmt, va_list arg)
+Bvprint(Biobufhdr* bp, char* fmt, va_list arg)
 {
 	int n;
 	Fmt f;
@@ -39,7 +39,7 @@ Bvprint(Biobufhdr *bp, char *fmt, va_list arg)
 	f.flush = fmtBflush;
 	f.farg = bp;
 	f.nfmt = 0;
-	//f.args = arg;
+	// f.args = arg;
 	va_copy(f.args, arg);
 	n = dofmt(&f, fmt);
 	va_end(f.args);

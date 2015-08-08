@@ -7,50 +7,38 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-#define	PTR	sizeof(char*)
-#define	SHORT	sizeof(int)
-#define	INT	sizeof(int)
-#define	LONG	sizeof(int32_t)
-#define	IDIGIT	30
-#define	MAXCON	30
+#define PTR sizeof(char*)
+#define SHORT sizeof(int)
+#define INT sizeof(int)
+#define LONG sizeof(int32_t)
+#define IDIGIT 30
+#define MAXCON 30
 
-static	int	convcount  = { 10 };
+static int convcount = {10};
 
-#define	PUT(o, c)	if((o)->p < (o)->ep) *(o)->p++ = c
+#define PUT(o, c)                                                              \
+	if((o)->p < (o)->ep)                                                   \
+	*(o)->p++ = c
 
-static	int	noconv(Op*);
-static	int	cconv(Op*);
-static	int	dconv(Op*);
-static	int	hconv(Op*);
-static	int	lconv(Op*);
-static	int	oconv(Op*);
-static	int	sconv(Op*);
-static	int	uconv(Op*);
-static	int	xconv(Op*);
-static	int	percent(Op*);
+static int noconv(Op*);
+static int cconv(Op*);
+static int dconv(Op*);
+static int hconv(Op*);
+static int lconv(Op*);
+static int oconv(Op*);
+static int sconv(Op*);
+static int uconv(Op*);
+static int xconv(Op*);
+static int percent(Op*);
 
-static
-int	(*fmtconv[MAXCON])(Op*) =
-{
-	noconv,
-	cconv, dconv, hconv, lconv,
-	oconv, sconv, uconv, xconv,
-	percent,
+static int (*fmtconv[MAXCON])(Op*) = {
+    noconv, cconv, dconv, hconv, lconv, oconv, sconv, uconv, xconv, percent,
 };
-static
-char	fmtindex[128] =
-{
-	['c'] 1,
-	['d'] 2,
-	['h'] 3,
-	['l'] 4,
-	['o'] 5,
-	['s'] 6,
-	['u'] 7,
-	['x'] 8,
-	['%'] 9,
+static char fmtindex[128] = {
+        ['c'] 1, ['d'] 2, ['h'] 3, ['l'] 4, ['o'] 5,
+        ['s'] 6, ['u'] 7, ['x'] 8, ['%'] 9,
 };
 
 int
@@ -68,7 +56,7 @@ fmtinstall(char c, int (*f)(Op*))
 }
 
 char*
-doprint(char *p, char *ep, char *fmt, void *argp)
+doprint(char* p, char* ep, char* fmt, void* argp)
 {
 	int sf1, c;
 	Op o;
@@ -98,7 +86,7 @@ loop:
 		c = *fmt++;
 	}
 	while(c >= '0' && c <= '9') {
-		o.f1 = o.f1*10 + c-'0';
+		o.f1 = o.f1 * 10 + c - '0';
 		c = *fmt++;
 	}
 	if(sf1)
@@ -109,13 +97,13 @@ loop:
 	while(c >= '0' && c <= '9') {
 		if(o.f2 < 0)
 			o.f2 = 0;
-		o.f2 = o.f2*10 + c-'0';
+		o.f2 = o.f2 * 10 + c - '0';
 		c = *fmt++;
 	}
 l1:
 	if(c == 0)
 		fmt--;
-	c = (*fmtconv[fmtindex[c&0177]])(&o);
+	c = (*fmtconv[fmtindex[c & 0177]])(&o);
 	if(c < 0) {
 		o.f3 |= -c;
 		c = *fmt++;
@@ -126,7 +114,7 @@ l1:
 }
 
 int
-numbconv(Op *op, int base)
+numbconv(Op* op, int base)
 {
 	char b[IDIGIT];
 	int i, f, n, r;
@@ -134,13 +122,13 @@ numbconv(Op *op, int base)
 	int16_t h;
 
 	f = 0;
-	switch(op->f3 & (FLONG|FSHORT|FUNSIGN)) {
+	switch(op->f3 & (FLONG | FSHORT | FUNSIGN)) {
 	case FLONG:
 		v = *(int32_t*)op->argp;
 		r = LONG;
 		break;
 
-	case FUNSIGN|FLONG:
+	case FUNSIGN | FLONG:
 		v = *(uint32_t*)op->argp;
 		r = LONG;
 		break;
@@ -151,7 +139,7 @@ numbconv(Op *op, int base)
 		r = SHORT;
 		break;
 
-	case FUNSIGN|FSHORT:
+	case FUNSIGN | FSHORT:
 		h = *(int*)op->argp;
 		v = (uint16_t)h;
 		r = SHORT;
@@ -171,17 +159,17 @@ numbconv(Op *op, int base)
 		v = -v;
 		f = 1;
 	}
-	b[IDIGIT-1] = 0;
-	for(i = IDIGIT-2;; i--) {
+	b[IDIGIT - 1] = 0;
+	for(i = IDIGIT - 2;; i--) {
 		n = (uint32_t)v % base;
 		n += '0';
 		if(n > '9')
-			n += 'a' - ('9'+1);
+			n += 'a' - ('9' + 1);
 		b[i] = n;
 		if(i < 2)
 			break;
 		v = (uint32_t)v / base;
-		if(op->f2 >= 0 && i >= IDIGIT-op->f2)
+		if(op->f2 >= 0 && i >= IDIGIT - op->f2)
 			continue;
 		if(v <= 0)
 			break;
@@ -189,15 +177,15 @@ numbconv(Op *op, int base)
 sout:
 	if(f)
 		b[--i] = '-';
-	strconv(b+i, op, op->f1, -1);
+	strconv(b + i, op, op->f1, -1);
 	return r;
 }
 
 void
-strconv(char *o, Op *op, int f1, int f2)
+strconv(char* o, Op* op, int f1, int f2)
 {
 	int n, c;
-	char *p;
+	char* p;
 
 	n = strlen(o);
 	if(f1 >= 0)
@@ -205,7 +193,7 @@ strconv(char *o, Op *op, int f1, int f2)
 			PUT(op, ' ');
 			n++;
 		}
-	for(p=o; c = *p++;)
+	for(p = o; c = *p++;)
 		if(f2 != 0) {
 			PUT(op, c);
 			f2--;
@@ -219,16 +207,16 @@ strconv(char *o, Op *op, int f1, int f2)
 	}
 }
 
-static	int
-noconv(Op *op)
+static int
+noconv(Op* op)
 {
 
 	strconv("***", op, 0, -1);
 	return 0;
 }
 
-static	int
-cconv(Op *op)
+static int
+cconv(Op* op)
 {
 	char b[2];
 
@@ -238,58 +226,58 @@ cconv(Op *op)
 	return INT;
 }
 
-static	int
-dconv(Op *op)
+static int
+dconv(Op* op)
 {
 
 	return numbconv(op, 10);
 }
 
-static	int
-hconv(Op *op)
+static int
+hconv(Op* op)
 {
 	USED(op);
 	return -FSHORT;
 }
 
-static	int
-lconv(Op *op)
+static int
+lconv(Op* op)
 {
 	USED(op);
 	return -FLONG;
 }
 
-static	int
-oconv(Op *op)
+static int
+oconv(Op* op)
 {
 	USED(op);
 	return numbconv(op, 8);
 }
 
-static	int
-sconv(Op *op)
+static int
+sconv(Op* op)
 {
 
 	strconv(*(char**)op->argp, op, op->f1, op->f2);
 	return PTR;
 }
 
-static	int
-uconv(Op *op)
+static int
+uconv(Op* op)
 {
 	USED(op);
 	return -FUNSIGN;
 }
 
-static	int
-xconv(Op *op)
+static int
+xconv(Op* op)
 {
 
 	return numbconv(op, 16);
 }
 
-static	int
-percent(Op *op)
+static int
+percent(Op* op)
 {
 
 	PUT(op, '%');

@@ -7,29 +7,29 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
 Dentry*
-getdir(Iobuf *p, int slot)
+getdir(Iobuf* p, int slot)
 {
-	Dentry *d;
+	Dentry* d;
 
 	if(!p)
 		return 0;
-	d = (Dentry*)p->iobuf + slot%DIRPERBUF;
+	d = (Dentry*)p->iobuf + slot % DIRPERBUF;
 	return d;
 }
 
 void
-accessdir(Iobuf *p, Dentry *d, int f)
+accessdir(Iobuf* p, Dentry* d, int f)
 {
 	int32_t t;
 
 	if(p && !isro(p->dev)) {
-		if(!(f & (FWRITE|FWSTAT)) && noatime)
+		if(!(f & (FWRITE | FWSTAT)) && noatime)
 			return;
 		t = time(nil);
-		if(f & (FREAD|FWRITE|FWSTAT)){
+		if(f & (FREAD | FWRITE | FWSTAT)) {
 			d->atime = t;
 			p->flags |= Bmod;
 		}
@@ -42,7 +42,7 @@ accessdir(Iobuf *p, Dentry *d, int f)
 }
 
 void
-dbufread(Iobuf *p, Dentry *d, int32_t a)
+dbufread(Iobuf* p, Dentry* d, int32_t a)
 {
 	USED(p);
 	USED(d);
@@ -50,7 +50,7 @@ dbufread(Iobuf *p, Dentry *d, int32_t a)
 }
 
 int32_t
-rel2abs(Iobuf *p, Dentry *d, int32_t a, int tag, int putb)
+rel2abs(Iobuf* p, Dentry* d, int32_t a, int tag, int putb)
 {
 	int32_t addr, qpath;
 	Device dev;
@@ -66,7 +66,7 @@ rel2abs(Iobuf *p, Dentry *d, int32_t a, int tag, int putb)
 		if(!addr && tag) {
 			addr = balloc(dev, tag, qpath);
 			d->dblock[a] = addr;
-			p->flags |= Bmod|Bimm;
+			p->flags |= Bmod | Bimm;
 		}
 		if(putb)
 			putbuf(p);
@@ -78,7 +78,7 @@ rel2abs(Iobuf *p, Dentry *d, int32_t a, int tag, int putb)
 		if(!addr && tag) {
 			addr = balloc(dev, Tind1, qpath);
 			d->iblock = addr;
-			p->flags |= Bmod|Bimm;
+			p->flags |= Bmod | Bimm;
 		}
 		if(putb)
 			putbuf(p);
@@ -91,12 +91,12 @@ rel2abs(Iobuf *p, Dentry *d, int32_t a, int tag, int putb)
 		if(!addr && tag) {
 			addr = balloc(dev, Tind2, qpath);
 			d->diblock = addr;
-			p->flags |= Bmod|Bimm;
+			p->flags |= Bmod | Bimm;
 		}
 		if(putb)
 			putbuf(p);
-		addr = indfetch(p, d, addr, a/INDPERBUF, Tind2, Tind1);
-		addr = indfetch(p, d, addr, a%INDPERBUF, Tind1, tag);
+		addr = indfetch(p, d, addr, a / INDPERBUF, Tind2, Tind1);
+		addr = indfetch(p, d, addr, a % INDPERBUF, Tind1, tag);
 		return addr;
 	}
 	if(putb)
@@ -106,7 +106,7 @@ rel2abs(Iobuf *p, Dentry *d, int32_t a, int tag, int putb)
 }
 
 Iobuf*
-dnodebuf(Iobuf *p, Dentry *d, int32_t a, int tag)
+dnodebuf(Iobuf* p, Dentry* d, int32_t a, int tag)
 {
 	int32_t addr;
 
@@ -121,7 +121,7 @@ dnodebuf(Iobuf *p, Dentry *d, int32_t a, int tag)
  * to reduce interference.
  */
 Iobuf*
-dnodebuf1(Iobuf *p, Dentry *d, int32_t a, int tag)
+dnodebuf1(Iobuf* p, Dentry* d, int32_t a, int tag)
 {
 	int32_t addr;
 	Device dev;
@@ -131,13 +131,12 @@ dnodebuf1(Iobuf *p, Dentry *d, int32_t a, int tag)
 	if(addr)
 		return getbuf(dev, addr, Bread);
 	return 0;
-
 }
 
 int32_t
-indfetch(Iobuf *p, Dentry *d, int32_t addr, int32_t a, int itag, int tag)
+indfetch(Iobuf* p, Dentry* d, int32_t addr, int32_t a, int itag, int tag)
 {
-	Iobuf *bp;
+	Iobuf* bp;
 
 	if(!addr)
 		return 0;
@@ -167,7 +166,7 @@ indfetch(Iobuf *p, Dentry *d, int32_t addr, int32_t a, int itag, int tag)
 }
 
 void
-dtrunc(Iobuf *p, Dentry *d)
+dtrunc(Iobuf* p, Dentry* d)
 {
 	int i;
 
@@ -175,11 +174,11 @@ dtrunc(Iobuf *p, Dentry *d)
 	d->diblock = 0;
 	bfree(p->dev, d->iblock, 1);
 	d->iblock = 0;
-	for(i=NDBLOCK-1; i>=0; i--) {
+	for(i = NDBLOCK - 1; i >= 0; i--) {
 		bfree(p->dev, d->dblock[i], 0);
 		d->dblock[i] = 0;
 	}
 	d->size = 0;
-	p->flags |= Bmod|Bimm;
+	p->flags |= Bmod | Bimm;
 	accessdir(p, d, FWRITE);
 }

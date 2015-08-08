@@ -11,55 +11,51 @@
 #include <libc.h>
 #include <oventi.h>
 
-enum
-{
-	QueuingW,	/* queuing for write lock */
-	QueuingR,	/* queuing for read lock */
+enum { QueuingW, /* queuing for write lock */
+       QueuingR, /* queuing for read lock */
 };
-
 
 typedef struct Thread Thread;
 
 struct Thread {
 	int pid;
 	int ref;
-	char *error;
+	char* error;
 	int state;
-	Thread *next;
+	Thread* next;
 };
 
 struct VtLock {
 	Lock lk;
-	Thread *writer;		/* thread writering write lock */
-	int readers;		/* number writering read lock */
-	Thread *qfirst;
-	Thread *qlast;
-	uintptr	pc;
+	Thread* writer; /* thread writering write lock */
+	int readers;    /* number writering read lock */
+	Thread* qfirst;
+	Thread* qlast;
+	uintptr pc;
 };
 
 struct VtRendez {
-	VtLock *lk;
-	Thread *wfirst;
-	Thread *wlast;
+	VtLock* lk;
+	Thread* wfirst;
+	Thread* wlast;
 };
 
-enum {
-	ERROR = 0,
+enum { ERROR = 0,
 };
 
-static Thread **vtRock;
+static Thread** vtRock;
 
-static void	vtThreadInit(void);
-static void	threadSleep(Thread*);
-static void	threadWakeup(Thread*);
+static void vtThreadInit(void);
+static void threadSleep(Thread*);
+static void threadWakeup(Thread*);
 
 int
-vtThread(void (*f)(void*), void *rock)
+vtThread(void (*f)(void*), void* rock)
 {
 	int tid;
 
-	tid = rfork(RFNOWAIT|RFMEM|RFPROC);
-	switch(tid){
+	tid = rfork(RFNOWAIT | RFMEM | RFPROC);
+	switch(tid) {
 	case -1:
 		vtOSError();
 		return -1;
@@ -75,7 +71,7 @@ vtThread(void (*f)(void*), void *rock)
 	return 0;
 }
 
-static Thread *
+static Thread*
 threadLookup(void)
 {
 	return *vtRock;
@@ -85,7 +81,7 @@ void
 vtAttach(void)
 {
 	int pid;
-	Thread *p;
+	Thread* p;
 	static int init;
 	static Lock lk;
 
@@ -112,7 +108,7 @@ vtAttach(void)
 void
 vtDetach(void)
 {
-	Thread *p;
+	Thread* p;
 
 	p = *vtRock;
 	assert(p != nil);
@@ -124,10 +120,10 @@ vtDetach(void)
 	}
 }
 
-char *
+char*
 vtGetError(void)
 {
-	char *s;
+	char* s;
 
 	if(ERROR)
 		fprint(2, "vtGetError: %s\n", threadLookup()->error);
@@ -140,8 +136,8 @@ vtGetError(void)
 char*
 vtSetError(char* fmt, ...)
 {
-	Thread *p;
-	char *s;
+	Thread* p;
+	char* s;
 	va_list args;
 
 	p = threadLookup();
@@ -167,7 +163,7 @@ vtThreadInit(void)
 		unlock(&lk);
 		return;
 	}
-	vtRock = (Thread **)privalloc();
+	vtRock = (Thread**)privalloc();
 	if(vtRock == nil)
 		vtFatal("can't allocate thread-private storage");
 	unlock(&lk);
@@ -185,17 +181,17 @@ vtLockAlloc(void)
 void
 vtLockInit(VtLock **p)
 {
-	static Lock lk;
+        static Lock lk;
 
-	lock(&lk);
-	if(*p != nil)
-		*p = vtLockAlloc();
-	unlock(&lk);
+        lock(&lk);
+        if(*p != nil)
+                *p = vtLockAlloc();
+        unlock(&lk);
 }
  */
 
 void
-vtLockFree(VtLock *p)
+vtLockFree(VtLock* p)
 {
 	if(p == nil)
 		return;
@@ -206,9 +202,9 @@ vtLockFree(VtLock *p)
 }
 
 VtRendez*
-vtRendezAlloc(VtLock *p)
+vtRendezAlloc(VtLock* p)
 {
-	VtRendez *q;
+	VtRendez* q;
 
 	q = vtMemAllocZ(sizeof(VtRendez));
 	q->lk = p;
@@ -217,7 +213,7 @@ vtRendezAlloc(VtLock *p)
 }
 
 void
-vtRendezFree(VtRendez *q)
+vtRendezFree(VtRendez* q)
 {
 	if(q == nil)
 		return;
@@ -226,9 +222,9 @@ vtRendezFree(VtRendez *q)
 }
 
 int
-vtCanLock(VtLock *p)
+vtCanLock(VtLock* p)
 {
-	Thread *t;
+	Thread* t;
 
 	lock(&p->lk);
 	t = *vtRock;
@@ -241,11 +237,10 @@ vtCanLock(VtLock *p)
 	return 0;
 }
 
-
 void
-vtLock(VtLock *p)
+vtLock(VtLock* p)
 {
-	Thread *t;
+	Thread* t;
 
 	lock(&p->lk);
 	p->pc = getcallerpc(&p);
@@ -257,7 +252,8 @@ vtLock(VtLock *p)
 	}
 
 	/*
-	 * venti currently contains code that assume locks can be passed between threads :-(
+	 * venti currently contains code that assume locks can be passed between
+	 * threads :-(
 	 * assert(p->writer != t);
 	 */
 
@@ -275,7 +271,7 @@ vtLock(VtLock *p)
 }
 
 int
-vtCanRLock(VtLock *p)
+vtCanRLock(VtLock* p)
 {
 	lock(&p->lk);
 	if(p->writer == nil && p->qfirst == nil) {
@@ -288,9 +284,9 @@ vtCanRLock(VtLock *p)
 }
 
 void
-vtRLock(VtLock *p)
+vtRLock(VtLock* p)
 {
-	Thread *t;
+	Thread* t;
 
 	lock(&p->lk);
 	t = *vtRock;
@@ -301,7 +297,8 @@ vtRLock(VtLock *p)
 	}
 
 	/*
-	 * venti currently contains code that assumes locks can be passed between threads
+	 * venti currently contains code that assumes locks can be passed
+	 * between threads
 	 * assert(p->writer != t);
 	 */
 	if(p->qfirst == nil)
@@ -318,16 +315,17 @@ vtRLock(VtLock *p)
 }
 
 void
-vtUnlock(VtLock *p)
+vtUnlock(VtLock* p)
 {
-	Thread *t, *tt;
+	Thread* t, *tt;
 
 	lock(&p->lk);
 	/*
-	 * venti currently has code that assumes lock can be passed between threads :-)
- 	 * assert(p->writer == *vtRock);
+	 * venti currently has code that assumes lock can be passed between
+	 * threads :-)
+	 * assert(p->writer == *vtRock);
 	 */
- 	assert(p->writer != nil);
+	assert(p->writer != nil);
 	assert(p->readers == 0);
 	t = p->qfirst;
 	if(t == nil) {
@@ -357,9 +355,9 @@ vtUnlock(VtLock *p)
 }
 
 void
-vtRUnlock(VtLock *p)
+vtRUnlock(VtLock* p)
 {
-	Thread *t;
+	Thread* t;
 
 	lock(&p->lk);
 	assert(p->writer == nil && p->readers > 0);
@@ -379,16 +377,17 @@ vtRUnlock(VtLock *p)
 }
 
 int
-vtSleep(VtRendez *q)
+vtSleep(VtRendez* q)
 {
-	Thread *s, *t, *tt;
-	VtLock *p;
+	Thread* s, *t, *tt;
+	VtLock* p;
 
 	p = q->lk;
 	lock(&p->lk);
 	s = *vtRock;
 	/*
-	 * venti currently contains code that assume locks can be passed between threads :-(
+	 * venti currently contains code that assume locks can be passed between
+	 * threads :-(
 	 * assert(p->writer != s);
 	 */
 	assert(p->writer != nil);
@@ -424,10 +423,10 @@ vtSleep(VtRendez *q)
 }
 
 int
-vtWakeup(VtRendez *q)
+vtWakeup(VtRendez* q)
 {
-	Thread *t;
-	VtLock *p;
+	Thread* t;
+	VtLock* p;
 
 	/*
 	 * take off wait and put on front of queue
@@ -436,8 +435,9 @@ vtWakeup(VtRendez *q)
 	p = q->lk;
 	lock(&p->lk);
 	/*
-	 * venti currently has code that assumes lock can be passed between threads :-)
- 	 * assert(p->writer == *vtRock);
+	 * venti currently has code that assumes lock can be passed between
+	 * threads :-)
+	 * assert(p->writer == *vtRock);
 	 */
 	assert(p->writer != nil);
 	t = q->wfirst;
@@ -457,24 +457,24 @@ vtWakeup(VtRendez *q)
 }
 
 int
-vtWakeupAll(VtRendez *q)
+vtWakeupAll(VtRendez* q)
 {
 	int i;
 
-	for(i=0; vtWakeup(q); i++)
+	for(i = 0; vtWakeup(q); i++)
 		;
 	return i;
 }
 
 static void
-threadSleep(Thread *t)
+threadSleep(Thread* t)
 {
 	if(rendezvous(t, (void*)0x22bbdfd6) != (void*)0x44391f14)
 		sysfatal("threadSleep: rendezvous failed: %r");
 }
 
 static void
-threadWakeup(Thread *t)
+threadWakeup(Thread* t)
 {
 	if(rendezvous(t, (void*)0x44391f14) != (void*)0x22bbdfd6)
 		sysfatal("threadWakeup: rendezvous failed: %r");

@@ -18,111 +18,107 @@
 /*
  *	Rotate ammounts used in the algorithm
  */
-enum
-{
-	S11=	3,
-	S12=	7,
-	S13=	11,
-	S14=	19,
+enum { S11 = 3,
+       S12 = 7,
+       S13 = 11,
+       S14 = 19,
 
-	S21=	3,
-	S22=	5,
-	S23=	9,
-	S24=	13,
+       S21 = 3,
+       S22 = 5,
+       S23 = 9,
+       S24 = 13,
 
-	S31=	3,
-	S32=	9,
-	S33=	11,
-	S34=	15,
+       S31 = 3,
+       S32 = 9,
+       S33 = 11,
+       S34 = 15,
 };
 
 typedef struct MD4Table MD4Table;
-struct MD4Table
-{
-	uint8_t	x;	/* index into data block */
-	uint8_t	rot;	/* amount to rotate left by */
+struct MD4Table {
+	uint8_t x;   /* index into data block */
+	uint8_t rot; /* amount to rotate left by */
 };
 
-static MD4Table tab[] =
-{
-	/* round 1 */
-/*[0]*/	{ 0,	S11},	
-	{ 1,	S12},	
-	{ 2,	S13},	
-	{ 3,	S14},	
-	{ 4,	S11},	
-	{ 5,	S12},	
-	{ 6,	S13},	
-	{ 7,	S14},	
-	{ 8,	S11},	
-	{ 9,	S12},	
-	{ 10,	S13},	
-	{ 11,	S14},	
-	{ 12,	S11},	
-	{ 13,	S12},	
-	{ 14,	S13},	
-	{ 15,	S14},
+static MD4Table tab[] = {
+    /* round 1 */
+    /*[0]*/ {0, S11},
+    {1, S12},
+    {2, S13},
+    {3, S14},
+    {4, S11},
+    {5, S12},
+    {6, S13},
+    {7, S14},
+    {8, S11},
+    {9, S12},
+    {10, S13},
+    {11, S14},
+    {12, S11},
+    {13, S12},
+    {14, S13},
+    {15, S14},
 
-	/* round 2 */
-/*[16]*/{ 0,	S21},	
-	{ 4,	S22},	
-	{ 8,	S23},	
-	{ 12,	S24},	
-	{ 1,	S21},	
-	{ 5,	S22},	
-	{ 9,	S23},	
-	{ 13,	S24},	
-	{ 2,	S21},	
-	{ 6,	S22},	
-	{ 10,	S23},	
-	{ 14,	S24},	
-	{ 3,	S21},	
-	{ 7,	S22},	
-	{ 11,	S23},	
-	{ 15,	S24},
+    /* round 2 */
+    /*[16]*/ {0, S21},
+    {4, S22},
+    {8, S23},
+    {12, S24},
+    {1, S21},
+    {5, S22},
+    {9, S23},
+    {13, S24},
+    {2, S21},
+    {6, S22},
+    {10, S23},
+    {14, S24},
+    {3, S21},
+    {7, S22},
+    {11, S23},
+    {15, S24},
 
-	/* round 3 */
-/*[32]*/{ 0,	S31},	
-	{ 8,	S32},	
-	{ 4,	S33},	
-	{ 12,	S34},	
-	{ 2,	S31},	
-	{ 10,	S32},	
-	{ 6,	S33},	
-	{ 14,	S34},	
-	{ 1,	S31},	
-	{ 9,	S32},	
-	{ 5,	S33},	
-	{ 13,	S34},	
-	{ 3,	S31},	
-	{ 11,	S32},	
-	{ 7,	S33},	
-	{ 15,	S34},	
+    /* round 3 */
+    /*[32]*/ {0, S31},
+    {8, S32},
+    {4, S33},
+    {12, S34},
+    {2, S31},
+    {10, S32},
+    {6, S33},
+    {14, S34},
+    {1, S31},
+    {9, S32},
+    {5, S33},
+    {13, S34},
+    {3, S31},
+    {11, S32},
+    {7, S33},
+    {15, S34},
 };
 
 static void encode(uint8_t*, uint32_t*, uint32_t);
 static void decode(uint32_t*, uint8_t*, uint32_t);
 
 static void
-md4block(uint8_t *p, uint32_t len, MD4state *s)
+md4block(uint8_t* p, uint32_t len, MD4state* s)
 {
 	int i;
 	uint32_t a, b, c, d, tmp;
-	MD4Table *t;
-	uint8_t *end;
+	MD4Table* t;
+	uint8_t* end;
 	uint32_t x[16];
 
-	for(end = p+len; p < end; p += 64){
+	for(end = p + len; p < end; p += 64) {
 		a = s->state[0];
 		b = s->state[1];
 		c = s->state[2];
 		d = s->state[3];
 
 		decode(x, p, 64);
-	
-		for(i = 0; i < 48; i++){
+
+		for(i = 0; i < 48; i++) {
 			t = tab + i;
-			switch(i>>4){
+			switch(i >> 4) {
 			case 0:
 				a += (b & c) | (~b & d);
 				break;
@@ -135,7 +131,7 @@ md4block(uint8_t *p, uint32_t len, MD4state *s)
 			}
 			a += x[t->x];
 			a = (a << t->rot) | (a >> (32 - t->rot));
-	
+
 			/* rotate variables */
 			tmp = d;
 			d = c;
@@ -154,14 +150,14 @@ md4block(uint8_t *p, uint32_t len, MD4state *s)
 }
 
 MD4state*
-md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
+md4(uint8_t* p, uint32_t len, uint8_t* digest, MD4state* s)
 {
 	uint32_t x[16];
 	uint8_t buf[128];
 	int i;
-	uint8_t *e;
+	uint8_t* e;
 
-	if(s == nil){
+	if(s == nil) {
 		s = malloc(sizeof(*s));
 		if(s == nil)
 			return nil;
@@ -169,8 +165,9 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
 		s->malloced = 1;
 	}
 
-	if(s->seeded == 0){
-		/* seed the state, these constants would look nicer big-endian */
+	if(s->seeded == 0) {
+		/* seed the state, these constants would look nicer big-endian
+		 */
 		s->state[0] = 0x67452301;
 		s->state[1] = 0xefcdab89;
 		s->state[2] = 0x98badcfe;
@@ -179,7 +176,7 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
 	}
 
 	/* fill out the partial 64 byte block from previous calls */
-	if(s->blen){
+	if(s->blen) {
 		i = 64 - s->blen;
 		if(len < i)
 			i = len;
@@ -187,7 +184,7 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
 		len -= i;
 		s->blen += i;
 		p += i;
-		if(s->blen == 64){
+		if(s->blen == 64) {
 			md4block(s->buf, s->blen, s);
 			s->blen = 0;
 		}
@@ -195,15 +192,15 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
 
 	/* do 64 byte blocks */
 	i = len & ~0x3f;
-	if(i){
+	if(i) {
 		md4block(p, i, s);
 		len -= i;
 		p += i;
 	}
 
 	/* save the left overs if not last call */
-	if(digest == 0){
-		if(len){
+	if(digest == 0) {
+		if(len) {
 			memmove(s->buf, p, len);
 			s->blen += len;
 		}
@@ -214,7 +211,7 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
 	 *  this is the last time through, pad what's left with 0x80,
 	 *  0's, and the input count to create a multiple of 64 bytes
 	 */
-	if(s->blen){
+	if(s->blen) {
 		p = s->buf;
 		len = s->blen;
 	} else {
@@ -232,12 +229,12 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
 	len += i;
 
 	/* append the count */
-	x[0] = s->len<<3;
-	x[1] = s->len>>29;
-	encode(p+len, x, 8);
+	x[0] = s->len << 3;
+	x[1] = s->len >> 29;
+	encode(p + len, x, 8);
 
 	/* digest the last part */
-	md4block(p, len+8, s);
+	md4block(p, len + 8, s);
 
 	/* return result and free state */
 	encode(digest, s->state, MD4dlen);
@@ -251,10 +248,10 @@ md4(uint8_t *p, uint32_t len, uint8_t *digest, MD4state *s)
  *	a multiple of 4.
  */
 static void
-encode(uint8_t *output, uint32_t *input, uint32_t len)
+encode(uint8_t* output, uint32_t* input, uint32_t len)
 {
 	uint32_t x;
-	uint8_t *e;
+	uint8_t* e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -270,11 +267,11 @@ encode(uint8_t *output, uint32_t *input, uint32_t len)
  *	a multiple of 4.
  */
 static void
-decode(uint32_t *output, uint8_t *input, uint32_t len)
+decode(uint32_t* output, uint8_t* input, uint32_t len)
 {
-	uint8_t *e;
+	uint8_t* e;
 
-	for(e = input+len; input < e; input += 4)
-		*output++ = input[0] | (input[1] << 8) |
-			(input[2] << 16) | (input[3] << 24);
+	for(e = input + len; input < e; input += 4)
+		*output++ = input[0] | (input[1] << 8) | (input[2] << 16) |
+		            (input[3] << 24);
 }

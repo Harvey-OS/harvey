@@ -21,12 +21,14 @@
 #undef DBG
 #define DBG iprint
 
-Conf conf;			/* XXX - must go - gag */
+Conf conf; /* XXX - must go - gag */
 
-static uintptr_t sp;		/* XXX - must go - user stack of init proc */
+static uintptr_t sp; /* XXX - must go - user stack of init proc */
 
-/* Next time you see a system with cores/sockets running at different clock rates, on x86,
- * let me know. AFAIK, it no longer happens. So the BSP hz is good for the AP hz.
+/* Next time you see a system with cores/sockets running at different clock
+ * rates, on x86,
+ * let me know. AFAIK, it no longer happens. So the BSP hz is good for the AP
+ * hz.
  */
 int64_t hz;
 
@@ -34,27 +36,26 @@ uintptr_t kseg0 = KZERO;
 Sys* sys = nil;
 usize sizeofSys = sizeof(Sys);
 
-Mach *entrym;
+Mach* entrym;
 /*
  * Option arguments from the command line.
  * oargv[0] is the boot file.
  * Optionsinit() is called from multiboot() to
  * set it all up.
  */
-char *cputype = "amd64";
+char* cputype = "amd64";
 static int64_t oargc;
 static char* oargv[20];
 static char oargb[128];
 static int oargblen;
 
-static int maxcores = 1024;	/* max # of cores given as an argument */
-static int numtcs = 32;		/* initial # of TCs */
+static int maxcores = 1024; /* max # of cores given as an argument */
+static int numtcs = 32;     /* initial # of TCs */
 
 char dbgflg[256];
 static int vflag = 1;
 
 int nosmp = 1;
-
 
 /*
  *	this may need improvement, but right now it's just for
@@ -69,10 +70,12 @@ ktextaddr(uintptr_t pc)
 void
 stacksnippet(void)
 {
-	Stackframe *stkfr;
+	Stackframe* stkfr;
 	print(" stack:");
 	for(stkfr = stackframe(); stkfr != nil; stkfr = stkfr->next)
-		print(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?', ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff) : stkfr->pc);
+		print(" %c:%p", ktextaddr(stkfr->pc) ? 'k' : '?',
+		      ktextaddr(stkfr->pc) ? (stkfr->pc & 0xfffffff)
+		                           : stkfr->pc);
 	print("\n");
 }
 
@@ -84,13 +87,13 @@ machp_bad(void)
 	int i;
 
 	badpc = (uintptr_t)__builtin_return_address(1);
-	for(i = 0; i < nelem(trace); i++){
+	for(i = 0; i < nelem(trace); i++) {
 		if(trace[i] == badpc)
 			return;
 		if(trace[i] == 0)
 			break;
 	}
-	if(i == nelem(trace)){
+	if(i == nelem(trace)) {
 		print("machp_bad: out of trace space\n");
 		return;
 	}
@@ -102,15 +105,15 @@ machp_bad(void)
 void
 optionsinit(char* s)
 {
-	oargblen = strecpy(oargb, oargb+sizeof(oargb), s) - oargb;
-	oargc = tokenize(oargb, oargv, nelem(oargv)-1);
+	oargblen = strecpy(oargb, oargb + sizeof(oargb), s) - oargb;
+	oargc = tokenize(oargb, oargv, nelem(oargv) - 1);
 	oargv[oargc] = nil;
 }
 
 static void
 options(int argc, char* argv[])
 {
-	char *p;
+	char* p;
 	int n, o;
 
 	/*
@@ -120,34 +123,34 @@ options(int argc, char* argv[])
 	 * (no space between flag and level).
 	 * '--' ends flag processing.
 	 */
-	while(--argc > 0 && (*++argv)[0] == '-' && (*argv)[1] != '-'){
-		while(o = *++argv[0]){
+	while(--argc > 0 && (*++argv)[0] == '-' && (*argv)[1] != '-') {
+		while(o = *++argv[0]) {
 			if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
 				continue;
-			n = strtol(argv[0]+1, &p, 0);
-			if(p == argv[0]+1 || n < 1 || n > 127)
+			n = strtol(argv[0] + 1, &p, 0);
+			if(p == argv[0] + 1 || n < 1 || n > 127)
 				n = 1;
-			argv[0] = p-1;
+			argv[0] = p - 1;
 			dbgflg[o] = n;
 		}
 	}
 	vflag = dbgflg['v'];
-	if(argc > 0){
+	if(argc > 0) {
 		maxcores = strtol(argv[0], 0, 0);
 		argc--;
 		argv++;
 	}
-	if(argc > 0){
+	if(argc > 0) {
 		numtcs = strtol(argv[0], 0, 0);
-		//argc--;
-		//argv++;
+		// argc--;
+		// argv++;
 	}
 	// hack.
 	nosmp = dbgflg['n'];
 }
 
 void
-squidboy(int apicno, Mach *mach)
+squidboy(int apicno, Mach* mach)
 {
 	// FIX QEMU. extern int64_t hz;
 	int64_t hz;
@@ -165,13 +168,12 @@ squidboy(int apicno, Mach *mach)
 	// no NIXAC for now.
 	mach->nixtype = NIXTC;
 
-
 	// NOTE: you can't do ANYTHING here before vsvminit.
 	// PRINT WILL PANIC. So wait.
 
 	vsvminit(MACHSTKSZ, mach->nixtype, mach);
 
-	//DBG("Hello squidboy %d %d\n", apicno, machp()->machno);
+	// DBG("Hello squidboy %d %d\n", apicno, machp()->machno);
 
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
@@ -182,8 +184,7 @@ squidboy(int apicno, Mach *mach)
 		hz = 2000000000ll;
 	mach->cpuhz = hz;
 	mach->cyclefreq = hz;
-	mach->cpumhz = hz/1000000ll;
-
+	mach->cpumhz = hz / 1000000ll;
 
 	mmuinit();
 	if(!apiconline())
@@ -205,14 +206,14 @@ squidboy(int apicno, Mach *mach)
 	wrmsr(0x10, sys->epoch);
 	mach->rdtsc = rdtsc();
 
-	print("cpu%d color %d role %s tsc %lld\n",
-		mach->machno, corecolor(mach->machno), rolename[mach->nixtype], mach->rdtsc);
-	switch(mach->nixtype){
+	print("cpu%d color %d role %s tsc %lld\n", mach->machno,
+	      corecolor(mach->machno), rolename[mach->nixtype], mach->rdtsc);
+	switch(mach->nixtype) {
 	case NIXAC:
 		acmmuswitch();
 		acinit();
 		adec(&active.nbooting);
-		ainc(&active.nonline);	/* this was commented out */
+		ainc(&active.nonline); /* this was commented out */
 		acsched();
 		panic("squidboy");
 		break;
@@ -235,7 +236,7 @@ squidboy(int apicno, Mach *mach)
 		ainc(&active.nonline);
 
 		/* Ready? steady? going to timer */
-		//ndnr();
+		// ndnr();
 
 		schedinit();
 		break;
@@ -247,12 +248,13 @@ static void
 testiccs(void)
 {
 	int i;
-	Mach *mach;
+	Mach* mach;
 	extern void testicc(int);
 
 	/* setup arguments for all */
 	for(i = 0; i < MACHMAX; i++)
-		if((mach = sys->machptr[i]) != nil && mach->online && mach->nixtype == NIXAC)
+		if((mach = sys->machptr[i]) != nil && mach->online &&
+		   mach->nixtype == NIXAC)
 			testicc(i);
 	print("bootcore: all cores done\n");
 }
@@ -267,26 +269,27 @@ testiccs(void)
 static void
 nixsquids(void)
 {
-	Mach *mach;
+	Mach* mach;
 	int i;
 	uint64_t now, start;
 
 	/* Not AC for now :-) */
 	for(i = 1; i <= MACHMAX; i++)
-	//for(i = 1; i < MACHMAX; i++)
-		if((mach = sys->machptr[i]) != nil && mach->online){
+		// for(i = 1; i < MACHMAX; i++)
+		if((mach = sys->machptr[i]) != nil && mach->online) {
 			/*
 			 * Inter-core calls. A ensure *mp->iccall and mp->icargs
 			 * go into different cache lines.
 			 */
-			mach->icc = mallocalign(sizeof *machp()->icc, ICCLNSZ, 0, 0);
+			mach->icc =
+			    mallocalign(sizeof *machp()->icc, ICCLNSZ, 0, 0);
 			mach->icc->fn = nil;
-			if(i < numtcs){
+			if(i < numtcs) {
 				sys->nmach++;
 				mach->nixtype = NIXTC;
 				sys->nc[NIXTC]++;
-			}//else
-				//sys->nc[NIXAC]++;
+			} // else
+			// sys->nc[NIXAC]++;
 			ainc(&active.nbooting);
 		}
 	sys->epoch = rdtsc();
@@ -295,10 +298,9 @@ nixsquids(void)
 	machp()->rdtsc = rdtsc();
 	active.thunderbirdsarego = 1;
 	start = fastticks2us(fastticks(nil));
-	do{
+	do {
 		now = fastticks2us(fastticks(nil));
-	}while(active.nbooting > 0 && now - start < 1000000)
-		;
+	} while(active.nbooting > 0 && now - start < 1000000);
 	if(active.nbooting > 0)
 		print("cpu0: %d cores couldn't start\n", active.nbooting);
 	active.nbooting = 0;
@@ -308,7 +310,7 @@ void
 DONE(void)
 {
 	print("DONE\n");
-	//prflush();
+	// prflush();
 	delay(10000);
 	ndnr();
 }
@@ -317,23 +319,25 @@ void
 HERE(void)
 {
 	print("here\n");
-	//prflush();
+	// prflush();
 	delay(5000);
 }
 
 /* The old plan 9 standby ... wave ... */
 
 /* Keep to debug trap.c */
-void wave(int c)
+void
+wave(int c)
 {
 	outb(0x3f8, c);
 }
 
-void hi(char *s)
+void
+hi(char* s)
 {
-	if (! s)
+	if(!s)
 		s = "<NULL>";
-	while (*s)
+	while(*s)
 		wave(*s++);
 }
 
@@ -350,70 +354,77 @@ void hi(char *s)
  */
 
 int staydead = 1;
-void die(char *s)
+void
+die(char* s)
 {
 	wave('d');
 	wave('i');
 	wave('e');
 	wave(':');
 	hi(s);
-	while(staydead);
+	while(staydead)
+		;
 	staydead = 1;
 }
 
 /*
 void bmemset(void *p)
 {
-	__asm__ __volatile__("1: jmp 1b");
+        __asm__ __volatile__("1: jmp 1b");
 }
 
 void put8(uint8_t c)
 {
-	char x[] = "0123456789abcdef";
-	wave(x[c>>4]);
-	wave(x[c&0xf]);
+        char x[] = "0123456789abcdef";
+        wave(x[c>>4]);
+        wave(x[c&0xf]);
 }
 
 void put16(uint16_t s)
 {
-	put8(s>>8);
-	put8(s);
+        put8(s>>8);
+        put8(s);
 }
 
 void put32(uint32_t u)
 {
-	put16(u>>16);
-	put16(u);
+        put16(u>>16);
+        put16(u);
 }
 
 void put64(uint64_t v)
 {
-	put32(v>>32);
-	put32(v);
+        put32(v>>32);
+        put32(v);
 }
 */
 
-void debugtouser(void *va)
+void
+debugtouser(void* va)
 {
-	uintptr_t uva = (uintptr_t) va;
-	PTE *pte, *pml4;
+	uintptr_t uva = (uintptr_t)va;
+	PTE* pte, *pml4;
 
 	pml4 = UINT2PTR(machp()->pml4->va);
 	mmuwalk(pml4, uva, 0, &pte, nil);
-	iprint("va %p m %p m>pml4 %p machp()->pml4->va %p pml4 %p PTE 0x%lx\n", va,
-			machp(), machp()->pml4, machp()->pml4->va, (void *)pml4, *pte);
+	iprint("va %p m %p m>pml4 %p machp()->pml4->va %p pml4 %p PTE 0x%lx\n",
+	       va, machp(), machp()->pml4, machp()->pml4->va, (void*)pml4,
+	       *pte);
 }
 
 /*
 void badcall(uint64_t where, uint64_t what)
 {
-	hi("Bad call from function "); put64(where); hi(" to "); put64(what); hi("\n");
-	while (1)
-		;
+        hi("Bad call from function "); put64(where); hi(" to "); put64(what);
+hi("\n");
+        while (1)
+                ;
 }
 */
 
-void errstr(char *s, int i) {
+void
+errstr(char* s, int i)
+{
 	panic("errstr");
 }
 
@@ -424,47 +435,46 @@ static int x = 0x123456;
  * you create address spaces for procs, i.e. userinit()
  */
 static void
-teardownidmap(Mach *mach)
+teardownidmap(Mach* mach)
 {
 	int i;
 	uintptr_t va = 0;
-	PTE *p;
+	PTE* p;
 	/* loop on the level 2 because we should not assume we know
 	 * how many there are But stop after 1G no matter what, and
 	 * report if there were that many, as that is odd.
 	 */
 	for(i = 0; i < 512; i++, va += BIGPGSZ) {
-		if (mmuwalk(UINT2PTR(mach->pml4->va), va, 1, &p, nil) != 1)
+		if(mmuwalk(UINT2PTR(mach->pml4->va), va, 1, &p, nil) != 1)
 			break;
-		if (! *p)
+		if(!*p)
 			break;
-		iprint("teardown: va %p, pte %p\n", (void *)va, p);
+		iprint("teardown: va %p, pte %p\n", (void*)va, p);
 		*p = 0;
 	}
 	iprint("Teardown: zapped %d PML1 entries\n", i);
 
 	for(i = 2; i < 4; i++) {
-		if (mmuwalk(UINT2PTR(mach->pml4->va), 0, i, &p, nil) != i) {
+		if(mmuwalk(UINT2PTR(mach->pml4->va), 0, i, &p, nil) != i) {
 			iprint("weird; 0 not mapped at %d\n", i);
 			continue;
 		}
 		iprint("teardown: zap %p at level %d\n", p, i);
-		if (p)
+		if(p)
 			*p = 0;
 	}
 }
 
-
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
-	Mach *mach = entrym;
+	Mach* mach = entrym;
 	/* when we get here, entrym is set to core0 mach. */
 	sys->machptr[mach->machno] = entrym;
 	// Very special case for BSP only. Too many things
 	// assume this is set.
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[mach->machno]));
-	if (machp() != mach)
+	if(machp() != mach)
 		panic("mach and machp() are different!!\n");
 	assert(sizeof(Mach) <= PGSZ);
 
@@ -472,24 +482,27 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * Check that our data is on the right boundaries.
 	 * This works because the immediate value is in code.
 	 */
-	//cgaprint(800, "hello harvey\n");
-	//for(;;);
-	if (x != 0x123456)
+	// cgaprint(800, "hello harvey\n");
+	// for(;;);
+	if(x != 0x123456)
 		panic("Data is not set up correctly\n");
 	memset(edata, 0, end - edata);
 
-// TODO(aki): figure this out.
-	mach = (void *) (KZERO + 1048576 + 11*4096);
-	if(mach != machp()){ cgapost(0x01);for(;;); }
-	sys = (void *) (KZERO + 1048576);
-
+	// TODO(aki): figure this out.
+	mach = (void*)(KZERO + 1048576 + 11 * 4096);
+	if(mach != machp()) {
+		cgapost(0x01);
+		for(;;)
+			;
+	}
+	sys = (void*)(KZERO + 1048576);
 
 	/*
 	 * ilock via i8250enable via i8250console
 	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr_t)*8);
+	cgapost(sizeof(uintptr_t) * 8);
 	memset(mach, 0, sizeof(Mach));
 
 	mach->self = (uintptr_t)mach;
@@ -523,7 +536,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	/* It all ends here. */
 	vsvminit(MACHSTKSZ, NIXTC, mach);
-	if (machp() != mach)
+	if(machp() != mach)
 		panic("After vsvminit, m and machp() are different");
 
 	sys->nmach = 1;
@@ -531,20 +544,22 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	fmtinit();
 	print("\nHarvey\n");
 
-	if(vflag){
+	if(vflag) {
 		multiboot(mbmagic, mbaddress, vflag);
 	}
 
 	mach->perf.period = 1;
-	if((hz = archhz()) != 0ll){
+	if((hz = archhz()) != 0ll) {
 		mach->cpuhz = hz;
 		mach->cyclefreq = hz;
 		sys->cyclefreq = hz;
-		mach->cpumhz = hz/1000000ll;
+		mach->cpumhz = hz / 1000000ll;
 	}
-	//iprint("archhz returns 0x%lld\n", hz);
-	//iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
-	//iprint("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
+	// iprint("archhz returns 0x%lld\n", hz);
+	// iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL
+	// pointer\n");
+	// iprint("So, until that's fixed, we bring up AP cores slowly.
+	// Sorry!\n");
 
 	/*
 	 * Mmuinit before meminit because it
@@ -577,7 +592,10 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-if (0){	acpiinit(); hi("	acpiinit();\n");}
+	if(0) {
+		acpiinit();
+		hi("	acpiinit();\n");
+	}
 
 	umeminit();
 	trapinit();
@@ -590,7 +608,6 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	 */
 	i8259init(32);
 
-
 	procinit0();
 	mpsinit(maxcores);
 	apiconline();
@@ -598,7 +615,7 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	if(!nosmp) {
 		sipi();
 	}
-//working.
+	// working.
 	teardownidmap(mach);
 	timersinit();
 	fpuinit();
@@ -630,8 +647,8 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 void
 init0(void)
 {
-	Proc *up = externup();
-	char buf[2*KNAMELEN];
+	Proc* up = externup();
+	char buf[2 * KNAMELEN];
 
 	up->nerrlab = 0;
 
@@ -652,7 +669,7 @@ init0(void)
 
 	devtabinit();
 
-	if(!waserror()){
+	if(!waserror()) {
 		snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", cputype, 0);
@@ -665,7 +682,7 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	//debugtouser((void *)UTZERO);
+	// debugtouser((void *)UTZERO);
 	touser(sp);
 }
 
@@ -674,7 +691,7 @@ bootargs(uintptr_t base)
 {
 	int i;
 	uint32_t ssize;
-	char **av, *p;
+	char** av, *p;
 
 	/*
 	 * Push the boot args onto the stack.
@@ -682,7 +699,7 @@ bootargs(uintptr_t base)
 	 * because there are fewer than the maximum number of
 	 * args by subtracting sizeof(up->arg).
 	 */
-	i = oargblen+1;
+	i = oargblen + 1;
 	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc*)0)->arg) - i));
 	memmove(p, oargb, i);
 
@@ -695,7 +712,7 @@ bootargs(uintptr_t base)
 	 * not the usual (int argc, char* argv[]), but argv0 is
 	 * unused so it doesn't matter (at the moment...).
 	 */
-	av = (char**)(p - (oargc+2)*sizeof(char*));
+	av = (char**)(p - (oargc + 2) * sizeof(char*));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
 	*av++ = (char*)oargc;
 	for(i = 0; i < oargc; i++)
@@ -708,11 +725,11 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
-	Proc *up = externup();
-	Proc *p;
-	Segment *s;
-	KMap *k;
-	Page *pg;
+	Proc* up = externup();
+	Proc* p;
+	Segment* s;
+	KMap* k;
+	Page* pg;
 	int sno;
 
 	p = newproc();
@@ -736,7 +753,8 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
+	p->sched.sp =
+	    PTR2UINT(p->kstack + KSTACK - sizeof(up->arg) - sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -748,9 +766,10 @@ userinit(void)
 	 * shouldn't be the case here.
 	 */
 	sno = 0;
-	s = newseg(SG_STACK|SG_READ|SG_WRITE, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
+	s = newseg(SG_STACK | SG_READ | SG_WRITE, USTKTOP - USTKSIZE,
+	           USTKSIZE / BIGPGSZ);
 	p->seg[sno++] = s;
-	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
+	pg = newpage(1, 0, USTKTOP - BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
@@ -759,21 +778,23 @@ userinit(void)
 	/*
 	 * Text
 	 */
-	s = newseg(SG_TEXT|SG_READ|SG_EXEC, UTZERO, 1);
+	s = newseg(SG_TEXT | SG_READ | SG_EXEC, UTZERO, 1);
 	s->flushme++;
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
-	/* UTZERO is only needed until we make init not have 2M block of zeros at the front. */
-	memmove(UINT2PTR(VA(k) + init_code_start - UTZERO), init_code_out, sizeof(init_code_out));
+	/* UTZERO is only needed until we make init not have 2M block of zeros
+	 * at the front. */
+	memmove(UINT2PTR(VA(k) + init_code_start - UTZERO), init_code_out,
+	        sizeof(init_code_out));
 	kunmap(k);
 
 	/*
 	 * Data
 	 */
-	s = newseg(SG_DATA|SG_READ|SG_WRITE, UTZERO + BIGPGSZ, 1);
+	s = newseg(SG_DATA | SG_READ | SG_WRITE, UTZERO + BIGPGSZ, 1);
 	s->flushme++;
 	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
@@ -781,7 +802,8 @@ userinit(void)
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
 	/* This depends on init having a text segment < 2M. */
-	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)), init_data_out, sizeof(init_data_out));
+	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)),
+	        init_data_out, sizeof(init_data_out));
 	kunmap(k);
 	ready(p);
 }
@@ -792,7 +814,7 @@ confinit(void)
 	int i;
 
 	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
+	for(i = 0; i < nelem(conf.mem); i++)
 		conf.npage += conf.mem[i].npage;
 	conf.nproc = 1000;
 	conf.nimage = 200;
@@ -818,20 +840,19 @@ shutdown(int ispanic)
 		iprint("cpu%d: exiting\n", machp()->machno);
 
 	spllo();
-	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
+	for(ms = 5 * 1000; ms > 0; ms -= TK2MS(2)) {
 		delay(TK2MS(2));
 		if(active.nonline == 0)
 			break;
 	}
 
-	if(active.ispanic && machp()->machno == 0){
+	if(active.ispanic && machp()->machno == 0) {
 		if(cpuserver)
 			delay(30000);
 		else
 			for(;;)
 				halt();
-	}
-	else
+	} else
 		delay(1000);
 }
 

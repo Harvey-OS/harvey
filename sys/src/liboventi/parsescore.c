@@ -12,15 +12,15 @@
 #include <oventi.h>
 
 int
-vtParseScore(char *buf, uint n, uint8_t score[VtScoreSize])
+vtParseScore(char* buf, uint n, uint8_t score[VtScoreSize])
 {
 	int i, c;
 
 	memset(score, 0, VtScoreSize);
 
-	if(n != VtScoreSize*2)
+	if(n != VtScoreSize * 2)
 		return 0;
-	for(i=0; i<VtScoreSize*2; i++){
+	for(i = 0; i < VtScoreSize * 2; i++) {
 		if(buf[i] >= '0' && buf[i] <= '9')
 			c = buf[i] - '0';
 		else if(buf[i] >= 'a' && buf[i] <= 'f')
@@ -32,9 +32,8 @@ vtParseScore(char *buf, uint n, uint8_t score[VtScoreSize])
 
 		if((i & 1) == 0)
 			c <<= 4;
-	
-		score[i>>1] |= c;
+
+		score[i >> 1] |= c;
 	}
 	return 1;
 }
-

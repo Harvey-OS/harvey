@@ -13,10 +13,10 @@
 #include <fcall.h>
 #include "playlist.h"
 
-int	debug;
-char	*user;
-int	srvfd[2];
-int	aflag;
+int debug;
+char* user;
+int srvfd[2];
+int aflag;
 
 void
 usage(void)
@@ -25,7 +25,7 @@ usage(void)
 }
 
 void
-post(char *name, int sfd)
+post(char* name, int sfd)
 {
 	int fd;
 	char buf[32];
@@ -40,11 +40,11 @@ post(char *name, int sfd)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
-	char *srvfile;
-	char *srvpost;
-	char *mntpt;
+	char* srvfile;
+	char* srvpost;
+	char* mntpt;
 	int i;
 
 	mntpt = "/mnt";
@@ -52,7 +52,8 @@ threadmain(int argc, char *argv[])
 
 	rfork(RFNOTEG);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		aflag = 1;
 		break;
@@ -67,7 +68,8 @@ threadmain(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	user = strdup(getuser());
 
@@ -78,7 +80,8 @@ threadmain(int argc, char *argv[])
 
 	volumechan = chancreate(sizeof(volume), 1);
 	playchan = chancreate(sizeof(Wmsg), 1);
-	playlistreq = chancreate(sizeof(Wmsg), 0);	/* No storage! requires rendez-vous */
+	playlistreq =
+	    chancreate(sizeof(Wmsg), 0); /* No storage! requires rendez-vous */
 	workers = chancreate(sizeof(Worker*), 256);
 	for(i = 1; i < Nqid; i++)
 		files[i].workers = chancreate(sizeof(Worker*), 256);
@@ -86,12 +89,12 @@ threadmain(int argc, char *argv[])
 	if(pipe(srvfd) < 0)
 		sysfatal("pipe failed: %r");
 	procrfork(srv, nil, STACKSIZE, RFFDG);
-	close(srvfd[0]);	/* don't deadlock if child fails */
+	close(srvfd[0]); /* don't deadlock if child fails */
 
 	procrfork(volumeproc, nil, STACKSIZE, RFFDG);
 	playinit();
 
-	if(srvpost){
+	if(srvpost) {
 		srvfile = smprint("/srv/playlist.%s", srvpost);
 		remove(srvfile);
 		post(srvfile, srvfd[1]);

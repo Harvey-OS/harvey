@@ -10,8 +10,7 @@
 #include <auth.h>
 #include <fcall.h>
 
-enum {
-	NFidHash	= 503,
+enum { NFidHash = 503,
 };
 
 typedef struct Con Con;
@@ -26,122 +25,119 @@ typedef struct Msg Msg;
 #pragma incomplete Fsys
 
 struct Msg {
-	unsigned char*	data;
-	uint32_t	msize;			/* actual size of data */
-	Fcall	t;
-	Fcall	r;
-	Con*	con;
+	unsigned char* data;
+	uint32_t msize; /* actual size of data */
+	Fcall t;
+	Fcall r;
+	Con* con;
 
-	Msg*	anext;			/* allocation free list */
+	Msg* anext; /* allocation free list */
 
-	Msg*	mnext;			/* all active messsages on this Con */
-	Msg* 	mprev;
+	Msg* mnext; /* all active messsages on this Con */
+	Msg* mprev;
 
-	int	state;			/* */
+	int state; /* */
 
-	Msg*	flush;			/* flushes waiting for this Msg */
+	Msg* flush; /* flushes waiting for this Msg */
 
-	Msg*	rwnext;			/* read/write queue */
-	int	nowq;			/* do not place on write queue */
+	Msg* rwnext; /* read/write queue */
+	int nowq;    /* do not place on write queue */
 };
 
-enum {
-	MsgN		= 0,
-	MsgR		= 1,
-	Msg9		= 2,
-	MsgW		= 3,
-	MsgF		= 4,
+enum { MsgN = 0,
+       MsgR = 1,
+       Msg9 = 2,
+       MsgW = 3,
+       MsgF = 4,
 };
 
-enum {
-	ConNoneAllow	= 1<<0,
-	ConNoAuthCheck	= 1<<1,
-	ConNoPermCheck	= 1<<2,
-	ConWstatAllow	= 1<<3,
-	ConIPCheck	= 1<<4,
+enum { ConNoneAllow = 1 << 0,
+       ConNoAuthCheck = 1 << 1,
+       ConNoPermCheck = 1 << 2,
+       ConWstatAllow = 1 << 3,
+       ConIPCheck = 1 << 4,
 };
 struct Con {
-	char*	name;
-	unsigned char*	data;			/* max, not negotiated */
-	int	isconsole;		/* immutable */
-	int	flags;			/* immutable */
-	char	remote[128];		/* immutable */
-	VtLock*	lock;
-	int	state;
-	int	fd;
-	Msg*	version;
-	uint32_t	msize;			/* negotiated with Tversion */
+	char* name;
+	unsigned char* data; /* max, not negotiated */
+	int isconsole;       /* immutable */
+	int flags;           /* immutable */
+	char remote[128];    /* immutable */
+	VtLock* lock;
+	int state;
+	int fd;
+	Msg* version;
+	uint32_t msize; /* negotiated with Tversion */
 	VtRendez* rendez;
 
-	Con*	anext;			/* alloc */
-	Con*	cnext;			/* in use */
-	Con*	cprev;
+	Con* anext; /* alloc */
+	Con* cnext; /* in use */
+	Con* cprev;
 
-	VtLock*	alock;
-	int	aok;			/* authentication done */
+	VtLock* alock;
+	int aok; /* authentication done */
 
-	VtLock*	mlock;
-	Msg*	mhead;			/* all Msgs on this connection */
-	Msg*	mtail;
+	VtLock* mlock;
+	Msg* mhead; /* all Msgs on this connection */
+	Msg* mtail;
 	VtRendez* mrendez;
 
-	VtLock*	wlock;
-	Msg*	whead;			/* write queue */
-	Msg*	wtail;
+	VtLock* wlock;
+	Msg* whead; /* write queue */
+	Msg* wtail;
 	VtRendez* wrendez;
 
-	VtLock*	fidlock;		/* */
-	Fid*	fidhash[NFidHash];
-	Fid*	fhead;
-	Fid*	ftail;
-	int	nfid;
+	VtLock* fidlock; /* */
+	Fid* fidhash[NFidHash];
+	Fid* fhead;
+	Fid* ftail;
+	int nfid;
 };
 
-enum {
-	ConDead		= 0,
-	ConNew		= 1,
-	ConDown		= 2,
-	ConInit		= 3,
-	ConUp		= 4,
-	ConMoribund	= 5,
+enum { ConDead = 0,
+       ConNew = 1,
+       ConDown = 2,
+       ConInit = 3,
+       ConUp = 4,
+       ConMoribund = 5,
 };
 
 struct Fid {
-	VtLock*	lock;
-	Con*	con;
-	uint32_t	fidno;
-	int	ref;			/* inc/dec under Con.fidlock */
-	int	flags;
+	VtLock* lock;
+	Con* con;
+	uint32_t fidno;
+	int ref; /* inc/dec under Con.fidlock */
+	int flags;
 
-	int	open;
-	Fsys*	fsys;
-	File*	file;
-	Qid	qid;
-	char*	uid;
-	char*	uname;
-	DirBuf*	db;
-	Excl*	excl;
+	int open;
+	Fsys* fsys;
+	File* file;
+	Qid qid;
+	char* uid;
+	char* uname;
+	DirBuf* db;
+	Excl* excl;
 
-	VtLock*	alock;			/* Tauth/Tattach */
+	VtLock* alock; /* Tauth/Tattach */
 	AuthRpc* rpc;
-	char*	cuname;
+	char* cuname;
 
-	Fid*	sort;			/* sorted by uname in cmdWho */
-	Fid*	hash;			/* lookup by fidno */
-	Fid*	next;			/* clunk session with Tversion */
-	Fid*	prev;
+	Fid* sort; /* sorted by uname in cmdWho */
+	Fid* hash; /* lookup by fidno */
+	Fid* next; /* clunk session with Tversion */
+	Fid* prev;
 };
 
-enum {					/* Fid.flags and fidGet(..., flags) */
-	FidFCreate	= 0x01,
-	FidFWlock	= 0x02,
+enum { /* Fid.flags and fidGet(..., flags) */
+       FidFCreate = 0x01,
+       FidFWlock = 0x02,
 };
 
-enum {					/* Fid.open */
-	FidOCreate	= 0x01,
-	FidORead	= 0x02,
-	FidOWrite	= 0x04,
-	FidORclose	= 0x08,
+enum { /* Fid.open */
+       FidOCreate = 0x01,
+       FidORead = 0x02,
+       FidOWrite = 0x04,
+       FidORclose = 0x08,
 };
 
 /*
@@ -234,11 +230,11 @@ extern char* uidnoworld;
 /*
  * Ccli.c
  */
-extern int cliAddCmd(char*, int (*)(int, char*[]));
+extern int cliAddCmd(char*, int (*)(int, char* []));
 extern int cliError(char*, ...);
 extern int cliInit(void);
 extern int cliExec(char*);
-#pragma	varargck	argpos	cliError	1
+#pragma varargck argpos cliError 1
 
 /*
  * Ccmd.c
@@ -259,10 +255,9 @@ extern int consWrite(char*, int);
  */
 extern int consPrint(char*, ...);
 extern int consVPrint(char*, va_list);
-#pragma	varargck	argpos	consPrint	1
+#pragma varargck argpos consPrint 1
 
 /*
  * fossil.c
  */
 extern int Dflag;
-

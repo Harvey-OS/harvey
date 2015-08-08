@@ -12,9 +12,9 @@
 #include <fcall.h>
 
 int
-dirfwstat(int fd, Dir *d)
+dirfwstat(int fd, Dir* d)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	int r;
 
 	r = sizeD2M(d);

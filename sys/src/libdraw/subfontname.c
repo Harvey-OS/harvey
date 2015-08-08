@@ -16,15 +16,15 @@
  */
 
 char*
-subfontname(char *cfname, char *fname, int maxdepth)
+subfontname(char* cfname, char* fname, int maxdepth)
 {
-	char *t, *u, *tmp1, *tmp2;
+	char* t, *u, *tmp1, *tmp2;
 	int i;
 
-	t = strdup(cfname);  /* t is the return string */
+	t = strdup(cfname); /* t is the return string */
 	if(strcmp(cfname, "*default*") == 0)
 		return t;
-	if(t[0] != '/'){
+	if(t[0] != '/') {
 		tmp2 = strdup(fname);
 		u = utfrrune(tmp2, '/');
 		if(u)
@@ -40,8 +40,8 @@ subfontname(char *cfname, char *fname, int maxdepth)
 	if(maxdepth > 8)
 		maxdepth = 8;
 
-	for(i=3; i>=0; i--){
-		if((1<<i) > maxdepth)
+	for(i = 3; i >= 0; i--) {
+		if((1 << i) > maxdepth)
 			continue;
 		/* try i-bit grey */
 		tmp2 = smprint("%s.%d", t, i);

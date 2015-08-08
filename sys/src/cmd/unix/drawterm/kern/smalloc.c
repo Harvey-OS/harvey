@@ -24,4 +24,3 @@ malloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }
-

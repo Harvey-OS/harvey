@@ -12,13 +12,13 @@
 #include <bio.h>
 #include "lib/bzlib.h"
 
-static	Biobuf	bin;
-static	int	debug;
-static	int	verbose;
-static	char	*delfile;
-static	char	*infile;
-static	int	bunzipf(char *file, int stdout);
-static	int	bunzip(int ofd, char *ofile, Biobuf *bin);
+static Biobuf bin;
+static int debug;
+static int verbose;
+static char* delfile;
+static char* infile;
+static int bunzipf(char* file, int stdout);
+static int bunzip(int ofd, char* ofile, Biobuf* bin);
 
 void
 usage(void)
@@ -28,12 +28,13 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i, ok, stdout;
 
 	stdout = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debug++;
 		break;
@@ -45,36 +46,37 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc == 0){
+	if(argc == 0) {
 		Binit(&bin, 0, OREAD);
 		infile = "<stdin>";
 		ok = bunzip(1, "<stdout>", &bin);
-	}else{
+	} else {
 		ok = 1;
 		for(i = 0; i < argc; i++)
 			ok &= bunzipf(argv[i], stdout);
 	}
 
-	exits(ok ? nil: "errors");
+	exits(ok ? nil : "errors");
 }
 
 static int
-bunzipf(char *file, int stdout)
+bunzipf(char* file, int stdout)
 {
 	char ofile[64], *s;
 	int ofd, ifd, ok;
 
 	infile = file;
 	ifd = open(file, OREAD);
-	if(ifd < 0){
+	if(ifd < 0) {
 		fprint(2, "bunzip2: can't open %s: %r\n", file);
 		return 0;
 	}
 
 	Binit(&bin, ifd, OREAD);
-	if(Bgetc(&bin) != 'B' || Bgetc(&bin) != 'Z' || Bgetc(&bin) != 'h'){
+	if(Bgetc(&bin) != 'B' || Bgetc(&bin) != 'Z' || Bgetc(&bin) != 'h') {
 		fprint(2, "bunzip2: %s is not a bzip2 file\n", file);
 		Bterm(&bin);
 		close(ifd);
@@ -84,22 +86,23 @@ bunzipf(char *file, int stdout)
 	Bungetc(&bin);
 	Bungetc(&bin);
 
-	if(stdout){
+	if(stdout) {
 		ofd = 1;
 		strcpy(ofile, "<stdout>");
-	}else{
+	} else {
 		s = strrchr(file, '/');
 		if(s != nil)
 			s++;
 		else
 			s = file;
-		strecpy(ofile, ofile+sizeof ofile, s);
+		strecpy(ofile, ofile + sizeof ofile, s);
 		s = strrchr(ofile, '.');
 		if(s != nil && s != ofile && strcmp(s, ".bz2") == 0)
 			*s = '\0';
-		else if(s != nil && (strcmp(s, ".tbz") == 0 || strcmp(s, ".tbz2") == 0))
+		else if(s != nil &&
+		        (strcmp(s, ".tbz") == 0 || strcmp(s, ".tbz2") == 0))
 			strcpy(s, ".tar");
-		else if(strcmp(file, ofile) == 0){
+		else if(strcmp(file, ofile) == 0) {
 			fprint(2, "bunzip2: can't overwrite %s\n", file);
 			Bterm(&bin);
 			close(ifd);
@@ -107,7 +110,7 @@ bunzipf(char *file, int stdout)
 		}
 
 		ofd = create(ofile, OWRITE, 0666);
-		if(ofd < 0){
+		if(ofd < 0) {
 			fprint(2, "bunzip2: can't create %s: %r\n", ofile);
 			Bterm(&bin);
 			close(ifd);
@@ -119,7 +122,7 @@ bunzipf(char *file, int stdout)
 	ok = bunzip(ofd, ofile, &bin);
 	Bterm(&bin);
 	close(ifd);
-	if(!ok){
+	if(!ok) {
 		fprint(2, "bunzip2: can't write %s: %r\n", ofile);
 		if(delfile)
 			remove(delfile);
@@ -131,7 +134,7 @@ bunzipf(char *file, int stdout)
 }
 
 static int
-bunzip(int ofd, char *ofile, Biobuf *bin)
+bunzip(int ofd, char* ofile, Biobuf* bin)
 {
 	int e, n, done, onemore;
 	char buf[8192];
@@ -162,8 +165,9 @@ bunzip(int ofd, char *ofile, Biobuf *bin)
 		if(!done && strm.avail_in < sizeof buf) {
 			if(strm.avail_in)
 				memmove(buf, strm.next_in, strm.avail_in);
-			
-			n = Bread(bin, buf+strm.avail_in, sizeof(buf)-strm.avail_in);
+
+			n = Bread(bin, buf + strm.avail_in,
+			          sizeof(buf) - strm.avail_in);
 			if(n <= 0)
 				done = 1;
 			else
@@ -171,7 +175,7 @@ bunzip(int ofd, char *ofile, Biobuf *bin)
 			strm.next_in = buf;
 		}
 		if(strm.avail_out < sizeof obuf) {
-			Bwrite(&bout, obuf, sizeof(obuf)-strm.avail_out);
+			Bwrite(&bout, obuf, sizeof(obuf) - strm.avail_out);
 			strm.next_out = obuf;
 			strm.avail_out = sizeof obuf;
 		}
@@ -179,7 +183,7 @@ bunzip(int ofd, char *ofile, Biobuf *bin)
 			break;
 		if(strm.avail_in == 0 && strm.avail_out == sizeof obuf)
 			break;
-	} while((e=BZ2_bzDecompress(&strm)) == BZ_OK || onemore--);
+	} while((e = BZ2_bzDecompress(&strm)) == BZ_OK || onemore--);
 
 	if(e != BZ_STREAM_END) {
 		fprint(2, "bunzip2: decompress failed\n");

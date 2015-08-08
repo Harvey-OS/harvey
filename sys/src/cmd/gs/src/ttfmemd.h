@@ -27,7 +27,7 @@
 /* Memory structure descriptors for the TrueType instruction interpreter. */
 
 #if !defined(ttfmemd_INCLUDED)
-#  define ttfmemd_INCLUDED
+#define ttfmemd_INCLUDED
 
 #include "gsstype.h"
 

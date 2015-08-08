@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights
+  reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,7 +29,7 @@
 /* Requires iref.h */
 
 #ifndef isdata_INCLUDED
-#  define isdata_INCLUDED
+#define isdata_INCLUDED
 
 /*
  * In order to detect under- and overflow with minimum overhead, we put
@@ -56,12 +57,12 @@
  * Define pointers into stacks.  Formerly, these were short (unsegmented)
  * pointers, but this distinction is no longer needed.
  */
-typedef ref *s_ptr;
-typedef const ref *const_s_ptr;
+typedef ref* s_ptr;
+typedef const ref* const_s_ptr;
 
 /* Define an opaque allocator type. */
 #ifndef gs_ref_memory_DEFINED
-#  define gs_ref_memory_DEFINED
+#define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;
 #endif
 
@@ -71,8 +72,8 @@ typedef struct gs_ref_memory_s gs_ref_memory_t;
  * because it has to be possible to copy a stack to a PostScript array.
  */
 #ifndef ref_stack_DEFINED
-typedef struct ref_stack_s ref_stack_t;	/* also defined in idebug.h */
-#  define ref_stack_DEFINED
+typedef struct ref_stack_s ref_stack_t; /* also defined in idebug.h */
+#define ref_stack_DEFINED
 #endif
 /*
  * We divide the stack structure into two parts: ref_stack_params_t, which
@@ -81,29 +82,30 @@ typedef struct ref_stack_s ref_stack_t;	/* also defined in idebug.h */
  */
 typedef struct ref_stack_params_s ref_stack_params_t;
 struct ref_stack_s {
-    /* Following are updated dynamically. */
-    s_ptr p;			/* current top element */
-    /* Following are updated when adding or deleting blocks. */
-    s_ptr bot;			/* bottommost valid element */
-    s_ptr top;			/* topmost valid element = */
-				/* bot + data_size */
-    ref current;		/* t_array for current top block */
-    uint extension_size;	/* total sizes of extn. blocks */
-    uint extension_used;	/* total used sizes of extn. blocks */
-    /* Following are updated rarely. */
-    ref max_stack;		/* t_integer, Max...Stack user param */
-    uint requested;		/* amount of last failing */
-				/* push or pop request */
-    uint margin;		/* # of slots to leave between limit */
-				/* and top */
-    uint body_size;		/* data_size - margin */
-    /* Following are set only at initialization. */
-    ref_stack_params_t *params;
-    gs_ref_memory_t *memory;	/* allocator for params and blocks */
+	/* Following are updated dynamically. */
+	s_ptr p; /* current top element */
+	/* Following are updated when adding or deleting blocks. */
+	s_ptr bot; /* bottommost valid element */
+	s_ptr top; /* topmost valid element = */
+	/* bot + data_size */
+	ref current;         /* t_array for current top block */
+	uint extension_size; /* total sizes of extn. blocks */
+	uint extension_used; /* total used sizes of extn. blocks */
+	/* Following are updated rarely. */
+	ref max_stack;  /* t_integer, Max...Stack user param */
+	uint requested; /* amount of last failing */
+	/* push or pop request */
+	uint margin; /* # of slots to leave between limit */
+	/* and top */
+	uint body_size; /* data_size - margin */
+	/* Following are set only at initialization. */
+	ref_stack_params_t* params;
+	gs_ref_memory_t* memory; /* allocator for params and blocks */
 };
-#define public_st_ref_stack()	/* in istack.c */\
-  gs_public_st_complex_only(st_ref_stack, ref_stack_t, "ref_stack_t",\
-    ref_stack_clear_marks, ref_stack_enum_ptrs, ref_stack_reloc_ptrs, 0)
-#define st_ref_stack_num_ptrs 2	/* current, params */
+#define public_st_ref_stack() /* in istack.c */                                \
+	gs_public_st_complex_only(st_ref_stack, ref_stack_t, "ref_stack_t",    \
+	                          ref_stack_clear_marks, ref_stack_enum_ptrs,  \
+	                          ref_stack_reloc_ptrs, 0)
+#define st_ref_stack_num_ptrs 2 /* current, params */
 
 #endif /* isdata_INCLUDED */

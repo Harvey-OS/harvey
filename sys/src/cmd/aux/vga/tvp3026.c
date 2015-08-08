@@ -20,12 +20,11 @@
  * Why is register access different from the
  * Tvp302[05]?
  */
-enum {
-	Index		= 0x00,		/* Index register */
-	Data		= 0x0A,		/* Data register */
+enum { Index = 0x00, /* Index register */
+       Data = 0x0A,  /* Data register */
 
-	Id		= 0x3F,		/* ID Register */
-	Tvp3026		= 0x26,
+       Id = 0x3F, /* ID Register */
+       Tvp3026 = 0x26,
 };
 
 static uint8_t
@@ -34,7 +33,7 @@ tvp3026io(uint8_t reg, uint8_t data)
 	uint8_t crt55;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
-	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
+	vgaxo(Crtx, 0x55, crt55 | ((reg >> 2) & 0x03));
 	vgao(dacxreg[reg & 0x03], data);
 
 	return crt55;
@@ -46,7 +45,7 @@ tvp3026i(uint8_t reg)
 	uint8_t crt55, r;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
-	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
+	vgaxo(Crtx, 0x55, crt55 | ((reg >> 2) & 0x03));
 	r = vgai(dacxreg[reg & 0x03]);
 	vgaxo(Crtx, 0x55, crt55);
 
@@ -59,7 +58,7 @@ tvp3026xi(uint8_t index)
 	uint8_t crt55, r;
 
 	crt55 = tvp3026io(Index, index);
-	vgaxo(Crtx, 0x55, crt55|((Data>>2) & 0x03));
+	vgaxo(Crtx, 0x55, crt55 | ((Data >> 2) & 0x03));
 	r = vgai(dacxreg[Data & 0x03]);
 	vgaxo(Crtx, 0x55, crt55);
 
@@ -81,7 +80,7 @@ tvp3026xo(uint8_t index, uint8_t data)
 	uint8_t crt55;
 
 	crt55 = tvp3026io(Index, index);
-	vgaxo(Crtx, 0x55, crt55|((Data>>2) & 0x03));
+	vgaxo(Crtx, 0x55, crt55 | ((Data >> 2) & 0x03));
 	vgao(dacxreg[Data & 0x03], data);
 	vgaxo(Crtx, 0x55, crt55);
 }
@@ -89,14 +88,14 @@ tvp3026xo(uint8_t index, uint8_t data)
 static void
 options(Vga* vga, Ctlr* ctlr)
 {
-	ctlr->flag |= Hclk2|Hextsid|Henhanced|Foptions;
+	ctlr->flag |= Hclk2 | Hextsid | Henhanced | Foptions;
 }
 
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t grade;
-	char *p;
+	char* p;
 
 	/*
 	 * Work out the part speed-grade from name. Name can have,
@@ -104,7 +103,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	grade = 110000000;
 	if(p = strrchr(ctlr->name, '-'))
-		grade = strtoul(p+1, 0, 0) * 1000000;
+		grade = strtoul(p + 1, 0, 0) * 1000000;
 
 	/*
 	 * If we don't already have a desired pclk,
@@ -119,7 +118,8 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Determine whether to use clock-doubler or not.
 	 */
-	if((ctlr->flag & Uclk2) == 0 && vga->mode->z == 8 && vga->f[0] > 85000000)
+	if((ctlr->flag & Uclk2) == 0 && vga->mode->z == 8 &&
+	   vga->f[0] > 85000000)
 		resyncinit(vga, ctlr, Uclk2, 0);
 
 	ctlr->flag |= Finit;
@@ -163,36 +163,36 @@ dump(Vga* vga, Ctlr* ctlr)
 		printreg(tvp3026xi(i));
 
 	printitem(ctlr->name, "PCLK");
-	for(i = 0; i < 3; i++){
-		tvp3026xo(0x2C, (i<<4)|(i<<2)|i);
+	for(i = 0; i < 3; i++) {
+		tvp3026xo(0x2C, (i << 4) | (i << 2) | i);
 		printreg(clock[i] = tvp3026xi(0x2D));
 	}
-	f = (RefFreq*(65-clock[1]))/(65-(clock[0] & 0x3F));
+	f = (RefFreq * (65 - clock[1])) / (65 - (clock[0] & 0x3F));
 	f >>= clock[2] & 0x03;
 	Bprint(&stdout, "%23ld", f);
 
 	printitem(ctlr->name, "MCLK");
-	for(i = 0; i < 3; i++){
-		tvp3026xo(0x2C, (i<<4)|(i<<2)|i);
+	for(i = 0; i < 3; i++) {
+		tvp3026xo(0x2C, (i << 4) | (i << 2) | i);
 		printreg(clock[i] = tvp3026xi(0x2E));
 	}
-	f = (RefFreq*(65-clock[1]))/(65-(clock[0] & 0x3F));
+	f = (RefFreq * (65 - clock[1])) / (65 - (clock[0] & 0x3F));
 	f >>= clock[2] & 0x03;
 	Bprint(&stdout, "%23ld", f);
 
 	printitem(ctlr->name, "LCLK");
-	for(i = 0; i < 3; i++){
-		tvp3026xo(0x2C, (i<<4)|(i<<2)|i);
+	for(i = 0; i < 3; i++) {
+		tvp3026xo(0x2C, (i << 4) | (i << 2) | i);
 		printreg(clock[i] = tvp3026xi(0x2F));
 	}
 	Bprint(&stdout, "\n");
 }
 
 Ctlr tvp3026 = {
-	"tvp3026",			/* name */
-	0,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	0,				/* load */
-	dump,				/* dump */
+    "tvp3026", /* name */
+    0,         /* snarf */
+    options,   /* options */
+    init,      /* init */
+    0,         /* load */
+    dump,      /* dump */
 };

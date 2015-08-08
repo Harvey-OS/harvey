@@ -16,44 +16,41 @@
 #include <ndb.h>
 #include "icmp.h"
 
-enum {
-	MAXMSG		= 32,
-	SLEEPMS		= 1000,
+enum { MAXMSG = 32,
+       SLEEPMS = 1000,
 
-	SECOND		= 1000000000LL,
+       SECOND = 1000000000LL,
 };
 
 // dumb gcc enum.
-#define MINUTE (60LL*SECOND)
+#define MINUTE (60LL * SECOND)
 
 typedef struct Req Req;
-struct Req
-{
-	uint16_t	seq;	/* sequence number */
-	int64_t	time;	/* time sent */
-	int64_t	rtt;
-	int	ttl;
-	int	replied;
-	Req	 *next;
+struct Req {
+	uint16_t seq; /* sequence number */
+	int64_t time; /* time sent */
+	int64_t rtt;
+	int ttl;
+	int replied;
+	Req* next;
 };
 
 typedef struct {
-	int	version;
-	char	*net;
-	int	echocmd;
-	int	echoreply;
+	int version;
+	char* net;
+	int echocmd;
+	int echoreply;
 	unsigned iphdrsz;
 
-	void	(*prreply)(Req *r, void *v);
-	void	(*prlost)(uint16_t seq, void *v);
+	void (*prreply)(Req* r, void* v);
+	void (*prlost)(uint16_t seq, void* v);
 } Proto;
 
+Req* first; /* request list */
+Req* last;  /* ... */
+Lock listlock;
 
-Req	*first;		/* request list */
-Req	*last;		/* ... */
-Lock	listlock;
-
-char *argv0;
+char* argv0;
 
 int addresses;
 int debug;
@@ -68,7 +65,7 @@ uint16_t firstseq;
 int64_t sum;
 int waittime = 5000;
 
-static char *network, *target;
+static char* network, *target;
 
 void lost(Req*, void*);
 void reply(Req*, void*);
@@ -76,14 +73,14 @@ void reply(Req*, void*);
 static void
 usage(void)
 {
-	fprint(2,
+	fprint(
+	    2,
 	    "usage: %s [-6alq] [-s msgsize] [-i millisecs] [-n #pings] dest\n",
-		argv0);
+	    argv0);
 	exits("usage");
 }
 
-static void
-catch(void *a, char *msg)
+static void catch(void* a, char* msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -95,98 +92,91 @@ catch(void *a, char *msg)
 }
 
 static void
-prlost4(uint16_t seq, void *v)
+prlost4(uint16_t seq, void* v)
 {
-	Ip4hdr *ip4 = v;
+	Ip4hdr* ip4 = v;
 
 	print("lost %ud: %V -> %V\n", seq, ip4->src, ip4->dst);
 }
 
 static void
-prlost6(uint16_t seq, void *v)
+prlost6(uint16_t seq, void* v)
 {
-	Ip6hdr *ip6 = v;
+	Ip6hdr* ip6 = v;
 
 	print("lost %ud: %I -> %I\n", seq, ip6->src, ip6->dst);
 }
 
 static void
-prreply4(Req *r, void *v)
+prreply4(Req* r, void* v)
 {
-	Ip4hdr *ip4 = v;
+	Ip4hdr* ip4 = v;
 
 	print("%ud: %V -> %V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
-		r->seq - firstseq, ip4->src, ip4->dst, r->rtt, sum/rcvdmsgs,
-		r->ttl);
+	      r->seq - firstseq, ip4->src, ip4->dst, r->rtt, sum / rcvdmsgs,
+	      r->ttl);
 }
 
 static void
-prreply6(Req *r, void *v)
+prreply6(Req* r, void* v)
 {
-	Ip6hdr *ip6 = v;
+	Ip6hdr* ip6 = v;
 
 	print("%ud: %I -> %I rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
-		r->seq - firstseq, ip6->src, ip6->dst, r->rtt, sum/rcvdmsgs,
-		r->ttl);
+	      r->seq - firstseq, ip6->src, ip6->dst, r->rtt, sum / rcvdmsgs,
+	      r->ttl);
 }
 
 static Proto v4pr = {
-	4,		"icmp",
-	EchoRequest,	EchoReply,
-	IPV4HDR_LEN,
-	prreply4,	prlost4,
+    4, "icmp", EchoRequest, EchoReply, IPV4HDR_LEN, prreply4, prlost4,
 };
 static Proto v6pr = {
-	6,		"icmpv6",
-	EchoRequestV6,	EchoReplyV6,
-	IPV6HDR_LEN,
-	prreply6,	prlost6,
+    6, "icmpv6", EchoRequestV6, EchoReplyV6, IPV6HDR_LEN, prreply6, prlost6,
 };
 
-static Proto *proto = &v4pr;
+static Proto* proto = &v4pr;
 
-
-Icmphdr *
-geticmp(void *v)
+Icmphdr*
+geticmp(void* v)
 {
-	char *p = v;
+	char* p = v;
 
-	return (Icmphdr *)(p + proto->iphdrsz);
+	return (Icmphdr*)(p + proto->iphdrsz);
 }
 
 void
-clean(uint16_t seq, int64_t now, void *v)
+clean(uint16_t seq, int64_t now, void* v)
 {
 	int ttl;
-	Req **l, *r;
+	Req** l, *r;
 
 	ttl = 0;
-	if (v) {
-		if (proto->version == 4)
-			ttl = ((Ip4hdr *)v)->ttl;
+	if(v) {
+		if(proto->version == 4)
+			ttl = ((Ip4hdr*)v)->ttl;
 		else
-			ttl = ((Ip6hdr *)v)->ttl;
+			ttl = ((Ip6hdr*)v)->ttl;
 	}
 	lock(&listlock);
 	last = nil;
-	for(l = &first; *l; ){
+	for(l = &first; *l;) {
 		r = *l;
 
-		if(v && r->seq == seq){
-			r->rtt = now-r->time;
+		if(v && r->seq == seq) {
+			r->rtt = now - r->time;
 			r->ttl = ttl;
 			reply(r, v);
 		}
 
-		if(now-r->time > MINUTE){
+		if(now - r->time > MINUTE) {
 			*l = r->next;
-			r->rtt = now-r->time;
+			r->rtt = now - r->time;
 			if(v)
 				r->ttl = ttl;
 			if(r->replied == 0)
 				lost(r, v);
 			free(r);
-		}else{
+		} else {
 			last = r;
 			l = &r->next;
 		}
@@ -194,18 +184,11 @@ clean(uint16_t seq, int64_t now, void *v)
 	unlock(&listlock);
 }
 
-static uint8_t loopbacknet[IPaddrlen] = {
-	0, 0, 0, 0,
-	0, 0, 0, 0,
-	0, 0, 0xff, 0xff,
-	127, 0, 0, 0
-};
-static uint8_t loopbackmask[IPaddrlen] = {
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0, 0, 0
-};
+static uint8_t loopbacknet[IPaddrlen] = {0, 0, 0,    0,    0,   0, 0, 0,
+                                         0, 0, 0xff, 0xff, 127, 0, 0, 0};
+static uint8_t loopbackmask[IPaddrlen] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                          0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                          0xff, 0,    0,    0};
 
 /*
  * find first ip addr suitable for proto and
@@ -213,19 +196,19 @@ static uint8_t loopbackmask[IPaddrlen] = {
  * deprecate link-local and multicast addresses.
  */
 static int
-myipvnaddr(uint8_t *ip, Proto *proto, char *net)
+myipvnaddr(uint8_t* ip, Proto* proto, char* net)
 {
 	int ipisv4, wantv4;
-	Ipifc *nifc;
-	Iplifc *lifc;
+	Ipifc* nifc;
+	Iplifc* lifc;
 	uint8_t mynet[IPaddrlen], linklocal[IPaddrlen];
-	static Ipifc *ifc;
+	static Ipifc* ifc;
 
 	ipmove(linklocal, IPnoaddr);
 	wantv4 = proto->version == 4;
 	ifc = readipifc(net, ifc, -1);
 	for(nifc = ifc; nifc; nifc = nifc->next)
-		for(lifc = nifc->lifc; lifc; lifc = lifc->next){
+		for(lifc = nifc->lifc; lifc; lifc = lifc->next) {
 			maskip(lifc->ip, loopbackmask, mynet);
 			if(ipcmp(mynet, loopbacknet) == 0)
 				continue;
@@ -234,14 +217,14 @@ myipvnaddr(uint8_t *ip, Proto *proto, char *net)
 				continue;
 			}
 			ipisv4 = isv4(lifc->ip) != 0;
-			if(ipcmp(lifc->ip, IPnoaddr) != 0 && wantv4 == ipisv4){
+			if(ipcmp(lifc->ip, IPnoaddr) != 0 && wantv4 == ipisv4) {
 				ipmove(ip, lifc->ip);
 				return 0;
 			}
 		}
 	/* no global unicast addrs found, fall back to link-local, if any */
 	ipmove(ip, linklocal);
-	return ipcmp(ip, IPnoaddr) == 0? -1: 0;
+	return ipcmp(ip, IPnoaddr) == 0 ? -1 : 0;
 }
 
 void
@@ -249,10 +232,10 @@ sender(int fd, int msglen, int interval, int n)
 {
 	int i, extra;
 	uint16_t seq;
-	char buf[64*1024+512];
+	char buf[64 * 1024 + 512];
 	uint8_t me[IPaddrlen], mev4[IPv4addrlen];
-	Icmphdr *icmp;
-	Req *r;
+	Icmphdr* icmp;
+	Req* r;
 
 	srand(time(0));
 	firstseq = seq = rand();
@@ -266,31 +249,31 @@ sender(int fd, int msglen, int interval, int n)
 
 	/* arguably the kernel should fill in the right src addr. */
 	myipvnaddr(me, proto, network);
-	if (proto->version == 4) {
+	if(proto->version == 4) {
 		v6tov4(mev4, me);
-		memmove(((Ip4hdr *)buf)->src, mev4, IPv4addrlen);
+		memmove(((Ip4hdr*)buf)->src, mev4, IPv4addrlen);
 	} else
-		ipmove(((Ip6hdr *)buf)->src, me);
-	if (addresses)
+		ipmove(((Ip6hdr*)buf)->src, me);
+	if(addresses)
 		print("\t%I -> %s\n", me, target);
 
 	if(rint != 0 && interval <= 0)
 		rint = 0;
 	extra = 0;
-	for(i = 0; i < n; i++){
-		if(i != 0){
+	for(i = 0; i < n; i++) {
+		if(i != 0) {
 			if(rint != 0)
 				extra = nrand(interval);
 			sleep(interval + extra);
 		}
 		r = malloc(sizeof *r);
-		if (r == nil)
+		if(r == nil)
 			continue;
 		hnputs(icmp->seq, seq);
 		r->seq = seq;
 		r->next = nil;
 		r->replied = 0;
-		r->time = nsec();	/* avoid early free in reply! */
+		r->time = nsec(); /* avoid early free in reply! */
 		lock(&listlock);
 		if(first == nil)
 			first = r;
@@ -299,7 +282,7 @@ sender(int fd, int msglen, int interval, int n)
 		last = r;
 		unlock(&listlock);
 		r->time = nsec();
-		if(write(fd, buf, msglen) < msglen){
+		if(write(fd, buf, msglen) < msglen) {
 			fprint(2, "%s: write failed: %r\n", argv0);
 			return;
 		}
@@ -314,21 +297,21 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 	int i, n, munged;
 	uint16_t x;
 	int64_t now;
-	uint8_t buf[64*1024+512];
-	Icmphdr *icmp;
-	Req *r;
+	uint8_t buf[64 * 1024 + 512];
+	Icmphdr* icmp;
+	Req* r;
 
 	sum = 0;
-	while(lostmsgs+rcvdmsgs < nmsg){
-		alarm((nmsg-lostmsgs-rcvdmsgs)*interval+waittime);
+	while(lostmsgs + rcvdmsgs < nmsg) {
+		alarm((nmsg - lostmsgs - rcvdmsgs) * interval + waittime);
 		n = read(fd, buf, sizeof buf);
 		alarm(0);
 		now = nsec();
-		if(n <= 0){	/* read interrupted - time to go */
-			clean(0, now+MINUTE, nil);
+		if(n <= 0) { /* read interrupted - time to go */
+			clean(0, now + MINUTE, nil);
 			continue;
 		}
-		if(n < msglen){
+		if(n < msglen) {
 			print("bad len %d/%d\n", n, msglen);
 			continue;
 		}
@@ -341,9 +324,9 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 			print("corrupted reply\n");
 		x = nhgets(icmp->seq);
 		if(icmp->type != proto->echoreply || icmp->code != 0) {
-			print("bad type/code/sequence %d/%d/%d (want %d/%d/%d)\n",
-				icmp->type, icmp->code, x,
-				proto->echoreply, 0, x);
+			print(
+			    "bad type/code/sequence %d/%d/%d (want %d/%d/%d)\n",
+			    icmp->type, icmp->code, x, proto->echoreply, 0, x);
 			continue;
 		}
 		clean(x, now, buf);
@@ -357,18 +340,18 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 
 	if(!quiet && lostmsgs)
 		print("%d out of %d messages lost\n", lostmsgs,
-			lostmsgs+rcvdmsgs);
+		      lostmsgs + rcvdmsgs);
 }
 
 static int
-isdottedquad(char *name)
+isdottedquad(char* name)
 {
 	int dot = 0, digit = 0;
 
-	for (; *name != '\0'; name++)
-		if (*name == '.')
+	for(; *name != '\0'; name++)
+		if(*name == '.')
 			dot++;
-		else if (isdigit(*name))
+		else if(isdigit(*name))
 			digit++;
 		else
 			return 0;
@@ -376,14 +359,14 @@ isdottedquad(char *name)
 }
 
 static int
-isv6lit(char *name)
+isv6lit(char* name)
 {
 	int colon = 0, hex = 0;
 
-	for (; *name != '\0'; name++)
-		if (*name == ':')
+	for(; *name != '\0'; name++)
+		if(*name == ':')
 			colon++;
-		else if (isxdigit(*name))
+		else if(isxdigit(*name))
 			hex++;
 		else
 			return 0;
@@ -392,36 +375,34 @@ isv6lit(char *name)
 
 /* from /sys/src/libc/9sys/dial.c */
 
-enum
-{
-	Maxstring	= 128,
-	Maxpath		= 256,
+enum { Maxstring = 128,
+       Maxpath = 256,
 };
 
 typedef struct DS DS;
 struct DS {
 	/* dist string */
-	char	buf[Maxstring];
-	char	*netdir;
-	char	*proto;
-	char	*rem;
+	char buf[Maxstring];
+	char* netdir;
+	char* proto;
+	char* rem;
 
 	/* other args */
-	char	*local;
-	char	*dir;
-	int	*cfdp;
+	char* local;
+	char* dir;
+	int* cfdp;
 };
 
 /*
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(char* str, DS* ds)
 {
-	char *p, *p2;
+	char* p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
-	ds->buf[Maxstring-1] = 0;
+	ds->buf[Maxstring - 1] = 0;
 
 	p = strchr(ds->buf, '!');
 	if(p == 0) {
@@ -429,7 +410,7 @@ _dial_string_parse(char *str, DS *ds)
 		ds->proto = "net";
 		ds->rem = ds->buf;
 	} else {
-		if(*ds->buf != '/' && *ds->buf != '#'){
+		if(*ds->buf != '/' && *ds->buf != '#') {
 			ds->netdir = 0;
 			ds->proto = ds->buf;
 		} else {
@@ -448,67 +429,68 @@ _dial_string_parse(char *str, DS *ds)
 
 /* side effect: sets network & target */
 static int
-isv4name(char *name)
+isv4name(char* name)
 {
 	int r = 1;
-	char *root, *ip, *pr;
+	char* root, *ip, *pr;
 	DS ds;
 
 	_dial_string_parse(name, &ds);
 
 	/* cope with leading /net.alt/icmp! and the like */
 	root = nil;
-	if (ds.netdir != nil) {
+	if(ds.netdir != nil) {
 		pr = strrchr(ds.netdir, '/');
-		if (pr == nil)
+		if(pr == nil)
 			pr = ds.netdir;
 		else {
 			*pr++ = '\0';
 			root = ds.netdir;
 			network = strdup(root);
 		}
-		if (strcmp(pr, v4pr.net) == 0)
+		if(strcmp(pr, v4pr.net) == 0)
 			return 1;
-		if (strcmp(pr, v6pr.net) == 0)
+		if(strcmp(pr, v6pr.net) == 0)
 			return 0;
 	}
 
 	/* if it's a literal, it's obvious from syntax which proto it is */
 	free(target);
 	target = strdup(ds.rem);
-	if (isdottedquad(ds.rem))
+	if(isdottedquad(ds.rem))
 		return 1;
-	else if (isv6lit(ds.rem))
+	else if(isv6lit(ds.rem))
 		return 0;
 
 	/* map name to ip and look at its syntax */
 	ip = csgetvalue(root, "sys", ds.rem, "ip", nil);
-	if (ip == nil)
+	if(ip == nil)
 		ip = csgetvalue(root, "dom", ds.rem, "ip", nil);
-	if (ip == nil)
+	if(ip == nil)
 		ip = csgetvalue(root, "sys", ds.rem, "ipv6", nil);
-	if (ip == nil)
+	if(ip == nil)
 		ip = csgetvalue(root, "dom", ds.rem, "ipv6", nil);
-	if (ip != nil)
+	if(ip != nil)
 		r = isv4name(ip);
 	free(ip);
 	return r;
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int fd, msglen, interval, nmsg;
-	char *ds;
+	char* ds;
 
-	nsec();		/* make sure time file is already open */
+	nsec(); /* make sure time file is already open */
 
 	fmtinstall('V', eipfmt);
 	fmtinstall('I', eipfmt);
 
 	msglen = interval = 0;
 	nmsg = MAXMSG;
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case '6':
 		proto = &v6pr;
 		break;
@@ -551,14 +533,15 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	} ARGEND;
+	}
+	ARGEND;
 
 	if(msglen < proto->iphdrsz + ICMP_HDRSIZE)
 		msglen = proto->iphdrsz + ICMP_HDRSIZE;
 	if(msglen < 64)
 		msglen = 64;
-	if(msglen >= 64*1024)
-		msglen = 64*1024-1;
+	if(msglen >= 64 * 1024)
+		msglen = 64 * 1024 - 1;
 	if(interval <= 0 && !flood)
 		interval = SLEEPMS;
 
@@ -567,23 +550,23 @@ main(int argc, char **argv)
 
 	notify(catch);
 
-	if (!isv4name(argv[0]))
+	if(!isv4name(argv[0]))
 		proto = &v6pr;
 	ds = netmkaddr(argv[0], proto->net, "1");
 	fd = dial(ds, 0, 0, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "%s: couldn't dial %s: %r\n", argv0, ds);
 		exits("dialing");
 	}
 
-	if (!quiet)
-		print("sending %d %d byte messages %d ms apart to %s\n",
-			nmsg, msglen, interval, ds);
+	if(!quiet)
+		print("sending %d %d byte messages %d ms apart to %s\n", nmsg,
+		      msglen, interval, ds);
 
-	switch(rfork(RFPROC|RFMEM|RFFDG)){
+	switch(rfork(RFPROC | RFMEM | RFFDG)) {
 	case -1:
 		fprint(2, "%s: can't fork: %r\n", argv0);
-		/* fallthrough */
+	/* fallthrough */
 	case 0:
 		rcvr(fd, msglen, interval, nmsg);
 		exits(0);
@@ -595,7 +578,7 @@ main(int argc, char **argv)
 }
 
 void
-reply(Req *r, void *v)
+reply(Req* r, void* v)
 {
 	r->rtt /= 1000LL;
 	sum += r->rtt;
@@ -606,12 +589,13 @@ reply(Req *r, void *v)
 			(*proto->prreply)(r, v);
 		else
 			print("%ud: rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
-				r->seq - firstseq, r->rtt, sum/rcvdmsgs, r->ttl);
+			      r->seq - firstseq, r->rtt, sum / rcvdmsgs,
+			      r->ttl);
 	r->replied = 1;
 }
 
 void
-lost(Req *r, void *v)
+lost(Req* r, void* v)
 {
 	if(!quiet)
 		if(addresses && v != nil)

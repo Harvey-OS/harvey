@@ -22,13 +22,13 @@ consVPrint(char* fmt, va_list args)
 	len = vsnprint(buf, sizeof(buf), fmt, args);
 	ret = consWrite(buf, len);
 
-	while (len-- > 0 && buf[len] == '\n')
+	while(len-- > 0 && buf[len] == '\n')
 		buf[len] = '\0';
 	/*
 	 * if we do this, checking the root fossil (if /sys/log/fossil is there)
 	 * will spew all over the console.
 	 */
-	if (0)
+	if(0)
 		syslog(0, "fossil", "%s", buf);
 	return ret;
 }

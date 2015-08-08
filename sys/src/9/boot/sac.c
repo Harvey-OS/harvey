@@ -17,7 +17,7 @@
  */
 
 void
-configsac(Method *mp)
+configsac(Method* mp)
 {
 	int fd;
 	char cmd[64];

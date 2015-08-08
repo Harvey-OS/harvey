@@ -7,16 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<stdio.h>
+#include <u.h>
+#include <libc.h>
+#include <stdio.h>
 
-int	yylex(void);
+int yylex(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	USED(argc); USED(argv);
+	USED(argc);
+	USED(argv);
 	yylex();
 	exits(0);
 }

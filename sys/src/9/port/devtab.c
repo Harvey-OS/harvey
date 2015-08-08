@@ -53,13 +53,12 @@ devtabshutdown(void)
 		devtab[i]->shutdown();
 }
 
-
 Dev*
 devtabget(int dc, int user)
 {
 	int i;
 
-	for(i = 0; devtab[i] != nil; i++){
+	for(i = 0; devtab[i] != nil; i++) {
 		if(devtab[i]->dc == dc)
 			return devtab[i];
 	}
@@ -73,10 +72,10 @@ devtabget(int dc, int user)
 int32_t
 devtabread(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
-	Dev *dev;
-	char *alloc, *e, *p;
+	Dev* dev;
+	char* alloc, *e, *p;
 
 	alloc = malloc(READSTR);
 	if(alloc == nil)
@@ -84,12 +83,12 @@ devtabread(Chan* c, void* buf, int32_t n, int64_t off)
 
 	p = alloc;
 	e = p + READSTR;
-	for(i = 0; devtab[i] != nil; i++){
+	for(i = 0; devtab[i] != nil; i++) {
 		dev = devtab[i];
 		p = seprint(p, e, "#%C %s\n", dev->dc, dev->name);
 	}
 
-	if(waserror()){
+	if(waserror()) {
 		free(alloc);
 		nexterror();
 	}

@@ -22,22 +22,24 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	DSApriv *k;
-	char *comment;
+	DSApriv* k;
+	char* comment;
 	unsigned char buf[8192], *p;
-	
+
 	fmtinstall('B', mpfmt);
 	fmtinstall('[', encodefmt);
 	comment = "";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		comment = EARGF(usage());
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();

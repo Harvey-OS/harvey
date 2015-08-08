@@ -7,24 +7,22 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-static	Word		*subsub(Word*, char*, char*);
-static	Word		*expandvar(char**);
-static	Bufblock	*varname(char**);
-static	Word		*extractpat(char*, char**, char*,
-					      char*);
-static	int		submatch(char*, Word*, Word*, int*,
-					  char**);
-static	Word		*varmatch(char *);
+static Word* subsub(Word*, char*, char*);
+static Word* expandvar(char**);
+static Bufblock* varname(char**);
+static Word* extractpat(char*, char**, char*, char*);
+static int submatch(char*, Word*, Word*, int*, char**);
+static Word* varmatch(char*);
 
-Word *
-varsub(char **s)
+Word*
+varsub(char** s)
 {
-	Bufblock *b;
-	Word *w;
+	Bufblock* b;
+	Word* w;
 
-	if(**s == '{')		/* either ${name} or ${name: A%B==C%D}*/
+	if(**s == '{') /* either ${name} or ${name: A%B==C%D}*/
 		return expandvar(s);
 
 	b = varname(s);
@@ -40,23 +38,23 @@ varsub(char **s)
  *	extract a variable name
  */
 static Bufblock*
-varname(char **s)
+varname(char** s)
 {
-	Bufblock *b;
-	char *cp;
+	Bufblock* b;
+	char* cp;
 	Rune r;
 	int n;
 
 	b = newbuf();
 	cp = *s;
-	for(;;){
+	for(;;) {
 		n = chartorune(&r, cp);
-		if (!WORDCHR(r))
+		if(!WORDCHR(r))
 			break;
 		rinsert(b, r);
 		cp += n;
 	}
-	if (b->current == b->start){
+	if(b->current == b->start) {
 		SYNERR(-1);
 		fprint(2, "missing variable name <%s>\n", *s);
 		freebuf(b);
@@ -68,15 +66,15 @@ varname(char **s)
 }
 
 static Word*
-varmatch(char *name)
+varmatch(char* name)
 {
-	Word *w;
-	Symtab *sym;
-	
+	Word* w;
+	Symtab* sym;
+
 	sym = symlook(name, S_VAR, 0);
-	if(sym){
-			/* check for at least one non-NULL value */
-		for (w = sym->u.ptr; w; w = w->next)
+	if(sym) {
+		/* check for at least one non-NULL value */
+		for(w = sym->u.ptr; w; w = w->next)
 			if(w->s && *w->s)
 				return wdup(w);
 	}
@@ -84,41 +82,41 @@ varmatch(char *name)
 }
 
 static Word*
-expandvar(char **s)
+expandvar(char** s)
 {
-	Word *w;
-	Bufblock *buf;
-	Symtab *sym;
-	char *cp, *begin, *end;
+	Word* w;
+	Bufblock* buf;
+	Symtab* sym;
+	char* cp, *begin, *end;
 
 	begin = *s;
-	(*s)++;						/* skip the '{' */
+	(*s)++; /* skip the '{' */
 	buf = varname(s);
-	if (buf == 0)
+	if(buf == 0)
 		return 0;
 	cp = *s;
-	if (*cp == '}') {				/* ${name} variant*/
-		(*s)++;					/* skip the '}' */
+	if(*cp == '}') { /* ${name} variant*/
+		(*s)++;  /* skip the '}' */
 		w = varmatch(buf->start);
 		freebuf(buf);
 		return w;
 	}
-	if (*cp != ':') {
+	if(*cp != ':') {
 		SYNERR(-1);
 		fprint(2, "bad variable name <%s>\n", buf->start);
 		freebuf(buf);
 		return 0;
 	}
 	cp++;
-	end = charin(cp , "}");
-	if(end == 0){
+	end = charin(cp, "}");
+	if(end == 0) {
 		SYNERR(-1);
 		fprint(2, "missing '}': %s\n", begin);
 		Exit();
 	}
 	*end = 0;
-	*s = end+1;
-	
+	*s = end + 1;
+
 	sym = symlook(buf->start, S_VAR, 0);
 	if(sym == 0 || sym->u.value == 0)
 		w = newword(buf->start);
@@ -129,14 +127,14 @@ expandvar(char **s)
 }
 
 static Word*
-extractpat(char *s, char **r, char *term, char *end)
+extractpat(char* s, char** r, char* term, char* end)
 {
 	int save;
-	char *cp;
-	Word *w;
+	char* cp;
+	Word* w;
 
 	cp = charin(s, term);
-	if(cp){
+	if(cp) {
 		*r = cp;
 		if(cp == s)
 			return 0;
@@ -152,40 +150,41 @@ extractpat(char *s, char **r, char *term, char *end)
 }
 
 static Word*
-subsub(Word *v, char *s, char *end)
+subsub(Word* v, char* s, char* end)
 {
 	int nmid;
-	Word *head, *tail, *w, *h;
-	Word *a, *b, *c, *d;
-	Bufblock *buf;
-	char *cp, *enda;
+	Word* head, *tail, *w, *h;
+	Word* a, *b, *c, *d;
+	Bufblock* buf;
+	char* cp, *enda;
 
 	a = extractpat(s, &cp, "=%&", end);
 	b = c = d = 0;
 	if(PERCENT(*cp))
-		b = extractpat(cp+1, &cp, "=", end);
+		b = extractpat(cp + 1, &cp, "=", end);
 	if(*cp == '=')
-		c = extractpat(cp+1, &cp, "&%", end);
+		c = extractpat(cp + 1, &cp, "&%", end);
 	if(PERCENT(*cp))
-		d = stow(cp+1);
+		d = stow(cp + 1);
 	else if(*cp)
 		d = stow(cp);
 
 	head = tail = 0;
 	buf = newbuf();
-	for(; v; v = v->next){
+	for(; v; v = v->next) {
 		h = w = 0;
-		if(submatch(v->s, a, b, &nmid, &enda)){
+		if(submatch(v->s, a, b, &nmid, &enda)) {
 			/* enda points to end of A match in source;
-			 * nmid = number of chars between end of A and start of B
+			 * nmid = number of chars between end of A and start of
+			 * B
 			 */
-			if(c){
+			if(c) {
 				h = w = wdup(c);
 				while(w->next)
 					w = w->next;
 			}
-			if(PERCENT(*cp) && nmid > 0){	
-				if(w){
+			if(PERCENT(*cp) && nmid > 0) {
+				if(w) {
 					bufcpy(buf, w->s, strlen(w->s));
 					bufcpy(buf, enda, nmid);
 					insert(buf, 0);
@@ -198,8 +197,8 @@ subsub(Word *v, char *s, char *end)
 				}
 				buf->current = buf->start;
 			}
-			if(d && *d->s){
-				if(w){
+			if(d && *d->s) {
+				if(w) {
 
 					bufcpy(buf, w->s, strlen(w->s));
 					bufcpy(buf, d->s, strlen(d->s));
@@ -216,7 +215,7 @@ subsub(Word *v, char *s, char *end)
 		}
 		if(w == 0)
 			h = w = newword(v->s);
-	
+
 		if(head == 0)
 			head = h;
 		else
@@ -232,32 +231,32 @@ subsub(Word *v, char *s, char *end)
 }
 
 static int
-submatch(char *s, Word *a, Word *b, int *nmid, char **enda)
+submatch(char* s, Word* a, Word* b, int* nmid, char** enda)
 {
-	Word *w;
+	Word* w;
 	int n;
-	char *end;
+	char* end;
 
 	n = 0;
-	for(w = a; w; w = w->next){
+	for(w = a; w; w = w->next) {
 		n = strlen(w->s);
 		if(strncmp(s, w->s, n) == 0)
 			break;
 	}
-	if(a && w == 0)		/*  a == NULL matches everything*/
+	if(a && w == 0) /*  a == NULL matches everything*/
 		return 0;
 
-	*enda = s+n;		/* pointer to end a A part match */
-	*nmid = strlen(s)-n;	/* size of remainder of source */
-	end = *enda+*nmid;
-	for(w = b; w; w = w->next){
+	*enda = s + n;         /* pointer to end a A part match */
+	*nmid = strlen(s) - n; /* size of remainder of source */
+	end = *enda + *nmid;
+	for(w = b; w; w = w->next) {
 		n = strlen(w->s);
-		if(strcmp(w->s, end-n) == 0){
+		if(strcmp(w->s, end - n) == 0) {
 			*nmid -= n;
 			break;
 		}
 	}
-	if(b && w == 0)		/* b == NULL matches everything */
+	if(b && w == 0) /* b == NULL matches everything */
 		return 0;
 	return 1;
 }

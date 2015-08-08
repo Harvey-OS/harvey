@@ -19,22 +19,22 @@
 #include "lib.h"
 #include "dir.h"
 
-#define	CESC	'\\'
-#define	CINTR	0177	/* DEL */
-#define	CQUIT	034	/* FS, cntl | */
-#define	CERASE	010	/* BS */
-#define	CKILL	025 /* cntl u */
-#define	CEOF	04	/* cntl d */
-#define	CSTART	021	/* cntl q */
-#define	CSTOP	023	/* cntl s */
-#define	CSWTCH	032	/* cntl z */
-#define CEOL	000
-#define	CNSWTCH	0
+#define CESC '\\'
+#define CINTR 0177 /* DEL */
+#define CQUIT 034  /* FS, cntl | */
+#define CERASE 010 /* BS */
+#define CKILL 025  /* cntl u */
+#define CEOF 04    /* cntl d */
+#define CSTART 021 /* cntl q */
+#define CSTOP 023  /* cntl s */
+#define CSWTCH 032 /* cntl z */
+#define CEOL 000
+#define CNSWTCH 0
 
 static int
 isptty(int fd)
 {
-	Dir *d;
+	Dir* d;
 	int rv;
 
 	if((d = _dirfstat(fd)) == nil)
@@ -45,7 +45,7 @@ isptty(int fd)
 }
 
 int
-tcgetattr(int fd, struct termios *t)
+tcgetattr(int fd, struct termios* t)
 {
 	int n;
 	char buf[60];
@@ -53,10 +53,10 @@ tcgetattr(int fd, struct termios *t)
 	if(!isptty(fd)) {
 		if(isatty(fd)) {
 			/* If there is no emulation return sensible defaults */
-			t->c_iflag = ISTRIP|ICRNL|IXON|IXOFF;
-			t->c_oflag = OPOST|TAB3|ONLCR;
+			t->c_iflag = ISTRIP | ICRNL | IXON | IXOFF;
+			t->c_oflag = OPOST | TAB3 | ONLCR;
 			t->c_cflag = B9600;
-			t->c_lflag = ISIG|ICANON|ECHO|ECHOE|ECHOK;
+			t->c_lflag = ISIG | ICANON | ECHO | ECHOE | ECHOK;
 			t->c_cc[VINTR] = CINTR;
 			t->c_cc[VQUIT] = CQUIT;
 			t->c_cc[VERASE] = CERASE;
@@ -82,13 +82,13 @@ tcgetattr(int fd, struct termios *t)
 		return -1;
 	}
 
-	t->c_iflag = strtoul(buf+4, 0, 16);
-	t->c_oflag = strtoul(buf+9, 0, 16);
-	t->c_cflag = strtoul(buf+14, 0, 16);
-	t->c_lflag = strtoul(buf+19, 0, 16);
+	t->c_iflag = strtoul(buf + 4, 0, 16);
+	t->c_oflag = strtoul(buf + 9, 0, 16);
+	t->c_cflag = strtoul(buf + 14, 0, 16);
+	t->c_lflag = strtoul(buf + 19, 0, 16);
 
 	for(n = 0; n < NCCS; n++)
-		t->c_cc[n] = strtoul(buf+24+(n*3), 0, 16);
+		t->c_cc[n] = strtoul(buf + 24 + (n * 3), 0, 16);
 
 	return 0;
 }
@@ -96,7 +96,7 @@ tcgetattr(int fd, struct termios *t)
 /* BUG: ignores optional actions */
 
 int
-tcsetattr(int fd, int, const struct termios *t)
+tcsetattr(int fd, int, const struct termios* t)
 {
 	int n, i;
 	char buf[100];
@@ -108,11 +108,11 @@ tcsetattr(int fd, int, const struct termios *t)
 		} else
 			return 0;
 	}
-	n = sprintf(buf, "IOW %4.4x %4.4x %4.4x %4.4x ",
-		t->c_iflag, t->c_oflag, t->c_cflag, t->c_lflag);
+	n = sprintf(buf, "IOW %4.4x %4.4x %4.4x %4.4x ", t->c_iflag, t->c_oflag,
+	            t->c_cflag, t->c_lflag);
 
 	for(i = 0; i < NCCS; i++)
-		n += sprintf(buf+n, "%2.2x ", t->c_cc[i]);
+		n += sprintf(buf + n, "%2.2x ", t->c_cc[i]);
 
 	if(_SEEK(fd, -2, 0) != -2) {
 		_syserrno();
@@ -176,7 +176,7 @@ tcgetpgrp(int fd)
 		_syserrno();
 		return -1;
 	}
-	pgrp = atoi(buf+24+(NCCS*3));
+	pgrp = atoi(buf + 24 + (NCCS * 3));
 	return pgrp;
 }
 

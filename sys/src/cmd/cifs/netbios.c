@@ -19,39 +19,33 @@
 #include <9p.h>
 #include "cifs.h"
 
-enum {
-	MAXNBPKT		= 8096,		/* max netbios packet size */
-	NBquery			= 0,		/* packet type - query */
+enum { MAXNBPKT = 8096, /* max netbios packet size */
+       NBquery = 0,     /* packet type - query */
 
-	NBAdapterStatus		= 0x21,		/* get host interface info */
-	NBInternet		= 1,		/* scope for info */
+       NBAdapterStatus = 0x21, /* get host interface info */
+       NBInternet = 1,         /* scope for info */
 
-	NBmessage 		= 0x00,		/* Netbios packet types */
-	NBrequest 		= 0x81,
-	NBpositive,
-	NBnegative,
-	NBretarget,
-	NBkeepalive,
+       NBmessage = 0x00, /* Netbios packet types */
+       NBrequest = 0x81,
+       NBpositive,
+       NBnegative,
+       NBretarget,
+       NBkeepalive,
 
-	ISgroup			= 0x8000,
+       ISgroup = 0x8000,
 };
 
-
-static char *NBerr[] = {
-	[0]	"not listening on called name",
-	[1]	"not listening for calling name",
-	[2]	"called name not present",
-	[3]	"insufficient resources",
-	[15]	"unspecified error"
-};
-
+static char* NBerr[] = {[0] "not listening on called name",
+                        [1] "not listening for calling name",
+                        [2] "called name not present",
+                        [3] "insufficient resources", [15] "unspecified error"};
 
 static uint32_t
-GL32(uint8_t **p)
+GL32(uint8_t** p)
 {
 	uint32_t n;
 
-	n  = *(*p)++;
+	n = *(*p)++;
 	n |= *(*p)++ << 8;
 	n |= *(*p)++ << 16;
 	n |= *(*p)++ << 24;
@@ -59,31 +53,30 @@ GL32(uint8_t **p)
 }
 
 static uint16_t
-GL16(uint8_t **p)
+GL16(uint8_t** p)
 {
 	uint16_t n;
 
-	n  = *(*p)++;
+	n = *(*p)++;
 	n |= *(*p)++ << 8;
 	return n;
 }
 
 void
-Gmem(uint8_t **p, void *v, int n)
+Gmem(uint8_t** p, void* v, int n)
 {
-	uint8_t *str = v;
+	uint8_t* str = v;
 
 	while(n--)
 		*str++ = *(*p)++;
 }
 
-
 static uint32_t
-GB32(uint8_t **p)
+GB32(uint8_t** p)
 {
 	uint32_t n;
 
-	n  = *(*p)++ << 24;
+	n = *(*p)++ << 24;
 	n |= *(*p)++ << 16;
 	n |= *(*p)++ << 8;
 	n |= *(*p)++;
@@ -91,37 +84,36 @@ GB32(uint8_t **p)
 }
 
 static uint16_t
-GB16(uint8_t **p)
+GB16(uint8_t** p)
 {
 	uint16_t n;
 
-	n  = *(*p)++ << 8;
+	n = *(*p)++ << 8;
 	n |= *(*p)++;
 	return n;
 }
 
 static uint8_t
-G8(uint8_t **p)
+G8(uint8_t** p)
 {
 	return *(*p)++;
 }
 
 static void
-PB16(uint8_t **p, uint n)
+PB16(uint8_t** p, uint n)
 {
 	*(*p)++ = n >> 8;
 	*(*p)++ = n;
 }
 
 static void
-P8(uint8_t **p, uint n)
+P8(uint8_t** p, uint n)
 {
 	*(*p)++ = n;
 }
 
-
 static void
-nbname(uint8_t **p, char *name, char pad)
+nbname(uint8_t** p, char* name, char pad)
 {
 	char c;
 	int i;
@@ -141,9 +133,9 @@ nbname(uint8_t **p, char *name, char pad)
 }
 
 int
-calledname(char *host, char *name)
+calledname(char* host, char* name)
 {
-	char *addr;
+	char* addr;
 	uint8_t buf[1024], *p;
 	static char tmp[20];
 	int num, flg, svs, j, i, fd, trn;
@@ -156,25 +148,25 @@ calledname(char *host, char *name)
 		return -1;
 	p = buf;
 
-	PB16(&p, trn);			/* TRNid */
-	P8(&p, 0);			/* flags */
-	P8(&p, 0x10);			/* type */
-	PB16(&p, 1);			/* # questions */
-	PB16(&p, 0);			/* # answers */
-	PB16(&p, 0);			/* # authority RRs */
-	PB16(&p, 0);			/* # Aditional RRs */
+	PB16(&p, trn); /* TRNid */
+	P8(&p, 0);     /* flags */
+	P8(&p, 0x10);  /* type */
+	PB16(&p, 1);   /* # questions */
+	PB16(&p, 0);   /* # answers */
+	PB16(&p, 0);   /* # authority RRs */
+	PB16(&p, 0);   /* # Aditional RRs */
 	nbname(&p, "*", 0);
 	PB16(&p, NBAdapterStatus);
 	PB16(&p, NBInternet);
 
 	if(Debug && strstr(Debug, "dump"))
-		xd(nil, buf, p-buf);
+		xd(nil, buf, p - buf);
 
-	if(write(fd, buf, p-buf) != p-buf)
+	if(write(fd, buf, p - buf) != p - buf)
 		return -1;
 
 	p = buf;
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 3; i++) {
 		memset(buf, 0, sizeof(buf));
 		alarm(NBNSTOUT);
 		read(fd, buf, sizeof(buf));
@@ -186,10 +178,10 @@ calledname(char *host, char *name)
 	if(i >= 3)
 		return -1;
 
-	p = buf +56;
-	num = G8(&p);			/* number of names */
+	p = buf + 56;
+	num = G8(&p); /* number of names */
 
-	for(i = 0; i < num; i++){
+	for(i = 0; i < num; i++) {
 		memset(tmp, 0, sizeof(tmp));
 		Gmem(&p, tmp, 15);
 		svs = G8(&p);
@@ -202,34 +194,34 @@ calledname(char *host, char *name)
 	return 0;
 }
 
-
 int
-nbtdial(char *addr, char *called, char *sysname)
+nbtdial(char* addr, char* called, char* sysname)
 {
 	char redir[20];
-	uint8_t *p, *lenp, buf[1024];
+	uint8_t* p, *lenp, buf[1024];
 	int type, len, err, fd, nkeepalive, nretarg;
 
 	nretarg = 0;
 	nkeepalive = 0;
 Redial:
 	if((addr = netmkaddr(addr, "tcp", "139")) == nil ||
-	    (fd = dial(addr, 0, 0, 0)) < 0)
+	   (fd = dial(addr, 0, 0, 0)) < 0)
 		return -1;
 
 	memset(buf, 0, sizeof(buf));
 
 	p = buf;
-	P8(&p, NBrequest);		/* type */
-	P8(&p, 0);			/* flags */
-	lenp = p; PB16(&p, 0);		/* length placeholder */
-	nbname(&p, called, ' ');	/* remote NetBios name */
-	nbname(&p, sysname, ' ');	/* our machine name */
-	PB16(&lenp, p-lenp -2);		/* length re-write */
+	P8(&p, NBrequest); /* type */
+	P8(&p, 0);         /* flags */
+	lenp = p;
+	PB16(&p, 0);               /* length placeholder */
+	nbname(&p, called, ' ');   /* remote NetBios name */
+	nbname(&p, sysname, ' ');  /* our machine name */
+	PB16(&lenp, p - lenp - 2); /* length re-write */
 
 	if(Debug && strstr(Debug, "dump"))
-		xd(nil, buf, p-buf);
-	if(write(fd, buf, p-buf) != p-buf)
+		xd(nil, buf, p - buf);
+	if(write(fd, buf, p - buf) != p - buf)
 		goto Error;
 Reread:
 	p = buf;
@@ -238,14 +230,14 @@ Reread:
 		goto Error;
 
 	type = G8(&p);
-	G8(&p);				/* flags */
+	G8(&p); /* flags */
 	len = GB16(&p);
 
-	if(readn(fd, buf +4, len -4) < len -4)
+	if(readn(fd, buf + 4, len - 4) < len - 4)
 		goto Error;
 
 	if(Debug && strstr(Debug, "dump"))
-		xd(nil, buf, len+4);
+		xd(nil, buf, len + 4);
 
 	switch(type) {
 	case NBpositive:
@@ -263,7 +255,7 @@ Reread:
 
 		goto Error;
 	case NBkeepalive:
-		if(++nkeepalive >= 16){
+		if(++nkeepalive >= 16) {
 			werrstr("nbdial: too many keepalives");
 			goto Error;
 		}
@@ -283,7 +275,8 @@ Reread:
 		goto Redial;
 
 	default:
-		werrstr("nbdial: 0x%x - unknown packet in netbios handshake", type);
+		werrstr("nbdial: 0x%x - unknown packet in netbios handshake",
+		        type);
 		goto Error;
 	}
 Error:
@@ -292,31 +285,31 @@ Error:
 }
 
 void
-nbthdr(Pkt *p)
+nbthdr(Pkt* p)
 {
 	p->pos = p->buf;
 	memset(p->buf, 0xa5, MTU);
 
-	p8(p, NBmessage);		/* type */
-	p8(p, 0);			/* flags */
-	pb16(p, 0);			/* length (filled in later) */
+	p8(p, NBmessage); /* type */
+	p8(p, 0);         /* flags */
+	pb16(p, 0);       /* length (filled in later) */
 }
 
 int
-nbtrpc(Pkt *p)
+nbtrpc(Pkt* p)
 {
 	int len, got, type, nkeep;
 
 	len = p->pos - p->buf;
 
-	p->pos = p->buf +2;
-	pb16(p, len - NBHDRLEN);	/* length */
+	p->pos = p->buf + 2;
+	pb16(p, len - NBHDRLEN); /* length */
 
 	if(Debug && strstr(Debug, "dump"))
 		xd("tx", p->buf, len);
 
 	alarm(NBRPCTOUT);
-	if(write(p->s->fd, p->buf, len) != len){
+	if(write(p->s->fd, p->buf, len) != len) {
 		werrstr("nbtrpc: write failed - %r");
 		alarm(0);
 		return -1;
@@ -329,60 +322,60 @@ retry:
 
 	got = readn(p->s->fd, p->buf, NBHDRLEN);
 
-	if(got < NBHDRLEN){
+	if(got < NBHDRLEN) {
 		werrstr("nbtrpc: short read - %r");
 		alarm(0);
 		return -1;
 	}
 	p->eop = p->buf + got;
 
-	type = g8(p);			/* NBT type (session) */
-	if(type == NBkeepalive){
+	type = g8(p); /* NBT type (session) */
+	if(type == NBkeepalive) {
 		if(++nkeep > 16) {
-			werrstr("nbtrpc: too many keepalives (%d attempts)", nkeep);
+			werrstr("nbtrpc: too many keepalives (%d attempts)",
+			        nkeep);
 			alarm(0);
 			return -1;
 		}
 		goto retry;
 	}
 
-	g8(p);				/* NBT flags (none) */
+	g8(p); /* NBT flags (none) */
 
-	len = gb16(p);			/* NBT payload length */
-	if((len +NBHDRLEN) > MTU){
+	len = gb16(p); /* NBT payload length */
+	if((len + NBHDRLEN) > MTU) {
 		werrstr("nbtrpc: packet bigger than MTU, (%d > %d)", len, MTU);
 		alarm(0);
 		return -1;
 	}
 
-	got = readn(p->s->fd, p->buf +NBHDRLEN, len);
+	got = readn(p->s->fd, p->buf + NBHDRLEN, len);
 	alarm(0);
 
 	if(Debug && strstr(Debug, "dump"))
-		xd("rx", p->buf, got +NBHDRLEN);
+		xd("rx", p->buf, got + NBHDRLEN);
 
 	if(got < 0)
 		return -1;
-	p->eop = p->buf + got +NBHDRLEN;
-	return got+NBHDRLEN;
+	p->eop = p->buf + got + NBHDRLEN;
+	return got + NBHDRLEN;
 }
 
-
 void
-xd(char *str, void *buf, int n)
+xd(char* str, void* buf, int n)
 {
 	int fd, flg, flags2, cmd;
 	uint sum;
 	int32_t err;
-	uint8_t *p, *end;
+	uint8_t* p, *end;
 
 	if(n == 0)
 		return;
 
 	p = buf;
-	end = (uint8_t *)buf +n;
+	end = (uint8_t*)buf + n;
 
-	if(Debug && strstr(Debug, "log") != nil){
+	if(Debug && strstr(Debug, "log") != nil) {
 		if((fd = open("pkt.log", ORDWR)) == -1)
 			return;
 		seek(fd, 0, 2);
@@ -397,12 +390,12 @@ xd(char *str, void *buf, int n)
 	if(!str)
 		goto Raw;
 
-	p = (uint8_t *)buf + 4;
-	if(GL32(&p) == 0x424d53ff){
-		buf = (uint8_t *)buf + 4;
+	p = (uint8_t*)buf + 4;
+	if(GL32(&p) == 0x424d53ff) {
+		buf = (uint8_t*)buf + 4;
 		n -= 4;
 	}
-	end = (uint8_t *)buf + n;
+	end = (uint8_t*)buf + n;
 
 	sum = 0;
 	p = buf;
@@ -414,10 +407,10 @@ xd(char *str, void *buf, int n)
 
 	fprint(2, "mag=0x%ulx ", GL32(&p));
 	fprint(2, "cmd=0x%ux ", cmd = G8(&p));
-	fprint(2, "err=0x%ulx ", err=GL32(&p));
+	fprint(2, "err=0x%ulx ", err = GL32(&p));
 	fprint(2, "flg=0x%02ux ", flg = G8(&p));
-	fprint(2, "flg2=0x%04ux\n", flags2= GL16(&p));
-	fprint(2, "dfs=%s\n", (flags2 & FL2_DFS)? "y": "n");
+	fprint(2, "flg2=0x%04ux\n", flags2 = GL16(&p));
+	fprint(2, "dfs=%s\n", (flags2 & FL2_DFS) ? "y" : "n");
 
 	fprint(2, "pidl=%ud ", GL16(&p));
 	fprint(2, "res=%uld ", GL32(&p));
@@ -430,7 +423,7 @@ xd(char *str, void *buf, int n)
 	fprint(2, "uid=%ud ", GL16(&p));
 	fprint(2, "mid=%ud\n", GL16(&p));
 
-	if(cmd == 0x32 && (flg & 0x80) == 0){		/* TRANS 2, TX */
+	if(cmd == 0x32 && (flg & 0x80) == 0) { /* TRANS 2, TX */
 		fprint(2, "words=%ud ", G8(&p));
 		fprint(2, "totparams=%ud ", GL16(&p));
 		fprint(2, "totdata=%ud ", GL16(&p));
@@ -451,7 +444,7 @@ xd(char *str, void *buf, int n)
 		fprint(2, "data-words=%d ", G8(&p));
 		fprint(2, "padding=%d\n", G8(&p));
 	}
-	if(cmd == 0x32 && (flg & 0x80) == 0x80){	/* TRANS 2, RX */
+	if(cmd == 0x32 && (flg & 0x80) == 0x80) { /* TRANS 2, RX */
 		fprint(2, "words=%ud ", G8(&p));
 		fprint(2, "totparams=%ud ", GL16(&p));
 		fprint(2, "totdata=%ud ", GL16(&p));
@@ -472,11 +465,11 @@ xd(char *str, void *buf, int n)
 			fprint(2, "err=%s\n", doserrstr(err));
 Raw:
 	fprint(2, "\n");
-	for(; p < end; p++){
-		if((p - (uint8_t *)buf) % 16 == 0)
-			fprint(2, "\n%06lx\t", p - (uint8_t *)buf);
+	for(; p < end; p++) {
+		if((p - (uint8_t*)buf) % 16 == 0)
+			fprint(2, "\n%06lx\t", p - (uint8_t*)buf);
 		if(isprint((char)*p))
-			fprint(2, "%c  ", (char )*p);
+			fprint(2, "%c  ", (char)*p);
 		else
 			fprint(2, "%02ux ", *p);
 	}

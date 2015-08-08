@@ -16,9 +16,9 @@
  *  make the hash table completely in memory and then write as a file
  */
 
-uint8_t *ht;
+uint8_t* ht;
 uint32_t hlen;
-Ndb *db;
+Ndb* db;
 uint32_t nextchain;
 
 char*
@@ -31,65 +31,65 @@ syserr(void)
 }
 
 void
-enter(char *val, uint32_t dboff)
+enter(char* val, uint32_t dboff)
 {
 	uint32_t h;
-	uint8_t *last;
+	uint8_t* last;
 	uint32_t ptr;
 
 	h = ndbhash(val, hlen);
 	h *= NDBPLEN;
 	last = &ht[h];
 	ptr = NDBGETP(last);
-	if(ptr == NDBNAP){
+	if(ptr == NDBNAP) {
 		NDBPUTP(dboff, last);
 		return;
 	}
 
-	if(ptr & NDBCHAIN){
+	if(ptr & NDBCHAIN) {
 		/* walk the chain to the last entry */
-		for(;;){
+		for(;;) {
 			ptr &= ~NDBCHAIN;
-			last = &ht[ptr+NDBPLEN];
+			last = &ht[ptr + NDBPLEN];
 			ptr = NDBGETP(last);
-			if(ptr == NDBNAP){
+			if(ptr == NDBNAP) {
 				NDBPUTP(dboff, last);
 				return;
 			}
-			if(!(ptr & NDBCHAIN)){
-				NDBPUTP(nextchain|NDBCHAIN, last);
+			if(!(ptr & NDBCHAIN)) {
+				NDBPUTP(nextchain | NDBCHAIN, last);
 				break;
 			}
 		}
 	} else
-		NDBPUTP(nextchain|NDBCHAIN, last);
+		NDBPUTP(nextchain | NDBCHAIN, last);
 
 	/* add a chained entry */
 	NDBPUTP(ptr, &ht[nextchain]);
 	NDBPUTP(dboff, &ht[nextchain + NDBPLEN]);
-	nextchain += 2*NDBPLEN;
+	nextchain += 2 * NDBPLEN;
 }
 
-uint8_t nbuf[16*1024];
+uint8_t nbuf[16 * 1024];
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Ndbtuple *t, *nt;
+	Ndbtuple* t, *nt;
 	int n;
-	Dir *d;	
+	Dir* d;
 	uint8_t buf[8];
 	char file[128];
 	int fd;
 	uint32_t off;
-	uint8_t *p;
+	uint8_t* p;
 
-	if(argc != 3){
+	if(argc != 3) {
 		fprint(2, "usage: mkhash file attribute\n");
 		exits("usage");
 	}
 	db = ndbopen(argv[1]);
-	if(db == 0){
+	if(db == 0) {
 		fprint(2, "mkhash: can't open %s\n", argv[1]);
 		exits(syserr());
 	}
@@ -100,8 +100,8 @@ main(int argc, char **argv)
 	/* count entries to calculate hash size */
 	n = 0;
 
-	while(nt = ndbparse(db)){
-		for(t = nt; t; t = t->entry){
+	while(nt = ndbparse(db)) {
+		for(t = nt; t; t = t->entry) {
 			if(strcmp(t->attr, argv[2]) == 0)
 				n++;
 		}
@@ -109,22 +109,22 @@ main(int argc, char **argv)
 	}
 
 	/* allocate an array large enough for worst case */
-	hlen = 2*n+1;
-	n = hlen*NDBPLEN + hlen*2*NDBPLEN;
+	hlen = 2 * n + 1;
+	n = hlen * NDBPLEN + hlen * 2 * NDBPLEN;
 	ht = mallocz(n, 1);
-	if(ht == 0){
+	if(ht == 0) {
 		fprint(2, "mkhash: not enough memory\n");
 		exits(syserr());
 	}
 	for(p = ht; p < &ht[n]; p += NDBPLEN)
 		NDBPUTP(NDBNAP, p);
-	nextchain = hlen*NDBPLEN;
+	nextchain = hlen * NDBPLEN;
 
 	/* create the in core hash table */
 	Bseek(&db->b, 0, 0);
 	off = 0;
-	while(nt = ndbparse(db)){
-		for(t = nt; t; t = t->entry){
+	while(nt = ndbparse(db)) {
+		for(t = nt; t; t = t->entry) {
 			if(strcmp(t->attr, argv[2]) == 0)
 				enter(t->val, off);
 		}
@@ -135,17 +135,17 @@ main(int argc, char **argv)
 	/* create the hash file */
 	snprint(file, sizeof(file), "%s.%s", argv[1], argv[2]);
 	fd = create(file, ORDWR, 0664);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "mkhash: can't create %s\n", file);
 		exits(syserr());
 	}
 	NDBPUTUL(db->mtime, buf);
-	NDBPUTUL(hlen, buf+NDBULLEN);
-	if(write(fd, buf, NDBHLEN) != NDBHLEN){
+	NDBPUTUL(hlen, buf + NDBULLEN);
+	if(write(fd, buf, NDBHLEN) != NDBHLEN) {
 		fprint(2, "mkhash: writing %s\n", file);
 		exits(syserr());
 	}
-	if(write(fd, ht, nextchain) != nextchain){
+	if(write(fd, ht, nextchain) != nextchain) {
 		fprint(2, "mkhash: writing %s\n", file);
 		exits(syserr());
 	}
@@ -153,8 +153,8 @@ main(int argc, char **argv)
 
 	/* make sure file didn't change while we were making the hash */
 	d = dirstat(argv[1]);
-	if(d == nil || d->qid.path != db->qid.path
-	   || d->qid.vers != db->qid.vers){
+	if(d == nil || d->qid.path != db->qid.path ||
+	   d->qid.vers != db->qid.vers) {
 		fprint(2, "mkhash: %s changed underfoot\n", argv[1]);
 		remove(file);
 		exits("changed");

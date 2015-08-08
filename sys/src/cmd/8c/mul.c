@@ -9,34 +9,31 @@
 
 #include "gc.h"
 
-typedef struct	Malg	Malg;
-typedef struct	Mparam	Mparam;
+typedef struct Malg Malg;
+typedef struct Mparam Mparam;
 
-struct	Malg
-{
-	char	vals[10];
+struct Malg {
+	char vals[10];
 };
 
-struct	Mparam
-{
-	uint32_t	value;
-	char	alg;
-	char	neg;
-	char	shift;
-	char	arg;
-	char	off;
+struct Mparam {
+	uint32_t value;
+	char alg;
+	char neg;
+	char shift;
+	char arg;
+	char off;
 };
 
-static	Mparam	multab[32];
-static	int	mulptr;
+static Mparam multab[32];
+static int mulptr;
 
-static	Malg	malgs[]	=
-{
-	{0, 100},
-	{-1, 1, 100},
-	{-9, -5, -3, 3, 5, 9, 100},
-	{6, 10, 12, 18, 20, 24, 36, 40, 72, 100},
-	{-8, -4, -2, 2, 4, 8, 100},
+static Malg malgs[] = {
+    {0, 100},
+    {-1, 1, 100},
+    {-9, -5, -3, 3, 5, 9, 100},
+    {6, 10, 12, 18, 20, 24, 36, 40, 72, 100},
+    {-8, -4, -2, 2, 4, 8, 100},
 };
 
 /*
@@ -61,7 +58,7 @@ lowbit(uint32_t v)
 }
 
 void
-genmuladd(Node *d, Node *s, int m, Node *a)
+genmuladd(Node* d, Node* s, int m, Node* a)
 {
 	Node nod;
 
@@ -76,11 +73,11 @@ genmuladd(Node *d, Node *s, int m, Node *a)
 }
 
 void
-mulparam(uint32_t m, Mparam *mp)
+mulparam(uint32_t m, Mparam* mp)
 {
 	int c, i, j, n, o, q, s;
 	int bc, bi, bn, bo, bq, bs, bt;
-	char *p;
+	char* p;
 	int32_t u;
 	uint32_t t;
 
@@ -88,101 +85,101 @@ mulparam(uint32_t m, Mparam *mp)
 	bi = bn = bo = bs = bt = 0;
 	for(i = 0; i < nelem(malgs); i++) {
 		for(p = malgs[i].vals, j = 0; (o = p[j]) < 100; j++)
-		for(s = 0; s < 2; s++) {
-			c = 10;
-			q = 10;
-			u = m - o;
-			if(u == 0)
-				continue;
-			if(s) {
-				o = -o;
-				if(o > 0)
+			for(s = 0; s < 2; s++) {
+				c = 10;
+				q = 10;
+				u = m - o;
+				if(u == 0)
 					continue;
-				u = -u;
-			}
-			n = lowbit(u);
-			t = (uint32_t)u >> n;
-			switch(i) {
-			case 0:
-				if(t == 1) {
-					c = s + 1;
-					q = 0;
-					break;
+				if(s) {
+					o = -o;
+					if(o > 0)
+						continue;
+					u = -u;
 				}
-				switch(t) {
+				n = lowbit(u);
+				t = (uint32_t)u >> n;
+				switch(i) {
+				case 0:
+					if(t == 1) {
+						c = s + 1;
+						q = 0;
+						break;
+					}
+					switch(t) {
+					case 3:
+					case 5:
+					case 9:
+						c = s + 1;
+						if(n)
+							c++;
+						q = 0;
+						break;
+					}
+					if(s)
+						break;
+					switch(t) {
+					case 15:
+					case 25:
+					case 27:
+					case 45:
+					case 81:
+						c = 2;
+						if(n)
+							c++;
+						q = 1;
+						break;
+					}
+					break;
+				case 1:
+					if(t == 1) {
+						c = 3;
+						q = 3;
+						break;
+					}
+					switch(t) {
+					case 3:
+					case 5:
+					case 9:
+						c = 3;
+						q = 2;
+						break;
+					}
+					break;
+				case 2:
+					if(t == 1) {
+						c = 3;
+						q = 2;
+						break;
+					}
+					break;
 				case 3:
-				case 5:
-				case 9:
-					c = s + 1;
-					if(n)
-						c++;
-					q = 0;
+					if(s)
+						break;
+					if(t == 1) {
+						c = 3;
+						q = 1;
+						break;
+					}
+					break;
+				case 4:
+					if(t == 1) {
+						c = 3;
+						q = 0;
+						break;
+					}
 					break;
 				}
-				if(s)
-					break;
-				switch(t) {
-				case 15:
-				case 25:
-				case 27:
-				case 45:
-				case 81:
-					c = 2;
-					if(n)
-						c++;
-					q = 1;
-					break;
+				if(c < bc || (c == bc && q > bq)) {
+					bc = c;
+					bi = i;
+					bn = n;
+					bo = o;
+					bq = q;
+					bs = s;
+					bt = t;
 				}
-				break;
-			case 1:
-				if(t == 1) {
-					c = 3;
-					q = 3;
-					break;
-				}
-				switch(t) {
-				case 3:
-				case 5:
-				case 9:
-					c = 3;
-					q = 2;
-					break;
-				}
-				break;
-			case 2:
-				if(t == 1) {
-					c = 3;
-					q = 2;
-					break;
-				}
-				break;
-			case 3:
-				if(s)
-					break;
-				if(t == 1) {
-					c = 3;
-					q = 1;
-					break;
-				}
-				break;
-			case 4:
-				if(t == 1) {
-					c = 3;
-					q = 0;
-					break;
-				}
-				break;
 			}
-			if(c < bc || (c == bc && q > bq)) {
-				bc = c;
-				bi = i;
-				bn = n;
-				bo = o;
-				bq = q;
-				bs = s;
-				bt = t;
-			}
-		}
 	}
 	mp->value = m;
 	if(bc <= 3) {
@@ -191,8 +188,7 @@ mulparam(uint32_t m, Mparam *mp)
 		mp->off = bo;
 		mp->neg = bs;
 		mp->arg = bt;
-	}
-	else
+	} else
 		mp->alg = -1;
 }
 
@@ -298,7 +294,7 @@ m2(int a)
 }
 
 void
-shiftit(Type *t, Node *s, Node *d)
+shiftit(Type* t, Node* s, Node* d)
 {
 	int32_t c;
 
@@ -315,10 +311,10 @@ shiftit(Type *t, Node *s, Node *d)
 }
 
 static int
-mulgen1(uint32_t v, Node *n)
+mulgen1(uint32_t v, Node* n)
 {
 	int i, o;
-	Mparam *p;
+	Mparam* p;
 	Node nod, nods;
 
 	for(i = 0; i < nelem(multab); i++) {
@@ -334,7 +330,8 @@ mulgen1(uint32_t v, Node *n)
 	mulparam(v, p);
 
 found:
-//	print("v=%.lx a=%d n=%d s=%d g=%d o=%d \n", p->value, p->alg, p->neg, p->shift, p->arg, p->off);
+	//	print("v=%.lx a=%d n=%d s=%d g=%d o=%d \n", p->value, p->alg,
+	//p->neg, p->shift, p->arg, p->off);
 	if(p->alg < 0)
 		return 0;
 
@@ -359,7 +356,7 @@ found:
 		case 45:
 		case 81:
 			genmuladd(n, n, m1(p->arg), n);
-			/* fall thru */
+		/* fall thru */
 		case 3:
 		case 5:
 		case 9:
@@ -414,8 +411,7 @@ found:
 		if(p->neg) {
 			gopcode(o, n->type, n, &nod);
 			gmove(&nod, n);
-		}
-		else
+		} else
 			gopcode(o, n->type, &nod, n);
 	}
 
@@ -430,7 +426,7 @@ bad:
 }
 
 void
-mulgen(Type *t, Node *r, Node *n)
+mulgen(Type* t, Node* r, Node* n)
 {
 	if(!mulgen1(r->vconst, n))
 		gopcode(OMUL, t, r, n);

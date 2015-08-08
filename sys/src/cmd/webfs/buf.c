@@ -19,7 +19,7 @@
 #include "fns.h"
 
 void
-initibuf(Ibuf *b, Ioproc *io, int fd)
+initibuf(Ibuf* b, Ioproc* io, int fd)
 {
 	b->fd = fd;
 	b->io = io;
@@ -27,12 +27,12 @@ initibuf(Ibuf *b, Ioproc *io, int fd)
 }
 
 int
-readibuf(Ibuf *b, char *buf, int len)
+readibuf(Ibuf* b, char* buf, int len)
 {
 	int n;
 
 	n = b->wp - b->rp;
-	if(n > 0){
+	if(n > 0) {
 		if(n > len)
 			n = len;
 		memmove(buf, b->rp, n);
@@ -43,30 +43,30 @@ readibuf(Ibuf *b, char *buf, int len)
 }
 
 void
-unreadline(Ibuf *b, char *line)
+unreadline(Ibuf* b, char* line)
 {
 	int i, n;
 
 	i = strlen(line);
 	n = b->wp - b->rp;
-	memmove(&b->buf[i+1], b->rp, n);
+	memmove(&b->buf[i + 1], b->rp, n);
 	memmove(b->buf, line, i);
 	b->buf[i] = '\n';
 	b->rp = b->buf;
-	b->wp = b->rp+i+1+n;
+	b->wp = b->rp + i + 1 + n;
 }
 
 int
-readline(Ibuf *b, char *buf, int len)
+readline(Ibuf* b, char* buf, int len)
 {
 	int n;
-	char *p;
+	char* p;
 
 	len--;
 
-	for(p = buf;;){
-		if(b->rp >= b->wp){
-			n = ioread(b->io, b->fd, b->wp, sizeof(b->buf)/2);
+	for(p = buf;;) {
+		if(b->rp >= b->wp) {
+			n = ioread(b->io, b->fd, b->wp, sizeof(b->buf) / 2);
 			if(n < 0)
 				return -1;
 			if(n == 0)
@@ -74,7 +74,7 @@ readline(Ibuf *b, char *buf, int len)
 			b->wp += n;
 		}
 		n = *b->rp++;
-		if(len > 0){
+		if(len > 0) {
 			*p++ = n;
 			len--;
 		}
@@ -83,16 +83,15 @@ readline(Ibuf *b, char *buf, int len)
 	}
 
 	/* drop trailing white */
-	for(;;){
+	for(;;) {
 		if(p <= buf)
 			break;
-		n = *(p-1);
+		n = *(p - 1);
 		if(n != ' ' && n != '\t' && n != '\r' && n != '\n')
 			break;
 		p--;
 	}
 
 	*p = 0;
-	return p-buf;
+	return p - buf;
 }
-

@@ -12,18 +12,18 @@
 #include "fmtdef.h"
 
 int
-fmtrune(Fmt *f, int r)
+fmtrune(Fmt* f, int r)
 {
-	Rune *rt;
-	char *t;
+	Rune* rt;
+	char* t;
 	int n;
 
-	if(f->runes){
+	if(f->runes) {
 		rt = (Rune*)f->to;
 		FMTRCHAR(f, rt, f->stop, r);
 		f->to = rt;
 		n = 1;
-	}else{
+	} else {
 		t = (char*)f->to;
 		FMTRUNE(f, t, f->stop, r);
 		n = t - (char*)f->to;

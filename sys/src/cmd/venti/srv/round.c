@@ -12,13 +12,13 @@
 #include "fns.h"
 
 void
-waitforkick(Round *r)
+waitforkick(Round* r)
 {
 	int n;
 
 	qlock(&r->lock);
 	r->last = r->current;
-	assert(r->current+1 == r->next);
+	assert(r->current + 1 == r->next);
 	rwakeupall(&r->finish);
 	while(!r->doanother)
 		rsleep(&r->start);
@@ -29,7 +29,7 @@ waitforkick(Round *r)
 }
 
 static void
-_kickround(Round *r, int wait)
+_kickround(Round* r, int wait)
 {
 	int n;
 
@@ -37,9 +37,9 @@ _kickround(Round *r, int wait)
 		trace(TraceProc, "kick %s", r->name);
 	r->doanother = 1;
 	rwakeup(&r->start);
-	if(wait){
+	if(wait) {
 		n = r->next;
-		while((int)(n - r->last) > 0){
+		while((int)(n - r->last) > 0) {
 			r->doanother = 1;
 			rwakeup(&r->start);
 			rsleep(&r->finish);
@@ -48,7 +48,7 @@ _kickround(Round *r, int wait)
 }
 
 void
-kickround(Round *r, int wait)
+kickround(Round* r, int wait)
 {
 	qlock(&r->lock);
 	_kickround(r, wait);
@@ -56,7 +56,7 @@ kickround(Round *r, int wait)
 }
 
 void
-initround(Round *r, char *name, int delay)
+initround(Round* r, char* name, int delay)
 {
 	memset(r, 0, sizeof *r);
 	r->name = name;
@@ -71,7 +71,7 @@ initround(Round *r, char *name, int delay)
 }
 
 void
-delaykickround(Round *r)
+delaykickround(Round* r)
 {
 	qlock(&r->lock);
 	r->delaykick = 1;
@@ -80,15 +80,15 @@ delaykickround(Round *r)
 }
 
 void
-delaykickroundproc(void *v)
+delaykickroundproc(void* v)
 {
-	Round *r = v;
+	Round* r = v;
 	int n;
 
 	threadsetname("delaykickproc %s", r->name);
 	qlock(&r->lock);
-	for(;;){
-		while(r->delaykick == 0){
+	for(;;) {
+		while(r->delaykick == 0) {
 			trace(TraceProc, "sleep");
 			rsleep(&r->delaywait);
 		}
@@ -100,7 +100,7 @@ delaykickroundproc(void *v)
 		sleep(r->delaytime);
 
 		qlock(&r->lock);
-		if(n == r->next){
+		if(n == r->next) {
 			trace(TraceProc, "kickround 0x%ux", (uint)n);
 			_kickround(r, 1);
 		}
@@ -108,4 +108,3 @@ delaykickroundproc(void *v)
 		trace(TraceProc, "finishround 0x%ux", (uint)n);
 	}
 }
-

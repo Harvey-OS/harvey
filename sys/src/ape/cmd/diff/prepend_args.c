@@ -25,72 +25,66 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA.  */
 
-/* $FreeBSD: src/contrib/diff/prepend_args.c,v 1.1 1999/11/26 02:51:44 obrien Exp $ */
-
+/* $FreeBSD: src/contrib/diff/prepend_args.c,v 1.1 1999/11/26 02:51:44 obrien
+ * Exp $ */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+#include "config.h"
 #endif
 #include "system.h"
 #include "prepend_args.h"
 #include "diff.h"
-
 
 /* Find the white-space-separated options specified by OPTIONS, and
    using BUF to store copies of these options, set ARGV[0], ARGV[1],
    etc. to the option copies.  Return the number N of options found.
    Do not set ARGV[N] to NULL.  If ARGV is NULL, do not store ARGV[0]
    etc.  Backslash can be used to escape whitespace (and backslashes).  */
-static int
-prepend_args (options, buf, argv)
-     char const *options;
-     char *buf;
-     char **argv;
+static int prepend_args(options, buf, argv) char const* options;
+char* buf;
+char** argv;
 {
-  char const *o = options;
-  char *b = buf;
-  int n = 0;
+	char const* o = options;
+	char* b = buf;
+	int n = 0;
 
-  for (;;)
-    {
-      while (ISSPACE ((unsigned char) *o))
-	o++;
-      if (!*o)
-	return n;
-      if (argv)
-	argv[n] = b;
-      n++;
+	for(;;) {
+		while(ISSPACE((unsigned char)*o))
+			o++;
+		if(!*o)
+			return n;
+		if(argv)
+			argv[n] = b;
+		n++;
 
-      do
-	if ((*b++ = *o++) == '\\' && *o)
-	  b[-1] = *o++;
-      while (*o && ! ISSPACE ((unsigned char) *o));
+		do
+			if((*b++ = *o++) == '\\' && *o)
+				b[-1] = *o++;
+		while(*o && !ISSPACE((unsigned char)*o));
 
-      *b++ = '\0';
-    }
+		*b++ = '\0';
+	}
 }
 
 /* Prepend the whitespace-separated options in OPTIONS to the argument
    vector of a main program with argument count *PARGC and argument
    vector *PARGV.  */
-void
-prepend_default_options (options, pargc, pargv)
-     char const *options;
-     int *pargc;
-     char ***pargv;
+void prepend_default_options(options, pargc, pargv) char const* options;
+int* pargc;
+char*** pargv;
 {
-  if (options)
-    {
-      char *buf = xmalloc (strlen (options) + 1);
-      int prepended = prepend_args (options, buf, (char **) NULL);
-      int argc = *pargc;
-      char * const *argv = *pargv;
-      char **pp = (char **) xmalloc ((prepended + argc + 1) * sizeof *pp);
-      *pargc = prepended + argc;
-      *pargv = pp;
-      *pp++ = *argv++;
-      pp += prepend_args (options, buf, pp);
-      while ((*pp++ = *argv++))
-	continue;
-    }
+	if(options) {
+		char* buf = xmalloc(strlen(options) + 1);
+		int prepended = prepend_args(options, buf, (char**)NULL);
+		int argc = *pargc;
+		char* const* argv = *pargv;
+		char** pp =
+		    (char**)xmalloc((prepended + argc + 1) * sizeof *pp);
+		*pargc = prepended + argc;
+		*pargv = pp;
+		*pp++ = *argv++;
+		pp += prepend_args(options, buf, pp);
+		while((*pp++ = *argv++))
+			continue;
+	}
 }

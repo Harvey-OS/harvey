@@ -24,9 +24,9 @@
 
 /* we can't avoid overrunning npath because we don't know how big it is. */
 void
-_sock_srvname(char *npath, char *path)
+_sock_srvname(char* npath, char* path)
 {
-	char *p;
+	char* p;
 
 	strcpy(npath, "/srv/UD.");
 	p = strrchr(path, '/');
@@ -38,10 +38,10 @@ _sock_srvname(char *npath, char *path)
 }
 
 int
-_sock_srv(char *path, int fd)
+_sock_srv(char* path, int fd)
 {
 	int sfd;
-	char msg[8+256+1];
+	char msg[8 + 256 + 1];
 
 	/* change the path to something in srv */
 	_sock_srvname(msg, path);
@@ -51,13 +51,13 @@ _sock_srv(char *path, int fd)
 
 	/* put the fd in /srv and then close it */
 	sfd = creat(msg, 0666);
-	if(sfd < 0){
+	if(sfd < 0) {
 		close(fd);
 		_syserrno();
 		return -1;
 	}
 	snprintf(msg, sizeof msg, "%d", fd);
-	if(write(sfd, msg, strlen(msg)) < 0){
+	if(write(sfd, msg, strlen(msg)) < 0) {
 		_syserrno();
 		close(sfd);
 		close(fd);

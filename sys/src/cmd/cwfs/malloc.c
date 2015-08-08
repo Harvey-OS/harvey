@@ -10,9 +10,9 @@
 #include "all.h"
 #include "io.h"
 
-int32_t	niob;
-int32_t	nhiob;
-Hiob	*hiob;
+int32_t niob;
+int32_t nhiob;
+Hiob* hiob;
 
 /*
  * Called to allocate permanent data structures
@@ -22,9 +22,9 @@ Hiob	*hiob;
 void*
 ialloc(uint32_t n, int align)
 {
-	void *p = mallocalign(n, align, 0, 0);
+	void* p = mallocalign(n, align, 0, 0);
 
-	if (p == nil)
+	if(p == nil)
 		panic("ialloc: out of memory");
 	memset(p, 0, n);
 	return p;
@@ -33,21 +33,21 @@ ialloc(uint32_t n, int align)
 void
 prbanks(void)
 {
-	Mbank *mbp;
+	Mbank* mbp;
 
 	for(mbp = mconf.bank; mbp < &mconf.bank[mconf.nbank]; mbp++)
 		print("bank[%ld]: base 0x%8.8lux, limit 0x%8.8lux (%.0fMB)\n",
-			mbp - mconf.bank, mbp->base, mbp->limit,
-			(mbp->limit - mbp->base)/(double)MB);
+		      mbp - mconf.bank, mbp->base, mbp->limit,
+		      (mbp->limit - mbp->base) / (double)MB);
 }
 
 static void
-cmd_memory(int, int8_t *[])
+cmd_memory(int, int8_t* [])
 {
 	prbanks();
 }
 
-enum { HWIDTH = 8 };		/* buffers per hash */
+enum { HWIDTH = 8 }; /* buffers per hash */
 
 /*
  * allocate rest of mem
@@ -58,12 +58,12 @@ iobufinit(void)
 {
 	int32_t m;
 	int i;
-	char *xiop;
-	Iobuf *p, *q;
-	Hiob *hp;
-	Mbank *mbp;
+	char* xiop;
+	Iobuf* p, *q;
+	Hiob* hp;
+	Mbank* mbp;
 
-	wlock(&mainlock);	/* init */
+	wlock(&mainlock); /* init */
 	wunlock(&mainlock);
 
 	prbanks();
@@ -71,14 +71,14 @@ iobufinit(void)
 	for(mbp = mconf.bank; mbp < &mconf.bank[mconf.nbank]; mbp++)
 		m += mbp->limit - mbp->base;
 
-	niob = m / (sizeof(Iobuf) + RBUFSIZE + sizeof(Hiob)/HWIDTH);
+	niob = m / (sizeof(Iobuf) + RBUFSIZE + sizeof(Hiob) / HWIDTH);
 	nhiob = niob / HWIDTH;
 	while(!prime(nhiob))
 		nhiob++;
 	print("\t%ld buffers; %ld hashes\n", niob, nhiob);
 	hiob = ialloc(nhiob * sizeof(Hiob), 0);
 	hp = hiob;
-	for(i=0; i<nhiob; i++) {
+	for(i = 0; i < nhiob; i++) {
 		lock(hp);
 		unlock(hp);
 		hp++;
@@ -86,8 +86,8 @@ iobufinit(void)
 	p = ialloc(niob * sizeof(Iobuf), 0);
 	xiop = ialloc(niob * RBUFSIZE, 0);
 	hp = hiob;
-	for(i=0; i < niob; i++) {
-//		p->name = "buf";
+	for(i = 0; i < niob; i++) {
+		//		p->name = "buf";
 		qlock(p);
 		qunlock(p);
 		if(hp == hiob)
@@ -106,7 +106,7 @@ iobufinit(void)
 		}
 		p->dev = devnone;
 		p->addr = -1;
-//		p->xiobuf = ialloc(RBUFSIZE, RBUFSIZE);
+		//		p->xiobuf = ialloc(RBUFSIZE, RBUFSIZE);
 		p->xiobuf = xiop;
 		p->iobuf = (char*)-1;
 		p++;
@@ -127,13 +127,13 @@ iobufinit(void)
 }
 
 void*
-iobufmap(Iobuf *p)
+iobufmap(Iobuf* p)
 {
 	return p->iobuf = p->xiobuf;
 }
 
 void
-iobufunmap(Iobuf *p)
+iobufunmap(Iobuf* p)
 {
 	p->iobuf = (char*)-1;
 }

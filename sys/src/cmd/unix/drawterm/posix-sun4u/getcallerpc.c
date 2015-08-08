@@ -11,8 +11,7 @@
 #include "libc.h"
 
 uint32_t
-getcallerpc(void *a)
+getcallerpc(void* a)
 {
 	return ((uint32_t*)a)[-1];
 }
-

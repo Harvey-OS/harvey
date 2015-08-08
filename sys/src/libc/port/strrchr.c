@@ -11,9 +11,9 @@
 #include <libc.h>
 
 char*
-strrchr(char *s, int c)
+strrchr(char* s, int c)
 {
-	char *r;
+	char* r;
 
 	if(c == 0)
 		return strchr(s, 0);

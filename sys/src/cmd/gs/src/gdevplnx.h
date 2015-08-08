@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,7 +28,7 @@
 /* Requires gxdevcli.h */
 
 #ifndef gdevplnx_INCLUDED
-#  define gdevplnx_INCLUDED
+#define gdevplnx_INCLUDED
 
 #include "gxrplane.h"
 
@@ -56,26 +56,27 @@
  */
 
 typedef struct gx_device_plane_extract_s {
-    gx_device_forward_common;
+	gx_device_forward_common;
 	/* The following are set by the client before opening the device. */
-    gx_device *plane_dev;		/* the drawing device for the plane */
-    gx_render_plane_t plane;
+	gx_device* plane_dev; /* the drawing device for the plane */
+	gx_render_plane_t plane;
 	/* The following are set by open_device. */
-    gx_color_index plane_white;
-    uint plane_mask;
-    bool plane_dev_is_memory;
+	gx_color_index plane_white;
+	uint plane_mask;
+	bool plane_dev_is_memory;
 	/* The following change dynamically. */
-    bool any_marks;
+	bool any_marks;
 } gx_device_plane_extract;
 extern_st(st_device_plane_extract);
-#define public_st_device_plane_extract()	/* in gdevplnx.c */\
-  gs_public_st_complex_only(st_device_plane_extract, gx_device_plane_extract,\
-    "gx_device_plane_extract", 0, device_plane_extract_enum_ptrs,\
-    device_plane_extract_reloc_ptrs, gx_device_finalize)
+#define public_st_device_plane_extract() /* in gdevplnx.c */                   \
+	gs_public_st_complex_only(                                             \
+	    st_device_plane_extract, gx_device_plane_extract,                  \
+	    "gx_device_plane_extract", 0, device_plane_extract_enum_ptrs,      \
+	    device_plane_extract_reloc_ptrs, gx_device_finalize)
 
 /* Initialize a plane extraction device. */
-int plane_device_init(gx_device_plane_extract *edev, gx_device *target,
-		      gx_device *plane_dev,
-		      const gx_render_plane_t *render_plane, bool clear);
+int plane_device_init(gx_device_plane_extract* edev, gx_device* target,
+                      gx_device* plane_dev,
+                      const gx_render_plane_t* render_plane, bool clear);
 
 #endif /* gdevplnx_INCLUDED */

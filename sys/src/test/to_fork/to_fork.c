@@ -2,19 +2,15 @@
 #include <libc.h>
 #include <stdio.h>
 
-void main()
+void
+main()
 {
 	int pid = fork();
-	if (pid == 0)
-	{
+	if(pid == 0) {
 		printf("I'm the father\n");
-	}
-	else if (pid > 0)
-	{
+	} else if(pid > 0) {
 		printf("I'm the child\n");
-	}
-	else
-	{
+	} else {
 		printf("fork() error\n");
 	}
 }

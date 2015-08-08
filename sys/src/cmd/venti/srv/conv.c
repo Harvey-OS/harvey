@@ -14,35 +14,44 @@
 /*
  * disk structure conversion routines
  */
-#define	U8GET(p)	((p)[0])
-#define	U16GET(p)	(((p)[0]<<8)|(p)[1])
-#define	U32GET(p)	((u32int)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
-#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
+#define U8GET(p) ((p)[0])
+#define U16GET(p) (((p)[0] << 8) | (p)[1])
+#define U32GET(p)                                                              \
+	((u32int)(((p)[0] << 24) | ((p)[1] << 16) | ((p)[2] << 8) | (p)[3]))
+#define U64GET(p) (((uint64_t)U32GET(p) << 32) | (uint64_t)U32GET((p) + 4))
 
-#define	U8PUT(p,v)	(p)[0]=(v)&0xFF
-#define	U16PUT(p,v)	(p)[0]=((v)>>8)&0xFF;(p)[1]=(v)&0xFF
-#define	U32PUT(p,v)	(p)[0]=((v)>>24)&0xFF;(p)[1]=((v)>>16)&0xFF;(p)[2]=((v)>>8)&0xFF;(p)[3]=(v)&0xFF
-#define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
+#define U8PUT(p, v) (p)[0] = (v)&0xFF
+#define U16PUT(p, v)                                                           \
+	(p)[0] = ((v) >> 8) & 0xFF;                                            \
+	(p)[1] = (v)&0xFF
+#define U32PUT(p, v)                                                           \
+	(p)[0] = ((v) >> 24) & 0xFF;                                           \
+	(p)[1] = ((v) >> 16) & 0xFF;                                           \
+	(p)[2] = ((v) >> 8) & 0xFF;                                            \
+	(p)[3] = (v)&0xFF
+#define U64PUT(p, v, t32)                                                      \
+	t32 = (v) >> 32;                                                       \
+	U32PUT(p, t32);                                                        \
+	t32 = (v);                                                             \
+	U32PUT((p) + 4, t32)
 
-int debugarena = -1;		/* hack to improve error reporting */
+int debugarena = -1; /* hack to improve error reporting */
 
 static struct {
 	uint32_t m;
-	char *s;
+	char* s;
 } magics[] = {
-	ArenaPartMagic, "ArenaPartMagic",
-	ArenaHeadMagic, "ArenaHeadMagic",
-	ArenaMagic, "ArenaMagic",
-	ISectMagic, "ISectMagic",
-	BloomMagic, "BloomMagic",
+    ArenaPartMagic, "ArenaPartMagic", ArenaHeadMagic, "ArenaHeadMagic",
+    ArenaMagic,     "ArenaMagic",     ISectMagic,     "ISectMagic",
+    BloomMagic,     "BloomMagic",
 };
 
 static char*
-fmtmagic(char *s, uint32_t m)
+fmtmagic(char* s, uint32_t m)
 {
 	int i;
 
-	for(i=0; i<nelem(magics); i++)
+	for(i = 0; i < nelem(magics); i++)
 		if(magics[i].m == m)
 			return magics[i].s;
 	sprint(s, "%#08ux", m);
@@ -50,29 +59,31 @@ fmtmagic(char *s, uint32_t m)
 }
 
 uint32_t
-unpackmagic(uint8_t *buf)
+unpackmagic(uint8_t* buf)
 {
 	return U32GET(buf);
 }
 
 void
-packmagic(uint32_t magic, uint8_t *buf)
+packmagic(uint32_t magic, uint8_t* buf)
 {
 	U32PUT(buf, magic);
 }
 
 int
-unpackarenapart(ArenaPart *ap, uint8_t *buf)
+unpackarenapart(ArenaPart* ap, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
 
 	m = U32GET(p);
-	if(m != ArenaPartMagic){
-		seterr(ECorrupt, "arena set has wrong magic number: %s expected ArenaPartMagic (%#lux)", fmtmagic(fbuf, m), ArenaPartMagic);
+	if(m != ArenaPartMagic) {
+		seterr(ECorrupt, "arena set has wrong magic number: %s "
+		                 "expected ArenaPartMagic (%#lux)",
+		       fmtmagic(fbuf, m), ArenaPartMagic);
 		return -1;
 	}
 	p += U32Size;
@@ -90,9 +101,9 @@ unpackarenapart(ArenaPart *ap, uint8_t *buf)
 }
 
 int
-packarenapart(ArenaPart *ap, uint8_t *buf)
+packarenapart(ArenaPart* ap, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 
@@ -112,20 +123,20 @@ packarenapart(ArenaPart *ap, uint8_t *buf)
 }
 
 int
-unpackarena(Arena *arena, uint8_t *buf)
+unpackarena(Arena* arena, uint8_t* buf)
 {
 	int sz;
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
 
 	m = U32GET(p);
-	if(m != ArenaMagic){
+	if(m != ArenaMagic) {
 		seterr(ECorrupt, "arena %d has wrong magic number: %s "
-			"expected ArenaMagic (%#lux)", debugarena,
-			fmtmagic(fbuf, m), ArenaMagic);
+		                 "expected ArenaMagic (%#lux)",
+		       debugarena, fmtmagic(fbuf, m), ArenaMagic);
 		return -1;
 	}
 	p += U32Size;
@@ -141,7 +152,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 	p += U32Size;
 	arena->wtime = U32GET(p);
 	p += U32Size;
-	if(arena->version == ArenaVersion5){
+	if(arena->version == ArenaVersion5) {
 		arena->clumpmagic = U32GET(p);
 		p += U32Size;
 	}
@@ -151,7 +162,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 	p += U64Size;
 	arena->diskstats.sealed = U8GET(p);
 	p += U8Size;
-	switch(arena->version){
+	switch(arena->version) {
 	case ArenaVersion4:
 		sz = ArenaSize4;
 		arena->clumpmagic = _ClumpMagic;
@@ -160,7 +171,8 @@ unpackarena(Arena *arena, uint8_t *buf)
 		sz = ArenaSize5;
 		break;
 	default:
-		seterr(ECorrupt, "arena has bad version number %d", arena->version);
+		seterr(ECorrupt, "arena has bad version number %d",
+		       arena->version);
 		return -1;
 	}
 	/*
@@ -171,14 +183,14 @@ unpackarena(Arena *arena, uint8_t *buf)
 	 * all the existing version 4 arenas too.
 	 *
 	 * To maintain backwards compatibility with existing venti
-	 * installations using the older format, we define that if 
+	 * installations using the older format, we define that if
 	 * memstats == diskstats, then the extension fields are not
 	 * included (see packarena below).  That is, only partially
 	 * indexed arenas have these fields.  Fully indexed arenas
 	 * (in particular, sealed arenas) do not.
 	 */
-	if(U8GET(p) == 1){
-		sz += ArenaSize5a-ArenaSize5;
+	if(U8GET(p) == 1) {
+		sz += ArenaSize5a - ArenaSize5;
 		p += U8Size;
 		arena->memstats.clumps = U32GET(p);
 		p += U32Size;
@@ -190,15 +202,18 @@ unpackarena(Arena *arena, uint8_t *buf)
 		p += U64Size;
 		arena->memstats.sealed = U8GET(p);
 		p += U8Size;
-		
+
 		/*
 		 * 2008/4/2
 		 * Packarena (below) used to have a bug in which it would
 		 * not zero out any existing extension fields when writing
 		 * the arena metadata.  This would manifest itself as arenas
-		 * with arena->diskstats.sealed == 1 but arena->memstats.sealed == 0
-		 * after a server restart.  Because arena->memstats.sealed wouldn't
-		 * be set, the server might try to fit another block into the arena
+		 * with arena->diskstats.sealed == 1 but arena->memstats.sealed
+		 *== 0
+		 * after a server restart.  Because arena->memstats.sealed
+		 *wouldn't
+		 * be set, the server might try to fit another block into the
+		 *arena
 		 * (and succeed), violating the append-only structure of the log
 		 * and invalidating any already-computed seal on the arena.
 		 *
@@ -211,7 +226,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 		 */
 		if(arena->diskstats.sealed)
 			arena->memstats.sealed = 1;
-	}else
+	} else
 		arena->memstats = arena->diskstats;
 	if(buf + sz != p)
 		sysfatal("unpackarena unpacked wrong amount");
@@ -220,24 +235,25 @@ unpackarena(Arena *arena, uint8_t *buf)
 }
 
 int
-packarena(Arena *arena, uint8_t *buf)
+packarena(Arena* arena, uint8_t* buf)
 {
 	return _packarena(arena, buf, 0);
 }
 
 int
-_packarena(Arena *arena, uint8_t *buf, int forceext)
+_packarena(Arena* arena, uint8_t* buf, int forceext)
 {
 	int sz;
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t t32;
 
-	switch(arena->version){
+	switch(arena->version) {
 	case ArenaVersion4:
 		sz = ArenaSize4;
 		if(arena->clumpmagic != _ClumpMagic)
-			fprint(2, "warning: writing old arena tail loses clump magic 0x%lux != 0x%lux\n",
-				(uint32_t)arena->clumpmagic,
+			fprint(2, "warning: writing old arena tail loses clump "
+			          "magic 0x%lux != 0x%lux\n",
+			       (uint32_t)arena->clumpmagic,
 			       (uint32_t)_ClumpMagic);
 		break;
 	case ArenaVersion5:
@@ -264,7 +280,7 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 	p += U32Size;
 	U32PUT(p, arena->wtime);
 	p += U32Size;
-	if(arena->version == ArenaVersion5){
+	if(arena->version == ArenaVersion5) {
 		U32PUT(p, arena->clumpmagic);
 		p += U32Size;
 	}
@@ -274,16 +290,15 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 	p += U64Size;
 	U8PUT(p, arena->diskstats.sealed);
 	p += U8Size;
-	
+
 	/*
 	 * Extension fields; see above.
 	 */
-	if(forceext
-	|| arena->memstats.clumps != arena->diskstats.clumps
-	|| arena->memstats.cclumps != arena->diskstats.cclumps
-	|| arena->memstats.used != arena->diskstats.used
-	|| arena->memstats.uncsize != arena->diskstats.uncsize
-	|| arena->memstats.sealed != arena->diskstats.sealed){
+	if(forceext || arena->memstats.clumps != arena->diskstats.clumps ||
+	   arena->memstats.cclumps != arena->diskstats.cclumps ||
+	   arena->memstats.used != arena->diskstats.used ||
+	   arena->memstats.uncsize != arena->diskstats.uncsize ||
+	   arena->memstats.sealed != arena->diskstats.sealed) {
 		sz += ArenaSize5a - ArenaSize5;
 		U8PUT(p, 1);
 		p += U8Size;
@@ -291,13 +306,13 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 		p += U32Size;
 		U32PUT(p, arena->memstats.cclumps);
 		p += U32Size;
-		U64PUT(p, arena->memstats.used, t32);	
+		U64PUT(p, arena->memstats.used, t32);
 		p += U64Size;
 		U64PUT(p, arena->memstats.uncsize, t32);
 		p += U64Size;
 		U8PUT(p, arena->memstats.sealed);
 		p += U8Size;
-	}else{
+	} else {
 		/* Clear any extension fields already on disk. */
 		memset(p, 0, ArenaSize5a - ArenaSize5);
 		p += ArenaSize5a - ArenaSize5;
@@ -311,9 +326,9 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 }
 
 int
-unpackarenahead(ArenaHead *head, uint8_t *buf)
+unpackarenahead(ArenaHead* head, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t m;
 	int sz;
 	char fbuf[20];
@@ -321,10 +336,10 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 	p = buf;
 
 	m = U32GET(p);
-	if(m != ArenaHeadMagic){
+	if(m != ArenaHeadMagic) {
 		seterr(ECorrupt, "arena %d head has wrong magic number: %s "
-			"expected ArenaHeadMagic (%#lux)", debugarena,
-			fmtmagic(fbuf, m), ArenaHeadMagic);
+		                 "expected ArenaHeadMagic (%#lux)",
+		       debugarena, fmtmagic(fbuf, m), ArenaHeadMagic);
 		return -1;
 	}
 
@@ -337,12 +352,12 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 	p += U32Size;
 	head->size = U64GET(p);
 	p += U64Size;
-	if(head->version == ArenaVersion5){
+	if(head->version == ArenaVersion5) {
 		head->clumpmagic = U32GET(p);
 		p += U32Size;
 	}
 
-	switch(head->version){
+	switch(head->version) {
 	case ArenaVersion4:
 		sz = ArenaHeadSize4;
 		head->clumpmagic = _ClumpMagic;
@@ -351,7 +366,8 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 		sz = ArenaHeadSize5;
 		break;
 	default:
-		seterr(ECorrupt, "arena head has unexpected version %d", head->version);
+		seterr(ECorrupt, "arena head has unexpected version %d",
+		       head->version);
 		return -1;
 	}
 
@@ -362,18 +378,19 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 }
 
 int
-packarenahead(ArenaHead *head, uint8_t *buf)
+packarenahead(ArenaHead* head, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 	int sz;
 	uint32_t t32;
 
-	switch(head->version){
+	switch(head->version) {
 	case ArenaVersion4:
 		sz = ArenaHeadSize4;
 		if(head->clumpmagic != _ClumpMagic)
-			fprint(2, "warning: writing old arena header loses clump magic 0x%lux != 0x%lux\n",
-				(uint32_t)head->clumpmagic,
+			fprint(2, "warning: writing old arena header loses "
+			          "clump magic 0x%lux != 0x%lux\n",
+			       (uint32_t)head->clumpmagic,
 			       (uint32_t)_ClumpMagic);
 		break;
 	case ArenaVersion5:
@@ -396,7 +413,7 @@ packarenahead(ArenaHead *head, uint8_t *buf)
 	p += U32Size;
 	U64PUT(p, head->size, t32);
 	p += U64Size;
-	if(head->version == ArenaVersion5){
+	if(head->version == ArenaVersion5) {
 		U32PUT(p, head->clumpmagic);
 		p += U32Size;
 	}
@@ -407,19 +424,21 @@ packarenahead(ArenaHead *head, uint8_t *buf)
 }
 
 static int
-checkclump(Clump *w)
+checkclump(Clump* w)
 {
-	if(w->encoding == ClumpENone){
-		if(w->info.size != w->info.uncsize){
+	if(w->encoding == ClumpENone) {
+		if(w->info.size != w->info.uncsize) {
 			seterr(ECorrupt, "uncompressed wad size mismatch");
 			return -1;
 		}
-	}else if(w->encoding == ClumpECompress){
-		if(w->info.size >= w->info.uncsize){
-			seterr(ECorrupt, "compressed lump has inconsistent block sizes %d %d", w->info.size, w->info.uncsize);
+	} else if(w->encoding == ClumpECompress) {
+		if(w->info.size >= w->info.uncsize) {
+			seterr(ECorrupt, "compressed lump has inconsistent "
+			                 "block sizes %d %d",
+			       w->info.size, w->info.uncsize);
 			return -1;
 		}
-	}else{
+	} else {
 		seterr(ECorrupt, "clump has illegal encoding");
 		return -1;
 	}
@@ -428,15 +447,17 @@ checkclump(Clump *w)
 }
 
 int
-unpackclump(Clump *c, uint8_t *buf, uint32_t cmagic)
+unpackclump(Clump* c, uint8_t* buf, uint32_t cmagic)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t magic;
 
 	p = buf;
 	magic = U32GET(p);
-	if(magic != cmagic){
-		seterr(ECorrupt, "clump has bad magic number=%#8.8ux != %#8.8ux", magic, cmagic);
+	if(magic != cmagic) {
+		seterr(ECorrupt,
+		       "clump has bad magic number=%#8.8ux != %#8.8ux", magic,
+		       cmagic);
 		return -1;
 	}
 	p += U32Size;
@@ -464,9 +485,9 @@ unpackclump(Clump *c, uint8_t *buf, uint32_t cmagic)
 }
 
 int
-packclump(Clump *c, uint8_t *buf, uint32_t magic)
+packclump(Clump* c, uint8_t* buf, uint32_t magic)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 	U32PUT(p, magic);
@@ -495,9 +516,9 @@ packclump(Clump *c, uint8_t *buf, uint32_t magic)
 }
 
 void
-unpackclumpinfo(ClumpInfo *ci, uint8_t *buf)
+unpackclumpinfo(ClumpInfo* ci, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 	ci->type = vtfromdisktype(U8GET(p));
@@ -514,9 +535,9 @@ unpackclumpinfo(ClumpInfo *ci, uint8_t *buf)
 }
 
 void
-packclumpinfo(ClumpInfo *ci, uint8_t *buf)
+packclumpinfo(ClumpInfo* ci, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 	U8PUT(p, vttodisktype(ci->type));
@@ -533,19 +554,19 @@ packclumpinfo(ClumpInfo *ci, uint8_t *buf)
 }
 
 int
-unpackisect(ISect *is, uint8_t *buf)
+unpackisect(ISect* is, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
 
-
 	m = U32GET(p);
-	if(m != ISectMagic){
-		seterr(ECorrupt, "index section has wrong magic number: %s expected ISectMagic (%#lux)",
-			fmtmagic(fbuf, m), ISectMagic);
+	if(m != ISectMagic) {
+		seterr(ECorrupt, "index section has wrong magic number: %s "
+		                 "expected ISectMagic (%#lux)",
+		       fmtmagic(fbuf, m), ISectMagic);
 		return -1;
 	}
 	p += U32Size;
@@ -568,7 +589,7 @@ unpackisect(ISect *is, uint8_t *buf)
 	if(buf + ISectSize1 != p)
 		sysfatal("unpackisect unpacked wrong amount");
 	is->bucketmagic = 0;
-	if(is->version == ISectVersion2){
+	if(is->version == ISectVersion2) {
 		is->bucketmagic = U32GET(p);
 		p += U32Size;
 		if(buf + ISectSize2 != p)
@@ -579,9 +600,9 @@ unpackisect(ISect *is, uint8_t *buf)
 }
 
 int
-packisect(ISect *is, uint8_t *buf)
+packisect(ISect* is, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 
@@ -605,7 +626,7 @@ packisect(ISect *is, uint8_t *buf)
 	p += U32Size;
 	if(buf + ISectSize1 != p)
 		sysfatal("packisect packed wrong amount");
-	if(is->version == ISectVersion2){
+	if(is->version == ISectVersion2) {
 		U32PUT(p, is->bucketmagic);
 		p += U32Size;
 		if(buf + ISectSize2 != p)
@@ -616,9 +637,9 @@ packisect(ISect *is, uint8_t *buf)
 }
 
 void
-unpackientry(IEntry *ie, uint8_t *buf)
+unpackientry(IEntry* ie, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 
@@ -631,7 +652,8 @@ unpackientry(IEntry *ie, uint8_t *buf)
 	if(p - buf != IEntryAddrOff)
 		sysfatal("unpackentry bad IEntryAddrOff amount");
 	ie->ia.addr = U64GET(p);
-if(ie->ia.addr>>56) print("%.8H => %llux\n", p, ie->ia.addr);
+	if(ie->ia.addr >> 56)
+		print("%.8H => %llux\n", p, ie->ia.addr);
 	p += U64Size;
 	ie->ia.size = U16GET(p);
 	p += U16Size;
@@ -647,10 +669,10 @@ if(ie->ia.addr>>56) print("%.8H => %llux\n", p, ie->ia.addr);
 }
 
 void
-packientry(IEntry *ie, uint8_t *buf)
+packientry(IEntry* ie, uint8_t* buf)
 {
 	uint32_t t32;
-	uint8_t *p;
+	uint8_t* p;
 
 	p = buf;
 
@@ -674,53 +696,56 @@ packientry(IEntry *ie, uint8_t *buf)
 }
 
 void
-unpackibucket(IBucket *b, uint8_t *buf, uint32_t magic)
+unpackibucket(IBucket* b, uint8_t* buf, uint32_t magic)
 {
 	b->n = U16GET(buf);
 	b->data = buf + IBucketSize;
-	if(magic && magic != U32GET(buf+U16Size))
+	if(magic && magic != U32GET(buf + U16Size))
 		b->n = 0;
-}		
-
-void
-packibucket(IBucket *b, uint8_t *buf, uint32_t magic)
-{
-	U16PUT(buf, b->n);
-	U32PUT(buf+U16Size, magic);
 }
 
 void
-packbloomhead(Bloom *b, uint8_t *buf)
+packibucket(IBucket* b, uint8_t* buf, uint32_t magic)
 {
-	uint8_t *p;
+	U16PUT(buf, b->n);
+	U32PUT(buf + U16Size, magic);
+}
+
+void
+packbloomhead(Bloom* b, uint8_t* buf)
+{
+	uint8_t* p;
 
 	p = buf;
 	U32PUT(p, BloomMagic);
-	U32PUT(p+4, BloomVersion);
-	U32PUT(p+8, b->nhash);
-	U32PUT(p+12, b->size);
+	U32PUT(p + 4, BloomVersion);
+	U32PUT(p + 8, b->nhash);
+	U32PUT(p + 12, b->size);
 }
 
 int
-unpackbloomhead(Bloom *b, uint8_t *buf)
+unpackbloomhead(Bloom* b, uint8_t* buf)
 {
-	uint8_t *p;
+	uint8_t* p;
 	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
 
 	m = U32GET(p);
-	if(m != BloomMagic){
-		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lux)", fmtmagic(fbuf, m),
-		       (uint32_t)BloomMagic);
+	if(m != BloomMagic) {
+		seterr(ECorrupt, "bloom filter has wrong magic number: %s "
+		                 "expected BloomMagic (%#lux)",
+		       fmtmagic(fbuf, m), (uint32_t)BloomMagic);
 		return -1;
 	}
 	p += U32Size;
-	
+
 	m = U32GET(p);
-	if(m != BloomVersion){
-		seterr(ECorrupt, "bloom filter has wrong version %ud expected %ud", (uint)m, (uint)BloomVersion);
+	if(m != BloomVersion) {
+		seterr(ECorrupt,
+		       "bloom filter has wrong version %ud expected %ud",
+		       (uint)m, (uint)BloomVersion);
 		return -1;
 	}
 	p += U32Size;
@@ -730,8 +755,10 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 
 	b->size = U32GET(p);
 	p += U32Size;
-	if(b->size < BloomHeadSize || b->size > MaxBloomSize || (b->size&(b->size-1))){
-		seterr(ECorrupt, "bloom filter has invalid size %#lux", b->size);
+	if(b->size < BloomHeadSize || b->size > MaxBloomSize ||
+	   (b->size & (b->size - 1))) {
+		seterr(ECorrupt, "bloom filter has invalid size %#lux",
+		       b->size);
 		return -1;
 	}
 

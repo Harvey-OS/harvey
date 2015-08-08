@@ -13,12 +13,12 @@
 #include <thread.h>
 #include "netbios.h"
 
-void *
+void*
 nbemalloc(uint32_t nbytes)
 {
-	void *p;
+	void* p;
 	p = malloc(nbytes);
-	if (p == nil) {
+	if(p == nil) {
 		print("nbemalloc: failed\n");
 		threadexitsall("mem");
 	}

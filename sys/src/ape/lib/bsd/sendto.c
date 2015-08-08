@@ -20,15 +20,14 @@
 #include "priv.h"
 
 int
-sendto(int fd, void *a, int n, int flags, void *, int)
+sendto(int fd, void* a, int n, int flags, void*, int)
 {
 	/* actually, should do connect if not done already */
 	return send(fd, a, n, flags);
 }
 
 int
-recvfrom(int fd, void *a, int n, int flags,
-	void *from, int *fromlen)
+recvfrom(int fd, void* a, int n, int flags, void* from, int* fromlen)
 {
 	if(getsockname(fd, from, fromlen) < 0)
 		return -1;

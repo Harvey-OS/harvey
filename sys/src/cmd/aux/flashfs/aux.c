@@ -17,7 +17,7 @@
 void*
 emalloc9p(uint32_t sz)
 {
-	void *v;
+	void* v;
 
 	if((v = malloc(sz)) == nil) {
 		fprint(2, "out of memory allocating %lud\n", sz);
@@ -29,7 +29,7 @@ emalloc9p(uint32_t sz)
 }
 
 void*
-erealloc9p(void *v, uint32_t sz)
+erealloc9p(void* v, uint32_t sz)
 {
 	if((v = realloc(v, sz)) == nil) {
 		fprint(2, "out of memory allocating %lud\n", sz);
@@ -40,9 +40,9 @@ erealloc9p(void *v, uint32_t sz)
 }
 
 char*
-estrdup9p(char *s)
+estrdup9p(char* s)
 {
-	char *t;
+	char* t;
 
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);
@@ -51,4 +51,3 @@ estrdup9p(char *s)
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
-

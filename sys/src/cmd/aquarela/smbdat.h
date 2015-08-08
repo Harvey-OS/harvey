@@ -30,9 +30,9 @@ typedef struct SmbSlut SmbSlut;
 #pragma incomplete SmbBuffer
 #pragma incomplete SmbLockList
 
-typedef int SMBCIFSWRITEFN(SmbCifsSession *cifs, void *buf, long n);
-typedef int SMBCIFSACCEPTFN(SmbCifsSession *cifs, SMBCIFSWRITEFN **fnp);
-typedef void SMBIDMAPAPPLYFN(void *magic, void *p);
+typedef int SMBCIFSWRITEFN(SmbCifsSession* cifs, void* buf, long n);
+typedef int SMBCIFSACCEPTFN(SmbCifsSession* cifs, SMBCIFSWRITEFN** fnp);
+typedef void SMBIDMAPAPPLYFN(void* magic, void* p);
 
 struct SmbPeerInfo {
 	uint32_t capabilities;
@@ -46,65 +46,64 @@ struct SmbPeerInfo {
 	vlong utc;
 	short tzoff;
 	uchar encryptionkeylength;
-	uchar *encryptionkey;
-	char *oemdomainname;
+	uchar* encryptionkey;
+	char* oemdomainname;
 };
 
 struct SmbTransaction {
 	struct {
-		char *name;
+		char* name;
 		uint32_t tpcount;
-		uchar *parameters;
+		uchar* parameters;
 		uint32_t pcount;
 		uint32_t tdcount;
-		uchar *data;
+		uchar* data;
 		uint32_t maxpcount;
 		uint32_t maxdcount;
 		uint32_t maxscount;
 		uint32_t dcount;
 		ushort scount;
-		ushort *setup;
+		ushort* setup;
 		ushort flags;
 	} in;
 	struct {
 		uint32_t tpcount;
 		uint32_t tdcount;
-		SmbBuffer *parameters;
-		SmbBuffer *data;
-		ushort *setup;
+		SmbBuffer* parameters;
+		SmbBuffer* data;
+		ushort* setup;
 	} out;
 };
 
-enum {
-	SmbSessionNeedNegotiate,
-	SmbSessionNeedSetup,
-	SmbSessionEstablished,
+enum { SmbSessionNeedNegotiate,
+       SmbSessionNeedSetup,
+       SmbSessionEstablished,
 };
 
 struct SmbSession {
-	NbSession *nbss;
-	SmbCifsSession *cifss;
+	NbSession* nbss;
+	SmbCifsSession* cifss;
 	uchar nextcommand;
-	SmbBuffer *response;
+	SmbBuffer* response;
 	SmbPeerInfo peerinfo;
-	Chalstate *cs;
+	Chalstate* cs;
 	struct {
-		char *accountname;	
-		char *primarydomain;
-		char *nativeos;
-		char *nativelanman;
+		char* accountname;
+		char* primarydomain;
+		char* nativeos;
+		char* nativelanman;
 		ushort maxmpxcount;
 		MSchapreply mschapreply;
 	} client;
 	SmbTransaction transaction;
-	SmbIdMap *fidmap;
-	SmbIdMap *tidmap;
-	SmbIdMap *sidmap;
+	SmbIdMap* fidmap;
+	SmbIdMap* tidmap;
+	SmbIdMap* sidmap;
 	int state;
 	uchar errclass;
 	ushort error;
-	int tzoff;		// as passed to client during negotiation
-	SmbService *serv;
+	int tzoff; // as passed to client during negotiation
+	SmbService* serv;
 };
 
 typedef struct SmbHeader {
@@ -141,11 +140,12 @@ typedef enum SmbProcessResult {
 	SmbProcessResultDie,
 } SmbProcessResult;
 
-typedef SmbProcessResult SMBPROCESSFN(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *);
+typedef SmbProcessResult SMBPROCESSFN(SmbSession* s, SmbHeader* h, uchar* pdata,
+                                      SmbBuffer*);
 typedef struct SmbOpTableEntry SmbOpTableEntry;
 struct SmbOpTableEntry {
-	char *name;
-	SMBPROCESSFN *process;
+	char* name;
+	SMBPROCESSFN* process;
 	int debug;
 };
 
@@ -156,23 +156,23 @@ typedef struct SmbGlobals SmbGlobals;
 extern SmbGlobals smbglobals;
 
 struct SmbServerInfo {
-	char *name;
-	char *nativelanman;
+	char* name;
+	char* nativelanman;
 	uchar vmaj, vmin;
 	uint32_t stype;
-	char *remark;
+	char* remark;
 };
 
 struct SmbGlobals {
 	int maxreceive;
 	int unicode;
 	SmbServerInfo serverinfo;
-	char *nativeos;
-	char *primarydomain;
+	char* nativeos;
+	char* primarydomain;
 	NbName nbname;
-	char *accountname;
-	char *mailslotbrowse;
-	char *pipelanman;
+	char* accountname;
+	char* mailslotbrowse;
+	char* pipelanman;
 	int l2sectorsize;
 	int l2allocationsize;
 	int convertspace;
@@ -195,84 +195,87 @@ struct SmbGlobals {
 
 struct SmbTree {
 	long id;
-	SmbService *serv;
+	SmbService* serv;
 };
 
 struct SmbService {
 	Ref;
-	char *name;
-	char *type;
+	char* name;
+	char* type;
 	ushort stype;
-	char *path;
-	char *remark;
-	SmbService *next;
+	char* path;
+	char* remark;
+	SmbService* next;
 };
 
-extern SmbService *smbservices;
+extern SmbService* smbservices;
 
 typedef struct SmbClient SmbClient;
 
-
 typedef struct SmbTransactionMethod {
-	int (*encodeprimary)(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p,
-		SmbBuffer *ob, uchar *wordcount, ushort *bytecount, char **errmsgp);
-	int (*encodesecondary)(SmbTransaction *t, SmbHeader *h, SmbBuffer *ob, char **errmsgp);
-	int (*sendrequest)(void *magic, SmbBuffer *ob, char **errmsgp);
-	int (*receiveintermediate)(void *magic, uchar *wordcountp, ushort *bytecountp, char **errmsgp);
-	int (*receiveresponse)(void *magic, SmbBuffer *ib, char **errmsgp);
-	int (*decoderesponse)(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp);
-	int (*encoderesponse)(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p,
-		SmbBuffer *ob, char **errmsgp);
-	int (*sendresponse)(void *magic, SmbBuffer *ob, char **errmsgp);
+	int (*encodeprimary)(SmbTransaction* t, SmbHeader* h, SmbPeerInfo* p,
+	                     SmbBuffer* ob, uchar* wordcount, ushort* bytecount,
+	                     char** errmsgp);
+	int (*encodesecondary)(SmbTransaction* t, SmbHeader* h, SmbBuffer* ob,
+	                       char** errmsgp);
+	int (*sendrequest)(void* magic, SmbBuffer* ob, char** errmsgp);
+	int (*receiveintermediate)(void* magic, uchar* wordcountp,
+	                           ushort* bytecountp, char** errmsgp);
+	int (*receiveresponse)(void* magic, SmbBuffer* ib, char** errmsgp);
+	int (*decoderesponse)(SmbTransaction* t, SmbHeader* h, uchar* pdata,
+	                      SmbBuffer* b, char** errmsgp);
+	int (*encoderesponse)(SmbTransaction* t, SmbHeader* h, SmbPeerInfo* p,
+	                      SmbBuffer* ob, char** errmsgp);
+	int (*sendresponse)(void* magic, SmbBuffer* ob, char** errmsgp);
 } SmbTransactionMethod;
 
 extern SmbTransactionMethod smbtransactionmethoddgram;
 
 struct SmbSearch {
 	long id;
-	SmbTree *t;
-	SmbDirCache *dc;
-	Reprog *rep;
+	SmbTree* t;
+	SmbDirCache* dc;
+	Reprog* rep;
 	ushort tid;
 };
 
 struct SmbFile {
 	long id;
-	SmbTree *t;		// tree this belongs to
+	SmbTree* t; // tree this belongs to
 	int fd;
-	char *name;
-	int p9mode;		// how it was opened
-	int share;			// additional sharing restictions added by this fid
+	char* name;
+	int p9mode; // how it was opened
+	int share;  // additional sharing restictions added by this fid
 	int ioallowed;
-	SmbSharedFile *sf;
+	SmbSharedFile* sf;
 };
 
 struct SmbSharedFile {
 	ushort type;
 	uint32_t dev;
 	vlong path;
-//	char *name;
-	int share;			// current share level
+	//	char *name;
+	int share; // current share level
 	int deleteonclose;
-	SmbLockList *locklist;
+	SmbLockList* locklist;
 };
 
 struct SmbLock {
 	vlong base;
 	vlong limit;
-	SmbSession *s;		// owning session
-	ushort pid;		// owning pid
+	SmbSession* s; // owning session
+	ushort pid;    // owning pid
 };
 
 struct SmbCifsSession {
 	int fd;
-	void *magic;
+	void* magic;
 };
 
 struct SmbClient {
 	SmbPeerInfo peerinfo;
-	NbSession *nbss;
-	SmbBuffer *b;
+	NbSession* nbss;
+	SmbBuffer* b;
 	ushort ipctid;
 	ushort sharetid;
 	SmbHeader protoh;
@@ -283,7 +286,7 @@ struct SmbRapServerInfo1 {
 	uchar vmaj;
 	uchar vmin;
 	uint32_t type;
-	char *remark;
+	char* remark;
 };
 
 struct SmbFindFileBothDirectoryInfo {
@@ -295,38 +298,38 @@ struct SmbFindFileBothDirectoryInfo {
 	vlong endoffile;
 	vlong allocationsize;
 	uint32_t extfileattributes;
-	char *filename;
+	char* filename;
 };
 
-enum {
-	SMB_STRING_UNALIGNED = 1,
-	SMB_STRING_UPCASE = 2,
-	SMB_STRING_UNTERMINATED = 4,
-	SMB_STRING_UNICODE = 8,
-	SMB_STRING_ASCII = 16,
-	SMB_STRING_REVPATH = 32,
-	SMB_STRING_PATH = 64,
-	SMB_STRING_CONVERT_MASK = SMB_STRING_PATH | SMB_STRING_REVPATH | SMB_STRING_UPCASE,
+enum { SMB_STRING_UNALIGNED = 1,
+       SMB_STRING_UPCASE = 2,
+       SMB_STRING_UNTERMINATED = 4,
+       SMB_STRING_UNICODE = 8,
+       SMB_STRING_ASCII = 16,
+       SMB_STRING_REVPATH = 32,
+       SMB_STRING_PATH = 64,
+       SMB_STRING_CONVERT_MASK =
+	   SMB_STRING_PATH | SMB_STRING_REVPATH | SMB_STRING_UPCASE,
 };
 
 struct SmbDirCache {
-	Dir *buf;
+	Dir* buf;
 	long n;
 	long i;
 };
 
 typedef struct SmbTrans2OpTableEntry SmbTrans2OpTableEntry;
-typedef SmbProcessResult SMBTRANS2PROCESSFN(SmbSession *s, SmbHeader *h);
+typedef SmbProcessResult SMBTRANS2PROCESSFN(SmbSession* s, SmbHeader* h);
 struct SmbTrans2OpTableEntry {
-	char *name;
-	SMBTRANS2PROCESSFN *process;
+	char* name;
+	SMBTRANS2PROCESSFN* process;
 	int debug;
 };
 extern SmbTrans2OpTableEntry smbtrans2optable[];
 extern int smbtrans2optablesize;
 
 struct SmbSlut {
-	char *name;
+	char* name;
 	int val;
 };
 

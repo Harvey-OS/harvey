@@ -10,11 +10,11 @@
 #include <math.h>
 
 /*
-	tanh(arg) computes the hyperbolic tangent of its floating
-	point argument.
+        tanh(arg) computes the hyperbolic tangent of its floating
+        point argument.
 
-	sinh and cosh are called except for large arguments, which
-	would cause overflow improperly.
+        sinh and cosh are called except for large arguments, which
+        would cause overflow improperly.
  */
 
 double
@@ -25,9 +25,9 @@ tanh(double arg)
 		arg = -arg;
 		if(arg > 21)
 			return -1;
-		return -sinh(arg)/cosh(arg);
+		return -sinh(arg) / cosh(arg);
 	}
 	if(arg > 21)
 		return 1;
-	return sinh(arg)/cosh(arg);
+	return sinh(arg) / cosh(arg);
 }

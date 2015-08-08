@@ -29,20 +29,19 @@ bwatchSetBlockSize(uint u)
 }
 
 void
-bwatchDependency(Block *b)
+bwatchDependency(Block* b)
 {
 	USED(b);
 }
 
 void
-bwatchLock(Block *b)
+bwatchLock(Block* b)
 {
 	USED(b);
 }
 
 void
-bwatchUnlock(Block *b)
+bwatchUnlock(Block* b)
 {
 	USED(b);
 }
-

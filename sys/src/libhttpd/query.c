@@ -16,10 +16,10 @@
  * tag=val&tag1=val1...
  */
 HSPairs*
-hparsequery(HConnect *c, char *search)
+hparsequery(HConnect* c, char* search)
 {
-	HSPairs *q;
-	char *tag, *val, *s;
+	HSPairs* q;
+	char* tag, *val, *s;
 
 	while((s = strchr(search, '?')) != nil)
 		search = s + 1;
@@ -27,18 +27,19 @@ hparsequery(HConnect *c, char *search)
 	while((s = strchr(s, '+')) != nil)
 		*s++ = ' ';
 	q = nil;
-	while(*search){
+	while(*search) {
 		tag = search;
-		while(*search != '='){
+		while(*search != '=') {
 			if(*search == '\0')
 				return q;
 			search++;
 		}
 		*search++ = 0;
 		val = search;
-		while(*search != '&'){
+		while(*search != '&') {
 			if(*search == '\0')
-				return hmkspairs(c, hurlunesc(c, tag), hurlunesc(c, val), q);
+				return hmkspairs(c, hurlunesc(c, tag),
+				                 hurlunesc(c, val), q);
 			search++;
 		}
 		*search++ = '\0';

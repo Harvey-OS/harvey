@@ -13,48 +13,50 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct Hdr	Hdr;
-struct Hdr
-{
-	uint8_t	vi;		/* version */
-	uint8_t	type;
-	uint8_t	len[2];	/* length of data following this header */
+typedef struct Hdr Hdr;
+struct Hdr {
+	uint8_t vi; /* version */
+	uint8_t type;
+	uint8_t len[2]; /* length of data following this header */
 };
 
-enum
-{
-	EAPOLHDR=	4,		/* sizeof(Hdr) */
+enum { EAPOLHDR = 4, /* sizeof(Hdr) */
 
-	/* eapol types */
-	Eap = 0,
-	Start,
-	Logoff,
-	Key,
-	AsfAlert,
+       /* eapol types */
+       Eap = 0,
+       Start,
+       Logoff,
+       Key,
+       AsfAlert,
 };
 
-enum
-{
-	Ot,	/* type */
+enum { Ot, /* type */
 };
 
-static Mux p_mux[] =
-{
-	{ "eap", Eap, },
-	{ "eapol_start", Start, },
-	{ "eapol_logoff", Logoff, },
-	{ "eapol_key", Key, },
-	{ "asf_alert", AsfAlert, },
-	{ 0 }
-};
+static Mux p_mux[] = {{
+                       "eap", Eap,
+                      },
+                      {
+                       "eapol_start", Start,
+                      },
+                      {
+                       "eapol_logoff", Logoff,
+                      },
+                      {
+                       "eapol_key", Key,
+                      },
+                      {
+                       "asf_alert", AsfAlert,
+                      },
+                      {0}};
 
 static void
-p_compile(Filter *f)
+p_compile(Filter* f)
 {
-	Mux *m;
+	Mux* m;
 
 	for(m = p_mux; m->name != nil; m++)
-		if(strcmp(f->s, m->name) == 0){
+		if(strcmp(f->s, m->name) == 0) {
 			f->pr = m->pr;
 			f->ulv = m->val;
 			f->subop = Ot;
@@ -64,9 +66,9 @@ p_compile(Filter *f)
 }
 
 static int
-p_filter(Filter *f, Msg *m)
+p_filter(Filter* f, Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 
 	if(m->pe - m->ps < EAPOLHDR)
 		return 0;
@@ -76,7 +78,7 @@ p_filter(Filter *f, Msg *m)
 	/* len does not include header */
 	m->ps += EAPOLHDR;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Ot:
 		return h->type == f->ulv;
 	}
@@ -88,7 +90,7 @@ op(int i)
 {
 	static char x[20];
 
-	switch(i){
+	switch(i) {
 	case Eap:
 		return "Eap";
 	case Start:
@@ -106,9 +108,9 @@ op(int i)
 }
 
 static int
-p_seprint(Msg *m)
+p_seprint(Msg* m)
 {
-	Hdr *h;
+	Hdr* h;
 	int len;
 
 	if(m->pe - m->ps < EAPOLHDR)
@@ -123,25 +125,17 @@ p_seprint(Msg *m)
 	len = NetS(h->len);
 	if(m->ps + len < m->pe)
 		m->pe = m->ps + len;
-	else if(m->ps+len > m->pe)
+	else if(m->ps + len > m->pe)
 		return -1;
 
 	/* next protocol  depending on type*/
 	demux(p_mux, h->type, h->type, m, &dump);
 
 	m->p = seprint(m->p, m->e, "type=%s version=%1d datalen=%1d",
-			op(h->type), h->vi, len);
+	               op(h->type), h->vi, len);
 	return 0;
 }
 
-Proto eapol =
-{
-	"eapol",
-	p_compile,
-	p_filter,
-	p_seprint,
-	p_mux,
-	"%lud",
-	nil,
-	defaultframer,
+Proto eapol = {
+    "eapol", p_compile, p_filter, p_seprint, p_mux, "%lud", nil, defaultframer,
 };

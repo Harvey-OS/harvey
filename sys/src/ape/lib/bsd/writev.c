@@ -18,21 +18,21 @@
 #include "priv.h"
 
 int
-writev(int fd, struct iovec *v, int ent)
+writev(int fd, struct iovec* v, int ent)
 {
 	int i, n, written;
-	char *t, *e, *f;
-	char buf[10*1024];
+	char* t, *e, *f;
+	char buf[10 * 1024];
 
 	written = 0;
 	t = buf;
-	e = buf+sizeof(buf);
-	for(;ent ; v++, ent--){
+	e = buf + sizeof(buf);
+	for(; ent; v++, ent--) {
 		n = v->iov_len;
 		f = v->iov_base;
-		while(n > 0){
-			i = e-t;
-			if(n < i){
+		while(n > 0) {
+			i = e - t;
+			if(n < i) {
 				memmove(t, f, n);
 				t += n;
 				break;
@@ -41,10 +41,10 @@ writev(int fd, struct iovec *v, int ent)
 			n -= i;
 			f += i;
 			i = write(fd, buf, sizeof(buf));
-			if(i < 0){
-				if(written > 0){
+			if(i < 0) {
+				if(written > 0) {
 					return written;
-				}else{
+				} else {
 					_syserrno();
 					return -1;
 				}
@@ -57,10 +57,10 @@ writev(int fd, struct iovec *v, int ent)
 		}
 	}
 	i = t - buf;
-	if(i > 0){
+	if(i > 0) {
 		n = write(fd, buf, i);
-		if(n < 0){
-			if(written == 0){
+		if(n < 0) {
+			if(written == 0) {
 				_syserrno();
 				return -1;
 			}

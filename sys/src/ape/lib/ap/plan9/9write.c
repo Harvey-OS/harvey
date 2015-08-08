@@ -14,7 +14,7 @@
 #include "dir.h"
 
 int32_t
-_WRITE(int fd, void *buf, int32_t n)
+_WRITE(int fd, void* buf, int32_t n)
 {
 	return _PWRITE(fd, buf, n, -1LL);
 }

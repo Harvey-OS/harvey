@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1990, 1993, 1994, 1996, 1998 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1990, 1993, 1994, 1996, 1998 Aladdin Enterprises.  All rights
+  reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -24,7 +25,7 @@
 */
 
 #ifndef gxarith_INCLUDED
-#  define gxarith_INCLUDED
+#define gxarith_INCLUDED
 
 /* $Id: gxarith.h,v 1.5 2002/06/16 08:45:43 lpd Exp $ */
 /* Arithmetic macros for Ghostscript library */
@@ -52,9 +53,10 @@ int ilog2(int n);
 
 /* Test whether an integral value fits in a given number of bits. */
 /* This works for all integral types. */
-#define fits_in_bits(i, n)\
-  (sizeof(i) <= sizeof(int) ? fits_in_ubits((i) + (1 << ((n) - 1)), (n) + 1) :\
-   fits_in_ubits((i) + (1L << ((n) - 1)), (n) + 1))
+#define fits_in_bits(i, n)                                                     \
+	(sizeof(i) <= sizeof(int)                                              \
+	     ? fits_in_ubits((i) + (1 << ((n)-1)), (n) + 1)                    \
+	     : fits_in_ubits((i) + (1L << ((n)-1)), (n) + 1))
 #define fits_in_ubits(i, n) (((i) >> (n)) == 0)
 
 /*
@@ -66,14 +68,13 @@ int ilog2(int n);
  */
 /* Test floating point values against constants. */
 #define is_fzero(f) ((f) == 0.0)
-#define is_fzero2(f1,f2) ((f1) == 0.0 && (f2) == 0.0)
+#define is_fzero2(f1, f2) ((f1) == 0.0 && (f2) == 0.0)
 #define is_fneg(f) ((f) < 0.0)
 #define is_fge1(f) ((f) >= 1.0)
 /* Test whether a floating point value fits in a given number of bits. */
-#define f_fits_in_bits(f, n)\
-  ((f) >= -2.0 * (1L << ((n) - 2)) && (f) < 2.0 * (1L << ((n) - 2)))
-#define f_fits_in_ubits(f, n)\
-  ((f) >= 0 && (f) < 4.0 * (1L << ((n) - 2)))
+#define f_fits_in_bits(f, n)                                                   \
+	((f) >= -2.0 * (1L << ((n)-2)) && (f) < 2.0 * (1L << ((n)-2)))
+#define f_fits_in_ubits(f, n) ((f) >= 0 && (f) < 4.0 * (1L << ((n)-2)))
 
 /*
  * Define a macro for computing log2(n), where n=1,2,4,...,128.
@@ -82,8 +83,7 @@ int ilog2(int n);
  * only be used with compile-time constant arguments, but it will work
  * even if n is an expression computed at run-time.
  */
-#define small_exact_log2(n)\
- ((uint)(05637042010L >> ((((n) % 11) - 1) * 3)) & 7)
+#define small_exact_log2(n) ((uint)(05637042010L >> ((((n) % 11) - 1) * 3)) & 7)
 
 /*
  * The following doesn't give rise to a macro, but is used in several

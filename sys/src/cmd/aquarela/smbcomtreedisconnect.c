@@ -10,9 +10,9 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomtreedisconnect(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *)
+smbcomtreedisconnect(SmbSession* s, SmbHeader* h, uint8_t*, SmbBuffer*)
 {
-	if (!smbcheckwordcount("comtreedisconnect", h, 0))
+	if(!smbcheckwordcount("comtreedisconnect", h, 0))
 		return SmbProcessResultFormat;
 	smbtreedisconnectbyid(s, h->tid);
 	return smbbufferputack(s->response, h, &s->peerinfo);

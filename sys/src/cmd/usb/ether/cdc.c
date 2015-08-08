@@ -19,32 +19,32 @@
 #include "ether.h"
 
 static int
-okclass(Iface *iface)
+okclass(Iface* iface)
 {
 	return Class(iface->csp) == Clcomms && Subclass(iface->csp) == Scether;
 }
 
 static int
-getmac(Ether *ether)
+getmac(Ether* ether)
 {
 	int i;
-	Usbdev *ud;
-	uint8_t *b;
-	Desc *dd;
-	char *mac;
+	Usbdev* ud;
+	uint8_t* b;
+	Desc* dd;
+	char* mac;
 
 	ud = ether->dev->usb;
 
 	for(i = 0; i < nelem(ud->ddesc); i++)
-		if((dd = ud->ddesc[i]) != nil && okclass(dd->iface)){
+		if((dd = ud->ddesc[i]) != nil && okclass(dd->iface)) {
 			b = (uint8_t*)&dd->data;
-			if(b[1] == Dfunction && b[2] == Fnether){
+			if(b[1] == Dfunction && b[2] == Fnether) {
 				mac = loaddevstr(ether->dev, b[3]);
-				if(mac != nil && strlen(mac) != 12){
+				if(mac != nil && strlen(mac) != 12) {
 					free(mac);
 					mac = nil;
 				}
-				if(mac != nil){
+				if(mac != nil) {
 					parseaddr(ether->addr, mac);
 					free(mac);
 					return 0;
@@ -55,7 +55,7 @@ getmac(Ether *ether)
 }
 
 int
-cdcreset(Ether *ether)
+cdcreset(Ether* ether)
 {
 	/*
 	 * Assume that all communication devices are going to

@@ -22,20 +22,22 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	RSApriv *key;
-	Attr *a;
-	char *s;
+	RSApriv* key;
+	Attr* a;
+	char* s;
 
 	fmtinstall('A', _attrfmt);
 	fmtinstall('B', mpfmt);
 	quotefmtinstall();
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
@@ -43,11 +45,10 @@ main(int argc, char **argv)
 	if((key = getkey(argc, argv, 1, &a)) == nil)
 		sysfatal("%r");
 
-	s = smprint("key %A size=%d ek=%B !dk=%B n=%B !p=%B !q=%B !kp=%B !kq=%B !c2=%B\n",
-		a, 
-		mpsignif(key->pub.n), key->pub.ek,
-		key->dk, key->pub.n, key->p, key->q,
-		key->kp, key->kq, key->c2);
+	s = smprint("key %A size=%d ek=%B !dk=%B n=%B !p=%B !q=%B !kp=%B "
+	            "!kq=%B !c2=%B\n",
+	            a, mpsignif(key->pub.n), key->pub.ek, key->dk, key->pub.n,
+	            key->p, key->q, key->kp, key->kq, key->c2);
 	if(s == nil)
 		sysfatal("smprint: %r");
 	write(1, s, strlen(s));

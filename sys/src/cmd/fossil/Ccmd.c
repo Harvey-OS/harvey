@@ -12,11 +12,11 @@
 #include "9.h"
 
 static struct {
-	VtLock*	lock;
+	VtLock* lock;
 
-	Con*	con;
-	int	confd[2];
-	uint16_t	tag;
+	Con* con;
+	int confd[2];
+	uint16_t tag;
 } cbox;
 
 static uint32_t
@@ -36,15 +36,15 @@ cmd9pStrtoull(char* s)
 }
 
 static int
-cmd9pTag(Fcall *f, int i, char **argv)
+cmd9pTag(Fcall* f, int i, char** argv)
 {
-	cbox.tag = strtoul(argv[0], 0, 0)-1;
+	cbox.tag = strtoul(argv[0], 0, 0) - 1;
 
 	return 1;
 }
 
 static int
-cmd9pTwstat(Fcall* f, int i, char **argv)
+cmd9pTwstat(Fcall* f, int i, char** argv)
 {
 	Dir d;
 	static uint8_t buf[DIRMAX];
@@ -61,7 +61,7 @@ cmd9pTwstat(Fcall* f, int i, char **argv)
 	f->fid = strtol(argv[0], 0, 0);
 	f->stat = buf;
 	f->nstat = convD2M(&d, buf, sizeof buf);
-	if(f->nstat < BIT16SZ){
+	if(f->nstat < BIT16SZ) {
 		vtSetError("Twstat: convD2M failed (internal error)");
 		return 0;
 	}
@@ -139,19 +139,19 @@ cmd9pTwalk(Fcall* f, int argc, char** argv)
 {
 	int i;
 
-	if(argc < 2){
+	if(argc < 2) {
 		vtSetError("usage: Twalk tag fid newfid [name...]");
 		return 0;
 	}
 	f->fid = strtol(argv[0], 0, 0);
 	f->newfid = strtol(argv[1], 0, 0);
-	f->nwname = argc-2;
-	if(f->nwname > MAXWELEM){
+	f->nwname = argc - 2;
+	if(f->nwname > MAXWELEM) {
 		vtSetError("Twalk: too many names");
 		return 0;
 	}
-	for(i = 0; i < argc-2; i++)
-		f->wname[i] = argv[2+i];
+	for(i = 0; i < argc - 2; i++)
+		f->wname[i] = argv[2 + i];
 
 	return 1;
 }
@@ -189,7 +189,7 @@ static int
 cmd9pTversion(Fcall* f, int i, char** argv)
 {
 	f->msize = strtoul(argv[0], 0, 0);
-	if(f->msize > cbox.con->msize){
+	if(f->msize > cbox.con->msize) {
 		vtSetError("msize too big");
 		return 0;
 	}
@@ -200,28 +200,24 @@ cmd9pTversion(Fcall* f, int i, char** argv)
 
 typedef struct Cmd9p Cmd9p;
 struct Cmd9p {
-	char*	name;
-	int	type;
-	int	argc;
-	char*	usage;
-	int	(*f)(Fcall*, int i, char**);
+	char* name;
+	int type;
+	int argc;
+	char* usage;
+	int (*f)(Fcall*, int i, char**);
 };
 
 static Cmd9p cmd9pTmsg[] = {
-	"Tversion", Tversion, 2, "msize version", cmd9pTversion,
-	"Tauth", Tauth, 3, "afid uname aname", cmd9pTauth,
-	"Tflush", Tflush, 1, "oldtag", cmd9pTflush,
-	"Tattach", Tattach, 4, "fid afid uname aname", cmd9pTattach,
-	"Twalk", Twalk, 0, "fid newfid [name...]", cmd9pTwalk,
-	"Topen", Topen, 2, "fid mode", cmd9pTopen,
-	"Tcreate", Tcreate, 4, "fid name perm mode", cmd9pTcreate,
-	"Tread", Tread, 3, "fid offset count", cmd9pTread,
-	"Twrite", Twrite, 3, "fid offset data", cmd9pTwrite,
-	"Tclunk", Tclunk, 1, "fid", cmd9pTclunk,
-	"Tremove", Tremove, 1, "fid", cmd9pTremove,
-	"Tstat", Tstat, 1, "fid", cmd9pTstat,
-	"Twstat", Twstat, 7, "fid name uid gid mode mtime length", cmd9pTwstat,
-	"nexttag", 0, 0, "", cmd9pTag,
+    "Tversion", Tversion, 2, "msize version", cmd9pTversion, "Tauth", Tauth, 3,
+    "afid uname aname", cmd9pTauth, "Tflush", Tflush, 1, "oldtag", cmd9pTflush,
+    "Tattach", Tattach, 4, "fid afid uname aname", cmd9pTattach, "Twalk", Twalk,
+    0, "fid newfid [name...]", cmd9pTwalk, "Topen", Topen, 2, "fid mode",
+    cmd9pTopen, "Tcreate", Tcreate, 4, "fid name perm mode", cmd9pTcreate,
+    "Tread", Tread, 3, "fid offset count", cmd9pTread, "Twrite", Twrite, 3,
+    "fid offset data", cmd9pTwrite, "Tclunk", Tclunk, 1, "fid", cmd9pTclunk,
+    "Tremove", Tremove, 1, "fid", cmd9pTremove, "Tstat", Tstat, 1, "fid",
+    cmd9pTstat, "Twstat", Twstat, 7, "fid name uid gid mode mtime length",
+    cmd9pTwstat, "nexttag", 0, 0, "", cmd9pTag,
 };
 
 static int
@@ -229,20 +225,22 @@ cmd9p(int argc, char* argv[])
 {
 	int i, n;
 	Fcall f, t;
-	unsigned char *buf;
-	char *usage;
+	unsigned char* buf;
+	char* usage;
 	uint32_t msize;
 
 	usage = "usage: 9p T-message ...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc < 1)
 		return cliError(usage);
 
-	for(i = 0; i < nelem(cmd9pTmsg); i++){
+	for(i = 0; i < nelem(cmd9pTmsg); i++) {
 		if(strcmp(cmd9pTmsg[i].name, argv[0]) == 0)
 			break;
 	}
@@ -250,9 +248,9 @@ cmd9p(int argc, char* argv[])
 		return cliError(usage);
 	argc--;
 	argv++;
-	if(cmd9pTmsg[i].argc && argc != cmd9pTmsg[i].argc){
-		vtSetError("usage: %s %s",
-			cmd9pTmsg[i].name, cmd9pTmsg[i].usage);
+	if(cmd9pTmsg[i].argc && argc != cmd9pTmsg[i].argc) {
+		vtSetError("usage: %s %s", cmd9pTmsg[i].name,
+		           cmd9pTmsg[i].usage);
 		return 0;
 	}
 
@@ -267,24 +265,24 @@ cmd9p(int argc, char* argv[])
 		return 0;
 	buf = vtMemAlloc(msize);
 	n = convS2M(&t, buf, msize);
-	if(n <= BIT16SZ){
+	if(n <= BIT16SZ) {
 		vtSetError("%s: convS2M error", cmd9pTmsg[i].name);
 		vtMemFree(buf);
 		return 0;
 	}
-	if(write(cbox.confd[0], buf, n) != n){
+	if(write(cbox.confd[0], buf, n) != n) {
 		vtSetError("%s: write error: %r", cmd9pTmsg[i].name);
 		vtMemFree(buf);
 		return 0;
 	}
 	consPrint("\t-> %F\n", &t);
 
-	if((n = read9pmsg(cbox.confd[0], buf, msize)) <= 0){
+	if((n = read9pmsg(cbox.confd[0], buf, msize)) <= 0) {
 		vtSetError("%s: read error: %r", cmd9pTmsg[i].name);
 		vtMemFree(buf);
 		return 0;
 	}
-	if(convM2S(buf, n, &f) == 0){
+	if(convM2S(buf, n, &f) == 0) {
 		vtSetError("%s: convM2S error", cmd9pTmsg[i].name);
 		vtMemFree(buf);
 		return 0;
@@ -299,17 +297,19 @@ static int
 cmdDot(int argc, char* argv[])
 {
 	int32_t l;
-	Dir *dir;
+	Dir* dir;
 	int fd, r;
 	int64_t length;
-	char *f, *p, *s, *usage;
+	char* f, *p, *s, *usage;
 
 	usage = "usage: . file";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 1)
 		return cliError(usage);
 
@@ -319,14 +319,14 @@ cmdDot(int argc, char* argv[])
 	free(dir);
 
 	r = 1;
-	if(length != 0){
+	if(length != 0) {
 		/*
 		 * Read the whole file in.
 		 */
 		if((fd = open(argv[0], OREAD)) < 0)
 			return cliError(". open %s: %r", argv[0]);
-		f = vtMemAlloc(dir->length+1);
-		if((l = read(fd, f, length)) < 0){
+		f = vtMemAlloc(dir->length + 1);
+		if((l = read(fd, f, length)) < 0) {
 			vtMemFree(f);
 			close(fd);
 			return cliError(". read %s: %r", argv[0]);
@@ -337,14 +337,14 @@ cmdDot(int argc, char* argv[])
 		/*
 		 * Call cliExec() for each line.
 		 */
-		for(p = s = f; *p != '\0'; p++){
-			if(*p == '\n'){
+		for(p = s = f; *p != '\0'; p++) {
+			if(*p == '\n') {
 				*p = '\0';
-				if(cliExec(s) == 0){
+				if(cliExec(s) == 0) {
 					r = 0;
 					consPrint("%s: %R\n", s);
 				}
-				s = p+1;
+				s = p + 1;
 			}
 		}
 		vtMemFree(f);
@@ -358,14 +358,16 @@ cmdDot(int argc, char* argv[])
 static int
 cmdDflag(int argc, char* argv[])
 {
-	char *usage;
+	char* usage;
 
 	usage = "usage: dflag";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
@@ -378,21 +380,23 @@ cmdDflag(int argc, char* argv[])
 static int
 cmdEcho(int argc, char* argv[])
 {
-	char *usage;
+	char* usage;
 	int i, nflag;
 
 	nflag = 0;
 	usage = "usage: echo [-n] ...";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'n':
 		nflag = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	for(i = 0; i < argc; i++){
+	for(i = 0; i < argc; i++) {
 		if(i != 0)
 			consPrint(" %s", argv[i]);
 		else
@@ -408,11 +412,12 @@ static int
 cmdBind(int argc, char* argv[])
 {
 	uint32_t flag = 0;
-	char *usage;
+	char* usage;
 
 	usage = "usage: bind [-b|-a|-c|-bc|-ac] new old";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		flag |= MAFTER;
 		break;
@@ -424,12 +429,13 @@ cmdBind(int argc, char* argv[])
 		break;
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc != 2 || (flag&MAFTER)&&(flag&MBEFORE))
+	if(argc != 2 || (flag & MAFTER) && (flag & MBEFORE))
 		return cliError(usage);
 
-	if(bind(argv[0], argv[1], flag) < 0){
+	if(bind(argv[0], argv[1], flag) < 0) {
 		/* try to give a less confusing error than the default */
 		if(access(argv[0], 0) < 0)
 			return cliError("bind: %s: %r", argv[0]);
@@ -455,12 +461,11 @@ cmdInit(void)
 
 	if(pipe(cbox.confd) < 0)
 		return 0;
-	if((cbox.con = conAlloc(cbox.confd[1], "console", 0)) == nil){
+	if((cbox.con = conAlloc(cbox.confd[1], "console", 0)) == nil) {
 		close(cbox.confd[0]);
 		close(cbox.confd[1]);
 		cbox.confd[0] = cbox.confd[1] = -1;
 		return 0;
-
 	}
 	cbox.con->isconsole = 1;
 

@@ -12,9 +12,9 @@
 #include "fmtdef.h"
 
 char*
-seprint(char *buf, char *e, char *fmt, ...)
+seprint(char* buf, char* e, char* fmt, ...)
 {
-	char *p;
+	char* p;
 	va_list args;
 
 	va_start(args, fmt);

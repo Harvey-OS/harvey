@@ -15,10 +15,9 @@
 
 #include "ureg.h"
 
-struct Timers
-{
+struct Timers {
 	Lock;
-	Timer	*head;
+	Timer* head;
 };
 
 static Timers timers[MACHMAX];
@@ -27,14 +26,14 @@ uint32_t intrcount[MACHMAX];
 uint32_t fcallcount[MACHMAX];
 
 static int64_t
-tadd(Timers *tt, Timer *nt)
+tadd(Timers* tt, Timer* nt)
 {
 	int64_t when;
-	Timer *t, **last;
+	Timer* t, **last;
 
 	/* Called with tt locked */
 	assert(nt->tt == nil);
-	switch(nt->tmode){
+	switch(nt->tmode) {
 	default:
 		panic("timer");
 		break;
@@ -48,12 +47,12 @@ tadd(Timers *tt, Timer *nt)
 		 * Periodic timers must have a period of at least 100µs.
 		 */
 		assert(nt->tns >= 100000);
-		if(nt->twhen == 0){
+		if(nt->twhen == 0) {
 			/*
 			 * Look for another timer at the
 			 * same frequency for combining.
 			 */
-			for(t = tt->head; t; t = t->tnext){
+			for(t = tt->head; t; t = t->tnext) {
 				if(t->tmode == Tperiodic && t->tns == nt->tns)
 					break;
 			}
@@ -75,7 +74,7 @@ tadd(Timers *tt, Timer *nt)
 		break;
 	}
 
-	for(last = &tt->head; t = *last; last = &t->tnext){
+	for(last = &tt->head; t = *last; last = &t->tnext) {
 		if(t->twhen > nt->twhen)
 			break;
 	}
@@ -88,16 +87,16 @@ tadd(Timers *tt, Timer *nt)
 }
 
 static int64_t
-tdel(Timer *dt)
+tdel(Timer* dt)
 {
-	Timer *t, **last;
-	Timers *tt;
+	Timer* t, **last;
+	Timers* tt;
 
 	tt = dt->tt;
 	if(tt == nil)
 		return 0;
-	for(last = &tt->head; t = *last; last = &t->tnext){
-		if(t == dt){
+	for(last = &tt->head; t = *last; last = &t->tnext) {
+		if(t == dt) {
 			assert(dt->tt);
 			dt->tt = nil;
 			*last = t->tnext;
@@ -111,14 +110,14 @@ tdel(Timer *dt)
 
 /* add or modify a timer */
 void
-timeradd(Timer *nt)
+timeradd(Timer* nt)
 {
-	Timers *tt;
+	Timers* tt;
 	int64_t when;
 
 	/* Must lock Timer struct before Timers struct */
 	ilock(nt);
-	if(tt = nt->tt){
+	if(tt = nt->tt) {
 		ilock(tt);
 		tdel(nt);
 		iunlock(tt);
@@ -132,15 +131,14 @@ timeradd(Timer *nt)
 	iunlock(nt);
 }
 
-
 void
-timerdel(Timer *dt)
+timerdel(Timer* dt)
 {
-	Timers *tt;
+	Timers* tt;
 	int64_t when;
 
 	ilock(dt);
-	if(tt = dt->tt){
+	if(tt = dt->tt) {
 		ilock(tt);
 		when = tdel(dt);
 		if(when && tt == &timers[machp()->machno])
@@ -151,9 +149,9 @@ timerdel(Timer *dt)
 }
 
 void
-hzclock(Ureg *ur)
+hzclock(Ureg* ur)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	uintptr_t pc;
 
 	machp()->ticks++;
@@ -164,7 +162,7 @@ hzclock(Ureg *ur)
 	if(machp()->proc)
 		machp()->proc->pc = pc;
 
-	if(machp()->mmuflush){
+	if(machp()->mmuflush) {
 		if(up)
 			mmuflush();
 		machp()->mmuflush = 0;
@@ -188,14 +186,14 @@ hzclock(Ureg *ur)
 	checkalarms();
 
 	if(up && up->state == Running)
-		hzsched();	/* in proc.c */
+		hzsched(); /* in proc.c */
 }
 
 void
-timerintr(Ureg *u, int64_t j)
+timerintr(Ureg* u, int64_t j)
 {
-	Timer *t;
-	Timers *tt;
+	Timer* t;
+	Timers* tt;
 	int64_t when, now;
 	int callhzclock;
 
@@ -204,7 +202,7 @@ timerintr(Ureg *u, int64_t j)
 	tt = &timers[machp()->machno];
 	now = fastticks(nil);
 	ilock(tt);
-	while(t = tt->head){
+	while(t = tt->head) {
 		/*
 		 * No need to ilock t here: any manipulation of t
 		 * requires tdel(t) and this must be done with a
@@ -212,7 +210,7 @@ timerintr(Ureg *u, int64_t j)
 		 * wait until we're done
 		 */
 		when = t->twhen;
-		if(when > now){
+		if(when > now) {
 			timerset(when);
 			iunlock(tt);
 			if(callhzclock)
@@ -238,7 +236,7 @@ timerintr(Ureg *u, int64_t j)
 void
 timersinit(void)
 {
-	Timer *t;
+	Timer* t;
 
 	/*
 	 * T->tf == nil means the HZ clock for this processor.
@@ -247,7 +245,7 @@ timersinit(void)
 	t = malloc(sizeof(*t));
 	t->tmode = Tperiodic;
 	t->tt = nil;
-	t->tns = 1000000000/HZ;
+	t->tns = 1000000000 / HZ;
 	t->tf = nil;
 	timeradd(t);
 }
@@ -255,14 +253,14 @@ timersinit(void)
 Timer*
 addclock0link(void (*f)(void), int ms)
 {
-	Timer *nt;
+	Timer* nt;
 	int64_t when;
 
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
 	if(ms == 0)
-		ms = 1000/HZ;
-	nt->tns = (int64_t)ms*1000000LL;
+		ms = 1000 / HZ;
+	nt->tns = (int64_t)ms * 1000000LL;
 	nt->tmode = Tperiodic;
 	nt->tt = nil;
 	nt->tf = (void (*)(Ureg*, Timer*))f;
@@ -288,7 +286,7 @@ tk2ms(uint32_t ticks)
 	t = ticks;
 	hz = HZ;
 	t *= 1000L;
-	t = t/hz;
+	t = t / hz;
 	ticks = t;
 	return ticks;
 }
@@ -297,7 +295,7 @@ uint32_t
 ms2tk(uint32_t ms)
 {
 	/* avoid overflows at the cost of precision */
-	if(ms >= 1000000000/HZ)
-		return (ms/1000)*HZ;
-	return (ms*HZ+500)/1000;
+	if(ms >= 1000000000 / HZ)
+		return (ms / 1000) * HZ;
+	return (ms * HZ + 500) / 1000;
 }

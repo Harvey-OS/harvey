@@ -10,9 +10,9 @@
 #include <string.h>
 
 char*
-strncat(char *s1, const char *s2, size_t n)
+strncat(char* s1, const char* s2, size_t n)
 {
-	char *os1;
+	char* os1;
 	int32_t nn;
 
 	os1 = s1;

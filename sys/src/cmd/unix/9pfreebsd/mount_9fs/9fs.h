@@ -53,47 +53,47 @@
 #include "opt_u9fs.h"
 #endif
 
-#define U9FS_FABLKSIZE   512
-#define U9FS_PORT        17008
+#define U9FS_FABLKSIZE 512
+#define U9FS_PORT 17008
 
 /*
  * U9FS mount option flags
  */
-#define	U9FSMNT_SOFT		0x00000001  /* soft mount (hard is default) */
-#define	U9FSMNT_MAXGRPS		0x00000020  /* set maximum grouplist size */
-#define	U9FSMNT_INT		0x00000040  /* allow interrupts on hard mount */
-#define	U9FSMNT_KERB		0x00000400  /* Use Kerberos authentication */
-#define	U9FSMNT_READAHEAD	0x00002000  /* set read ahead */
+#define U9FSMNT_SOFT 0x00000001      /* soft mount (hard is default) */
+#define U9FSMNT_MAXGRPS 0x00000020   /* set maximum grouplist size */
+#define U9FSMNT_INT 0x00000040       /* allow interrupts on hard mount */
+#define U9FSMNT_KERB 0x00000400      /* Use Kerberos authentication */
+#define U9FSMNT_READAHEAD 0x00002000 /* set read ahead */
 
 struct p9user {
-  uid_t p9_uid;
-  char p9_name[U9FS_NAMELEN];
+	uid_t p9_uid;
+	char p9_name[U9FS_NAMELEN];
 };
 
 /*
  * Arguments to mount 9FS
  */
-#define U9FS_ARGSVERSION	1	/* change when nfs_args changes */
+#define U9FS_ARGSVERSION 1 /* change when nfs_args changes */
 struct u9fs_args {
-	int		version;	/* args structure version number */
-	struct sockaddr	*addr;		/* file server address */
-	int		addrlen;	/* length of address */
-	int		sotype;		/* Socket type */
-	int		proto;		/* and Protocol */
-	int		fhsize;		/* Size, in bytes, of fh */
-	int		flags;		/* flags */
-	int		wsize;		/* write size in bytes */
-	int		rsize;		/* read size in bytes */
-	int		readdirsize;	/* readdir size in bytes */
-	char		*hostname;	/* server's name */
-        struct sockaddr * authaddr;
-        int             authaddrlen;
-        int             authsotype;
-        int             authsoproto;
-        int             nusers;
-        char            uname[U9FS_NAMELEN];
-        char            key[U9AUTH_DESKEYLEN];
-        struct p9user * users;
+	int version;           /* args structure version number */
+	struct sockaddr* addr; /* file server address */
+	int addrlen;           /* length of address */
+	int sotype;            /* Socket type */
+	int proto;             /* and Protocol */
+	int fhsize;            /* Size, in bytes, of fh */
+	int flags;             /* flags */
+	int wsize;             /* write size in bytes */
+	int rsize;             /* read size in bytes */
+	int readdirsize;       /* readdir size in bytes */
+	char* hostname;        /* server's name */
+	struct sockaddr* authaddr;
+	int authaddrlen;
+	int authsotype;
+	int authsoproto;
+	int nusers;
+	char uname[U9FS_NAMELEN];
+	char key[U9AUTH_DESKEYLEN];
+	struct p9user* users;
 };
 
 /*
@@ -110,20 +110,20 @@ struct u9fs_args {
  *     be well aligned and, therefore, tightly packed.
  */
 struct u9fsnode {
-	LIST_ENTRY(u9fsnode)	n_hash;		/* Hash chain */
-	u_quad_t		n_size;		/* Current size of file */
-	u_quad_t		n_lrev;		/* Modify rev for lease */
-	struct vattr		n_vattr;	/* Vnode attribute cache */
-	time_t			n_attrstamp;	/* Attr. cache timestamp */
-	u_int32_t		n_mode;		/* ACCESS mode cache */
-	uid_t			n_modeuid;	/* credentials having mode */
-	time_t			n_modestamp;	/* mode cache timestamp */
-	time_t			n_mtime;	/* Prev modify time. */
-	time_t			n_ctime;	/* Prev create time. */
-	u_short			*n_fid;		/* U9FS FID */
-	struct vnode		*n_vnode;	/* associated vnode */
-	struct lockf		*n_lockf;	/* Locking record of file */
-	int			n_error;	/* Save write error value */
+	LIST_ENTRY(u9fsnode) n_hash; /* Hash chain */
+	u_quad_t n_size;             /* Current size of file */
+	u_quad_t n_lrev;             /* Modify rev for lease */
+	struct vattr n_vattr;        /* Vnode attribute cache */
+	time_t n_attrstamp;          /* Attr. cache timestamp */
+	u_int32_t n_mode;            /* ACCESS mode cache */
+	uid_t n_modeuid;             /* credentials having mode */
+	time_t n_modestamp;          /* mode cache timestamp */
+	time_t n_mtime;              /* Prev modify time. */
+	time_t n_ctime;              /* Prev create time. */
+	u_short* n_fid;              /* U9FS FID */
+	struct vnode* n_vnode;       /* associated vnode */
+	struct lockf* n_lockf;       /* Locking record of file */
+	int n_error;                 /* Save write error value */
 #if 0
 	union {
 		struct timespec	nf_atim;	/* Special file times */
@@ -138,59 +138,59 @@ struct u9fsnode {
 		LIST_HEAD(, u9fsdmap) nd_cook;	/* cookies */
 	} n_un3;
 #endif
-	short			n_flag;		/* Flag for locking.. */
+	short n_flag; /* Flag for locking.. */
 };
 
-#define n_atim		n_un1.nf_atim
-#define n_mtim		n_un2.nf_mtim
-#define n_sillyrename	n_un3.nf_silly
-#define n_cookieverf	n_un1.nd_cookieverf
-#define n_direofoffset	n_un2.nd_direof
-#define n_cookies	n_un3.nd_cook
+#define n_atim n_un1.nf_atim
+#define n_mtim n_un2.nf_mtim
+#define n_sillyrename n_un3.nf_silly
+#define n_cookieverf n_un1.nd_cookieverf
+#define n_direofoffset n_un2.nd_direof
+#define n_cookies n_un3.nd_cook
 
 /*
  * Flags for n_flag
  */
-#define	NFLUSHWANT	0x0001	/* Want wakeup from a flush in prog. */
-#define	NFLUSHINPROG	0x0002	/* Avoid multiple calls to vinvalbuf() */
-#define	NMODIFIED	0x0004	/* Might have a modified buffer in bio */
-#define	NWRITEERR	0x0008	/* Flag write errors so close will know */
-#define	NQU9FSNONCACHE	0x0020	/* Non-cachable lease */
-#define	NQU9FSWRITE	0x0040	/* Write lease */
-#define	NQU9FSEVICTED	0x0080	/* Has been evicted */
-#define	NACC		0x0100	/* Special file accessed */
-#define	NUPD		0x0200	/* Special file updated */
-#define	NCHG		0x0400	/* Special file times changed */
-#define NLOCKED		0x0800  /* node is locked */
-#define NWANTED		0x0100  /* someone wants to lock */
+#define NFLUSHWANT 0x0001     /* Want wakeup from a flush in prog. */
+#define NFLUSHINPROG 0x0002   /* Avoid multiple calls to vinvalbuf() */
+#define NMODIFIED 0x0004      /* Might have a modified buffer in bio */
+#define NWRITEERR 0x0008      /* Flag write errors so close will know */
+#define NQU9FSNONCACHE 0x0020 /* Non-cachable lease */
+#define NQU9FSWRITE 0x0040    /* Write lease */
+#define NQU9FSEVICTED 0x0080  /* Has been evicted */
+#define NACC 0x0100           /* Special file accessed */
+#define NUPD 0x0200           /* Special file updated */
+#define NCHG 0x0400           /* Special file times changed */
+#define NLOCKED 0x0800        /* node is locked */
+#define NWANTED 0x0100        /* someone wants to lock */
 
 /*
  * Convert between u9fsnode pointers and vnode pointers
  */
-#define VTOU9FS(vp)	((struct u9fsnode *)(vp)->v_data)
-#define U9FSTOV(np)	((struct vnode *)(np)->n_vnode)
+#define VTOU9FS(vp) ((struct u9fsnode*)(vp)->v_data)
+#define U9FSTOV(np) ((struct vnode*)(np)->n_vnode)
 
 /*
  * Mount structure.
  * One allocated on every U9FS mount.
  * Holds U9FS specific information for mount.
  */
-struct	u9fsmount {
-	int	nm_flag;		/* Flags for soft/hard... */
-	int	nm_state;		/* Internal state flags */
-	struct	mount *nm_mountp;	/* Vfs structure for this filesystem */
-	int	nm_numgrps;		/* Max. size of groupslist */
-	u_short	nm_fid;	                /* fid of root dir */
-	struct	socket *nm_so;		/* Rpc socket */
-	int	nm_sotype;		/* Type of socket */
-	int	nm_soproto;		/* and protocol */
-	int	nm_soflags;		/* pr_flags for socket protocol */
-	struct	sockaddr *nm_nam;	/* Addr of server */
-	int	nm_sent;		/* Request send count */
-	int	nm_cwnd;		/* Request send window */
-	int	nm_rsize;		/* Max size of read rpc */
-	int	nm_wsize;		/* Max size of write rpc */
-	int	nm_readdirsize;		/* Size of a readdir rpc */
+struct u9fsmount {
+	int nm_flag;             /* Flags for soft/hard... */
+	int nm_state;            /* Internal state flags */
+	struct mount* nm_mountp; /* Vfs structure for this filesystem */
+	int nm_numgrps;          /* Max. size of groupslist */
+	u_short nm_fid;          /* fid of root dir */
+	struct socket* nm_so;    /* Rpc socket */
+	int nm_sotype;           /* Type of socket */
+	int nm_soproto;          /* and protocol */
+	int nm_soflags;          /* pr_flags for socket protocol */
+	struct sockaddr* nm_nam; /* Addr of server */
+	int nm_sent;             /* Request send count */
+	int nm_cwnd;             /* Request send window */
+	int nm_rsize;            /* Max size of read rpc */
+	int nm_wsize;            /* Max size of write rpc */
+	int nm_readdirsize;      /* Size of a readdir rpc */
 #if 0
 	struct vnode *nm_inprog;	/* Vnode in prog by nqu9fs_clientd() */
 	uid_t	nm_authuid;		/* Uid for authenticator */
@@ -209,7 +209,7 @@ struct	u9fsmount {
 	short	nm_bufqwant;		/* process wants to add to the queue */
 	int	nm_bufqiods;		/* number of iods processing queue */
 #endif
-	u_int64_t nm_maxfilesize;	/* maximum file size */
+	u_int64_t nm_maxfilesize; /* maximum file size */
 };
 
 #ifdef KERNEL
@@ -221,8 +221,8 @@ MALLOC_DECLARE(M_U9FSHASH);
 /*
  * Convert mount ptr to u9fsmount ptr.
  */
-#define VFSTOU9FS(mp)	((struct u9fsmount *)((mp)->mnt_data))
+#define VFSTOU9FS(mp) ((struct u9fsmount*)((mp)->mnt_data))
 
-#endif	/* KERNEL */
+#endif /* KERNEL */
 
 #endif

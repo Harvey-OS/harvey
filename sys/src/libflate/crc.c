@@ -14,7 +14,7 @@
 uint32_t*
 mkcrctab(uint32_t poly)
 {
-	uint32_t *crctab;
+	uint32_t* crctab;
 	uint32_t crc;
 	int i, j;
 
@@ -22,9 +22,9 @@ mkcrctab(uint32_t poly)
 	if(crctab == nil)
 		return nil;
 
-	for(i = 0; i < 256; i++){
+	for(i = 0; i < 256; i++) {
 		crc = i;
-		for(j = 0; j < 8; j++){
+		for(j = 0; j < 8; j++) {
 			if(crc & 1)
 				crc = (crc >> 1) ^ poly;
 			else
@@ -36,9 +36,9 @@ mkcrctab(uint32_t poly)
 }
 
 uint32_t
-blockcrc(uint32_t *crctab, uint32_t crc, void *vbuf, int n)
+blockcrc(uint32_t* crctab, uint32_t crc, void* vbuf, int n)
 {
-	uint8_t *buf, *ebuf;
+	uint8_t* buf, *ebuf;
 
 	crc ^= 0xffffffff;
 	buf = vbuf;

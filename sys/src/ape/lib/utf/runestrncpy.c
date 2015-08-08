@@ -16,7 +16,8 @@
  * or modification of this software and in all copies of the supporting
  * documentation for such software.
  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY
  * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
@@ -26,10 +27,10 @@
 #include "utfdef.h"
 
 Rune*
-runestrncpy(Rune *s1, Rune *s2, int32_t n)
+runestrncpy(Rune* s1, Rune* s2, int32_t n)
 {
 	int i;
-	Rune *os1;
+	Rune* os1;
 
 	os1 = s1;
 	for(i = 0; i < n; i++)

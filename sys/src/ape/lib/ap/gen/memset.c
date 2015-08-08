@@ -10,9 +10,9 @@
 #include <string.h>
 
 void*
-memset(void *ap, int c, size_t n)
+memset(void* ap, int c, size_t n)
 {
-	char *p;
+	char* p;
 
 	p = ap;
 	while(n > 0) {

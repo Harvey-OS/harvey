@@ -19,20 +19,19 @@
 #include <stdlib.h>
 #include "antiword.h"
 
-
 /*
  * bAddTextBlocks - Add the blocks to the text block list
  *
  * Returns TRUE when successful, FALSE if not
  */
 BOOL
-bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
-	BOOL bUsesUnicode, USHORT usPropMod,
-	ULONG ulStartBlock, const ULONG *aulBBD, size_t tBBDLen)
+bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength, BOOL bUsesUnicode,
+               USHORT usPropMod, ULONG ulStartBlock, const ULONG* aulBBD,
+               size_t tBBDLen)
 {
-	text_block_type	tTextBlock;
-	ULONG	ulCharPos, ulOffset, ulIndex;
-	int32_t	lToGo;
+	text_block_type tTextBlock;
+	ULONG ulCharPos, ulOffset, ulIndex;
+	int32_t lToGo;
 
 	fail(ulTotalLength > (ULONG)LONG_MAX / 2);
 	fail(ulStartBlock > MAX_BLOCKNUMBER && ulStartBlock != END_OF_CHAIN);
@@ -41,7 +40,7 @@ bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
 	NO_DBG_HEX(ulCharPosFirst);
 	NO_DBG_DEC(ulTotalLength);
 
-	if (bUsesUnicode) {
+	if(bUsesUnicode) {
 		/* One character equals two bytes */
 		NO_DBG_MSG("Uses Unicode");
 		lToGo = (int32_t)ulTotalLength * 2;
@@ -53,27 +52,26 @@ bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
 
 	ulCharPos = ulCharPosFirst;
 	ulOffset = ulCharPosFirst;
-	for (ulIndex = ulStartBlock;
-	     ulIndex != END_OF_CHAIN && lToGo > 0;
-	     ulIndex = aulBBD[ulIndex]) {
-		if (ulIndex >= (ULONG)tBBDLen) {
+	for(ulIndex = ulStartBlock; ulIndex != END_OF_CHAIN && lToGo > 0;
+	    ulIndex = aulBBD[ulIndex]) {
+		if(ulIndex >= (ULONG)tBBDLen) {
 			DBG_DEC(ulIndex);
 			DBG_DEC(tBBDLen);
 			werr(1, "The Big Block Depot is damaged");
 		}
-		if (ulOffset >= BIG_BLOCK_SIZE) {
+		if(ulOffset >= BIG_BLOCK_SIZE) {
 			ulOffset -= BIG_BLOCK_SIZE;
 			continue;
 		}
 		tTextBlock.ulFileOffset =
-			(ulIndex + 1) * BIG_BLOCK_SIZE + ulOffset;
+		    (ulIndex + 1) * BIG_BLOCK_SIZE + ulOffset;
 		tTextBlock.ulCharPos = ulCharPos;
-		tTextBlock.ulLength = min(BIG_BLOCK_SIZE - ulOffset,
-						(ULONG)lToGo);
+		tTextBlock.ulLength =
+		    min(BIG_BLOCK_SIZE - ulOffset, (ULONG)lToGo);
 		tTextBlock.bUsesUnicode = bUsesUnicode;
 		tTextBlock.usPropMod = usPropMod;
 		ulOffset = 0;
-		if (!bAdd2TextBlockList(&tTextBlock)) {
+		if(!bAdd2TextBlockList(&tTextBlock)) {
 			DBG_HEX(tTextBlock.ulFileOffset);
 			DBG_HEX(tTextBlock.ulCharPos);
 			DBG_DEC(tTextBlock.ulLength);
@@ -96,14 +94,14 @@ bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
  * Returns TRUE when successful, FALSE if not
  */
 BOOL
-bGet6DocumentText(FILE *pFile, BOOL bUsesUnicode, ULONG ulStartBlock,
-	const ULONG *aulBBD, size_t tBBDLen, const UCHAR *aucHeader)
+bGet6DocumentText(FILE* pFile, BOOL bUsesUnicode, ULONG ulStartBlock,
+                  const ULONG* aulBBD, size_t tBBDLen, const UCHAR* aucHeader)
 {
-	UCHAR	*aucBuffer;
-	ULONG	ulBeginTextInfo, ulTextOffset, ulTotLength;
-	size_t	tTextInfoLen;
-	int	iIndex, iType, iOff, iLen, iPieces;
-	USHORT	usPropMod;
+	UCHAR* aucBuffer;
+	ULONG ulBeginTextInfo, ulTextOffset, ulTotLength;
+	size_t tTextInfoLen;
+	int iIndex, iType, iOff, iLen, iPieces;
+	USHORT usPropMod;
 
 	DBG_MSG("bGet6DocumentText");
 
@@ -111,36 +109,35 @@ bGet6DocumentText(FILE *pFile, BOOL bUsesUnicode, ULONG ulStartBlock,
 	fail(aulBBD == NULL);
 	fail(aucHeader == NULL);
 
-	ulBeginTextInfo = ulGetLong(0x160, aucHeader);	/* fcClx */
+	ulBeginTextInfo = ulGetLong(0x160, aucHeader); /* fcClx */
 	DBG_HEX(ulBeginTextInfo);
-	tTextInfoLen = (size_t)ulGetLong(0x164, aucHeader);	/* lcbClx */
+	tTextInfoLen = (size_t)ulGetLong(0x164, aucHeader); /* lcbClx */
 	DBG_DEC(tTextInfoLen);
 
 	aucBuffer = xmalloc(tTextInfoLen);
-	if (!bReadBuffer(pFile, ulStartBlock,
-			aulBBD, tBBDLen, BIG_BLOCK_SIZE,
-			aucBuffer, ulBeginTextInfo, tTextInfoLen)) {
+	if(!bReadBuffer(pFile, ulStartBlock, aulBBD, tBBDLen, BIG_BLOCK_SIZE,
+	                aucBuffer, ulBeginTextInfo, tTextInfoLen)) {
 		aucBuffer = xfree(aucBuffer);
 		return FALSE;
 	}
 	NO_DBG_PRINT_BLOCK(aucBuffer, tTextInfoLen);
 
 	iOff = 0;
-	while ((size_t)iOff < tTextInfoLen) {
+	while((size_t)iOff < tTextInfoLen) {
 		iType = (int)ucGetByte(iOff, aucBuffer);
 		iOff++;
-		if (iType == 0) {
+		if(iType == 0) {
 			DBG_FIXME();
 			iOff++;
 			continue;
 		}
-		if (iType == 1) {
+		if(iType == 1) {
 			iLen = (int)usGetWord(iOff, aucBuffer);
 			vAdd2PropModList(aucBuffer + iOff);
 			iOff += iLen + 2;
 			continue;
 		}
-		if (iType != 2) {
+		if(iType != 2) {
 			werr(0, "Unknown type of 'fastsaved' format");
 			aucBuffer = xfree(aucBuffer);
 			return FALSE;
@@ -151,22 +148,20 @@ bGet6DocumentText(FILE *pFile, BOOL bUsesUnicode, ULONG ulStartBlock,
 		iOff += 4;
 		iPieces = (iLen - 4) / 12;
 		DBG_DEC(iPieces);
-		for (iIndex = 0; iIndex < iPieces; iIndex++) {
-			ulTextOffset = ulGetLong(
-				iOff + (iPieces + 1) * 4 + iIndex * 8 + 2,
-				aucBuffer);
-			usPropMod = usGetWord(
-				iOff + (iPieces + 1) * 4 + iIndex * 8 + 6,
-				aucBuffer);
-			ulTotLength = ulGetLong(iOff + (iIndex + 1) * 4,
-						aucBuffer) -
-					ulGetLong(iOff + iIndex * 4,
-						aucBuffer);
+		for(iIndex = 0; iIndex < iPieces; iIndex++) {
+			ulTextOffset =
+			    ulGetLong(iOff + (iPieces + 1) * 4 + iIndex * 8 + 2,
+			              aucBuffer);
+			usPropMod =
+			    usGetWord(iOff + (iPieces + 1) * 4 + iIndex * 8 + 6,
+			              aucBuffer);
+			ulTotLength =
+			    ulGetLong(iOff + (iIndex + 1) * 4, aucBuffer) -
+			    ulGetLong(iOff + iIndex * 4, aucBuffer);
 			NO_DBG_HEX_C(usPropMod != 0, usPropMod);
-			if (!bAddTextBlocks(ulTextOffset, ulTotLength,
-					bUsesUnicode, usPropMod,
-					ulStartBlock,
-					aulBBD, tBBDLen)) {
+			if(!bAddTextBlocks(ulTextOffset, ulTotLength,
+			                   bUsesUnicode, usPropMod,
+			                   ulStartBlock, aulBBD, tBBDLen)) {
 				aucBuffer = xfree(aucBuffer);
 				return FALSE;
 			}
@@ -183,20 +178,19 @@ bGet6DocumentText(FILE *pFile, BOOL bUsesUnicode, ULONG ulStartBlock,
  * Returns TRUE when successful, FALSE if not
  */
 BOOL
-bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
-	const ULONG *aulBBD, size_t tBBDLen,
-	const ULONG *aulSBD, size_t tSBDLen,
-	const UCHAR *aucHeader)
+bGet8DocumentText(FILE* pFile, const pps_info_type* pPPS, const ULONG* aulBBD,
+                  size_t tBBDLen, const ULONG* aulSBD, size_t tSBDLen,
+                  const UCHAR* aucHeader)
 {
-	const ULONG	*aulBlockDepot;
-	UCHAR	*aucBuffer;
-	ULONG	ulTextOffset, ulBeginTextInfo;
-	ULONG	ulTotLength, ulLen;
-	int32_t	lIndex, lPieces, lOff;
-	size_t	tTextInfoLen, tBlockDepotLen, tBlockSize;
-	int	iType, iLen;
-	BOOL	bUsesUnicode;
-	USHORT	usPropMod;
+	const ULONG* aulBlockDepot;
+	UCHAR* aucBuffer;
+	ULONG ulTextOffset, ulBeginTextInfo;
+	ULONG ulTotLength, ulLen;
+	int32_t lIndex, lPieces, lOff;
+	size_t tTextInfoLen, tBlockDepotLen, tBlockSize;
+	int iType, iLen;
+	BOOL bUsesUnicode;
+	USHORT usPropMod;
 
 	DBG_MSG("bGet8DocumentText");
 
@@ -204,78 +198,76 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 	fail(aulBBD == NULL || aulSBD == NULL);
 	fail(aucHeader == NULL);
 
-  	ulBeginTextInfo = ulGetLong(0x1a2, aucHeader);	/* fcClx */
+	ulBeginTextInfo = ulGetLong(0x1a2, aucHeader); /* fcClx */
 	DBG_HEX(ulBeginTextInfo);
-	tTextInfoLen = (size_t)ulGetLong(0x1a6, aucHeader);	/* lcbClx */
+	tTextInfoLen = (size_t)ulGetLong(0x1a6, aucHeader); /* lcbClx */
 	DBG_DEC(tTextInfoLen);
 
 	DBG_DEC(pPPS->tTable.ulSB);
 	DBG_HEX(pPPS->tTable.ulSize);
-	if (pPPS->tTable.ulSize == 0) {
+	if(pPPS->tTable.ulSize == 0) {
 		return FALSE;
 	}
 
-	if (pPPS->tTable.ulSize < MIN_SIZE_FOR_BBD_USE) {
-	  	/* Use the Small Block Depot */
+	if(pPPS->tTable.ulSize < MIN_SIZE_FOR_BBD_USE) {
+		/* Use the Small Block Depot */
 		aulBlockDepot = aulSBD;
 		tBlockDepotLen = tSBDLen;
 		tBlockSize = SMALL_BLOCK_SIZE;
 	} else {
-	  	/* Use the Big Block Depot */
+		/* Use the Big Block Depot */
 		aulBlockDepot = aulBBD;
 		tBlockDepotLen = tBBDLen;
 		tBlockSize = BIG_BLOCK_SIZE;
 	}
 	aucBuffer = xmalloc(tTextInfoLen);
-	if (!bReadBuffer(pFile, pPPS->tTable.ulSB,
-			aulBlockDepot, tBlockDepotLen, tBlockSize,
-			aucBuffer, ulBeginTextInfo, tTextInfoLen)) {
+	if(!bReadBuffer(pFile, pPPS->tTable.ulSB, aulBlockDepot, tBlockDepotLen,
+	                tBlockSize, aucBuffer, ulBeginTextInfo, tTextInfoLen)) {
 		aucBuffer = xfree(aucBuffer);
 		return FALSE;
 	}
 	NO_DBG_PRINT_BLOCK(aucBuffer, tTextInfoLen);
 
 	lOff = 0;
-	while (lOff < (int32_t)tTextInfoLen) {
+	while(lOff < (int32_t)tTextInfoLen) {
 		iType = (int)ucGetByte(lOff, aucBuffer);
 		lOff++;
-		if (iType == 0) {
+		if(iType == 0) {
 			DBG_FIXME();
 			lOff++;
 			continue;
 		}
-		if (iType == 1) {
+		if(iType == 1) {
 			iLen = (int)usGetWord(lOff, aucBuffer);
 			vAdd2PropModList(aucBuffer + lOff);
 			lOff += (int32_t)iLen + 2;
 			continue;
 		}
-		if (iType != 2) {
+		if(iType != 2) {
 			werr(0, "Unknown type of 'fastsaved' format");
 			aucBuffer = xfree(aucBuffer);
 			return FALSE;
 		}
 		/* Type 2 */
 		ulLen = ulGetLong(lOff, aucBuffer);
-		if (ulLen < 4) {
+		if(ulLen < 4) {
 			DBG_DEC(ulLen);
 			return FALSE;
 		}
 		lOff += 4;
 		lPieces = (int32_t)((ulLen - 4) / 12);
 		DBG_DEC(lPieces);
-		for (lIndex = 0; lIndex < lPieces; lIndex++) {
-			ulTextOffset = ulGetLong(
-				lOff + (lPieces + 1) * 4 + lIndex * 8 + 2,
-				aucBuffer);
-			usPropMod = usGetWord(
-				lOff + (lPieces + 1) * 4 + lIndex * 8 + 6,
-				aucBuffer);
-			ulTotLength = ulGetLong(lOff + (lIndex + 1) * 4,
-						aucBuffer) -
-					ulGetLong(lOff + lIndex * 4,
-						aucBuffer);
-			if ((ulTextOffset & BIT(30)) == 0) {
+		for(lIndex = 0; lIndex < lPieces; lIndex++) {
+			ulTextOffset =
+			    ulGetLong(lOff + (lPieces + 1) * 4 + lIndex * 8 + 2,
+			              aucBuffer);
+			usPropMod =
+			    usGetWord(lOff + (lPieces + 1) * 4 + lIndex * 8 + 6,
+			              aucBuffer);
+			ulTotLength =
+			    ulGetLong(lOff + (lIndex + 1) * 4, aucBuffer) -
+			    ulGetLong(lOff + lIndex * 4, aucBuffer);
+			if((ulTextOffset & BIT(30)) == 0) {
 				bUsesUnicode = TRUE;
 			} else {
 				bUsesUnicode = FALSE;
@@ -283,10 +275,10 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 				ulTextOffset /= 2;
 			}
 			NO_DBG_HEX_C(usPropMod != 0, usPropMod);
-			if (!bAddTextBlocks(ulTextOffset, ulTotLength,
-					bUsesUnicode, usPropMod,
-					pPPS->tWordDocument.ulSB,
-					aulBBD, tBBDLen)) {
+			if(!bAddTextBlocks(ulTextOffset, ulTotLength,
+			                   bUsesUnicode, usPropMod,
+			                   pPPS->tWordDocument.ulSB, aulBBD,
+			                   tBBDLen)) {
 				aucBuffer = xfree(aucBuffer);
 				return FALSE;
 			}

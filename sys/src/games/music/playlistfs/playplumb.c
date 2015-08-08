@@ -11,19 +11,19 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	Plumbmsg *m;
+	Plumbmsg* m;
 	int fd;
 
 	fd = plumbopen("audioplay", OREAD);
-	if (fd < 0)
+	if(fd < 0)
 		sysfatal("port audioplay: %r");
-	for (;;) {
+	for(;;) {
 		m = plumbrecv(fd);
-		if (m == nil)
+		if(m == nil)
 			sysfatal("plumrecv: %r");
-		
+
 		plumbfree(m);
 	}
 }

@@ -12,7 +12,7 @@
 #include <venti.h>
 #include <thread.h>
 
-char *host;
+char* host;
 
 void
 usage(void)
@@ -22,21 +22,23 @@ usage(void)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	uchar score[VtScoreSize];
 	uchar buf[VtRootSize];
-	VtConn *z;
+	VtConn* z;
 	VtRoot root;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'h':
 		host = EARGF(usage());
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 5)
 		usage();
@@ -44,8 +46,8 @@ threadmain(int argc, char *argv[])
 	fmtinstall('V', vtscorefmt);
 	fmtinstall('F', vtfcallfmt);
 
-	strecpy(root.name, root.name+sizeof root.name, argv[0]);
-	strecpy(root.type, root.type+sizeof root.type, argv[1]);
+	strecpy(root.name, root.name + sizeof root.name, argv[0]);
+	strecpy(root.type, root.type + sizeof root.type, argv[1]);
 	if(vtparsescore(argv[2], nil, root.score) < 0)
 		sysfatal("bad score '%s'", argv[2]);
 	root.blocksize = atoi(argv[3]);

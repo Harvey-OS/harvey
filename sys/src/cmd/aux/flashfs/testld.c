@@ -23,10 +23,10 @@ usage(void)
 }
 
 static uint32_t
-argval(char *arg)
+argval(char* arg)
 {
 	int32_t v;
-	char *extra;
+	char* extra;
 
 	if(arg == nil)
 		usage();
@@ -37,14 +37,15 @@ argval(char *arg)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *file;
+	char* file;
 
 	prog = "testldfs";
 	file = nil;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'n':
 		nsects = argval(ARGF());
 		break;
@@ -56,18 +57,21 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 0 || nsects == 0 || sectsize == 0 || file == nil)
 		usage();
 
 	if(nsects < 8) {
-		fprint(2, "%s: unreasonable value for nsects: %lud\n", prog, nsects);
+		fprint(2, "%s: unreasonable value for nsects: %lud\n", prog,
+		       nsects);
 		exits("nsects");
 	}
 
 	if(sectsize < 512) {
-		fprint(2, "%s: unreasonable value for sectsize: %lud\n", prog, sectsize);
+		fprint(2, "%s: unreasonable value for sectsize: %lud\n", prog,
+		       sectsize);
 		exits("sectsize");
 	}
 

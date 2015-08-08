@@ -8,35 +8,35 @@
  */
 
 struct Ureg {
-	uint64_t	ax;
-	uint64_t	bx;
-	uint64_t	cx;
-	uint64_t	dx;
-	uint64_t	si;
-	uint64_t	di;
-	uint64_t	bp;
-	uint64_t	r8;
-	uint64_t	r9;
-	uint64_t	r10;
-	uint64_t	r11;
-	uint64_t	r12;
-	uint64_t	r13;
-	uint64_t	r14;
-	uint64_t	r15;
+	uint64_t ax;
+	uint64_t bx;
+	uint64_t cx;
+	uint64_t dx;
+	uint64_t si;
+	uint64_t di;
+	uint64_t bp;
+	uint64_t r8;
+	uint64_t r9;
+	uint64_t r10;
+	uint64_t r11;
+	uint64_t r12;
+	uint64_t r13;
+	uint64_t r14;
+	uint64_t r15;
 
-  // these are pointless and I don't want to waste a second on them.
-  // I'm sure it will break something but let's see.
-  // Not pushing them simplifies the interrupt handler a lot.
-  //	uint16_t	ds;
-  //	uint16_t	es;
-  //	uint16_t	fs;
-  //	uint16_t	gs;
+	// these are pointless and I don't want to waste a second on them.
+	// I'm sure it will break something but let's see.
+	// Not pushing them simplifies the interrupt handler a lot.
+	//	uint16_t	ds;
+	//	uint16_t	es;
+	//	uint16_t	fs;
+	//	uint16_t	gs;
 
-	uint64_t	type;
-	uint64_t	error;				/* error code (or zero) */
-	uint64_t	ip;				/* pc */
-	uint64_t	cs;				/* old context */
-	uint64_t	flags;				/* old flags */
-	uint64_t	sp;				/* sp */
-	uint64_t	ss;				/* old stack segment */
+	uint64_t type;
+	uint64_t error; /* error code (or zero) */
+	uint64_t ip;    /* pc */
+	uint64_t cs;    /* old context */
+	uint64_t flags; /* old flags */
+	uint64_t sp;    /* sp */
+	uint64_t ss;    /* old stack segment */
 };

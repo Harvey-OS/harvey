@@ -13,27 +13,26 @@
 #include "a.h"
 
 typedef struct Istack Istack;
-struct Istack
-{
+struct Istack {
 	Rune unget[3];
 	int nunget;
-	Biobuf *b;
-	Rune *p;
-	Rune *ep;
-	Rune *s;
+	Biobuf* b;
+	Rune* p;
+	Rune* ep;
+	Rune* s;
 	int lineno;
-	Rune *name;
-	Istack *next;
+	Rune* name;
+	Istack* next;
 	void (*fn)(void);
 };
 
-Istack *istack;
-Istack *ibottom;
+Istack* istack;
+Istack* ibottom;
 
 static void
 setname(void)
 {
-	Rune *r, *p;
+	Rune* r, *p;
 
 	if(istack == nil || istack->name == nil)
 		return;
@@ -47,7 +46,7 @@ setname(void)
 }
 
 static void
-ipush(Istack *is)
+ipush(Istack* is)
 {
 	if(istack == nil)
 		ibottom = is;
@@ -58,25 +57,25 @@ ipush(Istack *is)
 }
 
 static void
-iqueue(Istack *is)
+iqueue(Istack* is)
 {
-	if(ibottom == nil){
+	if(ibottom == nil) {
 		istack = is;
 		setname();
-	}else
+	} else
 		ibottom->next = is;
 	ibottom = is;
 }
 
 int
-_inputfile(Rune *s, void (*push)(Istack*))
+_inputfile(Rune* s, void (*push)(Istack*))
 {
-	Istack *is;
-	Biobuf *b;
-	char *t;
-	
+	Istack* is;
+	Biobuf* b;
+	char* t;
+
 	t = esmprint("%S", s);
-	if((b = Bopen(t, OREAD)) == nil){
+	if((b = Bopen(t, OREAD)) == nil) {
 		free(t);
 		fprint(2, "%s: open %S: %r\n", argv0, s);
 		return -1;
@@ -91,24 +90,24 @@ _inputfile(Rune *s, void (*push)(Istack*))
 }
 
 int
-pushinputfile(Rune *s)
+pushinputfile(Rune* s)
 {
 	return _inputfile(s, ipush);
 }
 
 int
-queueinputfile(Rune *s)
+queueinputfile(Rune* s)
 {
 	return _inputfile(s, iqueue);
 }
 
 int
 _inputstdin(void (*push)(Istack*))
-{	
-	Biobuf *b;
-	Istack *is;
+{
+	Biobuf* b;
+	Istack* is;
 
-	if((b = Bopen("/dev/null", OREAD)) == nil){
+	if((b = Bopen("/dev/null", OREAD)) == nil) {
 		fprint(2, "%s: open /dev/null: %r\n", argv0);
 		return -1;
 	}
@@ -134,23 +133,22 @@ queuestdin(void)
 }
 
 void
-_inputstring(Rune *s, void (*push)(Istack*))
+_inputstring(Rune* s, void (*push)(Istack*))
 {
-	Istack *is;
-	
+	Istack* is;
+
 	is = emalloc(sizeof *is);
 	is->s = erunestrdup(s);
 	is->p = is->s;
-	is->ep = is->p+runestrlen(is->p);
+	is->ep = is->p + runestrlen(is->p);
 	push(is);
 }
 
 void
-pushinputstring(Rune *s)
+pushinputstring(Rune* s)
 {
 	_inputstring(s, ipush);
 }
-
 
 void
 inputnotify(void (*fn)(void))
@@ -162,7 +160,7 @@ inputnotify(void (*fn)(void))
 int
 popinput(void)
 {
-	Istack *is;
+	Istack* is;
 
 	is = istack;
 	if(is == nil)
@@ -185,30 +183,30 @@ getrune(void)
 {
 	Rune r;
 	int c;
-	
+
 top:
 	if(istack == nil)
 		return -1;
 	if(istack->nunget)
 		return istack->unget[--istack->nunget];
-	else if(istack->p){
-		if(istack->p >= istack->ep){
+	else if(istack->p) {
+		if(istack->p >= istack->ep) {
 			popinput();
 			goto top;
 		}
 		r = *istack->p++;
-	}else if(istack->b){
-		if((c = Bgetrune(istack->b)) < 0){
+	} else if(istack->b) {
+		if((c = Bgetrune(istack->b)) < 0) {
 			popinput();
 			goto top;
 		}
 		r = c;
-	}else{
+	} else {
 		r = 0;
 		sysfatal("getrune - can't happen");
 	}
 	if(r == '\n')
-		istack->lineno++;	
+		istack->lineno++;
 	return r;
 }
 
@@ -221,11 +219,11 @@ ungetrune(Rune r)
 }
 
 int
-linefmt(Fmt *f)
+linefmt(Fmt* f)
 {
-	Istack *is;
-	
-	for(is=istack; is && !is->b; is=is->next)
+	Istack* is;
+
+	for(is = istack; is && !is->b; is = is->next)
 		;
 	if(is)
 		return fmtprint(f, "%S:%d", is->name, is->lineno);
@@ -234,14 +232,14 @@ linefmt(Fmt *f)
 }
 
 void
-setlinenumber(Rune *s, int n)
+setlinenumber(Rune* s, int n)
 {
-	Istack *is;
-	
-	for(is=istack; is && !is->name; is=is->next)
+	Istack* is;
+
+	for(is = istack; is && !is->name; is = is->next)
 		;
-	if(is){
-		if(s){
+	if(is) {
+		if(s) {
 			free(is->name);
 			is->name = erunestrdup(s);
 		}

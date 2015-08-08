@@ -19,7 +19,7 @@ usage(void)
 }
 
 Alt
-mkalt(Channel *c, void *v, int op)
+mkalt(Channel* c, void* v, int op)
 {
 	Alt a;
 
@@ -31,23 +31,23 @@ mkalt(Channel *c, void *v, int op)
 }
 
 void
-freetoc(Toc *t)
+freetoc(Toc* t)
 {
 	int i;
 
 	free(t->title);
-	for(i=0; i<t->ntrack; i++)
+	for(i = 0; i < t->ntrack; i++)
 		free(t->track[i].title);
 }
 
 void
-eventwatcher(Drive *d)
+eventwatcher(Drive* d)
 {
 	enum { STATUS, WEVENT, TOCDISP, DBREQ, DBREPLY, NALT };
-	Alt alts[NALT+1];
+	Alt alts[NALT + 1];
 	Toc nt, tdb;
-	Event *e;
-	Window *w;
+	Event* e;
+	Window* w;
 	Cdstatus s;
 	char buf[40];
 
@@ -62,34 +62,35 @@ eventwatcher(Drive *d)
 	for(;;) {
 		switch(alt(alts)) {
 		case STATUS:
-			//DPRINT(2, "s...");
+			// DPRINT(2, "s...");
 			d->status = s;
 			if(s.state == Scompleted) {
 				s.state = Sunknown;
 				advancetrack(d, w);
 			}
-			//DPRINT(2, "status %d %d %d %M %M\n", s.state, s.track, s.index, s.abs, s.rel);
+			// DPRINT(2, "status %d %d %d %M %M\n", s.state,
+			// s.track, s.index, s.abs, s.rel);
 			sprint(buf, "%d:%2.2d", s.rel.m, s.rel.s);
 			setplaytime(w, buf);
 			break;
 		case WEVENT:
-			//DPRINT(2, "w...");
+			// DPRINT(2, "w...");
 			acmeevent(d, w, e);
 			break;
 		case TOCDISP:
-			//DPRINT(2,"td...");
+			// DPRINT(2,"td...");
 			freetoc(&d->toc);
 			d->toc = nt;
 			drawtoc(w, d, &d->toc);
 			tdb = nt;
 			alts[DBREQ].op = CHANSND;
 			break;
-		case DBREQ:	/* sent */
-			//DPRINT(2,"dreq...");
+		case DBREQ: /* sent */
+			// DPRINT(2,"dreq...");
 			alts[DBREQ].op = CHANNOP;
 			break;
 		case DBREPLY:
-			//DPRINT(2,"drep...");
+			// DPRINT(2,"drep...");
 			freetoc(&d->toc);
 			d->toc = nt;
 			redrawtoc(w, &d->toc);
@@ -99,17 +100,19 @@ eventwatcher(Drive *d)
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, char** argv)
 {
-	Scsi *s;
-	Drive *d;
+	Scsi* s;
+	Drive* d;
 	char buf[80];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		debug++;
 		scsiverbose++;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -139,6 +142,6 @@ threadmain(int argc, char **argv)
 	snprint(buf, sizeof(buf), "%s/", argv[0]);
 	winname(d->w, buf);
 
-	wintagwrite(d->w, "Stop Pause Resume Eject Ingest ", 5+6+7+6+7);
+	wintagwrite(d->w, "Stop Pause Resume Eject Ingest ", 5 + 6 + 7 + 6 + 7);
 	eventwatcher(d);
 }

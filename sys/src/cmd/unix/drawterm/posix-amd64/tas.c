@@ -11,15 +11,14 @@
 #include "libc.h"
 
 int
-tas(int32_t *x)
+tas(int32_t* x)
 {
-	int     v;
+	int v;
 
-	__asm__(	"movl   $1, %%eax\n\t"
-				"xchgl  %%eax,(%%rcx)"
-				: "=a" (v)
-				: "c" (x)
-	);
+	__asm__("movl   $1, %%eax\n\t"
+	        "xchgl  %%eax,(%%rcx)"
+	        : "=a"(v)
+	        : "c"(x));
 	switch(v) {
 	case 0:
 	case 1:
@@ -29,4 +28,3 @@ tas(int32_t *x)
 		return 1;
 	}
 }
-

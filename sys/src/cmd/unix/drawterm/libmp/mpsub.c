@@ -13,13 +13,13 @@
 
 // diff = abs(b1) - abs(b2), i.e., subtract the magnitudes
 void
-mpmagsub(mpint *b1, mpint *b2, mpint *diff)
+mpmagsub(mpint* b1, mpint* b2, mpint* diff)
 {
 	int n, m, sign;
-	mpint *t;
+	mpint* t;
 
 	// get the sizes right
-	if(mpmagcmp(b1, b2) < 0){
+	if(mpmagcmp(b1, b2) < 0) {
 		sign = -1;
 		t = b1;
 		b1 = b2;
@@ -28,12 +28,12 @@ mpmagsub(mpint *b1, mpint *b2, mpint *diff)
 		sign = 1;
 	n = b1->top;
 	m = b2->top;
-	if(m == 0){
+	if(m == 0) {
 		mpassign(b1, diff);
 		diff->sign = sign;
 		return;
 	}
-	mpbits(diff, n*Dbits);
+	mpbits(diff, n * Dbits);
 
 	mpvecsub(b1->p, n, b2->p, m, diff->p);
 	diff->sign = sign;
@@ -43,11 +43,11 @@ mpmagsub(mpint *b1, mpint *b2, mpint *diff)
 
 // diff = b1 - b2
 void
-mpsub(mpint *b1, mpint *b2, mpint *diff)
+mpsub(mpint* b1, mpint* b2, mpint* diff)
 {
 	int sign;
 
-	if(b1->sign != b2->sign){
+	if(b1->sign != b2->sign) {
 		sign = b1->sign;
 		mpmagadd(b1, b2, diff);
 		diff->sign = sign;

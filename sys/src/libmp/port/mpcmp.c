@@ -13,7 +13,7 @@
 
 // return neg, 0, pos as abs(b1)-abs(b2) is neg, 0, pos
 int
-mpmagcmp(mpint *b1, mpint *b2)
+mpmagcmp(mpint* b1, mpint* b2)
 {
 	int i;
 
@@ -26,7 +26,7 @@ mpmagcmp(mpint *b1, mpint *b2)
 
 // return neg, 0, pos as b1-b2 is neg, 0, pos
 int
-mpcmp(mpint *b1, mpint *b2)
+mpcmp(mpint* b1, mpint* b2)
 {
 	if(b1->sign != b2->sign)
 		return b1->sign - b2->sign;

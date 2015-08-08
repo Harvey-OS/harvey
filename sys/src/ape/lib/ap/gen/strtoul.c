@@ -12,9 +12,9 @@
 #include <limits.h>
 
 unsigned long
-strtoul(const char *nptr, char **endptr, int base)
+strtoul(const char* nptr, char** endptr, int base)
 {
-	const char *p;
+	const char* p;
 	unsigned long n, nn;
 	int c, ovfl, neg, v, ndig;
 
@@ -27,8 +27,8 @@ strtoul(const char *nptr, char **endptr, int base)
 	/*
 	 * White space
 	 */
-	for(;;p++){
-		switch(*p){
+	for(;; p++) {
+		switch(*p) {
 		case ' ':
 		case '\t':
 		case '\n':
@@ -43,55 +43,55 @@ strtoul(const char *nptr, char **endptr, int base)
 	/*
 	 * Sign
 	 */
-	if(*p=='-' || *p=='+')
+	if(*p == '-' || *p == '+')
 		if(*p++ == '-')
 			neg = 1;
 
 	/*
 	 * Base
 	 */
-	if(base==0){
+	if(base == 0) {
 		if(*p != '0')
 			base = 10;
-		else{
+		else {
 			base = 8;
-			if(p[1]=='x' || p[1]=='X'){
+			if(p[1] == 'x' || p[1] == 'X') {
 				p += 2;
 				base = 16;
 			}
 		}
-	}else if(base==16 && *p=='0'){
-		if(p[1]=='x' || p[1]=='X')
+	} else if(base == 16 && *p == '0') {
+		if(p[1] == 'x' || p[1] == 'X')
 			p += 2;
-	}else if(base<0 || 36<base)
+	} else if(base < 0 || 36 < base)
 		goto Return;
 
 	/*
 	 * Non-empty sequence of digits
 	 */
-	for(;; p++,ndig++){
+	for(;; p++, ndig++) {
 		c = *p;
 		v = base;
-		if('0'<=c && c<='9')
+		if('0' <= c && c <= '9')
 			v = c - '0';
-		else if('a'<=c && c<='z')
+		else if('a' <= c && c <= 'z')
 			v = c - 'a' + 10;
-		else if('A'<=c && c<='Z')
+		else if('A' <= c && c <= 'Z')
 			v = c - 'A' + 10;
 		if(v >= base)
 			break;
-		nn = n*base + v;
+		nn = n * base + v;
 		if(nn < n)
 			ovfl = 1;
 		n = nn;
 	}
 
-    Return:
+Return:
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = (char *)p;
-	if(ovfl){
+		*endptr = (char*)p;
+	if(ovfl) {
 		errno = ERANGE;
 		return ULONG_MAX;
 	}

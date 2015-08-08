@@ -13,27 +13,26 @@
 #include <auth.h>
 #include "imap4d.h"
 
-static NamedInt	flagChars[NFlags] =
-{
-	{"s",	MSeen},
-	{"a",	MAnswered},
-	{"f",	MFlagged},
-	{"D",	MDeleted},
-	{"d",	MDraft},
-	{"r",	MRecent},
+static NamedInt flagChars[NFlags] = {
+    {"s", MSeen},
+    {"a", MAnswered},
+    {"f", MFlagged},
+    {"D", MDeleted},
+    {"d", MDraft},
+    {"r", MRecent},
 };
 
-static	int	fsCtl = -1;
+static int fsCtl = -1;
 
-static	void	boxFlags(Box *box);
-static	int	createImp(Box *box, Qid *qid);
-static	void	fsInit(void);
-static	void	mboxGone(Box *box);
-static	MbLock	*openImp(Box *box, int new);
-static	int	parseImp(Biobuf *b, Box *box);
-static	int	readBox(Box *box);
-static	uint32_t	uidRenumber(Msg *m, uint32_t uid, int force);
-static	int	impFlags(Box *box, Msg *m, char *flags);
+static void boxFlags(Box* box);
+static int createImp(Box* box, Qid* qid);
+static void fsInit(void);
+static void mboxGone(Box* box);
+static MbLock* openImp(Box* box, int new);
+static int parseImp(Biobuf* b, Box* box);
+static int readBox(Box* box);
+static uint32_t uidRenumber(Msg* m, uint32_t uid, int force);
+static int impFlags(Box* box, Msg* m, char* flags);
 
 /*
  * strategy:
@@ -79,10 +78,10 @@ static	int	impFlags(Box *box, Msg *m, char *flags);
  *	MDraft		d
  */
 Box*
-openBox(char *name, char *fsname, int writable)
+openBox(char* name, char* fsname, int writable)
 {
-	Box *box;
-	MbLock *ml;
+	Box* box;
+	MbLock* ml;
 	int n, new;
 
 	if(cistrcmp(name, "inbox") == 0)
@@ -93,16 +92,18 @@ openBox(char *name, char *fsname, int writable)
 	fsInit();
 	debuglog("imap4d open %s %s\n", name, fsname);
 
-	if(fprint(fsCtl, "open '/mail/box/%s/%s' %s", username, name, fsname) < 0){
-//ZZZ
+	if(fprint(fsCtl, "open '/mail/box/%s/%s' %s", username, name, fsname) <
+	   0) {
+		// ZZZ
 		char err[ERRMAX];
 
 		rerrstr(err, sizeof err);
 		if(strstr(err, "file does not exist") == nil)
-			fprint(2,
-		"imap4d at %lud: upas/fs open %s/%s as %s failed: '%s' %s",
-			time(nil), username, name, fsname, err,
-			ctime(time(nil)));  /* NB: ctime result ends with \n */
+			fprint(2, "imap4d at %lud: upas/fs open %s/%s as %s "
+			          "failed: '%s' %s",
+			       time(nil), username, name, fsname, err,
+			       ctime(time(
+			           nil))); /* NB: ctime result ends with \n */
 		fprint(fsCtl, "close %s", fsname);
 		return nil;
 	}
@@ -132,9 +133,9 @@ openBox(char *name, char *fsname, int writable)
 
 	box->uidnext = 1;
 	new = readBox(box);
-	if(new >= 0){
+	if(new >= 0) {
 		ml = openImp(box, new);
-		if(ml != nil){
+		if(ml != nil) {
 			closeImp(box, ml);
 			return box;
 		}
@@ -151,10 +152,10 @@ openBox(char *name, char *fsname, int writable)
  * careful: called by idle polling proc
  */
 MbLock*
-checkBox(Box *box, int imped)
+checkBox(Box* box, int imped)
 {
-	MbLock *ml;
-	Dir *d;
+	MbLock* ml;
+	Dir* d;
 	int new;
 
 	if(box == nil)
@@ -164,15 +165,15 @@ checkBox(Box *box, int imped)
 	 * if stat fails, mailbox must be gone
 	 */
 	d = cdDirstat(box->fsDir, ".");
-	if(d == nil){
+	if(d == nil) {
 		mboxGone(box);
 		return nil;
 	}
 	new = 0;
-	if(box->qid.path != d->qid.path || box->qid.vers != d->qid.vers
-	|| box->mtime != d->mtime){
+	if(box->qid.path != d->qid.path || box->qid.vers != d->qid.vers ||
+	   box->mtime != d->mtime) {
 		new = readBox(box);
-		if(new < 0){
+		if(new < 0) {
 			free(d);
 			return nil;
 		}
@@ -181,7 +182,7 @@ checkBox(Box *box, int imped)
 	ml = openImp(box, new);
 	if(ml == nil)
 		box->writable = 0;
-	else if(!imped){
+	else if(!imped) {
 		closeImp(box, ml);
 		ml = nil;
 	}
@@ -193,9 +194,9 @@ checkBox(Box *box, int imped)
  * clean up .imp files as well.
  */
 static void
-mboxGone(Box *box)
+mboxGone(Box* box)
 {
-	Msg *m;
+	Msg* m;
 
 	if(cdExists(mboxDir, box->name) < 0)
 		cdRemove(mboxDir, box->imp);
@@ -210,19 +211,20 @@ mboxGone(Box *box)
  * returns -1 for failure, 0 if no new messages, 1 if new messages.
  */
 static int
-readBox(Box *box)
+readBox(Box* box)
 {
-	Msg *msgs, *m, *last;
-	Dir *d;
-	char *s;
+	Msg* msgs, *m, *last;
+	Dir* d;
+	char* s;
 	int32_t max, id;
 	int i, nd, fd, new;
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
-	if(fd < 0){
-		syslog(0, "mail",
+	if(fd < 0) {
+		syslog(
+		    0, "mail",
 		    "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r",
-			time(nil), username, box->name, box->fsDir);
+		    time(nil), username, box->name, box->fsDir);
 		mboxGone(box);
 		return -1;
 	}
@@ -232,7 +234,7 @@ readBox(Box *box)
 	 * each one has a directory, and is in numerical order
 	 */
 	d = dirfstat(fd);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return -1;
 	}
@@ -243,17 +245,17 @@ readBox(Box *box)
 	max = 0;
 	new = 0;
 	free(d);
-	while((nd = dirread(fd, &d)) > 0){
-		for(i = 0; i < nd; i++){
+	while((nd = dirread(fd, &d)) > 0) {
+		for(i = 0; i < nd; i++) {
 			s = d[i].name;
 			id = strtol(s, &s, 10);
-			if(id <= max || *s != '\0'
-			|| (d[i].mode & DMDIR) != DMDIR)
+			if(id <= max || *s != '\0' ||
+			   (d[i].mode & DMDIR) != DMDIR)
 				continue;
 
 			max = id;
 
-			while(msgs != nil){
+			while(msgs != nil) {
 				last = msgs;
 				msgs = msgs->next;
 				if(last->id == id)
@@ -266,21 +268,23 @@ readBox(Box *box)
 			m->id = id;
 			m->fsDir = box->fsDir;
 			m->fs = emalloc(2 * (MsgNameLen + 1));
-			m->efs = seprint(m->fs, m->fs + (MsgNameLen + 1), "%lud/", id);
-			m->size = ~0UL&0xFF;
-			m->lines = ~0UL&0xFF;
+			m->efs = seprint(m->fs, m->fs + (MsgNameLen + 1),
+			                 "%lud/", id);
+			m->size = ~0UL & 0xFF;
+			m->lines = ~0UL & 0xFF;
 			m->prev = last;
 			m->flags = MRecent;
 			if(!msgInfo(m))
 				freeMsg(m);
-			else{
+			else {
 				if(last == nil)
 					box->msgs = m;
 				else
 					last->next = m;
 				last = m;
 			}
-	continueDir:;
+		continueDir:
+			;
 		}
 		free(d);
 	}
@@ -292,7 +296,7 @@ readBox(Box *box)
 	 * make up the imap message sequence numbers
 	 */
 	id = 1;
-	for(m = box->msgs; m != nil; m = m->next){
+	for(m = box->msgs; m != nil; m = m->next) {
 		if(m->seq && m->seq != id)
 			bye("internal error assigning message numbers");
 		m->seq = id++;
@@ -307,15 +311,15 @@ readBox(Box *box)
  * make sure all flags and uids are consistent.
  * return the mailbox lock.
  */
-#define IMPMAGIC	"imap internal mailbox description\n"
+#define IMPMAGIC "imap internal mailbox description\n"
 static MbLock*
-openImp(Box *box, int new)
+openImp(Box* box, int new)
 {
 	Qid qid;
 	Biobuf b;
-	MbLock *ml;
+	MbLock* ml;
 	int fd;
-//ZZZZ
+	// ZZZZ
 	int once;
 
 	ml = mbLock();
@@ -324,16 +328,21 @@ openImp(Box *box, int new)
 	fd = cdOpen(mboxDir, box->imp, OREAD);
 	once = 0;
 ZZZhack:
-	if(fd < 0 || fqid(fd, &qid) < 0){
-		if(fd < 0){
+	if(fd < 0 || fqid(fd, &qid) < 0) {
+		if(fd < 0) {
 			char buf[ERRMAX];
 
 			errstr(buf, sizeof buf);
 			if(cistrstr(buf, "does not exist") == nil)
-				fprint(2, "imap4d at %lud: imp open failed: %s\n", time(nil), buf);
-			if(!once && cistrstr(buf, "locked") != nil){
+				fprint(2,
+				       "imap4d at %lud: imp open failed: %s\n",
+				       time(nil), buf);
+			if(!once && cistrstr(buf, "locked") != nil) {
 				once = 1;
-				fprint(2, "imap4d at %lud: imp %s/%s %s locked when it shouldn't be; spinning\n", time(nil), username, box->name, box->imp);
+				fprint(2, "imap4d at %lud: imp %s/%s %s locked "
+				          "when it shouldn't be; spinning\n",
+				       time(nil), username, box->name,
+				       box->imp);
 				fd = openLocked(mboxDir, box->imp, OREAD);
 				goto ZZZhack;
 			}
@@ -341,7 +350,7 @@ ZZZhack:
 		if(fd >= 0)
 			close(fd);
 		fd = createImp(box, &qid);
-		if(fd < 0){
+		if(fd < 0) {
 			mbUnlock(ml);
 			return nil;
 		}
@@ -350,9 +359,10 @@ ZZZhack:
 			box->uidvalidity = box->mtime;
 		box->impQid = qid;
 		new = 1;
-	}else if(qid.path != box->impQid.path || qid.vers != box->impQid.vers){
+	} else if(qid.path != box->impQid.path ||
+	          qid.vers != box->impQid.vers) {
 		Binit(&b, fd, OREAD);
-		if(!parseImp(&b, box)){
+		if(!parseImp(&b, box)) {
 			box->dirtyImp = 1;
 			if(box->uidvalidity == 0)
 				box->uidvalidity = box->mtime;
@@ -371,23 +381,23 @@ ZZZhack:
  * close the .imp file, after writing out any changes
  */
 void
-closeImp(Box *box, MbLock *ml)
+closeImp(Box* box, MbLock* ml)
 {
-	Msg *m;
+	Msg* m;
 	Qid qid;
 	Biobuf b;
-	char buf[NFlags+1];
+	char buf[NFlags + 1];
 	int fd;
 
 	if(ml == nil)
 		return;
-	if(!box->dirtyImp){
+	if(!box->dirtyImp) {
 		mbUnlock(ml);
 		return;
 	}
 
 	fd = cdCreate(mboxDir, box->imp, OWRITE, 0664);
-	if(fd < 0){
+	if(fd < 0) {
 		mbUnlock(ml);
 		return;
 	}
@@ -395,12 +405,14 @@ closeImp(Box *box, MbLock *ml)
 
 	box->dirtyImp = 0;
 	Bprint(&b, "%s", IMPMAGIC);
-	Bprint(&b, "%.*lud %.*lud\n", NUid, box->uidvalidity, NUid, box->uidnext);
-	for(m = box->msgs; m != nil; m = m->next){
+	Bprint(&b, "%.*lud %.*lud\n", NUid, box->uidvalidity, NUid,
+	       box->uidnext);
+	for(m = box->msgs; m != nil; m = m->next) {
 		if(m->expunged)
 			continue;
 		wrImpFlags(buf, m->flags, strcmp(box->fs, "imap") == 0);
-		Bprint(&b, "%.*s %.*lud %s\n", NDigest, m->info[IDigest], NUid, m->uid, buf);
+		Bprint(&b, "%.*s %.*lud %s\n", NDigest, m->info[IDigest], NUid,
+		       m->uid, buf);
 	}
 	Bterm(&b);
 
@@ -411,13 +423,13 @@ closeImp(Box *box, MbLock *ml)
 }
 
 void
-wrImpFlags(char *buf, int flags, int killRecent)
+wrImpFlags(char* buf, int flags, int killRecent)
 {
 	int i;
 
-	for(i = 0; i < NFlags; i++){
-		if((flags & flagChars[i].v)
-		&& (flagChars[i].v != MRecent || !killRecent))
+	for(i = 0; i < NFlags; i++) {
+		if((flags & flagChars[i].v) &&
+		   (flagChars[i].v != MRecent || !killRecent))
 			buf[i] = flagChars[i].name[0];
 		else
 			buf[i] = '-';
@@ -426,9 +438,9 @@ wrImpFlags(char *buf, int flags, int killRecent)
 }
 
 int
-emptyImp(char *mbox)
+emptyImp(char* mbox)
 {
-	Dir *d;
+	Dir* d;
 	int32_t mode;
 	int fd;
 
@@ -436,7 +448,7 @@ emptyImp(char *mbox)
 	if(fd < 0)
 		return -1;
 	d = cdDirstat(mboxDir, mbox);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return -1;
 	}
@@ -453,9 +465,9 @@ emptyImp(char *mbox)
  * try to match permissions with mbox
  */
 static int
-createImp(Box *box, Qid *qid)
+createImp(Box* box, Qid* qid)
 {
-	Dir *d;
+	Dir* d;
 	int32_t mode;
 	int fd;
 
@@ -463,14 +475,14 @@ createImp(Box *box, Qid *qid)
 	if(fd < 0)
 		return -1;
 	d = cdDirstat(mboxDir, box->name);
-	if(d != nil){
+	if(d != nil) {
 		mode = d->mode & 0777;
 		nulldir(d);
 		d->mode = mode;
 		dirfwstat(fd, d);
 		free(d);
 	}
-	if(fqid(fd, qid) < 0){
+	if(fqid(fd, qid) < 0) {
 		close(fd);
 		return -1;
 	}
@@ -493,26 +505,27 @@ createImp(Box *box, Qid *qid)
  *
  * note: in the face of duplicate messages, one of which is deleted,
  * two active servers may decide different ones are valid, and so return
- * different uids for the messages.  this situation will stablize when the servers exit.
+ * different uids for the messages.  this situation will stablize when the
+ *servers exit.
  */
 static int
-parseImp(Biobuf *b, Box *box)
+parseImp(Biobuf* b, Box* box)
 {
-	Msg *m, *mm;
-	char *s, *t, *toks[3];
+	Msg* m, *mm;
+	char* s, *t, *toks[3];
 	uint32_t uid, u;
 	int match, n;
 
 	m = box->msgs;
 	s = Brdline(b, '\n');
-	if(s == nil || Blinelen(b) != STRLEN(IMPMAGIC)
-	|| strncmp(s, IMPMAGIC, STRLEN(IMPMAGIC)) != 0)
+	if(s == nil || Blinelen(b) != STRLEN(IMPMAGIC) ||
+	   strncmp(s, IMPMAGIC, STRLEN(IMPMAGIC)) != 0)
 		return 0;
 
 	s = Brdline(b, '\n');
-	if(s == nil || Blinelen(b) != 2*NUid + 2)
+	if(s == nil || Blinelen(b) != 2 * NUid + 2)
 		return 0;
-	s[2*NUid + 1] = '\0';
+	s[2 * NUid + 1] = '\0';
 	u = strtoul(s, &t, 10);
 	if(u != box->uidvalidity && box->uidvalidity != 0)
 		return 0;
@@ -524,17 +537,17 @@ parseImp(Biobuf *b, Box *box)
 	if(box->uidnext > u)
 		return 0;
 	box->uidnext = u;
-	if(t != s + 2*NUid+1 || box->uidnext == 0)
+	if(t != s + 2 * NUid + 1 || box->uidnext == 0)
 		return 0;
 
 	uid = ~0;
-	while(m != nil){
+	while(m != nil) {
 		s = Brdline(b, '\n');
 		if(s == nil)
 			break;
 		n = Blinelen(b) - 1;
-		if(n != NDigest + NUid + NFlags + 2
-		|| s[NDigest] != ' ' || s[NDigest + NUid + 1] != ' ')
+		if(n != NDigest + NUid + NFlags + 2 || s[NDigest] != ' ' ||
+		   s[NDigest + NUid + 1] != ' ')
 			return 0;
 		toks[0] = s;
 		s[NDigest] = '\0';
@@ -553,12 +566,12 @@ parseImp(Biobuf *b, Box *box)
 		 * can only match messages without uids, but this message
 		 * may not be the next one, and may have been deleted.
 		 */
-		if(!uid){
+		if(!uid) {
 			for(; m != nil && m->uid; m = m->next)
 				;
-			for(mm = m; mm != nil; mm = mm->next){
+			for(mm = m; mm != nil; mm = mm->next) {
 				if(mm->info[IDigest] != nil &&
-				    strcmp(mm->info[IDigest], toks[0]) == 0){
+				   strcmp(mm->info[IDigest], toks[0]) == 0) {
 					if(!mm->uid)
 						mm->flags = 0;
 					if(!impFlags(box, mm, toks[2]))
@@ -572,13 +585,17 @@ parseImp(Biobuf *b, Box *box)
 
 		/*
 		 * ignore expunged messages,
-		 * and messages already assigned uids which don't match this uid.
+		 * and messages already assigned uids which don't match this
+		 * uid.
 		 * such messages must have been deleted by another imap server,
-		 * which updated the mailbox and .imp file since we read the mailbox,
-		 * or because upas/fs got confused by consecutive duplicate messages,
+		 * which updated the mailbox and .imp file since we read the
+		 * mailbox,
+		 * or because upas/fs got confused by consecutive duplicate
+		 * messages,
 		 * the first of which was deleted by another imap server.
 		 */
-		for(; m != nil && (m->expunged || m->uid && m->uid < uid); m = m->next)
+		for(; m != nil && (m->expunged || m->uid && m->uid < uid);
+		    m = m->next)
 			;
 		if(m == nil)
 			break;
@@ -589,14 +606,16 @@ parseImp(Biobuf *b, Box *box)
 		 * must be in the .imp file if they should be.
 		 */
 		match = m->info[IDigest] != nil &&
-			strcmp(m->info[IDigest], toks[0]) == 0;
-		if(uid && (m->uid == uid || !m->uid && match)){
+		        strcmp(m->info[IDigest], toks[0]) == 0;
+		if(uid && (m->uid == uid || !m->uid && match)) {
 			if(!match)
 				bye("inconsistent uid");
 
 			/*
-			 * wipe out recent flag if some other server saw this new message.
-			 * it will be read from the .imp file if is really should be set,
+			 * wipe out recent flag if some other server saw this
+			 * new message.
+			 * it will be read from the .imp file if is really
+			 * should be set,
 			 * ie the message was only seen by a status command.
 			 */
 			if(!m->uid)
@@ -615,12 +634,12 @@ parseImp(Biobuf *b, Box *box)
  * parse .imp flags
  */
 static int
-impFlags(Box *box, Msg *m, char *flags)
+impFlags(Box* box, Msg* m, char* flags)
 {
 	int i, f;
 
 	f = 0;
-	for(i = 0; i < NFlags; i++){
+	for(i = 0; i < NFlags; i++) {
 		if(flags[i] == '-')
 			continue;
 		if(flags[i] != flagChars[i].name[0])
@@ -629,8 +648,10 @@ impFlags(Box *box, Msg *m, char *flags)
 	}
 
 	/*
-	 * recent flags are set until the first time message's box is selected or examined.
-	 * it may be stored in the file as a side effect of a status or subscribe command;
+	 * recent flags are set until the first time message's box is selected
+	 * or examined.
+	 * it may be stored in the file as a side effect of a status or
+	 * subscribe command;
 	 * if so, clear it out.
 	 */
 	if((f & MRecent) && strcmp(box->fs, "imap") == 0)
@@ -640,7 +661,7 @@ impFlags(Box *box, Msg *m, char *flags)
 	/*
 	 * all old messages with changed flags should be reported to the client
 	 */
-	if(m->uid && m->flags != f){
+	if(m->uid && m->flags != f) {
 		box->sendFlags = 1;
 		m->sendFlags = 1;
 	}
@@ -654,13 +675,13 @@ impFlags(Box *box, Msg *m, char *flags)
  * sum up totals for flag values.
  */
 static void
-boxFlags(Box *box)
+boxFlags(Box* box)
 {
-	Msg *m;
+	Msg* m;
 
 	box->recent = 0;
-	for(m = box->msgs; m != nil; m = m->next){
-		if(m->uid == 0){
+	for(m = box->msgs; m != nil; m = m->next) {
+		if(m->uid == 0) {
 			box->dirtyImp = 1;
 			box->uidnext = uidRenumber(m, box->uidnext, 0);
 		}
@@ -670,9 +691,9 @@ boxFlags(Box *box)
 }
 
 static uint32_t
-uidRenumber(Msg *m, uint32_t uid, int force)
+uidRenumber(Msg* m, uint32_t uid, int force)
 {
-	for(; m != nil; m = m->next){
+	for(; m != nil; m = m->next) {
 		if(!force && m->uid != 0)
 			bye("uid renumbering with a valid uid");
 		m->uid = uid++;
@@ -681,16 +702,17 @@ uidRenumber(Msg *m, uint32_t uid, int force)
 }
 
 void
-closeBox(Box *box, int opened)
+closeBox(Box* box, int opened)
 {
-	Msg *m, *next;
+	Msg* m, *next;
 
 	/*
-	 * make sure to leave the mailbox directory so upas/fs can close the mailbox
+	 * make sure to leave the mailbox directory so upas/fs can close the
+	 * mailbox
 	 */
 	myChdir(mboxDir);
 
-	if(box->writable){
+	if(box->writable) {
 		deleteMsgs(box);
 		if(expungeMsgs(box, 0))
 			closeImp(box, checkBox(box, 1));
@@ -698,7 +720,7 @@ closeBox(Box *box, int opened)
 
 	if(fprint(fsCtl, "close %s", box->fs) < 0 && opened)
 		bye("can't talk to mail server");
-	for(m = box->msgs; m != nil; m = next){
+	for(m = box->msgs; m != nil; m = next) {
 		next = m->next;
 		freeMsg(m);
 	}
@@ -710,9 +732,9 @@ closeBox(Box *box, int opened)
 }
 
 int
-deleteMsgs(Box *box)
+deleteMsgs(Box* box)
 {
-	Msg *m;
+	Msg* m;
 	char buf[BufSize], *p, *start;
 	int ok;
 
@@ -725,11 +747,11 @@ deleteMsgs(Box *box)
 	ok = 1;
 	start = seprint(buf, buf + sizeof(buf), "delete %s", box->fs);
 	p = start;
-	for(m = box->msgs; m != nil; m = m->next){
-		if((m->flags & MDeleted) && !m->expunged){
+	for(m = box->msgs; m != nil; m = m->next) {
+		if((m->flags & MDeleted) && !m->expunged) {
 			m->expunged = 1;
 			p = seprint(p, buf + sizeof(buf), " %lud", m->id);
-			if(p + 32 >= buf + sizeof(buf)){
+			if(p + 32 >= buf + sizeof(buf)) {
 				if(write(fsCtl, buf, p - buf) < 0)
 					bye("can't talk to mail server");
 				p = start;
@@ -749,17 +771,17 @@ deleteMsgs(Box *box)
  * returns true if anything changed.
  */
 int
-expungeMsgs(Box *box, int send)
+expungeMsgs(Box* box, int send)
 {
-	Msg *m, *next, *last;
+	Msg* m, *next, *last;
 	uint32_t n;
 
 	n = 0;
 	last = nil;
-	for(m = box->msgs; m != nil; m = next){
+	for(m = box->msgs; m != nil; m = next) {
 		m->seq -= n;
 		next = m->next;
-		if(m->expunged){
+		if(m->expunged) {
 			if(send)
 				Bprint(&bout, "* %lud expunge\r\n", m->seq);
 			if(m->flags & MRecent)
@@ -770,10 +792,10 @@ expungeMsgs(Box *box, int send)
 			else
 				last->next = next;
 			freeMsg(m);
-		}else
+		} else
 			last = m;
 	}
-	if(n){
+	if(n) {
 		box->max -= n;
 		box->dirtyImp = 1;
 	}
@@ -792,25 +814,15 @@ fsInit(void)
 		bye("can't initialize mail file system");
 }
 
-static char *stoplist[] =
-{
-	"mbox",
-	"pipeto",
-	"forward",
-	"names",
-	"pipefrom",
-	"headers",
-	"imap.ok",
-	0
+static char* stoplist[] = {"mbox",     "pipeto",  "forward", "names",
+                           "pipefrom", "headers", "imap.ok", 0};
+
+enum { Maxokbytes = 4096,
+       Maxfolders = Maxokbytes / 4,
 };
 
-enum {
-	Maxokbytes	= 4096,
-	Maxfolders	= Maxokbytes / 4,
-};
-
-static char *folders[Maxfolders];
-static char *folderbuff;
+static char* folders[Maxfolders];
+static char* folderbuff;
 
 static void
 readokfolders(void)
@@ -825,9 +837,9 @@ readokfolders(void)
 		close(fd);
 		return;
 	}
-	nr = read(fd, folderbuff, Maxokbytes-1);	/* once is ok */
+	nr = read(fd, folderbuff, Maxokbytes - 1); /* once is ok */
 	close(fd);
-	if(nr < 0){
+	if(nr < 0) {
 		free(folderbuff);
 		folderbuff = nil;
 		return;
@@ -840,9 +852,9 @@ readokfolders(void)
  * reject bad mailboxes based on mailbox name
  */
 int
-okMbox(char *path)
+okMbox(char* path)
 {
-	char *name;
+	char* name;
 	int i;
 
 	if(folderbuff == nil && access("imap.ok", AREAD) == 0)
@@ -852,7 +864,7 @@ okMbox(char *path)
 		name = path;
 	else
 		name++;
-	if(folderbuff != nil){
+	if(folderbuff != nil) {
 		for(i = 0; i < nelem(folders) && folders[i] != nil; i++)
 			if(cistrcmp(folders[i], name) == 0)
 				return 1;
@@ -863,10 +875,9 @@ okMbox(char *path)
 	for(i = 0; stoplist[i]; i++)
 		if(strcmp(name, stoplist[i]) == 0)
 			return 0;
-	if(isprefix("L.", name) || isprefix("imap-tmp.", name)
-	|| issuffix(".imp", name)
-	|| strcmp("imap.subscribed", name) == 0
-	|| isdotdot(name) || name[0] == '/')
+	if(isprefix("L.", name) || isprefix("imap-tmp.", name) ||
+	   issuffix(".imp", name) || strcmp("imap.subscribed", name) == 0 ||
+	   isdotdot(name) || name[0] == '/')
 		return 0;
 	return 1;
 }

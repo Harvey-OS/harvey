@@ -12,14 +12,14 @@
 /*
  * Section 2 - Font and character size control.
  */
- 
+
 /* 2.1 - Character set */
 /* XXX
  *
  * \C'name' - character named name
  * \N'n' - character number
  * \(xx - two-letter character
- * \- 
+ * \-
  * \`
  * \'
  * `
@@ -32,14 +32,14 @@ getqarg(void)
 {
 	static Rune buf[MaxLine];
 	int c;
-	Rune *p, *e;
-	
+	Rune* p, *e;
+
 	p = buf;
-	e = p+sizeof buf-1;
-	
+	e = p + sizeof buf - 1;
+
 	if(getrune() != '\'')
 		return nil;
-	while(p < e){
+	while(p < e) {
 		c = getrune();
 		if(c < 0)
 			return nil;
@@ -54,7 +54,7 @@ getqarg(void)
 int
 e_N(void)
 {
-	Rune *a;
+	Rune* a;
 	if((a = getqarg()) == nil)
 		goto error;
 	return eval(a);
@@ -69,7 +69,7 @@ e_paren(void)
 {
 	int c, cc;
 	Rune buf[2], r;
-	
+
 	if((c = getrune()) < 0 || c == '\n')
 		goto error;
 	if((cc = getrune()) < 0 || cc == '\n')
@@ -77,10 +77,10 @@ e_paren(void)
 	buf[0] = c;
 	buf[1] = cc;
 	r = troff2rune(buf);
- 	if(r == Runeerror)
+	if(r == Runeerror)
 		warn("unknown char %C(%C%C", backslash, c, cc);
 	return r;
-	
+
 error:
 	warn("malformed %C(xx", backslash);
 	return 0;
@@ -97,20 +97,20 @@ Rune fonttab[10][100];
 /* change to font f.  also \fx, \f(xx, \fN */
 /* .ft LongName is okay - temporarily at fp 0 */
 void
-ft(Rune *f)
+ft(Rune* f)
 {
 	int i;
 	int fn;
-	
+
 	if(f && runestrcmp(f, L("P")) == 0)
 		f = nil;
 	if(f == nil)
 		fn = 0;
 	else if(isdigit(f[0]))
 		fn = eval(f);
-	else{
-		for(i=0; i<nelem(fonttab); i++){
-			if(runestrcmp(fonttab[i], f) == 0){
+	else {
+		for(i = 0; i < nelem(fonttab); i++) {
+			if(runestrcmp(fonttab[i], f) == 0) {
 				fn = i;
 				goto have;
 			}
@@ -119,7 +119,7 @@ ft(Rune *f)
 		fn = 1;
 	}
 have:
-	if(fn < 0 || fn >= nelem(fonttab)){
+	if(fn < 0 || fn >= nelem(fonttab)) {
 		warn("unknown font %d", fn);
 		fn = 1;
 	}
@@ -132,15 +132,15 @@ have:
 
 /* mount font named f on physical position N */
 void
-fp(int i, Rune *f)
+fp(int i, Rune* f)
 {
-	if(i <= 0 || i >= nelem(fonttab)){
+	if(i <= 0 || i >= nelem(fonttab)) {
 		warn("bad font position %d", i);
 		return;
 	}
-	runestrecpy(fonttab[i], fonttab[i]+sizeof fonttab[i], f);
+	runestrecpy(fonttab[i], fonttab[i] + sizeof fonttab[i], f);
 }
-	
+
 int
 e_f(void)
 {
@@ -149,7 +149,7 @@ e_f(void)
 }
 
 void
-r_ft(int argc, Rune **argv)
+r_ft(int argc, Rune** argv)
 {
 	if(argc == 1)
 		ft(nil);
@@ -158,9 +158,9 @@ r_ft(int argc, Rune **argv)
 }
 
 void
-r_fp(int argc, Rune **argv)
+r_fp(int argc, Rune** argv)
 {
-	if(argc < 3){
+	if(argc < 3) {
 		warn("missing arguments to %Cfp", dot);
 		return;
 	}
@@ -183,18 +183,18 @@ ps(int s)
 
 /* set point size */
 void
-r_ps(int argc, Rune **argv)
+r_ps(int argc, Rune** argv)
 {
-	Rune *p;
-	
+	Rune* p;
+
 	if(argc == 1 || argv[1][0] == 0)
 		ps(0);
-	else{
+	else {
 		p = argv[1];
 		if(p[0] == '-')
-			ps(getnr(L(".s"))-eval(p+1));
+			ps(getnr(L(".s")) - eval(p + 1));
 		else if(p[0] == '+')
-			ps(getnr(L(".s"))+eval(p+1));
+			ps(getnr(L(".s")) + eval(p + 1));
 		else
 			ps(eval(p));
 	}
@@ -204,52 +204,53 @@ int
 e_s(void)
 {
 	int c, cc, ccc, n, twodigit;
-	
+
 	c = getnext();
 	if(c < 0)
 		return 0;
-	if(c == '+' || c == '-'){
+	if(c == '+' || c == '-') {
 		cc = getnext();
-		if(cc == '('){
+		if(cc == '(') {
 			cc = getnext();
 			ccc = getnext();
-			if(cc < '0' || cc > '9' || ccc < '0' || ccc > '9'){
-				warn("bad size %Cs%C(%C%C", backslash, c, cc, ccc);
+			if(cc < '0' || cc > '9' || ccc < '0' || ccc > '9') {
+				warn("bad size %Cs%C(%C%C", backslash, c, cc,
+				     ccc);
 				return 0;
 			}
-			n = (cc-'0')*10+ccc-'0';
-		}else{
-			if(cc < '0' || cc > '9'){
+			n = (cc - '0') * 10 + ccc - '0';
+		} else {
+			if(cc < '0' || cc > '9') {
 				warn("bad size %Cs%C%C", backslash, c, cc);
 				return 0;
 			}
-			n = cc-'0';
+			n = cc - '0';
 		}
 		if(c == '+')
-			ps(getnr(L(".s"))+n);
+			ps(getnr(L(".s")) + n);
 		else
-			ps(getnr(L(".s"))-n);
+			ps(getnr(L(".s")) - n);
 		return 0;
 	}
 	twodigit = 0;
-	if(c == '('){
+	if(c == '(') {
 		twodigit = 1;
 		c = getnext();
 		if(c < 0)
 			return 0;
 	}
-	if(c < '0' || c > '9'){
+	if(c < '0' || c > '9') {
 		warn("bad size %Cs%C", backslash, c);
 		ungetnext(c);
 		return 0;
 	}
-	if(twodigit || (c < '4' && c != '0')){
+	if(twodigit || (c < '4' && c != '0')) {
 		cc = getnext();
 		if(c < 0)
 			return 0;
-		n = (c-'0')*10+cc-'0';
-	}else
-		n = c-'0';
+		n = (c - '0') * 10 + cc - '0';
+	} else
+		n = c - '0';
 	ps(n);
 	return 0;
 }
@@ -262,7 +263,7 @@ t2init(void)
 	fp(3, L("B"));
 	fp(4, L("BI"));
 	fp(5, L("CW"));
-	
+
 	nr(L(".s"), 10);
 	nr(L(".s0"), 10);
 
@@ -275,9 +276,8 @@ t2init(void)
 
 	addesc('f', e_f, 0);
 	addesc('s', e_s, 0);
-	addesc('(', e_paren, 0);	/* ) */
+	addesc('(', e_paren, 0); /* ) */
 	addesc('C', e_warn, 0);
 	addesc('N', e_N, 0);
 	/* \- \' \` are handled in html.c */
 }
-

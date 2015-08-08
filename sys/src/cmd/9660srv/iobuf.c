@@ -23,7 +23,7 @@
  * tarring up a Plan 9 distribution CD, we now use 16 128kb
  * buffers.  This works for ISO9660 because data is required
  * to be laid out contiguously; effectively we're doing agressive
- * readahead.  Because the buffers are so big and the typical 
+ * readahead.  Because the buffers are so big and the typical
  * disk accesses so concentrated, it's okay that we have so few
  * of them.
  *
@@ -33,34 +33,34 @@
  */
 
 /* trying a larger value to get greater throughput - geoff */
-#define	BUFPERCLUST	256 /* sectors/cluster; was 64, 64*Sectorsize = 128kb */
-#define	NCLUST		16
+#define BUFPERCLUST 256 /* sectors/cluster; was 64, 64*Sectorsize = 128kb */
+#define NCLUST 16
 
 int nclust = NCLUST;
 
-static Ioclust*	iohead;
-static Ioclust*	iotail;
+static Ioclust* iohead;
+static Ioclust* iotail;
 
-static Ioclust*	getclust(Xdata*, int64_t);
-static void	putclust(Ioclust*);
-static void	xread(Ioclust*);
+static Ioclust* getclust(Xdata*, int64_t);
+static void putclust(Ioclust*);
+static void xread(Ioclust*);
 
 void
 iobuf_init(void)
 {
 	int i, j, n;
-	Ioclust *c;
-	Iobuf *b;
-	uint8_t *mem;
+	Ioclust* c;
+	Iobuf* b;
+	uint8_t* mem;
 
-	n = nclust*sizeof(Ioclust) +
-		nclust*BUFPERCLUST*(sizeof(Iobuf)+Sectorsize);
+	n = nclust * sizeof(Ioclust) +
+	    nclust * BUFPERCLUST * (sizeof(Iobuf) + Sectorsize);
 	mem = sbrk(n);
 	if(mem == (void*)-1)
 		panic(0, "iobuf_init");
 	memset(mem, 0, n);
 
-	for(i=0; i<nclust; i++){
+	for(i = 0; i < nclust; i++) {
 		c = (Ioclust*)mem;
 		mem += sizeof(Ioclust);
 		c->addr = -1;
@@ -72,40 +72,40 @@ iobuf_init(void)
 			iohead = c;
 
 		c->buf = (Iobuf*)mem;
-		mem += BUFPERCLUST*sizeof(Iobuf);
+		mem += BUFPERCLUST * sizeof(Iobuf);
 		c->iobuf = mem;
-		mem += BUFPERCLUST*Sectorsize;
-		for(j=0; j<BUFPERCLUST; j++){
+		mem += BUFPERCLUST * Sectorsize;
+		for(j = 0; j < BUFPERCLUST; j++) {
 			b = &c->buf[j];
 			b->clust = c;
 			b->addr = -1;
-			b->iobuf = c->iobuf+j*Sectorsize;
+			b->iobuf = c->iobuf + j * Sectorsize;
 		}
 	}
 }
 
 void
-purgebuf(Xdata *dev)
+purgebuf(Xdata* dev)
 {
-	Ioclust *p;
+	Ioclust* p;
 
-	for(p=iohead; p!=nil; p=p->next)
-		if(p->dev == dev){
+	for(p = iohead; p != nil; p = p->next)
+		if(p->dev == dev) {
 			p->addr = -1;
 			p->busy = 0;
 		}
 }
 
 static Ioclust*
-getclust(Xdata *dev, int64_t addr)
+getclust(Xdata* dev, int64_t addr)
 {
-	Ioclust *c, *f;
+	Ioclust* c, *f;
 
 	f = nil;
-	for(c=iohead; c; c=c->next){
+	for(c = iohead; c; c = c->next) {
 		if(!c->busy)
 			f = c;
-		if(c->addr == addr && c->dev == dev){
+		if(c->addr == addr && c->dev == dev) {
 			c->busy++;
 			return c;
 		}
@@ -117,8 +117,8 @@ getclust(Xdata *dev, int64_t addr)
 	f->addr = addr;
 	f->dev = dev;
 	f->busy++;
-	if(waserror()){
-		f->addr = -1;	/* stop caching */
+	if(waserror()) {
+		f->addr = -1; /* stop caching */
 		putclust(f);
 		nexterror();
 	}
@@ -128,7 +128,7 @@ getclust(Xdata *dev, int64_t addr)
 }
 
 static void
-putclust(Ioclust *c)
+putclust(Ioclust* c)
 {
 	if(c->busy <= 0)
 		panic(0, "putbuf");
@@ -151,14 +151,14 @@ putclust(Ioclust *c)
 }
 
 Iobuf*
-getbuf(Xdata *dev, uint64_t addr)
+getbuf(Xdata* dev, uint64_t addr)
 {
 	int off;
-	Ioclust *c;
+	Ioclust* c;
 
-	off = addr%BUFPERCLUST;
+	off = addr % BUFPERCLUST;
 	c = getclust(dev, addr - off);
-	if(c->nbuf < off){
+	if(c->nbuf < off) {
 		c->busy--;
 		error("short read or I/O error");
 	}
@@ -166,21 +166,21 @@ getbuf(Xdata *dev, uint64_t addr)
 }
 
 void
-putbuf(Iobuf *b)
+putbuf(Iobuf* b)
 {
 	putclust(b->clust);
 }
 
 static void
-xread(Ioclust *c)
+xread(Ioclust* c)
 {
 	int n;
-	Xdata *dev;
+	Xdata* dev;
 
 	dev = c->dev;
 	seek(dev->dev, (int64_t)c->addr * Sectorsize, 0);
-	n = readn(dev->dev, c->iobuf, BUFPERCLUST*Sectorsize);
+	n = readn(dev->dev, c->iobuf, BUFPERCLUST * Sectorsize);
 	if(n < Sectorsize)
 		error("short read or I/O error");
-	c->nbuf = n/Sectorsize;
+	c->nbuf = n / Sectorsize;
 }

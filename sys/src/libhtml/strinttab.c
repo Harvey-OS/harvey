@@ -20,20 +20,24 @@
 int
 _lookup(StringInt* t, int n, Rune* key, int keylen, int* pans)
 {
-	int	min;
-	int	max;
-	int	try;
-	int	cmpresult;
+	int min;
+	int max;
+	int try
+		;
+	int cmpresult;
 
 	min = 0;
 	max = n - 1;
 	while(min <= max) {
-		try = (min + max)/2;
+		try
+			= (min + max) / 2;
 		cmpresult = _Strncmpci(key, keylen, t[try].key);
 		if(cmpresult > 0)
-			min = try + 1;
+			min = try
+				+1;
 		else if(cmpresult < 0)
-			max = try - 1;
+			max = try
+				-1;
 		else {
 			*pans = t[try].val;
 			return 1;
@@ -47,7 +51,7 @@ _lookup(StringInt* t, int n, Rune* key, int keylen, int* pans)
 Rune*
 _revlookup(StringInt* t, int n, int val)
 {
-	int	i;
+	int i;
 
 	for(i = 0; i < n; i++)
 		if(t[i].val == val)
@@ -60,8 +64,8 @@ _revlookup(StringInt* t, int n, int val)
 StringInt*
 _makestrinttab(Rune** a, int n)
 {
-	StringInt*	ans;
-	int	i;
+	StringInt* ans;
+	int i;
 
 	ans = (StringInt*)emalloc(n * sizeof(StringInt));
 	for(i = 0; i < n; i++) {
@@ -71,4 +75,3 @@ _makestrinttab(Rune** a, int n)
 	}
 	return ans;
 }
-

@@ -14,14 +14,14 @@
 #include <bio.h>
 #include "imagefile.h"
 
-/* Separate colors, if not a grey scale or bitmap, into one byte per color per pixel, no alpha or X */
+/* Separate colors, if not a grey scale or bitmap, into one byte per color per
+ * pixel, no alpha or X */
 /* Result is GREY[1248] or RGB24 */
 
-static
-int
+static int
 notrans(uint32_t chan)
 {
-	switch(chan){
+	switch(chan) {
 	case GREY1:
 	case GREY2:
 	case GREY4:
@@ -33,9 +33,9 @@ notrans(uint32_t chan)
 }
 
 Image*
-multichan(Image *i)
+multichan(Image* i)
 {
-	Image *ni;
+	Image* ni;
 
 	if(notrans(i->chan))
 		return i;
@@ -48,9 +48,9 @@ multichan(Image *i)
 }
 
 Memimage*
-memmultichan(Memimage *i)
+memmultichan(Memimage* i)
 {
-	Memimage *ni;
+	Memimage* ni;
 
 	if(notrans(i->chan))
 		return i;

@@ -11,22 +11,22 @@
 #include <mp.h>
 #include "dat.h"
 
-
-// convert an mpint into a little endian byte array (least significant byte first)
+// convert an mpint into a little endian byte array (least significant byte
+// first)
 
 //   return number of bytes converted
 //   if p == nil, allocate and result array
 int
-mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
+mptole(mpint* b, uint8_t* p, uint n, uint8_t** pp)
 {
 	int i, j, res;
 	mpdigit x;
-	uint8_t *e, *s;
+	uint8_t* e, *s;
 	int free_p = 0;
 
-	if(p == nil){
-		n = (b->top+1)*Dbytes;
-		p = (uint8_t *)malloc(n);
+	if(p == nil) {
+		n = (b->top + 1) * Dbytes;
+		p = (uint8_t*)malloc(n);
 		free_p = 1;
 	}
 	if(pp != nil)
@@ -36,8 +36,8 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	memset(p, 0, n);
 
 	// special case 0
-	if(b->top == 0){
-		if (free_p)
+	if(b->top == 0) {
+		if(free_p)
 			free(p);
 		if(n < 1)
 			return -1;
@@ -45,12 +45,12 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 			return 0;
 	}
 	s = p;
-	e = s+n;
-	for(i = 0; i < b->top-1; i++){
+	e = s + n;
+	for(i = 0; i < b->top - 1; i++) {
 		x = b->p[i];
-		for(j = 0; j < Dbytes; j++){
+		for(j = 0; j < Dbytes; j++) {
 			if(p >= e) {
-				if (free_p)
+				if(free_p)
 					free(p);
 				return -1;
 			}
@@ -60,9 +60,9 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 		}
 	}
 	x = b->p[i];
-	while(x > 0){
+	while(x > 0) {
 		if(p >= e) {
-			if (free_p)
+			if(free_p)
 				free(p);
 			return -1;
 		}
@@ -70,7 +70,7 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 		x >>= 8;
 	}
 	res = p - s;
-	if (free_p)
+	if(free_p)
 		free(p);
 	return res;
 }

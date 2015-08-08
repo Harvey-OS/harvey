@@ -15,24 +15,27 @@
 void
 usage(void)
 {
-	fprint(2, "usage: auth/rsagen [-b bits] [-t 'attr=value attr=value ...']\n");
+	fprint(
+	    2,
+	    "usage: auth/rsagen [-b bits] [-t 'attr=value attr=value ...']\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *s;
+	char* s;
 	int bits;
-	char *tag;
-	RSApriv *key;
+	char* tag;
+	RSApriv* key;
 
 	bits = 1024;
 	tag = nil;
 	key = nil;
 	fmtinstall('B', mpfmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		bits = atoi(EARGF(usage()));
 		if(bits == 0)
@@ -43,27 +46,28 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();
 
-	do{
+	do {
 		if(key)
 			rsaprivfree(key);
 		key = rsagen(bits, 6, 0);
-	}while(mpsignif(key->pub.n) != bits);
+	} while(mpsignif(key->pub.n) != bits);
 
-	s = smprint("key proto=rsa %s%ssize=%d ek=%B !dk=%B n=%B !p=%B !q=%B !kp=%B !kq=%B !c2=%B\n",
-		tag ? tag : "", tag ? " " : "",
-		mpsignif(key->pub.n), key->pub.ek,
-		key->dk, key->pub.n, key->p, key->q,
-		key->kp, key->kq, key->c2);
+	s = smprint("key proto=rsa %s%ssize=%d ek=%B !dk=%B n=%B !p=%B !q=%B "
+	            "!kp=%B !kq=%B !c2=%B\n",
+	            tag ? tag : "", tag ? " " : "", mpsignif(key->pub.n),
+	            key->pub.ek, key->dk, key->pub.n, key->p, key->q, key->kp,
+	            key->kq, key->c2);
 	if(s == nil)
 		sysfatal("smprint: %r");
 
 	if(write(1, s, strlen(s)) != strlen(s))
 		sysfatal("write: %r");
-	
+
 	exits(nil);
 }

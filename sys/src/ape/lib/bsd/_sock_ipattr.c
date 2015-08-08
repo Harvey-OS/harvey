@@ -23,16 +23,16 @@
  *  return ndb attribute type of an ip name
  */
 int
-_sock_ipattr(char *name)
+_sock_ipattr(char* name)
 {
-	char *p;
+	char* p;
 	int dot = 0;
 	int alpha = 0;
 
-	for(p = name; *p; p++){
-		if(isdigit(*p)){
+	for(p = name; *p; p++) {
+		if(isdigit(*p)) {
 			;
-		}else if(isalpha(*p) || *p == '-')
+		} else if(isalpha(*p) || *p == '-')
 			alpha = 1;
 		else if(*p == '.')
 			dot = 1;
@@ -40,7 +40,7 @@ _sock_ipattr(char *name)
 			return Tsys;
 	}
 
-	if(alpha){
+	if(alpha) {
 		if(dot)
 			return Tdom;
 		else

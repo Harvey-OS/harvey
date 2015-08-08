@@ -11,7 +11,7 @@
  *
  * $Revision: 1.2 $
  *
- * warn.c - miscellaneous user warning routines 
+ * warn.c - miscellaneous user warning routines
  *
  * DESCRIPTION
  *
@@ -22,17 +22,17 @@
  *
  *     Mark H. Colburn, NAPS International (mark@jhereg.mn.org)
  *
- * Sponsored by The USENIX Association for public distribution. 
+ * Sponsored by The USENIX Association for public distribution.
  *
  * Copyright (c) 1989 Mark H. Colburn.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice is duplicated in all such 
- * forms and that any documentation, advertising materials, and other 
- * materials related to such distribution and use acknowledge that the 
- * software was developed * by Mark H. Colburn and sponsored by The 
- * USENIX Association. 
+ * provided that the above copyright notice is duplicated in all such
+ * forms and that any documentation, advertising materials, and other
+ * materials related to such distribution and use acknowledge that the
+ * software was developed * by Mark H. Colburn and sponsored by The
+ * USENIX Association.
  *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
@@ -41,35 +41,33 @@
  * $Log:	warn.c,v $
  * Revision 1.2  89/02/12  10:06:15  mark
  * 1.2 release fixes
- * 
+ *
  * Revision 1.1  88/12/23  18:02:40  mark
  * Initial revision
- * 
+ *
  */
 
 #ifndef lint
-static char *ident = "$Id: warn.c,v 1.2 89/02/12 10:06:15 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char* ident = "$Id: warn.c,v 1.2 89/02/12 10:06:15 mark Exp $";
+static char* copyright =
+    "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
-
 
 /* Headers */
 
 #include "pax.h"
 
-
 /* Function Prototypes */
 
 #ifdef __STDC__
 
-static void prsize(FILE *, OFFSET);
+static void prsize(FILE*, OFFSET);
 
 #else /* !__STDC__ */
 
 static void prsize();
 
 #endif /* __STDC__ */
-
 
 /* warnarch - print an archive-related warning message and offset
  *
@@ -82,28 +80,27 @@ static void prsize();
  * PARAMETERS
  *
  *	char 	*msg	- A message string to be printed for the user.
- *	OFFSET 	adjust	- An adjustment which is added to the current 
- *			  archive position to tell the user exactly where 
+ *	OFFSET 	adjust	- An adjustment which is added to the current
+ *			  archive position to tell the user exactly where
  *			  the error occurred.
  */
 
 #ifdef __STDC__
 
-void warnarch(char *msg, OFFSET adjust)
+void
+warnarch(char* msg, OFFSET adjust)
 
-#else 
+#else
 
-void warnarch(msg, adjust)
-char           *msg;
-OFFSET          adjust;
+void warnarch(msg, adjust) char* msg;
+OFFSET adjust;
 
 #endif
 {
-    fprintf(stderr, "%s: [offset ", myname);
-    prsize(stderr, total - adjust);
-    fprintf(stderr, "]: %s\n", msg);
+	fprintf(stderr, "%s: [offset ", myname);
+	prsize(stderr, total - adjust);
+	fprintf(stderr, "]: %s\n", msg);
 }
-
 
 /* strerror - return pointer to appropriate system error message
  *
@@ -118,34 +115,35 @@ OFFSET          adjust;
  *	message for the present value of errno.  The error message
  *	strings are taken from sys_errlist[] where appropriate.  If an
  *	appropriate message is not available in sys_errlist, then a
- *	pointer to the string "Unknown error (errno <errvalue>)" is 
+ *	pointer to the string "Unknown error (errno <errvalue>)" is
  *	returned instead.
  */
 
 #ifdef __STDC__
 
-char *strerror(void)
+char*
+strerror(void)
 
 #else
 
-char *strerror()
+char*
+strerror()
 
 #endif
 {
 #ifdef _POSIX_SOURCE
 #undef strerror
-    return (strerror(errno));
+	return (strerror(errno));
 #else
-    static char     msg[40];		/* used for "Unknown error" messages */
+	static char msg[40]; /* used for "Unknown error" messages */
 
-    if (errno > 0 && errno < sys_nerr) {
-	return (sys_errlist[errno]);
-    }
-    sprintf(msg, "Unknown error (errno %d)", errno);
-    return (msg);
+	if(errno > 0 && errno < sys_nerr) {
+		return (sys_errlist[errno]);
+	}
+	sprintf(msg, "Unknown error (errno %d)", errno);
+	return (msg);
 #endif
 }
-
 
 /* prsize - print a file offset on a file stream
  *
@@ -158,38 +156,38 @@ char *strerror()
  *
  * PARAMETERS
  *
- *	FILE  *stream	- Stream which is to be used for output 
- *	OFFSET size	- Current archive position to be printed on the output 
+ *	FILE  *stream	- Stream which is to be used for output
+ *	OFFSET size	- Current archive position to be printed on the output
  *			  stream in the form: "%dm+%dk+%d".
  *
  */
 
 #ifdef __STDC__
 
-static void prsize(FILE *stream, OFFSET size)
+static void
+prsize(FILE* stream, OFFSET size)
 
 #else
 
-static void prsize(stream, size)
-FILE           *stream;		/* stream which is used for output */
-OFFSET          size;		/* current archive position to be printed */
+static void prsize(stream, size) FILE
+    * stream; /* stream which is used for output */
+OFFSET size;  /* current archive position to be printed */
 
 #endif
 
 {
-    OFFSET          n;
+	OFFSET n;
 
-    if (n = (size / (1024L * 1024L))) {
-	fprintf(stream, "%ldm+", n);
-	size -= n * 1024L * 1024L;
-    }
-    if (n = (size / 1024L)) {
-	fprintf(stream, "%ldk+", n);
-	size -= n * 1024L;
-    }
-    fprintf(stream, "%ld", size);
+	if(n = (size / (1024L * 1024L))) {
+		fprintf(stream, "%ldm+", n);
+		size -= n * 1024L * 1024L;
+	}
+	if(n = (size / 1024L)) {
+		fprintf(stream, "%ldk+", n);
+		size -= n * 1024L;
+	}
+	fprintf(stream, "%ld", size);
 }
-
 
 /* fatal - print fatal message and exit
  *
@@ -200,8 +198,8 @@ OFFSET          size;		/* current archive position to be printed */
  *
  * PARAMETERS
  *
- *	char 	*why	- description of reason for termination 
- *		
+ *	char 	*why	- description of reason for termination
+ *
  * RETURNS
  *
  *	Returns an exit code of 1 to the parent process.
@@ -209,20 +207,18 @@ OFFSET          size;		/* current archive position to be printed */
 
 #ifdef __STDC__
 
-void fatal(char *why)
+void
+fatal(char* why)
 
 #else
 
-void fatal(why)
-char           *why;		/* description of reason for termination */
+void fatal(why) char* why; /* description of reason for termination */
 
 #endif
 {
-    fprintf(stderr, "%s: %s\n", myname, why);
-    exit(1);
+	fprintf(stderr, "%s: %s\n", myname, why);
+	exit(1);
 }
-
-
 
 /* warn - print a warning message
  *
@@ -242,16 +238,16 @@ char           *why;		/* description of reason for termination */
 
 #ifdef __STDC__
 
-void warn(char *what, char *why)
+void
+warn(char* what, char* why)
 
 #else
 
-void warn(what, why)
-char           *what;		/* message as to what the error was */
-char           *why;		/* explanation why the error occurred */
+void warn(what, why) char* what; /* message as to what the error was */
+char* why;                       /* explanation why the error occurred */
 
 #endif
 {
-    fprintf(stderr, "%s: %s : %s\n", myname, what, why);
-    fflush(stderr);
+	fprintf(stderr, "%s: %s : %s\n", myname, what, why);
+	fflush(stderr);
 }

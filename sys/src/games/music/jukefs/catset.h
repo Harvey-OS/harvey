@@ -9,7 +9,7 @@
 
 void catsetrealloc(Catset*, int);
 void catsetinit(Catset*, int);
-void catsetfree(Catset*t);
+void catsetfree(Catset* t);
 void catsetcopy(Catset*, Catset*);
 void catsetset(Catset*, int);
 int catsetisset(Catset*);

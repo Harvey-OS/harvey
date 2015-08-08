@@ -13,9 +13,8 @@
 #include <memdraw.h>
 
 int
-hwdraw(Memdrawparam *p)
+hwdraw(Memdrawparam* p)
 {
 	USED(p);
-	return 0;	/* could not satisfy request */
+	return 0; /* could not satisfy request */
 }
-

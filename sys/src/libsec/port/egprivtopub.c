@@ -12,9 +12,9 @@
 #include <libsec.h>
 
 EGpub*
-egprivtopub(EGpriv *priv)
+egprivtopub(EGpriv* priv)
 {
-	EGpub *pub;
+	EGpub* pub;
 
 	pub = egpuballoc();
 	if(pub == nil)

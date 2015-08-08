@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2003 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -26,7 +26,6 @@
 /* $Id: tttables.h,v 1.2 2003/11/21 20:01:22 giles Exp $ */
 
 /* Changes after FreeType: cut out the TrueType instruction interpreter. */
-
 
 /*******************************************************************
  *
@@ -51,198 +50,162 @@
 #include "tttypes.h"
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
-  /***********************************************************************/
-  /*                                                                     */
-  /*                      TrueType Table Types                           */
-  /*                                                                     */
-  /***********************************************************************/
+/***********************************************************************/
+/*                                                                     */
+/*                      TrueType Table Types                           */
+/*                                                                     */
+/***********************************************************************/
 
-  /* TrueType Collection Header */
+/* TrueType Collection Header */
 
-  struct  _TTTCHeader
-  {
-    Long      Tag;
-    TT_Fixed  version;
-    ULong     DirCount;
-    PULong    TableDirectory;
-  };
+struct _TTTCHeader {
+	Long Tag;
+	TT_Fixed version;
+	ULong DirCount;
+	PULong TableDirectory;
+};
 
-  typedef struct _TTTCHeader  TTTCHeader;
-  typedef TTTCHeader*         PTTCHeader;
+typedef struct _TTTCHeader TTTCHeader;
+typedef TTTCHeader* PTTCHeader;
 
+/* TrueType Table Directory type */
 
-  /* TrueType Table Directory type */
+struct _TTableDir {
+	TT_Fixed version; /* should be 0x10000 */
+	UShort numTables; /* number of tables  */
 
-  struct  _TTableDir
-  {
-    TT_Fixed  version;      /* should be 0x10000 */
-    UShort    numTables;    /* number of tables  */
+	UShort searchRange;   /* These parameters are only used  */
+	UShort entrySelector; /* for a dichotomy search in the   */
+	UShort rangeShift;    /* directory. We ignore them.      */
+};
 
-    UShort  searchRange;    /* These parameters are only used  */
-    UShort  entrySelector;  /* for a dichotomy search in the   */
-    UShort  rangeShift;     /* directory. We ignore them.      */
-  };
+typedef struct _TTableDir TTableDir;
+typedef TTableDir* PTableDir;
 
-  typedef struct _TTableDir  TTableDir;
-  typedef TTableDir*         PTableDir;
+/* The 'TableDir' is followed by 'numTables' TableDirEntries */
 
+struct _TTableDirEntry {
+	Long Tag;      /*        table type */
+	Long CheckSum; /*    table checksum */
+	Long Offset;   /* table file offset */
+	Long Length;   /*      table length */
+};
 
-  /* The 'TableDir' is followed by 'numTables' TableDirEntries */
+typedef struct _TTableDirEntry TTableDirEntry;
+typedef TTableDirEntry* PTableDirEntry;
 
-  struct  _TTableDirEntry
-  {
-    Long  Tag;        /*        table type */
-    Long  CheckSum;   /*    table checksum */
-    Long  Offset;     /* table file offset */
-    Long  Length;     /*      table length */
-  };
+/* 'cmap' tables */
 
-  typedef struct _TTableDirEntry  TTableDirEntry;
-  typedef TTableDirEntry*         PTableDirEntry;
+struct _TCMapDir {
+	UShort tableVersionNumber;
+	UShort numCMaps;
+};
 
+typedef struct _TCMapDir TCMapDir;
+typedef TCMapDir* PCMapDir;
 
-  /* 'cmap' tables */
+struct _TCMapDirEntry {
+	UShort platformID;
+	UShort platformEncodingID;
+	Long offset;
+};
 
-  struct  _TCMapDir
-  {
-    UShort  tableVersionNumber;
-    UShort  numCMaps;
-  };
+typedef struct _TCMapDirEntry TCMapDirEntry;
+typedef TCMapDirEntry* PCMapDirEntries;
 
-  typedef struct _TCMapDir  TCMapDir;
-  typedef TCMapDir*         PCMapDir;
+/* 'maxp' Maximum Profiles table */
 
-  struct  _TCMapDirEntry
-  {
-    UShort  platformID;
-    UShort  platformEncodingID;
-    Long    offset;
-  };
+struct _TMaxProfile {
+	TT_Fixed version;
+	UShort numGlyphs, maxPoints, maxContours, maxCompositePoints,
+	    maxCompositeContours, maxZones, maxTwilightPoints, maxStorage,
+	    maxFunctionDefs, maxInstructionDefs, maxStackElements,
+	    maxSizeOfInstructions, maxComponentElements, maxComponentDepth;
+};
 
-  typedef struct _TCMapDirEntry  TCMapDirEntry;
-  typedef TCMapDirEntry*         PCMapDirEntries;
+typedef struct _TMaxProfile TMaxProfile;
+typedef TMaxProfile* PMaxProfile;
 
+/* table "gasp" */
 
-  /* 'maxp' Maximum Profiles table */
+#define GASP_GRIDFIT 0x01
+#define GASP_DOGRAY 0x02
 
-  struct  _TMaxProfile
-  {
-    TT_Fixed  version;
-    UShort    numGlyphs,
-              maxPoints,
-              maxContours,
-              maxCompositePoints,
-              maxCompositeContours,
-              maxZones,
-              maxTwilightPoints,
-              maxStorage,
-              maxFunctionDefs,
-              maxInstructionDefs,
-              maxStackElements,
-              maxSizeOfInstructions,
-              maxComponentElements,
-              maxComponentDepth;
-  };
+struct _GaspRange {
+	UShort maxPPEM;
+	UShort gaspFlag;
+};
 
-  typedef struct _TMaxProfile  TMaxProfile;
-  typedef TMaxProfile*         PMaxProfile;
+typedef struct _GaspRange GaspRange;
 
+struct _TGasp {
+	UShort version;
+	UShort numRanges;
+	GaspRange* gaspRanges;
+};
 
-  /* table "gasp" */
+typedef struct _TGasp TGasp;
 
-#  define GASP_GRIDFIT  0x01
-#  define GASP_DOGRAY   0x02
+/* table "head" - now defined in freetype.h */
+/* table "hhea" - now defined in freetype.h */
 
-  struct  _GaspRange
-  {
-    UShort  maxPPEM;
-    UShort  gaspFlag;
-  };
+/* table "HMTX" */
 
-  typedef struct _GaspRange  GaspRange;
+struct _TLongHorMetric {
+	UShort advance_Width;
+	Short lsb;
+};
 
+typedef struct _TLongHorMetric TLongHorMetric;
+typedef TLongHorMetric* PTableHorMetrics;
 
-  struct  _TGasp
-  {
-    UShort      version;
-    UShort      numRanges;
-    GaspRange*  gaspRanges;
-  };
+/* 'OS/2' table - now defined in freetype.h */
+/* "post" table - now defined in freetype.h */
 
-  typedef struct _TGasp  TGasp;
+/* 'loca' location table type */
 
+struct _TLoca {
+	UShort Size;
+	PStorage Table;
+};
 
-  /* table "head" - now defined in freetype.h */
-  /* table "hhea" - now defined in freetype.h */
+typedef struct _TLoca TLoca;
 
+/* table "name" */
 
-  /* table "HMTX" */
+struct _TNameRec {
+	UShort platformID;
+	UShort encodingID;
+	UShort languageID;
+	UShort nameID;
+	UShort stringLength;
+	UShort stringOffset;
 
-  struct  _TLongHorMetric
-  {
-    UShort  advance_Width;
-    Short   lsb;
-  };
+	/* this last field is not defined in the spec */
+	/* but used by the FreeType engine            */
 
-  typedef struct _TLongHorMetric  TLongHorMetric;
-  typedef TLongHorMetric*         PTableHorMetrics;
+	PByte string;
+};
 
+typedef struct _TNameRec TNameRec;
 
-  /* 'OS/2' table - now defined in freetype.h */
-  /* "post" table - now defined in freetype.h */
+struct _TName_Table {
+	UShort format;
+	UShort numNameRecords;
+	UShort storageOffset;
+	TNameRec* names;
+	PByte storage;
+};
 
-
-  /* 'loca' location table type */
-
-  struct  _TLoca
-  {
-    UShort    Size;
-    PStorage  Table;
-  };
-
-  typedef struct _TLoca  TLoca;
-
-
-  /* table "name" */
-
-  struct  _TNameRec
-  {
-    UShort  platformID;
-    UShort  encodingID;
-    UShort  languageID;
-    UShort  nameID;
-    UShort  stringLength;
-    UShort  stringOffset;
-
-    /* this last field is not defined in the spec */
-    /* but used by the FreeType engine            */
-
-    PByte   string;
-  };
-
-  typedef struct _TNameRec  TNameRec;
-
-
-  struct  _TName_Table
-  {
-    UShort     format;
-    UShort     numNameRecords;
-    UShort     storageOffset;
-    TNameRec*  names;
-    PByte      storage;
-  };
-
-  typedef struct _TName_Table  TName_Table;
-
+typedef struct _TName_Table TName_Table;
 
 #ifdef __cplusplus
-  }
+}
 #endif
 
 #endif /* TTTABLES_H */
-
 
 /* END */

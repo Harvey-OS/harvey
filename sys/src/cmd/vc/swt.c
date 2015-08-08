@@ -10,24 +10,24 @@
 #include "gc.h"
 
 void
-swit1(C1 *q, int nc, int32_t def, Node *n)
+swit1(C1* q, int nc, int32_t def, Node* n)
 {
 	Node tn;
-	
+
 	regalloc(&tn, &regnode, Z);
 	swit2(q, nc, def, n, &tn);
 	regfree(&tn);
 }
 
 void
-swit2(C1 *q, int nc, int32_t def, Node *n, Node *tn)
+swit2(C1* q, int nc, int32_t def, Node* n, Node* tn)
 {
-	C1 *r;
+	C1* r;
 	int i;
-	Prog *sp;
+	Prog* sp;
 
 	if(nc < 5) {
-		for(i=0; i<nc; i++) {
+		for(i = 0; i < nc; i++) {
 			if(debug['K'])
 				print("case = %.8llux\n", q->val);
 			gmove(nodconst(q->val), tn);
@@ -40,7 +40,7 @@ swit2(C1 *q, int nc, int32_t def, Node *n, Node *tn)
 		return;
 	}
 	i = nc / 2;
-	r = q+i;
+	r = q + i;
 	if(debug['K'])
 		print("case > %.8llux\n", r->val);
 	gmove(nodconst(r->val), tn);
@@ -53,15 +53,15 @@ swit2(C1 *q, int nc, int32_t def, Node *n, Node *tn)
 	if(debug['K'])
 		print("case < %.8llux\n", r->val);
 	patch(sp, pc);
-	swit2(r+1, nc-i-1, def, n, tn);
+	swit2(r + 1, nc - i - 1, def, n, tn);
 }
 
 void
-bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
+bitload(Node* b, Node* n1, Node* n2, Node* n3, Node* nn)
 {
 	int sh;
 	int32_t v;
-	Node *l;
+	Node* l;
 
 	/*
 	 * n1 gets adjusted/masked value
@@ -96,7 +96,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 }
 
 void
-bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
+bitstore(Node* b, Node* n1, Node* n2, Node* n3, Node* nn)
 {
 	int32_t v;
 	Node nod, *l;
@@ -129,7 +129,7 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 }
 
 int32_t
-outstring(char *s, int32_t n)
+outstring(char* s, int32_t n)
 {
 	int32_t r;
 
@@ -152,13 +152,13 @@ outstring(char *s, int32_t n)
 }
 
 int
-mulcon(Node *n, Node *nn)
+mulcon(Node* n, Node* nn)
 {
-	Node *l, *r, nod1, nod2;
-	Multab *m;
+	Node* l, *r, nod1, nod2;
+	Multab* m;
 	int32_t v;
 	int o;
-	char code[sizeof(m->code)+2], *p;
+	char code[sizeof(m->code) + 2], *p;
 
 	if(typefd[n->type->etype])
 		return 0;
@@ -179,7 +179,8 @@ mulcon(Node *n, Node *nn)
 	m = mulcon0(v);
 	if(!m) {
 		if(debug['M'])
-			print("%L multiply table: %lld\n", n->lineno, r->vconst);
+			print("%L multiply table: %lld\n", n->lineno,
+			      r->vconst);
 		return 0;
 	}
 	if(debug['M'] && debug['v'])
@@ -209,26 +210,26 @@ loop:
 		goto addsub;
 	case '-':
 		o = OSUB;
-	addsub:	/* number is r,n,l */
+	addsub: /* number is r,n,l */
 		v = p[1] - '0';
 		r = &nod1;
-		if(v&4)
+		if(v & 4)
 			r = &nod2;
 		n = &nod1;
-		if(v&2)
+		if(v & 2)
 			n = &nod2;
 		l = &nod1;
-		if(v&1)
+		if(v & 1)
 			l = &nod2;
 		gopcode(o, l, n, r);
 		break;
 	default: /* op is shiftcount, number is r,l */
 		v = p[1] - '0';
 		r = &nod1;
-		if(v&2)
+		if(v & 2)
 			r = &nod2;
 		l = &nod1;
-		if(v&1)
+		if(v & 1)
 			l = &nod2;
 		v = *p - 'a';
 		if(v < 0 || v >= 32) {
@@ -243,20 +244,20 @@ loop:
 }
 
 void
-gextern(Sym *s, Node *a, int32_t o, int32_t w)
+gextern(Sym* s, Node* a, int32_t o, int32_t w)
 {
 
 	if(a->op == OCONST && typev[a->type->etype]) {
-		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-			gpseudo(ADATA, s, nod32const(a->vconst>>32));
+		if(align(0, types[TCHAR], Aarg1)) /* isbigendian */
+			gpseudo(ADATA, s, nod32const(a->vconst >> 32));
 		else
 			gpseudo(ADATA, s, nod32const(a->vconst));
 		p->from.offset += o;
 		p->reg = 4;
-		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+		if(align(0, types[TCHAR], Aarg1)) /* isbigendian */
 			gpseudo(ADATA, s, nod32const(a->vconst));
 		else
-			gpseudo(ADATA, s, nod32const(a->vconst>>32));
+			gpseudo(ADATA, s, nod32const(a->vconst >> 32));
 		p->from.offset += o + 4;
 		p->reg = 4;
 		return;
@@ -268,33 +269,36 @@ gextern(Sym *s, Node *a, int32_t o, int32_t w)
 		p->to.type = D_CONST;
 }
 
-void	zname(Biobuf*, Sym*, int);
-char*	zaddr(char*, Adr*, int);
-void	zwrite(Biobuf*, Prog*, int, int);
-void	outhist(Biobuf*);
+void zname(Biobuf*, Sym*, int);
+char* zaddr(char*, Adr*, int);
+void zwrite(Biobuf*, Prog*, int, int);
+void outhist(Biobuf*);
 
 void
-zwrite(Biobuf *b, Prog *p, int sf, int st)
+zwrite(Biobuf* b, Prog* p, int sf, int st)
 {
 	char bf[100], *bp;
 
 	bf[0] = p->as;
 	bf[1] = p->reg;
 	bf[2] = p->lineno;
-	bf[3] = p->lineno>>8;
-	bf[4] = p->lineno>>16;
-	bf[5] = p->lineno>>24;
-	bp = zaddr(bf+6, &p->from, sf);
+	bf[3] = p->lineno >> 8;
+	bf[4] = p->lineno >> 16;
+	bf[5] = p->lineno >> 24;
+	bp = zaddr(bf + 6, &p->from, sf);
 	bp = zaddr(bp, &p->to, st);
-	Bwrite(b, bf, bp-bf);
+	Bwrite(b, bf, bp - bf);
 }
 
 void
 outcode(void)
 {
-	struct { Sym *sym; int16_t type; } h[NSYM];
-	Prog *p;
-	Sym *s;
+	struct {
+		Sym* sym;
+		int16_t type;
+	} h[NSYM];
+	Prog* p;
+	Sym* s;
 	int sf, st, t, sym;
 
 	if(debug['S']) {
@@ -308,7 +312,7 @@ outcode(void)
 		}
 	}
 	outhist(&outbuf);
-	for(sym=0; sym<NSYM; sym++) {
+	for(sym = 0; sym < NSYM; sym++) {
 		h[sym].sym = S;
 		h[sym].type = 0;
 	}
@@ -323,8 +327,8 @@ outcode(void)
 				sf = 0;
 			t = p->from.name;
 			if(h[sf].type == t)
-			if(h[sf].sym == s)
-				break;
+				if(h[sf].sym == s)
+					break;
 			s->sym = sym;
 			zname(&outbuf, s, t);
 			h[sym].sym = s;
@@ -343,8 +347,8 @@ outcode(void)
 				st = 0;
 			t = p->to.name;
 			if(h[st].type == t)
-			if(h[st].sym == s)
-				break;
+				if(h[st].sym == s)
+					break;
 			s->sym = sym;
 			zname(&outbuf, s, t);
 			h[sym].sym = s;
@@ -364,10 +368,10 @@ outcode(void)
 }
 
 void
-outhist(Biobuf *b)
+outhist(Biobuf* b)
 {
-	Hist *h;
-	char *p, *q, *op, c;
+	Hist* h;
+	char* p, *q, *op, c;
 	Prog pg;
 	int n;
 
@@ -378,17 +382,17 @@ outhist(Biobuf *b)
 		p = h->name;
 		op = 0;
 		/* on windows skip drive specifier in pathname */
-		if(systemtype(Windows) && p && p[1] == ':'){
+		if(systemtype(Windows) && p && p[1] == ':') {
 			p += 2;
 			c = *p;
 		}
-		if(p && p[0] != c && h->offset == 0 && pathname){
+		if(p && p[0] != c && h->offset == 0 && pathname) {
 			/* on windows skip drive specifier in pathname */
 			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
-				p = pathname+2;
+				p = pathname + 2;
 				c = *p;
-			} else if(pathname[0] == c){
+			} else if(pathname[0] == c) {
 				op = p;
 				p = pathname;
 			}
@@ -396,10 +400,11 @@ outhist(Biobuf *b)
 		while(p) {
 			q = utfrune(p, c);
 			if(q) {
-				n = q-p;
-				if(n == 0){
-					n = 1;	/* leading "/" */
-					*p = '/';	/* don't emit "\" on windows */
+				n = q - p;
+				if(n == 0) {
+					n = 1; /* leading "/" */
+					*p =
+					    '/'; /* don't emit "\" on windows */
 				}
 				q++;
 			} else {
@@ -431,35 +436,35 @@ outhist(Biobuf *b)
 }
 
 void
-zname(Biobuf *b, Sym *s, int t)
+zname(Biobuf* b, Sym* s, int t)
 {
-	char *n, bf[7];
+	char* n, bf[7];
 	uint32_t sig;
 
 	n = s->name;
-	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
+	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE &&
+	   s->type != types[TENUM] && s != symrathole) {
 		sig = sign(s);
 		bf[0] = ASIGNAME;
 		bf[1] = sig;
-		bf[2] = sig>>8;
-		bf[3] = sig>>16;
-		bf[4] = sig>>24;
+		bf[2] = sig >> 8;
+		bf[3] = sig >> 16;
+		bf[4] = sig >> 24;
 		bf[5] = t;
 		bf[6] = s->sym;
 		Bwrite(b, bf, 7);
 		s->sig = SIGDONE;
-	}
-	else{
+	} else {
 		bf[0] = ANAME;
-		bf[1] = t;	/* type */
-		bf[2] = s->sym;	/* sym */
+		bf[1] = t;      /* type */
+		bf[2] = s->sym; /* sym */
 		Bwrite(b, bf, 3);
 	}
-	Bwrite(b, n, strlen(n)+1);
+	Bwrite(b, n, strlen(n) + 1);
 }
 
 char*
-zaddr(char *bp, Adr *a, int s)
+zaddr(char* bp, Adr* a, int s)
 {
 	int32_t l;
 	Ieee e;
@@ -487,9 +492,9 @@ zaddr(char *bp, Adr *a, int s)
 	case D_BRANCH:
 		l = a->offset;
 		bp[0] = l;
-		bp[1] = l>>8;
-		bp[2] = l>>16;
-		bp[3] = l>>24;
+		bp[1] = l >> 8;
+		bp[2] = l >> 16;
+		bp[3] = l >> 24;
 		bp += 4;
 		break;
 
@@ -502,15 +507,15 @@ zaddr(char *bp, Adr *a, int s)
 		ieeedtod(&e, a->dval);
 		l = e.l;
 		bp[0] = l;
-		bp[1] = l>>8;
-		bp[2] = l>>16;
-		bp[3] = l>>24;
+		bp[1] = l >> 8;
+		bp[2] = l >> 16;
+		bp[3] = l >> 24;
 		bp += 4;
 		l = e.h;
 		bp[0] = l;
-		bp[1] = l>>8;
-		bp[2] = l>>16;
-		bp[3] = l>>24;
+		bp[1] = l >> 8;
+		bp[2] = l >> 16;
+		bp[3] = l >> 24;
 		bp += 4;
 		break;
 	}
@@ -518,10 +523,10 @@ zaddr(char *bp, Adr *a, int s)
 }
 
 int32_t
-align(int32_t i, Type *t, int op)
+align(int32_t i, Type* t, int op)
 {
 	int32_t o;
-	Type *v;
+	Type* v;
 	int w;
 
 	o = i;
@@ -531,14 +536,14 @@ align(int32_t i, Type *t, int op)
 		diag(Z, "unknown align opcode %d", op);
 		break;
 
-	case Asu2:	/* padding at end of a struct */
+	case Asu2: /* padding at end of a struct */
 		w = SZ_LONG;
 		if(packflg)
 			w = packflg;
 		break;
 
-	case Ael1:	/* initial allign of struct element */
-		for(v=t; v->etype==TARRAY; v=v->link)
+	case Ael1: /* initial allign of struct element */
+		for(v = t; v->etype == TARRAY; v = v->link)
 			;
 		w = ewidth[v->etype];
 		if(w <= 0 || w >= SZ_LONG)
@@ -547,34 +552,34 @@ align(int32_t i, Type *t, int op)
 			w = packflg;
 		break;
 
-	case Ael2:	/* width of a struct element */
+	case Ael2: /* width of a struct element */
 		o += t->width;
 		break;
 
-	case Aarg0:	/* initial passbyptr argument in arg list */
+	case Aarg0: /* initial passbyptr argument in arg list */
 		if(typesuv[t->etype]) {
 			o = align(o, types[TIND], Aarg1);
 			o = align(o, types[TIND], Aarg2);
 		}
 		break;
 
-	case Aarg1:	/* initial allign of parameter */
+	case Aarg1: /* initial allign of parameter */
 		w = ewidth[t->etype];
 		if(w <= 0 || w >= SZ_LONG) {
 			w = SZ_LONG;
 			break;
 		}
 		if(thechar == 'v')
-			o += SZ_LONG - w;	/* big endian adjustment */
+			o += SZ_LONG - w; /* big endian adjustment */
 		w = 1;
 		break;
 
-	case Aarg2:	/* width of a parameter */
+	case Aarg2: /* width of a parameter */
 		o += t->width;
 		w = SZ_LONG;
 		break;
 
-	case Aaut3:	/* total allign of automatic */
+	case Aaut3: /* total allign of automatic */
 		o = align(o, t, Ael1);
 		o = align(o, t, Ael2);
 		break;

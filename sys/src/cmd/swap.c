@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-void error(char *);
+void error(char*);
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Dir *d;
+	Dir* d;
 	int swapfd, cswfd;
 	char buf[128], *p;
 	int i, j;
@@ -26,21 +26,20 @@ main(int argc, char **argv)
 	}
 
 	d = dirstat(argv[1]);
-	if(d == nil){
+	if(d == nil) {
 		print("swap: can't stat %s: %r\n", argv[1]);
 		exits("swap: failed");
 	}
-	if(d->type != 'M'){		/* kernel device */
+	if(d->type != 'M') { /* kernel device */
 		swapfd = open(argv[1], ORDWR);
 		p = argv[1];
-	}
-	else {
+	} else {
 		p = getenv("sysname");
 		if(p == 0)
 			p = "swap";
 		sprint(buf, "%s/%sXXXXXXX", argv[1], p);
 		p = mktemp(buf);
-		swapfd = create(p, ORDWR|ORCLOSE, 0600);
+		swapfd = create(p, ORDWR | ORCLOSE, 0600);
 	}
 
 	if(swapfd < 0 || (p[0] == '/' && p[1] == '\0')) {
@@ -49,7 +48,7 @@ main(int argc, char **argv)
 	}
 
 	i = create("/env/swap", OWRITE, 0666);
-	if(i < 0) 
+	if(i < 0)
 		error("open /env/swap");
 
 	if(write(i, p, strlen(p)) != strlen(p))
@@ -68,7 +67,7 @@ main(int argc, char **argv)
 }
 
 void
-error(char *s)
+error(char* s)
 {
 	perror(s);
 	exits(s);

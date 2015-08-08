@@ -9,15 +9,15 @@
 
 #include "vnc.h"
 
-#define SHORT(p) (((p)[0]<<8)|((p)[1]))
-#define LONG(p) ((SHORT(p)<<16)|SHORT(p+2))
+#define SHORT(p) (((p)[0] << 8) | ((p)[1]))
+#define LONG(p) ((SHORT(p) << 16) | SHORT(p + 2))
 
 uint8_t zero[64];
 
 Vnc*
-vncinit(int fd, int cfd, Vnc *v)
+vncinit(int fd, int cfd, Vnc* v)
 {
-        if(v == nil)
+	if(v == nil)
 		v = mallocz(sizeof(*v), 1);
 	Binit(&v->in, fd, OREAD);
 	Binit(&v->out, fd, OWRITE);
@@ -27,16 +27,16 @@ vncinit(int fd, int cfd, Vnc *v)
 }
 
 void
-vncterm(Vnc *v)
+vncterm(Vnc* v)
 {
 	Bterm(&v->out);
 	Bterm(&v->in);
 }
 
 void
-vncflush(Vnc *v)
+vncflush(Vnc* v)
 {
-	if(Bflush(&v->out) < 0){
+	if(Bflush(&v->out) < 0) {
 		if(verbose > 1)
 			fprint(2, "hungup while sending flush: %r\n");
 		vnchungup(v);
@@ -44,7 +44,7 @@ vncflush(Vnc *v)
 }
 
 uint8_t
-vncrdchar(Vnc *v)
+vncrdchar(Vnc* v)
 {
 	uint8_t buf[1];
 
@@ -53,7 +53,7 @@ vncrdchar(Vnc *v)
 }
 
 uint16_t
-vncrdshort(Vnc *v)
+vncrdshort(Vnc* v)
 {
 	uint8_t buf[2];
 
@@ -62,7 +62,7 @@ vncrdshort(Vnc *v)
 }
 
 uint32_t
-vncrdlong(Vnc *v)
+vncrdlong(Vnc* v)
 {
 	uint8_t buf[4];
 
@@ -71,7 +71,7 @@ vncrdlong(Vnc *v)
 }
 
 Point
-vncrdpoint(Vnc *v)
+vncrdpoint(Vnc* v)
 {
 	Point p;
 
@@ -81,7 +81,7 @@ vncrdpoint(Vnc *v)
 }
 
 Rectangle
-vncrdrect(Vnc *v)
+vncrdrect(Vnc* v)
 {
 	Rectangle r;
 
@@ -93,7 +93,7 @@ vncrdrect(Vnc *v)
 }
 
 Rectangle
-vncrdcorect(Vnc *v)
+vncrdcorect(Vnc* v)
 {
 	Rectangle r;
 
@@ -105,9 +105,9 @@ vncrdcorect(Vnc *v)
 }
 
 void
-vncrdbytes(Vnc *v, void *a, int n)
+vncrdbytes(Vnc* v, void* a, int n)
 {
-	if(Bread(&v->in, a, n) != n){
+	if(Bread(&v->in, a, n) != n) {
 		if(verbose > 1)
 			fprint(2, "hungup while reading\n");
 		vnchungup(v);
@@ -115,7 +115,7 @@ vncrdbytes(Vnc *v, void *a, int n)
 }
 
 Pixfmt
-vncrdpixfmt(Vnc *v)
+vncrdpixfmt(Vnc* v)
 {
 	Pixfmt fmt;
 	uint8_t pad[3];
@@ -135,13 +135,13 @@ vncrdpixfmt(Vnc *v)
 }
 
 char*
-vncrdstring(Vnc *v)
+vncrdstring(Vnc* v)
 {
 	uint32_t len;
-	char *s;
+	char* s;
 
 	len = vncrdlong(v);
-	s = malloc(len+1);
+	s = malloc(len + 1);
 	assert(s != nil);
 
 	vncrdbytes(v, s, len);
@@ -160,21 +160,21 @@ vncrdstring(Vnc *v)
  * behind bio's back.
  */
 char*
-vncrdstringx(Vnc *v)
+vncrdstringx(Vnc* v)
 {
 	char tmp[4];
-	char *s;
+	char* s;
 	uint32_t len;
 
 	assert(Bbuffered(&v->in) == 0);
-	if(readn(v->datafd, tmp, 4) != 4){
+	if(readn(v->datafd, tmp, 4) != 4) {
 		fprint(2, "cannot rdstringx: %r");
 		vnchungup(v);
 	}
 	len = LONG(tmp);
-	s = malloc(len+1);
+	s = malloc(len + 1);
 	assert(s != nil);
-	if(readn(v->datafd, s, len) != len){
+	if(readn(v->datafd, s, len) != len) {
 		fprint(2, "cannot rdstringx len %lud: %r", len);
 		vnchungup(v);
 	}
@@ -183,7 +183,7 @@ vncrdstringx(Vnc *v)
 }
 
 void
-vncwrstring(Vnc *v, char *s)
+vncwrstring(Vnc* v, char* s)
 {
 	uint32_t len;
 
@@ -193,45 +193,45 @@ vncwrstring(Vnc *v, char *s)
 }
 
 void
-vncwrbytes(Vnc *v, void *a, int n)
+vncwrbytes(Vnc* v, void* a, int n)
 {
-	if(Bwrite(&v->out, a, n) < 0){
-		if(verbose > 1) 
+	if(Bwrite(&v->out, a, n) < 0) {
+		if(verbose > 1)
 			fprint(2, "hungup while writing bytes\n");
 		vnchungup(v);
 	}
 }
 
 void
-vncwrlong(Vnc *v, uint32_t u)
+vncwrlong(Vnc* v, uint32_t u)
 {
 	uint8_t buf[4];
 
-	buf[0] = u>>24;
-	buf[1] = u>>16;
-	buf[2] = u>>8;
+	buf[0] = u >> 24;
+	buf[1] = u >> 16;
+	buf[2] = u >> 8;
 	buf[3] = u;
 	vncwrbytes(v, buf, 4);
 }
 
 void
-vncwrshort(Vnc *v, uint16_t u)
+vncwrshort(Vnc* v, uint16_t u)
 {
 	uint8_t buf[2];
 
-	buf[0] = u>>8;
+	buf[0] = u >> 8;
 	buf[1] = u;
 	vncwrbytes(v, buf, 2);
 }
 
 void
-vncwrchar(Vnc *v, uint8_t c)
+vncwrchar(Vnc* v, uint8_t c)
 {
 	vncwrbytes(v, &c, 1);
 }
 
 void
-vncwrpixfmt(Vnc *v, Pixfmt *fmt)
+vncwrpixfmt(Vnc* v, Pixfmt* fmt)
 {
 	vncwrchar(v, fmt->bpp);
 	vncwrchar(v, fmt->depth);
@@ -247,53 +247,53 @@ vncwrpixfmt(Vnc *v, Pixfmt *fmt)
 }
 
 void
-vncwrrect(Vnc *v, Rectangle r)
+vncwrrect(Vnc* v, Rectangle r)
 {
 	vncwrshort(v, r.min.x);
 	vncwrshort(v, r.min.y);
-	vncwrshort(v, r.max.x-r.min.x);
-	vncwrshort(v, r.max.y-r.min.y);
+	vncwrshort(v, r.max.x - r.min.x);
+	vncwrshort(v, r.max.y - r.min.y);
 }
 
 void
-vncwrpoint(Vnc *v, Point p)
+vncwrpoint(Vnc* v, Point p)
 {
 	vncwrshort(v, p.x);
 	vncwrshort(v, p.y);
 }
 
 void
-vnclock(Vnc *v)
+vnclock(Vnc* v)
 {
 	qlock(v);
 }
 
 void
-vncunlock(Vnc *v)
+vncunlock(Vnc* v)
 {
 	qunlock(v);
 }
 
 void
-hexdump(void *a, int n)
+hexdump(void* a, int n)
 {
-	uint8_t *p, *ep;
+	uint8_t* p, *ep;
 
 	p = a;
-	ep = p+n;
+	ep = p + n;
 
-	for(; p<ep; p++) 
+	for(; p < ep; p++)
 		print("%.2ux ", *p);
 	print("\n");
 }
 
 void
-vncgobble(Vnc *v, int32_t n)
+vncgobble(Vnc* v, int32_t n)
 {
 	uint8_t buf[8192];
 	int32_t m;
 
-	while(n > 0){
+	while(n > 0) {
 		m = n;
 		if(m > sizeof(buf))
 			m = sizeof(buf);

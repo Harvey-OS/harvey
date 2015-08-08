@@ -14,7 +14,7 @@
 #include <thread.h>
 #include "wiki.h"
 
-char *wikidir = ".";
+char* wikidir = ".";
 
 void
 usage(void)
@@ -24,20 +24,22 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i;
-	Biobuf *b;
-	String *h;
-	Whist *doc;
+	Biobuf* b;
+	String* h;
+	Whist* doc;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'd':
 		wikidir = EARGF(usage());
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -49,7 +51,7 @@ main(int argc, char **argv)
 		sysfatal("Brdwtxt: %r");
 
 	h = nil;
-	for(i=0; i<doc->ndoc; i++){
+	for(i = 0; i < doc->ndoc; i++) {
 		print("__________________ %d ______________\n", i);
 		if((h = pagetext(s_reset(h), doc->doc[i].wtxt, 1)) == nil)
 			sysfatal("wiki2html: %r");

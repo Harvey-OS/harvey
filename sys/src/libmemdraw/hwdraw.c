@@ -15,6 +15,5 @@
 int
 hwdraw(Memdrawparam* p)
 {
-	return 0;	/* could not satisfy request */
+	return 0; /* could not satisfy request */
 }
-

@@ -13,27 +13,24 @@
 #include <ndb.h>
 #include <fcall.h>
 
-enum
-{
-	Maxpath=	128,
+enum { Maxpath = 128,
 };
 
 typedef struct Endpoints Endpoints;
-struct Endpoints
-{
-	char 	*net;
-	char	*lsys;
-	char	*lserv;
-	char	*rsys;
-	char	*rserv;
+struct Endpoints {
+	char* net;
+	char* lsys;
+	char* lserv;
+	char* rsys;
+	char* rserv;
 };
 
-void		xfer(int, int);
-void		xfer9p(int, int);
-Endpoints*	getendpoints(char*);
-void		freeendpoints(Endpoints*);
-char*		iptomac(char*, char*);
-int		macok(char*);
+void xfer(int, int);
+void xfer9p(int, int);
+Endpoints* getendpoints(char*);
+void freeendpoints(Endpoints*);
+char* iptomac(char*, char*);
+int macok(char*);
 
 void
 usage(void)
@@ -43,17 +40,18 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *altaddr, *checkmac, *mac;
+	char* altaddr, *checkmac, *mac;
 	int fd, fd0, fd1;
 	void (*x)(int, int);
-	Endpoints *ep;
+	Endpoints* ep;
 
 	checkmac = nil;
 	altaddr = nil;
 	x = xfer;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case '9':
 		x = xfer9p;
 		break;
@@ -65,24 +63,27 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
 
-	if(checkmac){
+	if(checkmac) {
 		ep = getendpoints(checkmac);
 		mac = iptomac(ep->rsys, ep->net);
-		if(!macok(mac)){
-			syslog(0, "trampoline", "badmac %s from %s!%s for %s!%s on %s",
-				mac, ep->rsys, ep->rserv, ep->lsys, ep->lserv, ep->net);
+		if(!macok(mac)) {
+			syslog(0, "trampoline",
+			       "badmac %s from %s!%s for %s!%s on %s", mac,
+			       ep->rsys, ep->rserv, ep->lsys, ep->lserv,
+			       ep->net);
 			exits("bad mac");
 		}
 	}
-	
+
 	fd0 = 0;
 	fd1 = 1;
-	if(altaddr){
+	if(altaddr) {
 		fd0 = dial(altaddr, 0, 0, 0);
 		if(fd0 < 0)
 			sysfatal("dial %s: %r", altaddr);
@@ -93,7 +94,7 @@ main(int argc, char **argv)
 		sysfatal("dial %s: %r", argv[0]);
 
 	rfork(RFNOTEG);
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "%s: fork: %r\n", argv0);
 		exits("dial");
@@ -111,7 +112,7 @@ main(int argc, char **argv)
 void
 xfer(int from, int to)
 {
-	char buf[12*1024];
+	char buf[12 * 1024];
 	int n;
 
 	while((n = read(from, buf, sizeof buf)) > 0)
@@ -122,7 +123,7 @@ xfer(int from, int to)
 void
 xfer9p(int from, int to)
 {
-	uint8_t *buf;
+	uint8_t* buf;
 	uint nbuf;
 	int n;
 
@@ -131,19 +132,19 @@ xfer9p(int from, int to)
 	if(buf == nil)
 		sysfatal("xfer: malloc %ud: %r", nbuf);
 
-	for(;;){
+	for(;;) {
 		if(readn(from, buf, 4) != 4)
 			break;
 		n = GBIT32(buf);
-		if(n > nbuf){
-			nbuf = n+8192;
+		if(n > nbuf) {
+			nbuf = n + 8192;
 			buf = realloc(buf, nbuf);
 			if(buf == nil)
 				sysfatal("xfer: realloc %ud: %r", nbuf);
 		}
-		if(readn(from, buf+4, n-4) != n-4)
+		if(readn(from, buf + 4, n - 4) != n - 4)
 			break;
-		if(write(to, buf, n) != n){
+		if(write(to, buf, n) != n) {
 			sysfatal("oops: %r");
 			break;
 		}
@@ -151,22 +152,22 @@ xfer9p(int from, int to)
 }
 
 void
-getendpoint(char *dir, char *file, char **sysp, char **servp)
+getendpoint(char* dir, char* file, char** sysp, char** servp)
 {
 	int fd, n;
 	char buf[Maxpath];
-	char *sys, *serv;
+	char* sys, *serv;
 
 	sys = serv = 0;
 
 	snprint(buf, sizeof buf, "%s/%s", dir, file);
 	fd = open(buf, OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n>0){
-			buf[n-1] = 0;
+	if(fd >= 0) {
+		n = read(fd, buf, sizeof(buf) - 1);
+		if(n > 0) {
+			buf[n - 1] = 0;
 			serv = strchr(buf, '!');
-			if(serv){
+			if(serv) {
 				*serv++ = 0;
 				serv = strdup(serv);
 			}
@@ -182,16 +183,16 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 	*sysp = sys;
 }
 
-Endpoints *
-getendpoints(char *dir)
+Endpoints*
+getendpoints(char* dir)
 {
-	Endpoints *ep;
-	char *p;
+	Endpoints* ep;
+	char* p;
 
 	ep = malloc(sizeof(*ep));
 	ep->net = strdup(dir);
-	p = strchr(ep->net+1, '/');
-	if(p == nil){
+	p = strchr(ep->net + 1, '/');
+	if(p == nil) {
 		free(ep->net);
 		ep->net = "/net";
 	} else
@@ -202,7 +203,7 @@ getendpoints(char *dir)
 }
 
 void
-freeendpoints(Endpoints *ep)
+freeendpoints(Endpoints* ep)
 {
 	free(ep->lsys);
 	free(ep->rsys);
@@ -212,23 +213,22 @@ freeendpoints(Endpoints *ep)
 }
 
 char*
-iptomac(char *ip, char *net)
+iptomac(char* ip, char* net)
 {
 	char file[Maxpath];
-	Biobuf *b;
-	char *p;
-	char *f[5];
+	Biobuf* b;
+	char* p;
+	char* f[5];
 
 	snprint(file, sizeof(file), "%s/arp", net);
 	b = Bopen(file, OREAD);
 	if(b == nil)
 		return nil;
-	while((p = Brdline(b, '\n')) != nil){
-		p[Blinelen(b)-1] = 0;
+	while((p = Brdline(b, '\n')) != nil) {
+		p[Blinelen(b) - 1] = 0;
 		if(tokenize(p, f, nelem(f)) < 4)
 			continue;
-		if(strcmp(f[1], "OK") == 0
-		&& strcmp(f[2], ip) == 0){
+		if(strcmp(f[1], "OK") == 0 && strcmp(f[2], ip) == 0) {
 			p = strdup(f[3]);
 			Bterm(b);
 			return p;
@@ -239,9 +239,9 @@ iptomac(char *ip, char *net)
 }
 
 int
-macok(char *mac)
+macok(char* mac)
 {
-	char *p;
+	char* p;
 
 	if(mac == nil)
 		return 0;

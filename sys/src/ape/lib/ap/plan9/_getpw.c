@@ -24,41 +24,41 @@
  * 1, 2, and 4
  */
 
-enum {NAMEMAX = 20, MEMOMAX = 40 };
+enum { NAMEMAX = 20, MEMOMAX = 40 };
 
-static char *admusers = "/adm/users";
+static char* admusers = "/adm/users";
 
 /* we hold a fixed-length memo list of past lookups, and use a move-to-front
     strategy to organize the list
 */
 typedef struct Memo {
-	char		name[NAMEMAX];
-	int		num;
-	char		*glist;
+	char name[NAMEMAX];
+	int num;
+	char* glist;
 } Memo;
 
-static Memo *memo[MEMOMAX];
+static Memo* memo[MEMOMAX];
 static int nmemo = 0;
 
 int
-_getpw(int *pnum, char **pname, char **plist)
+_getpw(int* pnum, char** pname, char** plist)
 {
-	Dir *d;
+	Dir* d;
 	int f, n, i, j, matchnum, m, matched;
-	char *eline, *f1, *f2, *f3, *f4;
-	Memo *mem;
-	static char *au = NULL;
+	char* eline, *f1, *f2, *f3, *f4;
+	Memo* mem;
+	static char* au = NULL;
 	int64_t length;
 
 	if(!pname)
 		return 0;
-	if(au == NULL){
+	if(au == NULL) {
 		d = _dirstat(admusers);
 		if(d == nil)
 			return 0;
 		length = d->length;
 		free(d);
-		if((au = (char *)malloc(length+2)) == NULL)
+		if((au = (char*)malloc(length + 2)) == NULL)
 			return 0;
 		f = open(admusers, O_RDONLY);
 		if(f < 0)
@@ -72,7 +72,7 @@ _getpw(int *pnum, char **pname, char **plist)
 	matched = 0;
 	mem = nil;
 	/* try using memo */
-	for(i = 0; i<nmemo; i++) {
+	for(i = 0; i < nmemo; i++) {
 		mem = memo[i];
 		if(matchnum)
 			matched = (mem->num == *pnum);
@@ -83,47 +83,48 @@ _getpw(int *pnum, char **pname, char **plist)
 		}
 	}
 	if(!matched)
-		for(f1 = au, eline = au; !matched && *eline; f1 = eline+1){
+		for(f1 = au, eline = au; !matched && *eline; f1 = eline + 1) {
 			eline = strchr(f1, '\n');
 			if(!eline)
 				eline = strchr(f1, 0);
 			if(*f1 == '#' || *f1 == '\n')
 				continue;
-			n = eline-f1;
+			n = eline - f1;
 			f2 = memchr(f1, ':', n);
 			if(!f2)
 				continue;
 			f2++;
-			f3 = memchr(f2, ':', n-(f2-f1));
+			f3 = memchr(f2, ':', n - (f2 - f1));
 			if(!f3)
 				continue;
 			f3++;
-			f4 = memchr(f3, ':', n-(f3-f1));
+			f4 = memchr(f3, ':', n - (f3 - f1));
 			if(!f4)
 				continue;
 			f4++;
 			if(matchnum)
 				matched = (atoi(f1) == *pnum);
-			else{
+			else {
 				int length;
 
-				length = f3-f2-1;
-				matched = length==strlen(*pname) && memcmp(*pname, f2, length)==0;
+				length = f3 - f2 - 1;
+				matched = length == strlen(*pname) &&
+				          memcmp(*pname, f2, length) == 0;
 			}
-			if(matched){
+			if(matched) {
 				/* allocate and fill in a Memo structure */
 				mem = (Memo*)malloc(sizeof(struct Memo));
 				if(!mem)
 					return 0;
-				m = (f3-f2)-1;
-				if(m > NAMEMAX-1)
-					m = NAMEMAX-1;
+				m = (f3 - f2) - 1;
+				if(m > NAMEMAX - 1)
+					m = NAMEMAX - 1;
 				memcpy(mem->name, f2, m);
 				mem->name[m] = 0;
 				mem->num = atoi(f1);
-				m = n-(f4-f1);
-				if(m > 0){
-					mem->glist = (char*)malloc(m+1);
+				m = n - (f4 - f1);
+				if(m > 0) {
+					mem->glist = (char*)malloc(m + 1);
 					if(mem->glist) {
 						memcpy(mem->glist, f4, m);
 						mem->glist[m] = 0;
@@ -132,8 +133,8 @@ _getpw(int *pnum, char **pname, char **plist)
 					mem->glist = 0;
 				/* prepare for following move-to-front */
 				if(nmemo == MEMOMAX) {
-					free(memo[nmemo-1]);
-					i = nmemo-1;
+					free(memo[nmemo - 1]);
+					i = nmemo - 1;
 				} else {
 					i = nmemo++;
 				}
@@ -149,7 +150,7 @@ _getpw(int *pnum, char **pname, char **plist)
 		if(i > 0) {
 			/* make room at front */
 			for(j = i; j > 0; j--)
-				memo[j] = memo[j-1];
+				memo[j] = memo[j - 1];
 		}
 		memo[0] = mem;
 		return 1;
@@ -157,25 +158,25 @@ _getpw(int *pnum, char **pname, char **plist)
 	return 0;
 }
 
-char **
-_grpmems(char *list)
+char**
+_grpmems(char* list)
 {
-	char **v;
-	char *p;
-	static char *holdvec[200];
+	char** v;
+	char* p;
+	static char* holdvec[200];
 	static char holdlist[1000];
 
 	p = list;
 	v = holdvec;
 	if(p) {
 		strncpy(holdlist, list, sizeof(holdlist));
-		while(v< &holdvec[sizeof(holdvec)]-1 && *p){
+		while(v < &holdvec[sizeof(holdvec)] - 1 && *p) {
 			*v++ = p;
 			p = strchr(p, ',');
-			if(p){
+			if(p) {
 				p++;
 				*p = 0;
-			}else
+			} else
 				break;
 		}
 	}

@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1992 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -39,37 +39,37 @@
 
 /* rename */
 int
-rename(const char *a, const char *b)
+rename(const char* a, const char* b)
 {
-    if (access(a, 0) == -1)
-	return (-1);
-    unlink(b);
-    if (link(a, b) == -1)
-	return (-1);
-    if (unlink(a) == -1) {
-	unlink(b);		/* ??? */
-	return (-1);
-    }
-    return (0);
+	if(access(a, 0) == -1)
+		return (-1);
+	unlink(b);
+	if(link(a, b) == -1)
+		return (-1);
+	if(unlink(a) == -1) {
+		unlink(b); /* ??? */
+		return (-1);
+	}
+	return (0);
 }
 
 /* gettimeofday */
 #ifndef HZ
-#  define	HZ	100	/* see sys/param.h */
+#define HZ 100 /* see sys/param.h */
 #endif
 int
-gettimeofday(struct timeval *tvp, struct timezone *tzp)
+gettimeofday(struct timeval* tvp, struct timezone* tzp)
 {
-    struct tms tms;
-    static int32_t offset = 0;
-    int32_t ticks;
+	struct tms tms;
+	static int32_t offset = 0;
+	int32_t ticks;
 
-    if (!offset) {
-	time(&offset);
-	offset -= (times(&tms) / HZ);
-    }
-    ticks = times(&tms);
-    tvp->tv_sec = ticks / HZ + offset;
-    tvp->tv_usec = (ticks % HZ) * (1000 * 1000 / HZ);
-    return 0;
+	if(!offset) {
+		time(&offset);
+		offset -= (times(&tms) / HZ);
+	}
+	ticks = times(&tms);
+	tvp->tv_sec = ticks / HZ + offset;
+	tvp->tv_usec = (ticks % HZ) * (1000 * 1000 / HZ);
+	return 0;
 }

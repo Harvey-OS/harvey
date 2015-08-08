@@ -33,7 +33,7 @@
 #define JMAKE_ENUM_LIST
 #else
 /* Repeated inclusions of this file are no-ops unless JMESSAGE is defined */
-#define JMESSAGE(code,string)
+#define JMESSAGE(code, string)
 #endif /* CDERROR_H */
 #endif /* JMESSAGE */
 
@@ -41,97 +41,215 @@
 
 typedef enum {
 
-#define JMESSAGE(code,string)	code ,
+#define JMESSAGE(code, string) code,
 
 #endif /* JMAKE_ENUM_LIST */
 
-JMESSAGE(JMSG_FIRSTADDONCODE=1000, NULL) /* Must be first entry! */
+	JMESSAGE(JMSG_FIRSTADDONCODE = 1000, NULL) /* Must be first entry! */
 
 #ifdef BMP_SUPPORTED
-JMESSAGE(JERR_BMP_BADCMAP, "Unsupported BMP colormap format")
-JMESSAGE(JERR_BMP_BADDEPTH, "Only 8- and 24-bit BMP files are supported")
-JMESSAGE(JERR_BMP_BADHEADER, "Invalid BMP file: bad header length")
-JMESSAGE(JERR_BMP_BADPLANES, "Invalid BMP file: biPlanes not equal to 1")
-JMESSAGE(JERR_BMP_COLORSPACE, "BMP output must be grayscale or RGB")
-JMESSAGE(JERR_BMP_COMPRESSED, "Sorry, compressed BMPs not yet supported")
-JMESSAGE(JERR_BMP_NOT, "Not a BMP file - does not start with BM")
-JMESSAGE(JTRC_BMP, "%ux%u 24-bit BMP image")
-JMESSAGE(JTRC_BMP_MAPPED, "%ux%u 8-bit colormapped BMP image")
-JMESSAGE(JTRC_BMP_OS2, "%ux%u 24-bit OS2 BMP image")
-JMESSAGE(JTRC_BMP_OS2_MAPPED, "%ux%u 8-bit colormapped OS2 BMP image")
+	JMESSAGE(JERR_BMP_BADCMAP, "Unsupported BMP colormap format") JMESSAGE(
+	    JERR_BMP_BADDEPTH,
+	    "Only 8- and 24-bit BMP files are supported") JMESSAGE(JERR_BMP_BADHEADER,
+	                                                           "Invalid "
+                                                                   "BMP file: "
+                                                                   "bad header "
+                                                                   "length")
+	    JMESSAGE(JERR_BMP_BADPLANES, "Invalid BMP file: biPlanes not equal "
+                                         "to 1") JMESSAGE(
+	        JERR_BMP_COLORSPACE, "BMP output must be grayscale or RGB")
+	        JMESSAGE(JERR_BMP_COMPRESSED, "Sorry, compressed BMPs not yet "
+                                              "supported") JMESSAGE(
+	            JERR_BMP_NOT,
+	            "Not a BMP file - does not start with BM") JMESSAGE(JTRC_BMP,
+	                                                                "%ux%u "
+                                                                        "24-"
+                                                                        "bit "
+                                                                        "BMP "
+                                                                        "image")
+	            JMESSAGE(JTRC_BMP_MAPPED, "%ux%u 8-bit colormapped BMP "
+                                              "image") JMESSAGE(
+	                JTRC_BMP_OS2,
+	                "%ux%u 24-bit OS2 BMP image") JMESSAGE(JTRC_BMP_OS2_MAPPED,
+	                                                       "%ux%u 8-bit "
+                                                               "colormapped "
+                                                               "OS2 BMP image")
 #endif /* BMP_SUPPORTED */
 
 #ifdef GIF_SUPPORTED
-JMESSAGE(JERR_GIF_BUG, "GIF output got confused")
-JMESSAGE(JERR_GIF_CODESIZE, "Bogus GIF codesize %d")
-JMESSAGE(JERR_GIF_COLORSPACE, "GIF output must be grayscale or RGB")
-JMESSAGE(JERR_GIF_IMAGENOTFOUND, "Too few images in GIF file")
-JMESSAGE(JERR_GIF_NOT, "Not a GIF file")
-JMESSAGE(JTRC_GIF, "%ux%ux%d GIF image")
-JMESSAGE(JTRC_GIF_BADVERSION,
-	 "Warning: unexpected GIF version number '%c%c%c'")
-JMESSAGE(JTRC_GIF_EXTENSION, "Ignoring GIF extension block of type 0x%02x")
-JMESSAGE(JTRC_GIF_NONSQUARE, "Caution: nonsquare pixels in input")
-JMESSAGE(JWRN_GIF_BADDATA, "Corrupt data in GIF file")
-JMESSAGE(JWRN_GIF_CHAR, "Bogus char 0x%02x in GIF file, ignoring")
-JMESSAGE(JWRN_GIF_ENDCODE, "Premature end of GIF image")
-JMESSAGE(JWRN_GIF_NOMOREDATA, "Ran out of GIF bits")
+	                JMESSAGE(JERR_GIF_BUG, "GIF output got confused") JMESSAGE(
+	                    JERR_GIF_CODESIZE,
+	                    "Bogus GIF codesize %d") JMESSAGE(JERR_GIF_COLORSPACE,
+	                                                      "GIF output must "
+                                                              "be grayscale or "
+                                                              "RGB") JMESSAGE(JERR_GIF_IMAGENOTFOUND, "Too few images in GIF file")
+	                    JMESSAGE(JERR_GIF_NOT, "Not a GIF file") JMESSAGE(JTRC_GIF, "%ux%ux%d GIF image") JMESSAGE(
+	                        JTRC_GIF_BADVERSION,
+	                        "Warning: unexpected GIF version number "
+                                "'%c%c%c'") JMESSAGE(JTRC_GIF_EXTENSION, "Ignor"
+                                                                         "ing "
+                                                                         "GIF "
+                                                                         "exten"
+                                                                         "sion "
+                                                                         "block"
+                                                                         " of "
+                                                                         "type "
+                                                                         "0x%"
+                                                                         "02x")
+	                        JMESSAGE(JTRC_GIF_NONSQUARE, "Caution: "
+                                                             "nonsquare pixels "
+                                                             "in input") JMESSAGE(
+	                            JWRN_GIF_BADDATA, "Corrupt data in GIF "
+                                                      "file") JMESSAGE(JWRN_GIF_CHAR, "Bogus char 0x%02x in GIF file, ignoring")
+	                            JMESSAGE(JWRN_GIF_ENDCODE, "Premature end "
+                                                               "of GIF image") JMESSAGE(
+	                                JWRN_GIF_NOMOREDATA,
+	                                "Ran out of GIF bits")
 #endif /* GIF_SUPPORTED */
 
 #ifdef PPM_SUPPORTED
-JMESSAGE(JERR_PPM_COLORSPACE, "PPM output must be grayscale or RGB")
-JMESSAGE(JERR_PPM_NONNUMERIC, "Nonnumeric data in PPM file")
-JMESSAGE(JERR_PPM_NOT, "Not a PPM/PGM file")
-JMESSAGE(JTRC_PGM, "%ux%u PGM image")
-JMESSAGE(JTRC_PGM_TEXT, "%ux%u text PGM image")
-JMESSAGE(JTRC_PPM, "%ux%u PPM image")
-JMESSAGE(JTRC_PPM_TEXT, "%ux%u text PPM image")
+	                                JMESSAGE(JERR_PPM_COLORSPACE, "PPM "
+                                                                      "output "
+                                                                      "must be "
+                                                                      "grayscal"
+                                                                      "e or "
+                                                                      "RGB") JMESSAGE(JERR_PPM_NONNUMERIC, "Nonnumeric data in PPM file") JMESSAGE(
+	                                    JERR_PPM_NOT,
+	                                    "Not a PPM/PGM file") JMESSAGE(JTRC_PGM, "%ux%u PGM image")
+	                                    JMESSAGE(JTRC_PGM_TEXT, "%ux%u "
+                                                                    "text PGM "
+                                                                    "image") JMESSAGE(
+	                                        JTRC_PPM,
+	                                        "%ux%u PPM image") JMESSAGE(JTRC_PPM_TEXT, "%ux%u text PPM image")
 #endif /* PPM_SUPPORTED */
 
 #ifdef RLE_SUPPORTED
-JMESSAGE(JERR_RLE_BADERROR, "Bogus error code from RLE library")
-JMESSAGE(JERR_RLE_COLORSPACE, "RLE output must be grayscale or RGB")
-JMESSAGE(JERR_RLE_DIMENSIONS, "Image dimensions (%ux%u) too large for RLE")
-JMESSAGE(JERR_RLE_EMPTY, "Empty RLE file")
-JMESSAGE(JERR_RLE_EOF, "Premature EOF in RLE header")
-JMESSAGE(JERR_RLE_MEM, "Insufficient memory for RLE header")
-JMESSAGE(JERR_RLE_NOT, "Not an RLE file")
-JMESSAGE(JERR_RLE_TOOMANYCHANNELS, "Cannot handle %d output channels for RLE")
-JMESSAGE(JERR_RLE_UNSUPPORTED, "Cannot handle this RLE setup")
-JMESSAGE(JTRC_RLE, "%ux%u full-color RLE file")
-JMESSAGE(JTRC_RLE_FULLMAP, "%ux%u full-color RLE file with map of length %d")
-JMESSAGE(JTRC_RLE_GRAY, "%ux%u grayscale RLE file")
-JMESSAGE(JTRC_RLE_MAPGRAY, "%ux%u grayscale RLE file with map of length %d")
-JMESSAGE(JTRC_RLE_MAPPED, "%ux%u colormapped RLE file with map of length %d")
+	                                        JMESSAGE(JERR_RLE_BADERROR, "Bo"
+                                                                            "gu"
+                                                                            "s "
+                                                                            "er"
+                                                                            "ro"
+                                                                            "r "
+                                                                            "co"
+                                                                            "de"
+                                                                            " f"
+                                                                            "ro"
+                                                                            "m "
+                                                                            "RL"
+                                                                            "E "
+                                                                            "li"
+                                                                            "br"
+                                                                            "ar"
+                                                                            "y") JMESSAGE(JERR_RLE_COLORSPACE, "RLE output must be grayscale or RGB") JMESSAGE(
+	                                            JERR_RLE_DIMENSIONS,
+	                                            "Image dimensions (%ux%u) "
+                                                    "too large for RLE")
+	                                            JMESSAGE(JERR_RLE_EMPTY, "E"
+                                                                             "m"
+                                                                             "p"
+                                                                             "t"
+                                                                             "y"
+                                                                             " "
+                                                                             "R"
+                                                                             "L"
+                                                                             "E"
+                                                                             " "
+                                                                             "f"
+                                                                             "i"
+                                                                             "l"
+                                                                             "e") JMESSAGE(
+	                                                JERR_RLE_EOF,
+	                                                "Premature EOF in RLE "
+                                                        "header") JMESSAGE(JERR_RLE_MEM, "Insufficient memory for RLE header")
+	                                                JMESSAGE(JERR_RLE_NOT,
+	                                                         "Not an RLE "
+                                                                 "file") JMESSAGE(JERR_RLE_TOOMANYCHANNELS,
+	                                                                          "Cannot handle %d output channels for RLE")
+	                                                    JMESSAGE(JERR_RLE_UNSUPPORTED, "Cannot handle this RLE setup") JMESSAGE(
+	                                                        JTRC_RLE, "%ux%"
+                                                                          "u "
+                                                                          "full"
+                                                                          "-col"
+                                                                          "or "
+                                                                          "RLE "
+                                                                          "fil"
+                                                                          "e") JMESSAGE(JTRC_RLE_FULLMAP, "%ux%u full-color RLE file with map of length %d")
+	                                                        JMESSAGE(JTRC_RLE_GRAY, "%ux%u grayscale RLE file") JMESSAGE(
+	                                                            JTRC_RLE_MAPGRAY,
+	                                                            "%ux%u "
+                                                                    "grayscale "
+                                                                    "RLE file "
+                                                                    "with map "
+                                                                    "of length "
+                                                                    "%d") JMESSAGE(JTRC_RLE_MAPPED,
+	                                                                           "%ux%u colormapped RLE file with map of length %d")
 #endif /* RLE_SUPPORTED */
 
 #ifdef TARGA_SUPPORTED
-JMESSAGE(JERR_TGA_BADCMAP, "Unsupported Targa colormap format")
-JMESSAGE(JERR_TGA_BADPARMS, "Invalid or unsupported Targa file")
-JMESSAGE(JERR_TGA_COLORSPACE, "Targa output must be grayscale or RGB")
-JMESSAGE(JTRC_TGA, "%ux%u RGB Targa image")
-JMESSAGE(JTRC_TGA_GRAY, "%ux%u grayscale Targa image")
-JMESSAGE(JTRC_TGA_MAPPED, "%ux%u colormapped Targa image")
+	                                                            JMESSAGE(
+	                                                                JERR_TGA_BADCMAP,
+	                                                                "Unsupp"
+                                                                        "orted "
+                                                                        "Targa "
+                                                                        "colorm"
+                                                                        "ap "
+                                                                        "forma"
+                                                                        "t") JMESSAGE(JERR_TGA_BADPARMS,
+	                                                                              "Invalid or unsupported Targa file")
+	                                                                JMESSAGE(
+	                                                                    JERR_TGA_COLORSPACE,
+	                                                                    "Ta"
+                                                                            "rg"
+                                                                            "a "
+                                                                            "ou"
+                                                                            "tp"
+                                                                            "ut"
+                                                                            " m"
+                                                                            "us"
+                                                                            "t "
+                                                                            "be"
+                                                                            " g"
+                                                                            "ra"
+                                                                            "ys"
+                                                                            "ca"
+                                                                            "le"
+                                                                            " o"
+                                                                            "r "
+                                                                            "RG"
+                                                                            "B") JMESSAGE(JTRC_TGA, "%ux%u RGB Targa image")
+	                                                                    JMESSAGE(
+	                                                                        JTRC_TGA_GRAY,
+	                                                                        "%ux%u grayscale Targa image")
+	                                                                        JMESSAGE(
+	                                                                            JTRC_TGA_MAPPED,
+	                                                                            "%ux%u colormapped Targa image")
 #else
 JMESSAGE(JERR_TGA_NOTCOMP, "Targa support was not compiled")
 #endif /* TARGA_SUPPORTED */
 
-JMESSAGE(JERR_BAD_CMAP_FILE,
-	 "Color map file is invalid or of unsupported format")
-JMESSAGE(JERR_TOO_MANY_COLORS,
-	 "Output file format cannot handle %d colormap entries")
-JMESSAGE(JERR_UNGETC_FAILED, "ungetc failed")
+	                                                                            JMESSAGE(
+	                                                                                JERR_BAD_CMAP_FILE,
+	                                                                                "Color map file is invalid or of unsupported format")
+	                                                                                JMESSAGE(
+	                                                                                    JERR_TOO_MANY_COLORS,
+	                                                                                    "Output file format cannot handle %d colormap entries")
+	                                                                                    JMESSAGE(
+	                                                                                        JERR_UNGETC_FAILED,
+	                                                                                        "ungetc failed")
 #ifdef TARGA_SUPPORTED
-JMESSAGE(JERR_UNKNOWN_FORMAT,
-	 "Unrecognized input file format --- perhaps you need -targa")
+	                                                                                        JMESSAGE(
+	                                                                                            JERR_UNKNOWN_FORMAT,
+	                                                                                            "Unrecognized input file format --- perhaps you need -targa")
 #else
 JMESSAGE(JERR_UNKNOWN_FORMAT, "Unrecognized input file format")
 #endif
-JMESSAGE(JERR_UNSUPPORTED_FORMAT, "Unsupported output file format")
+	                                                                                            JMESSAGE(
+	                                                                                                JERR_UNSUPPORTED_FORMAT,
+	                                                                                                "Unsupported output file format")
 
 #ifdef JMAKE_ENUM_LIST
 
-  JMSG_LASTADDONCODE
+	                                                                                                JMSG_LASTADDONCODE
 } ADDON_MESSAGE_CODE;
 
 #undef JMAKE_ENUM_LIST

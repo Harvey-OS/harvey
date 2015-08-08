@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -28,7 +28,7 @@
 /* Requires gstext.h */
 
 #ifndef ichar_INCLUDED
-#  define ichar_INCLUDED
+#define ichar_INCLUDED
 
 /*
  * All the character rendering operators use the execution stack
@@ -65,20 +65,20 @@
 #define seproc eseproc(esp)
 
 /* Procedures exported by zchar.c for zchar*.c. */
-gs_text_enum_t *op_show_find(i_ctx_t *);
-int op_show_setup(i_ctx_t *, os_ptr);
-int op_show_enum_setup(i_ctx_t *);
-int op_show_finish_setup(i_ctx_t *, gs_text_enum_t *, int, op_proc_t);
-int op_show_continue(i_ctx_t *);
-int op_show_continue_pop(i_ctx_t *, int);
-int op_show_continue_dispatch(i_ctx_t *, int, int);
-int op_show_free(i_ctx_t *, int);
-void glyph_ref(const gs_memory_t *mem, gs_glyph, ref *);
-int finish_stringwidth(i_ctx_t *);
+gs_text_enum_t* op_show_find(i_ctx_t*);
+int op_show_setup(i_ctx_t*, os_ptr);
+int op_show_enum_setup(i_ctx_t*);
+int op_show_finish_setup(i_ctx_t*, gs_text_enum_t*, int, op_proc_t);
+int op_show_continue(i_ctx_t*);
+int op_show_continue_pop(i_ctx_t*, int);
+int op_show_continue_dispatch(i_ctx_t*, int, int);
+int op_show_free(i_ctx_t*, int);
+void glyph_ref(const gs_memory_t* mem, gs_glyph, ref*);
+int finish_stringwidth(i_ctx_t*);
 
 /* Exported by zchar.c for zcharout.c */
-bool zchar_show_width_only(const gs_text_enum_t *);
-int zsetcachedevice(i_ctx_t *);
-int zsetcachedevice2(i_ctx_t *);
+bool zchar_show_width_only(const gs_text_enum_t*);
+int zsetcachedevice(i_ctx_t*);
+int zsetcachedevice2(i_ctx_t*);
 
 #endif /* ichar_INCLUDED */

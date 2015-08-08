@@ -14,9 +14,9 @@
 
 /* concatenate two tuples */
 Ndbtuple*
-ndbconcatenate(Ndbtuple *a, Ndbtuple *b)
+ndbconcatenate(Ndbtuple* a, Ndbtuple* b)
 {
-	Ndbtuple *t;
+	Ndbtuple* t;
 
 	if(a == nil)
 		return b;

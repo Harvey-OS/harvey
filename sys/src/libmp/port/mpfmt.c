@@ -13,9 +13,9 @@
 #include "dat.h"
 
 static int
-to64(mpint *b, char *buf, int len)
+to64(mpint* b, char* buf, int len)
 {
-	uint8_t *p;
+	uint8_t* p;
 	int n, rv;
 
 	p = nil;
@@ -28,13 +28,13 @@ to64(mpint *b, char *buf, int len)
 }
 
 static int
-to32(mpint *b, char *buf, int len)
+to32(mpint* b, char* buf, int len)
 {
-	uint8_t *p;
+	uint8_t* p;
 	int n, rv;
 
 	// leave room for a multiple of 5 buffer size
-	n = b->top*Dbytes + 5;
+	n = b->top * Dbytes + 5;
 	p = malloc(n);
 	if(p == nil)
 		return -1;
@@ -43,8 +43,8 @@ to32(mpint *b, char *buf, int len)
 		return -1;
 
 	// round up buffer size, enc32 only accepts a multiple of 5
-	if(n%5)
-		n += 5 - (n%5);
+	if(n % 5)
+		n += 5 - (n % 5);
 	rv = enc32(buf, len, p, n);
 	free(p);
 	return rv;
@@ -53,22 +53,22 @@ to32(mpint *b, char *buf, int len)
 static char set16[] = "0123456789ABCDEF";
 
 static int
-to16(mpint *b, char *buf, int len)
+to16(mpint* b, char* buf, int len)
 {
-	mpdigit *p, x;
+	mpdigit* p, x;
 	int i, j;
-	char *out, *eout;
+	char* out, *eout;
 
 	if(len < 1)
 		return -1;
 
 	out = buf;
-	eout = buf+len;
-	for(p = &b->p[b->top-1]; p >= b->p; p--){
+	eout = buf + len;
+	for(p = &b->p[b->top - 1]; p >= b->p; p--) {
 		x = *p;
-		for(i = Dbits-4; i >= 0; i -= 4){
-			j = 0xf & (x>>i);
-			if(j != 0 || out != buf){
+		for(i = Dbits - 4; i >= 0; i -= 4) {
+			j = 0xf & (x >> i);
+			if(j != 0 || out != buf) {
 				if(out >= eout)
 					return -1;
 				*out++ = set16[j];
@@ -84,13 +84,13 @@ to16(mpint *b, char *buf, int len)
 }
 
 static char*
-modbillion(int rem, uint32_t r, char *out, char *buf)
+modbillion(int rem, uint32_t r, char* out, char* buf)
 {
 	uint32_t rr;
 	int i;
 
-	for(i = 0; i < 9; i++){
-		rr = r%10;
+	for(i = 0; i < 9; i++) {
+		rr = r % 10;
 		r /= 10;
 		if(out <= buf)
 			return nil;
@@ -102,10 +102,10 @@ modbillion(int rem, uint32_t r, char *out, char *buf)
 }
 
 static int
-to10(mpint *b, char *buf, int len)
+to10(mpint* b, char* buf, int len)
 {
-	mpint *d, *r, *billion;
-	char *out;
+	mpint* d, *r, *billion;
+	char* out;
 
 	if(len < 1)
 		return -1;
@@ -113,7 +113,7 @@ to10(mpint *b, char *buf, int len)
 	d = mpcopy(b);
 	r = mpnew(0);
 	billion = uitomp(1000000000, nil);
-	out = buf+len;
+	out = buf + len;
 	*--out = 0;
 	do {
 		mpdiv(d, billion, d, r);
@@ -127,28 +127,28 @@ to10(mpint *b, char *buf, int len)
 
 	if(out == nil)
 		return -1;
-	len -= out-buf;
+	len -= out - buf;
 	if(out != buf)
 		memmove(buf, out, len);
 	return 0;
 }
 
 int
-mpfmt(Fmt *fmt)
+mpfmt(Fmt* fmt)
 {
-	mpint *b;
-	char *p;
+	mpint* b;
+	char* p;
 
 	b = va_arg(fmt->args, mpint*);
 	if(b == nil)
 		return fmtstrcpy(fmt, "*");
-	
+
 	p = mptoa(b, fmt->prec, nil, 0);
 	fmt->flags &= ~FmtPrec;
 
 	if(p == nil)
 		return fmtstrcpy(fmt, "*");
-	else{
+	else {
 		fmtstrcpy(fmt, p);
 		free(p);
 		return 0;
@@ -156,14 +156,14 @@ mpfmt(Fmt *fmt)
 }
 
 char*
-mptoa(mpint *b, int base, char *buf, int len)
+mptoa(mpint* b, int base, char* buf, int len)
 {
-	char *out;
+	char* out;
 	int rv, alloced;
 
 	alloced = 0;
-	if(buf == nil){
-		len = ((b->top+1)*Dbits+2)/3 + 1;
+	if(buf == nil) {
+		len = ((b->top + 1) * Dbits + 2) / 3 + 1;
 		buf = malloc(len);
 		if(buf == nil)
 			return nil;
@@ -174,11 +174,11 @@ mptoa(mpint *b, int base, char *buf, int len)
 		return nil;
 
 	out = buf;
-	if(b->sign < 0){
+	if(b->sign < 0) {
 		*out++ = '-';
 		len--;
 	}
-	switch(base){
+	switch(base) {
 	case 64:
 		rv = to64(b, out, len);
 		break;
@@ -193,7 +193,7 @@ mptoa(mpint *b, int base, char *buf, int len)
 		rv = to10(b, out, len);
 		break;
 	}
-	if(rv < 0){
+	if(rv < 0) {
 		if(alloced)
 			free(buf);
 		return nil;

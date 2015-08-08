@@ -9,9 +9,8 @@
 
 #pragma src "/sys/src/libdraw"
 
-struct	Cursor
-{
-	Point	offset;
-	uint8_t	clr[2*16];
-	uint8_t	set[2*16];
+struct Cursor {
+	Point offset;
+	uint8_t clr[2 * 16];
+	uint8_t set[2 * 16];
 };

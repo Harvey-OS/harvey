@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Interface to planar memory devices. */
 
 #ifndef gdevmpla_INCLUDED
-#  define gdevmpla_INCLUDED
+#define gdevmpla_INCLUDED
 
 /*
  * Planar memory devices store the bits by planes instead of by chunks.
@@ -49,7 +49,7 @@
  * > 0, plane_depths[0 ..  num_planes - 1] > 0, sum of plane_depths <=
  * mdev->color_info.depth.
  */
-int gdev_mem_set_planar(gx_device_memory * mdev, int num_planes,
-			const gx_render_plane_t *planes /*[num_planes]*/);
+int gdev_mem_set_planar(gx_device_memory* mdev, int num_planes,
+                        const gx_render_plane_t* planes /*[num_planes]*/);
 
 #endif /* gdevmpla_INCLUDED */

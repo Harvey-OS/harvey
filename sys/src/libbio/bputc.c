@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int
-Bputc(Biobufhdr *bp, int c)
+Bputc(Biobufhdr* bp, int c)
 {
 	int i;
 

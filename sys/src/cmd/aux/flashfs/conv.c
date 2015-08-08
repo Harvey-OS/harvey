@@ -12,7 +12,7 @@
 #include "flashfs.h"
 
 int
-convJ2M(Jrec *j, uint8_t *buff)
+convJ2M(Jrec* j, uint8_t* buff)
 {
 	int m, n;
 
@@ -23,8 +23,7 @@ convJ2M(Jrec *j, uint8_t *buff)
 				j->type = FT_DCREATE1;
 			else
 				j->type = FT_FCREATE1;
-		}
-		else {
+		} else {
 			if(j->mode & DMDIR)
 				j->type = FT_DCREATE0;
 			else
@@ -86,7 +85,7 @@ convJ2M(Jrec *j, uint8_t *buff)
 }
 
 int
-convM2J(Jrec *j, uint8_t *buff)
+convM2J(Jrec* j, uint8_t* buff)
 {
 	int m, n;
 
@@ -164,8 +163,8 @@ convM2J(Jrec *j, uint8_t *buff)
 	create:
 		n += getc3(&buff[n], &j->mtime);
 		n += getc3(&buff[n], &j->parent);
-		memmove(j->name, &buff[n], MAXNSIZE+1);
-		j->name[MAXNSIZE+1] = '\0';
+		memmove(j->name, &buff[n], MAXNSIZE + 1);
+		j->name[MAXNSIZE + 1] = '\0';
 		m = strlen(j->name);
 		if(m > MAXNSIZE)
 			return -1;
@@ -175,11 +174,11 @@ convM2J(Jrec *j, uint8_t *buff)
 }
 
 int
-Jconv(Fmt *fp)
+Jconv(Fmt* fp)
 {
-	Jrec *j;
+	Jrec* j;
 
-	j = va_arg(fp->args, Jrec *);
+	j = va_arg(fp->args, Jrec*);
 	switch(j->type) {
 	case FT_create:
 	case FT_FCREATE0:
@@ -187,31 +186,30 @@ Jconv(Fmt *fp)
 	case FT_DCREATE0:
 	case FT_DCREATE1:
 		return fmtprint(fp, "create f %ld p %ld t %lud m %ulo %s",
-			j->fnum, j->parent, j->mtime, j->mode, j->name);
+		                j->fnum, j->parent, j->mtime, j->mode, j->name);
 	case FT_chmod:
 	case FT_CHMOD0:
 	case FT_CHMOD1:
-		return fmtprint(fp, "chmod f %ld m %ulo #%ld",
-			j->fnum, j->mode, j->mnum);
+		return fmtprint(fp, "chmod f %ld m %ulo #%ld", j->fnum, j->mode,
+		                j->mnum);
 	case FT_REMOVE:
 		return fmtprint(fp, "remove f %ld", j->fnum);
 	case FT_WRITE:
-		return fmtprint(fp, "write f %ld z %ld o %ld t %uld",
-			j->fnum, j->size, j->offset, j->mtime);
+		return fmtprint(fp, "write f %ld z %ld o %ld t %uld", j->fnum,
+		                j->size, j->offset, j->mtime);
 	case FT_AWRITE:
-		return fmtprint(fp, "awrite f %ld z %ld o %ld",
-			j->fnum, j->size, j->offset);
+		return fmtprint(fp, "awrite f %ld z %ld o %ld", j->fnum,
+		                j->size, j->offset);
 	case FT_trunc:
 	case FT_TRUNC0:
 	case FT_TRUNC1:
 		return fmtprint(fp, "trunc f %ld o %ld p %ld t %ld m %ulo %s",
-			j->fnum, j->tnum, j->parent, j->mtime, j->mode, j->name);
+		                j->fnum, j->tnum, j->parent, j->mtime, j->mode,
+		                j->name);
 	case FT_SUMMARY:
-		return fmtprint(fp, "summary %ld",
-			j->seq);
+		return fmtprint(fp, "summary %ld", j->seq);
 	case FT_SUMBEG:
-		return fmtprint(fp, "sumbeg %ld",
-			j->seq);
+		return fmtprint(fp, "sumbeg %ld", j->seq);
 	case FT_SUMEND:
 		return fmtprint(fp, "end");
 	default:

@@ -13,12 +13,11 @@
 #include <disk.h>
 
 static void
-enm(char *new, char *old, Dir *d, void*)
+enm(char* new, char* old, Dir* d, void*)
 {
-	print("%s %s%s%s%luo %s %s %s\n",
-		new, (d->mode&DMDIR)?"d":"", (d->mode&DMAPPEND)?"a":"",
-		(d->mode&DMEXCL)?"l":"", (d->mode&~(DMDIR|DMAPPEND|DMEXCL)), 
-		d->uid, d->gid, old);
+	print("%s %s%s%s%luo %s %s %s\n", new, (d->mode & DMDIR) ? "d" : "",
+	      (d->mode & DMAPPEND) ? "a" : "", (d->mode & DMEXCL) ? "l" : "",
+	      (d->mode & ~(DMDIR | DMAPPEND | DMEXCL)), d->uid, d->gid, old);
 }
 
 static void
@@ -29,16 +28,18 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *root;
+	char* root;
 
 	root = "/";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'r':
 		root = EARGF(usage());
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();

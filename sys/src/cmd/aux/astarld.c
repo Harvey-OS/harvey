@@ -11,26 +11,23 @@
 #include <libc.h>
 #include <bio.h>
 
-enum
-{
-	Doff=		4,	/* offset into Cpline.bytes of data */
+enum { Doff = 4, /* offset into Cpline.bytes of data */
 
-	Memsize=	1<<16,	/* max size of 186 memory */
+       Memsize = 1 << 16, /* max size of 186 memory */
 };
 
 int dump, image, noload, nostart;
 
-typedef struct
-{
-	int	type;
-	int	dlen;
-	uint32_t	addr;
-	uint8_t	bytes[256+4];
-	uint8_t	csum;
+typedef struct {
+	int type;
+	int dlen;
+	uint32_t addr;
+	uint8_t bytes[256 + 4];
+	uint8_t csum;
 } Cpline;
 
-char*	rdcpline(Biobuf*, Cpline*);
-void	clearmem(int);
+char* rdcpline(Biobuf*, Cpline*);
+void clearmem(int);
 
 void
 usage(void)
@@ -49,14 +46,14 @@ loadimage(char* file, int mfd)
 		sysfatal("opening %s: %r", file);
 
 	seek(mfd, 0, 0);
-	do{
+	do {
 		n = read(fd, buf, sizeof(buf));
 		if(n < 0)
 			sysfatal("read %s: %r", file);
 		if(n > 0)
 			if((r = write(mfd, buf, n)) != n)
 				sysfatal("write %s: %d != %d: %r", file, n, r);
-	}while(n > 0);
+	} while(n > 0);
 	close(fd);
 }
 
@@ -65,8 +62,8 @@ loadhex(char* file, int mfd)
 {
 	int done;
 	Cpline c;
-	Biobuf *b;
-	char *err;
+	Biobuf* b;
+	char* err;
 	uint32_t addr, seg;
 	int lineno;
 	uint8_t buf[1024];
@@ -77,24 +74,25 @@ loadhex(char* file, int mfd)
 
 	lineno = 1;
 	seg = 0;
-	for(done = 0; !done; lineno++){
+	for(done = 0; !done; lineno++) {
 		err = rdcpline(b, &c);
 		if(err)
 			sysfatal("%s line %d: %s", file, lineno, err);
-		switch(c.type){
+		switch(c.type) {
 		case 0: /* data */
 			addr = seg + c.addr;
 			if(addr + c.dlen > Memsize)
-				sysfatal("addr out of range: %lux-%lux", addr, addr+c.dlen);
+				sysfatal("addr out of range: %lux-%lux", addr,
+				         addr + c.dlen);
 			if(seek(mfd, addr, 0) < 0)
 				sysfatal("seeking to %lud: %r", addr);
-			if(write(mfd, c.bytes+Doff, c.dlen) != c.dlen)
+			if(write(mfd, c.bytes + Doff, c.dlen) != c.dlen)
 				sysfatal("writing: %r");
 			if(seek(mfd, addr, 0) < 0)
 				sysfatal("seeking to %lud: %r", addr);
 			if(read(mfd, buf, c.dlen) != c.dlen)
 				sysfatal("reading: %r");
-			if(memcmp(buf, c.bytes+Doff, c.dlen) != 0)
+			if(memcmp(buf, c.bytes + Doff, c.dlen) != 0)
 				print("readback error at %lux\n", addr);
 			if(dump)
 				print("%8.8lux: %d\n", addr, c.dlen);
@@ -103,7 +101,7 @@ loadhex(char* file, int mfd)
 			done = 1;
 			break;
 		case 2: /* segment */
-			seg = ((c.bytes[Doff]<<8) | c.bytes[Doff+1]) <<4;
+			seg = ((c.bytes[Doff] << 8) | c.bytes[Doff + 1]) << 4;
 			if(seg >= Memsize)
 				sysfatal("seg out of range: %lux", seg);
 			if(dump)
@@ -119,14 +117,15 @@ loadhex(char* file, int mfd)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int unit;
 	int cfd, mfd;
 	char file[128];
 
 	unit = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		dump = 1;
 		break;
@@ -151,12 +150,13 @@ main(int argc, char **argv)
 	case '3':
 		unit = 3;
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc == 0)
 		usage();
 
-	if(noload == 0){
+	if(noload == 0) {
 		sprint(file, "#G/astar%dctl", unit);
 		cfd = open(file, ORDWR);
 		if(cfd < 0)
@@ -165,7 +165,7 @@ main(int argc, char **argv)
 		mfd = open(file, ORDWR);
 		if(mfd < 0)
 			sysfatal("opening %s", file);
-	
+
 		if(write(cfd, "download", 8) != 8)
 			sysfatal("requesting download: %r");
 	} else {
@@ -177,7 +177,7 @@ main(int argc, char **argv)
 
 	if(image)
 		loadimage(argv[0], mfd);
-	else{
+	else {
 		/* zero out the memory */
 		clearmem(mfd);
 		loadhex(argv[0], mfd);
@@ -200,7 +200,7 @@ clearmem(int fd)
 	int i, n;
 
 	memset(buf, 0, sizeof buf);
-	for(i = 0; i < Memsize; i += n){
+	for(i = 0; i < Memsize; i += n) {
 		if(seek(fd, i, 0) < 0)
 			sysfatal("seeking to %ux: %r", i);
 		n = write(fd, buf, sizeof buf);
@@ -230,10 +230,10 @@ hex(char c)
 }
 
 char*
-rdcpline(Biobuf *b, Cpline *cpl)
+rdcpline(Biobuf* b, Cpline* cpl)
 {
-	char *cp, *ep, *p;
-	uint8_t *up;
+	char* cp, *ep, *p;
+	uint8_t* up;
 	uint8_t csum;
 	int c;
 
@@ -247,8 +247,8 @@ rdcpline(Biobuf *b, Cpline *cpl)
 
 	csum = 0;
 	up = cpl->bytes;
- 	for(p = cp; p < ep;){
-		c = hex(*p++)<<4;
+	for(p = cp; p < ep;) {
+		c = hex(*p++) << 4;
 		c |= hex(*p++);
 		if(c < 0)
 			break;
@@ -257,18 +257,18 @@ rdcpline(Biobuf *b, Cpline *cpl)
 	}
 
 	cpl->csum = csum;
-	if(csum != 0){
+	if(csum != 0) {
 		fprint(2, "checksum %ux\n", csum);
 		return "bad checksum";
 	}
 
 	cpl->dlen = cpl->bytes[0];
-	if(cpl->dlen + 5 != up - cpl->bytes){
+	if(cpl->dlen + 5 != up - cpl->bytes) {
 		fprint(2, "%d %ld\n", cpl->dlen + 5, up - cpl->bytes);
 		return "bad data length";
 	}
 
-	cpl->addr = (cpl->bytes[1]<<8) | cpl->bytes[2];
+	cpl->addr = (cpl->bytes[1] << 8) | cpl->bytes[2];
 	cpl->type = cpl->bytes[3];
 	return 0;
 }

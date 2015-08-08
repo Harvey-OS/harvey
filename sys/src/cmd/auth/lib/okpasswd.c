@@ -13,18 +13,11 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-char *trivial[] = {
-	"login",
-	"guest",
-	"change me",
-	"passwd",
-	"no passwd",
-	"anonymous",
-	0
-};
+char* trivial[] = {"login",     "guest",     "change me", "passwd",
+                   "no passwd", "anonymous", 0};
 
 char*
-okpasswd(char *p)
+okpasswd(char* p)
 {
 	char passwd[ANAMELEN];
 	char back[ANAMELEN];
@@ -43,8 +36,8 @@ okpasswd(char *p)
 		return "password must be at least 8 chars";
 
 	for(i = 0; trivial[i]; i++)
-		if(strcmp(passwd, trivial[i]) == 0
-		|| strcmp(back, trivial[i]) == 0)
+		if(strcmp(passwd, trivial[i]) == 0 ||
+		   strcmp(back, trivial[i]) == 0)
 			return "trivial password";
 
 	return 0;

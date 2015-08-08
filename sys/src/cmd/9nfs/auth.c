@@ -9,16 +9,17 @@
 
 #include "all.h"
 
-/* this is all stubbed out; the NFS authentication stuff is now disabled - rob */
+/* this is all stubbed out; the NFS authentication stuff is now disabled - rob
+ */
 
-Xfid *
-xfauth(Xfile *x, String *s)
+Xfid*
+xfauth(Xfile* x, String* s)
 {
 	return 0;
 }
 
 int32_t
-xfauthread(Xfid *xf, int32_t i, uint8_t *n, int32_t l)
+xfauthread(Xfid* xf, int32_t i, uint8_t* n, int32_t l)
 {
 
 	chat("xfauthread %s...", xf->uid);
@@ -26,14 +27,14 @@ xfauthread(Xfid *xf, int32_t i, uint8_t *n, int32_t l)
 }
 
 int32_t
-xfauthwrite(Xfid *xf, int32_t i, uint8_t *n, int32_t l)
+xfauthwrite(Xfid* xf, int32_t i, uint8_t* n, int32_t l)
 {
 	chat("xfauthwrite %s...", xf->uid);
 	return 0;
 }
 
 int
-xfauthremove(Xfid *x, char *c)
+xfauthremove(Xfid* x, char* c)
 {
 	chat("authremove...");
 	return -1;

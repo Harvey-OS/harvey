@@ -15,25 +15,25 @@
 #include <bio.h>
 #include <ctype.h>
 
-#define	SIZE	8000
+#define SIZE 8000
 
-int	fields	= 0;
-int	letters	= 0;
-int	linec	= 0;
-char	mode;
-int	uniq;
-char	*b1, *b2;
-int32_t	bsize;
-Biobuf	fin;
-Biobuf	fout;
+int fields = 0;
+int letters = 0;
+int linec = 0;
+char mode;
+int uniq;
+char* b1, *b2;
+int32_t bsize;
+Biobuf fin;
+Biobuf fout;
 
-int	gline(char *buf);
-void	pline(char *buf);
-int	equal(char *b1, char *b2);
-char*	skip(char *s);
+int gline(char* buf);
+void pline(char* buf);
+int equal(char* b1, char* b2);
+char* skip(char* s);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int f;
 
@@ -93,24 +93,24 @@ main(int argc, char *argv[])
 }
 
 int
-gline(char *buf)
+gline(char* buf)
 {
 	int len;
-	char *p;
+	char* p;
 
 	p = Brdline(&fin, '\n');
 	if(p == 0)
 		return 1;
 	len = Blinelen(&fin);
-	if(len >= bsize-1)
+	if(len >= bsize - 1)
 		sysfatal("line too int32_t");
 	memmove(buf, p, len);
-	buf[len-1] = 0;
+	buf[len - 1] = 0;
 	return 0;
 }
 
 void
-pline(char *buf)
+pline(char* buf)
 {
 	switch(mode) {
 
@@ -134,7 +134,7 @@ pline(char *buf)
 }
 
 int
-equal(char *b1, char *b2)
+equal(char* b1, char* b2)
 {
 	char c;
 
@@ -157,7 +157,7 @@ equal(char *b1, char *b2)
 }
 
 char*
-skip(char *s)
+skip(char* s)
 {
 	int nf, nl;
 
@@ -165,10 +165,10 @@ skip(char *s)
 	while(nf++ < fields) {
 		while(*s == ' ' || *s == '\t')
 			s++;
-		while(!(*s == ' ' || *s == '\t' || *s == 0) ) 
+		while(!(*s == ' ' || *s == '\t' || *s == 0))
 			s++;
 	}
-	while(nl++ < letters && *s != 0) 
-			s++;
+	while(nl++ < letters && *s != 0)
+		s++;
 	return s;
 }

@@ -12,7 +12,7 @@
 #include <thread.h>
 #include <venti.h>
 
-char *host;
+char* host;
 int donothing;
 
 void
@@ -23,14 +23,15 @@ usage(void)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
-	VtConn *z;
+	VtConn* z;
 
 	fmtinstall('V', vtscorefmt);
 	fmtinstall('F', vtfcallfmt);
-	
-	ARGBEGIN{
+
+	ARGBEGIN
+	{
 	case 'h':
 		host = EARGF(usage());
 		if(host == nil)
@@ -42,7 +43,8 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();
@@ -55,8 +57,8 @@ threadmain(int argc, char *argv[])
 		sysfatal("vtconnect: %r");
 
 	if(!donothing)
-	if(vtsync(z) < 0)
-		sysfatal("vtsync: %r");
+		if(vtsync(z) < 0)
+			sysfatal("vtsync: %r");
 
 	vthangup(z);
 	threadexitsall(0);

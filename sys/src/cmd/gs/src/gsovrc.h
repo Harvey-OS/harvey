@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* overprint/overprint mode compositor interface */
 
 #ifndef gsovrc_INCLUDED
-#  define gsovrc_INCLUDED
+#define gsovrc_INCLUDED
 
 #include "gsstype.h"
 #include "gxcomp.h"
@@ -71,7 +71,7 @@
  *     these devices both overprint and overprint mode require a form
  *     of mixing of the drawing color with any existing output. This
  *     mixing is mechanically similar to that required for transparency
- *     or raster op support, but differs from these because it affects 
+ *     or raster op support, but differs from these because it affects
  *     different color components differently (transparency and raster
  *     operations are applied uniformly to all color components).
  *
@@ -79,7 +79,7 @@
  * either trivial or essentially impossible (short of dealing with them
  * as low level devices), the discussion below is restricted to the
  * implementation for low level devices.
- * 
+ *
  * In principle, the effects of overprint and overprint mode are
  * modified by changes to the current color, the current color space,
  * and the process color model.
@@ -108,8 +108,8 @@
  * of two additional types of the devices for rendering. Forwarding
  * devices do not generate output of their own; they merely forward
  * rendering commands to a target device. Accumulating devices render
- * output to a special buffer (often part of clipping or a caching 
- * operation), which is subsequently sent to the primary output device 
+ * output to a special buffer (often part of clipping or a caching
+ * operation), which is subsequently sent to the primary output device
  * in a lower-level form.
  *
  * It is conceivable that a forwarding device could be dependent on the
@@ -141,7 +141,7 @@
  *    the high-level rendering methods (fill_path, etc.). Actual
  *    rendering is done with a separate marking device, an instance
  *    of which is created for each graphic object rendered. The
- *    marking device renders into the output buffer of the 
+ *    marking device renders into the output buffer of the
  *    gs_pdf14_device, which contains the results of prior rendering
  *    operations. Thus, overprint is significant to the marking
  *    device. The interaction of transparency and overprint are,
@@ -226,60 +226,61 @@
  */
 
 #ifndef gs_overprint_params_t_DEFINED
-#  define gs_overprint_params_t_DEFINED
-typedef struct gs_overprint_params_s    gs_overprint_params_t;
+#define gs_overprint_params_t_DEFINED
+typedef struct gs_overprint_params_s gs_overprint_params_t;
 #endif
 
 struct gs_overprint_params_s {
 
-    /*
-     * Are any component values to be retained?
-     *
-     * If this is false (overprint off), all other fields in the compositor
-     * are ignored, and the compositor does nothing with respect to rendering
-     * (it doesn't even impose a performance penalty).
-     *
-     * If this field is true, the retain_spot_comps and potentially the
-     * retained_comps fields should be initialized.
-     *
-     * Note that this field may be false even if overprint is true. This
-     * would be the case if the current color space was a Separation color
-     * space with the component "All".
-     */
-    bool            retain_any_comps;
+	/*
+	 * Are any component values to be retained?
+	 *
+	 * If this is false (overprint off), all other fields in the compositor
+	 * are ignored, and the compositor does nothing with respect to
+	 *rendering
+	 * (it doesn't even impose a performance penalty).
+	 *
+	 * If this field is true, the retain_spot_comps and potentially the
+	 * retained_comps fields should be initialized.
+	 *
+	 * Note that this field may be false even if overprint is true. This
+	 * would be the case if the current color space was a Separation color
+	 * space with the component "All".
+	 */
+	bool retain_any_comps;
 
-    /*
-     * Are spot (non-process) color component values retained?
-     *
-     * If overprint is true, this field will be true for all color spaces
-     * other than Separation/DeviceN color spaces.
-     *
-     * The overprint compositor will itself determine what constitutes a
-     * process color. This is done by using the color space mapping
-     * routines for the target device for all three standard device
-     * color spaces (DeviceGray, DeviceRGB, and DeviceCMYK) and the
-     * set of all possible colors with individual components either 0
-     * or 1. Any color model component which is mapped to 0 for all of
-     * these cases is considered a spot color.
-     *
-     * If this field is true, the drawn_comps field (see below) is ignored.
-     *
-     * NB: This field should not be used if the DeviceCMYK color space
-     *     is being used with a DeviceCMYK color model (which may have
-     *     additional spot colors). Such a color model must explicitly
-     *     list the set of drawn components, so as to support overprint
-     *     mode.
-     */
-    bool            retain_spot_comps;
+	/*
+	 * Are spot (non-process) color component values retained?
+	 *
+	 * If overprint is true, this field will be true for all color spaces
+	 * other than Separation/DeviceN color spaces.
+	 *
+	 * The overprint compositor will itself determine what constitutes a
+	 * process color. This is done by using the color space mapping
+	 * routines for the target device for all three standard device
+	 * color spaces (DeviceGray, DeviceRGB, and DeviceCMYK) and the
+	 * set of all possible colors with individual components either 0
+	 * or 1. Any color model component which is mapped to 0 for all of
+	 * these cases is considered a spot color.
+	 *
+	 * If this field is true, the drawn_comps field (see below) is ignored.
+	 *
+	 * NB: This field should not be used if the DeviceCMYK color space
+	 *     is being used with a DeviceCMYK color model (which may have
+	 *     additional spot colors). Such a color model must explicitly
+	 *     list the set of drawn components, so as to support overprint
+	 *     mode.
+	 */
+	bool retain_spot_comps;
 
-    /*
-     * The list of color model compoents to be retained (i.e.: that are
-     * not affected by drawing operations). The field is bit-encoded;
-     * the bit corresponding to component i is (1 << i).  This bit will be
-     * 1 if the corresponding component is set from the drawing color, 0 if
-     * it is to be left unaffected.
-     */
-    gx_color_index  drawn_comps;
+	/*
+	 * The list of color model compoents to be retained (i.e.: that are
+	 * not affected by drawing operations). The field is bit-encoded;
+	 * the bit corresponding to component i is (1 << i).  This bit will be
+	 * 1 if the corresponding component is set from the drawing color, 0 if
+	 * it is to be left unaffected.
+	 */
+	gx_color_index drawn_comps;
 };
 
 /*
@@ -288,8 +289,8 @@ struct gs_overprint_params_s {
  * and the overprint-specific parameters.
  */
 typedef struct gs_overprint_s {
-    gs_composite_common;
-    gs_overprint_params_t   params;
+	gs_composite_common;
+	gs_overprint_params_t params;
 } gs_overprint_t;
 
 /*
@@ -299,24 +300,20 @@ typedef struct gs_overprint_s {
  * to be simple, so we just create a trivial structure descriptor for the
  * entire gs_overprint_s structure.
  */
-#define private_st_gs_overprint_t()	/* In gsovrc.c */\
-  gs_private_st_simple(st_overprint, gs_overprint_t, "gs_overprint_t");
-
-
+#define private_st_gs_overprint_t() /* In gsovrc.c */                          \
+	gs_private_st_simple(st_overprint, gs_overprint_t, "gs_overprint_t");
 
 /* some elementary macros for manipulating drawn_comps */
-#define gs_overprint_set_drawn_comp(drawn_comps, i) \
-    ((drawn_comps) |= (gx_color_index)1 << (i))
+#define gs_overprint_set_drawn_comp(drawn_comps, i)                            \
+	((drawn_comps) |= (gx_color_index)1 << (i))
 
-#define gs_overprint_clear_drawn_comp(drawn_comps, i)   \
-    ((drawn_comps) &= ~((gx_color_index)1 << 1))
+#define gs_overprint_clear_drawn_comp(drawn_comps, i)                          \
+	((drawn_comps) &= ~((gx_color_index)1 << 1))
 
-#define gs_overprint_clear_all_drawn_comps(drawn_comps) \
-    ((drawn_comps) = 0)
+#define gs_overprint_clear_all_drawn_comps(drawn_comps) ((drawn_comps) = 0)
 
-#define gs_overprint_get_drawn_comp(drawn_comps, i)     \
-    (((drawn_comps) & ((gx_color_index)1 << (i))) != 0)
-
+#define gs_overprint_get_drawn_comp(drawn_comps, i)                            \
+	(((drawn_comps) & ((gx_color_index)1 << (i))) != 0)
 
 /*
  * In the unlikely event that the overprint parameters will ever be
@@ -325,19 +322,16 @@ typedef struct gs_overprint_s {
  */
 extern_st(st_overprint_params);
 
-#define public_st_overprint_params_t    /* in gsovrc.c */   \
-    gs_public_st_simple( st_overprint_params,               \
-                         gs_overprint_params_t,             \
-                         "gs_overprint_params_t" )
-
+#define public_st_overprint_params_t /* in gsovrc.c */                         \
+	gs_public_st_simple(st_overprint_params, gs_overprint_params_t,        \
+	                    "gs_overprint_params_t")
 
 /* create an overprint composition object */
-extern  int    gs_create_overprint(
-    gs_composite_t **               ppct,
-    const gs_overprint_params_t *   pparams,
-    gs_memory_t *                   mem );
+extern int gs_create_overprint(gs_composite_t** ppct,
+                               const gs_overprint_params_t* pparams,
+                               gs_memory_t* mem);
 
 /* verify that a compositor is the overprint compositor */
-extern bool    gs_is_overprint_compositor(const gs_composite_t * pct);
+extern bool gs_is_overprint_compositor(const gs_composite_t* pct);
 
-#endif  /* gsovrc_INCLUDED */
+#endif /* gsovrc_INCLUDED */

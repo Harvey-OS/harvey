@@ -15,21 +15,21 @@
 #include "defs.h"
 #include "fns.h"
 
-extern	int	infile;
-extern	int	outfile;
-extern	int	maxpos;
+extern int infile;
+extern int outfile;
+extern int maxpos;
 
 /* general printing routines ($) */
 
-char	*Ipath = INCDIR;
-static	int	tracetype;
-static void	printfp(Map*, int);
+char* Ipath = INCDIR;
+static int tracetype;
+static void printfp(Map*, int);
 
 /*
  *	callback on stack trace
  */
 static void
-ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
+ptrace(Map* map, uint64_t pc, uint64_t sp, Symbol* sym)
 {
 	char buf[512];
 
@@ -53,24 +53,24 @@ printtrace(int modif)
 	int i;
 	uint64_t pc, sp, link;
 	uint32_t w;
-	BKPT *bk;
+	BKPT* bk;
 	Symbol s;
 	int stack;
-	char *fname;
+	char* fname;
 	char buf[512];
 
-	if (cntflg==0)
+	if(cntflg == 0)
 		cntval = -1;
-	switch (modif) {
+	switch(modif) {
 
 	case '<':
-		if (cntval == 0) {
-			while (readchar() != EOR)
+		if(cntval == 0) {
+			while(readchar() != EOR)
 				;
 			reread();
 			break;
 		}
-		if (rdc() == '<')
+		if(rdc() == '<')
 			stack = 1;
 		else {
 			stack = 0;
@@ -98,7 +98,7 @@ printtrace(int modif)
 		done();
 
 	case 'w':
-		maxpos=(adrflg?adrval:MAXPOS);
+		maxpos = (adrflg ? adrval : MAXPOS);
 		break;
 
 	case 'S':
@@ -106,7 +106,7 @@ printtrace(int modif)
 		break;
 
 	case 's':
-		maxoff=(adrflg?adrval:MAXOFF);
+		maxoff = (adrflg ? adrval : MAXOFF);
 		break;
 
 	case 'm':
@@ -116,8 +116,8 @@ printtrace(int modif)
 
 	case 0:
 	case '?':
-		if (pid)
-			dprint("pid = %d\n",pid);
+		if(pid)
+			dprint("pid = %d\n", pid);
 		else
 			prints("no process\n");
 		flushbuf();
@@ -135,16 +135,16 @@ printtrace(int modif)
 	case 'c':
 	case 'C':
 		tracetype = modif;
-		if (machdata->ctrace) {
-			if (adrflg) {
+		if(machdata->ctrace) {
+			if(adrflg) {
 				/*
 				 * trace from jmpbuf for multi-threaded code.
 				 * assume sp and pc are in adjacent locations
 				 * and mach->szaddr in size.
 				 */
-				if (geta(cormap, adrval, &sp) < 0 ||
-					geta(cormap, adrval+mach->szaddr, &pc) < 0)
-						error("%r");
+				if(geta(cormap, adrval, &sp) < 0 ||
+				   geta(cormap, adrval + mach->szaddr, &pc) < 0)
+					error("%r");
 			} else {
 				sp = rget(cormap, mach->sp);
 				pc = rget(cormap, mach->pc);
@@ -153,83 +153,85 @@ printtrace(int modif)
 				link = rget(cormap, mach->link);
 			else
 				link = 0;
-			if (machdata->ctrace(cormap, pc, sp, link, ptrace) <= 0)
+			if(machdata->ctrace(cormap, pc, sp, link, ptrace) <= 0)
 				error("no stack frame");
 		}
 		break;
 
-		/*print externals*/
+	/*print externals*/
 	case 'e':
-		for (i = 0; globalsym(&s, i); i++) {
-			if (get4(cormap, s.value, &w) > 0)
+		for(i = 0; globalsym(&s, i); i++) {
+			if(get4(cormap, s.value, &w) > 0)
 				dprint("%s/%12t%#lux\n", s.name, w);
 		}
 		break;
 
-		/*print breakpoints*/
+	/*print breakpoints*/
 	case 'b':
 	case 'B':
-		for (bk=bkpthead; bk; bk=bk->nxtbkpt)
-			if (bk->flag) {
+		for(bk = bkpthead; bk; bk = bk->nxtbkpt)
+			if(bk->flag) {
 				symoff(buf, 512, (WORD)bk->loc, CTEXT);
 				dprint(buf);
-				if (bk->count != 1)
+				if(bk->count != 1)
 					dprint(",%d", bk->count);
-				dprint(":%c %s", bk->flag == BKPTTMP ? 'B' : 'b', bk->comm);
+				dprint(":%c %s",
+				       bk->flag == BKPTTMP ? 'B' : 'b',
+				       bk->comm);
 			}
 		break;
 
 	case 'M':
 		fname = getfname();
-		if (machbyname(fname) == 0)
-			dprint("unknown name\n");;
+		if(machbyname(fname) == 0)
+			dprint("unknown name\n");
+		;
 		break;
 	default:
 		error("bad `$' command");
 	}
-
 }
 
-char *
+char*
 getfname(void)
 {
 	static char fname[ARB];
-	char *p;
+	char* p;
 
-	if (rdc() == EOR) {
+	if(rdc() == EOR) {
 		reread();
 		return (0);
 	}
 	p = fname;
 	do {
 		*p++ = lastc;
-		if (p >= &fname[ARB-1])
+		if(p >= &fname[ARB - 1])
 			error("filename too long");
-	} while (rdc() != EOR);
+	} while(rdc() != EOR);
 	*p = 0;
 	reread();
 	return (fname);
 }
 
 static void
-printfp(Map *map, int modif)
+printfp(Map* map, int modif)
 {
-	Reglist *rp;
+	Reglist* rp;
 	int i;
 	int ret;
 	char buf[512];
 
-	for (i = 0, rp = mach->reglist; rp->rname; rp += ret) {
+	for(i = 0, rp = mach->reglist; rp->rname; rp += ret) {
 		ret = 1;
-		if (!(rp->rflags&RFLT))
+		if(!(rp->rflags & RFLT))
 			continue;
 		ret = fpformat(map, rp, buf, sizeof(buf), modif);
-		if (ret < 0) {
+		if(ret < 0) {
 			werrstr("Register %s: %r", rp->rname);
 			error("%r");
 		}
-			/* double column print */
-		if (i&0x01)
+		/* double column print */
+		if(i & 0x01)
 			dprint("%40t%-8s%-12s\n", rp->rname, buf);
 		else
 			dprint("\t%-8s%-12s", rp->rname, buf);
@@ -238,16 +240,16 @@ printfp(Map *map, int modif)
 }
 
 void
-redirin(int stack, char *file)
+redirin(int stack, char* file)
 {
-	char *pfile;
+	char* pfile;
 
-	if (file == 0) {
+	if(file == 0) {
 		iclose(-1, 0);
 		return;
 	}
 	iclose(stack, 0);
-	if ((infile = open(file, 0)) < 0) {
+	if((infile = open(file, 0)) < 0) {
 		pfile = smprint("%s/%s", Ipath, file);
 		infile = open(pfile, 0);
 		free(pfile);
@@ -259,23 +261,23 @@ redirin(int stack, char *file)
 }
 
 void
-printmap(char *s, Map *map)
+printmap(char* s, Map* map)
 {
 	int i;
 
-	if (!map)
+	if(!map)
 		return;
-	if (map == symmap)
+	if(map == symmap)
 		dprint("%s%12t`%s'\n", s, fsym < 0 ? "-" : symfil);
-	else if (map == cormap)
+	else if(map == cormap)
 		dprint("%s%12t`%s'\n", s, fcor < 0 ? "-" : corfil);
 	else
 		dprint("%s\n", s);
-	for (i = 0; i < map->nsegs; i++) {
-		if (map->seg[i].inuse)
+	for(i = 0; i < map->nsegs; i++) {
+		if(map->seg[i].inuse)
 			dprint("%s%8t%-16#llux %-16#llux %-16#llux\n",
-				map->seg[i].name, map->seg[i].b,
-				map->seg[i].e, map->seg[i].f);
+			       map->seg[i].name, map->seg[i].b, map->seg[i].e,
+			       map->seg[i].f);
 	}
 }
 
@@ -286,9 +288,9 @@ void
 printsym(void)
 {
 	int i;
-	Sym *sp;
+	Sym* sp;
 
-	for (i = 0; sp = getsym(i); i++) {
+	for(i = 0; sp = getsym(i); i++) {
 		switch(sp->type) {
 		case 't':
 		case 'l':
@@ -305,7 +307,8 @@ printsym(void)
 		case 'a':
 		case 'p':
 		case 'm':
-			dprint("%16#llux %c %s\n", sp->value, sp->type, sp->name);
+			dprint("%16#llux %c %s\n", sp->value, sp->type,
+			       sp->name);
 			break;
 		default:
 			break;
@@ -313,7 +316,7 @@ printsym(void)
 	}
 }
 
-#define	STRINGSZ	128
+#define STRINGSZ 128
 
 /*
  *	print the value of dot as file:line
@@ -323,7 +326,7 @@ printsource(ADDR dot)
 {
 	char str[STRINGSZ];
 
-	if (fileline(str, STRINGSZ, dot))
+	if(fileline(str, STRINGSZ, dot))
 		dprint("%s", str);
 }
 
@@ -333,29 +336,29 @@ printpc(void)
 	char buf[512];
 
 	dot = rget(cormap, mach->pc);
-	if(dot){
+	if(dot) {
 		printsource((int32_t)dot);
 		printc(' ');
 		symoff(buf, sizeof(buf), (int32_t)dot, CTEXT);
 		dprint("%s/", buf);
-		if (machdata->das(cormap, dot, 'i', buf, sizeof(buf)) < 0)
+		if(machdata->das(cormap, dot, 'i', buf, sizeof(buf)) < 0)
 			error("%r");
 		dprint("%16t%s\n", buf);
 	}
 }
 
 void
-printlocals(Symbol *fn, ADDR fp)
+printlocals(Symbol* fn, ADDR fp)
 {
 	int i;
 	uint32_t w;
 	Symbol s;
 
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
-		if (s.class != CAUTO)
+	for(i = 0; localsym(&s, i); i++) {
+		if(s.class != CAUTO)
 			continue;
-		if (get4(cormap, fp-s.value, &w) > 0)
+		if(get4(cormap, fp - s.value, &w) > 0)
 			dprint("%8t%s.%s/%10t%#lux\n", fn->name, s.name, w);
 		else
 			dprint("%8t%s.%s/%10t?\n", fn->name, s.name);
@@ -363,21 +366,21 @@ printlocals(Symbol *fn, ADDR fp)
 }
 
 void
-printparams(Symbol *fn, ADDR fp)
+printparams(Symbol* fn, ADDR fp)
 {
 	int i;
 	Symbol s;
 	uint32_t w;
 	int first = 0;
 
-	fp += mach->szaddr;			/* skip saved pc */
+	fp += mach->szaddr; /* skip saved pc */
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
-		if (s.class != CPARAM)
+	for(i = 0; localsym(&s, i); i++) {
+		if(s.class != CPARAM)
 			continue;
-		if (first++)
+		if(first++)
 			dprint(", ");
-		if (get4(cormap, fp+s.value, &w) > 0)
+		if(get4(cormap, fp + s.value, &w) > 0)
 			dprint("%s=%#lux", s.name, w);
 	}
 }

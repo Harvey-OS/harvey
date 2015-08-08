@@ -9,16 +9,15 @@
 
 #include "ssh.h"
 
-struct CipherState
-{
+struct CipherState {
 	DESstate enc;
 	DESstate dec;
 };
 
 static CipherState*
-initdes(Conn *c, int)
+initdes(Conn* c, int)
 {
-	CipherState *cs;
+	CipherState* cs;
 
 	cs = emalloc(sizeof(CipherState));
 	setupDESstate(&cs->enc, c->sesskey, nil);
@@ -27,23 +26,17 @@ initdes(Conn *c, int)
 }
 
 static void
-encryptdes(CipherState *cs, uint8_t *buf, int nbuf)
+encryptdes(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	desCBCencrypt(buf, nbuf, &cs->enc);
 }
 
 static void
-decryptdes(CipherState *cs, uint8_t *buf, int nbuf)
+decryptdes(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	desCBCdecrypt(buf, nbuf, &cs->dec);
 }
 
-Cipher cipherdes =
-{
-	SSH_CIPHER_DES,
-	"des",
-	initdes,
-	encryptdes,
-	decryptdes,
+Cipher cipherdes = {
+    SSH_CIPHER_DES, "des", initdes, encryptdes, decryptdes,
 };
-

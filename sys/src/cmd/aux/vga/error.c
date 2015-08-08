@@ -26,12 +26,12 @@ error(char* format, ...)
 	sequencer(0, 1);
 	n = sprint(buf, "%s: ", argv0);
 	va_start(arg, format);
-	out = vseprint(buf+n, buf+sizeof(buf)-n, format, arg);
+	out = vseprint(buf + n, buf + sizeof(buf) - n, format, arg);
 	va_end(arg);
 	if(vflag)
-		Bprint(&stdout, "%s", buf+n);
+		Bprint(&stdout, "%s", buf + n);
 	Bflush(&stdout);
-	write(2, buf, out-buf);
+	write(2, buf, out - buf);
 	exits("error");
 }
 
@@ -41,13 +41,13 @@ trace(char* format, ...)
 	char buf[512];
 	va_list arg;
 
-	if(vflag || Vflag){
-		if(curprintindex){
+	if(vflag || Vflag) {
+		if(curprintindex) {
 			curprintindex = 0;
 			Bprint(&stdout, "\n");
 		}
 		va_start(arg, format);
-		vseprint(buf, buf+sizeof(buf), format, arg);
+		vseprint(buf, buf + sizeof(buf), format, arg);
 		va_end(arg);
 		Bprint(&stdout, "%s", buf);
 		if(Vflag)

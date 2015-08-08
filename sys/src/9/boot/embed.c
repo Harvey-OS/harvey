@@ -11,18 +11,18 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-static char *paqfile;
+static char* paqfile;
 
 void
-configembed(Method *m)
+configembed(Method* m)
 {
-	if(*sys == '/' || *sys == '#'){
+	if(*sys == '/' || *sys == '#') {
 		/*
 		 *  if the user specifies the disk in the boot cmd or
 		 * 'root is from' prompt, use it
 		 */
 		paqfile = sys;
-	} else if(m->arg){
+	} else if(m->arg) {
 		/*
 		 *  a default is supplied when the kernel is made
 		 */
@@ -34,8 +34,8 @@ int
 connectembed(void)
 {
 	int i, p[2];
-	Dir *dir;
-	char **arg, **argp;
+	Dir* dir;
+	char** arg, **argp;
 
 	dir = dirstat("/boot/paqfs");
 	if(dir == nil)
@@ -52,18 +52,18 @@ connectembed(void)
 		fatal("bind #c");
 	if(bind("#p", "/proc", MREPL) < 0)
 		fatal("bind #p");
-	if(pipe(p)<0)
+	if(pipe(p) < 0)
 		fatal("pipe");
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fatal("fork");
 	case 0:
-		arg = malloc((bargc+5)*sizeof(char*));
+		arg = malloc((bargc + 5) * sizeof(char*));
 		argp = arg;
 		*argp++ = "/boot/paqfs";
 		*argp++ = "-iv";
 		*argp++ = paqfile;
-		for(i=1; i<bargc; i++)
+		for(i = 1; i < bargc; i++)
 			*argp++ = bargv[i];
 		*argp = 0;
 

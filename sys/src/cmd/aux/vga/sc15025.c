@@ -63,7 +63,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t pclk;
-	char *p;
+	char* p;
 
 	/*
 	 * Part comes in -125, -110, -80, and -66MHz speed-grades.
@@ -72,7 +72,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	pclk = 66000000;
 	if(p = strrchr(ctlr->name, '-'))
-		pclk = strtoul(p+1, 0, 0) * 1000000;
+		pclk = strtoul(p + 1, 0, 0) * 1000000;
 
 	/*
 	 * If we don't already have a desired pclk,
@@ -93,11 +93,11 @@ load(Vga* vga, Ctlr* ctlr)
 	aux = 0x00;
 	/*
 	if(vga->mode->z == 8)
-		aux = 0x01;
+	        aux = 0x01;
 	 */
 	commandrw();
 	command = inportb(Pixmask);
-	outportb(Pixmask, command|0x18);
+	outportb(Pixmask, command | 0x18);
 	outportb(PaddrR, 0x08);
 	outportb(PaddrW, aux);
 	commandw(command);
@@ -114,8 +114,8 @@ dump(Vga* vga, Ctlr* ctlr)
 	printreg(command);
 
 	printitem(ctlr->name, "index08");
-	commandw(command|0x10);
-	for(i = 0x08; i < 0x11; i++){
+	commandw(command | 0x10);
+	for(i = 0x08; i < 0x11; i++) {
 		outportb(PaddrR, i);
 		printreg(inportb(PaddrW));
 	}
@@ -123,10 +123,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr sc15025 = {
-	"sc15025",			/* name */
-	0,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "sc15025", /* name */
+    0,         /* snarf */
+    options,   /* options */
+    init,      /* init */
+    load,      /* load */
+    dump,      /* dump */
 };

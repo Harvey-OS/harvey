@@ -9,6 +9,6 @@
 
 #include <regexp.h>
 
-extern Object *sobj;
+extern Object* sobj;
 
-Object *search(Object *rt, Object *parent, Reprog *preg);
+Object* search(Object* rt, Object* parent, Reprog* preg);

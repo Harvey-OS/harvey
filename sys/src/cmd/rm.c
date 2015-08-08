@@ -10,13 +10,13 @@
 #include <u.h>
 #include <libc.h>
 
-char	errbuf[ERRMAX];
-int	ignerr = 0;
+char errbuf[ERRMAX];
+int ignerr = 0;
 
 void
-err(char *f)
+err(char* f)
 {
-	if(!ignerr){
+	if(!ignerr) {
 		errbuf[0] = '\0';
 		errstr(errbuf, sizeof errbuf);
 		fprint(2, "rm: %s: %s\n", f, errbuf);
@@ -27,37 +27,37 @@ err(char *f)
  * f is a non-empty directory. Remove its contents and then it.
  */
 void
-rmdir(char *f)
+rmdir(char* f)
 {
-	char *name;
+	char* name;
 	int fd, i, j, n, ndir, nname;
-	Dir *dirbuf;
+	Dir* dirbuf;
 
 	fd = open(f, OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		err(f);
 		return;
 	}
 	n = dirreadall(fd, &dirbuf);
 	close(fd);
-	if(n < 0){
+	if(n < 0) {
 		err("dirreadall");
 		return;
 	}
 
-	nname = strlen(f)+1+STATMAX+1;	/* plenty! */
+	nname = strlen(f) + 1 + STATMAX + 1; /* plenty! */
 	name = malloc(nname);
-	if(name == 0){
+	if(name == 0) {
 		err("memory allocation");
 		return;
 	}
 
 	ndir = 0;
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		snprint(name, nname, "%s/%s", f, dirbuf[i].name);
 		if(remove(name) != -1)
-			dirbuf[i].qid.type = QTFILE;	/* so we won't recurse */
-		else{
+			dirbuf[i].qid.type = QTFILE; /* so we won't recurse */
+		else {
 			if(dirbuf[i].qid.type & QTDIR)
 				ndir++;
 			else
@@ -65,9 +65,10 @@ rmdir(char *f)
 		}
 	}
 	if(ndir)
-		for(j=0; j<n; j++)
-			if(dirbuf[j].qid.type & QTDIR){
-				snprint(name, nname, "%s/%s", f, dirbuf[j].name);
+		for(j = 0; j < n; j++)
+			if(dirbuf[j].qid.type & QTDIR) {
+				snprint(name, nname, "%s/%s", f,
+				        dirbuf[j].name);
 				rmdir(name);
 			}
 	if(remove(f) == -1)
@@ -76,16 +77,17 @@ rmdir(char *f)
 	free(dirbuf);
 }
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i;
 	int recurse;
-	char *f;
-	Dir *db;
+	char* f;
+	Dir* db;
 
 	ignerr = 0;
 	recurse = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'r':
 		recurse = 1;
 		break;
@@ -95,13 +97,15 @@ main(int argc, char *argv[])
 	default:
 		fprint(2, "usage: rm [-fr] file ...\n");
 		exits("usage");
-	}ARGEND
-	for(i=0; i<argc; i++){
+	}
+	ARGEND
+	for(i = 0; i < argc; i++) {
 		f = argv[i];
 		if(remove(f) != -1)
 			continue;
 		db = nil;
-		if(recurse && (db=dirstat(f))!=nil && (db->qid.type&QTDIR))
+		if(recurse && (db = dirstat(f)) != nil &&
+		   (db->qid.type & QTDIR))
 			rmdir(f);
 		else
 			err(f);

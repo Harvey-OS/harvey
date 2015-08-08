@@ -8,15 +8,15 @@
  */
 
 /****************************************************************
- 
+
   The author of this software (_dtoa, strtod) is David M. Gay.
   Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-2070
-	U.S.A.
-	dmg@research.bell-labs.com
+        David M. Gay
+        Bell Laboratories, Room 2C-463
+        600 Mountain Avenue
+        Murray Hill, NJ 07974-2070
+        U.S.A.
+        dmg@research.bell-labs.com
  */
 #include <stdlib.h>
 #include <string.h>
@@ -51,10 +51,11 @@
  */
 
 #if defined(IEEE_8087) + defined(IEEE_MC68k) + defined(VAX) + defined(IBM) != 1
-Exactly one of IEEE_8087, IEEE_MC68k, VAX, or IBM should be defined.
+Exactly one of IEEE_8087, IEEE_MC68k, VAX, or
+                                               IBM should be defined.
 #endif
 
-typedef union {
+                                               typedef union {
 	double d;
 	unsigned long ul[2];
 } Dul;
@@ -68,9 +69,11 @@ typedef union {
 #endif
 
 #ifdef Unsigned_Shifts
-#define Sign_Extend(a,b) if (b < 0) a |= 0xffff0000;
+#define Sign_Extend(a, b)                                                      \
+	if(b < 0)                                                              \
+		a |= 0xffff0000;
 #else
-#define Sign_Extend(a,b) /*no-op*/
+#define Sign_Extend(a, b) /*no-op*/
 #endif
 
 /* The following definition of Storeinc is appropriate for MIPS processors.
@@ -78,11 +81,13 @@ typedef union {
  * #define Storeinc(a,b,c) (*a++ = b << 16 | c & 0xffff)
  */
 #if defined(IEEE_8087) + defined(VAX)
-#define Storeinc(a,b,c) (((unsigned short *)a)[1] = (unsigned short)b, \
-((unsigned short *)a)[0] = (unsigned short)c, a++)
+#define Storeinc(a, b, c)                                                      \
+	(((unsigned short*)a)[1] = (unsigned short)b,                          \
+	 ((unsigned short*)a)[0] = (unsigned short)c, a++)
 #else
-#define Storeinc(a,b,c) (((unsigned short *)a)[0] = (unsigned short)b, \
-((unsigned short *)a)[1] = (unsigned short)c, a++)
+#define Storeinc(a, b, c)                                                      \
+	(((unsigned short*)a)[0] = (unsigned short)b,                          \
+	 ((unsigned short*)a)[1] = (unsigned short)c, a++)
 #endif
 
 /* #define P DBL_MANT_DIG */
@@ -92,23 +97,23 @@ typedef union {
 /* Int_max = floor(P*log(FLT_RADIX)/log(10) - 1) */
 
 #if defined(IEEE_8087) + defined(IEEE_MC68k)
-#define Exp_shift  20
+#define Exp_shift 20
 #define Exp_shift1 20
-#define Exp_msk1    0x100000
-#define Exp_msk11   0x100000
-#define Exp_mask  0x7ff00000
+#define Exp_msk1 0x100000
+#define Exp_msk11 0x100000
+#define Exp_mask 0x7ff00000
 #define P 53
 #define Bias 1023
 #define IEEE_Arith
 #define Emin (-1022)
-#define Exp_1  0x3ff00000
+#define Exp_1 0x3ff00000
 #define Exp_11 0x3ff00000
 #define Ebits 11
-#define Frac_mask  0xfffff
+#define Frac_mask 0xfffff
 #define Frac_mask1 0xfffff
 #define Ten_pmax 22
 #define Bletch 0x10
-#define Bndry_mask  0xfffff
+#define Bndry_mask 0xfffff
 #define Bndry_mask1 0xfffff
 #define LSB 1
 #define Sign_bit 0x80000000
@@ -119,24 +124,24 @@ typedef union {
 #define Int_max 14
 #define Infinite(x) (word0(x) == 0x7ff00000) /* sufficient test for here */
 #else
-#undef  Sudden_Underflow
+#undef Sudden_Underflow
 #define Sudden_Underflow
 #ifdef IBM
-#define Exp_shift  24
+#define Exp_shift 24
 #define Exp_shift1 24
-#define Exp_msk1   0x1000000
-#define Exp_msk11  0x1000000
-#define Exp_mask  0x7f000000
+#define Exp_msk1 0x1000000
+#define Exp_msk11 0x1000000
+#define Exp_mask 0x7f000000
 #define P 14
 #define Bias 65
-#define Exp_1  0x41000000
+#define Exp_1 0x41000000
 #define Exp_11 0x41000000
-#define Ebits 8	/* exponent has 7 bits, but 8 is the right value in b2d */
-#define Frac_mask  0xffffff
+#define Ebits 8 /* exponent has 7 bits, but 8 is the right value in b2d */
+#define Frac_mask 0xffffff
 #define Frac_mask1 0xffffff
 #define Bletch 4
 #define Ten_pmax 22
-#define Bndry_mask  0xefffff
+#define Bndry_mask 0xefffff
 #define Bndry_mask1 0xffffff
 #define LSB 1
 #define Sign_bit 0x80000000
@@ -146,21 +151,21 @@ typedef union {
 #define Quick_max 14
 #define Int_max 15
 #else /* VAX */
-#define Exp_shift  23
+#define Exp_shift 23
 #define Exp_shift1 7
-#define Exp_msk1    0x80
-#define Exp_msk11   0x800000
-#define Exp_mask  0x7f80
+#define Exp_msk1 0x80
+#define Exp_msk11 0x800000
+#define Exp_mask 0x7f80
 #define P 56
 #define Bias 129
-#define Exp_1  0x40800000
+#define Exp_1 0x40800000
 #define Exp_11 0x4080
 #define Ebits 8
-#define Frac_mask  0x7fffff
+#define Frac_mask 0x7fffff
 #define Frac_mask1 0xffff007f
 #define Ten_pmax 24
 #define Bletch 2
-#define Bndry_mask  0xffff007f
+#define Bndry_mask 0xffff007f
 #define Bndry_mask1 0xffff007f
 #define LSB 0x10000
 #define Sign_bit 0x8000
@@ -176,7 +181,7 @@ typedef union {
 #define ROUND_BIASED
 #endif
 
-#define Big0 (Frac_mask1 | Exp_msk1*(DBL_MAX_EXP+Bias-1))
+#define Big0 (Frac_mask1 | Exp_msk1 * (DBL_MAX_EXP + Bias - 1))
 #define Big1 0xffffffff
 
 #ifndef Just_16
@@ -192,29 +197,28 @@ typedef union {
 
 #define Kmax 15
 
- struct
-Bigint {
-	struct Bigint *next;
+struct Bigint {
+	struct Bigint* next;
 	int k, maxwds, sign, wds;
 	unsigned long x[1];
-	};
+};
 
- typedef struct Bigint Bigint;
+typedef struct Bigint Bigint;
 
 /* This routines shouldn't be visible externally */
-extern Bigint	*_Balloc(int);
-extern void	_Bfree(Bigint *);
-extern Bigint	*_multadd(Bigint *, int, int);
-extern int	_hi0bits(unsigned long);
-extern Bigint	*_mult(Bigint *, Bigint *);
-extern Bigint	*_pow5mult(Bigint *, int);
-extern Bigint	*_lshift(Bigint *, int);
-extern int	_cmp(Bigint *, Bigint *);
-extern Bigint	*_diff(Bigint *, Bigint *);
-extern Bigint	*_d2b(double, int *, int *);
-extern Bigint	*_i2b(int);
+extern Bigint* _Balloc(int);
+extern void _Bfree(Bigint*);
+extern Bigint* _multadd(Bigint*, int, int);
+extern int _hi0bits(unsigned long);
+extern Bigint* _mult(Bigint*, Bigint*);
+extern Bigint* _pow5mult(Bigint*, int);
+extern Bigint* _lshift(Bigint*, int);
+extern int _cmp(Bigint*, Bigint*);
+extern Bigint* _diff(Bigint*, Bigint*);
+extern Bigint* _d2b(double, int*, int*);
+extern Bigint* _i2b(int);
 
-extern double	_tens[], _bigtens[], _tinytens[];
+extern double _tens[], _bigtens[], _tinytens[];
 
 #ifdef IEEE_Arith
 #define n_bigtens 5
@@ -228,17 +232,18 @@ extern double	_tens[], _bigtens[], _tinytens[];
 
 #define Balloc(x) _Balloc(x)
 #define Bfree(x) _Bfree(x)
-#define Bcopy(x,y) memcpy((char *)&x->sign, (char *)&y->sign, \
-y->wds*sizeof(long) + 2*sizeof(int))
-#define multadd(x,y,z) _multadd(x,y,z)
+#define Bcopy(x, y)                                                            \
+	memcpy((char*)&x->sign, (char*)&y->sign,                               \
+	       y->wds * sizeof(long) + 2 * sizeof(int))
+#define multadd(x, y, z) _multadd(x, y, z)
 #define hi0bits(x) _hi0bits(x)
 #define i2b(x) _i2b(x)
-#define mult(x,y) _mult(x,y)
-#define pow5mult(x,y) _pow5mult(x,y)
-#define lshift(x,y) _lshift(x,y)
-#define cmp(x,y) _cmp(x,y)
-#define diff(x,y) _diff(x,y)
-#define d2b(x,y,z) _d2b(x,y,z)
+#define mult(x, y) _mult(x, y)
+#define pow5mult(x, y) _pow5mult(x, y)
+#define lshift(x, y) _lshift(x, y)
+#define cmp(x, y) _cmp(x, y)
+#define diff(x, y) _diff(x, y)
+#define d2b(x, y, z) _d2b(x, y, z)
 
 #define tens _tens
 #define bigtens _bigtens

@@ -21,13 +21,13 @@ struct CipherState {
 };
 
 static CipherState*
-init3des(Conn *c, int dir)
+init3des(Conn* c, int dir)
 {
-	CipherState *cs;
+	CipherState* cs;
 	uint8_t key[3][8];
 
 	cs = emalloc9p(sizeof(CipherState));
-	if(dir){
+	if(dir) {
 		memmove(key, c->s2cek, sizeof key);
 		setupDES3state(&cs->state, key, c->s2civ);
 	} else {
@@ -38,21 +38,17 @@ init3des(Conn *c, int dir)
 }
 
 static void
-encrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
+encrypt3des(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	des3CBCencrypt(buf, nbuf, &cs->state);
 }
 
 static void
-decrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
+decrypt3des(CipherState* cs, uint8_t* buf, int nbuf)
 {
 	des3CBCdecrypt(buf, nbuf, &cs->state);
 }
 
 Cipher cipher3des = {
-	"3des-cbc",
-	8,
-	init3des,
-	encrypt3des,
-	decrypt3des,
+    "3des-cbc", 8, init3des, encrypt3des, decrypt3des,
 };

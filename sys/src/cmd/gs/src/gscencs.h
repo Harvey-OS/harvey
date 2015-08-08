@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Compact C representation of built-in encodings */
 
 #ifndef gscencs_INCLUDED
-#  define gscencs_INCLUDED
+#define gscencs_INCLUDED
 
 #include "stdpre.h"
 #include "gstypes.h"
@@ -68,17 +68,17 @@ gs_char gs_c_decode(gs_glyph glyph, int ei);
 /*
  * Convert a glyph number returned by gs_c_known_encode to a string.
  */
-int gs_c_glyph_name(gs_glyph glyph, gs_const_string *pstr);
+int gs_c_glyph_name(gs_glyph glyph, gs_const_string* pstr);
 
 /*
  * Test whether a string is one that was returned by gs_c_glyph_name.
  */
-bool gs_is_c_glyph_name(const byte *str, uint len);
+bool gs_is_c_glyph_name(const byte* str, uint len);
 
 /*
  * Return the glyph number corresponding to a string (the inverse of
  * gs_c_glyph_name), or GS_NO_GLYPH if the glyph name is not known.
  */
-gs_glyph gs_c_name_glyph(const byte *str, uint len);
+gs_glyph gs_c_name_glyph(const byte* str, uint len);
 
 #endif /* gscencs_INCLUDED */

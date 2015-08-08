@@ -10,7 +10,7 @@
 #include "cc.h"
 
 static Node*
-acast(Type *t, Node *n)
+acast(Type* t, Node* n)
 {
 	if(n->type->etype != t->etype || n->op == OBIT) {
 		n = new1(OCAST, n, Z);
@@ -21,11 +21,10 @@ acast(Type *t, Node *n)
 	return n;
 }
 
-
 void
-evconst(Node *n)
+evconst(Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 	int et, isf;
 	int64_t v;
 	double d;
@@ -103,7 +102,6 @@ evconst(Node *n)
 	case OLMUL:
 		v = (uint64_t)l->vconst * (uint64_t)r->vconst;
 		break;
-
 
 	case ODIV:
 		if(vconst(r) == 0) {
@@ -253,14 +251,13 @@ evconst(Node *n)
 }
 
 void
-acom(Node *n)
+acom(Node* n)
 {
-	Type *t;
-	Node *l, *r;
+	Type* t;
+	Node* l, *r;
 	int i;
 
-	switch(n->op)
-	{
+	switch(n->op) {
 
 	case ONAME:
 	case OCONST:
@@ -308,20 +305,20 @@ acom(Node *n)
 	nterm = 1;
 	acom1(1, n);
 	if(debug['m'])
-	for(i=0; i<nterm; i++) {
-		print("%d %3lld ", i, term[i].mult);
-		prtree1(term[i].node, 1, 0);
-	}
+		for(i = 0; i < nterm; i++) {
+			print("%d %3lld ", i, term[i].mult);
+			prtree1(term[i].node, 1, 0);
+		}
 	if(nterm < NTERM)
 		acom2(n, t);
 	n->type = t;
 }
 
 int
-acomcmp1(const void *a1, const void *a2)
+acomcmp1(const void* a1, const void* a2)
 {
 	int64_t c1, c2;
-	Term *t1, *t2;
+	Term* t1, *t2;
 
 	t1 = (Term*)a1;
 	t2 = (Term*)a2;
@@ -349,10 +346,10 @@ acomcmp1(const void *a1, const void *a2)
 }
 
 int
-acomcmp2(const void *a1, const void *a2)
+acomcmp2(const void* a1, const void* a2)
 {
 	int64_t c1, c2;
-	Term *t1, *t2;
+	Term* t1, *t2;
 
 	t1 = (Term*)a1;
 	t2 = (Term*)a2;
@@ -368,9 +365,9 @@ acomcmp2(const void *a1, const void *a2)
 }
 
 void
-acom2(Node *n, Type *t)
+acom2(Node* n, Type* t)
 {
-	Node *l, *r;
+	Node* l, *r;
 	Term trm[NTERM];
 	int et, nt, i, j;
 	int64_t c1, c2;
@@ -380,13 +377,13 @@ acom2(Node *n, Type *t)
 	 */
 	c2 = 0;
 	nt = nterm;
-	for(i=0; i<nt; i++)
+	for(i = 0; i < nt; i++)
 		trm[i] = term[i];
 	/*
 	 * recur on subtrees
 	 */
 	j = 0;
-	for(i=1; i<nt; i++) {
+	for(i = 1; i < nt; i++) {
 		c1 = trm[i].mult;
 		if(c1 == 0)
 			continue;
@@ -414,7 +411,7 @@ acom2(Node *n, Type *t)
 		l->type = t;
 		l->vconst = c1;
 		trm[0].mult = 1;
-		for(i=1; i<nt; i++) {
+		for(i = 1; i < nt; i++) {
 			if(trm[i].mult != 1)
 				continue;
 			r = trm[i].node;
@@ -432,14 +429,14 @@ acom2(Node *n, Type *t)
 	 * look for factorable terms
 	 * c1*i + c1*c2*j -> c1*(i + c2*j)
 	 */
-	qsort(trm+1, nt-1, sizeof(trm[0]), acomcmp1);
-	for(i=nt-1; i>=0; i--) {
+	qsort(trm + 1, nt - 1, sizeof(trm[0]), acomcmp1);
+	for(i = nt - 1; i >= 0; i--) {
 		c1 = trm[i].mult;
 		if(c1 < 0)
 			c1 = -c1;
 		if(c1 <= 1)
 			continue;
-		for(j=i+1; j<nt; j++) {
+		for(j = i + 1; j < nt; j++) {
 			c2 = trm[j].mult;
 			if(c2 < 0)
 				c2 = -c2;
@@ -450,7 +447,7 @@ acom2(Node *n, Type *t)
 			r = trm[j].node;
 			if(r->type->etype != et)
 				r = acast(t, r);
-			c2 = trm[j].mult/trm[i].mult;
+			c2 = trm[j].mult / trm[i].mult;
 			if(c2 != 1 && c2 != -1) {
 				r = new1(OMUL, r, new(OCONST, Z, Z));
 				r->type = t;
@@ -470,7 +467,7 @@ acom2(Node *n, Type *t)
 	}
 	if(debug['m']) {
 		print("\n");
-		for(i=0; i<nt; i++) {
+		for(i = 0; i < nt; i++) {
 			print("%d %3lld ", i, trm[i].mult);
 			prtree1(trm[i].node, 1, 0);
 		}
@@ -479,9 +476,9 @@ acom2(Node *n, Type *t)
 	/*
 	 * put it all back together
 	 */
-	qsort(trm+1, nt-1, sizeof(trm[0]), acomcmp2);
+	qsort(trm + 1, nt - 1, sizeof(trm[0]), acomcmp2);
 	l = Z;
-	for(i=nt-1; i>=0; i--) {
+	for(i = nt - 1; i >= 0; i--) {
 		c1 = trm[i].mult;
 		if(c1 == 0)
 			continue;
@@ -510,12 +507,11 @@ acom2(Node *n, Type *t)
 				l = new1(OADD, l, r);
 			else
 				l = new1(OSUB, l, r);
-		else
-			if(c2 < 0) {
-				l = new1(OSUB, r, l);
-				c2 = 1;
-			} else
-				l = new1(OADD, l, r);
+		else if(c2 < 0) {
+			l = new1(OSUB, r, l);
+			c2 = 1;
+		} else
+			l = new1(OADD, l, r);
 		l->type = t;
 	}
 	if(c2 < 0) {
@@ -529,18 +525,18 @@ acom2(Node *n, Type *t)
 }
 
 void
-acom1(int64_t v, Node *n)
+acom1(int64_t v, Node* n)
 {
-	Node *l, *r;
+	Node* l, *r;
 
 	if(v == 0 || nterm >= NTERM)
 		return;
 	if(!addo(n)) {
 		if(n->op == OCONST)
-		if(!typefd[n->type->etype]) {
-			term[0].mult += v*n->vconst;
-			return;
-		}
+			if(!typefd[n->type->etype]) {
+				term[0].mult += v * n->vconst;
+				return;
+			}
 		term[nterm].mult = v;
 		term[nterm].node = n;
 		nterm++;
@@ -570,15 +566,15 @@ acom1(int64_t v, Node *n)
 		l = n->left;
 		r = n->right;
 		if(l->op == OCONST)
-		if(!typefd[n->type->etype]) {
-			acom1(v*l->vconst, r);
-			break;
-		}
+			if(!typefd[n->type->etype]) {
+				acom1(v * l->vconst, r);
+				break;
+			}
 		if(r->op == OCONST)
-		if(!typefd[n->type->etype]) {
-			acom1(v*r->vconst, l);
-			break;
-		}
+			if(!typefd[n->type->etype]) {
+				acom1(v * r->vconst, l);
+				break;
+			}
 		break;
 
 	default:
@@ -587,29 +583,30 @@ acom1(int64_t v, Node *n)
 }
 
 int
-addo(Node *n)
+addo(Node* n)
 {
 
 	if(n != Z)
-	if(!typefd[n->type->etype])
-	if(!typev[n->type->etype] || ewidth[TVLONG] == ewidth[TIND])
-	switch(n->op) {
+		if(!typefd[n->type->etype])
+			if(!typev[n->type->etype] ||
+			   ewidth[TVLONG] == ewidth[TIND])
+				switch(n->op) {
 
-	case OCAST:
-		if(nilcast(n->left->type, n->type))
-			return 1;
-		break;
+				case OCAST:
+					if(nilcast(n->left->type, n->type))
+						return 1;
+					break;
 
-	case ONEG:
-	case OADD:
-	case OSUB:
-		return 1;
+				case ONEG:
+				case OADD:
+				case OSUB:
+					return 1;
 
-	case OMUL:
-		if(n->left->op == OCONST)
-			return 1;
-		if(n->right->op == OCONST)
-			return 1;
-	}
+				case OMUL:
+					if(n->left->op == OCONST)
+						return 1;
+					if(n->right->op == OCONST)
+						return 1;
+				}
 	return 0;
 }

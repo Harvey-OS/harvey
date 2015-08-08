@@ -13,27 +13,27 @@
 
 typedef struct Srv Srv;
 struct Srv {
-	int	fd;
-	int	srvfd;
-	char*	service;
-	char*	mntpnt;
+	int fd;
+	int srvfd;
+	char* service;
+	char* mntpnt;
 
-	Srv*	next;
-	Srv*	prev;
+	Srv* next;
+	Srv* prev;
 };
 
 static struct {
-	VtLock*	lock;
+	VtLock* lock;
 
-	Srv*	head;
-	Srv*	tail;
+	Srv* head;
+	Srv* tail;
 } sbox;
 
 static int
 srvFd(char* name, int mode, int fd, char** mntpnt)
 {
 	int n, srvfd;
-	char *p, buf[10];
+	char* p, buf[10];
 
 	/*
 	 * Drop a file descriptor with given name and mode into /srv.
@@ -41,10 +41,10 @@ srvFd(char* name, int mode, int fd, char** mntpnt)
 	 * automatically on process exit.
 	 */
 	p = smprint("/srv/%s", name);
-	if((srvfd = create(p, ORCLOSE|OWRITE, mode)) < 0){
+	if((srvfd = create(p, ORCLOSE | OWRITE, mode)) < 0) {
 		vtMemFree(p);
 		p = smprint("#s/%s", name);
-		if((srvfd = create(p, ORCLOSE|OWRITE, mode)) < 0){
+		if((srvfd = create(p, ORCLOSE | OWRITE, mode)) < 0) {
 			vtSetError("create %s: %r", p);
 			vtMemFree(p);
 			return -1;
@@ -52,7 +52,7 @@ srvFd(char* name, int mode, int fd, char** mntpnt)
 	}
 
 	n = snprint(buf, sizeof(buf), "%d", fd);
-	if(write(srvfd, buf, n) < 0){
+	if(write(srvfd, buf, n) < 0) {
 		close(srvfd);
 		vtSetError("write %s: %r", p);
 		vtMemFree(p);
@@ -86,20 +86,20 @@ srvFree(Srv* srv)
 static Srv*
 srvAlloc(char* service, int mode, int fd)
 {
-	Dir *dir;
-	Srv *srv;
+	Dir* dir;
+	Srv* srv;
 	int srvfd;
-	char *mntpnt;
+	char* mntpnt;
 
 	vtLock(sbox.lock);
-	for(srv = sbox.head; srv != nil; srv = srv->next){
+	for(srv = sbox.head; srv != nil; srv = srv->next) {
 		if(strcmp(srv->service, service) != 0)
 			continue;
 		/*
 		 * If the service exists, but is stale,
 		 * free it up and let the name be reused.
 		 */
-		if((dir = dirfstat(srv->srvfd)) != nil){
+		if((dir = dirfstat(srv->srvfd)) != nil) {
 			free(dir);
 			vtSetError("srv: already serving '%s'", service);
 			vtUnlock(sbox.lock);
@@ -109,7 +109,7 @@ srvAlloc(char* service, int mode, int fd)
 		break;
 	}
 
-	if((srvfd = srvFd(service, mode, fd, &mntpnt)) < 0){
+	if((srvfd = srvFd(service, mode, fd, &mntpnt)) < 0) {
 		vtUnlock(sbox.lock);
 		return nil;
 	}
@@ -120,11 +120,10 @@ srvAlloc(char* service, int mode, int fd)
 	srv->service = vtStrDup(service);
 	srv->mntpnt = mntpnt;
 
-	if(sbox.tail != nil){
+	if(sbox.tail != nil) {
 		srv->prev = sbox.tail;
 		sbox.tail->next = srv;
-	}
-	else{
+	} else {
 		sbox.head = srv;
 		srv->prev = nil;
 	}
@@ -137,9 +136,9 @@ srvAlloc(char* service, int mode, int fd)
 static int
 cmdSrv(int argc, char* argv[])
 {
-	Con *con;
-	Srv *srv;
-	char *usage = "usage: srv [-APWdp] [service]";
+	Con* con;
+	Srv* srv;
+	char* usage = "usage: srv [-APWdp] [service]";
 	int conflags, dflag, fd[2], mode, pflag, r;
 
 	dflag = 0;
@@ -147,7 +146,8 @@ cmdSrv(int argc, char* argv[])
 	conflags = 0;
 	mode = 0666;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'A':
@@ -174,14 +174,15 @@ cmdSrv(int argc, char* argv[])
 		pflag = 1;
 		mode = 0600;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(pflag && (conflags&ConNoPermCheck)){
+	if(pflag && (conflags & ConNoPermCheck)) {
 		vtSetError("srv: cannot use -P with -p");
 		return 0;
 	}
 
-	switch(argc){
+	switch(argc) {
 	default:
 		return cliError(usage);
 	case 0:
@@ -196,7 +197,7 @@ cmdSrv(int argc, char* argv[])
 			break;
 
 		vtLock(sbox.lock);
-		for(srv = sbox.head; srv != nil; srv = srv->next){
+		for(srv = sbox.head; srv != nil; srv = srv->next) {
 			if(strcmp(srv->service, argv[0]) != 0)
 				continue;
 			srvFree(srv);
@@ -204,7 +205,7 @@ cmdSrv(int argc, char* argv[])
 		}
 		vtUnlock(sbox.lock);
 
-		if(srv == nil){
+		if(srv == nil) {
 			vtSetError("srv: '%s' not found", argv[0]);
 			return 0;
 		}
@@ -212,25 +213,26 @@ cmdSrv(int argc, char* argv[])
 		return 1;
 	}
 
-	if(pipe(fd) < 0){
+	if(pipe(fd) < 0) {
 		vtSetError("srv pipe: %r");
 		return 0;
 	}
-	if((srv = srvAlloc(argv[0], mode, fd[0])) == nil){
-		close(fd[0]); close(fd[1]);
+	if((srv = srvAlloc(argv[0], mode, fd[0])) == nil) {
+		close(fd[0]);
+		close(fd[1]);
 		return 0;
 	}
 
 	if(pflag)
 		r = consOpen(fd[1], srv->srvfd, -1);
-	else{
+	else {
 		con = conAlloc(fd[1], srv->mntpnt, conflags);
 		if(con == nil)
 			r = 0;
 		else
 			r = 1;
 	}
-	if(r == 0){
+	if(r == 0) {
 		close(fd[1]);
 		vtLock(sbox.lock);
 		srvFree(srv);

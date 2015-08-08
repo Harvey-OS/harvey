@@ -16,23 +16,24 @@ void
 usage(void)
 {
 	fprint(2, "usage: %s [-b inbuf] [-d domain] [-p localport]"
-		" [-r remoteip] [-s uri-scheme] [-w webroot]"
-		" [-L logfd0 logfd1] [-N netdir] [-R reqline]"
-		" method version uri [search]\n", argv0);
+	          " [-r remoteip] [-s uri-scheme] [-w webroot]"
+	          " [-L logfd0 logfd1] [-N netdir] [-R reqline]"
+	          " method version uri [search]\n",
+	       argv0);
 	exits("usage");
 }
 
-char	*netdir;
-char	*webroot;
-char	*HTTPLOG = "httpd/log";
+char* netdir;
+char* webroot;
+char* HTTPLOG = "httpd/log";
 
-static	HConnect	connect;
-static	HSPriv		priv;
+static HConnect connect;
+static HSPriv priv;
 
 HConnect*
-init(int argc, char **argv)
+init(int argc, char** argv)
 {
-	char *vs;
+	char* vs;
 
 	hinit(&connect.hin, 0, Hread);
 	hinit(&connect.hout, 1, Hwrite);
@@ -47,7 +48,8 @@ init(int argc, char **argv)
 	fmtinstall('H', httpfmt);
 	fmtinstall('U', hurlfmt);
 	netdir = "/net";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		hload(&connect.hin, EARGF(usage()));
 		break;
@@ -75,11 +77,12 @@ init(int argc, char **argv)
 		break;
 	case 'R':
 		snprint((char*)connect.header, sizeof(connect.header), "%s",
-			EARGF(usage()));
+		        EARGF(usage()));
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(priv.remotesys == nil)
 		priv.remotesys = "unknown";
@@ -104,7 +107,7 @@ init(int argc, char **argv)
 	vs = argv[1];
 	connect.req.vermaj = 0;
 	connect.req.vermin = 9;
-	if(strncmp(vs, "HTTP/", 5) == 0){
+	if(strncmp(vs, "HTTP/", 5) == 0) {
 		vs += 5;
 		connect.req.vermaj = strtoul(vs, &vs, 10);
 		if(*vs == '.')
@@ -117,6 +120,6 @@ init(int argc, char **argv)
 	connect.head.closeit = 1;
 	connect.hpos = (uint8_t*)strchr((char*)connect.header, '\0');
 	connect.hstop = connect.hpos;
-	connect.reqtime = time(nil);	/* not quite right, but close enough */
+	connect.reqtime = time(nil); /* not quite right, but close enough */
 	return &connect;
 }

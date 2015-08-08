@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1992, 1993, 1994 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,12 +27,12 @@
 /* Definitions common to gspmdrv.c and gspmdrv.rc */
 
 #ifndef gspmdrv_INCLUDED
-#  define gspmdrv_INCLUDED
+#define gspmdrv_INCLUDED
 
 #define GSPMDRV_VERSION "1994-02-09"
 
 #define IDM_ABOUT 5
-#define IDM_COPY  6
+#define IDM_COPY 6
 
 #define IDD_ABOUT IDM_ABOUT
 

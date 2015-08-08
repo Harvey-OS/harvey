@@ -14,25 +14,25 @@
 #include "usb.h"
 
 int
-parsedev(Dev *xd, uint8_t *b, int n)
+parsedev(Dev* xd, uint8_t* b, int n)
 {
-	Usbdev *d;
-	DDev *dd;
-	char *hd;
+	Usbdev* d;
+	DDev* dd;
+	char* hd;
 
 	d = xd->usb;
 	assert(d != nil);
 	dd = (DDev*)b;
-	if(usbdebug>1){
+	if(usbdebug > 1) {
 		hd = hexstr(b, Ddevlen);
 		fprint(2, "%s: parsedev %s: %s\n", argv0, xd->dir, hd);
 		free(hd);
 	}
-	if(dd->bLength < Ddevlen){
+	if(dd->bLength < Ddevlen) {
 		werrstr("short dev descr. (%d < %d)", dd->bLength, Ddevlen);
 		return -1;
 	}
-	if(dd->bDescriptorType != Ddev){
+	if(dd->bDescriptorType != Ddev) {
 		werrstr("%d is not a dev descriptor", dd->bDescriptorType);
 		return -1;
 	}
@@ -48,28 +48,28 @@ parsedev(Dev *xd, uint8_t *b, int n)
 	d->vsid = dd->iManufacturer;
 	d->psid = dd->iProduct;
 	d->ssid = dd->iSerialNumber;
-	if(n > Ddevlen && usbdebug>1)
-		fprint(2, "%s: %s: parsedev: %d bytes left",
-			argv0, xd->dir, n - Ddevlen);
+	if(n > Ddevlen && usbdebug > 1)
+		fprint(2, "%s: %s: parsedev: %d bytes left", argv0, xd->dir,
+		       n - Ddevlen);
 	return Ddevlen;
 }
 
 static int
-parseiface(Usbdev *d, Conf *c, uint8_t *b, int n, Iface **ipp, Altc **app)
+parseiface(Usbdev* d, Conf* c, uint8_t* b, int n, Iface** ipp, Altc** app)
 {
 	int class, subclass, proto;
 	int ifid, altid;
-	DIface *dip;
-	Iface *ip;
+	DIface* dip;
+	Iface* ip;
 
 	assert(d != nil && c != nil);
-	if(n < Difacelen){
+	if(n < Difacelen) {
 		werrstr("short interface descriptor");
 		return -1;
 	}
-	dip = (DIface *)b;
+	dip = (DIface*)b;
 	ifid = dip->bInterfaceNumber;
-	if(ifid < 0 || ifid >= nelem(c->iface)){
+	if(ifid < 0 || ifid >= nelem(c->iface)) {
 		werrstr("bad interface number %d", ifid);
 		return -1;
 	}
@@ -80,15 +80,15 @@ parseiface(Usbdev *d, Conf *c, uint8_t *b, int n, Iface **ipp, Altc **app)
 	subclass = dip->bInterfaceSubClass;
 	proto = dip->bInterfaceProtocol;
 	ip->csp = CSP(class, subclass, proto);
-	if(d->csp == 0)				/* use csp from 1st iface */
-		d->csp = ip->csp;		/* if device has none */
+	if(d->csp == 0)           /* use csp from 1st iface */
+		d->csp = ip->csp; /* if device has none */
 	if(d->class == 0)
 		d->class = class;
 	ip->id = ifid;
-	if(c == d->conf[0] && ifid == 0)	/* ep0 was already there */
+	if(c == d->conf[0] && ifid == 0) /* ep0 was already there */
 		d->ep[0]->iface = ip;
 	altid = dip->bAlternateSetting;
-	if(altid < 0 || altid >= nelem(ip->altc)){
+	if(altid < 0 || altid >= nelem(ip->altc)) {
 		werrstr("bad alternate conf. number %d", altid);
 		return -1;
 	}
@@ -99,23 +99,23 @@ parseiface(Usbdev *d, Conf *c, uint8_t *b, int n, Iface **ipp, Altc **app)
 	return Difacelen;
 }
 
-extern Ep* mkep(Usbdev *, int);
+extern Ep* mkep(Usbdev*, int);
 
 static int
-parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uint8_t *b, int n,
-	   Ep **epp)
+parseendpt(Usbdev* d, Conf* c, Iface* ip, Altc* altc, uint8_t* b, int n,
+           Ep** epp)
 {
 	int i, dir, epid;
-	Ep *ep;
-	DEp *dep;
+	Ep* ep;
+	DEp* dep;
 
 	assert(d != nil && c != nil && ip != nil && altc != nil);
-	if(n < Deplen){
+	if(n < Deplen) {
 		werrstr("short endpoint descriptor");
 		return -1;
 	}
-	dep = (DEp *)b;
-	altc->attrib = dep->bmAttributes;	/* here? */
+	dep = (DEp*)b;
+	altc->attrib = dep->bmAttributes; /* here? */
 	altc->interval = dep->bInterval;
 
 	epid = dep->bEndpointAddress & 0xF;
@@ -125,25 +125,26 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uint8_t *b, int n,
 	else
 		dir = Eout;
 	ep = d->ep[epid];
-	if(ep == nil){
+	if(ep == nil) {
 		ep = mkep(d, epid);
 		ep->dir = dir;
-	}else if((ep->addr & 0x80) != (dep->bEndpointAddress & 0x80))
+	} else if((ep->addr & 0x80) != (dep->bEndpointAddress & 0x80))
 		ep->dir = Eboth;
 	ep->maxpkt = GET2(dep->wMaxPacketSize);
 	ep->ntds = 1 + ((ep->maxpkt >> 11) & 3);
 	ep->maxpkt &= 0x7FF;
 	ep->addr = dep->bEndpointAddress;
 	ep->type = dep->bmAttributes & 0x03;
-	ep->isotype = (dep->bmAttributes>>2) & 0x03;
+	ep->isotype = (dep->bmAttributes >> 2) & 0x03;
 	ep->conf = c;
 	ep->iface = ip;
 	for(i = 0; i < nelem(ip->ep); i++)
 		if(ip->ep[i] == nil)
 			break;
-	if(i == nelem(ip->ep)){
+	if(i == nelem(ip->ep)) {
 		werrstr("parseendpt: bug: too many end points on interface "
-			"with csp %#lux", ip->csp);
+		        "with csp %#lux",
+		        ip->csp);
 		fprint(2, "%s: %r\n", argv0);
 		return -1;
 	}
@@ -154,26 +155,34 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uint8_t *b, int n,
 static char*
 dname(int dtype)
 {
-	switch(dtype){
-	case Ddev:	return "device";
-	case Dconf: 	return "config";
-	case Dstr: 	return "string";
-	case Diface:	return "interface";
-	case Dep:	return "endpoint";
-	case Dreport:	return "report";
-	case Dphysical:	return "phys";
-	default:	return "desc";
+	switch(dtype) {
+	case Ddev:
+		return "device";
+	case Dconf:
+		return "config";
+	case Dstr:
+		return "string";
+	case Diface:
+		return "interface";
+	case Dep:
+		return "endpoint";
+	case Dreport:
+		return "report";
+	case Dphysical:
+		return "phys";
+	default:
+		return "desc";
 	}
 }
 
 int
-parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n)
+parsedesc(Usbdev* d, Conf* c, uint8_t* b, int n)
 {
-	int	len, nd, tot;
-	Iface	*ip;
-	Ep 	*ep;
-	Altc	*altc;
-	char	*hd;
+	int len, nd, tot;
+	Iface* ip;
+	Ep* ep;
+	Altc* altc;
+	char* hd;
 
 	assert(d != nil && c != nil);
 	tot = 0;
@@ -184,45 +193,46 @@ parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n)
 		if(d->ddesc[nd] == nil)
 			break;
 
-	while(n > 2 && b[0] != 0 && b[0] <= n){
+	while(n > 2 && b[0] != 0 && b[0] <= n) {
 		len = b[0];
-		if(usbdebug>1){
+		if(usbdebug > 1) {
 			hd = hexstr(b, len);
-			fprint(2, "%s:\t\tparsedesc %s %x[%d] %s\n",
-				argv0, dname(b[1]), b[1], b[0], hd);
+			fprint(2, "%s:\t\tparsedesc %s %x[%d] %s\n", argv0,
+			       dname(b[1]), b[1], b[0], hd);
 			free(hd);
 		}
-		switch(b[1]){
+		switch(b[1]) {
 		case Ddev:
 		case Dconf:
 			werrstr("unexpected descriptor %d", b[1]);
 			ddprint(2, "%s\tparsedesc: %r", argv0);
 			break;
 		case Diface:
-			if(parseiface(d, c, b, n, &ip, &altc) < 0){
+			if(parseiface(d, c, b, n, &ip, &altc) < 0) {
 				ddprint(2, "%s\tparsedesc: %r\n", argv0);
 				return -1;
 			}
 			break;
 		case Dep:
-			if(ip == nil || altc == nil){
+			if(ip == nil || altc == nil) {
 				werrstr("unexpected endpoint descriptor");
 				break;
 			}
-			if(parseendpt(d, c, ip, altc, b, n, &ep) < 0){
+			if(parseendpt(d, c, ip, altc, b, n, &ep) < 0) {
 				ddprint(2, "%s\tparsedesc: %r\n", argv0);
 				return -1;
 			}
 			break;
 		default:
-			if(nd == nelem(d->ddesc)){
-				fprint(2, "%s: parsedesc: too many "
-					"device-specific descriptors for device"
-					" %s %s\n",
-					argv0, d->vendor, d->product);
+			if(nd == nelem(d->ddesc)) {
+				fprint(2,
+				       "%s: parsedesc: too many "
+				       "device-specific descriptors for device"
+				       " %s %s\n",
+				       argv0, d->vendor, d->product);
 				break;
 			}
-			d->ddesc[nd] = emallocz(sizeof(Desc)+b[0], 0);
+			d->ddesc[nd] = emallocz(sizeof(Desc) + b[0], 0);
 			d->ddesc[nd]->iface = ip;
 			d->ddesc[nd]->ep = ep;
 			d->ddesc[nd]->altc = altc;
@@ -238,43 +248,43 @@ parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n)
 }
 
 int
-parseconf(Usbdev *d, Conf *c, uint8_t *b, int n)
+parseconf(Usbdev* d, Conf* c, uint8_t* b, int n)
 {
 	DConf* dc;
-	int	l;
-	int	nr;
-	char	*hd;
+	int l;
+	int nr;
+	char* hd;
 
 	assert(d != nil && c != nil);
 	dc = (DConf*)b;
-	if(usbdebug>1){
+	if(usbdebug > 1) {
 		hd = hexstr(b, Dconflen);
 		fprint(2, "%s:\tparseconf  %s\n", argv0, hd);
 		free(hd);
 	}
-	if(dc->bLength < Dconflen){
+	if(dc->bLength < Dconflen) {
 		werrstr("short configuration descriptor");
 		return -1;
 	}
-	if(dc->bDescriptorType != Dconf){
+	if(dc->bDescriptorType != Dconf) {
 		werrstr("not a configuration descriptor");
 		return -1;
 	}
 	c->cval = dc->bConfigurationValue;
 	c->attrib = dc->bmAttributes;
-	c->milliamps = dc->MaxPower*2;
+	c->milliamps = dc->MaxPower * 2;
 	l = GET2(dc->wTotalLength);
-	if(n < l){
+	if(n < l) {
 		werrstr("truncated configuration info");
 		return -1;
 	}
 	n -= Dconflen;
 	b += Dconflen;
 	nr = 0;
-	if(n > 0 && (nr=parsedesc(d, c, b, n)) < 0)
+	if(n > 0 && (nr = parsedesc(d, c, b, n)) < 0)
 		return -1;
 	n -= nr;
-	if(n > 0 && usbdebug>1)
+	if(n > 0 && usbdebug > 1)
 		fprint(2, "%s:\tparseconf: %d bytes left\n", argv0, n);
 	return l;
 }

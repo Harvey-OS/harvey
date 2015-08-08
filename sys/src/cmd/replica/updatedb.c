@@ -14,51 +14,51 @@
 #include "all.h"
 
 int changesonly;
-char *uid;
-Db *db;
+char* uid;
+Db* db;
 Biobuf blog;
 uint32_t now;
 int n;
-char **x;
+char** x;
 int nx;
 int justlog;
-char *root=".";
-char **match;
+char* root = ".";
+char** match;
 int nmatch;
 
 int
-ismatch(char *s)
+ismatch(char* s)
 {
 	int i, len;
 
 	if(nmatch == 0)
 		return 1;
-	for(i=0; i<nmatch; i++){
+	for(i = 0; i < nmatch; i++) {
 		if(strcmp(s, match[i]) == 0)
 			return 1;
 		len = strlen(match[i]);
-		if(strncmp(s, match[i], len) == 0 && s[len]=='/')
+		if(strncmp(s, match[i], len) == 0 && s[len] == '/')
 			return 1;
 	}
 	return 0;
 }
 
 void
-xlog(int c, char *name, Dir *d)
+xlog(int c, char* name, Dir* d)
 {
-	char *dname;
+	char* dname;
 
 	dname = d->name;
 	if(strcmp(dname, name) == 0)
 		dname = "-";
 	if(!justlog)
 		Bprint(&blog, "%lud %d ", now, n++);
-	Bprint(&blog, "%c %q %q %luo %q %q %lud %lld\n",
-		c, name, dname, d->mode, uid ? uid : d->uid, d->gid, d->mtime, d->length);
+	Bprint(&blog, "%c %q %q %luo %q %q %lud %lld\n", c, name, dname,
+	       d->mode, uid ? uid : d->uid, d->gid, d->mtime, d->length);
 }
 
 void
-walk(char *new, char *old, Dir *xd, void*)
+walk(char* new, char* old, Dir* xd, void*)
 {
 	int i, change, len;
 	Dir od, d;
@@ -68,11 +68,11 @@ walk(char *new, char *old, Dir *xd, void*)
 
 	if(!ismatch(new))
 		return;
-	for(i=0; i<nx; i++){
+	for(i = 0; i < nx; i++) {
 		if(strcmp(new, x[i]) == 0)
 			return;
 		len = strlen(x[i]);
-		if(strncmp(new, x[i], len)==0 && new[len]=='/')
+		if(strncmp(new, x[i], len) == 0 && new[len] == '/')
 			return;
 	}
 
@@ -80,35 +80,35 @@ walk(char *new, char *old, Dir *xd, void*)
 	d.name = old;
 	memset(&od, 0, sizeof od);
 	change = 0;
-	if(markdb(db, new, &od) < 0){
-		if(!changesonly){
+	if(markdb(db, new, &od) < 0) {
+		if(!changesonly) {
 			xlog('a', new, &d);
 			change = 1;
 		}
-	}else{
-		if((d.mode&DMDIR)==0 && (od.mtime!=d.mtime || od.length!=d.length)){
+	} else {
+		if((d.mode & DMDIR) == 0 &&
+		   (od.mtime != d.mtime || od.length != d.length)) {
 			xlog('c', new, &d);
 			change = 1;
 		}
-		if((!uid&&strcmp(od.uid,d.uid)!=0)
-		|| strcmp(od.gid,d.gid)!=0 
-		|| od.mode!=d.mode){
+		if((!uid && strcmp(od.uid, d.uid) != 0) ||
+		   strcmp(od.gid, d.gid) != 0 || od.mode != d.mode) {
 			xlog('m', new, &d);
 			change = 1;
 		}
 	}
-	if(!justlog && change){
+	if(!justlog && change) {
 		if(uid)
 			d.uid = uid;
-		d.muid = "mark";	/* mark bit */
+		d.muid = "mark"; /* mark bit */
 		insertdb(db, new, &d);
 	}
 }
 
 void
-warn(char *msg, void*)
+warn(char* msg, void*)
 {
-	char *p;
+	char* p;
 
 	fprint(2, "warning: %s\n", msg);
 
@@ -128,36 +128,37 @@ warn(char *msg, void*)
 	 *	"'/n/sources/plan9' Hangup" for a remote hangup
 	 * the rest is paranoia.
 	 */
-	if(p){
-		if(cistrstr(p, "hungup") || cistrstr(p, "Hangup")
-		|| cistrstr(p, "rpc error")
-		|| cistrstr(p, "shut down")
-		|| cistrstr(p, "i/o")
-		|| cistrstr(p, "connection"))
-			sysfatal("suspected network or i/o error - bailing out");
+	if(p) {
+		if(cistrstr(p, "hungup") || cistrstr(p, "Hangup") ||
+		   cistrstr(p, "rpc error") || cistrstr(p, "shut down") ||
+		   cistrstr(p, "i/o") || cistrstr(p, "connection"))
+			sysfatal(
+			    "suspected network or i/o error - bailing out");
 	}
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: replica/updatedb [-c] [-p proto] [-r root] [-t now n] [-u uid] [-x path]... db [paths]\n");
+	fprint(2, "usage: replica/updatedb [-c] [-p proto] [-r root] [-t now "
+	          "n] [-u uid] [-x path]... db [paths]\n");
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *proto;
-	Avlwalk *w;
+	char* proto;
+	Avlwalk* w;
 	Dir d;
-	Entry *e;
+	Entry* e;
 
 	quotefmtinstall();
 	proto = "/sys/lib/sysconfig/proto/allproto";
 	now = time(0);
 	Binit(&blog, 1, OWRITE);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		changesonly = 1;
 		break;
@@ -178,30 +179,31 @@ main(int argc, char **argv)
 		uid = EARGF(usage());
 		break;
 	case 'x':
-		if(nx%16 == 0)
-			x = erealloc(x, (nx+16)*sizeof(x[0]));
+		if(nx % 16 == 0)
+			x = erealloc(x, (nx + 16) * sizeof(x[0]));
 		x[nx++] = EARGF(usage());
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc <1)
+	if(argc < 1)
 		usage();
 
-	match = argv+1;
-	nmatch = argc-1;
+	match = argv + 1;
+	nmatch = argc - 1;
 
 	db = opendb(argv[0]);
 	if(rdproto(proto, root, walk, warn, nil) < 0)
 		sysfatal("rdproto: %r");
 
-	if(!changesonly){
+	if(!changesonly) {
 		w = avlwalk(db->avl);
-		while(e = (Entry*)avlprev(w)){
+		while(e = (Entry*)avlprev(w)) {
 			if(!ismatch(e->name))
 				continue;
-			if(!e->d.mark){		/* not visited during walk */
+			if(!e->d.mark) { /* not visited during walk */
 				memset(&d, 0, sizeof d);
 				d.name = e->d.name;
 				d.uid = e->d.uid;
@@ -220,4 +222,3 @@ main(int argc, char **argv)
 
 	exits(nil);
 }
-

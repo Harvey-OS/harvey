@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include "antiword.h"
 
-
 /*
  * bTranslateImage - translate the image
  *
@@ -27,10 +26,10 @@
  * return TRUE when sucessful, otherwise FALSE
  */
 BOOL
-bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
-	ULONG ulFileOffsetImage, const imagedata_type *pImg)
+bTranslateImage(diagram_type* pDiag, FILE* pFile, BOOL bMinimalInformation,
+                ULONG ulFileOffsetImage, const imagedata_type* pImg)
 {
-	options_type	tOptions;
+	options_type tOptions;
 
 	DBG_MSG("bTranslateImage");
 
@@ -44,28 +43,25 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
 	vGetOptions(&tOptions);
 	fail(tOptions.eImageLevel == level_no_images);
 
-	if (bMinimalInformation) {
+	if(bMinimalInformation) {
 		return bAddDummyImage(pDiag, pImg);
 	}
 
-	switch (pImg->eImageType) {
+	switch(pImg->eImageType) {
 	case imagetype_is_dib:
 		return bTranslateDIB(pDiag, pFile,
-				ulFileOffsetImage + pImg->tPosition,
-				pImg);
+		                     ulFileOffsetImage + pImg->tPosition, pImg);
 	case imagetype_is_jpeg:
 		return bTranslateJPEG(pDiag, pFile,
-				ulFileOffsetImage + pImg->tPosition,
-				pImg->tLength - pImg->tPosition,
-				pImg);
+		                      ulFileOffsetImage + pImg->tPosition,
+		                      pImg->tLength - pImg->tPosition, pImg);
 	case imagetype_is_png:
-		if (tOptions.eImageLevel == level_ps_2) {
+		if(tOptions.eImageLevel == level_ps_2) {
 			return bAddDummyImage(pDiag, pImg);
 		}
 		return bTranslatePNG(pDiag, pFile,
-				ulFileOffsetImage + pImg->tPosition,
-				pImg->tLength - pImg->tPosition,
-				pImg);
+		                     ulFileOffsetImage + pImg->tPosition,
+		                     pImg->tLength - pImg->tPosition, pImg);
 	case imagetype_is_emf:
 	case imagetype_is_wmf:
 	case imagetype_is_pict:

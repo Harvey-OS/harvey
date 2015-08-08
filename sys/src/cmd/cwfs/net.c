@@ -11,15 +11,14 @@
 
 #include "all.h"
 #include "io.h"
-#include <fcall.h>		/* 9p2000 */
+#include <fcall.h> /* 9p2000 */
 #include <thread.h>
 
-enum {
-	Maxfdata	= 8192,
-	Nqueue		= 200,		/* queue size (tunable) */
+enum { Maxfdata = 8192,
+       Nqueue = 200, /* queue size (tunable) */
 
-	Netclosed	= 0,		/* Connection state */
-	Netopen,
+       Netclosed = 0, /* Connection state */
+       Netopen,
 };
 
 /*
@@ -54,26 +53,26 @@ typedef struct Conn9p Conn9p;
 
 /* a network, not necessarily an ethernet */
 struct Network {
-	int	ctlrno;
-	char	iname[NAMELEN];
-	char	oname[NAMELEN];
+	int ctlrno;
+	char iname[NAMELEN];
+	char oname[NAMELEN];
 
-	char	*dialstr;
-	char	anndir[40];
-	char	lisdir[40];
-	int	annfd;			/* fd from announce */
+	char* dialstr;
+	char anndir[40];
+	char lisdir[40];
+	int annfd; /* fd from announce */
 };
 
 /* an open tcp (or other transport) connection */
 struct Netconn {
-	Queue*	reply;		/* network output */
-	char*	raddr;		/* remote caller's addr */
-	Chan*	chan;		/* list of tcp channels */
+	Queue* reply; /* network output */
+	char* raddr;  /* remote caller's addr */
+	Chan* chan;   /* list of tcp channels */
 
-	int	alloc;		/* flag: allocated */
+	int alloc; /* flag: allocated */
 
-	int	state;
-	Conn9p*	conn9p;		/* not reference-counted */
+	int state;
+	Conn9p* conn9p; /* not reference-counted */
 
 	Lock;
 };
@@ -85,29 +84,29 @@ struct Netconn {
 struct Conn9p {
 	QLock;
 	Ref;
-	int	fd;
-	char*	dir;
-	Netconn*netconn;		/* cross-connection */
-	char*	raddr;
+	int fd;
+	char* dir;
+	Netconn* netconn; /* cross-connection */
+	char* raddr;
 };
 
 static Network netif[Maxnets];
 static struct {
 	Lock;
-	Chan*	chan;
+	Chan* chan;
 } netchans;
-static Queue *netoq;		/* only one network output queue is needed */
+static Queue* netoq; /* only one network output queue is needed */
 
-char *annstrs[Maxnets] = {
-	"tcp!*!9fs",
+char* annstrs[Maxnets] = {
+    "tcp!*!9fs",
 };
 
 /* never returns nil */
 static Chan*
-getchan(Conn9p *conn9p)
+getchan(Conn9p* conn9p)
 {
-	Netconn *netconn;
-	Chan *cp, *xcp;
+	Netconn* netconn;
+	Chan* cp, *xcp;
 
 	lock(&netchans);
 
@@ -116,11 +115,11 @@ getchan(Conn9p *conn9p)
 	for(cp = netchans.chan; cp; cp = netconn->chan) {
 		netconn = cp->pdata;
 		if(!netconn->alloc)
-			xcp = cp;		/* remember free Chan */
+			xcp = cp; /* remember free Chan */
 		else if(netconn->raddr != nil &&
-		    strcmp(conn9p->raddr, netconn->raddr) == 0) {
+		        strcmp(conn9p->raddr, netconn->raddr) == 0) {
 			unlock(&netchans);
-			return cp;		/* found conn9p's Chan */
+			return cp; /* found conn9p's Chan */
 		}
 	}
 
@@ -130,9 +129,9 @@ getchan(Conn9p *conn9p)
 		cp = fs_chaninit(Devnet, 1, sizeof(Netconn));
 		netconn = cp->pdata;
 		netconn->chan = netchans.chan;
-		netconn->state = Netopen;	/* a guess */
+		netconn->state = Netopen; /* a guess */
 		/* cross-connect netconn and conn9p */
-		netconn->conn9p = conn9p;	/* not reference-counted */
+		netconn->conn9p = conn9p; /* not reference-counted */
 		conn9p->netconn = netconn;
 		netchans.chan = cp;
 	}
@@ -143,26 +142,26 @@ getchan(Conn9p *conn9p)
 
 	/* fill in Chan */
 	cp->send = serveq;
-	if (cp->reply == nil)
+	if(cp->reply == nil)
 		cp->reply = netoq;
 	netconn->reply = netoq;
 	cp->protocol = nil;
 	cp->msize = 0;
 	cp->whotime = 0;
 	strncpy(cp->whochan, conn9p->raddr, sizeof cp->whochan);
-//	cp->whoprint = tcpwhoprint;
+	//	cp->whoprint = tcpwhoprint;
 	netconn->alloc = 1;
 
 	unlock(&netchans);
 	return cp;
 }
 
-static char *
+static char*
 fd2name(int fd)
 {
 	char data[128];
 
-	if (fd2path(fd, data, sizeof data) < 0)
+	if(fd2path(fd, data, sizeof data) < 0)
 		return strdup("/GOK");
 	return strdup(data);
 }
@@ -171,16 +170,16 @@ static void
 hangupdfd(int dfd)
 {
 	int ctlfd;
-	char *end, *data;
+	char* end, *data;
 
 	data = fd2name(dfd);
 	close(dfd);
 
 	end = strstr(data, "/data");
-	if (end != nil)
+	if(end != nil)
 		strcpy(end, "/ctl");
 	ctlfd = open(data, OWRITE);
-	if (ctlfd >= 0) {
+	if(ctlfd >= 0) {
 		hangup(ctlfd);
 		close(ctlfd);
 	}
@@ -190,7 +189,7 @@ hangupdfd(int dfd)
 void
 closechan(int n)
 {
-	Chan *cp;
+	Chan* cp;
 
 	for(cp = chans; cp; cp = cp->next)
 		if(cp->whotime != 0 && cp->chan == n)
@@ -198,9 +197,9 @@ closechan(int n)
 }
 
 void
-nethangup(Chan *cp, char *msg, int dolock)
+nethangup(Chan* cp, char* msg, int dolock)
 {
-	Netconn *netconn;
+	Netconn* netconn;
 
 	netconn = cp->pdata;
 	netconn->state = Netclosed;
@@ -222,13 +221,13 @@ nethangup(Chan *cp, char *msg, int dolock)
 }
 
 void
-chanhangup(Chan *cp, char *msg, int dolock)
+chanhangup(Chan* cp, char* msg, int dolock)
 {
-	Netconn *netconn = cp->pdata;
-	Conn9p *conn9p = netconn->conn9p;
+	Netconn* netconn = cp->pdata;
+	Conn9p* conn9p = netconn->conn9p;
 
-	if (conn9p->fd > 0)
-		hangupdfd(conn9p->fd);	/* drop it */
+	if(conn9p->fd > 0)
+		hangupdfd(conn9p->fd); /* drop it */
 	nethangup(cp, msg, dolock);
 }
 
@@ -237,17 +236,17 @@ chanhangup(Chan *cp, char *msg, int dolock)
  * leaves it in the first few bytes of abuf.
  */
 static int32_t
-size9pmsg(int fd, void *abuf, uint n)
+size9pmsg(int fd, void* abuf, uint n)
 {
 	int m;
-	uint8_t *buf = abuf;
+	uint8_t* buf = abuf;
 
-	if (n < BIT32SZ)
-		return -1;	/* caller screwed up */
+	if(n < BIT32SZ)
+		return -1; /* caller screwed up */
 
 	/* read count */
 	m = readn(fd, buf, BIT32SZ);
-	if(m != BIT32SZ){
+	if(m != BIT32SZ) {
 		if(m < 0)
 			return -1;
 		return 0;
@@ -256,51 +255,51 @@ size9pmsg(int fd, void *abuf, uint n)
 }
 
 static int
-readalloc9pmsg(int fd, Msgbuf **mbp)
+readalloc9pmsg(int fd, Msgbuf** mbp)
 {
 	int m, len;
 	uint8_t lenbuf[BIT32SZ];
-	Msgbuf *mb;
+	Msgbuf* mb;
 
 	*mbp = nil;
 	len = size9pmsg(fd, lenbuf, BIT32SZ);
-	if (len <= 0)
+	if(len <= 0)
 		return len;
-	if(len <= BIT32SZ || len > IOHDRSZ+Maxfdata){
+	if(len <= BIT32SZ || len > IOHDRSZ + Maxfdata) {
 		werrstr("bad length in 9P2000 message header");
 		return -1;
 	}
-	if ((mb = mballoc(len, nil, Mbeth1)) == nil)
+	if((mb = mballoc(len, nil, Mbeth1)) == nil)
 		panic("readalloc9pmsg: mballoc failed");
 	*mbp = mb;
 	memmove(mb->data, lenbuf, BIT32SZ);
 	len -= BIT32SZ;
-	m = readn(fd, mb->data+BIT32SZ, len);
+	m = readn(fd, mb->data + BIT32SZ, len);
 	if(m < len)
 		return 0;
-	return BIT32SZ+m;
+	return BIT32SZ + m;
 }
 
 static void
-connection(void *v)
+connection(void* v)
 {
 	int n;
 	char buf[64];
-	Chan *chan9p;
-	Conn9p *conn9p = v;
-	Msgbuf *mb;
-	NetConnInfo *nci;
+	Chan* chan9p;
+	Conn9p* conn9p = v;
+	Msgbuf* mb;
+	NetConnInfo* nci;
 
-	incref(conn9p);			/* count connections */
+	incref(conn9p); /* count connections */
 	nci = getnetconninfo(conn9p->dir, conn9p->fd);
-	if (nci == nil)
-		panic("connection: getnetconninfo(%s, %d) failed",
-			conn9p->dir, conn9p->fd);
+	if(nci == nil)
+		panic("connection: getnetconninfo(%s, %d) failed", conn9p->dir,
+		      conn9p->fd);
 	conn9p->raddr = nci->raddr;
 
 	chan9p = getchan(conn9p);
-	print("new connection on %s pid %d from %s\n",
-		conn9p->dir, getpid(), conn9p->raddr);
+	print("new connection on %s pid %d from %s\n", conn9p->dir, getpid(),
+	      conn9p->raddr);
 
 	/*
 	 * reading from a pipe or a network device
@@ -310,30 +309,30 @@ connection(void *v)
 	 * on the processes writing to us,
 	 * so we wait for the error.
 	 */
-	while (conn9p->fd > 0 && (n = readalloc9pmsg(conn9p->fd, &mb)) >= 0) {
+	while(conn9p->fd > 0 && (n = readalloc9pmsg(conn9p->fd, &mb)) >= 0) {
 		if(n == 0)
 			continue;
-		mb->param = (uintptr)conn9p;	/* has fd for replies */
+		mb->param = (uintptr)conn9p; /* has fd for replies */
 		mb->chan = chan9p;
 
 		assert(mb->magic == Mbmagic);
-		incref(conn9p);			/* & count packets in flight */
-		fs_send(serveq, mb);		/* to 9P server processes */
-		/* mb will be freed by receiving process */
+		incref(conn9p);      /* & count packets in flight */
+		fs_send(serveq, mb); /* to 9P server processes */
+		                     /* mb will be freed by receiving process */
 	}
 
 	rerrstr(buf, sizeof buf);
 
 	qlock(conn9p);
 	print("connection hung up from %s\n", conn9p->dir);
-	if (conn9p->fd > 0)		/* not poisoned yet? */
-		hangupdfd(conn9p->fd);	/* poison the fd */
+	if(conn9p->fd > 0)             /* not poisoned yet? */
+		hangupdfd(conn9p->fd); /* poison the fd */
 
 	nethangup(chan9p, "remote hung up", 1);
 	closechan(chan9p->chan);
 
-	conn9p->fd = -1;		/* poison conn9p */
-	if (decref(conn9p) == 0) {	/* last conn.? turn the lights off */
+	conn9p->fd = -1;          /* poison conn9p */
+	if(decref(conn9p) == 0) { /* last conn.? turn the lights off */
 		free(conn9p->dir);
 		qunlock(conn9p);
 		free(conn9p);
@@ -348,26 +347,26 @@ connection(void *v)
 }
 
 static void
-neti(void *v)
+neti(void* v)
 {
 	int lisfd, accfd;
-	Network *net;
-	Conn9p *conn9p;
+	Network* net;
+	Conn9p* conn9p;
 
 	net = v;
 	print("net%di\n", net->ctlrno);
 	for(;;) {
 		lisfd = listen(net->anndir, net->lisdir);
-		if (lisfd < 0) {
+		if(lisfd < 0) {
 			print("listen %s failed: %r\n", net->anndir);
 			continue;
 		}
 
 		/* got new call on lisfd */
 		accfd = accept(lisfd, net->lisdir);
-		if (accfd < 0) {
-			print("accept %d (from %s) failed: %r\n",
-				lisfd, net->lisdir);
+		if(accfd < 0) {
+			print("accept %d (from %s) failed: %r\n", lisfd,
+			      net->lisdir);
 			continue;
 		}
 
@@ -382,11 +381,11 @@ neti(void *v)
 
 /* only need one of these for all network connections, thus all interfaces */
 static void
-neto(void *)
+neto(void*)
 {
 	int len, datafd;
-	Msgbuf *mb;
-	Conn9p *conn9p;
+	Msgbuf* mb;
+	Conn9p* conn9p;
 
 	print("neto\n");
 	for(;;) {
@@ -395,8 +394,8 @@ neto(void *)
 			continue;
 
 		if(mb->data == nil) {
-			print("neto: pkt nil cat=%d free=%d\n",
-				mb->category, mb->flags&FREE);
+			print("neto: pkt nil cat=%d free=%d\n", mb->category,
+			      mb->flags & FREE);
 			if(!(mb->flags & FREE))
 				mbfree(mb);
 			continue;
@@ -404,23 +403,23 @@ neto(void *)
 
 		/* send answer back over the network connection in the reply */
 		len = mb->count;
-		conn9p = (Conn9p *)mb->param;
+		conn9p = (Conn9p*)mb->param;
 		assert(conn9p);
 
 		qlock(conn9p);
 		datafd = conn9p->fd;
 		assert(len >= 0);
 		/* datafd < 0 probably indicates poisoning by the read side */
-		if (datafd < 0 || write(datafd, mb->data, len) != len) {
-			print( "network write error (%r);");
+		if(datafd < 0 || write(datafd, mb->data, len) != len) {
+			print("network write error (%r);");
 			print(" closing connection for %s\n", conn9p->dir);
 			nethangup(getchan(conn9p), "network write error", 1);
-			if (datafd > 0)
-				hangupdfd(datafd);	/* drop it */
-			conn9p->fd = -1;		/* poison conn9p */
+			if(datafd > 0)
+				hangupdfd(datafd); /* drop it */
+			conn9p->fd = -1;           /* poison conn9p */
 		}
 		mbfree(mb);
-		if (decref(conn9p) == 0)
+		if(decref(conn9p) == 0)
 			panic("neto: zero ref count");
 		qunlock(conn9p);
 	}
@@ -430,15 +429,15 @@ void
 netstart(void)
 {
 	int netorun = 0;
-	Network *net;
+	Network* net;
 
 	if(netoq == nil)
 		netoq = newqueue(Nqueue, "network reply");
-	for(net = &netif[0]; net < &netif[Maxnets]; net++){
+	for(net = &netif[0]; net < &netif[Maxnets]; net++) {
 		if(net->dialstr == nil)
 			continue;
 		sprint(net->oname, "neto");
-		if (netorun++ == 0)
+		if(netorun++ == 0)
 			newproc(neto, nil, net->oname);
 		sprint(net->iname, "net%di", net->ctlrno);
 		newproc(neti, net, net->iname);
@@ -448,15 +447,15 @@ netstart(void)
 void
 netinit(void)
 {
-	Network *net;
+	Network* net;
 
-	for (net = netif; net < netif + Maxnets; net++) {
+	for(net = netif; net < netif + Maxnets; net++) {
 		net->dialstr = annstrs[net - netif];
-		if (net->dialstr == nil)
+		if(net->dialstr == nil)
 			continue;
 		net->annfd = announce(net->dialstr, net->anndir);
 		/* /bin/service/tcp564 may already have grabbed the port */
-		if (net->annfd < 0)
+		if(net->annfd < 0)
 			sysfatal("can't announce %s: %r", net->dialstr);
 		print("netinit: announced on %s\n", net->dialstr);
 	}

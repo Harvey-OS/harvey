@@ -19,60 +19,62 @@
  * and run this program to get a list of offset,headword
  * pairs
  */
-Biobuf	boutbuf;
-Biobuf	*bdict;
-Biobuf	*bout = &boutbuf;
-int	linelen;
-int	breaklen = 2000;
-int	outinhibit;
-int	debug;
+Biobuf boutbuf;
+Biobuf* bdict;
+Biobuf* bout = &boutbuf;
+int linelen;
+int breaklen = 2000;
+int outinhibit;
+int debug;
 
-Dict	*dict;	/* current dictionary */
+Dict* dict; /* current dictionary */
 
-Entry	getentry(int32_t);
+Entry getentry(int32_t);
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i;
 	long a, ae;
-	char *p;
+	char* p;
 	Entry e;
 
 	Binit(&boutbuf, 1, OWRITE);
 	dict = &dicts[0];
-	ARGBEGIN {
-		case 'd':
-			p = ARGF();
-			dict = 0;
-			if(p) {
-				for(i=0; dicts[i].name; i++)
-					if(strcmp(p, dicts[i].name)==0) {
-						dict = &dicts[i];
-						break;
-					}
-			}
-			if(!dict) {
-				err("unknown dictionary: %s", p);
-				exits("nodict");
-			}
-			break;
-		case 'D':
-			debug++;
-			break;
-	ARGEND }
-	USED(argc,argv);
+	ARGBEGIN
+	{
+	case 'd':
+		p = ARGF();
+		dict = 0;
+		if(p) {
+			for(i = 0; dicts[i].name; i++)
+				if(strcmp(p, dicts[i].name) == 0) {
+					dict = &dicts[i];
+					break;
+				}
+		}
+		if(!dict) {
+			err("unknown dictionary: %s", p);
+			exits("nodict");
+		}
+		break;
+	case 'D':
+		debug++;
+		break;
+		ARGEND
+	}
+	USED(argc, argv);
 	bdict = Bopen(dict->path, OREAD);
 	ae = Bseek(bdict, 0, 2);
 	if(!bdict) {
 		err("can't open dictionary %s", dict->path);
 		exits("nodict");
 	}
-	for(a = 0; a < ae; a = (*dict->nextoff)(a+1)) {
+	for(a = 0; a < ae; a = (*dict->nextoff)(a + 1)) {
 		linelen = 0;
 		e = getentry(a);
 		Bprint(bout, "%ld\t", a);
-		linelen = 4;	/* only has to be approx right */
+		linelen = 4; /* only has to be approx right */
 		(*dict->printentry)(e, 'h');
 	}
 	exits(0);
@@ -85,7 +87,7 @@ getentry(int32_t b)
 	static Entry ans;
 	static int anslen = 0;
 
-	e = (*dict->nextoff)(b+1);
+	e = (*dict->nextoff)(b + 1);
 	ans.doff = b;
 	if(e < 0) {
 		dtop = Bseek(bdict, 0L, 2);
@@ -97,7 +99,7 @@ getentry(int32_t b)
 			ans.end = 0;
 		}
 	}
-	n = e-b;
+	n = e - b;
 	if(n) {
 		if(n > anslen) {
 			ans.start = realloc(ans.start, n);

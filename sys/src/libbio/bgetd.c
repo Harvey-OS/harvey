@@ -11,17 +11,16 @@
 #include <libc.h>
 #include <bio.h>
 
-struct	bgetd
-{
-	Biobufhdr*	b;
-	int		eof;
+struct bgetd {
+	Biobufhdr* b;
+	int eof;
 };
 
 static int
-Bgetdf(void *vp)
+Bgetdf(void* vp)
 {
 	int c;
-	struct bgetd *bg = vp;
+	struct bgetd* bg = vp;
 
 	c = Bgetc(bg->b);
 	if(c == Beof)
@@ -30,7 +29,7 @@ Bgetdf(void *vp)
 }
 
 int
-Bgetd(Biobufhdr *bp, double *dp)
+Bgetd(Biobufhdr* bp, double* dp)
 {
 	double d;
 	struct bgetd b;

@@ -22,52 +22,44 @@
 
 #include "dat.h"
 
-enum
-{
-	Maxchal=	64,
+enum { Maxchal = 64,
 };
 
 typedef struct State State;
-struct State
-{
-	Key	*key;
-	int	astype;
-	int	asfd;
-	Ticket	t;
+struct State {
+	Key* key;
+	int astype;
+	int asfd;
+	Ticket t;
 	Ticketreq tr;
-	char	chal[Maxchal];
-	int	challen;
-	char	resp[Maxchal];
-	int	resplen;
+	char chal[Maxchal];
+	int challen;
+	char resp[Maxchal];
+	int resplen;
 };
 
-enum
-{
-	CNeedChal,
-	CHaveResp,
+enum { CNeedChal,
+       CHaveResp,
 
-	SHaveChal,
-	SNeedResp,
+       SHaveChal,
+       SNeedResp,
 
-	Maxphase,
+       Maxphase,
 };
 
-static char *phasenames[Maxphase] =
-{
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+static char* phasenames[Maxphase] = {
+        [CNeedChal] "CNeedChal", [CHaveResp] "CHaveResp",
 
-[SHaveChal]	"SHaveChal",
-[SNeedResp]	"SNeedResp",
+        [SHaveChal] "SHaveChal", [SNeedResp] "SNeedResp",
 };
 
 static void
-p9crclose(Fsstate *fss)
+p9crclose(Fsstate* fss)
 {
-	State *s;
+	State* s;
 
 	s = fss->ps;
-	if(s->asfd >= 0){
+	if(s->asfd >= 0) {
 		close(s->asfd);
 		s->asfd = -1;
 	}
@@ -77,60 +69,61 @@ p9crclose(Fsstate *fss)
 static int getchal(State*, Fsstate*);
 
 static int
-p9crinit(Proto *p, Fsstate *fss)
+p9crinit(Proto* p, Fsstate* fss)
 {
 	int iscli, ret;
-	char *user;
-	State *s;
-	Attr *attr;
+	char* user;
+	State* s;
+	Attr* attr;
 	Keyinfo ki;
 
 	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
-	
+
 	s = emalloc(sizeof(*s));
 	s->asfd = -1;
-	if(p == &p9cr){
+	if(p == &p9cr) {
 		s->astype = AuthChal;
 		s->challen = NETCHLEN;
-	}else if(p == &vnc){
+	} else if(p == &vnc) {
 		s->astype = AuthVNC;
 		s->challen = Maxchal;
-	}else
+	} else
 		abort();
 
-	if(iscli){
+	if(iscli) {
 		fss->phase = CNeedChal;
 		if(p == &p9cr)
 			attr = setattr(_copyattr(fss->attr), "proto=p9sk1");
 		else
 			attr = nil;
 		ret = findkey(&s->key, mkkeyinfo(&ki, fss, attr),
-			"role=client %s", p->keyprompt);
+		              "role=client %s", p->keyprompt);
 		_freeattr(attr);
-		if(ret != RpcOk){
+		if(ret != RpcOk) {
 			free(s);
 			return ret;
 		}
 		fss->ps = s;
-	}else{
-		if((ret = findp9authkey(&s->key, fss)) != RpcOk){
+	} else {
+		if((ret = findp9authkey(&s->key, fss)) != RpcOk) {
 			free(s);
 			return ret;
 		}
-		if((user = _strfindattr(fss->attr, "user")) == nil){
+		if((user = _strfindattr(fss->attr, "user")) == nil) {
 			free(s);
-			return failure(fss, "no user name specified in start msg");
+			return failure(fss,
+			               "no user name specified in start msg");
 		}
-		if(strlen(user) >= sizeof s->tr.uid){
+		if(strlen(user) >= sizeof s->tr.uid) {
 			free(s);
 			return failure(fss, "user name too long");
 		}
 		fss->ps = s;
 		strcpy(s->tr.uid, user);
 		ret = getchal(s, fss);
-		if(ret != RpcOk){
-			p9crclose(fss);	/* frees s */
+		if(ret != RpcOk) {
+			p9crclose(fss); /* frees s */
 			fss->ps = nil;
 		}
 	}
@@ -140,13 +133,13 @@ p9crinit(Proto *p, Fsstate *fss)
 }
 
 static int
-p9crread(Fsstate *fss, void *va, uint *n)
+p9crread(Fsstate* fss, void* va, uint* n)
 {
 	int m;
-	State *s;
+	State* s;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "read");
 
@@ -159,9 +152,9 @@ p9crread(Fsstate *fss, void *va, uint *n)
 
 	case SHaveChal:
 		if(s->astype == AuthChal)
-			m = strlen(s->chal);	/* ascii string */
+			m = strlen(s->chal); /* ascii string */
 		else
-			m = s->challen;		/* fixed length binary */
+			m = s->challen; /* fixed length binary */
 		if(m > *n)
 			return toosmall(fss, m);
 		*n = m;
@@ -172,12 +165,12 @@ p9crread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-p9response(Fsstate *fss, State *s)
+p9response(Fsstate* fss, State* s)
 {
 	char key[DESKEYLEN];
 	uint8_t buf[8];
 	uint32_t chal;
-	char *pw;
+	char* pw;
 
 	pw = _strfindattr(s->key->privattr, "!password");
 	if(pw == nil)
@@ -187,7 +180,7 @@ p9response(Fsstate *fss, State *s)
 	snprint((char*)buf, sizeof buf, "%d", atoi(s->chal));
 	if(encrypt(key, buf, 8) < 0)
 		return failure(fss, "can't encrypt response");
-	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
+	chal = (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + buf[3];
 	s->resplen = snprint(s->resp, sizeof s->resp, "%.8lux", chal);
 	return RpcOk;
 }
@@ -205,30 +198,30 @@ mktab(void)
 		return;
 	once = 1;
 
-	for(i=0; i<256; i++) {
-		j=i;
+	for(i = 0; i < 256; i++) {
+		j = i;
 		tab[i] = 0;
-		for(k=0; k<8; k++) {
-			tab[i] = (tab[i]<<1) | (j&1);
+		for(k = 0; k < 8; k++) {
+			tab[i] = (tab[i] << 1) | (j & 1);
 			j >>= 1;
 		}
 	}
 }
 
 static int
-vncaddkey(Key *k, int before)
+vncaddkey(Key* k, int before)
 {
-	uint8_t *p;
-	char *s;
+	uint8_t* p;
+	char* s;
 
-	k->priv = emalloc(8+1);
-	if(s = _strfindattr(k->privattr, "!password")){
+	k->priv = emalloc(8 + 1);
+	if(s = _strfindattr(k->privattr, "!password")) {
 		mktab();
-		memset(k->priv, 0, 8+1);
+		memset(k->priv, 0, 8 + 1);
 		strncpy((char*)k->priv, s, 8);
-		for(p=k->priv; *p; p++)
+		for(p = k->priv; *p; p++)
 			*p = tab[*p];
-	}else{
+	} else {
 		werrstr("no key data");
 		return -1;
 	}
@@ -236,13 +229,13 @@ vncaddkey(Key *k, int before)
 }
 
 static void
-vncclosekey(Key *k)
+vncclosekey(Key* k)
 {
 	free(k->priv);
 }
 
 static int
-vncresponse(Fsstate* f, State *s)
+vncresponse(Fsstate* f, State* s)
 {
 	DESstate des;
 
@@ -254,17 +247,17 @@ vncresponse(Fsstate* f, State *s)
 }
 
 static int
-p9crwrite(Fsstate *fss, void *va, uint n)
+p9crwrite(Fsstate* fss, void* va, uint n)
 {
-	char tbuf[TICKETLEN+AUTHENTLEN];
-	State *s;
-	char *data = va;
+	char tbuf[TICKETLEN + AUTHENTLEN];
+	State* s;
+	char* data = va;
 	Authenticator a;
 	char resp[Maxchal];
 	int ret;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "write");
 
@@ -294,22 +287,21 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 			return failure(fss, Easproto);
 
 		/* get ticket plus authenticator from auth server */
-		if(_asrdresp(s->asfd, tbuf, TICKETLEN+AUTHENTLEN) < 0)
+		if(_asrdresp(s->asfd, tbuf, TICKETLEN + AUTHENTLEN) < 0)
 			return failure(fss, nil);
 
 		/* check ticket */
 		convM2T(tbuf, &s->t, s->key->priv);
-		if(s->t.num != AuthTs
-		|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
-			if (s->key->successes == 0)
+		if(s->t.num != AuthTs ||
+		   memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0) {
+			if(s->key->successes == 0)
 				disablekey(s->key);
 			return failure(fss, Easproto);
 		}
 		s->key->successes++;
-		convM2A(tbuf+TICKETLEN, &a, s->t.key);
-		if(a.num != AuthAc
-		|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0
-		|| a.id != 0)
+		convM2A(tbuf + TICKETLEN, &a, s->t.key);
+		if(a.num != AuthAc ||
+		   memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0 || a.id != 0)
 			return failure(fss, Easproto);
 
 		fss->haveai = 1;
@@ -323,13 +315,15 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 }
 
 static int
-getchal(State *s, Fsstate *fss)
+getchal(State* s, Fsstate* fss)
 {
 	char trbuf[TICKREQLEN];
 	int n;
 
-	safecpy(s->tr.hostid, _strfindattr(s->key->attr, "user"), sizeof(s->tr.hostid));
-	safecpy(s->tr.authdom, _strfindattr(s->key->attr, "dom"), sizeof(s->tr.authdom));
+	safecpy(s->tr.hostid, _strfindattr(s->key->attr, "user"),
+	        sizeof(s->tr.hostid));
+	safecpy(s->tr.authdom, _strfindattr(s->key->attr, "dom"),
+	        sizeof(s->tr.authdom));
 	s->tr.type = s->astype;
 	convTR2M(&s->tr, trbuf);
 
@@ -340,7 +334,7 @@ getchal(State *s, Fsstate *fss)
 	if(write(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
 		return failure(fss, Easproto);
 	n = _asrdresp(s->asfd, s->chal, s->challen);
-	if(n <= 0){
+	if(n <= 0) {
 		if(n == 0)
 			werrstr("_asrdresp short read");
 		return failure(fss, nil);
@@ -350,23 +344,21 @@ getchal(State *s, Fsstate *fss)
 	return RpcOk;
 }
 
-Proto p9cr =
-{
-.name=		"p9cr",
-.init=		p9crinit,
-.write=		p9crwrite,
-.read=		p9crread,
-.close=		p9crclose,
-.keyprompt=	"user? !password?",
+Proto p9cr = {
+    .name = "p9cr",
+    .init = p9crinit,
+    .write = p9crwrite,
+    .read = p9crread,
+    .close = p9crclose,
+    .keyprompt = "user? !password?",
 };
 
-Proto vnc =
-{
-.name=		"vnc",
-.init=		p9crinit,
-.write=		p9crwrite,
-.read=		p9crread,
-.close=		p9crclose,
-.keyprompt=	"!password?",
-.addkey=	vncaddkey,
+Proto vnc = {
+    .name = "vnc",
+    .init = p9crinit,
+    .write = p9crwrite,
+    .read = p9crread,
+    .close = p9crclose,
+    .keyprompt = "!password?",
+    .addkey = vncaddkey,
 };

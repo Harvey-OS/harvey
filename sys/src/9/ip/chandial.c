@@ -7,39 +7,36 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-#include	"../ip/ip.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
+#include "../ip/ip.h"
 
 typedef struct DS DS;
-static Chan*	call(char*, char*, DS*);
-static void	_dial_string_parse(char*, DS*);
+static Chan* call(char*, char*, DS*);
+static void _dial_string_parse(char*, DS*);
 
-enum
-{
-	Maxstring=	128,
+enum { Maxstring = 128,
 };
 
-struct DS
-{
-	char	buf[Maxstring];			/* dist string */
-	char	*netdir;
-	char	*proto;
-	char	*rem;
-	char	*local;				/* other args */
-	char	*dir;
-	Chan	**ctlp;
+struct DS {
+	char buf[Maxstring]; /* dist string */
+	char* netdir;
+	char* proto;
+	char* rem;
+	char* local; /* other args */
+	char* dir;
+	Chan** ctlp;
 };
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 Chan*
-chandial(char *dest, char *local, char *dir, Chan **ctlp)
+chandial(char* dest, char* local, char* dir, Chan** ctlp)
 {
 	DS ds;
 	char clone[Maxpath];
@@ -58,21 +55,21 @@ chandial(char *dest, char *local, char *dir, Chan **ctlp)
 }
 
 static Chan*
-call(char *clone, char *dest, DS *ds)
+call(char* clone, char* dest, DS* ds)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int n;
-	Chan *dchan, *cchan;
+	Chan* dchan, *cchan;
 	char name[Maxpath], data[Maxpath], *p;
 
 	cchan = namec(clone, Aopen, ORDWR, 0);
 
 	/* get directory name */
-	if(waserror()){
+	if(waserror()) {
 		cclose(cchan);
 		nexterror();
 	}
-	n = cchan->dev->read(cchan, name, sizeof(name)-1, 0);
+	n = cchan->dev->read(cchan, name, sizeof(name) - 1, 0);
 	name[n] = 0;
 	for(p = name; *p == ' '; p++)
 		;
@@ -98,19 +95,18 @@ call(char *clone, char *dest, DS *ds)
 		cclose(cchan);
 	poperror();
 	return dchan;
-
 }
 
 /*
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(char* str, DS* ds)
 {
-	char *p, *p2;
+	char* p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
-	ds->buf[Maxstring-1] = 0;
+	ds->buf[Maxstring - 1] = 0;
 
 	p = strchr(ds->buf, '!');
 	if(p == 0) {
@@ -118,7 +114,7 @@ _dial_string_parse(char *str, DS *ds)
 		ds->proto = "net";
 		ds->rem = ds->buf;
 	} else {
-		if(*ds->buf != '/' && *ds->buf != '#'){
+		if(*ds->buf != '/' && *ds->buf != '#') {
 			ds->netdir = 0;
 			ds->proto = ds->buf;
 		} else {

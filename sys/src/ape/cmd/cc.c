@@ -16,77 +16,77 @@
    standard options: -c, -D name[=val], -E (preprocess to stdout),
        -g, -L dir, -o outfile, -O, -s, -U name
        (and operands can have -l lib interspersed)
-   
+
     nonstandard but specified options: -S (assembly language left in .s),
        -Wx,arg1[,arg2...] (pass arg(s) to phase x, where x is p (cpp)
-   			 0 (compiler), or l (loader)
+                         0 (compiler), or l (loader)
     nonstandard options: -v (echo real commands to stdout as they execute)
-	-A: turn on ANSI prototype warnings
+        -A: turn on ANSI prototype warnings
  */
 
 typedef struct Objtype {
-	char	*name;
-	char	*cc;
-	char	*ld;
-	char	*o;
-	char	*oname;		/* compatibility with pcc.c; unused */
+	char* name;
+	char* cc;
+	char* ld;
+	char* o;
+	char* oname; /* compatibility with pcc.c; unused */
 } Objtype;
 
 /* sync with /sys/src/cmd/pcc.c */
 Objtype objtype[] = {
-	{"spim",	"0c", "0l", "0", "0.out"},
-	{"arm",		"5c", "5l", "5", "5.out"},
-	{"amd64",	"6c", "6l", "6", "6.out"},
-	{"386",		"8c", "8l", "8", "8.out"},
-	{"power64",	"9c", "9l", "9", "9.out"},
-	{"sparc",	"kc", "kl", "k", "k.out"},
-	{"power",	"qc", "ql", "q", "q.out"},
-	{"mips",	"vc", "vl", "v", "v.out"},
+    {"spim", "0c", "0l", "0", "0.out"},
+    {"arm", "5c", "5l", "5", "5.out"},
+    {"amd64", "6c", "6l", "6", "6.out"},
+    {"386", "8c", "8l", "8", "8.out"},
+    {"power64", "9c", "9l", "9", "9.out"},
+    {"sparc", "kc", "kl", "k", "k.out"},
+    {"power", "qc", "ql", "q", "q.out"},
+    {"mips", "vc", "vl", "v", "v.out"},
 };
-char	*allos = "05689kqv";
+char* allos = "05689kqv";
 
-enum {
-	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
-	Maxlist = 2000,
+enum { Nobjs = (sizeof objtype) / (sizeof objtype[0]),
+       Maxlist = 2000,
 };
 
 typedef struct List {
-	char	*strings[Maxlist];
-	int	n;
+	char* strings[Maxlist];
+	int n;
 } List;
 
-List	srcs, objs, cpp, cc, ld, ldargs, srchlibs;
-int	cflag, vflag, Eflag, Sflag, Aflag;
+List srcs, objs, cpp, cc, ld, ldargs, srchlibs;
+int cflag, vflag, Eflag, Sflag, Aflag;
 
-void	append(List *, char *);
-char	*changeext(char *, char *);
-void	doexec(char *, List *);
-void	dopipe(char *, List *, char *, List *);
-void	fatal(char *);
-Objtype	*findoty(void);
-void	printlist(List *);
-char *searchlib(char *, char*);
+void append(List*, char*);
+char* changeext(char*, char*);
+void doexec(char*, List*);
+void dopipe(char*, List*, char*, List*);
+void fatal(char*);
+Objtype* findoty(void);
+void printlist(List*);
+char* searchlib(char*, char*);
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *s, *suf, *ccpath, *lib;
-	char *oname;
+	char* s, *suf, *ccpath, *lib;
+	char* oname;
 	int haveoname = 0;
 	int i, cppn, ccn;
-	Objtype *ot;
+	Objtype* ot;
 
 	ot = findoty();
 	oname = "a.out";
 	append(&cpp, "cpp");
-	append(&cpp, "-D__STDC__=1");	/* ANSI says so */
+	append(&cpp, "-D__STDC__=1"); /* ANSI says so */
 	append(&cpp, "-D_POSIX_SOURCE=");
-	append(&cpp, "-N");		/* turn off standard includes */
+	append(&cpp, "-N"); /* turn off standard includes */
 	append(&cc, ot->cc);
 	append(&ld, ot->ld);
 	append(&srchlibs, smprint("/%s/lib/ape", ot->name));
 	while(argc > 0) {
-		ARGBEGIN {
+		ARGBEGIN
+		{
 		case 'c':
 			cflag = 1;
 			break;
@@ -131,19 +131,21 @@ main(int argc, char *argv[])
 			break;
 		case 'W':
 			s = ARGF();
-			if(s && s[1]==',') {
-				switch (s[0]) {
+			if(s && s[1] == ',') {
+				switch(s[0]) {
 				case 'p':
-					append(&cpp, s+2);
+					append(&cpp, s + 2);
 					break;
 				case '0':
-					append(&cc, s+2);
+					append(&cc, s + 2);
 					break;
 				case 'l':
-					append(&ldargs, s+2);
+					append(&ldargs, s + 2);
 					break;
 				default:
-					fprint(2, "cc: pass letter after -W should be one of p0l; ignored\n");
+					fprint(2, "cc: pass letter after -W "
+					          "should be one of p0l; "
+					          "ignored\n");
 				}
 			} else
 				fprint(2, "cc: bad option after -W; ignored\n");
@@ -161,10 +163,11 @@ main(int argc, char *argv[])
 		default:
 			fprint(2, "cc: flag -%c ignored\n", ARGC());
 			break;
-		} ARGEND
+		}
+		ARGEND
 		if(!Aflag) {
-			append(&cc, "-J");		/* old/new decl mixture hack */
-			append(&cc, "-B");		/* turn off non-prototype warnings */
+			append(&cc, "-J"); /* old/new decl mixture hack */
+			append(&cc, "-B"); /* turn off non-prototype warnings */
 		}
 		if(argc > 0) {
 			s = argv[0];
@@ -175,13 +178,15 @@ main(int argc, char *argv[])
 					append(&srcs, s);
 					append(&objs, changeext(s, "o"));
 				} else if(strcmp(suf, "o") == 0 ||
-					  strcmp(suf, ot->o) == 0 ||
-					  strcmp(suf, "a") == 0 ||
-					  (suf[0] == 'a' && strcmp(suf+1, ot->o) == 0)) {
+				          strcmp(suf, ot->o) == 0 ||
+				          strcmp(suf, "a") == 0 ||
+				          (suf[0] == 'a' &&
+				           strcmp(suf + 1, ot->o) == 0)) {
 					append(&objs, s);
 				} else if(utfrune(allos, suf[0]) != 0) {
-					fprint(2, "cc: argument %s ignored: wrong architecture\n",
-						s);
+					fprint(2, "cc: argument %s ignored: "
+					          "wrong architecture\n",
+					       s);
 				}
 			}
 		}
@@ -202,10 +207,11 @@ main(int argc, char *argv[])
 				append(&cc, "-S");
 			else {
 				append(&cc, "-o");
-				if (haveoname && cflag)
+				if(haveoname && cflag)
 					append(&cc, oname);
 				else
-					append(&cc, changeext(srcs.strings[i], "o"));
+					append(&cc,
+					       changeext(srcs.strings[i], "o"));
 			}
 			dopipe("/bin/cpp", &cpp, ccpath, &cc);
 		}
@@ -228,15 +234,15 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-char *
-searchlib(char *s, char *objtype)
+char*
+searchlib(char* s, char* objtype)
 {
-	char *l;
+	char* l;
 	int i;
 
 	if(!s)
 		return 0;
-	for(i = srchlibs.n-1; i>=0; i--) {
+	for(i = srchlibs.n - 1; i >= 0; i--) {
 		l = smprint("%s/lib%s.a", srchlibs.strings[i], s);
 		if(access(l, 0) >= 0)
 			return l;
@@ -264,18 +270,18 @@ searchlib(char *s, char *objtype)
 }
 
 void
-append(List *l, char *s)
+append(List* l, char* s)
 {
-	if(l->n >= Maxlist-1)
+	if(l->n >= Maxlist - 1)
 		fatal("too many arguments");
 	l->strings[l->n++] = s;
 	l->strings[l->n] = 0;
 }
 
 void
-doexec(char *c, List *a)
+doexec(char* c, List* a)
 {
-	Waitmsg *w;
+	Waitmsg* w;
 
 	if(vflag) {
 		printlist(a);
@@ -296,9 +302,9 @@ doexec(char *c, List *a)
 }
 
 void
-dopipe(char *c1, List *a1, char *c2, List *a2)
+dopipe(char* c1, List* a1, char* c2, List* a2)
 {
-	Waitmsg *w;
+	Waitmsg* w;
 	int pid1, got;
 	int fd[2];
 
@@ -337,16 +343,19 @@ dopipe(char *c1, List *a1, char *c2, List *a2)
 		if((w = wait()) == nil)
 			fatal("wait failed");
 		if(w->msg[0])
-			fatal(smprint("%s: %s", (w->pid == pid1) ? a1->strings[0] : a2->strings[0], w->msg));
+			fatal(smprint("%s: %s",
+			              (w->pid == pid1) ? a1->strings[0]
+			                               : a2->strings[0],
+			              w->msg));
 		free(w);
 	}
 }
 
-Objtype *
+Objtype*
 findoty(void)
 {
-	char *o;
-	Objtype *oty;
+	char* o;
+	Objtype* oty;
 
 	o = getenv("objtype");
 	if(!o)
@@ -355,21 +364,21 @@ findoty(void)
 		if(strcmp(o, oty->name) == 0)
 			return oty;
 	fatal("unknown $objtype");
-	return 0;			/* shut compiler up */
+	return 0; /* shut compiler up */
 }
 
 void
-fatal(char *msg)
+fatal(char* msg)
 {
 	fprint(2, "cc: %s\n", msg);
 	exits(msg);
 }
 
 /* src ends in .something; return copy of basename with .ext added */
-char *
-changeext(char *src, char *ext)
+char*
+changeext(char* src, char* ext)
 {
-	char *b, *e, *ans;
+	char* b, *e, *ans;
 
 	b = utfrrune(src, '/');
 	if(b)
@@ -386,7 +395,7 @@ changeext(char *src, char *ext)
 }
 
 void
-printlist(List *l)
+printlist(List* l)
 {
 	int i;
 

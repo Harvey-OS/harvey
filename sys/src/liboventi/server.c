@@ -17,10 +17,10 @@ static char ENotServer[] = "not a server session";
 static char EVersion[] = "incorrect version number";
 static char EProtocolBotch[] = "venti protocol botch";
 
-VtSession *
-vtServerAlloc(VtServerVtbl *vtbl)
+VtSession*
+vtServerAlloc(VtServerVtbl* vtbl)
 {
-	VtSession *z = vtAlloc();
+	VtSession* z = vtAlloc();
 	z->vtbl = vtMemAlloc(sizeof(VtServerVtbl));
 	setmalloctag(z->vtbl, getcallerpc(&vtbl));
 	*z->vtbl = *vtbl;
@@ -28,9 +28,8 @@ vtServerAlloc(VtServerVtbl *vtbl)
 }
 
 static int
-srvHello(VtSession *z, char *version, char *uid, int n, uint8_t *m,
-	 int p,
-	 uint8_t *q, int r)
+srvHello(VtSession* z, char* version, char* uid, int n, uint8_t* m, int p,
+         uint8_t* q, int r)
 {
 	vtLock(z->lk);
 	if(z->auth.state != VtAuthHello) {
@@ -52,20 +51,19 @@ Err:
 	return 0;
 }
 
-
 static int
-dispatchHello(VtSession *z, Packet **pkt)
+dispatchHello(VtSession* z, Packet** pkt)
 {
-	char *version, *uid;
-	uint8_t *crypto, *codec;
+	char* version, *uid;
+	uint8_t* crypto, *codec;
 	uint8_t buf[10];
 	int ncrypto, ncodec, cryptoStrength;
 	int ret;
-	Packet *p;
+	Packet* p;
 
 	p = *pkt;
 
-	version = nil;	
+	version = nil;
 	uid = nil;
 	crypto = nil;
 	codec = nil;
@@ -94,7 +92,8 @@ dispatchHello(VtSession *z, Packet **pkt)
 		vtSetError(EProtocolBotch);
 		goto Err;
 	}
-	if(!srvHello(z, version, uid, cryptoStrength, crypto, ncrypto, codec, ncodec)) {
+	if(!srvHello(z, version, uid, cryptoStrength, crypto, ncrypto, codec,
+	             ncodec)) {
 		packetFree(p);
 		*pkt = nil;
 	} else {
@@ -114,9 +113,9 @@ Err:
 }
 
 static int
-dispatchRead(VtSession *z, Packet **pkt)
+dispatchRead(VtSession* z, Packet** pkt)
 {
-	Packet *p;
+	Packet* p;
 	int type, n;
 	uint8_t score[VtScoreSize], buf[4];
 
@@ -126,7 +125,7 @@ dispatchRead(VtSession *z, Packet **pkt)
 	if(!packetConsume(p, buf, 4))
 		return 0;
 	type = buf[0];
-	n = (buf[2]<<8) | buf[3];
+	n = (buf[2] << 8) | buf[3];
 	if(packetSize(p) != 0) {
 		vtSetError(EProtocolBotch);
 		return 0;
@@ -137,9 +136,9 @@ dispatchRead(VtSession *z, Packet **pkt)
 }
 
 static int
-dispatchWrite(VtSession *z, Packet **pkt)
+dispatchWrite(VtSession* z, Packet** pkt)
 {
-	Packet *p;
+	Packet* p;
 	int type;
 	uint8_t score[VtScoreSize], buf[4];
 
@@ -157,7 +156,7 @@ dispatchWrite(VtSession *z, Packet **pkt)
 }
 
 static int
-dispatchSync(VtSession *z, Packet **pkt)
+dispatchSync(VtSession* z, Packet** pkt)
 {
 	(z->vtbl->sync)(z);
 	if(packetSize(*pkt) != 0) {
@@ -168,9 +167,9 @@ dispatchSync(VtSession *z, Packet **pkt)
 }
 
 int
-vtExport(VtSession *z)
+vtExport(VtSession* z)
 {
-	Packet *p;
+	Packet* p;
 	uint8_t buf[10], *hdr;
 	int op, tid, clean;
 
@@ -180,7 +179,7 @@ vtExport(VtSession *z)
 	}
 
 	/* fork off slave */
-	switch(rfork(RFNOWAIT|RFMEM|RFPROC)){
+	switch(rfork(RFNOWAIT | RFMEM | RFPROC)) {
 	case -1:
 		vtOSError();
 		return 0;
@@ -190,7 +189,6 @@ vtExport(VtSession *z)
 		return 1;
 	}
 
-	
 	p = nil;
 	clean = 0;
 	vtAttach();
@@ -198,7 +196,8 @@ vtExport(VtSession *z)
 		goto Exit;
 
 	vtDebug(z, "server connected!\n");
-if(0)	vtSetDebug(z, 1);
+	if(0)
+		vtSetDebug(z, 1);
 
 	for(;;) {
 		p = vtRecvPacket(z);
@@ -242,7 +241,7 @@ if(0)	vtSetDebug(z, 1);
 		}
 		if(p != nil) {
 			hdr = packetHeader(p, 2);
-			hdr[0] = op+1;
+			hdr[0] = op + 1;
 			hdr[1] = tid;
 		} else {
 			p = packetAlloc();
@@ -271,6 +270,5 @@ Exit:
 	vtDetach();
 
 	exits(0);
-	return 0;	/* never gets here */
+	return 0; /* never gets here */
 }
-

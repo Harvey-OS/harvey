@@ -16,7 +16,7 @@
 static char buf[102400];
 
 static int
-page(Modem *m, char *spool)
+page(Modem* m, char* spool)
 {
 	int count, r;
 	char c;
@@ -25,11 +25,11 @@ page(Modem *m, char *spool)
 	 * Start data reception. We should receive CONNECT in response
 	 * to +FDR, then data reception starts when we send DC2.
 	 */
-	m->valid &= ~(Vfhng|Vfet|Vfpts);
+	m->valid &= ~(Vfhng | Vfet | Vfpts);
 	if(command(m, "AT+FDR") != Eok)
 		return Esys;
 
-	switch(response(m, 30)){
+	switch(response(m, 30)) {
 
 	case Rconnect:
 		m->phase = 'C';
@@ -51,28 +51,28 @@ page(Modem *m, char *spool)
 	 */
 	verbose("starting page %d", m->pageno);
 	count = 0;
-	while((r = getmchar(m, &c, 6)) == Eok){
-		if(c == '\020'){
+	while((r = getmchar(m, &c, 6)) == Eok) {
+		if(c == '\020') {
 			if((r = getmchar(m, &c, 3)) != Eok)
 				break;
 			if(c == '\003')
 				break;
-			if(c != '\020'){
+			if(c != '\020') {
 				verbose("B%2.2ux", c);
 				continue;
 			}
 		}
 		buf[count++] = c;
-		if(count >= sizeof(buf)){
-			if(write(m->pagefd, buf, count) < 0){
+		if(count >= sizeof(buf)) {
+			if(write(m->pagefd, buf, count) < 0) {
 				close(m->pagefd);
 				return seterror(m, Esys);
 			}
 			count = 0;
-		}	
+		}
 	}
 	verbose("page %d done, count %d", m->pageno, count);
-	if(count && write(m->pagefd, buf, count) < 0){
+	if(count && write(m->pagefd, buf, count) < 0) {
 		close(m->pagefd);
 		return seterror(m, Esys);
 	}
@@ -82,7 +82,7 @@ page(Modem *m, char *spool)
 	/*
 	 * Wait for either OK or ERROR.
 	 */
-	switch(r = response(m, 20)){
+	switch(r = response(m, 20)) {
 
 	case Rok:
 	case Rrerror:
@@ -95,19 +95,21 @@ page(Modem *m, char *spool)
 }
 
 static int
-receive(Modem *m, char *spool)
+receive(Modem* m, char* spool)
 {
 	int r;
 
-   loop:
-	switch(r = page(m, spool)){
+loop:
+	switch(r = page(m, spool)) {
 
 	case Eok:
 		/*
 		 * Check we have a valid page reponse.
 		 */
-		if((m->valid & Vfhng) == 0 && (m->valid & (Vfet|Vfpts)) != (Vfet|Vfpts)){
-			verbose("receive: invalid page reponse: #%4.4ux", m->valid);
+		if((m->valid & Vfhng) == 0 &&
+		   (m->valid & (Vfet | Vfpts)) != (Vfet | Vfpts)) {
+			verbose("receive: invalid page reponse: #%4.4ux",
+			        m->valid);
 			return seterror(m, Eproto);
 		}
 
@@ -125,15 +127,15 @@ receive(Modem *m, char *spool)
 		 * the code is just the same as if there was another
 		 * page.
 		 */
-		if(m->valid & Vfet){
-			switch(m->fet){
+		if(m->valid & Vfet) {
+			switch(m->fet) {
 
-			case 0:				/* another page */
-			case 2:				/* no more pages */
+			case 0: /* another page */
+			case 2: /* no more pages */
 				m->pageno++;
 				goto loop;
 
-			case 1:				/* new document */
+			case 1: /* new document */
 				/*
 				 * Bug: currently no way to run the
 				 * fax-received process for this, so it
@@ -155,21 +157,21 @@ receive(Modem *m, char *spool)
 		 * On error remove all pages in the current document.
 		 * Yik.
 		 */
-		if(m->valid & Vfhng){
+		if(m->valid & Vfhng) {
 			if(m->fhng == 0)
 				return Eok;
 			verbose("receive: FHNG: %d", m->fhng);
 			/*
 			for(r = 1; r <= m->pageno; r++){
-				char pageid[128];
+			        char pageid[128];
 
-				setpageid(pageid, spool, m->time, m->pid, r);
-				remove(pageid);
+			        setpageid(pageid, spool, m->time, m->pid, r);
+			        remove(pageid);
 			}
 			 */
 			return seterror(m, Eattn);
 		}
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 
 	default:
 		return r;
@@ -177,7 +179,7 @@ receive(Modem *m, char *spool)
 }
 
 int
-faxreceive(Modem *m, char *spool)
+faxreceive(Modem* m, char* spool)
 {
 	int r;
 

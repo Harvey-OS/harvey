@@ -25,7 +25,7 @@ iounit(int fd)
 	cfd = open(buf, OREAD);
 	if(cfd < 0)
 		return 0;
-	i = read(cfd, buf, sizeof buf-1);
+	i = read(cfd, buf, sizeof buf - 1);
 	close(cfd);
 	if(i <= 0)
 		return 0;

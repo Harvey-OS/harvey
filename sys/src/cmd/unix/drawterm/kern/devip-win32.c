@@ -27,7 +27,7 @@
 #undef bind
 
 static int
-family(unsigned char *addr)
+family(unsigned char* addr)
 {
 	if(isv4(addr))
 		return AF_INET;
@@ -35,9 +35,9 @@ family(unsigned char *addr)
 }
 
 static int
-addrlen(struct sockaddr_storage *ss)
+addrlen(struct sockaddr_storage* ss)
 {
-	switch(ss->ss_family){
+	switch(ss->ss_family) {
 	case AF_INET:
 		return sizeof(struct sockaddr_in);
 	case AF_INET6:
@@ -60,7 +60,7 @@ osipinit(void)
 }
 
 int
-so_socket(int type, unsigned char *addr)
+so_socket(int type, unsigned char* addr)
 {
 	int fd, one;
 
@@ -80,7 +80,8 @@ so_socket(int type, unsigned char *addr)
 		oserror();
 
 	one = 1;
-	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) > 0){
+	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) >
+	   0) {
 		oserrstr();
 		print("setsockopt: %s\n", up->errstr);
 	}
@@ -88,9 +89,8 @@ so_socket(int type, unsigned char *addr)
 	return fd;
 }
 
-
 void
-so_connect(int fd, unsigned char *raddr, unsigned short rport)
+so_connect(int fd, unsigned char* raddr, unsigned short rport)
 {
 	struct sockaddr_storage ss;
 
@@ -98,14 +98,17 @@ so_connect(int fd, unsigned char *raddr, unsigned short rport)
 
 	ss.ss_family = family(raddr);
 
-	switch(ss.ss_family){
+	switch(ss.ss_family) {
 	case AF_INET:
 		hnputs(&((struct sockaddr_in*)&ss)->sin_port, rport);
-		v6tov4((unsigned char*)&((struct sockaddr_in*)&ss)->sin_addr.s_addr, raddr);
+		v6tov4((unsigned char*)&((struct sockaddr_in*)&ss)
+		           ->sin_addr.s_addr,
+		       raddr);
 		break;
 	case AF_INET6:
 		hnputs(&((struct sockaddr_in6*)&ss)->sin6_port, rport);
-		memcpy(&((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, raddr, sizeof(struct in6_addr));
+		memcpy(&((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, raddr,
+		       sizeof(struct in6_addr));
 		break;
 	}
 
@@ -114,7 +117,7 @@ so_connect(int fd, unsigned char *raddr, unsigned short rport)
 }
 
 void
-so_getsockname(int fd, unsigned char *laddr, unsigned short *lport)
+so_getsockname(int fd, unsigned char* laddr, unsigned short* lport)
 {
 	int len;
 	struct sockaddr_storage ss;
@@ -123,13 +126,15 @@ so_getsockname(int fd, unsigned char *laddr, unsigned short *lport)
 	if(getsockname(fd, (struct sockaddr*)&ss, &len) < 0)
 		oserror();
 
-	switch(ss.ss_family){
+	switch(ss.ss_family) {
 	case AF_INET:
-		v4tov6(laddr, (unsigned char*)&((struct sockaddr_in*)&ss)->sin_addr.s_addr);
+		v4tov6(laddr, (unsigned char*)&((struct sockaddr_in*)&ss)
+		                  ->sin_addr.s_addr);
 		*lport = nhgets(&((struct sockaddr_in*)&ss)->sin_port);
 		break;
 	case AF_INET6:
-		memcpy(laddr, &((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, sizeof(struct in6_addr));
+		memcpy(laddr, &((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr,
+		       sizeof(struct in6_addr));
 		*lport = nhgets(&((struct sockaddr_in6*)&ss)->sin6_port);
 		break;
 	default:
@@ -145,7 +150,7 @@ so_listen(int fd)
 }
 
 int
-so_accept(int fd, unsigned char *raddr, unsigned short *rport)
+so_accept(int fd, unsigned char* raddr, unsigned short* rport)
 {
 	int nfd;
 	int len;
@@ -156,13 +161,15 @@ so_accept(int fd, unsigned char *raddr, unsigned short *rport)
 	if(nfd < 0)
 		oserror();
 
-	switch(ss.ss_family){
+	switch(ss.ss_family) {
 	case AF_INET:
-		v4tov6(raddr, (unsigned char*)&((struct sockaddr_in*)&ss)->sin_addr.s_addr);
+		v4tov6(raddr, (unsigned char*)&((struct sockaddr_in*)&ss)
+		                  ->sin_addr.s_addr);
 		*rport = nhgets(&((struct sockaddr_in*)&ss)->sin_port);
 		break;
 	case AF_INET6:
-		memcpy(raddr, &((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, sizeof(struct in6_addr));
+		memcpy(raddr, &((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr,
+		       sizeof(struct in6_addr));
 		*rport = nhgets(&((struct sockaddr_in6*)&ss)->sin6_port);
 		break;
 	default:
@@ -172,13 +179,14 @@ so_accept(int fd, unsigned char *raddr, unsigned short *rport)
 }
 
 void
-so_bind(int fd, int su, unsigned short port, unsigned char *addr)
+so_bind(int fd, int su, unsigned short port, unsigned char* addr)
 {
 	int i, one;
 	struct sockaddr_storage ss;
 
 	one = 1;
-	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one)) < 0){
+	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one)) <
+	   0) {
 		oserrstr();
 		print("setsockopt: %r");
 	}
@@ -188,7 +196,7 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 			memset(&ss, 0, sizeof(ss));
 			ss.ss_family = family(addr);
 
-			switch(ss.ss_family){
+			switch(ss.ss_family) {
 			case AF_INET:
 				((struct sockaddr_in*)&ss)->sin_port = i;
 				break;
@@ -197,7 +205,7 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 				break;
 			}
 
-			if(bind(fd, (struct sockaddr*)&ss, addrlen(&ss)) >= 0)	
+			if(bind(fd, (struct sockaddr*)&ss, addrlen(&ss)) >= 0)
 				return;
 		}
 		oserror();
@@ -206,7 +214,7 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 	memset(&ss, 0, sizeof(ss));
 	ss.ss_family = family(addr);
 
-	switch(ss.ss_family){
+	switch(ss.ss_family) {
 	case AF_INET:
 		hnputs(&((struct sockaddr_in*)&ss)->sin_port, port);
 		break;
@@ -220,12 +228,12 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 }
 
 int
-so_gethostbyname(char *host, char**hostv, int n)
+so_gethostbyname(char* host, char** hostv, int n)
 {
 	int i;
 	char buf[32];
-	unsigned char *p;
-	struct hostent *hp;
+	unsigned char* p;
+	struct hostent* hp;
 
 	hp = gethostbyname(host);
 	if(hp == 0)
@@ -242,11 +250,11 @@ so_gethostbyname(char *host, char**hostv, int n)
 }
 
 char*
-hostlookup(char *host)
+hostlookup(char* host)
 {
 	char buf[100];
-	uint8_t *p;
-	struct hostent *he;
+	uint8_t* p;
+	struct hostent* he;
 
 	he = gethostbyname(host);
 	if(he != 0 && he->h_addr_list[0]) {
@@ -259,9 +267,9 @@ hostlookup(char *host)
 }
 
 int
-so_getservbyname(char *service, char *net, char *port)
+so_getservbyname(char* service, char* net, char* port)
 {
-	struct servent *s;
+	struct servent* s;
 
 	s = getservbyname(service, net);
 	if(s == 0)
@@ -272,13 +280,13 @@ so_getservbyname(char *service, char *net, char *port)
 }
 
 int
-so_send(int fd, void *d, int n, int f)
+so_send(int fd, void* d, int n, int f)
 {
 	return send(fd, d, n, f);
 }
 
 int
-so_recv(int fd, void *d, int n, int f)
+so_recv(int fd, void* d, int n, int f)
 {
 	return recv(fd, d, n, f);
 }

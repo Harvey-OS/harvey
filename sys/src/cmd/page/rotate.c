@@ -10,12 +10,12 @@
 /*
  * rotate an image 180° in O(log Dx + log Dy) /dev/draw writes,
  * using an extra buffer same size as the image.
- * 
+ *
  * the basic concept is that you can invert an array by inverting
  * the top half, inverting the bottom half, and then swapping them.
  * the code does this slightly backwards to ensure O(log n) runtime.
  * (If you do it wrong, you can get O(log² n) runtime.)
- * 
+ *
  * This is usually overkill, but it speeds up slow remote
  * connections quite a bit.
  */
@@ -28,15 +28,14 @@
 #include "page.h"
 
 int ndraw = 0;
-enum {
-	Xaxis = 0,
-	Yaxis = 1,
+enum { Xaxis = 0,
+       Yaxis = 1,
 };
 
-Image *mtmp;
+Image* mtmp;
 
 void
-writefile(char *name, Image *im, int gran)
+writefile(char* name, Image* im, int gran)
 {
 	static int c = 100;
 	int fd;
@@ -45,13 +44,13 @@ writefile(char *name, Image *im, int gran)
 	snprint(buf, sizeof buf, "%d%s%d", c++, name, gran);
 	fd = create(buf, OWRITE, 0666);
 	if(fd < 0)
-		return;	
+		return;
 	writeimage(fd, im, 0);
 	close(fd);
 }
 
 void
-moveup(Image *im, Image *tmp, int a, int b, int c, int axis)
+moveup(Image* im, Image* tmp, int a, int b, int c, int axis)
 {
 	Rectangle range;
 	Rectangle dr0, dr1;
@@ -62,25 +61,25 @@ moveup(Image *im, Image *tmp, int a, int b, int c, int axis)
 
 	drawop(tmp, tmp->r, im, nil, im->r.min, S);
 
-	switch(axis){
+	switch(axis) {
 	case Xaxis:
-		range = Rect(a, im->r.min.y,  c, im->r.max.y);
+		range = Rect(a, im->r.min.y, c, im->r.max.y);
 		dr0 = range;
-		dr0.max.x = dr0.min.x+(c-b);
+		dr0.max.x = dr0.min.x + (c - b);
 		p0 = Pt(b, im->r.min.y);
 
 		dr1 = range;
-		dr1.min.x = dr1.max.x-(b-a);
+		dr1.min.x = dr1.max.x - (b - a);
 		p1 = Pt(a, im->r.min.y);
 		break;
 	case Yaxis:
-		range = Rect(im->r.min.x, a,  im->r.max.x, c);
+		range = Rect(im->r.min.x, a, im->r.max.x, c);
 		dr0 = range;
-		dr0.max.y = dr0.min.y+(c-b);
+		dr0.max.y = dr0.min.y + (c - b);
 		p0 = Pt(im->r.min.x, b);
 
 		dr1 = range;
-		dr1.min.y = dr1.max.y-(b-a);
+		dr1.min.y = dr1.max.y - (b - a);
 		p1 = Pt(im->r.min.x, a);
 		break;
 	}
@@ -89,7 +88,7 @@ moveup(Image *im, Image *tmp, int a, int b, int c, int axis)
 }
 
 void
-interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
+interlace(Image* im, Image* tmp, int axis, int n, Image* mask, int gran)
 {
 	Point p0, p1;
 	Rectangle r0, r1;
@@ -118,7 +117,7 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
 
 /*
  * Halve the grating period in the mask.
- * The grating currently looks like 
+ * The grating currently looks like
  * ####____####____####____####____
  * where #### is opacity.
  *
@@ -126,7 +125,7 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
  * ##__##__##__##__##__##__##__##__
  * which is achieved by shifting the mask
  * and drawing on itself through itself.
- * Draw doesn't actually allow this, so 
+ * Draw doesn't actually allow this, so
  * we have to copy it first.
  *
  *     ####____####____####____####____ (dst)
@@ -136,65 +135,66 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
  *     ##__##__##__##__##__##__##__##__
  */
 int
-nextmask(Image *mask, int axis, int maskdim)
+nextmask(Image* mask, int axis, int maskdim)
 {
 	Point δ;
 
-	δ = axis==Xaxis ? Pt(maskdim,0) : Pt(0,maskdim);
+	δ = axis == Xaxis ? Pt(maskdim, 0) : Pt(0, maskdim);
 	drawop(mtmp, mtmp->r, mask, nil, mask->r.min, S);
-	gendrawop(mask, mask->r, mtmp, δ, mtmp, divpt(δ,-2), S);
-//	writefile("mask", mask, maskdim/2);
-	return maskdim/2;
+	gendrawop(mask, mask->r, mtmp, δ, mtmp, divpt(δ, -2), S);
+	//	writefile("mask", mask, maskdim/2);
+	return maskdim / 2;
 }
 
 void
-shuffle(Image *im, Image *tmp, int axis, int n, Image *mask, int gran,
-	int lastnn)
+shuffle(Image* im, Image* tmp, int axis, int n, Image* mask, int gran,
+        int lastnn)
 {
 	int nn, left;
 
 	if(gran == 0)
 		return;
-	left = n%(2*gran);
+	left = n % (2 * gran);
 	nn = n - left;
 
 	interlace(im, tmp, axis, nn, mask, gran);
-//	writefile("interlace", im, gran);
-	
+	//	writefile("interlace", im, gran);
+
 	gran = nextmask(mask, axis, gran);
 	shuffle(im, tmp, axis, n, mask, gran, nn);
-//	writefile("shuffle", im, gran);
+	//	writefile("shuffle", im, gran);
 	moveup(im, tmp, lastnn, nn, n, axis);
-//	writefile("move", im, gran);
+	//	writefile("move", im, gran);
 }
 
 void
-rot180(Image *im)
+rot180(Image* im)
 {
-	Image *tmp, *tmp0;
-	Image *mask;
+	Image* tmp, *tmp0;
+	Image* mask;
 	Rectangle rmask;
 	int gran;
 
-	if(chantodepth(im->chan) < 8){
-		/* this speeds things up dramatically; draw is too slow on sub-byte pixel sizes */
+	if(chantodepth(im->chan) < 8) {
+		/* this speeds things up dramatically; draw is too slow on
+		 * sub-byte pixel sizes */
 		tmp0 = xallocimage(display, im->r, CMAP8, 0, DNofill);
 		drawop(tmp0, tmp0->r, im, nil, im->r.min, S);
-	}else
+	} else
 		tmp0 = im;
 
 	tmp = xallocimage(display, tmp0->r, tmp0->chan, 0, DNofill);
-	if(tmp == nil){
+	if(tmp == nil) {
 		if(tmp0 != im)
 			freeimage(tmp0);
 		return;
 	}
-	for(gran=1; gran<Dx(im->r); gran *= 2)
+	for(gran = 1; gran < Dx(im->r); gran *= 2)
 		;
 	gran /= 4;
 
 	rmask.min = ZP;
-	rmask.max = (Point){2*gran, 100};
+	rmask.max = (Point){2 * gran, 100};
 
 	mask = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, rmask, GREY1, 1, DTransparent);
@@ -204,15 +204,15 @@ rot180(Image *im)
 	}
 	rmask.max.x = gran;
 	drawop(mask, rmask, display->opaque, nil, ZP, S);
-//	writefile("mask", mask, gran);
+	//	writefile("mask", mask, gran);
 	shuffle(im, tmp, Xaxis, Dx(im->r), mask, gran, 0);
 	freeimage(mask);
 	freeimage(mtmp);
 
-	for(gran=1; gran<Dy(im->r); gran *= 2)
+	for(gran = 1; gran < Dy(im->r); gran *= 2)
 		;
 	gran /= 4;
-	rmask.max = (Point){100, 2*gran};
+	rmask.max = (Point){100, 2 * gran};
 	mask = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	if(mask == nil || mtmp == nil) {
@@ -230,10 +230,10 @@ rot180(Image *im)
 }
 
 /* rotates an image 90 degrees clockwise */
-Image *
-rot90(Image *im)
+Image*
+rot90(Image* im)
 {
-	Image *tmp;
+	Image* tmp;
 	int i, j, dx, dy;
 
 	dx = Dx(im->r);
@@ -246,19 +246,20 @@ rot90(Image *im)
 
 	for(j = 0; j < dx; j++) {
 		for(i = 0; i < dy; i++) {
-			drawop(tmp, Rect(i, j, i+1, j+1), im, nil, Pt(j, dy-(i+1)), S);
+			drawop(tmp, Rect(i, j, i + 1, j + 1), im, nil,
+			       Pt(j, dy - (i + 1)), S);
 		}
 	}
 	freeimage(im);
 
-	return(tmp);
+	return (tmp);
 }
 
 /* rotates an image 270 degrees clockwise */
-Image *
-rot270(Image *im)
+Image*
+rot270(Image* im)
 {
-	Image *tmp;
+	Image* tmp;
 	int i, j, dx, dy;
 
 	dx = Dx(im->r);
@@ -271,19 +272,20 @@ rot270(Image *im)
 
 	for(i = 0; i < dy; i++) {
 		for(j = 0; j < dx; j++) {
-			drawop(tmp, Rect(i, j, i+1, j+1), im, nil, Pt(dx-(j+1), i), S);
+			drawop(tmp, Rect(i, j, i + 1, j + 1), im, nil,
+			       Pt(dx - (j + 1), i), S);
 		}
 	}
 	freeimage(im);
 
-	return(tmp);
+	return (tmp);
 }
 
 /* from resample.c -- resize from → to using interpolation */
 
-
-#define K2 7	/* from -.7 to +.7 inclusive, meaning .2 into each adjacent pixel */
-#define NK (2*K2+1)
+#define K2                                                                     \
+	7 /* from -.7 to +.7 inclusive, meaning .2 into each adjacent pixel */
+#define NK (2 * K2 + 1)
 double K[NK];
 
 double
@@ -292,12 +294,12 @@ fac(int L)
 	int i, f;
 
 	f = 1;
-	for(i=L; i>1; --i)
+	for(i = L; i > 1; --i)
 		f *= i;
 	return f;
 }
 
-/* 
+/*
  * i0(x) is the modified Bessel function, Σ (x/2)^2L / (L!)²
  * There are faster ways to calculate this, but we precompute
  * into a table so let's keep it simple.
@@ -309,8 +311,8 @@ i0(double x)
 	int L;
 
 	v = 1.0;
-	for(L=1; L<10; L++)
-		v += pow(x/2., 2*L)/pow(fac(L), 2);
+	for(L = 1; L < 10; L++)
+		v += pow(x / 2., 2 * L) / pow(fac(L), 2);
 	return v;
 }
 
@@ -319,91 +321,88 @@ kaiser(double x, double τ, double α)
 {
 	if(fabs(x) > τ)
 		return 0.;
-	return i0(α*sqrt(1-(x*x/(τ*τ))))/i0(α);
+	return i0(α * sqrt(1 - (x * x / (τ * τ)))) / i0(α);
 }
 
-
 void
-resamplex(uint8_t *in, int off, int d, int inx, uint8_t *out, int outx)
+resamplex(uint8_t* in, int off, int d, int inx, uint8_t* out, int outx)
 {
 	int i, x, k;
 	double X, xx, v, rat;
 
-
-	rat = (double)inx/(double)outx;
-	for(x=0; x<outx; x++){
-		if(inx == outx){
+	rat = (double)inx / (double)outx;
+	for(x = 0; x < outx; x++) {
+		if(inx == outx) {
 			/* don't resample if size unchanged */
-			out[off+x*d] = in[off+x*d];
+			out[off + x * d] = in[off + x * d];
 			continue;
 		}
 		v = 0.0;
-		X = x*rat;
-		for(k=-K2; k<=K2; k++){
-			xx = X + rat*k/10.;
+		X = x * rat;
+		for(k = -K2; k <= K2; k++) {
+			xx = X + rat * k / 10.;
 			i = xx;
 			if(i < 0)
 				i = 0;
 			if(i >= inx)
-				i = inx-1;
-			v += in[off+i*d] * K[K2+k];
+				i = inx - 1;
+			v += in[off + i * d] * K[K2 + k];
 		}
-		out[off+x*d] = v;
+		out[off + x * d] = v;
 	}
 }
 
 void
-resampley(uint8_t **in, int off, int iny, uint8_t **out, int outy)
+resampley(uint8_t** in, int off, int iny, uint8_t** out, int outy)
 {
 	int y, i, k;
 	double Y, yy, v, rat;
 
-	rat = (double)iny/(double)outy;
-	for(y=0; y<outy; y++){
-		if(iny == outy){
+	rat = (double)iny / (double)outy;
+	for(y = 0; y < outy; y++) {
+		if(iny == outy) {
 			/* don't resample if size unchanged */
 			out[y][off] = in[y][off];
 			continue;
 		}
 		v = 0.0;
-		Y = y*rat;
-		for(k=-K2; k<=K2; k++){
-			yy = Y + rat*k/10.;
+		Y = y * rat;
+		for(k = -K2; k <= K2; k++) {
+			yy = Y + rat * k / 10.;
 			i = yy;
 			if(i < 0)
 				i = 0;
 			if(i >= iny)
-				i = iny-1;
-			v += in[i][off] * K[K2+k];
+				i = iny - 1;
+			v += in[i][off] * K[K2 + k];
 		}
 		out[y][off] = v;
 	}
-
 }
 
 Image*
-resample(Image *from, Image *to)
+resample(Image* from, Image* to)
 {
 	int i, j, bpl, nchan;
-	uint8_t **oscan, **nscan;
+	uint8_t** oscan, **nscan;
 	char tmp[20];
 	int xsize, ysize;
 	double v;
-	Image *t1, *t2;
+	Image* t1, *t2;
 	uint32_t tchan;
 
-	for(i=-K2; i<=K2; i++){
-		K[K2+i] = kaiser(i/10., K2/10., 4.);
+	for(i = -K2; i <= K2; i++) {
+		K[K2 + i] = kaiser(i / 10., K2 / 10., 4.);
 	}
 
 	/* normalize */
 	v = 0.0;
-	for(i=0; i<NK; i++)
+	for(i = 0; i < NK; i++)
 		v += K[i];
-	for(i=0; i<NK; i++)
+	for(i = 0; i < NK; i++)
 		K[i] /= v;
 
-	switch(from->chan){
+	switch(from->chan) {
 	case GREY8:
 	case RGB24:
 	case RGBA32:
@@ -422,16 +421,21 @@ resample(Image *from, Image *to)
 	case GREY4:
 		tchan = GREY8;
 	Convert:
-		/* use library to convert to byte-per-chan form, then convert back */
-		t1 = xallocimage(display, Rect(0, 0, Dx(from->r), Dy(from->r)), tchan, 0, DNofill);
+		/* use library to convert to byte-per-chan form, then convert
+		 * back */
+		t1 = xallocimage(display, Rect(0, 0, Dx(from->r), Dy(from->r)),
+		                 tchan, 0, DNofill);
 		if(t1 == nil) {
-			fprint(2, "out of memory for temp image 1 in resample: %r\n");
+			fprint(
+			    2,
+			    "out of memory for temp image 1 in resample: %r\n");
 			wexits("memory");
 		}
 		drawop(t1, t1->r, from, nil, ZP, S);
 		t2 = xallocimage(display, to->r, tchan, 0, DNofill);
 		if(t2 == nil) {
-			fprint(2, "out of memory temp image 2 in resample: %r\n");
+			fprint(2,
+			       "out of memory temp image 2 in resample: %r\n");
 			wexits("memory");
 		}
 		resample(t1, t2);
@@ -441,42 +445,48 @@ resample(Image *from, Image *to)
 		return to;
 
 	default:
-		sysfatal("can't handle channel type %s", chantostr(tmp, from->chan));
+		sysfatal("can't handle channel type %s",
+		         chantostr(tmp, from->chan));
 	}
 
 	xsize = Dx(to->r);
 	ysize = Dy(to->r);
-	oscan = malloc(Dy(from->r)*sizeof(uint8_t*));
-	nscan = malloc(max(ysize, Dy(from->r))*sizeof(uint8_t*));
+	oscan = malloc(Dy(from->r) * sizeof(uint8_t*));
+	nscan = malloc(max(ysize, Dy(from->r)) * sizeof(uint8_t*));
 	if(oscan == nil || nscan == nil)
 		sysfatal("can't allocate: %r");
 
 	/* unload original image into scan lines */
 	bpl = bytesperline(from->r, from->depth);
-	for(i=0; i<Dy(from->r); i++){
+	for(i = 0; i < Dy(from->r); i++) {
 		oscan[i] = malloc(bpl);
 		if(oscan[i] == nil)
 			sysfatal("can't allocate: %r");
-		j = unloadimage(from, Rect(from->r.min.x, from->r.min.y+i, from->r.max.x, from->r.min.y+i+1), oscan[i], bpl);
+		j = unloadimage(from,
+		                Rect(from->r.min.x, from->r.min.y + i,
+		                     from->r.max.x, from->r.min.y + i + 1),
+		                oscan[i], bpl);
 		if(j != bpl)
 			sysfatal("unloadimage");
 	}
 
-	/* allocate scan lines for destination. we do y first, so need at least Dy(from->r) lines */
+	/* allocate scan lines for destination. we do y first, so need at least
+	 * Dy(from->r) lines */
 	bpl = bytesperline(Rect(0, 0, xsize, Dy(from->r)), from->depth);
-	for(i=0; i<max(ysize, Dy(from->r)); i++){
+	for(i = 0; i < max(ysize, Dy(from->r)); i++) {
 		nscan[i] = malloc(bpl);
 		if(nscan[i] == nil)
 			sysfatal("can't allocate: %r");
 	}
 
 	/* resample in X */
-	nchan = from->depth/8;
-	for(i=0; i<Dy(from->r); i++){
-		for(j=0; j<nchan; j++){
-			if(j==0 && from->chan==XRGB32)
+	nchan = from->depth / 8;
+	for(i = 0; i < Dy(from->r); i++) {
+		for(j = 0; j < nchan; j++) {
+			if(j == 0 && from->chan == XRGB32)
 				continue;
-			resamplex(oscan[i], j, nchan, Dx(from->r), nscan[i], xsize);
+			resamplex(oscan[i], j, nchan, Dx(from->r), nscan[i],
+			          xsize);
 		}
 		free(oscan[i]);
 		oscan[i] = nscan[i];
@@ -486,19 +496,20 @@ resample(Image *from, Image *to)
 	}
 
 	/* resample in Y */
-	for(i=0; i<xsize; i++)
-		for(j=0; j<nchan; j++)
-			resampley(oscan, nchan*i+j, Dy(from->r), nscan, ysize);
+	for(i = 0; i < xsize; i++)
+		for(j = 0; j < nchan; j++)
+			resampley(oscan, nchan * i + j, Dy(from->r), nscan,
+			          ysize);
 
 	/* pack data into destination */
 	bpl = bytesperline(to->r, from->depth);
-	for(i=0; i<ysize; i++){
-		j = loadimage(to, Rect(0, i, xsize, i+1), nscan[i], bpl);
+	for(i = 0; i < ysize; i++) {
+		j = loadimage(to, Rect(0, i, xsize, i + 1), nscan[i], bpl);
 		if(j != bpl)
 			sysfatal("loadimage: %r");
 	}
 
-	for(i=0; i<Dy(from->r); i++){
+	for(i = 0; i < Dy(from->r); i++) {
 		free(oscan[i]);
 		free(nscan[i]);
 	}

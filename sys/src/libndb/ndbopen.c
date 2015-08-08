@@ -14,10 +14,10 @@
 #include <ndb.h>
 #include "ndbhf.h"
 
-static Ndb*	doopen(char*);
-static void	hffree(Ndb*);
+static Ndb* doopen(char*);
+static void hffree(Ndb*);
 
-static char *deffile = "/lib/ndb/local";
+static char* deffile = "/lib/ndb/local";
 
 /*
  *  the database entry in 'file' indicates the list of files
@@ -25,11 +25,11 @@ static char *deffile = "/lib/ndb/local";
  *  the same order.
  */
 Ndb*
-ndbopen(char *file)
+ndbopen(char* file)
 {
-	Ndb *db, *first, *last;
+	Ndb* db, *first, *last;
 	Ndbs s;
-	Ndbtuple *t, *nt;
+	Ndbtuple* t, *nt;
 
 	if(file == nil && (file = getenv("NDBFILE")) == nil)
 		file = deffile;
@@ -41,14 +41,14 @@ ndbopen(char *file)
 	Bseek(&db->b, 0, 0);
 	if(t == 0)
 		return db;
-	for(nt = t; nt; nt = nt->entry){
+	for(nt = t; nt; nt = nt->entry) {
 		if(strcmp(nt->attr, "file") != 0)
 			continue;
-		if(strcmp(nt->val, file) == 0){
+		if(strcmp(nt->val, file) == 0) {
 			/* default file can be reordered in the list */
 			if(first->next == 0)
 				continue;
-			if(strcmp(first->file, file) == 0){
+			if(strcmp(first->file, file) == 0) {
 				db = first;
 				first = first->next;
 				last->next = db;
@@ -71,17 +71,17 @@ ndbopen(char *file)
  *  open a single file
  */
 static Ndb*
-doopen(char *file)
+doopen(char* file)
 {
-	Ndb *db;
+	Ndb* db;
 
 	db = (Ndb*)malloc(sizeof(Ndb));
 	if(db == 0)
 		return 0;
 	memset(db, 0, sizeof(Ndb));
-	strncpy(db->file, file, sizeof(db->file)-1);
+	strncpy(db->file, file, sizeof(db->file) - 1);
 
-	if(ndbreopen(db) < 0){
+	if(ndbreopen(db) < 0) {
 		free(db);
 		return 0;
 	}
@@ -90,16 +90,17 @@ doopen(char *file)
 }
 
 /*
- *  dump any cached information, forget the hash tables, and reopen a single file
+ *  dump any cached information, forget the hash tables, and reopen a single
+ * file
  */
 int
-ndbreopen(Ndb *db)
+ndbreopen(Ndb* db)
 {
 	int fd;
-	Dir *d;
+	Dir* d;
 
 	/* forget what we know about the open files */
-	if(db->mtime){
+	if(db->mtime) {
 		_ndbcacheflush(db);
 		hffree(db);
 		close(Bfildes(&db->b));
@@ -112,7 +113,7 @@ ndbreopen(Ndb *db)
 	if(fd < 0)
 		return -1;
 	d = dirfstat(fd);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return -1;
 	}
@@ -129,11 +130,11 @@ ndbreopen(Ndb *db)
  *  close the database files
  */
 void
-ndbclose(Ndb *db)
+ndbclose(Ndb* db)
 {
-	Ndb *nextdb;
+	Ndb* nextdb;
 
-	for(; db; db = nextdb){
+	for(; db; db = nextdb) {
 		nextdb = db->next;
 		_ndbcacheflush(db);
 		hffree(db);
@@ -147,11 +148,11 @@ ndbclose(Ndb *db)
  *  free the hash files belonging to a db
  */
 static void
-hffree(Ndb *db)
+hffree(Ndb* db)
 {
-	Ndbhf *hf, *next;
+	Ndbhf* hf, *next;
 
-	for(hf = db->hf; hf; hf = next){
+	for(hf = db->hf; hf; hf = next) {
 		next = hf->next;
 		close(hf->fd);
 		free(hf);
@@ -163,17 +164,17 @@ hffree(Ndb *db)
  *  return true if any part of the database has changed
  */
 int
-ndbchanged(Ndb *db)
+ndbchanged(Ndb* db)
 {
-	Ndb *ndb;
-	Dir *d;
+	Ndb* ndb;
+	Dir* d;
 
-	for(ndb = db; ndb != nil; ndb = ndb->next){
+	for(ndb = db; ndb != nil; ndb = ndb->next) {
 		d = dirfstat(Bfildes(&ndb->b));
 		if(d == nil)
 			continue;
-		if(ndb->qid.path != d->qid.path
-		|| ndb->qid.vers != d->qid.vers){
+		if(ndb->qid.path != d->qid.path ||
+		   ndb->qid.vers != d->qid.vers) {
 			free(d);
 			return 1;
 		}

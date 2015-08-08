@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -29,7 +29,7 @@
 /* This file should be called gxcmap.h, except that name is already used. */
 
 #ifndef gxfcmap_INCLUDED
-#  define gxfcmap_INCLUDED
+#define gxfcmap_INCLUDED
 
 #include "gsfcmap.h"
 #include "gsuid.h"
@@ -69,9 +69,9 @@
  */
 #define MAX_CMAP_CODE_SIZE 4
 typedef struct gx_code_space_range_s {
-    byte first[MAX_CMAP_CODE_SIZE];
-    byte last[MAX_CMAP_CODE_SIZE];
-    int size;			/* 1 .. MAX_CMAP_CODE_SIZE */
+	byte first[MAX_CMAP_CODE_SIZE];
+	byte last[MAX_CMAP_CODE_SIZE];
+	int size; /* 1 .. MAX_CMAP_CODE_SIZE */
 } gx_code_space_range_t;
 
 /* ---------------- Lookup tables ---------------- */
@@ -94,21 +94,21 @@ typedef struct gx_code_space_range_s {
  * rearranged font CMaps, which are not implemented yet.
  */
 typedef enum {
-    CODE_VALUE_CID,		/* CIDs */
-    CODE_VALUE_GLYPH,		/* glyphs */
-    CODE_VALUE_CHARS,		/* character(s) */
-    CODE_VALUE_NOTDEF		/* CID - for notdef(char|range) dst */
+	CODE_VALUE_CID,   /* CIDs */
+	CODE_VALUE_GLYPH, /* glyphs */
+	CODE_VALUE_CHARS, /* character(s) */
+	CODE_VALUE_NOTDEF /* CID - for notdef(char|range) dst */
 #define CODE_VALUE_MAX CODE_VALUE_NOTDEF
 } gx_cmap_code_value_type_t;
 typedef struct gx_cmap_lookup_entry_s {
-    /* Key */
-    byte key[2][MAX_CMAP_CODE_SIZE]; /* [key_is_range + 1][key_size] */
-    int key_size;		/* 0 .. MAX_CMAP_CODE_SIZE */
-    bool key_is_range;
-    /* Value */
-    gx_cmap_code_value_type_t value_type;
-    gs_const_string value;
-    int font_index;		/* for rearranged fonts */
+	/* Key */
+	byte key[2][MAX_CMAP_CODE_SIZE]; /* [key_is_range + 1][key_size] */
+	int key_size;                    /* 0 .. MAX_CMAP_CODE_SIZE */
+	bool key_is_range;
+	/* Value */
+	gx_cmap_code_value_type_t value_type;
+	gs_const_string value;
+	int font_index; /* for rearranged fonts */
 } gx_cmap_lookup_entry_t;
 
 /* ---------------- CMaps proper ---------------- */
@@ -138,73 +138,74 @@ typedef struct gx_cmap_lookup_entry_s {
  * subclasses of gs_cmap_t.
  */
 #ifndef gs_cmap_DEFINED
-#  define gs_cmap_DEFINED
+#define gs_cmap_DEFINED
 typedef struct gs_cmap_s gs_cmap_t;
 #endif
 
-#define GS_CMAP_COMMON\
-    int CMapType;		/* must be first */\
-    gs_id id;			/* internal ID (no relation to UID) */\
-	/* End of entries common to all CMapTypes */\
-    gs_const_string CMapName;\
-    gs_cid_system_info_t *CIDSystemInfo; /* [num_fonts] */\
-    int num_fonts;\
-    float CMapVersion;\
-    gs_uid uid;			/* XUID or nothing */\
-    long UIDOffset;\
-    int WMode;\
-    bool from_Unicode;		/* if true, characters are Unicode */\
-    bool ToUnicode;             /* if true, it is a ToUnicode CMap */\
-    gs_glyph_name_proc_t glyph_name;  /* glyph name procedure for printing */\
-    void *glyph_name_data;	/* closure data */\
-    const gs_cmap_procs_t *procs
+#define GS_CMAP_COMMON                                                         \
+	int CMapType; /* must be first */                                      \
+	gs_id id;     /* internal ID (no relation to UID) */                   \
+	              /* End of entries common to all CMapTypes */             \
+	gs_const_string CMapName;                                              \
+	gs_cid_system_info_t* CIDSystemInfo; /* [num_fonts] */                 \
+	int num_fonts;                                                         \
+	float CMapVersion;                                                     \
+	gs_uid uid; /* XUID or nothing */                                      \
+	long UIDOffset;                                                        \
+	int WMode;                                                             \
+	bool from_Unicode; /* if true, characters are Unicode */               \
+	bool ToUnicode;    /* if true, it is a ToUnicode CMap */               \
+	gs_glyph_name_proc_t                                                   \
+	    glyph_name;        /* glyph name procedure for printing */         \
+	void* glyph_name_data; /* closure data */                              \
+	const gs_cmap_procs_t* procs
 
 extern_st(st_cmap);
-#define public_st_cmap()	/* in gsfcmap.c */\
-  BASIC_PTRS(cmap_ptrs) {\
-    GC_CONST_STRING_ELT(gs_cmap_t, CMapName),\
-    GC_OBJ_ELT3(gs_cmap_t, CIDSystemInfo, uid.xvalues, glyph_name_data)\
-  };\
-  gs_public_st_basic(st_cmap, gs_cmap_t, "gs_cmap_t", cmap_ptrs, cmap_data)
+#define public_st_cmap() /* in gsfcmap.c */                                    \
+	BASIC_PTRS(cmap_ptrs){GC_CONST_STRING_ELT(gs_cmap_t, CMapName),        \
+	                      GC_OBJ_ELT3(gs_cmap_t, CIDSystemInfo,            \
+	                                  uid.xvalues, glyph_name_data)};      \
+	gs_public_st_basic(st_cmap, gs_cmap_t, "gs_cmap_t", cmap_ptrs,         \
+	                   cmap_data)
 
 typedef struct gs_cmap_ranges_enum_s gs_cmap_ranges_enum_t;
 typedef struct gs_cmap_lookups_enum_s gs_cmap_lookups_enum_t;
 
 typedef struct gs_cmap_procs_s {
 
-    /*
-     * Decode and map a character from a string using a CMap.
-     * See gsfcmap.h for details.
-     */
+	/*
+	 * Decode and map a character from a string using a CMap.
+	 * See gsfcmap.h for details.
+	 */
 
-    int (*decode_next)(const gs_cmap_t *pcmap, const gs_const_string *str,
-		       uint *pindex, uint *pfidx,
-		       gs_char *pchr, gs_glyph *pglyph);
+	int (*decode_next)(const gs_cmap_t* pcmap, const gs_const_string* str,
+	                   uint* pindex, uint* pfidx, gs_char* pchr,
+	                   gs_glyph* pglyph);
 
-    /*
-     * Initialize an enumeration of code space ranges.  See below.
-     */
+	/*
+	 * Initialize an enumeration of code space ranges.  See below.
+	 */
 
-    void (*enum_ranges)(const gs_cmap_t *pcmap,
-			gs_cmap_ranges_enum_t *penum);
+	void (*enum_ranges)(const gs_cmap_t* pcmap,
+	                    gs_cmap_ranges_enum_t* penum);
 
-    /*
-     * Initialize an enumeration of lookups.  See below.
-     */
+	/*
+	 * Initialize an enumeration of lookups.  See below.
+	 */
 
-    void (*enum_lookups)(const gs_cmap_t *pcmap, int which,
-			 gs_cmap_lookups_enum_t *penum);
+	void (*enum_lookups)(const gs_cmap_t* pcmap, int which,
+	                     gs_cmap_lookups_enum_t* penum);
 
-    /*
-     * Check if the cmap is identity.
-     */
+	/*
+	 * Check if the cmap is identity.
+	 */
 
-    bool (*is_identity)(const gs_cmap_t *pcmap, int font_index_only);
+	bool (*is_identity)(const gs_cmap_t* pcmap, int font_index_only);
 
 } gs_cmap_procs_t;
 
 struct gs_cmap_s {
-    GS_CMAP_COMMON;
+	GS_CMAP_COMMON;
 };
 
 /* ---------------- Enumerators ---------------- */
@@ -216,37 +217,37 @@ struct gs_cmap_s {
  * or a "finish" procedure.
  */
 typedef struct gs_cmap_ranges_enum_procs_s {
-    int (*next_range)(gs_cmap_ranges_enum_t *penum);
+	int (*next_range)(gs_cmap_ranges_enum_t* penum);
 } gs_cmap_ranges_enum_procs_t;
 struct gs_cmap_ranges_enum_s {
-    /*
-     * Return the next code space range here.
-     */
-    gx_code_space_range_t range;
-    /*
-     * The rest of the information is private to the implementation.
-     */
-    const gs_cmap_t *cmap;
-    const gs_cmap_ranges_enum_procs_t *procs;
-    uint index;
+	/*
+	 * Return the next code space range here.
+	 */
+	gx_code_space_range_t range;
+	/*
+	 * The rest of the information is private to the implementation.
+	 */
+	const gs_cmap_t* cmap;
+	const gs_cmap_ranges_enum_procs_t* procs;
+	uint index;
 };
 
 typedef struct gs_cmap_lookups_enum_procs_s {
-    int (*next_lookup)(gs_cmap_lookups_enum_t *penum);
-    int (*next_entry)(gs_cmap_lookups_enum_t *penum);
+	int (*next_lookup)(gs_cmap_lookups_enum_t* penum);
+	int (*next_entry)(gs_cmap_lookups_enum_t* penum);
 } gs_cmap_lookups_enum_procs_t;
 struct gs_cmap_lookups_enum_s {
-    /*
-     * Return the next lookup and entry here.
-     */
-    gx_cmap_lookup_entry_t entry;
-    /*
-     * The rest of the information is private to the implementation.
-     */
-    const gs_cmap_t *cmap;
-    const gs_cmap_lookups_enum_procs_t *procs;
-    uint index[2];
-    byte temp_value[max(sizeof(gs_glyph), sizeof(gs_char))];
+	/*
+	 * Return the next lookup and entry here.
+	 */
+	gx_cmap_lookup_entry_t entry;
+	/*
+	 * The rest of the information is private to the implementation.
+	 */
+	const gs_cmap_t* cmap;
+	const gs_cmap_lookups_enum_procs_t* procs;
+	uint index[2];
+	byte temp_value[max(sizeof(gs_glyph), sizeof(gs_char))];
 };
 /*
  * Define a vacuous next_lookup procedure, useful for the notdef lookups
@@ -267,9 +268,9 @@ extern const gs_cmap_lookups_enum_procs_t gs_cmap_no_lookups_procs;
  *	}
  *	if (code < 0) <<error>>
  */
-void gs_cmap_ranges_enum_init(const gs_cmap_t *pcmap,
-			      gs_cmap_ranges_enum_t *penum);
-int gs_cmap_enum_next_range(gs_cmap_ranges_enum_t *penum);
+void gs_cmap_ranges_enum_init(const gs_cmap_t* pcmap,
+                              gs_cmap_ranges_enum_t* penum);
+int gs_cmap_enum_next_range(gs_cmap_ranges_enum_t* penum);
 
 /*
  * Initialize the enumeration of the lookups, and enumerate the next
@@ -294,10 +295,10 @@ int gs_cmap_enum_next_range(gs_cmap_ranges_enum_t *penum);
  * The bytes of the value string may be allocated locally (in the enumerator
  * itself) and not survive from one call to the next.
  */
-void gs_cmap_lookups_enum_init(const gs_cmap_t *pcmap, int which,
-			       gs_cmap_lookups_enum_t *penum);
-int gs_cmap_enum_next_lookup(gs_cmap_lookups_enum_t *penum);
-int gs_cmap_enum_next_entry(gs_cmap_lookups_enum_t *penum);
+void gs_cmap_lookups_enum_init(const gs_cmap_t* pcmap, int which,
+                               gs_cmap_lookups_enum_t* penum);
+int gs_cmap_enum_next_lookup(gs_cmap_lookups_enum_t* penum);
+int gs_cmap_enum_next_entry(gs_cmap_lookups_enum_t* penum);
 
 /* ---------------- Implementation procedures ---------------- */
 
@@ -305,36 +306,36 @@ int gs_cmap_enum_next_entry(gs_cmap_lookups_enum_t *penum);
  * Initialize a just-allocated CMap, to ensure that all pointers are clean
  * for the GC.  Note that this only initializes the common part.
  */
-void gs_cmap_init(const gs_memory_t *mem, gs_cmap_t *pcmap, int num_fonts);
+void gs_cmap_init(const gs_memory_t* mem, gs_cmap_t* pcmap, int num_fonts);
 
 /*
  * Allocate and initialize (the common part of) a CMap.
  */
-int gs_cmap_alloc(gs_cmap_t **ppcmap, const gs_memory_struct_type_t *pstype,
-		  int wmode, const byte *map_name, uint name_size,
-		  const gs_cid_system_info_t *pcidsi, int num_fonts,
-		  const gs_cmap_procs_t *procs, gs_memory_t *mem);
+int gs_cmap_alloc(gs_cmap_t** ppcmap, const gs_memory_struct_type_t* pstype,
+                  int wmode, const byte* map_name, uint name_size,
+                  const gs_cid_system_info_t* pcidsi, int num_fonts,
+                  const gs_cmap_procs_t* procs, gs_memory_t* mem);
 
 /*
  * Initialize an enumerator with convenient defaults (index = 0).
  */
-void gs_cmap_ranges_enum_setup(gs_cmap_ranges_enum_t *penum,
-			       const gs_cmap_t *pcmap,
-			       const gs_cmap_ranges_enum_procs_t *procs);
-void gs_cmap_lookups_enum_setup(gs_cmap_lookups_enum_t *penum,
-				const gs_cmap_t *pcmap,
-				const gs_cmap_lookups_enum_procs_t *procs);
+void gs_cmap_ranges_enum_setup(gs_cmap_ranges_enum_t* penum,
+                               const gs_cmap_t* pcmap,
+                               const gs_cmap_ranges_enum_procs_t* procs);
+void gs_cmap_lookups_enum_setup(gs_cmap_lookups_enum_t* penum,
+                                const gs_cmap_t* pcmap,
+                                const gs_cmap_lookups_enum_procs_t* procs);
 
-/* 
+/*
  * Check for identity CMap. Uses a fast check for special cases.
  */
-bool gs_cmap_is_identity(const gs_cmap_t *pcmap, int font_index_only);
+bool gs_cmap_is_identity(const gs_cmap_t* pcmap, int font_index_only);
 
-/* 
+/*
  * For a random CMap, compute whether it is identity.
  * It is not applicable to gs_cmap_ToUnicode_t due to
  * different sizes of domain keys and range values.
  */
-bool gs_cmap_compute_identity(const gs_cmap_t *pcmap, int font_index_only);
+bool gs_cmap_compute_identity(const gs_cmap_t* pcmap, int font_index_only);
 
 #endif /* gxfcmap_INCLUDED */

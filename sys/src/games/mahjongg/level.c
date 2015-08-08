@@ -15,7 +15,7 @@
 #include "mahjongg.h"
 
 void
-consumeline(Biobuf *b)
+consumeline(Biobuf* b)
 {
 	while(Bgetc(b) != '\n')
 		;
@@ -23,11 +23,11 @@ consumeline(Biobuf *b)
 
 /* parse a level file */
 int
-parse(char *layout)
+parse(char* layout)
 {
 	int x = 0, y = 0, depth = 0;
 	char c;
-	Biobuf *b;
+	Biobuf* b;
 
 	b = Bopen(layout, OREAD);
 	if(b == nil) {
@@ -38,10 +38,10 @@ parse(char *layout)
 	level.remaining = 0;
 
 	while((c = Bgetc(b)) > 0) {
-		switch(c)  {
+		switch(c) {
 		case '\n':
 			x = 0;
-			y = (y+1) % Ly;
+			y = (y + 1) % Ly;
 			if(!y)
 				depth++;
 			break;
@@ -54,7 +54,7 @@ parse(char *layout)
 		case '2':
 		case '3':
 		case '4':
-			orig.board[depth][x++][y].which = c-48;
+			orig.board[depth][x++][y].which = c - 48;
 			break;
 		default:
 			consumeline(b);
@@ -72,18 +72,17 @@ indextype(int type)
 	int t;
 
 	if(type < 108)
-		t = (type/36)*Facey * 9 + ((type%36)/4)*Facex;
+		t = (type / 36) * Facey * 9 + ((type % 36) / 4) * Facex;
 	else if(type < 112)
 		t = Seasons;
 	else if(type < 128)
-		t = 3*Facey + (((type+12)%36)/4)*Facex;
+		t = 3 * Facey + (((type + 12) % 36) / 4) * Facex;
 	else if(type < 132)
 		t = Flowers;
 	else
-		t = 4*Facey + (((type+28)%36)/4)*Facex;
+		t = 4 * Facey + (((type + 28) % 36) / 4) * Facex;
 
 	return t;
-
 }
 
 Point
@@ -101,15 +100,15 @@ indexpt(int type)
 	 */
 
 	if(type < 108)
-		p = Pt(((type%36)/4)*Facex, (type/36)*Facey);
+		p = Pt(((type % 36) / 4) * Facex, (type / 36) * Facey);
 	else if(type < 112)
-		p = Pt((type%4)*Facex, 3*Facey);
+		p = Pt((type % 4) * Facex, 3 * Facey);
 	else if(type < 128)
-		p = Pt((((type+12)%36)/4)*Facex, 3*Facey);
+		p = Pt((((type + 12) % 36) / 4) * Facex, 3 * Facey);
 	else if(type < 132)
-		p = Pt(((type+4)%4)*Facex, 4*Facey);
+		p = Pt(((type + 4) % 4) * Facex, 4 * Facey);
 	else
-		p = Pt((((type+28)%36)/4)*Facex, 4*Facey);
+		p = Pt((((type + 28) % 36) / 4) * Facex, 4 * Facey);
 	return p;
 }
 
@@ -123,7 +122,7 @@ generate(uint seed)
 
 	srand(seed);
 
-	for (x = 0; x < Tiles; x++)
+	for(x = 0; x < Tiles; x++)
 		order[x] = x;
 
 	for(x = 0; x < Tiles; x++) {
@@ -139,17 +138,19 @@ generate(uint seed)
 			for(x = 0; x < Lx; x++)
 				if(orig.board[d][x][y].which == 1) {
 
-					orig.board[d][x][y].type = indextype(order[n]);
+					orig.board[d][x][y].type =
+					    indextype(order[n]);
 					p = indexpt(order[n++]);
 					orig.board[d][x][y].start = p;
-					orig.board[d][x+1][y].start = p;
-					orig.board[d][x][y+1].start = p;
-					orig.board[d][x+1][y+1].start = p;
+					orig.board[d][x + 1][y].start = p;
+					orig.board[d][x][y + 1].start = p;
+					orig.board[d][x + 1][y + 1].start = p;
 				}
 
 	if(n != orig.remaining)
 		fprint(2, "level improperly generated: %d elements, "
-			"should have %d\n", n, orig.remaining);
+		          "should have %d\n",
+		       n, orig.remaining);
 
 	orig.c = NC;
 	orig.l = NC;

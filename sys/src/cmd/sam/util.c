@@ -10,10 +10,10 @@
 #include "sam.h"
 
 void
-cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
+cvttorunes(char* p, int n, Rune* r, int* nb, int* nr, int* nulls)
 {
-	uint8_t *q;
-	Rune *s;
+	uint8_t* q;
+	Rune* s;
 	int j, w;
 
 	/*
@@ -25,11 +25,11 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 */
 	q = (uint8_t*)p;
 	s = r;
-	for(j=0; j<n; j+=w){
-		if(*q < Runeself){
+	for(j = 0; j < n; j += w) {
+		if(*q < Runeself) {
 			w = 1;
 			*s = *q++;
-		}else{
+		} else {
 			w = chartorune(s, (char*)q);
 			q += w;
 		}
@@ -38,8 +38,8 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 			*nulls = TRUE;
 	}
-	*nb = (char*)q-p;
-	*nr = s-r;
+	*nb = (char*)q - p;
+	*nr = s - r;
 }
 
 void*
@@ -49,7 +49,7 @@ fbufalloc(void)
 }
 
 void
-fbuffree(void *f)
+fbuffree(void* f)
 {
 	free(f);
 }

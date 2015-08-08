@@ -12,49 +12,49 @@
 #include <draw.h>
 
 Subfont*
-readsubfonti(Display*d, char *name, int fd, Image *ai, int dolock)
+readsubfonti(Display* d, char* name, int fd, Image* ai, int dolock)
 {
-	char hdr[3*12+4+1];
+	char hdr[3 * 12 + 4 + 1];
 	int n;
-	uint8_t *p;
-	Fontchar *fc;
-	Subfont *f;
-	Image *i;
+	uint8_t* p;
+	Fontchar* fc;
+	Subfont* f;
+	Image* i;
 
 	i = ai;
-	if(i == nil){
+	if(i == nil) {
 		i = readimage(d, fd, dolock);
 		if(i == nil)
 			return nil;
 	}
-	if(read(fd, hdr, 3*12) != 3*12){
+	if(read(fd, hdr, 3 * 12) != 3 * 12) {
 		if(ai == nil)
 			freeimage(i);
 		werrstr("rdsubfonfile: header read error: %r");
 		return nil;
 	}
 	n = atoi(hdr);
-	p = malloc(6*(n+1));
+	p = malloc(6 * (n + 1));
 	if(p == nil)
 		goto Err;
-	if(read(fd, p, 6*(n+1)) != 6*(n+1)){
+	if(read(fd, p, 6 * (n + 1)) != 6 * (n + 1)) {
 		werrstr("rdsubfonfile: fontchar read error: %r");
-    Err:
+	Err:
 		if(ai == nil)
 			freeimage(i);
 		free(p);
 		return nil;
 	}
-	fc = malloc(sizeof(Fontchar)*(n+1));
+	fc = malloc(sizeof(Fontchar) * (n + 1));
 	if(fc == nil)
 		goto Err;
 	_unpackinfo(fc, p, n);
 	if(dolock)
 		lockdisplay(d);
-	f = allocsubfont(name, n, atoi(hdr+12), atoi(hdr+24), fc, i);
+	f = allocsubfont(name, n, atoi(hdr + 12), atoi(hdr + 24), fc, i);
 	if(dolock)
 		unlockdisplay(d);
-	if(f == nil){
+	if(f == nil) {
 		free(fc);
 		goto Err;
 	}
@@ -63,7 +63,7 @@ readsubfonti(Display*d, char *name, int fd, Image *ai, int dolock)
 }
 
 Subfont*
-readsubfont(Display *d, char *name, int fd, int dolock)
+readsubfont(Display* d, char* name, int fd, int dolock)
 {
 	return readsubfonti(d, name, fd, nil, dolock);
 }

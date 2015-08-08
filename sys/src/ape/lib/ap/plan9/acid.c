@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-/* include struct defs to get acid library 
-	cpp -I/sys/include/ape -I/$objtype/include/ape -I./include  acid.c > t.c
-	vc -a t.c > acidlib
+/* include struct defs to get acid library
+        cpp -I/sys/include/ape -I/$objtype/include/ape -I./include  acid.c > t.c
+        vc -a t.c > acidlib
 */
 #define _POSIX_SOURCE 1
 #define _BSD_EXTENSION 1

@@ -21,26 +21,26 @@ static Lock physseglock;
 int
 addphysseg(Physseg* new)
 {
-	Physseg *ps;
+	Physseg* ps;
 
 	/*
 	 * Check not already entered and there is room
 	 * for a new entry and the terminating null entry.
 	 */
 	lock(&physseglock);
-	for(ps = physseg; ps->name; ps++){
-		if(strcmp(ps->name, new->name) == 0){
+	for(ps = physseg; ps->name; ps++) {
+		if(strcmp(ps->name, new->name) == 0) {
 			unlock(&physseglock);
 			return -1;
 		}
 	}
-	if(ps-physseg >= nphysseg-2){
+	if(ps - physseg >= nphysseg - 2) {
 		unlock(&physseglock);
 		return -1;
 	}
 
 	if(new->pgszi < 0)
-		new->pgszi = getpgszi(2*MiB);	/* 2M pages by default */
+		new->pgszi = getpgszi(2 * MiB); /* 2M pages by default */
 	if(new->pgszi < 0)
 		panic("addphysseg");
 	*ps = *new;
@@ -50,15 +50,15 @@ addphysseg(Physseg* new)
 }
 
 int
-isphysseg(char *name)
+isphysseg(char* name)
 {
 	int rv;
-	Physseg *ps;
+	Physseg* ps;
 
 	lock(&physseglock);
 	rv = 0;
-	for(ps = physseg; ps->name; ps++){
-		if(strcmp(ps->name, name) == 0){
+	for(ps = physseg; ps->name; ps++) {
+		if(strcmp(ps->name, name) == 0) {
 			rv = 1;
 			break;
 		}
@@ -71,12 +71,12 @@ isphysseg(char *name)
 uintptr_t
 ibrk(uintptr_t addr, int seg)
 {
-	Proc *up = externup();
-	Segment *s, *ns;
+	Proc* up = externup();
+	Segment* s, *ns;
 	uintptr_t newtop, rtop;
 	int32_t newsize;
 	int i, mapsize;
-	Pte **map;
+	Pte** map;
 	uintmem pgsz;
 
 	s = up->seg[seg];
@@ -98,9 +98,9 @@ ibrk(uintptr_t addr, int seg)
 
 	pgsz = sys->pgsz[s->pgszi];
 	newtop = ROUNDUP(addr, pgsz);
-	newsize = (newtop-s->base)/pgsz;
+	newsize = (newtop - s->base) / pgsz;
 	if(newtop < s->top) {
-		mfreeseg(s, newtop, (s->top-newtop)/pgsz);
+		mfreeseg(s, newtop, (s->top - newtop) / pgsz);
 		s->top = newtop;
 		s->size = newsize;
 		poperror();
@@ -108,7 +108,7 @@ ibrk(uintptr_t addr, int seg)
 		mmuflush();
 		return newtop;
 	}
-	if(newsize > (SEGMAPSIZE*s->ptepertab))
+	if(newsize > (SEGMAPSIZE * s->ptepertab))
 		error(Enovmem);
 
 	for(i = 0; i < NSEG; i++) {
@@ -123,15 +123,15 @@ ibrk(uintptr_t addr, int seg)
 	 * TODO(aki): reintroduce 1G page support:
 	 * brk the bss up to the 1G boundary, and create
 	 * a segment placed at that boundary, using 1G pages if it can.
-	 * This is both back compatible, transparent, and permits using 1G pages.
+	 * This is both back compatible, transparent, and permits using 1G
+	 * pages.
 	 */
 	rtop = newtop;
 
-
 	mapsize = HOWMANY(newsize, s->ptepertab);
-	if(mapsize > s->mapsize){
-		map = smalloc(mapsize*sizeof(Pte*));
-		memmove(map, s->map, s->mapsize*sizeof(Pte*));
+	if(mapsize > s->mapsize) {
+		map = smalloc(mapsize * sizeof(Pte*));
+		memmove(map, s->map, s->mapsize * sizeof(Pte*));
 		if(s->map != s->ssegmap)
 			free(s->map);
 		s->map = map;
@@ -149,10 +149,10 @@ ibrk(uintptr_t addr, int seg)
 void
 syssegbrk(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
 	uintptr_t addr;
-	Segment *s;
+	Segment* s;
 	va_list list;
 	va_start(list, ar0);
 
@@ -162,9 +162,10 @@ syssegbrk(Ar0* ar0, ...)
 	 * void* segbrk(void* saddr, void* addr);
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
-	if(addr == 0){
-		for(i = 0; i < NSEG; i++){
-			if(up->seg[i] != nil && (up->seg[i]->type&SG_TYPE) == SG_BSS){
+	if(addr == 0) {
+		for(i = 0; i < NSEG; i++) {
+			if(up->seg[i] != nil &&
+			   (up->seg[i]->type & SG_TYPE) == SG_BSS) {
 				ar0->v = UINT2PTR(up->seg[i]->top);
 				return;
 			}
@@ -180,7 +181,7 @@ syssegbrk(Ar0* ar0, ...)
 			continue;
 		if(addr == s->top && (s->base < s->top))
 			continue;
-		switch(s->type&SG_TYPE) {
+		switch(s->type & SG_TYPE) {
 		case SG_LOAD:
 		case SG_TEXT:
 		case SG_DATA:
@@ -199,7 +200,7 @@ syssegbrk(Ar0* ar0, ...)
 void
 sysbrk_(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	uintptr_t addr;
 	va_list list;
 	va_start(list, ar0);
@@ -213,8 +214,9 @@ sysbrk_(Ar0* ar0, ...)
 	addr = PTR2UINT(va_arg(list, void*));
 	va_end(list);
 
-	for(i = 0; i < NSEG; i++){
-		if(up->seg[i] != nil && (up->seg[i]->type&SG_TYPE) == SG_BSS){
+	for(i = 0; i < NSEG; i++) {
+		if(up->seg[i] != nil &&
+		   (up->seg[i]->type & SG_TYPE) == SG_BSS) {
 			ibrk(addr, i);
 			ar0->i = 0;
 			return;
@@ -226,10 +228,10 @@ sysbrk_(Ar0* ar0, ...)
 static uintptr_t
 segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int sno;
-	Segment *s, *os;
-	Physseg *ps;
+	Segment* s, *os;
+	Physseg* ps;
 
 	/* BUG: Only ok for now */
 	if((va != 0 && va < UTZERO) || (va & KZERO) == KZERO)
@@ -238,7 +240,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	vmemchr(name, 0, ~0);
 
 	qlock(&p->seglock);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&p->seglock);
 		nexterror();
 	}
@@ -252,9 +254,9 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	 *  first look for a global segment with the
 	 *  same name
 	 */
-	if(_globalsegattach != nil){
+	if(_globalsegattach != nil) {
 		s = (*_globalsegattach)(p, name);
-		if(s != nil){
+		if(s != nil) {
 			p->seg[sno] = s;
 			if(p == up && up->prepagemem)
 				nixprepage(sno);
@@ -269,10 +271,10 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	if(ps->name == nil)
 		error("segment not found");
 
-	if(va == 0 && ps->gva != 0){
+	if(va == 0 && ps->gva != 0) {
 		va = ps->gva;
 		if(len == 0)
-			len = ps->size*BIGPGSZ;
+			len = ps->size * BIGPGSZ;
 	}
 
 	if(len == 0)
@@ -290,7 +292,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	 * or the address space is exhausted.
 	 */
 	if(va == 0) {
-		va = USTKTOP-len;
+		va = USTKTOP - len;
 		for(;;) {
 			os = isoverlap(p, va, len);
 			if(os == nil)
@@ -302,17 +304,17 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 		}
 	}
 
-	va = va&~(BIGPGSZ-1);
+	va = va & ~(BIGPGSZ - 1);
 	if(isoverlap(p, va, len) != nil)
 		error(Esoverlap);
 
-	if((len/BIGPGSZ) > ps->size)
+	if((len / BIGPGSZ) > ps->size)
 		error("len > segment size");
 
-	attr &= ~SG_TYPE;		/* Turn off what is not allowed */
-	attr |= ps->attr;		/* Copy in defaults */
+	attr &= ~SG_TYPE; /* Turn off what is not allowed */
+	attr |= ps->attr; /* Copy in defaults */
 
-	s = newseg(attr, va, len/BIGPGSZ);
+	s = newseg(attr, va, len / BIGPGSZ);
 	s->pseg = ps;
 	p->seg[sno] = s;
 
@@ -328,9 +330,9 @@ clean_out:
 void
 syssegattach(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int attr;
-	char *name;
+	char* name;
 	uintptr_t va;
 	usize len;
 	va_list list;
@@ -353,10 +355,10 @@ syssegattach(Ar0* ar0, ...)
 void
 syssegdetach(Ar0* ar0, ...)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
 	uintptr_t addr;
-	Segment *s;
+	Segment* s;
 	va_list list;
 	va_start(list, ar0);
 
@@ -367,7 +369,7 @@ syssegdetach(Ar0* ar0, ...)
 	va_end(list);
 
 	qlock(&up->seglock);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&up->seglock);
 		nexterror();
 	}
@@ -391,7 +393,7 @@ found:
 	 * there. So let's not detach any stacks.
 	 * TODO(aki): does it really?
 	 */
-	if((s->type & SG_TYPE) == SG_STACK){
+	if((s->type & SG_TYPE) == SG_STACK) {
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
@@ -410,8 +412,8 @@ found:
 void
 syssegfree(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Segment *s;
+	Proc* up = externup();
+	Segment* s;
 	uintptr_t from, to;
 	usize len;
 	va_list list;
@@ -427,8 +429,8 @@ syssegfree(Ar0* ar0, ...)
 	if(s == nil)
 		error(Ebadarg);
 	len = va_arg(list, usize);
-	to = (from + len) & ~(BIGPGSZ-1);
-	if(to < from || to > s->top){
+	to = (from + len) & ~(BIGPGSZ - 1);
+	if(to < from || to > s->top) {
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
@@ -443,10 +445,10 @@ syssegfree(Ar0* ar0, ...)
 }
 
 static void
-pteflush(Pte *pte, int s, int e)
+pteflush(Pte* pte, int s, int e)
 {
 	int i;
-	Page *p;
+	Page* p;
 
 	for(i = s; i < e; i++) {
 		p = pte->pages[i];
@@ -458,10 +460,10 @@ pteflush(Pte *pte, int s, int e)
 void
 syssegflush(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Segment *s;
+	Proc* up = externup();
+	Segment* s;
 	uintptr_t addr;
-	Pte *pte;
+	Pte* pte;
 	usize chunk, l, len, pe, ps;
 	va_list list;
 	va_start(list, ar0);
@@ -483,16 +485,16 @@ syssegflush(Ar0* ar0, ...)
 		s->flushme = 1;
 	more:
 		l = len;
-		if(addr+l > s->top)
+		if(addr + l > s->top)
 			l = s->top - addr;
 
-		ps = addr-s->base;
-		pte = s->map[ps/PTEMAPMEM];
-		ps &= PTEMAPMEM-1;
+		ps = addr - s->base;
+		pte = s->map[ps / PTEMAPMEM];
+		ps &= PTEMAPMEM - 1;
 		pe = PTEMAPMEM;
-		if(pe-ps > l){
+		if(pe - ps > l) {
 			pe = ps + l;
-			pe = (pe+BIGPGSZ-1)&~(BIGPGSZ-1);
+			pe = (pe + BIGPGSZ - 1) & ~(BIGPGSZ - 1);
 		}
 		if(pe == ps) {
 			qunlock(&s->lk);
@@ -500,9 +502,9 @@ syssegflush(Ar0* ar0, ...)
 		}
 
 		if(pte)
-			pteflush(pte, ps/BIGPGSZ, pe/BIGPGSZ);
+			pteflush(pte, ps / BIGPGSZ, pe / BIGPGSZ);
 
-		chunk = pe-ps;
+		chunk = pe - ps;
 		len -= chunk;
 		addr += chunk;
 

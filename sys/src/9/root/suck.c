@@ -10,13 +10,13 @@
 #include <u.h>
 #include <libc.h>
 
-#define ESTR		256
+#define ESTR 256
 
 static void
 error(char* fmt, ...)
 {
 	va_list v;
-	char *e, estr[ESTR], *p;
+	char* e, estr[ESTR], *p;
 
 	va_start(v, fmt);
 	e = estr + ESTR;
@@ -25,14 +25,14 @@ error(char* fmt, ...)
 	p = seprint(p, e, "\n");
 	va_end(v);
 
-	write(2, estr, p-estr);
+	write(2, estr, p - estr);
 }
 
 static void
 fatal(char* fmt, ...)
 {
 	va_list v;
-	char *e, estr[ESTR], *p;
+	char* e, estr[ESTR], *p;
 
 	va_start(v, fmt);
 	e = estr + ESTR;
@@ -48,29 +48,28 @@ fatal(char* fmt, ...)
 static void
 usage(void)
 {
-	char *e, estr[ESTR], *p;
+	char* e, estr[ESTR], *p;
 
 	e = estr + ESTR;
 	p = seprint(estr, e, "usage: %s"
-		" [whatever]"
-		"\n",
-		argv0);
-	write(2, estr, p-estr);
+	                     " [whatever]"
+	                     "\n",
+	            argv0);
+	write(2, estr, p - estr);
 	exits("usage");
 }
 
-#define F(v, o, w)	(((v) & ((1<<(w))-1))<<(o))
+#define F(v, o, w) (((v) & ((1 << (w)) - 1)) << (o))
 
-enum {
-	X		= 0,			/* dimension */
-	Y		= 1,
-	Z		= 2,
-	N		= 3,
+enum { X = 0, /* dimension */
+       Y = 1,
+       Z = 2,
+       N = 3,
 
-	Chunk		= 32,			/* granularity of FIFO */
-	Pchunk		= 8,			/* Chunks in a packet */
+       Chunk = 32, /* granularity of FIFO */
+       Pchunk = 8, /* Chunks in a packet */
 
-	Quad		= 16,
+       Quad = 16,
 };
 
 /*
@@ -82,13 +81,13 @@ enum {
  */
 typedef struct Tpkt Tpkt;
 struct Tpkt {
-	uint8_t	sk;				/* Skip Checksum Control */
-	uint8_t	hint;				/* Hint|Dp|Pid0 */
-	uint8_t	size;				/* Size|Pid1|Dm|Dy|VC */
-	uint8_t	dst[N];				/* Destination Coordinates */
-	uint8_t	_6_[2];				/* reserved */
-	uint8_t	_8_[8];				/* protocol header */
-	uint8_t	payload[];
+	uint8_t sk;     /* Skip Checksum Control */
+	uint8_t hint;   /* Hint|Dp|Pid0 */
+	uint8_t size;   /* Size|Pid1|Dm|Dy|VC */
+	uint8_t dst[N]; /* Destination Coordinates */
+	uint8_t _6_[2]; /* reserved */
+	uint8_t _8_[8]; /* protocol header */
+	uint8_t payload[];
 };
 
 /*
@@ -98,51 +97,50 @@ struct Tpkt {
  * SIZE is a field in .size giving the size of the
  * packet in 32-byte 'chunks'.
  */
-#define SKIP(n)		F(n, 1, 7)
-#define SIZE(n)		F(n, 5, 3)
+#define SKIP(n) F(n, 1, 7)
+#define SIZE(n) F(n, 5, 3)
 
-enum {
-	Sk		= 0x01,			/* Skip Checksum */
+enum { Sk = 0x01, /* Skip Checksum */
 
-	Pid0		= 0x01,			/* Destination Group FIFO MSb */
-	Dp		= 0x02,			/* Multicast Deposit */
-	Hzm		= 0x04,			/* Z- Hint */
-	Hzp		= 0x08,			/* Z+ Hint */
-	Hym		= 0x10,			/* Y- Hint */
-	Hyp		= 0x20,			/* Y+ Hint */
-	Hxm		= 0x40,			/* X- Hint */
-	Hxp		= 0x80,			/* X+ Hint */
+       Pid0 = 0x01, /* Destination Group FIFO MSb */
+       Dp = 0x02,   /* Multicast Deposit */
+       Hzm = 0x04,  /* Z- Hint */
+       Hzp = 0x08,  /* Z+ Hint */
+       Hym = 0x10,  /* Y- Hint */
+       Hyp = 0x20,  /* Y+ Hint */
+       Hxm = 0x40,  /* X- Hint */
+       Hxp = 0x80,  /* X+ Hint */
 
-	Vcd0		= 0x00,			/* Dynamic 0 VC */
-	Vcd1		= 0x01,			/* Dynamic 1 VC */
-	Vcbn		= 0x02,			/* Deterministic Bubble VC */
-	Vcbp		= 0x03,			/* Deterministic Priority VC */
-	Dy		= 0x04,			/* Dynamic Routing */
-	Dm		= 0x08,			/* DMA Mode */
-	Pid1		= 0x10,			/* Destination Group FIFO LSb */
+       Vcd0 = 0x00, /* Dynamic 0 VC */
+       Vcd1 = 0x01, /* Dynamic 1 VC */
+       Vcbn = 0x02, /* Deterministic Bubble VC */
+       Vcbp = 0x03, /* Deterministic Priority VC */
+       Dy = 0x04,   /* Dynamic Routing */
+       Dm = 0x08,   /* DMA Mode */
+       Pid1 = 0x10, /* Destination Group FIFO LSb */
 };
 
 static int
 torusparse(uint8_t d[3], char* item, char* buf)
 {
 	int n;
-	char *p;
+	char* p;
 
-	if((p = strstr(buf, item)) == nil || (p != buf && *(p-1) != '\n'))
+	if((p = strstr(buf, item)) == nil || (p != buf && *(p - 1) != '\n'))
 		return -1;
 	n = strlen(item);
-	if(strlen(p) < n+sizeof(": x 0 y 0 z 0"))
+	if(strlen(p) < n + sizeof(": x 0 y 0 z 0"))
 		return -1;
-	p += n+sizeof(": x ")-1;
-	if(strncmp(p-4, ": x ", 4) != 0)
+	p += n + sizeof(": x ") - 1;
+	if(strncmp(p - 4, ": x ", 4) != 0)
 		return -1;
-	if((n = strtol(p, &p, 0)) > 255 || *p != ' ' || *(p+1) != 'y')
+	if((n = strtol(p, &p, 0)) > 255 || *p != ' ' || *(p + 1) != 'y')
 		return -1;
 	d[0] = n;
-	if((n = strtol(p+2, &p, 0)) > 255 || *p != ' ' || *(p+1) != 'z')
+	if((n = strtol(p + 2, &p, 0)) > 255 || *p != ' ' || *(p + 1) != 'z')
 		return -1;
 	d[1] = n;
-	if((n = strtol(p+2, &p, 0)) > 255 || (*p != '\n' && *p != '\0'))
+	if((n = strtol(p + 2, &p, 0)) > 255 || (*p != '\n' && *p != '\0'))
 		return -1;
 	d[2] = n;
 
@@ -152,25 +150,25 @@ torusparse(uint8_t d[3], char* item, char* buf)
 static void
 dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 {
-	uint8_t *t;
+	uint8_t* t;
 	int i, j, n;
 	char buf[512], *e, *p;
 
-	n = ((tpkt->size>>5)+1) * Chunk;
+	n = ((tpkt->size >> 5) + 1) * Chunk;
 
 	p = buf;
 	e = buf + sizeof(buf);
-	if(hflag){
+	if(hflag) {
 		p = seprint(p, e, "Hw:");
 #ifdef notdef
-		p = seprint(p, e, " sk %#2.2ux (Skip %d Sk %d)",
-			tpkt->sk, tpkt->sk & Sk, tpkt->sk>>1);
+		p = seprint(p, e, " sk %#2.2ux (Skip %d Sk %d)", tpkt->sk,
+		            tpkt->sk & Sk, tpkt->sk >> 1);
 		p = seprint(p, e, " hint %#2.2ux", tpkt->hint);
 		p = seprint(p, e, " size %#2.2ux", tpkt->size);
-		p = seprint(p, e, " dst [%d, %d, %d]",
-			tpkt->dst[X], tpkt->dst[Y], tpkt->dst[Z]);
-		p = seprint(p, e, " _6_[0] %#2.2ux (seqno %d)",
-			tpkt->_6_[0], tpkt->_6_[0]);
+		p = seprint(p, e, " dst [%d, %d, %d]", tpkt->dst[X],
+		            tpkt->dst[Y], tpkt->dst[Z]);
+		p = seprint(p, e, " _6_[0] %#2.2ux (seqno %d)", tpkt->_6_[0],
+		            tpkt->_6_[0]);
 		p = seprint(p, e, " _6_[1] %#2.2ux (crc)\n", tpkt->_6_[1]);
 #else
 		t = (uint8_t*)tpkt;
@@ -184,17 +182,16 @@ dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 		for(i = 0; i < 8; i++)
 			p = seprint(p, e, " %#2.2ux", t[i]);
 		print("%s\n", buf);
-
 	}
 
 	if(!dflag)
 		return;
 
 	n -= sizeof(Tpkt);
-	for(i = 0; i < n; i += 16){
+	for(i = 0; i < n; i += 16) {
 		p = seprint(buf, e, "%4.4ux:", i);
 		for(j = 0; j < 16; j++)
-			seprint(p, e, " %2.2ux", tpkt->payload[i+j]);
+			seprint(p, e, " %2.2ux", tpkt->payload[i + j]);
 		print("%s\n", buf);
 	}
 }
@@ -202,7 +199,7 @@ dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 void
 main(int argc, char* argv[])
 {
-	Tpkt *tpkt;
+	Tpkt* tpkt;
 	u8int d[N];
 	char buf[512], *p;
 	uint64_t r, start, stop;
@@ -210,10 +207,11 @@ main(int argc, char* argv[])
 
 	count = 1;
 	dflag = hflag = 0;
-	length = Pchunk*Chunk;
+	length = Pchunk * Chunk;
 	mhz = 700;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 		break;
@@ -230,9 +228,9 @@ main(int argc, char* argv[])
 		if(n % Chunk)
 			usage();
 		length = n;
-		if(length > Pchunk*Chunk){
-			n = (n + (Pchunk*Chunk)-1)/(Pchunk*Chunk);
-			length += (n-1) * sizeof(Tpkt);
+		if(length > Pchunk * Chunk) {
+			n = (n + (Pchunk * Chunk) - 1) / (Pchunk * Chunk);
+			length += (n - 1) * sizeof(Tpkt);
 		}
 		break;
 	case 'm':
@@ -247,7 +245,8 @@ main(int argc, char* argv[])
 			usage();
 		count = n;
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if((fd = open("/dev/torusstatus", OREAD)) < 0)
 		fatal("open /dev/torusstatus: %r\n");
@@ -271,10 +270,10 @@ main(int argc, char* argv[])
 
 	print("starting %d reads of %d\n", count, length);
 
-	r = count*length;
+	r = count * length;
 
 	cycles(&start);
-	for(i = 0; i < r; i += n){
+	for(i = 0; i < r; i += n) {
 		if((n = pread(fd, tpkt, length, 0)) < 0)
 			fatal("read /dev/torus: %r\n", n);
 		if(hflag || dflag)
@@ -284,12 +283,12 @@ main(int argc, char* argv[])
 
 	close(fd);
 
-	r = (count*length);
+	r = (count * length);
 	r *= mhz;
 	r /= stop - start;
 
-	print("%d reads in %llud cycles @ %dMHz = %llud MB/s\n",
-		i, stop - start, mhz, r);
+	print("%d reads in %llud cycles @ %dMHz = %llud MB/s\n", i,
+	      stop - start, mhz, r);
 
 	exits(0);
 }

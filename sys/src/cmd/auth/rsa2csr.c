@@ -23,24 +23,26 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int len;
-	unsigned char *cert;
-	RSApriv *key;
+	unsigned char* cert;
+	RSApriv* key;
 
 	fmtinstall('B', mpfmt);
 	fmtinstall('H', encodefmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1 && argc != 2)
 		usage();
 
-	if((key = getkey(argc-1, argv+1, 1, nil)) == nil)
+	if((key = getkey(argc - 1, argv + 1, 1, nil)) == nil)
 		sysfatal("%r");
 
 	cert = X509req(key, argv[0], &len);

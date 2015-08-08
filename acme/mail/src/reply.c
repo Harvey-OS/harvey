@@ -15,36 +15,37 @@
 #include <plumb.h>
 #include "dat.h"
 
-static int	replyid;
+static int replyid;
 
 int
-quote(Message *m, Biobuf *b, char *dir, char *quotetext)
+quote(Message* m, Biobuf* b, char* dir, char* quotetext)
 {
-	char *body, *type;
+	char* body, *type;
 	int i, n, nlines;
-	char **lines;
+	char** lines;
 
-	if(quotetext){
+	if(quotetext) {
 		body = quotetext;
 		n = strlen(body);
 		type = nil;
-	}else{
+	} else {
 		/* look for first textual component to quote */
 		type = readfile(dir, "type", &n);
-		if(type == nil){
+		if(type == nil) {
 			print("no type in %s\n", dir);
 			return 0;
 		}
-		if(strncmp(type, "multipart/", 10)==0 || strncmp(type, "message/", 8)==0){
+		if(strncmp(type, "multipart/", 10) == 0 ||
+		   strncmp(type, "message/", 8) == 0) {
 			dir = estrstrdup(dir, "1/");
-			if(quote(m, b, dir, nil)){
+			if(quote(m, b, dir, nil)) {
 				free(type);
 				free(dir);
 				return 1;
 			}
 			free(dir);
 		}
-		if(strncmp(type, "text", 4) != 0){
+		if(strncmp(type, "text", 4) != 0) {
 			free(type);
 			return 0;
 		}
@@ -53,35 +54,35 @@ quote(Message *m, Biobuf *b, char *dir, char *quotetext)
 			return 0;
 	}
 	nlines = 0;
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		if(body[i] == '\n')
 			nlines++;
 	nlines++;
-	lines = emalloc(nlines*sizeof(char*));
+	lines = emalloc(nlines * sizeof(char*));
 	nlines = getfields(body, lines, nlines, 0, "\n");
 	/* delete leading and trailing blank lines */
 	i = 0;
-	while(i<nlines && lines[i][0]=='\0')
+	while(i < nlines && lines[i][0] == '\0')
 		i++;
-	while(i<nlines && lines[nlines-1][0]=='\0')
+	while(i < nlines && lines[nlines - 1][0] == '\0')
 		nlines--;
-	while(i < nlines){
-		Bprint(b, ">%s%s\n", lines[i][0]=='>'? "" : " ", lines[i]);
+	while(i < nlines) {
+		Bprint(b, ">%s%s\n", lines[i][0] == '>' ? "" : " ", lines[i]);
 		i++;
 	}
 	free(lines);
-	free(body);	/* will free quotetext if non-nil */
+	free(body); /* will free quotetext if non-nil */
 	free(type);
 	return 1;
 }
 
 void
-mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
+mkreply(Message* m, char* label, char* to, Plumbattr* attr, char* quotetext)
 {
-	Message *r;
-	char *dir, *t;
+	Message* r;
+	char* dir, *t;
 	int quotereply;
-	Plumbattr *a;
+	Plumbattr* a;
 
 	quotereply = (label[0] == 'Q');
 	r = emalloc(sizeof(Message));
@@ -95,27 +96,28 @@ mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
 	replies.head = r;
 	if(replies.tail == nil)
 		replies.tail = r;
-	r->name = emalloc(strlen(mbox.name)+strlen(label)+10);
+	r->name = emalloc(strlen(mbox.name) + strlen(label) + 10);
 	sprint(r->name, "%s%s%d", mbox.name, label, ++replyid);
 	r->w = newwindow();
 	winname(r->w, r->name);
 	ctlprint(r->w->ctl, "cleartag");
-	wintagwrite(r->w, "fmt Look Post Undo", 4+5+5+4);
+	wintagwrite(r->w, "fmt Look Post Undo", 4 + 5 + 5 + 4);
 	r->tagposted = 1;
 	threadcreate(mesgctl, r, STACK);
 	winopenbody(r->w, OWRITE);
-	if(to!=nil && to[0]!='\0')
+	if(to != nil && to[0] != '\0')
 		Bprint(r->w->body, "%s\n", to);
-	for(a=attr; a; a=a->next)
+	for(a = attr; a; a = a->next)
 		Bprint(r->w->body, "%s: %s\n", a->name, a->value);
 	dir = nil;
-	if(m != nil){
+	if(m != nil) {
 		dir = estrstrdup(mbox.name, m->name);
-		if(to == nil && attr == nil){
-			/* Reply goes to replyto; Reply all goes to From and To and CC */
+		if(to == nil && attr == nil) {
+			/* Reply goes to replyto; Reply all goes to From and To
+			 * and CC */
 			if(strstr(label, "all") == nil)
 				Bprint(r->w->body, "To: %s\n", m->replyto);
-			else{	/* Replyall */
+			else { /* Replyall */
 				if(strlen(m->from) > 0)
 					Bprint(r->w->body, "To: %s\n", m->from);
 				if(strlen(m->to) > 0)
@@ -124,14 +126,16 @@ mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
 					Bprint(r->w->body, "CC: %s\n", m->cc);
 			}
 		}
-		if(strlen(m->subject) > 0){
+		if(strlen(m->subject) > 0) {
 			t = "Subject: Re: ";
 			if(strlen(m->subject) >= 3)
-				if(tolower(m->subject[0])=='r' && tolower(m->subject[1])=='e' && m->subject[2]==':')
+				if(tolower(m->subject[0]) == 'r' &&
+				   tolower(m->subject[1]) == 'e' &&
+				   m->subject[2] == ':')
 					t = "Subject: ";
 			Bprint(r->w->body, "%s%s\n", t, m->subject);
 		}
-		if(!quotereply){
+		if(!quotereply) {
 			Bprint(r->w->body, "Include: %sraw\n", dir);
 			free(dir);
 		}
@@ -139,12 +143,12 @@ mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
 	Bprint(r->w->body, "\n");
 	if(m == nil)
 		Bprint(r->w->body, "\n");
-	else if(quotereply){
+	else if(quotereply) {
 		quote(m, r->w->body, dir, quotetext);
 		free(dir);
 	}
 	winclosebody(r->w);
-	if(m==nil && (to==nil || to[0]=='\0'))
+	if(m == nil && (to == nil || to[0] == '\0'))
 		winselect(r->w, "0", 0);
 	else
 		winselect(r->w, "$", 0);
@@ -153,7 +157,7 @@ mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
 }
 
 void
-delreply(Message *m)
+delreply(Message* m)
 {
 	if(m->next == nil)
 		replies.tail = m->prev;
@@ -167,20 +171,21 @@ delreply(Message *m)
 	free(m);
 }
 
-/* copy argv to stack and free the incoming strings, so we don't leak argument vectors */
+/* copy argv to stack and free the incoming strings, so we don't leak argument
+ * vectors */
 void
-buildargv(char **inargv, char *argv[NARGS+1], char args[NARGCHAR])
+buildargv(char** inargv, char* argv[NARGS + 1], char args[NARGCHAR])
 {
 	int i, n;
-	char *s, *a;
+	char* s, *a;
 
 	s = args;
-	for(i=0; i<NARGS; i++){
+	for(i = 0; i < NARGS; i++) {
 		a = inargv[i];
 		if(a == nil)
 			break;
-		n = strlen(a)+1;
-		if((s-args)+n >= NARGCHAR)	/* too many characters */
+		n = strlen(a) + 1;
+		if((s - args) + n >= NARGCHAR) /* too many characters */
 			break;
 		argv[i] = s;
 		memmove(s, a, n);
@@ -191,19 +196,19 @@ buildargv(char **inargv, char *argv[NARGS+1], char args[NARGCHAR])
 }
 
 void
-execproc(void *v)
+execproc(void* v)
 {
-	struct Exec *e;
+	struct Exec* e;
 	int p[2], q[2];
-	char *prog;
-	char *argv[NARGS+1], args[NARGCHAR];
+	char* prog;
+	char* argv[NARGS + 1], args[NARGCHAR];
 
 	e = v;
 	p[0] = e->p[0];
 	p[1] = e->p[1];
 	q[0] = e->q[0];
 	q[1] = e->q[1];
-	prog = e->prog;	/* known not to be malloc'ed */
+	prog = e->prog; /* known not to be malloc'ed */
 	rfork(RFFDG);
 	sendul(e->sync, 1);
 	buildargv(e->argv, argv, args);
@@ -213,83 +218,76 @@ execproc(void *v)
 	dup(p[0], 0);
 	close(p[0]);
 	close(p[1]);
-	if(q[0]){
+	if(q[0]) {
 		dup(q[1], 1);
 		close(q[0]);
 		close(q[1]);
 	}
 	procexec(nil, prog, argv);
-//fprint(2, "exec: %s", e->prog);
-//{int i;
-//for(i=0; argv[i]; i++) print(" '%s'", argv[i]);
-//print("\n");
-//}
-//argv[0] = "cat";
-//argv[1] = nil;
-//procexec(nil, "/bin/cat", argv);
+	// fprint(2, "exec: %s", e->prog);
+	//{int i;
+	// for(i=0; argv[i]; i++) print(" '%s'", argv[i]);
+	// print("\n");
+	//}
+	// argv[0] = "cat";
+	// argv[1] = nil;
+	// procexec(nil, "/bin/cat", argv);
 	fprint(2, "Mail: can't exec %s: %r\n", prog);
 	threadexits("can't exec");
 }
 
-enum{
-	ATTACH,
-	BCC,
-	CC,
-	FROM,
-	INCLUDE,
-	TO,
+enum { ATTACH,
+       BCC,
+       CC,
+       FROM,
+       INCLUDE,
+       TO,
 };
 
-char *headers[] = {
-	"attach:",
-	"bcc:",
-	"cc:",
-	"from:",
-	"include:",
-	"to:",
-	nil,
+char* headers[] = {
+    "attach:", "bcc:", "cc:", "from:", "include:", "to:", nil,
 };
 
 int
-whichheader(char *h)
+whichheader(char* h)
 {
 	int i;
 
-	for(i=0; headers[i]!=nil; i++)
+	for(i = 0; headers[i] != nil; i++)
 		if(cistrcmp(h, headers[i]) == 0)
 			return i;
 	return -1;
 }
 
-char *tolist[200];
-char	*cclist[200];
-char	*bcclist[200];
+char* tolist[200];
+char* cclist[200];
+char* bcclist[200];
 int ncc, nbcc, nto;
-char	*attlist[200];
-char	included[200];
+char* attlist[200];
+char included[200];
 
 int
-addressed(char *name)
+addressed(char* name)
 {
 	int i;
 
-	for(i=0; i<nto; i++)
+	for(i = 0; i < nto; i++)
 		if(strcmp(name, tolist[i]) == 0)
 			return 1;
-	for(i=0; i<ncc; i++)
+	for(i = 0; i < ncc; i++)
 		if(strcmp(name, cclist[i]) == 0)
 			return 1;
-	for(i=0; i<nbcc; i++)
+	for(i = 0; i < nbcc; i++)
 		if(strcmp(name, bcclist[i]) == 0)
 			return 1;
 	return 0;
 }
 
 char*
-skipbl(char *s, char *e)
+skipbl(char* s, char* e)
 {
-	while(s < e){
-		if(*s!=' ' && *s!='\t' && *s!=',')
+	while(s < e) {
+		if(*s != ' ' && *s != '\t' && *s != ',')
 			break;
 		s++;
 	}
@@ -297,10 +295,10 @@ skipbl(char *s, char *e)
 }
 
 char*
-findbl(char *s, char *e)
+findbl(char* s, char* e)
 {
-	while(s < e){
-		if(*s==' ' || *s=='\t' || *s==',')
+	while(s < e) {
+		if(*s == ' ' || *s == '\t' || *s == ',')
 			break;
 		s++;
 	}
@@ -308,21 +306,22 @@ findbl(char *s, char *e)
 }
 
 /*
- * comma-separate possibly blank-separated strings in line; e points before newline
+ * comma-separate possibly blank-separated strings in line; e points before
+ * newline
  */
 void
-commas(char *s, char *e)
+commas(char* s, char* e)
 {
-	char *t;
+	char* t;
 
 	/* may have initial blanks */
 	s = skipbl(s, e);
-	while(s < e){
+	while(s < e) {
 		s = findbl(s, e);
 		if(s == e)
 			break;
 		t = skipbl(s, e);
-		if(t == e)	/* no more words */
+		if(t == e) /* no more words */
 			break;
 		/* patch comma */
 		*s++ = ',';
@@ -332,10 +331,10 @@ commas(char *s, char *e)
 }
 
 int
-print2(int fd, int ofd, char *fmt, ...)
+print2(int fd, int ofd, char* fmt, ...)
 {
 	int m, n;
-	char *s;
+	char* s;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -351,9 +350,9 @@ print2(int fd, int ofd, char *fmt, ...)
 }
 
 int
-write2(int fd, int ofd, char *buf, int n, int nofrom)
+write2(int fd, int ofd, char* buf, int n, int nofrom)
 {
-	char *from, *p;
+	char* from, *p;
 	int m = 0;
 
 	if(fd >= 0)
@@ -365,8 +364,9 @@ write2(int fd, int ofd, char *buf, int n, int nofrom)
 	if(nofrom == 0)
 		return write(ofd, buf, n);
 
-	/* need to escape leading From lines to avoid corrupting 'outgoing' mailbox */
-	for(p=buf; *p; p+=m){
+	/* need to escape leading From lines to avoid corrupting 'outgoing'
+	 * mailbox */
+	for(p = buf; *p; p += m) {
 		from = cistrstr(p, "from");
 		if(from == nil)
 			m = n;
@@ -374,9 +374,9 @@ write2(int fd, int ofd, char *buf, int n, int nofrom)
 			m = from - p;
 		if(m > 0)
 			write(ofd, p, m);
-		if(from){
+		if(from) {
 			/* escape with space if From is at start of line */
-			if(p==buf || from[-1]=='\n')
+			if(p == buf || from[-1] == '\n')
 				write(ofd, " ", 1);
 			write(ofd, from, 4);
 			m += 4;
@@ -387,14 +387,14 @@ write2(int fd, int ofd, char *buf, int n, int nofrom)
 }
 
 void
-mesgsend(Message *m)
+mesgsend(Message* m)
 {
-	char *s, *body, *to;
+	char* s, *body, *to;
 	int i, j, h, n, natt, p[2];
-	struct Exec *e;
-	Channel *sync;
+	struct Exec* e;
+	Channel* sync;
 	int first, nfld, delit, ofd;
-	char *copy, *fld[100], *now;
+	char* copy, *fld[100], *now;
 
 	body = winreadbody(m->w, &n);
 	/* assemble to: list from first line, to: line, and cc: line */
@@ -404,81 +404,81 @@ mesgsend(Message *m)
 	nbcc = 0;
 	first = 1;
 	to = body;
-	for(;;){
-		for(s=to; *s!='\n'; s++)
-			if(*s == '\0'){
+	for(;;) {
+		for(s = to; *s != '\n'; s++)
+			if(*s == '\0') {
 				free(body);
 				return;
 			}
-		if(s++ == to)	/* blank line */
+		if(s++ == to) /* blank line */
 			break;
 		/* make copy of line to tokenize */
-		copy = emalloc(s-to);
-		memmove(copy, to, s-to);
-		copy[s-to-1] = '\0';
+		copy = emalloc(s - to);
+		memmove(copy, to, s - to);
+		copy[s - to - 1] = '\0';
 		nfld = tokenizec(copy, fld, nelem(fld), ", \t");
-		if(nfld == 0){
+		if(nfld == 0) {
 			free(copy);
 			break;
 		}
-		n -= s-to;
-		switch(h = whichheader(fld[0])){
+		n -= s - to;
+		switch(h = whichheader(fld[0])) {
 		case TO:
 		case FROM:
 			delit = 1;
-			commas(to+strlen(fld[0]), s-1);
-			for(i=1; i<nfld && nto<nelem(tolist); i++)
+			commas(to + strlen(fld[0]), s - 1);
+			for(i = 1; i < nfld && nto < nelem(tolist); i++)
 				if(!addressed(fld[i]))
 					tolist[nto++] = estrdup(fld[i]);
 			break;
 		case BCC:
 			delit = 1;
-			commas(to+strlen(fld[0]), s-1);
-			for(i=1; i<nfld && nbcc<nelem(bcclist); i++)
+			commas(to + strlen(fld[0]), s - 1);
+			for(i = 1; i < nfld && nbcc < nelem(bcclist); i++)
 				if(!addressed(fld[i]))
 					bcclist[nbcc++] = estrdup(fld[i]);
 			break;
 		case CC:
 			delit = 1;
-			commas(to+strlen(fld[0]), s-1);
-			for(i=1; i<nfld && ncc<nelem(cclist); i++)
+			commas(to + strlen(fld[0]), s - 1);
+			for(i = 1; i < nfld && ncc < nelem(cclist); i++)
 				if(!addressed(fld[i]))
 					cclist[ncc++] = estrdup(fld[i]);
 			break;
 		case ATTACH:
 		case INCLUDE:
 			delit = 1;
-			for(i=1; i<nfld && natt<nelem(attlist); i++){
+			for(i = 1; i < nfld && natt < nelem(attlist); i++) {
 				attlist[natt] = estrdup(fld[i]);
 				included[natt++] = (h == INCLUDE);
 			}
 			break;
 		default:
-			if(first){
+			if(first) {
 				delit = 1;
-				for(i=0; i<nfld && nto<nelem(tolist); i++)
+				for(i = 0; i < nfld && nto < nelem(tolist); i++)
 					tolist[nto++] = estrdup(fld[i]);
-			}else	/* ignore it */
+			} else /* ignore it */
 				delit = 0;
 			break;
 		}
-		if(delit){
+		if(delit) {
 			/* delete line from body */
-			memmove(to, s, n+1);
-		}else
+			memmove(to, s, n + 1);
+		} else
 			to = s;
 		free(copy);
 		first = 0;
 	}
 
-	ofd = open(outgoing, OWRITE|OCEXEC);	/* no error check necessary */
-	if(ofd > 0){
+	ofd = open(outgoing, OWRITE | OCEXEC); /* no error check necessary */
+	if(ofd > 0) {
 		/* From dhog Fri Aug 24 22:13:00 EDT 2001 */
 		now = ctime(time(0));
 		fprint(ofd, "From %s %s", user, now);
 		fprint(ofd, "From: %s\n", user);
 		fprint(ofd, "Date: %s", now);
-		for(i=0; i<natt; i++)
+		for(i = 0; i < natt; i++)
 			if(included[i])
 				fprint(ofd, "Include: %s\n", attlist[i]);
 			else
@@ -494,15 +494,15 @@ mesgsend(Message *m)
 	e->p[0] = p[0];
 	e->p[1] = p[1];
 	e->prog = "/bin/upas/marshal";
-	e->argv = emalloc((1+1+2+4*natt+1)*sizeof(char*));
+	e->argv = emalloc((1 + 1 + 2 + 4 * natt + 1) * sizeof(char*));
 	e->argv[0] = estrdup("marshal");
 	e->argv[1] = estrdup("-8");
 	j = 2;
-	if(m->replyname){
+	if(m->replyname) {
 		e->argv[j++] = estrdup("-R");
 		e->argv[j++] = estrstrdup(mbox.name, m->replyname);
 	}
-	for(i=0; i<natt; i++){
+	for(i = 0; i < natt; i++) {
 		if(included[i])
 			e->argv[j++] = estrdup("-A");
 		else
@@ -516,21 +516,21 @@ mesgsend(Message *m)
 	close(p[0]);
 
 	/* using marshal -8, so generate rfc822 headers */
-	if(nto > 0){
+	if(nto > 0) {
 		print2(p[1], ofd, "To: ");
-		for(i=0; i<nto-1; i++)
+		for(i = 0; i < nto - 1; i++)
 			print2(p[1], ofd, "%s, ", tolist[i]);
 		print2(p[1], ofd, "%s\n", tolist[i]);
 	}
-	if(ncc > 0){
+	if(ncc > 0) {
 		print2(p[1], ofd, "CC: ");
-		for(i=0; i<ncc-1; i++)
+		for(i = 0; i < ncc - 1; i++)
 			print2(p[1], ofd, "%s, ", cclist[i]);
 		print2(p[1], ofd, "%s\n", cclist[i]);
 	}
-	if(nbcc > 0){
+	if(nbcc > 0) {
 		print2(p[1], ofd, "BCC: ");
-		for(i=0; i<nbcc-1; i++)
+		for(i = 0; i < nbcc - 1; i++)
 			print2(p[1], ofd, "%s, ", bcclist[i]);
 		print2(p[1], ofd, "%s\n", bcclist[i]);
 	}
@@ -539,15 +539,16 @@ mesgsend(Message *m)
 	if(i > 0)
 		write2(p[1], ofd, body, i, 1);
 
-	/* guarantee a blank line, to ensure attachments are separated from body */
-	if(i==0 || body[i-1]!='\n')
+	/* guarantee a blank line, to ensure attachments are separated from body
+	 */
+	if(i == 0 || body[i - 1] != '\n')
 		write2(p[1], ofd, "\n\n", 2, 0);
-	else if(i>1 && body[i-2]!='\n')
+	else if(i > 1 && body[i - 2] != '\n')
 		write2(p[1], ofd, "\n", 1, 0);
 
 	/* these look like pseudo-attachments in the "outgoing" box */
-	if(ofd>0 && natt>0){
-		for(i=0; i<natt; i++)
+	if(ofd > 0 && natt > 0) {
+		for(i = 0; i < natt; i++)
 			if(included[i])
 				fprint(ofd, "=====> Include: %s\n", attlist[i]);
 			else
@@ -556,7 +557,7 @@ mesgsend(Message *m)
 	if(ofd > 0)
 		write(ofd, "\n", 1);
 
-	for(i=0; i<natt; i++)
+	for(i = 0; i < natt; i++)
 		free(attlist[i]);
 	close(ofd);
 	close(p[1]);

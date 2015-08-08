@@ -9,4 +9,4 @@
 
 extern Serialops slops;
 
-int slmatch(char *info);
+int slmatch(char* info);

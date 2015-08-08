@@ -12,186 +12,173 @@
 #include <bio.h>
 #include <ip.h>
 
-enum
-{
-	Version=	1,
-	Pasize=		4,
+enum { Version = 1,
+       Pasize = 4,
 
-	/*
-	 *  definitions that are innately tied to BSD
-	 */
-	AF_INET=	2,
-	AF_UNSPEC=	0,
+       /*
+        *  definitions that are innately tied to BSD
+        */
+       AF_INET = 2,
+       AF_UNSPEC = 0,
 
-	/*
-	 *  Packet types.
-	 */
-	Request=	1,
-	Response=	2,
-	Traceon=	3,
-	Traceoff=	4,
+       /*
+        *  Packet types.
+        */
+       Request = 1,
+       Response = 2,
+       Traceon = 3,
+       Traceoff = 4,
 
-	Infinity=	16,	/* infinite hop count */
-	Maxpacket=	488,	/* largest packet body */
+       Infinity = 16,   /* infinite hop count */
+       Maxpacket = 488, /* largest packet body */
 };
-
 
 /*
  *  network info
  */
-typedef struct Rip	Rip;
-struct Rip
-{
-	uint8_t	family[2];
-	uint8_t	port[2];
-	uint8_t	addr[Pasize];
-	uint8_t	pad[8];
-	uint8_t	metric[4];
+typedef struct Rip Rip;
+struct Rip {
+	uint8_t family[2];
+	uint8_t port[2];
+	uint8_t addr[Pasize];
+	uint8_t pad[8];
+	uint8_t metric[4];
 };
-typedef struct Ripmsg	Ripmsg;
-struct Ripmsg
-{
-	uint8_t	type;
-	uint8_t	vers;
-	uint8_t	pad[2];
-	Rip	rip[1];		/* the rest of the packet consists of routes */
+typedef struct Ripmsg Ripmsg;
+struct Ripmsg {
+	uint8_t type;
+	uint8_t vers;
+	uint8_t pad[2];
+	Rip rip[1]; /* the rest of the packet consists of routes */
 };
 
-enum
-{
-	Maxroutes=	(Maxpacket-4)/sizeof(Ripmsg),
+enum { Maxroutes = (Maxpacket - 4) / sizeof(Ripmsg),
 };
 
 /*
  *  internal route info
  */
-enum
-{
-	Nroute=	2048,		/* this has to be smaller than what /ip has */
-	Nhash=	256,		/* routing hash buckets */
-	Nifc=	16,
+enum { Nroute = 2048, /* this has to be smaller than what /ip has */
+       Nhash = 256,   /* routing hash buckets */
+       Nifc = 16,
 };
 
-typedef struct Route	Route;
-struct Route
-{
-	Route	*next;
+typedef struct Route Route;
+struct Route {
+	Route* next;
 
-	uint8_t	dest[Pasize];
-	uint8_t	mask[Pasize];
-	uint8_t	gate[Pasize];
-	int	metric;
-	int	inuse;
-	int32_t	time;
+	uint8_t dest[Pasize];
+	uint8_t mask[Pasize];
+	uint8_t gate[Pasize];
+	int metric;
+	int inuse;
+	int32_t time;
 };
 struct {
-	Route	route[Nroute];
-	Route	*hash[Nhash];
-	int	nroute;
-	Route	def;	/* default route (immutable by us) */
+	Route route[Nroute];
+	Route* hash[Nhash];
+	int nroute;
+	Route def; /* default route (immutable by us) */
 } ralloc;
 
-typedef struct Ifc	Ifc;
-struct Ifc
-{
-	int	bcast;
-	uint8_t	addr[Pasize];	/* my address */
-	uint8_t	mask[Pasize];	/* subnet mask */
-	uint8_t	net[Pasize];	/* subnet */
-	uint8_t	*cmask;		/* class mask */
-	uint8_t	cnet[Pasize];	/* class net */
+typedef struct Ifc Ifc;
+struct Ifc {
+	int bcast;
+	uint8_t addr[Pasize]; /* my address */
+	uint8_t mask[Pasize]; /* subnet mask */
+	uint8_t net[Pasize];  /* subnet */
+	uint8_t* cmask;       /* class mask */
+	uint8_t cnet[Pasize]; /* class net */
 };
 struct {
-	Ifc	ifc[Nifc];
-	int	nifc;
+	Ifc ifc[Nifc];
+	int nifc;
 } ialloc;
 
 /*
  *  specific networks to broadcast on
  */
 typedef struct Bnet Bnet;
-struct Bnet
-{
-	Bnet	*next;
-	uint8_t	addr[Pasize];
+struct Bnet {
+	Bnet* next;
+	uint8_t addr[Pasize];
 };
-Bnet	*bnets;
+Bnet* bnets;
 
-int	ripfd;
-int32_t	now;
-int	debug;
-int	readonly;
-char	routefile[256];
-char	netdir[256];
+int ripfd;
+int32_t now;
+int debug;
+int readonly;
+char routefile[256];
+char netdir[256];
 
-int	openport(void);
-void	readroutes(void);
-void	readifcs(void);
-void	considerroute(Route*);
-void	installroute(Route*);
-void	removeroute(Route*);
-uint8_t	*getmask(uint8_t*);
-void	broadcast(void);
-void	timeoutroutes(void);
+int openport(void);
+void readroutes(void);
+void readifcs(void);
+void considerroute(Route*);
+void installroute(Route*);
+void removeroute(Route*);
+uint8_t* getmask(uint8_t*);
+void broadcast(void);
+void timeoutroutes(void);
 
 void
-fatal(int syserr, char *fmt, ...)
+fatal(int syserr, char* fmt, ...)
 {
 	char buf[ERRMAX], sysbuf[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr) {
 		errstr(sysbuf, sizeof sysbuf);
 		fprint(2, "routed: %s: %s\n", buf, sysbuf);
-	}
-	else
+	} else
 		fprint(2, "routed: %s\n", buf);
 	exits(buf);
 }
 
 uint32_t
-v4parseipmask(uint8_t *ip, char *p)
+v4parseipmask(uint8_t* ip, char* p)
 {
 	uint32_t x;
 	uint8_t v6ip[IPaddrlen];
 
 	x = parseipmask(v6ip, p);
-	memmove(ip, v6ip+IPv4off, 4);
+	memmove(ip, v6ip + IPv4off, 4);
 	return x;
 }
 
 uint8_t*
-v4defmask(uint8_t *ip)
+v4defmask(uint8_t* ip)
 {
 	uint8_t v6ip[IPaddrlen];
 
 	v4tov6(v6ip, ip);
 	ip = defmask(v6ip);
-	return ip+IPv4off;
+	return ip + IPv4off;
 }
 
 void
-v4maskip(uint8_t *from, uint8_t *mask, uint8_t *to)
+v4maskip(uint8_t* from, uint8_t* mask, uint8_t* to)
 {
 	int i;
 
 	for(i = 0; i < Pasize; i++)
-		*to++ = *from++ & *mask++;
+		*to++ = *from++&* mask++;
 }
 
 void
-v6tov4mask(uint8_t *v4, uint8_t *v6)
+v6tov4mask(uint8_t* v4, uint8_t* v6)
 {
-	memmove(v4, v6+IPv4off, 4);
+	memmove(v4, v6 + IPv4off, 4);
 }
 
 #define equivip(a, b) (memcmp((a), (b), Pasize) == 0)
 
 void
-ding(void *u, char *msg)
+ding(void* u, char* msg)
 {
 	USED(u);
 
@@ -208,23 +195,24 @@ usage(void)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int dobroadcast, i, n;
 	long diff;
-	char *p;
-	char buf[2*1024];
+	char* p;
+	char buf[2 * 1024];
 	uint8_t raddr[Pasize];
-	Bnet *bn, **l;
-	Udphdr *up;
-	Rip *r;
-	Ripmsg *m;
+	Bnet* bn, **l;
+	Udphdr* up;
+	Rip* r;
+	Ripmsg* m;
 	Route route;
 	static long btime;
 
 	setnetmtpt(netdir, sizeof(netdir), nil);
 	dobroadcast = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		dobroadcast++;
 		break;
@@ -242,11 +230,12 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	/* specific broadcast nets */
 	l = &bnets;
-	while(argc > 0){
+	while(argc > 0) {
 		bn = (Bnet*)malloc(sizeof(Bnet));
 		if(bn == 0)
 			fatal(1, "out of mem");
@@ -260,7 +249,7 @@ main(int argc, char *argv[])
 
 	/* command returns */
 	if(!debug)
-		switch(rfork(RFNOTEG|RFPROC|RFFDG|RFNOWAIT)) {
+		switch(rfork(RFNOTEG | RFPROC | RFFDG | RFNOWAIT)) {
 		case -1:
 			fatal(1, "fork");
 		case 0:
@@ -268,7 +257,6 @@ main(int argc, char *argv[])
 		default:
 			exits(0);
 		}
-
 
 	fmtinstall('E', eipfmt);
 	fmtinstall('V', eipfmt);
@@ -285,15 +273,15 @@ main(int argc, char *argv[])
 	ripfd = openport();
 	for(;;) {
 		diff = btime - time(0);
-		if(diff <= 0){
+		if(diff <= 0) {
 			if(dobroadcast)
 				broadcast();
 			timeoutroutes();
 
-			btime = time(0) + 2*60;
-			diff = 2*60;
+			btime = time(0) + 2 * 60;
+			diff = 2 * 60;
 		}
-		alarm(diff*1000);
+		alarm(diff * 1000);
 		n = read(ripfd, buf, sizeof(buf));
 		alarm(0);
 		if(n <= 0)
@@ -304,7 +292,7 @@ main(int argc, char *argv[])
 			continue;
 
 		up = (Udphdr*)buf;
-		m = (Ripmsg*)(buf+Udphdrsize);
+		m = (Ripmsg*)(buf + Udphdrsize);
 		if(m->type != Response || m->vers != Version)
 			continue;
 		v6tov4(raddr, up->raddr);
@@ -315,7 +303,7 @@ main(int argc, char *argv[])
 				continue;
 
 		now = time(0);
-		for(r = m->rip; r < &m->rip[n]; r++){
+		for(r = m->rip; r < &m->rip[n]; r++) {
 			memmove(route.gate, raddr, Pasize);
 			memmove(route.mask, getmask(r->addr), Pasize);
 			v4maskip(r->addr, route.mask, route.dest);
@@ -348,24 +336,26 @@ openport(void)
 	return rip;
 }
 
-Ipifc *ifcs;
+Ipifc* ifcs;
 
 void
 readifcs(void)
 {
-	Ipifc *ifc;
-	Iplifc *lifc;
-	Ifc *ip;
-	Bnet *bn;
+	Ipifc* ifc;
+	Iplifc* lifc;
+	Ifc* ip;
+	Bnet* bn;
 	Route route;
 	int i;
 
 	ifcs = readipifc(netdir, ifcs, -1);
 	i = 0;
-	for(ifc = ifcs; ifc != nil; ifc = ifc->next){
-		for(lifc = ifc->lifc; lifc != nil && i < Nifc; lifc = lifc->next){
+	for(ifc = ifcs; ifc != nil; ifc = ifc->next) {
+		for(lifc = ifc->lifc; lifc != nil && i < Nifc;
+		    lifc = lifc->next) {
 			// ignore any interfaces that aren't v4
-			if(memcmp(lifc->ip, v4prefix, IPaddrlen-IPv4addrlen) != 0)
+			if(memcmp(lifc->ip, v4prefix,
+			          IPaddrlen - IPv4addrlen) != 0)
 				continue;
 			ip = &ialloc.ifc[i++];
 			v6tov4(ip->addr, lifc->ip);
@@ -385,11 +375,13 @@ readifcs(void)
 			/* mark as broadcast */
 			if(bnets == 0)
 				ip->bcast = 1;
-			else for(bn = bnets; bn; bn = bn->next)
-				if(memcmp(bn->addr, ip->net, Pasize) == 0){
-					ip->bcast = 1;
-					break;
-				}
+			else
+				for(bn = bnets; bn; bn = bn->next)
+					if(memcmp(bn->addr, ip->net, Pasize) ==
+					   0) {
+						ip->bcast = 1;
+						break;
+					}
 		}
 	}
 	ialloc.nifc = i;
@@ -399,16 +391,16 @@ void
 readroutes(void)
 {
 	int n;
-	char *p;
-	Biobuf *b;
-	char *f[6];
+	char* p;
+	Biobuf* b;
+	char* f[6];
 	Route route;
 
 	b = Bopen(routefile, OREAD);
 	if(b == 0)
 		return;
-	while(p = Brdline(b, '\n')){
-		p[Blinelen(b)-1] = 0;
+	while(p = Brdline(b, '\n')) {
+		p[Blinelen(b) - 1] = 0;
 		n = getfields(p, f, 6, 1, " \t");
 		if(n < 5)
 			continue;
@@ -416,10 +408,11 @@ readroutes(void)
 		v4parseipmask(route.mask, f[1]);
 		v4parseip(route.gate, f[2]);
 		route.metric = Infinity;
-		if(equivip(route.dest, ralloc.def.dest)
-		&& equivip(route.mask, ralloc.def.mask))
+		if(equivip(route.dest, ralloc.def.dest) &&
+		   equivip(route.mask, ralloc.def.mask))
 			memmove(ralloc.def.gate, route.gate, Pasize);
-		else if(!equivip(route.dest, route.gate) && strchr(f[3], 'i') == 0)
+		else if(!equivip(route.dest, route.gate) &&
+		        strchr(f[3], 'i') == 0)
 			considerroute(&route);
 	}
 	Bterm(b);
@@ -429,7 +422,7 @@ readroutes(void)
  *  route's hashed by net, not subnet
  */
 uint32_t
-rhash(uint8_t *d)
+rhash(uint8_t* d)
 {
 	uint32_t h;
 	uint8_t net[Pasize];
@@ -444,29 +437,31 @@ rhash(uint8_t *d)
  *  we have.
  */
 void
-considerroute(Route *r)
+considerroute(Route* r)
 {
 	uint32_t h;
-	Route *hp;
+	Route* hp;
 
 	if(debug)
-		fprint(2, "consider %16V & %16V -> %16V %d\n", r->dest, r->mask, r->gate, r->metric);
+		fprint(2, "consider %16V & %16V -> %16V %d\n", r->dest, r->mask,
+		       r->gate, r->metric);
 
 	r->next = 0;
 	r->time = now;
 	r->inuse = 1;
 
 	/* don't allow our default route to be highjacked */
-	if(equivip(r->dest, ralloc.def.dest) || equivip(r->mask, ralloc.def.mask))
+	if(equivip(r->dest, ralloc.def.dest) ||
+	   equivip(r->mask, ralloc.def.mask))
 		return;
 
 	h = rhash(r->dest);
-	for(hp = ralloc.hash[h]; hp; hp = hp->next){
-		if(equivip(hp->dest, r->dest)){
+	for(hp = ralloc.hash[h]; hp; hp = hp->next) {
+		if(equivip(hp->dest, r->dest)) {
 			/*
 			 *  found a match, replace if better (or much newer)
 			 */
-			if(r->metric < hp->metric || now-hp->time > 5*60){
+			if(r->metric < hp->metric || now - hp->time > 5 * 60) {
 				removeroute(hp);
 				memmove(hp->mask, r->mask, Pasize);
 				memmove(hp->gate, r->gate, Pasize);
@@ -496,12 +491,12 @@ considerroute(Route *r)
 }
 
 void
-removeroute(Route *r)
+removeroute(Route* r)
 {
 	int fd;
 
 	fd = open(routefile, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "can't open oproute\n");
 		return;
 	}
@@ -517,11 +512,11 @@ removeroute(Route *r)
  *  gateway.
  */
 void
-installroute(Route *r)
+installroute(Route* r)
 {
 	int fd;
 	uint32_t h;
-	Route *hp;
+	Route* hp;
 	uint8_t net[Pasize];
 
 	/*
@@ -531,7 +526,7 @@ installroute(Route *r)
 		return;
 
 	fd = open(routefile, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "can't open oproute\n");
 		return;
 	}
@@ -541,19 +536,20 @@ installroute(Route *r)
 	 *  if the gateway is the same as the default gateway
 	 *  we may be able to avoid a entry in the kernel
 	 */
-	if(equivip(r->gate, ralloc.def.gate)){
+	if(equivip(r->gate, ralloc.def.gate)) {
 		/*
 		 *  look for a less specific match
 		 */
-		for(hp = ralloc.hash[h]; hp; hp = hp->next){
+		for(hp = ralloc.hash[h]; hp; hp = hp->next) {
 			v4maskip(hp->mask, r->dest, net);
-			if(equivip(net, hp->dest) && !equivip(hp->gate, ralloc.def.gate))
+			if(equivip(net, hp->dest) &&
+			   !equivip(hp->gate, ralloc.def.gate))
 				break;
 		}
 		/*
 		 *  if no less specific match, just use the default
 		 */
-		if(hp == 0){
+		if(hp == 0) {
 			if(!readonly)
 				fprint(fd, "delete %V", r->dest);
 			if(debug)
@@ -573,7 +569,7 @@ installroute(Route *r)
  *  return true of dest is on net
  */
 int
-onnet(uint8_t *dest, uint8_t *net, uint8_t *netmask)
+onnet(uint8_t* dest, uint8_t* net, uint8_t* netmask)
 {
 	uint8_t dnet[Pasize];
 
@@ -586,20 +582,20 @@ onnet(uint8_t *dest, uint8_t *net, uint8_t *netmask)
  *  with the same class net use its subnet mask.
  */
 uint8_t*
-getmask(uint8_t *dest)
+getmask(uint8_t* dest)
 {
 	int i;
-	Ifc *ip;
+	Ifc* ip;
 	uint32_t mask, nmask;
-	uint8_t *m;
+	uint8_t* m;
 
 	m = 0;
 	mask = 0xffffffff;
-	for(i = 0; i < ialloc.nifc; i++){
+	for(i = 0; i < ialloc.nifc; i++) {
 		ip = &ialloc.ifc[i];
-		if(onnet(dest, ip->cnet, ip->cmask)){
+		if(onnet(dest, ip->cnet, ip->cmask)) {
 			nmask = nhgetl(ip->mask);
-			if(nmask < mask){
+			if(nmask < mask) {
 				mask = nmask;
 				m = ip->mask;
 			}
@@ -615,28 +611,28 @@ getmask(uint8_t *dest)
  *  broadcast routes onto all networks
  */
 void
-sendto(Ifc *ip)
+sendto(Ifc* ip)
 {
 	int h, n;
-	uint8_t raddr[Pasize], mbuf[Udphdrsize+512];
-	Ripmsg *m;
-	Route *r;
-	Udphdr *u;
+	uint8_t raddr[Pasize], mbuf[Udphdrsize + 512];
+	Ripmsg* m;
+	Route* r;
+	Udphdr* u;
 
 	u = (Udphdr*)mbuf;
 	for(n = 0; n < Pasize; n++)
 		raddr[n] = ip->net[n] | ~(ip->mask[n]);
 	v4tov6(u->raddr, raddr);
 	hnputs(u->rport, 520);
-	m = (Ripmsg*)(mbuf+Udphdrsize);
+	m = (Ripmsg*)(mbuf + Udphdrsize);
 	m->type = Response;
 	m->vers = Version;
 	if(debug)
 		fprint(2, "to %V\n", u->raddr);
 
 	n = 0;
-	for(h = 0; h < Nhash; h++){
-		for(r = ralloc.hash[h]; r; r = r->next){
+	for(h = 0; h < Nhash; h++) {
+		for(r = ralloc.hash[h]; r; r = r->next) {
 			/*
 			 *  don't send any route back to the net
 			 *  it came from
@@ -653,8 +649,8 @@ sendto(Ifc *ip)
 			/*
 			 *  don't tell nets about other net's subnets
 			 */
-			if(!equivip(r->mask, v4defmask(r->dest))
-			&& !equivip(ip->cmask, v4defmask(r->dest)))
+			if(!equivip(r->mask, v4defmask(r->dest)) &&
+			   !equivip(ip->cmask, v4defmask(r->dest)))
 				continue;
 
 			memset(&m->rip[n], 0, sizeof(m->rip[n]));
@@ -666,18 +662,18 @@ sendto(Ifc *ip)
 			hnputs(m->rip[n].family, AF_INET);
 
 			if(debug)
-				fprint(2, " %16V & %16V -> %16V %2d\n",
-					r->dest, r->mask, r->gate, r->metric);
+				fprint(2, " %16V & %16V -> %16V %2d\n", r->dest,
+				       r->mask, r->gate, r->metric);
 
-			if(++n == Maxroutes && !readonly){
-				write(ripfd, mbuf, Udphdrsize + 4 + n*20);
+			if(++n == Maxroutes && !readonly) {
+				write(ripfd, mbuf, Udphdrsize + 4 + n * 20);
 				n = 0;
 			}
 		}
 	}
 
 	if(n && !readonly)
-		write(ripfd, mbuf, Udphdrsize+4+n*20);
+		write(ripfd, mbuf, Udphdrsize + 4 + n * 20);
 }
 void
 broadcast(void)
@@ -685,7 +681,7 @@ broadcast(void)
 	int i;
 
 	readifcs();
-	for(i = 0; i < ialloc.nifc; i++){
+	for(i = 0; i < ialloc.nifc; i++) {
 		if(ialloc.ifc[i].bcast)
 			sendto(&ialloc.ifc[i]);
 	}
@@ -699,14 +695,14 @@ timeoutroutes(void)
 {
 	int h;
 	int32_t now;
-	Route *r, **l;
+	Route* r, **l;
 
 	now = time(0);
 
-	for(h = 0; h < Nhash; h++){
+	for(h = 0; h < Nhash; h++) {
 		l = &ralloc.hash[h];
-		for(r = *l; r; r = *l){
-			if(r->metric < Infinity && now - r->time > 10*60){
+		for(r = *l; r; r = *l) {
+			if(r->metric < Infinity && now - r->time > 10 * 60) {
 				removeroute(r);
 				r->inuse = 0;
 				*l = r->next;

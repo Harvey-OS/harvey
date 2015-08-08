@@ -10,7 +10,7 @@
 #include "ssh.h"
 
 static CipherState*
-inittwiddle(Conn *c, int)
+inittwiddle(Conn* c, int)
 {
 	/* must be non-nil */
 	fprint(2, "twiddle key is %.*H\n", SESSKEYLEN, c->sesskey);
@@ -18,20 +18,14 @@ inittwiddle(Conn *c, int)
 }
 
 static void
-twiddle(CipherState*, uint8_t *buf, int n)
+twiddle(CipherState*, uint8_t* buf, int n)
 {
 	int i;
 
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		buf[i] ^= 0xFF;
 }
 
-Cipher ciphertwiddle =
-{
-	SSH_CIPHER_TWIDDLE,
-	"twiddle",
-	inittwiddle,
-	twiddle,
-	twiddle,
+Cipher ciphertwiddle = {
+    SSH_CIPHER_TWIDDLE, "twiddle", inittwiddle, twiddle, twiddle,
 };
-

@@ -7,29 +7,28 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-struct Rb
-{
+struct Rb {
 	QLock;
-	Rendez	producer;
-	Rendez	consumer;
-	uint32_t	randomcount;
-	//unsigned char	buf[1024];
+	Rendez producer;
+	Rendez consumer;
+	uint32_t randomcount;
+	// unsigned char	buf[1024];
 	/** WORKAROUND **/
-	unsigned char	buf[10];
+	unsigned char buf[10];
 	/** END WORKAROUND **/
-	unsigned char	*ep;
-	unsigned char	*rp;
-	unsigned char	*wp;
-	unsigned char	next;
-	unsigned char	wakeme;
-	uint16_t	bits;
-	uint32_t	randn;
+	unsigned char* ep;
+	unsigned char* rp;
+	unsigned char* wp;
+	unsigned char next;
+	unsigned char wakeme;
+	uint16_t bits;
+	uint32_t randn;
 } rb;
 
 static int
@@ -50,11 +49,11 @@ rbnotempty(void* v)
 static void
 genrandom(void* v)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	up->basepri = PriNormal;
 	up->priority = up->basepri;
 
-	for(;;){
+	for(;;) {
 		for(;;)
 			if(++rb.randomcount > 100000)
 				break;
@@ -74,19 +73,19 @@ randomclock(void)
 	if(rb.randomcount == 0 || !rbnotfull(0))
 		return;
 
-	rb.bits = (rb.bits<<2) ^ rb.randomcount;
+	rb.bits = (rb.bits << 2) ^ rb.randomcount;
 	rb.randomcount = 0;
 
 	rb.next++;
-	if(rb.next != 8/2)
+	if(rb.next != 8 / 2)
 		return;
 	rb.next = 0;
 
 	*rb.wp ^= rb.bits;
-	if(rb.wp+1 == rb.ep)
+	if(rb.wp + 1 == rb.ep)
 		rb.wp = rb.buf;
 	else
-		rb.wp = rb.wp+1;
+		rb.wp = rb.wp + 1;
 
 	if(rb.wakeme)
 		wakeup(&rb.consumer);
@@ -106,15 +105,15 @@ randominit(void)
  *  consume random bytes from a circular buffer
  */
 uint32_t
-randomread(void *xp, uint32_t n)
+randomread(void* xp, uint32_t n)
 {
-	Proc *up = externup();
-	uint8_t *e, *p;
+	Proc* up = externup();
+	uint8_t* e, *p;
 	uint32_t x;
 
 	p = xp;
 
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&rb);
 		nexterror();
 	}
@@ -122,16 +121,16 @@ randomread(void *xp, uint32_t n)
 	qlock(&rb);
 
 	/** WORKAROUND **/
-	for(e = p + n; p < e; ){
-		x = (2 * rb.randn +1)%1103515245;
+	for(e = p + n; p < e;) {
+		x = (2 * rb.randn + 1) % 1103515245;
 		*p++ = rb.randn = x;
 	}
 	qunlock(&rb);
 	poperror();
 	return n;
 	/** END WORKAROUND **/
-	for(e = p + n; p < e; ){
-		if(rb.wp == rb.rp){
+	for(e = p + n; p < e;) {
+		if(rb.wp == rb.rp) {
 			rb.wakeme = 1;
 			wakeup(&rb.producer);
 			sleep(&rb.consumer, rbnotempty, 0);
@@ -144,13 +143,13 @@ randomread(void *xp, uint32_t n)
 		 *  they are synchronized.  Use a cheap pseudo
 		 *  random number generator to obscure any cycles.
 		 */
-		x = rb.randn*1103515245 ^ *rb.rp;
+		x = rb.randn * 1103515245 ^ *rb.rp;
 		*p++ = rb.randn = x;
 
-		if(rb.rp+1 == rb.ep)
+		if(rb.rp + 1 == rb.ep)
 			rb.rp = rb.buf;
 		else
-			rb.rp = rb.rp+1;
+			rb.rp = rb.rp + 1;
 	}
 	qunlock(&rb);
 	poperror();
@@ -164,29 +163,29 @@ randomread(void *xp, uint32_t n)
  * Fast random generator
  **/
 uint32_t
-urandomread(void *xp, uint32_t n)
+urandomread(void* xp, uint32_t n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	uint64_t seed[16];
-	uint8_t *e, *p;
-	uint32_t x=0;
+	uint8_t* e, *p;
+	uint32_t x = 0;
 	uint64_t s0;
 	uint64_t s1;
 
-	if(waserror()){
+	if(waserror()) {
 		nexterror();
 	}
-	//The initial seed is from a good random pool.
+	// The initial seed is from a good random pool.
 	randomread(seed, sizeof(seed));
 
 	p = xp;
-	for(e = p + n; p < e; ){
-		s0 = seed[ x ];
-		s1 = seed[ x = (x+1) & 15 ];
+	for(e = p + n; p < e;) {
+		s0 = seed[x];
+		s1 = seed[x = (x + 1) & 15];
 		s1 ^= s1 << 31;
 		s1 ^= s1 >> 11;
 		s0 ^= s0 >> 30;
-		*p++=( seed[x] = s0 ^ s1 ) * 1181783497276652981LL;
+		*p++ = (seed[x] = s0 ^ s1) * 1181783497276652981LL;
 	}
 	poperror();
 	return n;

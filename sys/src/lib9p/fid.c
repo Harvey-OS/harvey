@@ -15,9 +15,9 @@
 #include "9p.h"
 
 static void
-incfidref(void *v)
+incfidref(void* v)
 {
-	Fid *f;
+	Fid* f;
 
 	f = v;
 	if(f)
@@ -27,7 +27,7 @@ incfidref(void *v)
 Fidpool*
 allocfidpool(void (*destroy)(Fid*))
 {
-	Fidpool *f;
+	Fidpool* f;
 
 	f = emalloc9p(sizeof *f);
 	f->map = allocmap(incfidref);
@@ -36,16 +36,16 @@ allocfidpool(void (*destroy)(Fid*))
 }
 
 void
-freefidpool(Fidpool *p)
+freefidpool(Fidpool* p)
 {
-	freemap(p->map, (void(*)(void*))p->destroy);
+	freemap(p->map, (void (*)(void*))p->destroy);
 	free(p);
 }
 
 Fid*
-allocfid(Fidpool *pool, uint32_t fid)
+allocfid(Fidpool* pool, uint32_t fid)
 {
-	Fid *f;
+	Fid* f;
 
 	f = emalloc9p(sizeof *f);
 	f->fid = fid;
@@ -54,7 +54,7 @@ allocfid(Fidpool *pool, uint32_t fid)
 
 	incfidref(f);
 	incfidref(f);
-	if(caninsertkey(pool->map, fid, f) == 0){
+	if(caninsertkey(pool->map, fid, f) == 0) {
 		closefid(f);
 		closefid(f);
 		return nil;
@@ -64,13 +64,13 @@ allocfid(Fidpool *pool, uint32_t fid)
 }
 
 Fid*
-lookupfid(Fidpool *pool, uint32_t fid)
+lookupfid(Fidpool* pool, uint32_t fid)
 {
 	return lookupkey(pool->map, fid);
 }
 
 void
-closefid(Fid *f)
+closefid(Fid* f)
 {
 	if(decref(&f->ref) == 0) {
 		if(f->rdir)
@@ -85,7 +85,7 @@ closefid(Fid *f)
 }
 
 Fid*
-removefid(Fidpool *pool, uint32_t fid)
+removefid(Fidpool* pool, uint32_t fid)
 {
 	return deletekey(pool->map, fid);
 }

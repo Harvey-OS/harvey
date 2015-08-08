@@ -7,35 +7,35 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-static Alarms	alarms;
-static Rendez	alarmr;
+static Alarms alarms;
+static Rendez alarmr;
 
 void
 alarmkproc(void* v)
 {
-	Proc *up = externup();
-	Proc *rp;
+	Proc* up = externup();
+	Proc* rp;
 	uint32_t now;
 
-	for(;;){
+	for(;;) {
 		now = sys->ticks;
 		qlock(&alarms);
-		while((rp = alarms._head) && rp->alarm <= now){
-			if(rp->alarm != 0L){
-				if(canqlock(&rp->debug)){
-					if(!waserror()){
+		while((rp = alarms._head) && rp->alarm <= now) {
+			if(rp->alarm != 0L) {
+				if(canqlock(&rp->debug)) {
+					if(!waserror()) {
 						postnote(rp, 0, "alarm", NUser);
 						poperror();
 					}
 					qunlock(&rp->debug);
 					rp->alarm = 0L;
-				}else
+				} else
 					break;
 			}
 			alarms._head = rp->palarm;
@@ -52,7 +52,7 @@ alarmkproc(void* v)
 void
 checkalarms(void)
 {
-	Proc *p;
+	Proc* p;
 	uint32_t now;
 
 	p = alarms._head;
@@ -65,8 +65,8 @@ checkalarms(void)
 uint32_t
 procalarm(uint32_t time)
 {
-	Proc *up = externup();
-	Proc **l, *f;
+	Proc* up = externup();
+	Proc** l, *f;
 	uint32_t when, old;
 
 	if(up->alarm)
@@ -77,12 +77,12 @@ procalarm(uint32_t time)
 		up->alarm = 0;
 		return old;
 	}
-	when = ms2tk(time)+sys->ticks;
+	when = ms2tk(time) + sys->ticks;
 
 	qlock(&alarms);
 	l = &alarms._head;
 	for(f = *l; f; f = f->palarm) {
-		if(up == f){
+		if(up == f) {
 			*l = f->palarm;
 			break;
 		}
@@ -101,8 +101,7 @@ procalarm(uint32_t time)
 			l = &f->palarm;
 		}
 		*l = up;
-	}
-	else
+	} else
 		alarms._head = up;
 done:
 	up->alarm = when;

@@ -12,9 +12,9 @@
 #include "fns.h"
 
 void
-zeropart(Part *part, int blocksize)
+zeropart(Part* part, int blocksize)
 {
-	ZBlock *b;
+	ZBlock* b;
 	uint64_t addr;
 	int w;
 
@@ -22,9 +22,12 @@ zeropart(Part *part, int blocksize)
 	b = alloczblock(MaxIoSize, 1, blocksize);
 
 	w = 0;
-	for(addr = PartBlank; addr + MaxIoSize <= part->size; addr += MaxIoSize){
+	for(addr = PartBlank; addr + MaxIoSize <= part->size;
+	    addr += MaxIoSize) {
 		if(writepart(part, addr, b->data, MaxIoSize) < 0)
-			sysfatal("can't initialize %s, writing block %d failed: %r", part->name, w);
+			sysfatal(
+			    "can't initialize %s, writing block %d failed: %r",
+			    part->name, w);
 		w++;
 	}
 

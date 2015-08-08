@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int
-Bputrune(Biobufhdr *bp, int32_t c)
+Bputrune(Biobufhdr* bp, int32_t c)
 {
 	Rune rune;
 	char str[UTFmax];

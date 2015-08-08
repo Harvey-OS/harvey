@@ -41,14 +41,14 @@ static void encode(uint8_t*, uint32_t*, uint32_t);
 extern void _md5block(uint8_t*, uint32_t, uint32_t*);
 
 MD5state*
-md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
+md5(uint8_t* p, uint32_t len, uint8_t* digest, MD5state* s)
 {
 	uint32_t x[16];
 	uint8_t buf[128];
 	int i;
-	uint8_t *e;
+	uint8_t* e;
 
-	if(s == nil){
+	if(s == nil) {
 		s = malloc(sizeof(*s));
 		if(s == nil)
 			return nil;
@@ -56,8 +56,9 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 		s->malloced = 1;
 	}
 
-	if(s->seeded == 0){
-		/* seed the state, these constants would look nicer big-endian */
+	if(s->seeded == 0) {
+		/* seed the state, these constants would look nicer big-endian
+		 */
 		s->state[0] = 0x67452301;
 		s->state[1] = 0xefcdab89;
 		s->state[2] = 0x98badcfe;
@@ -66,7 +67,7 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 	}
 
 	/* fill out the partial 64 byte block from previous calls */
-	if(s->blen){
+	if(s->blen) {
 		i = 64 - s->blen;
 		if(len < i)
 			i = len;
@@ -74,7 +75,7 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 		len -= i;
 		s->blen += i;
 		p += i;
-		if(s->blen == 64){
+		if(s->blen == 64) {
 			_md5block(s->buf, s->blen, s->state);
 			s->len += s->blen;
 			s->blen = 0;
@@ -83,7 +84,7 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 
 	/* do 64 byte blocks */
 	i = len & ~0x3f;
-	if(i){
+	if(i) {
 		_md5block(p, i, s->state);
 		s->len += i;
 		len -= i;
@@ -91,8 +92,8 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 	}
 
 	/* save the left overs if not last call */
-	if(digest == 0){
-		if(len){
+	if(digest == 0) {
+		if(len) {
 			memmove(s->buf, p, len);
 			s->blen += len;
 		}
@@ -103,7 +104,7 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 	 *  this is the last time through, pad what's left with 0x80,
 	 *  0's, and the input count to create a multiple of 64 bytes
 	 */
-	if(s->blen){
+	if(s->blen) {
 		p = s->buf;
 		len = s->blen;
 	} else {
@@ -121,12 +122,12 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 	len += i;
 
 	/* append the count */
-	x[0] = s->len<<3;
-	x[1] = s->len>>29;
-	encode(p+len, x, 8);
+	x[0] = s->len << 3;
+	x[1] = s->len >> 29;
+	encode(p + len, x, 8);
 
 	/* digest the last part */
-	_md5block(p, len+8, s->state);
+	_md5block(p, len + 8, s->state);
 	s->len += len;
 
 	/* return result and free state */
@@ -141,10 +142,10 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
  *	a multiple of 4.
  */
 static void
-encode(uint8_t *output, uint32_t *input, uint32_t len)
+encode(uint8_t* output, uint32_t* input, uint32_t len)
 {
 	uint32_t x;
-	uint8_t *e;
+	uint8_t* e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -156,9 +157,8 @@ encode(uint8_t *output, uint32_t *input, uint32_t len)
 }
 
 DigestState*
-hmac_md5(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
-	 uint8_t *digest,
-	DigestState *s)
+hmac_md5(uint8_t* p, uint32_t len, uint8_t* key, uint32_t klen, uint8_t* digest,
+         DigestState* s)
 {
 	return hmac_x(p, len, key, klen, digest, s, md5, MD5dlen);
 }

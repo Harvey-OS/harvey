@@ -12,106 +12,101 @@
  */
 #include "all.h"
 
-typedef struct Portmap	Portmap;
-struct Portmap
-{
-	int	prog;
-	int	vers;
-	int	protocol;
-	int	port;
+typedef struct Portmap Portmap;
+struct Portmap {
+	int prog;
+	int vers;
+	int protocol;
+	int port;
 };
 
 Portmap map[] = {
-	100003, 2, IPPROTO_UDP, 2049,	/* nfs v2 */
-//	100003, 3, IPPROTO_UDP, 2049,	/* nfs v3 */
-	100005, 1, IPPROTO_UDP, 2049,	/* mount */
-	150001, 2, IPPROTO_UDP, 1111,	/* pcnfsd v2 */
-	150001, 1, IPPROTO_UDP, 1111,	/* pcnfsd v1 */
-	0, 0, 0, 0,
+    100003, 2, IPPROTO_UDP, 2049, /* nfs v2 */
+                                  //	100003, 3, IPPROTO_UDP, 2049,	/* nfs v3 */
+    100005, 1, IPPROTO_UDP, 2049, /* mount */
+    150001, 2, IPPROTO_UDP, 1111, /* pcnfsd v2 */
+    150001, 1, IPPROTO_UDP, 1111, /* pcnfsd v1 */
+    0,      0, 0,           0,
 };
 
-static void	pmapinit(int, char**);
-static int	pmapnull(int, Rpccall*, Rpccall*);
-static int	pmapset(int, Rpccall*, Rpccall*);
-static int	pmapunset(int, Rpccall*, Rpccall*);
-static int	pmapgetport(int, Rpccall*, Rpccall*);
-static int	pmapdump(int, Rpccall*, Rpccall*);
-static int	pmapcallit(int, Rpccall*, Rpccall*);
+static void pmapinit(int, char**);
+static int pmapnull(int, Rpccall*, Rpccall*);
+static int pmapset(int, Rpccall*, Rpccall*);
+static int pmapunset(int, Rpccall*, Rpccall*);
+static int pmapgetport(int, Rpccall*, Rpccall*);
+static int pmapdump(int, Rpccall*, Rpccall*);
+static int pmapcallit(int, Rpccall*, Rpccall*);
 
-static Procmap pmapproc[] = {
-	0, pmapnull,
-	1, pmapset,
-	2, pmapunset,
-	3, pmapgetport,
-	4, pmapdump,
-	5, pmapcallit,
-	0, 0
-};
+static Procmap pmapproc[] = {0, pmapnull,    1, pmapset,  2, pmapunset,
+                             3, pmapgetport, 4, pmapdump, 5, pmapcallit,
+                             0, 0};
 
-int	myport = 111;
+int myport = 111;
 
 Progmap progmap[] = {
-	100000, 2, pmapinit, pmapproc,
-	0, 0, 0,
+    100000, 2, pmapinit, pmapproc, 0, 0, 0,
 };
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	server(argc, argv, myport, progmap);
 }
 
-static
-void
-pmapinit(int argc, char **argv)
+static void
+pmapinit(int argc, char** argv)
 {
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		if(argopt(ARGC()) < 0)
 			sysfatal("usage: %s %s", argv0, commonopts);
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 	clog("portmapper init\n");
 }
 
 static int
-pmapnull(int n, Rpccall *cmd, Rpccall *reply)
+pmapnull(int n, Rpccall* cmd, Rpccall* reply)
 {
-	USED(n); USED(cmd); USED(reply);
+	USED(n);
+	USED(cmd);
+	USED(reply);
 	return 0;
 }
 
 static int
-pmapset(int n, Rpccall *cmd, Rpccall *reply)
+pmapset(int n, Rpccall* cmd, Rpccall* reply)
 {
-	uint8_t *dataptr = reply->results;
+	uint8_t* dataptr = reply->results;
 
 	if(n != 16)
 		return garbage(reply, "bad count");
 	USED(cmd);
 	PLONG(FALSE);
-	return dataptr - (uint8_t *)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }
 
 static int
-pmapunset(int n, Rpccall *cmd, Rpccall *reply)
+pmapunset(int n, Rpccall* cmd, Rpccall* reply)
 {
-	uint8_t *dataptr = reply->results;
+	uint8_t* dataptr = reply->results;
 
 	if(n != 16)
 		return garbage(reply, "bad count");
 	USED(cmd);
 	PLONG(TRUE);
-	return dataptr - (uint8_t *)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }
 
 static int
-pmapgetport(int n, Rpccall *cmd, Rpccall *reply)
+pmapgetport(int n, Rpccall* cmd, Rpccall* reply)
 {
 	int prog, vers, prot;
-	uint8_t *argptr = cmd->args;
-	uint8_t *dataptr = reply->results;
-	Portmap *mp;
+	uint8_t* argptr = cmd->args;
+	uint8_t* dataptr = reply->results;
+	Portmap* mp;
 
 	clog("get port\n");
 
@@ -122,25 +117,24 @@ pmapgetport(int n, Rpccall *cmd, Rpccall *reply)
 	prot = GLONG();
 	chat("host=%I, port=%ld: ", cmd->host, cmd->port);
 	chat("getport: %d, %d, %d...", prog, vers, prot);
-	for(mp=map; mp->prog>0; mp++)
-		if(prog == mp->prog && vers == mp->vers &&
-		   prot == mp->protocol)
+	for(mp = map; mp->prog > 0; mp++)
+		if(prog == mp->prog && vers == mp->vers && prot == mp->protocol)
 			break;
 	chat("%d\n", mp->port);
 	PLONG(mp->port);
-	return dataptr - (uint8_t *)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }
 
 static int
-pmapdump(int n, Rpccall *cmd, Rpccall *reply)
+pmapdump(int n, Rpccall* cmd, Rpccall* reply)
 {
-	uint8_t *dataptr = reply->results;
-	Portmap *mp;
+	uint8_t* dataptr = reply->results;
+	Portmap* mp;
 
 	if(n != 0)
 		return garbage(reply, "bad count");
 	USED(cmd);
-	for(mp=map; mp->prog>0; mp++){
+	for(mp = map; mp->prog > 0; mp++) {
 		PLONG(1);
 		PLONG(mp->prog);
 		PLONG(mp->vers);
@@ -148,16 +142,16 @@ pmapdump(int n, Rpccall *cmd, Rpccall *reply)
 		PLONG(mp->port);
 	}
 	PLONG(0);
-	return dataptr - (uint8_t *)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }
 
 static int
-pmapcallit(int n, Rpccall *cmd, Rpccall *reply)
+pmapcallit(int n, Rpccall* cmd, Rpccall* reply)
 {
 	int prog, vers, proc;
-	uint8_t *argptr = cmd->args;
-	uint8_t *dataptr = reply->results;
-	Portmap *mp;
+	uint8_t* argptr = cmd->args;
+	uint8_t* dataptr = reply->results;
+	Portmap* mp;
 
 	if(n < 12)
 		return garbage(reply, "bad count");
@@ -166,16 +160,15 @@ pmapcallit(int n, Rpccall *cmd, Rpccall *reply)
 	proc = GLONG();
 	chat("host=%I, port=%ld: ", cmd->host, cmd->port);
 	chat("callit: %d, %d, %d...", prog, vers, proc);
-	for(mp=map; mp->prog>0; mp++)
-		if(prog == mp->prog && vers == mp->vers &&
-		   proc == 0)
+	for(mp = map; mp->prog > 0; mp++)
+		if(prog == mp->prog && vers == mp->vers && proc == 0)
 			break;
-	if(mp->port == 0){
+	if(mp->port == 0) {
 		chat("ignored\n");
 		return -1;
 	}
 	chat("%d\n", mp->port);
 	PLONG(mp->port);
 	PLONG(0);
-	return dataptr - (uint8_t *)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }

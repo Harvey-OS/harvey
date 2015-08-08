@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int
-Bprint(Biobufhdr *bp, char *fmt, ...)
+Bprint(Biobufhdr* bp, char* fmt, ...)
 {
 	va_list arg;
 	int n;

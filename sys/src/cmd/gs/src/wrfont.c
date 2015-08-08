@@ -37,54 +37,60 @@ Started by Graham Asher, 9th August 2002.
 #define EEXEC_FACTOR 52845
 #define EEXEC_OFFSET 22719
 
-void WRF_init(WRF_output* a_output,unsigned char* a_buffer,int32_t a_buffer_size)
-	{
+void
+WRF_init(WRF_output* a_output, unsigned char* a_buffer, int32_t a_buffer_size)
+{
 	a_output->m_pos = a_buffer;
 	a_output->m_limit = a_buffer_size;
 	a_output->m_count = 0;
 	a_output->m_encrypt = false;
 	a_output->m_key = EEXEC_KEY;
-	}
+}
 
-void WRF_wbyte(WRF_output* a_output,unsigned char a_byte)
-	{
-	if (a_output->m_count < a_output->m_limit)
-		{
-		if (a_output->m_encrypt)
-			{
+void
+WRF_wbyte(WRF_output* a_output, unsigned char a_byte)
+{
+	if(a_output->m_count < a_output->m_limit) {
+		if(a_output->m_encrypt) {
 			a_byte ^= (a_output->m_key >> 8);
-			a_output->m_key = (unsigned short)((a_output->m_key + a_byte) * EEXEC_FACTOR + EEXEC_OFFSET);
-			}
+			a_output->m_key =
+			    (unsigned short)((a_output->m_key + a_byte) *
+			                         EEXEC_FACTOR +
+			                     EEXEC_OFFSET);
+		}
 		*a_output->m_pos++ = a_byte;
-		}
+	}
 	a_output->m_count++;
-	}
+}
 
-void WRF_wtext(WRF_output* a_output,const unsigned char* a_string,int32_t a_length)
-	{
-	while (a_length > 0)
-		{
-		WRF_wbyte(a_output,*a_string++);
+void
+WRF_wtext(WRF_output* a_output, const unsigned char* a_string, int32_t a_length)
+{
+	while(a_length > 0) {
+		WRF_wbyte(a_output, *a_string++);
 		a_length--;
-		}
 	}
+}
 
-void WRF_wstring(WRF_output* a_output,const char* a_string)
-	{
-	while (*a_string)
-		WRF_wbyte(a_output,*a_string++);
-	}
+void
+WRF_wstring(WRF_output* a_output, const char* a_string)
+{
+	while(*a_string)
+		WRF_wbyte(a_output, *a_string++);
+}
 
-void WRF_wfloat(WRF_output* a_output,double a_float)
-	{
+void
+WRF_wfloat(WRF_output* a_output, double a_float)
+{
 	char buffer[32];
-	sprintf(buffer,"%f",a_float);
-	WRF_wstring(a_output,buffer);
-	}
+	sprintf(buffer, "%f", a_float);
+	WRF_wstring(a_output, buffer);
+}
 
-void WRF_wint(WRF_output* a_output,int32_t a_int)
-	{
+void
+WRF_wint(WRF_output* a_output, int32_t a_int)
+{
 	char buffer[32];
-	sprintf(buffer,"%ld",a_int);
-	WRF_wstring(a_output,buffer);
-	}
+	sprintf(buffer, "%ld", a_int);
+	WRF_wstring(a_output, buffer);
+}

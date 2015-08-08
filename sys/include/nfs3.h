@@ -7,23 +7,21 @@
  * in the LICENSE file.
  */
 
-/* 
+/*
  * NFS mounter V3;  see RFC 1813
  */
 
 #pragma lib "libsunrpc.a"
 #pragma src "/sys/src/libsunrpc"
 
-enum {
-	NfsMount1HandleSize = 32,
-	NfsMount3MaxPathSize = 1024,
-	NfsMount3MaxNameSize = 255,
-	NfsMount3MaxHandleSize = 64,
-	NfsMount3Program = 100005,
-	NfsMount3Version = 3,
-	NfsMount1Program = 100005,
-	NfsMount1Version = 1
-};
+enum { NfsMount1HandleSize = 32,
+       NfsMount3MaxPathSize = 1024,
+       NfsMount3MaxNameSize = 255,
+       NfsMount3MaxHandleSize = 64,
+       NfsMount3Program = 100005,
+       NfsMount3Version = 3,
+       NfsMount1Program = 100005,
+       NfsMount1Version = 1 };
 typedef struct NfsMount3TNull NfsMount3TNull;
 typedef struct NfsMount3RNull NfsMount3RNull;
 typedef struct NfsMount3TMnt NfsMount3TMnt;
@@ -39,8 +37,7 @@ typedef struct NfsMount3RUmntall NfsMount3RUmntall;
 typedef struct NfsMount3TExport NfsMount3TExport;
 typedef struct NfsMount3RExport NfsMount3RExport;
 
-typedef enum
-{
+typedef enum {
 	NfsMount3CallTNull,
 	NfsMount3CallRNull,
 	NfsMount3CallTMnt,
@@ -71,15 +68,15 @@ struct NfsMount3RNull {
 
 struct NfsMount3TMnt {
 	NfsMount3Call call;
-	char *path;
+	char* path;
 };
 
 struct NfsMount3RMnt {
 	NfsMount3Call call;
 	uint status;
-	uint8_t *handle;
+	uint8_t* handle;
 	uint len;
-	uint32_t *auth;
+	uint32_t* auth;
 	uint32_t nauth;
 };
 
@@ -88,19 +85,19 @@ struct NfsMount3TDump {
 };
 
 struct NfsMount3Entry {
-	char *host;
-	char *path;
+	char* host;
+	char* path;
 };
 
 struct NfsMount3RDump {
 	NfsMount3Call call;
-	uint8_t *data;
+	uint8_t* data;
 	uint32_t count;
 };
 
 struct NfsMount3TUmnt {
 	NfsMount3Call call;
-	char *path;
+	char* path;
 };
 
 struct NfsMount3RUmnt {
@@ -108,8 +105,8 @@ struct NfsMount3RUmnt {
 };
 
 struct NfsMount3Export {
-	char *path;
-	char **g;
+	char* path;
+	char** g;
 	uint32_t ng;
 };
 
@@ -127,7 +124,7 @@ struct NfsMount3TExport {
 
 struct NfsMount3RExport {
 	NfsMount3Call call;
-	uint8_t *data;
+	uint8_t* data;
 	uint32_t count;
 };
 
@@ -135,7 +132,7 @@ uint nfsMount3ExportGroupSize(uint8_t*);
 uint nfsMount3ExportSize(NfsMount3Export*);
 int nfsMount3ExportPack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Export*);
 int nfsMount3ExportUnpack(uint8_t*, uint8_t*, uint8_t**, char**, char***,
-			  NfsMount3Export*);
+                          NfsMount3Export*);
 int nfsMount3EntryPack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Entry*);
 int nfsMount3EntryUnpack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Entry*);
 uint nfsMount3EntrySize(NfsMount3Entry*);
@@ -145,27 +142,25 @@ extern SunProg nfsMount3Prog;
 /*
  * NFS V3; see RFC 1813
  */
-enum {
-	Nfs3MaxHandleSize = 64,
-	Nfs3CookieVerfSize = 8,
-	Nfs3CreateVerfSize = 8,
-	Nfs3WriteVerfSize = 8,
-	Nfs3AccessRead = 1,
-	Nfs3AccessLookup = 2,
-	Nfs3AccessModify = 4,
-	Nfs3AccessExtend = 8,
-	Nfs3AccessDelete = 16,
-	Nfs3AccessExecute = 32,
-	Nfs3FsHasLinks = 1,
-	Nfs3FsHasSymlinks = 2,
-	Nfs3FsHomogeneous = 8,
-	Nfs3FsCanSetTime = 16,
+enum { Nfs3MaxHandleSize = 64,
+       Nfs3CookieVerfSize = 8,
+       Nfs3CreateVerfSize = 8,
+       Nfs3WriteVerfSize = 8,
+       Nfs3AccessRead = 1,
+       Nfs3AccessLookup = 2,
+       Nfs3AccessModify = 4,
+       Nfs3AccessExtend = 8,
+       Nfs3AccessDelete = 16,
+       Nfs3AccessExecute = 32,
+       Nfs3FsHasLinks = 1,
+       Nfs3FsHasSymlinks = 2,
+       Nfs3FsHomogeneous = 8,
+       Nfs3FsCanSetTime = 16,
 
-	Nfs3Version = 3,	
-	Nfs3Program = 100003,
+       Nfs3Version = 3,
+       Nfs3Program = 100003,
 };
-typedef enum
-{
+typedef enum {
 	Nfs3Ok = 0,
 	Nfs3ErrNotOwner = 1,
 	Nfs3ErrNoEnt = 2,
@@ -202,8 +197,7 @@ typedef enum
 
 void nfs3Errstr(Nfs3Status);
 
-typedef enum
-{
+typedef enum {
 	Nfs3FileReg = 1,
 	Nfs3FileDir = 2,
 	Nfs3FileBlock = 3,
@@ -213,15 +207,12 @@ typedef enum
 	Nfs3FileFifo = 7,
 } Nfs3FileType;
 
-enum
-{
-	Nfs3ModeSetUid = 0x800,
-	Nfs3ModeSetGid = 0x400,
-	Nfs3ModeSticky = 0x200,
+enum { Nfs3ModeSetUid = 0x800,
+       Nfs3ModeSetGid = 0x400,
+       Nfs3ModeSticky = 0x200,
 };
 
-typedef enum
-{
+typedef enum {
 	Nfs3CallTNull,
 	Nfs3CallRNull,
 	Nfs3CallTGetattr,
@@ -274,8 +265,7 @@ typedef struct Nfs3Time Nfs3Time;
 typedef struct Nfs3Attr Nfs3Attr;
 typedef struct Nfs3WccAttr Nfs3WccAttr;
 typedef struct Nfs3Wcc Nfs3Wcc;
-typedef enum
-{
+typedef enum {
 	Nfs3SetTimeDont = 0,
 	Nfs3SetTimeServer = 1,
 	Nfs3SetTimeClient = 2,
@@ -296,8 +286,7 @@ typedef struct Nfs3TReadlink Nfs3TReadlink;
 typedef struct Nfs3RReadlink Nfs3RReadlink;
 typedef struct Nfs3TRead Nfs3TRead;
 typedef struct Nfs3RRead Nfs3RRead;
-typedef enum
-{
+typedef enum {
 	Nfs3SyncNone = 0,
 	Nfs3SyncData = 1,
 	Nfs3SyncFile = 2,
@@ -305,8 +294,7 @@ typedef enum
 
 typedef struct Nfs3TWrite Nfs3TWrite;
 typedef struct Nfs3RWrite Nfs3RWrite;
-typedef enum
-{
+typedef enum {
 	Nfs3CreateUnchecked = 0,
 	Nfs3CreateGuarded = 1,
 	Nfs3CreateExclusive = 2,
@@ -439,7 +427,7 @@ struct Nfs3RSetattr {
 struct Nfs3TLookup {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 };
 
 struct Nfs3RLookup {
@@ -476,7 +464,7 @@ struct Nfs3RReadlink {
 	Nfs3Status status;
 	u1int haveAttr;
 	Nfs3Attr attr;
-	char *data;
+	char* data;
 };
 
 struct Nfs3TRead {
@@ -493,7 +481,7 @@ struct Nfs3RRead {
 	Nfs3Attr attr;
 	uint32_t count;
 	u1int eof;
-	uint8_t *data;
+	uint8_t* data;
 	uint32_t ndata;
 };
 
@@ -503,7 +491,7 @@ struct Nfs3TWrite {
 	uint64_t offset;
 	uint32_t count;
 	Nfs3Sync stable;
-	uint8_t *data;
+	uint8_t* data;
 	uint32_t ndata;
 };
 
@@ -519,7 +507,7 @@ struct Nfs3RWrite {
 struct Nfs3TCreate {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 	Nfs3Create mode;
 	Nfs3SetAttr attr;
 	uint8_t verf[Nfs3CreateVerfSize];
@@ -538,7 +526,7 @@ struct Nfs3RCreate {
 struct Nfs3TMkdir {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 	Nfs3SetAttr attr;
 };
 
@@ -555,9 +543,9 @@ struct Nfs3RMkdir {
 struct Nfs3TSymlink {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 	Nfs3SetAttr attr;
-	char *data;
+	char* data;
 };
 
 struct Nfs3RSymlink {
@@ -573,7 +561,7 @@ struct Nfs3RSymlink {
 struct Nfs3TMknod {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 	Nfs3FileType type;
 	Nfs3SetAttr attr;
 	uint32_t major;
@@ -593,7 +581,7 @@ struct Nfs3RMknod {
 struct Nfs3TRemove {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 };
 
 struct Nfs3RRemove {
@@ -605,7 +593,7 @@ struct Nfs3RRemove {
 struct Nfs3TRmdir {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	char *name;
+	char* name;
 };
 
 struct Nfs3RRmdir {
@@ -618,11 +606,11 @@ struct Nfs3TRename {
 	Nfs3Call call;
 	struct {
 		Nfs3Handle handle;
-		char *name;
+		char* name;
 	} from;
 	struct {
 		Nfs3Handle handle;
-		char *name;
+		char* name;
 	} to;
 };
 
@@ -638,7 +626,7 @@ struct Nfs3TLink {
 	Nfs3Handle handle;
 	struct {
 		Nfs3Handle handle;
-		char *name;
+		char* name;
 	} link;
 };
 
@@ -664,7 +652,7 @@ struct Nfs3RReadDir {
 	u1int haveAttr;
 	Nfs3Attr attr;
 	uint8_t verf[Nfs3CookieVerfSize];
-	uint8_t *data;
+	uint8_t* data;
 	uint32_t count;
 	u1int eof;
 };
@@ -680,7 +668,7 @@ struct Nfs3TReadDirPlus {
 
 struct Nfs3Entry {
 	uint64_t fileid;
-	char *name;
+	char* name;
 	uint64_t cookie;
 	u1int haveAttr;
 	Nfs3Attr attr;
@@ -694,7 +682,7 @@ struct Nfs3RReadDirPlus {
 	u1int haveAttr;
 	Nfs3Attr attr;
 	uint8_t verf[Nfs3CookieVerfSize];
-	uint8_t *data;
+	uint8_t* data;
 	uint32_t count;
 	u1int eof;
 };
@@ -772,10 +760,10 @@ struct Nfs3RCommit {
 	uint8_t verf[Nfs3WriteVerfSize];
 };
 
-char *nfs3StatusStr(Nfs3Status);
-char *nfs3TypeStr(Nfs3CallType);
-char *nfs3SetTimeStr(Nfs3SetTime);
-char *nfs3SyncStr(Nfs3Sync);
+char* nfs3StatusStr(Nfs3Status);
+char* nfs3TypeStr(Nfs3CallType);
+char* nfs3SetTimeStr(Nfs3SetTime);
+char* nfs3SyncStr(Nfs3Sync);
 
 void nfs3HandlePrint(Fmt*, Nfs3Handle*);
 uint32_t nfs3HandleSize(Nfs3Handle*);
@@ -818,4 +806,3 @@ void nfs3EntryPlusPrint(Fmt*, Nfs3Entry*);
 uint32_t nfs3EntryPlusSize(Nfs3Entry*);
 int nfs3EntryPlusPack(uint8_t*, uint8_t*, uint8_t**, Nfs3Entry*);
 int nfs3EntryPlusUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Entry*);
-

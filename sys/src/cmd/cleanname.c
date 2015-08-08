@@ -11,21 +11,23 @@
 #include <libc.h>
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	char *dir;
-	char *name;
+	char* dir;
+	char* name;
 	int i;
 
 	dir = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
-		if((dir=ARGF()) == nil)
+		if((dir = ARGF()) == nil)
 			goto Usage;
 		break;
 	default:
 		goto Usage;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 1) {
 	Usage:
@@ -33,12 +35,12 @@ main(int argc, char **argv)
 		exits("usage");
 	}
 
-	for(i=0; i<argc; i++) {
+	for(i = 0; i < argc; i++) {
 		if(dir == nil || argv[i][0] == '/') {
 			cleanname(argv[i]);
 			print("%s\n", argv[i]);
 		} else {
-			name = malloc(strlen(argv[i])+1+strlen(dir)+1);
+			name = malloc(strlen(argv[i]) + 1 + strlen(dir) + 1);
 			if(name == nil) {
 				fprint(2, "cleanname: out of memory\n");
 				exits("out of memory");

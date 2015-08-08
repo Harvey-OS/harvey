@@ -7,15 +7,16 @@
  * in the LICENSE file.
  */
 
-/* Copyright (C) 1989, 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
+/* Copyright (C) 1989, 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All
+  rights reserved.
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,9 +28,9 @@
 /* Definitions for stored bitmaps for Ghostscript */
 
 #ifndef gxbitmap_INCLUDED
-#  define gxbitmap_INCLUDED
+#define gxbitmap_INCLUDED
 
-#include "gstypes.h"		/* for gs_id */
+#include "gstypes.h" /* for gs_id */
 #include "gsbitmap.h"
 
 /* Define the gx version of a bitmap identifier. */
@@ -56,7 +57,7 @@ typedef gs_bitmap_id gx_bitmap_id;
  * assumption is not true in some MSVC implementations, but even in those
  * implementations, the alignment is sufficient to satisfy the hardware.
  * See gsmemraw.h for more information about this.)
- * 
+ *
  * The padding requirement is that if the last data byte being operated on
  * is at offset B relative to the start of the scan line, bytes up to and
  * including offset ROUND_UP(B + 1, align_bitmap_mod) - 1 may be accessed,
@@ -64,16 +65,17 @@ typedef gs_bitmap_id gx_bitmap_id;
  */
 /* We assume arch_align_long_mod is 1-4 or 8. */
 #if arch_align_long_mod <= 4
-#  define log2_align_bitmap_mod 2
+#define log2_align_bitmap_mod 2
 #else
 #if arch_align_long_mod == 8
-#  define log2_align_bitmap_mod 3
+#define log2_align_bitmap_mod 3
 #endif
 #endif
 #define align_bitmap_mod (1 << log2_align_bitmap_mod)
-#define bitmap_raster(width_bits)\
-  ((uint)((((width_bits) + (align_bitmap_mod * 8 - 1))\
-    >> (log2_align_bitmap_mod + 3)) << log2_align_bitmap_mod))
+#define bitmap_raster(width_bits)                                              \
+	((uint)((((width_bits) + (align_bitmap_mod * 8 - 1)) >>                \
+	         (log2_align_bitmap_mod + 3))                                  \
+	        << log2_align_bitmap_mod))
 
 /*
  * Define the gx analogue of the basic bitmap structure.  Note that since
@@ -84,10 +86,10 @@ typedef gs_bitmap_id gx_bitmap_id;
  */
 #define gx_bitmap_common(data_type) gs_bitmap_common(data_type)
 typedef struct gx_bitmap_s {
-    gx_bitmap_common(byte);
+	gx_bitmap_common(byte);
 } gx_bitmap;
 typedef struct gx_const_bitmap_s {
-    gx_bitmap_common(const byte);
+	gx_bitmap_common(const byte);
 } gx_const_bitmap;
 
 /*
@@ -97,10 +99,10 @@ typedef struct gx_const_bitmap_s {
  */
 #define gx_tile_bitmap_common(data_type) gs_tile_bitmap_common(data_type)
 typedef struct gx_tile_bitmap_s {
-    gx_tile_bitmap_common(byte);
+	gx_tile_bitmap_common(byte);
 } gx_tile_bitmap;
 typedef struct gx_const_tile_bitmap_s {
-    gx_tile_bitmap_common(const byte);
+	gx_tile_bitmap_common(const byte);
 } gx_const_tile_bitmap;
 
 /*
@@ -140,22 +142,22 @@ typedef struct gx_const_tile_bitmap_s {
  *      rep_shift < rep_width
  *      shift = (rep_shift * (size.y / rep_height)) % rep_width
  */
-#define gx_strip_bitmap_common(data_type)\
-	gx_tile_bitmap_common(data_type);\
-	ushort rep_shift;\
+#define gx_strip_bitmap_common(data_type)                                      \
+	gx_tile_bitmap_common(data_type);                                      \
+	ushort rep_shift;                                                      \
 	ushort shift
 typedef struct gx_strip_bitmap_s {
-    gx_strip_bitmap_common(byte);
+	gx_strip_bitmap_common(byte);
 } gx_strip_bitmap;
 typedef struct gx_const_strip_bitmap_s {
-    gx_strip_bitmap_common(const byte);
+	gx_strip_bitmap_common(const byte);
 } gx_const_strip_bitmap;
 
 extern_st(st_gx_strip_bitmap);
-#define public_st_gx_strip_bitmap()	/* in gspcolor.c */\
-  gs_public_st_suffix_add0_local(st_gx_strip_bitmap, gx_strip_bitmap,\
-    "gx_strip_bitmap", bitmap_enum_ptrs, bitmap_reloc_ptrs,\
-    st_gs_tile_bitmap)
+#define public_st_gx_strip_bitmap() /* in gspcolor.c */                        \
+	gs_public_st_suffix_add0_local(st_gx_strip_bitmap, gx_strip_bitmap,    \
+	                               "gx_strip_bitmap", bitmap_enum_ptrs,    \
+	                               bitmap_reloc_ptrs, st_gs_tile_bitmap)
 #define st_gx_strip_bitmap_max_ptrs 1
 
 #endif /* gxbitmap_INCLUDED */

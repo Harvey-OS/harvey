@@ -20,25 +20,24 @@
 
 typedef struct Aux Aux;
 struct Aux {
-	int	doff;
-	Otrack	*o;
+	int doff;
+	Otrack* o;
 };
 
-uint32_t	getnwa(Drive *);
+uint32_t getnwa(Drive*);
 
 static void checktoc(Drive*);
 
 int vflag;
 
-static Drive *drive;
+static Drive* drive;
 static int nchange;
 
-enum {
-	Qdir = 0,
-	Qctl = 1,
-	Qwa = 2,
-	Qwd = 3,
-	Qtrack = 4,
+enum { Qdir = 0,
+       Qctl = 1,
+       Qwa = 2,
+       Qwd = 3,
+       Qtrack = 4,
 };
 
 char*
@@ -53,7 +52,7 @@ geterrstr(void)
 void*
 emalloc(uint32_t sz)
 {
-	void *v;
+	void* v;
 
 	v = mallocz(sz, 1);
 	if(v == nil)
@@ -62,9 +61,9 @@ emalloc(uint32_t sz)
 }
 
 static void
-fsattach(Req *r)
+fsattach(Req* r)
 {
-	char *spec;
+	char* spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]) {
@@ -80,9 +79,9 @@ fsattach(Req *r)
 }
 
 static char*
-fsclone(Fid *old, Fid *new)
+fsclone(Fid* old, Fid* new)
 {
-	Aux *na;
+	Aux* na;
 
 	na = emalloc(sizeof(Aux));
 	*na = *((Aux*)old->aux);
@@ -93,7 +92,7 @@ fsclone(Fid *old, Fid *new)
 }
 
 static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+fswalk1(Fid* fid, char* name, Qid* qid)
 {
 	int i;
 
@@ -109,8 +108,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			return nil;
 		}
 		if(strcmp(name, "wa") == 0 && drive->writeok &&
-		    (drive->mmctype == Mmcnone ||
-		     drive->mmctype == Mmccd)) {
+		   (drive->mmctype == Mmcnone || drive->mmctype == Mmccd)) {
 			*qid = (Qid){Qwa, drive->nchange, QTDIR};
 			return nil;
 		}
@@ -118,12 +116,12 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			*qid = (Qid){Qwd, drive->nchange, QTDIR};
 			return nil;
 		}
-		for(i=0; i<drive->ntrack; i++)
+		for(i = 0; i < drive->ntrack; i++)
 			if(strcmp(drive->track[i].name, name) == 0)
 				break;
 		if(i == drive->ntrack)
 			return "file not found";
-		*qid = (Qid){Qtrack+i, 0, 0};
+		*qid = (Qid){Qtrack + i, 0, 0};
 		return nil;
 
 	case Qwa:
@@ -133,21 +131,21 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			return nil;
 		}
 		return "file not found";
-	default:	/* bug: lib9p could handle this */
+	default: /* bug: lib9p could handle this */
 		return "walk in non-directory";
 	}
 }
 
 static void
-fscreate(Req *r)
+fscreate(Req* r)
 {
 	int omode, type;
-	Otrack *o;
-	Fid *fid;
+	Otrack* o;
+	Fid* fid;
 
 	fid = r->fid;
 	omode = r->ifcall.mode;
-	
+
 	if(omode != OWRITE) {
 		respond(r, "bad mode (use OWRITE)");
 		return;
@@ -160,8 +158,7 @@ fscreate(Req *r)
 		return;
 
 	case Qwa:
-		if (drive->mmctype != Mmcnone &&
-		    drive->mmctype != Mmccd) {
+		if(drive->mmctype != Mmcnone && drive->mmctype != Mmccd) {
 			respond(r, "audio supported only on cd");
 			return;
 		}
@@ -184,24 +181,25 @@ fscreate(Req *r)
 		return;
 	}
 	drive->nchange = -1;
-	checktoc(drive);	/* update directory info */
+	checktoc(drive); /* update directory info */
 	o->nref = 1;
 	((Aux*)fid->aux)->o = o;
 
-	fid->qid = (Qid){Qtrack+(o->track - drive->track), drive->nchange, 0};
+	fid->qid = (Qid){Qtrack + (o->track - drive->track), drive->nchange, 0};
 	r->ofcall.qid = fid->qid;
 	respond(r, nil);
 }
 
 static void
-fsremove(Req *r)
+fsremove(Req* r)
 {
-	switch((uint32_t)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path) {
 	case Qwa:
 	case Qwd:
 		if(drive->fixate(drive) < 0)
 			respond(r, geterrstr());
-// let us see if it can figure this out:	drive->writeok = No;	
+		// let us see if it can figure this out:	drive->writeok =
+		// No;
 		else
 			respond(r, nil);
 		checktoc(drive);
@@ -213,13 +211,13 @@ fsremove(Req *r)
 }
 
 /* result is one word, so it can be used as a uid in Dir structs */
-char *
-disctype(Drive *drive)
+char*
+disctype(Drive* drive)
 {
-	char *type, *rw, *laysfx;
+	char* type, *rw, *laysfx;
 
 	rw = laysfx = "";
-	switch (drive->mmctype) {
+	switch(drive->mmctype) {
 	case Mmccd:
 		type = "cd-";
 		break;
@@ -229,20 +227,20 @@ disctype(Drive *drive)
 		break;
 	case Mmcbd:
 		type = "bd-";
-		if (drive->laysfx)
+		if(drive->laysfx)
 			laysfx = drive->laysfx;
 		break;
 	case Mmcnone:
 		type = "no-disc";
 		break;
 	default:
-		type = "**GOK**";		/* traditional */
+		type = "**GOK**"; /* traditional */
 		break;
 	}
-	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
-		if (drive->erasable == Yes)
-			rw = drive->mmctype == Mmcbd? "re": "rw";
-		else if (drive->recordable == Yes)
+	if(drive->mmctype != Mmcnone && drive->dvdtype == nil)
+		if(drive->erasable == Yes)
+			rw = drive->mmctype == Mmcbd ? "re" : "rw";
+		else if(drive->recordable == Yes)
 			rw = "r";
 		else
 			rw = "rom";
@@ -250,10 +248,10 @@ disctype(Drive *drive)
 }
 
 int
-fillstat(uint32_t qid, Dir *d)
+fillstat(uint32_t qid, Dir* d)
 {
-	char *ty;
-	Track *t;
+	char* ty;
+	Track* t;
 	static char buf[32];
 
 	nulldir(d);
@@ -269,11 +267,11 @@ fillstat(uint32_t qid, Dir *d)
 	d->atime = time(0);
 	d->mtime = drive->changetime;
 
-	switch(qid){
+	switch(qid) {
 	case Qdir:
 		d->name = "/";
 		d->qid.type = QTDIR;
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	case Qctl:
@@ -283,12 +281,11 @@ fillstat(uint32_t qid, Dir *d)
 
 	case Qwa:
 		if(drive->writeok == No ||
-		    drive->mmctype != Mmcnone &&
-		    drive->mmctype != Mmccd)
+		   drive->mmctype != Mmcnone && drive->mmctype != Mmccd)
 			return 0;
 		d->name = "wa";
 		d->qid.type = QTDIR;
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	case Qwd:
@@ -296,13 +293,13 @@ fillstat(uint32_t qid, Dir *d)
 			return 0;
 		d->name = "wd";
 		d->qid.type = QTDIR;
-		d->mode = DMDIR|0777;
+		d->mode = DMDIR | 0777;
 		break;
 
 	default:
-		if(qid-Qtrack >= drive->ntrack)
+		if(qid - Qtrack >= drive->ntrack)
 			return 0;
-		t = &drive->track[qid-Qtrack];
+		t = &drive->track[qid - Qtrack];
 		if(strcmp(t->name, "") == 0)
 			return 0;
 		d->name = t->name;
@@ -313,32 +310,32 @@ fillstat(uint32_t qid, Dir *d)
 	return 1;
 }
 
-static uint32_t 
+static uint32_t
 cddb_sum(int n)
 {
 	int ret;
 	ret = 0;
 	while(n > 0) {
-		ret += n%10;
+		ret += n % 10;
 		n /= 10;
 	}
 	return ret;
 }
 
 static uint32_t
-diskid(Drive *d)
+diskid(Drive* d)
 {
 	int i, n;
 	uint32_t tmp;
-	Msf *ms, *me;
+	Msf* ms, *me;
 
 	n = 0;
-	for(i=0; i < d->ntrack; i++)
-		n += cddb_sum(d->track[i].mbeg.m*60+d->track[i].mbeg.s);
+	for(i = 0; i < d->ntrack; i++)
+		n += cddb_sum(d->track[i].mbeg.m * 60 + d->track[i].mbeg.s);
 
 	ms = &d->track[0].mbeg;
 	me = &d->track[d->ntrack].mbeg;
-	tmp = (me->m*60+me->s) - (ms->m*60+ms->s);
+	tmp = (me->m * 60 + me->s) - (ms->m * 60 + ms->s);
 
 	/*
 	 * the spec says n%0xFF rather than n&0xFF.  it's unclear which is
@@ -348,49 +345,50 @@ diskid(Drive *d)
 }
 
 static void
-readctl(Req *r)
+readctl(Req* r)
 {
 	int i, isaudio;
 	uint32_t nwa;
-	char *p, *e, *ty;
+	char* p, *e, *ty;
 	char s[1024];
-	Msf *m;
+	Msf* m;
 
 	isaudio = 0;
-	for(i=0; i<drive->ntrack; i++)
+	for(i = 0; i < drive->ntrack; i++)
 		if(drive->track[i].type == TypeAudio)
 			isaudio = 1;
 
 	p = s;
 	e = s + sizeof s;
 	*p = '\0';
-	if(isaudio){
+	if(isaudio) {
 		p = seprint(p, e, "aux/cddb query %8.8lux %d", diskid(drive),
-			drive->ntrack);
-		for(i=0; i<drive->ntrack; i++){
+		            drive->ntrack);
+		for(i = 0; i < drive->ntrack; i++) {
 			m = &drive->track[i].mbeg;
-			p = seprint(p, e, " %d", (m->m*60 + m->s)*75 + m->f);
+			p = seprint(p, e, " %d",
+			            (m->m * 60 + m->s) * 75 + m->f);
 		}
 		m = &drive->track[drive->ntrack].mbeg;
-		p = seprint(p, e, " %d\n", m->m*60 + m->s);
+		p = seprint(p, e, " %d\n", m->m * 60 + m->s);
 	}
 
 	if(drive->readspeed == drive->writespeed)
 		p = seprint(p, e, "speed %d\n", drive->readspeed);
 	else
-		p = seprint(p, e, "speed read %d write %d\n",
-			drive->readspeed, drive->writespeed);
-	p = seprint(p, e, "maxspeed read %d write %d\n",
-		drive->maxreadspeed, drive->maxwritespeed);
+		p = seprint(p, e, "speed read %d write %d\n", drive->readspeed,
+		            drive->writespeed);
+	p = seprint(p, e, "maxspeed read %d write %d\n", drive->maxreadspeed,
+	            drive->maxwritespeed);
 
-	if (drive->scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
+	if(drive->scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
 		ty = disctype(drive);
 		p = seprint(p, e, "%s", ty);
 		free(ty);
-		if (drive->mmctype != Mmcnone) {
+		if(drive->mmctype != Mmcnone) {
 			nwa = getnwa(drive);
 			p = seprint(p, e, " next writable sector ");
-			if (nwa == ~0ul)
+			if(nwa == ~0ul)
 				p = seprint(p, e, "none; disc full");
 			else
 				p = seprint(p, e, "%lud", nwa);
@@ -401,17 +399,17 @@ readctl(Req *r)
 }
 
 static void
-fsread(Req *r)
+fsread(Req* r)
 {
 	int j, n, m;
-	uint8_t *p, *ep;
+	uint8_t* p, *ep;
 	Dir d;
-	Fid *fid;
-	Otrack *o;
+	Fid* fid;
+	Otrack* o;
 	int64_t offset;
-	void *buf;
+	void* buf;
 	int32_t count;
-	Aux *a;
+	Aux* a;
 
 	fid = r->fid;
 	offset = r->ifcall.offset;
@@ -422,15 +420,15 @@ fsread(Req *r)
 	case Qdir:
 		checktoc(drive);
 		p = buf;
-		ep = p+count;
-		m = Qtrack+drive->ntrack;
+		ep = p + count;
+		m = Qtrack + drive->ntrack;
 		a = fid->aux;
 		if(offset == 0)
-			a->doff = 1;	/* skip root */
+			a->doff = 1; /* skip root */
 
-		for(j=a->doff; j<m; j++) {
+		for(j = a->doff; j < m; j++) {
 			if(fillstat(j, &d)) {
-				if((n = convD2M(&d, p, ep-p)) <= BIT16SZ)
+				if((n = convD2M(&d, p, ep - p)) <= BIT16SZ)
 					break;
 				p += n;
 			}
@@ -462,14 +460,14 @@ fsread(Req *r)
 static char Ebadmsg[] = "bad cdfs control message";
 
 static char*
-writectl(void *v, int32_t count)
+writectl(void* v, int32_t count)
 {
 	char buf[256];
-	char *f[10], *p;
+	char* f[10], *p;
 	int i, nf, n, r, w, what;
 
 	if(count >= sizeof(buf))
-		count = sizeof(buf)-1;
+		count = sizeof(buf) - 1;
 	memmove(buf, v, count);
 	buf[count] = '\0';
 
@@ -477,25 +475,26 @@ writectl(void *v, int32_t count)
 	if(nf == 0)
 		return Ebadmsg;
 
-	if(strcmp(f[0], "speed") == 0){
+	if(strcmp(f[0], "speed") == 0) {
 		what = 0;
 		r = w = -1;
 		if(nf == 1)
 			return Ebadmsg;
-		for(i=1; i<nf; i++){
-			if(strcmp(f[i], "read") == 0 || strcmp(f[i], "write") == 0){
-				if(what!=0 && what!='?')
+		for(i = 1; i < nf; i++) {
+			if(strcmp(f[i], "read") == 0 ||
+			   strcmp(f[i], "write") == 0) {
+				if(what != 0 && what != '?')
 					return Ebadmsg;
 				what = f[i][0];
-			}else{
-				if (strcmp(f[i], "best") == 0)
-					n = (1<<16) - 1;
+			} else {
+				if(strcmp(f[i], "best") == 0)
+					n = (1 << 16) - 1;
 				else {
 					n = strtol(f[i], &p, 0);
 					if(*p != '\0' || n <= 0)
 						return Ebadmsg;
 				}
-				switch(what){
+				switch(what) {
 				case 0:
 					if(r >= 0 || w >= 0)
 						return Ebadmsg;
@@ -525,10 +524,10 @@ writectl(void *v, int32_t count)
 }
 
 static void
-fswrite(Req *r)
+fswrite(Req* r)
 {
-	Otrack *o;
-	Fid *fid;
+	Otrack* o;
+	Fid* fid;
 
 	fid = r->fid;
 	r->ofcall.count = r->ifcall.count;
@@ -549,7 +548,7 @@ fswrite(Req *r)
 }
 
 static void
-fsstat(Req *r)
+fsstat(Req* r)
 {
 	fillstat((uint32_t)r->fid->qid.path, &r->d);
 	r->d.name = estrdup9p(r->d.name);
@@ -560,18 +559,18 @@ fsstat(Req *r)
 }
 
 static void
-fsopen(Req *r)
+fsopen(Req* r)
 {
 	int omode;
-	Fid *fid;
-	Otrack *o;
+	Fid* fid;
+	Otrack* o;
 
 	fid = r->fid;
 	omode = r->ifcall.mode;
 	checktoc(drive);
 	r->ofcall.qid = (Qid){fid->qid.path, drive->nchange, fid->qid.vers};
 
-	switch((uint32_t)fid->qid.path){
+	switch((uint32_t)fid->qid.path) {
 	case Qdir:
 	case Qwa:
 	case Qwd:
@@ -581,13 +580,13 @@ fsopen(Req *r)
 		}
 		break;
 	case Qctl:
-		if(omode & ~(OTRUNC|OREAD|OWRITE|ORDWR)) {
+		if(omode & ~(OTRUNC | OREAD | OWRITE | ORDWR)) {
 			respond(r, "permission denied");
 			return;
 		}
 		break;
 	default:
-		if(fid->qid.path >= Qtrack+drive->ntrack) {
+		if(fid->qid.path >= Qtrack + drive->ntrack) {
 			respond(r, "file no longer exists");
 			return;
 		}
@@ -597,7 +596,7 @@ fsopen(Req *r)
 		 * drive and disc are both capable?
 		 */
 		if(omode != OREAD ||
-		    (o = drive->openrd(drive, fid->qid.path-Qtrack)) == nil) {
+		   (o = drive->openrd(drive, fid->qid.path - Qtrack)) == nil) {
 			respond(r, "permission denied");
 			return;
 		}
@@ -610,10 +609,10 @@ fsopen(Req *r)
 }
 
 static void
-fsdestroyfid(Fid *fid)
+fsdestroyfid(Fid* fid)
 {
-	Aux *aux;
-	Otrack *o;
+	Aux* aux;
+	Otrack* o;
 
 	aux = fid->aux;
 	if(aux == nil)
@@ -627,26 +626,26 @@ fsdestroyfid(Fid *fid)
 }
 
 static void
-checktoc(Drive *drive)
+checktoc(Drive* drive)
 {
 	int i;
-	Track *t;
+	Track* t;
 
 	drive->gettoc(drive);
 	if(drive->nameok)
 		return;
 
-	for(i=0; i<drive->ntrack; i++) {
+	for(i = 0; i < drive->ntrack; i++) {
 		t = &drive->track[i];
-		if(t->size == 0)	/* being created */
+		if(t->size == 0) /* being created */
 			t->mode = 0;
 		else
 			t->mode = 0444;
 		sprint(t->name, "?%.3d", i);
-		switch(t->type){
+		switch(t->type) {
 		case TypeNone:
 			t->name[0] = 'u';
-//			t->mode = 0;
+			//			t->mode = 0;
 			break;
 		case TypeData:
 			t->name[0] = 'd';
@@ -667,28 +666,28 @@ checktoc(Drive *drive)
 }
 
 int32_t
-bufread(Otrack *t, void *v, int32_t n, int64_t off)
+bufread(Otrack* t, void* v, int32_t n, int64_t off)
 {
 	return bread(t->buf, v, n, off);
 }
 
 int32_t
-bufwrite(Otrack *t, void *v, int32_t n)
+bufwrite(Otrack* t, void* v, int32_t n)
 {
 	return bwrite(t->buf, v, n);
 }
 
 Srv fs = {
-.attach=	fsattach,
-.destroyfid=	fsdestroyfid,
-.clone=		fsclone,
-.walk1=		fswalk1,
-.open=		fsopen,
-.read=		fsread,
-.write=		fswrite,
-.create=	fscreate,
-.remove=	fsremove,
-.stat=		fsstat,
+    .attach = fsattach,
+    .destroyfid = fsdestroyfid,
+    .clone = fsclone,
+    .walk1 = fswalk1,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .create = fscreate,
+    .remove = fsremove,
+    .stat = fsstat,
 };
 
 void
@@ -699,16 +698,17 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-	Scsi *s;
+	Scsi* s;
 	int fd;
-	char *dev, *mtpt;
+	char* dev, *mtpt;
 
 	dev = "/dev/sdD0";
 	mtpt = "/mnt/cd";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -731,7 +731,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(dev == nil || mtpt == nil || argc > 0)
 		usage();
@@ -743,6 +744,6 @@ main(int argc, char **argv)
 		sysfatal("mmcprobe '%s': %r", dev);
 	checktoc(drive);
 
-	postmountsrv(&fs, nil, mtpt, MREPL|MCREATE);
+	postmountsrv(&fs, nil, mtpt, MREPL | MCREATE);
 	exits(nil);
 }

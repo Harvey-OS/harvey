@@ -23,10 +23,10 @@ usage(void)
 }
 
 static uint32_t
-argval(char *arg)
+argval(char* arg)
 {
 	int32_t v;
-	char *extra;
+	char* extra;
 
 	if(arg == nil)
 		usage();
@@ -37,14 +37,15 @@ argval(char *arg)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	uint32_t i;
 	int m, n;
-	char *file;
+	char* file;
 	unsigned char hdr[MAXHDR];
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'n':
 		nsects = argval(ARGF());
 		break;
@@ -53,7 +54,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();

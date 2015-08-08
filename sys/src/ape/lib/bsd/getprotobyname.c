@@ -26,23 +26,23 @@
 
 extern int h_errno;
 
-enum
-{
-	Nname= 6,
+enum { Nname = 6,
 };
 
 static struct protoent r;
 
-struct protoent *getprotobyname(const char *name) {
+struct protoent*
+getprotobyname(const char* name)
+{
 	int fd, i, m;
-	char *p, *bp;
+	char* p, *bp;
 	int nn, na;
 	static char buf[1024], proto[1024];
-	static char *nptr[Nname+1];
+	static char* nptr[Nname + 1];
 
 	/* connect to server */
 	fd = open("/net/cs", O_RDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		_syserrno();
 		h_errno = NO_RECOVERY;
 		return 0;
@@ -52,34 +52,34 @@ struct protoent *getprotobyname(const char *name) {
 	snprintf(buf, sizeof buf, "!protocol=%s ipv4proto=*", name);
 
 	/* query the server */
-	if(write(fd, buf, strlen(buf)) < 0){
+	if(write(fd, buf, strlen(buf)) < 0) {
 		_syserrno();
 		h_errno = TRY_AGAIN;
 		return 0;
 	}
 	lseek(fd, 0, 0);
-	for(i = 0; i < sizeof(buf)-1; i += m){
-		m = read(fd, buf+i, sizeof(buf) - 1 - i);
+	for(i = 0; i < sizeof(buf) - 1; i += m) {
+		m = read(fd, buf + i, sizeof(buf) - 1 - i);
 		if(m <= 0)
 			break;
-		buf[i+m++] = ' ';
+		buf[i + m++] = ' ';
 	}
 	close(fd);
 	buf[i] = 0;
 
 	/* parse the reply */
 	nn = na = 0;
-	for(bp = buf;;){
+	for(bp = buf;;) {
 		p = strchr(bp, '=');
 		if(p == 0)
 			break;
 		*p++ = 0;
-		if(strcmp(bp, "protocol") == 0){
+		if(strcmp(bp, "protocol") == 0) {
 			if(!nn)
 				r.p_name = p;
 			if(nn < Nname)
 				nptr[nn++] = p;
-		} else if(strcmp(bp, "ipv4proto") == 0){
+		} else if(strcmp(bp, "ipv4proto") == 0) {
 			r.p_proto = atoi(p);
 			na++;
 		}
@@ -91,7 +91,7 @@ struct protoent *getprotobyname(const char *name) {
 	}
 	nptr[nn] = 0;
 	r.p_aliases = nptr;
-	if (nn+na == 0)
+	if(nn + na == 0)
 		return 0;
 
 	return &r;

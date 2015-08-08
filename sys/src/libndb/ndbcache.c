@@ -12,22 +12,19 @@
 #include <bio.h>
 #include <ndb.h>
 
-struct Ndbcache
-{
-	Ndbcache	*next;
-	char		*attr;
-	char		*val;
-	Ndbs		s;
-	Ndbtuple	*t;	
+struct Ndbcache {
+	Ndbcache* next;
+	char* attr;
+	char* val;
+	Ndbs s;
+	Ndbtuple* t;
 };
 
-enum
-{
-	Maxcached=	128,
+enum { Maxcached = 128,
 };
 
 static void
-ndbcachefree(Ndbcache *c)
+ndbcachefree(Ndbcache* c)
 {
 	free(c->val);
 	free(c->attr);
@@ -37,9 +34,9 @@ ndbcachefree(Ndbcache *c)
 }
 
 static Ndbtuple*
-ndbcopy(Ndb *db, Ndbtuple *from_t, Ndbs *from_s, Ndbs *to_s)
+ndbcopy(Ndb* db, Ndbtuple* from_t, Ndbs* from_s, Ndbs* to_s)
 {
-	Ndbtuple *first, *to_t, *last, *line;
+	Ndbtuple* first, *to_t, *last, *line;
 	int newline;
 
 	*to_s = *from_s;
@@ -50,7 +47,7 @@ ndbcopy(Ndb *db, Ndbtuple *from_t, Ndbs *from_s, Ndbs *to_s)
 	last = nil;
 	first = nil;
 	line = nil;
-	for(; from_t != nil; from_t = from_t->entry){
+	for(; from_t != nil; from_t = from_t->entry) {
 		to_t = ndbnew(from_t->attr, from_t->val);
 
 		/* have s point to matching tuple */
@@ -81,13 +78,13 @@ ndbcopy(Ndb *db, Ndbtuple *from_t, Ndbs *from_s, Ndbs *to_s)
  *  if found, move to front
  */
 int
-_ndbcachesearch(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple **t)
+_ndbcachesearch(Ndb* db, Ndbs* s, char* attr, char* val, Ndbtuple** t)
 {
-	Ndbcache *c, **l;
+	Ndbcache* c, **l;
 
 	*t = nil;
 	c = nil;
-	for(l = &db->cache; *l != nil; l = &(*l)->next){
+	for(l = &db->cache; *l != nil; l = &(*l)->next) {
 		c = *l;
 		if(strcmp(c->attr, attr) == 0 && strcmp(c->val, val) == 0)
 			break;
@@ -105,9 +102,9 @@ _ndbcachesearch(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple **t)
 }
 
 Ndbtuple*
-_ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t)
+_ndbcacheadd(Ndb* db, Ndbs* s, char* attr, char* val, Ndbtuple* t)
 {
-	Ndbcache *c, **l;
+	Ndbcache* c, **l;
 
 	c = mallocz(sizeof *c, 1);
 	if(c == nil)
@@ -127,7 +124,7 @@ _ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t)
 	db->cache = c;
 
 	/* trim list */
-	if(db->ncache < Maxcached){
+	if(db->ncache < Maxcached) {
 		db->ncache++;
 		return t;
 	}
@@ -142,11 +139,11 @@ err:
 }
 
 void
-_ndbcacheflush(Ndb *db)
+_ndbcacheflush(Ndb* db)
 {
-	Ndbcache *c;
+	Ndbcache* c;
 
-	while(db->cache != nil){
+	while(db->cache != nil) {
 		c = db->cache;
 		db->cache = c->next;
 		ndbcachefree(c);

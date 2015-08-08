@@ -12,58 +12,55 @@
 #include "fns.h"
 #include "error.h"
 
-static void diskThread(void *a);
+static void diskThread(void* a);
 
 enum {
 	/*
-	 * disable measurement since it gets alignment faults on BG
-	 * and the guts used to be commented out.
-	 */
-	Timing	= 0,			/* flag */
-	QueueSize = 100,		/* maximum block to queue */
+         * disable measurement since it gets alignment faults on BG
+         * and the guts used to be commented out.
+         */
+	Timing = 0,      /* flag */
+	QueueSize = 100, /* maximum block to queue */
 };
 
 struct Disk {
-	VtLock *lk;
+	VtLock* lk;
 	int ref;
 
 	int fd;
 	Header h;
 
-	VtRendez *flow;
-	VtRendez *starve;
-	VtRendez *flush;
-	VtRendez *die;
+	VtRendez* flow;
+	VtRendez* starve;
+	VtRendez* flush;
+	VtRendez* die;
 
 	int nqueue;
 
-	Block *cur;		/* block to do on current scan */
-	Block *next;		/* blocks to do next scan */
+	Block* cur;  /* block to do on current scan */
+	Block* next; /* blocks to do next scan */
 };
 
 /* keep in sync with Part* enum in dat.h */
-static char *partname[] = {
-	[PartError]	"error",
-	[PartSuper]	"super",
-	[PartLabel]	"label",
-	[PartData]	"data",
-	[PartVenti]	"venti",
+static char* partname[] = {
+        [PartError] "error", [PartSuper] "super", [PartLabel] "label",
+        [PartData] "data",   [PartVenti] "venti",
 };
 
-Disk *
+Disk*
 diskAlloc(int fd)
 {
 	uint8_t buf[HeaderSize];
 	Header h;
-	Disk *disk;
+	Disk* disk;
 
-	if(pread(fd, buf, HeaderSize, HeaderOffset) < HeaderSize){
+	if(pread(fd, buf, HeaderSize, HeaderOffset) < HeaderSize) {
 		vtSetError("short read: %r");
 		vtOSError();
 		return nil;
 	}
 
-	if(!headerUnpack(&h, buf)){
+	if(!headerUnpack(&h, buf)) {
 		vtSetError("bad disk header");
 		return nil;
 	}
@@ -82,7 +79,7 @@ diskAlloc(int fd)
 }
 
 void
-diskFree(Disk *disk)
+diskFree(Disk* disk)
 {
 	diskFlush(disk);
 
@@ -102,9 +99,9 @@ diskFree(Disk *disk)
 }
 
 static uint32_t
-partStart(Disk *disk, int part)
+partStart(Disk* disk, int part)
 {
-	switch(part){
+	switch(part) {
 	default:
 		assert(0);
 	case PartSuper:
@@ -116,15 +113,14 @@ partStart(Disk *disk, int part)
 	}
 }
 
-
 static uint32_t
-partEnd(Disk *disk, int part)
+partEnd(Disk* disk, int part)
 {
-	switch(part){
+	switch(part) {
 	default:
 		assert(0);
 	case PartSuper:
-		return disk->h.super+1;
+		return disk->h.super + 1;
 	case PartLabel:
 		return disk->h.data;
 	case PartData:
@@ -133,7 +129,7 @@ partEnd(Disk *disk, int part)
 }
 
 int
-diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
+diskReadRaw(Disk* disk, int part, uint32_t addr, uint8_t* buf)
 {
 	uint32_t start, end;
 	uint64_t offset;
@@ -142,20 +138,20 @@ diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 	start = partStart(disk, part);
 	end = partEnd(disk, part);
 
-	if(addr >= end-start){
+	if(addr >= end - start) {
 		vtSetError(EBadAddr);
 		return 0;
 	}
 
-	offset = ((uint64_t)(addr + start))*disk->h.blockSize;
+	offset = ((uint64_t)(addr + start)) * disk->h.blockSize;
 	n = disk->h.blockSize;
-	while(n > 0){
+	while(n > 0) {
 		nn = pread(disk->fd, buf, n, offset);
-		if(nn < 0){
+		if(nn < 0) {
 			vtOSError();
 			return 0;
 		}
-		if(nn == 0){
+		if(nn == 0) {
 			vtSetError("eof reading disk");
 			return 0;
 		}
@@ -167,7 +163,7 @@ diskReadRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 }
 
 int
-diskWriteRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
+diskWriteRaw(Disk* disk, int part, uint32_t addr, uint8_t* buf)
 {
 	uint32_t start, end;
 	uint64_t offset;
@@ -176,14 +172,14 @@ diskWriteRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 	start = partStart(disk, part);
 	end = partEnd(disk, part);
 
-	if(addr >= end - start){
+	if(addr >= end - start) {
 		vtSetError(EBadAddr);
 		return 0;
 	}
 
-	offset = ((uint64_t)(addr + start))*disk->h.blockSize;
+	offset = ((uint64_t)(addr + start)) * disk->h.blockSize;
 	n = pwrite(disk->fd, buf, disk->h.blockSize, offset);
-	if(n < 0){
+	if(n < 0) {
 		vtOSError();
 		return 0;
 	}
@@ -196,9 +192,9 @@ diskWriteRaw(Disk *disk, int part, uint32_t addr, uint8_t *buf)
 }
 
 static void
-diskQueue(Disk *disk, Block *b)
+diskQueue(Disk* disk, Block* b)
 {
-	Block **bp, *bb;
+	Block** bp, *bb;
 
 	vtLock(disk->lk);
 	while(disk->nqueue >= QueueSize)
@@ -208,7 +204,7 @@ diskQueue(Disk *disk, Block *b)
 	else
 		bp = &disk->next;
 
-	for(bb=*bp; bb; bb=*bp){
+	for(bb = *bp; bb; bb = *bp) {
 		if(b->addr < bb->addr)
 			break;
 		bp = &bb->ionext;
@@ -221,9 +217,8 @@ diskQueue(Disk *disk, Block *b)
 	vtUnlock(disk->lk);
 }
 
-
 void
-diskRead(Disk *disk, Block *b)
+diskRead(Disk* disk, Block* b)
 {
 	assert(b->iostate == BioEmpty || b->iostate == BioLabel);
 	blockSetIOState(b, BioReading);
@@ -231,7 +226,7 @@ diskRead(Disk *disk, Block *b)
 }
 
 void
-diskWrite(Disk *disk, Block *b)
+diskWrite(Disk* disk, Block* b)
 {
 	assert(b->nlock == 1);
 	assert(b->iostate == BioDirty);
@@ -240,7 +235,7 @@ diskWrite(Disk *disk, Block *b)
 }
 
 void
-diskWriteAndWait(Disk *disk, Block *b)
+diskWriteAndWait(Disk* disk, Block* b)
 {
 	int nlock;
 
@@ -262,13 +257,13 @@ diskWriteAndWait(Disk *disk, Block *b)
 }
 
 int
-diskBlockSize(Disk *disk)
+diskBlockSize(Disk* disk)
 {
-	return disk->h.blockSize;	/* immuttable */
+	return disk->h.blockSize; /* immuttable */
 }
 
 int
-diskFlush(Disk *disk)
+diskFlush(Disk* disk)
 {
 	Dir dir;
 
@@ -279,7 +274,7 @@ diskFlush(Disk *disk)
 
 	/* there really should be a cleaner interface to flush an fd */
 	nulldir(&dir);
-	if(dirfwstat(disk->fd, &dir) < 0){
+	if(dirfwstat(disk->fd, &dir) < 0) {
 		vtOSError();
 		return 0;
 	}
@@ -287,7 +282,7 @@ diskFlush(Disk *disk)
 }
 
 uint32_t
-diskSize(Disk *disk, int part)
+diskSize(Disk* disk, int part)
 {
 	return partEnd(disk, part) - partStart(disk, part);
 }
@@ -298,43 +293,43 @@ mypc(int x)
 	return getcallerpc(&x);
 }
 
-static char *
-disk2file(Disk *disk)
+static char*
+disk2file(Disk* disk)
 {
 	static char buf[256];
 
-	if (fd2path(disk->fd, buf, sizeof buf) < 0)
+	if(fd2path(disk->fd, buf, sizeof buf) < 0)
 		strncpy(buf, "GOK", sizeof buf);
 	return buf;
 }
 
 static void
-diskThread(void *a)
+diskThread(void* a)
 {
-	Disk *disk = a;
-	Block *b;
-	uint8_t *buf, *p;
+	Disk* disk = a;
+	Block* b;
+	uint8_t* buf, *p;
 	double t;
 	int nio;
 
 	vtThreadSetName("disk");
 
-//fprint(2, "diskThread %d\n", getpid());
+	// fprint(2, "diskThread %d\n", getpid());
 
 	buf = vtMemAlloc(disk->h.blockSize);
 
 	vtLock(disk->lk);
-	if (Timing) {
+	if(Timing) {
 		nio = 0;
 		t = -nsec();
 	}
-	for(;;){
-		while(disk->nqueue == 0){
-			if (Timing) {
+	for(;;) {
+		while(disk->nqueue == 0) {
+			if(Timing) {
 				t += nsec();
-				if(nio >= 10000){
+				if(nio >= 10000) {
 					fprint(2, "disk: io=%d at %.3fms\n",
-						nio, t*1e-6/nio);
+					       nio, t * 1e-6 / nio);
 					nio = 0;
 					t = 0;
 				}
@@ -342,12 +337,12 @@ diskThread(void *a)
 			if(disk->die != nil)
 				goto Done;
 			vtSleep(disk->starve);
-			if (Timing)
+			if(Timing)
 				t -= nsec();
 		}
 		assert(disk->cur != nil || disk->next != nil);
 
-		if(disk->cur == nil){
+		if(disk->cur == nil) {
 			disk->cur = disk->next;
 			disk->next = nil;
 		}
@@ -360,33 +355,36 @@ diskThread(void *a)
 		 * reading or writing state, so this lock should
 		 * not cause deadlock.
 		 */
-if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
+		if(0)
+			fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(),
+			       b->part, b->addr);
 		bwatchLock(b);
 		vtLock(b->lk);
 		b->pc = mypc(0);
 		assert(b->nlock == 1);
-		switch(b->iostate){
+		switch(b->iostate) {
 		default:
 			abort();
 		case BioReading:
-			if(!diskReadRaw(disk, b->part, b->addr, b->data)){
+			if(!diskReadRaw(disk, b->part, b->addr, b->data)) {
 				fprint(2, "fossil: diskReadRaw failed: %s: "
-					"score %V: part=%s block %ud: %r\n",
-					disk2file(disk), b->score,
-					partname[b->part], b->addr);
+				          "score %V: part=%s block %ud: %r\n",
+				       disk2file(disk), b->score,
+				       partname[b->part], b->addr);
 				blockSetIOState(b, BioReadError);
-			}else
+			} else
 				blockSetIOState(b, BioClean);
 			break;
 		case BioWriting:
 			p = blockRollback(b, buf);
 			/* NB: ctime result ends with a newline */
-			if(!diskWriteRaw(disk, b->part, b->addr, p)){
-				fprint(2, "fossil: diskWriteRaw failed: %s: "
+			if(!diskWriteRaw(disk, b->part, b->addr, p)) {
+				fprint(
+				    2,
+				    "fossil: diskWriteRaw failed: %s: "
 				    "score %V: date %s part=%s block %ud: %r\n",
-					disk2file(disk), b->score,
-					ctime(time(0)),
-					partname[b->part], b->addr);
+				    disk2file(disk), b->score, ctime(time(0)),
+				    partname[b->part], b->addr);
 				break;
 			}
 			if(p != buf)
@@ -396,10 +394,10 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			break;
 		}
 
-		blockPut(b);		/* remove extra reference, unlock */
+		blockPut(b); /* remove extra reference, unlock */
 		vtLock(disk->lk);
 		disk->nqueue--;
-		if(disk->nqueue == QueueSize-1)
+		if(disk->nqueue == QueueSize - 1)
 			vtWakeup(disk->flow);
 		if(disk->nqueue == 0)
 			vtWakeup(disk->flush);
@@ -407,7 +405,7 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			nio++;
 	}
 Done:
-//fprint(2, "diskThread done\n");
+	// fprint(2, "diskThread done\n");
 	disk->ref--;
 	vtWakeup(disk->die);
 	vtUnlock(disk->lk);

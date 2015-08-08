@@ -11,15 +11,15 @@ tsemloop(void)
 {
 	int i;
 	i = 0;
-	while(i < nloops){
-		if(tsemacquire(&x, 10)){
+	while(i < nloops) {
+		if(tsemacquire(&x, 10)) {
 			if((i % 1000) == 0)
 				sleep(10);
 			incr++;
 			i++;
 			semrelease(&x, 1);
 		} else {
-			//print("pid %d timeout\n", getpid());
+			// print("pid %d timeout\n", getpid());
 		}
 	}
 	exits(nil);
@@ -30,8 +30,8 @@ semloop(void)
 {
 	int i;
 	i = 0;
-	while(i < nloops){
-		if(semacquire(&x, 1)){
+	while(i < nloops) {
+		if(semacquire(&x, 1)) {
 			incr++;
 			i++;
 			semrelease(&x, 1);
@@ -41,15 +41,14 @@ semloop(void)
 	}
 }
 
-
 void
 main(void)
 {
 	int pid, i;
 
 	incr = 0;
-	for(i = 0; i < nprocs; i++){
-		switch(rfork(RFMEM|RFPROC)){
+	for(i = 0; i < nprocs; i++) {
+		switch(rfork(RFMEM | RFPROC)) {
 		case -1:
 			sysfatal("rfork");
 		case 0:
@@ -62,14 +61,14 @@ main(void)
 	for(i = 0; i < nprocs; i++)
 		waitpid();
 	print("tsemloop incr %d\n", incr);
-	if(incr != nprocs*nloops){
+	if(incr != nprocs * nloops) {
 		print("FAIL\n");
 		exits("FAIL");
 	}
 
 	incr = 0;
-	for(i = 0; i < nprocs; i++){
-		switch(rfork(RFMEM|RFPROC)){
+	for(i = 0; i < nprocs; i++) {
+		switch(rfork(RFMEM | RFPROC)) {
 		case -1:
 			sysfatal("rfork");
 		case 0:
@@ -82,18 +81,18 @@ main(void)
 	for(i = 0; i < nprocs; i++)
 		waitpid();
 	print("semloop incr %d\n", incr);
-	if(incr != nprocs*nloops){
+	if(incr != nprocs * nloops) {
 		print("FAIL\n");
 		exits("FAIL");
 	}
 
 	incr = 0;
-	for(i = 0; i < nprocs; i++){
-		switch(rfork(RFMEM|RFPROC)){
+	for(i = 0; i < nprocs; i++) {
+		switch(rfork(RFMEM | RFPROC)) {
 		case -1:
 			sysfatal("rfork");
 		case 0:
-			if((i&1) == 0)
+			if((i & 1) == 0)
 				semloop();
 			else
 				tsemloop();
@@ -105,7 +104,7 @@ main(void)
 	for(i = 0; i < nprocs; i++)
 		waitpid();
 	print("mixed incr %d\n", incr);
-	if(incr != nprocs*nloops){
+	if(incr != nprocs * nloops) {
 		print("FAIL\n");
 		exits("FAIL");
 	}

@@ -7,22 +7,22 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-#include	"9p1.h"
+#include "9p1.h"
 
 void
-fcall9p1(Chan *cp, Fcall *in, Fcall *ou)
+fcall9p1(Chan* cp, Fcall* in, Fcall* ou)
 {
 	int t;
 
 	rlock(&mainlock);
 	t = in->type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !call9p1[t]) {
+	if(t < 0 || t >= MAXSYSCALL || (t & 1) || !call9p1[t]) {
 		print("bad message type %d\n", t);
 		panic("");
 	}
-	ou->type = t+1;
+	ou->type = t + 1;
 	ou->err = 0;
 
 	rlock(&cp->reflock);
@@ -45,7 +45,7 @@ con_session(void)
 }
 
 int
-con_attach(int fid, char *uid, char *arg)
+con_attach(int fid, char* uid, char* arg)
 {
 	Fcall in, ou;
 
@@ -70,7 +70,7 @@ con_clone(int fid1, int fid2)
 }
 
 int
-con_walk(int fid, char *name)
+con_walk(int fid, char* name)
 {
 	Fcall in, ou;
 
@@ -94,7 +94,7 @@ con_open(int fid, int mode)
 }
 
 int
-con_read(int fid, char *data, Off offset, int count)
+con_read(int fid, char* data, Off offset, int count)
 {
 	Fcall in, ou;
 
@@ -110,7 +110,7 @@ con_read(int fid, char *data, Off offset, int count)
 }
 
 int
-con_write(int fid, char *data, Off offset, int count)
+con_write(int fid, char* data, Off offset, int count)
 {
 	Fcall in, ou;
 
@@ -137,8 +137,7 @@ con_remove(int fid)
 }
 
 int
-con_create(int fid, char *name, int uid, int gid, int32_t perm,
-	   int mode)
+con_create(int fid, char* name, int uid, int gid, int32_t perm, int mode)
 {
 	Fcall in, ou;
 
@@ -147,17 +146,17 @@ con_create(int fid, char *name, int uid, int gid, int32_t perm,
 	strncpy(in.name, name, NAMELEN);
 	in.perm = perm;
 	in.mode = mode;
-	cons.uid = uid;			/* beyond ugly */
+	cons.uid = uid; /* beyond ugly */
 	cons.gid = gid;
 	fcall9p1(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
-doclri(File *f)
+doclri(File* f)
 {
-	Iobuf *p, *p1;
-	Dentry *d, *d1;
+	Iobuf* p, *p1;
+	Dentry* d, *d1;
 	int err;
 
 	err = 0;
@@ -208,11 +207,11 @@ out:
 }
 
 void
-f_fstat(Chan *cp, Fcall *in, Fcall *ou)
+f_fstat(Chan* cp, Fcall* in, Fcall* ou)
 {
-	File *f;
-	Iobuf *p;
-	Dentry *d;
+	File* f;
+	Iobuf* p;
+	Dentry* d;
 	int i;
 
 	if(CHAT(cp)) {
@@ -234,12 +233,12 @@ f_fstat(Chan *cp, Fcall *in, Fcall *ou)
 	print("name = %.*s\n", NAMELEN, d->name);
 	print("uid = %d; gid = %d; muid = %d\n", d->uid, d->gid, d->muid);
 	print("size = %lld; qid = %llux/%lux\n", (Wideoff)d->size,
-		(Wideoff)d->qid.path, d->qid.version);
+	      (Wideoff)d->qid.path, d->qid.version);
 	print("atime = %ld; mtime = %ld\n", d->atime, d->mtime);
 	print("dblock =");
-	for(i=0; i<NDBLOCK; i++)
+	for(i = 0; i < NDBLOCK; i++)
 		print(" %lld", (Wideoff)d->dblock[i]);
-	for (i = 0; i < NIBLOCK; i++)
+	for(i = 0; i < NIBLOCK; i++)
 		print("; iblocks[%d] = %lld", i, (Wideoff)d->iblocks[i]);
 	print("\n\n");
 
@@ -252,9 +251,9 @@ out:
 }
 
 void
-f_clri(Chan *cp, Fcall *in, Fcall *ou)
+f_clri(Chan* cp, Fcall* in, Fcall* ou)
 {
-	File *f;
+	File* f;
 
 	if(CHAT(cp)) {
 		print("c_clri %d\n", cp->chan);
@@ -278,14 +277,14 @@ int
 con_clri(int fid)
 {
 	Fcall in, ou;
-	Chan *cp;
+	Chan* cp;
 
 	in.type = Tremove;
 	in.fid = fid;
 	cp = cons.chan;
 
 	rlock(&mainlock);
-	ou.type = Tremove+1;
+	ou.type = Tremove + 1;
 	ou.err = 0;
 
 	rlock(&cp->reflock);
@@ -300,14 +299,14 @@ int
 con_fstat(int fid)
 {
 	Fcall in, ou;
-	Chan *cp;
+	Chan* cp;
 
 	in.type = Tstat;
 	in.fid = fid;
 	cp = cons.chan;
 
 	rlock(&mainlock);
-	ou.type = Tstat+1;
+	ou.type = Tstat + 1;
 	ou.err = 0;
 
 	rlock(&cp->reflock);

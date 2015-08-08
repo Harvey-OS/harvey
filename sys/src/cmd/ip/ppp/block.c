@@ -13,58 +13,50 @@
 #include <auth.h>
 #include "ppp.h"
 
-enum
-{
-	PAD	= 128,
-	NLIST	= (1<<5),
-	BPOW	= 10,
+enum { PAD = 128,
+       NLIST = (1 << 5),
+       BPOW = 10,
 };
 
 typedef struct Barena Barena;
-struct Barena
-{
+struct Barena {
 	QLock;
-	Block*	list[NLIST];
+	Block* list[NLIST];
 };
 static Barena area;
 
 #define ADEBUG if(0)
 
-
 /*
  *  allocation tracing
  */
-enum
-{
-	Npc=	64,
+enum { Npc = 64,
 };
 typedef struct Arefent Arefent;
-struct Arefent
-{
-	uint	pc;
-	uint	n;
+struct Arefent {
+	uint pc;
+	uint n;
 };
 typedef struct Aref Aref;
-struct  Aref
-{
-	Arefent	tab[Npc];
+struct Aref {
+	Arefent tab[Npc];
 	QLock;
 };
 Aref arefblock;
 
-static uint32_t	callerpc(void*);
-static void	aref(Aref*, uint32_t);
-static void	aunref(Aref*, uint32_t);
+static uint32_t callerpc(void*);
+static void aref(Aref*, uint32_t);
+static void aunref(Aref*, uint32_t);
 
 Block*
 allocb(int len)
 {
 	int sz;
-	Block *bp, **l;
+	Block* bp, **l;
 
 	len += PAD;
-	sz = (len>>BPOW)&(NLIST-1);
-	
+	sz = (len >> BPOW) & (NLIST - 1);
+
 	qlock(&area);
 	l = &area.list[sz];
 	for(bp = *l; bp; bp = bp->flist) {
@@ -75,13 +67,14 @@ allocb(int len)
 			bp->next = nil;
 			bp->list = nil;
 			bp->flist = nil;
-			bp->base = (uint8_t*)bp+sizeof(Block);
-			bp->rptr = bp->base+PAD;
+			bp->base = (uint8_t*)bp + sizeof(Block);
+			bp->rptr = bp->base + PAD;
 			bp->wptr = bp->rptr;
-			bp->lim  = bp->base+bp->bsz;
+			bp->lim = bp->base + bp->bsz;
 			bp->flow = nil;
-			bp->flags= 0;
-			ADEBUG {
+			bp->flags = 0;
+			ADEBUG
+			{
 				bp->pc = callerpc(&len);
 				aref(&arefblock, bp->pc);
 			}
@@ -92,14 +85,15 @@ allocb(int len)
 
 	qunlock(&area);
 
-	bp = mallocz(sizeof(Block)+len, 1);
+	bp = mallocz(sizeof(Block) + len, 1);
 
-	bp->bsz  = len;
-	bp->base = (uint8_t*)bp+sizeof(Block);
-	bp->rptr = bp->base+PAD;
+	bp->bsz = len;
+	bp->base = (uint8_t*)bp + sizeof(Block);
+	bp->rptr = bp->base + PAD;
 	bp->wptr = bp->rptr;
-	bp->lim  = bp->base+len;
-	ADEBUG {
+	bp->lim = bp->base + len;
+	ADEBUG
+	{
 		bp->pc = callerpc(&len);
 		aref(&arefblock, bp->pc);
 	}
@@ -107,14 +101,14 @@ allocb(int len)
 }
 
 void
-freeb(Block *bp)
+freeb(Block* bp)
 {
 	int sz;
-	Block **l, *next;
+	Block** l, *next;
 
 	qlock(&area);
 	while(bp) {
-		sz = (bp->bsz>>BPOW)&(NLIST-1);
+		sz = (bp->bsz >> BPOW) & (NLIST - 1);
 
 		l = &area.list[sz];
 		bp->flist = *l;
@@ -140,10 +134,10 @@ freeb(Block *bp)
  *  the result is at least min uchars
  */
 Block*
-concat(Block *bp)
+concat(Block* bp)
 {
 	int len;
-	Block *nb, *f;
+	Block* nb, *f;
 
 	nb = allocb(blen(bp));
 	for(f = bp; f; f = f->next) {
@@ -156,7 +150,7 @@ concat(Block *bp)
 }
 
 int
-blen(Block *bp)
+blen(Block* bp)
 {
 	int len;
 
@@ -168,11 +162,11 @@ blen(Block *bp)
 	return len;
 }
 
-Block *
-pullup(Block *bp, int n)
+Block*
+pullup(Block* bp, int n)
 {
 	int i;
-	Block *nbp;
+	Block* nbp;
 
 	/*
 	 *  this should almost always be true, the rest it
@@ -185,7 +179,7 @@ pullup(Block *bp, int n)
 	 *  if not enough room in the first block,
 	 *  add another to the front of the list.
 	 */
-	if(bp->lim - bp->rptr < n){
+	if(bp->lim - bp->rptr < n) {
 		nbp = allocb(n);
 		nbp->next = bp;
 		bp = nbp;
@@ -195,15 +189,14 @@ pullup(Block *bp, int n)
 	 *  copy uchars from the trailing blocks into the first
 	 */
 	n -= BLEN(bp);
-	while(nbp = bp->next){
+	while(nbp = bp->next) {
 		i = BLEN(nbp);
 		if(i >= n) {
 			memmove(bp->wptr, nbp->rptr, n);
 			bp->wptr += n;
 			nbp->rptr += n;
 			return bp;
-		}
-		else {
+		} else {
 			memmove(bp->wptr, nbp->rptr, i);
 			bp->wptr += i;
 			bp->next = nbp->next;
@@ -221,31 +214,31 @@ pullup(Block *bp, int n)
  *  headers to the front of blocks.
  */
 Block*
-padb(Block *bp, int n)
+padb(Block* bp, int n)
 {
-	Block *nbp;
+	Block* nbp;
 
-	if(bp->rptr-bp->base >= n) {
+	if(bp->rptr - bp->base >= n) {
 		bp->rptr -= n;
 		return bp;
-	}
-	else {
-		/* fprint(2, "padb: required %d PAD %d\n", n, PAD) = malloc(sizeof(*required %d PAD %d\n", n, PAD))); */
+	} else {
+		/* fprint(2, "padb: required %d PAD %d\n", n, PAD) =
+		 * malloc(sizeof(*required %d PAD %d\n", n, PAD))); */
 		nbp = allocb(n);
 		nbp->wptr = nbp->lim;
 		nbp->rptr = nbp->wptr - n;
 		nbp->next = bp;
 		return nbp;
 	}
-} 
+}
 
-Block *
-btrim(Block *bp, int offset, int len)
+Block*
+btrim(Block* bp, int offset, int len)
 {
 	uint32_t l;
-	Block *nb, *startb;
+	Block* nb, *startb;
 
-	if(blen(bp) < offset+len) {
+	if(blen(bp) < offset + len) {
 		freeb(bp);
 		return nil;
 	}
@@ -278,10 +271,10 @@ btrim(Block *bp, int offset, int len)
 }
 
 Block*
-copyb(Block *bp, int count)
+copyb(Block* bp, int count)
 {
 	int l;
-	Block *nb, *head, **p;
+	Block* nb, *head, **p;
 
 	p = &head;
 	head = nil;
@@ -312,9 +305,9 @@ copyb(Block *bp, int count)
 }
 
 int
-pullb(Block **bph, int count)
+pullb(Block** bph, int count)
 {
-	Block *bp;
+	Block* bp;
 	int n, uchars;
 
 	uchars = 0;
@@ -342,16 +335,16 @@ pullb(Block **bph, int count)
  *  handy routines for keeping track of allocations
  */
 static uint32_t
-callerpc(void *a)
+callerpc(void* a)
 {
 	return ((uint32_t*)a)[-1];
 }
 static void
-aref(Aref *ap, uint32_t pc)
+aref(Aref* ap, uint32_t pc)
 {
-	Arefent *a, *e;
+	Arefent* a, *e;
 
-	e = &ap->tab[Npc-1];
+	e = &ap->tab[Npc - 1];
 	qlock(ap);
 	for(a = ap->tab; a < e; a++)
 		if(a->pc == pc || a->pc == 0)
@@ -361,11 +354,11 @@ aref(Aref *ap, uint32_t pc)
 	qunlock(ap);
 }
 static void
-aunref(Aref *ap, uint32_t pc)
+aunref(Aref* ap, uint32_t pc)
 {
-	Arefent *a, *e;
+	Arefent* a, *e;
 
-	e = &ap->tab[Npc-1];
+	e = &ap->tab[Npc - 1];
 	qlock(ap);
 	for(a = ap->tab; a < e; a++)
 		if(a->pc == pc || a->pc == 0)

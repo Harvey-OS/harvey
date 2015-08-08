@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	<authsrv.h>
+#include <authsrv.h>
 
-char	*eve;
-char	hostdomain[DOMLEN];
+char* eve;
+char hostdomain[DOMLEN];
 
 /*
  *  return true if current user is eve
@@ -25,16 +25,16 @@ char	hostdomain[DOMLEN];
 int
 iseve(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	return strcmp(eve, up->user) == 0;
 }
 
 void
 sysfversion(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Chan *c;
-	char *version;
+	Proc* up = externup();
+	Chan* c;
+	char* version;
 	int fd;
 	uint32_t msize;
 	usize nversion;
@@ -57,7 +57,7 @@ sysfversion(Ar0* ar0, ...)
 		error(Ebadarg);
 
 	c = fdtochan(fd, ORDWR, 0, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -72,7 +72,7 @@ void
 sys_fsession(Ar0* ar0, ...)
 {
 	int fd;
-	char *trbuf;
+	char* trbuf;
 	va_list list;
 	va_start(list, ar0);
 
@@ -95,9 +95,9 @@ sys_fsession(Ar0* ar0, ...)
 void
 sysfauth(Ar0* ar0, ...)
 {
-	Proc *up = externup();
-	Chan *c, *ac;
-	char *aname;
+	Proc* up = externup();
+	Chan* c, *ac;
+	char* aname;
 	int fd;
 	va_list list;
 	va_start(list, ar0);
@@ -111,12 +111,12 @@ sysfauth(Ar0* ar0, ...)
 
 	aname = validaddr(aname, 1, 0);
 	aname = validnamedup(aname, 1);
-	if(waserror()){
+	if(waserror()) {
 		free(aname);
 		nexterror();
 	}
 	c = fdtochan(fd, ORDWR, 0, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -124,11 +124,11 @@ sysfauth(Ar0* ar0, ...)
 	ac = mntauth(c, aname);
 	/* at this point ac is responsible for keeping c alive */
 	cclose(c);
-	poperror();	/* c */
+	poperror(); /* c */
 	free(aname);
-	poperror();	/* aname */
+	poperror(); /* aname */
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(ac);
 		nexterror();
 	}
@@ -136,7 +136,7 @@ sysfauth(Ar0* ar0, ...)
 	fd = newfd(ac);
 	if(fd < 0)
 		error(Enofd);
-	poperror();	/* ac */
+	poperror(); /* ac */
 
 	/* always mark it close on exec */
 	ac->flag |= CCEXEC;
@@ -152,7 +152,7 @@ sysfauth(Ar0* ar0, ...)
 int32_t
 userwrite(char* a, int32_t n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
 	kstrdup(&up->user, "none");
@@ -169,7 +169,7 @@ userwrite(char* a, int32_t n)
 int32_t
 hostownerwrite(char* a, int32_t n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	char buf[128];
 
 	if(!iseve())

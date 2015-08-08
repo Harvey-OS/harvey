@@ -17,20 +17,20 @@
 #include "flayer.h"
 #include "samterm.h"
 
-#define	DELTA	10
+#define DELTA 10
 
-static Flayer	**llist;	/* front to back */
-static int	nllist;
-static int	nlalloc;
+static Flayer** llist; /* front to back */
+static int nllist;
+static int nlalloc;
 static Rectangle lDrect;
 
-Vis		visibility(Flayer *);
-void		newvisibilities(int);
-void		llinsert(Flayer*);
-void		lldelete(Flayer*);
+Vis visibility(Flayer*);
+void newvisibilities(int);
+void llinsert(Flayer*);
+void lldelete(Flayer*);
 
-Image	*maincols[NCOL];
-Image	*cmdcols[NCOL];
+Image* maincols[NCOL];
+Image* cmdcols[NCOL];
 
 void
 flstart(Rectangle r)
@@ -39,25 +39,29 @@ flstart(Rectangle r)
 
 	/* Main text is yellowish */
 	maincols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
-	maincols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
-	maincols[BORD] = allocimage(display, Rect(0,0,2,2), screen->chan, 1, DYellowgreen);
+	maincols[HIGH] =
+	    allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DDarkyellow);
+	maincols[BORD] = allocimage(display, Rect(0, 0, 2, 2), screen->chan, 1,
+	                            DYellowgreen);
 	maincols[TEXT] = display->black;
 	maincols[HTEXT] = display->black;
 
 	/* Command text is blueish */
 	cmdcols[BACK] = allocimagemix(display, DPalebluegreen, DWhite);
-	cmdcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPalegreygreen);
-	cmdcols[BORD] = allocimage(display, Rect(0,0,2,2), screen->chan, 1, DPurpleblue);
+	cmdcols[HIGH] = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,
+	                           DPalegreygreen);
+	cmdcols[BORD] =
+	    allocimage(display, Rect(0, 0, 2, 2), screen->chan, 1, DPurpleblue);
 	cmdcols[TEXT] = display->black;
 	cmdcols[HTEXT] = display->black;
 }
 
 void
-flnew(Flayer *l, Rune *(*fn)(Flayer*, int32_t, uint32_t*), int u0, void *u1)
+flnew(Flayer* l, Rune* (*fn)(Flayer*, int32_t, uint32_t*), int u0, void* u1)
 {
-	if(nllist == nlalloc){
+	if(nllist == nlalloc) {
 		nlalloc += DELTA;
-		llist = realloc(llist, nlalloc*sizeof(Flayer**));
+		llist = realloc(llist, nlalloc * sizeof(Flayer**));
 		if(llist == 0)
 			panic("flnew");
 	}
@@ -69,32 +73,32 @@ flnew(Flayer *l, Rune *(*fn)(Flayer*, int32_t, uint32_t*), int u0, void *u1)
 }
 
 Rectangle
-flrect(Flayer *l, Rectangle r)
+flrect(Flayer* l, Rectangle r)
 {
 	rectclip(&r, lDrect);
 	l->entire = r;
 	l->scroll = insetrect(r, FLMARGIN);
-	r.min.x =
-	 l->scroll.max.x = r.min.x+FLMARGIN+FLSCROLLWID+(FLGAP-FLMARGIN);
+	r.min.x = l->scroll.max.x =
+	    r.min.x + FLMARGIN + FLSCROLLWID + (FLGAP - FLMARGIN);
 	return r;
 }
 
 static void
-fontbuggered(char *name)
+fontbuggered(char* name)
 {
 	fprint(2, "samterm: font %s has zero-width \"0\" character\n", name);
 	threadexits("font zero-width");
 }
 
 void
-flinit(Flayer *l, Rectangle r, Font *ft, Image **cols)
+flinit(Flayer* l, Rectangle r, Font* ft, Image** cols)
 {
 	lldelete(l);
 	llinsert(l);
 	l->visible = All;
 	l->origin = l->p0 = l->p1 = 0;
 	frinit(&l->f, insetrect(flrect(l, r), FLMARGIN), ft, screen, cols);
-	l->f.maxtab = maxtab*stringwidth(ft, "0");
+	l->f.maxtab = maxtab * stringwidth(ft, "0");
 	if(l->f.maxtab == 0)
 		fontbuggered(ft->name);
 	newvisibilities(1);
@@ -104,77 +108,79 @@ flinit(Flayer *l, Rectangle r, Font *ft, Image **cols)
 }
 
 void
-flclose(Flayer *l)
+flclose(Flayer* l)
 {
 	if(l->visible == All)
 		draw(screen, l->entire, display->white, nil, ZP);
-	else if(l->visible == Some){
+	else if(l->visible == Some) {
 		if(l->f.b == 0)
-			l->f.b = allocimage(display, l->entire, screen->chan, 0, DNofill);
-		if(l->f.b){
+			l->f.b = allocimage(display, l->entire, screen->chan, 0,
+			                    DNofill);
+		if(l->f.b) {
 			draw(l->f.b, l->entire, display->white, nil, ZP);
 			flrefresh(l, l->entire, 0);
 		}
 	}
 	frclear(&l->f, 1);
 	lldelete(l);
-	if(l->f.b && l->visible!=All)
+	if(l->f.b && l->visible != All)
 		freeimage(l->f.b);
 	l->textfn = 0;
 	newvisibilities(1);
 }
 
 void
-flborder(Flayer *l, int wide)
+flborder(Flayer* l, int wide)
 {
-	if(flprepare(l)){
+	if(flprepare(l)) {
 		border(l->f.b, l->entire, FLMARGIN, l->f.cols[BACK], ZP);
-		border(l->f.b, l->entire, wide? FLMARGIN : 1, l->f.cols[BORD], ZP);
-		if(l->visible==Some)
+		border(l->f.b, l->entire, wide ? FLMARGIN : 1, l->f.cols[BORD],
+		       ZP);
+		if(l->visible == Some)
 			flrefresh(l, l->entire, 0);
 	}
 }
 
-Flayer *
+Flayer*
 flwhich(Point p)
 {
 	int i;
 
-	if(p.x==0 && p.y==0)
-		return nllist? llist[0] : 0;
-	for(i=0; i<nllist; i++)
+	if(p.x == 0 && p.y == 0)
+		return nllist ? llist[0] : 0;
+	for(i = 0; i < nllist; i++)
 		if(ptinrect(p, llist[i]->entire))
 			return llist[i];
 	return 0;
 }
 
 void
-flupfront(Flayer *l)
+flupfront(Flayer* l)
 {
 	int v = l->visible;
 
 	lldelete(l);
 	llinsert(l);
-	if(v!=All)
+	if(v != All)
 		newvisibilities(0);
 }
 
 void
 newvisibilities(int redraw)
-	/* if redraw false, we know it's a flupfront, and needn't
-	 * redraw anyone becoming partially covered */
+/* if redraw false, we know it's a flupfront, and needn't
+ * redraw anyone becoming partially covered */
 {
 	int i;
 	Vis ov;
-	Flayer *l;
+	Flayer* l;
 
-	for(i = 0; i<nllist; i++){
+	for(i = 0; i < nllist; i++) {
 		l = llist[i];
-		l->lastsr = ZR;	/* make sure scroll bar gets redrawn */
+		l->lastsr = ZR; /* make sure scroll bar gets redrawn */
 		ov = l->visible;
 		l->visible = visibility(l);
-#define	V(a, b)	(((a)<<2)|((b)))
-		switch(V(ov, l->visible)){
+#define V(a, b) (((a) << 2) | ((b)))
+		switch(V(ov, l->visible)) {
 		case V(Some, None):
 			if(l->f.b)
 				freeimage(l->f.b);
@@ -185,10 +191,10 @@ newvisibilities(int redraw)
 			break;
 
 		case V(Some, Some):
-			if(l->f.b==0 && redraw)
-		case V(None, Some):
-				flprepare(l);
-			if(l->f.b && redraw){
+			if(l->f.b == 0 && redraw)
+			case V(None, Some):
+			flprepare(l);
+			if(l->f.b && redraw) {
 				flrefresh(l, l->entire, 0);
 				freeimage(l->f.b);
 				l->f.b = 0;
@@ -199,8 +205,9 @@ newvisibilities(int redraw)
 			break;
 
 		case V(Some, All):
-			if(l->f.b){
-				draw(screen, l->entire, l->f.b, nil, l->entire.min);
+			if(l->f.b) {
+				draw(screen, l->entire, l->f.b, nil,
+				     l->entire.min);
 				freeimage(l->f.b);
 				l->f.b = screen;
 				break;
@@ -209,132 +216,136 @@ newvisibilities(int redraw)
 			flprepare(l);
 			break;
 		}
-		if(ov==None && l->visible!=None)
+		if(ov == None && l->visible != None)
 			flnewlyvisible(l);
 	}
 }
 
 void
-llinsert(Flayer *l)
+llinsert(Flayer* l)
 {
 	int i;
-	for(i=nllist; i>0; --i)
-		llist[i]=llist[i-1];
-	llist[0]=l;
+	for(i = nllist; i > 0; --i)
+		llist[i] = llist[i - 1];
+	llist[0] = l;
 	nllist++;
 }
 
 void
-lldelete(Flayer *l)
+lldelete(Flayer* l)
 {
 	int i;
 
-	for(i=0; i<nllist; i++)
-		if(llist[i]==l){
+	for(i = 0; i < nllist; i++)
+		if(llist[i] == l) {
 			--nllist;
-			for(; i<nllist; i++)
-				llist[i] = llist[i+1];
+			for(; i < nllist; i++)
+				llist[i] = llist[i + 1];
 			return;
 		}
 	panic("lldelete");
 }
 
 void
-flinsert(Flayer *l, Rune *sp, Rune *ep, int32_t p0)
+flinsert(Flayer* l, Rune* sp, Rune* ep, int32_t p0)
 {
-	if(flprepare(l)){
-		frinsert(&l->f, sp, ep, p0-l->origin);
+	if(flprepare(l)) {
+		frinsert(&l->f, sp, ep, p0 - l->origin);
 		scrdraw(l, scrtotal(l));
-		if(l->visible==Some)
+		if(l->visible == Some)
 			flrefresh(l, l->entire, 0);
 	}
 }
 
 void
-fldelete(Flayer *l, int32_t p0, int32_t p1)
+fldelete(Flayer* l, int32_t p0, int32_t p1)
 {
-	if(flprepare(l)){
+	if(flprepare(l)) {
 		p0 -= l->origin;
 		if(p0 < 0)
 			p0 = 0;
 		p1 -= l->origin;
-		if(p1<0)
+		if(p1 < 0)
 			p1 = 0;
 		frdelete(&l->f, p0, p1);
 		scrdraw(l, scrtotal(l));
-		if(l->visible==Some)
+		if(l->visible == Some)
 			flrefresh(l, l->entire, 0);
 	}
 }
 
 int
-flselect(Flayer *l)
+flselect(Flayer* l)
 {
 	int ret;
-	if(l->visible!=All)
+	if(l->visible != All)
 		flupfront(l);
 	frselect(&l->f, mousectl);
 	ret = 0;
-	if(l->f.p0==l->f.p1){
-		if(mousep->msec-l->click<Clicktime && l->f.p0+l->origin==l->p0){
+	if(l->f.p0 == l->f.p1) {
+		if(mousep->msec - l->click < Clicktime &&
+		   l->f.p0 + l->origin == l->p0) {
 			ret = 1;
 			l->click = 0;
-		}else
+		} else
 			l->click = mousep->msec;
-	}else
+	} else
 		l->click = 0;
-	l->p0 = l->f.p0+l->origin, l->p1 = l->f.p1+l->origin;
+	l->p0 = l->f.p0 + l->origin, l->p1 = l->f.p1 + l->origin;
 	return ret;
 }
 
 void
-flsetselect(Flayer *l, int32_t p0, int32_t p1)
+flsetselect(Flayer* l, int32_t p0, int32_t p1)
 {
 	uint32_t fp0, fp1;
 
 	l->click = 0;
-	if(l->visible==None || !flprepare(l)){
+	if(l->visible == None || !flprepare(l)) {
 		l->p0 = p0, l->p1 = p1;
 		return;
 	}
 	l->p0 = p0, l->p1 = p1;
 	flfp0p1(l, &fp0, &fp1);
-	if(fp0==l->f.p0 && fp1==l->f.p1)
+	if(fp0 == l->f.p0 && fp1 == l->f.p1)
 		return;
 
-	if(fp1<=l->f.p0 || fp0>=l->f.p1 || l->f.p0==l->f.p1 || fp0==fp1){
+	if(fp1 <= l->f.p0 || fp0 >= l->f.p1 || l->f.p0 == l->f.p1 ||
+	   fp0 == fp1) {
 		/* no overlap or trivial repainting */
-		frdrawsel(&l->f, frptofchar(&l->f, l->f.p0), l->f.p0, l->f.p1, 0);
+		frdrawsel(&l->f, frptofchar(&l->f, l->f.p0), l->f.p0, l->f.p1,
+		          0);
 		frdrawsel(&l->f, frptofchar(&l->f, fp0), fp0, fp1, 1);
 		goto Refresh;
 	}
-	/* the current selection and the desired selection overlap and are both non-empty */
-	if(fp0 < l->f.p0){
+	/* the current selection and the desired selection overlap and are both
+	 * non-empty */
+	if(fp0 < l->f.p0) {
 		/* extend selection backwards */
 		frdrawsel(&l->f, frptofchar(&l->f, fp0), fp0, l->f.p0, 1);
-	}else if(fp0 > l->f.p0){
+	} else if(fp0 > l->f.p0) {
 		/* trim first part of selection */
 		frdrawsel(&l->f, frptofchar(&l->f, l->f.p0), l->f.p0, fp0, 0);
 	}
-	if(fp1 > l->f.p1){
+	if(fp1 > l->f.p1) {
 		/* extend selection forwards */
 		frdrawsel(&l->f, frptofchar(&l->f, l->f.p1), l->f.p1, fp1, 1);
-	}else if(fp1 < l->f.p1){
+	} else if(fp1 < l->f.p1) {
 		/* trim last part of selection */
 		frdrawsel(&l->f, frptofchar(&l->f, fp1), fp1, l->f.p1, 0);
 	}
 
-    Refresh:
+Refresh:
 	l->f.p0 = fp0;
 	l->f.p1 = fp1;
-	if(l->visible==Some)
+	if(l->visible == Some)
 		flrefresh(l, l->entire, 0);
 }
 
 void
-flfp0p1(Flayer *l, uint32_t *pp0, uint32_t *pp1)
+flfp0p1(Flayer* l, uint32_t* pp0, uint32_t* pp1)
 {
-	int32_t p0 = l->p0-l->origin, p1 = l->p1-l->origin;
+	int32_t p0 = l->p0 - l->origin, p1 = l->p1 - l->origin;
 
 	if(p0 < 0)
 		p0 = 0;
@@ -351,10 +362,10 @@ flfp0p1(Flayer *l, uint32_t *pp0, uint32_t *pp1)
 Rectangle
 rscale(Rectangle r, Point old, Point new)
 {
-	r.min.x = r.min.x*new.x/old.x;
-	r.min.y = r.min.y*new.y/old.y;
-	r.max.x = r.max.x*new.x/old.x;
-	r.max.y = r.max.y*new.y/old.y;
+	r.min.x = r.min.x * new.x / old.x;
+	r.min.y = r.min.y * new.y / old.y;
+	r.max.x = r.max.x * new.x / old.x;
+	r.max.y = r.max.y * new.y / old.y;
 	return r;
 }
 
@@ -362,8 +373,8 @@ void
 flresize(Rectangle dr)
 {
 	int i;
-	Flayer *l;
-	Frame *f;
+	Flayer* l;
+	Frame* f;
 	Rectangle r, olDrect;
 	int move;
 
@@ -371,37 +382,39 @@ flresize(Rectangle dr)
 	lDrect = dr;
 	move = 0;
 	/* no moving on rio; must repaint */
-	if(0 && Dx(dr)==Dx(olDrect) && Dy(dr)==Dy(olDrect))
+	if(0 && Dx(dr) == Dx(olDrect) && Dy(dr) == Dy(olDrect))
 		move = 1;
 	else
 		draw(screen, lDrect, display->white, nil, ZP);
-	for(i=0; i<nllist; i++){
+	for(i = 0; i < nllist; i++) {
 		l = llist[i];
 		l->lastsr = ZR;
 		f = &l->f;
 		if(move)
-			r = rectaddpt(rectsubpt(l->entire, olDrect.min), dr.min);
-		else{
+			r = rectaddpt(rectsubpt(l->entire, olDrect.min),
+			              dr.min);
+		else {
 			r = rectaddpt(rscale(rectsubpt(l->entire, olDrect.min),
-				subpt(olDrect.max, olDrect.min),
-				subpt(dr.max, dr.min)), dr.min);
-			if(l->visible==Some && f->b){
+			                     subpt(olDrect.max, olDrect.min),
+			                     subpt(dr.max, dr.min)),
+			              dr.min);
+			if(l->visible == Some && f->b) {
 				freeimage(f->b);
 				frclear(f, 0);
 			}
 			f->b = 0;
-			if(l->visible!=None)
+			if(l->visible != None)
 				frclear(f, 0);
 		}
 		if(!rectclip(&r, dr))
 			panic("flresize");
-		if(r.max.x-r.min.x<100)
+		if(r.max.x - r.min.x < 100)
 			r.min.x = dr.min.x;
-		if(r.max.x-r.min.x<100)
+		if(r.max.x - r.min.x < 100)
 			r.max.x = dr.max.x;
-		if(r.max.y-r.min.y<2*FLMARGIN+f->font->height)
+		if(r.max.y - r.min.y < 2 * FLMARGIN + f->font->height)
 			r.min.y = dr.min.y;
-		if(r.max.y-r.min.y<2*FLMARGIN+f->font->height)
+		if(r.max.y - r.min.y < 2 * FLMARGIN + f->font->height)
 			r.max.y = dr.max.y;
 		if(!move)
 			l->visible = None;
@@ -413,29 +426,31 @@ flresize(Rectangle dr)
 }
 
 int
-flprepare(Flayer *l)
+flprepare(Flayer* l)
 {
-	Frame *f;
+	Frame* f;
 	uint32_t n;
-	Rune *r;
+	Rune* r;
 
 	if(l->visible == None)
 		return 0;
 	f = &l->f;
-	if(f->b == 0){
+	if(f->b == 0) {
 		if(l->visible == All)
 			f->b = screen;
-		else if((f->b = allocimage(display, l->entire, screen->chan, 0, 0))==0)
+		else if((f->b = allocimage(display, l->entire, screen->chan, 0,
+		                           0)) == 0)
 			return 0;
 		draw(f->b, l->entire, f->cols[BACK], nil, ZP);
-		border(f->b, l->entire, l==llist[0]? FLMARGIN : 1, f->cols[BORD], ZP);
+		border(f->b, l->entire, l == llist[0] ? FLMARGIN : 1,
+		       f->cols[BORD], ZP);
 		n = f->nchars;
 		frinit(f, f->entire, f->font, f->b, 0);
-		f->maxtab = maxtab*stringwidth(f->font, "0");
+		f->maxtab = maxtab * stringwidth(f->font, "0");
 		if(f->maxtab == 0)
 			fontbuggered(f->font->name);
 		r = (*l->textfn)(l, n, &n);
-		frinsert(f, r, r+n, (uint32_t)0);
+		frinsert(f, r, r + n, (uint32_t)0);
 		frdrawsel(f, frptofchar(f, f->p0), f->p0, f->p1, 0);
 		flfp0p1(l, &f->p0, &f->p1);
 		frdrawsel(f, frptofchar(f, f->p0), f->p0, f->p1, 1);
@@ -445,55 +460,55 @@ flprepare(Flayer *l)
 	return 1;
 }
 
-static	int	somevis, someinvis, justvis;
+static int somevis, someinvis, justvis;
 
 Vis
-visibility(Flayer *l)
+visibility(Flayer* l)
 {
 	somevis = someinvis = 0;
 	justvis = 1;
 	flrefresh(l, l->entire, 0);
 	justvis = 0;
-	if(somevis==0)
+	if(somevis == 0)
 		return None;
-	if(someinvis==0)
+	if(someinvis == 0)
 		return All;
 	return Some;
 }
 
 void
-flrefresh(Flayer *l, Rectangle r, int i)
+flrefresh(Flayer* l, Rectangle r, int i)
 {
-	Flayer *t;
+	Flayer* t;
 	Rectangle s;
 
-    Top:
-	if((t=llist[i++]) == l){
+Top:
+	if((t = llist[i++]) == l) {
 		if(!justvis)
 			draw(screen, r, l->f.b, nil, r.min);
 		somevis = 1;
-	}else{
+	} else {
 		if(!rectXrect(t->entire, r))
-			goto Top;	/* avoid stacking unnecessarily */
-		if(t->entire.min.x>r.min.x){
+			goto Top; /* avoid stacking unnecessarily */
+		if(t->entire.min.x > r.min.x) {
 			s = r;
 			s.max.x = t->entire.min.x;
 			flrefresh(l, s, i);
 			r.min.x = t->entire.min.x;
 		}
-		if(t->entire.min.y>r.min.y){
+		if(t->entire.min.y > r.min.y) {
 			s = r;
 			s.max.y = t->entire.min.y;
 			flrefresh(l, s, i);
 			r.min.y = t->entire.min.y;
 		}
-		if(t->entire.max.x<r.max.x){
+		if(t->entire.max.x < r.max.x) {
 			s = r;
 			s.min.x = t->entire.max.x;
 			flrefresh(l, s, i);
 			r.max.x = t->entire.max.x;
 		}
-		if(t->entire.max.y<r.max.y){
+		if(t->entire.max.y < r.max.y) {
 			s = r;
 			s.min.y = t->entire.max.y;
 			flrefresh(l, s, i);

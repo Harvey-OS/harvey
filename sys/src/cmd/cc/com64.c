@@ -14,86 +14,77 @@
  * common on all of the 64-bit symulating machines.
  */
 
-#define	FNX	100	/* botch -- redefinition */
+#define FNX 100 /* botch -- redefinition */
 
-Node*	nodaddv;
-Node*	nodsubv;
-Node*	nodmulv;
-Node*	noddivv;
-Node*	noddivvu;
-Node*	nodmodv;
-Node*	nodmodvu;
-Node*	nodlshv;
-Node*	nodrshav;
-Node*	nodrshlv;
-Node*	nodandv;
-Node*	nodorv;
-Node*	nodxorv;
-Node*	nodnegv;
-Node*	nodcomv;
+Node* nodaddv;
+Node* nodsubv;
+Node* nodmulv;
+Node* noddivv;
+Node* noddivvu;
+Node* nodmodv;
+Node* nodmodvu;
+Node* nodlshv;
+Node* nodrshav;
+Node* nodrshlv;
+Node* nodandv;
+Node* nodorv;
+Node* nodxorv;
+Node* nodnegv;
+Node* nodcomv;
 
-Node*	nodtestv;
-Node*	nodeqv;
-Node*	nodnev;
-Node*	nodlev;
-Node*	nodltv;
-Node*	nodgev;
-Node*	nodgtv;
-Node*	nodhiv;
-Node*	nodhsv;
-Node*	nodlov;
-Node*	nodlsv;
+Node* nodtestv;
+Node* nodeqv;
+Node* nodnev;
+Node* nodlev;
+Node* nodltv;
+Node* nodgev;
+Node* nodgtv;
+Node* nodhiv;
+Node* nodhsv;
+Node* nodlov;
+Node* nodlsv;
 
-Node*	nodf2v;
-Node*	nodd2v;
-Node*	nodp2v;
-Node*	nodsi2v;
-Node*	nodui2v;
-Node*	nodsl2v;
-Node*	nodul2v;
-Node*	nodsh2v;
-Node*	noduh2v;
-Node*	nodsc2v;
-Node*	noduc2v;
+Node* nodf2v;
+Node* nodd2v;
+Node* nodp2v;
+Node* nodsi2v;
+Node* nodui2v;
+Node* nodsl2v;
+Node* nodul2v;
+Node* nodsh2v;
+Node* noduh2v;
+Node* nodsc2v;
+Node* noduc2v;
 
-Node*	nodv2f;
-Node*	nodv2d;
-Node*	nodv2ui;
-Node*	nodv2si;
-Node*	nodv2ul;
-Node*	nodv2sl;
-Node*	nodv2uh;
-Node*	nodv2sh;
-Node*	nodv2uc;
-Node*	nodv2sc;
+Node* nodv2f;
+Node* nodv2d;
+Node* nodv2ui;
+Node* nodv2si;
+Node* nodv2ul;
+Node* nodv2sl;
+Node* nodv2uh;
+Node* nodv2sh;
+Node* nodv2uc;
+Node* nodv2sc;
 
-Node*	nodvpp;
-Node*	nodppv;
-Node*	nodvmm;
-Node*	nodmmv;
+Node* nodvpp;
+Node* nodppv;
+Node* nodvmm;
+Node* nodmmv;
 
-Node*	nodvasop;
+Node* nodvasop;
 
-char	etconv[NTYPE];	/* for _vasop */
-Init	initetconv[] =
-{
-	TCHAR,		1,	0,
-	TUCHAR,		2,	0,
-	TSHORT,		3,	0,
-	TUSHORT,	4,	0,
-	TLONG,		5,	0,
-	TULONG,		6,	0,
-	TVLONG,		7,	0,
-	TUVLONG,	8,	0,
-	TINT,		9,	0,
-	TUINT,		10,	0,
-	-1,		0,	0,
+char etconv[NTYPE]; /* for _vasop */
+Init initetconv[] = {
+    TCHAR, 1, 0, TUCHAR, 2,  0, TSHORT, 3, 0, TUSHORT, 4, 0,
+    TLONG, 5, 0, TULONG, 6,  0, TVLONG, 7, 0, TUVLONG, 8, 0,
+    TINT,  9, 0, TUINT,  10, 0, -1,     0, 0,
 };
 
 Node*
-fvn(char *name, int type)
+fvn(char* name, int type)
 {
-	Node *n;
+	Node* n;
 
 	n = new(ONAME, Z, Z);
 	n->sym = slookup(name);
@@ -111,7 +102,7 @@ fvn(char *name, int type)
 void
 com64init(void)
 {
-	Init *p;
+	Init* p;
 
 	nodaddv = fvn("_addv", TVLONG);
 	nodsubv = fvn("_subv", TVLONG);
@@ -176,9 +167,9 @@ com64init(void)
 }
 
 int
-com64(Node *n)
+com64(Node* n)
 {
-	Node *l, *r, *a, *t;
+	Node* l, *r, *a, *t;
 	int lv, rv;
 
 	if(n->type == 0)
@@ -442,7 +433,8 @@ com64(Node *n)
 		case OASOR:
 		case OASXOR:
 			if(l->right && typev[l->right->etype]) {
-				diag(n, "sorry float <asop> vlong not implemented\n");
+				diag(n, "sorry float <asop> vlong not "
+				        "implemented\n");
 			}
 		}
 	}
@@ -482,7 +474,7 @@ com64(Node *n)
 			case TUCHAR:
 				a = nodv2uc;
 				goto setfnx;
-			case TIND:	// small pun here
+			case TIND: // small pun here
 				a = nodv2ul;
 				goto setfnx;
 			}
@@ -562,9 +554,9 @@ setasop:
 }
 
 void
-bool64(Node *n)
+bool64(Node* n)
 {
-	Node *n1;
+	Node* n1;
 
 	if(machcap(Z))
 		return;
@@ -591,7 +583,7 @@ convvtof(int64_t v)
 {
 	double d;
 
-	d = v;		/* BOTCH */
+	d = v; /* BOTCH */
 	return d;
 }
 
@@ -600,8 +592,7 @@ convftov(double d)
 {
 	int64_t v;
 
-
-	v = d;		/* BOTCH */
+	v = d; /* BOTCH */
 	return v;
 }
 

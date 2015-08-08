@@ -11,24 +11,20 @@
 #include <libc.h>
 #include <venti.h>
 
-enum {
-	IdealAlignment = 32,
-	ChunkSize 	= 128*1024
-};
-
+enum { IdealAlignment = 32, ChunkSize = 128 * 1024 };
 
 void
-vtfree(void *p)
+vtfree(void* p)
 {
 	if(p == 0)
 		return;
 	free(p);
 }
 
-void *
+void*
 vtmalloc(int size)
 {
-	void *p;
+	void* p;
 
 	p = malloc(size);
 	if(p == 0)
@@ -37,17 +33,17 @@ vtmalloc(int size)
 	return p;
 }
 
-void *
+void*
 vtmallocz(int size)
 {
-	void *p = vtmalloc(size);
+	void* p = vtmalloc(size);
 	memset(p, 0, size);
 	setmalloctag(p, getcallerpc(&size));
 	return p;
 }
 
-void *
-vtrealloc(void *p, int size)
+void*
+vtrealloc(void* p, int size)
 {
 	if(p == nil)
 		return vtmalloc(size);
@@ -58,33 +54,33 @@ vtrealloc(void *p, int size)
 	return p;
 }
 
-void *
+void*
 vtbrk(int n)
 {
 	static Lock lk;
-	static uint8_t *buf;
+	static uint8_t* buf;
 	static int nbuf, nchunk;
 	int align, pad;
-	void *p;
+	void* p;
 
 	if(n >= IdealAlignment)
 		align = IdealAlignment;
 	else if(n > 8)
 		align = 8;
-	else	
+	else
 		align = 4;
 
 	lock(&lk);
-	pad = (align - (uintptr)buf) & (align-1);
+	pad = (align - (uintptr)buf) & (align - 1);
 	if(n + pad > nbuf) {
 		buf = vtmallocz(ChunkSize);
 		nbuf = ChunkSize;
-		pad = (align - (uintptr)buf) & (align-1);
+		pad = (align - (uintptr)buf) & (align - 1);
 		nchunk++;
 	}
 
-	assert(n + pad <= nbuf);	
-	
+	assert(n + pad <= nbuf);
+
 	p = buf + pad;
 	buf += pad + n;
 	nbuf -= pad + n;
@@ -92,4 +88,3 @@ vtbrk(int n)
 
 	return p;
 }
-

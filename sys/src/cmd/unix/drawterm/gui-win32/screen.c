@@ -8,7 +8,7 @@
  */
 
 #define _WIN32_WINNT 0x0500
-#include	<windows.h>
+#include <windows.h>
 
 #undef Rectangle
 #define Rectangle _Rectangle
@@ -24,32 +24,33 @@
 #include "screen.h"
 #include "keyboard.h"
 
-Memimage	*gscreen;
-Screeninfo	screen;
+Memimage* gscreen;
+Screeninfo screen;
 
 extern int mousequeue;
 static int depth;
 
-static	HINSTANCE	inst;
-static	HWND		window;
-static	HPALETTE	palette;
-static	LOGPALETTE	*logpal;
-static  Lock		gdilock;
-static 	BITMAPINFO	*bmi;
-static	HCURSOR		hcursor;
+static HINSTANCE inst;
+static HWND window;
+static HPALETTE palette;
+static LOGPALETTE* logpal;
+static Lock gdilock;
+static BITMAPINFO* bmi;
+static HCURSOR hcursor;
 
-static void	winproc(void *);
-static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-static void	paletteinit(void);
-static void	bmiinit(void);
+static void winproc(void*);
+static LRESULT CALLBACK
+WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+static void paletteinit(void);
+static void bmiinit(void);
 
 static int readybit;
-static Rendez	rend;
+static Rendez rend;
 
-Point	ZP;
+Point ZP;
 
 static int
-isready(void*a)
+isready(void* a)
 {
 	return readybit;
 }
@@ -63,7 +64,7 @@ screeninit(void)
 	memimageinit();
 	if(depth == 0)
 		depth = GetDeviceCaps(GetDC(NULL), BITSPIXEL);
-	switch(depth){
+	switch(depth) {
 	case 32:
 		screen.dibtype = DIB_RGB_COLORS;
 		screen.depth = 32;
@@ -77,7 +78,7 @@ screeninit(void)
 	case 16:
 		screen.dibtype = DIB_RGB_COLORS;
 		screen.depth = 16;
-		fmt = RGB15;	/* [sic] */
+		fmt = RGB15; /* [sic] */
 		break;
 	case 8:
 	default:
@@ -90,14 +91,14 @@ screeninit(void)
 	dx = GetDeviceCaps(GetDC(NULL), HORZRES);
 	dy = GetDeviceCaps(GetDC(NULL), VERTRES);
 
-	gscreen = allocmemimage(Rect(0,0,dx,dy), fmt);
+	gscreen = allocmemimage(Rect(0, 0, dx, dy), fmt);
 	kproc("winscreen", winproc, 0);
 	ksleep(&rend, isready, 0);
 }
 
 uint8_t*
-attachscreen(Rectangle *r, uint32_t *chan, int *depth, int *width,
-	     int *softscreen, void **X)
+attachscreen(Rectangle* r, uint32_t* chan, int* depth, int* width,
+             int* softscreen, void** X)
 {
 	*r = gscreen->r;
 	*chan = gscreen->chan;
@@ -112,12 +113,12 @@ void
 flushmemscreen(Rectangle r)
 {
 	screenload(r, gscreen->depth, byteaddr(gscreen, ZP), ZP,
-		gscreen->width*sizeof(uint32_t));
-//	Sleep(100);
+	           gscreen->width * sizeof(uint32_t));
+	//	Sleep(100);
 }
 
 void
-screenload(Rectangle r, int depth, uint8_t *p, Point pt, int step)
+screenload(Rectangle r, int depth, uint8_t* p, Point pt, int step)
 {
 	int dx, dy, delx;
 	HDC hdc;
@@ -134,7 +135,8 @@ screenload(Rectangle r, int depth, uint8_t *p, Point pt, int step)
 	if(rectclip(&r, gscreen->r) == 0)
 		return;
 
-	if((step&3) != 0 || ((pt.x*depth)%32) != 0 || ((uint32_t)p&3) != 0)
+	if((step & 3) != 0 || ((pt.x * depth) % 32) != 0 ||
+	   ((uint32_t)p & 3) != 0)
 		panic("screenload: bad params %d %d %ux", step, pt.x, p);
 	dx = r.max.x - r.min.x;
 	dy = r.max.y - r.min.y;
@@ -145,41 +147,42 @@ screenload(Rectangle r, int depth, uint8_t *p, Point pt, int step)
 	if(depth == 24)
 		delx = r.min.x % 4;
 	else
-		delx = r.min.x & (31/depth);
+		delx = r.min.x & (31 / depth);
 
-	p += (r.min.y-pt.y)*step;
-	p += ((r.min.x-delx-pt.x)*depth)>>3;
+	p += (r.min.y - pt.y) * step;
+	p += ((r.min.x - delx - pt.x) * depth) >> 3;
 
-	if(GetWindowRect(window, &winr)==0)
+	if(GetWindowRect(window, &winr) == 0)
 		return;
-	if(rectclip(&r, Rect(0, 0, winr.right-winr.left, winr.bottom-winr.top))==0)
+	if(rectclip(&r, Rect(0, 0, winr.right - winr.left,
+	                     winr.bottom - winr.top)) == 0)
 		return;
-	
+
 	lock(&gdilock);
 
 	hdc = GetDC(window);
 	SelectPalette(hdc, palette, 0);
 	RealizePalette(hdc);
 
-//FillRect(hdc,(void*)&r, GetStockObject(BLACK_BRUSH));
-//GdiFlush();
-//Sleep(100);
+	// FillRect(hdc,(void*)&r, GetStockObject(BLACK_BRUSH));
+	// GdiFlush();
+	// Sleep(100);
 
-	bmi->bmiHeader.biWidth = (step*8)/depth;
-	bmi->bmiHeader.biHeight = -dy;	/* - => origin upper left */
+	bmi->bmiHeader.biWidth = (step * 8) / depth;
+	bmi->bmiHeader.biHeight = -dy; /* - => origin upper left */
 
-	StretchDIBits(hdc, r.min.x, r.min.y, dx, dy,
-		delx, 0, dx, dy, p, bmi, screen.dibtype, SRCCOPY);
+	StretchDIBits(hdc, r.min.x, r.min.y, dx, dy, delx, 0, dx, dy, p, bmi,
+	              screen.dibtype, SRCCOPY);
 
 	ReleaseDC(window, hdc);
 
 	GdiFlush();
- 
+
 	unlock(&gdilock);
 }
 
 static void
-winproc(void *a)
+winproc(void* a)
 {
 	WNDCLASS wc;
 	MSG msg;
@@ -203,19 +206,19 @@ winproc(void *a)
 	RegisterClass(&wc);
 
 	window = CreateWindowEx(
-		0,			/* extended style */
-		L"9pmgraphics",		/* class */
-		L"drawterm screen",		/* caption */
-		WS_OVERLAPPEDWINDOW,    /* style */
-		CW_USEDEFAULT,		/* init. x pos */
-		CW_USEDEFAULT,		/* init. y pos */
-		CW_USEDEFAULT,		/* init. x size */
-		CW_USEDEFAULT,		/* init. y size */
-		NULL,			/* parent window (actually owner window for overlapped)*/
-		NULL,			/* menu handle */
-		inst,			/* program handle */
-		NULL			/* create parms */
-		);
+	    0,                   /* extended style */
+	    L"9pmgraphics",      /* class */
+	    L"drawterm screen",  /* caption */
+	    WS_OVERLAPPEDWINDOW, /* style */
+	    CW_USEDEFAULT,       /* init. x pos */
+	    CW_USEDEFAULT,       /* init. y pos */
+	    CW_USEDEFAULT,       /* init. x size */
+	    CW_USEDEFAULT,       /* init. y size */
+	    NULL, /* parent window (actually owner window for overlapped)*/
+	    NULL, /* menu handle */
+	    inst, /* program handle */
+	    NULL  /* create parms */
+	    );
 
 	if(window == nil)
 		panic("can't make window\n");
@@ -232,7 +235,7 @@ winproc(void *a)
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-//	MessageBox(0, "winproc", "exits", MB_OK);
+	//	MessageBox(0, "winproc", "exits", MB_OK);
 	ExitProcess(0);
 }
 
@@ -243,48 +246,47 @@ col(int v, int n)
 
 	c = 0;
 	for(i = 0; i < 8; i += n)
-		c |= v << (16-(n+i));
+		c |= v << (16 - (n + i));
 	return c >> 8;
 }
-
 
 void
 paletteinit(void)
 {
-	PALETTEENTRY *pal;
+	PALETTEENTRY* pal;
 	int r, g, b, cr, cg, cb, v;
 	int num, den;
 	int i, j;
 
-	logpal = mallocz(sizeof(LOGPALETTE) + 256*sizeof(PALETTEENTRY), 1);
+	logpal = mallocz(sizeof(LOGPALETTE) + 256 * sizeof(PALETTEENTRY), 1);
 	if(logpal == nil)
 		panic("out of memory");
 	logpal->palVersion = 0x300;
 	logpal->palNumEntries = 256;
 	pal = logpal->palPalEntry;
 
-	for(r=0,i=0; r<4; r++) {
-		for(v=0; v<4; v++,i+=16){
-			for(g=0,j=v-r; g<4; g++) {
-				for(b=0; b<4; b++,j++){
-					den=r;
-					if(g>den)
-						den=g;
-					if(b>den)
-						den=b;
+	for(r = 0, i = 0; r < 4; r++) {
+		for(v = 0; v < 4; v++, i += 16) {
+			for(g = 0, j = v - r; g < 4; g++) {
+				for(b = 0; b < 4; b++, j++) {
+					den = r;
+					if(g > den)
+						den = g;
+					if(b > den)
+						den = b;
 					/* divide check -- pick grey shades */
-					if(den==0)
-						cr=cg=cb=v*17;
-					else{
-						num=17*(4*den+v);
-						cr=r*num/den;
-						cg=g*num/den;
-						cb=b*num/den;
+					if(den == 0)
+						cr = cg = cb = v * 17;
+					else {
+						num = 17 * (4 * den + v);
+						cr = r * num / den;
+						cg = g * num / den;
+						cb = b * num / den;
 					}
-					pal[i+(j&15)].peRed = cr;
-					pal[i+(j&15)].peGreen = cg;
-					pal[i+(j&15)].peBlue = cb;
-					pal[i+(j&15)].peFlags = 0;
+					pal[i + (j & 15)].peRed = cr;
+					pal[i + (j & 15)].peGreen = cg;
+					pal[i + (j & 15)].peBlue = cb;
+					pal[i + (j & 15)].peFlags = 0;
 				}
 			}
 		}
@@ -292,11 +294,10 @@ paletteinit(void)
 	palette = CreatePalette(logpal);
 }
 
-
 void
-getcolor(uint32_t i, uint32_t *r, uint32_t *g, uint32_t *b)
+getcolor(uint32_t i, uint32_t* r, uint32_t* g, uint32_t* b)
 {
-	PALETTEENTRY *pal;
+	PALETTEENTRY* pal;
 
 	pal = logpal->palPalEntry;
 	*r = pal[i].peRed;
@@ -307,15 +308,15 @@ getcolor(uint32_t i, uint32_t *r, uint32_t *g, uint32_t *b)
 void
 bmiinit(void)
 {
-	uint16_t *p;
+	uint16_t* p;
 	int i;
 
-	bmi = mallocz(sizeof(BITMAPINFOHEADER) + 256*sizeof(RGBQUAD), 1);
+	bmi = mallocz(sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD), 1);
 	if(bmi == 0)
 		panic("out of memory");
 	bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmi->bmiHeader.biWidth = 0;
-	bmi->bmiHeader.biHeight = 0;	/* - => origin upper left */
+	bmi->bmiHeader.biHeight = 0; /* - => origin upper left */
 	bmi->bmiHeader.biPlanes = 1;
 	bmi->bmiHeader.biBitCount = depth;
 	bmi->bmiHeader.biCompression = BI_RGB;
@@ -323,7 +324,8 @@ bmiinit(void)
 	bmi->bmiHeader.biXPelsPerMeter = 0;
 	bmi->bmiHeader.biYPelsPerMeter = 0;
 	bmi->bmiHeader.biClrUsed = 0;
-	bmi->bmiHeader.biClrImportant = 0;	/* number of important colors: 0 means all */
+	bmi->bmiHeader.biClrImportant =
+	    0; /* number of important colors: 0 means all */
 
 	p = (uint16_t*)bmi->bmiColors;
 	for(i = 0; i < 256; i++)
@@ -350,10 +352,10 @@ WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 	case WM_MOUSEWHEEL:
-		if ((int)(wparam & 0xFFFF0000)>0)
-			b|=8;
+		if((int)(wparam & 0xFFFF0000) > 0)
+			b |= 8;
 		else
-			b|=16;
+			b |= 16;
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
@@ -378,15 +380,15 @@ WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		i = mouse.wi;
 		if(mousequeue) {
 			if(i == mouse.ri || mouse.lastb != b || mouse.trans) {
-				mouse.wi = (i+1)%Mousequeue;
+				mouse.wi = (i + 1) % Mousequeue;
 				if(mouse.wi == mouse.ri)
-					mouse.ri = (mouse.ri+1)%Mousequeue;
+					mouse.ri = (mouse.ri + 1) % Mousequeue;
 				mouse.trans = mouse.lastb != b;
 			} else {
-				i = (i-1+Mousequeue)%Mousequeue;
+				i = (i - 1 + Mousequeue) % Mousequeue;
 			}
 		} else {
-			mouse.wi = (i+1)%Mousequeue;
+			mouse.wi = (i + 1) % Mousequeue;
 			mouse.ri = i;
 		}
 		mouse.queue[i].xy.x = x;
@@ -400,7 +402,7 @@ WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 	case WM_CHAR:
 		/* repeat count is lparam & 0xf */
-		switch(wparam){
+		switch(wparam) {
 		case '\n':
 			wparam = '\r';
 			break;
@@ -423,8 +425,8 @@ WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			kbdputc(kbdq, Kins);
 			break;
 		case VK_DELETE:
-//			kbdputc(kbdq, Kdel);
-			kbdputc(kbdq, 0x7f);	// should have Kdel in keyboard.h
+			//			kbdputc(kbdq, Kdel);
+			kbdputc(kbdq, 0x7f); // should have Kdel in keyboard.h
 			break;
 		case VK_UP:
 			kbdputc(kbdq, Kup);
@@ -497,28 +499,27 @@ setcursor(void)
 {
 	HCURSOR nh;
 	int x, y, h, w;
-	uint8_t *sp, *cp;
-	uint8_t *and, *xor;
+	uint8_t* sp, *cp;
+	uint8_t*and, * xor ;
 
 	h = GetSystemMetrics(SM_CYCURSOR);
-	w = (GetSystemMetrics(SM_CXCURSOR)+7)/8;
+	w = (GetSystemMetrics(SM_CXCURSOR) + 7) / 8;
 
-	and = mallocz(h*w, 1);
-	memset(and, 0xff, h*w);
-	xor = mallocz(h*w, 1);
-	
+	and = mallocz(h * w, 1);
+	memset(and, 0xff, h * w);
+	xor = mallocz(h* w, 1);
+
 	lock(&cursor.lk);
-	for(y=0,sp=cursor.set,cp=cursor.clr; y<16; y++) {
-		for(x=0; x<2; x++) {
-			and[y*w+x] = ~(*sp|*cp);
-			xor[y*w+x] = ~*sp & *cp;
+	for(y = 0, sp = cursor.set, cp = cursor.clr; y < 16; y++) {
+		for(x = 0; x < 2; x++) {
+			and[y * w + x] = ~(*sp | *cp);
+			xor[y * w + x] = ~*sp&* cp;
 			cp++;
 			sp++;
 		}
 	}
 	nh = CreateCursor(inst, -cursor.offset.x, -cursor.offset.y,
-			GetSystemMetrics(SM_CXCURSOR), h,
-			and, xor);
+	                  GetSystemMetrics(SM_CXCURSOR), h, and, xor);
 	if(nh != NULL) {
 		SetCursor(nh);
 		if(hcursor != NULL)
@@ -528,7 +529,7 @@ setcursor(void)
 	unlock(&cursor.lk);
 
 	free(and);
-	free(xor);
+	free (xor);
 
 	PostMessage(window, WM_SETCURSOR, (int)window, 0);
 }
@@ -544,22 +545,20 @@ cursorarrow(void)
 	PostMessage(window, WM_SETCURSOR, (int)window, 0);
 }
 
-
 void
 setcolor(uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
 {
 }
 
-
 uint8_t*
 clipreadunicode(HANDLE h)
 {
-	Rune *p;
+	Rune* p;
 	int n;
-	uint8_t *q;
-	
+	uint8_t* q;
+
 	p = GlobalLock(h);
-	n = wstrutflen(p)+1;
+	n = wstrutflen(p) + 1;
 	q = malloc(n);
 	wstrtoutf(q, p, n);
 	GlobalUnlock(h);
@@ -567,15 +566,15 @@ clipreadunicode(HANDLE h)
 	return q;
 }
 
-uint8_t *
+uint8_t*
 clipreadutf(HANDLE h)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = GlobalLock(h);
 	p = strdup(p);
 	GlobalUnlock(h);
-	
+
 	return p;
 }
 
@@ -583,7 +582,7 @@ char*
 clipread(void)
 {
 	HANDLE h;
-	uint8_t *p;
+	uint8_t* p;
 
 	if(!OpenClipboard(window)) {
 		oserror();
@@ -598,17 +597,17 @@ clipread(void)
 		oserror();
 		p = strdup("");
 	}
-	
+
 	CloseClipboard();
 	return p;
 }
 
 int
-clipwrite(char *buf)
+clipwrite(char* buf)
 {
 	HANDLE h;
-	char *p, *e;
-	Rune *rp;
+	char* p, *e;
+	Rune* rp;
 	int n = strlen(buf);
 
 	if(!OpenClipboard(window)) {
@@ -622,27 +621,27 @@ clipwrite(char *buf)
 		return -1;
 	}
 
-	h = GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE, (n+1)*sizeof(Rune));
+	h = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (n + 1) * sizeof(Rune));
 	if(h == NULL)
 		panic("out of memory");
 	rp = GlobalLock(h);
 	p = buf;
-	e = p+n;
-	while(p<e)
+	e = p + n;
+	while(p < e)
 		p += chartorune(rp++, p);
 	*rp = 0;
 	GlobalUnlock(h);
 
 	SetClipboardData(CF_UNICODETEXT, h);
 
-	h = GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE, n+1);
+	h = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, n + 1);
 	if(h == NULL)
 		panic("out of memory");
 	p = GlobalLock(h);
 	memcpy(p, buf, n);
 	p[n] = 0;
 	GlobalUnlock(h);
-	
+
 	SetClipboardData(CF_TEXT, h);
 
 	CloseClipboard();

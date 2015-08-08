@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,9 +27,9 @@
 /* Entry points to the TIFF/fax writing driver */
 
 #ifndef gdevtfax_INCLUDED
-#  define gdevtfax_INCLUDED
+#define gdevtfax_INCLUDED
 
-int gdev_fax_print_page_stripped(gx_device_printer *pdev, FILE *prn_stream,
-				 stream_CFE_state *ss, long rows_per_strip);
+int gdev_fax_print_page_stripped(gx_device_printer* pdev, FILE* prn_stream,
+                                 stream_CFE_state* ss, long rows_per_strip);
 
 #endif /* gdevtfax_INCLUDED */

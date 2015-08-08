@@ -12,12 +12,12 @@
 #include <libc.h>
 #include "cec.h"
 
-int	fd = -1;
-int	cfd = -1;
-int	efd = -1;
+int fd = -1;
+int cfd = -1;
+int efd = -1;
 
 int
-netopen0(char *e)
+netopen0(char* e)
 {
 	char buf[128], ctl[13];
 	int n;
@@ -55,7 +55,7 @@ netclose(void)
 }
 
 int
-netopen(char *e)
+netopen(char* e)
 {
 	int r;
 
@@ -68,31 +68,31 @@ netopen(char *e)
 
 /* what if len < netlen? */
 int
-netget(void *v, int len)
+netget(void* v, int len)
 {
 	int l;
 
 	l = read(fd, v, len);
-	if(debug && l > 0){
+	if(debug && l > 0) {
 		fprint(2, "read %d bytes\n", l);
 		dump((uint8_t*)v, l);
 	}
-	if (l <= 0)
+	if(l <= 0)
 		return 0;
 	return l;
 }
 
 int
-netsend(void *v, int len)
+netsend(void* v, int len)
 {
-	uint8_t *p;
+	uint8_t* p;
 
 	p = v;
-	if (debug) {
+	if(debug) {
 		fprint(2, "sending %d bytes\n", len);
 		dump(p, len);
 	}
-	if (len < 60)
-		len = 60;	/* mintu */
+	if(len < 60)
+		len = 60; /* mintu */
 	return write(fd, p, len);
 }

@@ -14,12 +14,12 @@
 #define STRLEN 128
 
 extern void
-s_free(String *sp)
+s_free(String* sp)
 {
-	if (sp == nil)
+	if(sp == nil)
 		return;
 	lock(sp);
-	if(--(sp->ref) != 0){
+	if(--(sp->ref) != 0) {
 		unlock(sp);
 		return;
 	}
@@ -31,8 +31,8 @@ s_free(String *sp)
 }
 
 /* get another reference to a string */
-extern String *
-s_incref(String *sp)
+extern String*
+s_incref(String* sp)
 {
 	lock(sp);
 	sp->ref++;
@@ -42,10 +42,10 @@ s_incref(String *sp)
 }
 
 /* allocate a String head */
-extern String *
+extern String*
 _s_alloc(void)
 {
-	String *s;
+	String* s;
 
 	s = mallocz(sizeof *s, 1);
 	if(s == nil)
@@ -56,10 +56,10 @@ _s_alloc(void)
 }
 
 /* create a new `short' String */
-extern String *
+extern String*
 s_newalloc(int len)
 {
-	String *sp;
+	String* sp;
 
 	sp = _s_alloc();
 	if(sp == nil)
@@ -68,7 +68,7 @@ s_newalloc(int len)
 	if(len < STRLEN)
 		len = STRLEN;
 	sp->base = sp->ptr = malloc(len);
-	if (sp->base == nil)
+	if(sp->base == nil)
 		sysfatal("s_newalloc: %r");
 	setmalloctag(sp->base, getcallerpc(&len));
 
@@ -78,16 +78,16 @@ s_newalloc(int len)
 }
 
 /* create a new `short' String */
-extern String *
+extern String*
 s_new(void)
 {
-	String *sp;
+	String* sp;
 
 	sp = _s_alloc();
 	if(sp == nil)
 		sysfatal("s_new: %r");
 	sp->base = sp->ptr = malloc(STRLEN);
-	if (sp->base == nil)
+	if(sp->base == nil)
 		sysfatal("s_new: %r");
 	sp->end = sp->base + STRLEN;
 	s_terminate(sp);

@@ -12,7 +12,7 @@
 #include <u9fs.h>
 
 static char*
-noneauth(Fcall *rx, Fcall *tx)
+noneauth(Fcall* rx, Fcall* tx)
 {
 	USED(rx);
 	USED(tx);
@@ -20,7 +20,7 @@ noneauth(Fcall *rx, Fcall *tx)
 }
 
 static char*
-noneattach(Fcall *rx, Fcall *tx)
+noneattach(Fcall* rx, Fcall* tx)
 {
 	USED(rx);
 	USED(tx);
@@ -28,7 +28,5 @@ noneattach(Fcall *rx, Fcall *tx)
 }
 
 Auth authnone = {
-	"none",
-	noneauth,
-	noneattach,
+    "none", noneauth, noneattach,
 };

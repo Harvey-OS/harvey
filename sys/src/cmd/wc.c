@@ -19,10 +19,10 @@ static int pline, pword, prune, pbadr, pchar;
 static uint64_t nline, nword, nrune, nbadr, nchar;
 static uint64_t tnline, tnword, tnrune, tnbadr, tnchar;
 
-enum{Space, Word};
+enum { Space, Word };
 
 static void
-wc(Biobuf *bin)
+wc(Biobuf* bin)
 {
 	int where;
 	int32_t r;
@@ -32,7 +32,7 @@ wc(Biobuf *bin)
 	nrune = 0;
 	nbadr = 0;
 	where = Space;
-	while ((int32_t)(r = Bgetrune(bin)) >= 0) {
+	while((int32_t)(r = Bgetrune(bin)) >= 0) {
 		nrune++;
 		if(r == Runeerror) {
 			nbadr++;
@@ -40,14 +40,13 @@ wc(Biobuf *bin)
 		}
 		if(r == '\n')
 			nline++;
-		if(where == Word){
+		if(where == Word) {
 			if(isspacerune(r))
 				where = Space;
-		}else
-			if(isspacerune(r) == 0){
-				where = Word;
-				nword++;
-			}
+		} else if(isspacerune(r) == 0) {
+			where = Word;
+			nword++;
+		}
 	}
 	nchar = Boffset(bin);
 	tnline += nline;
@@ -59,7 +58,7 @@ wc(Biobuf *bin)
 
 static void
 report(uint64_t nline, uint64_t nword, uint64_t nrune, uint64_t nbadr,
-       uint64_t nchar, char *fname)
+       uint64_t nchar, char* fname)
 {
 	char line[1024], *s, *e;
 
@@ -77,42 +76,54 @@ report(uint64_t nline, uint64_t nword, uint64_t nrune, uint64_t nbadr,
 	if(pchar)
 		s = seprint(s, e, " %7llud", nchar);
 	if(fname != nil)
-		seprint(s, e, " %s",   fname);
-	print("%s\n", line+1);
+		seprint(s, e, " %s", fname);
+	print("%s\n", line + 1);
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
-	char *sts;
+	char* sts;
 	Biobuf sin, *bin;
 	int i;
 
 	sts = nil;
-	ARGBEGIN {
-	case 'l': pline++; break;
-	case 'w': pword++; break;
-	case 'r': prune++; break;
-	case 'b': pbadr++; break;
-	case 'c': pchar++; break;
+	ARGBEGIN
+	{
+	case 'l':
+		pline++;
+		break;
+	case 'w':
+		pword++;
+		break;
+	case 'r':
+		prune++;
+		break;
+	case 'b':
+		pbadr++;
+		break;
+	case 'c':
+		pchar++;
+		break;
 	default:
 		fprint(2, "Usage: %s [-lwrbc] [file ...]\n", argv0);
 		exits("usage");
-	} ARGEND
-	if(pline+pword+prune+pbadr+pchar == 0){
+	}
+	ARGEND
+	if(pline + pword + prune + pbadr + pchar == 0) {
 		pline = 1;
 		pword = 1;
 		pchar = 1;
 	}
-	if(argc == 0){
+	if(argc == 0) {
 		Binit(&sin, 0, OREAD);
 		wc(&sin);
 		report(nline, nword, nrune, nbadr, nchar, nil);
 		Bterm(&sin);
-	}else{
-		for(i = 0; i < argc; i++){
+	} else {
+		for(i = 0; i < argc; i++) {
 			bin = Bopen(argv[i], OREAD);
-			if(bin == nil){
+			if(bin == nil) {
 				perror(argv[i]);
 				sts = "can't open";
 				continue;
@@ -121,7 +132,7 @@ main(int argc, char *argv[])
 			report(nline, nword, nrune, nbadr, nchar, argv[i]);
 			Bterm(bin);
 		}
-		if(argc>1)
+		if(argc > 1)
 			report(tnline, tnword, tnrune, tnbadr, tnchar, "total");
 	}
 	exits(sts);

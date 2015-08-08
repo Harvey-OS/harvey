@@ -12,11 +12,11 @@
 typedef unsigned char uchar;
 
 int
-strncasecmp(char *s1, char *s2, int n)
+strncasecmp(char* s1, char* s2, int n)
 {
 	int c1, c2;
 
-	while(*s1 && n-- > 0){
+	while(*s1 && n-- > 0) {
 		c1 = *(uint8_t*)s1++;
 		c2 = *(uint8_t*)s2++;
 

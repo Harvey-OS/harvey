@@ -21,21 +21,23 @@ usage(void)
 Config conf;
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	u32int bcmem;
 	int fix;
 
 	fix = 0;
 	bcmem = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'B':
 		bcmem = unittoull(ARGF());
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(!fix)
 		readonly = 1;

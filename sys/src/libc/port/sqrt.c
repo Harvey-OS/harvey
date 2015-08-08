@@ -8,10 +8,10 @@
  */
 
 /*
-	sqrt returns the square root of its floating
-	point argument. Newton's method.
+        sqrt returns the square root of its floating
+        point argument. Newton's method.
 
-	calls frexp
+        calls frexp
 */
 
 #include <u.h>
@@ -43,21 +43,21 @@ sqrt(double arg)
 		x *= 2;
 		exp--;
 	}
-	temp = 0.5 * (1.0+x);
+	temp = 0.5 * (1.0 + x);
 
 	while(exp > 60) {
-		temp *= (1L<<30);
+		temp *= (1L << 30);
 		exp -= 60;
 	}
 	while(exp < -60) {
-		temp /= (1L<<30);
+		temp /= (1L << 30);
 		exp += 60;
 	}
 	if(exp >= 0)
-		temp *= 1L << (exp/2);
+		temp *= 1L << (exp / 2);
 	else
-		temp /= 1L << (-exp/2);
-	for(i=0; i<=4; i++)
-		temp = 0.5*(temp + arg/temp);
+		temp /= 1L << (-exp / 2);
+	for(i = 0; i <= 4; i++)
+		temp = 0.5 * (temp + arg / temp);
 	return temp;
 }

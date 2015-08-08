@@ -11,9 +11,8 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	print("hi\n");
 	exits(0);
 }
-

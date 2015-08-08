@@ -14,24 +14,24 @@
 
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcheramd64(void (*f)(void *arg), void *arg)
+launcheramd64(void (*f)(void* arg), void* arg)
 {
 	(*f)(arg);
 	threadexits(nil);
 }
 
 void
-_threadinitstack(Thread *t, void (*f)(void*), void *arg)
+_threadinitstack(Thread* t, void (*f)(void*), void* arg)
 {
-	uint64_t *tos;
+	uint64_t* tos;
 
-	tos = (uint64_t*)&t->stk[t->stksize&~7];
+	tos = (uint64_t*)&t->stk[t->stksize & ~7];
 	*--tos = (uint64_t)arg;
 	*--tos = (uint64_t)f;
-	t->sched[JMPBUFPC] = (uint64_t)launcheramd64+JMPBUFDPC;
-	//t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
-	t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
-	t->sched[JMPBUFARG1] = (uint64_t)f;		/* old PC and new PC */
-	t->sched[JMPBUFARG2] = (uint64_t)arg;		/* old PC and new PC */
+	t->sched[JMPBUFPC] = (uint64_t)launcheramd64 + JMPBUFDPC;
+	// t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new
+	// PC */
+	t->sched[JMPBUFSP] = (uint64_t)tos - 2 * 8; /* old PC and new PC */
+	t->sched[JMPBUFARG1] = (uint64_t)f;         /* old PC and new PC */
+	t->sched[JMPBUFARG2] = (uint64_t)arg;       /* old PC and new PC */
 }
-

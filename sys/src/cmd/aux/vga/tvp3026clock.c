@@ -14,7 +14,7 @@
 #include "pci.h"
 #include "vga.h"
 
-#define SCALE(f)	((f)/10)		/* could be /10 */
+#define SCALE(f) ((f) / 10) /* could be /10 */
 
 static void
 init(Vga* vga, Ctlr* ctlr)
@@ -29,10 +29,9 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vga->f[0] == 0)
 		vga->f[0] = vga->mode->frequency;
 	vga->misc &= ~0x0C;
-	if(vga->f[0] == VgaFreq0){
+	if(vga->f[0] == VgaFreq0) {
 		/* nothing to do */;
-	}
-	else if(vga->f[0] == VgaFreq1)
+	} else if(vga->f[0] == VgaFreq1)
 		vga->misc |= 0x04;
 	else
 		vga->misc |= 0x0C;
@@ -55,16 +54,16 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->m[0] = 0x15;
 	vga->n[0] = 0x18;
 	vga->p[0] = 3;
-	for(m = 62; m > 0; m--){
-		for(n = 62; n >= 40; n--){
-			fvco = 8*SCALE(RefFreq)*(65-m)/(65-n);
+	for(m = 62; m > 0; m--) {
+		for(n = 62; n >= 40; n--) {
+			fvco = 8 * SCALE(RefFreq) * (65 - m) / (65 - n);
 			if(fvco < SCALE(110000000) || fvco > SCALE(250000000))
 				continue;
-			for(p = 0; p < 4; p++){
-				f = SCALE(vga->f[0]) - (fvco>>p);
+			for(p = 0; p < 4; p++) {
+				f = SCALE(vga->f[0]) - (fvco >> p);
 				if(f < 0)
 					f = -f;
-				if(f < fmin){
+				if(f < fmin) {
 					fmin = f;
 					vga->m[0] = m;
 					vga->n[0] = n;
@@ -82,23 +81,22 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	vga->m[1] = 61;
 	if(ctlr->flag & Uenhanced)
-		k = 64/8;
+		k = 64 / 8;
 	else
-		k = 8/8;
-	n = 65 - 4*k;
-	fvco = (8*RefFreq*(65-vga->m[0]))/(65-vga->n[0]);
+		k = 8 / 8;
+	n = 65 - 4 * k;
+	fvco = (8 * RefFreq * (65 - vga->m[0])) / (65 - vga->n[0]);
 	vga->f[1] = fvco;
-	z = 110.0*(65-n)/(4*(fvco/1000000.0)*k);
-	if(z <= 16){
-		for(p = 0; p < 4; p++){
-			if(1<<(p+1) > z)
+	z = 110.0 * (65 - n) / (4 * (fvco / 1000000.0) * k);
+	if(z <= 16) {
+		for(p = 0; p < 4; p++) {
+			if(1 << (p + 1) > z)
 				break;
 		}
 		q = 0;
-	}
-	else{
+	} else {
 		p = 3;
-		q = (z - 16)/16 + 1;
+		q = (z - 16) / 16 + 1;
 	}
 	vga->n[1] = n;
 	vga->p[1] = p;
@@ -108,10 +106,10 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr tvp3026clock = {
-	"tvp3026clock",			/* name */
-	0,				/* snarf */
-	0,				/* options */
-	init,				/* init */
-	0,				/* load */
-	0,				/* dump */
+    "tvp3026clock", /* name */
+    0,              /* snarf */
+    0,              /* options */
+    init,           /* init */
+    0,              /* load */
+    0,              /* dump */
 };

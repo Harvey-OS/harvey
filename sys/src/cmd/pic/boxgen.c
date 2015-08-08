@@ -7,27 +7,28 @@
  * in the LICENSE file.
  */
 
-#include	<stdio.h>
-#include	"pic.h"
-#include	"y.tab.h"
+#include <stdio.h>
+#include "pic.h"
+#include "y.tab.h"
 
-obj *boxgen(void)
+obj*
+boxgen(void)
 {
 	static double prevh = HT;
-	static double prevw = WID;	/* golden mean, sort of */
+	static double prevw = WID; /* golden mean, sort of */
 	int i, at, battr, with;
 	double ddval, fillval, xwith, ywith;
 	double h, w, x0, y0, x1, y1;
-	obj *p, *ppos;
-	Attr *ap;
+	obj* p, *ppos;
+	Attr* ap;
 
 	h = getfval("boxht");
 	w = getfval("boxwid");
 	at = battr = with = 0;
 	ddval = fillval = xwith = ywith = 0;
-	for (i = 0; i < nattr; i++) {
+	for(i = 0; i < nattr; i++) {
 		ap = &attr[i];
-		switch (ap->a_type) {
+		switch(ap->a_type) {
 		case HEIGHT:
 			h = ap->a_val.f;
 			break;
@@ -39,7 +40,7 @@ obj *boxgen(void)
 			w = prevw;
 			break;
 		case WITH:
-			with = ap->a_val.i;	/* corner */
+			with = ap->a_val.i; /* corner */
 			break;
 		case AT:
 			ppos = ap->a_val.o;
@@ -55,15 +56,15 @@ obj *boxgen(void)
 			break;
 		case DOT:
 		case DASH:
-			battr |= ap->a_type==DOT ? DOTBIT : DASHBIT;
-			if (ap->a_sub == DEFAULT)
+			battr |= ap->a_type == DOT ? DOTBIT : DASHBIT;
+			if(ap->a_sub == DEFAULT)
 				ddval = getfval("dashwid");
 			else
 				ddval = ap->a_val.f;
 			break;
 		case FILL:
 			battr |= FILLBIT;
-			if (ap->a_sub == DEFAULT)
+			if(ap->a_sub == DEFAULT)
 				fillval = getfval("fillval");
 			else
 				fillval = ap->a_val.f;
@@ -73,26 +74,46 @@ obj *boxgen(void)
 			break;
 		}
 	}
-	if (with) {
-		switch (with) {
-		case NORTH:	ywith = -h / 2; break;
-		case SOUTH:	ywith = h / 2; break;
-		case EAST:	xwith = -w / 2; break;
-		case WEST:	xwith = w / 2; break;
-		case NE:	xwith = -w / 2; ywith = -h / 2; break;
-		case SE:	xwith = -w / 2; ywith = h / 2; break;
-		case NW:	xwith = w / 2; ywith = -h / 2; break;
-		case SW:	xwith = w / 2; ywith = h / 2; break;
+	if(with) {
+		switch(with) {
+		case NORTH:
+			ywith = -h / 2;
+			break;
+		case SOUTH:
+			ywith = h / 2;
+			break;
+		case EAST:
+			xwith = -w / 2;
+			break;
+		case WEST:
+			xwith = w / 2;
+			break;
+		case NE:
+			xwith = -w / 2;
+			ywith = -h / 2;
+			break;
+		case SE:
+			xwith = -w / 2;
+			ywith = h / 2;
+			break;
+		case NW:
+			xwith = w / 2;
+			ywith = -h / 2;
+			break;
+		case SW:
+			xwith = w / 2;
+			ywith = h / 2;
+			break;
 		}
 		curx += xwith;
 		cury += ywith;
 	}
-	if (!at) {
-		if (isright(hvmode))
+	if(!at) {
+		if(isright(hvmode))
 			curx += w / 2;
-		else if (isleft(hvmode))
+		else if(isleft(hvmode))
 			curx -= w / 2;
-		else if (isup(hvmode))
+		else if(isup(hvmode))
 			cury += h / 2;
 		else
 			cury -= h / 2;
@@ -109,16 +130,17 @@ obj *boxgen(void)
 	p->o_attr = battr;
 	p->o_ddval = ddval;
 	p->o_fillval = fillval;
-	dprintf("B %g %g %g %g at %g %g, h=%g, w=%g\n", x0, y0, x1, y1, curx, cury, h, w);
-	if (isright(hvmode))
+	dprintf("B %g %g %g %g at %g %g, h=%g, w=%g\n", x0, y0, x1, y1, curx,
+	        cury, h, w);
+	if(isright(hvmode))
 		curx = x1;
-	else if (isleft(hvmode))
+	else if(isleft(hvmode))
 		curx = x0;
-	else if (isup(hvmode))
+	else if(isup(hvmode))
 		cury = y1;
 	else
 		cury = y0;
 	prevh = h;
 	prevw = w;
-	return(p);
+	return (p);
 }

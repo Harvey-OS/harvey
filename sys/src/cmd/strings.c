@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include 	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
-Biobuf	*fin;
-Biobuf	fout;
+Biobuf* fin;
+Biobuf fout;
 
-#define	MINSPAN		6		/* Min characters in string (default) */
-#define BUFSIZE		70
+#define MINSPAN 6 /* Min characters in string (default) */
+#define BUFSIZE 70
 
-void stringit(char *);
+void stringit(char*);
 int isprint(Rune);
 
 static int minspan = MINSPAN;
@@ -30,18 +30,20 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int i;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'm':
 		minspan = atoi(EARGF(usage()));
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 	Binit(&fout, 1, OWRITE);
 	if(argc < 1) {
 		stringit("/fd/0");
@@ -59,7 +61,7 @@ main(int argc, char **argv)
 }
 
 void
-stringit(char *str)
+stringit(char* str)
 {
 	int32_t posn, start;
 	int cnt = 0;
@@ -67,7 +69,7 @@ stringit(char *str)
 
 	Rune buf[BUFSIZE];
 
-	if ((fin = Bopen(str, OREAD)) == 0) {
+	if((fin = Bopen(str, OREAD)) == 0) {
 		perror("open");
 		return;
 	}
@@ -79,24 +81,24 @@ stringit(char *str)
 			if(start == 0)
 				start = posn;
 			buf[cnt++] = c;
-			if(cnt == BUFSIZE-1) {
+			if(cnt == BUFSIZE - 1) {
 				buf[cnt] = 0;
 				Bprint(&fout, "%8ld: %S ...\n", start, buf);
 				start = 0;
 				cnt = 0;
 			}
 		} else {
-			 if(cnt >= minspan) {
+			if(cnt >= minspan) {
 				buf[cnt] = 0;
 				Bprint(&fout, "%8ld: %S\n", start, buf);
 			}
 			start = 0;
 			cnt = 0;
-		}	
+		}
 		posn = Boffset(fin);
 	}
 
-	if(cnt >= minspan){
+	if(cnt >= minspan) {
 		buf[cnt] = 0;
 		Bprint(&fout, "%8ld: %S\n", start, buf);
 	}
@@ -106,8 +108,8 @@ stringit(char *str)
 int
 isprint(Rune r)
 {
-	if (r != Runeerror)
-	if ((r >= ' ' && r < 0x7F) || r > 0xA0)
-		return 1;
+	if(r != Runeerror)
+		if((r >= ' ' && r < 0x7F) || r > 0xA0)
+			return 1;
 	return 0;
 }

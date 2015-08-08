@@ -37,20 +37,19 @@ fdf(Float a, int d)
 }
 
 int32_t
-beint32(char *s)
+beint32(char* s)
 {
-	uint8_t *x;
+	uint8_t* x;
 
-	x = (uint8_t *)s;
-	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3]; 
+	x = (uint8_t*)s;
+	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3];
 }
 
 void
-panic(char *fmt, ...)
+panic(char* fmt, ...)
 {
 	char buf[8192], *s;
 	va_list arg;
-
 
 	s = buf;
 	s += sprint(s, "%s %s %d: ", progname, procname, getpid());
@@ -59,22 +58,22 @@ panic(char *fmt, ...)
 	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);
-abort();
+	abort();
 	exits(buf);
 }
 
-#define	SIZE	4096
+#define SIZE 4096
 
 void
-cprint(char *fmt, ...)
+cprint(char* fmt, ...)
 {
 	char buf[SIZE], *out;
 	va_list arg;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+SIZE, fmt, arg);
+	out = vseprint(buf, buf + SIZE, fmt, arg);
 	va_end(arg);
-	write(cmdfd, buf, (int32_t)(out-buf));
+	write(cmdfd, buf, (int32_t)(out - buf));
 }
 
 /*
@@ -82,7 +81,7 @@ cprint(char *fmt, ...)
  * otherwise preoccupied when the -s flag is given to kfs.
  */
 int
-print(char *fmt, ...)
+print(char* fmt, ...)
 {
 	va_list arg;
 	int n;
@@ -92,4 +91,3 @@ print(char *fmt, ...)
 	va_end(arg);
 	return n;
 }
-

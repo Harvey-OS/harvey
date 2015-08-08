@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 2003 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -64,19 +64,17 @@
 #include "ttcommon.h"
 #include "ttobjs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Run instructions in current execution context */
+TT_Error RunIns(PExecution_Context exc);
 
 #ifdef __cplusplus
-  extern "C" {
-#endif
-  
-  /* Run instructions in current execution context */
-  TT_Error  RunIns( PExecution_Context  exc );
- 
-#ifdef __cplusplus
-  }
+}
 #endif
 
 #endif /* TTINTERP_H */
-
 
 /* END */

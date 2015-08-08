@@ -12,62 +12,60 @@
 #include "regexp.h"
 #include "regcomp.h"
 
-#define	TRUE	1
-#define	FALSE	0
+#define TRUE 1
+#define FALSE 0
 
 /*
  * Parser Information
  */
-typedef
-struct Node
-{
-	Reinst*	first;
-	Reinst*	last;
-}Node;
+typedef struct Node {
+	Reinst* first;
+	Reinst* last;
+} Node;
 
 /* max character classes per program is nelem(reprog->class) */
-static Reprog	*reprog;
+static Reprog* reprog;
 
 /* max rune ranges per character class is nelem(classp->spans)/2 */
-#define NCCRUNE	nelem(classp->spans)
+#define NCCRUNE nelem(classp->spans)
 
-#define	NSTACK	20
-static	Node	andstack[NSTACK];
-static	Node	*andp;
-static	int	atorstack[NSTACK];
-static	int*	atorp;
-static	int	cursubid;		/* id of current subexpression */
-static	int	subidstack[NSTACK];	/* parallel to atorstack */
-static	int*	subidp;
-static	int	lastwasand;	/* Last token was operand */
-static	int	nbra;
-static	char*	exprp;		/* pointer to next character in source expression */
-static	int	lexdone;
-static	int	nclass;
-static	Reclass*classp;
-static	Reinst*	freep;
-static	int	errors;
-static	Rune	yyrune;		/* last lex'd rune */
-static	Reclass*yyclassp;	/* last lex'd class */
+#define NSTACK 20
+static Node andstack[NSTACK];
+static Node* andp;
+static int atorstack[NSTACK];
+static int* atorp;
+static int cursubid;           /* id of current subexpression */
+static int subidstack[NSTACK]; /* parallel to atorstack */
+static int* subidp;
+static int lastwasand; /* Last token was operand */
+static int nbra;
+static char* exprp; /* pointer to next character in source expression */
+static int lexdone;
+static int nclass;
+static Reclass* classp;
+static Reinst* freep;
+static int errors;
+static Rune yyrune;       /* last lex'd rune */
+static Reclass* yyclassp; /* last lex'd class */
 
 /* predeclared crap */
-static	void	operator(int);
-static	void	pushand(Reinst*, Reinst*);
-static	void	pushator(int);
-static	void	evaluntil(int);
-static	int	bldcclass(void);
+static void operator(int);
+static void pushand(Reinst*, Reinst*);
+static void pushator(int);
+static void evaluntil(int);
+static int bldcclass(void);
 
 static jmp_buf regkaboom;
 
-static	void
-rcerror(char *s)
+static void
+rcerror(char* s)
 {
 	errors++;
 	regerror(s);
 	longjmp(regkaboom, 1);
 }
 
-static	Reinst*
+static Reinst*
 newinst(int t)
 {
 	freep->type = t;
@@ -76,13 +74,13 @@ newinst(int t)
 	return freep++;
 }
 
-static	void
+static void
 operand(int t)
 {
-	Reinst *i;
+	Reinst* i;
 
 	if(lastwasand)
-		operator(CAT);	/* catenate is implicit */
+		operator(CAT); /* catenate is implicit */
 	i = newinst(t);
 
 	if(t == CCLASS || t == NCCLASS)
@@ -94,14 +92,13 @@ operand(int t)
 	lastwasand = TRUE;
 }
 
-static	void
-operator(int t)
+static void operator(int t)
 {
-	if(t==RBRA && --nbra<0)
+	if(t == RBRA && --nbra < 0)
 		rcerror("unmatched right paren");
-	if(t==LBRA){
+	if(t == LBRA) {
 		if(++cursubid >= NSUBEXP)
-			rcerror ("too many subexpressions");
+			rcerror("too many subexpressions");
 		nbra++;
 		if(lastwasand)
 			operator(CAT);
@@ -110,24 +107,24 @@ operator(int t)
 	if(t != RBRA)
 		pushator(t);
 	lastwasand = FALSE;
-	if(t==STAR || t==QUEST || t==PLUS || t==RBRA)
-		lastwasand = TRUE;	/* these look like operands */
+	if(t == STAR || t == QUEST || t == PLUS || t == RBRA)
+		lastwasand = TRUE; /* these look like operands */
 }
 
-static	void
-regerr2(char *s, int c)
+static void
+regerr2(char* s, int c)
 {
 	char buf[100];
-	char *cp = buf;
+	char* cp = buf;
 	while(*s)
 		*cp++ = *s++;
 	*cp++ = c;
-	*cp = '\0'; 
+	*cp = '\0';
 	rcerror(buf);
 }
 
-static	void
-cant(char *s)
+static void
+cant(char* s)
 {
 	char buf[100];
 	strcpy(buf, "can't happen: ");
@@ -135,8 +132,8 @@ cant(char *s)
 	rcerror(buf);
 }
 
-static	void
-pushand(Reinst *f, Reinst *l)
+static void
+pushand(Reinst* f, Reinst* l)
 {
 	if(andp >= &andstack[NSTACK])
 		cant("operand stack overflow");
@@ -145,7 +142,7 @@ pushand(Reinst *f, Reinst *l)
 	andp++;
 }
 
-static	void
+static void
 pushator(int t)
 {
 	if(atorp >= &atorstack[NSTACK])
@@ -154,20 +151,20 @@ pushator(int t)
 	*subidp++ = cursubid;
 }
 
-static	Node*
+static Node*
 popand(int op)
 {
-	Reinst *inst;
+	Reinst* inst;
 
-	if(andp <= &andstack[0]){
+	if(andp <= &andstack[0]) {
 		regerr2("missing operand for ", op);
 		inst = newinst(NOP);
-		pushand(inst,inst);
+		pushand(inst, inst);
 	}
 	return --andp;
 }
 
-static	int
+static int
 popator(void)
 {
 	if(atorp <= &atorstack[0])
@@ -176,18 +173,18 @@ popator(void)
 	return *--atorp;
 }
 
-static	void
+static void
 evaluntil(int pri)
 {
-	Node *op1, *op2;
-	Reinst *inst1, *inst2;
+	Node* op1, *op2;
+	Reinst* inst1, *inst2;
 
-	while(pri==RBRA || atorp[-1]>=pri){
-		switch(popator()){
+	while(pri == RBRA || atorp[-1] >= pri) {
+		switch(popator()) {
 		default:
 			rcerror("unknown operator in evaluntil");
 			break;
-		case LBRA:		/* must have been RBRA */
+		case LBRA: /* must have been RBRA */
 			op1 = popand('(');
 			inst2 = newinst(RBRA);
 			inst2->subid = *subidp;
@@ -241,19 +238,19 @@ evaluntil(int pri)
 	}
 }
 
-static	Reprog*
-optimize(Reprog *pp)
+static Reprog*
+optimize(Reprog* pp)
 {
-	Reinst *inst, *target;
+	Reinst* inst, *target;
 	int size;
-	Reprog *npp;
-	Reclass *cl;
+	Reprog* npp;
+	Reclass* cl;
 	int diff;
 
 	/*
 	 *  get rid of NOOP chains
 	 */
-	for(inst=pp->firstinst; inst->type!=END; inst++){
+	for(inst = pp->firstinst; inst->type != END; inst++) {
 		target = inst->next;
 		while(target->type == NOP)
 			target = target->next;
@@ -265,60 +262,61 @@ optimize(Reprog *pp)
 	 *  necessary.  Reallocate to the actual space used
 	 *  and then relocate the code.
 	 */
-	size = sizeof(Reprog) + (freep - pp->firstinst)*sizeof(Reinst);
+	size = sizeof(Reprog) + (freep - pp->firstinst) * sizeof(Reinst);
 	npp = realloc(pp, size);
-	if(npp==0 || npp==pp)
+	if(npp == 0 || npp == pp)
 		return pp;
-	diff = (char *)npp - (char *)pp;
-	freep = (Reinst *)((char *)freep + diff);
-	for(inst=npp->firstinst; inst<freep; inst++){
-		switch(inst->type){
+	diff = (char*)npp - (char*)pp;
+	freep = (Reinst*)((char*)freep + diff);
+	for(inst = npp->firstinst; inst < freep; inst++) {
+		switch(inst->type) {
 		case OR:
 		case STAR:
 		case PLUS:
 		case QUEST:
-			*(char **)&inst->right += diff;
+			*(char**)&inst->right += diff;
 			break;
 		case CCLASS:
 		case NCCLASS:
-			*(char **)&inst->right += diff;
+			*(char**)&inst->right += diff;
 			cl = inst->cp;
-			*(char **)&cl->end += diff;
+			*(char**)&cl->end += diff;
 			break;
 		}
-		*(char **)&inst->left += diff;
+		*(char**)&inst->left += diff;
 	}
-	*(char **)&npp->startinst += diff;
+	*(char**)&npp->startinst += diff;
 	return npp;
 }
 
-#ifdef	DEBUG
-static	void
-dumpstack(void){
-	Node *stk;
-	int *ip;
+#ifdef DEBUG
+static void
+dumpstack(void)
+{
+	Node* stk;
+	int* ip;
 
 	print("operators\n");
-	for(ip=atorstack; ip<atorp; ip++)
+	for(ip = atorstack; ip < atorp; ip++)
 		print("0%o\n", *ip);
 	print("operands\n");
-	for(stk=andstack; stk<andp; stk++)
+	for(stk = andstack; stk < andp; stk++)
 		print("0%o\t0%o\n", stk->first->type, stk->last->type);
 }
 
-static	void
-dump(Reprog *pp)
+static void
+dump(Reprog* pp)
 {
-	Reinst *l;
-	Rune *p;
+	Reinst* l;
+	Rune* p;
 
 	l = pp->firstinst;
-	do{
-		print("%d:\t0%o\t%d\t%d", l-pp->firstinst, l->type,
-			l->left-pp->firstinst, l->right-pp->firstinst);
+	do {
+		print("%d:\t0%o\t%d\t%d", l - pp->firstinst, l->type,
+		      l->left - pp->firstinst, l->right - pp->firstinst);
 		if(l->type == RUNE)
 			print("\t%C\n", l->r);
-		else if(l->type == CCLASS || l->type == NCCLASS){
+		else if(l->type == CCLASS || l->type == NCCLASS) {
 			print("\t[");
 			if(l->type == NCCLASS)
 				print("^");
@@ -330,27 +328,28 @@ dump(Reprog *pp)
 			print("]\n");
 		} else
 			print("\n");
-	}while(l++->type);
+	} while(l++->type);
 }
 #endif
 
-static	Reclass*
+static Reclass*
 newclass(void)
 {
 	if(nclass >= nelem(reprog->class))
-		rcerror("too many character classes; increase Reprog.class size");
+		rcerror(
+		    "too many character classes; increase Reprog.class size");
 	return &(classp[nclass++]);
 }
 
-static	int
-nextc(Rune *rp)
+static int
+nextc(Rune* rp)
 {
-	if(lexdone){
+	if(lexdone) {
 		*rp = 0;
 		return 1;
 	}
 	exprp += chartorune(rp, exprp);
-	if(*rp == L'\\'){
+	if(*rp == L'\\') {
 		exprp += chartorune(rp, exprp);
 		return 1;
 	}
@@ -359,19 +358,19 @@ nextc(Rune *rp)
 	return 0;
 }
 
-static	int
+static int
 lex(int literal, int dot_type)
 {
 	int quoted;
 
 	quoted = nextc(&yyrune);
-	if(literal || quoted){
+	if(literal || quoted) {
 		if(yyrune == 0)
 			return END;
 		return RUNE;
 	}
 
-	switch(yyrune){
+	switch(yyrune) {
 	case 0:
 		return END;
 	case L'*':
@@ -403,7 +402,7 @@ bldcclass(void)
 {
 	int type;
 	Rune r[NCCRUNE];
-	Rune *p, *ep, *np;
+	Rune* p, *ep, *np;
 	Rune rune;
 	int quoted;
 
@@ -415,7 +414,7 @@ bldcclass(void)
 	/* SPECIAL CASE!!! negated classes don't match \n */
 	ep = r;
 	quoted = nextc(&rune);
-	if(!quoted && rune == L'^'){
+	if(!quoted && rune == L'^') {
 		type = NCCLASS;
 		quoted = nextc(&rune);
 		*ep++ = L'\n';
@@ -423,39 +422,39 @@ bldcclass(void)
 	}
 
 	/* parse class into a set of spans */
-	while(ep < &r[NCCRUNE-1]){
-		if(rune == 0){
+	while(ep < &r[NCCRUNE - 1]) {
+		if(rune == 0) {
 			rcerror("malformed '[]'");
 			return 0;
 		}
 		if(!quoted && rune == L']')
 			break;
-		if(!quoted && rune == L'-'){
-			if(ep == r){
+		if(!quoted && rune == L'-') {
+			if(ep == r) {
 				rcerror("malformed '[]'");
 				return 0;
 			}
 			quoted = nextc(&rune);
-			if((!quoted && rune == L']') || rune == 0){
+			if((!quoted && rune == L']') || rune == 0) {
 				rcerror("malformed '[]'");
 				return 0;
 			}
-			*(ep-1) = rune;
+			*(ep - 1) = rune;
 		} else {
 			*ep++ = rune;
 			*ep++ = rune;
 		}
 		quoted = nextc(&rune);
 	}
-	if(ep >= &r[NCCRUNE-1]) {
+	if(ep >= &r[NCCRUNE - 1]) {
 		rcerror("char class too large; increase Reclass.spans size");
 		return 0;
 	}
 
 	/* sort on span start */
-	for(p = r; p < ep; p += 2){
+	for(p = r; p < ep; p += 2) {
 		for(np = p; np < ep; np += 2)
-			if(*np < *p){
+			if(*np < *p) {
 				rune = np[0];
 				np[0] = p[0];
 				p[0] = rune;
@@ -475,29 +474,29 @@ bldcclass(void)
 		np[1] = *p++;
 		for(; p < ep; p += 2)
 			/* overlapping or adjacent ranges? */
-			if(p[0] <= np[1] + 1){
+			if(p[0] <= np[1] + 1) {
 				if(p[1] >= np[1])
-					np[1] = p[1];	/* coalesce */
+					np[1] = p[1]; /* coalesce */
 			} else {
 				np += 2;
 				np[0] = p[0];
 				np[1] = p[1];
 			}
-		yyclassp->end = np+2;
+		yyclassp->end = np + 2;
 	}
 
 	return type;
 }
 
-static	Reprog*
-regcomp1(char *s, int literal, int dot_type)
+static Reprog*
+regcomp1(char* s, int literal, int dot_type)
 {
 	int token;
-	Reprog *pp;
+	Reprog* pp;
 
 	/* get memory for the program */
-	pp = malloc(sizeof(Reprog) + 6*sizeof(Reinst)*strlen(s));
-	if(pp == 0){
+	pp = malloc(sizeof(Reprog) + 6 * sizeof(Reinst) * strlen(s));
+	if(pp == 0) {
 		regerror("out of memory");
 		return 0;
 	}
@@ -520,9 +519,9 @@ regcomp1(char *s, int literal, int dot_type)
 	cursubid = 0;
 
 	/* Start with a low priority operator to prime parser */
-	pushator(START-1);
-	while((token = lex(literal, dot_type)) != END){
-		if((token&0300) == OPERATOR)
+	pushator(START - 1);
+	while((token = lex(literal, dot_type)) != END) {
+		if((token & 0300) == OPERATOR)
 			operator(token);
 		else
 			operand(token);
@@ -539,38 +538,38 @@ regcomp1(char *s, int literal, int dot_type)
 #endif
 	if(nbra)
 		rcerror("unmatched left paren");
-	--andp;	/* points to first and only operand */
+	--andp; /* points to first and only operand */
 	pp->startinst = andp->first;
 #ifdef DEBUG
 	dump(pp);
 #endif
 	pp = optimize(pp);
 #ifdef DEBUG
-	print("start: %d\n", andp->first-pp->firstinst);
+	print("start: %d\n", andp->first - pp->firstinst);
 	dump(pp);
 #endif
 out:
-	if(errors){
+	if(errors) {
 		free(pp);
 		pp = 0;
 	}
 	return pp;
 }
 
-extern	Reprog*
-regcomp(char *s)
+extern Reprog*
+regcomp(char* s)
 {
 	return regcomp1(s, 0, ANY);
 }
 
-extern	Reprog*
-regcomplit(char *s)
+extern Reprog*
+regcomplit(char* s)
 {
 	return regcomp1(s, 1, ANY);
 }
 
-extern	Reprog*
-regcompnl(char *s)
+extern Reprog*
+regcompnl(char* s)
 {
 	return regcomp1(s, 0, ANYNL);
 }

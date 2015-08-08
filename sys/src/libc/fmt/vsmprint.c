@@ -12,9 +12,9 @@
 #include "fmtdef.h"
 
 static int
-fmtStrFlush(Fmt *f)
+fmtStrFlush(Fmt* f)
 {
-	char *s;
+	char* s;
 	int n;
 
 	if(f->start == nil)
@@ -23,7 +23,7 @@ fmtStrFlush(Fmt *f)
 	n *= 2;
 	s = f->start;
 	f->start = realloc(s, n);
-	if(f->start == nil){
+	if(f->start == nil) {
 		f->farg = nil;
 		f->to = nil;
 		f->stop = nil;
@@ -37,7 +37,7 @@ fmtStrFlush(Fmt *f)
 }
 
 int
-fmtstrinit(Fmt *f)
+fmtstrinit(Fmt* f)
 {
 	int n;
 
@@ -62,20 +62,20 @@ fmtstrinit(Fmt *f)
  * print into an allocated string buffer
  */
 char*
-vsmprint(char *fmt, va_list args)
+vsmprint(char* fmt, va_list args)
 {
 	Fmt f;
 	int n;
 
 	if(fmtstrinit(&f) < 0)
 		return nil;
-	//f.args = args;
-	va_copy(f.args,args);
+	// f.args = args;
+	va_copy(f.args, args);
 	n = dofmt(&f, fmt);
 	va_end(f.args);
-	if(f.start == nil)		/* realloc failed? */
+	if(f.start == nil) /* realloc failed? */
 		return nil;
-	if(n < 0){
+	if(n < 0) {
 		free(f.start);
 		return nil;
 	}

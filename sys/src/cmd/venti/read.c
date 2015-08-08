@@ -21,20 +21,21 @@ usage(void)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, char* argv[])
 {
 	int type, n;
 	uchar score[VtScoreSize];
-	uchar *buf;
-	VtConn *z;
-	char *host;
+	uchar* buf;
+	VtConn* z;
+	char* host;
 
 	fmtinstall('F', vtfcallfmt);
 	fmtinstall('V', vtscorefmt);
 
 	host = nil;
 	type = -1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'h':
 		host = EARGF(usage());
 		break;
@@ -44,7 +45,8 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -61,17 +63,18 @@ threadmain(int argc, char *argv[])
 	if(vtconnect(z) < 0)
 		sysfatal("vtconnect: %r");
 
-	if(type == -1){
+	if(type == -1) {
 		n = -1;
-		for(type=0; type<VtMaxType; type++){
+		for(type = 0; type < VtMaxType; type++) {
 			n = vtread(z, score, type, buf, VtMaxLumpSize);
-			if(n >= 0){
-				fprint(2, "venti/read%s%s %V %d\n", host ? " -h" : "", host ? host : "",
-					score, type);
+			if(n >= 0) {
+				fprint(2, "venti/read%s%s %V %d\n",
+				       host ? " -h" : "", host ? host : "",
+				       score, type);
 				break;
 			}
 		}
-	}else
+	} else
 		n = vtread(z, score, type, buf, VtMaxLumpSize);
 
 	vthangup(z);

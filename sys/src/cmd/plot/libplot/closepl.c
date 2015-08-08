@@ -8,6 +8,8 @@
  */
 
 #include "mplot.h"
-void closepl(void){
+void
+closepl(void)
+{
 	m_finish();
 }

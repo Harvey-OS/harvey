@@ -11,14 +11,14 @@
 #include <String.h>
 
 int
-smbremovefile(SmbTree *t, char *dir, char *name)
+smbremovefile(SmbTree* t, char* dir, char* name)
 {
-	String *s;
+	String* s;
 	int rv;
 	s = s_new();
 	s_append(s, t->serv->path);
 	s_append(s, "/");
-	if (dir) {
+	if(dir) {
 		s_append(s, dir);
 		s_append(s, "/");
 	}
@@ -29,52 +29,52 @@ smbremovefile(SmbTree *t, char *dir, char *name)
 }
 
 SmbProcessResult
-smbcomdelete(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
+smbcomdelete(SmbSession* s, SmbHeader* h, uint8_t* pdata, SmbBuffer* b)
 {
 	SmbProcessResult pr;
 	uint16_t sattr;
 	uint8_t fmt;
-	char *pattern = nil;
-	char *dir = nil;
-	char *name = nil;
-	Reprog *r = nil;
-	SmbTree *t;
+	char* pattern = nil;
+	char* dir = nil;
+	char* name = nil;
+	Reprog* r = nil;
+	SmbTree* t;
 	int x, count;
-	SmbDirCache *dc = nil;
+	SmbDirCache* dc = nil;
 
-	if (h->wordcount != 1)
+	if(h->wordcount != 1)
 		return SmbProcessResultFormat;
 	sattr = smbnhgets(pdata);
-	if (!smbbuffergetb(b, &fmt) || fmt != 0x04
-		|| !smbbuffergetstring(b, h, SMB_STRING_PATH, &pattern))
+	if(!smbbuffergetb(b, &fmt) || fmt != 0x04 ||
+	   !smbbuffergetstring(b, h, SMB_STRING_PATH, &pattern))
 		return SmbProcessResultFormat;
-	smblogprint(SMB_COM_DELETE, "searchattributes: 0x%.4ux\npattern:%s\n", sattr, pattern);
+	smblogprint(SMB_COM_DELETE, "searchattributes: 0x%.4ux\npattern:%s\n",
+	            sattr, pattern);
 	smbpathsplit(pattern, &dir, &name);
 	t = smbidmapfind(s->tidmap, h->tid);
-	if (t == nil) {
+	if(t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
 		pr = SmbProcessResultError;
 		goto done;
 	}
 	dc = smbmkdircache(t, dir);
-	if (dc == nil) {
+	if(dc == nil) {
 		pr = SmbProcessResultMisc;
 		goto done;
 	}
 	r = smbmkrep(name);
 	count = 0;
-	for (x = 0; x < dc->n; x++) {
-		if (!smbmatch(dc->buf[x].name, r))
+	for(x = 0; x < dc->n; x++) {
+		if(!smbmatch(dc->buf[x].name, r))
 			continue;
-		if (smbremovefile(t, dir, dc->buf[x].name) == 0)
+		if(smbremovefile(t, dir, dc->buf[x].name) == 0)
 			count++;
 	}
-	if (count == 0) {
+	if(count == 0) {
 		smbseterror(s, ERRDOS, ERRnoaccess);
 		pr = SmbProcessResultError;
-	}
-	else
-		pr = smbbufferputack(s->response,h, &s->peerinfo);
+	} else
+		pr = smbbufferputack(s->response, h, &s->peerinfo);
 done:
 	free(pattern);
 	free(dir);

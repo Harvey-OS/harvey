@@ -18,18 +18,18 @@
 #include "samterm.h"
 
 void
-rinit(Rasp *r)
+rinit(Rasp* r)
 {
-	r->nrunes=0;
-	r->sect=0;
+	r->nrunes = 0;
+	r->sect = 0;
 }
 
 void
-rclear(Rasp *r)
+rclear(Rasp* r)
 {
-	Section *s, *ns;
+	Section* s, *ns;
 
-	for(s=r->sect; s; s=ns){
+	for(s = r->sect; s; s = ns) {
 		ns = s->next;
 		free(s->text);
 		free(s);
@@ -37,49 +37,48 @@ rclear(Rasp *r)
 	r->sect = 0;
 }
 
-Section*
-rsinsert(Rasp *r, Section *s)	/* insert before s */
+Section* rsinsert(Rasp* r, Section* s) /* insert before s */
 {
-	Section *t;
-	Section *u;
+	Section* t;
+	Section* u;
 
 	t = alloc(sizeof(Section));
-	if(r->sect == s){	/* includes empty list case: r->sect==s==0 */
+	if(r->sect == s) { /* includes empty list case: r->sect==s==0 */
 		r->sect = t;
 		t->next = s;
-	}else{
+	} else {
 		u = r->sect;
 		if(u == 0)
 			panic("rsinsert 1");
-		do{
-			if(u->next == s){
+		do {
+			if(u->next == s) {
 				t->next = s;
 				u->next = t;
 				goto Return;
 			}
-			u=u->next;
-		}while(u);
+			u = u->next;
+		} while(u);
 		panic("rsinsert 2");
 	}
-    Return:
+Return:
 	return t;
 }
 
 void
-rsdelete(Rasp *r, Section *s)
+rsdelete(Rasp* r, Section* s)
 {
-	Section *t;
+	Section* t;
 
 	if(s == 0)
 		panic("rsdelete");
-	if(r->sect == s){
+	if(r->sect == s) {
 		r->sect = s->next;
 		goto Free;
 	}
-	for(t=r->sect; t; t=t->next)
-		if(t->next == s){
+	for(t = r->sect; t; t = t->next)
+		if(t->next == s) {
 			t->next = s->next;
-	Free:
+		Free:
 			if(s->text)
 				free(s->text);
 			free(s);
@@ -89,88 +88,89 @@ rsdelete(Rasp *r, Section *s)
 }
 
 void
-splitsect(Rasp *r, Section *s, int32_t n0)
+splitsect(Rasp* r, Section* s, int32_t n0)
 {
 	if(s == 0)
 		panic("splitsect");
 	rsinsert(r, s->next);
 	if(s->text == 0)
 		s->next->text = 0;
-	else{
-		s->next->text = alloc(RUNESIZE*(TBLOCKSIZE+1));
-		Strcpy(s->next->text, s->text+n0);
+	else {
+		s->next->text = alloc(RUNESIZE * (TBLOCKSIZE + 1));
+		Strcpy(s->next->text, s->text + n0);
 		s->text[n0] = 0;
 	}
-	s->next->nrunes = s->nrunes-n0;
+	s->next->nrunes = s->nrunes - n0;
 	s->nrunes = n0;
 }
 
-Section *
-findsect(Rasp *r, Section *s, int32_t p, int32_t q)	/* find sect containing q and put q on a sect boundary */
+Section*
+findsect(Rasp* r, Section* s, int32_t p,
+         int32_t q) /* find sect containing q and put q on a sect boundary */
 {
-	if(s==0 && p!=q)
+	if(s == 0 && p != q)
 		panic("findsect");
-	for(; s && p+s->nrunes<=q; s=s->next)
+	for(; s && p + s->nrunes <= q; s = s->next)
 		p += s->nrunes;
-	if(p != q){
-		splitsect(r, s, q-p);
+	if(p != q) {
+		splitsect(r, s, q - p);
 		s = s->next;
 	}
 	return s;
 }
 
 void
-rresize(Rasp *r, int32_t a, int32_t old, int32_t new)
+rresize(Rasp* r, int32_t a, int32_t old, int32_t new)
 {
-	Section *s, *t, *ns;
+	Section* s, *t, *ns;
 
 	s = findsect(r, r->sect, 0L, a);
-	t = findsect(r, s, a, a+old);
-	for(; s!=t; s=ns){
-		ns=s->next;
+	t = findsect(r, s, a, a + old);
+	for(; s != t; s = ns) {
+		ns = s->next;
 		rsdelete(r, s);
 	}
 	/* now insert the new piece before t */
-	if(new > 0){
-		ns=rsinsert(r, t);
-		ns->nrunes=new;
-		ns->text=0;
+	if(new > 0) {
+		ns = rsinsert(r, t);
+		ns->nrunes = new;
+		ns->text = 0;
 	}
-	r->nrunes += new-old;
+	r->nrunes += new - old;
 }
 
 void
-rdata(Rasp *r, int32_t p0, int32_t p1, Rune *cp)
+rdata(Rasp* r, int32_t p0, int32_t p1, Rune* cp)
 {
-	Section *s, *t, *ns;
+	Section* s, *t, *ns;
 
 	s = findsect(r, r->sect, 0L, p0);
 	t = findsect(r, s, p0, p1);
-	for(; s!=t; s=ns){
-		ns=s->next;
+	for(; s != t; s = ns) {
+		ns = s->next;
 		if(s->text)
 			panic("rdata");
 		rsdelete(r, s);
 	}
 	p1 -= p0;
 	s = rsinsert(r, t);
-	s->text = alloc(RUNESIZE*(TBLOCKSIZE+1));
-	memmove(s->text, cp, RUNESIZE*p1);
+	s->text = alloc(RUNESIZE * (TBLOCKSIZE + 1));
+	memmove(s->text, cp, RUNESIZE * p1);
 	s->text[p1] = 0;
 	s->nrunes = p1;
 }
 
 void
-rclean(Rasp *r)
+rclean(Rasp* r)
 {
-	Section *s;
+	Section* s;
 
-	for(s=r->sect; s; s=s->next)
-		while(s->next && (s->text!=0)==(s->next->text!=0)){
-			if(s->text){
-				if(s->nrunes+s->next->nrunes>TBLOCKSIZE)
+	for(s = r->sect; s; s = s->next)
+		while(s->next && (s->text != 0) == (s->next->text != 0)) {
+			if(s->text) {
+				if(s->nrunes + s->next->nrunes > TBLOCKSIZE)
 					break;
-				Strcpy(s->text+s->nrunes, s->next->text);
+				Strcpy(s->text + s->nrunes, s->next->text);
 			}
 			s->nrunes += s->next->nrunes;
 			rsdelete(r, s->next);
@@ -178,35 +178,38 @@ rclean(Rasp *r)
 }
 
 void
-Strcpy(Rune *to, Rune *from)
+Strcpy(Rune* to, Rune* from)
 {
-	do; while(*to++ = *from++);
+	do
+		;
+	while(*to++ = *from++);
 }
 
 Rune*
-rload(Rasp *r, uint32_t p0, uint32_t p1, uint32_t *nrp)
+rload(Rasp* r, uint32_t p0, uint32_t p1, uint32_t* nrp)
 {
-	Section *s;
+	Section* s;
 	int32_t p;
 	int n, nb;
 
 	nb = 0;
-	Strgrow(&scratch, &nscralloc, p1-p0+1);
+	Strgrow(&scratch, &nscralloc, p1 - p0 + 1);
 	scratch[0] = 0;
-	for(p=0,s=r->sect; s && p+s->nrunes<=p0; s=s->next)
+	for(p = 0, s = r->sect; s && p + s->nrunes <= p0; s = s->next)
 		p += s->nrunes;
-	while(p<p1 && s){
+	while(p < p1 && s) {
 		/*
-		 * Subtle and important.  If we are preparing to handle an 'rdata'
+		 * Subtle and important.  If we are preparing to handle an
+		 * 'rdata'
 		 * call, it's because we have an 'rresize' hole here, so the
 		 * screen doesn't have data for that space anyway (it got cut
 		 * first).  So pretend it isn't there.
 		 */
-		if(s->text){
-			n = s->nrunes-(p0-p);
-			if(n>p1-p0)	/* all in this section */
-				n = p1-p0;
-			memmove(scratch+nb, s->text+(p0-p), n*RUNESIZE);
+		if(s->text) {
+			n = s->nrunes - (p0 - p);
+			if(n > p1 - p0) /* all in this section */
+				n = p1 - p0;
+			memmove(scratch + nb, s->text + (p0 - p), n * RUNESIZE);
 			nb += n;
 			scratch[nb] = 0;
 		}
@@ -220,19 +223,19 @@ rload(Rasp *r, uint32_t p0, uint32_t p1, uint32_t *nrp)
 }
 
 int
-rmissing(Rasp *r, uint32_t p0, uint32_t p1)
+rmissing(Rasp* r, uint32_t p0, uint32_t p1)
 {
-	Section *s;
+	Section* s;
 	int32_t p;
-	int n, nm=0;
+	int n, nm = 0;
 
-	for(p=0,s=r->sect; s && p+s->nrunes<=p0; s=s->next)
+	for(p = 0, s = r->sect; s && p + s->nrunes <= p0; s = s->next)
 		p += s->nrunes;
-	while(p<p1 && s){
-		if(s->text == 0){
-			n = s->nrunes-(p0-p);
-			if(n > p1-p0)	/* all in this section */
-				n = p1-p0;
+	while(p < p1 && s) {
+		if(s->text == 0) {
+			n = s->nrunes - (p0 - p);
+			if(n > p1 - p0) /* all in this section */
+				n = p1 - p0;
 			nm += n;
 		}
 		p += s->nrunes;
@@ -243,18 +246,18 @@ rmissing(Rasp *r, uint32_t p0, uint32_t p1)
 }
 
 int
-rcontig(Rasp *r, uint32_t p0, uint32_t p1, int text)
+rcontig(Rasp* r, uint32_t p0, uint32_t p1, int text)
 {
-	Section *s;
+	Section* s;
 	int32_t p, n;
-	int np=0;
+	int np = 0;
 
-	for(p=0,s=r->sect; s && p+s->nrunes<=p0; s=s->next)
+	for(p = 0, s = r->sect; s && p + s->nrunes <= p0; s = s->next)
 		p += s->nrunes;
-	while(p<p1 && s && (text? (s->text!=0) : (s->text==0))){
-		n = s->nrunes-(p0-p);
-		if(n > p1-p0)	/* all in this section */
-			n = p1-p0;
+	while(p < p1 && s && (text ? (s->text != 0) : (s->text == 0))) {
+		n = s->nrunes - (p0 - p);
+		if(n > p1 - p0) /* all in this section */
+			n = p1 - p0;
 		np += n;
 		p += s->nrunes;
 		p0 = p;
@@ -263,12 +266,12 @@ rcontig(Rasp *r, uint32_t p0, uint32_t p1, int text)
 	return np;
 }
 
-void
-Strgrow(Rune **s, int32_t *n, int want)	/* can always toss the old data when called */
+void Strgrow(Rune** s, int32_t* n,
+             int want) /* can always toss the old data when called */
 {
 	if(*n >= want)
 		return;
 	free(*s);
-	*s = alloc(RUNESIZE*want);
+	*s = alloc(RUNESIZE * want);
 	*n = want;
 }

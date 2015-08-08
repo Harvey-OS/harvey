@@ -13,10 +13,10 @@
 #include "threadimpl.h"
 
 static int32_t
-_iowrite(va_list *arg)
+_iowrite(va_list* arg)
 {
 	int fd;
-	void *a;
+	void* a;
 	int32_t n;
 
 	fd = va_arg(*arg, int);
@@ -26,7 +26,7 @@ _iowrite(va_list *arg)
 }
 
 int32_t
-iowrite(Ioproc *io, int fd, void *a, int32_t n)
+iowrite(Ioproc* io, int fd, void* a, int32_t n)
 {
 	return iocall(io, _iowrite, fd, a, n);
 }

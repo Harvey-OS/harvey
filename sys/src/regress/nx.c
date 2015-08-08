@@ -6,32 +6,31 @@ int success;
 int cases;
 
 void
-handler(void *v, char *s)
+handler(void* v, char* s)
 {
 	success++;
 	exits(nil);
 }
 
 void
-callinsn(char *name, char *buf)
+callinsn(char* name, char* buf)
 {
 	void (*f)(void);
-	if (notify(handler)){
+	if(notify(handler)) {
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}
 
-
-	f = (void *)buf;
+	f = (void*)buf;
 	f();
 	print("FAIL %s\n", name);
 	exits("FAIL");
 }
 
 void
-writeptr(char *name, void *ptr)
+writeptr(char* name, void* ptr)
 {
-	if (notify(handler)){
+	if(notify(handler)) {
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}
@@ -44,11 +43,11 @@ writeptr(char *name, void *ptr)
 void
 main(void)
 {
-	char *str = "hello world";
+	char* str = "hello world";
 	char stk[128];
-	char *mem;
+	char* mem;
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
@@ -59,7 +58,7 @@ main(void)
 		waitpid();
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
@@ -71,7 +70,7 @@ main(void)
 		waitpid();
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
@@ -81,7 +80,7 @@ main(void)
 		waitpid();
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
@@ -91,7 +90,7 @@ main(void)
 		waitpid();
 	}
 
-	if(success == cases){
+	if(success == cases) {
 		print("PASS\n");
 		exits("PASS");
 	}

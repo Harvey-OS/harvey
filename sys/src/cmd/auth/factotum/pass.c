@@ -16,29 +16,25 @@
 #include "dat.h"
 
 typedef struct State State;
-struct State 
-{
-	Key *key;
+struct State {
+	Key* key;
 };
 
-enum
-{
-	HavePass,
-	Maxphase,
+enum { HavePass,
+       Maxphase,
 };
 
-static char *phasenames[Maxphase] =
-{
-[HavePass]	"HavePass",
+static char* phasenames[Maxphase] = {
+        [HavePass] "HavePass",
 };
 
 static int
-passinit(Proto *p, Fsstate *fss)
+passinit(Proto* p, Fsstate* fss)
 {
 	int ret;
-	Key *k;
+	Key* k;
 	Keyinfo ki;
-	State *s;
+	State* s;
 
 	ret = findkey(&k, mkkeyinfo(&ki, fss, nil), "%s", p->keyprompt);
 	if(ret != RpcOk)
@@ -52,9 +48,9 @@ passinit(Proto *p, Fsstate *fss)
 }
 
 static void
-passclose(Fsstate *fss)
+passclose(Fsstate* fss)
 {
-	State *s;
+	State* s;
 
 	s = fss->ps;
 	if(s->key)
@@ -63,22 +59,22 @@ passclose(Fsstate *fss)
 }
 
 static int
-passread(Fsstate *fss, void *va, uint *n)
+passread(Fsstate* fss, void* va, uint* n)
 {
 	int m;
 	char buf[500];
-	char *pass, *user;
-	State *s;
+	char* pass, *user;
+	State* s;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "read");
 
 	case HavePass:
 		user = _strfindattr(s->key->attr, "user");
 		pass = _strfindattr(s->key->privattr, "!password");
-		if(user==nil || pass==nil)
+		if(user == nil || pass == nil)
 			return failure(fss, "passread cannot happen");
 		snprint(buf, sizeof buf, "%q %q", user, pass);
 		m = strlen(buf);
@@ -91,18 +87,17 @@ passread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-passwrite(Fsstate *fss, void* v, uint u)
+passwrite(Fsstate* fss, void* v, uint u)
 {
 	return phaseerror(fss, "write");
 }
 
-Proto pass =
-{
-.name=		"pass",
-.init=		passinit,
-.write=		passwrite,
-.read=		passread,
-.close=		passclose,
-.addkey=		replacekey,
-.keyprompt=	"user? !password?",
+Proto pass = {
+    .name = "pass",
+    .init = passinit,
+    .write = passwrite,
+    .read = passread,
+    .close = passclose,
+    .addkey = replacekey,
+    .keyprompt = "user? !password?",
 };

@@ -31,56 +31,53 @@
  */
 
 typedef struct Undo Undo;
-struct Undo
-{
-	int16_t	type;		/* Delete, Insert, Filename */
-	int16_t	mod;	/* modify bit */
-	uint		seq;		/* sequence number */
-	uint		p0;		/* location of change (unused in f) */
-	uint		n;		/* # runes in string or file name */
+struct Undo {
+	int16_t type; /* Delete, Insert, Filename */
+	int16_t mod;  /* modify bit */
+	uint seq;     /* sequence number */
+	uint p0;      /* location of change (unused in f) */
+	uint n;       /* # runes in string or file name */
 };
 
-enum
-{
-	Undosize = sizeof(Undo)/sizeof(Rune),
+enum { Undosize = sizeof(Undo) / sizeof(Rune),
 };
 
 File*
-fileaddtext(File *f, Text *t)
+fileaddtext(File* f, Text* t)
 {
-	if(f == nil){
+	if(f == nil) {
 		f = emalloc(sizeof(File));
 		f->unread = TRUE;
 	}
-	f->text = realloc(f->text, (f->ntext+1)*sizeof(Text*));
+	f->text = realloc(f->text, (f->ntext + 1) * sizeof(Text*));
 	f->text[f->ntext++] = t;
 	f->curtext = t;
 	return f;
 }
 
 void
-filedeltext(File *f, Text *t)
+filedeltext(File* f, Text* t)
 {
 	int i;
 
-	for(i=0; i<f->ntext; i++)
+	for(i = 0; i < f->ntext; i++)
 		if(f->text[i] == t)
 			goto Found;
 	error("can't find text in filedeltext");
 
-    Found:
+Found:
 	f->ntext--;
-	if(f->ntext == 0){
+	if(f->ntext == 0) {
 		fileclose(f);
 		return;
 	}
-	memmove(f->text+i, f->text+i+1, (f->ntext-i)*sizeof(Text*));
+	memmove(f->text + i, f->text + i + 1, (f->ntext - i) * sizeof(Text*));
 	if(f->curtext == t)
 		f->curtext = f->text[0];
 }
 
 void
-fileinsert(File *f, uint p0, Rune *s, uint ns)
+fileinsert(File* f, uint p0, Rune* s, uint ns)
 {
 	if(p0 > f->nc)
 		error("internal error: fileinsert");
@@ -92,7 +89,7 @@ fileinsert(File *f, uint p0, Rune *s, uint ns)
 }
 
 void
-fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
+fileuninsert(File* f, Buffer* delta, uint p0, uint ns)
 {
 	Undo u;
 
@@ -106,9 +103,9 @@ fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
 }
 
 void
-filedelete(File *f, uint p0, uint p1)
+filedelete(File* f, uint p0, uint p1)
 {
-	if(!(p0<=p1 && p0<=f->nc && p1<=f->nc))
+	if(!(p0 <= p1 && p0 <= f->nc && p1 <= f->nc))
 		error("internal error: filedelete");
 	if(f->seq > 0)
 		fileundelete(f, &f->delta, p0, p1);
@@ -118,10 +115,10 @@ filedelete(File *f, uint p0, uint p1)
 }
 
 void
-fileundelete(File *f, Buffer *delta, uint p0, uint p1)
+fileundelete(File* f, Buffer* delta, uint p0, uint p1)
 {
 	Undo u;
-	Rune *buf;
+	Rune* buf;
 	uint i, n;
 
 	/* undo a deletion by inserting */
@@ -129,9 +126,9 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 	u.mod = f->mod;
 	u.seq = f->seq;
 	u.p0 = p0;
-	u.n = p1-p0;
+	u.n = p1 - p0;
 	buf = fbufalloc();
-	for(i=p0; i<p1; i+=n){
+	for(i = p0; i < p1; i += n) {
 		n = p1 - i;
 		if(n > RBUFSIZE)
 			n = RBUFSIZE;
@@ -140,11 +137,10 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 	}
 	fbuffree(buf);
 	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
-
 }
 
 void
-filesetname(File *f, Rune *name, int n)
+filesetname(File* f, Rune* name, int n)
 {
 	if(f->seq > 0)
 		fileunsetname(f, &f->delta);
@@ -156,7 +152,7 @@ filesetname(File *f, Rune *name, int n)
 }
 
 void
-fileunsetname(File *f, Buffer *delta)
+fileunsetname(File* f, Buffer* delta)
 {
 	Undo u;
 
@@ -164,7 +160,7 @@ fileunsetname(File *f, Buffer *delta)
 	u.type = Filename;
 	u.mod = f->mod;
 	u.seq = f->seq;
-	u.p0 = 0;	/* unused */
+	u.p0 = 0; /* unused */
 	u.n = f->nname;
 	if(f->nname)
 		bufinsert(delta, delta->nc, f->name, f->nname);
@@ -172,7 +168,7 @@ fileunsetname(File *f, Buffer *delta)
 }
 
 uint
-fileload(File *f, uint p0, int fd, int *nulls)
+fileload(File* f, uint p0, int fd, int* nulls)
 {
 	if(f->seq > 0)
 		error("undo in file.load unimplemented");
@@ -181,55 +177,55 @@ fileload(File *f, uint p0, int fd, int *nulls)
 
 /* return sequence number of pending redo */
 uint
-fileredoseq(File *f)
+fileredoseq(File* f)
 {
 	Undo u;
-	Buffer *delta;
+	Buffer* delta;
 
 	delta = &f->epsilon;
 	if(delta->nc == 0)
 		return 0;
-	bufread(delta, delta->nc-Undosize, (Rune*)&u, Undosize);
+	bufread(delta, delta->nc - Undosize, (Rune*)&u, Undosize);
 	return u.seq;
 }
 
 void
-fileundo(File *f, int isundo, uint *q0p, uint *q1p)
+fileundo(File* f, int isundo, uint* q0p, uint* q1p)
 {
 	Undo u;
-	Rune *buf;
+	Rune* buf;
 	uint i, j, n, up;
 	uint stop;
-	Buffer *delta, *epsilon;
+	Buffer* delta, *epsilon;
 
-	if(isundo){
+	if(isundo) {
 		/* undo; reverse delta onto epsilon, seq decreases */
 		delta = &f->delta;
 		epsilon = &f->epsilon;
 		stop = f->seq;
-	}else{
+	} else {
 		/* redo; reverse epsilon onto delta, seq increases */
 		delta = &f->epsilon;
 		epsilon = &f->delta;
-		stop = 0;	/* don't know yet */
+		stop = 0; /* don't know yet */
 	}
 
 	buf = fbufalloc();
-	while(delta->nc > 0){
-		up = delta->nc-Undosize;
+	while(delta->nc > 0) {
+		up = delta->nc - Undosize;
 		bufread(delta, up, (Rune*)&u, Undosize);
-		if(isundo){
-			if(u.seq < stop){
+		if(isundo) {
+			if(u.seq < stop) {
 				f->seq = u.seq;
 				goto Return;
 			}
-		}else{
+		} else {
 			if(stop == 0)
 				stop = u.seq;
 			if(u.seq > stop)
 				goto Return;
 		}
-		switch(u.type){
+		switch(u.type) {
 		default:
 			fprint(2, "undo: 0x%ux\n", u.type);
 			abort();
@@ -237,11 +233,11 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 
 		case Delete:
 			f->seq = u.seq;
-			fileundelete(f, epsilon, u.p0, u.p0+u.n);
+			fileundelete(f, epsilon, u.p0, u.p0 + u.n);
 			f->mod = u.mod;
-			bufdelete(f, u.p0, u.p0+u.n);
-			for(j=0; j<f->ntext; j++)
-				textdelete(f->text[j], u.p0, u.p0+u.n, FALSE);
+			bufdelete(f, u.p0, u.p0 + u.n);
+			for(j = 0; j < f->ntext; j++)
+				textdelete(f->text[j], u.p0, u.p0 + u.n, FALSE);
 			*q0p = u.p0;
 			*q1p = u.p0;
 			break;
@@ -251,17 +247,18 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 			fileuninsert(f, epsilon, u.p0, u.n);
 			f->mod = u.mod;
 			up -= u.n;
-			for(i=0; i<u.n; i+=n){
+			for(i = 0; i < u.n; i += n) {
 				n = u.n - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
-				bufread(delta, up+i, buf, n);
-				bufinsert(f, u.p0+i, buf, n);
-				for(j=0; j<f->ntext; j++)
-					textinsert(f->text[j], u.p0+i, buf, n, FALSE);
+				bufread(delta, up + i, buf, n);
+				bufinsert(f, u.p0 + i, buf, n);
+				for(j = 0; j < f->ntext; j++)
+					textinsert(f->text[j], u.p0 + i, buf, n,
+					           FALSE);
 			}
 			*q0p = u.p0;
-			*q1p = u.p0+u.n;
+			*q1p = u.p0 + u.n;
 			break;
 
 		case Filename:
@@ -282,12 +279,12 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 	}
 	if(isundo)
 		f->seq = 0;
-    Return:
+Return:
 	fbuffree(buf);
 }
 
 void
-filereset(File *f)
+filereset(File* f)
 {
 	bufreset(&f->delta);
 	bufreset(&f->epsilon);
@@ -295,7 +292,7 @@ filereset(File *f)
 }
 
 void
-fileclose(File *f)
+fileclose(File* f)
 {
 	free(f->name);
 	f->nname = 0;
@@ -311,7 +308,7 @@ fileclose(File *f)
 }
 
 void
-filemark(File *f)
+filemark(File* f)
 {
 	if(f->epsilon.nc)
 		bufdelete(&f->epsilon, 0, f->epsilon.nc);

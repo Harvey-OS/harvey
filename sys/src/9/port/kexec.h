@@ -10,28 +10,25 @@
 typedef struct Kvalue Kvalue;
 typedef struct Kexecgrp Kexecgrp;
 
-
 /* Kexec structures */
-struct Kvalue
-{
+struct Kvalue {
 	uintptr_t addr;
 	uint64_t size;
-	int	len;
+	int len;
 	int inuse;
-	Kvalue	*link;
-	Qid	qid;
+	Kvalue* link;
+	Qid qid;
 };
 
-struct Kexecgrp
-{
+struct Kexecgrp {
 	Ref;
 	RWlock;
-	Kvalue	**ent;
-	int	nent;
-	int	ment;
-	uint32_t	path;	/* qid.path of next Kvalue to be allocated */
-	uint32_t	vers;	/* of Kexecgrp */
+	Kvalue** ent;
+	int nent;
+	int ment;
+	uint32_t path; /* qid.path of next Kvalue to be allocated */
+	uint32_t vers; /* of Kexecgrp */
 };
 
-void	kforkexecac(Proc*, int, char*, char**);
-Proc*	setupseg(int core);
+void kforkexecac(Proc*, int, char*, char**);
+Proc* setupseg(int core);

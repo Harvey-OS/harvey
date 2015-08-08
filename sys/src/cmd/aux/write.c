@@ -11,27 +11,29 @@
 #include <libc.h>
 
 static char x[1024];
-static char s[64] = "  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+static char s[64] =
+    "  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 static void
 fill(void)
 {
 	int i;
 
-	for(i = 0; i < sizeof(x); i += sizeof(s)){
+	for(i = 0; i < sizeof(x); i += sizeof(s)) {
 		memmove(&x[i], s, sizeof(s));
-		x[i] = i>>8;
-		x[i+1] = i;
+		x[i] = i >> 8;
+		x[i + 1] = i;
 	}
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int i = 2560;
 
-	if(argc > 1){
-		argc--; argv++;
+	if(argc > 1) {
+		argc--;
+		argv++;
 		i = atoi(*argv);
 	}
 	USED(argc);

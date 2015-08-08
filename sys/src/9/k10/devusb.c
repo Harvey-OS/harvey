@@ -47,145 +47,129 @@
  * get in the way. Thus, code is probably easier the way it is.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
-#include	"../port/usb.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
+#include "../port/usb.h"
 
 typedef struct Hcitype Hcitype;
 
-enum
-{
+enum {
 	/* Qid numbers */
-	Qdir = 0,		/* #u */
-	Qusbdir,			/* #u/usb */
-	Qctl,			/* #u/usb/ctl - control requests */
+	Qdir = 0, /* #u */
+	Qusbdir,  /* #u/usb */
+	Qctl,     /* #u/usb/ctl - control requests */
 
-	Qep0dir,			/* #u/usb/ep0.0 - endpoint 0 dir */
-	Qep0io,			/* #u/usb/ep0.0/data - endpoint 0 I/O */
-	Qep0ctl,		/* #u/usb/ep0.0/ctl - endpoint 0 ctl. */
-	Qep0dummy,		/* give 4 qids to each endpoint */
+	Qep0dir,   /* #u/usb/ep0.0 - endpoint 0 dir */
+	Qep0io,    /* #u/usb/ep0.0/data - endpoint 0 I/O */
+	Qep0ctl,   /* #u/usb/ep0.0/ctl - endpoint 0 ctl. */
+	Qep0dummy, /* give 4 qids to each endpoint */
 
-	Qepdir = 0,		/* (qid-qep0dir)&3 is one of these */
-	Qepio,			/* to identify which file for the endpoint */
+	Qepdir = 0, /* (qid-qep0dir)&3 is one of these */
+	Qepio,      /* to identify which file for the endpoint */
 	Qepctl,
 
 	/* ... */
 
 	/* Usb ctls. */
-	CMdebug = 0,		/* debug on|off */
-	CMdump,			/* dump (data structures for debug) */
+	CMdebug = 0, /* debug on|off */
+	CMdump,      /* dump (data structures for debug) */
 
 	/* Ep. ctls */
-	CMnew = 0,		/* new nb ctl|bulk|intr|iso r|w|rw (endpoint) */
-	CMnewdev,		/* newdev full|low|high portnb (allocate new devices) */
-	CMhub,			/* hub (set the device as a hub) */
-	CMspeed,		/* speed full|low|high|no */
-	CMmaxpkt,		/* maxpkt size */
-	CMntds,			/* ntds nb (max nb. of tds per µframe) */
-	CMclrhalt,		/* clrhalt (halt was cleared on endpoint) */
-	CMpollival,		/* pollival interval (interrupt/iso) */
-	CMhz,			/* hz n (samples/sec; iso) */
-	CMsamplesz,		/* samplesz n (sample size; iso) */
-	CMinfo,			/* info infostr (ke.ep info for humans) */
-	CMdetach,		/* detach (abort I/O forever on this ep). */
-	CMaddress,		/* address (address is assigned) */
-	CMdebugep,		/* debug n (set/clear debug for this ep) */
-	CMname,			/* name str (show up as #u/name as well) */
-	CMtmout,		/* timeout n (activate timeouts for ep) */
-	CMpreset,		/* reset the port */
+	CMnew = 0,  /* new nb ctl|bulk|intr|iso r|w|rw (endpoint) */
+	CMnewdev,   /* newdev full|low|high portnb (allocate new devices) */
+	CMhub,      /* hub (set the device as a hub) */
+	CMspeed,    /* speed full|low|high|no */
+	CMmaxpkt,   /* maxpkt size */
+	CMntds,     /* ntds nb (max nb. of tds per µframe) */
+	CMclrhalt,  /* clrhalt (halt was cleared on endpoint) */
+	CMpollival, /* pollival interval (interrupt/iso) */
+	CMhz,       /* hz n (samples/sec; iso) */
+	CMsamplesz, /* samplesz n (sample size; iso) */
+	CMinfo,     /* info infostr (ke.ep info for humans) */
+	CMdetach,   /* detach (abort I/O forever on this ep). */
+	CMaddress,  /* address (address is assigned) */
+	CMdebugep,  /* debug n (set/clear debug for this ep) */
+	CMname,     /* name str (show up as #u/name as well) */
+	CMtmout,    /* timeout n (activate timeouts for ep) */
+	CMpreset,   /* reset the port */
 
 	/* Hub feature selectors */
-	Rportenable	= 1,
-	Rportreset	= 4,
+	Rportenable = 1,
+	Rportreset = 4,
 
 };
 
-struct Hcitype
-{
-	char*	type;
-	int	(*reset)(Hci*);
+struct Hcitype {
+	char* type;
+	int (*reset)(Hci*);
 };
 
-#define QID(q)	((int)(q).path)
+#define QID(q) ((int)(q).path)
 
 static char Edetach[] = "device is detached";
 static char Enotconf[] = "endpoint not configured";
 char Estalled[] = "endpoint stalled";
 
-static Cmdtab usbctls[] =
-{
-	{CMdebug,	"debug",	2},
-	{CMdump,	"dump",		1},
+static Cmdtab usbctls[] = {
+    {CMdebug, "debug", 2}, {CMdump, "dump", 1},
 };
 
-static Cmdtab epctls[] =
-{
-	{CMnew,		"new",		4},
-	{CMnewdev,	"newdev",	3},
-	{CMhub,		"hub",		1},
-	{CMspeed,	"speed",	2},
-	{CMmaxpkt,	"maxpkt",	2},
-	{CMntds,	"ntds",		2},
-	{CMpollival,	"pollival",	2},
-	{CMsamplesz,	"samplesz",	2},
-	{CMhz,		"hz",		2},
-	{CMinfo,	"info",		0},
-	{CMdetach,	"detach",	1},
-	{CMaddress,	"address",	1},
-	{CMdebugep,	"debug",	2},
-	{CMclrhalt,	"clrhalt",	1},
-	{CMname,	"name",		2},
-	{CMtmout,	"timeout",	2},
-	{CMpreset,	"reset",	1},
+static Cmdtab epctls[] = {
+    {CMnew, "new", 4},
+    {CMnewdev, "newdev", 3},
+    {CMhub, "hub", 1},
+    {CMspeed, "speed", 2},
+    {CMmaxpkt, "maxpkt", 2},
+    {CMntds, "ntds", 2},
+    {CMpollival, "pollival", 2},
+    {CMsamplesz, "samplesz", 2},
+    {CMhz, "hz", 2},
+    {CMinfo, "info", 0},
+    {CMdetach, "detach", 1},
+    {CMaddress, "address", 1},
+    {CMdebugep, "debug", 2},
+    {CMclrhalt, "clrhalt", 1},
+    {CMname, "name", 2},
+    {CMtmout, "timeout", 2},
+    {CMpreset, "reset", 1},
 };
 
-static Dirtab usbdir[] =
-{
-	"ctl",		{Qctl},		0,	0666,
+static Dirtab usbdir[] = {
+    "ctl", {Qctl}, 0, 0666,
 };
 
-char *usbmodename[] =
-{
-	[OREAD]	"r",
-	[OWRITE]	"w",
-	[ORDWR]	"rw",
+char* usbmodename[] = {
+        [OREAD] "r", [OWRITE] "w", [ORDWR] "rw",
 };
 
-static char *ttname[] =
-{
-	[Tnone]	"none",
-	[Tctl]	"control",
-	[Tiso]	"iso",
-	[Tintr]	"interrupt",
-	[Tbulk]	"bulk",
+static char* ttname[] = {
+        [Tnone] "none",      [Tctl] "control", [Tiso] "iso",
+        [Tintr] "interrupt", [Tbulk] "bulk",
 };
 
-static char *spname[] =
-{
-	[Fullspeed]	"full",
-	[Lowspeed]	"low",
-	[Highspeed]	"high",
-	[Nospeed]	"no",
+static char* spname[] = {
+        [Fullspeed] "full", [Lowspeed] "low", [Highspeed] "high",
+        [Nospeed] "no",
 };
 
-static int	debug;
-static Hcitype	hcitypes[Nhcis];
-static Hci*	hcis[Nhcis];
-static QLock	epslck;		/* add, del, lookup endpoints */
-static Ep*	eps[Neps];	/* all endpoints known */
-static int	epmax;		/* 1 + last endpoint index used  */
-static int	usbidgen;	/* device address generator */
+static int debug;
+static Hcitype hcitypes[Nhcis];
+static Hci* hcis[Nhcis];
+static QLock epslck;  /* add, del, lookup endpoints */
+static Ep* eps[Neps]; /* all endpoints known */
+static int epmax;     /* 1 + last endpoint index used  */
+static int usbidgen;  /* device address generator */
 
 /*
  * Is there something like this in a library? should it be?
  */
 char*
-seprintdata(char *s, char *se, unsigned char *d, int n)
+seprintdata(char* s, char* se, unsigned char* d, int n)
 {
 	int i, l;
 
@@ -193,7 +177,7 @@ seprintdata(char *s, char *se, unsigned char *d, int n)
 	l = n;
 	if(l > 10)
 		l = 10;
-	for(i=0; i<l; i++)
+	for(i = 0; i < l; i++)
 		s = seprint(s, se, " %2.2ux", d[i]);
 	if(l < n)
 		s = seprint(s, se, "...");
@@ -201,7 +185,7 @@ seprintdata(char *s, char *se, unsigned char *d, int n)
 }
 
 static int
-name2speed(char *name)
+name2speed(char* name)
 {
 	int i;
 
@@ -212,7 +196,7 @@ name2speed(char *name)
 }
 
 static int
-name2ttype(char *name)
+name2ttype(char* name)
 {
 	int i;
 
@@ -221,19 +205,19 @@ name2ttype(char *name)
 			return i;
 	/* may be a std. USB ep. type */
 	i = strtol(name, nil, 0);
-	switch(i+1){
+	switch(i + 1) {
 	case Tctl:
 	case Tiso:
 	case Tbulk:
 	case Tintr:
-		return i+1;
+		return i + 1;
 	default:
 		return Tnone;
 	}
 }
 
 static int
-name2mode(char *mode)
+name2mode(char* mode)
 {
 	int i;
 
@@ -246,7 +230,7 @@ name2mode(char *mode)
 static int
 qid2epidx(int q)
 {
-	q = (q-Qep0dir)/4;
+	q = (q - Qep0dir) / 4;
 	if(q < 0 || q >= epmax || eps[q] == nil)
 		return -1;
 	return q;
@@ -274,18 +258,18 @@ addhcitype(char* t, int (*r)(Hci*))
 }
 
 static char*
-seprintep(char *s, char *se, Ep *ep, int all)
+seprintep(char* s, char* se, Ep* ep, int all)
 {
-	Proc *up = externup();
-	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
-	Udev *d;
+	Proc* up = externup();
+	static char* dsnames[] = {"config", "enabled", "detached", "reset"};
+	Udev* d;
 	int i;
 	int di;
 
 	d = ep->dev;
 
 	qlock(ep);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(ep);
 		nexterror();
 	}
@@ -307,7 +291,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		s = seprint(s, se, " busy");
 	else
 		s = seprint(s, se, " idle");
-	if(all){
+	if(all) {
 		s = seprint(s, se, " load %uld", ep->load);
 		s = seprint(s, se, " ref %ld addr %#p", ep->ref, ep);
 		s = seprint(s, se, " idx %d", ep->idx);
@@ -315,7 +299,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 			s = seprint(s, se, " name '%s'", ep->name);
 		if(ep->tmout != 0)
 			s = seprint(s, se, " tmout");
-		if(ep == ep->ep0){
+		if(ep == ep->ep0) {
 			s = seprint(s, se, " ctlrno %#x", ep->hp->ctlrno);
 			s = seprint(s, se, " eps:");
 			for(i = 0; i < nelem(d->eps); i++)
@@ -333,9 +317,9 @@ seprintep(char *s, char *se, Ep *ep, int all)
 }
 
 static Ep*
-epalloc(Hci *hp)
+epalloc(Hci* hp)
 {
-	Ep *ep;
+	Ep* ep;
 	int i;
 
 	ep = smalloc(sizeof(Ep));
@@ -344,7 +328,7 @@ epalloc(Hci *hp)
 	for(i = 0; i < Neps; i++)
 		if(eps[i] == nil)
 			break;
-	if(i == Neps){
+	if(i == Neps) {
 		qunlock(&epslck);
 		free(ep);
 		print("usb: bug: too few endpoints.\n");
@@ -352,7 +336,7 @@ epalloc(Hci *hp)
 	}
 	ep->idx = i;
 	if(epmax <= i)
-		epmax = i+1;
+		epmax = i + 1;
 	eps[i] = ep;
 	ep->hp = hp;
 	ep->maxpkt = 8;
@@ -365,7 +349,7 @@ epalloc(Hci *hp)
 static Ep*
 getep(int i)
 {
-	Ep *ep;
+	Ep* ep;
 
 	if(i < 0 || i >= epmax || eps[i] == nil)
 		return nil;
@@ -378,26 +362,26 @@ getep(int i)
 }
 
 static void
-putep(Ep *ep)
+putep(Ep* ep)
 {
-	Udev *d;
+	Udev* d;
 
-	if(ep != nil && decref(ep) == 0){
+	if(ep != nil && decref(ep) == 0) {
 		d = ep->dev;
 		deprint("usb: ep%d.%d %#p released\n", d->nb, ep->nb, ep);
 		qlock(&epslck);
 		eps[ep->idx] = nil;
-		if(ep->idx == epmax-1)
+		if(ep->idx == epmax - 1)
 			epmax--;
 		if(ep == ep->ep0 && ep->dev != nil && ep->dev->nb == usbidgen)
 			usbidgen--;
 		qunlock(&epslck);
-		if(d != nil){
+		if(d != nil) {
 			qlock(ep->ep0);
 			d->eps[ep->nb] = nil;
 			qunlock(ep->ep0);
 		}
-		if(ep->ep0 != ep){
+		if(ep->ep0 != ep) {
 			putep(ep->ep0);
 			ep->ep0 = nil;
 		}
@@ -410,20 +394,21 @@ putep(Ep *ep)
 static void
 dumpeps(void)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i;
 	static char buf[512];
-	char *s;
-	char *e;
-	Ep *ep;
+	char* s;
+	char* e;
+	Ep* ep;
 
-	print("usb dump eps: epmax %d Neps %d (ref=1+ for dump):\n", epmax, Neps);
-	for(i = 0; i < epmax; i++){
+	print("usb dump eps: epmax %d Neps %d (ref=1+ for dump):\n", epmax,
+	      Neps);
+	for(i = 0; i < epmax; i++) {
 		s = buf;
-		e = buf+sizeof(buf);
+		e = buf + sizeof(buf);
 		ep = getep(i);
-		if(ep != nil){
-			if(waserror()){
+		if(ep != nil) {
+			if(waserror()) {
 				putep(ep);
 				nexterror();
 			}
@@ -443,7 +428,7 @@ dumpeps(void)
 }
 
 static int
-newusbid(Hci *hci)
+newusbid(Hci* hci)
 {
 	int id;
 
@@ -459,10 +444,10 @@ newusbid(Hci *hci)
  * Create endpoint 0 for a new device
  */
 static Ep*
-newdev(Hci *hp, int ishub, int isroot)
+newdev(Hci* hp, int ishub, int isroot)
 {
-	Ep *ep;
-	Udev *d;
+	Ep* ep;
+	Udev* d;
 
 	ep = epalloc(hp);
 	d = ep->dev = smalloc(sizeof(Udev));
@@ -476,9 +461,9 @@ newdev(Hci *hp, int ishub, int isroot)
 		d->speed = Highspeed;
 	else
 		d->speed = Fullspeed;
-	d->state = Dconfig;		/* address not yet set */
+	d->state = Dconfig; /* address not yet set */
 	ep->dev = d;
-	ep->ep0 = ep;			/* no ref counted here */
+	ep->ep0 = ep; /* no ref counted here */
 	ep->ttype = Tctl;
 	ep->tmout = Xfertmout;
 	ep->mode = ORDWR;
@@ -491,10 +476,10 @@ newdev(Hci *hp, int ishub, int isroot)
  * accessed via the given endpoint 0.
  */
 static Ep*
-newdevep(Ep *ep, int i, int tt, int mode)
+newdevep(Ep* ep, int i, int tt, int mode)
 {
-	Ep *nep;
-	Udev *d;
+	Ep* nep;
+	Udev* d;
 
 	d = ep->dev;
 	if(d->eps[i] != nil)
@@ -510,7 +495,7 @@ newdevep(Ep *ep, int i, int tt, int mode)
 	nep->ttype = tt;
 	nep->debug = ep->debug;
 	/* set defaults */
-	switch(tt){
+	switch(tt) {
 	case Tctl:
 		nep->tmout = Xfertmout;
 		break;
@@ -532,178 +517,189 @@ static int
 epdataperm(int mode)
 {
 
-	switch(mode){
+	switch(mode) {
 	case OREAD:
-		return 0440|DMEXCL;
+		return 0440 | DMEXCL;
 		break;
 	case OWRITE:
-		return 0220|DMEXCL;
+		return 0220 | DMEXCL;
 		break;
 	default:
-		return 0660|DMEXCL;
+		return 0660 | DMEXCL;
 	}
 }
 
 static int
-usbgen(Chan *c, char *l, Dirtab *d, int n, int s, Dir *dp)
+usbgen(Chan* c, char* l, Dirtab* d, int n, int s, Dir* dp)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	Qid q;
-	Dirtab *dir;
+	Dirtab* dir;
 	int perm;
-	char *se;
-	Ep *ep;
+	char* se;
+	Ep* ep;
 	int nb;
 	int mode;
 
-	if(0)ddprint("usbgen q %#x s %d...", QID(c->qid), s);
-	if(s == DEVDOTDOT){
-		if(QID(c->qid) <= Qusbdir){
+	if(0)
+		ddprint("usbgen q %#x s %d...", QID(c->qid), s);
+	if(s == DEVDOTDOT) {
+		if(QID(c->qid) <= Qusbdir) {
 			mkqid(&q, Qdir, 0, QTDIR);
 			devdir(c, q, "#u", 0, eve, 0555, dp);
-		}else{
+		} else {
 			mkqid(&q, Qusbdir, 0, QTDIR);
 			devdir(c, q, "usb", 0, eve, 0555, dp);
 		}
-		if(0)ddprint("ok\n");
+		if(0)
+			ddprint("ok\n");
 		return 1;
 	}
 
-	switch(QID(c->qid)){
-	case Qdir:				/* list #u */
-		if(s == 0){
+	switch(QID(c->qid)) {
+	case Qdir: /* list #u */
+		if(s == 0) {
 			mkqid(&q, Qusbdir, 0, QTDIR);
 			devdir(c, q, "usb", 0, eve, 0555, dp);
-			if(0)ddprint("ok\n");
+			if(0)
+				ddprint("ok\n");
 			return 1;
 		}
 		s--;
 		if(s < 0 || s >= epmax)
 			goto Fail;
 		ep = getep(s);
-		if(ep == nil || ep->name == nil){
+		if(ep == nil || ep->name == nil) {
 			if(ep != nil)
 				putep(ep);
-			if(0)ddprint("skip\n");
+			if(0)
+				ddprint("skip\n");
 			return 0;
 		}
-		if(waserror()){
+		if(waserror()) {
 			putep(ep);
 			nexterror();
 		}
-		mkqid(&q, Qep0io+s*4, 0, QTFILE);
+		mkqid(&q, Qep0io + s * 4, 0, QTFILE);
 		devdir(c, q, ep->name, 0, eve, epdataperm(ep->mode), dp);
 		putep(ep);
 		poperror();
-		if(0)ddprint("ok\n");
+		if(0)
+			ddprint("ok\n");
 		return 1;
 
-	case Qusbdir:				/* list #u/usb */
+	case Qusbdir: /* list #u/usb */
 	Usbdir:
-		if(s < nelem(usbdir)){
+		if(s < nelem(usbdir)) {
 			dir = &usbdir[s];
 			mkqid(&q, dir->qid.path, 0, QTFILE);
-			devdir(c, q, dir->name, dir->length, eve, dir->perm, dp);
-			if(0)ddprint("ok\n");
+			devdir(c, q, dir->name, dir->length, eve, dir->perm,
+			       dp);
+			if(0)
+				ddprint("ok\n");
 			return 1;
 		}
 		s -= nelem(usbdir);
 		if(s < 0 || s >= epmax)
 			goto Fail;
 		ep = getep(s);
-		if(ep == nil){
-			if(0)ddprint("skip\n");
+		if(ep == nil) {
+			if(0)
+				ddprint("skip\n");
 			return 0;
 		}
-		if(waserror()){
+		if(waserror()) {
 			putep(ep);
 			nexterror();
 		}
-		se = up->genbuf+sizeof(up->genbuf);
+		se = up->genbuf + sizeof(up->genbuf);
 		seprint(up->genbuf, se, "ep%d.%d", ep->dev->nb, ep->nb);
-		mkqid(&q, Qep0dir+4*s, 0, QTDIR);
+		mkqid(&q, Qep0dir + 4 * s, 0, QTDIR);
 		putep(ep);
 		poperror();
 		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
-		if(0)ddprint("ok\n");
+		if(0)
+			ddprint("ok\n");
 		return 1;
 
 	case Qctl:
 		s = 0;
 		goto Usbdir;
 
-	default:				/* list #u/usb/epN.M */
+	default: /* list #u/usb/epN.M */
 		nb = qid2epidx(QID(c->qid));
 		ep = getep(nb);
 		if(ep == nil)
 			goto Fail;
 		mode = ep->mode;
 		putep(ep);
-		if(isqtype(QID(c->qid), Qepdir)){
+		if(isqtype(QID(c->qid), Qepdir)) {
 		Epdir:
-			switch(s){
+			switch(s) {
 			case 0:
-				mkqid(&q, Qep0io+nb*4, 0, QTFILE);
+				mkqid(&q, Qep0io + nb * 4, 0, QTFILE);
 				perm = epdataperm(mode);
 				devdir(c, q, "data", 0, eve, perm, dp);
 				break;
 			case 1:
-				mkqid(&q, Qep0ctl+nb*4, 0, QTFILE);
+				mkqid(&q, Qep0ctl + nb * 4, 0, QTFILE);
 				devdir(c, q, "ctl", 0, eve, 0664, dp);
 				break;
 			default:
 				goto Fail;
 			}
-		}else if(isqtype(QID(c->qid), Qepctl)){
+		} else if(isqtype(QID(c->qid), Qepctl)) {
 			s = 1;
 			goto Epdir;
-		}else{
+		} else {
 			s = 0;
 			goto Epdir;
 		}
-		if(0)ddprint("ok\n");
+		if(0)
+			ddprint("ok\n");
 		return 1;
 	}
 Fail:
-	if(0)ddprint("fail\n");
+	if(0)
+		ddprint("fail\n");
 	return -1;
 }
 
 static Hci*
 hciprobe(int cardno, int ctlrno)
 {
-	Hci *hp;
-	char *type;
+	Hci* hp;
+	char* type;
 	char name[64];
-	static int epnb = 1;	/* guess the endpoint nb. for the controller */
+	static int epnb = 1; /* guess the endpoint nb. for the controller */
 
 	ddprint("hciprobe %d %d\n", cardno, ctlrno);
 	hp = smalloc(sizeof(Hci));
 	hp->ctlrno = ctlrno;
 	hp->tbdf = BUSUNKNOWN;
 
-	if(cardno < 0){
-		//if(isaconfig("usb", ctlrno, hp) == 0){
+	if(cardno < 0) {
+		// if(isaconfig("usb", ctlrno, hp) == 0){
 		//	free(hp);
 		//	return nil;
 		//}
-		for(cardno = 0; cardno < Nhcis; cardno++){
+		for(cardno = 0; cardno < Nhcis; cardno++) {
 			if(hcitypes[cardno].type == nil)
 				break;
 			type = hp->type;
-			if(type==nil || *type==0)
+			if(type == nil || *type == 0)
 				type = "uhci";
 			if(cistrcmp(hcitypes[cardno].type, type) == 0)
 				break;
 		}
 	}
 
-	if(cardno >= Nhcis || hcitypes[cardno].type == nil){
+	if(cardno >= Nhcis || hcitypes[cardno].type == nil) {
 		free(hp);
 		return nil;
 	}
 	dprint("%s...", hcitypes[cardno].type);
-	if(hcitypes[cardno].reset(hp) < 0){
+	if(hcitypes[cardno].reset(hp) < 0) {
 		free(hp);
 		return nil;
 	}
@@ -722,8 +718,8 @@ hciprobe(int cardno, int ctlrno)
 	 * modern machines have too many usb controllers to list on
 	 * the console.
 	 */
-	dprint("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
-		epnb, hcitypes[cardno].type, hp->port, hp->irq);
+	dprint("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n", epnb,
+	       hcitypes[cardno].type, hp->port, hp->irq);
 	epnb++;
 	return hp;
 }
@@ -732,11 +728,11 @@ static void
 usbreset(void)
 {
 	int cardno, ctlrno;
-	Hci *hp;
+	Hci* hp;
 
 	/*
 	if(getconf("*nousbprobe"))
-		return;
+	        return;
 	*/
 	dprint("usbreset\n");
 
@@ -747,32 +743,32 @@ usbreset(void)
 	while(cardno < Nhcis && ctlrno < Nhcis && hcitypes[cardno].type != nil)
 		if(hcis[ctlrno] != nil)
 			ctlrno++;
-		else{
+		else {
 			hp = hciprobe(cardno, ctlrno);
 			if(hp == nil)
 				cardno++;
 			hcis[ctlrno++] = hp;
 		}
-	if(hcis[Nhcis-1] != nil)
+	if(hcis[Nhcis - 1] != nil)
 		print("usbreset: bug: Nhcis (%d) too small\n", Nhcis);
 }
 
 static void
 usbinit(void)
 {
-	Hci *hp;
+	Hci* hp;
 	int ctlrno;
-	Ep *d;
+	Ep* d;
 	char info[40];
 
 	dprint("usbinit\n");
-	for(ctlrno = 0; ctlrno < Nhcis; ctlrno++){
+	for(ctlrno = 0; ctlrno < Nhcis; ctlrno++) {
 		hp = hcis[ctlrno];
-		if(hp != nil){
+		if(hp != nil) {
 			if(hp->init != nil)
 				hp->init(hp);
-			d = newdev(hp, 1, 1);		/* new root hub */
-			d->dev->state = Denabled;	/* although addr == 0 */
+			d = newdev(hp, 1, 1);     /* new root hub */
+			d->dev->state = Denabled; /* although addr == 0 */
 			d->maxpkt = 64;
 			snprint(info, sizeof(info), "ports %d", hp->nports);
 			kstrdup(&d->info, info);
@@ -781,19 +777,19 @@ usbinit(void)
 }
 
 static Chan*
-usbattach(char *spec)
+usbattach(char* spec)
 {
 	return devattach(L'u', spec);
 }
 
 static Walkqid*
-usbwalk(Chan *c, Chan *nc, char **name, int nname)
+usbwalk(Chan* c, Chan* nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, usbgen);
 }
 
 static int
-usbstat(Chan *c, unsigned char *db, int n)
+usbstat(Chan* c, unsigned char* db, int n)
 {
 	return devstat(c, db, n, nil, 0, usbgen);
 }
@@ -809,15 +805,15 @@ usbstat(Chan *c, unsigned char *db, int n)
 static uint32_t
 usbload(int speed, int maxpkt)
 {
-	enum{ Hostns = 1000, Hubns = 333 };
+	enum { Hostns = 1000, Hubns = 333 };
 	uint32_t l;
 	uint32_t bs;
 
 	l = 0;
 	bs = 10UL * maxpkt;
-	switch(speed){
+	switch(speed) {
 	case Highspeed:
-		l = 55*8*2 + 2 * (3 + bs) + Hostns;
+		l = 55 * 8 * 2 + 2 * (3 + bs) + Hostns;
 		break;
 	case Fullspeed:
 		l = 9107 + 84 * (4 + bs) + Hostns;
@@ -829,15 +825,15 @@ usbload(int speed, int maxpkt)
 		print("usbload: bad speed %d\n", speed);
 		/* let it run */
 	}
-	return l / 1000UL;	/* in µs */
+	return l / 1000UL; /* in µs */
 }
 
 static Chan*
-usbopen(Chan *c, int omode)
+usbopen(Chan* c, int omode)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int q;
-	Ep *ep;
+	Ep* ep;
 	int mode;
 
 	mode = openmode(omode);
@@ -852,18 +848,18 @@ usbopen(Chan *c, int omode)
 	if(ep == nil)
 		error(Eio);
 	deprint("usbopen q %#x fid %d omode %d\n", q, c->fid, mode);
-	if(waserror()){
+	if(waserror()) {
 		putep(ep);
 		nexterror();
 	}
 	qlock(ep);
-	if(ep->inuse){
+	if(ep->inuse) {
 		qunlock(ep);
 		error(Einuse);
 	}
 	ep->inuse = 1;
 	qunlock(ep);
-	if(waserror()){
+	if(waserror()) {
 		ep->inuse = 0;
 		nexterror();
 	}
@@ -879,26 +875,26 @@ usbopen(Chan *c, int omode)
 		ep->load = usbload(ep->dev->speed, ep->maxpkt);
 	ep->hp->epopen(ep);
 
-	poperror();	/* ep->inuse */
-	poperror();	/* don't putep(): ref kept for fid using the ep. */
+	poperror(); /* ep->inuse */
+	poperror(); /* don't putep(): ref kept for fid using the ep. */
 
 	c->mode = mode;
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->aux = nil;	/* paranoia */
+	c->aux = nil; /* paranoia */
 	return c;
 }
 
 static void
-epclose(Ep *ep)
+epclose(Ep* ep)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	qlock(ep);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(ep);
 		nexterror();
 	}
-	if(ep->inuse){
+	if(ep->inuse) {
 		ep->hp->epclose(ep);
 		ep->inuse = 0;
 	}
@@ -907,11 +903,11 @@ epclose(Ep *ep)
 }
 
 static void
-usbclose(Chan *c)
+usbclose(Chan* c)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int q;
-	Ep *ep;
+	Ep* ep;
 
 	q = QID(c->qid);
 	if(q < Qep0dir || isqtype(q, Qepctl) || isqtype(q, Qepdir))
@@ -921,15 +917,15 @@ usbclose(Chan *c)
 	if(ep == nil)
 		return;
 	deprint("usbclose q %#x fid %d ref %ld\n", q, c->fid, ep->ref);
-	if(waserror()){
+	if(waserror()) {
 		putep(ep);
 		nexterror();
 	}
-	if(c->flag & COPEN){
+	if(c->flag & COPEN) {
 		free(c->aux);
 		c->aux = nil;
 		epclose(ep);
-		putep(ep);	/* release ref kept since usbopen */
+		putep(ep); /* release ref kept since usbopen */
 		c->flag &= ~COPEN;
 	}
 	poperror();
@@ -937,53 +933,54 @@ usbclose(Chan *c)
 }
 
 static int32_t
-ctlread(Chan *c, void *a, int32_t n, int64_t offset)
+ctlread(Chan* c, void* a, int32_t n, int64_t offset)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int q;
-	char *s;
-	char *us;
-	char *se;
-	Ep *ep;
+	char* s;
+	char* us;
+	char* se;
+	Ep* ep;
 	int i;
 
 	q = QID(c->qid);
 	us = s = smalloc(READSTR);
 	se = s + READSTR;
-	if(waserror()){
+	if(waserror()) {
 		free(us);
 		nexterror();
 	}
 	if(q == Qctl)
-		for(i = 0; i < epmax; i++){
+		for(i = 0; i < epmax; i++) {
 			ep = getep(i);
-			if(ep != nil){
-				if(waserror()){
+			if(ep != nil) {
+				if(waserror()) {
 					putep(ep);
 					nexterror();
 				}
-				s = seprint(s, se, "ep%d.%d ", ep->dev->nb, ep->nb);
+				s = seprint(s, se, "ep%d.%d ", ep->dev->nb,
+				            ep->nb);
 				s = seprintep(s, se, ep, 0);
 				poperror();
 			}
 			putep(ep);
 		}
-	else{
+	else {
 		ep = getep(qid2epidx(q));
 		if(ep == nil)
 			error(Eio);
-		if(waserror()){
+		if(waserror()) {
 			putep(ep);
 			nexterror();
 		}
-		if(c->aux != nil){
+		if(c->aux != nil) {
 			/* After a new endpoint request we read
 			 * the new endpoint name back.
 			 */
 			strecpy(s, se, c->aux);
 			free(c->aux);
 			c->aux = nil;
-		}else
+		} else
 			seprintep(s, se, ep, 0);
 		poperror();
 		putep(ep);
@@ -998,9 +995,9 @@ ctlread(Chan *c, void *a, int32_t n, int64_t offset)
  * Fake root hub emulation.
  */
 static int32_t
-rhubread(Ep *ep, void *a, int32_t n)
+rhubread(Ep* ep, void* a, int32_t n)
 {
-	char *b;
+	char* b;
 
 	if(ep->dev->isroot == 0 || ep->nb != 0 || n < 2)
 		return -1;
@@ -1015,13 +1012,13 @@ rhubread(Ep *ep, void *a, int32_t n)
 }
 
 static int32_t
-rhubwrite(Ep *ep, void *a, int32_t n)
+rhubwrite(Ep* ep, void* a, int32_t n)
 {
-	unsigned char *s;
+	unsigned char* s;
 	int cmd;
 	int feature;
 	int port;
-	Hci *hp;
+	Hci* hp;
 
 	if(ep->dev == nil || ep->dev->isroot == 0 || ep->nb != 0)
 		return -1;
@@ -1029,15 +1026,16 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 		error("root hub is a toy hub");
 	ep->rhrepl = -1;
 	s = a;
-	if(s[Rtype] != (Rh2d|Rclass|Rother) && s[Rtype] != (Rd2h|Rclass|Rother))
+	if(s[Rtype] != (Rh2d | Rclass | Rother) &&
+	   s[Rtype] != (Rd2h | Rclass | Rother))
 		error("root hub is a toy hub");
 	hp = ep->hp;
 	cmd = s[Rreq];
-	feature = GET2(s+Rvalue);
-	port = GET2(s+Rindex);
+	feature = GET2(s + Rvalue);
+	port = GET2(s + Rindex);
 	if(port < 1 || port > hp->nports)
 		error("bad hub port number");
-	switch(feature){
+	switch(feature) {
 	case Rportenable:
 		ep->rhrepl = hp->portenable(hp, port, cmd == Rsetfeature);
 		break;
@@ -1054,11 +1052,11 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 }
 
 static int32_t
-usbread(Chan *c, void *a, int32_t n, int64_t offset)
+usbread(Chan* c, void* a, int32_t n, int64_t offset)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int q;
-	Ep *ep;
+	Ep* ep;
 	int nr;
 
 	q = QID(c->qid);
@@ -1072,7 +1070,7 @@ usbread(Chan *c, void *a, int32_t n, int64_t offset)
 	ep = getep(qid2epidx(q));
 	if(ep == nil)
 		error(Eio);
-	if(waserror()){
+	if(waserror()) {
 		putep(ep);
 		nexterror();
 	}
@@ -1080,18 +1078,19 @@ usbread(Chan *c, void *a, int32_t n, int64_t offset)
 		error(Edetach);
 	if(ep->mode == OWRITE || ep->inuse == 0)
 		error(Ebadusefd);
-	switch(ep->ttype){
+	switch(ep->ttype) {
 	case Tnone:
 		error("endpoint not configured");
 	case Tctl:
 		nr = rhubread(ep, a, n);
-		if(nr >= 0){
+		if(nr >= 0) {
 			n = nr;
 			break;
 		}
-		/* else fall */
+	/* else fall */
 	default:
-		ddeprint("\nusbread q %#x fid %d cnt %ld off %lld\n",q,c->fid,n,offset);
+		ddeprint("\nusbread q %#x fid %d cnt %ld off %lld\n", q, c->fid,
+		         n, offset);
 		n = ep->hp->epread(ep, a, n);
 		break;
 	}
@@ -1107,9 +1106,9 @@ pow2(int n)
 }
 
 static void
-setmaxpkt(Ep *ep, char* s)
+setmaxpkt(Ep* ep, char* s)
 {
-	int32_t spp;	/* samples per packet */
+	int32_t spp; /* samples per packet */
 
 	if(ep->dev->speed == Highspeed)
 		spp = (ep->hz * ep->pollival * ep->ntds + 7999) / 8000;
@@ -1117,11 +1116,12 @@ setmaxpkt(Ep *ep, char* s)
 		spp = (ep->hz * ep->pollival + 999) / 1000;
 	ep->maxpkt = spp * ep->samplesz;
 	deprint("usb: %s: setmaxpkt: hz %ld poll %ld"
-		" ntds %d %s speed -> spp %ld maxpkt %ld\n", s,
-		ep->hz, ep->pollival, ep->ntds, spname[ep->dev->speed],
-		spp, ep->maxpkt);
-	if(ep->maxpkt > 1024){
-		print("usb: %s: maxpkt %ld > 1024. truncating\n", s, ep->maxpkt);
+	        " ntds %d %s speed -> spp %ld maxpkt %ld\n",
+	        s, ep->hz, ep->pollival, ep->ntds, spname[ep->dev->speed], spp,
+	        ep->maxpkt);
+	if(ep->maxpkt > 1024) {
+		print("usb: %s: maxpkt %ld > 1024. truncating\n", s,
+		      ep->maxpkt);
 		ep->maxpkt = 1024;
 	}
 }
@@ -1132,21 +1132,21 @@ setmaxpkt(Ep *ep, char* s)
  * at them to setup the endpoints as dictated.
  */
 static int32_t
-epctl(Ep *ep, Chan *c, void *a, int32_t n)
+epctl(Ep* ep, Chan* c, void* a, int32_t n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int i, l, mode, nb, tt;
-	char *b, *s;
-	Cmdbuf *cb;
-	Cmdtab *ct;
-	Ep *nep;
-	Udev *d;
-	static char *Info = "info ";
+	char* b, *s;
+	Cmdbuf* cb;
+	Cmdtab* ct;
+	Ep* nep;
+	Udev* d;
+	static char* Info = "info ";
 
 	d = ep->dev;
 
 	cb = parsecmd(a, n);
-	if(waserror()){
+	if(waserror()) {
 		free(cb);
 		nexterror();
 	}
@@ -1160,7 +1160,7 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 	if(i != CMclrhalt && i != CMdetach && i != CMdebugep && i != CMname)
 		if(ep != ep->ep0 && ep->inuse != 0)
 			error("must configure before using");
-	switch(i){
+	switch(i) {
 	case CMnew:
 		deprint("usb epctl %s\n", cb->f[0]);
 		nb = strtol(cb->f[1], nil, 0);
@@ -1183,8 +1183,8 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 			error("speed must be full|low|high");
 		nep = newdev(ep->hp, 0, 0);
 		nep->dev->speed = l;
-		if(nep->dev->speed  != Lowspeed)
-			nep->maxpkt = 64;	/* assume full speed */
+		if(nep->dev->speed != Lowspeed)
+			nep->maxpkt = 64; /* assume full speed */
 		nep->dev->hub = d->nb;
 		nep->dev->port = atoi(cb->f[2]);
 		/* next read request will read
@@ -1231,13 +1231,12 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		l = strtoul(cb->f[1], nil, 0);
 		deprint("usb epctl %s %d\n", cb->f[0], l);
 		if(ep->ttype == Tiso ||
-		   (ep->ttype == Tintr && ep->dev->speed == Highspeed)){
+		   (ep->ttype == Tintr && ep->dev->speed == Highspeed)) {
 			if(l < 1 || l > 16)
 				error("pollival power not in [1:16]");
-			l = pow2(l-1);
-		}else
-			if(l < 1 || l > 255)
-				error("pollival not in [1:255]");
+			l = pow2(l - 1);
+		} else if(l < 1 || l > 255)
+			error("pollival not in [1:255]");
 		qlock(ep);
 		ep->pollival = l;
 		if(ep->ttype == Tiso)
@@ -1278,15 +1277,15 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		deprint("usb epctl %s\n", cb->f[0]);
 		l = strlen(Info);
 		s = a;
-		if(n < l+2 || strncmp(Info, s, l) != 0)
+		if(n < l + 2 || strncmp(Info, s, l) != 0)
 			error(Ebadctl);
 		if(n > 1024)
 			n = 1024;
 		b = smalloc(n);
-		memmove(b, s+l, n-l);
-		b[n-l] = 0;
-		if(b[n-l-1] == '\n')
-			b[n-l-1] = 0;
+		memmove(b, s + l, n - l);
+		b[n - l] = 0;
+		if(b[n - l - 1] == '\n')
+			b[n - l - 1] = 0;
 		qlock(ep);
 		free(ep->info);
 		ep->info = b;
@@ -1299,8 +1298,8 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 	case CMdetach:
 		if(ep->dev->isroot != 0)
 			error("can't detach a root hub");
-		deprint("usb epctl %s ep%d.%d\n",
-			cb->f[0], ep->dev->nb, ep->nb);
+		deprint("usb epctl %s ep%d.%d\n", cb->f[0], ep->dev->nb,
+		        ep->nb);
 		ep->dev->state = Ddetach;
 		/* Release file system ref. for its endpoints */
 		for(i = 0; i < nelem(ep->dev->eps); i++)
@@ -1313,8 +1312,8 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 			ep->debug = 0;
 		else
 			ep->debug = strtoul(cb->f[1], nil, 0);
-		print("usb: ep%d.%d debug %d\n",
-			ep->dev->nb, ep->nb, ep->debug);
+		print("usb: ep%d.%d debug %d\n", ep->dev->nb, ep->nb,
+		      ep->debug);
 		break;
 	case CMname:
 		deprint("usb epctl %s %s\n", cb->f[0], cb->f[1]);
@@ -1346,22 +1345,22 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 }
 
 static int32_t
-usbctl(void *a, int32_t n)
+usbctl(void* a, int32_t n)
 {
-	Proc *up = externup();
-	Cmdtab *ct;
-	Cmdbuf *cb;
-	Ep *ep;
+	Proc* up = externup();
+	Cmdtab* ct;
+	Cmdbuf* cb;
+	Ep* ep;
 	int i;
 
 	cb = parsecmd(a, n);
-	if(waserror()){
+	if(waserror()) {
 		free(cb);
 		nexterror();
 	}
 	ct = lookupcmd(cb, usbctls, nelem(usbctls));
 	dprint("usb ctl %s\n", cb->f[0]);
-	switch(ct->index){
+	switch(ct->index) {
 	case CMdebug:
 		if(strcmp(cb->f[1], "on") == 0)
 			debug = 1;
@@ -1371,7 +1370,7 @@ usbctl(void *a, int32_t n)
 			debug = strtol(cb->f[1], nil, 0);
 		print("usb: debug %d\n", debug);
 		for(i = 0; i < epmax; i++)
-			if((ep = getep(i)) != nil){
+			if((ep = getep(i)) != nil) {
 				ep->hp->debug(ep->hp, debug);
 				putep(ep);
 			}
@@ -1386,11 +1385,11 @@ usbctl(void *a, int32_t n)
 }
 
 static int32_t
-ctlwrite(Chan *c, void *a, int32_t n)
+ctlwrite(Chan* c, void* a, int32_t n)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int q;
-	Ep *ep;
+	Ep* ep;
 
 	q = QID(c->qid);
 	if(q == Qctl)
@@ -1399,13 +1398,13 @@ ctlwrite(Chan *c, void *a, int32_t n)
 	ep = getep(qid2epidx(q));
 	if(ep == nil)
 		error(Eio);
-	if(waserror()){
+	if(waserror()) {
 		putep(ep);
 		nexterror();
 	}
 	if(ep->dev->state == Ddetach)
 		error(Edetach);
-	if(isqtype(q, Qepctl) && c->aux != nil){
+	if(isqtype(q, Qepctl) && c->aux != nil) {
 		/* Be sure we don't keep a cloned ep name */
 		free(c->aux);
 		c->aux = nil;
@@ -1418,11 +1417,11 @@ ctlwrite(Chan *c, void *a, int32_t n)
 }
 
 static int32_t
-usbwrite(Chan *c, void *a, int32_t n, int64_t off)
+usbwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
-	Proc *up = externup();
+	Proc* up = externup();
 	int nr, q;
-	Ep *ep;
+	Ep* ep;
 
 	if(c->qid.type == QTDIR)
 		error(Eisdir);
@@ -1435,7 +1434,7 @@ usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 	ep = getep(qid2epidx(q));
 	if(ep == nil)
 		error(Eio);
-	if(waserror()){
+	if(waserror()) {
 		putep(ep);
 		nexterror();
 	}
@@ -1444,18 +1443,19 @@ usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 	if(ep->mode == OREAD || ep->inuse == 0)
 		error(Ebadusefd);
 
-	switch(ep->ttype){
+	switch(ep->ttype) {
 	case Tnone:
 		error("endpoint not configured");
 	case Tctl:
 		nr = rhubwrite(ep, a, n);
-		if(nr >= 0){
+		if(nr >= 0) {
 			n = nr;
 			break;
 		}
-		/* else fall */
+	/* else fall */
 	default:
-		ddeprint("\nusbwrite q %#x fid %d cnt %ld off %lld\n",q, c->fid, n, off);
+		ddeprint("\nusbwrite q %#x fid %d cnt %ld off %lld\n", q,
+		         c->fid, n, off);
 		ep->hp->epwrite(ep, a, n);
 	}
 	putep(ep);
@@ -1466,10 +1466,10 @@ usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 void
 usbshutdown(void)
 {
-	Hci *hp;
+	Hci* hp;
 	int i;
 
-	for(i = 0; i < Nhcis; i++){
+	for(i = 0; i < Nhcis; i++) {
 		hp = hcis[i];
 		if(hp == nil)
 			continue;
@@ -1481,22 +1481,9 @@ usbshutdown(void)
 }
 
 Dev usbdevtab = {
-	L'u',
-	"usb",
+    L'u',     "usb",
 
-	usbreset,
-	usbinit,
-	usbshutdown,
-	usbattach,
-	usbwalk,
-	usbstat,
-	usbopen,
-	devcreate,
-	usbclose,
-	usbread,
-	devbread,
-	usbwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    usbreset, usbinit,  usbshutdown, usbattach, usbwalk,
+    usbstat,  usbopen,  devcreate,   usbclose,  usbread,
+    devbread, usbwrite, devbwrite,   devremove, devwstat,
 };

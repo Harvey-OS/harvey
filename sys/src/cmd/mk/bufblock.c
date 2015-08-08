@@ -7,23 +7,23 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-static Bufblock *freelist;
-#define	QUANTA	4096
+static Bufblock* freelist;
+#define QUANTA 4096
 
-Bufblock *
+Bufblock*
 newbuf(void)
 {
-	Bufblock *p;
+	Bufblock* p;
 
-	if (freelist) {
+	if(freelist) {
 		p = freelist;
 		freelist = freelist->next;
 	} else {
-		p = (Bufblock *) Malloc(sizeof(Bufblock));
-		p->start = Malloc(QUANTA*sizeof(*p->start));
-		p->end = p->start+QUANTA;
+		p = (Bufblock*)Malloc(sizeof(Bufblock));
+		p->start = Malloc(QUANTA * sizeof(*p->start));
+		p->end = p->start + QUANTA;
 	}
 	p->current = p->start;
 	*p->start = 0;
@@ -32,24 +32,24 @@ newbuf(void)
 }
 
 void
-freebuf(Bufblock *p)
+freebuf(Bufblock* p)
 {
 	p->next = freelist;
 	freelist = p;
 }
 
 void
-growbuf(Bufblock *p)
+growbuf(Bufblock* p)
 {
 	int n;
-	Bufblock *f;
-	char *cp;
+	Bufblock* f;
+	char* cp;
 
-	n = p->end-p->start+QUANTA;
-		/* search the free list for a big buffer */
-	for (f = freelist; f; f = f->next) {
-		if (f->end-f->start >= n) {
-			memcpy(f->start, p->start, p->end-p->start);
+	n = p->end - p->start + QUANTA;
+	/* search the free list for a big buffer */
+	for(f = freelist; f; f = f->next) {
+		if(f->end - f->start >= n) {
+			memcpy(f->start, p->start, p->end - p->start);
 			cp = f->start;
 			f->start = p->start;
 			p->start = cp;
@@ -60,37 +60,37 @@ growbuf(Bufblock *p)
 			break;
 		}
 	}
-	if (!f) {		/* not found - grow it */
+	if(!f) { /* not found - grow it */
 		p->start = Realloc(p->start, n);
-		p->end = p->start+n;
+		p->end = p->start + n;
 	}
-	p->current = p->start+n-QUANTA;
+	p->current = p->start + n - QUANTA;
 }
 
 void
-bufcpy(Bufblock *buf, char *cp, int n)
+bufcpy(Bufblock* buf, char* cp, int n)
 {
 
-	while (n--)
+	while(n--)
 		insert(buf, *cp++);
 }
 
 void
-insert(Bufblock *buf, int c)
+insert(Bufblock* buf, int c)
 {
 
-	if (buf->current >= buf->end)
+	if(buf->current >= buf->end)
 		growbuf(buf);
 	*buf->current++ = c;
 }
 
 void
-rinsert(Bufblock *buf, Rune r)
+rinsert(Bufblock* buf, Rune r)
 {
 	int n;
 
 	n = runelen(r);
-	if (buf->current+n > buf->end)
+	if(buf->current + n > buf->end)
 		growbuf(buf);
 	runetochar(buf->current, &r);
 	buf->current += n;

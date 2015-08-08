@@ -10,199 +10,200 @@
 /*
  * Generic VGA registers.
  */
-enum {
-	MiscW		= 0x03C2,	/* Miscellaneous Output (W) */
-	MiscR		= 0x03CC,	/* Miscellaneous Output (R) */
-	Status0		= 0x03C2,	/* Input status 0 (R) */
-	Status1		= 0x03DA,	/* Input Status 1 (R) */
-	FeatureR	= 0x03CA,	/* Feature Control (R) */
-	FeatureW	= 0x03DA,	/* Feature Control (W) */
+enum { MiscW = 0x03C2,    /* Miscellaneous Output (W) */
+       MiscR = 0x03CC,    /* Miscellaneous Output (R) */
+       Status0 = 0x03C2,  /* Input status 0 (R) */
+       Status1 = 0x03DA,  /* Input Status 1 (R) */
+       FeatureR = 0x03CA, /* Feature Control (R) */
+       FeatureW = 0x03DA, /* Feature Control (W) */
 
-	Seqx		= 0x03C4,	/* Sequencer Index, Data at Seqx+1 */
-	Crtx		= 0x03D4,	/* CRT Controller Index, Data at Crtx+1 */
-	Grx		= 0x03CE,	/* Graphics Controller Index, Data at Grx+1 */
-	Attrx		= 0x03C0,	/* Attribute Controller Index and Data */
+       Seqx = 0x03C4,  /* Sequencer Index, Data at Seqx+1 */
+       Crtx = 0x03D4,  /* CRT Controller Index, Data at Crtx+1 */
+       Grx = 0x03CE,   /* Graphics Controller Index, Data at Grx+1 */
+       Attrx = 0x03C0, /* Attribute Controller Index and Data */
 
-	PaddrW		= 0x03C8,	/* Palette Address Register, write */
-	Pdata		= 0x03C9,	/* Palette Data Register */
-	Pixmask		= 0x03C6,	/* Pixel Mask Register */
-	PaddrR		= 0x03C7,	/* Palette Address Register, read */
-	Pstatus		= 0x03C7,	/* DAC Status (RO) */
+       PaddrW = 0x03C8,  /* Palette Address Register, write */
+       Pdata = 0x03C9,   /* Palette Data Register */
+       Pixmask = 0x03C6, /* Pixel Mask Register */
+       PaddrR = 0x03C7,  /* Palette Address Register, read */
+       Pstatus = 0x03C7, /* DAC Status (RO) */
 
-	Pcolours	= 256,		/* Palette */
-	Red		= 0,
-	Green		= 1,
-	Blue		= 2,
+       Pcolours = 256, /* Palette */
+       Red = 0,
+       Green = 1,
+       Blue = 2,
 
-	Pblack		= 0x00,
-	Pwhite		= 0xFF,
+       Pblack = 0x00,
+       Pwhite = 0xFF,
 };
 
-enum {
-	RefFreq		= 14318180,	/* External Reference Clock frequency */
-	VgaFreq0	= 25175000,
-	VgaFreq1	= 28322000,
+enum { RefFreq = 14318180, /* External Reference Clock frequency */
+       VgaFreq0 = 25175000,
+       VgaFreq1 = 28322000,
 };
 
-enum {
-	Namelen		= 32,
+enum { Namelen = 32,
 };
 
 typedef struct Ctlr Ctlr;
 typedef struct Vga Vga;
 
 typedef struct Ctlr {
-	char	name[Namelen+1];
-	void	(*snarf)(Vga*, Ctlr*);
-	void	(*options)(Vga*, Ctlr*);
-	void	(*init)(Vga*, Ctlr*);
-	void	(*load)(Vga*, Ctlr*);
-	void	(*dump)(Vga*, Ctlr*);
-	char*	type;
+	char name[Namelen + 1];
+	void (*snarf)(Vga*, Ctlr*);
+	void (*options)(Vga*, Ctlr*);
+	void (*init)(Vga*, Ctlr*);
+	void (*load)(Vga*, Ctlr*);
+	void (*dump)(Vga*, Ctlr*);
+	char* type;
 
-	uint32_t	flag;
+	uint32_t flag;
 
-	Ctlr*	link;
+	Ctlr* link;
 } Ctlr;
 
-enum {					/* flag */
-	Fsnarf		= 0x00000001,	/* snarf done */
-	Foptions	= 0x00000002,	/* options done */
-	Finit		= 0x00000004,	/* init done */
-	Fload		= 0x00000008,	/* load done */
-	Fdump		= 0x00000010,	/* dump done */
-	Ferror		= 0x00000020, /* error during snarf */
+enum {                        /* flag */
+       Fsnarf = 0x00000001,   /* snarf done */
+       Foptions = 0x00000002, /* options done */
+       Finit = 0x00000004,    /* init done */
+       Fload = 0x00000008,    /* load done */
+       Fdump = 0x00000010,    /* dump done */
+       Ferror = 0x00000020,   /* error during snarf */
 
-	Hpclk2x8	= 0x00000100,	/* have double 8-bit mode */
-	Upclk2x8	= 0x00000200,	/* use double 8-bit mode */
-	Henhanced	= 0x00000400,	/* have enhanced mode */
-	Uenhanced	= 0x00000800,	/* use enhanced mode */
-	Hpvram		= 0x00001000,	/* have parallel VRAM */
-	Upvram		= 0x00002000,	/* use parallel VRAM */
-	Hextsid		= 0x00004000,	/* have external SID mode */
-	Uextsid		= 0x00008000,	/* use external SID mode */
-	Hclk2		= 0x00010000,	/* have clock-doubler */
-	Uclk2		= 0x00020000,	/* use clock-doubler */
-	Hlinear		= 0x00040000,	/* have linear-address mode */
-	Ulinear		= 0x00080000,	/* use linear-address mode */
-	Hclkdiv		= 0x00100000,	/* have a clock-divisor */
-	Uclkdiv		= 0x00200000,	/* use clock-divisor */
-	Hsid32		= 0x00400000,	/* have a 32-bit (as opposed to 64-bit) SID */
+       Hpclk2x8 = 0x00000100,  /* have double 8-bit mode */
+       Upclk2x8 = 0x00000200,  /* use double 8-bit mode */
+       Henhanced = 0x00000400, /* have enhanced mode */
+       Uenhanced = 0x00000800, /* use enhanced mode */
+       Hpvram = 0x00001000,    /* have parallel VRAM */
+       Upvram = 0x00002000,    /* use parallel VRAM */
+       Hextsid = 0x00004000,   /* have external SID mode */
+       Uextsid = 0x00008000,   /* use external SID mode */
+       Hclk2 = 0x00010000,     /* have clock-doubler */
+       Uclk2 = 0x00020000,     /* use clock-doubler */
+       Hlinear = 0x00040000,   /* have linear-address mode */
+       Ulinear = 0x00080000,   /* use linear-address mode */
+       Hclkdiv = 0x00100000,   /* have a clock-divisor */
+       Uclkdiv = 0x00200000,   /* use clock-divisor */
+       Hsid32 = 0x00400000,    /* have a 32-bit (as opposed to 64-bit) SID */
 };
 
 typedef struct Attr Attr;
 typedef struct Attr {
-	char*	attr;
-	char*	val;
+	char* attr;
+	char* val;
 
-	Attr*	next;
+	Attr* next;
 } Attr;
 
 typedef struct Mode {
-	char	type[Namelen+1];	/* monitor type e.g. "vs1782" */
-	char	size[Namelen+1];	/* size e.g. "1376x1024x8" */
-	char	chan[Namelen+1];	/* channel descriptor, e.g. "m8" or "r8g8b8a8" */
-	char name[Namelen+1];	/* optional */
+	char type[Namelen + 1]; /* monitor type e.g. "vs1782" */
+	char size[Namelen + 1]; /* size e.g. "1376x1024x8" */
+	char
+	    chan[Namelen + 1]; /* channel descriptor, e.g. "m8" or "r8g8b8a8" */
+	char name[Namelen + 1]; /* optional */
 
-	int	frequency;		/* Dot Clock (MHz) */
-	int	deffrequency;		/* Default dot clock if calculation can't be done */
-	int	x;			/* Horizontal Display End (Crt01), from .size[] */
-	int	y;			/* Vertical Display End (Crt18), from .size[] */
-	int	z;			/* depth, from .size[] */
+	int frequency;    /* Dot Clock (MHz) */
+	int deffrequency; /* Default dot clock if calculation can't be done */
+	int x;            /* Horizontal Display End (Crt01), from .size[] */
+	int y;            /* Vertical Display End (Crt18), from .size[] */
+	int z;            /* depth, from .size[] */
 
-	int	ht;			/* Horizontal Total (Crt00) */
-	int	shb;			/* Start Horizontal Blank (Crt02) */
-	int	ehb;			/* End Horizontal Blank (Crt03) */
+	int ht;  /* Horizontal Total (Crt00) */
+	int shb; /* Start Horizontal Blank (Crt02) */
+	int ehb; /* End Horizontal Blank (Crt03) */
 
-	int	shs;			/* optional Start Horizontal Sync (Crt04) */
-	int	ehs;			/* optional End Horizontal Sync (Crt05) */
+	int shs; /* optional Start Horizontal Sync (Crt04) */
+	int ehs; /* optional End Horizontal Sync (Crt05) */
 
-	int	vt;			/* Vertical Total (Crt06) */
-	int	vrs;			/* Vertical Retrace Start (Crt10) */
-	int	vre;			/* Vertical Retrace End (Crt11) */
+	int vt;  /* Vertical Total (Crt06) */
+	int vrs; /* Vertical Retrace Start (Crt10) */
+	int vre; /* Vertical Retrace End (Crt11) */
 
-	int		vbs;		/* optional Vertical Blank Start */
-	int		vbe;		/* optional Vertical Blank End */
-	
-	uint32_t	videobw;
+	int vbs; /* optional Vertical Blank Start */
+	int vbe; /* optional Vertical Blank End */
 
-	char	hsync;
-	char	vsync;
-	char	interlace;
+	uint32_t videobw;
 
-	Attr*	attr;
+	char hsync;
+	char vsync;
+	char interlace;
+
+	Attr* attr;
 } Mode;
 
 /*
- * The sizes of the register sets are large as many SVGA and GUI chips have extras.
+ * The sizes of the register sets are large as many SVGA and GUI chips have
+ *extras.
  * The Crt registers are uint16_ts in order to keep overflow bits handy.
- * The clock elements are used for communication between the VGA, RAMDAC and clock chips;
- * they can use them however they like, it's assumed they will be used compatibly.
+ * The clock elements are used for communication between the VGA, RAMDAC and
+ *clock chips;
+ * they can use them however they like, it's assumed they will be used
+ *compatibly.
  *
- * The mode->x, mode->y coordinates are the physical size of the screen. 
+ * The mode->x, mode->y coordinates are the physical size of the screen.
  * Virtx and virty are the coordinates of the underlying memory image.
  * This can be used to implement panning around a larger screen or to cope
  * with chipsets that need the in-memory pixel line width to be a round number.
- * For example, virge.c uses this because the Savage chipset needs the pixel 
+ * For example, virge.c uses this because the Savage chipset needs the pixel
  * width to be a multiple of 16.  Also, mga2164w.c needs the pixel width
  * to be a multiple of 128.
  *
  * Vga->panning differentiates between these two uses of virtx, virty.
  *
  * (14 October 2001, rsc) Most drivers don't know the difference between
- * mode->x and virtx, a bug that should be corrected.  Vga.c, virge.c, and 
+ * mode->x and virtx, a bug that should be corrected.  Vga.c, virge.c, and
  * mga2164w.c know.  For the others, the computation that sets crt[0x13]
  * should use virtx instead of mode->x (and maybe other places change too,
  * dependent on the driver).
  */
 typedef struct Vga {
-	uint8_t	misc;
-	uint8_t	feature;
-	uint8_t	sequencer[256];
-	uint16_t	crt[256];
-	uint8_t	graphics[256];
-	uint8_t	attribute[256];
-	uint8_t	pixmask;
-	uint8_t	pstatus;
-	uint8_t	palette[Pcolours][3];
+	uint8_t misc;
+	uint8_t feature;
+	uint8_t sequencer[256];
+	uint16_t crt[256];
+	uint8_t graphics[256];
+	uint8_t attribute[256];
+	uint8_t pixmask;
+	uint8_t pstatus;
+	uint8_t palette[Pcolours][3];
 
-	uint32_t	f[2];			/* clock */
-	uint32_t	d[2];
-	uint32_t	i[2];
-	uint32_t	m[2];
-	uint32_t	n[2];
-	uint32_t	p[2];
-	uint32_t	q[2];
-	uint32_t	r[2];
+	uint32_t f[2]; /* clock */
+	uint32_t d[2];
+	uint32_t i[2];
+	uint32_t m[2];
+	uint32_t n[2];
+	uint32_t p[2];
+	uint32_t q[2];
+	uint32_t r[2];
 
-	uint32_t	vma;			/* video memory linear-address alignment */
-	uint32_t	vmb;			/* video memory linear-address base */
-	uint32_t	apz;			/* aperture size */
-	uint32_t	vmz;			/* video memory size */
+	uint32_t vma; /* video memory linear-address alignment */
+	uint32_t vmb; /* video memory linear-address base */
+	uint32_t apz; /* aperture size */
+	uint32_t vmz; /* video memory size */
 
-	uint32_t	membw;			/* memory bandwidth, MB/s */
+	uint32_t membw; /* memory bandwidth, MB/s */
 
-	long	offset;			/* BIOS string offset */
-	char*	bios;			/* matching BIOS string */
-	Pcidev*	pci;			/* matching PCI device if any */
+	long offset; /* BIOS string offset */
+	char* bios;  /* matching BIOS string */
+	Pcidev* pci; /* matching PCI device if any */
 
-	Mode*	mode;
+	Mode* mode;
 
-	uint32_t	virtx;			/* resolution of virtual screen */
-	uint32_t	virty;
+	uint32_t virtx; /* resolution of virtual screen */
+	uint32_t virty;
 
-	int	panning;		/* pan the virtual screen */
+	int panning; /* pan the virtual screen */
 
-	Ctlr*	ctlr;
-	Ctlr*	ramdac;
-	Ctlr*	clock;
-	Ctlr*	hwgc;
+	Ctlr* ctlr;
+	Ctlr* ramdac;
+	Ctlr* clock;
+	Ctlr* hwgc;
 	Ctlr* vesa;
-	Ctlr*	link;
-	int	linear;
-	Attr*	attr;
+	Ctlr* link;
+	int linear;
+	Attr* attr;
 
-	void*	private;
+	void* private;
 } Vga;
 
 /* 3dfx.c */
@@ -252,7 +253,7 @@ extern Ctlr cyber938xhwgc;
 /* data.c */
 extern int cflag;
 extern int dflag;
-extern Ctlr *ctlrs[];
+extern Ctlr* ctlrs[];
 extern uint16_t dacxreg[4];
 
 /* db.c */
@@ -326,7 +327,7 @@ extern Ctlr mach64xxhwgc;
 extern char* chanstr[];
 extern void resyncinit(Vga*, Ctlr*, uint32_t, uint32_t);
 extern void sequencer(Vga*, int);
-extern void main(int, char*[]);
+extern void main(int, char* []);
 Biobuf stdout;
 
 /* mga2164w.c */
@@ -432,9 +433,9 @@ extern Ctlr generic;
 
 /* vesa.c */
 extern Ctlr vesa;
-extern Ctlr softhwgc;	/* has to go somewhere */
+extern Ctlr softhwgc; /* has to go somewhere */
 extern int dbvesa(Vga*);
-extern Mode *dbvesamode(char*);
+extern Mode* dbvesamode(char*);
 extern void vesatextmode(void);
 
 /* virge.c */
@@ -460,5 +461,5 @@ extern Ctlr w30c516;
 extern Ctlr mga4xx;
 extern Ctlr mga4xxhwgc;
 
-#pragma	varargck	argpos	error	1
-#pragma	varargck	argpos	trace	1
+#pragma varargck argpos error 1
+#pragma varargck argpos trace 1

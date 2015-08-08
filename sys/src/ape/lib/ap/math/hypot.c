@@ -27,12 +27,12 @@ hypot(double a, double b)
 		a = b;
 		b = t;
 	}
-	if(b == 0) 
+	if(b == 0)
 		return 0;
 	a /= b;
 	/*
 	 * pathological overflow possible
 	 * in the next line.
 	 */
-	return b * sqrt(1 + a*a);
+	return b * sqrt(1 + a * a);
 }

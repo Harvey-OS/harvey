@@ -18,20 +18,20 @@
 #include "edit.h"
 
 char*
-getline(Edit *edit)
+getline(Edit* edit)
 {
 	static int inited;
 	static Biobuf bin;
-	char *p;
+	char* p;
 	int n;
 
-	if(!inited){
+	if(!inited) {
 		Binit(&bin, 0, OREAD);
 		inited = 1;
 	}
 	p = Brdline(&bin, '\n');
 	n = Blinelen(&bin);
-	if(p == nil || n < 1){
+	if(p == nil || n < 1) {
 		if(edit->changed)
 			fprint(2, "?warning: changes not written\n");
 		exits(0);
@@ -43,18 +43,18 @@ getline(Edit *edit)
 }
 
 Part*
-findpart(Edit *edit, char *name)
+findpart(Edit* edit, char* name)
 {
 	int i;
 
-	for(i=0; i<edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		if(strcmp(edit->part[i]->name, name) == 0)
 			return edit->part[i];
 	return nil;
 }
 
 static char*
-okname(Edit *edit, char *name)
+okname(Edit* edit, char* name)
 {
 	int i;
 	static char msg[100];
@@ -62,12 +62,13 @@ okname(Edit *edit, char *name)
 	if(name[0] == '\0')
 		return "partition has no name";
 
-//	if(strlen(name) >= NAMELEN)
-//		return "name too long";
-//
-	for(i=0; i<edit->npart; i++) {
+	//	if(strlen(name) >= NAMELEN)
+	//		return "name too long";
+	//
+	for(i = 0; i < edit->npart; i++) {
 		if(strcmp(name, edit->part[i]->name) == 0) {
-			sprint(msg, "already have partition with name \"%s\"", name);
+			sprint(msg, "already have partition with name \"%s\"",
+			       name);
 			return msg;
 		}
 	}
@@ -75,31 +76,34 @@ okname(Edit *edit, char *name)
 }
 
 char*
-addpart(Edit *edit, Part *p)
+addpart(Edit* edit, Part* p)
 {
 	int i;
 	static char msg[100];
-	char *err;
+	char* err;
 
 	if(err = okname(edit, p->name))
 		return err;
 
-	for(i=0; i<edit->npart; i++) {
-		if(p->start < edit->part[i]->end && edit->part[i]->start < p->end) {
-			sprint(msg, "\"%s\" %lld-%lld overlaps with \"%s\" %lld-%lld",
-				p->name, p->start, p->end,
-				edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
-		//	return msg;
+	for(i = 0; i < edit->npart; i++) {
+		if(p->start < edit->part[i]->end &&
+		   edit->part[i]->start < p->end) {
+			sprint(
+			    msg,
+			    "\"%s\" %lld-%lld overlaps with \"%s\" %lld-%lld",
+			    p->name, p->start, p->end, edit->part[i]->name,
+			    edit->part[i]->start, edit->part[i]->end);
+			//	return msg;
 		}
 	}
 
-	if(edit->npart >= nelem(edit->part))	
+	if(edit->npart >= nelem(edit->part))
 		return "too many partitions";
 
-	edit->part[i=edit->npart++] = p;
-	for(; i > 0 && p->start < edit->part[i-1]->start; i--) {
-		edit->part[i] = edit->part[i-1];
-		edit->part[i-1] = p;
+	edit->part[i = edit->npart++] = p;
+	for(; i > 0 && p->start < edit->part[i - 1]->start; i--) {
+		edit->part[i] = edit->part[i - 1];
+		edit->part[i - 1] = p;
 	}
 
 	if(p->changed)
@@ -108,26 +112,26 @@ addpart(Edit *edit, Part *p)
 }
 
 char*
-delpart(Edit *edit, Part *p)
+delpart(Edit* edit, Part* p)
 {
 	int i;
 
-	for(i=0; i<edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		if(edit->part[i] == p)
 			break;
 	assert(i < edit->npart);
 	edit->npart--;
-	for(; i<edit->npart; i++)
-		edit->part[i] = edit->part[i+1];
+	for(; i < edit->npart; i++)
+		edit->part[i] = edit->part[i + 1];
 
 	edit->changed = 1;
 	return nil;
 }
 
 static char*
-editdot(Edit *edit, int argc, char **argv)
+editdot(Edit* edit, int argc, char** argv)
 {
-	char *err;
+	char* err;
 	int64_t ndot;
 
 	if(argc == 1) {
@@ -146,9 +150,9 @@ editdot(Edit *edit, int argc, char **argv)
 }
 
 static char*
-editadd(Edit *edit, int argc, char **argv)
+editadd(Edit* edit, int argc, char** argv)
 {
-	char *name, *err, *q;
+	char* name, *err, *q;
 	static char msg[100];
 	int64_t start, end, maxend;
 	int i;
@@ -172,16 +176,19 @@ editadd(Edit *edit, int argc, char **argv)
 	if(start < 0 || start >= edit->end)
 		return "start out of range";
 
-	for(i=0; i < edit->npart; i++) {
-		if(edit->part[i]->start <= start && start < edit->part[i]->end) {
-			sprint(msg, "start %s in partition \"%s\"", edit->unit, edit->part[i]->name);
+	for(i = 0; i < edit->npart; i++) {
+		if(edit->part[i]->start <= start &&
+		   start < edit->part[i]->end) {
+			sprint(msg, "start %s in partition \"%s\"", edit->unit,
+			       edit->part[i]->name);
 			return msg;
 		}
 	}
 
 	maxend = edit->end;
-	for(i=0; i < edit->npart; i++)
-		if(start < edit->part[i]->start && edit->part[i]->start < maxend)
+	for(i = 0; i < edit->npart; i++)
+		if(start < edit->part[i]->start &&
+		   edit->part[i]->start < maxend)
 			maxend = edit->part[i]->start;
 
 	if(argc >= 4)
@@ -210,9 +217,9 @@ editadd(Edit *edit, int argc, char **argv)
 }
 
 static char*
-editdel(Edit *edit, int argc, char **argv)
+editdel(Edit* edit, int argc, char** argv)
 {
-	Part *p;
+	Part* p;
 
 	if(argc != 2)
 		return "args";
@@ -223,18 +230,17 @@ editdel(Edit *edit, int argc, char **argv)
 	return edit->del(edit, p);
 }
 
-static char *helptext = 
-	". [newdot] - display or set value of dot\n"
-	"a name [start [end]] - add partition\n"
-	"d name - delete partition\n"
-	"h - print help message\n"
-	"p - print partition table\n"
-	"P - print commands to update sd(3) device\n"
-	"w - write partition table\n"
-	"q - quit\n";
+static char* helptext = ". [newdot] - display or set value of dot\n"
+                        "a name [start [end]] - add partition\n"
+                        "d name - delete partition\n"
+                        "h - print help message\n"
+                        "p - print partition table\n"
+                        "P - print commands to update sd(3) device\n"
+                        "w - write partition table\n"
+                        "q - quit\n";
 
 static char*
-edithelp(Edit *edit, int i, char **c)
+edithelp(Edit* edit, int i, char** c)
 {
 	print("%s", helptext);
 	if(edit->help)
@@ -243,18 +249,18 @@ edithelp(Edit *edit, int i, char **c)
 }
 
 static char*
-editprint(Edit *edit, int argc, char **c)
+editprint(Edit* edit, int argc, char** c)
 {
 	int64_t lastend;
 	int i;
-	Part **part;
+	Part** part;
 
 	if(argc != 1)
 		return "args";
 
 	lastend = 0;
 	part = edit->part;
-	for(i=0; i<edit->npart; i++) {
+	for(i = 0; i < edit->npart; i++) {
 		if(lastend < part[i]->start)
 			edit->sum(edit, nil, lastend, part[i]->start);
 		edit->sum(edit, part[i], part[i]->start, part[i]->end);
@@ -266,10 +272,10 @@ editprint(Edit *edit, int argc, char **c)
 }
 
 char*
-editwrite(Edit *edit, int argc, char **c)
+editwrite(Edit* edit, int argc, char** c)
 {
 	int i;
-	char *err;
+	char* err;
 
 	if(argc != 1)
 		return "args";
@@ -280,14 +286,14 @@ editwrite(Edit *edit, int argc, char **c)
 	err = edit->write(edit);
 	if(err)
 		return err;
-	for(i=0; i<edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		edit->part[i]->changed = 0;
 	edit->changed = 0;
 	return nil;
 }
 
 static char*
-editquit(Edit *edit, int argc, char **c)
+editquit(Edit* edit, int argc, char** c)
 {
 	static int warned;
 
@@ -302,11 +308,11 @@ editquit(Edit *edit, int argc, char **c)
 	}
 
 	exits(0);
-	return nil;	/* not reached */
+	return nil; /* not reached */
 }
 
 char*
-editctlprint(Edit *edit, int argc, char **c)
+editctlprint(Edit* edit, int argc, char** c)
 {
 	if(argc != 1)
 		return "args";
@@ -321,25 +327,19 @@ editctlprint(Edit *edit, int argc, char **c)
 typedef struct Cmd Cmd;
 struct Cmd {
 	char c;
-	char *(*fn)(Edit*, int ,char**);
+	char* (*fn)(Edit*, int, char**);
 };
 
 Cmd cmds[] = {
-	'.',	editdot,
-	'a',	editadd,
-	'd',	editdel,
-	'?',	edithelp,
-	'h',	edithelp,
-	'P',	editctlprint,
-	'p',	editprint,
-	'w',	editwrite,
-	'q',	editquit,
+    '.', editdot,   'a', editadd,   'd', editdel,
+    '?', edithelp,  'h', edithelp,  'P', editctlprint,
+    'p', editprint, 'w', editwrite, 'q', editquit,
 };
 
 void
-runcmd(Edit *edit, char *cmd)
+runcmd(Edit* edit, char* cmd)
 {
-	char *f[10], *err;
+	char* f[10], *err;
 	int i, nf;
 
 	while(*cmd && isspace(*cmd))
@@ -359,27 +359,27 @@ runcmd(Edit *edit, char *cmd)
 	}
 
 	err = nil;
-	for(i=0; i<nelem(cmds); i++) {
+	for(i = 0; i < nelem(cmds); i++) {
 		if(cmds[i].c == f[0][0]) {
 			err = cmds[i].fn(edit, nf, f);
 			break;
 		}
 	}
-	if(i == nelem(cmds)){
+	if(i == nelem(cmds)) {
 		if(edit->ext)
 			err = edit->ext(edit, nf, f);
 		else
 			err = "unknown command";
 	}
-	if(err) 
+	if(err)
 		fprint(2, "?%s\n", err);
 	edit->lastcmd = f[0][0];
 }
 
 static Part*
-ctlmkpart(char *name, int64_t start, int64_t end, int changed)
+ctlmkpart(char* name, int64_t start, int64_t end, int changed)
 {
-	Part *p;
+	Part* p;
 
 	p = emalloc(sizeof(*p));
 	p->name = estrdup(name);
@@ -391,14 +391,14 @@ ctlmkpart(char *name, int64_t start, int64_t end, int changed)
 }
 
 static void
-rdctlpart(Edit *edit)
+rdctlpart(Edit* edit)
 {
 	int i, nline, nf;
-	char *line[128];
+	char* line[128];
 	char buf[4096];
 	int64_t a, b;
-	char *f[5];
-	Disk *disk;
+	char* f[5];
+	Disk* disk;
 
 	disk = edit->disk;
 	edit->nctlpart = 0;
@@ -408,7 +408,7 @@ rdctlpart(Edit *edit)
 	}
 
 	nline = getfields(buf, line, nelem(line), 1, "\n");
-	for(i=0; i<nline; i++){
+	for(i = 0; i < nline; i++) {
 		if(strncmp(line[i], "part ", 5) != 0)
 			continue;
 
@@ -422,8 +422,9 @@ rdctlpart(Edit *edit)
 		if(a >= b)
 			break;
 
-		/* only gather partitions contained in the disk partition we are editing */
-		if(a < disk->offset ||  disk->offset+disk->secs < b)
+		/* only gather partitions contained in the disk partition we are
+		 * editing */
+		if(a < disk->offset || disk->offset + disk->secs < b)
 			continue;
 
 		a -= disk->offset;
@@ -442,7 +443,7 @@ rdctlpart(Edit *edit)
 }
 
 static int64_t
-ctlstart(Part *p)
+ctlstart(Part* p)
 {
 	if(p->ctlstart)
 		return p->ctlstart;
@@ -450,7 +451,7 @@ ctlstart(Part *p)
 }
 
 static int64_t
-ctlend(Part *p)
+ctlend(Part* p)
 {
 	if(p->ctlend)
 		return p->ctlend;
@@ -458,49 +459,49 @@ ctlend(Part *p)
 }
 
 static int
-areequiv(Part *p, Part *q)
+areequiv(Part* p, Part* q)
 {
-	if(p->ctlname[0]=='\0' || q->ctlname[0]=='\0')
+	if(p->ctlname[0] == '\0' || q->ctlname[0] == '\0')
 		return 0;
 
-	return strcmp(p->ctlname, q->ctlname) == 0
-			&& ctlstart(p) == ctlstart(q) && ctlend(p) == ctlend(q);
+	return strcmp(p->ctlname, q->ctlname) == 0 &&
+	       ctlstart(p) == ctlstart(q) && ctlend(p) == ctlend(q);
 }
 
 static void
-unchange(Edit *edit, Part *p)
+unchange(Edit* edit, Part* p)
 {
 	int i;
-	Part *q;
+	Part* q;
 
-	for(i=0; i<edit->nctlpart; i++) {
+	for(i = 0; i < edit->nctlpart; i++) {
 		q = edit->ctlpart[i];
 		if(p->start <= q->start && q->end <= p->end) {
 			q->changed = 0;
 		}
 	}
-assert(p->changed == 0);
+	assert(p->changed == 0);
 }
 
 int
-ctldiff(Edit *edit, int ctlfd)
+ctldiff(Edit* edit, int ctlfd)
 {
 	int i, j, waserr;
-	Part *p;
+	Part* p;
 	int64_t offset;
 
 	rdctlpart(edit);
 
 	/* everything is bogus until we prove otherwise */
-	for(i=0; i<edit->nctlpart; i++)
+	for(i = 0; i < edit->nctlpart; i++)
 		edit->ctlpart[i]->changed = 1;
 
 	/*
 	 * partitions with same info have not changed,
 	 * and neither have partitions inside them.
 	 */
-	for(i=0; i<edit->nctlpart; i++)
-		for(j=0; j<edit->npart; j++)
+	for(i = 0; i < edit->nctlpart; i++)
+		for(j = 0; j < edit->npart; j++)
 			if(areequiv(edit->ctlpart[i], edit->part[j])) {
 				unchange(edit, edit->ctlpart[i]);
 				break;
@@ -508,15 +509,17 @@ ctldiff(Edit *edit, int ctlfd)
 
 	waserr = 0;
 	/*
-	 * delete all the changed partitions except data (we'll add them back if necessary) 
+	 * delete all the changed partitions except data (we'll add them back if
+	 * necessary)
 	 */
-	for(i=0; i<edit->nctlpart; i++) {
+	for(i = 0; i < edit->nctlpart; i++) {
 		p = edit->ctlpart[i];
 		if(p->changed)
-		if(fprint(ctlfd, "delpart %s\n", p->ctlname)<0) {
-			fprint(2, "delpart failed: %s: %r\n", p->ctlname);
-			waserr = -1;
-		}
+			if(fprint(ctlfd, "delpart %s\n", p->ctlname) < 0) {
+				fprint(2, "delpart failed: %s: %r\n",
+				       p->ctlname);
+				waserr = -1;
+			}
 	}
 
 	/*
@@ -525,11 +528,14 @@ ctldiff(Edit *edit, int ctlfd)
 	 * information identical to what is there is a no-op.
 	 */
 	offset = edit->disk->offset;
-	for(i=0; i<edit->npart; i++) {
+	for(i = 0; i < edit->npart; i++) {
 		p = edit->part[i];
 		if(p->ctlname[0]) {
-			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname, offset+ctlstart(p), offset+ctlend(p)) < 0) {
-				fprint(2, "adding part failed: %s: %r\n", p->ctlname);
+			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname,
+			          offset + ctlstart(p),
+			          offset + ctlend(p)) < 0) {
+				fprint(2, "adding part failed: %s: %r\n",
+				       p->ctlname);
 				waserr = -1;
 			}
 		}
@@ -540,7 +546,7 @@ ctldiff(Edit *edit, int ctlfd)
 void*
 emalloc(uint32_t sz)
 {
-	void *v;
+	void* v;
 
 	v = malloc(sz);
 	if(v == nil)
@@ -550,11 +556,10 @@ emalloc(uint32_t sz)
 }
 
 char*
-estrdup(char *s)
+estrdup(char* s)
 {
 	s = strdup(s);
 	if(s == nil)
 		sysfatal("strdup (%.10s) fails", s);
 	return s;
 }
-

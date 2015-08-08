@@ -11,67 +11,66 @@
 #include <libc.h>
 #include <draw.h>
 
-static int	fontresize(Font*, int, int, int);
+static int fontresize(Font*, int, int, int);
 
-#define	PJW	0	/* use NUL==pjw for invisible characters */
+#define PJW 0 /* use NUL==pjw for invisible characters */
 
-static Rune empty[] = { 0 };
+static Rune empty[] = {0};
 
 int
-cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
-	   int *wp,
-	   char **subfontname)
+cachechars(Font* f, char** ss, Rune** rr, uint16_t* cp, int max, int* wp,
+           char** subfontname)
 {
 	int i, th, sh, h, ld, w, rw, wid, nc;
-	char *sp;
+	char* sp;
 	Rune r, *rp, vr;
 	uint32_t a;
-	Cacheinfo *c, *tc, *ec;
+	Cacheinfo* c, *tc, *ec;
 
-	if(ss){
+	if(ss) {
 		sp = *ss;
 		rp = empty;
-	}else{
+	} else {
 		sp = "";
 		rp = *rr;
 	}
 	wid = 0;
 	*subfontname = 0;
-	for(i=0; i<max && (*sp || *rp); sp+=w, rp+=rw){
-		if(ss){
+	for(i = 0; i < max && (*sp || *rp); sp += w, rp += rw) {
+		if(ss) {
 			r = *(uint8_t*)sp;
 			if(r < Runeself)
 				w = 1;
-			else{
+			else {
 				w = chartorune(&vr, sp);
 				r = vr;
 			}
 			rw = 0;
-		}else{
+		} else {
 			r = *rp;
 			w = 0;
 			rw = 1;
 		}
 
-		sh = (17 * (uint)r) & (f->ncache-NFLOOK-1);
+		sh = (17 * (uint)r) & (f->ncache - NFLOOK - 1);
 		c = &f->cache[sh];
-		ec = c+NFLOOK;
+		ec = c + NFLOOK;
 		h = sh;
-		while(c < ec){
-			if(c->value==r && c->age)
+		while(c < ec) {
+			if(c->value == r && c->age)
 				goto Found;
 			c++;
 			h++;
 		}
-	
+
 		/*
 		 * Not found; toss out oldest entry
 		 */
 		a = ~0;
 		th = sh;
 		tc = &f->cache[th];
-		while(tc < ec){
-			if(tc->age < a){
+		while(tc < ec) {
+			if(tc->age < a) {
 				a = tc->age;
 				h = th;
 				c = tc;
@@ -80,28 +79,30 @@ cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 			th++;
 		}
 
-		if(a && (f->age-a)<500){	/* kicking out too recent; resize */
-			nc = 2*(f->ncache-NFLOOK) + NFLOOK;
-			if(nc <= MAXFCACHE){
+		if(a &&
+		   (f->age - a) < 500) { /* kicking out too recent; resize */
+			nc = 2 * (f->ncache - NFLOOK) + NFLOOK;
+			if(nc <= MAXFCACHE) {
 				if(i == 0)
-					fontresize(f, f->width, nc, f->maxdepth);
+					fontresize(f, f->width, nc,
+					           f->maxdepth);
 				/* else flush first; retry will resize */
 				break;
 			}
 		}
 
-		if(c->age == f->age)	/* flush pending string output */
+		if(c->age == f->age) /* flush pending string output */
 			break;
 
 		ld = loadchar(f, r, c, h, i, subfontname);
-		if(ld <= 0){
+		if(ld <= 0) {
 			if(ld == 0)
 				continue;
 			break;
 		}
-		c = &f->cache[h];	/* may have reallocated f->cache */
-	
-	    Found:
+		c = &f->cache[h]; /* may have reallocated f->cache */
+
+	Found:
 		wid += c->width;
 		c->age = f->age;
 		cp[i] = h;
@@ -116,57 +117,57 @@ cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 }
 
 void
-agefont(Font *f)
+agefont(Font* f)
 {
-	Cacheinfo *c, *ec;
-	Cachesubf *s, *es;
+	Cacheinfo* c, *ec;
+	Cachesubf* s, *es;
 
 	f->age++;
-	if(f->age == 65536){
+	if(f->age == 65536) {
 		/*
 		 * Renormalize ages
 		 */
 		c = f->cache;
-		ec = c+f->ncache;
-		while(c < ec){
-			if(c->age){
+		ec = c + f->ncache;
+		while(c < ec) {
+			if(c->age) {
 				c->age >>= 2;
 				c->age++;
 			}
 			c++;
 		}
 		s = f->subf;
-		es = s+f->nsubf;
-		while(s < es){
-			if(s->age){
-				if(s->age<SUBFAGE && s->cf->name != nil){
+		es = s + f->nsubf;
+		while(s < es) {
+			if(s->age) {
+				if(s->age < SUBFAGE && s->cf->name != nil) {
 					/* clean up */
 					if(display &&
-					    s->f != display->defaultsubfont)
+					   s->f != display->defaultsubfont)
 						freesubfont(s->f);
 					s->cf = nil;
 					s->f = nil;
 					s->age = 0;
-				}else{
+				} else {
 					s->age >>= 2;
 					s->age++;
 				}
 			}
 			s++;
 		}
-		f->age = (65536>>2) + 1;
+		f->age = (65536 >> 2) + 1;
 	}
 }
 
 static Subfont*
-cf2subfont(Cachefont *cf, Font *f)
+cf2subfont(Cachefont* cf, Font* f)
 {
 	int depth;
-	char *name;
-	Subfont *sf;
+	char* name;
+	Subfont* sf;
 
 	name = cf->subfontname;
-	if(name == nil){
+	if(name == nil) {
 		if(f->display && f->display->screenimage)
 			depth = f->display->screenimage->depth;
 		else
@@ -182,37 +183,36 @@ cf2subfont(Cachefont *cf, Font *f)
 
 /* return 1 if load succeeded, 0 if failed, -1 if must retry */
 int
-loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
-	 char **subfontname)
+loadchar(Font* f, Rune r, Cacheinfo* c, int h, int noflush, char** subfontname)
 {
 	int i, oi, wid, top, bottom;
 	Rune pic;
-	Fontchar *fi;
-	Cachefont *cf;
-	Cachesubf *subf, *of;
-	uint8_t *b;
+	Fontchar* fi;
+	Cachefont* cf;
+	Cachesubf* subf, *of;
+	uint8_t* b;
 
 	pic = r;
-    Again:
-	for(i=0; i<f->nsub; i++){
+Again:
+	for(i = 0; i < f->nsub; i++) {
 		cf = f->sub[i];
-		if(cf->min<=pic && pic<=cf->max)
+		if(cf->min <= pic && pic <= cf->max)
 			goto Found;
 	}
-    TryPJW:
-	if(pic != PJW){
+TryPJW:
+	if(pic != PJW) {
 		pic = PJW;
 		goto Again;
 	}
 	return 0;
 
-    Found:
+Found:
 	/*
 	 * Choose exact or oldest
 	 */
 	oi = 0;
 	subf = &f->subf[0];
-	for(i=0; i<f->nsubf; i++){
+	for(i = 0; i < f->nsubf; i++) {
 		if(cf == subf->cf)
 			goto Found2;
 		if(subf->age < f->subf[oi].age)
@@ -221,23 +221,23 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 	}
 	subf = &f->subf[oi];
 
-	if(subf->f){
-		if(f->age-subf->age>SUBFAGE || f->nsubf>MAXSUBF){
-    Toss:
+	if(subf->f) {
+		if(f->age - subf->age > SUBFAGE || f->nsubf > MAXSUBF) {
+		Toss:
 			/* ancient data; toss */
 			freesubfont(subf->f);
 			subf->cf = nil;
 			subf->f = nil;
 			subf->age = 0;
-		}else{				/* too recent; grow instead */
+		} else { /* too recent; grow instead */
 			of = f->subf;
-			f->subf = malloc((f->nsubf+DSUBF)*sizeof *subf);
-			if(f->subf == nil){
+			f->subf = malloc((f->nsubf + DSUBF) * sizeof *subf);
+			if(f->subf == nil) {
 				f->subf = of;
 				goto Toss;
 			}
-			memmove(f->subf, of, (f->nsubf+DSUBF)*sizeof *subf);
-			memset(f->subf+f->nsubf, 0, DSUBF*sizeof *subf);
+			memmove(f->subf, of, (f->nsubf + DSUBF) * sizeof *subf);
+			memset(f->subf + f->nsubf, 0, DSUBF * sizeof *subf);
 			subf = &f->subf[f->nsubf];
 			f->nsubf += DSUBF;
 			free(of);
@@ -246,7 +246,7 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 	subf->age = 0;
 	subf->cf = nil;
 	subf->f = cf2subfont(cf, f);
-	if(subf->f == nil){
+	if(subf->f == nil) {
 		if(cf->subfontname == nil)
 			goto TryPJW;
 		*subfontname = cf->subfontname;
@@ -254,21 +254,23 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 	}
 
 	subf->cf = cf;
-	if(subf->f->ascent > f->ascent && f->display){
+	if(subf->f->ascent > f->ascent && f->display) {
 		/* should print something? this is a mistake in the font file */
 		/* must prevent c->top from going negative when loading cache */
-		Image *b;
+		Image* b;
 		int d, t;
 		d = subf->f->ascent - f->ascent;
 		b = subf->f->bits;
 		draw(b, b->r, b, nil, addpt(b->r.min, Pt(0, d)));
-		draw(b, Rect(b->r.min.x, b->r.max.y-d, b->r.max.x, b->r.max.y), f->display->black, nil, b->r.min);
-		for(i=0; i<subf->f->n; i++){
-			t = subf->f->info[i].top-d;
+		draw(b,
+		     Rect(b->r.min.x, b->r.max.y - d, b->r.max.x, b->r.max.y),
+		     f->display->black, nil, b->r.min);
+		for(i = 0; i < subf->f->n; i++) {
+			t = subf->f->info[i].top - d;
 			if(t < 0)
 				t = 0;
 			subf->f->info[i].top = t;
-			t = subf->f->info[i].bottom-d;
+			t = subf->f->info[i].bottom - d;
 			if(t < 0)
 				t = 0;
 			subf->f->info[i].bottom = t;
@@ -276,7 +278,7 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 		subf->f->ascent = f->ascent;
 	}
 
-    Found2:
+Found2:
 	subf->age = f->age;
 
 	/* possible overflow here, but works out okay */
@@ -287,8 +289,9 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 	fi = &subf->f->info[pic];
 	if(fi->width == 0)
 		goto TryPJW;
-	wid = (fi+1)->x - fi->x;
-	if(f->width < wid || f->width == 0 || f->maxdepth < subf->f->bits->depth){
+	wid = (fi + 1)->x - fi->x;
+	if(f->width < wid || f->width == 0 ||
+	   f->maxdepth < subf->f->bits->depth) {
 		/*
 		 * Flush, free, reload (easier than reformatting f->b)
 		 */
@@ -304,27 +307,27 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 		/* c is still valid as didn't reallocate f->cache */
 	}
 	c->value = r;
-	top = fi->top + (f->ascent-subf->f->ascent);
-	bottom = fi->bottom + (f->ascent-subf->f->ascent);
+	top = fi->top + (f->ascent - subf->f->ascent);
+	bottom = fi->bottom + (f->ascent - subf->f->ascent);
 	c->width = fi->width;
-	c->x = h*f->width;
+	c->x = h * f->width;
 	c->left = fi->left;
 	if(f->display == nil)
 		return 1;
-	flushimage(f->display, 0);	/* flush any pending errors */
+	flushimage(f->display, 0); /* flush any pending errors */
 	b = bufimage(f->display, 37);
 	if(b == 0)
 		return 0;
 	b[0] = 'l';
-	BPLONG(b+1, f->cacheimage->id);
-	BPLONG(b+5, subf->f->bits->id);
-	BPSHORT(b+9, c-f->cache);
-	BPLONG(b+11, c->x);
-	BPLONG(b+15, top);
-	BPLONG(b+19, c->x+((fi+1)->x-fi->x));
-	BPLONG(b+23, bottom);
-	BPLONG(b+27, fi->x);
-	BPLONG(b+31, fi->top);
+	BPLONG(b + 1, f->cacheimage->id);
+	BPLONG(b + 5, subf->f->bits->id);
+	BPSHORT(b + 9, c - f->cache);
+	BPLONG(b + 11, c->x);
+	BPLONG(b + 15, top);
+	BPLONG(b + 19, c->x + ((fi + 1)->x - fi->x));
+	BPLONG(b + 23, bottom);
+	BPLONG(b + 27, fi->x);
+	BPLONG(b + 31, fi->top);
 	b[35] = fi->left;
 	b[36] = fi->width;
 	return 1;
@@ -332,13 +335,13 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
 
 /* return whether resize succeeded && f->cache is unchanged */
 static int
-fontresize(Font *f, int wid, int ncache, int depth)
+fontresize(Font* f, int wid, int ncache, int depth)
 {
-	Cacheinfo *i;
+	Cacheinfo* i;
 	int ret;
-	Image *new;
-	uint8_t *b;
-	Display *d;
+	Image* new;
+	uint8_t* b;
+	Display* d;
 
 	ret = 0;
 	if(depth <= 0)
@@ -350,36 +353,37 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	if(d == nil)
 		goto Nodisplay;
 
-	new = allocimage(d, Rect(0, 0, ncache*wid, f->height), CHAN1(CGrey, depth), 0, 0);
-	if(new == nil){
+	new = allocimage(d, Rect(0, 0, ncache * wid, f->height),
+	                 CHAN1(CGrey, depth), 0, 0);
+	if(new == nil) {
 		fprint(2, "font cache resize failed: %r\n");
 		abort();
 		goto Return;
 	}
-	flushimage(d, 0);	/* flush any pending errors */
-	b = bufimage(d, 1+4+4+1);
-	if(b == 0){
+	flushimage(d, 0); /* flush any pending errors */
+	b = bufimage(d, 1 + 4 + 4 + 1);
+	if(b == 0) {
 		freeimage(new);
 		goto Return;
 	}
 	b[0] = 'i';
-	BPLONG(b+1, new->id);
-	BPLONG(b+5, ncache);
+	BPLONG(b + 1, new->id);
+	BPLONG(b + 5, ncache);
 	b[9] = f->ascent;
-	if(flushimage(d, 0) < 0){
+	if(flushimage(d, 0) < 0) {
 		fprint(2, "resize: init failed: %r\n");
 		freeimage(new);
 		goto Return;
 	}
 	freeimage(f->cacheimage);
 	f->cacheimage = new;
-    Nodisplay:
+Nodisplay:
 	f->width = wid;
 	f->maxdepth = depth;
 	ret = 1;
-	if(f->ncache != ncache){
-		i = malloc(ncache*sizeof f->cache[0]);
-		if(i != nil){
+	if(f->ncache != ncache) {
+		i = malloc(ncache * sizeof f->cache[0]);
+		if(i != nil) {
 			ret = 0;
 			free(f->cache);
 			f->ncache = ncache;
@@ -387,7 +391,7 @@ fontresize(Font *f, int wid, int ncache, int depth)
 		}
 		/* else just wipe the cache clean and things will be ok */
 	}
-    Return:
-	memset(f->cache, 0, f->ncache*sizeof f->cache[0]);
+Return:
+	memset(f->cache, 0, f->ncache * sizeof f->cache[0]);
 	return ret;
 }

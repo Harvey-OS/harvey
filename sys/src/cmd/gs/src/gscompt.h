@@ -8,14 +8,14 @@
  */
 
 /* Copyright (C) 1997 Aladdin Enterprises.  All rights reserved.
-  
+
   This software is provided AS-IS with no warranty, either express or
   implied.
-  
+
   This software is distributed under license and may not be copied,
   modified or distributed except as expressly authorized under the terms
   of the license contained in the file LICENSE in this distribution.
-  
+
   For more information about licensing, please refer to
   http://www.ghostscript.com/licensing/. For information on
   commercial licensing, go to http://www.artifex.com/licensing/ or
@@ -27,7 +27,7 @@
 /* Abstract types for compositing objects */
 
 #ifndef gscompt_INCLUDED
-#  define gscompt_INCLUDED
+#define gscompt_INCLUDED
 
 /*
  * Compositing is the next-to-last step in the rendering pipeline.
@@ -55,6 +55,6 @@ typedef struct gs_composite_s gs_composite_t;
  * like halftones, black generation functions, etc., carry a unique ID (time
  * stamp).
  */
-gs_id gs_composite_id(const gs_composite_t * pcte);
+gs_id gs_composite_id(const gs_composite_t* pcte);
 
 #endif /* gscompt_INCLUDED */

@@ -15,15 +15,14 @@
 #include <bio.h>
 #include <regexp.h>
 
-enum {
-	DEPTH		= 20,		/* max nesting depth of {} */
-	MAXCMDS		= 512,		/* max sed commands */
-	ADDSIZE		= 10000,	/* size of add & read buffer */
-	MAXADDS		= 20,		/* max pending adds and reads */
-	LBSIZE		= 8192,		/* input line size */
-	LABSIZE		= 50,		/* max number of labels */
-	MAXSUB		= 10,		/* max number of sub reg exp */
-	MAXFILES	= 120,		/* max output files */
+enum { DEPTH = 20,      /* max nesting depth of {} */
+       MAXCMDS = 512,   /* max sed commands */
+       ADDSIZE = 10000, /* size of add & read buffer */
+       MAXADDS = 20,    /* max pending adds and reads */
+       LBSIZE = 8192,   /* input line size */
+       LABSIZE = 50,    /* max number of labels */
+       MAXSUB = 10,     /* max number of sub reg exp */
+       MAXFILES = 120,  /* max output files */
 };
 
 /*
@@ -31,186 +30,184 @@ enum {
  * R.E., or nothing.
  */
 typedef struct {
-	enum {
-		A_NONE,
-		A_DOL,
-		A_LINE,
-		A_RE,
-		A_LAST,
-	}type;
+	enum { A_NONE,
+	       A_DOL,
+	       A_LINE,
+	       A_RE,
+	       A_LAST,
+	} type;
 	union {
-		int32_t	line;		/* Line # */
-		Reprog	*rp;		/* Compiled R.E. */
+		int32_t line; /* Line # */
+		Reprog* rp;   /* Compiled R.E. */
 	};
 } Addr;
 
-typedef struct	SEDCOM {
-	Addr	ad1;			/* optional start address */
-	Addr	ad2;			/* optional end address */
+typedef struct SEDCOM {
+	Addr ad1; /* optional start address */
+	Addr ad2; /* optional end address */
 	union {
-		Reprog	*re1;		/* compiled R.E. */
-		Rune	*text;		/* added text or file name */
-		struct	SEDCOM	*lb1;	/* destination command of branch */
+		Reprog* re1;        /* compiled R.E. */
+		Rune* text;         /* added text or file name */
+		struct SEDCOM* lb1; /* destination command of branch */
 	};
-	Rune	*rhs;			/* Right-hand side of substitution */
-	Biobuf*	fcode;			/* File ID for read and write */
-	char	command;		/* command code -see below */
-	char	gfl;			/* 'Global' flag for substitutions */
-	char	pfl;			/* 'print' flag for substitutions */
-	char	active;			/* 1 => data between start and end */
-	char	negfl;			/* negation flag */
+	Rune* rhs;     /* Right-hand side of substitution */
+	Biobuf* fcode; /* File ID for read and write */
+	char command;  /* command code -see below */
+	char gfl;      /* 'Global' flag for substitutions */
+	char pfl;      /* 'print' flag for substitutions */
+	char active;   /* 1 => data between start and end */
+	char negfl;    /* negation flag */
 } SedCom;
 
 /* Command Codes for field SedCom.command */
-#define ACOM	01
-#define BCOM	020
-#define CCOM	02
-#define	CDCOM	025
-#define	CNCOM	022
-#define COCOM	017
-#define	CPCOM	023
-#define DCOM	03
-#define ECOM	015
-#define EQCOM	013
-#define FCOM	016
-#define GCOM	027
-#define CGCOM	030
-#define HCOM	031
-#define CHCOM	032
-#define ICOM	04
-#define LCOM	05
-#define NCOM	012
-#define PCOM	010
-#define QCOM	011
-#define RCOM	06
-#define SCOM	07
-#define TCOM	021
-#define WCOM	014
-#define	CWCOM	024
-#define	YCOM	026
-#define XCOM	033
+#define ACOM 01
+#define BCOM 020
+#define CCOM 02
+#define CDCOM 025
+#define CNCOM 022
+#define COCOM 017
+#define CPCOM 023
+#define DCOM 03
+#define ECOM 015
+#define EQCOM 013
+#define FCOM 016
+#define GCOM 027
+#define CGCOM 030
+#define HCOM 031
+#define CHCOM 032
+#define ICOM 04
+#define LCOM 05
+#define NCOM 012
+#define PCOM 010
+#define QCOM 011
+#define RCOM 06
+#define SCOM 07
+#define TCOM 021
+#define WCOM 014
+#define CWCOM 024
+#define YCOM 026
+#define XCOM 033
 
-typedef struct label {			/* Label symbol table */
-	Rune	uninm[9];		/* Label name */
-	SedCom	*chain;
-	SedCom	*address;		/* Command associated with label */
+typedef struct label { /* Label symbol table */
+	Rune uninm[9]; /* Label name */
+	SedCom* chain;
+	SedCom* address; /* Command associated with label */
 } Label;
 
-typedef	struct	FILE_CACHE {		/* Data file control block */
-	struct FILE_CACHE *next;	/* Forward Link */
-	char	*name;			/* Name of file */
+typedef struct FILE_CACHE {      /* Data file control block */
+	struct FILE_CACHE* next; /* Forward Link */
+	char* name;              /* Name of file */
 } FileCache;
 
-SedCom pspace[MAXCMDS];			/* Command storage */
-SedCom *pend = pspace+MAXCMDS;		/* End of command storage */
-SedCom *rep = pspace;			/* Current fill point */
+SedCom pspace[MAXCMDS];          /* Command storage */
+SedCom* pend = pspace + MAXCMDS; /* End of command storage */
+SedCom* rep = pspace;            /* Current fill point */
 
-Reprog	*lastre = 0;			/* Last regular expression */
-Resub	subexp[MAXSUB];			/* sub-patterns of pattern match*/
+Reprog* lastre = 0;   /* Last regular expression */
+Resub subexp[MAXSUB]; /* sub-patterns of pattern match*/
 
-Rune	addspace[ADDSIZE];		/* Buffer for a, c, & i commands */
-Rune	*addend = addspace+ADDSIZE;
+Rune addspace[ADDSIZE]; /* Buffer for a, c, & i commands */
+Rune* addend = addspace + ADDSIZE;
 
-SedCom	*abuf[MAXADDS];			/* Queue of pending adds & reads */
-SedCom	**aptr = abuf;
+SedCom* abuf[MAXADDS]; /* Queue of pending adds & reads */
+SedCom** aptr = abuf;
 
-struct {				/* Sed program input control block */
-	enum PTYPE { 			/* Either on command line or in file */
-		P_ARG,
-		P_FILE,
+struct {             /* Sed program input control block */
+	enum PTYPE { /* Either on command line or in file */
+		     P_ARG,
+		     P_FILE,
 	} type;
-	union PCTL {			/* Pointer to data */
-		Biobuf	*bp;
-		char	*curr;
+	union PCTL {/* Pointer to data */
+		Biobuf* bp;
+		char* curr;
 	};
 } prog;
 
-Rune	genbuf[LBSIZE];			/* Miscellaneous buffer */
+Rune genbuf[LBSIZE]; /* Miscellaneous buffer */
 
-FileCache	*fhead = 0;		/* Head of File Cache Chain */
-FileCache	*ftail = 0;		/* Tail of File Cache Chain */
+FileCache* fhead = 0; /* Head of File Cache Chain */
+FileCache* ftail = 0; /* Tail of File Cache Chain */
 
-Rune	*loc1;				/* Start of pattern match */
-Rune	*loc2;				/* End of pattern match */
-Rune	seof;				/* Pattern delimiter char */
+Rune* loc1; /* Start of pattern match */
+Rune* loc2; /* End of pattern match */
+Rune seof;  /* Pattern delimiter char */
 
-Rune	linebuf[LBSIZE+1];		/* Input data buffer */
-Rune	*lbend = linebuf+LBSIZE;	/* End of buffer */
-Rune	*spend = linebuf;		/* End of input data */
-Rune	*cp;				/* Current scan point in linebuf */
+Rune linebuf[LBSIZE + 1];       /* Input data buffer */
+Rune* lbend = linebuf + LBSIZE; /* End of buffer */
+Rune* spend = linebuf;          /* End of input data */
+Rune* cp;                       /* Current scan point in linebuf */
 
-Rune	holdsp[LBSIZE+1];		/* Hold buffer */
-Rune	*hend = holdsp+LBSIZE;		/* End of hold buffer */
-Rune	*hspend = holdsp;		/* End of hold data */
+Rune holdsp[LBSIZE + 1];      /* Hold buffer */
+Rune* hend = holdsp + LBSIZE; /* End of hold buffer */
+Rune* hspend = holdsp;        /* End of hold data */
 
-int	nflag;				/* Command line flags */
-int	gflag;
+int nflag; /* Command line flags */
+int gflag;
 
-int	dolflag;			/* Set when at true EOF */
-int	sflag;				/* Set when substitution done */
-int	jflag;				/* Set when jump required */
-int	delflag;			/* Delete current line when set */
+int dolflag; /* Set when at true EOF */
+int sflag;   /* Set when substitution done */
+int jflag;   /* Set when jump required */
+int delflag; /* Delete current line when set */
 
-int64_t	lnum = 0;			/* Input line count */
+int64_t lnum = 0; /* Input line count */
 
-char	fname[MAXFILES][40];		/* File name cache */
-Biobuf	*fcode[MAXFILES];		/* File ID cache */
-int	nfiles = 0;			/* Cache fill point */
+char fname[MAXFILES][40]; /* File name cache */
+Biobuf* fcode[MAXFILES];  /* File ID cache */
+int nfiles = 0;           /* Cache fill point */
 
-Biobuf	fout;				/* Output stream */
-Biobuf	stdin;				/* Default input */
-Biobuf*	f = 0;				/* Input data */
+Biobuf fout;   /* Output stream */
+Biobuf stdin;  /* Default input */
+Biobuf* f = 0; /* Input data */
 
-Label	ltab[LABSIZE];			/* Label name symbol table */
-Label	*labend = ltab+LABSIZE;		/* End of label table */
-Label	*lab = ltab+1;			/* Current Fill point */
+Label ltab[LABSIZE];            /* Label name symbol table */
+Label* labend = ltab + LABSIZE; /* End of label table */
+Label* lab = ltab + 1;          /* Current Fill point */
 
-int	depth = 0;			/* {} stack pointer */
+int depth = 0; /* {} stack pointer */
 
-Rune	bad;				/* Dummy err ptr reference */
-Rune	*badp = &bad;
+Rune bad; /* Dummy err ptr reference */
+Rune* badp = &bad;
 
+char CGMES[] = "%S command garbled: %S";
+char TMMES[] = "Too much text: %S";
+char LTL[] = "Label too int32_t: %S";
+char AD0MES[] = "No addresses allowed: %S";
+char AD1MES[] = "Only one address allowed: %S";
 
-char	CGMES[]	 = 	"%S command garbled: %S";
-char	TMMES[]	 = 	"Too much text: %S";
-char	LTL[]	 = 	"Label too int32_t: %S";
-char	AD0MES[] =	"No addresses allowed: %S";
-char	AD1MES[] =	"Only one address allowed: %S";
-
-void	address(Addr *);
-void	arout(void);
-int	cmp(char *, char *);
-int	rcmp(Rune *, Rune *);
-void	command(SedCom *);
-Reprog	*compile(void);
-Rune	*compsub(Rune *, Rune *);
-void	dechain(void);
-void	dosub(Rune *);
-int	ecmp(Rune *, Rune *, int);
-void	enroll(char *);
-void	errexit(void);
-int	executable(SedCom *);
-void	execute(void);
-void	fcomp(void);
-int32_t	getrune(void);
-Rune	*gline(Rune *);
-int	match(Reprog *, Rune *);
-void	newfile(enum PTYPE, char *);
-int 	opendata(void);
-Biobuf	*open_file(char *);
-Rune	*place(Rune *, Rune *, Rune *);
-void	quit(char *, ...);
-int	rline(Rune *, Rune *);
-Label	*search(Label *);
-int	substitute(SedCom *);
-char	*text(char *);
-Rune	*stext(Rune *, Rune *);
-int	ycomp(SedCom *);
-char *	trans(int c);
-void	putline(Biobuf *bp, Rune *buf, int n);
+void address(Addr*);
+void arout(void);
+int cmp(char*, char*);
+int rcmp(Rune*, Rune*);
+void command(SedCom*);
+Reprog* compile(void);
+Rune* compsub(Rune*, Rune*);
+void dechain(void);
+void dosub(Rune*);
+int ecmp(Rune*, Rune*, int);
+void enroll(char*);
+void errexit(void);
+int executable(SedCom*);
+void execute(void);
+void fcomp(void);
+int32_t getrune(void);
+Rune* gline(Rune*);
+int match(Reprog*, Rune*);
+void newfile(enum PTYPE, char*);
+int opendata(void);
+Biobuf* open_file(char*);
+Rune* place(Rune*, Rune*, Rune*);
+void quit(char*, ...);
+int rline(Rune*, Rune*);
+Label* search(Label*);
+int substitute(SedCom*);
+char* text(char*);
+Rune* stext(Rune*, Rune*);
+int ycomp(SedCom*);
+char* trans(int c);
+void putline(Biobuf* bp, Rune* buf, int n);
 
 void
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
 	int compfl;
 
@@ -221,9 +218,10 @@ main(int argc, char **argv)
 
 	if(argc == 1)
 		exits(0);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'e':
-		if (argc <= 1)
+		if(argc <= 1)
 			quit("missing pattern");
 		newfile(P_ARG, ARGF());
 		fcomp();
@@ -245,10 +243,11 @@ main(int argc, char **argv)
 	default:
 		fprint(2, "sed: Unknown flag: %c\n", ARGC());
 		continue;
-	} ARGEND
+	}
+	ARGEND
 
 	if(compfl == 0) {
-		if (--argc < 0)
+		if(--argc < 0)
 			quit("missing pattern");
 		newfile(P_ARG, *argv++);
 		fcomp();
@@ -262,7 +261,7 @@ main(int argc, char **argv)
 	dechain();
 
 	if(argc <= 0)
-		enroll(0);		/* Add stdin to cache */
+		enroll(0); /* Add stdin to cache */
 	else
 		while(--argc >= 0)
 			enroll(*argv++);
@@ -273,16 +272,16 @@ main(int argc, char **argv)
 void
 fcomp(void)
 {
-	int	i;
-	Label	*lpt;
-	Rune	*tp;
-	SedCom	*pt, *pt1;
-	static Rune	*p = addspace;
-	static SedCom	**cmpend[DEPTH];	/* stack of {} operations */
+	int i;
+	Label* lpt;
+	Rune* tp;
+	SedCom* pt, *pt1;
+	static Rune* p = addspace;
+	static SedCom** cmpend[DEPTH]; /* stack of {} operations */
 
-	while (rline(linebuf, lbend) >= 0) {
+	while(rline(linebuf, lbend) >= 0) {
 		cp = linebuf;
-comploop:
+	comploop:
 		while(*cp == L' ' || *cp == L'\t')
 			cp++;
 		if(*cp == L'\0' || *cp == L'#')
@@ -293,9 +292,9 @@ comploop:
 		}
 
 		address(&rep->ad1);
-		if (rep->ad1.type != A_NONE) {
-			if (rep->ad1.type == A_LAST) {
-				if (!lastre)
+		if(rep->ad1.type != A_NONE) {
+			if(rep->ad1.type == A_LAST) {
+				if(!lastre)
 					quit("First RE may not be null");
 				rep->ad1.type = A_RE;
 				rep->ad1.rp = lastre;
@@ -303,7 +302,7 @@ comploop:
 			if(*cp == L',' || *cp == L';') {
 				cp++;
 				address(&rep->ad2);
-				if (rep->ad2.type == A_LAST) {
+				if(rep->ad2.type == A_LAST) {
 					rep->ad2.type = A_RE;
 					rep->ad2.rp = lastre;
 				}
@@ -313,7 +312,7 @@ comploop:
 		while(*cp == L' ' || *cp == L'\t')
 			cp++;
 
-swit:
+	swit:
 		switch(*cp++) {
 		default:
 			quit("Unrecognized command: %S", linebuf);
@@ -355,15 +354,15 @@ swit:
 			while(*cp == L' ')
 				cp++;
 			tp = lab->uninm;
-			while (*cp && *cp != L';' && *cp != L' ' &&
-			    *cp != L'\t' && *cp != L'#') {
+			while(*cp && *cp != L';' && *cp != L' ' &&
+			      *cp != L'\t' && *cp != L'#') {
 				*tp++ = *cp++;
 				if(tp >= &lab->uninm[8])
 					quit(LTL, linebuf);
 			}
 			*tp = L'\0';
 
-			if (*lab->uninm == L'\0')		/* no label? */
+			if(*lab->uninm == L'\0') /* no label? */
 				quit(CGMES, L":", linebuf);
 			if(lpt = search(lab)) {
 				if(lpt->address)
@@ -375,9 +374,9 @@ swit:
 					quit("Too many labels: %S", linebuf);
 			}
 			lpt->address = rep;
-			if (*cp == L'#')
+			if(*cp == L'#')
 				continue;
-			rep--;			/* reuse this slot */
+			rep--; /* reuse this slot */
 			break;
 
 		case 'a':
@@ -434,7 +433,7 @@ swit:
 
 		case 'b':
 			rep->command = BCOM;
-jtcommon:
+		jtcommon:
 			while(*cp == L' ')
 				cp++;
 			if(*cp == L'\0' || *cp == L';') {
@@ -456,20 +455,21 @@ jtcommon:
 			cp--;
 			*tp = L'\0';
 
-			if (*lab->uninm == L'\0')
+			if(*lab->uninm == L'\0')
 				/* shouldn't get here */
 				quit(CGMES, L"b or t", linebuf);
 			if((lpt = search(lab)) != nil) {
 				if(lpt->address)
 					rep->lb1 = lpt->address;
 				else {
-					for(pt = lpt->chain; pt != nil &&
-					    (pt1 = pt->lb1) != nil; pt = pt1)
+					for(pt = lpt->chain;
+					    pt != nil && (pt1 = pt->lb1) != nil;
+					    pt = pt1)
 						;
-					if (pt)
+					if(pt)
 						pt->lb1 = rep;
 				}
-			} else {			/* add new label */
+			} else { /* add new label */
 				lab->chain = rep;
 				lab->address = 0;
 				if(++lab >= labend)
@@ -525,7 +525,7 @@ jtcommon:
 		case 's':
 			rep->command = SCOM;
 			seof = *cp++;
-			if ((rep->re1 = compile()) == 0) {
+			if((rep->re1 = compile()) == 0) {
 				if(!lastre)
 					quit("First RE may not be null.");
 				rep->re1 = lastre;
@@ -551,7 +551,7 @@ jtcommon:
 
 			if(*cp == L'w') {
 				cp++;
-				if(*cp++ !=  L' ')
+				if(*cp++ != L' ')
 					quit(CGMES, L"s", linebuf);
 				text(fname[nfiles]);
 				for(i = nfiles - 1; i >= 0; i--)
@@ -575,10 +575,12 @@ jtcommon:
 					rep->fcode = fcode[i];
 					goto done;
 				}
-			if(nfiles >= MAXFILES){
-				fprint(2, "sed: Too many files in w commands 2 \n");
-				fprint(2, "nfiles = %d; MAXF = %d\n",
-					nfiles, MAXFILES);
+			if(nfiles >= MAXFILES) {
+				fprint(
+				    2,
+				    "sed: Too many files in w commands 2 \n");
+				fprint(2, "nfiles = %d; MAXF = %d\n", nfiles,
+				       MAXFILES);
 				errexit();
 			}
 			rep->fcode = open_file(fname[nfiles]);
@@ -591,12 +593,11 @@ jtcommon:
 		case 'y':
 			rep->command = YCOM;
 			seof = *cp++;
-			if (ycomp(rep) == 0)
+			if(ycomp(rep) == 0)
 				quit(CGMES, L"y", linebuf);
 			break;
-
 		}
-done:
+	done:
 		if(++rep >= pend)
 			quit("Too many commands, last: %S", linebuf);
 		if(*cp++ != L'\0') {
@@ -607,16 +608,16 @@ done:
 	}
 }
 
-Biobuf *
-open_file(char *name)
+Biobuf*
+open_file(char* name)
 {
 	int fd;
-	Biobuf *bp;
+	Biobuf* bp;
 
-	if ((bp = malloc(sizeof(Biobuf))) == 0)
+	if((bp = malloc(sizeof(Biobuf))) == 0)
 		quit("Out of memory");
-	if ((fd = open(name, OWRITE)) < 0 &&
-	    (fd = create(name, OWRITE, 0666)) < 0)
+	if((fd = open(name, OWRITE)) < 0 &&
+	   (fd = create(name, OWRITE, 0666)) < 0)
 		quit("Cannot create %s", name);
 	Binit(bp, fd, OWRITE);
 	Bseek(bp, 0, 2);
@@ -624,14 +625,14 @@ open_file(char *name)
 	return bp;
 }
 
-Rune *
-compsub(Rune *rhs, Rune *end)
+Rune*
+compsub(Rune* rhs, Rune* end)
 {
 	Rune r;
 
-	while ((r = *cp++) != '\0') {
+	while((r = *cp++) != '\0') {
 		if(r == '\\') {
-			if (rhs < end)
+			if(rhs < end)
 				*rhs++ = Runemax;
 			else
 				return 0;
@@ -640,14 +641,14 @@ compsub(Rune *rhs, Rune *end)
 				r = '\n';
 		} else {
 			if(r == seof) {
-				if (rhs < end)
+				if(rhs < end)
 					*rhs++ = '\0';
 				else
 					return 0;
 				return rhs;
 			}
 		}
-		if (rhs < end)
+		if(rhs < end)
 			*rhs++ = r;
 		else
 			return 0;
@@ -655,70 +656,70 @@ compsub(Rune *rhs, Rune *end)
 	return 0;
 }
 
-Reprog *
+Reprog*
 compile(void)
 {
 	Rune c;
-	char *ep;
+	char* ep;
 	char expbuf[512];
 
-	if((c = *cp++) == seof)		/* L'//' */
+	if((c = *cp++) == seof) /* L'//' */
 		return 0;
 	ep = expbuf;
 	do {
-		if (c == L'\0' || c == L'\n')
+		if(c == L'\0' || c == L'\n')
 			quit(TMMES, linebuf);
-		if (c == L'\\') {
-			if (ep >= expbuf+sizeof(expbuf))
+		if(c == L'\\') {
+			if(ep >= expbuf + sizeof(expbuf))
 				quit(TMMES, linebuf);
 			ep += runetochar(ep, &c);
-			if ((c = *cp++) == L'n')
+			if((c = *cp++) == L'n')
 				c = L'\n';
 		}
-		if (ep >= expbuf + sizeof(expbuf))
+		if(ep >= expbuf + sizeof(expbuf))
 			quit(TMMES, linebuf);
 		ep += runetochar(ep, &c);
-	} while ((c = *cp++) != seof);
+	} while((c = *cp++) != seof);
 	*ep = 0;
 	return lastre = regcomp(expbuf);
 }
 
 void
-regerror(char *s)
+regerror(char* s)
 {
 	USED(s);
 	quit(CGMES, L"r.e.-using", linebuf);
 }
 
 void
-newfile(enum PTYPE type, char *name)
+newfile(enum PTYPE type, char* name)
 {
-	if (type == P_ARG)
+	if(type == P_ARG)
 		prog.curr = name;
-	else if ((prog.bp = Bopen(name, OREAD)) == 0)
+	else if((prog.bp = Bopen(name, OREAD)) == 0)
 		quit("Cannot open pattern-file: %s\n", name);
 	prog.type = type;
 }
 
 int
-rline(Rune *buf, Rune *end)
+rline(Rune* buf, Rune* end)
 {
 	int32_t c;
 	Rune r;
 
-	while ((c = getrune()) >= 0) {
+	while((c = getrune()) >= 0) {
 		r = c;
-		if (r == '\\') {
-			if (buf <= end)
+		if(r == '\\') {
+			if(buf <= end)
 				*buf++ = r;
-			if ((c = getrune()) < 0)
+			if((c = getrune()) < 0)
 				break;
 			r = c;
-		} else if (r == '\n') {
+		} else if(r == '\n') {
 			*buf = '\0';
 			return 1;
 		}
-		if (buf <= end)
+		if(buf <= end)
 			*buf++ = r;
 	}
 	*buf = '\0';
@@ -730,26 +731,26 @@ getrune(void)
 {
 	int32_t c;
 	Rune r;
-	char *p;
+	char* p;
 
-	if (prog.type == P_ARG) {
-		if ((p = prog.curr) != 0) {
-			if (*p) {
+	if(prog.type == P_ARG) {
+		if((p = prog.curr) != 0) {
+			if(*p) {
 				prog.curr += chartorune(&r, p);
 				c = r;
 			} else {
-				c = '\n';	/* fake an end-of-line */
+				c = '\n'; /* fake an end-of-line */
 				prog.curr = 0;
 			}
 		} else
 			c = -1;
-	} else if ((c = Bgetrune(prog.bp)) < 0)
+	} else if((c = Bgetrune(prog.bp)) < 0)
 		Bterm(prog.bp);
 	return c;
 }
 
 void
-address(Addr *ap)
+address(Addr* ap)
 {
 	int c;
 	int32_t lno;
@@ -758,60 +759,55 @@ address(Addr *ap)
 		ap->type = A_DOL;
 	else if(c == '/') {
 		seof = c;
-		if (ap->rp = compile())
+		if(ap->rp = compile())
 			ap->type = A_RE;
 		else
 			ap->type = A_LAST;
-	}
-	else if (c >= '0' && c <= '9') {
+	} else if(c >= '0' && c <= '9') {
 		lno = c - '0';
-		while ((c = *cp) >= '0' && c <= '9')
-			lno = lno*10 + *cp++ - '0';
+		while((c = *cp) >= '0' && c <= '9')
+			lno = lno * 10 + *cp++ - '0';
 		if(!lno)
-			quit("line number 0 is illegal",0);
+			quit("line number 0 is illegal", 0);
 		ap->type = A_LINE;
 		ap->line = lno;
-	}
-	else {
+	} else {
 		cp--;
 		ap->type = A_NONE;
 	}
 }
 
-int
-cmp(char *a, char *b)		/* compare characters */
+int cmp(char* a, char* b) /* compare characters */
 {
 	while(*a == *b++)
-		if (*a == '\0')
+		if(*a == '\0')
 			return 0;
 		else
 			a++;
 	return 1;
 }
 
-int
-rcmp(Rune *a, Rune *b)		/* compare runes */
+int rcmp(Rune* a, Rune* b) /* compare runes */
 {
 	while(*a == *b++)
-		if (*a == '\0')
+		if(*a == '\0')
 			return 0;
 		else
 			a++;
 	return 1;
 }
 
-char *
-text(char *p)		/* extract character string */
+char* text(char* p) /* extract character string */
 {
 	Rune r;
 
 	while(*cp == ' ' || *cp == '\t')
 		cp++;
-	while (*cp) {
-		if ((r = *cp++) == '\\' && (r = *cp++) == '\0')
+	while(*cp) {
+		if((r = *cp++) == '\\' && (r = *cp++) == '\0')
 			break;
-		if (r == '\n')
-			while (*cp == ' ' || *cp == '\t')
+		if(r == '\n')
+			while(*cp == ' ' || *cp == '\t')
 				cp++;
 		p += runetochar(p, &r);
 	}
@@ -819,17 +815,16 @@ text(char *p)		/* extract character string */
 	return p;
 }
 
-Rune *
-stext(Rune *p, Rune *end)		/* extract rune string */
+Rune* stext(Rune* p, Rune* end) /* extract rune string */
 {
 	while(*cp == L' ' || *cp == L'\t')
 		cp++;
-	while (*cp) {
-		if (*cp == L'\\' && *++cp == L'\0')
+	while(*cp) {
+		if(*cp == L'\\' && *++cp == L'\0')
 			break;
-		if (p >= end-1)
+		if(p >= end - 1)
 			quit(TMMES, linebuf);
-		if ((*p++ = *cp++) == L'\n')
+		if((*p++ = *cp++) == L'\n')
 			while(*cp == L' ' || *cp == L'\t')
 				cp++;
 	}
@@ -837,23 +832,22 @@ stext(Rune *p, Rune *end)		/* extract rune string */
 	return p;
 }
 
-
-Label *
-search(Label *ptr)
+Label*
+search(Label* ptr)
 {
-	Label	*rp;
+	Label* rp;
 
-	for (rp = ltab; rp < ptr; rp++)
+	for(rp = ltab; rp < ptr; rp++)
 		if(rcmp(rp->uninm, ptr->uninm) == 0)
-			return(rp);
-	return(0);
+			return (rp);
+	return (0);
 }
 
 void
 dechain(void)
 {
-	Label	*lptr;
-	SedCom	*rptr, *trptr;
+	Label* lptr;
+	SedCom* rptr, *trptr;
 
 	for(lptr = ltab; lptr < lab; lptr++) {
 		if(lptr->address == 0)
@@ -870,10 +864,10 @@ dechain(void)
 }
 
 int
-ycomp(SedCom *r)
+ycomp(SedCom* r)
 {
 	int i;
-	Rune *rp, *sp, *tsp;
+	Rune* rp, *sp, *tsp;
 	Rune c, highc;
 
 	highc = 0;
@@ -882,14 +876,14 @@ ycomp(SedCom *r)
 			tsp++;
 		if(*tsp == L'\n' || *tsp == L'\0')
 			return 0;
-		if (*tsp > highc)
+		if(*tsp > highc)
 			highc = *tsp;
 	}
 	tsp++;
-	if ((rp = r->text = (Rune *)malloc(sizeof(Rune) * (highc+2))) == nil)
+	if((rp = r->text = (Rune*)malloc(sizeof(Rune) * (highc + 2))) == nil)
 		quit("Out of memory");
-	*rp++ = highc;				/* save upper bound */
-	for (i = 0; i <= highc; i++)
+	*rp++ = highc; /* save upper bound */
+	for(i = 0; i <= highc; i++)
 		rp[i] = i;
 	sp = cp;
 	while((c = *sp++) != seof) {
@@ -912,18 +906,18 @@ ycomp(SedCom *r)
 		r->re1 = nil;
 		return 0;
 	}
-	cp = tsp+1;
+	cp = tsp + 1;
 	return 1;
 }
 
 void
 execute(void)
 {
-	SedCom	*ipc;
+	SedCom* ipc;
 
-	while (spend = gline(linebuf)){
-		for(ipc = pspace; ipc->command; ) {
-			if (!executable(ipc)) {
+	while(spend = gline(linebuf)) {
+		for(ipc = pspace; ipc->command;) {
+			if(!executable(ipc)) {
 				ipc++;
 				continue;
 			}
@@ -948,49 +942,49 @@ execute(void)
 
 /* determine if a statement should be applied to an input line */
 int
-executable(SedCom *ipc)
+executable(SedCom* ipc)
 {
-	if (ipc->active) {	/* Addr1 satisfied - accept until Addr2 */
-		if (ipc->active == 1)		/* Second line */
+	if(ipc->active) {            /* Addr1 satisfied - accept until Addr2 */
+		if(ipc->active == 1) /* Second line */
 			ipc->active = 2;
 		switch(ipc->ad2.type) {
-		case A_NONE:		/* No second addr; use first */
+		case A_NONE: /* No second addr; use first */
 			ipc->active = 0;
 			break;
-		case A_DOL:		/* Accept everything */
+		case A_DOL: /* Accept everything */
 			return !ipc->negfl;
-		case A_LINE:		/* Line at end of range? */
-			if (lnum <= ipc->ad2.line) {
-				if (ipc->ad2.line == lnum)
+		case A_LINE: /* Line at end of range? */
+			if(lnum <= ipc->ad2.line) {
+				if(ipc->ad2.line == lnum)
 					ipc->active = 0;
 				return !ipc->negfl;
 			}
-			ipc->active = 0;	/* out of range */
+			ipc->active = 0; /* out of range */
 			return ipc->negfl;
-		case A_RE:		/* Check for matching R.E. */
-			if (match(ipc->ad2.rp, linebuf))
+		case A_RE: /* Check for matching R.E. */
+			if(match(ipc->ad2.rp, linebuf))
 				ipc->active = 0;
 			return !ipc->negfl;
 		default:
 			quit("Internal error");
 		}
 	}
-	switch (ipc->ad1.type) {	/* Check first address */
-	case A_NONE:			/* Everything matches */
+	switch(ipc->ad1.type) { /* Check first address */
+	case A_NONE:            /* Everything matches */
 		return !ipc->negfl;
-	case A_DOL:			/* Only last line */
-		if (dolflag)
+	case A_DOL: /* Only last line */
+		if(dolflag)
 			return !ipc->negfl;
 		break;
-	case A_LINE:			/* Check line number */
-		if (ipc->ad1.line == lnum) {
-			ipc->active = 1;	/* In range */
+	case A_LINE: /* Check line number */
+		if(ipc->ad1.line == lnum) {
+			ipc->active = 1; /* In range */
 			return !ipc->negfl;
 		}
 		break;
-	case A_RE:			/* Check R.E. */
-		if (match(ipc->ad1.rp, linebuf)) {
-			ipc->active = 1;	/* In range */
+	case A_RE: /* Check R.E. */
+		if(match(ipc->ad1.rp, linebuf)) {
+			ipc->active = 1; /* In range */
 			return !ipc->negfl;
 		}
 		break;
@@ -1001,13 +995,13 @@ executable(SedCom *ipc)
 }
 
 int
-match(Reprog *pattern, Rune *buf)
+match(Reprog* pattern, Rune* buf)
 {
-	if (!pattern)
+	if(!pattern)
 		return 0;
 	subexp[0].rsp = buf;
 	subexp[0].ep = 0;
-	if (rregexec(pattern, linebuf, subexp, MAXSUB) > 0) {
+	if(rregexec(pattern, linebuf, subexp, MAXSUB) > 0) {
 		loc1 = subexp[0].rsp;
 		loc2 = subexp[0].rep;
 		return 1;
@@ -1017,7 +1011,7 @@ match(Reprog *pattern, Rune *buf)
 }
 
 int
-substitute(SedCom *ipc)
+substitute(SedCom* ipc)
 {
 	int len;
 
@@ -1030,77 +1024,77 @@ substitute(SedCom *ipc)
 	 * bump to the character after a 0-length match to keep from looping.
 	 */
 	sflag = 1;
-	if(ipc->gfl == 0)			/* single substitution */
+	if(ipc->gfl == 0) /* single substitution */
 		dosub(ipc->rhs);
 	else
-		do{				/* global substitution */
-			len = loc2 - loc1;	/* length of match */
-			dosub(ipc->rhs);	/* dosub moves loc2 */
-			if(*loc2 == 0)		/* end of string */
+		do {                       /* global substitution */
+			len = loc2 - loc1; /* length of match */
+			dosub(ipc->rhs);   /* dosub moves loc2 */
+			if(*loc2 == 0)     /* end of string */
 				break;
-			if(len == 0)		/* zero-length R.E. match */
-				loc2++;		/* bump over 0-length match */
-			if(*loc2 == 0)		/* end of string */
+			if(len == 0)    /* zero-length R.E. match */
+				loc2++; /* bump over 0-length match */
+			if(*loc2 == 0)  /* end of string */
 				break;
 		} while(match(ipc->re1, loc2));
 	return 1;
 }
 
 void
-dosub(Rune *rhsbuf)
+dosub(Rune* rhsbuf)
 {
 	int c, n;
-	Rune *lp, *sp, *rp;
+	Rune* lp, *sp, *rp;
 
 	lp = linebuf;
 	sp = genbuf;
 	rp = rhsbuf;
-	while (lp < loc1)
+	while(lp < loc1)
 		*sp++ = *lp++;
 	while(c = *rp++) {
-		if (c == '&') {
+		if(c == '&') {
 			sp = place(sp, loc1, loc2);
 			continue;
 		}
-		if (c == Runemax && (c = *rp++) >= '1' && c < MAXSUB + '0') {
-			n = c-'0';
-			if (subexp[n].rsp && subexp[n].rep) {
+		if(c == Runemax && (c = *rp++) >= '1' && c < MAXSUB + '0') {
+			n = c - '0';
+			if(subexp[n].rsp && subexp[n].rep) {
 				sp = place(sp, subexp[n].rsp, subexp[n].rep);
 				continue;
-			}
-			else {
-				fprint(2, "sed: Invalid back reference \\%d\n",n);
+			} else {
+				fprint(2, "sed: Invalid back reference \\%d\n",
+				       n);
 				errexit();
 			}
 		}
 		*sp++ = c;
-		if (sp >= &genbuf[LBSIZE])
+		if(sp >= &genbuf[LBSIZE])
 			fprint(2, "sed: Output line too int32_t.\n");
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
-	while (*sp++ = *lp++)
-		if (sp >= &genbuf[LBSIZE])
+	while(*sp++ = *lp++)
+		if(sp >= &genbuf[LBSIZE])
 			fprint(2, "sed: Output line too int32_t.\n");
 	lp = linebuf;
 	sp = genbuf;
-	while (*lp++ = *sp++)
+	while(*lp++ = *sp++)
 		;
 	spend = lp - 1;
 }
 
-Rune *
-place(Rune *sp, Rune *l1, Rune *l2)
+Rune*
+place(Rune* sp, Rune* l1, Rune* l2)
 {
-	while (l1 < l2) {
+	while(l1 < l2) {
 		*sp++ = *l1++;
-		if (sp >= &genbuf[LBSIZE])
+		if(sp >= &genbuf[LBSIZE])
 			fprint(2, "sed: Output line too int32_t.\n");
 	}
 	return sp;
 }
 
-char *
+char*
 trans(int c)
 {
 	static char buf[] = "\\x0000";
@@ -1118,26 +1112,26 @@ trans(int c)
 	case '\\':
 		return "\\\\";
 	}
-	buf[2] = hex[(c>>12)&0xF];
-	buf[3] = hex[(c>>8)&0xF];
-	buf[4] = hex[(c>>4)&0xF];
-	buf[5] = hex[c&0xF];
+	buf[2] = hex[(c >> 12) & 0xF];
+	buf[3] = hex[(c >> 8) & 0xF];
+	buf[4] = hex[(c >> 4) & 0xF];
+	buf[5] = hex[c & 0xF];
 	return buf;
 }
 
 void
-command(SedCom *ipc)
+command(SedCom* ipc)
 {
 	int i, c;
-	char *ucp;
-	Rune *execp, *p1, *p2, *rp;
+	char* ucp;
+	Rune* execp, *p1, *p2, *rp;
 
 	switch(ipc->command) {
 	case ACOM:
 		*aptr++ = ipc;
-		if(aptr >= abuf+MAXADDS)
+		if(aptr >= abuf + MAXADDS)
 			quit("sed: Too many appends after line %ld\n",
-				(char *)lnum);
+			     (char*)lnum);
 		*aptr = 0;
 		break;
 	case CCOM:
@@ -1187,7 +1181,8 @@ command(SedCom *ipc)
 	case HCOM:
 		p1 = holdsp;
 		p2 = linebuf;
-		while(*p1++ = *p2++);
+		while(*p1++ = *p2++)
+			;
 		hspend = p1 - 1;
 		break;
 	case CHCOM:
@@ -1209,7 +1204,7 @@ command(SedCom *ipc)
 		break;
 	case LCOM:
 		c = 0;
-		for (i = 0, rp = linebuf; *rp; rp++) {
+		for(i = 0, rp = linebuf; *rp; rp++) {
 			c = *rp;
 			if(c >= 0x20 && c < 0x7F && c != '\\') {
 				Bputc(&fout, c);
@@ -1218,7 +1213,7 @@ command(SedCom *ipc)
 					i = 0;
 				}
 			} else {
-				for (ucp = trans(*rp); *ucp; ucp++){
+				for(ucp = trans(*rp); *ucp; ucp++) {
 					c = *ucp;
 					Bputc(&fout, c);
 					if(i++ > 71) {
@@ -1234,7 +1229,7 @@ command(SedCom *ipc)
 		break;
 	case NCOM:
 		if(!nflag)
-			putline(&fout, linebuf, spend-linebuf);
+			putline(&fout, linebuf, spend - linebuf);
 
 		if(aptr > abuf)
 			arout();
@@ -1255,17 +1250,17 @@ command(SedCom *ipc)
 		spend = execp;
 		break;
 	case PCOM:
-		putline(&fout, linebuf, spend-linebuf);
+		putline(&fout, linebuf, spend - linebuf);
 		break;
 	case CPCOM:
-cpcom:
+	cpcom:
 		for(rp = linebuf; *rp && *rp != '\n'; rp++)
 			Bputc(&fout, *rp);
 		Bputc(&fout, '\n');
 		break;
 	case QCOM:
 		if(!nflag)
-			putline(&fout, linebuf, spend-linebuf);
+			putline(&fout, linebuf, spend - linebuf);
 		if(aptr > abuf)
 			arout();
 		exits(0);
@@ -1273,14 +1268,14 @@ cpcom:
 		*aptr++ = ipc;
 		if(aptr >= &abuf[MAXADDS])
 			quit("sed: Too many reads after line %ld\n",
-				(char *)lnum);
+			     (char*)lnum);
 		*aptr = 0;
 		break;
 	case SCOM:
 		i = substitute(ipc);
 		if(i && ipc->pfl)
 			if(ipc->pfl == 1)
-				putline(&fout, linebuf, spend-linebuf);
+				putline(&fout, linebuf, spend - linebuf);
 			else
 				goto cpcom;
 		if(i && ipc->fcode)
@@ -1295,8 +1290,8 @@ cpcom:
 		break;
 
 	case WCOM:
-wcom:
-		putline(ipc->fcode,linebuf, spend - linebuf);
+	wcom:
+		putline(ipc->fcode, linebuf, spend - linebuf);
 		break;
 	case XCOM:
 		p1 = linebuf;
@@ -1317,23 +1312,23 @@ wcom:
 	case YCOM:
 		p1 = linebuf;
 		p2 = ipc->text;
-		for (i = *p2++;	*p1; p1++)
-			if (*p1 <= i)
+		for(i = *p2++; *p1; p1++)
+			if(*p1 <= i)
 				*p1 = p2[*p1];
 		break;
 	}
 }
 
 void
-putline(Biobuf *bp, Rune *buf, int n)
+putline(Biobuf* bp, Rune* buf, int n)
 {
-	while (n--)
+	while(n--)
 		Bputrune(bp, *buf++);
 	Bputc(bp, '\n');
 }
 
 int
-ecmp(Rune *a, Rune *b, int count)
+ecmp(Rune* a, Rune* b, int count)
 {
 	while(count--)
 		if(*a++ != *b++)
@@ -1344,15 +1339,15 @@ ecmp(Rune *a, Rune *b, int count)
 void
 arout(void)
 {
-	int	c;
-	char	*s;
-	char	buf[128];
-	Rune	*p1;
-	Biobuf	*fi;
+	int c;
+	char* s;
+	char buf[128];
+	Rune* p1;
+	Biobuf* fi;
 
-	for (aptr = abuf; *aptr; aptr++) {
+	for(aptr = abuf; *aptr; aptr++) {
 		if((*aptr)->command == ACOM) {
-			for(p1 = (*aptr)->text; *p1; p1++ )
+			for(p1 = (*aptr)->text; *p1; p1++)
 				Bputrune(&fout, *p1);
 			Bputc(&fout, '\n');
 		} else {
@@ -1377,9 +1372,9 @@ errexit(void)
 }
 
 void
-quit(char *fmt, ...)
+quit(char* fmt, ...)
 {
-	char *p, *ep;
+	char* p, *ep;
 	char msg[256];
 	va_list arg;
 
@@ -1393,41 +1388,42 @@ quit(char *fmt, ...)
 	errexit();
 }
 
-Rune *
-gline(Rune *addr)
+Rune*
+gline(Rune* addr)
 {
 	int32_t c;
-	Rune *p;
+	Rune* p;
 	static int32_t peekc = 0;
 
-	if (f == 0 && opendata() < 0)
+	if(f == 0 && opendata() < 0)
 		return 0;
 	sflag = 0;
 	lnum++;
-/*	Bflush(&fout);********* dumped 4/30/92 - bobf****/
+	/*	Bflush(&fout);********* dumped 4/30/92 - bobf****/
 	do {
 		p = addr;
-		for (c = (peekc? peekc: Bgetrune(f)); c >= 0; c = Bgetrune(f)) {
-			if (c == '\n') {
-				if ((peekc = Bgetrune(f)) < 0 && fhead == 0)
+		for(c = (peekc ? peekc : Bgetrune(f)); c >= 0;
+		    c = Bgetrune(f)) {
+			if(c == '\n') {
+				if((peekc = Bgetrune(f)) < 0 && fhead == 0)
 					dolflag = 1;
 				*p = '\0';
 				return p;
 			}
-			if (c && p < lbend)
+			if(c && p < lbend)
 				*p++ = c;
 		}
 		/* return partial final line, adding implicit newline */
 		if(p != addr) {
 			*p = '\0';
 			peekc = -1;
-			if (fhead == 0)
+			if(fhead == 0)
 				dolflag = 1;
 			return p;
 		}
 		peekc = 0;
 		Bterm(f);
-	} while (opendata() > 0);		/* Switch to next stream */
+	} while(opendata() > 0); /* Switch to next stream */
 	f = 0;
 	return 0;
 }
@@ -1436,29 +1432,28 @@ gline(Rune *addr)
  * Data file input section - the intent is to transparently
  *	catenate all data input streams.
  */
-void
-enroll(char *filename)		/* Add a file to the input file cache */
+void enroll(char* filename) /* Add a file to the input file cache */
 {
-	FileCache *fp;
+	FileCache* fp;
 
-	if ((fp = (FileCache *)malloc(sizeof (FileCache))) == nil)
+	if((fp = (FileCache*)malloc(sizeof(FileCache))) == nil)
 		quit("Out of memory");
-	if (ftail == nil)
+	if(ftail == nil)
 		fhead = fp;
 	else
 		ftail->next = fp;
 	ftail = fp;
 	fp->next = nil;
-	fp->name = filename;		/* 0 => stdin */
+	fp->name = filename; /* 0 => stdin */
 }
 
 int
 opendata(void)
 {
-	if (fhead == nil)
+	if(fhead == nil)
 		return -1;
-	if (fhead->name) {
-		if ((f = Bopen(fhead->name, OREAD)) == nil)
+	if(fhead->name) {
+		if((f = Bopen(fhead->name, OREAD)) == nil)
 			quit("Can't open %s", fhead->name);
 	} else {
 		Binit(&stdin, 0, OREAD);

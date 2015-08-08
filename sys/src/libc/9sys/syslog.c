@@ -10,17 +10,15 @@
 #include <u.h>
 #include <libc.h>
 
-static struct
-{
-	int	fd;
-	int	consfd;
-	char	*name;
-	Dir	*d;
-	Dir	*consd;
+static struct {
+	int fd;
+	int consfd;
+	char* name;
+	Dir* d;
+	Dir* consd;
 	Lock;
-} sl =
-{
-	-1, -1,
+} sl = {
+    -1, -1,
 };
 
 static void
@@ -31,15 +29,14 @@ _syslogopen(void)
 	if(sl.fd >= 0)
 		close(sl.fd);
 	snprint(buf, sizeof(buf), "/sys/log/%s", sl.name);
-	sl.fd = open(buf, OWRITE|OCEXEC);
+	sl.fd = open(buf, OWRITE | OCEXEC);
 }
 
 static int
-eqdirdev(Dir *a, Dir *b)
+eqdirdev(Dir* a, Dir* b)
 {
-	return a != nil && b != nil &&
-		a->dev == b->dev && a->type == b->type &&
-		a->qid.path == b->qid.path;
+	return a != nil && b != nil && a->dev == b->dev && a->type == b->type &&
+	       a->qid.path == b->qid.path;
 }
 
 /*
@@ -49,13 +46,13 @@ eqdirdev(Dir *a, Dir *b)
  * If cons or log file can't be opened, print on the system console, too.
  */
 void
-syslog(int cons, char *logname, char *fmt, ...)
+syslog(int cons, char* logname, char* fmt, ...)
 {
 	char buf[1024];
-	char *ctim, *p;
+	char* ctim, *p;
 	va_list arg;
 	int n;
-	Dir *d;
+	Dir* d;
 	char err[ERRMAX];
 
 	err[0] = '\0';
@@ -68,12 +65,12 @@ syslog(int cons, char *logname, char *fmt, ...)
 	 */
 	d = dirfstat(sl.fd);
 	if(sl.fd < 0 || sl.name == nil || strcmp(sl.name, logname) != 0 ||
-	   !eqdirdev(d, sl.d)){
+	   !eqdirdev(d, sl.d)) {
 		free(sl.name);
 		sl.name = strdup(logname);
 		if(sl.name == nil)
 			cons = 1;
-		else{
+		else {
 			free(sl.d);
 			sl.d = nil;
 			_syslogopen();
@@ -84,41 +81,41 @@ syslog(int cons, char *logname, char *fmt, ...)
 		}
 	}
 	free(d);
-	if(cons){
+	if(cons) {
 		d = dirfstat(sl.consfd);
-		if(sl.consfd < 0 || !eqdirdev(d, sl.consd)){
+		if(sl.consfd < 0 || !eqdirdev(d, sl.consd)) {
 			free(sl.consd);
 			sl.consd = nil;
-			sl.consfd = open("#c/cons", OWRITE|OCEXEC);
+			sl.consfd = open("#c/cons", OWRITE | OCEXEC);
 			if(sl.consfd >= 0)
 				sl.consd = dirfstat(sl.consfd);
 		}
 		free(d);
 	}
 
-	if(fmt == nil){
+	if(fmt == nil) {
 		unlock(&sl);
 		return;
 	}
 
 	ctim = ctime(time(0));
-	p = buf + snprint(buf, sizeof(buf)-1, "%s ", sysname());
-	strncpy(p, ctim+4, 15);
+	p = buf + snprint(buf, sizeof(buf) - 1, "%s ", sysname());
+	strncpy(p, ctim + 4, 15);
 	p += 15;
 	*p++ = ' ';
 	errstr(err, sizeof err);
 	va_start(arg, fmt);
-	p = vseprint(p, buf+sizeof(buf)-1, fmt, arg);
+	p = vseprint(p, buf + sizeof(buf) - 1, fmt, arg);
 	va_end(arg);
 	*p++ = '\n';
 	n = p - buf;
 
-	if(sl.fd >= 0){
+	if(sl.fd >= 0) {
 		seek(sl.fd, 0, 2);
 		write(sl.fd, buf, n);
 	}
 
-	if(cons && sl.consfd >=0)
+	if(cons && sl.consfd >= 0)
 		write(sl.consfd, buf, n);
 
 	unlock(&sl);

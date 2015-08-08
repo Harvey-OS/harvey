@@ -11,12 +11,12 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, char* argv[])
 {
 	int32_t n;
-	char *p, *q;
+	char* p, *q;
 
-	if(argc>1){
+	if(argc > 1) {
 		for(n = strtol(argv[1], &p, 0); n > 0; n--)
 			sleep(1000);
 		/*
@@ -24,8 +24,8 @@ main(int argc, char *argv[])
 		 * be able to run sleep when bootstrapping
 		 * a machine.
 		 */
-		if(*p++ == '.' && (n = strtol(p, &q, 10)) > 0){
-			switch(q - p){
+		if(*p++ == '.' && (n = strtol(p, &q, 10)) > 0) {
+			switch(q - p) {
 			case 0:
 				break;
 			case 1:

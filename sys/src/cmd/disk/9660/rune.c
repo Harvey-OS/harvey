@@ -15,9 +15,9 @@
 #include "iso9660.h"
 
 Rune*
-strtorune(Rune *r, char *s)
+strtorune(Rune* r, char* s)
 {
-	Rune *or;
+	Rune* or ;
 
 	if(s == nil)
 		return nil;
@@ -26,11 +26,11 @@ strtorune(Rune *r, char *s)
 	while(*s)
 		s += chartorune(r++, s);
 	*r = L'\0';
-	return or;
+	return or ;
 }
 
 Rune*
-runechr(Rune *s, Rune c)
+runechr(Rune* s, Rune c)
 {
 	for(; *s; s++)
 		if(*s == c)
@@ -39,10 +39,9 @@ runechr(Rune *s, Rune c)
 }
 
 int
-runecmp(Rune *s, Rune *t)
+runecmp(Rune* s, Rune* t)
 {
 	while(*s && *t && *s == *t)
 		s++, t++;
 	return *s - *t;
 }
-

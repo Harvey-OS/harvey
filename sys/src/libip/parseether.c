@@ -11,14 +11,14 @@
 #include <libc.h>
 
 int
-parseether(uint8_t *to, char *from)
+parseether(uint8_t* to, char* from)
 {
 	char nip[4];
-	char *p;
+	char* p;
 	int i;
 
 	p = from;
-	for(i = 0; i < 6; i++){
+	for(i = 0; i < 6; i++) {
 		if(*p == 0)
 			return -1;
 		nip[0] = *p++;

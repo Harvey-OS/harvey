@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-perror(const char *s)
+perror(const char* s)
 {
 	char buf[ERRMAX];
 

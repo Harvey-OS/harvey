@@ -12,9 +12,9 @@
 #include <oventi.h>
 
 int
-vtErrFmt(Fmt *f)
+vtErrFmt(Fmt* f)
 {
-	char *s;
+	char* s;
 
 	s = vtGetError();
 	return fmtstrcpy(f, s);

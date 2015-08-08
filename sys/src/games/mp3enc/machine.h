@@ -35,77 +35,76 @@
 #include <memory.h>
 
 #ifdef STDC_HEADERS
-# include <stdlib.h>
-# include <string.h>
+#include <stdlib.h>
+#include <string.h>
 #else
-# ifndef HAVE_STRCHR
-#  define strchr index
-#  define strrchr rindex
-# endif
-char *strchr (), *strrchr ();
-# ifndef HAVE_MEMCPY
-#  define memcpy(d, s, n) bcopy ((s), (d), (n))
-#  define memmove(d, s, n) bcopy ((s), (d), (n))
-# endif
+#ifndef HAVE_STRCHR
+#define strchr index
+#define strrchr rindex
+#endif
+char* strchr(), *strrchr();
+#ifndef HAVE_MEMCPY
+#define memcpy(d, s, n) bcopy((s), (d), (n))
+#define memmove(d, s, n) bcopy((s), (d), (n))
+#endif
 #endif
 
-#if  defined(__riscos__)  &&  defined(FPA10)
-# include "ymath.h"
+#if defined(__riscos__) && defined(FPA10)
+#include "ymath.h"
 #else
-# include <math.h>
+#include <math.h>
 #endif
 
 #include <ctype.h>
 
 #ifdef HAVE_ERRNO_H
-# include <errno.h>
+#include <errno.h>
 #endif
 #ifdef HAVE_FCNTL_H
-# include <fcntl.h>
+#include <fcntl.h>
 #endif
 
 #if defined(macintosh)
-# include <types.h>
-# include <stat.h>
+#include <types.h>
+#include <stat.h>
 #else
-# include <sys/types.h>
-# include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #endif
 
-/* 
+/*
  * 3 different types of pow() functions:
  *   - table lookup
  *   - pow()
  *   - exp()   on some machines this is claimed to be faster than pow()
  */
 
-#define POW20(x)  pow20[x]
+#define POW20(x) pow20[x]
 //#define POW20(x)  pow(2.0,((double)(x)-210)*.25)
 //#define POW20(x)  exp( ((double)(x)-210)*(.25*LOG2) )
 
-#define IPOW20(x)  ipow20[x]
+#define IPOW20(x) ipow20[x]
 //#define IPOW20(x)  exp( -((double)(x)-210)*.1875*LOG2 )
 //#define IPOW20(x)  pow(2.0,-((double)(x)-210)*.1875)
 
-
 /* in case this is used without configure */
 #ifndef inline
-# define inline
+#define inline
 #endif
 /* compatibility */
 #define INLINE inline
 
 #if defined(_MSC_VER)
-# undef inline
-# define inline _inline
+#undef inline
+#define inline _inline
 #elif defined(__SASC) || defined(__GNUC__)
 /* if __GNUC__ we always want to inline, not only if the user requests it */
-# undef inline
-# define inline __inline
+#undef inline
+#define inline __inline
 #endif
 
-#if    defined(_MSC_VER)
-# pragma warning( disable : 4244 )
+#if defined(_MSC_VER)
+#pragma warning(disable : 4244)
 //# pragma warning( disable : 4305 )
 #endif
 
@@ -118,38 +117,39 @@ char *strchr (), *strrchr ();
  * lot of conversions.
  */
 
-#if ( defined(_MSC_VER) || defined(__BORLANDC__) || defined(__MINGW32__) )
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
+#if(defined(_MSC_VER) || defined(__BORLANDC__) || defined(__MINGW32__))
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #else
-# ifndef FLOAT
-typedef float   FLOAT;
-# endif
+#ifndef FLOAT
+typedef float FLOAT;
+#endif
 #endif
 
-#ifndef FLOAT8  /* NOTE: RH: 7/00:  if FLOAT8=float, it breaks resampling and VBR code */
-typedef double  FLOAT8;
+#ifndef FLOAT8 /* NOTE: RH: 7/00:  if FLOAT8=float, it breaks resampling and   \
+                  VBR code */
+typedef double FLOAT8;
 #endif
 
 /* Various integer types */
 
-#if   defined _WIN32 && !defined __CYGWIN__
-typedef unsigned char	u_char;
+#if defined _WIN32 && !defined __CYGWIN__
+typedef unsigned char u_char;
 #elif defined __DECALPHA__
 // do nothing
 #elif defined OS_AMIGAOS
 // do nothing
 #elif defined __DJGPP__
-typedef unsigned char	u_char;
-#elif !defined __GNUC__  ||  defined __STRICT_ANSI__
-typedef unsigned char	u_char;
+typedef unsigned char u_char;
+#elif !defined __GNUC__ || defined __STRICT_ANSI__
+typedef unsigned char u_char;
 #else
 // do nothing
 #endif
 
 /* sample_t must be floating point, at least 32 bits */
-typedef FLOAT     sample_t;
-typedef sample_t  stereo_t [2];
+typedef FLOAT sample_t;
+typedef sample_t stereo_t[2];
 
 #endif
 
