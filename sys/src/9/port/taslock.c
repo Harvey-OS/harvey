@@ -249,7 +249,6 @@ canlock(Lock *l)
 		up->lastlock = l;
 	l->_pc = getcallerpc(&l);
 	l->p = up;
-	l->m = machp();
 	l->isilock = 0;
 	if(LOCKCYCLES)
 		cycles(&l->lockcycles);

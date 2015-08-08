@@ -402,7 +402,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 		print("%s", buf);
 	}
 	assert(pg->pgszi >= 0);
-	pgsz = machp()->pgsz[pg->pgszi];
+	pgsz = sys->pgsz[pg->pgszi];
 	if(pa & (pgsz-1))
 		panic("mmuput: pa offset non zero: %#ullx\n", pa);
 	pa |= pteflags(attr);
@@ -789,7 +789,7 @@ mmuinit(void)
 	uint64_t o, pa, r, sz;
 
 	archmmu();
-	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->pml4, machp()->npgsz);
+	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, machp(), machp()->pml4, sys->npgsz);
 
 	if(machp()->machno != 0){
 		/* NIX: KLUDGE: Has to go when each mach is using

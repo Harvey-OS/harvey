@@ -413,14 +413,21 @@ trap(Ureg* ureg)
 			if(up)
 				up->nqtrap++;
 
-		if(ctl->isr)
+		if(ctl->isr){
 			ctl->isr(vno);
-		for(v = ctl; v != nil; v = v->next){
-			if(v->f)
-				v->f(ureg, v->a);
+			if(islo())print("trap %d: isr %p enabled interrupts\n", vno, ctl->isr);
 		}
-		if(ctl->eoi)
+		for(v = ctl; v != nil; v = v->next){
+			if(v->f){
+				v->f(ureg, v->a);
+				if(islo())print("trap %d: ctlf %p enabled interrupts\n", vno, v->f);
+			}
+		}
+		if(ctl->eoi){
 			ctl->eoi(vno);
+			if(islo())print("trap %d: eoi %p enabled interrupts\n", vno, ctl->eoi);
+		}
+
 		intrtime(vno);
 		if(ctl->isintr){
 			if(ctl->irq == IrqCLOCK || ctl->irq == IrqTIMER)

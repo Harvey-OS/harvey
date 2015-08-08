@@ -200,11 +200,11 @@ freepages(int si, int once)
 	Pgsza *pa;
 	Page *p;
 
-	for(; si < machp()->npgsz; si++){
+	for(; si < sys->npgsz; si++){
 		pa = &pga.pgsza[si];
 		if(pa->freecount > 0){
 			DBG("kickpager() up %#p: releasing %udK pages\n",
-				up, machp()->pgsz[si]/KiB);
+				up, sys->pgsz[si]/KiB);
 			lock(&pga);
 			if(pa->freecount == 0){
 				unlock(&pga);
@@ -227,7 +227,7 @@ tryalloc(int pgszi, int color)
 {
 	Page *p;
 
-	p = pgalloc(machp()->pgsz[pgszi], color);
+	p = pgalloc(sys->pgsz[pgszi], color);
 	if(p != nil){
 		lock(&pga);
 		pagechainhead(p);
@@ -288,7 +288,7 @@ kickpager(int pgszi, int color)
 	/*
 	 * If pgszi is <= text page size, try releasing text pages.
 	 */
-	if(machp()->pgsz[pgszi] <= 2*MiB){
+	if(sys->pgsz[pgszi] <= 2*MiB){
 		pstats.ntext++;
 		DBG("kickpager() up %#p: reclaiming text pages\n", up);
 		pageouttext(pgszi, color);

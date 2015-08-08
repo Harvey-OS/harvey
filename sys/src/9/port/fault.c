@@ -47,9 +47,9 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 
 	sps = up->psstate;
 	up->psstate = "Fault";
-	spllo();
 
 	machp()->pfault++;
+	spllo();
 	for(i = 0;; i++) {
 		s = seg(up, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
 		//print("%s fault seg for %p is %p base %p top %p\n", faulttypes[ftype], addr, s, s->base, s->top);
@@ -76,7 +76,7 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 		if(i > 0 && (i%1000) == 0)
 			print("fault: tried %d times\n", i);
 	}
-
+	splhi();
 	up->psstate = sps;
 	return 0;
 fail:
@@ -94,6 +94,7 @@ fail:
 			faulttypes[ftype],
 			up->pid, addr, pc);
 	}
+	splhi();
 	up->psstate = sps;
 	return -1;
 }
@@ -130,7 +131,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 	Page **pg, *lkp, *new;
 	Page *(*fn)(Segment*, uintptr_t);
 
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	addr &= ~(pgsz-1);
 	soff = addr-s->base;
 	p = &s->map[soff/PTEMAPMEM];
@@ -304,7 +305,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	loadrec = *p;
 	daddr = ask = 0;
 	c = nil;
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
 		daddr = s->ldseg.pg0fileoff + soff;
 		doff = s->ldseg.pg0off;

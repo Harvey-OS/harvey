@@ -1823,7 +1823,7 @@ procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 	pte = s->map[soff/PTEMAPMEM];
 	if(pte == 0)
 		panic("procctlmemio");
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	pg = pte->pages[(soff&(PTEMAPMEM-1))/pgsz];
 	if(pagedout(pg))
 		panic("procctlmemio1");

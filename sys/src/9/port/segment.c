@@ -32,7 +32,7 @@ segppn(Segment *s, uintmem pa)
 {
 	uintmem pgsz;
 
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	pa &= ~(pgsz-1);
 	return pa;
 }
@@ -278,7 +278,7 @@ segpage(Segment *s, Page *p)
 	pte = &s->map[soff/PTEMAPMEM];
 	if(*pte == 0)
 		*pte = ptealloc(s);
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	pg = &(*pte)->pages[(soff&(PTEMAPMEM-1))/pgsz];
 	*pg = p;
 	if(pg < (*pte)->first)
@@ -299,7 +299,7 @@ mfreeseg(Segment *s, uintptr_t start, int pages)
 	Page *pg;
 	Page *list;
 
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	soff = start-s->base;
 	j = (soff&(PTEMAPMEM-1))/pgsz;
 
@@ -404,7 +404,7 @@ prepageseg(int i)
 	if(s == nil)
 		return;
 	DBG("prepage: base %#p top %#p\n", s->base, s->top);
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	for(addr = s->base; addr < s->top; addr += pgsz)
 		fault(addr, -1, (s->type & SG_WRITE) ? FT_WRITE : FT_READ);
 }

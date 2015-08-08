@@ -75,7 +75,8 @@ syscallentry:
 	movq	%rax, %rdi
 	xorq	%rax, %rax
 	pushq	%rax
-	popfq				/* clear all flags. is there something else we should clear too? */
+	popfq			/* clear all flags. is there something else we should clear too? */
+	movq	$0, %rbp	/* stack traces end here */
 	CALL	syscall
 
 	.globl	syscallreturn
