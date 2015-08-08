@@ -12,7 +12,6 @@
 #include <fcall.h>
 #include <bio.h>
 #include <regexp.h>
-#define Extern
 #include "exportfs.h"
 
 Reprog	**exclude, **include;
@@ -35,13 +34,13 @@ exclusions(void)
 	nmaxi = 100;
 	include = malloc(nmaxi*sizeof(*include));
 	if(include == nil)
-		fatal("out of memory");
+		fatal(Enomem);
 	include[0] = nil;
 	ne = 0;
 	nmaxe = 100;
 	exclude = malloc(nmaxe*sizeof(*exclude));
 	if(exclude == nil)
-		fatal("out of memory");
+		fatal(Enomem);
 	exclude[0] = nil;
 	while(line = Brdline(f, '\n')){
 		line[Blinelen(f) - 1] = 0;
@@ -53,7 +52,7 @@ exclusions(void)
 				nmaxi = 2*nmaxi;
 				include = realloc(include, nmaxi*sizeof(*include));
 				if(include == nil)
-					fatal("out of memory");
+					fatal(Enomem);
 			}
 			DEBUG(DFD, "\tinclude %s\n", line+2);
 			include[ni] = regcomp(line+2);
@@ -64,7 +63,7 @@ exclusions(void)
 				nmaxe = 2*nmaxe;
 				exclude = realloc(exclude, nmaxe*sizeof(*exclude));
 				if(exclude == nil)
-					fatal("out of memory");
+					fatal(Enomem);
 			}
 			DEBUG(DFD, "\texclude %s\n", line+2);
 			exclude[ne] = regcomp(line+2);
