@@ -326,7 +326,7 @@ asmmeminit(void)
 	int cx;
 #endif /* ConfCrap */
 
-	assert(!((sys->vmunmapped|sys->vmend) & machp()->pgszmask[1]));
+	assert(!((sys->vmunmapped|sys->vmend) & sys->pgszmask[1]));
 
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
@@ -362,11 +362,11 @@ asmmeminit(void)
 		hi = assem->addr+assem->size;
 		/* Convert a range into pages */
 		for(mem = lo; mem < hi; mem = nextmem){
-			nextmem = (mem + PGLSZ(0)) & ~machp()->pgszmask[0];
+			nextmem = (mem + PGLSZ(0)) & ~sys->pgszmask[0];
 
 			/* Try large pages first */
-			for(i = machp()->npgsz - 1; i >= 0; i--){
-				if((mem & machp()->pgszmask[i]) != 0)
+			for(i = sys->npgsz - 1; i >= 0; i--){
+				if((mem & sys->pgszmask[i]) != 0)
 					continue;
 				if(mem + PGLSZ(i) > hi)
 					continue;

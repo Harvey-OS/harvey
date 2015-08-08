@@ -613,7 +613,7 @@ delay(int millisecs)
 	if(millisecs <= 0)
 		millisecs = 1;
 	r = rdtsc();
-	for(t = r + machp()->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
+	for(t = r + (sys->cyclefreq*millisecs)/1000ull; r < t; r = rdtsc())
 		;
 }
 

@@ -43,11 +43,11 @@ seprintpagestats(char *s, char *e)
 	int i;
 
 	lock(&pga);
-	for(i = 0; i < machp()->npgsz; i++)
-		if(machp()->pgsz[i] != 0)
+	for(i = 0; i < sys->npgsz; i++)
+		if(sys->pgsz[i] != 0)
 			s = seprint(s, e, "%uld/%d %dK user pages avail\n",
 				pga.pgsza[i].freecount,
-				pga.pgsza[i].npages.ref, machp()->pgsz[i]/KiB);
+				pga.pgsza[i].npages.ref, sys->pgsz[i]/KiB);
 	unlock(&pga);
 	return s;
 }
@@ -64,23 +64,23 @@ pageinit(void)
 	Page *pg;
 
 	pga.userinit = 1;
-	DBG("pageinit: npgsz = %d\n", machp()->npgsz);
+	DBG("pageinit: npgsz = %d\n", sys->npgsz);
 	/*
 	 * Don't pre-allocate 4K pages, we are not using them anymore.
 	 */
-	for(si = 1; si < machp()->npgsz; si++){
+	for(si = 1; si < sys->npgsz; si++){
 		for(i = 0; i < Nstartpgs; i++){
 			if(si < 2)
 				color = -1;
 			else
 				color = i;
-			pg = pgalloc(machp()->pgsz[si], color);
+			pg = pgalloc(sys->pgsz[si], color);
 			if(pg == nil){
 				DBG("pageinit: pgalloc failed. breaking.\n");
 				break;	/* don't consume more memory */
 			}
 			DBG("pageinit: alloced pa %#P sz %#ux color %d\n",
-				pg->pa, machp()->pgsz[si], pg->color);
+				pg->pa, sys->pgsz[si], pg->color);
 			lock(&pga);
 			pg->ref = 0;
 			pagechainhead(pg);
@@ -96,8 +96,8 @@ getpgszi(usize size)
 {
 	int si;
 
-	for(si = 0; si < machp()->npgsz; si++)
-		if(size == machp()->pgsz[si])
+	for(si = 0; si < sys->npgsz; si++)
+		if(size == sys->pgsz[si])
 			return si;
 	print("getpgszi: size %#ulx not found\n", size);
 	return -1;
@@ -130,7 +130,7 @@ void
 pgfree(Page* pg)
 {
 	decref(&pga.pgsza[pg->pgszi].npages);
-	physfree(pg->pa, machp()->pgsz[pg->pgszi]);
+	physfree(pg->pa, sys->pgsz[pg->pgszi]);
 	free(pg);
 }
 
@@ -313,13 +313,13 @@ if (VA(k) == 0xfffffe007d800000ULL) trip++;
 		int i;
 		uint64_t *v = (void *)VA(k);
 		if (1)
-		for(i = 0; i < machp()->pgsz[p->pgszi]/sizeof(*v); i++)
+		for(i = 0; i < sys->pgsz[p->pgszi]/sizeof(*v); i++)
 			v[i] = 0;
 //if (trip) die("trip");
 		kunmap(k);
 	}
 	DBG("newpage: va %#p pa %#ullx pgsz %#ux color %d\n",
-		p->va, p->pa, machp()->pgsz[p->pgszi], p->color);
+		p->va, p->pa, sys->pgsz[p->pgszi], p->color);
 
 	return p;
 }
@@ -498,7 +498,7 @@ copypage(Page *f, Page *t)
 		panic("copypage");
 	ks = kmap(f);
 	kd = kmap(t);
-	memmove((void*)VA(kd), (void*)VA(ks), machp()->pgsz[t->pgszi]);
+	memmove((void*)VA(kd), (void*)VA(ks), sys->pgsz[t->pgszi]);
 	kunmap(ks);
 	kunmap(kd);
 }
