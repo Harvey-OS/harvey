@@ -15,11 +15,24 @@
 #include <auth.h>
 #include <fcall.h>
 #include <libsec.h>
-#define Extern
 #include "exportfs.h"
 
 #define QIDPATH	((1LL<<48)-1)
 int64_t newqid = 0;
+
+Fsrpc	*Workq;
+int  	dbg = 0;
+File	*root;
+File	*psmpt;
+Fid	**fhash;
+Fid	*fidfree;
+Proc	*Proclist;
+char	psmap[Npsmpt];
+Qidtab	*qidtab[Nqidtab];
+uint32_t	messagesize;
+char	Enomem[] = "out of memory";
+int	srvfd;
+char*	patternfile;
 
 enum {
 	Encnone,
@@ -99,7 +112,7 @@ main(int argc, char **argv)
 	int doauth, n, fd;
 	char *dbfile, *srv, *na, *nsfile, *keyspec;
 	AuthInfo *ai;
-	ulong initial;
+	uint32_t initial;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
@@ -183,7 +196,8 @@ main(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	USED(argc, argv);
+	USED(argc);
+	USED(argv);
 
 	if(doauth){
 		/*
@@ -249,8 +263,6 @@ main(int argc, char **argv)
 	}
 
 	Workq = emallocz(sizeof(Fsrpc)*Nr_workbufs);
-//	for(i=0; i<Nr_workbufs; i++)
-//		Workq[i].buf = emallocz(messagesize);
 	fhash = emallocz(sizeof(Fid*)*FHASHSIZE);
 
 	fmtinstall('F', fcallfmt);
@@ -299,10 +311,10 @@ main(int argc, char **argv)
 	if(srv == nil && srvfd == -1 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
-	if (readn(netfd, &initial, sizeof(ulong)) < sizeof(ulong))
+	if (readn(netfd, &initial, sizeof(uint32_t)) < sizeof(uint32_t))
 		fatal("can't read initial string: %r\n");
 
-	if (strncmp((char *)&initial, "impo", sizeof(ulong)) == 0) {
+	if (strncmp((char *)&initial, "impo", sizeof(uint32_t)) == 0) {
 		char buf[128], *p, *args[3];
 
 		/* New import.  Read import's parameters... */
@@ -342,8 +354,8 @@ main(int argc, char **argv)
 	}
 
 	if (encproto != Encnone && ealgs && ai) {
-		uchar key[16];
-		uchar digest[SHA1dlen];
+		uint8_t key[16];
+		uint8_t digest[SHA1dlen];
 		char fromclientsecret[21];
 		char fromserversecret[21];
 		int i;
@@ -470,10 +482,10 @@ reply(Fcall *r, Fcall *t, char *err)
 	if(data == nil)
 		fatal(Enomem);
 	n = convS2M(t, data, messagesize);
-	if(write(netfd, data, n)!=n)
-{syslog(0, "exportfs", "short write: %r");
+	if(write(netfd, data, n)!=n){
+		syslog(0, "exportfs", "short write: %r");
 		fatal("mount write");
-}
+	}
 	free(data);
 }
 
@@ -894,14 +906,14 @@ filter(int fd, char *cmd)
 
 	/* Get a free port and post it to the client. */
 	if (announce(anstring, devdir) < 0)
-		sysfatal("filter: Cannot announce %s: %r", anstring);
+		sysfatal("filter: cannot announce %s: %r", anstring);
 
 	snprint(buf, sizeof(buf), "%s/local", devdir);
 	buf[sizeof buf - 1] = '\0';
 	if ((lfd = open(buf, OREAD)) < 0)
-		sysfatal("filter: Cannot open %s: %r", buf);
+		sysfatal("filter: cannot open %s: %r", buf);
 	if ((len = read(lfd, newport, sizeof newport - 1)) < 0)
-		sysfatal("filter: Cannot read %s: %r", buf);
+		sysfatal("filter: cannot read %s: %r", buf);
 	close(lfd);
 	newport[len] = '\0';
 
@@ -929,9 +941,9 @@ filter(int fd, char *cmd)
 		fatal("rfork record module");
 	case 0:
 		if (dup(p[0], 1) < 0)
-			fatal("filter: Cannot dup to 1; %r\n");
+			fatal("filter: cannot dup to 1; %r\n");
 		if (dup(p[0], 0) < 0)
-			fatal("filter: Cannot dup to 0; %r\n");
+			fatal("filter: cannot dup to 0; %r\n");
 		close(p[0]);
 		close(p[1]);
 		exec(file, argv);

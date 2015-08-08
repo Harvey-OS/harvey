@@ -11,21 +11,14 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
-#define Extern	extern
 #include "exportfs.h"
 
 extern char *netdir, *local, *remote;
-
-char Ebadfid[] = "Bad fid";
-char Enotdir[] = "Not a directory";
-char Edupfid[] = "Fid already in use";
-char Eopen[] = "Fid already opened";
-char Exmnt[] = "Cannot .. past mount point";
-char Emip[] = "Mount in progress";
-char Enopsmt[] = "Out of pseudo mount points";
-char Enomem[] = "No memory";
-char Eversion[] = "Bad 9P2000 version";
-char Ereadonly[] = "File system read only";
+static char Ebadfid[] = "bad fid";
+static char Enopsmt[] = "out of pseudo mount points";
+static char Ereadonly[] = "file system read only";
+static char Eversion[] = "bad 9P2000 version";
+static char Exmnt[] = "cannot .. past mount point";
 
 uint32_t messagesize;
 int readonly;
@@ -186,7 +179,7 @@ Xwalk(Fsrpc *t)
 	e = nil;
 	for(i=0; i<t->work.nwname; i++){
 		if(i == MAXWELEM){
-			e = "Too many path elements";
+			e = "too many path elements";
 			break;
 		}
 
@@ -516,7 +509,7 @@ slave(Fsrpc *f)
 		default:
 			p = malloc(sizeof(Proc));
 			if(p == 0)
-				fatal("out of memory");
+				fatal(Enomem);
 
 			p->busy = 0;
 			p->pid = pid;

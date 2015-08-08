@@ -19,6 +19,7 @@
 		"diff/diff.json",
 		"disk/disk.json",
 		"dossrv/dossrv.json",
+		"exportfs/exportfs.json",
 		"fossil/fossil.json",
 		"ip/ip.json",
 		"hoc/hoc.json",
