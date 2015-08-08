@@ -518,8 +518,19 @@ k10mwdone:
 
 .global machp
 machp:
+	pushq %rbp
+	movq %rsp, %rbp
+	pushfq
+	popq %rax
+	testq $If, %rax
+	jnz _machp_bad
+_machp_out:
 	movq	%gs:0, %rax
+	popq %rbp
 	ret
+_machp_bad:
+	callq machp_bad
+	jmp _machp_out
 
 .global externup
 externup:
