@@ -283,6 +283,15 @@ sfence:
 	RET
 
 /*
+ *	x86 convention is to use %rbp as the frame pointer,
+ *	so we just return that register
+ */
+.global stackframe
+stackframe:
+	movq	%rbp, %rax
+	retq
+
+/*
  *	disable interrupts,
  *	return old flags for splx()
  */
