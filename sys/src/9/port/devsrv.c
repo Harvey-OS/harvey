@@ -42,12 +42,10 @@ srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 		return 1;
 	}
 
-	qlock(&srvlk);
 	for(sp = srv; sp && s; sp = sp->link)
 		s--;
 
 	if(sp == 0) {
-		qunlock(&srvlk);
 		return -1;
 	}
 
@@ -55,7 +53,6 @@ srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 	/* make sure name string continues to exist after we release lock */
 	kstrcpy(up->genbuf, sp->name, sizeof up->genbuf);
 	devdir(c, q, up->genbuf, 0, sp->owner, sp->perm, dp);
-	qunlock(&srvlk);
 	return 1;
 }
 
@@ -74,7 +71,12 @@ srvattach(char *spec)
 static Walkqid*
 srvwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, nc, name, nname, 0, 0, srvgen);
+	Walkqid *wqid;
+
+	qlock(&srvlk);
+	wqid = devwalk(c, nc, name, nname, 0, 0, srvgen);
+	qunlock(&srvlk);
+	return wqid;
 }
 
 static Srv*
@@ -90,7 +92,12 @@ srvlookup(char *name, uint32_t qidpath)
 static int32_t
 srvstat(Chan *c, uint8_t *db, int32_t n)
 {
-	return devstat(c, db, n, 0, 0, srvgen);
+	int32_t r;
+
+	qlock(&srvlk);
+	r = devstat(c, db, n, 0, 0, srvgen);
+	qunlock(&srvlk);
+	return r;
 }
 
 char*
@@ -308,8 +315,13 @@ srvclose(Chan *c)
 static int32_t
 srvread(Chan *c, void *va, int32_t n, int64_t m)
 {
+	int32_t r;
+
 	isdir(c);
-	return devdirread(c, va, n, 0, 0, srvgen);
+	qlock(&srvlk);
+	r = devdirread(c, va, n, 0, 0, srvgen);
+	qunlock(&srvlk);
+	return r;
 }
 
 static int32_t
