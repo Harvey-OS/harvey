@@ -181,7 +181,7 @@ sched(void)
 	Proc *up = externup();
 	Proc *p;
 
-	if(machp()->ilockdepth)
+	if(!islo() && machp()->ilockdepth)
 		panic("cpu%d: ilockdepth %d, last lock %#p at %#p, sched called from %#p",
 			machp()->machno,
 			machp()->ilockdepth,
@@ -798,13 +798,13 @@ loop:
 	 *  or one that hasn't moved in a while (load balancing).  Every
 	 *  time around the loop affinity goes down.
 	 */
-	spllo();
 	for(i = 0;; i++){
 		/*
 		 *  find the highest priority target process that this
 		 *  processor can run given affinity constraints.
 		 *
 		 */
+		splhi();
 		for(rq = &run.runq[Nrq-1]; rq >= run.runq; rq--){
 			for(p = rq->head; p; p = p->rnext){
 				if(p->mp == nil || p->mp == sys->machptr[machp()->machno]
@@ -815,6 +815,7 @@ loop:
 
 		/* waste time or halt the CPU */
 		idlehands();
+		splhi();
 		/* remember how much time we're here */
 		now = perfticks();
 		machp()->perf.inidle += now-start;
@@ -822,7 +823,6 @@ loop:
 	}
 
 found:
-	splhi();
 	p = dequeueproc(&run, rq, p);
 	if(p == nil)
 		goto loop;
