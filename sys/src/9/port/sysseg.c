@@ -96,7 +96,7 @@ ibrk(uintptr_t addr, int seg)
 	if(addr < s->base)
 		addr = s->base;
 
-	pgsz = machp()->pgsz[s->pgszi];
+	pgsz = sys->pgsz[s->pgszi];
 	newtop = ROUNDUP(addr, pgsz);
 	newsize = (newtop-s->base)/pgsz;
 	if(newtop < s->top) {

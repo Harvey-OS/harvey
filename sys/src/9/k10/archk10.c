@@ -295,10 +295,10 @@ archmmu(void)
 	 */
 	assert(PGSZ == 4*KiB);
 
-	machp()->pgszlg2[0] = 12;
-	machp()->pgszmask[0] = (1<<12)-1;
-	machp()->pgsz[0] = 1<<12;
-	machp()->npgsz = 1;
+	sys->pgszlg2[0] = 12;
+	sys->pgszmask[0] = (1<<12)-1;
+	sys->pgsz[0] = 1<<12;
+	sys->npgsz = 1;
 	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return 1;
 
@@ -308,22 +308,22 @@ archmmu(void)
 	 */
 	if(!(machp()->cpuinfo[1][3] & 0x00000008))
 		return 1;
-	machp()->pgszlg2[1] = 21;
-	machp()->pgszmask[1] = (1<<21)-1;
-	machp()->pgsz[1] = 1<<21;
-	machp()->npgsz = 2;
+	sys->pgszlg2[1] = 21;
+	sys->pgszmask[1] = (1<<21)-1;
+	sys->pgsz[1] = 1<<21;
+	sys->npgsz = 2;
 
 	/*
 	 * Check the Page1GB bit in function 0x80000001 DX for 1*GiB support.
 	 */
 	if(cpuidinfo(0x80000001, 0, info) && (info[3] & 0x04000000)){
-		machp()->pgszlg2[2] = 30;
-		machp()->pgszmask[2] = (1<<30)-1;
-		machp()->pgsz[2] = 1<<30;
-		machp()->npgsz = 3;
+		sys->pgszlg2[2] = 30;
+		sys->pgszmask[2] = (1<<30)-1;
+		sys->pgsz[2] = 1<<30;
+		sys->npgsz = 3;
 	}
 
-	return machp()->npgsz;
+	return sys->npgsz;
 }
 
 static int
