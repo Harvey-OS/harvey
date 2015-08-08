@@ -106,6 +106,9 @@ _intrnested:
 
 	MOVQ	%rsp, %rdi // it's ok, we saved %rdi.
 	xorq	%rax, %rax
+	/* if we came from user, stack traces end here */
+	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 144(%rsp)
+	cmovneq	%rax, %rbp
 	pushq	%rax
 	popfq				/* clear all flags. is there something else we should clear too? */
 	CALL	_trap

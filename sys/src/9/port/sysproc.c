@@ -386,10 +386,12 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		error(Ebadexec);
 	}
 
+	/* TODO(aki): not sure I see the point
 	if(up->ac != nil && up->ac != machp())
 		up->color = corecolor(up->ac->machno);
 	else
 		up->color = corecolor(machp()->machno);
+	*/
 
 	/*
 	 * The new stack is temporarily mapped elsewhere.
@@ -433,7 +435,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * First, the top-of-stack structure.
 	 */
 	tos = (Tos*)stack;
-	tos->cyclefreq = machp()->cyclefreq;
+	tos->cyclefreq = sys->cyclefreq;
 	cycles((uint64_t*)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
 	tos->kcycles = tos->pcycles;
