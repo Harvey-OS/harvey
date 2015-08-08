@@ -210,7 +210,8 @@ void	acsyscallentry(void);
 void	syscallreturn(void);
 void	sysrforkret(void);
 
-#define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
+#define	waserror()	setlabel(&up->errlab[up->nerrlab++])
+#define	poperror()	up->nerrlab--
 
 #define	dcflush(a, b)
 
