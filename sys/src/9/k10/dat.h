@@ -33,6 +33,7 @@ typedef struct PNOTIFY PNOTIFY;
 typedef uint64_t PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
+typedef struct Stackframe Stackframe;
 typedef uint64_t uintmem;				/* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
@@ -174,11 +175,6 @@ struct MMMU
 	Page*	pml4;			/* pml4 for this processor */
 	PTE*	pmap;			/* unused as of yet */
 
-	uint	pgszlg2[NPGSZ];		/* per Mach or per Sys? */
-	uint	pgszmask[NPGSZ];
-	uint	pgsz[NPGSZ];
-	int	npgsz;
-
 	Page	pml4kludge;		/* NIX KLUDGE: we need a page */
 };
 
@@ -316,6 +312,12 @@ struct Mach
 	NIX;
 };
 
+struct Stackframe
+{
+	Stackframe *next;
+	uintptr_t pc;
+};
+
 /*
  * This is the low memory map, between 0x100000 and 0x110000.
  * It is located there to allow fundamental datastructures to be
@@ -368,10 +370,17 @@ struct Sys {
 		unsigned char	ptrpage[4*KiB];
 	};
 
+	uint64_t	cyclefreq;		/* Frequency of user readable cycle counter (mach 0) */
+
+	uint	pgszlg2[NPGSZ];		/* per Mach or per Sys? */
+	uint	pgszmask[NPGSZ];	/* Per sys -aki */
+	uint	pgsz[NPGSZ];
+	int	npgsz;
+
 	unsigned char	_57344_[2][4*KiB];		/* unused */
 };
 
-extern Sys* sys;
+extern Sys *sys;
 
 /*
  * KMap

@@ -349,6 +349,7 @@ _zap0done:
 	movq	%rbx, %rsi
 	movq	%rax, %rax
 	movq	%rax, %rdi				/* multiboot magic */
+	xorq	%rbp, %rbp			/* stack trace ends here */
 	CALL	main
 
 .globl ndnr
@@ -588,6 +589,7 @@ _apstart64v:
 	movq	%rax, %rsi			/* Mach * */
 
 	MOVQ	8(%rsi), %rAX			/* m->splpc */
+	xorq	%rbp, %rbp			/* stack trace ends here */
 	CALL	*%raX				/* CALL squidboy(SB) */
 
 

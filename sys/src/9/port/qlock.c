@@ -36,8 +36,12 @@ qlock(QLock *q)
 	uint64_t t0;
 
 	cycles(&t0);
-	if(machp()->ilockdepth != 0)
-		print("qlock: %#p: ilockdepth %d", getcallerpc(&q), machp()->ilockdepth);
+
+	if(!islo() && machp()->ilockdepth != 0){
+		print("qlock with ilockdepth %d,", machp()->ilockdepth);
+		stacksnippet();
+	}
+
 	if(up != nil && up->nlocks)
 		print("qlock: %#p: nlocks %d", getcallerpc(&q), up->nlocks);
 
