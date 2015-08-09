@@ -12,11 +12,11 @@ Our aim is to provide a modern, distributed, 64 bit operating system that does a
 
 ## News & events
 
+* [Using gdb to debug Harvey](news#debugging-harvey-gdb)
 * [APE is ready](news#ape-is-ready)
 * [Broken scheduler, working scheduler](news#broken-scheduler)
 * [USENIX presentation slides available](news#usenix-2015-materials)
 * [Developers wanted!](news#developers-wanted)
-* [Harvey at USENIX](news#usenix-2015)
 
 
 <h2>Code status</h2>

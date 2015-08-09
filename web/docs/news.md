@@ -1,9 +1,12 @@
 # News & events
+
 <a name="debugging-harvey-gdb"></a>
 ## Using gdb to debug Harvey
 August 8, 2015
 
 A page has been added to the wiki which describes how to debug Harvey using gdb.  See [Debugging Harvey in gdb](https://github.com/Harvey-OS/harvey/wiki/Debugging-Harvey-in-gdb) for details.
+
+---
 
 <a name="ape-is-ready"></a>
 ## APE is ready
