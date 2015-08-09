@@ -3,6 +3,7 @@
 	"Projects": [
 		"/sys/src/libc/klibc.json",
 		"/sys/src/libip/klibip.json",
-		"/sys/src/libdraw/klibdraw.json"
+		"/sys/src/libdraw/klibdraw.json",
+		"/sys/src/libsec/klibsec.json"
 	]
 }
