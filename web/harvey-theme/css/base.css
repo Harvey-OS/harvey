@@ -40,6 +40,7 @@ div.col-md-9 img {
 div.lazy img { margin:0;}
 
 blockquote { background-color: #eee; color: #777;}
+blockquote p {font-size: 1em;}
 
 h1 { color: #000; margin-top: 0.25em;} 
 
