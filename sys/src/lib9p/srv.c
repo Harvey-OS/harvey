@@ -17,6 +17,8 @@
 void (*_forker)(void(*)(void*), void*, int);
 
 static char Ebadattach[] = "unknown specifier in attach";
+static char Ebadcount[] = "bad count";
+static char Ebaddir[] = "bad directory in wstat";
 static char Ebadoffset[] = "bad offset";
 static char Ebotch[] = "9P protocol botch";
 static char Ecreatenondir[] = "create in non-directory";
@@ -24,13 +26,15 @@ static char Edupfid[] = "duplicate fid";
 static char Eduptag[] = "duplicate tag";
 static char Eisdir[] = "is a directory";
 static char Enocreate[] = "create prohibited";
+static char Enomem[] = "out of memory";
+static char Enoread[] = "read prohibited";
 static char Enoremove[] = "remove prohibited";
 static char Enostat[] = "stat prohibited";
 static char Enotfound[] = "file not found";
+static char Enowrite[] = "write prohibited";
 static char Enowstat[] = "wstat prohibited";
 static char Eperm[] = "permission denied";
 static char Eunknownfid[] = "unknown fid";
-static char Ebaddir[] = "bad directory in wstat";
 static char Ewalknodir[] = "walk in non-directory";
 
 static void
@@ -221,7 +225,7 @@ sattach(Srv *srv, Req *r)
 	}
 	r->afid = nil;
 	if(r->ifcall.afid != NOFID && (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
-		respond(r, Eunknownfid);
+		respond(r, Ebadattach);
 		return;
 	}
 	r->fid->uid = estrdup9p(r->ifcall.uname);
@@ -473,7 +477,7 @@ sread(Srv *srv, Req *r)
 		return;
 	}
 	if((int)r->ifcall.count < 0){
-		respond(r, Ebotch);
+		respond(r, Ebadcount);
 		return;
 	}
 	if(r->ifcall.offset < 0
@@ -499,7 +503,7 @@ sread(Srv *srv, Req *r)
 	if(srv->read)
 		srv->read(r);
 	else
-		respond(r, "no srv->read");
+		respond(r, Enoread);
 }
 static void
 rread(Req *r, char *error)
@@ -519,11 +523,11 @@ swrite(Srv *srv, Req *r)
 		return;
 	}
 	if((int)r->ifcall.count < 0){
-		respond(r, Ebotch);
+		respond(r, Ebadcount);
 		return;
 	}
 	if(r->ifcall.offset < 0){
-		respond(r, Ebotch);
+		respond(r, Ebadoffset);
 		return;
 	}
 	if(r->ifcall.count > srv->msize - IOHDRSZ)
@@ -537,7 +541,7 @@ swrite(Srv *srv, Req *r)
 	if(srv->write)
 		srv->write(r);
 	else
-		respond(r, "no srv->write");
+		respond(r, Enowrite);
 }
 static void
 rwrite(Req *r, char *error)
@@ -635,7 +639,7 @@ rstat(Req *r, char *error)
 	n = GBIT16(tmp)+BIT16SZ;
 	statbuf = emalloc9p(n);
 	if(statbuf == nil){
-		r->error = "out of memory";
+		r->error = Enomem;
 		return;
 	}
 	r->ofcall.nstat = convD2M(&r->d, statbuf, n);
