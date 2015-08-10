@@ -12,6 +12,10 @@ amd64/bin
 amd64/init
 amd64/lib
 
+sys/src/9/k10/9k8cpu
+sys/src/9/k10/9k8cpu.32bit
+sys/src/9/k10/9k8cpu.asm
+sys/src/9/k10/init
 sys/src/libc/9syscall/sys.h
 sys/src/9/k10/errstr.h
 sys/src/9/k10/sipi.h
