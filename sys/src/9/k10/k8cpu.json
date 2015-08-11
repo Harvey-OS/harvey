@@ -38,7 +38,7 @@
 				"ssl",
 				"uart",
 				"ws",
-				"usb"
+				"usb",
 				"zp"
 			],
 			"Ip": [
