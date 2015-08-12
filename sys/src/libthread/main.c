@@ -24,7 +24,7 @@ int	_threadnotefd;
 int	_threadpasserpid;
 static jmp_buf _mainjmp;
 static void mainlauncher(void*);
-extern void (*_sysfatal)(char*, va_list);
+extern void (*_sysfatal)(char*, ...);
 extern void (*__assert)(char*);
 extern int (*_dial)(char*, char*, char*, int*);
 
@@ -70,48 +70,6 @@ mainlauncher(void *arg)
 	a = arg;
 	threadmain(a->argc, a->argv);
 	threadexits("threadmain");
-}
-
-static char*
-skip(char *p)
-{
-	while(*p == ' ')
-		p++;
-	while(*p != ' ' && *p != 0)
-		p++;
-	return p;
-}
-
-static int32_t
-_times(int32_t *t)
-{
-	char b[200], *p;
-	int f;
-	uint32_t r;
-
-	memset(b, 0, sizeof(b));
-	f = open("/dev/cputime", OREAD|OCEXEC);
-	if(f < 0)
-		return 0;
-	if(read(f, b, sizeof(b)) <= 0){
-		close(f);
-		return 0;
-	}
-	p = b;
-	if(t)
-		t[0] = atol(p);
-	p = skip(p);
-	if(t)
-		t[1] = atol(p);
-	p = skip(p);
-	r = atol(p);
-	if(t){
-		p = skip(p);
-		t[2] = atol(p);
-		p = skip(p);
-		t[3] = atol(p);
-	}
-	return r;
 }
 
 static void
@@ -217,7 +175,7 @@ static Proc **procp;
 void
 _systhreadinit(void)
 {
-	procp = privalloc();
+	procp = (Proc **)privalloc();
 }
 
 Proc*
