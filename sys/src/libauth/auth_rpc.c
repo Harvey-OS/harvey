@@ -87,10 +87,8 @@ auth_rpc(AuthRpc *rpc, char *verb, void *a, int na)
 		return ARrpcfailure;
 	}
 
-	if((n=read(rpc->afd, rpc->ibuf, AuthRpcMax)) < 0){
-		werrstr("auth_rpc failure: read returned %d", n);
+	if((n=read(rpc->afd, rpc->ibuf, AuthRpcMax)) < 0)
 		return ARrpcfailure;
-	}
 	rpc->ibuf[n] = '\0';
 
 	/*

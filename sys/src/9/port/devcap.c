@@ -31,6 +31,7 @@ struct Caphash
 {
 	Caphash	*next;
 	char		hash[Hashlen];
+	uint32_t		ticks;
 };
 
 struct
@@ -159,6 +160,7 @@ addcap(uint8_t *hash)
 	p = smalloc(sizeof *p);
 	memmove(p->hash, hash, Hashlen);
 	p->next = nil;
+	p->ticks = machp()->ticks;
 
 	qlock(&capalloc);
 
@@ -208,7 +210,6 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 	uint8_t hash[Hashlen];
 	char *key, *from, *to;
 	char err[256];
-	Proc *up = externup();
 
 	switch((uint32_t)c->qid.path){
 	case Qhash:
