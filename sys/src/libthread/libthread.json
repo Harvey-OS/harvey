@@ -2,6 +2,7 @@
 	"Include": [
 		"../lib.json"
 	],
+	"Cflags": [ "-Werror" ],
 	"Install": "/$ARCH/lib/",
 	"Library": "libthread.a",
 	"Name": "libthread",

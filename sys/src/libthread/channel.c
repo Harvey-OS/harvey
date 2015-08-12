@@ -87,6 +87,7 @@ chancreate(int elemsize, int elemcnt)
 	return c;
 }
 
+/* isopenfor is meant to be called under the chanlock. */
 static int
 isopenfor(Channel *c, int op)
 {
@@ -97,7 +98,7 @@ int
 alt(Alt *alts)
 {
 	Alt *a, *xa, *ca;
-	Channel volatile *c;
+	Channel *c;
 	int n, s, waiting, allreadycl;
 	void* r;
 	Thread *t;
@@ -190,18 +191,21 @@ alt(Alt *alts)
 		 * if the channel was closed, the op is done
 		 * and we flag an error for the entry.
 		 */
+		Channel volatile *vc;
+		vc = (Channel volatile *)c;
 	    Again:
 		unlock(&chanlock);
 		_procsplx(s);
-		r = _threadrendezvous(&c, 0);
+		r = _threadrendezvous(&vc, 0);
 		s = _procsplhi();
 		lock(&chanlock);
 
 		if(r==Intred){		/* interrupted */
-			if(c!=nil)	/* someone will meet us; go back */
+			if(vc!=nil)	/* someone will meet us; go back */
 				goto Again;
-			c = (Channel*)~0;	/* so no one tries to meet us */
+			vc = (Channel*)~0;	/* so no one tries to meet us */
 		}
+		c = (Channel *)vc;
 
 		/* dequeue from channels, find selected one */
 		a = nil;
@@ -232,7 +236,7 @@ alt(Alt *alts)
 int
 chanclose(Channel *c)
 {
-	Alt *a;
+	volatile Alt *a;
 	int i, s;
 
 	s = _procsplhi();	/* note handlers; see :/^alt */
@@ -465,6 +469,7 @@ emptyentry(Channel *c)
 	return i;
 }
 
+/* enqueue is called under the chanlock, the Channel can be treated as non-volatile. */
 static void
 enqueue(Alt *a, Channel **c)
 {
