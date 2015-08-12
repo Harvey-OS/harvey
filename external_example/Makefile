@@ -11,7 +11,6 @@ CFLAGS=-nostdinc \
 	-Wno-parentheses \
 	-Wno-unknown-pragmas \
 	-Wuninitialized \
-	-Wmaybe-uninitialized \
 	-I $(HARVEY)/$(ARCH)/include \
 	-I$(HARVEY)/sys/include
 
