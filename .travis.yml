@@ -1,4 +1,12 @@
 language: c
 script: ./BUILD all
-compiler: gcc
+compiler: 
+ - gcc-4.8
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
 

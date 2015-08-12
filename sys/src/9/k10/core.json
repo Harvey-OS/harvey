@@ -18,15 +18,12 @@
 		"-Wno-unused-parameter",
 		"-Wno-missing-braces",
 		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-Wuninitialized",
-		"-Wmaybe-uninitialized"
+		"-Wno-unknown-pragmas"
 	],
 	"Libs": [
 		"/amd64/lib/klibc.a",
 		"/amd64/lib/klibip.a",
-		"/amd64/lib/klibdraw.a",
-		"/amd64/lib/klibsec.a"
+		"/amd64/lib/klibdraw.a"
 	],
 	"Name": "core",
 	"Oflags": [
