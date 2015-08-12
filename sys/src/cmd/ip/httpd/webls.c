@@ -16,11 +16,11 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-static	Hio		*hout;
-static	Hio		houtb;
-static	HConnect	*connect;
-static	int		vermaj, gidwidth, uidwidth, lenwidth, devwidth;
-static	Biobuf		*aio, *dio;
+static Hio *hout;
+static Hio houtb;
+static HConnect *connect;
+static int vermaj, gidwidth, uidwidth, lenwidth, devwidth;
+static Biobuf *aio, *dio;
 
 static void
 doctype(void)
@@ -36,7 +36,7 @@ error(char *title, char *fmt, ...)
 	char buf[1024], *out;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
+	out = vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	*out = 0;
 
@@ -73,79 +73,79 @@ error(char *title, char *fmt, ...)
 static Reprog *
 getre(Biobuf *buf)
 {
-	Reprog	*re;
-	char	*p, *t;
-	char	*bbuf;
-	int	n;
+	Reprog *re;
+	char *p, *t;
+	char *bbuf;
+	int n;
 
-	if (buf == nil)
-		return(nil);
-	for ( ; ; free(p)) {
+	if(buf == nil)
+		return (nil);
+	for(;; free(p)) {
 		p = Brdstr(buf, '\n', 0);
-		if (p == nil)
-			return(nil);
+		if(p == nil)
+			return (nil);
 		t = strchr(p, '#');
-		if (t != nil)
+		if(t != nil)
 			*t = '\0';
 		t = p + strlen(p);
-		while (--t > p && isspace(*t))
+		while(--t > p && isspace(*t))
 			*t = '\0';
 		n = strlen(p);
-		if (n == 0)
+		if(n == 0)
 			continue;
 
 		/* root the regular expresssion */
-		bbuf = malloc(n+2);
+		bbuf = malloc(n + 2);
 		if(bbuf == nil)
 			sysfatal("out of memory");
 		bbuf[0] = '^';
-		strcpy(bbuf+1, p);
+		strcpy(bbuf + 1, p);
 		re = regcomp(bbuf);
 		free(bbuf);
 
-		if (re == nil)
+		if(re == nil)
 			continue;
 		free(p);
-		return(re);
+		return (re);
 	}
 }
 
 static int
 allowed(char *dir)
 {
-	Reprog	*re;
-	int	okay;
-	Resub	match;
+	Reprog *re;
+	int okay;
+	Resub match;
 
-	if (strcmp(dir, "..") == 0 || strncmp(dir, "../", 3) == 0)
-		return(0);
-	if (aio == nil)
-		return(0);
+	if(strcmp(dir, "..") == 0 || strncmp(dir, "../", 3) == 0)
+		return (0);
+	if(aio == nil)
+		return (0);
 
-	if (aio != nil)
+	if(aio != nil)
 		Bseek(aio, 0, 0);
-	if (dio != nil)
+	if(dio != nil)
 		Bseek(dio, 0, 0);
 
 	/* if no deny list, assume everything is denied */
 	okay = (dio != nil);
 
 	/* go through denials till we find a match */
-	while (okay && (re = getre(dio)) != nil) {
+	while(okay && (re = getre(dio)) != nil) {
 		memset(&match, 0, sizeof(match));
 		okay = (regexec(re, dir, &match, 1) != 1);
 		free(re);
 	}
 
 	/* go through accepts till we have a match */
-	if (aio == nil)
-		return(okay);
-	while (!okay && (re = getre(aio)) != nil) {
+	if(aio == nil)
+		return (okay);
+	while(!okay && (re = getre(aio)) != nil) {
 		memset(&match, 0, sizeof(match));
 		okay = (regexec(re, dir, &match, 1) == 1);
 		free(re);
 	}
-	return(okay);
+	return (okay);
 }
 
 /*
@@ -154,7 +154,7 @@ allowed(char *dir)
 static int
 compar(const Dir *a, const Dir *b)
 {
-	return(strcmp(a->name, b->name));
+	return (strcmp(a->name, b->name));
 }
 
 /*
@@ -164,17 +164,17 @@ compar(const Dir *a, const Dir *b)
 static void
 maxwidths(Dir *dp, int32_t n)
 {
-	int32_t	i;
-	char	scratch[64];
+	int32_t i;
+	char scratch[64];
 
-	for (i = 0; i < n; i++) {
-		if (snprint(scratch, sizeof scratch, "%ud", dp[i].dev) > devwidth)
+	for(i = 0; i < n; i++) {
+		if(snprint(scratch, sizeof scratch, "%ud", dp[i].dev) > devwidth)
 			devwidth = strlen(scratch);
-		if (strlen(dp[i].uid) > uidwidth)
+		if(strlen(dp[i].uid) > uidwidth)
 			uidwidth = strlen(dp[i].uid);
-		if (strlen(dp[i].gid) > gidwidth)
+		if(strlen(dp[i].gid) > gidwidth)
 			gidwidth = strlen(dp[i].gid);
-		if (snprint(scratch, sizeof scratch, "%lld", dp[i].length) > lenwidth)
+		if(snprint(scratch, sizeof scratch, "%lld", dp[i].length) > lenwidth)
 			lenwidth = strlen(scratch);
 	}
 }
@@ -193,11 +193,11 @@ asciitime(int32_t l)
 	clk = time(nil);
 	t = ctime(l);
 	/* 6 months in the past or a day in the future */
-	if(l<clk-180L*24*60*60 || clk+24L*60*60<l){
-		memmove(buf, t+4, 7);		/* month and day */
-		memmove(buf+7, t+23, 5);		/* year */
-	}else
-		memmove(buf, t+4, 12);		/* skip day of week */
+	if(l < clk - 180L * 24 * 60 * 60 || clk + 24L * 60 * 60 < l) {
+		memmove(buf, t + 4, 7);      /* month and day */
+		memmove(buf + 7, t + 23, 5); /* year */
+	} else
+		memmove(buf, t + 4, 12); /* skip day of week */
 	buf[12] = 0;
 	return buf;
 }
@@ -205,22 +205,22 @@ asciitime(int32_t l)
 static void
 dols(char *dir)
 {
-	Dir	*d;
-	char	*f, *p,*nm;
-	int32_t	i, n;
-	int	fd;
+	Dir *d;
+	char *f, *p, *nm;
+	int32_t i, n;
+	int fd;
 
 	cleanname(dir); //  expands "" to "."; ``dir+1'' access below depends on that
-	if (!allowed(dir)) {
+	if(!allowed(dir)) {
 		error("Permission denied", "<p>Cannot list directory %s: Access prohibited</p>", dir);
 		return;
 	}
 	fd = open(dir, OREAD);
-	if (fd < 0) {
+	if(fd < 0) {
 		error("Cannot read directory", "<p>Cannot read directory %s: %r</p>", dir);
 		return;
 	}
-	if (vermaj) {
+	if(vermaj) {
 		hokheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
@@ -231,15 +231,15 @@ dols(char *dir)
 	hprint(hout, "<body>\n");
 	hprint(hout, "<h1>Index of ");
 	nm = dir;
-	while((p = strchr(nm, '/')) != nil){
+	while((p = strchr(nm, '/')) != nil) {
 		*p = '\0';
 		f = (*dir == '\0') ? "/" : dir;
-		if (!(*dir == '\0' && *(dir+1) == '\0') && allowed(f))
+		if(!(*dir == '\0' && *(dir + 1) == '\0') && allowed(f))
 			hprint(hout, "<a href=\"/magic/webls?dir=%H\">%s/</a>", f, nm);
 		else
 			hprint(hout, "%s/", nm);
 		*p = '/';
-		nm = p+1;
+		nm = p + 1;
 	}
 	hprint(hout, "%s</h1>\n", nm);
 	n = dirreadall(fd, &d);
@@ -247,26 +247,26 @@ dols(char *dir)
 	maxwidths(d, n);
 	qsort(d, n, sizeof(Dir), (int (*)(const void *, const void *))compar);
 	hprint(hout, "<pre>\n");
-	for (i = 0; i < n; i++) {
+	for(i = 0; i < n; i++) {
 		f = smprint("%s/%s", dir, d[i].name);
 		cleanname(f);
-		if (d[i].mode & DMDIR) {
+		if(d[i].mode & DMDIR) {
 			p = smprint("/magic/webls?dir=%H", f);
 			free(f);
 			f = p;
 		}
 		hprint(hout, "%M %C %*ud %-*s %-*s %*lld %s <a href=\"%s\">%s</a>\n",
-		    d[i].mode, d[i].type,
-		    devwidth, d[i].dev,
-		    uidwidth, d[i].uid,
-		    gidwidth, d[i].gid,
-		    lenwidth, d[i].length,
-		    asciitime(d[i].mtime), f, d[i].name);
+		       d[i].mode, d[i].type,
+		       devwidth, d[i].dev,
+		       uidwidth, d[i].uid,
+		       gidwidth, d[i].gid,
+		       lenwidth, d[i].length,
+		       asciitime(d[i].mtime), f, d[i].name);
 		free(f);
 	}
 	f = smprint("%s/..", dir);
 	cleanname(f);
-	if (strcmp(f, dir) != 0 && allowed(f))
+	if(strcmp(f, dir) != 0 && allowed(f))
 		hprint(hout, "\nGo to <a href=\"/magic/webls?dir=%H\">parent</a> directory\n", f);
 	else
 		hprint(hout, "\nEnd of directory listing\n");
@@ -283,8 +283,8 @@ dols(char *dir)
 static void
 dosearch(char *search)
 {
-	if (strncmp(search, "dir=", 4) == 0){
-		search = hurlunesc(connect, search+4);
+	if(strncmp(search, "dir=", 4) == 0) {
+		search = hurlunesc(connect, search + 4);
 		dols(search);
 		return;
 	}
@@ -295,8 +295,9 @@ dosearch(char *search)
 	 */
 	search = hurlunesc(connect, search);
 	error("Bad directory listing request",
-	    "<p>Illegal formatted directory listing request:</p>\n"
-	    "<p>%H</p>", search);
+	      "<p>Illegal formatted directory listing request:</p>\n"
+	      "<p>%H</p>",
+	      search);
 }
 
 void
@@ -309,7 +310,7 @@ main(int argc, char **argv)
 	aio = Bopen("/sys/lib/webls.allowed", OREAD);
 	dio = Bopen("/sys/lib/webls.denied", OREAD);
 
-	if(argc == 2){
+	if(argc == 2) {
 		hinit(&houtb, 1, Hwrite);
 		hout = &houtb;
 		dols(argv[1]);
@@ -323,11 +324,11 @@ main(int argc, char **argv)
 	if(hparseheaders(connect, HSTIMEOUT) < 0)
 		exits("failed");
 
-	if(strcmp(connect->req.meth, "GET") != 0 && strcmp(connect->req.meth, "HEAD") != 0){
+	if(strcmp(connect->req.meth, "GET") != 0 && strcmp(connect->req.meth, "HEAD") != 0) {
 		hunallowed(connect, "GET, HEAD");
 		exits("not allowed");
 	}
-	if(connect->head.expectother || connect->head.expectcont){
+	if(connect->head.expectother || connect->head.expectcont) {
 		hfail(connect, HExpectFail, nil);
 		exits("failed");
 	}

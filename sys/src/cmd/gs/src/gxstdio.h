@@ -27,7 +27,7 @@
 /* stdio back door */
 
 #ifndef gxstdio_INCLUDED
-#  define gxstdio_INCLUDED
+#define gxstdio_INCLUDED
 
 /*
  * The library and interpreter never use stdin/out/err directly, but
@@ -45,4 +45,3 @@
 #undef fgetchar
 
 #endif /* gxstdio_INCLUDED */
-

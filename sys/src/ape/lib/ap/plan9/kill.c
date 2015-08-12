@@ -23,11 +23,11 @@ note(int pid, char *msg, char *fmt)
 
 	sprintf(pname, fmt, pid);
 	f = open(pname, O_WRONLY);
-	if(f < 0){
+	if(f < 0) {
 		errno = ESRCH;
 		return -1;
 	}
-	if(msg != 0 && write(f, msg, strlen(msg)) < 0){
+	if(msg != 0 && write(f, msg, strlen(msg)) < 0) {
 		close(f);
 		errno = EPERM;
 		return -1;
@@ -49,7 +49,7 @@ kill(pid_t pid, int sig)
 		if(msg == 0) {
 			errno = EINVAL;
 			return -1;
-		} 
+		}
 	}
 
 	if(pid < 0) {

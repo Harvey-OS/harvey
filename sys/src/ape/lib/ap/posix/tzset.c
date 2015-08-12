@@ -15,14 +15,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#define TZFILE	"/etc/TZ"
+#define TZFILE "/etc/TZ"
 
 static char TZ[128];
 static char std[32] = "GMT0";
 static char dst[32];
 char *tzname[2] = {
-	std, dst
-};
+    std, dst};
 time_t tzoffset, tzdstoffset;
 int tzdst = 0;
 
@@ -38,32 +37,32 @@ offset(char *env, time_t *off)
 	 * strictly, no sign is allowed in the 'time' part of the
 	 * dst start/stop rules, but who cares?
 	 */
-	if (*env == '-' || *env == '+') {
-		if (*env++ == '-')
+	if(*env == '-' || *env == '+') {
+		if(*env++ == '-')
 			sign = -1;
 		retlen++;
 	}
-	if ((len = strspn(env, ":0123456789")) == 0)
+	if((len = strspn(env, ":0123456789")) == 0)
 		return 0;
 	retlen += len;
-	for (*off = 0; len && isdigit(*env); len--)		/* hours */
-		*off = *off*10 + (*env++ - '0')*60*60;
-	if (len) {
-		if (*env++ != ':')
+	for(*off = 0; len && isdigit(*env); len--) /* hours */
+		*off = *off * 10 + (*env++ - '0') * 60 * 60;
+	if(len) {
+		if(*env++ != ':')
 			return 0;
 		len--;
 	}
-	for (n = 0; len && isdigit(*env); len--)		/* minutes */
-		n = n*10 + (*env++ - '0')*60;
+	for(n = 0; len && isdigit(*env); len--) /* minutes */
+		n = n * 10 + (*env++ - '0') * 60;
 	*off += n;
-	if (len) {
-		if (*env++ != ':')
+	if(len) {
+		if(*env++ != ':')
 			return 0;
 		len--;
 	}
-	for (n = 0; len && isdigit(*env); len--)		/* seconds */
-		n = n*10 + (*env++ - '0');
-	*off = (*off + n)*sign;
+	for(n = 0; len && isdigit(*env); len--) /* seconds */
+		n = n * 10 + (*env++ - '0');
+	*off = (*off + n) * sign;
 	return retlen;
 }
 
@@ -84,46 +83,46 @@ tzset(void)
 	 * leading ':' format is to reject it.
 	 * if it's ok, stash a copy away for quick comparison next time.
 	 */
-	if ((env = getenv("TZ")) == 0) {
-		if ((fd = open(TZFILE, O_RDONLY)) == -1)
+	if((env = getenv("TZ")) == 0) {
+		if((fd = open(TZFILE, O_RDONLY)) == -1)
 			return;
-		if (read(fd, envbuf, sizeof(envbuf)-1) == -1) {
+		if(read(fd, envbuf, sizeof(envbuf) - 1) == -1) {
 			close(fd);
 			return;
 		}
 		close(fd);
-		for (i = 0; i < sizeof(envbuf); i++) {
-			if (envbuf[i] != '\n')
+		for(i = 0; i < sizeof(envbuf); i++) {
+			if(envbuf[i] != '\n')
 				continue;
 			envbuf[i] = '\0';
 			break;
 		}
 		env = envbuf;
 	}
-	if (strcmp(env, TZ) == 0)
+	if(strcmp(env, TZ) == 0)
 		return;
-	if (*env == 0 || *env == ':')
+	if(*env == 0 || *env == ':')
 		return;
-	strncpy(TZ, env, sizeof(TZ)-1);
-	TZ[sizeof(TZ)-1] = 0;
+	strncpy(TZ, env, sizeof(TZ) - 1);
+	TZ[sizeof(TZ) - 1] = 0;
 	/*
 	 * get the 'std' string.
 	 * before committing, check there is a valid offset.
 	 */
-	if ((len = strcspn(env, ":0123456789,-+")) == 0)
+	if((len = strcspn(env, ":0123456789,-+")) == 0)
 		return;
-	if ((retlen = offset(env+len, &off)) == 0)
+	if((retlen = offset(env + len, &off)) == 0)
 		return;
-	for (p = std, i = len+retlen; i; i--)
+	for(p = std, i = len + retlen; i; i--)
 		*p++ = *env++;
 	*p = 0;
 	tzoffset = -off;
 	/*
 	 * get the 'dst' string (if any).
 	 */
-	if (*env == 0 || (len = strcspn(env, ":0123456789,-+")) == 0)
+	if(*env == 0 || (len = strcspn(env, ":0123456789,-+")) == 0)
 		return;
-	for (p = dst; len; len--)
+	for(p = dst; len; len--)
 		*p++ = *env++;
 	*p = 0;
 	/*
@@ -131,16 +130,15 @@ tzset(void)
 	 * default is one hour.
 	 */
 	tzdst = 1;
-	if (retlen = offset(env+len, &off)) {
+	if(retlen = offset(env + len, &off)) {
 		tzdstoffset = -off;
 		env += retlen;
-	}
-	else
-		tzdstoffset = tzoffset + 60*60;
+	} else
+		tzdstoffset = tzoffset + 60 * 60;
 	/*
 	 * optional rule(s) for start/end of dst.
 	 */
-	if (*env == 0 || *env != ',' || *(env+1) == 0)
+	if(*env == 0 || *env != ',' || *(env + 1) == 0)
 		return;
 	env++;
 	/*

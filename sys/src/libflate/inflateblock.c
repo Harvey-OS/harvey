@@ -11,12 +11,11 @@
 #include <libc.h>
 #include <flate.h>
 
-typedef struct Block	Block;
+typedef struct Block Block;
 
-struct Block
-{
-	uint8_t	*pos;
-	uint8_t	*limit;
+struct Block {
+	uint8_t *pos;
+	uint8_t *limit;
 };
 
 static int

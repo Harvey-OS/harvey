@@ -7,18 +7,17 @@
  * in the LICENSE file.
  */
 
-#define	NSYM	50
-#define	NSNAME	8
+#define NSYM 50
+#define NSNAME 8
 
 /* R0 is return */
-#define	REGEXT	7
+#define REGEXT 7
 /* A7 is sp A6 is sb */
-#define	AREGEXT	5
+#define AREGEXT 5
 /* F0 is ret */
-#define	FREGEXT	7
+#define FREGEXT 7
 
-enum	as
-{
+enum as {
 	AXXX = 0,
 	AABCD,
 	AADDB,
@@ -444,14 +443,13 @@ enum	as
 	ALAST
 };
 
-enum
-{
-	NREG		= 8,
+enum {
+	NREG = 8,
 
-	D_R0		= 0,
-	D_A0		= NREG,
-	D_F0		= D_A0+NREG,
-	D_NONE		= D_F0+NREG,
+	D_R0 = 0,
+	D_A0 = NREG,
+	D_F0 = D_A0 + NREG,
+	D_NONE = D_F0 + NREG,
 	D_TOS,
 	D_BRANCH,
 	D_STACK,
@@ -480,7 +478,7 @@ enum
 	D_SCONST,
 	D_FILE,
 
-	D_TC,		/* new for 68040 */
+	D_TC, /* new for 68040 */
 	D_ITT0,
 	D_ITT1,
 	D_DTT0,
@@ -491,42 +489,41 @@ enum
 
 	D_FILE1,
 
-	D_MASK		= 63/(D_SRP>=63?0:1),
+	D_MASK = 63 / (D_SRP >= 63 ? 0 : 1),
 
-	I_DIR		= (D_MASK+1)*0,
-	I_INDINC	= (D_MASK+1)*1,
-	I_INDDEC	= (D_MASK+1)*2,
-	I_INDIR		= (D_MASK+1)*3,
-	I_ADDR		= (D_MASK+1)*4,
+	I_DIR = (D_MASK + 1) * 0,
+	I_INDINC = (D_MASK + 1) * 1,
+	I_INDDEC = (D_MASK + 1) * 2,
+	I_INDIR = (D_MASK + 1) * 3,
+	I_ADDR = (D_MASK + 1) * 4,
 
-	I_INDEX1	= (D_MASK+1)*1,
-	I_INDEX2	= (D_MASK+1)*2,
-	I_INDEX3	= (D_MASK+1)*3,
+	I_INDEX1 = (D_MASK + 1) * 1,
+	I_INDEX2 = (D_MASK + 1) * 2,
+	I_INDEX3 = (D_MASK + 1) * 3,
 
-	I_MASK		= (D_MASK+1)*7,
+	I_MASK = (D_MASK + 1) * 7,
 
-	T_FIELD		= 1<<0,
-	T_INDEX		= 1<<1,
-	T_TYPE		= 1<<2,
-	T_OFFSET	= 1<<3,
-	T_FCONST	= 1<<4,
-	T_SYM		= 1<<5,
-	T_SCONST	= 1<<6
+	T_FIELD = 1 << 0,
+	T_INDEX = 1 << 1,
+	T_TYPE = 1 << 2,
+	T_OFFSET = 1 << 3,
+	T_FCONST = 1 << 4,
+	T_SYM = 1 << 5,
+	T_SCONST = 1 << 6
 };
 
 /*
  * this is the ranlib header
  */
-#define	SYMDEF	"__.SYMDEF"
+#define SYMDEF "__.SYMDEF"
 
 /*
  * this is the simulated IEEE floating point
  */
-typedef	struct	ieee	Ieee;
-struct	ieee
-{
-	long	l;	/* contains ls-man	0xffffffff */
-	long	h;	/* contains sign	0x80000000
+typedef struct ieee Ieee;
+struct ieee {
+	long l; /* contains ls-man	0xffffffff */
+	long h; /* contains sign	0x80000000
 				    exp		0x7ff00000
 				    ms-man	0x000fffff */
 };

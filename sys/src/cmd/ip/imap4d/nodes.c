@@ -21,27 +21,25 @@
  */
 int
 forMsgs(Box *box, MsgSet *ms, uint32_t max, int uids,
-	int (*f)(Box*, Msg*, int, void*), void *rock)
+	int (*f)(Box *, Msg *, int, void *), void *rock)
 {
 	Msg *m;
 	uint32_t id;
 	int ok, rok;
 
 	ok = 1;
-	for(; ms != nil; ms = ms->next){
+	for(; ms != nil; ms = ms->next) {
 		id = ms->from;
 		rok = 0;
-		for(m = box->msgs; m != nil && m->seq <= max; m = m->next){
-			if(!uids && m->seq > id
-			|| uids && m->uid > ms->to)
+		for(m = box->msgs; m != nil && m->seq <= max; m = m->next) {
+			if(!uids && m->seq > id || uids && m->uid > ms->to)
 				break;
-			if(!uids && m->seq == id
-			|| uids && m->uid >= id){
+			if(!uids && m->seq == id || uids && m->uid >= id) {
 				if(!(*f)(box, m, uids, rock))
 					ok = 0;
 				if(uids)
 					id = m->uid;
-				if(id >= ms->to){
+				if(id >= ms->to) {
 					rok = 1;
 					break;
 				}
@@ -83,13 +81,13 @@ mkFetch(int op, Fetch *next)
 	return f;
 }
 
-Fetch*
+Fetch *
 revFetch(Fetch *f)
 {
 	Fetch *last, *next;
 
 	last = nil;
-	for(; f != nil; f = next){
+	for(; f != nil; f = next) {
 		next = f->next;
 		f->next = last;
 		last = f;
@@ -97,7 +95,7 @@ revFetch(Fetch *f)
 	return last;
 }
 
-NList*
+NList *
 mkNList(uint32_t n, NList *next)
 {
 	NList *nl;
@@ -110,13 +108,13 @@ mkNList(uint32_t n, NList *next)
 	return nl;
 }
 
-NList*
+NList *
 revNList(NList *nl)
 {
 	NList *last, *next;
 
 	last = nil;
-	for(; nl != nil; nl = next){
+	for(; nl != nil; nl = next) {
 		next = nl->next;
 		nl->next = last;
 		last = nl;
@@ -124,7 +122,7 @@ revNList(NList *nl)
 	return last;
 }
 
-SList*
+SList *
 mkSList(char *s, SList *next)
 {
 	SList *sl;
@@ -137,13 +135,13 @@ mkSList(char *s, SList *next)
 	return sl;
 }
 
-SList*
+SList *
 revSList(SList *sl)
 {
 	SList *last, *next;
 
 	last = nil;
-	for(; sl != nil; sl = next){
+	for(; sl != nil; sl = next) {
 		next = sl->next;
 		sl->next = last;
 		last = sl;
@@ -159,7 +157,7 @@ BNList(Biobuf *b, NList *nl, char *sep)
 
 	s = "";
 	n = 0;
-	for(; nl != nil; nl = nl->next){
+	for(; nl != nil; nl = nl->next) {
 		n += Bprint(b, "%s%lud", s, nl->n);
 		s = sep;
 	}
@@ -174,7 +172,7 @@ BSList(Biobuf *b, SList *sl, char *sep)
 
 	s = "";
 	n = 0;
-	for(; sl != nil; sl = sl->next){
+	for(; sl != nil; sl = sl->next) {
 		n += Bprint(b, "%s", s);
 		n += Bimapstr(b, sl->s);
 		s = sep;
@@ -212,7 +210,7 @@ Bimapstr(Biobuf *b, char *s)
 
 	if(s == nil)
 		return Bprint(b, "NIL");
-	for(t = s; ; t++){
+	for(t = s;; t++) {
 		c = *t;
 		if(c == '\0')
 			return Bprint(b, "\"%s\"", s);

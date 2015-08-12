@@ -46,7 +46,7 @@ rowinit(Row *row, Rectangle r)
 	textsetselect(t, t->rs.nr, t->rs.nr);
 }
 
-Column*
+Column *
 rowadd(Row *row, Column *c, int x)
 {
 	Rectangle r, r1;
@@ -55,43 +55,43 @@ rowadd(Row *row, Column *c, int x)
 
 	d = nil;
 	r = row->r;
-	r.min.y = row->tag.r.max.y+Border;
-	if(x<r.min.x && row->ncol>0){	/*steal 40% of last column by default */
-		d = row->col[row->ncol-1];
-		x = d->r.min.x + 3*Dx(d->r)/5;
+	r.min.y = row->tag.r.max.y + Border;
+	if(x < r.min.x && row->ncol > 0) { /*steal 40% of last column by default */
+		d = row->col[row->ncol - 1];
+		x = d->r.min.x + 3 * Dx(d->r) / 5;
 	}
 	/* look for column we'll land on */
-	for(i=0; i<row->ncol; i++){
+	for(i = 0; i < row->ncol; i++) {
 		d = row->col[i];
 		if(x < d->r.max.x)
 			break;
 	}
-	if(row->ncol > 0){
+	if(row->ncol > 0) {
 		if(i < row->ncol)
-			i++;	/* new column will go after d */
+			i++; /* new column will go after d */
 		r = d->r;
 		if(Dx(r) < 100)
 			return nil;
 		draw(screen, r, display->white, nil, ZP);
 		r1 = r;
-		r1.max.x = min(x, r.max.x-50);
+		r1.max.x = min(x, r.max.x - 50);
 		if(Dx(r1) < 50)
-			r1.max.x = r1.min.x+50;
+			r1.max.x = r1.min.x + 50;
 		colresize(d, r1);
 		r1.min.x = r1.max.x;
-		r1.max.x = r1.min.x+Border;
+		r1.max.x = r1.min.x + Border;
 		draw(screen, r1, display->black, nil, ZP);
 		r.min.x = r1.max.x;
 	}
-	if(c == nil){
+	if(c == nil) {
 		c = emalloc(sizeof(Column));
 		colinit(c, r);
-	}else
+	} else
 		colresize(c, r);
 	c->row = row;
 	c->tag.row = row;
-	row->col = realloc(row->col, (row->ncol+1)*sizeof(Column*));
-	memmove(row->col+i+1, row->col+i, (row->ncol-i)*sizeof(Column*));
+	row->col = realloc(row->col, (row->ncol + 1) * sizeof(Column *));
+	memmove(row->col + i + 1, row->col + i, (row->ncol - i) * sizeof(Column *));
 	row->col[i] = c;
 	row->ncol++;
 	clearmouse();
@@ -117,16 +117,16 @@ rowresize(Row *row, Rectangle r)
 	r.min.y = r1.max.y;
 	r1 = r;
 	r1.max.x = r1.min.x;
-	for(i=0; i<row->ncol; i++){
+	for(i = 0; i < row->ncol; i++) {
 		c = row->col[i];
 		r1.min.x = r1.max.x;
-		if(i == row->ncol-1)
+		if(i == row->ncol - 1)
 			r1.max.x = r.max.x;
 		else
-			r1.max.x = r1.min.x+Dx(c->r)*dx/odx;
-		if(i > 0){
+			r1.max.x = r1.min.x + Dx(c->r) * dx / odx;
+		if(i > 0) {
 			r2 = r1;
-			r2.max.x = r2.min.x+Border;
+			r2.max.x = r2.min.x + Border;
 			draw(screen, r2, display->black, nil, ZP);
 			r1.min.x = r2.max.x;
 		}
@@ -149,41 +149,41 @@ rowdragcol(Row *row, Column *c, int)
 	while(mouse->buttons == b)
 		readmouse(mousectl);
 	setcursor(mousectl, nil);
-	if(mouse->buttons){
+	if(mouse->buttons) {
 		while(mouse->buttons)
 			readmouse(mousectl);
 		return;
 	}
 
-	for(i=0; i<row->ncol; i++)
+	for(i = 0; i < row->ncol; i++)
 		if(row->col[i] == c)
 			goto Found;
 	error("can't find column");
 
-  Found:
+Found:
 	if(i == 0)
 		return;
 	p = mouse->xy;
-	if((abs(p.x-op.x)<5 && abs(p.y-op.y)<5))
+	if((abs(p.x - op.x) < 5 && abs(p.y - op.y) < 5))
 		return;
-	if((i>0 && p.x<row->col[i-1]->r.min.x) || (i<row->ncol-1 && p.x>c->r.max.x)){
+	if((i > 0 && p.x < row->col[i - 1]->r.min.x) || (i < row->ncol - 1 && p.x > c->r.max.x)) {
 		/* shuffle */
 		x = c->r.min.x;
 		rowclose(row, c, FALSE);
-		if(rowadd(row, c, p.x) == nil)	/* whoops! */
-		if(rowadd(row, c, x) == nil)		/* WHOOPS! */
-		if(rowadd(row, c, -1)==nil){		/* shit! */
-			rowclose(row, c, TRUE);
-			return;
-		}
+		if(rowadd(row, c, p.x) == nil)			/* whoops! */
+			if(rowadd(row, c, x) == nil)		/* WHOOPS! */
+				if(rowadd(row, c, -1) == nil) { /* shit! */
+					rowclose(row, c, TRUE);
+					return;
+				}
 		colmousebut(c);
 		return;
 	}
-	d = row->col[i-1];
-	if(p.x < d->r.min.x+80+Scrollsize)
-		p.x = d->r.min.x+80+Scrollsize;
-	if(p.x > c->r.max.x-80-Scrollsize)
-		p.x = c->r.max.x-80-Scrollsize;
+	d = row->col[i - 1];
+	if(p.x < d->r.min.x + 80 + Scrollsize)
+		p.x = d->r.min.x + 80 + Scrollsize;
+	if(p.x > c->r.max.x - 80 - Scrollsize)
+		p.x = c->r.max.x - 80 - Scrollsize;
 	r = d->r;
 	r.max.x = c->r.max.x;
 	draw(screen, r, display->white, nil, ZP);
@@ -206,26 +206,26 @@ rowclose(Row *row, Column *c, int dofree)
 	Rectangle r;
 	int i;
 
-	for(i=0; i<row->ncol; i++)
+	for(i = 0; i < row->ncol; i++)
 		if(row->col[i] == c)
 			goto Found;
 	error("can't find column");
-  Found:
+Found:
 	r = c->r;
 	if(dofree)
 		colcloseall(c);
-	memmove(row->col+i, row->col+i+1, (row->ncol-i)*sizeof(Column*));
+	memmove(row->col + i, row->col + i + 1, (row->ncol - i) * sizeof(Column *));
 	row->ncol--;
-	row->col = realloc(row->col, row->ncol*sizeof(Column*));
-	if(row->ncol == 0){
+	row->col = realloc(row->col, row->ncol * sizeof(Column *));
+	if(row->ncol == 0) {
 		draw(screen, r, display->white, nil, ZP);
 		return;
 	}
-	if(i == row->ncol){		/* extend last column right */
-		c = row->col[i-1];
+	if(i == row->ncol) { /* extend last column right */
+		c = row->col[i - 1];
 		r.min.x = c->r.min.x;
 		r.max.x = row->r.max.x;
-	}else{			/* extend next window left */
+	} else { /* extend next window left */
 		c = row->col[i];
 		r.max.x = c->r.max.x;
 	}
@@ -233,13 +233,13 @@ rowclose(Row *row, Column *c, int dofree)
 	colresize(c, r);
 }
 
-Column*
+Column *
 rowwhichcol(Row *row, Point p)
 {
 	int i;
 	Column *c;
 
-	for(i=0; i<row->ncol; i++){
+	for(i = 0; i < row->ncol; i++) {
 		c = row->col[i];
 		if(ptinrect(p, c->r))
 			return c;
@@ -247,7 +247,7 @@ rowwhichcol(Row *row, Point p)
 	return nil;
 }
 
-Text*
+Text *
 rowwhich(Row *row, Point p, Rune r, int key)
 {
 	Column *c;

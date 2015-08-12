@@ -17,9 +17,8 @@
 
 #include "antiword.h"
 
-static conversion_type	eConversionType = conversion_unknown;
-static encoding_type	eEncoding = encoding_neutral;
-
+static conversion_type eConversionType = conversion_unknown;
+static encoding_type eEncoding = encoding_neutral;
 
 /*
  * vPrologue1 - get options and call a specific initialization
@@ -28,7 +27,7 @@ static void
 vPrologue1(diagram_type *pDiag, const char *szTask,
 	   const char *szFilename)
 {
-	options_type	tOptions;
+	options_type tOptions;
 
 	fail(pDiag == NULL);
 	fail(szTask == NULL || szTask[0] == '\0');
@@ -37,7 +36,7 @@ vPrologue1(diagram_type *pDiag, const char *szTask,
 	eConversionType = tOptions.eConversionType;
 	eEncoding = tOptions.eEncoding;
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 		vPrologueTXT(pDiag, &tOptions);
 		break;
@@ -65,7 +64,7 @@ vPrologue1(diagram_type *pDiag, const char *szTask,
 static void
 vEpilogue(diagram_type *pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vEpilogueTXT(pDiag->pOutFile);
@@ -91,7 +90,7 @@ vEpilogue(diagram_type *pDiag)
 void
 vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -115,7 +114,7 @@ vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 void
 vImageEpilogue(diagram_type *pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -141,7 +140,7 @@ vImageEpilogue(diagram_type *pDiag)
 BOOL
 bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		return FALSE;
@@ -165,7 +164,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 diagram_type *
 pCreateDiagram(const char *szTask, const char *szFilename)
 {
-	diagram_type	*pDiag;
+	diagram_type *pDiag;
 
 	fail(szTask == NULL || szTask[0] == '\0');
 	DBG_MSG("pCreateDiagram");
@@ -189,7 +188,7 @@ vDestroyDiagram(diagram_type *pDiag)
 
 	fail(pDiag == NULL);
 
-	if (pDiag == NULL) {
+	if(pDiag == NULL) {
 		return;
 	}
 	vEpilogue(pDiag);
@@ -202,7 +201,7 @@ vDestroyDiagram(diagram_type *pDiag)
 void
 vPrologue2(diagram_type *pDiag, int iWordVersion)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -227,13 +226,13 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
  */
 void
 vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
-	USHORT usFontSize)
+	       USHORT usFontSize)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vMove2NextLineTXT(pDiag);
@@ -258,31 +257,31 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
  */
 void
 vSubstring2Diagram(diagram_type *pDiag,
-	char *szString, size_t tStringLength, int32_t lStringWidth,
-	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
-	USHORT usFontSize, USHORT usMaxFontSize)
+		   char *szString, size_t tStringLength, int32_t lStringWidth,
+		   UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
+		   USHORT usFontSize, USHORT usMaxFontSize)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 		vSubstringTXT(pDiag, szString, tStringLength, lStringWidth);
 		break;
 	case conversion_fmt_text:
 		vSubstringFMT(pDiag, szString, tStringLength, lStringWidth,
-				usFontstyle);
+			      usFontstyle);
 		break;
 	case conversion_ps:
 		vSubstringPS(pDiag, szString, tStringLength, lStringWidth,
-				ucFontColor, usFontstyle, tFontRef,
-				usFontSize, usMaxFontSize);
+			     ucFontColor, usFontstyle, tFontRef,
+			     usFontSize, usMaxFontSize);
 		break;
 	case conversion_xml:
 		vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
-				usFontstyle);
+			      usFontstyle);
 		break;
 	case conversion_pdf:
 		vSubstringPDF(pDiag, szString, tStringLength, lStringWidth,
-				ucFontColor, usFontstyle, tFontRef,
-				usFontSize, usMaxFontSize);
+			      ucFontColor, usFontstyle, tFontRef,
+			      usFontSize, usMaxFontSize);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -300,7 +299,7 @@ vStartOfParagraph1(diagram_type *pDiag, int32_t lBeforeIndentation)
 {
 	fail(pDiag == NULL);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vStartOfParagraphTXT(pDiag, lBeforeIndentation);
@@ -328,7 +327,7 @@ vStartOfParagraph2(diagram_type *pDiag)
 {
 	fail(pDiag == NULL);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -350,7 +349,7 @@ vStartOfParagraph2(diagram_type *pDiag)
  */
 void
 vEndOfParagraph(diagram_type *pDiag,
-	drawfile_fontref tFontRef, USHORT usFontSize,
+		drawfile_fontref tFontRef, USHORT usFontSize,
 		int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
@@ -358,7 +357,7 @@ vEndOfParagraph(diagram_type *pDiag,
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 	fail(lAfterIndentation < 0);
 
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vEndOfParagraphTXT(pDiag, lAfterIndentation);
@@ -384,7 +383,7 @@ vEndOfParagraph(diagram_type *pDiag,
 void
 vEndOfPage(diagram_type *pDiag, int32_t lAfterIndentation, BOOL bNewSection)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		vEndOfPageTXT(pDiag, lAfterIndentation);
@@ -410,7 +409,7 @@ vEndOfPage(diagram_type *pDiag, int32_t lAfterIndentation, BOOL bNewSection)
 void
 vSetHeaders(diagram_type *pDiag, USHORT usIstd)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -433,7 +432,7 @@ vSetHeaders(diagram_type *pDiag, USHORT usIstd)
 void
 vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -456,7 +455,7 @@ vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 void
 vEndOfList(diagram_type *pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -479,7 +478,7 @@ vEndOfList(diagram_type *pDiag)
 void
 vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -502,7 +501,7 @@ vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
 void
 vEndOfTable(diagram_type *pDiag)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;
@@ -526,9 +525,9 @@ vEndOfTable(diagram_type *pDiag)
  */
 BOOL
 bAddTableRow(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
+	     int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
-	switch (eConversionType) {
+	switch(eConversionType) {
 	case conversion_text:
 	case conversion_fmt_text:
 		break;

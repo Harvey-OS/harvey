@@ -44,7 +44,7 @@ kbdinit(void)
 }
 
 int
-consinit(char* name, char* speed)
+consinit(char *name, char *speed)
 {
 	int baud, port;
 
@@ -74,7 +74,7 @@ consdrain(void)
 }
 
 void
-consputs(char* s, int n)
+consputs(char *s, int n)
 {
 	cgaconsputs(s, n);
 	if(useuart)
@@ -82,7 +82,7 @@ consputs(char* s, int n)
 }
 
 void
-warp86(char* s, uint32_t)
+warp86(char *s, uint32_t)
 {
 	if(s == nil)
 		s = "Warp86\n";
@@ -104,7 +104,7 @@ warp86(char* s, uint32_t)
 	 * ACPI but why bother, this is the end of the line anyway.
 	 */
 	print("Takes a licking and keeps on ticking...\n");
-	*(uint16_t*)KADDR(0x472) = 0x1234;	/* BIOS warm-boot flag */
+	*(uint16_t *)KADDR(0x472) = 0x1234; /* BIOS warm-boot flag */
 	outb(0xcf9, 0x02);
 	outb(0xcf9, 0x06);
 
@@ -115,40 +115,40 @@ warp86(char* s, uint32_t)
 static int
 getline(char *buf, int size, int timeout)
 {
-	int c, i=0;
+	int c, i = 0;
 	uint32_t start;
 	char echo;
 
-	for (;;) {
+	for(;;) {
 		start = machp()->ticks;
-		do{
+		do {
 			/* timeout seconds to first char */
-			if(timeout && ((machp()->ticks - start) > timeout*HZ))
+			if(timeout && ((machp()->ticks - start) > timeout * HZ))
 				return -2;
 			c = consiq.getc(&consiq);
-		}while(c == -1);
+		} while(c == -1);
 		timeout = 0;
 
 		if(c == '\r')
-			c = '\n'; 		/* turn carriage return into newline */
+			c = '\n'; /* turn carriage return into newline */
 		if(c == '\177')
-			c = '\010';		/* turn delete into backspace */
+			c = '\010'; /* turn delete into backspace */
 		if(c == '\025')
-			echo = '\n';		/* echo ^U as a newline */
+			echo = '\n'; /* echo ^U as a newline */
 		else
 			echo = c;
 		consputs(&echo, 1);
 
-		if(c == '\010'){
+		if(c == '\010') {
 			if(i > 0)
 				i--; /* bs deletes last character */
 			continue;
 		}
 		/* a newline ends a line */
-		if (c == '\n')
+		if(c == '\n')
 			break;
 		/* ^U wipes out the line */
-		if (c =='\025')
+		if(c == '\025')
 			return -1;
 		if(i == size)
 			return size;
@@ -166,18 +166,17 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 
 	buf[0] = 0;
 	isdefault = (def && *def);
-	if(isdefault == 0){
+	if(isdefault == 0) {
 		timeout = 0;
 		sprint(pbuf, "%s: ", prompt);
-	}
-	else if(timeout)
+	} else if(timeout)
 		sprint(pbuf, "%s[default==%s (%ds timeout)]: ", prompt, def, timeout);
 	else
 		sprint(pbuf, "%s[default==%s]: ", prompt, def);
-	for (;;) {
+	for(;;) {
 		print(pbuf);
 		len = getline(buf, size, timeout);
-		switch(len){
+		switch(len) {
 		case 0:
 			/* RETURN */
 			if(isdefault)
@@ -194,7 +193,7 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 		default:
 			break;
 		}
-		if(len >= size){
+		if(len >= size) {
 			print("line too long\n");
 			continue;
 		}
@@ -214,13 +213,15 @@ panic(char *fmt, ...)
 
 	strcpy(buf, "panic: ");
 	va_start(arg, fmt);
-	n = vseprint(buf+7, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf + 7, buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 	buf[n] = '\n';
-	consputs(buf, n+1);
+	consputs(buf, n + 1);
 
-//floppymemwrite();
-splhi(); for(;;);
+	//floppymemwrite();
+	splhi();
+	for(;;)
+		;
 	if(etherdetach)
 		etherdetach();
 	if(sddetach)

@@ -23,18 +23,18 @@ hasperm(File *f, char *uid, int p)
 {
 	int m;
 
-	m = f->mode & 7;	/* other */
+	m = f->mode & 7; /* other */
 	if((p & m) == p)
 		return 1;
 
 	if(strcmp(f->uid, uid) == 0) {
-		m |= (f->mode>>6) & 7;
+		m |= (f->mode >> 6) & 7;
 		if((p & m) == p)
 			return 1;
 	}
 
 	if(strcmp(f->gid, uid) == 0) {
-		m |= (f->mode>>3) & 7;
+		m |= (f->mode >> 3) & 7;
 		if((p & m) == p)
 			return 1;
 	}

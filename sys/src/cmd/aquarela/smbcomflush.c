@@ -17,16 +17,16 @@ smbcomflush(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *)
 	SmbFile *f;
 	uint16_t fid;
 	Dir nulldir;
-	if (h->wordcount != 1)
+	if(h->wordcount != 1)
 		return SmbProcessResultFormat;
 	fid = smbnhgets(pdata);
 	t = smbidmapfind(s->tidmap, h->tid);
-	if (t == nil) {
+	if(t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
 		return SmbProcessResultError;
 	}
 	f = smbidmapfind(s->fidmap, fid);
-	if (f == nil) {
+	if(f == nil) {
 		smbseterror(s, ERRDOS, ERRbadfid);
 		return SmbProcessResultError;
 	}

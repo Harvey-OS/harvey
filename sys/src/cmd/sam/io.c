@@ -9,8 +9,8 @@
 
 #include "sam.h"
 
-#define	NSYSFILE	3
-#define	NOFILE		128
+#define NSYSFILE 3
+#define NOFILE 128
 
 void
 checkqid(File *f)
@@ -19,11 +19,11 @@ checkqid(File *f)
 	File *g;
 
 	w = whichmenu(f);
-	for(i=1; i<file.nused; i++){
+	for(i = 1; i < file.nused; i++) {
 		g = file.filepptr[i];
 		if(w == i)
 			continue;
-		if(f->dev==g->dev && f->qidpath==g->qidpath)
+		if(f->dev == g->dev && f->qidpath == g->qidpath)
 			warn_SS(Wdupfile, &f->name, &g->name);
 	}
 }
@@ -45,7 +45,7 @@ writef(File *f)
 	if(i == -1)
 		newfile++;
 	else if(samename &&
-	        (f->dev!=dev || f->qidpath!=qid || f->mtime<mtime)){
+		(f->dev != dev || f->qidpath != qid || f->mtime < mtime)) {
 		f->dev = dev;
 		f->qidpath = qid;
 		f->mtime = mtime;
@@ -55,24 +55,24 @@ writef(File *f)
 	if(genc)
 		free(genc);
 	genc = Strtoc(&genstr);
-	if((io=create(genc, 1, 0666L)) < 0)
+	if((io = create(genc, 1, 0666L)) < 0)
 		error_r(Ecreate, genc);
 	dprint("%s: ", genc);
-	if(statfd(io, 0, 0, 0, &length, &appendonly) > 0 && appendonly && length>0)
+	if(statfd(io, 0, 0, 0, &length, &appendonly) > 0 && appendonly && length > 0)
 		error(Eappend);
 	n = writeio(f);
-	if(f->name.s[0]==0 || samename){
-		if(addr.r.p1==0 && addr.r.p2==f->nc)
+	if(f->name.s[0] == 0 || samename) {
+		if(addr.r.p1 == 0 && addr.r.p2 == f->nc)
 			f->cleanseq = f->seq;
-		state(f, f->cleanseq==f->seq? Clean : Dirty);
+		state(f, f->cleanseq == f->seq ? Clean : Dirty);
 	}
 	if(newfile)
 		dprint("(new file) ");
-	if(addr.r.p2>0 && filereadc(f, addr.r.p2-1)!='\n')
+	if(addr.r.p2 > 0 && filereadc(f, addr.r.p2 - 1) != '\n')
 		warn(Wnotnewline);
 	closeio(n);
-	if(f->name.s[0]==0 || samename){
-		if(statfile(name, &dev, &qid, &mtime, 0, 0) > 0){
+	if(f->name.s[0] == 0 || samename) {
+		if(statfile(name, &dev, &qid, &mtime, 0, 0) > 0) {
 			f->dev = dev;
 			f->qidpath = qid;
 			f->mtime = mtime;
@@ -91,22 +91,22 @@ readio(File *f, int *nulls, int setdate, int toterm)
 	uint32_t dev;
 	uint64_t qid;
 	int32_t mtime;
-	char buf[BLOCKSIZE+1], *s;
+	char buf[BLOCKSIZE + 1], *s;
 
 	*nulls = FALSE;
 	b = 0;
-	if(f->unread){
+	if(f->unread) {
 		nt = bufload(f, 0, io, nulls);
 		if(toterm)
 			raspload(f);
-	}else
-		for(nt = 0; (n = read(io, buf+b, BLOCKSIZE-b))>0; nt+=(r-genbuf)){
+	} else
+		for(nt = 0; (n = read(io, buf + b, BLOCKSIZE - b)) > 0; nt += (r - genbuf)) {
 			n += b;
 			b = 0;
 			r = genbuf;
 			s = buf;
-			while(n > 0){
-				if((*r = *(uint8_t*)s) < Runeself){
+			while(n > 0) {
+				if((*r = *(uint8_t *)s) < Runeself) {
 					if(*r)
 						r++;
 					else
@@ -115,7 +115,7 @@ readio(File *f, int *nulls, int setdate, int toterm)
 					s++;
 					continue;
 				}
-				if(fullrune(s, n)){
+				if(fullrune(s, n)) {
 					w = chartorune(r, s);
 					if(*r)
 						r++;
@@ -129,14 +129,14 @@ readio(File *f, int *nulls, int setdate, int toterm)
 				memmove(buf, s, b);
 				break;
 			}
-			loginsert(f, p, genbuf, r-genbuf);
+			loginsert(f, p, genbuf, r - genbuf);
 		}
 	if(b)
 		*nulls = TRUE;
 	if(*nulls)
 		warn(Wnulls);
-	if(setdate){
-		if(statfd(io, &dev, &qid, &mtime, 0, 0) > 0){
+	if(setdate) {
+		if(statfd(io, &dev, &qid, &mtime, 0, 0) > 0) {
 			f->dev = dev;
 			f->qidpath = qid;
 			f->mtime = mtime;
@@ -153,15 +153,15 @@ writeio(File *f)
 	Posn p = addr.r.p1;
 	char *c;
 
-	while(p < addr.r.p2){
-		if(addr.r.p2-p>BLOCKSIZE)
+	while(p < addr.r.p2) {
+		if(addr.r.p2 - p > BLOCKSIZE)
 			n = BLOCKSIZE;
 		else
-			n = addr.r.p2-p;
+			n = addr.r.p2 - p;
 		bufread(f, p, genbuf, n);
 		c = Strtoc(tmprstr(genbuf, n));
 		m = strlen(c);
-		if(Write(io, c, m) != m){
+		if(Write(io, c, m) != m) {
 			free(c);
 			if(p > 0)
 				p += n;
@@ -170,7 +170,7 @@ writeio(File *f)
 		free(c);
 		p += n;
 	}
-	return p-addr.r.p1;
+	return p - addr.r.p1;
 }
 void
 closeio(Posn p)
@@ -181,15 +181,15 @@ closeio(Posn p)
 		dprint("#%lud\n", p);
 }
 
-int	remotefd0 = 0;
-int	remotefd1 = 1;
+int remotefd0 = 0;
+int remotefd1 = 1;
 
 void
 bootterm(char *machine, char **argv)
 {
 	int ph2t[2], pt2h[2];
 
-	if(machine){
+	if(machine) {
 		dup(remotefd0, 0);
 		dup(remotefd1, 1);
 		close(remotefd0);
@@ -200,9 +200,9 @@ bootterm(char *machine, char **argv)
 		perror(samterm);
 		_exits("damn");
 	}
-	if(pipe(ph2t)==-1 || pipe(pt2h)==-1)
+	if(pipe(ph2t) == -1 || pipe(pt2h) == -1)
 		panic("pipe");
-	switch(fork()){
+	switch(fork()) {
 	case 0:
 		dup(ph2t[0], 0);
 		dup(pt2h[1], 1);
@@ -232,12 +232,12 @@ connectto(char *machine, char **argv)
 	int p1[2], p2[2];
 	char **av;
 	int ac;
-	
+
 	// count args
 	for(av = argv; *av; av++)
 		;
-	av = malloc(sizeof(char*)*((av-argv) + 5));
-	if(av == nil){
+	av = malloc(sizeof(char *) * ((av - argv) + 5));
+	if(av == nil) {
 		dprint("out of memory\n");
 		exits("fork/exec");
 	}
@@ -249,13 +249,13 @@ connectto(char *machine, char **argv)
 	while(*argv)
 		av[ac++] = *argv++;
 	av[ac] = 0;
-	if(pipe(p1)<0 || pipe(p2)<0){
+	if(pipe(p1) < 0 || pipe(p2) < 0) {
 		dprint("can't pipe\n");
 		exits("pipe");
 	}
 	remotefd0 = p1[0];
 	remotefd1 = p2[1];
-	switch(fork()){
+	switch(fork()) {
 	case 0:
 		dup(p2[0], 0);
 		dup(p1[1], 1);

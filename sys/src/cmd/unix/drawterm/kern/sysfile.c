@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
-#include	"user.h"
+#include "user.h"
 #undef open
 #undef mount
 #undef read
@@ -43,34 +43,34 @@ unlockfgrp(Fgrp *f)
 }
 
 int
-growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
+growfd(Fgrp *f, int fd) /* fd is always >= 0 */
 {
 	Chan **newfd, **oldfd;
 
 	if(fd < f->nfd)
 		return 0;
-	if(fd >= f->nfd+DELTAFD)
-		return -1;	/* out of range */
+	if(fd >= f->nfd + DELTAFD)
+		return -1; /* out of range */
 	/*
 	 * Unbounded allocation is unwise; besides, there are only 16 bits
 	 * of fid in 9P
 	 */
-	if(f->nfd >= 5000){
-    Exhausted:
+	if(f->nfd >= 5000) {
+	Exhausted:
 		print("no free file descriptors\n");
 		return -1;
 	}
-	newfd = malloc((f->nfd+DELTAFD)*sizeof(Chan*));
+	newfd = malloc((f->nfd + DELTAFD) * sizeof(Chan *));
 	if(newfd == 0)
 		goto Exhausted;
 	oldfd = f->fd;
-	memmove(newfd, oldfd, f->nfd*sizeof(Chan*));
+	memmove(newfd, oldfd, f->nfd * sizeof(Chan *));
 	f->fd = newfd;
 	free(oldfd);
 	f->nfd += DELTAFD;
-	if(fd > f->maxfd){
-		if(fd/100 > f->maxfd/100)
-			f->exceed = (fd/100)*100;
+	if(fd > f->maxfd) {
+		if(fd / 100 > f->maxfd / 100)
+			f->exceed = (fd / 100) * 100;
 		f->maxfd = fd;
 	}
 	return 1;
@@ -84,7 +84,7 @@ findfreefd(Fgrp *f, int start)
 {
 	int fd;
 
-	for(fd=start; fd<f->nfd; fd++)
+	for(fd = start; fd < f->nfd; fd++)
 		if(f->fd[fd] == 0)
 			break;
 	if(fd >= f->nfd && growfd(f, fd) < 0)
@@ -101,7 +101,7 @@ newfd(Chan *c)
 	f = up->fgrp;
 	lock(&f->ref.lk);
 	fd = findfreefd(f, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
@@ -120,12 +120,12 @@ newfd2(int fd[2], Chan *c[2])
 	f = up->fgrp;
 	lock(&f->ref.lk);
 	fd[0] = findfreefd(f, 0);
-	if(fd[0] < 0){
+	if(fd[0] < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
-	fd[1] = findfreefd(f, fd[0]+1);
-	if(fd[1] < 0){
+	fd[1] = findfreefd(f, fd[0] + 1);
+	if(fd[1] < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
@@ -138,7 +138,7 @@ newfd2(int fd[2], Chan *c[2])
 	return 0;
 }
 
-Chan*
+Chan *
 fdtochan(int fd, int mode, int chkmnt, int iref)
 {
 	Chan *c;
@@ -148,7 +148,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 	f = up->fgrp;
 
 	lock(&f->ref.lk);
-	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
+	if(fd < 0 || f->nfd <= fd || (c = f->fd[fd]) == 0) {
 		unlock(&f->ref.lk);
 		error(Ebadfd);
 	}
@@ -156,22 +156,22 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 		incref(&c->ref);
 	unlock(&f->ref.lk);
 
-	if(chkmnt && (c->flag&CMSG)) {
+	if(chkmnt && (c->flag & CMSG)) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
 	}
 
-	if(mode<0 || c->mode==ORDWR)
+	if(mode < 0 || c->mode == ORDWR)
 		return c;
 
-	if((mode&OTRUNC) && c->mode==OREAD) {
+	if((mode & OTRUNC) && c->mode == OREAD) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
 	}
 
-	if((mode&~OTRUNC) != c->mode) {
+	if((mode & ~OTRUNC) != c->mode) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
@@ -183,7 +183,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 int
 openmode(uint32_t o)
 {
-	o &= ~(OTRUNC|OCEXEC|ORCLOSE);
+	o &= ~(OTRUNC | OCEXEC | ORCLOSE);
 	if(o > OEXEC)
 		error(Ebadarg);
 	if(o == OEXEC)
@@ -219,16 +219,16 @@ _syspipe(int fd[2])
 	fd[0] = -1;
 	fd[1] = -1;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c[0]);
 		if(c[1])
 			cclose(c[1]);
 		nexterror();
 	}
 	c[1] = cclone(c[0]);
-	if(walk(&c[0], datastr+0, 1, 1, nil) < 0)
+	if(walk(&c[0], datastr + 0, 1, 1, nil) < 0)
 		error(Egreg);
-	if(walk(&c[1], datastr+1, 1, 1, nil) < 0)
+	if(walk(&c[1], datastr + 1, 1, 1, nil) < 0)
 		error(Egreg);
 	c[0] = d->open(c[0], ORDWR);
 	c[1] = d->open(c[1], ORDWR);
@@ -251,9 +251,9 @@ _sysdup(int fd0, int fd1)
 	 */
 	c = fdtochan(fd0, -1, 0, 1);
 	fd = fd1;
-	if(fd != -1){
+	if(fd != -1) {
 		lock(&f->ref.lk);
-		if(fd<0 || growfd(f, fd)<0) {
+		if(fd < 0 || growfd(f, fd) < 0) {
 			unlockfgrp(f);
 			cclose(c);
 			error(Ebadfd);
@@ -266,7 +266,7 @@ _sysdup(int fd0, int fd1)
 		unlockfgrp(f);
 		if(oc)
 			cclose(oc);
-	}else{
+	} else {
 		if(waserror()) {
 			cclose(c);
 			nexterror();
@@ -286,8 +286,8 @@ _sysopen(char *name, int mode)
 	int fd;
 	Chan *c = 0;
 
-	openmode(mode);	/* error check only */
-	if(waserror()){
+	openmode(mode); /* error check only */
+	if(waserror()) {
 		if(c)
 			cclose(c);
 		nexterror();
@@ -309,20 +309,20 @@ fdclose(int fd, int flag)
 
 	lock(&f->ref.lk);
 	c = f->fd[fd];
-	if(c == 0){
+	if(c == 0) {
 		/* can happen for users with shared fd tables */
 		unlock(&f->ref.lk);
 		return;
 	}
-	if(flag){
-		if(c==0 || !(c->flag&flag)){
+	if(flag) {
+		if(c == 0 || !(c->flag & flag)) {
 			unlock(&f->ref.lk);
 			return;
 		}
 	}
 	f->fd[fd] = 0;
 	if(fd == f->maxfd)
-		for(i=fd; --i>=0 && f->fd[i]==0; )
+		for(i = fd; --i >= 0 && f->fd[i] == 0;)
 			f->maxfd = i;
 
 	unlock(&f->ref.lk);
@@ -358,11 +358,11 @@ unionread(Chan *c, void *va, int32_t n)
 	while(mount != nil) {
 		/* Error causes component of union to be skipped */
 		if(mount->to && !waserror()) {
-			if(c->umc == nil){
+			if(c->umc == nil) {
 				c->umc = cclone(mount->to);
 				c->umc = devtab[c->umc->type]->open(c->umc, OREAD);
 			}
-	
+
 			nr = devtab[c->umc->type]->read(c->umc, va, n, c->umc->offset);
 			c->umc->offset += nr;
 			poperror();
@@ -397,13 +397,13 @@ kread(int fd, void *buf, int32_t n, int64_t *offp)
 		nexterror();
 	}
 
-	dir = c->qid.type&QTDIR;
+	dir = c->qid.type & QTDIR;
 	/*
 	 * The offset is passed through on directories, normally. sysseek complains but
 	 * pread is used by servers and e.g. exportfs that shouldn't need to worry about this issue.
 	 */
 
-	if(offp == nil)	/* use and maintain channel's offset */
+	if(offp == nil) /* use and maintain channel's offset */
 		off = c->offset;
 	else
 		off = *offp;
@@ -416,7 +416,7 @@ kread(int fd, void *buf, int32_t n, int64_t *offp)
 	else
 		n = devtab[c->type]->read(c, buf, n, off);
 
-	if(offp == nil){
+	if(offp == nil) {
 		lock(&c->ref.lk);
 		c->offset += n;
 		unlock(&c->ref.lk);
@@ -439,7 +439,7 @@ _sys_read(int fd, void *buf, long n)
 int32_t
 _syspread(int fd, void *buf, int32_t n, int64_t off)
 {
-	if(off == ((uint64_t) ~0))
+	if(off == ((uint64_t)~0))
 		return kread(fd, buf, n, nil);
 	return kread(fd, buf, n, &off);
 }
@@ -454,7 +454,7 @@ kwrite(int fd, void *buf, int32_t nn, int64_t *offp)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 	if(waserror()) {
-		if(offp == nil){
+		if(offp == nil) {
 			lock(&c->ref.lk);
 			c->offset -= n;
 			unlock(&c->ref.lk);
@@ -468,12 +468,12 @@ kwrite(int fd, void *buf, int32_t nn, int64_t *offp)
 
 	n = nn;
 
-	if(offp == nil){	/* use and maintain channel's offset */
+	if(offp == nil) { /* use and maintain channel's offset */
 		lock(&c->ref.lk);
 		off = c->offset;
 		c->offset += n;
 		unlock(&c->ref.lk);
-	}else
+	} else
 		off = *offp;
 
 	if(off < 0)
@@ -481,7 +481,7 @@ kwrite(int fd, void *buf, int32_t nn, int64_t *offp)
 
 	m = devtab[c->type]->write(c, buf, n, off);
 
-	if(offp == nil && m < n){
+	if(offp == nil && m < n) {
 		lock(&c->ref.lk);
 		c->offset -= n - m;
 		unlock(&c->ref.lk);
@@ -502,7 +502,7 @@ sys_write(int fd, void *buf, int32_t n)
 int32_t
 _syspwrite(int fd, void *buf, int32_t n, int64_t off)
 {
-	if(off == ((uint64_t) ~0))
+	if(off == ((uint64_t)~0))
 		return kwrite(fd, buf, n, nil);
 	return kwrite(fd, buf, n, &off);
 }
@@ -511,19 +511,19 @@ static int64_t
 _sysseek(int fd, int64_t off, int whence)
 {
 	Chan *c;
-	uint8_t buf[sizeof(Dir)+100];
+	uint8_t buf[sizeof(Dir) + 100];
 	Dir dir;
 	int n;
 
 	c = fdtochan(fd, -1, 1, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
 	if(devtab[c->type]->dc == '|')
 		error(Eisstream);
 
-	switch(whence){
+	switch(whence) {
 	case 0:
 		if((c->qid.type & QTDIR) && off != 0)
 			error(Eisdir);
@@ -535,7 +535,7 @@ _sysseek(int fd, int64_t off, int whence)
 	case 1:
 		if(c->qid.type & QTDIR)
 			error(Eisdir);
-		lock(&c->ref.lk);	/* lock for read/write update */
+		lock(&c->ref.lk); /* lock for read/write update */
 		off = off + c->offset;
 		if(off < 0)
 			error(Enegoff);
@@ -574,7 +574,7 @@ validstat(uint8_t *s, int n)
 	if(statcheck(s, n) < 0)
 		error(Ebadstat);
 	/* verify that name entry is acceptable */
-	s += STATFIXLEN - 4*BIT16SZ;	/* location of first string */
+	s += STATFIXLEN - 4 * BIT16SZ; /* location of first string */
 	/*
 	 * s now points at count for first string.
 	 * if it's too long, let the server decide; this is
@@ -583,7 +583,7 @@ validstat(uint8_t *s, int n)
 	 */
 	m = GBIT16(s);
 	s += BIT16SZ;
-	if(m+1 > sizeof buf)
+	if(m + 1 > sizeof buf)
 		return;
 	memmove(buf, s, m);
 	buf[m] = '\0';
@@ -621,7 +621,7 @@ _sysstat(char *name, void *buf, int32_t n)
 	validaddr(buf, l, 1);
 	validaddr(name, 1, 0);
 	c = namec(name, Aaccess, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -645,25 +645,25 @@ _syschdir(char *name)
 }
 
 int32_t
-bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
+bindmount(int ismount, int fd, int afd, char *arg0, char *arg1,
 	  uint32_t flag,
-	  char* spec)
+	  char *spec)
 {
 	int ret;
 	Chan *c0, *c1, *ac, *bc;
-	struct{
-		Chan	*chan;
-		Chan	*authchan;
-		char	*spec;
-		int	flags;
-	}bogus;
+	struct {
+		Chan *chan;
+		Chan *authchan;
+		char *spec;
+		int flags;
+	} bogus;
 
-	if((flag&~MMASK) || (flag&MORDER)==(MBEFORE|MAFTER))
+	if((flag & ~MMASK) || (flag & MORDER) == (MBEFORE | MAFTER))
 		error(Ebadarg);
 
 	bogus.flags = flag & MCACHE;
 
-	if(ismount){
+	if(ismount) {
 		if(up->pgrp->noattach)
 			error(Enoattach);
 
@@ -690,26 +690,26 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 		poperror();
 
 		ret = devno('M', 0);
-		c0 = devtab[ret]->attach((char*)&bogus);
+		c0 = devtab[ret]->attach((char *)&bogus);
 
 		poperror();
 		if(ac)
 			cclose(ac);
 		cclose(bc);
-	}else{
+	} else {
 		bogus.spec = 0;
 		validaddr((uint32_t)arg0, 1, 0);
 		c0 = namec(arg0, Abind, 0, 0);
 	}
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c0);
 		nexterror();
 	}
 
 	validaddr((uint32_t)arg1, 1, 0);
 	c1 = namec(arg1, Amount, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c1);
 		nexterror();
 	}
@@ -784,7 +784,7 @@ _syscreate(char *name, int mode, uint32_t perm)
 	int fd;
 	Chan *c = 0;
 
-	openmode(mode&~OEXCL);	/* error check only; OEXCL okay here */
+	openmode(mode & ~OEXCL); /* error check only; OEXCL okay here */
 	if(waserror()) {
 		if(c)
 			cclose(c);
@@ -805,8 +805,8 @@ _sysremove(char *name)
 	Chan *c;
 
 	c = namec(name, Aremove, 0, 0);
-	if(waserror()){
-		c->type = 0;	/* see below */
+	if(waserror()) {
+		c->type = 0; /* see below */
 		cclose(c);
 		nexterror();
 	}
@@ -831,7 +831,7 @@ _syswstat(char *name, void *buf, int32_t n)
 	validstat(buf, l);
 	validaddr(name, 1, 0);
 	c = namec(name, Aaccess, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -860,7 +860,6 @@ _sysfwstat(int fd, void *buf, int32_t n)
 	cclose(c);
 	return l;
 }
-
 
 static void
 starterror(void)
@@ -891,7 +890,7 @@ sysbind(char *old, char *new, int flag)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -906,7 +905,7 @@ syschdir(char *path)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -921,7 +920,7 @@ sysclose(int fd)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -936,7 +935,7 @@ syscreate(char *name, int mode, uint32_t perm)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -951,7 +950,7 @@ sysdup(int fd0, int fd1)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -964,7 +963,7 @@ int
 sysfstat(int fd, uint8_t *buf, int n)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -977,7 +976,7 @@ int
 sysfwstat(int fd, uint8_t *buf, int n)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -992,7 +991,7 @@ sysmount(int fd, int afd, char *new, int flag, char *spec)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1007,7 +1006,7 @@ sysunmount(char *old, char *new)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1022,7 +1021,7 @@ sysopen(char *name, int mode)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1037,7 +1036,7 @@ syspipe(int *fd)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1050,7 +1049,7 @@ int32_t
 syspread(int fd, void *buf, int32_t n, int64_t off)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1063,7 +1062,7 @@ int32_t
 syspwrite(int fd, void *buf, int32_t n, int64_t off)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1076,11 +1075,11 @@ int32_t
 sysread(int fd, void *buf, int32_t n)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
-	n = _syspread(fd, buf, n, (uint64_t) ~0);
+	n = _syspread(fd, buf, n, (uint64_t)~0);
 	enderror();
 	return n;
 }
@@ -1091,7 +1090,7 @@ sysremove(char *path)
 	int n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1104,7 +1103,7 @@ int64_t
 sysseek(int fd, int64_t off, int whence)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1117,7 +1116,7 @@ int
 sysstat(char *name, uint8_t *buf, int n)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1130,11 +1129,11 @@ int32_t
 syswrite(int fd, void *buf, int32_t n)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
-	n = _syspwrite(fd, buf, n, (uint64_t) ~0);
+	n = _syspwrite(fd, buf, n, (uint64_t)~0);
 	enderror();
 	return n;
 }
@@ -1143,7 +1142,7 @@ int
 syswstat(char *name, uint8_t *buf, int n)
 {
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
 		return -1;
 	}
@@ -1163,9 +1162,9 @@ werrstr(char *f, ...)
 	va_end(arg);
 
 	if(up->nerrlab)
-		strecpy(up->errstr, up->errstr+ERRMAX, buf);
+		strecpy(up->errstr, up->errstr + ERRMAX, buf);
 	else
-		strecpy(up->syserrstr, up->syserrstr+ERRMAX, buf);
+		strecpy(up->syserrstr, up->syserrstr + ERRMAX, buf);
 }
 
 int
@@ -1185,8 +1184,8 @@ errstr(char *buf, uint n)
 
 	p = up->nerrlab ? up->errstr : up->syserrstr;
 	memmove(tmp, p, ERRMAX);
-	utfecpy(p, p+ERRMAX, buf);
-	utfecpy(buf, buf+n, tmp);
+	utfecpy(p, p + ERRMAX, buf);
+	utfecpy(buf, buf + n, tmp);
 	return strlen(buf);
 }
 
@@ -1196,19 +1195,19 @@ rerrstr(char *buf, uint n)
 	char *p;
 
 	p = up->nerrlab ? up->errstr : up->syserrstr;
-	utfecpy(buf, buf+n, p);
+	utfecpy(buf, buf + n, p);
 	return strlen(buf);
 }
 
-void*
-_sysrendezvous(void* arg0, void* arg1)
+void *
+_sysrendezvous(void *arg0, void *arg1)
 {
 	void *tag, *val;
 	Proc *p, **l;
 
 	tag = arg0;
 	l = &REND(up->rgrp, (uintptr)tag);
-	up->rendval = (void*)~0;
+	up->rendval = (void *)~0;
 
 	lock(&up->rgrp->ref.lk);
 	for(p = *l; p; p = p->rendhash) {
@@ -1239,15 +1238,15 @@ _sysrendezvous(void* arg0, void* arg1)
 	return up->rendval;
 }
 
-void*
+void *
 sysrendezvous(void *tag, void *val)
 {
 	void *n;
 
 	starterror();
-	if(waserror()){
+	if(waserror()) {
 		_syserror();
-		return (void*)~0;
+		return (void *)~0;
 	}
 	n = _sysrendezvous(tag, val);
 	enderror();

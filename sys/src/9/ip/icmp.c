@@ -17,72 +17,70 @@
 #include "ip.h"
 
 typedef struct Icmp {
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;		/* Time to live */
-	uint8_t	proto;		/* Protocol */
-	uint8_t	ipcksum[2];	/* Header checksum */
-	uint8_t	src[4];		/* Ip source */
-	uint8_t	dst[4];		/* Ip destination */
-	uint8_t	type;
-	uint8_t	code;
-	uint8_t	cksum[2];
-	uint8_t	icmpid[2];
-	uint8_t	seq[2];
-	uint8_t	data[1];
+	uint8_t vihl;       /* Version and header length */
+	uint8_t tos;	/* Type of service */
+	uint8_t length[2];  /* packet length */
+	uint8_t id[2];      /* Identification */
+	uint8_t frag[2];    /* Fragment information */
+	uint8_t ttl;	/* Time to live */
+	uint8_t proto;      /* Protocol */
+	uint8_t ipcksum[2]; /* Header checksum */
+	uint8_t src[4];     /* Ip source */
+	uint8_t dst[4];     /* Ip destination */
+	uint8_t type;
+	uint8_t code;
+	uint8_t cksum[2];
+	uint8_t icmpid[2];
+	uint8_t seq[2];
+	uint8_t data[1];
 } Icmp;
 
-enum {			/* Packet Types */
-	EchoReply	= 0,
-	Unreachable	= 3,
-	SrcQuench	= 4,
-	Redirect	= 5,
-	EchoRequest	= 8,
-	TimeExceed	= 11,
-	InParmProblem	= 12,
-	Timestamp	= 13,
-	TimestampReply	= 14,
-	InfoRequest	= 15,
-	InfoReply	= 16,
-	AddrMaskRequest = 17,
-	AddrMaskReply   = 18,
+enum { /* Packet Types */
+       EchoReply = 0,
+       Unreachable = 3,
+       SrcQuench = 4,
+       Redirect = 5,
+       EchoRequest = 8,
+       TimeExceed = 11,
+       InParmProblem = 12,
+       Timestamp = 13,
+       TimestampReply = 14,
+       InfoRequest = 15,
+       InfoReply = 16,
+       AddrMaskRequest = 17,
+       AddrMaskReply = 18,
 
-	Maxtype		= 18,
-};
-
-enum
-{
-	MinAdvise	= 24,	/* minimum needed for us to advise another protocol */
-};
-
-char *icmpnames[Maxtype+1] =
-{
-[EchoReply]		"EchoReply",
-[Unreachable]		"Unreachable",
-[SrcQuench]		"SrcQuench",
-[Redirect]		"Redirect",
-[EchoRequest]		"EchoRequest",
-[TimeExceed]		"TimeExceed",
-[InParmProblem]		"InParmProblem",
-[Timestamp]		"Timestamp",
-[TimestampReply]	"TimestampReply",
-[InfoRequest]		"InfoRequest",
-[InfoReply]		"InfoReply",
-[AddrMaskRequest]	"AddrMaskRequest",
-[AddrMaskReply  ]	"AddrMaskReply  ",
+       Maxtype = 18,
 };
 
 enum {
-	IP_ICMPPROTO	= 1,
-	ICMP_IPSIZE	= 20,
-	ICMP_HDRSIZE	= 8,
+	MinAdvise = 24, /* minimum needed for us to advise another protocol */
 };
 
-enum
-{
+char *icmpnames[Maxtype + 1] =
+    {
+	 [EchoReply] "EchoReply",
+	 [Unreachable] "Unreachable",
+	 [SrcQuench] "SrcQuench",
+	 [Redirect] "Redirect",
+	 [EchoRequest] "EchoRequest",
+	 [TimeExceed] "TimeExceed",
+	 [InParmProblem] "InParmProblem",
+	 [Timestamp] "Timestamp",
+	 [TimestampReply] "TimestampReply",
+	 [InfoRequest] "InfoRequest",
+	 [InfoReply] "InfoReply",
+	 [AddrMaskRequest] "AddrMaskRequest",
+	 [AddrMaskReply] "AddrMaskReply  ",
+};
+
+enum {
+	IP_ICMPPROTO = 1,
+	ICMP_IPSIZE = 20,
+	ICMP_HDRSIZE = 8,
+};
+
+enum {
 	InMsgs,
 	InErrors,
 	OutMsgs,
@@ -94,35 +92,34 @@ enum
 };
 
 static char *statnames[Nstats] =
-{
-[InMsgs]	"InMsgs",
-[InErrors]	"InErrors",
-[OutMsgs]	"OutMsgs",
-[CsumErrs]	"CsumErrs",
-[LenErrs]	"LenErrs",
-[HlenErrs]	"HlenErrs",
+    {
+	 [InMsgs] "InMsgs",
+	 [InErrors] "InErrors",
+	 [OutMsgs] "OutMsgs",
+	 [CsumErrs] "CsumErrs",
+	 [LenErrs] "LenErrs",
+	 [HlenErrs] "HlenErrs",
 };
 
 typedef struct Icmppriv Icmppriv;
-struct Icmppriv
-{
-	uint32_t	stats[Nstats];
+struct Icmppriv {
+	uint32_t stats[Nstats];
 
 	/* message counts */
-	uint32_t	in[Maxtype+1];
-	uint32_t	out[Maxtype+1];
+	uint32_t in[Maxtype + 1];
+	uint32_t out[Maxtype + 1];
 };
 
-static void icmpkick(void *x, Block*);
+static void icmpkick(void *x, Block *);
 
 static void
 icmpcreate(Conv *c)
 {
-	c->rq = qopen(64*1024, Qmsg, 0, c);
+	c->rq = qopen(64 * 1024, Qmsg, 0, c);
 	c->wq = qbypass(icmpkick, c);
 }
 
-extern char*
+extern char *
 icmpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
@@ -140,13 +137,12 @@ icmpstate(Conv *c, char *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s qin %d qout %d\n",
-		"Datagram",
-		c->rq ? qlen(c->rq) : 0,
-		c->wq ? qlen(c->wq) : 0
-	);
+		       "Datagram",
+		       c->rq ? qlen(c->rq) : 0,
+		       c->wq ? qlen(c->wq) : 0);
 }
 
-extern char*
+extern char *
 icmpannounce(Conv *c, char **argv, int argc)
 {
 	char *e;
@@ -179,7 +175,7 @@ icmpkick(void *x, Block *bp)
 	if(bp == nil)
 		return;
 
-	if(blocklen(bp) < ICMP_IPSIZE + ICMP_HDRSIZE){
+	if(blocklen(bp) < ICMP_IPSIZE + ICMP_HDRSIZE) {
 		freeblist(bp);
 		return;
 	}
@@ -202,8 +198,8 @@ icmpkick(void *x, Block *bp)
 extern void
 icmpttlexceeded(Fs *f, uint8_t *ia, Block *bp)
 {
-	Block	*nbp;
-	Icmp	*p, *np;
+	Block *nbp;
+	Icmp *p, *np;
 
 	p = (Icmp *)bp->rp;
 
@@ -223,27 +219,26 @@ icmpttlexceeded(Fs *f, uint8_t *ia, Block *bp)
 	memset(np->cksum, 0, sizeof(np->cksum));
 	hnputs(np->cksum, ptclcsum(nbp, ICMP_IPSIZE, blocklen(nbp) - ICMP_IPSIZE));
 	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS, nil);
-
 }
 
 static void
 icmpunreachable(Fs *f, Block *bp, int code, int seq)
 {
-	Block	*nbp;
-	Icmp	*p, *np;
-	int	i;
-	uint8_t	addr[IPaddrlen];
+	Block *nbp;
+	Icmp *p, *np;
+	int i;
+	uint8_t addr[IPaddrlen];
 
 	p = (Icmp *)bp->rp;
 
 	/* only do this for unicast sources and destinations */
 	v4tov6(addr, p->dst);
 	i = ipforme(f, addr);
-	if((i&Runi) == 0)
+	if((i & Runi) == 0)
 		return;
 	v4tov6(addr, p->src);
 	i = ipforme(f, addr);
-	if(i != 0 && (i&Runi) == 0)
+	if(i != 0 && (i & Runi) == 0)
 		return;
 
 	netlog(f, Logicmp, "sending icmpnoconv -> %V\n", p->src);
@@ -279,24 +274,24 @@ icmpcantfrag(Fs *f, Block *bp, int mtu)
 static void
 goticmpkt(Proto *icmp, Block *bp)
 {
-	Conv	**c, *s;
-	Icmp	*p;
-	uint8_t	dst[IPaddrlen];
-	uint16_t	recid;
+	Conv **c, *s;
+	Icmp *p;
+	uint8_t dst[IPaddrlen];
+	uint16_t recid;
 
-	p = (Icmp *) bp->rp;
+	p = (Icmp *)bp->rp;
 	v4tov6(dst, p->src);
 	recid = nhgets(p->icmpid);
 
 	for(c = icmp->conv; *c; c++) {
 		s = *c;
 		if(s->lport == recid)
-		if(ipcmp(s->raddr, dst) == 0){
-			bp = concatblock(bp);
-			if(bp != nil)
-				qpass(s->rq, bp);
-			return;
-		}
+			if(ipcmp(s->raddr, dst) == 0) {
+				bp = concatblock(bp);
+				if(bp != nil)
+					qpass(s->rq, bp);
+				return;
+			}
 	}
 	freeblist(bp);
 }
@@ -304,14 +299,14 @@ goticmpkt(Proto *icmp, Block *bp)
 static Block *
 mkechoreply(Block *bp)
 {
-	Icmp	*q;
-	uint8_t	ip[4];
+	Icmp *q;
+	uint8_t ip[4];
 
 	q = (Icmp *)bp->rp;
 	q->vihl = IP_VER4;
 	memmove(ip, q->src, sizeof(q->dst));
 	memmove(q->src, q->dst, sizeof(q->src));
-	memmove(q->dst, ip,  sizeof(q->dst));
+	memmove(q->dst, ip, sizeof(q->dst));
 	q->type = EchoReply;
 	memset(q->cksum, 0, sizeof(q->cksum));
 	hnputs(q->cksum, ptclcsum(bp, ICMP_IPSIZE, blocklen(bp) - ICMP_IPSIZE));
@@ -320,24 +315,24 @@ mkechoreply(Block *bp)
 }
 
 static char *unreachcode[] =
-{
-[0]	"net unreachable",
-[1]	"host unreachable",
-[2]	"protocol unreachable",
-[3]	"port unreachable",
-[4]	"fragmentation needed and DF set",
-[5]	"source route failed",
+    {
+	 [0] "net unreachable",
+	 [1] "host unreachable",
+	 [2] "protocol unreachable",
+	 [3] "port unreachable",
+	 [4] "fragmentation needed and DF set",
+	 [5] "source route failed",
 };
 
 static void
 icmpiput(Proto *icmp, Ipifc *ipifc, Block *bp)
 {
-	int	n, iplen;
-	Icmp	*p;
-	Block	*r;
-	Proto	*pr;
-	char	*msg;
-	char	m2[128];
+	int n, iplen;
+	Icmp *p;
+	Block *r;
+	Proto *pr;
+	char *msg;
+	char m2[128];
 	Icmppriv *ipriv;
 
 	ipriv = icmp->priv;
@@ -346,23 +341,23 @@ icmpiput(Proto *icmp, Ipifc *ipifc, Block *bp)
 
 	p = (Icmp *)bp->rp;
 	netlog(icmp->f, Logicmp, "icmpiput %s (%d) %d\n",
-		(p->type < nelem(icmpnames)? icmpnames[p->type]: ""),
-		p->type, p->code);
+	       (p->type < nelem(icmpnames) ? icmpnames[p->type] : ""),
+	       p->type, p->code);
 	n = blocklen(bp);
-	if(n < ICMP_IPSIZE+ICMP_HDRSIZE){
+	if(n < ICMP_IPSIZE + ICMP_HDRSIZE) {
 		ipriv->stats[InErrors]++;
 		ipriv->stats[HlenErrs]++;
 		netlog(icmp->f, Logicmp, "icmp hlen %d\n", n);
 		goto raise;
 	}
 	iplen = nhgets(p->length);
-	if(iplen > n){
+	if(iplen > n) {
 		ipriv->stats[LenErrs]++;
 		ipriv->stats[InErrors]++;
 		netlog(icmp->f, Logicmp, "icmp length %d\n", iplen);
 		goto raise;
 	}
-	if(ptclcsum(bp, ICMP_IPSIZE, iplen - ICMP_IPSIZE)){
+	if(ptclcsum(bp, ICMP_IPSIZE, iplen - ICMP_IPSIZE)) {
 		ipriv->stats[InErrors]++;
 		ipriv->stats[CsumErrs]++;
 		netlog(icmp->f, Logicmp, "icmp checksum error\n");
@@ -373,7 +368,7 @@ icmpiput(Proto *icmp, Ipifc *ipifc, Block *bp)
 
 	switch(p->type) {
 	case EchoRequest:
-		if (iplen < n)
+		if(iplen < n)
 			bp = trimblock(bp, 0, iplen);
 		r = mkechoreply(concatblock(bp));
 		ipriv->out[EchoReply]++;
@@ -385,8 +380,8 @@ icmpiput(Proto *icmp, Ipifc *ipifc, Block *bp)
 		else
 			msg = unreachcode[p->code];
 
-		bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
-		if(blocklen(bp) < MinAdvise){
+		bp->rp += ICMP_IPSIZE + ICMP_HDRSIZE;
+		if(blocklen(bp) < MinAdvise) {
 			ipriv->stats[LenErrs]++;
 			goto raise;
 		}
@@ -397,15 +392,15 @@ icmpiput(Proto *icmp, Ipifc *ipifc, Block *bp)
 			return;
 		}
 
-		bp->rp -= ICMP_IPSIZE+ICMP_HDRSIZE;
+		bp->rp -= ICMP_IPSIZE + ICMP_HDRSIZE;
 		goticmpkt(icmp, bp);
 		break;
 	case TimeExceed:
-		if(p->code == 0){
+		if(p->code == 0) {
 			snprint(m2, sizeof m2, "ttl exceeded at %V", p->src);
 
-			bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
-			if(blocklen(bp) < MinAdvise){
+			bp->rp += ICMP_IPSIZE + ICMP_HDRSIZE;
+			if(blocklen(bp) < MinAdvise) {
 				ipriv->stats[LenErrs]++;
 				goto raise;
 			}
@@ -415,7 +410,7 @@ icmpiput(Proto *icmp, Ipifc *ipifc, Block *bp)
 				(*pr->advise)(pr, bp, m2);
 				return;
 			}
-			bp->rp -= ICMP_IPSIZE+ICMP_HDRSIZE;
+			bp->rp -= ICMP_IPSIZE + ICMP_HDRSIZE;
 		}
 
 		goticmpkt(icmp, bp);
@@ -433,23 +428,23 @@ raise:
 void
 icmpadvise(Proto *icmp, Block *bp, char *msg)
 {
-	Conv	**c, *s;
-	Icmp	*p;
-	uint8_t	dst[IPaddrlen];
-	uint16_t	recid;
+	Conv **c, *s;
+	Icmp *p;
+	uint8_t dst[IPaddrlen];
+	uint16_t recid;
 
-	p = (Icmp *) bp->rp;
+	p = (Icmp *)bp->rp;
 	v4tov6(dst, p->dst);
 	recid = nhgets(p->icmpid);
 
 	for(c = icmp->conv; *c; c++) {
 		s = *c;
 		if(s->lport == recid)
-		if(ipcmp(s->raddr, dst) == 0){
-			qhangup(s->rq, msg);
-			qhangup(s->wq, msg);
-			break;
-		}
+			if(ipcmp(s->raddr, dst) == 0) {
+				qhangup(s->rq, msg);
+				qhangup(s->wq, msg);
+				break;
+			}
 	}
 	freeblist(bp);
 }
@@ -463,10 +458,10 @@ icmpstats(Proto *icmp, char *buf, int len)
 
 	priv = icmp->priv;
 	p = buf;
-	e = p+len;
+	e = p + len;
 	for(i = 0; i < Nstats; i++)
 		p = seprint(p, e, "%s: %lud\n", statnames[i], priv->stats[i]);
-	for(i = 0; i <= Maxtype; i++){
+	for(i = 0; i <= Maxtype; i++) {
 		if(icmpnames[i])
 			p = seprint(p, e, "%s: %lud %lud\n", icmpnames[i], priv->in[i], priv->out[i]);
 		else

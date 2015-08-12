@@ -27,7 +27,7 @@
 /* Type 2 font utilities 2 */
 
 #ifndef ifont2_INCLUDED
-#  define ifont2_INCLUDED
+#define ifont2_INCLUDED
 
 /* Default value of lenIV */
 #define DEFAULT_LENIV_2 (-1)

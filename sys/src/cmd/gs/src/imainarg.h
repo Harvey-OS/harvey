@@ -27,11 +27,11 @@
 /* argv/argc interface to imainarg.c */
 
 #ifndef imainarg_INCLUDED
-#  define imainarg_INCLUDED
+#define imainarg_INCLUDED
 
 /* Define an opaque type for an interpreter instance.  See imain.h. */
 #ifndef gs_main_instance_DEFINED
-#  define gs_main_instance_DEFINED
+#define gs_main_instance_DEFINED
 typedef struct gs_main_instance_s gs_main_instance;
 #endif
 
@@ -42,11 +42,11 @@ typedef struct gs_main_instance_s gs_main_instance;
  * argv should really be const char *[], but ANSI C requires writable
  * strings (which, however, it forbids the callee to modify!).
  */
-int gs_main_init_with_args(gs_main_instance * minst, int argc, char *argv[]);
+int gs_main_init_with_args(gs_main_instance *minst, int argc, char *argv[]);
 
 /*
  * Run the 'start' procedure (after processing the command line).
  */
-int gs_main_run_start(gs_main_instance * minst);
+int gs_main_run_start(gs_main_instance *minst);
 
 #endif /* imainarg_INCLUDED */

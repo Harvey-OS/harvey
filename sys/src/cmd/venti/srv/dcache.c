@@ -37,51 +37,48 @@
 #include "dat.h"
 #include "fns.h"
 
-typedef struct DCache	DCache;
+typedef struct DCache DCache;
 
-enum
-{
-	HashLog		= 9,
-	HashSize	= 1<<HashLog,
-	HashMask	= HashSize - 1,
+enum {
+	HashLog = 9,
+	HashSize = 1 << HashLog,
+	HashMask = HashSize - 1,
 };
 
-struct DCache
-{
-	QLock		lock;
-	RWLock		dirtylock;		/* must be held to inspect or set b->dirty */
-	Rendez		full;
-	Round		round;
-	DBlock		*free;			/* list of available lumps */
-	uint32_t		now;			/* ticks for usage timestamps */
-	int		size;			/* max. size of any block; allocated to each block */
-	DBlock		**heads;		/* hash table for finding address */
-	int		nheap;			/* number of available victims */
-	DBlock		**heap;			/* heap for locating victims */
-	int		nblocks;		/* number of blocks allocated */
-	DBlock		*blocks;		/* array of block descriptors */
-	DBlock		**write;		/* array of block pointers to be written */
-	uint8_t		*mem;			/* memory for all block descriptors */
-	int		ndirty;			/* number of dirty blocks */
-	int		maxdirty;		/* max. number of dirty blocks */
+struct DCache {
+	QLock lock;
+	RWLock dirtylock; /* must be held to inspect or set b->dirty */
+	Rendez full;
+	Round round;
+	DBlock *free;   /* list of available lumps */
+	uint32_t now;   /* ticks for usage timestamps */
+	int size;       /* max. size of any block; allocated to each block */
+	DBlock **heads; /* hash table for finding address */
+	int nheap;      /* number of available victims */
+	DBlock **heap;  /* heap for locating victims */
+	int nblocks;    /* number of blocks allocated */
+	DBlock *blocks; /* array of block descriptors */
+	DBlock **write; /* array of block pointers to be written */
+	uint8_t *mem;   /* memory for all block descriptors */
+	int ndirty;     /* number of dirty blocks */
+	int maxdirty;   /* max. number of dirty blocks */
 };
 
 typedef struct Ra Ra;
-struct Ra
-{
+struct Ra {
 	Part *part;
 	uint64_t addr;
 };
 
-static DCache	dcache;
+static DCache dcache;
 
-static int	downheap(int i, DBlock *b);
-static int	upheap(int i, DBlock *b);
-static DBlock	*bumpdblock(void);
-static void	delheap(DBlock *db);
-static void	fixheap(int i, DBlock *b);
-static void	flushproc(void*);
-static void	writeproc(void*);
+static int downheap(int i, DBlock *b);
+static int upheap(int i, DBlock *b);
+static DBlock *bumpdblock(void);
+static void delheap(DBlock *db);
+static void fixheap(int i, DBlock *b);
+static void flushproc(void *);
+static void writeproc(void *);
 
 void
 initdcache(uint32_t mem)
@@ -101,21 +98,21 @@ initdcache(uint32_t mem)
 	dcache.nblocks = nblocks;
 	dcache.maxdirty = (nblocks * 2) / 3;
 	trace(TraceProc, "initialize disk cache with %d blocks of %d bytes, maximum %d dirty blocks\n",
-			nblocks, blocksize, dcache.maxdirty);
+	      nblocks, blocksize, dcache.maxdirty);
 	dcache.size = blocksize;
-	dcache.heads = MKNZ(DBlock*, HashSize);
-	dcache.heap = MKNZ(DBlock*, nblocks);
+	dcache.heads = MKNZ(DBlock *, HashSize);
+	dcache.heap = MKNZ(DBlock *, nblocks);
 	dcache.blocks = MKNZ(DBlock, nblocks);
-	dcache.write = MKNZ(DBlock*, nblocks);
-	dcache.mem = MKNZ(uint8_t, (nblocks+1+128) * blocksize);
+	dcache.write = MKNZ(DBlock *, nblocks);
+	dcache.mem = MKNZ(uint8_t, (nblocks + 1 + 128) * blocksize);
 
 	last = nil;
-	p = (uint8_t*)(((uintptr)dcache.mem+blocksize-1)&~(uintptr)(blocksize-1));
-	for(i = 0; i < nblocks; i++){
+	p = (uint8_t *)(((uintptr)dcache.mem + blocksize - 1) & ~(uintptr)(blocksize - 1));
+	for(i = 0; i < nblocks; i++) {
 		b = &dcache.blocks[i];
 		b->data = &p[i * blocksize];
 		b->heap = TWID32;
-		b->writedonechan = chancreate(sizeof(void*), 1);
+		b->writedonechan = chancreate(sizeof(void *), 1);
 		b->next = last;
 		last = b;
 	}
@@ -123,7 +120,7 @@ initdcache(uint32_t mem)
 	dcache.free = last;
 	dcache.nheap = 0;
 	setstat(StatDcacheSize, nblocks);
-	initround(&dcache.round, "dcache", 120*1000);
+	initround(&dcache.round, "dcache", 120 * 1000);
 
 	vtproc(flushproc, nil);
 	vtproc(delaykickroundproc, &dcache.round);
@@ -134,16 +131,16 @@ pbhash(uint64_t addr)
 {
 	uint32_t h;
 
-#define hashit(c)	((((c) * 0x6b43a9b5) >> (32 - HashLog)) & HashMask)
+#define hashit(c) ((((c)*0x6b43a9b5) >> (32 - HashLog)) & HashMask)
 	h = (addr >> 32) ^ addr;
 	return hashit(h);
 }
 
-DBlock*
+DBlock *
 getdblock(Part *part, uint64_t addr, int mode)
 {
 	DBlock *b;
-	
+
 	b = _getdblock(part, addr, mode, 1);
 	if(mode == OREAD || mode == ORDWR)
 		addstat(StatDcacheRead, 1);
@@ -152,7 +149,7 @@ getdblock(Part *part, uint64_t addr, int mode)
 	return b;
 }
 
-DBlock*
+DBlock *
 _getdblock(Part *part, uint64_t addr, int mode, int load)
 {
 	DBlock *b;
@@ -161,7 +158,7 @@ _getdblock(Part *part, uint64_t addr, int mode, int load)
 	ms = 0;
 	trace(TraceBlock, "getdblock enter %s 0x%llux", part->name, addr);
 	size = part->blocksize;
-	if(size > dcache.size){
+	if(size > dcache.size) {
 		seterr(EAdmin, "block size %d too big for cache with size %d", size, dcache.size);
 		if(load)
 			addstat(StatDcacheLookup, 1);
@@ -174,8 +171,8 @@ _getdblock(Part *part, uint64_t addr, int mode, int load)
 	 */
 	qlock(&dcache.lock);
 again:
-	for(b = dcache.heads[h]; b != nil; b = b->next){
-		if(b->part == part && b->addr == addr){
+	for(b = dcache.heads[h]; b != nil; b = b->next) {
+		if(b->part == part && b->addr == addr) {
 			if(load)
 				addstat2(StatDcacheHit, 1, StatDcacheLookup, 1);
 			goto found;
@@ -186,7 +183,7 @@ again:
 	 * missed: locate the block with the oldest second to last use.
 	 * remove it from the heap, and fix up the heap.
 	 */
-	if(!load){
+	if(!load) {
 		qunlock(&dcache.lock);
 		return nil;
 	}
@@ -199,7 +196,7 @@ again:
 	addstat2(StatDcacheLookup, 1, StatDcacheMiss, 1);
 
 	b = bumpdblock();
-	if(b == nil){
+	if(b == nil) {
 		trace(TraceBlock, "all disk cache blocks in use");
 		addstat(StatDcacheStall, 1);
 		rsleep(&dcache.full);
@@ -235,9 +232,9 @@ found:
 	if(b->heap != TWID32)
 		fixheap(b->heap, b);
 
-	if((mode == ORDWR || mode == OWRITE) && part->writechan == nil){
+	if((mode == ORDWR || mode == OWRITE) && part->writechan == nil) {
 		trace(TraceBlock, "getdblock allocwriteproc %s", part->name);
-		part->writechan = chancreate(sizeof(DBlock*), dcache.nblocks);
+		part->writechan = chancreate(sizeof(DBlock *), dcache.nblocks);
 		vtproc(writeproc, part);
 	}
 	qunlock(&dcache.lock);
@@ -251,31 +248,31 @@ found:
 	addstat(StatDblockStall, -1);
 	trace(TraceBlock, "getdblock locked");
 
-	if(b->size != size){
-		if(mode == OREAD){
+	if(b->size != size) {
+		if(mode == OREAD) {
 			addstat(StatDblockStall, 1);
 			runlock(&b->lock);
 			wlock(&b->lock);
 			addstat(StatDblockStall, -1);
 		}
-		if(b->size < size){
+		if(b->size < size) {
 			if(mode == OWRITE)
 				memset(&b->data[b->size], 0, size - b->size);
-			else{
+			else {
 				trace(TraceBlock, "getdblock readpart %s 0x%llux", part->name, addr);
 				diskaccess(0);
-				if(readpart(part, addr + b->size, &b->data[b->size], size - b->size) < 0){
-					b->mode = ORDWR;	/* so putdblock wunlocks */
+				if(readpart(part, addr + b->size, &b->data[b->size], size - b->size) < 0) {
+					b->mode = ORDWR; /* so putdblock wunlocks */
 					putdblock(b);
 					return nil;
 				}
 				trace(TraceBlock, "getdblock readpartdone");
 				addstat(StatApartRead, 1);
-				addstat(StatApartReadBytes, size-b->size);
+				addstat(StatApartReadBytes, size - b->size);
 			}
 		}
 		b->size = size;
-		if(mode == OREAD){
+		if(mode == OREAD) {
 			addstat(StatDblockStall, 1);
 			wunlock(&b->lock);
 			rlock(&b->lock);
@@ -304,7 +301,7 @@ putdblock(DBlock *b)
 		wunlock(&b->lock);
 
 	qlock(&dcache.lock);
-	if(--b->ref == 0 && !b->dirty){
+	if(--b->ref == 0 && !b->dirty) {
 		if(b->heap == TWID32)
 			upheap(dcache.nheap++, b);
 		rwakeupall(&dcache.full);
@@ -318,9 +315,9 @@ dirtydblock(DBlock *b, int dirty)
 	int odirty;
 
 	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lux",
-		b->part->name, b->addr, dirty, getcallerpc(&b));
+	      b->part->name, b->addr, dirty, getcallerpc(&b));
 	assert(b->ref != 0);
-	assert(b->mode==ORDWR || b->mode==OWRITE);
+	assert(b->mode == ORDWR || b->mode == OWRITE);
 
 	odirty = b->dirty;
 	if(b->dirty)
@@ -329,7 +326,7 @@ dirtydblock(DBlock *b, int dirty)
 		b->dirty = dirty;
 
 	qlock(&dcache.lock);
-	if(!odirty){
+	if(!odirty) {
 		dcache.ndirty++;
 		setstat(StatDcacheDirty, dcache.ndirty);
 		if(dcache.ndirty >= dcache.maxdirty)
@@ -344,16 +341,16 @@ static void
 unchain(DBlock *b)
 {
 	uint32_t h;
-	
+
 	/*
 	 * unchain the block
 	 */
-	if(b->prev == nil){
+	if(b->prev == nil) {
 		h = pbhash(b->addr);
 		if(dcache.heads[h] != b)
 			sysfatal("bad hash chains in disk cache");
 		dcache.heads[h] = b->next;
-	}else
+	} else
 		b->prev->next = b->next;
 	if(b->next != nil)
 		b->next->prev = b->prev;
@@ -362,14 +359,14 @@ unchain(DBlock *b)
 /*
  * remove some block from use and update the free list and counters
  */
-static DBlock*
+static DBlock *
 bumpdblock(void)
 {
 	DBlock *b;
 
 	trace(TraceBlock, "bumpdblock enter");
 	b = dcache.free;
-	if(b != nil){
+	if(b != nil) {
 		dcache.free = b->next;
 		return b;
 	}
@@ -382,8 +379,8 @@ bumpdblock(void)
 	 * referenced blocks are left in the heap even though
 	 * they can't be scavenged; this is simple a speed optimization
 	 */
-	for(;;){
-		if(dcache.nheap == 0){
+	for(;;) {
+		if(dcache.nheap == 0) {
 			kickdcache();
 			trace(TraceBlock, "bumpdblock gotnothing");
 			return nil;
@@ -404,12 +401,12 @@ void
 emptydcache(void)
 {
 	DBlock *b;
-	
+
 	qlock(&dcache.lock);
-	while(dcache.nheap > 0){
+	while(dcache.nheap > 0) {
 		b = dcache.heap[0];
 		delheap(b);
-		if(!b->ref && !b->dirty){
+		if(!b->ref && !b->dirty) {
 			unchain(b);
 			b->next = dcache.free;
 			dcache.free = b;
@@ -448,7 +445,7 @@ upheap(int i, DBlock *b)
 	int p;
 
 	now = dcache.now;
-	for(; i != 0; i = p){
+	for(; i != 0; i = p) {
 		p = (i - 1) >> 1;
 		bb = dcache.heap[p];
 		if(b->used2 - now >= bb->used2 - now)
@@ -470,7 +467,7 @@ downheap(int i, DBlock *b)
 	int k;
 
 	now = dcache.now;
-	for(; ; i = k){
+	for(;; i = k) {
 		k = (i << 1) + 1;
 		if(k >= dcache.nheap)
 			break;
@@ -496,7 +493,7 @@ findblock(DBlock *bb)
 
 	last = nil;
 	h = pbhash(bb->addr);
-	for(b = dcache.heads[h]; b != nil; b = b->next){
+	for(b = dcache.heads[h]; b != nil; b = b->next) {
 		if(last != b->prev)
 			sysfatal("bad prev link");
 		if(b == bb)
@@ -516,7 +513,7 @@ checkdcache(void)
 	qlock(&dcache.lock);
 	size = dcache.size;
 	now = dcache.now;
-	for(i = 0; i < dcache.nheap; i++){
+	for(i = 0; i < dcache.nheap; i++) {
 		if(dcache.heap[i]->heap != i)
 			sysfatal("dc: mis-heaped at %d: %d", i, dcache.heap[i]->heap);
 		if(i > 0 && dcache.heap[(i - 1) >> 1]->used2 - now > dcache.heap[i]->used2 - now)
@@ -530,7 +527,7 @@ checkdcache(void)
 	}
 
 	refed = 0;
-	for(i = 0; i < dcache.nblocks; i++){
+	for(i = 0; i < dcache.nblocks; i++) {
 		b = &dcache.blocks[i];
 		if(b->data != &dcache.mem[i * size])
 			sysfatal("dc: mis-blocked at %d", i);
@@ -538,13 +535,12 @@ checkdcache(void)
 			refed++;
 		if(b->addr)
 			findblock(b);
-		if(b->heap != TWID32
-		&& dcache.heap[b->heap] != b)
+		if(b->heap != TWID32 && dcache.heap[b->heap] != b)
 			sysfatal("dc: spurious heap value");
 	}
 
 	nfree = 0;
-	for(b = dcache.free; b != nil; b = b->next){
+	for(b = dcache.free; b != nil; b = b->next) {
 		if(b->addr != 0 || b->heap != TWID32)
 			sysfatal("dc: bad free list");
 		nfree++;
@@ -575,28 +571,28 @@ parallelwrites(DBlock **b, DBlock **eb, int dirty)
 	DBlock **p, **q;
 	Part *part;
 
-	for(p=b; p<eb && (*p)->dirty == dirty; p++){
-		assert(b<=p && p<eb);
+	for(p = b; p < eb && (*p)->dirty == dirty; p++) {
+		assert(b <= p && p < eb);
 		sendp((*p)->part->writechan, *p);
 	}
 	q = p;
-	for(p=b; p<q; p++){
-		assert(b<=p && p<eb);
+	for(p = b; p < q; p++) {
+		assert(b <= p && p < eb);
 		recvp((*p)->writedonechan);
 	}
-	
+
 	/*
 	 * Flush the partitions that have been written to.
 	 */
 	part = nil;
-	for(p=b; p<q; p++){
-		if(part != (*p)->part){
+	for(p = b; p < q; p++) {
+		if(part != (*p)->part) {
 			part = (*p)->part;
-			flushpart(part);	/* what if it fails? */
+			flushpart(part); /* what if it fails? */
 		}
 	}
 
-	return p-b;
+	return p - b;
 }
 
 /*
@@ -607,12 +603,12 @@ writeblockcmp(const void *va, const void *vb)
 {
 	DBlock *a, *b;
 
-	a = *(DBlock**)va;
-	b = *(DBlock**)vb;
+	a = *(DBlock **)va;
+	b = *(DBlock **)vb;
 
 	if(a->dirty != b->dirty)
 		return a->dirty - b->dirty;
-	if(a->part != b->part){
+	if(a->part != b->part) {
 		if(a->part < b->part)
 			return -1;
 		if(a->part > b->part)
@@ -632,16 +628,16 @@ flushproc(void *v)
 
 	USED(v);
 	threadsetname("flushproc");
-	for(;;){
+	for(;;) {
 		waitforkick(&dcache.round);
 
 		trace(TraceWork, "start");
-		t0 = nsec()/1000;
-		trace(TraceProc, "build t=%lud", (uint32_t)(nsec()/1000)-t0);
+		t0 = nsec() / 1000;
+		trace(TraceProc, "build t=%lud", (uint32_t)(nsec() / 1000) - t0);
 
 		write = dcache.write;
 		n = 0;
-		for(i=0; i<dcache.nblocks; i++){
+		for(i = 0; i < dcache.nblocks; i++) {
 			b = &dcache.blocks[i];
 			if(b->dirty)
 				write[n++] = b;
@@ -651,18 +647,18 @@ flushproc(void *v)
 
 		/* Write each stage of blocks out. */
 		trace(TraceProc, "writeblocks t=%lud",
-		      (uint32_t)(nsec()/1000)-t0);
+		      (uint32_t)(nsec() / 1000) - t0);
 		i = 0;
-		for(j=1; j<DirtyMax; j++){
+		for(j = 1; j < DirtyMax; j++) {
 			trace(TraceProc, "writeblocks.%d t=%lud",
-				j, (uint32_t)(nsec()/1000)-t0);
-			i += parallelwrites(write+i, write+n, j);
+			      j, (uint32_t)(nsec() / 1000) - t0);
+			i += parallelwrites(write + i, write + n, j);
 		}
-		if(i != n){
+		if(i != n) {
 			fprint(2, "in flushproc i=%d n=%d\n", i, n);
-			for(i=0; i<n; i++)
+			for(i = 0; i < n; i++)
 				fprint(2, "\tblock %d: dirty=%d\n",
-					i, write[i]->dirty);
+				       i, write[i]->dirty);
 			abort();
 		}
 
@@ -675,12 +671,12 @@ flushproc(void *v)
 		 * one too high until we catch up and do the decrement.
 		 */
 		trace(TraceProc, "undirty.%d t=%lud", j,
-		      (uint32_t)(nsec()/1000)-t0);
+		      (uint32_t)(nsec() / 1000) - t0);
 		qlock(&dcache.lock);
-		for(i=0; i<n; i++){
+		for(i = 0; i < n; i++) {
 			b = write[i];
 			--dcache.ndirty;
-			if(b->ref == 0 && b->heap == TWID32){
+			if(b->ref == 0 && b->heap == TWID32) {
 				upheap(dcache.nheap++, b);
 				rwakeupall(&dcache.full);
 			}
@@ -701,7 +697,7 @@ writeproc(void *v)
 	p = v;
 
 	threadsetname("writeproc:%s", p->name);
-	for(;;){
+	for(;;) {
 		b = recvp(p->writechan);
 		trace(TraceWork, "start");
 		assert(b->part == p);
@@ -711,7 +707,7 @@ writeproc(void *v)
 		diskaccess(0);
 		if(writepart(p, b->addr, b->data, b->size) < 0)
 			fprint(2, "%s: writeproc: part %s addr 0x%llux: write error: %r\n",
-				argv0, p->name, b->addr);
+			       argv0, p->name, b->addr);
 		addstat(StatApartWrite, 1);
 		addstat(StatApartWriteBytes, b->size);
 		b->dirty = 0;

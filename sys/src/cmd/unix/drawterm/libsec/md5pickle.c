@@ -10,24 +10,24 @@
 #include "os.h"
 #include <libsec.h>
 
-char*
+char *
 md5pickle(MD5state *s)
 {
 	char *p;
 	int m, n;
 
-	m = 4*9+4*((s->blen+3)/3);
+	m = 4 * 9 + 4 * ((s->blen + 3) / 3);
 	p = malloc(m);
 	if(p == nil)
 		return p;
 	n = sprint(p, "%8.8ux %8.8ux %8.8ux %8.8ux ",
-		s->state[0], s->state[1], s->state[2],
-		s->state[3]);
-	enc64(p+n, m-n, s->buf, s->blen);
+		   s->state[0], s->state[1], s->state[2],
+		   s->state[3]);
+	enc64(p + n, m - n, s->buf, s->blen);
 	return p;
 }
 
-MD5state*
+MD5state *
 md5unpickle(char *p)
 {
 	MD5state *s;

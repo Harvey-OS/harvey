@@ -15,18 +15,20 @@
 #include "tr2post.h"
 
 BOOLEAN drawflag = FALSE;
-BOOLEAN	inpath = FALSE;		/* TRUE if we're putting pieces together */
+BOOLEAN inpath = FALSE; /* TRUE if we're putting pieces together */
 
 void
-cover(double x, double y) {
+cover(double x, double y)
+{
 	USED(x, y);
 }
 
 void
-drawspline(Biobufhdr *Bp, int flag) {	/* flag!=1 connect end points */
+drawspline(Biobufhdr *Bp, int flag)
+{ /* flag!=1 connect end points */
 	int x[100], y[100];
 	int i, N;
-/*
+	/*
  * Spline drawing routine for Postscript printers. The complicated stuff is
  * handled by procedure Ds, which should be defined in the library file. I've
  * seen wrong implementations of troff's spline drawing, so fo the record I'll
@@ -64,39 +66,40 @@ drawspline(Biobufhdr *Bp, int flag) {	/* flag!=1 connect end points */
  * to draw a spline and some tangent lines at appropriate points and then print
  * the file.
  */
-	for (N=2; N<sizeof(x)/sizeof(x[0]); N++)
-		if (Bgetfield(Bp, 'd', &x[N], 0)<=0 || Bgetfield(Bp, 'd', &y[N], 0)<=0)
+	for(N = 2; N < sizeof(x) / sizeof(x[0]); N++)
+		if(Bgetfield(Bp, 'd', &x[N], 0) <= 0 || Bgetfield(Bp, 'd', &y[N], 0) <= 0)
 			break;
 
 	x[0] = x[1] = hpos;
 	y[0] = y[1] = vpos;
 
-	for (i = 1; i < N; i++) {
-		x[i+1] += x[i];
-		y[i+1] += y[i];
+	for(i = 1; i < N; i++) {
+		x[i + 1] += x[i];
+		y[i + 1] += y[i];
 	}
 
-	x[N] = x[N-1];
-	y[N] = y[N-1];
+	x[N] = x[N - 1];
+	y[N] = y[N - 1];
 
-	for (i = ((flag!=1)?0:1); i < ((flag!=1)?N-1:N-2); i++) {
+	for(i = ((flag != 1) ? 0 : 1); i < ((flag != 1) ? N - 1 : N - 2); i++) {
 		endstring();
-		if (pageon())
-			Bprint(Bstdout, "%d %d %d %d %d %d Ds\n", x[i], y[i], x[i+1], y[i+1], x[i+2], y[i+2]);
-/*		if (dobbox == TRUE) {		/* could be better */
-/*	    		cover((double)(x[i] + x[i+1])/2,(double)-(y[i] + y[i+1])/2);
+		if(pageon())
+			Bprint(Bstdout, "%d %d %d %d %d %d Ds\n", x[i], y[i], x[i + 1], y[i + 1], x[i + 2], y[i + 2]);
+		/*		if (dobbox == TRUE) {		/* could be better */
+		/*	    		cover((double)(x[i] + x[i+1])/2,(double)-(y[i] + y[i+1])/2);
 /*	    		cover((double)x[i+1], (double)-y[i+1]);
 /*	    		cover((double)(x[i+1] + x[i+2])/2, (double)-(y[i+1] + y[i+2])/2);
 /*		}
  */
 	}
 
-	hpos = x[N];			/* where troff expects to be */
+	hpos = x[N]; /* where troff expects to be */
 	vpos = y[N];
 }
 
 void
-draw(Biobufhdr *Bp) {
+draw(Biobufhdr *Bp)
+{
 
 	int r, x1, y1, x2, y2, i;
 	int d1, d2;
@@ -105,39 +108,39 @@ draw(Biobufhdr *Bp) {
 	r = Bgetrune(Bp);
 	switch(r) {
 	case 'l':
-		if (Bgetfield(Bp, 'd', &x1, 0)<=0 || Bgetfield(Bp, 'd', &y1, 0)<=0 || Bgetfield(Bp, 'r', &i, 0)<=0)
+		if(Bgetfield(Bp, 'd', &x1, 0) <= 0 || Bgetfield(Bp, 'd', &y1, 0) <= 0 || Bgetfield(Bp, 'r', &i, 0) <= 0)
 			error(FATAL, "draw line function, destination coordinates not found.\n");
 
 		endstring();
-		if (pageon())
-			Bprint(Bstdout, "%d %d %d %d Dl\n", hpos, vpos, hpos+x1, vpos+y1);
+		if(pageon())
+			Bprint(Bstdout, "%d %d %d %d Dl\n", hpos, vpos, hpos + x1, vpos + y1);
 		hpos += x1;
 		vpos += y1;
 		break;
 	case 'c':
-		if (Bgetfield(Bp, 'd', &d1, 0)<=0)
+		if(Bgetfield(Bp, 'd', &d1, 0) <= 0)
 			error(FATAL, "draw circle function, diameter coordinates not found.\n");
 
 		endstring();
-		if (pageon())
+		if(pageon())
 			Bprint(Bstdout, "%d %d %d %d De\n", hpos, vpos, d1, d1);
 		hpos += d1;
 		break;
 	case 'e':
-		if (Bgetfield(Bp, 'd', &d1, 0)<=0 || Bgetfield(Bp, 'd', &d2, 0)<=0)
+		if(Bgetfield(Bp, 'd', &d1, 0) <= 0 || Bgetfield(Bp, 'd', &d2, 0) <= 0)
 			error(FATAL, "draw ellipse function, diameter coordinates not found.\n");
 
 		endstring();
-		if (pageon())
+		if(pageon())
 			Bprint(Bstdout, "%d %d %d %d De\n", hpos, vpos, d1, d2);
 		hpos += d1;
 		break;
 	case 'a':
-		if (Bgetfield(Bp, 'd', &x1, 0)<=0 || Bgetfield(Bp, 'd', &y1, 0)<=0 || Bgetfield(Bp, 'd', &x2, 0)<=0 || Bgetfield(Bp, 'd', &y2, 0)<=0)
+		if(Bgetfield(Bp, 'd', &x1, 0) <= 0 || Bgetfield(Bp, 'd', &y1, 0) <= 0 || Bgetfield(Bp, 'd', &x2, 0) <= 0 || Bgetfield(Bp, 'd', &y2, 0) <= 0)
 			error(FATAL, "draw arc function, coordinates not found.\n");
 
 		endstring();
-		if (pageon())
+		if(pageon())
 			Bprint(Bstdout, "%d %d %d %d %d %d Da\n", hpos, vpos, x1, y1, x2, y2);
 		hpos += x1 + x2;
 		vpos += y1 + y2;
@@ -155,9 +158,10 @@ draw(Biobufhdr *Bp) {
 }
 
 void
-beginpath(char *buf, int copy) {
+beginpath(char *buf, int copy)
+{
 
-/*
+	/*
  * Called from devcntrl() whenever an "x X BeginPath" command is read. It's used
  * to mark the start of a sequence of drawing commands that should be grouped
  * together and treated as a single path. By default the drawing procedures in
@@ -176,26 +180,27 @@ beginpath(char *buf, int copy) {
  * anything important.
  *
  */
-	if (inpath == FALSE) {
+	if(inpath == FALSE) {
 		endstring();
-	/*	getdraw();	*/
-	/*	getcolor(); */
+		/*	getdraw();	*/
+		/*	getcolor(); */
 		Bprint(Bstdout, "gsave\n");
 		Bprint(Bstdout, "newpath\n");
 		Bprint(Bstdout, "%d %d m\n", hpos, vpos);
 		Bprint(Bstdout, "/inpath true def\n");
-		if ( copy == TRUE )
+		if(copy == TRUE)
 			Bprint(Bstdout, "%s\n", buf);
 		inpath = TRUE;
 	}
 }
 
-static void parsebuf(char*);
+static void parsebuf(char *);
 
 void
-drawpath(char *buf, int copy) {
+drawpath(char *buf, int copy)
+{
 
-/*
+	/*
  *
  * Called from devcntrl() whenever an "x X DrawPath" command is read. It marks the
  * end of the path started by the last "x X BeginPath" command and uses whatever
@@ -216,27 +221,26 @@ drawpath(char *buf, int copy) {
  *
  */
 
-	if ( inpath == TRUE ) {
-		if ( copy == TRUE )
+	if(inpath == TRUE) {
+		if(copy == TRUE)
 			Bprint(Bstdout, "%s\n", buf);
 		else
 			parsebuf(buf);
 		Bprint(Bstdout, "grestore\n");
 		Bprint(Bstdout, "/inpath false def\n");
-/*		reset();		*/
+		/*		reset();		*/
 		inpath = FALSE;
 	}
 }
 
-
 static void
 parsebuf(char *buf)
 {
-	char *p;			/* usually the next token */
+	char *p; /* usually the next token */
 	char *q;
-	int gsavelevel = 0;		/* non-zero if we've done a gsave */
+	int gsavelevel = 0; /* non-zero if we've done a gsave */
 
-/*
+	/*
  * Simple minded attempt at parsing the string that followed an "x X DrawPath"
  * command. Everything not recognized here is simply ignored - there's absolutely
  * no error checking and what was originally in buf is clobbered by strtok().
@@ -273,64 +277,63 @@ parsebuf(char *buf)
  * a mistake. Suspect I may have to change the double quote delimiters.
  */
 	for(p = buf; p != nil; p = q) {
-		if( q = strchr(p, ' ') )
+		if(q = strchr(p, ' '))
 			*q++ = '\0';
 
-		if ( gsavelevel == 0 ) {
+		if(gsavelevel == 0) {
 			Bprint(Bstdout, "gsave\n");
 			gsavelevel++;
 		}
-		if ( strcmp(p, "stroke") == 0 ) {
+		if(strcmp(p, "stroke") == 0) {
 			Bprint(Bstdout, "closepath stroke\ngrestore\n");
 			gsavelevel--;
-		} else if ( strcmp(p, "openstroke") == 0 ) {
+		} else if(strcmp(p, "openstroke") == 0) {
 			Bprint(Bstdout, "stroke\ngrestore\n");
 			gsavelevel--;
-		} else if ( strcmp(p, "fill") == 0 ) {
+		} else if(strcmp(p, "fill") == 0) {
 			Bprint(Bstdout, "eofill\ngrestore\n");
 			gsavelevel--;
-		} else if ( strcmp(p, "wfill") == 0 ) {
+		} else if(strcmp(p, "wfill") == 0) {
 			Bprint(Bstdout, "fill\ngrestore\n");
 			gsavelevel--;
-		} else if ( strcmp(p, "sfill") == 0 ) {
+		} else if(strcmp(p, "sfill") == 0) {
 			Bprint(Bstdout, "eofill\ngrestore\ngsave\nstroke\ngrestore\n");
 			gsavelevel--;
-		} else if ( strncmp(p, "gray", strlen("gray")) == 0 ) {
-			if( q ) {
+		} else if(strncmp(p, "gray", strlen("gray")) == 0) {
+			if(q) {
 				p = q;
-				if ( q = strchr(p, ' ') )
+				if(q = strchr(p, ' '))
 					*q++ = '\0';
 				Bprint(Bstdout, "%s setgray\n", p);
 			}
-		} else if ( strncmp(p, "color", strlen("color")) == 0 ) {
-			if( q ) {
+		} else if(strncmp(p, "color", strlen("color")) == 0) {
+			if(q) {
 				p = q;
-				if ( q = strchr(p, ' ') )
+				if(q = strchr(p, ' '))
 					*q++ = '\0';
 				Bprint(Bstdout, "/%s setcolor\n", p);
 			}
-		} else if ( strncmp(p, "line", strlen("line")) == 0 ) {
-			if( q ) {
+		} else if(strncmp(p, "line", strlen("line")) == 0) {
+			if(q) {
 				p = q;
-				if ( q = strchr(p, ' ') )
+				if(q = strchr(p, ' '))
 					*q++ = '\0';
 				Bprint(Bstdout, "%s resolution mul 2 div setlinewidth\n", p);
 			}
-		} else if ( strncmp(p, "reverse", strlen("reverse")) == 0 )
+		} else if(strncmp(p, "reverse", strlen("reverse")) == 0)
 			Bprint(Bstdout, "reversepath\n");
-		else if ( *p == '"' ) {
-			for ( ; gsavelevel > 0; gsavelevel-- )
+		else if(*p == '"') {
+			for(; gsavelevel > 0; gsavelevel--)
 				Bprint(Bstdout, "grestore\n");
-			if ( q != nil )
+			if(q != nil)
 				*--q = ' ';
-			if ( (q = strchr(p, '"')) != nil ) {
+			if((q = strchr(p, '"')) != nil) {
 				*q++ = '\0';
 				Bprint(Bstdout, "%s\n", p);
 			}
 		}
 	}
 
-	for ( ; gsavelevel > 0; gsavelevel-- )
+	for(; gsavelevel > 0; gsavelevel--)
 		Bprint(Bstdout, "grestore\n");
-
 }

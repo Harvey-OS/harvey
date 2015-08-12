@@ -14,7 +14,9 @@
 #include "fns.h"
 
 static int spinning;
-static char* wheel[4] = { "\b|", "\b/", "\b-", "\b\\", };
+static char *wheel[4] = {
+    "\b|", "\b/", "\b-", "\b\\",
+};
 static int spoke;
 
 void
@@ -42,7 +44,7 @@ stopwheel(void)
 }
 
 int
-print(char* fmt, ...)
+print(char *fmt, ...)
 {
 	va_list arg;
 	char buf[PRINTSIZE], *e, *p;
@@ -52,16 +54,16 @@ print(char* fmt, ...)
 		*p++ = '\b';
 
 	va_start(arg, fmt);
-	e = vseprint(p, buf+sizeof(buf), fmt, arg);
+	e = vseprint(p, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	if(spinning && e < &buf[PRINTSIZE-2]){
+	if(spinning && e < &buf[PRINTSIZE - 2]) {
 		*e++ = ' ';
 		*e = 0;
 	}
-	consputs(buf, e-buf);
+	consputs(buf, e - buf);
 
-	return e-buf;
+	return e - buf;
 }
 
 static Lock fmtl;
@@ -79,7 +81,7 @@ _fmtunlock(void)
 }
 
 int
-_efgfmt(Fmt*)
+_efgfmt(Fmt *)
 {
 	return -1;
 }

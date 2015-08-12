@@ -26,10 +26,10 @@
 /* $Id: inouparm.c,v 1.4 2002/02/21 22:24:53 giles Exp $ */
 /* Dummy set_user_params for Level 1 systems */
 #include "ghost.h"
-#include "icontext.h"		/* for set_user_params prototype */
+#include "icontext.h" /* for set_user_params prototype */
 
 int
 set_user_params(i_ctx_t *i_ctx_p, const ref *paramdict)
 {
-    return 0;
+	return 0;
 }

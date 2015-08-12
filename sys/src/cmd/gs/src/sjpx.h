@@ -28,7 +28,7 @@
 /* we link to the JasPer library for the actual decoding */
 
 #ifndef sjpx_INCLUDED
-#  define sjpx_INCLUDED
+#define sjpx_INCLUDED
 
 /* Requires scommon.h; strimpl.h if any templates are referenced */
 
@@ -43,23 +43,21 @@
  * to the library. We also keep track of how much of the
  * decoded image we have returned.
  */
-typedef struct stream_jpxd_state_s
-{
-    stream_state_common;	/* a define from scommon.h */
-    jas_image_t *image;
-    jas_stream_t *stream;
-    long offset; /* offset into the image bitmap of the next
+typedef struct stream_jpxd_state_s {
+	stream_state_common; /* a define from scommon.h */
+	jas_image_t *image;
+	jas_stream_t *stream;
+	long offset; /* offset into the image bitmap of the next
                     byte to be returned */
-    const gs_memory_t *jpx_memory;
-    unsigned char *buffer; /* temporary buffer for compressed data */
-    long bufsize; /* total size of the buffer */
-    long buffill; /* number of bytes written into the buffer */
-}
-stream_jpxd_state;
+	const gs_memory_t *jpx_memory;
+	unsigned char *buffer; /* temporary buffer for compressed data */
+	long bufsize;	  /* total size of the buffer */
+	long buffill;	  /* number of bytes written into the buffer */
+} stream_jpxd_state;
 
-#define private_st_jpxd_state()	\
-  gs_private_st_simple(st_jpxd_state, stream_jpxd_state,\
-    "JPXDecode filter state")
+#define private_st_jpxd_state()                                \
+	gs_private_st_simple(st_jpxd_state, stream_jpxd_state, \
+			     "JPXDecode filter state")
 extern const stream_template s_jpxd_template;
 
 #endif /* sjpx_INCLUDED */

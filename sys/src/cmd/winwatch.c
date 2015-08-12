@@ -21,9 +21,7 @@ struct Win {
 	Rectangle r;
 };
 
-
-
-Reprog  *exclude  = nil;
+Reprog *exclude = nil;
 Win *win;
 int nwin;
 int mwin;
@@ -37,7 +35,7 @@ enum {
 	MARGIN = 5
 };
 
-void*
+void *
 erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
@@ -46,7 +44,7 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *v;
@@ -58,21 +56,20 @@ emalloc(uint32_t n)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	int l;
 	char *t;
 
-	if (s == nil)
+	if(s == nil)
 		return nil;
-	l = strlen(s)+1;
+	l = strlen(s) + 1;
 	t = emalloc(l);
 	memcpy(t, s, l);
 
 	return t;
 }
-
 
 void
 refreshwin(void)
@@ -85,39 +82,39 @@ refreshwin(void)
 		return;
 
 	nw = 0;
-/* i'd rather read one at a time but rio won't let me */
-	while((nr=dirread(fd, &pd)) > 0){
-		for(i=0; i<nr; i++){
+	/* i'd rather read one at a time but rio won't let me */
+	while((nr = dirread(fd, &pd)) > 0) {
+		for(i = 0; i < nr; i++) {
 			n = atoi(pd[i].name);
 			sprint(label, "/dev/wsys/%d/label", n);
 			if((lfd = open(label, OREAD)) < 0)
 				continue;
-			m = read(lfd, label, sizeof(label)-1);
+			m = read(lfd, label, sizeof(label) - 1);
 			close(lfd);
 			if(m < 0)
 				continue;
 			label[m] = '\0';
-			if(exclude != nil && regexec(exclude,label,nil,0))
+			if(exclude != nil && regexec(exclude, label, nil, 0))
 				continue;
 
-			if(nw < nwin && win[nw].n == n && strcmp(win[nw].label, label)==0){
+			if(nw < nwin && win[nw].n == n && strcmp(win[nw].label, label) == 0) {
 				nw++;
 				continue;
 			}
-	
-			if(nw < nwin){
+
+			if(nw < nwin) {
 				free(win[nw].label);
 				win[nw].label = nil;
 			}
-			
-			if(nw >= mwin){
+
+			if(nw >= mwin) {
 				mwin += 8;
-				win = erealloc(win, mwin*sizeof(win[0]));
+				win = erealloc(win, mwin * sizeof(win[0]));
 			}
 			win[nw].n = n;
 			win[nw].label = estrdup(label);
 			win[nw].dirty = 1;
-			win[nw].r = Rect(0,0,0,0);
+			win[nw].r = Rect(0, 0, 0, 0);
 			nw++;
 		}
 		free(pd);
@@ -133,9 +130,10 @@ drawnowin(int i)
 {
 	Rectangle r;
 
-	r = Rect(0,0,(Dx(screen->r)-2*MARGIN+PAD)/cols-PAD, font->height);
-	r = rectaddpt(rectaddpt(r, Pt(MARGIN+(PAD+Dx(r))*(i/rows),
-				MARGIN+(PAD+Dy(r))*(i%rows))), screen->r.min);
+	r = Rect(0, 0, (Dx(screen->r) - 2 * MARGIN + PAD) / cols - PAD, font->height);
+	r = rectaddpt(rectaddpt(r, Pt(MARGIN + (PAD + Dx(r)) * (i / rows),
+				      MARGIN + (PAD + Dy(r)) * (i % rows))),
+		      screen->r.min);
 	draw(screen, insetrect(r, -1), lightblue, nil, ZP);
 }
 
@@ -143,10 +141,10 @@ void
 drawwin(int i)
 {
 	draw(screen, win[i].r, lightblue, nil, ZP);
-	_string(screen, addpt(win[i].r.min, Pt(2,0)), display->black, ZP,
-		font, win[i].label, nil, strlen(win[i].label), 
+	_string(screen, addpt(win[i].r.min, Pt(2, 0)), display->black, ZP,
+		font, win[i].label, nil, strlen(win[i].label),
 		win[i].r, nil, ZP, SoverD);
-	border(screen, win[i].r, 1, display->black, ZP);	
+	border(screen, win[i].r, 1, display->black, ZP);
 	win[i].dirty = 0;
 }
 
@@ -157,19 +155,20 @@ geometry(void)
 	Rectangle r;
 
 	z = 0;
-	rows = (Dy(screen->r)-2*MARGIN+PAD)/(font->height+PAD);
-	if(rows*cols < nwin || rows*cols >= nwin*2){
-		ncols = nwin <= 0 ? 1 : (nwin+rows-1)/rows;
-		if(ncols != cols){
+	rows = (Dy(screen->r) - 2 * MARGIN + PAD) / (font->height + PAD);
+	if(rows * cols < nwin || rows * cols >= nwin * 2) {
+		ncols = nwin <= 0 ? 1 : (nwin + rows - 1) / rows;
+		if(ncols != cols) {
 			cols = ncols;
 			z = 1;
 		}
 	}
 
-	r = Rect(0,0,(Dx(screen->r)-2*MARGIN+PAD)/cols-PAD, font->height);
-	for(i=0; i<nwin; i++)
-		win[i].r = rectaddpt(rectaddpt(r, Pt(MARGIN+(PAD+Dx(r))*(i/rows),
-					MARGIN+(PAD+Dy(r))*(i%rows))), screen->r.min);
+	r = Rect(0, 0, (Dx(screen->r) - 2 * MARGIN + PAD) / cols - PAD, font->height);
+	for(i = 0; i < nwin; i++)
+		win[i].r = rectaddpt(rectaddpt(r, Pt(MARGIN + (PAD + Dx(r)) * (i / rows),
+						     MARGIN + (PAD + Dy(r)) * (i % rows))),
+				     screen->r.min);
 
 	return z;
 }
@@ -182,11 +181,11 @@ redraw(Image *screen, int all)
 	all |= geometry();
 	if(all)
 		draw(screen, screen->r, lightblue, nil, ZP);
-	for(i=0; i<nwin; i++)
+	for(i = 0; i < nwin; i++)
 		if(all || win[i].dirty)
 			drawwin(i);
 	if(!all)
-		for(; i<onwin; i++)
+		for(; i < onwin; i++)
 			drawnowin(i);
 
 	onwin = nwin;
@@ -195,8 +194,8 @@ redraw(Image *screen, int all)
 void
 eresized(int new)
 {
-	if(new && getwindow(display, Refmesg) < 0)
-		fprint(2,"can't reattach to window");
+	if(new &&getwindow(display, Refmesg) < 0)
+		fprint(2, "can't reattach to window");
 	geometry();
 	redraw(screen, 1);
 }
@@ -204,13 +203,13 @@ eresized(int new)
 void
 click(Mouse m)
 {
-	int fd, i, j;	
+	int fd, i, j;
 	char buf[128];
 
 	if(m.buttons == 0 || (m.buttons & ~4))
 		return;
 
-	for(i=0; i<nwin; i++)
+	for(i = 0; i < nwin; i++)
 		if(ptinrect(m.xy, win[i].r))
 			break;
 	if(i == nwin)
@@ -220,14 +219,14 @@ click(Mouse m)
 		m = emouse();
 	while(m.buttons == 4);
 
-	if(m.buttons != 0){
+	if(m.buttons != 0) {
 		do
 			m = emouse();
 		while(m.buttons);
 		return;
 	}
 
-	for(j=0; j<nwin; j++)
+	for(j = 0; j < nwin; j++)
 		if(ptinrect(m.xy, win[j].r))
 			break;
 	if(j != i)
@@ -257,7 +256,8 @@ main(int argc, char **argv)
 	Event e;
 
 	fontname = "/lib/font/bit/lucidasans/unicode.8.font";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'f':
 		fontname = EARGF(usage());
 		break;
@@ -268,7 +268,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc)
 		usage();
@@ -282,20 +283,20 @@ main(int argc, char **argv)
 
 	refreshwin();
 	redraw(screen, 1);
-	einit(Emouse|Ekeyboard);
+	einit(Emouse | Ekeyboard);
 	Etimer = etimer(0, 2500);
 
-	for(;;){
-		switch(eread(Emouse|Ekeyboard|Etimer, &e)){
+	for(;;) {
+		switch(eread(Emouse | Ekeyboard | Etimer, &e)) {
 		case Ekeyboard:
-			if(e.kbdc==0x7F || e.kbdc=='q')
+			if(e.kbdc == 0x7F || e.kbdc == 'q')
 				exits(0);
 			break;
 		case Emouse:
 			if(e.mouse.buttons)
 				click(e.mouse);
-			/* fall through  */
-		default:	/* Etimer */
+		/* fall through  */
+		default: /* Etimer */
 			refreshwin();
 			redraw(screen, 0);
 			break;

@@ -27,7 +27,7 @@
 /* Declaration of popen and pclose */
 
 #ifndef pipe__INCLUDED
-#  define pipe__INCLUDED
+#define pipe__INCLUDED
 
 #include "stdio_.h"
 
@@ -38,9 +38,9 @@
  * so we use own.  Our implementation only supports mode "wb".
  */
 extern FILE *mswin_popen(const char *cmd, const char *mode);
-#  define popen(cmd, mode) mswin_popen(cmd, mode)
+#define popen(cmd, mode) mswin_popen(cmd, mode)
 /* #  define popen(cmd, mode) _popen(cmd, mode) */
-#  define pclose(file) _pclose(file)
+#define pclose(file) _pclose(file)
 #else  /* !__WIN32__ */
 /*
  * popen isn't POSIX-standard, so we declare it here.
@@ -48,7 +48,7 @@ extern FILE *mswin_popen(const char *cmd, const char *mode);
  * we must omit the argument list.  Unfortunately, this sometimes causes
  * more trouble than it cures.
  */
-extern FILE *popen( /* const char *, const char * */ );
+extern FILE *popen(/* const char *, const char * */);
 extern int pclose(FILE *);
 #endif /* !__WIN32__ */
 

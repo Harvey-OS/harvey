@@ -40,7 +40,7 @@ chown(const char *path, uid_t owner, gid_t group)
 		return -1;
 	}
 
-	if(_dirwstat(path, &d) < 0){
+	if(_dirwstat(path, &d) < 0) {
 		_syserrno();
 		return -1;
 	}

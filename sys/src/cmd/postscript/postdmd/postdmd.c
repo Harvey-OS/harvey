@@ -104,57 +104,57 @@
 #include <signal.h>
 #include <ctype.h>
 #ifdef plan9
-#define	isascii(c)	((unsigned char)(c)<=0177)
+#define isascii(c) ((unsigned char)(c) <= 0177)
 #endif
 #include <sys/types.h>
 #include <fcntl.h>
 
-#include "comments.h"			/* PostScript file structuring comments */
-#include "gen.h"			/* general purpose definitions */
-#include "path.h"			/* for the prologue */
-#include "ext.h"			/* external variable declarations */
+#include "comments.h" /* PostScript file structuring comments */
+#include "gen.h"      /* general purpose definitions */
+#include "path.h"     /* for the prologue */
+#include "ext.h"      /* external variable declarations */
 
-char	*optnames = "a:b:c:fm:n:o:p:ux:y:A:C:E:J:L:P:DI";
+char *optnames = "a:b:c:fm:n:o:p:ux:y:A:C:E:J:L:P:DI";
 
-char	*prologue = POSTDMD;		/* default PostScript prologue */
-char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+char *prologue = POSTDMD;  /* default PostScript prologue */
+char *formfile = FORMFILE; /* stuff for multiple pages per sheet */
 
-int	bbox[2] = {0, 0};		/* upper right coordinates only */
+int bbox[2] = {0, 0}; /* upper right coordinates only */
 
-int	formsperpage = 1;		/* page images on each piece of paper */
-int	copies = 1;			/* and this many copies of each sheet */
+int formsperpage = 1; /* page images on each piece of paper */
+int copies = 1;       /* and this many copies of each sheet */
 
-int	bytespp = 6;			/* bytes per pattern - on output */
-int	flip = FALSE;			/* ones complement the bitmap */
-int	v8undo = TRUE;			/* xor'ing done on host if TRUE */
-int	v8format = FALSE;		/* for Eighth Edition bitmaps */
+int bytespp = 6;      /* bytes per pattern - on output */
+int flip = FALSE;     /* ones complement the bitmap */
+int v8undo = TRUE;    /* xor'ing done on host if TRUE */
+int v8format = FALSE; /* for Eighth Edition bitmaps */
 
-int	page = 0;			/* last page we worked on */
-int	printed = 0;			/* and the number of pages printed */
+int page = 0;    /* last page we worked on */
+int printed = 0; /* and the number of pages printed */
 
-int	patterns;			/* 16 bit patterns per scan line */
-int	scanlines;			/* lines in the bitmap */
-int	patcount = 0;			/* should be patterns * scanlines */
+int patterns;     /* 16 bit patterns per scan line */
+int scanlines;    /* lines in the bitmap */
+int patcount = 0; /* should be patterns * scanlines */
 
-char	*raster = NULL;			/* next raster line */
-char	*prevrast = NULL;		/* and the previous one - v8format */
-char	*rptr;				/* next free byte in raster */
-char	*eptr;				/* one past the last byte in raster */
+char *raster = NULL;   /* next raster line */
+char *prevrast = NULL; /* and the previous one - v8format */
+char *rptr;	    /* next free byte in raster */
+char *eptr;	    /* one past the last byte in raster */
 
-FILE	*fp_in = NULL;			/* read from this file */
-FILE	*fp_out = stdout;		/* and write stuff here */
-FILE	*fp_acct = NULL;		/* for accounting data */
+FILE *fp_in = NULL;    /* read from this file */
+FILE *fp_out = stdout; /* and write stuff here */
+FILE *fp_acct = NULL;  /* for accounting data */
 
 /*****************************************************************************/
 
 main(agc, agv)
 
-    int		agc;
-    char	*agv[];
+    int agc;
+char *agv[];
 
 {
 
-/*
+	/*
  *
  * A simple program that translates DMD bitmap files into PostScript. There can
  * be more than one bitmap per file, but none can be split across input files.
@@ -162,22 +162,22 @@ main(agc, agv)
  *
  */
 
-    argc = agc;				/* other routines may want them */
-    argv = agv;
+	argc = agc; /* other routines may want them */
+	argv = agv;
 
-    prog_name = argv[0];		/* really just for error messages */
+	prog_name = argv[0]; /* really just for error messages */
 
-    init_signals();			/* sets up interrupt handling */
-    header();				/* PostScript header comments */
-    options();				/* handle the command line options */
-    setup();				/* for PostScript */
-    arguments();			/* followed by each input file */
-    done();				/* print the last page etc. */
-    account();				/* job accounting data */
+	init_signals(); /* sets up interrupt handling */
+	header();       /* PostScript header comments */
+	options();      /* handle the command line options */
+	setup();	/* for PostScript */
+	arguments();    /* followed by each input file */
+	done();		/* print the last page etc. */
+	account();      /* job accounting data */
 
-    exit(x_stat);			/* not much could be wrong */
+	exit(x_stat); /* not much could be wrong */
 
-}   /* End of main */
+} /* End of main */
 
 /*****************************************************************************/
 
@@ -185,24 +185,24 @@ init_signals()
 
 {
 
-/*
+	/*
  *
  * Make sure we handle interrupts.
  *
  */
 
-    if ( signal(SIGINT, interrupt) == SIG_IGN )  {
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
-    } else {
-	signal(SIGHUP, interrupt);
-	signal(SIGQUIT, interrupt);
-    }   /* End else */
+	if(signal(SIGINT, interrupt) == SIG_IGN) {
+		signal(SIGINT, SIG_IGN);
+		signal(SIGQUIT, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);
+	} else {
+		signal(SIGHUP, interrupt);
+		signal(SIGQUIT, interrupt);
+	} /* End else */
 
-    signal(SIGTERM, interrupt);
+	signal(SIGTERM, interrupt);
 
-}   /* End of init_signals */
+} /* End of init_signals */
 
 /*****************************************************************************/
 
@@ -210,10 +210,10 @@ header()
 
 {
 
-    int		ch;			/* return value from getopt() */
-    int		old_optind = optind;	/* for restoring optind - should be 1 */
+	int ch;			 /* return value from getopt() */
+	int old_optind = optind; /* for restoring optind - should be 1 */
 
-/*
+	/*
  *
  * Scans the option list looking for things, like the prologue file, that we need
  * right away but could be changed from the default. Doing things this way is an
@@ -225,28 +225,28 @@ header()
  *
  */
 
-    while ( (ch = getopt(argc, argv, optnames)) != EOF )
-	if ( ch == 'L' )
-	    prologue = optarg;
-	else if ( ch == '?' )
-	    error(FATAL, "");
+	while((ch = getopt(argc, argv, optnames)) != EOF)
+		if(ch == 'L')
+			prologue = optarg;
+		else if(ch == '?')
+			error(FATAL, "");
 
-    optind = old_optind;		/* get ready for option scanning */
+	optind = old_optind; /* get ready for option scanning */
 
-    fprintf(stdout, "%s", CONFORMING);
-    fprintf(stdout, "%s %s\n", VERSION, PROGRAMVERSION);
-    fprintf(stdout, "%s %s\n", DOCUMENTFONTS, ATEND);
-    fprintf(stdout, "%s %s\n", PAGES, ATEND);
-    fprintf(stdout, "%s", ENDCOMMENTS);
+	fprintf(stdout, "%s", CONFORMING);
+	fprintf(stdout, "%s %s\n", VERSION, PROGRAMVERSION);
+	fprintf(stdout, "%s %s\n", DOCUMENTFONTS, ATEND);
+	fprintf(stdout, "%s %s\n", PAGES, ATEND);
+	fprintf(stdout, "%s", ENDCOMMENTS);
 
-    if ( cat(prologue) == FALSE )
-	error(FATAL, "can't read %s", prologue);
+	if(cat(prologue) == FALSE)
+		error(FATAL, "can't read %s", prologue);
 
-    fprintf(stdout, "%s", ENDPROLOG);
-    fprintf(stdout, "%s", BEGINSETUP);
-    fprintf(stdout, "mark\n");
+	fprintf(stdout, "%s", ENDPROLOG);
+	fprintf(stdout, "%s", BEGINSETUP);
+	fprintf(stdout, "mark\n");
 
-}   /* End of header */
+} /* End of header */
 
 /*****************************************************************************/
 
@@ -254,9 +254,9 @@ options()
 
 {
 
-    int		ch;			/* return value from getopt() */
+	int ch; /* return value from getopt() */
 
-/*
+	/*
  *
  * Reads and processes the command line options. Added the -P option so arbitrary
  * PostScript code can be passed through. Expect it could be useful for changing
@@ -264,106 +264,107 @@ options()
  *
  */
 
-    while ( (ch = getopt(argc, argv, optnames)) != EOF )  {
-	switch ( ch )  {
-	    case 'a':			/* aspect ratio */
-		    fprintf(stdout, "/aspectratio %s def\n", optarg);
-		    break;
+	while((ch = getopt(argc, argv, optnames)) != EOF) {
+		switch(ch) {
+		case 'a': /* aspect ratio */
+			fprintf(stdout, "/aspectratio %s def\n", optarg);
+			break;
 
-	    case 'b':			/* bytes per pattern */
-		    bytespp = atoi(optarg);
-		    break;
+		case 'b': /* bytes per pattern */
+			bytespp = atoi(optarg);
+			break;
 
-	    case 'c':			/* copies */
-		    copies = atoi(optarg);
-		    fprintf(stdout, "/#copies %s store\n", optarg);
-		    break;
+		case 'c': /* copies */
+			copies = atoi(optarg);
+			fprintf(stdout, "/#copies %s store\n", optarg);
+			break;
 
-	    case 'f':			/* ones complement - sort of */
-		    flip = TRUE;
-		    break;
+		case 'f': /* ones complement - sort of */
+			flip = TRUE;
+			break;
 
-	    case 'm':			/* magnification */
-		    fprintf(stdout, "/magnification %s def\n", optarg);
-		    break;
+		case 'm': /* magnification */
+			fprintf(stdout, "/magnification %s def\n", optarg);
+			break;
 
-	    case 'n':			/* forms per page */
-		    formsperpage = atoi(optarg);
-		    fprintf(stdout, "%s %s\n", FORMSPERPAGE, optarg);
-		    fprintf(stdout, "/formsperpage %s def\n", optarg);
-		    break;
+		case 'n': /* forms per page */
+			formsperpage = atoi(optarg);
+			fprintf(stdout, "%s %s\n", FORMSPERPAGE, optarg);
+			fprintf(stdout, "/formsperpage %s def\n", optarg);
+			break;
 
-	    case 'o':			/* output page list */
-		    out_list(optarg);
-		    break;
+		case 'o': /* output page list */
+			out_list(optarg);
+			break;
 
-	    case 'p':			/* landscape or portrait mode */
-		    if ( *optarg == 'l' )
-			fprintf(stdout, "/landscape true def\n");
-		    else fprintf(stdout, "/landscape false def\n");
-		    break;
+		case 'p': /* landscape or portrait mode */
+			if(*optarg == 'l')
+				fprintf(stdout, "/landscape true def\n");
+			else
+				fprintf(stdout, "/landscape false def\n");
+			break;
 
-	    case 'u':			/* don't undo Eighth Edition bitmaps */
-		    v8undo = FALSE;
-		    break;
+		case 'u': /* don't undo Eighth Edition bitmaps */
+			v8undo = FALSE;
+			break;
 
-	    case 'x':			/* shift things horizontally */
-		    fprintf(stdout, "/xoffset %s def\n", optarg);
-		    break;
+		case 'x': /* shift things horizontally */
+			fprintf(stdout, "/xoffset %s def\n", optarg);
+			break;
 
-	    case 'y':			/* and vertically on the page */
-		    fprintf(stdout, "/yoffset %s def\n", optarg);
-		    break;
+		case 'y': /* and vertically on the page */
+			fprintf(stdout, "/yoffset %s def\n", optarg);
+			break;
 
-	    case 'A':			/* force job accounting */
-	    case 'J':
-		    if ( (fp_acct = fopen(optarg, "a")) == NULL )
-			error(FATAL, "can't open accounting file %s", optarg);
-		    break;
+		case 'A': /* force job accounting */
+		case 'J':
+			if((fp_acct = fopen(optarg, "a")) == NULL)
+				error(FATAL, "can't open accounting file %s", optarg);
+			break;
 
-	    case 'C':			/* copy file straight to output */
-		    if ( cat(optarg) == FALSE )
-			error(FATAL, "can't read %s", optarg);
-		    break;
+		case 'C': /* copy file straight to output */
+			if(cat(optarg) == FALSE)
+				error(FATAL, "can't read %s", optarg);
+			break;
 
-	    case 'E':			/* text font encoding - unnecessary */
-		    fontencoding = optarg;
-		    break;
+		case 'E': /* text font encoding - unnecessary */
+			fontencoding = optarg;
+			break;
 
-	    case 'L':			/* PostScript prologue file */
-		    prologue = optarg;
-		    break;
+		case 'L': /* PostScript prologue file */
+			prologue = optarg;
+			break;
 
-	    case 'P':			/* PostScript pass through */
-		    fprintf(stdout, "%s\n", optarg);
-		    break;
+		case 'P': /* PostScript pass through */
+			fprintf(stdout, "%s\n", optarg);
+			break;
 
-	    case 'R':			/* special global or page level request */
-		    saverequest(optarg);
-		    break;
+		case 'R': /* special global or page level request */
+			saverequest(optarg);
+			break;
 
-	    case 'D':			/* debug flag */
-		    debug = ON;
-		    break;
+		case 'D': /* debug flag */
+			debug = ON;
+			break;
 
-	    case 'I':			/* ignore FATAL errors */
-		    ignore = ON;
-		    break;
+		case 'I': /* ignore FATAL errors */
+			ignore = ON;
+			break;
 
-	    case '?':			/* don't understand the option */
-		    error(FATAL, "");
-		    break;
+		case '?': /* don't understand the option */
+			error(FATAL, "");
+			break;
 
-	    default:			/* don't know what to do for ch */
-		    error(FATAL, "missing case for option %c\n", ch);
-		    break;
-	}   /* End switch */
-    }   /* End while */
+		default: /* don't know what to do for ch */
+			error(FATAL, "missing case for option %c\n", ch);
+			break;
+		} /* End switch */
+	}	 /* End while */
 
-    argc -= optind;			/* get ready for non-option args */
-    argv += optind;
+	argc -= optind; /* get ready for non-option args */
+	argv += optind;
 
-}   /* End of options */
+} /* End of options */
 
 /*****************************************************************************/
 
@@ -371,26 +372,26 @@ setup()
 
 {
 
-/*
+	/*
  *
  * Handles things that must be done after the options are read but before the
  * input files are processed.
  *
  */
 
-    writerequest(0, stdout);		/* global requests eg. manual feed */
-    setencoding(fontencoding);		/* unnecessary */
-    fprintf(stdout, "setup\n");
+	writerequest(0, stdout);   /* global requests eg. manual feed */
+	setencoding(fontencoding); /* unnecessary */
+	fprintf(stdout, "setup\n");
 
-    if ( formsperpage > 1 )  {		/* followed by stuff for multiple pages */
-	if ( cat(formfile) == FALSE )
-	    error(FATAL, "can't read %s", formfile);
-	fprintf(stdout, "%d setupforms\n", formsperpage);
-    }	/* End if */
+	if(formsperpage > 1) { /* followed by stuff for multiple pages */
+		if(cat(formfile) == FALSE)
+			error(FATAL, "can't read %s", formfile);
+		fprintf(stdout, "%d setupforms\n", formsperpage);
+	} /* End if */
 
-    fprintf(stdout, "%s", ENDSETUP);
+	fprintf(stdout, "%s", ENDSETUP);
 
-}   /* End of setup */
+} /* End of setup */
 
 /*****************************************************************************/
 
@@ -398,9 +399,9 @@ arguments()
 
 {
 
-    FILE	*fp;			/* next input file */
+	FILE *fp; /* next input file */
 
-/*
+	/*
  *
  * Makes sure all the non-option command line arguments are processed. If we get
  * here and there aren't any arguments left, or if '-' is one of the input files
@@ -408,23 +409,23 @@ arguments()
  *
  */
 
-    if ( argc < 1 )
-	bitmap(stdin);
-    else  {				/* at least one argument is left */
-	while ( argc > 0 )  {
-	    if ( strcmp(*argv, "-") == 0 )
-		fp = stdin;
-	    else if ( (fp = fopen(*argv, "r")) == NULL )
-		error(FATAL, "can't open %s", *argv);
-	    bitmap(fp);
-	    if ( fp != stdin )
-		fclose(fp);
-	    argc--;
-	    argv++;
-	}   /* End while */
-    }   /* End else */
+	if(argc < 1)
+		bitmap(stdin);
+	else { /* at least one argument is left */
+		while(argc > 0) {
+			if(strcmp(*argv, "-") == 0)
+				fp = stdin;
+			else if((fp = fopen(*argv, "r")) == NULL)
+				error(FATAL, "can't open %s", *argv);
+			bitmap(fp);
+			if(fp != stdin)
+				fclose(fp);
+			argc--;
+			argv++;
+		} /* End while */
+	}	 /* End else */
 
-}   /* End of arguments */
+} /* End of arguments */
 
 /*****************************************************************************/
 
@@ -432,7 +433,7 @@ done()
 
 {
 
-/*
+	/*
  *
  * Finished with all the input files, so mark the end of the pages with a TRAILER
  * comment, make sure the last page prints, and add things like the PAGES comment
@@ -440,12 +441,12 @@ done()
  *
  */
 
-    fprintf(stdout, "%s", TRAILER);
-    fprintf(stdout, "done\n");
-    fprintf(stdout, "%s 0 0 %d %d\n", BOUNDINGBOX, (bbox[0]*72+100)/100, (bbox[1]*72+100)/100);
-    fprintf(stdout, "%s %d\n", PAGES, printed);
+	fprintf(stdout, "%s", TRAILER);
+	fprintf(stdout, "done\n");
+	fprintf(stdout, "%s 0 0 %d %d\n", BOUNDINGBOX, (bbox[0] * 72 + 100) / 100, (bbox[1] * 72 + 100) / 100);
+	fprintf(stdout, "%s %d\n", PAGES, printed);
 
-}   /* End of done */
+} /* End of done */
 
 /*****************************************************************************/
 
@@ -453,30 +454,30 @@ account()
 
 {
 
-/*
+	/*
  *
  * Writes an accounting record to *fp_acct provided it's not NULL. Accounting is
  * requested using the -A or -J options.
  *
  */
 
-    if ( fp_acct != NULL )
-	fprintf(fp_acct, " print %d\n copies %d\n", printed, copies);
+	if(fp_acct != NULL)
+		fprintf(fp_acct, " print %d\n copies %d\n", printed, copies);
 
-}   /* End of account */
+} /* End of account */
 
 /*****************************************************************************/
 
 bitmap(fp)
 
-    FILE	*fp;			/* next input file */
+    FILE *fp; /* next input file */
 
 {
 
-    int		count;			/* pattern repeats this many times */
-    long	total;			/* expect this many patterns */
+	int count;  /* pattern repeats this many times */
+	long total; /* expect this many patterns */
 
-/*
+	/*
  *
  * Reads all the bitmaps from the next input file, translates each one into
  * PostScript, and arranges to have one bitmap printed on each page. Multiple
@@ -484,45 +485,46 @@ bitmap(fp)
  *
  */
 
-    fp_in = fp;				/* everyone reads from this file */
+	fp_in = fp; /* everyone reads from this file */
 
-    while ( dimensions() == TRUE )  {
-	patcount = 0;
-	total = scanlines * patterns;
+	while(dimensions() == TRUE) {
+		patcount = 0;
+		total = scanlines * patterns;
 
-	bbox[0] = MAX(bbox[0], patterns*16);	/* for BoundingBox comment */
-	bbox[1] = MAX(bbox[1], scanlines);
+		bbox[0] = MAX(bbox[0], patterns * 16); /* for BoundingBox comment */
+		bbox[1] = MAX(bbox[1], scanlines);
 
-	redirect(++page);
-	fprintf(fp_out, "%s %d %d\n", PAGE, page, printed+1);
-	fprintf(fp_out, "/saveobj save def\n");
-	writerequest(printed+1, fp_out);
+		redirect(++page);
+		fprintf(fp_out, "%s %d %d\n", PAGE, page, printed + 1);
+		fprintf(fp_out, "/saveobj save def\n");
+		writerequest(printed + 1, fp_out);
 
-	fprintf(fp_out, "%s ", (v8format == TRUE && v8undo == FALSE) ? "true" : "false");
-	fprintf(fp_out, "%s ", (flip == TRUE) ? "true" : "false");
-	fprintf(fp_out, "%d %d bitmap\n", patterns * 16, scanlines);
+		fprintf(fp_out, "%s ", (v8format == TRUE && v8undo == FALSE) ? "true" : "false");
+		fprintf(fp_out, "%s ", (flip == TRUE) ? "true" : "false");
+		fprintf(fp_out, "%d %d bitmap\n", patterns * 16, scanlines);
 
-	while ( patcount != total && (count = getc(fp)) != EOF )  {
-	    addrast(count);
-	    patcount += (count & 0177);
-	    if ( patcount % patterns == 0 )
-		putrast();
-	}   /* End while */
+		while(patcount != total && (count = getc(fp)) != EOF) {
+			addrast(count);
+			patcount += (count & 0177);
+			if(patcount % patterns == 0)
+				putrast();
+		} /* End while */
 
-	if ( debug == ON )
-	    fprintf(stderr, "patterns = %d, scanlines = %d, patcount = %d\n", patterns, scanlines, patcount);
+		if(debug == ON)
+			fprintf(stderr, "patterns = %d, scanlines = %d, patcount = %d\n", patterns, scanlines, patcount);
 
-	if ( total != patcount )
-	    error(FATAL, "bitmap format error");
+		if(total != patcount)
+			error(FATAL, "bitmap format error");
 
-	if ( fp_out == stdout ) printed++;
+		if(fp_out == stdout)
+			printed++;
 
-	fprintf(fp_out, "showpage\n");
-	fprintf(fp_out, "saveobj restore\n");
-	fprintf(fp_out, "%s %d %d\n", ENDPAGE, page, printed);
-    }	/* End while */
+		fprintf(fp_out, "showpage\n");
+		fprintf(fp_out, "saveobj restore\n");
+		fprintf(fp_out, "%s %d %d\n", ENDPAGE, page, printed);
+	} /* End while */
 
-}   /* End of bitmap */
+} /* End of bitmap */
 
 /*****************************************************************************/
 
@@ -530,11 +532,11 @@ dimensions()
 
 {
 
-    int		ox, oy;			/* coordinates of the origin */
-    int		cx, cy;			/* and right corner of the bitmap */
-    int		i;			/* loop index */
+	int ox, oy; /* coordinates of the origin */
+	int cx, cy; /* and right corner of the bitmap */
+	int i;      /* loop index */
 
-/*
+	/*
  *
  * Determines the dimensions and type of the next bitmap. Eighth edition bitmaps
  * have a zero in the first 16 bits. If valid dimensions are read TRUE is returned
@@ -543,50 +545,53 @@ dimensions()
  *
  */
 
-    if ( (scanlines = getint()) == 0 )  {
-	ox = getint();
-	oy = getint();
-	cx = getint();
-	cy = getint();
-	scanlines = cy - oy;
-	patterns = (cx - ox + 15) / 16;
-	v8format = TRUE;
-    } else patterns = getint();
+	if((scanlines = getint()) == 0) {
+		ox = getint();
+		oy = getint();
+		cx = getint();
+		cy = getint();
+		scanlines = cy - oy;
+		patterns = (cx - ox + 15) / 16;
+		v8format = TRUE;
+	} else
+		patterns = getint();
 
-    if ( scanlines <= 0 || patterns <= 0 )	/* done - don't do the malloc() */
-	return(FALSE);
+	if(scanlines <= 0 || patterns <= 0) /* done - don't do the malloc() */
+		return (FALSE);
 
-    if ( raster != NULL ) free(raster);
-    if ( prevrast != NULL ) free(prevrast);
+	if(raster != NULL)
+		free(raster);
+	if(prevrast != NULL)
+		free(prevrast);
 
-    if ( (rptr = raster = (char *) malloc(patterns * 2)) == NULL )
-	error(FATAL, "no memory");
+	if((rptr = raster = (char *)malloc(patterns * 2)) == NULL)
+		error(FATAL, "no memory");
 
-    if ( (prevrast = (char *) malloc(patterns * 2)) == NULL )
-	error(FATAL, "no memory");
+	if((prevrast = (char *)malloc(patterns * 2)) == NULL)
+		error(FATAL, "no memory");
 
-    for ( i = 0; i < patterns * 2; i++ )
-	*(prevrast+i) = 0377;
+	for(i = 0; i < patterns * 2; i++)
+		*(prevrast + i) = 0377;
 
-    eptr = rptr + patterns * 2;
+	eptr = rptr + patterns * 2;
 
-    return(TRUE);
+	return (TRUE);
 
-}   /* End of dimensions */
+} /* End of dimensions */
 
 /*****************************************************************************/
 
 addrast(count)
 
-    int		count;			/* repeat count for next pattern */
+    int count; /* repeat count for next pattern */
 
 {
 
-    int		size;			/* number of bytes in next pattern */
-    int		l, h;			/* high and low bytes */
-    int		i, j;			/* loop indices */
+	int size; /* number of bytes in next pattern */
+	int l, h; /* high and low bytes */
+	int i, j; /* loop indices */
 
-/*
+	/*
  *
  * Reads the input file and adds the appropriate number of bytes to the output
  * raster line. If count has bit 7 on, one 16 bit pattern is read and repeated
@@ -595,24 +600,24 @@ addrast(count)
  *
  */
 
-    if ( count & 0200 )  {
-	size = 1;
-	count &= 0177;
-    } else {
-	size = count;
-	count = 1;
-    }	/* End else */
+	if(count & 0200) {
+		size = 1;
+		count &= 0177;
+	} else {
+		size = count;
+		count = 1;
+	} /* End else */
 
-    for ( i = size; i > 0; i-- )  {
-	if ( (l = getc(fp_in)) == EOF || (h = getc(fp_in)) == EOF )
-	    return;
-	for ( j = count; j > 0; j-- )  {
-	    *rptr++ = l;
-	    *rptr++ = h;
-	}   /* End for */
-    }	/* End for */
+	for(i = size; i > 0; i--) {
+		if((l = getc(fp_in)) == EOF || (h = getc(fp_in)) == EOF)
+			return;
+		for(j = count; j > 0; j--) {
+			*rptr++ = l;
+			*rptr++ = h;
+		} /* End for */
+	}	 /* End for */
 
-}   /* End of addrast */
+} /* End of addrast */
 
 /*****************************************************************************/
 
@@ -620,11 +625,11 @@ putrast()
 
 {
 
-    char	*p1, *p2;		/* starting and ending patterns */
-    int		n;			/* set to bytes per pattern */
-    int		i;			/* loop index */
+	char *p1, *p2; /* starting and ending patterns */
+	int n;	 /* set to bytes per pattern */
+	int i;	 /* loop index */
 
-/*
+	/*
  *
  * Takes the scanline that's been saved in *raster, encodes it according to the
  * value that's been assigned to bytespp, and writes the result to *fp_out. Each
@@ -632,62 +637,65 @@ putrast()
  *
  */
 
-    n = (bytespp <= 0) ? 2 * patterns : bytespp;
+	n = (bytespp <= 0) ? 2 * patterns : bytespp;
 
-    if ( v8format == TRUE && v8undo == TRUE )
-	for ( i = 0; i < patterns * 2; i++ )
-	    *(raster+i) = (*(prevrast+i) ^= *(raster+i));
+	if(v8format == TRUE && v8undo == TRUE)
+		for(i = 0; i < patterns * 2; i++)
+			*(raster + i) = (*(prevrast + i) ^= *(raster + i));
 
-    for ( p1 = raster, p2 = raster + n; p1 < eptr; p1 = p2 )
-	if ( patncmp(p1, n) == TRUE )  {
-	    while ( patncmp(p2, n) == TRUE ) p2 += n;
-	    p2 += n;
-	    fprintf(fp_out, "%d ", n);
-	    for ( i = 0; i < n; i++, p1++ )
-		fprintf(fp_out, "%.2X", ((int) *p1) & 0377);
-	    fprintf(fp_out, " %d\n", (p2 - p1) / n);
-	} else {
-	    while ( p2 < eptr && patncmp(p2, n) == FALSE ) p2 += n;
-	    if ( p2 > eptr ) p2 = eptr;
-	    fprintf(fp_out, "%d ", p2 - p1);
-	    while ( p1 < p2 )
-		fprintf(fp_out, "%.2X", ((int) *p1++) & 0377);
-	    fprintf(fp_out, " 0\n");
-	}   /* End else */
+	for(p1 = raster, p2 = raster + n; p1 < eptr; p1 = p2)
+		if(patncmp(p1, n) == TRUE) {
+			while(patncmp(p2, n) == TRUE)
+				p2 += n;
+			p2 += n;
+			fprintf(fp_out, "%d ", n);
+			for(i = 0; i < n; i++, p1++)
+				fprintf(fp_out, "%.2X", ((int)*p1) & 0377);
+			fprintf(fp_out, " %d\n", (p2 - p1) / n);
+		} else {
+			while(p2 < eptr && patncmp(p2, n) == FALSE)
+				p2 += n;
+			if(p2 > eptr)
+				p2 = eptr;
+			fprintf(fp_out, "%d ", p2 - p1);
+			while(p1 < p2)
+				fprintf(fp_out, "%.2X", ((int)*p1++) & 0377);
+			fprintf(fp_out, " 0\n");
+		} /* End else */
 
-    fprintf(fp_out, "0\n");
+	fprintf(fp_out, "0\n");
 
-    rptr = raster;
+	rptr = raster;
 
-}   /* End of putrast */
+} /* End of putrast */
 
 /*****************************************************************************/
 
 patncmp(p1, n)
 
-    char	*p1;			/* first patterns starts here */
-    int		n;			/* and extends this many bytes */
+    char *p1; /* first patterns starts here */
+int n;	/* and extends this many bytes */
 
 {
 
-    char	*p2;			/* address of the second pattern */
+	char *p2; /* address of the second pattern */
 
-/*
+	/*
  *
  * Compares the two n byte patterns *p1 and *(p1+n). FALSE is returned if they're
  * different or extend past the end of the current raster line.
  *
  */
 
-    p2 = p1 + n;
+	p2 = p1 + n;
 
-    for ( ; n > 0; n--, p1++, p2++ )
-	if ( p2 >= eptr || *p1 != *p2 )
-	    return(FALSE);
+	for(; n > 0; n--, p1++, p2++)
+		if(p2 >= eptr || *p1 != *p2)
+			return (FALSE);
 
-    return(TRUE);
+	return (TRUE);
 
-}   /* End of patncmp */
+} /* End of patncmp */
 
 /*****************************************************************************/
 
@@ -695,44 +703,43 @@ getint()
 
 {
 
-    int		h, l;			/* high and low bytes */
+	int h, l; /* high and low bytes */
 
-/*
+	/*
  *
  * Reads the next two bytes from *fp_in and returns the resulting integer.
  *
  */
 
-    if ( (l = getc(fp_in)) == EOF || (h = getc(fp_in)) == EOF )
-	return(-1);
+	if((l = getc(fp_in)) == EOF || (h = getc(fp_in)) == EOF)
+		return (-1);
 
-    return((h & 0377) << 8 | (l & 0377));
+	return ((h & 0377) << 8 | (l & 0377));
 
-}   /* End of getint */
+} /* End of getint */
 
 /*****************************************************************************/
 
 redirect(pg)
 
-    int		pg;			/* next page we're printing */
+    int pg; /* next page we're printing */
 
 {
 
-    static FILE	*fp_null = NULL;	/* if output is turned off */
+	static FILE *fp_null = NULL; /* if output is turned off */
 
-/*
+	/*
  *
  * If we're not supposed to print page pg, fp_out will be directed to /dev/null,
  * otherwise output goes to stdout.
  *
  */
 
-    if ( pg >= 0 && in_olist(pg) == ON )
-	fp_out = stdout;
-    else if ( (fp_out = fp_null) == NULL )
-	fp_out = fp_null = fopen("/dev/null", "w");
+	if(pg >= 0 && in_olist(pg) == ON)
+		fp_out = stdout;
+	else if((fp_out = fp_null) == NULL)
+		fp_out = fp_null = fopen("/dev/null", "w");
 
-}   /* End of redirect */
+} /* End of redirect */
 
 /*****************************************************************************/
-

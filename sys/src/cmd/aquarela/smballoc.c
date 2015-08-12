@@ -14,7 +14,7 @@ void *
 smbemallocz(uint32_t size, int clear)
 {
 	void *p = nbemalloc(size);
-	if (clear && p)
+	if(clear && p)
 		memset(p, 0, size);
 	return p;
 }
@@ -38,7 +38,7 @@ void
 smbfree(void **pp)
 {
 	void *p = *pp;
-	if (p) {
+	if(p) {
 		free(p);
 		*pp = nil;
 	}

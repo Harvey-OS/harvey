@@ -13,14 +13,12 @@
 #include <thread.h>
 #include "queue.h"
 
-enum
-{
+enum {
 	STACK = 8192
 };
 
 typedef struct VtSconn VtSconn;
-struct VtSconn
-{
+struct VtSconn {
 	int ctl;
 	int ref;
 	QLock lk;
@@ -29,16 +27,15 @@ struct VtSconn
 	VtConn *c;
 };
 
-struct VtSrv
-{
+struct VtSrv {
 	int afd;
 	int dead;
 	char adir[NETPATHLEN];
-	Queue *q;	/* Queue(VtReq*) */
+	Queue *q; /* Queue(VtReq*) */
 };
 
-static void listenproc(void*);
-static void connproc(void*);
+static void listenproc(void *);
+static void connproc(void *);
 
 static void
 scincref(VtSconn *sc)
@@ -52,7 +49,7 @@ static void
 scdecref(VtSconn *sc)
 {
 	qlock(&sc->lk);
-	if(--sc->ref > 0){
+	if(--sc->ref > 0) {
 		qunlock(&sc->lk);
 		return;
 	}
@@ -61,14 +58,14 @@ scdecref(VtSconn *sc)
 	vtfree(sc);
 }
 
-VtSrv*
+VtSrv *
 vtlisten(char *addr)
 {
 	VtSrv *s;
 
 	s = vtmallocz(sizeof(VtSrv));
 	s->afd = announce(addr, s->adir);
-	if(s->afd < 0){
+	if(s->afd < 0) {
 		free(s);
 		return nil;
 	}
@@ -86,9 +83,9 @@ listenproc(void *v)
 	VtSconn *sc;
 
 	srv = v;
-	for(;;){
+	for(;;) {
 		ctl = listen(srv->adir, dir);
-		if(ctl < 0){
+		if(ctl < 0) {
 			srv->dead = 1;
 			break;
 		}
@@ -111,44 +108,46 @@ connproc(void *v)
 	Packet *p;
 	VtReq *r;
 	int fd;
-static int first=1;
+	static int first = 1;
 
-if(first && chattyventi){
-	first=0;
-	fmtinstall('F', vtfcallfmt);
-}
+	if(first && chattyventi) {
+		first = 0;
+		fmtinstall('F', vtfcallfmt);
+	}
 	r = nil;
 	sc = v;
 	sc->c = nil;
-	if(0) fprint(2, "new call %s on %d\n", sc->dir, sc->ctl);
+	if(0)
+		fprint(2, "new call %s on %d\n", sc->dir, sc->ctl);
 	fd = accept(sc->ctl, sc->dir);
 	close(sc->ctl);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "accept %s: %r\n", sc->dir);
 		goto out;
 	}
 
 	c = vtconn(fd, fd);
 	sc->c = c;
-	if(vtversion(c) < 0){
+	if(vtversion(c) < 0) {
 		fprint(2, "vtversion %s: %r\n", sc->dir);
 		goto out;
 	}
-	if(vtsrvhello(c) < 0){
+	if(vtsrvhello(c) < 0) {
 		fprint(2, "vtsrvhello %s: %r\n", sc->dir);
 		goto out;
 	}
 
-	if(0) fprint(2, "new proc %s\n", sc->dir);
+	if(0)
+		fprint(2, "new proc %s\n", sc->dir);
 	proccreate(vtsendproc, c, STACK);
 	qlock(&c->lk);
 	while(!c->writeq)
 		rsleep(&c->rpcfork);
 	qunlock(&c->lk);
 
-	while((p = vtrecv(c)) != nil){
+	while((p = vtrecv(c)) != nil) {
 		r = vtmallocz(sizeof(VtReq));
-		if(vtfcallunpack(&r->tx, p) < 0){
+		if(vtfcallunpack(&r->tx, p) < 0) {
 			vtlog(VtServerLog, "<font size=-1>%T %s:</font> recv bad packet %p: %r<br>\n", c->addr, p);
 			fprint(2, "bad packet on %s: %r\n", sc->dir);
 			packetfree(p);
@@ -163,7 +162,7 @@ if(first && chattyventi){
 		r->rx.tag = r->tx.tag;
 		r->sc = sc;
 		scincref(sc);
-		if(_vtqsend(sc->srv->q, r) < 0){
+		if(_vtqsend(sc->srv->q, r) < 0) {
 			scdecref(sc);
 			fprint(2, "hungup queue\n");
 			break;
@@ -171,27 +170,29 @@ if(first && chattyventi){
 		r = nil;
 	}
 
-	if(0) fprint(2, "eof on %s\n", sc->dir);
+	if(0)
+		fprint(2, "eof on %s\n", sc->dir);
 
 out:
-	if(r){
+	if(r) {
 		vtfcallclear(&r->tx);
 		vtfree(r);
 	}
-	if(0) fprint(2, "freed %s\n", sc->dir);
+	if(0)
+		fprint(2, "freed %s\n", sc->dir);
 	scdecref(sc);
 	return;
 }
 
-VtReq*
+VtReq *
 vtgetreq(VtSrv *srv)
 {
 	VtReq *r;
-	
+
 	r = _vtqrecv(srv->q);
-	if (r != nil)
+	if(r != nil)
 		vtlog(VtServerLog, "<font size=-1>%T %s:</font> vtgetreq %F<br>\n",
-			((VtSconn*)r->sc)->c->addr, &r->tx);
+		      ((VtSconn *)r->sc)->c->addr, &r->tx);
 	return r;
 }
 
@@ -204,11 +205,11 @@ vtrespond(VtReq *r)
 	sc = r->sc;
 	if(r->rx.tag != r->tx.tag)
 		abort();
-	if(r->rx.msgtype != r->tx.msgtype+1 && r->rx.msgtype != VtRerror)
+	if(r->rx.msgtype != r->tx.msgtype + 1 && r->rx.msgtype != VtRerror)
 		abort();
 	if(chattyventi)
 		fprint(2, "%s -> %F\n", argv0, &r->rx);
-	if((p = vtfcallpack(&r->rx)) == nil){
+	if((p = vtfcallpack(&r->rx)) == nil) {
 		vtlog(VtServerLog, "%s: vtfcallpack %F: %r<br>\n", sc->c->addr, &r->rx);
 		fprint(2, "fcallpack on %s: %r\n", sc->dir);
 		packetfree(p);
@@ -223,4 +224,3 @@ vtrespond(VtReq *r)
 	vtfcallclear(&r->rx);
 	vtfree(r);
 }
-

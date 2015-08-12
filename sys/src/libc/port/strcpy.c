@@ -9,9 +9,9 @@
 
 #include <u.h>
 #include <libc.h>
-#define	N	10000
+#define N 10000
 
-char*
+char *
 strcpy(char *s1, char *s2)
 {
 	char *os1;

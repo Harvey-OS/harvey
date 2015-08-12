@@ -12,20 +12,20 @@
 #include "regexp.h"
 
 /* substitute into one string using the matches from the last regexec() */
-extern	void
-rregsub(Rune *sp,	/* source string */
-	Rune *dp,	/* destination string */
+extern void
+rregsub(Rune *sp, /* source string */
+	Rune *dp, /* destination string */
 	int dlen,
-	Resub *mp,	/* subexpression elements */
-	int ms)		/* number of elements pointed to by mp */
+	Resub *mp, /* subexpression elements */
+	int ms)    /* number of elements pointed to by mp */
 {
 	Rune *ssp, *ep;
 	int i;
 
-	ep = dp+(dlen/sizeof(Rune))-1;
-	while(*sp != '\0'){
-		if(*sp == '\\'){
-			switch(*++sp){
+	ep = dp + (dlen / sizeof(Rune)) - 1;
+	while(*sp != '\0') {
+		if(*sp == '\\') {
+			switch(*++sp) {
 			case '0':
 			case '1':
 			case '2':
@@ -36,11 +36,11 @@ rregsub(Rune *sp,	/* source string */
 			case '7':
 			case '8':
 			case '9':
-				i = *sp-'0';
-				if(mp[i].rsp != 0 && mp!=0 && ms>i)
+				i = *sp - '0';
+				if(mp[i].rsp != 0 && mp != 0 && ms > i)
 					for(ssp = mp[i].rsp;
-					     ssp < mp[i].rep;
-					     ssp++)
+					    ssp < mp[i].rep;
+					    ssp++)
 						if(dp < ep)
 							*dp++ = *ssp;
 				break;
@@ -56,14 +56,14 @@ rregsub(Rune *sp,	/* source string */
 					*dp++ = *sp;
 				break;
 			}
-		}else if(*sp == '&'){				
-			if(mp[0].rsp != 0 && mp!=0 && ms>0)
-			if(mp[0].rsp != 0)
-				for(ssp = mp[0].rsp;
-				     ssp < mp[0].rep; ssp++)
-					if(dp < ep)
-						*dp++ = *ssp;
-		}else{
+		} else if(*sp == '&') {
+			if(mp[0].rsp != 0 && mp != 0 && ms > 0)
+				if(mp[0].rsp != 0)
+					for(ssp = mp[0].rsp;
+					    ssp < mp[0].rep; ssp++)
+						if(dp < ep)
+							*dp++ = *ssp;
+		} else {
 			if(dp < ep)
 				*dp++ = *sp;
 		}

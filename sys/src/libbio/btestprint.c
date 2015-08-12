@@ -18,9 +18,8 @@ main(int argc, char **argv)
 	char *s;
 	int n;
 
-
 	n = atoi(argv[1]);
-	s = malloc(n+1);
+	s = malloc(n + 1);
 	memset(s, 'a', n);
 	s[n] = '\0';
 	Binit(&b, 1, OWRITE);

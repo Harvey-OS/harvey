@@ -7,12 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
-
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 void
 cinit(void)
@@ -46,7 +45,7 @@ cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 }
 
 void
-cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
+cwrite(Chan *c, uint8_t *buf, int len, int64_t off)
 {
 	USED(c);
 	USED(buf);

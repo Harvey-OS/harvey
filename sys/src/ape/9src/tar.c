@@ -82,13 +82,13 @@ main(int argc, char **argv)
 		case 'm':
 			Tflag = 0;
 			break;
-		case 'p':		/* pretend nothing's wrong */
+		case 'p': /* pretend nothing's wrong */
 			break;
 		}
 	}
 
 	nargc = 1 + 1 + fflag + argc + 1;
-	nargv = malloc(sizeof(char*) * nargc);
+	nargv = malloc(sizeof(char *) * nargc);
 	if(nargv == nil) {
 		fprint(2, "ape/tar: out of memory\n");
 		exits("memory");
@@ -109,13 +109,13 @@ main(int argc, char **argv)
 	if(fflag)
 		nargv[i++] = file;
 
-	for(j=0; j<argc; j++, i++)
+	for(j = 0; j < argc; j++, i++)
 		nargv[i] = argv[j];
 
 	nargv[i++] = nil;
 	assert(i == nargc);
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "ape/tar: fork failed: %r\n");
 		exits("fork");

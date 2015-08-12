@@ -17,9 +17,9 @@ _READN(int f, void *av, int32_t n)
 
 	a = av;
 	t = 0;
-	while(t < n){
-		m = _READ(f, a+t, n-t);
-		if(m <= 0){
+	while(t < n) {
+		m = _READ(f, a + t, n - t);
+		if(m <= 0) {
 			if(t == 0)
 				return m;
 			break;

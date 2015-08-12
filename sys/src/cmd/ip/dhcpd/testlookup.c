@@ -14,7 +14,7 @@
 #include <ndb.h>
 
 static uint8_t noether[6];
-	Ndb *db;
+Ndb *db;
 
 static void
 recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, char *attr,
@@ -32,8 +32,8 @@ recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, char *attr,
 	if(t == 0)
 		return;
 
-	for(nt = t; nt; nt = nt->entry){
-		if(strcmp(nt->attr, "ipmask") == 0){
+	for(nt = t; nt; nt = nt->entry) {
+		if(strcmp(nt->attr, "ipmask") == 0) {
 			parseip(submask, nt->val);
 			if(memcmp(submask, mask, IPaddrlen) != 0)
 				recursesubnet(db, addr, submask, attr, name, name1);
@@ -41,11 +41,11 @@ recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, char *attr,
 		}
 	}
 
-	if(name[0] == 0){
+	if(name[0] == 0) {
 		found = 0;
-		for(nt = t; nt; nt = nt->entry){
-			if(strcmp(nt->attr, attr) == 0){
-				if(found){
+		for(nt = t; nt; nt = nt->entry) {
+			if(strcmp(nt->attr, attr) == 0) {
+				if(found) {
 					strcpy(name, nt->val);
 					name1[0] = 0;
 					found = 1;
@@ -73,15 +73,15 @@ getipaddr(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 	char *attr;
 
 	attr = ipattr(name);
-	if(strcmp(attr, "ip") == 0){
+	if(strcmp(attr, "ip") == 0) {
 		parseip(to, name);
 		return 1;
 	}
 
 	t = ndbgetval(db, &s, attr, name, "ip", buf);
-	if(t){
+	if(t) {
 		/* first look for match on same subnet */
-		for(nt = t; nt; nt = nt->entry){
+		for(nt = t; nt; nt = nt->entry) {
 			if(strcmp(nt->attr, "ip") != 0)
 				continue;
 			parseip(to, nt->val);
@@ -115,9 +115,9 @@ lookupserver(char *attr, uint8_t ipaddrs[2][IPaddrlen], Ipinfo *iip)
 
 	snprint(ip, sizeof(ip), "%I", iip->ipaddr);
 	t = ndbsearch(db, &s, "ip", ip);
-	while(t){
-		for(nt = t; nt; nt = nt->entry){
-			if(strcmp(attr, nt->attr) == 0){
+	while(t) {
+		for(nt = t; nt; nt = nt->entry) {
+			if(strcmp(attr, nt->attr) == 0) {
 				if(*name == 0)
 					strcpy(name, nt->val);
 				else {
@@ -135,7 +135,7 @@ lookupserver(char *attr, uint8_t ipaddrs[2][IPaddrlen], Ipinfo *iip)
 		recursesubnet(db, iip->ipaddr, classmask[CLASS(iip->ipaddr)], attr, name, name1);
 
 	i = 0;
-	if(name[0] && getipaddr(db, name, *ipaddrs, iip) == 1){
+	if(name[0] && getipaddr(db, name, *ipaddrs, iip) == 1) {
 		ipaddrs++;
 		i++;
 	}
@@ -157,7 +157,7 @@ main(int argc, char **argv)
 	fmtinstall('I', eipconv);
 	if(argc < 2)
 		exits(0);
-	if(strchr(argv[1], '.')){
+	if(strchr(argv[1], '.')) {
 		if(ipinfo(db, 0, argv[1], 0, &ii) < 0)
 			exits(0);
 	} else {
@@ -165,7 +165,7 @@ main(int argc, char **argv)
 			exits(0);
 	}
 	print("a %I m %I n %I f %s e %E a %I\n", ii.ipaddr,
-		ii.ipmask, ii.ipnet, ii.bootf, ii.etheraddr, ii.auip);
+	      ii.ipmask, ii.ipnet, ii.bootf, ii.etheraddr, ii.auip);
 
 	i = lookupserver("auth", addrs, &ii);
 	print("lookupserver returns %d\n", i);

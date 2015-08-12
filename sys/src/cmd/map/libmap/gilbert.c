@@ -14,24 +14,26 @@
 int
 Xgilbert(struct place *p, double *x, double *y)
 {
-/* the interesting part - map the sphere onto a hemisphere */
+	/* the interesting part - map the sphere onto a hemisphere */
 	struct place q;
-	q.nlat.s = tan(0.5*(p->nlat.l));
-	if(q.nlat.s > 1) q.nlat.s = 1;
-	if(q.nlat.s < -1) q.nlat.s = -1;
-	q.nlat.c = sqrt(1 - q.nlat.s*q.nlat.s);
-	q.wlon.l = p->wlon.l/2;
+	q.nlat.s = tan(0.5 * (p->nlat.l));
+	if(q.nlat.s > 1)
+		q.nlat.s = 1;
+	if(q.nlat.s < -1)
+		q.nlat.s = -1;
+	q.nlat.c = sqrt(1 - q.nlat.s * q.nlat.s);
+	q.wlon.l = p->wlon.l / 2;
 	sincos(&q.wlon);
-/* the dull part: present the hemisphere orthogrpahically */
+	/* the dull part: present the hemisphere orthogrpahically */
 	*y = q.nlat.s;
-	*x = -q.wlon.s*q.nlat.c;
-	return(1);
+	*x = -q.wlon.s *q.nlat.c;
+	return (1);
 }
 
 proj
 gilbert(void)
 {
-	return(Xgilbert);
+	return (Xgilbert);
 }
 
 /* derivation of the interesting part:
@@ -56,5 +58,3 @@ gilbert(void)
    use standard formula: tan x/2 = (1-cos x)/sin x = sin x/(1+cos x)
    to show that the right side of the last equation is tan(n/2)
 */
-
-

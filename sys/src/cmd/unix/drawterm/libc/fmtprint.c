@@ -33,10 +33,9 @@ fmtprint(Fmt *f, char *fmt, ...)
 	f->flags = 0;
 	f->width = 0;
 	f->prec = 0;
-	VA_COPY(f->args,va);
+	VA_COPY(f->args, va);
 	VA_END(va);
 	if(n >= 0)
 		return 0;
 	return n;
 }
-

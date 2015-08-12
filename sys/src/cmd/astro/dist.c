@@ -14,8 +14,8 @@ dist(Obj1 *p, Obj1 *q)
 {
 	double a;
 
-	a = sin(p->decl2)*sin(q->decl2) +
-		cos(p->decl2)*cos(q->decl2)*cos(p->ra-q->ra);
+	a = sin(p->decl2) * sin(q->decl2) +
+	    cos(p->decl2) * cos(q->decl2) * cos(p->ra - q->ra);
 	a = fabs(atan2(pyth(a), a)) / radsec;
 	return a;
 }
@@ -41,7 +41,8 @@ rline(int f)
 			bc = 0;
 		}
 		c = buf[bc];
-		bn--; bc++;
+		bn--;
+		bc++;
 		*p++ = c;
 	} while(c != '\n');
 	return 0;
@@ -53,10 +54,10 @@ sunel(double t)
 	int i;
 
 	i = floor(t);
-	if(i < 0 || i > NPTS+1)
+	if(i < 0 || i > NPTS + 1)
 		return -90;
 	t = osun.point[i].el +
-		(t-i)*(osun.point[i+1].el - osun.point[i].el);
+	    (t - i) * (osun.point[i + 1].el - osun.point[i].el);
 	return t;
 }
 
@@ -69,7 +70,7 @@ rise(Obj2 *op, double el)
 
 	e2 = 0;
 	p = op;
-	for(i=0; i<=NPTS; i++) {
+	for(i = 0; i <= NPTS; i++) {
 		e1 = e2;
 		e2 = p->point[i].el;
 		if(i >= 1 && e1 <= el && e2 > el)
@@ -78,7 +79,7 @@ rise(Obj2 *op, double el)
 	return -1;
 
 found:
-	return i - 1 + (el-e1)/(e2-e1);
+	return i - 1 + (el - e1) / (e2 - e1);
 }
 
 double
@@ -90,7 +91,7 @@ set(Obj2 *op, double el)
 
 	e2 = 0;
 	p = op;
-	for(i=0; i<=NPTS; i++) {
+	for(i = 0; i <= NPTS; i++) {
 		e1 = e2;
 		e2 = p->point[i].el;
 		if(i >= 1 && e1 > el && e2 <= el)
@@ -99,7 +100,7 @@ set(Obj2 *op, double el)
 	return -1;
 
 found:
-	return i - 1 + (el-e1)/(e2-e1);
+	return i - 1 + (el - e1) / (e2 - e1);
 }
 
 double
@@ -108,11 +109,11 @@ solstice(int n)
 	int i;
 	double d1, d2, d3;
 
-	d3 = (n*pi)/2 - pi;
+	d3 = (n * pi) / 2 - pi;
 	if(n == 0)
 		d3 += pi;
 	d2 = 0.;
-	for(i=0; i<=NPTS; i++) {
+	for(i = 0; i <= NPTS; i++) {
 		d1 = d2;
 		d2 = osun.point[i].ra;
 		if(n == 0) {
@@ -126,7 +127,7 @@ solstice(int n)
 	return -1;
 
 found:
-	return i - (d3-d2)/(d1-d2);
+	return i - (d3 - d2) / (d1 - d2);
 }
 
 double
@@ -136,7 +137,7 @@ betcross(double b)
 	double d1, d2;
 
 	d2 = 0;
-	for(i=0; i<=NPTS; i++) {
+	for(i = 0; i <= NPTS; i++) {
 		d1 = d2;
 		d2 = osun.point[i].mag;
 		if(i >= 1 && b >= d1 && b < d2)
@@ -145,7 +146,7 @@ betcross(double b)
 	return -1;
 
 found:
-	return i - (b-d2)/(d1-d2);
+	return i - (b - d2) / (d1 - d2);
 }
 
 double
@@ -158,7 +159,7 @@ melong(Obj2 *op)
 	d2 = 0;
 	d3 = 0;
 	p = op;
-	for(i=0; i<=NPTS; i++) {
+	for(i = 0; i <= NPTS; i++) {
 		d1 = d2;
 		d2 = d3;
 		d3 = dist(&p->point[i], &osun.point[i]);
@@ -171,9 +172,9 @@ found:
 	return i - 2;
 }
 
-#define	NEVENT	100
-Event	events[NEVENT];
-Event*	eventp = 0;
+#define NEVENT 100
+Event events[NEVENT];
+Event *eventp = 0;
 
 void
 event(char *format, char *arg1, char *arg2, double tim, int flag)
@@ -189,7 +190,7 @@ event(char *format, char *arg1, char *arg2, double tim, int flag)
 	if(eventp == 0)
 		eventp = events;
 	p = eventp;
-	if(p >= events+NEVENT) {
+	if(p >= events + NEVENT) {
 		fprint(2, "too many events\n");
 		return;
 	}
@@ -208,13 +209,13 @@ evflush(void)
 
 	if(eventp == 0)
 		return;
-	qsort(events, eventp-events, sizeof *p, evcomp);
-	for(p = events; p<eventp; p++) {
-		if((p->flag&SIGNIF) && flags['s'])
+	qsort(events, eventp - events, sizeof *p, evcomp);
+	for(p = events; p < eventp; p++) {
+		if((p->flag & SIGNIF) && flags['s'])
 			print("ding ding ding ");
 		print(p->format, p->arg1, p->arg2);
 		if(p->flag & PTIME)
-			ptime(day + p->tim*deld);
+			ptime(day + p->tim * deld);
 		print("\n");
 	}
 	eventp = 0;
@@ -248,17 +249,17 @@ pyth(double x)
 	x *= x;
 	if(x > 1)
 		x = 1;
-	return sqrt(1-x);
+	return sqrt(1 - x);
 }
 
-char*
+char *
 skip(int n)
 {
 	int i;
 	char *cp;
 
 	cp = line;
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		while(*cp == ' ' || *cp == '\t')
 			cp++;
 		while(*cp != '\n' && *cp != ' ' && *cp != '\t')

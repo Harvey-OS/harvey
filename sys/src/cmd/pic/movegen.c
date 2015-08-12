@@ -7,27 +7,28 @@
  * in the LICENSE file.
  */
 
-#include	<stdio.h>
-#include	"pic.h"
-#include	"y.tab.h"
+#include <stdio.h>
+#include "pic.h"
+#include "y.tab.h"
 
-obj *movegen(void)
+obj *
+movegen(void)
 {
 	static double prevdx, prevdy;
 	int i, some;
 	double defx, defy, dx, dy;
 	obj *p;
 	obj *ppos;
-	static int xtab[] = { 1, 0, -1, 0 };	/* R=0, U=1, L=2, D=3 */
-	static int ytab[] = { 0, 1, 0, -1 };
+	static int xtab[] = {1, 0, -1, 0}; /* R=0, U=1, L=2, D=3 */
+	static int ytab[] = {0, 1, 0, -1};
 	Attr *ap;
 
 	defx = getfval("movewid");
 	defy = getfval("moveht");
 	dx = dy = some = 0;
-	for (i = 0; i < nattr; i++) {
+	for(i = 0; i < nattr; i++) {
 		ap = &attr[i];
-		switch (ap->a_type) {
+		switch(ap->a_type) {
 		case TEXTATTR:
 			savetext(ap->a_sub, ap->a_val.p);
 			break;
@@ -37,22 +38,22 @@ obj *movegen(void)
 			some++;
 			break;
 		case LEFT:
-			dx -= (ap->a_sub==DEFAULT) ? defx : ap->a_val.f;
+			dx -= (ap->a_sub == DEFAULT) ? defx : ap->a_val.f;
 			some++;
 			hvmode = L_DIR;
 			break;
 		case RIGHT:
-			dx += (ap->a_sub==DEFAULT) ? defx : ap->a_val.f;
+			dx += (ap->a_sub == DEFAULT) ? defx : ap->a_val.f;
 			some++;
 			hvmode = R_DIR;
 			break;
 		case UP:
-			dy += (ap->a_sub==DEFAULT) ? defy : ap->a_val.f;
+			dy += (ap->a_sub == DEFAULT) ? defy : ap->a_val.f;
 			some++;
 			hvmode = U_DIR;
 			break;
 		case DOWN:
-			dy -= (ap->a_sub==DEFAULT) ? defy : ap->a_val.f;
+			dy -= (ap->a_sub == DEFAULT) ? defy : ap->a_val.f;
 			some++;
 			hvmode = D_DIR;
 			break;
@@ -76,7 +77,7 @@ obj *movegen(void)
 			break;
 		}
 	}
-	if (some) {
+	if(some) {
 		defx = dx;
 		defy = dy;
 	} else {
@@ -91,5 +92,5 @@ obj *movegen(void)
 	extreme(curx, cury);
 	p = makenode(MOVE, 0);
 	dprintf("M %g %g\n", curx, cury);
-	return(p);
+	return (p);
 }

@@ -32,4 +32,3 @@ cfsetispeed(struct termios *, speed_t)
 {
 	return 0;
 }
-

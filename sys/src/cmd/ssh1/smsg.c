@@ -22,17 +22,17 @@ send_ssh_smsg_public_key(Conn *c)
 	putRSApub(m, c->hostkey);
 	putlong(m, c->flags);
 
-	for(i=0; i<c->nokcipher; i++)
-		c->ciphermask |= 1<<c->okcipher[i]->id;
+	for(i = 0; i < c->nokcipher; i++)
+		c->ciphermask |= 1 << c->okcipher[i]->id;
 	putlong(m, c->ciphermask);
-	for(i=0; i<c->nokauthsrv; i++)
-		c->authmask |= 1<<c->okauthsrv[i]->id;
+	for(i = 0; i < c->nokauthsrv; i++)
+		c->authmask |= 1 << c->okauthsrv[i]->id;
 	putlong(m, c->authmask);
 
 	sendmsg(m);
 }
 
-static mpint*
+static mpint *
 rpcdecrypt(AuthRpc *rpc, mpint *b)
 {
 	mpint *a;
@@ -61,7 +61,7 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 	m = recvmsg(c, SSH_CMSG_SESSION_KEY);
 	id = getbyte(m);
 	c->cipher = nil;
-	for(i=0; i<c->nokcipher; i++)
+	for(i = 0; i < c->nokcipher; i++)
 		if(c->okcipher[i]->id == id)
 			c->cipher = c->okcipher[i];
 	if(c->cipher == nil)
@@ -73,34 +73,34 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 	serverkeylen = mpsignif(c->serverkey->n);
 	hostkeylen = mpsignif(c->hostkey->n);
 	ksmall = kbig = nil;
-	if(serverkeylen+128 <= hostkeylen){
+	if(serverkeylen + 128 <= hostkeylen) {
 		ksmall = c->serverpriv;
 		kbig = nil;
-	}else if(hostkeylen+128 <= serverkeylen){
+	} else if(hostkeylen + 128 <= serverkeylen) {
 		ksmall = nil;
 		kbig = c->serverpriv;
-	}else
+	} else
 		sysfatal("server session and host keys do not differ by at least 128 bits");
 
 	b = getmpint(m);
 
 	debug(DBG_CRYPTO, "encrypted with kbig is %B\n", b);
-	if(kbig){
+	if(kbig) {
 		a = rsadecrypt(kbig, b, nil);
 		mpfree(b);
 		b = a;
-	}else
+	} else
 		b = rpcdecrypt(rpc, b);
 	a = rsaunpad(b);
 	mpfree(b);
 	b = a;
 
 	debug(DBG_CRYPTO, "encrypted with ksmall is %B\n", b);
-	if(ksmall){
+	if(ksmall) {
 		a = rsadecrypt(ksmall, b, nil);
 		mpfree(b);
 		b = a;
-	}else
+	} else
 		b = rpcdecrypt(rpc, b);
 	a = rsaunpad(b);
 	mpfree(b);
@@ -108,7 +108,7 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 
 	debug(DBG_CRYPTO, "munged is %B\n", b);
 
-	n = (mpsignif(b)+7)/8;
+	n = (mpsignif(b) + 7) / 8;
 	if(n > SESSKEYLEN)
 		sysfatal("client sent short session key");
 
@@ -116,7 +116,7 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 	mptoberjust(b, buf, SESSKEYLEN);
 	mpfree(b);
 
-	for(i=0; i<SESSIDLEN; i++)
+	for(i = 0; i < SESSIDLEN; i++)
 		buf[i] ^= c->sessid[i];
 
 	memmove(c->sesskey, buf, SESSKEYLEN);
@@ -127,13 +127,13 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 	free(m);
 }
 
-static AuthInfo*
+static AuthInfo *
 responselogin(char *user, char *resp)
 {
 	Chalstate *c;
 	AuthInfo *ai;
 
-	if((c = auth_challenge("proto=p9cr user=%q role=server", user)) == nil){
+	if((c = auth_challenge("proto=p9cr user=%q role=server", user)) == nil) {
 		sshlog("auth_challenge failed for %s", user);
 		return nil;
 	}
@@ -144,7 +144,7 @@ responselogin(char *user, char *resp)
 	return ai;
 }
 
-static AuthInfo*
+static AuthInfo *
 authusername(Conn *c)
 {
 	char *p;
@@ -153,9 +153,9 @@ authusername(Conn *c)
 	/*
 	 * hack for sam users: 'name numbers' gets tried as securid login.
 	 */
-	if(p = strchr(c->user, ' ')){
+	if(p = strchr(c->user, ' ')) {
 		*p++ = '\0';
-		if((ai=responselogin(c->user, p)) != nil)
+		if((ai = responselogin(c->user, p)) != nil)
 			return ai;
 		*--p = ' ';
 		sshlog("bad response: %s", c->user);
@@ -173,12 +173,12 @@ authsrvuser(Conn *c)
 
 	m = recvmsg(c, SSH_CMSG_USER);
 	user = getstring(m);
-	c->user = emalloc(strlen(user)+1);
+	c->user = emalloc(strlen(user) + 1);
 	strcpy(c->user, user);
 	free(m);
 
 	ai = authusername(c);
-	while(ai == nil){
+	while(ai == nil) {
 		/*
 		 * clumsy: if the client aborted the auth_tis early
 		 * we don't send a new failure.  we check this by
@@ -190,12 +190,12 @@ authsrvuser(Conn *c)
 		sendmsg(allocmsg(c, SSH_SMSG_FAILURE, 0));
 	skipfailure:
 		m = recvmsg(c, -1);
-		for(i=0; i<c->nokauthsrv; i++)
-			if(c->okauthsrv[i]->firstmsg == m->type){
+		for(i = 0; i < c->nokauthsrv; i++)
+			if(c->okauthsrv[i]->firstmsg == m->type) {
 				ai = (*c->okauthsrv[i]->fn)(c, m);
 				break;
 			}
-		if(i==c->nokauthsrv)
+		if(i == c->nokauthsrv)
 			badmsg(m, 0);
 	}
 	sendmsg(allocmsg(c, SSH_SMSG_SUCCESS, 0));
@@ -204,7 +204,7 @@ authsrvuser(Conn *c)
 		ns = "/lib/namespace.noworld";
 	else
 		ns = nil;
-	if(auth_chuid(ai, ns) < 0){
+	if(auth_chuid(ai, ns) < 0) {
 		sshlog("auth_chuid to %s: %r", ai->cuid);
 		sysfatal("auth_chuid: %r");
 	}
@@ -229,8 +229,8 @@ sshserverhandshake(Conn *c)
 	 */
 	if((b = Bopen("/mnt/factotum/ctl", OREAD)) == nil)
 		sysfatal("open /mnt/factotum/ctl: %r");
-	while((p = Brdline(b, '\n')) != nil){
-		p[Blinelen(b)-1] = '\0';
+	while((p = Brdline(b, '\n')) != nil) {
+		p[Blinelen(b) - 1] = '\0';
 		if(strstr(p, " proto=rsa ") && strstr(p, " service=sshserve "))
 			break;
 	}
@@ -272,14 +272,10 @@ sshserverhandshake(Conn *c)
 		sysfatal("reading server version: %r");
 
 	/* id string is "SSH-m.n-comment".  We need m=1, n>=5. */
-	if(strncmp(buf, "SSH-", 4) != 0
-	|| strtol(buf+4, &p, 10) != 1
-	|| *p != '.'
-	|| strtol(p+1, &p, 10) < 5
-	|| *p != '-')
+	if(strncmp(buf, "SSH-", 4) != 0 || strtol(buf + 4, &p, 10) != 1 || *p != '.' || strtol(p + 1, &p, 10) < 5 || *p != '-')
 		sysfatal("protocol mismatch; got %s, need SSH-1.x for x>=5", buf);
 
-	for(i=0; i<COOKIELEN; i++)
+	for(i = 0; i < COOKIELEN; i++)
 		c->cookie[i] = fastrand();
 	calcsessid(c);
 	send_ssh_smsg_public_key(c);
@@ -287,7 +283,7 @@ sshserverhandshake(Conn *c)
 	auth_freerpc(rpc);
 	close(afd);
 
-	c->cstate = (*c->cipher->init)(c, 1);		/* turns on encryption */
+	c->cstate = (*c->cipher->init)(c, 1); /* turns on encryption */
 	sendmsg(allocmsg(c, SSH_SMSG_SUCCESS, 0));
 
 	authsrvuser(c);

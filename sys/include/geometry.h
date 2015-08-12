@@ -13,13 +13,13 @@ typedef double Matrix[4][4];
 typedef struct Point3 Point3;
 typedef struct Quaternion Quaternion;
 typedef struct Space Space;
-struct Point3{
+struct Point3 {
 	double x, y, z, w;
 };
-struct Quaternion{
+struct Quaternion {
 	double r, i, j, k;
 };
-struct Space{
+struct Space {
 	Matrix t;
 	Matrix tinv;
 	Space *next;
@@ -95,4 +95,4 @@ void viewport(Space *, Rectangle, double);
 Point3 xformpoint(Point3, Space *, Space *);
 Point3 xformpointd(Point3, Space *, Space *);
 Point3 xformplane(Point3, Space *, Space *);
-#define	radians(d)	((d)*.01745329251994329572)
+#define radians(d) ((d)*.01745329251994329572)

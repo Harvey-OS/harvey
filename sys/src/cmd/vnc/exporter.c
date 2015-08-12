@@ -11,12 +11,11 @@
 #include <libc.h>
 #include "compat.h"
 
-typedef struct Exporter	Exporter;
-struct Exporter
-{
-	int	fd;
-	Chan	**roots;
-	int	nroots;
+typedef struct Exporter Exporter;
+struct Exporter {
+	int fd;
+	Chan **roots;
+	int nroots;
 };
 
 int
@@ -26,10 +25,10 @@ mounter(char *mntpt, int how, int fd, int n)
 	int i, ok, mfd;
 
 	ok = 1;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		snprint(buf, sizeof buf, "%d", i);
 		mfd = dup(fd, -1);
-		if(mount(mfd, -1, mntpt, how, buf) == -1){
+		if(mount(mfd, -1, mntpt, how, buf) == -1) {
 			close(mfd);
 			fprint(2, "can't mount on %s: %r\n", mntpt);
 			ok = 0;
@@ -66,19 +65,19 @@ exporter(Dev **dt, int *fd, int *sfd)
 
 	for(n = 0; dt[n] != nil; n++)
 		;
-	if(!n){
+	if(!n) {
 		werrstr("no devices specified");
 		return 0;
 	}
 
 	ed = errdepth(-1);
-	if(waserror()){
+	if(waserror()) {
 		werrstr(up->error);
 		return 0;
 	}
 
 	roots = smalloc(n * sizeof *roots);
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		(*dt[i]->reset)();
 		(*dt[i]->init)();
 		roots[i] = (*dt[i]->attach)("");
@@ -86,7 +85,7 @@ exporter(Dev **dt, int *fd, int *sfd)
 	poperror();
 	errdepth(ed);
 
-	if(pipe(p) < 0){
+	if(pipe(p) < 0) {
 		werrstr("can't make pipe: %r");
 		return 0;
 	}

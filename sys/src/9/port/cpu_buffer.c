@@ -18,16 +18,16 @@
  * would lead to catastrophic global synchronisation if
  * a global buffer was used.
  */
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-#include        "cpu_buffer.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
+#include "cpu_buffer.h"
 #include <oprofile.h>
 
-#define OP_BUFFER_FLAGS	0
+#define OP_BUFFER_FLAGS 0
 int num_cpus = 8; // FIXME -- where do we get this.
 
 /* we allocate an array of these and set the pointer in mach */
@@ -50,7 +50,8 @@ static int work_enabled;
  * reset these to invalid values; the next sample collected will
  * populate the buffer with proper values to initialize the buffer
  */
-static inline void op_cpu_buffer_reset(int cpu)
+static inline void
+op_cpu_buffer_reset(int cpu)
 {
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
@@ -61,11 +62,11 @@ static inline void op_cpu_buffer_reset(int cpu)
 }
 
 /* returns the remaining free size of data in the entry */
-static inline
-	int op_cpu_buffer_add_data(struct op_entry *entry, unsigned long val)
+static inline int
+op_cpu_buffer_add_data(struct op_entry *entry, unsigned long val)
 {
 	//print_func_entry();
-	if (!entry->size) {
+	if(!entry->size) {
 		//print_func_exit();
 		return 0;
 	}
@@ -77,7 +78,8 @@ static inline
 }
 
 /* returns the size of data in the entry */
-static inline int op_cpu_buffer_get_size(struct op_entry *entry)
+static inline int
+op_cpu_buffer_get_size(struct op_entry *entry)
 {
 	//print_func_entry();
 	//print_func_exit();
@@ -85,12 +87,12 @@ static inline int op_cpu_buffer_get_size(struct op_entry *entry)
 }
 
 /* returns 0 if empty or the size of data including the current value */
-static inline
-	int op_cpu_buffer_get_data(struct op_entry *entry, unsigned long *val)
+static inline int
+op_cpu_buffer_get_data(struct op_entry *entry, unsigned long *val)
 {
 	//print_func_entry();
 	int size = entry->size;
-	if (!size) {
+	if(!size) {
 		//print_func_exit();
 		return 0;
 	}
@@ -101,14 +103,16 @@ static inline
 	return size;
 }
 
-unsigned long oprofile_get_cpu_buffer_size(void)
+unsigned long
+oprofile_get_cpu_buffer_size(void)
 {
 	//print_func_entry();
 	//print_func_exit();
 	return oprofile_cpu_buffer_size;
 }
 
-void oprofile_cpu_buffer_inc_smpl_lost(void)
+void
+oprofile_cpu_buffer_inc_smpl_lost(void)
 {
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
@@ -117,7 +121,8 @@ void oprofile_cpu_buffer_inc_smpl_lost(void)
 	//print_func_exit();
 }
 
-void free_cpu_buffers(void)
+void
+free_cpu_buffers(void)
 {
 	//print_func_entry();
 	free(op_cpu_buffer);
@@ -127,7 +132,8 @@ void free_cpu_buffers(void)
 
 #define RB_EVENT_HDR_SIZE 4
 
-int alloc_cpu_buffers(void)
+int
+alloc_cpu_buffers(void)
 {
 	//print_func_entry();
 	/* should probably start using waserror() here. The fail stuff just gets
@@ -139,19 +145,19 @@ int alloc_cpu_buffers(void)
 	 * So be careful.
 	 */
 	/* what limit? No idea. */
-	if (!opq)
+	if(!opq)
 		opq = qopen(1024, 0, nil, nil);
-	if (!opq)
+	if(!opq)
 		goto fail;
 
 	/* we *really* don't want to block. Losing data is better. */
 	qnoblock(opq, 1);
-	if (!op_cpu_buffer) {
+	if(!op_cpu_buffer) {
 		op_cpu_buffer = smalloc(sizeof(*op_cpu_buffer) * num_cpus);
-		if (!op_cpu_buffer)
+		if(!op_cpu_buffer)
 			goto fail;
 
-		for (i = 0; i < num_cpus; i++) {
+		for(i = 0; i < num_cpus; i++) {
 			struct oprofile_cpu_buffer *b = &op_cpu_buffer[i];
 			b->last_proc = nil;
 			b->last_is_kernel = -1;
@@ -177,7 +183,8 @@ fail:
 	return -1;
 }
 
-void start_cpu_work(void)
+void
+start_cpu_work(void)
 {
 	//print_func_entry();
 
@@ -185,7 +192,8 @@ void start_cpu_work(void)
 	//print_func_exit();
 }
 
-void end_cpu_work(void)
+void
+end_cpu_work(void)
 {
 	//print_func_entry();
 	work_enabled = 0;
@@ -194,7 +202,8 @@ void end_cpu_work(void)
 
 /* placeholder. Not used yet.
  */
-void flush_cpu_work(void)
+void
+flush_cpu_work(void)
 {
 	//print_func_entry();
 
@@ -206,33 +215,35 @@ void flush_cpu_work(void)
 /* Not used since we're not doing per-cpu buffering yet.
  */
 
-struct op_sample *op_cpu_buffer_read_entry(struct op_entry *entry, int cpu)
+struct op_sample *
+op_cpu_buffer_read_entry(struct op_entry *entry, int cpu)
 {
 	//print_func_entry();
 	//print_func_exit();
 	return nil;
 }
 
-static Block *op_cpu_buffer_write_reserve(struct oprofile_cpu_buffer *cpu_buf,
-	struct op_entry *entry, int size)
+static Block *
+op_cpu_buffer_write_reserve(struct oprofile_cpu_buffer *cpu_buf,
+			    struct op_entry *entry, int size)
 {
 	//print_func_entry();
 	// Block *b; this gets some bizarre gcc set but not used error.
 
 	int totalsize = sizeof(struct op_sample) +
-		size * sizeof(entry->sample->data[0]);
+			size * sizeof(entry->sample->data[0]);
 
 	Block *b = cpu_buf->block;
 	/* we might have run out. */
-	if ((! b) || (b->lim - b->wp) < size) {
-		if (b){
+	if((!b) || (b->lim - b->wp) < size) {
+		if(b) {
 			qibwrite(opq, b);
 		}
 		/* For now. Later, we will grab a block off the
 		 * emptyblock queue.
 		 */
 		cpu_buf->block = b = iallocb(oprofile_cpu_buffer_size);
-		if (!b) {
+		if(!b) {
 			print("%s: fail\n", __func__);
 			//print_func_exit();
 			return nil;
@@ -245,12 +256,11 @@ static Block *op_cpu_buffer_write_reserve(struct oprofile_cpu_buffer *cpu_buf,
 	b->wp += totalsize;
 	//print_func_exit();
 	return b;
-
 }
 
 static int
 op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
-			int is_kernel, Proc *proc)
+	    int is_kernel, Proc *proc)
 {
 	Proc *up = externup();
 	//print_func_entry();
@@ -261,39 +271,39 @@ op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 
 	flags = 0;
 
-	if (waserror()) {
+	if(waserror()) {
 		poperror();
 		print("%s: failed\n", __func__);
 		//print_func_exit();
 		return 1;
 	}
 
-	if (backtrace)
+	if(backtrace)
 		flags |= TRACE_BEGIN;
 
 	/* notice a switch from user->kernel or vice versa */
-	is_kernel = ! !is_kernel;
-	if (cpu_buf->last_is_kernel != is_kernel) {
+	is_kernel = !!is_kernel;
+	if(cpu_buf->last_is_kernel != is_kernel) {
 		cpu_buf->last_is_kernel = is_kernel;
 		flags |= KERNEL_CTX_SWITCH;
-		if (is_kernel)
+		if(is_kernel)
 			flags |= IS_KERNEL;
 	}
 
 	/* notice a proc switch */
-	if (cpu_buf->last_proc != proc) {
+	if(cpu_buf->last_proc != proc) {
 		cpu_buf->last_proc = proc;
 		flags |= USER_CTX_SWITCH;
 	}
 
-	if (!flags) {
+	if(!flags) {
 		poperror();
 		/* nothing to do */
 		//print_func_exit();
 		return 0;
 	}
 
-	if (flags & USER_CTX_SWITCH)
+	if(flags & USER_CTX_SWITCH)
 		size = 1;
 	else
 		size = 0;
@@ -303,7 +313,7 @@ op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 	entry.sample->eip = ESCAPE_CODE;
 	entry.sample->event = flags;
 
-	if (size)
+	if(size)
 		op_cpu_buffer_add_data(&entry, (unsigned long)proc);
 
 	poperror();
@@ -313,7 +323,7 @@ op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 
 static inline int
 op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
-			  unsigned long pc, unsigned long event)
+	      unsigned long pc, unsigned long event)
 {
 	Proc *up = externup();
 	//print_func_entry();
@@ -321,7 +331,7 @@ op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
 	struct op_sample *sample;
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
 
-	if (waserror()) {
+	if(waserror()) {
 		poperror();
 		print("%s: failed\n", __func__);
 		//print_func_exit();
@@ -348,14 +358,14 @@ op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
  */
 static int
 log_sample(struct oprofile_cpu_buffer *cpu_buf, unsigned long pc,
-		   unsigned long backtrace, int is_kernel, unsigned long event,
-		   Proc *proc)
+	   unsigned long backtrace, int is_kernel, unsigned long event,
+	   Proc *proc)
 {
 	//print_func_entry();
 	Proc *tsk = proc ? proc : externup();
 	cpu_buf->sample_received++;
 
-	if (pc == ESCAPE_CODE) {
+	if(pc == ESCAPE_CODE) {
 		cpu_buf->sample_invalid_eip++;
 		//print_func_exit();
 		return 0;
@@ -366,10 +376,10 @@ log_sample(struct oprofile_cpu_buffer *cpu_buf, unsigned long pc,
 	 * what a cluster.
 	 */
 	lock(&cpu_buf->lock);
-	if (op_add_code(cpu_buf, backtrace, is_kernel, tsk))
+	if(op_add_code(cpu_buf, backtrace, is_kernel, tsk))
 		goto fail;
 
-	if (op_add_sample(cpu_buf, pc, event))
+	if(op_add_sample(cpu_buf, pc, event))
 		goto fail;
 	unlock(&cpu_buf->lock);
 
@@ -382,32 +392,35 @@ fail:
 	return 0;
 }
 
-static inline void oprofile_begin_trace(struct oprofile_cpu_buffer *cpu_buf)
+static inline void
+oprofile_begin_trace(struct oprofile_cpu_buffer *cpu_buf)
 {
 	//print_func_entry();
 	cpu_buf->tracing = 1;
 	//print_func_exit();
 }
 
-static inline void oprofile_end_trace(struct oprofile_cpu_buffer *cpu_buf)
+static inline void
+oprofile_end_trace(struct oprofile_cpu_buffer *cpu_buf)
 {
 	//print_func_entry();
 	cpu_buf->tracing = 0;
 	//print_func_exit();
 }
 
-void oprofile_cpubuf_flushone(int core, int newbuf)
+void
+oprofile_cpubuf_flushone(int core, int newbuf)
 {
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf;
 	cpu_buf = &op_cpu_buffer[core];
 	lock(&cpu_buf->lock);
-	if (cpu_buf->block) {
+	if(cpu_buf->block) {
 		print("Core %d has data\n", core);
 		qibwrite(opq, cpu_buf->block);
 		print("After qibwrite in %s, opq len %d\n", __func__, qlen(opq));
 	}
-	if (newbuf)
+	if(newbuf)
 		cpu_buf->block = iallocb(oprofile_cpu_buffer_size);
 	else
 		cpu_buf->block = nil;
@@ -415,7 +428,8 @@ void oprofile_cpubuf_flushone(int core, int newbuf)
 	//print_func_exit();
 }
 
-void oprofile_cpubuf_flushall(int alloc)
+void
+oprofile_cpubuf_flushall(int alloc)
 {
 	//print_func_entry();
 	int core;
@@ -426,7 +440,8 @@ void oprofile_cpubuf_flushall(int alloc)
 	//print_func_exit();
 }
 
-void oprofile_control_trace(int onoff)
+void
+oprofile_control_trace(int onoff)
 {
 	//print_func_entry();
 	int core;
@@ -436,7 +451,7 @@ void oprofile_control_trace(int onoff)
 		cpu_buf = &op_cpu_buffer[core];
 		cpu_buf->tracing = onoff;
 
-		if (onoff) {
+		if(onoff) {
 			print("Enable tracing on %d\n", core);
 			continue;
 		}
@@ -449,8 +464,8 @@ void oprofile_control_trace(int onoff)
 
 static inline void
 __oprofile_add_ext_sample(unsigned long pc,
-						  void /*struct pt_regs */ *const regs,
-						  unsigned long event, int is_kernel, Proc *proc)
+			  void /*struct pt_regs */ *const regs,
+			  unsigned long event, int is_kernel, Proc *proc)
 {
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
@@ -460,14 +475,14 @@ __oprofile_add_ext_sample(unsigned long pc,
 	 * if log_sample() fail we can't backtrace since we lost the
 	 * source of this event
 	 */
-	if (!log_sample(cpu_buf, pc, backtrace, is_kernel, event, proc))
-		/* failed */
+	if(!log_sample(cpu_buf, pc, backtrace, is_kernel, event, proc))
+	/* failed */
 	{
 		//print_func_exit();
 		return;
 	}
 
-	if (!backtrace) {
+	if(!backtrace) {
 		//print_func_exit();
 		return;
 	}
@@ -479,38 +494,41 @@ __oprofile_add_ext_sample(unsigned long pc,
 	//print_func_exit();
 }
 
-void oprofile_add_ext_hw_sample(unsigned long pc,
-				Ureg *regs,
-				unsigned long event, int is_kernel,
-				Proc *proc)
+void
+oprofile_add_ext_hw_sample(unsigned long pc,
+			   Ureg *regs,
+			   unsigned long event, int is_kernel,
+			   Proc *proc)
 {
 	//print_func_entry();
 	__oprofile_add_ext_sample(pc, regs, event, is_kernel, proc);
 	//print_func_exit();
 }
 
-void oprofile_add_ext_sample(unsigned long pc,
-							 void /*struct pt_regs */ *const regs,
-							 unsigned long event, int is_kernel)
+void
+oprofile_add_ext_sample(unsigned long pc,
+			void /*struct pt_regs */ *const regs,
+			unsigned long event, int is_kernel)
 {
 	//print_func_entry();
 	__oprofile_add_ext_sample(pc, regs, event, is_kernel, nil);
 	//print_func_exit();
 }
 
-void oprofile_add_sample(void /*struct pt_regs */ *const regs,
-						 unsigned long event)
+void
+oprofile_add_sample(void /*struct pt_regs */ *const regs,
+		    unsigned long event)
 {
 	//print_func_entry();
 	int is_kernel;
 	unsigned long pc;
 
-	if (regs) {
-		is_kernel = 0;	// FIXME!user_mode(regs);
+	if(regs) {
+		is_kernel = 0; // FIXME!user_mode(regs);
 		pc = 0;	// FIXME profile_pc(regs);
 	} else {
-		is_kernel = 0;	/* This value will not be used */
-		pc = ESCAPE_CODE;	/* as this causes an early return. */
+		is_kernel = 0;    /* This value will not be used */
+		pc = ESCAPE_CODE; /* as this causes an early return. */
 	}
 
 	__oprofile_add_ext_sample(pc, regs, event, is_kernel, nil);
@@ -532,10 +550,10 @@ oprofile_write_reserve(struct op_entry *entry,
 	//print_func_entry();
 	struct op_sample *sample;
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
-	int is_kernel = 0;			// FIXME!user_mode(regs);
+	int is_kernel = 0; // FIXME!user_mode(regs);
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
 
-	if (waserror()) {
+	if(waserror()) {
 		print("%s: failed\n", __func__);
 		poperror();
 		goto fail;
@@ -543,13 +561,13 @@ oprofile_write_reserve(struct op_entry *entry,
 	cpu_buf->sample_received++;
 
 	/* no backtraces for samples with data */
-	if (op_add_code(cpu_buf, 0, is_kernel, externup()))
+	if(op_add_code(cpu_buf, 0, is_kernel, externup()))
 		goto fail;
 
 	op_cpu_buffer_write_reserve(cpu_buf, entry, size + 2);
 	sample = entry->sample;
 	sample->eip = ESCAPE_CODE;
-	sample->event = 0;	/* no flags */
+	sample->event = 0; /* no flags */
 
 	op_cpu_buffer_add_data(entry, code);
 	op_cpu_buffer_add_data(entry, pc);
@@ -562,10 +580,11 @@ fail:
 	//print_func_exit();
 }
 
-int oprofile_add_data(struct op_entry *entry, unsigned long val)
+int
+oprofile_add_data(struct op_entry *entry, unsigned long val)
 {
 	//print_func_entry();
-	if (!entry->event) {
+	if(!entry->event) {
 		//print_func_exit();
 		return 0;
 	}
@@ -573,15 +592,16 @@ int oprofile_add_data(struct op_entry *entry, unsigned long val)
 	return op_cpu_buffer_add_data(entry, val);
 }
 
-int oprofile_add_data64(struct op_entry *entry, uint64_t val)
+int
+oprofile_add_data64(struct op_entry *entry, uint64_t val)
 {
 	//print_func_entry();
-	if (!entry->event) {
+	if(!entry->event) {
 		//print_func_exit();
 		return 0;
 	}
-	if (op_cpu_buffer_get_size(entry) < 2)
-		/*
+	if(op_cpu_buffer_get_size(entry) < 2)
+	/*
 		 * the function returns 0 to indicate a too small
 		 * buffer, even if there is some space left
 		 */
@@ -589,15 +609,16 @@ int oprofile_add_data64(struct op_entry *entry, uint64_t val)
 		//print_func_exit();
 		return 0;
 	}
-	if (!op_cpu_buffer_add_data(entry, (uint32_t) val)) {
+	if(!op_cpu_buffer_add_data(entry, (uint32_t)val)) {
 		//print_func_exit();
 		return 0;
 	}
 	//print_func_exit();
-	return op_cpu_buffer_add_data(entry, (uint32_t) (val >> 32));
+	return op_cpu_buffer_add_data(entry, (uint32_t)(val >> 32));
 }
 
-int oprofile_write_commit(struct op_entry *entry)
+int
+oprofile_write_commit(struct op_entry *entry)
 {
 	//print_func_entry();
 	/* not much to do at present. In future, we might write the Block
@@ -607,7 +628,8 @@ int oprofile_write_commit(struct op_entry *entry)
 	return 0;
 }
 
-void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
+void
+oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
 {
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
@@ -615,14 +637,15 @@ void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
 	//print_func_exit();
 }
 
-void oprofile_add_trace(unsigned long pc)
+void
+oprofile_add_trace(unsigned long pc)
 {
-	if (! op_cpu_buffer)
+	if(!op_cpu_buffer)
 		return;
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
 
-	if (!cpu_buf->tracing) {
+	if(!cpu_buf->tracing) {
 		//print_func_exit();
 		return;
 	}
@@ -631,9 +654,9 @@ void oprofile_add_trace(unsigned long pc)
 	 * broken frame can give an eip with the same value as an
 	 * escape code, abort the trace if we get it
 	 */
-	if (pc == ESCAPE_CODE)
+	if(pc == ESCAPE_CODE)
 		goto fail;
-	if (op_add_sample(cpu_buf, pc, fastticks2ns(rdtsc())))
+	if(op_add_sample(cpu_buf, pc, fastticks2ns(rdtsc())))
 		goto fail;
 
 	//print_func_exit();
@@ -659,16 +682,17 @@ fail:
  *
  * Third and following words are PCs, there must be at least one of them.
  */
-void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
+void
+oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
 {
 	/* version 1. */
-	uint64_t descriptor = 0xee01ULL<<48;
-	if (! op_cpu_buffer)
+	uint64_t descriptor = 0xee01ULL << 48;
+	if(!op_cpu_buffer)
 		return;
 	//print_func_entry();
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
 
-	if (!cpu_buf->tracing) {
+	if(!cpu_buf->tracing) {
 		//print_func_exit();
 		return;
 	}
@@ -686,7 +710,7 @@ void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
 	/* write_reserve always assumes passed-in-size + 2.
 	 * backtrace_depth should always be > 0.
 	 */
-	if (!op_cpu_buffer_write_reserve(cpu_buf, &entry, nr_pcs))
+	if(!op_cpu_buffer_write_reserve(cpu_buf, &entry, nr_pcs))
 		return;
 
 	/* we are changing the sample format, but not the struct
@@ -702,7 +726,8 @@ void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
 	return;
 }
 
-void oprofile_add_userpc(uintptr_t pc)
+void
+oprofile_add_userpc(uintptr_t pc)
 {
 	struct oprofile_cpu_buffer *cpu_buf;
 	uint32_t pcoreid = machp()->machno;
@@ -710,14 +735,14 @@ void oprofile_add_userpc(uintptr_t pc)
 	// Block *b; this gets some bizarre gcc set but not used error.
 	uint64_t descriptor = (0xee01ULL << 48) | (pcoreid << 16) | 1;
 
-	if (!op_cpu_buffer)
+	if(!op_cpu_buffer)
 		return;
 	cpu_buf = &op_cpu_buffer[pcoreid];
-	if (!cpu_buf->tracing)
+	if(!cpu_buf->tracing)
 		return;
 	/* write_reserve always assumes passed-in-size + 2.  need room for 1 PC. */
 	Block *b = op_cpu_buffer_write_reserve(cpu_buf, &entry, 1);
-	if (!b)
+	if(!b)
 		return;
 	entry.sample->eip = descriptor;
 	entry.sample->event = fastticks2ns(rdtsc());
@@ -739,8 +764,8 @@ oprofread(void *va, int n)
 {
 	int len = qlen(opq);
 	struct oprofile_cpu_buffer *cpu_buf = &op_cpu_buffer[machp()->machno];
-	if (len == 0) {
-		if (cpu_buf->tracing == 0)
+	if(len == 0) {
+		if(cpu_buf->tracing == 0)
 			return 0;
 	}
 

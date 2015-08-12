@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-RSApub*
+RSApub *
 rsaprivtopub(RSApriv *priv)
 {
 	RSApub *pub;

@@ -9,57 +9,57 @@
 
 #include "a.h"
 
-void*
+void *
 emalloc(uint n)
 {
 	void *v;
-	
+
 	v = mallocz(n, 1);
 	if(v == nil)
 		sysfatal("out of memory");
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
-	
+
 	t = strdup(s);
 	if(t == nil)
 		sysfatal("out of memory");
 	return t;
 }
 
-Rune*
+Rune *
 erunestrdup(Rune *s)
 {
 	Rune *t;
 
-	t = emalloc(sizeof(Rune)*(runestrlen(s)+1));
+	t = emalloc(sizeof(Rune) * (runestrlen(s) + 1));
 	if(t == nil)
 		sysfatal("out of memory");
 	runestrcpy(t, s);
 	return t;
 }
 
-void*
+void *
 erealloc(void *ov, uint n)
 {
 	void *v;
-	
+
 	v = realloc(ov, n);
 	if(v == nil)
 		sysfatal("out of memory");
 	return v;
 }
 
-Rune*
+Rune *
 erunesmprint(char *fmt, ...)
 {
 	Rune *s;
 	va_list arg;
-	
+
 	va_start(arg, fmt);
 	s = runevsmprint(fmt, arg);
 	va_end(arg);
@@ -68,12 +68,12 @@ erunesmprint(char *fmt, ...)
 	return s;
 }
 
-char*
+char *
 esmprint(char *fmt, ...)
 {
 	char *s;
 	va_list arg;
-	
+
 	va_start(arg, fmt);
 	s = vsmprint(fmt, arg);
 	va_end(arg);
@@ -86,7 +86,7 @@ void
 warn(char *fmt, ...)
 {
 	va_list arg;
-	
+
 	fprint(2, "htmlroff: %L: ");
 	va_start(arg, fmt);
 	vfprint(2, fmt, arg);
@@ -100,26 +100,25 @@ warn(char *fmt, ...)
  * are identified by their pointers, so no mutable strings!
  */
 typedef struct Lhash Lhash;
-struct Lhash
-{
+struct Lhash {
 	char *s;
 	Lhash *next;
 	Rune r[1];
 };
 static Lhash *hash[1127];
 
-Rune*
+Rune *
 L(char *s)
 {
 	Rune *p;
 	Lhash *l;
 	uint h;
 
-	h = (uintptr)s%nelem(hash);
-	for(l=hash[h]; l; l=l->next)
+	h = (uintptr)s % nelem(hash);
+	for(l = hash[h]; l; l = l->next)
 		if(l->s == s)
 			return l->r;
-	l = emalloc(sizeof *l+(utflen(s)+1)*sizeof(Rune));
+	l = emalloc(sizeof *l + (utflen(s) + 1) * sizeof(Rune));
 	p = l->r;
 	l->s = s;
 	while(*s)
@@ -129,4 +128,3 @@ L(char *s)
 	hash[h] = l;
 	return l->r;
 }
-

@@ -18,7 +18,7 @@
 #include "dat.h"
 #include "fns.h"
 
-void*
+void *
 erealloc(void *a, uint n)
 {
 	a = realloc(a, n);
@@ -28,7 +28,7 @@ erealloc(void *a, uint n)
 	return a;
 }
 
-void*
+void *
 emalloc(uint n)
 {
 	void *a;
@@ -40,7 +40,7 @@ emalloc(uint n)
 	return a;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	s = strdup(s);
@@ -50,19 +50,19 @@ estrdup(char *s)
 	return s;
 }
 
-char*
+char *
 estredup(char *s, char *e)
 {
 	char *t;
 
-	t = emalloc(e-s+1);
-	memmove(t, s, e-s);
-	t[e-s] = '\0';
+	t = emalloc(e - s + 1);
+	memmove(t, s, e - s);
+	t[e - s] = '\0';
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
 
-char*
+char *
 estrmanydup(char *s, ...)
 {
 	char *p, *t;
@@ -71,25 +71,25 @@ estrmanydup(char *s, ...)
 
 	len = strlen(s);
 	va_start(arg, s);
-	while((p = va_arg(arg, char*)) != nil)
+	while((p = va_arg(arg, char *)) != nil)
 		len += strlen(p);
 	len++;
 
 	t = emalloc(len);
 	strcpy(t, s);
 	va_start(arg, s);
-	while((p = va_arg(arg, char*)) != nil)
+	while((p = va_arg(arg, char *)) != nil)
 		strcat(t, p);
 	return t;
 }
 
-char*
+char *
 strlower(char *s)
 {
 	char *t;
 
-	for(t=s; *t; t++)
+	for(t = s; *t; t++)
 		if('A' <= *t && *t <= 'Z')
-			*t += 'a'-'A';
+			*t += 'a' - 'A';
 	return s;
 }

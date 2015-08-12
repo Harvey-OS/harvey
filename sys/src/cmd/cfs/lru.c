@@ -42,7 +42,7 @@ void
 lruref(Lru *h, Lru *m)
 {
 	if(h->lprev == m)
-		return;		/* alread at end of list */
+		return; /* alread at end of list */
 
 	/*
 	 *  remove from list
@@ -66,7 +66,7 @@ void
 lruderef(Lru *h, Lru *m)
 {
 	if(h->lnext == m)
-		return;		/* alread at head of list */
+		return; /* alread at head of list */
 
 	/*
 	 *  remove from list

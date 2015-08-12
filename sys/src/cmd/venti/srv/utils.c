@@ -33,8 +33,7 @@ nameok(char *name)
 	if(name == nil)
 		return -1;
 	for(t = name; c = *t; t++)
-		if(t - name >= ANameSize
-		|| c < ' ' || c >= 0x7f)
+		if(t - name >= ANameSize || c < ' ' || c >= 0x7f)
 			return -1;
 	return 0;
 }
@@ -48,7 +47,7 @@ stru32int(char *s, uint32_t *r)
 
 	m = TWID32 / 10;
 	n = 0;
-	for(t = s; ; t++){
+	for(t = s;; t++) {
 		c = *t;
 		if(c < '0' || c > '9')
 			break;
@@ -72,7 +71,7 @@ stru64int(char *s, uint64_t *r)
 
 	m = TWID64 / 10;
 	n = 0;
-	for(t = s; ; t++){
+	for(t = s;; t++) {
 		c = *t;
 		if(c < '0' || c > '9')
 			break;
@@ -93,7 +92,7 @@ vttypevalid(int type)
 	return type < VtMaxType;
 }
 
-static char*
+static char *
 logit(int severity, char *fmt, va_list args)
 {
 	char *s;
@@ -101,7 +100,7 @@ logit(int severity, char *fmt, va_list args)
 	s = vsmprint(fmt, args);
 	if(s == nil)
 		return nil;
-	if(severity != EOk){
+	if(severity != EOk) {
 		if(argv0 == nil)
 			fprint(2, "%T %s: err %d: %s\n", argv0, severity, s);
 		else
@@ -121,7 +120,7 @@ seterr(int severity, char *fmt, ...)
 	va_end(args);
 	if(s == nil)
 		werrstr("error setting error");
-	else{
+	else {
 		werrstr("%s", s);
 		free(s);
 	}
@@ -153,14 +152,15 @@ emalloc(uint32_t n)
 	void *p;
 
 	p = malloc(n);
-	if(p == nil){
+	if(p == nil) {
 		if(abortonmem)
 			abort();
 		sysfatal("out of memory allocating %lud", n);
 	}
 	memset(p, 0xa5, n);
 	setmalloctag(p, getcallerpc(&n));
-if(0)print("emalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+	if(0)
+		print("emalloc %p-%p by %#p\n", p, (char *)p + n, getcallerpc(&n));
 	return p;
 }
 
@@ -170,14 +170,15 @@ ezmalloc(uint32_t n)
 	void *p;
 
 	p = malloc(n);
-	if(p == nil){
+	if(p == nil) {
 		if(abortonmem)
 			abort();
 		sysfatal("out of memory allocating %lud", n);
 	}
 	memset(p, 0, n);
 	setmalloctag(p, getcallerpc(&n));
-if(0)print("ezmalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+	if(0)
+		print("ezmalloc %p-%p by %#p\n", p, (char *)p + n, getcallerpc(&n));
 	return p;
 }
 
@@ -185,13 +186,14 @@ void *
 erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
-	if(p == nil){
+	if(p == nil) {
 		if(abortonmem)
 			abort();
 		sysfatal("out of memory allocating %lud", n);
 	}
 	setrealloctag(p, getcallerpc(&p));
-if(0)print("erealloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&p));
+	if(0)
+		print("erealloc %p-%p by %#p\n", p, (char *)p + n, getcallerpc(&p));
 	return p;
 }
 
@@ -205,7 +207,8 @@ estrdup(char *s)
 	t = emalloc(n);
 	memmove(t, s, n);
 	setmalloctag(t, getcallerpc(&s));
-if(0)print("estrdup %p-%p by %#p\n", t, (char*)t+n, getcallerpc(&s));
+	if(0)
+		print("estrdup %p-%p by %#p\n", t, (char *)t + n, getcallerpc(&s));
 	return t;
 }
 
@@ -224,9 +227,9 @@ u64log2(uint64_t v)
 }
 
 int
-vtproc(void (*fn)(void*), void *arg)
+vtproc(void (*fn)(void *), void *arg)
 {
-	proccreate(fn, arg, 256*1024);
+	proccreate(fn, arg, 256 * 1024);
 	return 0;
 }
 
@@ -235,9 +238,9 @@ ientryfmt(Fmt *fmt)
 {
 	IEntry *ie;
 
-	ie = va_arg(fmt->args, IEntry*);
+	ie = va_arg(fmt->args, IEntry *);
 	return fmtprint(fmt, "%V %22lld %3d %5d %3d",
-		ie->score, ie->ia.addr, ie->ia.type, ie->ia.size, ie->ia.blocks);
+			ie->score, ie->ia.addr, ie->ia.type, ie->ia.size, ie->ia.blocks);
 }
 
 void
@@ -253,16 +256,16 @@ ventifmtinstall(void)
 uint
 msec(void)
 {
-	return nsec()/1000000;
+	return nsec() / 1000000;
 }
 
 uint
 countbits(uint n)
 {
-	n = (n&0x55555555)+((n>>1)&0x55555555);
-	n = (n&0x33333333)+((n>>2)&0x33333333);
-	n = (n&0x0F0F0F0F)+((n>>4)&0x0F0F0F0F);
-	n = (n&0x00FF00FF)+((n>>8)&0x00FF00FF);
-	n = (n&0x0000FFFF)+((n>>16)&0x0000FFFF);
+	n = (n & 0x55555555) + ((n >> 1) & 0x55555555);
+	n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
+	n = (n & 0x0F0F0F0F) + ((n >> 4) & 0x0F0F0F0F);
+	n = (n & 0x00FF00FF) + ((n >> 8) & 0x00FF00FF);
+	n = (n & 0x0000FFFF) + ((n >> 16) & 0x0000FFFF);
 	return n;
 }

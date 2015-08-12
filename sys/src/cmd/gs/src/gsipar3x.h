@@ -27,10 +27,10 @@
 /* Extended ImageType 3 ("3x") image parameter definition */
 
 #ifndef gsipar3x_INCLUDED
-#  define gsipar3x_INCLUDED
+#define gsipar3x_INCLUDED
 
 #include "gsiparam.h"
-#include "gsiparm3.h"		/* for interleave types */
+#include "gsiparm3.h" /* for interleave types */
 
 /*
  * An ImageType 3x image is the transparency-capable extension of an
@@ -52,25 +52,25 @@
  * InterleaveType 2 (interleaved scan lines) is not allowed.
  */
 typedef struct gs_image3x_mask_s {
-    int InterleaveType;
-    float Matte[GS_CLIENT_COLOR_MAX_COMPONENTS];
-    bool has_Matte;
-    /*
+	int InterleaveType;
+	float Matte[GS_CLIENT_COLOR_MAX_COMPONENTS];
+	bool has_Matte;
+	/*
      * Note that the ColorSpaces in the MaskDicts are ignored.
      * Note also that MaskDict.BitsPerComponent may be zero, which
      * indicates that the given mask is not supplied.
      */
-    gs_data_image_t MaskDict;
+	gs_data_image_t MaskDict;
 } gs_image3x_mask_t;
 typedef struct gs_image3x_s {
-    gs_pixel_image_common;	/* DataDict */
-    gs_image3x_mask_t Opacity, Shape; /* ...MaskDict */
+	gs_pixel_image_common;		  /* DataDict */
+	gs_image3x_mask_t Opacity, Shape; /* ...MaskDict */
 } gs_image3x_t;
 
 /* As noted above, the ColorSpaces in the MaskDicts are ignored. */
-#define private_st_gs_image3x()	/* in gximag3x.c */\
-  gs_private_st_suffix_add0(st_gs_image3x, gs_image3x_t, "gs_image3x_t",\
-    image3x_enum_ptrs, image3x_reloc_ptrs, st_gs_pixel_image)
+#define private_st_gs_image3x() /* in gximag3x.c */                            \
+	gs_private_st_suffix_add0(st_gs_image3x, gs_image3x_t, "gs_image3x_t", \
+				  image3x_enum_ptrs, image3x_reloc_ptrs, st_gs_pixel_image)
 
 /*
  * Initialize an ImageType 3x image.

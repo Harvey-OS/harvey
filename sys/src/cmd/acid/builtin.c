@@ -17,84 +17,82 @@
 #include "acid.h"
 #include "y.tab.h"
 
-void	cvtatof(Node*, Node*);
-void	cvtatoi(Node*, Node*);
-void	cvtitoa(Node*, Node*);
-void	bprint(Node*, Node*);
-void	funcbound(Node*, Node*);
-void	printto(Node*, Node*);
-void	getfile(Node*, Node*);
-void	fmt(Node*, Node*);
-void	pcfile(Node*, Node*);
-void	pcline(Node*, Node*);
-void	setproc(Node*, Node*);
-void	strace(Node*, Node*);
-void	follow(Node*, Node*);
-void	reason(Node*, Node*);
-void	newproc(Node*, Node*);
-void	startstop(Node*, Node*);
-void	match(Node*, Node*);
-void	status(Node*, Node*);
-void	kill(Node*,Node*);
-void	waitstop(Node*, Node*);
-void	stop(Node*, Node*);
-void	start(Node*, Node*);
-void	filepc(Node*, Node*);
-void	doerror(Node*, Node*);
-void	rc(Node*, Node*);
-void	doaccess(Node*, Node*);
-void	map(Node*, Node*);
-void	readfile(Node*, Node*);
-void	interpret(Node*, Node*);
-void	include(Node*, Node*);
-void	regexp(Node*, Node*);
-void	dosysr1(Node*, Node*);
-void	fmtof(Node*, Node*) ;
-void	dofmtsize(Node*, Node*) ;
+void cvtatof(Node *, Node *);
+void cvtatoi(Node *, Node *);
+void cvtitoa(Node *, Node *);
+void bprint(Node *, Node *);
+void funcbound(Node *, Node *);
+void printto(Node *, Node *);
+void getfile(Node *, Node *);
+void fmt(Node *, Node *);
+void pcfile(Node *, Node *);
+void pcline(Node *, Node *);
+void setproc(Node *, Node *);
+void strace(Node *, Node *);
+void follow(Node *, Node *);
+void reason(Node *, Node *);
+void newproc(Node *, Node *);
+void startstop(Node *, Node *);
+void match(Node *, Node *);
+void status(Node *, Node *);
+void kill(Node *, Node *);
+void waitstop(Node *, Node *);
+void stop(Node *, Node *);
+void start(Node *, Node *);
+void filepc(Node *, Node *);
+void doerror(Node *, Node *);
+void rc(Node *, Node *);
+void doaccess(Node *, Node *);
+void map(Node *, Node *);
+void readfile(Node *, Node *);
+void interpret(Node *, Node *);
+void include(Node *, Node *);
+void regexp(Node *, Node *);
+void dosysr1(Node *, Node *);
+void fmtof(Node *, Node *);
+void dofmtsize(Node *, Node *);
 
 typedef struct Btab Btab;
-struct Btab
-{
-	char	*name;
-	void	(*fn)(Node*, Node*);
+struct Btab {
+	char *name;
+	void (*fn)(Node *, Node *);
 } tab[] =
-{
-	"atof",		cvtatof,
-	"atoi",		cvtatoi,
-	"error",	doerror,
-	"file",		getfile,
-	"readfile",	readfile,
-	"access",	doaccess,
-	"filepc",	filepc,
-	"fnbound",	funcbound,
-	"fmt",		fmt,
-	"follow",	follow,
-	"itoa",		cvtitoa,
-	"kill",		kill,
-	"match",	match,
-	"newproc",	newproc,
-	"pcfile",	pcfile,
-	"pcline",	pcline,
-	"print",	bprint,
-	"printto",	printto,
-	"rc",		rc,
-	"reason",	reason,
-	"setproc",	setproc,
-	"start",	start,
-	"startstop",	startstop,
-	"status",	status,
-	"stop",		stop,
-	"strace",	strace,
-	"sysr1",	dosysr1,
-	"waitstop",	waitstop,
-	"map",		map,
-	"interpret",	interpret,
-	"include",	include,
-	"regexp",	regexp,
-	"fmtof",	fmtof,
-	"fmtsize",	dofmtsize,
-	0
-};
+    {
+     "atof", cvtatof,
+     "atoi", cvtatoi,
+     "error", doerror,
+     "file", getfile,
+     "readfile", readfile,
+     "access", doaccess,
+     "filepc", filepc,
+     "fnbound", funcbound,
+     "fmt", fmt,
+     "follow", follow,
+     "itoa", cvtitoa,
+     "kill", kill,
+     "match", match,
+     "newproc", newproc,
+     "pcfile", pcfile,
+     "pcline", pcline,
+     "print", bprint,
+     "printto", printto,
+     "rc", rc,
+     "reason", reason,
+     "setproc", setproc,
+     "start", start,
+     "startstop", startstop,
+     "status", status,
+     "stop", stop,
+     "strace", strace,
+     "sysr1", dosysr1,
+     "waitstop", waitstop,
+     "map", map,
+     "interpret", interpret,
+     "include", include,
+     "regexp", regexp,
+     "fmtof", fmtof,
+     "fmtsize", dofmtsize,
+     0};
 
 char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
 
@@ -129,10 +127,10 @@ installbuiltin(void)
 }
 
 void
-dosysr1(Node *r, Node*)
+dosysr1(Node *r, Node *)
 {
 	extern int sysr1(void);
-	
+
 	r->op = OCONST;
 	r->type = TINT;
 	r->fmt = 'D';
@@ -212,7 +210,7 @@ newproc(Node *r, Node *args)
 		memmove(buf, res.string->string, res.string->len);
 		buf[res.string->len] = '\0';
 		p = buf;
-		e = buf+res.string->len;
+		e = buf + res.string->len;
 		for(;;) {
 			while(p < e && (*p == '\t' || *p == ' '))
 				*p++ = '\0';
@@ -368,7 +366,7 @@ follow(Node *r, Node *args)
 		error("follow(addr): arg type");
 
 	n = (*machdata->foll)(cormap, res.ival, rget, f);
-	if (n < 0)
+	if(n < 0)
 		error("follow(addr): %r");
 	tail = &r->l;
 	for(i = 0; i < n; i++) {
@@ -395,7 +393,7 @@ funcbound(Node *r, Node *args)
 		error("fnbound(addr): arg type");
 
 	n = fnbound(res.ival, bounds);
-	if (n != 0) {
+	if(n != 0) {
 		r->l = al(TINT);
 		l = r->l;
 		l->ival = bounds[0];
@@ -531,8 +529,8 @@ rc(Node *r, Node *args)
 	}
 	p = w->msg;
 	q = strrchr(p, ':');
-	if (q)
-		p = q+1;
+	if(q)
+		p = q + 1;
 
 	r->op = OCONST;
 	r->type = TSTRING;
@@ -569,7 +567,7 @@ doaccess(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->ival = 0;		
+	r->ival = 0;
 	if(access(res.string->string, 4) == 0)
 		r->ival = 1;
 }
@@ -646,9 +644,8 @@ getfile(Node *r, Node *args)
 				break;
 			s = strnodlen(0, n);
 			Bread(bp, s->string, n);
-		}
-		else
-			s = strnodlen(p, n-1);
+		} else
+			s = strnodlen(p, n - 1);
 
 		new = al(TSTRING);
 		new->string = s;
@@ -700,32 +697,32 @@ static int
 acidfmt(char *fmt, char *buf, int blen)
 {
 	char *r, *w, *e;
-	
+
 	w = buf;
-	e = buf+blen;
-	for(r=fmt; *r; r++){
+	e = buf + blen;
+	for(r = fmt; *r; r++) {
 		if(w >= e)
 			return -1;
-		if(*r != '%'){
+		if(*r != '%') {
 			*w++ = *r;
 			continue;
 		}
-		if(*r == '%'){
+		if(*r == '%') {
 			*w++ = *r++;
-			if(*r == '%'){
+			if(*r == '%') {
 				if(w >= e)
 					return -1;
 				*w++ = *r;
 				continue;
 			}
-			while(*r && strchr(fmtflags, *r)){
+			while(*r && strchr(fmtflags, *r)) {
 				if(w >= e)
 					return -1;
 				*w++ = *r++;
 			}
 			if(*r == 0 || strchr(fmtverbs, *r) == nil)
 				return -1;
-			if(w+3 > e)
+			if(w + 3 > e)
 				return -1;
 			*w++ = 'l';
 			*w++ = 'l';
@@ -748,8 +745,8 @@ cvtitoa(Node *r, Node *args)
 	char buf[128], fmt[32];
 
 	if(args == 0)
-err:
-		error("itoa(number [, fmt]): arg count");
+	err:
+	error("itoa(number [, fmt]): arg count");
 	na = 0;
 	flatten(av, args);
 	if(na == 0 || na > 2)
@@ -759,7 +756,7 @@ err:
 		error("itoa(number [, fmt]): arg type");
 	ival = res.ival;
 	strncpy(fmt, "%lld", sizeof(fmt));
-	if(na == 2){
+	if(na == 2) {
 		expr(av[1], &res);
 		if(res.type != TSTRING)
 			error("itoa(number [, fmt]): fmt type");
@@ -774,7 +771,7 @@ err:
 	r->fmt = 's';
 }
 
-List*
+List *
 mapent(Map *m)
 {
 	int i;
@@ -838,12 +835,12 @@ map(Node *r, Node *args)
 			i = findseg(m, ent);
 		}
 		if(i < 0)
-			error("%s is not a map entry", ent);	
+			error("%s is not a map entry", ent);
 		l = l->next;
 		if(l->type != TINT)
 			error("map entry not int");
 		m->seg[i].b = l->ival;
-		if (strcmp(ent, "text") == 0)
+		if(strcmp(ent, "text") == 0)
 			textseg(l->ival, &fhdr);
 		l = l->next;
 		if(l->type != TINT)
@@ -870,7 +867,7 @@ map(Node *r, Node *args)
 	}
 }
 
-void 
+void
 flatten(Node **av, Node *n)
 {
 	if(n == 0)
@@ -918,7 +915,7 @@ strace(Node *r, Node *args)
 		error("strace(pc, sp, link): link bad type");
 
 	tracelist = 0;
-	if ((*machdata->ctrace)(cormap, pc, sp, res.ival, trlist) <= 0)
+	if((*machdata->ctrace)(cormap, pc, sp, res.ival, trlist) <= 0)
 		error("no stack frame: %r");
 	r->type = TLIST;
 	r->l = tracelist;
@@ -988,7 +985,7 @@ patom(char type, Store *res)
 		break;
 	case 'C':
 		if(res->ival < ' ' || res->ival >= 0x7f)
-			Bprint(bout, "%3d", (int)res->ival&0xff);
+			Bprint(bout, "%3d", (int)res->ival & 0xff);
 		else
 			Bprint(bout, "%3c", (int)res->ival);
 		break;
@@ -999,20 +996,20 @@ patom(char type, Store *res)
 		memset(buf, '0', 34);
 		buf[1] = 'b';
 		for(i = 0; i < 32; i++) {
-			if(res->ival & (1<<i))
-				buf[33-i] = '1';
+			if(res->ival & (1 << i))
+				buf[33 - i] = '1';
 		}
 		buf[35] = '\0';
 		Bprint(bout, "%s", buf);
 		break;
 	case 'b':
-		Bprint(bout, "%.2x", (int)res->ival&0xff);
+		Bprint(bout, "%.2x", (int)res->ival & 0xff);
 		break;
 	case 'X':
 		Bprint(bout, "%.8lux", (uint32_t)res->ival);
 		break;
 	case 'x':
-		Bprint(bout, "%.4lux", (uint32_t)res->ival&0xffff);
+		Bprint(bout, "%.4lux", (uint32_t)res->ival & 0xffff);
 		break;
 	case 'D':
 		Bprint(bout, "%d", (int)res->ival);
@@ -1021,7 +1018,7 @@ patom(char type, Store *res)
 		Bprint(bout, "%d", (uint16_t)res->ival);
 		break;
 	case 'u':
-		Bprint(bout, "%d", (int)res->ival&0xffff);
+		Bprint(bout, "%d", (int)res->ival & 0xffff);
 		break;
 	case 'U':
 		Bprint(bout, "%lud", (uint32_t)res->ival);
@@ -1039,13 +1036,13 @@ patom(char type, Store *res)
 		Bprint(bout, "%.16llux", res->ival);
 		break;
 	case 'o':
-		Bprint(bout, "0%.11uo", (int)res->ival&0xffff);
+		Bprint(bout, "0%.11uo", (int)res->ival & 0xffff);
 		break;
 	case 'O':
 		Bprint(bout, "0%.6uo", (int)res->ival);
 		break;
 	case 'q':
-		Bprint(bout, "0%.11o", (int16_t)(res->ival&0xffff));
+		Bprint(bout, "0%.11o", (int16_t)(res->ival & 0xffff));
 		break;
 	case 'Q':
 		Bprint(bout, "0%.6o", (int)res->ival);
@@ -1071,7 +1068,7 @@ patom(char type, Store *res)
 		if(type != TSTRING)
 			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else
-			Bprint(bout, "%S", (Rune*)res->string->string);
+			Bprint(bout, "%S", (Rune *)res->string->string);
 		break;
 	case 'a':
 	case 'A':
@@ -1083,7 +1080,7 @@ patom(char type, Store *res)
 		if(type != TINT)
 			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else {
-			if (symmap == nil || (*machdata->das)(symmap, res->ival, res->fmt, buf, sizeof(buf)) < 0)
+			if(symmap == nil || (*machdata->das)(symmap, res->ival, res->fmt, buf, sizeof(buf)) < 0)
 				Bprint(bout, "no instruction");
 			else
 				Bprint(bout, "%s", buf);
@@ -1139,7 +1136,7 @@ comx(Node res)
 		n = an(ONAME, ZN, ZN);
 		n->sym = sl;
 		n = an(OCALL, n, &res);
-			n->left->sym = sl;
+		n->left->sym = sl;
 		expr(n, &xx);
 		return 1;
 	}
@@ -1251,7 +1248,7 @@ pcfile(Node *r, Node *args)
 	if(p == 0)
 		error("pcfile(addr): funny file %s", buf);
 	*p = '\0';
-	r->string = strnode(buf);	
+	r->string = strnode(buf);
 }
 
 void
@@ -1276,10 +1273,11 @@ pcline(Node *r, Node *args)
 	p = strrchr(buf, ':');
 	if(p == 0)
 		error("pcline(addr): funny file %s", buf);
-	r->ival = strtol(p+1, 0, 0);	
+	r->ival = strtol(p + 1, 0, 0);
 }
 
-void fmtof(Node *r, Node *args)
+void
+fmtof(Node *r, Node *args)
 {
 	Node *av[Maxarg];
 	Node res;
@@ -1289,36 +1287,37 @@ void fmtof(Node *r, Node *args)
 	if(na < 1)
 		error("fmtof(obj): no argument");
 	if(na > 1)
-		error("fmtof(obj): too many arguments") ;
+		error("fmtof(obj): too many arguments");
 	expr(av[0], &res);
 
 	r->op = OCONST;
-	r->type = TINT ;
-	r->ival = res.fmt ;
+	r->type = TINT;
+	r->ival = res.fmt;
 	r->fmt = 'c';
 }
 
-void dofmtsize(Node *r, Node *args)
+void
+dofmtsize(Node *r, Node *args)
 {
 	Node *av[Maxarg];
 	Node res;
-	Store * s ;
-	Value v ;
+	Store *s;
+	Value v;
 
 	na = 0;
 	flatten(av, args);
 	if(na < 1)
 		error("fmtsize(obj): no argument");
 	if(na > 1)
-		error("fmtsize(obj): too many arguments") ;
+		error("fmtsize(obj): too many arguments");
 	expr(av[0], &res);
 
-	v.type = res.type ;
-	s = &v.Store ;
-	*s = res ;
+	v.type = res.type;
+	s = &v.Store;
+	*s = res;
 
 	r->op = OCONST;
-	r->type = TINT ;
-	r->ival = fmtsize(&v) ;
+	r->type = TINT;
+	r->ival = fmtsize(&v);
 	r->fmt = 'D';
 }

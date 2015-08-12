@@ -9,13 +9,12 @@
 
 #include "ssh.h"
 
-struct CipherState
-{
+struct CipherState {
 	BFstate enc;
 	BFstate dec;
 };
 
-static CipherState*
+static CipherState *
 initblowfish(Conn *c, int)
 {
 	CipherState *cs;
@@ -38,12 +37,11 @@ decryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
 	bfCBCdecrypt(buf, nbuf, &cs->dec);
 }
 
-Cipher cipherblowfish = 
-{
-	SSH_CIPHER_BLOWFISH,
-	"blowfish",
-	initblowfish,
-	encryptblowfish,
-	decryptblowfish,
+Cipher cipherblowfish =
+    {
+     SSH_CIPHER_BLOWFISH,
+     "blowfish",
+     initblowfish,
+     encryptblowfish,
+     decryptblowfish,
 };
-

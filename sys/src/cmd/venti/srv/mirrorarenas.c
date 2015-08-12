@@ -19,8 +19,7 @@
 Channel *writechan;
 
 typedef struct Write Write;
-struct Write
-{
+struct Write {
 	uint8_t *p;
 	int n;
 	uint64_t o;
@@ -48,8 +47,8 @@ void
 tag(char *fmt, ...)
 {
 	va_list arg;
-	
-	if(tagged){
+
+	if(tagged) {
 		free(tagged);
 		tagged = nil;
 	}
@@ -63,7 +62,7 @@ chat(char *fmt, ...)
 {
 	va_list arg;
 
-	if(tagged){
+	if(tagged) {
 		write(1, tagged, strlen(tagged));
 		free(tagged);
 		tagged = nil;
@@ -76,21 +75,20 @@ chat(char *fmt, ...)
 #pragma varargck argpos tag 1
 #pragma varargck argpos chat 1
 
-
 int
 ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
-	if(readpart(p, offset, buf, count) != count){
+	if(readpart(p, offset, buf, count) != count) {
 		chat("%T readpart %s at %#llux+%ud: %r\n", p->name, offset, count);
 		return -1;
 	}
 	return 0;
 }
-		
+
 int
 ewritepart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
-	if(writepart(p, offset, buf, count) != count || flushpart(p) < 0){
+	if(writepart(p, offset, buf, count) != count || flushpart(p) < 0) {
 		chat("%T writepart %s at %#llux+%ud: %r\n", p->name, offset, count);
 		return -1;
 	}
@@ -107,9 +105,9 @@ static void
 writeproc(void *v)
 {
 	Write *w;
-	
+
 	USED(v);
-	while((w = recvp(writechan)) != nil){
+	while((w = recvp(writechan)) != nil) {
 		if(w == &wsync)
 			continue;
 		if(ewritepart(dst, w->o, w->p, w->n) < 0)
@@ -122,9 +120,9 @@ copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 {
 	int i, n;
 	uint64_t o;
-	static uint8_t tmp[2][1024*1024];
+	static uint8_t tmp[2][1024 * 1024];
 	Write w[2];
-	
+
 	assert(start <= end);
 	assert(astart <= start && start < aend);
 	assert(astart <= end && end <= aend);
@@ -134,11 +132,11 @@ copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 
 	i = 0;
 	memset(w, 0, sizeof w);
-	for(o=start; o<end; o+=n){
+	for(o = start; o < end; o += n) {
 		if(w[i].error)
 			goto error;
 		n = sizeof tmp[i];
-		if(o+n > end)
+		if(o + n > end)
 			n = end - o;
 		if(ereadpart(src, o, tmp[i], n) < 0)
 			goto error;
@@ -149,7 +147,7 @@ copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 		sendp(writechan, &w[i]);
 		if(ds)
 			sha1(tmp[i], n, nil, ds);
-		i = 1-i;
+		i = 1 - i;
 	}
 	if(w[i].error)
 		goto error;
@@ -158,7 +156,7 @@ copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 	 * wait for queued write to finish
 	 */
 	sendp(writechan, &wsync);
-	i = 1-i;
+	i = 1 - i;
 	if(w[i].error)
 		return -1;
 	return 0;
@@ -181,8 +179,8 @@ copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
 {
 	int n;
 	uint64_t o;
-	static uint8_t tmp[1024*1024];
-	
+	static uint8_t tmp[1024 * 1024];
+
 	assert(start <= end);
 	assert(astart <= start && start < aend);
 	assert(astart <= end && end <= aend);
@@ -190,9 +188,9 @@ copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
 	if(verbose && start != end)
 		chat("%T   copy %,llud-%,llud %s\n", start, end, what);
 
-	for(o=start; o<end; o+=n){
+	for(o = start; o < end; o += n) {
 		n = sizeof tmp;
-		if(o+n > end)
+		if(o + n > end)
 			n = end - o;
 		if(ereadpart(src, o, tmp, n) < 0)
 			return -1;
@@ -209,7 +207,7 @@ asha1(Part *p, uint64_t start, uint64_t end, DigestState *ds)
 {
 	int n;
 	uint64_t o;
-	static uint8_t tmp[1024*1024];
+	static uint8_t tmp[1024 * 1024];
 
 	if(start == end)
 		return 0;
@@ -218,9 +216,9 @@ asha1(Part *p, uint64_t start, uint64_t end, DigestState *ds)
 	if(verbose)
 		chat("%T   sha1 %,llud-%,llud\n", start, end);
 
-	for(o=start; o<end; o+=n){
+	for(o = start; o < end; o += n) {
 		n = sizeof tmp;
-		if(o+n > end)
+		if(o + n > end)
 			n = end - o;
 		if(ereadpart(p, o, tmp, n) < 0)
 			return -1;
@@ -232,15 +230,15 @@ asha1(Part *p, uint64_t start, uint64_t end, DigestState *ds)
 uint64_t
 rdown(uint64_t a, int b)
 {
-	return a-a%b;
+	return a - a % b;
 }
 
 uint64_t
 rup(uint64_t a, int b)
 {
-	if(a%b == 0)
+	if(a % b == 0)
 		return a;
-	return a+b-a%b;
+	return a + b - a % b;
 }
 
 void
@@ -252,23 +250,23 @@ mirror(Arena *sa, Arena *da)
 	ArenaHead h;
 	DigestState xds, *ds;
 	int64_t shaoff, base;
-	
+
 	base = sa->base;
 	blocksize = sa->blocksize;
 	end = sa->base + sa->size;
-	
+
 	astart = base - blocksize;
 	aend = end + blocksize;
 
 	tag("%T %s (%,llud-%,llud)\n", sa->name, astart, aend);
-	
-	if(force){
+
+	if(force) {
 		copy(astart, aend, "all", nil);
 		return;
 	}
 
-	if(sa->diskstats.sealed && da->diskstats.sealed && scorecmp(da->score, zeroscore) != 0){
-		if(scorecmp(sa->score, da->score) == 0){
+	if(sa->diskstats.sealed && da->diskstats.sealed && scorecmp(da->score, zeroscore) != 0) {
+		if(scorecmp(sa->score, da->score) == 0) {
 			if(verbose)
 				chat("%T %s: %V sealed mirrored\n", sa->name, sa->score);
 			return;
@@ -276,18 +274,18 @@ mirror(Arena *sa, Arena *da)
 		chat("%T %s: warning: sealed score mismatch %V vs %V\n", sa->name, sa->score, da->score);
 		/* Keep executing; will correct seal if possible. */
 	}
-	if(!sa->diskstats.sealed && da->diskstats.sealed && scorecmp(da->score, zeroscore) != 0){
+	if(!sa->diskstats.sealed && da->diskstats.sealed && scorecmp(da->score, zeroscore) != 0) {
 		chat("%T %s: dst is sealed, src is not\n", sa->name);
 		status = "errors";
 		return;
 	}
-	if(sa->diskstats.used < da->diskstats.used){
+	if(sa->diskstats.used < da->diskstats.used) {
 		chat("%T %s: src used %,lld < dst used %,lld\n", sa->name, sa->diskstats.used, da->diskstats.used);
 		status = "errors";
 		return;
 	}
 
-	if(da->clumpmagic != sa->clumpmagic){
+	if(da->clumpmagic != sa->clumpmagic) {
 		/*
 		 * Write this now to reduce the window in which
 		 * the head and tail disagree about clumpmagic.
@@ -298,12 +296,12 @@ mirror(Arena *sa, Arena *da)
 		if(ewritepart(dst, end, buf, blocksize) < 0)
 			return;
 	}
-	
+
 	memset(&h, 0, sizeof h);
 	h.version = da->version;
 	strcpy(h.name, da->name);
 	h.blocksize = da->blocksize;
-	h.size = da->size + 2*da->blocksize;
+	h.size = da->size + 2 * da->blocksize;
 	h.clumpmagic = da->clumpmagic;
 	memset(buf, 0, sizeof buf);
 	packarenahead(&h, buf);
@@ -313,34 +311,34 @@ mirror(Arena *sa, Arena *da)
 	shaoff = 0;
 	ds = nil;
 	sealed = sa->diskstats.sealed && scorecmp(sa->score, zeroscore) != 0;
-	if(sealed && dosha1){
+	if(sealed && dosha1) {
 		/* start sha1 state with header */
 		memset(&xds, 0, sizeof xds);
 		ds = &xds;
 		sha1(buf, blocksize, nil, ds);
 		shaoff = base;
 	}
-	
-	if(sa->diskstats.used != da->diskstats.used){
-		di = base+rdown(da->diskstats.used, blocksize);
-		si = base+rup(sa->diskstats.used, blocksize);
+
+	if(sa->diskstats.used != da->diskstats.used) {
+		di = base + rdown(da->diskstats.used, blocksize);
+		si = base + rup(sa->diskstats.used, blocksize);
 		if(ds && asha1(dst, shaoff, di, ds) < 0)
 			return;
 		if(copy(di, si, "data", ds) < 0)
 			return;
 		shaoff = si;
 	}
-	
-	clumpmax = sa->clumpmax;
-	di = end - da->diskstats.clumps/clumpmax * blocksize;
-	si = end - (sa->diskstats.clumps+clumpmax-1)/clumpmax * blocksize;
 
-	if(sa->diskstats.sealed){
+	clumpmax = sa->clumpmax;
+	di = end - da->diskstats.clumps / clumpmax * blocksize;
+	si = end - (sa->diskstats.clumps + clumpmax - 1) / clumpmax * blocksize;
+
+	if(sa->diskstats.sealed) {
 		/*
 		 * might be a small hole between the end of the 
 		 * data and the beginning of the directory.
 		 */
-		v = base+rup(sa->diskstats.used, blocksize);
+		v = base + rup(sa->diskstats.used, blocksize);
 		if(ds && asha1(dst, shaoff, v, ds) < 0)
 			return;
 		if(copy(v, si, "hole", ds) < 0)
@@ -348,10 +346,10 @@ mirror(Arena *sa, Arena *da)
 		shaoff = si;
 	}
 
-	if(da->diskstats.clumps != sa->diskstats.clumps){
+	if(da->diskstats.clumps != sa->diskstats.clumps) {
 		if(ds && asha1(dst, shaoff, si, ds) < 0)
 			return;
-		if(copy(si, di, "directory", ds) < 0)	/* si < di  because clumpinfo blocks grow down */
+		if(copy(si, di, "directory", ds) < 0) /* si < di  because clumpinfo blocks grow down */
 			return;
 		shaoff = di;
 	}
@@ -360,7 +358,7 @@ mirror(Arena *sa, Arena *da)
 	da->wtime = sa->wtime;
 	da->diskstats = sa->diskstats;
 	da->diskstats.sealed = 0;
-	
+
 	/*
 	 * Repack the arena tail information
 	 * and save it for next time...
@@ -370,7 +368,7 @@ mirror(Arena *sa, Arena *da)
 	if(ewritepart(dst, end, buf, blocksize) < 0)
 		return;
 
-	if(sealed){
+	if(sealed) {
 		/*
 		 * ... but on the final pass, copy the encoding
 		 * of the tail information from the source
@@ -380,34 +378,33 @@ mirror(Arena *sa, Arena *da)
 		 * revisions), and to keep the SHA1 hash the
 		 * same, we have to use what the disk uses.
 		 */
-		if(asha1(dst, shaoff, end, ds) < 0
-		|| copy(end, end+blocksize-VtScoreSize, "tail", ds) < 0)
+		if(asha1(dst, shaoff, end, ds) < 0 || copy(end, end + blocksize - VtScoreSize, "tail", ds) < 0)
 			return;
-		if(dosha1){
+		if(dosha1) {
 			memset(buf, 0, VtScoreSize);
 			sha1(buf, VtScoreSize, da->score, ds);
-			if(scorecmp(sa->score, da->score) == 0){
+			if(scorecmp(sa->score, da->score) == 0) {
 				if(verbose)
 					chat("%T %s: %V sealed mirrored\n", sa->name, sa->score);
-				if(ewritepart(dst, end+blocksize-VtScoreSize, da->score, VtScoreSize) < 0)
+				if(ewritepart(dst, end + blocksize - VtScoreSize, da->score, VtScoreSize) < 0)
 					return;
-			}else{
+			} else {
 				chat("%T %s: sealing dst: score mismatch: %V vs %V\n", sa->name, sa->score, da->score);
 				memset(&xds, 0, sizeof xds);
-				asha1(dst, base-blocksize, end+blocksize-VtScoreSize, &xds);
+				asha1(dst, base - blocksize, end + blocksize - VtScoreSize, &xds);
 				sha1(buf, VtScoreSize, 0, &xds);
 				chat("%T   reseal: %V\n", da->score);
 				status = "errors";
 			}
-		}else{
+		} else {
 			if(verbose)
 				chat("%T %s: %V mirrored\n", sa->name, sa->score);
-			if(ewritepart(dst, end+blocksize-VtScoreSize, sa->score, VtScoreSize) < 0)
+			if(ewritepart(dst, end + blocksize - VtScoreSize, sa->score, VtScoreSize) < 0)
 				return;
 		}
-	}else{
+	} else {
 		chat("%T %s: %,lld used mirrored\n",
-			sa->name, sa->diskstats.used);
+		     sa->name, sa->diskstats.used);
 	}
 }
 
@@ -418,8 +415,8 @@ mirrormany(ArenaPart *sp, ArenaPart *dp, char *range)
 	char *s, *t;
 	Arena *sa, *da;
 
-	if(range == nil){
-		for(i=0; i<sp->narenas; i++){
+	if(range == nil) {
+		for(i = 0; i < sp->narenas; i++) {
 			sa = sp->arenas[i];
 			da = dp->arenas[i];
 			mirror(sa, da);
@@ -429,36 +426,35 @@ mirrormany(ArenaPart *sp, ArenaPart *dp, char *range)
 	if(strcmp(range, "none") == 0)
 		return;
 
-	for(s=range; *s; s=t){
+	for(s = range; *s; s = t) {
 		t = strchr(s, ',');
 		if(t)
 			*t++ = 0;
 		else
-			t = s+strlen(s);
+			t = s + strlen(s);
 		if(*s == '-')
 			lo = 0;
 		else
 			lo = strtol(s, &s, 0);
 		hi = lo;
-		if(*s == '-'){
+		if(*s == '-') {
 			s++;
 			if(*s == 0)
-				hi = sp->narenas-1;
+				hi = sp->narenas - 1;
 			else
 				hi = strtol(s, &s, 0);
 		}
-		if(*s != 0){
+		if(*s != 0) {
 			chat("%T bad arena range: %s\n", s);
 			continue;
 		}
-		for(i=lo; i<=hi; i++){
+		for(i = lo; i <= hi; i++) {
 			sa = sp->arenas[i];
 			da = dp->arenas[i];
 			mirror(sa, da);
 		}
-	}	
+	}
 }
-
 
 void
 threadmain(int argc, char **argv)
@@ -467,10 +463,11 @@ threadmain(int argc, char **argv)
 	Arena *sa, *da;
 	ArenaPart *s, *d;
 	char *ranges;
-	
+
 	ventifmtinstall();
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'F':
 		force = 1;
 		break;
@@ -482,8 +479,9 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
-	
+	}
+	ARGEND
+
 	if(argc != 2 && argc != 3)
 		usage();
 	ranges = nil;
@@ -496,19 +494,19 @@ threadmain(int argc, char **argv)
 		sysfatal("initpart %s: %r", argv[1]);
 	if((s = initarenapart(src)) == nil)
 		sysfatal("initarenapart %s: %r", argv[0]);
-	for(i=0; i<s->narenas; i++)
+	for(i = 0; i < s->narenas; i++)
 		delarena(s->arenas[i]);
 	if((d = initarenapart(dst)) == nil)
 		sysfatal("loadarenapart %s: %r", argv[1]);
-	for(i=0; i<d->narenas; i++)
+	for(i = 0; i < d->narenas; i++)
 		delarena(d->arenas[i]);
-	
+
 	/*
 	 * The arena geometries must match or all bets are off.
 	 */
 	if(s->narenas != d->narenas)
 		sysfatal("arena count mismatch: %d vs %d", s->narenas, d->narenas);
-	for(i=0; i<s->narenas; i++){
+	for(i = 0; i < s->narenas; i++) {
 		sa = s->arenas[i];
 		da = d->arenas[i];
 		if(sa->version != da->version)
@@ -520,11 +518,11 @@ threadmain(int argc, char **argv)
 		if(strcmp(sa->name, da->name) != 0)
 			sysfatal("arena %d: name mismatch: %s vs %s", i, sa->name, da->name);
 	}
-	
+
 	/*
 	 * Mirror one arena at a time.
 	 */
-	writechan = chancreate(sizeof(void*), 0);
+	writechan = chancreate(sizeof(void *), 0);
 	vtproc(writeproc, nil);
 	mirrormany(s, d, ranges);
 	sendp(writechan, nil);

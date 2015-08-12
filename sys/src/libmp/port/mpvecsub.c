@@ -19,7 +19,7 @@ mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *diff)
 	mpdigit x, y;
 
 	borrow = 0;
-	for(i = 0; i < blen; i++){
+	for(i = 0; i < blen; i++) {
 		x = *a++;
 		y = *b++;
 		y += borrow;
@@ -31,7 +31,7 @@ mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *diff)
 			borrow++;
 		*diff++ = x - y;
 	}
-	for(; i < alen; i++){
+	for(; i < alen; i++) {
 		x = *a++;
 		y = x - borrow;
 		if(y > x)

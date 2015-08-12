@@ -32,14 +32,14 @@
 #include "dat.h"
 #include "fns.h"
 
-static int	initindex1(Index*);
-static ISect	*initisect1(ISect *is);
+static int initindex1(Index *);
+static ISect *initisect1(ISect *is);
 
-#define KEY(k,d)	((d) ? (k)>>(32-(d)) : 0)
+#define KEY(k, d) ((d) ? (k) >> (32 - (d)) : 0)
 
 static char IndexMagic[] = "venti index configuration";
 
-Index*
+Index *
 initindex(char *name, ISect **sects, int n)
 {
 	IFile f;
@@ -48,14 +48,14 @@ initindex(char *name, ISect **sects, int n)
 	uint32_t last, blocksize, tabsize;
 	int i;
 
-	if(n <= 0){
-fprint(2, "bad n\n");
+	if(n <= 0) {
+		fprint(2, "bad n\n");
 		seterr(EOk, "no index sections to initialize index");
 		return nil;
 	}
 	ix = MKZ(Index);
-	if(ix == nil){
-fprint(2, "no mem\n");
+	if(ix == nil) {
+		fprint(2, "no mem\n");
 		seterr(EOk, "can't initialize index: out of memory");
 		freeindex(ix);
 		return nil;
@@ -64,17 +64,17 @@ fprint(2, "no mem\n");
 	tabsize = sects[0]->tabsize;
 	if(partifile(&f, sects[0]->part, sects[0]->tabbase, tabsize) < 0)
 		return nil;
-	if(parseindex(&f, ix) < 0){
+	if(parseindex(&f, ix) < 0) {
 		freeifile(&f);
 		freeindex(ix);
 		return nil;
 	}
 	freeifile(&f);
-	if(namecmp(ix->name, name) != 0){
+	if(namecmp(ix->name, name) != 0) {
 		seterr(ECorrupt, "mismatched index name: found %s expected %s", ix->name, name);
 		return nil;
 	}
-	if(ix->nsects != n){
+	if(ix->nsects != n) {
 		seterr(ECorrupt, "mismatched number index sections: found %d expected %d", n, ix->nsects);
 		freeindex(ix);
 		return nil;
@@ -82,16 +82,9 @@ fprint(2, "no mem\n");
 	ix->sects = sects;
 	last = 0;
 	blocksize = ix->blocksize;
-	for(i = 0; i < ix->nsects; i++){
+	for(i = 0; i < ix->nsects; i++) {
 		is = sects[i];
-		if(namecmp(ix->name, is->index) != 0
-		|| is->blocksize != blocksize
-		|| is->tabsize != tabsize
-		|| namecmp(is->name, ix->smap[i].name) != 0
-		|| is->start != ix->smap[i].start
-		|| is->stop != ix->smap[i].stop
-		|| last != is->start
-		|| is->start > is->stop){
+		if(namecmp(ix->name, is->index) != 0 || is->blocksize != blocksize || is->tabsize != tabsize || namecmp(is->name, ix->smap[i].name) != 0 || is->start != ix->smap[i].start || is->stop != ix->smap[i].stop || last != is->start || is->start > is->stop) {
 			seterr(ECorrupt, "inconsistent index sections in %s", ix->name);
 			freeindex(ix);
 			return nil;
@@ -101,13 +94,13 @@ fprint(2, "no mem\n");
 	ix->tabsize = tabsize;
 	ix->buckets = last;
 
-	if(initindex1(ix) < 0){
+	if(initindex1(ix) < 0) {
 		freeindex(ix);
 		return nil;
 	}
 
-	ix->arenas = MKNZ(Arena*, ix->narenas);
-	if(maparenas(ix->amap, ix->arenas, ix->narenas, ix->name) < 0){
+	ix->arenas = MKNZ(Arena *, ix->narenas);
+	if(maparenas(ix->amap, ix->arenas, ix->narenas, ix->name) < 0) {
 		freeindex(ix);
 		return nil;
 	}
@@ -122,7 +115,7 @@ initindex1(Index *ix)
 
 	ix->div = (((uint64_t)1 << 32) + ix->buckets - 1) / ix->buckets;
 	buckets = (((uint64_t)1 << 32) - 1) / ix->div + 1;
-	if(buckets != ix->buckets){
+	if(buckets != ix->buckets) {
 		seterr(ECorrupt, "inconsistent math for divisor and buckets in %s", ix->name);
 		return -1;
 	}
@@ -137,24 +130,23 @@ wbindex(Index *ix)
 	ZBlock *b;
 	int i;
 
-	if(ix->nsects == 0){
+	if(ix->nsects == 0) {
 		seterr(EOk, "no sections in index %s", ix->name);
 		return -1;
 	}
 	b = alloczblock(ix->tabsize, 1, ix->blocksize);
-	if(b == nil){
+	if(b == nil) {
 		seterr(EOk, "can't write index configuration: out of memory");
 		return -1;
 	}
 	fmtzbinit(&f, b);
-	if(outputindex(&f, ix) < 0){
+	if(outputindex(&f, ix) < 0) {
 		seterr(EOk, "can't make index configuration: table storage too small %d", ix->tabsize);
 		freezblock(b);
 		return -1;
 	}
-	for(i = 0; i < ix->nsects; i++){
-		if(writepart(ix->sects[i]->part, ix->sects[i]->tabbase, b->data, ix->tabsize) < 0
-		|| flushpart(ix->sects[i]->part) < 0){
+	for(i = 0; i < ix->nsects; i++) {
+		if(writepart(ix->sects[i]->part, ix->sects[i]->tabbase, b->data, ix->tabsize) < 0 || flushpart(ix->sects[i]->part) < 0) {
 			seterr(EOk, "can't write index: %r");
 			freezblock(b);
 			return -1;
@@ -178,9 +170,7 @@ wbindex(Index *ix)
 int
 outputindex(Fmt *f, Index *ix)
 {
-	if(fmtprint(f, "%s\n%ud\n%s\n%ud\n", IndexMagic, ix->version, ix->name, ix->blocksize) < 0
-	|| outputamap(f, ix->smap, ix->nsects) < 0
-	|| outputamap(f, ix->amap, ix->narenas) < 0)
+	if(fmtprint(f, "%s\n%ud\n%s\n%ud\n", IndexMagic, ix->version, ix->name, ix->blocksize) < 0 || outputamap(f, ix->smap, ix->nsects) < 0 || outputamap(f, ix->amap, ix->narenas) < 0)
 		return -1;
 	return 0;
 }
@@ -196,7 +186,7 @@ parseindex(IFile *f, Index *ix)
 	 * magic
 	 */
 	s = ifileline(f);
-	if(s == nil || strcmp(s, IndexMagic) != 0){
+	if(s == nil || strcmp(s, IndexMagic) != 0) {
 		seterr(ECorrupt, "bad index magic for %s", f->name);
 		return -1;
 	}
@@ -204,12 +194,12 @@ parseindex(IFile *f, Index *ix)
 	/*
 	 * version
 	 */
-	if(ifileu32int(f, &v) < 0){
+	if(ifileu32int(f, &v) < 0) {
 		seterr(ECorrupt, "syntax error: bad version number in %s", f->name);
 		return -1;
 	}
 	ix->version = v;
-	if(ix->version != IndexVersion){
+	if(ix->version != IndexVersion) {
 		seterr(ECorrupt, "bad version number in %s", f->name);
 		return -1;
 	}
@@ -217,7 +207,7 @@ parseindex(IFile *f, Index *ix)
 	/*
 	 * name
 	 */
-	if(ifilename(f, ix->name) < 0){
+	if(ifilename(f, ix->name) < 0) {
 		seterr(ECorrupt, "syntax error: bad index name in %s", f->name);
 		return -1;
 	}
@@ -225,7 +215,7 @@ parseindex(IFile *f, Index *ix)
 	/*
 	 * block size
 	 */
-	if(ifileu32int(f, &v) < 0){
+	if(ifileu32int(f, &v) < 0) {
 		seterr(ECorrupt, "syntax error: bad block size number in %s", f->name);
 		return -1;
 	}
@@ -256,7 +246,7 @@ newindex(char *name, ISect **sects, int n)
 	uint32_t div, ub, xb, start, stop, blocksize, tabsize;
 	int i, j;
 
-	if(n < 1){
+	if(n < 1) {
 		seterr(EOk, "creating index with no index sections");
 		return nil;
 	}
@@ -268,7 +258,7 @@ newindex(char *name, ISect **sects, int n)
 	nb = 0;
 	blocksize = sects[0]->blocksize;
 	tabsize = sects[0]->tabsize;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		/*
 		 * allow index, start, and stop to be set if index is correct
 		 * and start and stop are what we would have picked.
@@ -276,15 +266,15 @@ newindex(char *name, ISect **sects, int n)
 		 * replacing a bad index section with a freshly formatted one.
 		 * start and stop are checked below.
 		 */
-		if(sects[i]->index[0] != '\0' && strcmp(sects[i]->index, name) != 0){
+		if(sects[i]->index[0] != '\0' && strcmp(sects[i]->index, name) != 0) {
 			seterr(EOk, "creating new index using non-empty section %s", sects[i]->name);
 			return nil;
 		}
-		if(blocksize != sects[i]->blocksize){
+		if(blocksize != sects[i]->blocksize) {
 			seterr(EOk, "mismatched block sizes in index sections");
 			return nil;
 		}
-		if(tabsize != sects[i]->tabsize){
+		if(tabsize != sects[i]->tabsize) {
 			seterr(EOk, "mismatched config table sizes in index sections");
 			return nil;
 		}
@@ -294,31 +284,31 @@ newindex(char *name, ISect **sects, int n)
 	/*
 	 * check for duplicate names
 	 */
-	for(i = 0; i < n; i++){
-		for(j = i + 1; j < n; j++){
-			if(namecmp(sects[i]->name, sects[j]->name) == 0){
+	for(i = 0; i < n; i++) {
+		for(j = i + 1; j < n; j++) {
+			if(namecmp(sects[i]->name, sects[j]->name) == 0) {
 				seterr(EOk, "duplicate section name %s for index %s", sects[i]->name, name);
 				return nil;
 			}
 		}
 	}
 
-	if(nb >= ((uint64_t)1 << 32)){
+	if(nb >= ((uint64_t)1 << 32)) {
 		fprint(2, "%s: index is 2^32 blocks or more; ignoring some of it\n",
-			argv0);
+		       argv0);
 		nb = ((uint64_t)1 << 32) - 1;
 	}
 
 	div = (((uint64_t)1 << 32) + nb - 1) / nb;
-	if(div < 100){
+	if(div < 100) {
 		fprint(2, "%s: index divisor %d too coarse; "
-			"index larger than needed, ignoring some of it\n",
-			argv0, div);
+			  "index larger than needed, ignoring some of it\n",
+		       argv0, div);
 		div = 100;
 		nb = (((uint64_t)1 << 32) - 1) / (100 - 1);
 	}
 	ub = (((uint64_t)1 << 32) - 1) / div + 1;
-	if(ub > nb){
+	if(ub > nb) {
 		seterr(EBug, "index initialization math wrong");
 		return nil;
 	}
@@ -329,21 +319,21 @@ newindex(char *name, ISect **sects, int n)
 	 * and the section map table
 	 */
 	smap = MKNZ(AMap, n);
-	if(smap == nil){
+	if(smap == nil) {
 		seterr(EOk, "can't create new index: out of memory");
 		return nil;
 	}
 	start = 0;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		stop = start + sects[i]->blocks - xb / n;
 		if(i == n - 1)
 			stop = ub;
 
 		if(sects[i]->start != 0 || sects[i]->stop != 0)
-		if(sects[i]->start != start || sects[i]->stop != stop){
-			seterr(EOk, "creating new index using non-empty section %s", sects[i]->name);
-			return nil;
-		}
+			if(sects[i]->start != start || sects[i]->stop != stop) {
+				seterr(EOk, "creating new index using non-empty section %s", sects[i]->name);
+				return nil;
+			}
 
 		sects[i]->start = start;
 		sects[i]->stop = stop;
@@ -359,7 +349,7 @@ newindex(char *name, ISect **sects, int n)
 	 * initialize the index itself
 	 */
 	ix = MKZ(Index);
-	if(ix == nil){
+	if(ix == nil) {
 		seterr(EOk, "can't create new index: out of memory");
 		free(smap);
 		return nil;
@@ -374,7 +364,7 @@ newindex(char *name, ISect **sects, int n)
 	ix->tabsize = tabsize;
 	ix->div = div;
 
-	if(initindex1(ix) < 0){
+	if(initindex1(ix) < 0) {
 		free(smap);
 		return nil;
 	}
@@ -382,7 +372,7 @@ newindex(char *name, ISect **sects, int n)
 	return ix;
 }
 
-ISect*
+ISect *
 initisect(Part *part)
 {
 	ISect *is;
@@ -390,26 +380,26 @@ initisect(Part *part)
 	int ok;
 
 	b = alloczblock(HeadSize, 0, 0);
-	if(b == nil || readpart(part, PartBlank, b->data, HeadSize) < 0){
+	if(b == nil || readpart(part, PartBlank, b->data, HeadSize) < 0) {
 		seterr(EAdmin, "can't read index section header: %r");
 		return nil;
 	}
 
 	is = MKZ(ISect);
-	if(is == nil){
+	if(is == nil) {
 		freezblock(b);
 		return nil;
 	}
 	is->part = part;
 	ok = unpackisect(is, b->data);
 	freezblock(b);
-	if(ok < 0){
+	if(ok < 0) {
 		seterr(ECorrupt, "corrupted index section header: %r");
 		freeisect(is);
 		return nil;
 	}
 
-	if(is->version != ISectVersion1 && is->version != ISectVersion2){
+	if(is->version != ISectVersion1 && is->version != ISectVersion2) {
 		seterr(EAdmin, "unknown index section version %d", is->version);
 		freeisect(is);
 		return nil;
@@ -418,7 +408,7 @@ initisect(Part *part)
 	return initisect1(is);
 }
 
-ISect*
+ISect *
 newisect(Part *part, uint32_t vers, char *name, uint32_t blocksize,
 	 uint32_t tabsize)
 {
@@ -439,10 +429,10 @@ newisect(Part *part, uint32_t vers, char *name, uint32_t blocksize,
 	is->blockbase = (tabbase + tabsize + blocksize - 1) & ~(blocksize - 1);
 	is->blocks = is->part->size / blocksize - is->blockbase / blocksize;
 	is->bucketmagic = 0;
-	if(is->version == ISectVersion2){
-		do{
+	if(is->version == ISectVersion2) {
+		do {
 			is->bucketmagic = fastrand();
-		}while(is->bucketmagic==0);
+		} while(is->bucketmagic == 0);
 	}
 	is = initisect1(is);
 	if(is == nil)
@@ -454,28 +444,28 @@ newisect(Part *part, uint32_t vers, char *name, uint32_t blocksize,
 /*
  * initialize the computed parameters for an index
  */
-static ISect*
+static ISect *
 initisect1(ISect *is)
 {
 	uint64_t v;
 
 	is->buckmax = (is->blocksize - IBucketSize) / IEntrySize;
 	is->blocklog = u64log2(is->blocksize);
-	if(is->blocksize != (1 << is->blocklog)){
+	if(is->blocksize != (1 << is->blocklog)) {
 		seterr(ECorrupt, "illegal non-power-of-2 bucket size %d\n", is->blocksize);
 		freeisect(is);
 		return nil;
 	}
 	partblocksize(is->part, is->blocksize);
 	is->tabbase = (PartBlank + HeadSize + is->blocksize - 1) & ~(is->blocksize - 1);
-	if(is->tabbase >= is->blockbase){
+	if(is->tabbase >= is->blockbase) {
 		seterr(ECorrupt, "index section config table overlaps bucket storage");
 		freeisect(is);
 		return nil;
 	}
 	is->tabsize = is->blockbase - is->tabbase;
 	v = is->part->size & ~(uint64_t)(is->blocksize - 1);
-	if(is->blockbase + (uint64_t)is->blocks * is->blocksize != v){
+	if(is->blockbase + (uint64_t)is->blocks * is->blocksize != v) {
 		seterr(ECorrupt, "invalid blocks in index section %s", is->name);
 		/* ZZZ what to do? 
 		freeisect(is);
@@ -483,12 +473,12 @@ initisect1(ISect *is)
 		*/
 	}
 
-	if(is->stop - is->start > is->blocks){
+	if(is->stop - is->start > is->blocks) {
 		seterr(ECorrupt, "index section overflows available space");
 		freeisect(is);
 		return nil;
 	}
-	if(is->start > is->stop){
+	if(is->start > is->stop) {
 		seterr(ECorrupt, "invalid index section range");
 		freeisect(is);
 		return nil;
@@ -503,17 +493,17 @@ wbisect(ISect *is)
 	ZBlock *b;
 
 	b = alloczblock(HeadSize, 1, 0);
-	if(b == nil){
+	if(b == nil) {
 		/* ZZZ set error? */
 		return -1;
 	}
 
-	if(packisect(is, b->data) < 0){
+	if(packisect(is, b->data) < 0) {
 		seterr(ECorrupt, "can't make index section header: %r");
 		freezblock(b);
 		return -1;
 	}
-	if(writepart(is->part, PartBlank, b->data, HeadSize) < 0 || flushpart(is->part) < 0){
+	if(writepart(is->part, PartBlank, b->data, HeadSize) < 0 || flushpart(is->part) < 0) {
 		seterr(EAdmin, "can't write index section header: %r");
 		freezblock(b);
 		return -1;
@@ -564,14 +554,14 @@ writeiclump(Index *ix, Clump *c, uint8_t *clbuf)
 
 	trace(TraceLump, "writeiclump enter");
 	qlock(&ix->writing);
-	for(i = ix->mapalloc; i < ix->narenas; i++){
+	for(i = ix->mapalloc; i < ix->narenas; i++) {
 		a = writeaclump(ix->arenas[i], c, clbuf);
-		if(a != TWID64){
+		if(a != TWID64) {
 			ix->mapalloc = i;
 			ia.addr = ix->amap[i].start + a;
 			ia.type = c->info.type;
 			ia.size = c->info.uncsize;
-			ia.blocks = (c->info.size + ClumpSize + (1<<ABlockLog) - 1) >> ABlockLog;
+			ia.blocks = (c->info.size + ClumpSize + (1 << ABlockLog) - 1) >> ABlockLog;
 			as.arena = ix->arenas[i];
 			as.aa = ia.addr;
 			as.stats = as.arena->memstats;
@@ -591,14 +581,14 @@ writeiclump(Index *ix, Clump *c, uint8_t *clbuf)
 /*
  * convert an arena index to an relative arena address
  */
-Arena*
+Arena *
 amapitoa(Index *ix, uint64_t a, uint64_t *aa)
 {
 	int i, r, l, m;
 
 	l = 1;
 	r = ix->narenas - 1;
-	while(l <= r){
+	while(l <= r) {
 		m = (r + l) / 2;
 		if(ix->amap[m].start <= a)
 			l = m + 1;
@@ -607,15 +597,15 @@ amapitoa(Index *ix, uint64_t a, uint64_t *aa)
 	}
 	l--;
 
-	if(a > ix->amap[l].stop){
-for(i=0; i<ix->narenas; i++)
-	print("arena %d: %llux - %llux\n", i, ix->amap[i].start, ix->amap[i].stop);
-print("want arena %d for %llux\n", l, a);
+	if(a > ix->amap[l].stop) {
+		for(i = 0; i < ix->narenas; i++)
+			print("arena %d: %llux - %llux\n", i, ix->amap[i].start, ix->amap[i].stop);
+		print("want arena %d for %llux\n", l, a);
 		seterr(ECrash, "unmapped address passed to amapitoa");
 		return nil;
 	}
 
-	if(ix->arenas[l] == nil){
+	if(ix->arenas[l] == nil) {
 		seterr(ECrash, "unmapped arena selected in amapitoa");
 		return nil;
 	}
@@ -626,13 +616,13 @@ print("want arena %d for %llux\n", l, a);
 /*
  * convert an arena index to the bounds of the containing arena group.
  */
-Arena*
+Arena *
 amapitoag(Index *ix, uint64_t a, uint64_t *gstart, uint64_t *glimit,
 	  int *g)
 {
 	uint64_t aa;
 	Arena *arena;
-	
+
 	arena = amapitoa(ix, a, &aa);
 	if(arena == nil)
 		return nil;
@@ -646,10 +636,7 @@ amapitoag(Index *ix, uint64_t a, uint64_t *gstart, uint64_t *glimit,
 int
 iaddrcmp(IAddr *ia1, IAddr *ia2)
 {
-	return ia1->type != ia2->type
-		|| ia1->size != ia2->size
-		|| ia1->blocks != ia2->blocks
-		|| ia1->addr != ia2->addr;
+	return ia1->type != ia2->type || ia1->size != ia2->size || ia1->blocks != ia2->blocks || ia1->addr != ia2->addr;
 }
 
 /*
@@ -678,7 +665,7 @@ loadientry(Index *ix, uint8_t *score, int type, IEntry *ie)
 	qunlock(&stats.lock);
 	*/
 
-	if(!inbloomfilter(mainindex->bloom, score)){
+	if(!inbloomfilter(mainindex->bloom, score)) {
 		trace(TraceLump, "loadientry bloomhit");
 		return -1;
 	}
@@ -689,13 +676,13 @@ loadientry(Index *ix, uint8_t *score, int type, IEntry *ie)
 	if(b == nil)
 		return -1;
 
-	if(okibucket(&ib, is) < 0){
+	if(okibucket(&ib, is) < 0) {
 		trace(TraceLump, "loadientry badbucket");
 		goto out;
 	}
 
 	h = bucklook(score, type, ib.data, ib.n);
-	if(h & 1){
+	if(h & 1) {
 		h ^= 1;
 		trace(TraceLump, "loadientry found");
 		unpackientry(ie, &ib.data[h]);
@@ -717,7 +704,7 @@ okibucket(IBucket *ib, ISect *is)
 		return 0;
 
 	seterr(EICorrupt, "corrupted disk index bucket: n=%ud max=%ud, range=[%lud,%lud)",
-		ib->n, is->buckmax, is->start, is->stop);
+	       ib->n, is->buckmax, is->start, is->stop);
 	return -1;
 }
 
@@ -737,13 +724,13 @@ bucklook(uint8_t *score, int otype, uint8_t *data, int n)
 		type = vttodisktype(otype);
 	l = 0;
 	r = n - 1;
-	while(l <= r){
+	while(l <= r) {
 		m = (r + l) >> 1;
 		h = m * IEntrySize;
-		for(i = 0; i < VtScoreSize; i++){
+		for(i = 0; i < VtScoreSize; i++) {
 			c = score[i];
 			cc = data[h + i];
-			if(c != cc){
+			if(c != cc) {
 				if(c > cc)
 					l = m + 1;
 				else
@@ -752,7 +739,7 @@ bucklook(uint8_t *score, int otype, uint8_t *data, int n)
 			}
 		}
 		cc = data[h + IEntryTypeOff];
-		if(type != cc && type != -1){
+		if(type != cc && type != -1) {
 			if(type > cc)
 				l = m + 1;
 			else
@@ -760,7 +747,8 @@ bucklook(uint8_t *score, int otype, uint8_t *data, int n)
 			goto cont;
 		}
 		return h | 1;
-	cont:;
+	cont:
+		;
 	}
 
 	return l * IEntrySize;
@@ -775,12 +763,12 @@ ientrycmp(const void *vie1, const void *vie2)
 	uint8_t *ie1, *ie2;
 	int i, v1, v2;
 
-	ie1 = (uint8_t*)vie1;
-	ie2 = (uint8_t*)vie2;
-	for(i = 0; i < VtScoreSize; i++){
+	ie1 = (uint8_t *)vie1;
+	ie2 = (uint8_t *)vie2;
+	for(i = 0; i < VtScoreSize; i++) {
 		v1 = ie1[i];
 		v2 = ie2[i];
-		if(v1 != v2){
+		if(v1 != v2) {
 			if(v1 < v2)
 				return -1;
 			return 1;
@@ -788,7 +776,7 @@ ientrycmp(const void *vie1, const void *vie2)
 	}
 	v1 = ie1[IEntryTypeOff];
 	v2 = ie2[IEntryTypeOff];
-	if(v1 != v2){
+	if(v1 != v2) {
 		if(v1 < v2)
 			return -1;
 		return 1;
@@ -806,7 +794,7 @@ indexsect0(Index *ix, uint32_t buck)
 
 	l = 1;
 	r = ix->nsects - 1;
-	while(l <= r){
+	while(l <= r) {
 		m = (r + l) >> 1;
 		if(ix->sects[m]->start <= buck)
 			l = m + 1;
@@ -819,7 +807,7 @@ indexsect0(Index *ix, uint32_t buck)
 /*
  * load the index block at bucket #buck
  */
-static DBlock*
+static DBlock *
 loadibucket0(Index *ix, uint32_t buck, ISect **pis, uint32_t *pbuck,
 	     IBucket *ib, int mode)
 {
@@ -827,7 +815,7 @@ loadibucket0(Index *ix, uint32_t buck, ISect **pis, uint32_t *pbuck,
 	DBlock *b;
 
 	is = ix->sects[indexsect0(ix, buck)];
-	if(buck < is->start || is->stop <= buck){
+	if(buck < is->start || is->stop <= buck) {
 		seterr(EAdmin, "index lookup out of range: %ud not found in index\n", buck);
 		return nil;
 	}
@@ -857,11 +845,11 @@ indexsect1(Index *ix, uint8_t *score)
 /*
  * load the index block responsible for score.
  */
-static DBlock*
+static DBlock *
 loadibucket1(Index *ix, uint8_t *score, ISect **pis, uint32_t *pbuck,
 	     IBucket *ib)
 {
-	return loadibucket0(ix, hashbits(score, 32)/ix->div, pis, pbuck, ib, OREAD);
+	return loadibucket0(ix, hashbits(score, 32) / ix->div, pis, pbuck, ib, OREAD);
 }
 
 int
@@ -870,11 +858,9 @@ indexsect(Index *ix, uint8_t *score)
 	return indexsect1(ix, score);
 }
 
-DBlock*
+DBlock *
 loadibucket(Index *ix, uint8_t *score, ISect **pis, uint32_t *pbuck,
 	    IBucket *ib)
 {
 	return loadibucket1(ix, score, pis, pbuck, ib);
 }
-
-

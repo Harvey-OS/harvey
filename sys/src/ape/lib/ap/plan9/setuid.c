@@ -16,7 +16,7 @@
  */
 
 int
-setuid(uid_t)
+    setuid(uid_t)
 {
 	errno = EPERM;
 	return -1;

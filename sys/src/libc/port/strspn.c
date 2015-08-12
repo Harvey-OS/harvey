@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-#define	N	256
+#define N 256
 
 int32_t
 strspn(char *s, char *b)

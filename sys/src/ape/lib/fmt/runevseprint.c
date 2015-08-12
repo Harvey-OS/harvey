@@ -26,7 +26,7 @@
 #include "fmt.h"
 #include "fmtdef.h"
 
-Rune*
+Rune *
 runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
 {
 	Fmt f;
@@ -42,7 +42,6 @@ runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
 	f.nfmt = 0;
 	f.args = args;
 	dofmt(&f, fmt);
-	*(Rune*)f.to = '\0';
-	return (Rune*)f.to;
+	*(Rune *)f.to = '\0';
+	return (Rune *)f.to;
 }
-

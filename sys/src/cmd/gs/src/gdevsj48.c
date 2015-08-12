@@ -30,9 +30,8 @@
  * --- derived from gdevbj10.c 1993-10-07
  *                by Mats kerblom (f86ma@dd.chalmers.se).
  */
- 
-#include "gdevprn.h"
 
+#include "gdevprn.h"
 
 /*
  * The only available resolutions (in the program) are (180,360)x(180,360).
@@ -49,16 +48,16 @@
  */
 
 /* The device descriptor */
-private dev_proc_print_page(sj48_print_page);
+private
+dev_proc_print_page(sj48_print_page);
 gx_device_printer far_data gs_sj48_device =
-  prn_device(prn_std_procs, "sj48",
-	80,				/* width_10ths, 8" */
-	105,				/* height_10ths, 10.5" */
-	360,				/* x_dpi */
-	360,				/* y_dpi */
-	0,0,0,0,			/* margins */
-	1, sj48_print_page);
-
+    prn_device(prn_std_procs, "sj48",
+	       80,	 /* width_10ths, 8" */
+	       105,	/* height_10ths, 10.5" */
+	       360,	/* x_dpi */
+	       360,	/* y_dpi */
+	       0, 0, 0, 0, /* margins */
+	       1, sj48_print_page);
 
 /*   This comes from the bj10/bj200 source. I don't know how it applies
  *   for a StarJet.  --- Mats kerblom.
@@ -88,16 +87,15 @@ gx_device_printer far_data gs_sj48_device =
  *
  */
 
-
 /* Send the page to the printer. */
-private int
+private
+int
 sj48_print_page(gx_device_printer *pdev, FILE *prn_stream)
-{	int line_size = gx_device_raster((gx_device *)pdev, 0);
+{
+	int line_size = gx_device_raster((gx_device *)pdev, 0);
 	int xres = pdev->x_pixels_per_inch;
 	int yres = pdev->y_pixels_per_inch;
-	int mode = (yres == 180 ?
-			(xres == 180 ? 39 : 40) :
-			(xres == 180 ? 71 : 72));
+	int mode = (yres == 180 ? (xres == 180 ? 39 : 40) : (xres == 180 ? 71 : 72));
 	int bytes_per_column = (yres == 180) ? 3 : 6;
 	int bits_per_column = bytes_per_column * 8;
 	int skip_unit = bytes_per_column * (xres == 180 ? 1 : 2); /* Skips in step of 1/180" */
@@ -110,21 +108,21 @@ sj48_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	int last_row = dev_print_scan_lines(pdev);
 	int limit = last_row - bits_per_column;
 
-	if ( in == 0 || out == 0 )
-	{	code = gs_error_VMerror;
+	if(in == 0 || out == 0) {
+		code = gs_error_VMerror;
 		gs_note_error(code);
 		goto fin;
 	}
 
 	/* Abort if the requested resolution is unsupported. */
-	if ((xres !=180 && xres != 360) || (yres !=180 && yres != 360))
-	{	code = gs_error_rangecheck;
+	if((xres != 180 && xres != 360) || (yres != 180 && yres != 360)) {
+		code = gs_error_rangecheck;
 		gs_note_error(code);
 		goto fin;
 	}
 
 	/* Initialize the printer. */
-	fwrite("\033@\000\000", 1, 4, prn_stream);  /* <Printer reset>, <0>, <0>. */
+	fwrite("\033@\000\000", 1, 4, prn_stream); /* <Printer reset>, <0>, <0>. */
 
 	/* Transfer pixels to printer.  The last row we can print is defined
 	   by "last_row".  Only the bottom of the print head can print at the
@@ -132,8 +130,7 @@ sj48_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	   head is kept from moving below "limit", which is exactly one pass
 	   above the bottom margin.  Once it reaches this limit, we make our
 	   final printing pass of a full "bits_per_column" rows. */
-	while ( lnum < last_row )
-	   {	
+	while(lnum < last_row) {
 		byte *in_data;
 		byte *in_end = in + line_size;
 		byte *out_beg = out;
@@ -143,83 +140,85 @@ sj48_print_page(gx_device_printer *pdev, FILE *prn_stream)
 
 		/* Copy 1 scan line and test for all zero. */
 		code = gdev_prn_get_bits(pdev, lnum, in, &in_data);
-		if ( code < 0 ) goto xit;
+		if(code < 0)
+			goto xit;
 		/* The mem... or str... functions should be faster than */
 		/* the following code, but all systems seem to implement */
 		/* them so badly that this code is faster. */
-		   {	register const long *zip = (const long *)in_data;
+		{
+			register const long *zip = (const long *)in_data;
 			register int zcnt = line_size;
 			register const byte *zipb;
-			for ( ; zcnt >= 4 * sizeof(long); zip += 4, zcnt -= 4 * sizeof(long) )
-			   {	if ( zip[0] | zip[1] | zip[2] | zip[3] )
+			for(; zcnt >= 4 * sizeof(long); zip += 4, zcnt -= 4 * sizeof(long)) {
+				if(zip[0] | zip[1] | zip[2] | zip[3])
 					goto notz;
-			   }
+			}
 			zipb = (const byte *)zip;
-			while ( --zcnt >= 0 )
-			   {
-				if ( *zipb++ )
+			while(--zcnt >= 0) {
+				if(*zipb++)
 					goto notz;
-			   }
+			}
 			/* Line is all zero, skip */
 			lnum++;
 			skip++;
 			continue;
-notz:			;
-		   }
+		notz:
+			;
+		}
 
 		/* Vertical tab to the appropriate position.  Note here that
 		   we make sure we don't move below limit. */
-		if ( lnum > limit )
-		    {	skip -= (limit - lnum);
+		if(lnum > limit) {
+			skip -= (limit - lnum);
 			lnum = limit;
-		    }
+		}
 
 		/* The SJ48 can only skip in steps of 1/180" */
-		if (yres == 180) {
-		  skips = skip;
+		if(yres == 180) {
+			skips = skip;
 		} else {
-		  if (skip & 1) {
-		    skip--; /* Makes skip even. */
-		    lnum--;
-		  }
-                  skips = skip/2;
-		} 
-		    
-		while ( skips > 255 )
-		   {	fputs("\033J\377", prn_stream);
+			if(skip & 1) {
+				skip--; /* Makes skip even. */
+				lnum--;
+			}
+			skips = skip / 2;
+		}
+
+		while(skips > 255) {
+			fputs("\033J\377", prn_stream);
 			skips -= 255;
-		   }
-		if ( skips )
+		}
+		if(skips)
 			fprintf(prn_stream, "\033J%c", skips);
 
 		/* If we've printed as far as "limit", then reset "limit"
 		   to "last_row" for the final printing pass. */
-		if ( lnum == limit )
+		if(lnum == limit)
 			limit = last_row;
 		skip = 0;
 
 		/* Transpose in blocks of 8 scan lines. */
-		for ( bnum = 0; bnum < bits_per_column; bnum += 8 )
-		   {	int lcnt = min(8, limit - lnum);
+		for(bnum = 0; bnum < bits_per_column; bnum += 8) {
+			int lcnt = min(8, limit - lnum);
 			byte *inp = in;
 			byte *outp = outl;
-		   	lcnt = gdev_prn_copy_scan_lines(pdev,
-				lnum, in, lcnt * line_size);
-			if ( lcnt < 0 )
-			   {	code = lcnt;
+			lcnt = gdev_prn_copy_scan_lines(pdev,
+							lnum, in, lcnt * line_size);
+			if(lcnt < 0) {
+				code = lcnt;
 				goto xit;
-			   }
-			if ( lcnt < 8 )
+			}
+			if(lcnt < 8)
 				memset(in + lcnt * line_size, 0,
 				       (8 - lcnt) * line_size);
-			for ( ; inp < in_end; inp++, outp += bits_per_column )
-			   {	gdev_prn_transpose_8x8(inp, line_size,
-					outp, bytes_per_column);
-			   }
+			for(; inp < in_end; inp++, outp += bits_per_column) {
+				gdev_prn_transpose_8x8(inp, line_size,
+						       outp, bytes_per_column);
+			}
 			outl++;
 			lnum += lcnt;
 			skip += lcnt;
-		   }
+		}
 
 		/* Send the bits to the printer.  We alternate horizontal
 		   skips with the data.  The horizontal skips are in units
@@ -227,73 +226,74 @@ notz:			;
 		   1 or 2 columns depending on resolution (controlled
                    by skip_unit).  */
 		outl = out;
-		do
-		   {	int count;
+		do {
+			int count;
 			int n;
 			byte *out_ptr;
 
 			/* First look for blank groups of columns. */
-			while(outl < out_end)
-			   {	n = count = min(out_end - outl, skip_unit);
+			while(outl < out_end) {
+				n = count = min(out_end - outl, skip_unit);
 				out_ptr = outl;
-				while ( --count >= 0 )
-				   {	if ( *out_ptr++ )
+				while(--count >= 0) {
+					if(*out_ptr++)
 						break;
-				   }
-				if ( count >= 0 )
+				}
+				if(count >= 0)
 					break;
 				else
 					outl = out_ptr;
-			   }
-			if (outl >= out_end)
+			}
+			if(outl >= out_end)
 				break;
-			if (outl > out_beg)
-			   {	count = (outl - out_beg) / skip_unit;
+			if(outl > out_beg) {
+				count = (outl - out_beg) / skip_unit;
 				fprintf(prn_stream, "\033\\%c%c",
 					count & 0xff, count >> 8);
-			   }
+			}
 
 			/* Next look for non-blank groups of columns. */
 			out_beg = outl;
 			outl += n;
-			while(outl < out_end)
-			   {	n = count = min(out_end - outl, skip_unit);
+			while(outl < out_end) {
+				n = count = min(out_end - outl, skip_unit);
 				out_ptr = outl;
-				while ( --count >= 0 )
-				   {	if ( *out_ptr++ )
+				while(--count >= 0) {
+					if(*out_ptr++)
 						break;
-				   }
-				if ( count < 0 )
+				}
+				if(count < 0)
 					break;
 				else
 					outl += n;
-			   }
+			}
 			count = outl - out_beg;
 			{
-			  /* What to transmit is the number of columns in the row.
+				/* What to transmit is the number of columns in the row.
 			     Compare this with the <Esc>|*-command wich expects the
 			     total number of bytes in the graphic row! */
-			  int count1 = count/bytes_per_column;
-			  fprintf(prn_stream, "\033*%c%c%c",
-				  mode, count1 & 0xff, count1 >> 8);
+				int count1 = count / bytes_per_column;
+				fprintf(prn_stream, "\033*%c%c%c",
+					mode, count1 & 0xff, count1 >> 8);
 			}
 			fwrite(out_beg, 1, count, prn_stream);
 			out_beg = outl;
 			outl += n;
-		   }
-		while ( out_beg < out_end );
+		} while(out_beg < out_end);
 
 		fputc('\r', prn_stream);
-		skip = bits_per_column;  /* <CR> only moves to the beginning of the row. */
-	   }
+		skip = bits_per_column; /* <CR> only moves to the beginning of the row. */
+	}
 
-	/* Eject the page */
-xit:	fputc(014, prn_stream);	/* form feed */
+/* Eject the page */
+xit:
+	fputc(014, prn_stream); /* form feed */
 	fflush(prn_stream);
-fin:	if ( out != 0 )
+fin:
+	if(out != 0)
 		gs_free(pdev->memory, (char *)out, bits_per_column, line_size,
 			"sj48_print_page(out)");
-	if ( in != 0 )
+	if(in != 0)
 		gs_free(pdev->memory, (char *)in, 8, line_size, "sj48_print_page(in)");
 	return code;
 }

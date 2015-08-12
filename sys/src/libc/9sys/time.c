@@ -15,7 +15,7 @@ time(int32_t *tp)
 {
 	int64_t t;
 
-	t = nsec()/1000000000LL;
+	t = nsec() / 1000000000LL;
 	if(tp != nil)
 		*tp = t;
 	return t;

@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
-char*
+char *
 sysname(void)
 {
 	int f, n;
@@ -21,7 +21,7 @@ sysname(void)
 
 	f = open("#c/sysname", 0);
 	if(f >= 0) {
-		n = read(f, b, sizeof(b)-1);
+		n = read(f, b, sizeof(b) - 1);
 		if(n > 0)
 			b[n] = 0;
 		close(f);

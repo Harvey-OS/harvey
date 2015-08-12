@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runestrrchr(Rune *s, Rune c)
 {
 	Rune *r;

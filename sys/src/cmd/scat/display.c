@@ -19,13 +19,12 @@ displaypic(Picture *pic)
 	int p[2];
 	int i, n;
 	uint8_t *a;
-	
 
-	if(pipe(p) < 0){
+	if(pipe(p) < 0) {
 		fprint(2, "pipe failed: %r\n");
 		return;
 	}
-	switch(rfork(RFPROC|RFFDG|RFNOTEG|RFNOWAIT)){
+	switch(rfork(RFPROC | RFFDG | RFNOTEG | RFNOWAIT)) {
 	case -1:
 		fprint(2, "fork failed: %r\n");
 		return;
@@ -41,17 +40,17 @@ displaypic(Picture *pic)
 	default:
 		close(p[0]);
 		fprint(p[1], "%11s %11d %11d %11d %11d ",
-			"k8", pic->minx, pic->miny, pic->maxx, pic->maxy);
-		n = (pic->maxx-pic->minx)*(pic->maxy-pic->miny);
+		       "k8", pic->minx, pic->miny, pic->maxx, pic->maxy);
+		n = (pic->maxx - pic->minx) * (pic->maxy - pic->miny);
 		/* release the memory as we hand it off; this could be a big piece of data */
 		a = pic->data;
-		while(n > 0){
-			i = 8192 - (((uintptr)a)&8191);
+		while(n > 0) {
+			i = 8192 - (((uintptr)a) & 8191);
 			if(i > n)
 				i = n;
-			if(write(p[1], a, i)!=i)
+			if(write(p[1], a, i) != i)
 				fprint(2, "write error: %r\n");
-			if(i == 8192)	/* page aligned */
+			if(i == 8192) /* page aligned */
 				segfree(a, i);
 			n -= i;
 			a += i;
@@ -66,13 +65,13 @@ displaypic(Picture *pic)
 void
 displayimage(Image *im)
 {
-	int p[2];	
+	int p[2];
 
-	if(pipe(p) < 0){
+	if(pipe(p) < 0) {
 		fprint(2, "pipe failed: %r\n");
 		return;
 	}
-	switch(rfork(RFPROC|RFFDG|RFNOTEG|RFNOWAIT)){
+	switch(rfork(RFPROC | RFFDG | RFNOTEG | RFNOWAIT)) {
 	case -1:
 		fprint(2, "fork failed: %r\n");
 		return;

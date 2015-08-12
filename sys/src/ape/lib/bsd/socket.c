@@ -25,7 +25,7 @@
 
 Rock *_sock_rock;
 
-Rock*
+Rock *
 _sock_findrock(int fd, struct stat *dp)
 {
 	Rock *r;
@@ -34,22 +34,21 @@ _sock_findrock(int fd, struct stat *dp)
 	if(dp == 0)
 		dp = &d;
 	fstat(fd, dp);
-	for(r = _sock_rock; r; r = r->next){
-		if(r->inode == dp->st_ino
-		&& r->dev == dp->st_dev)
+	for(r = _sock_rock; r; r = r->next) {
+		if(r->inode == dp->st_ino && r->dev == dp->st_dev)
 			break;
 	}
 	return r;
 }
 
-Rock*
+Rock *
 _sock_newrock(int fd)
 {
 	Rock *r;
 	struct stat d;
 
 	r = _sock_findrock(fd, &d);
-	if(r == 0){
+	if(r == 0) {
 		r = malloc(sizeof(Rock));
 		if(r == 0)
 			return 0;
@@ -77,8 +76,8 @@ _sock_data(int cfd, char *net, int domain, int stype, int protocol,
 	char name[Ctlsize];
 
 	/* get the data file name */
-	n = read(cfd, name, sizeof(name)-1);
-	if(n < 0){
+	n = read(cfd, name, sizeof(name) - 1);
+	if(n < 0) {
 		close(cfd);
 		errno = ENOBUFS;
 		return -1;
@@ -90,7 +89,7 @@ _sock_data(int cfd, char *net, int domain, int stype, int protocol,
 	/* open data file */
 	fd = open(name, O_RDWR);
 	close(cfd);
-	if(fd < 0){
+	if(fd < 0) {
 		close(cfd);
 		errno = ENOBUFS;
 		return -1;
@@ -99,7 +98,7 @@ _sock_data(int cfd, char *net, int domain, int stype, int protocol,
 	/* hide stuff under the rock */
 	snprintf(name, sizeof name, "/net/%s/%d/ctl", net, n);
 	r = _sock_newrock(fd);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOBUFS;
 		close(fd);
 		return -1;
@@ -123,10 +122,10 @@ socket(int domain, int stype, int protocol)
 	int pfd[2];
 	char *net;
 
-	switch(domain){
+	switch(domain) {
 	case PF_INET:
 		/* get a free network directory */
-		switch(stype){
+		switch(stype) {
 		case SOCK_DGRAM:
 			net = "udp";
 			cfd = open("/net/udp/clone", O_RDWR);
@@ -139,13 +138,13 @@ socket(int domain, int stype, int protocol)
 			errno = EPROTONOSUPPORT;
 			return -1;
 		}
-		if(cfd < 0){
+		if(cfd < 0) {
 			_syserrno();
 			return -1;
 		}
 		return _sock_data(cfd, net, domain, stype, protocol, 0);
 	case PF_UNIX:
-		if(pipe(pfd) < 0){
+		if(pipe(pfd) < 0) {
 			_syserrno();
 			return -1;
 		}
@@ -173,13 +172,14 @@ issocket(int fd)
 /*
  * probably should do better than this
  */
-int getsockopt(int, int, int, void *, int *)
+int
+getsockopt(int, int, int, void *, int *)
 {
 	return -1;
 }
 
-int setsockopt(int, int, int, void *, int)
+int
+setsockopt(int, int, int, void *, int)
 {
 	return 0;
 }
-

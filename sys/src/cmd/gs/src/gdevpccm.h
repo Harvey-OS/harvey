@@ -28,7 +28,7 @@
 /* Requires gxdevice.h */
 
 #ifndef gdevpccm_INCLUDED
-#  define gdevpccm_INCLUDED
+#define gdevpccm_INCLUDED
 
 /* Color mapping routines for EGA/VGA-style color. */
 dev_proc_map_rgb_color(pc_4bit_map_rgb_color);

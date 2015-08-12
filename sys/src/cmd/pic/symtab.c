@@ -14,23 +14,23 @@
 #include "pic.h"
 #include "y.tab.h"
 
-YYSTYPE getvar(char *s)	/* return value of variable s (usually pointer) */
+YYSTYPE getvar(char *s) /* return value of variable s (usually pointer) */
 {
 	struct symtab *p;
 	static YYSTYPE bug;
 
 	p = lookup(s);
-	if (p == NULL) {
-		if (islower(s[0]))
+	if(p == NULL) {
+		if(islower(s[0]))
 			ERROR "no such variable as %s", s WARNING;
 		else
 			ERROR "no such place as %s", s WARNING;
-		return(bug);
+		return (bug);
 	}
-	return(p->s_val);
+	return (p->s_val);
 }
 
-double getfval(char *s)	/* return float value of variable s */
+double getfval(char *s) /* return float value of variable s */
 {
 	YYSTYPE y;
 
@@ -38,67 +38,67 @@ double getfval(char *s)	/* return float value of variable s */
 	return y.f;
 }
 
-void setfval(char *s, double f)	/* set variable s to f */
+void setfval(char *s, double f) /* set variable s to f */
 {
 	struct symtab *p;
 
-	if ((p = lookup(s)) != NULL)
+	if((p = lookup(s)) != NULL)
 		p->s_val.f = f;
 }
 
-struct symtab *makevar(char *s, int t, YYSTYPE v)	/* make variable named s in table */
-		/* assumes s is static or from tostring */
+struct symtab *makevar(char *s, int t, YYSTYPE v) /* make variable named s in table */
+						  /* assumes s is static or from tostring */
 {
 	struct symtab *p;
 
-	for (p = stack[nstack].p_symtab; p != NULL; p = p->s_next)
-		if (strcmp(s, p->s_name) == 0)
+	for(p = stack[nstack].p_symtab; p != NULL; p = p->s_next)
+		if(strcmp(s, p->s_name) == 0)
 			break;
-	if (p == NULL) {	/* it's a new one */
-		p = (struct symtab *) malloc(sizeof(struct symtab));
-		if (p == NULL)
+	if(p == NULL) { /* it's a new one */
+		p = (struct symtab *)malloc(sizeof(struct symtab));
+		if(p == NULL)
 			ERROR "out of symtab space with %s", s FATAL;
 		p->s_next = stack[nstack].p_symtab;
-		stack[nstack].p_symtab = p;	/* stick it at front */
+		stack[nstack].p_symtab = p; /* stick it at front */
 	}
 	p->s_name = s;
 	p->s_type = t;
 	p->s_val = v;
-	return(p);
+	return (p);
 }
 
-struct symtab *lookup(char *s)	/* find s in symtab */
+struct symtab *lookup(char *s) /* find s in symtab */
 {
 	int i;
 	struct symtab *p;
 
-	for (i = nstack; i >= 0; i--)	/* look in each active symtab */
-		for (p = stack[i].p_symtab; p != NULL; p = p->s_next)
-			if (strcmp(s, p->s_name) == 0)
-				return(p);
-	return(NULL);
+	for(i = nstack; i >= 0; i--) /* look in each active symtab */
+		for(p = stack[i].p_symtab; p != NULL; p = p->s_next)
+			if(strcmp(s, p->s_name) == 0)
+				return (p);
+	return (NULL);
 }
 
-void freesymtab(struct symtab *p)	/* free space used by symtab at p */
+void freesymtab(struct symtab *p) /* free space used by symtab at p */
 {
 	struct symtab *q;
 
-	for ( ; p != NULL; p = q) {
+	for(; p != NULL; p = q) {
 		q = p->s_next;
-		free(p->s_name);	/* assumes done with tostring */
+		free(p->s_name); /* assumes done with tostring */
 		free((char *)p);
 	}
 }
 
-void freedef(char *s)	/* free definition for string s */
+void freedef(char *s) /* free definition for string s */
 {
 	struct symtab *p, *q, *op;
 
-	for (p = op = q = stack[nstack].p_symtab; p != NULL; p = p->s_next) {
-		if (strcmp(s, p->s_name) == 0) { 	/* got it */
-			if (p->s_type != DEFNAME)
+	for(p = op = q = stack[nstack].p_symtab; p != NULL; p = p->s_next) {
+		if(strcmp(s, p->s_name) == 0) { /* got it */
+			if(p->s_type != DEFNAME)
 				break;
-			if (p == op)	/* 1st elem */
+			if(p == op) /* 1st elem */
 				stack[nstack].p_symtab = p->s_next;
 			else
 				q->s_next = p->s_next;

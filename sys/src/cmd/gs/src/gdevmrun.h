@@ -27,7 +27,7 @@
 /* Definition of run-length encoded memory device */
 
 #ifndef gdevmrun_INCLUDED
-#  define gdevmrun_INCLUDED
+#define gdevmrun_INCLUDED
 
 /*
  * This memory device stores full-size pixels with run-length
@@ -41,23 +41,23 @@
  * Define the device, built on a memory device.
  */
 typedef struct gx_device_run_s {
-    gx_device_memory md;	/* must be first */
-    uint runs_per_line;
-    int umin, umax1;		/* some range of uninitialized lines */
-    int smin, smax1;		/* some range in standard (not run) form */
-    /*
+	gx_device_memory md; /* must be first */
+	uint runs_per_line;
+	int umin, umax1; /* some range of uninitialized lines */
+	int smin, smax1; /* some range in standard (not run) form */
+	/*
      * Save memory device procedures that we replace with run-oriented
      * ones, for use with the uncompressed representation.
      */
-    struct sp_ {
-	dev_proc_copy_mono((*copy_mono));
-	dev_proc_copy_color((*copy_color));
-	dev_proc_fill_rectangle((*fill_rectangle));
-	dev_proc_copy_alpha((*copy_alpha));
-	dev_proc_strip_tile_rectangle((*strip_tile_rectangle));
-	dev_proc_strip_copy_rop((*strip_copy_rop));
-	dev_proc_get_bits_rectangle((*get_bits_rectangle));
-    } save_procs;
+	struct sp_ {
+		dev_proc_copy_mono((*copy_mono));
+		dev_proc_copy_color((*copy_color));
+		dev_proc_fill_rectangle((*fill_rectangle));
+		dev_proc_copy_alpha((*copy_alpha));
+		dev_proc_strip_tile_rectangle((*strip_tile_rectangle));
+		dev_proc_strip_copy_rop((*strip_copy_rop));
+		dev_proc_get_bits_rectangle((*get_bits_rectangle));
+	} save_procs;
 } gx_device_run;
 
 /*

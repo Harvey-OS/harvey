@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
 static Rule *lr, *lmr;
 static rcmp(Rule *r, char *target, Word *tail);
@@ -24,9 +24,9 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr,
 
 	r = 0;
 	reuse = 0;
-	if(sym = symlook(head, S_TARGET, 0)){
+	if(sym = symlook(head, S_TARGET, 0)) {
 		for(r = sym->u.ptr; r; r = r->chain)
-			if(rcmp(r, head, tail) == 0){
+			if(rcmp(r, head, tail) == 0) {
 				reuse = 1;
 				break;
 			}
@@ -43,9 +43,9 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr,
 	r->prog = prog;
 	r->rule = nrules++;
 
-	if(!reuse){
+	if(!reuse) {
 		rr = symlook(head, S_TARGET, r)->u.ptr;
-		if(rr != r){
+		if(rr != r) {
 			r->chain = rr->chain;
 			rr->chain = r;
 		} else
@@ -53,11 +53,11 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr,
 	}
 	if(!reuse)
 		r->next = 0;
-	if((attr&REGEXP) || charin(head, "%&")){
+	if((attr & REGEXP) || charin(head, "%&")) {
 		r->attr |= META;
 		if(reuse)
 			return;
-		if(attr&REGEXP){
+		if(attr & REGEXP) {
 			patrule = r;
 			r->pat = regcomp(head);
 		}
@@ -84,12 +84,12 @@ void
 dumpr(char *s, Rule *r)
 {
 	Bprint(&bout, "%s: start=%p\n", s, r);
-	for(; r; r = r->next){
+	for(; r; r = r->next) {
 		Bprint(&bout, "\tRule %p: %s:%d attr=%x next=%p chain=%p alltarget='%s'",
-			r, r->file, r->line, r->attr, r->next, r->chain, wtos(r->alltargets, ' '));
+		       r, r->file, r->line, r->attr, r->next, r->chain, wtos(r->alltargets, ' '));
 		if(r->prog)
 			Bprint(&bout, " prog='%s'", r->prog);
-		Bprint(&bout, "\n\ttarget=%s: %s\n", r->target, wtos(r->tail,' '));
+		Bprint(&bout, "\n\ttarget=%s: %s\n", r->target, wtos(r->tail, ' '));
 		Bprint(&bout, "\trecipe@%p='%s'\n", r->recipe, r->recipe);
 	}
 }
@@ -104,7 +104,7 @@ rcmp(Rule *r, char *target, Word *tail)
 	for(w = r->tail; w && tail; w = w->next, tail = tail->next)
 		if(strcmp(w->s, tail->s))
 			return 1;
-	return(w || tail);
+	return (w || tail);
 }
 
 char *
@@ -114,5 +114,5 @@ rulecnt(void)
 
 	s = Malloc(nrules);
 	memset(s, 0, nrules);
-	return(s);
+	return (s);
 }

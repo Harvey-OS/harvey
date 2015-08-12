@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#define	EXTERN
+#define EXTERN
 #include "gc.h"
 
 /*
@@ -54,7 +54,7 @@ bany(Bits *a)
 {
 	int i;
 
-	for(i=0; i<BITS; i++)
+	for(i = 0; i < BITS; i++)
 		if(a->b[i])
 			return 1;
 	return 0;
@@ -79,9 +79,9 @@ bnum(Bits a)
 	int i;
 	int32_t b;
 
-	for(i=0; i<BITS; i++)
+	for(i = 0; i < BITS; i++)
 		if(b = a.b[i])
-			return 32*i + bitno(b);
+			return 32 * i + bitno(b);
 	diag(Z, "bad in bnum");
 	return 0;
 }
@@ -92,7 +92,7 @@ blsh(unsigned n)
 	Bits c;
 
 	c = zbits;
-	c.b[n/32] = 1L << (n%32);
+	c.b[n / 32] = 1L << (n % 32);
 	return c;
 }
 
@@ -129,7 +129,7 @@ Bconv(va_list *arg, Fconv *fp)
 		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
 			break;
 		strcat(str, s);
-		bits.b[i/32] &= ~(1L << (i%32));
+		bits.b[i / 32] &= ~(1L << (i % 32));
 	}
 	strconv(str, fp);
 	return 0;

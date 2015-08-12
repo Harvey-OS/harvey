@@ -10,30 +10,31 @@
 #include <u.h>
 #include <libc.h>
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	int iter = 1000, i;
 	Waitmsg *w;
 
-	if (argc > 1)
+	if(argc > 1)
 		iter = strtoul(argv[1], 0, 0);
 	for(i = 0; i < iter; i++) {
 		int pid;
 		pid = fork();
-		if (pid < 0) {
+		if(pid < 0) {
 			print("FAIL\n");
 			exits("FAIL");
 		}
-		if (pid == 0) {
+		if(pid == 0) {
 			// execl won't work yet. varargs hell.
 			char *args[] = {"ps", nil};
 			exec("/amd64/bin/ps", args);
-			fprint(2,"Exec fails: %r\n");
+			fprint(2, "Exec fails: %r\n");
 			print("FAIL\n");
 			exits("FAIL");
 		}
 		w = wait();
-		if (w == nil) {
+		if(w == nil) {
 			print("FAIL\n");
 			exits("FAIL");
 		}

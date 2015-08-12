@@ -13,20 +13,18 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct Hdr	Hdr;
-struct Hdr
-{
-	uint8_t	code;
-	uint8_t	id;
-	uint8_t	len[2];	/* length including this header */
+typedef struct Hdr Hdr;
+struct Hdr {
+	uint8_t code;
+	uint8_t id;
+	uint8_t len[2]; /* length including this header */
 
-	uint8_t	tp;	/* optional, only for Request/Response */
+	uint8_t tp; /* optional, only for Request/Response */
 };
 
-enum
-{
-	EAPHDR=	4,	/* sizeof(code)+sizeof(id)+sizeof(len) */
-	TPHDR= 1,	/* sizeof(tp) */
+enum {
+	EAPHDR = 4, /* sizeof(code)+sizeof(id)+sizeof(len) */
+	TPHDR = 1,  /* sizeof(tp) */
 
 	/* eap types */
 	Request = 1,
@@ -35,49 +33,64 @@ enum
 	Fail,
 
 	/* eap request/response sub-types */
-	Identity = 1,		/* Identity */
-	Notify,		/* Notification */
-	Nak,			/* Nak (Response only) */
-	Md5,		/* MD5-challenge */
-	Otp,			/* one time password */
-	Gtc,			/* generic token card */
-	Ttls = 21,		/* tunneled TLS */
-	Xpnd = 254,	/* expanded types */
-	Xprm,		/* experimental use */
+	Identity = 1, /* Identity */
+	Notify,       /* Notification */
+	Nak,	  /* Nak (Response only) */
+	Md5,	  /* MD5-challenge */
+	Otp,	  /* one time password */
+	Gtc,	  /* generic token card */
+	Ttls = 21,    /* tunneled TLS */
+	Xpnd = 254,   /* expanded types */
+	Xprm,	 /* experimental use */
 };
 
-enum
-{
+enum {
 	Ot,
 };
 
 static Mux p_mux[] =
-{
-	{ "eap_identity", Identity, },
-	{ "eap_notify", Notify, },
-	{ "eap_nak", Nak, },
-	{ "eap_md5", Md5, },
-	{ "eap_otp", Otp, },
-	{ "eap_gtc", Gtc, },
-	{ "ttls", Ttls, },
-	{ "eap_xpnd", Xpnd, },
-	{ "eap_xprm", Xprm, }, 
-	{ 0 }
-};
+    {
+     {
+      "eap_identity", Identity,
+     },
+     {
+      "eap_notify", Notify,
+     },
+     {
+      "eap_nak", Nak,
+     },
+     {
+      "eap_md5", Md5,
+     },
+     {
+      "eap_otp", Otp,
+     },
+     {
+      "eap_gtc", Gtc,
+     },
+     {
+      "ttls", Ttls,
+     },
+     {
+      "eap_xpnd", Xpnd,
+     },
+     {
+      "eap_xprm", Xprm,
+     },
+     {0}};
 
 static char *eapsubtype[256] =
-{
-[Identity]	"Identity",
-[Notify]	"Notify",
-[Nak]		"Nak",
-[Md5]	"Md5",
-[Otp]		"Otp",
-[Gtc]		"Gtc",
-[Ttls]		"Ttls",
-[Xpnd]	"Xpnd",
-[Xprm]	"Xprm",
+    {
+	 [Identity] "Identity",
+	 [Notify] "Notify",
+	 [Nak] "Nak",
+	 [Md5] "Md5",
+	 [Otp] "Otp",
+	 [Gtc] "Gtc",
+	 [Ttls] "Ttls",
+	 [Xpnd] "Xpnd",
+	 [Xprm] "Xprm",
 };
-
 
 static void
 p_compile(Filter *f)
@@ -85,7 +98,7 @@ p_compile(Filter *f)
 	Mux *m;
 
 	for(m = p_mux; m->name != nil; m++)
-		if(strcmp(f->s, m->name) == 0){
+		if(strcmp(f->s, m->name) == 0) {
 			f->pr = m->pr;
 			f->ulv = m->val;
 			f->subop = Ot;
@@ -106,14 +119,14 @@ p_filter(Filter *f, Msg *m)
 	if(m->pe - m->ps < EAPHDR)
 		return -1;
 
-	h = (Hdr*)m->ps;
+	h = (Hdr *)m->ps;
 
 	/* truncate the message if there's extra */
 	/* len includes header */
 	len = NetS(h->len);
-	if(m->ps+len < m->pe)
-		m->pe = m->ps+len;
-	else if(m->ps+len > m->pe)
+	if(m->ps + len < m->pe)
+		m->pe = m->ps + len;
+	else if(m->ps + len > m->pe)
 		return -1;
 	m->ps += EAPHDR;
 
@@ -127,12 +140,12 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static char*
+static char *
 op(int i)
 {
 	static char x[20];
 
-	switch(i){
+	switch(i) {
 	case Request:
 		return "Request";
 	case Response:
@@ -147,7 +160,7 @@ op(int i)
 	}
 }
 
-static char*
+static char *
 subop(uint8_t val)
 {
 	static char x[20], *p;
@@ -173,14 +186,14 @@ p_seprint(Msg *m)
 
 	p = m->p;
 	e = m->e;
-	h = (Hdr*)m->ps;
+	h = (Hdr *)m->ps;
 
 	/* resize packet (should already be done by eapol) */
 	/* len includes header */
 	len = NetS(h->len);
-	if(m->ps+len < m->pe)
-		m->pe = m->ps+len;
-	else if(m->ps+len > m->pe)
+	if(m->ps + len < m->pe)
+		m->pe = m->ps + len;
+	else if(m->ps + len > m->pe)
 		return -1;
 	m->ps += EAPHDR;
 
@@ -208,8 +221,8 @@ p_seprintidentity(Msg *m)
 	int len;
 
 	m->pr = nil;
-	ps = (char*)m->ps;
-	pe = (char*)m->pe;
+	ps = (char *)m->ps;
+	pe = (char *)m->pe;
 
 	/* we would like to do this depending on the 'context':
 	 *  - one for eap_identity request and
@@ -218,12 +231,12 @@ p_seprintidentity(Msg *m)
 	 * so we treat them the same, so we might erroneously
 	 * print a response as if it was a request. too bad. - axel
 	 */
-	for (z=ps; *z != '\0' && z+1 < pe; z++)
+	for(z = ps; *z != '\0' && z + 1 < pe; z++)
 		;
-	if (*z == '\0' && z+1 < pe) {
+	if(*z == '\0' && z + 1 < pe) {
 		m->p = seprint(m->p, m->e, "prompt=(%s)", ps);
-		len = pe - (z+1);
-		m->p = seprint(m->p, m->e, " options=(%.*s)", len, z+1);
+		len = pe - (z + 1);
+		m->p = seprint(m->p, m->e, " options=(%.*s)", len, z + 1);
 	} else {
 		len = pe - ps;
 		m->p = seprint(m->p, m->e, "%.*s", len, ps);
@@ -232,25 +245,25 @@ p_seprintidentity(Msg *m)
 }
 
 Proto eap =
-{
-	"eap",
-	p_compile,
-	p_filter,
-	p_seprint,
-	p_mux,
-	"%lud",
-	nil,
-	defaultframer,
+    {
+     "eap",
+     p_compile,
+     p_filter,
+     p_seprint,
+     p_mux,
+     "%lud",
+     nil,
+     defaultframer,
 };
 
 Proto eap_identity =
-{
-	"eap_identity",
-	p_compile,
-	p_filter,
-	p_seprintidentity,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    {
+     "eap_identity",
+     p_compile,
+     p_filter,
+     p_seprintidentity,
+     nil,
+     nil,
+     nil,
+     defaultframer,
 };

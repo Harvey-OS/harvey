@@ -27,14 +27,14 @@ dirread9p(Req *r, Dirgen *gen, void *aux)
 	else
 		start = r->fid->dirindex;
 
-	p = (uint8_t*)r->ofcall.data;
-	ep = p+r->ifcall.count;
+	p = (uint8_t *)r->ofcall.data;
+	ep = p + r->ifcall.count;
 
-	while(p < ep){
+	while(p < ep) {
 		memset(&d, 0, sizeof d);
 		if((*gen)(start, &d, aux) < 0)
 			break;
-		rv = convD2M(&d, p, ep-p);
+		rv = convD2M(&d, p, ep - p);
 		free(d.name);
 		free(d.muid);
 		free(d.uid);
@@ -45,5 +45,5 @@ dirread9p(Req *r, Dirgen *gen, void *aux)
 		start++;
 	}
 	r->fid->dirindex = start;
-	r->ofcall.count = p - (uint8_t*)r->ofcall.data;
+	r->ofcall.count = p - (uint8_t *)r->ofcall.data;
 }

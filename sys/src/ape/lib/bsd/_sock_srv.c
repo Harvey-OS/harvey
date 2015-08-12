@@ -41,7 +41,7 @@ int
 _sock_srv(char *path, int fd)
 {
 	int sfd;
-	char msg[8+256+1];
+	char msg[8 + 256 + 1];
 
 	/* change the path to something in srv */
 	_sock_srvname(msg, path);
@@ -51,13 +51,13 @@ _sock_srv(char *path, int fd)
 
 	/* put the fd in /srv and then close it */
 	sfd = creat(msg, 0666);
-	if(sfd < 0){
+	if(sfd < 0) {
 		close(fd);
 		_syserrno();
 		return -1;
 	}
 	snprintf(msg, sizeof msg, "%d", fd);
-	if(write(sfd, msg, strlen(msg)) < 0){
+	if(write(sfd, msg, strlen(msg)) < 0) {
 		_syserrno();
 		close(sfd);
 		close(fd);

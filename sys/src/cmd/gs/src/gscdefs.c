@@ -27,8 +27,8 @@
 /* Configuration scalars */
 
 #include "std.h"
-#include "gscdefs.h"		/* interface */
-#include "gconfigd.h"		/* for #defines */
+#include "gscdefs.h"  /* interface */
+#include "gconfigd.h" /* for #defines */
 
 /* ---------------- Miscellaneous system parameters ---------------- */
 
@@ -36,25 +36,25 @@
 /* Normally they are all const; see gscdefs.h for more information. */
 
 #ifndef GS_BUILDTIME
-#  define GS_BUILDTIME\
-	0			/* should be set in the makefile */
+#define GS_BUILDTIME \
+	0 /* should be set in the makefile */
 #endif
 CONFIG_CONST int32_t gs_buildtime = GS_BUILDTIME;
 
 #ifndef GS_COPYRIGHT
-#  define GS_COPYRIGHT\
+#define GS_COPYRIGHT \
 	"Copyright (C) 2005 artofcode LLC, Benicia, CA.  All rights reserved."
 #endif
 const char *CONFIG_CONST gs_copyright = GS_COPYRIGHT;
 
 #ifndef GS_PRODUCTFAMILY
-#  define GS_PRODUCTFAMILY\
+#define GS_PRODUCTFAMILY \
 	"AFPL Ghostscript"
 #endif
 const char *CONFIG_CONST gs_productfamily = GS_PRODUCTFAMILY;
 
 #ifndef GS_PRODUCT
-#  define GS_PRODUCT\
+#define GS_PRODUCT \
 	GS_PRODUCTFAMILY
 #endif
 const char *CONFIG_CONST gs_product = GS_PRODUCT;
@@ -62,7 +62,7 @@ const char *CONFIG_CONST gs_product = GS_PRODUCT;
 const char *
 gs_program_name(void)
 {
-    return gs_product;
+	return gs_product;
 }
 
 /* GS_REVISION must be defined in the makefile. */
@@ -71,15 +71,15 @@ CONFIG_CONST int32_t gs_revision = GS_REVISION;
 int32_t
 gs_revision_number(void)
 {
-    return gs_revision;
+	return gs_revision;
 }
 
 /* GS_REVISIONDATE must be defined in the makefile. */
 CONFIG_CONST int32_t gs_revisiondate = GS_REVISIONDATE;
 
 #ifndef GS_SERIALNUMBER
-#  define GS_SERIALNUMBER\
-	42			/* a famous number */
+#define GS_SERIALNUMBER \
+	42 /* a famous number */
 #endif
 CONFIG_CONST int32_t gs_serialnumber = GS_SERIALNUMBER;
 

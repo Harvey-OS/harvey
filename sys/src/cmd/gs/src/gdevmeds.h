@@ -27,7 +27,7 @@
 /* Interface for gdevmeds.c */
 
 #ifndef gdevmeds_INCLUDED
-#  define gdevmeds_INCLUDED
+#define gdevmeds_INCLUDED
 
 #include "gdevprn.h"
 

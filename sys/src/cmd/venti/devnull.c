@@ -15,14 +15,13 @@
 #include <libsec.h>
 
 #ifndef _UNISTD_H_
-#pragma varargck type "F" VtFcall*
+#pragma varargck type "F" VtFcall *
 #pragma varargck type "T" void
 #endif
 
 int verbose;
 
-enum
-{
+enum {
 	STACK = 8192
 };
 
@@ -42,10 +41,11 @@ threadmain(int argc, char **argv)
 
 	fmtinstall('V', vtscorefmt);
 	fmtinstall('F', vtfcallfmt);
-	
+
 	address = "tcp!*!venti";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		verbose++;
 		break;
@@ -54,17 +54,18 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	srv = vtlisten(address);
 	if(srv == nil)
 		sysfatal("vtlisten %s: %r", address);
 
-	while((r = vtgetreq(srv)) != nil){
-		r->rx.msgtype = r->tx.msgtype+1;
+	while((r = vtgetreq(srv)) != nil) {
+		r->rx.msgtype = r->tx.msgtype + 1;
 		if(verbose)
 			fprint(2, "<- %F\n", &r->tx);
-		switch(r->tx.msgtype){
+		switch(r->tx.msgtype) {
 		case VtTping:
 			break;
 		case VtTgoodbye:
@@ -85,4 +86,3 @@ threadmain(int argc, char **argv)
 	}
 	threadexitsall(nil);
 }
-

@@ -12,164 +12,152 @@
  *  This protocol is compatible with UDP's packet format.
  *  It could be done over UDP if need be.
  */
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"ip.h"
+#include "ip.h"
 
-#define DEBUG	0
-#define DPRINT if(DEBUG)print
+#define DEBUG 0
+#define DPRINT    \
+	if(DEBUG) \
+	print
 
-#define SEQDIFF(a,b) ( (a)>=(b)?\
-			(a)-(b):\
-			0xffffffffUL-((b)-(a)) )
-#define INSEQ(a,start,end) ( (start)<=(end)?\
-				((a)>(start)&&(a)<=(end)):\
-				((a)>(start)||(a)<=(end)) )
+#define SEQDIFF(a, b) ((a) >= (b) ? (a) - (b) : 0xffffffffUL - ((b) - (a)))
+#define INSEQ(a, start, end) ((start) <= (end) ? ((a) > (start) && (a) <= (end)) : ((a) > (start) || (a) <= (end)))
 #define UNACKED(r) SEQDIFF(r->sndseq, r->ackrcvd)
-#define NEXTSEQ(a) ( (a)+1 == 0 ? 1 : (a)+1 )
+#define NEXTSEQ(a) ((a) + 1 == 0 ? 1 : (a) + 1)
 
-enum
-{
-	UDP_PHDRSIZE	= 12,	/* pseudo header */
-//	UDP_HDRSIZE	= 20,	/* pseudo header + udp header */
-	UDP_RHDRSIZE	= 36,	/* pseudo header + udp header + rudp header */
-	UDP_IPHDR	= 8,	/* ip header */
-	IP_UDPPROTO	= 254,
-	UDP_USEAD7	= 52,	/* size of new ipv6 headers struct */
+enum {
+	UDP_PHDRSIZE = 12, /* pseudo header */
+			   //	UDP_HDRSIZE	= 20,	/* pseudo header + udp header */
+	UDP_RHDRSIZE = 36, /* pseudo header + udp header + rudp header */
+	UDP_IPHDR = 8,     /* ip header */
+	IP_UDPPROTO = 254,
+	UDP_USEAD7 = 52, /* size of new ipv6 headers struct */
 
-	Rudprxms	= 200,
-	Rudptickms	= 50,
-	Rudpmaxxmit	= 10,
-	Maxunacked	= 100,
+	Rudprxms = 200,
+	Rudptickms = 50,
+	Rudpmaxxmit = 10,
+	Maxunacked = 100,
 };
 
-#define Hangupgen	0xffffffff	/* used only in hangup messages */
+#define Hangupgen 0xffffffff /* used only in hangup messages */
 
 typedef struct Udphdr Udphdr;
-struct Udphdr
-{
+struct Udphdr {
 	/* ip header */
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
+	uint8_t vihl;      /* Version and header length */
+	uint8_t tos;       /* Type of service */
+	uint8_t length[2]; /* packet length */
+	uint8_t id[2];     /* Identification */
+	uint8_t frag[2];   /* Fragment information */
 
 	/* pseudo header starts here */
-	uint8_t	Unused;
-	uint8_t	udpproto;	/* Protocol */
-	uint8_t	udpplen[2];	/* Header plus data length */
-	uint8_t	udpsrc[4];	/* Ip source */
-	uint8_t	udpdst[4];	/* Ip destination */
+	uint8_t Unused;
+	uint8_t udpproto;   /* Protocol */
+	uint8_t udpplen[2]; /* Header plus data length */
+	uint8_t udpsrc[4];  /* Ip source */
+	uint8_t udpdst[4];  /* Ip destination */
 
 	/* udp header */
-	uint8_t	udpsport[2];	/* Source port */
-	uint8_t	udpdport[2];	/* Destination port */
-	uint8_t	udplen[2];	/* data length */
-	uint8_t	udpcksum[2];	/* Checksum */
+	uint8_t udpsport[2]; /* Source port */
+	uint8_t udpdport[2]; /* Destination port */
+	uint8_t udplen[2];   /* data length */
+	uint8_t udpcksum[2]; /* Checksum */
 };
 
 typedef struct Rudphdr Rudphdr;
-struct Rudphdr
-{
+struct Rudphdr {
 	/* ip header */
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	length[2];	/* packet length */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
+	uint8_t vihl;      /* Version and header length */
+	uint8_t tos;       /* Type of service */
+	uint8_t length[2]; /* packet length */
+	uint8_t id[2];     /* Identification */
+	uint8_t frag[2];   /* Fragment information */
 
 	/* pseudo header starts here */
-	uint8_t	Unused;
-	uint8_t	udpproto;	/* Protocol */
-	uint8_t	udpplen[2];	/* Header plus data length */
-	uint8_t	udpsrc[4];	/* Ip source */
-	uint8_t	udpdst[4];	/* Ip destination */
+	uint8_t Unused;
+	uint8_t udpproto;   /* Protocol */
+	uint8_t udpplen[2]; /* Header plus data length */
+	uint8_t udpsrc[4];  /* Ip source */
+	uint8_t udpdst[4];  /* Ip destination */
 
 	/* udp header */
-	uint8_t	udpsport[2];	/* Source port */
-	uint8_t	udpdport[2];	/* Destination port */
-	uint8_t	udplen[2];	/* data length (includes rudp header) */
-	uint8_t	udpcksum[2];	/* Checksum */
+	uint8_t udpsport[2]; /* Source port */
+	uint8_t udpdport[2]; /* Destination port */
+	uint8_t udplen[2];   /* data length (includes rudp header) */
+	uint8_t udpcksum[2]; /* Checksum */
 
 	/* rudp header */
-	uint8_t	relseq[4];	/* id of this packet (or 0) */
-	uint8_t	relsgen[4];	/* generation/time stamp */
-	uint8_t	relack[4];	/* packet being acked (or 0) */
-	uint8_t	relagen[4];	/* generation/time stamp */
+	uint8_t relseq[4];  /* id of this packet (or 0) */
+	uint8_t relsgen[4]; /* generation/time stamp */
+	uint8_t relack[4];  /* packet being acked (or 0) */
+	uint8_t relagen[4]; /* generation/time stamp */
 };
-
 
 /*
  *  one state structure per destination
  */
 typedef struct Reliable Reliable;
-struct Reliable
-{
+struct Reliable {
 	Ref;
 
 	Reliable *next;
 
-	uint8_t	addr[IPaddrlen];	/* always V6 when put here */
-	uint16_t	port;
+	uint8_t addr[IPaddrlen]; /* always V6 when put here */
+	uint16_t port;
 
-	Block	*unacked;	/* unacked msg list */
-	Block	*unackedtail;	/*  and its tail */
+	Block *unacked;     /* unacked msg list */
+	Block *unackedtail; /*  and its tail */
 
-	int	timeout;	/* time since first unacked msg sent */
-	int	xmits;		/* number of times first unacked msg sent */
+	int timeout; /* time since first unacked msg sent */
+	int xmits;   /* number of times first unacked msg sent */
 
-	uint32_t	sndseq;		/* next packet to be sent */
-	uint32_t	sndgen;		/*  and its generation */
+	uint32_t sndseq; /* next packet to be sent */
+	uint32_t sndgen; /*  and its generation */
 
-	uint32_t	rcvseq;		/* last packet received */
-	uint32_t	rcvgen;		/*  and its generation */
+	uint32_t rcvseq; /* last packet received */
+	uint32_t rcvgen; /*  and its generation */
 
-	uint32_t	acksent;	/* last ack sent */
-	uint32_t	ackrcvd;	/* last msg for which ack was rcvd */
+	uint32_t acksent; /* last ack sent */
+	uint32_t ackrcvd; /* last msg for which ack was rcvd */
 
 	/* flow control */
-	QLock	lock;
-	Rendez	vous;
-	int	blocked;
+	QLock lock;
+	Rendez vous;
+	int blocked;
 };
-
-
 
 /* MIB II counters */
 typedef struct Rudpstats Rudpstats;
-struct Rudpstats
-{
-	uint32_t	rudpInDatagrams;
-	uint32_t	rudpNoPorts;
-	uint32_t	rudpInErrors;
-	uint32_t	rudpOutDatagrams;
+struct Rudpstats {
+	uint32_t rudpInDatagrams;
+	uint32_t rudpNoPorts;
+	uint32_t rudpInErrors;
+	uint32_t rudpOutDatagrams;
 };
 
 typedef struct Rudppriv Rudppriv;
-struct Rudppriv
-{
-	Ipht	ht;
+struct Rudppriv {
+	Ipht ht;
 
 	/* MIB counters */
-	Rudpstats	ustats;
+	Rudpstats ustats;
 
 	/* non-MIB stats */
-	uint32_t	csumerr;		/* checksum errors */
-	uint32_t	lenerr;			/* short packet */
-	uint32_t	rxmits;			/* # of retransmissions */
-	uint32_t	orders;			/* # of out of order pkts */
+	uint32_t csumerr; /* checksum errors */
+	uint32_t lenerr;  /* short packet */
+	uint32_t rxmits;  /* # of retransmissions */
+	uint32_t orders;  /* # of out of order pkts */
 
 	/* keeping track of the ack kproc */
-	int	ackprocstarted;
-	QLock	apl;
+	int ackprocstarted;
+	QLock apl;
 };
-
 
 static uint32_t generation = 0;
 //static Rendez rend;
@@ -178,28 +166,27 @@ static uint32_t generation = 0;
  *  protocol specific part of Conv
  */
 typedef struct Rudpcb Rudpcb;
-struct Rudpcb
-{
+struct Rudpcb {
 	QLock;
-	uint8_t	headers;
-	uint8_t	randdrop;
+	uint8_t headers;
+	uint8_t randdrop;
 	Reliable *r;
 };
 
 /*
  * local functions
  */
-void	relsendack(Conv*, Reliable*, int);
-int	reliput(Conv*, Block*, uint8_t*, uint16_t);
-Reliable *relstate(Rudpcb*, uint8_t*, uint16_t, char*);
-void	relput(Reliable*);
-void	relforget(Conv *, uint8_t*, int, int);
-void	relackproc(void *);
-void	relackq(Reliable *, Block*);
-void	relhangup(Conv *, Reliable*);
-void	relrexmit(Conv *, Reliable*);
-void	relput(Reliable*);
-void	rudpkick(void *x);
+void relsendack(Conv *, Reliable *, int);
+int reliput(Conv *, Block *, uint8_t *, uint16_t);
+Reliable *relstate(Rudpcb *, uint8_t *, uint16_t, char *);
+void relput(Reliable *);
+void relforget(Conv *, uint8_t *, int, int);
+void relackproc(void *);
+void relackq(Reliable *, Block *);
+void relhangup(Conv *, Reliable *);
+void relrexmit(Conv *, Reliable *);
+void relput(Reliable *);
+void rudpkick(void *x);
 
 static void
 rudpstartackproc(Proto *rudp)
@@ -208,9 +195,9 @@ rudpstartackproc(Proto *rudp)
 	char kpname[KNAMELEN];
 
 	rpriv = rudp->priv;
-	if(rpriv->ackprocstarted == 0){
+	if(rpriv->ackprocstarted == 0) {
 		qlock(&rpriv->apl);
-		if(rpriv->ackprocstarted == 0){
+		if(rpriv->ackprocstarted == 0) {
 			snprint(kpname, sizeof kpname, "#I%drudpack",
 				rudp->f->dev);
 			kproc(kpname, relackproc, rudp);
@@ -220,7 +207,7 @@ rudpstartackproc(Proto *rudp)
 	}
 }
 
-static char*
+static char *
 rudpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
@@ -235,7 +222,6 @@ rudpconnect(Conv *c, char **argv, int argc)
 	return e;
 }
 
-
 static int
 rudpstate(Conv *c, char *state, int n)
 {
@@ -243,18 +229,18 @@ rudpstate(Conv *c, char *state, int n)
 	Reliable *r;
 	int m;
 
-	m = snprint(state, n, "%s", c->inuse?"Open":"Closed");
-	ucb = (Rudpcb*)c->ptcl;
+	m = snprint(state, n, "%s", c->inuse ? "Open" : "Closed");
+	ucb = (Rudpcb *)c->ptcl;
 	qlock(ucb);
 	for(r = ucb->r; r; r = r->next)
-		m += snprint(state+m, n-m, " %I/%ld", r->addr, UNACKED(r));
-	m += snprint(state+m, n-m, "\n");
+		m += snprint(state + m, n - m, " %I/%ld", r->addr, UNACKED(r));
+	m += snprint(state + m, n - m, "\n");
 	qunlock(ucb);
 	return m;
 }
 
-static char*
-rudpannounce(Conv *c, char** argv, int argc)
+static char *
+rudpannounce(Conv *c, char **argv, int argc)
 {
 	char *e;
 	Rudppriv *upriv;
@@ -273,8 +259,8 @@ rudpannounce(Conv *c, char** argv, int argc)
 static void
 rudpcreate(Conv *c)
 {
-	c->rq = qopen(64*1024, Qmsg, 0, 0);
-	c->wq = qopen(64*1024, Qkick, rudpkick, c);
+	c->rq = qopen(64 * 1024, Qmsg, 0, 0);
+	c->wq = qopen(64 * 1024, Qkick, rudpkick, c);
 }
 
 static void
@@ -288,9 +274,9 @@ rudpclose(Conv *c)
 	iphtrem(&upriv->ht, c);
 
 	/* force out any delayed acks */
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 	qlock(ucb);
-	for(r = ucb->r; r; r = r->next){
+	for(r = ucb->r; r; r = r->next) {
 		if(r->acksent != r->rcvseq)
 			relsendack(c, r, 0);
 	}
@@ -307,7 +293,7 @@ rudpclose(Conv *c)
 	ucb->headers = 0;
 	ucb->randdrop = 0;
 	qlock(ucb);
-	for(r = ucb->r; r; r = nr){
+	for(r = ucb->r; r; r = nr) {
 		if(r->acksent != r->rcvseq)
 			relsendack(c, r, 0);
 		nr = r->next;
@@ -327,7 +313,7 @@ doipoput(Conv *c, Fs *f, Block *bp, int x, int ttl, int tos)
 {
 	Rudpcb *ucb;
 
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 	if(ucb->randdrop && nrand(100) < ucb->randdrop)
 		freeblist(bp);
 	else
@@ -366,7 +352,7 @@ rudpkick(void *x)
 	if(bp == nil)
 		return;
 
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 	switch(ucb->headers) {
 	case 7:
 		/* get user specified addresses */
@@ -380,9 +366,9 @@ rudpkick(void *x)
 		/* pick interface closest to dest */
 		if(ipforme(f, laddr) != Runi)
 			findlocalip(f, laddr, raddr);
-		bp->rp += IPaddrlen;		/* Ignore ifc address */
+		bp->rp += IPaddrlen; /* Ignore ifc address */
 		rport = nhgets(bp->rp);
-		bp->rp += 2+2;			/* Ignore local port */
+		bp->rp += 2 + 2; /* Ignore local port */
 		break;
 	default:
 		ipmove(raddr, c->raddr);
@@ -394,22 +380,22 @@ rudpkick(void *x)
 	dlen = blocklen(bp);
 
 	/* Make space to fit rudp & ip header */
-	bp = padblock(bp, UDP_IPHDR+UDP_RHDRSIZE);
+	bp = padblock(bp, UDP_IPHDR + UDP_RHDRSIZE);
 	if(bp == nil)
 		return;
 
 	uh = (Udphdr *)(bp->rp);
 	uh->vihl = IP_VER4;
 
-	rh = (Rudphdr*)uh;
+	rh = (Rudphdr *)uh;
 
-	ptcllen = dlen + (UDP_RHDRSIZE-UDP_PHDRSIZE);
+	ptcllen = dlen + (UDP_RHDRSIZE - UDP_PHDRSIZE);
 	uh->Unused = 0;
 	uh->udpproto = IP_UDPPROTO;
 	uh->frag[0] = 0;
 	uh->frag[1] = 0;
 	hnputs(uh->udpplen, ptcllen);
-	switch(ucb->headers){
+	switch(ucb->headers) {
 	case 7:
 		v6tov4(uh->udpdst, raddr);
 		hnputs(uh->udpdport, rport);
@@ -434,13 +420,13 @@ rudpkick(void *x)
 	hnputl(rh->relseq, r->sndseq);
 	hnputl(rh->relsgen, r->sndgen);
 
-	hnputl(rh->relack, r->rcvseq);  /* ACK last rcvd packet */
+	hnputl(rh->relack, r->rcvseq); /* ACK last rcvd packet */
 	hnputl(rh->relagen, r->rcvgen);
 
 	if(r->rcvseq != r->acksent)
 		r->acksent = r->rcvseq;
 
-	hnputs(uh->udpcksum, ptclcsum(bp, UDP_IPHDR, dlen+UDP_RHDRSIZE));
+	hnputs(uh->udpcksum, ptclcsum(bp, UDP_IPHDR, dlen + UDP_RHDRSIZE));
 
 	relackq(r, bp);
 	qunlock(ucb);
@@ -448,7 +434,7 @@ rudpkick(void *x)
 	upriv->ustats.rudpOutDatagrams++;
 
 	DPRINT("sent: %lud/%lud, %lud/%lud\n",
-		r->sndseq, r->sndgen, r->rcvseq, r->rcvgen);
+	       r->sndseq, r->sndgen, r->rcvseq, r->rcvgen);
 
 	doipoput(c, f, bp, 0, c->ttl, c->tos);
 
@@ -460,7 +446,7 @@ rudpkick(void *x)
 
 	/* flow control of sorts */
 	qlock(&r->lock);
-	if(UNACKED(r) > Maxunacked){
+	if(UNACKED(r) > Maxunacked) {
 		r->blocked = 1;
 		sleep(&r->vous, flow, r);
 		r->blocked = 0;
@@ -489,7 +475,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 
 	upriv->ustats.rudpInDatagrams++;
 
-	uh = (Udphdr*)(bp->rp);
+	uh = (Udphdr *)(bp->rp);
 
 	/* Put back pseudo header for checksum
 	 * (remember old values for icmpnoconv())
@@ -506,7 +492,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	rport = nhgets(uh->udpsport);
 
 	if(nhgets(uh->udpcksum)) {
-		if(ptclcsum(bp, UDP_IPHDR, len+UDP_PHDRSIZE)) {
+		if(ptclcsum(bp, UDP_IPHDR, len + UDP_PHDRSIZE)) {
 			upriv->ustats.rudpInErrors++;
 			upriv->csumerr++;
 			netlog(f, Logrudp, "rudp: checksum error %I\n", raddr);
@@ -519,23 +505,23 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	qlock(rudp);
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
-	if(c == nil){
+	if(c == nil) {
 		/* no conversation found */
 		upriv->ustats.rudpNoPorts++;
 		qunlock(rudp);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
-			laddr, lport);
+		       laddr, lport);
 		uh->Unused = ottl;
 		hnputs(uh->udpplen, olen);
 		icmpnoconv(f, bp);
 		freeblist(bp);
 		return;
 	}
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 	qlock(ucb);
 	qunlock(rudp);
 
-	if(reliput(c, bp, raddr, rport) < 0){
+	if(reliput(c, bp, raddr, rport) < 0) {
 		qunlock(ucb);
 		freeb(bp);
 		return;
@@ -545,36 +531,40 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	 * Trim the packet down to data size
 	 */
 
-	len -= (UDP_RHDRSIZE-UDP_PHDRSIZE);
-	bp = trimblock(bp, UDP_IPHDR+UDP_RHDRSIZE, len);
+	len -= (UDP_RHDRSIZE - UDP_PHDRSIZE);
+	bp = trimblock(bp, UDP_IPHDR + UDP_RHDRSIZE, len);
 	if(bp == nil) {
 		netlog(f, Logrudp, "rudp: len err %I.%d -> %I.%d\n",
-			raddr, rport, laddr, lport);
+		       raddr, rport, laddr, lport);
 		DPRINT("rudp: len err %I.%d -> %I.%d\n",
-			raddr, rport, laddr, lport);
+		       raddr, rport, laddr, lport);
 		upriv->lenerr++;
 		return;
 	}
 
 	netlog(f, Logrudpmsg, "rudp: %I.%d -> %I.%d l %d\n",
-		raddr, rport, laddr, lport, len);
+	       raddr, rport, laddr, lport, len);
 
-	switch(ucb->headers){
+	switch(ucb->headers) {
 	case 7:
 		/* pass the src address */
 		bp = padblock(bp, UDP_USEAD7);
 		p = bp->rp;
-		ipmove(p, raddr); p += IPaddrlen;
-		ipmove(p, laddr); p += IPaddrlen;
-		ipmove(p, ifc->lifc->local); p += IPaddrlen;
-		hnputs(p, rport); p += 2;
+		ipmove(p, raddr);
+		p += IPaddrlen;
+		ipmove(p, laddr);
+		p += IPaddrlen;
+		ipmove(p, ifc->lifc->local);
+		p += IPaddrlen;
+		hnputs(p, rport);
+		p += 2;
 		hnputs(p, lport);
 		break;
 	default:
 		/* connection oriented rudp */
-		if(ipcmp(c->raddr, IPnoaddr) == 0){
+		if(ipcmp(c->raddr, IPnoaddr) == 0) {
 			/* save the src address in the conversation */
-		 	ipmove(c->raddr, raddr);
+			ipmove(c->raddr, raddr);
 			c->rport = rport;
 
 			/* reply with the same ip address (if not broadcast) */
@@ -590,10 +580,9 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 
 	if(qfull(c->rq)) {
 		netlog(f, Logrudp, "rudp: qfull %I.%d -> %I.%d\n", raddr, rport,
-			laddr, lport);
+		       laddr, lport);
 		freeblist(bp);
-	}
-	else
+	} else
 		qpass(c->rq, bp);
 
 	qunlock(ucb);
@@ -601,32 +590,32 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 
 static char *rudpunknown = "unknown rudp ctl request";
 
-char*
+char *
 rudpctl(Conv *c, char **f, int n)
 {
 	Rudpcb *ucb;
 	uint8_t ip[IPaddrlen];
 	int x;
 
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 	if(n < 1)
 		return rudpunknown;
 
-	if(strcmp(f[0], "headers") == 0){
-		ucb->headers = 7;		/* new headers format */
+	if(strcmp(f[0], "headers") == 0) {
+		ucb->headers = 7; /* new headers format */
 		return nil;
-	} else if(strcmp(f[0], "hangup") == 0){
+	} else if(strcmp(f[0], "hangup") == 0) {
 		if(n < 3)
 			return "bad syntax";
-		if (parseip(ip, f[1]) == -1)
+		if(parseip(ip, f[1]) == -1)
 			return Ebadip;
 		x = atoi(f[2]);
 		qlock(ucb);
 		relforget(c, ip, x, 1);
 		qunlock(ucb);
 		return nil;
-	} else if(strcmp(f[0], "randdrop") == 0){
-		x = 10;			/* default is 10% */
+	} else if(strcmp(f[0], "randdrop") == 0) {
+		x = 10; /* default is 10% */
 		if(n > 1)
 			x = atoi(f[1]);
 		if(x > 100 || x < 0)
@@ -645,7 +634,7 @@ rudpadvise(Proto *rudp, Block *bp, char *msg)
 	uint16_t psource, pdest;
 	Conv *s, **p;
 
-	h = (Udphdr*)(bp->rp);
+	h = (Udphdr *)(bp->rp);
 
 	v4tov6(dest, h->udpdst);
 	v4tov6(source, h->udpsrc);
@@ -656,13 +645,13 @@ rudpadvise(Proto *rudp, Block *bp, char *msg)
 	for(p = rudp->conv; *p; p++) {
 		s = *p;
 		if(s->rport == pdest)
-		if(s->lport == psource)
-		if(ipcmp(s->raddr, dest) == 0)
-		if(ipcmp(s->laddr, source) == 0){
-			qhangup(s->rq, msg);
-			qhangup(s->wq, msg);
-			break;
-		}
+			if(s->lport == psource)
+				if(ipcmp(s->raddr, dest) == 0)
+					if(ipcmp(s->laddr, source) == 0) {
+						qhangup(s->rq, msg);
+						qhangup(s->wq, msg);
+						break;
+					}
 	}
 	freeblist(bp);
 }
@@ -674,12 +663,12 @@ rudpstats(Proto *rudp, char *buf, int len)
 
 	upriv = rudp->priv;
 	return snprint(buf, len, "%lud %lud %lud %lud %lud %lud\n",
-		upriv->ustats.rudpInDatagrams,
-		upriv->ustats.rudpNoPorts,
-		upriv->ustats.rudpInErrors,
-		upriv->ustats.rudpOutDatagrams,
-		upriv->rxmits,
-		upriv->orders);
+		       upriv->ustats.rudpInDatagrams,
+		       upriv->ustats.rudpNoPorts,
+		       upriv->ustats.rudpInErrors,
+		       upriv->ustats.rudpOutDatagrams,
+		       upriv->rxmits,
+		       upriv->orders);
 }
 
 void
@@ -750,13 +739,13 @@ loop:
 
 	for(s = rudp->conv; *s; s++) {
 		c = *s;
-		ucb = (Rudpcb*)c->ptcl;
+		ucb = (Rudpcb *)c->ptcl;
 		qlock(ucb);
 
 		for(r = ucb->r; r; r = r->next) {
-			if(r->unacked != nil){
+			if(r->unacked != nil) {
 				r->timeout += Rudptickms;
-				if(r->timeout > Rudprxms*r->xmits)
+				if(r->timeout > Rudprxms * r->xmits)
 					relrexmit(c, r);
 			}
 			if(r->acksent != r->rcvseq)
@@ -770,26 +759,26 @@ loop:
 /*
  *  get the state record for a conversation
  */
-Reliable*
+Reliable *
 relstate(Rudpcb *ucb, uint8_t *addr, uint16_t port, char *from)
 {
 	Reliable *r, **l;
 
 	l = &ucb->r;
-	for(r = *l; r; r = *l){
+	for(r = *l; r; r = *l) {
 		if(memcmp(addr, r->addr, IPaddrlen) == 0 &&
-		    port == r->port)
+		   port == r->port)
 			break;
 		l = &r->next;
 	}
 
 	/* no state for this addr/port, create some */
-	if(r == nil){
+	if(r == nil) {
 		while(generation == 0)
 			generation = rand();
 
 		DPRINT("from %s new state %lud for %I!%ud\n",
-		        from, generation, addr, port);
+		       from, generation, addr, port);
 
 		r = smalloc(sizeof(Reliable));
 		memmove(r->addr, addr, IPaddrlen);
@@ -806,7 +795,7 @@ relstate(Rudpcb *ucb, uint8_t *addr, uint16_t port, char *from)
 		r->xmits = 0;
 		r->timeout = 0;
 		r->ref = 0;
-		incref(r);	/* one reference for being in the list */
+		incref(r); /* one reference for being in the list */
 
 		*l = r;
 	}
@@ -831,16 +820,16 @@ relforget(Conv *c, uint8_t *ip, int port, int originator)
 	Rudpcb *ucb;
 	Reliable *r, **l;
 
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 
 	l = &ucb->r;
-	for(r = *l; r; r = *l){
-		if(ipcmp(ip, r->addr) == 0 && port == r->port){
+	for(r = *l; r; r = *l) {
+		if(ipcmp(ip, r->addr) == 0 && port == r->port) {
 			*l = r->next;
 			if(originator)
 				relsendack(c, r, 1);
 			relhangup(c, r);
-			relput(r);	/* remove from the list */
+			relput(r); /* remove from the list */
 			break;
 		}
 		l = &r->next;
@@ -866,19 +855,19 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 	int rv = -1;
 
 	/* get fields */
-	uh = (Udphdr*)(bp->rp);
-	rh = (Rudphdr*)uh;
+	uh = (Udphdr *)(bp->rp);
+	rh = (Rudphdr *)uh;
 	seq = nhgetl(rh->relseq);
 	sgen = nhgetl(rh->relsgen);
 	ack = nhgetl(rh->relack);
 	agen = nhgetl(rh->relagen);
 
 	upriv = c->p->priv;
-	ucb = (Rudpcb*)c->ptcl;
+	ucb = (Rudpcb *)c->ptcl;
 	r = relstate(ucb, addr, port, "input");
 
 	DPRINT("rcvd %lud/%lud, %lud/%lud, r->sndgen = %lud\n",
-		seq, sgen, ack, agen, r->sndgen);
+	       seq, sgen, ack, agen, r->sndgen);
 
 	/* if acking an incorrect generation, ignore */
 	if(ack && agen != r->sndgen)
@@ -892,12 +881,12 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 	}
 
 	/* make sure we're not talking to a new remote side */
-	if(r->rcvgen != sgen){
+	if(r->rcvgen != sgen) {
 		if(seq != 0 && seq != 1)
 			goto out;
 
 		/* new connection */
-		if(r->rcvgen != 0){
+		if(r->rcvgen != 0) {
 			DPRINT("new con r->rcvgen = %lud, sgen = %lud\n", r->rcvgen, sgen);
 			relhangup(c, r);
 		}
@@ -905,9 +894,9 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 	}
 
 	/* dequeue acked packets */
-	if(ack && agen == r->sndgen){
+	if(ack && agen == r->sndgen) {
 		ackreal = 0;
-		while(r->unacked != nil && INSEQ(ack, r->ackrcvd, r->sndseq)){
+		while(r->unacked != nil && INSEQ(ack, r->ackrcvd, r->sndseq)) {
 			nbp = r->unacked;
 			r->unacked = nbp->list;
 			DPRINT("%lud/%lud acked, r->sndgen = %lud\n",
@@ -918,21 +907,20 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 		}
 
 		/* flow control */
-		if(UNACKED(r) < Maxunacked/8 && r->blocked)
+		if(UNACKED(r) < Maxunacked / 8 && r->blocked)
 			wakeup(&r->vous);
 
 		/*
 		 *  retransmit next packet if the acked packet
 		 *  was transmitted more than once
 		 */
-		if(ackreal && r->unacked != nil){
+		if(ackreal && r->unacked != nil) {
 			r->timeout = 0;
-			if(r->xmits > 1){
+			if(r->xmits > 1) {
 				r->xmits = 1;
 				relrexmit(c, r);
 			}
 		}
-
 	}
 
 	/* no message or input queue full */
@@ -940,8 +928,8 @@ reliput(Conv *c, Block *bp, uint8_t *addr, uint16_t port)
 		goto out;
 
 	/* refuse out of order delivery */
-	if(seq != NEXTSEQ(r->rcvseq)){
-		relsendack(c, r, 0);	/* tell him we got it already */
+	if(seq != NEXTSEQ(r->rcvseq)) {
+		relsendack(c, r, 0); /* tell him we got it already */
 		upriv->orders++;
 		DPRINT("out of sequence %lud not %lud\n", seq, NEXTSEQ(r->rcvseq));
 		goto out;
@@ -970,9 +958,9 @@ relsendack(Conv *c, Reliable *r, int hangup)
 	f = c->p->f;
 	uh = (Udphdr *)(bp->rp);
 	uh->vihl = IP_VER4;
-	rh = (Rudphdr*)uh;
+	rh = (Rudphdr *)uh;
 
-	ptcllen = (UDP_RHDRSIZE-UDP_PHDRSIZE);
+	ptcllen = (UDP_RHDRSIZE - UDP_PHDRSIZE);
 	uh->Unused = 0;
 	uh->udpproto = IP_UDPPROTO;
 	uh->frag[0] = 0;
@@ -1006,7 +994,6 @@ relsendack(Conv *c, Reliable *r, int hangup)
 	doipoput(c, f, bp, 0, c->ttl, c->tos);
 }
 
-
 /*
  *  called with ucb locked (and c locked if user initiated close)
  */
@@ -1023,7 +1010,7 @@ relhangup(Conv *c, Reliable *r)
 	/*
 	 *  dump any unacked outgoing messages
 	 */
-	for(bp = r->unacked; bp != nil; bp = r->unacked){
+	for(bp = r->unacked; bp != nil; bp = r->unacked) {
 		r->unacked = bp->list;
 		bp->list = nil;
 		freeb(bp);
@@ -1055,13 +1042,13 @@ relrexmit(Conv *c, Reliable *r)
 	upriv = c->p->priv;
 	f = c->p->f;
 	r->timeout = 0;
-	if(r->xmits++ > Rudpmaxxmit){
+	if(r->xmits++ > Rudpmaxxmit) {
 		relhangup(c, r);
 		return;
 	}
 
 	upriv->rxmits++;
 	np = copyblock(r->unacked, blocklen(r->unacked));
-	DPRINT("rxmit r->ackrvcd+1 = %lud\n", r->ackrcvd+1);
+	DPRINT("rxmit r->ackrvcd+1 = %lud\n", r->ackrcvd + 1);
 	doipoput(c, f, np, 0, c->ttl, c->tos);
 }

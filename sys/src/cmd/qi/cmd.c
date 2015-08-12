@@ -15,14 +15,14 @@
 #define Extern extern
 #include "power.h"
 
-char	buf[128], lastcmd[128];
-char	fmt = 'X';
-int	width = 60;
-int	inc;
+char buf[128], lastcmd[128];
+char fmt = 'X';
+int width = 60;
+int inc;
 
-uint32_t	expr(char*);
-uint32_t	expr1(char*);
-char*	term(char*, uint32_t*);
+uint32_t expr(char *);
+uint32_t expr1(char *);
+char *term(char *, uint32_t *);
 
 char *
 nextc(char *p)
@@ -62,7 +62,7 @@ numsym(char *addr, uint32_t *val)
 		*val = s.value;
 	else {
 		if(tsym[0] == '#')
-			*val = strtoul(tsym+1, 0, 16);
+			*val = strtoul(tsym + 1, 0, 16);
 		else
 			*val = strtoul(tsym, 0, 0);
 	}
@@ -115,7 +115,7 @@ buildargv(char *str, char **args, int max)
 {
 	int na = 0;
 
-	while (na < max) {
+	while(na < max) {
 		while((*str == ' ' || *str == '\t' || *str == '\n') && *str != '\0')
 			str++;
 
@@ -123,7 +123,7 @@ buildargv(char *str, char **args, int max)
 			return na;
 
 		args[na++] = str;
-		while(!(*str == ' ' || *str == '\t'|| *str == '\n') && *str != '\0')
+		while(!(*str == ' ' || *str == '\t' || *str == '\n') && *str != '\0')
 			str++;
 
 		if(*str == '\n')
@@ -150,7 +150,7 @@ colon(char *addr, char *cp)
 		Bprint(bioout, "?\n");
 		return;
 	case 'b':
-		breakpoint(addr, cp+1);
+		breakpoint(addr, cp + 1);
 		return;
 
 	case 'd':
@@ -160,7 +160,7 @@ colon(char *addr, char *cp)
 	/* These fall through to print the stopped address */
 	case 'r':
 		reset();
-		argc = buildargv(cp+1, argv, 100);
+		argc = buildargv(cp + 1, argv, 100);
 		initstk(argc, argv);
 		count = 0;
 		atbpt = 0;
@@ -172,7 +172,7 @@ colon(char *addr, char *cp)
 		run();
 		break;
 	case 's':
-		cp = nextc(cp+1);
+		cp = nextc(cp + 1);
 		count = 0;
 		if(*cp)
 			count = strtoul(cp, 0, 0);
@@ -192,7 +192,6 @@ colon(char *addr, char *cp)
 
 	Bprint(bioout, "\n");
 }
-
 
 void
 dollar(char *cp)
@@ -218,7 +217,7 @@ dollar(char *cp)
 
 	case 'R':
 		dumpreg();
-		/* fall through */
+	/* fall through */
 
 	case 'f':
 		dumpfreg();
@@ -328,7 +327,6 @@ pfmt(char fmt, int mem, uint32_t val)
 		inc = 2;
 		break;
 
-
 	case 'D':
 		c = Bprint(bioout, "%-8ld ",
 			   mem ? (int32_t)getmem_4(dot) : val);
@@ -380,7 +378,7 @@ pfmt(char fmt, int mem, uint32_t val)
 
 	case 's':
 		i = 0;
-		while(ch = getmem_b(dot+i))
+		while(ch = getmem_b(dot + i))
 			str[i++] = ch;
 		str[i] = '\0';
 		dot += i;
@@ -390,7 +388,7 @@ pfmt(char fmt, int mem, uint32_t val)
 
 	case 'S':
 		i = 0;
-		while(ch = getmem_b(dot+i))
+		while(ch = getmem_b(dot + i))
 			str[i++] = ch;
 		str[i] = '\0';
 		dot += i;
@@ -416,15 +414,15 @@ pfmt(char fmt, int mem, uint32_t val)
 		break;
 
 	case 'e':
-		for (i = 0; globalsym(&s, i); i++)
-			Bprint(bioout, "%-15s #%lux\n", s.name,	getmem_4(s.value));
+		for(i = 0; globalsym(&s, i); i++)
+			Bprint(bioout, "%-15s #%lux\n", s.name, getmem_4(s.value));
 		inc = 0;
 		break;
 
 	case 'I':
 	case 'i':
 		inc = machdata->das(symmap, dot, fmt, str, sizeof(str));
-		if (inc < 0) {
+		if(inc < 0) {
 			Bprint(bioout, "qi: %r\n");
 			return 0;
 		}
@@ -432,7 +430,7 @@ pfmt(char fmt, int mem, uint32_t val)
 		break;
 
 	case 'n':
-		c = width+1;
+		c = width + 1;
 		inc = 0;
 		break;
 
@@ -453,7 +451,7 @@ pfmt(char fmt, int mem, uint32_t val)
 		break;
 
 	case 'z':
-		if (findsym(dot, CTEXT, &s))
+		if(findsym(dot, CTEXT, &s))
 			Bprint(bioout, "  %s() ", s.name);
 		printsource(dot);
 		inc = 0;
@@ -500,7 +498,7 @@ quesie(char *p)
 		}
 		count = 0;
 		while(*p >= '0' && *p <= '9')
-			count = count*10 + (*p++ - '0');
+			count = count * 10 + (*p++ - '0');
 		if(count == 0)
 			count = 1;
 		p = nextc(p);
@@ -611,7 +609,7 @@ cmd(void)
 		if(buf[0] == '\n')
 			strcpy(buf, lastcmd);
 		else {
-			buf[n-1] = '\0';
+			buf[n - 1] = '\0';
 			strcpy(lastcmd, buf);
 		}
 		p = buf;
@@ -629,30 +627,30 @@ cmd(void)
 		cp = strchr(addr, ',');
 		if(cp != 0) {
 			if(cp[1] == '#')
-				cmdcount = strtoul(cp+2, &gotint, 16);
+				cmdcount = strtoul(cp + 2, &gotint, 16);
 			else
-				cmdcount = strtoul(cp+1, &gotint, 0);
+				cmdcount = strtoul(cp + 1, &gotint, 0);
 			*cp = '\0';
 		}
 
 		switch(*p) {
 		case '$':
-			dollar(p+1);
+			dollar(p + 1);
 			break;
 		case ':':
-			colon(addr, p+1);
+			colon(addr, p + 1);
 			break;
 		case '/':
 		case '?':
 			dot = expr(addr);
 			for(i = 0; i < cmdcount; i++)
-				quesie(p+1);
+				quesie(p + 1);
 			break;
 		case '=':
-			eval(addr, p+1);
+			eval(addr, p + 1);
 			break;
 		case '>':
-			setreg(addr, p+1);
+			setreg(addr, p + 1);
 			break;
 		default:
 			Bprint(bioout, "?\n");

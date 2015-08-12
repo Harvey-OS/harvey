@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-DSApub*
+DSApub *
 dsaprivtopub(DSApriv *priv)
 {
 	DSApub *pub;

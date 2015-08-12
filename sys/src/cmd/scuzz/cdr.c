@@ -20,9 +20,9 @@ SRblank(ScsiReq *rp, uint8_t type, uint8_t track)
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdBlank;
 	cmd[1] = type;
-	cmd[2] = track>>24;
-	cmd[3] = track>>16;
-	cmd[4] = track>>8;
+	cmd[2] = track >> 24;
+	cmd[3] = track >> 16;
+	cmd[4] = track >> 8;
 	cmd[5] = track;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -56,7 +56,7 @@ SRTOC(ScsiReq *rp, void *data, int nbytes, uint8_t format, uint8_t track)
 	cmd[0] = ScmdRTOC;
 	cmd[2] = format;
 	cmd[6] = track;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -73,7 +73,7 @@ SRrdiscinfo(ScsiReq *rp, void *data, int nbytes)
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRdiscinfo;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -91,11 +91,11 @@ SRrtrackinfo(ScsiReq *rp, void *data, int nbytes, int track)
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRtrackinfo;
 	cmd[1] = 0x01;
-	cmd[2] = track>>24;
-	cmd[3] = track>>16;
-	cmd[4] = track>>8;
+	cmd[2] = track >> 24;
+	cmd[3] = track >> 16;
+	cmd[4] = track >> 8;
 	cmd[5] = track;
-	cmd[7] = nbytes>>8;
+	cmd[7] = nbytes >> 8;
 	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -130,16 +130,16 @@ SRtreserve(ScsiReq *rp, int32_t nbytes)
 	uint8_t cmd[10];
 	int32_t n;
 
-	if((nbytes % rp->lbsize)){
+	if((nbytes % rp->lbsize)) {
 		rp->status = Status_BADARG;
 		return -1;
 	}
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdTreserve;
-	n = nbytes/rp->lbsize;
-	cmd[5] = n>>24;
-	cmd[6] = n>>16;
-	cmd[7] = n>>8;
+	n = nbytes / rp->lbsize;
+	cmd[5] = n >> 24;
+	cmd[6] = n >> 16;
+	cmd[7] = n >> 8;
 	cmd[8] = n;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -172,7 +172,7 @@ SRwtrack(ScsiReq *rp, void *buf, int32_t nbytes, uint8_t track, uint8_t mode)
 	uint8_t cmd[10];
 	int32_t m, n;
 
-	if((nbytes % rp->lbsize) || nbytes > maxiosize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize) {
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -180,8 +180,8 @@ SRwtrack(ScsiReq *rp, void *buf, int32_t nbytes, uint8_t track, uint8_t mode)
 	cmd[0] = ScmdTwrite;
 	cmd[5] = track;
 	cmd[6] = mode;
-	n = nbytes/rp->lbsize;
-	cmd[7] = n>>8;
+	n = nbytes / rp->lbsize;
+	cmd[7] = n >> 8;
 	cmd[8] = n;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);

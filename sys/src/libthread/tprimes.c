@@ -14,7 +14,7 @@
 int quiet;
 int goal;
 int buffer;
-int (*fn)(void(*)(void*), void*, uint) = threadcreate;
+int (*fn)(void (*)(void *), void *, uint) = threadcreate;
 
 void
 primethread(void *arg)
@@ -30,9 +30,9 @@ primethread(void *arg)
 		print("%d\n", p);
 	nc = chancreate(sizeof(ulong), buffer);
 	(*fn)(primethread, nc, 1024);
-	for(;;){
+	for(;;) {
 		i = recvul(c);
-		if(i%p)
+		if(i % p)
 			sendul(nc, i);
 	}
 }
@@ -43,7 +43,8 @@ threadmain(int argc, char **argv)
 	int i;
 	Channel *c;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'q':
 		quiet = 1;
 		break;
@@ -51,17 +52,18 @@ threadmain(int argc, char **argv)
 		buffer = atoi(ARGF());
 		break;
 	case 'p':
-		fn=proccreate;
+		fn = proccreate;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc>0)
+	if(argc > 0)
 		goal = atoi(argv[0]);
 	else
 		goal = 100;
 
 	c = chancreate(sizeof(ulong), buffer);
 	threadcreate(primethread, c, 1024);
-	for(i=2;; i++)
+	for(i = 2;; i++)
 		sendul(c, i);
 }

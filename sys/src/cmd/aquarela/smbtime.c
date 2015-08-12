@@ -14,7 +14,7 @@ smbplan9time2datetime(uint32_t time, int tzoff, uint16_t *datep,
 		      uint16_t *timep)
 {
 	Tm *tm;
-	if (tzoff < 0)
+	if(tzoff < 0)
 		time -= (uint32_t)-tzoff;
 	else
 		time += tzoff;
@@ -36,7 +36,7 @@ smbdatetime2plan9time(uint16_t date, uint16_t time, int tzoff)
 	tm.min = (time >> 5) & 0x3f;
 	tm.hour = time >> 11;
 	smblogprint(-1, "smbdatetime2plan9time: converting %d/%d/%d %d:%d:%d\n",
-		tm.year + 1900, tm.mon + 1, tm.mday, tm.hour, tm.min, tm.sec);
+		    tm.year + 1900, tm.mon + 1, tm.mday, tm.hour, tm.min, tm.sec);
 	return tm2sec(&tm) - tzoff;
 }
 
@@ -55,7 +55,7 @@ smbtime2plan9time(int64_t nttime)
 uint32_t
 smbplan9time2utime(uint32_t time, int tzoff)
 {
-	if (tzoff < 0)
+	if(tzoff < 0)
 		time -= (uint32_t)-tzoff;
 	else
 		time += tzoff;
@@ -65,7 +65,7 @@ smbplan9time2utime(uint32_t time, int tzoff)
 uint32_t
 smbutime2plan9time(uint32_t utime, int tzoff)
 {
-	if (tzoff < 0)
+	if(tzoff < 0)
 		utime += (uint32_t)-tzoff;
 	else
 		utime -= tzoff;

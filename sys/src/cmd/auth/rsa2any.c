@@ -15,7 +15,7 @@
 #include <libsec.h>
 #include "rsa2any.h"
 
-RSApriv*
+RSApriv *
 getkey(int argc, char **argv, int needprivate, Attr **pa)
 {
 	char *file, *s, *p;
@@ -34,47 +34,47 @@ getkey(int argc, char **argv, int needprivate, Attr **pa)
 	if(key == nil)
 		return nil;
 
-	if((b = Bopen(file, OREAD)) == nil){
+	if((b = Bopen(file, OREAD)) == nil) {
 		werrstr("open %s: %r", file);
 		return nil;
 	}
 	s = Brdstr(b, '\n', 1);
-	if(s == nil){
+	if(s == nil) {
 		werrstr("read %s: %r", file);
 		return nil;
 	}
-	if(strncmp(s, "key ", 4) != 0){
+	if(strncmp(s, "key ", 4) != 0) {
 		werrstr("bad key format");
 		return nil;
 	}
 
 	regen = 0;
-	a = _parseattr(s+4);
-	if(a == nil){
+	a = _parseattr(s + 4);
+	if(a == nil) {
 		werrstr("empty key");
 		return nil;
 	}
-	if((p = _strfindattr(a, "proto")) == nil){
+	if((p = _strfindattr(a, "proto")) == nil) {
 		werrstr("no proto");
 		return nil;
 	}
-	if(strcmp(p, "rsa") != 0){
+	if(strcmp(p, "rsa") != 0) {
 		werrstr("proto not rsa");
 		return nil;
 	}
-	if((p = _strfindattr(a, "ek")) == nil){
+	if((p = _strfindattr(a, "ek")) == nil) {
 		werrstr("no ek");
 		return nil;
 	}
-	if((key->pub.ek = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->pub.ek = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad ek");
 		return nil;
 	}
-	if((p = _strfindattr(a, "n")) == nil){
+	if((p = _strfindattr(a, "n")) == nil) {
 		werrstr("no n");
 		return nil;
 	}
-	if((key->pub.n = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->pub.n = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad n");
 		return nil;
 	}
@@ -84,69 +84,69 @@ getkey(int argc, char **argv, int needprivate, Attr **pa)
 		fprint(2, "warning: bad size; will correct\n");
 	else if(sz != mpsignif(key->pub.n))
 		fprint(2, "warning: wrong size (got %d, expected %d); will correct\n",
-			sz, mpsignif(key->pub.n));
+		       sz, mpsignif(key->pub.n));
 	if(!needprivate)
 		goto call;
-	if((p = _strfindattr(a, "!dk")) == nil){
+	if((p = _strfindattr(a, "!dk")) == nil) {
 		werrstr("no !dk");
 		return nil;
 	}
-	if((key->dk = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->dk = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad !dk");
 		return nil;
 	}
-	if((p = _strfindattr(a, "!p")) == nil){
+	if((p = _strfindattr(a, "!p")) == nil) {
 		werrstr("no !p");
 		return nil;
 	}
-	if((key->p = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->p = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad !p");
 		return nil;
 	}
-	if((p = _strfindattr(a, "!q")) == nil){
+	if((p = _strfindattr(a, "!q")) == nil) {
 		werrstr("no !q");
 		return nil;
 	}
-	if((key->q = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->q = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad !q");
 		return nil;
 	}
-	if((p = _strfindattr(a, "!kp")) == nil){
+	if((p = _strfindattr(a, "!kp")) == nil) {
 		fprint(2, "warning: no !kp\n");
 		regen = 1;
 		goto regen;
 	}
-	if((key->kp = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->kp = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		fprint(2, "warning: bad !kp\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
-	if((p = _strfindattr(a, "!kq")) == nil){
+	if((p = _strfindattr(a, "!kq")) == nil) {
 		fprint(2, "warning: no !kq\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
-	if((key->kq = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->kq = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		fprint(2, "warning: bad !kq\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
-	if((p = _strfindattr(a, "!c2")) == nil){
+	if((p = _strfindattr(a, "!c2")) == nil) {
 		fprint(2, "warning: no !c2\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
-	if((key->c2 = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->c2 = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		fprint(2, "warning: bad !c2\n");
-		regen = 1;	
+		regen = 1;
 		goto regen;
 	}
 regen:
-	if(regen){
+	if(regen) {
 		RSApriv *k2;
 
 		k2 = rsafill(key->pub.n, key->pub.ek, key->dk, key->p, key->q);
-		if(k2 == nil){
+		if(k2 == nil) {
 			werrstr("regenerating chinese-remainder parts failed: %r");
 			return nil;
 		}
@@ -167,7 +167,7 @@ call:
 	return key;
 }
 
-DSApriv*
+DSApriv *
 getdsakey(int argc, char **argv, int needprivate, Attr **pa)
 {
 	char *file, *s, *p;
@@ -184,72 +184,72 @@ getdsakey(int argc, char **argv, int needprivate, Attr **pa)
 	if(key == nil)
 		return nil;
 
-	if((b = Bopen(file, OREAD)) == nil){
+	if((b = Bopen(file, OREAD)) == nil) {
 		werrstr("open %s: %r", file);
 		return nil;
 	}
 	s = Brdstr(b, '\n', 1);
-	if(s == nil){
+	if(s == nil) {
 		werrstr("read %s: %r", file);
 		return nil;
 	}
-	if(strncmp(s, "key ", 4) != 0){
+	if(strncmp(s, "key ", 4) != 0) {
 		werrstr("bad key format");
 		return nil;
 	}
 
-	a = _parseattr(s+4);
-	if(a == nil){
+	a = _parseattr(s + 4);
+	if(a == nil) {
 		werrstr("empty key");
 		return nil;
 	}
-	if((p = _strfindattr(a, "proto")) == nil){
+	if((p = _strfindattr(a, "proto")) == nil) {
 		werrstr("no proto");
 		return nil;
 	}
-	if(strcmp(p, "dsa") != 0){
+	if(strcmp(p, "dsa") != 0) {
 		werrstr("proto not dsa");
 		return nil;
 	}
-	if((p = _strfindattr(a, "p")) == nil){
+	if((p = _strfindattr(a, "p")) == nil) {
 		werrstr("no p");
 		return nil;
 	}
-	if((key->pub.p = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->pub.p = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad p");
 		return nil;
 	}
-	if((p = _strfindattr(a, "q")) == nil){
+	if((p = _strfindattr(a, "q")) == nil) {
 		werrstr("no q");
 		return nil;
 	}
-	if((key->pub.q = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->pub.q = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad q");
 		return nil;
 	}
-	if((p = _strfindattr(a, "alpha")) == nil){
+	if((p = _strfindattr(a, "alpha")) == nil) {
 		werrstr("no alpha");
 		return nil;
 	}
-	if((key->pub.alpha = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->pub.alpha = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad alpha");
 		return nil;
 	}
-	if((p = _strfindattr(a, "key")) == nil){
+	if((p = _strfindattr(a, "key")) == nil) {
 		werrstr("no key=");
 		return nil;
 	}
-	if((key->pub.key = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->pub.key = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad key=");
 		return nil;
 	}
 	if(!needprivate)
 		goto call;
-	if((p = _strfindattr(a, "!secret")) == nil){
+	if((p = _strfindattr(a, "!secret")) == nil) {
 		werrstr("no !secret");
 		return nil;
 	}
-	if((key->secret = strtomp(p, &p, 16, nil)) == nil || *p != 0){
+	if((key->secret = strtomp(p, &p, 16, nil)) == nil || *p != 0) {
 		werrstr("bad !secret");
 		return nil;
 	}
@@ -264,17 +264,17 @@ call:
 	return key;
 }
 
-uint8_t*
+uint8_t *
 put4(uint8_t *p, uint n)
 {
-	p[0] = (n>>24)&0xFF;
-	p[1] = (n>>16)&0xFF;
-	p[2] = (n>>8)&0xFF;
-	p[3] = n&0xFF;
-	return p+4;
+	p[0] = (n >> 24) & 0xFF;
+	p[1] = (n >> 16) & 0xFF;
+	p[2] = (n >> 8) & 0xFF;
+	p[3] = n & 0xFF;
+	return p + 4;
 }
 
-uint8_t*
+uint8_t *
 putn(uint8_t *p, void *v, uint n)
 {
 	memmove(p, v, n);
@@ -282,7 +282,7 @@ putn(uint8_t *p, void *v, uint n)
 	return p;
 }
 
-uint8_t*
+uint8_t *
 putstr(uint8_t *p, char *s)
 {
 	p = put4(p, strlen(s));
@@ -290,19 +290,19 @@ putstr(uint8_t *p, char *s)
 	return p;
 }
 
-uint8_t*
+uint8_t *
 putmp2(uint8_t *p, mpint *b)
 {
 	int bits, n;
-	
+
 	if(mpcmp(b, mpzero) == 0)
 		return put4(p, 0);
 	bits = mpsignif(b);
-	n = (bits+7)/8;
-	if(bits%8 == 0){
-		p = put4(p, n+1);
+	n = (bits + 7) / 8;
+	if(bits % 8 == 0) {
+		p = put4(p, n + 1);
 		*p++ = 0;
-	}else
+	} else
 		p = put4(p, n);
 	mptobe(b, p, n, nil);
 	p += n;

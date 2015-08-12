@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
 
 enum {
 	Qdir,
@@ -22,15 +22,13 @@ enum {
 
 static Watchdog *wd;
 static Dirtab wddir[] = {
-	".",		{ Qdir, 0, QTDIR },	0,		0550,
-	"wdctl",	{ Qwdctl, 0 },		0,		0660,
+    ".", {Qdir, 0, QTDIR}, 0, 0550, "wdctl", {Qwdctl, 0}, 0, 0660,
 };
-
 
 void
 addwatchdog(Watchdog *watchdog)
 {
-	if(wd){
+	if(wd) {
 		print("addwatchdog: watchdog already installed\n");
 		return;
 	}
@@ -39,13 +37,13 @@ addwatchdog(Watchdog *watchdog)
 		wd->disable();
 }
 
-static Chan*
+static Chan *
 wdattach(char *spec)
 {
 	return devattach('w', spec);
 }
 
-static Walkqid*
+static Walkqid *
 wdwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, wddir, nelem(wddir), devgen);
@@ -57,25 +55,25 @@ wdstat(Chan *c, uint8_t *dp, int32_t n)
 	return devstat(c, dp, n, wddir, nelem(wddir), devgen);
 }
 
-static Chan*
-wdopen(Chan* c, int omode)
+static Chan *
+wdopen(Chan *c, int omode)
 {
 	return devopen(c, omode, wddir, nelem(wddir), devgen);
 }
 
 static void
-wdclose(Chan* c)
+wdclose(Chan *c)
 {
 }
 
 static int32_t
-wdread(Chan* c, void* a, int32_t n, int64_t off)
+wdread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	int32_t offset;
 	char s[READSTR];
 
 	offset = off;
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qdir:
 		return devdirread(c, a, n, wddir, nelem(wddir), devgen);
 
@@ -94,11 +92,11 @@ wdread(Chan* c, void* a, int32_t n, int64_t off)
 }
 
 static int32_t
-wdwrite(Chan* c, void* a, int32_t n, int64_t off)
+wdwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
 	char *p;
 
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qdir:
 		error(Eperm);
 
@@ -131,23 +129,23 @@ wdwrite(Chan* c, void* a, int32_t n, int64_t off)
 }
 
 Dev wddevtab = {
-	'w',
-	"watchdog",
+    'w',
+    "watchdog",
 
-	devreset,
-	devinit,
-	devshutdown,
-	wdattach,
-	wdwalk,
-	wdstat,
-	wdopen,
-	devcreate,
-	wdclose,
-	wdread,
-	devbread,
-	wdwrite,
-	devbwrite,
-	devremove,
-	devwstat,
-	devpower,
+    devreset,
+    devinit,
+    devshutdown,
+    wdattach,
+    wdwalk,
+    wdstat,
+    wdopen,
+    devcreate,
+    wdclose,
+    wdread,
+    devbread,
+    wdwrite,
+    devbwrite,
+    devremove,
+    devwstat,
+    devpower,
 };

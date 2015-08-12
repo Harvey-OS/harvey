@@ -25,21 +25,21 @@
 #include <libc.h>
 #include <venti.h>
 
-#define MaxBlock (1UL<<31)
+#define MaxBlock (1UL << 31)
 
 static char ENotDir[] = "walk in non-directory";
 static char ETooBig[] = "file too big";
 /* static char EBadAddr[] = "bad address"; */
 static char ELabelMismatch[] = "label mismatch";
 
-static int	sizetodepth(uint64_t s, int psize, int dsize);
-static VtBlock 	*fileload(VtFile *r, VtEntry *e);
-static int	shrinkdepth(VtFile*, VtBlock*, VtEntry*, int);
-static int	shrinksize(VtFile*, VtEntry*, uint64_t);
-static int	growdepth(VtFile*, VtBlock*, VtEntry*, int);
+static int sizetodepth(uint64_t s, int psize, int dsize);
+static VtBlock *fileload(VtFile *r, VtEntry *e);
+static int shrinkdepth(VtFile *, VtBlock *, VtEntry *, int);
+static int shrinksize(VtFile *, VtEntry *, uint64_t);
+static int growdepth(VtFile *, VtBlock *, VtEntry *, int);
 
-#define ISLOCKED(r)	((r)->b != nil)
-#define DEPTH(t)	((t)&VtTypeDepthMask)
+#define ISLOCKED(r) ((r)->b != nil)
+#define DEPTH(t) ((t)&VtTypeDepthMask)
 
 static VtFile *
 vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
@@ -49,15 +49,15 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 	VtEntry e;
 	VtFile *r;
 
-	assert(p==nil || ISLOCKED(p));
+	assert(p == nil || ISLOCKED(p));
 
-	if(p == nil){
+	if(p == nil) {
 		assert(offset == 0);
 		epb = 1;
-	}else
+	} else
 		epb = p->dsize / VtEntrySize;
 
-	if(b->type != VtDirType){
+	if(b->type != VtDirType) {
 		werrstr("bad block type %#uo", b->type);
 		return nil;
 	}
@@ -67,24 +67,24 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 	 * can legitimately happen here. all the others
 	 * get prints.
 	 */
-	if(vtentryunpack(&e, b->data, offset % epb) < 0){
-		fprint(2, "vtentryunpack failed: %r (%.*H)\n", VtEntrySize, b->data+VtEntrySize*(offset%epb));
+	if(vtentryunpack(&e, b->data, offset % epb) < 0) {
+		fprint(2, "vtentryunpack failed: %r (%.*H)\n", VtEntrySize, b->data + VtEntrySize * (offset % epb));
 		return nil;
 	}
-	if(!(e.flags & VtEntryActive)){
+	if(!(e.flags & VtEntryActive)) {
 		werrstr("entry not active");
 		return nil;
 	}
 
-	if(DEPTH(e.type) < sizetodepth(e.size, e.psize, e.dsize)){
+	if(DEPTH(e.type) < sizetodepth(e.size, e.psize, e.dsize)) {
 		fprint(2, "depth %ud size %llud psize %ud dsize %ud\n",
-			DEPTH(e.type), e.size, e.psize, e.dsize);
+		       DEPTH(e.type), e.size, e.psize, e.dsize);
 		werrstr("bad depth");
 		return nil;
 	}
 
 	size = vtcacheblocksize(c);
-	if(e.dsize > size || e.psize > size){
+	if(e.dsize > size || e.psize > size) {
 		werrstr("block sizes %ud, %ud bigger than cache block size %ud",
 			e.psize, e.dsize, size);
 		return nil;
@@ -99,12 +99,12 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 	r->dir = (e.type & VtTypeBaseMask) == VtDirType;
 	r->ref = 1;
 	r->parent = p;
-	if(p){
+	if(p) {
 		qlock(&p->lk);
 		assert(mode == VtOREAD || p->mode == VtORDWR);
 		p->ref++;
 		qunlock(&p->lk);
-	}else{
+	} else {
 		assert(b->addr != NilBlock);
 		r->local = 1;
 	}
@@ -129,7 +129,7 @@ vtfileroot(VtCache *c, uint32_t addr, int mode)
 	return r;
 }
 
-VtFile*
+VtFile *
 vtfileopenroot(VtCache *c, VtEntry *e)
 {
 	VtBlock *b;
@@ -167,12 +167,12 @@ vtfileopen(VtFile *r, uint32_t offset, int mode)
 	VtBlock *b;
 
 	assert(ISLOCKED(r));
-	if(!r->dir){
+	if(!r->dir) {
 		werrstr(ENotDir);
 		return nil;
 	}
 
-	bn = offset/(r->dsize/VtEntrySize);
+	bn = offset / (r->dsize / VtEntrySize);
 
 	b = vtfileblock(r, bn, mode);
 	if(b == nil)
@@ -182,13 +182,13 @@ vtfileopen(VtFile *r, uint32_t offset, int mode)
 	return r;
 }
 
-VtFile*
+VtFile *
 vtfilecreate(VtFile *r, int psize, int dsize, int type)
 {
 	return _vtfilecreate(r, -1, psize, dsize, type);
 }
 
-VtFile*
+VtFile *
 _vtfilecreate(VtFile *r, int o, int psize, int dsize, int type)
 {
 	int i;
@@ -198,43 +198,43 @@ _vtfilecreate(VtFile *r, int o, int psize, int dsize, int type)
 	int epb;
 	VtFile *rr;
 	uint32_t offset;
-	
+
 	assert(ISLOCKED(r));
 	assert(psize <= VtMaxLumpSize);
 	assert(dsize <= VtMaxLumpSize);
 	assert(type == VtDirType || type == VtDataType);
 
-	if(!r->dir){
+	if(!r->dir) {
 		werrstr(ENotDir);
 		return nil;
 	}
 
-	epb = r->dsize/VtEntrySize;
+	epb = r->dsize / VtEntrySize;
 
 	size = vtfilegetdirsize(r);
 	/*
 	 * look at a random block to see if we can find an empty entry
 	 */
-	if(o == -1){
-		offset = lnrand(size+1);
+	if(o == -1) {
+		offset = lnrand(size + 1);
 		offset -= offset % epb;
-	}else
+	} else
 		offset = o;
 
 	/* try the given block and then try the last block */
-	for(;;){
-		bn = offset/epb;
+	for(;;) {
+		bn = offset / epb;
 		b = vtfileblock(r, bn, VtORDWR);
 		if(b == nil)
 			return nil;
-		for(i=offset%r->epb; i<epb; i++){
+		for(i = offset % r->epb; i < epb; i++) {
 			if(vtentryunpack(&e, b->data, i) < 0)
 				continue;
-			if((e.flags&VtEntryActive) == 0 && e.gen != ~0)
+			if((e.flags & VtEntryActive) == 0 && e.gen != ~0)
 				goto Found;
 		}
 		vtblockput(b);
-		if(offset == size){
+		if(offset == size) {
 			fprint(2, "vtfilecreate: cannot happen\n");
 			werrstr("vtfilecreate: cannot happen");
 			return nil;
@@ -252,9 +252,9 @@ Found:
 	memmove(e.score, vtzeroscore, VtScoreSize);
 	vtentrypack(&e, b->data, i);
 
-	offset = bn*epb + i;
-	if(offset+1 > size){
-		if(vtfilesetdirsize(r, offset+1) < 0){
+	offset = bn * epb + i;
+	if(offset + 1 > size) {
+		if(vtfilesetdirsize(r, offset + 1) < 0) {
 			vtblockput(b);
 			return nil;
 		}
@@ -276,19 +276,19 @@ vtfilekill(VtFile *r, int doremove)
 	if(b == nil)
 		return -1;
 
-	if(doremove==0 && e.size == 0){
+	if(doremove == 0 && e.size == 0) {
 		/* already truncated */
 		vtblockput(b);
 		return 0;
 	}
 
-	if(doremove){
+	if(doremove) {
 		if(e.gen != ~0)
 			e.gen++;
 		e.dsize = 0;
 		e.psize = 0;
 		e.flags = 0;
-	}else
+	} else
 		e.flags &= ~VtEntryLocal;
 	e.type = 0;
 	e.size = 0;
@@ -296,7 +296,7 @@ vtfilekill(VtFile *r, int doremove)
 	vtentrypack(&e, b->data, r->offset % r->epb);
 	vtblockput(b);
 
-	if(doremove){
+	if(doremove) {
 		vtfileunlock(r);
 		vtfileclose(r);
 	}
@@ -344,15 +344,15 @@ shrinksize(VtFile *r, VtEntry *e, uint64_t size)
 		return -1;
 
 	ptrsz = e->dsize;
-	ppb = e->psize/VtScoreSize;
+	ppb = e->psize / VtScoreSize;
 	type = e->type;
 	depth = DEPTH(type);
-	for(i=0; i+1<depth; i++)
+	for(i = 0; i + 1 < depth; i++)
 		ptrsz *= ppb;
 
 	isdir = r->dir;
-	while(depth > 0){
-		if(b->addr == NilBlock){
+	while(depth > 0) {
+		if(b->addr == NilBlock) {
 			/* not worth copying the block just so we can zero some of it */
 			vtblockput(b);
 			return -1;
@@ -363,27 +363,27 @@ shrinksize(VtFile *r, VtEntry *e, uint64_t size)
 		 */
 
 		/* zero the pointers to unnecessary blocks */
-		i = (size+ptrsz-1)/ptrsz;
-		for(; i<ppb; i++)
-			memmove(b->data+i*VtScoreSize, vtzeroscore, VtScoreSize);
+		i = (size + ptrsz - 1) / ptrsz;
+		for(; i < ppb; i++)
+			memmove(b->data + i * VtScoreSize, vtzeroscore, VtScoreSize);
 
 		/* recurse (go around again) on the partially necessary block */
-		i = size/ptrsz;
-		size = size%ptrsz;
-		if(size == 0){
+		i = size / ptrsz;
+		size = size % ptrsz;
+		if(size == 0) {
 			vtblockput(b);
 			return 0;
 		}
 		ptrsz /= ppb;
 		type--;
-		memmove(score, b->data+i*VtScoreSize, VtScoreSize);
+		memmove(score, b->data + i * VtScoreSize, VtScoreSize);
 		vtblockput(b);
 		b = vtcacheglobal(r->c, score, type);
 		if(b == nil)
 			return -1;
 	}
 
-	if(b->addr == NilBlock){
+	if(b->addr == NilBlock) {
 		vtblockput(b);
 		return -1;
 	}
@@ -391,8 +391,8 @@ shrinksize(VtFile *r, VtEntry *e, uint64_t size)
 	/*
 	 * No one ever truncates BtDir blocks.
 	 */
-	if(depth==0 && !isdir && e->dsize > size)
-		memset(b->data+size, 0, e->dsize-size);
+	if(depth == 0 && !isdir && e->dsize > size)
+		memset(b->data + size, 0, e->dsize - size);
 	vtblockput(b);
 	return 0;
 }
@@ -408,7 +408,7 @@ vtfilesetsize(VtFile *r, uint64_t size)
 	if(size == 0)
 		return vtfiletruncate(r);
 
-	if(size > VtMaxFileSize || size > ((uint64_t)MaxBlock)*r->dsize){
+	if(size > VtMaxFileSize || size > ((uint64_t)MaxBlock) * r->dsize) {
 		werrstr(ETooBig);
 		return -1;
 	}
@@ -418,20 +418,20 @@ vtfilesetsize(VtFile *r, uint64_t size)
 		return -1;
 
 	/* quick out */
-	if(e.size == size){
+	if(e.size == size) {
 		vtblockput(b);
 		return 0;
 	}
 
 	depth = sizetodepth(size, e.psize, e.dsize);
 	edepth = DEPTH(e.type);
-	if(depth < edepth){
-		if(shrinkdepth(r, b, &e, depth) < 0){
+	if(depth < edepth) {
+		if(shrinkdepth(r, b, &e, depth) < 0) {
 			vtblockput(b);
 			return -1;
 		}
-	}else if(depth > edepth){
-		if(growdepth(r, b, &e, depth) < 0){
+	} else if(depth > edepth) {
+		if(growdepth(r, b, &e, depth) < 0) {
 			vtblockput(b);
 			return -1;
 		}
@@ -454,10 +454,10 @@ vtfilesetdirsize(VtFile *r, uint32_t ds)
 	int epb;
 
 	assert(ISLOCKED(r));
-	epb = r->dsize/VtEntrySize;
+	epb = r->dsize / VtEntrySize;
 
-	size = (uint64_t)r->dsize*(ds/epb);
-	size += VtEntrySize*(ds%epb);
+	size = (uint64_t)r->dsize * (ds / epb);
+	size += VtEntrySize * (ds % epb);
 	return vtfilesetsize(r, size);
 }
 
@@ -469,11 +469,11 @@ vtfilegetdirsize(VtFile *r)
 	int epb;
 
 	assert(ISLOCKED(r));
-	epb = r->dsize/VtEntrySize;
+	epb = r->dsize / VtEntrySize;
 
 	size = vtfilegetsize(r);
-	ds = epb*(size/r->dsize);
-	ds += (size%r->dsize)/VtEntrySize;
+	ds = epb * (size / r->dsize);
+	ds += (size % r->dsize) / VtEntrySize;
 	return ds;
 }
 
@@ -513,7 +513,7 @@ blockwalk(VtBlock *p, int index, VtCache *c, int mode, VtEntry *e)
 	int type;
 	uint8_t *score;
 
-	switch(p->type){
+	switch(p->type) {
 	case VtDataType:
 		assert(0);
 	case VtDirType:
@@ -522,16 +522,16 @@ blockwalk(VtBlock *p, int index, VtCache *c, int mode, VtEntry *e)
 		break;
 	default:
 		type = p->type - 1;
-		score = p->data+index*VtScoreSize;
+		score = p->data + index * VtScoreSize;
 		break;
 	}
-/*print("walk from %V/%d ty %d to %V ty %d\n", p->score, index, p->type, score, type); */
+	/*print("walk from %V/%d ty %d to %V ty %d\n", p->score, index, p->type, score, type); */
 
-	if(mode == VtOWRITE && vtglobaltolocal(score) == NilBlock){
+	if(mode == VtOWRITE && vtglobaltolocal(score) == NilBlock) {
 		b = vtcacheallocblock(c, type);
 		if(b)
 			goto HaveCopy;
-	}else
+	} else
 		b = vtcacheglobal(c, score, type);
 
 	if(b == nil || mode == VtOREAD)
@@ -545,16 +545,16 @@ blockwalk(VtBlock *p, int index, VtCache *c, int mode, VtEntry *e)
 	 */
 	e->flags |= VtEntryLocal;
 
-	b = vtblockcopy(b/*, e->tag, fs->ehi, fs->elo*/);
+	b = vtblockcopy(b /*, e->tag, fs->ehi, fs->elo*/);
 	if(b == nil)
 		return nil;
 
 HaveCopy:
-	if(p->type == VtDirType){
+	if(p->type == VtDirType) {
 		memmove(e->score, b->score, VtScoreSize);
 		vtentrypack(e, p->data, index);
-	}else{
-		memmove(p->data+index*VtScoreSize, b->score, VtScoreSize);
+	} else {
+		memmove(p->data + index * VtScoreSize, b->score, VtScoreSize);
 	}
 	return b;
 }
@@ -579,12 +579,12 @@ growdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 	 * Keep adding layers until we get to the right depth
 	 * or an error occurs.
 	 */
-	while(DEPTH(e->type) < depth){
-		bb = vtcacheallocblock(r->c, e->type+1);
+	while(DEPTH(e->type) < depth) {
+		bb = vtcacheallocblock(r->c, e->type + 1);
 		if(bb == nil)
 			break;
 		memmove(bb->data, b->score, VtScoreSize);
-		memmove(e->score, bb->score, VtScoreSize);	
+		memmove(e->score, bb->score, VtScoreSize);
 		e->type++;
 		e->flags |= VtEntryLocal;
 		vtblockput(b);
@@ -618,17 +618,17 @@ shrinkdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 
 	ob = nil;
 	b = rb;
-	for(; DEPTH(e->type) > depth; e->type--){
-		nb = vtcacheglobal(r->c, b->data, e->type-1);
+	for(; DEPTH(e->type) > depth; e->type--) {
+		nb = vtcacheglobal(r->c, b->data, e->type - 1);
 		if(nb == nil)
 			break;
-		if(ob!=nil && ob!=rb)
+		if(ob != nil && ob != rb)
 			vtblockput(ob);
 		ob = b;
 		b = nb;
 	}
 
-	if(b == rb){
+	if(b == rb) {
 		vtblockput(rb);
 		return 0;
 	}
@@ -654,7 +654,7 @@ shrinkdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 
 	/* (iii) */
 	vtblockput(rb);
-	if(ob!=nil && ob!=rb)
+	if(ob != nil && ob != rb)
 		vtblockput(ob);
 	vtblockput(b);
 
@@ -668,11 +668,11 @@ mkindices(VtEntry *e, uint32_t bn, int *index)
 {
 	int i, np;
 
-	memset(index, 0, (VtPointerDepth+1)*sizeof(int));
+	memset(index, 0, (VtPointerDepth + 1) * sizeof(int));
 
-	np = e->psize/VtScoreSize;
-	for(i=0; bn > 0; i++){
-		if(i >= VtPointerDepth){
+	np = e->psize / VtScoreSize;
+	for(i = 0; bn > 0; i++) {
+		if(i >= VtPointerDepth) {
 			werrstr("bad address 0x%lux", (uint32_t)bn);
 			return -1;
 		}
@@ -686,7 +686,7 @@ VtBlock *
 vtfileblock(VtFile *r, uint32_t bn, int mode)
 {
 	VtBlock *b, *bb;
-	int index[VtPointerDepth+1];
+	int index[VtPointerDepth + 1];
 	VtEntry e;
 	int i;
 	int m;
@@ -701,8 +701,8 @@ vtfileblock(VtFile *r, uint32_t bn, int mode)
 	i = mkindices(&e, bn, index);
 	if(i < 0)
 		goto Err;
-	if(i > DEPTH(e.type)){
-		if(mode == VtOREAD){
+	if(i > DEPTH(e.type)) {
+		if(mode == VtOREAD) {
 			werrstr("bad address 0x%lux", (uint32_t)bn);
 			goto Err;
 		}
@@ -711,7 +711,7 @@ vtfileblock(VtFile *r, uint32_t bn, int mode)
 			goto Err;
 	}
 
-assert(b->type == VtDirType);
+	assert(b->type == VtDirType);
 
 	index[DEPTH(e.type)] = r->offset % r->epb;
 
@@ -720,8 +720,8 @@ assert(b->type == VtDirType);
 	if(m == VtOWRITE)
 		m = VtORDWR;
 
-	for(i=DEPTH(e.type); i>=0; i--){
-		bb = blockwalk(b, index[i], r->c, i==0 ? mode : m, &e);
+	for(i = DEPTH(e.type); i >= 0; i--) {
+		bb = blockwalk(b, index[i], r->c, i == 0 ? mode : m, &e);
 		if(bb == nil)
 			goto Err;
 		vtblockput(b);
@@ -738,7 +738,7 @@ int
 vtfileblockscore(VtFile *r, uint32_t bn, uint8_t score[VtScoreSize])
 {
 	VtBlock *b, *bb;
-	int index[VtPointerDepth+1];
+	int index[VtPointerDepth + 1];
 	VtEntry e;
 	int i;
 
@@ -749,18 +749,18 @@ vtfileblockscore(VtFile *r, uint32_t bn, uint8_t score[VtScoreSize])
 	if(b == nil)
 		return -1;
 
-	if(DEPTH(e.type) == 0){
+	if(DEPTH(e.type) == 0) {
 		memmove(score, e.score, VtScoreSize);
 		vtblockput(b);
 		return 0;
 	}
 
 	i = mkindices(&e, bn, index);
-	if(i < 0){
+	if(i < 0) {
 		vtblockput(b);
 		return -1;
 	}
-	if(i > DEPTH(e.type)){
+	if(i > DEPTH(e.type)) {
 		memmove(score, vtzeroscore, VtScoreSize);
 		vtblockput(b);
 		return 0;
@@ -768,7 +768,7 @@ vtfileblockscore(VtFile *r, uint32_t bn, uint8_t score[VtScoreSize])
 
 	index[DEPTH(e.type)] = r->offset % r->epb;
 
-	for(i=DEPTH(e.type); i>=1; i--){
+	for(i = DEPTH(e.type); i >= 1; i--) {
 		bb = blockwalk(b, index[i], r->c, VtOREAD, &e);
 		if(bb == nil)
 			goto Err;
@@ -778,7 +778,7 @@ vtfileblockscore(VtFile *r, uint32_t bn, uint8_t score[VtScoreSize])
 			break;
 	}
 
-	memmove(score, b->data+index[0]*VtScoreSize, VtScoreSize);
+	memmove(score, b->data + index[0] * VtScoreSize, VtScoreSize);
 	vtblockput(b);
 	return 0;
 
@@ -802,7 +802,7 @@ vtfileclose(VtFile *r)
 		return;
 	qlock(&r->lk);
 	r->ref--;
-	if(r->ref){
+	if(r->ref) {
 		qunlock(&r->lk);
 		return;
 	}
@@ -825,19 +825,19 @@ vtfileclose(VtFile *r)
  * file system VtFiles (VtORDWR) and VtFiles for the
  * snapshot file system (VtOREAD).
  */
-static VtBlock*
+static VtBlock *
 fileloadblock(VtFile *r, int mode)
 {
 	char e[ERRMAX];
 	uint32_t addr;
 	VtBlock *b;
 
-	switch(r->mode){
+	switch(r->mode) {
 	default:
 		assert(0);
 	case VtORDWR:
 		assert(r->mode == VtORDWR);
-		if(r->local == 1){
+		if(r->local == 1) {
 			b = vtcacheglobal(r->c, r->score, VtDirType);
 			if(b == nil)
 				return nil;
@@ -847,7 +847,7 @@ fileloadblock(VtFile *r, int mode)
 		assert(r->parent != nil);
 		if(vtfilelock(r->parent, VtORDWR) < 0)
 			return nil;
-		b = vtfileblock(r->parent, r->offset/r->epb, VtORDWR);
+		b = vtfileblock(r->parent, r->offset / r->epb, VtORDWR);
 		vtfileunlock(r->parent);
 		if(b == nil)
 			return nil;
@@ -856,7 +856,7 @@ fileloadblock(VtFile *r, int mode)
 		return b;
 
 	case VtOREAD:
-		if(mode == VtORDWR){
+		if(mode == VtORDWR) {
 			werrstr("read/write lock of read-only file");
 			return nil;
 		}
@@ -878,14 +878,14 @@ fileloadblock(VtFile *r, int mode)
 		 * the archiver isn't going around deleting blocks.)
 		 */
 		rerrstr(e, sizeof e);
-		if(strcmp(e, ELabelMismatch) == 0){
+		if(strcmp(e, ELabelMismatch) == 0) {
 			if(vtfilelock(r->parent, VtOREAD) < 0)
 				return nil;
-			b = vtfileblock(r->parent, r->offset/r->epb, VtOREAD);
+			b = vtfileblock(r->parent, r->offset / r->epb, VtOREAD);
 			vtfileunlock(r->parent);
-			if(b){
+			if(b) {
 				fprint(2, "vtfilealloc: lost %V found %V\n",
-					r->score, b->score);
+				       r->score, b->score);
 				memmove(r->score, b->score, VtScoreSize);
 				return b;
 			}
@@ -931,20 +931,20 @@ vtfilelock2(VtFile *r, VtFile *rr, int mode)
 	if(mode == -1)
 		mode = r->mode;
 
-	if(r->parent==rr->parent && r->offset/r->epb == rr->offset/rr->epb){
+	if(r->parent == rr->parent && r->offset / r->epb == rr->offset / rr->epb) {
 		b = fileloadblock(r, mode);
 		if(b == nil)
 			return -1;
 		vtblockduplock(b);
 		bb = b;
-	}else if(r->parent==rr->parent || r->offset > rr->offset){
+	} else if(r->parent == rr->parent || r->offset > rr->offset) {
 		bb = fileloadblock(rr, mode);
 		b = fileloadblock(r, mode);
-	}else{
+	} else {
 		b = fileloadblock(r, mode);
 		bb = fileloadblock(rr, mode);
 	}
-	if(b == nil || bb == nil){
+	if(b == nil || bb == nil) {
 		if(b)
 			vtblockput(b);
 		if(bb)
@@ -968,7 +968,7 @@ vtfileunlock(VtFile *r)
 {
 	VtBlock *b;
 
-	if(r->b == nil){
+	if(r->b == nil) {
 		fprint(2, "vtfileunlock: already unlocked\n");
 		abort();
 	}
@@ -977,7 +977,7 @@ vtfileunlock(VtFile *r)
 	vtblockput(b);
 }
 
-static VtBlock*
+static VtBlock *
 fileload(VtFile *r, VtEntry *e)
 {
 	VtBlock *b;
@@ -995,12 +995,12 @@ sizetodepth(uint64_t s, int psize, int dsize)
 {
 	int np;
 	int d;
-	
+
 	/* determine pointer depth */
-	np = psize/VtScoreSize;
-	s = (s + dsize - 1)/dsize;
+	np = psize / VtScoreSize;
+	s = (s + dsize - 1) / dsize;
 	for(d = 0; s > 1; d++)
-		s = (s + np - 1)/np;
+		s = (s + np - 1) / np;
 	return d;
 }
 
@@ -1016,25 +1016,25 @@ vtfileread(VtFile *f, void *data, int32_t count, int64_t offset)
 	vtfilegetentry(f, &e);
 	if(count == 0)
 		return 0;
-	if(count < 0 || offset < 0){
+	if(count < 0 || offset < 0) {
 		werrstr("vtfileread: bad offset or count");
 		return -1;
 	}
 	if(offset >= e.size)
 		return 0;
 
-	if(offset+count > e.size)
+	if(offset + count > e.size)
 		count = e.size - offset;
 
 	frag = offset % e.dsize;
-	if(frag+count > e.dsize)
+	if(frag + count > e.dsize)
 		count = e.dsize - frag;
 
-	b = vtfileblock(f, offset/e.dsize, VtOREAD);
+	b = vtfileblock(f, offset / e.dsize, VtOREAD);
 	if(b == nil)
 		return -1;
 
-	memmove(data, b->data+frag, count);
+	memmove(data, b->data + frag, count);
 	vtblockput(b);
 	return count;
 }
@@ -1047,30 +1047,30 @@ filewrite1(VtFile *f, void *data, int32_t count, int64_t offset)
 	VtEntry e;
 
 	vtfilegetentry(f, &e);
-	if(count < 0 || offset < 0){
+	if(count < 0 || offset < 0) {
 		werrstr("vtfilewrite: bad offset or count");
 		return -1;
 	}
 
 	frag = offset % e.dsize;
-	if(frag+count > e.dsize)
+	if(frag + count > e.dsize)
 		count = e.dsize - frag;
 
 	m = VtORDWR;
 	if(frag == 0 && count == e.dsize)
 		m = VtOWRITE;
 
-	b = vtfileblock(f, offset/e.dsize, m);
+	b = vtfileblock(f, offset / e.dsize, m);
 	if(b == nil)
 		return -1;
 
-	memmove(b->data+frag, data, count);
-	if(m == VtOWRITE && frag+count < e.dsize)
-		memset(b->data+frag+count, 0, e.dsize-frag-count);
+	memmove(b->data + frag, data, count);
+	if(m == VtOWRITE && frag + count < e.dsize)
+		memset(b->data + frag + count, 0, e.dsize - frag - count);
 
-	if(offset+count > e.size){
+	if(offset + count > e.size) {
 		vtfilegetentry(f, &e);
-		e.size = offset+count;
+		e.size = offset + count;
 		vtfilesetentry(f, &e);
 	}
 
@@ -1087,13 +1087,13 @@ vtfilewrite(VtFile *f, void *data, int32_t count, int64_t offset)
 
 	tot = 0;
 	m = 0;
-	while(tot < count){
-		m = filewrite1(f, (char*)data+tot, count-tot, offset+tot);
+	while(tot < count) {
+		m = filewrite1(f, (char *)data + tot, count - tot, offset + tot);
 		if(m <= 0)
 			break;
 		tot += m;
 	}
-	if(tot==0)
+	if(tot == 0)
 		return m;
 	return tot;
 }
@@ -1101,7 +1101,7 @@ vtfilewrite(VtFile *f, void *data, int32_t count, int64_t offset)
 static int
 flushblock(VtCache *c, VtBlock *bb, uint8_t score[VtScoreSize], int ppb,
 	   int epb,
-	int type)
+	   int type)
 {
 	uint32_t addr;
 	VtBlock *b;
@@ -1112,34 +1112,33 @@ flushblock(VtCache *c, VtBlock *bb, uint8_t score[VtScoreSize], int ppb,
 	if(addr == NilBlock)
 		return 0;
 
-	if(bb){
+	if(bb) {
 		b = bb;
 		if(memcmp(b->score, score, VtScoreSize) != 0)
 			abort();
-	}else
-		if((b = vtcachelocal(c, addr, type)) == nil)
-			return -1;
+	} else if((b = vtcachelocal(c, addr, type)) == nil)
+		return -1;
 
-	switch(type){
+	switch(type) {
 	case VtDataType:
 		break;
 
 	case VtDirType:
-		for(i=0; i<epb; i++){
+		for(i = 0; i < epb; i++) {
 			if(vtentryunpack(&e, b->data, i) < 0)
 				goto Err;
-			if(!(e.flags&VtEntryActive))
+			if(!(e.flags & VtEntryActive))
 				continue;
-			if(flushblock(c, nil, e.score, e.psize/VtScoreSize, e.dsize/VtEntrySize,
-				e.type) < 0)
+			if(flushblock(c, nil, e.score, e.psize / VtScoreSize, e.dsize / VtEntrySize,
+				      e.type) < 0)
 				goto Err;
 			vtentrypack(&e, b->data, i);
 		}
 		break;
-	
-	default:	/* VtPointerTypeX */
-		for(i=0; i<ppb; i++){
-			if(flushblock(c, nil, b->data+VtScoreSize*i, ppb, epb, type-1) < 0)
+
+	default: /* VtPointerTypeX */
+		for(i = 0; i < ppb; i++) {
+			if(flushblock(c, nil, b->data + VtScoreSize * i, ppb, epb, type - 1) < 0)
 				goto Err;
 		}
 		break;
@@ -1167,14 +1166,14 @@ vtfileflush(VtFile *f)
 
 	assert(ISLOCKED(f));
 	b = fileload(f, &e);
-	if(!(e.flags&VtEntryLocal)){
+	if(!(e.flags & VtEntryLocal)) {
 		vtblockput(b);
 		return 0;
 	}
 
-	ret = flushblock(f->c, nil, e.score, e.psize/VtScoreSize, e.dsize/VtEntrySize,
-		e.type);
-	if(ret < 0){
+	ret = flushblock(f->c, nil, e.score, e.psize / VtScoreSize, e.dsize / VtEntrySize,
+			 e.type);
+	if(ret < 0) {
 		vtblockput(b);
 		return -1;
 	}
@@ -1190,8 +1189,8 @@ vtfileflushbefore(VtFile *r, uint64_t offset)
 	VtBlock *b, *bb;
 	VtEntry e;
 	int i, base, depth, ppb, epb, doflush;
-	int index[VtPointerDepth+1], j, ret;
-	VtBlock *bi[VtPointerDepth+2];
+	int index[VtPointerDepth + 1], j, ret;
+	VtBlock *bi[VtPointerDepth + 2];
 	uint8_t *score;
 
 	assert(ISLOCKED(r));
@@ -1208,8 +1207,8 @@ vtfileflushbefore(VtFile *r, uint64_t offset)
 	ret = -1;
 	memset(bi, 0, sizeof bi);
 	depth = DEPTH(e.type);
-	bi[depth+1] = b;
-	i = mkindices(&e, (offset-1)/e.dsize, index);
+	bi[depth + 1] = b;
+	i = mkindices(&e, (offset - 1) / e.dsize, index);
 	if(i < 0)
 		goto Err;
 	if(i > depth)
@@ -1221,7 +1220,7 @@ vtfileflushbefore(VtFile *r, uint64_t offset)
 	 * load the blocks along the last written byte
 	 */
 	index[depth] = r->offset % r->epb;
-	for(i=depth; i>=0; i--){
+	for(i = depth; i >= 0; i--) {
 		bb = blockwalk(b, index[i], r->c, VtORDWR, &e);
 		if(bb == nil)
 			goto Err;
@@ -1234,14 +1233,14 @@ vtfileflushbefore(VtFile *r, uint64_t offset)
 	 * walk up the path from leaf to root, flushing anything that
 	 * has been finished.
 	 */
-	base = e.type&~VtTypeDepthMask;
-	for(i=0; i<=depth; i++){
+	base = e.type & ~VtTypeDepthMask;
+	for(i = 0; i <= depth; i++) {
 		doflush = 0;
-		if(i == 0){
+		if(i == 0) {
 			/* leaf: data or dir block */
-			if(offset%e.dsize == 0)
+			if(offset % e.dsize == 0)
 				doflush = 1;
-		}else{
+		} else {
 			/*
 			 * interior node: pointer blocks.
 			 * specifically, b = bi[i] is a block whose index[i-1]'th entry 
@@ -1253,31 +1252,31 @@ vtfileflushbefore(VtFile *r, uint64_t offset)
 			 * the index entries up to but not including index[i-1] point at 
 			 * finished blocks, so flush them for sure.
 			 */
-			for(j=0; j<index[i-1]; j++)
-				if(flushblock(r->c, nil, b->data+j*VtScoreSize, ppb, epb, base+i-1) < 0)
+			for(j = 0; j < index[i - 1]; j++)
+				if(flushblock(r->c, nil, b->data + j * VtScoreSize, ppb, epb, base + i - 1) < 0)
 					goto Err;
 
 			/*
 			 * if index[i-1] is the last entry in the block and is global
 			 * (i.e. the kid is flushed), then we can flush this block.
 			 */
-			if(j==ppb-1 && vtglobaltolocal(b->data+j*VtScoreSize)==NilBlock)
+			if(j == ppb - 1 && vtglobaltolocal(b->data + j * VtScoreSize) == NilBlock)
 				doflush = 1;
 		}
-		if(doflush){
+		if(doflush) {
 			if(i == depth)
 				score = e.score;
 			else
-				score = bi[i+1]->data+index[i]*VtScoreSize;
-			if(flushblock(r->c, bi[i], score, ppb, epb, base+i) < 0)
+				score = bi[i + 1]->data + index[i] * VtScoreSize;
+			if(flushblock(r->c, bi[i], score, ppb, epb, base + i) < 0)
 				goto Err;
 		}
 	}
 
 Err:
 	/* top: entry.  do this always so that the score is up-to-date */
-	vtentrypack(&e, bi[depth+1]->data, index[depth]);
-	for(i=0; i<nelem(bi); i++)
+	vtentrypack(&e, bi[depth + 1]->data, index[depth]);
+	for(i = 0; i < nelem(bi); i++)
 		if(bi[i])
 			vtblockput(bi[i]);
 	return ret;

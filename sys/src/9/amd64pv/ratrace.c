@@ -13,8 +13,8 @@
 #include <thread.h>
 
 enum {
-	Stacksize	= 8*1024,
-	Bufsize		= 8*1024,
+	Stacksize = 8 * 1024,
+	Bufsize = 8 * 1024,
 };
 
 Channel *out;
@@ -24,8 +24,8 @@ int nread = 0;
 
 typedef struct Str Str;
 struct Str {
-	char	*buf;
-	int	len;
+	char *buf;
+	int len;
 };
 
 static void
@@ -38,7 +38,7 @@ die(char *s)
 static void
 cwrite(int fd, char *path, char *cmd, int len)
 {
-	if (write(fd, cmd, len) < len) {
+	if(write(fd, cmd, len) < len) {
 		fprint(2, "cwrite: %s: failed %d bytes: %r\n", path, len);
 		sendp(quit, nil);
 		threadexits(nil);
@@ -54,10 +54,10 @@ reader(void *v)
 
 	pid = (int)(uintptr_t)v;
 	ctl = smprint("/proc/%d/ctl", pid);
-	if ((cfd = open(ctl, OWRITE)) < 0)
+	if((cfd = open(ctl, OWRITE)) < 0)
 		die(smprint("%s: %r", ctl));
 	truss = smprint("/proc/%d/syscall", pid);
-	if ((tfd = open(truss, OREAD)) < 0)
+	if((tfd = open(truss, OREAD)) < 0)
 		die(smprint("%s: %r", truss));
 
 	cwrite(cfd, ctl, "stop", 4);
@@ -65,28 +65,28 @@ reader(void *v)
 
 	s = mallocz(sizeof(Str) + Bufsize, 1);
 	s->buf = (char *)&s[1];
-	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) > 0){
-		if (forking && s->buf[1] == '=' && s->buf[3] != '-') {
+	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) > 0) {
+		if(forking && s->buf[1] == '=' && s->buf[3] != '-') {
 			forking = 0;
 			newpid = strtol(&s->buf[3], 0, 0);
-			sendp(forkc, (void*)newpid);
-			procrfork(reader, (void*)newpid, Stacksize, 0);
+			sendp(forkc, (void *)newpid);
+			procrfork(reader, (void *)newpid, Stacksize, 0);
 		}
 
 		/*
 		 * There are three tests here and they (I hope) guarantee
 		 * no false positives.
 		 */
-		if (strstr(s->buf, " Rfork") != nil) {
+		if(strstr(s->buf, " Rfork") != nil) {
 			char *a[8];
 			char *rf;
 
 			rf = strdup(s->buf);
-         		if (tokenize(rf, a, 8) == 5) {
+			if(tokenize(rf, a, 8) == 5) {
 				uint32_t flags;
 
 				flags = strtoul(a[4], 0, 16);
-				if (flags & RFPROC)
+				if(flags & RFPROC)
 					forking = 1;
 			}
 			free(rf);
@@ -119,7 +119,7 @@ writer(void *v)
 	a[3].op = CHANEND;
 
 	for(;;)
-		switch(alt(a)){
+		switch(alt(a)) {
 		case 0:
 			nread--;
 			if(nread <= 0)
@@ -158,12 +158,12 @@ threadmain(int argc, char **argv)
 	 * for the command you are starting.  Just check for -c as argv[1]
 	 * and then take it from there.
 	 */
-	if (argc < 2)
+	if(argc < 2)
 		usage();
-	if (argv[1][0] == '-')
+	if(argv[1][0] == '-')
 		switch(argv[1][1]) {
 		case 'c':
-			if (argc < 3)
+			if(argc < 3)
 				usage();
 			cmd = strdup(argv[2]);
 			args = &argv[2];
@@ -175,7 +175,7 @@ threadmain(int argc, char **argv)
 	/* run a command? */
 	if(cmd) {
 		pid = fork();
-		if (pid < 0)
+		if(pid < 0)
 			sysfatal("fork failed: %r");
 		if(pid == 0) {
 			exec(cmd, args);
@@ -189,10 +189,10 @@ threadmain(int argc, char **argv)
 		pid = atoi(argv[1]);
 	}
 
-	out   = chancreate(sizeof(char*), 0);
-	quit  = chancreate(sizeof(char*), 0);
+	out = chancreate(sizeof(char *), 0);
+	quit = chancreate(sizeof(char *), 0);
 	forkc = chancreate(sizeof(uint32_t *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);
-	reader((void*)pid);
+	reader((void *)pid);
 }

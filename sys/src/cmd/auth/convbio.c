@@ -37,11 +37,11 @@ ordbio(Biobuf *b, Acctbio *a)
 	int ne;
 
 	clrbio(a);
-	while(p = Brdline(b, '\n')){
+	while(p = Brdline(b, '\n')) {
 		if(*p == '\n')
 			continue;
 
-		p[Blinelen(b)-1] = 0;
+		p[Blinelen(b) - 1] = 0;
 
 		/* get user */
 		for(cp = p; *cp && *cp != ' ' && *cp != '\t'; cp++)
@@ -54,15 +54,15 @@ ordbio(Biobuf *b, Acctbio *a)
 		/* get name */
 		while(*p == ' ' || *p == '\t')
 			p++;
-		for(cp = p; *cp; cp++){
-			if(isdigit(*cp) || *cp == '<'){
-				while(cp > p && *(cp-1) != ' ' && *(cp-1) != '\t')
+		for(cp = p; *cp; cp++) {
+			if(isdigit(*cp) || *cp == '<') {
+				while(cp > p && *(cp - 1) != ' ' && *(cp - 1) != '\t')
 					cp--;
 				break;
 			}
 		}
 		next = cp;
-		while(cp > p && (*(cp-1) == ' ' || *(cp-1) == '\t'))
+		while(cp > p && (*(cp - 1) == ' ' || *(cp - 1) == '\t'))
 			cp--;
 		a->name = malloc(cp - p + 1);
 		strncpy(a->name, p, cp - p);
@@ -70,12 +70,12 @@ ordbio(Biobuf *b, Acctbio *a)
 		p = next;
 
 		/* get dept */
-		for(cp = p; *cp; cp++){
+		for(cp = p; *cp; cp++) {
 			if(*cp == '<')
 				break;
 		}
 		next = cp;
-		while(cp > p && (*(cp-1) == ' ' || *(cp-1) == '\t'))
+		while(cp > p && (*(cp - 1) == ' ' || *(cp - 1) == '\t'))
 			cp--;
 		a->dept = malloc(cp - p + 1);
 		strncpy(a->dept, p, cp - p);
@@ -84,8 +84,8 @@ ordbio(Biobuf *b, Acctbio *a)
 
 		/* get emails */
 		ne = 0;
-		for(cp = p; *cp && ne < Nemail;){	
-			if(*cp != '<'){
+		for(cp = p; *cp && ne < Nemail;) {
+			if(*cp != '<') {
 				cp++;
 				continue;
 			}
@@ -96,7 +96,7 @@ ordbio(Biobuf *b, Acctbio *a)
 				break;
 			a->email[ne] = malloc(cp - p + 1);
 			strncpy(a->email[ne], p, cp - p);
-			a->email[ne][cp-p] = 0;
+			a->email[ne][cp - p] = 0;
 			ne++;
 		}
 		return 0;
@@ -119,7 +119,7 @@ nwrbio(Biobuf *b, Acctbio *a)
 		a->email[0] = strdup(a->user);
 
 	Bprint(b, "%s|%s|%s|%s|%s", a->user, a->user, a->name, a->dept, a->email[0]);
-	for(i = 1; i < Nemail; i++){
+	for(i = 1; i < Nemail; i++) {
 		if(a->email[i] == 0)
 			break;
 		Bprint(b, "|%s", a->email[i]);

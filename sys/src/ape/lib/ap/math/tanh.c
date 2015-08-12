@@ -25,9 +25,9 @@ tanh(double arg)
 		arg = -arg;
 		if(arg > 21)
 			return -1;
-		return -sinh(arg)/cosh(arg);
+		return -sinh(arg) / cosh(arg);
 	}
 	if(arg > 21)
 		return 1;
-	return sinh(arg)/cosh(arg);
+	return sinh(arg) / cosh(arg);
 }

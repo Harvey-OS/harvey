@@ -20,7 +20,7 @@ reboot(void)
 	exits(0);
 }
 
-char*
+char *
 readenv(char *name, char *buf, int n)
 {
 	char *ans;
@@ -34,7 +34,7 @@ readenv(char *name, char *buf, int n)
 	f = open(ename, OREAD);
 	if(f < 0)
 		return 0;
-	n = read(f, ans, n-1);
+	n = read(f, ans, n - 1);
 	if(n < 0)
 		ans = 0;
 	else
@@ -46,9 +46,9 @@ readenv(char *name, char *buf, int n)
 int alarmed;
 
 void
-ding(void *v, char*msg)
+ding(void *v, char *msg)
 {
-	if(strstr(msg, "alarm")){
+	if(strstr(msg, "alarm")) {
 		alarmed = 1;
 		noted(NCONT);
 	}
@@ -65,8 +65,8 @@ main(int argc, char **argv)
 	Dir *d;
 
 	if(argc > 1)
-		strecpy(file, file+sizeof file, argv[1]);
-	else{
+		strecpy(file, file + sizeof file, argv[1]);
+	else {
 		p = readenv("cputype", buf, sizeof buf);
 		if(p == 0)
 			exits(0);
@@ -75,10 +75,10 @@ main(int argc, char **argv)
 		strcat(file, p);
 		strcat(file, "/lib");
 	}
-	if (access(file, AREAD) < 0)
+	if(access(file, AREAD) < 0)
 		sysfatal("%s not readable: %r", file);
 
-	switch(rfork(RFPROC|RFNOWAIT|RFNOTEG|RFCFDG)){
+	switch(rfork(RFPROC | RFNOWAIT | RFNOTEG | RFCFDG)) {
 	case 0:
 		break;
 	default:
@@ -87,7 +87,7 @@ main(int argc, char **argv)
 
 	notify(ding);
 	fd = open(file, OREAD);
-	if (fd < 0)
+	if(fd < 0)
 		exits("no file");
 
 	//  the logic here is to make a request every 5 minutes.
@@ -95,8 +95,8 @@ main(int argc, char **argv)
 	//  may just be busy.  If the request fails for any other
 	//  reason, it's probably because the connection went
 	//  away so reboot.
-	for(;;){
-		alarm(1000*60);
+	for(;;) {
+		alarm(1000 * 60);
 		alarmed = 0;
 
 		d = dirfstat(fd);
@@ -105,6 +105,6 @@ main(int argc, char **argv)
 			if(!alarmed)
 				reboot();
 		alarm(0);
-		sleep(60*1000*5);
+		sleep(60 * 1000 * 5);
 	}
 }

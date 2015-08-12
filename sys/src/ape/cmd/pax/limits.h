@@ -55,27 +55,26 @@
 /* Headers */
 
 #if defined(__STDC__) || defined(_POSIX_SOURCE)
-#   include <limits.h>
+#include <limits.h>
 #endif
-
 
 /* Defines */
 
 #ifndef _POSIX_SOURCE
 
-#define MAX_INPUT	256	/* Max numbef of bytes in terminal input */
-#define NGROUPS_MAX	1	/* Max number of suplemental group id's */
-#define PASS_MAX	8	/* Max number of bytes in a password */
-#define PID_MAX		30000	/* Max value for a process ID */
-#define UID_MAX		32000	/* Max value for a user or group ID */
-#define ARG_MAX		4096	/* Nax number of bytes passed to exec */
-#define CHILD_MAX	6	/* Max number of simultaneous processes */
-#define MAX_CANON	256	/* Max numbef of bytes in a cononical queue */
-#define OPEN_MAX	16	/* Nax number of open files per process */
-#define NAME_MAX	14	/* Max number of bytes in a file name */
-#define PATH_MAX	255	/* Max number of bytes in pathname */
-#define LINK_MAX	8	/* Max value of a file's link count */
-#define PIPE_BUF	512	/* Max number of bytes for pipe reads */
+#define MAX_INPUT 256 /* Max numbef of bytes in terminal input */
+#define NGROUPS_MAX 1 /* Max number of suplemental group id's */
+#define PASS_MAX 8    /* Max number of bytes in a password */
+#define PID_MAX 30000 /* Max value for a process ID */
+#define UID_MAX 32000 /* Max value for a user or group ID */
+#define ARG_MAX 4096  /* Nax number of bytes passed to exec */
+#define CHILD_MAX 6   /* Max number of simultaneous processes */
+#define MAX_CANON 256 /* Max numbef of bytes in a cononical queue */
+#define OPEN_MAX 16   /* Nax number of open files per process */
+#define NAME_MAX 14   /* Max number of bytes in a file name */
+#define PATH_MAX 255  /* Max number of bytes in pathname */
+#define LINK_MAX 8    /* Max value of a file's link count */
+#define PIPE_BUF 512  /* Max number of bytes for pipe reads */
 
 #endif /* _POSIX_SOURCE */
 #endif /* _PAX_LIMITS_H */

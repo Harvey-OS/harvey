@@ -17,110 +17,109 @@
  *	2+head+2+page[56]+5
  */
 
-#define	ISPRINT(c)	((c) >= ' ')
-#define ESC		'\033'
-#define LENGTH		66
-#define LINEW		72
-#define NUMW		5
-#define MARGIN		10
-#define DEFTAB		8
-#define NFILES		20
-#define HEAD		"%12.12s %4.4s  %s Page %d\n\n\n", date+4, date+24, head, Page
-#define TOLOWER(c)	(isupper(c) ? tolower(c) : c)	/* ouch! */
-#define cerror(S)	fprint(2, "pr: %s", S)
-#define STDINNAME()	nulls
-#define TTY		"/dev/cons", 0
-#define PROMPT()	fprint(2, "\a") /* BEL */
-#define TABS(N,C)	if((N = intopt(argv, &C)) < 0) N = DEFTAB
-#define ETABS		(Inpos % Etabn)
-#define ITABS		(Itabn > 0 && Nspace > 1 && Nspace >= (nc = Itabn - Outpos % Itabn))
-#define NSEPC		'\t'
-#define EMPTY		14	/* length of " -- empty file" */
+#define ISPRINT(c) ((c) >= ' ')
+#define ESC '\033'
+#define LENGTH 66
+#define LINEW 72
+#define NUMW 5
+#define MARGIN 10
+#define DEFTAB 8
+#define NFILES 20
+#define HEAD "%12.12s %4.4s  %s Page %d\n\n\n", date + 4, date + 24, head, Page
+#define TOLOWER(c) (isupper(c) ? tolower(c) : c) /* ouch! */
+#define cerror(S) fprint(2, "pr: %s", S)
+#define STDINNAME() nulls
+#define TTY "/dev/cons", 0
+#define PROMPT() fprint(2, "\a") /* BEL */
+#define TABS(N, C)                     \
+	if((N = intopt(argv, &C)) < 0) \
+	N = DEFTAB
+#define ETABS (Inpos % Etabn)
+#define ITABS (Itabn > 0 && Nspace > 1 && Nspace >= (nc = Itabn - Outpos % Itabn))
+#define NSEPC '\t'
+#define EMPTY 14 /* length of " -- empty file" */
 
-typedef	struct	Fils	Fils;
-typedef	struct	Colp*	Colp;
-typedef	struct	Err	Err;
+typedef struct Fils Fils;
+typedef struct Colp *Colp;
+typedef struct Err Err;
 
-struct	Fils
-{
-	Biobuf*	f_f;
-	char*	f_name;
-	int32_t	f_nextc;
+struct Fils {
+	Biobuf *f_f;
+	char *f_name;
+	int32_t f_nextc;
 };
-struct	Colp
-{
-	Rune*	c_ptr;
-	Rune*	c_ptr0;
-	int32_t	c_lno;
+struct Colp {
+	Rune *c_ptr;
+	Rune *c_ptr0;
+	int32_t c_lno;
 };
-struct	Err
-{
-	Err*	e_nextp;
-	char*	e_mess;
+struct Err {
+	Err *e_nextp;
+	char *e_mess;
 };
 
-int	Balance = 0;
-Biobuf	bout;
-Rune*	Bufend;
-Rune*	Buffer = 0;
-int	C = '\0';
-Colp	Colpts;
-int	Colw;
-int	Dblspace = 1;
-Err*	err = 0;
-int	error = 0;
-int	Etabc = '\t';
-int	Etabn = 0;
-Fils*	Files;
-int	Formfeed = 0;
-int	Fpage = 1;
-char*	Head = 0;
-int	Inpos;
-int	Itabc = '\t';
-int	Itabn = 0;
-Err*	Lasterr = (Err*)&err;
-int	Lcolpos;
-int	Len = LENGTH;
-int	Line;
-int	Linew = 0;
-int32_t	Lnumb = 0;
-int	Margin = MARGIN;
-int	Multi = 0;
-int	Ncols = 1;
-int	Nfiles = 0;
-int	Nsepc = NSEPC;
-int	Nspace;
-char	nulls[] = "";
-int	Numw;
-int	Offset = 0;
-int	Outpos;
-int	Padodd;
-int	Page;
-int	Pcolpos;
-int	Plength;
-int	Sepc = 0;
+int Balance = 0;
+Biobuf bout;
+Rune *Bufend;
+Rune *Buffer = 0;
+int C = '\0';
+Colp Colpts;
+int Colw;
+int Dblspace = 1;
+Err *err = 0;
+int error = 0;
+int Etabc = '\t';
+int Etabn = 0;
+Fils *Files;
+int Formfeed = 0;
+int Fpage = 1;
+char *Head = 0;
+int Inpos;
+int Itabc = '\t';
+int Itabn = 0;
+Err *Lasterr = (Err *)&err;
+int Lcolpos;
+int Len = LENGTH;
+int Line;
+int Linew = 0;
+int32_t Lnumb = 0;
+int Margin = MARGIN;
+int Multi = 0;
+int Ncols = 1;
+int Nfiles = 0;
+int Nsepc = NSEPC;
+int Nspace;
+char nulls[] = "";
+int Numw;
+int Offset = 0;
+int Outpos;
+int Padodd;
+int Page;
+int Pcolpos;
+int Plength;
+int Sepc = 0;
 
-extern	int	atoix(char**);
-extern	void	balance(int);
-extern	void	die(char*);
-extern	void	errprint(void);
-extern	char*	ffiler(char*);
-extern	int	findopt(int, char**);
-extern	int	get(int);
-extern	void*	getspace(uint32_t);
-extern	int	intopt(char**, int*);
-extern	void	main(int, char**);
-extern	Biobuf*	mustopen(char*, Fils*);
-extern	void	nexbuf(void);
-extern	int	pr(char*);
-extern	void	put(int32_t);
-extern	void	putpage(void);
-extern	void	putspace(void);
+extern int atoix(char **);
+extern void balance(int);
+extern void die(char *);
+extern void errprint(void);
+extern char *ffiler(char *);
+extern int findopt(int, char **);
+extern int get(int);
+extern void *getspace(uint32_t);
+extern int intopt(char **, int *);
+extern void main(int, char **);
+extern Biobuf *mustopen(char *, Fils *);
+extern void nexbuf(void);
+extern int pr(char *);
+extern void put(int32_t);
+extern void putpage(void);
+extern void putspace(void);
 
 /*
  * return date file was last modified
  */
-char*
+char *
 getdate(void)
 {
 	static char *now = 0;
@@ -136,14 +135,14 @@ getdate(void)
 	}
 	mtime = 0;
 	sbuf = dirstat(Files->f_name);
-	if(sbuf){
+	if(sbuf) {
 		mtime = sbuf->mtime;
 		free(sbuf);
 	}
 	return ctime(mtime);
 }
 
-char*
+char *
 ffiler(char *s)
 {
 	return smprint("can't open %s\n", s);
@@ -168,10 +167,10 @@ main(int argc, char *argv[])
 				Bterm(Files->f_f);
 			nfdone++;
 		}
-	if(!nfdone)			/* no files named, use stdin */
-		pr(nulls);		/* on GCOS, use current file, if any */
-	errprint();			/* print accumulated error reports */
-	exits(error? "error": 0);
+	if(!nfdone)	/* no files named, use stdin */
+		pr(nulls); /* on GCOS, use current file, if any */
+	errprint();	/* print accumulated error reports */
+	exits(error ? "error" : 0);
 }
 
 int
@@ -191,62 +190,62 @@ findopt(int argc, char *argv[])
 					--*argv;
 					Ncols = atoix(argv);
 				} else
-				switch(c = TOLOWER(c)) {
-				case '+':
-					if((Fpage = atoix(argv)) < 1)
-						Fpage = 1;
-					continue;
-				case 'd':
-					Dblspace = 2;
-					continue;
-				case 'e':
-					TABS(Etabn, Etabc);
-					continue;
-				case 'f':
-					Formfeed++;
-					continue;
-				case 'h':
-					if(--argc > 0)
-						Head = argv[1];
-					continue;
-				case 'i':
-					TABS(Itabn, Itabc);
-					continue;
-				case 'l':
-					Len = atoix(argv);
-					continue;
-				case 'a':
-				case 'm':
-					Multi = c;
-					continue;
-				case 'o':
-					Offset = atoix(argv);
-					continue;
-				case 's':
-					if((Sepc = (*argv)[1]) != '\0')
-						++*argv;
-					else
-						Sepc = '\t';
-					continue;
-				case 't':
-					Margin = 0;
-					continue;
-				case 'w':
-					Linew = atoix(argv);
-					continue;
-				case 'n':
-					Lnumb++;
-					if((Numw = intopt(argv, &Nsepc)) <= 0)
-						Numw = NUMW;
-				case 'b':
-					Balance = 1;
-					continue;
-				case 'p':
-					Padodd = 1;
-					continue;
-				default:
-					die("bad option");
-				}
+					switch(c = TOLOWER(c)) {
+					case '+':
+						if((Fpage = atoix(argv)) < 1)
+							Fpage = 1;
+						continue;
+					case 'd':
+						Dblspace = 2;
+						continue;
+					case 'e':
+						TABS(Etabn, Etabc);
+						continue;
+					case 'f':
+						Formfeed++;
+						continue;
+					case 'h':
+						if(--argc > 0)
+							Head = argv[1];
+						continue;
+					case 'i':
+						TABS(Itabn, Itabc);
+						continue;
+					case 'l':
+						Len = atoix(argv);
+						continue;
+					case 'a':
+					case 'm':
+						Multi = c;
+						continue;
+					case 'o':
+						Offset = atoix(argv);
+						continue;
+					case 's':
+						if((Sepc = (*argv)[1]) != '\0')
+							++*argv;
+						else
+							Sepc = '\t';
+						continue;
+					case 't':
+						Margin = 0;
+						continue;
+					case 'w':
+						Linew = atoix(argv);
+						continue;
+					case 'n':
+						Lnumb++;
+						if((Numw = intopt(argv, &Nsepc)) <= 0)
+							Numw = NUMW;
+					case 'b':
+						Balance = 1;
+						continue;
+					case 'p':
+						Padodd = 1;
+						continue;
+					default:
+						die("bad option");
+					}
 			} while((c = *++*argv) != '\0');
 			if(Head == argv[1])
 				argv++;
@@ -259,7 +258,7 @@ findopt(int argc, char *argv[])
 		Len = LENGTH;
 	if(Len <= Margin)
 		Margin = 0;
-	Plength = Len - Margin/2;
+	Plength = Len - Margin / 2;
 	if(Multi == 'm')
 		Ncols = eargc;
 	switch(Ncols) {
@@ -268,20 +267,20 @@ findopt(int argc, char *argv[])
 	case 1:
 		break;
 	default:
-		if(Etabn == 0)		/* respect explicit tab specification */
+		if(Etabn == 0) /* respect explicit tab specification */
 			Etabn = DEFTAB;
 	}
 	if(Linew == 0)
-		Linew = Ncols != 1 && Sepc == 0? LINEW: 512;
+		Linew = Ncols != 1 && Sepc == 0 ? LINEW : 512;
 	if(Lnumb)
-		Linew -= Multi == 'm'? Numw: Numw*Ncols;
-	if((Colw = (Linew - Ncols + 1)/Ncols) < 1)
+		Linew -= Multi == 'm' ? Numw : Numw * Ncols;
+	if((Colw = (Linew - Ncols + 1) / Ncols) < 1)
 		die("width too small");
 	if(Ncols != 1 && Multi == 0) {
-		uint32_t buflen = ((uint32_t)(Plength/Dblspace + 1))*(Linew+1)*sizeof(char);
-		Buffer = getspace(buflen*sizeof(*Buffer));
+		uint32_t buflen = ((uint32_t)(Plength / Dblspace + 1)) * (Linew + 1) * sizeof(char);
+		Buffer = getspace(buflen * sizeof(*Buffer));
 		Bufend = &Buffer[buflen];
-		Colpts = getspace((Ncols+1)*sizeof(*Colpts));
+		Colpts = getspace((Ncols + 1) * sizeof(*Colpts));
 	}
 	return eargc;
 }
@@ -296,7 +295,7 @@ intopt(char *argv[], int *optp)
 		(*argv)++;
 	}
 	c = atoix(argv);
-	return c != 0? c: -1;
+	return c != 0 ? c : -1;
 }
 
 int
@@ -326,15 +325,14 @@ pr(char *name)
 			if(date == 0)
 				date = getdate();
 			if(head == 0)
-				head = Head != 0 ? Head :
-					Nfiles < 2? Files->f_name: nulls;
+				head = Head != 0 ? Head : Nfiles < 2 ? Files->f_name : nulls;
 			Bprint(&bout, "\n\n");
 			Nspace = Offset;
 			putspace();
 			Bprint(&bout, HEAD);
 		}
 	}
-	if(Padodd && (Page&1) == 1) {
+	if(Padodd && (Page & 1) == 1) {
 		Line = 0;
 		if(Formfeed)
 			put('\f');
@@ -351,29 +349,27 @@ putpage(void)
 {
 	int colno;
 
-	for(Line = Margin/2;; get(0)) {
+	for(Line = Margin / 2;; get(0)) {
 		for(Nspace = Offset, colno = 0, Outpos = 0; C != '\f';) {
 			if(Lnumb && C != -1 && (colno == 0 || Multi == 'a')) {
 				if(Page >= Fpage) {
 					putspace();
-					Bprint(&bout, "%*ld", Numw, Buffer?
-						Colpts[colno].c_lno++: Lnumb);
+					Bprint(&bout, "%*ld", Numw, Buffer ? Colpts[colno].c_lno++ : Lnumb);
 					Outpos += Numw;
 					put(Nsepc);
 				}
 				Lnumb++;
 			}
-			for(Lcolpos=0, Pcolpos=0; C!='\n' && C!='\f' && C!=-1; get(colno))
-					put(C);
-			if(C==-1 || ++colno==Ncols || C=='\n' && get(colno)==-1)
+			for(Lcolpos = 0, Pcolpos = 0; C != '\n' && C != '\f' && C != -1; get(colno))
+				put(C);
+			if(C == -1 || ++colno == Ncols || C == '\n' && get(colno) == -1)
 				break;
 			if(Sepc)
 				put(Sepc);
-			else
-				if((Nspace += Colw - Lcolpos + 1) < 1)
-					Nspace = 1;
+			else if((Nspace += Colw - Lcolpos + 1) < 1)
+				Nspace = 1;
 		}
-	/*
+		/*
 		if(C == -1) {
 			if(Margin != 0)
 				break;
@@ -414,7 +410,7 @@ nexbuf(void)
 		if(p == &Colpts[Ncols])
 			return;
 		(p++)->c_lno = Lnumb + bline;
-		for(j = (Len - Margin)/Dblspace; --j >= 0; bline++)
+		for(j = (Len - Margin) / Dblspace; --j >= 0; bline++)
 			for(Inpos = 0;;) {
 				if((c = Bgetrune(Files->f_f)) == -1) {
 					for(*s = -1; p <= &Colpts[Ncols]; p++)
@@ -455,7 +451,7 @@ balance(int bline)
 	int colno = 0, j, c, l;
 
 	c = bline % Ncols;
-	l = (bline + Ncols - 1)/Ncols;
+	l = (bline + Ncols - 1) / Ncols;
 	bline = 0;
 	do {
 		for(j = 0; j < l; ++j)
@@ -479,16 +475,13 @@ get(int colno)
 	if(peekc) {
 		peekc = 0;
 		c = Etabc;
-	} else
-	if(Buffer) {
+	} else if(Buffer) {
 		p = &Colpts[colno];
-		if(p->c_ptr >= (p+1)->c_ptr0)
+		if(p->c_ptr >= (p + 1)->c_ptr0)
 			c = -1;
-		else
-			if((c = *p->c_ptr) != -1)
-				p->c_ptr++;
-	} else
-	if((c = (q = &Files[Multi == 'a'? 0: colno])->f_nextc) == -1) {
+		else if((c = *p->c_ptr) != -1)
+			p->c_ptr++;
+	} else if((c = (q = &Files[Multi == 'a' ? 0 : colno])->f_nextc) == -1) {
 		for(q = &Files[Nfiles]; --q >= Files && q->f_nextc == -1;)
 			;
 		if(q >= Files)
@@ -499,8 +492,7 @@ get(int colno)
 		Inpos++;
 		peekc = ETABS;
 		c = ' ';
-	} else
-	if(ISPRINT(c))
+	} else if(ISPRINT(c))
 		Inpos++;
 	else
 		switch(c) {
@@ -588,7 +580,7 @@ atoix(char **p)
 	int n = 0, c;
 
 	while(isdigit(c = *++*p))
-		n = 10*n + c - '0';
+		n = 10 * n + c - '0';
 	(*p)--;
 	return n;
 }
@@ -598,7 +590,7 @@ atoix(char **p)
  * alignment of page with tear perforations or form markers.
  * Treat empty file as special case and report as diagnostic.
  */
-Biobuf*
+Biobuf *
 mustopen(char *s, Fils *f)
 {
 	char *tmp;
@@ -609,17 +601,16 @@ mustopen(char *s, Fils *f)
 		if(f->f_f == 0)
 			cerror("no memory");
 		Binit(f->f_f, 0, OREAD);
-	} else
-	if((f->f_f = Bopen(f->f_name = s, OREAD)) == 0) {
+	} else if((f->f_f = Bopen(f->f_name = s, OREAD)) == 0) {
 		tmp = ffiler(f->f_name);
-		s = strcpy((char*)getspace(strlen(tmp) + 1), tmp);
+		s = strcpy((char *)getspace(strlen(tmp) + 1), tmp);
 		free(tmp);
 	}
 	if(f->f_f != 0) {
 		if((f->f_nextc = Bgetrune(f->f_f)) >= 0 || Multi == 'm')
 			return f->f_f;
-		sprint(s = (char*)getspace(strlen(f->f_name) + 1 + EMPTY),
-			"%s -- empty file\n", f->f_name);
+		sprint(s = (char *)getspace(strlen(f->f_name) + 1 + EMPTY),
+		       "%s -- empty file\n", f->f_name);
 		Bterm(f->f_f);
 	}
 	error = 1;
@@ -628,7 +619,7 @@ mustopen(char *s, Fils *f)
 	return 0;
 }
 
-void*
+void *
 getspace(uint32_t n)
 {
 	void *t;

@@ -13,26 +13,26 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-enum
-{
+enum {
 	HASHSIZE = 1019,
 };
 
-typedef struct Redir	Redir;
-struct Redir
-{
-	Redir	*next;
-	char	*pat;
-	char	*repl;
-	uint	flags;		/* generated from repl's decorations */
+typedef struct Redir Redir;
+struct Redir {
+	Redir *next;
+	char *pat;
+	char *repl;
+	uint flags; /* generated from repl's decorations */
 };
 
 static Redir *redirtab[HASHSIZE];
 static Redir *vhosttab[HASHSIZE];
 static char emptystring[1];
 /* these two arrays must be kept in sync */
-static char decorations[] = { Modsilent, Modperm, Modsubord, Modonly, '\0' };
-static uint redirflags[] = { Redirsilent, Redirperm, Redirsubord, Redironly, };
+static char decorations[] = {Modsilent, Modperm, Modsubord, Modonly, '\0'};
+static uint redirflags[] = {
+    Redirsilent, Redirperm, Redirsubord, Redironly,
+};
 
 /* replacement field decorated with redirection modifiers? */
 static int
@@ -48,7 +48,7 @@ decor2flags(char *repl)
 	char *p;
 
 	flags = 0;
-	while ((p = strchr(decorations, *repl++)) != nil)
+	while((p = strchr(decorations, *repl++)) != nil)
 		flags |= redirflags[p - decorations];
 	return flags;
 }
@@ -57,7 +57,7 @@ decor2flags(char *repl)
 char *
 undecorated(char *repl)
 {
-	while (isdecorated(repl))
+	while(isdecorated(repl))
 		repl++;
 	return repl;
 }
@@ -65,12 +65,12 @@ undecorated(char *repl)
 static int
 hashasu(char *key, int n)
 {
-        uint32_t h;
+	uint32_t h;
 
 	h = 0;
-        while(*key != 0)
-                h = 65599*h + *(uint8_t*)key++;
-        return h % n;
+	while(*key != 0)
+		h = 65599 * h + *(uint8_t *)key++;
+	return h % n;
 }
 
 static void
@@ -96,8 +96,8 @@ cleartab(Redir **tab)
 	Redir *t;
 	int i;
 
-	for(i = 0; i < HASHSIZE; i++){
-		while((t = tab[i]) != nil){
+	for(i = 0; i < HASHSIZE; i++) {
+		while((t = tab[i]) != nil) {
 			tab[i] = t->next;
 			free(t->pat);
 			free(t->repl);
@@ -115,7 +115,7 @@ redirectinit(void)
 	static char pfx[] = "http://";
 
 	file = "/sys/lib/httpd.rewrite";
-	if(b != nil){
+	if(b != nil) {
 		if(updateQid(Bfildes(b), &qid) == 0)
 			return;
 		Bterm(b);
@@ -128,22 +128,22 @@ redirectinit(void)
 	cleartab(redirtab);
 	cleartab(vhosttab);
 
-	while((line = Brdline(b, '\n')) != nil){
-		line[Blinelen(b)-1] = 0;
+	while((line = Brdline(b, '\n')) != nil) {
+		line[Blinelen(b) - 1] = 0;
 		s = strchr(line, '#');
 		if(s != nil && (s == line || s[-1] == ' ' || s[-1] == '\t'))
-			*s = '\0'; 	/* chop comment iff after whitespace */
-		if(tokenize(line, field, nelem(field)) == 2){
+			*s = '\0'; /* chop comment iff after whitespace */
+		if(tokenize(line, field, nelem(field)) == 2) {
 			if(strncmp(field[0], pfx, STRLEN(pfx)) == 0 &&
-			   strncmp(undecorated(field[1]), pfx, STRLEN(pfx)) != 0){
+			   strncmp(undecorated(field[1]), pfx, STRLEN(pfx)) != 0) {
 				/* url -> filename */
 				host = field[0] + STRLEN(pfx);
 				s = strrchr(host, '/');
 				if(s)
-					*s = 0;  /* chop trailing slash */
+					*s = 0; /* chop trailing slash */
 
 				insert(vhosttab, estrdup(host), estrdup(field[1]));
-			}else{
+			} else {
 				insert(redirtab, estrdup(field[0]), estrdup(field[1]));
 			}
 		}
@@ -151,23 +151,23 @@ redirectinit(void)
 	syslog(0, HTTPLOG, "redirectinit pid=%d", getpid());
 }
 
-static Redir*
+static Redir *
 lookup(Redir **tab, char *pat, int count)
 {
 	Redir *srch;
 	uint32_t hash;
 
-	hash = hashasu(pat,HASHSIZE);
+	hash = hashasu(pat, HASHSIZE);
 	for(srch = tab[hash]; srch != nil; srch = srch->next)
 		if(strcmp(pat, srch->pat) == 0) {
 			/* only exact match wanted? */
-			if (!(srch->flags & Redironly) || count == 0)
+			if(!(srch->flags & Redironly) || count == 0)
 				return srch;
 		}
 	return nil;
 }
 
-static char*
+static char *
 prevslash(char *p, char *s)
 {
 	while(--s > p)
@@ -190,7 +190,7 @@ prevslash(char *p, char *s)
  * subordinate ones.  if Redirsubord, map the named patch and any
  * subordinate ones to the same replacement URL.
  */
-char*
+char *
 redirect(HConnect *hc, char *path, uint *flagp)
 {
 	Redir *redir;
@@ -198,13 +198,13 @@ redirect(HConnect *hc, char *path, uint *flagp)
 	int c, n, count;
 
 	count = 0;
-	for(s = strchr(path, '\0'); s > path; s = prevslash(path, s)){
+	for(s = strchr(path, '\0'); s > path; s = prevslash(path, s)) {
 		c = *s;
 		*s = '\0';
 		redir = lookup(redirtab, path, count++);
 		*s = c;
-		if(redir != nil){
-			if (flagp)
+		if(redir != nil) {
+			if(flagp)
 				*flagp = redir->flags;
 			repl = redir->repl;
 			if(redir->flags & Redirsubord)
@@ -224,7 +224,7 @@ redirect(HConnect *hc, char *path, uint *flagp)
  * if not, return empty string.
  * return value should not be freed by caller.
  */
-char*
+char *
 masquerade(char *host)
 {
 	Redir *redir;

@@ -21,9 +21,9 @@ readln(char *prompt, char *line, int len, int raw)
 	fdin = open("/dev/cons", OREAD);
 	fdout = open("/dev/cons", OWRITE);
 	fprint(fdout, "%s", prompt);
-	if(raw){
+	if(raw) {
 		ctl = open("/dev/consctl", OWRITE);
-		if(ctl < 0){
+		if(ctl < 0) {
 			fprint(2, "login: couldn't set raw mode");
 			exits("readln");
 		}
@@ -32,9 +32,9 @@ readln(char *prompt, char *line, int len, int raw)
 		ctl = -1;
 	nr = 0;
 	p = line;
-	for(;;){
+	for(;;) {
 		n = read(fdin, p, 1);
-		if(n < 0){
+		if(n < 0) {
 			close(ctl);
 			close(fdin);
 			close(fdout);
@@ -43,9 +43,9 @@ readln(char *prompt, char *line, int len, int raw)
 		}
 		if(*p == 0x7f)
 			exits(0);
-		if(n == 0 || *p == '\n' || *p == '\r'){
+		if(n == 0 || *p == '\n' || *p == '\r') {
 			*p = '\0';
-			if(raw){
+			if(raw) {
 				write(ctl, "rawoff", 6);
 				write(fdout, "\n", 1);
 			}
@@ -54,16 +54,16 @@ readln(char *prompt, char *line, int len, int raw)
 			close(fdout);
 			return;
 		}
-		if(*p == '\b'){
-			if(nr > 0){
+		if(*p == '\b') {
+			if(nr > 0) {
 				nr--;
 				p--;
 			}
-		}else{
+		} else {
 			nr++;
 			p++;
 		}
-		if(nr == len){
+		if(nr == len) {
 			fprint(fdout, "line too long; try again\n");
 			nr = 0;
 			p = line;
@@ -79,7 +79,7 @@ setenv(char *var, char *val)
 	fd = create(var, OWRITE, 0644);
 	if(fd < 0)
 		print("init: can't open %s\n", var);
-	else{
+	else {
 		fprint(fd, val);
 		close(fd);
 	}
@@ -130,11 +130,11 @@ startfactotum(char *user, char *password, char *srvname)
 	strcpy(srvname, "/srv/factotum.XXXXXXXXXXX");
 	mktemp(srvname);
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		sysfatal("can't start factotum: %r");
 	case 0:
-		execl("/boot/factotum", "loginfactotum", "-ns", srvname+5, nil);
+		execl("/boot/factotum", "loginfactotum", "-ns", srvname + 5, nil);
 		sysfatal("starting factotum: %r");
 		break;
 	}
@@ -158,21 +158,23 @@ void
 main(int argc, char *argv[])
 {
 	char pass[ANAMELEN];
-	char buf[2*ANAMELEN];
-	char home[2*ANAMELEN];
-	char srvname[2*ANAMELEN];
+	char buf[2 * ANAMELEN];
+	char home[2 * ANAMELEN];
+	char srvname[2 * ANAMELEN];
 	char *user, *sysname, *tz, *cputype, *service;
 	AuthInfo *ai;
 
-	ARGBEGIN{
-	}ARGEND;
+	ARGBEGIN
+	{
+	}
+	ARGEND;
 
-	rfork(RFENVG|RFNAMEG);
+	rfork(RFENVG | RFNAMEG);
 
 	service = getenv("service");
 	if(strcmp(service, "cpu") == 0)
 		fprint(2, "login: warning: running on a cpu server!\n");
-	if(argc != 1){
+	if(argc != 1) {
 		fprint(2, "usage: login username\n");
 		exits("usage");
 	}

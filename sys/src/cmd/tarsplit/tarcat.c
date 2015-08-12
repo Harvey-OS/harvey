@@ -31,10 +31,10 @@ catenate(int in, char *inname)
 	static Hblock hdr;
 	Hblock *hp = &hdr;
 
-	if (debug)
+	if(debug)
 		fprint(2, "%s: reading %s\n", inname, argv0);
-	while (getdir(hp, in, &len)) {
-		writetar(Stdout, (char *)hp, Tblock);  /* write dir block */
+	while(getdir(hp, in, &len)) {
+		writetar(Stdout, (char *)hp, Tblock); /* write dir block */
 		passtar(hp, in, Stdout, len);
 	}
 }
@@ -44,26 +44,28 @@ main(int argc, char **argv)
 {
 	int errflg = 0;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'd':
 		++debug;
 		break;
 	default:
 		errflg++;
 		break;
-	} ARGEND
-	if (errflg) {
+	}
+	ARGEND
+	if(errflg) {
 		fprint(2, "usage: %s [-d] [file]...\n", argv0);
 		exits("usage");
 	}
 
-	if (argc <= 0)
+	if(argc <= 0)
 		catenate(Stdin, "/fd/0");
 	else
-		for (; argc-- > 0; argv++) {
+		for(; argc-- > 0; argv++) {
 			int in = open(argv[0], OREAD);
 
-			if (in < 0)
+			if(in < 0)
 				sysfatal("%s: %r", argv[0]);
 			catenate(in, argv[0]);
 			close(in);

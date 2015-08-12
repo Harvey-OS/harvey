@@ -11,20 +11,20 @@
 #include <libc.h>
 #include <auth.h>
 
-int	eof;		/* send an eof if true */
-int	crtonl;		/* convert all received \r to \n */
-int	returns;	/* strip \r on reception */
-char	*note = "die: yankee dog";
-char	*ruser;		/* for BSD authentication */
+int eof;     /* send an eof if true */
+int crtonl;  /* convert all received \r to \n */
+int returns; /* strip \r on reception */
+char *note = "die: yankee dog";
+char *ruser; /* for BSD authentication */
 char *key;
 
-void	rex(int, char*, char*);
-void	tcpexec(int, char*, char*);
-int	call(char *, char*, char*, char**);
-char	*buildargs(char*[]);
-int	send(int);
-void	error(char*, char*);
-void	sshexec(char*, char*);
+void rex(int, char *, char *);
+void tcpexec(int, char *, char *);
+int call(char *, char *, char *, char **);
+char *buildargs(char *[]);
+int send(int);
+void error(char *, char *);
+void sshexec(char *, char *);
 
 void
 usage(void)
@@ -33,8 +33,7 @@ usage(void)
 	exits("usage");
 }
 
-static int
-catch(void *v, char *s)
+static int catch(void *v, char *s)
 {
 	return strstr(s, "alarm") != nil;
 }
@@ -49,7 +48,8 @@ main(int argc, char *argv[])
 	eof = 1;
 	crtonl = 0;
 	returns = 1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'T':
 		crtonl = 1;
 		break;
@@ -67,7 +67,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 2)
 		usage();
@@ -87,7 +88,7 @@ main(int argc, char *argv[])
 
 	/* if there's an ssh port, try that */
 	fd = call("tcp", host, "ssh", &addr);
-	if(fd >= 0){
+	if(fd >= 0) {
 		close(fd);
 		sshexec(host, args);
 		/* falls through if no ssh */
@@ -116,22 +117,22 @@ rex(int fd, char *cmd, char *proto)
 	int kid, n, oalarm;
 	AuthInfo *ai;
 
-	oalarm = alarm(2 * 60 * 1000);		/* don't hang forever */
+	oalarm = alarm(2 * 60 * 1000); /* don't hang forever */
 	ai = auth_proxy(fd, auth_getkey, "proto=%s role=client %s", proto, key);
 	alarm(oalarm);
-	if(ai == nil){
+	if(ai == nil) {
 		if(strcmp(proto, "p9any") == 0)
 			return;
 		error("auth_proxy", nil);
 	}
-	write(fd, cmd, strlen(cmd)+1);
+	write(fd, cmd, strlen(cmd) + 1);
 
 	kid = send(fd);
-	while((n=read(fd, buf, sizeof buf))>0)
-		if(write(1, buf, n)!=n)
+	while((n = read(fd, buf, sizeof buf)) > 0)
+		if(write(1, buf, n) != n)
 			error("write error", 0);
 	sleep(250);
-	postnote(PNPROC, kid, note);/**/
+	postnote(PNPROC, kid, note); /**/
 	exits(0);
 }
 
@@ -148,8 +149,7 @@ tcpexec(int fd, char *addr, char *cmd)
 	ru = ruser;
 	if(ru == nil)
 		ru = u;
-	if(write(fd, "", 1)<0 || write(fd, u, strlen(u)+1)<0
-	|| write(fd, ru, strlen(ru)+1)<0 || write(fd, cmd, strlen(cmd)+1)<0){
+	if(write(fd, "", 1) < 0 || write(fd, u, strlen(u) + 1) < 0 || write(fd, ru, strlen(ru) + 1) < 0 || write(fd, cmd, strlen(cmd) + 1) < 0) {
 		close(fd);
 		error("can't authenticate to", addr);
 	}
@@ -157,12 +157,12 @@ tcpexec(int fd, char *addr, char *cmd)
 	/*
 	 *  get authentication reply
 	 */
-	if(read(fd, buf, 1) != 1){
+	if(read(fd, buf, 1) != 1) {
 		close(fd);
 		error("can't authenticate to", addr);
 	}
-	if(buf[0] != 0){
-		while(read(fd, buf, 1) == 1){
+	if(buf[0] != 0) {
+		while(read(fd, buf, 1) == 1) {
 			write(2, buf, 1);
 			if(buf[0] == '\n')
 				break;
@@ -172,28 +172,27 @@ tcpexec(int fd, char *addr, char *cmd)
 	}
 
 	kid = send(fd);
-	while((n=read(fd, buf, sizeof buf))>0){
+	while((n = read(fd, buf, sizeof buf)) > 0) {
 		if(crtonl) {
 			/* convert cr's to nl's */
-			for (cp = buf; cp < buf + n; cp++)
-				if (*cp == '\r')
+			for(cp = buf; cp < buf + n; cp++)
+				if(*cp == '\r')
 					*cp = '\n';
-		}
-		else if(!returns){
+		} else if(!returns) {
 			/* convert cr's to null's */
 			cp = buf;
 			ep = buf + n;
-			while(cp < ep && (cp = memchr(cp, '\r', ep-cp))){
-				memmove(cp, cp+1, ep-cp-1);
+			while(cp < ep && (cp = memchr(cp, '\r', ep - cp))) {
+				memmove(cp, cp + 1, ep - cp - 1);
 				ep--;
 				n--;
 			}
 		}
-		if(write(1, buf, n)!=n)
+		if(write(1, buf, n) != n)
 			error("write error", 0);
 	}
 	sleep(250);
-	postnote(PNPROC, kid, note);/**/
+	postnote(PNPROC, kid, note); /**/
 	exits(0);
 }
 
@@ -208,7 +207,7 @@ sshexec(char *host, char *cmd)
 	argv[n++] = "-iCm";
 	if(!returns)
 		argv[n++] = "-r";
-	if(ruser){
+	if(ruser) {
 		argv[n++] = "-l";
 		argv[n++] = ruser;
 	}
@@ -224,7 +223,7 @@ send(int fd)
 	char buf[4096];
 	int n;
 	int kid;
-	switch(kid = fork()){
+	switch(kid = fork()) {
 	case -1:
 		error("fork error", 0);
 	case 0:
@@ -232,14 +231,14 @@ send(int fd)
 	default:
 		return kid;
 	}
-	while((n=read(0, buf, sizeof buf))>0)
-		if(write(fd, buf, n)!=n)
+	while((n = read(0, buf, sizeof buf)) > 0)
+		if(write(fd, buf, n) != n)
 			exits("write error");
 	if(eof)
 		write(fd, buf, 0);
 
 	exits(0);
-	return 0;			/* to keep compiler happy */
+	return 0; /* to keep compiler happy */
 }
 
 void
@@ -261,13 +260,13 @@ buildargs(char *argv[])
 	args = malloc(1);
 	args[0] = '\0';
 	n = 0;
-	while(*argv){
+	while(*argv) {
 		m = strlen(*argv) + 1;
-		args = realloc(args, n+m +1);
+		args = realloc(args, n + m + 1);
 		if(args == 0)
 			error("malloc fail", 0);
-		args[n] = ' ';	/* smashes old null */
-		strcpy(args+n+1, *argv);
+		args[n] = ' '; /* smashes old null */
+		strcpy(args + n + 1, *argv);
 		n += m;
 		argv++;
 	}

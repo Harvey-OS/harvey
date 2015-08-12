@@ -52,19 +52,16 @@ static char *ident = "$Id: extract.c,v 1.3 89/02/12 10:29:43 mark Exp Locker: ma
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /* Defines */
 
 /*
  * Swap bytes. 
  */
-#define	SWAB(n)	((((ushort)(n) >> 8) & 0xff) | (((ushort)(n) << 8) & 0xff00))
-
+#define SWAB(n) ((((ushort)(n) >> 8) & 0xff) | (((ushort)(n) << 8) & 0xff00))
 
 /* Function Prototypes */
 
@@ -86,7 +83,6 @@ static int readcpio();
 
 #endif /* __STDC__ */
 
-
 /* read_archive - read in an archive
  *
  * DESCRIPTION
@@ -101,81 +97,81 @@ static int readcpio();
 
 #ifdef __STDC__
 
-int read_archive(void)
+int
+read_archive(void)
 
 #else
-    
-int read_archive()
+
+int
+read_archive()
 
 #endif
 {
-    Stat            sb;
-    char            name[PATH_MAX + 1];
-    int             match;
-    int		    pad;
+	Stat sb;
+	char name[PATH_MAX + 1];
+	int match;
+	int pad;
 
-    name_gather();		/* get names from command line */
-    name[0] = '\0';
-    while (get_header(name, &sb) == 0) {
-	match = name_match(name) ^ f_reverse_match;
-	if (f_list) {		/* only wanted a table of contents */
-	    if (match) {
-		print_entry(name, &sb);
-	    }
-	    if (((ar_format == TAR) 
-		? buf_skip(ROUNDUP((OFFSET) sb.sb_size, BLOCKSIZE)) 
-		: buf_skip((OFFSET) sb.sb_size)) < 0) {
-		warn(name, "File data is corrupt");
-	    }
-	} else if (match) {
-	    if (rplhead != (Replstr *)NULL) {
-		rpl_name(name);
-		if (strlen(name) == 0) {
-		    continue;
-		}
-	    }
-	    if (get_disposition("extract", name) || 
-                get_newname(name, sizeof(name))) {
-		/* skip file... */
-		if (((ar_format == TAR) 
-		    ? buf_skip(ROUNDUP((OFFSET) sb.sb_size, BLOCKSIZE)) 
-		    : buf_skip((OFFSET) sb.sb_size)) < 0) {
-		    warn(name, "File data is corrupt");
-		}
-		continue;
-	    } 
-	    if (inentry(name, &sb) < 0) {
-		warn(name, "File data is corrupt");
-	    }
-	    if (f_verbose) {
-		print_entry(name, &sb);
-	    }
-	    if (ar_format == TAR && sb.sb_nlink > 1) {
-		/*
+	name_gather(); /* get names from command line */
+	name[0] = '\0';
+	while(get_header(name, &sb) == 0) {
+		match = name_match(name) ^ f_reverse_match;
+		if(f_list) { /* only wanted a table of contents */
+			if(match) {
+				print_entry(name, &sb);
+			}
+			if(((ar_format == TAR)
+				? buf_skip(ROUNDUP((OFFSET)sb.sb_size, BLOCKSIZE))
+				: buf_skip((OFFSET)sb.sb_size)) < 0) {
+				warn(name, "File data is corrupt");
+			}
+		} else if(match) {
+			if(rplhead != (Replstr *)NULL) {
+				rpl_name(name);
+				if(strlen(name) == 0) {
+					continue;
+				}
+			}
+			if(get_disposition("extract", name) ||
+			   get_newname(name, sizeof(name))) {
+				/* skip file... */
+				if(((ar_format == TAR)
+					? buf_skip(ROUNDUP((OFFSET)sb.sb_size, BLOCKSIZE))
+					: buf_skip((OFFSET)sb.sb_size)) < 0) {
+					warn(name, "File data is corrupt");
+				}
+				continue;
+			}
+			if(inentry(name, &sb) < 0) {
+				warn(name, "File data is corrupt");
+			}
+			if(f_verbose) {
+				print_entry(name, &sb);
+			}
+			if(ar_format == TAR && sb.sb_nlink > 1) {
+				/*
 		 * This kludge makes sure that the link table is cleared
 		 * before attempting to process any other links.
 		 */
-		if (sb.sb_nlink > 1) {
-		    linkfrom(name, &sb);
+				if(sb.sb_nlink > 1) {
+					linkfrom(name, &sb);
+				}
+			}
+			if(ar_format == TAR && (pad = sb.sb_size % BLOCKSIZE) != 0) {
+				pad = BLOCKSIZE - pad;
+				buf_skip((OFFSET)pad);
+			}
+		} else {
+			if(((ar_format == TAR)
+				? buf_skip(ROUNDUP((OFFSET)sb.sb_size, BLOCKSIZE))
+				: buf_skip((OFFSET)sb.sb_size)) < 0) {
+				warn(name, "File data is corrupt");
+			}
 		}
-	    }
-	    if (ar_format == TAR && (pad = sb.sb_size % BLOCKSIZE) != 0) {
-		pad = BLOCKSIZE - pad;
-		buf_skip((OFFSET) pad);
-	    }
-	} else {
-	    if (((ar_format == TAR) 
-		? buf_skip(ROUNDUP((OFFSET) sb.sb_size, BLOCKSIZE)) 
-		: buf_skip((OFFSET) sb.sb_size)) < 0) {
-		warn(name, "File data is corrupt");
-	    }
 	}
-    }
 
-    close_archive();
+	close_archive();
 }
-
-
 
 /* get_header - figures which type of header needs to be read.
  *
@@ -198,23 +194,22 @@ int read_archive()
 
 #ifdef __STDC__
 
-int get_header(char *name, Stat *asb)
+int
+get_header(char *name, Stat *asb)
 
 #else
-    
-int get_header(name, asb)
-char *name;
+
+int get_header(name, asb) char *name;
 Stat *asb;
 
 #endif
 {
-    if (ar_format == TAR) {
-	return(readtar(name, asb));
-    } else {
-	return(readcpio(name, asb));
-    }
+	if(ar_format == TAR) {
+		return (readtar(name, asb));
+	} else {
+		return (readcpio(name, asb));
+	}
 }
-
 
 /* readtar - read a tar header
  *
@@ -243,48 +238,47 @@ Stat *asb;
 
 #ifdef __STDC__
 
-static int readtar(char *name, Stat *asb)
+static int
+readtar(char *name, Stat *asb)
 
 #else
-    
-static int readtar(name, asb)
-char	*name;
-Stat    *asb;
+
+static int readtar(name, asb) char *name;
+Stat *asb;
 
 #endif
 {
-    int             status = 3;	/* Initial status at start of archive */
-    static int      prev_status;
+	int status = 3; /* Initial status at start of archive */
+	static int prev_status;
 
-    for (;;) {
-	prev_status = status;
-	status = read_header(name, asb);
-	switch (status) {
-	case 1:		/* Valid header */
-		return(0);
-	case 0:		/* Invalid header */
-	    switch (prev_status) {
-	    case 3:		/* Error on first record */
-		warn(ar_file, "This doesn't look like a tar archive");
-		/* FALLTHRU */
-	    case 2:		/* Error after record of zeroes */
-	    case 1:		/* Error after header rec */
-		warn(ar_file, "Skipping to next file...");
-		/* FALLTHRU */
-	    default:
-	    case 0:		/* Error after error */
-		break;
-	    }
-	    break;
+	for(;;) {
+		prev_status = status;
+		status = read_header(name, asb);
+		switch(status) {
+		case 1: /* Valid header */
+			return (0);
+		case 0: /* Invalid header */
+			switch(prev_status) {
+			case 3: /* Error on first record */
+				warn(ar_file, "This doesn't look like a tar archive");
+			/* FALLTHRU */
+			case 2: /* Error after record of zeroes */
+			case 1: /* Error after header rec */
+				warn(ar_file, "Skipping to next file...");
+			/* FALLTHRU */
+			default:
+			case 0: /* Error after error */
+				break;
+			}
+			break;
 
-	case 2:			/* Record of zeroes */
-	case EOF:		/* End of archive */
-	default:
-	    return(-1);
+		case 2:   /* Record of zeroes */
+		case EOF: /* End of archive */
+		default:
+			return (-1);
+		}
 	}
-    }
 }
-
 
 /* readcpio - read a CPIO header 
  *
@@ -313,82 +307,79 @@ Stat    *asb;
 
 #ifdef __STDC__
 
-static int readcpio(char *name, Stat *asb)
+static int
+readcpio(char *name, Stat *asb)
 
 #else
-    
-static int readcpio(name, asb)
-char           *name;
-Stat           *asb;
+
+static int readcpio(name, asb) char *name;
+Stat *asb;
 
 #endif
 {
-    OFFSET          skipped;
-    char            magic[M_STRLEN];
-    static int      align;
+	OFFSET skipped;
+	char magic[M_STRLEN];
+	static int align;
 
-    if (align > 0) {
-	buf_skip((OFFSET) align);
-    }
-    align = 0;
-    for (;;) {
-	buf_read(magic, M_STRLEN);
-	skipped = 0;
-	while ((align = inascii(magic, name, asb)) < 0
-	       && (align = inbinary(magic, name, asb)) < 0
-	       && (align = inswab(magic, name, asb)) < 0) {
-	    if (++skipped == 1) {
-		if (total - sizeof(magic) == 0) {
-		    fatal("Unrecognizable archive");
+	if(align > 0) {
+		buf_skip((OFFSET)align);
+	}
+	align = 0;
+	for(;;) {
+		buf_read(magic, M_STRLEN);
+		skipped = 0;
+		while((align = inascii(magic, name, asb)) < 0 && (align = inbinary(magic, name, asb)) < 0 && (align = inswab(magic, name, asb)) < 0) {
+			if(++skipped == 1) {
+				if(total - sizeof(magic) == 0) {
+					fatal("Unrecognizable archive");
+				}
+				warnarch("Bad magic number", (OFFSET)sizeof(magic));
+				if(name[0]) {
+					warn(name, "May be corrupt");
+				}
+			}
+			memcpy(magic, magic + 1, sizeof(magic) - 1);
+			buf_read(magic + sizeof(magic) - 1, 1);
 		}
-		warnarch("Bad magic number", (OFFSET) sizeof(magic));
-		if (name[0]) {
-		    warn(name, "May be corrupt");
+		if(skipped) {
+			warnarch("Apparently resynchronized", (OFFSET)sizeof(magic));
+			warn(name, "Continuing");
 		}
-	    }
-	    memcpy(magic, magic + 1, sizeof(magic) - 1);
-	    buf_read(magic + sizeof(magic) - 1, 1);
+		if(strcmp(name, TRAILER) == 0) {
+			return (-1);
+		}
+		if(nameopt(name) >= 0) {
+			break;
+		}
+		buf_skip((OFFSET)asb->sb_size + align);
 	}
-	if (skipped) {
-	    warnarch("Apparently resynchronized", (OFFSET) sizeof(magic));
-	    warn(name, "Continuing");
+#ifdef S_IFLNK
+	if((asb->sb_mode & S_IFMT) == S_IFLNK) {
+		if(buf_read(asb->sb_link, (uint)asb->sb_size) < 0) {
+			warn(name, "Corrupt symbolic link");
+			return (readcpio(name, asb));
+		}
+		asb->sb_link[asb->sb_size] = '\0';
+		asb->sb_size = 0;
 	}
-	if (strcmp(name, TRAILER) == 0) {
-	    return (-1);
-	}
-	if (nameopt(name) >= 0) {
-	    break;
-	}
-	buf_skip((OFFSET) asb->sb_size + align);
-    }
-#ifdef	S_IFLNK
-    if ((asb->sb_mode & S_IFMT) == S_IFLNK) {
-	if (buf_read(asb->sb_link, (uint) asb->sb_size) < 0) {
-	    warn(name, "Corrupt symbolic link");
-	    return (readcpio(name, asb));
-	}
-	asb->sb_link[asb->sb_size] = '\0';
-	asb->sb_size = 0;
-    }
-#endif				/* S_IFLNK */
+#endif /* S_IFLNK */
 
-    /* destroy absolute pathnames for security reasons */
-    if (name[0] == '/') {
-	if (name[1]) {
-	    while (name[0] = name[1]) {
-		++name;
-	    }
-	} else {
-	    name[0] = '.';
+	/* destroy absolute pathnames for security reasons */
+	if(name[0] == '/') {
+		if(name[1]) {
+			while(name[0] = name[1]) {
+				++name;
+			}
+		} else {
+			name[0] = '.';
+		}
 	}
-    }
-    asb->sb_atime = asb->sb_ctime = asb->sb_mtime;
-    if (asb->sb_nlink > 1) {
-	linkto(name, asb);
-    }
-    return (0);
+	asb->sb_atime = asb->sb_ctime = asb->sb_mtime;
+	if(asb->sb_nlink > 1) {
+		linkto(name, asb);
+	}
+	return (0);
 }
-
 
 /* inswab - read a reversed by order binary header
  *
@@ -414,60 +405,59 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int inswab(char *magic, char *name, Stat *asb)
+static int
+inswab(char *magic, char *name, Stat *asb)
 
 #else
-    
-static int inswab(magic, name, asb)
-char           *magic;
-char           *name;
-Stat           *asb;
+
+static int inswab(magic, name, asb) char *magic;
+char *name;
+Stat *asb;
 
 #endif
 {
-    uint16_t          namesize;
-    uint            namefull;
-    Binary          binary;
+	uint16_t namesize;
+	uint namefull;
+	Binary binary;
 
-    if (*((uint16_t *) magic) != SWAB(M_BINARY)) {
-	return (-1);
-    }
-    memcpy((char *) &binary,
-		  magic + sizeof(uint16_t),
-		  M_STRLEN - sizeof(uint16_t));
-    if (buf_read((char *) &binary + M_STRLEN - sizeof(uint16_t),
-		 sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
-	warnarch("Corrupt swapped header",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
-	return (-1);
-    }
-    asb->sb_dev = (dev_t) SWAB(binary.b_dev);
-    asb->sb_ino = (ino_t) SWAB(binary.b_ino);
-    asb->sb_mode = SWAB(binary.b_mode);
-    asb->sb_uid = SWAB(binary.b_uid);
-    asb->sb_gid = SWAB(binary.b_gid);
-    asb->sb_nlink = SWAB(binary.b_nlink);
+	if(*((uint16_t *)magic) != SWAB(M_BINARY)) {
+		return (-1);
+	}
+	memcpy((char *)&binary,
+	       magic + sizeof(uint16_t),
+	       M_STRLEN - sizeof(uint16_t));
+	if(buf_read((char *)&binary + M_STRLEN - sizeof(uint16_t),
+		    sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
+		warnarch("Corrupt swapped header",
+			 (OFFSET)sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
+		return (-1);
+	}
+	asb->sb_dev = (dev_t)SWAB(binary.b_dev);
+	asb->sb_ino = (ino_t)SWAB(binary.b_ino);
+	asb->sb_mode = SWAB(binary.b_mode);
+	asb->sb_uid = SWAB(binary.b_uid);
+	asb->sb_gid = SWAB(binary.b_gid);
+	asb->sb_nlink = SWAB(binary.b_nlink);
 #ifndef _POSIX_SOURCE
-    asb->sb_rdev = (dev_t) SWAB(binary.b_rdev);
+	asb->sb_rdev = (dev_t)SWAB(binary.b_rdev);
 #endif
-    asb->sb_mtime = SWAB(binary.b_mtime[0]) << 16 | SWAB(binary.b_mtime[1]);
-    asb->sb_size = SWAB(binary.b_size[0]) << 16 | SWAB(binary.b_size[1]);
-    if ((namesize = SWAB(binary.b_name)) == 0 || namesize >= PATH_MAX) {
-	warnarch("Bad swapped pathname length",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
-	return (-1);
-    }
-    if (buf_read(name, namefull = namesize + namesize % 2) < 0) {
-	warnarch("Corrupt swapped pathname", (OFFSET) namefull);
-	return (-1);
-    }
-    if (name[namesize - 1] != '\0') {
-	warnarch("Bad swapped pathname", (OFFSET) namefull);
-	return (-1);
-    }
-    return (asb->sb_size % 2);
+	asb->sb_mtime = SWAB(binary.b_mtime[0]) << 16 | SWAB(binary.b_mtime[1]);
+	asb->sb_size = SWAB(binary.b_size[0]) << 16 | SWAB(binary.b_size[1]);
+	if((namesize = SWAB(binary.b_name)) == 0 || namesize >= PATH_MAX) {
+		warnarch("Bad swapped pathname length",
+			 (OFFSET)sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
+		return (-1);
+	}
+	if(buf_read(name, namefull = namesize + namesize % 2) < 0) {
+		warnarch("Corrupt swapped pathname", (OFFSET)namefull);
+		return (-1);
+	}
+	if(name[namesize - 1] != '\0') {
+		warnarch("Bad swapped pathname", (OFFSET)namefull);
+		return (-1);
+	}
+	return (asb->sb_size % 2);
 }
-
 
 /* inascii - read in an ASCII cpio header
  *
@@ -491,57 +481,56 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int inascii(char *magic, char *name, Stat *asb)
+static int
+inascii(char *magic, char *name, Stat *asb)
 
 #else
-    
-static int inascii(magic, name, asb)
-char           *magic;
-char           *name;
-Stat           *asb;
+
+static int inascii(magic, name, asb) char *magic;
+char *name;
+Stat *asb;
 
 #endif
 {
-    uint            namelen;
-    char            header[H_STRLEN + 1];
+	uint namelen;
+	char header[H_STRLEN + 1];
 #ifdef _POSIX_SOURCE
-    dev_t	    dummyrdev;
+	dev_t dummyrdev;
 #endif
 
-    if (strncmp(magic, M_ASCII, M_STRLEN) != 0) {
-	return (-1);
-    }
-    if (buf_read(header, H_STRLEN) < 0) {
-	warnarch("Corrupt ASCII header", (OFFSET) H_STRLEN);
-	return (-1);
-    }
-    header[H_STRLEN] = '\0';
-    if (sscanf(header, H_SCAN, &asb->sb_dev,
-	       &asb->sb_ino, &asb->sb_mode, &asb->sb_uid,
+	if(strncmp(magic, M_ASCII, M_STRLEN) != 0) {
+		return (-1);
+	}
+	if(buf_read(header, H_STRLEN) < 0) {
+		warnarch("Corrupt ASCII header", (OFFSET)H_STRLEN);
+		return (-1);
+	}
+	header[H_STRLEN] = '\0';
+	if(sscanf(header, H_SCAN, &asb->sb_dev,
+		  &asb->sb_ino, &asb->sb_mode, &asb->sb_uid,
 #ifdef _POSIX_SOURCE
-	       &asb->sb_gid, &asb->sb_nlink, &dummyrdev,
+		  &asb->sb_gid, &asb->sb_nlink, &dummyrdev,
 #else
-	       &asb->sb_gid, &asb->sb_nlink, &asb->sb_rdev,
+		  &asb->sb_gid, &asb->sb_nlink, &asb->sb_rdev,
 #endif
-	       &asb->sb_mtime, &namelen, &asb->sb_size) != H_COUNT) {
-	warnarch("Bad ASCII header", (OFFSET) H_STRLEN);
-	return (-1);
-    }
-    if (namelen == 0 || namelen >= PATH_MAX) {
-	warnarch("Bad ASCII pathname length", (OFFSET) H_STRLEN);
-	return (-1);
-    }
-    if (buf_read(name, namelen) < 0) {
-	warnarch("Corrupt ASCII pathname", (OFFSET) namelen);
-	return (-1);
-    }
-    if (name[namelen - 1] != '\0') {
-	warnarch("Bad ASCII pathname", (OFFSET) namelen);
-	return (-1);
-    }
-    return (0);
+		  &asb->sb_mtime, &namelen, &asb->sb_size) != H_COUNT) {
+		warnarch("Bad ASCII header", (OFFSET)H_STRLEN);
+		return (-1);
+	}
+	if(namelen == 0 || namelen >= PATH_MAX) {
+		warnarch("Bad ASCII pathname length", (OFFSET)H_STRLEN);
+		return (-1);
+	}
+	if(buf_read(name, namelen) < 0) {
+		warnarch("Corrupt ASCII pathname", (OFFSET)namelen);
+		return (-1);
+	}
+	if(name[namelen - 1] != '\0') {
+		warnarch("Bad ASCII pathname", (OFFSET)namelen);
+		return (-1);
+	}
+	return (0);
 }
-
 
 /* inbinary - read a binary header
  *
@@ -565,55 +554,55 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int inbinary(char *magic, char *name, Stat *asb)
+static int
+inbinary(char *magic, char *name, Stat *asb)
 
 #else
-    
-static int inbinary(magic, name, asb)
-char           *magic;
-char           *name;
-Stat           *asb;
+
+static int inbinary(magic, name, asb) char *magic;
+char *name;
+Stat *asb;
 
 #endif
 {
-    uint            namefull;
-    Binary          binary;
+	uint namefull;
+	Binary binary;
 
-    if (*((uint16_t *) magic) != M_BINARY) {
-	return (-1);
-    }
-    memcpy((char *) &binary,
-		  magic + sizeof(uint16_t),
-		  M_STRLEN - sizeof(uint16_t));
-    if (buf_read((char *) &binary + M_STRLEN - sizeof(uint16_t),
-		 sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
-	warnarch("Corrupt binary header",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
-	return (-1);
-    }
-    asb->sb_dev = binary.b_dev;
-    asb->sb_ino = binary.b_ino;
-    asb->sb_mode = binary.b_mode;
-    asb->sb_uid = binary.b_uid;
-    asb->sb_gid = binary.b_gid;
-    asb->sb_nlink = binary.b_nlink;
+	if(*((uint16_t *)magic) != M_BINARY) {
+		return (-1);
+	}
+	memcpy((char *)&binary,
+	       magic + sizeof(uint16_t),
+	       M_STRLEN - sizeof(uint16_t));
+	if(buf_read((char *)&binary + M_STRLEN - sizeof(uint16_t),
+		    sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
+		warnarch("Corrupt binary header",
+			 (OFFSET)sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
+		return (-1);
+	}
+	asb->sb_dev = binary.b_dev;
+	asb->sb_ino = binary.b_ino;
+	asb->sb_mode = binary.b_mode;
+	asb->sb_uid = binary.b_uid;
+	asb->sb_gid = binary.b_gid;
+	asb->sb_nlink = binary.b_nlink;
 #ifndef _POSIX_SOURCE
-    asb->sb_rdev = binary.b_rdev;
+	asb->sb_rdev = binary.b_rdev;
 #endif
-    asb->sb_mtime = binary.b_mtime[0] << 16 | binary.b_mtime[1];
-    asb->sb_size = binary.b_size[0] << 16 | binary.b_size[1];
-    if (binary.b_name == 0 || binary.b_name >= PATH_MAX) {
-	warnarch("Bad binary pathname length",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
-	return (-1);
-    }
-    if (buf_read(name, namefull = binary.b_name + binary.b_name % 2) < 0) {
-	warnarch("Corrupt binary pathname", (OFFSET) namefull);
-	return (-1);
-    }
-    if (name[binary.b_name - 1] != '\0') {
-	warnarch("Bad binary pathname", (OFFSET) namefull);
-	return (-1);
-    }
-    return (asb->sb_size % 2);
+	asb->sb_mtime = binary.b_mtime[0] << 16 | binary.b_mtime[1];
+	asb->sb_size = binary.b_size[0] << 16 | binary.b_size[1];
+	if(binary.b_name == 0 || binary.b_name >= PATH_MAX) {
+		warnarch("Bad binary pathname length",
+			 (OFFSET)sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
+		return (-1);
+	}
+	if(buf_read(name, namefull = binary.b_name + binary.b_name % 2) < 0) {
+		warnarch("Corrupt binary pathname", (OFFSET)namefull);
+		return (-1);
+	}
+	if(name[binary.b_name - 1] != '\0') {
+		warnarch("Bad binary pathname", (OFFSET)namefull);
+		return (-1);
+	}
+	return (asb->sb_size % 2);
 }

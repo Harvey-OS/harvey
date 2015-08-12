@@ -16,9 +16,9 @@
 
 /* keeping NAMELEN ≤ 50 bytes permits 3 Dentrys per mag disk sector */
 enum {
-	NAMELEN		= 56,		/* max size of file name components */
-	NDBLOCK		= 6,		/* number of direct blocks in Dentry */
-	NIBLOCK		= 4,		/* max depth of indirect blocks */
+	NAMELEN = 56, /* max size of file name components */
+	NDBLOCK = 6,  /* number of direct blocks in Dentry */
+	NIBLOCK = 4,  /* max depth of indirect blocks */
 };
 
 /*

@@ -8,6 +8,8 @@
  */
 
 #include "mplot.h"
-void doublebuffer(void){
+void
+doublebuffer(void)
+{
 	m_dblbuf();
 }

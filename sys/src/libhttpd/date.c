@@ -21,23 +21,20 @@
  * plus anything similar
  */
 static char *
-weekdayname[7] =
-{
-	"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-};
+    weekdayname[7] =
+	{
+	 "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 static char *
-wdayname[7] =
-{
-	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-};
+    wdayname[7] =
+	{
+	 "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 static char *
-monname[12] =
-{
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
+    monname[12] =
+	{
+	 "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-static	int	dateindex(char*, char**, int);
+static int dateindex(char *, char **, int);
 
 static int
 dtolower(int c)
@@ -68,11 +65,11 @@ hdatefmt(Fmt *f)
 	t = va_arg(f->args, uint32_t);
 	tm = gmtime(t);
 	return fmtprint(f, "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
-		wdayname[tm->wday], tm->mday, monname[tm->mon], tm->year+1900,
-		tm->hour, tm->min, tm->sec);
+			wdayname[tm->wday], tm->mday, monname[tm->mon], tm->year + 1900,
+			tm->hour, tm->min, tm->sec);
 }
 
-static char*
+static char *
 dateword(char *date, char *buf)
 {
 	char *p;
@@ -81,7 +78,7 @@ dateword(char *date, char *buf)
 	p = buf;
 	while(!disalpha(c = *date) && !disdig(c) && c)
 		date++;
-	while(disalpha(c = *date)){
+	while(disalpha(c = *date)) {
 		if(p - buf < 30)
 			*p++ = dtolower(c);
 		date++;
@@ -99,12 +96,12 @@ datenum(char **d)
 	date = *d;
 	while(!disdig(c = *date) && c)
 		date++;
-	if(c == 0){
+	if(c == 0) {
 		*d = date;
 		return -1;
 	}
 	n = 0;
-	while(disdig(c = *date)){
+	while(disdig(c = *date)) {
 		n = n * 10 + c - '0';
 		date++;
 	}
@@ -137,7 +134,7 @@ hdate2sec(char *date)
 	 */
 	date = dateword(date, buf);
 	tm.mon = dateindex(buf, monname, 12);
-	if(tm.mon >= 0){
+	if(tm.mon >= 0) {
 		/*
 		 * MM
 		 */
@@ -166,7 +163,7 @@ hdate2sec(char *date)
 			return 0;
 		if(tm.year >= 1970)
 			tm.year -= 1900;
-	}else{
+	} else {
 		/*
 		 * MM-Mon-(YY|YYYY)
 		 */

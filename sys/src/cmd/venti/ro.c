@@ -15,15 +15,14 @@
 #include <libsec.h>
 
 #ifndef _UNISTD_H_
-#pragma varargck type "F" VtFcall*
+#pragma varargck type "F" VtFcall *
 #pragma varargck type "T" void
 #endif
 
 VtConn *z;
 int verbose;
 
-enum
-{
+enum {
 	STACK = 8192
 };
 
@@ -41,15 +40,15 @@ readthread(void *v)
 	VtReq *r;
 	uint8_t *buf;
 	int n;
-	
+
 	r = v;
 	buf = vtmalloc(r->tx.count);
-	if((n=vtread(z, r->tx.score, r->tx.blocktype, buf, r->tx.count)) < 0){
+	if((n = vtread(z, r->tx.score, r->tx.blocktype, buf, r->tx.count)) < 0) {
 		r->rx.msgtype = VtRerror;
 		rerrstr(err, sizeof err);
 		r->rx.error = vtstrdup(err);
 		free(buf);
-	}else{
+	} else {
 		r->rx.data = packetforeign(buf, n, free, buf);
 	}
 	if(verbose)
@@ -66,11 +65,12 @@ threadmain(int argc, char **argv)
 
 	fmtinstall('F', vtfcallfmt);
 	fmtinstall('V', vtscorefmt);
-	
+
 	address = "tcp!*!venti";
 	ventiaddress = nil;
-	
-	ARGBEGIN{
+
+	ARGBEGIN
+	{
 	case 'v':
 		verbose++;
 		break;
@@ -82,7 +82,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if((z = vtdial(ventiaddress)) == nil)
 		sysfatal("vtdial %s: %r", ventiaddress);
@@ -93,11 +94,11 @@ threadmain(int argc, char **argv)
 	if(srv == nil)
 		sysfatal("vtlisten %s: %r", address);
 
-	while((r = vtgetreq(srv)) != nil){
-		r->rx.msgtype = r->tx.msgtype+1;
+	while((r = vtgetreq(srv)) != nil) {
+		r->rx.msgtype = r->tx.msgtype + 1;
 		if(verbose)
 			fprint(2, "<- %F\n", &r->tx);
-		switch(r->tx.msgtype){
+		switch(r->tx.msgtype) {
 		case VtTping:
 			break;
 		case VtTgoodbye:
@@ -118,4 +119,3 @@ threadmain(int argc, char **argv)
 	}
 	threadexitsall(nil);
 }
-

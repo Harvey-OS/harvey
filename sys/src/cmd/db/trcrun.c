@@ -14,7 +14,6 @@
 #include "defs.h"
 #include "fns.h"
 
-
 int child;
 int msgfd = -1;
 int notefd = -1;
@@ -26,12 +25,12 @@ setpcs(void)
 {
 	char buf[128];
 
-	if(pid && pid != pcspid){
-		if(msgfd >= 0){
+	if(pid && pid != pcspid) {
+		if(msgfd >= 0) {
 			close(msgfd);
 			msgfd = -1;
 		}
-		if(notefd >= 0){
+		if(notefd >= 0) {
 			close(notefd);
 			notefd = -1;
 		}
@@ -54,7 +53,7 @@ msgpcs(char *msg)
 	char err[ERRMAX];
 
 	setpcs();
-	if(write(msgfd, msg, strlen(msg)) < 0 && !ending){
+	if(write(msgfd, msg, strlen(msg)) < 0 && !ending) {
 		errstr(err, sizeof err);
 		if(strcmp(err, "interrupted") != 0)
 			endpcs();
@@ -71,8 +70,8 @@ unloadnote(void)
 	char err[ERRMAX];
 
 	setpcs();
-	for(; nnote<NNOTE; nnote++){
-		switch(read(notefd, note[nnote], sizeof note[nnote])){
+	for(; nnote < NNOTE; nnote++) {
+		switch(read(notefd, note[nnote], sizeof note[nnote])) {
 		case -1:
 			errstr(err, sizeof err);
 			if(strcmp(err, "interrupted") != 0)
@@ -81,7 +80,7 @@ unloadnote(void)
 		case 0:
 			return;
 		}
-		note[nnote][ERRMAX-1] = '\0';
+		note[nnote][ERRMAX - 1] = '\0';
 		if(strncmp(note[nnote], "sys: breakpoint", 15) == 0)
 			--nnote;
 	}
@@ -97,8 +96,8 @@ loadnote(void)
 	char err[ERRMAX];
 
 	setpcs();
-	for(i=0; i<nnote; i++){
-		if(write(notefd, note[i], strlen(note[i])) < 0){
+	for(i = 0; i < nnote; i++) {
+		if(write(notefd, note[i], strlen(note[i])) < 0) {
 			errstr(err, sizeof err);
 			if(strcmp(err, "interrupted") != 0)
 				endpcs();
@@ -116,7 +115,7 @@ notes(void)
 	if(nnote == 0)
 		return;
 	dprint("notes:\n");
-	for(n=0; n<nnote; n++)
+	for(n = 0; n < nnote; n++)
 		dprint("%d:\t%s\n", n, note[n]);
 }
 
@@ -152,34 +151,32 @@ doexec(void)
 	ap = argl;
 	p = args;
 	*ap++ = symfil;
-	for (rdc(); lastc != EOR;) {
+	for(rdc(); lastc != EOR;) {
 		thisarg = p;
-		if (lastc == '<' || lastc == '>') {
+		if(lastc == '<' || lastc == '>') {
 			*p++ = lastc;
 			rdc();
 		}
-		while (lastc != EOR && lastc != SPC && lastc != TB) {
+		while(lastc != EOR && lastc != SPC && lastc != TB) {
 			*p++ = lastc;
 			readchar();
 		}
-		if (lastc == SPC || lastc == TB)
+		if(lastc == SPC || lastc == TB)
 			rdc();
 		*p++ = 0;
-		if (*thisarg == '<') {
+		if(*thisarg == '<') {
 			close(0);
-			if (open(&thisarg[1], OREAD) < 0) {
+			if(open(&thisarg[1], OREAD) < 0) {
 				print("%s: cannot open\n", &thisarg[1]);
 				_exits(0);
 			}
-		}
-		else if (*thisarg == '>') {
+		} else if(*thisarg == '>') {
 			close(1);
-			if (create(&thisarg[1], OWRITE, 0666) < 0) {
+			if(create(&thisarg[1], OWRITE, 0666) < 0) {
 				print("%s: cannot create\n", &thisarg[1]);
 				_exits(0);
 			}
-		}
-		else
+		} else
 			*ap++ = thisarg;
 	}
 	*ap = 0;
@@ -187,28 +184,28 @@ doexec(void)
 	perror(symfil);
 }
 
-char	procname[100];
+char procname[100];
 
 void
 startpcs(void)
 {
-	if ((pid = fork()) == 0) {
+	if((pid = fork()) == 0) {
 		pid = getpid();
 		msgpcs("hang");
 		doexec();
 		exits(0);
 	}
 
-	if (pid == -1)
+	if(pid == -1)
 		error("can't fork");
 	child++;
 	sprint(procname, "/proc/%d/mem", pid);
 	corfil = procname;
 	msgpcs("waitstop");
 	bpwait();
-	if (adrflg)
+	if(adrflg)
 		rput(cormap, mach->pc, adrval);
-	while (rdc() != EOR)
+	while(rdc() != EOR)
 		;
 	reread();
 }
@@ -221,24 +218,24 @@ runstep(uint64_t loc, int keepnote)
 	BKPT bkpt[3];
 	int i;
 
-	if(machdata->foll == 0){
+	if(machdata->foll == 0) {
 		dprint("stepping unimplemented; assuming not a branch\n");
 		nfoll = 1;
-		foll[0] = loc+mach->pcquant;
-	}else {
+		foll[0] = loc + mach->pcquant;
+	} else {
 		nfoll = machdata->foll(cormap, loc, rget, foll);
-		if (nfoll < 0)
+		if(nfoll < 0)
 			error("%r");
 	}
 	memset(bkpt, 0, sizeof bkpt);
-	for(i=0; i<nfoll; i++){
+	for(i = 0; i < nfoll; i++) {
 		if(foll[i] == loc)
 			error("can't single step: next instruction is dot");
 		bkpt[i].loc = foll[i];
 		bkput(&bkpt[i], 1);
 	}
 	runrun(keepnote);
-	for(i=0; i<nfoll; i++)
+	for(i = 0; i < nfoll; i++)
 		bkput(&bkpt[i], 0);
 }
 
@@ -256,7 +253,7 @@ runrun(int keepnote)
 
 	on = nnote;
 	unloadnote();
-	if(on != nnote){
+	if(on != nnote) {
 		notes();
 		error("not running: new notes pending");
 	}
@@ -281,13 +278,13 @@ bkput(BKPT *bp, int install)
 		loc = (*machdata->bpfix)(bp->loc);
 	else
 		loc = bp->loc;
-	if(install){
+	if(install) {
 		ret = get1(cormap, loc, bp->save, machdata->bpsize);
-		if (ret > 0)
+		if(ret > 0)
 			ret = put1(cormap, loc, machdata->bpinst, machdata->bpsize);
-	}else
+	} else
 		ret = put1(cormap, loc, bp->save, machdata->bpsize);
-	if(ret < 0){
+	if(ret < 0) {
 		sprint(buf, "can't set breakpoint at %#llux: %r", bp->loc);
 		print(buf);
 		read(0, buf, 100);

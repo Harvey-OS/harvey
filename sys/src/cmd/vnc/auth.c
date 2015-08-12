@@ -17,12 +17,11 @@ char *serveraddr;
  * Encrypt n bytes using the password
  * as key, padded with zeros to 8 bytes.
  */
-enum
-{
-	VerLen	= 12
+enum {
+	VerLen = 12
 };
 
-static char version[VerLen+1] = "RFB 003.003\n";
+static char version[VerLen + 1] = "RFB 003.003\n";
 
 static uint8_t tab[256];
 
@@ -37,11 +36,11 @@ mktab(void)
 		return;
 	once = 1;
 
-	for(i=0; i<256; i++){
-		j=i;
+	for(i = 0; i < 256; i++) {
+		j = i;
 		tab[i] = 0;
-		for(k=0; k<8; k++){
-			tab[i] = (tab[i]<<1) | (j&1);
+		for(k = 0; k < 8; k++) {
+			tab[i] = (tab[i] << 1) | (j & 1);
 			j >>= 1;
 		}
 	}
@@ -56,8 +55,8 @@ vncencrypt(uint8_t *buf, int n, char *pw)
 
 	mktab();
 	memset(key, 0, sizeof key);
-	strncpy((char*)key, pw, 8);
-	for(p=key; *p; p++)
+	strncpy((char *)key, pw, 8);
+	for(p = key; *p; p++)
 		*p = tab[*p];
 
 	setupDESstate(&s, key, nil);
@@ -80,34 +79,34 @@ readln(char *prompt, char *line, int len)
 	fprint(fd, "%s", prompt);
 	nr = 0;
 	p = line;
-	for(;;){
+	for(;;) {
 		n = read(fd, p, 1);
-		if(n < 0){
+		if(n < 0) {
 			close(fd);
 			close(ctl);
 			return -1;
 		}
-		if(n == 0 || *p == '\n' || *p == '\r'){
+		if(n == 0 || *p == '\n' || *p == '\r') {
 			*p = '\0';
 			write(fd, "\n", 1);
 			close(fd);
 			close(ctl);
 			return nr;
 		}
-		if(*p == '\b'){
-			if(nr > 0){
+		if(*p == '\b') {
+			if(nr > 0) {
 				nr--;
 				p--;
 			}
-		}else if(*p == 21){		/* cntrl-u */
+		} else if(*p == 21) { /* cntrl-u */
 			fprint(fd, "\n%s", prompt);
 			nr = 0;
 			p = line;
-		}else{
+		} else {
 			nr++;
 			p++;
 		}
-		if(nr == len){
+		if(nr == len) {
 			fprint(fd, "line too long; try again\n%s", prompt);
 			nr = 0;
 			p = line;
@@ -118,9 +117,9 @@ readln(char *prompt, char *line, int len)
 int
 vncsrvhandshake(Vnc *v)
 {
-	char msg[VerLen+1];
+	char msg[VerLen + 1];
 
-	strecpy(msg, msg+sizeof msg, version);
+	strecpy(msg, msg + sizeof msg, version);
 	if(verbose)
 		fprint(2, "server version: %s", msg);
 	vncwrbytes(v, msg, VerLen);
@@ -135,11 +134,11 @@ vncsrvhandshake(Vnc *v)
 int
 vnchandshake(Vnc *v)
 {
-	char msg[VerLen+1];
+	char msg[VerLen + 1];
 
 	msg[VerLen] = 0;
 	vncrdbytes(v, msg, VerLen);
-	if(strncmp(msg, "RFB ", 4) != 0){
+	if(strncmp(msg, "RFB ", 4) != 0) {
 		werrstr("bad rfb version \"%s\"", msg);
 		return -1;
 	}
@@ -162,7 +161,7 @@ vncauth(Vnc *v, char *keypattern)
 	if(keypattern == nil)
 		keypattern = "";
 	auth = vncrdlong(v);
-	switch(auth){
+	switch(auth) {
 	default:
 		werrstr("unknown auth type 0x%lux", auth);
 		if(verbose)
@@ -188,7 +187,7 @@ vncauth(Vnc *v, char *keypattern)
 		if(p)
 			*p = 0;
 		if(auth_respond(chal, VncChalLen, nil, 0, chal, VncChalLen, auth_getkey,
-			"proto=vnc role=client server=%s %s", server, keypattern) != VncChalLen){
+				"proto=vnc role=client server=%s %s", server, keypattern) != VncChalLen) {
 			/* BUG This is for drawterm users who don't start their own factotums */
 			readln("password: ", pw, sizeof(pw));
 			vncencrypt(chal, VncChalLen, pw);
@@ -199,7 +198,7 @@ vncauth(Vnc *v, char *keypattern)
 		vncflush(v);
 
 		auth = vncrdlong(v);
-		switch(auth){
+		switch(auth) {
 		default:
 			werrstr("unknown server response 0x%lux", auth);
 			return -1;
@@ -223,7 +222,7 @@ vncsrvauth(Vnc *v)
 	Chalstate *c;
 	AuthInfo *ai;
 
-	if((c = auth_challenge("proto=vnc role=server user=%q", getuser()))==nil)
+	if((c = auth_challenge("proto=vnc role=server user=%q", getuser())) == nil)
 		sysfatal("vncchal: %r");
 	if(c->nchal != VncChalLen)
 		sysfatal("vncchal got %d bytes wanted %d", c->nchal, VncChalLen);
@@ -236,7 +235,7 @@ vncsrvauth(Vnc *v)
 	c->nresp = VncChalLen;
 	ai = auth_response(c);
 	auth_freechal(c);
-	if(ai == nil){
+	if(ai == nil) {
 		fprint(2, "vnc auth failed: server factotum: %r\n");
 		vncwrlong(v, VncAuthFailed);
 		vncflush(v);
@@ -248,4 +247,3 @@ vncsrvauth(Vnc *v)
 
 	return 0;
 }
-

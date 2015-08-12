@@ -17,131 +17,124 @@
 #include <ip.h>
 #include "icmp.h"
 
-#define	MAXNUM	8	/* maximum number of numbers on data line */
+#define MAXNUM 8 /* maximum number of numbers on data line */
 
-typedef struct Graph	Graph;
-typedef struct Machine	Machine;
-typedef struct Req	Req;
+typedef struct Graph Graph;
+typedef struct Machine Machine;
+typedef struct Req Req;
 
 enum {
-	Gmsglen	= 16,
+	Gmsglen = 16,
 };
 
-struct Graph
-{
-	int		colindex;
-	Rectangle	r;
-	int32_t		*data;
-	int		ndata;
-	char		*label;
-	void		(*newvalue)(Machine*, int32_t*, int32_t*,
-					int32_t*);
-	void		(*update)(Graph*, int32_t, int32_t, int32_t);
-	Machine		*mach;
-	int		overflow;
-	Image		*overtmp;
-	int		overtmplen;
-	char		msg[Gmsglen];
-	int		cursor;
-	int		vmax;
+struct Graph {
+	int colindex;
+	Rectangle r;
+	int32_t *data;
+	int ndata;
+	char *label;
+	void (*newvalue)(Machine *, int32_t *, int32_t *,
+			 int32_t *);
+	void (*update)(Graph *, int32_t, int32_t, int32_t);
+	Machine *mach;
+	int overflow;
+	Image *overtmp;
+	int overtmplen;
+	char msg[Gmsglen];
+	int cursor;
+	int vmax;
 };
 
-enum
-{
-	MSGLEN		= 64,
+enum {
+	MSGLEN = 64,
 
-	Rttmax		= 50,
+	Rttmax = 50,
 };
 
-struct Req
-{
-	int	seq;	/* sequence number */
-	int64_t	time;	/* time sent */
-//	int	rtt;
-	Req	*next;
+struct Req {
+	int seq;      /* sequence number */
+	int64_t time; /* time sent */
+		      //	int	rtt;
+	Req *next;
 };
 
-struct Machine
-{
+struct Machine {
 	Lock;
-	char	*name;
-	int	pingfd;
-	int	nproc;
+	char *name;
+	int pingfd;
+	int nproc;
 
-	int	rttmsgs;
-	uintptr	rttsum;
-	uintptr	lastrtt;
+	int rttmsgs;
+	uintptr rttsum;
+	uintptr lastrtt;
 
-	int	lostmsgs;
-	int	rcvdmsgs;
-	uintptr	lostavg;
-	int	unreachable;
+	int lostmsgs;
+	int rcvdmsgs;
+	uintptr lostavg;
+	int unreachable;
 
-	uint16_t	seq;
-	Req	*first;
-	Req	*last;
-	Req	*rcvd;
+	uint16_t seq;
+	Req *first;
+	Req *last;
+	Req *rcvd;
 
-	char	buf[1024];
-	char	*bufp;
-	char	*ebufp;
+	char buf[1024];
+	char *bufp;
+	char *ebufp;
 };
 
-enum
-{
-	Ncolor		= 6,
-	Ysqueeze	= 2,	/* vertical squeezing of label text */
-	Labspace	= 2,	/* room around label */
-	Dot		= 2,	/* height of dot */
-	Opwid		= 5,	/* strlen("add  ") or strlen("drop ") */
-	NPROC		= 128,
-	NMACH		= 32,
+enum {
+	Ncolor = 6,
+	Ysqueeze = 2, /* vertical squeezing of label text */
+	Labspace = 2, /* room around label */
+	Dot = 2,      /* height of dot */
+	Opwid = 5,    /* strlen("add  ") or strlen("drop ") */
+	NPROC = 128,
+	NMACH = 32,
 };
 
-enum Menu2
-{
+enum Menu2 {
 	Mrtt,
 	Mlost,
 	Nmenu2,
 };
 
-char	*menu2str[Nmenu2+1] = {
-	"add  sec rtt",
-	"add  % lost ",
-	nil,
+char *menu2str[Nmenu2 + 1] = {
+    "add  sec rtt",
+    "add  % lost ",
+    nil,
 };
 
+void rttval(Machine *, int32_t *, int32_t *, int32_t *);
+void lostval(Machine *, int32_t *, int32_t *, int32_t *);
 
-void	rttval(Machine*, int32_t*, int32_t*, int32_t*);
-void	lostval(Machine*, int32_t*, int32_t*, int32_t*);
-
-Menu	menu2 = {menu2str, nil};
-int		present[Nmenu2];
-void		(*newvaluefn[Nmenu2])(Machine*, int32_t*, int32_t*,
-					  int32_t*) = {
-	rttval,
-	lostval,
+Menu menu2 = {menu2str, nil};
+int present[Nmenu2];
+void (*newvaluefn[Nmenu2])(Machine *, int32_t *, int32_t *,
+			   int32_t *) = {
+    rttval,
+    lostval,
 };
 
-Image		*cols[Ncolor][3];
-Graph		*graph;
-Machine		mach[NMACH];
-Font		*mediumfont;
-int		pids[NPROC];
-int		npid;
-int 		parity;	/* toggled to avoid patterns in textured background */
-int		nmach;
-int		ngraph;	/* totaly number is ngraph*nmach */
-int32_t		starttime;
-int		pinginterval;
+Image *cols[Ncolor][3];
+Graph *graph;
+Machine mach[NMACH];
+Font *mediumfont;
+int pids[NPROC];
+int npid;
+int parity; /* toggled to avoid patterns in textured background */
+int nmach;
+int ngraph; /* totaly number is ngraph*nmach */
+int32_t starttime;
+int pinginterval;
 
-void	dropgraph(int);
-void	addgraph(int);
-void	startproc(void (*)(void*), void*);
-void	resize(void);
-int32_t	rttscale(int32_t);
-int	which2index(int);
-int	index2which(int);
+void dropgraph(int);
+void addgraph(int);
+void startproc(void (*)(void *), void *);
+void resize(void);
+int32_t rttscale(int32_t);
+int which2index(int);
+int index2which(int);
 
 void
 killall(char *s)
@@ -149,13 +142,13 @@ killall(char *s)
 	int i, pid;
 
 	pid = getpid();
-	for(i=0; i<NPROC; i++)
-		if(pids[i] && pids[i]!=pid)
+	for(i = 0; i < NPROC; i++)
+		if(pids[i] && pids[i] != pid)
 			postnote(PNPROC, pids[i], "kill");
 	exits(s);
 }
 
-void*
+void *
 emalloc(uint32_t sz)
 {
 	void *v;
@@ -168,7 +161,7 @@ emalloc(uint32_t sz)
 	return v;
 }
 
-void*
+void *
 erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
@@ -179,7 +172,7 @@ erealloc(void *v, uint32_t sz)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
@@ -194,8 +187,8 @@ void
 mkcol(int i, int c0, int c1, int c2)
 {
 	cols[i][0] = allocimagemix(display, c0, DWhite);
-	cols[i][1] = allocimage(display, Rect(0,0,1,1), CMAP8, 1, c1);
-	cols[i][2] = allocimage(display, Rect(0,0,1,1), CMAP8, 1, c2);
+	cols[i][1] = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, c1);
+	cols[i][2] = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, c2);
 }
 
 void
@@ -216,9 +209,9 @@ colinit(void)
 	/* Blue */
 	mkcol(4, 0x00AAFFFF, 0x00AAFFFF, 0x0088CCFF);
 	/* Grey */
-	cols[5][0] = allocimage(display, Rect(0,0,1,1), CMAP8, 1, 0xEEEEEEFF);
-	cols[5][1] = allocimage(display, Rect(0,0,1,1), CMAP8, 1, 0xCCCCCCFF);
-	cols[5][2] = allocimage(display, Rect(0,0,1,1), CMAP8, 1, 0x888888FF);
+	cols[5][0] = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0xEEEEEEFF);
+	cols[5][1] = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0xCCCCCCFF);
+	cols[5][2] = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x888888FF);
 }
 
 int
@@ -226,18 +219,17 @@ loadbuf(Machine *m, int *fd)
 {
 	int n;
 
-
 	if(*fd < 0)
 		return 0;
 	seek(*fd, 0, 0);
 	n = read(*fd, m->buf, sizeof m->buf);
-	if(n <= 0){
+	if(n <= 0) {
 		close(*fd);
 		*fd = -1;
 		return 0;
 	}
 	m->bufp = m->buf;
-	m->ebufp = m->buf+n;
+	m->ebufp = m->buf + n;
 	return 1;
 }
 
@@ -249,11 +241,11 @@ label(Point p, int dy, char *text)
 	int w, maxw, maxy;
 
 	p.x += Labspace;
-	maxy = p.y+dy;
+	maxy = p.y + dy;
 	maxw = 0;
 	r[1] = '\0';
-	for(s=text; *s; ){
-		if(p.y+mediumfont->height-Ysqueeze > maxy)
+	for(s = text; *s;) {
+		if(p.y + mediumfont->height - Ysqueeze > maxy)
 			break;
 		w = chartorune(r, s);
 		s += w;
@@ -261,7 +253,7 @@ label(Point p, int dy, char *text)
 		if(w > maxw)
 			maxw = w;
 		runestring(screen, p, display->black, ZP, mediumfont, r);
-		p.y += mediumfont->height-Ysqueeze;
+		p.y += mediumfont->height - Ysqueeze;
 	}
 }
 
@@ -272,17 +264,17 @@ hashmark(Point p, int dy, int32_t v, int32_t vmax, char *label)
 	int x;
 
 	x = p.x + Labspace;
-	y = p.y + (dy*(vmax-v))/vmax;
-	draw(screen, Rect(p.x, y-1, p.x+Labspace, y+1), display->black, nil, ZP);
-	if(dy > 5*mediumfont->height)
-		string(screen, Pt(x, y-mediumfont->height/2),
-			display->black, ZP, mediumfont, label);
+	y = p.y + (dy * (vmax - v)) / vmax;
+	draw(screen, Rect(p.x, y - 1, p.x + Labspace, y + 1), display->black, nil, ZP);
+	if(dy > 5 * mediumfont->height)
+		string(screen, Pt(x, y - mediumfont->height / 2),
+		       display->black, ZP, mediumfont, label);
 }
 
 void
 hashmarks(Point p, int dy, int which)
 {
-	switch(index2which(which)){
+	switch(index2which(which)) {
 	case Mrtt:
 		hashmark(p, dy, rttscale(1000000), Rttmax, "1.");
 		hashmark(p, dy, rttscale(100000), Rttmax, "0.1");
@@ -300,7 +292,7 @@ hashmarks(Point p, int dy, int which)
 Point
 paritypt(int x)
 {
-	return Pt(x+parity, 0);
+	return Pt(x + parity, 0);
 }
 
 Point
@@ -309,11 +301,11 @@ datapoint(Graph *g, int x, int32_t v, int32_t vmax)
 	Point p;
 
 	p.x = x;
-	p.y = g->r.max.y - Dy(g->r)*v/vmax - Dot;
+	p.y = g->r.max.y - Dy(g->r) * v / vmax - Dot;
 	if(p.y < g->r.min.y)
 		p.y = g->r.min.y;
-	if(p.y > g->r.max.y-Dot)
-		p.y = g->r.max.y-Dot;
+	if(p.y > g->r.max.y - Dot)
+		p.y = g->r.max.y - Dot;
 	return p;
 }
 
@@ -326,14 +318,14 @@ drawdatum(Graph *g, int x, int32_t prev, int32_t v, int32_t vmax)
 	c = g->colindex;
 	p = datapoint(g, x, v, vmax);
 	q = datapoint(g, x, prev, vmax);
-	if(p.y < q.y){
-		draw(screen, Rect(p.x, g->r.min.y, p.x+1, p.y), cols[c][0], nil, paritypt(p.x));
-		draw(screen, Rect(p.x, p.y, p.x+1, q.y+Dot), cols[c][2], nil, ZP);
-		draw(screen, Rect(p.x, q.y+Dot, p.x+1, g->r.max.y), cols[c][1], nil, ZP);
-	}else{
-		draw(screen, Rect(p.x, g->r.min.y, p.x+1, q.y), cols[c][0], nil, paritypt(p.x));
-		draw(screen, Rect(p.x, q.y, p.x+1, p.y+Dot), cols[c][2], nil, ZP);
-		draw(screen, Rect(p.x, p.y+Dot, p.x+1, g->r.max.y), cols[c][1], nil, ZP);
+	if(p.y < q.y) {
+		draw(screen, Rect(p.x, g->r.min.y, p.x + 1, p.y), cols[c][0], nil, paritypt(p.x));
+		draw(screen, Rect(p.x, p.y, p.x + 1, q.y + Dot), cols[c][2], nil, ZP);
+		draw(screen, Rect(p.x, q.y + Dot, p.x + 1, g->r.max.y), cols[c][1], nil, ZP);
+	} else {
+		draw(screen, Rect(p.x, g->r.min.y, p.x + 1, q.y), cols[c][0], nil, paritypt(p.x));
+		draw(screen, Rect(p.x, q.y, p.x + 1, p.y + Dot), cols[c][2], nil, ZP);
+		draw(screen, Rect(p.x, p.y + Dot, p.x + 1, g->r.max.y), cols[c][1], nil, ZP);
 	}
 	g->vmax = vmax;
 }
@@ -343,8 +335,8 @@ drawmark(Graph *g, int x)
 {
 	int c;
 
-	c = (g->colindex+1)&Ncolor;
-	draw(screen, Rect(x, g->r.min.y, x+1, g->r.max.y), cols[c][2], nil, ZP);
+	c = (g->colindex + 1) & Ncolor;
+	draw(screen, Rect(x, g->r.min.y, x + 1, g->r.max.y), cols[c][2], nil, ZP);
 }
 
 void
@@ -354,8 +346,8 @@ redraw(Graph *g, int vmax)
 
 	c = g->colindex;
 	draw(screen, g->r, cols[c][0], nil, paritypt(g->r.min.x));
-	for(i=1; i<Dx(g->r); i++)
-		drawdatum(g, g->r.max.x-i, g->data[i-1], g->data[i], vmax);
+	for(i = 1; i < Dx(g->r); i++)
+		drawdatum(g, g->r.max.x - i, g->data[i - 1], g->data[i], vmax);
 	drawdatum(g, g->r.min.x, g->data[i], g->data[i], vmax);
 }
 
@@ -391,11 +383,11 @@ clearcursor(Graph *g)
 	if(g->overtmp == nil)
 		return;
 
-	if(g->cursor > 0 && g->cursor < g->ndata){
+	if(g->cursor > 0 && g->cursor < g->ndata) {
 		x = g->r.max.x - g->cursor;
 		prev = 0;
 		if(g->cursor > 0)
-			prev = g->data[g->cursor-1];
+			prev = g->data[g->cursor - 1];
 		drawdatum(g, x, prev, g->data[g->cursor], g->vmax);
 		g->cursor = -1;
 	}
@@ -407,7 +399,7 @@ drawcursor(Graph *g, int x)
 	if(g->overtmp == nil)
 		return;
 
-	draw(screen, Rect(x, g->r.min.y, x+1, g->r.max.y), cols[g->colindex][2], nil, ZP);
+	draw(screen, Rect(x, g->r.min.y, x + 1, g->r.max.y), cols[g->colindex][2], nil, ZP);
 }
 
 void
@@ -416,35 +408,34 @@ update1(Graph *g, int32_t v, int32_t vmax, int32_t mark)
 	char buf[Gmsglen];
 
 	/* put back screen value sans message */
-	if(g->overflow || *g->msg){
+	if(g->overflow || *g->msg) {
 		clearmsg(g);
 		g->overflow = 0;
 	}
 
-	draw(screen, g->r, screen, nil, Pt(g->r.min.x+1, g->r.min.y));
-	drawdatum(g, g->r.max.x-1, g->data[0], v, vmax);
+	draw(screen, g->r, screen, nil, Pt(g->r.min.x + 1, g->r.min.y));
+	drawdatum(g, g->r.max.x - 1, g->data[0], v, vmax);
 	if(mark)
-		drawmark(g, g->r.max.x-1);
-	memmove(g->data+1, g->data, (g->ndata-1)*sizeof(g->data[0]));
+		drawmark(g, g->r.max.x - 1);
+	memmove(g->data + 1, g->data, (g->ndata - 1) * sizeof(g->data[0]));
 	g->data[0] = v;
-	if(v>vmax){
+	if(v > vmax) {
 		g->overflow = 1;
 		sprint(buf, "%ld", v);
 		drawmsg(g, buf);
 	} else if(*g->msg)
 		drawmsg(g, g->msg);
 
-	if(g->cursor >= 0){
+	if(g->cursor >= 0) {
 		g->cursor++;
-		if(g->cursor >= g->ndata){
+		if(g->cursor >= g->ndata) {
 			g->cursor = -1;
-			if(*g->msg){
+			if(*g->msg) {
 				clearmsg(g);
 				*g->msg = 0;
 			}
 		}
 	}
-
 }
 
 void
@@ -458,12 +449,11 @@ pingreply(Machine *m, Req *r)
 {
 	uint32_t x;
 
-	x = r->time/1000LL;
+	x = r->time / 1000LL;
 	m->rttsum += x;
 	m->rcvdmsgs++;
 	m->rttmsgs++;
 }
-
 
 void
 pingclean(Machine *m, uint16_t seq, int64_t now, int i)
@@ -471,11 +461,11 @@ pingclean(Machine *m, uint16_t seq, int64_t now, int i)
 	Req **l, *r;
 	int64_t x, y;
 
-	y = 10LL*1000000000LL;
-	for(l = &m->first; *l; ){
+	y = 10LL * 1000000000LL;
+	for(l = &m->first; *l;) {
 		r = *l;
 		x = now - r->time;
-		if(x > y || r->seq == seq){
+		if(x > y || r->seq == seq) {
 			*l = r->next;
 			r->time = x;
 			if(r->seq != seq)
@@ -508,7 +498,7 @@ pingsend(Machine *m)
 	ip->type = EchoRequest;
 	ip->code = 0;
 	ip->seq[0] = m->seq;
-	ip->seq[1] = m->seq>>8;
+	ip->seq[1] = m->seq >> 8;
 	r->seq = m->seq;
 	r->next = nil;
 	lock(m);
@@ -520,9 +510,9 @@ pingsend(Machine *m)
 	m->last = r;
 	r->time = nsec();
 	unlock(m);
-	if(write(m->pingfd, buf, MSGLEN) < MSGLEN){
+	if(write(m->pingfd, buf, MSGLEN) < MSGLEN) {
 		errstr(err, sizeof err);
-		if(strstr(err, "unreach")||strstr(err, "exceed"))
+		if(strstr(err, "unreach") || strstr(err, "exceed"))
 			m->unreachable++;
 	}
 	m->seq++;
@@ -543,19 +533,19 @@ pingrcv(void *arg)
 	ip4 = (Ip4hdr *)buf;
 	ip = (Icmphdr *)(buf + IPV4HDR_LEN);
 	fd = dup(m->pingfd, -1);
-	for(;;){
+	for(;;) {
 		n = read(fd, buf, sizeof(buf));
 		now = nsec();
 		if(n <= 0)
 			continue;
-		if(n < MSGLEN){
+		if(n < MSGLEN) {
 			print("bad len %d/%d\n", n, MSGLEN);
 			continue;
 		}
 		for(i = 32; i < MSGLEN; i++)
-			if(buf[i] != (i&0xff))
+			if(buf[i] != (i & 0xff))
 				continue;
-		x = (ip->seq[1]<<8) | ip->seq[0];
+		x = (ip->seq[1] << 8) | ip->seq[0];
 		if(ip->type != EchoReply || ip->code != 0)
 			continue;
 		lock(m);
@@ -571,10 +561,10 @@ initmach(Machine *m, char *name)
 
 	srand(time(0));
 	p = strchr(name, '!');
-	if(p){
+	if(p) {
 		p++;
-		m->name = estrdup(p+1);
-	}else
+		m->name = estrdup(p + 1);
+	} else
 		p = name;
 
 	m->name = estrdup(p);
@@ -590,7 +580,7 @@ rttscale(int32_t x)
 {
 	if(x == 0)
 		return 0;
-	x = 10.0*log10(x) - 20.0;
+	x = 10.0 * log10(x) - 20.0;
 	if(x < 0)
 		x = 0;
 	return x;
@@ -603,7 +593,7 @@ rttunscale(int32_t x)
 
 	x += 20;
 	dx = x;
-	return pow(10.0, dx/10.0);
+	return pow(10.0, dx / 10.0);
 }
 
 void
@@ -611,10 +601,10 @@ rttval(Machine *m, int32_t *v, int32_t *vmax, int32_t *mark)
 {
 	uint32_t x;
 
-	if(m->rttmsgs == 0){
+	if(m->rttmsgs == 0) {
 		x = m->lastrtt;
 	} else {
-		x = m->rttsum/m->rttmsgs;
+		x = m->rttsum / m->rttmsgs;
 		m->rttsum = m->rttmsgs = 0;
 		m->lastrtt = x;
 	}
@@ -629,14 +619,14 @@ lostval(Machine *m, int32_t *v, int32_t *vmax, int32_t *mark)
 {
 	uint32_t x;
 
-	if(m->rcvdmsgs+m->lostmsgs > 0)
-		x = (m->lostavg>>1) + (((m->lostmsgs*100)/(m->lostmsgs + m->rcvdmsgs))>>1);
+	if(m->rcvdmsgs + m->lostmsgs > 0)
+		x = (m->lostavg >> 1) + (((m->lostmsgs * 100) / (m->lostmsgs + m->rcvdmsgs)) >> 1);
 	else
 		x = m->lostavg;
 	m->lostavg = x;
 	m->lostmsgs = m->rcvdmsgs = 0;
 
-	if(m->unreachable){
+	if(m->unreachable) {
 		m->unreachable = 0;
 		*mark = 100;
 	} else
@@ -673,23 +663,23 @@ addgraph(int n)
 	if(n > nelem(menu2str))
 		abort();
 	/* avoid two adjacent graphs of same color */
-	if(ngraph>0 && graph[ngraph-1].colindex==nadd%Ncolor)
+	if(ngraph > 0 && graph[ngraph - 1].colindex == nadd % Ncolor)
 		nadd++;
 	ograph = graph;
-	graph = emalloc(nmach*(ngraph+1)*sizeof(Graph));
-	for(i=0; i<nmach; i++)
-		for(j=0; j<ngraph; j++)
-			graph[i*(ngraph+1)+j] = ograph[i*ngraph+j];
+	graph = emalloc(nmach * (ngraph + 1) * sizeof(Graph));
+	for(i = 0; i < nmach; i++)
+		for(j = 0; j < ngraph; j++)
+			graph[i * (ngraph + 1) + j] = ograph[i * ngraph + j];
 	free(ograph);
 	ngraph++;
-	for(i=0; i<nmach; i++){
-		g = &graph[i*ngraph+(ngraph-1)];
+	for(i = 0; i < nmach; i++) {
+		g = &graph[i * ngraph + (ngraph - 1)];
 		memset(g, 0, sizeof(Graph));
-		g->label = menu2str[n]+Opwid;
+		g->label = menu2str[n] + Opwid;
 		g->newvalue = newvaluefn[n];
-		g->update = update1;	/* no other update functions yet */
+		g->update = update1; /* no other update functions yet */
 		g->mach = &mach[i];
-		g->colindex = nadd%Ncolor;
+		g->colindex = nadd % Ncolor;
 	}
 	present[n] = 1;
 	nadd++;
@@ -701,13 +691,13 @@ which2index(int which)
 	int i, n;
 
 	n = -1;
-	for(i=0; i<ngraph; i++){
-		if(strcmp(menu2str[which]+Opwid, graph[i].label) == 0){
+	for(i = 0; i < ngraph; i++) {
+		if(strcmp(menu2str[which] + Opwid, graph[i].label) == 0) {
 			n = i;
 			break;
 		}
 	}
-	if(n < 0){
+	if(n < 0) {
 		fprint(2, "%s: internal error can't drop graph\n", argv0);
 		killall("error");
 	}
@@ -720,13 +710,13 @@ index2which(int index)
 	int i, n;
 
 	n = -1;
-	for(i=0; i<Nmenu2; i++){
-		if(strcmp(menu2str[i]+Opwid, graph[index].label) == 0){
+	for(i = 0; i < Nmenu2; i++) {
+		if(strcmp(menu2str[i] + Opwid, graph[index].label) == 0) {
 			n = i;
 			break;
 		}
 	}
-	if(n < 0){
+	if(n < 0) {
 		fprint(2, "%s: internal error can't identify graph\n", argv0);
 		killall("error");
 	}
@@ -744,14 +734,14 @@ dropgraph(int which)
 	/* convert n to index in graph table */
 	n = which2index(which);
 	ograph = graph;
-	graph = emalloc(nmach*(ngraph-1)*sizeof(Graph));
-	for(i=0; i<nmach; i++){
-		for(j=0; j<n; j++)
-			graph[i*(ngraph-1)+j] = ograph[i*ngraph+j];
-		free(ograph[i*ngraph+j].data);
-		freeimage(ograph[i*ngraph+j].overtmp);
-		for(j++; j<ngraph; j++)
-			graph[i*(ngraph-1)+j-1] = ograph[i*ngraph+j];
+	graph = emalloc(nmach * (ngraph - 1) * sizeof(Graph));
+	for(i = 0; i < nmach; i++) {
+		for(j = 0; j < n; j++)
+			graph[i * (ngraph - 1) + j] = ograph[i * ngraph + j];
+		free(ograph[i * ngraph + j].data);
+		freeimage(ograph[i * ngraph + j].overtmp);
+		for(j++; j < ngraph; j++)
+			graph[i * (ngraph - 1) + j - 1] = ograph[i * ngraph + j];
 	}
 	free(ograph);
 	ngraph--;
@@ -761,7 +751,7 @@ dropgraph(int which)
 void
 addmachine(char *name)
 {
-	if(ngraph > 0){
+	if(ngraph > 0) {
 		fprint(2, "%s: internal error: ngraph>0 in addmachine()\n", argv0);
 		usage();
 	}
@@ -769,7 +759,6 @@ addmachine(char *name)
 		sysfatal("too many machines");
 	initmach(&mach[nmach++], name);
 }
-
 
 void
 resize(void)
@@ -784,73 +773,73 @@ resize(void)
 
 	/* label left edge */
 	x = screen->r.min.x;
-	y = screen->r.min.y + Labspace+mediumfont->height+Labspace;
-	dy = (screen->r.max.y - y)/ngraph;
-	dx = Labspace+stringwidth(mediumfont, "0")+Labspace;
-	startx = x+dx+1;
+	y = screen->r.min.y + Labspace + mediumfont->height + Labspace;
+	dy = (screen->r.max.y - y) / ngraph;
+	dx = Labspace + stringwidth(mediumfont, "0") + Labspace;
+	startx = x + dx + 1;
 	starty = y;
-	for(i=0; i<ngraph; i++,y+=dy){
-		draw(screen, Rect(x, y-1, screen->r.max.x, y), display->black, nil, ZP);
-		draw(screen, Rect(x, y, x+dx, screen->r.max.y), cols[graph[i].colindex][0], nil, paritypt(x));
+	for(i = 0; i < ngraph; i++, y += dy) {
+		draw(screen, Rect(x, y - 1, screen->r.max.x, y), display->black, nil, ZP);
+		draw(screen, Rect(x, y, x + dx, screen->r.max.y), cols[graph[i].colindex][0], nil, paritypt(x));
 		label(Pt(x, y), dy, graph[i].label);
-		draw(screen, Rect(x+dx, y, x+dx+1, screen->r.max.y), cols[graph[i].colindex][2], nil, ZP);
+		draw(screen, Rect(x + dx, y, x + dx + 1, screen->r.max.y), cols[graph[i].colindex][2], nil, ZP);
 	}
 
 	/* label right edge */
-	dx = Labspace+stringwidth(mediumfont, "0.001")+Labspace;
+	dx = Labspace + stringwidth(mediumfont, "0.001") + Labspace;
 	hashdx = dx;
 	x = screen->r.max.x - dx;
-	y = screen->r.min.y + Labspace+mediumfont->height+Labspace;
-	for(i=0; i<ngraph; i++,y+=dy){
-		draw(screen, Rect(x, y-1, screen->r.max.x, y), display->black, nil, ZP);
-		draw(screen, Rect(x, y, x+dx, screen->r.max.y), cols[graph[i].colindex][0], nil, paritypt(x));
+	y = screen->r.min.y + Labspace + mediumfont->height + Labspace;
+	for(i = 0; i < ngraph; i++, y += dy) {
+		draw(screen, Rect(x, y - 1, screen->r.max.x, y), display->black, nil, ZP);
+		draw(screen, Rect(x, y, x + dx, screen->r.max.y), cols[graph[i].colindex][0], nil, paritypt(x));
 		hashmarks(Pt(x, y), dy, i);
-		draw(screen, Rect(x+dx, y, x+dx+1, screen->r.max.y), cols[graph[i].colindex][2], nil, ZP);
+		draw(screen, Rect(x + dx, y, x + dx + 1, screen->r.max.y), cols[graph[i].colindex][2], nil, ZP);
 	}
 
 	/* label top edge */
-	dx = (screen->r.max.x - dx - startx)/nmach;
-	for(x=startx, i=0; i<nmach; i++,x+=dx){
-		draw(screen, Rect(x-1, starty-1, x, screen->r.max.y), display->black, nil, ZP);
-		j = dx/stringwidth(mediumfont, "0");
+	dx = (screen->r.max.x - dx - startx) / nmach;
+	for(x = startx, i = 0; i < nmach; i++, x += dx) {
+		draw(screen, Rect(x - 1, starty - 1, x, screen->r.max.y), display->black, nil, ZP);
+		j = dx / stringwidth(mediumfont, "0");
 		n = mach[i].nproc;
-		if(n>1 && j>=1+3+(n>10)+(n>100)){	/* first char of name + (n) */
-			j -= 3+(n>10)+(n>100);
+		if(n > 1 && j >= 1 + 3 + (n > 10) + (n > 100)) { /* first char of name + (n) */
+			j -= 3 + (n > 10) + (n > 100);
 			if(j <= 0)
 				j = 1;
 			snprint(buf, sizeof buf, "%.*s(%d)", j, mach[i].name, n);
-		}else
+		} else
 			snprint(buf, sizeof buf, "%.*s", j, mach[i].name);
-		string(screen, Pt(x+Labspace, screen->r.min.y + Labspace), display->black, ZP,
-			mediumfont, buf);
+		string(screen, Pt(x + Labspace, screen->r.min.y + Labspace), display->black, ZP,
+		       mediumfont, buf);
 	}
 	/* draw last vertical line */
 	draw(screen,
-		Rect(screen->r.max.x-hashdx-1, starty-1, screen->r.max.x-hashdx, screen->r.max.y),
-		display->black, nil, ZP);
+	     Rect(screen->r.max.x - hashdx - 1, starty - 1, screen->r.max.x - hashdx, screen->r.max.y),
+	     display->black, nil, ZP);
 
 	/* create graphs */
-	for(i=0; i<nmach; i++){
-		machr = Rect(startx+i*dx, starty, screen->r.max.x, screen->r.max.y);
-		if(i < nmach-1)
-			machr.max.x = startx+(i+1)*dx - 1;
+	for(i = 0; i < nmach; i++) {
+		machr = Rect(startx + i * dx, starty, screen->r.max.x, screen->r.max.y);
+		if(i < nmach - 1)
+			machr.max.x = startx + (i + 1) * dx - 1;
 		else
 			machr.max.x = screen->r.max.x - hashdx - 1;
 		y = starty;
-		for(j=0; j<ngraph; j++, y+=dy){
-			g = &graph[i*ngraph+j];
+		for(j = 0; j < ngraph; j++, y += dy) {
+			g = &graph[i * ngraph + j];
 			/* allocate data */
 			ondata = g->ndata;
-			g->ndata = Dx(machr)+1;	/* may be too many if label will be drawn here; so what? */
-			g->data = erealloc(g->data, g->ndata*sizeof(int32_t));
+			g->ndata = Dx(machr) + 1; /* may be too many if label will be drawn here; so what? */
+			g->data = erealloc(g->data, g->ndata * sizeof(int32_t));
 			if(g->ndata > ondata)
-				memset(g->data+ondata, 0,
-				       (g->ndata-ondata)*sizeof(int32_t));
+				memset(g->data + ondata, 0,
+				       (g->ndata - ondata) * sizeof(int32_t));
 			/* set geometry */
 			g->r = machr;
 			g->r.min.y = y;
-			g->r.max.y = y+dy - 1;
-			if(j == ngraph-1)
+			g->r.max.y = y + dy - 1;
+			if(j == ngraph - 1)
 				g->r.max.y = screen->r.max.y;
 			draw(screen, g->r, cols[g->colindex][0], nil, paritypt(g->r.min.x));
 			g->overflow = 0;
@@ -859,12 +848,12 @@ resize(void)
 			g->overtmp = nil;
 			g->overtmplen = 0;
 			r = g->r;
-			r.max.y = r.min.y+mediumfont->height;
-			n = (g->r.max.x - r.min.x)/stringwidth(mediumfont, "9");
-			if(n > 4){
+			r.max.y = r.min.y + mediumfont->height;
+			n = (g->r.max.x - r.min.x) / stringwidth(mediumfont, "9");
+			if(n > 4) {
 				if(n > Gmsglen)
 					n = Gmsglen;
-				r.max.x = r.min.x+stringwidth(mediumfont, "9")*n;
+				r.max.x = r.min.x + stringwidth(mediumfont, "9") * n;
 				g->overtmplen = n;
 				g->overtmp = allocimage(display, r, screen->chan, 0, -1);
 			}
@@ -880,7 +869,7 @@ void
 eresized(int new)
 {
 	lockdisplay(display);
-	if(new && getwindow(display, Refnone) < 0) {
+	if(new &&getwindow(display, Refnone) < 0) {
 		fprint(2, "%s: can't reattach to window\n", argv0);
 		killall("reattach");
 	}
@@ -893,13 +882,13 @@ dobutton2(Mouse *m)
 {
 	int i;
 
-	for(i=0; i<Nmenu2; i++)
+	for(i = 0; i < Nmenu2; i++)
 		if(present[i])
 			memmove(menu2str[i], "drop ", Opwid);
 		else
 			memmove(menu2str[i], "add  ", Opwid);
 	i = emenuhit(3, m, &menu2);
-	if(i >= 0){
+	if(i >= 0) {
 		if(!present[i])
 			addgraph(i);
 		else if(ngraph > 1)
@@ -916,11 +905,11 @@ dobutton1(Mouse *m)
 	char *e;
 	double f;
 
-	for(i = 0; i < ngraph*nmach; i++){
+	for(i = 0; i < ngraph * nmach; i++) {
 		if(ptinrect(m->xy, graph[i].r))
 			break;
 	}
-	if(i == ngraph*nmach)
+	if(i == ngraph * nmach)
 		return;
 
 	g = &graph[i];
@@ -928,7 +917,7 @@ dobutton1(Mouse *m)
 		return;
 
 	/* clear any previous message and cursor */
-	if(g->overflow || *g->msg){
+	if(g->overflow || *g->msg) {
 		clearmsg(g);
 		*g->msg = 0;
 		clearcursor(g);
@@ -936,19 +925,19 @@ dobutton1(Mouse *m)
 
 	dx = g->r.max.x - m->xy.x;
 	g->cursor = dx;
-	dt = dx*pinginterval;
+	dt = dx * pinginterval;
 	e = &g->msg[sizeof(g->msg)];
-	seprint(g->msg, e, "%s", ctime(starttime-dt/1000)+11);
+	seprint(g->msg, e, "%s", ctime(starttime - dt / 1000) + 11);
 	g->msg[8] = 0;
 	n = 8;
 
-	switch(index2which(i)){
+	switch(index2which(i)) {
 	case Mrtt:
 		f = rttunscale(g->data[dx]);
-		seprint(g->msg+n, e, " %3.3g", f/1000000);
+		seprint(g->msg + n, e, " %3.3g", f / 1000000);
 		break;
 	case Mlost:
-		seprint(g->msg+n, e, " %ld%%", g->data[dx]);
+		seprint(g->msg + n, e, " %ld%%", g->data[dx]);
 		break;
 	}
 
@@ -961,13 +950,13 @@ mouseproc(void *v)
 {
 	Mouse mouse;
 
-	for(;;){
+	for(;;) {
 		mouse = emouse();
-		if(mouse.buttons == 4){
+		if(mouse.buttons == 4) {
 			lockdisplay(display);
 			dobutton2(&mouse);
 			unlockdisplay(display);
-		} else if(mouse.buttons == 1){
+		} else if(mouse.buttons == 1) {
 			lockdisplay(display);
 			dobutton1(&mouse);
 			unlockdisplay(display);
@@ -976,11 +965,11 @@ mouseproc(void *v)
 }
 
 void
-startproc(void (*f)(void*), void *arg)
+startproc(void (*f)(void *), void *arg)
 {
 	int pid;
 
-	switch(pid = rfork(RFPROC|RFMEM|RFNOWAIT)){
+	switch(pid = rfork(RFPROC | RFMEM | RFNOWAIT)) {
 	case -1:
 		fprint(2, "%s: fork failed: %r\n", argv0);
 		killall("fork failed");
@@ -1002,8 +991,9 @@ main(int argc, char *argv[])
 	fmtinstall('V', eipfmt);
 
 	f = flags;
-	pinginterval = 5000;		/* 5 seconds */
-	ARGBEGIN{
+	pinginterval = 5000; /* 5 seconds */
+	ARGBEGIN
+	{
 	case 'i':
 		p = ARGF();
 		if(p == nil)
@@ -1011,18 +1001,19 @@ main(int argc, char *argv[])
 		pinginterval = atoi(p);
 		break;
 	default:
-		if(f - flags >= sizeof(flags)-1)
+		if(f - flags >= sizeof(flags) - 1)
 			usage();
 		*f++ = ARGC();
 		break;
-	}ARGEND
+	}
+	ARGEND
 	*f = 0;
 
-	for(i=0; i<argc; i++)
+	for(i = 0; i < argc; i++)
 		addmachine(argv[i]);
 
 	for(f = flags; *f; f++)
-		switch(*f){
+		switch(*f) {
 		case 'l':
 			addgraph(Mlost);
 			break;
@@ -1037,11 +1028,11 @@ main(int argc, char *argv[])
 	if(ngraph == 0)
 		addgraph(Mrtt);
 
-	for(i=0; i<nmach; i++)
-		for(j=0; j<ngraph; j++)
-			graph[i*ngraph+j].mach = &mach[i];
+	for(i = 0; i < nmach; i++)
+		for(j = 0; j < ngraph; j++)
+			graph[i * ngraph + j].mach = &mach[i];
 
-	if(initdraw(nil, nil, argv0) < 0){
+	if(initdraw(nil, nil, argv0) < 0) {
 		fprint(2, "%s: initdraw failed: %r\n", argv0);
 		exits("initdraw");
 	}
@@ -1049,19 +1040,19 @@ main(int argc, char *argv[])
 	einit(Emouse);
 	notify(nil);
 	startproc(mouseproc, 0);
-	display->locking = 1;	/* tell library we're using the display lock */
+	display->locking = 1; /* tell library we're using the display lock */
 
 	resize();
 
 	starttime = time(0);
 
 	unlockdisplay(display); /* display is still locked from initdraw() */
-	for(j = 0; ; j++){
+	for(j = 0;; j++) {
 		lockdisplay(display);
-		if(j == nmach){
-			parity = 1-parity;
+		if(j == nmach) {
+			parity = 1 - parity;
 			j = 0;
-			for(i=0; i<nmach*ngraph; i++){
+			for(i = 0; i < nmach * ngraph; i++) {
 				graph[i].newvalue(graph[i].mach, &v, &vmax, &mark);
 				graph[i].update(&graph[i], v, vmax, mark);
 			}
@@ -1069,7 +1060,7 @@ main(int argc, char *argv[])
 		}
 		flushimage(display, 1);
 		unlockdisplay(display);
-		pingsend(&mach[j%nmach]);
-		sleep(pinginterval/nmach);
+		pingsend(&mach[j % nmach]);
+		sleep(pinginterval / nmach);
 	}
 }

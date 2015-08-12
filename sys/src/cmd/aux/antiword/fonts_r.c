@@ -21,7 +21,7 @@
 #include "drawfile.h"
 #include "antiword.h"
 
-static font_handle	tFontCurr = (font_handle)-1;
+static font_handle tFontCurr = (font_handle)-1;
 
 /*
  * pOpenFontTableFile - open the Font translation file
@@ -32,41 +32,41 @@ static font_handle	tFontCurr = (font_handle)-1;
 FILE *
 pOpenFontTableFile(void)
 {
-	FILE	*pFileR, *pFileW;
-	char	*szFontNamesFile;
-	size_t	tSize;
-	BOOL	bFailed;
-	char	acBuffer[256];
+	FILE *pFileR, *pFileW;
+	char *szFontNamesFile;
+	size_t tSize;
+	BOOL bFailed;
+	char acBuffer[256];
 
 	pFileR = fopen("<AntiWord$FontNamesFile>", "r");
-	if (pFileR != NULL) {
+	if(pFileR != NULL) {
 		/* The font table is already in the right directory */
 		return pFileR;
 	}
 
 	szFontNamesFile = getenv("AntiWord$FontNamesSave");
-	if (szFontNamesFile == NULL) {
+	if(szFontNamesFile == NULL) {
 		werr(0, "Warning: Name of the FontNames file not found");
 		return NULL;
 	}
 	DBG_MSG(szFontNamesFile);
 
 	pFileR = fopen("<AntiWord$Dir>.Resources.Default", "r");
-	if (pFileR == NULL) {
+	if(pFileR == NULL) {
 		werr(0, "I can't find 'Resources.Default'");
 		return NULL;
 	}
 	/* Here the default font translation table is known to exist */
 
-	if (!bMakeDirectory(szFontNamesFile)) {
+	if(!bMakeDirectory(szFontNamesFile)) {
 		werr(0,
-		"I can't make a directory for the FontNames file");
+		     "I can't make a directory for the FontNames file");
 		return NULL;
 	}
 	/* Here the proper directory is known to exist */
 
 	pFileW = fopen(szFontNamesFile, "w");
-	if (pFileW == NULL) {
+	if(pFileW == NULL) {
 		(void)fclose(pFileR);
 		werr(0, "I can't create a default FontNames file");
 		return NULL;
@@ -75,14 +75,14 @@ pOpenFontTableFile(void)
 
 	/* Copy the default FontNames file */
 	bFailed = FALSE;
-	while (!feof(pFileR)) {
+	while(!feof(pFileR)) {
 		tSize = fread(acBuffer, 1, sizeof(acBuffer), pFileR);
-		if (ferror(pFileR)) {
+		if(ferror(pFileR)) {
 			DBG_MSG("Read error");
 			bFailed = TRUE;
 			break;
 		}
-		if (fwrite(acBuffer, 1, tSize, pFileW) != tSize) {
+		if(fwrite(acBuffer, 1, tSize, pFileW) != tSize) {
 			DBG_MSG("Write error");
 			bFailed = TRUE;
 			break;
@@ -90,7 +90,7 @@ pOpenFontTableFile(void)
 	}
 	(void)fclose(pFileW);
 	(void)fclose(pFileR);
-	if (bFailed) {
+	if(bFailed) {
 		DBG_MSG("Copying the FontNames file failed");
 		(void)remove(szFontNamesFile);
 		return NULL;
@@ -104,15 +104,15 @@ pOpenFontTableFile(void)
 void
 vCloseFont(void)
 {
-	os_error	*e;
+	os_error *e;
 
 	NO_DBG_MSG("vCloseFont");
 
-	if (tFontCurr == (font_handle)-1) {
+	if(tFontCurr == (font_handle)-1) {
 		return;
 	}
 	e = Font_LoseFont(tFontCurr);
-	if (e != NULL) {
+	if(e != NULL) {
 		werr(0, "Close font error %d: %s", e->errnum, e->errmess);
 	}
 	tFontCurr = (font_handle)-1;
@@ -126,10 +126,10 @@ vCloseFont(void)
 drawfile_fontref
 tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 {
-	os_error	*e;
-	const char	*szOurFontname;
-	font_handle	tFont;
-	int	iFontnumber;
+	os_error *e;
+	const char *szOurFontname;
+	font_handle tFont;
+	int iFontnumber;
 
 	NO_DBG_MSG("tOpenFont");
 	NO_DBG_DEC(ucWordFontNumber);
@@ -137,27 +137,27 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 	NO_DBG_DEC(usWordFontSize);
 
 	/* Keep the relevant bits */
-	usFontStyle &= FONT_BOLD|FONT_ITALIC;
+	usFontStyle &= FONT_BOLD | FONT_ITALIC;
 	NO_DBG_HEX(usFontStyle);
 
 	iFontnumber = iGetFontByNumber(ucWordFontNumber, usFontStyle);
 	szOurFontname = szGetOurFontname(iFontnumber);
-	if (szOurFontname == NULL || szOurFontname[0] == '\0') {
+	if(szOurFontname == NULL || szOurFontname[0] == '\0') {
 		tFontCurr = (font_handle)-1;
 		return (byte)0;
 	}
 	NO_DBG_MSG(szOurFontname);
 	e = Font_FindFont(&tFont, (char *)szOurFontname,
-			(int)usWordFontSize * 8, (int)usWordFontSize * 8,
-			0, 0);
-	if (e != NULL) {
-		switch (e->errnum) {
+			  (int)usWordFontSize * 8, (int)usWordFontSize * 8,
+			  0, 0);
+	if(e != NULL) {
+		switch(e->errnum) {
 		case 523:
 			werr(0, "%s", e->errmess);
 			break;
 		default:
 			werr(0, "Open font error %d: %s",
-				e->errnum, e->errmess);
+			     e->errnum, e->errmess);
 			break;
 		}
 		tFontCurr = (font_handle)-1;
@@ -176,12 +176,12 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 drawfile_fontref
 tOpenTableFont(USHORT usWordFontSize)
 {
-	int	iWordFontnumber;
+	int iWordFontnumber;
 
 	NO_DBG_MSG("tOpenTableFont");
 
 	iWordFontnumber = iFontname2Fontnumber(TABLE_FONT, FONT_REGULAR);
-	if (iWordFontnumber < 0 || iWordFontnumber > (int)UCHAR_MAX) {
+	if(iWordFontnumber < 0 || iWordFontnumber > (int)UCHAR_MAX) {
 		DBG_DEC(iWordFontnumber);
 		tFontCurr = (font_handle)-1;
 		return (drawfile_fontref)0;
@@ -197,23 +197,23 @@ tOpenTableFont(USHORT usWordFontSize)
  */
 int32_t
 lComputeStringWidth(const char *szString, size_t tStringLength,
-	drawfile_fontref tFontRef, USHORT usFontSize)
+		    drawfile_fontref tFontRef, USHORT usFontSize)
 {
-	font_string	tStr;
-	os_error	*e;
+	font_string tStr;
+	os_error *e;
 
 	fail(szString == NULL);
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 
-	if (szString[0] == '\0' || tStringLength == 0) {
+	if(szString[0] == '\0' || tStringLength == 0) {
 		/* Empty string */
 		return 0;
 	}
-	if (tStringLength == 1 && szString[0] == TABLE_SEPARATOR) {
+	if(tStringLength == 1 && szString[0] == TABLE_SEPARATOR) {
 		/* Font_strwidth doesn't like control characters */
 		return 0;
 	}
-	if (tFontCurr == (font_handle)-1) {
+	if(tFontCurr == (font_handle)-1) {
 		/* No current font, use systemfont */
 		return lChar2MilliPoints(tStringLength);
 	}
@@ -223,7 +223,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 	tStr.split = -1;
 	tStr.term = tStringLength;
 	e = Font_StringWidth(&tStr);
-	if (e == NULL) {
+	if(e == NULL) {
 		return (int32_t)tStr.x;
 	}
 	DBG_DEC(e->errnum);

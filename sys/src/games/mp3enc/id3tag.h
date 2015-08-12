@@ -7,25 +7,22 @@
  * in the LICENSE file.
  */
 
-
 #ifndef LAME_ID3_H
 #define LAME_ID3_H
 
 #include "lame.h"
 
-struct id3tag_spec
-{
-    /* private data members */
-    int flags;
-    const char *title;
-    const char *artist;
-    const char *album;
-    int year;
-    const char *comment;
-    int track;
-    int genre;
+struct id3tag_spec {
+	/* private data members */
+	int flags;
+	const char *title;
+	const char *artist;
+	const char *album;
+	int year;
+	const char *comment;
+	int track;
+	int genre;
 };
-
 
 /* write tag into stream at current position */
 extern int id3tag_write_v2(lame_global_flags *gfp);

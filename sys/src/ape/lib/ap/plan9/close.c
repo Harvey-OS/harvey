@@ -21,11 +21,11 @@ close(int d)
 
 	n = -1;
 	f = &_fdinfo[d];
-	if(d<0 || d>=OPEN_MAX || !(f->flags&FD_ISOPEN))
+	if(d < 0 || d >= OPEN_MAX || !(f->flags & FD_ISOPEN))
 		errno = EBADF;
-	else{
-		if(f->flags&(FD_BUFFERED|FD_BUFFEREDX)) {
-			if(f->flags&FD_BUFFERED)
+	else {
+		if(f->flags & (FD_BUFFERED | FD_BUFFEREDX)) {
+			if(f->flags & FD_BUFFERED)
 				_closebuf(d);
 			f->flags &= ~FD_BUFFERED;
 		}
@@ -34,7 +34,7 @@ close(int d)
 			_syserrno();
 		_fdinfo[d].flags = 0;
 		_fdinfo[d].oflags = 0;
-		if(_fdinfo[d].name){
+		if(_fdinfo[d].name) {
 			free(_fdinfo[d].name);
 			_fdinfo[d].name = 0;
 		}

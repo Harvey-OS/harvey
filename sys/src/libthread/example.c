@@ -21,8 +21,7 @@ terminates.
 #include <libc.h>
 #include <thread.h>
 
-enum
-{
+enum {
 	STACK = 2048,
 };
 
@@ -36,10 +35,10 @@ mouseproc(void *arg)
 	mc = arg;
 	if((mfd = open("/dev/mouse", OREAD)) < 0)
 		sysfatal("open /dev/mouse: %r");
-	for(;;){
+	for(;;) {
 		if(read(mfd, m, sizeof m) != sizeof m)
 			sysfatal("eof");
-		if(atoi(m+1+2*12)&4)
+		if(atoi(m + 1 + 2 * 12) & 4)
 			sysfatal("button 3");
 		send(mc, m);
 	}
@@ -52,12 +51,11 @@ clockproc(void *arg)
 	Channel *c;
 
 	c = arg;
-	for(t=0;; t++){
+	for(t = 0;; t++) {
 		sleep(1000);
 		sendul(c, t);
 	}
 }
-
 
 void
 threadmain(int argc, char *argv[])
@@ -65,10 +63,10 @@ threadmain(int argc, char *argv[])
 	char m[48];
 	int t;
 	Alt a[] = {
-	/*	 c		v		op   */
-		{nil,	m,	CHANRCV},
-		{nil,	&t,	CHANRCV},
-		{nil,	nil,	CHANEND},
+	    /*	 c		v		op   */
+	    {nil, m, CHANRCV},
+	    {nil, &t, CHANRCV},
+	    {nil, nil, CHANEND},
 	};
 
 	/* create mouse event channel and mouse process */
@@ -76,15 +74,15 @@ threadmain(int argc, char *argv[])
 	proccreate(mouseproc, a[0].c, STACK);
 
 	/* create clock event channel and clock process */
-	a[1].c = chancreate(sizeof(ulong), 0);	/* clock event channel */
+	a[1].c = chancreate(sizeof(ulong), 0); /* clock event channel */
 	proccreate(clockproc, a[1].c, STACK);
 
-	for(;;){
-		switch(alt(a)){
-		case 0:	/*mouse event */
+	for(;;) {
+		switch(alt(a)) {
+		case 0: /*mouse event */
 			fprint(2, "click ");
 			break;
-		case 1:	/* clock event */
+		case 1: /* clock event */
 			fprint(2, "tic ");
 			break;
 		default:

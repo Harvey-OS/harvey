@@ -14,36 +14,36 @@
 
 /* Possible tags */
 enum {
-	DF,		/* definition */
-	DX,		/* definition/example */
-	ET,		/* etymology */
-	EX,		/* example */
-	LA,		/* label */
-	ME,		/* main entry */
-	NU,		/* sense number */
-	PR,		/* pronunciation */
-	PS,		/* grammar part */
-	XR,		/* cross reference */
-	XX,		/* cross reference (whole entry) */
+	DF, /* definition */
+	DX, /* definition/example */
+	ET, /* etymology */
+	EX, /* example */
+	LA, /* label */
+	ME, /* main entry */
+	NU, /* sense number */
+	PR, /* pronunciation */
+	PS, /* grammar part */
+	XR, /* cross reference */
+	XX, /* cross reference (whole entry) */
 };
 
 /* Assoc tables must be sorted on first field */
 
 static Assoc tagtab[] = {
-	{"df",	DF},
-	{"dx",	DX},
-	{"et",	ET},
-	{"ex",	EX},
-	{"la",	LA},
-	{"me",	ME},
-	{"nu",	NU},
-	{"pr",	PR},
-	{"ps",	PS},
-	{"xr",	XR},
-	{"xx",	XX},
+    {"df", DF},
+    {"dx", DX},
+    {"et", ET},
+    {"ex", EX},
+    {"la", LA},
+    {"me", ME},
+    {"nu", NU},
+    {"pr", PR},
+    {"ps", PS},
+    {"xr", XR},
+    {"xx", XX},
 };
-static int32_t	sget(char *, char *, char **, char **);
-static void	soutpiece(char *, char *);
+static int32_t sget(char *, char *, char **, char **);
+static void soutpiece(char *, char *);
 
 void
 slangprintentry(Entry e, int cmd)
@@ -116,7 +116,7 @@ slangprintentry(Entry e, int cmd)
 			outchars(".  ");
 			break;
 		default:
-			ve = pe;	/* will end loop */
+			ve = pe; /* will end loop */
 			break;
 		}
 		p = ve;
@@ -138,7 +138,7 @@ slangnextoff(int32_t fromoff)
 		if(!p)
 			break;
 		if(p[0] == 'm' && p[1] == 'e' && p[2] == ' ')
-			return (Boffset(bdict)-Blinelen(bdict));
+			return (Boffset(bdict) - Blinelen(bdict));
 	}
 	return -1;
 }
@@ -188,7 +188,7 @@ sget(char *b, char *e, char **pvb, char **pve)
 		p = strchr(p, '\n');
 		if(!p || ++p >= e) {
 			if(tans >= 0)
-				*pve = e-1;
+				*pve = e - 1;
 			break;
 		}
 	}

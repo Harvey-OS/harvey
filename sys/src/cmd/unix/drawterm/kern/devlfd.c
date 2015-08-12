@@ -7,24 +7,24 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
+#include "u.h"
 #include <errno.h>
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 #undef pread
 #undef pwrite
 
-Chan*
+Chan *
 lfdchan(int fd)
 {
 	Chan *c;
-	
+
 	c = newchan();
 	c->type = devno('L', 0);
-	c->aux = (void*)(uintptr)fd;
+	c->aux = (void *)(uintptr)fd;
 	c->name = newcname("fd");
 	c->mode = ORDWR;
 	c->qid.type = 0;
@@ -41,23 +41,23 @@ lfdfd(int fd)
 	return newfd(lfdchan(fd));
 }
 
-static Chan*
+static Chan *
 lfdattach(char *x)
 {
 	USED(x);
-	
+
 	error(Egreg);
 	return nil;
 }
 
-static Walkqid*
+static Walkqid *
 lfdwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	USED(c);
 	USED(nc);
 	USED(name);
 	USED(nname);
-	
+
 	error(Egreg);
 	return nil;
 }
@@ -72,12 +72,12 @@ lfdstat(Chan *c, uint8_t *dp, int n)
 	return -1;
 }
 
-static Chan*
+static Chan *
 lfdopen(Chan *c, int omode)
 {
 	USED(c);
 	USED(omode);
-	
+
 	error(Egreg);
 	return nil;
 }
@@ -91,9 +91,9 @@ lfdclose(Chan *c)
 static int32_t
 lfdread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	USED(off);	/* can't pread on pipes */
+	USED(off); /* can't pread on pipes */
 	n = read((int)(uintptr)c->aux, buf, n);
-	if(n < 0){
+	if(n < 0) {
 		iprint("error %d\n", errno);
 		oserror();
 	}
@@ -103,10 +103,10 @@ lfdread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 lfdwrite(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	USED(off);	/* can't pread on pipes */
+	USED(off); /* can't pread on pipes */
 
 	n = write((int)(uintptr)c->aux, buf, n);
-	if(n < 0){
+	if(n < 0) {
 		iprint("error %d\n", errno);
 		oserror();
 	}
@@ -114,22 +114,22 @@ lfdwrite(Chan *c, void *buf, int32_t n, int64_t off)
 }
 
 Dev lfddevtab = {
-	'L',
-	"lfd",
-	
-	devreset,
-	devinit,
-	devshutdown,
-	lfdattach,
-	lfdwalk,
-	lfdstat,
-	lfdopen,
-	devcreate,
-	lfdclose,
-	lfdread,
-	devbread,
-	lfdwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    'L',
+    "lfd",
+
+    devreset,
+    devinit,
+    devshutdown,
+    lfdattach,
+    lfdwalk,
+    lfdstat,
+    lfdopen,
+    devcreate,
+    lfdclose,
+    lfdread,
+    devbread,
+    lfdwrite,
+    devbwrite,
+    devremove,
+    devwstat,
 };

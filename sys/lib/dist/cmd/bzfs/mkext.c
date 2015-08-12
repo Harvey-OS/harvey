@@ -35,21 +35,21 @@
 #include <fcall.h>
 #include "bzfs.h"
 
-enum{
-	LEN	= 8*1024,
-	NFLDS	= 6,		/* filename, modes, uid, gid, mtime, bytes */
+enum {
+	LEN = 8 * 1024,
+	NFLDS = 6, /* filename, modes, uid, gid, mtime, bytes */
 };
 
-void	mkdirs(char*, char*);
-void	mkdir(char*, uint32_t, uint32_t, char*, char*);
-void	extract(char*, uint32_t, uint32_t, char*, char*, uint32_t);
-void	seekpast(uint32_t);
-void	error(char*, ...);
-void	warn(char*, ...);
-void	usage(void);
+void mkdirs(char *, char *);
+void mkdir(char *, uint32_t, uint32_t, char *, char *);
+void extract(char *, uint32_t, uint32_t, char *, char *, uint32_t);
+void seekpast(uint32_t);
+void error(char *, ...);
+void warn(char *, ...);
+void usage(void);
 char *mtpt;
 Biobufhdr bin;
-uchar	binbuf[2*LEN];
+uchar binbuf[2 * LEN];
 
 void
 usage(void)
@@ -74,7 +74,7 @@ blockread(int in, char *first, int nfirst)
 		sysfatal("pipe: %r");
 	rv = p[0];
 	out = p[1];
-	switch(rfork(RFPROC|RFNOTEG|RFFDG)){
+	switch(rfork(RFPROC | RFNOTEG | RFFDG)) {
 	case -1:
 		sysfatal("fork: %r");
 	case 0:
@@ -87,8 +87,8 @@ blockread(int in, char *first, int nfirst)
 	}
 
 	write(out, first, nfirst);
-	
-	while((n=read(in, blk, sizeof blk)) > 0){
+
+	while((n = read(in, blk, sizeof blk)) > 0) {
 		if(write(out, blk, n) != n)
 			break;
 		if(n == sizeof(blk) && memcmp(zero, blk, n) == n)
@@ -105,19 +105,19 @@ main(int argc, char **argv)
 {
 	char *rargv[10];
 	int rargc;
-	char *fields[NFLDS], name[2*LEN], *p, *namep;
+	char *fields[NFLDS], name[2 * LEN], *p, *namep;
 	char uid[NAMELEN], gid[NAMELEN];
 	ulong mode, bytes, mtime;
 	char *file;
 	int i, n, stdin, fd, chatty;
 	char blk[512];
 
-	if(argc>1 && strcmp(argv[1], "RAMFS") == 0){
+	if(argc > 1 && strcmp(argv[1], "RAMFS") == 0) {
 		argv[1] = argv[0];
-		ramfsmain(argc-1, argv+1);
+		ramfsmain(argc - 1, argv + 1);
 		exits(nil);
 	}
-	if(argc>1 && strcmp(argv[1], "BUNZIP") == 0){
+	if(argc > 1 && strcmp(argv[1], "BUNZIP") == 0) {
 		_unbzip(0, 1);
 		exits(nil);
 	}
@@ -128,7 +128,8 @@ main(int argc, char **argv)
 	namep = name;
 	mtpt = "/root";
 	chatty = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		chatty = !chatty;
 		break;
@@ -143,7 +144,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();
@@ -167,30 +169,33 @@ main(int argc, char **argv)
 	rargv[rargc] = nil;
 	ramfsmain(rargc, rargv);
 
-	if(1 || strstr(file, "disk")) {	/* search for archive on block boundary */
-if(chatty) fprint(2, "searching for bz\n");
-		for(i=0;; i++){
+	if(1 || strstr(file, "disk")) { /* search for archive on block boundary */
+		if(chatty)
+			fprint(2, "searching for bz\n");
+		for(i = 0;; i++) {
 			if((n = readn(fd, blk, sizeof blk)) != sizeof blk)
 				sysfatal("read %d gets %d: %r\n", i, n);
 			if(strncmp(blk, "bzfilesystem\n", 13) == 0)
 				break;
 		}
-if(chatty) fprint(2, "found at %d\n", i);
+		if(chatty)
+			fprint(2, "found at %d\n", i);
 	}
 
 	if(chdir(mtpt) < 0)
 		error("chdir %s: %r", mtpt);
 
-	fd = unbflz(unbzip(blockread(fd, blk+13, sizeof(blk)-13)));
+	fd = unbflz(unbzip(blockread(fd, blk + 13, sizeof(blk) - 13)));
 
 	Binits(&bin, fd, OREAD, binbuf, sizeof binbuf);
-	while(p = Brdline(&bin, '\n')){
-		p[Blinelen(&bin)-1] = '\0';
-if(chatty) fprint(2, "%s\n", p);
-		if(strcmp(p, "end of archive") == 0){
+	while(p = Brdline(&bin, '\n')) {
+		p[Blinelen(&bin) - 1] = '\0';
+		if(chatty)
+			fprint(2, "%s\n", p);
+		if(strcmp(p, "end of archive") == 0) {
 			_exits(0);
 		}
-		if(getfields(p, fields, NFLDS, 0, " \t") != NFLDS){
+		if(getfields(p, fields, NFLDS, 0, " \t") != NFLDS) {
 			warn("too few fields in file header");
 			continue;
 		}
@@ -220,9 +225,9 @@ ffcreate(char *name, uint32_t mode, char *uid, char *gid, uint32_t mtime,
 
 	sprint(buf, "%s/%s", mtpt, name);
 	om = ORDWR;
-	if(mode&DMDIR)
+	if(mode & DMDIR)
 		om = OREAD;
-	if((fd = create(buf, om, (mode&DMDIR)|0666)) < 0)
+	if((fd = create(buf, om, (mode & DMDIR) | 0666)) < 0)
 		error("create %s: %r", buf);
 
 	nulldir(&nd);
@@ -232,7 +237,7 @@ ffcreate(char *name, uint32_t mode, char *uid, char *gid, uint32_t mtime,
 	nd.mtime = mtime;
 	if(length)
 		nd.length = length;
-	if(dirfwstat(fd, &nd) < 0)	
+	if(dirfwstat(fd, &nd) < 0)
 		error("fwstat %s: %r", buf);
 
 	return fd;
@@ -252,7 +257,7 @@ extract(char *name, uint32_t mode, uint32_t mtime, char *uid, char *gid,
 
 	fd = ffcreate(name, mode, uid, gid, mtime, bytes);
 
-	for(tot = 0; tot < bytes; tot += n){
+	for(tot = 0; tot < bytes; tot += n) {
 		n = sizeof buf;
 		if(tot + n > bytes)
 			n = bytes - tot;
@@ -273,7 +278,7 @@ error(char *fmt, ...)
 
 	sprint(buf, "%s: ", argv0);
 	va_start(arg, fmt);
-	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 	exits(0);
@@ -287,13 +292,13 @@ warn(char *fmt, ...)
 
 	sprint(buf, "%s: ", argv0);
 	va_start(arg, fmt);
-	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 }
 
 int
-_efgfmt(Fmt*)
+_efgfmt(Fmt *)
 {
 	return -1;
 }

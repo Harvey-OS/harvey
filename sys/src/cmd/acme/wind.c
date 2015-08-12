@@ -20,7 +20,7 @@
 #include "dat.h"
 #include "fns.h"
 
-int	winid;
+int winid;
 
 void
 wininit(Window *w, Window *clone, Rectangle r)
@@ -46,7 +46,7 @@ wininit(Window *w, Window *clone, Rectangle r)
 	textinit(&w->tag, f, r1, &reffont, tagcols);
 	w->tag.what = Tag;
 	/* tag is a copy of the contents, not a tracked image */
-	if(clone){
+	if(clone) {
 		textdelete(&w->tag, 0, w->tag.file->nc, TRUE);
 		nc = clone->tag.file->nc;
 		rp = runemalloc(nc);
@@ -61,18 +61,18 @@ wininit(Window *w, Window *clone, Rectangle r)
 	if(r1.max.y < r1.min.y)
 		r1.max.y = r1.min.y;
 	f = nil;
-	if(clone){
+	if(clone) {
 		f = clone->body.file;
 		w->body.org = clone->body.org;
 		w->isscratch = clone->isscratch;
 		rf = rfget(FALSE, FALSE, FALSE, clone->body.reffont->f->name);
-	}else
+	} else
 		rf = rfget(FALSE, FALSE, FALSE, nil);
 	f = fileaddtext(f, &w->body);
 	w->body.what = Body;
 	textinit(&w->body, f, r1, rf, textcols);
 	r1.min.y -= 1;
-	r1.max.y = r1.min.y+1;
+	r1.max.y = r1.min.y + 1;
 	draw(screen, r1, tagcols[BORD], nil, ZP);
 	textscrdraw(&w->body);
 	w->r = r;
@@ -84,7 +84,7 @@ wininit(Window *w, Window *clone, Rectangle r)
 	w->filemenu = TRUE;
 	w->maxlines = w->body.maxlines;
 	w->autoindent = globalautoindent;
-	if(clone){
+	if(clone) {
 		w->dirty = clone->dirty;
 		textsetselect(&w->body, clone->body.q0, clone->body.q1);
 		winsettag(w);
@@ -97,8 +97,8 @@ delrunepos(Window *w)
 {
 	int n;
 	Rune rune;
-	
-	for(n=0; n<w->tag.file->nc; n++) {
+
+	for(n = 0; n < w->tag.file->nc; n++) {
 		bufread(w->tag.file, n, &rune, 1);
 		if(rune == ' ')
 			break;
@@ -113,11 +113,11 @@ void
 movetodel(Window *w)
 {
 	int n;
-	
+
 	n = delrunepos(w);
 	if(n < 0)
 		return;
-	moveto(mousectl, addpt(frptofchar(&w->tag, n), Pt(4, w->tag.font->height-4)));
+	moveto(mousectl, addpt(frptofchar(&w->tag, n), Pt(4, w->tag.font->height - 4)));
 }
 
 int
@@ -131,7 +131,7 @@ winresize(Window *w, Rectangle r, int safe)
 	r1 = r;
 	r1.max.y = r1.min.y + font->height;
 	y = r1.max.y;
-	if(!safe || !eqrect(w->tag.r, r1)){
+	if(!safe || !eqrect(w->tag.r, r1)) {
 		y = textresize(&w->tag, r1);
 		b = button;
 		if(w->body.file->mod && !w->isdir && !w->isscratch)
@@ -141,8 +141,8 @@ winresize(Window *w, Rectangle r, int safe)
 		br.max.y = br.min.y + Dy(b->r);
 		draw(screen, br, b, nil, b->r.min);
 	}
-	if(!safe || !eqrect(w->body.r, r1)){
-		if(y+1+font->height > r.max.y){		/* no body */
+	if(!safe || !eqrect(w->body.r, r1)) {
+		if(y + 1 + font->height > r.max.y) { /* no body */
 			r1.min.y = y;
 			r1.max.y = y;
 			textresize(&w->body, r1);
@@ -180,7 +180,7 @@ winlock(Window *w, int owner)
 	File *f;
 
 	f = w->body.file;
-	for(i=0; i<f->ntext; i++)
+	for(i = 0; i < f->ntext; i++)
 		winlock1(f->text[i]->w, owner);
 }
 
@@ -196,7 +196,7 @@ winunlock(Window *w)
 	 * on the last iteration of the loop.
 	 */
 	f = w->body.file;
-	for(i=f->ntext-1; i>=0; i--){
+	for(i = f->ntext - 1; i >= 0; i--) {
 		w = f->text[i]->w;
 		w->owner = 0;
 		qunlock(w);
@@ -216,8 +216,8 @@ windirfree(Window *w)
 	int i;
 	Dirlist *dl;
 
-	if(w->isdir){
-		for(i=0; i<w->ndl; i++){
+	if(w->isdir) {
+		for(i = 0; i < w->ndl; i++) {
 			dl = w->dlp[i];
 			free(dl->r);
 			free(dl);
@@ -233,13 +233,13 @@ winclose(Window *w)
 {
 	int i;
 
-	if(decref(w) == 0){
+	if(decref(w) == 0) {
 		windirfree(w);
 		textclose(&w->tag);
 		textclose(&w->body);
 		if(activewin == w)
 			activewin = nil;
-		for(i=0; i<w->nincl; i++)
+		for(i = 0; i < w->nincl; i++)
 			free(w->incl[i]);
 		free(w->incl);
 		free(w->events);
@@ -253,12 +253,12 @@ windelete(Window *w)
 	Xfid *x;
 
 	x = w->eventx;
-	if(x){
+	if(x) {
 		w->nevents = 0;
 		free(w->events);
 		w->events = nil;
 		w->eventx = nil;
-		sendp(x->c, nil);	/* wake him up */
+		sendp(x->c, nil); /* wake him up */
 	}
 }
 
@@ -275,12 +275,12 @@ winundo(Window *w, int isundo)
 	fileundo(body->file, isundo, &body->q0, &body->q1);
 	textshow(body, body->q0, body->q1, 1);
 	f = body->file;
-	for(i=0; i<f->ntext; i++){
+	for(i = 0; i < f->ntext; i++) {
 		v = f->text[i]->w;
 		v->dirty = (f->seq != v->putseq);
-		if(v != w){
-			v->body.q0 = v->body.p0+v->body.org;
-			v->body.q1 = v->body.p1+v->body.org;
+		if(v != w) {
+			v->body.q0 = v->body.p0 + v->body.org;
+			v->body.q1 = v->body.p1 + v->body.org;
 		}
 	}
 	winsettag(w);
@@ -297,12 +297,12 @@ winsetname(Window *w, Rune *name, int n)
 	if(runeeq(t->file->name, t->file->nname, name, n) == TRUE)
 		return;
 	w->isscratch = FALSE;
-	if(n>=6 && runeeq(L"/guide", 6, name+(n-6), 6))
+	if(n >= 6 && runeeq(L"/guide", 6, name + (n - 6), 6))
 		w->isscratch = TRUE;
-	else if(n>=7 && runeeq(L"+Errors", 7, name+(n-7), 7))
+	else if(n >= 7 && runeeq(L"+Errors", 7, name + (n - 7), 7))
 		w->isscratch = TRUE;
 	filesetname(t->file, name, n);
-	for(i=0; i<t->file->ntext; i++){
+	for(i = 0; i < t->file->ntext; i++) {
 		v = t->file->text[i]->w;
 		winsettag(v);
 		v->isscratch = w->isscratch;
@@ -316,7 +316,7 @@ wintype(Window *w, Text *t, Rune r)
 
 	texttype(t, r);
 	if(t->what == Body)
-		for(i=0; i<t->file->ntext; i++)
+		for(i = 0; i < t->file->ntext; i++)
 			textscrdraw(t->file->text[i]);
 	winsettag(w);
 }
@@ -331,10 +331,10 @@ wincleartag(Window *w)
 	n = w->tag.file->nc;
 	r = runemalloc(n);
 	bufread(w->tag.file, 0, r, n);
-	for(i=0; i<n; i++)
-		if(r[i]==' ' || r[i]=='\t')
+	for(i = 0; i < n; i++)
+		if(r[i] == ' ' || r[i] == '\t')
 			break;
-	for(; i<n; i++)
+	for(; i < n; i++)
 		if(r[i] == '|')
 			break;
 	if(i == n)
@@ -360,85 +360,85 @@ winsettag1(Window *w)
 	Rectangle br;
 
 	/* there are races that get us here with stuff in the tag cache, so we take extra care to sync it */
-	if(w->tag.ncache!=0 || w->tag.file->mod)
-		wincommit(w, &w->tag);	/* check file name; also guarantees we can modify tag contents */
-	old = runemalloc(w->tag.file->nc+1);
+	if(w->tag.ncache != 0 || w->tag.file->mod)
+		wincommit(w, &w->tag); /* check file name; also guarantees we can modify tag contents */
+	old = runemalloc(w->tag.file->nc + 1);
 	bufread(w->tag.file, 0, old, w->tag.file->nc);
 	old[w->tag.file->nc] = '\0';
-	for(i=0; i<w->tag.file->nc; i++)
-		if(old[i]==' ' || old[i]=='\t')
+	for(i = 0; i < w->tag.file->nc; i++)
+		if(old[i] == ' ' || old[i] == '\t')
 			break;
-	if(runeeq(old, i, w->body.file->name, w->body.file->nname) == FALSE){
+	if(runeeq(old, i, w->body.file->name, w->body.file->nname) == FALSE) {
 		textdelete(&w->tag, 0, i, TRUE);
 		textinsert(&w->tag, 0, w->body.file->name, w->body.file->nname, TRUE);
 		free(old);
-		old = runemalloc(w->tag.file->nc+1);
+		old = runemalloc(w->tag.file->nc + 1);
 		bufread(w->tag.file, 0, old, w->tag.file->nc);
 		old[w->tag.file->nc] = '\0';
 	}
-	new = runemalloc(w->body.file->nname+100);
+	new = runemalloc(w->body.file->nname + 100);
 	i = 0;
-	runemove(new+i, w->body.file->name, w->body.file->nname);
+	runemove(new + i, w->body.file->name, w->body.file->nname);
 	i += w->body.file->nname;
-	runemove(new+i, L" Del Snarf", 10);
+	runemove(new + i, L" Del Snarf", 10);
 	i += 10;
-	if(w->filemenu){
-		if(w->body.file->delta.nc>0 || w->body.ncache){
-			runemove(new+i, L" Undo", 5);
+	if(w->filemenu) {
+		if(w->body.file->delta.nc > 0 || w->body.ncache) {
+			runemove(new + i, L" Undo", 5);
 			i += 5;
 		}
-		if(w->body.file->epsilon.nc > 0){
-			runemove(new+i, L" Redo", 5);
+		if(w->body.file->epsilon.nc > 0) {
+			runemove(new + i, L" Redo", 5);
 			i += 5;
 		}
-		dirty = w->body.file->nname && (w->body.ncache || w->body.file->seq!=w->putseq);
-		if(!w->isdir && dirty){
-			runemove(new+i, L" Put", 4);
+		dirty = w->body.file->nname && (w->body.ncache || w->body.file->seq != w->putseq);
+		if(!w->isdir && dirty) {
+			runemove(new + i, L" Put", 4);
 			i += 4;
 		}
 	}
-	if(w->isdir){
-		runemove(new+i, L" Get", 4);
+	if(w->isdir) {
+		runemove(new + i, L" Get", 4);
 		i += 4;
 	}
-	runemove(new+i, L" |", 2);
+	runemove(new + i, L" |", 2);
 	i += 2;
 	r = runestrchr(old, '|');
 	if(r)
-		k = r-old+1;
-	else{
+		k = r - old + 1;
+	else {
 		k = w->tag.file->nc;
-		if(w->body.file->seq == 0){
-			runemove(new+i, L" Look ", 6);
+		if(w->body.file->seq == 0) {
+			runemove(new + i, L" Look ", 6);
 			i += 6;
 		}
 	}
-	if(runeeq(new, i, old, k) == FALSE){
+	if(runeeq(new, i, old, k) == FALSE) {
 		n = k;
 		if(n > i)
 			n = i;
-		for(j=0; j<n; j++)
+		for(j = 0; j < n; j++)
 			if(old[j] != new[j])
 				break;
 		q0 = w->tag.q0;
 		q1 = w->tag.q1;
 		textdelete(&w->tag, j, k, TRUE);
-		textinsert(&w->tag, j, new+j, i-j, TRUE);
+		textinsert(&w->tag, j, new + j, i - j, TRUE);
 		/* try to preserve user selection */
 		r = runestrchr(old, '|');
-		if(r){
-			bar = r-old;
-			if(q0 > bar){
-				bar = (runestrchr(new, '|')-new)-bar;
-				w->tag.q0 = q0+bar;
-				w->tag.q1 = q1+bar;
+		if(r) {
+			bar = r - old;
+			if(q0 > bar) {
+				bar = (runestrchr(new, '|') - new) - bar;
+				w->tag.q0 = q0 + bar;
+				w->tag.q1 = q1 + bar;
 			}
 		}
 	}
 	free(old);
 	free(new);
 	w->tag.file->mod = FALSE;
-	n = w->tag.file->nc+w->tag.ncache;
+	n = w->tag.file->nc + w->tag.ncache;
 	if(w->tag.q0 > n)
 		w->tag.q0 = n;
 	if(w->tag.q1 > n)
@@ -461,9 +461,9 @@ winsettag(Window *w)
 	Window *v;
 
 	f = w->body.file;
-	for(i=0; i<f->ntext; i++){
+	for(i = 0; i < f->ntext; i++) {
 		v = f->text[i]->w;
-		if(v->col->safe || v->body.maxlines>0)
+		if(v->col->safe || v->body.maxlines > 0)
 			winsettag1(v);
 	}
 }
@@ -478,16 +478,16 @@ wincommit(Window *w, Text *t)
 	textcommit(t, TRUE);
 	f = t->file;
 	if(f->ntext > 1)
-		for(i=0; i<f->ntext; i++)
-			textcommit(f->text[i], FALSE);	/* no-op for t */
+		for(i = 0; i < f->ntext; i++)
+			textcommit(f->text[i], FALSE); /* no-op for t */
 	if(t->what == Body)
 		return;
 	r = runemalloc(w->tag.file->nc);
 	bufread(w->tag.file, 0, r, w->tag.file->nc);
-	for(i=0; i<w->tag.file->nc; i++)
-		if(r[i]==' ' || r[i]=='\t')
+	for(i = 0; i < w->tag.file->nc; i++)
+		if(r[i] == ' ' || r[i] == '\t')
 			break;
-	if(runeeq(r, i, w->body.file->name, w->body.file->nname) == FALSE){
+	if(runeeq(r, i, w->body.file->name, w->body.file->nname) == FALSE) {
 		seq++;
 		filemark(w->body.file);
 		w->body.file->mod = TRUE;
@@ -507,7 +507,7 @@ winaddincl(Window *w, Rune *r, int n)
 
 	a = runetobyte(r, n);
 	d = dirstat(a);
-	if(d == nil){
+	if(d == nil) {
 		if(a[0] == '/')
 			goto Rescue;
 		rs = dirname(&w->body, r, n);
@@ -518,11 +518,11 @@ winaddincl(Window *w, Rune *r, int n)
 		d = dirstat(a);
 		if(d == nil)
 			goto Rescue;
-		r = runerealloc(r, n+1);
+		r = runerealloc(r, n + 1);
 		r[n] = 0;
 	}
 	free(a);
-	if((d->qid.type&QTDIR) == 0){
+	if((d->qid.type & QTDIR) == 0) {
 		free(d);
 		warning(nil, "%s: not a directory\n", a);
 		free(r);
@@ -530,9 +530,9 @@ winaddincl(Window *w, Rune *r, int n)
 	}
 	free(d);
 	w->nincl++;
-	w->incl = realloc(w->incl, w->nincl*sizeof(Rune*));
-	memmove(w->incl+1, w->incl, (w->nincl-1)*sizeof(Rune*));
-	w->incl[0] = runemalloc(n+1);
+	w->incl = realloc(w->incl, w->nincl * sizeof(Rune *));
+	memmove(w->incl + 1, w->incl, (w->nincl - 1) * sizeof(Rune *));
+	w->incl[0] = runemalloc(n + 1);
 	runemove(w->incl[0], r, n);
 	free(r);
 	return;
@@ -545,17 +545,17 @@ Rescue:
 }
 
 int
-winclean(Window *w, int conservative)	/* as it stands, conservative is always TRUE */
+winclean(Window *w, int conservative) /* as it stands, conservative is always TRUE */
 {
-	if(w->isscratch || w->isdir)	/* don't whine if it's a guide file, error window, etc. */
+	if(w->isscratch || w->isdir) /* don't whine if it's a guide file, error window, etc. */
 		return TRUE;
-	if(!conservative && w->nopen[QWevent]>0)
+	if(!conservative && w->nopen[QWevent] > 0)
 		return TRUE;
-	if(w->dirty){
+	if(w->dirty) {
 		if(w->body.file->nname)
 			warning(nil, "%.*S modified\n", w->body.file->nname, w->body.file->name);
-		else{
-			if(w->body.file->nc < 100)	/* don't whine if it's too small */
+		else {
+			if(w->body.file->nc < 100) /* don't whine if it's too small */
 				return TRUE;
 			warning(nil, "unnamed file modified\n");
 		}
@@ -565,14 +565,14 @@ winclean(Window *w, int conservative)	/* as it stands, conservative is always TR
 	return TRUE;
 }
 
-char*
+char *
 winctlprint(Window *w, char *buf, int fonts)
 {
 	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
-		w->body.file->nc, w->isdir, w->dirty);
+	       w->body.file->nc, w->isdir, w->dirty);
 	if(fonts)
-		return smprint("%s%11d %q %11d " , buf, Dx(w->body.r), 
-			w->body.reffont->f->name, w->body.maxtab);
+		return smprint("%s%11d %q %11d ", buf, Dx(w->body.r),
+			       w->body.reffont->f->name, w->body.maxtab);
 	return buf;
 }
 
@@ -594,13 +594,13 @@ winevent(Window *w, char *fmt, ...)
 	if(b == nil)
 		error("vsmprint failed");
 	n = strlen(b);
-	w->events = realloc(w->events, w->nevents+1+n);
+	w->events = realloc(w->events, w->nevents + 1 + n);
 	w->events[w->nevents++] = w->owner;
-	memmove(w->events+w->nevents, b, n);
+	memmove(w->events + w->nevents, b, n);
 	free(b);
 	w->nevents += n;
 	x = w->eventx;
-	if(x){
+	if(x) {
 		w->eventx = nil;
 		sendp(x->c, nil);
 	}

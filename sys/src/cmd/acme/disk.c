@@ -20,7 +20,7 @@
 #include "dat.h"
 #include "fns.h"
 
-static	Block	*blist;
+static Block *blist;
 
 int
 tempfile(void)
@@ -29,33 +29,32 @@ tempfile(void)
 	int i, fd;
 
 	snprint(buf, sizeof buf, "/tmp/X%d.%.4sacme", getpid(), getuser());
-	for(i='A'; i<='Z'; i++){
+	for(i = 'A'; i <= 'Z'; i++) {
 		buf[5] = i;
 		if(access(buf, AEXIST) == 0)
 			continue;
-		fd = create(buf, ORDWR|ORCLOSE|OCEXEC, 0600);
+		fd = create(buf, ORDWR | ORCLOSE | OCEXEC, 0600);
 		if(fd >= 0)
 			return fd;
 	}
 	return -1;
 }
 
-Disk*
+Disk *
 diskinit()
 {
 	Disk *d;
 
 	d = emalloc(sizeof(Disk));
 	d->fd = tempfile();
-	if(d->fd < 0){
+	if(d->fd < 0) {
 		fprint(2, "acme: can't create temp file: %r\n");
 		threadexitsall("diskinit");
 	}
 	return d;
 }
 
-static
-uint
+static uint
 ntosize(uint n, uint *ip)
 {
 	uint size;
@@ -63,15 +62,15 @@ ntosize(uint n, uint *ip)
 	if(n > Maxblock)
 		error("internal error: ntosize");
 	size = n;
-	if(size & (Blockincr-1))
-		size += Blockincr - (size & (Blockincr-1));
+	if(size & (Blockincr - 1))
+		size += Blockincr - (size & (Blockincr - 1));
 	/* last bucket holds blocks of exactly Maxblock */
 	if(ip)
-		*ip = size/Blockincr;
+		*ip = size / Blockincr;
 	return size * sizeof(Rune);
 }
 
-Block*
+Block *
 disknewblock(Disk *d, uint n)
 {
 	uint i, j, size;
@@ -81,12 +80,12 @@ disknewblock(Disk *d, uint n)
 	b = d->free[i];
 	if(b)
 		d->free[i] = b->next;
-	else{
+	else {
 		/* allocate in chunks to reduce malloc overhead */
-		if(blist == nil){
-			blist = emalloc(100*sizeof(Block));
-			for(j=0; j<100-1; j++)
-				blist[j].next = &blist[j+1];
+		if(blist == nil) {
+			blist = emalloc(100 * sizeof(Block));
+			for(j = 0; j < 100 - 1; j++)
+				blist[j].next = &blist[j + 1];
 		}
 		b = blist;
 		blist = b->next;
@@ -116,12 +115,12 @@ diskwrite(Disk *d, Block **bp, Rune *r, uint n)
 	b = *bp;
 	size = ntosize(b->n, nil);
 	nsize = ntosize(n, nil);
-	if(size != nsize){
+	if(size != nsize) {
 		diskrelease(d, b);
 		b = disknewblock(d, n);
 		*bp = b;
 	}
-	if(pwrite(d->fd, r, n*sizeof(Rune), b->addr) != n*sizeof(Rune))
+	if(pwrite(d->fd, r, n * sizeof(Rune), b->addr) != n * sizeof(Rune))
 		error("write error to temp file");
 	b->n = n;
 }
@@ -137,11 +136,11 @@ diskread(Disk *d, Block *b, Rune *r, uint n)
 
 	ntosize(b->n, nil);
 	n *= sizeof(Rune);
-	p = (char*)r;
-	for(tot = 0; tot < n; tot += nr){
-		nr = pread(d->fd, p+tot, n-tot, b->addr+tot);
+	p = (char *)r;
+	for(tot = 0; tot < n; tot += nr) {
+		nr = pread(d->fd, p + tot, n - tot, b->addr + tot);
 		if(nr <= 0)
-			break;		/* tot < n, so error */
+			break; /* tot < n, so error */
 	}
 	if(tot != n)
 		error("read error from temp file");

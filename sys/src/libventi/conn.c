@@ -14,7 +14,7 @@
 
 int chattyventi;
 
-VtConn*
+VtConn *
 vtconn(int infd, int outfd)
 {
 	VtConn *z;
@@ -29,8 +29,8 @@ vtconn(int infd, int outfd)
 	nci = getnetconninfo(nil, infd);
 	if(nci == nil)
 		snprint(z->addr, sizeof z->addr, "/dev/fd/%d", infd);
-	else{
-		strecpy(z->addr, z->addr+sizeof z->addr, nci->raddr);
+	else {
+		strecpy(z->addr, z->addr + sizeof z->addr, nci->raddr);
 		freenetconninfo(nci);
 	}
 	return z;
@@ -45,7 +45,7 @@ vtfreeconn(VtConn *z)
 	 * Wait for send and recv procs to notice
 	 * the hangup and clear out the queues.
 	 */
-	while(z->readq || z->writeq){
+	while(z->readq || z->writeq) {
 		if(z->readq)
 			_vtqhangup(z->readq);
 		if(z->writeq)

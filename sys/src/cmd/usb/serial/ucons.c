@@ -16,8 +16,8 @@
 #include "ucons.h"
 
 Cinfo uconsinfo[] = {
-	{ Net20DCVid,	Net20DCDid },
-	{ 0,		0 },
+    {Net20DCVid, Net20DCDid},
+    {0, 0},
 };
 
 int
@@ -26,7 +26,7 @@ uconsmatch(char *info)
 	Cinfo *ip;
 	char buf[50];
 
-	for(ip = uconsinfo; ip->vid != 0; ip++){
+	for(ip = uconsinfo; ip->vid != 0; ip++) {
 		snprint(buf, sizeof buf, "vid %#06x did %#06x",
 			ip->vid, ip->did);
 		dsprint(2, "serial: %s %s\n", buf, info);
@@ -43,14 +43,14 @@ ucseteps(Serialport *p)
 
 	ser = p->s;
 
-	p->baud = ~0;	/* not real port */
+	p->baud = ~0; /* not real port */
 	ser->maxrtrans = ser->maxwtrans = 8;
-	devctl(p->epin,  "maxpkt 8");
+	devctl(p->epin, "maxpkt 8");
 	devctl(p->epout, "maxpkt 8");
 	return 0;
 }
 
 /* all nops */
 Serialops uconsops = {
-	.seteps = ucseteps,
+    .seteps = ucseteps,
 };

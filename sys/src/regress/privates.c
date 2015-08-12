@@ -19,56 +19,55 @@ main(void)
 	unsigned char buf[512];
 	uint64_t i, fail = 0;
 
-	if (_privates == nil) {
+	if(_privates == nil) {
 		fprint(2, "_privates is nil\n");
 		fail++;
 	}
 
-	if (_nprivates == 0) {
+	if(_nprivates == 0) {
 		fprint(2, "_nprivates is 0\n");
 		fail++;
 	}
 
-	for (i = 0; i < _nprivates; i++) {
+	for(i = 0; i < _nprivates; i++) {
 		_privates[i] = (void *)(0x77665544332210 + i);
 	}
 
 	memset(buf, 0, sizeof buf);
 
-	for (i = 0; i < _nprivates; i++) {
-		if (_privates[i] != (void *)(0x77665544332210 + i)){
+	for(i = 0; i < _nprivates; i++) {
+		if(_privates[i] != (void *)(0x77665544332210 + i)) {
 			fprint(2, "_privates[%d] = %p\n", i, _privates[i]);
 			fail++;
 		}
 	}
 
-	void **p[_nprivates+1];
-	for (i = 0; i < _nprivates; i++) {
+	void **p[_nprivates + 1];
+	for(i = 0; i < _nprivates; i++) {
 		p[i] = privalloc();
-		if(p[i] == nil){
+		if(p[i] == nil) {
 			fail++;
 			fprint(2, "privalloc[%d]: %p\n", i, p[i]);
 		}
 	}
 
 	p[i] = privalloc();
-	if(p[i] != nil){
+	if(p[i] != nil) {
 		fail++;
 		fprint(2, "privalloc[%d]: %p\n", i, p[i]);
 	}
 
-	for (i = 0; i < _nprivates; i++) {
-		*(p[i]) = (void*)i;
+	for(i = 0; i < _nprivates; i++) {
+		*(p[i]) = (void *)i;
 	}
-	for (i = 0; i < _nprivates; i++) {
-		if(*(p[i]) != (void*)i){
+	for(i = 0; i < _nprivates; i++) {
+		if(*(p[i]) != (void *)i) {
 			fprint(2, "p[%d] != %d\n", i, i);
 			fail++;
 		}
 	}
 
-
-	if (fail > 0) {
+	if(fail > 0) {
 		print("FAIL\n");
 		exits("FAIL");
 	}

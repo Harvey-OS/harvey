@@ -17,7 +17,7 @@
 static char Ebad[] = "something bad happened";
 static char Enomem[] = "no memory";
 
-typedef struct Ramfile	Ramfile;
+typedef struct Ramfile Ramfile;
 struct Ramfile {
 	char *data;
 	int ndata;
@@ -34,17 +34,17 @@ fsread(Req *r)
 	offset = r->ifcall.offset;
 	count = r->ifcall.count;
 
-//print("read %ld %lld\n", *count, offset);
-	if(offset >= rf->ndata){
+	//print("read %ld %lld\n", *count, offset);
+	if(offset >= rf->ndata) {
 		r->ofcall.count = 0;
 		respond(r, nil);
 		return;
 	}
 
-	if(offset+count >= rf->ndata)
+	if(offset + count >= rf->ndata)
 		count = rf->ndata - offset;
 
-	memmove(r->ofcall.data, rf->data+offset, count);
+	memmove(r->ofcall.data, rf->data + offset, count);
 	r->ofcall.count = count;
 	respond(r, nil);
 }
@@ -61,17 +61,17 @@ fswrite(Req *r)
 	offset = r->ifcall.offset;
 	count = r->ifcall.count;
 
-	if(offset+count >= rf->ndata){
-		v = realloc(rf->data, offset+count);
-		if(v == nil){
+	if(offset + count >= rf->ndata) {
+		v = realloc(rf->data, offset + count);
+		if(v == nil) {
 			respond(r, Enomem);
 			return;
 		}
 		rf->data = v;
-		rf->ndata = offset+count;
+		rf->ndata = offset + count;
 		r->fid->file->length = rf->ndata;
 	}
-	memmove(rf->data+offset, r->ifcall.data, count);
+	memmove(rf->data + offset, r->ifcall.data, count);
 	r->ofcall.count = count;
 	respond(r, nil);
 }
@@ -82,7 +82,7 @@ fscreate(Req *r)
 	Ramfile *rf;
 	File *f;
 
-	if(f = createfile(r->fid->file, r->ifcall.name, r->fid->uid, r->ifcall.perm, nil)){
+	if(f = createfile(r->fid->file, r->ifcall.name, r->fid->uid, r->ifcall.perm, nil)) {
 		rf = emalloc9p(sizeof *rf);
 		f->aux = rf;
 		r->fid->file = f;
@@ -100,7 +100,7 @@ fsopen(Req *r)
 
 	rf = r->fid->file->aux;
 
-	if(rf && (r->ifcall.mode&OTRUNC)){
+	if(rf && (r->ifcall.mode & OTRUNC)) {
 		rf->ndata = 0;
 		r->fid->file->length = 0;
 	}
@@ -113,19 +113,19 @@ fsdestroyfile(File *f)
 {
 	Ramfile *rf;
 
-//fprint(2, "clunk\n");
+	//fprint(2, "clunk\n");
 	rf = f->aux;
-	if(rf){
+	if(rf) {
 		free(rf->data);
 		free(rf);
 	}
 }
 
 Srv fs = {
-	.open=	fsopen,
-	.read=	fsread,
-	.write=	fswrite,
-	.create=	fscreate,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .create = fscreate,
 };
 
 void
@@ -143,10 +143,11 @@ main(int argc, char **argv)
 	char *mtpt = nil;
 	Qid q;
 
-	fs.tree = alloctree(nil, nil, DMDIR|0777, fsdestroyfile);
+	fs.tree = alloctree(nil, nil, DMDIR | 0777, fsdestroyfile);
 	q = fs.tree->root->qid;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -161,7 +162,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc)
 		usage();
@@ -174,6 +176,6 @@ main(int argc, char **argv)
 		listensrv(&fs, addr);
 
 	if(srvname || mtpt)
-		postmountsrv(&fs, srvname, mtpt, MREPL|MCREATE);
+		postmountsrv(&fs, srvname, mtpt, MREPL | MCREATE);
 	exits(0);
 }

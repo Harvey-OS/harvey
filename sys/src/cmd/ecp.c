@@ -27,7 +27,7 @@ enum {
 	No = 0,
 	Yes,
 
-	Noseek = 0,		/* need not seek, may seek on seekable files */
+	Noseek = 0, /* need not seek, may seek on seekable files */
 	Mustseek,
 
 	Enone = 0,
@@ -36,35 +36,35 @@ enum {
 
 /* tunable parameters */
 enum {
-	Defsectsz = 512,	/* default sector size */
+	Defsectsz = 512, /* default sector size */
 	/* 10K is a good size for HP WORM drives */
-	Defblksz = 16*1024,	/* default block (big-transfer) size */
-	Mingoodblks = 3,	/* after this many, go back to fast mode */
+	Defblksz = 16 * 1024, /* default block (big-transfer) size */
+	Mingoodblks = 3,      /* after this many, go back to fast mode */
 };
 
-#define TTY "/dev/cons"			/* plan 9 */
+#define TTY "/dev/cons" /* plan 9 */
 
-#define badsect(errno) ((errno) != Enone)  /* was last transfer in error? */
+#define badsect(errno) ((errno) != Enone) /* was last transfer in error? */
 
 /* disk address (in bytes or sectors), also type of 2nd arg. to seek */
 typedef uint64_t Daddr;
-typedef int64_t Sdaddr;				/* signed disk address */
-typedef int32_t Rdwrfn(int, void *, int32_t);		/* plan 9 read or write */
+typedef int64_t Sdaddr;			      /* signed disk address */
+typedef int32_t Rdwrfn(int, void *, int32_t); /* plan 9 read or write */
 
 typedef struct {
-	char	*name;
-	int	fd;
-	Daddr	startsect;
-	int	fast;
-	int	seekable;
+	char *name;
+	int fd;
+	Daddr startsect;
+	int fast;
+	int seekable;
 
-	uint32_t	maxconerrs;		/* maximum consecutive errors */
-	uint32_t	conerrs;		/* current consecutive errors */
-	Daddr	congoodblks;
+	uint32_t maxconerrs; /* maximum consecutive errors */
+	uint32_t conerrs;    /* current consecutive errors */
+	Daddr congoodblks;
 
-	Daddr	harderrs;
-	Daddr	lasterr;		/* sector #s */
-	Daddr	lastgood;
+	Daddr harderrs;
+	Daddr lasterr; /* sector #s */
+	Daddr lastgood;
 } File;
 
 /* exports */
@@ -88,10 +88,10 @@ warning(char *s1, char *s2)
 	char err[100], msg[256];
 	char *np, *ep = msg + sizeof msg - 1;
 
-	errstr(err, sizeof err);		/* save error string */
+	errstr(err, sizeof err); /* save error string */
 	np = seprint(msg, ep, "%s: ", argv0);
 	np = seprint(np, ep, s1, s2);
-	errstr(err, sizeof err);		/* restore error string */
+	errstr(err, sizeof err); /* restore error string */
 	seprint(np, ep, ": %r\n");
 
 	fprint(2, "%s", msg);
@@ -102,34 +102,34 @@ eopen(char *file, int mode)
 {
 	int fd = open(file, mode);
 
-	if (fd < 0)
+	if(fd < 0)
 		sysfatal("can't open %s: %r", file);
 	return fd;
 }
 
-static int					/* boolean */
-confirm(File *src, File *dest)
+static int /* boolean */
+    confirm(File *src, File *dest)
 {
 	int absent, n, tty = eopen(TTY, 2);
 	char c, junk;
 	Dir *stp;
 
-	if ((stp = dirstat(src->name)) == nil)
+	if((stp = dirstat(src->name)) == nil)
 		sysfatal("no input file %s: %r", src->name);
 	free(stp);
 	stp = dirstat(dest->name);
 	absent = (stp == nil);
 	free(stp);
 	fprint(2, "%s: copy %s to %s%s? ", argv0, src->name, dest->name,
-		(absent? " (missing)": ""));
+	       (absent ? " (missing)" : ""));
 	n = read(tty, &c, 1);
 	junk = c;
-	if (n < 1)
+	if(n < 1)
 		c = 'n';
-	while (n > 0 && junk != '\n')
+	while(n > 0 && junk != '\n')
 		n = read(tty, &junk, 1);
 	close(tty);
-	if (isascii(c) && isupper(c))
+	if(isascii(c) && isupper(c))
 		c = tolower(c);
 	return c == 'y';
 }
@@ -139,7 +139,7 @@ sectid(File *fp, Daddr sect)
 {
 	static char sectname[256];
 
-	if (fp->startsect == 0)
+	if(fp->startsect == 0)
 		snprint(sectname, sizeof sectname, "%s sector %llud",
 			fp->name, sect);
 	else
@@ -150,24 +150,24 @@ sectid(File *fp, Daddr sect)
 }
 
 static void
-io_expl(File *fp, char *rw, Daddr sect)		/* explain an i/o error */
+io_expl(File *fp, char *rw, Daddr sect) /* explain an i/o error */
 {
 	/* print only first 2 bad sectors in a range, if going forward */
-	if (reverse || fp->conerrs == 0) {
+	if(reverse || fp->conerrs == 0) {
 		char msg[128];
 
 		snprint(msg, sizeof msg, "%s %s", rw, sectid(fp, sect));
 		warning("%s", msg);
-	} else if (fp->conerrs == 1)
+	} else if(fp->conerrs == 1)
 		fprint(2, "%s: ...\n", argv0);
 }
 
 static void
 repos(File *fp, Daddr sect)
 {
-	if (!fp->seekable)
+	if(!fp->seekable)
 		sysfatal("%s: trying to seek on unseekable file", fp->name);
-	if (seek(fp->fd, (sect+fp->startsect)*sectsz, 0) == -1)
+	if(seek(fp->fd, (sect + fp->startsect) * sectsz, 0) == -1)
 		sysfatal("can't seek on %s: %r", fp->name);
 }
 
@@ -178,14 +178,14 @@ rewind(File *fp)
 }
 
 static char magic[] = "\235any old ☺ rubbish\173";
-static char uniq[sizeof magic + 2*sizeof(uint32_t)];
+static char uniq[sizeof magic + 2 * sizeof(uint32_t)];
 
 static char *
 putbe(char *p, uint32_t ul)
 {
-	*p++ = ul>>24;
-	*p++ = ul>>16;
-	*p++ = ul>>8;
+	*p++ = ul >> 24;
+	*p++ = ul >> 16;
+	*p++ = ul >> 8;
 	*p++ = ul;
 	return p;
 }
@@ -214,8 +214,8 @@ addmagic(char *buff, int bytes)
 static int
 ismagicok(char *buff, char *tail)
 {
-	return  memcmp(buff, uniq, sizeof uniq) == 0 ||
-		memcmp(tail, uniq, sizeof uniq) == 0;
+	return memcmp(buff, uniq, sizeof uniq) == 0 ||
+	       memcmp(tail, uniq, sizeof uniq) == 0;
 }
 
 /*
@@ -231,29 +231,29 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 	uint32_t toread, bytes = sects * sectsz;
 	static int reblocked = 0;
 
-	if (mustseek) {
-		if (!fp->seekable)
+	if(mustseek) {
+		if(!fp->seekable)
 			sysfatal("%s: need to seek on unseekable file",
-				fp->name);
+				 fp->name);
 		repos(fp, stsect);
 	}
-	if ((int32_t)blocksize != blocksize || (int32_t)bytes != bytes)
+	if((int32_t)blocksize != blocksize || (int32_t)bytes != bytes)
 		sysfatal("i/o count too big: %lud", bytes);
 
 	SET(tail);
-	if (rdwr == read)
+	if(rdwr == read)
 		tail = addmagic(buff, bytes);
 	werrstr("");
 	xfered = (*rdwr)(fp->fd, buff, bytes);
-	if (xfered == bytes) {
+	if(xfered == bytes) {
 		/* don't trust the hardware; it may lie */
-		if (rdwr == read && ismagicok(buff, tail))
+		if(rdwr == read && ismagicok(buff, tail))
 			fprint(2, "%s: `good' read didn't change buffer\n",
-				argv0);
-		return Enone;			/* did as we asked */
+			       argv0);
+		return Enone; /* did as we asked */
 	}
-	if (xfered < 0)
-		return Eio;			/* out-and-out i/o error */
+	if(xfered < 0)
+		return Eio; /* out-and-out i/o error */
 
 	/*
 	 * Kernel transferred less than asked.  Shouldn't happen;
@@ -263,27 +263,27 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 	 * unless reblocking input and this is a read.
 	 */
 
-	if (rdwr == write)
+	if(rdwr == write)
 		return Eio;
-	if (!reblock) {
-		memset(buff+xfered, '\0', bytes-xfered);
-		return Eio;			/* short read */
+	if(!reblock) {
+		memset(buff + xfered, '\0', bytes - xfered);
+		return Eio; /* short read */
 	}
 
 	/* for pipes that return less than asked */
-	if (progress && !reblocked) {
+	if(progress && !reblocked) {
 		fprint(2, "%s: reblocking input\n", argv0);
 		reblocked++;
 	}
-	for (toread = bytes - xfered; toread != 0; toread -= xfered) {
-		xfered = (*rdwr)(fp->fd, buff+bytes-toread, toread);
-		if (xfered <= 0)
+	for(toread = bytes - xfered; toread != 0; toread -= xfered) {
+		xfered = (*rdwr)(fp->fd, buff + bytes - toread, toread);
+		if(xfered <= 0)
 			break;
 	}
-	if (xfered < 0)
-		return Eio;			/* out-and-out i/o error */
-	if (toread != 0)			/* early EOF? */
-		memset(buff+bytes-toread, '\0', toread);
+	if(xfered < 0)
+		return Eio; /* out-and-out i/o error */
+	if(toread != 0)     /* early EOF? */
+		memset(buff + bytes - toread, '\0', toread);
 	return Enone;
 }
 
@@ -291,31 +291,31 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 static int
 toomanyerrs(File *fp, Daddr sect)
 {
-	if (sect == fp->lasterr+1)
+	if(sect == fp->lasterr + 1)
 		fp->conerrs++;
 	else
 		fp->conerrs = 0;
 	fp->lasterr = sect;
 	return fp->maxconerrs != 0 && fp->conerrs >= fp->maxconerrs &&
-		fp->lastgood == -1;
+	       fp->lastgood == -1;
 }
 
 static void
 ckendrange(File *fp)
 {
-	if (!reverse && fp->conerrs > 0)
+	if(!reverse && fp->conerrs > 0)
 		fprint(2, "%s: %lld: ... last bad sector in range\n",
-			argv0, fp->lasterr);
+		       argv0, fp->lasterr);
 }
 
 static int
 transfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
-	int mustseek)
+	 int mustseek)
 {
 	int res = bio(fp, rdwr, buff, stsect, sects, mustseek);
 
-	if (badsect(res)) {
-		fp->fast = 0;		/* read single sectors for a while */
+	if(badsect(res)) {
+		fp->fast = 0; /* read single sectors for a while */
 		fp->congoodblks = 0;
 	} else
 		fp->lastgood = stsect + sects - 1;
@@ -331,39 +331,41 @@ bigxfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 	int mustseek)
 {
 	int i, badsects = 0, wasfast = fp->fast;
-	char *rw = (rdwr == read? "read": "write");
+	char *rw = (rdwr == read ? "read" : "write");
 
-	if (fp->fast) {
-		if (!badsect(transfer(fp, rdwr, buff, stsect, sects, mustseek)))
+	if(fp->fast) {
+		if(!badsect(transfer(fp, rdwr, buff, stsect, sects, mustseek)))
 			return;
-		if (progress)
+		if(progress)
 			fprint(2, "%s: breaking up big transfer on %s error "
-				"`%r' on %s\n", argv0, rw, sectid(fp, stsect));
+				  "`%r' on %s\n",
+			       argv0, rw, sectid(fp, stsect));
 	}
 
-	for (i = 0; i < sects; i++)
-		if (badsect(transfer(fp, rdwr, buff+i*sectsz, stsect+i, 1,
-		    Mustseek))) {
-			io_expl(fp, rw, stsect+i);
+	for(i = 0; i < sects; i++)
+		if(badsect(transfer(fp, rdwr, buff + i * sectsz, stsect + i, 1,
+				    Mustseek))) {
+			io_expl(fp, rw, stsect + i);
 			badsects++;
 			fp->harderrs++;
-			if (toomanyerrs(fp, stsect+i))
+			if(toomanyerrs(fp, stsect + i))
 				sysfatal("more than %lud consecutive I/O errors",
-					fp->maxconerrs);
+					 fp->maxconerrs);
 		} else {
 			ckendrange(fp);
 			fp->conerrs = 0;
 		}
-	if (badsects == 0) {
+	if(badsects == 0) {
 		ckendrange(fp);
 		fp->conerrs = 0;
-		if (wasfast)
+		if(wasfast)
 			fprint(2, "%s: %s error on big transfer at %s but none "
-				"on retries!\n", argv0, rw, sectid(fp, stsect));
+				  "on retries!\n",
+			       argv0, rw, sectid(fp, stsect));
 		++fp->congoodblks;
-		if (fp->congoodblks >= Mingoodblks) {
+		if(fp->congoodblks >= Mingoodblks) {
 			fprint(2, "%s: %s: back to big transfers\n", argv0,
-				fp->name);
+			       fp->name);
 			fp->fast = 1;
 		}
 	} else
@@ -380,7 +382,7 @@ vrfyfailed(File *src, File *dest, Daddr stsect)
 	char *srcsect = strdup(sectid(src, stsect));
 
 	fprint(2, "%s: verify failed at %s (%s)\n", argv0, srcsect,
-		sectid(dest, stsect));
+	       sectid(dest, stsect));
 	free(srcsect);
 }
 
@@ -389,50 +391,51 @@ vrfyfailed(File *src, File *dest, Daddr stsect)
  * report to the program doing the read, so if a big verify fails,
  * break it up and verify each sector separately to isolate the bad sector(s).
  */
-int						/* error count */
-verify(File *src, File *dest, char *buff, char *buft, Daddr stsect,
-	int sectors)
+int /* error count */
+    verify(File *src, File *dest, char *buff, char *buft, Daddr stsect,
+	   int sectors)
 {
 	int i, errors = 0;
 
-	for (i = 0; i < sectors; i++)
-		if (memcmp(buff + i*sectsz, buft + i*sectsz, sectsz) != 0)
+	for(i = 0; i < sectors; i++)
+		if(memcmp(buff + i * sectsz, buft + i * sectsz, sectsz) != 0)
 			errors++;
-	if (errors == 0)
-		return errors;			/* normal case */
+	if(errors == 0)
+		return errors; /* normal case */
 
-	if (sectors == 1) {
+	if(sectors == 1) {
 		vrfyfailed(src, dest, stsect);
 		return errors;
 	}
 
 	/* re-read and verify each sector individually */
 	errors = 0;
-	for (i = 0; i < sectors; i++) {
+	for(i = 0; i < sectors; i++) {
 		int thissect = stsect + i;
 
-		if (badsect(bio(src,  read, buff, thissect, 1, Mustseek)))
-			io_expl(src,  "read",  thissect);
-		if (badsect(bio(dest, read, buft, thissect, 1, Mustseek)))
+		if(badsect(bio(src, read, buff, thissect, 1, Mustseek)))
+			io_expl(src, "read", thissect);
+		if(badsect(bio(dest, read, buft, thissect, 1, Mustseek)))
 			io_expl(dest, "write", thissect);
-		if (memcmp(buff, buft, sectsz) != 0) {
+		if(memcmp(buff, buft, sectsz) != 0) {
 			vrfyfailed(src, dest, thissect);
 			++errors;
 		}
 	}
-	if (errors == 0) {
+	if(errors == 0) {
 		char *srcsect = strdup(sectid(src, stsect));
 
 		fprint(2, "%s: verification failed on big read at %s (%s) "
-			"but not on retries!\n", argv0, srcsect,
-			sectid(dest, stsect));
+			  "but not on retries!\n",
+		       argv0, srcsect,
+		       sectid(dest, stsect));
 		free(srcsect);
 	}
 	/*
 	 * the last sector of each could have been in error, so the seek
 	 * pointers may need to be corrected.
 	 */
-	repos(src,  stsect + sectors);
+	repos(src, stsect + sectors);
 	repos(dest, stsect + sectors);
 	return errors;
 }
@@ -446,7 +449,7 @@ int
 sectsleft(Daddr start, Daddr nsects, int maxxfr)
 {
 	/* nsects-start is sectors to the end */
-	if (start + maxxfr <= nsects - 1)
+	if(start + maxxfr <= nsects - 1)
 		return maxxfr;
 	else
 		return nsects - start;
@@ -461,9 +464,9 @@ swizzlebits(char *buff, int sects)
 {
 	uint8_t *bp, *endbp;
 
-	endbp = (uint8_t *)(buff+sects*sectsz);
-	for (bp = (uint8_t *)buff; bp < endbp; bp++)
-		*bp = ~(*bp>>Rotbits | *bp<<(8-Rotbits));
+	endbp = (uint8_t *)(buff + sects * sectsz);
+	for(bp = (uint8_t *)buff; bp < endbp; bp++)
+		*bp = ~(*bp >> Rotbits | *bp << (8 - Rotbits));
 }
 
 /*
@@ -476,19 +479,19 @@ copysects(File *src, File *dest, Daddr stsect, Daddr nsects, int mustseek)
 {
 	int xfrsects = sectsleft(stsect, nsects, blksects);
 
-	if (xfrsects > blksects) {
+	if(xfrsects > blksects) {
 		fprint(2, "%s: block size of %d is too big.\n", argv0, xfrsects);
 		exits("block size too big");
 	}
-	bigxfer(src,  read,  buf, stsect, xfrsects, mustseek);
-	if (swizzle)
+	bigxfer(src, read, buf, stsect, xfrsects, mustseek);
+	if(swizzle)
 		swizzlebits(buf, xfrsects);
 	bigxfer(dest, write, buf, stsect, xfrsects, mustseek);
 	/* give a few reassurances at the start, then every 10MB */
-	if (progress &&
-	    (stsect < blksects*10 || stsect%(10*1024*1024/sectsz) == 0))
+	if(progress &&
+	   (stsect < blksects * 10 || stsect % (10 * 1024 * 1024 / sectsz) == 0))
 		fprint(2, "%s: copied%s to relative sector %llud\n", argv0,
-			(swizzle? " swizzled": ""), stsect + xfrsects - 1);
+		       (swizzle ? " swizzled" : ""), stsect + xfrsects - 1);
 	return 0;
 }
 
@@ -501,11 +504,11 @@ vrfysects(File *src, File *dest, Daddr stsect, Daddr nsects, int mustseek)
 {
 	int xfrsects = sectsleft(stsect, nsects, blksects);
 
-	if (xfrsects > blksects) {
+	if(xfrsects > blksects) {
 		fprint(2, "%s: block size of %d is too big.\n", argv0, xfrsects);
 		exits("block size too big");
 	}
-	bigxfer(src,  read, buf,    stsect, xfrsects, mustseek);
+	bigxfer(src, read, buf, stsect, xfrsects, mustseek);
 	bigxfer(dest, read, vfybuf, stsect, xfrsects, mustseek);
 	return verify(src, dest, buf, vfybuf, stsect, xfrsects);
 }
@@ -514,10 +517,10 @@ static void
 setupfile(File *fp, int mode)
 {
 	fp->fd = open(fp->name, mode);
-	if (fp->fd < 0)
+	if(fp->fd < 0)
 		sysfatal("can't open %s: %r", fp->name);
 	fp->seekable = (seek(fp->fd, 0, 1) >= 0);
-	if (fp->startsect != 0)
+	if(fp->startsect != 0)
 		rewind(fp);
 }
 
@@ -528,23 +531,23 @@ copyfile(File *src, File *dest, Daddr nsects, int plsverify)
 	Dir *stp;
 
 	setupfile(src, OREAD);
-	if ((stp = dirstat(dest->name)) == nil) {
+	if((stp = dirstat(dest->name)) == nil) {
 		int fd = create(dest->name, ORDWR, 0666);
 
-		if (fd >= 0)
+		if(fd >= 0)
 			close(fd);
 	}
 	free(stp);
 	setupfile(dest, ORDWR);
 
-	if (progress)
+	if(progress)
 		fprint(2, "%s: copying first sectors\n", argv0);
-	if (reverse)
-		for (stsect = (nsects/blksects)*blksects; stsect >= 0;
-		     stsect -= blksects)
+	if(reverse)
+		for(stsect = (nsects / blksects) * blksects; stsect >= 0;
+		    stsect -= blksects)
 			vererrs += copysects(src, dest, stsect, nsects, Mustseek);
 	else {
-		for (stsect = 0; stsect < nsects; stsect += blksects)
+		for(stsect = 0; stsect < nsects; stsect += blksects)
 			vererrs += copysects(src, dest, stsect, nsects, Noseek);
 		ckendrange(src);
 		ckendrange(dest);
@@ -555,18 +558,18 @@ copyfile(File *src, File *dest, Daddr nsects, int plsverify)
 	 * writing, in part to defeat caching in clever disk controllers.
 	 * we really want to see the bits that hit the disk.
 	 */
-	if (plsverify) {
+	if(plsverify) {
 		fprint(2, "%s: copy done; verifying...\n", argv0);
 		rewind(src);
 		rewind(dest);
-		for (stsect = 0; stsect < nsects; stsect += blksects) /* forward */
+		for(stsect = 0; stsect < nsects; stsect += blksects) /* forward */
 			vererrs += vrfysects(src, dest, stsect, nsects, Noseek);
-		if (vererrs <= 0)
+		if(vererrs <= 0)
 			fprint(2, "%s: no", argv0);
 		else
 			fprint(2, "%s: %llud", argv0, vererrs);
 		fprint(2, " error%s during verification\n",
-			(vererrs != 1? "s": ""));
+		       (vererrs != 1 ? "s" : ""));
 	}
 	close(src->fd);
 	close(dest->fd);
@@ -577,7 +580,8 @@ static void
 usage(void)
 {
 	fprint(2, "usage: %s [-bcprvZ][-B blocksz][-e errs][-s sectsz]"
-		"[-i issect][-o ossect] sectors from to\n", argv0);
+		  "[-i issect][-o ossect] sectors from to\n",
+	       argv0);
 	exits("usage");
 }
 
@@ -600,13 +604,14 @@ main(int argc, char **argv)
 
 	initfile(&src);
 	initfile(&dest);
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'b':
 		reblock = Yes;
 		break;
 	case 'B':
 		lval = atol(EARGF(usage()));
-		if (lval < 0)
+		if(lval < 0)
 			usage();
 		blocksize = lval;
 		break;
@@ -615,20 +620,20 @@ main(int argc, char **argv)
 		break;
 	case 'e':
 		lval = atol(EARGF(usage()));
-		if (lval < 0)
+		if(lval < 0)
 			usage();
 		src.maxconerrs = lval;
 		dest.maxconerrs = lval;
 		break;
 	case 'i':
 		sect = atoll(EARGF(usage()));
-		if (sect < 0)
+		if(sect < 0)
 			usage();
 		src.startsect = sect;
 		break;
 	case 'o':
 		sect = atoll(EARGF(usage()));
-		if (sect < 0)
+		if(sect < 0)
 			usage();
 		dest.startsect = sect;
 		break;
@@ -640,7 +645,7 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		sectsz = atol(EARGF(usage()));
-		if (sectsz <= 0 || sectsz % 512 != 0)
+		if(sectsz <= 0 || sectsz % 512 != 0)
 			usage();
 		break;
 	case 'v':
@@ -652,28 +657,29 @@ main(int argc, char **argv)
 	default:
 		errflg++;
 		break;
-	} ARGEND
-	if (errflg || argc != 3)
+	}
+	ARGEND
+	if(errflg || argc != 3)
 		usage();
-	if (blocksize <= 0 || blocksize % sectsz != 0)
+	if(blocksize <= 0 || blocksize % sectsz != 0)
 		sysfatal("block size not a multiple of sector size");
 
-	if (!isascii(argv[0][0]) || !isdigit(argv[0][0])) {
+	if(!isascii(argv[0][0]) || !isdigit(argv[0][0])) {
 		fprint(2, "%s: %s is not numeric\n", argv0, argv[0]);
 		exits("non-numeric sector count");
 	}
-	src.name =  argv[1];
+	src.name = argv[1];
 	dest.name = argv[2];
 
 	blksects = blocksize / sectsz;
-	if (blksects < 1)
+	if(blksects < 1)
 		blksects = 1;
 	buf = malloc(blocksize);
 	vfybuf = malloc(blocksize);
-	if (buf == nil || vfybuf == nil)
+	if(buf == nil || vfybuf == nil)
 		sysfatal("out of memory: %r");
 
-	if (plsconfirm? confirm(&src, &dest): Yes)
+	if(plsconfirm ? confirm(&src, &dest) : Yes)
 		copyfile(&src, &dest, atoll(argv[0]), plsverify);
-	exits(src.harderrs || dest.harderrs? "hard errors": 0);
+	exits(src.harderrs || dest.harderrs ? "hard errors" : 0);
 }

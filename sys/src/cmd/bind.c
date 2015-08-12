@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-void	usage(void);
+void usage(void);
 
 void
 main(int argc, char *argv[])
@@ -18,7 +18,8 @@ main(int argc, char *argv[])
 	uint32_t flag = 0;
 	int qflag = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		flag |= MAFTER;
 		break;
@@ -33,12 +34,13 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc != 2 || (flag&MAFTER)&&(flag&MBEFORE))
+	if(argc != 2 || (flag & MAFTER) && (flag & MBEFORE))
 		usage();
 
-	if(bind(argv[0], argv[1], flag) < 0){
+	if(bind(argv[0], argv[1], flag) < 0) {
 		if(qflag)
 			exits(0);
 		/* try to give a less confusing error than the default */

@@ -7,13 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  * reported times can be translated to a more readable format by
@@ -23,18 +22,15 @@
  * on the wsdata file, after doing a sort +2nr on it.
  */
 
-enum{
+enum {
 	WSdirqid,
 	WSdataqid,
 	WSctlqid,
 };
 
-Dirtab Wstab[]={
-	".",		{WSdirqid, 0, QTDIR},0,	DMDIR|0550,
-	"wsdata",	{WSdataqid},		0,	0600,
-	"wsctl",	{WSctlqid},		0,	0600,
+Dirtab Wstab[] = {
+    ".", {WSdirqid, 0, QTDIR}, 0, DMDIR | 0550, "wsdata", {WSdataqid}, 0, 0600, "wsctl", {WSctlqid}, 0, 0600,
 };
-
 
 /*
  * waitstats functions are in taslock.c, because they use Locks but
@@ -43,16 +39,16 @@ Dirtab Wstab[]={
  * This is only the user interface.
  */
 
-static char*
+static char *
 collect(void)
 {
 	extern Lock waitstatslk;
 	char *buf, *s;
 	int i, n;
 	static char *wname[] = {
-	[WSlock] "lock",
-	[WSqlock] "qlock",
-	[WSslock] "slock",
+		[WSlock] "lock",
+		[WSqlock] "qlock",
+		[WSslock] "slock",
 	};
 
 	n = waitstats.npcs * (strlen("slock") + 1 + 19 * 3 + 1) + 1;
@@ -61,23 +57,23 @@ collect(void)
 	lock(&waitstatslk);
 	for(i = 0; i < NWstats; i++)
 		if(waitstats.pcs[i] != 0)
-			s = seprint(s, buf+n, "%s %#llux %d %#llud %#llud\n",
-				wname[waitstats.type[i]],
-				waitstats.pcs[i], waitstats.ns[i], waitstats.wait[i],
-				waitstats.total[i]);
+			s = seprint(s, buf + n, "%s %#llux %d %#llud %#llud\n",
+				    wname[waitstats.type[i]],
+				    waitstats.pcs[i], waitstats.ns[i], waitstats.wait[i],
+				    waitstats.total[i]);
 	unlock(&waitstatslk);
 	if(s == buf + n)
 		print("collect: fix devws.c, buffer was too short");
 	return buf;
 }
 
-static Chan*
+static Chan *
 wsattach(char *spec)
 {
 	return devattach('W', spec);
 }
 
-static Walkqid*
+static Walkqid *
 wswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, Wstab, nelem(Wstab), devgen);
@@ -89,10 +85,10 @@ wsstat(Chan *c, uint8_t *db, int32_t n)
 	return devstat(c, db, n, Wstab, nelem(Wstab), devgen);
 }
 
-static Chan*
+static Chan *
 wsopen(Chan *c, int omode)
 {
-	if(c->qid.type & QTDIR){
+	if(c->qid.type & QTDIR) {
 		if(omode != OREAD)
 			error(Eperm);
 	}
@@ -115,7 +111,7 @@ static int32_t
 wsread(Chan *c, void *va, int32_t n, int64_t off)
 {
 
-	switch((int)c->qid.path){
+	switch((int)c->qid.path) {
 	case WSdirqid:
 		n = devdirread(c, va, n, Wstab, nelem(Wstab), devgen);
 		break;
@@ -133,22 +129,22 @@ wswrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	char *buf;
 
-	switch((int)(c->qid.path)){
+	switch((int)(c->qid.path)) {
 	case WSctlqid:
 		buf = smalloc(n + 1);
 		memmove(buf, a, n);
 		buf[n] = 0;
-		if(n > 0 && buf[n-1] == '\n')
-			buf[n-1] = 0;
-		if(strcmp(buf, "clear") == 0){
+		if(n > 0 && buf[n - 1] == '\n')
+			buf[n - 1] = 0;
+		if(strcmp(buf, "clear") == 0) {
 			lockstats.locks = lockstats.glare = lockstats.inglare = 0;
 			qlockstats.qlock = qlockstats.qlockq = 0;
 			clearwaitstats();
-		}else if(strcmp(buf, "start") == 0)
+		} else if(strcmp(buf, "start") == 0)
 			startwaitstats(1);
 		else if(strcmp(buf, "stop") == 0)
 			startwaitstats(0);
-		else{
+		else {
 			free(buf);
 			error(Ebadctl);
 		}
@@ -161,22 +157,22 @@ wswrite(Chan *c, void *a, int32_t n, int64_t m)
 }
 
 Dev wsdevtab = {
-	'W',
-	"waitstats",
+    'W',
+    "waitstats",
 
-	devreset,
-	devinit,
-	devshutdown,
-	wsattach,
-	wswalk,
-	wsstat,
-	wsopen,
-	devcreate,
-	wsclose,
-	wsread,
-	devbread,
-	wswrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    devreset,
+    devinit,
+    devshutdown,
+    wsattach,
+    wswalk,
+    wsstat,
+    wsopen,
+    devcreate,
+    wsclose,
+    wsread,
+    devbread,
+    wswrite,
+    devbwrite,
+    devremove,
+    devwstat,
 };

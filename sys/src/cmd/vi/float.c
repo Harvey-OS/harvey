@@ -14,91 +14,166 @@
 #define Extern extern
 #include "mips.h"
 
-void	unimp(ulong);
-void	Ifcmp(ulong);
-void	Ifdiv(ulong);
-void	Ifmul(ulong);
-void	Ifadd(ulong);
-void	Ifsub(ulong);
-void	Ifmov(ulong);
-void	Icvtd(ulong);
-void	Icvtw(ulong);
-void	Icvts(ulong);
-void	Ifabs(ulong);
-void	Ifneg(ulong);
+void unimp(ulong);
+void Ifcmp(ulong);
+void Ifdiv(ulong);
+void Ifmul(ulong);
+void Ifadd(ulong);
+void Ifsub(ulong);
+void Ifmov(ulong);
+void Icvtd(ulong);
+void Icvtw(ulong);
+void Icvts(ulong);
+void Ifabs(ulong);
+void Ifneg(ulong);
 
 Inst cop1[] = {
-	{ Ifadd,	"add.f", Ifloat },
-	{ Ifsub,	"sub.f", Ifloat },
-	{ Ifmul,	"mul.f", Ifloat },
-	{ Ifdiv,	"div.f", Ifloat },
-	{ unimp,	"", },
-	{ Ifabs,	"abs.f", Ifloat },
-	{ Ifmov,	"mov.f", Ifloat },
-	{ Ifneg,	"neg.f", Ifloat },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ Icvts,	"cvt.s", Ifloat },
-	{ Icvtd,	"cvt.d", Ifloat },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ Icvtw,	"cvt.w", Ifloat },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ unimp,	"", },
-	{ Ifcmp,	"c.f",	 Ifloat },
-	{ Ifcmp,	"c.un",  Ifloat },
-	{ Ifcmp,	"c.eq",  Ifloat },
-	{ Ifcmp,	"c.ueq", Ifloat },
-	{ Ifcmp,	"c.olt", Ifloat },
-	{ Ifcmp,	"c.ult", Ifloat },
-	{ Ifcmp,	"c.ole", Ifloat },
-	{ Ifcmp,	"c.ule", Ifloat },
-	{ Ifcmp,	"c,sf",  Ifloat },
-	{ Ifcmp,	"c.ngle",Ifloat },
-	{ Ifcmp,	"c.seq", Ifloat },
-	{ Ifcmp,	"c.ngl", Ifloat },
-	{ Ifcmp,	"c.lt",  Ifloat },
-	{ Ifcmp,	"c.nge", Ifloat },
-	{ Ifcmp,	"c.le",  Ifloat },
-	{ Ifcmp,	"c.ngt", Ifloat },
-	{ 0 }
-};
+    {Ifadd, "add.f", Ifloat},
+    {Ifsub, "sub.f", Ifloat},
+    {Ifmul, "mul.f", Ifloat},
+    {Ifdiv, "div.f", Ifloat},
+    {
+     unimp, "",
+    },
+    {Ifabs, "abs.f", Ifloat},
+    {Ifmov, "mov.f", Ifloat},
+    {Ifneg, "neg.f", Ifloat},
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {Icvts, "cvt.s", Ifloat},
+    {Icvtd, "cvt.d", Ifloat},
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {Icvtw, "cvt.w", Ifloat},
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {
+     unimp, "",
+    },
+    {Ifcmp, "c.f", Ifloat},
+    {Ifcmp, "c.un", Ifloat},
+    {Ifcmp, "c.eq", Ifloat},
+    {Ifcmp, "c.ueq", Ifloat},
+    {Ifcmp, "c.olt", Ifloat},
+    {Ifcmp, "c.ult", Ifloat},
+    {Ifcmp, "c.ole", Ifloat},
+    {Ifcmp, "c.ule", Ifloat},
+    {Ifcmp, "c,sf", Ifloat},
+    {Ifcmp, "c.ngle", Ifloat},
+    {Ifcmp, "c.seq", Ifloat},
+    {Ifcmp, "c.ngl", Ifloat},
+    {Ifcmp, "c.lt", Ifloat},
+    {Ifcmp, "c.nge", Ifloat},
+    {Ifcmp, "c.le", Ifloat},
+    {Ifcmp, "c.ngt", Ifloat},
+    {0}};
 
 void
 unimp(uint32_t inst)
 {
-	print("op %ld\n", inst&0x3f);
+	print("op %ld\n", inst & 0x3f);
 	Bprint(bioout, "Unimplemented floating point Trap IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
 }
@@ -136,16 +211,16 @@ doubop(int dst, int s1, int s2)
 		if(reg.ft[s1] == FPs && s1 != 24)
 			ifmt(s1);
 		l = reg.di[s1];
-		reg.di[s1] = reg.di[s1+1]; 
-		reg.di[s1+1] = l; 
+		reg.di[s1] = reg.di[s1 + 1];
+		reg.di[s1 + 1] = l;
 		reg.ft[s1] = FPd;
 	}
 	if(reg.ft[s2] != FPd) {
 		if(reg.ft[s2] == FPs && s2 != 24)
 			ifmt(s2);
 		l = reg.di[s2];
-		reg.di[s2] = reg.di[s2+1]; 
-		reg.di[s2+1] = l; 
+		reg.di[s2] = reg.di[s2 + 1];
+		reg.di[s2 + 1] = l;
 		reg.ft[s2] = FPd;
 	}
 	reg.ft[dst] = FPd;
@@ -159,19 +234,19 @@ Iswc1(uint32_t inst)
 	int rt, rb, ert;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	if(trace)
-		itrace("swc1\tf%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
+		itrace("swc1\tf%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb] + off);
 
-	ert = rt&~1;
+	ert = rt & ~1;
 	if(reg.ft[ert] == FPd) {
 		l = reg.di[ert];
-		reg.di[ert] = reg.di[ert+1]; 
-		reg.di[ert+1] = l; 
+		reg.di[ert] = reg.di[ert + 1];
+		reg.di[ert + 1] = l;
 		reg.ft[ert] = FPmemory;
 	}
-	putmem_w(reg.r[rb]+off, reg.di[rt]);
+	putmem_w(reg.r[rb] + off, reg.di[rt]);
 }
 
 void
@@ -182,19 +257,19 @@ Ifsub(uint32_t ir)
 
 	Getf3(fs, ft, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, ft);
 		reg.fl[fd] = reg.fl[fs] - reg.fl[ft];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, ft);
-		reg.fd[fd>>1] = reg.fd[fs>>1] - reg.fd[ft>>1];
-		break;	
+		reg.fd[fd >> 1] = reg.fd[fs >> 1] - reg.fd[ft >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		reg.di[fd] = reg.di[fs] - reg.di[ft];
@@ -212,19 +287,19 @@ Ifmov(uint32_t ir)
 
 	Getf2(fs, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		reg.fl[fd] = reg.fl[fs];
 		reg.ft[fd] = reg.ft[fs];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
-		reg.fd[fd>>1] = reg.fd[fs>>1];
+		reg.fd[fd >> 1] = reg.fd[fs >> 1];
 		reg.ft[fd] = reg.ft[fs];
-		break;	
+		break;
 	case 4:
 		fmt = 'w';
 		reg.di[fd] = reg.di[fs];
@@ -243,25 +318,25 @@ Ifabs(uint32_t ir)
 
 	Getf2(fs, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, fs);
 		if(reg.fl[fs] < 0.0)
 			reg.fl[fd] = -reg.fl[fs];
 		else
 			reg.fl[fd] = reg.fl[fs];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, fs);
-		if(reg.fd[fs>>1] < 0.0)
-			reg.fd[fd>>1] = -reg.fd[fs>>1];
+		if(reg.fd[fs >> 1] < 0.0)
+			reg.fd[fd >> 1] = -reg.fd[fs >> 1];
 		else
-			reg.fd[fd>>1] = reg.fd[fs>>1];
-		break;	
+			reg.fd[fd >> 1] = reg.fd[fs >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		if((int32_t)reg.di[fs] < 0)
@@ -282,19 +357,19 @@ Ifneg(uint32_t ir)
 
 	Getf2(fs, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, fs);
 		reg.fl[fd] = -reg.fl[fs];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, fs);
-		reg.fd[fd>>1] = -reg.fd[fs>>1];
-		break;	
+		reg.fd[fd >> 1] = -reg.fd[fs >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		reg.di[fd] = -reg.di[fs];
@@ -312,23 +387,23 @@ Icvtd(uint32_t ir)
 
 	Getf2(fs, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fs, fs, fs);
-		reg.fd[fd>>1] = reg.fl[fs];
+		reg.fd[fd >> 1] = reg.fl[fs];
 		reg.ft[fd] = FPd;
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, fs);
-		reg.fd[fd>>1] = reg.fd[fs>>1];
-		break;	
+		reg.fd[fd >> 1] = reg.fd[fs >> 1];
+		break;
 	case 4:
 		fmt = 'w';
-		reg.fd[fd>>1] = (int32_t)reg.di[fs];
+		reg.fd[fd >> 1] = (int32_t)reg.di[fs];
 		reg.ft[fd] = FPd;
 		break;
 	}
@@ -344,20 +419,20 @@ Icvts(uint32_t ir)
 
 	Getf2(fs, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, fs);
 		reg.fl[fd] = reg.fl[fs];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fs, fs, fs);
-		reg.fl[fd] = reg.fd[fs>>1];
+		reg.fl[fd] = reg.fd[fs >> 1];
 		reg.ft[fd] = FPs;
-		break;	
+		break;
 	case 4:
 		fmt = 'w';
 		reg.fl[fd] = (int32_t)reg.di[fs];
@@ -377,19 +452,19 @@ Icvtw(uint32_t ir)
 
 	Getf2(fs, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fs, fs, fs);
 		v = reg.fl[fs];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fs, fs, fs);
-		v = reg.fd[fs>>1];
-		break;	
+		v = reg.fd[fs >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		v = reg.di[fs];
@@ -409,19 +484,19 @@ Ifadd(uint32_t ir)
 
 	Getf3(fs, ft, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, ft);
 		reg.fl[fd] = reg.fl[fs] + reg.fl[ft];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, ft);
-		reg.fd[fd>>1] = reg.fd[fs>>1] + reg.fd[ft>>1];
-		break;	
+		reg.fd[fd >> 1] = reg.fd[fs >> 1] + reg.fd[ft >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		reg.di[fd] = reg.di[fs] + reg.di[ft];
@@ -439,19 +514,19 @@ Ifmul(uint32_t ir)
 
 	Getf3(fs, ft, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, ft);
 		reg.fl[fd] = reg.fl[fs] * reg.fl[ft];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, ft);
-		reg.fd[fd>>1] = reg.fd[fs>>1] * reg.fd[ft>>1];
-		break;	
+		reg.fd[fd >> 1] = reg.fd[fs >> 1] * reg.fd[ft >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		reg.di[fd] = reg.di[fs] * reg.di[ft];
@@ -469,19 +544,19 @@ Ifdiv(uint32_t ir)
 
 	Getf3(fs, ft, fd, ir);
 
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fd, fs, ft);
 		reg.fl[fd] = reg.fl[fs] / reg.fl[ft];
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fd, fs, ft);
-		reg.fd[fd>>1] = reg.fd[fs>>1] / reg.fd[ft>>1];
-		break;	
+		reg.fd[fd >> 1] = reg.fd[fs >> 1] / reg.fd[ft >> 1];
+		break;
 	case 4:
 		fmt = 'w';
 		reg.di[fd] = reg.di[fs] / reg.di[ft];
@@ -498,12 +573,12 @@ Ilwc1(uint32_t inst)
 	int off;
 
 	Getrbrt(rb, rt, inst);
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	if(trace)
-		itrace("lwc1\tf%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
+		itrace("lwc1\tf%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb] + off);
 
-	reg.di[rt] = getmem_w(reg.r[rb]+off);
+	reg.di[rt] = getmem_w(reg.r[rb] + off);
 	reg.ft[rt] = FPmemory;
 }
 
@@ -514,31 +589,30 @@ Ibcfbct(uint32_t inst)
 	int off;
 	uint32_t npc;
 
-	off = (int16_t)(inst&0xffff);
+	off = (int16_t)(inst & 0xffff);
 
 	takeit = 0;
-	npc = reg.pc + (off<<2) + 4;
-	if(inst&(1<<16)) {
+	npc = reg.pc + (off << 2) + 4;
+	if(inst & (1 << 16)) {
 		if(trace)
 			itrace("bc1t\t0x%lux", npc);
 
-		if(reg.fpsr&FP_CBIT)
+		if(reg.fpsr & FP_CBIT)
 			takeit = 1;
-	}
-	else {
+	} else {
 		if(trace)
 			itrace("bc1f\t0x%lux", npc);
 
-		if((reg.fpsr&FP_CBIT) == 0)
+		if((reg.fpsr & FP_CBIT) == 0)
 			takeit = 1;
 	}
 
 	if(takeit) {
 		/* Do the delay slot */
-		reg.ir = ifetch(reg.pc+4);
+		reg.ir = ifetch(reg.pc + 4);
 		Statbra();
 		Iexec(reg.ir);
-		reg.pc = npc-4;
+		reg.pc = npc - 4;
 	}
 }
 
@@ -548,11 +622,10 @@ Imtct(uint32_t ir)
 	int rt, fs;
 
 	SpecialGetrtrd(rt, fs, ir);
-	if(ir&(1<<22)) {			/* CT */
+	if(ir & (1 << 22)) { /* CT */
 		if(trace)
 			itrace("ctc1\tr%d,f%d", rt, fs);
-	}
-	else {					/* MT */
+	} else { /* MT */
 		if(trace)
 			itrace("mtc1\tr%d,f%d", rt, fs);
 
@@ -567,11 +640,10 @@ Imfcf(uint32_t ir)
 	int rt, fs;
 
 	SpecialGetrtrd(rt, fs, ir);
-	if(ir&(1<<22)) {	/* CF */
+	if(ir & (1 << 22)) { /* CF */
 		if(trace)
 			itrace("cfc1\tr%d,f%d", rt, fs);
-	}
-	else {			/* MF */
+	} else { /* MF */
 		if(trace)
 			itrace("mfc1\tr%d,f%d", rt, fs);
 
@@ -584,7 +656,7 @@ Icop1(uint32_t ir)
 {
 	Inst *i;
 
-	switch((ir>>23)&7) {
+	switch((ir >> 23) & 7) {
 	case 0:
 		Imfcf(ir);
 		break;
@@ -599,7 +671,7 @@ Icop1(uint32_t ir)
 	case 5:
 	case 6:
 	case 7:
-		i = &cop1[ir&0x3f];
+		i = &cop1[ir & 0x3f];
 		i->count++;
 		(*i->func)(ir);
 	}
@@ -615,10 +687,10 @@ Ifcmp(uint32_t ir)
 	SpecialGetrtrd(ft, fs, ir);
 
 	SET(fc);
-	switch((ir>>21)&0xf) {
+	switch((ir >> 21) & 0xf) {
 	default:
 		unimp(ir);
-	case 0:	/* single */
+	case 0: /* single */
 		fmt = 's';
 		floatop(fs, fs, ft);
 		if(isNaN(reg.fl[fs]) || isNaN(reg.fl[ft])) {
@@ -638,28 +710,28 @@ Ifcmp(uint32_t ir)
 			break;
 		}
 		print("vi: bad in fcmp");
-		break;	
+		break;
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fs, fs, ft);
-		if(isNaN(reg.fd[fs>>1]) || isNaN(reg.fd[ft>>1])) {
+		if(isNaN(reg.fd[fs >> 1]) || isNaN(reg.fd[ft >> 1])) {
 			fc = FP_U;
 			break;
 		}
-		if(reg.fd[fs>>1] == reg.fd[ft>>1]) {
+		if(reg.fd[fs >> 1] == reg.fd[ft >> 1]) {
 			fc = FP_E;
 			break;
 		}
-		if(reg.fd[fs>>1] < reg.fd[ft>>1]) {
+		if(reg.fd[fs >> 1] < reg.fd[ft >> 1]) {
 			fc = FP_L;
 			break;
 		}
-		if(reg.fd[fs>>1] > reg.fd[ft>>1]) {
+		if(reg.fd[fs >> 1] > reg.fd[ft >> 1]) {
 			fc = FP_G;
 			break;
 		}
 		print("vi: bad in fcmp");
-		break;	
+		break;
 	case 4:
 		fmt = 'w';
 		if(reg.di[fs] == reg.di[ft]) {
@@ -678,7 +750,7 @@ Ifcmp(uint32_t ir)
 	}
 
 	reg.fpsr &= ~FP_CBIT;
-	switch(ir&0xf) {
+	switch(ir & 0xf) {
 	case 0:
 		if(trace)
 			itrace("c.f.%c\tf%d,f%d", fmt, fs, ft);
@@ -687,43 +759,43 @@ Ifcmp(uint32_t ir)
 		if(trace)
 			itrace("c.un.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
 	case 2:
 		if(trace)
 			itrace("c.eq.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
 	case 3:
 		if(trace)
 			itrace("c.ueq.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E || fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
- 	case 4:
+	case 4:
 		if(trace)
 			itrace("c.lt.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_L)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
 	case 5:
 		if(trace)
 			itrace("c.ult.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_L || fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
 	case 6:
 		if(trace)
 			itrace("c.le.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E || fc == FP_L)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
 	case 7:
 		if(trace)
 			itrace("c.ule.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E || fc == FP_L || fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		break;
 	case 8:
 		if(trace)
@@ -743,7 +815,7 @@ Ifcmp(uint32_t ir)
 		if(trace)
 			itrace("c.seq.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		if(fc == FP_U)
 			inval(ir);
 		break;
@@ -751,15 +823,15 @@ Ifcmp(uint32_t ir)
 		if(trace)
 			itrace("c.ngl.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E || fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		if(fc == FP_U)
 			inval(ir);
 		break;
- 	case 12:
+	case 12:
 		if(trace)
 			itrace("c.lt.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_L)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		if(fc == FP_U)
 			inval(ir);
 		break;
@@ -767,7 +839,7 @@ Ifcmp(uint32_t ir)
 		if(trace)
 			itrace("c.nge.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_L || fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		if(fc == FP_U)
 			inval(ir);
 		break;
@@ -775,7 +847,7 @@ Ifcmp(uint32_t ir)
 		if(trace)
 			itrace("c.le.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E || fc == FP_L)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		if(fc == FP_U)
 			inval(ir);
 		break;
@@ -783,7 +855,7 @@ Ifcmp(uint32_t ir)
 		if(trace)
 			itrace("c.ngt.%c\tf%d,f%d", fmt, fs, ft);
 		if(fc == FP_E || fc == FP_L || fc == FP_U)
-			reg.fpsr |= FP_CBIT;	
+			reg.fpsr |= FP_CBIT;
 		if(fc == FP_U)
 			inval(ir);
 		break;

@@ -16,44 +16,43 @@
 #include "../ip/telnet.h"
 
 /*  console state (for consctl) */
-typedef struct Consstate	Consstate;
-struct Consstate{
+typedef struct Consstate Consstate;
+struct Consstate {
 	int raw;
 	int hold;
 };
 Consstate *cons;
 
-int notefd;		/* for sending notes to the child */
-int noproto;		/* true if we shouldn't be using the telnet protocol */
-int trusted;		/* true if we need not authenticate - current user
+int notefd;      /* for sending notes to the child */
+int noproto;     /* true if we shouldn't be using the telnet protocol */
+int trusted;     /* true if we need not authenticate - current user
 				is ok */
-int nonone = 1;		/* don't allow none logins */
-int noworldonly;	/* only noworld accounts */
+int nonone = 1;  /* don't allow none logins */
+int noworldonly; /* only noworld accounts */
 
-enum
-{
-	Maxpath=	256,
-	Maxuser=	64,
-	Maxvar=		32,
+enum {
+	Maxpath = 256,
+	Maxuser = 64,
+	Maxvar = 32,
 };
 
 /* input and output buffers for network connection */
-Biobuf	netib;
-Biobuf	childib;
-char	remotesys[Maxpath];	/* name of remote system */
+Biobuf netib;
+Biobuf childib;
+char remotesys[Maxpath]; /* name of remote system */
 
-int	alnum(int);
-int	conssim(void);
-int	fromchild(char*, int);
-int	fromnet(char*, int);
-int	termchange(Biobuf*, int);
-int	termsub(Biobuf*, uint8_t*, int);
-int	xlocchange(Biobuf*, int);
-int	xlocsub(Biobuf*, uint8_t*, int);
-int	challuser(char*);
-int	noworldlogin(char*);
-void*	share(uint32_t);
-int	doauth(char*);
+int alnum(int);
+int conssim(void);
+int fromchild(char *, int);
+int fromnet(char *, int);
+int termchange(Biobuf *, int);
+int termsub(Biobuf *, uint8_t *, int);
+int xlocchange(Biobuf *, int);
+int xlocsub(Biobuf *, uint8_t *, int);
+int challuser(char *);
+int noworldlogin(char *);
+void *share(uint32_t);
+int doauth(char *);
 
 #define TELNETLOG "telnet"
 
@@ -79,9 +78,9 @@ getremote(char *dir)
 	fd = open(remfile, OREAD);
 	if(fd < 0)
 		strcpy(remotesys, "unknown2");
-	n = read(fd, remotesys, sizeof(remotesys)-1);
-	if(n>0)
-		remotesys[n-1] = 0;
+	n = read(fd, remotesys, sizeof(remotesys) - 1);
+	if(n > 0)
+		remotesys[n - 1] = 0;
 	else
 		strcpy(remotesys, remfile);
 	close(fd);
@@ -98,7 +97,8 @@ main(int argc, char *argv[])
 	int n, eofs;
 
 	memset(user, 0, sizeof(user));
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'n':
 		opt[Echo].local = 1;
 		noproto = 1;
@@ -111,10 +111,10 @@ main(int argc, char *argv[])
 		break;
 	case 't':
 		trusted = 1;
-		strncpy(user, getuser(), sizeof(user)-1);
+		strncpy(user, getuser(), sizeof(user) - 1);
 		break;
 	case 'u':
-		strncpy(user, ARGF(), sizeof(user)-1);
+		strncpy(user, ARGF(), sizeof(user) - 1);
 		break;
 	case 'd':
 		debug = 1;
@@ -122,10 +122,11 @@ main(int argc, char *argv[])
 	case 'N':
 		noworldonly = 1;
 		break;
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc)
-		getremote(argv[argc-1]);
+		getremote(argv[argc - 1]);
 	else
 		strcpy(remotesys, "unknown");
 
@@ -135,7 +136,7 @@ main(int argc, char *argv[])
 	opt[Xloc].sub = xlocsub;
 
 	/* setup default telnet options */
-	if(!noproto){
+	if(!noproto) {
 		send3(1, Iac, Will, opt[Echo].code);
 		send3(1, Iac, Do, opt[Term].code);
 		send3(1, Iac, Do, opt[Xloc].code);
@@ -148,9 +149,9 @@ main(int argc, char *argv[])
 
 	/* authenticate and create new name space */
 	Binit(&netib, 0, OREAD);
-	if (!trusted){
+	if(!trusted) {
 		while(doauth(user) < 0)
-			if(++tries == 5){
+			if(++tries == 5) {
 				logit("failed as %s: %r", user);
 				print("authentication failure:%r\r\n");
 				exits("authentication");
@@ -166,7 +167,7 @@ main(int argc, char *argv[])
 	Binit(&childib, fd, OREAD);
 
 	/* start a shell in a different process group */
-	switch(childpid = rfork(RFPROC|RFNAMEG|RFFDG|RFNOTEG)){
+	switch(childpid = rfork(RFPROC | RFNAMEG | RFFDG | RFNOTEG)) {
 	case -1:
 		fatal("fork", 0, 0);
 	case 0:
@@ -188,14 +189,14 @@ main(int argc, char *argv[])
 	}
 
 	/* two processes to shuttle bytes twixt children and network */
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fatal("fork", 0, 0);
 	case 0:
 		eofs = 0;
-		for(;;){
+		for(;;) {
 			n = fromchild(buf, sizeof(buf));
-			if(n <= 0){
+			if(n <= 0) {
 				if(eofs++ > 2)
 					break;
 				continue;
@@ -230,13 +231,13 @@ prompt(char *p, char *b, int n, int raw)
 	if(raw)
 		opt[Echo].local = 0;
 	print("%s: ", p);
-	for(e = b+n; b < e;){
-		i = fromnet(b, e-b);
+	for(e = b + n; b < e;) {
+		i = fromnet(b, e - b);
 		if(i <= 0)
 			exits("fromnet: hungup");
 		b += i;
-		if(*(b-1) == '\n' || *(b-1) == '\r'){
-			*(b-1) = 0;
+		if(*(b - 1) == '\n' || *(b - 1) == '\r') {
+			*(b - 1) = 0;
 			break;
 		}
 	}
@@ -255,7 +256,7 @@ challuser(char *user)
 	Chalstate *ch;
 	AuthInfo *ai;
 
-	if(strcmp(user, "none") == 0){
+	if(strcmp(user, "none") == 0) {
 		if(nonone)
 			return -1;
 		newns("none", nil);
@@ -269,7 +270,7 @@ challuser(char *user)
 	ch->nresp = strlen(response);
 	ai = auth_response(ch);
 	auth_freechal(ch);
-	if(ai == nil){
+	if(ai == nil) {
 		rerrstr(response, sizeof response);
 		print("!%s\n", response);
 		return -1;
@@ -289,7 +290,7 @@ noworldlogin(char *user)
 	prompt("password", password, sizeof(password), 1);
 	if(login(user, password, "/lib/namespace.noworld") < 0)
 		return -1;
-	rfork(RFNOMNT);	/* sandbox */
+	rfork(RFNOMNT); /* sandbox */
 	return 0;
 }
 
@@ -303,7 +304,6 @@ doauth(char *user)
 	if(noworldonly)
 		return -1;
 	return challuser(user);
-		
 }
 
 /*
@@ -316,9 +316,9 @@ fromchild(char *bp, int len)
 	int c;
 	char *start;
 
-	for(start = bp; bp-start < len-1; ){
+	for(start = bp; bp - start < len - 1;) {
 		c = Bgetc(&childib);
-		if(c < 0){
+		if(c < 0) {
 			if(bp == start)
 				return -1;
 			else
@@ -330,7 +330,7 @@ fromchild(char *bp, int len)
 		if(Bbuffered(&childib) == 0)
 			break;
 	}
-	return bp-start;
+	return bp - start;
 }
 
 /*
@@ -346,7 +346,10 @@ fromchild(char *bp, int len)
  *	^D causes a 0-length line to be returned.
  *	Intr causes an "interrupt" note to be sent to the children.
  */
-#define ECHO(c) { *ebp++ = (c); }
+#define ECHO(c)               \
+	{                     \
+		*ebp++ = (c); \
+	}
 int
 fromnet(char *bp, int len)
 {
@@ -357,16 +360,15 @@ fromnet(char *bp, int len)
 	static int crnl;
 	static int doeof;
 
-
 	/* simulate an EOF as a 0 length input */
-	if(doeof){
+	if(doeof) {
 		doeof = 0;
 		return 0;
 	}
 
-	for(ebp = echobuf,start = bp; bp-start < len && ebp-echobuf < sizeof(echobuf); ){
+	for(ebp = echobuf, start = bp; bp - start < len && ebp - echobuf < sizeof(echobuf);) {
 		c = Bgetc(&netib);
-		if(c < 0){
+		if(c < 0) {
 			if(bp == start)
 				return -1;
 			else
@@ -374,9 +376,9 @@ fromnet(char *bp, int len)
 		}
 
 		/* telnet protocol only */
-		if(!noproto){
+		if(!noproto) {
 			/* protocol messages */
-			switch(c){
+			switch(c) {
 			case Iac:
 				crnl = 0;
 				c = Bgetc(&netib);
@@ -385,16 +387,15 @@ fromnet(char *bp, int len)
 				control(&netib, c);
 				continue;
 			}
-
 		}
 
 		/* \r\n or \n\r become \n  */
-		if(c == '\r' || c == '\n'){
-			if(crnl && crnl != c){
+		if(c == '\r' || c == '\n') {
+			if(crnl && crnl != c) {
 				crnl = 0;
 				continue;
 			}
-			if(cons->raw == 0 && opt[Echo].local){
+			if(cons->raw == 0 && opt[Echo].local) {
 				ECHO('\r');
 				ECHO('\n');
 			}
@@ -408,13 +409,13 @@ fromnet(char *bp, int len)
 			crnl = 0;
 
 		/* raw processing (each character terminates */
-		if(cons->raw){
+		if(cons->raw) {
 			*bp++ = c;
 			break;
 		}
 
 		/* in binary mode, there are no control characters */
-		if(opt[Binary].local){
+		if(opt[Binary].local) {
 			if(opt[Echo].local)
 				ECHO(c);
 			*bp++ = c;
@@ -422,9 +423,9 @@ fromnet(char *bp, int len)
 		}
 
 		/* cooked processing */
-		switch(c){
+		switch(c) {
 		case 0x00:
-			if(noproto)		/* telnet ignores nulls */
+			if(noproto) /* telnet ignores nulls */
 				*bp++ = c;
 			continue;
 		case 0x04:
@@ -432,16 +433,16 @@ fromnet(char *bp, int len)
 				doeof = 1;
 			goto out;
 
-		case 0x08:	/* ^H */
+		case 0x08: /* ^H */
 			if(start < bp)
 				bp--;
 			if(opt[Echo].local)
 				ECHO(c);
 			break;
 
-		case 0x15:	/* ^U */
+		case 0x15: /* ^U */
 			bp = start;
-			if(opt[Echo].local){
+			if(opt[Echo].local) {
 				ECHO('^');
 				ECHO('U');
 				ECHO('\r');
@@ -449,11 +450,11 @@ fromnet(char *bp, int len)
 			}
 			break;
 
-		case 0x17:	/* ^W */
-			if (opt[Echo].local) {
-				while (--bp >= start && !alnum(*bp))
+		case 0x17: /* ^W */
+			if(opt[Echo].local) {
+				while(--bp >= start && !alnum(*bp))
 					ECHO('\b');
-				while (bp >= start && alnum(*bp)) {
+				while(bp >= start && alnum(*bp)) {
 					ECHO('\b');
 					bp--;
 				}
@@ -461,7 +462,7 @@ fromnet(char *bp, int len)
 			}
 			break;
 
-		case 0x7f:	/* Del */
+		case 0x7f: /* Del */
 			write(notefd, "interrupt", 9);
 			bp = start;
 			break;
@@ -472,12 +473,12 @@ fromnet(char *bp, int len)
 			*bp++ = c;
 		}
 		if(ebp != echobuf)
-			write(1, echobuf, ebp-echobuf);
+			write(1, echobuf, ebp - echobuf);
 		ebp = echobuf;
 	}
 out:
 	if(ebp != echobuf)
-		write(1, echobuf, ebp-echobuf);
+		write(1, echobuf, ebp - echobuf);
 	return bp - start;
 }
 
@@ -497,7 +498,7 @@ termchange(Biobuf *bp, int cmd)
 	*p++ = 1;
 	*p++ = Iac;
 	*p++ = Se;
-	return iwrite(Bfildes(bp), buf, p-buf);
+	return iwrite(Bfildes(bp), buf, p - buf);
 }
 
 int
@@ -510,7 +511,7 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 		return 0;
 	if(n >= sizeof term)
 		n = sizeof term;
-	strncpy(term, (char*)sub, n);
+	strncpy(term, (char *)sub, n);
 	putenv("TERM", term);
 	return 0;
 }
@@ -531,7 +532,7 @@ xlocchange(Biobuf *bp, int cmd)
 	*p++ = 1;
 	*p++ = Iac;
 	*p++ = Se;
-	return iwrite(Bfildes(bp), buf, p-buf);
+	return iwrite(Bfildes(bp), buf, p - buf);
 }
 
 int
@@ -544,7 +545,7 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
 		return 0;
 	if(n >= sizeof xloc)
 		n = sizeof xloc;
-	strncpy(xloc, (char*)sub, n);
+	strncpy(xloc, (char *)sub, n);
 	putenv("DISPLAY", xloc);
 	return 0;
 }
@@ -553,17 +554,17 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
  *  create a shared segment.  Make is start 2 meg higher than the current
  *  end of process memory.
  */
-void*
+void *
 share(uint32_t len)
 {
 	uint8_t *vastart;
 
 	vastart = sbrk(0);
-	if(vastart == (void*)-1)
+	if(vastart == (void *)-1)
 		return 0;
-	vastart += 2*1024*1024;
+	vastart += 2 * 1024 * 1024;
 
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
+	if(segattach(0, "shared", vastart, len) == (void *)-1)
 		return 0;
 
 	return vastart;
@@ -589,12 +590,11 @@ conssim(void)
 		fatal("/dev/cons2", 0, 0);
 
 	/* a pipe to simulate consctl */
-	if(bind("#|", "/mnt/cons/consctl", MBEFORE) < 0
-	|| bind("/mnt/cons/consctl/data1", "/dev/consctl", MREPL) < 0)
+	if(bind("#|", "/mnt/cons/consctl", MBEFORE) < 0 || bind("/mnt/cons/consctl/data1", "/dev/consctl", MREPL) < 0)
 		fatal("/dev/consctl", 0, 0);
 
 	/* a process to read /dev/consctl and set the state in cons */
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fatal("forking", 0, 0);
 	case 0:
@@ -603,32 +603,36 @@ conssim(void)
 		return open("/mnt/cons/cons/data", ORDWR);
 	}
 
-	for(tries = 0; tries < 100; tries++){
+	for(tries = 0; tries < 100; tries++) {
 		cons->raw = 0;
 		cons->hold = 0;
 		fd = open("/mnt/cons/consctl/data", OREAD);
 		if(fd < 0)
 			continue;
 		tries = 0;
-		for(;;){
-			n = read(fd, buf, sizeof(buf)-1);
+		for(;;) {
+			n = read(fd, buf, sizeof(buf) - 1);
 			if(n <= 0)
 				break;
 			buf[n] = 0;
 			n = getfields(buf, field, 10, 1, " ");
-			for(i = 0; i < n; i++){
+			for(i = 0; i < n; i++) {
 				if(strcmp(field[i], "rawon") == 0) {
-					if(debug) fprint(2, "raw = 1\n");
+					if(debug)
+						fprint(2, "raw = 1\n");
 					cons->raw = 1;
 				} else if(strcmp(field[i], "rawoff") == 0) {
-					if(debug) fprint(2, "raw = 0\n");
+					if(debug)
+						fprint(2, "raw = 0\n");
 					cons->raw = 0;
 				} else if(strcmp(field[i], "holdon") == 0) {
 					cons->hold = 1;
-					if(debug) fprint(2, "raw = 1\n");
+					if(debug)
+						fprint(2, "raw = 1\n");
 				} else if(strcmp(field[i], "holdoff") == 0) {
 					cons->hold = 0;
-					if(debug) fprint(2, "raw = 0\n");
+					if(debug)
+						fprint(2, "raw = 0\n");
 				}
 			}
 		}
@@ -648,7 +652,7 @@ alnum(int c)
 	 */
 	if(c <= ' ')
 		return 0;
-	if(0x7F<=c && c<=0xA0)
+	if(0x7F <= c && c <= 0xA0)
 		return 0;
 	if(strchr("!\"#$%&'()*+,-./:;<=>?@`[\\]^{|}~", c))
 		return 0;

@@ -15,86 +15,212 @@ int collectstats = 1;
 
 /* keep in sync with dat.h:/NStat */
 Statdesc statdesc[NStat] =
-{
-	{ "rpc total", },
-	{ "rpc reads", },
-	{ "rpc reads ok", },
-	{ "rpc reads failed", },
-	{ "rpc read bytes", },
-	{ "rpc read time", },
-	{ "rpc read cached", },
-	{ "rpc read cached time", },
-	{ "rpc read uncached", },
-	{ "rpc read uncached time "},
-	
-	{ "rpc writes", },
-	{ "rpc writes new", },
-	{ "rpc writes old", },
-	{ "rpc writes failed", },
-	{ "rpc write bytes", },
-	{ "rpc write time", },
-	{ "rpc write new time", },
-	{ "rpc write old time", },
+    {
+     {
+      "rpc total",
+     },
+     {
+      "rpc reads",
+     },
+     {
+      "rpc reads ok",
+     },
+     {
+      "rpc reads failed",
+     },
+     {
+      "rpc read bytes",
+     },
+     {
+      "rpc read time",
+     },
+     {
+      "rpc read cached",
+     },
+     {
+      "rpc read cached time",
+     },
+     {
+      "rpc read uncached",
+     },
+     {"rpc read uncached time "},
 
-	{ "lump cache hits", },
-	{ "lump cache misses", },
-	{ "lump cache reads", },
-	{ "lump cache writes", },
-	{ "lump cache size", },
-	{ "lump cache stall", },
-	{ "lump cache read time", },
+     {
+      "rpc writes",
+     },
+     {
+      "rpc writes new",
+     },
+     {
+      "rpc writes old",
+     },
+     {
+      "rpc writes failed",
+     },
+     {
+      "rpc write bytes",
+     },
+     {
+      "rpc write time",
+     },
+     {
+      "rpc write new time",
+     },
+     {
+      "rpc write old time",
+     },
 
-	{ "disk cache hits", },
-	{ "disk cache misses", },
-	{ "disk cache lookups", },
-	{ "disk cache reads", },
-	{ "disk cache writes", },
-	{ "disk cache dirty", },
-	{ "disk cache size", },
-	{ "disk cache flushes", },
-	{ "disk cache stalls", },
-	{ "disk cache lookup time", },
+     {
+      "lump cache hits",
+     },
+     {
+      "lump cache misses",
+     },
+     {
+      "lump cache reads",
+     },
+     {
+      "lump cache writes",
+     },
+     {
+      "lump cache size",
+     },
+     {
+      "lump cache stall",
+     },
+     {
+      "lump cache read time",
+     },
 
-	{ "disk block stalls", },
-	{ "lump stalls", },
+     {
+      "disk cache hits",
+     },
+     {
+      "disk cache misses",
+     },
+     {
+      "disk cache lookups",
+     },
+     {
+      "disk cache reads",
+     },
+     {
+      "disk cache writes",
+     },
+     {
+      "disk cache dirty",
+     },
+     {
+      "disk cache size",
+     },
+     {
+      "disk cache flushes",
+     },
+     {
+      "disk cache stalls",
+     },
+     {
+      "disk cache lookup time",
+     },
 
-	{ "index cache hits", },
-	{ "index cache misses", },
-	{ "index cache reads", },
-	{ "index cache writes", },
-	{ "index cache fills", },
-	{ "index cache prefetches", },
-	{ "index cache dirty", },
-	{ "index cache size", },
-	{ "index cache flushes", },
-	{ "index cache stalls", },
-	{ "index cache read time", },
-	{ "index cache lookups" },
-	{ "index cache summary hits" },
-	{ "index cache summary prefetches" },
+     {
+      "disk block stalls",
+     },
+     {
+      "lump stalls",
+     },
 
-	{ "bloom filter hits", },
-	{ "bloom filter misses", },
-	{ "bloom filter false misses", },
-	{ "bloom filter lookups", },
-	{ "bloom filter ones", },
-	{ "bloom filter bits", },
+     {
+      "index cache hits",
+     },
+     {
+      "index cache misses",
+     },
+     {
+      "index cache reads",
+     },
+     {
+      "index cache writes",
+     },
+     {
+      "index cache fills",
+     },
+     {
+      "index cache prefetches",
+     },
+     {
+      "index cache dirty",
+     },
+     {
+      "index cache size",
+     },
+     {
+      "index cache flushes",
+     },
+     {
+      "index cache stalls",
+     },
+     {
+      "index cache read time",
+     },
+     {"index cache lookups"},
+     {"index cache summary hits"},
+     {"index cache summary prefetches"},
 
-	{ "arena block reads", },
-	{ "arena block read bytes", },
-	{ "arena block writes", },
-	{ "arena block write bytes", },
+     {
+      "bloom filter hits",
+     },
+     {
+      "bloom filter misses",
+     },
+     {
+      "bloom filter false misses",
+     },
+     {
+      "bloom filter lookups",
+     },
+     {
+      "bloom filter ones",
+     },
+     {
+      "bloom filter bits",
+     },
 
-	{ "isect block reads", },
-	{ "isect block read bytes", },
-	{ "isect block writes", },
-	{ "isect block write bytes", },
+     {
+      "arena block reads",
+     },
+     {
+      "arena block read bytes",
+     },
+     {
+      "arena block writes",
+     },
+     {
+      "arena block write bytes",
+     },
 
-	{ "sum reads", },
-	{ "sum read bytes", },
-	
-	{ "cig loads" },
-	{ "cig load time" },
+     {
+      "isect block reads",
+     },
+     {
+      "isect block read bytes",
+     },
+     {
+      "isect block writes",
+     },
+     {
+      "isect block write bytes",
+     },
+
+     {
+      "sum reads",
+     },
+     {
+      "sum read bytes",
+     },
+
+     {"cig loads"},
+     {"cig load time"},
 };
 
 QLock statslock;
@@ -109,9 +235,9 @@ statsproc(void *v)
 {
 	USED(v);
 
-	for(;;){
+	for(;;) {
 		stats.now = time(0);
-		stathist[stattime%nstathist] = stats;
+		stathist[stattime % nstathist] = stats;
 		stattime++;
 		sleep(1000);
 	}
@@ -161,15 +287,15 @@ printstats(void)
 
 void
 binstats(int32_t (*fn)(Stats *s0, Stats *s1, void *arg), void *arg,
-	int32_t t0, int32_t t1, Statbin *bin, int nbin)
+	 int32_t t0, int32_t t1, Statbin *bin, int nbin)
 {
 	int32_t xt0, t, te, v;
 	int i, j, lo, hi, m;
 	int64_t tot;
 	Statbin *b;
-	
+
 	t = stats.now;
-	
+
 	/* negative times mean relative to now. */
 	if(t0 <= 0)
 		t0 += t;
@@ -177,45 +303,46 @@ binstats(int32_t (*fn)(Stats *s0, Stats *s1, void *arg), void *arg,
 		t1 += t;
 	/* ten minute range if none given */
 	if(t1 <= t0)
-		t0 = t1 - 60*10;
-	if(0) fprint(2, "stats %ld-%ld\n", t0, t1);
-	
+		t0 = t1 - 60 * 10;
+	if(0)
+		fprint(2, "stats %ld-%ld\n", t0, t1);
+
 	/* binary search to find t0-1 or close */
 	lo = stattime;
-	hi = stattime+nstathist;
-	while(lo+1 < hi){
-		m = (lo+hi)/2;
-		if(stathist[m%nstathist].now >= t0)
+	hi = stattime + nstathist;
+	while(lo + 1 < hi) {
+		m = (lo + hi) / 2;
+		if(stathist[m % nstathist].now >= t0)
 			hi = m;
 		else
 			lo = m;
 	}
-	xt0 = stathist[lo%nstathist].now;
-	if(xt0 >= t1){
+	xt0 = stathist[lo % nstathist].now;
+	if(xt0 >= t1) {
 		/* no samples */
-		memset(bin, 0, nbin*sizeof bin[0]);
+		memset(bin, 0, nbin * sizeof bin[0]);
 		return;
 	}
 
-	hi = stattime+nstathist;
-	j = lo+1;
-	for(i=0; i<nbin; i++){
-		te = t0 + (t1-t0)*i/nbin;
+	hi = stattime + nstathist;
+	j = lo + 1;
+	for(i = 0; i < nbin; i++) {
+		te = t0 + (t1 - t0) * i / nbin;
 		b = &bin[i];
 		memset(b, 0, sizeof *b);
 		tot = 0;
-		for(; j<hi && stathist[j%nstathist].now<te; j++){
-			v = fn(&stathist[(j-1)%nstathist], &stathist[j%nstathist], arg);
-			if(b->nsamp==0 || v < b->min)
+		for(; j < hi && stathist[j % nstathist].now < te; j++) {
+			v = fn(&stathist[(j - 1) % nstathist], &stathist[j % nstathist], arg);
+			if(b->nsamp == 0 || v < b->min)
 				b->min = v;
-			if(b->nsamp==0 || v > b->max)
+			if(b->nsamp == 0 || v > b->max)
 				b->max = v;
 			tot += v;
 			b->nsamp++;
 		}
 		if(b->nsamp)
 			b->avg = tot / b->nsamp;
-		if(b->nsamp==0 && i>0)
-			*b = bin[i-1];
-	}	
+		if(b->nsamp == 0 && i > 0)
+			*b = bin[i - 1];
+	}
 }

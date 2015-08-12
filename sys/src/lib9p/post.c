@@ -14,14 +14,14 @@
 #include <9p.h>
 #include <auth.h>
 
-static void postproc(void*);
+static void postproc(void *);
 
 void
 _postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 {
 	int fd[2];
 
-	if(!s->nopipe){
+	if(!s->nopipe) {
 		if(pipe(fd) < 0)
 			sysfatal("pipe: %r");
 		s->infd = s->outfd = fd[1];
@@ -50,7 +50,7 @@ _postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 	 * so leaveinfdopen is a flag that win sets to opt out of this
 	 * safety net.
 	 */
-	if(!s->leavefdsopen){
+	if(!s->leavefdsopen) {
 		rfork(RFFDG);
 		rendezvous(0, 0);
 		close(s->infd);
@@ -58,10 +58,10 @@ _postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 			close(s->outfd);
 	}
 
-	if(mtpt){
+	if(mtpt) {
 		if(amount(s->srvfd, mtpt, flag, "") == -1)
 			sysfatal("mount %s: %r", mtpt);
-	}else
+	} else
 		close(s->srvfd);
 }
 
@@ -71,7 +71,7 @@ postproc(void *v)
 	Srv *s;
 
 	s = v;
-	if(!s->leavefdsopen){
+	if(!s->leavefdsopen) {
 		rfork(RFNOTEG);
 		rendezvous(0, 0);
 		close(s->srvfd);

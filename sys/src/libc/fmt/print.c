@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
 int
 print(char *fmt, ...)

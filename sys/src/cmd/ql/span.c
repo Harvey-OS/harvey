@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
-#define	r0iszero	1
+#include "l.h"
+#define r0iszero 1
 
 void
 span(void)
@@ -46,7 +46,7 @@ span(void)
 				if(p->from.sym != S)
 					p->from.sym->value = c;
 				/* need passes to resolve branches? */
-				if(c-otxt >= (1L<<15))
+				if(c - otxt >= (1L << 15))
 					bflag = c;
 				otxt = c;
 				continue;
@@ -74,7 +74,7 @@ span(void)
 			o = oplook(p);
 			if((o->type == 16 || o->type == 17) && p->cond) {
 				otxt = p->cond->pc - c;
-				if(otxt < -(1L<<16)+10 || otxt >= (1L<<15)-10) {
+				if(otxt < -(1L << 16) + 10 || otxt >= (1L << 15) - 10) {
 					q = prg();
 					q->link = p->link;
 					p->link = q;
@@ -123,7 +123,7 @@ span(void)
 		Bprint(&bso, "tsize = %lux\n", textsize);
 	Bflush(&bso);
 }
-		
+
 void
 xdefine(char *p, int t, int32_t v)
 {
@@ -194,12 +194,12 @@ aclass(Adr *a)
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s",
-					a->sym->name, TNAME);
+				     a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
-			if(dlm){
+			if(dlm) {
 				instoffset = a->sym->value + a->offset;
-				switch(a->sym->type){
+				switch(a->sym->type) {
 				case STEXT:
 				case SLEAF:
 				case SCONST:
@@ -272,7 +272,7 @@ aclass(Adr *a)
 			t = s->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s",
-					s->name, TNAME);
+				     s->name, TNAME);
 				s->type = SDATA;
 			}
 			if(s->type == STEXT || s->type == SLEAF || s->type == SUNDEF) {
@@ -285,7 +285,7 @@ aclass(Adr *a)
 					return C_LCON;
 				goto consize;
 			}
-			if(!dlm){
+			if(!dlm) {
 				instoffset = s->value + a->offset - BIG;
 				if(instoffset >= -BIG && instoffset < BIG && instoffset != 0)
 					return C_SECON;
@@ -325,7 +325,7 @@ aclass(Adr *a)
 	return C_GOK;
 }
 
-Optab*
+Optab *
 oplook(Prog *p)
 {
 	int a1, a2, a3, a4, r;
@@ -334,7 +334,7 @@ oplook(Prog *p)
 
 	a1 = p->optab;
 	if(a1)
-		return optab+(a1-1);
+		return optab + (a1 - 1);
 	a1 = p->from.class;
 	if(a1 == 0) {
 		a1 = aclass(&p->from) + 1;
@@ -364,17 +364,17 @@ oplook(Prog *p)
 	c1 = xcmp[a1];
 	c3 = xcmp[a3];
 	c4 = xcmp[a4];
-	for(; o<e; o++)
+	for(; o < e; o++)
 		if(o->a2 == a2)
-		if(c1[o->a1])
-		if(c3[o->a3])
-		if(c4[o->a4]) {
-			p->optab = (o-optab)+1;
-			return o;
-		}
+			if(c1[o->a1])
+				if(c3[o->a3])
+					if(c4[o->a4]) {
+						p->optab = (o - optab) + 1;
+						return o;
+					}
 	diag("illegal combination %A %R %R %R %R",
-		p->as, a1, a2, a3, a4);
-	if(1||!debug['a'])
+	     p->as, a1, a2, a3, a4);
+	if(1 || !debug['a'])
 		prasm(p);
 	if(o == 0)
 		errorexit();
@@ -478,26 +478,25 @@ buildop(void)
 {
 	int i, n, r;
 
-	for(i=0; i<C_NCLASS; i++)
-		for(n=0; n<C_NCLASS; n++)
+	for(i = 0; i < C_NCLASS; i++)
+		for(n = 0; n < C_NCLASS; n++)
 			xcmp[i][n] = cmp(n, i);
-	for(n=0; optab[n].as != AXXX; n++)
+	for(n = 0; optab[n].as != AXXX; n++)
 		;
 	qsort(optab, n, sizeof(optab[0]), ocmp);
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		r = optab[i].as;
-		oprange[r].start = optab+i;
+		oprange[r].start = optab + i;
 		while(optab[i].as == r)
 			i++;
-		oprange[r].stop = optab+i;
+		oprange[r].stop = optab + i;
 		i--;
-		
-		switch(r)
-		{
+
+		switch(r) {
 		default:
 			diag("unknown op in build: %A", r);
 			errorexit();
-		case ADCBF:	/* unary indexed: op (b+a); op (b) */
+		case ADCBF: /* unary indexed: op (b+a); op (b) */
 			oprange[ADCBI] = oprange[r];
 			oprange[ADCBST] = oprange[r];
 			oprange[ADCBT] = oprange[r];
@@ -505,10 +504,10 @@ buildop(void)
 			oprange[ADCBZ] = oprange[r];
 			oprange[AICBI] = oprange[r];
 			break;
-		case AECOWX:	/* indexed store: op s,(b+a); op s,(b) */
+		case AECOWX: /* indexed store: op s,(b+a); op s,(b) */
 			oprange[ASTWCCC] = oprange[r];
 			break;
-		case AREM:	/* macro */
+		case AREM: /* macro */
 			oprange[AREMCC] = oprange[r];
 			oprange[AREMV] = oprange[r];
 			oprange[AREMVCC] = oprange[r];
@@ -517,7 +516,7 @@ buildop(void)
 			oprange[AREMUV] = oprange[r];
 			oprange[AREMUVCC] = oprange[r];
 			break;
-		case ADIVW:	/* op Rb[,Ra],Rd */
+		case ADIVW: /* op Rb[,Ra],Rd */
 			oprange[AMULHW] = oprange[r];
 			oprange[AMULHWCC] = oprange[r];
 			oprange[AMULHWU] = oprange[r];
@@ -562,7 +561,7 @@ buildop(void)
 			oprange[AMULLHWU] = oprange[r];
 			oprange[AMULLHWUCC] = oprange[r];
 			break;
-		case AMACCHW:	/* strictly 3 registers */
+		case AMACCHW: /* strictly 3 registers */
 			oprange[AMACCHWCC] = oprange[r];
 			oprange[AMACCHWS] = oprange[r];
 			oprange[AMACCHWSCC] = oprange[r];
@@ -635,17 +634,17 @@ buildop(void)
 			oprange[ANMACLHWV] = oprange[r];
 			oprange[ANMACLHWVCC] = oprange[r];
 			break;
-		case AMOVBZ:	/* lbz, stz, rlwm(r/r), lhz, lha, stz, and x variants */
+		case AMOVBZ: /* lbz, stz, rlwm(r/r), lhz, lha, stz, and x variants */
 			oprange[AMOVH] = oprange[r];
 			oprange[AMOVHZ] = oprange[r];
 			break;
-		case AMOVBZU:	/* lbz[x]u, stb[x]u, lhz[x]u, lha[x]u, sth[u]x */
+		case AMOVBZU: /* lbz[x]u, stb[x]u, lhz[x]u, lha[x]u, sth[u]x */
 			oprange[AMOVHU] = oprange[r];
 			oprange[AMOVHZU] = oprange[r];
 			oprange[AMOVWU] = oprange[r];
 			oprange[AMOVMW] = oprange[r];
 			break;
-		case AAND:	/* logical op Rb,Rs,Ra; no literal */
+		case AAND: /* logical op Rb,Rs,Ra; no literal */
 			oprange[AANDN] = oprange[r];
 			oprange[AANDNCC] = oprange[r];
 			oprange[AEQV] = oprange[r];
@@ -659,7 +658,7 @@ buildop(void)
 			oprange[AORNCC] = oprange[r];
 			oprange[AXORCC] = oprange[r];
 			break;
-		case AADDME:	/* op Ra, Rd */
+		case AADDME: /* op Ra, Rd */
 			oprange[AADDMECC] = oprange[r];
 			oprange[AADDMEV] = oprange[r];
 			oprange[AADDMEVCC] = oprange[r];
@@ -694,14 +693,14 @@ buildop(void)
 		case ABC:
 			oprange[ABCL] = oprange[r];
 			break;
-		case AEXTSB:	/* op Rs, Ra */
+		case AEXTSB: /* op Rs, Ra */
 			oprange[AEXTSBCC] = oprange[r];
 			oprange[AEXTSH] = oprange[r];
 			oprange[AEXTSHCC] = oprange[r];
 			oprange[ACNTLZW] = oprange[r];
 			oprange[ACNTLZWCC] = oprange[r];
 			break;
-		case AFABS:	/* fop [s,]d */
+		case AFABS: /* fop [s,]d */
 			oprange[AFABSCC] = oprange[r];
 			oprange[AFNABS] = oprange[r];
 			oprange[AFNABSCC] = oprange[r];
@@ -809,12 +808,12 @@ buildop(void)
 			oprange[AMTFSB1] = oprange[r];
 			oprange[AMTFSB1CC] = oprange[r];
 			break;
-		case ANEG:	/* op [Ra,] Rd */
+		case ANEG: /* op [Ra,] Rd */
 			oprange[ANEGCC] = oprange[r];
 			oprange[ANEGV] = oprange[r];
 			oprange[ANEGVCC] = oprange[r];
 			break;
-		case AOR:	/* or/xor Rb,Rs,Ra; ori/xori $uimm,Rs,Ra; oris/xoris $uimm,Rs,Ra */
+		case AOR: /* or/xor Rb,Rs,Ra; ori/xori $uimm,Rs,Ra; oris/xoris $uimm,Rs,Ra */
 			oprange[AXOR] = oprange[r];
 			break;
 		case ASLW:
@@ -822,10 +821,10 @@ buildop(void)
 			oprange[ASRW] = oprange[r];
 			oprange[ASRWCC] = oprange[r];
 			break;
-		case ASRAW:	/* sraw Rb,Rs,Ra; srawi sh,Rs,Ra */
+		case ASRAW: /* sraw Rb,Rs,Ra; srawi sh,Rs,Ra */
 			oprange[ASRAWCC] = oprange[r];
 			break;
-		case ASUB:	/* SUB Ra,Rb,Rd => subf Rd,ra,rb */
+		case ASUB: /* SUB Ra,Rb,Rd => subf Rd,ra,rb */
 			oprange[ASUB] = oprange[r];
 			oprange[ASUBCC] = oprange[r];
 			oprange[ASUBV] = oprange[r];
@@ -855,14 +854,14 @@ buildop(void)
 		case AECIWX:
 			oprange[ALWAR] = oprange[r];
 			break;
-		case ASYSCALL:	/* just the op; flow of control */
+		case ASYSCALL: /* just the op; flow of control */
 			oprange[ARFI] = oprange[r];
 			oprange[ARFCI] = oprange[r];
 			break;
 		case AMOVHBR:
 			oprange[AMOVWBR] = oprange[r];
 			break;
-		case AFSMOVS:	/* indexed floating loads and stores (fp2) */
+		case AFSMOVS: /* indexed floating loads and stores (fp2) */
 			oprange[AFSMOVSU] = oprange[r];
 			oprange[AFSMOVDU] = oprange[r];
 			oprange[AFXMOVS] = oprange[r];
@@ -873,25 +872,25 @@ buildop(void)
 			oprange[AFPMOVDU] = oprange[r];
 			oprange[AFPMOVIW] = oprange[r];
 			break;
-		case AFPMOVD:	/* indexed load/store and moves (fp2) */
+		case AFPMOVD: /* indexed load/store and moves (fp2) */
 			oprange[AFSMOVD] = oprange[r];
 			oprange[AFXMOVD] = oprange[r];
 			break;
-		case AFMOVSPD:	/* move between fp reg sets (fp2) */
+		case AFMOVSPD: /* move between fp reg sets (fp2) */
 			oprange[AFMOVPSD] = oprange[r];
 			break;
 		case AADD:
-		case AANDCC:	/* and. Rb,Rs,Ra; andi. $uimm,Rs,Ra; andis. $uimm,Rs,Ra */
+		case AANDCC: /* and. Rb,Rs,Ra; andi. $uimm,Rs,Ra; andis. $uimm,Rs,Ra */
 		case ACMP:
 		case ACMPU:
 		case AEIEIO:
 		case ALSW:
-		case AMOVB:	/* macro: move byte with sign extension */
-		case AMOVBU:	/* macro: move byte with sign extension & update */
+		case AMOVB:  /* macro: move byte with sign extension */
+		case AMOVBU: /* macro: move byte with sign extension & update */
 		case AMOVW:
 		case AMOVFL:
-		case AMULLW:	/* op $s[,r2],r3; op r1[,r2],r3; no cc/v */
-		case ASUBC:	/* op r1,$s,r3; op r1[,r2],r3 */
+		case AMULLW: /* op $s[,r2],r3; op r1[,r2],r3; no cc/v */
+		case ASUBC:  /* op r1,$s,r3; op r1[,r2],r3 */
 		case ASTSW:
 		case ATLBIE:
 		case ATW:
@@ -903,19 +902,18 @@ buildop(void)
 	}
 }
 
-enum{
+enum {
 	ABSD = 0,
 	ABSU = 1,
 	RELD = 2,
 	RELU = 3,
 };
 
-int modemap[8] = { 0, 1, -1, 2, 3, 4, 5, 6};
+int modemap[8] = {0, 1, -1, 2, 3, 4, 5, 6};
 
 typedef struct Reloc Reloc;
 
-struct Reloc
-{
+struct Reloc {
 	int n;
 	int t;
 	uint8_t *m;
@@ -935,10 +933,10 @@ grow(Reloc *r)
 	r->t += 64;
 	m = r->m;
 	a = r->a;
-	r->m = nm = malloc(r->t*sizeof(uint8_t));
-	r->a = na = malloc(r->t*sizeof(uint32_t));
-	memmove(nm, m, t*sizeof(uint8_t));
-	memmove(na, a, t*sizeof(uint32_t));
+	r->m = nm = malloc(r->t * sizeof(uint8_t));
+	r->a = na = malloc(r->t * sizeof(uint32_t));
+	memmove(nm, m, t * sizeof(uint8_t));
+	memmove(na, a, t * sizeof(uint32_t));
 	free(m);
 	free(a);
 }
@@ -951,7 +949,7 @@ dynreloc(Sym *s, int32_t v, int abs, int split, int sext)
 	uint32_t *a;
 	Reloc *r;
 
-	if(v&3)
+	if(v & 3)
 		diag("bad relocation address");
 	v >>= 2;
 	if(s->type == SUNDEF)
@@ -970,12 +968,11 @@ dynreloc(Sym *s, int32_t v, int abs, int split, int sext)
 		grow(r);
 	m = r->m;
 	a = r->a;
-	for(i = n; i > 0; i--){
-		if(v < a[i-1]){	/* happens occasionally for data */
-			m[i] = m[i-1];
-			a[i] = a[i-1];
-		}
-		else
+	for(i = n; i > 0; i--) {
+		if(v < a[i - 1]) { /* happens occasionally for data */
+			m[i] = m[i - 1];
+			a[i] = a[i - 1];
+		} else
 			break;
 	}
 	m[i] = k;
@@ -992,7 +989,7 @@ sput(char *s)
 	while(*s)
 		cput(*s++);
 	cput(0);
-	return s-p+1;
+	return s - p + 1;
 }
 
 void
@@ -1013,12 +1010,12 @@ asmdyn()
 	t += 4;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->type == SUNDEF){
+			if(s->type == SUNDEF) {
 				lput(s->sig);
 				t += 4;
 				t += sput(s->name);
 			}
-	
+
 	la = 0;
 	r = &rels;
 	n = r->n;
@@ -1026,8 +1023,8 @@ asmdyn()
 	a = r->a;
 	lput(n);
 	t += 4;
-	for(i = 0; i < n; i++){
-		ra = *a-la;
+	for(i = 0; i < n; i++) {
+		ra = *a - la;
 		if(*a < la)
 			diag("bad relocation order");
 		if(ra < 256)
@@ -1036,17 +1033,15 @@ asmdyn()
 			c = 1;
 		else
 			c = 2;
-		cput((c<<6)|*m++);
+		cput((c << 6) | *m++);
 		t++;
-		if(c == 0){
+		if(c == 0) {
 			cput(ra);
 			t++;
-		}
-		else if(c == 1){
+		} else if(c == 1) {
 			wput(ra);
 			t += 2;
-		}
-		else{
+		} else {
 			lput(ra);
 			t += 4;
 		}
@@ -1057,7 +1052,7 @@ asmdyn()
 	seek(cout, off, 0);
 	lput(t);
 
-	if(debug['v']){
+	if(debug['v']) {
 		Bprint(&bso, "import table entries = %d\n", imports);
 		Bprint(&bso, "export table entries = %d\n", exports);
 	}

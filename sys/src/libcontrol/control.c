@@ -17,7 +17,7 @@
 
 static int debug = 0;
 
-enum	/* alts */
+enum /* alts */
 {
 	AKey,
 	AMouse,
@@ -27,48 +27,48 @@ enum	/* alts */
 };
 
 static Controlset **controlset;
-int	ncontrolset;
-int	ctldeletequits;
+int ncontrolset;
+int ctldeletequits;
 
 char *alignnames[Nalignments] = {
-	[Aupperleft] =		"upperleft",
-	[Auppercenter] =	"uppercenter",
-	[Aupperright] =		"upperright",
-	[Acenterleft] =		"centerleft",
-	[Acenter] =		"center",
-	[Acenterright] =	"centerright",
-	[Alowerleft] =		"lowerleft",
-	[Alowercenter] =	"lowercenter",
-	[Alowerright] =		"lowerright",
+	[Aupperleft] = "upperleft",
+	[Auppercenter] = "uppercenter",
+	[Aupperright] = "upperright",
+	[Acenterleft] = "centerleft",
+	[Acenter] = "center",
+	[Acenterright] = "centerright",
+	[Alowerleft] = "lowerleft",
+	[Alowercenter] = "lowercenter",
+	[Alowerright] = "lowerright",
 };
 
 char *ctltypenames[Ntypes] = {
-	[Ctlunknown] =		"unknown",
-	[Ctlbox] =			"box",
-	[Ctlbutton] =		"button",
-	[Ctlentry] =		"entry",
-	[Ctlkeyboard] =		"keyboard",
-	[Ctllabel] =		"label",
-	[Ctlmenu] =		"menu",
-	[Ctlradio] =		"radio",
-	[Ctlscribble] =		"scribble",
-	[Ctlslider] =		"slider",
-	[Ctltabs] =			"tabs",
-	[Ctltext] =			"text",
-	[Ctltextbutton] =	"textbutton",
-	[Ctltextbutton3] =	"textbutton3",
-	[Ctlgroup] =		"group",		// divider between controls and metacontrols
-	[Ctlboxbox] =		"boxbox",
-	[Ctlcolumn] =		"column",
-	[Ctlrow] =			"row",
-	[Ctlstack] =		"stack",
-	[Ctltab] =			"tab",
+	[Ctlunknown] = "unknown",
+	[Ctlbox] = "box",
+	[Ctlbutton] = "button",
+	[Ctlentry] = "entry",
+	[Ctlkeyboard] = "keyboard",
+	[Ctllabel] = "label",
+	[Ctlmenu] = "menu",
+	[Ctlradio] = "radio",
+	[Ctlscribble] = "scribble",
+	[Ctlslider] = "slider",
+	[Ctltabs] = "tabs",
+	[Ctltext] = "text",
+	[Ctltextbutton] = "textbutton",
+	[Ctltextbutton3] = "textbutton3",
+	[Ctlgroup] = "group", // divider between controls and metacontrols
+	[Ctlboxbox] = "boxbox",
+	[Ctlcolumn] = "column",
+	[Ctlrow] = "row",
+	[Ctlstack] = "stack",
+	[Ctltab] = "tab",
 };
 
-static void	_ctlcmd(Controlset*, char*);
-static void	_ctlcontrol(Controlset*, char*);
+static void _ctlcmd(Controlset *, char *);
+static void _ctlcontrol(Controlset *, char *);
 
-static char*
+static char *
 _mkctlcmd(Control *c, char *fmt, va_list arg)
 {
 	char *name, *p, *both;
@@ -77,11 +77,11 @@ _mkctlcmd(Control *c, char *fmt, va_list arg)
 	if(name == nil)
 		ctlerror("quotestrdup in ctlprint failed");
 	p = vsmprint(fmt, arg);
-	if(p == nil){
+	if(p == nil) {
 		free(name);
 		ctlerror("vsmprint1 in ctlprint failed");
 	}
-	both = ctlmalloc(strlen(name)+strlen(p)+2);
+	both = ctlmalloc(strlen(name) + strlen(p) + 2);
 	strcpy(both, name);
 	strcat(both, " ");
 	strcat(both, p);
@@ -123,19 +123,19 @@ _ctllookup(char *s, char *tab[], int ntab)
 {
 	int i;
 
-	for(i=0; i<ntab; i++)
+	for(i = 0; i < ntab; i++)
 		if(tab[i] != nil && strcmp(s, tab[i]) == 0)
 			return i;
 	return -1;
 }
 
-static Control*
+static Control *
 _newcontrol(Controlset *cs, uint n, char *name, char *type)
 {
 	Control *c;
 
-	for(c=cs->controls; c; c=c->next)
-		if(strcmp(c->name, name) == 0){
+	for(c = cs->controls; c; c = c->next)
+		if(strcmp(c->name, name) == 0) {
 			werrstr("control %q already defined", name);
 			return nil;
 		}
@@ -143,10 +143,10 @@ _newcontrol(Controlset *cs, uint n, char *name, char *type)
 	c->screen = cs->screen;
 	c->name = ctlstrdup(name);
 	c->type = _ctllookup(type, ctltypenames, Ntypes);
-	if (c->type < 0)
+	if(c->type < 0)
 		ctlerror("unknown type: %s", type);
-	c->event = chancreate(sizeof(char*), 64);
-	c->data = chancreate(sizeof(char*), 0);
+	c->event = chancreate(sizeof(char *), 64);
+	c->data = chancreate(sizeof(char *), 0);
 	c->size = Rect(1, 1, _Ctlmaxsize, _Ctlmaxsize);
 	c->hidden = 0;
 	c->ctl = nil;
@@ -168,7 +168,7 @@ controlsetthread(void *v)
 	Mouse mouse;
 	Control *f;
 	int prevbut, n, i;
-	Alt alts[NALT+1];
+	Alt alts[NALT + 1];
 	char tmp[64], *str;
 	Rune buf[2][20], *rp;
 
@@ -191,19 +191,19 @@ controlsetthread(void *v)
 	alts[NALT].op = CHANEND;
 
 	cs->focus = nil;
-	prevbut=0;
+	prevbut = 0;
 	n = 0;
-	for(;;){
+	for(;;) {
 		/* toggle so we can receive in one buffer while client processes the other */
 		alts[AKey].v = buf[n];
 		rp = buf[n];
-		n = 1-n;
-		switch(alt(alts)){
+		n = 1 - n;
+		switch(alt(alts)) {
 		case AKey:
-			if(ctldeletequits && rp[0]=='\177')
+			if(ctldeletequits && rp[0] == '\177')
 				ctlerror("delete");
-			for(i=1; i<nelem(buf[0])-1; i++)
-				if(nbrecv(cs->kbdc, rp+i) <= 0)
+			for(i = 1; i < nelem(buf[0]) - 1; i++)
+				if(nbrecv(cs->kbdc, rp + i) <= 0)
 					break;
 			rp[i] = L'\0';
 			if(cs->focus && cs->focus->key)
@@ -211,9 +211,9 @@ controlsetthread(void *v)
 			break;
 		case AMouse:
 			/* is this a focus change? */
-			if(prevbut)	/* don't change focus if button was down */
+			if(prevbut) /* don't change focus if button was down */
 				goto Send;
-			if(cs->focus!=nil && cs->focus->hidden == 0 && ptinrect(mouse.xy, cs->focus->rect))
+			if(cs->focus != nil && cs->focus->hidden == 0 && ptinrect(mouse.xy, cs->focus->rect))
 				goto Send;
 			if(cs->clicktotype == 0)
 				goto Change;
@@ -225,22 +225,24 @@ controlsetthread(void *v)
 			if(cs->focus != nil)
 				_ctlprint(cs->focus, "focus 0");
 			cs->focus = nil;
-			for(f=cs->actives; f!=nil; f=f->nextactive)
-				if(f->hidden == 0 && f->mouse && ptinrect(mouse.xy, f->rect)){
+			for(f = cs->actives; f != nil; f = f->nextactive)
+				if(f->hidden == 0 && f->mouse && ptinrect(mouse.xy, f->rect)) {
 					cs->focus = f;
 					_ctlprint(f, "focus 1");
-					if (f->mouse) {
-						if (debug) fprint(2, "f->mouse %s\n", f->name);
+					if(f->mouse) {
+						if(debug)
+							fprint(2, "f->mouse %s\n", f->name);
 						f->mouse(f, &mouse);
 					}
 					break;
 				}
 		Send:
 			if(cs->focus && cs->focus->mouse) {
-				if (debug) fprint(2, "cs->focus->mouse %s\n", cs->focus->name);
+				if(debug)
+					fprint(2, "cs->focus->mouse %s\n", cs->focus->name);
 				cs->focus->mouse(cs->focus, &mouse);
 			}
-			prevbut=mouse.buttons;
+			prevbut = mouse.buttons;
 			break;
 		case ACtl:
 			_ctlcontrol(cs, str);
@@ -252,7 +254,7 @@ controlsetthread(void *v)
 	}
 }
 
-Control*
+Control *
 _createctl(Controlset *cs, char *type, uint size, char *name)
 {
 	Control *c;
@@ -270,13 +272,13 @@ closecontrol(Control *c)
 
 	if(c == nil)
 		return;
-	if (c == c->controlset->focus)
+	if(c == c->controlset->focus)
 		c->controlset->focus = nil;
 	if(c->exit)
 		c->exit(c);
 
 	prev = nil;
-	for(p=c->controlset->controls; p; p=p->next){
+	for(p = c->controlset->controls; p; p = p->next) {
 		if(p == c)
 			break;
 		prev = p;
@@ -290,12 +292,12 @@ closecontrol(Control *c)
 
 	/* is it active? if so, delete from active list */
 	prev = nil;
-	for(p=c->controlset->actives; p; p=p->nextactive){
+	for(p = c->controlset->actives; p; p = p->nextactive) {
 		if(p == c)
 			break;
 		prev = p;
 	}
-	if(p != nil){
+	if(p != nil) {
 		if(prev == nil)
 			c->controlset->actives = c->nextactive;
 		else
@@ -311,14 +313,14 @@ closecontrol(Control *c)
 	free(c);
 }
 
-Control*
+Control *
 controlcalled(char *name)
 {
 	Control *c;
 	int i;
 
-	for(i=0; i<ncontrolset; i++)
-		for(c=controlset[i]->controls; c; c=c->next)
+	for(i = 0; i < ncontrolset; i++)
+		for(c = controlset[i]->controls; c; c = c->next)
 			if(strcmp(c->name, name) == 0)
 				return c;
 	return nil;
@@ -337,28 +339,28 @@ ctlerror(char *fmt, ...)
 	threadexitsall(buf);
 }
 
-Rune*
+Rune *
 _ctlrunestr(char *s)
 {
 	Rune *r, *ret;
 
-	ret = r = ctlmalloc((utflen(s)+1)*sizeof(Rune));
+	ret = r = ctlmalloc((utflen(s) + 1) * sizeof(Rune));
 	while(*s != '\0')
 		s += chartorune(r++, s);
 	*r = L'\0';
 	return ret;
 }
 
-char*
+char *
 _ctlstrrune(Rune *r)
 {
 	char *s;
-	s = ctlmalloc(runestrlen(r)*UTFmax+1);
+	s = ctlmalloc(runestrlen(r) * UTFmax + 1);
 	sprint(s, "%S", r);
 	return s;
 }
 
-void*
+void *
 ctlmalloc(uint n)
 {
 	void *p;
@@ -369,7 +371,7 @@ ctlmalloc(uint n)
 	return p;
 }
 
-void*
+void *
 ctlrealloc(void *p, uint n)
 {
 	p = realloc(p, n);
@@ -378,7 +380,7 @@ ctlrealloc(void *p, uint n)
 	return p;
 }
 
-char*
+char *
 ctlstrdup(char *s)
 {
 	char *t;
@@ -411,22 +413,22 @@ ctlparse(CParse *cp, char *s, int hasreceiver)
 		return -1;
 	/* strip leading sender name if present */
 	cp->sender = nil;
-	i = strlen(cp->args[0])-1;
-	if(cp->args[0][i] == ':'){
+	i = strlen(cp->args[0]) - 1;
+	if(cp->args[0][i] == ':') {
 		cp->sender = cp->args[0];
 		cp->sender[i] = '\0';
 		cp->args++;
 		cp->nargs--;
 	}
-	if(hasreceiver){
+	if(hasreceiver) {
 		if(cp->nargs-- == 0)
 			return -1;
 		cp->receiver = *cp->args++;
-	}else
+	} else
 		cp->receiver = nil;
-	for(i=0; i<cp->nargs; i++){
+	for(i = 0; i < cp->nargs; i++) {
 		t = cp->args[i];
-		while(*t == '[')	/* %R gives [0 0] [1 1]; atoi will stop at closing ] */
+		while(*t == '[') /* %R gives [0 0] [1 1]; atoi will stop at closing ] */
 			t++;
 		cp->iargs[i] = atoi(t);
 	}
@@ -441,40 +443,40 @@ _ctlargcount(Control *c, CParse *cp, int n)
 }
 
 static void
-_ctlcmd(Controlset *cs, char*s)
+_ctlcmd(Controlset *cs, char *s)
 {
 	CParse cp;
-	char	*rcvrs[32];
-	int	ircvrs[32], n, i, hit;
+	char *rcvrs[32];
+	int ircvrs[32], n, i, hit;
 	Control *c;
 
-//	fprint(2, "_ctlcmd: %s\n", s);
+	//	fprint(2, "_ctlcmd: %s\n", s);
 	cp.args = cp.pargs;
-	if (ctlparse(&cp, s, 1) < 0)
+	if(ctlparse(&cp, s, 1) < 0)
 		ctlerror("bad command string: %q", cp.str);
-	if (cp.nargs == 0 && strcmp(cp.receiver, "sync") == 0){
+	if(cp.nargs == 0 && strcmp(cp.receiver, "sync") == 0) {
 		chanprint(cs->data, "sync");
 		return;
 	}
-	if (cp.nargs == 0)
+	if(cp.nargs == 0)
 		ctlerror("no command in command string: %q", cp.str);
 
 	n = tokenize(cp.receiver, rcvrs, nelem(rcvrs));
 
 	// lookup type names: a receiver can be a named type or a named control
-	for (i = 0; i < n; i++)
+	for(i = 0; i < n; i++)
 		ircvrs[i] = _ctllookup(rcvrs[i], ctltypenames, Ntypes);
 
-	for(c = cs->controls; c != nil; c = c->next){
+	for(c = cs->controls; c != nil; c = c->next) {
 		/* if a control matches on more than one receiver element,
 		 * make sure it gets processed once; hence loop through controls
 		 * in the outer loop
 		 */
 		hit = 0;
-		for (i = 0; i < n; i++)
+		for(i = 0; i < n; i++)
 			if(strcmp(c->name, rcvrs[i]) == 0 || c->type == ircvrs[i])
 				hit++;
-		if (hit && c->ctl)
+		if(hit && c->ctl)
 			c->ctl(c, &cp);
 	}
 }
@@ -486,18 +488,18 @@ _ctlcontrol(Controlset *cs, char *s)
 	int i, n;
 	char *l;
 
-//	fprint(2, "_ctlcontrol: %s\n", s);
+	//	fprint(2, "_ctlcontrol: %s\n", s);
 	n = gettokens(s, lines, nelem(lines), "\n");
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		l = lines[i];
-		while(*l==' ' || *l=='\t')
+		while(*l == ' ' || *l == '\t')
 			l++;
 		if(*l != '\0')
 			_ctlcmd(cs, l);
 	}
 }
 
-Rune*
+Rune *
 _ctlgetsnarf(void)
 {
 	int i, n;
@@ -509,14 +511,14 @@ _ctlgetsnarf(void)
 	sn = nil;
 	i = 0;
 	seek(_ctlsnarffd, 0, 0);
-	while((n = read(_ctlsnarffd, buf, sizeof buf)) > 0){
-		sn = ctlrealloc(sn, i+n+1);
-		memmove(sn+i, buf, n);
+	while((n = read(_ctlsnarffd, buf, sizeof buf)) > 0) {
+		sn = ctlrealloc(sn, i + n + 1);
+		memmove(sn + i, buf, n);
 		i += n;
 		sn[i] = 0;
 	}
 	snarf = nil;
-	if(i > 0){
+	if(i > 0) {
 		snarf = _ctlrunestr(sn);
 		free(sn);
 	}
@@ -528,18 +530,18 @@ _ctlputsnarf(Rune *snarf)
 {
 	int fd, i, n, nsnarf;
 
-	if(_ctlsnarffd<0 || snarf[0]==0)
+	if(_ctlsnarffd < 0 || snarf[0] == 0)
 		return;
 	fd = open("/dev/snarf", OWRITE);
 	if(fd < 0)
 		return;
 	nsnarf = runestrlen(snarf);
 	/* snarf buffer could be huge, so fprint will truncate; do it in blocks */
-	for(i=0; i<nsnarf; i+=n){
-		n = nsnarf-i;
+	for(i = 0; i < nsnarf; i += n) {
+		n = nsnarf - i;
 		if(n >= 256)
 			n = 256;
-		if(fprint(fd, "%.*S", n, snarf+i) < 0)
+		if(fprint(fd, "%.*S", n, snarf + i) < 0)
 			break;
 	}
 	close(fd);
@@ -551,7 +553,7 @@ _ctlalignment(char *s)
 	int i;
 
 	i = _ctllookup(s, alignnames, Nalignments);
-	if (i < 0)
+	if(i < 0)
 		ctlerror("unknown alignment: %s", s);
 	return i;
 }
@@ -561,26 +563,26 @@ _ctlalignpoint(Rectangle r, int dx, int dy, int align)
 {
 	Point p;
 
-	p = r.min;	/* in case of trouble */
-	switch(align%3){
-	case 0:	/* left */
+	p = r.min; /* in case of trouble */
+	switch(align % 3) {
+	case 0: /* left */
 		p.x = r.min.x;
 		break;
-	case 1:	/* center */
-		p.x = r.min.x+(Dx(r)-dx)/2;
+	case 1: /* center */
+		p.x = r.min.x + (Dx(r) - dx) / 2;
 		break;
-	case 2:	/* right */
-		p.x = r.max.x-dx;
+	case 2: /* right */
+		p.x = r.max.x - dx;
 		break;
 	}
-	switch((align/3)%3){
-	case 0:	/* top */
+	switch((align / 3) % 3) {
+	case 0: /* top */
 		p.y = r.min.y;
 		break;
-	case 1:	/* center */
-		p.y = r.min.y+(Dy(r)-dy)/2;
+	case 1: /* center */
+		p.y = r.min.y + (Dy(r) - dy) / 2;
 		break;
-	case 2:	/* bottom */
+	case 2: /* bottom */
 		p.y = r.max.y - dy;
 		break;
 	}
@@ -593,13 +595,13 @@ controlwire(Control *cfrom, char *name, Channel *chan)
 	Channel **p;
 
 	p = nil;
-	if(strcmp(name, "event") == 0){
+	if(strcmp(name, "event") == 0) {
 		p = &cfrom->event;
 		cfrom->wevent = 1;
-	}else if(strcmp(name, "data") == 0){
+	} else if(strcmp(name, "data") == 0) {
 		p = &cfrom->data;
 		cfrom->wdata = 1;
-	}else
+	} else
 		ctlerror("%q: unknown controlwire channel %s", cfrom->name, name);
 	chanfree(*p);
 	*p = chan;
@@ -611,13 +613,13 @@ _ctlfocus(Control *me, int set)
 	Controlset *cs;
 
 	cs = me->controlset;
-	if(set){
+	if(set) {
 		if(cs->focus == me)
 			return;
 		if(cs->focus != nil)
 			_ctlprint(cs->focus, "focus 0");
 		cs->focus = me;
-	}else{
+	} else {
 		if(cs->focus != me)
 			return;
 		cs->focus = nil;
@@ -643,8 +645,8 @@ resizethread(void *v)
 	alts[1].op = CHANRCV;
 	alts[2].op = CHANEND;
 
-	for(;;){
-		switch(alt(alts)){
+	for(;;) {
+		switch(alt(alts)) {
 		case 0:
 			resizecontrolset(cs);
 			break;
@@ -659,11 +661,11 @@ activate(Control *a)
 {
 	Control *c;
 
-	for(c=a->controlset->actives; c; c=c->nextactive)
+	for(c = a->controlset->actives; c; c = c->nextactive)
 		if(c == a)
 			ctlerror("%q already active\n", a->name);
-	
-	if (a->activate){
+
+	if(a->activate) {
 		a->activate(a, 1);
 		return;
 	}
@@ -678,13 +680,13 @@ deactivate(Control *a)
 	Control *c, *prev;
 
 	/* if group, first deactivate kids, then self */
-	if (a->activate){
+	if(a->activate) {
 		a->activate(a, 0);
 		return;
 	}
 	prev = nil;
-	for(c=a->controlset->actives; c; c=c->nextactive){
-		if(c == a){
+	for(c = a->controlset->actives; c; c = c->nextactive) {
+		if(c == a) {
 			if(a->controlset->focus == a)
 				a->controlset->focus = nil;
 			if(prev != nil)
@@ -699,34 +701,33 @@ deactivate(Control *a)
 }
 
 static struct
-{
-	char	*name;
-	uint32_t	color;
-}coltab[] = {
-	"red",			DRed,
-	"green",			DGreen,
-	"blue",			DBlue,
-	"cyan",			DCyan,
-	"magenta",		DMagenta,
-	"yellow",			DYellow,
-	"paleyellow",		DPaleyellow,
-	"darkyellow",		DDarkyellow,
-	"darkgreen",		DDarkgreen,
-	"palegreen",		DPalegreen,
-	"medgreen",		DMedgreen,
-	"darkblue",		DDarkblue,
-	"palebluegreen",	DPalebluegreen,
-	"paleblue",		DPaleblue,
-	"bluegreen",		DBluegreen,
-	"greygreen",		DGreygreen,
-	"palegreygreen",	DPalegreygreen,
-	"yellowgreen",		DYellowgreen,
-	"medblue",		DMedblue,
-	"greyblue",		DGreyblue,
-	"palegreyblue",		DPalegreyblue,
-	"purpleblue",		DPurpleblue,
-	nil,	0
-};
+    {
+	char *name;
+	uint32_t color;
+} coltab[] = {
+    "red", DRed,
+    "green", DGreen,
+    "blue", DBlue,
+    "cyan", DCyan,
+    "magenta", DMagenta,
+    "yellow", DYellow,
+    "paleyellow", DPaleyellow,
+    "darkyellow", DDarkyellow,
+    "darkgreen", DDarkgreen,
+    "palegreen", DPalegreen,
+    "medgreen", DMedgreen,
+    "darkblue", DDarkblue,
+    "palebluegreen", DPalebluegreen,
+    "paleblue", DPaleblue,
+    "bluegreen", DBluegreen,
+    "greygreen", DGreygreen,
+    "palegreygreen", DPalegreygreen,
+    "yellowgreen", DYellowgreen,
+    "medblue", DMedblue,
+    "greyblue", DGreyblue,
+    "palegreyblue", DPalegreyblue,
+    "purpleblue", DPurpleblue,
+    nil, 0};
 
 void
 initcontrols(void)
@@ -739,36 +740,36 @@ initcontrols(void)
 	namectlimage(display->transparent, "transparent");
 	namectlimage(display->white, "white");
 	namectlimage(display->black, "black");
-	for(i=0; coltab[i].name!=nil; i++){
-		im = allocimage(display, Rect(0,0,1,1), RGB24, 1, coltab[i].color);
+	for(i = 0; coltab[i].name != nil; i++) {
+		im = allocimage(display, Rect(0, 0, 1, 1), RGB24, 1, coltab[i].color);
 		namectlimage(im, coltab[i].name);
 	}
 	namectlfont(font, "font");
 	_ctlsnarffd = open("/dev/snarf", OREAD);
 }
 
-Controlset*
+Controlset *
 newcontrolset(Image *im, Channel *kbdc, Channel *mousec, Channel *resizec)
 {
 	Controlset *cs;
 
 	if(im == nil)
 		im = screen;
-	if((mousec==nil && resizec!=nil) || (mousec!=nil && resizec==nil))
+	if((mousec == nil && resizec != nil) || (mousec != nil && resizec == nil))
 		ctlerror("must specify either or both of mouse and resize channels");
 
 	cs = ctlmalloc(sizeof(Controlset));
 	cs->screen = im;
 
-	if(kbdc == nil){
+	if(kbdc == nil) {
 		cs->keyboardctl = initkeyboard(nil);
 		if(cs->keyboardctl == nil)
 			ctlerror("can't initialize keyboard: %r");
 		kbdc = cs->keyboardctl->c;
 	}
-	cs ->kbdc = kbdc;
+	cs->kbdc = kbdc;
 
-	if(mousec == nil){
+	if(mousec == nil) {
 		cs->mousectl = initmouse(nil, im);
 		if(cs->mousectl == nil)
 			ctlerror("can't initialize mouse: %r");
@@ -777,15 +778,15 @@ newcontrolset(Image *im, Channel *kbdc, Channel *mousec, Channel *resizec)
 	}
 	cs->mousec = mousec;
 	cs->resizec = resizec;
-	cs->ctl = chancreate(sizeof(char*), 64);	/* buffer to prevent deadlock */
-	cs->data = chancreate(sizeof(char*), 0);
+	cs->ctl = chancreate(sizeof(char *), 64); /* buffer to prevent deadlock */
+	cs->data = chancreate(sizeof(char *), 0);
 	cs->resizeexitc = chancreate(sizeof(int), 0);
 	cs->csexitc = chancreate(sizeof(int), 0);
 
-	threadcreate(resizethread, cs, 32*1024);
-	threadcreate(controlsetthread, cs, 32*1024);
+	threadcreate(resizethread, cs, 32 * 1024);
+	threadcreate(controlsetthread, cs, 32 * 1024);
 
-	controlset = ctlrealloc(controlset, (ncontrolset+1)*sizeof(Controlset*));
+	controlset = ctlrealloc(controlset, (ncontrolset + 1) * sizeof(Controlset *));
 	controlset[ncontrolset++] = cs;
 	return cs;
 }
@@ -802,9 +803,9 @@ closecontrolset(Controlset *cs)
 	chanfree(cs->ctl);
 	chanfree(cs->data);
 
-	for(i=0; i<ncontrolset; i++)
-		if(cs == controlset[i]){
-			memmove(controlset+i, controlset+i+1, (ncontrolset-(i+1))*sizeof(Controlset*));
+	for(i = 0; i < ncontrolset; i++)
+		if(cs == controlset[i]) {
+			memmove(controlset + i, controlset + i + 1, (ncontrolset - (i + 1)) * sizeof(Controlset *));
 			ncontrolset--;
 			goto Found;
 		}
@@ -812,7 +813,7 @@ closecontrolset(Controlset *cs)
 	if(i == ncontrolset)
 		ctlerror("closecontrolset: control set not found");
 
-    Found:
+Found:
 	while(cs->controls != nil)
 		closecontrol(cs->controls);
 }

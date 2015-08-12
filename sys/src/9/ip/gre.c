@@ -20,26 +20,26 @@
 #include "ip.h"
 
 enum {
-	GRE_IPONLY	= 12,		/* size of ip header */
-	GRE_IPPLUSGRE	= 12,		/* minimum size of GRE header */
-	IP_GREPROTO	= 47,
+	GRE_IPONLY = 12,    /* size of ip header */
+	GRE_IPPLUSGRE = 12, /* minimum size of GRE header */
+	IP_GREPROTO = 47,
 
-	GRErxms		= 200,
-	GREtickms	= 100,
-	GREmaxxmit	= 10,
+	GRErxms = 200,
+	GREtickms = 100,
+	GREmaxxmit = 10,
 
-	K		= 1024,
-	GREqlen		= 256 * K,
+	K = 1024,
+	GREqlen = 256 * K,
 
-	GRE_cksum	= 0x8000,
-	GRE_routing	= 0x4000,
-	GRE_key		= 0x2000,
-	GRE_seq		= 0x1000,
+	GRE_cksum = 0x8000,
+	GRE_routing = 0x4000,
+	GRE_key = 0x2000,
+	GRE_seq = 0x1000,
 
-	Nring		= 1 << 10,	/* power of two, please */
-	Ringmask	= Nring - 1,
+	Nring = 1 << 10, /* power of two, please */
+	Ringmask = Nring - 1,
 
-	GREctlraw	= 0,
+	GREctlraw = 0,
 	GREctlcooked,
 	GREctlretunnel,
 	GREctlreport,
@@ -53,61 +53,61 @@ enum {
 };
 
 typedef struct GREhdr GREhdr;
-struct GREhdr{
+struct GREhdr {
 	/* ip header */
-	uint8_t	vihl;		/* Version and header length */
-	uint8_t	tos;		/* Type of service */
-	uint8_t	len[2];		/* packet length (including headers) */
-	uint8_t	id[2];		/* Identification */
-	uint8_t	frag[2];	/* Fragment information */
-	uint8_t	ttl;
-	uint8_t	proto;		/* Protocol */
-	uint8_t	cksum[2];	/* checksum */
-	uint8_t	src[4];		/* Ip source */
-	uint8_t	dst[4];		/* Ip destination */
+	uint8_t vihl;    /* Version and header length */
+	uint8_t tos;     /* Type of service */
+	uint8_t len[2];  /* packet length (including headers) */
+	uint8_t id[2];   /* Identification */
+	uint8_t frag[2]; /* Fragment information */
+	uint8_t ttl;
+	uint8_t proto;    /* Protocol */
+	uint8_t cksum[2]; /* checksum */
+	uint8_t src[4];   /* Ip source */
+	uint8_t dst[4];   /* Ip destination */
 
 	/* gre header */
-	uint8_t	flags[2];
-	uint8_t	eproto[2];	/* encapsulation protocol */
+	uint8_t flags[2];
+	uint8_t eproto[2]; /* encapsulation protocol */
 };
 
 typedef struct GREpriv GREpriv;
-struct GREpriv{
+struct GREpriv {
 	/* non-MIB stats */
-	uint32_t	lenerr;			/* short packet */
+	uint32_t lenerr; /* short packet */
 };
 
-typedef struct Bring	Bring;
-struct Bring{
-	Block	*ring[Nring];
-	int32_t	produced;
-	int32_t	consumed;
+typedef struct Bring Bring;
+struct Bring {
+	Block *ring[Nring];
+	int32_t produced;
+	int32_t consumed;
 };
 
-typedef struct GREconv	GREconv;
-struct GREconv{
-	int	raw;
+typedef struct GREconv GREconv;
+struct GREconv {
+	int raw;
 
 	/* Retunnelling information.  v4 only */
-	uint8_t	north[4];			/* HA */
-	uint8_t	south[4];			/* Base station */
-	uint8_t	hoa[4];				/* Home address */
-	uint8_t	coa[4];				/* Careof address */
-	uint32_t	seq;				/* Current sequence # */
-	int	dlsusp;				/* Downlink suspended? */
-	int	ulsusp;				/* Uplink suspended? */
-	uint32_t	ulkey;				/* GRE key */
+	uint8_t north[4]; /* HA */
+	uint8_t south[4]; /* Base station */
+	uint8_t hoa[4];   /* Home address */
+	uint8_t coa[4];   /* Careof address */
+	uint32_t seq;     /* Current sequence # */
+	int dlsusp;       /* Downlink suspended? */
+	int ulsusp;       /* Uplink suspended? */
+	uint32_t ulkey;   /* GRE key */
 
-	QLock	lock;				/* Lock for rings */
-	Bring	dlpending;			/* Ring of pending packets */
-	Bring	dlbuffered;			/* Received while suspended */
-	Bring	ulbuffered;			/* Received while suspended */
+	QLock lock;       /* Lock for rings */
+	Bring dlpending;  /* Ring of pending packets */
+	Bring dlbuffered; /* Received while suspended */
+	Bring ulbuffered; /* Received while suspended */
 };
 
 typedef struct Metablock Metablock;
-struct Metablock{
-	uint8_t	*rp;
-	uint32_t	seq;
+struct Metablock {
+	uint8_t *rp;
+	uint32_t seq;
 };
 
 static char *grectlcooked(Conv *, int, char **);
@@ -121,21 +121,41 @@ static char *grectlulkey(Conv *, int, char **);
 static char *grectlulresume(Conv *, int, char **);
 static char *grectlulsuspend(Conv *, int, char **);
 
-static struct{
-	char	*cmd;
-	int	argc;
-	char	*(*f)(Conv *, int, char **);
+static struct {
+	char *cmd;
+	int argc;
+	char *(*f)(Conv *, int, char **);
 } grectls[Ncmds] = {
-[GREctlraw]	=	{	"raw",		1,	grectlraw,	},
-[GREctlcooked]	=	{	"cooked",	1,	grectlcooked,	},
-[GREctlretunnel]=	{	"retunnel",	5,	grectlretunnel,	},
-[GREctlreport]	=	{	"report",	2,	grectlreport,	},
-[GREctldlsuspend]=	{	"dlsuspend",	1,	grectldlsuspend,},
-[GREctlulsuspend]=	{	"ulsuspend",	1,	grectlulsuspend,},
-[GREctldlresume]=	{	"dlresume",	1,	grectldlresume,	},
-[GREctlulresume]=	{	"ulresume",	1,	grectlulresume,	},
-[GREctlforward]	=	{	"forward",	2,	grectlforward,	},
-[GREctlulkey]	=	{	"ulkey",	2,	grectlulkey,	},
+	[GREctlraw] = {
+	    "raw", 1, grectlraw,
+	},
+	[GREctlcooked] = {
+	    "cooked", 1, grectlcooked,
+	},
+	[GREctlretunnel] = {
+	    "retunnel", 5, grectlretunnel,
+	},
+	[GREctlreport] = {
+	    "report", 2, grectlreport,
+	},
+	[GREctldlsuspend] = {
+	    "dlsuspend", 1, grectldlsuspend,
+	},
+	[GREctlulsuspend] = {
+	    "ulsuspend", 1, grectlulsuspend,
+	},
+	[GREctldlresume] = {
+	    "dlresume", 1, grectldlresume,
+	},
+	[GREctlulresume] = {
+	    "ulresume", 1, grectlulresume,
+	},
+	[GREctlforward] = {
+	    "forward", 2, grectlforward,
+	},
+	[GREctlulkey] = {
+	    "ulkey", 2, grectlulkey,
+	},
 };
 
 static uint8_t nulladdr[4];
@@ -166,7 +186,7 @@ addring(Bring *r, Block *bp)
 {
 	Block *tbp;
 
-	if(r->produced - r->consumed > Ringmask){
+	if(r->produced - r->consumed > Ringmask) {
 		/* Full! */
 		tbp = r->ring[r->produced & Ringmask];
 		assert(tbp);
@@ -192,13 +212,13 @@ greconnect(Conv *c, char **argv, int argc)
 	p = c->p;
 	qlock(p);
 	ecp = &p->conv[p->nc];
-	for(cp = p->conv; cp < ecp; cp++){
+	for(cp = p->conv; cp < ecp; cp++) {
 		tc = *cp;
 		if(tc == nil)
 			break;
 		if(tc == c)
 			continue;
-		if(tc->rport == c->rport && ipcmp(tc->raddr, c->raddr) == 0){
+		if(tc->rport == c->rport && ipcmp(tc->raddr, c->raddr) == 0) {
 			err = "already connected to that addr/proto";
 			ipmove(c->laddr, IPnoaddr);
 			ipmove(c->raddr, IPnoaddr);
@@ -228,24 +248,24 @@ grestate(Conv *c, char *state, int n)
 	char *ep, *p;
 
 	grec = c->ptcl;
-	p    = state;
-	ep   = p + n;
-	p    = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %ulx "
-	 "pending %uld  %uld buffered dl %uld %uld ul %uld %uld ulkey %.8ulx\n",
-			c->inuse? "Open ": "Closed ",
-			grec->raw? "raw ": "",
-			grec->dlsusp? "DL suspended ": "",
-			grec->ulsusp? "UL suspended ": "",
-			grec->hoa, grec->north, grec->south, grec->seq,
-			grec->dlpending.consumed, grec->dlpending.produced,
-			grec->dlbuffered.consumed, grec->dlbuffered.produced,
-			grec->ulbuffered.consumed, grec->ulbuffered.produced,
-			grec->ulkey);
+	p = state;
+	ep = p + n;
+	p = seprint(p, ep, "%s%s%s%shoa %V north %V south %V seq %ulx "
+			   "pending %uld  %uld buffered dl %uld %uld ul %uld %uld ulkey %.8ulx\n",
+		    c->inuse ? "Open " : "Closed ",
+		    grec->raw ? "raw " : "",
+		    grec->dlsusp ? "DL suspended " : "",
+		    grec->ulsusp ? "UL suspended " : "",
+		    grec->hoa, grec->north, grec->south, grec->seq,
+		    grec->dlpending.consumed, grec->dlpending.produced,
+		    grec->dlbuffered.consumed, grec->dlbuffered.produced,
+		    grec->ulbuffered.consumed, grec->ulbuffered.produced,
+		    grec->ulkey);
 	return p - state;
 }
 
-static char*
-greannounce(Conv* conv, char** c, int i)
+static char *
+greannounce(Conv *conv, char **c, int i)
 {
 	return "gre does not support announce";
 }
@@ -301,7 +321,7 @@ grekick(void *x, Block *bp)
 	if(bp == nil)
 		return;
 
-	c    = x;
+	c = x;
 	grec = c->ptcl;
 
 	/* Make space to fit ip header (gre header already there) */
@@ -310,19 +330,19 @@ grekick(void *x, Block *bp)
 		return;
 
 	/* make sure the message has a GRE header */
-	bp = pullupblock(bp, GRE_IPONLY+GRE_IPPLUSGRE);
+	bp = pullupblock(bp, GRE_IPONLY + GRE_IPPLUSGRE);
 	if(bp == nil)
 		return;
 
 	gre = (GREhdr *)bp->rp;
 	gre->vihl = IP_VER4;
 
-	if(grec->raw == 0){
+	if(grec->raw == 0) {
 		v4tov6(raddr, gre->dst);
 		if(ipcmp(raddr, v4prefix) == 0)
 			memmove(gre->dst, c->raddr + IPv4off, IPv4addrlen);
 		v4tov6(laddr, gre->src);
-		if(ipcmp(laddr, v4prefix) == 0){
+		if(ipcmp(laddr, v4prefix) == 0) {
 			if(ipcmp(c->laddr, IPnoaddr) == 0)
 				/* pick interface closest to dest */
 				findlocalip(c->p->f, c->laddr, raddr);
@@ -350,7 +370,7 @@ gredownlink(Conv *c, Block *bp)
 	uint32_t seq;
 
 	gre = (GREhdr *)bp->rp;
-	if(gre->ttl == 1){
+	if(gre->ttl == 1) {
 		freeb(bp);
 		return;
 	}
@@ -360,18 +380,18 @@ gredownlink(Conv *c, Block *bp)
 	 * re-adjust the packet header to strip all unwanted parts
 	 * but leave room for only a sequence number.
 	 */
-	grec   = c->ptcl;
-	flags  = nhgets(gre->flags);
+	grec = c->ptcl;
+	flags = nhgets(gre->flags);
 	hdrlen = 0;
 	if(flags & GRE_cksum)
 		hdrlen += 2;
-	if(flags & GRE_routing){
+	if(flags & GRE_routing) {
 		print("%V routing info present.  Discarding packet", gre->src);
 		freeb(bp);
 		return;
 	}
-	if(flags & (GRE_cksum|GRE_routing))
-		hdrlen += 2;			/* Offset field */
+	if(flags & (GRE_cksum | GRE_routing))
+		hdrlen += 2; /* Offset field */
 	if(flags & GRE_key)
 		hdrlen += 4;
 	if(flags & GRE_seq)
@@ -381,9 +401,9 @@ gredownlink(Conv *c, Block *bp)
 	 * The outgoing packet only has the sequence number set.  Make room
 	 * for the sequence number.
 	 */
-	if(hdrlen != sizeof(uint32_t)){
+	if(hdrlen != sizeof(uint32_t)) {
 		extra = hdrlen - sizeof(uint32_t);
-		if(extra < 0 && bp->rp - bp->base < -extra){
+		if(extra < 0 && bp->rp - bp->base < -extra) {
 			print("gredownlink: cannot add sequence number\n");
 			freeb(bp);
 			return;
@@ -403,10 +423,10 @@ gredownlink(Conv *c, Block *bp)
 	 */
 	assert(bp->rp - bp->base >= sizeof(Metablock));
 	m = (Metablock *)bp->base;
-	m->rp  = bp->rp;
+	m->rp = bp->rp;
 	m->seq = seq;
 
-	/*
+/*
 	 * Here we make a decision what we're doing with the packet.  We're
 	 * doing this w/o holding a lock which means that later on in the
 	 * process we may discover we've done the wrong thing.  I don't want
@@ -414,8 +434,8 @@ gredownlink(Conv *c, Block *bp)
 	 */
 restart:
 	suspended = grec->dlsusp;
-	if(suspended){
-		if(!canqlock(&grec->lock)){
+	if(suspended) {
+		if(!canqlock(&grec->lock)) {
 			/*
 			 * just give up.  too bad, we lose a packet.  this
 			 * is just too hard and my brain already hurts.
@@ -424,7 +444,7 @@ restart:
 			return;
 		}
 
-		if(!grec->dlsusp){
+		if(!grec->dlsusp) {
 			/*
 			 * suspend race.  We though we were suspended, but
 			 * we really weren't.
@@ -460,8 +480,8 @@ restart:
 	/*
 	 * Now make sure we didn't do the wrong thing.
 	 */
-	if(!canqlock(&grec->lock)){
-		freeb(bp);		/* The packet just goes away */
+	if(!canqlock(&grec->lock)) {
+		freeb(bp); /* The packet just goes away */
 		return;
 	}
 
@@ -488,18 +508,18 @@ greuplink(Conv *c, Block *bp)
 	/*
 	 * Add a key, if needed.
 	 */
-	if(grec->ulkey){
+	if(grec->ulkey) {
 		flags = nhgets(gre->flags);
-		if(flags & (GRE_cksum|GRE_routing)){
+		if(flags & (GRE_cksum | GRE_routing)) {
 			print("%V routing info present.  Discarding packet\n",
-				gre->src);
+			      gre->src);
 			freeb(bp);
 			return;
 		}
 
-		if((flags & GRE_key) == 0){
+		if((flags & GRE_key) == 0) {
 			/* Make room for the key */
-			if(bp->rp - bp->base < sizeof(uint32_t)){
+			if(bp->rp - bp->base < sizeof(uint32_t)) {
 				print("%V can't add key\n", gre->src);
 				freeb(bp);
 				return;
@@ -516,14 +536,14 @@ greuplink(Conv *c, Block *bp)
 		hnputl(bp->rp + sizeof(GREhdr), grec->ulkey);
 	}
 
-	if(!canqlock(&grec->lock)){
+	if(!canqlock(&grec->lock)) {
 		freeb(bp);
 		return;
 	}
 
 	if(grec->ulsusp)
 		addring(&grec->ulbuffered, bp);
-	else{
+	else {
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
 		grepuout++;
 		grebuout += BLEN(bp);
@@ -548,40 +568,40 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 * that when the block is forwarded, devether.c puts the block into
 	 * a queue that also uses ->next.  Just do not use ->next here!
 	 */
-	if(bp->next){
+	if(bp->next) {
 		len = blocklen(bp);
-		bp  = pullupblock(bp, len);
+		bp = pullupblock(bp, len);
 		assert(BLEN(bp) == len && bp->next == nil);
 	}
 
 	gre = (GREhdr *)bp->rp;
-	if(BLEN(bp) < sizeof(GREhdr) || gre->proto != IP_GREPROTO){
+	if(BLEN(bp) < sizeof(GREhdr) || gre->proto != IP_GREPROTO) {
 		freeb(bp);
 		return;
 	}
 
 	v4tov6(raddr, gre->src);
 	eproto = nhgets(gre->eproto);
-	flags  = nhgets(gre->flags);
+	flags = nhgets(gre->flags);
 	hdrlen = sizeof(GREhdr);
 
 	if(flags & GRE_cksum)
 		hdrlen += 2;
-	if(flags & GRE_routing){
+	if(flags & GRE_routing) {
 		print("%I routing info present.  Discarding packet\n", raddr);
 		freeb(bp);
 		return;
 	}
-	if(flags & (GRE_cksum|GRE_routing))
-		hdrlen += 2;			/* Offset field */
+	if(flags & (GRE_cksum | GRE_routing))
+		hdrlen += 2; /* Offset field */
 	if(flags & GRE_key)
 		hdrlen += 4;
 	if(flags & GRE_seq)
 		hdrlen += 4;
 
-	if(BLEN(bp) - hdrlen < sizeof(Ip4hdr)){
+	if(BLEN(bp) - hdrlen < sizeof(Ip4hdr)) {
 		print("greretunnel: packet too short (s=%V d=%V)\n",
-			gre->src, gre->dst);
+		      gre->src, gre->dst);
 		freeb(bp);
 		return;
 	}
@@ -603,7 +623,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 		 * implies that etherread is blocked.
 		 */
 		grec = c->ptcl;
-		if(memcmp(ip->dst, grec->hoa, sizeof ip->dst) == 0){
+		if(memcmp(ip->dst, grec->hoa, sizeof ip->dst) == 0) {
 			grepdin++;
 			grebdin += BLEN(bp);
 			gredownlink(c, bp);
@@ -611,7 +631,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 			return;
 		}
 
-		if(memcmp(ip->src, grec->hoa, sizeof ip->src) == 0){
+		if(memcmp(ip->src, grec->hoa, sizeof ip->src) == 0) {
 			grepuin++;
 			grebuin += BLEN(bp);
 			greuplink(c, bp);
@@ -636,13 +656,13 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 		 */
 		grec = c->ptcl;
 		if(c->rport == eproto &&
-		    (grec->raw || ipcmp(c->raddr, raddr) == 0))
+		   (grec->raw || ipcmp(c->raddr, raddr) == 0))
 			break;
 	}
 
 	qunlock(proto);
 
-	if(*p == nil){
+	if(*p == nil) {
 		freeb(bp);
 		return;
 	}
@@ -651,13 +671,13 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 * Trim the packet down to data size
 	 */
 	len = nhgets(gre->len) - GRE_IPONLY;
-	if(len < GRE_IPPLUSGRE){
+	if(len < GRE_IPPLUSGRE) {
 		freeb(bp);
 		return;
 	}
 
 	bp = trimblock(bp, GRE_IPONLY, len);
-	if(bp == nil){
+	if(bp == nil) {
 		gpriv = proto->priv;
 		gpriv->lenerr++;
 		return;
@@ -668,7 +688,7 @@ greiput(Proto *proto, Ipifc *ipifc, Block *bp)
 	 */
 	if(qlen(c->rq) > GREqlen)
 		freeb(bp);
-	else{
+	else {
 		bp = concatblock(bp);
 		if(bp == 0)
 			panic("greiput");
@@ -683,9 +703,9 @@ grestats(Proto *gre, char *buf, int len)
 
 	gpriv = gre->priv;
 	return snprint(buf, len,
-		"gre: %lud %lud %lud %lud %lud %lud %lud %lud, lenerrs %lud\n",
-		grepdin, grepdout, grepuin, grepuout,
-		grebdin, grebdout, grebuin, grebuout, gpriv->lenerr);
+		       "gre: %lud %lud %lud %lud %lud %lud %lud %lud, lenerrs %lud\n",
+		       grepdin, grepdout, grepuin, grepuout,
+		       grebdin, grebdout, grebuin, grebuout, gpriv->lenerr);
 }
 
 static char *
@@ -744,11 +764,11 @@ grectlreport(Conv *c, int i, char **argv)
 	Metablock *m;
 
 	grec = c->ptcl;
-	seq  = strtoul(argv[1], nil, 0);
+	seq = strtoul(argv[1], nil, 0);
 
 	qlock(&grec->lock);
 	r = &grec->dlpending;
-	while(r->produced - r->consumed > 0){
+	while(r->produced - r->consumed > 0) {
 		bp = r->ring[r->consumed & Ringmask];
 
 		assert(bp && bp->rp - bp->base >= sizeof(Metablock));
@@ -801,12 +821,12 @@ grectldlresume(Conv *c, int i, char **argv)
 	grec = c->ptcl;
 
 	qlock(&grec->lock);
-	if(!grec->dlsusp){
+	if(!grec->dlsusp) {
 		qunlock(&grec->lock);
 		return "not suspended";
 	}
 
-	while((bp = getring(&grec->dlbuffered)) != nil){
+	while((bp = getring(&grec->dlbuffered)) != nil) {
 		gre = (GREhdr *)bp->rp;
 		qunlock(&grec->lock);
 
@@ -837,7 +857,7 @@ grectlulresume(Conv *c, int i, char **argv)
 	grec = c->ptcl;
 
 	qlock(&grec->lock);
-	while((bp = getring(&grec->ulbuffered)) != nil){
+	while((bp = getring(&grec->ulbuffered)) != nil) {
 		gre = (GREhdr *)bp->rp;
 
 		qunlock(&grec->lock);
@@ -864,14 +884,14 @@ grectlforward(Conv *c, int i, char **argv)
 	memmove(grec->north, grec->south, sizeof grec->north);
 
 	qlock(&grec->lock);
-	if(!grec->dlsusp){
+	if(!grec->dlsusp) {
 		qunlock(&grec->lock);
 		return "not suspended";
 	}
 	grec->dlsusp = 0;
 	grec->ulsusp = 0;
 
-	while((bp = getring(&grec->dlpending)) != nil){
+	while((bp = getring(&grec->dlpending)) != nil) {
 
 		assert(bp->rp - bp->base >= sizeof(Metablock));
 		m = (Metablock *)bp->base;
@@ -881,15 +901,14 @@ grectlforward(Conv *c, int i, char **argv)
 		 * If the packet is still held inside the IP transmit
 		 * system, make a copy of the packet first.
 		 */
-		if(bp->ref > 1){
+		if(bp->ref > 1) {
 			len = bp->wp - m->rp;
 			nbp = allocb(len);
 			memmove(nbp->wp, m->rp, len);
 			nbp->wp += len;
 			freeb(bp);
-			bp  = nbp;
-		}
-		else{
+			bp = nbp;
+		} else {
 			/* Patch up rp */
 			bp->rp = m->rp;
 		}
@@ -903,7 +922,7 @@ grectlforward(Conv *c, int i, char **argv)
 		qlock(&grec->lock);
 	}
 
-	while((bp = getring(&grec->dlbuffered)) != nil){
+	while((bp = getring(&grec->dlbuffered)) != nil) {
 		gre = (GREhdr *)bp->rp;
 		memmove(gre->src, grec->coa, sizeof gre->dst);
 		memmove(gre->dst, grec->south, sizeof gre->dst);
@@ -913,7 +932,7 @@ grectlforward(Conv *c, int i, char **argv)
 		qlock(&grec->lock);
 	}
 
-	while((bp = getring(&grec->ulbuffered)) != nil){
+	while((bp = getring(&grec->ulbuffered)) != nil) {
 		gre = (GREhdr *)bp->rp;
 
 		memmove(gre->src, grec->coa, sizeof gre->dst);

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
 {
 	Fmt f;
@@ -25,10 +25,9 @@ runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
 	f.farg = nil;
 	f.nfmt = 0;
 	//f.args = args;
-	va_copy(f.args,args);
+	va_copy(f.args, args);
 	dofmt(&f, fmt);
 	va_end(f.args);
-	*(Rune*)f.to = '\0';
+	*(Rune *)f.to = '\0';
 	return f.to;
 }
-

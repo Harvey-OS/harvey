@@ -29,14 +29,14 @@ memlorigin(Memimage *i, Point log, Point scr)
 	l = i->layer;
 	s = l->screen;
 	oldr = l->screenr;
-	newr = Rect(scr.x, scr.y, scr.x+Dx(oldr), scr.y+Dy(oldr));
+	newr = Rect(scr.x, scr.y, scr.x + Dx(oldr), scr.y + Dy(oldr));
 	eqscr = eqpt(scr, oldr.min);
 	eqlog = eqpt(log, i->r.min);
 	if(eqscr && eqlog)
 		return 0;
 	nsave = nil;
-	if(eqlog==0 && l->save!=nil){
-		nsave = allocmemimage(Rect(log.x, log.y, log.x+Dx(oldr), log.y+Dy(oldr)), i->chan);
+	if(eqlog == 0 && l->save != nil) {
+		nsave = allocmemimage(Rect(log.x, log.y, log.x + Dx(oldr), log.y + Dy(oldr)), i->chan);
 		if(nsave == nil)
 			return -1;
 	}
@@ -46,9 +46,9 @@ memlorigin(Memimage *i, Point log, Point scr)
 	 */
 	memltofront(i);
 	wasclear = l->clear;
-	if(nsave){
+	if(nsave) {
 		if(!wasclear)
-			memimagedraw(nsave, nsave->r, l->save, l->save->r.min, nil, Pt(0,0), S);
+			memimagedraw(nsave, nsave->r, l->save, l->save->r.min, nil, Pt(0, 0), S);
 		freememimage(l->save);
 		l->save = nsave;
 	}
@@ -83,10 +83,10 @@ memlorigin(Memimage *i, Point log, Point scr)
 	 * Shadow is now holding down the fort at the old position.
 	 * Move the window and hide things obscured by new position.
 	 */
-	for(t=l->rear->layer->rear; t!=nil; t=t->layer->rear){
+	for(t = l->rear->layer->rear; t != nil; t = t->layer->rear) {
 		x = newr;
 		overlap = rectclip(&x, t->layer->screenr);
-		if(overlap){
+		if(overlap) {
 			memlhide(t, x);
 			t->layer->clear = 0;
 		}
@@ -99,7 +99,7 @@ memlorigin(Memimage *i, Point log, Point scr)
 	 * Everything's covered.  Copy to new position and delete shadow window.
 	 */
 	if(wasclear)
-		memdraw(s->image, newr, s->image, oldr.min, nil, Pt(0,0), S);
+		memdraw(s->image, newr, s->image, oldr.min, nil, Pt(0, 0), S);
 	else
 		memlexpose(i, newr);
 	memldelete(shad);

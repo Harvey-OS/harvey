@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#pragma	lib	"libplumb.a"
-#pragma	src	"/sys/src/libplumb"
+#pragma lib "libplumb.a"
+#pragma src "/sys/src/libplumb"
 
 /*
  * Message format:
@@ -24,36 +24,34 @@
 typedef struct Plumbattr Plumbattr;
 typedef struct Plumbmsg Plumbmsg;
 
-struct Plumbmsg
-{
-	char		*src;
-	char		*dst;
-	char		*wdir;
-	char		*type;
-	Plumbattr	*attr;
-	int		ndata;
-	char		*data;
+struct Plumbmsg {
+	char *src;
+	char *dst;
+	char *wdir;
+	char *type;
+	Plumbattr *attr;
+	int ndata;
+	char *data;
 };
 
-struct Plumbattr
-{
-	char		*name;
-	char		*value;
-	Plumbattr	*next;
+struct Plumbattr {
+	char *name;
+	char *value;
+	Plumbattr *next;
 };
 
-int			plumbsend(int, Plumbmsg*);
-int			plumbsendtext(int, char*, char*, char*,
-					 char*);
-Plumbmsg*	plumbrecv(int);
-char*		plumbpack(Plumbmsg*, int*);
-Plumbmsg*	plumbunpack(char*, int);
-Plumbmsg*	plumbunpackpartial(char*, int, int*);
-char*		plumbpackattr(Plumbattr*);
-Plumbattr*	plumbunpackattr(char*);
-Plumbattr*	plumbaddattr(Plumbattr*, Plumbattr*);
-Plumbattr*	plumbdelattr(Plumbattr*, char*);
-void			plumbfree(Plumbmsg*);
-char*		plumblookup(Plumbattr*, char*);
-int			plumbopen(char*, int);
-int			eplumb(int, char*);
+int plumbsend(int, Plumbmsg *);
+int plumbsendtext(int, char *, char *, char *,
+		  char *);
+Plumbmsg *plumbrecv(int);
+char *plumbpack(Plumbmsg *, int *);
+Plumbmsg *plumbunpack(char *, int);
+Plumbmsg *plumbunpackpartial(char *, int, int *);
+char *plumbpackattr(Plumbattr *);
+Plumbattr *plumbunpackattr(char *);
+Plumbattr *plumbaddattr(Plumbattr *, Plumbattr *);
+Plumbattr *plumbdelattr(Plumbattr *, char *);
+void plumbfree(Plumbmsg *);
+char *plumblookup(Plumbattr *, char *);
+int plumbopen(char *, int);
+int eplumb(int, char *);

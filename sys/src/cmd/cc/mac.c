@@ -7,6 +7,6 @@
  * in the LICENSE file.
  */
 
-#include	"cc.h"
+#include "cc.h"
 
-#include	"macbody"
+#include "macbody"

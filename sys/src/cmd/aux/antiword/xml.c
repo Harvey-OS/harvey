@@ -19,140 +19,138 @@
 #include <string.h>
 #include "antiword.h"
 
-
-#define vAddEndTagsUntil1(p,t)	vAddEndTagsUntil2(p,t,TAG_NOTAG)	
+#define vAddEndTagsUntil1(p, t) vAddEndTagsUntil2(p, t, TAG_NOTAG)
 
 #if defined(DEBUG)
-#define vStackTrace()	__vStackTrace(__LINE__)
+#define vStackTrace() __vStackTrace(__LINE__)
 #else
-#define vStackTrace()	/* EMPTY */
-#endif /* DEBUG */
+#define vStackTrace() /* EMPTY */
+#endif		      /* DEBUG */
 
 /* The character set */
-static encoding_type	eEncoding = encoding_neutral;
+static encoding_type eEncoding = encoding_neutral;
 /* Word version */
-static int	iWordVersion = -1;
+static int iWordVersion = -1;
 /* Special treatment for files from Word 4/5/6 on an Apple Macintosh */
-static BOOL	bOldMacFile = FALSE;
+static BOOL bOldMacFile = FALSE;
 /* Text is emphasised */
-static BOOL	bEmphasisOpen = FALSE;
+static BOOL bEmphasisOpen = FALSE;
 /* Text is superscript */
-static BOOL	bSuperscriptOpen = FALSE;
+static BOOL bSuperscriptOpen = FALSE;
 /* Text is subscript */
-static BOOL	bSubscriptOpen = FALSE;
+static BOOL bSubscriptOpen = FALSE;
 /* Title is open */
-static BOOL	bTitleOpen = FALSE;
+static BOOL bTitleOpen = FALSE;
 /* Table is open */
-static BOOL	bTableOpen = FALSE;
+static BOOL bTableOpen = FALSE;
 /* Footnote is open */
-static BOOL	bFootnoteOpen = FALSE;
+static BOOL bFootnoteOpen = FALSE;
 /* Current paragraph level */
-static UINT	uiParagraphLevel = 0;
+static UINT uiParagraphLevel = 0;
 /* Current list level */
-static UINT	uiListLevel = 0;
+static UINT uiListLevel = 0;
 /* Current list level is still empty */
-static BOOL	bEmptyListLevel = TRUE;
+static BOOL bEmptyListLevel = TRUE;
 /* Current header level */
-static USHORT	usHeaderLevelCurrent = 0;
+static USHORT usHeaderLevelCurrent = 0;
 /* Current header level is still empty */
-static BOOL	bEmptyHeaderLevel = TRUE;
+static BOOL bEmptyHeaderLevel = TRUE;
 /* Number of columns in the current table */
-static int	iTableColumnsCurrent = 0;
+static int iTableColumnsCurrent = 0;
 /* Footnote number */
-static UINT	uiFootnoteNumber = 0;
+static UINT uiFootnoteNumber = 0;
 
 /* Constants for the stack */
-#define INITIAL_STACK_SIZE	10
+#define INITIAL_STACK_SIZE 10
 #if defined(DEBUG)
-#define EXTENSION_STACK_SIZE	 2
+#define EXTENSION_STACK_SIZE 2
 #else
-#define EXTENSION_STACK_SIZE	10
+#define EXTENSION_STACK_SIZE 10
 #endif /* DEBUG */
 
 /* Variables for the stack */
-static UCHAR	*aucStack = NULL;
-static size_t	tStacksize = 0;
-static size_t	tStackNextFree = 0;
+static UCHAR *aucStack = NULL;
+static size_t tStacksize = 0;
+static size_t tStackNextFree = 0;
 
 /* Constants for the tags */
-#define TAG_NOTAG		(UCHAR)0
-#define TAG_AUTHOR		(UCHAR)1
-#define TAG_BEGINPAGE		(UCHAR)2
-#define TAG_BOOK		(UCHAR)3
-#define TAG_BOOKINFO		(UCHAR)4
-#define TAG_CHAPTER		(UCHAR)5
-#define TAG_COLSPEC		(UCHAR)6
-#define TAG_CORPNAME		(UCHAR)7
-#define TAG_DATE		(UCHAR)8
-#define TAG_EMPHASIS		(UCHAR)9
-#define TAG_ENTRY		(UCHAR)10
-#define TAG_FILENAME		(UCHAR)11
-#define TAG_FOOTNOTE		(UCHAR)12
-#define TAG_INFORMALTABLE	(UCHAR)13
-#define TAG_ITEMIZEDLIST	(UCHAR)14
-#define TAG_LISTITEM		(UCHAR)15
-#define TAG_ORDEREDLIST		(UCHAR)16
-#define TAG_PARA		(UCHAR)17
-#define TAG_ROW			(UCHAR)18
-#define TAG_SECT1		(UCHAR)19
-#define TAG_SECT2		(UCHAR)20
-#define TAG_SECT3		(UCHAR)21
-#define TAG_SECT4		(UCHAR)22
-#define TAG_SECT5		(UCHAR)23
-#define TAG_SUBSCRIPT		(UCHAR)24
-#define TAG_SUBTITLE		(UCHAR)25
-#define TAG_SUPERSCRIPT		(UCHAR)26
-#define TAG_SURNAME		(UCHAR)27
-#define TAG_TBODY		(UCHAR)28
-#define TAG_TGROUP		(UCHAR)29
-#define TAG_TITLE		(UCHAR)30
+#define TAG_NOTAG (UCHAR)0
+#define TAG_AUTHOR (UCHAR)1
+#define TAG_BEGINPAGE (UCHAR)2
+#define TAG_BOOK (UCHAR)3
+#define TAG_BOOKINFO (UCHAR)4
+#define TAG_CHAPTER (UCHAR)5
+#define TAG_COLSPEC (UCHAR)6
+#define TAG_CORPNAME (UCHAR)7
+#define TAG_DATE (UCHAR)8
+#define TAG_EMPHASIS (UCHAR)9
+#define TAG_ENTRY (UCHAR)10
+#define TAG_FILENAME (UCHAR)11
+#define TAG_FOOTNOTE (UCHAR)12
+#define TAG_INFORMALTABLE (UCHAR)13
+#define TAG_ITEMIZEDLIST (UCHAR)14
+#define TAG_LISTITEM (UCHAR)15
+#define TAG_ORDEREDLIST (UCHAR)16
+#define TAG_PARA (UCHAR)17
+#define TAG_ROW (UCHAR)18
+#define TAG_SECT1 (UCHAR)19
+#define TAG_SECT2 (UCHAR)20
+#define TAG_SECT3 (UCHAR)21
+#define TAG_SECT4 (UCHAR)22
+#define TAG_SECT5 (UCHAR)23
+#define TAG_SUBSCRIPT (UCHAR)24
+#define TAG_SUBTITLE (UCHAR)25
+#define TAG_SUPERSCRIPT (UCHAR)26
+#define TAG_SURNAME (UCHAR)27
+#define TAG_TBODY (UCHAR)28
+#define TAG_TGROUP (UCHAR)29
+#define TAG_TITLE (UCHAR)30
 
 typedef struct docbooktags_tag {
-	UCHAR	ucTagnumber;
-	char	szTagname[15];
-	BOOL	bAddNewlineStart;
-	BOOL	bAddNewlineEnd;
+	UCHAR ucTagnumber;
+	char szTagname[15];
+	BOOL bAddNewlineStart;
+	BOOL bAddNewlineEnd;
 } docbooktags_type;
 
 static const docbooktags_type atDocBookTags[] = {
-	{	TAG_NOTAG, 		"!ERROR!",	TRUE,	TRUE	},
-	{	TAG_AUTHOR,		"author",	TRUE,	TRUE	},
-	{	TAG_BEGINPAGE,		"beginpage",	TRUE,	TRUE	},
-	{	TAG_BOOK, 		"book",		TRUE,	TRUE	},
-	{	TAG_BOOKINFO, 		"bookinfo",	TRUE,	TRUE	},
-	{	TAG_CHAPTER, 		"chapter",	TRUE,	TRUE	},
-	{	TAG_COLSPEC,		"colspec",	TRUE,	TRUE	},
-	{	TAG_CORPNAME,		"corpname",	FALSE,	FALSE	},
-	{	TAG_DATE,		"date",		FALSE,	FALSE	},
-	{	TAG_EMPHASIS,		"emphasis",	FALSE,	FALSE	},
-	{	TAG_ENTRY,		"entry",	TRUE,	TRUE	},
-	{	TAG_FILENAME,		"filename",	FALSE,	FALSE	},
-	{	TAG_FOOTNOTE,		"footnote",	FALSE,	FALSE	},
-	{	TAG_INFORMALTABLE,	"informaltable",TRUE,	TRUE	},
-	{	TAG_ITEMIZEDLIST,	"itemizedlist",	TRUE,	TRUE	},
-	{	TAG_LISTITEM,		"listitem",	TRUE,	TRUE	},
-	{	TAG_ORDEREDLIST,	"orderedlist",	TRUE,	TRUE	},
-	{	TAG_PARA, 		"para",		TRUE,	TRUE	},
-	{	TAG_ROW,		"row",		TRUE,	TRUE	},
-	{	TAG_SECT1, 		"sect1",	TRUE,	TRUE	},
-	{	TAG_SECT2, 		"sect2",	TRUE,	TRUE	},
-	{	TAG_SECT3, 		"sect3",	TRUE,	TRUE	},
-	{	TAG_SECT4, 		"sect4",	TRUE,	TRUE	},
-	{	TAG_SECT5, 		"sect5",	TRUE,	TRUE	},
-	{	TAG_SUBSCRIPT,		"subscript",	FALSE,	FALSE	},
-	{	TAG_SUBTITLE,		"subtitle",	FALSE,	FALSE	},
-	{	TAG_SUPERSCRIPT,	"superscript",	FALSE,	FALSE	},
-	{	TAG_SURNAME,		"surname",	FALSE,	FALSE	},
-	{	TAG_TBODY,		"tbody",	TRUE,	TRUE	},
-	{	TAG_TGROUP,		"tgroup",	TRUE,	TRUE	},
-	{	TAG_TITLE, 		"title",	FALSE,	FALSE	},
+    {TAG_NOTAG, "!ERROR!", TRUE, TRUE},
+    {TAG_AUTHOR, "author", TRUE, TRUE},
+    {TAG_BEGINPAGE, "beginpage", TRUE, TRUE},
+    {TAG_BOOK, "book", TRUE, TRUE},
+    {TAG_BOOKINFO, "bookinfo", TRUE, TRUE},
+    {TAG_CHAPTER, "chapter", TRUE, TRUE},
+    {TAG_COLSPEC, "colspec", TRUE, TRUE},
+    {TAG_CORPNAME, "corpname", FALSE, FALSE},
+    {TAG_DATE, "date", FALSE, FALSE},
+    {TAG_EMPHASIS, "emphasis", FALSE, FALSE},
+    {TAG_ENTRY, "entry", TRUE, TRUE},
+    {TAG_FILENAME, "filename", FALSE, FALSE},
+    {TAG_FOOTNOTE, "footnote", FALSE, FALSE},
+    {TAG_INFORMALTABLE, "informaltable", TRUE, TRUE},
+    {TAG_ITEMIZEDLIST, "itemizedlist", TRUE, TRUE},
+    {TAG_LISTITEM, "listitem", TRUE, TRUE},
+    {TAG_ORDEREDLIST, "orderedlist", TRUE, TRUE},
+    {TAG_PARA, "para", TRUE, TRUE},
+    {TAG_ROW, "row", TRUE, TRUE},
+    {TAG_SECT1, "sect1", TRUE, TRUE},
+    {TAG_SECT2, "sect2", TRUE, TRUE},
+    {TAG_SECT3, "sect3", TRUE, TRUE},
+    {TAG_SECT4, "sect4", TRUE, TRUE},
+    {TAG_SECT5, "sect5", TRUE, TRUE},
+    {TAG_SUBSCRIPT, "subscript", FALSE, FALSE},
+    {TAG_SUBTITLE, "subtitle", FALSE, FALSE},
+    {TAG_SUPERSCRIPT, "superscript", FALSE, FALSE},
+    {TAG_SURNAME, "surname", FALSE, FALSE},
+    {TAG_TBODY, "tbody", TRUE, TRUE},
+    {TAG_TGROUP, "tgroup", TRUE, TRUE},
+    {TAG_TITLE, "title", FALSE, FALSE},
 };
 
-static void	vAddStartTag(diagram_type *, UCHAR, const char *);
-static void	vAddEndTag(diagram_type *, UCHAR);
-static void	vAddCombinedTag(diagram_type *, UCHAR, const char *);
-static void	vPrintChar(diagram_type *, char);
-
+static void vAddStartTag(diagram_type *, UCHAR, const char *);
+static void vAddEndTag(diagram_type *, UCHAR);
+static void vAddCombinedTag(diagram_type *, UCHAR, const char *);
+static void vPrintChar(diagram_type *, char);
 
 #if defined(DEBUG)
 /*
@@ -161,10 +159,10 @@ static void	vPrintChar(diagram_type *, char);
 static void
 vCheckTagTable(void)
 {
-	size_t	tIndex;
+	size_t tIndex;
 
-	for (tIndex = 0; tIndex < elementsof(atDocBookTags); tIndex++) {
-		if (tIndex != (size_t)atDocBookTags[tIndex].ucTagnumber) {
+	for(tIndex = 0; tIndex < elementsof(atDocBookTags); tIndex++) {
+		if(tIndex != (size_t)atDocBookTags[tIndex].ucTagnumber) {
 			DBG_DEC(tIndex);
 			werr(1, "Array atDocBookTags is broken");
 		}
@@ -177,15 +175,15 @@ vCheckTagTable(void)
 static void
 __vStackTrace(int iLine)
 {
-	int	iIndex;
+	int iIndex;
 
 	fprintf(stderr, "%s[%3d]:\n", __FILE__, iLine);
 
-	if (tStackNextFree == 0) {
+	if(tStackNextFree == 0) {
 		fprintf(stderr, "The stack is empty\n");
 		return;
 	}
-	for (iIndex = (int)tStackNextFree - 1; iIndex >= 0; iIndex--) {
+	for(iIndex = (int)tStackNextFree - 1; iIndex >= 0; iIndex--) {
 		fprintf(stderr, "%2d: %2d: '%s'\n",
 			iIndex,
 			(int)atDocBookTags[(UINT)aucStack[iIndex]].ucTagnumber,
@@ -202,7 +200,7 @@ vPushStack(UCHAR ucTag)
 {
 	fail(tStackNextFree > tStacksize);
 
-	if (tStackNextFree == tStacksize) {
+	if(tStackNextFree == tStacksize) {
 		/* The stack is full; enlarge the stack */
 		tStacksize += EXTENSION_STACK_SIZE;
 		aucStack = xrealloc(aucStack, tStacksize * sizeof(UCHAR));
@@ -225,7 +223,7 @@ ucPopStack(void)
 	fail(tStackNextFree > tStacksize);
 	fail(tStackNextFree == 0);
 
-	if (tStackNextFree == 0) {
+	if(tStackNextFree == 0) {
 		werr(1, "The stack is empty, unable to continue");
 		return TAG_NOTAG;
 	}
@@ -242,7 +240,7 @@ ucReadStack(void)
 	DBG_DEC_C(tStackNextFree > tStacksize, tStacksize);
 	fail(tStackNextFree > tStacksize);
 
-	if (tStackNextFree == 0) {
+	if(tStackNextFree == 0) {
 		/* The stack is empty */
 		return TAG_NOTAG;
 	}
@@ -255,11 +253,11 @@ ucReadStack(void)
 static void
 vPrintLevel(FILE *pOutFile)
 {
-	size_t	tIndex;
+	size_t tIndex;
 
 	fail(pOutFile == NULL);
 
-	for (tIndex = 0; tIndex < tStackNextFree; tIndex++) {
+	for(tIndex = 0; tIndex < tStackNextFree; tIndex++) {
 		(void)putc(' ', pOutFile);
 	}
 } /* end of vPrintLevel */
@@ -270,22 +268,22 @@ vPrintLevel(FILE *pOutFile)
 static void
 vPrintFootnote(diagram_type *pDiag, UINT uiFootnoteIndex)
 {
-	const char	*szText, *pcTmp;
-	BOOL	bSuScript;
-	UCHAR	ucTopTag;
+	const char *szText, *pcTmp;
+	BOOL bSuScript;
+	UCHAR ucTopTag;
 
 	TRACE_MSG("vPrintFootnote");
 
 	szText = szGetFootnootText(uiFootnoteIndex);
 
-	if (szText == NULL) {
+	if(szText == NULL) {
 		szText = "";
 	}
 
 	/* Remove the subscript/superscript (if any) */
 	ucTopTag = ucReadStack();
 	bSuScript = ucTopTag == TAG_SUBSCRIPT || ucTopTag == TAG_SUPERSCRIPT;
-	if (bSuScript) {
+	if(bSuScript) {
 		vAddEndTag(pDiag, ucTopTag);
 	}
 
@@ -294,9 +292,9 @@ vPrintFootnote(diagram_type *pDiag, UINT uiFootnoteIndex)
 	vAddStartTag(pDiag, TAG_PARA, NULL);
 
 	/* Print a footnote */
-	for (pcTmp = szText; *pcTmp != '\0'; pcTmp++) {
-		if (*pcTmp == PAR_END) {
-			if (*(pcTmp + 1) != PAR_END && *(pcTmp + 1) != '\0') {
+	for(pcTmp = szText; *pcTmp != '\0'; pcTmp++) {
+		if(*pcTmp == PAR_END) {
+			if(*(pcTmp + 1) != PAR_END && *(pcTmp + 1) != '\0') {
 				/* PAR_END is not empty and not last */
 				vAddEndTag(pDiag, TAG_PARA);
 				vAddStartTag(pDiag, TAG_PARA, NULL);
@@ -311,7 +309,7 @@ vPrintFootnote(diagram_type *pDiag, UINT uiFootnoteIndex)
 	vAddEndTag(pDiag, TAG_FOOTNOTE);
 
 	/* Repair the subscript/superscript (if any) */
-	if (bSuScript) {
+	if(bSuScript) {
 		vAddStartTag(pDiag, ucTopTag, NULL);
 	}
 } /* end of vPrintFootnote */
@@ -325,7 +323,7 @@ vPrintChar(diagram_type *pDiag, char cChar)
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 
-	switch (cChar) {
+	switch(cChar) {
 	case FOOTNOTE_OR_ENDNOTE:
 		uiFootnoteNumber++;
 		vPrintFootnote(pDiag, uiFootnoteNumber - 1);
@@ -351,9 +349,9 @@ vPrintChar(diagram_type *pDiag, char cChar)
 static void
 vPrintSpecialChar(diagram_type *pDiag, USHORT usChar)
 {
-	ULONG   ulChar;
-	size_t  tLen, tIndex;
-	char    szResult[4];
+	ULONG ulChar;
+	size_t tLen, tIndex;
+	char szResult[4];
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -361,12 +359,12 @@ vPrintSpecialChar(diagram_type *pDiag, USHORT usChar)
 	fail(eEncoding == encoding_neutral);
 
 	ulChar = ulTranslateCharacters(usChar, 0, iWordVersion,
-				conversion_xml, eEncoding, bOldMacFile);
+				       conversion_xml, eEncoding, bOldMacFile);
 	tLen = tUcs2Utf8(ulChar, szResult, sizeof(szResult));
-	if (tLen == 1) {
+	if(tLen == 1) {
 		vPrintChar(pDiag, szResult[0]);
 	} else {
-		for (tIndex = 0; tIndex < tLen; tIndex++) {
+		for(tIndex = 0; tIndex < tLen; tIndex++) {
 			(void)putc(szResult[tIndex], pDiag->pOutFile);
 		}
 	}
@@ -378,14 +376,14 @@ vPrintSpecialChar(diagram_type *pDiag, USHORT usChar)
 static void
 vPrintSpecialString(diagram_type *pDiag, const char *szString)
 {
-	int	iIndex;
-	USHORT	usChar;
+	int iIndex;
+	USHORT usChar;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(szString == NULL);
 
-	for (iIndex = 0; szString[iIndex] != '\0'; iIndex++) {
+	for(iIndex = 0; szString[iIndex] != '\0'; iIndex++) {
 		usChar = (USHORT)(UCHAR)szString[iIndex];
 		vPrintSpecialChar(pDiag, usChar);
 	}
@@ -401,12 +399,12 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 	fail(pDiag->pOutFile == NULL);
 	fail((size_t)ucTag >= elementsof(atDocBookTags));
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
+	if(atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		vPrintLevel(pDiag->pOutFile);
 	}
 
-	if (szAttribute == NULL || szAttribute[0] == '\0') {
+	if(szAttribute == NULL || szAttribute[0] == '\0') {
 		fprintf(pDiag->pOutFile, "<%s>",
 			atDocBookTags[(UINT)ucTag].szTagname);
 	} else {
@@ -414,7 +412,7 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 			atDocBookTags[(UINT)ucTag].szTagname, szAttribute);
 	}
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewlineEnd) {
+	if(atDocBookTags[(UINT)ucTag].bAddNewlineEnd) {
 		fprintf(pDiag->pOutFile, "\n");
 		pDiag->lXleft = 0;
 	}
@@ -422,7 +420,7 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 	vPushStack(ucTag);
 
 	/* Set global variables */
-	switch (ucTag) {
+	switch(ucTag) {
 	case TAG_CHAPTER:
 		usHeaderLevelCurrent = 1;
 		bEmptyHeaderLevel = TRUE;
@@ -492,7 +490,7 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 static void
 vAddEndTag(diagram_type *pDiag, UCHAR ucTag)
 {
-	UCHAR	ucTopTag;
+	UCHAR ucTopTag;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -500,7 +498,7 @@ vAddEndTag(diagram_type *pDiag, UCHAR ucTag)
 
 #if defined(DEBUG)
 	ucTopTag = ucReadStack();
-	if (ucTag != ucTopTag) {
+	if(ucTag != ucTopTag) {
 		DBG_DEC(ucTag);
 		DBG_MSG(atDocBookTags[(UINT)ucTag].szTagname);
 		vStackTrace();
@@ -509,27 +507,27 @@ vAddEndTag(diagram_type *pDiag, UCHAR ucTag)
 
 	ucTopTag = ucPopStack();
 	fail((size_t)ucTopTag >= elementsof(atDocBookTags));
-	if (ucTag != ucTopTag) {
+	if(ucTag != ucTopTag) {
 		DBG_DEC(ucTag);
 		DBG_DEC(ucTopTag);
 		DBG_FIXME();
 		werr(1, "Impossible tag sequence, unable to continue");
 	}
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewlineEnd) {
+	if(atDocBookTags[(UINT)ucTag].bAddNewlineEnd) {
 		fprintf(pDiag->pOutFile, "\n");
 		vPrintLevel(pDiag->pOutFile);
 	}
 
 	fprintf(pDiag->pOutFile, "</%s>", atDocBookTags[(UINT)ucTag].szTagname);
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
+	if(atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		pDiag->lXleft = 0;
 	}
 
 	/* Set global variables */
-	switch (ucTag) {
+	switch(ucTag) {
 	case TAG_CHAPTER:
 		usHeaderLevelCurrent = 0;
 		break;
@@ -585,10 +583,10 @@ vAddEndTag(diagram_type *pDiag, UCHAR ucTag)
 static void
 vAddEndTagOptional(diagram_type *pDiag, UCHAR ucTag)
 {
-	UCHAR	ucTopTag;
+	UCHAR ucTopTag;
 
 	ucTopTag = ucReadStack();
-	if (ucTag == ucTopTag) {
+	if(ucTag == ucTopTag) {
 		vAddEndTag(pDiag, ucTag);
 	}
 } /* end of vAddEndTagOptional */
@@ -603,12 +601,12 @@ vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 	fail(pDiag->pOutFile == NULL);
 	fail((size_t)ucTag >= elementsof(atDocBookTags));
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
+	if(atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		vPrintLevel(pDiag->pOutFile);
 	}
 
-	if (szAttribute == NULL || szAttribute[0] == '\0') {
+	if(szAttribute == NULL || szAttribute[0] == '\0') {
 		fprintf(pDiag->pOutFile, "<%s/>",
 			atDocBookTags[(UINT)ucTag].szTagname);
 	} else {
@@ -616,7 +614,7 @@ vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 			atDocBookTags[(UINT)ucTag].szTagname, szAttribute);
 	}
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
+	if(atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		pDiag->lXleft = 0;
 	}
@@ -628,18 +626,18 @@ vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 static void
 vAddEndTagsUntil2(diagram_type *pDiag, UCHAR ucTag1, UCHAR ucTag2)
 {
-	UCHAR	ucTopTag;
+	UCHAR ucTopTag;
 
 	do {
 		ucTopTag = ucReadStack();
-		switch (ucTopTag) {
-                case TAG_CHAPTER:
-                case TAG_SECT1:
-                case TAG_SECT2:
-                case TAG_SECT3:
-                case TAG_SECT4:
-                case TAG_SECT5:
-			if (bEmptyHeaderLevel) {
+		switch(ucTopTag) {
+		case TAG_CHAPTER:
+		case TAG_SECT1:
+		case TAG_SECT2:
+		case TAG_SECT3:
+		case TAG_SECT4:
+		case TAG_SECT5:
+			if(bEmptyHeaderLevel) {
 				/*
 				 * An empty chapter is legal in Word,
 				 * but not in DocBook.
@@ -650,7 +648,7 @@ vAddEndTagsUntil2(diagram_type *pDiag, UCHAR ucTag1, UCHAR ucTag2)
 			break;
 		case TAG_ITEMIZEDLIST:
 		case TAG_ORDEREDLIST:
-			if (bEmptyListLevel) {
+			if(bEmptyListLevel) {
 				/*
 				 * A list without items is legal in Word,
 				 * but not in DocBook. (Nor are empty items)
@@ -665,7 +663,7 @@ vAddEndTagsUntil2(diagram_type *pDiag, UCHAR ucTag1, UCHAR ucTag2)
 			break;
 		}
 		vAddEndTag(pDiag, ucTopTag);
-	} while (ucTopTag != ucTag1 && ucTopTag != ucTag2);
+	} while(ucTopTag != ucTag1 && ucTopTag != ucTag2);
 } /* end of vAddEndTagsUntil2 */
 
 /*
@@ -674,10 +672,10 @@ vAddEndTagsUntil2(diagram_type *pDiag, UCHAR ucTag1, UCHAR ucTag2)
 void
 vCreateBookIntro(diagram_type *pDiag, int iVersion)
 {
-	const char	*szTitle, *szSubject, *szAuthor;
-	const char	*szLastSaveDtm, *szCompany;
-	const char	*szLanguage;
-	char		szTmp[13];
+	const char *szTitle, *szSubject, *szAuthor;
+	const char *szLastSaveDtm, *szCompany;
+	const char *szLanguage;
+	char szTmp[13];
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -694,7 +692,7 @@ vCreateBookIntro(diagram_type *pDiag, int iVersion)
 
 	/* Start Book */
 	szLanguage = szGetLanguage();
-	if (szLanguage != NULL) {
+	if(szLanguage != NULL) {
 		DBG_MSG(szLanguage);
 		sprintf(szTmp, "lang='%.5s'", szLanguage);
 		szLanguage = szTmp;
@@ -702,41 +700,41 @@ vCreateBookIntro(diagram_type *pDiag, int iVersion)
 	vAddStartTag(pDiag, TAG_BOOK, szLanguage);
 
 	/* Book title */
-	if (szTitle != NULL && szTitle[0] != '\0') {
+	if(szTitle != NULL && szTitle[0] != '\0') {
 		vAddStartTag(pDiag, TAG_TITLE, NULL);
 		vPrintSpecialString(pDiag, szTitle);
 		vAddEndTag(pDiag, TAG_TITLE);
 	}
 	/* Bookinfo */
-	if ((szTitle != NULL && szTitle[0] != '\0') ||
-	    (szSubject != NULL && szSubject[0] != '\0') ||
-	    (szAuthor != NULL && szAuthor[0] != '\0') ||
-	    (szLastSaveDtm != NULL && szLastSaveDtm[0] != '\0') ||
-	    (szCompany != NULL && szCompany[0] != '\0')) {
+	if((szTitle != NULL && szTitle[0] != '\0') ||
+	   (szSubject != NULL && szSubject[0] != '\0') ||
+	   (szAuthor != NULL && szAuthor[0] != '\0') ||
+	   (szLastSaveDtm != NULL && szLastSaveDtm[0] != '\0') ||
+	   (szCompany != NULL && szCompany[0] != '\0')) {
 		vAddStartTag(pDiag, TAG_BOOKINFO, NULL);
-		if (szTitle != NULL && szTitle[0] != '\0') {
+		if(szTitle != NULL && szTitle[0] != '\0') {
 			vAddStartTag(pDiag, TAG_TITLE, NULL);
 			vPrintSpecialString(pDiag, szTitle);
 			vAddEndTag(pDiag, TAG_TITLE);
 		}
-		if (szSubject != NULL && szSubject[0] != '\0') {
+		if(szSubject != NULL && szSubject[0] != '\0') {
 			vAddStartTag(pDiag, TAG_SUBTITLE, NULL);
 			vPrintSpecialString(pDiag, szSubject);
 			vAddEndTag(pDiag, TAG_SUBTITLE);
 		}
-		if (szAuthor != NULL && szAuthor[0] != '\0') {
+		if(szAuthor != NULL && szAuthor[0] != '\0') {
 			vAddStartTag(pDiag, TAG_AUTHOR, NULL);
 			vAddStartTag(pDiag, TAG_SURNAME, NULL);
 			vPrintSpecialString(pDiag, szAuthor);
 			vAddEndTag(pDiag, TAG_SURNAME);
 			vAddEndTag(pDiag, TAG_AUTHOR);
 		}
-		if (szLastSaveDtm != NULL && szLastSaveDtm[0] != '\0') {
+		if(szLastSaveDtm != NULL && szLastSaveDtm[0] != '\0') {
 			vAddStartTag(pDiag, TAG_DATE, NULL);
 			vPrintSpecialString(pDiag, szLastSaveDtm);
 			vAddEndTag(pDiag, TAG_DATE);
 		}
-		if (szCompany != NULL && szCompany[0] != '\0') {
+		if(szCompany != NULL && szCompany[0] != '\0') {
 			vAddStartTag(pDiag, TAG_CORPNAME, NULL);
 			vPrintSpecialString(pDiag, szCompany);
 			vAddEndTag(pDiag, TAG_CORPNAME);
@@ -809,21 +807,21 @@ vEpilogueXML(diagram_type *pDiag)
  */
 static void
 vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
-		USHORT usFontstyle)
+	  USHORT usFontstyle)
 {
-	const char	*szAttr;
-	int	iCount;
-	size_t	tNextFree;
-	BOOL	bNotReady, bEmphasisNew, bSuperscriptNew, bSubscriptNew;
-	UCHAR	ucTopTag, aucStorage[3];
+	const char *szAttr;
+	int iCount;
+	size_t tNextFree;
+	BOOL bNotReady, bEmphasisNew, bSuperscriptNew, bSubscriptNew;
+	UCHAR ucTopTag, aucStorage[3];
 
 	fail(szString == NULL);
 
-	if (szString == NULL || szString[0] == '\0' || tStringLength == 0) {
+	if(szString == NULL || szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
-	if (tStringLength == 1 && szString[0] == FOOTNOTE_OR_ENDNOTE) {
+	if(tStringLength == 1 && szString[0] == FOOTNOTE_OR_ENDNOTE) {
 		/* Don't do anything special for just a single footnote */
 		bEmphasisNew = FALSE;
 		bSuperscriptNew = FALSE;
@@ -831,9 +829,9 @@ vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 	} else {
 		/* Situation normal */
 		bEmphasisNew = bIsBold(usFontstyle) ||
-				bIsItalic(usFontstyle) ||
-				bIsUnderline(usFontstyle) ||
-				bIsStrike(usFontstyle);
+			       bIsItalic(usFontstyle) ||
+			       bIsUnderline(usFontstyle) ||
+			       bIsStrike(usFontstyle);
 		bSuperscriptNew = bIsSuperscript(usFontstyle);
 		bSubscriptNew = bIsSubscript(usFontstyle);
 	}
@@ -843,24 +841,24 @@ vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 	bNotReady = TRUE;
 	do {
 		ucTopTag = ucReadStack();
-		switch (ucTopTag) {
+		switch(ucTopTag) {
 		case TAG_EMPHASIS:
 			fail(!bEmphasisOpen);
-			if (bEmphasisNew) {
+			if(bEmphasisNew) {
 				aucStorage[tNextFree++] = ucTopTag;
 			}
 			vAddEndTag(pDiag, ucTopTag);
 			break;
 		case TAG_SUPERSCRIPT:
 			fail(!bSuperscriptOpen);
-			if (bSuperscriptNew) {
+			if(bSuperscriptNew) {
 				aucStorage[tNextFree++] = ucTopTag;
 			}
 			vAddEndTag(pDiag, ucTopTag);
 			break;
 		case TAG_SUBSCRIPT:
 			fail(!bSubscriptOpen);
-			if (bSubscriptNew) {
+			if(bSubscriptNew) {
 				aucStorage[tNextFree++] = ucTopTag;
 			}
 			vAddEndTag(pDiag, ucTopTag);
@@ -871,40 +869,40 @@ vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 		}
 		fail(tNextFree > elementsof(aucStorage));
 		fail(bNotReady && tNextFree == elementsof(aucStorage));
-	} while (bNotReady);
+	} while(bNotReady);
 
 	/* Just te make sure */
 	vStartOfParagraphXML(pDiag, 1);
 
 	/* Restart to keep the stack happy */
-	for (iCount = (int)tNextFree - 1; iCount > 0; iCount--) {
+	for(iCount = (int)tNextFree - 1; iCount > 0; iCount--) {
 		vAddStartTag(pDiag, aucStorage[iCount], NULL);
 	}
 
 	/* Start what has to be started */
-	if (bEmphasisNew && !bEmphasisOpen) {
-		if (bIsBold(usFontstyle)) {
+	if(bEmphasisNew && !bEmphasisOpen) {
+		if(bIsBold(usFontstyle)) {
 			szAttr = "role='bold'";
-		} else if (bIsItalic(usFontstyle)) {
+		} else if(bIsItalic(usFontstyle)) {
 			szAttr = NULL;
-		} else if (bIsUnderline(usFontstyle)) {
+		} else if(bIsUnderline(usFontstyle)) {
 			szAttr = "role='underline'";
-		} else if (bIsStrike(usFontstyle)) {
+		} else if(bIsStrike(usFontstyle)) {
 			szAttr = "role='strikethrough'";
 		} else {
 			szAttr = NULL;
 		}
 		vAddStartTag(pDiag, TAG_EMPHASIS, szAttr);
 	}
-	if (bSuperscriptNew && !bSuperscriptOpen) {
+	if(bSuperscriptNew && !bSuperscriptOpen) {
 		vAddStartTag(pDiag, TAG_SUPERSCRIPT, NULL);
 	}
-	if (bSubscriptNew && !bSubscriptOpen) {
+	if(bSubscriptNew && !bSubscriptOpen) {
 		vAddStartTag(pDiag, TAG_SUBSCRIPT, NULL);
 	}
 
 	/* The print the string */
-	for (iCount = 0; iCount < (int)tStringLength; iCount++) {
+	for(iCount = 0; iCount < (int)tStringLength; iCount++) {
 		vPrintChar(pDiag, szString[iCount]);
 	}
 } /* end of vPrintXML */
@@ -929,15 +927,15 @@ vMove2NextLineXML(diagram_type *pDiag)
  */
 void
 vSubstringXML(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, int32_t lStringWidth,
-	USHORT usFontstyle)
+	      const char *szString, size_t tStringLength, int32_t lStringWidth,
+	      USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(pDiag->lXleft < 0);
 	fail(tStringLength != strlen(szString));
 
-	if (szString[0] == '\0' || tStringLength == 0) {
+	if(szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
@@ -955,15 +953,15 @@ vStartOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 {
 	fail(pDiag == NULL);
 
-	if (uiParagraphLevel >= uiMaxLevel || bTitleOpen) {
+	if(uiParagraphLevel >= uiMaxLevel || bTitleOpen) {
 		/* In Word a title is just a paragraph */
 		return;
 	}
-	if (uiListLevel != 0 && bEmptyListLevel) {
+	if(uiListLevel != 0 && bEmptyListLevel) {
 		/* No paragraphs in a list before the first listitem */
 		return;
 	}
-	if (usHeaderLevelCurrent == 0) {
+	if(usHeaderLevelCurrent == 0) {
 		/* No paragraphs without an open header */
 		vAddStartTag(pDiag, TAG_CHAPTER, NULL);
 		/* Dummy title */
@@ -979,18 +977,18 @@ vStartOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 void
 vEndOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 {
-	UCHAR	ucTopTag;
+	UCHAR ucTopTag;
 
 	fail(pDiag == NULL);
 
-	if (uiParagraphLevel > uiMaxLevel) {
+	if(uiParagraphLevel > uiMaxLevel) {
 		DBG_DEC(uiParagraphLevel);
 		return;
 	}
 
 	for(;;) {
 		ucTopTag = ucReadStack();
-		switch (ucTopTag) {
+		switch(ucTopTag) {
 		case TAG_EMPHASIS:
 			fail(!bEmphasisOpen);
 			vAddEndTag(pDiag, TAG_EMPHASIS);
@@ -1024,7 +1022,7 @@ vEndOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 		default:
 			DBG_DEC(ucTopTag);
 			DBG_MSG_C((size_t)ucTopTag < elementsof(atDocBookTags),
-				atDocBookTags[(UINT)ucTopTag].szTagname);
+				  atDocBookTags[(UINT)ucTopTag].szTagname);
 			return;
 		}
 	}
@@ -1036,11 +1034,11 @@ vEndOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 void
 vEndOfPageXML(diagram_type *pDiag)
 {
-	if (bTableOpen || usHeaderLevelCurrent == 0) {
+	if(bTableOpen || usHeaderLevelCurrent == 0) {
 		/* No beginpage in a table or outside a chapter */
 		return;
 	}
-	if (bTitleOpen) {
+	if(bTitleOpen) {
 		/* A beginpage is not allowed when in a title */
 		/* So start a new paragraph */
 		vEndOfParagraphXML(pDiag, UINT_MAX);
@@ -1056,8 +1054,8 @@ vEndOfPageXML(diagram_type *pDiag)
 static void
 vCloseHeaderLevels(diagram_type *pDiag, USHORT usIstd)
 {
-	BOOL	bNotReady;
-	UCHAR	ucTopTag;
+	BOOL bNotReady;
+	UCHAR ucTopTag;
 
 	DBG_MSG("vCloseHeaderLevels");
 	DBG_DEC(usIstd);
@@ -1068,7 +1066,7 @@ vCloseHeaderLevels(diagram_type *pDiag, USHORT usIstd)
 	bNotReady = TRUE;
 	do {
 		ucTopTag = ucReadStack();
-		switch (ucTopTag) {
+		switch(ucTopTag) {
 		case TAG_TITLE:
 		case TAG_PARA:
 			vAddEndTag(pDiag, ucTopTag);
@@ -1077,22 +1075,34 @@ vCloseHeaderLevels(diagram_type *pDiag, USHORT usIstd)
 			bNotReady = FALSE;
 			break;
 		}
-	} while (bNotReady);
+	} while(bNotReady);
 
 	vStackTrace();
 
-	while (usHeaderLevelCurrent >= usIstd) {
-		if (bEmptyHeaderLevel) {
+	while(usHeaderLevelCurrent >= usIstd) {
+		if(bEmptyHeaderLevel) {
 			vAddCombinedTag(pDiag, TAG_PARA, NULL);
 			bEmptyHeaderLevel = FALSE;
 		}
-		switch (usHeaderLevelCurrent) {
-		case 1: vAddEndTag(pDiag, TAG_CHAPTER); break;
-		case 2: vAddEndTag(pDiag, TAG_SECT1); break;
-		case 3: vAddEndTag(pDiag, TAG_SECT2); break;
-		case 4: vAddEndTag(pDiag, TAG_SECT3); break;
-		case 5: vAddEndTag(pDiag, TAG_SECT4); break;
-		case 6: vAddEndTag(pDiag, TAG_SECT5); break;
+		switch(usHeaderLevelCurrent) {
+		case 1:
+			vAddEndTag(pDiag, TAG_CHAPTER);
+			break;
+		case 2:
+			vAddEndTag(pDiag, TAG_SECT1);
+			break;
+		case 3:
+			vAddEndTag(pDiag, TAG_SECT2);
+			break;
+		case 4:
+			vAddEndTag(pDiag, TAG_SECT3);
+			break;
+		case 5:
+			vAddEndTag(pDiag, TAG_SECT4);
+			break;
+		case 6:
+			vAddEndTag(pDiag, TAG_SECT5);
+			break;
 		default:
 			DBG_DEC(usHeaderLevelCurrent);
 			DBG_FIXME();
@@ -1113,13 +1123,13 @@ vSetHeadersXML(diagram_type *pDiag, USHORT usIstd)
 {
 	fail(pDiag == NULL);
 
-	if (usIstd == 0 || usIstd > 6) {
+	if(usIstd == 0 || usIstd > 6) {
 		DBG_DEC_C(usIstd != 0 && usIstd <= 9, usIstd);
 		return;
 	}
 	DBG_DEC(usIstd);
 
-	if (bTableOpen || uiListLevel != 0) {
+	if(bTableOpen || uiListLevel != 0) {
 		/* No headers when you're in a table or in a list */
 		return;
 	}
@@ -1130,14 +1140,26 @@ vSetHeadersXML(diagram_type *pDiag, USHORT usIstd)
 	DBG_DEC(usHeaderLevelCurrent);
 
 	/* Open levels */
-	while (usHeaderLevelCurrent < usIstd) {
-		switch (usHeaderLevelCurrent) {
-		case 0: vAddStartTag(pDiag, TAG_CHAPTER, NULL); break;
-		case 1: vAddStartTag(pDiag, TAG_SECT1, NULL); break;
-		case 2: vAddStartTag(pDiag, TAG_SECT2, NULL); break;
-		case 3: vAddStartTag(pDiag, TAG_SECT3, NULL); break;
-		case 4: vAddStartTag(pDiag, TAG_SECT4, NULL); break;
-		case 5: vAddStartTag(pDiag, TAG_SECT5, NULL); break;
+	while(usHeaderLevelCurrent < usIstd) {
+		switch(usHeaderLevelCurrent) {
+		case 0:
+			vAddStartTag(pDiag, TAG_CHAPTER, NULL);
+			break;
+		case 1:
+			vAddStartTag(pDiag, TAG_SECT1, NULL);
+			break;
+		case 2:
+			vAddStartTag(pDiag, TAG_SECT2, NULL);
+			break;
+		case 3:
+			vAddStartTag(pDiag, TAG_SECT3, NULL);
+			break;
+		case 4:
+			vAddStartTag(pDiag, TAG_SECT4, NULL);
+			break;
+		case 5:
+			vAddStartTag(pDiag, TAG_SECT5, NULL);
+			break;
 		default:
 			DBG_DEC(usHeaderLevelCurrent);
 			DBG_FIXME();
@@ -1145,7 +1167,7 @@ vSetHeadersXML(diagram_type *pDiag, USHORT usIstd)
 		}
 		fail(usIstd == 0);
 		/* The next paragraph should be a title */
-		if (usHeaderLevelCurrent < usIstd) {
+		if(usHeaderLevelCurrent < usIstd) {
 			/* This chapter level is not in the Word document */
 			vAddCombinedTag(pDiag, TAG_TITLE, NULL);
 		} else {
@@ -1160,29 +1182,29 @@ vSetHeadersXML(diagram_type *pDiag, USHORT usIstd)
 void
 vStartOfListXML(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 {
-	const char	*szAttr;
-	UCHAR		ucTag;
+	const char *szAttr;
+	UCHAR ucTag;
 
 	fail(pDiag == NULL);
 
-	if (bIsEndOfTable) {
+	if(bIsEndOfTable) {
 		/* FIXME: until a list in a table is allowed */
 		vEndOfTableXML(pDiag);
 	}
 
-	if (bTableOpen) {
+	if(bTableOpen) {
 		/* FIXME: a list in a table should be allowed */
 		return;
 	}
 
-	if (usHeaderLevelCurrent == 0) {
+	if(usHeaderLevelCurrent == 0) {
 		/* No list without an open header */
 		vAddStartTag(pDiag, TAG_CHAPTER, NULL);
 		/* Dummy title */
 		vAddCombinedTag(pDiag, TAG_TITLE, NULL);
 	}
 
-	switch (ucNFC) {
+	switch(ucNFC) {
 	case LIST_ARABIC_NUM:
 	case LIST_ORDINAL_NUM:
 	case LIST_NUMBER_TXT:
@@ -1231,12 +1253,12 @@ vEndOfListXML(diagram_type *pDiag)
 {
 	fail(pDiag == NULL);
 
-	if (bTableOpen) {
+	if(bTableOpen) {
 		/* FIXME: a list in a table should be allowed */
 		return;
 	}
 
-	if (uiListLevel != 0) {
+	if(uiListLevel != 0) {
 		vStackTrace();
 		vAddEndTagsUntil2(pDiag, TAG_ITEMIZEDLIST, TAG_ORDEREDLIST);
 		vStackTrace();
@@ -1249,24 +1271,25 @@ vEndOfListXML(diagram_type *pDiag)
 void
 vStartOfListItemXML(diagram_type *pDiag, BOOL bNoMarks)
 {
-	const char	*szAttr;
-	UCHAR	ucTopTag;
+	const char *szAttr;
+	UCHAR ucTopTag;
 
 	fail(pDiag == NULL);
 
-	if (bTableOpen) {
+	if(bTableOpen) {
 		/* FIXME: a list in a table should be allowed */
 		return;
 	}
 
 	ucTopTag = ucReadStack();
-	if (ucTopTag != TAG_ITEMIZEDLIST && ucTopTag != TAG_ORDEREDLIST) {
+	if(ucTopTag != TAG_ITEMIZEDLIST && ucTopTag != TAG_ORDEREDLIST) {
 		/* Must end a previous list item first */
 		vAddEndTagsUntil1(pDiag, TAG_LISTITEM);
 	}
 
 	DBG_DEC_C(ucReadStack() != TAG_ITEMIZEDLIST &&
-		ucReadStack() != TAG_ORDEREDLIST, ucReadStack());
+		      ucReadStack() != TAG_ORDEREDLIST,
+		  ucReadStack());
 
 	/* Start a new list item */
 	szAttr = bNoMarks ? "override='none'" : NULL;
@@ -1281,11 +1304,11 @@ vStartOfListItemXML(diagram_type *pDiag, BOOL bNoMarks)
 static void
 vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
 {
-	const char	*szFrame;
-	BOOL	bNotReady;
-	UCHAR	ucTopTag;
-	char	cColSep, cRowSep;
-	char	szAttr[40];
+	const char *szFrame;
+	BOOL bNotReady;
+	UCHAR ucTopTag;
+	char cColSep, cRowSep;
+	char szAttr[40];
 
 	fail(pDiag == NULL);
 
@@ -1293,7 +1316,7 @@ vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
 	bNotReady = TRUE;
 	do {
 		ucTopTag = ucReadStack();
-		switch (ucTopTag) {
+		switch(ucTopTag) {
 		case TAG_TITLE:
 			fail(!bTitleOpen);
 			vAddEndTag(pDiag, TAG_TITLE);
@@ -1314,24 +1337,24 @@ vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
 			bNotReady = FALSE;
 			break;
 		}
-	} while (bNotReady);
+	} while(bNotReady);
 
 	/* Create table attributes */
-	switch (ucBorderInfo) {
+	switch(ucBorderInfo) {
 	case TABLE_BORDER_TOP:
 		szFrame = "top";
 		break;
-	case TABLE_BORDER_LEFT|TABLE_BORDER_RIGHT:
+	case TABLE_BORDER_LEFT | TABLE_BORDER_RIGHT:
 		szFrame = "sides";
 		break;
-	case TABLE_BORDER_TOP|TABLE_BORDER_BOTTOM:
+	case TABLE_BORDER_TOP | TABLE_BORDER_BOTTOM:
 		szFrame = "topbot";
 		break;
 	case TABLE_BORDER_BOTTOM:
 		szFrame = "bottom";
 		break;
-	case TABLE_BORDER_TOP|TABLE_BORDER_LEFT|
-	     TABLE_BORDER_BOTTOM|TABLE_BORDER_RIGHT:
+	case TABLE_BORDER_TOP | TABLE_BORDER_LEFT |
+	    TABLE_BORDER_BOTTOM | TABLE_BORDER_RIGHT:
 		szFrame = "all";
 		break;
 	default:
@@ -1339,14 +1362,18 @@ vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
 		break;
 	}
 	cColSep = bIsTableBorderLeft(ucBorderInfo) ||
-		  bIsTableBorderRight(ucBorderInfo) ? '1' : '0';
+			  bIsTableBorderRight(ucBorderInfo)
+		      ? '1'
+		      : '0';
 	cRowSep = bIsTableBorderTop(ucBorderInfo) ||
-		  bIsTableBorderBottom(ucBorderInfo) ? '1' : '0';
+			  bIsTableBorderBottom(ucBorderInfo)
+		      ? '1'
+		      : '0';
 
 	sprintf(szAttr, "frame='%.6s' colsep='%c' rowsep='%c'",
-			szFrame, cColSep, cRowSep);
+		szFrame, cColSep, cRowSep);
 
-	if (usHeaderLevelCurrent == 0) {
+	if(usHeaderLevelCurrent == 0) {
 		/* No table without an open header */
 		vAddStartTag(pDiag, TAG_CHAPTER, NULL);
 		/* Dummy title */
@@ -1360,12 +1387,12 @@ vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
  */
 static void
 vStartOfTableGroup(diagram_type *pDiag,
-	int iNbrOfColumns, const int16_t *asColumnWidth)
+		   int iNbrOfColumns, const int16_t *asColumnWidth)
 {
-	double	dWidth;
-	int	iIndex;
-	char	szCols[6 + 3 * sizeof(int) + 1 + 1];
-	char	szColWidth[10 + 3 * sizeof(int16_t) + 3 + 3 + 1];
+	double dWidth;
+	int iIndex;
+	char szCols[6 + 3 * sizeof(int) + 1 + 1];
+	char szColWidth[10 + 3 * sizeof(int16_t) + 3 + 3 + 1];
 
 	fail(iNbrOfColumns < 1);
 	fail(asColumnWidth == NULL);
@@ -1373,10 +1400,10 @@ vStartOfTableGroup(diagram_type *pDiag,
 	sprintf(szCols, "cols='%d'", iNbrOfColumns);
 	vAddStartTag(pDiag, TAG_TGROUP, szCols);
 
-	for (iIndex= 0; iIndex < iNbrOfColumns; iIndex++) {
+	for(iIndex = 0; iIndex < iNbrOfColumns; iIndex++) {
 		fail(asColumnWidth[iIndex] < 0);
 		dWidth = dTwips2Points(asColumnWidth[iIndex]);
-		if (dWidth <= 1.0) {
+		if(dWidth <= 1.0) {
 			strcpy(szColWidth, "colwidth='1.00pt'");
 		} else {
 			sprintf(szColWidth, "colwidth='%.2fpt'", dWidth);
@@ -1393,7 +1420,7 @@ vEndOfTableXML(diagram_type *pDiag)
 {
 	fail(pDiag == NULL);
 
-	if (bTableOpen) {
+	if(bTableOpen) {
 		vAddEndTag(pDiag, TAG_TBODY);
 		vAddEndTag(pDiag, TAG_TGROUP);
 		vAddEndTag(pDiag, TAG_INFORMALTABLE);
@@ -1405,10 +1432,10 @@ vEndOfTableXML(diagram_type *pDiag)
  */
 void
 vAddTableRowXML(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
+		int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
-	size_t	tCount, tStringLength;
-	int	iIndex;
+	size_t tCount, tStringLength;
+	int iIndex;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -1416,12 +1443,12 @@ vAddTableRowXML(diagram_type *pDiag, char **aszColTxt,
 	fail(iNbrOfColumns < 1);
 	fail(asColumnWidth == NULL);
 
-	if (iNbrOfColumns != iTableColumnsCurrent) {
+	if(iNbrOfColumns != iTableColumnsCurrent) {
 		/* A new number of columns */
 		/* End the old table body and table group (if they exist) */
 		vAddEndTagOptional(pDiag, TAG_TBODY);
 		vAddEndTagOptional(pDiag, TAG_TGROUP);
-		if (!bTableOpen) {
+		if(!bTableOpen) {
 			/* No table yet. Start a new table */
 			vStartOfTable(pDiag, ucBorderInfo);
 		}
@@ -1433,12 +1460,12 @@ vAddTableRowXML(diagram_type *pDiag, char **aszColTxt,
 
 	/* Add the table row */
 	vAddStartTag(pDiag, TAG_ROW, NULL);
-	for (iIndex = 0; iIndex < iNbrOfColumns; iIndex++) {
+	for(iIndex = 0; iIndex < iNbrOfColumns; iIndex++) {
 		/* Add a table cell */
 		fail(aszColTxt[iIndex] == NULL);
 		vAddStartTag(pDiag, TAG_ENTRY, NULL);
 		tStringLength = strlen(aszColTxt[iIndex]);
-		for (tCount = 0; tCount < tStringLength; tCount++) {
+		for(tCount = 0; tCount < tStringLength; tCount++) {
 			vPrintChar(pDiag, aszColTxt[iIndex][tCount]);
 		}
 		vAddEndTag(pDiag, TAG_ENTRY);

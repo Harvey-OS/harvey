@@ -14,32 +14,31 @@
 #include <ndb.h>
 #include "arp.h"
 
-typedef struct Rarp	Rarp;
+typedef struct Rarp Rarp;
 
-struct Rarp
-{
-	uint8_t	edst[6];
-	uint8_t	esrc[6];
-	uint8_t	type[2];
-	uint8_t	hrd[2];
-	uint8_t	pro[2];
-	uint8_t	hln;
-	uint8_t	pln;
-	uint8_t	op[2];
-	uint8_t	sha[6];
-	uint8_t	spa[4];
-	uint8_t	tha[6];
-	uint8_t	tpa[4];
+struct Rarp {
+	uint8_t edst[6];
+	uint8_t esrc[6];
+	uint8_t type[2];
+	uint8_t hrd[2];
+	uint8_t pro[2];
+	uint8_t hln;
+	uint8_t pln;
+	uint8_t op[2];
+	uint8_t sha[6];
+	uint8_t spa[4];
+	uint8_t tha[6];
+	uint8_t tpa[4];
 };
 
-uint8_t	myip[IPaddrlen];
-uint8_t	myether[6];
-char	rlog[] = "ipboot";
-char	*device = "ether0";
-int	debug;
-Ndb	*db;
+uint8_t myip[IPaddrlen];
+uint8_t myether[6];
+char rlog[] = "ipboot";
+char *device = "ether0";
+int debug;
+Ndb *db;
 
-char*	lookup(char*, char*, char*, char*, int);
+char *lookup(char *, char *, char *, char *, int);
 
 void
 error(char *s)
@@ -72,7 +71,8 @@ main(int argc, char *argv[])
 
 	ndbfile = nil;
 	setnetmtpt(net, sizeof(net), nil);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'e':
 		p = ARGF();
 		if(p == nil)
@@ -94,8 +94,10 @@ main(int argc, char *argv[])
 			usage();
 		setnetmtpt(net, sizeof(net), p);
 		break;
-	}ARGEND
-	USED(argc); USED(argv);
+	}
+	ARGEND
+	USED(argc);
+	USED(argv);
 
 	fmtinstall('E', eipfmt);
 	fmtinstall('I', eipfmt);
@@ -119,7 +121,7 @@ main(int argc, char *argv[])
 	if((arp = open(file, ORDWR)) < 0)
 		fprint(2, "rarpd: can't open %s\n", file);
 
-	switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
+	switch(rfork(RFNOTEG | RFPROC | RFFDG)) {
 	case -1:
 		error("fork");
 	case 0:
@@ -128,27 +130,27 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	for(;;){
+	for(;;) {
 		n = read(edata, buf, sizeof(buf));
 		if(n <= 0)
 			error("reading");
-		if(n < sizeof(Rarp)){
+		if(n < sizeof(Rarp)) {
 			syslog(debug, rlog, "bad packet size %ld", n);
 			continue;
 		}
-		rp = (Rarp*)buf;
-		if(rp->op[0]!=0 && rp->op[1]!=3){
+		rp = (Rarp *)buf;
+		if(rp->op[0] != 0 && rp->op[1] != 3) {
 			syslog(debug, rlog, "bad op %d %d %E",
-				rp->op[1], rp->op[0], rp->esrc);
+			       rp->op[1], rp->op[0], rp->esrc);
 			continue;
 		}
 
 		if(debug)
 			syslog(debug, rlog, "rcv se %E si %V te %E ti %V",
-				 rp->sha, rp->spa, rp->tha, rp->tpa);
+			       rp->sha, rp->spa, rp->tha, rp->tpa);
 
 		sprint(ebuf, "%E", rp->tha);
-		if(lookup("ether", ebuf, "ip", ipbuf, sizeof ipbuf) == nil){
+		if(lookup("ether", ebuf, "ip", ipbuf, sizeof ipbuf) == nil) {
 			syslog(debug, rlog, "client lookup failed: %s", ebuf);
 			continue;
 		}
@@ -163,7 +165,7 @@ main(int argc, char *argv[])
 
 		if(debug)
 			syslog(debug, rlog, "send se %E si %V te %E ti %V",
-				 rp->sha, rp->spa, rp->tha, rp->tpa);
+			       rp->sha, rp->spa, rp->tha, rp->tpa);
 
 		if(write(edata, buf, 60) != 60)
 			error("write failed");
@@ -175,7 +177,7 @@ main(int argc, char *argv[])
 	}
 }
 
-char*
+char *
 lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
 {
 	static Ndb *db;
@@ -195,7 +197,7 @@ lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
 	if(t == nil)
 		return nil;
 	strncpy(tval, t->val, len);
-	tval[len-1] = 0;
+	tval[len - 1] = 0;
 	ndbfree(t);
 	return tval;
 }

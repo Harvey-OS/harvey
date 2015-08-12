@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <disk.h>
 
-char *src[] = { "part", "disk", "guess" };
+char *src[] = {"part", "disk", "guess"};
 void
 main(int argc, char **argv)
 {

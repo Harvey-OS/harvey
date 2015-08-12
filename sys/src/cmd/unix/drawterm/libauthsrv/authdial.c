@@ -19,15 +19,14 @@ authdial(char *netroot, char *dom)
 	char server[Ndbvlen];
 	Ndbtuple *nt;
 
-	
-	if(dom != nil){
+	if(dom != nil) {
 		/* look up an auth server in an authentication domain */
 		nt = csgetval(netroot, "authdom", dom, "auth", server);
 
 		/* if that didn't work, just try the IP domain */
 		if(nt == nil)
 			nt = csgetval(netroot, "dom", dom, "auth", server);
-		if(nt == nil){
+		if(nt == nil) {
 			werrstr("no auth server found for %s", dom);
 			return -1;
 		}

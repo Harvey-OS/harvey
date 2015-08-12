@@ -16,4 +16,3 @@ main(int argc, char *argv[])
 	print("hi\n");
 	exits(0);
 }
-

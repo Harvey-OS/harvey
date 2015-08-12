@@ -177,4 +177,3 @@ fastticks(uint64_t *v)
 		*v = 1;
 	return 0;
 }
-

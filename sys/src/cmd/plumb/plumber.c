@@ -16,22 +16,22 @@
 #include <fcall.h>
 #include "plumber.h"
 
-char	*plumbfile;
+char *plumbfile;
 char *user;
 char *home;
 char *progname;
 Ruleset **rules;
-int	printerrors=1;
-jmp_buf	parsejmp;
-char	*lasterror;
-int mainstacksize = 20*1024;
+int printerrors = 1;
+jmp_buf parsejmp;
+char *lasterror;
+int mainstacksize = 20 * 1024;
 
 void
 makeports(Ruleset *rules[])
 {
 	int i;
 
-	for(i=0; rules[i]; i++)
+	for(i = 0; rules[i]; i++)
 		addport(rules[i]->port);
 }
 
@@ -56,17 +56,19 @@ threadmain(int argc, char *argv[])
 
 	progname = "plumber";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		plumbfile = ARGF();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	user = getenv("user");
 	home = getenv("home");
-	if(user==nil || home==nil)
+	if(user == nil || home == nil)
 		error("can't initialize $user or $home: %r");
-	if(plumbfile == nil){
+	if(plumbfile == nil) {
 		sprint(buf, "%s/lib/plumbing", home);
 		plumbfile = estrdup(buf);
 	}
@@ -84,7 +86,7 @@ threadmain(int argc, char *argv[])
 	 * Start all processes and threads from other proc
 	 * so we (main pid) can return to user.
 	 */
-	c = chancreate(sizeof(void*), 0);
+	c = chancreate(sizeof(void *), 0);
 	proccreate(mainproc, c, 8192);
 	recvp(c);
 	chanfree(c);
@@ -98,7 +100,7 @@ error(char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, args);
+	vseprint(buf, buf + sizeof buf, fmt, args);
 	va_end(args);
 
 	fprint(2, "%s: %s\n", progname, buf);
@@ -112,19 +114,21 @@ parseerror(char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, args);
+	vseprint(buf, buf + sizeof buf, fmt, args);
 	va_end(args);
 
-	if(printerrors){
+	if(printerrors) {
 		printinputstack();
 		fprint(2, "%s\n", buf);
 	}
-	do; while(popinput());
+	do
+		;
+	while(popinput());
 	lasterror = estrdup(buf);
 	longjmp(parsejmp, 1);
 }
 
-void*
+void *
 emalloc(int32_t n)
 {
 	void *p;
@@ -136,7 +140,7 @@ emalloc(int32_t n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *p, int32_t n)
 {
 	p = realloc(p, n);
@@ -145,7 +149,7 @@ erealloc(void *p, int32_t n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;

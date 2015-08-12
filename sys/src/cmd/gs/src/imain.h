@@ -28,9 +28,9 @@
 /* Requires <stdio.h>, stdpre.h, gsmemory.h, gstypes.h, iref.h */
 
 #ifndef imain_INCLUDED
-#  define imain_INCLUDED
+#define imain_INCLUDED
 
-#include "gsexit.h"		/* exported by imain.c */
+#include "gsexit.h" /* exported by imain.c */
 
 /*
  * This file defines the intended API between client front ends
@@ -48,7 +48,7 @@
  * as their first argument.
  */
 #ifndef gs_main_instance_DEFINED
-#  define gs_main_instance_DEFINED
+#define gs_main_instance_DEFINED
 typedef struct gs_main_instance_s gs_main_instance;
 #endif
 
@@ -57,7 +57,7 @@ typedef struct gs_main_instance_s gs_main_instance;
 /* get minst from memory is a hack to allow parts of the system 
  * to reach minst, slightly better than a global
  */
-gs_main_instance* get_minst_from_memory(const gs_memory_t *mem);
+gs_main_instance *get_minst_from_memory(const gs_memory_t *mem);
 
 /* ---------------- Instance creation ---------------- */
 
@@ -66,7 +66,7 @@ gs_main_instance* get_minst_from_memory(const gs_memory_t *mem);
  * 
  * // add usage documentation
  */
-gs_main_instance *gs_main_alloc_instance(gs_memory_t *); 
+gs_main_instance *gs_main_alloc_instance(gs_memory_t *);
 
 /* ---------------- Initialization ---------------- */
 
@@ -88,13 +88,13 @@ int gs_main_init0(gs_main_instance *minst, FILE *in, FILE *out, FILE *err,
  * structures such as the name table, the token scanner tables,
  * dictionaries such as systemdict, and the interpreter stacks.
  */
-int gs_main_init1(gs_main_instance * minst);
+int gs_main_init1(gs_main_instance *minst);
 
 /*
  * init2 finishes preparing the interpreter for use by running
  * initialization files with PostScript procedure definitions.
  */
-int gs_main_init2(gs_main_instance * minst);
+int gs_main_init2(gs_main_instance *minst);
 
 /*
  * The runlibfile operator uses a search path, as described in
@@ -103,7 +103,7 @@ int gs_main_init2(gs_main_instance * minst);
  * directories to the search path; it is equivalent to the -I command
  * line switch.  It may be called any time after init0.
  */
-int gs_main_add_lib_path(gs_main_instance * minst, const char *path);
+int gs_main_add_lib_path(gs_main_instance *minst, const char *path);
 
 /*
  * Under certain internal conditions, the search path may temporarily
@@ -111,15 +111,15 @@ int gs_main_add_lib_path(gs_main_instance * minst, const char *path);
  * this.  Clients should never need to call this procedure, and
  * eventually it may be removed.
  */
-int gs_main_set_lib_paths(gs_main_instance * minst);
+int gs_main_set_lib_paths(gs_main_instance *minst);
 
 /*
  * Open a PostScript file using the search path.  Clients should
  * never need to call this procedure, since gs_main_run_file opens the
  * file itself, and eventually the procedure may be removed.
  */
-int gs_main_lib_open(gs_main_instance * minst, const char *fname,
-		     ref * pfile);
+int gs_main_lib_open(gs_main_instance *minst, const char *fname,
+		     ref *pfile);
 
 /*
  * Here we summarize the C API calls that correspond to some of the
@@ -168,23 +168,23 @@ int gs_main_lib_open(gs_main_instance * minst, const char *fname,
  * in non-garbage-collectable space (e.g., by malloc or gs_malloc,
  * or statically).
  */
-int gs_main_run_file(gs_main_instance * minst, const char *fname,
+int gs_main_run_file(gs_main_instance *minst, const char *fname,
 		     int user_errors, int *pexit_code,
-		     ref * perror_object);
-int gs_main_run_string(gs_main_instance * minst, const char *str,
+		     ref *perror_object);
+int gs_main_run_string(gs_main_instance *minst, const char *str,
 		       int user_errors, int *pexit_code,
-		       ref * perror_object);
-int gs_main_run_string_with_length(gs_main_instance * minst,
+		       ref *perror_object);
+int gs_main_run_string_with_length(gs_main_instance *minst,
 				   const char *str, uint length,
 				   int user_errors, int *pexit_code,
-				   ref * perror_object);
+				   ref *perror_object);
 
 /*
  * Open the file for gs_main_run_file.  This is an internal routine
  * that is only exported for some special clients.
  */
-int gs_main_run_file_open(gs_main_instance * minst,
-			  const char *file_name, ref * pfref);
+int gs_main_run_file_open(gs_main_instance *minst,
+			  const char *file_name, ref *pfref);
 
 /*
  * The next 3 procedures provide for feeding input to the interpreter
@@ -199,14 +199,14 @@ int gs_main_run_file_open(gs_main_instance * minst,
  * Note that run_string_continue takes a pointer and a length, like
  * run_string_with_length.
  */
-int gs_main_run_string_begin(gs_main_instance * minst, int user_errors,
-			     int *pexit_code, ref * perror_object);
-int gs_main_run_string_continue(gs_main_instance * minst,
+int gs_main_run_string_begin(gs_main_instance *minst, int user_errors,
+			     int *pexit_code, ref *perror_object);
+int gs_main_run_string_continue(gs_main_instance *minst,
 				const char *str, uint length,
 				int user_errors, int *pexit_code,
-				ref * perror_object);
-int gs_main_run_string_end(gs_main_instance * minst, int user_errors,
-			   int *pexit_code, ref * perror_object);
+				ref *perror_object);
+int gs_main_run_string_end(gs_main_instance *minst, int user_errors,
+			   int *pexit_code, ref *perror_object);
 
 /* ---------------- Operand stack access ---------------- */
 
@@ -219,21 +219,21 @@ int gs_main_run_string_end(gs_main_instance * minst, int user_errors,
  *
  * Procedures to push values on the operand stack:
  */
-int gs_push_boolean(gs_main_instance * minst, bool value);
-int gs_push_integer(gs_main_instance * minst, long value);
-int gs_push_real(gs_main_instance * minst, floatp value);
-int gs_push_string(gs_main_instance * minst, byte * chars, uint length,
+int gs_push_boolean(gs_main_instance *minst, bool value);
+int gs_push_integer(gs_main_instance *minst, long value);
+int gs_push_real(gs_main_instance *minst, floatp value);
+int gs_push_string(gs_main_instance *minst, byte *chars, uint length,
 		   bool read_only);
 
 /*
  * Procedures to pop values from the operand stack:
  */
-int gs_pop_boolean(gs_main_instance * minst, bool * result);
-int gs_pop_integer(gs_main_instance * minst, long *result);
-int gs_pop_real(gs_main_instance * minst, float *result);
+int gs_pop_boolean(gs_main_instance *minst, bool *result);
+int gs_pop_integer(gs_main_instance *minst, long *result);
+int gs_pop_real(gs_main_instance *minst, float *result);
 
 /* gs_pop_string returns 1 if the string is read-only. */
-int gs_pop_string(gs_main_instance * minst, gs_string * result);
+int gs_pop_string(gs_main_instance *minst, gs_string *result);
 
 /* ---------------- Debugging ---------------- */
 
@@ -243,12 +243,9 @@ int gs_pop_string(gs_main_instance * minst, gs_string * result);
  * never call this.
  */
 void gs_main_dump_stack(gs_main_instance *minst, int code,
-			ref * perror_object);
+			ref *perror_object);
 
 /* ---------------- Console output ---------------- */
-
-
-
 
 /* ---------------- Termination ---------------- */
 
@@ -262,6 +259,6 @@ void gs_main_dump_stack(gs_main_instance *minst, int code,
  * Note that calling gs_to_exit (defined in gsexit.h) automatically calls
  * gs_main_finit for the default instance.
  */
-int gs_main_finit(gs_main_instance * minst, int exit_status, int code);
+int gs_main_finit(gs_main_instance *minst, int exit_status, int code);
 
 #endif /* imain_INCLUDED */

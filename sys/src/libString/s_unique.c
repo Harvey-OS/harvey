@@ -11,12 +11,12 @@
 #include <libc.h>
 #include "String.h"
 
-String*
+String *
 s_unique(String *s)
 {
 	String *p;
 
-	if(s->ref > 1){
+	if(s->ref > 1) {
 		p = s;
 		s = s_clone(p);
 		s_free(p);

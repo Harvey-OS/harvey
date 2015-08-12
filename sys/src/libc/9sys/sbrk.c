@@ -10,13 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-extern	char	end[];
-static	char	*bloc = { end };
-extern	int	brk_(void*);
+extern char end[];
+static char *bloc = {end};
+extern int brk_(void *);
 
-enum
-{
-	Round	= 7
+enum {
+	Round = 7
 };
 
 int
@@ -25,20 +24,20 @@ brk(void *p)
 	uintptr bl;
 
 	bl = ((uintptr)p + Round) & ~Round;
-	if(brk_((void*)bl) < 0)
+	if(brk_((void *)bl) < 0)
 		return -1;
-	bloc = (char*)bl;
+	bloc = (char *)bl;
 	return 0;
 }
 
-void*
+void *
 sbrk(uint32_t n)
 {
 	uintptr bl;
 
 	bl = ((uintptr)bloc + Round) & ~Round;
-	if(brk_((void*)(bl+n)) < 0)
-		return (void*)-1;
-	bloc = (char*)bl + n;
-	return (void*)bl;
+	if(brk_((void *)(bl + n)) < 0)
+		return (void *)-1;
+	bloc = (char *)bl + n;
+	return (void *)bl;
 }

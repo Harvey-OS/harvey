@@ -7,31 +7,30 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
 Lock wpathlock;
 
 struct {
-	Lock	flock;
-	File*	ffree;		/* free file structures */
-	Wpath*	wfree;
+	Lock flock;
+	File *ffree; /* free file structures */
+	Wpath *wfree;
 } suballoc;
 
-enum{
-	Finc=	128,	/* allocation chunksize for files */
-	Fmax=	10000,	/* maximum file structures to be allocated */
-	
-	Winc=	8*128,	/* allocation chunksize for wpath */
-	Wmax=	8*10000,	/* maximum wpath structures to be allocated */
+enum {
+	Finc = 128,   /* allocation chunksize for files */
+	Fmax = 10000, /* maximum file structures to be allocated */
+
+	Winc = 8 * 128,   /* allocation chunksize for wpath */
+	Wmax = 8 * 10000, /* maximum wpath structures to be allocated */
 };
 
-
-Filsys*
+Filsys *
 fsstr(char *p)
 {
 	Filsys *fs;
 
-	for(fs=filesys; fs->name; fs++)
+	for(fs = filesys; fs->name; fs++)
 		if(strcmp(fs->name, p) == 0)
 			return fs;
 	return 0;
@@ -71,7 +70,7 @@ loop:
 /*
  * returns a locked file structure
  */
-File*
+File *
 filep(Chan *cp, int fid, int flag)
 {
 	File *f, *prev;
@@ -81,7 +80,7 @@ filep(Chan *cp, int fid, int flag)
 
 loop:
 	lock(&cp->flock);
-	for(prev=0,f=cp->flist; f; prev=f,f=f->next) {
+	for(prev = 0, f = cp->flist; f; prev = f, f = f->next) {
 		if(f->fid != fid)
 			continue;
 		if(prev) {
@@ -97,8 +96,8 @@ loop:
 			f->fid = fid;
 			goto out;
 		}
-	}
-else print("cannot find %p.%d (list=%p)\n", cp, fid, cp->flist);
+	} else
+		print("cannot find %p.%d (list=%p)\n", cp, fid, cp->flist);
 	unlock(&cp->flock);
 	return 0;
 
@@ -121,12 +120,12 @@ sublockinit(void)
 	conf.nwpath = 0;
 	unlock(&suballoc.flock);
 	unlock(&wpathlock);
-}	
+}
 
 /*
  * always called with cp->flock locked
  */
-File*
+File *
 newfp(Chan *cp)
 {
 	File *f, *e;
@@ -134,7 +133,7 @@ newfp(Chan *cp)
 retry:
 	lock(&suballoc.flock);
 	f = suballoc.ffree;
-	if(f != nil){
+	if(f != nil) {
 		suballoc.ffree = f->list;
 		unlock(&suballoc.flock);
 		f->list = 0;
@@ -151,7 +150,7 @@ retry:
 	}
 	unlock(&suballoc.flock);
 
-	if(conf.nfile > Fmax){
+	if(conf.nfile > Fmax) {
 		print("%d: out of files\n", cp->chan);
 		return 0;
 	}
@@ -159,10 +158,10 @@ retry:
 	/*
 	 *  create a few new files
 	 */
-	f = malloc(Finc*sizeof(*f));
-	memset(f, 0, Finc*sizeof(*f));
+	f = malloc(Finc * sizeof(*f));
+	memset(f, 0, Finc * sizeof(*f));
 	lock(&suballoc.flock);
-	for(e = f+Finc; f < e; f++){
+	for(e = f + Finc; f < e; f++) {
 		qlock(f);
 		qunlock(f);
 		f->list = suballoc.ffree;
@@ -183,7 +182,7 @@ freefp(File *fp)
 		return;
 	authfree(fp);
 	lock(&cp->flock);
-	for(prev=0,f=cp->flist; f; prev=f,f=f->next) {
+	for(prev = 0, f = cp->flist; f; prev = f, f = f->next) {
 		if(f != fp)
 			continue;
 		if(prev)
@@ -200,7 +199,7 @@ freefp(File *fp)
 	unlock(&cp->flock);
 }
 
-Wpath*
+Wpath *
 newwp(void)
 {
 	Wpath *w, *e;
@@ -208,7 +207,7 @@ newwp(void)
 retry:
 	lock(&wpathlock);
 	w = suballoc.wfree;
-	if(w != nil){
+	if(w != nil) {
 		suballoc.wfree = w->list;
 		unlock(&wpathlock);
 		memset(w, 0, sizeof(*w));
@@ -218,7 +217,7 @@ retry:
 	}
 	unlock(&wpathlock);
 
-	if(conf.nwpath > Wmax){
+	if(conf.nwpath > Wmax) {
 		print("out of wpaths\n");
 		return 0;
 	}
@@ -226,10 +225,10 @@ retry:
 	/*
 	 *  create a few new wpaths
 	 */
-	w = malloc(Winc*sizeof(*w));
-	memset(w, 0, Winc*sizeof(*w));
+	w = malloc(Winc * sizeof(*w));
+	memset(w, 0, Winc * sizeof(*w));
 	lock(&wpathlock);
-	for(e = w+Winc; w < e; w++){
+	for(e = w + Winc; w < e; w++) {
 		w->list = suballoc.wfree;
 		suballoc.wfree = w;
 	}
@@ -241,13 +240,13 @@ retry:
 /*
  *  increment the references for the whole path
  */
-Wpath*
+Wpath *
 getwp(Wpath *w)
 {
 	Wpath *nw;
 
 	lock(&wpathlock);
-	for(nw = w; nw; nw=nw->up)
+	for(nw = w; nw; nw = nw->up)
 		nw->refs++;
 	unlock(&wpathlock);
 	return w;
@@ -260,9 +259,9 @@ void
 freewp(Wpath *w)
 {
 	lock(&wpathlock);
-	for(; w; w=w->up){
+	for(; w; w = w->up) {
 		w->refs--;
-		if(w->refs == 0){
+		if(w->refs == 0) {
 			w->list = suballoc.wfree;
 			suballoc.wfree = w;
 		}
@@ -278,7 +277,7 @@ putwp(Wpath *w)
 {
 	lock(&wpathlock);
 	w->refs--;
-	if(w->refs == 0){
+	if(w->refs == 0) {
 		w->list = suballoc.wfree;
 		suballoc.wfree = w;
 	}
@@ -295,18 +294,18 @@ iaccess(File *f, Dentry *d, int m)
 	 * owner is next
 	 */
 	if(f->uid == d->uid)
-		if((m<<6) & d->mode)
+		if((m << 6) & d->mode)
 			return 0;
 	/*
 	 * group membership is hard
 	 */
 	if(ingroup(f->uid, d->gid))
-		if((m<<3) & d->mode)
+		if((m << 3) & d->mode)
 			return 0;
 	/*
 	 * other access for everyone except members of group 9999
 	 */
-	if(m & d->mode){
+	if(m & d->mode) {
 		/* 
 		 *  walk directories regardless.
 		 *  otherwise its impossible to get
@@ -320,7 +319,7 @@ iaccess(File *f, Dentry *d, int m)
 	return 1;
 }
 
-Tlock*
+Tlock *
 tlocked(Iobuf *p, Dentry *d)
 {
 	Tlock *t, *t1;
@@ -331,13 +330,13 @@ tlocked(Iobuf *p, Dentry *d)
 	qpath = d->qid.path;
 	dev = p->dev;
 	t1 = 0;
-	for(t=tlocks+NTLOCK-1; t>=tlocks; t--) {
+	for(t = tlocks + NTLOCK - 1; t >= tlocks; t--) {
 		if(t->qpath == qpath)
-		if(t->time >= tim)
-		if(devcmp(t->dev, dev) == 0)
-			return 0;		/* its locked */
+			if(t->time >= tim)
+				if(devcmp(t->dev, dev) == 0)
+					return 0; /* its locked */
 		if(!t1 && t->time < tim)
-			t1 = t;			/* steal first lock */
+			t1 = t; /* steal first lock */
 	}
 	if(t1) {
 		t1->dev = dev;
@@ -358,10 +357,10 @@ newqid(Device dev)
 	Superb *sb;
 	Qid qid;
 
-	p = getbuf(dev, superaddr(dev), Bread|Bmod);
+	p = getbuf(dev, superaddr(dev), Bread | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("newqid: super block");
-	sb = (Superb*)p->iobuf;
+	sb = (Superb *)p->iobuf;
 	sb->qidgen++;
 	qid.path = sb->qidgen;
 	qid.vers = 0;
@@ -381,19 +380,19 @@ checkname(char *n)
 {
 	int i, c;
 
-	for(i=0; i<NAMELEN; i++) {
+	for(i = 0; i < NAMELEN; i++) {
 		c = *n & 0xff;
 		if(c == 0) {
 			if(i == 0)
 				return 1;
-			memset(n, 0, NAMELEN-i);
+			memset(n, 0, NAMELEN - i);
 			return 0;
 		}
 		if(c <= 040)
 			return 1;
 		n++;
 	}
-	return 1;	/* too long */
+	return 1; /* too long */
 }
 
 void
@@ -409,8 +408,8 @@ bfree(Device dev, int32_t addr, int d)
 		d--;
 		p = getbuf(dev, addr, Bread);
 		if(p) {
-			for(i=INDPERBUF-1; i>=0; i--) {
-				a = ((int32_t*)p->iobuf)[i];
+			for(i = INDPERBUF - 1; i >= 0; i--) {
+				a = ((int32_t *)p->iobuf)[i];
 				bfree(dev, a, d);
 			}
 			putbuf(p);
@@ -421,7 +420,7 @@ bfree(Device dev, int32_t addr, int d)
 	 */
 	p = getbuf(dev, addr, Bprobe);
 	if(p) {
-		p->flags &= ~(Bmod|Bimm);
+		p->flags &= ~(Bmod | Bimm);
 		putbuf(p);
 	}
 	/*
@@ -430,10 +429,10 @@ bfree(Device dev, int32_t addr, int d)
 	 */
 	if(nofree(dev, addr))
 		return;
-	p = getbuf(dev, superaddr(dev), Bread|Bmod);
+	p = getbuf(dev, superaddr(dev), Bread | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("bfree: super block");
-	addfree(dev, addr, (Superb*)p->iobuf);
+	addfree(dev, addr, (Superb *)p->iobuf);
 	putbuf(p);
 }
 
@@ -445,10 +444,10 @@ balloc(Device dev, int tag, int32_t qid)
 	int32_t a;
 	int n;
 
-	p = getbuf(dev, superaddr(dev), Bread|Bmod);
+	p = getbuf(dev, superaddr(dev), Bread | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("balloc: super block");
-	sb = (Superb*)p->iobuf;
+	sb = (Superb *)p->iobuf;
 
 loop:
 	n = --sb->fbuf.nfree;
@@ -472,7 +471,7 @@ loop:
 			putbuf(p);
 			return 0;
 		}
-		memmove(&sb->fbuf, bp->iobuf, (FEPERBUF+1)*sizeof(int32_t));
+		memmove(&sb->fbuf, bp->iobuf, (FEPERBUF + 1) * sizeof(int32_t));
 		putbuf(bp);
 	}
 	bp = getbuf(dev, a, Bmod);
@@ -491,7 +490,7 @@ addfree(Device dev, int32_t addr, Superb *sb)
 	int n;
 	Iobuf *p;
 
-	if(addr >= sb->fsize){
+	if(addr >= sb->fsize) {
 		print("addfree: bad addr %lux\n", addr);
 		return;
 	}
@@ -502,7 +501,7 @@ addfree(Device dev, int32_t addr, Superb *sb)
 		p = getbuf(dev, addr, Bmod);
 		if(p == 0)
 			panic("addfree: getbuf");
-		memmove(p->iobuf, &sb->fbuf, (FEPERBUF+1)*sizeof(int32_t));
+		memmove(p->iobuf, &sb->fbuf, (FEPERBUF + 1) * sizeof(int32_t));
 		settag(p, Tfree, QPNONE);
 		putbuf(p);
 		n = 0;
@@ -511,7 +510,7 @@ addfree(Device dev, int32_t addr, Superb *sb)
 	sb->fbuf.nfree = n;
 	sb->tfree++;
 	if(addr >= sb->fsize)
-		sb->fsize = addr+1;
+		sb->fsize = addr + 1;
 }
 
 int
@@ -519,7 +518,7 @@ Cfmt(Fmt *f1)
 {
 	Chan *cp;
 
-	cp = va_arg(f1->args, Chan*);
+	cp = va_arg(f1->args, Chan *);
 	return fmtprint(f1, "C%d.%.3d", cp->type, cp->chan);
 }
 
@@ -539,9 +538,9 @@ Afmt(Fmt *f1)
 
 	a = va_arg(f1->args, Filta);
 	return fmtprint(f1, "%6lud %6lud %6lud",
-		fdf(a.f->filter[0], a.scale*60),
-		fdf(a.f->filter[1], a.scale*600),
-		fdf(a.f->filter[2], a.scale*6000));
+			fdf(a.f->filter[0], a.scale * 60),
+			fdf(a.f->filter[1], a.scale * 600),
+			fdf(a.f->filter[2], a.scale * 6000));
 }
 
 int
@@ -560,22 +559,22 @@ void
 formatinit(void)
 {
 
-	fmtinstall('C', Cfmt);	/* print channels */
-	fmtinstall('D', Dfmt);	/* print devices */
-	fmtinstall('A', Afmt);	/* print filters */
-	fmtinstall('G', Gfmt);	/* print tags */
-	fmtinstall('T', Tfmt);	/* print times */
-	fmtinstall('O', ofcallfmt);	/* print old fcalls */
+	fmtinstall('C', Cfmt);      /* print channels */
+	fmtinstall('D', Dfmt);      /* print devices */
+	fmtinstall('A', Afmt);      /* print filters */
+	fmtinstall('G', Gfmt);      /* print tags */
+	fmtinstall('T', Tfmt);      /* print times */
+	fmtinstall('O', ofcallfmt); /* print old fcalls */
 }
 int
 devcmp(Device d1, Device d2)
 {
 
 	if(d1.type == d2.type)
-	if(d1.ctrl == d2.ctrl)
-	if(d1.unit == d2.unit)
-	if(d1.part == d2.part)
-		return 0;
+		if(d1.ctrl == d2.ctrl)
+			if(d1.unit == d2.unit)
+				if(d1.part == d2.part)
+					return 0;
 	return 1;
 }
 
@@ -585,7 +584,7 @@ rootream(Device dev, int32_t addr)
 	Iobuf *p;
 	Dentry *d;
 
-	p = getbuf(dev, addr, Bmod|Bimm);
+	p = getbuf(dev, addr, Bmod | Bimm);
 	memset(p->iobuf, 0, RBUFSIZE);
 	settag(p, Tdir, QPROOT);
 	d = getdir(p, 0);
@@ -593,10 +592,10 @@ rootream(Device dev, int32_t addr)
 	d->uid = -1;
 	d->gid = -1;
 	d->mode = DALLOC | DDIR |
-		((DREAD|DWRITE|DEXEC) << 6) |
-		((DREAD|DWRITE|DEXEC) << 3) |
-		((DREAD|DWRITE|DEXEC) << 0);
-	d->qid = QID9P1(QPROOT|QPDIR,0);
+		  ((DREAD | DWRITE | DEXEC) << 6) |
+		  ((DREAD | DWRITE | DEXEC) << 3) |
+		  ((DREAD | DWRITE | DEXEC) << 0);
+	d->qid = QID9P1(QPROOT | QPDIR, 0);
 	d->atime = time(0);
 	d->mtime = d->atime;
 	putbuf(p);
@@ -609,8 +608,8 @@ superok(Device dev, int32_t addr, int set)
 	Superb *s;
 	int ok;
 
-	p = getbuf(dev, addr, Bread|Bmod|Bimm);
-	s = (Superb*)p->iobuf;
+	p = getbuf(dev, addr, Bread | Bmod | Bimm);
+	s = (Superb *)p->iobuf;
 	ok = s->fsok;
 	s->fsok = set;
 	putbuf(p);
@@ -624,16 +623,16 @@ superream(Device dev, int32_t addr)
 	Superb *s;
 	int32_t i;
 
-	p = getbuf(dev, addr, Bmod|Bimm);
+	p = getbuf(dev, addr, Bmod | Bimm);
 	memset(p->iobuf, 0, RBUFSIZE);
 	settag(p, Tsuper, QPSUPER);
 
-	s = (Superb*)p->iobuf;
+	s = (Superb *)p->iobuf;
 	s->fstart = 1;
 	s->fsize = devsize(dev);
 	s->fbuf.nfree = 1;
 	s->qidgen = 10;
-	for(i=s->fsize-1; i>=addr+2; i--)
+	for(i = s->fsize - 1; i >= addr + 2; i--)
 		addfree(dev, i, s);
 	putbuf(p);
 }
@@ -649,12 +648,12 @@ prime(int32_t n)
 {
 	int32_t i;
 
-	if((n%2) == 0)
+	if((n % 2) == 0)
 		return 0;
-	for(i=3;; i+=2) {
-		if((n%i) == 0)
+	for(i = 3;; i += 2) {
+		if((n % i) == 0)
 			return 0;
-		if(i*i >= n)
+		if(i * i >= n)
 			return 1;
 	}
 }
@@ -668,10 +667,10 @@ hexdump(void *a, int n)
 
 	p = a;
 	s1[0] = 0;
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		sprint(s2, " %.2ux", p[i]);
 		strcat(s1, s2);
-		if((i&7) == 7) {
+		if((i & 7) == 7) {
 			print("%s\n", s1);
 			s1[0] = 0;
 		}
@@ -687,13 +686,12 @@ qidpathgen(Device *dev)
 	Superb *sb;
 	int32_t path;
 
-	p = getbuf(*dev, superaddr((*dev)), Bread|Bmod);
+	p = getbuf(*dev, superaddr((*dev)), Bread | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("newqid: super block");
-	sb = (Superb*)p->iobuf;
+	sb = (Superb *)p->iobuf;
 	sb->qidgen++;
 	path = sb->qidgen;
 	putbuf(p);
 	return path;
 }
-

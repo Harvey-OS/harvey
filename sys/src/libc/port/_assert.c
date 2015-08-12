@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-void (*__assert)(char*);
+void (*__assert)(char *);
 
 void
 _assert(char *s)

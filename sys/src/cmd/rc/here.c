@@ -17,19 +17,19 @@ int ser = 0;
 char tmp[] = "/tmp/here0000.0000";
 char hex[] = "0123456789abcdef";
 
-void psubst(io*, uint8_t*);
-void pstrs(io*, word*);
+void psubst(io *, uint8_t *);
+void pstrs(io *, word *);
 
 void
 hexnum(char *p, int n)
 {
-	*p++ = hex[(n>>12)&0xF];
-	*p++ = hex[(n>>8)&0xF];
-	*p++ = hex[(n>>4)&0xF];
-	*p = hex[n&0xF];
+	*p++ = hex[(n >> 12) & 0xF];
+	*p++ = hex[(n >> 8) & 0xF];
+	*p++ = hex[(n >> 4) & 0xF];
+	*p = hex[n & 0xF];
 }
 
-tree*
+tree *
 heredoc(tree *tag)
 {
 	struct here *h = new(struct here);
@@ -53,18 +53,18 @@ heredoc(tree *tag)
  * bug: lines longer than NLINE get split -- this can cause spurious
  * missubstitution, or a misrecognized EOF marker.
  */
-#define	NLINE	4096
+#define NLINE 4096
 
 void
 readhere(void)
 {
 	int c, subst;
 	char *s, *tag;
-	char line[NLINE+1];
+	char line[NLINE + 1];
 	io *f;
 	struct here *h, *nexth;
 
-	for(h = here; h; h = nexth){
+	for(h = here; h; h = nexth) {
 		subst = !h->tag->quoted;
 		tag = h->tag->str;
 		c = Creat(h->name);
@@ -73,8 +73,8 @@ readhere(void)
 		f = openfd(c);
 		s = line;
 		pprompt();
-		while((c = rchr(runq->cmdfd)) != EOF){
-			if(c == '\n' || s == &line[NLINE]){
+		while((c = rchr(runq->cmdfd)) != EOF) {
+			if(c == '\n' || s == &line[NLINE]) {
 				*s = '\0';
 				if(tag && strcmp(line, tag) == 0)
 					break;
@@ -83,12 +83,12 @@ readhere(void)
 				else
 					pstr(f, line);
 				s = line;
-				if(c == '\n'){
+				if(c == '\n') {
 					pprompt();
 					pchr(f, c);
-				}else
+				} else
 					*s++ = c;
-			}else
+			} else
 				*s++ = c;
 		}
 		flush(f);
@@ -109,35 +109,35 @@ psubst(io *f, uint8_t *s)
 	Rune r;
 	word *star;
 
-	while(*s){
-		if(*s != '$'){		/* copy plain text rune */
+	while(*s) {
+		if(*s != '$') { /* copy plain text rune */
 			if(*s < Runeself)
 				pchr(f, *s++);
-			else{
+			else {
 				n = chartorune(&r, (char *)s);
 				while(n-- > 0)
 					pchr(f, *s++);
 			}
-		}else{			/* $something -- perform substitution */
+		} else { /* $something -- perform substitution */
 			t = ++s;
 			if(*t == '$')
 				pchr(f, *t++);
-			else{
+			else {
 				while(*t && idchr(*t))
 					t++;
 				savec = *t;
 				*t = '\0';
 				n = 0;
 				for(u = s; *u && '0' <= *u && *u <= '9'; u++)
-					n = n*10 + *u - '0';
-				if(n && *u == '\0'){
+					n = n * 10 + *u - '0';
+				if(n && *u == '\0') {
 					star = vlook("*")->val;
-					if(star && 1 <= n && n <= count(star)){
+					if(star && 1 <= n && n <= count(star)) {
 						while(--n)
 							star = star->next;
 						pstr(f, star->word);
 					}
-				}else
+				} else
 					pstrs(f, vlook((char *)s)->val);
 				*t = savec;
 				if(savec == '^')
@@ -151,8 +151,8 @@ psubst(io *f, uint8_t *s)
 void
 pstrs(io *f, word *a)
 {
-	if(a){
-		while(a->next && a->next->word){
+	if(a) {
+		while(a->next && a->next->word) {
 			pstr(f, a->word);
 			pchr(f, ' ');
 			a = a->next;

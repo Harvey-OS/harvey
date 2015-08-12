@@ -7,37 +7,35 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 typedef struct Srv Srv;
-struct Srv
-{
-	char	*name;
-	char	*owner;
-	uint32_t	perm;
-	Chan	*chan;
-	Srv	*link;
-	uint32_t	path;
+struct Srv {
+	char *name;
+	char *owner;
+	uint32_t perm;
+	Chan *chan;
+	Srv *link;
+	uint32_t path;
 };
 
-static QLock	srvlk;
-static Srv	*srv;
-static int	qidpath;
+static QLock srvlk;
+static Srv *srv;
+static int qidpath;
 
 static int
-srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
+srvgen(Chan *c, char *d, Dirtab *dir, int i, int s, Dir *dp)
 {
 	Proc *up = externup();
 	Srv *sp;
 	Qid q;
 
-	if(s == DEVDOTDOT){
+	if(s == DEVDOTDOT) {
 		devdir(c, c->qid, "#s", 0, eve, 0555, dp);
 		return 1;
 	}
@@ -62,13 +60,13 @@ srvinit(void)
 	qidpath = 1;
 }
 
-static Chan*
+static Chan *
 srvattach(char *spec)
 {
 	return devattach('s', spec);
 }
 
-static Walkqid*
+static Walkqid *
 srvwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wqid;
@@ -79,7 +77,7 @@ srvwalk(Chan *c, Chan *nc, char **name, int nname)
 	return wqid;
 }
 
-static Srv*
+static Srv *
 srvlookup(char *name, uint32_t qidpath)
 {
 	Srv *sp;
@@ -100,28 +98,28 @@ srvstat(Chan *c, uint8_t *db, int32_t n)
 	return r;
 }
 
-char*
+char *
 srvname(Chan *c)
 {
 	Srv *sp;
 	char *s;
 
 	for(sp = srv; sp; sp = sp->link)
-		if(sp->chan == c){
-			s = smalloc(3+strlen(sp->name)+1);
+		if(sp->chan == c) {
+			s = smalloc(3 + strlen(sp->name) + 1);
 			sprint(s, "#s/%s", sp->name);
 			return s;
 		}
 	return nil;
 }
 
-static Chan*
+static Chan *
 srvopen(Chan *c, int omode)
 {
 	Proc *up = externup();
 	Srv *sp;
 
-	if(c->qid.type == QTDIR){
+	if(c->qid.type == QTDIR) {
 		if(omode & ORCLOSE)
 			error(Eperm);
 		if(omode != OREAD)
@@ -132,7 +130,7 @@ srvopen(Chan *c, int omode)
 		return c;
 	}
 	qlock(&srvlk);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&srvlk);
 		nexterror();
 	}
@@ -141,9 +139,9 @@ srvopen(Chan *c, int omode)
 	if(sp == 0 || sp->chan == 0)
 		error(Eshutdown);
 
-	if(omode&OTRUNC)
+	if(omode & OTRUNC)
 		error("srv file already exists");
-	if(openmode(omode)!=sp->chan->mode && sp->chan->mode!=ORDWR)
+	if(openmode(omode) != sp->chan->mode && sp->chan->mode != ORDWR)
 		error(Eperm);
 	devpermcheck(sp->owner, sp->perm, omode);
 
@@ -164,14 +162,14 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 	if(openmode(omode) != OWRITE)
 		error(Eperm);
 
-	if(omode & OCEXEC)	/* can't happen */
+	if(omode & OCEXEC) /* can't happen */
 		panic("someone broke namec");
 
 	sp = smalloc(sizeof *sp);
-	sname = smalloc(strlen(name)+1);
+	sname = smalloc(strlen(name) + 1);
 
 	qlock(&srvlk);
-	if(waserror()){
+	if(waserror()) {
 		free(sname);
 		free(sp);
 		qunlock(&srvlk);
@@ -193,7 +191,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 	poperror();
 
 	kstrdup(&sp->owner, up->user);
-	sp->perm = perm&0777;
+	sp->perm = perm & 0777;
 
 	c->flag |= COPEN;
 	c->mode = OWRITE;
@@ -209,7 +207,7 @@ srvremove(Chan *c)
 		error(Eperm);
 
 	qlock(&srvlk);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&srvlk);
 		nexterror();
 	}
@@ -235,7 +233,7 @@ srvremove(Chan *c)
 	/*
 	 * No removing personal services.
 	 */
-	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
+	if((sp->perm & 7) != 7 && strcmp(sp->owner, up->user) && !iseve())
 		error(Eperm);
 
 	*l = sp->link;
@@ -262,7 +260,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 
 	strs = nil;
 	qlock(&srvlk);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&srvlk);
 		free(strs);
 		nexterror();
@@ -304,7 +302,7 @@ srvclose(Chan *c)
 	 * since open, but since all that's checked is the owner,
 	 * which is immutable, all is well.
 	 */
-	if(c->flag & CRCLOSE){
+	if(c->flag & CRCLOSE) {
 		if(waserror())
 			return;
 		srvremove(c);
@@ -335,11 +333,11 @@ srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 
 	if(n >= sizeof buf)
 		error(Egreg);
-	memmove(buf, va, n);	/* so we can NUL-terminate */
+	memmove(buf, va, n); /* so we can NUL-terminate */
 	buf[n] = 0;
 	fd = strtoul(buf, 0, 0);
 
-	c1 = fdtochan(fd, -1, 0, 1);	/* error check and inc ref */
+	c1 = fdtochan(fd, -1, 0, 1); /* error check and inc ref */
 
 	qlock(&srvlk);
 	if(waserror()) {
@@ -347,7 +345,7 @@ srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		cclose(c1);
 		nexterror();
 	}
-	if(c1->flag & (CCEXEC|CRCLOSE))
+	if(c1->flag & (CCEXEC | CRCLOSE))
 		error("posted fd has remove-on-close or close-on-exec");
 	if(c1->qid.type & QTAUTH)
 		error("cannot post auth file in srv");
@@ -365,22 +363,22 @@ srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 }
 
 Dev srvdevtab = {
-	's',
-	"srv",
+    's',
+    "srv",
 
-	devreset,
-	srvinit,
-	devshutdown,
-	srvattach,
-	srvwalk,
-	srvstat,
-	srvopen,
-	srvcreate,
-	srvclose,
-	srvread,
-	devbread,
-	srvwrite,
-	devbwrite,
-	srvremove,
-	srvwstat,
+    devreset,
+    srvinit,
+    devshutdown,
+    srvattach,
+    srvwalk,
+    srvstat,
+    srvopen,
+    srvcreate,
+    srvclose,
+    srvread,
+    devbread,
+    srvwrite,
+    devbwrite,
+    srvremove,
+    srvwstat,
 };

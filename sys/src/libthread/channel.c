@@ -18,32 +18,32 @@ enum {
 };
 
 static char errcl[] = "channel was closed";
-static Lock chanlock;		/* central channel access lock */
+static Lock chanlock; /* central channel access lock */
 
-static void enqueue(Alt*, Channel**);
-static void dequeue(Alt*);
-static int canexec(Alt*);
-static int altexec(Alt*, int);
+static void enqueue(Alt *, Channel **);
+static void dequeue(Alt *);
+static int canexec(Alt *);
+static int altexec(Alt *, int);
 
-#define Closed	((void*)CHANCLOSD)
-#define Intred	((void*)~0)		/* interrupted */
+#define Closed ((void *)CHANCLOSD)
+#define Intred ((void *)~0) /* interrupted */
 
 static void
 _chanfree(Channel *c)
 {
 	int i, inuse;
 
-	if(c->closed == 1)			/* chanclose is ongoing */
+	if(c->closed == 1) /* chanclose is ongoing */
 		inuse = 1;
-	else{
+	else {
 		inuse = 0;
-		for(i = 0; i < c->nentry; i++)	/* alt ongoing */
+		for(i = 0; i < c->nentry; i++) /* alt ongoing */
 			if(c->qentry[i])
 				inuse = 1;
 	}
 	if(inuse)
 		c->freed = 1;
-	else{
+	else {
 		if(c->qentry)
 			free(c->qentry);
 		free(c);
@@ -73,14 +73,14 @@ chaninit(Channel *c, int elemsize, int elemcnt)
 	return 1;
 }
 
-Channel*
+Channel *
 chancreate(int elemsize, int elemcnt)
 {
 	Channel *c;
 
 	if(elemcnt < 0 || elemsize <= 0)
 		return nil;
-	c = _threadmalloc(sizeof(Channel)+elemsize*elemcnt, 1);
+	c = _threadmalloc(sizeof(Channel) + elemsize * elemcnt, 1);
 	c->e = elemsize;
 	c->s = elemcnt;
 	_threaddebug(DBGCHAN, "chancreate %p", c);
@@ -99,7 +99,7 @@ alt(Alt *alts)
 	Alt *a, *xa, *ca;
 	Channel volatile *c;
 	int n, s, waiting, allreadycl;
-	void* r;
+	void *r;
 	Thread *t;
 
 	/*
@@ -111,7 +111,7 @@ alt(Alt *alts)
 	 */
 	t = _threadgetproc()->thread;
 	if(t->moribund || _threadexitsallstatus)
-		yield();	/* won't return */
+		yield(); /* won't return */
 	s = _procsplhi();
 	lock(&chanlock);
 	t->alt = alts;
@@ -121,13 +121,13 @@ alt(Alt *alts)
 	n = 0;
 	a = nil;
 
-	for(xa=alts; xa->op!=CHANEND && xa->op!=CHANNOBLK; xa++){
+	for(xa = alts; xa->op != CHANEND && xa->op != CHANNOBLK; xa++) {
 		xa->entryno = -1;
 		if(xa->op == CHANNOP)
 			continue;
 
 		c = xa->c;
-		if(c==nil){
+		if(c == nil) {
 			unlock(&chanlock);
 			_procsplx(s);
 			t->chan = Channone;
@@ -139,10 +139,9 @@ alt(Alt *alts)
 				a = xa;
 	}
 
-
-	if(a==nil){
+	if(a == nil) {
 		/* nothing can proceed */
-		if(xa->op == CHANNOBLK){
+		if(xa->op == CHANNOBLK) {
 			unlock(&chanlock);
 			_procsplx(s);
 			t->chan = Channone;
@@ -155,10 +154,10 @@ alt(Alt *alts)
 		ca = nil;
 		waiting = 0;
 		allreadycl = 0;
-		for(xa=alts; xa->op!=CHANEND; xa++)
-			if(xa->op==CHANNOP)
+		for(xa = alts; xa->op != CHANEND; xa++)
+			if(xa->op == CHANNOP)
 				continue;
-			else if(isopenfor(xa->c, xa->op)){
+			else if(isopenfor(xa->c, xa->op)) {
 				waiting = 1;
 				enqueue(xa, &c);
 			} else if(xa->err != errcl)
@@ -167,21 +166,21 @@ alt(Alt *alts)
 				allreadycl = 1;
 
 		if(waiting == 0)
-			if(ca != nil){
+			if(ca != nil) {
 				/* everything was closed, select last channel */
 				ca->err = errcl;
 				unlock(&chanlock);
 				_procsplx(s);
 				t->chan = Channone;
 				return ca - alts;
-			} else if(allreadycl){
+			} else if(allreadycl) {
 				/* everything was already closed */
 				unlock(&chanlock);
 				_procsplx(s);
 				t->chan = Channone;
 				return -1;
 			}
-		/*
+	/*
 		 * wait for successful rendezvous.
 		 * we can't just give up if the rendezvous
 		 * is interrupted -- someone else might come
@@ -190,25 +189,25 @@ alt(Alt *alts)
 		 * if the channel was closed, the op is done
 		 * and we flag an error for the entry.
 		 */
-	    Again:
+	Again:
 		unlock(&chanlock);
 		_procsplx(s);
 		r = _threadrendezvous(&c, 0);
 		s = _procsplhi();
 		lock(&chanlock);
 
-		if(r==Intred){		/* interrupted */
-			if(c!=nil)	/* someone will meet us; go back */
+		if(r == Intred) {    /* interrupted */
+			if(c != nil) /* someone will meet us; go back */
 				goto Again;
-			c = (Channel*)~0;	/* so no one tries to meet us */
+			c = (Channel *)~0; /* so no one tries to meet us */
 		}
 
 		/* dequeue from channels, find selected one */
 		a = nil;
-		for(xa=alts; xa->op!=CHANEND; xa++){
-			if(xa->op==CHANNOP)
+		for(xa = alts; xa->op != CHANEND; xa++) {
+			if(xa->op == CHANNOP)
 				continue;
-			if(xa->c == c){
+			if(xa->c == c) {
 				a = xa;
 				a->err = nil;
 				if(r == Closed)
@@ -218,12 +217,12 @@ alt(Alt *alts)
 		}
 		unlock(&chanlock);
 		_procsplx(s);
-		if(a == nil){	/* we were interrupted */
-			assert(c==(Channel*)~0);
+		if(a == nil) { /* we were interrupted */
+			assert(c == (Channel *)~0);
 			return -1;
 		}
-	}else
-		altexec(a, s);	/* unlocks chanlock, does splx */
+	} else
+		altexec(a, s); /* unlocks chanlock, does splx */
 	_sched();
 	t->chan = Channone;
 	return a - alts;
@@ -235,15 +234,15 @@ chanclose(Channel *c)
 	Alt *a;
 	int i, s;
 
-	s = _procsplhi();	/* note handlers; see :/^alt */
+	s = _procsplhi(); /* note handlers; see :/^alt */
 	lock(&chanlock);
-	if(c->closed){
+	if(c->closed) {
 		/* Already close; we fail but it's ok. don't print */
 		unlock(&chanlock);
 		_procsplx(s);
 		return -1;
 	}
-	c->closed = 1;		/* Being closed */
+	c->closed = 1; /* Being closed */
 	/*
 	 * Locate entries that will fail due to close
 	 * (send, and receive if nothing buffered) and wake them up.
@@ -253,7 +252,7 @@ chanclose(Channel *c)
 	 * because we can wake threads on qentrys we have not seen yet
 	 * as in alt and there would be a race in the access to *a.
 	 */
-	for(i = 0; i < c->nentry; i++){
+	for(i = 0; i < c->nentry; i++) {
 		if((a = c->qentry[i]) == nil || *a->tag != nil)
 			continue;
 
@@ -268,7 +267,7 @@ chanclose(Channel *c)
 		lock(&chanlock);
 	}
 
-	c->closed = 2;		/* Fully closed */
+	c->closed = 2; /* Fully closed */
 	if(c->freed)
 		_chanfree(c);
 	unlock(&chanlock);
@@ -281,7 +280,7 @@ chanclosing(Channel *c)
 {
 	int n, s;
 
-	s = _procsplhi();	/* note handlers; see :/^alt */
+	s = _procsplhi(); /* note handlers; see :/^alt */
 	lock(&chanlock);
 	if(c->closed == 0)
 		n = -1;
@@ -319,10 +318,10 @@ runop(int op, Channel *c, void *v, int nb)
 	a[1].op = CHANEND;
 	if(nb)
 		a[1].op = CHANNOBLK;
-	switch(r=alt(a)){
-	case -1:	/* interrupted */
+	switch(r = alt(a)) {
+	case -1: /* interrupted */
 		return -1;
-	case 1:	/* nonblocking, didn't accomplish anything */
+	case 1: /* nonblocking, didn't accomplish anything */
 		assert(nb);
 		return 0;
 	case 0:
@@ -366,9 +365,9 @@ nbsend(Channel *c, void *v)
 static void
 channelsize(Channel *c, int sz)
 {
-	if(c->e != sz){
+	if(c->e != sz) {
 		fprint(2, "expected channel with elements of size %d, got size %d\n",
-			sz, c->e);
+		       sz, c->e);
 		abort();
 	}
 }
@@ -394,16 +393,16 @@ recvul(Channel *c)
 int
 sendp(Channel *c, void *v)
 {
-	channelsize(c, sizeof(void*));
+	channelsize(c, sizeof(void *));
 	return send(c, &v);
 }
 
-void*
+void *
 recvp(Channel *c)
 {
 	void *v;
 
-	channelsize(c, sizeof(void*));
+	channelsize(c, sizeof(void *));
 	if(recv(c, &v) < 0)
 		return nil;
 	return v;
@@ -430,16 +429,16 @@ nbrecvul(Channel *c)
 int
 nbsendp(Channel *c, void *v)
 {
-	channelsize(c, sizeof(void*));
+	channelsize(c, sizeof(void *));
 	return nbsend(c, &v);
 }
 
-void*
+void *
 nbrecvp(Channel *c)
 {
 	void *v;
 
-	channelsize(c, sizeof(void*));
+	channelsize(c, sizeof(void *));
 	if(nbrecv(c, &v) == 0)
 		return nil;
 	return v;
@@ -450,18 +449,18 @@ emptyentry(Channel *c)
 {
 	int i, extra;
 
-	assert((c->nentry==0 && c->qentry==nil) || (c->nentry && c->qentry));
+	assert((c->nentry == 0 && c->qentry == nil) || (c->nentry && c->qentry));
 
-	for(i=0; i<c->nentry; i++)
-		if(c->qentry[i]==nil)
+	for(i = 0; i < c->nentry; i++)
+		if(c->qentry[i] == nil)
 			return i;
 
 	extra = 16;
 	c->nentry += extra;
-	c->qentry = realloc((void*)c->qentry, c->nentry*sizeof(c->qentry[0]));
+	c->qentry = realloc((void *)c->qentry, c->nentry * sizeof(c->qentry[0]));
 	if(c->qentry == nil)
 		sysfatal("realloc channel entries: %r");
-	memset(&c->qentry[i], 0, extra*sizeof(c->qentry[0]));
+	memset(&c->qentry[i], 0, extra * sizeof(c->qentry[0]));
 	return i;
 }
 
@@ -483,8 +482,8 @@ dequeue(Alt *a)
 	Channel *c;
 
 	c = a->c;
-	for(i=0; i<c->nentry; i++)
-		if(c->qentry[i]==a){
+	for(i = 0; i < c->nentry; i++)
+		if(c->qentry[i] == a) {
 			_threaddebug(DBGCHAN, "Dequeuing alt %p from channel %p", a, a->c);
 			c->qentry[i] = nil;
 			/* release if freed and not closing */
@@ -502,16 +501,15 @@ canexec(Alt *a)
 
 	c = a->c;
 	/* are there senders or receivers blocked? */
-	otherop = (CHANSND+CHANRCV) - a->op;
-	for(i=0; i<c->nentry; i++)
-		if(c->qentry[i] && c->qentry[i]->op==otherop && *c->qentry[i]->tag==nil){
+	otherop = (CHANSND + CHANRCV) - a->op;
+	for(i = 0; i < c->nentry; i++)
+		if(c->qentry[i] && c->qentry[i]->op == otherop && *c->qentry[i]->tag == nil) {
 			_threaddebug(DBGCHAN, "can rendez alt %p chan %p", a, c);
 			return 1;
 		}
 
 	/* is there room in the channel? */
-	if((a->op==CHANSND && c->n < c->s)
-	|| (a->op==CHANRCV && c->n > 0)){
+	if((a->op == CHANSND && c->n < c->s) || (a->op == CHANRCV && c->n > 0)) {
 		_threaddebug(DBGCHAN, "can buffer alt %p chan %p", a, c);
 		return 1;
 	}
@@ -519,7 +517,7 @@ canexec(Alt *a)
 	return 0;
 }
 
-static void*
+static void *
 altexecbuffered(Alt *a, int willreplace)
 {
 	uint8_t *v;
@@ -527,17 +525,17 @@ altexecbuffered(Alt *a, int willreplace)
 
 	c = a->c;
 	/* use buffered channel queue */
-	if(a->op==CHANRCV && c->n > 0){
+	if(a->op == CHANRCV && c->n > 0) {
 		_threaddebug(DBGCHAN, "buffer recv alt %p chan %p", a, c);
-		v = c->v + c->e*(c->f%c->s);
+		v = c->v + c->e * (c->f % c->s);
 		if(!willreplace)
 			c->n--;
 		c->f++;
 		return v;
 	}
-	if(a->op==CHANSND && c->n < c->s){
+	if(a->op == CHANSND && c->n < c->s) {
 		_threaddebug(DBGCHAN, "buffer send alt %p chan %p", a, c);
-		v = c->v + c->e*((c->f+c->n)%c->s);
+		v = c->v + c->e * ((c->f + c->n) % c->s);
 		if(!willreplace)
 			c->n++;
 		return v;
@@ -549,7 +547,7 @@ altexecbuffered(Alt *a, int willreplace)
 static void
 altcopy(void *dst, void *src, int sz)
 {
-	if(dst){
+	if(dst) {
 		if(src)
 			memmove(dst, src, sz);
 		else
@@ -568,18 +566,18 @@ altexec(Alt *a, int spl)
 	c = a->c;
 
 	/* rendezvous with others */
-	otherop = (CHANSND+CHANRCV) - a->op;
+	otherop = (CHANSND + CHANRCV) - a->op;
 	n = 0;
 	b = nil;
 	me = a->v;
-	for(i=0; i<c->nentry; i++)
-		if(c->qentry[i] && c->qentry[i]->op==otherop && *c->qentry[i]->tag==nil)
+	for(i = 0; i < c->nentry; i++)
+		if(c->qentry[i] && c->qentry[i]->op == otherop && *c->qentry[i]->tag == nil)
 			if(nrand(++n) == 0)
 				b = c->qentry[i];
-	if(b != nil){
-		_threaddebug(DBGCHAN, "rendez %s alt %p chan %p alt %p", a->op==CHANRCV?"recv":"send", a, c, b);
+	if(b != nil) {
+		_threaddebug(DBGCHAN, "rendez %s alt %p chan %p alt %p", a->op == CHANRCV ? "recv" : "send", a, c, b);
 		waiter = b->v;
-		if(c->s && c->n){
+		if(c->s && c->n) {
 			/*
 			 * if buffer is full and there are waiters
 			 * and we're meeting a waiter,
@@ -589,30 +587,30 @@ altexec(Alt *a, int spl)
 			 * copy the waiter's value into the channel buffer
 			 * on behalf of the waiter, and then wake the waiter.
 			 */
-			if(a->op!=CHANRCV)
+			if(a->op != CHANRCV)
 				abort();
 			buf = altexecbuffered(a, 1);
 			altcopy(me, buf, c->e);
 			altcopy(buf, waiter, c->e);
-		}else{
-			if(a->op==CHANRCV)
+		} else {
+			if(a->op == CHANRCV)
 				altcopy(me, waiter, c->e);
 			else
 				altcopy(waiter, me, c->e);
 		}
-		*b->tag = c;	/* commits us to rendezvous */
+		*b->tag = c; /* commits us to rendezvous */
 		_threaddebug(DBGCHAN, "unlocking the chanlock");
 		unlock(&chanlock);
 		_procsplx(spl);
 		_threaddebug(DBGCHAN, "chanlock is %lud",
-			     *(uint32_t*)&chanlock);
+			     *(uint32_t *)&chanlock);
 		while(_threadrendezvous(b->tag, 0) == Intred)
 			;
 		return 1;
 	}
 
 	buf = altexecbuffered(a, 0);
-	if(a->op==CHANRCV)
+	if(a->op == CHANRCV)
 		altcopy(me, buf, c->e);
 	else
 		altcopy(buf, me, c->e);

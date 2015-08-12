@@ -54,19 +54,19 @@
  * byte-sex of the machine. 
  */
 
-#define	TERM_SIGNAL(status)	((status) & 0x7F)
-#define TERM_COREDUMP(status)	(((status) & 0x80) != 0)
-#define TERM_VALUE(status)	((status) >> 8)
+#define TERM_SIGNAL(status) ((status)&0x7F)
+#define TERM_COREDUMP(status) (((status)&0x80) != 0)
+#define TERM_VALUE(status) ((status) >> 8)
 
 /*
  * String library emulation definitions for the different variants of UNIX
  */
 
-#if defined(USG) 
+#if defined(USG)
 
-#   include <string.h>
+#include <string.h>
 #ifndef _POSIX_SOURCE
-#   include <memory.h>
+#include <memory.h>
 #endif
 
 #else /* USG */
@@ -75,30 +75,30 @@
  * The following functions are defined here since func.h has no idea which
  * of the functions will actually be used.
  */
-#  ifdef __STDC__
+#ifdef __STDC__
 extern char *rindex(char *, char);
 extern char *index(char *, char);
 extern char *bcopy(char *, char *, unsigned int);
 extern char *bzero(char *, unsigned int);
 extern char *strcat(char *, char *);
 extern char *strcpy(char *, char *);
-#  else /* !__STDC__ */
+#else  /* !__STDC__ */
 extern char *rindex();
 extern char *index();
 extern char *bcopy();
 extern char *bzero();
 extern char *strcat();
 extern char *strcpy();
-#  endif /* __STDC__ */
+#endif /* __STDC__ */
 
 /*
  * Map ANSI C compatible functions to V7 functions
  */
 
-#   define memcpy(a,b,n)	bcopy((b),(a),(n))
-#   define memset(a,b,n)	bzero((a),(n))
-#   define strrchr(s,c)		rindex(s,c)
-#   define strchr(s,c)		index(s,c)
+#define memcpy(a, b, n) bcopy((b), (a), (n))
+#define memset(a, b, n) bzero((a), (n))
+#define strrchr(s, c) rindex(s, c)
+#define strchr(s, c) index(s, c)
 
 #endif /* USG */
 #endif /* _PAX_PORT_H */

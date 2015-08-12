@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <venti.h>
 
-char*
+char *
 vtstrdup(char *s)
 {
 	int n;
@@ -24,4 +24,3 @@ vtstrdup(char *s)
 	memmove(ss, s, n);
 	return ss;
 }
-

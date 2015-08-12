@@ -13,8 +13,8 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-void	install(char*, char*, int);
-void	usage(void);
+void install(char *, char *, int);
+void usage(void);
 
 void
 main(int argc, char *argv[])
@@ -26,16 +26,18 @@ main(int argc, char *argv[])
 	argv0 = "printnetkey";
 	fmtinstall('K', keyfmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	if(argc != 1)
 		usage();
 
 	u = argv[0];
 	fmtinstall('K', keyfmt);
-	
+
 	if(memchr(u, '\0', ANAMELEN) == 0)
 		error("bad user name");
 	key = findkey(NETKEYDB, u, keybuf);

@@ -17,196 +17,195 @@
 #include "fns.h"
 #include "ext.h"
 
-int	iflist[NIF];
-int	ifx;
-int	ifnum = 0;	/* trying numeric expression for .if or .ie condition */
+int iflist[NIF];
+int ifx;
+int ifnum = 0; /* trying numeric expression for .if or .ie condition */
 
-void casead(void)
+void
+casead(void)
 {
 	int i;
 
 	ad = 1;
 	/* leave admod alone */
-	if (skip())
+	if(skip())
 		return;
-	switch (i = cbits(getch())) {
-	case 'r':	/* right adj, left ragged */
+	switch(i = cbits(getch())) {
+	case 'r': /* right adj, left ragged */
 		admod = 2;
 		break;
-	case 'l':	/* left adj, right ragged */
-		admod = ad = 0;	/* same as casena */
+	case 'l':		/* left adj, right ragged */
+		admod = ad = 0; /* same as casena */
 		break;
-	case 'c':	/*centered adj*/
+	case 'c': /*centered adj*/
 		admod = 1;
 		break;
-	case 'b': 
+	case 'b':
 	case 'n':
 		admod = 0;
 		break;
-	case '0': 
-	case '2': 
+	case '0':
+	case '2':
 	case '4':
 		ad = 0;
-	case '1': 
-	case '3': 
+	case '1':
+	case '3':
 	case '5':
 		admod = (i - '0') / 2;
 	}
 }
 
-
-void casena(void)
+void
+casena(void)
 {
 	ad = 0;
 }
 
-
-void casefi(void)
+void
+casefi(void)
 {
 	tbreak();
 	fi = 1;
 	pendnf = 0;
 }
 
-
-void casenf(void)
+void
+casenf(void)
 {
 	tbreak();
 	fi = 0;
 }
 
-
-void casers(void)
+void
+casers(void)
 {
 	dip->nls = 0;
 }
 
-
-void casens(void)
+void
+casens(void)
 {
 	dip->nls++;
 }
-
 
 chget(int c)
 {
 	Tchar i;
 
 	i = 0;
-	if (skip() || ismot(i = getch()) || cbits(i) == ' ' || cbits(i) == '\n') {
+	if(skip() || ismot(i = getch()) || cbits(i) == ' ' || cbits(i) == '\n') {
 		ch = i;
-		return(c);
-	} else 
-		return cbits(i);	/* was (i & BYTEMASK) */
+		return (c);
+	} else
+		return cbits(i); /* was (i & BYTEMASK) */
 }
 
-
-void casecc(void)
+void
+casecc(void)
 {
 	cc = chget('.');
 }
 
-
-void casec2(void)
+void
+casec2(void)
 {
 	c2 = chget('\'');
 }
 
-
-void casehc(void)
+void
+casehc(void)
 {
 	ohc = chget(OHC);
 }
 
-
-void casetc(void)
+void
+casetc(void)
 {
 	tabc = chget(0);
 }
 
-
-void caselc(void)
+void
+caselc(void)
 {
 	dotc = chget(0);
 }
 
-
-void casehy(void)
+void
+casehy(void)
 {
 	int i;
 
 	hyf = 1;
-	if (skip())
+	if(skip())
 		return;
 	noscale++;
 	i = atoi0();
 	noscale = 0;
-	if (nonumb)
+	if(nonumb)
 		return;
 	hyf = max(i, 0);
 }
 
-
-void casenh(void)
+void
+casenh(void)
 {
 	hyf = 0;
 }
 
-
 max(int aa, int bb)
 {
-	if (aa > bb)
-		return(aa);
-	else 
-		return(bb);
+	if(aa > bb)
+		return (aa);
+	else
+		return (bb);
 }
 
-
-void casece(void)
+void
+casece(void)
 {
 	int i;
 
 	noscale++;
 	skip();
 	i = max(atoi0(), 0);
-	if (nonumb)
+	if(nonumb)
 		i = 1;
 	tbreak();
 	ce = i;
 	noscale = 0;
 }
 
-
-void casein(void)
+void
+casein(void)
 {
 	int i;
 
-	if (skip())
+	if(skip())
 		i = in1;
 	else {
 		i = max(hnumb(&in), 0);
-		if (nonumb)
+		if(nonumb)
 			i = in1;
 	}
 	tbreak();
 	in1 = in;
 	in = i;
-	if (!nc) {
+	if(!nc) {
 		un = in;
 		setnel();
 	}
 }
 
-
-void casell(void)
+void
+casell(void)
 {
 	int i;
 
-	if (skip())
+	if(skip())
 		i = ll1;
 	else {
 		i = max(hnumb(&ll), INCH / 10);
-		if (nonumb)
+		if(nonumb)
 			i = ll1;
 	}
 	ll1 = ll;
@@ -214,28 +213,28 @@ void casell(void)
 	setnel();
 }
 
-
-void caselt(void)
+void
+caselt(void)
 {
 	int i;
 
-	if (skip())
+	if(skip())
 		i = lt1;
 	else {
 		i = max(hnumb(&lt), 0);
-		if (nonumb)
+		if(nonumb)
 			i = lt1;
 	}
 	lt1 = lt;
 	lt = i;
 }
 
-
-void caseti(void)
+void
+caseti(void)
 {
 	int i;
 
-	if (skip())
+	if(skip())
 		return;
 	i = max(hnumb(&in), 0);
 	tbreak();
@@ -243,17 +242,17 @@ void caseti(void)
 	setnel();
 }
 
-
-void casels(void)
+void
+casels(void)
 {
 	int i;
 
 	noscale++;
-	if (skip())
+	if(skip())
 		i = ls1;
 	else {
 		i = max(inumb(&ls), 1);
-		if (nonumb)
+		if(nonumb)
 			i = ls1;
 	}
 	ls1 = ls;
@@ -261,58 +260,58 @@ void casels(void)
 	noscale = 0;
 }
 
-
-void casepo(void)
+void
+casepo(void)
 {
 	int i;
 
-	if (skip())
+	if(skip())
 		i = po1;
 	else {
 		i = max(hnumb(&po), 0);
-		if (nonumb)
+		if(nonumb)
 			i = po1;
 	}
 	po1 = po;
 	po = i;
-	if (TROFF & !ascii)
+	if(TROFF & !ascii)
 		esc += po - po1;
 }
 
-
-void casepl(void)
+void
+casepl(void)
 {
 	int i;
 
 	skip();
-	if ((i = vnumb(&pl)) == 0)
+	if((i = vnumb(&pl)) == 0)
 		pl = 11 * INCH; /*11in*/
-	else 
+	else
 		pl = i;
-	if (numtabp[NL].val > pl)
+	if(numtabp[NL].val > pl)
 		numtabp[NL].val = pl;
 }
 
-
-void casewh(void)
+void
+casewh(void)
 {
 	int i, j, k;
 
 	lgf++;
 	skip();
 	i = vnumb((int *)0);
-	if (nonumb)
+	if(nonumb)
 		return;
 	skip();
 	j = getrq();
-	if ((k = findn(i)) != NTRAP) {
+	if((k = findn(i)) != NTRAP) {
 		mlist[k] = j;
 		return;
 	}
-	for (k = 0; k < NTRAP; k++)
-		if (mlist[k] == 0)
+	for(k = 0; k < NTRAP; k++)
+		if(mlist[k] == 0)
 			break;
-	if (k == NTRAP) {
+	if(k == NTRAP) {
 		flusho();
 		ERROR "cannot plant trap." WARN;
 		return;
@@ -321,41 +320,40 @@ void casewh(void)
 	nlist[k] = i;
 }
 
-
-void casech(void)
+void
+casech(void)
 {
 	int i, j, k;
 
 	lgf++;
 	skip();
-	if (!(j = getrq()))
+	if(!(j = getrq()))
 		return;
-	else 
-		for (k = 0; k < NTRAP; k++)
-			if (mlist[k] == j)
+	else
+		for(k = 0; k < NTRAP; k++)
+			if(mlist[k] == j)
 				break;
-	if (k == NTRAP)
+	if(k == NTRAP)
 		return;
 	skip();
 	i = vnumb((int *)0);
-	if (nonumb)
+	if(nonumb)
 		mlist[k] = 0;
 	nlist[k] = i;
 }
-
 
 findn(int i)
 {
 	int k;
 
-	for (k = 0; k < NTRAP; k++)
-		if ((nlist[k] == i) && (mlist[k] != 0))
+	for(k = 0; k < NTRAP; k++)
+		if((nlist[k] == i) && (mlist[k] != 0))
 			break;
-	return(k);
+	return (k);
 }
 
-
-void casepn(void)
+void
+casepn(void)
 {
 	int i;
 
@@ -363,40 +361,41 @@ void casepn(void)
 	noscale++;
 	i = max(inumb(&numtabp[PN].val), 0);
 	noscale = 0;
-	if (!nonumb) {
+	if(!nonumb) {
 		npn = i;
 		npnflg++;
 	}
 }
 
-
-void casebp(void)
+void
+casebp(void)
 {
 	int i;
 	Stack *savframe;
 
-	if (dip != d)
+	if(dip != d)
 		return;
 	savframe = frame;
 	skip();
-	if ((i = inumb(&numtabp[PN].val)) < 0)
+	if((i = inumb(&numtabp[PN].val)) < 0)
 		i = 0;
 	tbreak();
-	if (!nonumb) {
+	if(!nonumb) {
 		npn = i;
 		npnflg++;
-	} else if (dip->nls)
+	} else if(dip->nls)
 		return;
 	eject(savframe);
 }
 
-void casetm(void)
+void
+casetm(void)
 {
 	casetm1(0, stderr);
 }
 
-
-void casefm(void)
+void
+casefm(void)
 {
 	static struct fcache {
 		char *name;
@@ -404,21 +403,21 @@ void casefm(void)
 	} fcache[15];
 	int i;
 
-	if ( skip() || !getname()) {
+	if(skip() || !getname()) {
 		ERROR "fm: missing filename" WARN;
 		return;
 	}
-		
-	for (i = 0; i < 15 && fcache[i].fp != NULL; i++) {
-		if (strcmp(nextf, fcache[i].name) == 0)
+
+	for(i = 0; i < 15 && fcache[i].fp != NULL; i++) {
+		if(strcmp(nextf, fcache[i].name) == 0)
 			break;
 	}
-	if (i >= 15) {
+	if(i >= 15) {
 		ERROR "fm: too many streams" WARN;
 		return;
 	}
-	if (fcache[i].fp == NULL) {
-		if( (fcache[i].fp = fopen(nextf, "w")) == NULL) {
+	if(fcache[i].fp == NULL) {
+		if((fcache[i].fp = fopen(nextf, "w")) == NULL) {
 			ERROR "fm: cannot open %s", nextf WARN;
 			return;
 		}
@@ -427,7 +426,8 @@ void casefm(void)
 	casetm1(0, fcache[i].fp);
 }
 
-void casetm1(int ab, FILE *out) 
+void
+casetm1(int ab, FILE *out)
 {
 	int i, j, c;
 	char *p;
@@ -435,8 +435,8 @@ void casetm1(int ab, FILE *out)
 
 	lgf++;
 	copyf++;
-	if (ab) {
-		if (skip())
+	if(ab) {
+		if(skip())
 			ERROR "User Abort" WARN;
 		else {
 			extern int error;
@@ -445,50 +445,50 @@ void casetm1(int ab, FILE *out)
 			noscale++;
 			i = inumb(&trace);
 			noscale--;
-			if (i) {
+			if(i) {
 				error = i;
-				if (nlflg || skip())
+				if(nlflg || skip())
 					ERROR "User Abort, exit code %d", i WARN;
 			}
 			trace = savtrac;
 		}
 	} else
-		skip();	
-	for (i = 0; i < NTM - 2; ) {
-		if ((c = cbits(getch())) == '\n' || c == RIGHT)
+		skip();
+	for(i = 0; i < NTM - 2;) {
+		if((c = cbits(getch())) == '\n' || c == RIGHT)
 			break;
-		else if (c == MINUS) {	/* special pleading for strange encodings */
+		else if(c == MINUS) { /* special pleading for strange encodings */
 			tmbuf[i++] = '\\';
 			tmbuf[i++] = '-';
-		} else if (c == PRESC) {
+		} else if(c == PRESC) {
 			tmbuf[i++] = '\\';
 			tmbuf[i++] = 'e';
-		} else if (c == FILLER) {
+		} else if(c == FILLER) {
 			tmbuf[i++] = '\\';
 			tmbuf[i++] = '&';
-		} else if (c == UNPAD) {
+		} else if(c == UNPAD) {
 			tmbuf[i++] = '\\';
 			tmbuf[i++] = ' ';
-		} else if (c == OHC) {
+		} else if(c == OHC) {
 			tmbuf[i++] = '\\';
 			tmbuf[i++] = '%';
-		} else if (c >= ALPHABET) {
+		} else if(c >= ALPHABET) {
 			p = chname(c);
-			switch (*p) {
+			switch(*p) {
 			case MBchar:
-				sprintf(&tmbuf[i], p+1);
+				sprintf(&tmbuf[i], p + 1);
 				break;
 			case Number:
-				sprintf(&tmbuf[i], "\\N'%s'", p+1);
+				sprintf(&tmbuf[i], "\\N'%s'", p + 1);
 				break;
 			case Troffchar:
-				if (strlen(p+1) == 2)
-					sprintf(&tmbuf[i], "\\(%s", p+1);
+				if(strlen(p + 1) == 2)
+					sprintf(&tmbuf[i], "\\(%s", p + 1);
 				else
-					sprintf(&tmbuf[i], "\\C'%s'", p+1);
+					sprintf(&tmbuf[i], "\\C'%s'", p + 1);
 				break;
 			default:
-				sprintf(&tmbuf[i]," %s? ", p);
+				sprintf(&tmbuf[i], " %s? ", p);
 				break;
 			}
 			j = strlen(&tmbuf[i]);
@@ -497,143 +497,144 @@ void casetm1(int ab, FILE *out)
 			tmbuf[i++] = c;
 	}
 	tmbuf[i] = 0;
-	if (ab)	/* truncate output */
-		obufp = obuf;	/* should be a function in n2.c */
+	if(ab)		      /* truncate output */
+		obufp = obuf; /* should be a function in n2.c */
 	flusho();
-	if (i)
+	if(i)
 		fprintf(out, "%s\n", tmbuf);
 	fflush(out);
 	copyf--;
 	lgf--;
 }
 
-
-void casesp(void)
+void
+casesp(void)
 {
 	casesp1(0);
 }
 
-void casesp1(int a)
+void
+casesp1(int a)
 {
 	int i, j, savlss;
 
 	tbreak();
-	if (dip->nls || trap)
+	if(dip->nls || trap)
 		return;
 	i = findt1();
-	if (!a) {
+	if(!a) {
 		skip();
 		j = vnumb((int *)0);
-		if (nonumb)
+		if(nonumb)
 			j = lss;
-	} else 
+	} else
 		j = a;
-	if (j == 0)
+	if(j == 0)
 		return;
-	if (i < j)
+	if(i < j)
 		j = i;
 	savlss = lss;
-	if (dip != d)
-		i = dip->dnl; 
-	else 
+	if(dip != d)
+		i = dip->dnl;
+	else
 		i = numtabp[NL].val;
-	if ((i + j) < 0)
+	if((i + j) < 0)
 		j = -i;
 	lss = j;
 	newline(0);
 	lss = savlss;
 }
 
-
-void casert(void)
+void
+casert(void)
 {
 	int a, *p;
 
 	skip();
-	if (dip != d)
-		p = &dip->dnl; 
-	else 
+	if(dip != d)
+		p = &dip->dnl;
+	else
 		p = &numtabp[NL].val;
 	a = vnumb(p);
-	if (nonumb)
+	if(nonumb)
 		a = dip->mkline;
-	if ((a < 0) || (a >= *p))
+	if((a < 0) || (a >= *p))
 		return;
 	nb++;
 	casesp1(a - *p);
 }
 
-
-void caseem(void)
+void
+caseem(void)
 {
 	lgf++;
 	skip();
 	em = getrq();
 }
 
-
-void casefl(void)
+void
+casefl(void)
 {
 	tbreak();
-	if (!ascii)
+	if(!ascii)
 		ptflush();
 	flusho();
 }
 
-
-void caseev(void)
+void
+caseev(void)
 {
 	int nxev;
 
-	if (skip()) {
-e0:
-		if (evi == 0)
+	if(skip()) {
+	e0:
+		if(evi == 0)
 			return;
-		nxev =  evlist[--evi];
+		nxev = evlist[--evi];
 		goto e1;
 	}
 	noscale++;
 	nxev = atoi0();
 	noscale = 0;
-	if (nonumb)
+	if(nonumb)
 		goto e0;
 	flushi();
-	if (nxev >= NEV || nxev < 0 || evi >= EVLSZ) {
+	if(nxev >= NEV || nxev < 0 || evi >= EVLSZ) {
 		flusho();
 		ERROR "cannot do .ev %d", nxev WARN;
-		if (error)
+		if(error)
 			done2(040);
-		else 
+		else
 			edone(040);
 		return;
 	}
 	evlist[evi++] = ev;
 e1:
-	if (ev == nxev)
+	if(ev == nxev)
 		return;
 	ev = nxev;
 	envp = &env[ev];
 }
 
-void envcopy(Env *e1, Env *e2)	/* copy env e2 to e1 */
+void envcopy(Env *e1, Env *e2) /* copy env e2 to e1 */
 {
-	*e1 = *e2;	/* rumor hath that this fails on some machines */
+	*e1 = *e2; /* rumor hath that this fails on some machines */
 }
 
-
-void caseel(void)
+void
+caseel(void)
 {
-	if (--ifx < 0) {
+	if(--ifx < 0) {
 		ifx = 0;
 		iflist[0] = 0;
 	}
 	caseif1(2);
 }
 
-
-void caseie(void)
+void
+caseie(void)
 {
-	if (ifx >= NIF) {
+	if(ifx >= NIF) {
 		ERROR "if-else overflow." WARN;
 		ifx = 0;
 		edone(040);
@@ -642,26 +643,27 @@ void caseie(void)
 	ifx++;
 }
 
-
-void caseif(void)
+void
+caseif(void)
 {
 	caseif1(0);
 }
 
-void caseif1(int x)
+void
+caseif1(int x)
 {
 	extern int falsef;
 	int notflag, true;
 	Tchar i;
 
-	if (x == 2) {
+	if(x == 2) {
 		notflag = 0;
 		true = iflist[ifx];
 		goto i1;
 	}
 	true = 0;
 	skip();
-	if ((cbits(i = getch())) == '!') {
+	if((cbits(i = getch())) == '!') {
 		notflag = 1;
 	} else {
 		notflag = 0;
@@ -670,28 +672,28 @@ void caseif1(int x)
 	ifnum++;
 	i = atoi0();
 	ifnum = 0;
-	if (!nonumb) {
-		if (i > 0)
-			true++;
+	if(!nonumb) {
+		if(i > 0)
+			true ++;
 		goto i1;
 	}
 	i = getch();
-	switch (cbits(i)) {
+	switch(cbits(i)) {
 	case 'e':
-		if (!(numtabp[PN].val & 01))
-			true++;
+		if(!(numtabp[PN].val & 01))
+			true ++;
 		break;
 	case 'o':
-		if (numtabp[PN].val & 01)
-			true++;
+		if(numtabp[PN].val & 01)
+			true ++;
 		break;
 	case 'n':
-		if (NROFF)
-			true++;
+		if(NROFF)
+			true ++;
 		break;
 	case 't':
-		if (TROFF)
-			true++;
+		if(TROFF)
+			true ++;
 		break;
 	case ' ':
 		break;
@@ -700,18 +702,18 @@ void caseif1(int x)
 	}
 i1:
 	true ^= notflag;
-	if (x == 1)
+	if(x == 1)
 		iflist[ifx] = !true;
-	if (true) {
-i2:
-		while ((cbits(i = getch())) == ' ')
+	if(true) {
+	i2:
+		while((cbits(i = getch())) == ' ')
 			;
-		if (cbits(i) == LEFT)
+		if(cbits(i) == LEFT)
 			goto i2;
 		ch = i;
 		nflush++;
 	} else {
-		if (!nlflg) {
+		if(!nlflg) {
 			copyf++;
 			falsef++;
 			eatblk(0);
@@ -721,37 +723,44 @@ i2:
 	}
 }
 
-void eatblk(int inblk)
+void
+eatblk(int inblk)
 {
 	int cnt, i;
 
 	cnt = 0;
 	do {
-		if (ch)	{
+		if(ch) {
 			i = cbits(ch);
 			ch = 0;
 		} else
 			i = cbits(getch0());
-		if (i == ESC)
+		if(i == ESC)
 			cnt++;
 		else {
-			if (cnt == 1)
-				switch (i) {
-				case '{':  i = LEFT; break;
-				case '}':  i = RIGHT; break;
-				case '\n': i = 'x'; break;
+			if(cnt == 1)
+				switch(i) {
+				case '{':
+					i = LEFT;
+					break;
+				case '}':
+					i = RIGHT;
+					break;
+				case '\n':
+					i = 'x';
+					break;
 				}
 			cnt = 0;
 		}
-		if (i == LEFT) eatblk(1);
-	} while ((!inblk && (i != '\n')) || (inblk && (i != RIGHT)));
-	if (i == '\n') {
+		if(i == LEFT)
+			eatblk(1);
+	} while((!inblk && (i != '\n')) || (inblk && (i != RIGHT)));
+	if(i == '\n') {
 		nlflg++;
-		if (ip == 0)
+		if(ip == 0)
 			numtabp[CD].val++;
 	}
 }
-
 
 cmpstr(Tchar c)
 {
@@ -762,8 +771,8 @@ cmpstr(Tchar c)
 	Tchar string[1280];
 	Tchar *sp;
 
-	if (ismot(c))
-		return(0);
+	if(ismot(c))
+		return (0);
 	delim = cbits(c);
 	savapts = apts;
 	savapts1 = apts1;
@@ -772,14 +781,14 @@ cmpstr(Tchar c)
 	savpts = pts;
 	savpts1 = pts1;
 	sp = string;
-	while ((j = cbits(i = getch()))!=delim && j!='\n' && sp<&string[1280-1])
+	while((j = cbits(i = getch())) != delim && j != '\n' && sp < &string[1280 - 1])
 		*sp++ = i;
-	if (sp >= string + 1280) {
+	if(sp >= string + 1280) {
 		ERROR "too-long string compare." WARN;
 		edone(0100);
 	}
-	if (nlflg) {
-		val = sp==string;
+	if(nlflg) {
+		val = sp == string;
 		goto rtn;
 	}
 	*sp = 0;
@@ -792,15 +801,15 @@ cmpstr(Tchar c)
 	mchbits();
 	val = 1;
 	sp = string;
-	while ((j = cbits(i = getch())) != delim && j != '\n') {
-		if (*sp != i) {
+	while((j = cbits(i = getch())) != delim && j != '\n') {
+		if(*sp != i) {
 			eat(delim);
 			val = 0;
 			goto rtn;
 		}
 		sp++;
 	}
-	if (*sp)
+	if(*sp)
 		val = 0;
 rtn:
 	apts = savapts;
@@ -810,25 +819,25 @@ rtn:
 	pts = savpts;
 	pts1 = savpts1;
 	mchbits();
-	return(val);
+	return (val);
 }
 
-
-void caserd(void)
+void
+caserd(void)
 {
 
 	lgf++;
 	skip();
 	getname();
-	if (!iflg) {
-		if (quiet) {
-			if (NROFF) {
+	if(!iflg) {
+		if(quiet) {
+			if(NROFF) {
 				echo_off();
 				flusho();
 			}
 			fprintf(stderr, "\007"); /*bell*/
 		} else {
-			if (nextf[0]) {
+			if(nextf[0]) {
 				fprintf(stderr, "%s:", nextf);
 			} else {
 				fprintf(stderr, "\007"); /*bell*/
@@ -837,58 +846,57 @@ void caserd(void)
 	}
 	collect();
 	tty++;
-	pushi(RD_OFFSET, PAIR('r','d'));
+	pushi(RD_OFFSET, PAIR('r', 'd'));
 }
-
 
 rdtty(void)
 {
-	char	onechar;
+	char onechar;
 
 	onechar = 0;
-	if (read(0, &onechar, 1) == 1) {
-		if (onechar == '\n')
+	if(read(0, &onechar, 1) == 1) {
+		if(onechar == '\n')
 			tty++;
-		else 
+		else
 			tty = 1;
-		if (tty != 3)
-			return(onechar);
+		if(tty != 3)
+			return (onechar);
 	}
 	tty = 0;
-	if (NROFF && quiet)
+	if(NROFF && quiet)
 		echo_on();
-	return(0);
+	return (0);
 }
 
-
-void caseec(void)
+void
+caseec(void)
 {
 	eschar = chget('\\');
 }
 
-
-void caseeo(void)
+void
+caseeo(void)
 {
 	eschar = 0;
 }
 
-
-void caseta(void)
+void
+caseta(void)
 {
 	int i, j, k;
 
 	tabtab[0] = nonumb = 0;
-	for (i = 0; ((i < (NTAB - 1)) && !nonumb); i++) {
-		if (skip())
+	for(i = 0; ((i < (NTAB - 1)) && !nonumb); i++) {
+		if(skip())
 			break;
-		k = tabtab[max(i-1, 0)] & TABMASK;
-		if ((j = max(hnumb(&k), 0)) > TABMASK) {
+		k = tabtab[max(i - 1, 0)] & TABMASK;
+		if((j = max(hnumb(&k), 0)) > TABMASK) {
 			ERROR "Tab too far away" WARN;
 			j = TABMASK;
 		}
 		tabtab[i] = j & TABMASK;
-		if (!nonumb) 
-			switch (cbits(ch)) {
+		if(!nonumb)
+			switch(cbits(ch)) {
 			case 'C':
 				tabtab[i] |= CTAB;
 				break;
@@ -900,25 +908,25 @@ void caseta(void)
 			}
 		nonumb = ch = 0;
 	}
-	if (!skip())
+	if(!skip())
 		ERROR "Too many tab stops" WARN;
 	tabtab[i] = 0;
 }
 
-
-void casene(void)
+void
+casene(void)
 {
 	int i, j;
 
 	skip();
 	i = vnumb((int *)0);
-	if (nonumb)
+	if(nonumb)
 		i = lss;
-	if (dip == d && numtabp[NL].val == -1) {
+	if(dip == d && numtabp[NL].val == -1) {
 		newline(1);
 		return;
 	}
-	if (i > (j = findt1())) {
+	if(i > (j = findt1())) {
 		i = lss;
 		lss = j;
 		dip->nls = 0;
@@ -927,48 +935,48 @@ void casene(void)
 	}
 }
 
-
-void casetr(void)
+void
+casetr(void)
 {
 	int i, j;
 	Tchar k;
 
 	lgf++;
 	skip();
-	while ((i = cbits(k=getch())) != '\n') {
-		if (ismot(k))
+	while((i = cbits(k = getch())) != '\n') {
+		if(ismot(k))
 			return;
-		if (ismot(k = getch()))
+		if(ismot(k = getch()))
 			return;
-		if ((j = cbits(k)) == '\n')
+		if((j = cbits(k)) == '\n')
 			j = ' ';
 		trtab[i] = j;
 	}
 }
 
-
-void casecu(void)
+void
+casecu(void)
 {
 	cu++;
 	caseul();
 }
 
-
-void caseul(void)
+void
+caseul(void)
 {
 	int i;
 
 	noscale++;
 	skip();
 	i = max(atoi0(), 0);
-	if (nonumb)
+	if(nonumb)
 		i = 1;
-	if (ul && (i == 0)) {
+	if(ul && (i == 0)) {
 		font = sfont;
 		ul = cu = 0;
 	}
-	if (i) {
-		if (!ul) {
+	if(i) {
+		if(!ul) {
 			sfont = font;
 			font = ulfont;
 		}
@@ -978,21 +986,21 @@ void caseul(void)
 	mchbits();
 }
 
-
-void caseuf(void)
+void
+caseuf(void)
 {
 	int i, j;
 
-	if (skip() || !(i = getrq()) || i == 'S' ||  (j = findft(i))  == -1)
+	if(skip() || !(i = getrq()) || i == 'S' || (j = findft(i)) == -1)
 		ulfont = ULFONT; /*default underline position*/
-	else 
+	else
 		ulfont = j;
-	if (NROFF && ulfont == FT)
+	if(NROFF && ulfont == FT)
 		ulfont = ULFONT;
 }
 
-
-void caseit(void)
+void
+caseit(void)
 {
 	int i;
 
@@ -1002,67 +1010,67 @@ void caseit(void)
 	skip();
 	i = atoi0();
 	skip();
-	if (!nonumb && (itmac = getrq()))
+	if(!nonumb && (itmac = getrq()))
 		it = i;
 	noscale = 0;
 }
 
-
-void casemc(void)
+void
+casemc(void)
 {
 	int i;
 
-	if (icf > 1)
+	if(icf > 1)
 		ic = 0;
 	icf = 0;
-	if (skip())
+	if(skip())
 		return;
 	ic = getch();
 	icf = 1;
 	skip();
 	i = max(hnumb((int *)0), 0);
-	if (!nonumb)
+	if(!nonumb)
 		ics = i;
 }
 
-
-void casemk(void)
+void
+casemk(void)
 {
 	int i, j;
 
-	if (dip != d)
-		j = dip->dnl; 
-	else 
+	if(dip != d)
+		j = dip->dnl;
+	else
 		j = numtabp[NL].val;
-	if (skip()) {
+	if(skip()) {
 		dip->mkline = j;
 		return;
 	}
-	if ((i = getrq()) == 0)
+	if((i = getrq()) == 0)
 		return;
 	numtabp[findr(i)].val = j;
 }
 
-
-void casesv(void)
+void
+casesv(void)
 {
 	int i;
 
 	skip();
-	if ((i = vnumb((int *)0)) < 0)
+	if((i = vnumb((int *)0)) < 0)
 		return;
-	if (nonumb)
+	if(nonumb)
 		i = 1;
 	sv += i;
 	caseos();
 }
 
-
-void caseos(void)
+void
+caseos(void)
 {
 	int savlss;
 
-	if (sv <= findt1()) {
+	if(sv <= findt1()) {
 		savlss = lss;
 		lss = sv;
 		newline(0);
@@ -1071,23 +1079,23 @@ void caseos(void)
 	}
 }
 
-
-void casenm(void)
+void
+casenm(void)
 {
 	int i;
 
 	lnmod = nn = 0;
-	if (skip())
+	if(skip())
 		return;
 	lnmod++;
 	noscale++;
 	i = inumb(&numtabp[LN].val);
-	if (!nonumb)
+	if(!nonumb)
 		numtabp[LN].val = max(i, 0);
 	getnm(&ndf, 1);
 	getnm(&nms, 0);
 	getnm(&ni, 0);
-	getnm(&nmwid, 3);	/* really kludgy! */
+	getnm(&nmwid, 3); /* really kludgy! */
 	noscale = 0;
 	nmbits = chbits;
 }
@@ -1096,24 +1104,25 @@ void casenm(void)
  * .nm relies on the fact that illegal args are skipped; don't warn
  * for illegality of these
  */
-void getnm(int *p, int min)
+void
+getnm(int *p, int min)
 {
 	int i;
 	int savtr = trace;
 
 	eat(' ');
-	if (skip())
+	if(skip())
 		return;
 	trace = 0;
 	i = atoi0();
-	if (nonumb)
+	if(nonumb)
 		return;
 	*p = max(i, min);
 	trace = savtr;
 }
 
-
-void casenn(void)
+void
+casenn(void)
 {
 	noscale++;
 	skip();
@@ -1121,39 +1130,34 @@ void casenn(void)
 	noscale = 0;
 }
 
-
-void caseab(void)
+void
+caseab(void)
 {
 	casetm1(1, stderr);
 	done3(0);
 }
 
-
 /* nroff terminal handling has been pretty well excised */
 /* as part of the merge with troff.  these are ghostly remnants, */
 /* called, but doing nothing. restore them at your peril. */
 
-
-void save_tty(void)			/*save any tty settings that may be changed*/
+void save_tty(void) /*save any tty settings that may be changed*/
 {
 }
 
-
-void restore_tty(void)			/*restore tty settings from beginning*/
+void restore_tty(void) /*restore tty settings from beginning*/
 {
 }
 
-
-void set_tty(void)
+void
+set_tty(void)
 {
 }
 
-
-void echo_off(void)			/*turn off ECHO for .rd in "-q" mode*/
+void echo_off(void) /*turn off ECHO for .rd in "-q" mode*/
 {
 }
 
-
-void echo_on(void)			/*restore ECHO after .rd in "-q" mode*/
+void echo_on(void) /*restore ECHO after .rd in "-q" mode*/
 {
 }

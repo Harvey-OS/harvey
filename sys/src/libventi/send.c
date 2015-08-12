@@ -29,23 +29,23 @@ _vtsend(VtConn *z, Packet *p)
 
 	/* add framing */
 	n = packetsize(p);
-	if(n >= (1<<16)) {
+	if(n >= (1 << 16)) {
 		werrstr("packet too large");
 		packetfree(p);
 		return -1;
 	}
-	buf[0] = n>>8;
+	buf[0] = n >> 8;
 	buf[1] = n;
 	packetprefix(p, buf, 2);
-	ventisendbytes += n+2;
+	ventisendbytes += n + 2;
 	ventisendpackets++;
 
 	tot = 0;
-	for(;;){
+	for(;;) {
 		n = packetfragments(p, &ioc, 1, 0);
 		if(n == 0)
 			break;
-		if(write(z->outfd, ioc.addr, ioc.len) < ioc.len){
+		if(write(z->outfd, ioc.addr, ioc.len) < ioc.len) {
 			vtlog(VtServerLog, "<font size=-1>%T %s:</font> sending packet %p: %r<br>\n", z->addr, p);
 			packetfree(p);
 			return -1;
@@ -67,8 +67,7 @@ interrupted(void)
 	return strstr(e, "interrupted") != nil;
 }
 
-
-static Packet*
+static Packet *
 _vtrecv(VtConn *z)
 {
 	uint8_t buf[10], *b;
@@ -87,10 +86,12 @@ _vtrecv(VtConn *z)
 	while(size < 2) {
 		b = packettrailer(p, 2);
 		assert(b != nil);
-		if(0) fprint(2, "%d read hdr\n", getpid());
+		if(0)
+			fprint(2, "%d read hdr\n", getpid());
 		n = read(z->infd, b, 2);
-		if(0) fprint(2, "%d got %d (%r)\n", getpid(), n);
-		if(n==0 || (n<0 && !interrupted()))
+		if(0)
+			fprint(2, "%d got %d (%r)\n", getpid(), n);
+		if(n == 0 || (n < 0 && !interrupted()))
 			goto Err;
 		size += n;
 		packettrim(p, 0, size);
@@ -106,13 +107,15 @@ _vtrecv(VtConn *z)
 		if(n > MaxFragSize)
 			n = MaxFragSize;
 		b = packettrailer(p, n);
-		if(0) fprint(2, "%d read body %d\n", getpid(), n);
+		if(0)
+			fprint(2, "%d read body %d\n", getpid(), n);
 		n = read(z->infd, b, n);
-		if(0) fprint(2, "%d got %d (%r)\n", getpid(), n);
+		if(0)
+			fprint(2, "%d got %d (%r)\n", getpid(), n);
 		if(n > 0)
 			size += n;
 		packettrim(p, 0, size);
-		if(n==0 || (n<0 && !interrupted()))
+		if(n == 0 || (n < 0 && !interrupted()))
 			goto Err;
 	}
 	ventirecvbytes += len;
@@ -120,9 +123,9 @@ _vtrecv(VtConn *z)
 	p = packetsplit(p, len);
 	vtlog(VtServerLog, "<font size=-1>%T %s:</font> read packet %p len %d<br>\n", z->addr, p, len);
 	return p;
-Err:	
+Err:
 	vtlog(VtServerLog, "<font size=-1>%T %s:</font> error reading packet: %r<br>\n", z->addr);
-	return nil;	
+	return nil;
 }
 
 /*
@@ -147,7 +150,7 @@ vtrecvproc(void *v)
 	qunlock(&z->lk);
 
 	while((p = _vtrecv(z)) != nil)
-		if(_vtqsend(q, p) < 0){
+		if(_vtqsend(q, p) < 0) {
 			packetfree(p);
 			break;
 		}
@@ -194,19 +197,19 @@ vtsendproc(void *v)
 	return;
 }
 
-Packet*
+Packet *
 vtrecv(VtConn *z)
 {
 	Packet *p;
 	Queue *q;
 
 	qlock(&z->lk);
-	if(z->state != VtStateConnected){
+	if(z->state != VtStateConnected) {
 		werrstr("not connected");
 		qunlock(&z->lk);
 		return nil;
 	}
-	if(z->readq){
+	if(z->readq) {
 		q = _vtqincref(z->readq);
 		qunlock(&z->lk);
 		p = _vtqrecv(q);
@@ -229,16 +232,16 @@ vtsend(VtConn *z, Packet *p)
 	Queue *q;
 
 	qlock(&z->lk);
-	if(z->state != VtStateConnected){
+	if(z->state != VtStateConnected) {
 		packetfree(p);
 		werrstr("not connected");
 		qunlock(&z->lk);
 		return -1;
 	}
-	if(z->writeq){
+	if(z->writeq) {
 		q = _vtqincref(z->writeq);
 		qunlock(&z->lk);
-		if(_vtqsend(q, p) < 0){
+		if(_vtqsend(q, p) < 0) {
 			_vtqdecref(q);
 			packetfree(p);
 			return -1;
@@ -249,12 +252,11 @@ vtsend(VtConn *z, Packet *p)
 
 	qlock(&z->outlk);
 	qunlock(&z->lk);
-	if(_vtsend(z, p) < 0){
+	if(_vtsend(z, p) < 0) {
 		qunlock(&z->outlk);
 		vthangup(z);
-		return -1;	
+		return -1;
 	}
 	qunlock(&z->outlk);
 	return 0;
 }
-

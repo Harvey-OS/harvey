@@ -27,7 +27,7 @@
 /* Interface for pdfwrite text and fonts */
 
 #ifndef gdevpdt_INCLUDED
-#  define gdevpdt_INCLUDED
+#define gdevpdt_INCLUDED
 
 /*
  * This file defines a largely opaque interface to the text and font
@@ -52,12 +52,12 @@ pdf_text_state_t *pdf_text_state_alloc(gs_memory_t *mem);
 /*
  * Allocate and initialize the text data structure.
  */
-pdf_text_data_t *pdf_text_data_alloc(gs_memory_t *mem);	/* gdevpdts.h */
+pdf_text_data_t *pdf_text_data_alloc(gs_memory_t *mem); /* gdevpdts.h */
 
 /*
  * Reset the text state at the beginning of the page.
  */
-void pdf_reset_text_page(pdf_text_data_t *ptd);	/* gdevpdts.h */
+void pdf_reset_text_page(pdf_text_data_t *ptd); /* gdevpdts.h */
 
 /*
  * Reset the text state after a grestore.
@@ -95,19 +95,19 @@ void pdf_close_text_contents(gx_device_pdf *pdev); /* gdevpdts.h */
 /* ---------------- Bitmap fonts (for gdevpdfb.c) ---------------- */
 
 /* Return the Y offset for a bitmap character image. */
-int pdf_char_image_y_offset(const gx_device_pdf *pdev, int x, int y, int h);/* gdevpdti.h */
+int pdf_char_image_y_offset(const gx_device_pdf *pdev, int x, int y, int h); /* gdevpdti.h */
 
 /* Begin a CharProc for an embedded (bitmap) font. */
-int pdf_begin_char_proc(gx_device_pdf * pdev, int w, int h, int x_width,
+int pdf_begin_char_proc(gx_device_pdf *pdev, int w, int h, int x_width,
 			int y_offset, gs_id id, pdf_char_proc_t **ppcp,
-			pdf_stream_position_t * ppos); /* gdevpdti.h */
+			pdf_stream_position_t *ppos); /* gdevpdti.h */
 
 /* End a CharProc. */
-int pdf_end_char_proc(gx_device_pdf * pdev,
-		      pdf_stream_position_t * ppos); /* gdevpdti.h */
+int pdf_end_char_proc(gx_device_pdf *pdev,
+		      pdf_stream_position_t *ppos); /* gdevpdti.h */
 
 /* Put out a reference to an image as a character in an embedded font. */
-int pdf_do_char_image(gx_device_pdf * pdev, const pdf_char_proc_t * pcp,
-		      const gs_matrix * pimat);	/* gdevpdti.h */
+int pdf_do_char_image(gx_device_pdf *pdev, const pdf_char_proc_t *pcp,
+		      const gs_matrix *pimat); /* gdevpdti.h */
 
 #endif /* gdevpdt_INCLUDED */

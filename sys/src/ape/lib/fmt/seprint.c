@@ -23,7 +23,7 @@
 #include <stdarg.h>
 #include "fmt.h"
 
-char*
+char *
 seprint(char *buf, char *e, char *fmt, ...)
 {
 	char *p;

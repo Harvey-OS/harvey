@@ -19,11 +19,11 @@
 #include "../port/sd.h"
 
 static int
-scsitest(SDreq* r)
+scsitest(SDreq *r)
 {
 	r->write = 0;
 	memset(r->cmd, 0, sizeof(r->cmd));
-	r->cmd[1] = r->lun<<5;
+	r->cmd[1] = r->lun << 5;
 	r->clen = 6;
 	r->data = nil;
 	r->dlen = 0;
@@ -35,7 +35,7 @@ scsitest(SDreq* r)
 }
 
 int
-scsiverify(SDunit* unit)
+scsiverify(SDunit *unit)
 {
 	SDreq *r;
 	int i, status;
@@ -43,25 +43,25 @@ scsiverify(SDunit* unit)
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		return 0;
-	if((inquiry = sdmalloc(sizeof(unit->inquiry))) == nil){
+	if((inquiry = sdmalloc(sizeof(unit->inquiry))) == nil) {
 		free(r);
 		return 0;
 	}
 	r->unit = unit;
-	r->lun = 0;		/* ??? */
+	r->lun = 0; /* ??? */
 
 	memset(unit->inquiry, 0, sizeof(unit->inquiry));
 	r->write = 0;
 	r->cmd[0] = 0x12;
-	r->cmd[1] = r->lun<<5;
-	r->cmd[4] = sizeof(unit->inquiry)-1;
+	r->cmd[1] = r->lun << 5;
+	r->cmd[4] = sizeof(unit->inquiry) - 1;
 	r->clen = 6;
 	r->data = inquiry;
-	r->dlen = sizeof(unit->inquiry)-1;
+	r->dlen = sizeof(unit->inquiry) - 1;
 	r->flags = 0;
 
 	r->status = ~0;
-	if(unit->dev->ifc->rio(r) != SDok){
+	if(unit->dev->ifc->rio(r) != SDok) {
 		free(r);
 		return 0;
 	}
@@ -69,7 +69,7 @@ scsiverify(SDunit* unit)
 	free(inquiry);
 
 	SET(status);
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 3; i++) {
 		while((status = scsitest(r)) == SDbusy)
 			;
 		if(status == SDok || status != SDcheck)
@@ -87,8 +87,8 @@ scsiverify(SDunit* unit)
 		 * If there's no medium, that's OK too, but don't
 		 * try to spin it up.
 		 */
-		if(r->sense[12] == 0x04){
-			if(r->sense[13] == 0x02 || r->sense[13] == 0x01){
+		if(r->sense[12] == 0x04) {
+			if(r->sense[13] == 0x02 || r->sense[13] == 0x01) {
 				status = SDok;
 				break;
 			}
@@ -97,16 +97,16 @@ scsiverify(SDunit* unit)
 			break;
 	}
 
-	if(status == SDok){
+	if(status == SDok) {
 		/*
 		 * Try to ensure a direct-access device is spinning.
 		 * Don't wait for completion, ignore the result.
 		 */
-		if((unit->inquiry[0] & SDinq0periphtype) == SDperdisk){
+		if((unit->inquiry[0] & SDinq0periphtype) == SDperdisk) {
 			memset(r->cmd, 0, sizeof(r->cmd));
 			r->write = 0;
 			r->cmd[0] = 0x1B;
-			r->cmd[1] = (r->lun<<5)|0x01;
+			r->cmd[1] = (r->lun << 5) | 0x01;
 			r->cmd[4] = 1;
 			r->clen = 6;
 			r->data = nil;
@@ -125,7 +125,7 @@ scsiverify(SDunit* unit)
 }
 
 static int
-scsirio(SDreq* r)
+scsirio(SDreq *r)
 {
 	Proc *up = externup();
 	/*
@@ -138,17 +138,17 @@ scsirio(SDreq* r)
 	 * caller should re-initialise if necesary.
 	 */
 	r->status = ~0;
-	switch(r->unit->dev->ifc->rio(r)){
+	switch(r->unit->dev->ifc->rio(r)) {
 	default:
 		break;
 	case SDcheck:
 		if(!(r->flags & SDvalidsense))
 			break;
-		switch(r->sense[2] & 0x0F){
-		case 0x00:		/* no sense */
-		case 0x01:		/* recovered error */
+		switch(r->sense[2] & 0x0F) {
+		case 0x00: /* no sense */
+		case 0x01: /* recovered error */
 			return 2;
-		case 0x06:		/* check condition */
+		case 0x06: /* check condition */
 			/*
 			 * 0x28 - not ready to ready transition,
 			 *	  medium may have changed.
@@ -159,7 +159,7 @@ scsirio(SDreq* r)
 			if(r->sense[12] == 0x29)
 				return 2;
 			break;
-		case 0x02:		/* not ready */
+		case 0x02: /* not ready */
 			/*
 			 * If no medium present, bail out.
 			 * If unit is becoming ready, rather than not
@@ -186,7 +186,7 @@ scsirio(SDreq* r)
 }
 
 int
-scsionline(SDunit* unit)
+scsionline(SDunit *unit)
 {
 	SDreq *r;
 	uint8_t *p;
@@ -194,7 +194,7 @@ scsionline(SDunit* unit)
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		return 0;
-	if((p = sdmalloc(8)) == nil){
+	if((p = sdmalloc(8)) == nil) {
 		free(r);
 		return 0;
 	}
@@ -202,8 +202,8 @@ scsionline(SDunit* unit)
 	ok = 0;
 
 	r->unit = unit;
-	r->lun = 0;				/* ??? */
-	for(retries = 0; retries < 10; retries++){
+	r->lun = 0; /* ??? */
+	for(retries = 0; retries < 10; retries++) {
 		/*
 		 * Read-capacity is mandatory for DA, WORM, CD-ROM and
 		 * MO. It may return 'not ready' if type DA is not
@@ -213,19 +213,19 @@ scsionline(SDunit* unit)
 		r->write = 0;
 		memset(r->cmd, 0, sizeof(r->cmd));
 		r->cmd[0] = 0x25;
-		r->cmd[1] = r->lun<<5;
+		r->cmd[1] = r->lun << 5;
 		r->clen = 10;
 		r->data = p;
 		r->dlen = 8;
 		r->flags = 0;
 
 		r->status = ~0;
-		switch(scsirio(r)){
+		switch(scsirio(r)) {
 		default:
 			break;
 		case 0:
-			unit->sectors = (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
-			unit->secsize = (p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7];
+			unit->sectors = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+			unit->secsize = (p[4] << 24) | (p[5] << 16) | (p[6] << 8) | p[7];
 
 			/*
 			 * Some ATAPI CD readers lie about the block size.
@@ -258,14 +258,14 @@ scsionline(SDunit* unit)
 	free(r);
 
 	if(ok)
-		return ok+retries;
+		return ok + retries;
 	else
 		return 0;
 }
 
 int
-scsiexec(SDunit* unit, int write, uint8_t* cmd, int clen, void* data,
-	 int* dlen)
+scsiexec(SDunit *unit, int write, uint8_t *cmd, int clen, void *data,
+	 int *dlen)
 {
 	SDreq *r;
 	int status;
@@ -273,7 +273,7 @@ scsiexec(SDunit* unit, int write, uint8_t* cmd, int clen, void* data,
 	if((r = malloc(sizeof(SDreq))) == nil)
 		return SDmalloc;
 	r->unit = unit;
-	r->lun = cmd[1]>>5;		/* ??? */
+	r->lun = cmd[1] >> 5; /* ??? */
 	r->write = write;
 	memmove(r->cmd, cmd, clen);
 	r->clen = clen;
@@ -289,13 +289,13 @@ scsiexec(SDunit* unit, int write, uint8_t* cmd, int clen, void* data,
 	 * There should be no calls to 'error()' below this
 	 * which percolate back up.
 	 */
-	switch(status = unit->dev->ifc->rio(r)){
+	switch(status = unit->dev->ifc->rio(r)) {
 	case SDok:
 		if(dlen)
 			*dlen = r->rlen;
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	case SDcheck:
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	default:
 		/*
 		 * It's more complicated than this. There are conditions
@@ -324,13 +324,13 @@ scsifmt10(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 		c[0] = 0x28;
 	else
 		c[0] = 0x2A;
-	c[1] = lun<<5;
-	c[2] = bno>>24;
-	c[3] = bno>>16;
-	c[4] = bno>>8;
+	c[1] = lun << 5;
+	c[2] = bno >> 24;
+	c[3] = bno >> 16;
+	c[4] = bno >> 8;
 	c[5] = bno;
 	c[6] = 0;
-	c[7] = nb>>8;
+	c[7] = nb >> 8;
 	c[8] = nb;
 	c[9] = 0;
 
@@ -347,18 +347,18 @@ scsifmt16(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 		c[0] = 0x88;
 	else
 		c[0] = 0x8A;
-	c[1] = lun<<5;		/* so wrong */
-	c[2] = bno>>56;
-	c[3] = bno>>48;
-	c[4] = bno>>40;
-	c[5] = bno>>32;
-	c[6] = bno>>24;
-	c[7] = bno>>16;
-	c[8] = bno>>8;
+	c[1] = lun << 5; /* so wrong */
+	c[2] = bno >> 56;
+	c[3] = bno >> 48;
+	c[4] = bno >> 40;
+	c[5] = bno >> 32;
+	c[6] = bno >> 24;
+	c[7] = bno >> 16;
+	c[8] = bno >> 8;
 	c[9] = bno;
-	c[10] = nb>>24;
-	c[11] = nb>>16;
-	c[12] = nb>>8;
+	c[10] = nb >> 24;
+	c[11] = nb >> 16;
+	c[12] = nb >> 8;
 	c[13] = nb;
 	c[14] = 0;
 	c[15] = 0;
@@ -367,7 +367,7 @@ scsifmt16(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 }
 
 int32_t
-scsibio(SDunit* unit, int lun, int write, void* data, int32_t nb,
+scsibio(SDunit *unit, int lun, int write, void *data, int32_t nb,
 	uint64_t bno)
 {
 	SDreq *r;
@@ -379,16 +379,16 @@ scsibio(SDunit* unit, int lun, int write, void* data, int32_t nb,
 	r->lun = lun;
 again:
 	r->write = write;
-	if(bno >= (1ULL<<32))
+	if(bno >= (1ULL << 32))
 		scsifmt16(r, write, lun, nb, bno);
 	else
 		scsifmt10(r, write, lun, nb, bno);
 	r->data = data;
-	r->dlen = nb*unit->secsize;
+	r->dlen = nb * unit->secsize;
 	r->flags = 0;
 
 	r->status = ~0;
-	switch(scsirio(r)){
+	switch(scsirio(r)) {
 	default:
 		rlen = -1;
 		break;
@@ -399,15 +399,15 @@ again:
 		rlen = -1;
 		if(!(r->flags & SDvalidsense))
 			break;
-		switch(r->sense[2] & 0x0F){
+		switch(r->sense[2] & 0x0F) {
 		default:
 			break;
-		case 0x01:		/* recovered error */
+		case 0x01: /* recovered error */
 			print("%s: recovered error at sector %llud\n",
-				unit->name, bno);
+			      unit->name, bno);
 			rlen = r->rlen;
 			break;
-		case 0x06:		/* check condition */
+		case 0x06: /* check condition */
 			/*
 			 * Check for a removeable media change.
 			 * If so, mark it by zapping the geometry info
@@ -418,7 +418,7 @@ again:
 			if(unit->inquiry[1] & SDinq1removable)
 				unit->sectors = 0;
 			break;
-		case 0x02:		/* not ready */
+		case 0x02: /* not ready */
 			/*
 			 * If unit is becoming ready,
 			 * rather than not not ready, try again.
@@ -433,4 +433,3 @@ again:
 
 	return rlen;
 }
-

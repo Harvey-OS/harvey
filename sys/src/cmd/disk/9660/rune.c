@@ -14,10 +14,10 @@
 
 #include "iso9660.h"
 
-Rune*
+Rune *
 strtorune(Rune *r, char *s)
 {
-	Rune *or;
+	Rune * or ;
 
 	if(s == nil)
 		return nil;
@@ -26,10 +26,10 @@ strtorune(Rune *r, char *s)
 	while(*s)
 		s += chartorune(r++, s);
 	*r = L'\0';
-	return or;
+	return or ;
 }
 
-Rune*
+Rune *
 runechr(Rune *s, Rune c)
 {
 	for(; *s; s++)
@@ -45,4 +45,3 @@ runecmp(Rune *s, Rune *t)
 		s++, t++;
 	return *s - *t;
 }
-

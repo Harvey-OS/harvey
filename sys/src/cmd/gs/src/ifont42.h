@@ -27,7 +27,7 @@
 /* Procedure for building a Type 42 or CIDFontType 2 font */
 
 #ifndef ifont42_INCLUDED
-#  define ifont42_INCLUDED
+#define ifont42_INCLUDED
 
 /* Build a type 11 (TrueType CID-keyed) or 42 (TrueType) font. */
 int build_gs_TrueType_font(i_ctx_t *, os_ptr, gs_font_type42 **, font_type,

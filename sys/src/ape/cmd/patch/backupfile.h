@@ -26,34 +26,33 @@
    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /* When to make backup files. */
-enum backup_type
-{
-  /* Never make backups. */
-  none,
+enum backup_type {
+	/* Never make backups. */
+	none,
 
-  /* Make simple backups of every file. */
-  simple,
+	/* Make simple backups of every file. */
+	simple,
 
-  /* Make numbered backups of files that already have numbered backups,
+	/* Make numbered backups of files that already have numbered backups,
      and simple backups of the others. */
-  numbered_existing,
+	numbered_existing,
 
-  /* Make numbered backups of every file. */
-  numbered
+	/* Make numbered backups of every file. */
+	numbered
 };
 
 extern enum backup_type backup_type;
 extern char const *simple_backup_suffix;
 
 #ifndef __BACKUPFILE_P
-# if defined __STDC__ || __GNUC__
-#  define __BACKUPFILE_P(args) args
-# else
-#  define __BACKUPFILE_P(args) ()
-# endif
+#if defined __STDC__ || __GNUC__
+#define __BACKUPFILE_P(args) args
+#else
+#define __BACKUPFILE_P(args) ()
+#endif
 #endif
 
-char *base_name __BACKUPFILE_P ((char const *));
-char *find_backup_file_name __BACKUPFILE_P ((char const *));
-enum backup_type get_version __BACKUPFILE_P ((char const *));
-void addext __BACKUPFILE_P ((char *, char const *, int));
+char *base_name __BACKUPFILE_P((char const *));
+char *find_backup_file_name __BACKUPFILE_P((char const *));
+enum backup_type get_version __BACKUPFILE_P((char const *));
+void addext __BACKUPFILE_P((char *, char const *, int));

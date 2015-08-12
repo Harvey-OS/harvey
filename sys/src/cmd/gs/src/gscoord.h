@@ -28,7 +28,7 @@
 /* Requires gsmatrix.h and gsstate.h */
 
 #ifndef gscoord_INCLUDED
-#  define gscoord_INCLUDED
+#define gscoord_INCLUDED
 
 /* Coordinate system modification */
 int gs_initmatrix(gs_state *),
@@ -53,7 +53,7 @@ int gs_transform(gs_state *, floatp, floatp, gs_point *),
     gs_idtransform(gs_state *, floatp, floatp, gs_point *);
 
 #ifndef gs_imager_state_DEFINED
-#  define gs_imager_state_DEFINED
+#define gs_imager_state_DEFINED
 typedef struct gs_imager_state_s gs_imager_state;
 #endif
 

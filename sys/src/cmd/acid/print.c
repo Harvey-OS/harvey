@@ -16,36 +16,36 @@
 #include "acid.h"
 
 static char *binop[] =
-{
-	[OMUL]	"*",
-	[ODIV]	"/",
-	[OMOD]	"%",
-	[OADD]	"+",
-	[OSUB]	"-",
-	[ORSH]	">>",
-	[OLSH]	"<<",
-	[OLT]	"<",
-	[OGT]	">",
-	[OLEQ]	"<=",
-	[OGEQ]	">=",
-	[OEQ]	"==",
-	[ONEQ]	"!=",
-	[OLAND]	"&",
-	[OXOR]	"^",
-	[OLOR]	"|",
-	[OCAND]	"&&",
-	[OCOR]	"||",
-	[OASGN]	" = ",
+    {
+	 [OMUL] "*",
+	 [ODIV] "/",
+	 [OMOD] "%",
+	 [OADD] "+",
+	 [OSUB] "-",
+	 [ORSH] ">>",
+	 [OLSH] "<<",
+	 [OLT] "<",
+	 [OGT] ">",
+	 [OLEQ] "<=",
+	 [OGEQ] ">=",
+	 [OEQ] "==",
+	 [ONEQ] "!=",
+	 [OLAND] "&",
+	 [OXOR] "^",
+	 [OLOR] "|",
+	 [OCAND] "&&",
+	 [OCOR] "||",
+	 [OASGN] " = ",
 };
 
 static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 char *typenames[] =
-{
-	[TINT]		"integer",
-	[TFLOAT]	"float",
-	[TSTRING]	"string",
-	[TLIST]		"list",
-	[TCODE]		"code",
+    {
+	 [TINT] "integer",
+	 [TFLOAT] "float",
+	 [TSTRING] "string",
+	 [TLIST] "list",
+	 [TCODE] "code",
 };
 
 int
@@ -67,7 +67,7 @@ fundefs(void)
 	max = 0;
 	f = 0;
 	g = 100;
-	vec = malloc(sizeof(char*)*g);
+	vec = malloc(sizeof(char *) * g);
 	if(vec == 0)
 		fatal("out of memory");
 
@@ -80,17 +80,17 @@ fundefs(void)
 				max = n;
 			if(f >= g) {
 				g *= 2;
-				vec = realloc(vec, sizeof(char*)*g);
+				vec = realloc(vec, sizeof(char *) * g);
 				if(vec == 0)
 					fatal("out of memory");
 			}
 			vec[f++] = l->name;
 		}
 	}
-        qsort(vec, f, sizeof(char*), cmp);
+	qsort(vec, f, sizeof(char *), cmp);
 	max++;
-	col = 60/max;
-	s = (f+col-1)/col;
+	col = 60 / max;
+	s = (f + col - 1) / col;
 
 	for(i = 0; i < s; i++) {
 		for(j = i; j < f; j += s)
@@ -128,18 +128,16 @@ whatis(Lsym *l)
 			if(ti->type) {
 				if(ti->fmt == 'a') {
 					Bprint(bout, "\t%s %d %s;\n",
-					ti->type->name, ti->offset,
-					ti->tag->name);
-				}
-				else {
+					       ti->type->name, ti->offset,
+					       ti->tag->name);
+				} else {
 					Bprint(bout, "\t'%c' %s %d %s;\n",
-					ti->fmt, ti->type->name, ti->offset,
-					ti->tag->name);
+					       ti->fmt, ti->type->name, ti->offset,
+					       ti->tag->name);
 				}
-			}
-			else
+			} else
 				Bprint(bout, "\t'%c' %d %s;\n",
-				ti->fmt, ti->offset, ti->tag->name);
+				       ti->fmt, ti->offset, ti->tag->name);
 		}
 		Bprint(bout, "};\n");
 		def = 1;
@@ -166,10 +164,10 @@ slist(Node *n, int d)
 	if(n == 0)
 		return;
 	if(n->op == OLIST)
-		Bprint(bout, "%.*s{\n", d-1, tabs);
+		Bprint(bout, "%.*s{\n", d - 1, tabs);
 	pcode(n, d);
 	if(n->op == OLIST)
-		Bprint(bout, "%.*s}\n", d-1, tabs);
+		Bprint(bout, "%.*s}\n", d - 1, tabs);
 }
 
 void
@@ -214,10 +212,9 @@ pcode(Node *n, int d)
 		Bprint(bout, " then\n");
 		if(r && r->op == OELSE) {
 			slist(r->left, d);
-			Bprint(bout, "%.*selse\n", d-1, tabs);
+			Bprint(bout, "%.*selse\n", d - 1, tabs);
 			slist(r->right, d);
-		}
-		else
+		} else
 			slist(r, d);
 		break;
 	case OWHILE:
@@ -238,7 +235,7 @@ pcode(Node *n, int d)
 		Bprint(bout, ", ");
 		pexpr(l->right);
 		Bprint(bout, " do\n");
-		slist(r, d+1);
+		slist(r, d + 1);
 	}
 }
 

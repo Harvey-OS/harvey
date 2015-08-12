@@ -17,6 +17,6 @@ rerrstr(char *buf, uint nbuf)
 
 	tmp[0] = 0;
 	errstr(tmp, sizeof tmp);
-	utfecpy(buf, buf+nbuf, tmp);
+	utfecpy(buf, buf + nbuf, tmp);
 	errstr(tmp, sizeof tmp);
 }

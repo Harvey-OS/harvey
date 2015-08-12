@@ -25,23 +25,22 @@ faxsend(Modem *m, int argc, char *argv[])
 
 	/* telco just does the dialing */
 	r = response(m, 120);
-	switch(r){
+	switch(r) {
 	case Rok:
 		break;
 	default:
 		r = seterror(m, Enoanswer);
 		return r;
-		
 	}
 
 	xonoff(m, 1);
 	verbose("sending");
 	m->pageno = 1;
-	while(argc--){
+	while(argc--) {
 		if(m->pageno != 1)
-			sleep(1000);	/* let the paper catch up */
+			sleep(1000); /* let the paper catch up */
 
-		m->valid &= ~(Vfhng|Vfet|Vfpts|Vftsi|Vfdcs);
+		m->valid &= ~(Vfhng | Vfet | Vfpts | Vftsi | Vfdcs);
 		if((r = openfaxfile(m, *argv)) != Eok)
 			return r;
 
@@ -49,7 +48,7 @@ faxsend(Modem *m, int argc, char *argv[])
 		sprint(buf, "AT+FDT=%ld,%ld,%ld,%ld", m->df, m->vr, m->wd, m->ln);
 		if(command(m, buf) != Eok)
 			goto buggery;
-		if(response(m, 20) != Rconnect){
+		if(response(m, 20) != Rconnect) {
 			r = seterror(m, Eincompatible);
 			goto buggery;
 		}
@@ -63,11 +62,11 @@ faxsend(Modem *m, int argc, char *argv[])
 		 * (Could fix the driver, of course...).
 		 */
 		verbose("sending data");
-		for(;;){
+		for(;;) {
 			flow = 0;
 			count = 0;
 			c = 0;
-			while(count < sizeof(buf)-1){
+			while(count < sizeof(buf) - 1) {
 				if((c = Bgetc(m->bp)) < 0)
 					break;
 				buf[count++] = c;
@@ -75,7 +74,7 @@ faxsend(Modem *m, int argc, char *argv[])
 					buf[count++] = c;
 			}
 			verbose("sending %d bytes", count);
-			if(count && write(m->fd, buf, count) < 0){
+			if(count && write(m->fd, buf, count) < 0) {
 				verbose("write failed: %r");
 				r = seterror(m, Esys);
 				goto buggery;
@@ -85,17 +84,17 @@ faxsend(Modem *m, int argc, char *argv[])
 			 *  avanstar is even worse
 			 */
 			verbose("flow control");
-			while((r = rawmchar(m, buf)) == Eok || flow){
-				if(r != Eok){
+			while((r = rawmchar(m, buf)) == Eok || flow) {
+				if(r != Eok) {
 					if(flow-- == 0)
 						break;
 					sleep(250);
 					continue;
 				}
-				switch(buf[0]){
+				switch(buf[0]) {
 				case '\030':
 					verbose("%c", buf[0]);
-					if(write(m->fd, "\020\003", 2) < 0){
+					if(write(m->fd, "\020\003", 2) < 0) {
 						r = seterror(m, Esys);
 						goto buggery;
 					}
@@ -112,25 +111,23 @@ faxsend(Modem *m, int argc, char *argv[])
 					verbose("%c", buf[0]);
 					r = seterror(m, Eproto);
 					goto buggery;
-				
 				}
 			}
 			if(c < 0)
 				break;
 		}
 
-
 		/*
 		 * End of page, send DLE+ETX,
 		 * get OK in response.
 		 */
 		verbose("sending end of page");
-		if(write(m->fd, "\020\003", 2) < 0){
+		if(write(m->fd, "\020\003", 2) < 0) {
 			r = seterror(m, Esys);
 			goto buggery;
 		}
 		verbose("waiting for OK");
-		if(response(m, 120) != Rok){
+		if(response(m, 120) != Rok) {
 			r = seterror(m, Enoresponse);
 			goto buggery;
 		}
@@ -142,10 +139,10 @@ faxsend(Modem *m, int argc, char *argv[])
 		 * as to whether the page was successfully
 		 * transmitted or not.
 		 */
-		sprint(buf, "AT+FET=%d", argc == 0? 2: 0);
+		sprint(buf, "AT+FET=%d", argc == 0 ? 2 : 0);
 		if(command(m, buf) != Eok)
 			goto buggery;
-		switch(response(m, 20)){
+		switch(response(m, 20)) {
 		case Rok:
 			break;
 		case Rhangup:
@@ -158,7 +155,7 @@ faxsend(Modem *m, int argc, char *argv[])
 			goto buggery;
 		}
 
-		if((m->valid & Vfpts) == 0 || m->fpts[0] != 1){
+		if((m->valid & Vfpts) == 0 || m->fpts[0] != 1) {
 			r = seterror(m, Eproto);
 			goto buggery;
 		}

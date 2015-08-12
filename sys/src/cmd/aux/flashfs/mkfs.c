@@ -44,7 +44,8 @@ main(int argc, char **argv)
 	char *file;
 	unsigned char hdr[MAXHDR];
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'n':
 		nsects = argval(ARGF());
 		break;
@@ -53,7 +54,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();

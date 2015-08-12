@@ -7,102 +7,97 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<fcall.h>
-#include	"compat.h"
-#include	"error.h"
+#include <u.h>
+#include <libc.h>
+#include <fcall.h>
+#include "compat.h"
+#include "error.h"
 
-typedef	struct Fid	Fid;
-typedef	struct Export	Export;
-typedef	struct Exq	Exq;
-typedef	struct Exwork	Exwork;
+typedef struct Fid Fid;
+typedef struct Export Export;
+typedef struct Exq Exq;
+typedef struct Exwork Exwork;
 
-enum
-{
-	Nfidhash	= 32,
-	Maxfdata	= 8192,
-	Maxrpc		= IOHDRSZ + Maxfdata,
+enum {
+	Nfidhash = 32,
+	Maxfdata = 8192,
+	Maxrpc = IOHDRSZ + Maxfdata,
 };
 
-struct Export
-{
-	Ref	r;
-	Exq*	work;
-	Lock	fidlock;
-	Fid*	fid[Nfidhash];
-	int	io;		/* fd to read/write */
-	int	iounit;
-	int	nroots;
-	Chan	**roots;
+struct Export {
+	Ref r;
+	Exq *work;
+	Lock fidlock;
+	Fid *fid[Nfidhash];
+	int io; /* fd to read/write */
+	int iounit;
+	int nroots;
+	Chan **roots;
 };
 
-struct Fid
-{
-	Fid*	next;
-	Fid**	last;
-	Chan*	chan;
-	int32_t	offset;
-	int	fid;
-	int	ref;		/* fcalls using the fid; locked by Export.Lock */
-	int	attached;	/* fid attached or cloned but not clunked */
+struct Fid {
+	Fid *next;
+	Fid **last;
+	Chan *chan;
+	int32_t offset;
+	int fid;
+	int ref;      /* fcalls using the fid; locked by Export.Lock */
+	int attached; /* fid attached or cloned but not clunked */
 };
 
-struct Exq
-{
-	Lock	lk;
-	int	responding;	/* writing out reply message */
-	int	noresponse;	/* don't respond to this one */
-	Exq*	next;
-	int	shut;		/* has been noted for shutdown */
-	Export*	export;
-	void*	slave;
-	Fcall	rpc;
-	uint8_t	buf[Maxrpc];
+struct Exq {
+	Lock lk;
+	int responding; /* writing out reply message */
+	int noresponse; /* don't respond to this one */
+	Exq *next;
+	int shut; /* has been noted for shutdown */
+	Export *export;
+	void *slave;
+	Fcall rpc;
+	uint8_t buf[Maxrpc];
 };
 
-struct Exwork
-{
-	Lock	l;
+struct Exwork {
+	Lock l;
 
-	int	ref;
+	int ref;
 
-	int	nwaiters;	/* queue of slaves waiting for work */
-	QLock	qwait;
-	Rendez	rwait;
+	int nwaiters; /* queue of slaves waiting for work */
+	QLock qwait;
+	Rendez rwait;
 
-	Exq	*head;		/* work waiting for a slave */
-	Exq	*tail;
+	Exq *head; /* work waiting for a slave */
+	Exq *tail;
 };
 
 Exwork exq;
 
-static void	exshutdown(Export*);
-static void	exflush(Export*, int, int);
-static void	exslave(void*);
-static void	exfree(Export*);
-static void	exportproc(Export*);
+static void exshutdown(Export *);
+static void exflush(Export *, int, int);
+static void exslave(void *);
+static void exfree(Export *);
+static void exportproc(Export *);
 
-static char*	Exattach(Export*, Fcall*, uint8_t*);
-static char*	Exauth(Export*, Fcall*, uint8_t*);
-static char*	Exclunk(Export*, Fcall*, uint8_t*);
-static char*	Excreate(Export*, Fcall*, uint8_t*);
-static char*	Exversion(Export*, Fcall*, uint8_t*);
-static char*	Exopen(Export*, Fcall*, uint8_t*);
-static char*	Exread(Export*, Fcall*, uint8_t*);
-static char*	Exremove(Export*, Fcall*, uint8_t*);
-static char*	Exsession(Export*, Fcall*, uint8_t*);
-static char*	Exstat(Export*, Fcall*, uint8_t*);
-static char*	Exwalk(Export*, Fcall*, uint8_t*);
-static char*	Exwrite(Export*, Fcall*, uint8_t*);
-static char*	Exwstat(Export*, Fcall*, uint8_t*);
+static char *Exattach(Export *, Fcall *, uint8_t *);
+static char *Exauth(Export *, Fcall *, uint8_t *);
+static char *Exclunk(Export *, Fcall *, uint8_t *);
+static char *Excreate(Export *, Fcall *, uint8_t *);
+static char *Exversion(Export *, Fcall *, uint8_t *);
+static char *Exopen(Export *, Fcall *, uint8_t *);
+static char *Exread(Export *, Fcall *, uint8_t *);
+static char *Exremove(Export *, Fcall *, uint8_t *);
+static char *Exsession(Export *, Fcall *, uint8_t *);
+static char *Exstat(Export *, Fcall *, uint8_t *);
+static char *Exwalk(Export *, Fcall *, uint8_t *);
+static char *Exwrite(Export *, Fcall *, uint8_t *);
+static char *Exwstat(Export *, Fcall *, uint8_t *);
 
-static char	*(*fcalls[Tmax])(Export*, Fcall*, uint8_t*);
+static char *(*fcalls[Tmax])(Export *, Fcall *, uint8_t *);
 
-static char	Enofid[]   = "no such fid";
-static char	Eseekdir[] = "can't seek on a directory";
-static char	Ereaddir[] = "unaligned read of a directory";
-static int	exdebug = 0;
+static char Enofid[] = "no such fid";
+static char Eseekdir[] = "can't seek on a directory";
+static char Ereaddir[] = "unaligned read of a directory";
+static int exdebug = 0;
 
 int
 sysexport(int fd, Chan **roots, int nroots)
@@ -125,7 +120,7 @@ exportinit(void)
 {
 	lock(&exq.l);
 	exq.ref++;
-	if(fcalls[Tversion] != nil){
+	if(fcalls[Tversion] != nil) {
 		unlock(&exq.l);
 		return;
 	}
@@ -154,7 +149,7 @@ exportproc(Export *fs)
 
 	exportinit();
 	ed = errdepth(-1);
-	for(;;){
+	for(;;) {
 		errdepth(ed);
 		q = smalloc(sizeof(Exq));
 
@@ -165,7 +160,7 @@ exportproc(Export *fs)
 		if(exdebug)
 			print("export %d <- %F\n", getpid(), &q->rpc);
 
-		if(q->rpc.type == Tflush){
+		if(q->rpc.type == Tflush) {
 			exflush(fs, q->rpc.tag, q->rpc.oldtag);
 			free(q);
 			continue;
@@ -208,8 +203,8 @@ exflush(Export *fs, int flushtag, int tag)
 	/* hasn't been started? */
 	lock(&exq.l);
 	last = &exq.head;
-	for(q = exq.head; q != nil; q = q->next){
-		if(q->export == fs && q->rpc.tag == tag){
+	for(q = exq.head; q != nil; q = q->next) {
+		if(q->export == fs && q->rpc.tag == tag) {
 			*last = q->next;
 			unlock(&exq.l);
 			exfree(fs);
@@ -222,8 +217,8 @@ exflush(Export *fs, int flushtag, int tag)
 
 	/* in progress? */
 	lock(&fs->r);
-	for(q = fs->work; q != nil; q = q->next){
-		if(q->rpc.tag == tag){
+	for(q = fs->work; q != nil; q = q->next) {
+		if(q->rpc.tag == tag) {
 			lock(&q->lk);
 			q->noresponse = 1;
 			if(!q->responding)
@@ -252,8 +247,8 @@ exshutdown(Export *fs)
 
 	lock(&exq.l);
 	last = &exq.head;
-	for(q = exq.head; q != nil; q = *last){
-		if(q->export == fs){
+	for(q = exq.head; q != nil; q = *last) {
+		if(q->export == fs) {
 			*last = q->next;
 			exfree(fs);
 			free(q);
@@ -274,7 +269,7 @@ exshutdown(Export *fs)
 	 * kick any sleepers
 	 */
 	lock(&fs->r);
-	for(q = fs->work; q != nil; q = q->next){
+	for(q = fs->work; q != nil; q = q->next) {
 		lock(&q->lk);
 		q->noresponse = 1;
 		if(!q->responding)
@@ -292,8 +287,8 @@ exfree(Export *fs)
 
 	if(decref(&fs->r) != 0)
 		return;
-	for(i = 0; i < Nfidhash; i++){
-		for(f = fs->fid[i]; f != nil; f = n){
+	for(i = 0; i < Nfidhash; i++) {
+		for(f = fs->fid[i]; f != nil; f = n) {
 			if(f->chan != nil)
 				cclose(f->chan);
 			n = f->next;
@@ -325,24 +320,24 @@ exslave(void *)
 	while(waserror())
 		fprint(2, "exslave %d errored out of loop -- heading back in!\n", getpid());
 	ed = errdepth(-1);
-	for(;;){
+	for(;;) {
 		errdepth(ed);
 		qlock(&exq.qwait);
-		if(waserror()){
+		if(waserror()) {
 			qunlock(&exq.qwait);
 			nexterror();
 		}
 		rendsleep(&exq.rwait, exwork, nil);
 
 		lock(&exq.l);
-		if(!exq.ref){
+		if(!exq.ref) {
 			unlock(&exq.l);
 			poperror();
 			qunlock(&exq.qwait);
 			break;
 		}
 		q = exq.head;
-		if(q == nil){
+		if(q == nil) {
 			unlock(&exq.l);
 			poperror();
 			qunlock(&exq.qwait);
@@ -374,10 +369,10 @@ exslave(void *)
 		if(exdebug > 1)
 			print("exslave dispatch %d %F\n", getpid(), &q->rpc);
 
-		if(waserror()){
+		if(waserror()) {
 			print("exslave err %r\n");
 			err = up->error;
-		}else{
+		} else {
 			if(q->rpc.type >= Tmax || !fcalls[q->rpc.type])
 				err = "bad fcall type";
 			else
@@ -386,7 +381,7 @@ exslave(void *)
 		}
 
 		q->rpc.type++;
-		if(err){
+		if(err) {
 			q->rpc.type = Rerror;
 			q->rpc.ename = err;
 		}
@@ -396,11 +391,11 @@ exslave(void *)
 			print("exslave %d -> %F\n", getpid(), &q->rpc);
 
 		lock(&q->lk);
-		if(!q->noresponse){
+		if(!q->noresponse) {
 			q->responding = 1;
 			unlock(&q->lk);
 			write(fs->io, q->buf, n);
-		}else
+		} else
 			unlock(&q->lk);
 
 		/*
@@ -413,8 +408,8 @@ exslave(void *)
 
 		lock(&fs->r);
 		last = &fs->work;
-		for(t = fs->work; t != nil; t = t->next){
-			if(t == q){
+		for(t = fs->work; t != nil; t = t->next) {
+			if(t == q) {
 				*last = q->next;
 				break;
 			}
@@ -435,7 +430,7 @@ exslave(void *)
 	kexit();
 }
 
-Fid*
+Fid *
 Exmkfid(Export *fs, int fid)
 {
 	uint32_t h;
@@ -446,8 +441,8 @@ Exmkfid(Export *fs, int fid)
 		return nil;
 	lock(&fs->fidlock);
 	h = fid % Nfidhash;
-	for(f = fs->fid[h]; f != nil; f = f->next){
-		if(f->fid == fid){
+	for(f = fs->fid[h]; f != nil; f = f->next) {
+		if(f->fid == fid) {
 			unlock(&fs->fidlock);
 			free(nf);
 			return nil;
@@ -469,7 +464,7 @@ Exmkfid(Export *fs, int fid)
 	return nf;
 }
 
-Fid*
+Fid *
 Exgetfid(Export *fs, int fid)
 {
 	Fid *f;
@@ -477,8 +472,8 @@ Exgetfid(Export *fs, int fid)
 
 	lock(&fs->fidlock);
 	h = fid % Nfidhash;
-	for(f = fs->fid[h]; f; f = f->next){
-		if(f->fid == fid){
+	for(f = fs->fid[h]; f; f = f->next) {
+		if(f->fid == fid) {
 			if(f->attached == 0)
 				break;
 			f->ref++;
@@ -495,7 +490,7 @@ Exputfid(Export *fs, Fid *f)
 {
 	lock(&fs->fidlock);
 	f->ref--;
-	if(f->ref == 0 && f->attached == 0){
+	if(f->ref == 0 && f->attached == 0) {
 		if(f->chan != nil)
 			cclose(f->chan);
 		f->chan = nil;
@@ -509,12 +504,12 @@ Exputfid(Export *fs, Fid *f)
 	unlock(&fs->fidlock);
 }
 
-static char*
+static char *
 Exversion(Export *fs, Fcall *rpc, uint8_t *)
 {
 	if(rpc->msize > Maxrpc)
 		rpc->msize = Maxrpc;
-	if(strncmp(rpc->version, "9P", 2) != 0){
+	if(strncmp(rpc->version, "9P", 2) != 0) {
 		rpc->version = "unknown";
 		return nil;
 	}
@@ -524,13 +519,13 @@ Exversion(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Exauth(Export *, Fcall *, uint8_t *)
 {
 	return "vnc: authentication not required";
 }
 
-static char*
+static char *
 Exattach(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -544,7 +539,7 @@ Exattach(Export *fs, Fcall *rpc, uint8_t *)
 	f = Exmkfid(fs, rpc->fid);
 	if(f == nil)
 		return Einuse;
-	if(waserror()){
+	if(waserror()) {
 		f->attached = 0;
 		Exputfid(fs, f);
 		return up->error;
@@ -556,20 +551,20 @@ Exattach(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Exclunk(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 
 	f = Exgetfid(fs, rpc->fid);
-	if(f != nil){
+	if(f != nil) {
 		f->attached = 0;
 		Exputfid(fs, f);
 	}
 	return nil;
 }
 
-static char*
+static char *
 Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *volatile f, *volatile nf;
@@ -582,7 +577,7 @@ Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 	if(f == nil)
 		return Enofid;
 	nf = nil;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		if(nf != nil)
 			Exputfid(fs, nf);
@@ -592,13 +587,13 @@ Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 	/*
 	 * optional clone, but don't attach it until the walk succeeds.
 	 */
-	if(rpc->fid != rpc->newfid){
+	if(rpc->fid != rpc->newfid) {
 		nf = Exmkfid(fs, rpc->newfid);
 		if(nf == nil)
 			error(Einuse);
 		nf->attached = 0;
 		isnew = 1;
-	}else{
+	} else {
 		nf = Exgetfid(fs, rpc->fid);
 		isnew = 0;
 	}
@@ -624,7 +619,7 @@ Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 	/*
 	 * update the channel if everything walked correctly.
 	 */
-	if(isnew && wq->nqid == nwname){
+	if(isnew && wq->nqid == nwname) {
 		nf->chan = wq->clone;
 		nf->attached = 1;
 	}
@@ -635,7 +630,7 @@ Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Exopen(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *volatile f;
@@ -645,7 +640,7 @@ Exopen(Export *fs, Fcall *rpc, uint8_t *)
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}
@@ -664,7 +659,7 @@ Exopen(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Excreate(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -674,7 +669,7 @@ Excreate(Export *fs, Fcall *rpc, uint8_t *)
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}
@@ -692,7 +687,7 @@ Excreate(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 {
 	Fid *f;
@@ -705,12 +700,12 @@ Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 
 	c = f->chan;
 
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}
 
-	rpc->data = (char*)buf;
+	rpc->data = (char *)buf;
 	off = rpc->offset;
 	c->offset = off;
 	rpc->count = (*devtab[c->type]->read)(c, rpc->data, rpc->count, off);
@@ -719,7 +714,7 @@ Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 	return nil;
 }
 
-static char*
+static char *
 Exwrite(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -728,7 +723,7 @@ Exwrite(Export *fs, Fcall *rpc, uint8_t *)
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}
@@ -741,7 +736,7 @@ Exwrite(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Exstat(Export *fs, Fcall *rpc, uint8_t *buf)
 {
 	Fid *f;
@@ -750,7 +745,7 @@ Exstat(Export *fs, Fcall *rpc, uint8_t *buf)
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}
@@ -762,7 +757,7 @@ Exstat(Export *fs, Fcall *rpc, uint8_t *buf)
 	return nil;
 }
 
-static char*
+static char *
 Exwstat(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -771,7 +766,7 @@ Exwstat(Export *fs, Fcall *rpc, uint8_t *)
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}
@@ -782,7 +777,7 @@ Exwstat(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static char*
+static char *
 Exremove(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -791,7 +786,7 @@ Exremove(Export *fs, Fcall *rpc, uint8_t *)
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	if(waserror()){
+	if(waserror()) {
 		Exputfid(fs, f);
 		return up->error;
 	}

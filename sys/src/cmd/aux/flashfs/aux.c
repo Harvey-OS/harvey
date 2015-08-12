@@ -14,7 +14,7 @@
 #include <thread.h>
 #include "9p.h"
 
-void*
+void *
 emalloc9p(uint32_t sz)
 {
 	void *v;
@@ -28,7 +28,7 @@ emalloc9p(uint32_t sz)
 	return v;
 }
 
-void*
+void *
 erealloc9p(void *v, uint32_t sz)
 {
 	if((v = realloc(v, sz)) == nil) {
@@ -39,7 +39,7 @@ erealloc9p(void *v, uint32_t sz)
 	return v;
 }
 
-char*
+char *
 estrdup9p(char *s)
 {
 	char *t;
@@ -51,4 +51,3 @@ estrdup9p(char *s)
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
-

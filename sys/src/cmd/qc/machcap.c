@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"gc.h"
+#include "gc.h"
 
 int
 machcap(Node *n)
 {
 	if(n == Z)
-		return 1;	/* test */
-	switch(n->op){
+		return 1; /* test */
+	switch(n->op) {
 
 	case OADD:
 	case OAND:
@@ -101,7 +101,6 @@ machcap(Node *n)
 	case OASLMOD:
 	case OASMOD:
 		return 0;
-
 	}
 	return 0;
 }

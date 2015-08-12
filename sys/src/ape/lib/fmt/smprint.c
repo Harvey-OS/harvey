@@ -23,7 +23,7 @@
 #include <stdarg.h>
 #include "fmt.h"
 
-char*
+char *
 smprint(char *fmt, ...)
 {
 	va_list args;

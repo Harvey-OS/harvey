@@ -8,7 +8,7 @@
  */
 
 enum {
-	NbNameLen = 16,	
+	NbNameLen = 16,
 	NbnsTimeoutBroadcast = 1000,
 	NbnsRetryBroadcast = 3,
 	NbnsPort = 137,
@@ -126,7 +126,6 @@ NbnsMessage *nbnsconvM2S(uchar *ap, int nap);
 void nbnsmessagefree(NbnsMessage **sp);
 void nbnsdumpmessage(NbnsMessage *s);
 int nbnsconvS2M(NbnsMessage *s, uchar *ap, int nap);
-
 
 NbnsMessage *nbnsmessagenamequeryrequestnew(ushort id, int broadcast, NbName name);
 NbnsMessage *nbnsmessagenameregistrationrequestnew(ushort id, int broadcast, NbName name,

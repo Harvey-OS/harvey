@@ -18,19 +18,19 @@ smbcomcreatedirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 	SmbTree *t;
 	uint8_t fmt;
 
-	if (h->wordcount != 0)
+	if(h->wordcount != 0)
 		return SmbProcessResultFormat;
-	if (!smbbuffergetb(b, &fmt) || fmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &path))
+	if(!smbbuffergetb(b, &fmt) || fmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &path))
 		return SmbProcessResultFormat;
 	smblogprint(h->command, "smbcomcreatedirectory: %s\n", path);
 	t = smbidmapfind(s->tidmap, h->tid);
-	if (t == nil) {
+	if(t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
 		return SmbProcessResultError;
 	}
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
 	fd = create(fullpath, OREAD, DMDIR | 0775);
-	if (fd < 0) {
+	if(fd < 0) {
 		smblogprint(h->command, "smbcomcreatedirectory failed: %r\n");
 		smbseterror(s, ERRDOS, ERRnoaccess);
 		free(path);

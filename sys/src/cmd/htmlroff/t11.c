@@ -31,10 +31,10 @@ dv(int d)
 	runestrcpy(sub, L("<sub>"));
 	sub[0] = Ult;
 	sub[4] = Ugt;
-	if(d < 0){
+	if(d < 0) {
 		sub[3] = 'p';
 		ihtml(L(".dv"), sub);
-	}else if(d > 0)
+	} else if(d > 0)
 		ihtml(L(".dv"), sub);
 	else
 		ihtml(L(".dv"), nil);
@@ -81,7 +81,7 @@ e_w(void)
 {
 	Rune *a;
 	Rune buf[40];
-	
+
 	a = getqarg();
 	runesnprint(buf, sizeof buf, "%ld", runestrlen(a));
 	pushinputstring(buf);
@@ -113,4 +113,3 @@ t11init(void)
 	addesc('r', e_r, 0);
 	addesc('k', e_k, 0);
 }
-

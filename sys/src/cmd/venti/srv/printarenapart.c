@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-uint8_t buf[64*1024];
+uint8_t buf[64 * 1024];
 
 void
 usage(void)
@@ -34,20 +34,20 @@ rdarena(Arena *arena, uint64_t offset)
 	a = arena->base;
 	e = arena->base + arena->size;
 	if(offset != ~(uint64_t)0) {
-		if(offset >= e-a)
+		if(offset >= e - a)
 			sysfatal("bad offset %llud >= %llud",
-				offset, e-a);
+				 offset, e - a);
 		aa = offset;
 	} else
 		aa = 0;
 
-	for(; aa < e; aa += ClumpSize+cl.info.size) {
+	for(; aa < e; aa += ClumpSize + cl.info.size) {
 		magic = clumpmagic(arena, aa);
 		if(magic == ClumpFreeMagic)
 			break;
 		if(magic != arena->clumpmagic) {
 			fprint(2, "illegal clump magic number %#8.8ux offset %llud\n",
-				magic, aa);
+			       magic, aa);
 			break;
 		}
 		lump = loadclump(arena, aa, 0, &cl, score, 0);
@@ -84,12 +84,14 @@ threadmain(int argc, char *argv[])
 	Arena tail;
 	char ct[40], mt[40];
 
-	readonly = 1;	/* for part.c */
-	ARGBEGIN{
+	readonly = 1; /* for part.c */
+	ARGBEGIN
+	{
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	switch(argc) {
 	default:
@@ -101,7 +103,7 @@ threadmain(int argc, char *argv[])
 	ventifmtinstall();
 	statsinit();
 
-	part = initpart(file, OREAD|ODIRECT);
+	part = initpart(file, OREAD | ODIRECT);
 	if(part == nil)
 		sysfatal("can't open file %s: %r", file);
 	if(readpart(part, PartBlank, buf, sizeof buf) < 0)
@@ -111,49 +113,49 @@ threadmain(int argc, char *argv[])
 		sysfatal("corrupted arena part header: %r");
 
 	print("# arena part version=%d blocksize=%d arenabase=%d\n",
-		ap.version, ap.blocksize, ap.arenabase);
-	ap.tabbase = (PartBlank+HeadSize+ap.blocksize-1)&~(ap.blocksize-1);
+	      ap.version, ap.blocksize, ap.arenabase);
+	ap.tabbase = (PartBlank + HeadSize + ap.blocksize - 1) & ~(ap.blocksize - 1);
 	ap.tabsize = ap.arenabase - ap.tabbase;
 
-	table = malloc(ap.tabsize+1);
-	if(readpart(part, ap.tabbase, (uchar*)table, ap.tabsize) < 0)
+	table = malloc(ap.tabsize + 1);
+	if(readpart(part, ap.tabbase, (uchar *)table, ap.tabsize) < 0)
 		sysfatal("read %s: %r", file);
 	table[ap.tabsize] = 0;
 
 	partblocksize(part, ap.blocksize);
 	initdcache(8 * MaxDiskBlock);
 
-	for(p=table; p && *p; p=strchr(p, '\n')){
+	for(p = table; p && *p; p = strchr(p, '\n')) {
 		if(*p == '\n')
 			p++;
 		name = p;
 		p = strpbrk(p, " \t");
-		if(p == nil){
+		if(p == nil) {
 			fprint(2, "bad line: %s\n", name);
 			break;
 		}
 		offset = strtoull(p, nil, 0);
-		if(readpart(part, offset, buf, sizeof buf) < 0){
+		if(readpart(part, offset, buf, sizeof buf) < 0) {
 			fprint(2, "%s: read %s: %r\n", argv0, file);
 			continue;
 		}
-		if(unpackarenahead(&head, buf) < 0){
+		if(unpackarenahead(&head, buf) < 0) {
 			fprint(2, "%s: unpackarenahead: %r\n", argv0);
 			continue;
 		}
-		if(readpart(part, offset+head.size-head.blocksize, buf, head.blocksize) < 0){
+		if(readpart(part, offset + head.size - head.blocksize, buf, head.blocksize) < 0) {
 			fprint(2, "%s: read %s: %r\n", argv0, file);
 			continue;
 		}
-		if(unpackarena(&tail, buf) < 0){
+		if(unpackarena(&tail, buf) < 0) {
 			fprint(2, "%s: unpackarena: %r\n", argv0);
 			continue;
 		}
 		print("arena %s %lld clumps=%,d cclumps=%,d used=%,lld uncsize=%,lld%s\n",
-			tail.name, offset,
-			tail.diskstats.clumps, tail.diskstats.cclumps,
-			tail.diskstats.used, tail.diskstats.uncsize,
-			tail.diskstats.sealed ? " sealed" : "");
+		      tail.name, offset,
+		      tail.diskstats.clumps, tail.diskstats.cclumps,
+		      tail.diskstats.used, tail.diskstats.uncsize,
+		      tail.diskstats.sealed ? " sealed" : "");
 		strcpy(ct, ctime(tail.ctime));
 		ct[28] = 0;
 		strcpy(mt, ctime(tail.wtime));

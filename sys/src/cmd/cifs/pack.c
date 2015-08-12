@@ -36,10 +36,10 @@ ppath(Pkt *p, char *str)
 	if(!str)
 		return s;
 
-	if(p->s->caps & CAP_UNICODE){
-		if(((p->pos - p->buf) % 2) != 0)	/* pad to even offset */
+	if(p->s->caps & CAP_UNICODE) {
+		if(((p->pos - p->buf) % 2) != 0) /* pad to even offset */
 			p8(p, 0);
-		while(*str){
+		while(*str) {
 			str += chartorune(&r, str);
 			if(r == L'/')
 				r = L'\\';
@@ -47,7 +47,7 @@ ppath(Pkt *p, char *str)
 		}
 		pl16(p, 0);
 	} else {
-		while((c = *str++) != 0){
+		while((c = *str++) != 0) {
 			if(c == '/')
 				c = '\\';
 			*p->pos++ = c;
@@ -66,10 +66,10 @@ pstr(Pkt *p, char *str)
 	if(!str)
 		return s;
 
-	if(p->s->caps & CAP_UNICODE){
+	if(p->s->caps & CAP_UNICODE) {
 		if(((p->pos - p->buf) % 2) != 0)
-			p8(p, 0);		/* pad to even offset */
-		while(*str){
+			p8(p, 0); /* pad to even offset */
+		while(*str) {
 			str += chartorune(&r, str);
 			pl16(p, r);
 		}
@@ -92,7 +92,6 @@ pascii(Pkt *p, char *str)
 	*p->pos++ = 0;
 	return s;
 }
-
 
 void *
 pl64(Pkt *p, uint64_t n)
@@ -179,7 +178,7 @@ pname(Pkt *p, char *name, char pad)
 		if(!done && name[i] == '\0')
 			done = 1;
 		if(!done)
-			c = islower(name[i])? toupper(name[i]): name[i];
+			c = islower(name[i]) ? toupper(name[i]) : name[i];
 		*p->pos++ = ((uint8_t)c >> 4) + 'A';
 		*p->pos++ = (c & 0xf) + 'A';
 	}
@@ -211,16 +210,15 @@ pdatetime(Pkt *p, int32_t utc)
 	/*
 	 * bug in word swapping in Win95 requires this
 	 */
-	if(p->s->caps & CAP_NT_SMBS){
+	if(p->s->caps & CAP_NT_SMBS) {
 		pl16(p, d);
 		pl16(p, t);
-	} else{
+	} else {
 		pl16(p, t);
 		pl16(p, d);
 	}
 	return s;
 }
-
 
 void
 gmem(Pkt *p, void *v, int n)
@@ -247,11 +245,11 @@ gstr(Pkt *p, char *str, int n)
 	if(!n || !str)
 		return;
 
-	if(p->s->caps & CAP_UNICODE){
+	if(p->s->caps & CAP_UNICODE) {
 		i = 0;
-		while(*p->pos && n && p->pos < p->eop){
+		while(*p->pos && n && p->pos < p->eop) {
 			r = gl16(p);
-			i += runetochar(str +i, &r);
+			i += runetochar(str + i, &r);
 			n -= 2;
 		}
 		*(str + i) = 0;
@@ -288,7 +286,6 @@ gascii(Pkt *p, char *str, int n)
 		continue;
 }
 
-
 uint64_t
 gl64(Pkt *p)
 {
@@ -297,7 +294,7 @@ gl64(Pkt *p)
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	n  = (uint64_t)*p->pos++;
+	n = (uint64_t)*p->pos++;
 	n |= (uint64_t)*p->pos++ << 8;
 	n |= (uint64_t)*p->pos++ << 16;
 	n |= (uint64_t)*p->pos++ << 24;
@@ -316,7 +313,7 @@ gb48(Pkt *p)
 	if(p->pos + 6 > p->eop)
 		return 0;
 
-	n  = (uint64_t)*p->pos++ << 40;
+	n = (uint64_t)*p->pos++ << 40;
 	n |= (uint64_t)*p->pos++ << 24;
 	n |= (uint64_t)*p->pos++ << 32;
 	n |= (uint64_t)*p->pos++ << 16;
@@ -333,7 +330,7 @@ gb32(Pkt *p)
 	if(p->pos + 4 > p->eop)
 		return 0;
 
-	n  = (uint)*p->pos++ << 24;
+	n = (uint)*p->pos++ << 24;
 	n |= (uint)*p->pos++ << 16;
 	n |= (uint)*p->pos++ << 8;
 	n |= (uint)*p->pos++;
@@ -348,7 +345,7 @@ gl32(Pkt *p)
 	if(p->pos + 4 > p->eop)
 		return 0;
 
-	n  = (uint)*p->pos++;
+	n = (uint)*p->pos++;
 	n |= (uint)*p->pos++ << 8;
 	n |= (uint)*p->pos++ << 16;
 	n |= (uint)*p->pos++ << 24;
@@ -362,7 +359,7 @@ gb16(Pkt *p)
 
 	if(p->pos + 2 > p->eop)
 		return 0;
-	n  = (uint)*p->pos++ << 8;
+	n = (uint)*p->pos++ << 8;
 	n |= (uint)*p->pos++;
 	return n;
 }
@@ -374,7 +371,7 @@ gl16(Pkt *p)
 
 	if(p->pos + 2 > p->eop)
 		return 0;
-	n  = (uint)*p->pos++;
+	n = (uint)*p->pos++;
 	n |= (uint)*p->pos++ << 8;
 	return n;
 }
@@ -399,10 +396,10 @@ gdatetime(Pkt *p)
 	/*
 	 * bug in word swapping in Win95 requires this
 	 */
-	if(p->s->caps & CAP_NT_SMBS){
+	if(p->s->caps & CAP_NT_SMBS) {
 		d = gl16(p);
 		t = gl16(p);
-	}else{
+	} else {
 		t = gl16(p);
 		d = gl16(p);
 	}
@@ -428,7 +425,7 @@ gvtime(Pkt *p)
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	vl  = (uint64_t)gl32(p);
+	vl = (uint64_t)gl32(p);
 	vl |= (uint64_t)gl32(p) << 32;
 
 	vl /= 10000000LL;
@@ -443,7 +440,7 @@ gconv(Pkt *p, int conv, char *str, int n)
 	uint8_t *pos;
 
 	off = gl32(p) & 0xffff;
-	if(off == 0 || p->tdata - conv + off > p->eop){
+	if(off == 0 || p->tdata - conv + off > p->eop) {
 		memset(str, 0, n);
 		return;
 	}
@@ -461,7 +458,7 @@ goff(Pkt *p, uint8_t *base, char *str, int n)
 	uint8_t *pos;
 
 	off = gl16(p);
-	if(off == 0 || base + off > p->eop){
+	if(off == 0 || base + off > p->eop) {
 		memset(str, 0, n);
 		return;
 	}

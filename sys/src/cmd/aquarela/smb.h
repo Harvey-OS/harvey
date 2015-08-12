@@ -10,23 +10,23 @@
 typedef struct SmbRawHeader {
 	uchar protocol[4];
 	uchar command;
-//	union {
-//		struct {
-//			uchar errorclass;
-//			uchar reserved;
-//			uchar error[2];
-//		} doserror;
-		uchar status[4];
-//	};
+	//	union {
+	//		struct {
+	//			uchar errorclass;
+	//			uchar reserved;
+	//			uchar error[2];
+	//		} doserror;
+	uchar status[4];
+	//	};
 	uchar flags;
 	uchar flags2[2];
-//	union {
-		uchar extra[12];
-//		struct {
-//			uchar pidhigh[2];
-//			uchar securitysignature[8];
-//		};
-//	};
+	//	union {
+	uchar extra[12];
+	//		struct {
+	//			uchar pidhigh[2];
+	//			uchar securitysignature[8];
+	//		};
+	//	};
 	uchar tid[2];
 	uchar pid[2];
 	uchar uid[2];
@@ -105,7 +105,7 @@ enum {
 	SMB_COM_TRANSACTION2_SECONDARY = 0x33,
 	SMB_COM_FIND_CLOSE2 = 0x34,
 	SMB_COM_FIND_NOTIFY_CLOSE = 0x35,
-/* Used by Xenix/Unix 0x60 - 0x6E */,
+	/* Used by Xenix/Unix 0x60 - 0x6E */,
 	SMB_COM_TREE_CONNECT = 0x70,
 	SMB_COM_TREE_DISCONNECT = 0x71,
 	SMB_COM_NEGOTIATE = 0x72,
@@ -152,7 +152,7 @@ enum {
 	ERRbadenv = 10,
 	ERRbadformat = 11,
 	ERRbadaccess = 12,
-	ERRbaddata  =13,
+	ERRbaddata = 13,
 	ERRbaddrive = 15,
 	ERRremcd = 16,
 	ERRdiffdevice = 17,
@@ -181,7 +181,7 @@ enum {
 	CAP_RAW_MODE = 0x0001,
 	CAP_MPX_MODE = 0x0002,
 	CAP_UNICODE = 0x0004,
-	CAP_LARGE_FILES =  0x0008,
+	CAP_LARGE_FILES = 0x0008,
 	CAP_NT_SMBS = 0x0010,
 	CAP_RPC_REMOTE_APIS = 0x0020,
 	CAP_STATUS32 = 0x0040,
@@ -326,7 +326,7 @@ enum {
 	SMB_OPEN_MODE_ACCESS_MASK = 7,
 	SMB_OPEN_MODE_SHARE_SHIFT = 4,
 	SMB_OPEN_MODE_SHARE_MASK = 7,
-	SMB_OPEN_MODE_SHARE_COMPATIBILITY  = 0,
+	SMB_OPEN_MODE_SHARE_COMPATIBILITY = 0,
 	SMB_OPEN_MODE_SHARE_EXCLUSIVE = 1,
 	SMB_OPEN_MODE_SHARE_DENY_WRITE = 2,
 	SMB_OPEN_MODE_SHARE_DENY_READOREXEC = 3,
@@ -393,4 +393,3 @@ enum {
 	SMB_CO_RANDOM_ACCESS = 0x00000800,
 	SMB_CO_DELETE_ON_CLOSE = 0x00001000,
 };
-

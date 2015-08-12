@@ -20,13 +20,13 @@ putenv(char *name, char *val)
 	if(strchr(name, '/') != nil)
 		return -1;
 	snprint(ename, sizeof ename, "/env/%s", name);
-	if(strcmp(ename+5, name) != 0)
+	if(strcmp(ename + 5, name) != 0)
 		return -1;
 	f = create(ename, OWRITE, 0664);
 	if(f < 0)
 		return -1;
 	s = strlen(val);
-	if(write(f, val, s) != s){
+	if(write(f, val, s) != s) {
 		close(f);
 		return -1;
 	}

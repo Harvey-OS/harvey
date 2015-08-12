@@ -27,16 +27,15 @@
 /* (used by both C code and Windows 'resource') */
 
 #ifndef gp_mswin_INCLUDED
-#  define gp_mswin_INCLUDED
+#define gp_mswin_INCLUDED
 
+#define GSTEXT_ICON 50
+#define GSIMAGE_ICON 51
+#define SPOOL_PORT 100
+#define CANCEL_PCDONE 101
+#define CANCEL_PRINTING 102
 
-#define GSTEXT_ICON	50
-#define GSIMAGE_ICON	51
-#define SPOOL_PORT	100
-#define CANCEL_PCDONE	101
-#define CANCEL_PRINTING	102
-
-#ifndef RC_INVOKED		/* NOTA BENE */
+#ifndef RC_INVOKED /* NOTA BENE */
 
 /* system menu constants for image window */
 #define M_COPY_CLIP 1

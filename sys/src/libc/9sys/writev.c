@@ -10,8 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-static
-int32_t
+static int32_t
 iowritev(int fd, IOchunk *io, int nio, int64_t offset)
 {
 	int i;
@@ -19,14 +18,14 @@ iowritev(int fd, IOchunk *io, int nio, int64_t offset)
 	char *buf, *p;
 
 	tot = 0;
-	for(i=0; i<nio; i++)
+	for(i = 0; i < nio; i++)
 		tot += io[i].len;
 	buf = malloc(tot);
 	if(buf == nil)
 		return -1;
 
 	p = buf;
-	for(i=0; i<nio; i++){
+	for(i = 0; i < nio; i++) {
 		memmove(p, io->addr, io->len);
 		p += io->len;
 		io++;

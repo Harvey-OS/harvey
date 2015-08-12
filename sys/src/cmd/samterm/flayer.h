@@ -7,54 +7,53 @@
  * in the LICENSE file.
  */
 
-typedef enum Vis{
-	None=0,
+typedef enum Vis {
+	None = 0,
 	Some,
 	All,
-}Vis;
+} Vis;
 
-enum{
-	Clicktime=1000,		/* one second */
+enum {
+	Clicktime = 1000, /* one second */
 };
 
 typedef struct Flayer Flayer;
 
-struct Flayer
-{
-	Frame		f;
-	long		origin;	/* offset of first char in flayer */
-	long		p0, p1;
-	long		click;	/* time at which selection click occurred, in HZ */
-	Rune		*(*textfn)(Flayer*, long, uint32_t*);
-	int		user0;
-	void		*user1;
-	Rectangle	entire;
-	Rectangle	scroll;
-	Rectangle	lastsr;	/* geometry of scrollbar when last drawn */
-	Vis		visible;
+struct Flayer {
+	Frame f;
+	long origin; /* offset of first char in flayer */
+	long p0, p1;
+	long click; /* time at which selection click occurred, in HZ */
+	Rune *(*textfn)(Flayer *, long, uint32_t *);
+	int user0;
+	void *user1;
+	Rectangle entire;
+	Rectangle scroll;
+	Rectangle lastsr; /* geometry of scrollbar when last drawn */
+	Vis visible;
 };
 
-void	flborder(Flayer*, int);
-void	flclose(Flayer*);
-void	fldelete(Flayer*, long, long);
-void	flfp0p1(Flayer*, uint32_t*, uint32_t*);
-void	flinit(Flayer*, Rectangle, Font*, Image**);
-void	flinsert(Flayer*, Rune*, Rune*, long);
-void	flnew(Flayer*, Rune *(*fn)(Flayer*, long, uint32_t*), int,
-		  void*);
-int	flprepare(Flayer*);
-Rectangle flrect(Flayer*, Rectangle);
-void	flrefresh(Flayer*, Rectangle, int);
-void	flresize(Rectangle);
-int	flselect(Flayer*);
-void	flsetselect(Flayer*, long, long);
-void	flstart(Rectangle);
-void	flupfront(Flayer*);
-Flayer	*flwhich(Point);
+void flborder(Flayer *, int);
+void flclose(Flayer *);
+void fldelete(Flayer *, long, long);
+void flfp0p1(Flayer *, uint32_t *, uint32_t *);
+void flinit(Flayer *, Rectangle, Font *, Image **);
+void flinsert(Flayer *, Rune *, Rune *, long);
+void flnew(Flayer *, Rune *(*fn)(Flayer *, long, uint32_t *), int,
+	   void *);
+int flprepare(Flayer *);
+Rectangle flrect(Flayer *, Rectangle);
+void flrefresh(Flayer *, Rectangle, int);
+void flresize(Rectangle);
+int flselect(Flayer *);
+void flsetselect(Flayer *, long, long);
+void flstart(Rectangle);
+void flupfront(Flayer *);
+Flayer *flwhich(Point);
 
-#define	FLMARGIN	4
-#define	FLSCROLLWID	12
-#define	FLGAP		4
+#define FLMARGIN 4
+#define FLSCROLLWID 12
+#define FLGAP 4
 
-extern	Image	*maincols[NCOL];
-extern	Image	*cmdcols[NCOL];
+extern Image *maincols[NCOL];
+extern Image *cmdcols[NCOL];

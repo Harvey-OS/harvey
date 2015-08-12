@@ -26,7 +26,7 @@ nextID(void)
 	unlock(&l);
 	return i;
 }
-	
+
 /*
  * Create and initialize a new Thread structure attached to a given proc.
  */
@@ -49,7 +49,7 @@ newthread(Proc *p, void (*f)(void *arg), void *arg, uint stacksize,
 		t->cmdname = strdup(name);
 	t->id = nextID();
 	id = t->id;
-	t->next = (Thread*)~0;
+	t->next = (Thread *)~0;
 	t->proc = p;
 	_threaddebug(DBGSCHED, "create thread %d.%d name %s", p->pid, t->id, name);
 	lock(&p->lock);
@@ -80,7 +80,7 @@ threadcreate(void (*f)(void *arg), void *arg, uint stacksize)
  * Create and initialize a new Proc structure with a single Thread
  * running inside it.  Add the Proc to the global process list.
  */
-Proc*
+Proc *
 _newproc(void (*f)(void *arg), void *arg, uint stacksize, char *name,
 	 int grp, int rforkflag)
 {
@@ -116,7 +116,7 @@ procrfork(void (*f)(void *), void *arg, uint stacksize, int rforkflag)
 }
 
 int
-proccreate(void (*f)(void*), void *arg, uint stacksize)
+proccreate(void (*f)(void *), void *arg, uint stacksize)
 {
 	return procrfork(f, arg, stacksize, 0);
 }
@@ -126,7 +126,7 @@ _freeproc(Proc *p)
 {
 	Thread *t, *nextt;
 
-	for(t = p->threads.head; t; t = nextt){
+	for(t = p->threads.head; t; t = nextt) {
 		if(t->cmdname)
 			free(t->cmdname);
 		assert(t->stk != nil);
@@ -145,8 +145,8 @@ _freethread(Thread *t)
 
 	p = t->proc;
 	lock(&p->lock);
-	for(l=&p->threads.head; *l; l=&(*l)->nextt){
-		if(*l == t){
+	for(l = &p->threads.head; *l; l = &(*l)->nextt) {
+		if(*l == t) {
 			*l = t->nextt;
 			if(*l == nil)
 				p->threads.tail = l;
@@ -154,10 +154,9 @@ _freethread(Thread *t)
 		}
 	}
 	unlock(&p->lock);
-	if (t->cmdname)
+	if(t->cmdname)
 		free(t->cmdname);
 	assert(t->stk != nil);
 	free(t->stk);
 	free(t);
 }
-

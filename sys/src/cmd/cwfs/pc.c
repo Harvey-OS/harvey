@@ -22,31 +22,31 @@ mconfinit(void)
 	Biobuf *bp;
 	Mbank *mbp;
 
-	size = 64*MB;
+	size = 64 * MB;
 	bp = Bopen("#c/swap", OREAD);
-	if (bp != nil) {
-		while ((ln = Brdline(bp, '\n')) != nil) {
-			ln[Blinelen(bp)-1] = '\0';
+	if(bp != nil) {
+		while((ln = Brdline(bp, '\n')) != nil) {
+			ln[Blinelen(bp) - 1] = '\0';
 			nf = tokenize(ln, fields, nelem(fields));
-			if (nf != 2)
+			if(nf != 2)
 				continue;
-			if (strcmp(fields[1], "pagesize") == 0)
+			if(strcmp(fields[1], "pagesize") == 0)
 				pgsize = atoi(fields[0]);
-			else if (strcmp(fields[1], "user") == 0) {
+			else if(strcmp(fields[1], "user") == 0) {
 				sl = strchr(fields[0], '/');
-				if (sl == nil)
+				if(sl == nil)
 					continue;
-				userpgs = atol(sl+1);
+				userpgs = atol(sl + 1);
 				userused = atol(fields[0]);
 			}
 		}
 		Bterm(bp);
-		if (pgsize > 0 && userpgs > 0)
-			size = (((userpgs - userused)*3LL)/4)*pgsize;
+		if(pgsize > 0 && userpgs > 0)
+			size = (((userpgs - userused) * 3LL) / 4) * pgsize;
 	}
 	mconf.memsize = size;
 	mbp = mconf.bank;
-	mbp->base = 0x10000000;			/* fake addresses */
+	mbp->base = 0x10000000; /* fake addresses */
 	mbp->limit = mbp->base + size;
 	mbp++;
 
@@ -76,11 +76,11 @@ procsetname(char *fmt, ...)
 	va_start(arg, fmt);
 	cmdname = vsmprint(fmt, arg);
 	va_end(arg);
-	if (cmdname == nil)
+	if(cmdname == nil)
 		return;
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
-		write(fd, cmdname, strlen(cmdname)+1);
+	if((fd = open(buf, OWRITE)) >= 0) {
+		write(fd, cmdname, strlen(cmdname) + 1);
 		close(fd);
 	}
 	free(cmdname);
@@ -89,11 +89,11 @@ procsetname(char *fmt, ...)
 void
 newproc(void (*f)(void *), void *arg, char *text)
 {
-	int kid = rfork(RFPROC|RFMEM|RFNOWAIT);
+	int kid = rfork(RFPROC | RFMEM | RFNOWAIT);
 
-	if (kid < 0)
+	if(kid < 0)
 		sysfatal("can't fork: %r");
-	if (kid == 0) {
+	if(kid == 0) {
 		procsetname("%s", text);
 		(*f)(arg);
 		exits("child returned");

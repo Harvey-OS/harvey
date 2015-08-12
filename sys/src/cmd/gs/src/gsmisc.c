@@ -34,14 +34,14 @@
 #include "std.h"
 #if defined(VMS) && defined(__GNUC__)
 /*  DEC VAX/VMS C comes with a math.h file, but GNU VAX/VMS C does not. */
-#  include "vmsmath.h"
+#include "vmsmath.h"
 #else
-#  include <math.h>
+#include <math.h>
 #endif
 inline private double
 orig_sqrt(double x)
 {
-    return sqrt(x);
+	return sqrt(x);
 }
 
 /* Here is the real #include section. */
@@ -51,10 +51,10 @@ orig_sqrt(double x)
 #include "memory_.h"
 #include "string_.h"
 #include "gx.h"
-#include "gpcheck.h"		/* for gs_return_check_interrupt */
-#include "gserror.h"		/* for prototype */
+#include "gpcheck.h" /* for gs_return_check_interrupt */
+#include "gserror.h" /* for prototype */
 #include "gserrors.h"
-#include "gconfigv.h"		/* for USE_ASM */
+#include "gconfigv.h" /* for USE_ASM */
 #include "gxfarith.h"
 #include "gxfixed.h"
 
@@ -63,44 +63,46 @@ orig_sqrt(double x)
 #include <stdarg.h>
 #define PRINTF_BUF_LENGTH 1024
 
-int outprintf(const gs_memory_t *mem, const char *fmt, ...)
+int
+outprintf(const gs_memory_t *mem, const char *fmt, ...)
 {
-    int count;
-    char buf[PRINTF_BUF_LENGTH];
-    va_list args;
+	int count;
+	char buf[PRINTF_BUF_LENGTH];
+	va_list args;
 
-    va_start(args, fmt);
+	va_start(args, fmt);
 
-    count = vsprintf(buf, fmt, args);
-    outwrite(mem, buf, count);
-    if (count >= PRINTF_BUF_LENGTH) {
-	count = sprintf(buf, 
-	    "PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n", 
-	    PRINTF_BUF_LENGTH);
+	count = vsprintf(buf, fmt, args);
 	outwrite(mem, buf, count);
-    }
-    va_end(args);
-    return count;
+	if(count >= PRINTF_BUF_LENGTH) {
+		count = sprintf(buf,
+				"PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n",
+				PRINTF_BUF_LENGTH);
+		outwrite(mem, buf, count);
+	}
+	va_end(args);
+	return count;
 }
 
-int errprintf(const char *fmt, ...)
+int
+errprintf(const char *fmt, ...)
 {
-    int count;
-    char buf[PRINTF_BUF_LENGTH];
-    va_list args;
+	int count;
+	char buf[PRINTF_BUF_LENGTH];
+	va_list args;
 
-    va_start(args, fmt);
+	va_start(args, fmt);
 
-    count = vsprintf(buf, fmt, args);
-    errwrite(buf, count);
-    if (count >= PRINTF_BUF_LENGTH) {
-	count = sprintf(buf, 
-	    "PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n", 
-	    PRINTF_BUF_LENGTH);
+	count = vsprintf(buf, fmt, args);
 	errwrite(buf, count);
-    }
-    va_end(args);
-    return count;
+	if(count >= PRINTF_BUF_LENGTH) {
+		count = sprintf(buf,
+				"PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n",
+				PRINTF_BUF_LENGTH);
+		errwrite(buf, count);
+	}
+	va_end(args);
+	return count;
 }
 
 /* ------ Debugging ------ */
@@ -116,8 +118,7 @@ FILE *gs_debug_out;
 bool
 gs_debug_c(int c)
 {
-    return
-	(c >= 'a' && c <= 'z' ? gs_debug[c] | gs_debug[c ^ 32] : gs_debug[c]);
+	return (c >= 'a' && c <= 'z' ? gs_debug[c] | gs_debug[c ^ 32] : gs_debug[c]);
 }
 
 /* Define the formats for debugging printout. */
@@ -133,272 +134,273 @@ const char *const dprintf_file_only_format = "%10s(unkn): ";
 void
 dflush(void)
 {
-    errflush();
+	errflush();
 }
-private const int8_t *
+private
+const int8_t *
 dprintf_file_tail(const int8_t *file)
 {
-    const int8_t *tail = file + strlen(file);
+	const int8_t *tail = file + strlen(file);
 
-    while (tail > file &&
-	   (isalnum(tail[-1]) || tail[-1] == '.' || tail[-1] == '_')
-	)
-	--tail;
-    return tail;
+	while(tail > file &&
+	      (isalnum(tail[-1]) || tail[-1] == '.' || tail[-1] == '_'))
+		--tail;
+	return tail;
 }
-#if __LINE__			/* compiler provides it */
+#if __LINE__ /* compiler provides it */
 void
 dprintf_file_and_line(const char *file, int line)
 {
-    if (gs_debug['/'])
-	dpf(dprintf_file_and_line_format,
-		dprintf_file_tail(file), line);
+	if(gs_debug['/'])
+		dpf(dprintf_file_and_line_format,
+		    dprintf_file_tail(file), line);
 }
 #else
 void
 dprintf_file_only(const char *file)
 {
-    if (gs_debug['/'])
-	dpf(dprintf_file_only_format, dprintf_file_tail(file));
+	if(gs_debug['/'])
+		dpf(dprintf_file_only_format, dprintf_file_tail(file));
 }
 #endif
 void
 printf_program_ident(const gs_memory_t *mem, const char *program_name,
-                     int32_t revision_number)
+		     int32_t revision_number)
 {
-    if (program_name)
-        outprintf(mem, (revision_number ? "%s " : "%s"), program_name);
-    if (revision_number) {
-	int fpart = revision_number % 100;
+	if(program_name)
+		outprintf(mem, (revision_number ? "%s " : "%s"), program_name);
+	if(revision_number) {
+		int fpart = revision_number % 100;
 
-	outprintf(mem, "%d.%02d", (int)(revision_number / 100), fpart);
-    }
+		outprintf(mem, "%d.%02d", (int)(revision_number / 100), fpart);
+	}
 }
 void
 eprintf_program_ident(const char *program_name,
 		      int32_t revision_number)
 {
-    if (program_name) {
-	epf((revision_number ? "%s " : "%s"), program_name);
-	if (revision_number) {
-	    int fpart = revision_number % 100;
+	if(program_name) {
+		epf((revision_number ? "%s " : "%s"), program_name);
+		if(revision_number) {
+			int fpart = revision_number % 100;
 
-	    epf("%d.%02d", (int)(revision_number / 100), fpart);
+			epf("%d.%02d", (int)(revision_number / 100), fpart);
+		}
+		epf(": ");
 	}
-	epf(": ");
-    }
 }
-#if __LINE__			/* compiler provides it */
+#if __LINE__ /* compiler provides it */
 void
 lprintf_file_and_line(const char *file, int line)
 {
-    epf("%s(%d): ", file, line);
+	epf("%s(%d): ", file, line);
 }
 #else
 void
-lprintf_file_only(FILE * f, const char *file)
+lprintf_file_only(FILE *f, const char *file)
 {
-    epf("%s(?): ", file);
+	epf("%s(?): ", file);
 }
 #endif
 
 /* Log an error return.  We always include this, in case other */
 /* modules were compiled with DEBUG set. */
-#undef gs_log_error		/* in case DEBUG isn't set */
+#undef gs_log_error /* in case DEBUG isn't set */
 int
 gs_log_error(int err, const char *file, int line)
 {
-    if (gs_log_errors) {
-	if (file == NULL)
-	    dprintf1("Returning error %d.\n", err);
-	else
-	    dprintf3("%s(%d): Returning error %d.\n",
-		     (const char *)file, line, err);
-    }
-    return err;
+	if(gs_log_errors) {
+		if(file == NULL)
+			dprintf1("Returning error %d.\n", err);
+		else
+			dprintf3("%s(%d): Returning error %d.\n",
+				 (const char *)file, line, err);
+	}
+	return err;
 }
 
 /* Check for interrupts before a return. */
 int
 gs_return_check_interrupt(const gs_memory_t *mem, int code)
 {
-    if (code < 0)
-	return code;
-    {
-	int icode = gp_check_interrupts(mem);
+	if(code < 0)
+		return code;
+	{
+		int icode = gp_check_interrupts(mem);
 
-	return (icode == 0 ? code :
-		gs_note_error((icode > 0 ? gs_error_interrupt : icode)));
-    }
+		return (icode == 0 ? code : gs_note_error((icode > 0 ? gs_error_interrupt : icode)));
+	}
 }
 
 /* ------ Substitutes for missing C library functions ------ */
 
-#ifdef MEMORY__NEED_MEMMOVE	/* see memory_.h */
+#ifdef MEMORY__NEED_MEMMOVE /* see memory_.h */
 /* Copy bytes like memcpy, guaranteed to handle overlap correctly. */
 /* ANSI C defines the returned value as being the src argument, */
 /* but with the const restriction removed! */
 void *
 gs_memmove(void *dest, const void *src, size_t len)
 {
-    if (!len)
-	return (void *)src;
+	if(!len)
+		return (void *)src;
 #define bdest ((byte *)dest)
 #define bsrc ((const byte *)src)
-    /* We use len-1 for comparisons because adding len */
-    /* might produce an offset overflow on segmented systems. */
-    if (PTR_LE(bdest, bsrc)) {
-	register byte *end = bdest + (len - 1);
+	/* We use len-1 for comparisons because adding len */
+	/* might produce an offset overflow on segmented systems. */
+	if(PTR_LE(bdest, bsrc)) {
+		register byte *end = bdest + (len - 1);
 
-	if (PTR_LE(bsrc, end)) {
-	    /* Source overlaps destination from above. */
-	    register const byte *from = bsrc;
-	    register byte *to = bdest;
+		if(PTR_LE(bsrc, end)) {
+			/* Source overlaps destination from above. */
+			register const byte *from = bsrc;
+			register byte *to = bdest;
 
-	    for (;;) {
-		*to = *from;
-		if (to >= end)	/* faster than = */
-		    return (void *)src;
-		to++;
-		from++;
-	    }
+			for(;;) {
+				*to = *from;
+				if(to >= end) /* faster than = */
+					return (void *)src;
+				to++;
+				from++;
+			}
+		}
+	} else {
+		register const byte *from = bsrc + (len - 1);
+
+		if(PTR_LE(bdest, from)) {
+			/* Source overlaps destination from below. */
+			register const byte *end = bsrc;
+			register byte *to = bdest + (len - 1);
+
+			for(;;) {
+				*to = *from;
+				if(from <= end) /* faster than = */
+					return (void *)src;
+				to--;
+				from--;
+			}
+		}
 	}
-    } else {
-	register const byte *from = bsrc + (len - 1);
-
-	if (PTR_LE(bdest, from)) {
-	    /* Source overlaps destination from below. */
-	    register const byte *end = bsrc;
-	    register byte *to = bdest + (len - 1);
-
-	    for (;;) {
-		*to = *from;
-		if (from <= end)	/* faster than = */
-		    return (void *)src;
-		to--;
-		from--;
-	    }
-	}
-    }
 #undef bdest
 #undef bsrc
-    /* No overlap, it's safe to use memcpy. */
-    memcpy(dest, src, len);
-    return (void *)src;
+	/* No overlap, it's safe to use memcpy. */
+	memcpy(dest, src, len);
+	return (void *)src;
 }
 #endif
 
-#ifdef MEMORY__NEED_MEMCPY	/* see memory_.h */
+#ifdef MEMORY__NEED_MEMCPY /* see memory_.h */
 void *
 gs_memcpy(void *dest, const void *src, size_t len)
 {
-    if (len > 0) {
+	if(len > 0) {
 #define bdest ((byte *)dest)
 #define bsrc ((const byte *)src)
-	/* We can optimize this much better later on. */
-	register byte *end = bdest + (len - 1);
-	register const byte *from = bsrc;
-	register byte *to = bdest;
+		/* We can optimize this much better later on. */
+		register byte *end = bdest + (len - 1);
+		register const byte *from = bsrc;
+		register byte *to = bdest;
 
-	for (;;) {
-	    *to = *from;
-	    if (to >= end)	/* faster than = */
-		break;
-	    to++;
-	    from++;
+		for(;;) {
+			*to = *from;
+			if(to >= end) /* faster than = */
+				break;
+			to++;
+			from++;
+		}
 	}
-    }
 #undef bdest
 #undef bsrc
-    return (void *)src;
+	return (void *)src;
 }
 #endif
 
-#ifdef MEMORY__NEED_MEMCHR	/* see memory_.h */
+#ifdef MEMORY__NEED_MEMCHR /* see memory_.h */
 /* ch should obviously be char rather than int, */
 /* but the ANSI standard declaration uses int. */
 void *
 gs_memchr(const void *ptr, int ch, size_t len)
 {
-    if (len > 0) {
-	register const char *p = ptr;
-	register uint count = len;
+	if(len > 0) {
+		register const char *p = ptr;
+		register uint count = len;
 
-	do {
-	    if (*p == (char)ch)
-		return (void *)p;
-	    p++;
-	} while (--count);
-    }
-    return 0;
+		do {
+			if(*p == (char)ch)
+				return (void *)p;
+			p++;
+		} while(--count);
+	}
+	return 0;
 }
 #endif
 
-#ifdef MEMORY__NEED_MEMSET	/* see memory_.h */
+#ifdef MEMORY__NEED_MEMSET /* see memory_.h */
 /* ch should obviously be char rather than int, */
 /* but the ANSI standard declaration uses int. */
 void *
 gs_memset(void *dest, register int ch, size_t len)
 {
-    /*
+	/*
      * This procedure is used a lot to fill large regions of images,
      * so we take some trouble to optimize it.
      */
-    register char *p = dest;
-    register size_t count = len;
+	register char *p = dest;
+	register size_t count = len;
 
-    ch &= 255;
-    if (len >= sizeof(int32_t) * 3) {
-	int32_t wd = (ch << 24) | (ch << 16) | (ch << 8) | ch;
+	ch &= 255;
+	if(len >= sizeof(int32_t) * 3) {
+		int32_t wd = (ch << 24) | (ch << 16) | (ch << 8) | ch;
 
-	while (ALIGNMENT_MOD(p, sizeof(int32_t)))
-	    *p++ = (char)ch, --count;
-	for (; count >= sizeof(int32_t) * 4;
-	     p += sizeof(int32_t) * 4, count -= sizeof(int32_t) * 4
-	     )
-	    ((int32_t *)p)[3] = ((int32_t *)p)[2] = ((int32_t *)p)[1] =
-		((int32_t *)p)[0] = wd;
-	switch (count >> ARCH_LOG2_SIZEOF_LONG) {
-	case 3:
-	    *((int32_t *)p) = wd; p += sizeof(int32_t);
-	case 2:
-	    *((int32_t *)p) = wd; p += sizeof(int32_t);
-	case 1:
-	    *((int32_t *)p) = wd; p += sizeof(int32_t);
-	    count &= sizeof(int32_t) - 1;
-	case 0:
-	default:		/* can't happen */
-	    DO_NOTHING;
+		while(ALIGNMENT_MOD(p, sizeof(int32_t)))
+			*p++ = (char)ch, --count;
+		for(; count >= sizeof(int32_t) * 4;
+		    p += sizeof(int32_t) * 4, count -= sizeof(int32_t) * 4)
+			((int32_t *)p)[3] = ((int32_t *)p)[2] = ((int32_t *)p)[1] =
+			    ((int32_t *)p)[0] = wd;
+		switch(count >> ARCH_LOG2_SIZEOF_LONG) {
+		case 3:
+			*((int32_t *)p) = wd;
+			p += sizeof(int32_t);
+		case 2:
+			*((int32_t *)p) = wd;
+			p += sizeof(int32_t);
+		case 1:
+			*((int32_t *)p) = wd;
+			p += sizeof(int32_t);
+			count &= sizeof(int32_t) - 1;
+		case 0:
+		default: /* can't happen */
+			DO_NOTHING;
+		}
 	}
-    }
-    /* Do any leftover bytes. */
-    for (; count > 0; --count)
-	*p++ = (char)ch;
-    return dest;
+	/* Do any leftover bytes. */
+	for(; count > 0; --count)
+		*p++ = (char)ch;
+	return dest;
 }
 #endif
 
-#ifdef malloc__need_realloc	/* see malloc_.h */
+#ifdef malloc__need_realloc /* see malloc_.h */
 /* Some systems have non-working implementations of realloc. */
 void *
 gs_realloc(void *old_ptr, size_t old_size, size_t new_size)
 {
-    void *new_ptr;
+	void *new_ptr;
 
-    if (new_size) {
-	new_ptr = malloc(new_size);
-	if (new_ptr == NULL)
-	    return NULL;
-    } else
-	new_ptr = NULL;
-    /* We have to pass in the old size, since we have no way to */
-    /* determine it otherwise. */
-    if (old_ptr != NULL) {
-	if (new_ptr != NULL)
-	    memcpy(new_ptr, old_ptr, min(old_size, new_size));
-	free(old_ptr);
-    }
-    return new_ptr;
+	if(new_size) {
+		new_ptr = malloc(new_size);
+		if(new_ptr == NULL)
+			return NULL;
+	} else
+		new_ptr = NULL;
+	/* We have to pass in the old size, since we have no way to */
+	/* determine it otherwise. */
+	if(old_ptr != NULL) {
+		if(new_ptr != NULL)
+			memcpy(new_ptr, old_ptr, min(old_size, new_size));
+		free(old_ptr);
+	}
+	return new_ptr;
 }
 #endif
 
@@ -406,54 +408,54 @@ gs_realloc(void *old_ptr, size_t old_size, size_t new_size)
 
 /* Dump a region of memory. */
 void
-debug_dump_bytes(const byte * from, const byte * to, const char *msg)
+debug_dump_bytes(const byte *from, const byte *to, const char *msg)
 {
-    const byte *p = from;
+	const byte *p = from;
 
-    if (from < to && msg)
-	dprintf1("%s:\n", msg);
-    while (p != to) {
-	const byte *q = min(p + 16, to);
+	if(from < to && msg)
+		dprintf1("%s:\n", msg);
+	while(p != to) {
+		const byte *q = min(p + 16, to);
 
-	dprintf1("0x%lx:", (uint32_t) p);
-	while (p != q)
-	    dprintf1(" %02x", *p++);
-	dputc('\n');
-    }
+		dprintf1("0x%lx:", (uint32_t)p);
+		while(p != q)
+			dprintf1(" %02x", *p++);
+		dputc('\n');
+	}
 }
 
 /* Dump a bitmap. */
 void
-debug_dump_bitmap(const byte * bits, uint raster, uint height,
+debug_dump_bitmap(const byte *bits, uint raster, uint height,
 		  const char *msg)
 {
-    uint y;
-    const byte *data = bits;
+	uint y;
+	const byte *data = bits;
 
-    for (y = 0; y < height; ++y, data += raster)
-	debug_dump_bytes(data, data + raster, (y == 0 ? msg : NULL));
+	for(y = 0; y < height; ++y, data += raster)
+		debug_dump_bytes(data, data + raster, (y == 0 ? msg : NULL));
 }
 
 /* Print a string. */
 void
-debug_print_string(const byte * chrs, uint len)
+debug_print_string(const byte *chrs, uint len)
 {
-    uint i;
+	uint i;
 
-    for (i = 0; i < len; i++)
-	dputc(chrs[i]);
-    dflush();
+	for(i = 0; i < len; i++)
+		dputc(chrs[i]);
+	dflush();
 }
 
 /* Print a string in hexdump format. */
 void
-debug_print_string_hex(const byte * chrs, uint len)
+debug_print_string_hex(const byte *chrs, uint len)
 {
-    uint i;
+	uint i;
 
-    for (i = 0; i < len; i++)
-        dprintf1("%02x", chrs[i]);
-    dflush();
+	for(i = 0; i < len; i++)
+		dprintf1("%02x", chrs[i]);
+	dflush();
 }
 
 /*
@@ -465,12 +467,12 @@ debug_print_string_hex(const byte * chrs, uint len)
  * first_arg is the first argument of the procedure into which this code
  * is patched.
  */
-#define BACKTRACE(first_arg)\
-  BEGIN\
-    ulong *fp_ = (ulong *)&first_arg - 2;\
-    for (; fp_ && (fp_[1] & 0xff000000) == 0x08000000; fp_ = (ulong *)*fp_)\
-	dprintf2("  fp=0x%lx ip=0x%lx\n", (ulong)fp_, fp_[1]);\
-  END
+#define BACKTRACE(first_arg)                                                   \
+	BEGIN                                                                  \
+	ulong *fp_ = (ulong *)&first_arg - 2;                                  \
+	for(; fp_ && (fp_[1] & 0xff000000) == 0x08000000; fp_ = (ulong *)*fp_) \
+		dprintf2("  fp=0x%lx ip=0x%lx\n", (ulong)fp_, fp_[1]);         \
+	END
 
 /* ------ Arithmetic ------ */
 
@@ -479,71 +481,69 @@ debug_print_string_hex(const byte * chrs, uint len)
 int
 imod(int m, int n)
 {
-    if (n <= 0)
-	return 0;		/* sanity check */
-    if (m >= 0)
-	return m % n;
-    {
-	int r = -m % n;
+	if(n <= 0)
+		return 0; /* sanity check */
+	if(m >= 0)
+		return m % n;
+	{
+		int r = -m % n;
 
-	return (r == 0 ? 0 : n - r);
-    }
+		return (r == 0 ? 0 : n - r);
+	}
 }
 
 /* Compute the GCD of two integers. */
 int
 igcd(int x, int y)
 {
-    int c = x, d = y;
+	int c = x, d = y;
 
-    if (c < 0)
-	c = -c;
-    if (d < 0)
-	d = -d;
-    while (c != 0 && d != 0)
-	if (c > d)
-	    c %= d;
-	else
-	    d %= c;
-    return d + c;		/* at most one is non-zero */
+	if(c < 0)
+		c = -c;
+	if(d < 0)
+		d = -d;
+	while(c != 0 && d != 0)
+		if(c > d)
+			c %= d;
+		else
+			d %= c;
+	return d + c; /* at most one is non-zero */
 }
 
 /* Compute X such that A*X = B mod M.  See gxarith.h for details. */
 int
 idivmod(int a, int b, int m)
 {
-    /*
+	/*
      * Use the approach indicated in Knuth vol. 2, section 4.5.2, Algorithm
      * X (p. 302) and exercise 15 (p. 315, solution p. 523).
      */
-    int u1 = 0, u3 = m;
-    int v1 = 1, v3 = a;
-    /*
+	int u1 = 0, u3 = m;
+	int v1 = 1, v3 = a;
+	/*
      * The following loop will terminate with a * u1 = gcd(a, m) mod m.
      * Then x = u1 * b / gcd(a, m) mod m.  Since we require that
      * gcd(a, m) | gcd(a, b), it follows that gcd(a, m) | b, so the
      * division is exact.
      */
-    while (v3) {
-	int q = u3 / v3, t;
+	while(v3) {
+		int q = u3 / v3, t;
 
-	t = u1 - v1 * q, u1 = v1, v1 = t;
-	t = u3 - v3 * q, u3 = v3, v3 = t;
-    }
-    return imod(u1 * b / igcd(a, m), m);
+		t = u1 - v1 * q, u1 = v1, v1 = t;
+		t = u3 - v3 * q, u3 = v3, v3 = t;
+	}
+	return imod(u1 * b / igcd(a, m), m);
 }
 
 /* Compute floor(log2(N)).  Requires N > 0. */
 int
 ilog2(int n)
 {
-    int m = n, l = 0;
+	int m = n, l = 0;
 
-    while (m >= 16)
-	m >>= 4, l += 4;
-    return
-	(m <= 1 ? l :
-	 "\000\000\001\001\002\002\002\002\003\003\003\003\003\003\003\003"[m] + l);
+	while(m >= 16)
+		m >>= 4, l += 4;
+	return (m <= 1 ? l : "\000\000\001\001\002\002\002\002\003\003\003\003\003\003\003\003"[m] + l);
 }
 
 #if defined(NEED_SET_FMUL2FIXED) && !USE_ASM
@@ -561,44 +561,44 @@ ilog2(int n)
  * language version of this code is over 10 times as fast as the emulated FPU.
  */
 int
-set_fmul2fixed_(fixed * pr, int32_t /*float */ a, int32_t /*float */ b)
+set_fmul2fixed_(fixed *pr, int32_t /*float */ a, int32_t /*float */ b)
 {
-    uint32_t ma = (uint16_t)(a >> 8) | 0x8000;
-    uint32_t mb = (uint16_t)(b >> 8) | 0x8000;
-    int e = 260 + _fixed_shift - ( ((byte)(a >> 23)) + ((byte)(b >> 23)) );
-    uint32_t p1 = ma * (b & 0xff);
-    uint32_t p = ma * mb;
+	uint32_t ma = (uint16_t)(a >> 8) | 0x8000;
+	uint32_t mb = (uint16_t)(b >> 8) | 0x8000;
+	int e = 260 + _fixed_shift - (((byte)(a >> 23)) + ((byte)(b >> 23)));
+	uint32_t p1 = ma * (b & 0xff);
+	uint32_t p = ma * mb;
 
 #define p_bits (size_of(p) * 8)
 
-    if ((byte) a) {		/* >16 mantissa bits */
-	uint32_t p2 = (a & 0xff) * mb;
+	if((byte)a) { /* >16 mantissa bits */
+		uint32_t p2 = (a & 0xff) * mb;
 
-	p += ((((uint) (byte) a * (uint) (byte) b) >> 8) + p1 + p2) >> 8;
-    } else
-	p += p1 >> 8;
-    if ((uint) e < p_bits)	/* e = -1 is possible */
-	p >>= e;
-    else if (e >= p_bits) {	/* also detects a=0 or b=0 */
-	*pr = fixed_0;
+		p += ((((uint)(byte)a * (uint)(byte)b) >> 8) + p1 + p2) >> 8;
+	} else
+		p += p1 >> 8;
+	if((uint)e < p_bits) /* e = -1 is possible */
+		p >>= e;
+	else if(e >= p_bits) { /* also detects a=0 or b=0 */
+		*pr = fixed_0;
+		return 0;
+	} else if(e >= -(p_bits - 1) || p >= 1L << (p_bits - 1 + e))
+		return_error(gs_error_limitcheck);
+	else
+		p <<= -e;
+	*pr = ((a ^ b) < 0 ? -p : p);
 	return 0;
-    } else if (e >= -(p_bits - 1) || p >= 1L << (p_bits - 1 + e))
-	return_error(gs_error_limitcheck);
-    else
-	p <<= -e;
-    *pr = ((a ^ b) < 0 ? -p : p);
-    return 0;
 }
 int
-set_dfmul2fixed_(fixed * pr, uint32_t /*double lo */ xalo,
-                 int32_t /*float */ b,
-                 int32_t /*double hi */ xahi)
+set_dfmul2fixed_(fixed *pr, uint32_t /*double lo */ xalo,
+		 int32_t /*float */ b,
+		 int32_t /*double hi */ xahi)
 {
-    return set_fmul2fixed_(pr,
-			   (xahi & (3L << 30)) +
-			   ((xahi << 3) & 0x3ffffff8) +
-			   (xalo >> 29),
-			   b);
+	return set_fmul2fixed_(pr,
+			       (xahi & (3L << 30)) +
+				   ((xahi << 3) & 0x3ffffff8) +
+				   (xalo >> 29),
+			       b);
 }
 
 #endif /* NEED_SET_FMUL2FIXED */
@@ -612,49 +612,47 @@ set_dfmul2fixed_(fixed * pr, uint32_t /*double lo */ xalo,
 #define mbits_float 23
 #define mbits_double 20
 int
-set_float2fixed_(fixed * pr, int32_t /*float */ vf, int frac_bits)
+set_float2fixed_(fixed *pr, int32_t /*float */ vf, int frac_bits)
 {
-    fixed mantissa;
-    int shift;
+	fixed mantissa;
+	int shift;
 
-    if (!(vf & 0x7f800000)) {
-	*pr = fixed_0;
+	if(!(vf & 0x7f800000)) {
+		*pr = fixed_0;
+		return 0;
+	}
+	mantissa = (fixed)((vf & 0x7fffff) | 0x800000);
+	shift = ((vf >> 23) & 255) - (127 + 23) + frac_bits;
+	if(shift >= 0) {
+		if(shift >= sizeof(fixed) * 8 - 24)
+			return_error(gs_error_limitcheck);
+		if(vf < 0)
+			mantissa = -mantissa;
+		*pr = (fixed)(mantissa << shift);
+	} else
+		*pr = (shift < -24 ? fixed_0 : vf < 0 ? -(fixed)(mantissa >> -shift) : /* truncate */
+						   (fixed)(mantissa >> -shift));
 	return 0;
-    }
-    mantissa = (fixed) ((vf & 0x7fffff) | 0x800000);
-    shift = ((vf >> 23) & 255) - (127 + 23) + frac_bits;
-    if (shift >= 0) {
-	if (shift >= sizeof(fixed) * 8 - 24)
-	    return_error(gs_error_limitcheck);
-	if (vf < 0)
-	    mantissa = -mantissa;
-	*pr = (fixed) (mantissa << shift);
-    } else
-	*pr = (shift < -24 ? fixed_0 :
-	       vf < 0 ? -(fixed) (mantissa >> -shift) :		/* truncate */
-	       (fixed) (mantissa >> -shift));
-    return 0;
 }
 int
-set_double2fixed_(fixed * pr, uint32_t /*double lo */ lo,
+set_double2fixed_(fixed *pr, uint32_t /*double lo */ lo,
 		  int32_t /*double hi */ hi, int frac_bits)
 {
-    fixed mantissa;
-    int shift;
+	fixed mantissa;
+	int shift;
 
-    if (!(hi & 0x7ff00000)) {
-	*pr = fixed_0;
+	if(!(hi & 0x7ff00000)) {
+		*pr = fixed_0;
+		return 0;
+	}
+	/* We only use 31 bits of mantissa even if sizeof(long) > 4. */
+	mantissa = (fixed)(((hi & 0xfffff) << 10) | (lo >> 22) | 0x40000000);
+	shift = ((hi >> 20) & 2047) - (1023 + 30) + frac_bits;
+	if(shift > 0)
+		return_error(gs_error_limitcheck);
+	*pr = (shift < -30 ? fixed_0 : hi < 0 ? -(fixed)(mantissa >> -shift) : /* truncate */
+					   (fixed)(mantissa >> -shift));
 	return 0;
-    }
-    /* We only use 31 bits of mantissa even if sizeof(long) > 4. */
-    mantissa = (fixed) (((hi & 0xfffff) << 10) | (lo >> 22) | 0x40000000);
-    shift = ((hi >> 20) & 2047) - (1023 + 30) + frac_bits;
-    if (shift > 0)
-	return_error(gs_error_limitcheck);
-    *pr = (shift < -30 ? fixed_0 :
-	   hi < 0 ? -(fixed) (mantissa >> -shift) :	/* truncate */
-	   (fixed) (mantissa >> -shift));
-    return 0;
 }
 /*
  * Given a fixed value x with fbits bits of fraction, set v to the mantissa
@@ -664,51 +662,52 @@ set_double2fixed_(fixed * pr, uint32_t /*double lo */ lo,
  * top 1-bit of the mantissa to it.)
  */
 static const byte f2f_shifts[] =
-{4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+    {4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
 
-#define f2f_declare(v, f)\
-	ulong v;\
+#define f2f_declare(v, f) \
+	ulong v;          \
 	long f
-#define f2f(x, v, f, mbits, fbits)\
-	if ( x < 0 )\
-	  f = 0xc0000000 + (29 << mbits) - ((long)fbits << mbits), v = -x;\
-	else\
-	  f = 0x40000000 + (29 << mbits) - ((long)fbits << mbits), v = x;\
-	if ( v < 0x8000 )\
-	  v <<= 15, f -= 15 << mbits;\
-	if ( v < 0x800000 )\
-	  v <<= 8, f -= 8 << mbits;\
-	if ( v < 0x8000000 )\
-	  v <<= 4, f -= 4 << mbits;\
-	{ int shift = f2f_shifts[v >> 28];\
-	  v <<= shift, f -= shift << mbits;\
+#define f2f(x, v, f, mbits, fbits)                                               \
+	if(x < 0)                                                                \
+		f = 0xc0000000 + (29 << mbits) - ((long)fbits << mbits), v = -x; \
+	else                                                                     \
+		f = 0x40000000 + (29 << mbits) - ((long)fbits << mbits), v = x;  \
+	if(v < 0x8000)                                                           \
+		v <<= 15, f -= 15 << mbits;                                      \
+	if(v < 0x800000)                                                         \
+		v <<= 8, f -= 8 << mbits;                                        \
+	if(v < 0x8000000)                                                        \
+		v <<= 4, f -= 4 << mbits;                                        \
+	{                                                                        \
+		int shift = f2f_shifts[v >> 28];                                 \
+		v <<= shift, f -= shift << mbits;                                \
 	}
 int32_t
 fixed2float_(fixed x, int frac_bits)
 {
-    f2f_declare(v, f);
+	f2f_declare(v, f);
 
-    if (x == 0)
-	return 0;
-    f2f(x, v, f, mbits_float, frac_bits);
-    return f + (((v >> 7) + 1) >> 1);
+	if(x == 0)
+		return 0;
+	f2f(x, v, f, mbits_float, frac_bits);
+	return f + (((v >> 7) + 1) >> 1);
 }
 void
 set_fixed2double_(double *pd, fixed x, int frac_bits)
 {
-    f2f_declare(v, f);
+	f2f_declare(v, f);
 
-    if (x == 0) {
-	((int32_t *)pd)[1 - arch_is_big_endian] = 0;
-	((uint32_t *) pd)[arch_is_big_endian] = 0;
-    } else {
-	f2f(x, v, f, mbits_double, frac_bits);
-	((int32_t *)pd)[1 - arch_is_big_endian] = f + (v >> 11);
-	((uint32_t *) pd)[arch_is_big_endian] = v << 21;
-    }
+	if(x == 0) {
+		((int32_t *)pd)[1 - arch_is_big_endian] = 0;
+		((uint32_t *)pd)[arch_is_big_endian] = 0;
+	} else {
+		f2f(x, v, f, mbits_double, frac_bits);
+		((int32_t *)pd)[1 - arch_is_big_endian] = f + (v >> 11);
+		((uint32_t *)pd)[arch_is_big_endian] = v << 21;
+	}
 }
 
-#endif				/* USE_FPU_FIXED */
+#endif /* USE_FPU_FIXED */
 
 /*
  * Compute A * B / C when 0 <= B < C and A * B exceeds (or might exceed)
@@ -726,168 +725,166 @@ set_fixed2double_(double *pd, fixed x, int frac_bits)
  * arithmetic: we have to use the slower, accurate fixed-point algorithm.
  * See the simpler implementation below for more information.
  */
-#define MAX_OTHER_FACTOR_BITS\
-  (ARCH_DOUBLE_MANTISSA_BITS - ARCH_SIZEOF_FIXED * 8)
-#define ROUND_BITS\
-  (ARCH_SIZEOF_FIXED * 8 * 2 - ARCH_DOUBLE_MANTISSA_BITS)
+#define MAX_OTHER_FACTOR_BITS \
+	(ARCH_DOUBLE_MANTISSA_BITS - ARCH_SIZEOF_FIXED * 8)
+#define ROUND_BITS \
+	(ARCH_SIZEOF_FIXED * 8 * 2 - ARCH_DOUBLE_MANTISSA_BITS)
 
 #if USE_FPU_FIXED || ROUND_BITS >= MAX_OTHER_FACTOR_BITS - 1
 
 #ifdef DEBUG
 struct {
-    int32_t mnanb, mnab, manb, mab, mnc, mdq, mde, mds, mqh, mql;
+	int32_t mnanb, mnab, manb, mab, mnc, mdq, mde, mds, mqh, mql;
 } fmq_stat;
-#  define mincr(x) ++fmq_stat.x
+#define mincr(x) ++fmq_stat.x
 #else
-#  define mincr(x) DO_NOTHING
+#define mincr(x) DO_NOTHING
 #endif
 fixed
 fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 {
-    /* First compute A * B in double-fixed precision. */
-    uint32_t A = (signed_A < 0 ? -signed_A : signed_A);
-    int32_t msw;
-    uint32_t lsw;
-    uint32_t p1;
+	/* First compute A * B in double-fixed precision. */
+	uint32_t A = (signed_A < 0 ? -signed_A : signed_A);
+	int32_t msw;
+	uint32_t lsw;
+	uint32_t p1;
 
-    if (B <= half_mask) {
-	if (A <= half_mask) {
-	    uint32_t P = A * B;
-	    fixed Q = P / (uint32_t)C;
+	if(B <= half_mask) {
+		if(A <= half_mask) {
+			uint32_t P = A * B;
+			fixed Q = P / (uint32_t)C;
 
-	    mincr(mnanb);
-	    /* If A < 0 and the division isn't exact, take the floor. */
-	    return (signed_A >= 0 ? Q : Q * C == P ? -Q : ~Q /* -Q - 1 */);
-	}
-	/*
+			mincr(mnanb);
+			/* If A < 0 and the division isn't exact, take the floor. */
+			return (signed_A >= 0 ? Q : Q * C == P ? -Q : ~Q /* -Q - 1 */);
+		}
+		/*
 	 * We might still have C <= half_mask, which we can
 	 * handle with a simpler algorithm.
 	 */
-	lsw = (A & half_mask) * B;
-	p1 = (A >> half_bits) * B;
-	if (C <= half_mask) {
-	    fixed q0 = (p1 += lsw >> half_bits) / C;
-	    uint32_t rem = ((p1 - C * q0) << half_bits) + (lsw & half_mask);
-	    uint32_t q1 = rem / (uint32_t)C;
-	    fixed Q = (q0 << half_bits) + q1;
+		lsw = (A & half_mask) * B;
+		p1 = (A >> half_bits) * B;
+		if(C <= half_mask) {
+			fixed q0 = (p1 += lsw >> half_bits) / C;
+			uint32_t rem = ((p1 - C * q0) << half_bits) + (lsw & half_mask);
+			uint32_t q1 = rem / (uint32_t)C;
+			fixed Q = (q0 << half_bits) + q1;
 
-	    mincr(mnc);
-	    /* If A < 0 and the division isn't exact, take the floor. */
-	    return (signed_A >= 0 ? Q : q1 * C == rem ? -Q : ~Q);
+			mincr(mnc);
+			/* If A < 0 and the division isn't exact, take the floor. */
+			return (signed_A >= 0 ? Q : q1 * C == rem ? -Q : ~Q);
+		}
+		msw = p1 >> half_bits;
+		mincr(manb);
+	} else if(A <= half_mask) {
+		p1 = A * (B >> half_bits);
+		msw = p1 >> half_bits;
+		lsw = A * (B & half_mask);
+		mincr(mnab);
+	} else { /* We have to compute all 4 products.  :-( */
+		uint32_t lo_A = A & half_mask;
+		uint32_t hi_A = A >> half_bits;
+		uint32_t lo_B = B & half_mask;
+		uint32_t hi_B = B >> half_bits;
+		uint32_t p1x = hi_A * lo_B;
+
+		msw = hi_A * hi_B;
+		lsw = lo_A * lo_B;
+		p1 = lo_A * hi_B;
+		if(p1 > max_ulong - p1x)
+			msw += 1L << half_bits;
+		p1 += p1x;
+		msw += p1 >> half_bits;
+		mincr(mab);
 	}
-	msw = p1 >> half_bits;
-	mincr(manb);
-    } else if (A <= half_mask) {
-	p1 = A * (B >> half_bits);
-	msw = p1 >> half_bits;
-	lsw = A * (B & half_mask);
-	mincr(mnab);
-    } else {			/* We have to compute all 4 products.  :-( */
-	uint32_t lo_A = A & half_mask;
-	uint32_t hi_A = A >> half_bits;
-	uint32_t lo_B = B & half_mask;
-	uint32_t hi_B = B >> half_bits;
-	uint32_t p1x = hi_A * lo_B;
-
-	msw = hi_A * hi_B;
-	lsw = lo_A * lo_B;
-	p1 = lo_A * hi_B;
-	if (p1 > max_ulong - p1x)
-	    msw += 1L << half_bits;
-	p1 += p1x;
-	msw += p1 >> half_bits;
-	mincr(mab);
-    }
-    /* Finish up by adding the low half of p1 to the high half of lsw. */
+/* Finish up by adding the low half of p1 to the high half of lsw. */
 #if max_fixed < max_long
-    p1 &= half_mask;
+	p1 &= half_mask;
 #endif
-    p1 <<= half_bits;
-    if (p1 > max_ulong - lsw)
-	msw++;
-    lsw += p1;
-    /*
+	p1 <<= half_bits;
+	if(p1 > max_ulong - lsw)
+		msw++;
+	lsw += p1;
+	/*
      * Now divide the double-length product by C.  Note that we know msw
      * < C (otherwise the quotient would overflow).  Start by shifting
      * (msw,lsw) and C left until C >= 1 << (num_bits - 1).
      */
-    {
-	uint32_t denom = C;
-	int shift = 0;
+	{
+		uint32_t denom = C;
+		int shift = 0;
 
 #define bits_4th (num_bits / 4)
-	if (denom < 1L << (num_bits - bits_4th)) {
-	    mincr(mdq);
-	    denom <<= bits_4th, shift += bits_4th;
-	}
+		if(denom < 1L << (num_bits - bits_4th)) {
+			mincr(mdq);
+			denom <<= bits_4th, shift += bits_4th;
+		}
 #undef bits_4th
 #define bits_8th (num_bits / 8)
-	if (denom < 1L << (num_bits - bits_8th)) {
-	    mincr(mde);
-	    denom <<= bits_8th, shift += bits_8th;
-	}
-#undef bits_8th
-	while (!(denom & (-1L << (num_bits - 1)))) {
-	    mincr(mds);
-	    denom <<= 1, ++shift;
-	}
-	msw = (msw << shift) + (lsw >> (num_bits - shift));
-	lsw <<= shift;
-#if max_fixed < max_long
-	lsw &= (1L << (sizeof(fixed) * 8)) - 1;
-#endif
-	/* Compute a trial upper-half quotient. */
-	{
-	    uint32_t hi_D = denom >> half_bits;
-	    uint32_t lo_D = denom & half_mask;
-	    uint32_t hi_Q = (uint32_t) msw / hi_D;
-
-	    /* hi_Q might be too high by 1 or 2, but it isn't too low. */
-	    uint32_t p0 = hi_Q * hi_D;
-	    uint32_t p1 = hi_Q * lo_D;
-	    uint32_t hi_P;
-
-	    while ((hi_P = p0 + (p1 >> half_bits)) > msw ||
-		   (hi_P == msw && ((p1 & half_mask) << half_bits) > lsw)
-		) {		/* hi_Q was too high by 1. */
-		--hi_Q;
-		p0 -= hi_D;
-		p1 -= lo_D;
-		mincr(mqh);
-	    }
-	    p1 = (p1 & half_mask) << half_bits;
-	    if (p1 > lsw)
-		msw--;
-	    lsw -= p1;
-	    msw -= hi_P;
-	    /* Now repeat to get the lower-half quotient. */
-	    msw = (msw << half_bits) + (lsw >> half_bits);
-#if max_fixed < max_long
-	    lsw &= half_mask;
-#endif
-	    lsw <<= half_bits;
-	    {
-		uint32_t lo_Q = (uint32_t) msw / hi_D;
-		int32_t Q;
-
-		p1 = lo_Q * lo_D;
-		p0 = lo_Q * hi_D;
-		while ((hi_P = p0 + (p1 >> half_bits)) > msw ||
-		       (hi_P == msw && ((p1 & half_mask) << half_bits) > lsw)
-		    ) {		/* lo_Q was too high by 1. */
-		    --lo_Q;
-		    p0 -= hi_D;
-		    p1 -= lo_D;
-		    mincr(mql);
+		if(denom < 1L << (num_bits - bits_8th)) {
+			mincr(mde);
+			denom <<= bits_8th, shift += bits_8th;
 		}
-		Q = (hi_Q << half_bits) + lo_Q;
-		return (signed_A >= 0 ? Q : p0 | p1 ? ~Q /* -Q - 1 */ : -Q);
-	    }
+#undef bits_8th
+		while(!(denom & (-1L << (num_bits - 1)))) {
+			mincr(mds);
+			denom <<= 1, ++shift;
+		}
+		msw = (msw << shift) + (lsw >> (num_bits - shift));
+		lsw <<= shift;
+#if max_fixed < max_long
+		lsw &= (1L << (sizeof(fixed) * 8)) - 1;
+#endif
+		/* Compute a trial upper-half quotient. */
+		{
+			uint32_t hi_D = denom >> half_bits;
+			uint32_t lo_D = denom & half_mask;
+			uint32_t hi_Q = (uint32_t)msw / hi_D;
+
+			/* hi_Q might be too high by 1 or 2, but it isn't too low. */
+			uint32_t p0 = hi_Q * hi_D;
+			uint32_t p1 = hi_Q * lo_D;
+			uint32_t hi_P;
+
+			while((hi_P = p0 + (p1 >> half_bits)) > msw ||
+			      (hi_P == msw && ((p1 & half_mask) << half_bits) > lsw)) { /* hi_Q was too high by 1. */
+				--hi_Q;
+				p0 -= hi_D;
+				p1 -= lo_D;
+				mincr(mqh);
+			}
+			p1 = (p1 & half_mask) << half_bits;
+			if(p1 > lsw)
+				msw--;
+			lsw -= p1;
+			msw -= hi_P;
+			/* Now repeat to get the lower-half quotient. */
+			msw = (msw << half_bits) + (lsw >> half_bits);
+#if max_fixed < max_long
+			lsw &= half_mask;
+#endif
+			lsw <<= half_bits;
+			{
+				uint32_t lo_Q = (uint32_t)msw / hi_D;
+				int32_t Q;
+
+				p1 = lo_Q * lo_D;
+				p0 = lo_Q * hi_D;
+				while((hi_P = p0 + (p1 >> half_bits)) > msw ||
+				      (hi_P == msw && ((p1 & half_mask) << half_bits) > lsw)) { /* lo_Q was too high by 1. */
+					--lo_Q;
+					p0 -= hi_D;
+					p1 -= lo_D;
+					mincr(mql);
+				}
+				Q = (hi_Q << half_bits) + lo_Q;
+				return (signed_A >= 0 ? Q : p0 | p1 ? ~Q /* -Q - 1 */ : -Q);
+			}
+		}
 	}
-    }
 }
 
-#else				/* use doubles */
+#else /* use doubles */
 
 /*
  * Compute A * B / C as above using doubles.  If floating point is
@@ -896,19 +893,19 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 fixed
 fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 {
-    /*
+/*
      * Check whether A * B will fit in the mantissa of a double.
      */
 #define MAX_OTHER_FACTOR (1L << MAX_OTHER_FACTOR_BITS)
-    if (B < MAX_OTHER_FACTOR || any_abs(signed_A) < MAX_OTHER_FACTOR) {
+	if(B < MAX_OTHER_FACTOR || any_abs(signed_A) < MAX_OTHER_FACTOR) {
 #undef MAX_OTHER_FACTOR
-	/*
+		/*
 	 * The product fits, so a straightforward double computation
 	 * will be exact.
 	 */
-	return (fixed)floor((double)signed_A * B / C);
-    } else {
-	/*
+		return (fixed)floor((double)signed_A * B / C);
+	} else {
+		/*
 	 * The product won't fit.  However, the approximate product will
 	 * only be off by at most +/- 1/2 * (1 << ROUND_BITS) because of
 	 * rounding.  If we add 1 << ROUND_BITS to the value of the product
@@ -921,17 +918,17 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 	 * implementations, we know that C >= 2 * (1 << ROUND_BITS).  Hence,
 	 * the quotient after dividing by C will be at most 1 too large.
 	 */
-	fixed q =
-	    (fixed)floor(((double)signed_A * B + (1L << ROUND_BITS)) / C);
+		fixed q =
+		    (fixed)floor(((double)signed_A * B + (1L << ROUND_BITS)) / C);
 
-	/*
+		/*
 	 * Compute the remainder R.  If the quotient was correct,
 	 * 0 <= R < C.  If the quotient was too high, -C <= R < 0.
 	 */
-	if (signed_A * B - q * C < 0)
-	    --q;
-	return q;
-    }
+		if(signed_A * B - q * C < 0)
+			--q;
+		return q;
+	}
 }
 
 #endif
@@ -947,11 +944,11 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 double
 gs_sqrt(double x, const char *file, int line)
 {
-    if (gs_debug_c('~')) {
-	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const char *)file, line);
-	dflush();
-    }
-    return orig_sqrt(x);
+	if(gs_debug_c('~')) {
+		dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const char *)file, line);
+		dflush();
+	}
+	return orig_sqrt(x);
 }
 
 /*
@@ -959,7 +956,7 @@ gs_sqrt(double x, const char *file, int line)
  * radians, and that are implemented efficiently on machines with slow
  * (or no) floating point.
  */
-#if USE_FPU < 0			/****** maybe should be <= 0 ? ***** */
+#if USE_FPU < 0 /****** maybe should be <= 0 ? ***** */
 
 #define sin0 0.00000000000000000
 #define sin1 0.01745240643728351
@@ -1053,102 +1050,96 @@ gs_sqrt(double x, const char *file, int line)
 #define sin89 0.99984769515639127
 #define sin90 1.00000000000000000
 
-private const double sin_table[361] =
-{
-    sin0,
-    sin1, sin2, sin3, sin4, sin5, sin6, sin7, sin8, sin9, sin10,
-    sin11, sin12, sin13, sin14, sin15, sin16, sin17, sin18, sin19, sin20,
-    sin21, sin22, sin23, sin24, sin25, sin26, sin27, sin28, sin29, sin30,
-    sin31, sin32, sin33, sin34, sin35, sin36, sin37, sin38, sin39, sin40,
-    sin41, sin42, sin43, sin44, sin45, sin46, sin47, sin48, sin49, sin50,
-    sin51, sin52, sin53, sin54, sin55, sin56, sin57, sin58, sin59, sin60,
-    sin61, sin62, sin63, sin64, sin65, sin66, sin67, sin68, sin69, sin70,
-    sin71, sin72, sin73, sin74, sin75, sin76, sin77, sin78, sin79, sin80,
-    sin81, sin82, sin83, sin84, sin85, sin86, sin87, sin88, sin89, sin90,
-    sin89, sin88, sin87, sin86, sin85, sin84, sin83, sin82, sin81, sin80,
-    sin79, sin78, sin77, sin76, sin75, sin74, sin73, sin72, sin71, sin70,
-    sin69, sin68, sin67, sin66, sin65, sin64, sin63, sin62, sin61, sin60,
-    sin59, sin58, sin57, sin56, sin55, sin54, sin53, sin52, sin51, sin50,
-    sin49, sin48, sin47, sin46, sin45, sin44, sin43, sin42, sin41, sin40,
-    sin39, sin38, sin37, sin36, sin35, sin34, sin33, sin32, sin31, sin30,
-    sin29, sin28, sin27, sin26, sin25, sin24, sin23, sin22, sin21, sin20,
-    sin19, sin18, sin17, sin16, sin15, sin14, sin13, sin12, sin11, sin10,
-    sin9, sin8, sin7, sin6, sin5, sin4, sin3, sin2, sin1, sin0,
-    -sin1, -sin2, -sin3, -sin4, -sin5, -sin6, -sin7, -sin8, -sin9, -sin10,
-    -sin11, -sin12, -sin13, -sin14, -sin15, -sin16, -sin17, -sin18, -sin19, -sin20,
-    -sin21, -sin22, -sin23, -sin24, -sin25, -sin26, -sin27, -sin28, -sin29, -sin30,
-    -sin31, -sin32, -sin33, -sin34, -sin35, -sin36, -sin37, -sin38, -sin39, -sin40,
-    -sin41, -sin42, -sin43, -sin44, -sin45, -sin46, -sin47, -sin48, -sin49, -sin50,
-    -sin51, -sin52, -sin53, -sin54, -sin55, -sin56, -sin57, -sin58, -sin59, -sin60,
-    -sin61, -sin62, -sin63, -sin64, -sin65, -sin66, -sin67, -sin68, -sin69, -sin70,
-    -sin71, -sin72, -sin73, -sin74, -sin75, -sin76, -sin77, -sin78, -sin79, -sin80,
-    -sin81, -sin82, -sin83, -sin84, -sin85, -sin86, -sin87, -sin88, -sin89, -sin90,
-    -sin89, -sin88, -sin87, -sin86, -sin85, -sin84, -sin83, -sin82, -sin81, -sin80,
-    -sin79, -sin78, -sin77, -sin76, -sin75, -sin74, -sin73, -sin72, -sin71, -sin70,
-    -sin69, -sin68, -sin67, -sin66, -sin65, -sin64, -sin63, -sin62, -sin61, -sin60,
-    -sin59, -sin58, -sin57, -sin56, -sin55, -sin54, -sin53, -sin52, -sin51, -sin50,
-    -sin49, -sin48, -sin47, -sin46, -sin45, -sin44, -sin43, -sin42, -sin41, -sin40,
-    -sin39, -sin38, -sin37, -sin36, -sin35, -sin34, -sin33, -sin32, -sin31, -sin30,
-    -sin29, -sin28, -sin27, -sin26, -sin25, -sin24, -sin23, -sin22, -sin21, -sin20,
-    -sin19, -sin18, -sin17, -sin16, -sin15, -sin14, -sin13, -sin12, -sin11, -sin10,
-    -sin9, -sin8, -sin7, -sin6, -sin5, -sin4, -sin3, -sin2, -sin1, -sin0
-};
+private
+const double sin_table[361] =
+    {
+     sin0,
+     sin1, sin2, sin3, sin4, sin5, sin6, sin7, sin8, sin9, sin10,
+     sin11, sin12, sin13, sin14, sin15, sin16, sin17, sin18, sin19, sin20,
+     sin21, sin22, sin23, sin24, sin25, sin26, sin27, sin28, sin29, sin30,
+     sin31, sin32, sin33, sin34, sin35, sin36, sin37, sin38, sin39, sin40,
+     sin41, sin42, sin43, sin44, sin45, sin46, sin47, sin48, sin49, sin50,
+     sin51, sin52, sin53, sin54, sin55, sin56, sin57, sin58, sin59, sin60,
+     sin61, sin62, sin63, sin64, sin65, sin66, sin67, sin68, sin69, sin70,
+     sin71, sin72, sin73, sin74, sin75, sin76, sin77, sin78, sin79, sin80,
+     sin81, sin82, sin83, sin84, sin85, sin86, sin87, sin88, sin89, sin90,
+     sin89, sin88, sin87, sin86, sin85, sin84, sin83, sin82, sin81, sin80,
+     sin79, sin78, sin77, sin76, sin75, sin74, sin73, sin72, sin71, sin70,
+     sin69, sin68, sin67, sin66, sin65, sin64, sin63, sin62, sin61, sin60,
+     sin59, sin58, sin57, sin56, sin55, sin54, sin53, sin52, sin51, sin50,
+     sin49, sin48, sin47, sin46, sin45, sin44, sin43, sin42, sin41, sin40,
+     sin39, sin38, sin37, sin36, sin35, sin34, sin33, sin32, sin31, sin30,
+     sin29, sin28, sin27, sin26, sin25, sin24, sin23, sin22, sin21, sin20,
+     sin19, sin18, sin17, sin16, sin15, sin14, sin13, sin12, sin11, sin10,
+     sin9, sin8, sin7, sin6, sin5, sin4, sin3, sin2, sin1, sin0,
+     -sin1, -sin2, -sin3, -sin4, -sin5, -sin6, -sin7, -sin8, -sin9, -sin10,
+     -sin11, -sin12, -sin13, -sin14, -sin15, -sin16, -sin17, -sin18, -sin19, -sin20,
+     -sin21, -sin22, -sin23, -sin24, -sin25, -sin26, -sin27, -sin28, -sin29, -sin30,
+     -sin31, -sin32, -sin33, -sin34, -sin35, -sin36, -sin37, -sin38, -sin39, -sin40,
+     -sin41, -sin42, -sin43, -sin44, -sin45, -sin46, -sin47, -sin48, -sin49, -sin50,
+     -sin51, -sin52, -sin53, -sin54, -sin55, -sin56, -sin57, -sin58, -sin59, -sin60,
+     -sin61, -sin62, -sin63, -sin64, -sin65, -sin66, -sin67, -sin68, -sin69, -sin70,
+     -sin71, -sin72, -sin73, -sin74, -sin75, -sin76, -sin77, -sin78, -sin79, -sin80,
+     -sin81, -sin82, -sin83, -sin84, -sin85, -sin86, -sin87, -sin88, -sin89, -sin90,
+     -sin89, -sin88, -sin87, -sin86, -sin85, -sin84, -sin83, -sin82, -sin81, -sin80,
+     -sin79, -sin78, -sin77, -sin76, -sin75, -sin74, -sin73, -sin72, -sin71, -sin70,
+     -sin69, -sin68, -sin67, -sin66, -sin65, -sin64, -sin63, -sin62, -sin61, -sin60,
+     -sin59, -sin58, -sin57, -sin56, -sin55, -sin54, -sin53, -sin52, -sin51, -sin50,
+     -sin49, -sin48, -sin47, -sin46, -sin45, -sin44, -sin43, -sin42, -sin41, -sin40,
+     -sin39, -sin38, -sin37, -sin36, -sin35, -sin34, -sin33, -sin32, -sin31, -sin30,
+     -sin29, -sin28, -sin27, -sin26, -sin25, -sin24, -sin23, -sin22, -sin21, -sin20,
+     -sin19, -sin18, -sin17, -sin16, -sin15, -sin14, -sin13, -sin12, -sin11, -sin10,
+     -sin9, -sin8, -sin7, -sin6, -sin5, -sin4, -sin3, -sin2, -sin1, -sin0};
 
 double
 gs_sin_degrees(double ang)
 {
-    int ipart;
+	int ipart;
 
-    if (is_fneg(ang))
-	ang = 180 - ang;
-    ipart = (int)ang;
-    if (ipart >= 360) {
-	int arem = ipart % 360;
+	if(is_fneg(ang))
+		ang = 180 - ang;
+	ipart = (int)ang;
+	if(ipart >= 360) {
+		int arem = ipart % 360;
 
-	ang -= (ipart - arem);
-	ipart = arem;
-    }
-    return
-	(ang == ipart ? sin_table[ipart] :
-	 sin_table[ipart] + (sin_table[ipart + 1] - sin_table[ipart]) *
-	 (ang - ipart));
+		ang -= (ipart - arem);
+		ipart = arem;
+	}
+	return (ang == ipart ? sin_table[ipart] : sin_table[ipart] + (sin_table[ipart + 1] - sin_table[ipart]) * (ang - ipart));
 }
 
 double
 gs_cos_degrees(double ang)
 {
-    int ipart;
+	int ipart;
 
-    if (is_fneg(ang))
-	ang = 90 - ang;
-    else
-	ang += 90;
-    ipart = (int)ang;
-    if (ipart >= 360) {
-	int arem = ipart % 360;
+	if(is_fneg(ang))
+		ang = 90 - ang;
+	else
+		ang += 90;
+	ipart = (int)ang;
+	if(ipart >= 360) {
+		int arem = ipart % 360;
 
-	ang -= (ipart - arem);
-	ipart = arem;
-    }
-    return
-	(ang == ipart ? sin_table[ipart] :
-	 sin_table[ipart] + (sin_table[ipart + 1] - sin_table[ipart]) *
-	 (ang - ipart));
+		ang -= (ipart - arem);
+		ipart = arem;
+	}
+	return (ang == ipart ? sin_table[ipart] : sin_table[ipart] + (sin_table[ipart + 1] - sin_table[ipart]) * (ang - ipart));
 }
 
 void
-gs_sincos_degrees(double ang, gs_sincos_t * psincos)
+gs_sincos_degrees(double ang, gs_sincos_t *psincos)
 {
-    psincos->sin = gs_sin_degrees(ang);
-    psincos->cos = gs_cos_degrees(ang);
-    psincos->orthogonal =
-	(is_fzero(psincos->sin) || is_fzero(psincos->cos));
+	psincos->sin = gs_sin_degrees(ang);
+	psincos->cos = gs_cos_degrees(ang);
+	psincos->orthogonal =
+	    (is_fzero(psincos->sin) || is_fzero(psincos->cos));
 }
 
 #else /* we have floating point */
 
 static const int isincos[5] =
-{0, 1, 0, -1, 0};
+    {0, 1, 0, -1, 0};
 
 /* GCC with -ffast-math compiles ang/90. as ang*(1/90.), losing precission.
  * This doesn't happen when the numeral is replaced with a non-const variable.
@@ -1159,49 +1150,49 @@ static double const_90_degrees = 90.;
 double
 gs_sin_degrees(double ang)
 {
-    double quot = ang / const_90_degrees;
+	double quot = ang / const_90_degrees;
 
-    if (floor(quot) == quot) {
-	/*
+	if(floor(quot) == quot) {
+		/*
 	 * We need 4.0, rather than 4, here because of non-ANSI compilers.
 	 * The & 3 is because quot might be negative.
 	 */
-	return isincos[(int)fmod(quot, 4.0) & 3];
-    }
-    return sin(ang * (M_PI / 180));
+		return isincos[(int)fmod(quot, 4.0) & 3];
+	}
+	return sin(ang * (M_PI / 180));
 }
 
 double
 gs_cos_degrees(double ang)
 {
-    double quot = ang / const_90_degrees;
+	double quot = ang / const_90_degrees;
 
-    if (floor(quot) == quot) {
-	/* See above re the following line. */
-	return isincos[((int)fmod(quot, 4.0) & 3) + 1];
-    }
-    return cos(ang * (M_PI / 180));
+	if(floor(quot) == quot) {
+		/* See above re the following line. */
+		return isincos[((int)fmod(quot, 4.0) & 3) + 1];
+	}
+	return cos(ang * (M_PI / 180));
 }
 
 void
-gs_sincos_degrees(double ang, gs_sincos_t * psincos)
+gs_sincos_degrees(double ang, gs_sincos_t *psincos)
 {
-    double quot = ang / const_90_degrees;
+	double quot = ang / const_90_degrees;
 
-    if (floor(quot) == quot) {
-	/* See above re the following line. */
-	int quads = (int)fmod(quot, 4.0) & 3;
+	if(floor(quot) == quot) {
+		/* See above re the following line. */
+		int quads = (int)fmod(quot, 4.0) & 3;
 
-	psincos->sin = isincos[quads];
-	psincos->cos = isincos[quads + 1];
-	psincos->orthogonal = true;
-    } else {
-	double arad = ang * (M_PI / 180);
+		psincos->sin = isincos[quads];
+		psincos->cos = isincos[quads + 1];
+		psincos->orthogonal = true;
+	} else {
+		double arad = ang * (M_PI / 180);
 
-	psincos->sin = sin(arad);
-	psincos->cos = cos(arad);
-	psincos->orthogonal = false;
-    }
+		psincos->sin = sin(arad);
+		psincos->cos = cos(arad);
+		psincos->orthogonal = false;
+	}
 }
 
 #endif /* USE_FPU */
@@ -1214,16 +1205,16 @@ gs_sincos_degrees(double ang, gs_sincos_t * psincos)
 int
 gs_atan2_degrees(double y, double x, double *pangle)
 {
-    if (y == 0) {	/* on X-axis, special case */
-	if (x == 0)
-	    return_error(gs_error_undefinedresult);
-	*pangle = (x < 0 ? 180 : 0);
-    } else {
-	double result = atan2(y, x) * radians_to_degrees;
+	if(y == 0) { /* on X-axis, special case */
+		if(x == 0)
+			return_error(gs_error_undefinedresult);
+		*pangle = (x < 0 ? 180 : 0);
+	} else {
+		double result = atan2(y, x) * radians_to_degrees;
 
-	if (result < 0)
-	    result += 360;
-	*pangle = result;
-    }
-    return 0;
+		if(result < 0)
+			result += 360;
+		*pangle = result;
+	}
+	return 0;
 }

@@ -31,9 +31,9 @@ trace(char *level, char *fmt, ...)
 	vsnprint(buf, sizeof buf, fmt, arg);
 	va_end(arg);
 	vtlog(level, "<font size=-1>%T %s:</font> %s<br>\n",
-			threadgetname(), buf);
+	      threadgetname(), buf);
 	vtlog("all", "<font size=-1>%T <font color=#777777>%s</font> %s:</font> %s<br>\n",
-			level, threadgetname(), buf);
+	      level, threadgetname(), buf);
 }
 
 void

@@ -35,15 +35,15 @@ runeFmtStrFlush(Fmt *f)
 
 	n = (int)f->farg;
 	n += 256;
-	f->farg = (void*)n;
-	s = (Rune*)f->start;
-	f->start = realloc(s, sizeof(Rune)*n);
-	if(f->start == nil){
+	f->farg = (void *)n;
+	s = (Rune *)f->start;
+	f->start = realloc(s, sizeof(Rune) * n);
+	if(f->start == nil) {
 		f->start = s;
 		return 0;
 	}
-	f->to = (Rune*)f->start + ((Rune*)f->to - s);
-	f->stop = (Rune*)f->start + n - 1;
+	f->to = (Rune *)f->start + ((Rune *)f->to - s);
+	f->stop = (Rune *)f->start + n - 1;
 	return 1;
 }
 
@@ -54,21 +54,21 @@ runefmtstrinit(Fmt *f)
 
 	f->runes = 1;
 	n = 32;
-	f->start = malloc(sizeof(Rune)*n);
+	f->start = malloc(sizeof(Rune) * n);
 	if(f->start == nil)
 		return -1;
 	f->to = f->start;
-	f->stop = (Rune*)f->start + n - 1;
+	f->stop = (Rune *)f->start + n - 1;
 	f->flush = runeFmtStrFlush;
-	f->farg = (void*)n;
+	f->farg = (void *)n;
 	f->nfmt = 0;
 	return 0;
 }
 
-Rune*
+Rune *
 runefmtstrflush(Fmt *f)
 {
-	*(Rune*)f->to = '\0';
+	*(Rune *)f->to = '\0';
 	f->to = f->start;
 	return f->start;
 }

@@ -9,13 +9,13 @@
 
 #include "all.h"
 
-static	Command	command[100];
-static	Flag	flag[35];
-static	char	statsdef[20];	/* default stats list */
-static	int	whoflag;
+static Command command[100];
+static Flag flag[35];
+static char statsdef[20]; /* default stats list */
+static int whoflag;
 
-static	void	consserve1(void *);
-static	void	installcmds(void);
+static void consserve1(void *);
+static void installcmds(void);
 
 void
 consserve(void)
@@ -30,7 +30,7 @@ consserve(void)
 	cmd_exec("version");
 
 	for(i = 0; command[i].arg0; i++)
-		if(strcmp("cwcmd", command[i].arg0) == 0){
+		if(strcmp("cwcmd", command[i].arg0) == 0) {
 			cmd_exec("cwcmd touchsb");
 			break;
 		}
@@ -44,17 +44,17 @@ consserve1(void *)
 {
 	char *conline;
 
-	for (;;) {
+	for(;;) {
 		/* conslock(); */
 		do {
 			print("%s: ", service);
-			if ((conline = Brdline(&bin, '\n')) == nil)
+			if((conline = Brdline(&bin, '\n')) == nil)
 				print("\n");
 			else {
-				conline[Blinelen(&bin)-1] = '\0';
+				conline[Blinelen(&bin) - 1] = '\0';
 				cmd_exec(conline);
 			}
-		} while (conline != nil);
+		} while(conline != nil);
 	}
 }
 
@@ -69,34 +69,34 @@ cmdcmp(const void *va, const void *vb)
 }
 
 void
-cmd_install(char *arg0, char *help, void (*func)(int, char*[]))
+cmd_install(char *arg0, char *help, void (*func)(int, char *[]))
 {
 	int i;
 
 	qlock(&cons);
-	for(i=0; command[i].arg0; i++)
+	for(i = 0; command[i].arg0; i++)
 		;
-	if(i >= nelem(command)-2) {
+	if(i >= nelem(command) - 2) {
 		qunlock(&cons);
 		print("cmd_install: too many commands\n");
 		return;
 	}
-	command[i+1].arg0 = 0;
+	command[i + 1].arg0 = 0;
 	command[i].help = help;
 	command[i].func = func;
 	command[i].arg0 = arg0;
-	qsort(command, i+1, sizeof(Command), cmdcmp);
+	qsort(command, i + 1, sizeof(Command), cmdcmp);
 	qunlock(&cons);
 }
 
 void
 cmd_exec(char *arg)
 {
-	char line[2*Maxword], *s;
+	char line[2 * Maxword], *s;
 	char *argv[10];
 	int argc, i, c;
 
-	if(strlen(arg) >= nelem(line)-2) {
+	if(strlen(arg) >= nelem(line) - 2) {
 		print("cmd_exec: line too long\n");
 		return;
 	}
@@ -110,18 +110,18 @@ cmd_exec(char *arg)
 			c = *s++;
 		if(c == 0)
 			break;
-		if(argc >= nelem(argv)-2) {
+		if(argc >= nelem(argv) - 2) {
 			print("cmd_exec: too many args\n");
 			return;
 		}
-		argv[argc++] = s-1;
+		argv[argc++] = s - 1;
 		while((!isascii(c) || !isspace(c)) && c != '\0')
 			c = *s++;
 		s[-1] = 0;
 	}
 	if(argc <= 0)
 		return;
-	for(i=0; s=command[i].arg0; i++)
+	for(i = 0; s = command[i].arg0; i++)
 		if(strcmp(argv[0], s) == 0) {
 			(*command[i].func)(argc, argv);
 			prflush();
@@ -133,7 +133,7 @@ cmd_exec(char *arg)
 static void
 cmd_halt(int, char *[])
 {
-	wlock(&mainlock);	/* halt */
+	wlock(&mainlock); /* halt */
 	sync("halt");
 	exit();
 }
@@ -200,23 +200,23 @@ cmd_stata(int, char *[])
 	int i;
 
 	print("cons stats\n");
-//	print("\twork =%7W%7W%7W rps\n", cons.work+0, cons.work+1, cons.work+2);
-//	print("\trate =%7W%7W%7W tBps\n", cons.rate+0, cons.rate+1, cons.rate+2);
-//	print("\thits =%7W%7W%7W iops\n", cons.bhit+0, cons.bhit+1, cons.bhit+2);
-//	print("\tread =%7W%7W%7W iops\n", cons.bread+0, cons.bread+1, cons.bread+2);
-//	print("\trah  =%7W%7W%7W iops\n", cons.brahead+0, cons.brahead+1, cons.brahead+2);
-//	print("\tinit =%7W%7W%7W iops\n", cons.binit+0, cons.binit+1, cons.binit+2);
+	//	print("\twork =%7W%7W%7W rps\n", cons.work+0, cons.work+1, cons.work+2);
+	//	print("\trate =%7W%7W%7W tBps\n", cons.rate+0, cons.rate+1, cons.rate+2);
+	//	print("\thits =%7W%7W%7W iops\n", cons.bhit+0, cons.bhit+1, cons.bhit+2);
+	//	print("\tread =%7W%7W%7W iops\n", cons.bread+0, cons.bread+1, cons.bread+2);
+	//	print("\trah  =%7W%7W%7W iops\n", cons.brahead+0, cons.brahead+1, cons.brahead+2);
+	//	print("\tinit =%7W%7W%7W iops\n", cons.binit+0, cons.binit+1, cons.binit+2);
 	print("\tbufs =    %3ld sm %3ld lg %ld res\n",
-		cons.nsmall, cons.nlarge, cons.nreseq);
+	      cons.nsmall, cons.nlarge, cons.nreseq);
 
-	for(i=0; i<nelem(mballocs); i++)
+	for(i = 0; i < nelem(mballocs); i++)
 		if(mballocs[i])
 			print("\t[%d]=%d\n", i, mballocs[i]);
 
 	print("\tioerr=    %3ld wr %3ld ww %3ld dr %3ld dw\n",
-		cons.nwormre, cons.nwormwe, cons.nwrenre, cons.nwrenwe);
+	      cons.nwormre, cons.nwormwe, cons.nwrenre, cons.nwrenwe);
 	print("\tcache=     %9ld hit %9ld miss\n",
-		cons.nwormhit, cons.nwormmiss);
+	      cons.nwormhit, cons.nwormmiss);
 }
 
 static int
@@ -235,20 +235,20 @@ flag_install(char *arg, char *help)
 	int i;
 
 	qlock(&cons);
-	for(i=0; flag[i].arg0; i++)
+	for(i = 0; flag[i].arg0; i++)
 		;
 	if(i >= 32) {
 		qunlock(&cons);
 		print("flag_install: too many flags\n");
 		return 0;
 	}
-	flag[i+1].arg0 = 0;
+	flag[i + 1].arg0 = 0;
 	flag[i].arg0 = arg;
 	flag[i].help = help;
-	flag[i].flag = 1<<i;
-	qsort(flag, i+1, sizeof(Flag), flagcmp);
+	flag[i].flag = 1 << i;
+	qsort(flag, i + 1, sizeof(Flag), flagcmp);
 	qunlock(&cons);
-	return 1<<i;
+	return 1 << i;
 }
 
 void
@@ -259,9 +259,9 @@ cmd_flag(int argc, char *argv[])
 	Chan *cp;
 
 	if(argc <= 1) {
-		for(i=0; flag[i].arg0; i++)
+		for(i = 0; flag[i].arg0; i++)
 			print("%.4lux %s %s\n",
-				flag[i].flag, flag[i].arg0, flag[i].help);
+			      flag[i].flag, flag[i].arg0, flag[i].help);
 		if(cons.flags)
 			print("flag[*]   = %.4lux\n", cons.flags);
 		for(cp = chans; cp; cp = cp->next)
@@ -272,8 +272,8 @@ cmd_flag(int argc, char *argv[])
 
 	f = 0;
 	n = -1;
-	for(i=1; i<argc; i++) {
-		for(j=0; s=flag[j].arg0; j++)
+	for(i = 1; i < argc; i++) {
+		for(j = 0; s = flag[j].arg0; j++)
 			if(strcmp(s, argv[i]) == 0)
 				goto found;
 		j = number(argv[i], -1, 10);
@@ -318,7 +318,7 @@ cmd_who(int argc, char *argv[])
 			continue;
 		}
 		if(argc > 1) {
-			for(i=1; i<argc; i++)
+			for(i = 1; i < argc; i++)
 				if(strcmp(argv[i], cp->whoname) == 0)
 					break;
 			if(i >= argc) {
@@ -327,7 +327,7 @@ cmd_who(int argc, char *argv[])
 			}
 		}
 		print("%3d: %10s %24s", cp->chan,
-			cp->whoname? cp->whoname: "<nowhoname>", cp->whochan);
+		      cp->whoname ? cp->whoname : "<nowhoname>", cp->whochan);
 		if(cp->whoprint)
 			cp->whoprint(cp);
 		print("\n");
@@ -365,7 +365,7 @@ cmd_hangup(int argc, char *argv[])
 static void
 cmd_sync(int, char *[])
 {
-	wlock(&mainlock);	/* sync */
+	wlock(&mainlock); /* sync */
 	sync("command");
 	wunlock(&mainlock);
 	print("\n");
@@ -377,9 +377,9 @@ cmd_help(int argc, char *argv[])
 	char *arg;
 	int i, j;
 
-	for(i=0; arg=command[i].arg0; i++) {
+	for(i = 0; arg = command[i].arg0; i++) {
 		if(argc > 1) {
-			for(j=1; j<argc; j++)
+			for(j = 1; j < argc; j++)
 				if(strcmp(argv[j], arg) == 0)
 					goto found;
 			continue;
@@ -395,7 +395,7 @@ cmd_fstat(int argc, char *argv[])
 {
 	int i;
 
-	for(i=1; i<argc; i++) {
+	for(i = 1; i < argc; i++) {
 		if(walkto(argv[i])) {
 			print("cant stat %s\n", argv[i]);
 			continue;
@@ -472,7 +472,7 @@ cmd_clri(int argc, char *argv[])
 {
 	int i;
 
-	for(i=1; i<argc; i++) {
+	for(i = 1; i < argc; i++) {
 		if(walkto(argv[i])) {
 			print("cant remove %s\n", argv[i]);
 			continue;
@@ -482,13 +482,13 @@ cmd_clri(int argc, char *argv[])
 }
 
 static void
-cmd_allow(int, char**)
+cmd_allow(int, char **)
 {
 	wstatallow = writeallow = 1;
 }
 
 static void
-cmd_disallow(int, char**)
+cmd_disallow(int, char **)
 {
 	wstatallow = writeallow = 0;
 }
@@ -518,7 +518,7 @@ doclean(Iobuf *p, Dentry *d, int n, Off a)
 	typ = Tfile;
 	if(d->mode & DDIR)
 		typ = Tdir;
-	for(i=0; i<NDBLOCK; i++) {
+	for(i = 0; i < NDBLOCK; i++) {
 		print("dblock[%d] = %lld\n", i, (Wideoff)d->dblock[i]);
 		ckblock(p->dev, d->dblock[i], typ, qpath);
 		if(i == n) {
@@ -529,18 +529,18 @@ doclean(Iobuf *p, Dentry *d, int n, Off a)
 	}
 
 	/* add NDBLOCK so user can cite block address by index */
-	for (i = 0; i < NIBLOCK; i++) {
-		print("iblocks[%d] = %lld\n", NDBLOCK+i, (Wideoff)d->iblocks[i]);
-		ckblock(p->dev, d->iblocks[i], Tind1+i, qpath);
-		if(NDBLOCK+i == n) {
+	for(i = 0; i < NIBLOCK; i++) {
+		print("iblocks[%d] = %lld\n", NDBLOCK + i, (Wideoff)d->iblocks[i]);
+		ckblock(p->dev, d->iblocks[i], Tind1 + i, qpath);
+		if(NDBLOCK + i == n) {
 			d->iblocks[i] = a;
 			mod = 1;
-			print("iblocks[%d] modified %lld\n", NDBLOCK+i, (Wideoff)a);
+			print("iblocks[%d] modified %lld\n", NDBLOCK + i, (Wideoff)a);
 		}
 	}
 
 	if(mod)
-		p->flags |= Bmod|Bimm;
+		p->flags |= Bmod | Bimm;
 }
 
 static void
@@ -592,7 +592,7 @@ cmd_remove(int argc, char *argv[])
 {
 	int i;
 
-	for(i=1; i<argc; i++) {
+	for(i = 1; i < argc; i++) {
 		if(walkto(argv[i])) {
 			print("cant remove %s\n", argv[i]);
 			continue;
@@ -604,7 +604,7 @@ cmd_remove(int argc, char *argv[])
 static void
 cmd_version(int, char *[])
 {
-	print("%d-bit %s as of %T\n", sizeof(Off)*8 - 1, service, fs_mktime);
+	print("%d-bit %s as of %T\n", sizeof(Off) * 8 - 1, service, fs_mktime);
 	print("\tlast boot %T\n", boottime);
 }
 
@@ -646,7 +646,7 @@ cmd_prof(int argc, char *argv[])
 		n = number(argv[1], n, 10);
 	if(n && !cons.profile) {
 		print("clr and start\n");
-		memset(cons.profbuf, 0, cons.nprofbuf*sizeof(cons.profbuf[0]));
+		memset(cons.profbuf, 0, cons.nprofbuf * sizeof(cons.profbuf[0]));
 		cons.profile = 1;
 		return;
 	}
@@ -655,28 +655,28 @@ cmd_prof(int argc, char *argv[])
 		print("stop and write\n");
 		if(walkto("/adm/kprofdata"))
 			goto bad;
-		if(con_open(FID2, OWRITE|OTRUNC)) {
+		if(con_open(FID2, OWRITE | OTRUNC)) {
 		bad:
 			print("cant open /adm/kprofdata\n");
 			return;
 		}
-		p = (char*)cons.profbuf;
-		for(m=0; m<cons.nprofbuf; m++) {
+		p = (char *)cons.profbuf;
+		for(m = 0; m < cons.nprofbuf; m++) {
 			n = cons.profbuf[m];
-			p[0] = n>>24;
-			p[1] = n>>16;
-			p[2] = n>>8;
-			p[3] = n>>0;
+			p[0] = n >> 24;
+			p[1] = n >> 16;
+			p[2] = n >> 8;
+			p[3] = n >> 0;
 			p += 4;
 		}
 
-		m = cons.nprofbuf*sizeof(cons.profbuf[0]);
+		m = cons.nprofbuf * sizeof(cons.profbuf[0]);
 		o = 0;
 		while(m > 0) {
 			n = 8192;
 			if(n > m)
 				n = m;
-			con_write(FID2, (char*)cons.profbuf+o, o, n);
+			con_write(FID2, (char *)cons.profbuf + o, o, n);
 			m -= n;
 			o += n;
 		}
@@ -693,18 +693,18 @@ cmd_time(int argc, char *argv[])
 
 	t1 = time(nil);
 	len = 0;
-	for(i=1; i<argc; i++)
+	for(i = 1; i < argc; i++)
 		len += 1 + strlen(argv[i]);
 	cmd = malloc(len + 1);
 	cmd[0] = 0;
-	for(i=1; i<argc; i++) {
+	for(i = 1; i < argc; i++) {
 		strcat(cmd, " ");
 		strcat(cmd, argv[i]);
 	}
 	cmd_exec(cmd);
 	t2 = time(nil);
 	free(cmd);
-	print("time = %ld ms\n", TK2MS(t2-t1));
+	print("time = %ld ms\n", TK2MS(t2 - t1));
 }
 
 void
@@ -726,7 +726,7 @@ cmd_files(int, char *[])
 
 	lock(&flock);
 	n = 0;
-	for(i=0; i<conf.nfile; i++)
+	for(i = 0; i < conf.nfile; i++)
 		if(files[i].cp) {
 			n++;
 			files[i].cp->nfile++;
@@ -798,10 +798,10 @@ walkto(char *name)
 		if(p == name) {
 			if(*name == '\0')
 				return 0;
-			name = p+1;
+			name = p + 1;
 			continue;
 		}
-		n = p-name;
+		n = p - name;
 		if(n > NAMELEN)
 			return 1;
 		memset(elem, 0, sizeof(elem));
@@ -826,14 +826,14 @@ number(char *arg, int def, int base)
 	any = 0;
 	n = 0;
 
-	for (c = *arg; isascii(c) && isspace(c) && c != '\n'; c = *arg)
+	for(c = *arg; isascii(c) && isspace(c) && c != '\n'; c = *arg)
 		arg++;
 	if(c == '-') {
 		sign = 1;
 		arg++;
 		c = *arg;
 	}
-	while (isascii(c) && (isdigit(c) || base == 16 && isxdigit(c))) {
+	while(isascii(c) && (isdigit(c) || base == 16 && isxdigit(c))) {
 		n *= base;
 		if(c >= 'a' && c <= 'f')
 			n += c - 'a' + 10;

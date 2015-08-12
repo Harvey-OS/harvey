@@ -7,70 +7,64 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-enum
-{
+enum {
 	Incr = 16,
-	Maxatomic = 64*KiB,
+	Maxatomic = 64 * KiB,
 };
 
-typedef struct ZPipe	ZPipe;
+typedef struct ZPipe ZPipe;
 typedef struct Zq Zq;
 
-struct Zq
-{
-	Lock;			/* to protect Zq */
-	QLock	rlck;		/* one reader at a time */
-	Kzio*	io;		/* io[] */
-	Kzio*	ep;		/* end pointer */
-	int	closed;		/* queue is closed */
-	int	waiting;	/* reader is waiting */
-	Kzio*	rp;		/* read pointer */
-	Kzio*	wp;		/* write pointer */
-	Rendez	rr;		/* reader rendez */
+struct Zq {
+	Lock;	/* to protect Zq */
+	QLock rlck;  /* one reader at a time */
+	Kzio *io;    /* io[] */
+	Kzio *ep;    /* end pointer */
+	int closed;  /* queue is closed */
+	int waiting; /* reader is waiting */
+	Kzio *rp;    /* read pointer */
+	Kzio *wp;    /* write pointer */
+	Rendez rr;   /* reader rendez */
 };
 
-struct ZPipe
-{
+struct ZPipe {
 	QLock;
-	ZPipe	*next;
-	int	ref;
-	uint32_t	path;
-	Zq	q[2];
-	int	qref[2];
+	ZPipe *next;
+	int ref;
+	uint32_t path;
+	Zq q[2];
+	int qref[2];
 };
 
 struct
-{
+    {
 	Lock;
-	uint32_t	path;
+	uint32_t path;
 } zpalloc;
 
-enum
-{
+enum {
 	Qdir,
 	Qdata0,
 	Qdata1,
 };
 
 Dirtab zpdir[] =
-{
-	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"data",		{Qdata0},	0,		0600,
-	"data1",	{Qdata1},	0,		0600,
+    {
+     ".", {Qdir, 0, QTDIR}, 0, DMDIR | 0500, "data", {Qdata0}, 0, 0600, "data1", {Qdata1}, 0, 0600,
 };
 #define NZPDIR 3
 
-#define ZPTYPE(x)	(((unsigned)x)&0x1f)
-#define ZPID(x)	((((unsigned)x))>>5)
-#define ZPQID(i, t)	((((unsigned)i)<<5)|(t))
-#define ZQLEN(q)	((q)->wp - (q)->rp)
+#define ZPTYPE(x) (((unsigned)x) & 0x1f)
+#define ZPID(x) ((((unsigned)x)) >> 5)
+#define ZPQID(i, t) ((((unsigned)i) << 5) | (t))
+#define ZQLEN(q) ((q)->wp - (q)->rp)
 
 static int
 zqnotempty(void *x)
@@ -89,7 +83,7 @@ zqdump(Zq *q)
 	if(DBGFLG == 0)
 		return;
 	print("zq %#p: io %#p rp %ld wp %ld ep %ld\n",
-		q, q->io, q->rp - q->io, q->wp - q->io, q->ep - q->io);
+	      q, q->io, q->rp - q->io, q->wp - q->io, q->ep - q->io);
 	for(io = q->rp; io != nil && io < q->wp; io++)
 		print("\tio[%ld] = %Z\n", io - q->io, io);
 	print("\n");
@@ -115,29 +109,29 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 	DBG("zqread %ld\n", count);
 	qlock(&q->rlck);
 	lock(q);
-	if(waserror()){
+	if(waserror()) {
 		unlock(q);
 		qunlock(&q->rlck);
 		nexterror();
 	}
-	while(q->closed == 0 && ZQLEN(q) == 0){
+	while(q->closed == 0 && ZQLEN(q) == 0) {
 		q->waiting++;
 		unlock(q);
 		sleep(&q->rr, zqnotempty, q);
 		lock(q);
 	}
 	i = 0;
-	for(tot = 0; ZQLEN(q) > 0 && i < nio && tot < count; tot += nr){
+	for(tot = 0; ZQLEN(q) > 0 && i < nio && tot < count; tot += nr) {
 		qio = q->rp;
 		nr = qio->size;
-		if(tot + nr > count){
+		if(tot + nr > count) {
 			if(i > 0)
 				break;
 			io[i] = *qio;
 			nr = count - tot;
 			io[i].size = nr;
 			s = getzkseg();
-			if(s == nil){
+			if(s == nil) {
 				DBG("zqread: bytes thrown away\n");
 				goto Consume; /* we drop bytes! */
 			}
@@ -147,7 +141,7 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 			memmove(qio->data, p + io[i].size, qio->size);
 			DBG("zqread: copy %#Z %#Z\n", qio, io);
 			qio->seg = s;
-		}else
+		} else
 			io[i] = *qio;
 	Consume:
 		i++;
@@ -177,7 +171,7 @@ zqwrite(Zq *q, Kzio io[], int nio)
 	int i, ei, ri, wi, awake;
 
 	lock(q);
-	if(waserror()){
+	if(waserror()) {
 		unlock(q);
 		nexterror();
 	}
@@ -188,29 +182,29 @@ zqwrite(Zq *q, Kzio io[], int nio)
 			print("\tio%#p[%d] = %Z\n", io, i, &io[i]);
 	if(q->closed)
 		error("queue is closed");
-	if(q->wp + nio > q->ep){
-		if(q->rp > q->io){
-			memmove(q->io, q->rp, ZQLEN(q)*sizeof q->io[0]);
+	if(q->wp + nio > q->ep) {
+		if(q->rp > q->io) {
+			memmove(q->io, q->rp, ZQLEN(q) * sizeof q->io[0]);
 			q->wp = q->io + ZQLEN(q);
 			q->rp = q->io;
 		}
-		if(q->wp + nio > q->ep){
+		if(q->wp + nio > q->ep) {
 			ei = q->ep - q->io;
 			ei += Incr;
 			ri = q->rp - q->io;
 			wi = q->wp - q->io;
-			q->io = realloc(q->io, ei*sizeof q->io[0]);
+			q->io = realloc(q->io, ei * sizeof q->io[0]);
 			if(q->io == nil)
 				panic("zqwrite: no memory");
 			q->ep = q->io + ei;
 			q->rp = q->io + ri;
 			q->wp = q->io + wi;
 			DBG("zqwrite: io %#p rp %#p wp %#p ep %#p\n",
-				q->io, q->rp, q->wp, q->ep);
+			    q->io, q->rp, q->wp, q->ep);
 		}
 		assert(q->wp + nio <= q->ep);
 	}
-	memmove(q->wp, io, nio*sizeof io[0]);
+	memmove(q->wp, io, nio * sizeof io[0]);
 	q->wp += nio;
 	awake = q->waiting;
 	if(awake)
@@ -227,7 +221,7 @@ static void
 zqflush(Zq *q)
 {
 	lock(q);
-	for(;q->rp < q->wp; q->rp++){
+	for(; q->rp < q->wp; q->rp++) {
 		qlock(&q->rp->seg->lk);
 		zputaddr(q->rp->seg, PTR2UINT(q->rp->data));
 		qunlock(&q->rp->seg->lk);
@@ -261,7 +255,7 @@ zqreopen(Zq *q)
 /*
  *  create a zp, no streams are created until an open
  */
-static Chan*
+static Chan *
 zpattach(char *spec)
 {
 	ZPipe *p;
@@ -277,30 +271,30 @@ zpattach(char *spec)
 	p->path = ++zpalloc.path;
 	unlock(&zpalloc);
 
-	mkqid(&c->qid, ZPQID(2*p->path, Qdir), 0, QTDIR);
+	mkqid(&c->qid, ZPQID(2 * p->path, Qdir), 0, QTDIR);
 	c->aux = p;
 	c->devno = 0;
 	return c;
 }
 
 static int
-zpgen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
+zpgen(Chan *c, char *d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
 	ZPipe *p;
 
-	if(i == DEVDOTDOT){
-		devdir(c, c->qid, "#∏", 0, eve, DMDIR|0555, dp);
+	if(i == DEVDOTDOT) {
+		devdir(c, c->qid, "#∏", 0, eve, DMDIR | 0555, dp);
 		return 1;
 	}
-	i++;	/* skip . */
-	if(tab==0 || i>=ntab)
+	i++; /* skip . */
+	if(tab == 0 || i >= ntab)
 		return -1;
 
 	tab += i;
 	p = c->aux;
-	switch((uint32_t)tab->qid.path){
+	switch((uint32_t)tab->qid.path) {
 	case Qdata0:
 		len = ZQLEN(&p->q[0]);
 		break;
@@ -316,21 +310,20 @@ zpgen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 	return 1;
 }
 
-
-static Walkqid*
+static Walkqid *
 zpwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
 	ZPipe *p;
 
 	wq = devwalk(c, nc, name, nname, zpdir, NZPDIR, zpgen);
-	if(wq != nil && wq->clone != nil && wq->clone != c){
+	if(wq != nil && wq->clone != nil && wq->clone != c) {
 		p = c->aux;
 		qlock(p);
 		p->ref++;
-		if(c->flag & COPEN){
+		if(c->flag & COPEN) {
 			print("channel open in zpwalk\n");
-			switch(ZPTYPE(c->qid.path)){
+			switch(ZPTYPE(c->qid.path)) {
 			case Qdata0:
 				p->qref[0]++;
 				break;
@@ -352,9 +345,9 @@ zpstat(Chan *c, uint8_t *db, int32_t n)
 
 	p = c->aux;
 
-	switch(ZPTYPE(c->qid.path)){
+	switch(ZPTYPE(c->qid.path)) {
 	case Qdir:
-		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
+		devdir(c, c->qid, ".", 0, eve, DMDIR | 0555, &dir);
 		break;
 	case Qdata0:
 		devdir(c, c->qid, "data", ZQLEN(&p->q[0]), eve, 0600, &dir);
@@ -374,12 +367,12 @@ zpstat(Chan *c, uint8_t *db, int32_t n)
 /*
  *  if the stream doesn't exist, create it
  */
-static Chan*
+static Chan *
 zpopen(Chan *c, int omode)
 {
 	ZPipe *p;
 
-	if(c->qid.type & QTDIR){
+	if(c->qid.type & QTDIR) {
 		if(omode != OREAD)
 			error(Ebadarg);
 		c->mode = omode;
@@ -390,7 +383,7 @@ zpopen(Chan *c, int omode)
 
 	p = c->aux;
 	qlock(p);
-	switch(ZPTYPE(c->qid.path)){
+	switch(ZPTYPE(c->qid.path)) {
 	case Qdata0:
 		p->qref[0]++;
 		break;
@@ -403,7 +396,7 @@ zpopen(Chan *c, int omode)
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->iounit = Maxatomic;	/* should we care? */
+	c->iounit = Maxatomic; /* should we care? */
 	return c;
 }
 
@@ -415,21 +408,21 @@ zpclose(Chan *c)
 	p = c->aux;
 	qlock(p);
 
-	if(c->flag & COPEN){
+	if(c->flag & COPEN) {
 		/*
 		 *  closing either side hangs up the stream
 		 */
-		switch(ZPTYPE(c->qid.path)){
+		switch(ZPTYPE(c->qid.path)) {
 		case Qdata0:
 			p->qref[0]--;
-			if(p->qref[0] == 0){
+			if(p->qref[0] == 0) {
 				zqhangup(&p->q[1]);
 				zqclose(&p->q[0]);
 			}
 			break;
 		case Qdata1:
 			p->qref[1]--;
-			if(p->qref[1] == 0){
+			if(p->qref[1] == 0) {
 				zqhangup(&p->q[0]);
 				zqclose(&p->q[1]);
 			}
@@ -440,7 +433,7 @@ zpclose(Chan *c)
 	/*
 	 *  if both sides are closed, they are reusable
 	 */
-	if(p->qref[0] == 0 && p->qref[1] == 0){
+	if(p->qref[0] == 0 && p->qref[1] == 0) {
 		zqreopen(&p->q[0]);
 		zqreopen(&p->q[1]);
 	}
@@ -449,7 +442,7 @@ zpclose(Chan *c)
 	 *  free the structure on last close
 	 */
 	p->ref--;
-	if(p->ref == 0){
+	if(p->ref == 0) {
 		qunlock(p);
 		free(p);
 	} else
@@ -457,15 +450,15 @@ zpclose(Chan *c)
 }
 
 static int32_t
-zpread(Chan *c, void *va, int32_t n, int64_t  mm)
+zpread(Chan *c, void *va, int32_t n, int64_t mm)
 {
 	ZPipe *p;
-	Kzio io[32];	/* might read less than we could */
+	Kzio io[32]; /* might read less than we could */
 	int nio;
 
 	p = c->aux;
 
-	switch(ZPTYPE(c->qid.path)){
+	switch(ZPTYPE(c->qid.path)) {
 	case Qdir:
 		return devdirread(c, va, n, zpdir, NZPDIR, zpgen);
 	case Qdata0:
@@ -477,7 +470,7 @@ zpread(Chan *c, void *va, int32_t n, int64_t  mm)
 	default:
 		panic("zpread");
 	}
-	return -1;	/* not reached */
+	return -1; /* not reached */
 }
 
 static int
@@ -487,7 +480,7 @@ zpzread(Chan *c, Kzio io[], int nio, usize n, int64_t offset)
 
 	p = c->aux;
 
-	switch(ZPTYPE(c->qid.path)){
+	switch(ZPTYPE(c->qid.path)) {
 	case Qdir:
 		return devzread(c, io, nio, n, offset);
 	case Qdata0:
@@ -497,9 +490,8 @@ zpzread(Chan *c, Kzio io[], int nio, usize n, int64_t offset)
 	default:
 		panic("zpread");
 	}
-	return -1;	/* not reached */
+	return -1; /* not reached */
 }
-
 
 /*
  *  a write to a closed zp should cause a note to be sent to
@@ -512,7 +504,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
 	Proc *up = externup();
 	ZPipe *p;
-	Kzio io;	/* might write less than we could */
+	Kzio io; /* might write less than we could */
 	int32_t tot, nw;
 	Segment *s;
 	Zq *q;
@@ -521,7 +513,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 	if(n <= 0)
 		return n;
 	p = c->aux;
-	switch(ZPTYPE(c->qid.path)){
+	switch(ZPTYPE(c->qid.path)) {
 	case Qdata0:
 		q = &p->q[1];
 		break;
@@ -534,12 +526,12 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 	}
 
 	s = getzkseg();
-	if(waserror()){
+	if(waserror()) {
 		putseg(s);
 		nexterror();
 	}
 	cp = va;
-	for(tot = 0; tot < n; tot += nw){
+	for(tot = 0; tot < n; tot += nw) {
 		nw = n;
 		if(nw > Maxatomic)
 			nw = Maxatomic;
@@ -548,7 +540,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 		io.seg = s;
 		incref(s);
 		io.size = nw;
-		DBG("zpwrite: copy %Z %#p\n", &io, cp+tot);
+		DBG("zpwrite: copy %Z %#p\n", &io, cp + tot);
 		zqwrite(q, &io, 1);
 	}
 	poperror();
@@ -563,7 +555,7 @@ zpzwrite(Chan *c, Kzio io[], int nio, int64_t mm)
 
 	p = c->aux;
 
-	switch(ZPTYPE(c->qid.path)){
+	switch(ZPTYPE(c->qid.path)) {
 	case Qdata0:
 		zqwrite(&p->q[1], io, nio);
 		break;
@@ -579,28 +571,27 @@ zpzwrite(Chan *c, Kzio io[], int nio, int64_t mm)
 	return nio;
 }
 
-
 Dev zpdevtab = {
-	L'∏',
-	"zp",
+    L'∏',
+    "zp",
 
-	devreset,
-	devinit,
-	devshutdown,
-	zpattach,
-	zpwalk,
-	zpstat,
-	zpopen,
-	devcreate,
-	zpclose,
-	zpread,
-	devbread,
-	zpwrite,
-	devbwrite,
-	devremove,
-	devwstat,
-	nil,		/* power */
-	nil,		/* config */
-	zpzread,
-	zpzwrite,
+    devreset,
+    devinit,
+    devshutdown,
+    zpattach,
+    zpwalk,
+    zpstat,
+    zpopen,
+    devcreate,
+    zpclose,
+    zpread,
+    devbread,
+    zpwrite,
+    devbwrite,
+    devremove,
+    devwstat,
+    nil, /* power */
+    nil, /* config */
+    zpzread,
+    zpzwrite,
 };

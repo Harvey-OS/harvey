@@ -27,7 +27,7 @@
 /* Client interface to Display PostScript facilities. */
 
 #ifndef gsdps_INCLUDED
-#  define gsdps_INCLUDED
+#define gsdps_INCLUDED
 
 /* Device-source images */
 #include "gsiparm2.h"

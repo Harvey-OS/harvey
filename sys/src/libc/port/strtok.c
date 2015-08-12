@@ -10,9 +10,9 @@
 #include <u.h>
 #include <libc.h>
 
-#define	N	256
+#define N 256
 
-char*
+char *
 strtok(char *s, char *b)
 {
 	static char *under_rock;
@@ -20,17 +20,17 @@ strtok(char *s, char *b)
 
 	memset(map, 0, N);
 	while(*b)
-		map[*(uint8_t*)b++] = 1;
+		map[*(uint8_t *)b++] = 1;
 	if(s == 0)
 		s = under_rock;
-	while(map[*(uint8_t*)s++])
+	while(map[*(uint8_t *)s++])
 		;
 	if(*--s == 0)
 		return 0;
 	os = s;
-	while(map[*(uint8_t*)s] == 0)
+	while(map[*(uint8_t *)s] == 0)
 		if(*s++ == 0) {
-			under_rock = s-1;
+			under_rock = s - 1;
 			return os;
 		}
 	*s++ = 0;

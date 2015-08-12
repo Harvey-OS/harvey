@@ -10,10 +10,10 @@
 #include "headers.h"
 
 static SmbTransactionMethod method = {
-	.encodeprimary = smbtransactionencodeprimary2,
-	.sendrequest = smbtransactionclientsend,
-	.receiveresponse = smbtransactionclientreceive,
-	.decoderesponse = smbtransactiondecoderesponse2,
+    .encodeprimary = smbtransactionencodeprimary2,
+    .sendrequest = smbtransactionclientsend,
+    .receiveresponse = smbtransactionclientreceive,
+    .decoderesponse = smbtransactiondecoderesponse2,
 };
 
 int
@@ -41,7 +41,7 @@ smbclienttrans2(SmbClient *c, uint8_t scount, uint16_t *setup,
 int
 smbclienttrans2findfirst2(SmbClient *c, uint16_t searchcount,
 			  char *filename,
-	uint16_t *sidp, uint16_t *searchcountp, uint16_t *endofsearchp,SmbFindFileBothDirectoryInfo *ip,
+			  uint16_t *sidp, uint16_t *searchcountp, uint16_t *endofsearchp, SmbFindFileBothDirectoryInfo *ip,
 			  char **errmsgp)
 {
 	int rv;
@@ -62,55 +62,39 @@ smbclienttrans2findfirst2(SmbClient *c, uint16_t searchcount,
 	outdata = smbbuffernew(65535);
 	rv = smbclienttrans2(c, 1, &setup, inparam, outparam, outdata, &rh, errmsgp);
 	smbbufferfree(&inparam);
-	if (rv) {
+	if(rv) {
 		uint16_t eaerroroffset, lastnameoffset;
 		uint32_t nextentry;
 		int i;
 
-		if (!smbbuffergets(outparam, sidp)
-			|| !smbbuffergets(outparam, searchcountp)
-			|| !smbbuffergets(outparam, endofsearchp)
-			|| !smbbuffergets(outparam, &eaerroroffset)
-			|| !smbbuffergets(outparam, &lastnameoffset)) {
+		if(!smbbuffergets(outparam, sidp) || !smbbuffergets(outparam, searchcountp) || !smbbuffergets(outparam, endofsearchp) || !smbbuffergets(outparam, &eaerroroffset) || !smbbuffergets(outparam, &lastnameoffset)) {
 			smbstringprint(errmsgp, "smbclienttrans2findfirst2: not enough parameters returned");
 			rv = 0;
 			goto done;
 		}
 		nextentry = 0;
-smblogprint(-1, "returned data:\n");
-smblogdata(-1, smblogprint, smbbufferreadpointer(outdata), smbbufferreadspace(outdata), 256);
-		for (i = 0; i < *searchcountp; i++) {
+		smblogprint(-1, "returned data:\n");
+		smblogdata(-1, smblogprint, smbbufferreadpointer(outdata), smbbufferreadspace(outdata), 256);
+		for(i = 0; i < *searchcountp; i++) {
 			SmbFindFileBothDirectoryInfo *info = ip + i;
 			uint32_t neo, filenamelength, easize;
 			uint8_t shortnamelength;
-			if (i && !smbbufferreadskipto(outdata, nextentry)) {
+			if(i && !smbbufferreadskipto(outdata, nextentry)) {
 			underflow:
 				smbstringprint(errmsgp, "smbclientrans2findfirst2: not enough data returned");
 				rv = 0;
 				goto done;
 			}
-			if (!smbbuffergetl(outdata, &neo))
+			if(!smbbuffergetl(outdata, &neo))
 				goto underflow;
 			nextentry = smbbufferreadoffset(outdata) + neo - 4;
-print("neo 0x%.8lux\n", neo);
-			if (!smbbuffergetl(outdata, &info->fileindex)
-				|| !smbbuffergetv(outdata, &info->creationtime)
-				|| !smbbuffergetv(outdata, &info->lastaccesstime)
-				|| !smbbuffergetv(outdata, &info->lastwritetime)
-				|| !smbbuffergetv(outdata, &info->changetime)
-				|| !smbbuffergetv(outdata, &info->endoffile)
-				|| !smbbuffergetv(outdata, &info->allocationsize))
+			print("neo 0x%.8lux\n", neo);
+			if(!smbbuffergetl(outdata, &info->fileindex) || !smbbuffergetv(outdata, &info->creationtime) || !smbbuffergetv(outdata, &info->lastaccesstime) || !smbbuffergetv(outdata, &info->lastwritetime) || !smbbuffergetv(outdata, &info->changetime) || !smbbuffergetv(outdata, &info->endoffile) || !smbbuffergetv(outdata, &info->allocationsize))
 				goto underflow;
-print("got here\n");
-			if (!smbbuffergetl(outdata, &info->extfileattributes)
-				|| !smbbuffergetl(outdata, &filenamelength)
-				|| !smbbuffergetl(outdata, &easize)
-				|| !smbbuffergetb(outdata, &shortnamelength)
-				|| !smbbuffergetbytes(outdata, nil, 1)
-				|| !smbbuffergetbytes(outdata, nil, 24)
-				|| !smbbuffergetstring(outdata, &rh, SMB_STRING_REVPATH, &info->filename))
+			print("got here\n");
+			if(!smbbuffergetl(outdata, &info->extfileattributes) || !smbbuffergetl(outdata, &filenamelength) || !smbbuffergetl(outdata, &easize) || !smbbuffergetb(outdata, &shortnamelength) || !smbbuffergetbytes(outdata, nil, 1) || !smbbuffergetbytes(outdata, nil, 24) || !smbbuffergetstring(outdata, &rh, SMB_STRING_REVPATH, &info->filename))
 				goto underflow;
-print("got here as well\n");
+			print("got here as well\n");
 		}
 	}
 done:
@@ -118,4 +102,3 @@ done:
 	smbbufferfree(&outdata);
 	return rv;
 }
-

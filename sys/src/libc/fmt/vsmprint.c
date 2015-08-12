@@ -23,16 +23,16 @@ fmtStrFlush(Fmt *f)
 	n *= 2;
 	s = f->start;
 	f->start = realloc(s, n);
-	if(f->start == nil){
+	if(f->start == nil) {
 		f->farg = nil;
 		f->to = nil;
 		f->stop = nil;
 		free(s);
 		return 0;
 	}
-	f->farg = (void*)(uintptr_t)n;
-	f->to = (char*)f->start + ((char*)f->to - s);
-	f->stop = (char*)f->start + n - 1;
+	f->farg = (void *)(uintptr_t)n;
+	f->to = (char *)f->start + ((char *)f->to - s);
+	f->stop = (char *)f->start + n - 1;
 	return 1;
 }
 
@@ -51,9 +51,9 @@ fmtstrinit(Fmt *f)
 		return -1;
 	setmalloctag(f->start, getcallerpc(&f));
 	f->to = f->start;
-	f->stop = (char*)f->start + n - 1;
+	f->stop = (char *)f->start + n - 1;
 	f->flush = fmtStrFlush;
-	f->farg = (void*)(uintptr_t)n;
+	f->farg = (void *)(uintptr_t)n;
 	f->nfmt = 0;
 	return 0;
 }
@@ -61,7 +61,7 @@ fmtstrinit(Fmt *f)
 /*
  * print into an allocated string buffer
  */
-char*
+char *
 vsmprint(char *fmt, va_list args)
 {
 	Fmt f;
@@ -70,16 +70,16 @@ vsmprint(char *fmt, va_list args)
 	if(fmtstrinit(&f) < 0)
 		return nil;
 	//f.args = args;
-	va_copy(f.args,args);
+	va_copy(f.args, args);
 	n = dofmt(&f, fmt);
 	va_end(f.args);
-	if(f.start == nil)		/* realloc failed? */
+	if(f.start == nil) /* realloc failed? */
 		return nil;
-	if(n < 0){
+	if(n < 0) {
 		free(f.start);
 		return nil;
 	}
 	setmalloctag(f.start, getcallerpc(&fmt));
-	*(char*)f.to = '\0';
+	*(char *)f.to = '\0';
 	return f.start;
 }

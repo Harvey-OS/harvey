@@ -22,43 +22,43 @@
 #include <bio.h>
 #include <String.h>
 
-#define CPP		"cpp -+"
-#define RINSTERR	((Rinst *)-1)	/* ugly; error but keep going */
+#define CPP "cpp -+"
+#define RINSTERR ((Rinst *)-1) /* ugly; error but keep going */
 
-#define STREQ(a, b)	(*(a) == *(b) && strcmp(a, b) == 0)
-#define OTHER(rdwr)	((rdwr) == Rd? Wr: Rd)
+#define STREQ(a, b) (*(a) == *(b) && strcmp(a, b) == 0)
+#define OTHER(rdwr) ((rdwr) == Rd ? Wr : Rd)
 /* per 8c, all multibyte runes are considered alphabetic */
 #define ISIDENT(r) (isascii(r) && isalnum(r) || (r) == '_' || (r) >= Runeself)
 
 /* safe macros */
-#define checksys(atom)		strbsearch(atom, sysword, nelem(sysword))
+#define checksys(atom) strbsearch(atom, sysword, nelem(sysword))
 
 enum {
-	Printstats =	0,		/* flag */
-	Maxseen =	4000,		/* # of instances w/in a function */
-	Maxdepth =	300,		/* max func call tree depth */
-	Hashsize =	2048,
+	Printstats = 0, /* flag */
+	Maxseen = 4000, /* # of instances w/in a function */
+	Maxdepth = 300, /* max func call tree depth */
+	Hashsize = 2048,
 
-	Maxid =		256 + UTFmax,	/* max size of name */
-	Tabwidth =	8,
-	Maxwidth =	132,		/* limits tabbing */
-	Defwidth =	80,		/* limits tabbing */
+	Maxid = 256 + UTFmax, /* max size of name */
+	Tabwidth = 8,
+	Maxwidth = 132, /* limits tabbing */
+	Defwidth = 80,  /* limits tabbing */
 
-	Backslash =	'\\',
-	Quote =		'\'',
+	Backslash = '\\',
+	Quote = '\'',
 
-	Rd =		0,		/* pipe indices */
+	Rd = 0, /* pipe indices */
 	Wr,
 
-	Stdin =		0,
+	Stdin = 0,
 	Stdout,
 	Stderr,
 
-	Defn =		0,
+	Defn = 0,
 	Decl,
 	Call,
 
-	Nomore =	-1,
+	Nomore = -1,
 	Added,
 	Found,
 };
@@ -70,66 +70,66 @@ typedef struct Rname Rname;
 typedef struct Rnamehash Rnamehash;
 
 struct Pushstate {
-	int	kid;
-	int	fd;	/* original fd */
-	int	rfd;	/* replacement fd */
-	int	input;
-	int	open;
+	int kid;
+	int fd;  /* original fd */
+	int rfd; /* replacement fd */
+	int input;
+	int open;
 };
 
 struct Rname {
-	Rinst	*dlistp;
-	int	rnameout;
-	char	rnamecalled;
-	char	rnamedefined;
-	char	*namer;
-	Rname	*next;		/* next in hash chain */
+	Rinst *dlistp;
+	int rnameout;
+	char rnamecalled;
+	char rnamedefined;
+	char *namer;
+	Rname *next; /* next in hash chain */
 };
 
 struct Rnamehash {
-	Rname	*head;
+	Rname *head;
 };
 
 /* list of calling instances of those names */
 struct Rinst {
-	Rname	*namep;
-	Rinst	*calls;
-	Rinst	*calledby;
+	Rname *namep;
+	Rinst *calls;
+	Rinst *calledby;
 };
 
 struct Root {
-	char	*func;
-	Root	*next;
+	char *func;
+	Root *next;
 };
 
-char *aseen[Maxseen];		/* names being gathered within a function */
-Rnamehash nameshash[Hashsize];	/* names being tracked */
-Rname *activelist[Maxdepth];	/* names being output */
+char *aseen[Maxseen];	  /* names being gathered within a function */
+Rnamehash nameshash[Hashsize]; /* names being tracked */
+Rname *activelist[Maxdepth];   /* names being output */
 String *cppopt;
 Root *roots;
 
 static struct stats {
-	int32_t	highestseen;	/* aseen high water mark */
-	int32_t	highestname;	/* namelist high water mark */
-	int32_t	highestact;	/* activelist high water mark */
-	int32_t	highgetfree;	/* getfrees high water mark */
+	int32_t highestseen; /* aseen high water mark */
+	int32_t highestname; /* namelist high water mark */
+	int32_t highestact;  /* activelist high water mark */
+	int32_t highgetfree; /* getfrees high water mark */
 } stats;
 
 static int32_t getfrees = 0;
 
-int bracket = 0;			/* curly brace count in input */
-int linect = 0;				/* line number in output */
-int activep = 0;			/* current function being output */
+int bracket = 0; /* curly brace count in input */
+int linect = 0;  /* line number in output */
+int activep = 0; /* current function being output */
 
 char *infile;
-int lineno = 1;				/* line number of input */
+int lineno = 1; /* line number of input */
 int prevc = '\n', thisc = '\n';
 
 /* options */
 int terse = 1;				/* track functions only once */
-int ntabs = (Maxwidth - 20) / Tabwidth;	/* how wide to go */
+int ntabs = (Maxwidth - 20) / Tabwidth; /* how wide to go */
 
-char *dashes;				/* separators for deep nestings */
+char *dashes; /* separators for deep nestings */
 
 /*
  * These are C tokens after which a parenthesis is valid which would
@@ -137,10 +137,10 @@ char *dashes;				/* separators for deep nestings */
  * listed are break, const, continue, default, goto and volatile.
  */
 char *sysword[] = {
-	"auto", "case", "char", "do", "double", "else", "enum",
-	"extern", "float", "for", "if", "int", "int32_t", "register",
-	"return", "short", "sizeof", "static", "struct", "switch",
-	"typedef", "union", "unsigned", "void", "while",
+    "auto", "case", "char", "do", "double", "else", "enum",
+    "extern", "float", "for", "if", "int", "int32_t", "register",
+    "return", "short", "sizeof", "static", "struct", "switch",
+    "typedef", "union", "unsigned", "void", "while",
 };
 
 /*
@@ -162,7 +162,7 @@ emalloc(int size)
 {
 	void *f = mallocz(size, 1);
 
-	if (f == nil)
+	if(f == nil)
 		sysfatal("cannot allocate memory");
 	return f;
 }
@@ -217,11 +217,11 @@ lookfor(char *name)
 	buck = hash(name) % Hashsize;
 	hp = &nameshash[buck];
 	i = 0;
-	for (np = hp->head; np != nil; np = np->next, i++)
-		if (STREQ(name, np->namer))
+	for(np = hp->head; np != nil; np = np->next, i++)
+		if(STREQ(name, np->namer))
 			return np;
 
-	if (i > stats.highestname)
+	if(i > stats.highestname)
 		stats.highestname = i;
 	return nil;
 }
@@ -238,7 +238,7 @@ place(char name[])
 	Rnamehash *hp;
 
 	np = lookfor(name);
-	if (np != nil)
+	if(np != nil)
 		return np;
 
 	buck = hash(name) % Hashsize;
@@ -260,14 +260,14 @@ getfree(void)
 	static Rinst *prev;
 
 	++getfrees;
-	if (getfrees > stats.highgetfree)
+	if(getfrees > stats.highgetfree)
 		stats.highgetfree = getfrees;
 
-	if (prev == nil)
+	if(prev == nil)
 		prev = emalloc(sizeof *prev);
 	new = emalloc(sizeof *new);
 
-	prev->calls = new;		/* also serves as next pointer */
+	prev->calls = new; /* also serves as next pointer */
 	new->calledby = prev;
 
 	ret = prev;
@@ -287,14 +287,14 @@ install(Rname *np, Rinst *rp)
 {
 	Rinst *newp;
 
-	if (np == nil)
+	if(np == nil)
 		return RINSTERR;
-	if ((newp = getfree()) == nil)
+	if((newp = getfree()) == nil)
 		return nil;
 	newp->namep = np;
 	newp->calls = 0;
-	if (rp) {
-		while (rp->calls)
+	if(rp) {
+		while(rp->calls)
 			rp = rp->calls;
 		newp->calledby = rp->calledby;
 		rp->calls = newp;
@@ -325,16 +325,16 @@ newproc(char *name)
 	int i;
 	Rname *rp;
 
-	for (i = 0; i < Maxseen; i++)
-		if (aseen[i] != nil) {
+	for(i = 0; i < Maxseen; i++)
+		if(aseen[i] != nil) {
 			free(aseen[i]);
 			aseen[i] = nil;
 		}
 	rp = place(name);
-	if (rp == nil)
+	if(rp == nil)
 		return RINSTERR;
 	/* declaration in a header file is enough to cause this. */
-	if (0 && rp->rnamedefined)
+	if(0 && rp->rnamedefined)
 		warning("function `%s' redeclared", name);
 	rp->rnamedefined = 1;
 	return install(rp, nil);
@@ -349,8 +349,8 @@ add2call(char name[], Rinst *curp)
 	Rname *p = place(name);
 	Rinst *ip = install(p, curp);
 
-	if (p != nil && curp != nil && curp->namep != nil &&
-	    !STREQ(p->namer, curp->namep->namer))
+	if(p != nil && curp != nil && curp->namep != nil &&
+	   !STREQ(p->namer, curp->namep->namer))
 		p->rnamecalled = 1;
 	return ip != nil;
 }
@@ -361,7 +361,7 @@ add2call(char name[], Rinst *curp)
 void
 backup(void)
 {
-	if (activep > 0)
+	if(activep > 0)
 		activelist[--activep] = nil;
 }
 
@@ -373,8 +373,8 @@ backup(void)
 int
 makeactive(Rname *func)
 {
-	if (activep < Maxdepth) {
-		if (activep > stats.highestact)
+	if(activep < Maxdepth) {
+		if(activep > stats.highestact)
 			stats.highestact = activep;
 		activelist[activep++] = func;
 		return 1;
@@ -391,8 +391,8 @@ active(Rname *func)
 {
 	int i;
 
-	for (i = 0; i < activep - 1; i++)
-		if (func == activelist[i])
+	for(i = 0; i < activep - 1; i++)
+		if(func == activelist[i])
 			return 1;
 	return 0;
 }
@@ -415,49 +415,49 @@ output(Rname *func, int tabc)
 
 	++linect;
 	print("\n%d", linect);
-	if (!makeactive(func)) {
+	if(!makeactive(func)) {
 		print("   * nesting is too deep");
 		return;
 	}
 	tabstar = 0;
 	tabd = tabc;
-	for (; tabd > ntabs; tabstar++)
+	for(; tabd > ntabs; tabstar++)
 		tabd -= ntabs;
-	if (tabstar > 0) {
+	if(tabstar > 0) {
 		print("  ");
-		for (i = 0; i < tabstar; i++)
+		for(i = 0; i < tabstar; i++)
 			print("<");
 	}
-	if (tabd == 0)
+	if(tabd == 0)
 		print("   ");
 	else
-		for (i = 0; i < tabd; i++)
+		for(i = 0; i < tabd; i++)
 			print("\t");
-	if (active(func))
-		print("<<< %s", func->namer);		/* recursive call */
-	else if (func->dlistp == nil)
+	if(active(func))
+		print("<<< %s", func->namer); /* recursive call */
+	else if(func->dlistp == nil)
 		print("%s [external]", func->namer);
 	else {
 		print("%s", func->namer);
 		nextp = func->dlistp->calls;
-		if (!terse || !func->rnameout) {
+		if(!terse || !func->rnameout) {
 			++tabc;
-			if (!func->rnameout)
+			if(!func->rnameout)
 				func->rnameout = linect;
-			if (tabc > ntabs && tabc%ntabs == 1 && nextp) {
+			if(tabc > ntabs && tabc % ntabs == 1 && nextp) {
 				print("\n%s", dashes);
 				tflag = 1;
 			} else
 				tflag = 0;
-			for (; nextp; nextp = nextp->calls)
+			for(; nextp; nextp = nextp->calls)
 				output(nextp->namep, tabc);
-			if (tflag) {
+			if(tflag) {
 				print("\n%s", dashes);
 				tflag = 0;
 				USED(tflag);
 			}
-		} else if (nextp != nil)		/* not a leaf */
-			print(" ... [see line %d]",  func->rnameout);
+		} else if(nextp != nil) /* not a leaf */
+			print(" ... [see line %d]", func->rnameout);
 	}
 	backup();
 }
@@ -473,19 +473,19 @@ dumptree(void)
 	Root *rp;
 	Rname *np;
 
-	if (roots != nil)
-		for (rp = roots; rp != nil; rp = rp->next)
-			if ((np = lookfor(rp->func)) != nil) {
+	if(roots != nil)
+		for(rp = roots; rp != nil; rp = rp->next)
+			if((np = lookfor(rp->func)) != nil) {
 				output(np, 0);
 				print("\n\n");
 			} else
 				fprint(2, "%s: function '%s' not found\n",
-					argv0, rp->func);
+				       argv0, rp->func);
 	else
 		/* print everything */
-		for (buck = 0; buck < Hashsize; buck++)
-			for (np = nameshash[buck].head; np != nil; np = np->next)
-				if (!np->rnamecalled) {
+		for(buck = 0; buck < Hashsize; buck++)
+			for(np = nameshash[buck].head; np != nil; np = np->next)
+				if(!np->rnamecalled) {
 					output(np, 0);
 					print("\n\n");
 				}
@@ -499,37 +499,37 @@ skipcomments(Biobuf *in, int firstc)
 {
 	int c;
 
-	for (c = firstc; isascii(c) && isspace(c) || c == '/'; c = nextc(in)) {
-		if (c == '\n')
+	for(c = firstc; isascii(c) && isspace(c) || c == '/'; c = nextc(in)) {
+		if(c == '\n')
 			lineno++;
-		if (c != '/')
+		if(c != '/')
 			continue;
-		c = nextc(in);			/* read ahead */
-		if (c == Beof)
+		c = nextc(in); /* read ahead */
+		if(c == Beof)
 			break;
-		if (c != '*' && c != '/') {	/* not comment start? */
-			ungetc(in);		/* push back readahead */
+		if(c != '*' && c != '/') { /* not comment start? */
+			ungetc(in);	/* push back readahead */
 			return '/';
 		}
-		if (c == '/') {			/* c++ style */
-			while ((c = nextc(in)) != '\n' && c != Beof)
+		if(c == '/') { /* c++ style */
+			while((c = nextc(in)) != '\n' && c != Beof)
 				;
-			if (c == '\n')
+			if(c == '\n')
 				lineno++;
 			continue;
 		}
-		for (;;) {
+		for(;;) {
 			/* skip to possible closing delimiter */
-			while ((c = nextc(in)) != '*' && c != Beof)
-				if (c == '\n')
+			while((c = nextc(in)) != '*' && c != Beof)
+				if(c == '\n')
 					lineno++;
-			if (c == Beof)
+			if(c == Beof)
 				break;
 			/* else c == '*' */
-			c = nextc(in);		 /* read ahead */
-			if (c == Beof || c == '/') /* comment end? */
+			c = nextc(in);		  /* read ahead */
+			if(c == Beof || c == '/') /* comment end? */
 				break;
-			ungetc(in);		/* push back readahead */
+			ungetc(in); /* push back readahead */
 		}
 	}
 	return c;
@@ -554,17 +554,17 @@ isfndefn(Biobuf *in)
 	int c;
 
 	c = skipcomments(in, nextc(in));
-	while (c != ')' && c != Beof)	/* consume arg. decl.s */
+	while(c != ')' && c != Beof) /* consume arg. decl.s */
 		c = nextc(in);
-	if (c == Beof)
-		return 1;		/* definition at Beof */
+	if(c == Beof)
+		return 1;		 /* definition at Beof */
 	c = skipcomments(in, nextc(in)); /* skip blanks between ) and ; */
 
-	if (c == ';' || c == ',')
-		return 0;		/* an extern declaration */
-	if (c != Beof)
+	if(c == ';' || c == ',')
+		return 0; /* an extern declaration */
+	if(c != Beof)
 		ungetc(in);
-	return 1;			/* a definition */
+	return 1; /* a definition */
 }
 
 /*
@@ -577,16 +577,16 @@ strbsearch(char *key, char **base, unsigned nel)
 	int cmp;
 	char **last = base + nel - 1, **pos;
 
-	while (last >= base) {
+	while(last >= base) {
 		pos = base + ((last - base) >> 1);
 		cmp = key[0] - (*pos)[0];
-		if (cmp == 0) {
+		if(cmp == 0) {
 			/* there are no empty strings in the table */
 			cmp = strcmp(key, *pos);
-			if (cmp == 0)
+			if(cmp == 0)
 				return 1;
 		}
-		if (cmp < 0)
+		if(cmp < 0)
 			last = pos - 1;
 		else
 			base = pos + 1;
@@ -602,13 +602,13 @@ seen(char *atom)
 {
 	int i;
 
-	for (i = 0; aseen[i] != nil && i < Maxseen-1; i++)
-		if (STREQ(atom, aseen[i]))
+	for(i = 0; aseen[i] != nil && i < Maxseen - 1; i++)
+		if(STREQ(atom, aseen[i]))
 			return Found;
-	if (i >= Maxseen-1)
+	if(i >= Maxseen - 1)
 		return Nomore;
 	aseen[i] = strdup(atom);
-	if (i > stats.highestseen)
+	if(i > stats.highestseen)
 		stats.highestseen = i;
 	return Added;
 }
@@ -621,16 +621,16 @@ int
 getfunc(Biobuf *in, char *atom)
 {
 	int c, nf, last, ss, quote;
-	char *ln, *nm, *ap, *ep = &atom[Maxid-1-UTFmax];
+	char *ln, *nm, *ap, *ep = &atom[Maxid - 1 - UTFmax];
 	char *flds[4];
 	Rune r;
 
 	c = nextc(in);
-	while (c != Beof) {
-		if (ISIDENT(c)) {
+	while(c != Beof) {
+		if(ISIDENT(c)) {
 			ap = atom;
 			do {
-				if (isascii(c))
+				if(isascii(c))
 					*ap++ = c;
 				else {
 					r = c;
@@ -639,95 +639,95 @@ getfunc(Biobuf *in, char *atom)
 				c = nextc(in);
 			} while(ap < ep && ISIDENT(c));
 			*ap = '\0';
-			if (ap >= ep) {	/* uncommon case: id won't fit */
+			if(ap >= ep) { /* uncommon case: id won't fit */
 				/* consume remainder of too-int32_t id */
-				while (ISIDENT(c))
+				while(ISIDENT(c))
 					c = nextc(in);
 			}
 		}
 
-		switch (c) {
+		switch(c) {
 		case Beof:
 			return Beof;
 		case '\n':
 			lineno++;
-			/* fall through */
-		case '\t':		/* ignore white space */
+		/* fall through */
+		case '\t': /* ignore white space */
 		case ' ':
 		case '\f':
 		case '\r':
-		case '/':		/* potential comment? */
+		case '/': /* potential comment? */
 			c = skipcomments(in, nextc(in));
 			break;
-		case Backslash:		/* consume a newline or something */
-		case ')':		/* end of parameter list */
+		case Backslash: /* consume a newline or something */
+		case ')':       /* end of parameter list */
 		default:
 			c = newatom(in, atom);
 			break;
 		case '#':
-			if (prevc != '\n') {	/* cpp # or ## operator? */
-				c = nextc(in);	/* read ahead */
+			if(prevc != '\n') {    /* cpp # or ## operator? */
+				c = nextc(in); /* read ahead */
 				break;
 			}
 			/* it's a cpp directive */
 			ln = Brdline(in, '\n');
-			if (ln == nil)
+			if(ln == nil)
 				thisc = c = Beof;
 			else {
 				nf = tokenize(ln, flds, nelem(flds));
-				if (nf >= 3 && strcmp(flds[0], "line") == 0) {
+				if(nf >= 3 && strcmp(flds[0], "line") == 0) {
 					lineno = atoi(flds[1]);
 					free(infile);
 					nm = flds[2];
-					if (nm[0] == '"')
+					if(nm[0] == '"')
 						nm++;
 					last = strlen(nm) - 1;
-					if (nm[last] == '"')
+					if(nm[last] == '"')
 						nm[last] = '\0';
 					infile = strdup(nm);
 				} else
 					lineno++;
-				c = nextc(in);	/* read ahead */
+				c = nextc(in); /* read ahead */
 			}
 			break;
-		case Quote:		/* character constant */
-		case '\"':		/* string constant */
+		case Quote: /* character constant */
+		case '\"':  /* string constant */
 			quote = c;
 			atom[0] = '\0';
-			while ((c = nextc(in)) != quote && c != Beof)
-				if (c == Backslash)
+			while((c = nextc(in)) != quote && c != Beof)
+				if(c == Backslash)
 					nextc(in);
-			if (c == quote)
+			if(c == quote)
 				c = nextc(in);
 			break;
-		case '{':		/* start of a block */
+		case '{': /* start of a block */
 			bracket++;
 			c = newatom(in, atom);
 			break;
-		case '}':		/* end of a block */
-			if (bracket < 1)
+		case '}': /* end of a block */
+			if(bracket < 1)
 				fprint(2, "%s: %s:%d: too many closing braces; "
-					"previous open brace missing\n",
-					argv0, infile, lineno);
+					  "previous open brace missing\n",
+				       argv0, infile, lineno);
 			else
 				--bracket;
 			c = newatom(in, atom);
 			break;
-		case '(':		/* parameter list for function? */
-			if (atom[0] != '\0' && !checksys(atom)) {
-				if (bracket == 0)
-					if (isfndefn(in))
+		case '(': /* parameter list for function? */
+			if(atom[0] != '\0' && !checksys(atom)) {
+				if(bracket == 0)
+					if(isfndefn(in))
 						return Defn;
 					else {
 						c = nextc(in);
-						break;		/* ext. decl. */
+						break; /* ext. decl. */
 					}
 				ss = seen(atom);
-				if (ss == Nomore)
+				if(ss == Nomore)
 					fprint(2, "%s: %s:%d: more than %d "
-						"identifiers in a function\n",
-						argv0, infile, lineno, Maxseen);
-				if (bracket > 0 && ss == Added)
+						  "identifiers in a function\n",
+					       argv0, infile, lineno, Maxseen);
+				if(bracket > 0 && ss == Added)
 					return Call;
 			}
 			c = newatom(in, atom);
@@ -754,9 +754,9 @@ addfuncs(int infd)
 	in = &inbb;
 	Binit(in, infd, OREAD);
 	atom[0] = '\0';
-	while ((intern = getfunc(in, atom)) != Beof && ok)
-		if (intern == Call)
-			ok = add2call(atom, curproc);	/* function call */
+	while((intern = getfunc(in, atom)) != Beof && ok)
+		if(intern == Call)
+			ok = add2call(atom, curproc); /* function call */
 		else
 			ok = (uintptr)(curproc = newproc(atom)); /* fn def'n */
 	Bterm(in);
@@ -775,30 +775,30 @@ push(int fd, char *cmd, int input, Pushstate *ps)
 	ps->open = 0;
 	ps->fd = fd;
 	ps->input = input;
-	if (fd < 0 || pipe(pifds) < 0)
+	if(fd < 0 || pipe(pifds) < 0)
 		return -1;
 	ps->kid = fork();
-	switch (ps->kid) {
+	switch(ps->kid) {
 	case -1:
 		return -1;
 	case 0:
-		if (input)
+		if(input)
 			dup(pifds[Wr], Stdout);
 		else
 			dup(pifds[Rd], Stdin);
-		close(pifds[input? Rd: Wr]);
-		dup(fd, (input? Stdin: Stdout));
+		close(pifds[input ? Rd : Wr]);
+		dup(fd, (input ? Stdin : Stdout));
 
 		s = s_new();
-		if (cmd[0] != '/')
+		if(cmd[0] != '/')
 			s_append(s, "/bin/");
 		s_append(s, cmd);
 		execl(s_to_c(s), cmd, nil);
 		execl("/bin/rc", "rc", "-c", cmd, nil);
 		sysfatal("can't exec %s: %r", cmd);
 	default:
-		nfd = pifds[input? Rd: Wr];
-		close(pifds[input? Wr: Rd]);
+		nfd = pifds[input ? Rd : Wr];
+		close(pifds[input ? Wr : Rd]);
 		break;
 	}
 	ps->rfd = nfd;
@@ -811,14 +811,14 @@ pushclose(Pushstate *ps)
 {
 	Waitmsg *wm;
 
-	if (ps->fd < 0 || ps->rfd < 0 || !ps->open)
+	if(ps->fd < 0 || ps->rfd < 0 || !ps->open)
 		return "not open";
 	close(ps->rfd);
 	ps->rfd = -1;
 	ps->open = 0;
-	while ((wm = wait()) != nil && wm->pid != ps->kid)
+	while((wm = wait()) != nil && wm->pid != ps->kid)
 		continue;
-	return wm? wm->msg: nil;
+	return wm ? wm->msg : nil;
 }
 
 /*
@@ -838,14 +838,14 @@ scanfiles(int argc, char **argv)
 	String *cmd;
 
 	cmd = s_new();
-	for (i = 0; i < argc; i++) {
+	for(i = 0; i < argc; i++) {
 		s_reset(cmd);
 		s_append(cmd, s_to_c(cppopt));
 		s_append(cmd, " ");
 		s_append(cmd, argv[i]);
 
 		infd = push(Stdin, s_to_c(cmd), Rd, &ps);
-		if (infd < 0) {
+		if(infd < 0) {
 			warning("can't execute cmd `%s'", s_to_c(cmd));
 			return;
 		}
@@ -856,7 +856,7 @@ scanfiles(int argc, char **argv)
 		addfuncs(infd);
 
 		sts = pushclose(&ps);
-		if (sts != nil && sts[0] != '\0') {
+		if(sts != nil && sts[0] != '\0') {
 			warning("cmd `%s' failed", s_to_c(cmd));
 			fprint(2, "exit status %s\n", sts);
 		}
@@ -868,7 +868,8 @@ static void
 usage(void)
 {
 	fprint(2, "usage: %s [-ptv] [-f func] [-w width] [-D define] [-U undef]"
-		" [-I dir] [file...]\n", argv0);
+		  " [-I dir] [file...]\n",
+	       argv0);
 	exits("usage");
 }
 
@@ -880,28 +881,29 @@ main(int argc, char **argv)
 	Root *rp;
 
 	cppopt = s_copy(CPP);
-	ARGBEGIN{
-	case 'f':			/* start from function arg. */
+	ARGBEGIN
+	{
+	case 'f': /* start from function arg. */
 		rp = emalloc(sizeof *rp);
 		rp->func = EARGF(usage());
 		rp->next = roots;
 		roots = rp;
 		break;
-	case 'p':			/* ape includes */
+	case 'p': /* ape includes */
 		s_append(cppopt, " -I /sys/include/ape");
 		s_append(cppopt, " -I /");
 		s_append(cppopt, getenv("objtype"));
 		s_append(cppopt, "/include/ape");
 		break;
-	case 't':			/* terse (default) */
+	case 't': /* terse (default) */
 		terse = 1;
 		break;
 	case 'v':
 		terse = 0;
 		break;
-	case 'w':			/* output width */
+	case 'w': /* output width */
 		width = atoi(EARGF(usage()));
-		if (width <= 0)
+		if(width <= 0)
 			width = Defwidth;
 		break;
 	case 'D':
@@ -913,15 +915,16 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	/* initialize the dashed separator list for deep nesting */
 	ntabs = (width - 20) / Tabwidth;
-	for (i = 0; i < width && i+1 < sizeof dashes; i += 2) {
+	for(i = 0; i < width && i + 1 < sizeof dashes; i += 2) {
 		_dashes[i] = '-';
-		_dashes[i+1] = ' ';
+		_dashes[i + 1] = ' ';
 	}
-	if (i < sizeof dashes)
+	if(i < sizeof dashes)
 		_dashes[i] = '\0';
 	else
 		_dashes[sizeof dashes - 1] = '\0';
@@ -930,11 +933,11 @@ main(int argc, char **argv)
 	scanfiles(argc, argv);
 	dumptree();
 
-	if (Printstats) {
+	if(Printstats) {
 		fprint(2, "%ld/%d aseen entries\n", stats.highestseen, Maxseen);
 		fprint(2, "%ld int32_test namelist hash chain\n", stats.highestname);
 		fprint(2, "%ld/%d activelist high water mark\n",
-			stats.highestact, Maxdepth);
+		       stats.highestact, Maxdepth);
 		fprint(2, "%ld dlist high water mark\n", stats.highgetfree);
 	}
 	exits(0);

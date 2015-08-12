@@ -7,39 +7,39 @@
  * in the LICENSE file.
  */
 
-#define LOG		"secstore"
-#define SECSTORE_DIR	"/adm/secstore"
+#define LOG "secstore"
+#define SECSTORE_DIR "/adm/secstore"
 
 enum {
-	MAXFILESIZE = 10*1024*1024,
+	MAXFILESIZE = 10 * 1024 * 1024,
 };
 
 /* PW status bits */
 enum {
-	Enabled 	= 1<<0,
-	STA 		= 1<<1,	/* extra SecurID step */
+	Enabled = 1 << 0,
+	STA = 1 << 1, /* extra SecurID step */
 };
 
 typedef struct PW {
-	char	*id;		/* user id */
-	uint32_t	expire;		/* expiration time (epoch seconds) */
-	uint16_t	status;		/* Enabled, STA, ... */
-	uint16_t	failed;		/* number of failed login attempts */
-	char	*other;		/* other information, e.g. sponsor */
-	mpint	*Hi;  		/* H(passphrase)^-1 mod p */
+	char *id;	/* user id */
+	uint32_t expire; /* expiration time (epoch seconds) */
+	uint16_t status; /* Enabled, STA, ... */
+	uint16_t failed; /* number of failed login attempts */
+	char *other;     /* other information, e.g. sponsor */
+	mpint *Hi;       /* H(passphrase)^-1 mod p */
 } PW;
 
-void	freePW(PW*);
-PW	*getPW(char*, int);
-char	*getpassm(char*);
-int	putPW(PW*);
-char	*validatefile(char*f);
+void freePW(PW *);
+PW *getPW(char *, int);
+char *getpassm(char *);
+int putPW(PW *);
+char *validatefile(char *f);
 
 /*
  * *client: SConn, client name, passphrase
  * *server: SConn, (partial) 1st msg, PW entry
  * *setpass: Username, hashed passphrase, PW entry
  */
-int	PAKclient(SConn*, char*, char*, char**);
-int	PAKserver(SConn*, char*, char*, PW**);
-char*	PAK_Hi(char*, char*, mpint*, mpint*);
+int PAKclient(SConn *, char *, char *, char **);
+int PAKserver(SConn *, char *, char *, PW **);
+char *PAK_Hi(char *, char *, mpint *, mpint *);

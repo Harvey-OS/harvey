@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-DSApub*
+DSApub *
 dsapuballoc(void)
 {
 	DSApub *dsa;
@@ -33,8 +33,7 @@ dsapubfree(DSApub *dsa)
 	mpfree(dsa->key);
 }
 
-
-DSApriv*
+DSApriv *
 dsaprivalloc(void)
 {
 	DSApriv *dsa;
@@ -57,7 +56,7 @@ dsaprivfree(DSApriv *dsa)
 	mpfree(dsa->secret);
 }
 
-DSAsig*
+DSAsig *
 dsasigalloc(void)
 {
 	DSAsig *dsa;

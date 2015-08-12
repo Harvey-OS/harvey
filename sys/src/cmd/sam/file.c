@@ -22,34 +22,31 @@
 typedef struct Undo Undo;
 typedef struct Merge Merge;
 
-struct Undo
-{
-	int16_t	type;		/* Delete, Insert, Filename, Dot, Mark */
-	int16_t	mod;		/* modify bit */
-	uint	seq;		/* sequence number */
-	uint	p0;		/* location of change (unused in f) */
-	uint	n;		/* # runes in string or file name */
+struct Undo {
+	int16_t type; /* Delete, Insert, Filename, Dot, Mark */
+	int16_t mod;  /* modify bit */
+	uint seq;     /* sequence number */
+	uint p0;      /* location of change (unused in f) */
+	uint n;       /* # runes in string or file name */
 };
 
-struct Merge
-{
-	File	*f;
-	uint	seq;		/* of logged change */
-	uint	p0;		/* location of change (unused in f) */
-	uint	n;		/* # runes to delete */
-	uint	nbuf;		/* # runes to insert */
-	Rune	buf[RBUFSIZE];
+struct Merge {
+	File *f;
+	uint seq;  /* of logged change */
+	uint p0;   /* location of change (unused in f) */
+	uint n;    /* # runes to delete */
+	uint nbuf; /* # runes to insert */
+	Rune buf[RBUFSIZE];
 };
 
-enum
-{
+enum {
 	Maxmerge = 50,
-	Undosize = sizeof(Undo)/sizeof(Rune),
+	Undosize = sizeof(Undo) / sizeof(Rune),
 };
 
-static Merge	merge;
+static Merge merge;
 
-File*
+File *
 fileopen(void)
 {
 	File *f;
@@ -81,7 +78,7 @@ wrinsert(Buffer *delta, int seq, int mod, uint p0, Rune *s, uint ns)
 	u.p0 = p0;
 	u.n = ns;
 	bufinsert(delta, delta->nc, s, ns);
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 }
 
 static void
@@ -94,7 +91,7 @@ wrdelete(Buffer *delta, int seq, int mod, uint p0, uint p1)
 	u.seq = seq;
 	u.p0 = p0;
 	u.n = p1 - p0;
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 }
 
 void
@@ -108,9 +105,9 @@ flushmerge(void)
 	if(merge.seq != f->seq)
 		panic("flushmerge seq mismatch");
 	if(merge.n != 0)
-		wrdelete(&f->epsilon, f->seq, TRUE, merge.p0, merge.p0+merge.n);
+		wrdelete(&f->epsilon, f->seq, TRUE, merge.p0, merge.p0 + merge.n);
 	if(merge.nbuf != 0)
-		wrinsert(&f->epsilon, f->seq, TRUE, merge.p0+merge.n, merge.buf, merge.nbuf);
+		wrinsert(&f->epsilon, f->seq, TRUE, merge.p0 + merge.n, merge.buf, merge.nbuf);
 	merge.f = nil;
 	merge.n = 0;
 	merge.nbuf = 0;
@@ -121,11 +118,11 @@ mergeextend(File *f, uint p0)
 {
 	uint mp0n;
 
-	mp0n = merge.p0+merge.n;
-	if(mp0n != p0){
-		bufread(f, mp0n, merge.buf+merge.nbuf, p0-mp0n);
-		merge.nbuf += p0-mp0n;
-		merge.n = p0-merge.p0;
+	mp0n = merge.p0 + merge.n;
+	if(mp0n != p0) {
+		bufread(f, mp0n, merge.buf + merge.nbuf, p0 - mp0n);
+		merge.nbuf += p0 - mp0n;
+		merge.n = p0 - merge.p0;
 	}
 }
 
@@ -139,24 +136,23 @@ loginsert(File *f, uint p0, Rune *s, uint ns)
 		return;
 	if(ns == 0)
 		return;
-	if(ns>STRSIZE)
+	if(ns > STRSIZE)
 		panic("loginsert");
 	if(f->seq < seq)
 		filemark(f);
 	if(p0 < f->hiposn)
 		error(Esequence);
 
-	if(merge.f != f
-	|| p0-(merge.p0+merge.n)>Maxmerge			/* too far */
-	|| merge.nbuf+((p0+ns)-(merge.p0+merge.n))>=RBUFSIZE)	/* too long */
+	if(merge.f != f || p0 - (merge.p0 + merge.n) > Maxmerge		   /* too far */
+	   || merge.nbuf + ((p0 + ns) - (merge.p0 + merge.n)) >= RBUFSIZE) /* too long */
 		flushmerge();
 
-	if(ns>=RBUFSIZE){
+	if(ns >= RBUFSIZE) {
 		if(!(merge.n == 0 && merge.nbuf == 0 && merge.f == nil))
 			panic("loginsert bad merge state");
 		wrinsert(&f->epsilon, f->seq, TRUE, p0, s, ns);
-	}else{
-		if(merge.f != f){
+	} else {
+		if(merge.f != f) {
 			merge.f = f;
 			merge.p0 = p0;
 			merge.seq = f->seq;
@@ -164,7 +160,7 @@ loginsert(File *f, uint p0, Rune *s, uint ns)
 		mergeextend(f, p0);
 
 		/* append string to merge */
-		runemove(merge.buf+merge.nbuf, s, ns);
+		runemove(merge.buf + merge.nbuf, s, ns);
 		merge.nbuf += ns;
 	}
 
@@ -185,9 +181,8 @@ logdelete(File *f, uint p0, uint p1)
 	if(p0 < f->hiposn)
 		error(Esequence);
 
-	if(merge.f != f
-	|| p0-(merge.p0+merge.n)>Maxmerge			/* too far */
-	|| merge.nbuf+(p0-(merge.p0+merge.n))>=RBUFSIZE){	/* too long */
+	if(merge.f != f || p0 - (merge.p0 + merge.n) > Maxmerge       /* too far */
+	   || merge.nbuf + (p0 - (merge.p0 + merge.n)) >= RBUFSIZE) { /* too long */
 		flushmerge();
 		merge.f = f;
 		merge.p0 = p0;
@@ -197,7 +192,7 @@ logdelete(File *f, uint p0, uint p1)
 	mergeextend(f, p0);
 
 	/* add to deletion */
-	merge.n = p1-merge.p0;
+	merge.n = p1 - merge.p0;
 
 	f->hiposn = p1;
 	if(!f->unread && !f->mod)
@@ -216,7 +211,7 @@ logsetname(File *f, String *s)
 	if(f->rescuing)
 		return;
 
-	if(f->unread){	/* This is setting initial file name */
+	if(f->unread) { /* This is setting initial file name */
 		filesetname(f, s);
 		return;
 	}
@@ -229,24 +224,24 @@ logsetname(File *f, String *s)
 	u.type = Filename;
 	u.mod = TRUE;
 	u.seq = f->seq;
-	u.p0 = 0;	/* unused */
+	u.p0 = 0; /* unused */
 	u.n = s->n;
 	if(s->n)
 		bufinsert(delta, delta->nc, s->s, s->n);
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 	if(!f->unread && !f->mod)
 		state(f, Dirty);
 }
 
 #ifdef NOTEXT
-File*
+File *
 fileaddtext(File *f, Text *t)
 {
-	if(f == nil){
+	if(f == nil) {
 		f = emalloc(sizeof(File));
 		f->unread = TRUE;
 	}
-	f->text = realloc(f->text, (f->ntext+1)*sizeof(Text*));
+	f->text = realloc(f->text, (f->ntext + 1) * sizeof(Text *));
 	f->text[f->ntext++] = t;
 	f->curtext = t;
 	return f;
@@ -257,18 +252,18 @@ filedeltext(File *f, Text *t)
 {
 	int i;
 
-	for(i=0; i<f->ntext; i++)
+	for(i = 0; i < f->ntext; i++)
 		if(f->text[i] == t)
 			goto Found;
 	panic("can't find text in filedeltext");
 
-    Found:
+Found:
 	f->ntext--;
-	if(f->ntext == 0){
+	if(f->ntext == 0) {
 		fileclose(f);
 		return;
 	}
-	memmove(f->text+i, f->text+i+1, (f->ntext-i)*sizeof(Text*));
+	memmove(f->text + i, f->text + i + 1, (f->ntext - i) * sizeof(Text *));
 	if(f->curtext == t)
 		f->curtext = f->text[0];
 }
@@ -285,7 +280,7 @@ fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
 	u.seq = f->seq;
 	u.p0 = p0;
 	u.n = ns;
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 }
 
 void
@@ -300,9 +295,9 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 	u.mod = f->mod;
 	u.seq = f->seq;
 	u.p0 = p0;
-	u.n = p1-p0;
+	u.n = p1 - p0;
 	buf = fbufalloc();
-	for(i=p0; i<p1; i+=n){
+	for(i = p0; i < p1; i += n) {
 		n = p1 - i;
 		if(n > RBUFSIZE)
 			n = RBUFSIZE;
@@ -310,8 +305,7 @@ fileundelete(File *f, Buffer *delta, uint p0, uint p1)
 		bufinsert(delta, delta->nc, buf, n);
 	}
 	fbuffree(buf);
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
-
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 }
 
 int
@@ -328,7 +322,7 @@ filereadc(File *f, uint q)
 void
 filesetname(File *f, String *s)
 {
-	if(!f->unread)	/* This is setting initial file name */
+	if(!f->unread) /* This is setting initial file name */
 		fileunsetname(f, &f->delta);
 	Strduplstr(&f->name, s);
 	sortname(f);
@@ -345,14 +339,14 @@ fileunsetname(File *f, Buffer *delta)
 	u.type = Filename;
 	u.mod = f->mod;
 	u.seq = f->seq;
-	u.p0 = 0;	/* unused */
+	u.p0 = 0; /* unused */
 	Strinit(&s);
 	Strduplstr(&s, &f->name);
 	fullname(&s);
 	u.n = s.n;
 	if(s.n)
 		bufinsert(delta, delta->nc, s.s, s.n);
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 	Strclose(&s);
 }
 
@@ -366,7 +360,7 @@ fileunsetdot(File *f, Buffer *delta, Range dot)
 	u.seq = f->seq;
 	u.p0 = dot.p1;
 	u.n = dot.p2 - dot.p1;
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 }
 
 void
@@ -379,7 +373,7 @@ fileunsetmark(File *f, Buffer *delta, Range mark)
 	u.seq = f->seq;
 	u.p0 = mark.p1;
 	u.n = mark.p2 - mark.p1;
-	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	bufinsert(delta, delta->nc, (Rune *)&u, Undosize);
 }
 
 uint
@@ -416,7 +410,7 @@ fileupdate(File *f, int notrans, int toterm)
 	f->mod = f->prevmod;
 	if(f == cmd)
 		notrans = TRUE;
-	else{
+	else {
 		fileunsetdot(f, &f->delta, f->prevdot);
 		fileunsetmark(f, &f->delta, f->prevmark);
 	}
@@ -430,10 +424,10 @@ fileupdate(File *f, int notrans, int toterm)
 	if(f == cmd)
 		return FALSE;
 
-	if(f->mod){
+	if(f->mod) {
 		f->closeok = 0;
 		quitok = 0;
-	}else
+	} else
 		f->closeok = 1;
 	return TRUE;
 }
@@ -448,7 +442,7 @@ prevseq(Buffer *b)
 	if(up == 0)
 		return 0;
 	up -= Undosize;
-	bufread(b, up, (Rune*)&u, Undosize);
+	bufread(b, up, (Rune *)&u, Undosize);
 	return u.seq;
 }
 
@@ -470,40 +464,40 @@ fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
 	uint stop;
 	Buffer *delta, *epsilon;
 
-	if(isundo){
+	if(isundo) {
 		/* undo; reverse delta onto epsilon, seq decreases */
 		delta = &f->delta;
 		epsilon = &f->epsilon;
 		stop = f->seq;
-	}else{
+	} else {
 		/* redo; reverse epsilon onto delta, seq increases */
 		delta = &f->epsilon;
 		epsilon = &f->delta;
-		stop = 0;	/* don't know yet */
+		stop = 0; /* don't know yet */
 	}
 
 	raspstart(f);
-	while(delta->nc > 0){
+	while(delta->nc > 0) {
 		/* rasp and buffer are in sync; sync with wire if needed */
 		if(needoutflush())
 			raspflush(f);
-		up = delta->nc-Undosize;
-		bufread(delta, up, (Rune*)&u, Undosize);
-		if(isundo){
-			if(u.seq < stop){
+		up = delta->nc - Undosize;
+		bufread(delta, up, (Rune *)&u, Undosize);
+		if(isundo) {
+			if(u.seq < stop) {
 				f->seq = u.seq;
 				raspdone(f, flag);
 				return;
 			}
-		}else{
+		} else {
 			if(stop == 0)
 				stop = u.seq;
-			if(u.seq > stop){
+			if(u.seq > stop) {
 				raspdone(f, flag);
 				return;
 			}
 		}
-		switch(u.type){
+		switch(u.type) {
 		default:
 			panic("undo unknown u.type");
 			break;
@@ -511,10 +505,10 @@ fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
 		case Delete:
 			f->seq = u.seq;
 			if(canredo)
-				fileundelete(f, epsilon, u.p0, u.p0+u.n);
+				fileundelete(f, epsilon, u.p0, u.p0 + u.n);
 			f->mod = u.mod;
-			bufdelete(f, u.p0, u.p0+u.n);
-			raspdelete(f, u.p0, u.p0+u.n, flag);
+			bufdelete(f, u.p0, u.p0 + u.n);
+			raspdelete(f, u.p0, u.p0 + u.n, flag);
 			*q0p = u.p0;
 			*q1p = u.p0;
 			break;
@@ -526,17 +520,17 @@ fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
 			f->mod = u.mod;
 			up -= u.n;
 			buf = fbufalloc();
-			for(i=0; i<u.n; i+=n){
+			for(i = 0; i < u.n; i += n) {
 				n = u.n - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
-				bufread(delta, up+i, buf, n);
-				bufinsert(f, u.p0+i, buf, n);
-				raspinsert(f, u.p0+i, buf, n, flag);
+				bufread(delta, up + i, buf, n);
+				bufinsert(f, u.p0 + i, buf, n);
+				raspinsert(f, u.p0 + i, buf, n, flag);
 			}
 			fbuffree(buf);
 			*q0p = u.p0;
-			*q1p = u.p0+u.n;
+			*q1p = u.p0 + u.n;
 			break;
 
 		case Filename:
@@ -546,7 +540,7 @@ fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
 			f->mod = u.mod;
 			up -= u.n;
 
-			Strinsure(&f->name, u.n+1);
+			Strinsure(&f->name, u.n + 1);
 			bufread(delta, up, f->name.s, u.n);
 			f->name.s[u.n] = 0;
 			f->name.n = u.n;
@@ -606,7 +600,7 @@ filemark(File *f)
 	if(f->epsilon.nc)
 		bufdelete(&f->epsilon, 0, f->epsilon.nc);
 
-	if(f != cmd){
+	if(f != cmd) {
 		f->prevdot = f->dot.r;
 		f->prevmark = f->mark;
 		f->prevseq = f->seq;

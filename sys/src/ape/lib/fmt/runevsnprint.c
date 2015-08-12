@@ -42,6 +42,6 @@ runevsnprint(Rune *buf, int len, char *fmt, va_list args)
 	f.nfmt = 0;
 	f.args = args;
 	dofmt(&f, fmt);
-	*(Rune*)f.to = '\0';
-	return (Rune*)f.to - buf;
+	*(Rune *)f.to = '\0';
+	return (Rune *)f.to - buf;
 }

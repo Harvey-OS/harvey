@@ -27,7 +27,7 @@
 /* Serializer/expander for gs_parm_list's */
 
 #ifndef gsparams_INCLUDED
-#  define gsparams_INCLUDED
+#define gsparams_INCLUDED
 
 /* Initial version 2/1/98 by John Desrosiers (soho@crl.com) */
 /* 8/8/98 L. Peter Deutsch (ghost@aladdin.com) Completely redesigned
@@ -37,7 +37,7 @@
 #include "stream.h"
 #include "gsparam.h"
 
-#if 0	/****************/
+#if 0 /****************/
 
 /* ------ Future interface, implemented in gsparam2.c ------ */
 
@@ -53,7 +53,7 @@ int gs_param_list_puts(stream *dest, gs_param_list *list);
  */
 int gs_param_list_gets(stream *src, gs_param_list *list, gs_memory_t *mem);
 
-#else	/****************/
+#else /****************/
 
 /* ------ Present interface, implemented in gsparams.c ------ */
 
@@ -73,6 +73,6 @@ int gs_param_list_serialize(gs_param_list *list, byte *buf, int buf_size);
  */
 int gs_param_list_unserialize(gs_param_list *list, const byte *buf);
 
-#endif	/****************/
+#endif /****************/
 
 #endif /* gsparams_INCLUDED */

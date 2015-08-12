@@ -14,188 +14,192 @@
 #include "grap.h"
 #include "y.tab.h"
 
-#define	MAXTICK	200
-int	ntick	= 0;
-double	tickval[MAXTICK];	/* tick values (one axis at a time */
-char	*tickstr[MAXTICK];	/* and labels */
+#define MAXTICK 200
+int ntick = 0;
+double tickval[MAXTICK]; /* tick values (one axis at a time */
+char *tickstr[MAXTICK];  /* and labels */
 
-int	tside	= 0;
-int	tlist	= 0;		/* 1 => explicit values given */
-int	toffside = 0;		/* no ticks on these sides */
-int	goffside = 0;		/* no ticks on grid on these sides */
-int	tick_dir = OUT;
-double	ticklen	= TICKLEN;	/* default tick length */
-int	autoticks = LEFT|BOT;
-int	autodir = 0;		/* set LEFT, etc. if automatic ticks go in */
+int tside = 0;
+int tlist = 0;    /* 1 => explicit values given */
+int toffside = 0; /* no ticks on these sides */
+int goffside = 0; /* no ticks on grid on these sides */
+int tick_dir = OUT;
+double ticklen = TICKLEN; /* default tick length */
+int autoticks = LEFT | BOT;
+int autodir = 0; /* set LEFT, etc. if automatic ticks go in */
 
-void savetick(double f, char *s)	/* remember tick location and label */
+void savetick(double f, char *s) /* remember tick location and label */
 {
-	if (ntick >= MAXTICK)
+	if(ntick >= MAXTICK)
 		ERROR "too many ticks (%d)", MAXTICK FATAL;
 	tickval[ntick] = f;
 	tickstr[ntick] = s;
 	ntick++;
 }
 
-void dflt_tick(double f)
+void
+dflt_tick(double f)
 {
-	if (f >= 0.0)
+	if(f >= 0.0)
 		savetick(f, tostring("%g"));
 	else
 		savetick(f, tostring("\\%g"));
 }
 
-void tickside(int n)	/* remember which side these ticks/gridlines go on */
+void tickside(int n) /* remember which side these ticks/gridlines go on */
 {
 	tside |= n;
 }
 
-void tickoff(int side)	/* remember explicit sides */
+void tickoff(int side) /* remember explicit sides */
 {
 	toffside |= side;
 }
 
-void gridtickoff(void)	/* turn grid ticks off on the side previously specified (ugh) */
+void gridtickoff(void) /* turn grid ticks off on the side previously specified (ugh) */
 {
 	goffside = tside;
 }
 
-void setlist(void)	/* remember that there was an explicit list */
+void setlist(void) /* remember that there was an explicit list */
 {
 	tlist = 1;
 }
 
-void tickdir(int dir, double val, int explicit)	/* remember in/out [expr] */
+void tickdir(int dir, double val, int explicit) /* remember in/out [expr] */
 {
 	tick_dir = dir;
-	if (explicit)
+	if(explicit)
 		ticklen = val;
 }
 
-void ticks(void)		/* set autoticks after ticks statement */
+void ticks(void) /* set autoticks after ticks statement */
 {
 	/* was there an explicit "ticks [side] off"? */
-	if (toffside)
+	if(toffside)
 		autoticks &= ~toffside;
 	/* was there an explicit list? (eg "ticks at ..." or "ticks from ...") */
-	if (tlist) {
-		if (tside & (BOT|TOP))
-			autoticks &= ~(BOT|TOP);
-		if (tside & (LEFT|RIGHT))
-			autoticks &= ~(LEFT|RIGHT);
+	if(tlist) {
+		if(tside & (BOT | TOP))
+			autoticks &= ~(BOT | TOP);
+		if(tside & (LEFT | RIGHT))
+			autoticks &= ~(LEFT | RIGHT);
 	}
 	/* was there a side without a list? (eg "ticks left in") */
-	if (tside && !tlist) {
-		if (tick_dir == IN)
+	if(tside && !tlist) {
+		if(tick_dir == IN)
 			autodir |= tside;
-		if (tside & (BOT|TOP))
-			autoticks = (autoticks & ~(BOT|TOP)) | (tside & (BOT|TOP));
-		if (tside & (LEFT|RIGHT))
-			autoticks = (autoticks & ~(LEFT|RIGHT)) | (tside & (LEFT|RIGHT));
+		if(tside & (BOT | TOP))
+			autoticks = (autoticks & ~(BOT | TOP)) | (tside & (BOT | TOP));
+		if(tside & (LEFT | RIGHT))
+			autoticks = (autoticks & ~(LEFT | RIGHT)) | (tside & (LEFT | RIGHT));
 	}
 	tlist = tside = toffside = goffside = 0;
 	tick_dir = OUT;
 }
 
-double modfloor(double f, double t)
+double
+modfloor(double f, double t)
 {
 	t = fabs(t);
-	return floor(f/t) * t;
+	return floor(f / t) * t;
 }
 
-double modceil(double f, double t)
+double
+modceil(double f, double t)
 {
 	t = fabs(t);
-	return ceil(f/t) * t;
+	return ceil(f / t) * t;
 }
 
-double	xtmin, xtmax;	/* range of ticks */
-double	ytmin, ytmax;
-double	xquant, xmult;	/* quantization & scale for auto x ticks */
-double	yquant, ymult;
-double	lograt = 5;
+double xtmin, xtmax; /* range of ticks */
+double ytmin, ytmax;
+double xquant, xmult; /* quantization & scale for auto x ticks */
+double yquant, ymult;
+double lograt = 5;
 
-void do_autoticks(Obj *p)	/* make set of ticks for default coord only */
+void do_autoticks(Obj *p) /* make set of ticks for default coord only */
 {
 	double x, xl, xu, q;
 
-	if (p == NULL)
+	if(p == NULL)
 		return;
 	fprintf(tfd, "Autoticks:\t# x %g..%g, y %g..%g",
 		p->pt.x, p->pt1.x, p->pt.y, p->pt1.y);
 	fprintf(tfd, ";   xt %g,%g, yt %g,%g, xq,xm = %g,%g, yq,ym = %g,%g\n",
 		xtmin, xtmax, ytmin, ytmax, xquant, xmult, yquant, ymult);
-	if ((autoticks & (BOT|TOP)) && p->pt1.x >= p->pt.x) {	/* make x ticks */
+	if((autoticks & (BOT | TOP)) && p->pt1.x >= p->pt.x) { /* make x ticks */
 		q = xquant;
 		xl = p->pt.x;
 		xu = p->pt1.x;
-		if (xl >= xu)
+		if(xl >= xu)
 			dflt_tick(xl);
-		else if ((p->log & XFLAG) && xu/xl >= lograt) {
-			for (x = q; x < xu; x *= 10) {
+		else if((p->log & XFLAG) && xu / xl >= lograt) {
+			for(x = q; x < xu; x *= 10) {
 				logtick(x, xl, xu);
-				if (xu/xl <= 100) {
-					logtick(2*x, xl, xu);
-					logtick(5*x, xl, xu);
+				if(xu / xl <= 100) {
+					logtick(2 * x, xl, xu);
+					logtick(5 * x, xl, xu);
 				}
 			}
 		} else {
-			xl = modceil(xtmin - q/100, q);
-			xu = modfloor(xtmax + q/100, q) + q/2;
-			for (x = xl; x <= xu; x += q)
+			xl = modceil(xtmin - q / 100, q);
+			xu = modfloor(xtmax + q / 100, q) + q / 2;
+			for(x = xl; x <= xu; x += q)
 				dflt_tick(x);
 		}
-		tside = autoticks & (BOT|TOP);
+		tside = autoticks & (BOT | TOP);
 		ticklist(p, 0);
 	}
-	if ((autoticks & (LEFT|RIGHT)) && p->pt1.y >= p->pt.y) {	/* make y ticks */
+	if((autoticks & (LEFT | RIGHT)) && p->pt1.y >= p->pt.y) { /* make y ticks */
 		q = yquant;
 		xl = p->pt.y;
 		xu = p->pt1.y;
-		if (xl >= xu)
+		if(xl >= xu)
 			dflt_tick(xl);
-		else if ((p->log & YFLAG) && xu/xl >= lograt) {
-			for (x = q; x < xu; x *= 10) {
+		else if((p->log & YFLAG) && xu / xl >= lograt) {
+			for(x = q; x < xu; x *= 10) {
 				logtick(x, xl, xu);
-				if (xu/xl <= 100) {
-					logtick(2*x, xl, xu);
-					logtick(5*x, xl, xu);
+				if(xu / xl <= 100) {
+					logtick(2 * x, xl, xu);
+					logtick(5 * x, xl, xu);
 				}
 			}
 		} else {
-			xl = modceil(ytmin - q/100, q);
-			xu = modfloor(ytmax + q/100, q) + q/2;
-			for (x = xl; x <= xu; x += q)
+			xl = modceil(ytmin - q / 100, q);
+			xu = modfloor(ytmax + q / 100, q) + q / 2;
+			for(x = xl; x <= xu; x += q)
 				dflt_tick(x);
 		}
-		tside = autoticks & (LEFT|RIGHT);
+		tside = autoticks & (LEFT | RIGHT);
 		ticklist(p, 0);
 	}
 }
 
-void logtick(double v, double lb, double ub)
+void
+logtick(double v, double lb, double ub)
 {
-	float slop = 1.0;	/* was 1.001 */
+	float slop = 1.0; /* was 1.001 */
 
-	if (slop * lb <= v && ub >= slop * v)
+	if(slop * lb <= v && ub >= slop * v)
 		dflt_tick(v);
 }
 
-Obj *setauto(void)	/* compute new min,max, and quant & mult */
+Obj *setauto(void) /* compute new min,max, and quant & mult */
 {
 	Obj *p, *q;
 
-	if ((q = lookup("lograt",0)) != NULL)
+	if((q = lookup("lograt", 0)) != NULL)
 		lograt = q->fval;
-	for (p = objlist; p; p = p->next)
-		if (p->type == NAME && strcmp(p->name,dflt_coord) == 0)
+	for(p = objlist; p; p = p->next)
+		if(p->type == NAME && strcmp(p->name, dflt_coord) == 0)
 			break;
-	if (p) {
-		if ((p->log & XFLAG) && p->pt1.x/p->pt.x >= lograt)
+	if(p) {
+		if((p->log & XFLAG) && p->pt1.x / p->pt.x >= lograt)
 			autolog(p, 'x');
 		else
 			autoside(p, 'x');
-		if ((p->log & YFLAG) && p->pt1.y/p->pt.y >= lograt)
+		if((p->log & YFLAG) && p->pt1.y / p->pt.y >= lograt)
 			autolog(p, 'y');
 		else
 			autoside(p, 'y');
@@ -203,43 +207,45 @@ Obj *setauto(void)	/* compute new min,max, and quant & mult */
 	return p;
 }
 
-void autoside(Obj *p, int side)
+void
+autoside(Obj *p, int side)
 {
 	double r, s, d, ub, lb;
 
-	if (side == 'x') {
+	if(side == 'x') {
 		xtmin = lb = p->pt.x;
 		xtmax = ub = p->pt1.x;
 	} else {
 		ytmin = lb = p->pt.y;
 		ytmax = ub = p->pt1.y;
 	}
-	if (ub <= lb)
-		return;	/* cop out on little ranges */
+	if(ub <= lb)
+		return; /* cop out on little ranges */
 	d = ub - lb;
 	r = s = 1;
-	while (d * s < 10)
+	while(d * s < 10)
 		s *= 10;
 	d *= s;
-	while (10 * r < d)
+	while(10 * r < d)
 		r *= 10;
-	if (r > d/3)
+	if(r > d / 3)
 		r /= 2;
-	else if (r <= d/6)
+	else if(r <= d / 6)
 		r *= 2;
-	if (side == 'x') {
+	if(side == 'x') {
 		xquant = r / s;
 	} else {
 		yquant = r / s;
 	}
 }
 
-void autolog(Obj *p, int side)
+void
+autolog(Obj *p, int side)
 {
 	double r, s, t, ub, lb;
 	int flg;
 
-	if (side == 'x') {
+	if(side == 'x') {
 		xtmin = lb = p->pt.x;
 		xtmax = ub = p->pt1.x;
 		flg = p->coord & XFLAG;
@@ -248,30 +254,30 @@ void autolog(Obj *p, int side)
 		ytmax = ub = p->pt1.y;
 		flg = p->coord & YFLAG;
 	}
-	for (s = 1; lb * s < 1; s *= 10)
+	for(s = 1; lb * s < 1; s *= 10)
 		;
 	lb *= s;
 	ub *= s;
-	for (r = 1; 10 * r < lb; r *= 10)
+	for(r = 1; 10 * r < lb; r *= 10)
 		;
-	for (t = 1; t < ub; t *= 10)
+	for(t = 1; t < ub; t *= 10)
 		;
-	if (side == 'x')
+	if(side == 'x')
 		xquant = r / s;
 	else
 		yquant = r / s;
-	if (flg)
+	if(flg)
 		return;
-	if (ub / lb < 100) {
-		if (lb >= 5 * r)
+	if(ub / lb < 100) {
+		if(lb >= 5 * r)
 			r *= 5;
-		else if (lb >= 2 * r)
+		else if(lb >= 2 * r)
 			r *= 2;
-		if (ub * 5 <= t)
+		if(ub * 5 <= t)
 			t /= 5;
-		else if (ub * 2 <= t)
+		else if(ub * 2 <= t)
 			t /= 2;
-		if (side == 'x') {
+		if(side == 'x') {
 			xtmin = r / s;
 			xtmax = t / s;
 		} else {
@@ -281,7 +287,7 @@ void autolog(Obj *p, int side)
 	}
 }
 
-void iterator(double from, double to, int op, double by, char *fmt)	/* create an iterator */
+void iterator(double from, double to, int op, double by, char *fmt) /* create an iterator */
 {
 	double x;
 
@@ -290,99 +296,100 @@ void iterator(double from, double to, int op, double by, char *fmt)	/* create an
 
 	dprintf("iterate from %g to %g by %g, op = %c, fmt=%s\n",
 		from, to, by, op, fmt ? fmt : "");
-	switch (op) {
+	switch(op) {
 	case '+':
 	case ' ':
-		for (x = from; x <= to + (SLOP-1) * by; x += by)
-			if (fmt)
+		for(x = from; x <= to + (SLOP - 1) * by; x += by)
+			if(fmt)
 				savetick(x, tostring(fmt));
 			else
 				dflt_tick(x);
 		break;
 	case '-':
-		for (x = from; x >= to; x -= by)
-			if (fmt)
+		for(x = from; x >= to; x -= by)
+			if(fmt)
 				savetick(x, tostring(fmt));
 			else
 				dflt_tick(x);
 		break;
 	case '*':
-		for (x = from; x <= SLOP * to; x *= by)
-			if (fmt)
+		for(x = from; x <= SLOP * to; x *= by)
+			if(fmt)
 				savetick(x, tostring(fmt));
 			else
 				dflt_tick(x);
 		break;
 	case '/':
-		for (x = from; x >= to; x /= by)
-			if (fmt)
+		for(x = from; x >= to; x /= by)
+			if(fmt)
 				savetick(x, tostring(fmt));
 			else
 				dflt_tick(x);
 		break;
 	}
-	if (fmt)
+	if(fmt)
 		free(fmt);
 }
 
-void ticklist(Obj *p, int explicit)	/* fire out the accumulated ticks */
-					/* 1 => list, 0 => auto */
+void ticklist(Obj *p, int explicit) /* fire out the accumulated ticks */
+				    /* 1 => list, 0 => auto */
 {
-	if (p == NULL)
+	if(p == NULL)
 		return;
 	fprintf(tfd, "Ticks_%s:\n\tticklen = %g\n", p->name, ticklen);
 	print_ticks(TICKS, explicit, p, "ticklen", "");
 }
 
-void print_ticks(int type, int explicit, Obj *p, char *lenstr, char *descstr)
+void
+print_ticks(int type, int explicit, Obj *p, char *lenstr, char *descstr)
 {
 	int i, logflag, inside;
 	char buf[100];
 	double tv;
 
-	for (i = 0; i < ntick; i++)	/* any ticks given explicitly? */
-		if (tickstr[i] != NULL)
+	for(i = 0; i < ntick; i++) /* any ticks given explicitly? */
+		if(tickstr[i] != NULL)
 			break;
-	if (i >= ntick && type == TICKS)	/* no, so use values */
-		for (i = 0; i < ntick; i++) {
-			if (tickval[i] >= 0.0)
+	if(i >= ntick && type == TICKS) /* no, so use values */
+		for(i = 0; i < ntick; i++) {
+			if(tickval[i] >= 0.0)
 				sprintf(buf, "%g", tickval[i]);
 			else
 				sprintf(buf, "\\-%g", -tickval[i]);
 			tickstr[i] = tostring(buf);
 		}
 	else
-		for (i = 0; i < ntick; i++) {
-			if (tickstr[i] != NULL) {
+		for(i = 0; i < ntick; i++) {
+			if(tickstr[i] != NULL) {
 				sprintf(buf, tickstr[i], tickval[i]);
 				free(tickstr[i]);
 				tickstr[i] = tostring(buf);
 			}
 		}
 	logflag = sidelog(p->log, tside);
-	for (i = 0; i < ntick; i++) {
+	for(i = 0; i < ntick; i++) {
 		tv = tickval[i];
 		halfrange(p, tside, tv);
-		if (logflag) {
-			if (tv <= 0.0)
+		if(logflag) {
+			if(tv <= 0.0)
 				ERROR "can't take log of tick value %g", tv FATAL;
 			logit(tv);
 		}
-		if (type == GRID)
-			inside = LEFT|RIGHT|TOP|BOT;
-		else if (explicit)
+		if(type == GRID)
+			inside = LEFT | RIGHT | TOP | BOT;
+		else if(explicit)
 			inside = (tick_dir == IN) ? tside : 0;
 		else
 			inside = autodir;
-		if (tside & BOT)
+		if(tside & BOT)
 			maketick(type, p->name, BOT, inside, tv, tickstr[i], lenstr, descstr);
-		if (tside & TOP)
+		if(tside & TOP)
 			maketick(type, p->name, TOP, inside, tv, tickstr[i], lenstr, descstr);
-		if (tside & LEFT)
+		if(tside & LEFT)
 			maketick(type, p->name, LEFT, inside, tv, tickstr[i], lenstr, descstr);
-		if (tside & RIGHT)
+		if(tside & RIGHT)
 			maketick(type, p->name, RIGHT, inside, tv, tickstr[i], lenstr, descstr);
-		if (tickstr[i]) {
+		if(tickstr[i]) {
 			free(tickstr[i]);
 			tickstr[i] = NULL;
 		}
@@ -390,14 +397,15 @@ void print_ticks(int type, int explicit, Obj *p, char *lenstr, char *descstr)
 	ntick = 0;
 }
 
-void maketick(int type, char *name, int side, int inflag, double val,
-	      char *lab, char *lenstr, char *descstr)
+void
+maketick(int type, char *name, int side, int inflag, double val,
+	 char *lab, char *lenstr, char *descstr)
 {
 	char *sidestr, *td;
 
 	fprintf(tfd, "\tline %s ", descstr);
 	inflag &= side;
-	switch (side) {
+	switch(side) {
 	case BOT:
 	case 0:
 		td = inflag ? "up" : "down";
@@ -417,14 +425,15 @@ void maketick(int type, char *name, int side, int inflag, double val,
 		break;
 	}
 	fprintf(tfd, "\n");
-	if (type == GRID && (side & goffside))	/* wanted no ticks on grid */
+	if(type == GRID && (side & goffside)) /* wanted no ticks on grid */
 		return;
 	sidestr = tick_dir == IN ? "start" : "end";
-	if (lab != NULL) {
+	if(lab != NULL) {
 		/* BUG: should fix size of lab here */
-		double wid = strlen(lab)/7.5 + (tick_dir == IN ? 0 : 0.1);	/* estimate width at 15 chars/inch */
-		switch (side) {
-		case BOT: case 0:
+		double wid = strlen(lab) / 7.5 + (tick_dir == IN ? 0 : 0.1); /* estimate width at 15 chars/inch */
+		switch(side) {
+		case BOT:
+		case 0:
 			/* can drop "box invis" with new pic */
 			fprintf(tfd, "\tbox invis \"%s\" ht .25 wid 0 with .n at last line.%s",
 				lab, sidestr);
@@ -448,54 +457,63 @@ void maketick(int type, char *name, int side, int inflag, double val,
 	}
 }
 
-Attr	*grid_desc	= 0;
+Attr *grid_desc = 0;
 
-void griddesc(Attr *a)
+void
+griddesc(Attr *a)
 {
 	grid_desc = a;
 }
 
-void gridlist(Obj *p)
+void
+gridlist(Obj *p)
 {
 	char *framestr;
 
-	if ((tside & (BOT|TOP)) || tside == 0)
+	if((tside & (BOT | TOP)) || tside == 0)
 		framestr = "frameht";
 	else
 		framestr = "framewid";
 	fprintf(tfd, "Grid_%s:\n", p->name);
 	tick_dir = IN;
 	print_ticks(GRID, 0, p, framestr, desc_str(grid_desc));
-	if (grid_desc) {
+	if(grid_desc) {
 		freeattr(grid_desc);
 		grid_desc = 0;
 	}
 }
 
-char *desc_str(Attr *a)	/* convert DOT to "dotted", etc. */
+char *desc_str(Attr *a) /* convert DOT to "dotted", etc. */
 {
 	static char buf[50], *p;
 
-	if (a == NULL)
+	if(a == NULL)
 		return p = "";
-	switch (a->type) {
-	case DOT:	p = "dotted"; break;
-	case DASH:	p = "dashed"; break;
-	case INVIS:	p = "invis"; break;
-	default:	p = "";
+	switch(a->type) {
+	case DOT:
+		p = "dotted";
+		break;
+	case DASH:
+		p = "dashed";
+		break;
+	case INVIS:
+		p = "invis";
+		break;
+	default:
+		p = "";
 	}
-	if (a->fval != 0.0) {
+	if(a->fval != 0.0) {
 		sprintf(buf, "%s %g", p, a->fval);
 		return buf;
 	} else
 		return p;
 }
 
-sidelog(int logflag, int side)	/* figure out whether to scale a side */
+sidelog(int logflag, int side) /* figure out whether to scale a side */
 {
-	if ((logflag & XFLAG) && ((side & (BOT|TOP)) || side == 0))
+	if((logflag & XFLAG) && ((side & (BOT | TOP)) || side == 0))
 		return 1;
-	else if ((logflag & YFLAG) && (side & (LEFT|RIGHT)))
+	else if((logflag & YFLAG) && (side & (LEFT | RIGHT)))
 		return 1;
 	else
 		return 0;

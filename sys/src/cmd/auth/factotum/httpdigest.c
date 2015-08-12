@@ -19,8 +19,7 @@
  */
 #include "dat.h"
 
-enum
-{
+enum {
 	CNeedChal,
 	CHaveResp,
 
@@ -28,13 +27,12 @@ enum
 };
 
 static char *phasenames[Maxphase] = {
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+	[CNeedChal] "CNeedChal",
+	[CHaveResp] "CHaveResp",
 };
 
-struct State
-{
-	char resp[MD5dlen*2+1];
+struct State {
+	char resp[MD5dlen * 2 + 1];
 };
 
 static int
@@ -59,7 +57,7 @@ hdinit(Proto *p, Fsstate *fss)
 static void
 strtolower(char *s)
 {
-	while(*s){
+	while(*s) {
 		*s = tolower(*s);
 		s++;
 	}
@@ -67,43 +65,43 @@ strtolower(char *s)
 
 static void
 digest(char *user, char *realm, char *passwd,
-	char *nonce, char *method, char *uri,
-	char *dig)
+       char *nonce, char *method, char *uri,
+       char *dig)
 {
 	uint8_t b[MD5dlen];
-	char ha1[MD5dlen*2+1];
-	char ha2[MD5dlen*2+1];
+	char ha1[MD5dlen * 2 + 1];
+	char ha2[MD5dlen * 2 + 1];
 	DigestState *s;
 
 	/*
 	 *  H(A1) = MD5(uid + ":" + realm ":" + passwd)
 	 */
-	s = md5((uint8_t*)user, strlen(user), nil, nil);
-	md5((uint8_t*)":", 1, nil, s);
-	md5((uint8_t*)realm, strlen(realm), nil, s);
-	md5((uint8_t*)":", 1, nil, s);
-	md5((uint8_t*)passwd, strlen(passwd), b, s);
+	s = md5((uint8_t *)user, strlen(user), nil, nil);
+	md5((uint8_t *)":", 1, nil, s);
+	md5((uint8_t *)realm, strlen(realm), nil, s);
+	md5((uint8_t *)":", 1, nil, s);
+	md5((uint8_t *)passwd, strlen(passwd), b, s);
 	enc16(ha1, sizeof(ha1), b, MD5dlen);
 	strtolower(ha1);
 
 	/*
 	 *  H(A2) = MD5(method + ":" + uri)
 	 */
-	s = md5((uint8_t*)method, strlen(method), nil, nil);
-	md5((uint8_t*)":", 1, nil, s);
-	md5((uint8_t*)uri, strlen(uri), b, s);
+	s = md5((uint8_t *)method, strlen(method), nil, nil);
+	md5((uint8_t *)":", 1, nil, s);
+	md5((uint8_t *)uri, strlen(uri), b, s);
 	enc16(ha2, sizeof(ha2), b, MD5dlen);
 	strtolower(ha2);
 
 	/*
 	 *  digest = MD5(H(A1) + ":" + nonce + ":" + H(A2))
 	 */
-	s = md5((uint8_t*)ha1, MD5dlen*2, nil, nil);
-	md5((uint8_t*)":", 1, nil, s);
-	md5((uint8_t*)nonce, strlen(nonce), nil, s);
-	md5((uint8_t*)":", 1, nil, s);
-	md5((uint8_t*)ha2, MD5dlen*2, b, s);
-	enc16(dig, MD5dlen*2+1, b, MD5dlen);
+	s = md5((uint8_t *)ha1, MD5dlen * 2, nil, nil);
+	md5((uint8_t *)":", 1, nil, s);
+	md5((uint8_t *)nonce, strlen(nonce), nil, s);
+	md5((uint8_t *)":", 1, nil, s);
+	md5((uint8_t *)ha2, MD5dlen * 2, b, s);
+	enc16(dig, MD5dlen * 2 + 1, b, MD5dlen);
 	strtolower(dig);
 }
 
@@ -142,7 +140,7 @@ hdwrite(Fsstate *fss, void *va, uint n)
 	setattrs(fss->attr, k->attr);
 
 	/* copy in case a is not null-terminated */
-	t = emalloc(n+1);
+	t = emalloc(n + 1);
 	memcpy(t, a, n);
 	t[n] = 0;
 
@@ -183,11 +181,10 @@ hdclose(Fsstate *fss)
 }
 
 Proto httpdigest = {
-.name=		"httpdigest",
-.init=		hdinit,
-.write=		hdwrite,
-.read=		hdread,
-.close=		hdclose,
-.addkey=	replacekey,
-.keyprompt=	"user? realm? !password?"
-};
+    .name = "httpdigest",
+    .init = hdinit,
+    .write = hdwrite,
+    .read = hdread,
+    .close = hdclose,
+    .addkey = replacekey,
+    .keyprompt = "user? realm? !password?"};

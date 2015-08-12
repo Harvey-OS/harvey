@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 mktemp(char *as)
 {
 	char *s;
@@ -25,16 +25,16 @@ mktemp(char *as)
 	s--;
 	while(*--s == 'X') {
 		*s = pid % 10 + '0';
-		pid = pid/10;
+		pid = pid / 10;
 	}
 	s++;
 	i = 'a';
 	while(access(as, 0) != -1) {
-		if (i == 'z')
+		if(i == 'z')
 			return "/";
 		*s = i++;
 	}
 	err[0] = '\0';
-	errstr(err, sizeof err);	/* clear the error */
+	errstr(err, sizeof err); /* clear the error */
 	return as;
 }

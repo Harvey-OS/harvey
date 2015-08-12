@@ -13,7 +13,7 @@ SmbProcessResult
 smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	int rv;
-	char *old,     *new;
+	char *old, *new;
 	char *oldpath = nil;
 	char *newpath = nil;
 	char *olddir, *newdir;
@@ -23,14 +23,13 @@ smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 	Dir d;
 	SmbProcessResult pr;
 
-	if (h->wordcount != 1)
+	if(h->wordcount != 1)
 		return SmbProcessResultFormat;
-	if (!smbbuffergetb(b, &oldfmt) || oldfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &old)
-		|| !smbbuffergetb(b, &newfmt) || newfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &new))
+	if(!smbbuffergetb(b, &oldfmt) || oldfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &old) || !smbbuffergetb(b, &newfmt) || newfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &new))
 		return SmbProcessResultFormat;
 
 	t = smbidmapfind(s->tidmap, h->tid);
-	if (t == nil) {
+	if(t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
 		return SmbProcessResultError;
 	}
@@ -40,7 +39,7 @@ smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 	smblogprint(h->command, "smbcomrename: %s to %s\n", oldpath, newpath);
 	smbpathsplit(oldpath, &olddir, &oldname);
 	smbpathsplit(newpath, &newdir, &newname);
-	if (strcmp(olddir, newdir) != 0) {
+	if(strcmp(olddir, newdir) != 0) {
 		smblogprint(h->command, "smbcomrename: directories differ\n");
 		goto noaccess;
 	}
@@ -48,13 +47,12 @@ smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 	d.uid = d.gid = d.muid = nil;
 	d.name = newname;
 	rv = dirwstat(oldpath, &d);
-	if (rv < 0) {
+	if(rv < 0) {
 		smblogprint(h->command, "smbcomrename failed: %r\n");
 	noaccess:
 		smbseterror(s, ERRDOS, ERRnoaccess);
-		pr =  SmbProcessResultError;
-	}
-	else
+		pr = SmbProcessResultError;
+	} else
 		pr = smbbufferputack(s->response, h, &s->peerinfo);
 	free(oldpath);
 	free(olddir);

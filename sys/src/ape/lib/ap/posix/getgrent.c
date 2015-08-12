@@ -11,31 +11,31 @@
 #include <grp.h>
 #include <stdlib.h>
 
-#define	CL	':'
-#define	CM	','
-#define	NL	'\n'
-#define	MAXGRP	100
+#define CL ':'
+#define CM ','
+#define NL '\n'
+#define MAXGRP 100
 
 static char GROUP[] = "/etc/group";
 static FILE *grf = NULL;
-static char line[BUFSIZ+1];
+static char line[BUFSIZ + 1];
 static struct group group;
 static char *gr_mem[MAXGRP];
 
 void
 setgrent(void)
 {
-	if( !grf )
-		grf = fopen( GROUP, "r" );
+	if(!grf)
+		grf = fopen(GROUP, "r");
 	else
-		rewind( grf );
+		rewind(grf);
 }
 
 void
 endgrent(void)
 {
-	if( grf ){
-		fclose( grf );
+	if(grf) {
+		fclose(grf);
 		grf = NULL;
 	}
 }
@@ -43,9 +43,11 @@ endgrent(void)
 static char *
 grskip(register char *p, register c)
 {
-	while( *p && *p != c ) ++p;
-	if( *p ) *p++ = 0;
-	return( p );
+	while(*p && *p != c)
+		++p;
+	if(*p)
+		*p++ = 0;
+	return (p);
 }
 
 struct group *
@@ -53,21 +55,21 @@ getgrent()
 {
 	register char *p, **q;
 
-	if( !grf && !(grf = fopen( GROUP, "r" )) )
-		return(NULL);
-	if( !(p = fgets( line, BUFSIZ, grf )) )
-		return(NULL);
+	if(!grf && !(grf = fopen(GROUP, "r")))
+		return (NULL);
+	if(!(p = fgets(line, BUFSIZ, grf)))
+		return (NULL);
 	group.gr_name = p;
-	p = grskip(p,CL); /* passwd */
-	group.gr_gid = atoi(p = grskip(p,CL));
+	p = grskip(p, CL); /* passwd */
+	group.gr_gid = atoi(p = grskip(p, CL));
 	group.gr_mem = gr_mem;
-	p = grskip(p,CL);
-	grskip(p,NL);
+	p = grskip(p, CL);
+	grskip(p, NL);
 	q = gr_mem;
-	while( *p ){
+	while(*p) {
 		*q++ = p;
-		p = grskip(p,CM);
+		p = grskip(p, CM);
 	}
 	*q = NULL;
-	return( &group );
+	return (&group);
 }

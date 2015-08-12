@@ -14,7 +14,7 @@
 #include <ip.h>
 
 /* return list of ip addresses for a name */
-Ndbtuple*
+Ndbtuple *
 ndbgetipaddr(Ndb *db, char *val)
 {
 	char *attr, *p;
@@ -23,7 +23,7 @@ ndbgetipaddr(Ndb *db, char *val)
 
 	/* already an IP address? */
 	attr = ipattr(val);
-	if(strcmp(attr, "ip") == 0){
+	if(strcmp(attr, "ip") == 0) {
 		it = ndbnew("ip", val);
 		ndbsetmalloctag(it, getcallerpc(&db));
 		return it;
@@ -37,9 +37,9 @@ ndbgetipaddr(Ndb *db, char *val)
 
 	/* remove the non-ip entries */
 	first = last = nil;
-	for(; it; it = next){
+	for(; it; it = next) {
 		next = it->entry;
-		if(strcmp(it->attr, "ip") == 0){
+		if(strcmp(it->attr, "ip") == 0) {
 			if(first == nil)
 				first = it;
 			else

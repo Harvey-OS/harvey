@@ -19,17 +19,15 @@
 #include <flate.h>
 #include "imagefile.h"
 
-enum
-{
-	IDATSIZE = 	20000,
-	FilterNone =	0,
+enum {
+	IDATSIZE = 20000,
+	FilterNone = 0,
 };
 
 typedef struct ZlibR ZlibR;
 typedef struct ZlibW ZlibW;
 
-struct ZlibR
-{
+struct ZlibR {
 	uint8_t *data;
 	int width;
 	int dx;
@@ -39,8 +37,7 @@ struct ZlibR
 	int pixwid;
 };
 
-struct ZlibW
-{
+struct ZlibW {
 	Biobuf *io;
 	uint8_t *buf;
 	uint8_t *b;
@@ -48,14 +45,14 @@ struct ZlibW
 };
 
 static uint32_t *crctab;
-static uint8_t PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static uint8_t PNGmagic[] = {137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
 
 static void
 put4(uint8_t *a, uint32_t v)
 {
-	a[0] = v>>24;
-	a[1] = v>>16;
-	a[2] = v>>8;
+	a[0] = v >> 24;
+	a[1] = v >> 16;
+	a[2] = v >> 8;
 	a[3] = v;
 }
 
@@ -87,47 +84,47 @@ zread(void *va, void *buf, int n)
 	z = va;
 	pixwid = z->pixwid;
 	b = buf;
-	e = b+n;
-	while(b+pixwid < e){	/* one less for filter alg byte */
+	e = b + n;
+	while(b + pixwid < e) { /* one less for filter alg byte */
 		if(z->y >= z->dy)
 			break;
 		if(z->x == 0)
 			*b++ = FilterNone;
-		pixels = (e-b)/pixwid;
+		pixels = (e - b) / pixwid;
 		if(pixels > z->dx - z->x)
 			pixels = z->dx - z->x;
-		img = z->data + z->width*z->y + pixwid*z->x;
-		memmove(b, img, pixwid*pixels);
-		if(pixwid == 4){
+		img = z->data + z->width * z->y + pixwid * z->x;
+		memmove(b, img, pixwid * pixels);
+		if(pixwid == 4) {
 			/*
 			 * Convert to non-premultiplied alpha.
 			 */
-			for(i=0; i<pixels; i++, b+=4){
+			for(i = 0; i < pixels; i++, b += 4) {
 				a = b[3];
 				if(a == 0)
 					b[0] = b[1] = b[2] = 0;
-				else if(a != 255){
+				else if(a != 255) {
 					if(b[0] >= a)
 						b[0] = a;
-					b[0] = (b[0]*255)/a;
+					b[0] = (b[0] * 255) / a;
 					if(b[1] >= a)
 						b[1] = a;
-					b[1] = (b[1]*255)/a;
+					b[1] = (b[1] * 255) / a;
 					if(b[2] >= a)
 						b[2] = a;
-					b[2] = (b[2]*255)/a;
+					b[2] = (b[2] * 255) / a;
 				}
 			}
-		}else	
-			b += pixwid*pixels;
+		} else
+			b += pixwid * pixels;
 
 		z->x += pixels;
-		if(z->x >= z->dx){
+		if(z->x >= z->dx) {
 			z->x = 0;
 			z->y++;
 		}
 	}
-	return b - (uint8_t*)buf;
+	return b - (uint8_t *)buf;
 }
 
 static void
@@ -146,9 +143,9 @@ zwrite(void *va, void *buf, int n)
 
 	z = va;
 	b = buf;
-	e = b+n;
+	e = b + n;
 
-	while(b < e){
+	while(b < e) {
 		m = z->e - z->b;
 		if(m > e - b)
 			m = e - b;
@@ -161,13 +158,13 @@ zwrite(void *va, void *buf, int n)
 	return n;
 }
 
-static Memimage*
+static Memimage *
 memRGBA(Memimage *i)
 {
 	Memimage *ni;
 	char buf[32];
 	uint32_t dst;
-	
+
 	/*
 	 * [A]BGR because we want R,G,B,[A] in big-endian order.  Sigh.
 	 */
@@ -176,7 +173,7 @@ memRGBA(Memimage *i)
 		dst = ABGR32;
 	else
 		dst = BGR24;
-		
+
 	if(i->chan == dst)
 		return i;
 
@@ -187,7 +184,7 @@ memRGBA(Memimage *i)
 	return ni;
 }
 
-char*
+char *
 memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 {
 	int err, n;
@@ -211,43 +208,45 @@ memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 
 	/* IHDR chunk */
 	h = buf;
-	put4(h, Dx(m->r)); h += 4;
-	put4(h, Dy(m->r)); h += 4;
-	*h++ = 8;	/* 8 bits per channel */
+	put4(h, Dx(m->r));
+	h += 4;
+	put4(h, Dy(m->r));
+	h += 4;
+	*h++ = 8; /* 8 bits per channel */
 	if(rgb->chan == BGR24)
-		*h++ = 2;		/* RGB */
+		*h++ = 2; /* RGB */
 	else
-		*h++ = 6;		/* RGBA */
-	*h++ = 0;	/* compression - deflate */
-	*h++ = 0;	/* filter - none */
-	*h++ = 0;	/* interlace - none */
-	chunk(io, "IHDR", buf, h-buf);
+		*h++ = 6; /* RGBA */
+	*h++ = 0;	 /* compression - deflate */
+	*h++ = 0;	 /* filter - none */
+	*h++ = 0;	 /* interlace - none */
+	chunk(io, "IHDR", buf, h - buf);
 
 	/* time - using now is suspect */
 	tm = gmtime(time(0));
 	h = buf;
-	*h++ = (tm->year + 1900)>>8;
-	*h++ = (tm->year + 1900)&0xff;
+	*h++ = (tm->year + 1900) >> 8;
+	*h++ = (tm->year + 1900) & 0xff;
 	*h++ = tm->mon + 1;
 	*h++ = tm->mday;
 	*h++ = tm->hour;
 	*h++ = tm->min;
 	*h++ = tm->sec;
-	chunk(io, "tIME", buf, h-buf);
+	chunk(io, "tIME", buf, h - buf);
 
 	/* gamma */
-	if(II->fields_set & II_GAMMA){
-		vgamma = II->gamma*100000;
+	if(II->fields_set & II_GAMMA) {
+		vgamma = II->gamma * 100000;
 		put4(buf, vgamma);
 		chunk(io, "gAMA", buf, 4);
 	}
 
 	/* comment */
-	if(II->fields_set & II_COMMENT){
-		strncpy((char*)buf, "Comment", sizeof buf);
-		n = strlen((char*)buf)+1; // leave null between Comment and text
-		strncpy((char*)(buf+n), II->comment, sizeof buf - n);
-		chunk(io, "tEXt", buf, n+strlen((char*)buf+n));
+	if(II->fields_set & II_COMMENT) {
+		strncpy((char *)buf, "Comment", sizeof buf);
+		n = strlen((char *)buf) + 1; // leave null between Comment and text
+		strncpy((char *)(buf + n), II->comment, sizeof buf - n);
+		chunk(io, "tEXt", buf, n + strlen((char *)buf + n));
 	}
 
 	/* image data */
@@ -257,14 +256,14 @@ memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 	zr.data = rgb->data->bdata;
 	zr.x = 0;
 	zr.y = 0;
-	zr.pixwid = chantodepth(rgb->chan)/8;
+	zr.pixwid = chantodepth(rgb->chan) / 8;
 	zw.io = io;
 	zw.buf = malloc(IDATSIZE);
 	if(zw.buf == nil)
 		sysfatal("malloc: %r");
 	zw.b = zw.buf;
 	zw.e = zw.b + IDATSIZE;
-	if((err=deflatezlib(&zw, zwrite, &zr, zread, 6, 0)) < 0)
+	if((err = deflatezlib(&zw, zwrite, &zr, zread, 6, 0)) < 0)
 		sysfatal("deflatezlib %s", flateerr(err));
 	if(zw.b > zw.buf)
 		IDAT(&zw);

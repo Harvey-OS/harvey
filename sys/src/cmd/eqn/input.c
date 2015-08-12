@@ -12,25 +12,25 @@
 #include <ctype.h>
 #include <errno.h>
 
-Infile	infile[10];
-Infile	*curfile = infile;
+Infile infile[10];
+Infile *curfile = infile;
 
-#define	MAXSRC	50
-Src	src[MAXSRC];	/* input source stack */
-Src	*srcp	= src;
+#define MAXSRC 50
+Src src[MAXSRC]; /* input source stack */
+Src *srcp = src;
 
 extern int getarg(char *);
-extern	void eprint(void);
+extern void eprint(void);
 
-void pushsrc(int type, char *ptr)	/* new input source */
+void pushsrc(int type, char *ptr) /* new input source */
 {
-	if (++srcp >= src + MAXSRC)
+	if(++srcp >= src + MAXSRC)
 		ERROR "inputs nested too deep" FATAL;
 	srcp->type = type;
 	srcp->sp = ptr;
-	if (dbg > 1) {
+	if(dbg > 1) {
 		printf("\n%3d ", srcp - src);
-		switch (srcp->type) {
+		switch(srcp->type) {
 		case File:
 			printf("push file %s\n", ((Infile *)ptr)->fname);
 			break;
@@ -52,13 +52,13 @@ void pushsrc(int type, char *ptr)	/* new input source */
 	}
 }
 
-void popsrc(void)	/* restore an old one */
+void popsrc(void) /* restore an old one */
 {
-	if (srcp <= src)
+	if(srcp <= src)
 		ERROR "too many inputs popped" FATAL;
-	if (dbg > 1) {
+	if(dbg > 1) {
 		printf("%3d ", srcp - src);
-		switch (srcp->type) {
+		switch(srcp->type) {
 		case File:
 			printf("pop file\n");
 			break;
@@ -81,218 +81,220 @@ void popsrc(void)	/* restore an old one */
 	srcp--;
 }
 
-Arg	args[10];	/* argument frames */
-Arg	*argfp = args;	/* frame pointer */
-int	argcnt;		/* number of arguments seen so far */
+Arg args[10];      /* argument frames */
+Arg *argfp = args; /* frame pointer */
+int argcnt;	/* number of arguments seen so far */
 
-void dodef(tbl *stp)	/* collect args and switch input to defn */
+void dodef(tbl *stp) /* collect args and switch input to defn */
 {
 	int i, len;
 	char *p;
 	Arg *ap;
 
-	ap = argfp+1;
-	if (ap >= args+10)
+	ap = argfp + 1;
+	if(ap >= args + 10)
 		ERROR "more than arguments\n" FATAL;
 	argcnt = 0;
-	if (input() != '(')
-		ERROR "disaster in dodef\n"FATAL;
-	if (ap->argval == 0)
+	if(input() != '(')
+		ERROR "disaster in dodef\n" FATAL;
+	if(ap->argval == 0)
 		ap->argval = malloc(1000);
-	for (p = ap->argval; (len = getarg(p)) != -1; p += len) {
+	for(p = ap->argval; (len = getarg(p)) != -1; p += len) {
 		ap->argstk[argcnt++] = p;
-		if (input() == ')')
+		if(input() == ')')
 			break;
 	}
-	for (i = argcnt; i < MAXARGS; i++)
+	for(i = argcnt; i < MAXARGS; i++)
 		ap->argstk[i] = "";
-	if (dbg)
-		for (i = 0; i < argcnt; i++)
-			printf("arg %d.%d = <%s>\n", ap-args, i+1, ap->argstk[i]);
+	if(dbg)
+		for(i = 0; i < argcnt; i++)
+			printf("arg %d.%d = <%s>\n", ap - args, i + 1, ap->argstk[i]);
 	argfp = ap;
 	pushsrc(Macro, stp->cval);
 }
 
-getarg(char *p)	/* pick up single argument, store in p, return length */
+getarg(char *p) /* pick up single argument, store in p, return length */
 {
 	int n, c, npar;
 
 	n = npar = 0;
-	for ( ;; ) {
+	for(;;) {
 		c = input();
-		if (c == EOF)
+		if(c == EOF)
 			ERROR "end of file in getarg!\n" FATAL;
-		if (npar == 0 && (c == ',' || c == ')'))
+		if(npar == 0 && (c == ',' || c == ')'))
 			break;
-		if (c == '"')	/* copy quoted stuff intact */
+		if(c == '"') /* copy quoted stuff intact */
 			do {
 				*p++ = c;
 				n++;
-			} while ((c = input()) != '"' && c != EOF);
-		else if (c == '(')
+			} while((c = input()) != '"' && c != EOF);
+		else if(c == '(')
 			npar++;
-		else if (c == ')')
+		else if(c == ')')
 			npar--;
 		n++;
 		*p++ = c;
 	}
 	*p = 0;
 	unput(c);
-	return(n + 1);
+	return (n + 1);
 }
 
-#define	PBSIZE	2000
-char	pbuf[PBSIZE];		/* pushback buffer */
-char	*pb	= pbuf-1;	/* next pushed back character */
+#define PBSIZE 2000
+char pbuf[PBSIZE];   /* pushback buffer */
+char *pb = pbuf - 1; /* next pushed back character */
 
-char	ebuf[200];		/* collect input here for error reporting */
-char	*ep	= ebuf;
+char ebuf[200]; /* collect input here for error reporting */
+char *ep = ebuf;
 
 input(void)
 {
 	register int c = 0;
 
-  loop:
-	switch (srcp->type) {
+loop:
+	switch(srcp->type) {
 	case File:
 		c = getc(curfile->fin);
-		if (c == EOF) {
-			if (curfile == infile)
+		if(c == EOF) {
+			if(curfile == infile)
 				break;
-			if (curfile->fin != stdin) {
+			if(curfile->fin != stdin) {
 				fclose(curfile->fin);
-				free(curfile->fname);	/* assumes allocated */
+				free(curfile->fname); /* assumes allocated */
 			}
 			curfile--;
 			printf(".lf %d %s\n", curfile->lineno, curfile->fname);
 			popsrc();
 			goto loop;
 		}
-		if (c == '\n')
+		if(c == '\n')
 			curfile->lineno++;
 		break;
 	case Char:
-		if (pb >= pbuf) {
+		if(pb >= pbuf) {
 			c = *pb--;
 			popsrc();
 			break;
-		} else {	/* can't happen? */
+		} else { /* can't happen? */
 			popsrc();
 			goto loop;
 		}
 	case String:
 		c = *srcp->sp++;
-		if (c == '\0') {
+		if(c == '\0') {
 			popsrc();
 			goto loop;
 		} else {
-			if (*srcp->sp == '\0')	/* empty, so pop */
+			if(*srcp->sp == '\0') /* empty, so pop */
 				popsrc();
 			break;
 		}
 	case Macro:
 		c = *srcp->sp++;
-		if (c == '\0') {
-			if (--argfp < args)
+		if(c == '\0') {
+			if(--argfp < args)
 				ERROR "argfp underflow" FATAL;
 			popsrc();
 			goto loop;
-		} else if (c == '$' && isdigit(*srcp->sp)) {
+		} else if(c == '$' && isdigit(*srcp->sp)) {
 			int n = 0;
-			while (isdigit(*srcp->sp))
+			while(isdigit(*srcp->sp))
 				n = 10 * n + *srcp->sp++ - '0';
-			if (n > 0 && n <= MAXARGS)
-				pushsrc(String, argfp->argstk[n-1]);
+			if(n > 0 && n <= MAXARGS)
+				pushsrc(String, argfp->argstk[n - 1]);
 			goto loop;
 		}
 		break;
-	case Free:	/* free string */
+	case Free: /* free string */
 		free(srcp->sp);
 		popsrc();
 		goto loop;
 	}
-	if (ep >= ebuf + sizeof ebuf)
+	if(ep >= ebuf + sizeof ebuf)
 		ep = ebuf;
 	*ep++ = c;
 	return c;
 }
 
-
 unput(int c)
 {
-	if (++pb >= pbuf + sizeof pbuf)
-		ERROR "pushback overflow\n"FATAL;
-	if (--ep < ebuf)
+	if(++pb >= pbuf + sizeof pbuf)
+		ERROR "pushback overflow\n" FATAL;
+	if(--ep < ebuf)
 		ep = ebuf + sizeof(ebuf) - 1;
 	*pb = c;
 	pushsrc(Char, pb);
 	return c;
 }
 
-void pbstr(char *s)
+void
+pbstr(char *s)
 {
 	pushsrc(String, s);
 }
 
-void error(int die, char *s)
+void
+error(int die, char *s)
 {
 	extern char *cmdname;
 
-	if (synerr)
+	if(synerr)
 		return;
 	fprintf(stderr, "%s: ", cmdname);
 	fprintf(stderr, s);
-	if (errno > 0)
+	if(errno > 0)
 		perror("???");
-	if (curfile->fin)
+	if(curfile->fin)
 		fprintf(stderr, " near %s:%d",
-			curfile->fname, curfile->lineno+1);
+			curfile->fname, curfile->lineno + 1);
 	fprintf(stderr, "\n");
 	eprint();
 	synerr = 1;
 	errno = 0;
-	if (die) {
-		if (dbg)
+	if(die) {
+		if(dbg)
 			abort();
 		else
 			exit(1);
 	}
 }
 
-void yyerror(char *s)
+void
+yyerror(char *s)
 {
-	error(0, s);	/* temporary */
+	error(0, s); /* temporary */
 }
 
 char errbuf[200];
 
-void eprint(void)	/* try to print context around error */
+void eprint(void) /* try to print context around error */
 {
 	char *p, *q;
 
-	if (ep == ebuf)
-		return;				/* no context */
+	if(ep == ebuf)
+		return; /* no context */
 	p = ep - 1;
-	if (p > ebuf && *p == '\n')
+	if(p > ebuf && *p == '\n')
 		p--;
-	for ( ; p >= ebuf && *p != '\n'; p--)
+	for(; p >= ebuf && *p != '\n'; p--)
 		;
-	while (*p == '\n')
+	while(*p == '\n')
 		p++;
 	fprintf(stderr, " context is\n\t");
-	for (q=ep-1; q>=p && *q!=' ' && *q!='\t' && *q!='\n'; q--)
+	for(q = ep - 1; q >= p && *q != ' ' && *q != '\t' && *q != '\n'; q--)
 		;
-	while (p < q)
+	while(p < q)
 		putc(*p++, stderr);
 	fprintf(stderr, " >>> ");
-	while (p < ep)
+	while(p < ep)
 		putc(*p++, stderr);
 	fprintf(stderr, " <<< ");
-	while (pb >= pbuf)
+	while(pb >= pbuf)
 		putc(*pb--, stderr);
-	if (curfile->fin)
+	if(curfile->fin)
 		fgets(ebuf, sizeof ebuf, curfile->fin);
 	fprintf(stderr, "%s", ebuf);
-	pbstr("\n.EN\n");	/* safety first */
+	pbstr("\n.EN\n"); /* safety first */
 	ep = ebuf;
 }

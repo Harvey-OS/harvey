@@ -25,13 +25,13 @@ makedir(char *s)
 {
 	int f;
 
-	if(access(s, AEXIST) == 0){
+	if(access(s, AEXIST) == 0) {
 		fprint(2, "mkdir: %s already exists\n", s);
 		e = "error";
 		return -1;
 	}
 	f = create(s, OREAD, DMDIR | mode);
-	if(f < 0){
+	if(f < 0) {
 		fprint(2, "mkdir: can't create %s: %r\n", s);
 		e = "error";
 		return -1;
@@ -45,7 +45,7 @@ mkdirp(char *s)
 {
 	char *p;
 
-	for(p=strchr(s+1, '/'); p; p=strchr(p+1, '/')){
+	for(p = strchr(s + 1, '/'); p; p = strchr(p + 1, '/')) {
 		*p = 0;
 		if(access(s, AEXIST) != 0 && makedir(s) < 0)
 			return;
@@ -55,7 +55,6 @@ mkdirp(char *s)
 		makedir(s);
 }
 
-
 void
 main(int argc, char *argv[])
 {
@@ -63,7 +62,8 @@ main(int argc, char *argv[])
 	char *m;
 
 	pflag = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'm':
@@ -77,9 +77,10 @@ main(int argc, char *argv[])
 	case 'p':
 		pflag = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	for(i=0; i<argc; i++){
+	for(i = 0; i < argc; i++) {
 		if(pflag)
 			mkdirp(argv[i]);
 		else

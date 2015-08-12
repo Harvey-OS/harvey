@@ -11,15 +11,14 @@
 
 typedef unsigned char uchar;
 
-
 int
 strcasecmp(char *s1, char *s2)
 {
 	int c1, c2;
 
-	while(*s1){
-		c1 = *(uint8_t*)s1++;
-		c2 = *(uint8_t*)s2++;
+	while(*s1) {
+		c1 = *(uint8_t *)s1++;
+		c2 = *(uint8_t *)s2++;
 
 		if(c1 == c2)
 			continue;

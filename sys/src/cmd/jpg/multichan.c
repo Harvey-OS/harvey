@@ -17,11 +17,10 @@
 /* Separate colors, if not a grey scale or bitmap, into one byte per color per pixel, no alpha or X */
 /* Result is GREY[1248] or RGB24 */
 
-static
-int
+static int
 notrans(uint32_t chan)
 {
-	switch(chan){
+	switch(chan) {
 	case GREY1:
 	case GREY2:
 	case GREY4:
@@ -32,7 +31,7 @@ notrans(uint32_t chan)
 	return 0;
 }
 
-Image*
+Image *
 multichan(Image *i)
 {
 	Image *ni;
@@ -47,7 +46,7 @@ multichan(Image *i)
 	return ni;
 }
 
-Memimage*
+Memimage *
 memmultichan(Memimage *i)
 {
 	Memimage *ni;

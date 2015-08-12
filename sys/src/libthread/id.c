@@ -26,15 +26,15 @@ threadpid(int id)
 	Proc *p;
 	Thread *t;
 
-	if (id < 0)
+	if(id < 0)
 		return -1;
-	if (id == 0)
+	if(id == 0)
 		return _threadgetproc()->pid;
 	lock(&_threadpq.lock);
-	for (p = _threadpq.head; p; p = p->next){
+	for(p = _threadpq.head; p; p = p->next) {
 		lock(&p->lock);
-		for (t = p->threads.head; t; t = t->nextt)
-			if (t->id == id){
+		for(t = p->threads.head; t; t = t->nextt)
+			if(t->id == id) {
 				pid = p->pid;
 				unlock(&p->lock);
 				unlock(&_threadpq.lock);
@@ -75,21 +75,21 @@ threadsetname(char *fmt, ...)
 
 	p = _threadgetproc();
 	t = p->thread;
-	if (t->cmdname)
+	if(t->cmdname)
 		free(t->cmdname);
 	va_start(arg, fmt);
 	t->cmdname = vsmprint(fmt, arg);
 	va_end(arg);
-	if(t->cmdname && p->nthreads == 1){
+	if(t->cmdname && p->nthreads == 1) {
 		snprint(buf, sizeof buf, "#p/%lud/args", _tos->pid); //getpid());
-		if((fd = open(buf, OWRITE)) >= 0){
-			write(fd, t->cmdname, strlen(t->cmdname)+1);
+		if((fd = open(buf, OWRITE)) >= 0) {
+			write(fd, t->cmdname, strlen(t->cmdname) + 1);
 			close(fd);
 		}
 	}
 }
 
-char*
+char *
 threadgetname(void)
 {
 	Proc *p;
@@ -99,19 +99,19 @@ threadgetname(void)
 	return nil;
 }
 
-void**
+void **
 threaddata(void)
 {
 	return &_threadgetproc()->thread->udata[0];
 }
 
-void**
+void **
 _workerdata(void)
 {
 	return &_threadgetproc()->wdata;
 }
 
-void**
+void **
 procdata(void)
 {
 	return &_threadgetproc()->udata;
@@ -126,9 +126,9 @@ tprivalloc(void)
 	int i;
 
 	lock(&privlock);
-	for(i=0; i<NPRIV; i++)
-		if(!(privmask&(1<<i))){
-			privmask |= 1<<i;
+	for(i = 0; i < NPRIV; i++)
+		if(!(privmask & (1 << i))) {
+			privmask |= 1 << i;
 			unlock(&privlock);
 			return i;
 		}
@@ -142,10 +142,10 @@ tprivfree(int i)
 	if(i < 0 || i >= NPRIV)
 		abort();
 	lock(&privlock);
-	privmask &= ~(1<<i);
+	privmask &= ~(1 << i);
 }
 
-void**
+void **
 tprivaddr(int i)
 {
 	return &_threadgetproc()->thread->udata[i];

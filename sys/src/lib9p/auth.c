@@ -16,8 +16,7 @@
 
 typedef struct Afid Afid;
 
-struct Afid
-{
+struct Afid {
 	AuthRpc *rpc;
 	char *uname;
 	char *aname;
@@ -25,14 +24,14 @@ struct Afid
 	int afd;
 };
 
-static uint64_t authgen = 1ULL<<63;
+static uint64_t authgen = 1ULL << 63;
 
 void
 auth9p(Req *r)
 {
 	char *spec;
 	Afid *afid;
-	
+
 	afid = emalloc9p(sizeof(Afid));
 	afid->afd = open("/mnt/factotum/rpc", ORDWR);
 	if(afid->afd < 0)
@@ -79,8 +78,8 @@ static int
 _authread(Afid *afid, void *data, int count)
 {
 	AuthInfo *ai;
-	
-	switch(auth_rpc(afid->rpc, "read", nil, 0)){
+
+	switch(auth_rpc(afid->rpc, "read", nil, 0)) {
 	case ARdone:
 		ai = auth_getinfo(afid->rpc);
 		if(ai == nil)
@@ -92,14 +91,14 @@ _authread(Afid *afid, void *data, int count)
 		return 0;
 
 	case ARok:
-		if(count < afid->rpc->narg){
+		if(count < afid->rpc->narg) {
 			werrstr("authread count too small");
 			return -1;
 		}
 		count = afid->rpc->narg;
 		memmove(data, afid->rpc->arg, count);
 		return count;
-	
+
 	case ARphase:
 	default:
 		werrstr("authrpc botch");
@@ -113,15 +112,15 @@ authread(Req *r)
 	int n;
 	Afid *afid;
 	Fid *fid;
-	
+
 	fid = r->fid;
 	afid = fid->aux;
-	if(afid == nil || r->fid->qid.type != QTAUTH){
+	if(afid == nil || r->fid->qid.type != QTAUTH) {
 		respond(r, "not an auth fid");
 		return;
 	}
 	n = _authread(afid, r->ofcall.data, r->ifcall.count);
-	if(n < 0){
+	if(n < 0) {
 		responderror(r);
 		return;
 	}
@@ -134,14 +133,14 @@ authwrite(Req *r)
 {
 	Afid *afid;
 	Fid *fid;
-	
+
 	fid = r->fid;
 	afid = fid->aux;
-	if(afid == nil || r->fid->qid.type != QTAUTH){
+	if(afid == nil || r->fid->qid.type != QTAUTH) {
 		respond(r, "not an auth fid");
 		return;
 	}
-	if(auth_rpc(afid->rpc, "write", r->ifcall.data, r->ifcall.count) != ARok){
+	if(auth_rpc(afid->rpc, "write", r->ifcall.data, r->ifcall.count) != ARok) {
 		responderror(r);
 		return;
 	}
@@ -153,8 +152,8 @@ void
 authdestroy(Fid *fid)
 {
 	Afid *afid;
-	
-	if((fid->qid.type & QTAUTH) && (afid = fid->aux) != nil){
+
+	if((fid->qid.type & QTAUTH) && (afid = fid->aux) != nil) {
 		if(afid->rpc)
 			auth_freerpc(afid->rpc);
 		close(afid->afd);
@@ -170,38 +169,37 @@ authattach(Req *r)
 {
 	Afid *afid;
 	char buf[ERRMAX];
-	
-	if(r->afid == nil){
+
+	if(r->afid == nil) {
 		respond(r, "not authenticated");
 		return -1;
 	}
 
 	afid = r->afid->aux;
-	if((r->afid->qid.type&QTAUTH) == 0 || afid == nil){
+	if((r->afid->qid.type & QTAUTH) == 0 || afid == nil) {
 		respond(r, "not an auth fid");
 		return -1;
 	}
 
-	if(!afid->authok){
-		if(_authread(afid, buf, 0) < 0){
+	if(!afid->authok) {
+		if(_authread(afid, buf, 0) < 0) {
 			responderror(r);
 			return -1;
 		}
 	}
-	
-	if(strcmp(afid->uname, r->ifcall.uname) != 0){
-		snprint(buf, sizeof buf, "auth uname mismatch: %s vs %s", 
+
+	if(strcmp(afid->uname, r->ifcall.uname) != 0) {
+		snprint(buf, sizeof buf, "auth uname mismatch: %s vs %s",
 			afid->uname, r->ifcall.uname);
 		respond(r, buf);
 		return -1;
 	}
 
-	if(strcmp(afid->aname, r->ifcall.aname) != 0){
-		snprint(buf, sizeof buf, "auth aname mismatch: %s vs %s", 
+	if(strcmp(afid->aname, r->ifcall.aname) != 0) {
+		snprint(buf, sizeof buf, "auth aname mismatch: %s vs %s",
 			afid->aname, r->ifcall.aname);
 		respond(r, buf);
 		return -1;
 	}
 	return 0;
 }
-

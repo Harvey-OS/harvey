@@ -20,10 +20,10 @@ fmtzbinit(Fmt *f, ZBlock *b)
 #endif
 	f->start = b->data;
 	f->to = f->start;
-	f->stop = (char*)f->start + b->len;
+	f->stop = (char *)f->start + b->len;
 }
 
-#define ROUNDUP(p, n) ((void*)(((uintptr)(p)+(n)-1)&~(uintptr)((n)-1)))
+#define ROUNDUP(p, n) ((void *)(((uintptr)(p) + (n)-1) & ~(uintptr)((n)-1)))
 
 enum {
 	OverflowCheck = 32
@@ -39,19 +39,20 @@ alloczblock(uint32_t size, int zeroed, uint blocksize)
 	int n;
 
 	if(blocksize == 0)
-		blocksize = 32;	/* try for cache line alignment */
+		blocksize = 32; /* try for cache line alignment */
 
-	n = size+OverflowCheck+sizeof(ZBlock)+blocksize+8;
+	n = size + OverflowCheck + sizeof(ZBlock) + blocksize + 8;
 	p = malloc(n);
-	if(p == nil){
+	if(p == nil) {
 		seterr(EOk, "out of memory");
 		return nil;
 	}
 
 	data = ROUNDUP(p, blocksize);
-	b = ROUNDUP(data+size+OverflowCheck, 8);
-	if(0) fprint(2, "alloc %p-%p data %p-%p b %p-%p\n",
-		p, p+n, data, data+size, b, b+1);
+	b = ROUNDUP(data + size + OverflowCheck, 8);
+	if(0)
+		fprint(2, "alloc %p-%p data %p-%p b %p-%p\n",
+		       p, p + n, data, data + size, b, b + 1);
 	*b = z;
 	b->data = data;
 	b->free = p;
@@ -59,22 +60,22 @@ alloczblock(uint32_t size, int zeroed, uint blocksize)
 	b->_size = size;
 	if(zeroed)
 		memset(b->data, 0, size);
-	memmove(b->data+size, zmagic, OverflowCheck);
+	memmove(b->data + size, zmagic, OverflowCheck);
 	return b;
 }
 
 void
 freezblock(ZBlock *b)
 {
-	if(b){
-		if(memcmp(b->data+b->_size, zmagic, OverflowCheck) != 0)
+	if(b) {
+		if(memcmp(b->data + b->_size, zmagic, OverflowCheck) != 0)
 			abort();
-		memset(b->data+b->_size, 0, OverflowCheck);
+		memset(b->data + b->_size, 0, OverflowCheck);
 		free(b->free);
 	}
 }
 
-ZBlock*
+ZBlock *
 packet2zblock(Packet *p, uint32_t size)
 {
 	ZBlock *b;
@@ -84,14 +85,14 @@ packet2zblock(Packet *p, uint32_t size)
 	b = alloczblock(size, 0, 0);
 	if(b == nil)
 		return nil;
-	if(packetcopy(p, b->data, 0, size) < 0){
+	if(packetcopy(p, b->data, 0, size) < 0) {
 		freezblock(b);
 		return nil;
 	}
 	return b;
 }
 
-Packet*
+Packet *
 zblock2packet(ZBlock *zb, uint32_t size)
 {
 	Packet *p;
@@ -102,4 +103,3 @@ zblock2packet(ZBlock *zb, uint32_t size)
 	packetappend(p, zb->data, size);
 	return p;
 }
-

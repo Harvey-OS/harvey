@@ -10,25 +10,25 @@
 #include "all.h"
 #include "9p1.h"
 
-extern Nvrsafe	nvr;
+extern Nvrsafe nvr;
 
 typedef struct {
-	uint8_t	chal[CHALLEN];		/* locally generated challenge */
-	uint8_t	rchal[CHALLEN];		/* remotely generated challenge */
-	Lock	idlock;
-	uint32_t	idoffset;		/* offset of id vector */
-	uint32_t	idvec;			/* vector of acceptable id's */
+	uint8_t chal[CHALLEN];  /* locally generated challenge */
+	uint8_t rchal[CHALLEN]; /* remotely generated challenge */
+	Lock idlock;
+	uint32_t idoffset; /* offset of id vector */
+	uint32_t idvec;    /* vector of acceptable id's */
 } Authinfo;
 
 static void
-f_nop(Chan *cp, Fcall*, Fcall*)
+f_nop(Chan *cp, Fcall *, Fcall *)
 {
 	if(CHAT(cp))
 		print("c_nop %d\n", cp->chan);
 }
 
 static void
-f_flush(Chan *cp, Fcall*, Fcall*)
+f_flush(Chan *cp, Fcall *, Fcall *)
 {
 	if(CHAT(cp))
 		print("c_flush %d\n", cp->chan);
@@ -59,7 +59,7 @@ f_session(Chan *cp, Fcall *in, Fcall *ou)
 {
 	Authinfo *aip;
 
-	aip = (Authinfo*)cp->authinfo;
+	aip = (Authinfo *)cp->authinfo;
 
 	if(CHAT(cp))
 		print("c_session %d\n", cp->chan);
@@ -87,7 +87,7 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
 	uint32_t bit;
 	Authinfo *aip;
 
-	if(noauth || wstatallow)	/* set to allow entry during boot */
+	if(noauth || wstatallow) /* set to allow entry during boot */
 		return 1;
 
 	if(strcmp(in->uname, "none") == 0)
@@ -98,21 +98,21 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
 
 	/* decrypt and unpack ticket */
 	convM2T9p1(in->ticket, &t, nvr.machkey);
-	if(t.num != AuthTs){
+	if(t.num != AuthTs) {
 		print("9p1: bad AuthTs num\n");
 		return 0;
 	}
 
 	/* decrypt and unpack authenticator */
 	convM2A9p1(in->auth, &a, t.key);
-	if(a.num != AuthAc){
+	if(a.num != AuthAc) {
 		print("9p1: bad AuthAc num\n");
 		return 0;
 	}
 
 	/* challenges must match */
-	aip = (Authinfo*)cp->authinfo;
-	if(memcmp(a.chal, aip->chal, sizeof(a.chal)) != 0){
+	aip = (Authinfo *)cp->authinfo;
+	if(memcmp(a.chal, aip->chal, sizeof(a.chal)) != 0) {
 		print("9p1: bad challenge\n");
 		return 0;
 	}
@@ -124,24 +124,24 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
 	 */
 	lock(&aip->idlock);
 	x = a.id - aip->idoffset;
-	bit = 1<<x;
-	if(x < 0 || x > 31 || (bit&aip->idvec)){
+	bit = 1 << x;
+	if(x < 0 || x > 31 || (bit & aip->idvec)) {
 		unlock(&aip->idlock);
 		print("9p1: id out of range: idoff %ld idvec %lux id %ld\n",
-		   aip->idoffset, aip->idvec, a.id);
+		      aip->idoffset, aip->idvec, a.id);
 		return 0;
 	}
 	aip->idvec |= bit;
 
 	/* normalize the vector */
-	while(aip->idvec&0xffff0001){
+	while(aip->idvec & 0xffff0001) {
 		aip->idvec >>= 1;
 		aip->idoffset++;
 	}
 	unlock(&aip->idlock);
 
 	/* ticket name and attach name must match */
-	if(memcmp(in->uname, t.cuid, sizeof(in->uname)) != 0){
+	if(memcmp(in->uname, t.cuid, sizeof(in->uname)) != 0) {
 		print("9p1: names don't match\n");
 		return 0;
 	}
@@ -162,18 +162,18 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
  * the top 2 levels of the dump fs
  */
 void
-mkqid(Qid* qid, Dentry *d, int buggery)
+mkqid(Qid *qid, Dentry *d, int buggery)
 {
 	int c;
 
-	if(buggery && d->qid.path == (QPDIR|QPROOT)){
+	if(buggery && d->qid.path == (QPDIR | QPROOT)) {
 		c = d->name[0];
-		if(isascii(c) && isdigit(c)){
+		if(isascii(c) && isdigit(c)) {
 			qid->path = 3;
 			qid->vers = d->qid.version;
 			qid->type = QTDIR;
 
-			c = (c-'0')*10 + (d->name[1]-'0');
+			c = (c - '0') * 10 + (d->name[1] - '0');
 			if(c >= 1 && c <= 12)
 				qid->path = 4;
 			return;
@@ -184,7 +184,7 @@ mkqid(Qid* qid, Dentry *d, int buggery)
 }
 
 int
-mkqidcmp(Qid* qid, Dentry *d)
+mkqidcmp(Qid *qid, Dentry *d)
 {
 	Qid tmp;
 
@@ -211,9 +211,9 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 		print("\targ = %s\n", in->aname);
 	}
 
-	ou->qid = QID9P1(0,0);
+	ou->qid = QID9P1(0, 0);
 	ou->fid = in->fid;
-	if(!in->aname[0])	/* default */
+	if(!in->aname[0]) /* default */
 		strncpy(in->aname, "main", sizeof(in->aname));
 	p = 0;
 	f = filep(cp, in->fid, 1);
@@ -252,8 +252,8 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Ealloc;
 		goto out;
 	}
-	if (iaccess(f, d, DEXEC) ||
-	    f->uid == 0 && fs->dev->type == Devro) {
+	if(iaccess(f, d, DEXEC) ||
+	   f->uid == 0 && fs->dev->type == Devro) {
 		/*
 		 * 'none' not allowed on dump
 		 */
@@ -275,12 +275,12 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 	cp->whotime = time(nil);
 	if(cons.flags & attachflag)
 		print("9p1: attach %s %T to \"%s\" C%d\n",
-			cp->whoname, cp->whotime, fs->name, cp->chan);
+		      cp->whoname, cp->whotime, fs->name, cp->chan);
 
 out:
 	if((cons.flags & attachflag) && ou->err)
 		print("9p1: attach %s %T SUCK EGGS --- %s\n",
-			in->uname, time(nil), errstr9p[ou->err]);
+		      in->uname, time(nil), errstr9p[ou->err]);
 	if(p)
 		putbuf(p);
 	if(f) {
@@ -311,8 +311,7 @@ f_clone(Chan *cp, Fcall *in, Fcall *ou)
 	if(fid < fid1) {
 		f1 = filep(cp, fid, 0);
 		f2 = filep(cp, fid1, 1);
-	} else
-	if(fid1 < fid) {
+	} else if(fid1 < fid) {
 		f2 = filep(cp, fid1, 1);
 		f1 = filep(cp, fid, 0);
 	}
@@ -320,7 +319,6 @@ f_clone(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Efid;
 		goto out;
 	}
-
 
 	f2->fs = f1->fs;
 	f2->addr = f1->addr;
@@ -364,7 +362,7 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 	}
 
 	ou->fid = in->fid;
-	ou->qid = QID9P1(0,0);
+	ou->qid = QID9P1(0, 0);
 	p = 0;
 	f = filep(cp, in->fid, 0);
 	if(!f) {
@@ -411,7 +409,7 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 		unlock(&wpathlock);
 		goto found;
 	}
-	for(addr=0;; addr++) {
+	for(addr = 0;; addr++) {
 		if(p == 0) {
 			p = getbuf(f->fs->dev, f->addr, Brd);
 			d = getdir(p, f->slot);
@@ -423,13 +421,13 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 		qpath = d->qid.path;
 		p1 = dnodebuf1(p, d, addr, 0, f->uid);
 		p = 0;
-		if(!p1 || checktag(p1, Tdir, qpath) ) {
+		if(!p1 || checktag(p1, Tdir, qpath)) {
 			if(p1)
 				putbuf(p1);
 			ou->err = Eentry;
 			goto out;
 		}
-		for(slot=0; slot<DIRPERBUF; slot++) {
+		for(slot = 0; slot < DIRPERBUF; slot++) {
 			d1 = getdir(p1, slot);
 			if(!(d1->mode & DALLOC))
 				continue;
@@ -448,7 +446,7 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 			w->slot = f->slot;
 			w->up = f->wpath;
 			f->wpath = w;
-			slot += DIRPERBUF*addr;
+			slot += DIRPERBUF * addr;
 			goto found;
 		}
 		putbuf(p1);
@@ -563,7 +561,7 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 			ou->err = Eronly;
 			goto out;
 		}
-		fmod = FREAD+FWRITE;
+		fmod = FREAD + FWRITE;
 		break;
 
 	case OEXEC:
@@ -637,8 +635,8 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		print("c_create %d\n", cp->chan);
 		print("\tfid = %d\n", in->fid);
 		print("\tname = %s\n", in->name);
-		print("\tperm = %lx+%lo\n", (in->perm>>28)&0xf,
-				in->perm&0777);
+		print("\tperm = %lx+%lo\n", (in->perm >> 28) & 0xf,
+		      in->perm & 0777);
 		print("\tmode = %o\n", in->mode);
 	}
 
@@ -684,8 +682,8 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		goto out;
 	}
 	addr1 = 0;
-	slot1 = 0;	/* set */
-	for(addr=0;; addr++) {
+	slot1 = 0; /* set */
+	for(addr = 0;; addr++) {
 		p1 = dnodebuf(p, d, addr, 0, f->uid);
 		if(!p1) {
 			if(addr1)
@@ -700,12 +698,12 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 			putbuf(p1);
 			goto phase;
 		}
-		for(slot=0; slot<DIRPERBUF; slot++) {
+		for(slot = 0; slot < DIRPERBUF; slot++) {
 			d1 = getdir(p1, slot);
 			if(!(d1->mode & DALLOC)) {
 				if(!addr1) {
 					addr1 = p1->addr;
-					slot1 = slot + addr*DIRPERBUF;
+					slot1 = slot + addr * DIRPERBUF;
 				}
 				continue;
 			}
@@ -719,7 +717,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	}
 	switch(in->mode & 7) {
 	case OEXEC:
-	case OREAD:		/* seems only useful to make directories */
+	case OREAD: /* seems only useful to make directories */
 		fmod = FREAD;
 		break;
 
@@ -728,7 +726,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		break;
 
 	case ORDWR:
-		fmod = FREAD+FWRITE;
+		fmod = FREAD + FWRITE;
 		break;
 
 	default:
@@ -742,7 +740,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	 * do it
 	 */
 	path = qidpathgen(f->fs->dev);
-	p1 = getbuf(f->fs->dev, addr1, Brd|Bimm|Bmod);
+	p1 = getbuf(f->fs->dev, addr1, Brd | Bimm | Bmod);
 	d1 = getdir(p1, slot1);
 	if(!d1 || checktag(p1, Tdir, d->qid.path)) {
 		if(p1)
@@ -903,12 +901,12 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 			boff = devsize(dev);
 		bsize = devsize(dev) - boff;
 
-		if(offset+count >= 100000*RBUFSIZE)
-			count = 100000*RBUFSIZE - offset;
+		if(offset + count >= 100000 * RBUFSIZE)
+			count = 100000 * RBUFSIZE - offset;
 
-		if((offset+count)/RBUFSIZE >= bsize)
+		if((offset + count) / RBUFSIZE >= bsize)
 			/* will not overflow */
-			count = bsize*RBUFSIZE - offset;
+			count = bsize * RBUFSIZE - offset;
 
 		while(count > 0) {
 			addr = offset / RBUFSIZE;
@@ -920,10 +918,10 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 
 			p1 = getbuf(dev, addr, Brd);
 			if(p1) {
-				memmove(ou->data+nread, p1->iobuf+o, n);
+				memmove(ou->data + nread, p1->iobuf + o, n);
 				putbuf(p1);
 			} else
-				memset(ou->data+nread, 0, n);
+				memset(ou->data + nread, 0, n);
 			count -= n;
 			nread += n;
 			offset += n;
@@ -931,7 +929,7 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 		goto out;
 	}
 
-	if(offset+count > d->size)
+	if(offset + count > d->size)
 		count = d->size - offset;
 	while(count > 0) {
 		if(p == 0) {
@@ -956,10 +954,10 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 				putbuf(p1);
 				goto out;
 			}
-			memmove(ou->data+nread, p1->iobuf+o, n);
+			memmove(ou->data + nread, p1->iobuf + o, n);
 			putbuf(p1);
 		} else
-			memset(ou->data+nread, 0, n);
+			memset(ou->data + nread, 0, n);
 		count -= n;
 		nread += n;
 		offset += n;
@@ -967,7 +965,7 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 	goto out;
 
 dread:
-	for (;;) {
+	for(;;) {
 		if(p == 0) {
 			p = getbuf(f->fs->dev, f->addr, Brd);
 			d = getdir(p, f->slot);
@@ -986,7 +984,7 @@ dread:
 			goto out;
 		}
 		n = DIRREC;
-		for(slot=0; slot<DIRPERBUF; slot++) {
+		for(slot = 0; slot < DIRPERBUF; slot++) {
 			d1 = getdir(p1, slot);
 			if(!(d1->mode & DALLOC))
 				continue;
@@ -998,7 +996,7 @@ dread:
 				putbuf(p1);
 				goto out;
 			}
-			if(convD2M9p1(d1, ou->data+nread) != n)
+			if(convD2M9p1(d1, ou->data + nread) != n)
 				print("9p1: dirread convD2M1990\n");
 			nread += n;
 			count -= n;
@@ -1009,7 +1007,7 @@ dread:
 out:
 	count = in->count - nread;
 	if(count > 0)
-		memset(ou->data+nread, 0, count);
+		memset(ou->data + nread, 0, count);
 	if(p)
 		putbuf(p);
 	if(f)
@@ -1063,7 +1061,7 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Eoffset;
 		goto out;
 	}
-	p = getbuf(f->fs->dev, f->addr, Brd|Bmod);
+	p = getbuf(f->fs->dev, f->addr, Brd | Bmod);
 	d = getdir(p, f->slot);
 	if(!d || !(d->mode & DALLOC)) {
 		ou->err = Ealloc;
@@ -1083,11 +1081,11 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 	accessdir(p, d, FWRITE, f->uid);
 	if(d->mode & DAPND)
 		offset = d->size;
-	if(offset+count > d->size)
-		d->size = offset+count;
+	if(offset + count > d->size)
+		d->size = offset + count;
 	while(count > 0) {
 		if(p == 0) {
-			p = getbuf(f->fs->dev, f->addr, Brd|Bmod);
+			p = getbuf(f->fs->dev, f->addr, Brd | Bmod);
 			d = getdir(p, f->slot);
 			if(!d || !(d->mode & DALLOC)) {
 				ou->err = Ealloc;
@@ -1111,7 +1109,7 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 			ou->err = Ephase;
 			goto out;
 		}
-		memmove(p1->iobuf+o, in->data+nwrite, n);
+		memmove(p1->iobuf + o, in->data + nwrite, n);
 		p1->flags |= Bmod;
 		putbuf(p1);
 		count -= n;
@@ -1181,23 +1179,23 @@ doremove(File *f, int wok)
 	 * if deleting a directory, make sure it is empty
 	 */
 	if((d->mode & DDIR))
-	for(addr=0;; addr++) {
-		p1 = dnodebuf(p, d, addr, 0, f->uid);
-		if(!p1)
-			break;
-		if(checktag(p1, Tdir, d->qid.path)) {
-			err = Ephase;
-			goto out;
+		for(addr = 0;; addr++) {
+			p1 = dnodebuf(p, d, addr, 0, f->uid);
+			if(!p1)
+				break;
+			if(checktag(p1, Tdir, d->qid.path)) {
+				err = Ephase;
+				goto out;
+			}
+			for(slot = 0; slot < DIRPERBUF; slot++) {
+				d1 = getdir(p1, slot);
+				if(!(d1->mode & DALLOC))
+					continue;
+				err = Eempty;
+				goto out;
+			}
+			putbuf(p1);
 		}
-		for(slot=0; slot<DIRPERBUF; slot++) {
-			d1 = getdir(p1, slot);
-			if(!(d1->mode & DALLOC))
-				continue;
-			err = Eempty;
-			goto out;
-		}
-		putbuf(p1);
-	}
 
 	/*
 	 * do it
@@ -1215,7 +1213,7 @@ out:
 }
 
 static int
-doclunk(File* f, int remove, int wok)
+doclunk(File *f, int remove, int wok)
 {
 	Tlock *t;
 	int err;
@@ -1223,7 +1221,7 @@ doclunk(File* f, int remove, int wok)
 	err = 0;
 	if(t = f->tlock) {
 		if(t->file == f)
-			t->time = 0;	/* free the lock */
+			t->time = 0; /* free the lock */
 		f->tlock = 0;
 	}
 	if(remove)
@@ -1269,7 +1267,7 @@ f_remove(Chan *cp, Fcall *in, Fcall *ou)
 	if(!f)
 		ou->err = Efid;
 	else {
-		ou->err = doclunk(f, 1, cp==cons.chan);
+		ou->err = doclunk(f, 1, cp == cons.chan);
 		qunlock(f);
 	}
 	ou->fid = in->fid;
@@ -1302,7 +1300,7 @@ f_stat(Chan *cp, Fcall *in, Fcall *ou)
 	}
 	if(ou->err = mkqidcmp(&f->qid, d))
 		goto out;
-	if(d->qid.path == QPROOT)	/* stat of root gives time */
+	if(d->qid.path == QPROOT) /* stat of root gives time */
 		d->atime = time(nil);
 	if(convD2M9p1(d, ou->stat) != DIRREC)
 		print("9p1: stat convD2M\n");
@@ -1395,10 +1393,10 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 *	a) owner and in new group
 	 *	b) leader of both groups
 	 */
-	if (xd.gid != d->gid &&
-	    (!wstatallow && !writeallow &&  /* set to allow chgrp during boot */
-	     (d->uid != f->uid || !ingroup(f->uid, xd.gid)) &&
-	     (!leadgroup(f->uid, xd.gid) || !leadgroup(f->uid, d->gid)))) {
+	if(xd.gid != d->gid &&
+	   (!wstatallow && !writeallow && /* set to allow chgrp during boot */
+	    (d->uid != f->uid || !ingroup(f->uid, xd.gid)) &&
+	    (!leadgroup(f->uid, xd.gid) || !leadgroup(f->uid, d->gid)))) {
 		ou->err = Ewstatg;
 		goto out;
 	}
@@ -1407,9 +1405,9 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 * if rename,
 	 * must have write permission in parent
 	 */
-	if (strncmp(d->name, xd.name, sizeof(d->name)) != 0) {
-		if (checkname(xd.name) || !d1 ||
-		    strcmp(xd.name, ".") == 0 || strcmp(xd.name, "..") == 0) {
+	if(strncmp(d->name, xd.name, sizeof(d->name)) != 0) {
+		if(checkname(xd.name) || !d1 ||
+		   strcmp(xd.name, ".") == 0 || strcmp(xd.name, "..") == 0) {
 			ou->err = Ename;
 			goto out;
 		}
@@ -1419,7 +1417,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 		 * check that destination name is unique,
 		 */
 		putbuf(p);
-		for(addr=0;; addr++) {
+		for(addr = 0;; addr++) {
 			p = dnodebuf(p1, d1, addr, 0, f->uid);
 			if(!p)
 				break;
@@ -1427,7 +1425,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 				putbuf(p);
 				continue;
 			}
-			for(slot=0; slot<DIRPERBUF; slot++) {
+			for(slot = 0; slot < DIRPERBUF; slot++) {
 				d = getdir(p, slot);
 				if(!(d->mode & DALLOC))
 					continue;
@@ -1449,8 +1447,8 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 			goto out;
 		}
 
-		if (!wstatallow && !writeallow && /* set to allow rename during boot */
-		    (!d1 || iaccess(f, d1, DWRITE))) {
+		if(!wstatallow && !writeallow && /* set to allow rename during boot */
+		   (!d1 || iaccess(f, d1, DWRITE))) {
 			ou->err = Eaccess;
 			goto out;
 		}
@@ -1461,19 +1459,19 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 *	a) owner
 	 *	b) leader of either group
 	 */
-	if (d->mtime != xd.mtime ||
-	    ((d->mode^xd.mode) & (DAPND|DLOCK|0777)))
-		if (!wstatallow &&	/* set to allow chmod during boot */
-		    d->uid != f->uid &&
-		    !leadgroup(f->uid, xd.gid) &&
-		    !leadgroup(f->uid, d->gid)) {
+	if(d->mtime != xd.mtime ||
+	   ((d->mode ^ xd.mode) & (DAPND | DLOCK | 0777)))
+		if(!wstatallow && /* set to allow chmod during boot */
+		   d->uid != f->uid &&
+		   !leadgroup(f->uid, xd.gid) &&
+		   !leadgroup(f->uid, d->gid)) {
 			ou->err = Ewstatu;
 			goto out;
 		}
 	d->mtime = xd.mtime;
 	d->uid = xd.uid;
 	d->gid = xd.gid;
-	d->mode = (xd.mode & (DAPND|DLOCK|0777)) | (d->mode & (DALLOC|DDIR));
+	d->mode = (xd.mode & (DAPND | DLOCK | 0777)) | (d->mode & (DALLOC | DDIR));
 
 	strncpy(d->name, xd.name, sizeof(d->name));
 	accessdir(p, d, FREAD, f->uid);
@@ -1496,12 +1494,12 @@ f_clwalk(Chan *cp, Fcall *in, Fcall *ou)
 	if(CHAT(cp))
 		print("c_clwalk macro\n");
 
-	f_clone(cp, in, ou);		/* sets tag, fid */
+	f_clone(cp, in, ou); /* sets tag, fid */
 	if(ou->err)
 		return;
 	fid = in->fid;
 	in->fid = in->newfid;
-	f_walk(cp, in, ou);		/* sets tag, fid, qid */
+	f_walk(cp, in, ou); /* sets tag, fid, qid */
 	er = ou->err;
 	if(er == Eentry) {
 		/*
@@ -1509,7 +1507,7 @@ f_clwalk(Chan *cp, Fcall *in, Fcall *ou)
 		 * return non error and fid
 		 */
 		ou->err = 0;
-		f_clunk(cp, in, ou);	/* sets tag, fid */
+		f_clunk(cp, in, ou); /* sets tag, fid */
 		ou->err = 0;
 		ou->fid = fid;
 		if(CHAT(cp))
@@ -1520,7 +1518,7 @@ f_clwalk(Chan *cp, Fcall *in, Fcall *ou)
 		 * return an error
 		 */
 		ou->err = 0;
-		f_clunk(cp, in, ou);	/* sets tag, fid */
+		f_clunk(cp, in, ou); /* sets tag, fid */
 		ou->err = er;
 	}
 	/*
@@ -1529,45 +1527,45 @@ f_clwalk(Chan *cp, Fcall *in, Fcall *ou)
 	 */
 }
 
-void (*call9p1[MAXSYSCALL])(Chan*, Fcall*, Fcall*) =
-{
-	[Tnop]		f_nop,
-	[Tosession]	f_session,
-	[Tsession]	f_session,
-	[Tflush]	f_flush,
-	[Toattach]	f_attach,
-	[Tattach]	f_attach,
-	[Tclone]	f_clone,
-	[Twalk]		f_walk,
-	[Topen]		f_open,
-	[Tcreate]	f_create,
-	[Tread]		f_read,
-	[Twrite]	f_write,
-	[Tclunk]	f_clunk,
-	[Tremove]	f_remove,
-	[Tstat]		f_stat,
-	[Twstat]	f_wstat,
-	[Tclwalk]	f_clwalk,
+void (*call9p1[MAXSYSCALL])(Chan *, Fcall *, Fcall *) =
+    {
+	 [Tnop] f_nop,
+	 [Tosession] f_session,
+	 [Tsession] f_session,
+	 [Tflush] f_flush,
+	 [Toattach] f_attach,
+	 [Tattach] f_attach,
+	 [Tclone] f_clone,
+	 [Twalk] f_walk,
+	 [Topen] f_open,
+	 [Tcreate] f_create,
+	 [Tread] f_read,
+	 [Twrite] f_write,
+	 [Tclunk] f_clunk,
+	 [Tremove] f_remove,
+	 [Tstat] f_stat,
+	 [Twstat] f_wstat,
+	 [Tclwalk] f_clwalk,
 };
 
 int
-error9p1(Chan* cp, Msgbuf* mb)
+error9p1(Chan *cp, Msgbuf *mb)
 {
 	Msgbuf *mb1;
 
 	print("type=%d count=%d\n", mb->data[0], mb->count);
 	print(" %.2x %.2x %.2x %.2x\n",
-		mb->data[1]&0xff, mb->data[2]&0xff,
-		mb->data[3]&0xff, mb->data[4]&0xff);
+	      mb->data[1] & 0xff, mb->data[2] & 0xff,
+	      mb->data[3] & 0xff, mb->data[4] & 0xff);
 	print(" %.2x %.2x %.2x %.2x\n",
-		mb->data[5]&0xff, mb->data[6]&0xff,
-		mb->data[7]&0xff, mb->data[8]&0xff);
+	      mb->data[5] & 0xff, mb->data[6] & 0xff,
+	      mb->data[7] & 0xff, mb->data[8] & 0xff);
 	print(" %.2x %.2x %.2x %.2x\n",
-		mb->data[9]&0xff, mb->data[10]&0xff,
-		mb->data[11]&0xff, mb->data[12]&0xff);
+	      mb->data[9] & 0xff, mb->data[10] & 0xff,
+	      mb->data[11] & 0xff, mb->data[12] & 0xff);
 
 	mb1 = mballoc(3, cp, Mbreply4);
-	mb1->data[0] = Rnop;	/* your nop was ok */
+	mb1->data[0] = Rnop; /* your nop was ok */
 	mb1->data[1] = ~0;
 	mb1->data[2] = ~0;
 	mb1->count = 3;
@@ -1578,7 +1576,7 @@ error9p1(Chan* cp, Msgbuf* mb)
 }
 
 int
-serve9p1(Msgbuf* mb)
+serve9p1(Msgbuf *mb)
 {
 	int t, n;
 	Chan *cp;
@@ -1588,7 +1586,7 @@ serve9p1(Msgbuf* mb)
 	assert(mb != nil);
 	cp = mb->chan;
 	assert(mb->data != nil);
-	if(convM2S9p1(mb->data, &fi, mb->count) == 0){
+	if(convM2S9p1(mb->data, &fi, mb->count) == 0) {
 		assert(cp != nil);
 		if(cp->protocol == nil)
 			return 0;
@@ -1597,7 +1595,7 @@ serve9p1(Msgbuf* mb)
 	}
 
 	t = fi.type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !call9p1[t]) {
+	if(t < 0 || t >= MAXSYSCALL || (t & 1) || !call9p1[t]) {
 		print("9p1: bad message type\n");
 		return error9p1(cp, mb);
 	}
@@ -1606,8 +1604,8 @@ serve9p1(Msgbuf* mb)
 	 * allocate reply message
 	 */
 	if(t == Tread) {
-		mb1 = mballoc(MAXMSG+MAXDAT, cp, Mbreply2);
-		fo.data = (char*)(mb1->data + 8);
+		mb1 = mballoc(MAXMSG + MAXDAT, cp, Mbreply2);
+		fo.data = (char *)(mb1->data + 8);
 	} else
 		mb1 = mballoc(MAXMSG, cp, Mbreply3);
 
@@ -1619,11 +1617,11 @@ serve9p1(Msgbuf* mb)
 
 	(*call9p1[t])(cp, &fi, &fo);
 
-	fo.type = t+1;
+	fo.type = t + 1;
 	fo.tag = fi.tag;
 
 	if(fo.err) {
-		if(cons.flags&errorflag)
+		if(cons.flags & errorflag)
 			print("\ttype %d: error: %s\n", t, errstr9p[fo.err]);
 		if(CHAT(cp))
 			print("\terror: %s\n", errstr9p[fo.err]);

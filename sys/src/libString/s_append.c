@@ -15,9 +15,9 @@
 String *
 s_append(String *to, char *from)
 {
-	if (to == 0)
+	if(to == 0)
 		to = s_new();
-	if (from == 0)
+	if(from == 0)
 		return to;
 	for(; *from; from++)
 		s_putc(to, *from);

@@ -94,7 +94,7 @@ linkproc(void)
 }
 
 void
-kprocchild(Proc* p, void (*func)(void*), void* arg)
+kprocchild(Proc *p, void (*func)(void *), void *arg)
 {
 	/*
 	 * gotolabel() needs a word on the stack in
@@ -102,7 +102,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 	 * to linkproc().
 	 */
 	p->sched.pc = PTR2UINT(linkproc);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-BY2SE);
+	p->sched.sp = PTR2UINT(p->kstack + KSTACK - BY2SE);
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	p->kpfun = func;
@@ -120,5 +120,5 @@ void
 idlehands(void)
 {
 	if(machp()->nixtype != NIXAC)
- 		halt();
+		halt();
 }

@@ -20,12 +20,12 @@
 #include <libsec.h>
 #include "authcmdlib.h"
 
-#pragma	varargck	type	"W"	char*
+#pragma varargck type "W" char *
 
 char authkey[8];
 
-typedef struct Fid	Fid;
-typedef struct User	User;
+typedef struct Fid Fid;
+typedef struct User User;
 
 enum {
 	Qroot,
@@ -38,10 +38,10 @@ enum {
 	Qwarnings,
 	Qmax,
 
-	Nuser	= 512,
-	MAXBAD	= 10,	/* max # of bad attempts before disabling the account */
+	Nuser = 512,
+	MAXBAD = 10, /* max # of bad attempts before disabling the account */
 	/* file must be randomly addressible, so names have fixed length */
-	Namelen	= ANAMELEN,
+	Namelen = ANAMELEN,
 };
 
 enum {
@@ -51,91 +51,91 @@ enum {
 };
 
 struct Fid {
-	int	fid;
-	uint32_t	qtype;
-	User	*user;
-	int	busy;
-	Fid	*next;
+	int fid;
+	uint32_t qtype;
+	User *user;
+	int busy;
+	Fid *next;
 };
 
 struct User {
-	char	*name;
-	char	key[DESKEYLEN];
-	char	secret[SECRETLEN];
-	uint32_t	expire;			/* 0 == never */
-	uint8_t	status;
-	uint32_t	bad;		/* # of consecutive bad authentication attempts */
-	int	ref;
-	char	removed;
-	uint8_t	warnings;
-	int32_t	purgatory;		/* time purgatory ends */
-	uint32_t	uniq;
-	User	*link;
+	char *name;
+	char key[DESKEYLEN];
+	char secret[SECRETLEN];
+	uint32_t expire; /* 0 == never */
+	uint8_t status;
+	uint32_t bad; /* # of consecutive bad authentication attempts */
+	int ref;
+	char removed;
+	uint8_t warnings;
+	int32_t purgatory; /* time purgatory ends */
+	uint32_t uniq;
+	User *link;
 };
 
-char	*qinfo[Qmax] = {
-	[Qroot]		"keys",
-	[Quser]		".",
-	[Qkey]		"key",
-	[Qsecret]	"secret",
-	[Qlog]		"log",
-	[Qexpire]	"expire",
-	[Qstatus]	"status",
-	[Qwarnings]	"warnings",
+char *qinfo[Qmax] = {
+	[Qroot] "keys",
+	[Quser] ".",
+	[Qkey] "key",
+	[Qsecret] "secret",
+	[Qlog] "log",
+	[Qexpire] "expire",
+	[Qstatus] "status",
+	[Qwarnings] "warnings",
 };
 
-char	*status[Smax] = {
-	[Sok]		"ok",
-	[Sdisabled]	"disabled",
+char *status[Smax] = {
+	[Sok] "ok",
+	[Sdisabled] "disabled",
 };
 
-Fid	*fids;
-User	*users[Nuser];
-char	*userkeys;
-int	nuser;
-uint32_t	uniq = 1;
-Fcall	rhdr,
-	thdr;
-int	usepass;
-char	*warnarg;
-uint8_t	mdata[8192 + IOHDRSZ];
-int	messagesize = sizeof mdata;
+Fid *fids;
+User *users[Nuser];
+char *userkeys;
+int nuser;
+uint32_t uniq = 1;
+Fcall rhdr,
+    thdr;
+int usepass;
+char *warnarg;
+uint8_t mdata[8192 + IOHDRSZ];
+int messagesize = sizeof mdata;
 
-int	readusers(void);
-uint32_t	hash(char*);
-Fid	*findfid(int);
-User	*finduser(char*);
-User	*installuser(char*);
-int	removeuser(User*);
-void	insertuser(User*);
-void	writeusers(void);
-void	io(int, int);
-void	*emalloc(uint32_t);
-Qid	mkqid(User*, uint32_t);
-int	dostat(User*, uint32_t, void*, int);
-int	newkeys(void);
-void	warning(void);
-int	weirdfmt(Fmt *f);
+int readusers(void);
+uint32_t hash(char *);
+Fid *findfid(int);
+User *finduser(char *);
+User *installuser(char *);
+int removeuser(User *);
+void insertuser(User *);
+void writeusers(void);
+void io(int, int);
+void *emalloc(uint32_t);
+Qid mkqid(User *, uint32_t);
+int dostat(User *, uint32_t, void *, int);
+int newkeys(void);
+void warning(void);
+int weirdfmt(Fmt *f);
 
-char	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
-	*Flush(Fid*), *Walk(Fid*),
-	*Open(Fid*), *Create(Fid*),
-	*Read(Fid *), *Write(Fid*), *Clunk(Fid*),
-	*Remove(Fid *), *Stat(Fid*), *Wstat(Fid*);
-char 	*(*fcalls[])(Fid*) = {
-	[Tattach]	Attach,
-	[Tauth]	Auth,
-	[Tclunk]	Clunk,
-	[Tcreate]	Create,
-	[Tflush]	Flush,
-	[Topen]		Open,
-	[Tread]		Read,
-	[Tremove]	Remove,
-	[Tstat]		Stat,
-	[Tversion]	Version,
-	[Twalk]		Walk,
-	[Twrite]	Write,
-	[Twstat]	Wstat,
+char *Auth(Fid *), *Attach(Fid *), *Version(Fid *),
+    *Flush(Fid *), *Walk(Fid *),
+    *Open(Fid *), *Create(Fid *),
+    *Read(Fid *), *Write(Fid *), *Clunk(Fid *),
+    *Remove(Fid *), *Stat(Fid *), *Wstat(Fid *);
+char *(*fcalls[])(Fid *) = {
+	[Tattach] Attach,
+	[Tauth] Auth,
+	[Tclunk] Clunk,
+	[Tcreate] Create,
+	[Tflush] Flush,
+	[Topen] Open,
+	[Tread] Read,
+	[Tremove] Remove,
+	[Tstat] Stat,
+	[Tversion] Version,
+	[Twalk] Walk,
+	[Twrite] Write,
+	[Twstat] Wstat,
 };
 
 static void
@@ -153,7 +153,8 @@ main(int argc, char *argv[])
 
 	fmtinstall('W', weirdfmt);
 	mntpt = "/mnt/keys";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'm':
 		mntpt = EARGF(usage());
 		break;
@@ -166,7 +167,8 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 	argv0 = "keyfs";
 
 	userkeys = "/adm/keys";
@@ -185,7 +187,7 @@ main(int argc, char *argv[])
 			print("keyfs: warning: can't read NVRAM\n");
 	}
 
-	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){
+	switch(rfork(RFPROC | RFNAMEG | RFNOTEG | RFNOWAIT | RFENVG | RFFDG)) {
 	case 0:
 		close(p[0]);
 		io(p[1], p[1]);
@@ -194,7 +196,7 @@ main(int argc, char *argv[])
 		error("fork");
 	default:
 		close(p[1]);
-		if(mount(p[0], -1, mntpt, MREPL|MCREATE, "") < 0)
+		if(mount(p[0], -1, mntpt, MREPL | MCREATE, "") < 0)
 			error("can't mount: %r");
 		exits(0);
 	}
@@ -225,7 +227,7 @@ Attach(Fid *f)
 	return 0;
 }
 
-char*
+char *
 Version(Fid *g)
 {
 	Fid *f;
@@ -258,23 +260,23 @@ Walk(Fid *f)
 	nf = nil;
 	qtype = f->qtype;
 	user = f->user;
-	if(rhdr.fid != rhdr.newfid){
+	if(rhdr.fid != rhdr.newfid) {
 		nf = findfid(rhdr.newfid);
 		if(nf->busy)
 			return "fid in use";
-		f = nf;	/* walk f */
+		f = nf; /* walk f */
 	}
 
 	err = nil;
 	i = 0;
-	if(rhdr.nwname > 0){
-		for(; i<rhdr.nwname; i++){
-			if(i >= MAXWELEM){
+	if(rhdr.nwname > 0) {
+		for(; i < rhdr.nwname; i++) {
+			if(i >= MAXWELEM) {
 				err = "too many path name elements";
 				break;
 			}
 			name = rhdr.wname[i];
-			switch(qtype){
+			switch(qtype) {
 			case Qroot:
 				if(strcmp(name, "..") == 0)
 					goto Accept;
@@ -295,7 +297,7 @@ Walk(Fid *f)
 				}
 				max = Qmax;
 				for(j = Quser + 1; j < Qmax; j++)
-					if(strcmp(name, qinfo[j]) == 0){
+					if(strcmp(name, qinfo[j]) == 0) {
 						qtype = j;
 						break;
 					}
@@ -308,22 +310,22 @@ Walk(Fid *f)
 				goto Out;
 			}
 		}
-	    Out:
+	Out:
 		if(i < rhdr.nwname && err == nil)
 			err = "file not found";
 	}
 
-	if(err != nil){
+	if(err != nil) {
 		return err;
 	}
 
 	/* if we cloned and then completed the walk, update new fid */
-	if(rhdr.fid != rhdr.newfid && i == rhdr.nwname){
+	if(rhdr.fid != rhdr.newfid && i == rhdr.nwname) {
 		nf->busy = 1;
 		nf->qtype = qtype;
 		if(nf->user = user)
 			nf->user->ref++;
-	}else if(nf == nil && rhdr.nwname > 0){	/* walk without clone (rare) */
+	} else if(nf == nil && rhdr.nwname > 0) { /* walk without clone (rare) */
 		Clunk(f);
 		f->busy = 1;
 		f->qtype = qtype;
@@ -355,7 +357,7 @@ Open(Fid *f)
 	if(!f->busy)
 		return "open of unused fid";
 	mode = rhdr.mode;
-	if(f->qtype == Quser && (mode & (OWRITE|OTRUNC)))
+	if(f->qtype == Quser && (mode & (OWRITE | OTRUNC)))
 		return "user already exists";
 	thdr.qid = mkqid(f->user, f->qtype);
 	thdr.iounit = messagesize - IOHDRSZ;
@@ -371,9 +373,9 @@ Create(Fid *f)
 	if(!f->busy)
 		return "create of unused fid";
 	name = rhdr.name;
-	if(f->user){
+	if(f->user) {
 		return "permission denied";
-	}else{
+	} else {
 		perm = rhdr.perm;
 		if(!(perm & DMDIR))
 			return "permission denied";
@@ -407,11 +409,11 @@ Read(Fid *f)
 	off = rhdr.offset;
 	thdr.count = 0;
 	data = thdr.data;
-	switch(f->qtype){
+	switch(f->qtype) {
 	case Qroot:
 		j = 0;
 		for(i = 0; i < Nuser; i++)
-			for(u = users[i]; u; j += m, u = u->link){
+			for(u = users[i]; u; j += m, u = u->link) {
 				m = dostat(u, Quser, data, n);
 				if(m <= BIT16SZ)
 					break;
@@ -426,7 +428,7 @@ Read(Fid *f)
 		max = Qmax;
 		max -= Quser + 1;
 		j = 0;
-		for(i = 0; i < max; j += m, i++){
+		for(i = 0; i < max; j += m, i++) {
 			m = dostat(f->user, i + Quser + 1, data, n);
 			if(m <= BIT16SZ)
 				break;
@@ -466,7 +468,7 @@ Read(Fid *f)
 		thdr.count = n;
 		return 0;
 	case Qstatus:
-		if(off != 0){
+		if(off != 0) {
 			thdr.count = 0;
 			return 0;
 		}
@@ -477,7 +479,7 @@ Read(Fid *f)
 		thdr.count = strlen(thdr.data);
 		return 0;
 	case Qexpire:
-		if(off != 0){
+		if(off != 0) {
 			thdr.count = 0;
 			return 0;
 		}
@@ -490,7 +492,7 @@ Read(Fid *f)
 		thdr.count = n;
 		return 0;
 	case Qlog:
-		if(off != 0){
+		if(off != 0) {
 			thdr.count = 0;
 			return 0;
 		}
@@ -500,7 +502,7 @@ Read(Fid *f)
 		thdr.count = n;
 		return 0;
 	case Qwarnings:
-		if(off != 0){
+		if(off != 0) {
 			thdr.count = 0;
 			return 0;
 		}
@@ -525,7 +527,7 @@ Write(Fid *f)
 		return "permission denied";
 	n = rhdr.count;
 	data = rhdr.data;
-	switch(f->qtype){
+	switch(f->qtype) {
 	case Qkey:
 		if(n != DESKEYLEN)
 			return "garbled write data";
@@ -544,7 +546,7 @@ Write(Fid *f)
 		if(p = strchr(data, '\n'))
 			*p = '\0';
 		for(i = 0; i < Smax; i++)
-			if(strcmp(data, status[i]) == 0){
+			if(strcmp(data, status[i]) == 0) {
 				f->user->status = i;
 				break;
 			}
@@ -561,7 +563,7 @@ Write(Fid *f)
 			p = &data[n];
 		if(strcmp(data, "never") == 0)
 			expire = 0;
-		else{
+		else {
 			expire = strtoul(data, &data, 10);
 			if(data != p)
 				return "bad expiration date";
@@ -576,7 +578,7 @@ Write(Fid *f)
 			f->user->bad = 0;
 		else
 			f->user->bad++;
-		if(f->user->bad && ((f->user->bad)%MAXBAD) == 0)
+		if(f->user->bad && ((f->user->bad) % MAXBAD) == 0)
 			f->user->purgatory = time(0) + f->user->bad;
 		return 0;
 	case Qwarnings:
@@ -682,7 +684,7 @@ dostat(User *user, uint32_t qtype, void *p, int n)
 	d.uid = d.gid = d.muid = "auth";
 	d.qid = mkqid(user, qtype);
 	if(d.qid.type & QTDIR)
-		d.mode = 0777|DMDIR;
+		d.mode = 0777 | DMDIR;
 	else
 		d.mode = 0666;
 	d.atime = d.mtime = time(0);
@@ -698,7 +700,7 @@ passline(Biobuf *b, void *vbuf)
 	if(Bread(b, buf, KEYDBLEN) != KEYDBLEN)
 		return 0;
 	decrypt(authkey, buf, KEYDBLEN);
-	buf[Namelen-1] = '\0';
+	buf[Namelen - 1] = '\0';
 	return 1;
 }
 
@@ -708,7 +710,7 @@ randombytes(uint8_t *p, int len)
 	int i, fd;
 
 	fd = open("/dev/random", OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "keyfs: can't open /dev/random, using rand()\n");
 		srand(time(0));
 		for(i = 0; i < len; i++)
@@ -727,9 +729,9 @@ oldCBCencrypt(char *key7, uint8_t *p, int len)
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((uint8_t *)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uint8_t*)p, len, &s);
+	desCBCencrypt((uint8_t *)p, len, &s);
 }
 
 void
@@ -740,10 +742,9 @@ oldCBCdecrypt(char *key7, uint8_t *p, int len)
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uint8_t*)key7, key);
+	des56to64((uint8_t *)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uint8_t*)p, len, &s);
-
+	desCBCdecrypt((uint8_t *)p, len, &s);
 }
 
 void
@@ -761,8 +762,8 @@ writeusers(void)
 			nu++;
 
 	/* pack into buffer */
-	buf = malloc(KEYDBOFF + nu*KEYDBLEN);
-	if(buf == 0){
+	buf = malloc(KEYDBOFF + nu * KEYDBLEN);
+	if(buf == 0) {
 		fprint(2, "keyfs: can't write keys file, out of memory\n");
 		return;
 	}
@@ -770,8 +771,8 @@ writeusers(void)
 	randombytes(p, KEYDBOFF);
 	p += KEYDBOFF;
 	for(i = 0; i < Nuser; i++)
-		for(u = users[i]; u; u = u->link){
-			strncpy((char*)p, u->name, Namelen);
+		for(u = users[i]; u; u = u->link) {
+			strncpy((char *)p, u->name, Namelen);
 			p += Namelen;
 			memmove(p, u->key, DESKEYLEN);
 			p += DESKEYLEN;
@@ -791,7 +792,7 @@ writeusers(void)
 
 	/* write file */
 	fd = create(userkeys, OWRITE, 0660);
-	if(fd < 0){
+	if(fd < 0) {
 		free(buf);
 		fprint(2, "keyfs: can't write keys file\n");
 		return;
@@ -806,14 +807,14 @@ writeusers(void)
 int
 weirdfmt(Fmt *f)
 {
-	char *s, *p, *ep, buf[ANAMELEN*4 + 1];
+	char *s, *p, *ep, buf[ANAMELEN * 4 + 1];
 	int i, n;
 	Rune r;
 
-	s = va_arg(f->args, char*);
+	s = va_arg(f->args, char *);
 	p = buf;
 	ep = buf + sizeof buf;
-	for(i = 0; i < ANAMELEN; i += n){
+	for(i = 0; i < ANAMELEN; i += n) {
 		n = chartorune(&r, s + i);
 		if(r == Runeerror)
 			p = seprint(p, ep, "[%.2x]", buf[i]);
@@ -832,29 +833,29 @@ userok(char *user, int nu)
 {
 	int i, n, rv;
 	Rune r;
-	char buf[ANAMELEN+1];
+	char buf[ANAMELEN + 1];
 
 	memset(buf, 0, sizeof buf);
 	memmove(buf, user, ANAMELEN);
 
-	if(buf[ANAMELEN-1] != 0){
+	if(buf[ANAMELEN - 1] != 0) {
 		fprint(2, "keyfs: %d: no termination: %W\n", nu, buf);
 		return -1;
 	}
 
 	rv = 0;
-	for(i = 0; buf[i]; i += n){
-		n = chartorune(&r, buf+i);
-		if(r == Runeerror){
-//			fprint(2, "keyfs: name %W bad rune byte %d\n", buf, i);
+	for(i = 0; buf[i]; i += n) {
+		n = chartorune(&r, buf + i);
+		if(r == Runeerror) {
+			//			fprint(2, "keyfs: name %W bad rune byte %d\n", buf, i);
 			rv = -1;
-		} else if(isascii(r) && iscntrl(r) || r == ' ' || r == '/'){
-//			fprint(2, "keyfs: name %W bad char %C\n", buf, r);
+		} else if(isascii(r) && iscntrl(r) || r == ' ' || r == '/') {
+			//			fprint(2, "keyfs: name %W bad char %C\n", buf, r);
 			rv = -1;
 		}
 	}
 
-	if(i == 0){
+	if(i == 0) {
 		fprint(2, "keyfs: %d: nil name\n", nu);
 		return -1;
 	}
@@ -876,12 +877,12 @@ readusers(void)
 	if(fd < 0)
 		return 0;
 	d = dirfstat(fd);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return 0;
 	}
 	buf = malloc(d->length);
-	if(buf == 0){
+	if(buf == 0) {
 		close(fd);
 		free(d);
 		return 0;
@@ -889,7 +890,7 @@ readusers(void)
 	n = readn(fd, buf, d->length);
 	close(fd);
 	free(d);
-	if(n != d->length){
+	if(n != d->length) {
 		free(buf);
 		return 0;
 	}
@@ -900,23 +901,23 @@ readusers(void)
 
 	/* unpack */
 	nu = 0;
-	for(i = KEYDBOFF; i < n; i += KEYDBLEN){
+	for(i = KEYDBOFF; i < n; i += KEYDBLEN) {
 		ep = buf + i;
-		if(userok((char*)ep, i/KEYDBLEN) < 0)
+		if(userok((char *)ep, i / KEYDBLEN) < 0)
 			continue;
-		u = finduser((char*)ep);
+		u = finduser((char *)ep);
 		if(u == 0)
-			u = installuser((char*)ep);
+			u = installuser((char *)ep);
 		memmove(u->key, ep + Namelen, DESKEYLEN);
 		p = ep + Namelen + DESKEYLEN;
 		u->status = *p++;
 		u->warnings = *p++;
 		if(u->status >= Smax)
 			fprint(2, "keyfs: warning: bad status in key file\n");
-		u->expire = p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
+		u->expire = p[0] + (p[1] << 8) + (p[2] << 16) + (p[3] << 24);
 		p += 4;
 		memmove(u->secret, p, SECRETLEN);
-		u->secret[SECRETLEN-1] = 0;
+		u->secret[SECRETLEN - 1] = 0;
 		nu++;
 	}
 	free(buf);
@@ -969,8 +970,8 @@ removeuser(User *user)
 	user->removed = 1;
 	name = user->name;
 	last = &users[hash(name)];
-	for(u = *last; u; u = *last){
-		if(strcmp(name, u->name) == 0){
+	for(u = *last; u; u = *last) {
+		if(strcmp(name, u->name) == 0) {
 			*last = u->link;
 			return 1;
 		}
@@ -1012,7 +1013,7 @@ findfid(int fid)
 			return f;
 		else if(!ff && !f->busy)
 			ff = f;
-	if(ff){
+	if(ff) {
 		ff->fid = fid;
 		return ff;
 	}
@@ -1033,9 +1034,9 @@ io(int in, int out)
 	int32_t now, lastwarning;
 
 	/* after restart, let the system settle for 5 mins before warning */
-	lastwarning = time(0) - 24*60*60 + 5*60;
+	lastwarning = time(0) - 24 * 60 * 60 + 5 * 60;
 
-	for(;;){
+	for(;;) {
 		n = read9pmsg(in, mdata, messagesize);
 		if(n == 0)
 			continue;
@@ -1047,15 +1048,15 @@ io(int in, int out)
 		if(newkeys())
 			readusers();
 
-		thdr.data = (char*)mdata + IOHDRSZ;
+		thdr.data = (char *)mdata + IOHDRSZ;
 		thdr.fid = rhdr.fid;
 		if(!fcalls[rhdr.type])
 			err = "fcall request";
 		else
 			err = (*fcalls[rhdr.type])(findfid(rhdr.fid));
 		thdr.tag = rhdr.tag;
-		thdr.type = rhdr.type+1;
-		if(err){
+		thdr.type = rhdr.type + 1;
+		if(err) {
 			thdr.type = Rerror;
 			thdr.ename = err;
 		}
@@ -1064,9 +1065,9 @@ io(int in, int out)
 			error("mount write");
 
 		now = time(0);
-		if(warnarg && (now - lastwarning > 24*60*60)){
+		if(warnarg && (now - lastwarning > 24 * 60 * 60)) {
 			syslog(0, "auth", "keyfs starting warnings: %lux %lux",
-				now, lastwarning);
+			       now, lastwarning);
 			warning();
 			lastwarning = now;
 		}
@@ -1082,7 +1083,7 @@ newkeys(void)
 	d = dirstat(userkeys);
 	if(d == nil)
 		return 0;
-	if(d->mtime > ftime){
+	if(d->mtime > ftime) {
 		ftime = d->mtime;
 		free(d);
 		return 1;
@@ -1099,7 +1100,7 @@ emalloc(uint32_t n)
 	if(p = malloc(n))
 		return p;
 	error("out of memory");
-	return 0;		/* not reached */
+	return 0; /* not reached */
 }
 
 void
@@ -1109,10 +1110,10 @@ warning(void)
 	char buf[64];
 
 	snprint(buf, sizeof buf, "-%s", warnarg);
-	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){
+	switch(rfork(RFPROC | RFNAMEG | RFNOTEG | RFNOWAIT | RFENVG | RFFDG)) {
 	case 0:
 		i = open("/sys/log/auth", OWRITE);
-		if(i >= 0){
+		if(i >= 0) {
 			dup(i, 2);
 			seek(2, 0, 2);
 			close(i);

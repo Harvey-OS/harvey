@@ -15,7 +15,9 @@
 
 #include "ureg.h"
 
-#define DBG	if(0)scrprint
+#define DBG   \
+	if(0) \
+	scrprint
 #pragma varargck argpos scrprint 1
 static Ureg ureg;
 
@@ -27,39 +29,39 @@ scrprint(char *fmt, ...)
 	int n;
 
 	va_start(va, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, va)-buf;
+	n = vseprint(buf, buf + sizeof buf, fmt, va) - buf;
 	va_end(va);
 	putstrn(buf, n);
 }
 
-static char*
+static char *
 getline(void)
 {
 	static char buf[128];
 	int i, c;
 
-	for(;;){
-		for(i=0; i<nelem(buf) && (c=uartgetc()) != '\n'; i++){
+	for(;;) {
+		for(i = 0; i < nelem(buf) && (c = uartgetc()) != '\n'; i++) {
 			DBG("%c...", c);
 			buf[i] = c;
 		}
 
-		if(i < nelem(buf)){
+		if(i < nelem(buf)) {
 			buf[i] = 0;
 			return buf;
 		}
 	}
 }
 
-static void*
+static void *
 addr(char *s, Ureg *ureg, char **p)
 {
 	uint32_t a;
 
 	a = strtoul(s, p, 16);
 	if(a < sizeof(Ureg))
-		return ((uint8_t*)ureg)+a;
-	return (void*)a;
+		return ((uint8_t *)ureg) + a;
+	return (void *)a;
 }
 
 static void
@@ -68,25 +70,25 @@ talkrdb(Ureg *ureg)
 	uint8_t *a;
 	char *p, *req;
 
-	delconsdevs();		/* turn off serial console and kprint */
-//	scrprint("Plan 9 debugger\n");
+	delconsdevs(); /* turn off serial console and kprint */
+		       //	scrprint("Plan 9 debugger\n");
 	iprint("Edebugger reset\n");
-	for(;;){
+	for(;;) {
 		req = getline();
-		switch(*req){
+		switch(*req) {
 		case 'r':
-			a = addr(req+1, ureg, nil);
+			a = addr(req + 1, ureg, nil);
 			DBG("read %#p\n", a);
 			iprint("R%.8lux %.2ux %.2ux %.2ux %.2ux\n",
-				strtoul(req+1, 0, 16), a[0], a[1], a[2], a[3]);
+			       strtoul(req + 1, 0, 16), a[0], a[1], a[2], a[3]);
 			break;
 
 		case 'w':
-			a = addr(req+1, ureg, &p);
-			*(uint32_t*)a = strtoul(p, nil, 16);
+			a = addr(req + 1, ureg, &p);
+			*(uint32_t *)a = strtoul(p, nil, 16);
 			iprint("W\n");
 			break;
-/*
+		/*
  *		case Tmput:
 			n = min[4];
 			if(n > 4){

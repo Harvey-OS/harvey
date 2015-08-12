@@ -14,8 +14,7 @@
 
 extern void vtSha1Block(uint32_t *s, uint8_t *p, uint32_t len);
 
-struct VtSha1
-{
+struct VtSha1 {
 	DigestState *s;
 };
 

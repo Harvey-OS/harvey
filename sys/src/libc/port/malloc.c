@@ -12,36 +12,36 @@
 #include <pool.h>
 #include <tos.h>
 
-static void*	sbrkalloc(uint32_t);
-static int		sbrkmerge(void*, void*);
-static void		plock(Pool*);
-static void		punlock(Pool*);
-static void		pprint(Pool*, char*, ...);
-static void		ppanic(Pool*, char*, ...);
+static void *sbrkalloc(uint32_t);
+static int sbrkmerge(void *, void *);
+static void plock(Pool *);
+static void punlock(Pool *);
+static void pprint(Pool *, char *, ...);
+static void ppanic(Pool *, char *, ...);
 
 typedef struct Private Private;
 struct Private {
-	Lock		lk;
-	int		pid;
-	int		printfd;	/* gets debugging output if set */
+	Lock lk;
+	int pid;
+	int printfd; /* gets debugging output if set */
 };
 
 Private sbrkmempriv;
 
 static Pool sbrkmem = {
-	.name=		"sbrkmem",
-	.maxsize=	(3840UL-1)*1024*1024,	/* up to ~0xf0000000 */
-	.minarena=	4*1024,
-	.quantum=	32,
-	.alloc=		sbrkalloc,
-	.merge=		sbrkmerge,
-	.flags=		0,
+    .name = "sbrkmem",
+    .maxsize = (3840UL - 1) * 1024 * 1024, /* up to ~0xf0000000 */
+    .minarena = 4 * 1024,
+    .quantum = 32,
+    .alloc = sbrkalloc,
+    .merge = sbrkmerge,
+    .flags = 0,
 
-	.lock=		plock,
-	.unlock=		punlock,
-	.print=		pprint,
-	.panic=		ppanic,
-	.private=		&sbrkmempriv,
+    .lock = plock,
+    .unlock = punlock,
+    .print = pprint,
+    .panic = ppanic,
+    .private = &sbrkmempriv,
 };
 Pool *mainmem = &sbrkmem;
 Pool *imagmem = &sbrkmem;
@@ -50,18 +50,18 @@ Pool *imagmem = &sbrkmem;
  * we do minimal bookkeeping so we can tell pool
  * whether two blocks are adjacent and thus mergeable.
  */
-static void*
+static void *
 sbrkalloc(uint32_t n)
 {
 	uint32_t *x;
 
-	n += 2*sizeof(uint32_t);	/* two longs for us */
+	n += 2 * sizeof(uint32_t); /* two longs for us */
 	x = sbrk(n);
-	if(x == (void*)-1)
+	if(x == (void *)-1)
 		return nil;
-	x[0] = (n+7)&~7;	/* sbrk rounds size up to mult. of 8 */
+	x[0] = (n + 7) & ~7; /* sbrk rounds size up to mult. of 8 */
 	x[1] = 0xDeadBeef;
-	return x+2;
+	return x + 2;
 }
 
 static int
@@ -73,7 +73,7 @@ sbrkmerge(void *x, void *y)
 	if(lx[-1] != 0xDeadBeef)
 		abort();
 
-	if((uint8_t*)lx+lx[-2] == (uint8_t*)y) {
+	if((uint8_t *)lx + lx[-2] == (uint8_t *)y) {
 		ly = y;
 		lx[-2] += ly[-2];
 		return 1;
@@ -116,7 +116,7 @@ checkenv(void)
 		return -1;
 	}
 	if(n >= sizeof buf)
-		n = sizeof(buf)-1;
+		n = sizeof(buf) - 1;
 	buf[n] = 0;
 	n = atoi(buf);
 	if(n == 0)
@@ -144,7 +144,7 @@ pprint(Pool *p, char *fmt, ...)
 
 static char panicbuf[256];
 static void
-ppanic(Pool *p, char *fmt, ...) 
+ppanic(Pool *p, char *fmt, ...)
 {
 	va_list v;
 	int n;
@@ -152,7 +152,7 @@ ppanic(Pool *p, char *fmt, ...)
 	Private *pv;
 
 	pv = p->private;
-	assert(canlock(&pv->lk)==0);
+	assert(canlock(&pv->lk) == 0);
 
 	if(pv->printfd == 0)
 		pv->printfd = checkenv();
@@ -161,17 +161,17 @@ ppanic(Pool *p, char *fmt, ...)
 
 	msg = panicbuf;
 	va_start(v, fmt);
-	n = vseprint(msg, msg+sizeof panicbuf, fmt, v) - msg;
+	n = vseprint(msg, msg + sizeof panicbuf, fmt, v) - msg;
 	write(2, "panic: ", 7);
 	write(2, msg, n);
 	write(2, "\n", 1);
-	if(pv->printfd != 2){
+	if(pv->printfd != 2) {
 		write(pv->printfd, "panic: ", 7);
 		write(pv->printfd, msg, n);
 		write(pv->printfd, "\n", 1);
 	}
 	va_end(v);
-//	unlock(&pv->lk);
+	//	unlock(&pv->lk);
 	abort();
 }
 
@@ -193,33 +193,33 @@ ppanic(Pool *p, char *fmt, ...)
 
 /* tracing */
 enum {
-	Npadlong	= 2,
+	Npadlong = 2,
 	MallocOffset = 0,
 	ReallocOffset = 1
 };
 
-void*
+void *
 malloc(size_t size)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
+	v = poolalloc(mainmem, size + Npadlong * sizeof(uintptr_t));
 	if(Npadlong && v != nil) {
-		v = (uintptr_t*)v+Npadlong;
+		v = (uintptr_t *)v + Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
 	return v;
 }
 
-void*
+void *
 mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
-	if(Npadlong && v != nil){
-		v = (uintptr_t*)v+Npadlong;
+	v = poolalloc(mainmem, size + Npadlong * sizeof(uintptr_t));
+	if(Npadlong && v != nil) {
+		v = (uintptr_t *)v + Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -228,15 +228,15 @@ mallocz(uint32_t size, int clr)
 	return v;
 }
 
-void*
+void *
 mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
 {
 	void *v;
 
-	v = poolallocalign(mainmem, size+Npadlong*sizeof(uintptr_t), align,
-			   offset-Npadlong*sizeof(uintptr_t), span);
-	if(Npadlong && v != nil){
-		v = (uintptr_t*)v+Npadlong;
+	v = poolallocalign(mainmem, size + Npadlong * sizeof(uintptr_t), align,
+			   offset - Npadlong * sizeof(uintptr_t), span);
+	if(Npadlong && v != nil) {
+		v = (uintptr_t *)v + Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -247,43 +247,43 @@ void
 free(void *v)
 {
 	if(v != nil)
-		poolfree(mainmem, (uintptr_t*)v-Npadlong);
+		poolfree(mainmem, (uintptr_t *)v - Npadlong);
 }
 
-void*
+void *
 realloc(void *v, size_t size)
 {
 	void *nv;
 
-	if(size == 0){
+	if(size == 0) {
 		free(v);
 		return nil;
 	}
 
 	if(v)
-		v = (uintptr_t*)v-Npadlong;
-	size += Npadlong*sizeof(uintptr_t);
+		v = (uintptr_t *)v - Npadlong;
+	size += Npadlong * sizeof(uintptr_t);
 
-	if((nv = poolrealloc(mainmem, v, size))){
-		nv = (uintptr_t*)nv+Npadlong;
+	if((nv = poolrealloc(mainmem, v, size))) {
+		nv = (uintptr_t *)nv + Npadlong;
 		setrealloctag(nv, getcallerpc(&v));
 		if(v == nil)
 			setmalloctag(nv, getcallerpc(&v));
-	}		
+	}
 	return nv;
 }
 
 uint32_t
 msize(void *v)
 {
-	return poolmsize(mainmem, (uintptr_t*)v-Npadlong)-Npadlong*sizeof(uintptr_t);
+	return poolmsize(mainmem, (uintptr_t *)v - Npadlong) - Npadlong * sizeof(uintptr_t);
 }
 
-void*
+void *
 calloc(uint32_t n, size_t szelem)
 {
 	void *v;
-	if((v = mallocz(n*szelem, 1)))
+	if((v = mallocz(n * szelem, 1)))
 		setmalloctag(v, getcallerpc(&n));
 	return v;
 }
@@ -295,7 +295,7 @@ setmalloctag(void *v, uintptr_t pc)
 	if(Npadlong <= MallocOffset || v == nil)
 		return;
 	u = v;
-	u[-Npadlong+MallocOffset] = pc;
+	u[-Npadlong + MallocOffset] = pc;
 }
 
 void
@@ -306,7 +306,7 @@ setrealloctag(void *v, uintptr_t pc)
 	if(Npadlong <= ReallocOffset || v == nil)
 		return;
 	u = v;
-	u[-Npadlong+ReallocOffset] = pc;
+	u[-Npadlong + ReallocOffset] = pc;
 }
 
 uintptr_t
@@ -315,7 +315,7 @@ getmalloctag(void *v)
 	USED(v);
 	if(Npadlong <= MallocOffset)
 		return ~0;
-	return ((uintptr_t*)v)[-Npadlong+MallocOffset];
+	return ((uintptr_t *)v)[-Npadlong + MallocOffset];
 }
 
 uintptr_t
@@ -323,15 +323,15 @@ getrealloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= ReallocOffset)
-		return ((uintptr_t*)v)[-Npadlong+ReallocOffset];
+		return ((uintptr_t *)v)[-Npadlong + ReallocOffset];
 	return ~0;
 }
 
-void*
+void *
 malloctopoolblock(void *v)
 {
 	if(v == nil)
 		return nil;
 
-	return &((uintptr_t*)v)[-Npadlong];
+	return &((uintptr_t *)v)[-Npadlong];
 }

@@ -28,7 +28,7 @@
 /* requires: gspsace.h, gscolor2.h */
 
 #ifndef gsicc_INCLUDED
-#  define gsicc_INCLUDED
+#define gsicc_INCLUDED
 
 #include "gscie.h"
 
@@ -116,29 +116,29 @@ struct _icmLuBase;
  *    error is generated.
  */
 struct gs_cie_icc_s {
-    gs_cie_common_elements;
+	gs_cie_common_elements;
 
-    /* number of components, and their associated range */
-    uint                num_components;
-    gs_range4           Range;
+	/* number of components, and their associated range */
+	uint num_components;
+	gs_range4 Range;
 
-    /* stream object, and the associated read id */
-    unsigned short      file_id;
-    stream *            instrp;
+	/* stream object, and the associated read id */
+	unsigned short file_id;
+	stream *instrp;
 
-    /* the following are set when the structure is initialized */
+	/* the following are set when the structure is initialized */
 
-    /* must the profile connection space undergo an L*a*b* ==> XYZ conversion */
-    bool                pcs_is_cielab;
+	/* must the profile connection space undergo an L*a*b* ==> XYZ conversion */
+	bool pcs_is_cielab;
 
-    /* top-level icclib data structure for the profile */
-    struct _icc *       picc;
+	/* top-level icclib data structure for the profile */
+	struct _icc *picc;
 
-    /* "lookup" data structure in the ICC profile */
-    struct _icmLuBase * plu;
+	/* "lookup" data structure in the ICC profile */
+	struct _icmLuBase *plu;
 
-    /* icclib file object for ICC stream */
-    struct _icmFile   * pfile;
+	/* icclib file object for ICC stream */
+	struct _icmFile *pfile;
 };
 
 /*
@@ -147,18 +147,17 @@ struct gs_cie_icc_s {
  * structure that contains such pointers. We make use of the finalization
  * procedure to handle this task.
  */
-#define private_st_cie_icc()    /* in gscsicc.c */            \
-    gs_private_st_suffix_add1_final( st_cie_icc,              \
-                                     gs_cie_icc,              \
-                                     "gs_cie_icc",            \
-                                     cie_icc_enum_ptrs,       \
-                                     cie_icc_reloc_ptrs,      \
-                                     cie_icc_finalize,        \
-                                     st_cie_common_elements_t,\
-                                     instrp )
+#define private_st_cie_icc() /* in gscsicc.c */                   \
+	gs_private_st_suffix_add1_final(st_cie_icc,               \
+					gs_cie_icc,               \
+					"gs_cie_icc",             \
+					cie_icc_enum_ptrs,        \
+					cie_icc_reloc_ptrs,       \
+					cie_icc_finalize,         \
+					st_cie_common_elements_t, \
+					instrp)
 
-/* typedef struct gs_cie_icc_s gs_cie_icc; */   /* in gscspace.h */
-
+/* typedef struct gs_cie_icc_s gs_cie_icc; */ /* in gscspace.h */
 
 /* 
  * Build an ICCBased color space.
@@ -173,9 +172,9 @@ struct gs_cie_icc_s {
  * The client is responsible for initializing the alternative color space
  * information.
  */
-extern  int     gs_cspace_build_CIEICC( gs_color_space **   ppcspace,
-					void *              client_data,
-					gs_memory_t *       pmem );
+extern int gs_cspace_build_CIEICC(gs_color_space **ppcspace,
+				  void *client_data,
+				  gs_memory_t *pmem);
 
 int
 gx_load_icc_profile(gs_cie_icc *picc_info);
@@ -184,6 +183,6 @@ gx_load_icc_profile(gs_cie_icc *picc_info);
  * Increment color space reference counts.
  */
 void
-gx_increment_cspace_count(const gs_color_space * pcs);
+gx_increment_cspace_count(const gs_color_space *pcs);
 
 #endif /* gsicc_INCLUDED */

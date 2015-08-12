@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <fcall.h>
-#define Extern	extern
+#define Extern extern
 #include "exportfs.h"
 
 char Ebadfid[] = "Bad fid";
@@ -23,12 +23,13 @@ char Enopsmt[] = "Out of pseudo mount points";
 char Enomem[] = "No memory";
 char Eversion[] = "Bad 9P2000 version";
 
-int iounit(int x)
+int
+iounit(int x)
 {
-	return 8*8192+IOHDRSZ;
+	return 8 * 8192 + IOHDRSZ;
 }
 
-void*
+void *
 emallocz(uint32_t n)
 {
 	void *v;
@@ -39,7 +40,6 @@ emallocz(uint32_t n)
 	return v;
 }
 
-
 void
 Xversion(Fsrpc *t)
 {
@@ -48,7 +48,7 @@ Xversion(Fsrpc *t)
 	if(t->work.msize > messagesize)
 		t->work.msize = messagesize;
 	messagesize = t->work.msize;
-	if(strncmp(t->work.version, "9P2000", 6) != 0){
+	if(strncmp(t->work.version, "9P2000", 6) != 0) {
 		reply(&t->work, &rhdr, Eversion);
 		return;
 	}
@@ -81,8 +81,8 @@ Xflush(Fsrpc *t)
 			if(w->busy && w->pid) {
 				w->flushtag = t->work.tag;
 				DEBUG(DFD, "\tset flushtag %d\n", t->work.tag);
-			//	if(w->canint)
-			//		postnote(PNPROC, w->pid, "flush");
+				//	if(w->canint)
+				//		postnote(PNPROC, w->pid, "flush");
 				t->busy = 0;
 				return;
 			}
@@ -107,8 +107,8 @@ Xattach(Fsrpc *t)
 		return;
 	}
 
-	if(srvfd >= 0){
-/*
+	if(srvfd >= 0) {
+		/*
 		if(psmpt == 0){
 		Nomount:
 			reply(&t->work, &rhdr, Enopsmt);
@@ -138,7 +138,7 @@ Xattach(Fsrpc *t)
 		psmap[i] = 1;
 		f->mid = i;
 */
-	}else{
+	} else {
 		f->f = root;
 		f->f->ref++;
 	}
@@ -148,7 +148,7 @@ Xattach(Fsrpc *t)
 	t->busy = 0;
 }
 
-Fid*
+Fid *
 clonefid(Fid *f, int new)
 {
 	Fid *n;
@@ -187,15 +187,15 @@ Xwalk(Fsrpc *t)
 	}
 
 	nf = nil;
-	if(t->work.newfid != t->work.fid){
+	if(t->work.newfid != t->work.fid) {
 		nf = clonefid(f, t->work.newfid);
 		f = nf;
 	}
 
 	rhdr.nwqid = 0;
 	e = nil;
-	for(i=0; i<t->work.nwname; i++){
-		if(i == MAXWELEM){
+	for(i = 0; i < t->work.nwname; i++) {
+		if(i == MAXWELEM) {
 			e = "Too many path elements";
 			break;
 		}
@@ -209,21 +209,21 @@ Xwalk(Fsrpc *t)
 			wf->ref++;
 			goto Accept;
 		}
-	
+
 		wf = file(f->f, t->work.wname[i]);
-		if(wf == 0){
+		if(wf == 0) {
 			errstr(err, sizeof err);
 			e = err;
 			break;
 		}
-    Accept:
+	Accept:
 		freefile(f->f);
 		rhdr.wqid[rhdr.nwqid++] = wf->qid;
 		f->f = wf;
 		continue;
 	}
 
-	if(nf!=nil && (e!=nil || rhdr.nwqid!=t->work.nwname))
+	if(nf != nil && (e != nil || rhdr.nwqid != t->work.nwname))
 		freefid(t->work.newfid);
 	if(rhdr.nwqid > 0)
 		e = nil;
@@ -301,8 +301,8 @@ getiounit(int fd)
 	int n;
 
 	n = iounit(fd);
-	if(n > messagesize-IOHDRSZ)
-		n = messagesize-IOHDRSZ;
+	if(n > messagesize - IOHDRSZ)
+		n = messagesize - IOHDRSZ;
 	return n;
 }
 
@@ -320,7 +320,6 @@ Xcreate(Fsrpc *t)
 		t->busy = 0;
 		return;
 	}
-	
 
 	path = makepath(f->f, t->work.name);
 	f->fid = create(path, t->work.mode, t->work.perm);
@@ -399,8 +398,8 @@ Xwstat(Fsrpc *t)
 		t->busy = 0;
 		return;
 	}
-	strings = emallocz(t->work.nstat);	/* ample */
-	if(convM2D(t->work.stat, t->work.nstat, &d, strings) <= BIT16SZ){
+	strings = emallocz(t->work.nstat); /* ample */
+	if(convM2D(t->work.stat, t->work.nstat, &d, strings) <= BIT16SZ) {
 		rerrstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
 		t->busy = 0;
@@ -418,10 +417,9 @@ Xwstat(Fsrpc *t)
 	if(s < 0) {
 		rerrstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-	}
-	else {
+	} else {
 		/* wstat may really be rename */
-		if(strcmp(d.name, f->f->name)!=0 && strcmp(d.name, "")!=0){
+		if(strcmp(d.name, f->f->name) != 0 && strcmp(d.name, "") != 0) {
 			free(f->f->name);
 			f->f->name = estrdup(d.name);
 		}
@@ -443,11 +441,11 @@ slave(Fsrpc *f)
 			if(p->busy == 0) {
 				f->pid = p->pid;
 				p->busy = 1;
-				pid = (uintptr)rendezvous((void*)(uintptr)p->pid, f);
+				pid = (uintptr)rendezvous((void *)(uintptr)p->pid, f);
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
-			}	
+			}
 		}
 
 		if(++nproc > MAXPROC)
@@ -467,9 +465,9 @@ slave(Fsrpc *f)
 		p->next = Proclist;
 		Proclist = p;
 
-DEBUG(DFD, "parent %d rendez\n", pid);
-		rendezvous((void*)(uintptr)pid, p);
-DEBUG(DFD, "parent %d went\n", pid);
+		DEBUG(DFD, "parent %d rendez\n", pid);
+		rendezvous((void *)(uintptr)pid, p);
+		DEBUG(DFD, "parent %d went\n", pid);
 	}
 }
 
@@ -487,13 +485,13 @@ blockingslave(void *x)
 
 	pid = getpid();
 
-DEBUG(DFD, "blockingslave %d rendez\n", pid);
-	m = (Proc*)rendezvous((void*)(uintptr)pid, 0);
-DEBUG(DFD, "blockingslave %d rendez got %p\n", pid, m);
-	
+	DEBUG(DFD, "blockingslave %d rendez\n", pid);
+	m = (Proc *)rendezvous((void *)(uintptr)pid, 0);
+	DEBUG(DFD, "blockingslave %d rendez got %p\n", pid, m);
+
 	for(;;) {
-		p = rendezvous((void*)(uintptr)pid, (void*)(uintptr)pid);
-		if((uintptr)p == ~(uintptr)0)			/* Interrupted */
+		p = rendezvous((void *)(uintptr)pid, (void *)(uintptr)pid);
+		if((uintptr)p == ~(uintptr)0) /* Interrupted */
 			continue;
 
 		DEBUG(DFD, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);
@@ -517,7 +515,7 @@ DEBUG(DFD, "blockingslave %d rendez got %p\n", pid, m);
 			reply(&p->work, &rhdr, "exportfs: slave type error");
 		}
 		if(p->flushtag != NOTAG) {
-flushme:
+		flushme:
 			p->work.type = Tflush;
 			p->work.tag = p->flushtag;
 			reply(&p->work, &rhdr, 0);
@@ -553,12 +551,12 @@ slaveopen(Fsrpc *p)
 		close(f->fid);
 		f->fid = -1;
 	}
-	
+
 	path = makepath(f->f, "");
 	DEBUG(DFD, "\topen: %s %d\n", path, work->mode);
 
 	p->canint = 1;
-	if(p->flushtag != NOTAG){
+	if(p->flushtag != NOTAG) {
 		free(path);
 		return;
 	}
@@ -574,7 +572,7 @@ slaveopen(Fsrpc *p)
 	}
 	f->f->qid = d->qid;
 	free(d);
-	if(f->f->qid.type & QTMOUNT){	/* fork new exportfs for this */
+	if(f->f->qid.type & QTMOUNT) { /* fork new exportfs for this */
 		f->fid = openmount(f->fid);
 		if(f->fid < 0)
 			goto Error;
@@ -603,7 +601,7 @@ slaveread(Fsrpc *p)
 		return;
 	}
 
-	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;
+	n = (work->count > messagesize - IOHDRSZ) ? messagesize - IOHDRSZ : work->count;
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;
@@ -645,7 +643,7 @@ slavewrite(Fsrpc *p)
 		return;
 	}
 
-	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;
+	n = (work->count > messagesize - IOHDRSZ) ? messagesize - IOHDRSZ : work->count;
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;

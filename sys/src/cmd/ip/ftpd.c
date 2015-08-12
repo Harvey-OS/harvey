@@ -17,148 +17,205 @@
 
 #include "glob.h"
 
-enum
-{
+enum {
 	/* telnet control character */
-	Iac=		255,
+	Iac = 255,
 
 	/* representation types */
-	Tascii=		0,
-	Timage=		1,
+	Tascii = 0,
+	Timage = 1,
 
 	/* transmission modes */
-	Mstream=	0,
-	Mblock=		1,
-	Mpage=		2,
+	Mstream = 0,
+	Mblock = 1,
+	Mpage = 2,
 
 	/* file structure */
-	Sfile=		0,
-	Sblock=		1,
-	Scompressed=	2,
+	Sfile = 0,
+	Sblock = 1,
+	Scompressed = 2,
 
 	/* read/write buffer size */
-	Nbuf=		4096,
+	Nbuf = 4096,
 
 	/* maximum ms we'll wait for a command */
-	Maxwait=	1000*60*30,		/* inactive for 30 minutes, we hang up */
+	Maxwait = 1000 * 60 * 30, /* inactive for 30 minutes, we hang up */
 
-	Maxerr=		128,
-	Maxpath=	512,
+	Maxerr = 128,
+	Maxpath = 512,
 };
 
-int	abortcmd(char*);
-int	appendcmd(char*);
-int	cdupcmd(char*);
-int	cwdcmd(char*);
-int	delcmd(char*);
-int	helpcmd(char*);
-int	listcmd(char*);
-int	mdtmcmd(char*);
-int	mkdircmd(char*);
-int	modecmd(char*);
-int	namelistcmd(char*);
-int	nopcmd(char*);
-int	passcmd(char*);
-int	pasvcmd(char*);
-int	portcmd(char*);
-int	pwdcmd(char*);
-int	quitcmd(char*);
-int	rnfrcmd(char*);
-int	rntocmd(char*);
-int	reply(char*, ...);
-int	restartcmd(char*);
-int	retrievecmd(char*);
-int	sitecmd(char*);
-int	sizecmd(char*);
-int	storecmd(char*);
-int	storeucmd(char*);
-int	structcmd(char*);
-int	systemcmd(char*);
-int	typecmd(char*);
-int	usercmd(char*);
+int abortcmd(char *);
+int appendcmd(char *);
+int cdupcmd(char *);
+int cwdcmd(char *);
+int delcmd(char *);
+int helpcmd(char *);
+int listcmd(char *);
+int mdtmcmd(char *);
+int mkdircmd(char *);
+int modecmd(char *);
+int namelistcmd(char *);
+int nopcmd(char *);
+int passcmd(char *);
+int pasvcmd(char *);
+int portcmd(char *);
+int pwdcmd(char *);
+int quitcmd(char *);
+int rnfrcmd(char *);
+int rntocmd(char *);
+int reply(char *, ...);
+int restartcmd(char *);
+int retrievecmd(char *);
+int sitecmd(char *);
+int sizecmd(char *);
+int storecmd(char *);
+int storeucmd(char *);
+int structcmd(char *);
+int systemcmd(char *);
+int typecmd(char *);
+int usercmd(char *);
 
-int	dialdata(void);
-char*	abspath(char*);
-int	crlfwrite(int, char*, int);
-int	sodoff(void);
-int	accessok(char*);
+int dialdata(void);
+char *abspath(char *);
+int crlfwrite(int, char *, int);
+int sodoff(void);
+int accessok(char *);
 
-typedef struct Cmd	Cmd;
-struct Cmd
-{
-	char	*name;
-	int	(*f)(char*);
-	int	needlogin;
+typedef struct Cmd Cmd;
+struct Cmd {
+	char *name;
+	int (*f)(char *);
+	int needlogin;
 };
 
 Cmd cmdtab[] =
-{
-	{ "abor",	abortcmd,	0, },
-	{ "appe",	appendcmd,	1, },
-	{ "cdup",	cdupcmd,	1, },
-	{ "cwd",	cwdcmd,		1, },
-	{ "dele",	delcmd,		1, },
-	{ "help",	helpcmd,	0, },
-	{ "list",	listcmd,	1, },
-	{ "mdtm",	mdtmcmd,	1, },
-	{ "mkd",	mkdircmd,	1, },
-	{ "mode",	modecmd,	0, },
-	{ "nlst",	namelistcmd,	1, },
-	{ "noop",	nopcmd,		0, },
-	{ "pass",	passcmd,	0, },
-	{ "pasv",	pasvcmd,	1, },
-	{ "pwd",	pwdcmd,		0, },
-	{ "port", 	portcmd,	1, },
-	{ "quit",	quitcmd,	0, },
-	{ "rest",	restartcmd,	1, },
-	{ "retr",	retrievecmd,	1, },
-	{ "rmd",	delcmd,		1, },
-	{ "rnfr",	rnfrcmd,	1, },
-	{ "rnto",	rntocmd,	1, },
-	{ "site", sitecmd, 1, },
-	{ "size", 	sizecmd,	1, },
-	{ "stor", 	storecmd,	1, },
-	{ "stou", 	storeucmd,	1, },
-	{ "stru",	structcmd,	1, },
-	{ "syst",	systemcmd,	0, },
-	{ "type", 	typecmd,	0, },
-	{ "user",	usercmd,	0, },
-	{ 0, 0, 0 },
+    {
+     {
+      "abor", abortcmd, 0,
+     },
+     {
+      "appe", appendcmd, 1,
+     },
+     {
+      "cdup", cdupcmd, 1,
+     },
+     {
+      "cwd", cwdcmd, 1,
+     },
+     {
+      "dele", delcmd, 1,
+     },
+     {
+      "help", helpcmd, 0,
+     },
+     {
+      "list", listcmd, 1,
+     },
+     {
+      "mdtm", mdtmcmd, 1,
+     },
+     {
+      "mkd", mkdircmd, 1,
+     },
+     {
+      "mode", modecmd, 0,
+     },
+     {
+      "nlst", namelistcmd, 1,
+     },
+     {
+      "noop", nopcmd, 0,
+     },
+     {
+      "pass", passcmd, 0,
+     },
+     {
+      "pasv", pasvcmd, 1,
+     },
+     {
+      "pwd", pwdcmd, 0,
+     },
+     {
+      "port", portcmd, 1,
+     },
+     {
+      "quit", quitcmd, 0,
+     },
+     {
+      "rest", restartcmd, 1,
+     },
+     {
+      "retr", retrievecmd, 1,
+     },
+     {
+      "rmd", delcmd, 1,
+     },
+     {
+      "rnfr", rnfrcmd, 1,
+     },
+     {
+      "rnto", rntocmd, 1,
+     },
+     {
+      "site", sitecmd, 1,
+     },
+     {
+      "size", sizecmd, 1,
+     },
+     {
+      "stor", storecmd, 1,
+     },
+     {
+      "stou", storeucmd, 1,
+     },
+     {
+      "stru", structcmd, 1,
+     },
+     {
+      "syst", systemcmd, 0,
+     },
+     {
+      "type", typecmd, 0,
+     },
+     {
+      "user", usercmd, 0,
+     },
+     {0, 0, 0},
 };
 
-#define NONENS "/lib/namespace.ftp"	/* default ns for none */
+#define NONENS "/lib/namespace.ftp" /* default ns for none */
 
-char	user[Maxpath];		/* logged in user */
-char	curdir[Maxpath];	/* current directory path */
-Chalstate	*ch;
-int	loggedin;
-int	type;			/* transmission type */
-int	mode;			/* transmission mode */
-int	structure;		/* file structure */
-char	data[64];		/* data address */
-int	pid;			/* transfer process */
-int	encryption;		/* encryption state */
-int	isnone, anon_ok, anon_only, anon_everybody;
-char	cputype[Maxpath];	/* the environment variable of the same name */
-char	bindir[Maxpath];	/* bin directory for this architecture */
-char	mailaddr[Maxpath];
-char	*namespace = NONENS;
-int	debug;
-NetConnInfo	*nci;
-int	createperm = 0660;
-int	isnoworld;
-int64_t	offset;			/* from restart command */
+char user[Maxpath];   /* logged in user */
+char curdir[Maxpath]; /* current directory path */
+Chalstate *ch;
+int loggedin;
+int type;       /* transmission type */
+int mode;       /* transmission mode */
+int structure;  /* file structure */
+char data[64];  /* data address */
+int pid;	/* transfer process */
+int encryption; /* encryption state */
+int isnone, anon_ok, anon_only, anon_everybody;
+char cputype[Maxpath]; /* the environment variable of the same name */
+char bindir[Maxpath];  /* bin directory for this architecture */
+char mailaddr[Maxpath];
+char *namespace = NONENS;
+int debug;
+NetConnInfo *nci;
+int createperm = 0660;
+int isnoworld;
+int64_t offset; /* from restart command */
 
 uint32_t id;
 
 typedef struct Passive Passive;
-struct Passive
-{
-	int	inuse;
-	char	adir[40];
-	int	afd;
-	int	port;
-	uint8_t	ipaddr[IPaddrlen];
+struct Passive {
+	int inuse;
+	char adir[40];
+	int afd;
+	int port;
+	uint8_t ipaddr[IPaddrlen];
 } passive;
 
 #define FTPLOG "ftp"
@@ -172,7 +229,7 @@ logit(char *fmt, ...)
 
 	rerrstr(errstr, sizeof errstr);
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	syslog(0, FTPLOG, "%s.%s %s", nci->rsys, nci->rserv, buf);
 	werrstr(errstr, sizeof errstr);
@@ -199,8 +256,9 @@ main(int argc, char **argv)
 	Biobuf in;
 	int i;
 
-	ARGBEGIN{
-	case 'a':		/* anonymous OK */
+	ARGBEGIN
+	{
+	case 'a': /* anonymous OK */
 		anon_ok = 1;
 		break;
 	case 'A':
@@ -219,7 +277,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	/* open log file before doing a newns */
 	syslog(0, FTPLOG, nil);
@@ -228,7 +287,7 @@ main(int argc, char **argv)
 	if(argc < 1)
 		nci = getnetconninfo(nil, 0);
 	else
-		nci = getnetconninfo(argv[argc-1], 0);
+		nci = getnetconninfo(argv[argc - 1], 0);
 	if(nci == nil)
 		sysfatal("ftpd needs a network address");
 
@@ -238,7 +297,7 @@ main(int argc, char **argv)
 	/* figure out which binaries to bind in later (only for none) */
 	arg = getenv("cputype");
 	if(arg)
-		strecpy(cputype, cputype+sizeof cputype, arg);
+		strecpy(cputype, cputype + sizeof cputype, arg);
 	else
 		strcpy(cputype, "mips");
 	/* shurely /%s/bin */
@@ -247,17 +306,17 @@ main(int argc, char **argv)
 	Binit(&in, 0, OREAD);
 	reply("220 Plan 9 FTP server ready");
 	alarm(Maxwait);
-	while(cmd = Brdline(&in, '\n')){
+	while(cmd = Brdline(&in, '\n')) {
 		alarm(0);
 
 		/*
 		 *  strip out trailing cr's & lf and delimit with null
 		 */
-		i = Blinelen(&in)-1;
+		i = Blinelen(&in) - 1;
 		cmd[i] = 0;
 		if(debug)
 			logit("%s", cmd);
-		while(i > 0 && cmd[i-1] == '\r')
+		while(i > 0 && cmd[i - 1] == '\r')
 			cmd[--i] = 0;
 
 		/*
@@ -270,7 +329,7 @@ main(int argc, char **argv)
 		/*
 		 *  get rid of telnet control sequences (we don't need them)
 		 */
-		while(*cmd && (uint8_t)*cmd == Iac){
+		while(*cmd && (uint8_t)*cmd == Iac) {
 			cmd++;
 			if(*cmd)
 				cmd++;
@@ -280,7 +339,7 @@ main(int argc, char **argv)
 		 *  parse the message (command arg)
 		 */
 		arg = strchr(cmd, ' ');
-		if(arg){
+		if(arg) {
 			*arg++ = 0;
 			while(*arg == ' ')
 				arg++;
@@ -298,21 +357,21 @@ main(int argc, char **argv)
 		for(p = cmd; *p; p++)
 			*p = tolower(*p);
 		for(t = cmdtab; t->name; t++)
-			if(strcmp(cmd, t->name) == 0){
+			if(strcmp(cmd, t->name) == 0) {
 				if(t->needlogin && !loggedin)
 					sodoff();
 				else if((*t->f)(arg) < 0)
 					exits(0);
 				break;
 			}
-		if(t->f != restartcmd){
+		if(t->f != restartcmd) {
 			/*
 			 *  the file offset is set to zero following
 			 *  all commands except the restart command
 			 */
 			offset = 0;
 		}
-		if(t->name == 0){
+		if(t->name == 0) {
 			/*
 			 *  the OOB bytes preceding an abort from UCB machines
 			 *  comes out as something unrecognizable instead of
@@ -320,10 +379,10 @@ main(int argc, char **argv)
 			 *  This is a major hack to avoid the problem. -- presotto
 			 */
 			i = strlen(cmd);
-			if(i > 4 && strcmp(cmd+i-4, "abor") == 0){
+			if(i > 4 && strcmp(cmd + i - 4, "abor") == 0) {
 				abortcmd(0);
-			} else{
-				logit("%s (%s) command not implemented", cmd, arg?arg:"");
+			} else {
+				logit("%s (%s) command not implemented", cmd, arg ? arg : "");
 				reply("502 %s command not implemented", cmd);
 			}
 		}
@@ -343,9 +402,9 @@ reply(char *fmt, ...)
 	char buf[8192], *s;
 
 	va_start(arg, fmt);
-	s = vseprint(buf, buf+sizeof(buf)-3, fmt, arg);
+	s = vseprint(buf, buf + sizeof(buf) - 3, fmt, arg);
 	va_end(arg);
-	if(debug){
+	if(debug) {
 		*s = 0;
 		logit("%s", buf);
 	}
@@ -365,20 +424,20 @@ sodoff(void)
  *  run a command in a separate process
  */
 int
-asproc(void (*f)(char*, int), char *arg, int arg2)
+asproc(void (*f)(char *, int), char *arg, int arg2)
 {
 	int i;
 
-	if(pid){
+	if(pid) {
 		/* wait for previous command to finish */
-		for(;;){
+		for(;;) {
 			i = waitpid();
 			if(i == pid || i < 0)
 				break;
 		}
 	}
 
-	switch(pid = rfork(RFFDG|RFPROC|RFNOTEG)){
+	switch(pid = rfork(RFFDG | RFPROC | RFNOTEG)) {
 	case -1:
 		return reply("450 Out of processes: %r");
 	case 0:
@@ -410,23 +469,19 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 		return reply("520 Internal Error: %r");
 
 	bytes = 0;
-	switch(pid = rfork(RFFDG|RFPROC|RFNAMEG)){
+	switch(pid = rfork(RFFDG | RFPROC | RFNAMEG)) {
 	case -1:
 		return reply("450 Out of processes: %r");
 	case 0:
 		logit("running %s %s %s %s pid %d",
-			cmd, a1?a1:"", a2?a2:"" , a3?a3:"",getpid());
+		      cmd, a1 ? a1 : "", a2 ? a2 : "", a3 ? a3 : "", getpid());
 		close(pfd[1]);
 		close(dfd);
 		dup(pfd[0], 1);
 		dup(pfd[0], 2);
-		if(isnone){
+		if(isnone) {
 			fd = open("#s/boot", ORDWR);
-			if(fd < 0
-			|| bind("#/", "/", MAFTER) < 0
-			|| amount(fd, "/bin", MREPL, "") < 0
-			|| bind("#c", "/dev", MAFTER) < 0
-			|| bind(bindir, "/bin", MREPL) < 0)
+			if(fd < 0 || bind("#/", "/", MAFTER) < 0 || amount(fd, "/bin", MREPL, "") < 0 || bind("#c", "/dev", MAFTER) < 0 || bind(bindir, "/bin", MREPL) < 0)
 				exits("building name space");
 			close(fd);
 		}
@@ -435,8 +490,8 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 	default:
 		close(pfd[0]);
 		eofs = 0;
-		while((n = read(pfd[1], buf, sizeof buf)) >= 0){
-			if(n == 0){
+		while((n = read(pfd[1], buf, sizeof buf)) >= 0) {
+			if(n == 0) {
 				if(eofs++ > 5)
 					break;
 				else
@@ -444,9 +499,9 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 			}
 			eofs = 0;
 			p = buf;
-			if(offset > 0){
-				if(n > offset){
-					p = buf+offset;
+			if(offset > 0) {
+				if(n > offset) {
+					p = buf + offset;
 					n -= offset;
 					offset = 0;
 				} else {
@@ -458,7 +513,7 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 				n = crlfwrite(dfd, p, n);
 			else
 				n = write(dfd, p, n);
-			if(n < 0){
+			if(n < 0) {
 				postnote(PNPROC, pid, "kill");
 				bytes = -1;
 				break;
@@ -471,22 +526,21 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 	}
 
 	/* wait for this command to finish */
-	for(;;){
+	for(;;) {
 		w = wait();
 		if(w == nil || w->pid == pid)
 			break;
 		free(w);
 	}
-	if(w != nil && w->msg != nil && w->msg[0] != 0){
+	if(w != nil && w->msg != nil && w->msg[0] != 0) {
 		bytes = -1;
 		logit("%s", w->msg);
-		logit("%s %s %s %s failed %s", cmd, a1?a1:"", a2?a2:"" , a3?a3:"", w->msg);
+		logit("%s %s %s %s failed %s", cmd, a1 ? a1 : "", a2 ? a2 : "", a3 ? a3 : "", w->msg);
 	}
 	free(w);
 	reply("226 Transfer complete");
 	return bytes;
 }
-
 
 /*
  *  just reply OK
@@ -506,12 +560,12 @@ int
 loginuser(char *user, char *nsfile, int gotoslash)
 {
 	logit("login %s %s %s %s", user, mailaddr, nci->rsys, nsfile);
-	if(nsfile != nil && newns(user, nsfile) < 0){
+	if(nsfile != nil && newns(user, nsfile) < 0) {
 		logit("namespace file %s does not exist", nsfile);
 		return reply("530 Not logged in: login out of service");
 	}
 	getwd(curdir, sizeof(curdir));
-	if(gotoslash){
+	if(gotoslash) {
 		chdir("/");
 		strcpy(curdir, "/");
 	}
@@ -527,9 +581,9 @@ slowdown(void)
 {
 	static uint32_t pause;
 
-	if (pause) {
-		sleep(pause);			/* deter guessers */
-		if (pause < (1UL << 20))
+	if(pause) {
+		sleep(pause); /* deter guessers */
+		if(pause < (1UL << 20))
 			pause *= 2;
 	} else
 		pause = 1000;
@@ -551,32 +605,30 @@ usercmd(char *name)
 	if(name == 0 || *name == 0)
 		return reply("530 user command needs user name");
 	isnoworld = 0;
-	if(*name == ':'){
+	if(*name == ':') {
 		debug = 1;
 		name++;
 	}
 	strncpy(user, name, sizeof(user));
 	if(debug)
 		logit("debugging");
-	user[sizeof(user)-1] = 0;
+	user[sizeof(user) - 1] = 0;
 	if(strcmp(user, "anonymous") == 0 || strcmp(user, "ftp") == 0)
 		strcpy(user, "none");
 	else if(anon_everybody)
-		strcpy(user,"none");
+		strcpy(user, "none");
 
 	if(strcmp(user, "Administrator") == 0 || strcmp(user, "admin") == 0)
 		return reply("530 go away, script kiddie");
-	else if(strcmp(user, "*none") == 0){
+	else if(strcmp(user, "*none") == 0) {
 		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
 		return loginuser("none", namespace, 1);
-	}
-	else if(strcmp(user, "none") == 0){
+	} else if(strcmp(user, "none") == 0) {
 		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
 		return reply("331 Send email address as password");
-	}
-	else if(anon_only)
+	} else if(anon_only)
 		return reply("530 Not logged in: anonymous access only");
 
 	isnoworld = noworld(name);
@@ -603,14 +655,14 @@ passcmd(char *response)
 	if(response == nil)
 		response = "";
 
-	if(strcmp(user, "none") == 0 || strcmp(user, "*none") == 0){
+	if(strcmp(user, "none") == 0 || strcmp(user, "*none") == 0) {
 		/* for none, accept anything as a password */
 		isnone = 1;
-		strncpy(mailaddr, response, sizeof(mailaddr)-1);
+		strncpy(mailaddr, response, sizeof(mailaddr) - 1);
 		return loginuser("none", namespace, 1);
 	}
 
-	if(isnoworld){
+	if(isnoworld) {
 		/* noworld gets a password in the clear */
 		if(login(user, response, "/lib/namespace.noworld") < 0)
 			return reply("530 Not logged in");
@@ -663,7 +715,7 @@ cwdcmd(char *dir)
 	char buf[Maxpath];
 
 	/* shell cd semantics */
-	if(dir == 0 || *dir == 0){
+	if(dir == 0 || *dir == 0) {
 		if(isnone)
 			rp = "/";
 		else {
@@ -714,8 +766,8 @@ typecmd(char *arg)
 	if(arg == 0)
 		return reply("501 Type command needs arguments");
 
-	while(c = *arg++){
-		switch(tolower(c)){
+	while(c = *arg++) {
+		switch(tolower(c)) {
 		case 'a':
 			type = Tascii;
 			break;
@@ -733,7 +785,7 @@ typecmd(char *arg)
 			return reply("501 Unimplemented type %s", x);
 		}
 	}
-	return reply("200 Type %s", type==Tascii ? "Ascii" : "Image");
+	return reply("200 Type %s", type == Tascii ? "Ascii" : "Image");
 }
 
 int
@@ -741,8 +793,8 @@ modecmd(char *arg)
 {
 	if(arg == 0)
 		return reply("501 Mode command needs arguments");
-	while(*arg){
-		switch(tolower(*arg)){
+	while(*arg) {
+		switch(tolower(*arg)) {
 		case 's':
 			mode = Mstream;
 			break;
@@ -759,8 +811,8 @@ structcmd(char *arg)
 {
 	if(arg == 0)
 		return reply("501 Struct command needs arguments");
-	for(; *arg; arg++){
-		switch(tolower(*arg)){
+	for(; *arg; arg++) {
+		switch(tolower(*arg)) {
 		case 'f':
 			structure = Sfile;
 			break;
@@ -783,7 +835,7 @@ portcmd(char *arg)
 	if(n != 6)
 		return reply("501 Incorrect port specification");
 	snprint(data, sizeof data, "tcp!%.3s.%.3s.%.3s.%.3s!%d", field[0], field[1], field[2],
-		field[3], atoi(field[4])*256 + atoi(field[5]));
+		field[3], atoi(field[4]) * 256 + atoi(field[5]));
 	return reply("200 Data port is %s", data);
 }
 
@@ -794,12 +846,12 @@ mountnet(void)
 
 	rv = 0;
 
-	if(bind("#/", "/", MAFTER) < 0){
+	if(bind("#/", "/", MAFTER) < 0) {
 		logit("can't bind #/ to /: %r");
 		return reply("500 can't bind #/ to /: %r");
 	}
 
-	if(bind(nci->spec, "/net", MBEFORE) < 0){
+	if(bind(nci->spec, "/net", MBEFORE) < 0) {
 		logit("can't bind %s to /net: %r", nci->spec);
 		rv = reply("500 can't bind %s to /net: %r", nci->spec);
 		unmount("#/", "/");
@@ -824,7 +876,7 @@ pasvcmd(char *arg)
 	USED(arg);
 	p = &passive;
 
-	if(p->inuse){
+	if(p->inuse) {
 		close(p->afd);
 		p->inuse = 0;
 	}
@@ -833,7 +885,7 @@ pasvcmd(char *arg)
 		return 0;
 
 	p->afd = announce("tcp!*!0", passive.adir);
-	if(p->afd < 0){
+	if(p->afd < 0) {
 		unmountnet();
 		return reply("500 No free ports");
 	}
@@ -852,19 +904,18 @@ pasvcmd(char *arg)
 	p->inuse = 1;
 
 	return reply("227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)",
-		p->ipaddr[IPv4off+0], p->ipaddr[IPv4off+1], p->ipaddr[IPv4off+2], p->ipaddr[IPv4off+3],
-		p->port>>8, p->port&0xff);
+		     p->ipaddr[IPv4off + 0], p->ipaddr[IPv4off + 1], p->ipaddr[IPv4off + 2], p->ipaddr[IPv4off + 3],
+		     p->port >> 8, p->port & 0xff);
 }
 
-enum
-{
-	Narg=32,
+enum {
+	Narg = 32,
 };
 int Cflag, rflag, tflag, Rflag;
 int maxnamelen;
 int col;
 
-char*
+char *
 mode2asc(int m)
 {
 	static char asc[12];
@@ -878,7 +929,7 @@ mode2asc(int m)
 	else if(DMEXCL & m)
 		asc[3] = 'l';
 
-	for(p = asc+1; p < asc + 10; p += 3, m<<=3){
+	for(p = asc + 1; p < asc + 10; p += 3, m <<= 3) {
 		if(m & 0400)
 			p[0] = 'r';
 		if(m & 0200)
@@ -903,8 +954,8 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 	d = dirstat(x);
 	if(d == nil)
 		return;
-	if(isnone){
-		if(strncmp(x, "/incoming/", sizeof("/incoming/")-1) != 0)
+	if(isnone) {
+		if(strncmp(x, "/incoming/", sizeof("/incoming/") - 1) != 0)
 			d->mode &= ~0222;
 		d->uid = "none";
 		d->gid = "none";
@@ -913,33 +964,31 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 	strcpy(ts, ctime(d->mtime));
 	ts[16] = 0;
 	now = time(0);
-	if(now - d->mtime > 6*30*24*60*60)
-		memmove(ts+11, ts+23, 5);
-	if(lflag){
+	if(now - d->mtime > 6 * 30 * 24 * 60 * 60)
+		memmove(ts + 11, ts + 23, 5);
+	if(lflag) {
 		/* Unix style long listing */
-		if(DMDIR&d->mode){
+		if(DMDIR & d->mode) {
 			links = 2;
 			d->length = 512;
 		} else
 			links = 1;
 
 		Bprint(b, "%s %3d %-8s %-8s %7lld %s ",
-			mode2asc(d->mode), links,
-			d->uid, d->gid, d->length, ts+4);
+		       mode2asc(d->mode), links,
+		       d->uid, d->gid, d->length, ts + 4);
 	}
-	if(Cflag && maxnamelen < 40){
+	if(Cflag && maxnamelen < 40) {
 		n = strlen(name);
-		pad = ((col+maxnamelen)/(maxnamelen+1))*(maxnamelen+1);
-		if(pad+maxnamelen+1 < 60){
-			Bprint(b, "%*s", pad-col+n, name);
-			col = pad+n;
-		}
-		else{
+		pad = ((col + maxnamelen) / (maxnamelen + 1)) * (maxnamelen + 1);
+		if(pad + maxnamelen + 1 < 60) {
+			Bprint(b, "%*s", pad - col + n, name);
+			col = pad + n;
+		} else {
 			Bprint(b, "\r\n%s", name);
 			col = n;
 		}
-	}
-	else{
+	} else {
 		if(dname)
 			Bprint(b, "%s/", dname);
 		Bprint(b, "%s\r\n", name);
@@ -959,7 +1008,7 @@ dircomp(const void *va, const void *vb)
 		rv = b->mtime - a->mtime;
 	else
 		rv = strcmp(a->name, b->name);
-	return (rflag?-1:1)*rv;
+	return (rflag ? -1 : 1) * rv;
 }
 void
 listdir(char *name, Biobufhdr *b, int lflag, int *printname,
@@ -973,12 +1022,12 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname,
 	col = 0;
 
 	fd = open(name, OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		Bprint(b, "can't read %s: %r\r\n", name);
 		return;
 	}
 	dname = 0;
-	if(*printname){
+	if(*printname) {
 		if(Rflag || lflag)
 			Bprint(b, "\r\n%s:\r\n", name);
 		else
@@ -986,8 +1035,8 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname,
 	}
 	n = dirreadall(fd, &p);
 	close(fd);
-	if(Cflag){
-		for(i = 0; i < n; i++){
+	if(Cflag) {
+		for(i = 0; i < n; i++) {
 			l = strlen(p[i].name);
 			if(l > maxnamelen)
 				maxnamelen = l;
@@ -995,20 +1044,20 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname,
 	}
 
 	/* Unix style total line */
-	if(lflag){
+	if(lflag) {
 		total = 0;
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			if(p[i].qid.type & QTDIR)
 				total += 512;
 			else
 				total += p[i].length;
 		}
-		Bprint(b, "total %ulld\r\n", total/512);
+		Bprint(b, "total %ulld\r\n", total / 512);
 	}
 
 	qsort(p, n, sizeof(Dir), dircomp);
-	for(i = 0; i < n; i++){
-		if(Rflag && (p[i].qid.type & QTDIR)){
+	for(i = 0; i < n; i++) {
+		if(Rflag && (p[i].qid.type & QTDIR)) {
 			*printname = 1;
 			globadd(gl, name, p[i].name);
 		}
@@ -1039,14 +1088,15 @@ list(char *arg, int lflag)
 	/* process arguments, understand /bin/ls -l option */
 	argv = alist;
 	argv[0] = "/bin/ls";
-	argc = getfields(arg, argv+1, Narg-2, 1, " \t") + 1;
+	argc = getfields(arg, argv + 1, Narg - 2, 1, " \t") + 1;
 	argv[argc] = 0;
 	rflag = 0;
 	tflag = 0;
 	Rflag = 0;
 	Cflag = 0;
 	col = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'l':
 		lflag++;
 		break;
@@ -1062,25 +1112,26 @@ list(char *arg, int lflag)
 	case 't':
 		tflag++;
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 	if(Cflag)
 		lflag = 0;
 
 	dfd = dialdata();
-	if(dfd < 0){
+	if(dfd < 0) {
 		reply("425 Error opening data connection:%r");
 		return;
 	}
 	reply("150 Opened data connection (%s)", data);
 
 	Binits(&bh, dfd, OWRITE, buf, sizeof(buf));
-	if(argc == 0){
+	if(argc == 0) {
 		argc = 1;
 		argv = alist;
 		argv[0] = ".";
 	}
 
-	for(i = 0; i < argc; i++){
+	for(i = 0; i < argc; i++) {
 		chdir(curdir);
 		gl = glob(argv[i]);
 		if(gl == nil)
@@ -1093,16 +1144,16 @@ list(char *arg, int lflag)
 			for(g = gl->first; g; g = g->next)
 				if(g->glob && (n = strlen(s_to_c(g->glob))) > maxnamelen)
 					maxnamelen = n;
-		while(s = globiter(gl)){
+		while(s = globiter(gl)) {
 			if(debug)
 				logit("glob %s", s);
 			p = abspath(s);
-			if(p == nil){
+			if(p == nil) {
 				free(s);
 				continue;
 			}
 			d = dirstat(p);
-			if(d == nil){
+			if(d == nil) {
 				free(s);
 				continue;
 			}
@@ -1146,7 +1197,7 @@ oksiteuser(void)
 	if(fd < 0)
 		return 1;
 	n = read(fd, buf, sizeof buf - 1);
-	if(n > 0){
+	if(n > 0) {
 		buf[n] = 0;
 		if(strcmp(buf, "none") == 0)
 			n = -1;
@@ -1179,7 +1230,7 @@ sitecmd(char *arg)
 	if(r < 0)
 		return reply("550 Permission denied %r");
 	return reply("200 very well, then");
- }
+}
 
 /*
  *  return the size of the file
@@ -1220,8 +1271,8 @@ mdtmcmd(char *arg)
 		return reply("501 %r accessing %s", arg);
 	t = gmtime(d->mtime);
 	rv = reply("213 %4.4d%2.2d%2.2d%2.2d%2.2d%2.2d",
-			t->year+1900, t->mon+1, t->mday,
-			t->hour, t->min, t->sec);
+		   t->year + 1900, t->mon + 1, t->mday,
+		   t->hour, t->min, t->sec);
 	free(d);
 	return rv;
 }
@@ -1236,7 +1287,7 @@ restartcmd(char *arg)
 	if(arg == 0)
 		return reply("501 Restart command requires offset");
 	offset = atoll(arg);
-	if(offset < 0){
+	if(offset < 0) {
 		offset = 0;
 		return reply("501 Bad offset");
 	}
@@ -1251,9 +1302,9 @@ int
 crlfwrite(int fd, char *p, int n)
 {
 	char *ep, *np;
-	char buf[2*Nbuf];
+	char buf[2 * Nbuf];
 
-	for(np = buf, ep = p + n; p < ep; p++){
+	for(np = buf, ep = p + n; p < ep; p++) {
 		if(*p == '\n')
 			*np++ = '\r';
 		*np++ = *p;
@@ -1270,19 +1321,19 @@ retrievedir(char *arg)
 	char *p;
 	String *file;
 
-	if(type != Timage){
+	if(type != Timage) {
 		reply("550 This file requires type binary/image");
 		return;
 	}
 
 	file = s_copy(arg);
 	p = strrchr(s_to_c(file), '/');
-	if(p != s_to_c(file)){
+	if(p != s_to_c(file)) {
 		*p++ = 0;
 		chdir(s_to_c(file));
 	} else {
 		chdir("/");
-		p = s_to_c(file)+1;
+		p = s_to_c(file) + 1;
 	}
 
 	n = transfer("/bin/tar", "c", p, 0, 1);
@@ -1303,19 +1354,19 @@ retrieve(char *arg, int arg2)
 	USED(arg2);
 
 	p = strchr(arg, '\r');
-	if(p){
+	if(p) {
 		logit("cr in file name", arg);
 		*p = 0;
 	}
 
 	fd = open(arg, OREAD);
-	if(fd == -1){
+	if(fd == -1) {
 		n = strlen(arg);
-		if(n > 4 && strcmp(arg+n-4, ".tar") == 0){
-			*(arg+n-4) = 0;
+		if(n > 4 && strcmp(arg + n - 4, ".tar") == 0) {
+			*(arg + n - 4) = 0;
 			d = dirstat(arg);
-			if(d != nil){
-				if(d->qid.type & QTDIR){
+			if(d != nil) {
+				if(d->qid.type & QTDIR) {
 					retrievedir(arg);
 					free(d);
 					return;
@@ -1328,14 +1379,14 @@ retrieve(char *arg, int arg2)
 		return;
 	}
 	if(offset != 0)
-		if(seek(fd, offset, 0) < 0){
+		if(seek(fd, offset, 0) < 0) {
 			reply("550 %s: seek to %lld failed", arg, offset);
 			close(fd);
 			return;
 		}
 	d = dirfstat(fd);
-	if(d != nil){
-		if(d->qid.type & QTDIR){
+	if(d != nil) {
+		if(d->qid.type & QTDIR) {
 			reply("550 %s: not a plain file.", arg);
 			close(fd);
 			free(d);
@@ -1345,7 +1396,7 @@ retrieve(char *arg, int arg2)
 	}
 
 	n = read(fd, buf, sizeof(buf));
-	if(n < 0){
+	if(n < 0) {
 		logit("get %s failed", arg, mailaddr, nci->rsys);
 		reply("550 Error reading %s: %r", arg);
 		close(fd);
@@ -1354,7 +1405,7 @@ retrieve(char *arg, int arg2)
 
 	if(type != Timage)
 		for(p = buf, ep = &buf[n]; p < ep; p++)
-			if(*p & 0x80){
+			if(*p & 0x80) {
 				close(fd);
 				reply("550 This file requires type binary/image");
 				return;
@@ -1362,7 +1413,7 @@ retrieve(char *arg, int arg2)
 
 	reply("150 Opening data connection for %s (%s)", arg, data);
 	dfd = dialdata();
-	if(dfd < 0){
+	if(dfd < 0) {
 		reply("425 Error opening data connection:%r");
 		close(fd);
 		return;
@@ -1370,7 +1421,7 @@ retrieve(char *arg, int arg2)
 
 	bytes = 0;
 	do {
-		switch(type){
+		switch(type) {
 		case Timage:
 			i = write(dfd, buf, n);
 			break;
@@ -1378,7 +1429,7 @@ retrieve(char *arg, int arg2)
 			i = crlfwrite(dfd, buf, n);
 			break;
 		}
-		if(i != n){
+		if(i != n) {
 			close(fd);
 			close(dfd);
 			logit("get %s %r to data connection after %d", arg, bytes);
@@ -1417,7 +1468,7 @@ lfwrite(int fd, char *p, int n)
 	char *ep, *np;
 	char buf[Nbuf];
 
-	for(np = buf, ep = p + n; p < ep; p++){
+	for(np = buf, ep = p + n; p < ep; p++) {
 		if(*p != '\r')
 			*np++ = *p;
 	}
@@ -1434,14 +1485,14 @@ store(char *arg, int fd)
 
 	reply("150 Opening data connection for %s (%s)", arg, data);
 	dfd = dialdata();
-	if(dfd < 0){
+	if(dfd < 0) {
 		reply("425 Error opening data connection:%r");
 		close(fd);
 		return;
 	}
 
-	while((n = read(dfd, buf, sizeof(buf))) > 0){
-		switch(type){
+	while((n = read(dfd, buf, sizeof(buf))) > 0) {
+		switch(type) {
 		case Timage:
 			i = write(fd, buf, n);
 			break;
@@ -1449,7 +1500,7 @@ store(char *arg, int fd)
 			i = lfwrite(fd, buf, n);
 			break;
 		}
-		if(i != n){
+		if(i != n) {
 			close(fd);
 			close(dfd);
 			reply("550 Error writing file");
@@ -1471,15 +1522,15 @@ storecmd(char *arg)
 	arg = abspath(arg);
 	if(arg == 0)
 		return reply("550 Permission denied");
-	if(isnone && strncmp(arg, "/incoming/", sizeof("/incoming/")-1))
+	if(isnone && strncmp(arg, "/incoming/", sizeof("/incoming/") - 1))
 		return reply("550 Permission denied");
-	if(offset){
+	if(offset) {
 		fd = open(arg, OWRITE);
 		if(fd == -1)
 			return reply("550 Error opening %s: %r", arg);
 		if(seek(fd, offset, 0) == -1)
 			return reply("550 Error seeking %s to %d: %r",
-				arg, offset);
+				     arg, offset);
 	} else {
 		fd = create(arg, OWRITE, createperm);
 		if(fd == -1)
@@ -1503,7 +1554,7 @@ appendcmd(char *arg)
 	if(arg == 0)
 		return reply("550 Error creating %s: Permission denied", arg);
 	fd = open(arg, OWRITE);
-	if(fd == -1){
+	if(fd == -1) {
 		fd = create(arg, OWRITE, createperm);
 		if(fd == -1)
 			return reply("550 Error creating %s: %r", arg);
@@ -1546,7 +1597,7 @@ mkdircmd(char *name)
 	name = abspath(name);
 	if(name == 0)
 		return reply("550 Permission denied");
-	fd = create(name, OREAD, DMDIR|0775);
+	fd = create(name, OREAD, DMDIR | 0775);
 	if(fd < 0)
 		return reply("550 Can't create %s: %r", name);
 	close(fd);
@@ -1578,7 +1629,7 @@ abortcmd(char *arg)
 	USED(arg);
 
 	logit("abort pid %d", pid);
-	if(pid){
+	if(pid) {
 		if(postnote(PNPROC, pid, "kill") == 0)
 			reply("426 Command aborted");
 		else
@@ -1604,9 +1655,9 @@ helpcmd(char *arg)
 	USED(arg);
 	reply("214- the following commands are implemented:");
 	p = buf;
-	e = buf+sizeof buf;
-	for(i = 0; cmdtab[i].name; i++){
-		if((i%8) == 0){
+	e = buf + sizeof buf;
+	for(i = 0; cmdtab[i].name; i++) {
+		if((i % 8) == 0) {
 			reply("214-%s", buf);
 			p = buf;
 		}
@@ -1635,7 +1686,7 @@ rnfrcmd(char *from)
 		return reply("550 Permission denied");
 	if(filepath == nil)
 		filepath = s_copy(from);
-	else{
+	else {
 		s_reset(filepath);
 		s_append(filepath, from);
 	}
@@ -1660,11 +1711,10 @@ rntocmd(char *to)
 
 	tp = strrchr(to, '/');
 	fp = strrchr(s_to_c(filepath), '/');
-	if((tp && fp == 0) || (fp && tp == 0)
-	|| (fp && tp && (fp-s_to_c(filepath) != tp-to || memcmp(s_to_c(filepath), to, tp-to))))
+	if((tp && fp == 0) || (fp && tp == 0) || (fp && tp && (fp - s_to_c(filepath) != tp - to || memcmp(s_to_c(filepath), to, tp - to))))
 		return reply("550 Rename can't change directory");
 	if(tp)
-		to = tp+1;
+		to = tp + 1;
 
 	nulldir(&nd);
 	nd.name = to;
@@ -1691,11 +1741,11 @@ dialdata(void)
 	if(mountnet() < 0)
 		return -1;
 
-	if(!passive.inuse){
+	if(!passive.inuse) {
 		fd = dial(data, "20", 0, 0);
 		errstr(err, sizeof err);
 	} else {
-		alarm(5*60*1000);
+		alarm(5 * 60 * 1000);
 		cfd = listen(passive.adir, ldir);
 		alarm(0);
 		errstr(err, sizeof err);
@@ -1753,7 +1803,7 @@ postnote(int group, int pid, char *note)
  */
 char *special = "`;| ";
 
-char*
+char *
 abspath(char *origpath)
 {
 	char *p, *sp, *path;
@@ -1766,8 +1816,8 @@ abspath(char *origpath)
 
 	if(origpath == nil)
 		s_append(rpath, curdir);
-	else{
-		if(*origpath != '/'){
+	else {
+		if(*origpath != '/') {
 			s_append(rpath, curdir);
 			s_append(rpath, "/");
 		}
@@ -1775,14 +1825,14 @@ abspath(char *origpath)
 	}
 	path = s_to_c(rpath);
 
-	for(sp = special; *sp; sp++){
+	for(sp = special; *sp; sp++) {
 		p = strchr(path, *sp);
 		if(p)
 			*p = 0;
 	}
 
 	cleanname(s_to_c(rpath));
-	rpath->ptr = rpath->base+strlen(rpath->base);
+	rpath->ptr = rpath->base + strlen(rpath->base);
 
 	if(!accessok(s_to_c(rpath)))
 		return nil;
@@ -1792,21 +1842,20 @@ abspath(char *origpath)
 
 typedef struct Path Path;
 struct Path {
-	Path	*next;
-	String	*path;
-	int	inuse;
-	int	ok;
+	Path *next;
+	String *path;
+	int inuse;
+	int ok;
 };
 
-enum
-{
+enum {
 	Maxlevel = 16,
-	Maxperlevel= 8,
+	Maxperlevel = 8,
 };
 
 Path *pathlevel[Maxlevel];
 
-Path*
+Path *
 unlinkpath(char *path, int level)
 {
 	String *s;
@@ -1814,16 +1863,16 @@ unlinkpath(char *path, int level)
 	int n;
 
 	n = 0;
-	for(l = &pathlevel[level]; *l; l = &(*l)->next){
+	for(l = &pathlevel[level]; *l; l = &(*l)->next) {
 		p = *l;
 		/* hit */
-		if(strcmp(s_to_c(p->path), path) == 0){
+		if(strcmp(s_to_c(p->path), path) == 0) {
 			*l = p->next;
 			p->next = nil;
 			return p;
 		}
 		/* reuse */
-		if(++n >= Maxperlevel){
+		if(++n >= Maxperlevel) {
 			*l = p->next;
 			s = p->path;
 			s_reset(p->path);
@@ -1870,7 +1919,7 @@ _accessok(String *s, int level)
 		lvl = Maxlevel - 1;
 
 	p = unlinkpath(s_to_c(s), lvl);
-	if(p->inuse){
+	if(p->inuse) {
 		/* move to front */
 		linkpath(p, lvl);
 		return p->ok;
@@ -1881,7 +1930,7 @@ _accessok(String *s, int level)
 	else
 		offset = cp - s_to_c(s);
 	s_append(s, httplogin);
-	if(access(s_to_c(s), AEXIST) == 0){
+	if(access(s_to_c(s), AEXIST) == 0) {
 		addpath(p, lvl, 0);
 		return 0;
 	}
@@ -1890,9 +1939,9 @@ _accessok(String *s, int level)
 	 * There's no way to shorten a String without
 	 * knowing the implementation.
 	 */
-	s->ptr = s->base+offset;
+	s->ptr = s->base + offset;
 	s_terminate(s);
-	addpath(p, lvl, _accessok(s, level-1));
+	addpath(p, lvl, _accessok(s, level - 1));
 
 	return p->ok;
 }
@@ -1909,15 +1958,15 @@ accessok(char *path)
 	String *npath;
 
 	npath = s_copy(path);
-	p = s_to_c(npath)+1;
-	for(level = 1; level < Maxlevel; level++){
+	p = s_to_c(npath) + 1;
+	for(level = 1; level < Maxlevel; level++) {
 		p = strchr(p, '/');
 		if(p == nil)
 			break;
 		p++;
 	}
 
-	r = _accessok(npath, level-1);
+	r = _accessok(npath, level - 1);
 	s_free(npath);
 
 	return r;

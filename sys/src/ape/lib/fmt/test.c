@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 	print("smiley: %C\n", (Rune)0x263a);
 	print("%g %.18\n", 2e25, 2e25);
 	print("%2.18g\n", 1.0);
-	print("%f\n", 3.1415927/4);
+	print("%f\n", 3.1415927 / 4);
 	print("%d\n", 23);
 	print("%i\n", 23);
 	return 0;

@@ -15,16 +15,16 @@ smbcomclose(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *)
 	SmbTree *t;
 	SmbFile *f;
 	uint16_t fid;
-	if (!smbcheckwordcount("comclose", h, 3))
+	if(!smbcheckwordcount("comclose", h, 3))
 		return SmbProcessResultFormat;
 	t = smbidmapfind(s->tidmap, h->tid);
-	if (t == nil) {
+	if(t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
 		return SmbProcessResultError;
 	}
 	fid = smbnhgets(pdata);
 	f = smbidmapfind(s->fidmap, fid);
-	if (f == nil) {
+	if(f == nil) {
 		smbseterror(s, ERRDOS, ERRbadfid);
 		return SmbProcessResultError;
 	}

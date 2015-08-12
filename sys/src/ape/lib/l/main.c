@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<libl.h>
-#include	<stdlib.h>
+#include <libl.h>
+#include <stdlib.h>
 
-int	yylex(void);
+int yylex(void);
 
 void
 main(int argc, char *argv[])

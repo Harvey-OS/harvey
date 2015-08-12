@@ -18,8 +18,7 @@
 typedef struct Ureg Ureg;
 typedef struct Debug Debug;
 
-struct Debug
-{
+struct Debug {
 	int textfd;
 	QLock lock;
 	Fhdr fhdr;
@@ -31,7 +30,7 @@ struct Debug
 	int spoff;
 };
 
-static Debug debug = { -1 };
+static Debug debug = {-1};
 
 static int
 text(int pid)
@@ -39,21 +38,21 @@ text(int pid)
 	int fd;
 	char buf[100];
 
-	if(debug.textfd >= 0){
+	if(debug.textfd >= 0) {
 		close(debug.textfd);
 		debug.textfd = -1;
 	}
 	memset(&debug.fhdr, 0, sizeof debug.fhdr);
-	
+
 	snprint(buf, sizeof buf, "#p/%d/text", pid);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return -1;
-	if(crackhdr(fd, &debug.fhdr) < 0){
+	if(crackhdr(fd, &debug.fhdr) < 0) {
 		close(fd);
 		return -1;
 	}
-	if(syminit(fd, &debug.fhdr) < 0){
+	if(syminit(fd, &debug.fhdr) < 0) {
 		memset(&debug.fhdr, 0, sizeof debug.fhdr);
 		close(fd);
 		return -1;
@@ -67,31 +66,31 @@ static void
 unmap(Map *m)
 {
 	int i;
-	
-	for(i=0; i<m->nsegs; i++)
+
+	for(i = 0; i < m->nsegs; i++)
 		if(m->seg[i].inuse)
 			close(m->seg[i].fd);
 	free(m);
 }
 
-static Map*
+static Map *
 map(int pid)
 {
 	int mem;
 	char buf[100];
 	Map *m;
-	
+
 	snprint(buf, sizeof buf, "#p/%d/mem", pid);
 	mem = open(buf, OREAD);
 	if(mem < 0)
 		return nil;
 
 	m = attachproc(pid, 0, mem, &debug.fhdr);
-	if(m == 0){
+	if(m == 0) {
 		close(mem);
 		return nil;
 	}
-	
+
 	if(debug.map)
 		unmap(debug.map);
 	debug.map = m;
@@ -103,7 +102,7 @@ static void
 dprint(char *fmt, ...)
 {
 	va_list arg;
-	
+
 	va_start(arg, fmt);
 	fmtvprint(debug.fmt, fmt, arg);
 	va_end(arg);
@@ -114,15 +113,15 @@ openfiles(void)
 {
 	char buf[4096];
 	int fd, n;
-	
+
 	snprint(buf, sizeof buf, "#p/%d/fd", getpid());
-	if((fd = open(buf, OREAD)) < 0){
+	if((fd = open(buf, OREAD)) < 0) {
 		dprint("open %s: %r\n", buf);
 		return;
 	}
-	n = readn(fd, buf, sizeof buf-1);
+	n = readn(fd, buf, sizeof buf - 1);
 	close(fd);
-	if(n >= 0){
+	if(n >= 0) {
 		buf[n] = 0;
 		fmtstrcpy(debug.fmt, buf);
 	}
@@ -137,7 +136,7 @@ printsym(void)
 	int i;
 	Sym *sp;
 
-	for (i = 0; sp = getsym(i); i++) {
+	for(i = 0; sp = getsym(i); i++) {
 		switch(sp->type) {
 		case 't':
 		case 'l':
@@ -167,14 +166,14 @@ printmap(char *s, Map *map)
 {
 	int i;
 
-	if (!map)
+	if(!map)
 		return;
 	dprint("%s\n", s);
-	for (i = 0; i < map->nsegs; i++) {
-		if (map->seg[i].inuse)
+	for(i = 0; i < map->nsegs; i++) {
+		if(map->seg[i].inuse)
 			dprint("%-16s %-16#llux %-16#llux %-16#llux\n",
-				map->seg[i].name, map->seg[i].b,
-				map->seg[i].e, map->seg[i].f);
+			       map->seg[i].name, map->seg[i].b,
+			       map->seg[i].e, map->seg[i].f);
 	}
 }
 
@@ -187,11 +186,11 @@ printlocals(Map *map, Symbol *fn, uintptr fp)
 	char buf[100];
 
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
-		if (s.class != CAUTO)
+	for(i = 0; localsym(&s, i); i++) {
+		if(s.class != CAUTO)
 			continue;
 		snprint(buf, sizeof buf, "%s%s/", debug.stkprefix, s.name);
-		if (geta(map, fp - s.value, (uint64_t*)&w) > 0)
+		if(geta(map, fp - s.value, (uint64_t *)&w) > 0)
 			dprint("\t%-10s %10#p %ld\n", buf, w, w);
 		else
 			dprint("\t%-10s ?\n", buf);
@@ -206,14 +205,14 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 	uintptr w;
 	int first = 0;
 
-	fp += mach->szaddr;			/* skip saved pc */
+	fp += mach->szaddr; /* skip saved pc */
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
-		if (s.class != CPARAM)
+	for(i = 0; localsym(&s, i); i++) {
+		if(s.class != CPARAM)
 			continue;
-		if (first++)
+		if(first++)
 			dprint(", ");
-		if (geta(map, fp + s.value, (uint64_t *)&w) > 0)
+		if(geta(map, fp + s.value, (uint64_t *)&w) > 0)
 			dprint("%s=%#p", s.name, w);
 	}
 }
@@ -223,10 +222,9 @@ printsource(uintptr dot)
 {
 	char str[100];
 
-	if (fileline(str, sizeof str, dot))
+	if(fileline(str, sizeof str, dot))
 		dprint("%s", str);
 }
-
 
 /*
  *	callback on stack trace
@@ -255,7 +253,7 @@ static void
 stacktracepcsp(Map *m, uintptr pc, uintptr sp)
 {
 	nextpc = 0;
-	if(machdata->ctrace==nil)
+	if(machdata->ctrace == nil)
 		dprint("no machdata->ctrace\n");
 	else if(machdata->ctrace(m, pc, sp, 0, ptrace) <= 0)
 		dprint("no stack frame: pc=%#p sp=%#p\n", pc, sp);
@@ -267,9 +265,9 @@ ureginit(void)
 	Reglist *r;
 
 	for(r = mach->reglist; r->rname; r++)
-		if (strcmp(r->rname, "PC") == 0)
+		if(strcmp(r->rname, "PC") == 0)
 			debug.pcoff = r->roffs;
-		else if (strcmp(r->rname, "SP") == 0)
+		else if(strcmp(r->rname, "SP") == 0)
 			debug.spoff = r->roffs;
 }
 
@@ -277,12 +275,12 @@ static void
 stacktrace(Map *m)
 {
 	uintptr pc, sp;
-	
-	if(geta(m, debug.pcoff, (uint64_t *)&pc) < 0){
+
+	if(geta(m, debug.pcoff, (uint64_t *)&pc) < 0) {
 		dprint("geta pc: %r");
 		return;
 	}
-	if(geta(m, debug.spoff, (uint64_t *)&sp) < 0){
+	if(geta(m, debug.spoff, (uint64_t *)&sp) < 0) {
 		dprint("geta sp: %r");
 		return;
 	}
@@ -298,12 +296,12 @@ star(uintptr addr)
 	if(addr == 0)
 		return 0;
 
-	if(debug.map == nil){
+	if(debug.map == nil) {
 		if(!warned++)
 			dprint("no debug.map\n");
 		return 0;
 	}
-	if(geta(debug.map, addr, (uint64_t *)&x) < 0){
+	if(geta(debug.map, addr, (uint64_t *)&x) < 0) {
 		dprint("geta %#p (pid=%d): %r\n", addr, debug.pid);
 		return 0;
 	}
@@ -360,16 +358,16 @@ tptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 	threadpc = pc;
 }
 
-static char*
+static char *
 threadstkline(uintptr t)
 {
 	uintptr pc, sp;
 	static char buf[500];
 
-	if(FIELD(Thread, t, state) == Running){
+	if(FIELD(Thread, t, state) == Running) {
 		geta(debug.map, debug.pcoff, (uint64_t *)&pc);
 		geta(debug.map, debug.spoff, (uint64_t *)&sp);
-	}else{
+	} else {
 		// pc = FIELD(Thread, t, sched[JMPBUFPC]);
 		pc = resolvef("longjmp");
 		sp = FIELD(Thread, t, sched[JMPBUFSP]);
@@ -406,23 +404,23 @@ fmtbufinit(Fmt *f, char *buf, int len)
 	f->nfmt = 0;
 }
 
-static char*
+static char *
 fmtbufflush(Fmt *f)
 {
-	*(char*)f->to = 0;
-	return (char*)f->start;
+	*(char *)f->to = 0;
+	return (char *)f->start;
 }
 
-static char*
+static char *
 debugstr(uintptr s)
 {
 	static char buf[4096];
 	char *p, *e;
-	
+
 	p = buf;
-	e = buf+sizeof buf - 1;
-	while(p < e){
-		if(get1(debug.map, s++, (uint8_t*)p, 1) < 0)
+	e = buf + sizeof buf - 1;
+	while(p < e) {
+		if(get1(debug.map, s++, (uint8_t *)p, 1) < 0)
 			break;
 		if(*p == 0)
 			break;
@@ -432,7 +430,7 @@ debugstr(uintptr s)
 	return buf;
 }
 
-static char*
+static char *
 threadfmt(uintptr t)
 {
 	static char buf[4096];
@@ -440,9 +438,9 @@ threadfmt(uintptr t)
 	int s;
 
 	fmtbufinit(&fmt, buf, sizeof buf);
-	
+
 	fmtprint(&fmt, "t=(Thread)%#p ", t);
-	switch(s = FIELD(Thread, t, state)){
+	switch(s = FIELD(Thread, t, state)) {
 	case Running:
 		fmtprint(&fmt, " Running   ");
 		break;
@@ -456,19 +454,18 @@ threadfmt(uintptr t)
 		fmtprint(&fmt, " bad state %d ", s);
 		break;
 	}
-	
+
 	fmtprint(&fmt, "%s", threadstkline(t));
-	
+
 	if(FIELD(Thread, t, moribund) == 1)
 		fmtprint(&fmt, " Moribund");
-	if(s = FIELD(Thread, t, cmdname)){
+	if(s = FIELD(Thread, t, cmdname)) {
 		fmtprint(&fmt, " [%s]", debugstr(s));
 	}
 
 	fmtbufflush(&fmt);
 	return buf;
 }
-
 
 static void
 thread(uintptr t)
@@ -481,14 +478,14 @@ threadapply(uintptr p, void (*fn)(uintptr))
 {
 	int oldpid, pid;
 	uintptr tq, t;
-	
+
 	oldpid = debug.pid;
 	pid = FIELD(Proc, p, pid);
 	if(map(pid) == nil)
 		return;
 	tq = FADDR(Proc, p, threads);
 	t = FIELD(Tqueue, tq, head);
-	while(t != 0){
+	while(t != 0) {
 		fn(t);
 		t = FIELD(Thread, t, nextt);
 	}
@@ -519,15 +516,15 @@ static void
 procapply(void (*fn)(uintptr))
 {
 	uintptr proc, pq;
-	
+
 	pq = resolvev("_threadpq");
-	if(pq == 0){
+	if(pq == 0) {
 		dprint("no thread run queue\n");
 		return;
 	}
 
 	proc = FIELD(Pqueue, pq, head);
-	while(proc){
+	while(proc) {
 		fn(proc);
 		proc = FIELD(Proc, proc, next);
 	}
@@ -552,16 +549,15 @@ threadstack(uintptr t)
 {
 	uintptr pc, sp;
 
-	if(FIELD(Thread, t, state) == Running){
+	if(FIELD(Thread, t, state) == Running) {
 		stacktrace(debug.map);
-	}else{
+	} else {
 		// pc = FIELD(Thread, t, sched[JMPBUFPC]);
 		pc = resolvef("longjmp");
 		sp = FIELD(Thread, t, sched[JMPBUFSP]);
 		stacktracepcsp(debug.map, pc, sp);
 	}
 }
-
 
 static void
 tstacks(uintptr t)
@@ -629,12 +625,12 @@ all(HConnect *c)
 int
 hproc(HConnect *c)
 {
-	void (*fn)(HConnect*);
+	void (*fn)(HConnect *);
 	Fmt fmt;
 	static int beenhere;
 	static char buf[65536];
 
-	if (!beenhere) {
+	if(!beenhere) {
 		beenhere = 1;
 		ureginit();
 	}
@@ -657,17 +653,17 @@ hproc(HConnect *c)
 
 	if(hsettext(c) < 0)
 		return -1;
-	if(!canqlock(&debug.lock)){
+	if(!canqlock(&debug.lock)) {
 		hprint(&c->hout, "debugger is busy\n");
 		return 0;
 	}
-	if(debug.textfd < 0){
-		if(text(getpid()) < 0){
+	if(debug.textfd < 0) {
+		if(text(getpid()) < 0) {
 			hprint(&c->hout, "cannot attach self text: %r\n");
 			goto out;
 		}
 	}
-	if(map(getpid()) == nil){
+	if(map(getpid()) == nil) {
 		hprint(&c->hout, "cannot map self: %r\n");
 		goto out;
 	}

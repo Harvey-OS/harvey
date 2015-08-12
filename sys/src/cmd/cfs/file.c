@@ -28,12 +28,12 @@ fmerge(Dptr *p, char *to, char *from, int start, int len)
 	int end;
 
 	end = start + len;
-	memmove(to+start, from, end-start);
+	memmove(to + start, from, end - start);
 
 	/*
 	 *  if ranges do not overlap...
 	 */
-	if(start>p->end || p->start>end){
+	if(start > p->end || p->start > end) {
 		/*
 		 *  just use the new data
 		 */
@@ -48,7 +48,6 @@ fmerge(Dptr *p, char *to, char *from, int start, int len)
 		if(end > p->end)
 			p->end = end;
 	}
-
 }
 
 /*
@@ -62,8 +61,8 @@ fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
 {
 	int wrinode;
 	uint32_t fbno;
-	Bbuf *dbb;	/* data block */
-	Bbuf *ibb;	/* indirect block */
+	Bbuf *dbb; /* data block */
+	Bbuf *ibb; /* indirect block */
 	Dptr *p;
 	Dptr t;
 
@@ -75,19 +74,19 @@ fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
 	/*
 	 *  are there any pages for this inode?
 	 */
-	if(p->bno == Notabno){
+	if(p->bno == Notabno) {
 		wrinode = 1;
 		goto dowrite;
 	}
-	
+
 	/*
  	 *  is it an indirect block?
 	 */
-	if(p->bno & Indbno){
+	if(p->bno & Indbno) {
 		ibb = bcread(ic, p->bno);
 		if(ibb == 0)
 			return -1;
-		p = (Dptr*)ibb->data;
+		p = (Dptr *)ibb->data;
 		p += fbno % ic->p2b;
 		goto dowrite;
 	}
@@ -95,25 +94,25 @@ fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
 	/*
  	 *  is it the wrong direct block?
 	 */
-	if((p->fbno%ic->p2b) != (fbno%ic->p2b)){
+	if((p->fbno % ic->p2b) != (fbno % ic->p2b)) {
 		/*
 		 *  yes, make an indirect block
 		 */
 		t = *p;
 		dpalloc(ic, p);
-		if(p->bno == Notabno){
+		if(p->bno == Notabno) {
 			*p = t;
 			return -1;
 		}
 		ibb = bcalloc(ic, p->bno);
-		if(ibb == 0){
+		if(ibb == 0) {
 			*p = t;
 			return -1;
 		}
-		p = (Dptr*)ibb->data;
+		p = (Dptr *)ibb->data;
 		p += t.fbno % ic->p2b;
 		*p = t;
-		p = (Dptr*)ibb->data;
+		p = (Dptr *)ibb->data;
 		p += fbno % ic->p2b;
 	}
 	wrinode = 1;
@@ -122,13 +121,13 @@ dowrite:
 	/*
 	 *  get the data block into the block cache
 	 */
-	if(p->bno == Notabno){
+	if(p->bno == Notabno) {
 		/*
 		 *  create a new block
 		 */
 		dalloc(ic, p);
 		if(p->bno == Notabno)
-			return -1;		/* no blocks left (maybe) */
+			return -1; /* no blocks left (maybe) */
 		dbb = bcalloc(ic, p->bno);
 	} else {
 		/*
@@ -142,7 +141,7 @@ dowrite:
 	/*
 	 *  merge in the new data
 	 */
-	if(p->fbno != fbno){
+	if(p->fbno != fbno) {
 		p->start = p->end = 0;
 		p->fbno = fbno;
 	}
@@ -172,11 +171,11 @@ fwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 	int len;
 	int32_t sofar;
 
-	for(sofar = 0; sofar < n; sofar += len){
-		len = ic->bsize - ((off+sofar)%ic->bsize);
+	for(sofar = 0; sofar < n; sofar += len) {
+		len = ic->bsize - ((off + sofar) % ic->bsize);
 		if(len > n - sofar)
 			len = n - sofar;
-		if(fbwrite(ic, b, a+sofar, off+sofar, len) < 0)
+		if(fbwrite(ic, b, a + sofar, off + sofar, len) < 0)
 			return sofar;
 	}
 	return sofar;
@@ -190,7 +189,7 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 {
 	uint32_t fbno;
 	int32_t doff;
-	Bbuf *ibb;	/* indirect block */
+	Bbuf *ibb; /* indirect block */
 	Dptr *p, *p0, *pf;
 
 	fbno = off / ic->bsize;
@@ -201,11 +200,11 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 	 */
 	if(p->bno == Notabno)
 		return 0;
-	
+
 	/*
  	 *  if it's a direct block, life is easy?
 	 */
-	if(!(p->bno & Indbno)){
+	if(!(p->bno & Indbno)) {
 		/*
 		 *  a direct block, return p if it's at least past what we want
 		 */
@@ -214,7 +213,7 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 		if(p->fbno < fbno)
 			return 0;
 		doff = off % ic->bsize;
-		if(doff>=p->start && doff<p->end)
+		if(doff >= p->start && doff < p->end)
 			return p;
 		else
 			return 0;
@@ -230,21 +229,21 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
 	/*
 	 *  find the next valid pointer
 	 */
-	p0 = (Dptr*)ibb->data;
+	p0 = (Dptr *)ibb->data;
 	pf = p0 + (fbno % ic->p2b);
-	if(pf->bno!=Notabno && pf->fbno==fbno){
+	if(pf->bno != Notabno && pf->fbno == fbno) {
 		doff = off % ic->bsize;
-		if(doff<pf->end)
+		if(doff < pf->end)
 			return pf;
 	}
-	for(p = pf+1; p < p0 + ic->p2b; p++){
+	for(p = pf + 1; p < p0 + ic->p2b; p++) {
 		fbno++;
-		if(p->fbno==fbno && p->bno!=Notabno && p->start<p->end)
+		if(p->fbno == fbno && p->bno != Notabno && p->start < p->end)
 			return p;
 	}
-	for(p = p0; p < pf; p++){
+	for(p = p0; p < pf; p++) {
 		fbno++;
-		if(p->fbno==fbno && p->bno!=Notabno && p->start<p->end)
+		if(p->fbno == fbno && p->bno != Notabno && p->start < p->end)
 			return p;
 	}
 	return 0;
@@ -269,7 +268,7 @@ fread(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 	Dptr *p;
 	Bbuf *bb;
 
-	for(sofar = 0; sofar < n; sofar += len, off += len){
+	for(sofar = 0; sofar < n; sofar += len, off += len) {
 		/*
 		 *  get pointer to next data
 		 */
@@ -285,8 +284,8 @@ fread(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 		/*
 		 *  if there's a gap, return the size of the gap
 		 */
-		gap = (ic->bsize*p->fbno + p->start) - off;
-		if(gap>0)
+		gap = (ic->bsize * p->fbno + p->start) - off;
+		if(gap > 0)
 			if(sofar == 0)
 				return -gap;
 			else

@@ -21,9 +21,9 @@ hurlunesc(HConnect *cc, char *s)
 	int c, n;
 
 	/* unescape */
-	u = halloc(cc, strlen(s)+1);
-	for(t = u; c = *s; s++){
-		if(c == '%'){
+	u = halloc(cc, strlen(s) + 1);
+	for(t = u; c = *s; s++) {
+		if(c == '%') {
 			n = s[1];
 			if(n >= '0' && n <= '9')
 				n = n - '0';
@@ -44,19 +44,19 @@ hurlunesc(HConnect *cc, char *s)
 			else
 				break;
 			s += 2;
-			c = (r<<4)+n;
+			c = (r << 4) + n;
 		}
 		*t++ = c;
 	}
 	*t = '\0';
 
 	/* convert to valid utf */
-	v = halloc(cc, UTFmax*strlen(u) + 1);
+	v = halloc(cc, UTFmax * strlen(u) + 1);
 	s = u;
 	t = v;
-	while(*s){
+	while(*s) {
 		/* in decoding error, assume latin1 */
-		if((n=chartorune(&r, s)) == 1 && r == Runeerror)
+		if((n = chartorune(&r, s)) == 1 && r == Runeerror)
 			r = (unsigned char)*s;
 		s += n;
 		t += runetochar(t, &r);

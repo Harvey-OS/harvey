@@ -28,7 +28,7 @@
 /* Requires strimpl.h */
 
 #ifndef siscale_INCLUDED
-#  define siscale_INCLUDED
+#define siscale_INCLUDED
 
 #include "sisparam.h"
 

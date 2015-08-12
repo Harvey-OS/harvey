@@ -13,19 +13,19 @@
 #include <mach.h>
 #include <ctype.h>
 
-static	int	rtrace(uint64_t, uint64_t, uint64_t);
-static	int	ctrace(uint64_t, uint64_t, uint64_t);
-static	int	i386trace(uint64_t, uint64_t, uint64_t);
-static	int	amd64trace(uint64_t, uint64_t, uint64_t);
-static	uint64_t	getval(uint64_t);
-static	void	inithdr(int);
-static	void	fatal(char*, ...);
-static	void	readstack(void);
+static int rtrace(uint64_t, uint64_t, uint64_t);
+static int ctrace(uint64_t, uint64_t, uint64_t);
+static int i386trace(uint64_t, uint64_t, uint64_t);
+static int amd64trace(uint64_t, uint64_t, uint64_t);
+static uint64_t getval(uint64_t);
+static void inithdr(int);
+static void fatal(char *, ...);
+static void readstack(void);
 
-static	Fhdr	fhdr;
-static	int	interactive;
+static Fhdr fhdr;
+static int interactive;
 
-#define	FRAMENAME	".frame"
+#define FRAMENAME ".frame"
 
 static void
 usage(void)
@@ -47,24 +47,24 @@ printaddr(char *addr, uint64_t pc)
 	 * 10101010 -> src(0x10101010);
 	 */
 
-	if(strlen(addr) == 8 && strchr(addr, '+') == nil){
-		for(i=0; i<8; i++)
+	if(strlen(addr) == 8 && strchr(addr, '+') == nil) {
+		for(i = 0; i < 8; i++)
 			if(!isxdigit(addr[i]))
 				break;
-		if(i == 8){
+		if(i == 8) {
 			print("src(%#.8llux); // 0x%s\n", pc, addr);
 			return;
 		}
 	}
 
-	if(p=strchr(addr, '+')){
+	if(p = strchr(addr, '+')) {
 		*p++ = 0;
 		print("src(%#.8llux); // %s+0x%s\n", pc, addr, p);
-	}else
+	} else
 		print("src(%#.8llux); // %s\n", pc, addr);
 }
 
-static void (*fmt)(char*, uint64_t) = printaddr;
+static void (*fmt)(char *, uint64_t) = printaddr;
 
 void
 main(int argc, char *argv[])
@@ -73,17 +73,19 @@ main(int argc, char *argv[])
 	uint64_t pc, sp, link;
 	int fd;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'i':
 		interactive++;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	link = 0;
 	t = ctrace;
-	switch(argc){
+	switch(argc) {
 	case 4:
 		t = rtrace;
 		link = strtoull(argv[3], 0, 16);
@@ -102,33 +104,33 @@ main(int argc, char *argv[])
 	if(fd < 0)
 		fatal("can't open %s: %r", argv[0]);
 	inithdr(fd);
-	switch(fhdr.magic){
-	case I_MAGIC:	/* intel 386 */
+	switch(fhdr.magic) {
+	case I_MAGIC: /* intel 386 */
 		t = i386trace;
 		break;
-	case S_MAGIC:	/* amd64 */
+	case S_MAGIC: /* amd64 */
 		t = amd64trace;
 		break;
-	case A_MAGIC:	/* 68020 */
-	case J_MAGIC:	/* intel 960 */
+	case A_MAGIC: /* 68020 */
+	case J_MAGIC: /* intel 960 */
 		t = ctrace;
 		break;
-	case K_MAGIC:	/* sparc */
-	case D_MAGIC:	/* amd 29000 */
-	case V_MAGIC:	/* mips 3000 */
-	case M_MAGIC:	/* mips 4000 */
-	case E_MAGIC:	/* arm 7-something */
-	case Q_MAGIC:	/* powerpc */
-	case N_MAGIC:	/* mips 4000 LE */
-	case L_MAGIC:	/* dec alpha */
+	case K_MAGIC: /* sparc */
+	case D_MAGIC: /* amd 29000 */
+	case V_MAGIC: /* mips 3000 */
+	case M_MAGIC: /* mips 4000 */
+	case E_MAGIC: /* arm 7-something */
+	case Q_MAGIC: /* powerpc */
+	case N_MAGIC: /* mips 4000 LE */
+	case L_MAGIC: /* dec alpha */
 		t = rtrace;
 		break;
-	case X_MAGIC:	/* att dsp 3210 */
+	case X_MAGIC: /* att dsp 3210 */
 		sysfatal("can't ktrace %s", argv[0]);
 		break;
 	default:
 		fprint(2, "%s: warning: can't tell what type of stack %s uses; assuming it's %s\n",
-			argv0, argv[0], argc == 4 ? "risc" : "cisc");
+		       argv0, argv[0], argc == 4 ? "risc" : "cisc");
 		break;
 	}
 	(*t)(pc, sp, link);
@@ -156,7 +158,7 @@ rtrace(uint64_t pc, uint64_t sp, uint64_t link)
 
 	i = 0;
 	while(findsym(pc, CTEXT, &s)) {
-		if(pc == s.value)	/* at first instruction */
+		if(pc == s.value) /* at first instruction */
 			f.value = 0;
 		else if(findlocal(&s, FRAMENAME, &f) == 0)
 			break;
@@ -165,11 +167,11 @@ rtrace(uint64_t pc, uint64_t sp, uint64_t link)
 		fmt(buf, pc);
 
 		oldpc = pc;
-		if(s.type == 'L' || s.type == 'l' || pc <= s.value+mach->pcquant){
+		if(s.type == 'L' || s.type == 'l' || pc <= s.value + mach->pcquant) {
 			if(link == 0)
 				fprint(2, "%s: need to supply a valid link register\n", argv0);
 			pc = link;
-		}else{
+		} else {
 			pc = getval(sp);
 			if(pc == 0)
 				break;
@@ -200,12 +202,12 @@ ctrace(uint64_t pc, uint64_t sp, uint64_t link)
 	opc = 0;
 	while(pc && opc != pc) {
 		moved = pc2sp(pc);
-		if (moved == ~0){
+		if(moved == ~0) {
 			print("pc2sp(%#.8llux) = -1 %r\n", pc);
 			break;
 		}
 		found = findsym(pc, CTEXT, &s);
-		if (!found){
+		if(!found) {
 			print("findsym fails\n");
 			break;
 		}
@@ -217,7 +219,7 @@ ctrace(uint64_t pc, uint64_t sp, uint64_t link)
 		pc = getval(sp);
 		if(pc == 0)
 			break;
-		sp += mach->szaddr;	/*assumes address size = stack width*/
+		sp += mach->szaddr; /*assumes address size = stack width*/
 		if(++j > 40)
 			break;
 	}
@@ -240,22 +242,22 @@ i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 		symoff(buf, sizeof buf, pc, CANY);
 		fmt(buf, pc);
 
-//XXX		s.value &= ~(uintptr)0;
-		if(pc != s.value) {	/* not at first instruction */
+		//XXX		s.value &= ~(uintptr)0;
+		if(pc != s.value) { /* not at first instruction */
 			if(findlocal(&s, FRAMENAME, &f) == 0)
 				break;
-			sp += f.value-mach->szaddr;
-		}else if(strcmp(s.name, "forkret") == 0){
-//XXX
+			sp += f.value - mach->szaddr;
+		} else if(strcmp(s.name, "forkret") == 0) {
+			//XXX
 			print("//passing interrupt frame; last pc found at sp=%#llux\n", osp);
 
-			sp +=  15 * mach->szaddr;		/* pop interrupt frame */
+			sp += 15 * mach->szaddr; /* pop interrupt frame */
 		}
 
 		pc = getval(sp);
-//XXX
-		if(pc == 0 && strcmp(s.name, "forkret") == 0){
-			sp += 3 * mach->szaddr;			/* pop iret eip, cs, eflags */
+		//XXX
+		if(pc == 0 && strcmp(s.name, "forkret") == 0) {
+			sp += 3 * mach->szaddr; /* pop iret eip, cs, eflags */
 			print("//guessing call through invalid pointer, try again at sp=%#llux\n", sp);
 			s.name = "";
 			pc = getval(sp);
@@ -267,9 +269,9 @@ i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 		osp = sp;
 
 		sp += mach->szaddr;
-//XXX
+		//XXX
 		if(strcmp(s.name, "forkret") == 0)
-			sp += 2 * mach->szaddr;			/* pop iret cs, eflags */
+			sp += 2 * mach->szaddr; /* pop iret cs, eflags */
 
 		if(++i > 40)
 			break;
@@ -297,12 +299,11 @@ amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 			isintrr = 1;
 		else
 			isintrr = 0;
-		if(pc != s.value) {	/* not at first instruction */
+		if(pc != s.value) { /* not at first instruction */
 			if(findlocal(&s, FRAMENAME, &f) == 0)
 				break;
-			sp += f.value-mach->szaddr;
-		}
-		else if(isintrr){
+			sp += f.value - mach->szaddr;
+		} else if(isintrr) {
 			print("//passing interrupt frame; last pc found at sp=%#llux\n", osp);
 			/*
 			 * Pop interrupt frame (ureg.h) up to the IP value.
@@ -311,7 +312,7 @@ amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 		}
 
 		pc = getval(sp);
-		if(pc == 0 && isintrr){
+		if(pc == 0 && isintrr) {
 			/*
 			 * Pop IP, CS and FLAGS to get to the SP.
 			 * The AMD64 aligns the interrupt stack on
@@ -346,7 +347,7 @@ uint64_t val[1024];
 static void
 putval(uint64_t a, uint64_t v)
 {
-	if(naddr < nelem(addr)){
+	if(naddr < nelem(addr)) {
 		addr[naddr] = a;
 		val[naddr] = v;
 		naddr++;
@@ -362,11 +363,11 @@ readstack(void)
 	int nf, i;
 
 	Binit(&b, 0, OREAD);
-	while(p=Brdline(&b, '\n')){
-		p[Blinelen(&b)-1] = 0;
+	while(p = Brdline(&b, '\n')) {
+		p[Blinelen(&b) - 1] = 0;
 		nf = tokenize(p, f, nelem(f));
-		for(i=0; i<nf; i++){
-			if(p=strchr(f[i], '=')){
+		for(i = 0; i < nf; i++) {
+			if(p = strchr(f[i], '=')) {
 				*p++ = 0;
 				putval(strtoull(f[i], 0, 16), strtoull(p, 0, 16));
 			}
@@ -381,16 +382,16 @@ getval(uint64_t a)
 	int i, n;
 	uint64_t r;
 
-	if(interactive){
+	if(interactive) {
 		print("// data at %#8.8llux? ", a);
-		n = read(0, buf, sizeof(buf)-1);
+		n = read(0, buf, sizeof(buf) - 1);
 		if(n <= 0)
 			return 0;
 		buf[n] = '\0';
 		r = strtoull(buf, 0, 16);
-	}else{
+	} else {
 		r = 0;
-		for(i=0; i<naddr; i++)
+		for(i = 0; i < naddr; i++)
 			if(addr[i] == a)
 				r = val[i];
 	}
@@ -405,7 +406,7 @@ fatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "ktrace: %s\n", buf);
 	exits(buf);

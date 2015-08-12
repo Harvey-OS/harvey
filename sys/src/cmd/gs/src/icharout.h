@@ -27,7 +27,7 @@
 /* Interface to zcharout.c */
 
 #ifndef icharout_INCLUDED
-#  define icharout_INCLUDED
+#define icharout_INCLUDED
 
 /* Execute an outline defined by a PostScript procedure. */
 int zchar_exec_char_proc(i_ctx_t *);
@@ -38,30 +38,30 @@ int zchar_exec_char_proc(i_ctx_t *);
  * psbw[2,3].
  */
 typedef enum {
-    metricsNone = 0,
-    metricsWidthOnly = 1,
-    metricsSideBearingAndWidth = 2
+	metricsNone = 0,
+	metricsWidthOnly = 1,
+	metricsSideBearingAndWidth = 2
 } metrics_present;
 int /*metrics_present*/
-  zchar_get_metrics(const gs_font_base * pbfont, const ref * pcnref,
-		    double psbw[4]);
+    zchar_get_metrics(const gs_font_base *pbfont, const ref *pcnref,
+		      double psbw[4]);
 
 /* Get the vertical metrics for a character from Metrics2, if present. */
 int /*metrics_present*/
-  zchar_get_metrics2(const gs_font_base * pbfont, const ref * pcnref,
-		     double pwv[4]);
+    zchar_get_metrics2(const gs_font_base *pbfont, const ref *pcnref,
+		       double pwv[4]);
 /*  Get CDevProc. */
-bool zchar_get_CDevProc(const gs_font_base * pbfont, ref **ppcdevproc);
+bool zchar_get_CDevProc(const gs_font_base *pbfont, ref **ppcdevproc);
 
 /*
  * Consult Metrics2 and CDevProc, and call setcachedevice[2].  Return
  * o_push_estack if we had to call a CDevProc, or if we are skipping the
  * rendering process (only getting the metrics).
  */
-int zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
-		    const ref * pcnref, const double psb[2],
-		    const double pwidth[2], const gs_rect * pbbox,
-    		    op_proc_t cont, op_proc_t *exec_cont,
+int zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base *pbfont,
+		    const ref *pcnref, const double psb[2],
+		    const double pwidth[2], const gs_rect *pbbox,
+		    op_proc_t cont, op_proc_t *exec_cont,
 		    const double Metrics2_sbw_default[4]);
 
 /*

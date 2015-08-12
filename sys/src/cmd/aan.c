@@ -13,12 +13,12 @@
 #include <fcall.h>
 #include <thread.h>
 
-#define NS(x)		((int64_t)x)
-#define US(x)		(NS(x) * 1000LL)
-#define MS(x)		(US(x) * 1000LL)
-#define S(x)		(MS(x) * 1000LL)
+#define NS(x) ((int64_t)x)
+#define US(x) (NS(x) * 1000LL)
+#define MS(x) (US(x) * 1000LL)
+#define S(x) (MS(x) * 1000LL)
 
-#define LOGNAME	"aan"
+#define LOGNAME "aan"
 
 enum {
 	Synctime = S(8),
@@ -26,64 +26,64 @@ enum {
 	K = 1024,
 	Bufsize = 8 * K,
 	Stacksize = 8 * K,
-	Timer = 0,		/* Alt channels. */
+	Timer = 0, /* Alt channels. */
 	Unsent = 1,
-	Maxto = 24 * 3600,	/* A full day to reconnect. */
+	Maxto = 24 * 3600, /* A full day to reconnect. */
 	Hdrsz = 12,
 };
 
 typedef struct Endpoints Endpoints;
 struct Endpoints {
-	char	*lsys;
-	char	*lserv;
-	char	*rsys;
-	char	*rserv;
+	char *lsys;
+	char *lserv;
+	char *rsys;
+	char *rserv;
 };
 
 typedef struct {
-	uint32_t	nb;		/* Number of data bytes in this message */
-	uint32_t	msg;		/* Message number */
-	uint32_t	acked;		/* Number of messages acked */
+	uint32_t nb;    /* Number of data bytes in this message */
+	uint32_t msg;   /* Message number */
+	uint32_t acked; /* Number of messages acked */
 } Hdr;
 
 typedef struct {
-	Hdr	hdr;
-	uint8_t	buf[Bufsize];
+	Hdr hdr;
+	uint8_t buf[Bufsize];
 } Buf;
 
-static char	*Logname = LOGNAME;
-static int	client;
-static int	debug;
-static char	*devdir;
-static char	*dialstring;
-static int	done;
-static int	inmsg;
-static int	maxto = Maxto;
-static int	netfd;
+static char *Logname = LOGNAME;
+static int client;
+static int debug;
+static char *devdir;
+static char *dialstring;
+static int done;
+static int inmsg;
+static int maxto = Maxto;
+static int netfd;
 
-static Channel	*empty;
-static Channel	*unacked;
-static Channel	*unsent;
+static Channel *empty;
+static Channel *unacked;
+static Channel *unsent;
 
 static Alt a[] = {
-	/*	c	v	 op   */
-	{ 	nil,	nil,	CHANRCV	},	/* timer */
-	{	nil,	nil,	CHANRCV	},	/* unsent */
-	{ 	nil,	nil,	CHANEND	},
+    /*	c	v	 op   */
+    {nil, nil, CHANRCV}, /* timer */
+    {nil, nil, CHANRCV}, /* unsent */
+    {nil, nil, CHANEND},
 };
 
-static void	dmessage(int, char *, ...);
-static void	freeendpoints(Endpoints *);
-static void	fromclient(void*);
-static void	fromnet(void*);
+static void dmessage(int, char *, ...);
+static void freeendpoints(Endpoints *);
+static void fromclient(void *);
+static void fromnet(void *);
 static Endpoints *getendpoints(char *);
-static void	packhdr(Hdr *, uint8_t *);
-static void	reconnect(void);
-static void	showmsg(int, char *, Buf *);
-static void	synchronize(void);
-static void	timerproc(void *);
-static void	unpackhdr(Hdr *, uint8_t *);
-static int	writen(int, uint8_t *, int);
+static void packhdr(Hdr *, uint8_t *);
+static void reconnect(void);
+static void showmsg(int, char *, Buf *);
+static void synchronize(void);
+static void timerproc(void *);
+static void unpackhdr(Hdr *, uint8_t *);
+static int writen(int, uint8_t *, int);
 
 static void
 usage(void)
@@ -92,12 +92,11 @@ usage(void)
 	threadexitsall("usage");
 }
 
-static int
-catch(void *v, char *s)
+static int catch(void *v, char *s)
 {
-	if (strstr(s, "alarm") != nil) {
+	if(strstr(s, "alarm") != nil) {
 		syslog(0, Logname, "Timed out waiting for client on %s, exiting...",
-			   devdir);
+		       devdir);
 		threadexitsall(nil);
 	}
 	return 0;
@@ -114,7 +113,8 @@ threadmain(int argc, char **argv)
 	Channel *timer;
 	Hdr hdr;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'c':
 		client++;
 		break;
@@ -126,20 +126,21 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND;
+	}
+	ARGEND;
 
-	if (argc != 1)
+	if(argc != 1)
 		usage();
 
-	if (!client) {
+	if(!client) {
 		devdir = argv[0];
-		if ((p = strstr(devdir, "/local")) != nil)
+		if((p = strstr(devdir, "/local")) != nil)
 			*p = '\0';
-	}else
+	} else
 		dialstring = argv[0];
 
-	if (debug > 0) {
-		fd = open("#c/cons", OWRITE|OCEXEC);
+	if(debug > 0) {
+		fd = open("#c/cons", OWRITE | OCEXEC);
 		dup(fd, 2);
 	}
 
@@ -148,27 +149,27 @@ threadmain(int argc, char **argv)
 	atnotify(catch, 1);
 
 	unsent = chancreate(sizeof(Buf *), Nbuf);
-	unacked= chancreate(sizeof(Buf *), Nbuf);
-	empty  = chancreate(sizeof(Buf *), Nbuf);
-	timer  = chancreate(sizeof(unsigned char *), 1);
+	unacked = chancreate(sizeof(Buf *), Nbuf);
+	empty = chancreate(sizeof(Buf *), Nbuf);
+	timer = chancreate(sizeof(unsigned char *), 1);
 
-	for (i = 0; i != Nbuf; i++) {
+	for(i = 0; i != Nbuf; i++) {
 		eb = malloc(sizeof(Buf));
 		sendp(empty, eb);
 	}
 
 	netfd = -1;
 
-	if (proccreate(fromnet, nil, Stacksize) < 0)
+	if(proccreate(fromnet, nil, Stacksize) < 0)
 		sysfatal("Cannot start fromnet; %r");
 
-	reconnect();		/* Set up the initial connection. */
+	reconnect(); /* Set up the initial connection. */
 	synchronize();
 
-	if (proccreate(fromclient, nil, Stacksize) < 0)
+	if(proccreate(fromclient, nil, Stacksize) < 0)
 		sysfatal("cannot start fromclient; %r");
 
-	if (proccreate(timerproc, timer, Stacksize) < 0)
+	if(proccreate(timerproc, timer, Stacksize) < 0)
 		sysfatal("Cannot start timerproc; %r");
 
 	a[Timer].c = timer;
@@ -177,10 +178,10 @@ threadmain(int argc, char **argv)
 
 	synctime = nsec() + Synctime;
 	failed = 0;
-	while (!done) {
-		if (failed) {
+	while(!done) {
+		if(failed) {
 			/* Wait for the netreader to die. */
-			while (netfd >= 0) {
+			while(netfd >= 0) {
 				dmessage(1, "main; waiting for netreader to die\n");
 				sleep(1000);
 			}
@@ -194,12 +195,12 @@ threadmain(int argc, char **argv)
 		now = nsec();
 		delta = (synctime - nsec()) / MS(1);
 
-		if (delta <= 0) {
+		if(delta <= 0) {
 			hdr.nb = 0;
 			hdr.acked = inmsg;
 			hdr.msg = -1;
 			packhdr(&hdr, buf);
-			if (writen(netfd, buf, sizeof(buf)) < 0) {
+			if(writen(netfd, buf, sizeof(buf)) < 0) {
 				dmessage(2, "main; writen failed; %r\n");
 				failed = 1;
 				continue;
@@ -208,7 +209,7 @@ threadmain(int argc, char **argv)
 			assert(synctime > now);
 		}
 
-		switch (alt(a)) {
+		switch(alt(a)) {
 		case Timer:
 			break;
 		case Unsent:
@@ -216,13 +217,13 @@ threadmain(int argc, char **argv)
 
 			b->hdr.acked = inmsg;
 			packhdr(&b->hdr, buf);
-			if (writen(netfd, buf, sizeof(buf)) < 0 ||
-			    writen(netfd, b->buf, b->hdr.nb) < 0) {
+			if(writen(netfd, buf, sizeof(buf)) < 0 ||
+			   writen(netfd, b->buf, b->hdr.nb) < 0) {
 				dmessage(2, "main; writen failed; %r\n");
 				failed = 1;
 			}
 
-			if (b->hdr.nb == 0)
+			if(b->hdr.nb == 0)
 				done = 1;
 			break;
 		}
@@ -238,9 +239,9 @@ fromclient(void *v)
 	static int outmsg;
 
 	do {
-		b = recvp(empty);	
-		if ((int)(b->hdr.nb = read(0, b->buf, Bufsize)) <= 0) {
-			if ((int)b->hdr.nb < 0)
+		b = recvp(empty);
+		if((int)(b->hdr.nb = read(0, b->buf, Bufsize)) <= 0) {
+			if((int)b->hdr.nb < 0)
 				dmessage(2, "fromclient; Cannot read 9P message; %r\n");
 			else
 				dmessage(2, "fromclient; Client terminated\n");
@@ -250,7 +251,7 @@ fromclient(void *v)
 
 		showmsg(1, "fromclient", b);
 		sendp(unsent, b);
-	} while (b->hdr.nb != 0);
+	} while(b->hdr.nb != 0);
 }
 
 static void
@@ -264,16 +265,16 @@ fromnet(void *v)
 	b = (Buf *)malloc(sizeof(Buf));
 	assert(b);
 
-	while (!done) {
-		while (netfd < 0) {
-			dmessage(1, "fromnet; waiting for connection... (inmsg %d)\n", 
-					  inmsg);
+	while(!done) {
+		while(netfd < 0) {
+			dmessage(1, "fromnet; waiting for connection... (inmsg %d)\n",
+				 inmsg);
 			sleep(1000);
 		}
 
 		/* Read the header. */
-		if ((len = readn(netfd, buf, sizeof(buf))) <= 0) {
-			if (len < 0)
+		if((len = readn(netfd, buf, sizeof(buf))) <= 0) {
+			if(len < 0)
 				dmessage(1, "fromnet; (hdr) network failure; %r\n");
 			else
 				dmessage(1, "fromnet; (hdr) network closed\n");
@@ -283,19 +284,19 @@ fromnet(void *v)
 		}
 		unpackhdr(&b->hdr, buf);
 		dmessage(2, "fromnet: Got message, size %d, nb %d, msg %d\n",
-			len, b->hdr.nb, b->hdr.msg);
+			 len, b->hdr.nb, b->hdr.msg);
 
-		if (b->hdr.nb == 0) {
-			if  ((int32_t)b->hdr.msg >= 0) {
+		if(b->hdr.nb == 0) {
+			if((int32_t)b->hdr.msg >= 0) {
 				dmessage(1, "fromnet; network closed\n");
 				break;
 			}
 			continue;
 		}
 
-		if ((len = readn(netfd, b->buf, b->hdr.nb)) <= 0 ||
-		    len != b->hdr.nb) {
-			if (len == 0)
+		if((len = readn(netfd, b->buf, b->hdr.nb)) <= 0 ||
+		   len != b->hdr.nb) {
+			if(len == 0)
 				dmessage(1, "fromnet; network closed\n");
 			else
 				dmessage(1, "fromnet; network failure; %r\n");
@@ -304,19 +305,19 @@ fromnet(void *v)
 			continue;
 		}
 
-		if (b->hdr.msg < inmsg) {
+		if(b->hdr.msg < inmsg) {
 			dmessage(1, "fromnet; skipping message %d, currently at %d\n",
-				b->hdr.msg, inmsg);
+				 b->hdr.msg, inmsg);
 			continue;
-		}			
+		}
 
 		/* Process the acked list. */
 		acked = b->hdr.acked - lastacked;
-		for (i = 0; i != acked; i++) {
+		for(i = 0; i != acked; i++) {
 			rb = recvp(unacked);
-			if (rb->hdr.msg != lastacked + i) {
+			if(rb->hdr.msg != lastacked + i) {
 				dmessage(1, "rb %p, msg %d, lastacked %d, i %d\n",
-					rb, rb? rb->hdr.msg: -2, lastacked, i);
+					 rb, rb ? rb->hdr.msg : -2, lastacked, i);
 				assert(0);
 			}
 			rb->hdr.msg = -1;
@@ -325,7 +326,7 @@ fromnet(void *v)
 		lastacked = b->hdr.acked;
 		inmsg++;
 		showmsg(1, "fromnet", b);
-		if (writen(1, b->buf, len) < 0) 
+		if(writen(1, b->buf, len) < 0)
 			sysfatal("fromnet; cannot write to client; %r");
 	}
 	done = 1;
@@ -338,12 +339,12 @@ reconnect(void)
 	int lcfd, fd;
 	Endpoints *ep;
 
-	if (dialstring) {
+	if(dialstring) {
 		syslog(0, Logname, "dialing %s", dialstring);
-  		while ((fd = dial(dialstring, nil, nil, nil)) < 0) {
+		while((fd = dial(dialstring, nil, nil, nil)) < 0) {
 			err[0] = '\0';
 			errstr(err, sizeof err);
-			if (strstr(err, "connection refused")) {
+			if(strstr(err, "connection refused")) {
 				dmessage(1, "reconnect; server died...\n");
 				threadexitsall("server died...");
 			}
@@ -354,20 +355,20 @@ reconnect(void)
 	} else {
 		syslog(0, Logname, "waiting for connection on %s", devdir);
 		alarm(maxto * 1000);
- 		if ((lcfd = listen(devdir, ldir)) < 0) 
+		if((lcfd = listen(devdir, ldir)) < 0)
 			sysfatal("reconnect; cannot listen; %r");
-	
-		if ((fd = accept(lcfd, ldir)) < 0)
+
+		if((fd = accept(lcfd, ldir)) < 0)
 			sysfatal("reconnect; cannot accept; %r");
 		alarm(0);
 		close(lcfd);
-		
+
 		ep = getendpoints(ldir);
 		dmessage(1, "rsys '%s'\n", ep->rsys);
 		syslog(0, Logname, "connected from %s", ep->rsys);
 		freeendpoints(ep);
 	}
-	netfd = fd;			/* Wakes up the netreader. */
+	netfd = fd; /* Wakes up the netreader. */
 }
 
 static void
@@ -383,7 +384,7 @@ synchronize(void)
 	 * the error.
 	 */
 	tmp = chancreate(sizeof(Buf *), Nbuf);
-	while ((b = nbrecvp(unacked)) != nil) {
+	while((b = nbrecvp(unacked)) != nil) {
 		packhdr(&b->hdr, buf);
 		writen(netfd, buf, sizeof(buf));
 		writen(netfd, b->buf, b->hdr.nb);
@@ -396,15 +397,15 @@ synchronize(void)
 static void
 showmsg(int level, char *s, Buf *b)
 {
-	if (b == nil) {
+	if(b == nil) {
 		dmessage(level, "%s; b == nil\n", s);
 		return;
 	}
-	dmessage(level, "%s;  (len %d) %X %X %X %X %X %X %X %X %X (%p)\n", s, 
-		b->hdr.nb, 
-		b->buf[0], b->buf[1], b->buf[2],
-		b->buf[3], b->buf[4], b->buf[5],
-		b->buf[6], b->buf[7], b->buf[8], b);
+	dmessage(level, "%s;  (len %d) %X %X %X %X %X %X %X %X %X (%p)\n", s,
+		 b->hdr.nb,
+		 b->buf[0], b->buf[1], b->buf[2],
+		 b->buf[3], b->buf[4], b->buf[5],
+		 b->buf[6], b->buf[7], b->buf[8], b);
 }
 
 static int
@@ -412,10 +413,10 @@ writen(int fd, uint8_t *buf, int nb)
 {
 	int n, len = nb;
 
-	while (nb > 0) {
-		if (fd < 0) 
+	while(nb > 0) {
+		if(fd < 0)
 			return -1;
-		if ((n = write(fd, buf, nb)) < 0) {
+		if((n = write(fd, buf, nb)) < 0) {
 			dmessage(1, "writen; Write failed; %r\n");
 			return -1;
 		}
@@ -431,7 +432,7 @@ timerproc(void *x)
 {
 	Channel *timer = x;
 
-	while (!done) {
+	while(!done) {
 		sleep((Synctime / MS(1)) >> 1);
 		sendp(timer, "timer");
 	}
@@ -440,9 +441,9 @@ timerproc(void *x)
 static void
 dmessage(int level, char *fmt, ...)
 {
-	va_list arg; 
+	va_list arg;
 
-	if (level > debug) 
+	if(level > debug)
 		return;
 	va_start(arg, fmt);
 	vfprint(2, fmt, arg);
@@ -459,12 +460,12 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 	sys = serv = 0;
 	snprint(buf, sizeof buf, "%s/%s", dir, file);
 	fd = open(buf, OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n>0){
-			buf[n-1] = 0;
+	if(fd >= 0) {
+		n = read(fd, buf, sizeof(buf) - 1);
+		if(n > 0) {
+			buf[n - 1] = 0;
 			serv = strchr(buf, '!');
-			if(serv){
+			if(serv) {
 				*serv++ = 0;
 				serv = strdup(serv);
 			}
@@ -502,9 +503,12 @@ freeendpoints(Endpoints *ep)
 }
 
 /* p must be a unsigned char* */
-#define	U32GET(p)	(p[0] | p[1]<<8 | p[2]<<16 | p[3]<<24)
-#define	U32PUT(p,v)	(p)[0] = (v); (p)[1] = (v)>>8; \
-			(p)[2] = (v)>>16; (p)[3] = (v)>>24
+#define U32GET(p) (p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24)
+#define U32PUT(p, v)        \
+	(p)[0] = (v);       \
+	(p)[1] = (v) >> 8;  \
+	(p)[2] = (v) >> 16; \
+	(p)[3] = (v) >> 24
 
 static void
 packhdr(Hdr *hdr, uint8_t *buf)

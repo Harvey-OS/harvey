@@ -27,7 +27,7 @@
 /* External font client definitions for Ghostscript library */
 
 #ifndef gsxfont_INCLUDED
-#  define gsxfont_INCLUDED
+#define gsxfont_INCLUDED
 
 /* Define a character glyph identifier.  This is opaque, probably an index */
 /* into the font.  Glyph identifiers are font-specific. */

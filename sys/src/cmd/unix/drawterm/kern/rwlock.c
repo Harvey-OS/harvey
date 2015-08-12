@@ -16,10 +16,10 @@
 void
 rlock(RWlock *l)
 {
-	qlock(&l->x);		/* wait here for writers and exclusion */
+	qlock(&l->x); /* wait here for writers and exclusion */
 	lock(&l->lk);
 	l->readers++;
-	canqlock(&l->k);	/* block writers if we are the first reader */
+	canqlock(&l->k); /* block writers if we are the first reader */
 	unlock(&l->lk);
 	qunlock(&l->x);
 }
@@ -28,7 +28,7 @@ void
 runlock(RWlock *l)
 {
 	lock(&l->lk);
-	if(--l->readers == 0)	/* last reader out allows writers */
+	if(--l->readers == 0) /* last reader out allows writers */
 		qunlock(&l->k);
 	unlock(&l->lk);
 }
@@ -36,8 +36,8 @@ runlock(RWlock *l)
 void
 wlock(RWlock *l)
 {
-	qlock(&l->x);		/* wait here for writers and exclusion */
-	qlock(&l->k);		/* wait here for last reader */
+	qlock(&l->x); /* wait here for writers and exclusion */
+	qlock(&l->k); /* wait here for last reader */
 }
 
 void

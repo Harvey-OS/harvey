@@ -27,7 +27,7 @@
 /* Client interface to Indexed color facilities */
 
 #ifndef gscindex_INCLUDED
-#  define gscindex_INCLUDED
+#define gscindex_INCLUDED
 
 #include "gscspace.h"
 
@@ -55,29 +55,25 @@
  * few instances in which the client would need to replace them.
  */
 extern int gs_cspace_build_Indexed(
-				   gs_color_space ** ppcspace,
-				   const gs_color_space * pbase_cspace,
-				   uint num_entries,
-				   const gs_const_string * ptbl,
-				   gs_memory_t * pmem
-				   );
+    gs_color_space **ppcspace,
+    const gs_color_space *pbase_cspace,
+    uint num_entries,
+    const gs_const_string *ptbl,
+    gs_memory_t *pmem);
 
 /* Return the number of entries in the palette of an indexed color space. */
 extern int gs_cspace_indexed_num_entries(
-					 const gs_color_space * pcspace
-					 );
+    const gs_color_space *pcspace);
 
 /* In the case of a procedure-based indexed color space, get a pointer to */
 /* the array of cached values. */
 extern float *gs_cspace_indexed_value_array(
-					    const gs_color_space * pcspace
-					    );
+    const gs_color_space *pcspace);
 
 /* Set the lookup procedure to be used for an Indexed color space. */
 extern int gs_cspace_indexed_set_proc(
-				      gs_color_space * pcspace,
-				      int (*proc) (const gs_indexed_params *, int, float *)
-				      );
+    gs_color_space *pcspace,
+    int (*proc)(const gs_indexed_params *, int, float *));
 
 /* Look up an index in an Indexed color space. */
 int gs_cspace_indexed_lookup(const gs_indexed_params *, int,

@@ -47,12 +47,12 @@ wikiname(Window *w, char *name)
 {
 	char *p, *q;
 
-	p = emalloc(strlen(dir)+1+strlen(name)+1+1);
+	p = emalloc(strlen(dir) + 1 + strlen(name) + 1 + 1);
 	strcpy(p, dir);
 	strcat(p, "/");
 	strcat(p, name);
-	for(q=p; *q; q++)
-		if(*q==' ')
+	for(q = p; *q; q++)
+		if(*q == ' ')
 			*q = '_';
 	winname(w, p);
 	free(p);
@@ -65,14 +65,14 @@ wikiput(Wiki *w)
 	char buf[1024], *p;
 	Biobuf *b;
 
-	if((fd = open("new", ORDWR)) < 0){
+	if((fd = open("new", ORDWR)) < 0) {
 		fprint(2, "Wiki: cannot open raw: %r\n");
 		return -1;
 	}
 
 	winopenbody(w->win, OREAD);
 	b = w->win->body;
-	if((p = Brdline(b, '\n'))==nil){
+	if((p = Brdline(b, '\n')) == nil) {
 	Short:
 		winclosebody(w->win);
 		fprint(2, "Wiki: no data\n");
@@ -83,13 +83,13 @@ wikiput(Wiki *w)
 
 	snprint(buf, sizeof buf, "D%lud\n", w->time);
 	if(email)
-		snprint(buf+strlen(buf), sizeof(buf)-strlen(buf), "A%s\n", email);
+		snprint(buf + strlen(buf), sizeof(buf) - strlen(buf), "A%s\n", email);
 
-	if(Bgetc(b) == '#'){
+	if(Bgetc(b) == '#') {
 		p = Brdline(b, '\n');
 		if(p == nil)
 			goto Short;
-		snprint(buf+strlen(buf), sizeof(buf)-strlen(buf), "C%s\n", p);
+		snprint(buf + strlen(buf), sizeof(buf) - strlen(buf), "C%s\n", p);
 	}
 	write(fd, buf, strlen(buf));
 	write(fd, "\n\n", 2);
@@ -99,13 +99,13 @@ wikiput(Wiki *w)
 	winclosebody(w->win);
 
 	werrstr("");
-	if((n=write(fd, "", 0)) != 0){
+	if((n = write(fd, "", 0)) != 0) {
 		fprint(2, "Wiki commit %lud %d %d: %r\n", w->time, fd, n);
 		close(fd);
 		return -1;
 	}
 	seek(fd, 0, 0);
-	if((n = read(fd, buf, 300)) < 0){
+	if((n = read(fd, buf, 300)) < 0) {
 		fprint(2, "Wiki readback: %r\n");
 		close(fd);
 		return -1;
@@ -130,18 +130,18 @@ wikiget(Wiki *w)
 
 	fprint(w->win->ctl, "dirty\n");
 
-	p = emalloc(strlen(w->arg)+8+1);
+	p = emalloc(strlen(w->arg) + 8 + 1);
 	strcpy(p, w->arg);
 	normal = 1;
-	if(p[strlen(p)-1] == '/'){
+	if(p[strlen(p) - 1] == '/') {
 		normal = 0;
 		strcat(p, "current");
-	}else if(strlen(p)>8 && strcmp(p+strlen(p)-8, "/current")==0){
+	} else if(strlen(p) > 8 && strcmp(p + strlen(p) - 8, "/current") == 0) {
 		normal = 0;
-		w->arg[strlen(w->arg)-7] = '\0';
+		w->arg[strlen(w->arg) - 7] = '\0';
 	}
 
-	if((fd = open(p, OREAD)) < 0){
+	if((fd = open(p, OREAD)) < 0) {
 		fprint(2, "Wiki: cannot read %s: %r\n", p);
 		winclean(w->win);
 		return;
@@ -153,15 +153,15 @@ wikiget(Wiki *w)
 	Binit(bin, fd, OREAD);
 
 	p = nil;
-	if(!normal){
-		if((p = Brdline(bin, '\n')) == nil){
+	if(!normal) {
+		if((p = Brdline(bin, '\n')) == nil) {
 			fprint(2, "Wiki: cannot read title: %r\n");
 			winclean(w->win);
 			close(fd);
 			free(bin);
 			return;
 		}
-		p[Blinelen(bin)-1] = '\0';
+		p[Blinelen(bin) - 1] = '\0';
 	}
 	/* clear window */
 	if(w->win->data < 0)
@@ -172,15 +172,15 @@ wikiget(Wiki *w)
 	if(!normal)
 		Bprint(w->win->body, "%s\n\n", p);
 
-	while(p = Brdline(bin, '\n')){
-		p[Blinelen(bin)-1] = '\0';
+	while(p = Brdline(bin, '\n')) {
+		p[Blinelen(bin) - 1] = '\0';
 		if(normal)
 			Bprint(w->win->body, "%s\n", p);
-		else{
-			if(p[0]=='D')
-				w->time = strtoul(p+1, 0, 10);
-			else if(p[0]=='#')
-				Bprint(w->win->body, "%s\n", p+1);
+		else {
+			if(p[0] == 'D')
+				w->time = strtoul(p + 1, 0, 10);
+			else if(p[0] == '#')
+				Bprint(w->win->body, "%s\n", p + 1);
 		}
 	}
 	winclean(w->win);
@@ -194,14 +194,14 @@ iscmd(char *s, char *cmd)
 	int len;
 
 	len = strlen(cmd);
-	return strncmp(s, cmd, len)==0 && (s[len]=='\0' || s[len]==' ' || s[len]=='\t' || s[len]=='\n');
+	return strncmp(s, cmd, len) == 0 && (s[len] == '\0' || s[len] == ' ' || s[len] == '\t' || s[len] == '\n');
 }
 
-static char*
+static char *
 skip(char *s, char *cmd)
 {
 	s += strlen(cmd);
-	while(*s==' ' || *s=='\t' || *s=='\n')
+	while(*s == ' ' || *s == '\t' || *s == '\n')
 		s++;
 	return s;
 }
@@ -215,26 +215,26 @@ wikiload(Wiki *w, char *arg)
 	p = nil;
 	if(arg[0] == '/')
 		path = arg;
-	else{
-		p = emalloc(strlen(w->arg)+1+strlen(arg)+1);
+	else {
+		p = emalloc(strlen(w->arg) + 1 + strlen(arg) + 1);
 		strcpy(p, w->arg);
-		if(q = strrchr(p, '/')){
+		if(q = strrchr(p, '/')) {
 			++q;
 			*q = '\0';
-		}else
+		} else
 			*p = '\0';
 		strcat(p, arg);
 		cleanname(p);
 		path = p;
 	}
-	if(addr=strchr(path, ':'))
+	if(addr = strchr(path, ':'))
 		*addr++ = '\0';
 
-	rv = wikiopen(path, addr)==0;
+	rv = wikiopen(path, addr) == 0;
 	free(p);
 	if(rv)
 		return 1;
-	return wikiopen(arg, 0)==0;
+	return wikiopen(arg, 0) == 0;
 }
 
 /* return 1 if handled, 0 otherwise */
@@ -244,12 +244,12 @@ wikicmd(Wiki *w, char *s)
 	char *p;
 	s = skip(s, "");
 
-	if(iscmd(s, "Del")){
+	if(iscmd(s, "Del")) {
 		if(windel(w->win, 0))
 			w->dead = 1;
 		return 1;
 	}
-	if(iscmd(s, "New")){
+	if(iscmd(s, "New")) {
 		wikinew(skip(s, "New"));
 		return 1;
 	}
@@ -257,18 +257,18 @@ wikicmd(Wiki *w, char *s)
 		return wikiload(w, "history.txt");
 	if(iscmd(s, "Diff"))
 		return wikidiff(w);
-	if(iscmd(s, "Get")){
-		if(winisdirty(w->win) && !w->win->warned){
+	if(iscmd(s, "Get")) {
+		if(winisdirty(w->win) && !w->win->warned) {
 			w->win->warned = 1;
 			fprint(2, "%s/%s modified\n", dir, w->arg);
-		}else{
+		} else {
 			w->win->warned = 0;
 			wikiget(w);
 		}
 		return 1;
 	}
-	if(iscmd(s, "Put")){
-		if((p=strchr(w->arg, '/')) && p[1]!='\0')
+	if(iscmd(s, "Put")) {
+		if((p = strchr(w->arg, '/')) && p[1] != '\0')
 			fprint(2, "%s/%s is read-only\n", dir, w->arg);
 		else
 			wikiput(w);
@@ -288,7 +288,7 @@ eval(Window *w, char *s, ...)
 	vsnprint(buf, sizeof buf, s, arg);
 	va_end(arg);
 
-	if(winsetaddr(w, buf, 1)==0)
+	if(winsetaddr(w, buf, 1) == 0)
 		return -1;
 
 	if(pread(w->addr, buf, 24, 0) != 24)
@@ -305,16 +305,16 @@ getdot(Window *w, long *q0, long *q1)
 	if(pread(w->addr, buf, 24, 0) != 24)
 		return -1;
 	*q0 = atoi(buf);
-	*q1 = atoi(buf+12);
+	*q1 = atoi(buf + 12);
 	return 0;
 }
 
-static Event*
+static Event *
 expand(Window *w, Event *e, Event *eacme)
 {
 	long q0, q1, x;
 
-	if(getdot(w, &q0, &q1)==0 && q0 <= e->q0 && e->q0 <= q1){
+	if(getdot(w, &q0, &q1) == 0 && q0 <= e->q0 && e->q0 <= q1) {
 		e->q0 = q0;
 		e->q1 = q1;
 		return e;
@@ -323,14 +323,14 @@ expand(Window *w, Event *e, Event *eacme)
 	q0 = eval(w, "#%lud-/\\[/", e->q0);
 	if(q0 < 0)
 		return eacme;
-	if(eval(w, "#%lud+/\\]/", q0) < e->q0)	/* [ closes before us */
+	if(eval(w, "#%lud+/\\]/", q0) < e->q0) /* [ closes before us */
 		return eacme;
 	q1 = eval(w, "#%lud+/\\]/", e->q1);
 	if(q1 < 0)
 		return eacme;
-	if((x=eval(w, "#%lud-/\\[/", q1))==-1 || x > e->q1)	/* ] opens after us */
+	if((x = eval(w, "#%lud-/\\[/", q1)) == -1 || x > e->q1) /* ] opens after us */
 		return eacme;
-	e->q0 = q0+1;
+	e->q0 = q0 + 1;
 	e->q1 = q1;
 	return e;
 }
@@ -344,68 +344,68 @@ acmeevent(Wiki *wiki, Event *e)
 	int na;
 
 	w = wiki->win;
-	switch(e->c1){	/* origin of action */
+	switch(e->c1) { /* origin of action */
 	default:
 	Unknown:
 		fprint(2, "unknown message %c%c\n", e->c1, e->c2);
 		break;
 
-	case 'F':	/* generated by our actions; ignore */
+	case 'F': /* generated by our actions; ignore */
 		break;
 
-	case 'E':	/* write to body or tag; can't affect us */
+	case 'E': /* write to body or tag; can't affect us */
 		break;
 
-	case 'K':	/* type away; we don't care */
+	case 'K': /* type away; we don't care */
 		if(e->c2 == 'I' || e->c2 == 'D')
 			w->warned = 0;
 		break;
 
-	case 'M':	/* mouse event */
-		switch(e->c2){		/* type of action */
-		case 'x':	/* mouse: button 2 in tag */
-		case 'X':	/* mouse: button 2 in body */
+	case 'M':		/* mouse event */
+		switch(e->c2) { /* type of action */
+		case 'x':       /* mouse: button 2 in tag */
+		case 'X':       /* mouse: button 2 in body */
 			ea = nil;
 			//e2 = nil;
 			s = e->b;
-			if(e->flag & 2){	/* null string with non-null expansion */
+			if(e->flag & 2) { /* null string with non-null expansion */
 				e2 = recvp(w->cevent);
-				if(e->nb==0)
+				if(e->nb == 0)
 					s = e2->b;
 			}
-			if(e->flag & 8){	/* chorded argument */
-				ea = recvp(w->cevent);	/* argument */
+			if(e->flag & 8) {	      /* chorded argument */
+				ea = recvp(w->cevent); /* argument */
 				na = ea->nb;
-				recvp(w->cevent);		/* ignore origin */
-			}else
+				recvp(w->cevent); /* ignore origin */
+			} else
 				na = 0;
-			
+
 			/* append chorded arguments */
-			if(na){
-				t = emalloc(strlen(s)+1+na+1);
+			if(na) {
+				t = emalloc(strlen(s) + 1 + na + 1);
 				sprint(t, "%s %s", s, ea->b);
 				s = t;
 			}
 			/* if it's a known command, do it */
 			/* if it's a long message, it can't be for us anyway */
-		//	DPRINT(2, "exec: %s\n", s);
-			if(!wikicmd(wiki, s))	/* send it back */
+			//	DPRINT(2, "exec: %s\n", s);
+			if(!wikicmd(wiki, s)) /* send it back */
 				winwriteevent(w, e);
 			if(na)
 				free(s);
 			break;
 
-		case 'l':	/* mouse: button 3 in tag */
-		case 'L':	/* mouse: button 3 in body */
+		case 'l': /* mouse: button 3 in tag */
+		case 'L': /* mouse: button 3 in body */
 			//buf = nil;
 			eq = e;
-			if(e->flag & 2){	/* we do our own expansion for loads */
+			if(e->flag & 2) { /* we do our own expansion for loads */
 				e2 = recvp(w->cevent);
 				eq = expand(w, eq, e2);
 			}
 			s = eq->b;
-			if(eq->q1>eq->q0 && eq->nb==0){
-				buf = emalloc((eq->q1-eq->q0)*UTFmax+1);
+			if(eq->q1 > eq->q0 && eq->nb == 0) {
+				buf = emalloc((eq->q1 - eq->q0) * UTFmax + 1);
 				winread(w, eq->q0, eq->q1, buf);
 				s = buf;
 			}
@@ -413,12 +413,12 @@ acmeevent(Wiki *wiki, Event *e)
 				winwriteevent(w, e);
 			break;
 
-		case 'i':	/* mouse: text inserted in tag */
-		case 'd':	/* mouse: text deleted from tag */
+		case 'i': /* mouse: text inserted in tag */
+		case 'd': /* mouse: text deleted from tag */
 			break;
 
-		case 'I':	/* mouse: text inserted in body */
-		case 'D':	/* mouse: text deleted from body */
+		case 'I': /* mouse: text inserted in body */
+		case 'D': /* mouse: text deleted from body */
 			w->warned = 0;
 			break;
 
@@ -437,24 +437,24 @@ wikithread(void *v)
 
 	w = v;
 
-	if(w->isnew){
+	if(w->isnew) {
 		sprint(tmp, "+new+%d", w->isnew);
 		wikiname(w->win, tmp);
-		if(w->arg){
+		if(w->arg) {
 			winopenbody(w->win, OWRITE);
 			Bprint(w->win->body, "%s\n\n", w->arg);
 		}
 		winclean(w->win);
-	}else if(!w->special){
+	} else if(!w->special) {
 		wikiget(w);
 		wikiname(w->win, w->arg);
 		if(w->addr)
 			winselect(w->win, w->addr, 1);
 	}
 	fprint(w->win->ctl, "menu\n");
-	wintagwrite(w->win, "Get History Diff New", 4+8+4+4);
+	wintagwrite(w->win, "Get History Diff New", 4 + 8 + 4 + 4);
 	winclean(w->win);
-		
+
 	while(!w->dead && (e = recvp(w->win->cevent)))
 		acmeevent(w, e);
 
@@ -473,7 +473,7 @@ wikiopen(char *arg, char *addr)
 	char *p;
 	Wiki *w;
 
-/*
+	/*
 	if(arg==nil){
 		if(write(mapfd, title, strlen(title)) < 0
 		|| seek(mapfd, 0, 0) < 0 || (n=read(mapfd, tmp, sizeof(tmp)-2)) < 0){
@@ -489,37 +489,37 @@ wikiopen(char *arg, char *addr)
 */
 
 	/* replace embedded '\n' in links by ' ' */
-	for(p=arg; *p; p++)
-		if(*p=='\n')
+	for(p = arg; *p; p++)
+		if(*p == '\n')
 			*p = ' ';
 
-	if(strncmp(arg, dir, strlen(dir))==0 && arg[strlen(dir)]=='/' && arg[strlen(dir)+1])
-		arg += strlen(dir)+1;
+	if(strncmp(arg, dir, strlen(dir)) == 0 && arg[strlen(dir)] == '/' && arg[strlen(dir) + 1])
+		arg += strlen(dir) + 1;
 	else if(arg[0] == '/')
 		return -1;
 
 	if((d = dirstat(arg)) == nil)
 		return -1;
 
-	if((d->mode&DMDIR) && arg[strlen(arg)-1] != '/'){
-		p = emalloc(strlen(arg)+2);
+	if((d->mode & DMDIR) && arg[strlen(arg) - 1] != '/') {
+		p = emalloc(strlen(arg) + 2);
 		strcpy(p, arg);
 		strcat(p, "/");
 		arg = p;
-	}else if(!(d->mode&DMDIR) && arg[strlen(arg)-1]=='/'){
+	} else if(!(d->mode & DMDIR) && arg[strlen(arg) - 1] == '/') {
 		arg = estrdup(arg);
-		arg[strlen(arg)-1] = '\0';
-	}else
+		arg[strlen(arg) - 1] = '\0';
+	} else
 		arg = estrdup(arg);
 	free(d);
 
 	/* rewrite /current into / */
-	if(strlen(arg) > 8 && strcmp(arg+strlen(arg)-8, "/current")==0)
-		arg[strlen(arg)-8+1] = '\0';
+	if(strlen(arg) > 8 && strcmp(arg + strlen(arg) - 8, "/current") == 0)
+		arg[strlen(arg) - 8 + 1] = '\0';
 
 	/* look for window already open */
-	for(w=wlist; w; w=w->next){
-		if(strcmp(w->arg, arg)==0){
+	for(w = wlist; w; w = w->next) {
+		if(strcmp(w->arg, arg) == 0) {
 			ctlprint(w->win->ctl, "show\n");
 			return 0;
 		}
@@ -576,7 +576,7 @@ execdiff(void *v)
 	open(buf, OWRITE);
 	sprint(buf, "/mnt/wsys/%d", a->w->win->id);
 	bind(buf, "/dev", MBEFORE);
-	
+
 	procexecl(nil, "/acme/wiki/wiki.diff", "wiki.diff", a->dir, nil);
 }
 
@@ -587,7 +587,7 @@ wikidiff(Wiki *w)
 	char *p, *q, *r;
 	Wiki *nw;
 
-	p = emalloc(strlen(w->arg)+10);
+	p = emalloc(strlen(w->arg) + 10);
 	strcpy(p, w->arg);
 	if(q = strchr(p, '/'))
 		*q = '\0';
@@ -608,4 +608,3 @@ wikidiff(Wiki *w)
 	threadcreate(wikithread, nw, STACK);
 	return 1;
 }
-

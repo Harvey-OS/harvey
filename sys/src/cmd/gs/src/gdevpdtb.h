@@ -27,7 +27,7 @@
 /* BaseFont structure and API for pdfwrite */
 
 #ifndef gdevpdtb_INCLUDED
-#  define gdevpdtb_INCLUDED
+#define gdevpdtb_INCLUDED
 
 #include "gdevpdtx.h"
 
@@ -70,7 +70,7 @@
  */
 
 #ifndef pdf_base_font_DEFINED
-#  define pdf_base_font_DEFINED
+#define pdf_base_font_DEFINED
 typedef struct pdf_base_font_s pdf_base_font_t;
 #endif
 
@@ -83,8 +83,8 @@ typedef struct pdf_base_font_s pdf_base_font_t;
  * a complete one, and adding glyphs or Encoding entries is not allowed.
  */
 int pdf_base_font_alloc(gx_device_pdf *pdev, pdf_base_font_t **ppbfont,
-		    gs_font_base *font, const gs_matrix *orig_matrix, 
-		    bool is_standard, bool orig_name);
+			gs_font_base *font, const gs_matrix *orig_matrix,
+			bool is_standard, bool orig_name);
 
 /*
  * Return a reference to the name of a base font.  This name is guaranteed
@@ -126,13 +126,13 @@ bool pdf_has_subset_prefix(const byte *str, uint size);
 /*
  * Add the XXXXXX+ prefix for a subset font.
  */
-int pdf_add_subset_prefix(const gx_device_pdf *pdev, gs_string *pstr, 
-			byte *used, int count);
+int pdf_add_subset_prefix(const gx_device_pdf *pdev, gs_string *pstr,
+			  byte *used, int count);
 
 /*
  * Determine whether a copied font should be subsetted.
  */
-bool pdf_do_subset_font(gx_device_pdf *pdev, pdf_base_font_t *pbfont, 
+bool pdf_do_subset_font(gx_device_pdf *pdev, pdf_base_font_t *pbfont,
 			gs_id rid);
 
 /*
@@ -144,7 +144,7 @@ int pdf_write_FontFile_entry(gx_device_pdf *pdev, pdf_base_font_t *pbfont);
  * Write an embedded font, possibly subsetted.
  */
 int pdf_write_embedded_font(gx_device_pdf *pdev, pdf_base_font_t *pbfont,
-			gs_int_rect *FontBBox, gs_id rid, cos_dict_t **ppcd);
+			    gs_int_rect *FontBBox, gs_id rid, cos_dict_t **ppcd);
 
 /*
  * Write the CharSet data for a subsetted font, as a PDF string.
@@ -163,6 +163,6 @@ int pdf_write_CIDSet(gx_device_pdf *pdev, pdf_base_font_t *pbfont,
 bool pdf_is_standard_font(pdf_base_font_t *bfont);
 
 void pdf_set_FontFile_object(pdf_base_font_t *bfont, cos_dict_t *pcd);
-const cos_dict_t * pdf_get_FontFile_object(pdf_base_font_t *bfont);
+const cos_dict_t *pdf_get_FontFile_object(pdf_base_font_t *bfont);
 
 #endif /* gdevpdtb_INCLUDED */

@@ -14,9 +14,9 @@
 #include <9p.h>
 
 static void
-rforker(void (*fn)(void*), void *arg, int flag)
+rforker(void (*fn)(void *), void *arg, int flag)
 {
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT|flag)){
+	switch(rfork(RFPROC | RFMEM | RFNOWAIT | flag)) {
 	case -1:
 		sysfatal("rfork: %r");
 	default:
@@ -40,4 +40,3 @@ postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 	_forker = rforker;
 	_postmountsrv(s, name, mtpt, flag);
 }
-

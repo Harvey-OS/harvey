@@ -29,48 +29,48 @@
  */
 
 #ifdef MAKECRCH
-#  include <stdio.h>
-#  ifndef DYNAMIC_CRC_TABLE
-#    define DYNAMIC_CRC_TABLE
-#  endif /* !DYNAMIC_CRC_TABLE */
+#include <stdio.h>
+#ifndef DYNAMIC_CRC_TABLE
+#define DYNAMIC_CRC_TABLE
+#endif /* !DYNAMIC_CRC_TABLE */
 #endif /* MAKECRCH */
 
-#include "zutil.h"      /* for STDC and FAR definitions */
+#include "zutil.h" /* for STDC and FAR definitions */
 
 #define local static
 
 /* Find a four-byte integer type for crc32_little() and crc32_big(). */
 #ifndef NOBYFOUR
-#  ifdef STDC           /* need ANSI C limits.h to determine sizes */
-#    include <limits.h>
-#    define BYFOUR
-#    if (UINT_MAX == 0xffffffffUL)
-       typedef unsigned int u4;
-#    else
-#      if (ULONG_MAX == 0xffffffffUL)
-         typedef unsigned long u4;
-#      else
-#        if (USHRT_MAX == 0xffffffffUL)
-           typedef unsigned short u4;
-#        else
-#          undef BYFOUR     /* can't find a four-byte integer type! */
-#        endif
-#      endif
-#    endif
-#  endif /* STDC */
+#ifdef STDC /* need ANSI C limits.h to determine sizes */
+#include <limits.h>
+#define BYFOUR
+#if(UINT_MAX == 0xffffffffUL)
+typedef unsigned int u4;
+#else
+#if(ULONG_MAX == 0xffffffffUL)
+typedef unsigned long u4;
+#else
+#if(USHRT_MAX == 0xffffffffUL)
+typedef unsigned short u4;
+#else
+#undef BYFOUR /* can't find a four-byte integer type! */
+#endif
+#endif
+#endif
+#endif /* STDC */
 #endif /* !NOBYFOUR */
 
 /* Definitions for doing the crc four data bytes at a time. */
 #ifdef BYFOUR
-#  define REV(w) (((w)>>24)+(((w)>>8)&0xff00)+ \
-                (((w)&0xff00)<<8)+(((w)&0xff)<<24))
-   local unsigned long crc32_little OF((unsigned long,
-                        const unsigned char FAR *, unsigned));
-   local unsigned long crc32_big OF((unsigned long,
-                        const unsigned char FAR *, unsigned));
-#  define TBLS 8
+#define REV(w) (((w) >> 24) + (((w) >> 8) & 0xff00) + \
+		(((w)&0xff00) << 8) + (((w)&0xff) << 24))
+local unsigned long crc32_little OF((unsigned long,
+				     const unsigned char FAR *, unsigned));
+local unsigned long crc32_big OF((unsigned long,
+				  const unsigned char FAR *, unsigned));
+#define TBLS 8
 #else
-#  define TBLS 1
+#define TBLS 1
 #endif /* BYFOUR */
 
 #ifdef DYNAMIC_CRC_TABLE
@@ -79,7 +79,7 @@ local volatile int crc_table_empty = 1;
 local unsigned long FAR crc_table[TBLS][256];
 local void make_crc_table OF((void));
 #ifdef MAKECRCH
-   local void write_table OF((FILE *, const unsigned long FAR *));
+local void write_table OF((FILE *, const unsigned long FAR *));
 #endif /* MAKECRCH */
 
 /*
@@ -108,92 +108,93 @@ local void make_crc_table OF((void));
   allow for word-at-a-time CRC calculation for both big-endian and little-
   endian machines, where a word is four bytes.
 */
-local void make_crc_table()
+local void
+make_crc_table()
 {
-    unsigned long c;
-    int n, k;
-    unsigned long poly;                 /* polynomial exclusive-or pattern */
-    /* terms of polynomial defining this crc (except x^32): */
-    static volatile int first = 1;      /* flag to limit concurrent making */
-    static const unsigned char p[] = {0,1,2,4,5,7,8,10,11,12,16,22,23,26};
+	unsigned long c;
+	int n, k;
+	unsigned long poly; /* polynomial exclusive-or pattern */
+	/* terms of polynomial defining this crc (except x^32): */
+	static volatile int first = 1; /* flag to limit concurrent making */
+	static const unsigned char p[] = {0, 1, 2, 4, 5, 7, 8, 10, 11, 12, 16, 22, 23, 26};
 
-    /* See if another task is already doing this (not thread-safe, but better
+	/* See if another task is already doing this (not thread-safe, but better
        than nothing -- significantly reduces duration of vulnerability in
        case the advice about DYNAMIC_CRC_TABLE is ignored) */
-    if (first) {
-        first = 0;
+	if(first) {
+		first = 0;
 
-        /* make exclusive-or pattern from polynomial (0xedb88320UL) */
-        poly = 0UL;
-        for (n = 0; n < sizeof(p)/sizeof(unsigned char); n++)
-            poly |= 1UL << (31 - p[n]);
+		/* make exclusive-or pattern from polynomial (0xedb88320UL) */
+		poly = 0UL;
+		for(n = 0; n < sizeof(p) / sizeof(unsigned char); n++)
+			poly |= 1UL << (31 - p[n]);
 
-        /* generate a crc for every 8-bit value */
-        for (n = 0; n < 256; n++) {
-            c = (unsigned long)n;
-            for (k = 0; k < 8; k++)
-                c = c & 1 ? poly ^ (c >> 1) : c >> 1;
-            crc_table[0][n] = c;
-        }
+		/* generate a crc for every 8-bit value */
+		for(n = 0; n < 256; n++) {
+			c = (unsigned long)n;
+			for(k = 0; k < 8; k++)
+				c = c & 1 ? poly ^ (c >> 1) : c >> 1;
+			crc_table[0][n] = c;
+		}
 
 #ifdef BYFOUR
-        /* generate crc for each value followed by one, two, and three zeros,
+		/* generate crc for each value followed by one, two, and three zeros,
            and then the byte reversal of those as well as the first table */
-        for (n = 0; n < 256; n++) {
-            c = crc_table[0][n];
-            crc_table[4][n] = REV(c);
-            for (k = 1; k < 4; k++) {
-                c = crc_table[0][c & 0xff] ^ (c >> 8);
-                crc_table[k][n] = c;
-                crc_table[k + 4][n] = REV(c);
-            }
-        }
+		for(n = 0; n < 256; n++) {
+			c = crc_table[0][n];
+			crc_table[4][n] = REV(c);
+			for(k = 1; k < 4; k++) {
+				c = crc_table[0][c & 0xff] ^ (c >> 8);
+				crc_table[k][n] = c;
+				crc_table[k + 4][n] = REV(c);
+			}
+		}
 #endif /* BYFOUR */
 
-        crc_table_empty = 0;
-    }
-    else {      /* not first */
-        /* wait for the other guy to finish (not efficient, but rare) */
-        while (crc_table_empty)
-            ;
-    }
+		crc_table_empty = 0;
+	} else { /* not first */
+		/* wait for the other guy to finish (not efficient, but rare) */
+		while(crc_table_empty)
+			;
+	}
 
 #ifdef MAKECRCH
-    /* write out CRC tables to crc32.h */
-    {
-        FILE *out;
+	/* write out CRC tables to crc32.h */
+	{
+		FILE *out;
 
-        out = fopen("crc32.h", "w");
-        if (out == NULL) return;
-        fprintf(out, "/* crc32.h -- tables for rapid CRC calculation\n");
-        fprintf(out, " * Generated automatically by crc32.c\n */\n\n");
-        fprintf(out, "local const unsigned long FAR ");
-        fprintf(out, "crc_table[TBLS][256] =\n{\n  {\n");
-        write_table(out, crc_table[0]);
-#  ifdef BYFOUR
-        fprintf(out, "#ifdef BYFOUR\n");
-        for (k = 1; k < 8; k++) {
-            fprintf(out, "  },\n  {\n");
-            write_table(out, crc_table[k]);
-        }
-        fprintf(out, "#endif\n");
-#  endif /* BYFOUR */
-        fprintf(out, "  }\n};\n");
-        fclose(out);
-    }
+		out = fopen("crc32.h", "w");
+		if(out == NULL)
+			return;
+		fprintf(out, "/* crc32.h -- tables for rapid CRC calculation\n");
+		fprintf(out, " * Generated automatically by crc32.c\n */\n\n");
+		fprintf(out, "local const unsigned long FAR ");
+		fprintf(out, "crc_table[TBLS][256] =\n{\n  {\n");
+		write_table(out, crc_table[0]);
+#ifdef BYFOUR
+		fprintf(out, "#ifdef BYFOUR\n");
+		for(k = 1; k < 8; k++) {
+			fprintf(out, "  },\n  {\n");
+			write_table(out, crc_table[k]);
+		}
+		fprintf(out, "#endif\n");
+#endif /* BYFOUR */
+		fprintf(out, "  }\n};\n");
+		fclose(out);
+	}
 #endif /* MAKECRCH */
 }
 
 #ifdef MAKECRCH
 local void write_table(out, table)
     FILE *out;
-    const unsigned long FAR *table;
+const unsigned long FAR *table;
 {
-    int n;
+	int n;
 
-    for (n = 0; n < 256; n++)
-        fprintf(out, "%s0x%08lxUL%s", n % 5 ? "" : "    ", table[n],
-                n == 255 ? "\n" : (n % 5 == 4 ? ",\n" : ", "));
+	for(n = 0; n < 256; n++)
+		fprintf(out, "%s0x%08lxUL%s", n % 5 ? "" : "    ", table[n],
+			n == 255 ? "\n" : (n % 5 == 4 ? ",\n" : ", "));
 }
 #endif /* MAKECRCH */
 
@@ -207,136 +208,164 @@ local void write_table(out, table)
 /* =========================================================================
  * This function can be used by asm versions of crc32()
  */
-const unsigned long FAR * ZEXPORT get_crc_table()
+const unsigned long FAR *ZEXPORT
+get_crc_table()
 {
 #ifdef DYNAMIC_CRC_TABLE
-    if (crc_table_empty)
-        make_crc_table();
+	if(crc_table_empty)
+		make_crc_table();
 #endif /* DYNAMIC_CRC_TABLE */
-    return (const unsigned long FAR *)crc_table;
+	return (const unsigned long FAR *)crc_table;
 }
 
 /* ========================================================================= */
 #define DO1 crc = crc_table[0][((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8)
-#define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
+#define DO8  \
+	DO1; \
+	DO1; \
+	DO1; \
+	DO1; \
+	DO1; \
+	DO1; \
+	DO1; \
+	DO1
 
 /* ========================================================================= */
-unsigned long ZEXPORT crc32(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    unsigned len;
+unsigned long ZEXPORT crc32(crc, buf, len) unsigned long crc;
+const unsigned char FAR *buf;
+unsigned len;
 {
-    if (buf == Z_NULL) return 0UL;
+	if(buf == Z_NULL)
+		return 0UL;
 
 #ifdef DYNAMIC_CRC_TABLE
-    if (crc_table_empty)
-        make_crc_table();
+	if(crc_table_empty)
+		make_crc_table();
 #endif /* DYNAMIC_CRC_TABLE */
 
 #ifdef BYFOUR
-    if (sizeof(void *) == sizeof(ptrdiff_t)) {
-        u4 endian;
+	if(sizeof(void *) == sizeof(ptrdiff_t)) {
+		u4 endian;
 
-        endian = 1;
-        if (*((unsigned char *)(&endian)))
-            return crc32_little(crc, buf, len);
-        else
-            return crc32_big(crc, buf, len);
-    }
+		endian = 1;
+		if(*((unsigned char *)(&endian)))
+			return crc32_little(crc, buf, len);
+		else
+			return crc32_big(crc, buf, len);
+	}
 #endif /* BYFOUR */
-    crc = crc ^ 0xffffffffUL;
-    while (len >= 8) {
-        DO8;
-        len -= 8;
-    }
-    if (len) do {
-        DO1;
-    } while (--len);
-    return crc ^ 0xffffffffUL;
+	crc = crc ^ 0xffffffffUL;
+	while(len >= 8) {
+		DO8;
+		len -= 8;
+	}
+	if(len)
+		do {
+			DO1;
+		} while(--len);
+	return crc ^ 0xffffffffUL;
 }
 
 #ifdef BYFOUR
 
 /* ========================================================================= */
-#define DOLIT4 c ^= *buf4++; \
-        c = crc_table[3][c & 0xff] ^ crc_table[2][(c >> 8) & 0xff] ^ \
-            crc_table[1][(c >> 16) & 0xff] ^ crc_table[0][c >> 24]
-#define DOLIT32 DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4
+#define DOLIT4                                                       \
+	c ^= *buf4++;                                                \
+	c = crc_table[3][c & 0xff] ^ crc_table[2][(c >> 8) & 0xff] ^ \
+	    crc_table[1][(c >> 16) & 0xff] ^ crc_table[0][c >> 24]
+#define DOLIT32 \
+	DOLIT4; \
+	DOLIT4; \
+	DOLIT4; \
+	DOLIT4; \
+	DOLIT4; \
+	DOLIT4; \
+	DOLIT4; \
+	DOLIT4
 
 /* ========================================================================= */
-local unsigned long crc32_little(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    unsigned len;
+local unsigned long crc32_little(crc, buf, len) unsigned long crc;
+const unsigned char FAR *buf;
+unsigned len;
 {
-    register u4 c;
-    register const u4 FAR *buf4;
+	register u4 c;
+	register const u4 FAR *buf4;
 
-    c = (u4)crc;
-    c = ~c;
-    while (len && ((ptrdiff_t)buf & 3)) {
-        c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
-        len--;
-    }
+	c = (u4)crc;
+	c = ~c;
+	while(len && ((ptrdiff_t)buf & 3)) {
+		c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
+		len--;
+	}
 
-    buf4 = (const u4 FAR *)buf;
-    while (len >= 32) {
-        DOLIT32;
-        len -= 32;
-    }
-    while (len >= 4) {
-        DOLIT4;
-        len -= 4;
-    }
-    buf = (const unsigned char FAR *)buf4;
+	buf4 = (const u4 FAR *)buf;
+	while(len >= 32) {
+		DOLIT32;
+		len -= 32;
+	}
+	while(len >= 4) {
+		DOLIT4;
+		len -= 4;
+	}
+	buf = (const unsigned char FAR *)buf4;
 
-    if (len) do {
-        c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
-    } while (--len);
-    c = ~c;
-    return (unsigned long)c;
+	if(len)
+		do {
+			c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
+		} while(--len);
+	c = ~c;
+	return (unsigned long)c;
 }
 
 /* ========================================================================= */
-#define DOBIG4 c ^= *++buf4; \
-        c = crc_table[4][c & 0xff] ^ crc_table[5][(c >> 8) & 0xff] ^ \
-            crc_table[6][(c >> 16) & 0xff] ^ crc_table[7][c >> 24]
-#define DOBIG32 DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4
+#define DOBIG4                                                       \
+	c ^= *++buf4;                                                \
+	c = crc_table[4][c & 0xff] ^ crc_table[5][(c >> 8) & 0xff] ^ \
+	    crc_table[6][(c >> 16) & 0xff] ^ crc_table[7][c >> 24]
+#define DOBIG32 \
+	DOBIG4; \
+	DOBIG4; \
+	DOBIG4; \
+	DOBIG4; \
+	DOBIG4; \
+	DOBIG4; \
+	DOBIG4; \
+	DOBIG4
 
 /* ========================================================================= */
-local unsigned long crc32_big(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    unsigned len;
+local unsigned long crc32_big(crc, buf, len) unsigned long crc;
+const unsigned char FAR *buf;
+unsigned len;
 {
-    register u4 c;
-    register const u4 FAR *buf4;
+	register u4 c;
+	register const u4 FAR *buf4;
 
-    c = REV((u4)crc);
-    c = ~c;
-    while (len && ((ptrdiff_t)buf & 3)) {
-        c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
-        len--;
-    }
+	c = REV((u4)crc);
+	c = ~c;
+	while(len && ((ptrdiff_t)buf & 3)) {
+		c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
+		len--;
+	}
 
-    buf4 = (const u4 FAR *)buf;
-    buf4--;
-    while (len >= 32) {
-        DOBIG32;
-        len -= 32;
-    }
-    while (len >= 4) {
-        DOBIG4;
-        len -= 4;
-    }
-    buf4++;
-    buf = (const unsigned char FAR *)buf4;
+	buf4 = (const u4 FAR *)buf;
+	buf4--;
+	while(len >= 32) {
+		DOBIG32;
+		len -= 32;
+	}
+	while(len >= 4) {
+		DOBIG4;
+		len -= 4;
+	}
+	buf4++;
+	buf = (const unsigned char FAR *)buf4;
 
-    if (len) do {
-        c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
-    } while (--len);
-    c = ~c;
-    return (unsigned long)(REV(c));
+	if(len)
+		do {
+			c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
+		} while(--len);
+	c = ~c;
+	return (unsigned long)(REV(c));
 }
 
 #endif /* BYFOUR */

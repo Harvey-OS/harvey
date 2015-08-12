@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 void
-sleep(Rendez *r, int (*f)(void*), void *arg)
+sleep(Rendez *r, int (*f)(void *), void *arg)
 {
 	int s;
 
@@ -22,7 +22,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 
 	lock(&r->lk);
 	lock(&up->rlock);
-	if(r->p){
+	if(r->p) {
 		print("double sleep %lud %lud\n", r->p->pid, up->pid);
 		dumpstack();
 	}
@@ -35,7 +35,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	 */
 	r->p = up;
 
-	if((*f)(arg) || up->notepending){
+	if((*f)(arg) || up->notepending) {
 		/*
 		 *  if condition happened or a note is pending
 		 *  never mind
@@ -69,7 +69,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	splx(s);
 }
 
-Proc*
+Proc *
 wakeup(Rendez *r)
 {
 	Proc *p;
@@ -80,7 +80,7 @@ wakeup(Rendez *r)
 	lock(&r->lk);
 	p = r->p;
 
-	if(p != nil){
+	if(p != nil) {
 		lock(&p->rlock);
 		if(p->state != Wakeme || p->r != r)
 			panic("wakeup: state");
@@ -96,4 +96,3 @@ wakeup(Rendez *r)
 
 	return p;
 }
-

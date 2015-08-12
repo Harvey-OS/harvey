@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 esmprint(char *fmt, ...)
 {
 	va_list args;
@@ -19,7 +19,7 @@ esmprint(char *fmt, ...)
 	va_start(args, fmt);
 	p = vsmprint(fmt, args);
 	va_end(args);
-	if (p == nil)
+	if(p == nil)
 		sysfatal("esmprint: out of memory: %r");
 	setmalloctag(p, getcallerpc(&fmt));
 	return p;

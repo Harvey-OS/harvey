@@ -19,7 +19,7 @@ amount(int fd, char *mntpt, int flags, char *aname)
 	AuthInfo *ai;
 
 	afd = fauth(fd, aname);
-	if(afd >= 0){
+	if(afd >= 0) {
 		ai = auth_proxy(afd, amount_getkey, "proto=p9any role=client");
 		if(ai != nil)
 			auth_freeAI(ai);

@@ -27,7 +27,7 @@
 /* Internal machinery for alpha channel support */
 
 #ifndef gxalpha_INCLUDED
-#  define gxalpha_INCLUDED
+#define gxalpha_INCLUDED
 
 /*
  * As discussed in the classic Porter & Duff paper on compositing,

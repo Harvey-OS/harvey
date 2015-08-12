@@ -12,7 +12,7 @@
 #include <bio.h>
 #include <ndb.h>
 
-extern char* secureidcheck(char *user, char *response);
+extern char *secureidcheck(char *user, char *response);
 
 Ndb *db;
 
@@ -21,7 +21,7 @@ main(int argc, char **argv)
 {
 	Ndb *db2;
 
-	if(argc!=2){
+	if(argc != 2) {
 		fprint(2, "usage: %s pinsecurid\n", argv[0]);
 		exits("usage");
 	}

@@ -20,16 +20,15 @@
 #include "antiword.h"
 
 #if defined(DEBUG)
-#define ELEMENTS_TO_ADD	 3
+#define ELEMENTS_TO_ADD 3
 #else
-#define ELEMENTS_TO_ADD	30
+#define ELEMENTS_TO_ADD 30
 #endif /* DEBUG */
 
 /* Variables needed to write the property modifier list */
-static UCHAR	**ppAnchor = NULL;
-static size_t	tNextFree = 0;
-static size_t	tMaxElements = 0;
-
+static UCHAR **ppAnchor = NULL;
+static size_t tNextFree = 0;
+static size_t tMaxElements = 0;
 
 /*
  * vDestroyPropModList - destroy the property modifier list
@@ -37,12 +36,12 @@ static size_t	tMaxElements = 0;
 void
 vDestroyPropModList(void)
 {
-	size_t	tIndex;
+	size_t tIndex;
 
 	DBG_MSG("vDestroyPropModList");
 
 	/* Free all the elements of the list */
-	for (tIndex = 0; tIndex < tNextFree; tIndex++) {
+	for(tIndex = 0; tIndex < tNextFree; tIndex++) {
 		ppAnchor[tIndex] = xfree(ppAnchor[tIndex]);
 	}
 	/* Free the list itself */
@@ -58,13 +57,13 @@ vDestroyPropModList(void)
 void
 vAdd2PropModList(const UCHAR *aucPropMod)
 {
-	size_t	tSize, tLen;
+	size_t tSize, tLen;
 
 	fail(aucPropMod == NULL);
 
 	NO_DBG_MSG("vAdd2PropModList");
 
-	if (tNextFree >= tMaxElements) {
+	if(tNextFree >= tMaxElements) {
 		tMaxElements += ELEMENTS_TO_ADD;
 		tSize = tMaxElements * sizeof(UCHAR **);
 		ppAnchor = xrealloc(ppAnchor, tSize);
@@ -85,15 +84,15 @@ vAdd2PropModList(const UCHAR *aucPropMod)
 const UCHAR *
 aucReadPropModListItem(USHORT usPropMod)
 {
-	static UCHAR	aucBuffer[4];
-	size_t	tIndex;
+	static UCHAR aucBuffer[4];
+	size_t tIndex;
 
-	if (usPropMod == IGNORE_PROPMOD) {
+	if(usPropMod == IGNORE_PROPMOD) {
 		/* This Properties Modifier must be ignored */
 		return NULL;
 	}
 
-	if (!odd(usPropMod)) {
+	if(!odd(usPropMod)) {
 		/* Variant 1: The information is in the input ifself */
 		aucBuffer[0] = 2;
 		aucBuffer[1] = 0;
@@ -102,14 +101,14 @@ aucReadPropModListItem(USHORT usPropMod)
 		return aucBuffer;
 	}
 
-	if (ppAnchor == NULL) {
+	if(ppAnchor == NULL) {
 		/* No information available */
 		return NULL;
 	}
 
 	/* Variant 2: The input contains an index */
 	tIndex = (size_t)(usPropMod >> 1);
-	if (tIndex >= tNextFree) {
+	if(tIndex >= tNextFree) {
 		DBG_HEX(usPropMod);
 		DBG_DEC(tIndex);
 		DBG_DEC(tNextFree);

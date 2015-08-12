@@ -17,12 +17,12 @@
 /* open, create relative to wiki dir */
 char *wikidir;
 
-static char*
+static char *
 wname(char *s)
 {
 	char *t;
 
-	t = emalloc(strlen(wikidir)+1+strlen(s)+1);
+	t = emalloc(strlen(wikidir) + 1 + strlen(s) + 1);
 	strcpy(t, wikidir);
 	strcat(t, "/");
 	strcat(t, s);
@@ -51,7 +51,7 @@ wcreate(char *fn, int mode, int32_t perm)
 	return rv;
 }
 
-Biobuf*
+Biobuf *
 wBopen(char *fn, int mode)
 {
 	Biobuf *rv;
@@ -73,7 +73,7 @@ waccess(char *fn, int mode)
 	return rv;
 }
 
-Dir*
+Dir *
 wdirstat(char *fn)
 {
 	Dir *d;

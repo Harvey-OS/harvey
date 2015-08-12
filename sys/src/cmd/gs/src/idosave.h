@@ -27,7 +27,7 @@
 /* Supporting procedures for 'save' recording. */
 
 #ifndef idosave_INCLUDED
-#  define idosave_INCLUDED
+#define idosave_INCLUDED
 
 /*
  * Save a change that must be undone by restore.  We have to pass the

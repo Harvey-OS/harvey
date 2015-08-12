@@ -28,7 +28,7 @@
 /* Requires gdevprn.h */
 
 #ifndef gdevppla_INCLUDED
-#  define gdevppla_INCLUDED
+#define gdevppla_INCLUDED
 
 /* Set the buf_procs in a printer device to planar mode. */
 int gdev_prn_set_procs_planar(gx_device *pdev);
@@ -37,9 +37,9 @@ int gdev_prn_set_procs_planar(gx_device *pdev);
 int gdev_prn_open_planar(gx_device *pdev, bool upb);
 
 /* Augment get/put_params to add UsePlanarBuffer. */
-int gdev_prn_get_params_planar(gx_device * pdev, gs_param_list * plist,
+int gdev_prn_get_params_planar(gx_device *pdev, gs_param_list *plist,
 			       bool *pupb);
-int gdev_prn_put_params_planar(gx_device * pdev, gs_param_list * plist,
+int gdev_prn_put_params_planar(gx_device *pdev, gs_param_list *plist,
 			       bool *pupb);
 
 /* Create a planar buffer device. */

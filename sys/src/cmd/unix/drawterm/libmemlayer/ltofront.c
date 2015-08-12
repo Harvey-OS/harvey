@@ -16,8 +16,7 @@
 /*
  * Pull i towards top of screen, just behind front
 */
-static
-void
+static void
 _memltofront(Memimage *i, Memimage *front, int fill)
 {
 	Memlayer *l;
@@ -28,11 +27,11 @@ _memltofront(Memimage *i, Memimage *front, int fill)
 
 	l = i->layer;
 	s = l->screen;
-	while(l->front != front){
+	while(l->front != front) {
 		f = l->front;
 		x = l->screenr;
 		overlap = rectclip(&x, f->layer->screenr);
-		if(overlap){
+		if(overlap) {
 			memlhide(f, x);
 			f->layer->clear = 0;
 		}
@@ -79,7 +78,7 @@ memltofrontn(Memimage **ip, int n)
 	if(n == 0)
 		return;
 	front = nil;
-	while(--n >= 0){
+	while(--n >= 0) {
 		i = *ip++;
 		_memltofront(i, front, 1);
 		front = i;

@@ -10,14 +10,14 @@
 #include <u.h>
 #include <libc.h>
 
-Waitmsg*
+Waitmsg *
 system(char *name, char **argv)
 {
 	char err[ERRMAX];
 	Waitmsg *w;
 	int pid;
 
-	switch(pid = fork()){	/* assign = */
+	switch(pid = fork()) { /* assign = */
 	case -1:
 		return nil;
 	case 0:
@@ -25,7 +25,7 @@ system(char *name, char **argv)
 		errstr(err, sizeof err);
 		_exits(err);
 	}
-	for(;;){
+	for(;;) {
 		w = wait();
 		if(w == nil)
 			break;
@@ -36,8 +36,8 @@ system(char *name, char **argv)
 	return nil;
 }
 
-Waitmsg*
+Waitmsg *
 systeml(char *name, ...)
 {
-	return system(name, &name+1);
+	return system(name, &name + 1);
 }

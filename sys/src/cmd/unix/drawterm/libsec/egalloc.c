@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-EGpub*
+EGpub *
 egpuballoc(void)
 {
 	EGpub *eg;
@@ -32,8 +32,7 @@ egpubfree(EGpub *eg)
 	mpfree(eg->key);
 }
 
-
-EGpriv*
+EGpriv *
 egprivalloc(void)
 {
 	EGpriv *eg;
@@ -55,7 +54,7 @@ egprivfree(EGpriv *eg)
 	mpfree(eg->secret);
 }
 
-EGsig*
+EGsig *
 egsigalloc(void)
 {
 	EGsig *eg;

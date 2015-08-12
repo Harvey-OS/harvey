@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#define  _BSDTIME_EXTENSION
+#define _BSDTIME_EXTENSION
 #include "lib.h"
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -30,7 +30,7 @@ defaultfdinit(void)
 	for(i = 0; i <= 2; i++) {
 		fi = &_fdinfo[i];
 		fi->flags = FD_ISOPEN;
-		fi->oflags = (i == 0)? O_RDONLY : O_WRONLY;
+		fi->oflags = (i == 0) ? O_RDONLY : O_WRONLY;
 		if(_isatty(i))
 			fi->flags |= FD_ISTTY;
 	}
@@ -49,22 +49,22 @@ readprocfdinit(void)
 	pfd = _OPEN("#c/pid", 0);
 	if(pfd < 0)
 		return -1;
-	if(_PREAD(pfd, buf, 100, 0) < 0){
+	if(_PREAD(pfd, buf, 100, 0) < 0) {
 		_CLOSE(pfd);
 		return -1;
 	}
 	_CLOSE(pfd);
 	pid = strtoul(buf, 0, 10);
 	strcpy(buf, "#p/");
-	_ultoa(buf+3, pid);
+	_ultoa(buf + 3, pid);
 	strcat(buf, "/fd");
 	pfd = _OPEN(buf, 0);
 	if(pfd < 0)
 		return -1;
 	memset(buf, 0, sizeof buf);
 	tot = 0;
-	for(;;){
-		n = _PREAD(pfd, buf+tot, sizeof buf-tot, tot);
+	for(;;) {
+		n = _PREAD(pfd, buf + tot, sizeof buf - tot, tot);
 		if(n <= 0)
 			break;
 		tot += n;
@@ -72,13 +72,13 @@ readprocfdinit(void)
 	_CLOSE(pfd);
 	if(n < 0)
 		return -1;
-	buf[sizeof buf-1] = '\0';
-	s = strchr(buf, '\n');	/* skip current directory */
+	buf[sizeof buf - 1] = '\0';
+	s = strchr(buf, '\n'); /* skip current directory */
 	if(s == 0)
 		return -1;
 	s++;
 	m = 0;
-	for(; s && *s; s=nexts){
+	for(; s && *s; s = nexts) {
 		nexts = strchr(s, '\n');
 		if(nexts)
 			*nexts++ = '\0';
@@ -94,20 +94,20 @@ readprocfdinit(void)
 		fi->flags = FD_ISOPEN;
 		while(*s == ' ' || *s == '\t')
 			s++;
-		if(*s == 'r'){
+		if(*s == 'r') {
 			m |= 1;
 			s++;
 		}
-		if(*s == 'w'){
+		if(*s == 'w') {
 			m |= 2;
 		}
-		if(m==1)
+		if(m == 1)
 			fi->oflags = O_RDONLY;
-		else if(m==2)
+		else if(m == 2)
 			fi->oflags = O_WRONLY;
 		else
 			fi->oflags = O_RDWR;
-		if(strlen(s) >= 9 && strcmp(s+strlen(s)-9, "/dev/cons") == 0)
+		if(strlen(s) >= 9 && strcmp(s + strlen(s) - 9, "/dev/cons") == 0)
 			fi->flags |= FD_ISTTY;
 	}
 	return 0;
@@ -120,7 +120,7 @@ sfdinit(int usedproc, char *s, char *se)
 	unsigned long fd, fl, ofl;
 	char *e;
 
-	while(s < se){
+	while(s < se) {
 		fd = strtoul(s, &e, 10);
 		if(s == e)
 			break;
@@ -133,17 +133,16 @@ sfdinit(int usedproc, char *s, char *se)
 		if(s == e)
 			break;
 		s = e;
-		if(fd < OPEN_MAX){
+		if(fd < OPEN_MAX) {
 			fi = &_fdinfo[fd];
-			if(usedproc && !(fi->flags&FD_ISOPEN))
-				continue;	/* should probably ignore all of $_fdinit */
+			if(usedproc && !(fi->flags & FD_ISOPEN))
+				continue; /* should probably ignore all of $_fdinit */
 			fi->flags = fl;
 			fi->oflags = ofl;
 			if(_isatty(fd))
 				fi->flags |= FD_ISTTY;
 		}
 	}
-
 }
 
 void
@@ -156,8 +155,8 @@ _fdinit(char *s, char *se)
 	usedproc = 0;
 	if(readprocfdinit() == 0)
 		usedproc = 1;
-else
-_WRITE(2, "FAILED\n", 7);
+	else
+		_WRITE(2, "FAILED\n", 7);
 	if(s)
 		sfdinit(usedproc, s, se);
 	if(!s && !usedproc)
@@ -165,7 +164,7 @@ _WRITE(2, "FAILED\n", 7);
 
 	for(i = 0; i < OPEN_MAX; i++) {
 		fi = &_fdinfo[i];
-		if(fi->flags&FD_ISOPEN){
+		if(fi->flags & FD_ISOPEN) {
 			if(fstat(i, &sbuf) >= 0) {
 				fi->uid = sbuf.st_uid;
 				fi->gid = sbuf.st_gid;
@@ -173,4 +172,3 @@ _WRITE(2, "FAILED\n", 7);
 		}
 	}
 }
-

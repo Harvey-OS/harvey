@@ -23,12 +23,12 @@ gethostname(char *name, int namelen)
 	fd = open("/dev/sysname", O_RDONLY);
 	if(fd < 0)
 		return -1;
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	close(fd);
 	if(n <= 0)
 		return -1;
 	buf[n] = 0;
 	strncpy(name, buf, namelen);
-	name[namelen-1] = 0;
+	name[namelen - 1] = 0;
 	return 0;
 }

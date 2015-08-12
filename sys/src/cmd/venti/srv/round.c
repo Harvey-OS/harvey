@@ -18,7 +18,7 @@ waitforkick(Round *r)
 
 	qlock(&r->lock);
 	r->last = r->current;
-	assert(r->current+1 == r->next);
+	assert(r->current + 1 == r->next);
 	rwakeupall(&r->finish);
 	while(!r->doanother)
 		rsleep(&r->start);
@@ -37,9 +37,9 @@ _kickround(Round *r, int wait)
 		trace(TraceProc, "kick %s", r->name);
 	r->doanother = 1;
 	rwakeup(&r->start);
-	if(wait){
+	if(wait) {
 		n = r->next;
-		while((int)(n - r->last) > 0){
+		while((int)(n - r->last) > 0) {
 			r->doanother = 1;
 			rwakeup(&r->start);
 			rsleep(&r->finish);
@@ -87,8 +87,8 @@ delaykickroundproc(void *v)
 
 	threadsetname("delaykickproc %s", r->name);
 	qlock(&r->lock);
-	for(;;){
-		while(r->delaykick == 0){
+	for(;;) {
+		while(r->delaykick == 0) {
 			trace(TraceProc, "sleep");
 			rsleep(&r->delaywait);
 		}
@@ -100,7 +100,7 @@ delaykickroundproc(void *v)
 		sleep(r->delaytime);
 
 		qlock(&r->lock);
-		if(n == r->next){
+		if(n == r->next) {
 			trace(TraceProc, "kickround 0x%ux", (uint)n);
 			_kickround(r, 1);
 		}
@@ -108,4 +108,3 @@ delaykickroundproc(void *v)
 		trace(TraceProc, "finishround 0x%ux", (uint)n);
 	}
 }
-

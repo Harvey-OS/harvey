@@ -13,7 +13,7 @@
 #include <plumb.h>
 #include "faces.h"
 
-void*
+void *
 emalloc(uint32_t sz)
 {
 	void *v;
@@ -26,7 +26,7 @@ emalloc(uint32_t sz)
 	return v;
 }
 
-void*
+void *
 erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
@@ -37,7 +37,7 @@ erealloc(void *v, uint32_t sz)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
@@ -47,4 +47,3 @@ estrdup(char *s)
 	}
 	return t;
 }
-

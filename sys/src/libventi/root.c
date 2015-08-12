@@ -34,13 +34,13 @@ vtrootpack(VtRoot *r, uint8_t *p)
 	memmove(p, r->type, sizeof(r->type));
 	p += sizeof(r->type);
 	memmove(p, r->score, VtScoreSize);
-	p +=  VtScoreSize;
+	p += VtScoreSize;
 	U16PUT(p, r->blocksize);
 	p += 2;
 	memmove(p, r->prev, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtRootSize);
+	assert(p - op == VtRootSize);
 }
 
 int
@@ -57,13 +57,13 @@ vtrootunpack(VtRoot *r, uint8_t *p)
 	}
 	p += 2;
 	memmove(r->name, p, sizeof(r->name));
-	r->name[sizeof(r->name)-1] = 0;
+	r->name[sizeof(r->name) - 1] = 0;
 	p += sizeof(r->name);
 	memmove(r->type, p, sizeof(r->type));
-	r->type[sizeof(r->type)-1] = 0;
+	r->type[sizeof(r->type) - 1] = 0;
 	p += sizeof(r->type);
 	memmove(r->score, p, VtScoreSize);
-	p +=  VtScoreSize;
+	p += VtScoreSize;
 	r->blocksize = U16GET(p);
 	if(checksize(r->blocksize) < 0)
 		return -1;
@@ -71,6 +71,6 @@ vtrootunpack(VtRoot *r, uint8_t *p)
 	memmove(r->prev, p, VtScoreSize);
 	p += VtScoreSize;
 
-	assert(p-op == VtRootSize);
+	assert(p - op == VtRootSize);
 	return 0;
 }

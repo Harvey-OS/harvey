@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-enum	/* face strings */
+enum /* face strings */
 {
 	Suser,
 	Sdomain,
@@ -16,60 +16,57 @@ enum	/* face strings */
 	Nstring
 };
 
-enum
-{
+enum {
 	Facesize = 48,
 };
 
-typedef struct Face		Face;
-typedef struct Facefile	Facefile;
+typedef struct Face Face;
+typedef struct Facefile Facefile;
 
-struct Face
-{
-	Image	*bit;		/* unless there's an error, this is file->image */
-	Image	*mask;	/* unless there's an error, this is file->mask */
-	char		*str[Nstring];
-	int		recent;
-	uint32_t	time;
-	Tm		tm;
-	int		unknown;
-	Facefile	*file;
+struct Face {
+	Image *bit;  /* unless there's an error, this is file->image */
+	Image *mask; /* unless there's an error, this is file->mask */
+	char *str[Nstring];
+	int recent;
+	uint32_t time;
+	Tm tm;
+	int unknown;
+	Facefile *file;
 };
 
 /*
  * Loading the files is slow enough on a dial-up line to be worth this trouble
  */
-struct Facefile
-{
-	Image	*image;
-	Image	*mask;
-	uint32_t	mtime;
-	uint32_t	rdtime;
-	int		ref;
-	char		*file;
-	Facefile	*next;
+struct Facefile {
+	Image *image;
+	Image *mask;
+	uint32_t mtime;
+	uint32_t rdtime;
+	int ref;
+	char *file;
+	Facefile *next;
 };
 
-extern char	date[];
-extern char	*maildir;
-extern char	**maildirs;
-extern int	nmaildirs;
+extern char date[];
+extern char *maildir;
+extern char **maildirs;
+extern int nmaildirs;
 
-Face*	nextface(void);
-void	findbit(Face*);
-void	freeface(Face*);
-void	initplumb(void);
-void	killall(char*);
-void	showmail(Face*);
-void	delete(char*, char*);
-void	freefacefile(Facefile*);
-Face*	dirface(char*, char*);
-void	resized(void);
-int	alreadyseen(char*);
-uint32_t	dirlen(char*);
+Face *nextface(void);
+void findbit(Face *);
+void freeface(Face *);
+void initplumb(void);
+void killall(char *);
+void showmail(Face *);
+void delete(char *, char *);
+void freefacefile(Facefile *);
+Face *dirface(char *, char *);
+void resized(void);
+int alreadyseen(char *);
+uint32_t dirlen(char *);
 
-void	*emalloc(uint32_t);
-void	*erealloc(void*, uint32_t);
-char	*estrdup(char*);
-char	*findfile(Face*, char*, char*);
-void	addmaildir(char*);
+void *emalloc(uint32_t);
+void *erealloc(void *, uint32_t);
+char *estrdup(char *);
+char *findfile(Face *, char *, char *);
+void addmaildir(char *);

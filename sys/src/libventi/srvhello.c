@@ -20,23 +20,23 @@ vtsrvhello(VtConn *z)
 	if((p = vtrecv(z)) == nil)
 		return -1;
 
-	if(vtfcallunpack(&tx, p) < 0){
+	if(vtfcallunpack(&tx, p) < 0) {
 		packetfree(p);
 		return -1;
 	}
 	packetfree(p);
 
-	if(tx.msgtype != VtThello){
+	if(tx.msgtype != VtThello) {
 		vtfcallclear(&tx);
 		werrstr("bad packet type %d; want Thello %d", tx.msgtype, VtThello);
 		return -1;
 	}
-	if(tx.tag != 0){
+	if(tx.tag != 0) {
 		vtfcallclear(&tx);
 		werrstr("bad tag in hello");
 		return -1;
 	}
-	if(strcmp(tx.version, z->version) != 0){
+	if(strcmp(tx.version, z->version) != 0) {
 		vtfcallclear(&tx);
 		werrstr("bad version in hello");
 		return -1;

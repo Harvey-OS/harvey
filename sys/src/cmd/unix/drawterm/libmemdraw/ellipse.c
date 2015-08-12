@@ -25,21 +25,21 @@
  *   where x = b/a
  */
 
-typedef struct Param	Param;
-typedef struct State	State;
+typedef struct Param Param;
+typedef struct State State;
 
-static	void	bellipse(int, State*, Param*);
-static	void	erect(int, int, int, int, Param*);
-static	void	eline(int, int, int, int, Param*);
+static void bellipse(int, State *, Param *);
+static void erect(int, int, int, int, Param *);
+static void eline(int, int, int, int, Param *);
 
 struct Param {
-	Memimage	*dst;
-	Memimage	*src;
-	Point			c;
-	int			t;
-	Point			sp;
-	Memimage	*disc;
-	int			op;
+	Memimage *dst;
+	Memimage *src;
+	Point c;
+	int t;
+	Point sp;
+	Memimage *disc;
+	int op;
 };
 
 /*
@@ -48,69 +48,67 @@ struct Param {
  */
 
 struct State {
-	int	a;
-	int	x;
-	int64_t	a2;	/* a^2 */
-	int64_t	b2;	/* b^2 */
-	int64_t	b2x;	/* b^2 * x */
-	int64_t	a2y;	/* a^2 * y */
-	int64_t	c1;
-	int64_t	c2;	/* test criteria */
-	int64_t	ee;	/* ee = e(x+1/2,y-1/2) - (a^2+b^2)/4 */
-	int64_t	dxe;
-	int64_t	dye;
-	int64_t	d2xe;
-	int64_t	d2ye;
+	int a;
+	int x;
+	int64_t a2;  /* a^2 */
+	int64_t b2;  /* b^2 */
+	int64_t b2x; /* b^2 * x */
+	int64_t a2y; /* a^2 * y */
+	int64_t c1;
+	int64_t c2; /* test criteria */
+	int64_t ee; /* ee = e(x+1/2,y-1/2) - (a^2+b^2)/4 */
+	int64_t dxe;
+	int64_t dye;
+	int64_t d2xe;
+	int64_t d2ye;
 };
 
-static
-State*
+static State *
 newstate(State *s, int a, int b)
 {
 	s->x = 0;
 	s->a = a;
-	s->a2 = (int64_t)(a*a);
-	s->b2 = (int64_t)(b*b);
+	s->a2 = (int64_t)(a * a);
+	s->b2 = (int64_t)(b * b);
 	s->b2x = (int64_t)0;
-	s->a2y = s->a2*(int64_t)b;
-	s->c1 = -((s->a2>>2) + (int64_t)(a&1) + s->b2);
-	s->c2 = -((s->b2>>2) + (int64_t)(b&1));
+	s->a2y = s->a2 * (int64_t)b;
+	s->c1 = -((s->a2 >> 2) + (int64_t)(a & 1) + s->b2);
+	s->c2 = -((s->b2 >> 2) + (int64_t)(b & 1));
 	s->ee = -s->a2y;
 	s->dxe = (int64_t)0;
-	s->dye = s->ee<<1;
-	s->d2xe = s->b2<<1;
-	s->d2ye = s->a2<<1;
+	s->dye = s->ee << 1;
+	s->d2xe = s->b2 << 1;
+	s->d2ye = s->a2 << 1;
 	return s;
 }
 
 /*
  * return x coord of rightmost pixel on next scan line
  */
-static
-int
+static int
 step(State *s)
 {
 	while(s->x < s->a) {
-		if(s->ee+s->b2x <= s->c1 ||	/* e(x+1,y-1/2) <= 0 */
-		   s->ee+s->a2y <= s->c2) {	/* e(x+1/2,y) <= 0 (rare) */
-			s->dxe += s->d2xe;	  
-			s->ee += s->dxe;	  
+		if(s->ee + s->b2x <= s->c1 || /* e(x+1,y-1/2) <= 0 */
+		   s->ee + s->a2y <= s->c2) { /* e(x+1/2,y) <= 0 (rare) */
+			s->dxe += s->d2xe;
+			s->ee += s->dxe;
 			s->b2x += s->b2;
-			s->x++;	  
+			s->x++;
 			continue;
 		}
-		s->dye += s->d2ye;	  
-		s->ee += s->dye;	  
+		s->dye += s->d2ye;
+		s->ee += s->dye;
 		s->a2y -= s->a2;
-		if(s->ee-s->a2y <= s->c2) {	/* e(x+1/2,y-1) <= 0 */
-			s->dxe += s->d2xe;	  
-			s->ee += s->dxe;	  
+		if(s->ee - s->a2y <= s->c2) { /* e(x+1/2,y-1) <= 0 */
+			s->dxe += s->d2xe;
+			s->ee += s->dxe;
 			s->b2x += s->b2;
 			return s->x++;
 		}
 		break;
 	}
-	return s->x;	  
+	return s->x;
 }
 
 void
@@ -132,9 +130,9 @@ memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp,
 	p.disc = nil;
 	p.op = op;
 
-	u = (t<<1)*(a-b);
-	if((b<a && u>b*b) || (a<b && -u>a*a)) {
-/*	if(b<a&&(t<<1)>b*b/a || a<b&&(t<<1)>a*a/b)	# very thick */
+	u = (t << 1) * (a - b);
+	if((b < a && u > b * b) || (a < b && -u > a * a)) {
+		/*	if(b<a&&(t<<1)>b*b/a || a<b&&(t<<1)>a*a/b)	# very thick */
 		bellipse(b, newstate(&in, a, b), &p);
 		return;
 	}
@@ -142,14 +140,14 @@ memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp,
 	if(t < 0) {
 		inb = -1;
 		newstate(&out, a, y = b);
-	} else {	
+	} else {
 		inb = b - t;
-		newstate(&out, a+t, y = b+t);
+		newstate(&out, a + t, y = b + t);
 	}
 	if(t > 0)
-		newstate(&in, a-t, inb);
+		newstate(&in, a - t, inb);
 	inx = 0;
-	for( ; y>=0; y--) {
+	for(; y >= 0; y--) {
 		outx = step(&out);
 		if(y > inb) {
 			erect(-outx, y, outx, y, &p);
@@ -178,14 +176,13 @@ static Point p00 = {0, 0};
 /*
  * a brushed ellipse
  */
-static
-void
+static void
 bellipse(int y, State *s, Param *p)
 {
 	int t, ox, oy, x, nx;
 
 	t = p->t;
-	p->disc = allocmemimage(Rect(-t,-t,t+1,t+1), GREY1);
+	p->disc = allocmemimage(Rect(-t, -t, t + 1, t + 1), GREY1);
 	if(p->disc == nil)
 		return;
 	memfillcolor(p->disc, DTransparent);
@@ -194,14 +191,14 @@ bellipse(int y, State *s, Param *p)
 	ox = 0;
 	nx = x = step(s);
 	do {
-		while(nx==x && y-->0)
+		while(nx == x && y-- > 0)
 			nx = step(s);
 		y++;
-		eline(-x,-oy,-ox, -y, p);
-		eline(ox,-oy,  x, -y, p);
-		eline(-x,  y,-ox, oy, p);
-		eline(ox,  y,  x, oy, p);
-		ox = x+1;
+		eline(-x, -oy, -ox, -y, p);
+		eline(ox, -oy, x, -y, p);
+		eline(-x, y, -ox, oy, p);
+		eline(ox, y, x, oy, p);
+		ox = x + 1;
 		x = nx;
 		y--;
 		oy = y;
@@ -212,29 +209,27 @@ bellipse(int y, State *s, Param *p)
  * a rectangle with closed (not half-open) coordinates expressed
  * relative to the center of the ellipse
  */
-static
-void
+static void
 erect(int x0, int y0, int x1, int y1, Param *p)
 {
 	Rectangle r;
 
-/*	print("R %d,%d %d,%d\n", x0, y0, x1, y1); */
-	r = Rect(p->c.x+x0, p->c.y+y0, p->c.x+x1+1, p->c.y+y1+1);
+	/*	print("R %d,%d %d,%d\n", x0, y0, x1, y1); */
+	r = Rect(p->c.x + x0, p->c.y + y0, p->c.x + x1 + 1, p->c.y + y1 + 1);
 	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), memopaque, p00, p->op);
 }
 
 /*
  * a brushed point similarly specified
  */
-static
-void
+static void
 epoint(int x, int y, Param *p)
 {
 	Point p0;
 	Rectangle r;
 
-/*	print("P%d %d,%d\n", p->t, x, y);	*/
-	p0 = Pt(p->c.x+x, p->c.y+y);
+	/*	print("P%d %d,%d\n", p->t, x, y);	*/
+	p0 = Pt(p->c.x + x, p->c.y + y);
 	r = Rpt(addpt(p0, p->disc->r.min), addpt(p0, p->disc->r.max));
 	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), p->disc, p->disc->r.min, p->op);
 }
@@ -242,16 +237,15 @@ epoint(int x, int y, Param *p)
 /* 
  * a brushed horizontal or vertical line similarly specified
  */
-static
-void
+static void
 eline(int x0, int y0, int x1, int y1, Param *p)
 {
-/*	print("L%d %d,%d %d,%d\n", p->t, x0, y0, x1, y1); */
-	if(x1 > x0+1)
-		erect(x0+1, y0-p->t, x1-1, y1+p->t, p);
-	else if(y1 > y0+1)
-		erect(x0-p->t, y0+1, x1+p->t, y1-1, p);
+	/*	print("L%d %d,%d %d,%d\n", p->t, x0, y0, x1, y1); */
+	if(x1 > x0 + 1)
+		erect(x0 + 1, y0 - p->t, x1 - 1, y1 + p->t, p);
+	else if(y1 > y0 + 1)
+		erect(x0 - p->t, y0 + 1, x1 + p->t, y1 - 1, p);
 	epoint(x0, y0, p);
-	if(x1-x0 || y1-y0)
+	if(x1 - x0 || y1 - y0)
 		epoint(x1, y1, p);
 }

@@ -14,8 +14,8 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-void	install(char*, char*, char*, int32_t, int);
-int	exists (char*, char*);
+void install(char *, char *, char *, int32_t, int);
+int exists(char *, char *);
 
 void
 usage(void)
@@ -33,11 +33,12 @@ main(int argc, char *argv[])
 	Acctbio a;
 	Fs *f;
 
-	srand(getpid()*time(0));
+	srand(getpid() * time(0));
 	fmtinstall('K', keyfmt);
 
 	which = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		which |= Plan9;
 		break;
@@ -46,7 +47,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	argv0 = "changeuser";
 
 	if(argc != 1)
@@ -61,10 +63,10 @@ main(int argc, char *argv[])
 	newbio = 0;
 	t = 0;
 	a.user = 0;
-	if(which & Plan9){
+	if(which & Plan9) {
 		f = &fs[Plan9];
 		newkey = 1;
-		if(exists(f->keys, u)){
+		if(exists(f->keys, u)) {
 			readln("assign new password? [y/n]: ", answer, sizeof answer, 0);
 			if(answer[0] != 'y' && answer[0] != 'Y')
 				newkey = 0;
@@ -82,18 +84,18 @@ main(int argc, char *argv[])
 		print("user %s installed for Plan 9\n", u);
 		syslog(0, AUTHLOG, "user %s installed for plan 9", u);
 	}
-	if(which & Securenet){
+	if(which & Securenet) {
 		f = &fs[Securenet];
 		newkey = 1;
-		if(exists(f->keys, u)){
+		if(exists(f->keys, u)) {
 			readln("assign new key? [y/n]: ", answer, sizeof answer, 0);
 			if(answer[0] != 'y' && answer[0] != 'Y')
 				newkey = 0;
 		}
 		if(newkey)
-			for(i=0; i<DESKEYLEN; i++)
+			for(i = 0; i < DESKEYLEN; i++)
 				key[i] = nrand(256);
-		if(a.user == 0){
+		if(a.user == 0) {
 			t = getexpiration(f->keys, u);
 			newbio = querybio(f->who, u, &a);
 		}
@@ -113,18 +115,18 @@ main(int argc, char *argv[])
 void
 install(char *db, char *u, char *key, int32_t t, int newkey)
 {
-	char buf[KEYDBBUF+ANAMELEN+20];
+	char buf[KEYDBBUF + ANAMELEN + 20];
 	int fd;
 
-	if(!exists(db, u)){
+	if(!exists(db, u)) {
 		snprint(buf, sizeof buf, "%s/%s", db, u);
-		fd = create(buf, OREAD, 0777|DMDIR);
+		fd = create(buf, OREAD, 0777 | DMDIR);
 		if(fd < 0)
 			error("can't create user %s: %r", u);
 		close(fd);
 	}
 
-	if(newkey){
+	if(newkey) {
 		snprint(buf, sizeof buf, "%s/%s/key", db, u);
 		fd = open(buf, OWRITE);
 		if(fd < 0 || write(fd, key, DESKEYLEN) != DESKEYLEN)
@@ -144,7 +146,7 @@ install(char *db, char *u, char *key, int32_t t, int newkey)
 int
 exists(char *db, char *u)
 {
-	char buf[KEYDBBUF+ANAMELEN+6];
+	char buf[KEYDBBUF + ANAMELEN + 6];
 
 	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
 	if(access(buf, 0) < 0)

@@ -16,21 +16,22 @@
 Hio *HO;
 int diffb;
 
-enum{ DAY = 24*60*60 };
+enum { DAY = 24 * 60 * 60 };
 
 void
 lastbefore(uint32_t t, char *f, char *b)
 {
 	Tm *tm;
 	Dir *dir;
-	int try;
+	int try
+		;
 	uint32_t t0, mtime;
 
 	t0 = t;
-	for(try=0; try<10; try++) {
+	for(try = 0; try < 10; try ++) {
 		tm = localtime(t);
 		t -= DAY;
-		sprint(b,"%.4d/%.2d%.2d/netlib/pub/%s",tm->year+1900,tm->mon+1,tm->mday,f);
+		sprint(b, "%.4d/%.2d%.2d/netlib/pub/%s", tm->year + 1900, tm->mon + 1, tm->mday, f);
 		dir = dirstat(b);
 		if(dir == nil)
 			continue;
@@ -50,9 +51,9 @@ gunzip(char *f, char *tmp)
 {
 	int fd = open(tmp, OWRITE);
 
-	if(fd < 0)  // can't happen
+	if(fd < 0) // can't happen
 		return;
-	switch(fork()){
+	switch(fork()) {
 	case 0:
 		dup(fd, 1);
 		close(fd);
@@ -80,13 +81,13 @@ netlibhistory(char *file)
 	int i, fd, tmpcnt;
 
 	if(strncmp(file, "../", 3) == 0 || strstr(file, "/../") ||
-		strlen(file) >= sizeof(buf) - strlen("1997/0204/netlib/pub/0"))
+	   strlen(file) >= sizeof(buf) - strlen("1997/0204/netlib/pub/0"))
 		return;
 	limit = 50;
-	if(diffb){
+	if(diffb) {
 		limit = 10;
 		// create two tmp files for gunzip
-		for(i = 0, tmpcnt = 0; i < 2 && tmpcnt < 20; tmpcnt++){
+		for(i = 0, tmpcnt = 0; i < 2 && tmpcnt < 20; tmpcnt++) {
 			snprint(tmpf[i], sizeof(tmpf[0]), "/tmp/d%x", tmpcnt);
 			if(access(buf, AEXIST) == 0)
 				continue;
@@ -98,34 +99,34 @@ netlibhistory(char *file)
 		}
 	}
 	otime = time(0);
-	hprint(HO,"<UL>\n");
-	while(limit--){
+	hprint(HO, "<UL>\n");
+	while(limit--) {
 		lastbefore(otime, file, buf);
 		dir = dirstat(buf);
 		if(dir == nil)
 			goto done;
-		dt = DAY/2;
-		while(otime <= dir->mtime){
-			lastbefore(otime-dt, file, buf);
+		dt = DAY / 2;
+		while(otime <= dir->mtime) {
+			lastbefore(otime - dt, file, buf);
 			free(dir);
 			dir = dirstat(buf);
 			if(dir == nil)
 				goto done;
-			dt += DAY/2;
+			dt += DAY / 2;
 		}
 		f = pair[toggle];
 		strcpy(f, buf);
-		if(diffb && strcmp(f+strlen(f)-3, ".gz") == 0){
+		if(diffb && strcmp(f + strlen(f) - 3, ".gz") == 0) {
 			gunzip(f, tmpf[toggle]);
 			strcpy(f, tmpf[toggle]);
 		}
-		if(diffb && started){
+		if(diffb && started) {
 			hprint(HO, "<PRE>\n");
 			hflush(HO);
-			switch(fork()){
+			switch(fork()) {
 			case 0:
 				execl("/bin/diff", "diff", "-nb",
-					pair[1-toggle], pair[toggle], nil);
+				      pair[1 - toggle], pair[toggle], nil);
 				hprint(HO, "can't exec diff: %r\n");
 				break;
 			case -1:
@@ -138,19 +139,19 @@ netlibhistory(char *file)
 			}
 			hprint(HO, "</PRE>\n");
 		}
-		hprint(HO,"<LI><A HREF=\"/historic/%s\">%s</A> %lld bytes\n",
-			buf, 4+asctime(gmtime(dir->mtime)), dir->length);
+		hprint(HO, "<LI><A HREF=\"/historic/%s\">%s</A> %lld bytes\n",
+		       buf, 4 + asctime(gmtime(dir->mtime)), dir->length);
 		if(diffb)
-			hprint(HO," <FONT SIZE=-1>(%s)</FONT>\n", pair[toggle]);
-		toggle = 1-toggle;
+			hprint(HO, " <FONT SIZE=-1>(%s)</FONT>\n", pair[toggle]);
+		toggle = 1 - toggle;
 		started = 1;
 		otime = dir->mtime;
 		free(dir);
 	}
-	hprint(HO,"<LI>...\n");
+	hprint(HO, "<LI>...\n");
 done:
-	hprint(HO,"</UL>\n");
-	if(diffb){
+	hprint(HO, "</UL>\n");
+	if(diffb) {
 		remove(tmpf[0]);
 		remove(tmpf[1]);
 	}
@@ -172,7 +173,7 @@ send(HConnect *c)
 	while((s = strchr(s, '+')) != nil)
 		*s++ = ' ';
 	file = nil;
-	for(q = hparsequery(c, hstrdup(c, c->req.search)); q; q = q->next){
+	for(q = hparsequery(c, hstrdup(c, c->req.search)); q; q = q->next) {
 		if(strcmp(q->s, "file") == 0)
 			file = q->t;
 		else if(strcmp(q->s, "diff") == 0)
@@ -180,25 +181,25 @@ send(HConnect *c)
 	}
 	if(file == nil)
 		return hfail(c, HNoData, "netlib_history missing file field");
-	logit(c, "netlib_hist %s%s", file, diffb?" DIFF":"");
+	logit(c, "netlib_hist %s%s", file, diffb ? " DIFF" : "");
 
-	if(c->req.vermaj){
+	if(c->req.vermaj) {
 		hokheaders(c);
 		hprint(HO, "Content-type: text/html\r\n");
 		hprint(HO, "\r\n");
 	}
-	if(strcmp(c->req.meth, "HEAD") == 0){
+	if(strcmp(c->req.meth, "HEAD") == 0) {
 		writelog(c, "Reply: 200 netlib_history 0\n");
 		hflush(HO);
 		exits(nil);
 	}
 
-	hprint(HO, "<HEAD><TITLE>%s history</TITLE></HEAD>\n<BODY>\n",file);
-	hprint(HO, "<H2>%s history</H2>\n",file);
+	hprint(HO, "<HEAD><TITLE>%s history</TITLE></HEAD>\n<BODY>\n", file);
+	hprint(HO, "<H2>%s history</H2>\n", file);
 	hprint(HO, "<I>Netlib's copy of %s was changed\n", file);
 	hprint(HO, "on the dates shown.  <BR>Click on the date link\n");
 	hprint(HO, "to retrieve the corresponding version.</I>\n");
-	if(diffb){
+	if(diffb) {
 		hprint(HO, "<BR><I>Lines beginning with &lt; are for the\n");
 		hprint(HO, "newer of the two versions.</I>\n");
 	}

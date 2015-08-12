@@ -31,7 +31,7 @@ Xversion(Fsrpc *t)
 	if(t->work.msize > messagesize)
 		t->work.msize = messagesize;
 	messagesize = t->work.msize;
-	if(strncmp(t->work.version, "9P2000", 6) != 0){
+	if(strncmp(t->work.version, "9P2000", 6) != 0) {
 		reply(&t->work, &rhdr, Eversion);
 		return;
 	}
@@ -92,15 +92,15 @@ Xattach(Fsrpc *t)
 		return;
 	}
 
-	if(srvfd >= 0){
-		if(psmpt == 0){
+	if(srvfd >= 0) {
+		if(psmpt == 0) {
 		Nomount:
 			reply(&t->work, &rhdr, Enopsmt);
 			t->busy = 0;
 			freefid(t->work.fid);
 			return;
 		}
-		for(i=0; i<Npsmpt; i++)
+		for(i = 0; i < Npsmpt; i++)
 			if(psmap[i] == 0)
 				break;
 		if(i >= Npsmpt)
@@ -111,7 +111,7 @@ Xattach(Fsrpc *t)
 			goto Nomount;
 		sprint(buf, "/mnt/exportfs/%d", i);
 		nfd = dup(srvfd, -1);
-		if(amount(nfd, buf, MREPL|MCREATE, t->work.aname) < 0){
+		if(amount(nfd, buf, MREPL | MCREATE, t->work.aname) < 0) {
 			errstr(buf, sizeof buf);
 			reply(&t->work, &rhdr, buf);
 			t->busy = 0;
@@ -121,7 +121,7 @@ Xattach(Fsrpc *t)
 		}
 		psmap[i] = 1;
 		f->mid = i;
-	}else{
+	} else {
 		f->f = root;
 		f->f->ref++;
 	}
@@ -131,7 +131,7 @@ Xattach(Fsrpc *t)
 	t->busy = 0;
 }
 
-Fid*
+Fid *
 clonefid(Fid *f, int new)
 {
 	Fid *n;
@@ -170,15 +170,15 @@ Xwalk(Fsrpc *t)
 	}
 
 	nf = nil;
-	if(t->work.newfid != t->work.fid){
+	if(t->work.newfid != t->work.fid) {
 		nf = clonefid(f, t->work.newfid);
 		f = nf;
 	}
 
 	rhdr.nwqid = 0;
 	e = nil;
-	for(i=0; i<t->work.nwname; i++){
-		if(i == MAXWELEM){
+	for(i = 0; i < t->work.nwname; i++) {
+		if(i == MAXWELEM) {
 			e = "too many path elements";
 			break;
 		}
@@ -192,21 +192,21 @@ Xwalk(Fsrpc *t)
 			wf->ref++;
 			goto Accept;
 		}
-	
+
 		wf = file(f->f, t->work.wname[i]);
-		if(wf == 0){
+		if(wf == 0) {
 			errstr(err, sizeof err);
 			e = err;
 			break;
 		}
-    Accept:
+	Accept:
 		freefile(f->f);
 		rhdr.wqid[rhdr.nwqid++] = wf->qid;
 		f->f = wf;
 		continue;
 	}
 
-	if(nf!=nil && (e!=nil || rhdr.nwqid!=t->work.nwname))
+	if(nf != nil && (e != nil || rhdr.nwqid != t->work.nwname))
 		freefid(t->work.newfid);
 	if(rhdr.nwqid > 0)
 		e = nil;
@@ -284,8 +284,8 @@ getiounit(int fd)
 	int n;
 
 	n = iounit(fd);
-	if(n > messagesize-IOHDRSZ)
-		n = messagesize-IOHDRSZ;
+	if(n > messagesize - IOHDRSZ)
+		n = messagesize - IOHDRSZ;
 	return n;
 }
 
@@ -308,7 +308,6 @@ Xcreate(Fsrpc *t)
 		t->busy = 0;
 		return;
 	}
-	
 
 	path = makepath(f->f, t->work.name);
 	f->fid = create(path, t->work.mode, t->work.perm);
@@ -397,8 +396,8 @@ Xwstat(Fsrpc *t)
 		t->busy = 0;
 		return;
 	}
-	strings = emallocz(t->work.nstat);	/* ample */
-	if(convM2D(t->work.stat, t->work.nstat, &d, strings) <= BIT16SZ){
+	strings = emallocz(t->work.nstat); /* ample */
+	if(convM2D(t->work.stat, t->work.nstat, &d, strings) <= BIT16SZ) {
 		rerrstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
 		t->busy = 0;
@@ -416,10 +415,9 @@ Xwstat(Fsrpc *t)
 	if(s < 0) {
 		rerrstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-	}
-	else {
+	} else {
 		/* wstat may really be rename */
-		if(strcmp(d.name, f->f->name)!=0 && strcmp(d.name, "")!=0){
+		if(strcmp(d.name, f->f->name) != 0 && strcmp(d.name, "") != 0) {
 			free(f->f->name);
 			f->f->name = estrdup(d.name);
 		}
@@ -444,11 +442,11 @@ procsetname(char *fmt, ...)
 	va_start(arg, fmt);
 	cmdname = vsmprint(fmt, arg);
 	va_end(arg);
-	if (cmdname == nil)
+	if(cmdname == nil)
 		return;
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
-		write(fd, cmdname, strlen(cmdname)+1);
+	if((fd = open(buf, OWRITE)) >= 0) {
+		write(fd, cmdname, strlen(cmdname) + 1);
 		close(fd);
 	}
 	free(cmdname);
@@ -462,14 +460,14 @@ slave(Fsrpc *f)
 	Fcall rhdr;
 	static int nproc;
 
-	if(readonly){
-		switch(f->work.type){
+	if(readonly) {
+		switch(f->work.type) {
 		case Twrite:
 			reply(&f->work, &rhdr, Ereadonly);
 			f->busy = 0;
 			return;
 		case Topen:
-		  	if((f->work.mode&3) == OWRITE || (f->work.mode&OTRUNC)){
+			if((f->work.mode & 3) == OWRITE || (f->work.mode & OTRUNC)) {
 				reply(&f->work, &rhdr, Ereadonly);
 				f->busy = 0;
 				return;
@@ -481,26 +479,26 @@ slave(Fsrpc *f)
 			if(p->busy == 0) {
 				f->pid = p->pid;
 				p->busy = 1;
-				pid = (uintptr)rendezvous((void*)p->pid, f);
+				pid = (uintptr)rendezvous((void *)p->pid, f);
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
-			}	
+			}
 		}
 
 		if(++nproc > MAXPROC)
 			fatal("too many procs");
 
-		pid = rfork(RFPROC|RFMEM);
+		pid = rfork(RFPROC | RFMEM);
 		switch(pid) {
 		case -1:
 			fatal("rfork");
 
 		case 0:
-			if (local[0] != '\0')
-				if (netdir[0] != '\0')
-					procsetname("%s: %s -> %s", netdir, 
-						local, remote);
+			if(local[0] != '\0')
+				if(netdir[0] != '\0')
+					procsetname("%s: %s -> %s", netdir,
+						    local, remote);
 				else
 					procsetname("%s -> %s", local, remote);
 			blockingslave();
@@ -516,7 +514,7 @@ slave(Fsrpc *f)
 			p->next = Proclist;
 			Proclist = p;
 
-			rendezvous((void*)pid, p);
+			rendezvous((void *)pid, p);
 		}
 	}
 }
@@ -533,11 +531,11 @@ blockingslave(void)
 
 	pid = getpid();
 
-	m = rendezvous((void*)pid, 0);
-	
+	m = rendezvous((void *)pid, 0);
+
 	for(;;) {
-		p = rendezvous((void*)pid, (void*)pid);
-		if(p == (void*)~0)			/* Interrupted */
+		p = rendezvous((void *)pid, (void *)pid);
+		if(p == (void *)~0) /* Interrupted */
 			continue;
 
 		DEBUG(DFD, "\tslave: %p %F b %d p %p\n", pid, &p->work, p->busy, p->pid);
@@ -561,7 +559,7 @@ blockingslave(void)
 			reply(&p->work, &rhdr, "exportfs: slave type error");
 		}
 		if(p->flushtag != NOTAG) {
-flushme:
+		flushme:
 			p->work.type = Tflush;
 			p->work.tag = p->flushtag;
 			reply(&p->work, &rhdr, 0);
@@ -580,7 +578,7 @@ openmount(int sfd)
 	if(pipe(p) < 0)
 		return -1;
 
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT|RFNAMEG|RFFDG)){
+	switch(rfork(RFPROC | RFMEM | RFNOWAIT | RFNAMEG | RFFDG)) {
 	case -1:
 		return -1;
 
@@ -598,7 +596,7 @@ openmount(int sfd)
 	arg[0] = "exportfs";
 	snprint(fdbuf, sizeof fdbuf, "-S/fd/%d", sfd);
 	arg[1] = fdbuf;
-	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize-IOHDRSZ);
+	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize - IOHDRSZ);
 	arg[2] = mbuf;
 	arg[3] = nil;
 
@@ -607,7 +605,7 @@ openmount(int sfd)
 	dup(p[0], 0);
 	dup(p[0], 1);
 	exec("/bin/exportfs", arg);
-	_exits("whoops: exec failed");	
+	_exits("whoops: exec failed");
 	return -1;
 }
 
@@ -630,12 +628,12 @@ slaveopen(Fsrpc *p)
 		close(f->fid);
 		f->fid = -1;
 	}
-	
+
 	path = makepath(f->f, "");
 	DEBUG(DFD, "\topen: %s %d\n", path, work->mode);
 
 	p->canint = 1;
-	if(p->flushtag != NOTAG){
+	if(p->flushtag != NOTAG) {
 		free(path);
 		return;
 	}
@@ -651,7 +649,7 @@ slaveopen(Fsrpc *p)
 	}
 	f->f->qid = d->qid;
 	free(d);
-	if(f->f->qid.type & QTMOUNT){	/* fork new exportfs for this */
+	if(f->f->qid.type & QTMOUNT) { /* fork new exportfs for this */
 		f->fid = openmount(f->fid);
 		if(f->fid < 0)
 			goto Error;
@@ -681,7 +679,7 @@ slaveread(Fsrpc *p)
 		return;
 	}
 
-	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;
+	n = (work->count > messagesize - IOHDRSZ) ? messagesize - IOHDRSZ : work->count;
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;
@@ -690,8 +688,8 @@ slaveread(Fsrpc *p)
 		fatal(Enomem);
 
 	/* can't just call pread, since directories must update the offset */
-	if(patternfile != nil && (f->f->qid.type&QTDIR))
-		r = preaddir(f, (uint8_t*)data, n, work->offset);
+	if(patternfile != nil && (f->f->qid.type & QTDIR))
+		r = preaddir(f, (uint8_t *)data, n, work->offset);
 	else
 		r = pread(f->fid, data, n, work->offset);
 	p->canint = 0;
@@ -726,7 +724,7 @@ slavewrite(Fsrpc *p)
 		return;
 	}
 
-	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;
+	n = (work->count > messagesize - IOHDRSZ) ? messagesize - IOHDRSZ : work->count;
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;

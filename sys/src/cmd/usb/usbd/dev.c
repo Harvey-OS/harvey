@@ -25,7 +25,7 @@
 
 static Lock masklck;
 extern Devtab devtab[];
-static char* cputype;
+static char *cputype;
 
 int
 getdevnb(uint64_t *maskp)
@@ -34,8 +34,8 @@ getdevnb(uint64_t *maskp)
 
 	lock(&masklck);
 	for(i = 0; i < 8 * sizeof *maskp; i++)
-		if((*maskp & (1ULL<<i)) == 0){
-			*maskp |= 1ULL<<i;
+		if((*maskp & (1ULL << i)) == 0) {
+			*maskp |= 1ULL << i;
 			unlock(&masklck);
 			return i;
 		}
@@ -48,22 +48,22 @@ putdevnb(uint64_t *maskp, int id)
 {
 	lock(&masklck);
 	if(id >= 0)
-		*maskp &= ~(1ULL<<id);
+		*maskp &= ~(1ULL << id);
 	unlock(&masklck);
 }
-		
+
 static int
 cspmatch(Devtab *dt, int dcsp)
 {
-	int	i;
-	int	csp;
+	int i;
+	int csp;
 
 	for(i = 0; i < nelem(dt->csps); i++)
-		if((csp=dt->csps[i]) != 0)
-		if(csp == dcsp)
-			return 1;
-		else if((csp&DCL) && (csp&~DCL) == Class(dcsp))
-			return 1;
+		if((csp = dt->csps[i]) != 0)
+			if(csp == dcsp)
+				return 1;
+			else if((csp & DCL) && (csp & ~DCL) == Class(dcsp))
+				return 1;
 	return 0;
 }
 
@@ -83,7 +83,7 @@ devmatch(Devtab *dt, Usbdev *d)
 	if(cspmatch(dt, d->csp))
 		return 1;
 	for(c = 0; c < Nconf; c++)
-		if((cp=d->conf[c]) != nil)
+		if((cp = d->conf[c]) != nil)
 			for(i = 0; i < Niface; i++)
 				if(cp->iface[i] != nil)
 					if(cspmatch(dt, cp->iface[i]->csp))
@@ -101,11 +101,11 @@ devmatch(Devtab *dt, Usbdev *d)
 static void
 xexec(Channel *c, char *nm, char *args[])
 {
-	int	pid;
+	int pid;
 
-	if(access(nm, AEXEC) == 0){
-		pid = rfork(RFFDG|RFREND|RFPROC);
-		switch(pid){
+	if(access(nm, AEXEC) == 0) {
+		pid = rfork(RFFDG | RFREND | RFPROC);
+		switch(pid) {
 		case 0:
 			exec(nm, args);
 			_exits("exec");
@@ -119,22 +119,22 @@ xexec(Channel *c, char *nm, char *args[])
 }
 
 typedef struct Sarg Sarg;
-struct Sarg{
+struct Sarg {
 	Port *pp;
-	Devtab* dt;
-	Channel*rc;
+	Devtab *dt;
+	Channel *rc;
 	char fname[80];
-	char	args[128];
-	char	*argv[40];
+	char args[128];
+	char *argv[40];
 };
 
 static void
 startdevproc(void *a)
 {
-	Sarg	*sa = a;
-	Dev	*d;
+	Sarg *sa = a;
+	Dev *d;
 	Devtab *dt;
-	int	argc;
+	int argc;
 	char *args, *argse, **argv;
 	char *fname;
 
@@ -147,10 +147,10 @@ startdevproc(void *a)
 	fname = sa->fname;
 	sa->pp->devmaskp = &dt->devmask;
 	sa->pp->devnb = getdevnb(&dt->devmask);
-	if(sa->pp->devnb < 0){
+	if(sa->pp->devnb < 0) {
 		sa->pp->devmaskp = nil;
 		sa->pp->devnb = 0;
-	}else
+	} else
 		args = seprint(args, argse, "-N %d", sa->pp->devnb);
 	if(dt->args != nil)
 		seprint(args, argse, " %s", dt->args);
@@ -159,10 +159,10 @@ startdevproc(void *a)
 	argv[0] = dt->name;
 	argc = 1;
 	if(args[0] != 0)
-		argc += tokenize(args, argv+1, nelem(sa->argv)-2);
+		argc += tokenize(args, argv + 1, nelem(sa->argv) - 2);
 	argv[argc] = nil;
-	if(dt->init == nil){
-		if(d->dfd > 0 ){
+	if(dt->init == nil) {
+		if(d->dfd > 0) {
 			close(d->dfd);
 			d->dfd = -1;
 		}
@@ -178,7 +178,7 @@ startdevproc(void *a)
 		xexec(sa->rc, fname, argv);
 		if(cputype == nil)
 			cputype = getenv("cputype");
-		if(cputype != nil){
+		if(cputype != nil) {
 			snprint(fname, sizeof(sa->fname), "/%s/bin/%s",
 				cputype, dt->name);
 			argv[0] = fname;
@@ -187,7 +187,7 @@ startdevproc(void *a)
 		fprint(2, "%s: %s: not found. can't exec\n", argv0, dt->name);
 		sendul(sa->rc, -1);
 		threadexits("exec");
-	}else{
+	} else {
 		sa->pp->dev = opendev(d->dir);
 		sendul(sa->rc, 0);
 		if(dt->init(d, argc, argv) < 0)
@@ -211,13 +211,13 @@ writeinfo(Dev *d)
 
 	ud = d->usb;
 	s = buf;
-	se = buf+sizeof(buf);
+	se = buf + sizeof(buf);
 	s = seprint(s, se, "info %s csp %#08ulx", classname(ud->class), ud->csp);
-	for(i = 0; i < ud->nconf; i++){
+	for(i = 0; i < ud->nconf; i++) {
 		c = ud->conf[i];
 		if(c == nil)
 			break;
-		for(j = 0; j < nelem(c->iface); j++){
+		for(j = 0; j < nelem(c->iface); j++) {
 			ifc = c->iface[j];
 			if(ifc == nil)
 				break;
@@ -246,7 +246,7 @@ startdev(Port *pp)
 
 	writeinfo(d);
 
-	if(ud->class == Clhub){
+	if(ud->class == Clhub) {
 		/*
 		 * Hubs are handled directly by this process avoiding
 		 * concurrent operation so that at most one device
@@ -259,7 +259,7 @@ startdev(Port *pp)
 		else
 			fprint(2, "usb/hub... ");
 		if(usbdebug > 1)
-			devctl(d, "debug 0");	/* polled hubs are chatty */
+			devctl(d, "debug 0"); /* polled hubs are chatty */
 		return pp->hub == nil ? -1 : 0;
 	}
 
@@ -272,9 +272,9 @@ startdev(Port *pp)
 	 * with only the ctl open. Both devs are released on the last closedev:
 	 * driver's upon I/O errors and ours upon port dettach.
 	 */
-	if(dt->name == nil){
+	if(dt->name == nil) {
 		dprint(2, "%s: no configured entry for %s (csp %#08lx)\n",
-			argv0, d->dir, ud->csp);
+		       argv0, d->dir, ud->csp);
 		close(d->dfd);
 		d->dfd = -1;
 		return 0;
@@ -289,6 +289,6 @@ startdev(Port *pp)
 	chanfree(rc);
 	fprint(2, "usb/%s... ", dt->name);
 
-	sleep(Spawndelay);		/* in case we re-spawn too fast */
+	sleep(Spawndelay); /* in case we re-spawn too fast */
 	return 0;
 }

@@ -17,5 +17,5 @@ clock(void)
 
 	if(times(&t) == (clock_t)-1)
 		return (clock_t)-1;
-	return t.tms_utime+t.tms_stime;
+	return t.tms_utime + t.tms_stime;
 }

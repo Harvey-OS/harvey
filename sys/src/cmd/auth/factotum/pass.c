@@ -16,20 +16,18 @@
 #include "dat.h"
 
 typedef struct State State;
-struct State 
-{
+struct State {
 	Key *key;
 };
 
-enum
-{
+enum {
 	HavePass,
 	Maxphase,
 };
 
 static char *phasenames[Maxphase] =
-{
-[HavePass]	"HavePass",
+    {
+	 [HavePass] "HavePass",
 };
 
 static int
@@ -71,14 +69,14 @@ passread(Fsstate *fss, void *va, uint *n)
 	State *s;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "read");
 
 	case HavePass:
 		user = _strfindattr(s->key->attr, "user");
 		pass = _strfindattr(s->key->privattr, "!password");
-		if(user==nil || pass==nil)
+		if(user == nil || pass == nil)
 			return failure(fss, "passread cannot happen");
 		snprint(buf, sizeof buf, "%q %q", user, pass);
 		m = strlen(buf);
@@ -91,18 +89,18 @@ passread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-passwrite(Fsstate *fss, void* v, uint u)
+passwrite(Fsstate *fss, void *v, uint u)
 {
 	return phaseerror(fss, "write");
 }
 
 Proto pass =
-{
-.name=		"pass",
-.init=		passinit,
-.write=		passwrite,
-.read=		passread,
-.close=		passclose,
-.addkey=		replacekey,
-.keyprompt=	"user? !password?",
+    {
+     .name = "pass",
+     .init = passinit,
+     .write = passwrite,
+     .read = passread,
+     .close = passclose,
+     .addkey = replacekey,
+     .keyprompt = "user? !password?",
 };

@@ -15,120 +15,119 @@
 #include <bio.h>
 #include <regexp.h>
 
-enum
-{
-	FNSIZE	= 128,		/* file name */
-	LBSIZE	= 4096,		/* max line size */
-	BLKSIZE	= 4096,		/* block size in temp file */
-	NBLK	= 8191,		/* max size of temp file */
-	ESIZE	= 256,		/* max size of reg exp */
-	GBSIZE	= 256,		/* max size of global command */
-	MAXSUB	= 9,		/* max number of sub reg exp */
-	ESCFLG	= Runemax,	/* escape Rune - user defined code */
-	EOF	= -1,
+enum {
+	FNSIZE = 128,     /* file name */
+	LBSIZE = 4096,    /* max line size */
+	BLKSIZE = 4096,   /* block size in temp file */
+	NBLK = 8191,      /* max size of temp file */
+	ESIZE = 256,      /* max size of reg exp */
+	GBSIZE = 256,     /* max size of global command */
+	MAXSUB = 9,       /* max number of sub reg exp */
+	ESCFLG = Runemax, /* escape Rune - user defined code */
+	EOF = -1,
 };
 
-void	(*oldhup)(int);
-void	(*oldquit)(int);
-int*	addr1;
-int*	addr2;
-int	anymarks;
-Biobuf	bcons;
-int	col;
-int32_t	count;
-int*	dol;
-int*	dot;
-int	fchange;
-char	file[FNSIZE];
-Rune	genbuf[LBSIZE];
-int	given;
-Rune*	globp;
-int	iblock;
-int	ichanged;
-int	io;
-Biobuf	iobuf;
-int	lastc;
-char	line[70];
-Rune*	linebp;
-Rune	linebuf[LBSIZE];
-int	listf;
-int	listn;
-Rune*	loc1;
-Rune*	loc2;
-int	names[26];
-int	nleft;
-int	oblock;
-int	oflag;
-Reprog	*pattern;
-int	peekc;
-int	pflag;
-int	rescuing;
-Rune	rhsbuf[LBSIZE/sizeof(Rune)];
-char	savedfile[FNSIZE];
-jmp_buf	savej;
-int	subnewa;
-int	subolda;
-Resub	subexp[MAXSUB];
-char*	tfname;
-int	tline;
-int	waiting;
-int	wrapp;
-int*	zero;
+void (*oldhup)(int);
+void (*oldquit)(int);
+int *addr1;
+int *addr2;
+int anymarks;
+Biobuf bcons;
+int col;
+int32_t count;
+int *dol;
+int *dot;
+int fchange;
+char file[FNSIZE];
+Rune genbuf[LBSIZE];
+int given;
+Rune *globp;
+int iblock;
+int ichanged;
+int io;
+Biobuf iobuf;
+int lastc;
+char line[70];
+Rune *linebp;
+Rune linebuf[LBSIZE];
+int listf;
+int listn;
+Rune *loc1;
+Rune *loc2;
+int names[26];
+int nleft;
+int oblock;
+int oflag;
+Reprog *pattern;
+int peekc;
+int pflag;
+int rescuing;
+Rune rhsbuf[LBSIZE / sizeof(Rune)];
+char savedfile[FNSIZE];
+jmp_buf savej;
+int subnewa;
+int subolda;
+Resub subexp[MAXSUB];
+char *tfname;
+int tline;
+int waiting;
+int wrapp;
+int *zero;
 
-char	Q[]	= "";
-char	T[]	= "TMP";
-char	WRERR[]	= "WRITE ERROR";
-int	bpagesize = 20;
-char	hex[]	= "0123456789abcdef";
-char*	linp	= line;
-uint32_t	nlall = 128;
-int	tfile	= -1;
-int	vflag	= 1;
+char Q[] = "";
+char T[] = "TMP";
+char WRERR[] = "WRITE ERROR";
+int bpagesize = 20;
+char hex[] = "0123456789abcdef";
+char *linp = line;
+uint32_t nlall = 128;
+int tfile = -1;
+int vflag = 1;
 
-void	add(int);
-int*	address(void);
-int	append(int(*)(void), int*);
-void	browse(void);
-void	callunix(void);
-void	commands(void);
-void	compile(int);
-int	compsub(void);
-void	dosub(void);
-void	error(char*);
-int	match(int*);
-void	exfile(int);
-void	filename(int);
-Rune*	getblock(int, int);
-int	getchr(void);
-int	getcopy(void);
-int	getfile(void);
-Rune*	getline(int);
-int	getnum(void);
-int	getsub(void);
-int	gettty(void);
-void	global(int);
-void	init(void);
-void	join(void);
-void	move(int);
-void	newline(void);
-void	nonzero(void);
-void	notifyf(void *c, char*);
-Rune*	place(Rune*, Rune*, Rune*);
-void	printcom(void);
-void	putchr(int);
-void	putd(void);
-void	putfile(void);
-int	putline(void);
-void	putshst(Rune*);
-void	putst(char*);
-void	quit(void);
-void	rdelete(int*, int*);
-void	regerror(char *);
-void	reverse(int*, int*);
-void	setnoaddr(void);
-void	setwide(void);
-void	squeeze(int);
-void	substitute(int);
+void add(int);
+int *address(void);
+int append(int (*)(void), int *);
+void browse(void);
+void callunix(void);
+void commands(void);
+void compile(int);
+int compsub(void);
+void dosub(void);
+void error(char *);
+int match(int *);
+void exfile(int);
+void filename(int);
+Rune *getblock(int, int);
+int getchr(void);
+int getcopy(void);
+int getfile(void);
+Rune *getline(int);
+int getnum(void);
+int getsub(void);
+int gettty(void);
+void global(int);
+void init(void);
+void join(void);
+void move(int);
+void newline(void);
+void nonzero(void);
+void notifyf(void *c, char *);
+Rune *place(Rune *, Rune *, Rune *);
+void printcom(void);
+void putchr(int);
+void putd(void);
+void putfile(void);
+int putline(void);
+void putshst(Rune *);
+void putst(char *);
+void quit(void);
+void rdelete(int *, int *);
+void regerror(char *);
+void reverse(int *, int *);
+void setnoaddr(void);
+void setwide(void);
+void squeeze(int);
+void substitute(int);
 
 static Rune la[] = {'a'};
 static Rune lr[] = {'r'};
@@ -140,12 +139,14 @@ main(int argc, char *argv[])
 
 	Binit(&bcons, 0, OREAD);
 	notify(notifyf);
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'o':
 		oflag = 1;
 		vflag = 0;
 		break;
-	} ARGEND
+	}
+	ARGEND
 
 	USED(argc);
 	if(*argv && (strcmp(*argv, "-") == 0)) {
@@ -158,8 +159,7 @@ main(int argc, char *argv[])
 		while(*p2++ = *p1++)
 			;
 		globp = la;
-	} else
-	if(*argv) {
+	} else if(*argv) {
 		p1 = *argv;
 		p2 = savedfile;
 		while(*p2++ = *p1++)
@@ -167,7 +167,7 @@ main(int argc, char *argv[])
 				p2--;
 		globp = lr;
 	}
-	zero = malloc((nlall+5)*sizeof(int*));
+	zero = malloc((nlall + 5) * sizeof(int *));
 	tfname = mktemp("/tmp/eXXXXX");
 	init();
 	setjmp(savej);
@@ -198,7 +198,7 @@ commands(void)
 			if(lastsep == ',')
 				error(Q);
 			if(a1 == 0) {
-				a1 = zero+1;
+				a1 = zero + 1;
 				if(a1 > dol)
 					a1--;
 			}
@@ -208,9 +208,9 @@ commands(void)
 		}
 		if(lastsep != '\n' && a1 == 0)
 			a1 = dol;
-		if((addr2=a1) == 0) {
+		if((addr2 = a1) == 0) {
 			given = 0;
-			addr2 = dot;	
+			addr2 = dot;
 		} else
 			given = 1;
 		if(addr1 == 0)
@@ -230,7 +230,7 @@ commands(void)
 			nonzero();
 			newline();
 			rdelete(addr1, addr2);
-			append(gettty, addr1-1);
+			append(gettty, addr1 - 1);
 			continue;
 
 		case 'd':
@@ -267,7 +267,6 @@ commands(void)
 			add(-1);
 			continue;
 
-
 		case 'j':
 			if(!given)
 				addr2++;
@@ -281,7 +280,7 @@ commands(void)
 			if(c < 'a' || c > 'z')
 				error(Q);
 			newline();
-			names[c-'a'] = *addr2 & ~01;
+			names[c - 'a'] = *addr2 & ~01;
 			anymarks |= 01;
 			continue;
 
@@ -296,12 +295,12 @@ commands(void)
 			continue;
 
 		case '\n':
-			if(a1==0) {
-				a1 = dot+1;
+			if(a1 == 0) {
+				a1 = dot + 1;
 				addr2 = a1;
 				addr1 = a1;
 			}
-			if(lastsep==';')
+			if(lastsep == ';')
 				addr1 = a1;
 			printcom();
 			continue;
@@ -324,11 +323,11 @@ commands(void)
 		case 'r':
 			filename(c);
 		caseread:
-			if((io=open(file, OREAD)) < 0) {
+			if((io = open(file, OREAD)) < 0) {
 				lastc = '\n';
 				error(file);
 			}
-			if((d = dirfstat(io)) != nil){
+			if((d = dirfstat(io)) != nil) {
 				if(d->mode & DMAPPEND)
 					print("warning: %s is append only\n", file);
 				free(d);
@@ -355,7 +354,7 @@ commands(void)
 		case 'u':
 			nonzero();
 			newline();
-			if((*addr2&~01) != subnewa)
+			if((*addr2 & ~01) != subnewa)
 				error(Q);
 			*addr2 = subolda;
 			dot = addr2;
@@ -369,7 +368,7 @@ commands(void)
 			wrapp++;
 		case 'w':
 			setwide();
-			squeeze(dol>zero);
+			squeeze(dol > zero);
 			temp = getchr();
 			if(temp != 'q' && temp != 'Q') {
 				peekc = temp;
@@ -377,8 +376,8 @@ commands(void)
 			}
 			filename(c);
 			if(!wrapp ||
-			  ((io = open(file, OWRITE)) == -1) ||
-			  ((seek(io, 0L, 2)) == -1))
+			   ((io = open(file, OWRITE)) == -1) ||
+			   ((seek(io, 0L, 2)) == -1))
 				if((io = create(file, OWRITE, 0666)) < 0)
 					error(file);
 			Binit(&iobuf, io, OWRITE);
@@ -386,7 +385,7 @@ commands(void)
 			if(dol > zero)
 				putfile();
 			exfile(OWRITE);
-			if(addr1<=zero+1 && addr2==dol)
+			if(addr1 <= zero + 1 && addr2 == dol)
 				fchange = 0;
 			if(temp == 'Q')
 				fchange = 0;
@@ -409,7 +408,6 @@ commands(void)
 
 		case EOF:
 			return;
-
 		}
 		error(Q);
 	}
@@ -424,7 +422,7 @@ printcom(void)
 	a1 = addr1;
 	do {
 		if(listn) {
-			count = a1-zero;
+			count = a1 - zero;
 			putd();
 			putchr(L'\t');
 		}
@@ -436,7 +434,7 @@ printcom(void)
 	pflag = 0;
 }
 
-int*
+int *
 address(void)
 {
 	int sign, *a, opcnt, nextopand, *b, c;
@@ -453,59 +451,59 @@ address(void)
 			peekc = c;
 			if(!opcnt)
 				a = zero;
-			a += sign*getnum();
+			a += sign * getnum();
 		} else
-		switch(c) {
-		case '$':
-			a = dol;
-		case '.':
-			if(opcnt)
-				error(Q);
-			break;
-		case '\'':
-			c = getchr();
-			if(opcnt || c < 'a' || c > 'z')
-				error(Q);
-			a = zero;
-			do {
-				a++;
-			} while(a <= dol && names[c-'a'] != (*a & ~01));
-			break;
-		case '?':
-			sign = -sign;
-		case '/':
-			compile(c);
-			b = a;
-			for(;;) {
-				a += sign;
-				if(a <= zero)
-					a = dol;
-				if(a > dol)
-					a = zero;
-				if(match(a))
-					break;
-				if(a == b)
+			switch(c) {
+			case '$':
+				a = dol;
+			case '.':
+				if(opcnt)
 					error(Q);
-			}
-			break;
-		default:
-			if(nextopand == opcnt) {
-				a += sign;
-				if(a < zero || dol < a)
-					continue;       /* error(Q); */
-			}
-			if(c != '+' && c != '-' && c != '^') {
-				peekc = c;
-				if(opcnt == 0)
-					a = 0;
-				return a;
-			}
-			sign = 1;
-			if(c != '+')
+				break;
+			case '\'':
+				c = getchr();
+				if(opcnt || c < 'a' || c > 'z')
+					error(Q);
+				a = zero;
+				do {
+					a++;
+				} while(a <= dol && names[c - 'a'] != (*a & ~01));
+				break;
+			case '?':
 				sign = -sign;
-			nextopand = ++opcnt;
-			continue;
-		}
+			case '/':
+				compile(c);
+				b = a;
+				for(;;) {
+					a += sign;
+					if(a <= zero)
+						a = dol;
+					if(a > dol)
+						a = zero;
+					if(match(a))
+						break;
+					if(a == b)
+						error(Q);
+				}
+				break;
+			default:
+				if(nextopand == opcnt) {
+					a += sign;
+					if(a < zero || dol < a)
+						continue; /* error(Q); */
+				}
+				if(c != '+' && c != '-' && c != '^') {
+					peekc = c;
+					if(opcnt == 0)
+						a = 0;
+					return a;
+				}
+				sign = 1;
+				if(c != '+')
+					sign = -sign;
+				nextopand = ++opcnt;
+				continue;
+			}
 		sign = 1;
 		opcnt++;
 	} while(zero <= a && a <= dol);
@@ -523,7 +521,7 @@ getnum(void)
 		c = getchr();
 		if(c < '0' || c > '9')
 			break;
-		r = r*10 + (c-'0');
+		r = r * 10 + (c - '0');
 	}
 	peekc = c;
 	return r;
@@ -533,7 +531,7 @@ void
 setwide(void)
 {
 	if(!given) {
-		addr1 = zero + (dol>zero);
+		addr1 = zero + (dol > zero);
 		addr2 = dol;
 	}
 }
@@ -554,7 +552,7 @@ nonzero(void)
 void
 squeeze(int i)
 {
-	if(addr1 < zero+i || addr2 > dol || addr1 > addr2)
+	if(addr1 < zero + i || addr2 > dol || addr1 > addr2)
 		error(Q);
 }
 
@@ -570,8 +568,7 @@ newline(void)
 		pflag++;
 		if(c == 'l')
 			listf++;
-		else
-		if(c == 'n')
+		else if(c == 'n')
 			listn++;
 		c = getchr();
 		if(c == '\n')
@@ -600,17 +597,17 @@ filename(int comm)
 	}
 	if(c != ' ')
 		error(Q);
-	while((c=getchr()) == ' ')
+	while((c = getchr()) == ' ')
 		;
 	if(c == '\n')
 		error(Q);
 	p1 = file;
 	do {
-		if(p1 >= &file[sizeof(file)-6] || c == ' ' || c == EOF)
+		if(p1 >= &file[sizeof(file) - 6] || c == ' ' || c == EOF)
 			error(Q);
 		rune = c;
 		p1 += runetochar(p1, &rune);
-	} while((c=getchr()) != '\n');
+	} while((c = getchr()) != '\n');
 	*p1 = 0;
 	if(savedfile[0] == 0 || comm == 'e' || comm == 'f') {
 		p1 = savedfile;
@@ -676,10 +673,10 @@ rescue(void)
 {
 	rescuing = 1;
 	if(dol > zero) {
-		addr1 = zero+1;
+		addr1 = zero + 1;
 		addr2 = dol;
 		io = create("ed.hup", OWRITE, 0666);
-		if(io > 0){
+		if(io > 0) {
 			Binit(&iobuf, io, OWRITE);
 			putfile();
 		}
@@ -691,7 +688,7 @@ rescue(void)
 void
 notifyf(void *a, char *s)
 {
-	if(strcmp(s, "interrupt") == 0){
+	if(strcmp(s, "interrupt") == 0) {
 		if(rescuing || waiting)
 			noted(NCONT);
 		putchr(L'\n');
@@ -699,7 +696,7 @@ notifyf(void *a, char *s)
 		error1(Q);
 		notejmp(a, savej, 0);
 	}
-	if(strcmp(s, "hangup") == 0){
+	if(strcmp(s, "hangup") == 0) {
 		if(rescuing)
 			noted(NDFLT);
 		rescue();
@@ -716,7 +713,7 @@ getchr(void)
 		return lastc;
 	}
 	if(globp) {
-		if((lastc=*globp++) != 0)
+		if((lastc = *globp++) != 0)
 			return lastc;
 		globp = 0;
 		return EOF;
@@ -747,7 +744,7 @@ gety(void)
 		if(c == 0)
 			continue;
 		*p++ = c;
-		if(p >= &linebuf[LBSIZE-sizeof(Rune)])
+		if(p >= &linebuf[LBSIZE - sizeof(Rune)])
 			error(Q);
 	}
 }
@@ -826,14 +823,14 @@ append(int (*f)(void), int *a)
 	nline = 0;
 	dot = a;
 	while((*f)() == 0) {
-		if((dol-zero) >= nlall) {
+		if((dol - zero) >= nlall) {
 			nlall += 512;
-			a1 = realloc(zero, (nlall+5)*sizeof(int*));
+			a1 = realloc(zero, (nlall + 5) * sizeof(int *));
 			if(a1 == 0) {
 				error("MEM?");
 				rescue();
 			}
-			tl = a1 - zero;	/* relocate pointers */
+			tl = a1 - zero; /* relocate pointers */
 			zero += tl;
 			addr1 += tl;
 			addr2 += tl;
@@ -843,7 +840,7 @@ append(int (*f)(void), int *a)
 		tl = putline();
 		nline++;
 		a1 = ++dol;
-		a2 = a1+1;
+		a2 = a1 + 1;
 		rdot = ++dot;
 		while(a1 > rdot)
 			*--a2 = *--a1;
@@ -872,7 +869,7 @@ browse(void)
 
 	forward = 1;
 	peekc = getchr();
-	if(peekc != '\n'){
+	if(peekc != '\n') {
 		if(peekc == '-' || peekc == '+') {
 			if(peekc == '-')
 				forward = 0;
@@ -896,9 +893,9 @@ browse(void)
 		if(addr2 > dol)
 			addr2 = dol;
 	} else {
-		addr1 = addr2-bpagesize;
+		addr1 = addr2 - bpagesize;
 		if(addr1 <= zero)
-			addr1 = zero+1;
+			addr1 = zero + 1;
 	}
 	printcom();
 }
@@ -913,7 +910,7 @@ callunix(void)
 
 	setnoaddr();
 	p = buf;
-	while((c=getchr()) != EOF && c != '\n')
+	while((c = getchr()) != EOF && c != '\n')
 		if(p < &buf[sizeof(buf) - 6]) {
 			rune = c;
 			p += runetochar(p, &rune);
@@ -935,7 +932,7 @@ callunix(void)
 void
 quit(void)
 {
-	if(vflag && fchange && dol!=zero) {
+	if(vflag && fchange && dol != zero) {
 		fchange = 0;
 		error(Q);
 	}
@@ -956,7 +953,7 @@ rdelete(int *ad1, int *ad2)
 	int *a1, *a2, *a3;
 
 	a1 = ad1;
-	a2 = ad2+1;
+	a2 = ad2 + 1;
 	a3 = dol;
 	dol -= a2 - a1;
 	do {
@@ -975,23 +972,23 @@ gdelete(void)
 	int *a1, *a2, *a3;
 
 	a3 = dol;
-	for(a1=zero; (*a1&01)==0; a1++)
-		if(a1>=a3)
+	for(a1 = zero; (*a1 & 01) == 0; a1++)
+		if(a1 >= a3)
 			return;
-	for(a2=a1+1; a2<=a3;) {
+	for(a2 = a1 + 1; a2 <= a3;) {
 		if(*a2 & 01) {
 			a2++;
 			dot = a1;
 		} else
 			*a1++ = *a2++;
 	}
-	dol = a1-1;
+	dol = a1 - 1;
 	if(dot > dol)
 		dot = dol;
 	fchange = 1;
 }
 
-Rune*
+Rune *
 getline(int tl)
 {
 	Rune *lp, *bp;
@@ -1000,11 +997,11 @@ getline(int tl)
 	lp = linebuf;
 	bp = getblock(tl, OREAD);
 	nl = nleft;
-	tl &= ~((BLKSIZE/sizeof(Rune)) - 1);
+	tl &= ~((BLKSIZE / sizeof(Rune)) - 1);
 	while(*lp++ = *bp++) {
 		nl -= sizeof(Rune);
 		if(nl == 0) {
-			tl += BLKSIZE/sizeof(Rune);
+			tl += BLKSIZE / sizeof(Rune);
 			bp = getblock(tl, OREAD);
 			nl = nleft;
 		}
@@ -1023,7 +1020,7 @@ putline(void)
 	tl = tline;
 	bp = getblock(tl, OWRITE);
 	nl = nleft;
-	tl &= ~((BLKSIZE/sizeof(Rune))-1);
+	tl &= ~((BLKSIZE / sizeof(Rune)) - 1);
 	while(*bp = *lp++) {
 		if(*bp++ == '\n') {
 			bp[-1] = 0;
@@ -1032,36 +1029,36 @@ putline(void)
 		}
 		nl -= sizeof(Rune);
 		if(nl == 0) {
-			tl += BLKSIZE/sizeof(Rune);
+			tl += BLKSIZE / sizeof(Rune);
 			bp = getblock(tl, OWRITE);
 			nl = nleft;
 		}
 	}
 	nl = tline;
-	tline += ((lp-linebuf) + 03) & 077776;
+	tline += ((lp - linebuf) + 03) & 077776;
 	return nl;
 }
 
 void
 blkio(int b, uint8_t *buf, int32_t (*iofcn)(int, void *, int32_t))
 {
-	seek(tfile, b*BLKSIZE, 0);
+	seek(tfile, b * BLKSIZE, 0);
 	if((*iofcn)(tfile, buf, BLKSIZE) != BLKSIZE) {
 		error(T);
 	}
 }
 
-Rune*
+Rune *
 getblock(int atl, int iof)
 {
 	int bno, off;
-	
+
 	static uint8_t ibuff[BLKSIZE];
 	static uint8_t obuff[BLKSIZE];
 
-	bno = atl / (BLKSIZE/sizeof(Rune));
+	bno = atl / (BLKSIZE / sizeof(Rune));
 	/* &~3 so the ptr is aligned to 4 (?) */
-	off = (atl*sizeof(Rune)) & (BLKSIZE-1) & ~3;
+	off = (atl * sizeof(Rune)) & (BLKSIZE - 1) & ~3;
 	if(bno >= NBLK) {
 		lastc = '\n';
 		error(T);
@@ -1069,22 +1066,22 @@ getblock(int atl, int iof)
 	nleft = BLKSIZE - off;
 	if(bno == iblock) {
 		ichanged |= iof;
-		return (Rune*)(ibuff+off);
+		return (Rune *)(ibuff + off);
 	}
 	if(bno == oblock)
-		return (Rune*)(obuff+off);
+		return (Rune *)(obuff + off);
 	if(iof == OREAD) {
 		if(ichanged)
 			blkio(iblock, ibuff, write);
 		ichanged = 0;
 		iblock = bno;
 		blkio(bno, ibuff, read);
-		return (Rune*)(ibuff+off);
+		return (Rune *)(ibuff + off);
 	}
 	if(oblock >= 0)
 		blkio(oblock, obuff, write);
 	oblock = bno;
-	return (Rune*)(obuff+off);
+	return (Rune *)(obuff + off);
 }
 
 void
@@ -1094,14 +1091,14 @@ init(void)
 
 	close(tfile);
 	tline = 2;
-	for(markp = names; markp < &names[26]; )
+	for(markp = names; markp < &names[26];)
 		*markp++ = 0;
 	subnewa = 0;
 	anymarks = 0;
 	iblock = -1;
 	oblock = -1;
 	ichanged = 0;
-	if((tfile = create(tfname, ORDWR, 0600)) < 0){
+	if((tfile = create(tfname, ORDWR, 0600)) < 0) {
 		error1(T);
 		exits(0);
 	}
@@ -1123,7 +1120,7 @@ global(int k)
 		error(Q);
 	compile(c);
 	gp = globuf;
-	while((c=getchr()) != '\n') {
+	while((c = getchr()) != '\n') {
 		if(c == EOF)
 			error(Q);
 		if(c == '\\') {
@@ -1132,14 +1129,14 @@ global(int k)
 				*gp++ = '\\';
 		}
 		*gp++ = c;
-		if(gp >= &globuf[GBSIZE-2])
+		if(gp >= &globuf[GBSIZE - 2])
 			error(Q);
 	}
 	if(gp == globuf)
 		*gp++ = 'p';
 	*gp++ = '\n';
 	*gp = 0;
-	for(a1=zero; a1<=dol; a1++) {
+	for(a1 = zero; a1 <= dol; a1++) {
 		*a1 &= ~01;
 		if(a1 >= addr1 && a1 <= addr2 && match(a1) == k)
 			*a1 |= 01;
@@ -1152,7 +1149,7 @@ global(int k)
 		gdelete();
 		return;
 	}
-	for(a1=zero; a1<=dol; a1++) {
+	for(a1 = zero; a1 <= dol; a1++) {
 		if(*a1 & 01) {
 			*a1 &= ~01;
 			dot = a1;
@@ -1171,10 +1168,10 @@ join(void)
 
 	nonzero();
 	gp = genbuf;
-	for(a1=addr1; a1<=addr2; a1++) {
+	for(a1 = addr1; a1 <= addr2; a1++) {
 		lp = getline(*a1);
 		while(*gp = *lp++)
-			if(gp++ >= &genbuf[LBSIZE-sizeof(Rune)])
+			if(gp++ >= &genbuf[LBSIZE - sizeof(Rune)])
 				error(Q);
 	}
 	lp = linebuf;
@@ -1183,7 +1180,7 @@ join(void)
 		;
 	*addr1 = putline();
 	if(addr1 < addr2)
-		rdelete(addr1+1, addr2);
+		rdelete(addr1 + 1, addr2);
 	dot = addr1;
 }
 
@@ -1192,21 +1189,21 @@ substitute(int inglob)
 {
 	int *mp, *a1, nl, gsubf, n;
 
-	n = getnum();	/* OK even if n==0 */
+	n = getnum(); /* OK even if n==0 */
 	gsubf = compsub();
 	for(a1 = addr1; a1 <= addr2; a1++) {
-		if(match(a1)){
+		if(match(a1)) {
 			int *ozero;
 			int m = n;
 
 			do {
-				int span = loc2-loc1;
+				int span = loc2 - loc1;
 
 				if(--m <= 0) {
 					dosub();
 					if(!gsubf)
 						break;
-					if(span == 0) {	/* null RE match */
+					if(span == 0) { /* null RE match */
 						if(*loc2 == 0)
 							break;
 						loc2++;
@@ -1218,7 +1215,7 @@ substitute(int inglob)
 				subnewa = putline();
 				*a1 &= ~01;
 				if(anymarks) {
-					for(mp=names; mp<&names[26]; mp++)
+					for(mp = names; mp < &names[26]; mp++)
 						if(*mp == *a1)
 							*mp = subnewa;
 				}
@@ -1227,7 +1224,7 @@ substitute(int inglob)
 				ozero = zero;
 				nl = append(getsub, a1);
 				addr2 += nl;
-				nl += zero-ozero;
+				nl += zero - ozero;
 				a1 += nl;
 			}
 		}
@@ -1252,18 +1249,16 @@ compsub(void)
 		if(c == '\\') {
 			c = getchr();
 			*p++ = ESCFLG;
-			if(p >= &rhsbuf[LBSIZE/sizeof(Rune)])
+			if(p >= &rhsbuf[LBSIZE / sizeof(Rune)])
 				error(Q);
-		} else
-		if(c == '\n' && (!globp || !globp[0])) {
+		} else if(c == '\n' && (!globp || !globp[0])) {
 			peekc = c;
 			pflag++;
 			break;
-		} else
-		if(c == seof)
+		} else if(c == seof)
 			break;
 		*p++ = c;
-		if(p >= &rhsbuf[LBSIZE/sizeof(Rune)])
+		if(p >= &rhsbuf[LBSIZE / sizeof(Rune)])
 			error(Q);
 	}
 	*p = 0;
@@ -1303,12 +1298,12 @@ dosub(void)
 	while(lp < loc1)
 		*sp++ = *lp++;
 	while(c = *rp++) {
-		if(c == '&'){
+		if(c == '&') {
 			sp = place(sp, loc1, loc2);
 			continue;
 		}
-		if(c == ESCFLG && (c = *rp++) >= '1' && c < MAXSUB+'0') {
-			n = c-'0';
+		if(c == ESCFLG && (c = *rp++) >= '1' && c < MAXSUB + '0') {
+			n = c - '0';
 			if(subexp[n].rsp && subexp[n].rep) {
 				sp = place(sp, subexp[n].rsp, subexp[n].rep);
 				continue;
@@ -1330,7 +1325,7 @@ dosub(void)
 		;
 }
 
-Rune*
+Rune *
 place(Rune *sp, Rune *l1, Rune *l2)
 {
 
@@ -1348,7 +1343,7 @@ move(int cflag)
 	int *adt, *ad1, *ad2;
 
 	nonzero();
-	if((adt = address())==0)	/* address() guarantees addr is in range */
+	if((adt = address()) == 0) /* address() guarantees addr is in range */
 		error(Q);
 	newline();
 	if(cflag) {
@@ -1367,15 +1362,14 @@ move(int cflag)
 		ad1 = addr1;
 	}
 	ad2++;
-	if(adt<ad1) {
-		dot = adt + (ad2-ad1);
-		if((++adt)==ad1)
+	if(adt < ad1) {
+		dot = adt + (ad2 - ad1);
+		if((++adt) == ad1)
 			return;
 		reverse(adt, ad1);
 		reverse(ad1, ad2);
 		reverse(adt, ad2);
-	} else
-	if(adt >= ad2) {
+	} else if(adt >= ad2) {
 		dot = adt++;
 		reverse(ad1, ad2);
 		reverse(ad2, adt);
@@ -1431,7 +1425,7 @@ compile(int eof)
 	ep = expbuf;
 	do {
 		if(c == '\\') {
-			if(ep >= expbuf+sizeof(expbuf)) {
+			if(ep >= expbuf + sizeof(expbuf)) {
 				error(Q);
 				return;
 			}
@@ -1441,7 +1435,7 @@ compile(int eof)
 				return;
 			}
 		}
-		if(ep >= expbuf+sizeof(expbuf)) {
+		if(ep >= expbuf + sizeof(expbuf)) {
 			error(Q);
 			return;
 		}
@@ -1458,7 +1452,7 @@ match(int *addr)
 {
 	if(!pattern)
 		return 0;
-	if(addr){
+	if(addr) {
 		if(addr == zero)
 			return 0;
 		subexp[0].rsp = getline(*addr);
@@ -1472,7 +1466,6 @@ match(int *addr)
 	}
 	loc1 = loc2 = 0;
 	return 0;
-	
 }
 
 void
@@ -1480,7 +1473,7 @@ putd(void)
 {
 	int r;
 
-	r = count%10;
+	r = count % 10;
 	count /= 10;
 	if(count)
 		putd();
@@ -1527,29 +1520,27 @@ putchr(int ac)
 				*lp++ = 'n';
 			}
 		} else {
-			if(col > (72-6-2)) {
+			if(col > (72 - 6 - 2)) {
 				col = 8;
 				*lp++ = '\\';
 				*lp++ = '\n';
 				*lp++ = '\t';
 			}
 			col++;
-			if(c=='\b' || c=='\t' || c=='\\') {
+			if(c == '\b' || c == '\t' || c == '\\') {
 				*lp++ = '\\';
 				if(c == '\b')
 					c = 'b';
-				else
-				if(c == '\t')
+				else if(c == '\t')
 					c = 't';
 				col++;
-			} else
-			if(c<' ' || c>='\177') {
+			} else if(c < ' ' || c >= '\177') {
 				*lp++ = '\\';
 				*lp++ = 'x';
-				*lp++ =  hex[c>>12];
-				*lp++ =  hex[c>>8&0xF];
-				*lp++ =  hex[c>>4&0xF];
-				c     =  hex[c&0xF];
+				*lp++ = hex[c >> 12];
+				*lp++ = hex[c >> 8 & 0xF];
+				*lp++ = hex[c >> 4 & 0xF];
+				c = hex[c & 0xF];
 				col += 5;
 			}
 		}
@@ -1558,15 +1549,15 @@ putchr(int ac)
 	rune = c;
 	lp += runetochar(lp, &rune);
 
-	if(c == '\n' || lp >= &line[sizeof(line)-5]) {
+	if(c == '\n' || lp >= &line[sizeof(line) - 5]) {
 		linp = line;
-		write(oflag? 2: 1, line, lp-line);
+		write(oflag ? 2 : 1, line, lp - line);
 		return;
 	}
 	linp = lp;
 }
 
-char*
+char *
 mktemp(char *as)
 {
 	char *s;

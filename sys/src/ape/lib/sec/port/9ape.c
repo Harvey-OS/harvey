@@ -19,7 +19,7 @@ _sysfatalimpl(char *fmt, va_list arg)
 {
 	char buf[1024];
 
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	if(argv0)
 		fprint(2, "%s: %s\n", argv0, buf);
 	else

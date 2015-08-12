@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-#define	TEMP	"/n/temp"
+#define TEMP "/n/temp"
 
 void
 usage(void)
@@ -22,7 +22,7 @@ usage(void)
 void
 connect(char *cmd, int fd0, int fd1)
 {
-	switch(rfork(RFPROC|RFFDG|RFREND|RFNOWAIT)){
+	switch(rfork(RFPROC | RFFDG | RFREND | RFNOWAIT)) {
 	case -1:
 		sysfatal("fork %s: %r", cmd);
 		break;
@@ -51,7 +51,8 @@ main(int argc, char *argv[])
 	rfork(RFNOTEG);
 	dupflag = 0;
 	rcmd = wcmd = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		dupflag = 1;
 		break;
@@ -63,9 +64,10 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc!=1 || (rcmd==nil && wcmd==nil))
+	if(argc != 1 || (rcmd == nil && wcmd == nil))
 		usage();
 	if(rcmd == nil)
 		rcmd = "/bin/cat";
@@ -73,12 +75,12 @@ main(int argc, char *argv[])
 		wcmd = "/bin/cat";
 
 	file = argv[0];
-	if(dupflag){
+	if(dupflag) {
 		ifd0 = open(file, ORDWR);
 		if(ifd0 < 0)
 			sysfatal("open %s: %r", file);
 		ifd1 = dup(ifd0, -1);
-	}else{
+	} else {
 		ifd0 = open(file, OREAD);
 		if(ifd0 < 0)
 			sysfatal("open %s: %r", file);

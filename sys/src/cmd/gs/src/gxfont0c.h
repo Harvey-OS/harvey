@@ -27,7 +27,7 @@
 /* Interface to gsfont0c.c */
 
 #ifndef gxfont0c_INCLUDED
-#  define gxfont0c_INCLUDED
+#define gxfont0c_INCLUDED
 
 #include "gxfont0.h"
 #include "gxfcid.h"

@@ -7,9 +7,8 @@
  * in the LICENSE file.
  */
 
-struct	Cursor
-{
-	Point	offset;
-	uchar	clr[2*16];
-	uchar	set[2*16];
+struct Cursor {
+	Point offset;
+	uchar clr[2 * 16];
+	uchar set[2 * 16];
 };

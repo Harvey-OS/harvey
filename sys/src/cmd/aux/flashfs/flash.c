@@ -15,7 +15,7 @@
 #include <9p.h>
 #include "flashfs.h"
 
-extern int	chatty9p;
+extern int chatty9p;
 
 static void
 usage(void)
@@ -48,7 +48,8 @@ main(int argc, char **argv)
 	ro = 0;
 	file = "/dev/flash/fs";
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -69,7 +70,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();

@@ -27,7 +27,7 @@
 /* Internal interface to string garbage collector */
 
 #ifndef igcstr_INCLUDED
-#  define igcstr_INCLUDED
+#define igcstr_INCLUDED
 
 /* Exported by ilocate.c for igcstr.c */
 chunk_t *gc_locate(const void *, gc_state_t *);

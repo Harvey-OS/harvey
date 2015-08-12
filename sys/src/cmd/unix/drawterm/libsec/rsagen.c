@@ -18,29 +18,29 @@ genrand(mpint *p, int n)
 
 	// generate n random bits with high set
 	mpbits(p, n);
-	genrandom((uint8_t*)p->p, (n+7)/8);
-	p->top = (n+Dbits-1)/Dbits;
+	genrandom((uint8_t *)p->p, (n + 7) / 8);
+	p->top = (n + Dbits - 1) / Dbits;
 	x = 1;
-	x <<= ((n-1)%Dbits);
-	p->p[p->top-1] &= (x-1);
-	p->p[p->top-1] |= x;
+	x <<= ((n - 1) % Dbits);
+	p->p[p->top - 1] &= (x - 1);
+	p->p[p->top - 1] |= x;
 }
 
-RSApriv*
+RSApriv *
 rsagen(int nlen, int elen, int rounds)
 {
 	mpint *p, *q, *e, *d, *phi, *n, *t1, *t2, *kp, *kq, *c2;
 	RSApriv *rsa;
 
-	p = mpnew(nlen/2);
-	q = mpnew(nlen/2);
+	p = mpnew(nlen / 2);
+	q = mpnew(nlen / 2);
 	n = mpnew(nlen);
 	e = mpnew(elen);
 	d = mpnew(0);
 	phi = mpnew(nlen);
 
 	// create the prime factors and euclid's function
-	genstrongprime(p, nlen/2, rounds);
+	genstrongprime(p, nlen / 2, rounds);
 	genstrongprime(q, nlen - mpsignif(p) + 1, rounds);
 	mpmul(p, q, n);
 	mpsub(p, mpone, e);
@@ -51,7 +51,7 @@ rsagen(int nlen, int elen, int rounds)
 	t1 = mpnew(0);
 	t2 = mpnew(0);
 	genrand(e, elen);
-	for(;;){
+	for(;;) {
 		mpextendedgcd(e, phi, d, t1, t2);
 		if(mpcmp(d, mpone) == 0)
 			break;

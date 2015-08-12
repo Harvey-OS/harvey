@@ -13,7 +13,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-static char*
+static char *
 readfile(char *name)
 {
 	int fd;
@@ -28,7 +28,7 @@ readfile(char *name)
 		return nil;
 	}
 	s = malloc(d->length + 1);
-	if(s == nil || readn(fd, s, d->length) != d->length){
+	if(s == nil || readn(fd, s, d->length) != d->length) {
 		free(s);
 		free(d);
 		close(fd);
@@ -40,20 +40,20 @@ readfile(char *name)
 	return s;
 }
 
-uint8_t*
+uint8_t *
 readcert(char *filename, int *pcertlen)
 {
 	char *pem;
 	uint8_t *binary;
 
 	pem = readfile(filename);
-	if(pem == nil){
+	if(pem == nil) {
 		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
 	binary = decodePEM(pem, "CERTIFICATE", pcertlen, nil);
 	free(pem);
-	if(binary == nil){
+	if(binary == nil) {
 		werrstr("can't parse %s", filename);
 		return nil;
 	}
@@ -66,10 +66,9 @@ readcertchain(char *filename)
 	char *chfile;
 
 	chfile = readfile(filename);
-	if (chfile == nil) {
+	if(chfile == nil) {
 		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
 	return decodepemchain(chfile, "CERTIFICATE");
 }
-

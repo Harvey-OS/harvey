@@ -12,10 +12,10 @@
 #include <bio.h>
 #include "diff.h"
 
-#define	DIRECTORY(s)		((s)->qid.type&QTDIR)
-#define	REGULAR_FILE(s)		((s)->type == 'M' && !DIRECTORY(s))
+#define DIRECTORY(s) ((s)->qid.type & QTDIR)
+#define REGULAR_FILE(s) ((s)->type == 'M' && !DIRECTORY(s))
 
-Biobuf	stdout;
+Biobuf stdout;
 
 static char *tmp[] = {"/tmp/diff1XXXXXXXXXXX", "/tmp/diff2XXXXXXXXXXX"};
 static int whichtmp;
@@ -25,18 +25,17 @@ static char usage[] = "diff [-abcefmnrw] file1 ... file2\n";
 static void
 rmtmpfiles(void)
 {
-	while (whichtmp > 0) {
+	while(whichtmp > 0) {
 		whichtmp--;
 		remove(tmp[whichtmp]);
 	}
 }
 
-void	
+void
 done(int status)
 {
 	rmtmpfiles();
-	switch(status)
-	{
+	switch(status) {
 	case 0:
 		exits("");
 	case 1:
@@ -58,13 +57,12 @@ panic(int status, char *fmt, ...)
 	va_start(arg, fmt);
 	vfprint(2, fmt, arg);
 	va_end(arg);
-	if (status)
+	if(status)
 		done(status);
-		/*NOTREACHED*/
+	/*NOTREACHED*/
 }
 
-static int
-catch(void *a, char *msg)
+static int catch(void *a, char *msg)
 {
 	USED(a);
 	panic(2, msg);
@@ -74,14 +72,14 @@ catch(void *a, char *msg)
 int
 mkpathname(char *pathname, char *path, char *name)
 {
-	if (strlen(path) + strlen(name) > MAXPATHLEN) {
+	if(strlen(path) + strlen(name) > MAXPATHLEN) {
 		panic(0, "pathname %s/%s too long\n", path, name);
 		return 1;
 	}
 	sprint(pathname, "%s/%s", path, name);
 	return 0;
 }
-	
+
 static char *
 mktmpfile(int input, Dir **sb)
 {
@@ -92,18 +90,18 @@ mktmpfile(int input, Dir **sb)
 	atnotify(catch, 1);
 	p = mktemp(tmp[whichtmp++]);
 	fd = create(p, OWRITE, 0600);
-	if (fd < 0) {
-		panic(mflag ? 0: 2, "cannot create %s: %r\n", p);
+	if(fd < 0) {
+		panic(mflag ? 0 : 2, "cannot create %s: %r\n", p);
 		return 0;
 	}
-	while ((i = read(input, buf, sizeof(buf))) > 0) {
-		if ((i = write(fd, buf, i)) < 0)
+	while((i = read(input, buf, sizeof(buf))) > 0) {
+		if((i = write(fd, buf, i)) < 0)
 			break;
 	}
 	*sb = dirfstat(fd);
 	close(fd);
-	if (i < 0) {
-		panic(mflag ? 0: 2, "cannot read/write %s: %r\n", p);
+	if(i < 0) {
+		panic(mflag ? 0 : 2, "cannot read/write %s: %r\n", p);
 		return 0;
 	}
 	return p;
@@ -117,23 +115,21 @@ statfile(char *file, Dir **sb)
 
 	dir = dirstat(file);
 	if(dir == nil) {
-		if (strcmp(file, "-") || (dir = dirfstat(0)) == nil) {
-			panic(mflag ? 0: 2, "cannot stat %s: %r\n", file);
+		if(strcmp(file, "-") || (dir = dirfstat(0)) == nil) {
+			panic(mflag ? 0 : 2, "cannot stat %s: %r\n", file);
 			return 0;
 		}
 		free(dir);
 		return mktmpfile(0, sb);
-	}
-	else if (!REGULAR_FILE(dir) && !DIRECTORY(dir)) {
+	} else if(!REGULAR_FILE(dir) && !DIRECTORY(dir)) {
 		free(dir);
-		if ((input = open(file, OREAD)) == -1) {
-			panic(mflag ? 0: 2, "cannot open %s: %r\n", file);
+		if((input = open(file, OREAD)) == -1) {
+			panic(mflag ? 0 : 2, "cannot open %s: %r\n", file);
 			return 0;
 		}
 		file = mktmpfile(input, sb);
 		close(input);
-	}
-	else
+	} else
 		*sb = dir;
 	return file;
 }
@@ -141,39 +137,37 @@ statfile(char *file, Dir **sb)
 void
 diff(char *f, char *t, int level)
 {
-	char *fp, *tp, *p, fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
+	char *fp, *tp, *p, fb[MAXPATHLEN + 1], tb[MAXPATHLEN + 1];
 	Dir *fsb, *tsb;
 
-	if ((fp = statfile(f, &fsb)) == 0)
+	if((fp = statfile(f, &fsb)) == 0)
 		goto Return;
-	if ((tp = statfile(t, &tsb)) == 0){
+	if((tp = statfile(t, &tsb)) == 0) {
 		free(fsb);
 		goto Return;
 	}
-	if (DIRECTORY(fsb) && DIRECTORY(tsb)) {
-		if (rflag || level == 0)
+	if(DIRECTORY(fsb) && DIRECTORY(tsb)) {
+		if(rflag || level == 0)
 			diffdir(fp, tp, level);
 		else
 			Bprint(&stdout, "Common subdirectories: %s and %s\n",
-				fp, tp);
-	}
-	else if (REGULAR_FILE(fsb) && REGULAR_FILE(tsb))
+			       fp, tp);
+	} else if(REGULAR_FILE(fsb) && REGULAR_FILE(tsb))
 		diffreg(fp, tp);
 	else {
-		if (REGULAR_FILE(fsb)) {
-			if ((p = utfrrune(f, '/')) == 0)
+		if(REGULAR_FILE(fsb)) {
+			if((p = utfrrune(f, '/')) == 0)
 				p = f;
 			else
 				p++;
-			if (mkpathname(tb, tp, p) == 0)
+			if(mkpathname(tb, tp, p) == 0)
 				diffreg(fp, tb);
-		}
-		else {
-			if ((p = utfrrune(t, '/')) == 0)
+		} else {
+			if((p = utfrrune(t, '/')) == 0)
 				p = t;
 			else
 				p++;
-			if (mkpathname(fb, fp, p) == 0)
+			if(mkpathname(fb, fp, p) == 0)
 				diffreg(fb, tp);
 		}
 	}
@@ -192,9 +186,9 @@ main(int argc, char *argv[])
 
 	Binit(&stdout, 1, OWRITE);
 	progname = argv0 = *argv;
-	while (--argc && (*++argv)[0] == '-' && (*argv)[1]) {
-		for (p = *argv+1; *p; p++) {
-			switch (*p) {
+	while(--argc && (*++argv)[0] == '-' && (*argv)[1]) {
+		for(p = *argv + 1; *p; p++) {
+			switch(*p) {
 
 			case 'e':
 			case 'f':
@@ -217,7 +211,7 @@ main(int argc, char *argv[])
 				break;
 
 			case 'm':
-				mflag = 1;	
+				mflag = 1;
 				break;
 
 			case 'h':
@@ -227,25 +221,24 @@ main(int argc, char *argv[])
 			}
 		}
 	}
-	if (argc < 2)
+	if(argc < 2)
 		panic(2, usage, progname);
-	if ((tsb = dirstat(argv[argc-1])) == nil)
-		panic(2, "can't stat %s\n", argv[argc-1]);
-	if (argc > 2) {
-		if (!DIRECTORY(tsb))
+	if((tsb = dirstat(argv[argc - 1])) == nil)
+		panic(2, "can't stat %s\n", argv[argc - 1]);
+	if(argc > 2) {
+		if(!DIRECTORY(tsb))
 			panic(2, usage, progname);
 		mflag = 1;
-	}
-	else {
-		if ((fsb = dirstat(argv[0])) == nil)
+	} else {
+		if((fsb = dirstat(argv[0])) == nil)
 			panic(2, "can't stat %s\n", argv[0]);
-		if (DIRECTORY(fsb) && DIRECTORY(tsb))
+		if(DIRECTORY(fsb) && DIRECTORY(tsb))
 			mflag = 1;
 		free(fsb);
 	}
 	free(tsb);
-	for (i = 0; i < argc-1; i++)
-		diff(argv[i], argv[argc-1], 0);
+	for(i = 0; i < argc - 1; i++)
+		diff(argv[i], argv[argc - 1], 0);
 	done(anychange);
 	/*NOTREACHED*/
 }
@@ -257,7 +250,7 @@ emalloc(unsigned n)
 {
 	register void *p;
 
-	if ((p = malloc(n)) == 0)
+	if((p = malloc(n)) == 0)
 		panic(2, noroom);
 	return p;
 }
@@ -267,7 +260,7 @@ erealloc(void *p, unsigned n)
 {
 	register void *rp;
 
-	if ((rp = realloc(p, n)) == 0)
+	if((rp = realloc(p, n)) == 0)
 		panic(2, noroom);
 	return rp;
 }

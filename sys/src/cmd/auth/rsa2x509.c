@@ -34,20 +34,22 @@ main(int argc, char **argv)
 	fmtinstall('H', encodefmt);
 
 	valid[0] = time(0);
-	valid[1] = valid[0] + 3*366*24*60*60;
+	valid[1] = valid[0] + 3 * 366 * 24 * 60 * 60;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'e':
 		valid[1] = valid[0] + strtoul(ARGF(), 0, 10);
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1 && argc != 2)
 		usage();
 
-	if((key = getkey(argc-1, argv+1, 1, nil)) == nil)
+	if((key = getkey(argc - 1, argv + 1, 1, nil)) == nil)
 		sysfatal("%r");
 
 	cert = X509gen(key, argv[0], valid, &len);

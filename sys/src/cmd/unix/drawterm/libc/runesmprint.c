@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-Rune*
+Rune *
 runesmprint(char *fmt, ...)
 {
 	va_list args;

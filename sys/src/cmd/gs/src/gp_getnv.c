@@ -38,24 +38,24 @@ extern char *getenv(const char *);
 int
 gp_getenv(const char *key, char *ptr, int *plen)
 {
-    const char *str = getenv(key);
+	const char *str = getenv(key);
 
-    if (str) {
-	int len = strlen(str);
+	if(str) {
+		int len = strlen(str);
 
-	if (len < *plen) {
-	    /* string fits */
-	    strcpy(ptr, str);
-	    *plen = len + 1;
-	    return 0;
+		if(len < *plen) {
+			/* string fits */
+			strcpy(ptr, str);
+			*plen = len + 1;
+			return 0;
+		}
+		/* string doesn't fit */
+		*plen = len + 1;
+		return -1;
 	}
-	/* string doesn't fit */
-	*plen = len + 1;
-	return -1;
-    }
-    /* missing key */
-    if (*plen > 0)
-	*ptr = 0;
-    *plen = 1;
-    return 1;
+	/* missing key */
+	if(*plen > 0)
+		*ptr = 0;
+	*plen = 1;
+	return 1;
 }

@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
-extern uint32_t	kerndate;
+extern uint32_t kerndate;
 
 void
 mkqid(Qid *q, int64_t path, uint32_t vers, int type)
@@ -44,7 +44,7 @@ devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
        Dir *db)
 {
 	db->name = n;
-	if(c->flag&CMSG)
+	if(c->flag & CMSG)
 		qid.type |= QTMOUNT;
 	db->qid = qid;
 	db->type = devtab[c->type]->dc;
@@ -97,16 +97,16 @@ devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	if(tab == 0)
 		return -1;
-	if(i == DEVDOTDOT){
+	if(i == DEVDOTDOT) {
 		/* nothing */
-	}else if(name){
-		for(i=1; i<ntab; i++)
+	} else if(name) {
+		for(i = 1; i < ntab; i++)
 			if(strcmp(tab[i].name, name) == 0)
 				break;
-		if(i==ntab)
+		if(i == ntab)
 			return -1;
 		tab += i;
-	}else{
+	} else {
 		/* skip over the first element, that for . itself */
 		i++;
 		if(i >= ntab)
@@ -132,7 +132,7 @@ devshutdown(void)
 {
 }
 
-Chan*
+Chan *
 devattach(int tc, char *spec)
 {
 	Chan *c;
@@ -143,15 +143,14 @@ devattach(int tc, char *spec)
 	c->type = devno(tc, 0);
 	if(spec == nil)
 		spec = "";
-	buf = smalloc(4+strlen(spec)+1);
+	buf = smalloc(4 + strlen(spec) + 1);
 	sprint(buf, "#%C%s", tc, spec);
 	c->name = newcname(buf);
 	free(buf);
 	return c;
 }
 
-
-Chan*
+Chan *
 devclone(Chan *c)
 {
 	Chan *nc;
@@ -176,7 +175,7 @@ devclone(Chan *c)
 	return nc;
 }
 
-Walkqid*
+Walkqid *
 devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
@@ -189,36 +188,36 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 		isdir(c);
 
 	alloc = 0;
-	wq = smalloc(sizeof(Walkqid)+(nname-1)*sizeof(Qid));
-	if(waserror()){
-		if(alloc && wq->clone!=nil)
+	wq = smalloc(sizeof(Walkqid) + (nname - 1) * sizeof(Qid));
+	if(waserror()) {
+		if(alloc && wq->clone != nil)
 			cclose(wq->clone);
 		free(wq);
 		return nil;
 	}
-	if(nc == nil){
+	if(nc == nil) {
 		nc = devclone(c);
-		nc->type = 0;	/* device doesn't know about this channel yet */
+		nc->type = 0; /* device doesn't know about this channel yet */
 		alloc = 1;
 	}
 	wq->clone = nc;
 
-	for(j=0; j<nname; j++){
-		if(!(nc->qid.type&QTDIR)){
-			if(j==0)
+	for(j = 0; j < nname; j++) {
+		if(!(nc->qid.type & QTDIR)) {
+			if(j == 0)
 				error(Enotdir);
 			goto Done;
 		}
 		n = name[j];
-		if(strcmp(n, ".") == 0){
-    Accept:
+		if(strcmp(n, ".") == 0) {
+		Accept:
 			wq->qid[wq->nqid++] = nc->qid;
 			continue;
 		}
-		if(strcmp(n, "..") == 0){
-			if((*gen)(nc, nil, tab, ntab, DEVDOTDOT, &dir) != 1){
+		if(strcmp(n, "..") == 0) {
+			if((*gen)(nc, nil, tab, ntab, DEVDOTDOT, &dir) != 1) {
 				print("devgen walk .. in dev%s %llux broken\n",
-					devtab[nc->type]->name, nc->qid.path);
+				      devtab[nc->type]->name, nc->qid.path);
 				error("broken devgen");
 			}
 			nc->qid = dir.qid;
@@ -232,10 +231,10 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 		 * should take care of the problem, but it doesn't have
 		 * the necessary information (that we're doing a walk).
 		 */
-		if(gen==devgen && nc->qid.path!=tab[0].qid.path)
+		if(gen == devgen && nc->qid.path != tab[0].qid.path)
 			goto Notfound;
-		for(i=0;; i++) {
-			switch((*gen)(nc, n, tab, ntab, i, &dir)){
+		for(i = 0;; i++) {
+			switch((*gen)(nc, n, tab, ntab, i, &dir)) {
 			case -1:
 			Notfound:
 				if(j == 0)
@@ -245,7 +244,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 			case 0:
 				continue;
 			case 1:
-				if(strcmp(n, dir.name) == 0){
+				if(strcmp(n, dir.name) == 0) {
 					nc->qid = dir.qid;
 					goto Accept;
 				}
@@ -253,18 +252,18 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 			}
 		}
 	}
-	/*
+/*
 	 * We processed at least one name, so will return some data.
 	 * If we didn't process all nname entries succesfully, we drop
 	 * the cloned channel and return just the Qids of the walks.
 	 */
 Done:
 	poperror();
-	if(wq->nqid < nname){
+	if(wq->nqid < nname) {
 		if(alloc)
 			cclose(wq->clone);
 		wq->clone = nil;
-	}else if(wq->clone){
+	} else if(wq->clone) {
 		/* attach cloned channel to same device */
 		wq->clone->type = c->type;
 	}
@@ -278,19 +277,19 @@ devstat(Chan *c, uint8_t *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 	Dir dir;
 	char *p, *elem;
 
-	for(i=0;; i++)
-		switch((*gen)(c, nil, tab, ntab, i, &dir)){
+	for(i = 0;; i++)
+		switch((*gen)(c, nil, tab, ntab, i, &dir)) {
 		case -1:
-			if(c->qid.type & QTDIR){
+			if(c->qid.type & QTDIR) {
 				if(c->name == nil)
 					elem = "???";
 				else if(strcmp(c->name->s, "/") == 0)
 					elem = "/";
 				else
-					for(elem=p=c->name->s; *p; p++)
+					for(elem = p = c->name->s; *p; p++)
 						if(*p == '/')
-							elem = p+1;
-				devdir(c, c->qid, elem, 0, eve, DMDIR|0555, &dir);
+							elem = p + 1;
+				devdir(c, c->qid, elem, 0, eve, DMDIR | 0555, &dir);
 				n = convD2M(&dir, db, n);
 				if(n == 0)
 					error(Ebadarg);
@@ -303,7 +302,7 @@ devstat(Chan *c, uint8_t *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 			break;
 		case 1:
 			if(c->qid.path == dir.qid.path) {
-				if(c->flag&CMSG)
+				if(c->flag & CMSG)
 					dir.mode |= DMMOUNT;
 				n = convD2M(&dir, db, n);
 				if(n == 0)
@@ -312,7 +311,7 @@ devstat(Chan *c, uint8_t *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 			}
 			break;
 		}
-	error(Egreg);	/* not reached? */
+	error(Egreg); /* not reached? */
 	return -1;
 }
 
@@ -321,13 +320,13 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 	   Devgen *gen)
 {
 	int32_t m, dsz;
-	struct{
+	struct {
 		Dir d;
 		char slop[100];
-	}dir;
+	} dir;
 
-	for(m=0; m<n; c->dri++) {
-		switch((*gen)(c, nil, tab, ntab, c->dri, &dir.d)){
+	for(m = 0; m < n; c->dri++) {
+		switch((*gen)(c, nil, tab, ntab, c->dri, &dir.d)) {
 		case -1:
 			return m;
 
@@ -335,8 +334,8 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 			break;
 
 		case 1:
-			dsz = convD2M(&dir.d, (uint8_t*)d, n-m);
-			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
+			dsz = convD2M(&dir.d, (uint8_t *)d, n - m);
+			if(dsz <= BIT16SZ) { /* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					error(Eshort);
 				return m;
@@ -357,29 +356,28 @@ void
 devpermcheck(char *fileuid, uint32_t perm, int omode)
 {
 	uint32_t t;
-	static int access[] = { 0400, 0200, 0600, 0100 };
+	static int access[] = {0400, 0200, 0600, 0100};
 
 	if(strcmp(up->user, fileuid) == 0)
 		perm <<= 0;
-	else
-	if(strcmp(up->user, eve) == 0)
+	else if(strcmp(up->user, eve) == 0)
 		perm <<= 3;
 	else
 		perm <<= 6;
 
-	t = access[omode&3];
-	if((t&perm) != t)
+	t = access[omode & 3];
+	if((t & perm) != t)
 		error(Eperm);
 }
 
-Chan*
+Chan *
 devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 {
 	int i;
 	Dir dir;
 
-	for(i=0;; i++) {
-		switch((*gen)(c, nil, tab, ntab, i, &dir)){
+	for(i = 0;; i++) {
+		switch((*gen)(c, nil, tab, ntab, i, &dir)) {
 		case -1:
 			goto Return;
 		case 0:
@@ -394,7 +392,7 @@ devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 	}
 Return:
 	c->offset = 0;
-	if((c->qid.type&QTDIR) && omode!=OREAD)
+	if((c->qid.type & QTDIR) && omode != OREAD)
 		error(Eperm);
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -412,7 +410,7 @@ devcreate(Chan *c, char *name, int mode, uint32_t perm)
 	error(Eperm);
 }
 
-Block*
+Block *
 devbread(Chan *c, int32_t n, uint32_t offset)
 {
 	Block *bp;

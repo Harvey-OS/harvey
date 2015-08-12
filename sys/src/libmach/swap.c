@@ -17,8 +17,8 @@ beswab(uint16_t s)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&s;
-	return (p[0]<<8) | p[1];
+	p = (uint8_t *)&s;
+	return (p[0] << 8) | p[1];
 }
 
 /*
@@ -29,8 +29,8 @@ beswal(uint32_t l)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&l;
-	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
+	p = (uint8_t *)&l;
+	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 }
 
 /*
@@ -41,11 +41,8 @@ beswav(uint64_t v)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&v;
-	return ((uint64_t)p[0]<<56) | ((uint64_t)p[1]<<48) | ((uint64_t)p[2]<<40)
-				  | ((uint64_t)p[3]<<32) | ((uint64_t)p[4]<<24)
-				  | ((uint64_t)p[5]<<16) | ((uint64_t)p[6]<<8)
-				  | (uint64_t)p[7];
+	p = (uint8_t *)&v;
+	return ((uint64_t)p[0] << 56) | ((uint64_t)p[1] << 48) | ((uint64_t)p[2] << 40) | ((uint64_t)p[3] << 32) | ((uint64_t)p[4] << 24) | ((uint64_t)p[5] << 16) | ((uint64_t)p[6] << 8) | (uint64_t)p[7];
 }
 
 /*
@@ -56,8 +53,8 @@ leswab(uint16_t s)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&s;
-	return (p[1]<<8) | p[0];
+	p = (uint8_t *)&s;
+	return (p[1] << 8) | p[0];
 }
 
 /*
@@ -68,8 +65,8 @@ leswal(uint32_t l)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&l;
-	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
+	p = (uint8_t *)&l;
+	return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
 }
 
 /*
@@ -80,9 +77,6 @@ leswav(uint64_t v)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)&v;
-	return ((uint64_t)p[7]<<56) | ((uint64_t)p[6]<<48) | ((uint64_t)p[5]<<40)
-				  | ((uint64_t)p[4]<<32) | ((uint64_t)p[3]<<24)
-				  | ((uint64_t)p[2]<<16) | ((uint64_t)p[1]<<8)
-				  | (uint64_t)p[0];
+	p = (uint8_t *)&v;
+	return ((uint64_t)p[7] << 56) | ((uint64_t)p[6] << 48) | ((uint64_t)p[5] << 40) | ((uint64_t)p[4] << 32) | ((uint64_t)p[3] << 24) | ((uint64_t)p[2] << 16) | ((uint64_t)p[1] << 8) | (uint64_t)p[0];
 }

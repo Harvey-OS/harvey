@@ -33,17 +33,17 @@ runpcs(int runmode, int keepnote)
 	BKPT *bkpt;
 
 	rc = 0;
-	if (adrflg)
+	if(adrflg)
 		rput(cormap, mach->pc, dot);
 	dot = rget(cormap, mach->pc);
 	flush();
-	while (loopcnt-- > 0) {
+	while(loopcnt-- > 0) {
 		if(loopcnt != 0)
 			printpc();
-		if (runmode == SINGLE) {
+		if(runmode == SINGLE) {
 			bkpt = scanbkpt(dot);
-			if (bkpt) {
-				switch(bkpt->flag){
+			if(bkpt) {
+				switch(bkpt->flag) {
 				case BKPTTMP:
 					bkpt->flag = BKPTCLR;
 					break;
@@ -54,7 +54,7 @@ runpcs(int runmode, int keepnote)
 			}
 			runstep(dot, keepnote);
 		} else {
-			if ((bkpt = scanbkpt(rget(cormap, mach->pc))) != 0) {
+			if((bkpt = scanbkpt(rget(cormap, mach->pc))) != 0) {
 				execbkpt(bkpt, keepnote);
 				keepnote = 0;
 			}
@@ -65,31 +65,29 @@ runpcs(int runmode, int keepnote)
 		delbp();
 		dot = rget(cormap, mach->pc);
 		/* real note? */
-		if (nnote > 0) {
+		if(nnote > 0) {
 			keepnote = 1;
 			rc = 0;
 			continue;
 		}
 		bkpt = scanbkpt(dot);
-		if(bkpt == 0){
+		if(bkpt == 0) {
 			keepnote = 0;
 			rc = 0;
 			continue;
 		}
 		/* breakpoint */
-		if (bkpt->flag == BKPTTMP)
+		if(bkpt->flag == BKPTTMP)
 			bkpt->flag = BKPTCLR;
-		else if (bkpt->flag == BKPTSKIP) {
+		else if(bkpt->flag == BKPTSKIP) {
 			execbkpt(bkpt, keepnote);
 			keepnote = 0;
-			loopcnt++;	/* we didn't really stop */
+			loopcnt++; /* we didn't really stop */
 			continue;
-		}
-		else {
+		} else {
 			bkpt->flag = BKPTSKIP;
 			--bkpt->count;
-			if ((bkpt->comm[0] == EOR || command(bkpt->comm, ':') != 0)
-			&&  bkpt->count != 0) {
+			if((bkpt->comm[0] == EOR || command(bkpt->comm, ':') != 0) && bkpt->count != 0) {
 				execbkpt(bkpt, keepnote);
 				keepnote = 0;
 				loopcnt++;
@@ -99,7 +97,7 @@ runpcs(int runmode, int keepnote)
 		}
 		rc = 1;
 	}
-	return(rc);
+	return (rc);
 }
 
 /*
@@ -115,17 +113,17 @@ endpcs(void)
 	if(ending)
 		return;
 	ending = 1;
-	if (pid) {
-		if(pcsactive){
+	if(pid) {
+		if(pcsactive) {
 			killpcs();
 			pcsactive = 0;
 		}
-		pid=0;
-		nnote=0;
-		for (bk=bkpthead; bk; bk = bk->nxtbkpt)
-			if (bk->flag == BKPTTMP)
+		pid = 0;
+		nnote = 0;
+		for(bk = bkpthead; bk; bk = bk->nxtbkpt)
+			if(bk->flag == BKPTTMP)
 				bk->flag = BKPTCLR;
-			else if (bk->flag != BKPTCLR)
+			else if(bk->flag != BKPTCLR)
 				bk->flag = BKPTSET;
 	}
 	bpin = FALSE;
@@ -167,10 +165,10 @@ scanbkpt(ADDR adr)
 {
 	BKPT *bk;
 
-	for (bk = bkpthead; bk; bk = bk->nxtbkpt)
-		if (bk->flag != BKPTCLR && bk->loc == adr)
+	for(bk = bkpthead; bk; bk = bk->nxtbkpt)
+		if(bk->flag != BKPTCLR && bk->loc == adr)
 			break;
-	return(bk);
+	return (bk);
 }
 
 /*
@@ -182,10 +180,10 @@ delbp(void)
 {
 	BKPT *bk;
 
-	if (bpin == FALSE || pid == 0)
+	if(bpin == FALSE || pid == 0)
 		return;
-	for (bk = bkpthead; bk; bk = bk->nxtbkpt)
-		if (bk->flag != BKPTCLR)
+	for(bk = bkpthead; bk; bk = bk->nxtbkpt)
+		if(bk->flag != BKPTCLR)
 			bkput(bk, 0);
 	bpin = FALSE;
 }
@@ -199,10 +197,10 @@ setbp(void)
 {
 	BKPT *bk;
 
-	if (bpin == TRUE || pid == 0)
+	if(bpin == TRUE || pid == 0)
 		return;
-	for (bk = bkpthead; bk; bk = bk->nxtbkpt)
-		if (bk->flag != BKPTCLR)
+	for(bk = bkpthead; bk; bk = bk->nxtbkpt)
+		if(bk->flag != BKPTCLR)
 			bkput(bk, 1);
 	bpin = TRUE;
 }

@@ -13,6 +13,5 @@
 uint32_t
 getcallerpc(void *a)
 {
-	return ((uint32_t*)a)[-1];
+	return ((uint32_t *)a)[-1];
 }
-

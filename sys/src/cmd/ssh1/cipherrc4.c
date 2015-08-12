@@ -9,24 +9,23 @@
 
 #include "ssh.h"
 
-struct CipherState
-{
+struct CipherState {
 	RC4state enc;
 	RC4state dec;
 };
 
-static CipherState*
+static CipherState *
 initrc4(Conn *c, int isserver)
 {
 	CipherState *cs;
 
 	cs = emalloc(sizeof(CipherState));
-	if(isserver){
+	if(isserver) {
 		setupRC4state(&cs->enc, c->sesskey, 16);
-		setupRC4state(&cs->dec, c->sesskey+16, 16);
-	}else{
+		setupRC4state(&cs->dec, c->sesskey + 16, 16);
+	} else {
 		setupRC4state(&cs->dec, c->sesskey, 16);
-		setupRC4state(&cs->enc, c->sesskey+16, 16);
+		setupRC4state(&cs->enc, c->sesskey + 16, 16);
 	}
 	return cs;
 }
@@ -44,11 +43,10 @@ decryptrc4(CipherState *cs, uint8_t *buf, int nbuf)
 }
 
 Cipher cipherrc4 =
-{
-	SSH_CIPHER_RC4,
-	"rc4",
-	initrc4,
-	encryptrc4,
-	decryptrc4,
+    {
+     SSH_CIPHER_RC4,
+     "rc4",
+     initrc4,
+     encryptrc4,
+     decryptrc4,
 };
-

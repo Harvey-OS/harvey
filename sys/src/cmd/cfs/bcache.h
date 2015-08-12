@@ -7,48 +7,45 @@
  * in the LICENSE file.
  */
 
-typedef struct Bbuf	Bbuf;
-typedef struct Bcache	Bcache;
+typedef struct Bbuf Bbuf;
+typedef struct Bcache Bcache;
 
-enum
-{
-	Nbcache=	32,		/* number of blocks kept in pool */
+enum {
+	Nbcache = 32, /* number of blocks kept in pool */
 };
 
 /*
  *  block cache descriptor
  */
-struct Bbuf
-{
-	Lru;				/* must be first in struct */
-	ulong	bno;
-	int	inuse;
-	Bbuf	*next;			/* next in dirty list */
-	int	dirty;
-	char	*data;
+struct Bbuf {
+	Lru; /* must be first in struct */
+	ulong bno;
+	int inuse;
+	Bbuf *next; /* next in dirty list */
+	int dirty;
+	char *data;
 };
 
 /*
  *  the buffer cache
  */
-struct Bcache
-{
+struct Bcache {
 	Lru;
-	int	bsize;			/* block size in bytes */
-	int	f;			/* fd to disk */
-	Bbuf	*dfirst;		/* dirty list */
-	Bbuf	*dlast;
-	Bbuf	bb[Nbcache];
+	int bsize;    /* block size in bytes */
+	int f;	/* fd to disk */
+	Bbuf *dfirst; /* dirty list */
+	Bbuf *dlast;
+	Bbuf bb[Nbcache];
 };
 
-int	bcinit(Bcache*, int, int);
-Bbuf*	bcalloc(Bcache*, uint32_t);
-Bbuf*	bcread(Bcache*, uint32_t);
-void	bcmark(Bcache*, Bbuf*);
-int	bcwrite(Bcache*, Bbuf*);
-int	bcsync(Bcache*);
-int	bread(Bcache*, uint32_t, void*);
-int	bwrite(Bcache*, uint32_t, void*);
-int	bref(Bcache*, Bbuf*);
-void	error(char*, ...);
-void	warning(char*);
+int bcinit(Bcache *, int, int);
+Bbuf *bcalloc(Bcache *, uint32_t);
+Bbuf *bcread(Bcache *, uint32_t);
+void bcmark(Bcache *, Bbuf *);
+int bcwrite(Bcache *, Bbuf *);
+int bcsync(Bcache *);
+int bread(Bcache *, uint32_t, void *);
+int bwrite(Bcache *, uint32_t, void *);
+int bref(Bcache *, Bbuf *);
+void error(char *, ...);
+void warning(char *);

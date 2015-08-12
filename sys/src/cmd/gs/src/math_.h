@@ -27,25 +27,25 @@
 /* Generic substitute for math.h */
 
 #ifndef math__INCLUDED
-#  define math__INCLUDED
+#define math__INCLUDED
 
 /* We must include std.h before any file that includes sys/types.h. */
 #include "std.h"
 
 #if defined(VMS) && defined(__GNUC__)
 /*  DEC VAX/VMS C comes with a math.h file, but GNU VAX/VMS C does not. */
-#  include "vmsmath.h"
+#include "vmsmath.h"
 #else
-#  include <math.h>
+#include <math.h>
 #endif
 
 /* math.h is different for Turbo and Unix.... */
 #ifndef M_PI
-#  ifdef PI
-#    define M_PI PI
-#  else
-#    define M_PI 3.14159265358979324
-#  endif
+#ifdef PI
+#define M_PI PI
+#else
+#define M_PI 3.14159265358979324
+#endif
 #endif
 
 /* Factors for converting between degrees and radians */
@@ -57,15 +57,15 @@
  * This doesn't seem to be defined in any standard place,
  * and we need an exact value for it.
  */
-#undef MAX_FLOAT		/* just in case */
+#undef MAX_FLOAT /* just in case */
 #if defined(vax) || defined(VAX) || defined(__vax) || defined(__VAX)
 /* Maximum exponent is +127, 23 bits of fraction. */
-#  define MAX_FLOAT\
-     ((0x800000 - 1.0) * 0x1000000 * 0x1000000 * 0x10000000 * 0x10000000)
+#define MAX_FLOAT \
+	((0x800000 - 1.0) * 0x1000000 * 0x1000000 * 0x10000000 * 0x10000000)
 #else
 /* IEEE, maximum exponent is +127, 23 bits of fraction + an implied '1'. */
-#  define MAX_FLOAT\
-     ((0x1000000 - 1.0) * 0x1000000 * 0x1000000 * 0x10000000 * 0x10000000)
+#define MAX_FLOAT \
+	((0x1000000 - 1.0) * 0x1000000 * 0x1000000 * 0x10000000 * 0x10000000)
 #endif
 
 /* Define the hypot procedure on those few systems that don't provide it. */
@@ -73,9 +73,9 @@
 /* The RS/6000 has hypot, but math.h doesn't declare it! */
 extern double hypot(double, double);
 #elif defined(_MSC_VER)
-#  define hypot(x,y) _hypot(x,y)
+#define hypot(x, y) _hypot(x, y)
 #elif !defined(__TURBOC__) && !defined(BSD4_2) && !defined(VMS) && !defined(__MWERKS__) && !defined(HAVE_HYPOT)
-#  define hypot(x,y) sqrt((double)(x)*(x)+(double)(y)*(y))
+#define hypot(x, y) sqrt((double)(x) * (x) + (double)(y) * (y))
 #endif
 
 #ifdef OSK

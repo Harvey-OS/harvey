@@ -28,7 +28,7 @@
 /* Requires gsmemory.h */
 
 #ifndef gxiodev_INCLUDED
-#  define gxiodev_INCLUDED
+#define gxiodev_INCLUDED
 
 #include "stat_.h"
 
@@ -39,28 +39,28 @@
  */
 
 #ifndef gx_io_device_DEFINED
-#  define gx_io_device_DEFINED
+#define gx_io_device_DEFINED
 typedef struct gx_io_device_s gx_io_device;
 #endif
-typedef struct gx_io_device_procs_s gx_io_device_procs;  /* defined here */
+typedef struct gx_io_device_procs_s gx_io_device_procs; /* defined here */
 
 /* The IODevice table is defined in gconf.c; its extern is in gscdefs.h. */
 
-#ifndef file_enum_DEFINED	/* also defined in gp.h */
-#  define file_enum_DEFINED
-struct file_enum_s;		/* opaque to client, defined by implementors */
+#ifndef file_enum_DEFINED /* also defined in gp.h */
+#define file_enum_DEFINED
+struct file_enum_s; /* opaque to client, defined by implementors */
 typedef struct file_enum_s file_enum;
 #endif
 
 /* Define an opaque type for parameter lists. */
 #ifndef gs_param_list_DEFINED
-#  define gs_param_list_DEFINED
+#define gs_param_list_DEFINED
 typedef struct gs_param_list_s gs_param_list;
 #endif
 
 /* Define an opaque type for streams. */
 #ifndef stream_DEFINED
-#  define stream_DEFINED
+#define stream_DEFINED
 typedef struct stream_s stream;
 #endif
 
@@ -87,67 +87,66 @@ typedef struct stream_s stream;
 
 struct gx_io_device_procs_s {
 
-#define iodev_proc_init(proc)\
-  int proc(gx_io_device *iodev, gs_memory_t *mem)
-    iodev_proc_init((*init));	/* one-time initialization */
+#define iodev_proc_init(proc) \
+	int proc(gx_io_device *iodev, gs_memory_t *mem)
+	iodev_proc_init((*init)); /* one-time initialization */
 
-#define iodev_proc_open_device(proc)\
-  int proc(gx_io_device *iodev, const char *access, stream **ps,\
-	   gs_memory_t *mem)
-    iodev_proc_open_device((*open_device));
+#define iodev_proc_open_device(proc)                                   \
+	int proc(gx_io_device *iodev, const char *access, stream **ps, \
+		 gs_memory_t *mem)
+	iodev_proc_open_device((*open_device));
 
-#define iodev_proc_open_file(proc)\
-  int proc(gx_io_device *iodev, const char *fname, uint namelen,\
-	   const char *access, stream **ps, gs_memory_t *mem)
-    iodev_proc_open_file((*open_file));
+#define iodev_proc_open_file(proc)                                     \
+	int proc(gx_io_device *iodev, const char *fname, uint namelen, \
+		 const char *access, stream **ps, gs_memory_t *mem)
+	iodev_proc_open_file((*open_file));
 
-    /* fopen was changed in release 2.9.6, */
-    /* and again in 3.20 to return the real fname separately */
+/* fopen was changed in release 2.9.6, */
+/* and again in 3.20 to return the real fname separately */
 
-#define iodev_proc_fopen(proc)\
-  int proc(gx_io_device *iodev, const char *fname, const char *access,\
-	   FILE **pfile, char *rfname, uint rnamelen)
-    iodev_proc_fopen((*fopen));
+#define iodev_proc_fopen(proc)                                               \
+	int proc(gx_io_device *iodev, const char *fname, const char *access, \
+		 FILE **pfile, char *rfname, uint rnamelen)
+	iodev_proc_fopen((*fopen));
 
-#define iodev_proc_fclose(proc)\
-  int proc(gx_io_device *iodev, FILE *file)
-    iodev_proc_fclose((*fclose));
+#define iodev_proc_fclose(proc) \
+	int proc(gx_io_device *iodev, FILE *file)
+	iodev_proc_fclose((*fclose));
 
-#define iodev_proc_delete_file(proc)\
-  int proc(gx_io_device *iodev, const char *fname)
-    iodev_proc_delete_file((*delete_file));
+#define iodev_proc_delete_file(proc) \
+	int proc(gx_io_device *iodev, const char *fname)
+	iodev_proc_delete_file((*delete_file));
 
-#define iodev_proc_rename_file(proc)\
-  int proc(gx_io_device *iodev, const char *from, const char *to)
-    iodev_proc_rename_file((*rename_file));
+#define iodev_proc_rename_file(proc) \
+	int proc(gx_io_device *iodev, const char *from, const char *to)
+	iodev_proc_rename_file((*rename_file));
 
-#define iodev_proc_file_status(proc)\
-  int proc(gx_io_device *iodev, const char *fname, struct stat *pstat)
-    iodev_proc_file_status((*file_status));
+#define iodev_proc_file_status(proc) \
+	int proc(gx_io_device *iodev, const char *fname, struct stat *pstat)
+	iodev_proc_file_status((*file_status));
 
-#define iodev_proc_enumerate_files(proc)\
-  file_enum *proc(gx_io_device *iodev, const char *pat, uint patlen,\
-		  gs_memory_t *mem)
-    iodev_proc_enumerate_files((*enumerate_files));
+#define iodev_proc_enumerate_files(proc)                                   \
+	file_enum *proc(gx_io_device *iodev, const char *pat, uint patlen, \
+			gs_memory_t *mem)
+	iodev_proc_enumerate_files((*enumerate_files));
 
-#define iodev_proc_enumerate_next(proc)\
-  uint proc(file_enum *pfen, char *ptr, uint maxlen)
-    iodev_proc_enumerate_next((*enumerate_next));
+#define iodev_proc_enumerate_next(proc) \
+	uint proc(file_enum *pfen, char *ptr, uint maxlen)
+	iodev_proc_enumerate_next((*enumerate_next));
 
-#define iodev_proc_enumerate_close(proc)\
-  void proc(file_enum *pfen)
-    iodev_proc_enumerate_close((*enumerate_close));
+#define iodev_proc_enumerate_close(proc) \
+	void proc(file_enum *pfen)
+	iodev_proc_enumerate_close((*enumerate_close));
 
-    /* Added in release 2.9 */
+/* Added in release 2.9 */
 
-#define iodev_proc_get_params(proc)\
-  int proc(gx_io_device *iodev, gs_param_list *plist)
-    iodev_proc_get_params((*get_params));
+#define iodev_proc_get_params(proc) \
+	int proc(gx_io_device *iodev, gs_param_list *plist)
+	iodev_proc_get_params((*get_params));
 
-#define iodev_proc_put_params(proc)\
-  int proc(gx_io_device *iodev, gs_param_list *plist)
-    iodev_proc_put_params((*put_params));
-
+#define iodev_proc_put_params(proc) \
+	int proc(gx_io_device *iodev, gs_param_list *plist)
+	iodev_proc_put_params((*put_params));
 };
 
 /* The following typedef is needed because ansi2knr can't handle */
@@ -189,19 +188,19 @@ int gs_fopen_errno_to_code(int);
 
 /* Test whether a string is equal to a character. */
 /* (This is used for access testing in file_open procedures.) */
-#define streq1(str, chr)\
-  ((str)[0] == (chr) && (str)[1] == 0)
+#define streq1(str, chr) \
+	((str)[0] == (chr) && (str)[1] == 0)
 
 /* Finally, the IODevice structure itself. */
 struct gx_io_device_s {
-    const char *dname;		/* the IODevice name */
-    const char *dtype;		/* the type returned by currentdevparams */
-    gx_io_device_procs procs;
-    void *state;		/* (if the IODevice has state) */
+	const char *dname; /* the IODevice name */
+	const char *dtype; /* the type returned by currentdevparams */
+	gx_io_device_procs procs;
+	void *state; /* (if the IODevice has state) */
 };
 
-#define private_st_io_device()	/* in gsiodev.c */\
-  gs_private_st_ptrs1(st_io_device, gx_io_device, "gx_io_device",\
-    io_device_enum_ptrs, io_device_reloc_ptrs, state)
+#define private_st_io_device() /* in gsiodev.c */                       \
+	gs_private_st_ptrs1(st_io_device, gx_io_device, "gx_io_device", \
+			    io_device_enum_ptrs, io_device_reloc_ptrs, state)
 
 #endif /* gxiodev_INCLUDED */

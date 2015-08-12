@@ -88,37 +88,36 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#include "comments.h"			/* PostScript file structuring comments */
-#include "gen.h"			/* general purpose definitions */
-#include "path.h"			/* for temporary directory */
-#include "ext.h"			/* external variable declarations */
-#include "postreverse.h"		/* a few special definitions */
+#include "comments.h"    /* PostScript file structuring comments */
+#include "gen.h"	 /* general purpose definitions */
+#include "path.h"	/* for temporary directory */
+#include "ext.h"	 /* external variable declarations */
+#include "postreverse.h" /* a few special definitions */
 
-int	page = 1;			/* current page number */
-int	forms = 1;			/* forms per page in the input file */
+int page = 1;  /* current page number */
+int forms = 1; /* forms per page in the input file */
 
-char	*temp_dir = TEMPDIR;		/* temp directory for copying stdin */
+char *temp_dir = TEMPDIR; /* temp directory for copying stdin */
 
-Pages	pages[1000];			/* byte offsets for all pages */
-int	next_page = 0;			/* next page goes here */
-int32_t	start;				/* starting offset for next page */
-int32_t	endoff = -1;			/* offset where TRAILER was found */
-int	noreverse = FALSE;		/* don't reverse pages if TRUE */
-char	*endprolog = ENDPROLOG;		/* occasionally changed to ENDSETUP */
+Pages pages[1000];	   /* byte offsets for all pages */
+int next_page = 0;	   /* next page goes here */
+int32_t start;		     /* starting offset for next page */
+int32_t endoff = -1;	 /* offset where TRAILER was found */
+int noreverse = FALSE;       /* don't reverse pages if TRUE */
+char *endprolog = ENDPROLOG; /* occasionally changed to ENDSETUP */
 
-double	version = 3.3;			/* of the input file */
-int	ignoreversion = FALSE;		/* ignore possible forms.ps problems */
+double version = 3.3;      /* of the input file */
+int ignoreversion = FALSE; /* ignore possible forms.ps problems */
 
-char	buf[2048];			/* line buffer for input file */
+char buf[2048]; /* line buffer for input file */
 
-FILE	*fp_in;				/* stuff is read from this file */
-FILE	*fp_out = stdout;		/* and written here */
+FILE *fp_in;	   /* stuff is read from this file */
+FILE *fp_out = stdout; /* and written here */
 
-main(agc, agv)
-    int		agc;
-    char	*agv[];
+main(agc, agv) int agc;
+char *agv[];
 {
-/*
+	/*
  * A simple program that reverses the pages in specially formatted PostScript
  * files. Will work with all the translators in this package, and should handle
  * any document that conforms to Adobe's version 1.0 or 2.0 file structuring
@@ -126,47 +125,47 @@ main(agc, agv)
  * the command line) file or stdin.
  */
 
-    argc = agc;				/* other routines may want them */
-    argv = agv;
+	argc = agc; /* other routines may want them */
+	argv = agv;
 
-    prog_name = argv[0];		/* just for error messages */
+	prog_name = argv[0]; /* just for error messages */
 
-    init_signals();			/* sets up interrupt handling */
-    options();				/* first get command line options */
-    arguments();			/* then process non-option arguments */
-    done();				/* and clean things up */
+	init_signals(); /* sets up interrupt handling */
+	options();      /* first get command line options */
+	arguments();    /* then process non-option arguments */
+	done();		/* and clean things up */
 
-    exit(x_stat);			/* not much could be wrong */
-    return 0;
+	exit(x_stat); /* not much could be wrong */
+	return 0;
 }
 
 init_signals()
 {
-/*
+	/*
  * Makes sure we handle interrupts properly.
  */
 
-    if ( signal(SIGINT, interrupt) == SIG_IGN )  {
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
-    } else {
-	signal(SIGHUP, interrupt);
-	signal(SIGQUIT, interrupt);
-    }
+	if(signal(SIGINT, interrupt) == SIG_IGN) {
+		signal(SIGINT, SIG_IGN);
+		signal(SIGQUIT, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);
+	} else {
+		signal(SIGHUP, interrupt);
+		signal(SIGQUIT, interrupt);
+	}
 
-    signal(SIGTERM, interrupt);
+	signal(SIGTERM, interrupt);
 }
 
 options()
 {
-    int		ch;			/* return value from getopt() */
-    char	*optnames = "n:o:rvT:DI";
+	int ch; /* return value from getopt() */
+	char *optnames = "n:o:rvT:DI";
 
-    extern char	*optarg;		/* used by getopt() */
-    extern int	optind;
+	extern char *optarg; /* used by getopt() */
+	extern int optind;
 
-/*
+	/*
  *
  * Reads and processes the command line options. The -r option (ie. the one that
  * turns page reversal off) is really only useful if you want to take dpost output
@@ -176,51 +175,51 @@ options()
  *
  */
 
-    while ( (ch = getopt(argc, argv, optnames)) != EOF )  {
-	switch ( ch )  {
-	    case 'n':			/* forms per page */
-		    if ( (forms = atoi(optarg)) <= 0 )
-			error(FATAL, "illegal forms request %s", optarg);
-		    break;
+	while((ch = getopt(argc, argv, optnames)) != EOF) {
+		switch(ch) {
+		case 'n': /* forms per page */
+			if((forms = atoi(optarg)) <= 0)
+				error(FATAL, "illegal forms request %s", optarg);
+			break;
 
-	    case 'o':			/* output page list */
-		    out_list(optarg);
-		    break;
+		case 'o': /* output page list */
+			out_list(optarg);
+			break;
 
-	    case 'r':			/* don't reverse the pages */
-		    noreverse = TRUE;
-		    break;
+		case 'r': /* don't reverse the pages */
+			noreverse = TRUE;
+			break;
 
-	    case 'v':			/* ignore possible forms.ps problems */
-		    ignoreversion = TRUE;
-		    break;
+		case 'v': /* ignore possible forms.ps problems */
+			ignoreversion = TRUE;
+			break;
 
-	    case 'T':			/* temporary file directory */
-		    temp_dir = optarg;
-		    break;
+		case 'T': /* temporary file directory */
+			temp_dir = optarg;
+			break;
 
-	    case 'D':			/* debug flag */
-		    debug = ON;
-		    break;
+		case 'D': /* debug flag */
+			debug = ON;
+			break;
 
-	    case 'I':			/* ignore FATAL errors */
-		    ignore = ON;
-		    break;
+		case 'I': /* ignore FATAL errors */
+			ignore = ON;
+			break;
 
-	    case '?':			/* don't understand the option */
-		    error(FATAL, "");
-		    break;
+		case '?': /* don't understand the option */
+			error(FATAL, "");
+			break;
 
-	    default:			/* don't know what to do for ch */
-		    error(FATAL, "missing case for option %c\n", ch);
-		    break;
-	}   /* End switch */
-    }   /* End while */
+		default: /* don't know what to do for ch */
+			error(FATAL, "missing case for option %c\n", ch);
+			break;
+		} /* End switch */
+	}	 /* End while */
 
-    argc -= optind;			/* get ready for non-option args */
-    argv += optind;
+	argc -= optind; /* get ready for non-option args */
+	argv += optind;
 
-}   /* End of options */
+} /* End of options */
 
 /*****************************************************************************/
 
@@ -228,9 +227,9 @@ arguments()
 
 {
 
-    char	*name;			/* name of the input file */
+	char *name; /* name of the input file */
 
-/*
+	/*
  *
  * postreverse only handles one input file at a time, so if there's more than one
  * argument left when we get here we'll quit. If none remain we copy stdin to a
@@ -238,19 +237,20 @@ arguments()
  *
  */
 
-    if ( argc > 1 )			/* can't handle more than one file */
-	error(FATAL, "too many arguments");
+	if(argc > 1) /* can't handle more than one file */
+		error(FATAL, "too many arguments");
 
-    if ( argc == 0 )			/* copy stdin to a temporary file */
-	name = copystdin();
-    else name = *argv;
+	if(argc == 0) /* copy stdin to a temporary file */
+		name = copystdin();
+	else
+		name = *argv;
 
-    if ( (fp_in = fopen(name, "r")) == NULL )
-	error(FATAL, "can't open %s", name);
+	if((fp_in = fopen(name, "r")) == NULL)
+		error(FATAL, "can't open %s", name);
 
-    reverse();
+	reverse();
 
-}   /* End of arguments */
+} /* End of arguments */
 
 /*****************************************************************************/
 
@@ -258,29 +258,30 @@ done()
 
 {
 
-/*
+	/*
  *
  * Cleans things up after we've finished reversing the pages in the input file.
  * All that's really left to do is remove the temp file, provided we used one.
  *
  */
 
-    if ( temp_file != NULL )
-	unlink(temp_file);
+	if(temp_file != NULL)
+		unlink(temp_file);
 
-}   /* End of done */
+} /* End of done */
 
 /*****************************************************************************/
 
-char *copystdin()
+char *
+copystdin()
 
 {
 
-    int		fd_out;			/* for the temporary file */
-    int		fd_in;			/* for stdin */
-    int		count;			/* number of bytes put in buf[] */
+	int fd_out; /* for the temporary file */
+	int fd_in;  /* for stdin */
+	int count;  /* number of bytes put in buf[] */
 
-/*
+	/*
  *
  * Copies stdin to a temporary file and returns the pathname of that file to the
  * caller. It's an expensive way of doing things, because it means we end up
@@ -290,23 +291,23 @@ char *copystdin()
  *
  */
 
-    if ( (temp_file = tempnam(temp_dir, "post")) == NULL )
-	error(FATAL, "can't generate temp file name");
+	if((temp_file = tempnam(temp_dir, "post")) == NULL)
+		error(FATAL, "can't generate temp file name");
 
-    if ( (fd_out = creat(temp_file, 0660)) == -1 )
-	error(FATAL, "can't open %s", temp_file);
+	if((fd_out = creat(temp_file, 0660)) == -1)
+		error(FATAL, "can't open %s", temp_file);
 
-    fd_in = fileno(stdin);
+	fd_in = fileno(stdin);
 
-    while ( (count = read(fd_in, buf, sizeof(buf))) > 0 )
-	if ( write(fd_out, buf, count) != count )
-	    error(FATAL, "error writing to %s", temp_file);
+	while((count = read(fd_in, buf, sizeof(buf))) > 0)
+		if(write(fd_out, buf, count) != count)
+			error(FATAL, "error writing to %s", temp_file);
 
-    close(fd_out);
+	close(fd_out);
 
-    return(temp_file);
+	return (temp_file);
 
-}   /* End of copystdin */
+} /* End of copystdin */
 
 /*****************************************************************************/
 
@@ -314,7 +315,7 @@ reverse()
 
 {
 
-/*
+	/*
  *
  * Begins by looking for the ENDPROLOG comment in the input file. Everything up to
  * that comment is copied to the output file. If the comment isn't found the entire
@@ -330,26 +331,26 @@ reverse()
  *
  */
 
-    if ( moreprolog(ENDPROLOG) == TRUE )  {
-	readpages();
-	writepages();
-	trailer();
-    }	/* End if */
+	if(moreprolog(ENDPROLOG) == TRUE) {
+		readpages();
+		writepages();
+		trailer();
+	} /* End if */
 
-}   /* End of reverse */
+} /* End of reverse */
 
 /*****************************************************************************/
 
 moreprolog(str)
 
-    char	*str;			/* copy everything up to this string */
+    char *str; /* copy everything up to this string */
 
 {
 
-    int		len;			/* length of FORMSPERPAGE string */
-    int		vlen;			/* length of VERSION string */
+	int len;  /* length of FORMSPERPAGE string */
+	int vlen; /* length of VERSION string */
 
-/*
+	/*
  *
  * Looks for string *str at the start of a line and copies everything up to that
  * string to the output file. If *str isn't found the entire input file will end
@@ -359,22 +360,22 @@ moreprolog(str)
  * 
  */
 
-    len = strlen(FORMSPERPAGE);
-    vlen = strlen(VERSION);
+	len = strlen(FORMSPERPAGE);
+	vlen = strlen(VERSION);
 
-    while ( fgets(buf, sizeof(buf), fp_in) != NULL )  {
-	if ( strcmp(buf, str) == 0 )
-	    return(TRUE);
-	else if ( strncmp(buf, FORMSPERPAGE, len) == 0 )
-	    forms = atoi(&buf[len+1]);
-	else if ( strncmp(buf, VERSION, vlen) == 0 )
-	    version = atof(&buf[vlen+1]);
-	fprintf(fp_out, "%s", buf);
-    }	/* End while */
+	while(fgets(buf, sizeof(buf), fp_in) != NULL) {
+		if(strcmp(buf, str) == 0)
+			return (TRUE);
+		else if(strncmp(buf, FORMSPERPAGE, len) == 0)
+			forms = atoi(&buf[len + 1]);
+		else if(strncmp(buf, VERSION, vlen) == 0)
+			version = atof(&buf[vlen + 1]);
+		fprintf(fp_out, "%s", buf);
+	} /* End while */
 
-    return(FALSE);
+	return (FALSE);
 
-}   /* End of moreprolog */
+} /* End of moreprolog */
 
 /*****************************************************************************/
 
@@ -382,12 +383,12 @@ readpages()
 
 {
 
-    int		endpagelen;		/* length of ENDPAGE */
-    int		pagelen;		/* and PAGE strings */
-    int		sawendpage = TRUE;	/* ENDPAGE equivalent marked last page */
-    int		gotpage = FALSE;	/* TRUE disables BEGINSETUP stuff */
+	int endpagelen;	/* length of ENDPAGE */
+	int pagelen;	   /* and PAGE strings */
+	int sawendpage = TRUE; /* ENDPAGE equivalent marked last page */
+	int gotpage = FALSE;   /* TRUE disables BEGINSETUP stuff */
 
-/*
+	/*
  *
  * Records starting and ending positions of the requested pages (usually all of
  * them), puts global definitions in the prologue, and remembers where the TRAILER
@@ -400,46 +401,46 @@ readpages()
  *
  */
 
-    pages[0].start = ftell(fp_in);	/* first page starts after ENDPROLOG */
-    endprolog = ENDPROLOG;
+	pages[0].start = ftell(fp_in); /* first page starts after ENDPROLOG */
+	endprolog = ENDPROLOG;
 
-    endpagelen = strlen(ENDPAGE);
-    pagelen = strlen(PAGE);
+	endpagelen = strlen(ENDPAGE);
+	pagelen = strlen(PAGE);
 
-    while ( fgets(buf, sizeof(buf), fp_in) != NULL )
-	if ( buf[0] != '%' )
-	    continue;
-	else if ( strncmp(buf, ENDPAGE, endpagelen) == 0 )  {
-	    if ( in_olist(page++) == ON )  {
-		pages[next_page].empty = FALSE;
-		pages[next_page++].stop = ftell(fp_in);
-	    }	/* End if */
-	    pages[next_page].start = ftell(fp_in);
-	    sawendpage = TRUE;
-	    gotpage = TRUE;
-	} else if ( strncmp(buf, PAGE, pagelen) == 0 )  {
-	    if ( sawendpage == FALSE && in_olist(page++) == ON )  {
-		pages[next_page].empty = FALSE;
-		pages[next_page++].stop = ftell(fp_in) - strlen(buf);
-	    }	/* End if */
-	    pages[next_page].start = ftell(fp_in) - strlen(buf);
-	    sawendpage = FALSE;
-	    gotpage = TRUE;
-	} else if ( gotpage == FALSE && strcmp(buf, BEGINSETUP) == 0 )  {
-	    fprintf(fp_out, "%s", endprolog);
-	    fprintf(fp_out, "%s", BEGINSETUP);
-	    moreprolog(ENDSETUP);
-	    endprolog = ENDSETUP;
-	} else if ( strcmp(buf, BEGINGLOBAL) == 0 )  {
-	    moreprolog(ENDGLOBAL);
-	} else if ( strcmp(buf, TRAILER) == 0 )  {
-	    if ( sawendpage == FALSE )
-		pages[next_page++].stop = ftell(fp_in) - strlen(buf);
-	    endoff = ftell(fp_in);
-	    break;
-	}   /* End if */
+	while(fgets(buf, sizeof(buf), fp_in) != NULL)
+		if(buf[0] != '%')
+			continue;
+		else if(strncmp(buf, ENDPAGE, endpagelen) == 0) {
+			if(in_olist(page++) == ON) {
+				pages[next_page].empty = FALSE;
+				pages[next_page++].stop = ftell(fp_in);
+			} /* End if */
+			pages[next_page].start = ftell(fp_in);
+			sawendpage = TRUE;
+			gotpage = TRUE;
+		} else if(strncmp(buf, PAGE, pagelen) == 0) {
+			if(sawendpage == FALSE && in_olist(page++) == ON) {
+				pages[next_page].empty = FALSE;
+				pages[next_page++].stop = ftell(fp_in) - strlen(buf);
+			} /* End if */
+			pages[next_page].start = ftell(fp_in) - strlen(buf);
+			sawendpage = FALSE;
+			gotpage = TRUE;
+		} else if(gotpage == FALSE && strcmp(buf, BEGINSETUP) == 0) {
+			fprintf(fp_out, "%s", endprolog);
+			fprintf(fp_out, "%s", BEGINSETUP);
+			moreprolog(ENDSETUP);
+			endprolog = ENDSETUP;
+		} else if(strcmp(buf, BEGINGLOBAL) == 0) {
+			moreprolog(ENDGLOBAL);
+		} else if(strcmp(buf, TRAILER) == 0) {
+			if(sawendpage == FALSE)
+				pages[next_page++].stop = ftell(fp_in) - strlen(buf);
+			endoff = ftell(fp_in);
+			break;
+		} /* End if */
 
-}   /* End of readpages */
+} /* End of readpages */
 
 /*****************************************************************************/
 
@@ -447,9 +448,9 @@ writepages()
 
 {
 
-    int		i, j, k;		/* loop indices */
+	int i, j, k; /* loop indices */
 
-/*
+	/*
  *
  * Goes through the pages[] array, usually from the bottom up, and writes out all
  * the pages. Documents that print more than one form per page cause things to get
@@ -459,41 +460,43 @@ writepages()
  *
  */
 
-    fprintf(fp_out, "%s", endprolog);
+	fprintf(fp_out, "%s", endprolog);
 
-    if ( noreverse == FALSE )		/* fill out the first page */
-	for ( i = (forms - next_page % forms) % forms; i > 0; i--, next_page++ )
-	    pages[next_page].empty = TRUE;
-    else forms = next_page;		/* turns reversal off in next loop */
+	if(noreverse == FALSE) /* fill out the first page */
+		for(i = (forms - next_page % forms) % forms; i > 0; i--, next_page++)
+			pages[next_page].empty = TRUE;
+	else
+		forms = next_page; /* turns reversal off in next loop */
 
-    for ( i = next_page - forms; i >= 0; i -= forms )
-	for ( j = i, k = 0; k < forms; j++, k++ )
-	    if ( pages[j].empty == TRUE ) {
-		if ( ignoreversion == TRUE || version > 3.1 ) {
-		    fprintf(fp_out, "%s 0 0\n", PAGE);
-		    fprintf(fp_out, "/saveobj save def\n");
-		    fprintf(fp_out, "showpage\n");
-		    fprintf(fp_out, "saveobj restore\n");
-		    fprintf(fp_out, "%s 0 0\n", ENDPAGE);
-		} else {
-		    fprintf(fp_out, "%s 0 0\n", PAGE);
-		    fprintf(fp_out, "save showpage restore\n");
-		    fprintf(fp_out, "%s 0 0\n", ENDPAGE);
-		}   /* End else */
-	    } else copypage(pages[j].start, pages[j].stop);
+	for(i = next_page - forms; i >= 0; i -= forms)
+		for(j = i, k = 0; k < forms; j++, k++)
+			if(pages[j].empty == TRUE) {
+				if(ignoreversion == TRUE || version > 3.1) {
+					fprintf(fp_out, "%s 0 0\n", PAGE);
+					fprintf(fp_out, "/saveobj save def\n");
+					fprintf(fp_out, "showpage\n");
+					fprintf(fp_out, "saveobj restore\n");
+					fprintf(fp_out, "%s 0 0\n", ENDPAGE);
+				} else {
+					fprintf(fp_out, "%s 0 0\n", PAGE);
+					fprintf(fp_out, "save showpage restore\n");
+					fprintf(fp_out, "%s 0 0\n", ENDPAGE);
+				} /* End else */
+			} else
+				copypage(pages[j].start, pages[j].stop);
 
-}   /* End of writepages */
+} /* End of writepages */
 
 /*****************************************************************************/
 
 copypage(start, stop)
 
-    long	start;			/* starting from this offset */
-    long	stop;			/* and ending here */
+    long start; /* starting from this offset */
+long stop;      /* and ending here */
 
 {
 
-/*
+	/*
  *
  * Copies the page beginning at offset start and ending at stop to the output
  * file. Global definitions are skipped since they've already been added to the
@@ -501,14 +504,16 @@ copypage(start, stop)
  *
  */
 
-    fseek(fp_in, start, 0);
+	fseek(fp_in, start, 0);
 
-    while ( ftell(fp_in) < stop && fgets(buf, sizeof(buf), fp_in) != NULL )
-	if ( buf[0] == '%' && strcmp(buf, BEGINGLOBAL) == 0 )
-	    while ( fgets(buf, sizeof(buf), fp_in) != NULL && strcmp(buf, ENDGLOBAL) != 0 ) ;
-	else fprintf(fp_out, "%s", buf);
+	while(ftell(fp_in) < stop && fgets(buf, sizeof(buf), fp_in) != NULL)
+		if(buf[0] == '%' && strcmp(buf, BEGINGLOBAL) == 0)
+			while(fgets(buf, sizeof(buf), fp_in) != NULL && strcmp(buf, ENDGLOBAL) != 0)
+				;
+		else
+			fprintf(fp_out, "%s", buf);
 
-}   /* End of copypage */
+} /* End of copypage */
 
 /*****************************************************************************/
 
@@ -516,21 +521,20 @@ trailer()
 
 {
 
-/*
+	/*
  *
  * Makes sure everything from the TRAILER string to EOF is copied to the output
  * file.
  *
  */
 
-    if ( endoff > 0 )  {
-	fprintf(fp_out, "%s", TRAILER);
-	fseek(fp_in, endoff, 0);
-	while ( fgets(buf, sizeof(buf), fp_in) != NULL )
-	    fprintf(fp_out, "%s", buf);
-    }	/* End if */
+	if(endoff > 0) {
+		fprintf(fp_out, "%s", TRAILER);
+		fseek(fp_in, endoff, 0);
+		while(fgets(buf, sizeof(buf), fp_in) != NULL)
+			fprintf(fp_out, "%s", buf);
+	} /* End if */
 
-}   /* End of trailer */
+} /* End of trailer */
 
 /*****************************************************************************/
-

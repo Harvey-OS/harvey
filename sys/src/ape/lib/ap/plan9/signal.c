@@ -14,52 +14,51 @@
 #include <string.h>
 #include <setjmp.h>
 
-extern sigset_t	_psigblocked;
+extern sigset_t _psigblocked;
 
 static struct {
-	char	*msg;	/* just check prefix */
-	int	num;
+	char *msg; /* just check prefix */
+	int num;
 } sigtab[] = {
-	{"hangup",				SIGHUP},
-	{"interrupt",				SIGINT},
-	{"quit",				SIGQUIT},
-	{"alarm",				SIGALRM},
-	{"sys: trap: illegal instruction",	SIGILL},
-	{"sys: trap: reserved instruction",	SIGILL},
-	{"sys: trap: reserved",			SIGILL},
-	{"sys: trap: arithmetic overflow",	SIGFPE},
-	{"abort",				SIGABRT},
-	{"sys: fp:",				SIGFPE},
-	{"exit",				SIGKILL},
-	{"die",					SIGKILL},
-	{"kill",				SIGKILL},
-	{"sys: trap: bus error",		SIGSEGV},
-	{"sys: trap: address error",		SIGSEGV},
-	{"sys: trap: TLB",			SIGSEGV},
-	{"sys: write on closed pipe",		SIGPIPE},
-	{"alarm",				SIGALRM},
-	{"term",				SIGTERM},
-	{"usr1",				SIGUSR1},
-	{"usr2",				SIGUSR2},
+    {"hangup", SIGHUP},
+    {"interrupt", SIGINT},
+    {"quit", SIGQUIT},
+    {"alarm", SIGALRM},
+    {"sys: trap: illegal instruction", SIGILL},
+    {"sys: trap: reserved instruction", SIGILL},
+    {"sys: trap: reserved", SIGILL},
+    {"sys: trap: arithmetic overflow", SIGFPE},
+    {"abort", SIGABRT},
+    {"sys: fp:", SIGFPE},
+    {"exit", SIGKILL},
+    {"die", SIGKILL},
+    {"kill", SIGKILL},
+    {"sys: trap: bus error", SIGSEGV},
+    {"sys: trap: address error", SIGSEGV},
+    {"sys: trap: TLB", SIGSEGV},
+    {"sys: write on closed pipe", SIGPIPE},
+    {"alarm", SIGALRM},
+    {"term", SIGTERM},
+    {"usr1", SIGUSR1},
+    {"usr2", SIGUSR2},
 };
-#define NSIGTAB ((sizeof sigtab)/(sizeof (sigtab[0])))
+#define NSIGTAB ((sizeof sigtab) / (sizeof(sigtab[0])))
 
-void	(*_sighdlr[MAXSIG+1])(int, char*, Ureg*); /* 0 initialized: SIG_DFL */
+void (*_sighdlr[MAXSIG + 1])(int, char *, Ureg *); /* 0 initialized: SIG_DFL */
 
 /* must match signal.h: extern void (*signal(int, void (*)()))(); */
 //void (*signal(int sig, void (*func)(int, char*, Ureg*)))(int, char*, Ureg*)
-void
-(*signal(int sig, void (*func)()))()
+void (*signal(int sig, void (*func)()))()
 {
-	void(*oldf)(int, char*, Ureg*);
+	void (*oldf)(int, char *, Ureg *);
 
-	if(sig <= 0 || sig > MAXSIG){
+	if(sig <= 0 || sig > MAXSIG) {
 		errno = EINVAL;
 		return SIG_ERR;
 	}
 	oldf = _sighdlr[sig];
 	if(sig == SIGKILL)
-		return oldf;	/* can't catch or ignore SIGKILL */
+		return oldf; /* can't catch or ignore SIGKILL */
 	_sighdlr[sig] = func;
 	return oldf;
 }
@@ -82,16 +81,16 @@ sigsetjmp(sigjmp_buf buf, int savemask)
 int
 sigaction(int sig, struct sigaction *act, struct sigaction *oact)
 {
-	if(sig <= 0 || sig > MAXSIG || sig == SIGKILL){
+	if(sig <= 0 || sig > MAXSIG || sig == SIGKILL) {
 		errno = EINVAL;
 		return -1;
 	}
-	if(oact){
+	if(oact) {
 		oact->sa_handler = _sighdlr[sig];
 		oact->sa_mask = _psigblocked;
 		oact->sa_flags = 0;
 	}
-	if(act){
+	if(act) {
 		_sighdlr[sig] = act->sa_handler;
 	}
 	return 0;
@@ -102,13 +101,13 @@ int
 _notehandler(void *u, char *msg)
 {
 	int i;
-	void(*f)(int, char*, Ureg*);
-	extern void _doatexits(void);	/* in stdio/exit.c */
+	void (*f)(int, char *, Ureg *);
+	extern void _doatexits(void); /* in stdio/exit.c */
 
 	if(_finishing)
 		_finish(0, 0);
-	for(i = 0; i<NSIGTAB; i++){
-		if(strncmp(msg, sigtab[i].msg, strlen(sigtab[i].msg)) == 0){
+	for(i = 0; i < NSIGTAB; i++) {
+		if(strncmp(msg, sigtab[i].msg, strlen(sigtab[i].msg)) == 0) {
 			f = _sighdlr[sigtab[i].num];
 			if(f == SIG_DFL || f == SIG_ERR)
 				break;
@@ -130,7 +129,7 @@ _stringsig(char *nam)
 {
 	int i;
 
-	for(i = 0; i<NSIGTAB; i++)
+	for(i = 0; i < NSIGTAB; i++)
 		if(strncmp(nam, sigtab[i].msg, strlen(sigtab[i].msg)) == 0)
 			return sigtab[i].num;
 	return 0;
@@ -141,7 +140,7 @@ _sigstring(int sig)
 {
 	int i;
 
-	for(i=0; i<NSIGTAB; i++)
+	for(i = 0; i < NSIGTAB; i++)
 		if(sigtab[i].num == sig)
 			return sigtab[i].msg;
 	return "unknown signal";

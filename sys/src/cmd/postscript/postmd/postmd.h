@@ -53,7 +53,7 @@
  *
  */
 
-#define DFLTILIST	"-1,0,1"
+#define DFLTILIST "-1,0,1"
 
 /*
  *
@@ -62,10 +62,10 @@
  *
  */
 
-typedef struct  {
-	double	val;			/* only valid in kind is ENDPOINT */
-	int	color;			/* gray scale color */
-	long	count;			/* statistics for each region */
+typedef struct {
+	double val; /* only valid in kind is ENDPOINT */
+	int color;  /* gray scale color */
+	long count; /* statistics for each region */
 } Ilist;
 
 /*
@@ -74,5 +74,4 @@ typedef struct  {
  *
  */
 
-char	*savestring();
-
+char *savestring();

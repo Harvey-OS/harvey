@@ -15,45 +15,42 @@
 #include <9p.h>
 #include "flashfs.h"
 
-enum
-{
-	debug	= 0,
-	diags	= 1,
+enum {
+	debug = 0,
+	diags = 1,
 };
 
-typedef struct	Gen	Gen;
-typedef struct	Sect	Sect;
+typedef struct Gen Gen;
+typedef struct Sect Sect;
 
-struct Gen
-{
-	int	gnum;
-	int	count;
-	int	low;
-	int	high;
-	Sect*	head;
-	Sect*	tail;
-	Sect*	dup;
-	Sect**	vect;
+struct Gen {
+	int gnum;
+	int count;
+	int low;
+	int high;
+	Sect *head;
+	Sect *tail;
+	Sect *dup;
+	Sect **vect;
 };
 
-struct Sect
-{
-	int	sect;
-	uint32_t	seq;
-	int	coff;
-	int	toff;
-	int	sum;
-	uint32_t	time;
-	Sect*	next;
+struct Sect {
+	int sect;
+	uint32_t seq;
+	int coff;
+	int toff;
+	int sum;
+	uint32_t time;
+	Sect *next;
 };
 
-static	Gen	gens[2];
-static	Sect*	freehead;
-static	Sect*	freetail;
-static	int	nfree;
-static	int	nbad;
-static	uint32_t	ltime;
-static	int	cursect;
+static Gen gens[2];
+static Sect *freehead;
+static Sect *freetail;
+static int nfree;
+static int nbad;
+static uint32_t ltime;
+static int cursect;
 
 /*
  *	If we have a delta then file times are in the future.
@@ -111,7 +108,7 @@ static void
 newsect(Gen *g, Sect *s)
 {
 	int m, n, err;
-	uint8_t hdr[2*3];
+	uint8_t hdr[2 * 3];
 
 	if(debug)
 		fprint(2, "new %d %ld\n", g->gnum, s->seq);
@@ -129,8 +126,7 @@ newsect(Gen *g, Sect *s)
 	s->sum = 0;
 	err = 1;
 	for(;;) {
-		if(writedata(err, s->sect, hdr, m + n, MAGSIZE)
-		&& writedata(err, s->sect, magic, MAGSIZE, 0))
+		if(writedata(err, s->sect, hdr, m + n, MAGSIZE) && writedata(err, s->sect, magic, MAGSIZE, 0))
 			break;
 		clearsect(s->sect);
 		err = 0;
@@ -184,9 +180,7 @@ dupsect(Sect *s, int renum)
 	// Window 5
 	err = 1;
 	for(;;) {
-		if(writedata(err, t->sect, b + 1, s->toff - 1, 1)
-		&& writedata(err, t->sect, b + doff, off - doff, doff)
-		&& writedata(err, t->sect, b, 1, 0))
+		if(writedata(err, t->sect, b + 1, s->toff - 1, 1) && writedata(err, t->sect, b + doff, off - doff, doff) && writedata(err, t->sect, b, 1, 0))
 			break;
 		clearsect(t->sect);
 		err = 0;
@@ -220,7 +214,7 @@ checkdata(void)
 	Gen *g;
 
 	g = &gens[0];
-	if(g->dup != nil) {	// Window 5 damage
+	if(g->dup != nil) { // Window 5 damage
 		if(diags)
 			fprint(2, "%s: window 5 damage\n", argv0);
 		freesect(g->dup);
@@ -239,7 +233,7 @@ checksweep(void)
 	int32_t off, seq, soff;
 
 	g = &gens[1];
-	if(g->dup != nil) {	// Window 5 damage
+	if(g->dup != nil) { // Window 5 damage
 		if(diags)
 			fprint(2, "%s: window 5 damage\n", argv0);
 		freesect(g->dup);
@@ -291,7 +285,7 @@ checksweep(void)
 			break;
 	}
 
-	if(op == FT_SUMBEG) {		// Window 1 damage
+	if(op == FT_SUMBEG) { // Window 1 damage
 		if(diags)
 			fprint(2, "%s: window 1 damage\n", argv0);
 		if(u != s) {
@@ -308,7 +302,7 @@ checksweep(void)
 		g = &gens[0];
 		if(seq > g->low)
 			damaged("high sweep");
-		if(seq == g->low) {	// Window 2 damage
+		if(seq == g->low) { // Window 2 damage
 			if(diags)
 				fprint(2, "%s: window 2 damage\n", argv0);
 			s = g->head;
@@ -335,7 +329,7 @@ load1(Sect *s, int parity)
 	Entry *d, *e;
 	uint32_t ctime, off, mtime;
 
-	if(s->sect < 0 && readonly)	// readonly damaged
+	if(s->sect < 0 && readonly) // readonly damaged
 		return;
 
 	b = sectbuff;
@@ -495,8 +489,7 @@ loadfs(int ro)
 					if(v > g->high)
 						g->high = v;
 					break;
-				}
-				else if(g->gnum < 0) {
+				} else if(g->gnum < 0) {
 					g->gnum = u;
 					g->count = 1;
 					g->low = v;
@@ -506,8 +499,7 @@ loadfs(int ro)
 			}
 			if(j == 2)
 				damaged("unexpected generation");
-		}
-		else if(hdr[0] == 0xFF) {
+		} else if(hdr[0] == 0xFF) {
 			nfree++;
 			s = emalloc9p(sizeof(Sect));
 			s->sect = i;
@@ -515,8 +507,7 @@ loadfs(int ro)
 			freehead = s;
 			if(freetail == nil)
 				freetail = s;
-		}
-		else
+		} else
 			nbad++;
 	}
 
@@ -526,7 +517,7 @@ loadfs(int ro)
 	if(gens[0].gnum < 0)
 		damaged("no data");
 
-	if(gens[1].gnum < 0) {		// Window 3 death
+	if(gens[1].gnum < 0) { // Window 3 death
 		if(diags)
 			fprint(2, "%s: window 3 damage\n", argv0);
 		g = &gens[1];
@@ -583,8 +574,7 @@ loadfs(int ro)
 				s = emalloc9p(sizeof(Sect));
 				s->sect = i;
 				g->dup = s;
-			}
-			else
+			} else
 				damaged("dup block");
 		}
 	}
@@ -648,8 +638,7 @@ sputw(Sect *s, Jrec *j, int mtime, Extent *x, void *a)
 			}
 			s->time = t;
 			j->mtime = 0;
-		}
-		else {
+		} else {
 			j->mtime = t - s->time;
 			s->time = t;
 		}
@@ -664,7 +653,7 @@ sputw(Sect *s, Jrec *j, int mtime, Extent *x, void *a)
 	for(;;) {
 		err--;
 		if(!err)
-			dupsect(s, 1);	// Window 4 damage
+			dupsect(s, 1); // Window 4 damage
 		t = s->coff + 1;
 		if(!writedata(err, s->sect, buff, n, t))
 			continue;
@@ -707,7 +696,7 @@ summarize(void)
 	g->head = s->next;
 	if(g->head == nil)
 		g->tail = nil;
-	g = &gens[eparity^1];
+	g = &gens[eparity ^ 1];
 	t = g->tail;
 	b = sectbuff;
 	x = nil;
@@ -715,7 +704,7 @@ summarize(void)
 	if(debug)
 		fprint(2, "summarize\n");
 
-	for(;;) {	// Window 1
+	for(;;) { // Window 1
 		readdata(s->sect, b, sectsize, 0);
 		off = s->toff;
 		ctime = get4(&b[off]);
@@ -856,7 +845,7 @@ summarize(void)
 		g->head = s->next;
 		if(g->head == nil)
 			g->tail = nil;
-		g = &gens[eparity^1];
+		g = &gens[eparity ^ 1];
 	}
 }
 

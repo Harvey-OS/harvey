@@ -18,12 +18,11 @@
 #include <stdio.h>
 #include "antiword.h"
 
-#if 0 /* defined(DEBUG) */
+#if 0  /* defined(DEBUG) */
 static int iPicCounter = 0;
 #endif /* DEBUG */
 
-
-#if 0 /* defined(DEBUG) */
+#if 0  /* defined(DEBUG) */
 static void
 vCopy2File(UCHAR *pucJpeg, size_t tJpegSize)
 {
@@ -56,22 +55,22 @@ vCopy2File(UCHAR *pucJpeg, size_t tJpegSize)
  */
 BOOL
 bSave2Draw(diagram_type *pDiag, FILE *pFile,
-	size_t tJpegSize, const imagedata_type *pImg)
+	   size_t tJpegSize, const imagedata_type *pImg)
 {
-	UCHAR	*pucJpeg, *pucTmp;
-	size_t	tLen;
-	int	iByte;
+	UCHAR *pucJpeg, *pucTmp;
+	size_t tLen;
+	int iByte;
 
 	pucJpeg = xmalloc(tJpegSize);
-	for (pucTmp = pucJpeg, tLen = 0; tLen < tJpegSize; pucTmp++, tLen++) {
+	for(pucTmp = pucJpeg, tLen = 0; tLen < tJpegSize; pucTmp++, tLen++) {
 		iByte = iNextByte(pFile);
-		if (iByte == EOF) {
+		if(iByte == EOF) {
 			return FALSE;
 		}
 		*pucTmp = (UCHAR)iByte;
 	}
 
-#if 0 /* defined(DEBUG) */
+#if 0  /* defined(DEBUG) */
 	vCopy2File(pucJpeg, tJpegSize);
 #endif /* DEBUG */
 
@@ -91,16 +90,16 @@ bSave2Draw(diagram_type *pDiag, FILE *pFile,
  */
 BOOL
 bTranslateJPEG(diagram_type *pDiag, FILE *pFile,
-	ULONG ulFileOffset, size_t tPictureLen, const imagedata_type *pImg)
+	       ULONG ulFileOffset, size_t tPictureLen, const imagedata_type *pImg)
 {
-  	/* Seek to start position of JPEG data */
-	if (!bSetDataOffset(pFile, ulFileOffset)) {
+	/* Seek to start position of JPEG data */
+	if(!bSetDataOffset(pFile, ulFileOffset)) {
 		return FALSE;
 	}
 
-	if (iGetRiscOsVersion() >= 360) {
+	if(iGetRiscOsVersion() >= 360) {
 		return bSave2Draw(pDiag, pFile, tPictureLen, pImg);
 	}
-  	/* JPEG is not supported until RISC OS 3.6 */
+	/* JPEG is not supported until RISC OS 3.6 */
 	return bAddDummyImage(pDiag, pImg);
 } /* end of bTranslateJPEG */

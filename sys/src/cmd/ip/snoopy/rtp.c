@@ -15,15 +15,15 @@
 
 typedef struct Hdr Hdr;
 struct Hdr {
-	uint8_t	hdr;		/* RTP header */
-	uint8_t	marker;		/* Payload and marker */
-	uint8_t	seq[2];		/* Sequence number */
-	uint8_t	ts[4];		/* Time stamp */
-	uint8_t	ssrc[4];	/* Synchronization source identifier */
+	uint8_t hdr;     /* RTP header */
+	uint8_t marker;  /* Payload and marker */
+	uint8_t seq[2];  /* Sequence number */
+	uint8_t ts[4];   /* Time stamp */
+	uint8_t ssrc[4]; /* Synchronization source identifier */
 };
 
-enum{
-	RTPLEN = 12,		/* Minimum size of an RTP header */
+enum {
+	RTPLEN = 12, /* Minimum size of an RTP header */
 };
 
 static int
@@ -32,12 +32,12 @@ p_seprint(Msg *m)
 	int cc, i;
 	uint16_t seq;
 	uint32_t ssrc, ts;
-	Hdr*h;
+	Hdr *h;
 
 	if(m->pe - m->ps < RTPLEN)
 		return -1;
 
-	h = (Hdr*)m->ps;
+	h = (Hdr *)m->ps;
 	cc = h->hdr & 0xf;
 	if(m->pe - m->ps < RTPLEN + cc * 4)
 		return -1;
@@ -49,8 +49,8 @@ p_seprint(Msg *m)
 	ssrc = NetL(h->ssrc);
 
 	m->p = seprint(m->p, m->e, "version=%d x=%d cc=%d seq=%d ts=%ld ssrc=%ulx",
-		(h->hdr >> 6) & 3, (h->hdr >> 4) & 1, cc, seq, ts, ssrc);
-	for(i = 0; i < cc; i++){
+		       (h->hdr >> 6) & 3, (h->hdr >> 4) & 1, cc, seq, ts, ssrc);
+	for(i = 0; i < cc; i++) {
 		m->p = seprint(m->p, m->e, " csrc[%d]=%d", i, NetL(m->ps));
 		m->ps += 4;
 	}
@@ -59,12 +59,12 @@ p_seprint(Msg *m)
 }
 
 Proto rtp = {
-	"rtp",
-	nil,
-	nil,
-	p_seprint,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    "rtp",
+    nil,
+    nil,
+    p_seprint,
+    nil,
+    nil,
+    nil,
+    defaultframer,
 };

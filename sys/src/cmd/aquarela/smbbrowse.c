@@ -40,14 +40,14 @@ smbbrowsesendhostannouncement(char *name, uint32_t periodms, uint32_t type,
 	NbDgramSendParameters p;
 	SmbBuffer *b;
 	int rv;
-//	NbName msbrowse;
+	//	NbName msbrowse;
 
-//	msbrowse[0] = 1;
-//	msbrowse[1] = 2;
-//	memcpy(msbrowse + 2, "__MSBROWSE__", 12);
-//	msbrowse[14] = 2;
-//	msbrowse[15] = 1;
-//	nbnamecpy(p.to, msbrowse);
+	//	msbrowse[0] = 1;
+	//	msbrowse[1] = 2;
+	//	memcpy(msbrowse + 2, "__MSBROWSE__", 12);
+	//	msbrowse[14] = 2;
+	//	msbrowse[15] = 1;
+	//	nbnamecpy(p.to, msbrowse);
 	nbmknamefromstringandtype(p.to, smbglobals.primarydomain, 0x1d);
 	p.type = NbDgramDirectUnique;
 	b = smbbuffernew(NbDgramMaxLen);

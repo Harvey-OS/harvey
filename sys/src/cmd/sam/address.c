@@ -10,13 +10,13 @@
 #include "sam.h"
 #include "parse.h"
 
-Address	addr;
-String	lastpat;
-int	patset;
-File	*menu;
+Address addr;
+String lastpat;
+int patset;
+File *menu;
 
-File	*matchfile(String*);
-Address	charaddr(Posn, Address, int);
+File *matchfile(String *);
+Address charaddr(Posn, Address, int);
 
 Address
 address(Addr *ap, Address a, int sign)
@@ -24,11 +24,11 @@ address(Addr *ap, Address a, int sign)
 	File *f = a.f;
 	Address a1, a2;
 
-	do{
-		switch(ap->type){
+	do {
+		switch(ap->type) {
 		case 'l':
 		case '#':
-			a = (*(ap->type=='#'?charaddr:lineaddr))(ap->num, a, sign);
+			a = (*(ap->type == '#' ? charaddr : lineaddr))(ap->num, a, sign);
 			break;
 
 		case '.':
@@ -47,9 +47,9 @@ address(Addr *ap, Address a, int sign)
 			sign = -sign;
 			if(sign == 0)
 				sign = -1;
-			/* fall through */
+		/* fall through */
 		case '/':
-			nextmatch(f, ap->are, sign>=0? a.r.p2 : a.r.p1, sign);
+			nextmatch(f, ap->are, sign >= 0 ? a.r.p2 : a.r.p1, sign);
 			a.r = sel.p[0];
 			break;
 
@@ -70,7 +70,7 @@ address(Addr *ap, Address a, int sign)
 				a1 = address(ap->left, a, 0);
 			else
 				a1.f = a.f, a1.r.p1 = a1.r.p2 = 0;
-			if(ap->type == ';'){
+			if(ap->type == ';') {
 				f = a1.f;
 				a = a1;
 				f->dot = a1;
@@ -91,14 +91,14 @@ address(Addr *ap, Address a, int sign)
 			sign = 1;
 			if(ap->type == '-')
 				sign = -1;
-			if(ap->next==0 || ap->next->type=='+' || ap->next->type=='-')
+			if(ap->next == 0 || ap->next->type == '+' || ap->next->type == '-')
 				a = lineaddr(1L, a, sign);
 			break;
 		default:
 			panic("address");
 			return a;
 		}
-	}while(ap = ap->next);	/* assign = */
+	} while(ap = ap->next); /* assign = */
 	return a;
 }
 
@@ -106,20 +106,20 @@ void
 nextmatch(File *f, String *r, Posn p, int sign)
 {
 	compile(r);
-	if(sign >= 0){
+	if(sign >= 0) {
 		if(!execute(f, p, INFINITY))
 			error(Esearch);
-		if(sel.p[0].p1==sel.p[0].p2 && sel.p[0].p1==p){
-			if(++p>f->nc)
+		if(sel.p[0].p1 == sel.p[0].p2 && sel.p[0].p1 == p) {
+			if(++p > f->nc)
 				p = 0;
 			if(!execute(f, p, INFINITY))
 				panic("address");
 		}
-	}else{
+	} else {
 		if(!bexecute(f, p))
 			error(Esearch);
-		if(sel.p[0].p1==sel.p[0].p2 && sel.p[0].p2==p){
-			if(--p<0)
+		if(sel.p[0].p1 == sel.p[0].p2 && sel.p[0].p2 == p) {
+			if(--p < 0)
 				p = f->nc;
 			if(!bexecute(f, p))
 				panic("address");
@@ -134,11 +134,11 @@ matchfile(String *r)
 	File *match = 0;
 	int i;
 
-	for(i = 0; i<file.nused; i++){
+	for(i = 0; i < file.nused; i++) {
 		f = file.filepptr[i];
 		if(f == cmd)
 			continue;
-		if(filematch(f, r)){
+		if(filematch(f, r)) {
 			if(match)
 				error(Emanyfiles);
 			match = f;
@@ -152,12 +152,12 @@ matchfile(String *r)
 int
 filematch(File *f, String *r)
 {
-	char *c, buf[STRSIZE+100];
+	char *c, buf[STRSIZE + 100];
 	String *t;
 
 	c = Strtoc(&f->name);
 	sprint(buf, "%c%c%c %s\n", " '"[f->mod],
-		"-+"[f->rasp!=0], " ."[f==curfile], c);
+	       "-+"[f->rasp != 0], " ."[f == curfile], c);
 	free(c);
 	t = tmpcstr(buf);
 	Strduplstr(&genstr, t);
@@ -177,10 +177,10 @@ charaddr(Posn l, Address addr, int sign)
 	if(sign == 0)
 		addr.r.p1 = addr.r.p2 = l;
 	else if(sign < 0)
-		addr.r.p2 = addr.r.p1-=l;
+		addr.r.p2 = addr.r.p1 -= l;
 	else if(sign > 0)
-		addr.r.p1 = addr.r.p2+=l;
-	if(addr.r.p1<0 || addr.r.p2>addr.f->nc)
+		addr.r.p1 = addr.r.p2 += l;
+	if(addr.r.p1 < 0 || addr.r.p2 > addr.f->nc)
 		error(Erange);
 	return addr;
 }
@@ -195,23 +195,23 @@ lineaddr(Posn l, Address addr, int sign)
 	Posn p;
 
 	a.f = f;
-	if(sign >= 0){
-		if(l == 0){
-			if(sign==0 || addr.r.p2==0){
+	if(sign >= 0) {
+		if(l == 0) {
+			if(sign == 0 || addr.r.p2 == 0) {
 				a.r.p1 = a.r.p2 = 0;
 				return a;
 			}
 			a.r.p1 = addr.r.p2;
-			p = addr.r.p2-1;
-		}else{
-			if(sign==0 || addr.r.p2==0){
+			p = addr.r.p2 - 1;
+		} else {
+			if(sign == 0 || addr.r.p2 == 0) {
 				p = (Posn)0;
 				n = 1;
-			}else{
-				p = addr.r.p2-1;
-				n = filereadc(f, p++)=='\n';
+			} else {
+				p = addr.r.p2 - 1;
+				n = filereadc(f, p++) == '\n';
 			}
-			while(n < l){
+			while(n < l) {
 				if(p >= f->nc)
 					error(Erange);
 				if(filereadc(f, p++) == '\n')
@@ -219,20 +219,20 @@ lineaddr(Posn l, Address addr, int sign)
 			}
 			a.r.p1 = p;
 		}
-		while(p < f->nc && filereadc(f, p++)!='\n')
+		while(p < f->nc && filereadc(f, p++) != '\n')
 			;
 		a.r.p2 = p;
-	}else{
+	} else {
 		p = addr.r.p1;
 		if(l == 0)
 			a.r.p2 = addr.r.p1;
-		else{
-			for(n = 0; n<l; ){	/* always runs once */
-				if(p == 0){
+		else {
+			for(n = 0; n < l;) { /* always runs once */
+				if(p == 0) {
 					if(++n != l)
 						error(Erange);
-				}else{
-					c = filereadc(f, p-1);
+				} else {
+					c = filereadc(f, p - 1);
 					if(c != '\n' || ++n != l)
 						p--;
 				}
@@ -241,7 +241,7 @@ lineaddr(Posn l, Address addr, int sign)
 			if(p > 0)
 				p--;
 		}
-		while(p > 0 && filereadc(f, p-1)!='\n')	/* lines start after a newline */
+		while(p > 0 && filereadc(f, p - 1) != '\n') /* lines start after a newline */
 			p--;
 		a.r.p1 = p;
 	}

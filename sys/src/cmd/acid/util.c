@@ -18,7 +18,7 @@
 
 static int syren;
 
-Lsym*
+Lsym *
 unique(char *buf, Sym *s)
 {
 	Lsym *l;
@@ -35,8 +35,8 @@ unique(char *buf, Sym *s)
 			print("Symbol renames:\n");
 			syren = 1;
 		}
-		i = strlen(buf)+1;
-		memmove(buf+1, buf, i);
+		i = strlen(buf) + 1;
+		memmove(buf + 1, buf, i);
 		buf[0] = '$';
 		renamed++;
 		if(renamed > 5 && !quiet) {
@@ -48,7 +48,7 @@ unique(char *buf, Sym *s)
 		print("\t%s=%s %c/%llux\n", s->name, buf, s->type, s->value);
 	if(l == 0)
 		l = enter(buf, Tid);
-	return l;	
+	return l;
 }
 
 void
@@ -106,7 +106,6 @@ varsym(void)
 			list = list->next;
 			list->fmt = 'X';
 			list->ival = v;
-
 		}
 	}
 	l = mkvar("symbols");
@@ -150,7 +149,7 @@ varreg(void)
 	if(machdata == 0)
 		return;
 
-	l = mkvar("bpinst");	/* Breakpoint text */
+	l = mkvar("bpinst"); /* Breakpoint text */
 	v = l->v;
 	v->type = TSTRING;
 	v->fmt = 's';
@@ -167,23 +166,23 @@ loadvars(void)
 	Lsym *l;
 	Value *v;
 
-	l =  mkvar("proc");
+	l = mkvar("proc");
 	v = l->v;
 	v->type = TINT;
 	v->fmt = 'X';
 	v->set = 1;
 	v->ival = 0;
 
-	l = mkvar("pid");		/* Current process */
+	l = mkvar("pid"); /* Current process */
 	v = l->v;
 	v->type = TINT;
 	v->fmt = 'D';
 	v->set = 1;
 	v->ival = 0;
 
-	mkvar("notes");			/* Pending notes */
+	mkvar("notes"); /* Pending notes */
 
-	l = mkvar("proclist");		/* Attached processes */
+	l = mkvar("proclist"); /* Attached processes */
 	l->v->type = TLIST;
 }
 
@@ -199,7 +198,7 @@ rget(Map *map, char *reg)
 	if(s == 0)
 		fatal("rget: %s\n", reg);
 
-	switch(s->v->fmt){
+	switch(s->v->fmt) {
 	default:
 		ret = get4(map, s->v->ival, &x);
 		v = x;
@@ -216,13 +215,13 @@ rget(Map *map, char *reg)
 	return v;
 }
 
-String*
+String *
 strnodlen(char *name, int len)
 {
 	String *s;
 
-	s = gmalloc(sizeof(String)+len+1);
-	s->string = (char*)s+sizeof(String);
+	s = gmalloc(sizeof(String) + len + 1);
+	s->string = (char *)s + sizeof(String);
 	s->len = len;
 	if(name != 0)
 		memmove(s->string, name, len);
@@ -234,13 +233,13 @@ strnodlen(char *name, int len)
 	return s;
 }
 
-String*
+String *
 strnode(char *name)
 {
 	return strnodlen(name, strlen(name));
 }
 
-String*
+String *
 runenode(Rune *name)
 {
 	int len;
@@ -253,8 +252,8 @@ runenode(Rune *name)
 
 	len++;
 	len *= sizeof(Rune);
-	s = gmalloc(sizeof(String)+len);
-	s->string = (char*)s+sizeof(String);
+	s = gmalloc(sizeof(String) + len);
+	s->string = (char *)s + sizeof(String);
 	s->len = len;
 	memmove(s->string, name, len);
 
@@ -264,38 +263,38 @@ runenode(Rune *name)
 	return s;
 }
 
-String*
+String *
 stradd(String *l, String *r)
 {
 	int len;
 	String *s;
 
-	len = l->len+r->len;
-	s = gmalloc(sizeof(String)+len+1);
+	len = l->len + r->len;
+	s = gmalloc(sizeof(String) + len + 1);
 	s->gclink = gcl;
 	gcl = s;
 	s->len = len;
-	s->string = (char*)s+sizeof(String);
+	s->string = (char *)s + sizeof(String);
 	memmove(s->string, l->string, l->len);
-	memmove(s->string+l->len, r->string, r->len);
+	memmove(s->string + l->len, r->string, r->len);
 	s->string[s->len] = 0;
 	return s;
 }
 
-String*
+String *
 straddrune(String *l, Rune r)
 {
 	int len;
 	String *s;
 
-	len = l->len+runelen(r);
-	s = gmalloc(sizeof(String)+len+1);
+	len = l->len + runelen(r);
+	s = gmalloc(sizeof(String) + len + 1);
 	s->gclink = gcl;
 	gcl = s;
 	s->len = len;
-	s->string = (char*)s+sizeof(String);
+	s->string = (char *)s + sizeof(String);
 	memmove(s->string, l->string, l->len);
-	runetochar(s->string+l->len, &r);
+	runetochar(s->string + l->len, &r);
 	s->string[s->len] = 0;
 	return s;
 }

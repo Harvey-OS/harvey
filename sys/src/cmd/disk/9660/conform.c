@@ -27,17 +27,17 @@
  * If no entry is found, return a pointer to
  * where a new such entry would go.
  */
-static Tx*
+static Tx *
 txsearch(char *atom, Tx *t, int n)
 {
 	while(n > 0) {
-		if(atom < t[n/2].bad)
-			n = n/2;
-		else if(atom > t[n/2].bad) {
-			t += n/2+1;
-			n -= (n/2+1);
+		if(atom < t[n / 2].bad)
+			n = n / 2;
+		else if(atom > t[n / 2].bad) {
+			t += n / 2 + 1;
+			n -= (n / 2 + 1);
 		} else
-			return &t[n/2];
+			return &t[n / 2];
 	}
 	return t;
 }
@@ -52,22 +52,22 @@ addtx(char *b, char *g)
 		map = emalloc(sizeof(*map));
 	c = map;
 
-	if(c->nt%32 == 0)
-		c->t = erealloc(c->t, (c->nt+32)*sizeof(c->t[0]));
+	if(c->nt % 32 == 0)
+		c->t = erealloc(c->t, (c->nt + 32) * sizeof(c->t[0]));
 	t = txsearch(b, c->t, c->nt);
-	if(t < c->t+c->nt && t->bad == b) {
+	if(t < c->t + c->nt && t->bad == b) {
 		fprint(2, "warning: duplicate entry for %s in _conform.map\n", b);
 		return;
 	}
 
-	if(t != c->t+c->nt)
-		memmove(t+1, t, (c->t+c->nt - t)*sizeof(Tx));
+	if(t != c->t + c->nt)
+		memmove(t + 1, t, (c->t + c->nt - t) * sizeof(Tx));
 	t->bad = b;
 	t->good = g;
 	c->nt++;
 }
 
-char*
+char *
 conform(char *s, int isdir)
 {
 	Tx *t;
@@ -76,9 +76,9 @@ conform(char *s, int isdir)
 
 	c = map;
 	s = atom(s);
-	if(c){
+	if(c) {
 		t = txsearch(s, c->t, c->nt);
-		if(t < c->t+c->nt && t->bad == s)
+		if(t < c->t + c->nt && t->bad == s)
 			return t->good;
 	}
 
@@ -104,8 +104,8 @@ goodcmp(const void *va, const void *vb)
 {
 	Tx *a, *b;
 
-	a = (Tx*)va;
-	b = (Tx*)vb;
+	a = (Tx *)va;
+	b = (Tx *)vb;
 	return strcmp(a->good, b->good);
 }
 
@@ -114,8 +114,8 @@ badatomcmp(const void *va, const void *vb)
 {
 	Tx *a, *b;
 
-	a = (Tx*)va;
-	b = (Tx*)vb;
+	a = (Tx *)va;
+	b = (Tx *)vb;
 	if(a->good < b->good)
 		return -1;
 	if(a->good > b->good)
@@ -132,14 +132,14 @@ wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
 
 	c = map;
 	*pblock = cd->nextblock;
-	if(c==nil || n==c->nt){
+	if(c == nil || n == c->nt) {
 		*plength = 0;
 		return;
 	}
 
 	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 	qsort(c->t, c->nt, sizeof(c->t[0]), goodcmp);
-	for(i=n; i<c->nt; i++) {
+	for(i = n; i < c->nt; i++) {
 		snprint(buf, sizeof buf, "%s %s\n", c->t[i].good, c->t[i].bad);
 		Cwrite(cd, buf, strlen(buf));
 	}

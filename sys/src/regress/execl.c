@@ -7,8 +7,8 @@ main(int argc, char *argv[])
 	Waitmsg *w;
 	int i;
 
-	for(i = 0; i < argc; i++){
-		switch(fork()){
+	for(i = 0; i < argc; i++) {
+		switch(fork()) {
 		case -1:
 			fprint(2, "fork fail\n");
 			exits("FAIL");
@@ -18,7 +18,7 @@ main(int argc, char *argv[])
 			exits("execl");
 		default:
 			w = wait();
-			if(strcmp(w->msg, "")){
+			if(strcmp(w->msg, "")) {
 				print("FAIL\n");
 				exits("FAIL");
 			}

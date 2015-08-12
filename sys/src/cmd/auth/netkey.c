@@ -13,7 +13,6 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-
 void
 usage(void)
 {
@@ -28,15 +27,17 @@ main(int argc, char *argv[])
 	char *s;
 	int n;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		usage();
 
 	s = getenv("service");
-	if(s && strcmp(s, "cpu") == 0){
+	if(s && strcmp(s, "cpu") == 0) {
 		fprint(2, "netkey must not be run on the cpu server\n");
 		exits("boofhead");
 	}
@@ -44,7 +45,7 @@ main(int argc, char *argv[])
 	readln("Password: ", pass, sizeof pass, 1);
 	passtokey(key, pass);
 
-	for(;;){
+	for(;;) {
 		print("challenge: ");
 		n = read(0, buf, sizeof buf - 1);
 		if(n <= 0)

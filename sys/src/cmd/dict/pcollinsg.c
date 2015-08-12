@@ -41,84 +41,84 @@
  */
 
 enum {
-	IBASE=L'i',	/* dotless i */
-	Taglen=32,
+	IBASE = L'i', /* dotless i */
+	Taglen = 32,
 };
 
 static Rune intab[256] = {
-	/*0*/	/*1*/	/*2*/	/*3*/	/*4*/	/*5*/	/*6*/	/*7*/
-/*00*/	NONE,	NONE,	NONE,	NONE,	NONE,	TAGS,	TAGE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	L' ',	NONE,	NONE,
-/*10*/	NONE,	L'-',	L' ',	L' ',	NONE,	NONE,	NONE,	NONE,
-	L' ',	NONE,	NONE,	NONE,	L' ',	NONE,	NONE,	L'-',
-/*20*/	L' ',	L'!',	L'"',	L'#',	L'$',	L'%',	L'&',	L'\'',
-	L'(',	L')',	L'*',	L'+',	L',',	L'-',	L'.',	L'/',
-/*30*/  L'0',	L'1',	L'2',	L'3',	L'4',	L'5',	L'6',	L'7',
-	L'8',	L'9',	L':',	L';',	L'<',	L'=',	L'>',	L'?',
-/*40*/  L'@',	L'A',	L'B',	L'C',	L'D',	L'E',	L'F',	L'G',
-	L'H',	L'I',	L'J',	L'K',	L'L',	L'M',	L'N',	L'O',
-/*50*/	L'P',	L'Q',	L'R',	L'S',	L'T',	L'U',	L'V',	L'W',
-	L'X',	L'Y',	L'Z',	L'[',	L'\\',	L']',	L'^',	L'_',
-/*60*/	L'`',	L'a',	L'b',	L'c',	L'd',	L'e',	L'f',	L'g',
-	L'h',	L'i',	L'j',	L'k',	L'l',	L'm',	L'n',	L'o',
-/*70*/	L'p',	L'q',	L'r',	L's',	L't',	L'u',	L'v',	L'w',
-	L'x',	L'y',	L'z',	L'{',	L'|',	L'}',	L'~',	NONE,
-/*80*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	L' ',	NONE,	NONE,	NONE,	NONE,	NONE,
-/*90*/	L'ß',	L'æ',	NONE,	MOE,	NONE,	NONE,	NONE,	L'ø',
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*A0*/	NONE,	NONE,	L'"',	L'£',	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*B0*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	L'~',
-	NONE,	IBASE,	SPCS,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*C0*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*D0*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*E0*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*F0*/	L' ',	L' ',	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
+    /*0*/ /*1*/ /*2*/ /*3*/ /*4*/ /*5*/ /*6*/ /*7*/
+    /*00*/ NONE, NONE, NONE, NONE, NONE, TAGS, TAGE, NONE,
+    NONE, NONE, NONE, NONE, NONE, L' ', NONE, NONE,
+    /*10*/ NONE, L'-', L' ', L' ', NONE, NONE, NONE, NONE,
+    L' ', NONE, NONE, NONE, L' ', NONE, NONE, L'-',
+    /*20*/ L' ', L'!', L'"', L'#', L'$', L'%', L'&', L'\'',
+    L'(', L')', L'*', L'+', L',', L'-', L'.', L'/',
+    /*30*/ L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7',
+    L'8', L'9', L':', L';', L'<', L'=', L'>', L'?',
+    /*40*/ L'@', L'A', L'B', L'C', L'D', L'E', L'F', L'G',
+    L'H', L'I', L'J', L'K', L'L', L'M', L'N', L'O',
+    /*50*/ L'P', L'Q', L'R', L'S', L'T', L'U', L'V', L'W',
+    L'X', L'Y', L'Z', L'[', L'\\', L']', L'^', L'_',
+    /*60*/ L'`', L'a', L'b', L'c', L'd', L'e', L'f', L'g',
+    L'h', L'i', L'j', L'k', L'l', L'm', L'n', L'o',
+    /*70*/ L'p', L'q', L'r', L's', L't', L'u', L'v', L'w',
+    L'x', L'y', L'z', L'{', L'|', L'}', L'~', NONE,
+    /*80*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, L' ', NONE, NONE, NONE, NONE, NONE,
+    /*90*/ L'ß', L'æ', NONE, MOE, NONE, NONE, NONE, L'ø',
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    /*A0*/ NONE, NONE, L'"', L'£', NONE, NONE, NONE, NONE,
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    /*B0*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, L'~',
+    NONE, IBASE, SPCS, NONE, NONE, NONE, NONE, NONE,
+    /*C0*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    /*D0*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    /*E0*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    /*F0*/ L' ', L' ', NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
 };
 
 static Nassoc numtab[] = {
-	{1,	L'+'},
-	{4,	L'='},
-	{7,	L'°'},
-	{11,	L'≈'},
-	{69,	L'♦'},
-	{114,	L'®'},
-	{340,	L'ɛ'},
-	{341,	L'ɔ'},
-	{342,	L'ʌ'},
-	{343,	L'ə'},
-	{345,	L'ʒ'},
-	{346,	L'ʃ'},
-	{347,	L'ɵ'},
-	{348,	L'ʊ'},
-	{349,	L'ˈ'},
-	{351,	L'ɪ'},
-	{352,	L'ɜ'},
-	{354,	L'ɑ'},
-	{355,	L'~'},
-	{356,	L'ɒ'},
-	{384,	L'ɳ'},
-	{445,	L'ð'},	/* BUG -- should be script eth */
+    {1, L'+'},
+    {4, L'='},
+    {7, L'°'},
+    {11, L'≈'},
+    {69, L'♦'},
+    {114, L'®'},
+    {340, L'ɛ'},
+    {341, L'ɔ'},
+    {342, L'ʌ'},
+    {343, L'ə'},
+    {345, L'ʒ'},
+    {346, L'ʃ'},
+    {347, L'ɵ'},
+    {348, L'ʊ'},
+    {349, L'ˈ'},
+    {351, L'ɪ'},
+    {352, L'ɜ'},
+    {354, L'ɑ'},
+    {355, L'~'},
+    {356, L'ɒ'},
+    {384, L'ɳ'},
+    {445, L'ð'}, /* BUG -- should be script eth */
 };
 
 static Nassoc overtab[] = {
-	{L',',	LCED},
-	{L'/',	LACU},
-	{L':',	LUML},
-	{L'\\',	LGRV},
-	{L'^',	LFRN},
-	{L'~',	LTIL},
+    {L',', LCED},
+    {L'/', LACU},
+    {L':', LUML},
+    {L'\\', LGRV},
+    {L'^', LFRN},
+    {L'~', LTIL},
 };
 
-static uint8_t *reach(uint8_t*, int);
+static uint8_t *reach(uint8_t *, int);
 
-static Entry	curentry;
-static char	tag[Taglen];
+static Entry curentry;
+static char tag[Taglen];
 
 void
 pcollgprintentry(Entry e, int cmd)
@@ -132,14 +132,14 @@ pcollgprintentry(Entry e, int cmd)
 	curentry = e;
 	if(cmd == 'h')
 		outinhibit = 1;
-	while(p < pe){
-		if(cmd == 'r'){
+	while(p < pe) {
+		if(cmd == 'r') {
 			outchar(*p++);
 			continue;
 		}
-		switch(r = intab[*p++]){	/* assign = */
+		switch(r = intab[*p++]) { /* assign = */
 		case TAGS:
-			if(rprev != NONE){
+			if(rprev != NONE) {
 				outrune(rprev);
 				rprev = NONE;
 			}
@@ -149,14 +149,14 @@ pcollgprintentry(Entry e, int cmd)
 				outinhibit = (font != 'h');
 			break;
 
-		case TAGE:	/* an extra one */
+		case TAGE: /* an extra one */
 			break;
-	
+
 		case SPCS:
 			p = reach(p, 0xba);
-			r = looknassoc(numtab, asize(numtab), strtol(tag,0,0));
-			if(r < 0){
-				if(rprev != NONE){
+			r = looknassoc(numtab, asize(numtab), strtol(tag, 0, 0));
+			if(r < 0) {
+				if(rprev != NONE) {
 					outrune(rprev);
 					rprev = NONE;
 				}
@@ -164,35 +164,34 @@ pcollgprintentry(Entry e, int cmd)
 				outchars(buf);
 				break;
 			}
-			/* else fall through */
+		/* else fall through */
 
 		default:
-			if(over){
+			if(over) {
 				rx = looknassoc(overtab, asize(overtab), r);
 				if(rx > 0)
 					rx = liglookup(rx, rprev);
 				if(rx > 0 && rx != NONE)
 					outrune(rx);
-				else{
+				else {
 					outrune(rprev);
 					if(r == ':')
 						outrune(L'¨');
-					else{
+					else {
 						outrune(L'^');
 						outrune(r);
 					}
 				}
 				over = 0;
 				rprev = NONE;
-			}else if(r == '^'){
+			} else if(r == '^') {
 				over = 1;
-			}else{
+			} else {
 				if(rprev != NONE)
 					outrune(rprev);
 				rprev = r;
 			}
 		}
-		
 	}
 	if(rprev != NONE)
 		outrune(rprev);
@@ -208,10 +207,10 @@ pcollgnextoff(int32_t fromoff)
 
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;
-	while((c = Bgetc(bdict)) >= 0){
+	while((c = Bgetc(bdict)) >= 0) {
 		if(c == '\r')
 			defoff = Boffset(bdict);
-		switch(state){
+		switch(state) {
 		case 0:
 			if(c == 0x05)
 				state = 1;
@@ -224,7 +223,7 @@ pcollgnextoff(int32_t fromoff)
 			break;
 		case 2:
 			if(c == 0x06)
-				return (Boffset(bdict)-3);
+				return (Boffset(bdict) - 3);
 			else
 				state = 0;
 			break;
@@ -242,14 +241,15 @@ pcollgprintkey(void)
 static uint8_t *
 reach(uint8_t *p, int tagchar)
 {
-	int c; char *q=tag;
+	int c;
+	char *q = tag;
 
-	while(p < (uint8_t *)curentry.end){
+	while(p < (uint8_t *)curentry.end) {
 		c = *p++;
 		if(c == tagchar)
 			break;
 		*q++ = c;
-		if(q >= &tag[sizeof tag-1])
+		if(q >= &tag[sizeof tag - 1])
 			break;
 	}
 	*q = 0;

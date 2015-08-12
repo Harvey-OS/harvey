@@ -18,44 +18,44 @@
  * xxx.
  */
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	USED(vga);
 	ctlr->flag |= Fsnarf;
 }
 
 static void
-options(Vga* vga, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
 	USED(vga);
 	ctlr->flag |= Foptions;
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	USED(vga);
 	ctlr->flag |= Finit;
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	USED(vga);
 	ctlr->flag |= Fload;
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	USED(vga);
 }
 
 Ctlr xxx = {
-	"xxx",				/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "xxx",   /* name */
+    snarf,   /* snarf */
+    options, /* options */
+    init,    /* init */
+    load,    /* load */
+    dump,    /* dump */
 };

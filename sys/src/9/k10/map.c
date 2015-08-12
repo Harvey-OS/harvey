@@ -13,49 +13,49 @@
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa)	UINT2PTR(kseg0+((uintptr)(pa)))
-#define _PADDR(va)	PTR2UINT(((uintptr)(va)) - kseg0)
+#define _KADDR(pa) UINT2PTR(kseg0 + ((uintptr)(pa)))
+#define _PADDR(va) PTR2UINT(((uintptr)(va)) - kseg0)
 
-#define TMFM		(64*MiB)
+#define TMFM (64 * MiB)
 
 int km, ku, k2;
-void*
+void *
 KADDR(uintptr_t pa)
 {
-	uint8_t* va;
+	uint8_t *va;
 
 	va = UINT2PTR(pa);
 	if(pa < TMFM) {
 		km++;
-		return KSEG0+va;
+		return KSEG0 + va;
 	}
 
 	assert(pa < KSEG2);
 	k2++;
-	return KSEG2+va;
+	return KSEG2 + va;
 }
 
 uintmem
-PADDR(void* va)
+PADDR(void *va)
 {
 	uintmem pa;
 
 	pa = PTR2UINT(va);
-	if(pa >= KSEG0 && pa < KSEG0+TMFM)
-		return pa-KSEG0;
+	if(pa >= KSEG0 && pa < KSEG0 + TMFM)
+		return pa - KSEG0;
 	if(pa > KSEG2)
-		return pa-KSEG2;
+		return pa - KSEG2;
 
 	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc(&va));
 	return 0;
 }
 
-KMap*
-kmap(Page* page)
+KMap *
+kmap(Page *page)
 {
 	DBG("kmap(%#llux) @ %#p: %#p %#p\n",
-		page->pa, getcallerpc(&page),
-		page->pa, KADDR(page->pa));
+	    page->pa, getcallerpc(&page),
+	    page->pa, KADDR(page->pa));
 
 	return KADDR(page->pa);
 }

@@ -16,11 +16,11 @@
 #include <libc.h>
 #include <ip.h>
 
-void dumppkt(uint8_t*);
-uint8_t *findtag(uint8_t*, int, int*, int);
-void hexdump(uint8_t*, int);
-int malformed(uint8_t*, int, int);
-int pppoe(char*);
+void dumppkt(uint8_t *);
+uint8_t *findtag(uint8_t *, int, int *, int);
+void hexdump(uint8_t *, int);
+int malformed(uint8_t *, int, int);
+int pppoe(char *);
 void execppp(int);
 
 int alarmed;
@@ -50,7 +50,7 @@ catchalarm(void *a, char *msg)
 {
 	USED(a);
 
-	if(strstr(msg, "alarm")){
+	if(strstr(msg, "alarm")) {
 		alarmed = 1;
 		return 1;
 	}
@@ -65,7 +65,8 @@ main(int argc, char **argv)
 	int fd;
 	char *dev;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'A':
 		wantac = EARGF(usage());
 		break;
@@ -89,9 +90,10 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	switch(argc){
+	switch(argc) {
 	default:
 		usage();
 	case 0:
@@ -117,7 +119,7 @@ struct Etherhdr {
 };
 
 enum {
-	EtherHdrSz = 6+6+2,
+	EtherHdrSz = 6 + 6 + 2,
 	EtherMintu = 60,
 
 	EtherPppoeDiscovery = 0x8863,
@@ -131,7 +133,7 @@ etherhdr(uint8_t *pkt, uint8_t *dst, int type)
 {
 	Etherhdr *eh;
 
-	eh = (Etherhdr*)pkt;
+	eh = (Etherhdr *)pkt;
 	memmove(eh->dst, dst, sizeof(eh->dst));
 	hnputs(eh->type, type);
 	return EtherHdrSz;
@@ -142,22 +144,22 @@ struct Pppoehdr {
 	uint8_t verstype;
 	uint8_t code;
 	uint8_t sessid[2];
-	uint8_t length[2];	/* of payload */
+	uint8_t length[2]; /* of payload */
 };
 
 enum {
-	PppoeHdrSz = 1+1+2+2,
-	Hdr = EtherHdrSz+PppoeHdrSz,
+	PppoeHdrSz = 1 + 1 + 2 + 2,
+	Hdr = EtherHdrSz + PppoeHdrSz,
 };
 
 enum {
 	VersType = 0x11,
 
 	/* Discovery codes */
-	CodeDiscInit = 0x09,	/* discovery init */
-	CodeDiscOffer = 0x07,	/* discovery offer */
-	CodeDiscReq = 0x19,	/* discovery request */
-	CodeDiscSess = 0x65,	/* session confirmation */
+	CodeDiscInit = 0x09,  /* discovery init */
+	CodeDiscOffer = 0x07, /* discovery offer */
+	CodeDiscReq = 0x19,   /* discovery request */
+	CodeDiscSess = 0x65,  /* session confirmation */
 
 	/* Session codes */
 	CodeSession = 0x00,
@@ -168,7 +170,7 @@ pppoehdr(uint8_t *pkt, int code, int sessid)
 {
 	Pppoehdr *ph;
 
-	ph = (Pppoehdr*)pkt;
+	ph = (Pppoehdr *)pkt;
 	ph->verstype = VersType;
 	ph->code = code;
 	hnputs(ph->sessid, sessid);
@@ -178,19 +180,19 @@ pppoehdr(uint8_t *pkt, int code, int sessid)
 typedef struct Taghdr Taghdr;
 struct Taghdr {
 	uint8_t type[2];
-	uint8_t length[2];	/* of value */
+	uint8_t length[2]; /* of value */
 };
 
 enum {
-	TagEnd = 0x0000,		/* end of tag list */
-	TagSrvName = 0x0101,	/* service name */
-	TagAcName = 0x0102,	/* access concentrator name */
-	TagHostUniq = 0x0103,	/* nonce */
-	TagAcCookie = 0x0104,	/* a.c. cookie */
-	TagVendSpec = 0x0105,	/* vendor specific */
-	TagRelaySessId = 0x0110,	/* relay session id */
-	TagSrvNameErr = 0x0201,	/* service name error (ascii) */
-	TagAcSysErr = 0x0202,	/* a.c. system error */
+	TagEnd = 0x0000,	 /* end of tag list */
+	TagSrvName = 0x0101,     /* service name */
+	TagAcName = 0x0102,      /* access concentrator name */
+	TagHostUniq = 0x0103,    /* nonce */
+	TagAcCookie = 0x0104,    /* a.c. cookie */
+	TagVendSpec = 0x0105,    /* vendor specific */
+	TagRelaySessId = 0x0110, /* relay session id */
+	TagSrvNameErr = 0x0201,  /* service name error (ascii) */
+	TagAcSysErr = 0x0202,    /* a.c. system error */
 };
 
 int
@@ -198,11 +200,11 @@ tag(uint8_t *pkt, int type, void *value, int nvalue)
 {
 	Taghdr *h;
 
-	h = (Taghdr*)pkt;
+	h = (Taghdr *)pkt;
 	hnputs(h->type, type);
 	hnputs(h->length, nvalue);
-	memmove(pkt+4, value, nvalue);
-	return 4+nvalue;
+	memmove(pkt + 4, value, nvalue);
+	return 4 + nvalue;
 }
 
 /* PPPoE Active Discovery Initiation */
@@ -213,12 +215,12 @@ padi(uint8_t *pkt)
 	uint8_t *length;
 
 	sz = 0;
-	sz += etherhdr(pkt+sz, etherbcast, EtherPppoeDiscovery);
-	sz += pppoehdr(pkt+sz, CodeDiscInit, 0x0000);
-	length = pkt+sz-2;
+	sz += etherhdr(pkt + sz, etherbcast, EtherPppoeDiscovery);
+	sz += pppoehdr(pkt + sz, CodeDiscInit, 0x0000);
+	length = pkt + sz - 2;
 	tagoff = sz;
-	sz += tag(pkt+sz, TagSrvName, srvname, strlen(srvname));
-	hnputs(length, sz-tagoff);
+	sz += tag(pkt + sz, TagSrvName, srvname, strlen(srvname));
+	hnputs(length, sz - tagoff);
 	return sz;
 }
 
@@ -230,15 +232,15 @@ padr(uint8_t *pkt)
 	uint8_t *length;
 
 	sz = 0;
-	sz += etherhdr(pkt+sz, etherdst, EtherPppoeDiscovery);
-	sz += pppoehdr(pkt+sz, CodeDiscReq, 0x0000);
-	length = pkt+sz-2;
+	sz += etherhdr(pkt + sz, etherdst, EtherPppoeDiscovery);
+	sz += pppoehdr(pkt + sz, CodeDiscReq, 0x0000);
+	length = pkt + sz - 2;
 	tagoff = sz;
-	sz += tag(pkt+sz, TagSrvName, srvname, strlen(srvname));
-	sz += tag(pkt+sz, TagAcName, acname, strlen(acname));
+	sz += tag(pkt + sz, TagSrvName, srvname, strlen(srvname));
+	sz += tag(pkt + sz, TagAcName, acname, strlen(acname));
 	if(cookie)
-		sz += tag(pkt+sz, TagAcCookie, cookie, cookielen);
-	hnputs(length, sz-tagoff);
+		sz += tag(pkt + sz, TagAcCookie, cookie, cookielen);
+	hnputs(length, sz - tagoff);
 	return sz;
 }
 
@@ -247,7 +249,7 @@ ewrite(int fd, void *buf, int nbuf)
 {
 	char e[ERRMAX], path[64];
 
-	if(write(fd, buf, nbuf) != nbuf){
+	if(write(fd, buf, nbuf) != nbuf) {
 		rerrstr(e, sizeof e);
 		strcpy(path, "unknown");
 		fd2path(fd, path, sizeof path);
@@ -255,7 +257,7 @@ ewrite(int fd, void *buf, int nbuf)
 	}
 }
 
-void*
+void *
 emalloc(int32_t n)
 {
 	void *v;
@@ -285,20 +287,20 @@ aread(int timeout, int fd, void *buf, int nbuf)
 }
 
 int
-pktread(int timeout, int fd, void *buf, int nbuf, int (*want)(uint8_t*))
+pktread(int timeout, int fd, void *buf, int nbuf, int (*want)(uint8_t *))
 {
 	int n, t2;
 	n = -1;
-	for(t2=timeout; t2<16000; t2*=2){
-		while((n = aread(t2, fd, buf, nbuf)) > 0){
-			if(malformed(buf, n, EtherPppoeDiscovery)){
+	for(t2 = timeout; t2 < 16000; t2 *= 2) {
+		while((n = aread(t2, fd, buf, nbuf)) > 0) {
+			if(malformed(buf, n, EtherPppoeDiscovery)) {
 				if(debug)
 					fprint(2, "dropping pkt: %r\n");
 				continue;
 			}
 			if(debug)
 				dumppkt(buf);
-			if(!want(buf)){
+			if(!want(buf)) {
 				if(debug)
 					fprint(2, "dropping unwanted pkt: %r\n");
 				continue;
@@ -318,12 +320,12 @@ bad(char *reason)
 	return 0;
 }
 
-void*
+void *
 copy(uint8_t *s, int len)
 {
 	uint8_t *v;
 
-	v = emalloc(len+1);
+	v = emalloc(len + 1);
 	memmove(v, s, len);
 	v[len] = '\0';
 	return v;
@@ -347,15 +349,15 @@ wantoffer(uint8_t *pkt)
 	Etherhdr *eh;
 	Pppoehdr *ph;
 
-	eh = (Etherhdr*)pkt;
-	ph = (Pppoehdr*)(pkt+EtherHdrSz);
+	eh = (Etherhdr *)pkt;
+	ph = (Pppoehdr *)(pkt + EtherHdrSz);
 
 	if(ph->code != CodeDiscOffer)
 		return bad("not an offer");
 	if(nhgets(ph->sessid) != 0x0000)
 		return bad("bad session id");
 
-	for(i=0;; i++){
+	for(i = 0;; i++) {
 		if((s = findtag(pkt, TagSrvName, &len, i)) == nil)
 			return bad("no matching service name");
 		if(len == strlen(srvname) && memcmp(s, srvname, len) == 0)
@@ -365,12 +367,12 @@ wantoffer(uint8_t *pkt)
 	if((s = findtag(pkt, TagAcName, &len, 0)) == nil)
 		return bad("no ac name");
 	acname = copy(s, len);
-	if(wantac && strcmp(acname, wantac) != 0){
+	if(wantac && strcmp(acname, wantac) != 0) {
 		free(acname);
 		return bad("wrong ac name");
 	}
 
-	if(s = findtag(pkt, TagAcCookie, &len, 0)){
+	if(s = findtag(pkt, TagAcCookie, &len, 0)) {
 		cookie = copy(s, len);
 		cookielen = len;
 	}
@@ -385,7 +387,7 @@ wantsession(uint8_t *pkt)
 	uint8_t *s;
 	Pppoehdr *ph;
 
-	ph = (Pppoehdr*)(pkt+EtherHdrSz);
+	ph = (Pppoehdr *)(pkt + EtherHdrSz);
 
 	if(ph->code != CodeDiscSess)
 		return bad("not a session confirmation");
@@ -421,7 +423,7 @@ pppoe(char *ether)
 	int dfd, p[2], n, sfd, sz, timeout;
 	Pppoehdr *ph;
 
-	ph = (Pppoehdr*)(pkt+EtherHdrSz);
+	ph = (Pppoehdr *)(pkt + EtherHdrSz);
 	snprint(buf, sizeof buf, "%s!%d", ether, EtherPppoeDiscovery);
 	if((dfd = dial(buf, nil, nil, nil)) < 0)
 		sysfatal("dial %s: %r", buf);
@@ -430,7 +432,7 @@ pppoe(char *ether)
 	if((sfd = dial(buf, nil, nil, nil)) < 0)
 		sysfatal("dial %s: %r", buf);
 
-	for(timeout=250; timeout<16000; timeout*=2){
+	for(timeout = 250; timeout < 16000; timeout *= 2) {
 		clearstate();
 		memset(pkt, 0, sizeof pkt);
 		sz = padi(pkt);
@@ -463,25 +465,25 @@ pppoe(char *ether)
 	if(pipe(p) < 0)
 		sysfatal("pipe: %r");
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		sysfatal("fork: %r");
 	default:
 		break;
 	case 0:
 		close(p[1]);
-		while((n = read(p[0], pkt+Hdr, sizeof pkt-Hdr)) > 0){
+		while((n = read(p[0], pkt + Hdr, sizeof pkt - Hdr)) > 0) {
 			etherhdr(pkt, etherdst, EtherPppoeSession);
-			pppoehdr(pkt+EtherHdrSz, 0x00, sessid);
-			hnputs(pkt+Hdr-2, n);
-			sz = Hdr+n;
-			if(debug > 1){
+			pppoehdr(pkt + EtherHdrSz, 0x00, sessid);
+			hnputs(pkt + Hdr - 2, n);
+			sz = Hdr + n;
+			if(debug > 1) {
 				dumppkt(pkt);
 				hexdump(pkt, sz);
 			}
 			if(sz < EtherMintu)
 				sz = EtherMintu;
-			if(write(sfd, pkt, sz) < 0){
+			if(write(sfd, pkt, sz) < 0) {
 				if(debug)
 					fprint(2, "write to ether failed: %r");
 				_exits(nil);
@@ -490,23 +492,22 @@ pppoe(char *ether)
 		_exits(nil);
 	}
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		sysfatal("fork: %r");
 	default:
 		break;
 	case 0:
 		close(p[1]);
-		while((n = read(sfd, pkt, sizeof pkt)) > 0){
-			if(malformed(pkt, n, EtherPppoeSession)
-			|| ph->code != 0x00 || nhgets(ph->sessid) != sessid){
+		while((n = read(sfd, pkt, sizeof pkt)) > 0) {
+			if(malformed(pkt, n, EtherPppoeSession) || ph->code != 0x00 || nhgets(ph->sessid) != sessid) {
 				if(debug)
 					fprint(2, "malformed session pkt: %r\n");
 				if(debug)
 					dumppkt(pkt);
 				continue;
 			}
-			if(write(p[0], pkt+Hdr, nhgets(ph->length)) < 0){
+			if(write(p[0], pkt + Hdr, nhgets(ph->length)) < 0) {
 				if(debug)
 					fprint(2, "write to ppp failed: %r\n");
 				_exits(nil);
@@ -534,11 +535,11 @@ execppp(int fd)
 		argv[argc++] = "-d";
 	if(primary)
 		argv[argc++] = "-P";
-	if(pppnetmtpt){
+	if(pppnetmtpt) {
 		argv[argc++] = "-x";
 		argv[argc++] = pppnetmtpt;
 	}
-	if(keyspec){
+	if(keyspec) {
 		argv[argc++] = "-k";
 		argv[argc++] = keyspec;
 	}
@@ -550,7 +551,7 @@ execppp(int fd)
 	sysfatal("exec: %r");
 }
 
-uint8_t*
+uint8_t *
 findtag(uint8_t *pkt, int tagtype, int *plen, int skip)
 {
 	int len, sz, totlen;
@@ -559,59 +560,59 @@ findtag(uint8_t *pkt, int tagtype, int *plen, int skip)
 	Pppoehdr *ph;
 	Taghdr *t;
 
-	eh = (Etherhdr*)pkt;
-	ph = (Pppoehdr*)(pkt+EtherHdrSz);
-	tagdat = pkt+Hdr;
+	eh = (Etherhdr *)pkt;
+	ph = (Pppoehdr *)(pkt + EtherHdrSz);
+	tagdat = pkt + Hdr;
 
 	if(nhgets(eh->type) != EtherPppoeDiscovery)
 		return nil;
 	totlen = nhgets(ph->length);
 
 	sz = 0;
-	while(sz+4 <= totlen){
-		t = (Taghdr*)(tagdat+sz);
-		v = tagdat+sz+4;
+	while(sz + 4 <= totlen) {
+		t = (Taghdr *)(tagdat + sz);
+		v = tagdat + sz + 4;
 		len = nhgets(t->length);
-		if(sz+4+len > totlen)
+		if(sz + 4 + len > totlen)
 			break;
-		if(nhgets(t->type) == tagtype && skip-- == 0){
+		if(nhgets(t->type) == tagtype && skip-- == 0) {
 			*plen = len;
 			return v;
 		}
-		sz += 2+2+len;
+		sz += 2 + 2 + len;
 	}
-	return nil;	
+	return nil;
 }
 
 void
 dumptags(uint8_t *tagdat, int ntagdat)
 {
-	int i,len, sz;
+	int i, len, sz;
 	uint8_t *v;
 	Taghdr *t;
 
 	sz = 0;
-	while(sz+4 <= ntagdat){
-		t = (Taghdr*)(tagdat+sz);
-		v = tagdat+sz+2+2;
+	while(sz + 4 <= ntagdat) {
+		t = (Taghdr *)(tagdat + sz);
+		v = tagdat + sz + 2 + 2;
 		len = nhgets(t->length);
-		if(sz+4+len > ntagdat)
+		if(sz + 4 + len > ntagdat)
 			break;
 		fprint(2, "\t0x%x %d: ", nhgets(t->type), len);
-		switch(nhgets(t->type)){
+		switch(nhgets(t->type)) {
 		case TagEnd:
 			fprint(2, "end of tag list\n");
 			break;
 		case TagSrvName:
-			fprint(2, "service '%.*s'\n", len, (char*)v);
+			fprint(2, "service '%.*s'\n", len, (char *)v);
 			break;
 		case TagAcName:
-			fprint(2, "ac '%.*s'\n", len, (char*)v);
+			fprint(2, "ac '%.*s'\n", len, (char *)v);
 			break;
 		case TagHostUniq:
 			fprint(2, "nonce ");
 		Hex:
-			for(i=0; i<len; i++)
+			for(i = 0; i < len; i++)
 				fprint(2, "%.2ux", v[i]);
 			fprint(2, "\n");
 			break;
@@ -625,13 +626,13 @@ dumptags(uint8_t *tagdat, int ntagdat)
 			fprint(2, "relay ");
 			goto Hex;
 		case TagSrvNameErr:
-			fprint(2, "srverr '%.*s'\n", len, (char*)v);
+			fprint(2, "srverr '%.*s'\n", len, (char *)v);
 			break;
 		case TagAcSysErr:
-			fprint(2, "syserr '%.*s'\n", len, (char*)v);
+			fprint(2, "syserr '%.*s'\n", len, (char *)v);
 			break;
 		}
-		sz += 2+2+len;
+		sz += 2 + 2 + len;
 	}
 	if(sz != ntagdat)
 		fprint(2, "warning: only dumped %d of %d bytes\n", sz, ntagdat);
@@ -644,20 +645,20 @@ dumppkt(uint8_t *pkt)
 	Etherhdr *eh;
 	Pppoehdr *ph;
 
-	eh = (Etherhdr*)pkt;
-	ph = (Pppoehdr*)(pkt+EtherHdrSz);
+	eh = (Etherhdr *)pkt;
+	ph = (Pppoehdr *)(pkt + EtherHdrSz);
 	et = nhgets(eh->type);
 
-	fprint(2, "%E -> %E type 0x%x\n", 
-		eh->src, eh->dst, et);
-	switch(et){
+	fprint(2, "%E -> %E type 0x%x\n",
+	       eh->src, eh->dst, et);
+	switch(et) {
 	case EtherPppoeDiscovery:
 	case EtherPppoeSession:
 		fprint(2, "\tvers %d type %d code 0x%x sessid 0x%x length %d\n",
-			ph->verstype>>4, ph->verstype&15,
-			ph->code, nhgets(ph->sessid), nhgets(ph->length));
+		       ph->verstype >> 4, ph->verstype & 15,
+		       ph->code, nhgets(ph->sessid), nhgets(ph->length));
 		if(et == EtherPppoeDiscovery)
-			dumptags(pkt+Hdr, nhgets(ph->length));
+			dumptags(pkt + Hdr, nhgets(ph->length));
 	}
 }
 
@@ -668,16 +669,16 @@ malformed(uint8_t *pkt, int n, int wantet)
 	Etherhdr *eh;
 	Pppoehdr *ph;
 
-	eh = (Etherhdr*)pkt;
-	ph = (Pppoehdr*)(pkt+EtherHdrSz);
+	eh = (Etherhdr *)pkt;
+	ph = (Pppoehdr *)(pkt + EtherHdrSz);
 
-	if(n < Hdr || n < Hdr+nhgets(ph->length)){
-		werrstr("packet too short %d != %d", n, Hdr+nhgets(ph->length));
+	if(n < Hdr || n < Hdr + nhgets(ph->length)) {
+		werrstr("packet too short %d != %d", n, Hdr + nhgets(ph->length));
 		return 1;
 	}
 
 	et = nhgets(eh->type);
-	if(et != wantet){
+	if(et != wantet) {
 		werrstr("wrong ethernet packet type 0x%x != 0x%x", et, wantet);
 		return 1;
 	}
@@ -692,18 +693,18 @@ hexdump(uint8_t *a, int na)
 	char buf[80];
 
 	buf[0] = '\0';
-	for(i=0; i<na; i++){
-		sprint(buf+strlen(buf), " %.2ux", a[i]);
-		if(i%16 == 7)
-			sprint(buf+strlen(buf), " --");
-		if(i%16==15){
-			sprint(buf+strlen(buf), "\n");
+	for(i = 0; i < na; i++) {
+		sprint(buf + strlen(buf), " %.2ux", a[i]);
+		if(i % 16 == 7)
+			sprint(buf + strlen(buf), " --");
+		if(i % 16 == 15) {
+			sprint(buf + strlen(buf), "\n");
 			write(2, buf, strlen(buf));
 			buf[0] = 0;
 		}
 	}
-	if(i%16){
-		sprint(buf+strlen(buf), "\n");
+	if(i % 16) {
+		sprint(buf + strlen(buf), "\n");
 		write(2, buf, strlen(buf));
 	}
 }

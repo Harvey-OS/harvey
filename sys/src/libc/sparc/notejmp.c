@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <ureg.h>
 
-int	__noterestore(void);
+int __noterestore(void);
 
 void
 notejmp(void *vr, jmp_buf j, int ret)

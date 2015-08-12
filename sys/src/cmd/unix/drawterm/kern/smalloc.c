@@ -13,15 +13,14 @@
 #include "fns.h"
 #include "error.h"
 
-void*
+void *
 smalloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }
 
-void*
+void *
 malloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }
-

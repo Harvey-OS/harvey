@@ -13,7 +13,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-enum{ BufSize = 8192 };
+enum { BufSize = 8192 };
 
 char *remotesys, *logfile;
 int debug, p[2];
@@ -59,9 +59,9 @@ xfer(int from, int to, int cfd, char *label)
 		return;
 
 	close(cfd);
-	for(;;){
+	for(;;) {
 		n = read(from, buf, sizeof(buf));
-		if(n <= 0){
+		if(n <= 0) {
 			fprint(2, "%s EOF\n", label);
 			close(to);
 			close(from);
@@ -69,7 +69,7 @@ xfer(int from, int to, int cfd, char *label)
 		}
 		dump(2, buf, n, label);
 		n = write(to, buf, n);
-		if(n < 0){
+		if(n < 0) {
 			fprint(2, "%s write err\n", label);
 			close(to);
 			close(from);
@@ -99,10 +99,10 @@ reporter(char *fmt, ...)
 	char buf[2000];
 
 	va_start(ap, fmt);
-	if(logfile){
+	if(logfile) {
 		vsnprint(buf, sizeof buf, fmt, ap);
 		syslog(0, logfile, "%s tls reports %s", remotesys, buf);
-	}else{
+	} else {
 		fprint(2, "%s: %s tls reports ", argv0, remotesys);
 		vfprint(2, fmt, ap);
 		fprint(2, "\n");
@@ -131,7 +131,8 @@ main(int argc, char *argv[])
 	remotesys = nil;
 	cert = nil;
 	logfile = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debug++;
 		break;
@@ -146,17 +147,18 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(cert == nil)
 		sysfatal("no certificate specified");
 	if(remotesys == nil)
 		remotesys = "";
-	conn = (TLSconn*)mallocz(sizeof *conn, 1);
+	conn = (TLSconn *)mallocz(sizeof *conn, 1);
 	if(conn == nil)
 		sysfatal("out of memory");
 	conn->chain = readcertchain(cert);
-	if (conn->chain == nil)
+	if(conn->chain == nil)
 		sysfatal("can't read certificate");
 	conn->cert = conn->chain->pem;
 	conn->certlen = conn->chain->pemlen;
@@ -169,16 +171,16 @@ main(int argc, char *argv[])
 	if(debug > 1)
 		fd = dumper(fd);
 	fd = tlsServer(fd, conn);
-	if(fd < 0){
+	if(fd < 0) {
 		reporter("failed: %r");
 		exits(0);
 	}
 	reporter("open");
 
-	if(argc > 0){
+	if(argc > 0) {
 		if(pipe(p) < 0)
 			exits("pipe");
-		switch(fork()){
+		switch(fork()) {
 		case 0:
 			close(fd);
 			dup(p[0], 0);
@@ -199,11 +201,11 @@ main(int argc, char *argv[])
 
 	rfork(RFNOTEG);
 	notify(death);
-	switch(rfork(RFPROC)){
+	switch(rfork(RFPROC)) {
 	case -1:
 		sysfatal("can't fork");
 	case 0:
-		for(;;){
+		for(;;) {
 			n = read(clearfd, buf, BufSize);
 			if(n <= 0)
 				break;
@@ -212,7 +214,7 @@ main(int argc, char *argv[])
 		}
 		break;
 	default:
-		for(;;){
+		for(;;) {
 			n = read(fd, buf, BufSize);
 			if(n <= 0)
 				break;

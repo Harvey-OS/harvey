@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runestrcat(Rune *s1, Rune *s2)
 {
 

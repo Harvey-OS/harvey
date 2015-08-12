@@ -19,7 +19,7 @@ fstat(int fd, struct stat *buf)
 {
 	Dir *d;
 
-	if((d = _dirfstat(fd)) == nil){
+	if((d = _dirfstat(fd)) == nil) {
 		_syserrno();
 		return -1;
 	}

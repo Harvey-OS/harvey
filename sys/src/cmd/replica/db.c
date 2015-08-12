@@ -11,21 +11,21 @@
 
 static Entry *fe;
 
-static Entry*
+static Entry *
 allocentry(void)
 {
 	int i;
 	Entry *e;
 
-	if(fe == nil){
-		fe = emalloc(128*sizeof(Entry));
-		for(i=0; i<128-1; i++)
-			fe[i].name = (char*)&fe[i+1];
+	if(fe == nil) {
+		fe = emalloc(128 * sizeof(Entry));
+		for(i = 0; i < 128 - 1; i++)
+			fe[i].name = (char *)&fe[i + 1];
 		fe[i].name = nil;
 	}
 
 	e = fe;
-	fe = (Entry*)e->name;
+	fe = (Entry *)e->name;
 	memset(e, 0, sizeof *e);
 	return e;
 }
@@ -33,7 +33,7 @@ allocentry(void)
 static void
 freeentry(Entry *e)
 {
-	e->name = (char*)fe;
+	e->name = (char *)fe;
 	fe = e;
 }
 
@@ -45,7 +45,7 @@ _removedb(Db *db, char *name)
 	memset(&k, 0, sizeof k);
 	k.name = name;
 	e = nil;
-	deleteavl(db->avl, (Avl*)&k, (Avl**)&e);
+	deleteavl(db->avl, (Avl *)&k, (Avl **)&e);
 	if(e)
 		freeentry(e);
 }
@@ -58,7 +58,7 @@ _insertdb(Db *db, Entry *e)
 	ne = allocentry();
 	*ne = *e;
 	o = nil;
-	insertavl(db->avl, (Avl*)ne, (Avl**)&o);
+	insertavl(db->avl, (Avl *)ne, (Avl **)&o);
 	if(o)
 		freeentry(o);
 }
@@ -69,13 +69,13 @@ entrycmp(Avl *a, Avl *b)
 	Entry *ea, *eb;
 	int r;
 
-	ea = (Entry*)a;
-	eb = (Entry*)b;
+	ea = (Entry *)a;
+	eb = (Entry *)b;
 	r = strcmp(ea->name, eb->name);
 	return r > 0 ? 1 : r < 0 ? -1 : 0;
 }
 
-Db*
+Db *
 opendb(char *file)
 {
 	char *f[10], *s, *t;
@@ -95,7 +95,7 @@ opendb(char *file)
 		return db;
 	Binit(&b, fd, OREAD);
 	i = 0;
-	for(; s=Brdstr(&b, '\n', 1); free(s)){
+	for(; s = Brdstr(&b, '\n', 1); free(s)) {
 		t = estrdup(s);
 		nf = tokenize(s, f, nelem(f));
 		if(nf != 7)
@@ -103,11 +103,11 @@ opendb(char *file)
 		free(t);
 		if(strcmp(f[2], "REMOVED") == 0)
 			_removedb(db, f[0]);
-		else{
+		else {
 			memset(&e, 0, sizeof e);
 			e.name = atom(f[0]);
 			e.d.name = atom(f[1]);
-			if(strcmp(e.d.name, "-")==0)
+			if(strcmp(e.d.name, "-") == 0)
 				e.d.name = e.name;
 			e.d.mode = strtoul(f[2], 0, 8);
 			e.d.uid = atom(f[3]);
@@ -129,7 +129,7 @@ _finddb(Db *db, char *name, Dir *d, int domark)
 	memset(&k, 0, sizeof k);
 	k.name = name;
 
-	e = (Entry*)lookupavl(db->avl, (Avl*)&k);
+	e = (Entry *)lookupavl(db->avl, (Avl *)&k);
 	if(e == nil)
 		return -1;
 	memset(d, 0, sizeof *d);
@@ -159,7 +159,7 @@ markdb(Db *db, char *name, Dir *d)
 void
 removedb(Db *db, char *name)
 {
-	if(db->fd>=0 && fprint(db->fd, "%q xxx REMOVED xxx xxx 0 0\n", name) < 0)
+	if(db->fd >= 0 && fprint(db->fd, "%q xxx REMOVED xxx xxx 0 0\n", name) < 0)
 		sysfatal("appending to db: %r");
 	_removedb(db, name);
 }
@@ -178,13 +178,12 @@ insertdb(Db *db, char *name, Dir *d)
 	e.d.mtime = d->mtime;
 	e.d.mode = d->mode;
 	e.d.length = d->length;
-	e.d.mark = d->muid!=0;
+	e.d.mark = d->muid != 0;
 
 	dname = d->name;
 	if(strcmp(name, dname) == 0)
 		dname = "-";
-	if(db->fd>=0 && fprint(db->fd, "%q %q %luo %q %q %lud %lld\n", name, dname, d->mode, d->uid, d->gid, d->mtime, d->length) < 0)
+	if(db->fd >= 0 && fprint(db->fd, "%q %q %luo %q %q %lud %lld\n", name, dname, d->mode, d->uid, d->gid, d->mtime, d->length) < 0)
 		sysfatal("appending to db: %r");
 	_insertdb(db, &e);
 }
-

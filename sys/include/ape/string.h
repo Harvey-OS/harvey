@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 extern void *memcpy(void *, const void *, size_t);
-extern void* memccpy(void*, void*, int, size_t);
+extern void *memccpy(void *, void *, int, size_t);
 extern void *memmove(void *, const void *, size_t);
 extern char *strcpy(char *, const char *);
 extern char *strncpy(char *, const char *, size_t);
@@ -27,7 +27,7 @@ extern char *strncat(char *, const char *, size_t);
 extern int memcmp(const void *, const void *, size_t);
 extern int strcmp(const char *, const char *);
 extern int strcoll(const char *, const char *);
-extern char* strdup(char*);
+extern char *strdup(char *);
 extern int strncmp(const char *, const char *, size_t);
 extern size_t strxfrm(char *, const char *, size_t);
 extern void *memchr(const void *, int, size_t);

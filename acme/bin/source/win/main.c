@@ -16,16 +16,16 @@
 #include <ctype.h>
 #include "dat.h"
 
-void	mainctl(void*);
-void	startcmd(char *[], int*);
-void	stdout2body(void*);
+void mainctl(void *);
+void startcmd(char *[], int *);
+void stdout2body(void *);
 
-int	debug;
-int	notepg;
-int	eraseinput;
-int	dirty = 0;
+int debug;
+int notepg;
+int eraseinput;
+int dirty = 0;
 
-Window *win;		/* the main window */
+Window *win; /* the main window */
 
 void
 usage(void)
@@ -43,7 +43,8 @@ threadmain(int argc, char *argv[])
 
 	quotefmtinstall();
 	rfork(RFNAMEG);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug = 1;
 		chatty9p++;
@@ -51,18 +52,19 @@ threadmain(int argc, char *argv[])
 	case 'e':
 		eraseinput = 1;
 		break;
-	case 'D':
-{extern int _threaddebuglevel;
-		_threaddebuglevel = 1<<20;
-}
-	}ARGEND
+	case 'D': {
+		extern int _threaddebuglevel;
+		_threaddebuglevel = 1 << 20;
+	}
+	}
+	ARGEND
 
-	if(argc == 0){
-		av = emalloc(3*sizeof(char*));
+	if(argc == 0) {
+		av = emalloc(3 * sizeof(char *));
 		av[0] = "rc";
 		av[1] = "-i";
 		name = getenv("sysname");
-	}else{
+	} else {
 		av = argv;
 		name = utfrrune(av[0], '/');
 		if(name)
@@ -82,7 +84,7 @@ threadmain(int argc, char *argv[])
 	snprint(buf, sizeof buf, "%d", win->id);
 	putenv("winid", buf);
 	winname(win, tag);
-	wintagwrite(win, "Send Noscroll", 5+8);
+	wintagwrite(win, "Send Noscroll", 5 + 8);
 	threadcreate(mainctl, win, STACK);
 	mountcons();
 	threadcreate(fsloop, nil, STACK);
@@ -91,10 +93,10 @@ threadmain(int argc, char *argv[])
 
 	strcpy(buf, "win");
 	j = 3;
-	for(i=0; i<argc && j+1+strlen(argv[i])+1<sizeof buf; i++){
-		strcpy(buf+j, " ");
-		strcpy(buf+j+1, argv[i]);
-		j += 1+strlen(argv[i]);
+	for(i = 0; i < argc && j + 1 + strlen(argv[i]) + 1 < sizeof buf; i++) {
+		strcpy(buf + j, " ");
+		strcpy(buf + j + 1, argv[i]);
+		j += 1 + strlen(argv[i]);
 	}
 
 	ctlprint(win->ctl, "scroll");
@@ -113,19 +115,19 @@ EQUAL(char *s, char *t)
 int
 command(Window *w, char *s)
 {
-	while(*s==' ' || *s=='\t' || *s=='\n')
+	while(*s == ' ' || *s == '\t' || *s == '\n')
 		s++;
-	if(strcmp(s, "Delete")==0 || strcmp(s, "Del")==0){
+	if(strcmp(s, "Delete") == 0 || strcmp(s, "Del") == 0) {
 		write(notepg, "hangup", 6);
 		windel(w, 1);
 		threadexitsall(nil);
 		return 1;
 	}
-	if(EQUAL(s, "scroll")){
+	if(EQUAL(s, "scroll")) {
 		ctlprint(w->ctl, "scroll\nshow");
 		return 1;
 	}
-	if(EQUAL(s, "noscroll")){
+	if(EQUAL(s, "noscroll")) {
 		ctlprint(w->ctl, "noscroll");
 		return 1;
 	}
@@ -137,21 +139,21 @@ utfncpy(char *to, char *from, int n)
 {
 	char *end, *e;
 
-	e = to+n;
+	e = to + n;
 	if(to >= e)
 		return 0;
 	end = memccpy(to, from, '\0', e - to);
-	if(end == nil){
+	if(end == nil) {
 		end = e;
-		if(end[-1]&0x80){
-			if(end-2>=to && (end[-2]&0xE0)==0xC0)
-				return end-to;
-			if(end-3>=to && (end[-3]&0xF0)==0xE0)
-				return end-to;
-			while(end>to && (*--end&0xC0)==0x80)
+		if(end[-1] & 0x80) {
+			if(end - 2 >= to && (end[-2] & 0xE0) == 0xC0)
+				return end - to;
+			if(end - 3 >= to && (end[-3] & 0xF0) == 0xE0)
+				return end - to;
+			while(end > to && (*--end & 0xC0) == 0x80)
 				;
 		}
-	}else
+	} else
 		end--;
 	return end - to;
 }
@@ -174,14 +176,14 @@ __sendinput(Window *w, uint32_t q0, uint32_t q1)
 
 	r = q;
 	n = 0;
-	if(partial){
+	if(partial) {
 	Partial:
 		nb = partial;
 		if(nb > r->ifcall.count)
 			nb = r->ifcall.count;
 		memmove(r->ofcall.data, tmp, nb);
-		if(nb!=partial)
-			memmove(tmp, tmp+nb, partial-nb);
+		if(nb != partial)
+			memmove(tmp, tmp + nb, partial - nb);
 		partial -= nb;
 		q = r->aux;
 		if(q == nil)
@@ -193,25 +195,25 @@ __sendinput(Window *w, uint32_t q0, uint32_t q1)
 		respond(r, nil);
 		return n;
 	}
-	if(q0==q1)
+	if(q0 == q1)
 		return 0;
-	s = emalloc((q1-q0)*UTFmax+1);
+	s = emalloc((q1 - q0) * UTFmax + 1);
 	n = winread(w, q0, q1, s);
 	s[n] = '\0';
 	t = strpbrk(s, "\n\004");
-	if(t == nil){
+	if(t == nil) {
 		free(s);
 		return 0;
 	}
 	r = q;
 	eofchar = 0;
-	if(*t == '\004'){
+	if(*t == '\004') {
 		eofchar = 1;
 		*t = '\0';
-	}else
+	} else
 		*++t = '\0';
-	nb = utfncpy((char*)r->ofcall.data, s, r->ifcall.count);
-	if(nb==0 && s<t && r->ifcall.count > 0){
+	nb = utfncpy((char *)r->ofcall.data, s, r->ifcall.count);
+	if(nb == 0 && s < t && r->ifcall.count > 0) {
 		partial = utfncpy(tmp, s, UTFmax);
 		assert(partial > 0);
 		chartorune(&rune, tmp);
@@ -221,7 +223,7 @@ __sendinput(Window *w, uint32_t q0, uint32_t q1)
 		goto Partial;
 	}
 	n = utfnlen(r->ofcall.data, nb);
-	if(nb==strlen(s) && eofchar)
+	if(nb == strlen(s) && eofchar)
 		n++;
 	r->ofcall.count = nb;
 	q = r->aux;
@@ -229,7 +231,7 @@ __sendinput(Window *w, uint32_t q0, uint32_t q1)
 		eq = &q;
 	r->aux = nil;
 	if(debug)
-		fprint(2, "read returns %lud-%lud: %.*q\n", q0, q0+n, n, r->ofcall.data);
+		fprint(2, "read returns %lud-%lud: %.*q\n", q0, q0 + n, n, r->ofcall.data);
 	respond(r, nil);
 	return n;
 }
@@ -244,7 +246,7 @@ _sendinput(Window *w, uint32_t q0, uint32_t *q1)
 	if(!n || !eraseinput)
 		return n;
 	/* erase q0 to q0+n */
-	sprint(buf, "#%lud,#%lud", q0, q0+n);
+	sprint(buf, "#%lud,#%lud", q0, q0 + n);
 	winsetaddr(w, buf, 0);
 	write(w->data, buf, 0);
 	*q1 -= n;
@@ -260,14 +262,14 @@ sendinput(Window *w, uint32_t q0, uint32_t *q1)
 	n = 0;
 	do {
 		oq = q;
-		n += _sendinput(w, q0+n, q1);
+		n += _sendinput(w, q0 + n, q1);
 	} while(q != oq);
 	return n;
 }
 
 Event esendinput;
 void
-fsloop(void*)
+fsloop(void *)
 {
 	Fsevent e;
 	Req **l, *r;
@@ -275,11 +277,11 @@ fsloop(void*)
 	eq = &q;
 	memset(&esendinput, 0, sizeof esendinput);
 	esendinput.c1 = 'C';
-	for(;;){
+	for(;;) {
 		while(recv(fschan, &e) == -1)
 			;
 		r = e.r;
-		switch(e.type){
+		switch(e.type) {
 		case 'r':
 			*eq = r;
 			r->aux = nil;
@@ -288,8 +290,8 @@ fsloop(void*)
 			sendp(win->cevent, &esendinput);
 			break;
 		case 'f':
-			for(l=&q; *l; l=&(*l)->aux){
-				if(*l == r->oldreq){
+			for(l = &q; *l; l = &(*l)->aux) {
+				if(*l == r->oldreq) {
 					*l = (*l)->aux;
 					if(*l == nil)
 						eq = l;
@@ -301,15 +303,15 @@ fsloop(void*)
 			break;
 		}
 	}
-}	
+}
 
 void
 sendit(char *s)
 {
-//	char tmp[32];
+	//	char tmp[32];
 
 	write(win->body, s, strlen(s));
-/*
+	/*
  * RSC: The problem here is that other procs can call sendit,
  * so we lose our single-threadedness if we call sendinput.
  * In fact, we don't even have the right queue memory,
@@ -327,7 +329,7 @@ sendit(char *s)
 }
 
 void
-execevent(Window *w, Event *e, int (*command)(Window*, char*))
+execevent(Window *w, Event *e, int (*command)(Window *, char *))
 {
 	Event *ea, *e2;
 	int n, na, len, needfree;
@@ -337,30 +339,29 @@ execevent(Window *w, Event *e, int (*command)(Window*, char*))
 	e2 = nil;
 	if(e->flag & 2)
 		e2 = recvp(w->cevent);
-	if(e->flag & 8){
+	if(e->flag & 8) {
 		ea = recvp(w->cevent);
 		na = ea->nb;
 		recvp(w->cevent);
-	}else
+	} else
 		na = 0;
 
 	needfree = 0;
 	s = e->b;
-	if(e->nb==0 && (e->flag&2)){
+	if(e->nb == 0 && (e->flag & 2)) {
 		s = e2->b;
 		e->q0 = e2->q0;
 		e->q1 = e2->q1;
 		e->nb = e2->nb;
 	}
-	if(e->nb==0 && e->q0<e->q1){
+	if(e->nb == 0 && e->q0 < e->q1) {
 		/* fetch data from window */
-		s = emalloc((e->q1-e->q0)*UTFmax+2);
+		s = emalloc((e->q1 - e->q0) * UTFmax + 2);
 		n = winread(w, e->q0, e->q1, s);
 		s[n] = '\0';
 		needfree = 1;
-	}else 
-	if(na){
-		t = emalloc(strlen(s)+1+na+2);
+	} else if(na) {
+		t = emalloc(strlen(s) + 1 + na + 2);
 		sprint(t, "%s %s", s, ea->b);
 		if(needfree)
 			free(s);
@@ -370,16 +371,16 @@ execevent(Window *w, Event *e, int (*command)(Window*, char*))
 
 	/* if it's a known command, do it */
 	/* if it's a long message, it can't be for us anyway */
-	if(!command(w, s) && s[0]!='\0'){	/* send it as typed text */
+	if(!command(w, s) && s[0] != '\0') { /* send it as typed text */
 		/* if it's a built-in from the tag, send it back */
 		if(e->flag & 1)
 			fprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
-		else{	/* send text to main window */
+		else { /* send text to main window */
 			len = strlen(s);
-			if(len>0 && s[len-1]!='\n' && s[len-1]!='\004'){
-				if(!needfree){
+			if(len > 0 && s[len - 1] != '\n' && s[len - 1] != '\004') {
+				if(!needfree) {
 					/* if(needfree), we left room for a newline before */
-					t = emalloc(len+2);
+					t = emalloc(len + 2);
 					strcpy(t, s);
 					s = t;
 					needfree = 1;
@@ -399,8 +400,8 @@ hasboundary(Rune *r, int nr)
 {
 	int i;
 
-	for(i=0; i<nr; i++)
-		if(r[i]=='\n' || r[i]=='\004')
+	for(i = 0; i < nr; i++)
+		if(r[i] == '\n' || r[i] == '\004')
 			return 1;
 	return 0;
 }
@@ -422,36 +423,36 @@ mainctl(void *v)
 	winsetaddr(w, "0", 0);
 	pendingS = 0;
 	pendingK = 0;
-	for(;;){
+	for(;;) {
 		if(debug)
 			fprint(2, "input range %lud-%lud\n", hostpt, endpt);
 		e = recvp(w->cevent);
 		if(debug)
 			fprint(2, "msg: %C %C %d %d %d %d %q\n",
-				e->c1 ? e->c1 : ' ', e->c2 ? e->c2 : ' ', e->q0, e->q1, e->flag, e->nb, e->b);
-		switch(e->c1){
+			       e->c1 ? e->c1 : ' ', e->c2 ? e->c2 : ' ', e->q0, e->q1, e->flag, e->nb, e->b);
+		switch(e->c1) {
 		default:
 		Unknown:
 			fprint(2, "unknown message %c%c\n", e->c1, e->c2);
 			break;
 
-		case 'C':	/* input needed for /dev/cons */
+		case 'C': /* input needed for /dev/cons */
 			if(pendingS)
 				pendingK = 1;
 			else
 				hostpt += sendinput(w, hostpt, &endpt);
 			break;
 
-		case 'S':	/* output to stdout */
+		case 'S': /* output to stdout */
 			sprint(tmp, "#%lud", hostpt);
 			winsetaddr(w, tmp, 0);
 			write(w->data, e->b, e->nb);
 			pendingS += e->nr;
 			break;
-	
-		case 'E':	/* write to tag or body; body happens due to sendit */
-			delta = e->q1-e->q0;
-			if(e->c2=='I'){
+
+		case 'E': /* write to tag or body; body happens due to sendit */
+			delta = e->q1 - e->q0;
+			if(e->c2 == 'I') {
 				endpt += delta;
 				if(e->q0 < hostpt)
 					hostpt += delta;
@@ -461,16 +462,16 @@ mainctl(void *v)
 			}
 			if(!islower(e->c2))
 				fprint(2, "win msg: %C %C %d %d %d %d %q\n",
-					e->c1, e->c2, e->q0, e->q1, e->flag, e->nb, e->b);
+				       e->c1, e->c2, e->q0, e->q1, e->flag, e->nb, e->b);
 			break;
-	
-		case 'F':	/* generated by our actions (specifically case 'S' above) */
-			delta = e->q1-e->q0;
-			if(e->c2=='D'){
+
+		case 'F': /* generated by our actions (specifically case 'S' above) */
+			delta = e->q1 - e->q0;
+			if(e->c2 == 'D') {
 				/* we know about the delete by _sendinput */
 				break;
 			}
-			if(e->c2=='I'){
+			if(e->c2 == 'I') {
 				pendingS -= e->q1 - e->q0;
 				if(pendingS < 0)
 					fprint(2, "win: pendingS = %d\n", pendingS);
@@ -479,7 +480,7 @@ mainctl(void *v)
 				endpt += delta;
 				hostpt += delta;
 				sendp(writechan, nil);
-				if(pendingS == 0 && pendingK){
+				if(pendingS == 0 && pendingK) {
 					pendingK = 0;
 					hostpt += sendinput(w, hostpt, &endpt);
 				}
@@ -487,12 +488,12 @@ mainctl(void *v)
 			}
 			if(!islower(e->c2))
 				fprint(2, "win msg: %C %C %d %d %d %d %q\n",
-					e->c1, e->c2, e->q0, e->q1, e->flag, e->nb, e->b);
+				       e->c1, e->c2, e->q0, e->q1, e->flag, e->nb, e->b);
 			break;
 
 		case 'K':
-			delta = e->q1-e->q0;
-			switch(e->c2){
+			delta = e->q1 - e->q0;
+			switch(e->c2) {
 			case 'D':
 				endpt -= delta;
 				if(e->q1 < hostpt)
@@ -503,17 +504,16 @@ mainctl(void *v)
 			case 'I':
 				delta = e->q1 - e->q0;
 				endpt += delta;
-				if(endpt < e->q1)	/* just in case */
+				if(endpt < e->q1) /* just in case */
 					endpt = e->q1;
 				if(e->q0 < hostpt)
 					hostpt += delta;
-				if(e->nr>0 && e->r[e->nr-1]==0x7F){
+				if(e->nr > 0 && e->r[e->nr - 1] == 0x7F) {
 					write(notepg, "interrupt", 9);
 					hostpt = endpt;
 					break;
 				}
-				if(e->q0 >= hostpt
-				&& hasboundary(e->r, e->nr)){
+				if(e->q0 >= hostpt && hasboundary(e->r, e->nr)) {
 					/*
 					 * If we are between the S message (which
 					 * we processed by inserting text in the
@@ -540,22 +540,22 @@ mainctl(void *v)
 				break;
 			}
 			break;
-	
-		case 'M':	/* mouse */
-			delta = e->q1-e->q0;
-			switch(e->c2){
+
+		case 'M': /* mouse */
+			delta = e->q1 - e->q0;
+			switch(e->c2) {
 			case 'x':
 			case 'X':
 				execevent(w, e, command);
 				break;
-	
-			case 'l':	/* reflect all searches back to acme */
+
+			case 'l': /* reflect all searches back to acme */
 			case 'L':
 				if(e->flag & 2)
 					recvp(w->cevent);
 				winwriteevent(w, e);
 				break;
-	
+
 			case 'I':
 				endpt += delta;
 				if(e->q0 < hostpt)
@@ -571,10 +571,10 @@ mainctl(void *v)
 				else if(e->q0 < hostpt)
 					hostpt = e->q0;
 				break;
-			case 'd':	/* modify away; we don't care */
+			case 'd': /* modify away; we don't care */
 			case 'i':
 				break;
-	
+
 			default:
 				goto Unknown;
 			}
@@ -582,17 +582,15 @@ mainctl(void *v)
 	}
 }
 
-enum
-{
-	NARGS		= 100,
-	NARGCHAR	= 8*1024,
-	EXECSTACK 	= STACK+(NARGS+1)*sizeof(char*)+NARGCHAR
+enum {
+	NARGS = 100,
+	NARGCHAR = 8 * 1024,
+	EXECSTACK = STACK + (NARGS + 1) * sizeof(char *) + NARGCHAR
 };
 
-struct Exec
-{
-	char		**argv;
-	Channel	*cpid;
+struct Exec {
+	char **argv;
+	Channel *cpid;
 };
 
 int
@@ -600,9 +598,9 @@ lookinbin(char *s)
 {
 	if(s[0] == '/')
 		return 0;
-	if(s[0]=='.' && s[1]=='/')
+	if(s[0] == '.' && s[1] == '/')
 		return 0;
-	if(s[0]=='.' && s[1]=='.' && s[2]=='/')
+	if(s[0] == '.' && s[1] == '.' && s[2] == '/')
 		return 0;
 	return 1;
 }
@@ -616,7 +614,7 @@ execproc(void *v)
 	Channel *cpid;
 
 	e = v;
-	rfork(RFCFDG|RFNOTEG);
+	rfork(RFCFDG | RFNOTEG);
 	av = e->argv;
 	close(0);
 	open("/dev/cons", OREAD);
@@ -626,7 +624,7 @@ execproc(void *v)
 	cpid = e->cpid;
 	free(e);
 	procexec(cpid, av[0], av);
-	if(lookinbin(av[0])){
+	if(lookinbin(av[0])) {
 		cmd = estrstrdup("/bin/", av[0]);
 		procexec(cpid, cmd, av);
 	}

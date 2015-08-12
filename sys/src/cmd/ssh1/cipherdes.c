@@ -9,13 +9,12 @@
 
 #include "ssh.h"
 
-struct CipherState
-{
+struct CipherState {
 	DESstate enc;
 	DESstate dec;
 };
 
-static CipherState*
+static CipherState *
 initdes(Conn *c, int)
 {
 	CipherState *cs;
@@ -39,11 +38,10 @@ decryptdes(CipherState *cs, uint8_t *buf, int nbuf)
 }
 
 Cipher cipherdes =
-{
-	SSH_CIPHER_DES,
-	"des",
-	initdes,
-	encryptdes,
-	decryptdes,
+    {
+     SSH_CIPHER_DES,
+     "des",
+     initdes,
+     encryptdes,
+     decryptdes,
 };
-

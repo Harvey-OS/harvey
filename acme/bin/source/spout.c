@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include <bio.h>
 
-void	spout(int, char*);
+void spout(int, char *);
 
 Biobuf bout;
 
@@ -25,9 +25,9 @@ main(int argc, char *argv[])
 	if(argc == 1)
 		spout(0, "");
 	else
-		for(i=1; i<argc; i++){
+		for(i = 1; i < argc; i++) {
 			fd = open(argv[i], OREAD);
-			if(fd < 0){
+			if(fd < 0) {
 				fprint(2, "spell: can't open %s: %r\n", argv[i]);
 				continue;
 			}
@@ -51,43 +51,43 @@ spout(int fd, char *name)
 	Binit(&b, fd, OREAD);
 	n = 0;
 	wn = 0;
-	while((s = Brdline(&b, '\n')) != nil){
+	while((s = Brdline(&b, '\n')) != nil) {
 		if(s[0] == '.')
-			for(c=0; c<3 && *s>' '; c++){
+			for(c = 0; c < 3 && *s > ' '; c++) {
 				n++;
 				s++;
 			}
 		inword = 0;
 		w = s;
 		t = s;
-		do{
-			c = *(uchar*)t;
+		do {
+			c = *(uchar *)t;
 			if(c < Runeself)
 				wid = 1;
-			else{
+			else {
 				wid = chartorune(&r, t);
 				c = r;
 			}
 			wordchar = 0;
 			if(isalpha(c))
 				wordchar = 1;
-			if(inword && !wordchar){
-				if(c=='\'' && isalpha(t[1]))
+			if(inword && !wordchar) {
+				if(c == '\'' && isalpha(t[1]))
 					goto Continue;
-				m = t-w;
-				if(m > 1){
+				m = t - w;
+				if(m > 1) {
 					memmove(buf, w, m);
 					buf[m] = 0;
 					Bprint(&bout, "%s:#%d,#%d:%s\n", name, wn, n, buf);
 				}
 				inword = 0;
-			}else if(!inword && wordchar){
+			} else if(!inword && wordchar) {
 				wn = n;
 				w = t;
 				inword = 1;
 			}
-			if(c=='\\' && (isalpha(t[1]) || t[1]=='(')){
-				switch(t[1]){
+			if(c == '\\' && (isalpha(t[1]) || t[1] == '(')) {
+				switch(t[1]) {
 				case '(':
 					m = 4;
 					break;
@@ -98,15 +98,15 @@ spout(int fd, char *name)
 						m = 3;
 					break;
 				case 's':
-					if(t[2] == '+' || t[2]=='-'){
+					if(t[2] == '+' || t[2] == '-') {
 						if(t[3] == '(')
 							m = 6;
 						else
 							m = 4;
-					}else{
+					} else {
 						if(t[2] == '(')
 							m = 5;
-						else if(t[2]=='1' || t[2]=='2' || t[2]=='3')
+						else if(t[2] == '1' || t[2] == '2' || t[2] == '3')
 							m = 4;
 						else
 							m = 3;
@@ -115,7 +115,7 @@ spout(int fd, char *name)
 				default:
 					m = 2;
 				}
-				while(m-- > 0){
+				while(m-- > 0) {
 					if(*t == '\n')
 						break;
 					n++;
@@ -123,10 +123,10 @@ spout(int fd, char *name)
 				}
 				continue;
 			}
-	Continue:
+		Continue:
 			n++;
 			t += wid;
-		}while(c != '\n');
+		} while(c != '\n');
 	}
 	Bterm(&b);
 }

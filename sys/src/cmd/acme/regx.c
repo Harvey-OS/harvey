@@ -20,16 +20,15 @@
 #include "dat.h"
 #include "fns.h"
 
-Rangeset	sel;
-Rune		*lastregexp;
+Rangeset sel;
+Rune *lastregexp;
 
 /*
  * Machine Information
  */
 typedef struct Inst Inst;
-struct Inst
-{
-	uint	type;	/* <= Runemax+1 ==> literal, otherwise action */
+struct Inst {
+	uint type; /* <= Runemax+1 ==> literal, otherwise action */
 	union {
 		int sid;
 		int subid;
@@ -37,32 +36,31 @@ struct Inst
 		Inst *other;
 		Inst *right;
 	};
-	union{
+	union {
 		Inst *left;
 		Inst *next;
 	};
 };
 
-#define	NPROG	1024
-Inst	program[NPROG];
-Inst	*progp;
-Inst	*startinst;	/* First inst. of program; might not be program[0] */
-Inst	*bstartinst;	/* same for backwards machine */
-Channel	*rechan;	/* chan(Inst*) */
+#define NPROG 1024
+Inst program[NPROG];
+Inst *progp;
+Inst *startinst;  /* First inst. of program; might not be program[0] */
+Inst *bstartinst; /* same for backwards machine */
+Channel *rechan;  /* chan(Inst*) */
 
 typedef struct Ilist Ilist;
-struct Ilist
-{
-	Inst	*inst;		/* Instruction of the thread */
+struct Ilist {
+	Inst *inst; /* Instruction of the thread */
 	Rangeset se;
-	uint	startp;		/* first char of match */
+	uint startp; /* first char of match */
 };
 
-#define	NLIST	127
+#define NLIST 127
 
-Ilist	*tl, *nl;	/* This list, next list */
-Ilist	list[2][NLIST+1];	/* +1 for trailing null */
-static	Rangeset sempty;
+Ilist *tl, *nl;		  /* This list, next list */
+Ilist list[2][NLIST + 1]; /* +1 for trailing null */
+static Rangeset sempty;
 
 /*
  * Actions and Tokens
@@ -71,75 +69,74 @@ static	Rangeset sempty;
  *	0x200xx are tokens, i.e. operands for operators
  */
 enum {
-	OPERATOR = Runemask+1,	/* Bitmask of all operators */
-	START	= OPERATOR,	/* Start, used for marker on stack */
-	RBRA,			/* Right bracket, ) */
-	LBRA,			/* Left bracket, ( */
-	OR,			/* Alternation, | */
-	CAT,			/* Concatentation, implicit operator */
-	STAR,			/* Closure, * */
-	PLUS,			/* a+ == aa* */
-	QUEST,			/* a? == a|nothing, i.e. 0 or 1 a's */
+	OPERATOR = Runemask + 1, /* Bitmask of all operators */
+	START = OPERATOR,	/* Start, used for marker on stack */
+	RBRA,			 /* Right bracket, ) */
+	LBRA,			 /* Left bracket, ( */
+	OR,			 /* Alternation, | */
+	CAT,			 /* Concatentation, implicit operator */
+	STAR,			 /* Closure, * */
+	PLUS,			 /* a+ == aa* */
+	QUEST,			 /* a? == a|nothing, i.e. 0 or 1 a's */
 
-	ANY	= OPERATOR<<1,	/* Any character but newline, . */
-	NOP,			/* No operation, internal use only */
-	BOL,			/* Beginning of line, ^ */
-	EOL,			/* End of line, $ */
-	CCLASS,			/* Character class, [] */
-	NCCLASS,		/* Negated character class, [^] */
-	END,			/* Terminate: match found */
+	ANY = OPERATOR << 1, /* Any character but newline, . */
+	NOP,		     /* No operation, internal use only */
+	BOL,		     /* Beginning of line, ^ */
+	EOL,		     /* End of line, $ */
+	CCLASS,		     /* Character class, [] */
+	NCCLASS,	     /* Negated character class, [^] */
+	END,		     /* Terminate: match found */
 
-	ISATOR	= OPERATOR,
-	ISAND	= OPERATOR<<1,
+	ISATOR = OPERATOR,
+	ISAND = OPERATOR << 1,
 };
 
 /*
  * Parser Information
  */
 typedef struct Node Node;
-struct Node
-{
-	Inst	*first;
-	Inst	*last;
+struct Node {
+	Inst *first;
+	Inst *last;
 };
 
-#define	NSTACK	20
-Node	andstack[NSTACK];
-Node	*andp;
-int	atorstack[NSTACK];
-int	*atorp;
-int	lastwasand;	/* Last token was operand */
-int	cursubid;
-int	subidstack[NSTACK];
-int	*subidp;
-int	backwards;
-int	nbra;
-Rune	*exprp;		/* pointer to next character in source expression */
-#define	DCLASS	10	/* allocation increment */
-int	nclass;		/* number active */
-int	Nclass;		/* high water mark */
-Rune	**class;
-int	negateclass;
+#define NSTACK 20
+Node andstack[NSTACK];
+Node *andp;
+int atorstack[NSTACK];
+int *atorp;
+int lastwasand; /* Last token was operand */
+int cursubid;
+int subidstack[NSTACK];
+int *subidp;
+int backwards;
+int nbra;
+Rune *exprp;      /* pointer to next character in source expression */
+#define DCLASS 10 /* allocation increment */
+int nclass;       /* number active */
+int Nclass;       /* high water mark */
+Rune **class;
+int negateclass;
 
-int	addinst(Ilist *l, Inst *inst, Rangeset *sep);
-void	newmatch(Rangeset*);
-void	bnewmatch(Rangeset*);
-void	pushand(Inst*, Inst*);
-void	pushator(int);
-Node	*popand(int);
-int	popator(void);
-void	startlex(Rune*);
-int	lex(void);
-void	operator(int);
-void	operand(int);
-void	evaluntil(int);
-void	optimize(Inst*);
-void	bldcclass(void);
+int addinst(Ilist *l, Inst *inst, Rangeset *sep);
+void newmatch(Rangeset *);
+void bnewmatch(Rangeset *);
+void pushand(Inst *, Inst *);
+void pushator(int);
+Node *popand(int);
+int popator(void);
+void startlex(Rune *);
+int lex(void);
+void operator(int);
+void operand(int);
+void evaluntil(int);
+void optimize(Inst *);
+void bldcclass(void);
 
 void
 rxinit(void)
 {
-	rechan = chancreate(sizeof(Inst*), 0);
+	rechan = chancreate(sizeof(Inst *), 0);
 	lastregexp = runemalloc(1);
 }
 
@@ -178,9 +175,9 @@ realcompile(void *arg)
 	cursubid = 0;
 	lastwasand = FALSE;
 	/* Start with a low priority operator to prime parser */
-	pushator(START-1);
-	while((token=lex()) != END){
-		if((token&ISATOR) == OPERATOR)
+	pushator(START - 1);
+	while((token = lex()) != END) {
+		if((token & ISATOR) == OPERATOR)
 			operator(token);
 		else
 			operand(token);
@@ -192,7 +189,7 @@ realcompile(void *arg)
 	evaluntil(START);
 	if(nbra)
 		regerror("unmatched `('");
-	--andp;	/* points to first and only operand */
+	--andp; /* points to first and only operand */
 	sendp(rechan, andp->first);
 	threadexits(nil);
 }
@@ -204,11 +201,11 @@ rxcompile(Rune *r)
 	int i, nr;
 	Inst *oprogp;
 
-	nr = runestrlen(r)+1;
-	if(runeeq(lastregexp, runestrlen(lastregexp)+1, r, nr)==TRUE)
+	nr = runestrlen(r) + 1;
+	if(runeeq(lastregexp, runestrlen(lastregexp) + 1, r, nr) == TRUE)
 		return TRUE;
 	lastregexp[0] = 0;
-	for(i=0; i<nclass; i++)
+	for(i = 0; i < nclass; i++)
 		free(class[i]);
 	nclass = 0;
 	progp = program;
@@ -236,12 +233,12 @@ operand(int t)
 {
 	Inst *i;
 	if(lastwasand)
-		operator(CAT);	/* catenate is implicit */
+		operator(CAT); /* catenate is implicit */
 	i = newinst(t);
-	if(t == CCLASS){
+	if(t == CCLASS) {
 		if(negateclass)
-			i->type = NCCLASS;	/* UGH */
-		i->class = nclass-1;		/* UGH */
+			i->type = NCCLASS; /* UGH */
+		i->class = nclass - 1;     /* UGH */
 	}
 	pushand(i, i);
 	lastwasand = TRUE;
@@ -250,20 +247,20 @@ operand(int t)
 void
 operator(int t)
 {
-	if(t==RBRA && --nbra<0)
+	if(t == RBRA && --nbra < 0)
 		regerror("unmatched `)'");
-	if(t==LBRA){
-		cursubid++;	/* silently ignored */
+	if(t == LBRA) {
+		cursubid++; /* silently ignored */
 		nbra++;
 		if(lastwasand)
 			operator(CAT);
-	}else
+	} else
 		evaluntil(t);
-	if(t!=RBRA)
+	if(t != RBRA)
 		pushator(t);
 	lastwasand = FALSE;
-	if(t==STAR || t==QUEST || t==PLUS || t==RBRA)
-		lastwasand = TRUE;	/* these look like operands */
+	if(t == STAR || t == QUEST || t == PLUS || t == RBRA)
+		lastwasand = TRUE; /* these look like operands */
 }
 
 void
@@ -281,11 +278,11 @@ pushator(int t)
 {
 	if(atorp >= &atorstack[NSTACK])
 		error("operator stack overflow");
-	*atorp++=t;
+	*atorp++ = t;
 	if(cursubid >= NRange)
-		*subidp++= -1;
+		*subidp++ = -1;
 	else
-		*subidp++=cursubid;
+		*subidp++ = cursubid;
 }
 
 Node *
@@ -294,10 +291,10 @@ popand(int op)
 	char buf[64];
 
 	if(andp <= &andstack[0])
-		if(op){
+		if(op) {
 			sprint(buf, "missing operand for %c", op);
 			regerror(buf);
-		}else
+		} else
 			regerror("malformed regexp");
 	return --andp;
 }
@@ -317,8 +314,8 @@ evaluntil(int pri)
 	Node *op1, *op2, *t;
 	Inst *inst1, *inst2;
 
-	while(pri==RBRA || atorp[-1]>=pri){
-		switch(popator()){
+	while(pri == RBRA || atorp[-1] >= pri) {
+		switch(popator()) {
 		case LBRA:
 			op1 = popand('(');
 			inst2 = newinst(RBRA);
@@ -328,7 +325,7 @@ evaluntil(int pri)
 			inst1->subid = *subidp;
 			inst1->next = op1->first;
 			pushand(inst1, inst2);
-			return;		/* must have been RBRA */
+			return; /* must have been RBRA */
 		default:
 			error("unknown regexp operator");
 			break;
@@ -346,7 +343,7 @@ evaluntil(int pri)
 		case CAT:
 			op2 = popand(0);
 			op1 = popand(0);
-			if(backwards && op2->first->type!=END){
+			if(backwards && op2->first->type != END) {
 				t = op1;
 				op1 = op2;
 				op2 = t;
@@ -381,13 +378,12 @@ evaluntil(int pri)
 	}
 }
 
-
 void
 optimize(Inst *start)
 {
 	Inst *inst, *target;
 
-	for(inst=start; inst->type!=END; inst++){
+	for(inst = start; inst->type != END; inst++) {
 		target = inst->next;
 		while(target->type == NOP)
 			target = target->next;
@@ -402,21 +398,21 @@ startlex(Rune *s)
 	nbra = 0;
 }
 
-
 int
-lex(void){
+lex(void)
+{
 	int c;
 
 	c = *exprp++;
-	switch(c){
+	switch(c) {
 	case '\\':
 		if(*exprp)
-			if((c= *exprp++)=='n')
-				c='\n';
+			if((c = *exprp++) == 'n')
+				c = '\n';
 		break;
 	case 0:
 		c = END;
-		--exprp;	/* In case we come here again */
+		--exprp; /* In case we come here again */
 		break;
 	case '*':
 		c = STAR;
@@ -456,15 +452,15 @@ lex(void){
 int
 nextrec(void)
 {
-	if(exprp[0]==0 || (exprp[0]=='\\' && exprp[1]==0))
+	if(exprp[0] == 0 || (exprp[0] == '\\' && exprp[1] == 0))
 		regerror("malformed `[]'");
-	if(exprp[0] == '\\'){
+	if(exprp[0] == '\\') {
 		exprp++;
-		if(*exprp=='n'){
+		if(*exprp == 'n') {
 			exprp++;
 			return '\n';
 		}
-		return *exprp++|(Runemax+1);
+		return *exprp++ | (Runemax + 1);
 	}
 	return *exprp++;
 }
@@ -479,37 +475,37 @@ bldcclass(void)
 	n = 0;
 	na = DCLASS;
 	/* we have already seen the '[' */
-	if(*exprp == '^'){
-		classp[n++] = '\n';	/* don't match newline in negate case */
+	if(*exprp == '^') {
+		classp[n++] = '\n'; /* don't match newline in negate case */
 		negateclass = TRUE;
 		exprp++;
-	}else
+	} else
 		negateclass = FALSE;
-	while((c1 = nextrec()) != ']'){
-		if(c1 == '-'){
-    Error:
+	while((c1 = nextrec()) != ']') {
+		if(c1 == '-') {
+		Error:
 			free(classp);
 			regerror("malformed `[]'");
 		}
-		if(n+4 >= na){		/* 3 runes plus NUL */
+		if(n + 4 >= na) { /* 3 runes plus NUL */
 			na += DCLASS;
 			classp = runerealloc(classp, na);
 		}
-		if(*exprp == '-'){
-			exprp++;	/* eat '-' */
+		if(*exprp == '-') {
+			exprp++; /* eat '-' */
 			if((c2 = nextrec()) == ']')
 				goto Error;
-			classp[n+0] = Runemax;
-			classp[n+1] = c1;
-			classp[n+2] = c2;
+			classp[n + 0] = Runemax;
+			classp[n + 1] = c1;
+			classp[n + 2] = c2;
 			n += 3;
-		}else
+		} else
 			classp[n++] = c1;
 	}
 	classp[n] = 0;
-	if(nclass == Nclass){
+	if(nclass == Nclass) {
 		Nclass += DCLASS;
-		class = realloc(class, Nclass*sizeof(Rune*));
+		class = realloc(class, Nclass * sizeof(Rune *));
 	}
 	class[nclass++] = classp;
 }
@@ -520,12 +516,12 @@ classmatch(int classno, int c, int negate)
 	Rune *p;
 
 	p = class[classno];
-	while(*p){
-		if(*p == Runemax){
-			if(p[1]<=c && c<=p[2])
+	while(*p) {
+		if(*p == Runemax) {
+			if(p[1] <= c && c <= p[2])
 				return !negate;
 			p += 3;
-		}else if(*p++ == c)
+		} else if(*p++ == c)
 			return !negate;
 	}
 	return negate;
@@ -541,23 +537,23 @@ addinst(Ilist *l, Inst *inst, Rangeset *sep)
 {
 	Ilist *p;
 
-	for(p = l; p->inst; p++){
-		if(p->inst==inst){
+	for(p = l; p->inst; p++) {
+		if(p->inst == inst) {
 			if((sep)->r[0].q0 < p->se.r[0].q0)
-				p->se= *sep;	/* this would be bug */
-			return 0;	/* It's already there */
+				p->se = *sep; /* this would be bug */
+			return 0;	     /* It's already there */
 		}
 	}
 	p->inst = inst;
-	p->se= *sep;
-	(p+1)->inst = nil;
+	p->se = *sep;
+	(p + 1)->inst = nil;
 	return 1;
 }
 
 int
 rxnull(void)
 {
-	return startinst==nil || bstartinst==nil;
+	return startinst == nil || bstartinst == nil;
 }
 
 /* either t!=nil or r!=nil, and we match the string in the appropriate place */
@@ -578,7 +574,7 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 	startchar = 0;
 	wrapped = 0;
 	nnl = 0;
-	if(startinst->type<OPERATOR)
+	if(startinst->type < OPERATOR)
 		startchar = startinst->type;
 	list[0][0].inst = list[1][0].inst = nil;
 	sel.r[0].q0 = -1;
@@ -587,15 +583,15 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 	else
 		nc = runestrlen(r);
 	/* Execute machine once for each character */
-	for(;;p++){
+	for(;; p++) {
 	doloop:
-		if(p>=eof || p>=nc){
-			switch(wrapped++){
-			case 0:		/* let loop run one more click */
+		if(p >= eof || p >= nc) {
+			switch(wrapped++) {
+			case 0: /* let loop run one more click */
 			case 2:
 				break;
-			case 1:		/* expired; wrap to beginning */
-				if(sel.r[0].q0>=0 || eof!=Infinity)
+			case 1: /* expired; wrap to beginning */
+				if(sel.r[0].q0 >= 0 || eof != Infinity)
 					goto Return;
 				list[0][0].inst = list[1][0].inst = nil;
 				p = 0;
@@ -604,8 +600,8 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 				goto Return;
 			}
 			c = 0;
-		}else{
-			if(((wrapped && p>=startp) || sel.r[0].q0>0) && nnl==0)
+		} else {
+			if(((wrapped && p >= startp) || sel.r[0].q0 > 0) && nnl == 0)
 				break;
 			if(t != nil)
 				c = textreadc(t, p);
@@ -613,53 +609,53 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 				c = r[p];
 		}
 		/* fast check for first char */
-		if(startchar && nnl==0 && c!=startchar)
+		if(startchar && nnl == 0 && c != startchar)
 			continue;
 		tl = list[flag];
-		nl = list[flag^=1];
+		nl = list[flag ^= 1];
 		nl->inst = nil;
 		ntl = nnl;
 		nnl = 0;
-		if(sel.r[0].q0<0 && (!wrapped || p<startp || startp==eof)){
+		if(sel.r[0].q0 < 0 && (!wrapped || p < startp || startp == eof)) {
 			/* Add first instruction to this list */
 			sempty.r[0].q0 = p;
 			if(addinst(tl, startinst, &sempty))
-			if(++ntl >= NLIST){
-	Overflow:
-				warning(nil, "regexp list overflow\n");
-				sel.r[0].q0 = -1;
-				goto Return;
-			}
+				if(++ntl >= NLIST) {
+				Overflow:
+					warning(nil, "regexp list overflow\n");
+					sel.r[0].q0 = -1;
+					goto Return;
+				}
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
-	Switchstmt:
-			switch(inst->type){
-			default:	/* regular character */
-				if(inst->type==c){
-	Addinst:
+		for(tlp = tl; inst = tlp->inst; tlp++) { /* assignment = */
+		Switchstmt:
+			switch(inst->type) {
+			default: /* regular character */
+				if(inst->type == c) {
+				Addinst:
 					if(addinst(nl, inst->next, &tlp->se))
-					if(++nnl >= NLIST)
-						goto Overflow;
+						if(++nnl >= NLIST)
+							goto Overflow;
 				}
 				break;
 			case LBRA:
-				if(inst->subid>=0)
+				if(inst->subid >= 0)
 					tlp->se.r[inst->subid].q0 = p;
 				inst = inst->next;
 				goto Switchstmt;
 			case RBRA:
-				if(inst->subid>=0)
+				if(inst->subid >= 0)
 					tlp->se.r[inst->subid].q1 = p;
 				inst = inst->next;
 				goto Switchstmt;
 			case ANY:
-				if(c!='\n')
+				if(c != '\n')
 					goto Addinst;
 				break;
 			case BOL:
-				if(p==0 || (t!=nil && textreadc(t, p-1)=='\n') || (r!=nil && r[p-1]=='\n')){
-	Step:
+				if(p == 0 || (t != nil && textreadc(t, p - 1) == '\n') || (r != nil && r[p - 1] == '\n')) {
+				Step:
 					inst = inst->next;
 					goto Switchstmt;
 				}
@@ -669,29 +665,29 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 					goto Step;
 				break;
 			case CCLASS:
-				if(c>=0 && classmatch(inst->class, c, 0))
+				if(c >= 0 && classmatch(inst->class, c, 0))
 					goto Addinst;
 				break;
 			case NCCLASS:
-				if(c>=0 && classmatch(inst->class, c, 1))
+				if(c >= 0 && classmatch(inst->class, c, 1))
 					goto Addinst;
 				break;
 			case OR:
 				/* evaluate right choice later */
 				if(addinst(tlp, inst->right, &tlp->se))
-				if(++ntl >= NLIST)
-					goto Overflow;
+					if(++ntl >= NLIST)
+						goto Overflow;
 				/* efficiency: advance and re-evaluate */
 				inst = inst->left;
 				goto Switchstmt;
-			case END:	/* Match! */
+			case END: /* Match! */
 				tlp->se.r[0].q1 = p;
 				newmatch(&tlp->se);
 				break;
 			}
 		}
 	}
-    Return:
+Return:
 	*rp = sel;
 	return sel.r[0].q0 >= 0;
 }
@@ -699,8 +695,8 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 void
 newmatch(Rangeset *sp)
 {
-	if(sel.r[0].q0<0 || sp->r[0].q0<sel.r[0].q0 ||
-	   (sp->r[0].q0==sel.r[0].q0 && sp->r[0].q1>sel.r[0].q1))
+	if(sel.r[0].q0 < 0 || sp->r[0].q0 < sel.r[0].q0 ||
+	   (sp->r[0].q0 == sel.r[0].q0 && sp->r[0].q1 > sel.r[0].q1))
 		sel = *sp;
 }
 
@@ -721,20 +717,20 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 	wrapped = 0;
 	p = startp;
 	startchar = 0;
-	if(bstartinst->type<OPERATOR)
+	if(bstartinst->type < OPERATOR)
 		startchar = bstartinst->type;
 	list[0][0].inst = list[1][0].inst = nil;
-	sel.r[0].q0= -1;
+	sel.r[0].q0 = -1;
 	/* Execute machine once for each character, including terminal NUL */
-	for(;;--p){
+	for(;; --p) {
 	doloop:
-		if(p <= 0){
-			switch(wrapped++){
-			case 0:		/* let loop run one more click */
+		if(p <= 0) {
+			switch(wrapped++) {
+			case 0: /* let loop run one more click */
 			case 2:
 				break;
-			case 1:		/* expired; wrap to end */
-				if(sel.r[0].q0>=0)
+			case 1: /* expired; wrap to end */
+				if(sel.r[0].q0 >= 0)
 					goto Return;
 				list[0][0].inst = list[1][0].inst = nil;
 				p = t->file->nc;
@@ -744,45 +740,45 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 				goto Return;
 			}
 			c = 0;
-		}else{
-			if(((wrapped && p<=startp) || sel.r[0].q0>0) && nnl==0)
+		} else {
+			if(((wrapped && p <= startp) || sel.r[0].q0 > 0) && nnl == 0)
 				break;
-			c = textreadc(t, p-1);
+			c = textreadc(t, p - 1);
 		}
 		/* fast check for first char */
-		if(startchar && nnl==0 && c!=startchar)
+		if(startchar && nnl == 0 && c != startchar)
 			continue;
 		tl = list[flag];
-		nl = list[flag^=1];
+		nl = list[flag ^= 1];
 		nl->inst = nil;
 		ntl = nnl;
 		nnl = 0;
-		if(sel.r[0].q0<0 && (!wrapped || p>startp)){
+		if(sel.r[0].q0 < 0 && (!wrapped || p > startp)) {
 			/* Add first instruction to this list */
 			/* the minus is so the optimizations in addinst work */
 			sempty.r[0].q0 = -p;
 			if(addinst(tl, bstartinst, &sempty))
-			if(++ntl >= NLIST){
-	Overflow:
-				warning(nil, "regexp list overflow\n");
-				sel.r[0].q0 = -1;
-				goto Return;
-			}
+				if(++ntl >= NLIST) {
+				Overflow:
+					warning(nil, "regexp list overflow\n");
+					sel.r[0].q0 = -1;
+					goto Return;
+				}
 		}
 		/* Execute machine until this list is empty */
-		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
-	Switchstmt:
-			switch(inst->type){
-			default:	/* regular character */
-				if(inst->type == c){
-	Addinst:
+		for(tlp = tl; inst = tlp->inst; tlp++) { /* assignment = */
+		Switchstmt:
+			switch(inst->type) {
+			default: /* regular character */
+				if(inst->type == c) {
+				Addinst:
 					if(addinst(nl, inst->next, &tlp->se))
-					if(++nnl >= NLIST)
-						goto Overflow;
+						if(++nnl >= NLIST)
+							goto Overflow;
 				}
 				break;
 			case LBRA:
-				if(inst->subid>=0)
+				if(inst->subid >= 0)
 					tlp->se.r[inst->subid].q0 = p;
 				inst = inst->next;
 				goto Switchstmt;
@@ -796,33 +792,33 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 					goto Addinst;
 				break;
 			case BOL:
-				if(c=='\n' || p==0){
-	Step:
+				if(c == '\n' || p == 0) {
+				Step:
 					inst = inst->next;
 					goto Switchstmt;
 				}
 				break;
 			case EOL:
-				if(p<t->file->nc && textreadc(t, p)=='\n')
+				if(p < t->file->nc && textreadc(t, p) == '\n')
 					goto Step;
 				break;
 			case CCLASS:
-				if(c>0 && classmatch(inst->class, c, 0))
+				if(c > 0 && classmatch(inst->class, c, 0))
 					goto Addinst;
 				break;
 			case NCCLASS:
-				if(c>0 && classmatch(inst->class, c, 1))
+				if(c > 0 && classmatch(inst->class, c, 1))
 					goto Addinst;
 				break;
 			case OR:
 				/* evaluate right choice later */
 				if(addinst(tl, inst->right, &tlp->se))
-				if(++ntl >= NLIST)
-					goto Overflow;
+					if(++ntl >= NLIST)
+						goto Overflow;
 				/* efficiency: advance and re-evaluate */
 				inst = inst->left;
 				goto Switchstmt;
-			case END:	/* Match! */
+			case END:				    /* Match! */
 				tlp->se.r[0].q0 = -tlp->se.r[0].q0; /* minus sign */
 				tlp->se.r[0].q1 = p;
 				bnewmatch(&tlp->se);
@@ -830,7 +826,7 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 			}
 		}
 	}
-    Return:
+Return:
 	*rp = sel;
 	return sel.r[0].q0 >= 0;
 }
@@ -838,11 +834,11 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 void
 bnewmatch(Rangeset *sp)
 {
-        int  i;
+	int i;
 
-        if(sel.r[0].q0<0 || sp->r[0].q0>sel.r[0].q1 || (sp->r[0].q0==sel.r[0].q1 && sp->r[0].q1<sel.r[0].q0))
-                for(i = 0; i<NRange; i++){       /* note the reversal; q0<=q1 */
-                        sel.r[i].q0 = sp->r[i].q1;
-                        sel.r[i].q1 = sp->r[i].q0;
-                }
+	if(sel.r[0].q0 < 0 || sp->r[0].q0 > sel.r[0].q1 || (sp->r[0].q0 == sel.r[0].q1 && sp->r[0].q1 < sel.r[0].q0))
+		for(i = 0; i < NRange; i++) { /* note the reversal; q0<=q1 */
+			sel.r[i].q0 = sp->r[i].q1;
+			sel.r[i].q1 = sp->r[i].q0;
+		}
 }

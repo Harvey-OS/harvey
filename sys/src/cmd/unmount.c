@@ -17,7 +17,7 @@ main(int argc, char *argv[])
 	char *mnted, *mtpt;
 
 	argv0 = argv[0];
-	switch (argc) {
+	switch(argc) {
 	case 2:
 		mnted = nil;
 		mtpt = argv[1];
@@ -27,7 +27,8 @@ main(int argc, char *argv[])
 		mtpt = argv[2];
 		break;
 	default:
-		SET(mnted); SET(mtpt);
+		SET(mnted);
+		SET(mtpt);
 		fprint(2, "usage: unmount mountpoint\n");
 		fprint(2, "       unmount mounted mountpoint\n");
 		exits("usage");

@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int
 Bgetc(Biobufhdr *bp)
@@ -19,7 +19,7 @@ Bgetc(Biobufhdr *bp)
 loop:
 	i = bp->icount;
 	if(i != 0) {
-		bp->icount = i+1;
+		bp->icount = i + 1;
 		return bp->ebuf[i];
 	}
 	if(bp->state != Bractive) {
@@ -32,7 +32,7 @@ loop:
 	 * characters pre-catenated from the previous
 	 * buffer to allow that many ungets.
 	 */
-	memmove(bp->bbuf-Bungetsize, bp->ebuf-Bungetsize, Bungetsize);
+	memmove(bp->bbuf - Bungetsize, bp->ebuf - Bungetsize, Bungetsize);
 	i = read(bp->fid, bp->bbuf, bp->bsize);
 	bp->gbuf = bp->bbuf;
 	if(i <= 0) {
@@ -42,8 +42,8 @@ loop:
 		return Beof;
 	}
 	if(i < bp->bsize) {
-		memmove(bp->ebuf-i-Bungetsize, bp->bbuf-Bungetsize, i+Bungetsize);
-		bp->gbuf = bp->ebuf-i;
+		memmove(bp->ebuf - i - Bungetsize, bp->bbuf - Bungetsize, i + Bungetsize);
+		bp->gbuf = bp->ebuf - i;
 	}
 	bp->icount = -i;
 	bp->offset += i;

@@ -12,51 +12,60 @@
 #include "grap.h"
 #include "y.tab.h"
 
-int	pointsize	= 10;	/* assumed pointsize to start */
-int	ps_set		= 0;	/* someone has set pointsize explicitly */
+int pointsize = 10; /* assumed pointsize to start */
+int ps_set = 0;     /* someone has set pointsize explicitly */
 
-double	textht	= 1.0/6.0;	/* 6 lines/inch */
-double	textwid = 1;		/* width of text box for vertical */
+double textht = 1.0 / 6.0; /* 6 lines/inch */
+double textwid = 1;	/* width of text box for vertical */
 
-double	lab_up	= 0.0;		/* extra motion for label */
-double	lab_rt	= 0.0;		/* extra motion for label */
-double	lab_wid	= 0.0;		/* override default width computation */
+double lab_up = 0.0;  /* extra motion for label */
+double lab_rt = 0.0;  /* extra motion for label */
+double lab_wid = 0.0; /* override default width computation */
 
-void labelwid(double amt)
+void
+labelwid(double amt)
 {
 	lab_wid = amt + .00001;
 }
 
-void labelmove(int dir, double amt)	/* record direction & motion of position corr */
+void labelmove(int dir, double amt) /* record direction & motion of position corr */
 {
-	switch (dir) {
-	case UP:	lab_up += amt; break;
-	case DOWN:	lab_up -= amt; break;
-	case LEFT:	lab_rt -= amt; break;
-	case RIGHT:	lab_rt += amt; break;
+	switch(dir) {
+	case UP:
+		lab_up += amt;
+		break;
+	case DOWN:
+		lab_up -= amt;
+		break;
+	case LEFT:
+		lab_rt -= amt;
+		break;
+	case RIGHT:
+		lab_rt += amt;
+		break;
 	}
 }
 
-void label(int label_side, Attr *stringlist)	/* stick label on label_side */
+void label(int label_side, Attr *stringlist) /* stick label on label_side */
 {
 	int m;
 	Attr *ap;
 
 	fprintf(tfd, "\ttextht = %g\n", textht);
-	if (lab_wid != 0.0) {
+	if(lab_wid != 0.0) {
 		fprintf(tfd, "\ttextwid = %g\n", lab_wid);
 		lab_wid = 0;
-	} else if (label_side == LEFT || label_side == RIGHT) {
+	} else if(label_side == LEFT || label_side == RIGHT) {
 		textwid = 0;
-		for (ap = stringlist; ap != NULL; ap = ap->next)
-			if ((m = strlen(ap->sval)) > textwid)
+		for(ap = stringlist; ap != NULL; ap = ap->next)
+			if((m = strlen(ap->sval)) > textwid)
 				textwid = m;
-		textwid /= 15;	/* estimate width at 15 chars/inch */
+		textwid /= 15; /* estimate width at 15 chars/inch */
 		fprintf(tfd, "\ttextwid = %g\n", textwid);
 	}
 	fprintf(tfd, "Label:\t%s", slprint(stringlist));
 	freeattr(stringlist);
-	switch (label_side) {
+	switch(label_side) {
 	case BOT:
 	case 0:
 		fprintf(tfd, " with .n at Frame.s - (0,2 * textht)");
@@ -76,30 +85,30 @@ void label(int label_side, Attr *stringlist)	/* stick label on label_side */
 	label_side = BOT;
 }
 
-void lab_adjust(void)	/* add a string to adjust labels, ticks, etc. */
+void lab_adjust(void) /* add a string to adjust labels, ticks, etc. */
 {
-	if (lab_up != 0.0 || lab_rt != 0.0)
+	if(lab_up != 0.0 || lab_rt != 0.0)
 		fprintf(tfd, " + (%g,%g)", lab_rt, lab_up);
 }
 
-char *sizeit(Attr *ap)		/* add \s..\s to ap->sval */
+char *sizeit(Attr *ap) /* add \s..\s to ap->sval */
 {
 	int n;
 	static char buf[1000];
 
-	if (!ap->op) {	/* no explicit size command */
-		if (ps_set) {
+	if(!ap->op) { /* no explicit size command */
+		if(ps_set) {
 			sprintf(buf, "\\s%d%s\\s0", pointsize, ap->sval);
 			return buf;
 		} else
 			return ap->sval;
-	} else if (!ps_set) {	/* explicit size but no global size */
-		n = (int) ap->fval;
-		switch (ap->op) {
-		case ' ':	/* absolute size */
+	} else if(!ps_set) { /* explicit size but no global size */
+		n = (int)ap->fval;
+		switch(ap->op) {
+		case ' ': /* absolute size */
 			sprintf(buf, "\\s%d%s\\s0", n, ap->sval);
 			break;
-		case '+':	/* better be only one digit! */
+		case '+': /* better be only one digit! */
 			sprintf(buf, "\\s+%d%s\\s-%d", n, ap->sval, n);
 			break;
 		case '-':
@@ -107,25 +116,25 @@ char *sizeit(Attr *ap)		/* add \s..\s to ap->sval */
 			break;
 		case '*':
 		case '/':
-			return ap->sval;	/* ignore for now */
+			return ap->sval; /* ignore for now */
 		}
 		return buf;
 	} else {
 		/* explicit size and a global background size */
-		n = (int) ap->fval;
-		switch (ap->op) {
-		case ' ':	/* absolute size */
+		n = (int)ap->fval;
+		switch(ap->op) {
+		case ' ': /* absolute size */
 			sprintf(buf, "\\s%d%s\\s0", n, ap->sval);
 			break;
 		case '+':
-			sprintf(buf, "\\s%d%s\\s0", pointsize+n, ap->sval);
+			sprintf(buf, "\\s%d%s\\s0", pointsize + n, ap->sval);
 			break;
 		case '-':
-			sprintf(buf, "\\s%d%s\\s0", pointsize-n, ap->sval);
+			sprintf(buf, "\\s%d%s\\s0", pointsize - n, ap->sval);
 			break;
 		case '*':
 		case '/':
-			return ap->sval;	/* ignore for now */
+			return ap->sval; /* ignore for now */
 		}
 		return buf;
 	}

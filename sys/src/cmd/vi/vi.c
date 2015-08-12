@@ -15,11 +15,11 @@
 #define Extern
 #include "mips.h"
 
-char	*file = "v.out";
-int	datasize;
-uint32_t	textbase;
-Biobuf	bp, bi;
-Fhdr	fhdr;
+char *file = "v.out";
+int datasize;
+uint32_t textbase;
+Biobuf bp, bi;
+Fhdr fhdr;
 
 void
 main(int argc, char **argv)
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 	inithdr(text);
 	initstk(argc, argv);
 
-	reg.fd[dreg(24)] = 0.0;		/* Normally initialised by the kernel */
+	reg.fd[dreg(24)] = 0.0; /* Normally initialised by the kernel */
 	reg.ft[24] = FPd;
 	reg.fd[dreg(26)] = 0.5;
 	reg.ft[26] = FPd;
@@ -73,10 +73,10 @@ initmap()
 	uint32_t t, d, b, bssend;
 	Segment *s;
 
-	t = (fhdr.txtaddr+fhdr.txtsz+(BY2PG-1)) & ~(BY2PG-1);
-	d = (t + fhdr.datsz + (BY2PG-1)) & ~(BY2PG-1);
+	t = (fhdr.txtaddr + fhdr.txtsz + (BY2PG - 1)) & ~(BY2PG - 1);
+	d = (t + fhdr.datsz + (BY2PG - 1)) & ~(BY2PG - 1);
 	bssend = t + fhdr.datsz + fhdr.bsssz;
-	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
+	b = (bssend + (BY2PG - 1)) & ~(BY2PG - 1);
 
 	s = &memory.seg[Text];
 	s->type = Text;
@@ -84,31 +84,31 @@ initmap()
 	s->end = t;
 	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
 	s->fileend = s->fileoff + fhdr.txtsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t *));
 
-	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(int32_t));
+	iprof = emalloc(((s->end - s->base) / PROFGRAN) * sizeof(int32_t));
 	textbase = s->base;
 
 	s = &memory.seg[Data];
 	s->type = Data;
 	s->base = t;
-	s->end = t+(d-t);
+	s->end = t + (d - t);
 	s->fileoff = fhdr.datoff;
 	s->fileend = s->fileoff + fhdr.datsz;
 	datasize = fhdr.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t *));
 
 	s = &memory.seg[Bss];
 	s->type = Bss;
 	s->base = d;
-	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->end = d + (b - d);
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t *));
 
 	s = &memory.seg[Stack];
 	s->type = Stack;
-	s->base = STACKTOP-STACKSIZE;
+	s->base = STACKTOP - STACKSIZE;
 	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+	s->table = emalloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t *));
 
 	reg.pc = fhdr.entry;
 }
@@ -121,17 +121,17 @@ inithdr(int fd)
 	extern Machdata mipsmach;
 
 	seek(fd, 0, 0);
-	if (!crackhdr(fd, &fhdr))
+	if(!crackhdr(fd, &fhdr))
 		fatal(0, "read text header");
 
 	if(fhdr.type != FMIPS && fhdr.type != FMIPS2BE)
 		fatal(0, "bad magic number: %d %d", fhdr.type, FMIPS);
 
-	if (syminit(fd, &fhdr) < 0)
+	if(syminit(fd, &fhdr) < 0)
 		fatal(0, "%r\n");
 
 	symmap = loadmap(symmap, fd, &fhdr);
-	if (mach->sbreg && lookup(0, mach->sbreg, &s))
+	if(mach->sbreg && lookup(0, mach->sbreg, &s))
 		mach->sb = s.value;
 	machdata = &mipsmach;
 }
@@ -142,32 +142,31 @@ greg(int f, uint32_t off)
 	int n;
 	uint32_t l;
 	uint8_t wd[BY2WD];
-	
+
 	seek(f, off, 0);
 	n = read(f, wd, BY2WD);
 	if(n != BY2WD)
 		fatal(1, "read register");
 
-	l  = wd[0]<<24;
-	l |= wd[1]<<16;
-	l |= wd[2]<<8;
+	l = wd[0] << 24;
+	l |= wd[1] << 16;
+	l |= wd[2] << 8;
 	l |= wd[3];
 	return l;
 }
 
 uint32_t
-roff[] = {
-	REGOFF(r1),	REGOFF(r2),	REGOFF(r3),
-	REGOFF(r4),	REGOFF(r5),	REGOFF(r6),
-	REGOFF(r7),	REGOFF(r8),	REGOFF(r9),
-	REGOFF(r10),	REGOFF(r11),	REGOFF(r12),
-	REGOFF(r13),	REGOFF(r14),	REGOFF(r15),
-	REGOFF(r16),	REGOFF(r17),	REGOFF(r18),
-	REGOFF(r19),	REGOFF(r20),	REGOFF(r21),
-	REGOFF(r22),	REGOFF(r23),	REGOFF(r24),
-	REGOFF(r25),	REGOFF(r26),	REGOFF(r27),
-	REGOFF(r28)
-};
+    roff[] = {
+	REGOFF(r1), REGOFF(r2), REGOFF(r3),
+	REGOFF(r4), REGOFF(r5), REGOFF(r6),
+	REGOFF(r7), REGOFF(r8), REGOFF(r9),
+	REGOFF(r10), REGOFF(r11), REGOFF(r12),
+	REGOFF(r13), REGOFF(r14), REGOFF(r15),
+	REGOFF(r16), REGOFF(r17), REGOFF(r18),
+	REGOFF(r19), REGOFF(r20), REGOFF(r21),
+	REGOFF(r22), REGOFF(r23), REGOFF(r24),
+	REGOFF(r25), REGOFF(r26), REGOFF(r27),
+	REGOFF(r28)};
 
 void
 seginit(int fd, Segment *s, int idx, uint32_t vastart, uint32_t vaend)
@@ -221,29 +220,29 @@ procinit(int pid)
 	if(p == 0)
 		fatal(0, "no data");
 
-	vastart = strtoul(p+9, 0, 16);
-	vaend = strtoul(p+18, 0, 16);
+	vastart = strtoul(p + 9, 0, 16);
+	vaend = strtoul(p + 18, 0, 16);
 	s = &memory.seg[Data];
 	if(s->base != vastart || s->end != vaend) {
 		s->base = vastart;
 		s->end = vaend;
 		free(s->table);
-		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+		s->table = malloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t *));
 	}
 	seginit(m, s, 0, vastart, vaend);
-	
+
 	p = strstr(sfile, "Bss");
 	if(p == 0)
 		fatal(0, "no bss");
 
-	vastart = strtoul(p+9, 0, 16);
-	vaend = strtoul(p+18, 0, 16);
+	vastart = strtoul(p + 9, 0, 16);
+	vaend = strtoul(p + 18, 0, 16);
 	s = &memory.seg[Bss];
 	if(s->base != vastart || s->end != vaend) {
 		s->base = vastart;
 		s->end = vaend;
 		free(s->table);
-		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
+		s->table = malloc(((s->end - s->base) / BY2PG) * sizeof(uint8_t *));
 	}
 	seginit(m, s, 0, vastart, vaend);
 
@@ -256,13 +255,13 @@ procinit(int pid)
 	reg.mlo = greg(m, REGOFF(lo));
 
 	for(i = 1; i < 29; i++)
-		reg.r[i] = greg(m, roff[i-1]);
+		reg.r[i] = greg(m, roff[i - 1]);
 
 	s = &memory.seg[Stack];
-	vastart = reg.r[29] & ~(BY2PG-1);
-	seginit(m, s, (vastart-s->base)/BY2PG, vastart, STACKTOP);
+	vastart = reg.r[29] & ~(BY2PG - 1);
+	seginit(m, s, (vastart - s->base) / BY2PG, vastart, STACKTOP);
 	close(m);
-	Bprint(bioout, "vi\n"); 
+	Bprint(bioout, "vi\n");
 }
 
 void
@@ -273,7 +272,7 @@ reset(void)
 	Breakpoint *b;
 
 	memset(&reg, 0, sizeof(Registers));
-	reg.fd[dreg(24)] = 0.0;		/* Normally initialised by the kernel */
+	reg.fd[dreg(24)] = 0.0; /* Normally initialised by the kernel */
 	reg.ft[24] = FPd;
 	reg.fd[dreg(26)] = 0.5;
 	reg.ft[26] = FPd;
@@ -284,7 +283,7 @@ reset(void)
 
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
-		l = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
+		l = ((s->end - s->base) / BY2PG) * sizeof(uint8_t *);
 		for(m = 0; m < l; m++)
 			if(s->table[m])
 				free(s->table[m]);
@@ -306,9 +305,9 @@ initstk(int argc, char *argv[])
 	char *p;
 
 	initmap();
-	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
+	tos = STACKTOP - sizeof(Tos) * 2; /* we'll assume twice the host's is big enough */
 	sp = tos;
-	for (i = 0; i < sizeof(Tos)*2; i++)
+	for(i = 0; i < sizeof(Tos) * 2; i++)
 		putmem_b(tos + i, 0);
 
 	/*
@@ -316,27 +315,27 @@ initstk(int argc, char *argv[])
 	 * we know mips is a 32-bit cpu, so we'll assume knowledge of the Tos
 	 * struct for now, and use our pid.
 	 */
-	putmem_w(tos + 4*4 + 2*sizeof(uint32_t) + 3*sizeof(uvlong), getpid());
+	putmem_w(tos + 4 * 4 + 2 * sizeof(uint32_t) + 3 * sizeof(uvlong), getpid());
 
 	/* Build exec stack */
-	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
+	size = strlen(file) + 1 + BY2WD + BY2WD + BY2WD;
 	for(i = 0; i < argc; i++)
-		size += strlen(argv[i])+BY2WD+1;
+		size += strlen(argv[i]) + BY2WD + 1;
 
 	sp -= size;
 	sp &= ~3;
 	reg.r[29] = sp;
-	reg.r[1] = tos;			/* Plan 9 profiling clock, etc. */
+	reg.r[1] = tos; /* Plan 9 profiling clock, etc. */
 
 	/* Push argc */
-	putmem_w(sp, argc+1);
+	putmem_w(sp, argc + 1);
 	sp += BY2WD;
 
 	/* Compute sizeof(argv) and push argv[0] */
-	ap = sp+((argc+1)*BY2WD)+BY2WD;
+	ap = sp + ((argc + 1) * BY2WD) + BY2WD;
 	putmem_w(sp, ap);
 	sp += BY2WD;
-	
+
 	/* Build argv[0] string into stack */
 	for(p = file; *p; p++)
 		putmem_b(ap++, *p);
@@ -353,7 +352,6 @@ initstk(int argc, char *argv[])
 	}
 	/* Null terminate argv */
 	putmem_w(sp, 0);
-
 }
 
 void
@@ -363,7 +361,7 @@ fatal(int syserr, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	s = "vi: %s\n";
 	if(syserr)
@@ -379,9 +377,9 @@ itrace(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
-	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);	
+	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);
 }
 
 void
@@ -390,10 +388,10 @@ dumpreg(void)
 	int i;
 
 	Bprint(bioout, "PC  #%-8lux SP  #%-8lux HI  #%-8lux LO  #%-8lux\n",
-				reg.pc, reg.r[29], reg.mhi, reg.mlo);
+	       reg.pc, reg.r[29], reg.mhi, reg.mlo);
 
 	for(i = 0; i < 32; i++) {
-		if((i%4) == 0 && i != 0)
+		if((i % 4) == 0 && i != 0)
 			Bprint(bioout, "\n");
 		Bprint(bioout, "R%-2d #%-8lux ", i, reg.r[i]);
 	}
@@ -427,16 +425,16 @@ dumpdreg(void)
 	i = 0;
 	while(i < 32) {
 		if(reg.ft[i] == FPd)
-			ieeedftos(buf, sizeof(buf), reg.di[i] ,reg.di[i+1]);
+			ieeedftos(buf, sizeof(buf), reg.di[i], reg.di[i + 1]);
 		else
-			ieeedftos(buf, sizeof(buf), reg.di[i+1] ,reg.di[i]);
+			ieeedftos(buf, sizeof(buf), reg.di[i + 1], reg.di[i]);
 		Bprint(bioout, "F%-2d %s\t\t\t", i, buf);
 		i += 2;
 
 		if(reg.ft[i] == FPd)
-			ieeedftos(buf, sizeof(buf), reg.di[i] ,reg.di[i+1]);
+			ieeedftos(buf, sizeof(buf), reg.di[i], reg.di[i + 1]);
 		else
-			ieeedftos(buf, sizeof(buf), reg.di[i+1] ,reg.di[i]);
+			ieeedftos(buf, sizeof(buf), reg.di[i + 1], reg.di[i]);
 		Bprint(bioout, "F%-2d %s\n", i, buf);
 		i += 2;
 	}
@@ -504,18 +502,18 @@ mul(int32_t l1, int32_t l2)
 	int sign;
 
 	sign = 0;
-	if(l1 < 0){
+	if(l1 < 0) {
 		sign ^= 1;
 		l1 = -l1;
 	}
-	if(l2 < 0){
+	if(l2 < 0) {
 		sign ^= 1;
 		l2 = -l2;
 	}
 	m = mulu(l1, l2);
 	lo = m.lo;
 	hi = m.hi;
-	if(sign){
+	if(sign) {
 		t = lo = ~lo;
 		hi = ~hi;
 		lo++;
@@ -524,4 +522,3 @@ mul(int32_t l1, int32_t l2)
 	}
 	return (Mul){lo, hi};
 }
-

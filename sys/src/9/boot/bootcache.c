@@ -26,36 +26,36 @@ cache(int fd)
 
 	bind("#S", "/dev", MAFTER);
 	readfile("#e/cfs", buf, sizeof(buf));
-	if(*buf){
+	if(*buf) {
 		argc = tokenize(buf, argv, 4);
-		for(i = 0; i < argc; i++){
+		for(i = 0; i < argc; i++) {
 			if(strcmp(argv[i], "off") == 0)
 				return fd;
-			else if(stat(argv[i], statbuf, sizeof statbuf) >= 0){
-				strncpy(partition, argv[i], sizeof(partition)-1);
-				partition[sizeof(partition)-1] = 0;
+			else if(stat(argv[i], statbuf, sizeof statbuf) >= 0) {
+				strncpy(partition, argv[i], sizeof(partition) - 1);
+				partition[sizeof(partition) - 1] = 0;
 			}
 		}
 	}
 
-	if(*partition == 0){
+	if(*partition == 0) {
 		readfile("#e/bootdisk", bd, sizeof(bd));
-		if(*bd){
+		if(*bd) {
 			if(pp = strchr(bd, ':'))
 				*pp = 0;
 			/* damned artificial intelligence */
 			i = strlen(bd);
-			if(strcmp("disk", &bd[i-4]) == 0)
-				bd[i-4] = 0;
-			else if(strcmp("fs", &bd[i-2]) == 0)
-				bd[i-2] = 0;
-			else if(strcmp("fossil", &bd[i-6]) == 0)
-				bd[i-6] = 0;
+			if(strcmp("disk", &bd[i - 4]) == 0)
+				bd[i - 4] = 0;
+			else if(strcmp("fs", &bd[i - 2]) == 0)
+				bd[i - 2] = 0;
+			else if(strcmp("fossil", &bd[i - 6]) == 0)
+				bd[i - 6] = 0;
 			sprint(partition, "%scache", bd);
 			if(stat(partition, statbuf, sizeof statbuf) < 0)
 				*bd = 0;
 		}
-		if(*bd == 0){
+		if(*bd == 0) {
 			sprint(partition, "%scache", bootdisk);
 			if(stat(partition, statbuf, sizeof statbuf) < 0)
 				return fd;
@@ -63,9 +63,9 @@ cache(int fd)
 	}
 
 	print("cfs...");
-	if(pipe(p)<0)
+	if(pipe(p) < 0)
 		fatal("pipe");
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fatal("fork");
 	case 0:

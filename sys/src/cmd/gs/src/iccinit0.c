@@ -28,5 +28,5 @@
 #include "stdpre.h"
 
 /* gsmain.c recognizes an empty init string specially. */
-const byte gs_init_string[] = { 0 };
+const byte gs_init_string[] = {0};
 const uint gs_init_string_sizeof = 0;

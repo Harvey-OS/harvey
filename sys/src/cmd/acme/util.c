@@ -20,8 +20,8 @@
 #include "dat.h"
 #include "fns.h"
 
-static	Point		prevmouse;
-static	Window	*mousew;
+static Point prevmouse;
+static Window *mousew;
 
 void
 cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
@@ -37,14 +37,14 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 * knows this.  If n is a firm limit, the caller should
 	 * set p[n] = 0.
 	 */
-	q = (uint8_t*)p;
+	q = (uint8_t *)p;
 	s = r;
-	for(j=0; j<n; j+=w){
-		if(*q < Runeself){
+	for(j = 0; j < n; j += w) {
+		if(*q < Runeself) {
 			w = 1;
 			*s = *q++;
-		}else{
-			w = chartorune(s, (char*)q);
+		} else {
+			w = chartorune(s, (char *)q);
 			q += w;
 		}
 		if(*s)
@@ -52,8 +52,8 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 			*nulls = TRUE;
 	}
-	*nb = (char*)q-p;
-	*nr = s-r;
+	*nb = (char *)q - p;
+	*nr = s - r;
 }
 
 void
@@ -64,31 +64,31 @@ error(char *s)
 	abort();
 }
 
-Window*
+Window *
 errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 {
 	Window *w;
 	Rune *r;
 	int i, n;
 
-	r = runemalloc(ndir+8);
-	if(n = ndir){	/* assign = */
+	r = runemalloc(ndir + 8);
+	if(n = ndir) { /* assign = */
 		runemove(r, dir, ndir);
 		r[n++] = L'/';
 	}
-	runemove(r+n, L"+Errors", 7);
+	runemove(r + n, L"+Errors", 7);
 	n += 7;
 	w = lookfile(r, n);
-	if(w == nil){
+	if(w == nil) {
 		if(row.ncol == 0)
 			if(rowadd(&row, nil, -1) == nil)
 				error("can't create column to make error window");
-		w = coladd(row.col[row.ncol-1], nil, nil, -1);
+		w = coladd(row.col[row.ncol - 1], nil, nil, -1);
 		w->filemenu = FALSE;
 		winsetname(w, r, n);
 	}
 	free(r);
-	for(i=nincl; --i>=0; ){
+	for(i = nincl; --i >= 0;) {
 		n = runestrlen(incl[i]);
 		r = runemalloc(n);
 		runemove(r, incl[i], n);
@@ -99,12 +99,12 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 }
 
 /* make new window, if necessary; return with it locked */
-Window*
+Window *
 errorwin(Mntdir *md, int owner)
 {
 	Window *w;
 
-	for(;;){
+	for(;;) {
 		if(md == nil)
 			w = errorwin1(nil, 0, nil, 0);
 		else
@@ -123,7 +123,7 @@ errorwin(Mntdir *md, int owner)
  * It will be unlocked and returned window
  * will be locked in its place.
  */
-Window*
+Window *
 errorwinforwin(Window *w)
 {
 	int i, n, nincl, owner;
@@ -133,24 +133,24 @@ errorwinforwin(Window *w)
 
 	t = &w->body;
 	dir = dirname(t, nil, 0);
-	if(dir.nr==1 && dir.r[0]=='.'){	/* sigh */
+	if(dir.nr == 1 && dir.r[0] == '.') { /* sigh */
 		free(dir.r);
 		dir.r = nil;
 		dir.nr = 0;
 	}
 	incl = nil;
 	nincl = w->nincl;
-	if(nincl > 0){
-		incl = emalloc(nincl*sizeof(Rune*));
-		for(i=0; i<nincl; i++){
+	if(nincl > 0) {
+		incl = emalloc(nincl * sizeof(Rune *));
+		for(i = 0; i < nincl; i++) {
 			n = runestrlen(w->incl[i]);
-			incl[i] = runemalloc(n+1);
+			incl[i] = runemalloc(n + 1);
 			runemove(incl[i], w->incl[i], n);
 		}
 	}
 	owner = w->owner;
 	winunlock(w);
-	for(;;){
+	for(;;) {
 		w = errorwin1(dir.r, dir.nr, incl, nincl);
 		winlock(w, owner);
 		if(w->col != nil)
@@ -163,7 +163,7 @@ errorwinforwin(Window *w)
 
 typedef struct Warning Warning;
 
-struct Warning{
+struct Warning {
 	Mntdir *md;
 	Buffer buf;
 	Warning *next;
@@ -171,14 +171,13 @@ struct Warning{
 
 static Warning *warnings;
 
-static
-void
+static void
 addwarningtext(Mntdir *md, Rune *r, int nr)
 {
 	Warning *warn;
-	
-	for(warn = warnings; warn; warn=warn->next){
-		if(warn->md == md){
+
+	for(warn = warnings; warn; warn = warn->next) {
+		if(warn->md == md) {
 			bufinsert(&warn->buf, warn->buf.nc, r, nr);
 			return;
 		}
@@ -203,7 +202,7 @@ flushwarnings(void)
 	int owner, nr, q0, n;
 	Rune *r;
 
-	for(warn=warnings; warn; warn=next) {
+	for(warn = warnings; warn; warn = next) {
 		w = errorwin(warn->md, 'E');
 		t = &w->body;
 		owner = w->owner;
@@ -220,7 +219,7 @@ flushwarnings(void)
 		 */
 		r = fbufalloc();
 		q0 = t->file->nc;
-		for(n = 0; n < warn->buf.nc; n += nr){
+		for(n = 0; n < warn->buf.nc; n += nr) {
 			nr = warn->buf.nc - n;
 			if(nr > RBUFSIZE)
 				nr = RBUFSIZE;
@@ -263,7 +262,7 @@ runeeq(Rune *s1, uint n1, Rune *s2, uint n2)
 {
 	if(n1 != n2)
 		return FALSE;
-	return memcmp(s1, s2, n1*sizeof(Rune)) == 0;
+	return memcmp(s1, s2, n1 * sizeof(Rune)) == 0;
 }
 
 uint
@@ -282,27 +281,27 @@ max(uint a, uint b)
 	return b;
 }
 
-char*
+char *
 runetobyte(Rune *r, int n)
 {
 	char *s;
 
 	if(r == nil)
 		return nil;
-	s = emalloc(n*UTFmax+1);
+	s = emalloc(n * UTFmax + 1);
 	setmalloctag(s, getcallerpc(&r));
-	snprint(s, n*UTFmax+1, "%.*S", n, r);
+	snprint(s, n * UTFmax + 1, "%.*S", n, r);
 	return s;
 }
 
-Rune*
+Rune *
 bytetorune(char *s, int *ip)
 {
 	Rune *r;
 	int nb, nr;
 
 	nb = strlen(s);
-	r = runemalloc(nb+1);
+	r = runemalloc(nb + 1);
 	cvttorunes(s, nb, r, &nb, &nr, nil);
 	r[nr] = '\0';
 	*ip = nr;
@@ -322,7 +321,7 @@ isalnum(Rune c)
 	 */
 	if(c <= ' ')
 		return FALSE;
-	if(0x7F<=c && c<0xA0)
+	if(0x7F <= c && c < 0xA0)
 		return FALSE;
 	if(utfrune("!\"#$%&'()*+,-./:;<=>?@[\\]^`{|}~", c))
 		return FALSE;
@@ -332,7 +331,7 @@ isalnum(Rune c)
 int
 rgetc(void *v, uint n)
 {
-	return ((Rune*)v)[n];
+	return ((Rune *)v)[n];
 }
 
 int
@@ -346,10 +345,10 @@ tgetc(void *a, uint n)
 	return textreadc(t, n);
 }
 
-Rune*
+Rune *
 skipbl(Rune *r, int n, int *np)
 {
-	while(n>0 && (*r==' ' || *r=='\t' || *r=='\n')){
+	while(n > 0 && (*r == ' ' || *r == '\t' || *r == '\n')) {
 		--n;
 		r++;
 	}
@@ -357,10 +356,10 @@ skipbl(Rune *r, int n, int *np)
 	return r;
 }
 
-Rune*
+Rune *
 findbl(Rune *r, int n, int *np)
 {
-	while(n>0 && *r!=' ' && *r!='\t' && *r!='\n'){
+	while(n > 0 && *r != ' ' && *r != '\t' && *r != '\n') {
 		--n;
 		r++;
 	}
@@ -381,7 +380,7 @@ restoremouse(Window *w)
 	int did;
 
 	did = 0;
-	if(mousew!=nil && mousew==w){
+	if(mousew != nil && mousew == w) {
 		moveto(mousectl, prevmouse);
 		did = 1;
 	}
@@ -395,7 +394,7 @@ clearmouse()
 	mousew = nil;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
@@ -407,7 +406,7 @@ estrdup(char *s)
 	return t;
 }
 
-void*
+void *
 emalloc(uint n)
 {
 	void *p;
@@ -420,7 +419,7 @@ emalloc(uint n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *p, uint n)
 {
 	p = realloc(p, n);
@@ -433,7 +432,7 @@ erealloc(void *p, uint n)
 /*
  * Heuristic city.
  */
-Window*
+Window *
 makenewwindow(Text *t)
 {
 	Column *c;
@@ -447,36 +446,36 @@ makenewwindow(Text *t)
 		c = seltext->col;
 	else if(t && t->col)
 		c = t->col;
-	else{
-		if(row.ncol==0 && rowadd(&row, nil, -1)==nil)
+	else {
+		if(row.ncol == 0 && rowadd(&row, nil, -1) == nil)
 			error("can't make column");
-		c = row.col[row.ncol-1];
+		c = row.col[row.ncol - 1];
 	}
 	activecol = c;
-	if(t==nil || t->w==nil || c->nw==0)
+	if(t == nil || t->w == nil || c->nw == 0)
 		return coladd(c, nil, nil, -1);
 
 	/* find biggest window and biggest blank spot */
 	emptyw = c->w[0];
 	bigw = emptyw;
-	for(i=1; i<c->nw; i++){
+	for(i = 1; i < c->nw; i++) {
 		w = c->w[i];
 		/* use >= to choose one near bottom of screen */
 		if(w->body.maxlines >= bigw->body.maxlines)
 			bigw = w;
-		if(w->body.maxlines-w->body.nlines >= emptyw->body.maxlines-emptyw->body.nlines)
+		if(w->body.maxlines - w->body.nlines >= emptyw->body.maxlines - emptyw->body.nlines)
 			emptyw = w;
 	}
 	emptyb = &emptyw->body;
-	el = emptyb->maxlines-emptyb->nlines;
+	el = emptyb->maxlines - emptyb->nlines;
 	/* if empty space is big, use it */
-	if(el>15 || (el>3 && el>(bigw->body.maxlines-1)/2))
-		y = emptyb->r.min.y+emptyb->nlines*font->height;
-	else{
+	if(el > 15 || (el > 3 && el > (bigw->body.maxlines - 1) / 2))
+		y = emptyb->r.min.y + emptyb->nlines * font->height;
+	else {
 		/* if this window is in column and isn't much smaller, split it */
-		if(t->col==c && Dy(t->w->r)>2*Dy(bigw->r)/3)
+		if(t->col == c && Dy(t->w->r) > 2 * Dy(bigw->r) / 3)
 			bigw = t->w;
-		y = (bigw->r.min.y + bigw->r.max.y)/2;
+		y = (bigw->r.min.y + bigw->r.max.y) / 2;
 	}
 	w = coladd(c, nil, nil, y);
 	if(w->body.maxlines < 2)

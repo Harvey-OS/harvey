@@ -27,11 +27,11 @@
 /* Internal definitions for shading rendering */
 
 #ifndef gxshade_INCLUDED
-#  define gxshade_INCLUDED
+#define gxshade_INCLUDED
 
 #include "gsshade.h"
-#include "gxfixed.h"		/* for gxmatrix.h */
-#include "gxmatrix.h"		/* for gs_matrix_fixed */
+#include "gxfixed.h"  /* for gxmatrix.h */
+#include "gxmatrix.h" /* for gs_matrix_fixed */
 #include "stream.h"
 
 /*
@@ -74,90 +74,90 @@
 
 /* Define types and rendering procedures for the individual shadings. */
 typedef struct gs_shading_Fb_s {
-    gs_shading_head_t head;
-    gs_shading_Fb_params_t params;
+	gs_shading_head_t head;
+	gs_shading_Fb_params_t params;
 } gs_shading_Fb_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_Fb_fill_rectangle);
 
 typedef struct gs_shading_A_s {
-    gs_shading_head_t head;
-    gs_shading_A_params_t params;
+	gs_shading_head_t head;
+	gs_shading_A_params_t params;
 } gs_shading_A_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_A_fill_rectangle);
 
 typedef struct gs_shading_R_s {
-    gs_shading_head_t head;
-    gs_shading_R_params_t params;
+	gs_shading_head_t head;
+	gs_shading_R_params_t params;
 } gs_shading_R_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_R_fill_rectangle);
 
 typedef struct gs_shading_FfGt_s {
-    gs_shading_head_t head;
-    gs_shading_FfGt_params_t params;
+	gs_shading_head_t head;
+	gs_shading_FfGt_params_t params;
 } gs_shading_FfGt_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_FfGt_fill_rectangle);
 
 typedef struct gs_shading_LfGt_s {
-    gs_shading_head_t head;
-    gs_shading_LfGt_params_t params;
+	gs_shading_head_t head;
+	gs_shading_LfGt_params_t params;
 } gs_shading_LfGt_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_LfGt_fill_rectangle);
 
 typedef struct gs_shading_Cp_s {
-    gs_shading_head_t head;
-    gs_shading_Cp_params_t params;
+	gs_shading_head_t head;
+	gs_shading_Cp_params_t params;
 } gs_shading_Cp_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_Cp_fill_rectangle);
 
 typedef struct gs_shading_Tpp_s {
-    gs_shading_head_t head;
-    gs_shading_Tpp_params_t params;
+	gs_shading_head_t head;
+	gs_shading_Tpp_params_t params;
 } gs_shading_Tpp_t;
 SHADING_FILL_RECTANGLE_PROC(gs_shading_Tpp_fill_rectangle);
 
 /* Define a stream for decoding packed coordinate values. */
 typedef struct shade_coord_stream_s shade_coord_stream_t;
 struct shade_coord_stream_s {
-    stream ds;			/* stream if DataSource isn't one already -- */
-				/* first for GC-ability (maybe unneeded?) */
-    stream *s;			/* DataSource or &ds */
-    uint bits;			/* shifted bits of current byte */
-    int left;			/* # of bits left in bits */
-    bool ds_EOF;                /* The 'ds' stream reached EOF. */
-    const gs_shading_mesh_params_t *params;
-    const gs_matrix_fixed *pctm;
-    int (*get_value)(shade_coord_stream_t *cs, int num_bits, uint *pvalue);
-    int (*get_decoded)(shade_coord_stream_t *cs, int num_bits,
-		       const float decode[2], float *pvalue);
-    bool (*is_eod)(const shade_coord_stream_t *cs);
+	stream ds; /* stream if DataSource isn't one already -- */
+	/* first for GC-ability (maybe unneeded?) */
+	stream *s;   /* DataSource or &ds */
+	uint bits;   /* shifted bits of current byte */
+	int left;    /* # of bits left in bits */
+	bool ds_EOF; /* The 'ds' stream reached EOF. */
+	const gs_shading_mesh_params_t *params;
+	const gs_matrix_fixed *pctm;
+	int (*get_value)(shade_coord_stream_t *cs, int num_bits, uint *pvalue);
+	int (*get_decoded)(shade_coord_stream_t *cs, int num_bits,
+			   const float decode[2], float *pvalue);
+	bool (*is_eod)(const shade_coord_stream_t *cs);
 };
 
 /* Define one vertex of a mesh. */
 typedef struct mesh_vertex_s {
-    gs_fixed_point p;
-    float cc[GS_CLIENT_COLOR_MAX_COMPONENTS];
+	gs_fixed_point p;
+	float cc[GS_CLIENT_COLOR_MAX_COMPONENTS];
 } mesh_vertex_t;
 
 /* Define a structure for mesh or patch vertex. */
 typedef struct shading_vertex_s shading_vertex_t;
 
 /* Initialize a packed value stream. */
-void shade_next_init(shade_coord_stream_t * cs,
-		     const gs_shading_mesh_params_t * params,
-		     const gs_imager_state * pis);
+void shade_next_init(shade_coord_stream_t *cs,
+		     const gs_shading_mesh_params_t *params,
+		     const gs_imager_state *pis);
 
 /* Get the next flag value. */
-int shade_next_flag(shade_coord_stream_t * cs, int BitsPerFlag);
+int shade_next_flag(shade_coord_stream_t *cs, int BitsPerFlag);
 
 /* Get one or more coordinate pairs. */
-int shade_next_coords(shade_coord_stream_t * cs, gs_fixed_point * ppt,
+int shade_next_coords(shade_coord_stream_t *cs, gs_fixed_point *ppt,
 		      int num_points);
 
 /* Get a color.  Currently all this does is look up Indexed colors. */
-int shade_next_color(shade_coord_stream_t * cs, float *pc);
+int shade_next_color(shade_coord_stream_t *cs, float *pc);
 
 /* Get the next vertex for a mesh element. */
-int shade_next_vertex(shade_coord_stream_t * cs, shading_vertex_t * vertex);
+int shade_next_vertex(shade_coord_stream_t *cs, shading_vertex_t *vertex);
 
 /*
    Currently, all shading fill procedures follow the same algorithm:
@@ -195,27 +195,27 @@ int shade_next_vertex(shade_coord_stream_t * cs, shading_vertex_t * vertex);
  * base space of the original space.  This is the space in which color
  * computations are done.
  */
-#define shading_fill_state_common\
-  gx_device *dev;\
-  gs_imager_state *pis;\
-  const gs_color_space *direct_space;\
-  int num_components;		/* # of color components in direct_space */\
-  float cc_max_error[GS_CLIENT_COLOR_MAX_COMPONENTS]
+#define shading_fill_state_common                                       \
+	gx_device *dev;                                                 \
+	gs_imager_state *pis;                                           \
+	const gs_color_space *direct_space;                             \
+	int num_components; /* # of color components in direct_space */ \
+	float cc_max_error[GS_CLIENT_COLOR_MAX_COMPONENTS]
 typedef struct shading_fill_state_s {
-    shading_fill_state_common;
+	shading_fill_state_common;
 } shading_fill_state_t;
 
 /* Initialize the common parts of the recursion state. */
-void shade_init_fill_state(shading_fill_state_t * pfs,
-			   const gs_shading_t * psh, gx_device * dev,
-			   gs_imager_state * pis);
+void shade_init_fill_state(shading_fill_state_t *pfs,
+			   const gs_shading_t *psh, gx_device *dev,
+			   gs_imager_state *pis);
 
 /* Fill one piece of a shading. */
 #ifndef gx_device_color_DEFINED
-#  define gx_device_color_DEFINED
+#define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
 #endif
-int shade_fill_path(const shading_fill_state_t * pfs, gx_path * ppath,
-		    gx_device_color * pdevc, const gs_fixed_point *fill_adjust);
+int shade_fill_path(const shading_fill_state_t *pfs, gx_path *ppath,
+		    gx_device_color *pdevc, const gs_fixed_point *fill_adjust);
 
 #endif /* gxshade_INCLUDED */

@@ -11,13 +11,13 @@
 #include "dat.h"
 #include "fns.h"
 
-static uint8_t	*data;
-static uint8_t	*data1;
-static int	blocksize;
-static int	sleepms;
-static int	fd;
-static int	force;
-static int64_t	offset0;
+static uint8_t *data;
+static uint8_t *data1;
+static int blocksize;
+static int sleepms;
+static int fd;
+static int force;
+static int64_t offset0;
 
 void
 usage(void)
@@ -31,9 +31,9 @@ pwriteblock(uint8_t *buf, int n, int64_t off)
 {
 	int nr, m;
 
-	for(nr = 0; nr < n; nr += m){
+	for(nr = 0; nr < n; nr += m) {
 		m = n - nr;
-		m = pwrite(fd, &buf[nr], m, offset0+off+nr);
+		m = pwrite(fd, &buf[nr], m, offset0 + off + nr);
 		if(m <= 0)
 			return -1;
 	}
@@ -45,10 +45,10 @@ preadblock(uint8_t *buf, int n, int64_t off)
 {
 	int nr, m;
 
-	for(nr = 0; nr < n; nr += m){
+	for(nr = 0; nr < n; nr += m) {
 		m = n - nr;
-		m = pread(fd, &buf[nr], m, offset0+off+nr);
-		if(m <= 0){
+		m = pread(fd, &buf[nr], m, offset0 + off + nr);
+		if(m <= 0) {
 			if(m == 0)
 				werrstr("early eof");
 			return -1;
@@ -60,20 +60,20 @@ preadblock(uint8_t *buf, int n, int64_t off)
 static int
 loadheader(char *name, ArenaHead *head, Arena *arena, int64_t off)
 {
-	if(preadblock(data, head->blocksize, off + head->size - head->blocksize) < 0){
+	if(preadblock(data, head->blocksize, off + head->size - head->blocksize) < 0) {
 		fprint(2, "%s: reading arena tail: %r\n", name);
 		return -1;
 	}
 
 	memset(arena, 0, sizeof *arena);
-	if(unpackarena(arena, data) < 0){
+	if(unpackarena(arena, data) < 0) {
 		fprint(2, "%s: unpack arena tail: %r\n", name);
 		return -1;
 	}
 	arena->blocksize = head->blocksize;
 	arena->base = off + head->blocksize;
 	arena->clumpmax = arena->blocksize / ClumpInfoSize;
-	arena->size = head->size - 2*head->blocksize;
+	arena->size = head->size - 2 * head->blocksize;
 
 	if(arena->diskstats.sealed)
 		scorecp(arena->score, data + head->blocksize - VtScoreSize);
@@ -97,8 +97,8 @@ verify(Arena *arena, void *data, uint8_t *newscore)
 	o = arena->base - arena->blocksize;
 	bs = arena->blocksize;
 	memset(&ds, 0, sizeof ds);
-	for(n = 0; n < e; n += bs){
-		if(preadblock(data, bs, o + n) < 0){
+	for(n = 0; n < e; n += bs) {
+		if(preadblock(data, bs, o + n) < 0) {
 			werrstr("read: %r");
 			return -1;
 		}
@@ -106,28 +106,28 @@ verify(Arena *arena, void *data, uint8_t *newscore)
 			bs = e - n;
 		sha1(data, bs, nil, &ds);
 	}
-	
+
 	/* last block */
-	if(preadblock(data, arena->blocksize, o + e) < 0){
+	if(preadblock(data, arena->blocksize, o + e) < 0) {
 		werrstr("read: %r");
 		return -1;
 	}
 	ds1 = ds;
 	sha1(data, bs - VtScoreSize, nil, &ds);
 	sha1(zero, VtScoreSize, score, &ds);
-	if(scorecmp(score, arena->score) != 0){
-		if(!force){
+	if(scorecmp(score, arena->score) != 0) {
+		if(!force) {
 			werrstr("score mismatch: %V != %V", score, arena->score);
 			return -1;
 		}
 		fprint(2, "warning: score mismatch %V != %V\n", score, arena->score);
 	}
-	
+
 	/* prepare new last block */
 	memset(data, 0, arena->blocksize);
 	packarena(arena, data);
 	sha1(data, bs, newscore, &ds1);
-	scorecp((uint8_t*)data + arena->blocksize - VtScoreSize, newscore);
+	scorecp((uint8_t *)data + arena->blocksize - VtScoreSize, newscore);
 
 	return 0;
 }
@@ -150,11 +150,11 @@ resealarena(char *name, int64_t len)
 	/*
 	 * read a little bit, which will include the header
 	 */
-	if(preadblock(data, HeadSize, off) < 0){
+	if(preadblock(data, HeadSize, off) < 0) {
 		fprint(2, "%s: reading header: %r\n", name);
 		return;
 	}
-	if(unpackarenahead(&head, data) < 0){
+	if(unpackarenahead(&head, data) < 0) {
 		fprint(2, "%s: corrupt arena header: %r\n", name);
 		return;
 	}
@@ -167,25 +167,25 @@ resealarena(char *name, int64_t len)
 
 	if(loadheader(name, &head, &arena, off) < 0)
 		return;
-	
-	if(!arena.diskstats.sealed){
+
+	if(!arena.diskstats.sealed) {
 		fprint(2, "%s: not sealed\n", name);
 		return;
 	}
-	
-	if(verify(&arena, data, newscore) < 0){
+
+	if(verify(&arena, data, newscore) < 0) {
 		fprint(2, "%s: failed to verify before reseal: %r\n", name);
 		return;
 	}
-	
-	if(pwriteblock(data, arena.blocksize, arena.base + arena.size) < 0){
+
+	if(pwriteblock(data, arena.blocksize, arena.base + arena.size) < 0) {
 		fprint(2, "%s: writing new tail: %r\n", name);
 		return;
 	}
 	scorecp(arena.score, newscore);
 	fprint(2, "%s: resealed: %V\n", name, newscore);
 
-	if(verify(&arena, data, newscore) < 0){
+	if(verify(&arena, data, newscore) < 0) {
 		fprint(2, "%s: failed to verify after reseal!: %r\n", name);
 		return;
 	}
@@ -197,12 +197,12 @@ static int
 shouldcheck(char *name, char **s, int n)
 {
 	int i;
-	
+
 	if(n == 0)
 		return 1;
 
-	for(i=0; i<n; i++){
-		if(s[i] && strcmp(name, s[i]) == 0){
+	for(i = 0; i < n; i++) {
+		if(s[i] && strcmp(name, s[i]) == 0) {
 			s[i] = nil;
 			return 1;
 		}
@@ -214,17 +214,17 @@ char *
 readap(ArenaPart *ap)
 {
 	char *table;
-	
+
 	if(preadblock(data, 8192, PartBlank) < 0)
 		sysfatal("read arena part header: %r");
 	if(unpackarenapart(ap, data) < 0)
 		sysfatal("corrupted arena part header: %r");
 	fprint(2, "# arena part version=%d blocksize=%d arenabase=%d\n",
-		ap->version, ap->blocksize, ap->arenabase);
-	ap->tabbase = (PartBlank+HeadSize+ap->blocksize-1)&~(ap->blocksize-1);
+	       ap->version, ap->blocksize, ap->arenabase);
+	ap->tabbase = (PartBlank + HeadSize + ap->blocksize - 1) & ~(ap->blocksize - 1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
-	table = malloc(ap->tabsize+1);
-	if(preadblock((uint8_t*)table, ap->tabsize, ap->tabbase) < 0)
+	table = malloc(ap->tabsize + 1);
+	if(preadblock((uint8_t *)table, ap->tabsize, ap->tabbase) < 0)
 		sysfatal("reading arena part directory: %r");
 	table[ap->tabsize] = 0;
 	return table;
@@ -238,10 +238,11 @@ threadmain(int argc, char *argv[])
 	vlong start, stop;
 	ArenaPart ap;
 	Part *part;
-	
+
 	ventifmtinstall();
 	blocksize = MaxIoSize;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		blocksize = unittoull(EARGF(usage()));
 		break;
@@ -254,7 +255,8 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 2)
 		usage();
@@ -271,31 +273,31 @@ threadmain(int argc, char *argv[])
 	p = strchr(table, '\n');
 	if(p)
 		p++;
-	for(i=0; i<nline; i++){
-		if(p == nil){
+	for(i = 0; i < nline; i++) {
+		if(p == nil) {
 			fprint(2, "warning: unexpected arena table end\n");
 			break;
 		}
 		q = strchr(p, '\n');
 		if(q)
 			*q++ = 0;
-		if(strlen(p) >= sizeof line){
+		if(strlen(p) >= sizeof line) {
 			fprint(2, "warning: long arena table line: %s\n", p);
 			p = q;
 			continue;
 		}
 		strcpy(line, p);
 		memset(f, 0, sizeof f);
-		if(tokenize(line, f, nelem(f)) < 3){
+		if(tokenize(line, f, nelem(f)) < 3) {
 			fprint(2, "warning: bad arena table line: %s\n", p);
 			p = q;
 			continue;
 		}
 		p = q;
-		if(shouldcheck(f[0], argv+1, argc-1)){
+		if(shouldcheck(f[0], argv + 1, argc - 1)) {
 			start = strtoull(f[1], 0, 0);
 			stop = strtoull(f[2], 0, 0);
-			if(stop <= start){
+			if(stop <= start) {
 				fprint(2, "%s: bad start,stop %lld,%lld\n", f[0], stop, start);
 				continue;
 			}
@@ -304,7 +306,7 @@ threadmain(int argc, char *argv[])
 			resealarena(f[0], stop - start);
 		}
 	}
-	for(i=2; i<argc; i++)
+	for(i = 2; i < argc; i++)
 		if(argv[i] != 0)
 			fprint(2, "%s: did not find arena\n", argv[i]);
 

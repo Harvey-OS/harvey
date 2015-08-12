@@ -33,9 +33,9 @@ parameters(int32_t a[], char *s)
 	if((p = strchr(s, ':')) == 0)
 		return 0;
 	p++;
-	while(s = strchr(p, ',')){
+	while(s = strchr(p, ',')) {
 		a[i++] = strtol(p, 0, 10);
-		p = s+1;
+		p = s + 1;
 	}
 	if(p)
 		a[i++] = strtol(p, 0, 10);
@@ -59,13 +59,13 @@ ftsi(Modem *m)
 	char *p, *q;
 
 	verbose("ftsi: %s", m->response);
-	if((p = strchr(m->response, '"')) == 0 || (q = strrchr(p+1, '"')) == 0)
+	if((p = strchr(m->response, '"')) == 0 || (q = strrchr(p + 1, '"')) == 0)
 		return Rrerror;
 	while(*++p == ' ')
 		;
 	*q = 0;
-	if((m->valid &  Vftsi) == 0){
-		strncpy(m->ftsi, p, sizeof(m->ftsi)-1);
+	if((m->valid & Vftsi) == 0) {
+		strncpy(m->ftsi, p, sizeof(m->ftsi) - 1);
 		m->valid |= Vftsi;
 	}
 	return Rcontinue;
@@ -109,7 +109,7 @@ fet(Modem *m)
 	verbose("fet: %s", m->response);
 	if(m->fax == 0 || (p = strchr(m->response, ':')) == 0)
 		return Rrerror;
-	m->fet = strtol(p+1, 0, 10);
+	m->fet = strtol(p + 1, 0, 10);
 	m->valid |= Vfet;
 	return Rcontinue;
 }
@@ -122,7 +122,7 @@ fhng(Modem *m)
 	verbose("fhng: %s", m->response);
 	if(m->fax == 0 || (p = strchr(m->response, ':')) == 0)
 		return Rrerror;
-	m->fhng = strtol(p+1, 0, 10);
+	m->fhng = strtol(p + 1, 0, 10);
 	m->valid |= Vfhng;
 	return Rhangup;
 }

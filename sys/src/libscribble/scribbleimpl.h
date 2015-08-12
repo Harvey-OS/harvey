@@ -32,19 +32,19 @@
  * appropriate access functions.
  */
 #pragma incomplete struct _Recognizer
-typedef struct _Recognizer* recognizer;
+typedef struct _Recognizer *recognizer;
 
 /*
  * Opaque type for recognizers to implement dictionaries.
  */
 
-typedef struct _wordset		*wordset;
-typedef struct rc		rc;
-typedef struct rec_correlation	rec_correlation;
-typedef struct rec_alternative	rec_alternative;
-typedef struct rec_element	rec_element;
-typedef struct gesture		gesture;
-typedef uint			wchar_t;
+typedef struct _wordset *wordset;
+typedef struct rc rc;
+typedef struct rec_correlation rec_correlation;
+typedef struct rec_alternative rec_alternative;
+typedef struct rec_element rec_element;
+typedef struct gesture gesture;
+typedef uint wchar_t;
 
 /* Scalar Type Definitions */
 
@@ -78,30 +78,29 @@ typedef unsigned char rec_confidence;
  */
 
 typedef struct {
-    char* ri_locale;        /*The locale of the character set.*/
-    char* ri_name;          /*Complete pathname to the recognizer.*/
-    char** ri_subset;       /*Null terminated list of subsets supported*/
+	char *ri_locale;  /*The locale of the character set.*/
+	char *ri_name;    /*Complete pathname to the recognizer.*/
+	char **ri_subset; /*Null terminated list of subsets supported*/
 } rec_info;
 
 /*These define a set of common character subset names.*/
 
-#define GESTURE		"GESTURE"		/* gestures only */
-#define MATHSET		"MATHSET"		/* %^*()_+={}<>,/. */
-#define MONEYSET	"MONEYSET"		/* $, maybe cent, pound, and yen */
-#define WHITESPACE	"WHITESPACE"	/* gaps are recognized as space */
-#define KANJI_JIS1	"KANJI_JIS1"	/* the JIS1 kanji only */
-#define KANJI_JIS1_PLUS	"KANJI_JIS1_PLUS" /* JIS1 plus some JIS2 */
-#define KANJI_JIS2	"KANJI_JIS2"	/* the JIS1 + JIS2 kanji */
-#define HIRIGANA	"HIRIGANA"		/* the hirigana */
-#define KATAKANA	"KATAKANA"		/* the katakana */
-#define UPPERCASE	"UPPERCASE"		/* upper case alphabetics, no digits */
-#define LOWERCASE	"LOWERCASE"		/* lower case alphabetics, no digits */
-#define DIGITS		"DIGITS"		/* digits 0-9 only */
-#define PUNCTUATION	"PUNCTUATION"	/* \!-;'"?()&., */
-#define NONALPHABETIC	"NONALPHABETIC" /* all nonalphabetics, no digits */
-#define ASCII		"ASCII"			/* the ASCII character set */
-#define ISO_LATIN12	"ISO_LATIN12"	/* The ISO Latin 12 characters */
-
+#define GESTURE "GESTURE"		  /* gestures only */
+#define MATHSET "MATHSET"		  /* %^*()_+={}<>,/. */
+#define MONEYSET "MONEYSET"		  /* $, maybe cent, pound, and yen */
+#define WHITESPACE "WHITESPACE"		  /* gaps are recognized as space */
+#define KANJI_JIS1 "KANJI_JIS1"		  /* the JIS1 kanji only */
+#define KANJI_JIS1_PLUS "KANJI_JIS1_PLUS" /* JIS1 plus some JIS2 */
+#define KANJI_JIS2 "KANJI_JIS2"		  /* the JIS1 + JIS2 kanji */
+#define HIRIGANA "HIRIGANA"		  /* the hirigana */
+#define KATAKANA "KATAKANA"		  /* the katakana */
+#define UPPERCASE "UPPERCASE"		  /* upper case alphabetics, no digits */
+#define LOWERCASE "LOWERCASE"		  /* lower case alphabetics, no digits */
+#define DIGITS "DIGITS"			  /* digits 0-9 only */
+#define PUNCTUATION "PUNCTUATION"	 /* \!-;'"?()&., */
+#define NONALPHABETIC "NONALPHABETIC"     /* all nonalphabetics, no digits */
+#define ASCII "ASCII"			  /* the ASCII character set */
+#define ISO_LATIN12 "ISO_LATIN12"	 /* The ISO Latin 12 characters */
 
 /********************  RECOGNITION INPUT STRUCTURES ***********************/
 
@@ -111,8 +110,7 @@ typedef struct {
 
 /*Bounding box. Structurally identical to Rectangle.*/
 
-typedef Rectangle pen_rect;    
-
+typedef Rectangle pen_rect;
 
 /*
  * RECOGNITION CONTEXT
@@ -123,7 +121,7 @@ typedef Rectangle pen_rect;
 typedef struct {
 	pen_rect pr_area;
 	short pr_row, pr_col;
-} pen_frame; 
+} pen_frame;
 
 /* 
  * Structure for describing a set of letters to constrain recognition. 
@@ -131,25 +129,24 @@ typedef struct {
 */
 
 typedef struct _letterset {
-        char ls_type;
-        union _ls_set {
-                char* aval;
-                wchar_t* wval;
-        } ls_set;
+	char ls_type;
+	union _ls_set {
+		char *aval;
+		wchar_t *wval;
+	} ls_set;
 } letterset;
 
 /********************* RECOGNITION RETURN VALUES *************************/
 
-
 /*Different types in union. "Other" indicates a cast is needed.*/
 
-#define REC_NONE    0x0             /*No return value*/
-#define REC_GESTURE 0x1             /*Gesture.*/
-#define REC_ASCII   0x2             /*Array of 8 bit ASCII*/
-#define REC_VAR     0x4             /*Array of variable width characters. */
-#define REC_WCHAR   0x8             /*Array of Unicode (wide) characters. */
-#define REC_OTHER   0x10            /*Undefined type.*/
-#define REC_CORR    0x20	    /*rec_correlation struct*/
+#define REC_NONE 0x0    /*No return value*/
+#define REC_GESTURE 0x1 /*Gesture.*/
+#define REC_ASCII 0x2   /*Array of 8 bit ASCII*/
+#define REC_VAR 0x4     /*Array of variable width characters. */
+#define REC_WCHAR 0x8   /*Array of Unicode (wide) characters. */
+#define REC_OTHER 0x10  /*Undefined type.*/
+#define REC_CORR 0x20   /*rec_correlation struct*/
 
 /*
  * Recognition elements. A recognition element is a structure having a 
@@ -160,14 +157,14 @@ typedef struct _letterset {
 */
 
 struct rec_element {
-	char			re_type;		/*Union type flag.*/
+	char re_type; /*Union type flag.*/
 	union {
-		gesture	*			gval;	/*Gesture.*/
-		char*				aval;	/*ASCII and variable width.*/
-		wchar_t*			wval;	/*Unicode.*/
-		rec_correlation*	rcval;	/*rec_correlation*/
-	} re_result;                   
-	rec_confidence	re_conf;        /*Confidence (0-100).*/
+		gesture *gval;		/*Gesture.*/
+		char *aval;		/*ASCII and variable width.*/
+		wchar_t *wval;		/*Unicode.*/
+		rec_correlation *rcval; /*rec_correlation*/
+	} re_result;
+	rec_confidence re_conf; /*Confidence (0-100).*/
 };
 
 /*
@@ -178,9 +175,9 @@ struct rec_element {
 */
 
 struct rec_alternative {
-	rec_element			ra_elem; 	/*the translated element*/
-	uint				ra_nalter;	/*number of next alternatives*/
-	rec_alternative*	ra_next;	/*the array of next alternatives*/
+	rec_element ra_elem;      /*the translated element*/
+	uint ra_nalter;		  /*number of next alternatives*/
+	rec_alternative *ra_next; /*the array of next alternatives*/
 };
 
 /**************************  GESTURES  **************************/
@@ -195,15 +192,15 @@ struct rec_alternative {
 */
 
 struct gesture {
-	char*		g_name;			/*The gesture's name.*/
-	uint			g_nhs;			/*Number of hotspots.*/
-	pen_point*	g_hspots;			/*The hotspots.*/
-	pen_rect		g_bbox;			/*The bounding box.*/
-	void	  		(*g_action)(gesture*);	/*Pointer to execution function.*/
-	void*		g_wsinfo;			/*For toolkit to fill in.*/
+	char *g_name;		     /*The gesture's name.*/
+	uint g_nhs;		     /*Number of hotspots.*/
+	pen_point *g_hspots;	 /*The hotspots.*/
+	pen_rect g_bbox;	     /*The bounding box.*/
+	void (*g_action)(gesture *); /*Pointer to execution function.*/
+	void *g_wsinfo;		     /*For toolkit to fill in.*/
 };
 
-typedef void (*xgesture)(gesture*);
+typedef void (*xgesture)(gesture *);
 
 /*
  * Recognition correlation. A recognition correlation is a recognition
@@ -216,11 +213,11 @@ typedef void (*xgesture)(gesture*);
  */
 
 struct rec_correlation {
-	rec_element	ro_elem;			/*The recognized alternative.*/
-	uint		ro_nstrokes;		/*Number of strokes.*/
-	Stroke*	ro_strokes;			/*Array of strokes.*/
-	uint*		ro_start;			/*Starting index of points.*/
-	uint*		ro_stop;			/*Stopping index of points.*/
+	rec_element ro_elem; /*The recognized alternative.*/
+	uint ro_nstrokes;    /*Number of strokes.*/
+	Stroke *ro_strokes;  /*Array of strokes.*/
+	uint *ro_start;      /*Starting index of points.*/
+	uint *ro_stop;       /*Stopping index of points.*/
 };
 
 /*
@@ -235,13 +232,13 @@ struct rec_correlation {
  * the recognizer should translate.
  */
 
-recognizer	recognizer_load(char*, char*, char**);
+recognizer recognizer_load(char *, char *, char **);
 
 /*
  * recognizer_unload - Unload the recognizer.
  */
 
-int			recognizer_unload(recognizer);
+int recognizer_unload(recognizer);
 
 /*
  * recognizer_get_info-Get a pointer to a rec_info 
@@ -249,14 +246,14 @@ int			recognizer_unload(recognizer);
  * library pathname.
  */
 
-const rec_info*	recognizer_get_info(recognizer);
+const rec_info *recognizer_get_info(recognizer);
 
 /*
  * recognizer_manager_version-Return the version number string of the
  * recognition manager.
  */
 
-const char*	recognizer_manager_version(recognizer);
+const char *recognizer_manager_version(recognizer);
 
 /*
  * recognizer_load_state-Get any recognizer state associated with name
@@ -265,7 +262,7 @@ const char*	recognizer_manager_version(recognizer);
  * -1 if not.
  */
 
-int			recognizer_load_state(recognizer, char*, char*);
+int recognizer_load_state(recognizer, char *, char *);
 
 /*
  * recognizer_save_state-Save any recognizer state to name
@@ -274,13 +271,13 @@ int			recognizer_load_state(recognizer, char*, char*);
  * -1 if not.
  */
 
-int			recognizer_save_state(recognizer, char*, char*);
+int recognizer_save_state(recognizer, char *, char *);
 
 /*
  * recognizer_error-Return the last error message, or NULL if none.
  */
 
-char*		recognizer_error(recognizer);
+char *recognizer_error(recognizer);
 
 /*
  * DICTIONARIES
@@ -291,34 +288,34 @@ char*		recognizer_error(recognizer);
  * otherwise NULL.
  */
 
-wordset		recognizer_load_dictionary(recognizer, char*, char*);
+wordset recognizer_load_dictionary(recognizer, char *, char *);
 
 /* recoginzer_save_dictionary-Save the dictionary to the file. Return 0
  * successful, -1 if error occurs.
  */
 
-int			recognizer_save_dictionary(recognizer, char*, char*, wordset);
+int recognizer_save_dictionary(recognizer, char *, char *, wordset);
 
 /*
  * recognizer_free_dictionary-Free the dictionary. Return 0 if successful,
  * -1 if error occurs.
  */
 
-int			recognizer_free_dictionary(recognizer, wordset);
+int recognizer_free_dictionary(recognizer, wordset);
 
 /*
  * recognizer_add_to_dictionary-Add the word to the dictionary. Return 0
  * if successful, -1 if error occurs.
  */
 
-int			recognizer_add_to_dictionary(recognizer, letterset*, wordset);
+int recognizer_add_to_dictionary(recognizer, letterset *, wordset);
 
 /*
  * recognizer_delete_from_dictionary-Delete the word from the dictionary.
  * Return 0 if successful, -1 if error occurs.
  */
 
-int			recognizer_delete_from_dictionary(recognizer, letterset*, wordset);
+int recognizer_delete_from_dictionary(recognizer, letterset *, wordset);
 
 /*
  * TRANSLATION
@@ -331,8 +328,8 @@ int			recognizer_delete_from_dictionary(recognizer, letterset*, wordset);
  * potential memory deallocation problems.
  */
 
-int			recognizer_set_context(recognizer, rc*);
-rc*			recognizer_get_context(recognizer);
+int recognizer_set_context(recognizer, rc *);
+rc *recognizer_get_context(recognizer);
 
 /* recognizer_clear - Set stroke buffer to NULL and clear the context. 
  * Returns -1 if an error occurred, otherwise 0. Both the context and the 
@@ -340,15 +337,15 @@ rc*			recognizer_get_context(recognizer);
  * points also.
  */
 
-int			recognizer_clear(recognizer, bool);
+int recognizer_clear(recognizer, bool);
 
 /* recognizer_get/set_buffer - Get/set the stroke buffer. The stroke buffer 
  * is copied to avoid potential memory allocation problems. Returns -1 if 
  * an error occurs, otherwise 0.
  */
 
-int			recognizer_get_buffer(recognizer, uint*, Stroke**);
-int			recognizer_set_buffer(recognizer, uint, Stroke*);
+int recognizer_get_buffer(recognizer, uint *, Stroke **);
+int recognizer_set_buffer(recognizer, uint, Stroke *);
 
 /* recognizer_translate - Copy the strokes argument into the stroke buffer and
  * translate the buffer. If correlate_p is true, then provide stroke 
@@ -361,8 +358,8 @@ int			recognizer_set_buffer(recognizer, uint, Stroke*);
  * otherwise 0. 
  */
 
-int			recognizer_translate(recognizer, uint, Stroke*, bool,
-				int*, rec_alternative**);
+int recognizer_translate(recognizer, uint, Stroke *, bool,
+			 int *, rec_alternative **);
 
 /*
  * recognizer_get_extension_functions-Return a null terminated array
@@ -370,7 +367,7 @@ int			recognizer_translate(recognizer, uint, Stroke*, bool,
  * will change depending on the recognizer.
  */
 
-rec_fn*		recognizer_get_extension_functions(recognizer);
+rec_fn *recognizer_get_extension_functions(recognizer);
 
 /*
  * GESTURE SUPPORT
@@ -381,46 +378,46 @@ rec_fn*		recognizer_get_extension_functions(recognizer);
  * character strings containing the gesture names.
  */
 
-char**		recognizer_get_gesture_names(recognizer);
+char **recognizer_get_gesture_names(recognizer);
 
 /*
  * recognizer_set_gesture_action-Set the action function associated with the 
  *  name.
  */
 
-xgesture	recognizer_set_gesture_action(recognizer, char*, xgesture, void*);
+xgesture recognizer_set_gesture_action(recognizer, char *, xgesture, void *);
 
 /*
  * The following functions are for deleting data structures returned
  *   by the API functions.
  */
 
-void		delete_rec_alternative_array(uint, rec_alternative*, bool);
-void		delete_rec_correlation(rec_correlation*, bool);
+void delete_rec_alternative_array(uint, rec_alternative *, bool);
+void delete_rec_correlation(rec_correlation *, bool);
 
 /*
  * These are used by clients to create arrays for passing to API
  *  functions.
  */
 
-Stroke*	make_Stroke_array(uint);
-void		delete_Stroke_array(uint, Stroke*, bool);
+Stroke *make_Stroke_array(uint);
+void delete_Stroke_array(uint, Stroke *, bool);
 
-pen_point* 	make_pen_point_array(uint);
-void 		delete_pen_point_array(pen_point*);
+pen_point *make_pen_point_array(uint);
+void delete_pen_point_array(pen_point *);
 
-Stroke*	copy_Stroke_array(uint, Stroke*);
+Stroke *copy_Stroke_array(uint, Stroke *);
 
 /*Extension function interfaces and indices.*/
 
-#define LI_ISA_LI		0	/*Is this a li recognizer?.*/
-#define LI_TRAIN		1	/*Train recognizer*/
-#define LI_CLEAR		2	/* ari's clear-state extension fn. */
-#define LI_GET_CLASSES	3	/* ari's get-classes extension fn. */
-#define LI_NUM_EX_FNS	4	/*Number of extension functions*/
+#define LI_ISA_LI 0      /*Is this a li recognizer?.*/
+#define LI_TRAIN 1       /*Train recognizer*/
+#define LI_CLEAR 2       /* ari's clear-state extension fn. */
+#define LI_GET_CLASSES 3 /* ari's get-classes extension fn. */
+#define LI_NUM_EX_FNS 4  /*Number of extension functions*/
 
-typedef bool	(*li_isa_li)(recognizer r);
-typedef int		(*li_recognizer_train)(recognizer, rc*, uint,
-					Stroke*, rec_element*, bool);
-typedef int		(*li_recognizer_clearState)(recognizer);
-typedef int		(*li_recognizer_getClasses)(recognizer, char ***, int *);
+typedef bool (*li_isa_li)(recognizer r);
+typedef int (*li_recognizer_train)(recognizer, rc *, uint,
+				   Stroke *, rec_element *, bool);
+typedef int (*li_recognizer_clearState)(recognizer);
+typedef int (*li_recognizer_getClasses)(recognizer, char ***, int *);

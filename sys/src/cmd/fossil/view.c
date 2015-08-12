@@ -17,22 +17,20 @@
 typedef struct Tree Tree;
 typedef struct Tnode Tnode;
 
-struct Tree
-{
+struct Tree {
 	Tnode *root;
 	Point offset;
 	Image *clipr;
 };
 
-struct Tnode
-{
+struct Tnode {
 	Point offset;
 
 	char *str;
-//	char *(*strfn)(Tnode*);
-//	uint (*draw)(Tnode*, Image*, Image*, Point);
-	void (*expand)(Tnode*);
-	void (*collapse)(Tnode*);
+	//	char *(*strfn)(Tnode*);
+	//	uint (*draw)(Tnode*, Image*, Image*, Point);
+	void (*expand)(Tnode *);
+	void (*collapse)(Tnode *);
 
 	uint expanded;
 	Tnode **kid;
@@ -41,13 +39,12 @@ struct Tnode
 };
 
 typedef struct Atree Atree;
-struct Atree
-{
+struct Atree {
 	int resizefd;
 	Tnode *root;
 };
 
-Atree *atreeinit(char*);
+Atree *atreeinit(char *);
 
 /* --- visfossil.c */
 Tnode *initxheader(void);
@@ -56,8 +53,8 @@ Tnode *initxsuper(void);
 Tnode *initxlocalroot(char *name, uint32_t addr);
 Tnode *initxentry(Entry);
 Tnode *initxsource(Entry, int);
-Tnode *initxentryblock(Block*, Entry*);
-Tnode *initxdatablock(Block*, uint);
+Tnode *initxentryblock(Block *, Entry *);
+Tnode *initxdatablock(Block *, uint);
 Tnode *initxroot(char *name, uint8_t[VtScoreSize]);
 
 int fd;
@@ -70,7 +67,7 @@ int showinactive;
 /*
  * dumbed down versions of fossil routines
  */
-char*
+char *
 bsStr(int state)
 {
 	static char s[100];
@@ -81,35 +78,35 @@ bsStr(int state)
 		return "Bad";
 
 	sprint(s, "%x", state);
-	if(!(state&BsAlloc))
-		strcat(s, ",Free");	/* should not happen */
-	if(state&BsVenti)
+	if(!(state & BsAlloc))
+		strcat(s, ",Free"); /* should not happen */
+	if(state & BsVenti)
 		strcat(s, ",Venti");
-	if(state&BsClosed)
+	if(state & BsClosed)
 		strcat(s, ",Closed");
 	return s;
 }
 
 char *bttab[] = {
-	"BtData",
-	"BtData+1",
-	"BtData+2",
-	"BtData+3",
-	"BtData+4",
-	"BtData+5",
-	"BtData+6",
-	"BtData+7",
-	"BtDir",
-	"BtDir+1",
-	"BtDir+2",
-	"BtDir+3",
-	"BtDir+4",
-	"BtDir+5",
-	"BtDir+6",
-	"BtDir+7",
+    "BtData",
+    "BtData+1",
+    "BtData+2",
+    "BtData+3",
+    "BtData+4",
+    "BtData+5",
+    "BtData+6",
+    "BtData+7",
+    "BtDir",
+    "BtDir+1",
+    "BtDir+2",
+    "BtDir+3",
+    "BtDir+4",
+    "BtDir+5",
+    "BtDir+6",
+    "BtDir+7",
 };
 
-char*
+char *
 btStr(int type)
 {
 	if(type < nelem(bttab))
@@ -118,13 +115,13 @@ btStr(int type)
 }
 #pragma varargck argpos stringnode 1
 
-Block*
+Block *
 allocBlock(void)
 {
 	Block *b;
 
-	b = mallocz(sizeof(Block)+h.blockSize, 1);
-	b->data = (void*)&b[1];
+	b = mallocz(sizeof(Block) + h.blockSize, 1);
+	b->data = (void *)&b[1];
 	return b;
 }
 
@@ -137,7 +134,7 @@ blockPut(Block *b)
 static uint32_t
 partStart(int part)
 {
-	switch(part){
+	switch(part) {
 	default:
 		assert(0);
 	case PartSuper:
@@ -149,15 +146,14 @@ partStart(int part)
 	}
 }
 
-
 static uint32_t
 partEnd(int part)
 {
-	switch(part){
+	switch(part) {
 	default:
 		assert(0);
 	case PartSuper:
-		return h.super+1;
+		return h.super + 1;
 	case PartLabel:
 		return h.data;
 	case PartData:
@@ -165,7 +161,7 @@ partEnd(int part)
 	}
 }
 
-Block*
+Block *
 readBlock(int part, uint32_t addr)
 {
 	uint32_t start, end;
@@ -176,7 +172,7 @@ readBlock(int part, uint32_t addr)
 
 	start = partStart(part);
 	end = partEnd(part);
-	if(addr >= end-start){
+	if(addr >= end - start) {
 		werrstr("bad addr 0x%.8ux; wanted 0x%.8ux - 0x%.8ux", addr, start, end);
 		return nil;
 	}
@@ -184,15 +180,15 @@ readBlock(int part, uint32_t addr)
 	b = allocBlock();
 	b->addr = addr;
 	buf = b->data;
-	offset = ((uint64_t)(addr+start))*h.blockSize;
+	offset = ((uint64_t)(addr + start)) * h.blockSize;
 	n = h.blockSize;
-	while(n > 0){
+	while(n > 0) {
 		nn = pread(fd, buf, n, offset);
-		if(nn < 0){
+		if(nn < 0) {
 			blockPut(b);
 			return nil;
 		}
-		if(nn == 0){
+		if(nn == 0) {
 			werrstr("short read");
 			blockPut(b);
 			return nil;
@@ -205,25 +201,25 @@ readBlock(int part, uint32_t addr)
 }
 
 int vtType[BtMax] = {
-	VtDataType,		/* BtData | 0  */
-	VtPointerType0,		/* BtData | 1  */
-	VtPointerType1,		/* BtData | 2  */
-	VtPointerType2,		/* BtData | 3  */
-	VtPointerType3,		/* BtData | 4  */
-	VtPointerType4,		/* BtData | 5  */
-	VtPointerType5,		/* BtData | 6  */
-	VtPointerType6,		/* BtData | 7  */
-	VtDirType,		/* BtDir | 0  */
-	VtPointerType0,		/* BtDir | 1  */
-	VtPointerType1,		/* BtDir | 2  */
-	VtPointerType2,		/* BtDir | 3  */
-	VtPointerType3,		/* BtDir | 4  */
-	VtPointerType4,		/* BtDir | 5  */
-	VtPointerType5,		/* BtDir | 6  */
-	VtPointerType6,		/* BtDir | 7  */
+    VtDataType,     /* BtData | 0  */
+    VtPointerType0, /* BtData | 1  */
+    VtPointerType1, /* BtData | 2  */
+    VtPointerType2, /* BtData | 3  */
+    VtPointerType3, /* BtData | 4  */
+    VtPointerType4, /* BtData | 5  */
+    VtPointerType5, /* BtData | 6  */
+    VtPointerType6, /* BtData | 7  */
+    VtDirType,      /* BtDir | 0  */
+    VtPointerType0, /* BtDir | 1  */
+    VtPointerType1, /* BtDir | 2  */
+    VtPointerType2, /* BtDir | 3  */
+    VtPointerType3, /* BtDir | 4  */
+    VtPointerType4, /* BtDir | 5  */
+    VtPointerType5, /* BtDir | 6  */
+    VtPointerType6, /* BtDir | 7  */
 };
 
-Block*
+Block *
 ventiBlock(uint8_t score[VtScoreSize], uint type)
 {
 	int n;
@@ -234,7 +230,7 @@ ventiBlock(uint8_t score[VtScoreSize], uint type)
 	b->addr = NilBlock;
 
 	n = vtRead(z, b->score, vtType[type], b->data, h.blockSize);
-	if(n < 0){
+	if(n < 0) {
 		fprint(2, "vtRead returns %d: %R\n", n);
 		blockPut(b);
 		return nil;
@@ -247,7 +243,7 @@ ventiBlock(uint8_t score[VtScoreSize], uint type)
 	return b;
 }
 
-Block*
+Block *
 dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 {
 	Block *b, *bl;
@@ -259,22 +255,22 @@ dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 	if(addr == NilBlock)
 		return ventiBlock(score, type);
 
-	lpb = h.blockSize/LabelSize;
-	bl = readBlock(PartLabel, addr/lpb);
+	lpb = h.blockSize / LabelSize;
+	bl = readBlock(PartLabel, addr / lpb);
 	if(bl == nil)
 		return nil;
-	if(!labelUnpack(&l, bl->data, addr%lpb)){
+	if(!labelUnpack(&l, bl->data, addr % lpb)) {
 		werrstr("%R");
 		blockPut(bl);
 		return nil;
 	}
 	blockPut(bl);
-	if(l.type != type){
+	if(l.type != type) {
 		werrstr("type mismatch; got %d (%s) wanted %d (%s)",
 			l.type, btStr(l.type), type, btStr(type));
 		return nil;
 	}
-	if(tag && l.tag != tag){
+	if(tag && l.tag != tag) {
 		werrstr("tag mismatch; got 0x%.8ux wanted 0x%.8ux",
 			l.tag, tag);
 		return nil;
@@ -286,7 +282,7 @@ dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 	return b;
 }
 
-Entry*
+Entry *
 copyEntry(Entry e)
 {
 	Entry *p;
@@ -296,7 +292,7 @@ copyEntry(Entry e)
 	return p;
 }
 
-MetaBlock*
+MetaBlock *
 copyMetaBlock(MetaBlock mb)
 {
 	MetaBlock *p;
@@ -310,9 +306,9 @@ copyMetaBlock(MetaBlock mb)
  * visualizer 
  */
 
-#pragma	varargck	argpos	stringnode	1
+#pragma varargck argpos stringnode 1
 
-Tnode*
+Tnode *
 stringnode(char *fmt, ...)
 {
 	va_list arg;
@@ -333,11 +329,11 @@ xcacheexpand(Tnode *t)
 		return;
 
 	t->nkid = 1;
-	t->kid = mallocz(sizeof(t->kid[0])*t->nkid, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * t->nkid, 1);
 	t->kid[0] = initxheader();
 }
 
-Tnode*
+Tnode *
 initxcache(char *name)
 {
 	Tnode *t;
@@ -357,13 +353,13 @@ xheaderexpand(Tnode *t)
 		return;
 
 	t->nkid = 1;
-	t->kid = mallocz(sizeof(t->kid[0])*t->nkid, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * t->nkid, 1);
 	t->kid[0] = initxsuper();
 	//t->kid[1] = initxlabel(h.label);
 	//t->kid[2] = initxdata(h.data);
 }
 
-Tnode*
+Tnode *
 initxheader(void)
 {
 	uint8_t buf[HeaderSize];
@@ -375,15 +371,15 @@ initxheader(void)
 		return stringnode("error unpacking header: %R");
 
 	t = stringnode("header "
-		"version=%#ux (%d) "
-		"blockSize=%#ux (%d) "
-		"super=%#lux (%ld) "
-		"label=%#lux (%ld) "
-		"data=%#lux (%ld) "
-		"end=%#lux (%ld)",
-		h.version, h.version, h.blockSize, h.blockSize,
-		h.super, h.super,
-		h.label, h.label, h.data, h.data, h.end, h.end);
+		       "version=%#ux (%d) "
+		       "blockSize=%#ux (%d) "
+		       "super=%#lux (%ld) "
+		       "label=%#lux (%ld) "
+		       "data=%#lux (%ld) "
+		       "end=%#lux (%ld)",
+		       h.version, h.version, h.blockSize, h.blockSize,
+		       h.super, h.super,
+		       h.label, h.label, h.data, h.data, h.end, h.end);
 	t->expand = xheaderexpand;
 	return t;
 }
@@ -395,13 +391,13 @@ xsuperexpand(Tnode *t)
 		return;
 
 	t->nkid = 1;
-	t->kid = mallocz(sizeof(t->kid[0])*t->nkid, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * t->nkid, 1);
 	t->kid[0] = initxlocalroot("active", super.active);
-//	t->kid[1] = initxlocalroot("next", super.next);
-//	t->kid[2] = initxlocalroot("current", super.current);
+	//	t->kid[1] = initxlocalroot("next", super.next);
+	//	t->kid[2] = initxlocalroot("current", super.current);
 }
 
-Tnode*
+Tnode *
 initxsuper(void)
 {
 	Block *b;
@@ -410,23 +406,23 @@ initxsuper(void)
 	b = readBlock(PartSuper, 0);
 	if(b == nil)
 		return stringnode("reading super: %r");
-	if(!superUnpack(&super, b->data)){
+	if(!superUnpack(&super, b->data)) {
 		blockPut(b);
 		return stringnode("unpacking super: %R");
 	}
 	blockPut(b);
 	t = stringnode("super "
-		"version=%#ux "
-		"epoch=[%#ux,%#ux) "
-		"qid=%#llux "
-		"active=%#x "
-		"next=%#x "
-		"current=%#x "
-		"last=%V "
-		"name=%s",
-		super.version, super.epochLow, super.epochHigh,
-		super.qid, super.active, super.next, super.current,
-		super.last, super.name);
+		       "version=%#ux "
+		       "epoch=[%#ux,%#ux) "
+		       "qid=%#llux "
+		       "active=%#x "
+		       "next=%#x "
+		       "current=%#x "
+		       "last=%V "
+		       "name=%s",
+		       super.version, super.epochLow, super.epochHigh,
+		       super.qid, super.active, super.next, super.current,
+		       super.last, super.name);
 	t->expand = xsuperexpand;
 	return t;
 }
@@ -438,11 +434,11 @@ xvacrootexpand(Tnode *t)
 		return;
 
 	t->nkid = 1;
-	t->kid = mallocz(sizeof(t->kid[0])*t->nkid, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * t->nkid, 1);
 	t->kid[0] = initxroot("root", vac.score);
 }
 
-Tnode*
+Tnode *
 initxvacroot(uint8_t score[VtScoreSize])
 {
 	Tnode *t;
@@ -457,24 +453,23 @@ initxvacroot(uint8_t score[VtScoreSize])
 
 	h.blockSize = vac.blockSize;
 	t = stringnode("vac version=%#ux name=%s type=%s blockSize=%ud score=%V prev=%V",
-		vac.version, vac.name, vac.type, vac.blockSize, vac.score, vac.prev);
+		       vac.version, vac.name, vac.type, vac.blockSize, vac.score, vac.prev);
 	t->expand = xvacrootexpand;
 	return t;
 }
 
-Tnode*
+Tnode *
 initxlabel(Label l)
 {
 	return stringnode("label type=%s state=%s epoch=%#ux tag=%#ux",
-		btStr(l.type), bsStr(l.state), l.epoch, l.tag);
+			  btStr(l.type), bsStr(l.state), l.epoch, l.tag);
 }
 
 typedef struct Xblock Xblock;
-struct Xblock
-{
+struct Xblock {
 	Tnode;
 	Block *b;
-	int (*gen)(void*, Block*, int, Tnode**);
+	int (*gen)(void *, Block *, int, Tnode **);
 	void *arg;
 	int printlabel;
 };
@@ -484,29 +479,29 @@ xblockexpand(Tnode *tt)
 {
 	int i, j;
 	enum { Q = 32 };
-	Xblock *t = (Xblock*)tt;
+	Xblock *t = (Xblock *)tt;
 	Tnode *nn;
 
 	if(t->nkid >= 0)
 		return;
 
 	j = 0;
-	if(t->printlabel){
-		t->kid = mallocz(Q*sizeof(t->kid[0]), 1);
+	if(t->printlabel) {
+		t->kid = mallocz(Q * sizeof(t->kid[0]), 1);
 		t->kid[0] = initxlabel(t->b->l);
 		j = 1;
 	}
 
-	for(i=0;; i++){
-		switch((*t->gen)(t->arg, t->b, i, &nn)){
+	for(i = 0;; i++) {
+		switch((*t->gen)(t->arg, t->b, i, &nn)) {
 		case -1:
 			t->nkid = j;
 			return;
 		case 0:
 			break;
 		case 1:
-			if(j%Q == 0)
-				t->kid = realloc(t->kid, (j+Q)*sizeof(t->kid[0]));
+			if(j % Q == 0)
+				t->kid = realloc(t->kid, (j + Q) * sizeof(t->kid[0]));
 			t->kid[j++] = nn;
 			break;
 		}
@@ -514,13 +509,13 @@ xblockexpand(Tnode *tt)
 }
 
 int
-nilgen(void*, Block*, int, Tnode**)
+nilgen(void *, Block *, int, Tnode **)
 {
 	return -1;
 }
 
-Tnode*
-initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**),
+Tnode *
+initxblock(Block *b, char *s, int (*gen)(void *, Block *, int, Tnode **),
 	   void *arg)
 {
 	Xblock *t;
@@ -548,7 +543,7 @@ xentrygen(void *v, Block *b, int o, Tnode **tp)
 	Entry *ed;
 
 	ed = v;
-	if(o >= ed->dsize/VtEntrySize)
+	if(o >= ed->dsize / VtEntrySize)
 		return -1;
 
 	entryUnpack(&e, b->data, o);
@@ -558,15 +553,14 @@ xentrygen(void *v, Block *b, int o, Tnode **tp)
 	return 1;
 }
 
-Tnode*
+Tnode *
 initxentryblock(Block *b, Entry *ed)
 {
 	return initxblock(b, "entry", xentrygen, ed);
 }
 
 typedef struct Xentry Xentry;
-struct Xentry 
-{
+struct Xentry {
 	Tnode;
 	Entry e;
 };
@@ -574,17 +568,17 @@ struct Xentry
 void
 xentryexpand(Tnode *tt)
 {
-	Xentry *t = (Xentry*)tt;
+	Xentry *t = (Xentry *)tt;
 
 	if(t->nkid >= 0)
 		return;
 
 	t->nkid = 1;
-	t->kid = mallocz(sizeof(t->kid[0])*t->nkid, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * t->nkid, 1);
 	t->kid[0] = initxsource(t->e, 1);
 }
 
-Tnode*
+Tnode *
 initxentry(Entry e)
 {
 	Xentry *t;
@@ -592,12 +586,12 @@ initxentry(Entry e)
 	t = mallocz(sizeof *t, 1);
 	t->nkid = -1;
 	t->str = smprint("Entry gen=%#ux psize=%d dsize=%d depth=%d flags=%#ux size=%lld score=%V",
-		e.gen, e.psize, e.dsize, e.depth, e.flags, e.size, e.score);
+			 e.gen, e.psize, e.dsize, e.depth, e.flags, e.size, e.score);
 	if(e.flags & VtEntryLocal)
 		t->str = smprint("%s archive=%d snap=%d tag=%#ux", t->str, e.archive, e.snap, e.tag);
 	t->expand = xentryexpand;
 	t->e = e;
-	return t;	
+	return t;
 }
 
 int
@@ -607,12 +601,12 @@ ptrgen(void *v, Block *b, int o, Tnode **tp)
 	Entry e;
 
 	ed = v;
-	if(o >= ed->psize/VtScoreSize)
+	if(o >= ed->psize / VtScoreSize)
 		return -1;
 
 	e = *ed;
 	e.depth--;
-	memmove(e.score, b->data+o*VtScoreSize, VtScoreSize);
+	memmove(e.score, b->data + o * VtScoreSize, VtScoreSize);
 	if(memcmp(e.score, vtZeroScore, VtScoreSize) == 0)
 		return 0;
 	*tp = initxsource(e, 0);
@@ -624,14 +618,14 @@ etype(int flags, int depth)
 {
 	uint t;
 
-	if(flags&VtEntryDir)
+	if(flags & VtEntryDir)
 		t = BtDir;
 	else
 		t = BtData;
-	return t+depth;
+	return t + depth;
 }
 
-Tnode*
+Tnode *
 initxsource(Entry e, int dowrap)
 {
 	Block *b;
@@ -644,24 +638,24 @@ initxsource(Entry e, int dowrap)
 	if((e.flags & VtEntryActive) == 0)
 		return stringnode("inactive Entry");
 
-	if(e.depth == 0){
+	if(e.depth == 0) {
 		if(e.flags & VtEntryDir)
 			tt = initxentryblock(b, copyEntry(e));
 		else
 			tt = initxdatablock(b, e.dsize);
-	}else{
+	} else {
 		tt = initxblock(b, smprint("%s+%d pointer", (e.flags & VtEntryDir) ? "BtDir" : "BtData", e.depth),
-			ptrgen, copyEntry(e));
+				ptrgen, copyEntry(e));
 	}
 
 	/*
 	 * wrap the contents of the Source in a Source node,
 	 * just so it's closer to what you see in the code.
 	 */
-	if(dowrap){
+	if(dowrap) {
 		t = stringnode("Source");
 		t->nkid = 1;
-		t->kid = mallocz(sizeof(Tnode*)*1, 1);
+		t->kid = mallocz(sizeof(Tnode *) * 1, 1);
 		t->kid[0] = tt;
 		tt = t;
 	}
@@ -669,7 +663,7 @@ initxsource(Entry e, int dowrap)
 }
 
 int
-xlocalrootgen(void*, Block *b, int o, Tnode **tp)
+xlocalrootgen(void *, Block *b, int o, Tnode **tp)
 {
 	Entry e;
 
@@ -680,7 +674,7 @@ xlocalrootgen(void*, Block *b, int o, Tnode **tp)
 	return 1;
 }
 
-Tnode*
+Tnode *
 initxlocalroot(char *name, uint32_t addr)
 {
 	uint8_t score[VtScoreSize];
@@ -694,7 +688,7 @@ initxlocalroot(char *name, uint32_t addr)
 }
 
 int
-xvacrootgen(void*, Block *b, int o, Tnode **tp)
+xvacrootgen(void *, Block *b, int o, Tnode **tp)
 {
 	Entry e;
 
@@ -705,7 +699,7 @@ xvacrootgen(void*, Block *b, int o, Tnode **tp)
 	return 1;
 }
 
-Tnode*
+Tnode *
 initxroot(char *name, uint8_t score[VtScoreSize])
 {
 	Block *b;
@@ -715,7 +709,7 @@ initxroot(char *name, uint8_t score[VtScoreSize])
 		return stringnode("read data block %V: %R", score);
 	return initxblock(b, smprint("'%s' fs root", name), xvacrootgen, nil);
 }
-Tnode*
+Tnode *
 initxdirentry(MetaEntry *me)
 {
 	DirEntry dir;
@@ -726,25 +720,25 @@ initxdirentry(MetaEntry *me)
 
 	t = stringnode("dirEntry elem=%s size=%llud data=%#lux/%#lux meta=%#lux/%#lux", dir.elem, dir.size, dir.entry, dir.gen, dir.mentry, dir.mgen);
 	t->nkid = 1;
-	t->kid = mallocz(sizeof(t->kid[0])*1, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * 1, 1);
 	t->kid[0] = stringnode(
-		"qid=%#llux\n"
-		"uid=%s gid=%s mid=%s\n"
-		"mtime=%lud mcount=%lud ctime=%lud atime=%lud\n"
-		"mode=%luo\n"
-		"plan9 %d p9path %#llux p9version %lud\n"
-		"qidSpace %d offset %#llux max %#llux",
-		dir.qid,
-		dir.uid, dir.gid, dir.mid,
-		dir.mtime, dir.mcount, dir.ctime, dir.atime,
-		dir.mode,
-		dir.plan9, dir.p9path, dir.p9version,
-		dir.qidSpace, dir.qidOffset, dir.qidMax);
+	    "qid=%#llux\n"
+	    "uid=%s gid=%s mid=%s\n"
+	    "mtime=%lud mcount=%lud ctime=%lud atime=%lud\n"
+	    "mode=%luo\n"
+	    "plan9 %d p9path %#llux p9version %lud\n"
+	    "qidSpace %d offset %#llux max %#llux",
+	    dir.qid,
+	    dir.uid, dir.gid, dir.mid,
+	    dir.mtime, dir.mcount, dir.ctime, dir.atime,
+	    dir.mode,
+	    dir.plan9, dir.p9path, dir.p9version,
+	    dir.qidSpace, dir.qidOffset, dir.qidMax);
 	return t;
 }
 
 int
-metaentrygen(void *v, Block*, int o, Tnode **tp)
+metaentrygen(void *v, Block *, int o, Tnode **tp)
 {
 	Tnode *t;
 	MetaBlock *mb;
@@ -756,7 +750,7 @@ metaentrygen(void *v, Block*, int o, Tnode **tp)
 	meUnpack(&me, mb, o);
 
 	t = stringnode("MetaEntry %d bytes", mb->size);
-	t->kid = mallocz(sizeof(t->kid[0])*1, 1);
+	t->kid = mallocz(sizeof(t->kid[0]) * 1, 1);
 	t->kid[0] = initxdirentry(&me);
 	t->nkid = 1;
 	*tp = t;
@@ -774,10 +768,10 @@ metablockgen(void *v, Block *b, int o, Tnode **tp)
 
 	/* hack: reuse initxblock as a generic iterator */
 	mb = v;
-	t = (Xblock*)initxblock(b, "", metaentrygen, mb);
+	t = (Xblock *)initxblock(b, "", metaentrygen, mb);
 	t->str = smprint("MetaBlock %d/%d space used, %d add'l free %d/%d table used%s",
-		mb->size, mb->maxsize, mb->free, mb->nindex, mb->maxindex,
-		mb->botch ? " [BOTCH]" : "");
+			 mb->size, mb->maxsize, mb->free, mb->nindex, mb->maxindex,
+			 mb->botch ? " [BOTCH]" : "");
 	t->printlabel = 0;
 	*tp = t;
 	return 1;
@@ -787,7 +781,7 @@ metablockgen(void *v, Block *b, int o, Tnode **tp)
  * attempt to guess at the type of data in the block.
  * it could just be data from a file, but we're hoping it's MetaBlocks.
  */
-Tnode*
+Tnode *
 initxdatablock(Block *b, uint n)
 {
 	MetaBlock mb;
@@ -808,23 +802,23 @@ parseScore(uint8_t *score, char *buf, int n)
 
 	memset(score, 0, VtScoreSize);
 
-	if(n < VtScoreSize*2)
+	if(n < VtScoreSize * 2)
 		return 0;
-	for(i=0; i<VtScoreSize*2; i++){
+	for(i = 0; i < VtScoreSize * 2; i++) {
 		if(buf[i] >= '0' && buf[i] <= '9')
 			c = buf[i] - '0';
 		else if(buf[i] >= 'a' && buf[i] <= 'f')
 			c = buf[i] - 'a' + 10;
 		else if(buf[i] >= 'A' && buf[i] <= 'F')
 			c = buf[i] - 'A' + 10;
-		else{
+		else {
 			return 0;
 		}
 
 		if((i & 1) == 0)
 			c <<= 4;
-	
-		score[i>>1] |= c;
+
+		score[i >> 1] |= c;
 	}
 	return 1;
 }
@@ -836,12 +830,12 @@ scoreFmt(Fmt *f)
 	int i;
 	uint32_t addr;
 
-	v = va_arg(f->args, uint8_t*);
-	if(v == nil){
+	v = va_arg(f->args, uint8_t *);
+	if(v == nil) {
 		fmtprint(f, "*");
-	}else if((addr = globalToLocal(v)) != NilBlock)
+	} else if((addr = globalToLocal(v)) != NilBlock)
 		fmtprint(f, "0x%.8ux", addr);
-	else{
+	else {
 		for(i = 0; i < VtScoreSize; i++)
 			fmtprint(f, "%2.2ux", v[i]);
 	}
@@ -849,7 +843,7 @@ scoreFmt(Fmt *f)
 	return 0;
 }
 
-Atree*
+Atree *
 atreeinit(char *arg)
 {
 	Atree *a;
@@ -863,29 +857,28 @@ atreeinit(char *arg)
 	z = vtDial(nil, 1);
 	if(z == nil)
 		fprint(2, "warning: cannot dial venti: %R\n");
-	if(!vtConnect(z, 0)){
+	if(!vtConnect(z, 0)) {
 		fprint(2, "warning: cannot connect to venti: %R\n");
 		z = nil;
 	}
 	a = mallocz(sizeof(Atree), 1);
-	if(strncmp(arg, "vac:", 4) == 0){
-		if(!parseScore(score, arg+4, strlen(arg+4))){
+	if(strncmp(arg, "vac:", 4) == 0) {
+		if(!parseScore(score, arg + 4, strlen(arg + 4))) {
 			fprint(2, "cannot parse score\n");
 			return nil;
 		}
 		a->root = initxvacroot(score);
-	}else
+	} else
 		a->root = initxcache(arg);
 	a->resizefd = -1;
 	return a;
 }
 
 /* --- tree.c */
-enum
-{
+enum {
 	Nubwidth = 11,
 	Nubheight = 11,
-	Linewidth = Nubwidth*2+4,
+	Linewidth = Nubwidth * 2 + 4,
 };
 
 uint
@@ -898,15 +891,15 @@ drawtext(char *s, Image *m, Image *clipr, Point o)
 		s = "???";
 
 	dy = 0;
-	for(t=s; t&&*t; t=nt){
-		if(nt = strchr(t, '\n')){
+	for(t = s; t && *t; t = nt) {
+		if(nt = strchr(t, '\n')) {
 			e = nt;
 			nt++;
-		}else
-			e = t+strlen(t);
+		} else
+			e = t + strlen(t);
 
-		_string(m, Pt(o.x, o.y+dy), display->black, ZP, display->defaultfont,
-			t, nil, e-t, clipr->clipr, nil, ZP, SoverD);
+		_string(m, Pt(o.x, o.y + dy), display->black, ZP, display->defaultfont,
+			t, nil, e - t, clipr->clipr, nil, ZP, SoverD);
 		dy += display->defaultfont->height;
 	}
 	return dy;
@@ -922,20 +915,19 @@ drawnub(Image *m, Image *clipr, Point o, Tnode *t)
 	if(t->nkid == -1 && t->expand == nil)
 		return;
 
-	o.y += (display->defaultfont->height-Nubheight)/2;
-	draw(m, rectaddpt(Rect(0,0,1,Nubheight), o), display->black, clipr, ZP);
-	draw(m, rectaddpt(Rect(0,0,Nubwidth,1), o), display->black, clipr, o);
-	draw(m, rectaddpt(Rect(Nubwidth-1,0,Nubwidth,Nubheight), o), 
-		display->black, clipr, addpt(o, Pt(Nubwidth-1, 0)));
-	draw(m, rectaddpt(Rect(0, Nubheight-1, Nubwidth, Nubheight), o),
-		display->black, clipr, addpt(o, Pt(0, Nubheight-1)));
+	o.y += (display->defaultfont->height - Nubheight) / 2;
+	draw(m, rectaddpt(Rect(0, 0, 1, Nubheight), o), display->black, clipr, ZP);
+	draw(m, rectaddpt(Rect(0, 0, Nubwidth, 1), o), display->black, clipr, o);
+	draw(m, rectaddpt(Rect(Nubwidth - 1, 0, Nubwidth, Nubheight), o),
+	     display->black, clipr, addpt(o, Pt(Nubwidth - 1, 0)));
+	draw(m, rectaddpt(Rect(0, Nubheight - 1, Nubwidth, Nubheight), o),
+	     display->black, clipr, addpt(o, Pt(0, Nubheight - 1)));
 
-	draw(m, rectaddpt(Rect(0, Nubheight/2, Nubwidth, Nubheight/2+1), o),
-		display->black, clipr, addpt(o, Pt(0, Nubheight/2)));
+	draw(m, rectaddpt(Rect(0, Nubheight / 2, Nubwidth, Nubheight / 2 + 1), o),
+	     display->black, clipr, addpt(o, Pt(0, Nubheight / 2)));
 	if(!t->expanded)
-		draw(m, rectaddpt(Rect(Nubwidth/2, 0, Nubwidth/2+1, Nubheight), o),
-			display->black, clipr, addpt(o, Pt(Nubwidth/2, 0)));
-
+		draw(m, rectaddpt(Rect(Nubwidth / 2, 0, Nubwidth / 2 + 1, Nubheight), o),
+		     display->black, clipr, addpt(o, Pt(Nubwidth / 2, 0)));
 }
 
 uint
@@ -951,26 +943,26 @@ drawnode(Tnode *t, Image *m, Image *clipr, Point o)
 
 	t->offset = o;
 
-	oo = Pt(o.x+Nubwidth+2, o.y);
-//	if(t->draw)
-//		dy = (*t->draw)(t, m, clipr, oo);
-//	else{
-		fs = nil;
-		if(t->str)
-			s = t->str;
+	oo = Pt(o.x + Nubwidth + 2, o.y);
+	//	if(t->draw)
+	//		dy = (*t->draw)(t, m, clipr, oo);
+	//	else{
+	fs = nil;
+	if(t->str)
+		s = t->str;
 	//	else if(t->strfn)
 	//		fs = s = (*t->strfn)(t);
-		else
-			s = "???";
-		dy = drawtext(s, m, clipr, oo);
-		free(fs);
-//	}
+	else
+		s = "???";
+	dy = drawtext(s, m, clipr, oo);
+	free(fs);
+	//	}
 
-	if(t->expanded){
+	if(t->expanded) {
 		if(t->nkid == -1 && t->expand)
 			(*t->expand)(t);
-		oo = Pt(o.x+Nubwidth+(Linewidth-Nubwidth)/2, o.y+dy);
-		for(i=0; i<t->nkid; i++)
+		oo = Pt(o.x + Nubwidth + (Linewidth - Nubwidth) / 2, o.y + dy);
+		for(i = 0; i < t->nkid; i++)
 			oo.y += drawnode(t->kid[i], m, clipr, oo);
 		dy = oo.y - o.y;
 	}
@@ -990,17 +982,17 @@ drawtree(Tree *t, Image *m, Rectangle r)
 	drawnode(t->root, m, t->clipr, p);
 }
 
-Tnode*
+Tnode *
 findnode(Tnode *t, Point p)
 {
 	int i;
 	Tnode *tt;
 
-	if(ptinrect(p, rectaddpt(Rect(0,0,Nubwidth, Nubheight), t->offset)))
+	if(ptinrect(p, rectaddpt(Rect(0, 0, Nubwidth, Nubheight), t->offset)))
 		return t;
 	if(!t->expanded)
 		return nil;
-	for(i=0; i<t->nkid; i++)
+	for(i = 0; i < t->nkid; i++)
 		if(tt = findnode(t->kid[i], p))
 			return tt;
 	return nil;
@@ -1020,22 +1012,22 @@ eresized(int new)
 {
 	Rectangle r;
 	r = screen->r;
-	if(new && getwindow(display, Refnone) < 0)
-		fprint(2,"can't reattach to window");
+	if(new &&getwindow(display, Refnone) < 0)
+		fprint(2, "can't reattach to window");
 	drawtree(&t, screen, screen->r);
 }
 
-enum
-{
-	Left = 1<<0,
-	Middle = 1<<1,
-	Right = 1<<2,
+enum {
+	Left = 1 << 0,
+	Middle = 1 << 1,
+	Right = 1 << 2,
 
 	MMenu = 2,
 };
 
-char *items[] = { "exit", 0 };
-enum { IExit, };
+char *items[] = {"exit", 0};
+enum { IExit,
+};
 
 Menu menu;
 
@@ -1051,15 +1043,17 @@ main(int argc, char **argv)
 	int Eready;
 	Atree *fs;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		showinactive = 1;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	switch(argc){
+	switch(argc) {
 	default:
 		usage();
 	case 1:
@@ -1071,7 +1065,7 @@ main(int argc, char **argv)
 	initdraw(0, "/lib/font/bit/lucidasans/unicode.8.font", "tree");
 	t.root = fs->root;
 	t.offset = ZP;
-	t.clipr = allocimage(display, Rect(0,0,1,1), GREY1, 1, DOpaque);
+	t.clipr = allocimage(display, Rect(0, 0, 1, 1), GREY1, 1, DOpaque);
 
 	eresized(0);
 	flushimage(display, 1);
@@ -1081,21 +1075,21 @@ main(int argc, char **argv)
 	menu.item = items;
 	menu.gen = 0;
 	menu.lasthit = 0;
-	if(fs->resizefd > 0){
-		Eready = 1<<3;
+	if(fs->resizefd > 0) {
+		Eready = 1 << 3;
 		estart(Eready, fs->resizefd, 1);
-	}else
+	} else
 		Eready = 0;
 
-	for(;;){
-		switch(n=eread(Emouse|Eready, &e)){
+	for(;;) {
+		switch(n = eread(Emouse | Eready, &e)) {
 		default:
-			if(Eready && n==Eready)
+			if(Eready && n == Eready)
 				eresized(0);
 			break;
 		case Emouse:
 			m = e.mouse;
-			switch(m.buttons){
+			switch(m.buttons) {
 			case Left:
 				op = t.offset;
 				p = m.xy;
@@ -1104,8 +1098,8 @@ main(int argc, char **argv)
 					p = m.xy;
 					eresized(0);
 					m = emouse();
-				}while(m.buttons == Left);
-				if(m.buttons){
+				} while(m.buttons == Left);
+				if(m.buttons) {
 					t.offset = op;
 					eresized(0);
 				}
@@ -1114,7 +1108,7 @@ main(int argc, char **argv)
 				n = emenuhit(MMenu, &m, &menu);
 				if(n == -1)
 					break;
-				switch(n){
+				switch(n) {
 				case IExit:
 					exits(nil);
 				}
@@ -1126,7 +1120,7 @@ main(int argc, char **argv)
 				if(m.buttons)
 					break;
 				tn = findnode(t.root, m.xy);
-				if(tn){
+				if(tn) {
 					tn->expanded = !tn->expanded;
 					eresized(0);
 				}

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-#define	N	256
+#define N 256
 
 int32_t
 strcspn(char *s, char *b)
@@ -19,12 +19,12 @@ strcspn(char *s, char *b)
 
 	memset(map, 0, N);
 	for(;;) {
-		map[*(uint8_t*)b] = 1;
+		map[*(uint8_t *)b] = 1;
 		if(*b++ == 0)
 			break;
 	}
 	os = s;
-	while(map[*(uint8_t*)s++] == 0)
+	while(map[*(uint8_t *)s++] == 0)
 		;
 	return s - os - 1;
 }

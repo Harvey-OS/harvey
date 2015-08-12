@@ -29,7 +29,7 @@
 #include "ghost.h"
 #include "ierrors.h"
 #include "scommon.h"
-#include "iscannum.h"		/* defines interface */
+#include "iscannum.h" /* defines interface */
 #include "scanchar.h"
 #include "store.h"
 
@@ -44,386 +44,383 @@
  * if not, set *psp to the first character beyond the number and return 1.
  */
 int
-scan_number(const byte * str, const byte * end, int sign,
-	    ref * pref, const byte ** psp, const bool PDFScanInvNum)
+scan_number(const byte *str, const byte *end, int sign,
+	    ref *pref, const byte **psp, const bool PDFScanInvNum)
 {
-    const byte *sp = str;
-#define GET_NEXT(cvar, sp, end_action)\
-  if (sp >= end) { end_action; } else cvar = *sp++
+	const byte *sp = str;
+#define GET_NEXT(cvar, sp, end_action) \
+	if(sp >= end) {                \
+		end_action;            \
+	} else                         \
+	cvar = *sp++
 
-    /*
+/*
      * Powers of 10 up to 6 can be represented accurately as
      * a single-precision float.
      */
 #define NUM_POWERS_10 6
-    static const float powers_10[NUM_POWERS_10 + 1] = {
-	1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6
-    };
-    static const double neg_powers_10[NUM_POWERS_10 + 1] = {
-	1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6
-    };
+	static const float powers_10[NUM_POWERS_10 + 1] = {
+	    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6};
+	static const double neg_powers_10[NUM_POWERS_10 + 1] = {
+	    1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6};
 
-    int ival;
-    int32_t lval;
-    double dval;
-    int exp10;
-    int code = 0;
-    int c, d;
-    const byte *const decoder = scan_char_decoder;
-#define IS_DIGIT(d, c)\
-  ((d = decoder[c]) < 10)
-#define WOULD_OVERFLOW(val, d, maxv)\
-  (val >= maxv / 10 && (val > maxv / 10 || d > (int)(maxv % 10)))
+	int ival;
+	int32_t lval;
+	double dval;
+	int exp10;
+	int code = 0;
+	int c, d;
+	const byte *const decoder = scan_char_decoder;
+#define IS_DIGIT(d, c) \
+	((d = decoder[c]) < 10)
+#define WOULD_OVERFLOW(val, d, maxv) \
+	(val >= maxv / 10 && (val > maxv / 10 || d > (int)(maxv % 10)))
 
-    GET_NEXT(c, sp, return_error(e_syntaxerror));
-    if (!IS_DIGIT(d, c)) {
-	if (c != '.')
-	    return_error(e_syntaxerror);
-	/* Might be a number starting with '.'. */
 	GET_NEXT(c, sp, return_error(e_syntaxerror));
-	if (!IS_DIGIT(d, c))
-	    return_error(e_syntaxerror);
-	ival = 0;
-	goto i2r;
-    }
-    /* Accumulate an integer in ival. */
-    /* Do up to 4 digits without a loop, */
-    /* since we know this can't overflow and since */
-    /* most numbers have 4 (integer) digits or fewer. */
-    ival = d;
-    if (end - sp >= 3) {	/* just check once */
-	if (!IS_DIGIT(d, (c = *sp))) {
-	    sp++;
-	    goto ind;
+	if(!IS_DIGIT(d, c)) {
+		if(c != '.')
+			return_error(e_syntaxerror);
+		/* Might be a number starting with '.'. */
+		GET_NEXT(c, sp, return_error(e_syntaxerror));
+		if(!IS_DIGIT(d, c))
+			return_error(e_syntaxerror);
+		ival = 0;
+		goto i2r;
 	}
-	ival = ival * 10 + d;
-	if (!IS_DIGIT(d, (c = sp[1]))) {
-	    sp += 2;
-	    goto ind;
+	/* Accumulate an integer in ival. */
+	/* Do up to 4 digits without a loop, */
+	/* since we know this can't overflow and since */
+	/* most numbers have 4 (integer) digits or fewer. */
+	ival = d;
+	if(end - sp >= 3) { /* just check once */
+		if(!IS_DIGIT(d, (c = *sp))) {
+			sp++;
+			goto ind;
+		}
+		ival = ival * 10 + d;
+		if(!IS_DIGIT(d, (c = sp[1]))) {
+			sp += 2;
+			goto ind;
+		}
+		ival = ival * 10 + d;
+		sp += 3;
+		if(!IS_DIGIT(d, (c = sp[-1])))
+			goto ind;
+		ival = ival * 10 + d;
 	}
-	ival = ival * 10 + d;
-	sp += 3;
-	if (!IS_DIGIT(d, (c = sp[-1])))
-	    goto ind;
-	ival = ival * 10 + d;
-    }
-    for (;; ival = ival * 10 + d) {
-	GET_NEXT(c, sp, goto iret);
-	if (!IS_DIGIT(d, c))
-	    break;
-	if (WOULD_OVERFLOW(ival, d, max_int))
-	    goto i2l;
-    }
-  ind:				/* We saw a non-digit while accumulating an integer in ival. */
-    switch (c) {
+	for(;; ival = ival * 10 + d) {
+		GET_NEXT(c, sp, goto iret);
+		if(!IS_DIGIT(d, c))
+			break;
+		if(WOULD_OVERFLOW(ival, d, max_int))
+			goto i2l;
+	}
+ind: /* We saw a non-digit while accumulating an integer in ival. */
+	switch(c) {
 	case '.':
-	    GET_NEXT(c, sp, c = EOFC);
-	    goto i2r;
+		GET_NEXT(c, sp, c = EOFC);
+		goto i2r;
 	default:
-	    *psp = sp;
-	    code = 1;
-	    break;
+		*psp = sp;
+		code = 1;
+		break;
 	case 'e':
 	case 'E':
-	    if (sign < 0)
-		ival = -ival;
-	    dval = ival;
-	    exp10 = 0;
-	    goto fe;
-	case '#':
-	    {
+		if(sign < 0)
+			ival = -ival;
+		dval = ival;
+		exp10 = 0;
+		goto fe;
+	case '#': {
 		const uint radix = (uint)ival;
 		uint32_t uval = 0, lmax;
 
-		if (sign || radix < min_radix || radix > max_radix)
-		    return_error(e_syntaxerror);
+		if(sign || radix < min_radix || radix > max_radix)
+			return_error(e_syntaxerror);
 		/* Avoid multiplies for power-of-2 radix. */
-		if (!(radix & (radix - 1))) {
-		    int shift;
+		if(!(radix & (radix - 1))) {
+			int shift;
 
-		    switch (radix) {
+			switch(radix) {
 			case 2:
-			    shift = 1, lmax = max_ulong >> 1;
-			    break;
+				shift = 1, lmax = max_ulong >> 1;
+				break;
 			case 4:
-			    shift = 2, lmax = max_ulong >> 2;
-			    break;
+				shift = 2, lmax = max_ulong >> 2;
+				break;
 			case 8:
-			    shift = 3, lmax = max_ulong >> 3;
-			    break;
+				shift = 3, lmax = max_ulong >> 3;
+				break;
 			case 16:
-			    shift = 4, lmax = max_ulong >> 4;
-			    break;
+				shift = 4, lmax = max_ulong >> 4;
+				break;
 			case 32:
-			    shift = 5, lmax = max_ulong >> 5;
-			    break;
-			default:	/* can't happen */
-			    return_error(e_rangecheck);
-		    }
-		    for (;; uval = (uval << shift) + d) {
-			GET_NEXT(c, sp, break);
-			d = decoder[c];
-			if (d >= radix) {
-			    *psp = sp;
-			    code = 1;
-			    break;
+				shift = 5, lmax = max_ulong >> 5;
+				break;
+			default: /* can't happen */
+				return_error(e_rangecheck);
 			}
-			if (uval > lmax)
-			    return_error(e_limitcheck);
-		    }
+			for(;; uval = (uval << shift) + d) {
+				GET_NEXT(c, sp, break);
+				d = decoder[c];
+				if(d >= radix) {
+					*psp = sp;
+					code = 1;
+					break;
+				}
+				if(uval > lmax)
+					return_error(e_limitcheck);
+			}
 		} else {
-		    int lrem = max_ulong % radix;
+			int lrem = max_ulong % radix;
 
-		    lmax = max_ulong / radix;
-		    for (;; uval = uval * radix + d) {
-			GET_NEXT(c, sp, break);
-			d = decoder[c];
-			if (d >= radix) {
-			    *psp = sp;
-			    code = 1;
-			    break;
+			lmax = max_ulong / radix;
+			for(;; uval = uval * radix + d) {
+				GET_NEXT(c, sp, break);
+				d = decoder[c];
+				if(d >= radix) {
+					*psp = sp;
+					code = 1;
+					break;
+				}
+				if(uval >= lmax &&
+				   (uval > lmax || d > lrem))
+					return_error(e_limitcheck);
 			}
-			if (uval >= lmax &&
-			    (uval > lmax || d > lrem)
-			    )
-			    return_error(e_limitcheck);
-		    }
 		}
 		make_int(pref, uval);
 		return code;
-	    }
-    }
-iret:
-    make_int(pref, (sign < 0 ? -ival : ival));
-    return code;
-
-    /* Accumulate a long in lval. */
-i2l:
-    for (lval = ival;;) {
-	if (WOULD_OVERFLOW(lval, d, max_long)) {
-	    /* Make a special check for entering the smallest */
-	    /* (most negative) integer. */
-	    if (lval == max_long / 10 &&
-		d == (int)(max_long % 10) + 1 && sign < 0
-		) {
-		GET_NEXT(c, sp, c = EOFC);
-		dval = -(double)min_long;
-		if (c == 'e' || c == 'E') {
-		    exp10 = 0;
-		    goto fs;
-		} else if (c == '.') {
-                    GET_NEXT(c, sp, c = EOFC);
-		    exp10 = 0;
-		    goto fd;
-                } else if (!IS_DIGIT(d, c)) {
-		    lval = min_long;
-		    break;
-		}
-	    } else
-		dval = lval;
-	    goto l2d;
 	}
-	lval = lval * 10 + d;
-	GET_NEXT(c, sp, goto lret);
-	if (!IS_DIGIT(d, c))
-	    break;
-    }
-    switch (c) {
+	}
+iret:
+	make_int(pref, (sign < 0 ? -ival : ival));
+	return code;
+
+/* Accumulate a long in lval. */
+i2l:
+	for(lval = ival;;) {
+		if(WOULD_OVERFLOW(lval, d, max_long)) {
+			/* Make a special check for entering the smallest */
+			/* (most negative) integer. */
+			if(lval == max_long / 10 &&
+			   d == (int)(max_long % 10) + 1 && sign < 0) {
+				GET_NEXT(c, sp, c = EOFC);
+				dval = -(double)min_long;
+				if(c == 'e' || c == 'E') {
+					exp10 = 0;
+					goto fs;
+				} else if(c == '.') {
+					GET_NEXT(c, sp, c = EOFC);
+					exp10 = 0;
+					goto fd;
+				} else if(!IS_DIGIT(d, c)) {
+					lval = min_long;
+					break;
+				}
+			} else
+				dval = lval;
+			goto l2d;
+		}
+		lval = lval * 10 + d;
+		GET_NEXT(c, sp, goto lret);
+		if(!IS_DIGIT(d, c))
+			break;
+	}
+	switch(c) {
 	case '.':
-	    GET_NEXT(c, sp, c = EOFC);
-	    exp10 = 0;
-	    goto l2r;
+		GET_NEXT(c, sp, c = EOFC);
+		exp10 = 0;
+		goto l2r;
 	case EOFC:
-	    break;
+		break;
 	default:
-	    *psp = sp;
-	    code = 1;
-	    break;
+		*psp = sp;
+		code = 1;
+		break;
 	case 'e':
 	case 'E':
-	    exp10 = 0;
-	    goto le;
+		exp10 = 0;
+		goto le;
 	case '#':
-	    return_error(e_syntaxerror);
-    }
+		return_error(e_syntaxerror);
+	}
 lret:
-    make_int(pref, (sign < 0 ? -lval : lval));
-    return code;
+	make_int(pref, (sign < 0 ? -lval : lval));
+	return code;
 
-    /* Accumulate a double in dval. */
+/* Accumulate a double in dval. */
 l2d:
-    exp10 = 0;
-    for (;;) {
-	dval = dval * 10 + d;
-	GET_NEXT(c, sp, c = EOFC);
-	if (!IS_DIGIT(d, c))
-	    break;
-    }
-    switch (c) {
+	exp10 = 0;
+	for(;;) {
+		dval = dval * 10 + d;
+		GET_NEXT(c, sp, c = EOFC);
+		if(!IS_DIGIT(d, c))
+			break;
+	}
+	switch(c) {
 	case '.':
-	    GET_NEXT(c, sp, c = EOFC);
-	    exp10 = 0;
-	    goto fd;
+		GET_NEXT(c, sp, c = EOFC);
+		exp10 = 0;
+		goto fd;
 	default:
-	    *psp = sp;
-	    code = 1;
-	    /* falls through */
+		*psp = sp;
+		code = 1;
+	/* falls through */
 	case EOFC:
-	    if (sign < 0)
-		dval = -dval;
-	    goto rret;
+		if(sign < 0)
+			dval = -dval;
+		goto rret;
 	case 'e':
 	case 'E':
-	    exp10 = 0;
-	    goto fs;
+		exp10 = 0;
+		goto fs;
 	case '#':
-	    return_error(e_syntaxerror);
-    }
+		return_error(e_syntaxerror);
+	}
 
-    /* We saw a '.' while accumulating an integer in ival. */
+/* We saw a '.' while accumulating an integer in ival. */
 i2r:
-    exp10 = 0;
-    while (IS_DIGIT(d, c) || c == '-') {
-	/*
+	exp10 = 0;
+	while(IS_DIGIT(d, c) || c == '-') {
+		/*
 	 * PostScript gives an error on numbers with a '-' following a '.'
 	 * Adobe Acrobat Reader (PDF) apparently doesn't treat this as an
 	 * error. Experiments show that the numbers following the '-' are
 	 * ignored, so we swallow the fractional part. PDFScanInvNum enables
 	 * this compatibility kloodge.
 	 */
-	if (c == '-') {
-	    if (!PDFScanInvNum)
-		break;
-	    do {
+		if(c == '-') {
+			if(!PDFScanInvNum)
+				break;
+			do {
+				GET_NEXT(c, sp, c = EOFC);
+			} while(IS_DIGIT(d, c));
+			break;
+		}
+		if(WOULD_OVERFLOW(ival, d, max_int)) {
+			lval = ival;
+			goto l2r;
+		}
+		ival = ival * 10 + d;
+		exp10--;
 		GET_NEXT(c, sp, c = EOFC);
-	    } while (IS_DIGIT(d, c));
-	    break;
 	}
-	if (WOULD_OVERFLOW(ival, d, max_int)) {
-	    lval = ival;
-	    goto l2r;
+	if(sign < 0)
+		ival = -ival;
+	/* Take a shortcut for the common case */
+	if(!(c == 'e' || c == 'E' || exp10 < -NUM_POWERS_10)) { /* Check for trailing garbage */
+		if(c != EOFC)
+			*psp = sp, code = 1;
+		make_real(pref, ival * neg_powers_10[-exp10]);
+		return code;
 	}
-	ival = ival * 10 + d;
-	exp10--;
-	GET_NEXT(c, sp, c = EOFC);
-    }
-    if (sign < 0)
-	ival = -ival;
-    /* Take a shortcut for the common case */
-    if (!(c == 'e' || c == 'E' || exp10 < -NUM_POWERS_10)) {	/* Check for trailing garbage */
-	if (c != EOFC)
-	    *psp = sp, code = 1;
-	make_real(pref, ival * neg_powers_10[-exp10]);
-	return code;
-    }
-    dval = ival;
-    goto fe;
+	dval = ival;
+	goto fe;
 
-    /* We saw a '.' while accumulating a long in lval. */
+/* We saw a '.' while accumulating a long in lval. */
 l2r:
-    while (IS_DIGIT(d, c) || c == '-') {
-	/* Handle bogus '-' following '.' as in i2r above.	*/
-	if (c == '-') {
-	    if (!PDFScanInvNum)
-		break;
-	    do {
+	while(IS_DIGIT(d, c) || c == '-') {
+		/* Handle bogus '-' following '.' as in i2r above.	*/
+		if(c == '-') {
+			if(!PDFScanInvNum)
+				break;
+			do {
+				GET_NEXT(c, sp, c = EOFC);
+			} while(IS_DIGIT(d, c));
+			break;
+		}
+		if(WOULD_OVERFLOW(lval, d, max_long)) {
+			dval = lval;
+			goto fd;
+		}
+		lval = lval * 10 + d;
+		exp10--;
 		GET_NEXT(c, sp, c = EOFC);
-	    } while (IS_DIGIT(d, c));
-	    break;
 	}
-	if (WOULD_OVERFLOW(lval, d, max_long)) {
-	    dval = lval;
-	    goto fd;
-	}
-	lval = lval * 10 + d;
-	exp10--;
-	GET_NEXT(c, sp, c = EOFC);
-    }
 le:
-    if (sign < 0)
-	lval = -lval;
-    dval = lval;
-    goto fe;
+	if(sign < 0)
+		lval = -lval;
+	dval = lval;
+	goto fe;
 
-    /* Now we are accumulating a double in dval. */
+/* Now we are accumulating a double in dval. */
 fd:
-    while (IS_DIGIT(d, c)) {
-	dval = dval * 10 + d;
-	exp10--;
-	GET_NEXT(c, sp, c = EOFC);
-    }
+	while(IS_DIGIT(d, c)) {
+		dval = dval * 10 + d;
+		exp10--;
+		GET_NEXT(c, sp, c = EOFC);
+	}
 fs:
-    if (sign < 0)
-	dval = -dval;
+	if(sign < 0)
+		dval = -dval;
 fe:
-    /* Now dval contains the value, negated if necessary. */
-    switch (c) {
+	/* Now dval contains the value, negated if necessary. */
+	switch(c) {
 	case 'e':
-	case 'E':
-	    {			/* Check for a following exponent. */
+	case 'E': { /* Check for a following exponent. */
 		int esign = 0;
 		int iexp;
 
 		GET_NEXT(c, sp, return_error(e_syntaxerror));
-		switch (c) {
-		    case '-':
+		switch(c) {
+		case '-':
 			esign = 1;
-		    case '+':
+		case '+':
 			GET_NEXT(c, sp, return_error(e_syntaxerror));
 		}
 		/* Scan the exponent.  We limit it arbitrarily to 999. */
-		if (!IS_DIGIT(d, c))
-		    return_error(e_syntaxerror);
+		if(!IS_DIGIT(d, c))
+			return_error(e_syntaxerror);
 		iexp = d;
-		for (;; iexp = iexp * 10 + d) {
-		    GET_NEXT(c, sp, break);
-		    if (!IS_DIGIT(d, c)) {
-			*psp = sp;
-			code = 1;
-			break;
-		    }
-		    if (iexp > 99)
-			return_error(e_limitcheck);
+		for(;; iexp = iexp * 10 + d) {
+			GET_NEXT(c, sp, break);
+			if(!IS_DIGIT(d, c)) {
+				*psp = sp;
+				code = 1;
+				break;
+			}
+			if(iexp > 99)
+				return_error(e_limitcheck);
 		}
-		if (esign)
-		    exp10 -= iexp;
+		if(esign)
+			exp10 -= iexp;
 		else
-		    exp10 += iexp;
+			exp10 += iexp;
 		break;
-	    }
+	}
 	default:
-	    *psp = sp;
-	    code = 1;
+		*psp = sp;
+		code = 1;
 	case EOFC:
-	    ;
-    }
-    /* Compute dval * 10^exp10. */
-    if (exp10 > 0) {
-	while (exp10 > NUM_POWERS_10)
-	    dval *= powers_10[NUM_POWERS_10],
-		exp10 -= NUM_POWERS_10;
-	if (exp10 > 0)
-	    dval *= powers_10[exp10];
-    } else if (exp10 < 0) {
-	while (exp10 < -NUM_POWERS_10)
-	    dval /= powers_10[NUM_POWERS_10],
-		exp10 += NUM_POWERS_10;
-	if (exp10 < 0)
-	    dval /= powers_10[-exp10];
-    }
-    /*
+		;
+	}
+	/* Compute dval * 10^exp10. */
+	if(exp10 > 0) {
+		while(exp10 > NUM_POWERS_10)
+			dval *= powers_10[NUM_POWERS_10],
+			    exp10 -= NUM_POWERS_10;
+		if(exp10 > 0)
+			dval *= powers_10[exp10];
+	} else if(exp10 < 0) {
+		while(exp10 < -NUM_POWERS_10)
+			dval /= powers_10[NUM_POWERS_10],
+			    exp10 += NUM_POWERS_10;
+		if(exp10 < 0)
+			dval /= powers_10[-exp10];
+	}
+	/*
      * Check for an out-of-range result.  Currently we don't check for
      * absurdly large numbers of digits in the accumulation loops,
      * but we should.
      */
-    if (dval >= 0) {
-	if (dval > MAX_FLOAT)
-	    return_error(e_limitcheck);
-    } else {
-	if (dval < -MAX_FLOAT)
-	    return_error(e_limitcheck);
-    }
+	if(dval >= 0) {
+		if(dval > MAX_FLOAT)
+			return_error(e_limitcheck);
+	} else {
+		if(dval < -MAX_FLOAT)
+			return_error(e_limitcheck);
+	}
 rret:
-    make_real(pref, dval);
-    return code;
+	make_real(pref, dval);
+	return code;
 }

@@ -27,7 +27,7 @@
 /* VM control user parameter procedures */
 
 #ifndef ivmem2_INCLUDED
-#  define ivmem2_INCLUDED
+#define ivmem2_INCLUDED
 
 /* Exported by zvmem2.c for zusparam.c */
 int set_vm_reclaim(i_ctx_t *, long);

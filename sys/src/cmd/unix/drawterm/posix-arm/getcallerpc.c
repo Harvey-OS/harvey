@@ -13,5 +13,5 @@
 uintptr
 getcallerpc(void *a)
 {
-	return ((uintptr*)a)[-1];
+	return ((uintptr *)a)[-1];
 }

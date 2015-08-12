@@ -9,22 +9,21 @@
 
 #include "ssh.h"
 
-struct CipherState
-{
+struct CipherState {
 	DESstate enc3des[3];
 	DESstate dec3des[3];
 };
 
-static CipherState*
+static CipherState *
 init3des(Conn *c, int)
 {
 	int i;
 	CipherState *cs;
 
 	cs = emalloc(sizeof(CipherState));
-	for(i=0; i<3; i++){
-		setupDESstate(&cs->enc3des[i], c->sesskey+8*i, nil);
-		setupDESstate(&cs->dec3des[i], c->sesskey+8*i, nil);
+	for(i = 0; i < 3; i++) {
+		setupDESstate(&cs->enc3des[i], c->sesskey + 8 * i, nil);
+		setupDESstate(&cs->dec3des[i], c->sesskey + 8 * i, nil);
 	}
 	return cs;
 }
@@ -46,11 +45,10 @@ decrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
 }
 
 Cipher cipher3des =
-{
-	SSH_CIPHER_3DES,
-	"3des",
-	init3des,
-	encrypt3des,
-	decrypt3des,
+    {
+     SSH_CIPHER_3DES,
+     "3des",
+     init3des,
+     encrypt3des,
+     decrypt3des,
 };
-

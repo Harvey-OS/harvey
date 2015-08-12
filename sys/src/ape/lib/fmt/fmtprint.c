@@ -26,7 +26,6 @@
 #include "fmt.h"
 #include "fmtdef.h"
 
-
 /*
  * format a string into the output buffer
  * designed for formats which themselves call fmt
@@ -42,4 +41,3 @@ fmtprint(Fmt *f, char *fmt, ...)
 	va_end(va);
 	return n;
 }
-

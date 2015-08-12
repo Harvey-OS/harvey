@@ -14,21 +14,21 @@
  *	D. P. Mitchell & J. A. Reeds
  */
 enum {
-	LEN	= 607,
-	TAP	= 273,
-	MASK	= 0x7fffffffL,
-	A	= 48271,
-	M	= 2147483647,
-	Q	= 44488,
-	R	= 3399,
+	LEN = 607,
+	TAP = 273,
+	MASK = 0x7fffffffL,
+	A = 48271,
+	M = 2147483647,
+	Q = 44488,
+	R = 3399,
 };
 
-#define	NORM	(1.0/(1.0+MASK))
+#define NORM (1.0 / (1.0 + MASK))
 
-static	uint32_t	rng_vec[LEN];
-static	uint32_t*	rng_tap = rng_vec;
-static	uint32_t*	rng_feed = 0;
-static	Lock	lk;
+static uint32_t rng_vec[LEN];
+static uint32_t *rng_tap = rng_vec;
+static uint32_t *rng_feed = 0;
+static Lock lk;
 
 static void
 isrand(int32_t seed)
@@ -37,7 +37,7 @@ isrand(int32_t seed)
 	int i;
 
 	rng_tap = rng_vec;
-	rng_feed = rng_vec+LEN-TAP;
+	rng_feed = rng_vec + LEN - TAP;
 	seed %= M;
 	if(seed < 0)
 		seed += M;
@@ -50,7 +50,7 @@ isrand(int32_t seed)
 	for(i = -20; i < LEN; i++) {
 		hi = x / Q;
 		lo = x % Q;
-		x = A*lo - R*hi;
+		x = A * lo - R * hi;
 		if(x < 0)
 			x += M;
 		if(i >= 0)

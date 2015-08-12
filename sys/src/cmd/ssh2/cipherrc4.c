@@ -20,7 +20,7 @@ struct CipherState {
 	RC4state state;
 };
 
-static CipherState*
+static CipherState *
 initrc4(Conn *c, int dir)
 {
 	CipherState *cs;
@@ -46,10 +46,9 @@ decryptrc4(CipherState *cs, uint8_t *buf, int nbuf)
 }
 
 Cipher cipherrc4 = {
-	"arcfour",
-	8,
-	initrc4,
-	encryptrc4,
-	decryptrc4,
+    "arcfour",
+    8,
+    initrc4,
+    encryptrc4,
+    decryptrc4,
 };
-

@@ -30,13 +30,15 @@ main(int argc, char **argv)
 	Proc *p;
 
 	ofile = "/fd/1";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'o':
 		ofile = ARGF();
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 1)
 		usage();
@@ -62,9 +64,9 @@ main(int argc, char **argv)
 		term = "unknown terminal type";
 
 	Bprint(b, "process snapshot %ld %s@%s %s %ld \"%s\"\n",
-		time(0), user, sys, arch, d->mtime, term);
+	       time(0), user, sys, arch, d->mtime, term);
 	me = getpid();
-	for(i=0; i<argc; i++) {
+	for(i = 0; i < argc; i++) {
 		if((pid = atol(argv[i])) == me)
 			fprint(2, "warning: will not snapshot self\n");
 		else if(p = snap(pid, 1))

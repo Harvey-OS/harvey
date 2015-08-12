@@ -27,9 +27,9 @@
 /* I/O interface for command lists */
 
 #ifndef gxclio_INCLUDED
-#  define gxclio_INCLUDED
+#define gxclio_INCLUDED
 
-#include "gp.h"			/* for gp_file_name_sizeof */
+#include "gp.h" /* for gp_file_name_sizeof */
 
 /*
  * There are two implementations of the I/O interface for command lists --
@@ -39,7 +39,7 @@
  * API between the command list code proper and its I/O interface.
  */
 
-typedef void *clist_file_ptr;	/* We can't do any better than this. */
+typedef void *clist_file_ptr; /* We can't do any better than this. */
 
 /* ---------------- Open/close/unlink ---------------- */
 
@@ -50,8 +50,8 @@ typedef void *clist_file_ptr;	/* We can't do any better than this. */
  * Mode "r" with *fname = 0 is an error.
  */
 int clist_fopen(char fname[gp_file_name_sizeof], const char *fmode,
-		clist_file_ptr * pcf,
-		gs_memory_t * mem, gs_memory_t *data_mem,
+		clist_file_ptr *pcf,
+		gs_memory_t *mem, gs_memory_t *data_mem,
 		bool ok_to_compress);
 
 /*

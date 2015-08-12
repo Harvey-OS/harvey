@@ -28,7 +28,7 @@
 /* Requires ipacked.h, istack.h */
 
 #ifndef iparray_INCLUDED
-#  define iparray_INCLUDED
+#define iparray_INCLUDED
 
 /*
  * The only reason to put this in a separate header is that it requires

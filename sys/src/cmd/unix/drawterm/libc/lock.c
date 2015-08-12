@@ -20,7 +20,7 @@ lockinit(Lock *lk)
 	pthread_mutexattr_t attr;
 
 	pthread_mutex_lock(&initmutex);
-	if(lk->init == 0){
+	if(lk->init == 0) {
 		pthread_mutexattr_init(&attr);
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
 		pthread_mutex_init(&lk->mutex, &attr);
@@ -61,7 +61,7 @@ unlock(Lock *lk)
 		abort();
 }
 
-#else 
+#else
 
 /* old, non-pthread systems */
 
@@ -81,19 +81,19 @@ lock(Lock *lk)
 		return;
 
 	/* for multi processor machines */
-	for(i=0; i<100; i++)
+	for(i = 0; i < 100; i++)
 		if(canlock(lk))
 			return;
 
-	for(i=0; i<100; i++) {
+	for(i = 0; i < 100; i++) {
 		osyield();
 		if(canlock(lk))
 			return;
 	}
 
 	/* looking bad - make sure it is not a priority problem */
-	for(i=0; i<12; i++) {
-		osmsleep(1<<i);
+	for(i = 0; i < 12; i++) {
+		osmsleep(1 << i);
 		if(canlock(lk))
 			return;
 	}

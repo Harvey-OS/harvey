@@ -11,13 +11,13 @@
 #include <mp.h>
 #include <libsec.h>
 
-mpint*
+mpint *
 egencrypt(EGpub *pub, mpint *in, mpint *out)
 {
 	mpint *m, *k, *gamma, *delta, *pm1;
 	mpint *p = pub->p, *alpha = pub->alpha;
 	int plen = mpsignif(p);
-	int shift = ((plen+Dbits)/Dbits)*Dbits;
+	int shift = ((plen + Dbits) / Dbits) * Dbits;
 	// in libcrypt version, (int)(LENGTH(pub->p)*sizeof(NumType)*CHARBITS);
 
 	if(out == nil)
@@ -27,7 +27,7 @@ egencrypt(EGpub *pub, mpint *in, mpint *out)
 	gamma = mpnew(0);
 	delta = mpnew(0);
 	mpmod(in, p, m);
-	while(1){
+	while(1) {
 		k = mprand(plen, genrandom, nil);
 		if((mpcmp(mpone, k) <= 0) && (mpcmp(k, pm1) < 0))
 			break;

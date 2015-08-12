@@ -21,18 +21,18 @@
 #include <libsec.h>
 #include "iso9660.h"
 
-static int32_t mode(Direc*, int);
-static int32_t nlink(Direc*);
-static uint32_t suspdirflags(Direc*, int);
+static int32_t mode(Direc *, int);
+static int32_t nlink(Direc *);
+static uint32_t suspdirflags(Direc *, int);
 static uint32_t CputsuspCE(Cdimg *cd, int64_t offset);
-static int CputsuspER(Cdimg*, int);
-static int CputsuspRR(Cdimg*, int, int);
-static int CputsuspSP(Cdimg*, int);
+static int CputsuspER(Cdimg *, int);
+static int CputsuspRR(Cdimg *, int, int);
+static int CputsuspSP(Cdimg *, int);
 //static int CputsuspST(Cdimg*, int);
-static int Cputrripname(Cdimg*, char*, int, char*, int);
-static int CputrripSL(Cdimg*, int, int, char*, int);
-static int CputrripPX(Cdimg*, Direc*, int, int);
-static int CputrripTF(Cdimg*, Direc*, int, int);
+static int Cputrripname(Cdimg *, char *, int, char *, int);
+static int CputrripSL(Cdimg *, int, int, char *, int);
+static int CputrripPX(Cdimg *, Direc *, int, int);
+static int CputrripTF(Cdimg *, Direc *, int, int);
 
 /*
  * Patch the length field in a CE record.
@@ -73,22 +73,22 @@ setcelen(Cdimg *cd, int64_t woffset, uint32_t len)
  */
 typedef struct Cbuf Cbuf;
 struct Cbuf {
-	int	len;		/* written so far, of 254-28 */
-	uint64_t	ceoffset;
+	int len; /* written so far, of 254-28 */
+	uint64_t ceoffset;
 };
 
 static int
 freespace(Cbuf *cp)
 {
-	return (254-28) - cp->len;
+	return (254 - 28) - cp->len;
 }
 
-static Cbuf*
+static Cbuf *
 ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 {
 	uint64_t end;
 
-	if(co->len+n <= 254-28) {
+	if(co->len + n <= 254 - 28) {
 		co->len += n;
 		return co;
 	}
@@ -106,14 +106,14 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
  	 * write a CE record to finish it.  Unfortunately we need to 
 	 * figure out which block will be next before we write the CE.
 	 */
-	end = Cwoffset(cd)+28;
+	end = Cwoffset(cd) + 28;
 
 	/*
 	 * if we're in a continuation blockette, update rrcontin.
 	 * also, write our length into the field of the CE record
 	 * that points at us.
 	 */
-	if(cd->rrcontin+co->len == end) {
+	if(cd->rrcontin + co->len == end) {
 		assert(cd->rrcontin != 0);
 		assert(co == cn);
 		cd->rrcontin += co->len;
@@ -127,8 +127,7 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 	 * rrcontin = 0 (mod Blocksize) means we just finished
 	 * one, not that we've just started one.
 	 */
-	if(cd->rrcontin%Blocksize == 0
-	|| cd->rrcontin/Blocksize != (cd->rrcontin+256)/Blocksize) {
+	if(cd->rrcontin % Blocksize == 0 || cd->rrcontin / Blocksize != (cd->rrcontin + 256) / Blocksize) {
 		cd->rrcontin = (int64_t)cd->nextblock * Blocksize;
 		cd->nextblock++;
 	}
@@ -143,7 +142,7 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 
 	return cn;
 }
-	
+
 /*
  * Put down the name, but we might need to break it
  * into chunks so that each chunk fits in 254-28-5 bytes.
@@ -152,7 +151,7 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
  * The new Plan 9 format uses strings of this form too, 
  * since they're already there.
  */
-Cbuf*
+Cbuf *
 Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, char *nm, char *p, int flags,
 	   int dowrite)
 {
@@ -160,17 +159,17 @@ Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, char *nm, char *p, int flags,
 	int free;
 
 	for(; p[0] != '\0'; p = q) {
-		cp = ensurespace(cd, 5+1, cp, cn, dowrite);
-		cp->len -= 5+1;
+		cp = ensurespace(cd, 5 + 1, cp, cn, dowrite);
+		cp->len -= 5 + 1;
 		free = freespace(cp);
-		assert(5+1 <= free && free < 256);
+		assert(5 + 1 <= free && free < 256);
 
-		strncpy(buf, p, free-5);
-		buf[free-5] = '\0';
-		q = p+strlen(buf);
+		strncpy(buf, p, free - 5);
+		buf[free - 5] = '\0';
+		q = p + strlen(buf);
 		p = buf;
 
-		ensurespace(cd, 5+strlen(p), cp, nil, dowrite);	/* nil: better not use this. */
+		ensurespace(cd, 5 + strlen(p), cp, nil, dowrite); /* nil: better not use this. */
 		Cputrripname(cd, nm, flags | (q[0] ? NMcontinue : 0), p, dowrite);
 	}
 	return cp;
@@ -188,7 +187,7 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 	Cbuf cn, co, *cp;
 
 	assert(cd != nil);
-	assert((initlen&1) == 0);
+	assert((initlen & 1) == 0);
 
 	if(dot == DTroot)
 		return 0;
@@ -197,10 +196,10 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 
 	o = Cwoffset(cd);
 
-	assert(dowrite==0 || Cwoffset(cd) == o+co.len-initlen);
+	assert(dowrite == 0 || Cwoffset(cd) == o + co.len - initlen);
 	cp = &co;
 
-	if (dot == DTrootdot) {
+	if(dot == DTrootdot) {
 		m = CputsuspSP(cd, 0);
 		cp = ensurespace(cd, m, cp, &cn, dowrite);
 		CputsuspSP(cd, dowrite);
@@ -221,7 +220,7 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 		what |= RR_SL;
 
 	m = CputsuspRR(cd, what, 0);
-	cp = ensurespace(cd, m, cp, &cn, dowrite);	
+	cp = ensurespace(cd, m, cp, &cn, dowrite);
 	CputsuspRR(cd, what, dowrite);
 
 	if(what & RR_PX) {
@@ -239,7 +238,7 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 			p = ".";
 
 		flags = suspdirflags(d, dot);
-		assert(dowrite==0 || cp != &co || Cwoffset(cd) == o+co.len-initlen);
+		assert(dowrite == 0 || cp != &co || Cwoffset(cd) == o + co.len - initlen);
 		cp = Cputstring(cd, cp, &cn, "NM", p, flags, dowrite);
 	}
 
@@ -251,12 +250,12 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 	 * only one element per SL block, wasting 6 bytes per element.
 	 */
 	if(what & RR_SL) {
-		for(path=d->symlink; path[0] != '\0'; path=nextpath) {
+		for(path = d->symlink; path[0] != '\0'; path = nextpath) {
 			/* break off one component */
 			if((nextpath = strchr(path, '/')) == nil)
-				nextpath = path+strlen(path);
-			strncpy(buf0, path, nextpath-path);
-			buf0[nextpath-path] = '\0';
+				nextpath = path + strlen(path);
+			strncpy(buf0, path, nextpath - path);
+			buf0[nextpath - path] = '\0';
 			if(nextpath[0] == '/')
 				nextpath++;
 			p = buf0;
@@ -274,39 +273,39 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 			/* the do-while handles the empty string properly */
 			do {
 				/* must have room for at least 1 byte of name */
-				cp = ensurespace(cd, 7+1, cp, &cn, dowrite);
-				cp->len -= 7+1;
+				cp = ensurespace(cd, 7 + 1, cp, &cn, dowrite);
+				cp->len -= 7 + 1;
 				free = freespace(cp);
-				assert(7+1 <= free && free < 256);
+				assert(7 + 1 <= free && free < 256);
 
-				strncpy(buf, p, free-7);
-				buf[free-7] = '\0';
-				q = p+strlen(buf);
+				strncpy(buf, p, free - 7);
+				buf[free - 7] = '\0';
+				q = p + strlen(buf);
 				p = buf;
 
 				/* nil: better not need to expand */
-				assert(7+strlen(p) <= free);
-				ensurespace(cd, 7+strlen(p), cp, nil, dowrite);
+				assert(7 + strlen(p) <= free);
+				ensurespace(cd, 7 + strlen(p), cp, nil, dowrite);
 				CputrripSL(cd, nextpath[0], flags | (q[0] ? NMcontinue : 0), p, dowrite);
 				p = q;
 			} while(p[0] != '\0');
 		}
 	}
 
-	assert(dowrite==0 || cp != &co || Cwoffset(cd) == o+co.len-initlen);
+	assert(dowrite == 0 || cp != &co || Cwoffset(cd) == o + co.len - initlen);
 
 	if(what & RR_TF) {
-		m = CputrripTF(cd, d, TFcreation|TFmodify|TFaccess|TFattributes, 0);
+		m = CputrripTF(cd, d, TFcreation | TFmodify | TFaccess | TFattributes, 0);
 		cp = ensurespace(cd, m, cp, &cn, dowrite);
-		CputrripTF(cd, d, TFcreation|TFmodify|TFaccess|TFattributes, dowrite);
+		CputrripTF(cd, d, TFcreation | TFmodify | TFaccess | TFattributes, dowrite);
 	}
-	assert(dowrite==0 || cp != &co || Cwoffset(cd) == o+co.len-initlen);
+	assert(dowrite == 0 || cp != &co || Cwoffset(cd) == o + co.len - initlen);
 
 	if(cp == &cn && dowrite) {
 		/* seek out of continuation, but mark our place */
 		cd->rrcontin = Cwoffset(cd);
 		setcelen(cd, cn.ceoffset, cn.len);
-		Cwseek(cd, o+co.len-initlen);
+		Cwseek(cd, o + co.len - initlen);
 	}
 
 	if(co.len & 1) {
@@ -316,10 +315,10 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 	}
 
 	if(dowrite) {
-		if(Cwoffset(cd) != o+co.len-initlen)
+		if(Cwoffset(cd) != o + co.len - initlen)
 			fprint(2, "offset %llud o+co.len-initlen %llud\n",
-				Cwoffset(cd), o+co.len-initlen);
-		assert(Cwoffset(cd) == o+co.len-initlen);
+			       Cwoffset(cd), o + co.len - initlen);
+		assert(Cwoffset(cd) == o + co.len - initlen);
 	} else
 		assert(Cwoffset(cd) == o);
 
@@ -337,17 +336,17 @@ CputsuspCE(Cdimg *cd, int64_t offset)
 	int64_t o, x;
 
 	chat("writing SUSP CE record pointing to %ld, %ld\n",
-		offset/Blocksize, offset%Blocksize);
+	     offset / Blocksize, offset % Blocksize);
 	o = Cwoffset(cd);
 	Cputc(cd, 'C');
 	Cputc(cd, 'E');
 	Cputc(cd, 28);
 	Cputc(cd, 1);
-	Cputn(cd, offset/Blocksize, 4);
-	Cputn(cd, offset%Blocksize, 4);
+	Cputn(cd, offset / Blocksize, 4);
+	Cputn(cd, offset % Blocksize, 4);
 	x = Cwoffset(cd);
 	Cputn(cd, 0, 4);
-	assert(Cwoffset(cd) == o+28);
+	assert(Cwoffset(cd) == o + 28);
 
 	return x;
 }
@@ -359,19 +358,19 @@ CputsuspER(Cdimg *cd, int dowrite)
 
 	if(dowrite) {
 		chat("writing SUSP ER record\n");
-		Cputc(cd, 'E');           /* ER field marker */
+		Cputc(cd, 'E'); /* ER field marker */
 		Cputc(cd, 'R');
-		Cputc(cd, 26);            /* Length          */
-		Cputc(cd, 1);             /* Version         */
-		Cputc(cd, 10);            /* LEN_ID          */
-		Cputc(cd, 4);             /* LEN_DESC        */
-		Cputc(cd, 4);             /* LEN_SRC         */
-		Cputc(cd, 1);             /* EXT_VER         */
-		Cputs(cd, SUSPrrip, 10);  /* EXT_ID          */
-		Cputs(cd, SUSPdesc, 4);   /* EXT_DESC        */
-		Cputs(cd, SUSPsrc, 4);    /* EXT_SRC         */
+		Cputc(cd, 26);		 /* Length          */
+		Cputc(cd, 1);		 /* Version         */
+		Cputc(cd, 10);		 /* LEN_ID          */
+		Cputc(cd, 4);		 /* LEN_DESC        */
+		Cputc(cd, 4);		 /* LEN_SRC         */
+		Cputc(cd, 1);		 /* EXT_VER         */
+		Cputs(cd, SUSPrrip, 10); /* EXT_ID          */
+		Cputs(cd, SUSPdesc, 4);  /* EXT_DESC        */
+		Cputs(cd, SUSPsrc, 4);   /* EXT_SRC         */
 	}
-	return 8+10+4+4;
+	return 8 + 10 + 4 + 4;
 }
 
 static int
@@ -380,11 +379,11 @@ CputsuspRR(Cdimg *cd, int what, int dowrite)
 	assert(cd != nil);
 
 	if(dowrite) {
-		Cputc(cd, 'R');           /* RR field marker */
+		Cputc(cd, 'R'); /* RR field marker */
 		Cputc(cd, 'R');
-		Cputc(cd, 5);             /* Length          */
-		Cputc(cd, 1);		  /* Version number  */
-		Cputc(cd, what);          /* Flags           */
+		Cputc(cd, 5);    /* Length          */
+		Cputc(cd, 1);    /* Version number  */
+		Cputc(cd, what); /* Flags           */
 	}
 	return 5;
 }
@@ -392,15 +391,15 @@ CputsuspRR(Cdimg *cd, int what, int dowrite)
 static int
 CputsuspSP(Cdimg *cd, int dowrite)
 {
-	assert(cd!=0);
+	assert(cd != 0);
 
-	if(dowrite) { 
-chat("writing SUSP SP record\n");
-		Cputc(cd, 'S');           /* SP field marker */
+	if(dowrite) {
+		chat("writing SUSP SP record\n");
+		Cputc(cd, 'S'); /* SP field marker */
 		Cputc(cd, 'P');
-		Cputc(cd, 7);             /* Length          */
-		Cputc(cd, 1);             /* Version         */
-		Cputc(cd, 0xBE);          /* Magic           */
+		Cputc(cd, 7);    /* Length          */
+		Cputc(cd, 1);    /* Version         */
+		Cputc(cd, 0xBE); /* Magic           */
 		Cputc(cd, 0xEF);
 		Cputc(cd, 0);
 	}
@@ -412,13 +411,13 @@ chat("writing SUSP SP record\n");
 static int
 CputsuspST(Cdimg *cd, int dowrite)
 {
-	assert(cd!=0);
+	assert(cd != 0);
 
 	if(dowrite) {
-		Cputc(cd, 'S');           /* ST field marker */
+		Cputc(cd, 'S'); /* ST field marker */
 		Cputc(cd, 'T');
-		Cputc(cd, 4);             /* Length          */
-		Cputc(cd, 1);             /* Version         */	
+		Cputc(cd, 4); /* Length          */
+		Cputc(cd, 1); /* Version         */
 	}
 	return 4;
 }
@@ -457,14 +456,14 @@ Cputrripname(Cdimg *cd, char *nm, int flags, char *name, int dowrite)
 
 	l = strlen(name);
 	if(dowrite) {
-		Cputc(cd, nm[0]);                   /* NM field marker */
+		Cputc(cd, nm[0]); /* NM field marker */
 		Cputc(cd, nm[1]);
-		Cputc(cd, l+5);        /* Length          */
-		Cputc(cd, 1);                     /* Version         */
-		Cputc(cd, flags);                 /* Flags           */
-		Cputs(cd, name, l);    /* Alternate name  */
+		Cputc(cd, l + 5);   /* Length          */
+		Cputc(cd, 1);       /* Version         */
+		Cputc(cd, flags);   /* Flags           */
+		Cputs(cd, name, l); /* Alternate name  */
 	}
-	return 5+l;
+	return 5 + l;
 }
 
 static int
@@ -476,31 +475,31 @@ CputrripSL(Cdimg *cd, int contin, int flags, char *name, int dowrite)
 	if(dowrite) {
 		Cputc(cd, 'S');
 		Cputc(cd, 'L');
-		Cputc(cd, l+7);
+		Cputc(cd, l + 7);
 		Cputc(cd, 1);
 		Cputc(cd, contin ? 1 : 0);
 		Cputc(cd, flags);
 		Cputc(cd, l);
 		Cputs(cd, name, l);
 	}
-	return 7+l;
+	return 7 + l;
 }
 
 static int
 CputrripPX(Cdimg *cd, Direc *d, int dot, int dowrite)
 {
-	assert(cd!=0);
+	assert(cd != 0);
 
 	if(dowrite) {
-		Cputc(cd, 'P');             /* PX field marker */
+		Cputc(cd, 'P'); /* PX field marker */
 		Cputc(cd, 'X');
-		Cputc(cd, 36);              /* Length          */
-		Cputc(cd, 1);               /* Version         */
-	
-		Cputn(cd, mode(d, dot), 4); /* POSIX File mode */
-		Cputn(cd, nlink(d), 4);     /* POSIX st_nlink  */
-		Cputn(cd, d?d->uidno:0, 4);  /* POSIX st_uid    */
-		Cputn(cd, d?d->gidno:0, 4);  /* POSIX st_gid    */
+		Cputc(cd, 36); /* Length          */
+		Cputc(cd, 1);  /* Version         */
+
+		Cputn(cd, mode(d, dot), 4);     /* POSIX File mode */
+		Cputn(cd, nlink(d), 4);		/* POSIX st_nlink  */
+		Cputn(cd, d ? d->uidno : 0, 4); /* POSIX st_uid    */
+		Cputn(cd, d ? d->gidno : 0, 4); /* POSIX st_gid    */
 	}
 
 	return 36;
@@ -511,46 +510,45 @@ CputrripTF(Cdimg *cd, Direc *d, int type, int dowrite)
 {
 	int i, length;
 
-	assert(cd!=0);
+	assert(cd != 0);
 	assert(!(type & TFlongform));
 
 	length = 0;
-	for(i=0; i<7; i++)
-		if (type & (1<<i))
+	for(i = 0; i < 7; i++)
+		if(type & (1 << i))
 			length++;
 	assert(length == 4);
 
 	if(dowrite) {
-		Cputc(cd, 'T');				/* TF field marker */
+		Cputc(cd, 'T'); /* TF field marker */
 		Cputc(cd, 'F');
-		Cputc(cd, 5+7*length);		/* Length		 */
-		Cputc(cd, 1);				/* Version		 */
-		Cputc(cd, type);					/* Flags (types)	 */
-	
-		if (type & TFcreation)
-			Cputdate(cd, d?d->ctime:0);
-		if (type & TFmodify)
-			Cputdate(cd, d?d->mtime:0);
-		if (type & TFaccess)
-			Cputdate(cd, d?d->atime:0);
-		if (type & TFattributes)
-			Cputdate(cd, d?d->ctime:0);
-	
-	//	if (type & TFbackup)
-	//		Cputdate(cd, 0);
-	//	if (type & TFexpiration)
-	//		Cputdate(cd, 0);
-	//	if (type & TFeffective)
-	//		Cputdate(cd, 0);
+		Cputc(cd, 5 + 7 * length); /* Length		 */
+		Cputc(cd, 1);		   /* Version		 */
+		Cputc(cd, type);	   /* Flags (types)	 */
+
+		if(type & TFcreation)
+			Cputdate(cd, d ? d->ctime : 0);
+		if(type & TFmodify)
+			Cputdate(cd, d ? d->mtime : 0);
+		if(type & TFaccess)
+			Cputdate(cd, d ? d->atime : 0);
+		if(type & TFattributes)
+			Cputdate(cd, d ? d->ctime : 0);
+
+		//	if (type & TFbackup)
+		//		Cputdate(cd, 0);
+		//	if (type & TFexpiration)
+		//		Cputdate(cd, 0);
+		//	if (type & TFeffective)
+		//		Cputdate(cd, 0);
 	}
-	return 5+7*length;
+	return 5 + 7 * length;
 }
 
-
-#define NONPXMODES  (DMDIR | DMAPPEND | DMEXCL | DMMOUNT)
+#define NONPXMODES (DMDIR | DMAPPEND | DMEXCL | DMMOUNT)
 #define POSIXMODEMASK (0177777)
 #ifndef S_IFMT
-#define S_IFMT  (0170000)
+#define S_IFMT (0170000)
 #endif
 #ifndef S_IFDIR
 #define S_IFDIR (0040000)
@@ -561,8 +559,8 @@ CputrripTF(Cdimg *cd, Direc *d, int type, int dowrite)
 #ifndef S_IFLNK
 #define S_IFLNK (0120000)
 #endif
-#undef  ISTYPE
-#define ISTYPE(mode, mask)  (((mode) & S_IFMT) == (mask))
+#undef ISTYPE
+#define ISTYPE(mode, mask) (((mode)&S_IFMT) == (mask))
 #ifndef S_ISDIR
 #define S_ISDIR(mode) ISTYPE(mode, S_IFDIR)
 #endif
@@ -573,20 +571,19 @@ CputrripTF(Cdimg *cd, Direc *d, int type, int dowrite)
 #define S_ISLNK(mode) ISTYPE(mode, S_ILNK)
 #endif
 
-
 static int32_t
 mode(Direc *d, int dot)
 {
 	int32_t mode;
-	
-	if (!d)
+
+	if(!d)
 		return 0;
 
-	if ((dot != DTroot) && (dot != DTrootdot)) {
+	if((dot != DTroot) && (dot != DTrootdot)) {
 		mode = (d->mode & ~(NONPXMODES));
-		if (d->mode & DMDIR)
+		if(d->mode & DMDIR)
 			mode |= S_IFDIR;
-		else if (d->mode & CHLINK)
+		else if(d->mode & CHLINK)
 			mode |= S_IFLNK;
 		else
 			mode |= S_IFREG;
@@ -594,32 +591,31 @@ mode(Direc *d, int dot)
 		mode = S_IFDIR | (0755);
 
 	mode &= POSIXMODEMASK;
-		
+
 	/* Botch: not all POSIX types supported yet */
-	assert(mode & (S_IFDIR|S_IFREG));
+	assert(mode & (S_IFDIR | S_IFREG));
 
-chat("writing PX record mode field %ulo with dot %d and name \"%s\"\n", mode, dot, d->name); 
+	chat("writing PX record mode field %ulo with dot %d and name \"%s\"\n", mode, dot, d->name);
 
-	return mode;		
+	return mode;
 }
 
 static int32_t
-nlink(Direc *d)   /* Trump up the nlink field for POSIX compliance */
+nlink(Direc *d) /* Trump up the nlink field for POSIX compliance */
 {
 	int i;
 	int32_t n;
 
-	if (!d)
+	if(!d)
 		return 0;
 
 	n = 1;
-	if (d->mode & DMDIR)   /* One for "." and one more for ".." */
+	if(d->mode & DMDIR) /* One for "." and one more for ".." */
 		n++;
 
-	for(i=0; i<d->nchild; i++)
-		if (d->child[i].mode & DMDIR)
+	for(i = 0; i < d->nchild; i++)
+		if(d->child[i].mode & DMDIR)
 			n++;
 
 	return n;
 }
-

@@ -44,12 +44,12 @@
 */
 struct iteminfo {
 	int itype;
-	int offset;		/* offset from the start of line. */
-	int width;		/* width.... */
-	int ascent;		/* ascent of the item */
-	int font;		/* font */
-	int line;		/* line its on */
-	char *buf;	
+	int offset; /* offset from the start of line. */
+	int width;  /* width.... */
+	int ascent; /* ascent of the item */
+	int font;   /* font */
+	int line;   /* line its on */
+	char *buf;
 };
 
 struct lineinfo {
@@ -59,7 +59,6 @@ struct lineinfo {
 	int height;
 	int ascent;
 };
-
 
 /* font_arr := array[256] of {* => (-1,"")};
 /* remap := array[20] of (string,string);
@@ -97,20 +96,21 @@ static char *Patch = nil;
 /* ctxt 		: ref Draw->Context;
 /* t 		: ref Toplevel;
 */
-char*
-psinit(int box, int deb) { /* d: ref Toplevel, */
-/* 	t=d; */
+char *
+psinit(int box, int deb)
+{       /* d: ref Toplevel, */
+	/* 	t=d; */
 	debug = deb;
-	totlines=0;
-	totitems=0;
-	pagestart=0;
-	boxes=box; /* #box; */
-	curfont=0;
-/* 	e := loadfonts();
+	totlines = 0;
+	totitems = 0;
+	pagestart = 0;
+	boxes = box; /* #box; */
+	curfont = 0;
+	/* 	e := loadfonts();
 /* 	if (e != "")
 /* 		return e;
 */
-	started=1;
+	started = 1;
 	return "";
 }
 
@@ -139,16 +139,18 @@ psinit(int box, int deb) { /* d: ref Toplevel, */
 static char *username;
 
 int
-preamble(Biobuf *ioutb, Rectangle bb) {
+preamble(Biobuf *ioutb, Rectangle bb)
+{
 
-	if (!started) return 1;
+	if(!started)
+		return 1;
 	username = getuser();
 	if(bb.max.x == 0 && bb.max.y == 0) {
 		bb.max.x = 612;
 		bb.max.y = 792;
 	}
 	Bprint(ioutb, "%%!PS-Adobe-3.0\n");
-	Bprint(ioutb, "%%%%Creator: PsLib 1.0 (%s)\n",username);
+	Bprint(ioutb, "%%%%Creator: PsLib 1.0 (%s)\n", username);
 	Bprint(ioutb, "%%%%CreationDate: %s", ctime(time(nil)));
 	Bprint(ioutb, "%%%%Pages: (atend) \n");
 	Bprint(ioutb, "%%%%BoundingBox: %d %d %d %d\n", bb.min.x, bb.min.y, bb.max.x, bb.max.y);
@@ -167,7 +169,7 @@ preamble(Biobuf *ioutb, Rectangle bb) {
 	Bprint(ioutb, "gsave\n");
 	if(boxes)
 		Bprint(ioutb, "xstart ystart iwidth iheight rectstroke\n");
-/*	# if bps==8, use inferno colormap; else (bps < 8) it's grayscale or true color */
+	/*	# if bps==8, use inferno colormap; else (bps < 8) it's grayscale or true color */
 	Bprint(ioutb, "bps 8 eq grey false eq and {\n");
 	Bprint(ioutb, " [/Indexed /DeviceRGB 255 <\n");
 	Bprint(ioutb, "  ffffff ffffaa ffff55 ffff00 ffaaff ffaaaa ffaa55 ffaa00 ff55ff ff55aa ff5555 ff5500\n");
@@ -195,15 +197,15 @@ preamble(Biobuf *ioutb, Rectangle bb) {
 	Bprint(ioutb, " ] setcolorspace\n");
 	Bprint(ioutb, " /decodemat [0 255] def\n");
 	Bprint(ioutb, "}\n");
-/*	# else, bps != 8 */
+	/*	# else, bps != 8 */
 	Bprint(ioutb, "{\n");
-/* is it greyscale or is it 24-bit color? */
+	/* is it greyscale or is it 24-bit color? */
 	Bprint(ioutb, " grey true eq {\n");
 	Bprint(ioutb, "  [/DeviceGray] setcolorspace\n");
 	Bprint(ioutb, "  /decodemat [1 0] def\n");
 	Bprint(ioutb, " }\n");
 	Bprint(ioutb, " {\n");
-/* must be color */
+	/* must be color */
 	Bprint(ioutb, "  [/DeviceRGB] setcolorspace\n");
 	Bprint(ioutb, "  /bps 8 def\n");
 	Bprint(ioutb, "  /decodemat [1 0 1 0 1 0] def\n");
@@ -229,13 +231,14 @@ preamble(Biobuf *ioutb, Rectangle bb) {
 	Bprint(ioutb, "grestore\n");
 	Bprint(ioutb, "} def\n");
 	Bprint(ioutb, "%%%%EndProlog\n");
-	if (Patch != nil)
+	if(Patch != nil)
 		Bprint(ioutb, "%s\n", Patch);
-	return 0;	
+	return 0;
 }
 
 int
-trailer(Biobuf *ioutb ,int pages) {
+trailer(Biobuf *ioutb, int pages)
+{
 	if(!started)
 		return 1;
 	Bprint(ioutb, "%%%%Trailer\n%%%%Pages: %d\n%%%%EOF\n", pages);
@@ -245,14 +248,15 @@ trailer(Biobuf *ioutb ,int pages) {
 void
 printnewpage(int pagenum, int end, Biobuf *ioutb)
 {
-	if (!started) return;
-	if (end){			
-/*		# bounding box */
-		if (boxes){
+	if(!started)
+		return;
+	if(end) {
+		/*		# bounding box */
+		if(boxes) {
 			Bprint(ioutb, "18 18 moveto 594 18 lineto 594 774 lineto 18 774 lineto closepath stroke\n");
 		}
 		Bprint(ioutb, "showpage\n%%%%EndPage %d %d\n", pagenum, pagenum);
-	} else 
+	} else
 		Bprint(ioutb, "%%%%Page: %d %d\n", pagenum, pagenum);
 }
 
@@ -619,28 +623,29 @@ printnewpage(int pagenum, int end, Biobuf *ioutb)
 */
 
 void
-cmap2ascii85(uint8_t *b, uint8_t *c) {
+cmap2ascii85(uint8_t *b, uint8_t *c)
+{
 	int i;
 	unsigned long i1;
 
-/*	fprintf(stderr, "addr=0x%x %x %x %x %x\n", b, b[0], b[1], b[2], b[3]); */
-	b--;	/* one-index b */
-	c--;	/* one-index c */
-	i1 = (b[1]<<24)+(b[2]<<16)+(b[3]<<8)+b[4];
-	if(i1 == 0){
+	/*	fprintf(stderr, "addr=0x%x %x %x %x %x\n", b, b[0], b[1], b[2], b[3]); */
+	b--; /* one-index b */
+	c--; /* one-index c */
+	i1 = (b[1] << 24) + (b[2] << 16) + (b[3] << 8) + b[4];
+	if(i1 == 0) {
 		c[1] = 'z';
 		c[2] = '\0';
 		return;
 	}
-	for(i=0; i<=4; i++){
-		c[5-i] = '!' + (i1 % 85);
+	for(i = 0; i <= 4; i++) {
+		c[5 - i] = '!' + (i1 % 85);
 		i1 /= 85;
 	}
 	c[6] = '\0';
 }
 
 static uint8_t *arr = nil;
-uint32_t	onesbits = ~0;
+uint32_t onesbits = ~0;
 void
 imagebits(Biobuf *ioutb, Memimage *im)
 {
@@ -653,24 +658,24 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	Rectangle r;
 
 	tmp = nil;
-	if (debug)
+	if(debug)
 		fprint(2, "imagebits, r=%d %d %d %d, depth=%d\n",
-			im->r.min.x, im->r.min.y, im->r.max.x, im->r.max.y, im->depth);
+		       im->r.min.x, im->r.min.y, im->r.max.x, im->r.max.y, im->depth);
 	width = Dx(im->r);
 	height = Dy(im->r);
-	bps = im->depth;	/* # bits per sample */
-	bitoff = 0;		/* # bit offset of beginning sample within first byte */
-	if (bps < 8) {
+	bps = im->depth; /* # bits per sample */
+	bitoff = 0;      /* # bit offset of beginning sample within first byte */
+	if(bps < 8) {
 		spb = 8 / bps;
 		bitoff = (im->r.min.x % spb) * bps;
 	}
-	if (bitoff != 0) {
-/* 		# Postscript image wants beginning of line at beginning of byte */
+	if(bitoff != 0) {
+		/* 		# Postscript image wants beginning of line at beginning of byte */
 		r = im->r;
-		r.min.x -= bitoff/im->depth;
-		r.max.x -= bitoff/im->depth;
+		r.min.x -= bitoff / im->depth;
+		r.max.x -= bitoff / im->depth;
 		tmp = allocmemimage(r, im->chan);
-		if(tmp == nil){
+		if(tmp == nil) {
 			fprint(2, "p9bitpost: allocmemimage failed: %r\n");
 			exits("alloc");
 		}
@@ -680,41 +685,41 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	lsf = 0;
 	/* compact data to remove word-boundary padding */
 	bpl = bytesperline(im->r, im->depth);
-	n = bpl*Dy(im->r);
+	n = bpl * Dy(im->r);
 	data = malloc(n);
-	if(data == nil){
+	if(data == nil) {
 		fprint(2, "p9bitpost: malloc failed: %r\n");
 		exits("malloc");
 	}
-	for(i=0; i<Dy(im->r); i++){
+	for(i = 0; i < Dy(im->r); i++) {
 		/* memmove(data+bpl*i, byteaddr(im, Pt(im->r.min.x, im->r.min.y+i)), bpl); with inversion */
-		dst = data+bpl*i;
-		src = byteaddr(im, Pt(im->r.min.x, im->r.min.y+i));
-		for(j=0; j<bpl; j++)
+		dst = data + bpl * i;
+		src = byteaddr(im, Pt(im->r.min.x, im->r.min.y + i));
+		for(j = 0; j < bpl; j++)
 			*dst++ = 255 - *src++;
 	}
 	n4 = (n / 4) * 4;
-	for (i = 0; i < n4; i += 4){
-		cmap2ascii85(data+i, c85);
+	for(i = 0; i < n4; i += 4) {
+		cmap2ascii85(data + i, c85);
 		lsf += strlen((char *)c85);
 		Bprint(ioutb, "%s", (char *)c85);
-		if (lsf > 74) {
+		if(lsf > 74) {
 			Bprint(ioutb, "\n");
 			lsf = 0;
 		}
 	}
 	nrest = n - n4;
-	if (nrest != 0) {
+	if(nrest != 0) {
 		uint8_t foo[4];
 
-		for (i=0; i<nrest; i++)
-			foo[i] = data[n4+i];
-		for (i=nrest; i<4; i++)
+		for(i = 0; i < nrest; i++)
+			foo[i] = data[n4 + i];
+		for(i = nrest; i < 4; i++)
 			foo[i] = '\0';
 		cmap2ascii85(foo, c85);
-		if (strcmp((char *)c85, "z") == 0 )
+		if(strcmp((char *)c85, "z") == 0)
 			strcpy((char *)c85, "!!!!!");
-		Bprint(ioutb, "%.*s", nrest+1, (char *)c85);
+		Bprint(ioutb, "%.*s", nrest + 1, (char *)c85);
 	}
 	Bprint(ioutb, "\n~>");
 	Bprint(ioutb, "\n");
@@ -722,7 +727,8 @@ imagebits(Biobuf *ioutb, Memimage *im)
 }
 
 int
-image2psfile(int fd, Memimage *im, int dpi) {
+image2psfile(int fd, Memimage *im, int dpi)
+{
 	Rectangle r;
 	Rectangle bbox;
 	int e;
@@ -733,7 +739,7 @@ image2psfile(int fd, Memimage *im, int dpi) {
 	Biobuf ioutb;
 	Memimage *tmp;
 
-	if(im->depth >= 8 && im->chan != CMAP8 && im->chan != GREY8){
+	if(im->depth >= 8 && im->chan != CMAP8 && im->chan != GREY8) {
 		/*
 		 * the postscript libraries can only handle [1248]-bit grey, 8-bit cmap,
 		 * and 24-bit color, so convert.
@@ -747,42 +753,42 @@ image2psfile(int fd, Memimage *im, int dpi) {
 	}
 
 	Binit(&ioutb, fd, OWRITE);
- 	r = im->r;
+	r = im->r;
 	width = Dx(r);
 	height = Dy(r);
-	imageaspectratio = (double) width / (double) height;
-	if (landscape) {
+	imageaspectratio = (double)width / (double)height;
+	if(landscape) {
 		paperaspectratio = ((double)paperlength - (ymargin * 2)) / ((double)paperwidth - (xmargin * 2));
-		if (dpi > 0) {
+		if(dpi > 0) {
 			iwidth = width * 72 / dpi;
 			iheight = height * 72 / dpi;
-		} else if (imageaspectratio > paperaspectratio) {
+		} else if(imageaspectratio > paperaspectratio) {
 			iwidth = paperlength - (ymargin * 2);
 			iheight = iwidth / imageaspectratio;
 		} else {
 			iheight = paperwidth - (xmargin * 2);
-			iwidth  = iheight * imageaspectratio;
+			iwidth = iheight * imageaspectratio;
 		}
 		xstart = paperwidth - xmargin - (iheight * ymagnification);
 		ystart = paperlength - ymargin;
 		rotation = -90;
 	} else {
 		paperaspectratio = ((double)paperwidth - (xmargin * 2)) / ((double)paperlength - (ymargin * 2));
-		if (dpi > 0) {
+		if(dpi > 0) {
 			iwidth = width * 72 / dpi;
 			iheight = height * 72 / dpi;
-		} else if (imageaspectratio > paperaspectratio) {
+		} else if(imageaspectratio > paperaspectratio) {
 			iwidth = paperwidth - (xmargin * 2);
 			iheight = iwidth / imageaspectratio;
 		} else {
 			iheight = paperlength - (ymargin * 2);
-			iwidth  = iheight * imageaspectratio;
+			iwidth = iheight * imageaspectratio;
 		}
 		xstart = xmargin;
 		ystart = paperlength - ymargin - (iheight * ymagnification);
 		rotation = 0;
 	}
-	bbox = Rect(xstart,ystart,xstart+iwidth,ystart+iheight);
+	bbox = Rect(xstart, ystart, xstart + iwidth, ystart + iheight);
 	e = preamble(&ioutb, bbox);
 	if(e != 0)
 		return e;
@@ -790,8 +796,8 @@ image2psfile(int fd, Memimage *im, int dpi) {
 	Bprint(&ioutb, "/pgsave save def\n");
 	Bprint(&ioutb, "%%%%EndPageSetup\n");
 	bps = im->depth;
-	Bprint(&ioutb, "%d 0 %d %d %d %d %d %d %s doimage\n", iheight, iwidth, ystart, xstart, height, width, bps, im->flags&Fgrey ? "true" : "false");
- 	imagebits(&ioutb, im);
+	Bprint(&ioutb, "%d 0 %d %d %d %d %d %d %s doimage\n", iheight, iwidth, ystart, xstart, height, width, bps, im->flags & Fgrey ? "true" : "false");
+	imagebits(&ioutb, im);
 	Bprint(&ioutb, "pgsave restore\nshowpage\n");
 	e = trailer(&ioutb, 1);
 	if(e != 0)

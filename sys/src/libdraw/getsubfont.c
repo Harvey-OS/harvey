@@ -15,15 +15,15 @@
  * Default version: treat as file name
  */
 
-Subfont*
+Subfont *
 _getsubfont(Display *d, char *name)
 {
 	int fd;
 	Subfont *f;
 
 	fd = open(name, OREAD);
-		
-	if(fd < 0){
+
+	if(fd < 0) {
 		fprint(2, "getsubfont: can't open %s: %r\n", name);
 		return 0;
 	}
@@ -35,7 +35,7 @@ _getsubfont(Display *d, char *name)
 	 */
 	if(d && d->locking == 0)
 		unlockdisplay(d);
-	f = readsubfont(d, name, fd, d && d->locking==0);
+	f = readsubfont(d, name, fd, d && d->locking == 0);
 	if(d && d->locking == 0)
 		lockdisplay(d);
 	if(f == 0)

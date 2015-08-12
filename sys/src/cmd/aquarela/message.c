@@ -19,14 +19,14 @@ nbnsmessagenamequeryrequestnew(uint16_t id, int broadcast, NbName name)
 	NbnsMessage *s;
 	NbnsMessageQuestion *q;
 	s = nbnsmessagenew();
-	if (s == nil)
+	if(s == nil)
 		return nil;
 	s->id = id;
 	s->opcode = NbnsOpQuery;
 	s->broadcast = broadcast;
 	s->recursiondesired = 1;
-	q =  nbnsmessagequestionnew(name, NbnsQuestionTypeNb, NbnsQuestionClassIn);
-	if (q == nil) {
+	q = nbnsmessagequestionnew(name, NbnsQuestionTypeNb, NbnsQuestionClassIn);
+	if(q == nil) {
 		nbnsmessagefree(&s);
 		return nil;
 	}
@@ -45,14 +45,14 @@ nbnsmessagenameregistrationrequestnew(uint16_t id, int broadcast,
 	NbnsMessageResource *r;
 
 	s = nbnsmessagenew();
-	if (s == nil)
+	if(s == nil)
 		return nil;
 	s->id = id;
 	s->opcode = NbnsOpRegistration;
 	s->broadcast = broadcast;
 	s->recursiondesired = 1;
-	q =  nbnsmessagequestionnew(name, NbnsQuestionTypeNb, NbnsQuestionClassIn);
-	if (q == nil) {
+	q = nbnsmessagequestionnew(name, NbnsQuestionTypeNb, NbnsQuestionClassIn);
+	if(q == nil) {
 		nbnsmessagefree(&s);
 		return nil;
 	}

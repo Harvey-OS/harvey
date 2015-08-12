@@ -28,7 +28,7 @@
 /* Requires scommon.h */
 
 #ifndef scanchar_INCLUDED
-#  define scanchar_INCLUDED
+#define scanchar_INCLUDED
 
 /*
  * An array for fast scanning of names, numbers, and hex strings.
@@ -57,9 +57,9 @@ extern const byte scan_char_array[max_stream_exception + 256];
 #define ctype_exception 104
 /* Special characters with no \xxx representation */
 #define char_NULL 0
-#define char_EOT 004		/* ^D, job delimiter */
-#define char_VT 013		/* ^K, vertical tab */
-#define char_DOS_EOF 032	/* ^Z */
+#define char_EOT 004     /* ^D, job delimiter */
+#define char_VT 013      /* ^K, vertical tab */
+#define char_DOS_EOF 032 /* ^Z */
 /*
  * Most systems define '\n' as 0x0a and '\r' as 0x0d; however, OS-9
  * has '\n' = '\r' = 0x0d and '\l' = 0x0a.  To deal with this,
@@ -69,9 +69,9 @@ extern const byte scan_char_array[max_stream_exception + 256];
  */
 #define char_CR '\r'
 #if '\r' == '\n'
-#  define char_EOL 0x0a		/* non-OS-9 compilers complain about '\l' */
+#define char_EOL 0x0a /* non-OS-9 compilers complain about '\l' */
 #else
-#  define char_EOL '\n'
+#define char_EOL '\n'
 #endif
 
 #endif /* scanchar_INCLUDED */

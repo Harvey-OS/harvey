@@ -98,28 +98,36 @@
 #include "bzlib_private.h"
 
 /*---------------------------------------------------*/
-int bz_config_ok ( void )
+int
+bz_config_ok(void)
 {
-   if (sizeof(int)   != 4) return 0;
-   if (sizeof(int16_t) != 2) return 0;
-   if (sizeof(int8_t)  != 1) return 0;
-   return 1;
+	if(sizeof(int) != 4)
+		return 0;
+	if(sizeof(int16_t) != 2)
+		return 0;
+	if(sizeof(int8_t) != 1)
+		return 0;
+	return 1;
 }
 
 /*---------------------------------------------------*/
-void* default_bzalloc ( void* opaque, Int32 items, Int32 size )
+void *
+default_bzalloc(void *opaque, Int32 items, Int32 size)
 {
-   void* v = malloc ( items * size );
-   return v;
+	void *v = malloc(items * size);
+	return v;
 }
 
-void default_bzfree ( void* opaque, void* addr )
+void
+default_bzfree(void *opaque, void *addr)
 {
-   if (addr != NULL) free ( addr );
+	if(addr != NULL)
+		free(addr);
 }
 
 /* rsc added this: where did the original go? */
-void bz_internal_error( int errcode )
+void
+bz_internal_error(int errcode)
 {
-   exit(1);
+	exit(1);
 }

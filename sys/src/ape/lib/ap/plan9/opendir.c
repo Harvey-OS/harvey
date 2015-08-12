@@ -27,7 +27,7 @@ opendir(const char *filename)
 	struct stat sb;
 	Dir *d9;
 
-	if((d9 = _dirstat(filename)) == nil){
+	if((d9 = _dirstat(filename)) == nil) {
 		_syserrno();
 		return NULL;
 	}
@@ -39,13 +39,13 @@ opendir(const char *filename)
 	}
 
 	f = open(filename, O_RDONLY);
-	if(f < 0){
+	if(f < 0) {
 		_syserrno();
 		return NULL;
 	}
 	_fdinfo[f].flags |= FD_CLOEXEC;
-	d = (DIR *)malloc(sizeof(DIR) + DBLOCKSIZE*sizeof(struct dirent));
-	if(!d){
+	d = (DIR *)malloc(sizeof(DIR) + DBLOCKSIZE * sizeof(struct dirent));
+	if(!d) {
 		errno = ENOMEM;
 		return NULL;
 	}
@@ -62,7 +62,7 @@ opendir(const char *filename)
 int
 closedir(DIR *d)
 {
-	if(!d){
+	if(!d) {
 		errno = EBADF;
 		return -1;
 	}
@@ -84,7 +84,7 @@ rewinddir(DIR *d)
 	d->dirloc = 0;
 	free(d->dirs);
 	d->dirs = nil;
-	if(_SEEK(d->dd_fd, 0, 0) < 0){
+	if(_SEEK(d->dd_fd, 0, 0) < 0) {
 		_syserrno();
 		return;
 	}
@@ -97,18 +97,18 @@ readdir(DIR *d)
 	struct dirent *dr;
 	Dir *dirs;
 
-	if(!d){
+	if(!d) {
 		errno = EBADF;
 		return NULL;
 	}
-	if(d->dd_loc >= d->dd_size){
-		if(d->dirloc >= d->dirsize){
+	if(d->dd_loc >= d->dd_size) {
+		if(d->dirloc >= d->dirsize) {
 			free(d->dirs);
 			d->dirs = NULL;
 			d->dirsize = _dirread(d->dd_fd, &d->dirs);
 			d->dirloc = 0;
 		}
-		if(d->dirsize < 0) {	/* malloc or read failed in _dirread? */
+		if(d->dirsize < 0) { /* malloc or read failed in _dirread? */
 			free(d->dirs);
 			d->dirs = NULL;
 		}
@@ -117,14 +117,14 @@ readdir(DIR *d)
 
 		dr = (struct dirent *)d->dd_buf;
 		dirs = d->dirs;
-		for(i=0; i<DBLOCKSIZE && d->dirloc < d->dirsize; i++){
+		for(i = 0; i < DBLOCKSIZE && d->dirloc < d->dirsize; i++) {
 			strncpy(dr[i].d_name, dirs[d->dirloc++].name, MAXNAMLEN);
 			dr[i].d_name[MAXNAMLEN] = 0;
 		}
 		d->dd_loc = 0;
-		d->dd_size = i*sizeof(struct dirent);
+		d->dd_size = i * sizeof(struct dirent);
 	}
-	dr = (struct dirent*)(d->dd_buf+d->dd_loc);
+	dr = (struct dirent *)(d->dd_buf + d->dd_loc);
 	d->dd_loc += sizeof(struct dirent);
 	return dr;
 }

@@ -29,7 +29,7 @@
 /* Initial version 2/1/98 by John Desrosiers (soho@crl.com) */
 
 #if !defined(gsmemlok_INCLUDED)
-#  define gsmemlok_INCLUDED
+#define gsmemlok_INCLUDED
 
 #include "gsmemory.h"
 #include "gxsync.h"
@@ -41,24 +41,24 @@
  */
 
 typedef struct gs_memory_locked_s {
-    gs_memory_common;		/* interface outside world sees */
-    gs_memory_t *target;	/* allocator to front */
-    gx_monitor_t *monitor;	/* monitor to serialize access to functions */
+	gs_memory_common;      /* interface outside world sees */
+	gs_memory_t *target;   /* allocator to front */
+	gx_monitor_t *monitor; /* monitor to serialize access to functions */
 } gs_memory_locked_t;
 
 /* ---------- Public constructors/destructors ---------- */
 
 /* Initialize a locked memory manager. */
 int gs_memory_locked_init(
-			  gs_memory_locked_t * lmem,	/* allocator to init */
-			  gs_memory_t * target	/* allocator to monitor lock */
-			  );
+    gs_memory_locked_t *lmem, /* allocator to init */
+    gs_memory_t *target       /* allocator to monitor lock */
+    );
 
 /* Release a locked memory manager. */
 /* Note that this has no effect on the target. */
 void gs_memory_locked_release(gs_memory_locked_t *lmem);
 
 /* Get the target of a locked memory manager. */
-gs_memory_t * gs_memory_locked_target(const gs_memory_locked_t *lmem);
+gs_memory_t *gs_memory_locked_target(const gs_memory_locked_t *lmem);
 
 #endif /*!defined(gsmemlok_INCLUDED) */

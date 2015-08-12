@@ -23,64 +23,63 @@ enum {
 };
 
 typedef struct Req Req;
-struct Req
-{
-	int	fd;			/* for reply */
-	Bootp	*bp;
-	Udphdr	*up;
-	uint8_t	*e;			/* end of received message */
-	uint8_t	*p;			/* options pointer */
-	uint8_t	*max;			/* max end of reply */
+struct Req {
+	int fd; /* for reply */
+	Bootp *bp;
+	Udphdr *up;
+	uint8_t *e;   /* end of received message */
+	uint8_t *p;   /* options pointer */
+	uint8_t *max; /* max end of reply */
 
 	/* expanded to v6 */
-	uint8_t	ciaddr[IPaddrlen];
-	uint8_t	giaddr[IPaddrlen];
+	uint8_t ciaddr[IPaddrlen];
+	uint8_t giaddr[IPaddrlen];
 
 	/* parsed options */
-	int	p9request;		/* flag: this is a bootp with plan9 options */
-	int	genrequest;		/* flag: this is a bootp with generic options */
-	int	broadcast;		/* flag: request was broadcast */
-	int	dhcptype;		/* dhcp message type */
-	int	leasetime;		/* dhcp lease */
-	uint8_t	ip[IPaddrlen];		/* requested address */
-	uint8_t	server[IPaddrlen];	/* server address */
-	char	msg[ERRMAX];		/* error message */
-	char	vci[32];		/* vendor class id */
-	char	*id;			/* client id */
-	uint8_t	requested[32];		/* requested params */
-	uint8_t	vendorclass[32];
-	char	cputype[32-3];
+	int p9request;		   /* flag: this is a bootp with plan9 options */
+	int genrequest;		   /* flag: this is a bootp with generic options */
+	int broadcast;		   /* flag: request was broadcast */
+	int dhcptype;		   /* dhcp message type */
+	int leasetime;		   /* dhcp lease */
+	uint8_t ip[IPaddrlen];     /* requested address */
+	uint8_t server[IPaddrlen]; /* server address */
+	char msg[ERRMAX];	  /* error message */
+	char vci[32];		   /* vendor class id */
+	char *id;		   /* client id */
+	uint8_t requested[32];     /* requested params */
+	uint8_t vendorclass[32];
+	char cputype[32 - 3];
 
-	Info	gii;			/* about target network */
-	Info	ii;			/* about target system */
-	int	staticbinding;
+	Info gii; /* about target network */
+	Info ii;  /* about target system */
+	int staticbinding;
 
-	uint8_t buf[2*1024];		/* message buffer */
+	uint8_t buf[2 * 1024]; /* message buffer */
 };
 
 #define TFTP "/lib/tftpd"
 
-char	*blog = "ipboot";
-char	mysysname[64];
-Ipifc	*ipifcs;
-int	debug;
-int	nobootp;
-int32_t	now;
-int	slowstat, slowdyn;
-char	net[256];
+char *blog = "ipboot";
+char mysysname[64];
+Ipifc *ipifcs;
+int debug;
+int nobootp;
+int32_t now;
+int slowstat, slowdyn;
+char net[256];
 
-int	pptponly;	/* only answer request that came from the pptp server */
-int	mute, mutestat;
-int	minlease = MinLease;
-int	staticlease = StaticLease;
+int pptponly; /* only answer request that came from the pptp server */
+int mute, mutestat;
+int minlease = MinLease;
+int staticlease = StaticLease;
 
-uint64_t	start;
+uint64_t start;
 
 static int v6opts;
 
 /* option magic */
-char plan9opt[4] = { 'p', '9', ' ', ' ' };
-char genericopt[4] = { 0x63, 0x82, 0x53, 0x63 };
+char plan9opt[4] = {'p', '9', ' ', ' '};
+char genericopt[4] = {0x63, 0x82, 0x53, 0x63};
 
 /* well known addresses */
 uint8_t zeros[Maxhwlen];
@@ -91,127 +90,127 @@ char *op;
 char *oe = optbuf + sizeof(optbuf);
 
 char *optname[256] =
-{
-[OBend]			"end",
-[OBpad]			"pad",
-[OBmask]		"mask",
-[OBtimeoff]		"timeoff",
-[OBrouter]		"router",
-[OBtimeserver]		"time",
-[OBnameserver]		"name",
-[OBdnserver]		"dns",
-[OBlogserver]		"log",
-[OBcookieserver]	"cookie",
-[OBlprserver]		"lpr",
-[OBimpressserver]	"impress",
-[OBrlserver]		"rl",
-[OBhostname]		"host",
-[OBbflen]		"bflen",
-[OBdumpfile]		"dumpfile",
-[OBdomainname]		"dom",
-[OBswapserver]		"swap",
-[OBrootpath]		"rootpath",
-[OBextpath]		"extpath",
-[OBipforward]		"ipforward",
-[OBnonlocal]		"nonlocal",
-[OBpolicyfilter]	"policyfilter",
-[OBmaxdatagram]		"maxdatagram",
-[OBttl]			"ttl",
-[OBpathtimeout]		"pathtimeout",
-[OBpathplateau]		"pathplateau",
-[OBmtu]			"mtu",
-[OBsubnetslocal]	"subnetslocal",
-[OBbaddr]		"baddr",
-[OBdiscovermask]	"discovermask",
-[OBsupplymask]		"supplymask",
-[OBdiscoverrouter]	"discoverrouter",
-[OBrsserver]		"rsserver",
-[OBstaticroutes]	"staticroutes",
-[OBtrailerencap]	"trailerencap",
-[OBarptimeout]		"arptimeout",
-[OBetherencap]		"etherencap",
-[OBtcpttl]		"tcpttl",
-[OBtcpka]		"tcpka",
-[OBtcpkag]		"tcpkag",
-[OBnisdomain]		"nisdomain",
-[OBniserver]		"niserver",
-[OBntpserver]		"ntpserver",
-[OBvendorinfo]		"vendorinfo",
-[OBnetbiosns]		"NBns",
-[OBnetbiosdds]		"NBdds",
-[OBnetbiostype]		"NBtype",
-[OBnetbiosscope]	"NBscope",
-[OBxfontserver]		"xfont",
-[OBxdispmanager]	"xdisp",
-[OBnisplusdomain]	"NPdomain",
-[OBnisplusserver]	"NP",
-[OBhomeagent]		"homeagent",
-[OBsmtpserver]		"smtp",
-[OBpop3server]		"pop3",
-[OBnntpserver]		"nntp",
-[OBwwwserver]		"www",
-[OBfingerserver]	"finger",
-[OBircserver]		"ircserver",
-[OBstserver]		"stserver",
-[OBstdaserver]		"stdaserver",
+    {
+	 [OBend] "end",
+	 [OBpad] "pad",
+	 [OBmask] "mask",
+	 [OBtimeoff] "timeoff",
+	 [OBrouter] "router",
+	 [OBtimeserver] "time",
+	 [OBnameserver] "name",
+	 [OBdnserver] "dns",
+	 [OBlogserver] "log",
+	 [OBcookieserver] "cookie",
+	 [OBlprserver] "lpr",
+	 [OBimpressserver] "impress",
+	 [OBrlserver] "rl",
+	 [OBhostname] "host",
+	 [OBbflen] "bflen",
+	 [OBdumpfile] "dumpfile",
+	 [OBdomainname] "dom",
+	 [OBswapserver] "swap",
+	 [OBrootpath] "rootpath",
+	 [OBextpath] "extpath",
+	 [OBipforward] "ipforward",
+	 [OBnonlocal] "nonlocal",
+	 [OBpolicyfilter] "policyfilter",
+	 [OBmaxdatagram] "maxdatagram",
+	 [OBttl] "ttl",
+	 [OBpathtimeout] "pathtimeout",
+	 [OBpathplateau] "pathplateau",
+	 [OBmtu] "mtu",
+	 [OBsubnetslocal] "subnetslocal",
+	 [OBbaddr] "baddr",
+	 [OBdiscovermask] "discovermask",
+	 [OBsupplymask] "supplymask",
+	 [OBdiscoverrouter] "discoverrouter",
+	 [OBrsserver] "rsserver",
+	 [OBstaticroutes] "staticroutes",
+	 [OBtrailerencap] "trailerencap",
+	 [OBarptimeout] "arptimeout",
+	 [OBetherencap] "etherencap",
+	 [OBtcpttl] "tcpttl",
+	 [OBtcpka] "tcpka",
+	 [OBtcpkag] "tcpkag",
+	 [OBnisdomain] "nisdomain",
+	 [OBniserver] "niserver",
+	 [OBntpserver] "ntpserver",
+	 [OBvendorinfo] "vendorinfo",
+	 [OBnetbiosns] "NBns",
+	 [OBnetbiosdds] "NBdds",
+	 [OBnetbiostype] "NBtype",
+	 [OBnetbiosscope] "NBscope",
+	 [OBxfontserver] "xfont",
+	 [OBxdispmanager] "xdisp",
+	 [OBnisplusdomain] "NPdomain",
+	 [OBnisplusserver] "NP",
+	 [OBhomeagent] "homeagent",
+	 [OBsmtpserver] "smtp",
+	 [OBpop3server] "pop3",
+	 [OBnntpserver] "nntp",
+	 [OBwwwserver] "www",
+	 [OBfingerserver] "finger",
+	 [OBircserver] "ircserver",
+	 [OBstserver] "stserver",
+	 [OBstdaserver] "stdaserver",
 
-/* dhcp options */
-[ODipaddr]		"ip",
-[ODlease]		"leas",
-[ODoverload]		"overload",
-[ODtype]		"typ",
-[ODserverid]		"sid",
-[ODparams]		"params",
-[ODmessage]		"message",
-[ODmaxmsg]		"maxmsg",
-[ODrenewaltime]		"renewaltime",
-[ODrebindingtime]	"rebindingtime",
-[ODvendorclass]		"vendorclass",
-[ODclientid]		"cid",
-[ODtftpserver]		"tftpserver",
-[ODbootfile]		"bf",
+	 /* dhcp options */
+	 [ODipaddr] "ip",
+	 [ODlease] "leas",
+	 [ODoverload] "overload",
+	 [ODtype] "typ",
+	 [ODserverid] "sid",
+	 [ODparams] "params",
+	 [ODmessage] "message",
+	 [ODmaxmsg] "maxmsg",
+	 [ODrenewaltime] "renewaltime",
+	 [ODrebindingtime] "rebindingtime",
+	 [ODvendorclass] "vendorclass",
+	 [ODclientid] "cid",
+	 [ODtftpserver] "tftpserver",
+	 [ODbootfile] "bf",
 };
 
-void	addropt(Req*, int, uint8_t*);
-void	addrsopt(Req*, int, uint8_t**, int);
-void	arpenter(uint8_t*, uint8_t*);
-void	bootp(Req*);
-void	byteopt(Req*, int, uint8_t);
-void	dhcp(Req*);
-void	fatal(int, char*, ...);
-void	hexopt(Req*, int, char*);
-void	logdhcp(Req*);
-void	logdhcpout(Req *, char *);
-void	longopt(Req*, int, int32_t);
-void	maskopt(Req*, int, uint8_t*);
-void	miscoptions(Req*, uint8_t*);
-int	openlisten(char *net);
-void	p9addrsopt(Req *rp, int t, uint8_t **ip, int i);
-void	parseoptions(Req*);
-void	proto(Req*, int);
-void	rcvdecline(Req*);
-void	rcvdiscover(Req*);
-void	rcvinform(Req*);
-void	rcvrelease(Req*);
-void	rcvrequest(Req*);
-int	readlast(int, uint8_t*, int);
-char*	readsysname(void);
-void	remrequested(Req*, int);
-void	sendack(Req*, uint8_t*, int, int);
-void	sendnak(Req*, char*);
-void	sendoffer(Req*, uint8_t*, int);
-void	stringopt(Req*, int, char*);
-void	termopt(Req*);
-int	validip(uint8_t*);
-void	vectoropt(Req*, int, uint8_t*, int);
-void	warning(int, char*, ...);
+void addropt(Req *, int, uint8_t *);
+void addrsopt(Req *, int, uint8_t **, int);
+void arpenter(uint8_t *, uint8_t *);
+void bootp(Req *);
+void byteopt(Req *, int, uint8_t);
+void dhcp(Req *);
+void fatal(int, char *, ...);
+void hexopt(Req *, int, char *);
+void logdhcp(Req *);
+void logdhcpout(Req *, char *);
+void longopt(Req *, int, int32_t);
+void maskopt(Req *, int, uint8_t *);
+void miscoptions(Req *, uint8_t *);
+int openlisten(char *net);
+void p9addrsopt(Req *rp, int t, uint8_t **ip, int i);
+void parseoptions(Req *);
+void proto(Req *, int);
+void rcvdecline(Req *);
+void rcvdiscover(Req *);
+void rcvinform(Req *);
+void rcvrelease(Req *);
+void rcvrequest(Req *);
+int readlast(int, uint8_t *, int);
+char *readsysname(void);
+void remrequested(Req *, int);
+void sendack(Req *, uint8_t *, int, int);
+void sendnak(Req *, char *);
+void sendoffer(Req *, uint8_t *, int);
+void stringopt(Req *, int, char *);
+void termopt(Req *);
+int validip(uint8_t *);
+void vectoropt(Req *, int, uint8_t *, int);
+void warning(int, char *, ...);
 
 void
 timestamp(char *tag)
 {
 	uint64_t t;
 
-	t = nsec()/1000;
+	t = nsec() / 1000;
 	syslog(0, blog, "%s %lludµs", tag, t - start);
 }
 
@@ -219,7 +218,7 @@ void
 usage(void)
 {
 	fprint(2, "usage: dhcp [-dmnprsSZ] [-f directory] [-M minlease] "
-		"[-x netmtpt] [-Z staticlease] addr n [addr n] ...\n");
+		  "[-x netmtpt] [-Z staticlease] addr n [addr n] ...\n");
 	exits("usage");
 }
 
@@ -236,7 +235,8 @@ main(int argc, char **argv)
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
 	fmtinstall('M', eipfmt);
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case '6':
 		v6opts = 1;
 		break;
@@ -280,9 +280,10 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	} ARGEND;
+	}
+	ARGEND;
 
-	while(argc > 1){
+	while(argc > 1) {
 		parseip(ip, argv[0]);
 		if(!validip(ip))
 			usage();
@@ -304,26 +305,26 @@ main(int argc, char **argv)
 
 	/* put process in background */
 	if(!debug)
-	switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
-	case -1:
-		fatal(1, "fork");
-	case 0:
-		break;
-	default:
-		exits(0);
-	}
+		switch(rfork(RFNOTEG | RFPROC | RFFDG)) {
+		case -1:
+			fatal(1, "fork");
+		case 0:
+			break;
+		default:
+			exits(0);
+		}
 
-	if (chdir(TFTP) < 0)
+	if(chdir(TFTP) < 0)
 		warning(1, "can't change directory to %s", TFTP);
 	fd = openlisten(net);
 
-	for(;;){
+	for(;;) {
 		memset(&r, 0, sizeof(r));
 		r.fd = fd;
 		n = readlast(r.fd, r.buf, sizeof(r.buf));
 		if(n < Udphdrsize)
 			fatal(1, "error reading requests");
-		start = nsec()/1000;
+		start = nsec() / 1000;
 		op = optbuf;
 		*op = 0;
 		proto(&r, n);
@@ -341,9 +342,9 @@ proto(Req *rp, int n)
 	now = time(0);
 
 	rp->e = rp->buf + n;
-	rp->bp = (Bootp*)rp->buf;
-	rp->up = (Udphdr*)rp->buf;
-	if (ipcmp(rp->up->laddr, IPv4bcast) == 0){
+	rp->bp = (Bootp *)rp->buf;
+	rp->up = (Udphdr *)rp->buf;
+	if(ipcmp(rp->up->laddr, IPv4bcast) == 0) {
 		ipmove(rp->up->laddr, rp->up->ifcaddr);
 		rp->broadcast = 1;
 	}
@@ -362,16 +363,16 @@ proto(Req *rp, int n)
 		ipmove(relip, rp->up->raddr);
 	else
 		ipmove(relip, rp->up->laddr);
-	if(rp->e < (uint8_t*)rp->bp->sname){
+	if(rp->e < (uint8_t *)rp->bp->sname) {
 		warning(0, "packet too short");
 		return;
 	}
-	if(rp->bp->op != Bootrequest){
+	if(rp->bp->op != Bootrequest) {
 		warning(0, "not bootrequest");
 		return;
 	}
 
-	if(rp->e >= rp->bp->optdata){
+	if(rp->e >= rp->bp->optdata) {
 		if(memcmp(rp->bp->optmagic, plan9opt, sizeof(rp->bp->optmagic)) == 0)
 			rp->p9request = 1;
 		if(memcmp(rp->bp->optmagic, genericopt, sizeof(rp->bp->optmagic)) == 0) {
@@ -385,12 +386,12 @@ proto(Req *rp, int n)
 	 *  of the target.  We assume all zeros is not a hardware address
 	 *  which could be a mistake.
 	 */
-	if(rp->id == nil){
-		if(rp->bp->hlen > Maxhwlen){
+	if(rp->id == nil) {
+		if(rp->bp->hlen > Maxhwlen) {
 			warning(0, "hlen %d", rp->bp->hlen);
 			return;
 		}
-		if(memcmp(zeros, rp->bp->chaddr, rp->bp->hlen) == 0){
+		if(memcmp(zeros, rp->bp->chaddr, rp->bp->hlen) == 0) {
 			warning(0, "no chaddr");
 			return;
 		}
@@ -399,7 +400,7 @@ proto(Req *rp, int n)
 	}
 
 	/* info about gateway */
-	if(lookupip(relip, &rp->gii, 1) < 0){
+	if(lookupip(relip, &rp->gii, 1) < 0) {
 		warning(0, "lookupip failed");
 		return;
 	}
@@ -432,7 +433,7 @@ dhcp(Req *rp)
 {
 	logdhcp(rp);
 
-	switch(rp->dhcptype){
+	switch(rp->dhcptype) {
 	case Discover:
 		slowdelay(rp);
 		rcvdiscover(rp);
@@ -457,8 +458,8 @@ rcvdiscover(Req *rp)
 {
 	Binding *b, *nb;
 
-	if(rp->staticbinding){
-		sendoffer(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease));
+	if(rp->staticbinding) {
+		sendoffer(rp, rp->ii.ipaddr, (staticlease > minlease ? staticlease : minlease));
 		return;
 	}
 
@@ -487,16 +488,16 @@ rcvdiscover(Req *rp)
 	 *        the message was received (if 'giaddr' is 0) or on the address of
 	 *        the relay agent that forwarded the message ('giaddr' when not 0).
 	 */
-	if(b == nil){
+	if(b == nil) {
 		b = idtobinding(rp->id, &rp->gii, 1);
 		if(b && b->boundto && strcmp(b->boundto, rp->id) != 0)
-		if(validip(rp->ip) && samenet(rp->ip, &rp->gii)){
-			nb = iptobinding(rp->ip, 0);
-			if(nb && nb->lease < now)
-				b = nb;
-		}
+			if(validip(rp->ip) && samenet(rp->ip, &rp->gii)) {
+				nb = iptobinding(rp->ip, 0);
+				if(nb && nb->lease < now)
+					b = nb;
+			}
 	}
-	if(b == nil){
+	if(b == nil) {
 		warning(0, "!Discover(%s via %I): no binding %I",
 			rp->id, rp->gii.ipaddr, rp->ip);
 		return;
@@ -510,15 +511,14 @@ rcvrequest(Req *rp)
 {
 	Binding *b;
 
-	if(validip(rp->server)){
+	if(validip(rp->server)) {
 		/* this is a reply to an offer - SELECTING */
 
 		/* check for hard assignment */
-		if(rp->staticbinding){
+		if(rp->staticbinding) {
 			if(forme(rp->server))
 				sendack(rp, rp->ii.ipaddr,
-					(staticlease > minlease? staticlease:
-					minlease), 1);
+					(staticlease > minlease ? staticlease : minlease), 1);
 			else
 				warning(0, "!Request(%s via %I): for server %I not me",
 					rp->id, rp->gii.ipaddr, rp->server);
@@ -528,7 +528,7 @@ rcvrequest(Req *rp)
 		b = idtooffer(rp->id, &rp->gii);
 
 		/* if we don't have an offer, nak */
-		if(b == nil){
+		if(b == nil) {
 			warning(0, "!Request(%s via %I): no offer",
 				rp->id, rp->gii.ipaddr);
 			if(forme(rp->server))
@@ -537,7 +537,7 @@ rcvrequest(Req *rp)
 		}
 
 		/* if not for me, retract offer */
-		if(!forme(rp->server)){
+		if(!forme(rp->server)) {
 			b->expoffer = 0;
 			warning(0, "!Request(%s via %I): for server %I not me",
 				rp->id, rp->gii.ipaddr, rp->server);
@@ -548,20 +548,20 @@ rcvrequest(Req *rp)
 		 *  if the client is confused about what we offered, nak.
 		 *  client really shouldn't be specifying this when selecting
 		 */
-		if(validip(rp->ip) && ipcmp(rp->ip, b->ip) != 0){
+		if(validip(rp->ip) && ipcmp(rp->ip, b->ip) != 0) {
 			warning(0, "!Request(%s via %I): requests %I, not %I",
 				rp->id, rp->gii.ipaddr, rp->ip, b->ip);
 			sendnak(rp, "bad ip address option");
 			return;
 		}
-		if(commitbinding(b) < 0){
+		if(commitbinding(b) < 0) {
 			warning(0, "!Request(%s via %I): can't commit %I",
 				rp->id, rp->gii.ipaddr, b->ip);
 			sendnak(rp, "can't commit binding");
 			return;
 		}
 		sendack(rp, b->ip, b->offer, 1);
-	} else if(validip(rp->ip)){
+	} else if(validip(rp->ip)) {
 		/*
 		 *  checking address/net - INIT-REBOOT
 		 *
@@ -569,31 +569,30 @@ rcvrequest(Req *rp)
 		 *  address.
 		 */
 		/* check for hard assignment */
-		if(rp->staticbinding){
-			if(memcmp(rp->ip, rp->ii.ipaddr, IPaddrlen) != 0){
+		if(rp->staticbinding) {
+			if(memcmp(rp->ip, rp->ii.ipaddr, IPaddrlen) != 0) {
 				warning(0, "!Request(%s via %I): %I not valid for %E",
 					rp->id, rp->gii.ipaddr, rp->ip, rp->bp->chaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, (staticlease > minlease?
-				staticlease: minlease), 1);
+			sendack(rp, rp->ii.ipaddr, (staticlease > minlease ? staticlease : minlease), 1);
 			return;
 		}
 
 		/* make sure the network makes sense */
-		if(!samenet(rp->ip, &rp->gii)){
+		if(!samenet(rp->ip, &rp->gii)) {
 			warning(0, "!Request(%s via %I): bad forward of %I",
 				rp->id, rp->gii.ipaddr, rp->ip);
 			sendnak(rp, "wrong network");
 			return;
 		}
 		b = iptobinding(rp->ip, 0);
-		if(b == nil){
+		if(b == nil) {
 			warning(0, "!Request(%s via %I): no binding for %I",
 				rp->id, rp->gii.ipaddr, rp->ip);
 			return;
 		}
-		if(memcmp(rp->ip, b->ip, IPaddrlen) != 0 || now > b->lease){
+		if(memcmp(rp->ip, b->ip, IPaddrlen) != 0 || now > b->lease) {
 			warning(0, "!Request(%s via %I): %I not valid",
 				rp->id, rp->gii.ipaddr, rp->ip);
 			sendnak(rp, "not valid");
@@ -601,7 +600,7 @@ rcvrequest(Req *rp)
 		}
 		b->offer = b->lease - now;
 		sendack(rp, b->ip, b->offer, 1);
-	} else if(validip(rp->ciaddr)){
+	} else if(validip(rp->ciaddr)) {
 		/*
 		 *  checking address - RENEWING or REBINDING
 		 *
@@ -612,38 +611,37 @@ rcvrequest(Req *rp)
 		 */
 
 		/* check for hard assignment */
-		if(rp->staticbinding){
-			if(ipcmp(rp->ciaddr, rp->ii.ipaddr) != 0){
+		if(rp->staticbinding) {
+			if(ipcmp(rp->ciaddr, rp->ii.ipaddr) != 0) {
 				warning(0, "!Request(%s via %I): %I not valid",
 					rp->id, rp->gii.ipaddr, rp->ciaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, (staticlease > minlease?
-				staticlease: minlease), 1);
+			sendack(rp, rp->ii.ipaddr, (staticlease > minlease ? staticlease : minlease), 1);
 			return;
 		}
 
 		/* make sure the network makes sense */
-		if(!samenet(rp->ciaddr, &rp->gii)){
+		if(!samenet(rp->ciaddr, &rp->gii)) {
 			warning(0, "!Request(%s via %I): bad forward of %I",
 				rp->id, rp->gii.ipaddr, rp->ip);
 			sendnak(rp, "wrong network");
 			return;
 		}
 		b = iptobinding(rp->ciaddr, 0);
-		if(b == nil){
+		if(b == nil) {
 			warning(0, "!Request(%s via %I): no binding for %I",
 				rp->id, rp->gii.ipaddr, rp->ciaddr);
 			return;
 		}
-		if(ipcmp(rp->ciaddr, b->ip) != 0){
+		if(ipcmp(rp->ciaddr, b->ip) != 0) {
 			warning(0, "!Request(%I via %s): %I not valid",
 				rp->id, rp->gii.ipaddr, rp->ciaddr);
 			sendnak(rp, "invalid ip address");
 			return;
 		}
 		mkoffer(b, rp->id, rp->leasetime);
-		if(commitbinding(b) < 0){
+		if(commitbinding(b) < 0) {
 			warning(0, "!Request(%s via %I): can't commit %I",
 				rp->id, rp->gii.ipaddr, b->ip);
 			sendnak(rp, "can't commit binding");
@@ -663,7 +661,7 @@ rcvdecline(Req *rp)
 		return;
 
 	b = idtooffer(rp->id, &rp->gii);
-	if(b == nil){
+	if(b == nil) {
 		warning(0, "!Decline(%s via %I): no binding",
 			rp->id, rp->gii.ipaddr);
 		return;
@@ -684,12 +682,12 @@ rcvrelease(Req *rp)
 		return;
 
 	b = idtobinding(rp->id, &rp->gii, 0);
-	if(b == nil){
+	if(b == nil) {
 		warning(0, "!Release(%s via %I): no binding",
 			rp->id, rp->gii.ipaddr);
 		return;
 	}
-	if(strcmp(rp->id, b->boundto) != 0){
+	if(strcmp(rp->id, b->boundto) != 0) {
 		warning(0, "!Release(%s via %I): invalid release of %I",
 			rp->id, rp->gii.ipaddr, rp->ip);
 		return;
@@ -704,13 +702,13 @@ rcvinform(Req *rp)
 {
 	Binding *b;
 
-	if(rp->staticbinding){
+	if(rp->staticbinding) {
 		sendack(rp, rp->ii.ipaddr, 0, 0);
 		return;
 	}
 
 	b = iptobinding(rp->ciaddr, 0);
-	if(b == nil){
+	if(b == nil) {
 		warning(0, "!Inform(%s via %I): no binding for %I",
 			rp->id, rp->gii.ipaddr, rp->ip);
 		return;
@@ -721,7 +719,7 @@ rcvinform(Req *rp)
 int
 setsiaddr(uint8_t *siaddr, uint8_t *saddr, uint8_t *laddr)
 {
-	if(ipcmp(saddr, IPnoaddr) != 0){
+	if(ipcmp(saddr, IPnoaddr) != 0) {
 		v6tov4(siaddr, saddr);
 		return 0;
 	} else {
@@ -751,10 +749,10 @@ sendoffer(Req *rp, uint8_t *ip, int offer)
 	 *  set destination
 	 */
 	flags = nhgets(bp->flags);
-	if(validip(rp->giaddr)){
+	if(validip(rp->giaddr)) {
 		ipmove(up->raddr, rp->giaddr);
 		hnputs(up->rport, 67);
-	} else if(flags & Fbroadcast){
+	} else if(flags & Fbroadcast) {
 		ipmove(up->raddr, IPv4bcast);
 		hnputs(up->rport, 68);
 	} else {
@@ -811,10 +809,10 @@ sendack(Req *rp, uint8_t *ip, int offer, int sendlease)
 	 *  set destination
 	 */
 	flags = nhgets(bp->flags);
-	if(validip(rp->giaddr)){
+	if(validip(rp->giaddr)) {
 		ipmove(up->raddr, rp->giaddr);
 		hnputs(up->rport, 67);
-	} else if(flags & Fbroadcast){
+	} else if(flags & Fbroadcast) {
 		ipmove(up->raddr, IPv4bcast);
 		hnputs(up->rport, 68);
 	} else {
@@ -840,7 +838,7 @@ sendack(Req *rp, uint8_t *ip, int offer, int sendlease)
 	 *  set options
 	 */
 	byteopt(rp, ODtype, Ack);
-	if(sendlease){
+	if(sendlease) {
 		longopt(rp, ODlease, offer);
 	}
 	addropt(rp, ODserverid, up->laddr);
@@ -870,7 +868,7 @@ sendnak(Req *rp, char *msg)
 	/*
 	 *  set destination (always broadcast)
 	 */
-	if(validip(rp->giaddr)){
+	if(validip(rp->giaddr)) {
 		ipmove(up->raddr, rp->giaddr);
 		hnputs(up->rport, 67);
 	} else {
@@ -897,7 +895,7 @@ sendnak(Req *rp, char *msg)
 	if(msg)
 		stringopt(rp, ODmessage, msg);
 	if(strncmp(rp->id, "id", 2) == 0)
-		hexopt(rp, ODclientid, rp->id+2);
+		hexopt(rp, ODclientid, rp->id + 2);
 	termopt(rp);
 
 	logdhcpout(rp, "Nak");
@@ -921,10 +919,10 @@ bootp(Req *rp)
 	Info *iip;
 
 	warning(0, "bootp %s %I->%I from %s via %I, file %s %s",
-		rp->genrequest? "generic": (rp->p9request? "p9": ""),
+		rp->genrequest ? "generic" : (rp->p9request ? "p9" : ""),
 		rp->up->raddr, rp->up->laddr,
 		rp->id, rp->gii.ipaddr,
-		rp->bp->file, rp->broadcast? "broadcast": "unicast");
+		rp->bp->file, rp->broadcast ? "broadcast" : "unicast");
 
 	if(nobootp)
 		return;
@@ -933,14 +931,14 @@ bootp(Req *rp)
 	up = rp->up;
 	iip = &rp->ii;
 
-	if(rp->staticbinding == 0){
+	if(rp->staticbinding == 0) {
 		warning(0, "bootp from unknown %s via %I", rp->id, rp->gii.ipaddr);
 		return;
 	}
 
 	/* ignore if not for us */
-	if(*bp->sname){
-		if(strcmp(bp->sname, mysysname) != 0){
+	if(*bp->sname) {
+		if(strcmp(bp->sname, mysysname) != 0) {
 			bp->sname[20] = 0;
 			warning(0, "bootp for server %s", bp->sname);
 			return;
@@ -949,7 +947,7 @@ bootp(Req *rp)
 		slowdelay(rp);
 
 	/* ignore if we don't know what file to load */
-	if(*bp->file == 0){
+	if(*bp->file == 0) {
 		if(rp->genrequest && *iip->bootf2) /* if not plan 9 & have alternate file... */
 			strncpy(bp->file, iip->bootf2, sizeof(bp->file));
 		else if(*iip->bootf)
@@ -963,44 +961,44 @@ bootp(Req *rp)
 	}
 
 	/* ignore if the file is unreadable */
-	if((!rp->genrequest) && bp->file[0] && access(bp->file, 4) < 0){
+	if((!rp->genrequest) && bp->file[0] && access(bp->file, 4) < 0) {
 		warning(0, "inaccessible bootfile1 %s", bp->file);
 		return;
 	}
 
 	bp->op = Bootreply;
 	v6tov4(bp->yiaddr, iip->ipaddr);
-	if(rp->p9request){
+	if(rp->p9request) {
 		warning(0, "p9bootp: %I", iip->ipaddr);
 		memmove(bp->optmagic, plan9opt, 4);
 		if(iip->gwip == 0)
 			v4tov6(iip->gwip, bp->giaddr);
-		rp->p += sprint((char*)rp->p, "%V %I %I %I",
-				iip->ipmask+IPv4off, iip->fsip,
+		rp->p += sprint((char *)rp->p, "%V %I %I %I",
+				iip->ipmask + IPv4off, iip->fsip,
 				iip->auip, iip->gwip);
-		sprint(optbuf, "%s", (char*)(bp->optmagic));
-	} else if(rp->genrequest){
+		sprint(optbuf, "%s", (char *)(bp->optmagic));
+	} else if(rp->genrequest) {
 		warning(0, "genericbootp: %I", iip->ipaddr);
 		memmove(bp->optmagic, genericopt, 4);
 		miscoptions(rp, iip->ipaddr);
 		termopt(rp);
 	} else if(iip->vendor[0] != 0) {
 		warning(0, "bootp vendor field: %s", iip->vendor);
-		memset(rp->p, 0, 128-4);
-		rp->p += sprint((char*)bp->optmagic, "%s", iip->vendor);
+		memset(rp->p, 0, 128 - 4);
+		rp->p += sprint((char *)bp->optmagic, "%s", iip->vendor);
 	} else {
-		memset(rp->p, 0, 128-4);
-		rp->p += 128-4;
+		memset(rp->p, 0, 128 - 4);
+		rp->p += 128 - 4;
 	}
 
 	/*
 	 *  set destination
 	 */
 	flags = nhgets(bp->flags);
-	if(validip(rp->giaddr)){
+	if(validip(rp->giaddr)) {
 		ipmove(up->raddr, rp->giaddr);
 		hnputs(up->rport, 67);
-	} else if(flags & Fbroadcast){
+	} else if(flags & Fbroadcast) {
 		ipmove(up->raddr, IPv4bcast);
 		hnputs(up->rport, 68);
 	} else {
@@ -1034,9 +1032,9 @@ bootp(Req *rp)
 	 * zeros until we have a 64 byte field.
 	 */
 	n = rp->p - rp->bp->optdata;
-	if(n < 64-4) {
-		memset(rp->p, 0, (64-4)-n);
-		rp->p += (64-4)-n;
+	if(n < 64 - 4) {
+		memset(rp->p, 0, (64 - 4) - n);
+		rp->p += (64 - 4) - n;
 	}
 
 	/*
@@ -1047,9 +1045,9 @@ bootp(Req *rp)
 		warning(0, "bootp: write failed: %r");
 
 	warning(0, "bootp via %I: file %s xid(%ux)flag(%ux)ci(%V)gi(%V)yi(%V)si(%V) %s",
-			up->raddr, bp->file, nhgetl(bp->xid), nhgets(bp->flags),
-			bp->ciaddr, bp->giaddr, bp->yiaddr, bp->siaddr,
-			optbuf);
+		up->raddr, bp->file, nhgetl(bp->xid), nhgets(bp->flags),
+		bp->ciaddr, bp->giaddr, bp->yiaddr, bp->siaddr,
+		optbuf);
 }
 
 void
@@ -1060,7 +1058,7 @@ parseoptions(Req *rp)
 
 	p = rp->p;
 
-	while(p < rp->e){
+	while(p < rp->e) {
 		code = *p++;
 		if(code == 255)
 			break;
@@ -1074,12 +1072,12 @@ parseoptions(Req *rp)
 		if(p > rp->e)
 			return;
 
-		switch(code){
-		case ODipaddr:	/* requested ip address */
+		switch(code) {
+		case ODipaddr: /* requested ip address */
 			if(n == IPv4addrlen)
 				v4tov6(rp->ip, o);
 			break;
-		case ODlease:	/* requested lease time */
+		case ODlease: /* requested lease time */
 			rp->leasetime = nhgetl(o);
 			if(rp->leasetime > MaxLease || rp->leasetime < 0)
 				rp->leasetime = MaxLease;
@@ -1094,8 +1092,8 @@ parseoptions(Req *rp)
 				v4tov6(rp->server, o);
 			break;
 		case ODmessage:
-			if(n > sizeof rp->msg-1)
-				n = sizeof rp->msg-1;
+			if(n > sizeof rp->msg - 1)
+				n = sizeof rp->msg - 1;
 			memmove(rp->msg, o, n);
 			rp->msg[n] = 0;
 			break;
@@ -1109,7 +1107,7 @@ parseoptions(Req *rp)
 		case ODclientid:
 			if(n <= 1)
 				break;
-			rp->id = toid( o, n);
+			rp->id = toid(o, n);
 			break;
 		case ODparams:
 			if(n > sizeof(rp->requested))
@@ -1118,12 +1116,12 @@ parseoptions(Req *rp)
 			break;
 		case ODvendorclass:
 			if(n >= sizeof(rp->vendorclass))
-				n = sizeof(rp->vendorclass)-1;
+				n = sizeof(rp->vendorclass) - 1;
 			memmove(rp->vendorclass, o, n);
 			rp->vendorclass[n] = 0;
-			if(strncmp((char*)rp->vendorclass, "p9-", 3) == 0)
+			if(strncmp((char *)rp->vendorclass, "p9-", 3) == 0)
 				strcpy(rp->cputype,
-				       (char*)rp->vendorclass+3);
+				       (char *)rp->vendorclass + 3);
 			break;
 		case OBend:
 			return;
@@ -1145,7 +1143,7 @@ void
 miscoptions(Req *rp, uint8_t *ip)
 {
 	int i, j, na;
-	uint8_t x[2*IPaddrlen], vopts[Maxoptlen];
+	uint8_t x[2 * IPaddrlen], vopts[Maxoptlen];
 	uint8_t *op, *omax;
 	uint8_t *addrs[2];
 	char *p;
@@ -1153,14 +1151,14 @@ miscoptions(Req *rp, uint8_t *ip)
 	Ndbtuple *t;
 
 	addrs[0] = x;
-	addrs[1] = x+IPaddrlen;
+	addrs[1] = x + IPaddrlen;
 
 	/* always supply these */
 	maskopt(rp, OBmask, rp->gii.ipmask);
-	if(validip(rp->gii.gwip)){
+	if(validip(rp->gii.gwip)) {
 		remrequested(rp, OBrouter);
 		addropt(rp, OBrouter, rp->gii.gwip);
-	} else if(validip(rp->giaddr)){
+	} else if(validip(rp->giaddr)) {
 		remrequested(rp, OBrouter);
 		addropt(rp, OBrouter, rp->giaddr);
 	}
@@ -1169,7 +1167,7 @@ miscoptions(Req *rp, uint8_t *ip)
 	 * OBhostname for the HP4000M switches
 	 * (this causes NT to log infinite errors - tough shit)
 	 */
-	if(*rp->ii.domain){
+	if(*rp->ii.domain) {
 		remrequested(rp, OBhostname);
 		stringopt(rp, OBhostname, rp->ii.domain);
 	}
@@ -1182,7 +1180,7 @@ miscoptions(Req *rp, uint8_t *ip)
 	if(*rp->ii.domain == 0)
 		a[na++] = "dom";
 	for(i = 0; i < sizeof(rp->requested); i++)
-		switch(rp->requested[i]){
+		switch(rp->requested[i]) {
 		case OBrouter:
 			a[na++] = "@ipgw";
 			break;
@@ -1208,8 +1206,7 @@ miscoptions(Req *rp, uint8_t *ip)
 			a[na++] = "@time";
 			break;
 		}
-	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
-	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
+	if(strncmp((char *)rp->vendorclass, "plan9_", 6) == 0 || strncmp((char *)rp->vendorclass, "p9-", 3) == 0) {
 		a[na++] = "@fs";
 		a[na++] = "@auth";
 	}
@@ -1221,7 +1218,7 @@ miscoptions(Req *rp, uint8_t *ip)
 
 	/* add any requested ones that we know about */
 	for(i = 0; i < sizeof(rp->requested); i++)
-		switch(rp->requested[i]){
+		switch(rp->requested[i]) {
 		case OBrouter:
 			j = lookupserver("ipgw", addrs, t);
 			addrsopt(rp, OBrouter, addrs, j);
@@ -1237,7 +1234,7 @@ miscoptions(Req *rp, uint8_t *ip)
 		case OBdomainname:
 			p = strchr(rp->ii.domain, '.');
 			if(p)
-				stringopt(rp, OBdomainname, p+1);
+				stringopt(rp, OBdomainname, p + 1);
 			break;
 		case OBnetbiosns:
 			j = lookupserver("wins", addrs, t);
@@ -1273,8 +1270,7 @@ miscoptions(Req *rp, uint8_t *ip)
 		}
 
 	/* add plan9 specific options */
-	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
-	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
+	if(strncmp((char *)rp->vendorclass, "plan9_", 6) == 0 || strncmp((char *)rp->vendorclass, "p9-", 3) == 0) {
 		/* point to temporary area */
 		op = rp->p;
 		omax = rp->max;
@@ -1329,7 +1325,7 @@ fatal(int syserr, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr)
 		syslog(1, blog, "%s: %r", buf);
@@ -1345,9 +1341,9 @@ warning(int syserr, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
-	if(syserr){
+	if(syserr) {
 		syslog(0, blog, "%s: %r", buf);
 		if(debug)
 			fprint(2, "%s: %r\n", buf);
@@ -1358,7 +1354,7 @@ warning(int syserr, char *fmt, ...)
 	}
 }
 
-char*
+char *
 readsysname(void)
 {
 	static char name[128];
@@ -1366,10 +1362,10 @@ readsysname(void)
 	int n, fd;
 
 	fd = open("/dev/sysname", OREAD);
-	if(fd >= 0){
-		n = read(fd, name, sizeof(name)-1);
+	if(fd >= 0) {
+		n = read(fd, name, sizeof(name) - 1);
 		close(fd);
-		if(n > 0){
+		if(n > 0) {
 			name[n] = 0;
 			return name;
 		}
@@ -1408,14 +1404,14 @@ addropt(Req *rp, int t, uint8_t *ip)
 {
 	if(rp->p + 6 > rp->max)
 		return;
-	if (!isv4(ip)) {
-		if (debug)
+	if(!isv4(ip)) {
+		if(debug)
 			warning(0, "not a v4 %s server: %I", optname[t], ip);
 		return;
 	}
 	*rp->p++ = t;
 	*rp->p++ = 4;
-	memmove(rp->p, ip+IPv4off, 4);
+	memmove(rp->p, ip + IPv4off, 4);
 	rp->p += 4;
 
 	op = seprint(op, oe, "%s(%I)", optname[t], ip);
@@ -1428,7 +1424,7 @@ maskopt(Req *rp, int t, uint8_t *ip)
 		return;
 	*rp->p++ = t;
 	*rp->p++ = 4;
-	memmove(rp->p, ip+IPv4off, 4);
+	memmove(rp->p, ip + IPv4off, 4);
 	rp->p += 4;
 
 	op = seprint(op, oe, "%s(%M)", optname[t], ip);
@@ -1441,22 +1437,22 @@ addrsopt(Req *rp, int t, uint8_t **ip, int i)
 
 	if(i <= 0)
 		return;
-	if(rp->p + 2 + 4*i > rp->max)
+	if(rp->p + 2 + 4 * i > rp->max)
 		return;
 	v4s = 0;
-	for(n = i; n-- > 0; )
-		if (isv4(ip[n]))
+	for(n = i; n-- > 0;)
+		if(isv4(ip[n]))
 			v4s++;
-	if (v4s <= 0) {
-		if (debug)
+	if(v4s <= 0) {
+		if(debug)
 			warning(0, "no v4 %s servers", optname[t]);
 		return;
 	}
 	*rp->p++ = t;
-	*rp->p++ = 4*v4s;
+	*rp->p++ = 4 * v4s;
 	op = seprint(op, oe, " %s(", optname[t]);
-	while(i-- > 0){
-		if (!isv4(*ip)) {
+	while(i-- > 0) {
+		if(!isv4(*ip)) {
 			op = seprint(op, oe, " skipping %I ", *ip);
 			continue;
 		}
@@ -1478,29 +1474,29 @@ p9addrsopt(Req *rp, int t, uint8_t **ip, int i)
 	if(i <= 0 || !v6opts)
 		return;
 	pkt = (char *)rp->p;
-	*pkt++ = t;			/* option */
-	pkt++;				/* fill in payload length below */
+	*pkt++ = t; /* option */
+	pkt++;      /* fill in payload length below */
 	payload = pkt;
-	*pkt++ = i;			/* plan 9 address count */
+	*pkt++ = i; /* plan 9 address count */
 	op = seprint(op, oe, " %s(", optname[t]);
-	while(i-- > 0){
+	while(i-- > 0) {
 		pkt = seprint(pkt, (char *)rp->max, "%I", *ip);
-		if ((uint8_t *)pkt+1 >= rp->max) {
+		if((uint8_t *)pkt + 1 >= rp->max) {
 			op = seprint(op, oe, "<out of mem1>)");
 			return;
 		}
-		pkt++;			/* leave NUL as terminator */
+		pkt++; /* leave NUL as terminator */
 		op = seprint(op, oe, "%I", *ip);
 		ip++;
 		if(i > 0)
 			op = seprint(op, oe, " ");
 	}
-	if ((uint8_t *)pkt - rp->p > 0377) {
+	if((uint8_t *)pkt - rp->p > 0377) {
 		op = seprint(op, oe, "<out of mem2>)");
 		return;
 	}
 	op = seprint(op, oe, ")");
-	rp->p[1] = pkt - payload;	/* payload length */
+	rp->p[1] = pkt - payload; /* payload length */
 	rp->p = (uint8_t *)pkt;
 }
 
@@ -1532,7 +1528,7 @@ stringopt(Req *rp, int t, char *str)
 	n = strlen(str);
 	if(n > 255)
 		n = 255;
-	if(rp->p+n+2 > rp->max)
+	if(rp->p + n + 2 > rp->max)
 		return;
 	*rp->p++ = t;
 	*rp->p++ = n;
@@ -1551,7 +1547,7 @@ vectoropt(Req *rp, int t, uint8_t *v, int n)
 		n = 255;
 		op = seprint(op, oe, "vectoropt len %d > 255 ", n);
 	}
-	if(rp->p+n+2 > rp->max)
+	if(rp->p + n + 2 > rp->max)
 		return;
 	*rp->p++ = t;
 	*rp->p++ = n;
@@ -1583,12 +1579,12 @@ hexopt(Req *rp, int t, char *str)
 	n /= 2;
 	if(n > 255)
 		n = 255;
-	if(rp->p+n+2 > rp->max)
+	if(rp->p + n + 2 > rp->max)
 		return;
 	*rp->p++ = t;
 	*rp->p++ = n;
-	while(n-- > 0){
-		*rp->p++ = (fromhex(str[0])<<4)|fromhex(str[1]);
+	while(n-- > 0) {
+		*rp->p++ = (fromhex(str[0]) << 4) | fromhex(str[1]);
 		str += 2;
 	}
 
@@ -1603,7 +1599,7 @@ arpenter(uint8_t *ip, uint8_t *ether)
 
 	sprint(buf, "%s/arp", net);
 	f = open(buf, OWRITE);
-	if(f < 0){
+	if(f < 0) {
 		syslog(debug, blog, "open %s: %r", buf);
 		return;
 	}
@@ -1612,15 +1608,15 @@ arpenter(uint8_t *ip, uint8_t *ether)
 }
 
 char *dhcpmsgname[] =
-{
-	[Discover]	"Discover",
-	[Offer]		"Offer",
-	[Request]	"Request",
-	[Decline]	"Decline",
-	[Ack]		"Ack",
-	[Nak]		"Nak",
-	[Release]	"Release",
-	[Inform]	"Inform",
+    {
+	 [Discover] "Discover",
+	 [Offer] "Offer",
+	 [Request] "Request",
+	 [Decline] "Decline",
+	 [Ack] "Ack",
+	 [Nak] "Nak",
+	 [Release] "Release",
+	 [Inform] "Inform",
 };
 
 void
@@ -1637,7 +1633,7 @@ logdhcp(Req *rp)
 	else
 		p = seprint(p, e, "%d(", rp->dhcptype);
 	p = seprint(p, e, "%I->%I) xid(%ux)flag(%ux)", rp->up->raddr, rp->up->laddr,
-		nhgetl(rp->bp->xid), nhgets(rp->bp->flags));
+		    nhgetl(rp->bp->xid), nhgets(rp->bp->flags));
 	if(rp->bp->htype == 1)
 		p = seprint(p, e, "ea(%E)", rp->bp->chaddr);
 	if(validip(rp->ciaddr))
@@ -1657,7 +1653,7 @@ logdhcp(Req *rp)
 		if(rp->requested[i] != 0)
 			p = seprint(p, e, "%s ", optname[rp->requested[i]]);
 	p = seprint(p, e, ")");
-	p = seprint(p, e, " %s", rp->broadcast? "broadcast": "unicast");
+	p = seprint(p, e, " %s", rp->broadcast ? "broadcast" : "unicast");
 	USED(p);
 	syslog(0, blog, "%s", buf);
 }
@@ -1666,8 +1662,8 @@ void
 logdhcpout(Req *rp, char *type)
 {
 	syslog(0, blog, "%s(%I-%I)id(%s)ci(%V)gi(%V)yi(%V)si(%V) %s",
-		type, rp->up->laddr, rp->up->raddr, rp->id,
-		rp->bp->ciaddr, rp->bp->giaddr, rp->bp->yiaddr, rp->bp->siaddr, optbuf);
+	       type, rp->up->laddr, rp->up->raddr, rp->id,
+	       rp->bp->ciaddr, rp->bp->giaddr, rp->bp->yiaddr, rp->bp->siaddr, optbuf);
 }
 
 /*
@@ -1692,11 +1688,11 @@ readlast(int fd, uint8_t *buf, int len)
 	notify(ding);
 
 	lastn = 0;
-	for(;;){
+	for(;;) {
 		alarm(20);
 		n = read(fd, buf, len);
 		alarm(0);
-		if(n < 0){
+		if(n < 0) {
 			if(lastn > 0)
 				return lastn;
 			break;

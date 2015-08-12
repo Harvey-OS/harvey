@@ -9,30 +9,28 @@
 
 #include "sam.h"
 
-Rune	samname[] = L"~~sam~~";
+Rune samname[] = L"~~sam~~";
 
-Rune *left[]= {
-	L"{[(<«",
-	L"\n",
-	L"'\"`",
-	0
-};
-Rune *right[]= {
-	L"}])>»",
-	L"\n",
-	L"'\"`",
-	0
-};
+Rune *left[] = {
+    L"{[(<«",
+    L"\n",
+    L"'\"`",
+    0};
+Rune *right[] = {
+    L"}])>»",
+    L"\n",
+    L"'\"`",
+    0};
 
-char	RSAM[] = "sam";
-char	SAMTERM[] = "/bin/aux/samterm";
-char	HOME[] = "home";
-char	TMPDIR[] = "/tmp";
-char	SH[] = "rc";
-char	SHPATH[] = "/bin/rc";
-char	RX[] = "rx";
-char	RXPATH[] = "/bin/rx";
-char	SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
+char RSAM[] = "sam";
+char SAMTERM[] = "/bin/aux/samterm";
+char HOME[] = "home";
+char TMPDIR[] = "/tmp";
+char SH[] = "rc";
+char SHPATH[] = "/bin/rc";
+char RX[] = "rx";
+char RXPATH[] = "/bin/rx";
+char SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
 
 void
 dprint(char *z, ...)
@@ -69,7 +67,7 @@ statfile(char *name, uint32_t *dev, uint64_t *id, int32_t *time,
 	if(dirb == nil)
 		return -1;
 	if(dev)
-		*dev = dirb->type|(dirb->dev<<16);
+		*dev = dirb->type | (dirb->dev << 16);
 	if(id)
 		*id = dirb->qid.path;
 	if(time)
@@ -77,7 +75,7 @@ statfile(char *name, uint32_t *dev, uint64_t *id, int32_t *time,
 	if(length)
 		*length = dirb->length;
 	if(appendonly)
-		*appendonly = dirb->mode & DMAPPEND;
+		*appendonly = dirb->mode &DMAPPEND;
 	free(dirb);
 	return 1;
 }
@@ -92,7 +90,7 @@ statfd(int fd, uint32_t *dev, uint64_t *id, int32_t *time, int32_t *length,
 	if(dirb == nil)
 		return -1;
 	if(dev)
-		*dev = dirb->type|(dirb->dev<<16);
+		*dev = dirb->type | (dirb->dev << 16);
 	if(id)
 		*id = dirb->qid.path;
 	if(time)
@@ -100,7 +98,7 @@ statfd(int fd, uint32_t *dev, uint64_t *id, int32_t *time, int32_t *length,
 	if(length)
 		*length = dirb->length;
 	if(appendonly)
-		*appendonly = dirb->mode & DMAPPEND;
+		*appendonly = dirb->mode &DMAPPEND;
 	free(dirb);
 	return 1;
 }
@@ -118,18 +116,18 @@ notifyf(void *a, char *s)
 	noted(NDFLT);
 }
 
-char*
+char *
 waitfor(int pid)
 {
 	Waitmsg *w;
 	static char msg[ERRMAX];
 
-	while((w = wait()) != nil){
-		if(w->pid != pid){
+	while((w = wait()) != nil) {
+		if(w->pid != pid) {
 			free(w);
 			continue;
 		}
-		strecpy(msg, msg+sizeof msg, w->msg);
+		strecpy(msg, msg + sizeof msg, w->msg);
 		free(w);
 		return msg;
 	}
@@ -143,7 +141,7 @@ samerr(char *buf)
 	sprint(buf, "%s/sam.err", TMPDIR);
 }
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *p;
@@ -155,7 +153,7 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);

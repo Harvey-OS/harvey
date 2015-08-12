@@ -13,24 +13,23 @@
 int
 tas(int32_t *x)
 {
-	int     v, t, i = 1;
+	int v, t, i = 1;
 
 #if ARMv5
 	__asm__(
-		"swp  %0, %1, [%2]"
-		: "=&r" (v)
-		: "r" (1), "r" (x)
-		: "memory"
-	);
+	    "swp  %0, %1, [%2]"
+	    : "=&r"(v)
+	    : "r"(1), "r"(x)
+	    : "memory");
 #else
-	__asm__ (
-		"1:	ldrex	%0, [%2]\n"
-		"	strex	%1, %3, [%2]\n"
-		"	teq	%1, #0\n"
-		"	bne	1b"
-		: "=&r" (v), "=&r" (t)
-		: "r" (x), "r" (i)
-		: "cc");
+	__asm__(
+	    "1:	ldrex	%0, [%2]\n"
+	    "	strex	%1, %3, [%2]\n"
+	    "	teq	%1, #0\n"
+	    "	bne	1b"
+	    : "=&r"(v), "=&r"(t)
+	    : "r"(x), "r"(i)
+	    : "cc");
 #endif
 	switch(v) {
 	case 0:
@@ -41,4 +40,3 @@ tas(int32_t *x)
 		return 1;
 	}
 }
-

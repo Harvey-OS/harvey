@@ -16,11 +16,10 @@ void
 callinsn(char *name, char *buf)
 {
 	void (*f)(void);
-	if (notify(handler)){
+	if(notify(handler)) {
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}
-
 
 	f = (void *)buf;
 	f();
@@ -31,12 +30,12 @@ callinsn(char *name, char *buf)
 void
 writeptr(char *name, void *ptr)
 {
-	if (notify(handler)){
+	if(notify(handler)) {
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}
 
-	*(uintptr_t*)ptr = 0xdeadbeef;
+	*(uintptr_t *)ptr = 0xdeadbeef;
 	print("FAIL %s\n", name);
 	exits("FAIL");
 }
@@ -48,7 +47,7 @@ main(void)
 	char stk[128];
 	char *mem;
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
@@ -59,7 +58,7 @@ main(void)
 		waitpid();
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
@@ -71,27 +70,27 @@ main(void)
 		waitpid();
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
-		writeptr("write code", (void*)&main);
+		writeptr("write code", (void *)&main);
 	default:
 		cases++;
 		waitpid();
 	}
 
-	switch(rfork(RFMEM|RFPROC)){
+	switch(rfork(RFMEM | RFPROC)) {
 	case -1:
 		sysfatal("rfork");
 	case 0:
-		writeptr("write rodata", (void*)str);
+		writeptr("write rodata", (void *)str);
 	default:
 		cases++;
 		waitpid();
 	}
 
-	if(success == cases){
+	if(success == cases) {
 		print("PASS\n");
 		exits("PASS");
 	}

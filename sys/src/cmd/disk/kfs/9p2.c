@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-#define MSIZE	(MAXDAT+128)
+#define MSIZE (MAXDAT + 128)
 
 static void
 seterror(Fcall *ou, int err)
@@ -22,7 +22,7 @@ seterror(Fcall *ou, int err)
 }
 
 static int
-fsversion(Chan* chan, Fcall* f, Fcall* r)
+fsversion(Chan *chan, Fcall *f, Fcall *r)
 {
 	if(f->msize < MSIZE)
 		r->msize = f->msize;
@@ -32,10 +32,10 @@ fsversion(Chan* chan, Fcall* f, Fcall* r)
 	 * Should check the '.' stuff here.
 	 * What happens if Tversion has already been seen?
 	 */
-	if(strcmp(f->version, VERSION9P) == 0){
+	if(strcmp(f->version, VERSION9P) == 0) {
 		r->version = VERSION9P;
 		chan->msize = r->msize;
-	}else
+	} else
 		r->version = "unknown";
 
 	fileinit(chan);
@@ -68,18 +68,18 @@ fsauth(Chan *chan, Fcall *f, Fcall *r)
 			mount(fd, -1, "/mnt", MBEFORE, "");
 
 	afd = open("/mnt/factotum/rpc", ORDWR);
-	if(afd < 0){
+	if(afd < 0) {
 		err = Esystem;
 		goto out;
 	}
 	rpc = auth_allocrpc(afd);
-	if(rpc == nil){
+	if(rpc == nil) {
 		close(afd);
 		err = Esystem;
 		goto out;
 	}
 	file->rpc = rpc;
-	if(auth_rpc(rpc, "start", keyspec, strlen(keyspec)) != ARok){
+	if(auth_rpc(rpc, "start", keyspec, strlen(keyspec)) != ARok) {
 		err = Esystem;
 		goto out;
 	}
@@ -88,12 +88,12 @@ fsauth(Chan *chan, Fcall *f, Fcall *r)
 	if(!aname[0])
 		aname = "main";
 	file->fs = fsstr(aname);
-	if(file->fs == nil){
+	if(file->fs == nil) {
 		err = Ebadspc;
 		goto out;
 	}
 	file->uid = strtouid(f->uname);
-	if(file->uid < 0){
+	if(file->uid < 0) {
 		err = Ebadu;
 		goto out;
 	}
@@ -103,7 +103,7 @@ fsauth(Chan *chan, Fcall *f, Fcall *r)
 	r->qid = file->qid;
 
 out:
-	if(file != nil){
+	if(file != nil) {
 		qunlock(file);
 		if(err != 0)
 			freefp(file);
@@ -123,7 +123,7 @@ authread(File *file, uint8_t *data, int count)
 		return -1;
 
 	rv = auth_rpc(rpc, "read", nil, 0);
-	switch(rv){
+	switch(rv) {
 	case ARdone:
 		ai = auth_getinfo(rpc);
 		if(ai == nil)
@@ -161,7 +161,7 @@ authwrite(File *file, uint8_t *data, int count)
 }
 
 void
-mkqid9p1(Qid9p1* qid9p1, Qid* qid)
+mkqid9p1(Qid9p1 *qid9p1, Qid *qid)
 {
 	if(qid->path & 0xFFFFFFFF00000000LL)
 		panic("mkqid9p1: path %lluX\n", qid->path);
@@ -174,7 +174,7 @@ mkqid9p1(Qid9p1* qid9p1, Qid* qid)
 void
 authfree(File *fp)
 {
-	if(fp->rpc != nil){
+	if(fp->rpc != nil) {
 		close(fp->rpc->afd);
 		free(fp->rpc);
 		fp->rpc = nil;
@@ -182,7 +182,7 @@ authfree(File *fp)
 }
 
 void
-mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode)
+mkqid9p2(Qid *qid, Qid9p1 *qid9p1, int mode)
 {
 	qid->path = (uint32_t)(qid9p1->path & ~QPDIR);
 	qid->vers = qid9p1->version;
@@ -204,8 +204,8 @@ checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 		return 0;
 
 	/* if no afile, this had better be none */
-	if(afile == nil){
-		if(file->uid == 0){
+	if(afile == nil) {
+		if(file->uid == 0) {
 			if(!allownone && !chan->authed)
 				return Eauth;
 			return 0;
@@ -214,11 +214,11 @@ checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 	}
 
 	/* otherwise, we'ld better have a usable cuid */
-	if(!(afile->qid.type&QTAUTH))
+	if(!(afile->qid.type & QTAUTH))
 		return Eauth;
 	if(afile->uid != file->uid || afile->fs != fs)
 		return Eauth;
-	if(afile->cuid <= 0){
+	if(afile->cuid <= 0) {
 		if(authread(afile, buf, 0) != 0)
 			return Eauth;
 		if(afile->cuid <= 0)
@@ -230,10 +230,10 @@ checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 	chan->authed = 1;
 
 	return 0;
-}		
+}
 
 static int
-fsattach(Chan* chan, Fcall* f, Fcall* r)
+fsattach(Chan *chan, Fcall *f, Fcall *r)
 {
 	char *aname;
 	Iobuf *p;
@@ -245,24 +245,24 @@ fsattach(Chan* chan, Fcall* f, Fcall* r)
 	int error, u;
 
 	aname = f->aname;
-	if(!aname[0])	/* default */
+	if(!aname[0]) /* default */
 		aname = "main";
 	p = nil;
 	afile = filep(chan, f->afid, 0);
 	file = filep(chan, f->fid, 1);
-	if(file == nil){
+	if(file == nil) {
 		error = Efidinuse;
 		goto out;
 	}
 
 	u = -1;
-	if(chan != cons.chan){
-		if(strcmp(f->uname, "adm") == 0){
+	if(chan != cons.chan) {
+		if(strcmp(f->uname, "adm") == 0) {
 			error = Eauth;
 			goto out;
 		}
 		u = strtouid(f->uname);
-		if(u < 0){
+		if(u < 0) {
 			error = Ebadu;
 			goto out;
 		}
@@ -270,7 +270,7 @@ fsattach(Chan* chan, Fcall* f, Fcall* r)
 	file->uid = u;
 
 	fs = fsstr(aname);
-	if(fs == nil){
+	if(fs == nil) {
 		error = Ebadspc;
 		goto out;
 	}
@@ -281,11 +281,11 @@ fsattach(Chan* chan, Fcall* f, Fcall* r)
 	raddr = getraddr(fs->dev);
 	p = getbuf(fs->dev, raddr, Bread);
 	d = getdir(p, 0);
-	if(d == nil || checktag(p, Tdir, QPROOT) || !(d->mode & DALLOC)){
+	if(d == nil || checktag(p, Tdir, QPROOT) || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
-	if(iaccess(file, d, DEXEC)){
+	if(iaccess(file, d, DEXEC)) {
 		error = Eaccess;
 		goto out;
 	}
@@ -312,14 +312,14 @@ fsattach(Chan* chan, Fcall* f, Fcall* r)
 //			chan->whoname, chan->whotime, fs->name, chan->chan);
 
 out:
-//	if((cons.flags & attachflag) && error)
-//		print("9p2: attach %s %T SUCK EGGS --- %s\n",
-//			f->uname, time(), errstr[error]);
+	//	if((cons.flags & attachflag) && error)
+	//		print("9p2: attach %s %T SUCK EGGS --- %s\n",
+	//			f->uname, time(), errstr[error]);
 	if(p != nil)
 		putbuf(p);
 	if(afile != nil)
 		qunlock(afile);
-	if(file != nil){
+	if(file != nil) {
 		qunlock(file);
 		if(error)
 			freefp(file);
@@ -329,7 +329,7 @@ out:
 }
 
 static int
-fsflush(Chan* chan, Fcall* f, Fcall* r)
+fsflush(Chan *chan, Fcall *f, Fcall *r)
 {
 	runlock(&chan->reflock);
 	wlock(&chan->reflock);
@@ -340,7 +340,7 @@ fsflush(Chan* chan, Fcall* f, Fcall* r)
 }
 
 static void
-clone(File* nfile, File* file)
+clone(File *nfile, File *file)
 {
 	Wpath *wpath;
 
@@ -361,7 +361,7 @@ clone(File* nfile, File* file)
 }
 
 static int
-walkname(File* file, char* wname, Qid* wqid)
+walkname(File *file, char *wname, Qid *wqid)
 {
 	Wpath *w;
 	Iobuf *p, *p1;
@@ -375,21 +375,21 @@ walkname(File* file, char* wname, Qid* wqid)
 	 * File must not have been opened for I/O by an open
 	 * or create message and must represent a directory.
 	 */
-	if(file->open != 0){
+	if(file->open != 0) {
 		error = Emode;
 		goto out;
 	}
 
 	p = getbuf(file->fs->dev, file->addr, Bread);
-	if(p == nil || checktag(p, Tdir, QPNONE)){
+	if(p == nil || checktag(p, Tdir, QPNONE)) {
 		error = Edir1;
 		goto out;
 	}
-	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
-	if(!(d->mode & DDIR)){
+	if(!(d->mode & DDIR)) {
 		error = Edir1;
 		goto out;
 	}
@@ -400,19 +400,19 @@ walkname(File* file, char* wname, Qid* wqid)
 	 * For walked elements the implied user must
 	 * have permission to search the directory.
 	 */
-	if(file->cp != cons.chan && iaccess(file, d, DEXEC)){
+	if(file->cp != cons.chan && iaccess(file, d, DEXEC)) {
 		error = Eaccess;
 		goto out;
 	}
 	accessdir(p, d, FREAD);
 
-	if(strcmp(wname, ".") == 0){
-setdot:
+	if(strcmp(wname, ".") == 0) {
+	setdot:
 		if(wqid != nil)
 			*wqid = file->qid;
 		goto out;
 	}
-	if(strcmp(wname, "..") == 0){
+	if(strcmp(wname, "..") == 0) {
 		if(file->wpath == 0)
 			goto setdot;
 		putbuf(p);
@@ -420,11 +420,11 @@ setdot:
 		addr = file->wpath->addr;
 		slot = file->wpath->slot;
 		p1 = getbuf(file->fs->dev, addr, Bread);
-		if(p1 == nil || checktag(p1, Tdir, QPNONE)){
+		if(p1 == nil || checktag(p1, Tdir, QPNONE)) {
 			error = Edir1;
 			goto out;
 		}
-		if((d1 = getdir(p1, slot)) == nil || !(d1->mode & DALLOC)){
+		if((d1 = getdir(p1, slot)) == nil || !(d1->mode & DALLOC)) {
 			error = Ephase;
 			goto out;
 		}
@@ -435,15 +435,15 @@ setdot:
 		goto found;
 	}
 
-	for(addr = 0; ; addr++){
-		if(p == nil){
+	for(addr = 0;; addr++) {
+		if(p == nil) {
 			p = getbuf(file->fs->dev, file->addr, Bread);
-			if(p == nil || checktag(p, Tdir, QPNONE)){
+			if(p == nil || checktag(p, Tdir, QPNONE)) {
 				error = Ealloc;
 				goto out;
 			}
 			d = getdir(p, file->slot);
-			if(d == nil ||  !(d->mode & DALLOC)){
+			if(d == nil || !(d->mode & DALLOC)) {
 				error = Ealloc;
 				goto out;
 			}
@@ -451,11 +451,11 @@ setdot:
 		qpath = d->qid.path;
 		p1 = dnodebuf1(p, d, addr, 0);
 		p = nil;
-		if(p1 == nil || checktag(p1, Tdir, qpath)){
+		if(p1 == nil || checktag(p1, Tdir, qpath)) {
 			error = Eentry;
 			goto out;
 		}
-		for(slot = 0; slot < DIRPERBUF; slot++){
+		for(slot = 0; slot < DIRPERBUF; slot++) {
 			d1 = getdir(p1, slot);
 			if(!(d1->mode & DALLOC))
 				continue;
@@ -464,7 +464,7 @@ setdot:
 			/*
 			 * update walk path
 			 */
-			if((w = newwp()) == nil){
+			if((w = newwp()) == nil) {
 				error = Ewalk;
 				goto out;
 			}
@@ -472,7 +472,7 @@ setdot:
 			w->slot = file->slot;
 			w->up = file->wpath;
 			file->wpath = w;
-			slot += DIRPERBUF*addr;
+			slot += DIRPERBUF * addr;
 			goto found;
 		}
 		putbuf(p1);
@@ -498,7 +498,7 @@ out:
 }
 
 static int
-fswalk(Chan* chan, Fcall* f, Fcall* r)
+fswalk(Chan *chan, Fcall *f, Fcall *r)
 {
 	int error, nwname;
 	File *file, *nfile, tfile;
@@ -510,7 +510,7 @@ fswalk(Chan* chan, Fcall* f, Fcall* r)
 	 */
 	if((file = filep(chan, f->fid, 0)) == nil)
 		return Efid;
-	if(file->open != 0){
+	if(file->open != 0) {
 		qunlock(file);
 		return Emode;
 	}
@@ -527,19 +527,17 @@ fswalk(Chan* chan, Fcall* f, Fcall* r)
 	 * is 0.
 	 */
 	r->nwqid = 0;
-	if(f->newfid != f->fid){
-		if((nfile = filep(chan, f->newfid, 1)) == nil){
+	if(f->newfid != f->fid) {
+		if((nfile = filep(chan, f->newfid, 1)) == nil) {
 			qunlock(file);
 			return Efidinuse;
 		}
-	}
-	else if(f->nwname != 0){
+	} else if(f->nwname != 0) {
 		nfile = &tfile;
 		memset(nfile, 0, sizeof(File));
 		nfile->cp = chan;
 		nfile->fid = ~0;
-	}
-	else{
+	} else {
 		qunlock(file);
 		return 0;
 	}
@@ -549,28 +547,26 @@ fswalk(Chan* chan, Fcall* f, Fcall* r)
 	 * Should check name is not too long.
 	 */
 	error = 0;
-	for(nwname = 0; nwname < f->nwname; nwname++){
+	for(nwname = 0; nwname < f->nwname; nwname++) {
 		error = walkname(nfile, f->wname[nwname], &r->wqid[r->nwqid]);
-		if(error != 0 || ++r->nwqid >= MAXDAT/sizeof(Qid))
+		if(error != 0 || ++r->nwqid >= MAXDAT / sizeof(Qid))
 			break;
 	}
 
-	if(f->nwname == 0){
+	if(f->nwname == 0) {
 		/*
 		 * Newfid must be different to fid (see above)
 		 * so this is a simple 'clone' operation - there's
 		 * nothing to do except unlock unless there's
 		 * an error.
 		 */
-		if(error){
+		if(error) {
 			freewp(nfile->wpath);
 			qunlock(nfile);
 			freefp(nfile);
-		}
-		else
+		} else
 			qunlock(nfile);
-	}
-	else if(r->nwqid < f->nwname){
+	} else if(r->nwqid < f->nwname) {
 		/*
 		 * Didn't walk all elements, 'clunk' nfile
 		 * and leave 'file' alone.
@@ -578,14 +574,13 @@ fswalk(Chan* chan, Fcall* f, Fcall* r)
 		 * walked OK.
 		 */
 		freewp(nfile->wpath);
-		if(nfile != &tfile){
+		if(nfile != &tfile) {
 			qunlock(nfile);
 			freefp(nfile);
 		}
 		if(r->nwqid != 0)
 			error = 0;
-	}
-	else{
+	} else {
 		/*
 		 * Walked all elements. If newfid is the same
 		 * as fid must update 'file' from the temporary
@@ -593,14 +588,13 @@ fswalk(Chan* chan, Fcall* f, Fcall* r)
 		 * Otherwise just unlock (when using tfile there's
 		 * no need to unlock as it's a local).
 		 */
-		if(nfile == &tfile){
+		if(nfile == &tfile) {
 			file->qid = nfile->qid;
 			freewp(file->wpath);
 			file->wpath = nfile->wpath;
 			file->addr = nfile->addr;
 			file->slot = nfile->slot;
-		}
-		else
+		} else
 			qunlock(nfile);
 	}
 	qunlock(file);
@@ -609,7 +603,7 @@ fswalk(Chan* chan, Fcall* f, Fcall* r)
 }
 
 static int
-fsopen(Chan* chan, Fcall* f, Fcall* r)
+fsopen(Chan *chan, Fcall *f, Fcall *r)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -624,7 +618,7 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 	if(chan == cons.chan || writeallow)
 		wok = 1;
 
-	if((file = filep(chan, f->fid, 0)) == nil){
+	if((file = filep(chan, f->fid, 0)) == nil) {
 		error = Efid;
 		goto out;
 	}
@@ -633,46 +627,46 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 	 * if remove on close, check access here
 	 */
 	ro = isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup));
-	if(f->mode & ORCLOSE){
-		if(ro){
+	if(f->mode & ORCLOSE) {
+		if(ro) {
 			error = Eronly;
 			goto out;
 		}
 		/*
 		 * check on parent directory of file to be deleted
 		 */
-		if(file->wpath == 0 || file->wpath->addr == file->addr){
+		if(file->wpath == 0 || file->wpath->addr == file->addr) {
 			error = Ephase;
 			goto out;
 		}
 		p = getbuf(file->fs->dev, file->wpath->addr, Bread);
-		if(p == nil || checktag(p, Tdir, QPNONE)){
+		if(p == nil || checktag(p, Tdir, QPNONE)) {
 			error = Ephase;
 			goto out;
 		}
-		if((d = getdir(p, file->wpath->slot)) == nil || !(d->mode & DALLOC)){
+		if((d = getdir(p, file->wpath->slot)) == nil || !(d->mode & DALLOC)) {
 			error = Ephase;
 			goto out;
 		}
-		if(iaccess(file, d, DWRITE)){
+		if(iaccess(file, d, DWRITE)) {
 			error = Eaccess;
 			goto out;
 		}
 		putbuf(p);
 	}
 	p = getbuf(file->fs->dev, file->addr, Bread);
-	if(p == nil || checktag(p, Tdir, QPNONE)){
+	if(p == nil || checktag(p, Tdir, QPNONE)) {
 		error = Ealloc;
 		goto out;
 	}
-	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
 	if(error = mkqidcmp(&file->qid, d))
 		goto out;
 	mkqid(&qid, d, 1);
-	switch(f->mode & 7){
+	switch(f->mode & 7) {
 
 	case OREAD:
 		if(iaccess(file, d, DREAD) && !wok)
@@ -683,7 +677,7 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 	case OWRITE:
 		if((d->mode & DDIR) || (iaccess(file, d, DWRITE) && !wok))
 			goto badaccess;
-		if(ro){
+		if(ro) {
 			error = Eronly;
 			goto out;
 		}
@@ -691,15 +685,13 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 		break;
 
 	case ORDWR:
-		if((d->mode & DDIR)
-		|| (iaccess(file, d, DREAD) && !wok)
-		|| (iaccess(file, d, DWRITE) && !wok))
+		if((d->mode & DDIR) || (iaccess(file, d, DREAD) && !wok) || (iaccess(file, d, DWRITE) && !wok))
 			goto badaccess;
-		if(ro){
+		if(ro) {
 			error = Eronly;
 			goto out;
 		}
-		fmod = FREAD+FWRITE;
+		fmod = FREAD + FWRITE;
 		break;
 
 	case OEXEC:
@@ -712,17 +704,17 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 		error = Emode;
 		goto out;
 	}
-	if(f->mode & OTRUNC){
+	if(f->mode & OTRUNC) {
 		if((d->mode & DDIR) || (iaccess(file, d, DWRITE) && !wok))
 			goto badaccess;
-		if(ro){
+		if(ro) {
 			error = Eronly;
 			goto out;
 		}
 	}
 	t = 0;
-	if(d->mode & DLOCK){
-		if((t = tlocked(p, d)) == nil){
+	if(d->mode & DLOCK) {
+		if((t = tlocked(p, d)) == nil) {
 			error = Elocked;
 			goto out;
 		}
@@ -730,7 +722,7 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 	if(f->mode & ORCLOSE)
 		fmod |= FREMOV;
 	file->open = fmod;
-	if((f->mode & OTRUNC) && !(d->mode & DAPND)){
+	if((f->mode & OTRUNC) && !(d->mode & DAPND)) {
 		dtrunc(p, d);
 		qid.vers = d->qid.version;
 	}
@@ -751,44 +743,44 @@ out:
 	if(file != nil)
 		qunlock(file);
 
-	r->iounit = chan->msize-IOHDRSZ;
+	r->iounit = chan->msize - IOHDRSZ;
 
 	return error;
 }
 
 static int
-dir9p2(Dir* dir, Dentry* dentry, void* strs)
+dir9p2(Dir *dir, Dentry *dentry, void *strs)
 {
 	char *op, *p;
 
 	memset(dir, 0, sizeof(Dir));
 	mkqid(&dir->qid, dentry, 1);
-	dir->mode = (dir->qid.type<<24)|(dentry->mode & 0777);
+	dir->mode = (dir->qid.type << 24) | (dentry->mode & 0777);
 	dir->atime = dentry->atime;
 	dir->mtime = dentry->mtime;
 	dir->length = dentry->size;
 
 	op = p = strs;
 	dir->name = p;
-	p += sprint(p, "%s", dentry->name)+1;
+	p += sprint(p, "%s", dentry->name) + 1;
 
 	dir->uid = p;
 	uidtostr(p, dentry->uid);
-	p += strlen(p)+1;
+	p += strlen(p) + 1;
 
 	dir->gid = p;
 	uidtostr(p, dentry->gid);
-	p += strlen(p)+1;
+	p += strlen(p) + 1;
 
 	dir->muid = p;
 	strcpy(p, "");
-	p += strlen(p)+1;
+	p += strlen(p) + 1;
 
-	return p-op;
+	return p - op;
 }
 
 static int
-checkname9p2(char* name)
+checkname9p2(char *name)
 {
 	char *p;
 
@@ -798,16 +790,16 @@ checkname9p2(char* name)
 	if(name == nil)
 		return 0;
 
-	for(p = name; *p != 0; p++){
+	for(p = name; *p != 0; p++) {
 		if((*p & 0xFF) <= 040)
 			return 0;
 	}
 
-	return p-name;
+	return p - name;
 }
 
 static int
-fscreate(Chan* chan, Fcall* f, Fcall* r)
+fscreate(Chan *chan, Fcall *f, Fcall *r)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
@@ -823,27 +815,27 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 	if(chan == cons.chan || writeallow)
 		wok = 1;
 
-	if((file = filep(chan, f->fid, 0)) == nil){
+	if((file = filep(chan, f->fid, 0)) == nil) {
 		error = Efid;
 		goto out;
 	}
-	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))){
+	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))) {
 		error = Eronly;
 		goto out;
 	}
 
 	p = getbuf(file->fs->dev, file->addr, Bread);
-	if(p == nil || checktag(p, Tdir, QPNONE)){
+	if(p == nil || checktag(p, Tdir, QPNONE)) {
 		error = Ealloc;
 		goto out;
 	}
-	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
 	if(error = mkqidcmp(&file->qid, d))
 		goto out;
-	if(!(d->mode & DDIR)){
+	if(!(d->mode & DDIR)) {
 		error = Edir2;
 		goto out;
 	}
@@ -857,45 +849,45 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 	 * Check the name is valid and will fit in an old
 	 * directory entry.
 	 */
-	if((l = checkname9p2(f->name)) == 0){
+	if((l = checkname9p2(f->name)) == 0) {
 		error = Ename;
 		goto out;
 	}
-	if(l+1 > NAMELEN){
+	if(l + 1 > NAMELEN) {
 		error = Etoolong;
 		goto out;
 	}
-	if(strcmp(f->name, ".") == 0 || strcmp(f->name, "..") == 0){
+	if(strcmp(f->name, ".") == 0 || strcmp(f->name, "..") == 0) {
 		error = Edot;
 		goto out;
 	}
 
 	addr1 = 0;
-	slot1 = 0;	/* set */
-	for(addr = 0; ; addr++){
-		if((p1 = dnodebuf(p, d, addr, 0)) == nil){
+	slot1 = 0; /* set */
+	for(addr = 0;; addr++) {
+		if((p1 = dnodebuf(p, d, addr, 0)) == nil) {
 			if(addr1 != 0)
 				break;
 			p1 = dnodebuf(p, d, addr, Tdir);
 		}
-		if(p1 == nil){
+		if(p1 == nil) {
 			error = Efull;
 			goto out;
 		}
-		if(checktag(p1, Tdir, d->qid.path)){
+		if(checktag(p1, Tdir, d->qid.path)) {
 			putbuf(p1);
 			goto phase;
 		}
-		for(slot = 0; slot < DIRPERBUF; slot++){
+		for(slot = 0; slot < DIRPERBUF; slot++) {
 			d1 = getdir(p1, slot);
-			if(!(d1->mode & DALLOC)){
-				if(addr1 == 0){
+			if(!(d1->mode & DALLOC)) {
+				if(addr1 == 0) {
 					addr1 = p1->addr;
-					slot1 = slot + addr*DIRPERBUF;
+					slot1 = slot + addr * DIRPERBUF;
 				}
 				continue;
 			}
-			if(strncmp(f->name, d1->name, sizeof(d1->name)) == 0){
+			if(strncmp(f->name, d1->name, sizeof(d1->name)) == 0) {
 				putbuf(p1);
 				error = Eexist;
 				goto out;
@@ -904,9 +896,9 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 		putbuf(p1);
 	}
 
-	switch(f->mode & 7){
+	switch(f->mode & 7) {
 	case OEXEC:
-	case OREAD:		/* seems only useful to make directories */
+	case OREAD: /* seems only useful to make directories */
 		fmod = FREAD;
 		break;
 
@@ -915,7 +907,7 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 		break;
 
 	case ORDWR:
-		fmod = FREAD+FWRITE;
+		fmod = FREAD + FWRITE;
 		break;
 
 	default:
@@ -929,24 +921,23 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 	 * do it
 	 */
 	path = qidpathgen(&file->fs->dev);
-	if((p1 = getbuf(file->fs->dev, addr1, Bread|Bimm|Bmod)) == nil)
+	if((p1 = getbuf(file->fs->dev, addr1, Bread | Bimm | Bmod)) == nil)
 		goto phase;
 	d1 = getdir(p1, slot1);
 	if(d1 == nil || checktag(p1, Tdir, d->qid.path)) {
 		putbuf(p1);
 		goto phase;
 	}
-	if(d1->mode & DALLOC){
+	if(d1->mode & DALLOC) {
 		putbuf(p1);
 		goto phase;
 	}
 
 	strncpy(d1->name, f->name, sizeof(d1->name));
-	if(chan == cons.chan){
+	if(chan == cons.chan) {
 		d1->uid = cons.uid;
 		d1->gid = cons.gid;
-	}
-	else{
+	} else {
 		d1->uid = file->uid;
 		d1->gid = d->gid;
 		f->perm &= d->mode | ~0666;
@@ -963,7 +954,7 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 	if(f->perm & PAPND)
 		d1->mode |= DAPND;
 	t = nil;
-	if(f->perm & PLOCK){
+	if(f->perm & PLOCK) {
 		d1->mode |= DLOCK;
 		t = tlocked(p1, d1);
 		/* if nil, out of tlock structures */
@@ -976,7 +967,7 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 	/*
 	 * do a walk to new directory entry
 	 */
-	if((w = newwp()) == nil){
+	if((w = newwp()) == nil) {
 		error = Ewalk;
 		goto out;
 	}
@@ -1009,13 +1000,13 @@ out:
 	if(file != nil)
 		qunlock(file);
 
-	r->iounit = chan->msize-IOHDRSZ;
+	r->iounit = chan->msize - IOHDRSZ;
 
 	return error;
 }
 
 static int
-fsread(Chan* chan, Fcall* f, Fcall* r)
+fsread(Chan *chan, Fcall *f, Fcall *r)
 {
 	uint8_t *data;
 	Iobuf *p, *p1;
@@ -1025,18 +1016,18 @@ fsread(Chan* chan, Fcall* f, Fcall* r)
 	int32_t addr, offset, start, tim;
 	int error, iounit, nread, count, n, o, slot;
 	Dir dir;
-	char strdata[28*10];
+	char strdata[28 * 10];
 
 	p = nil;
-	data = (uint8_t*)r->data;
+	data = (uint8_t *)r->data;
 	count = f->count;
 	offset = f->offset;
 	nread = 0;
-	if((file = filep(chan, f->fid, 0)) == nil){
+	if((file = filep(chan, f->fid, 0)) == nil) {
 		error = Efid;
 		goto out;
 	}
-	if(file->qid.type & QTAUTH){
+	if(file->qid.type & QTAUTH) {
 		nread = authread(file, data, count);
 		if(nread < 0)
 			error = Esystem;
@@ -1044,33 +1035,33 @@ fsread(Chan* chan, Fcall* f, Fcall* r)
 			error = 0;
 		goto out;
 	}
-	if(!(file->open & FREAD)){
+	if(!(file->open & FREAD)) {
 		error = Eopen;
 		goto out;
 	}
-	iounit = chan->msize-IOHDRSZ;
-	if(count < 0 || count > iounit){
+	iounit = chan->msize - IOHDRSZ;
+	if(count < 0 || count > iounit) {
 		error = Ecount;
 		goto out;
 	}
-	if(offset < 0){
+	if(offset < 0) {
 		error = Eoffset;
 		goto out;
 	}
 	p = getbuf(file->fs->dev, file->addr, Bread);
-	if(p == nil || checktag(p, Tdir, QPNONE)){
+	if(p == nil || checktag(p, Tdir, QPNONE)) {
 		error = Ealloc;
 		goto out;
 	}
-	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
 	if(error = mkqidcmp(&file->qid, d))
 		goto out;
-	if(t = file->tlock){
+	if(t = file->tlock) {
 		tim = time(0);
-		if(t->time < tim || t->file != file){
+		if(t->time < tim || t->file != file) {
 			error = Ebroken;
 			goto out;
 		}
@@ -1080,16 +1071,16 @@ fsread(Chan* chan, Fcall* f, Fcall* r)
 	accessdir(p, d, FREAD);
 	if(d->mode & DDIR)
 		goto dread;
-	if(offset+count > d->size)
+	if(offset + count > d->size)
 		count = d->size - offset;
-	while(count > 0){
-		if(p == nil){
+	while(count > 0) {
+		if(p == nil) {
 			p = getbuf(file->fs->dev, file->addr, Bread);
-			if(p == nil || checktag(p, Tdir, QPNONE)){
+			if(p == nil || checktag(p, Tdir, QPNONE)) {
 				error = Ealloc;
 				goto out;
 			}
-			if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+			if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 				error = Ealloc;
 				goto out;
 			}
@@ -1101,17 +1092,16 @@ fsread(Chan* chan, Fcall* f, Fcall* r)
 			n = count;
 		p1 = dnodebuf1(p, d, addr, 0);
 		p = nil;
-		if(p1 != nil){
-			if(checktag(p1, Tfile, QPNONE)){
+		if(p1 != nil) {
+			if(checktag(p1, Tfile, QPNONE)) {
 				error = Ephase;
 				putbuf(p1);
 				goto out;
 			}
-			memmove(data+nread, p1->iobuf+o, n);
+			memmove(data + nread, p1->iobuf + o, n);
 			putbuf(p1);
-		}
-		else
-			memset(data+nread, 0, n);
+		} else
+			memset(data + nread, 0, n);
 		count -= n;
 		nread += n;
 		offset += n;
@@ -1123,29 +1113,28 @@ dread:
 	 * Pick up where we left off last time if nothing has changed,
 	 * otherwise must scan from the beginning.
 	 */
-	if(offset == file->doffset /*&& file->qid.vers == file->dvers*/){
-		addr = file->dslot/DIRPERBUF;
-		slot = file->dslot%DIRPERBUF;
+	if(offset == file->doffset /*&& file->qid.vers == file->dvers*/) {
+		addr = file->dslot / DIRPERBUF;
+		slot = file->dslot % DIRPERBUF;
 		start = offset;
-	}
-	else{
+	} else {
 		addr = 0;
 		slot = 0;
 		start = 0;
 	}
 
 dread1:
-	if(p == nil){
+	if(p == nil) {
 		/*
 		 * This is just a check to ensure the entry hasn't
 		 * gone away during the read of each directory block.
 		 */
 		p = getbuf(file->fs->dev, file->addr, Bread);
-		if(p == nil || checktag(p, Tdir, QPNONE)){
+		if(p == nil || checktag(p, Tdir, QPNONE)) {
 			error = Ealloc;
 			goto out1;
 		}
-		if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+		if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 			error = Ealloc;
 			goto out1;
 		}
@@ -1154,25 +1143,25 @@ dread1:
 	p = nil;
 	if(p1 == nil)
 		goto out1;
-	if(checktag(p1, Tdir, QPNONE)){
+	if(checktag(p1, Tdir, QPNONE)) {
 		error = Ephase;
 		putbuf(p1);
 		goto out1;
 	}
 
-	for(; slot < DIRPERBUF; slot++){
+	for(; slot < DIRPERBUF; slot++) {
 		d1 = getdir(p1, slot);
 		if(!(d1->mode & DALLOC))
 			continue;
 		dir9p2(&dir, d1, strdata);
-		if((n = convD2M(&dir, data+nread, iounit - nread)) <= BIT16SZ){
+		if((n = convD2M(&dir, data + nread, iounit - nread)) <= BIT16SZ) {
 			putbuf(p1);
 			goto out1;
 		}
 		start += n;
 		if(start < offset)
 			continue;
-		if(count < n){
+		if(count < n) {
 			putbuf(p1);
 			goto out1;
 		}
@@ -1186,10 +1175,10 @@ dread1:
 	goto dread1;
 
 out1:
-	if(error == 0){
+	if(error == 0) {
 		file->doffset = offset;
 		file->dvers = file->qid.vers;
-		file->dslot = slot+DIRPERBUF*addr;
+		file->dslot = slot + DIRPERBUF * addr;
 	}
 
 out:
@@ -1204,13 +1193,13 @@ out:
 	if(file != nil)
 		qunlock(file);
 	r->count = nread;
-	r->data = (char*)data;
+	r->data = (char *)data;
 
 	return error;
 }
 
 static int
-fswrite(Chan* chan, Fcall* f, Fcall* r)
+fswrite(Chan *chan, Fcall *f, Fcall *r)
 {
 	Iobuf *p, *p1;
 	Dentry *d;
@@ -1225,27 +1214,27 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 	nwrite = 0;
 	p = nil;
 
-	if((file = filep(chan, f->fid, 0)) == nil){
+	if((file = filep(chan, f->fid, 0)) == nil) {
 		error = Efid;
 		goto out;
 	}
-	if(file->qid.type & QTAUTH){
-		nwrite = authwrite(file, (uint8_t*)f->data, count);
+	if(file->qid.type & QTAUTH) {
+		nwrite = authwrite(file, (uint8_t *)f->data, count);
 		if(nwrite < 0)
 			error = Esystem;
 		else
 			error = 0;
 		goto out;
 	}
-	if(!(file->open & FWRITE)){
+	if(!(file->open & FWRITE)) {
 		error = Eopen;
 		goto out;
 	}
-	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))){
+	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))) {
 		error = Eronly;
 		goto out;
 	}
-	if(count < 0 || count > chan->msize-IOHDRSZ){
+	if(count < 0 || count > chan->msize - IOHDRSZ) {
 		error = Ecount;
 		goto out;
 	}
@@ -1253,11 +1242,11 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 		error = Eoffset;
 		goto out;
 	}
-	if((p = getbuf(file->fs->dev, file->addr, Bread|Bmod)) == nil){
+	if((p = getbuf(file->fs->dev, file->addr, Bread | Bmod)) == nil) {
 		error = Ealloc;
 		goto out;
 	}
-	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
@@ -1265,7 +1254,7 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 		goto out;
 	if(t = file->tlock) {
 		tim = time(0);
-		if(t->time < tim || t->file != file){
+		if(t->time < tim || t->file != file) {
 			error = Ebroken;
 			goto out;
 		}
@@ -1275,12 +1264,12 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 	accessdir(p, d, FWRITE);
 	if(d->mode & DAPND)
 		offset = d->size;
-	if(offset+count > d->size)
-		d->size = offset+count;
-	while(count > 0){
-		if(p == nil){
-			p = getbuf(file->fs->dev, file->addr, Bread|Bmod);
-			if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if(offset + count > d->size)
+		d->size = offset + count;
+	while(count > 0) {
+		if(p == nil) {
+			p = getbuf(file->fs->dev, file->addr, Bread | Bmod);
+			if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 				error = Ealloc;
 				goto out;
 			}
@@ -1297,12 +1286,12 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 			error = Efull;
 			goto out;
 		}
-		if(checktag(p1, Tfile, qpath)){
+		if(checktag(p1, Tfile, qpath)) {
 			putbuf(p1);
 			error = Ephase;
 			goto out;
 		}
-		memmove(p1->iobuf+o, f->data+nwrite, n);
+		memmove(p1->iobuf + o, f->data + nwrite, n);
 		p1->flags |= Bmod;
 		putbuf(p1);
 		count -= n;
@@ -1321,15 +1310,15 @@ out:
 }
 
 static int
-_clunk(File* file, int remove, int wok)
+_clunk(File *file, int remove, int wok)
 {
 	Tlock *t;
 	int error;
 
 	error = 0;
-	if(t = file->tlock){
+	if(t = file->tlock) {
 		if(t->file == file)
-			t->time = 0;		/* free the lock */
+			t->time = 0; /* free the lock */
 		file->tlock = 0;
 	}
 	if(remove)
@@ -1343,7 +1332,7 @@ _clunk(File* file, int remove, int wok)
 }
 
 static int
-fsclunk(Chan* chan, Fcall* f, Fcall* r)
+fsclunk(Chan *chan, Fcall *f, Fcall *r)
 {
 	File *file;
 
@@ -1355,7 +1344,7 @@ fsclunk(Chan* chan, Fcall* f, Fcall* r)
 }
 
 static int
-fsremove(Chan* chan, Fcall* f, Fcall* r)
+fsremove(Chan *chan, Fcall *f, Fcall *r)
 {
 	File *file;
 
@@ -1366,7 +1355,7 @@ fsremove(Chan* chan, Fcall* f, Fcall* r)
 }
 
 static int
-fsstat(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
+fsstat(Chan *chan, Fcall *f, Fcall *r, uint8_t *data)
 {
 	Dir dir;
 	Iobuf *p;
@@ -1378,18 +1367,18 @@ fsstat(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
 		return Efid;
 
 	p = getbuf(file->fs->dev, file->addr, Bread);
-	if(p == nil || checktag(p, Tdir, QPNONE)){
+	if(p == nil || checktag(p, Tdir, QPNONE)) {
 		error = Edir1;
 		goto out;
 	}
-	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)){
+	if((d = getdir(p, file->slot)) == nil || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
 	if(error = mkqidcmp(&file->qid, d))
 		goto out;
 
-	if(d->qid.path == QPROOT)	/* stat of root gives time */
+	if(d->qid.path == QPROOT) /* stat of root gives time */
 		d->atime = time(0);
 
 	len = dir9p2(&dir, d, data);
@@ -1409,7 +1398,7 @@ out:
 }
 
 static int
-fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
+fswstat(Chan *chan, Fcall *f, Fcall *r, char *strs)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1, xd;
@@ -1422,7 +1411,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	p = p1 = nil;
 	d1 = nil;
 
-	if((file = filep(chan, f->fid, 0)) == nil){
+	if((file = filep(chan, f->fid, 0)) == nil) {
 		error = Efid;
 		goto out;
 	}
@@ -1432,12 +1421,12 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	 * can't do anything
 	 * unless allow.
 	 */
-	if(file->uid == 0 && !wstatallow){
+	if(file->uid == 0 && !wstatallow) {
 		error = Eaccess;
 		goto out;
 	}
 
-	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))){
+	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))) {
 		error = Eronly;
 		goto out;
 	}
@@ -1445,25 +1434,25 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	/*
 	 * first get parent
 	 */
-	if(file->wpath){
+	if(file->wpath) {
 		p1 = getbuf(file->fs->dev, file->wpath->addr, Bread);
-		if(p1 == nil){
+		if(p1 == nil) {
 			error = Ephase;
 			goto out;
 		}
 		d1 = getdir(p1, file->wpath->slot);
-		if(d1 == nil || checktag(p1, Tdir, QPNONE) || !(d1->mode & DALLOC)){
+		if(d1 == nil || checktag(p1, Tdir, QPNONE) || !(d1->mode & DALLOC)) {
 			error = Ephase;
 			goto out;
 		}
 	}
 
-	if((p = getbuf(file->fs->dev, file->addr, Bread)) == nil){
+	if((p = getbuf(file->fs->dev, file->addr, Bread)) == nil) {
 		error = Ealloc;
 		goto out;
 	}
 	d = getdir(p, file->slot);
-	if(d == nil || checktag(p, Tdir, QPNONE) || !(d->mode & DALLOC)){
+	if(d == nil || checktag(p, Tdir, QPNONE) || !(d->mode & DALLOC)) {
 		error = Ealloc;
 		goto out;
 	}
@@ -1474,7 +1463,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	 * Convert the message and fix up
 	 * fields not to be changed.
 	 */
-	if(convM2D(f->stat, f->nstat, &dir, strs) == 0){
+	if(convM2D(f->stat, f->nstat, &dir, strs) == 0) {
 		print("9p2: convM2D returns 0\n");
 		error = Econvert;
 		goto out;
@@ -1489,12 +1478,12 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 		gid = strtouid(dir.gid);
 	if(dir.name == nil || strlen(dir.name) == 0)
 		dir.name = d->name;
-	else{
-		if((l = checkname9p2(dir.name)) == 0){
+	else {
+		if((l = checkname9p2(dir.name)) == 0) {
 			error = Ename;
 			goto out;
 		}
-		if(l > NAMELEN){
+		if(l > NAMELEN) {
 			error = Etoolong;
 			goto out;
 		}
@@ -1511,7 +1500,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	 * else neither are defaults, use the new mode but check
 	 * it agrees with 'type'.
 	 */
-	if(dir.qid.type == 0xFF && dir.mode == ~0){
+	if(dir.qid.type == 0xFF && dir.mode == ~0) {
 		dir.mode = d->mode & 0777;
 		if(d->mode & DLOCK)
 			dir.mode |= DMEXCL;
@@ -1519,13 +1508,11 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 			dir.mode |= DMAPPEND;
 		if(d->mode & DDIR)
 			dir.mode |= DMDIR;
-	}
-	else if(dir.qid.type == 0xFF){
+	} else if(dir.qid.type == 0xFF) {
 		/* nothing to do */
-	}
-	else if(dir.mode == ~0)
-		dir.mode = (dir.qid.type<<24)|(d->mode & 0777);
-	else if(dir.qid.type != ((dir.mode>>24) & 0xFF)){
+	} else if(dir.mode == ~0)
+		dir.mode = (dir.qid.type << 24) | (d->mode & 0777);
+	else if(dir.qid.type != ((dir.mode >> 24) & 0xFF)) {
 		error = Eqidmode;
 		goto out;
 	}
@@ -1534,7 +1521,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	 * Check for unknown type/mode bits
 	 * and an attempt to change the directory bit.
 	 */
-	if(dir.mode & ~(DMDIR|DMAPPEND|DMEXCL|0777)){
+	if(dir.mode & ~(DMDIR | DMAPPEND | DMEXCL | 0777)) {
 		error = Enotm;
 		goto out;
 	}
@@ -1542,7 +1529,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 		mode = DMDIR;
 	else
 		mode = 0;
-	if((dir.mode^mode) & DMDIR){
+	if((dir.mode ^ mode) & DMDIR) {
 		error = Enotd;
 		goto out;
 	}
@@ -1555,7 +1542,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	/*
 	 * Currently, can't change length.
 	 */
-	if(dir.length != d->size){
+	if(dir.length != d->size) {
 		error = Enotl;
 		goto out;
 	}
@@ -1608,7 +1595,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 		 * check that destination name is unique,
 		 */
 		putbuf(p);
-		for(addr = 0; ; addr++) {
+		for(addr = 0;; addr++) {
 			if((p = dnodebuf(p1, d1, addr, 0)) == nil)
 				break;
 			if(checktag(p, Tdir, d1->qid.path)) {
@@ -1630,7 +1617,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 		/*
 		 * reacquire entry
 		 */
-		if((p = getbuf(file->fs->dev, file->addr, Bread)) == nil){
+		if((p = getbuf(file->fs->dev, file->addr, Bread)) == nil) {
 			error = Ephase;
 			goto out;
 		}
@@ -1659,8 +1646,8 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 		mode |= DAPND;
 	if(dir.mode & DMEXCL)
 		mode |= DLOCK;
-	while(d->mtime != dir.mtime || ((d->mode^mode) & (DAPND|DLOCK|0777))) {
-		if(wstatallow)			/* set to allow chmod during boot */
+	while(d->mtime != dir.mtime || ((d->mode ^ mode) & (DAPND | DLOCK | 0777))) {
+		if(wstatallow) /* set to allow chmod during boot */
 			break;
 		if(d->uid == file->uid)
 			break;
@@ -1674,7 +1661,7 @@ fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 	d->mtime = dir.mtime;
 	d->uid = uid;
 	d->gid = gid;
-	d->mode = (mode & (DAPND|DLOCK|0777)) | (d->mode & (DALLOC|DDIR));
+	d->mode = (mode & (DAPND | DLOCK | 0777)) | (d->mode & (DALLOC | DDIR));
 
 	strncpy(d->name, dir.name, sizeof(d->name));
 	accessdir(p, d, FWSTAT);
@@ -1699,9 +1686,9 @@ recv(Chan *c, uint8_t *buf, int n)
 	/* read count */
 	qlock(&c->rlock);
 	m = readn(fd, buf, BIT32SZ);
-	if(m != BIT32SZ){
+	if(m != BIT32SZ) {
 		qunlock(&c->rlock);
-		if(m < 0){
+		if(m < 0) {
 			print("readn(BIT32SZ) fails: %r\n");
 			return -1;
 		}
@@ -1710,20 +1697,20 @@ recv(Chan *c, uint8_t *buf, int n)
 	}
 
 	len = GBIT32(buf);
-	if(len <= BIT32SZ || len > n){
+	if(len <= BIT32SZ || len > n) {
 		print("recv bad length %d\n", len);
 		werrstr("bad length in 9P2000 message header");
 		qunlock(&c->rlock);
 		return -1;
 	}
 	len -= BIT32SZ;
-	m = readn(fd, buf+BIT32SZ, len);
+	m = readn(fd, buf + BIT32SZ, len);
 	qunlock(&c->rlock);
-	if(m < len){
+	if(m < len) {
 		print("recv wanted %d got %d\n", len, m);
 		return 0;
 	}
-	return BIT32SZ+m;
+	return BIT32SZ + m;
 }
 
 static void
@@ -1743,7 +1730,7 @@ send(Chan *c, uint8_t *buf, int n)
 void
 serve9p2(Chan *chan, uint8_t *ib, int nib)
 {
-	uint8_t inbuf[MSIZE+IOHDRSZ], outbuf[MSIZE+IOHDRSZ];
+	uint8_t inbuf[MSIZE + IOHDRSZ], outbuf[MSIZE + IOHDRSZ];
 	Fcall f, r;
 	char ename[64];
 	int error, n, type;
@@ -1751,14 +1738,14 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 	chan->msize = MSIZE;
 	fmtinstall('F', fcallfmt);
 
-	for(;;){
-		if(nib){
+	for(;;) {
+		if(nib) {
 			memmove(inbuf, ib, nib);
 			n = nib;
 			nib = 0;
-		}else
+		} else
 			n = recv(chan, inbuf, sizeof inbuf);
-		if(chat){
+		if(chat) {
 			print("read msg %d (fd %d)\n", n, chan->chan);
 			if(n <= 0)
 				print("\terr: %r\n");
@@ -1767,13 +1754,13 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 			continue;
 		if(n <= 0)
 			break;
-		if(convM2S(inbuf, n, &f) != n){
+		if(convM2S(inbuf, n, &f) != n) {
 			print("9p2: cannot decode\n");
 			continue;
 		}
 
 		type = f.type;
-		if(type < Tversion || type >= Tmax || (type&1) || type == Terror){
+		if(type < Tversion || type >= Tmax || (type & 1) || type == Terror) {
 			print("9p2: bad message type %d\n", type);
 			continue;
 		}
@@ -1781,13 +1768,13 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 		if(CHAT(chan))
 			print("9p2: f %F\n", &f);
 
-		r.type = type+1;
+		r.type = type + 1;
 		r.tag = f.tag;
 		error = 0;
 
 		rlock(&mainlock);
 		rlock(&chan->reflock);
-		switch(type){
+		switch(type) {
 		default:
 			r.type = Rerror;
 			snprint(ename, sizeof ename, "unknown message: %F", &f);
@@ -1815,7 +1802,7 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 			error = fscreate(chan, &f, &r);
 			break;
 		case Tread:
-			r.data = (char*)inbuf;
+			r.data = (char *)inbuf;
 			error = fsread(chan, &f, &r);
 			break;
 		case Twrite:
@@ -1831,33 +1818,32 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 			error = fsstat(chan, &f, &r, inbuf);
 			break;
 		case Twstat:
-			error = fswstat(chan, &f, &r, (char*)outbuf);
+			error = fswstat(chan, &f, &r, (char *)outbuf);
 			break;
 		}
 		runlock(&chan->reflock);
 		runlock(&mainlock);
 
-		if(error != 0){
+		if(error != 0) {
 			r.type = Rerror;
-			if(error >= MAXERR){
+			if(error >= MAXERR) {
 				snprint(ename, sizeof(ename), "error %d", error);
 				r.ename = ename;
-			}
-			else
+			} else
 				r.ename = errstring[error];
 		}
 		if(CHAT(chan))
 			print("9p2: r %F\n", &r);
-	
+
 		n = convS2M(&r, outbuf, sizeof outbuf);
-		if(n == 0){
+		if(n == 0) {
 			type = r.type;
 			r.type = Rerror;
 			snprint(ename, sizeof(ename), "9p2: convS2M: type %d", type);
 			r.ename = ename;
 			print(ename);
 			n = convS2M(&r, outbuf, sizeof outbuf);
-			if(n == 0){
+			if(n == 0) {
 				/*
 				 * What to do here, the failure notification failed?
 				 */
@@ -1871,4 +1857,3 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 	if(chan == cons.srvchan || chan == cons.chan)
 		print("console chan read error");
 }
-

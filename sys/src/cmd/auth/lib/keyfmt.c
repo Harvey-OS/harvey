@@ -23,12 +23,12 @@ keyfmt(Fmt *f)
 	uint8_t *k;
 	int i;
 
-	k = va_arg(f->args, uint8_t*);
+	k = va_arg(f->args, uint8_t *);
 	key[0] = 0;
-	for(i = 0; i < 7; i++){
+	for(i = 0; i < 7; i++) {
 		key[i] |= k[i] >> i;
 		key[i] &= ~1;
-		key[i+1] = k[i] << (7 - i);
+		key[i + 1] = k[i] << (7 - i);
 	}
 	key[7] &= ~1;
 	snprint(buf, sizeof buf,

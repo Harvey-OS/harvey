@@ -27,7 +27,7 @@
 /* Interface to binary token scanner */
 
 #ifndef iscanbin_INCLUDED
-#  define iscanbin_INCLUDED
+#define iscanbin_INCLUDED
 
 /*
  * Scan a binary token.  The main scanner calls this iff recognize_btokens()

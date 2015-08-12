@@ -19,13 +19,13 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-#define MBMESSAGE	"you have mail in $_"
+#define MBMESSAGE "you have mail in $_"
 
 typedef struct mbox {
-	struct mbox    *mb_next;	/* next mbox in list */
-	char	       *mb_path;	/* path to mail file */
-	char	       *mb_msg;		/* to announce arrival of new mail */
-	time_t		mb_mtime;	/* mtime of mail file */
+	struct mbox *mb_next; /* next mbox in list */
+	char *mb_path;	/* path to mail file */
+	char *mb_msg;	 /* to announce arrival of new mail */
+	time_t mb_mtime;      /* mtime of mail file */
 } mbox_t;
 
 /*
@@ -34,43 +34,39 @@ typedef struct mbox {
  * same list is used for both since they are exclusive.
  */
 
-static mbox_t	*mplist;
-static mbox_t	mbox;
-static time_t	mlastchkd;	/* when mail was last checked */
-static time_t	mailcheck_interval;
+static mbox_t *mplist;
+static mbox_t mbox;
+static time_t mlastchkd; /* when mail was last checked */
+static time_t mailcheck_interval;
 
-static void     munset      ARGS((mbox_t *mlist)); /* free mlist and mval */
-static mbox_t * mballoc     ARGS((char *p, char *m)); /* allocate a new mbox */
-static void     mprintit    ARGS((mbox_t *mbp));
+static void munset ARGS((mbox_t * mlist));       /* free mlist and mval */
+static mbox_t *mballoc ARGS((char *p, char *m)); /* allocate a new mbox */
+static void mprintit ARGS((mbox_t * mbp));
 
 void
 mcheck()
 {
-	register mbox_t	*mbp;
-	time_t		 now;
-	struct tbl	*vp;
-	struct stat	 stbuf;
+	register mbox_t *mbp;
+	time_t now;
+	struct tbl *vp;
+	struct stat stbuf;
 
-	now = time((time_t *) 0);
-	if (mlastchkd == 0)
+	now = time((time_t *)0);
+	if(mlastchkd == 0)
 		mlastchkd = now;
-	if (now - mlastchkd >= mailcheck_interval) {
+	if(now - mlastchkd >= mailcheck_interval) {
 		mlastchkd = now;
 
-		if (mplist)
+		if(mplist)
 			mbp = mplist;
-		else if ((vp = global("MAIL")) && (vp->flag & ISSET))
+		else if((vp = global("MAIL")) && (vp->flag & ISSET))
 			mbp = &mbox;
 		else
 			mbp = NULL;
 
-		while (mbp) {
-			if (mbp->mb_path && stat(mbp->mb_path, &stbuf) == 0
-			    && S_ISREG(stbuf.st_mode))
-			{
-				if (stbuf.st_size
-				    && mbp->mb_mtime != stbuf.st_mtime
-				    && stbuf.st_atime <= stbuf.st_mtime)
+		while(mbp) {
+			if(mbp->mb_path && stat(mbp->mb_path, &stbuf) == 0 && S_ISREG(stbuf.st_mode)) {
+				if(stbuf.st_size && mbp->mb_mtime != stbuf.st_mtime && stbuf.st_atime <= stbuf.st_mtime)
 					mprintit(mbp);
 				mbp->mb_mtime = stbuf.st_mtime;
 			} else {
@@ -88,51 +84,49 @@ mcheck()
 }
 
 void
-mcset(interval)
+    mcset(interval)
 	int32_t interval;
 {
 	mailcheck_interval = interval;
 }
 
 void
-mbset(p)
-	register char	*p;
+    mbset(p) register char *p;
 {
-	struct stat	stbuf;
+	struct stat stbuf;
 
-	if (mbox.mb_msg)
+	if(mbox.mb_msg)
 		afree((void *)mbox.mb_msg, APERM);
-	if (mbox.mb_path)
+	if(mbox.mb_path)
 		afree((void *)mbox.mb_path, APERM);
 	/* Save a copy to protect from export (which munges the string) */
 	mbox.mb_path = str_save(p, APERM);
 	mbox.mb_msg = NULL;
-	if (p && stat(p, &stbuf) == 0 && S_ISREG(stbuf.st_mode))
+	if(p && stat(p, &stbuf) == 0 && S_ISREG(stbuf.st_mode))
 		mbox.mb_mtime = stbuf.st_mtime;
 	else
 		mbox.mb_mtime = 0;
 }
 
 void
-mpset(mptoparse)
-	register char	*mptoparse;
+    mpset(mptoparse) register char *mptoparse;
 {
-	register mbox_t	*mbp;
-	register char	*mpath, *mmsg, *mval;
+	register mbox_t *mbp;
+	register char *mpath, *mmsg, *mval;
 	char *p;
 
-	munset( mplist );
+	munset(mplist);
 	mplist = NULL;
 	mval = str_save(mptoparse, APERM);
-	while (mval) {
+	while(mval) {
 		mpath = mval;
-		if ((mval = strchr(mval, PATHSEP)) != NULL) {
+		if((mval = strchr(mval, PATHSEP)) != NULL) {
 			*mval = '\0', mval++;
 		}
 		/* POSIX/bourne-shell say file%message */
-		for (p = mpath; (mmsg = strchr(p, '%')); ) {
+		for(p = mpath; (mmsg = strchr(p, '%'));) {
 			/* a literal percent? (POSIXism) */
-			if (mmsg[-1] == '\\') {
+			if(mmsg[-1] == '\\') {
 				/* use memmove() to avoid overlap problems */
 				memmove(mmsg - 1, mmsg, strlen(mmsg) + 1);
 				p = mmsg + 1;
@@ -141,9 +135,9 @@ mpset(mptoparse)
 			break;
 		}
 		/* at&t ksh says file?message */
-		if (!mmsg && !Flag(FPOSIX))
+		if(!mmsg && !Flag(FPOSIX))
 			mmsg = strchr(mpath, '?');
-		if (mmsg) {
+		if(mmsg) {
 			*mmsg = '\0';
 			mmsg++;
 		}
@@ -154,44 +148,42 @@ mpset(mptoparse)
 }
 
 static void
-munset(mlist)
-register mbox_t	*mlist;
+    munset(mlist) register mbox_t *mlist;
 {
-	register mbox_t	*mbp;
+	register mbox_t *mbp;
 
-	while (mlist != NULL) {
+	while(mlist != NULL) {
 		mbp = mlist;
 		mlist = mbp->mb_next;
-		if (!mlist)
+		if(!mlist)
 			afree((void *)mbp->mb_path, APERM);
 		afree((void *)mbp, APERM);
 	}
 }
 
 static mbox_t *
-mballoc(p, m)
-	char	*p;
-	char	*m;
+    mballoc(p, m) char *p;
+char *m;
 {
-	struct stat	stbuf;
-	register mbox_t	*mbp;
+	struct stat stbuf;
+	register mbox_t *mbp;
 
 	mbp = (mbox_t *)alloc(sizeof(mbox_t), APERM);
 	mbp->mb_next = NULL;
 	mbp->mb_path = p;
 	mbp->mb_msg = m;
-	if (stat(mbp->mb_path, &stbuf) == 0 && S_ISREG(stbuf.st_mode))
+	if(stat(mbp->mb_path, &stbuf) == 0 && S_ISREG(stbuf.st_mode))
 		mbp->mb_mtime = stbuf.st_mtime;
 	else
 		mbp->mb_mtime = 0;
-	return(mbp);
+	return (mbp);
 }
 
 static void
-mprintit( mbp )
-mbox_t	*mbp;
+    mprintit(mbp)
+	mbox_t *mbp;
 {
-	struct tbl	*vp;
+	struct tbl *vp;
 
 	/* Ignore setstr errors here (arbitrary) */
 	setstr((vp = local("_", FALSE)), mbp->mb_path, KSH_RETURN_ERROR);

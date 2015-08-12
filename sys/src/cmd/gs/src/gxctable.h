@@ -27,7 +27,7 @@
 /* Interface to color table lookup and interpolation */
 
 #ifndef gxctable_INCLUDED
-#  define gxctable_INCLUDED
+#define gxctable_INCLUDED
 
 #include "gxfixed.h"
 #include "gxfrac.h"
@@ -47,10 +47,10 @@
  * they're all the same size, but it makes things a lot easier for the GC.
  */
 typedef struct gx_color_lookup_table_s {
-    int n;
-    int dims[4];		/* [ndims] */
-    int m;
-    const gs_const_string *table;
+	int n;
+	int dims[4]; /* [ndims] */
+	int m;
+	const gs_const_string *table;
 } gx_color_lookup_table;
 
 /*
@@ -61,11 +61,11 @@ typedef struct gx_color_lookup_table_s {
  */
 
 /* Return the nearest value without interpolation. */
-void gx_color_interpolate_nearest(const fixed * pi,
-			    const gx_color_lookup_table * pclt, frac * pv);
+void gx_color_interpolate_nearest(const fixed *pi,
+				  const gx_color_lookup_table *pclt, frac *pv);
 
 /* Use trilinear interpolation. */
-void gx_color_interpolate_linear(const fixed * pi,
-			    const gx_color_lookup_table * pclt, frac * pv);
+void gx_color_interpolate_linear(const fixed *pi,
+				 const gx_color_lookup_table *pclt, frac *pv);
 
 #endif /* gxctable_INCLUDED */

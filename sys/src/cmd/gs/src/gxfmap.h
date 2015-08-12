@@ -27,7 +27,7 @@
 /* Fraction map representation for Ghostscript */
 
 #ifndef gxfmap_INCLUDED
-#  define gxfmap_INCLUDED
+#define gxfmap_INCLUDED
 
 #include "gsrefct.h"
 #include "gsstype.h"
@@ -47,20 +47,20 @@
 /* log2... must not be greater than frac_bits, and must be least 8. */
 #define log2_transfer_map_size 8
 #define transfer_map_size (1 << log2_transfer_map_size)
-/*typedef struct gx_transfer_map_s gx_transfer_map; *//* in gxtmap.h */
+/*typedef struct gx_transfer_map_s gx_transfer_map; */ /* in gxtmap.h */
 struct gx_transfer_map_s {
-    rc_header rc;
-    gs_mapping_proc proc;	/* typedef is in gxtmap.h */
-    gs_mapping_closure_t closure;	/* SEE ABOVE */
-    /* The id changes whenever the map or function changes. */
-    gs_id id;
-    frac values[transfer_map_size];
+	rc_header rc;
+	gs_mapping_proc proc;	 /* typedef is in gxtmap.h */
+	gs_mapping_closure_t closure; /* SEE ABOVE */
+	/* The id changes whenever the map or function changes. */
+	gs_id id;
+	frac values[transfer_map_size];
 };
 
 extern_st(st_transfer_map);
-#define public_st_transfer_map() /* in gscolor.c */\
-  gs_public_st_composite(st_transfer_map, gx_transfer_map, "gx_transfer_map",\
-    transfer_map_enum_ptrs, transfer_map_reloc_ptrs)
+#define public_st_transfer_map() /* in gscolor.c */                                 \
+	gs_public_st_composite(st_transfer_map, gx_transfer_map, "gx_transfer_map", \
+			       transfer_map_enum_ptrs, transfer_map_reloc_ptrs)
 
 /* Set a transfer map to the identity map. */
 void gx_set_identity_transfer(gx_transfer_map *);
@@ -72,17 +72,16 @@ void gx_set_identity_transfer(gx_transfer_map *);
 #define FRAC_MAP_INTERPOLATE (log2_transfer_map_size <= 8)
 #if FRAC_MAP_INTERPOLATE
 
-frac gx_color_frac_map(frac, const frac *);		/* in gxcmap.c */
+frac gx_color_frac_map(frac, const frac *); /* in gxcmap.c */
 
-#  define gx_map_color_frac(pgs,cf,m)\
-     (pgs->m->proc == gs_identity_transfer ? cf :\
-      gx_color_frac_map(cf, &pgs->m->values[0]))
+#define gx_map_color_frac(pgs, cf, m) \
+	(pgs->m->proc == gs_identity_transfer ? cf : gx_color_frac_map(cf, &pgs->m->values[0]))
 
 #else /* !FRAC_MAP_INTERPOLATE */
 
 /* Do the lookup in-line. */
-#  define gx_map_color_frac(pgs,cf,m)\
-     (pgs->m->values[frac2bits(cf, log2_transfer_map_size)])
+#define gx_map_color_frac(pgs, cf, m) \
+	(pgs->m->values[frac2bits(cf, log2_transfer_map_size)])
 
 #endif /* (!)FRAC_MAP_INTERPOLATE */
 
@@ -101,8 +100,8 @@ frac gx_color_frac_map(frac, const frac *);		/* in gxcmap.c */
  ****************/
 
 /* Map a floating point value through a transfer map. */
-#define gx_map_color_float(pmap,v)\
-  ((pmap)->values[(int)((v) * transfer_map_size + 0.5)] / frac_1_float)
+#define gx_map_color_float(pmap, v) \
+	((pmap)->values[(int)((v)*transfer_map_size + 0.5)] / frac_1_float)
 
 /* Define a mapping procedure that just looks up the value in the cache. */
 /* (It is equivalent to gx_map_color_float with the arguments swapped.) */

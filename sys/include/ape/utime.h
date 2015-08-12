@@ -12,8 +12,7 @@
 
 #pragma lib "/$M/lib/ape/libap.a"
 
-struct utimbuf
-{
+struct utimbuf {
 	time_t actime;
 	time_t modtime;
 };

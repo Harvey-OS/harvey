@@ -17,153 +17,161 @@
  * 8250 UART and compatibles.
  */
 enum {
-	Uart0		= 0x3F8,	/* COM1 */
-	Uart0IRQ	= 4,
-	Uart1		= 0x2F8,	/* COM2 */
-	Uart1IRQ	= 3,
+	Uart0 = 0x3F8, /* COM1 */
+	Uart0IRQ = 4,
+	Uart1 = 0x2F8, /* COM2 */
+	Uart1IRQ = 3,
 
-	UartFREQ	= 1843200,
+	UartFREQ = 1843200,
 };
 
-enum {					/* registers */
-	Rbr		= 0,		/* Receiver Buffer (RO) */
-	Thr		= 0,		/* Transmitter Holding (WO) */
-	Ier		= 1,		/* Interrupt Enable */
-	Iir		= 2,		/* Interrupt Identification (RO) */
-	Fcr		= 2,		/* FIFO Control (WO) */
-	Lcr		= 3,		/* Line Control */
-	Mcr		= 4,		/* Modem Control */
-	Lsr		= 5,		/* Line Status */
-	Msr		= 6,		/* Modem Status */
-	Scr		= 7,		/* Scratch Pad */
-	Dll		= 0,		/* Divisor Latch LSB */
-	Dlm		= 1,		/* Divisor Latch MSB */
+enum {		/* registers */
+       Rbr = 0, /* Receiver Buffer (RO) */
+       Thr = 0, /* Transmitter Holding (WO) */
+       Ier = 1, /* Interrupt Enable */
+       Iir = 2, /* Interrupt Identification (RO) */
+       Fcr = 2, /* FIFO Control (WO) */
+       Lcr = 3, /* Line Control */
+       Mcr = 4, /* Modem Control */
+       Lsr = 5, /* Line Status */
+       Msr = 6, /* Modem Status */
+       Scr = 7, /* Scratch Pad */
+       Dll = 0, /* Divisor Latch LSB */
+       Dlm = 1, /* Divisor Latch MSB */
 };
 
-enum {					/* Ier */
-	Erda		= 0x01,		/* Enable Received Data Available */
-	Ethre		= 0x02,		/* Enable Thr Empty */
-	Erls		= 0x04,		/* Enable Receiver Line Status */
-	Ems		= 0x08,		/* Enable Modem Status */
+enum {		     /* Ier */
+       Erda = 0x01,  /* Enable Received Data Available */
+       Ethre = 0x02, /* Enable Thr Empty */
+       Erls = 0x04,  /* Enable Receiver Line Status */
+       Ems = 0x08,   /* Enable Modem Status */
 };
 
-enum {					/* Iir */
-	Ims		= 0x00,		/* Ms interrupt */
-	Ip		= 0x01,		/* Interrupt Pending (not) */
-	Ithre		= 0x02,		/* Thr Empty */
-	Irda		= 0x04,		/* Received Data Available */
-	Irls		= 0x06,		/* Receiver Line Status */
-	Ictoi		= 0x0C,		/* Character Time-out Indication */
-	IirMASK		= 0x3F,
-	Ifena		= 0xC0,		/* FIFOs enabled */
+enum {		     /* Iir */
+       Ims = 0x00,   /* Ms interrupt */
+       Ip = 0x01,    /* Interrupt Pending (not) */
+       Ithre = 0x02, /* Thr Empty */
+       Irda = 0x04,  /* Received Data Available */
+       Irls = 0x06,  /* Receiver Line Status */
+       Ictoi = 0x0C, /* Character Time-out Indication */
+       IirMASK = 0x3F,
+       Ifena = 0xC0, /* FIFOs enabled */
 };
 
-enum {					/* Fcr */
-	FIFOena		= 0x01,		/* FIFO enable */
-	FIFOrclr	= 0x02,		/* clear Rx FIFO */
-	FIFOtclr	= 0x04,		/* clear Tx FIFO */
-	FIFO1		= 0x00,		/* Rx FIFO trigger level 1 byte */
-	FIFO4		= 0x40,		/*	4 bytes */
-	FIFO8		= 0x80,		/*	8 bytes */
-	FIFO14		= 0xC0,		/*	14 bytes */
+enum {			/* Fcr */
+       FIFOena = 0x01,  /* FIFO enable */
+       FIFOrclr = 0x02, /* clear Rx FIFO */
+       FIFOtclr = 0x04, /* clear Tx FIFO */
+       FIFO1 = 0x00,    /* Rx FIFO trigger level 1 byte */
+       FIFO4 = 0x40,    /*	4 bytes */
+       FIFO8 = 0x80,    /*	8 bytes */
+       FIFO14 = 0xC0,   /*	14 bytes */
 };
 
-enum {					/* Lcr */
-	Wls5		= 0x00,		/* Word Length Select 5 bits/byte */
-	Wls6		= 0x01,		/*	6 bits/byte */
-	Wls7		= 0x02,		/*	7 bits/byte */
-	Wls8		= 0x03,		/*	8 bits/byte */
-	WlsMASK		= 0x03,
-	Stb		= 0x04,		/* 2 stop bits */
-	Pen		= 0x08,		/* Parity Enable */
-	Eps		= 0x10,		/* Even Parity Select */
-	Stp		= 0x20,		/* Stick Parity */
-	Brk		= 0x40,		/* Break */
-	Dlab		= 0x80,		/* Divisor Latch Access Bit */
+enum {		    /* Lcr */
+       Wls5 = 0x00, /* Word Length Select 5 bits/byte */
+       Wls6 = 0x01, /*	6 bits/byte */
+       Wls7 = 0x02, /*	7 bits/byte */
+       Wls8 = 0x03, /*	8 bits/byte */
+       WlsMASK = 0x03,
+       Stb = 0x04,  /* 2 stop bits */
+       Pen = 0x08,  /* Parity Enable */
+       Eps = 0x10,  /* Even Parity Select */
+       Stp = 0x20,  /* Stick Parity */
+       Brk = 0x40,  /* Break */
+       Dlab = 0x80, /* Divisor Latch Access Bit */
 };
 
-enum {					/* Mcr */
-	Dtr		= 0x01,		/* Data Terminal Ready */
-	Rts		= 0x02,		/* Ready To Send */
-	Out1		= 0x04,		/* no longer in use */
-	Ie		= 0x08,		/* IRQ Enable */
-	Dm		= 0x10,		/* Diagnostic Mode loopback */
+enum {		    /* Mcr */
+       Dtr = 0x01,  /* Data Terminal Ready */
+       Rts = 0x02,  /* Ready To Send */
+       Out1 = 0x04, /* no longer in use */
+       Ie = 0x08,   /* IRQ Enable */
+       Dm = 0x10,   /* Diagnostic Mode loopback */
 };
 
-enum {					/* Lsr */
-	Dr		= 0x01,		/* Data Ready */
-	Oe		= 0x02,		/* Overrun Error */
-	Pe		= 0x04,		/* Parity Error */
-	Fe		= 0x08,		/* Framing Error */
-	Bi		= 0x10,		/* Break Interrupt */
-	Thre		= 0x20,		/* Thr Empty */
-	Temt		= 0x40,		/* Tramsmitter Empty */
-	FIFOerr		= 0x80,		/* error in receiver FIFO */
+enum {		       /* Lsr */
+       Dr = 0x01,      /* Data Ready */
+       Oe = 0x02,      /* Overrun Error */
+       Pe = 0x04,      /* Parity Error */
+       Fe = 0x08,      /* Framing Error */
+       Bi = 0x10,      /* Break Interrupt */
+       Thre = 0x20,    /* Thr Empty */
+       Temt = 0x40,    /* Tramsmitter Empty */
+       FIFOerr = 0x80, /* error in receiver FIFO */
 };
 
-enum {					/* Msr */
-	Dcts		= 0x01,		/* Delta Cts */
-	Ddsr		= 0x02,		/* Delta Dsr */
-	Teri		= 0x04,		/* Trailing Edge of Ri */
-	Ddcd		= 0x08,		/* Delta Dcd */
-	Cts		= 0x10,		/* Clear To Send */
-	Dsr		= 0x20,		/* Data Set Ready */
-	Ri		= 0x40,		/* Ring Indicator */
-	Dcd		= 0x80,		/* Data Set Ready */
+enum {		    /* Msr */
+       Dcts = 0x01, /* Delta Cts */
+       Ddsr = 0x02, /* Delta Dsr */
+       Teri = 0x04, /* Trailing Edge of Ri */
+       Ddcd = 0x08, /* Delta Dcd */
+       Cts = 0x10,  /* Clear To Send */
+       Dsr = 0x20,  /* Data Set Ready */
+       Ri = 0x40,   /* Ring Indicator */
+       Dcd = 0x80,  /* Data Set Ready */
 };
 
 typedef struct Ctlr {
-	int	io;
-	int	irq;
-	int	tbdf;
-	int	iena;
-	void*	vector;
-	int	poll;
+	int io;
+	int irq;
+	int tbdf;
+	int iena;
+	void *vector;
+	int poll;
 
-	unsigned char	sticky[8];
+	unsigned char sticky[8];
 
 	Lock;
-	int	hasfifo;
-	int	checkfifo;
-	int	fena;
+	int hasfifo;
+	int checkfifo;
+	int fena;
 } Ctlr;
 
 extern PhysUart i8250physuart;
 
 static Ctlr i8250ctlr[2] = {
-{	.io	= Uart0,
-	.irq	= Uart0IRQ,
-	.tbdf	= -1,
-	.poll	= 1 | 0, },
+    {
+     .io = Uart0,
+     .irq = Uart0IRQ,
+     .tbdf = -1,
+     .poll = 1 | 0,
+    },
 
-{	.io	= Uart1,
-	.irq	= Uart1IRQ,
-	.tbdf	= -1,
-	.poll	= 0, },
+    {
+     .io = Uart1,
+     .irq = Uart1IRQ,
+     .tbdf = -1,
+     .poll = 0,
+    },
 };
 
 static Uart i8250uart[2] = {
-{	.regs	= &i8250ctlr[0],
-	.name	= "COM1",
-	.freq	= UartFREQ,
-	.phys	= &i8250physuart,
-	.special= 0,
-	.next	= &i8250uart[1], },
+    {
+     .regs = &i8250ctlr[0],
+     .name = "COM1",
+     .freq = UartFREQ,
+     .phys = &i8250physuart,
+     .special = 0,
+     .next = &i8250uart[1],
+    },
 
-{	.regs	= &i8250ctlr[1],
-	.name	= "COM2",
-	.freq	= UartFREQ,
-	.phys	= &i8250physuart,
-	.special= 0,
-	.next	= nil, },
+    {
+     .regs = &i8250ctlr[1],
+     .name = "COM2",
+     .freq = UartFREQ,
+     .phys = &i8250physuart,
+     .special = 0,
+     .next = nil,
+    },
 };
 
-#define csr8r(c, r)	inb((c)->io+(r))
-#define csr8w(c, r, v)	outb((c)->io+(r), (c)->sticky[(r)]|(v))
-#define csr8o(c, r, v)	outb((c)->io+(r), (v))
+#define csr8r(c, r) inb((c)->io + (r))
+#define csr8w(c, r, v) outb((c)->io + (r), (c)->sticky[(r)] | (v))
+#define csr8o(c, r, v) outb((c)->io + (r), (v))
 
 static int32_t
-i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
+i8250status(Uart *uart, void *buf, int32_t n, int32_t offset)
 {
 	char *p;
 	Ctlr *ctlr;
@@ -186,9 +194,9 @@ i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
 		uart->hup_dsr,
 		(lcr & WlsMASK) + 5,
 		(ier & Ems) != 0,
-		(lcr & Pen) ? ((lcr & Eps) ? 'e': 'o'): 'n',
+		(lcr & Pen) ? ((lcr & Eps) ? 'e' : 'o') : 'n',
 		(mcr & Rts) != 0,
-		(lcr & Stb) ? 2: 1,
+		(lcr & Stb) ? 2 : 1,
 		ctlr->fena,
 
 		uart->dev,
@@ -197,11 +205,10 @@ i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
 		uart->oerr,
 		uart->berr,
 		uart->serr,
-		(msr & Cts) ? " cts": "",
-		(msr & Dsr) ? " dsr": "",
-		(msr & Dcd) ? " dcd": "",
-		(msr & Ri) ? " ring": ""
-	);
+		(msr & Cts) ? " cts" : "",
+		(msr & Dsr) ? " dsr" : "",
+		(msr & Dcd) ? " dcd" : "",
+		(msr & Ri) ? " ring" : "");
 	n = readstr(offset, buf, n, p);
 	free(p);
 
@@ -209,7 +216,7 @@ i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
 }
 
 static void
-i8250fifo(Uart* uart, int level)
+i8250fifo(Uart *uart, int level)
 {
 	Ctlr *ctlr;
 
@@ -235,20 +242,20 @@ i8250fifo(Uart* uart, int level)
 	 * other bits can take effect, so set it twice.
 	 */
 	ctlr->fena = level;
-	switch(level){
+	switch(level) {
 	case 0:
 		break;
 	case 1:
-		level = FIFO1|FIFOena;
+		level = FIFO1 | FIFOena;
 		break;
 	case 4:
-		level = FIFO4|FIFOena;
+		level = FIFO4 | FIFOena;
 		break;
 	case 8:
-		level = FIFO8|FIFOena;
+		level = FIFO8 | FIFOena;
 		break;
 	default:
-		level = FIFO14|FIFOena;
+		level = FIFO14 | FIFOena;
 		break;
 	}
 	csr8w(ctlr, Fcr, level);
@@ -257,7 +264,7 @@ i8250fifo(Uart* uart, int level)
 }
 
 static void
-i8250dtr(Uart* uart, int on)
+i8250dtr(Uart *uart, int on)
 {
 	Ctlr *ctlr;
 
@@ -273,7 +280,7 @@ i8250dtr(Uart* uart, int on)
 }
 
 static void
-i8250rts(Uart* uart, int on)
+i8250rts(Uart *uart, int on)
 {
 	Ctlr *ctlr;
 
@@ -289,19 +296,18 @@ i8250rts(Uart* uart, int on)
 }
 
 static void
-i8250modemctl(Uart* uart, int on)
+i8250modemctl(Uart *uart, int on)
 {
 	Ctlr *ctlr;
 
 	ctlr = uart->regs;
 	ilock(&uart->tlock);
-	if(on){
+	if(on) {
 		ctlr->sticky[Ier] |= Ems;
 		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 		uart->modem = 1;
 		uart->cts = csr8r(ctlr, Msr) & Cts;
-	}
-	else{
+	} else {
 		ctlr->sticky[Ier] &= ~Ems;
 		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 		uart->modem = 0;
@@ -314,17 +320,17 @@ i8250modemctl(Uart* uart, int on)
 }
 
 static int
-i8250parity(Uart* uart, int parity)
+i8250parity(Uart *uart, int parity)
 {
 	int lcr;
 	Ctlr *ctlr;
 
 	ctlr = uart->regs;
-	lcr = ctlr->sticky[Lcr] & ~(Eps|Pen);
+	lcr = ctlr->sticky[Lcr] & ~(Eps | Pen);
 
-	switch(parity){
+	switch(parity) {
 	case 'e':
-		lcr |= Eps|Pen;
+		lcr |= Eps | Pen;
 		break;
 	case 'o':
 		lcr |= Pen;
@@ -343,7 +349,7 @@ i8250parity(Uart* uart, int parity)
 }
 
 static int
-i8250stop(Uart* uart, int stop)
+i8250stop(Uart *uart, int stop)
 {
 	int lcr;
 	Ctlr *ctlr;
@@ -351,7 +357,7 @@ i8250stop(Uart* uart, int stop)
 	ctlr = uart->regs;
 	lcr = ctlr->sticky[Lcr] & ~Stb;
 
-	switch(stop){
+	switch(stop) {
 	case 1:
 		break;
 	case 2:
@@ -369,7 +375,7 @@ i8250stop(Uart* uart, int stop)
 }
 
 static int
-i8250bits(Uart* uart, int bits)
+i8250bits(Uart *uart, int bits)
 {
 	int lcr;
 	Ctlr *ctlr;
@@ -377,7 +383,7 @@ i8250bits(Uart* uart, int bits)
 	ctlr = uart->regs;
 	lcr = ctlr->sticky[Lcr] & ~WlsMASK;
 
-	switch(bits){
+	switch(bits) {
 	case 5:
 		lcr |= Wls5;
 		break;
@@ -402,7 +408,7 @@ i8250bits(Uart* uart, int bits)
 }
 
 static int
-i8250baud(Uart* uart, int baud)
+i8250baud(Uart *uart, int baud)
 {
 	uint32_t bgc;
 	Ctlr *ctlr;
@@ -414,11 +420,11 @@ i8250baud(Uart* uart, int baud)
 	 */
 	if(uart->freq == 0 || baud <= 0)
 		return -1;
-	bgc = (uart->freq+8*baud-1)/(16*baud);
+	bgc = (uart->freq + 8 * baud - 1) / (16 * baud);
 
 	ctlr = uart->regs;
 	csr8w(ctlr, Lcr, Dlab);
-	csr8o(ctlr, Dlm, bgc>>8);
+	csr8o(ctlr, Dlm, bgc >> 8);
 	csr8o(ctlr, Dll, bgc);
 	csr8w(ctlr, Lcr, 0);
 
@@ -428,7 +434,7 @@ i8250baud(Uart* uart, int baud)
 }
 
 static void
-i8250break(Uart* uart, int ms)
+i8250break(Uart *uart, int ms)
 {
 	Proc *up = externup();
 	Ctlr *ctlr;
@@ -446,7 +452,7 @@ i8250break(Uart* uart, int ms)
 }
 
 static void
-i8250kick(Uart* uart)
+i8250kick(Uart *uart)
 {
 	int i;
 	Ctlr *ctlr;
@@ -461,7 +467,7 @@ i8250kick(Uart* uart)
 	 *  bad -- presotto
 	 */
 	ctlr = uart->regs;
-	for(i = 0; i < 128; i++){
+	for(i = 0; i < 128; i++) {
 		if(!(csr8r(ctlr, Lsr) & Thre))
 			break;
 		if(uart->op >= uart->oe && uartstageoutput(uart) == 0)
@@ -471,7 +477,7 @@ i8250kick(Uart* uart)
 }
 
 static void
-i8250interrupt(Ureg* ureg, void* arg)
+i8250interrupt(Ureg *ureg, void *arg)
 {
 	Ctlr *ctlr;
 	Uart *uart;
@@ -480,11 +486,11 @@ i8250interrupt(Ureg* ureg, void* arg)
 	uart = arg;
 
 	ctlr = uart->regs;
-	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
-		switch(iir & IirMASK){
-		case Ims:		/* Ms interrupt */
+	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)) {
+		switch(iir & IirMASK) {
+		case Ims: /* Ms interrupt */
 			r = csr8r(ctlr, Msr);
-			if(r & Dcts){
+			if(r & Dcts) {
 				ilock(&uart->tlock);
 				old = uart->cts;
 				uart->cts = r & Cts;
@@ -492,25 +498,25 @@ i8250interrupt(Ureg* ureg, void* arg)
 					uart->ctsbackoff = 2;
 				iunlock(&uart->tlock);
 			}
-		 	if(r & Ddsr){
+			if(r & Ddsr) {
 				old = r & Dsr;
 				if(uart->hup_dsr && uart->dsr && !old)
 					uart->dohup = 1;
 				uart->dsr = old;
 			}
-		 	if(r & Ddcd){
+			if(r & Ddcd) {
 				old = r & Dcd;
 				if(uart->hup_dcd && uart->dcd && !old)
 					uart->dohup = 1;
 				uart->dcd = old;
 			}
 			break;
-		case Ithre:		/* Thr Empty */
+		case Ithre: /* Thr Empty */
 			uartkick(uart);
 			break;
-		case Irda:		/* Received Data Available */
-		case Irls:		/* Receiver Line Status */
-		case Ictoi:		/* Character Time-out Indication */
+		case Irda:  /* Received Data Available */
+		case Irls:  /* Receiver Line Status */
+		case Ictoi: /* Character Time-out Indication */
 			/*
 			 * Consume any received data.
 			 * If the received byte came in with a break,
@@ -518,15 +524,15 @@ i8250interrupt(Ureg* ureg, void* arg)
 			 * overrun is an indication that something has
 			 * already been tossed.
 			 */
-			while((lsr = csr8r(ctlr, Lsr)) & Dr){
-				if(lsr & (FIFOerr|Oe))
+			while((lsr = csr8r(ctlr, Lsr)) & Dr) {
+				if(lsr & (FIFOerr | Oe))
 					uart->oerr++;
 				if(lsr & Pe)
 					uart->perr++;
 				if(lsr & Fe)
 					uart->ferr++;
 				r = csr8r(ctlr, Rbr);
-				if(!(lsr & (Bi|Fe|Pe)))
+				if(!(lsr & (Bi | Fe | Pe)))
 					uartrecv(uart, r);
 			}
 			break;
@@ -539,7 +545,7 @@ i8250interrupt(Ureg* ureg, void* arg)
 }
 
 static void
-i8250disable(Uart* uart)
+i8250disable(Uart *uart)
 {
 	Ctlr *ctlr;
 
@@ -554,14 +560,14 @@ i8250disable(Uart* uart)
 	ctlr->sticky[Ier] = 0;
 	csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 
-	if(ctlr->iena != 0){
+	if(ctlr->iena != 0) {
 		if(intrdisable(ctlr->vector) == 0)
 			ctlr->iena = 0;
 	}
 }
 
 static void
-i8250enable(Uart* uart, int ie)
+i8250enable(Uart *uart, int ie)
 {
 	Ctlr *ctlr;
 
@@ -579,7 +585,7 @@ i8250enable(Uart* uart, int ie)
 	 * once, before interrupts are enabled.
 	 */
 	ilock(ctlr);
-	if(!ctlr->checkfifo){
+	if(!ctlr->checkfifo) {
 		/*
 		 * Wait until the transmitter is really empty.
 		 */
@@ -599,15 +605,14 @@ i8250enable(Uart* uart, int ie)
 	 * early on not to try to enable interrupts as interrupt-
 	 * -enabling mechanisms might not be set up yet.
 	 */
-	if(ie){
-		if(ctlr->iena == 0 && !ctlr->poll){
+	if(ie) {
+		if(ctlr->iena == 0 && !ctlr->poll) {
 			ctlr->vector = intrenable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name);
 			ctlr->iena = 1;
 		}
-		ctlr->sticky[Ier] = Ethre|Erda;
+		ctlr->sticky[Ier] = Ethre | Erda;
 		ctlr->sticky[Mcr] |= Ie;
-	}
-	else{
+	} else {
 		ctlr->sticky[Ier] = 0;
 		ctlr->sticky[Mcr] = 0;
 	}
@@ -629,12 +634,12 @@ i8250enable(Uart* uart, int ie)
 		i8250interrupt(nil, uart);
 }
 
-void*
+void *
 i8250alloc(int io, int irq, int tbdf)
 {
 	Ctlr *ctlr;
 
-	if((ctlr = malloc(sizeof(Ctlr))) != nil){
+	if((ctlr = malloc(sizeof(Ctlr))) != nil) {
 		ctlr->io = io;
 		ctlr->irq = irq;
 		ctlr->tbdf = tbdf;
@@ -643,7 +648,7 @@ i8250alloc(int io, int irq, int tbdf)
 	return ctlr;
 }
 
-static Uart*
+static Uart *
 i8250pnp(void)
 {
 	int i;
@@ -651,7 +656,7 @@ i8250pnp(void)
 	Uart *head, *uart;
 
 	head = i8250uart;
-	for(i = 0; i < nelem(i8250uart); i++){
+	for(i = 0; i < nelem(i8250uart); i++) {
 		/*
 		 * Does it exist?
 		 * Should be able to write/read the Scratch Pad
@@ -667,14 +672,14 @@ i8250pnp(void)
 		if(uart == head)
 			head = uart->next;
 		else
-			(uart-1)->next = uart->next;
+			(uart - 1)->next = uart->next;
 	}
 
 	return head;
 }
 
 static int
-i8250getc(Uart* uart)
+i8250getc(Uart *uart)
 {
 	Ctlr *ctlr;
 
@@ -685,7 +690,7 @@ i8250getc(Uart* uart)
 }
 
 static void
-i8250putc(Uart* uart, int c)
+i8250putc(Uart *uart, int c)
 {
 	int i;
 	Ctlr *ctlr;
@@ -699,7 +704,7 @@ i8250putc(Uart* uart, int c)
 }
 
 static void
-i8250poll(Uart* uart)
+i8250poll(Uart *uart)
 {
 	Ctlr *ctlr;
 
@@ -719,30 +724,28 @@ i8250poll(Uart* uart)
 	i8250interrupt(nil, uart);
 }
 
-
 PhysUart i8250physuart = {
-	.name		= "i8250",
-	.pnp		= i8250pnp,
-	.enable		= i8250enable,
-	.disable	= i8250disable,
-	.kick		= i8250kick,
-	.dobreak	= i8250break,
-	.baud		= i8250baud,
-	.bits		= i8250bits,
-	.stop		= i8250stop,
-	.parity		= i8250parity,
-	.modemctl	= i8250modemctl,
-	.rts		= i8250rts,
-	.dtr		= i8250dtr,
-	.status		= i8250status,
-	.fifo		= i8250fifo,
-	.getc		= i8250getc,
-	.putc		= i8250putc,
-	.poll		= i8250poll,
+    .name = "i8250",
+    .pnp = i8250pnp,
+    .enable = i8250enable,
+    .disable = i8250disable,
+    .kick = i8250kick,
+    .dobreak = i8250break,
+    .baud = i8250baud,
+    .bits = i8250bits,
+    .stop = i8250stop,
+    .parity = i8250parity,
+    .modemctl = i8250modemctl,
+    .rts = i8250rts,
+    .dtr = i8250dtr,
+    .status = i8250status,
+    .fifo = i8250fifo,
+    .getc = i8250getc,
+    .putc = i8250putc,
+    .poll = i8250poll,
 };
 
-
-extern void (*consuartputs)(char*, int);
+extern void (*consuartputs)(char *, int);
 static Uart *i8250consuart;
 
 static void
@@ -750,11 +753,11 @@ i8250consputs(char *s, int n)
 {
 	int i;
 	for(i = 0; i < n; i++)
-		i8250putc(i8250consuart,  s[i]);
+		i8250putc(i8250consuart, s[i]);
 }
 
 void
-i8250console(char* cfg)
+i8250console(char *cfg)
 {
 	int i;
 	Uart *uart;
@@ -771,10 +774,10 @@ i8250console(char* cfg)
 	i = strtoul(p, &cmd, 0);
 	if(p == cmd)
 		return;
-	if(consuartputs != nil){
+	if(consuartputs != nil) {
 		return;
 	}
-	switch(i){
+	switch(i) {
 	default:
 		return;
 	case 0:

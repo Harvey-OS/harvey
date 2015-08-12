@@ -21,11 +21,11 @@
 #undef fail
 
 #if defined(NDEBUG)
-#define fail(e)	((void)0)
+#define fail(e) ((void)0)
 #else
-#define fail(e)	((e) ? __fail(#e, __FILE__, __LINE__) : (void)0)
+#define fail(e) ((e) ? __fail(#e, __FILE__, __LINE__) : (void)0)
 #endif /* NDEBUG */
 
-extern void	__fail(char *, char *, int);
+extern void __fail(char *, char *, int);
 
 #endif /* __fail_h */

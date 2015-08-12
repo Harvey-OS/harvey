@@ -19,25 +19,23 @@
 #include "getflags.h"
 
 enum {
-	Maxenvname = 256,	/* undocumented limit */
+	Maxenvname = 256, /* undocumented limit */
 };
 
 char *Signame[] = {
-	"sigexit",	"sighup",	"sigint",	"sigquit",
-	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
-	0
-};
+    "sigexit", "sighup", "sigint", "sigquit",
+    "sigalrm", "sigkill", "sigfpe", "sigterm",
+    0};
 char *syssigname[] = {
-	"exit",		/* can't happen */
-	"hangup",
-	"interrupt",
-	"quit",		/* can't happen */
-	"alarm",
-	"kill",
-	"sys: fp: ",
-	"term",
-	0
-};
+    "exit", /* can't happen */
+    "hangup",
+    "interrupt",
+    "quit", /* can't happen */
+    "alarm",
+    "kill",
+    "sys: fp: ",
+    "term",
+    0};
 char *Rcmain = "/rc/lib/rcmain";
 char *Fdprefix = "/fd/";
 
@@ -47,52 +45,59 @@ void execmount(void);
 void execnewpgrp(void);
 
 builtin Builtin[] = {
-	"cd",		execcd,
-	"whatis",	execwhatis,
-	"eval",		execeval,
-	"exec",		execexec,	/* but with popword first */
-	"exit",		execexit,
-	"shift",	execshift,
-	"wait",		execwait,
-	".",		execdot,
-	"finit",	execfinit,
-	"flag",		execflag,
-	"rfork",	execnewpgrp,
-	0
-};
+    "cd", execcd,
+    "whatis", execwhatis,
+    "eval", execeval,
+    "exec", execexec, /* but with popword first */
+    "exit", execexit,
+    "shift", execshift,
+    "wait", execwait,
+    ".", execdot,
+    "finit", execfinit,
+    "flag", execflag,
+    "rfork", execnewpgrp,
+    0};
 
 void
 execnewpgrp(void)
 {
 	int arg;
 	char *s;
-	switch(count(runq->argv->words)){
+	switch(count(runq->argv->words)) {
 	case 1:
-		arg = RFENVG|RFNAMEG|RFNOTEG;
+		arg = RFENVG | RFNAMEG | RFNOTEG;
 		break;
 	case 2:
 		arg = 0;
-		for(s = runq->argv->words->next->word;*s;s++) switch(*s){
-		default:
-			goto Usage;
-		case 'n':
-			arg|=RFNAMEG;  break;
-		case 'N':
-			arg|=RFCNAMEG;
-			break;
-		case 'm':
-			arg|=RFNOMNT;  break;
-		case 'e':
-			arg|=RFENVG;   break;
-		case 'E':
-			arg|=RFCENVG;  break;
-		case 's':
-			arg|=RFNOTEG;  break;
-		case 'f':
-			arg|=RFFDG;    break;
-		case 'F':
-			arg|=RFCFDG;   break;
-		}
+		for(s = runq->argv->words->next->word; *s; s++)
+			switch(*s) {
+			default:
+				goto Usage;
+			case 'n':
+				arg |= RFNAMEG;
+				break;
+			case 'N':
+				arg |= RFCNAMEG;
+				break;
+			case 'm':
+				arg |= RFNOMNT;
+				break;
+			case 'e':
+				arg |= RFENVG;
+				break;
+			case 'E':
+				arg |= RFCENVG;
+				break;
+			case 's':
+				arg |= RFNOTEG;
+				break;
+			case 'f':
+				arg |= RFFDG;
+				break;
+			case 'F':
+				arg |= RFCFDG;
+				break;
+			}
 		break;
 	default:
 	Usage:
@@ -101,11 +106,10 @@ execnewpgrp(void)
 		poplist();
 		return;
 	}
-	if(rfork(arg)==-1){
+	if(rfork(arg) == -1) {
 		pfmt(err, "rc: %s failed\n", runq->argv->words->word);
 		setstatus("rfork failed");
-	}
-	else
+	} else
 		setstatus("");
 	poplist();
 }
@@ -120,35 +124,36 @@ Vinit(void)
 	Dir *ent;
 
 	dir = open("/env", OREAD);
-	if(dir<0){
+	if(dir < 0) {
 		pfmt(err, "rc: can't open /env: %r\n");
 		return;
 	}
 	ent = nil;
-	for(;;){
+	for(;;) {
 		nent = dirread(dir, &ent);
 		if(nent <= 0)
 			break;
-		for(i = 0; i<nent; i++){
+		for(i = 0; i < nent; i++) {
 			len = ent[i].length;
-			if(len && strncmp(ent[i].name, "fn#", 3)!=0){
+			if(len && strncmp(ent[i].name, "fn#", 3) != 0) {
 				snprint(envname, sizeof envname, "/env/%s", ent[i].name);
-				if((f = open(envname, 0))>=0){
-					buf = emalloc(len+1);
+				if((f = open(envname, 0)) >= 0) {
+					buf = emalloc(len + 1);
 					n = readn(f, buf, len);
-					if (n <= 0)
+					if(n <= 0)
 						buf[0] = '\0';
 					else
 						buf[n] = '\0';
 					val = 0;
 					/* Charitably add a 0 at the end if need be */
-					if(buf[len-1])
-						buf[len++]='\0';
-					s = buf+len-1;
-					for(;;){
-						while(s!=buf && s[-1]!='\0') --s;
+					if(buf[len - 1])
+						buf[len++] = '\0';
+					s = buf + len - 1;
+					for(;;) {
+						while(s != buf && s[-1] != '\0')
+							--s;
 						val = newword(s, val);
-						if(s==buf)
+						if(s == buf)
 							break;
 						--s;
 					}
@@ -174,21 +179,21 @@ Xrdfn(void)
 	static Dir *ent, *allocent;
 	static int nent;
 
-	for(;;){
-		if(nent == 0){
+	for(;;) {
+		if(nent == 0) {
 			free(allocent);
 			nent = dirread(envdir, &allocent);
 			ent = allocent;
 		}
 		if(nent <= 0)
 			break;
-		while(nent){
+		while(nent) {
 			e = ent++;
 			nent--;
 			len = e->length;
-			if(len && strncmp(e->name, "fn#", 3)==0){
+			if(len && strncmp(e->name, "fn#", 3) == 0) {
 				snprint(envname, sizeof envname, "/env/%s", e->name);
-				if((f = open(envname, 0))>=0){
+				if((f = open(envname, 0)) >= 0) {
 					execcmds(openfd(f));
 					return;
 				}
@@ -204,7 +209,7 @@ void
 execfinit(void)
 {
 	static int first = 1;
-	if(first){
+	if(first) {
 		rdfns[0].i = 1;
 		rdfns[1].f = Xrdfn;
 		rdfns[2].f = Xjump;
@@ -213,7 +218,7 @@ execfinit(void)
 	}
 	Xpopm();
 	envdir = open("/env", 0);
-	if(envdir<0){
+	if(envdir < 0) {
 		pfmt(err, "rc: can't open /env: %r\n");
 		return;
 	}
@@ -230,32 +235,34 @@ Waitfor(int pid, int n)
 	if(pid >= 0 && !havewaitpid(pid))
 		return 0;
 
-	while((w = wait()) != nil){
+	while((w = wait()) != nil) {
 		delwaitpid(w->pid);
-		if(w->pid==pid){
+		if(w->pid == pid) {
 			setstatus(w->msg);
 			free(w);
 			return 0;
 		}
-		for(p = runq->ret;p;p = p->ret)
-			if(p->pid==w->pid){
-				p->pid=-1;
+		for(p = runq->ret; p; p = p->ret)
+			if(p->pid == w->pid) {
+				p->pid = -1;
 				strcpy(p->status, w->msg);
 			}
 		free(w);
 	}
 
 	errstr(errbuf, sizeof errbuf);
-	if(strcmp(errbuf, "interrupted")==0) return -1;
+	if(strcmp(errbuf, "interrupted") == 0)
+		return -1;
 	return 0;
 }
 
 char **
 mkargv(word *a)
 {
-	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
-	char **argp = argv+1;	/* leave one at front for runcoms */
-	for(;a;a = a->next) *argp++=a->word;
+	char **argv = (char **)emalloc((count(a) + 2) * sizeof(char *));
+	char **argp = argv + 1; /* leave one at front for runcoms */
+	for(; a; a = a->next)
+		*argp++ = a->word;
 	*argp = 0;
 	return argv;
 }
@@ -267,26 +274,26 @@ addenv(var *v)
 	word *w;
 	int f;
 	io *fd;
-	if(v->changed){
+	if(v->changed) {
 		v->changed = 0;
 		snprint(envname, sizeof envname, "/env/%s", v->name);
-		if((f = Creat(envname))<0)
+		if((f = Creat(envname)) < 0)
 			pfmt(err, "rc: can't open %s: %r\n", envname);
-		else{
-			for(w = v->val;w;w = w->next)
-				write(f, w->word, strlen(w->word)+1L);
+		else {
+			for(w = v->val; w; w = w->next)
+				write(f, w->word, strlen(w->word) + 1L);
 			close(f);
 		}
 	}
-	if(v->fnchanged){
+	if(v->fnchanged) {
 		v->fnchanged = 0;
 		snprint(envname, sizeof envname, "/env/fn#%s", v->name);
-		if((f = Creat(envname))<0)
+		if((f = Creat(envname)) < 0)
 			pfmt(err, "rc: can't open %s: %r\n", envname);
-		else{
-			if(v->fn){
+		else {
+			if(v->fn) {
 				fd = openfd(f);
-				pfmt(fd, "fn %q %s\n", v->name, v->fn[v->pc-1].s);
+				pfmt(fd, "fn %q %s\n", v->name, v->fn[v->pc - 1].s);
 				closeio(fd);
 			}
 			close(f);
@@ -297,7 +304,7 @@ addenv(var *v)
 void
 updenvlocal(var *v)
 {
-	if(v){
+	if(v) {
 		updenvlocal(v->next);
 		addenv(v);
 	}
@@ -307,8 +314,8 @@ void
 Updenv(void)
 {
 	var *v, **h;
-	for(h = gvar;h!=&gvar[NVAR];h++)
-		for(v=*h;v;v = v->next)
+	for(h = gvar; h != &gvar[NVAR]; h++)
+		for(v = *h; v; v = v->next)
 			addenv(v);
 	if(runq)
 		updenvlocal(runq->local);
@@ -322,7 +329,7 @@ ForkExecute(char *file, char **argv, int sin, int sout, int serr)
 
 	if(access(file, 1) != 0)
 		return -1;
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		return -1;
 	case 0:
@@ -353,17 +360,17 @@ Execute(word *args, word *path)
 
 	Updenv();
 	errstr[0] = '\0';
-	for(;path;path = path->next){
+	for(; path; path = path->next) {
 		nc = strlen(path->word);
-		if(nc < sizeof file - 1){	/* 1 for / */
+		if(nc < sizeof file - 1) { /* 1 for / */
 			strcpy(file, path->word);
-			if(file[0]){
+			if(file[0]) {
 				strcat(file, "/");
 				nc++;
 			}
-			if(nc + strlen(argv[1]) < sizeof file){
+			if(nc + strlen(argv[1]) < sizeof file) {
 				strcat(file, argv[1]);
-				exec(file, argv+1);
+				exec(file, argv + 1);
 				rerrstr(errstr, sizeof errstr);
 				/*
 				 * if file exists and is executable, exec should
@@ -374,41 +381,40 @@ Execute(word *args, word *path)
 				 * allocation failure, stop searching and print
 				 * the reason for failure.
 				 */
-				if (strstr(errstr, " allocat") != nil ||
-				    strstr(errstr, " full") != nil)
+				if(strstr(errstr, " allocat") != nil ||
+				   strstr(errstr, " full") != nil)
 					break;
-			}
-			else werrstr("command name too long");
+			} else
+				werrstr("command name too long");
 		}
 	}
 	pfmt(err, "%s: %s\n", argv[1], errstr);
 	efree((char *)argv);
 }
-#define	NDIR	256		/* shoud be a better way */
+#define NDIR 256 /* shoud be a better way */
 
 int
 Globsize(char *p)
 {
-	int isglob = 0, globlen = NDIR+1;
-	for(;*p;p++){
-		if(*p==GLOB){
+	int isglob = 0, globlen = NDIR + 1;
+	for(; *p; p++) {
+		if(*p == GLOB) {
 			p++;
-			if(*p!=GLOB)
+			if(*p != GLOB)
 				isglob++;
-			globlen+=*p=='*'?NDIR:1;
-		}
-		else
+			globlen += *p == '*' ? NDIR : 1;
+		} else
 			globlen++;
 	}
-	return isglob?globlen:0;
+	return isglob ? globlen : 0;
 }
-#define	NFD	50
+#define NFD 50
 
-struct{
-	Dir	*dbuf;
-	int	i;
-	int	n;
-}dir[NFD];
+struct {
+	Dir *dbuf;
+	int i;
+	int n;
+} dir[NFD];
 
 int
 Opendir(char *name)
@@ -416,11 +422,11 @@ Opendir(char *name)
 	Dir *db;
 	int f;
 	f = open(name, 0);
-	if(f==-1)
+	if(f == -1)
 		return f;
 	db = dirfstat(f);
-	if(db!=nil && (db->mode&DMDIR)){
-		if(f<NFD){
+	if(db != nil && (db->mode & DMDIR)) {
+		if(f < NFD) {
 			dir[f].i = 0;
 			dir[f].n = 0;
 		}
@@ -437,8 +443,8 @@ trimdirs(Dir *d, int nd)
 {
 	int r, w;
 
-	for(r=w=0; r<nd; r++)
-		if(d[r].mode&DMDIR)
+	for(r = w = 0; r < nd; r++)
+		if(d[r].mode & DMDIR)
 			d[w++] = d[r];
 	return w;
 }
@@ -455,21 +461,21 @@ Readdir(int f, void *p, int onlydirs)
 {
 	int n;
 
-	if(f<0 || f>=NFD)
+	if(f < 0 || f >= NFD)
 		return 0;
 Again:
-	if(dir[f].i==dir[f].n){	/* read */
+	if(dir[f].i == dir[f].n) { /* read */
 		free(dir[f].dbuf);
 		dir[f].dbuf = 0;
 		n = dirread(f, &dir[f].dbuf);
-		if(n>0){
-			if(onlydirs){
+		if(n > 0) {
+			if(onlydirs) {
 				n = trimdirs(dir[f].dbuf, n);
 				if(n == 0)
 					goto Again;
-			}	
+			}
 			dir[f].n = n;
-		}else
+		} else
 			dir[f].n = 0;
 		dir[f].i = 0;
 	}
@@ -483,7 +489,7 @@ Again:
 void
 Closedir(int f)
 {
-	if(f>=0 && f<NFD){
+	if(f >= 0 && f < NFD) {
 		free(dir[f].dbuf);
 		dir[f].i = 0;
 		dir[f].n = 0;
@@ -493,22 +499,24 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void* v, char *s)
+notifyf(void *v, char *s)
 {
 	int i;
-	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
-		if(strncmp(s, "sys: ", 5)!=0) interrupted = 1;
-		goto Out;
-	}
+	for(i = 0; syssigname[i]; i++)
+		if(strncmp(s, syssigname[i], strlen(syssigname[i])) == 0) {
+			if(strncmp(s, "sys: ", 5) != 0)
+				interrupted = 1;
+			goto Out;
+		}
 	pfmt(err, "rc: note: %s\n", s);
 	noted(NDFLT);
 	return;
 Out:
-	if(strcmp(s, "interrupt")!=0 || trap[i]==0){
+	if(strcmp(s, "interrupt") != 0 || trap[i] == 0) {
 		trap[i]++;
 		ntrap++;
 	}
-	if(ntrap>=32){	/* rc is probably in a trap loop */
+	if(ntrap >= 32) { /* rc is probably in a trap loop */
 		pfmt(err, "rc: Too many traps (trap %s), aborting\n", s);
 		abort();
 	}
@@ -554,7 +562,7 @@ Executable(char *file)
 	statbuf = dirstat(file);
 	if(statbuf == nil)
 		return 0;
-	ret = ((statbuf->mode&0111)!=0 && (statbuf->mode&DMDIR)==0);
+	ret = ((statbuf->mode & 0111) != 0 && (statbuf->mode & DMDIR) == 0);
 	free(statbuf);
 	return ret;
 }
@@ -582,7 +590,7 @@ Exit(char *stat)
 {
 	Updenv();
 	setstatus(stat);
-	exits(truestatus()?"":getstatus());
+	exits(truestatus() ? "" : getstatus());
 }
 
 int
@@ -610,7 +618,7 @@ Isatty(int fd)
 		return 1;
 
 	/* might be /mnt/term/dev/cons */
-	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+	return strlen(buf) >= 9 && strcmp(buf + strlen(buf) - 9, "/dev/cons") == 0;
 }
 
 void
@@ -627,7 +635,7 @@ Memcpy(void *a, void *b, int32_t n)
 	memmove(a, b, n);
 }
 
-void*
+void *
 Malloc(uint32_t n)
 {
 	return mallocz(n, 1);
@@ -639,9 +647,9 @@ int nwaitpids;
 void
 addwaitpid(int pid)
 {
-	waitpids = realloc(waitpids, (nwaitpids+1)*sizeof waitpids[0]);
+	waitpids = realloc(waitpids, (nwaitpids + 1) * sizeof waitpids[0]);
 	if(waitpids == 0)
-		panic("Can't realloc %d waitpids", nwaitpids+1);
+		panic("Can't realloc %d waitpids", nwaitpids + 1);
 	waitpids[nwaitpids++] = pid;
 }
 
@@ -649,8 +657,8 @@ void
 delwaitpid(int pid)
 {
 	int r, w;
-	
-	for(r=w=0; r<nwaitpids; r++)
+
+	for(r = w = 0; r < nwaitpids; r++)
 		if(waitpids[r] != pid)
 			waitpids[w++] = waitpids[r];
 	nwaitpids = w;
@@ -667,7 +675,7 @@ havewaitpid(int pid)
 {
 	int i;
 
-	for(i=0; i<nwaitpids; i++)
+	for(i = 0; i < nwaitpids; i++)
 		if(waitpids[i] == pid)
 			return 1;
 	return 0;

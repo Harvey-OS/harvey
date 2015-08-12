@@ -7,33 +7,34 @@
  * in the LICENSE file.
  */
 
-typedef struct Opt	Opt;
+typedef struct Opt Opt;
 
 int debug;
-#define DPRINT if(debug)fprint
+#define DPRINT    \
+	if(debug) \
+	fprint
 
-enum
-{
+enum {
 	/* control characters */
-	Se=		240,		/* end subnegotiation */
-	NOP=		241,
-	Mark=		242,		/* data mark */
-	Break=		243,
-	Interrupt=	244,
-	Abort=		245,		/* TENEX ^O */
-	AreYouThere=	246,
-	Erasechar=	247,		/* erase last character */
-	Eraseline=	248,		/* erase line */
-	GoAhead=	249,		/* half duplex clear to send */
-	Sb=		250,		/* start subnegotiation */
-	Will=		251,
-	Wont=		252,
-	Do=		253,
-	Dont=		254,
-	Iac=		255,
+	Se = 240, /* end subnegotiation */
+	NOP = 241,
+	Mark = 242, /* data mark */
+	Break = 243,
+	Interrupt = 244,
+	Abort = 245, /* TENEX ^O */
+	AreYouThere = 246,
+	Erasechar = 247, /* erase last character */
+	Eraseline = 248, /* erase line */
+	GoAhead = 249,   /* half duplex clear to send */
+	Sb = 250,	/* start subnegotiation */
+	Will = 251,
+	Wont = 252,
+	Do = 253,
+	Dont = 254,
+	Iac = 255,
 
 	/* options */
-	Binary=		0,
+	Binary = 0,
 	Echo,
 	SGA,
 	Stat,
@@ -54,58 +55,57 @@ enum
 	Extend,
 };
 
-struct Opt
-{
-	char	*name;
-	int	code;
-	char	noway;	
-	int	(*change)(Biobuf*, int);	/* routine for status change */
-	int	(*sub)(Biobuf*, uint8_t*, int n);	/* routine for subnegotiation */
-	char	remote;				/* remote value */
-	char	local;				/* local value */
+struct Opt {
+	char *name;
+	int code;
+	char noway;
+	int (*change)(Biobuf *, int);		/* routine for status change */
+	int (*sub)(Biobuf *, uint8_t *, int n); /* routine for subnegotiation */
+	char remote;				/* remote value */
+	char local;				/* local value */
 };
 
 Opt opt[] =
-{
-[Binary]	{ "binary",		0,  0, },
-[Echo]		{ "echo",		1,  0, },
-[SGA]		{ "suppress Go Ahead",	3,  0, },
-[Stat]		{ "status",		5,  1, },
-[Timing]	{ "timing",		6,  1, },
-[Det]		{ "det",		20, 1, },
-[Term]		{ "terminal",		24, 0, },
-[EOR]		{ "end of record",	25, 1, },
-[Uid]		{ "uid",		26, 1, },
-[Outmark]	{ "outmark",		27, 1, },
-[Ttyloc]	{ "ttyloc",		28, 1, },
-[M3270]		{ "3270 mode",		29, 1, },
-[Padx3]		{ "pad x.3",		30, 1, },
-[Window]	{ "window size",	31, 1, },
-[Speed]		{ "speed",		32, 1, },
-[Flow]		{ "flow control",	33, 1, },
-[Line]		{ "line mode",		34, 1, },
-[Xloc]		{ "X display loc",	35, 0, },
-[Extend]	{ "Extended",		255, 1, },
+    {
+     [Binary] { "binary",		0,  0, },
+     [Echo] { "echo",		1,  0, },
+     [SGA] { "suppress Go Ahead",	3,  0, },
+     [Stat] { "status",		5,  1, },
+     [Timing] { "timing",		6,  1, },
+     [Det] { "det",		20, 1, },
+     [Term] { "terminal",		24, 0, },
+     [EOR] { "end of record",	25, 1, },
+     [Uid] { "uid",		26, 1, },
+     [Outmark] { "outmark",		27, 1, },
+     [Ttyloc] { "ttyloc",		28, 1, },
+     [M3270] { "3270 mode",		29, 1, },
+     [Padx3] { "pad x.3",		30, 1, },
+     [Window] { "window size",	31, 1, },
+     [Speed] { "speed",		32, 1, },
+     [Flow] { "flow control",	33, 1, },
+     [Line] { "line mode",		34, 1, },
+     [Xloc] { "X display loc",	35, 0, },
+     [Extend] { "Extended",		255, 1, },
 };
 
-int	control(Biobuf*, int);
-Opt*	findopt(int);
-int	will(Biobuf*);
-int	wont(Biobuf*);
-int	doit(Biobuf*);
-int	dont(Biobuf*);
-int	sub(Biobuf*);
-int	send2(int, int, int);
-int	send3(int, int, int, int);
-int	sendnote(int, char*);
-void	fatal(char*, void*, void*);
-char*	syserr(void);
-int	wasintr(void);
-long	iread(int, void*, int);
-long	iwrite(int, void*, int);
-void	binit(Biobuf*, int);
-void	berase(Biobuf*);
-void	bkill(Biobuf*);
+int control(Biobuf *, int);
+Opt *findopt(int);
+int will(Biobuf *);
+int wont(Biobuf *);
+int doit(Biobuf *);
+int dont(Biobuf *);
+int sub(Biobuf *);
+int send2(int, int, int);
+int send3(int, int, int, int);
+int sendnote(int, char *);
+void fatal(char *, void *, void *);
+char *syserr(void);
+int wasintr(void);
+long iread(int, void *, int);
+long iwrite(int, void *, int);
+void binit(Biobuf *, int);
+void berase(Biobuf *);
+void bkill(Biobuf *);
 
 /*
  *  parse telnet control messages
@@ -115,7 +115,7 @@ control(Biobuf *bp, int c)
 {
 	if(c < 0)
 		return -1;
-	switch(c){
+	switch(c) {
 	case AreYouThere:
 		fprint(Bfildes(bp), "Plan 9 telnet, version 1\r\n");
 		break;
@@ -138,7 +138,7 @@ control(Biobuf *bp, int c)
 	return 0;
 }
 
-Opt*
+Opt *
 findopt(int c)
 {
 	Opt *o;
@@ -161,7 +161,7 @@ will(Biobuf *bp)
 		return -1;
 	DPRINT(2, "will %d\n", c);
 	o = findopt(c);
-	if(o == 0){
+	if(o == 0) {
 		send3(Bfildes(bp), Iac, Dont, c);
 		return 0;
 	}
@@ -169,7 +169,7 @@ will(Biobuf *bp)
 		send3(Bfildes(bp), Iac, Dont, c);
 	else if(o->remote == 0)
 		rv |= send3(Bfildes(bp), Iac, Do, c);
-	if(o->remote == 0){
+	if(o->remote == 0) {
 		if(o->change)
 			rv |= (*o->change)(bp, Will);
 	}
@@ -191,7 +191,7 @@ wont(Biobuf *bp)
 	o = findopt(c);
 	if(o == 0)
 		return 0;
-	if(o->remote){
+	if(o->remote) {
 		if(o->change)
 			rv |= (*o->change)(bp, Wont);
 		rv |= send3(Bfildes(bp), Iac, Dont, c);
@@ -212,13 +212,13 @@ doit(Biobuf *bp)
 		return -1;
 	DPRINT(2, "do %d\n", c);
 	o = findopt(c);
-	if(o == 0 || o->noway){
+	if(o == 0 || o->noway) {
 		send3(Bfildes(bp), Iac, Wont, c);
 		return 0;
 	}
 	if(o->noway)
 		return 0;
-	if(o->local == 0){
+	if(o->local == 0) {
 		if(o->change)
 			rv |= (*o->change)(bp, Do);
 		rv |= send3(Bfildes(bp), Iac, Will, c);
@@ -243,7 +243,7 @@ dont(Biobuf *bp)
 		return 0;
 	if(o->noway)
 		return 0;
-	if(o->local){
+	if(o->local) {
 		o->local = 0;
 		if(o->change)
 			rv |= (*o->change)(bp, Dont);
@@ -263,9 +263,9 @@ sub(Biobuf *bp)
 	int c;
 
 	p = subneg;
-	for(;;){
+	for(;;) {
 		c = Bgetc(bp);
-		if(c == Iac){
+		if(c == Iac) {
 			c = Bgetc(bp);
 			if(c == Se)
 				break;
@@ -283,7 +283,7 @@ sub(Biobuf *bp)
 	o = findopt(subneg[0]);
 	if(o == 0 || o->sub == 0)
 		return 0;
-	return (*o->sub)(bp, subneg+1, p - subneg - 1);
+	return (*o->sub)(bp, subneg + 1, p - subneg - 1);
 }
 
 void
@@ -291,7 +291,7 @@ sendd(int c0, int c1)
 {
 	char *t = 0;
 
-	switch(c0){
+	switch(c0) {
 	case Will:
 		t = "Will";
 		break;
@@ -341,7 +341,7 @@ sendnote(int pid, char *msg)
 	fd = open(name, OWRITE);
 	if(fd < 0)
 		return -1;
-	if(write(fd, msg, strlen(msg))!=strlen(msg))
+	if(write(fd, msg, strlen(msg)) != strlen(msg))
 		return -1;
 	return close(fd);
 }
@@ -356,7 +356,7 @@ fatal(char *fmt, void *a0, void *a1)
 	exits(buf);
 }
 
-char*
+char *
 syserr(void)
 {
 	static char err[ERRMAX];
@@ -376,7 +376,7 @@ iread(int f, void *a, int n)
 {
 	long m;
 
-	for(;;){
+	for(;;) {
 		m = read(f, a, n);
 		if(m >= 0 || !wasintr())
 			break;

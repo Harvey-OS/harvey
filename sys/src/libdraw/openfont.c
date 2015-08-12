@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <draw.h>
 
-Font*
+Font *
 openfont(Display *d, char *name)
 {
 	Font *fnt;
@@ -24,20 +24,20 @@ openfont(Display *d, char *name)
 		return 0;
 
 	dir = dirfstat(fd);
-	if(dir == nil){
-    Err0:
+	if(dir == nil) {
+	Err0:
 		close(fd);
 		return 0;
 	}
 	n = dir->length;
 	free(dir);
-	buf = malloc(n+1);
+	buf = malloc(n + 1);
 	if(buf == 0)
 		goto Err0;
 	buf[n] = 0;
 	i = read(fd, buf, n);
 	close(fd);
-	if(i != n){
+	if(i != n) {
 		free(buf);
 		return 0;
 	}

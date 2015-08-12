@@ -9,7 +9,7 @@
 
 #include "ssh.h"
 
-static AuthInfo*
+static AuthInfo *
 authsrvpasswordfn(Conn *c, Msg *m)
 {
 	char *pass;
@@ -22,10 +22,9 @@ authsrvpasswordfn(Conn *c, Msg *m)
 }
 
 Authsrv authsrvpassword =
-{
-	SSH_AUTH_PASSWORD,
-	"password",
-	SSH_CMSG_AUTH_PASSWORD,
-	authsrvpasswordfn,
+    {
+     SSH_AUTH_PASSWORD,
+     "password",
+     SSH_CMSG_AUTH_PASSWORD,
+     authsrvpasswordfn,
 };
-

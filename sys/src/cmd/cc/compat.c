@@ -7,26 +7,26 @@
  * in the LICENSE file.
  */
 
-#include	"cc.h"
-#include	"compat"
+#include "cc.h"
+#include "compat"
 
 /*
  * fake mallocs
  */
-void*
+void *
 malloc(uint32_t n)
 {
 	return alloc(n);
 }
 
-void*
+void *
 calloc(uint32_t m, uint32_t n)
 {
-	return alloc(m*n);
+	return alloc(m * n);
 }
 
-void*
-realloc(void*, uint32_t)
+void *
+realloc(void *, uint32_t)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -34,12 +34,12 @@ realloc(void*, uint32_t)
 }
 
 void
-free(void*)
+free(void *)
 {
 }
 
 /* needed when profiling */
-void*
+void *
 mallocz(uint32_t size, int clr)
 {
 	void *v;
@@ -51,6 +51,6 @@ mallocz(uint32_t size, int clr)
 }
 
 void
-setmalloctag(void*, uint32_t)
+setmalloctag(void *, uint32_t)
 {
 }

@@ -22,8 +22,8 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	mpdigit x;
 	uint8_t *e, *s;
 
-	if(p == nil){
-		n = (b->top+1)*Dbytes;
+	if(p == nil) {
+		n = (b->top + 1) * Dbytes;
 		p = malloc(n);
 	}
 	if(pp != nil)
@@ -33,18 +33,18 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	memset(p, 0, n);
 
 	// special case 0
-	if(b->top == 0){
+	if(b->top == 0) {
 		if(n < 1)
 			return -1;
 		else
 			return 0;
 	}
-		
+
 	s = p;
-	e = s+n;
-	for(i = 0; i < b->top-1; i++){
+	e = s + n;
+	for(i = 0; i < b->top - 1; i++) {
 		x = b->p[i];
-		for(j = 0; j < Dbytes; j++){
+		for(j = 0; j < Dbytes; j++) {
 			if(p >= e)
 				return -1;
 			*p++ = x;
@@ -52,7 +52,7 @@ mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 		}
 	}
 	x = b->p[i];
-	while(x > 0){
+	while(x > 0) {
 		if(p >= e)
 			return -1;
 		*p++ = x;

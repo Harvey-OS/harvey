@@ -24,10 +24,10 @@ execlp(const char *name, const char *arg0, ...)
 	int n;
 	char buf[PATH_MAX];
 
-	if((n=execve(name, &arg0, environ)) < 0){
+	if((n = execve(name, &arg0, environ)) < 0) {
 		strcpy(buf, "/bin/");
-		strcpy(buf+5, name);
-		n = execve(buf, &name+1, environ);
+		strcpy(buf + 5, name);
+		n = execve(buf, &name + 1, environ);
 	}
 	return n;
 }

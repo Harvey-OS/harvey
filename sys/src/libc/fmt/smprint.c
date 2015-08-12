@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 smprint(char *fmt, ...)
 {
 	va_list args;

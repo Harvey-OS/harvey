@@ -10,80 +10,78 @@
 /* VERSION 1 introduces plumbing
 	2 increases SNARFSIZE from 4096 to 32000
  */
-#define	VERSION	2
+#define VERSION 2
 
-#define	TBLOCKSIZE 512		  /* largest piece of text sent to terminal */
-#define	DATASIZE  (UTFmax*TBLOCKSIZE+30) /* ... including protocol header stuff */
-#define	SNARFSIZE 32000		/* maximum length of exchanged snarf buffer, must fit in 15 bits */
+#define TBLOCKSIZE 512			    /* largest piece of text sent to terminal */
+#define DATASIZE (UTFmax * TBLOCKSIZE + 30) /* ... including protocol header stuff */
+#define SNARFSIZE 32000			    /* maximum length of exchanged snarf buffer, must fit in 15 bits */
 /*
  * Messages originating at the terminal
  */
-typedef enum Tmesg
-{
-	Tversion,	/* version */
-	Tstartcmdfile,	/* terminal just opened command frame */
-	Tcheck,		/* ask host to poke with Hcheck */
-	Trequest,	/* request data to fill a hole */
-	Torigin,	/* gimme an Horigin near here */
-	Tstartfile,	/* terminal just opened a file's frame */
-	Tworkfile,	/* set file to which commands apply */
-	Ttype,		/* add some characters, but terminal already knows */
+typedef enum Tmesg {
+	Tversion,      /* version */
+	Tstartcmdfile, /* terminal just opened command frame */
+	Tcheck,	/* ask host to poke with Hcheck */
+	Trequest,      /* request data to fill a hole */
+	Torigin,       /* gimme an Horigin near here */
+	Tstartfile,    /* terminal just opened a file's frame */
+	Tworkfile,     /* set file to which commands apply */
+	Ttype,	 /* add some characters, but terminal already knows */
 	Tcut,
 	Tpaste,
 	Tsnarf,
-	Tstartnewfile,	/* terminal just opened a new frame */
-	Twrite,		/* write file */
-	Tclose,		/* terminal requests file close; check mod. status */
-	Tlook,		/* search for literal current text */
-	Tsearch,	/* search for last regular expression */
-	Tsend,		/* pretend he typed stuff */
-	Tdclick,	/* double click */
-	Tstartsnarf,	/* initiate snarf buffer exchange */
-	Tsetsnarf,	/* remember string in snarf buffer */
-	Tack,		/* acknowledge Hack */
-	Texit,		/* exit */
-	Tplumb,		/* send plumb message */
+	Tstartnewfile, /* terminal just opened a new frame */
+	Twrite,	/* write file */
+	Tclose,	/* terminal requests file close; check mod. status */
+	Tlook,	 /* search for literal current text */
+	Tsearch,       /* search for last regular expression */
+	Tsend,	 /* pretend he typed stuff */
+	Tdclick,       /* double click */
+	Tstartsnarf,   /* initiate snarf buffer exchange */
+	Tsetsnarf,     /* remember string in snarf buffer */
+	Tack,	  /* acknowledge Hack */
+	Texit,	 /* exit */
+	Tplumb,	/* send plumb message */
 	TMAX,
-}Tmesg;
+} Tmesg;
 /*
  * Messages originating at the host
  */
-typedef enum Hmesg
-{
-	Hversion,	/* version */
-	Hbindname,	/* attach name[0] to text in terminal */
-	Hcurrent,	/* make named file the typing file */
-	Hnewname,	/* create "" name in menu */
-	Hmovname,	/* move file name in menu */
-	Hgrow,		/* insert space in rasp */
-	Hcheck0,	/* see below */
-	Hcheck,		/* ask terminal to check whether it needs more data */
-	Hunlock,	/* command is finished; user can do things */
-	Hdata,		/* store this data in previously allocated space */
-	Horigin,	/* set origin of file/frame in terminal */
-	Hunlockfile,	/* unlock file in terminal */
-	Hsetdot,	/* set dot in terminal */
-	Hgrowdata,	/* Hgrow + Hdata folded together */
-	Hmoveto,	/* scrolling, context search, etc. */
-	Hclean,		/* named file is now 'clean' */
-	Hdirty,		/* named file is now 'dirty' */
-	Hcut,		/* remove space from rasp */
-	Hsetpat,	/* set remembered regular expression */
-	Hdelname,	/* delete file name from menu */
-	Hclose,		/* close file and remove from menu */
-	Hsetsnarf,	/* remember string in snarf buffer */
-	Hsnarflen,	/* report length of implicit snarf */
-	Hack,		/* request acknowledgement */
+typedef enum Hmesg {
+	Hversion,    /* version */
+	Hbindname,   /* attach name[0] to text in terminal */
+	Hcurrent,    /* make named file the typing file */
+	Hnewname,    /* create "" name in menu */
+	Hmovname,    /* move file name in menu */
+	Hgrow,       /* insert space in rasp */
+	Hcheck0,     /* see below */
+	Hcheck,      /* ask terminal to check whether it needs more data */
+	Hunlock,     /* command is finished; user can do things */
+	Hdata,       /* store this data in previously allocated space */
+	Horigin,     /* set origin of file/frame in terminal */
+	Hunlockfile, /* unlock file in terminal */
+	Hsetdot,     /* set dot in terminal */
+	Hgrowdata,   /* Hgrow + Hdata folded together */
+	Hmoveto,     /* scrolling, context search, etc. */
+	Hclean,      /* named file is now 'clean' */
+	Hdirty,      /* named file is now 'dirty' */
+	Hcut,	/* remove space from rasp */
+	Hsetpat,     /* set remembered regular expression */
+	Hdelname,    /* delete file name from menu */
+	Hclose,      /* close file and remove from menu */
+	Hsetsnarf,   /* remember string in snarf buffer */
+	Hsnarflen,   /* report length of implicit snarf */
+	Hack,	/* request acknowledgement */
 	Hexit,
-	Hplumb,		/* return plumb message to terminal - version 1 */
+	Hplumb, /* return plumb message to terminal - version 1 */
 	HMAX,
-}Hmesg;
-typedef struct Header{
-	uchar	type;		/* one of the above */
-	uchar	count0;		/* low bits of data size */
-	uchar	count1;		/* high bits of data size */
-	uchar	data[1];	/* variable size */
-}Header;
+} Hmesg;
+typedef struct Header {
+	uchar type;    /* one of the above */
+	uchar count0;  /* low bits of data size */
+	uchar count1;  /* high bits of data size */
+	uchar data[1]; /* variable size */
+} Header;
 
 /*
  * File transfer protocol schematic, a la Holzmann

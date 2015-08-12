@@ -52,11 +52,9 @@ static char *ident = "$Id: warn.c,v 1.2 89/02/12 10:06:15 mark Exp $";
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /* Function Prototypes */
 
@@ -69,7 +67,6 @@ static void prsize(FILE *, OFFSET);
 static void prsize();
 
 #endif /* __STDC__ */
-
 
 /* warnarch - print an archive-related warning message and offset
  *
@@ -89,21 +86,20 @@ static void prsize();
 
 #ifdef __STDC__
 
-void warnarch(char *msg, OFFSET adjust)
+void
+warnarch(char *msg, OFFSET adjust)
 
-#else 
+#else
 
-void warnarch(msg, adjust)
-char           *msg;
-OFFSET          adjust;
+void warnarch(msg, adjust) char *msg;
+OFFSET adjust;
 
 #endif
 {
-    fprintf(stderr, "%s: [offset ", myname);
-    prsize(stderr, total - adjust);
-    fprintf(stderr, "]: %s\n", msg);
+	fprintf(stderr, "%s: [offset ", myname);
+	prsize(stderr, total - adjust);
+	fprintf(stderr, "]: %s\n", msg);
 }
-
 
 /* strerror - return pointer to appropriate system error message
  *
@@ -124,28 +120,29 @@ OFFSET          adjust;
 
 #ifdef __STDC__
 
-char *strerror(void)
+char *
+strerror(void)
 
 #else
 
-char *strerror()
+char *
+strerror()
 
 #endif
 {
 #ifdef _POSIX_SOURCE
 #undef strerror
-    return (strerror(errno));
+	return (strerror(errno));
 #else
-    static char     msg[40];		/* used for "Unknown error" messages */
+	static char msg[40]; /* used for "Unknown error" messages */
 
-    if (errno > 0 && errno < sys_nerr) {
-	return (sys_errlist[errno]);
-    }
-    sprintf(msg, "Unknown error (errno %d)", errno);
-    return (msg);
+	if(errno > 0 && errno < sys_nerr) {
+		return (sys_errlist[errno]);
+	}
+	sprintf(msg, "Unknown error (errno %d)", errno);
+	return (msg);
 #endif
 }
-
 
 /* prsize - print a file offset on a file stream
  *
@@ -166,30 +163,30 @@ char *strerror()
 
 #ifdef __STDC__
 
-static void prsize(FILE *stream, OFFSET size)
+static void
+prsize(FILE *stream, OFFSET size)
 
 #else
 
 static void prsize(stream, size)
-FILE           *stream;		/* stream which is used for output */
-OFFSET          size;		/* current archive position to be printed */
+    FILE *stream; /* stream which is used for output */
+OFFSET size;      /* current archive position to be printed */
 
 #endif
 
 {
-    OFFSET          n;
+	OFFSET n;
 
-    if (n = (size / (1024L * 1024L))) {
-	fprintf(stream, "%ldm+", n);
-	size -= n * 1024L * 1024L;
-    }
-    if (n = (size / 1024L)) {
-	fprintf(stream, "%ldk+", n);
-	size -= n * 1024L;
-    }
-    fprintf(stream, "%ld", size);
+	if(n = (size / (1024L * 1024L))) {
+		fprintf(stream, "%ldm+", n);
+		size -= n * 1024L * 1024L;
+	}
+	if(n = (size / 1024L)) {
+		fprintf(stream, "%ldk+", n);
+		size -= n * 1024L;
+	}
+	fprintf(stream, "%ld", size);
 }
-
 
 /* fatal - print fatal message and exit
  *
@@ -209,20 +206,18 @@ OFFSET          size;		/* current archive position to be printed */
 
 #ifdef __STDC__
 
-void fatal(char *why)
+void
+fatal(char *why)
 
 #else
 
-void fatal(why)
-char           *why;		/* description of reason for termination */
+void fatal(why) char *why; /* description of reason for termination */
 
 #endif
 {
-    fprintf(stderr, "%s: %s\n", myname, why);
-    exit(1);
+	fprintf(stderr, "%s: %s\n", myname, why);
+	exit(1);
 }
-
-
 
 /* warn - print a warning message
  *
@@ -242,16 +237,16 @@ char           *why;		/* description of reason for termination */
 
 #ifdef __STDC__
 
-void warn(char *what, char *why)
+void
+warn(char *what, char *why)
 
 #else
 
-void warn(what, why)
-char           *what;		/* message as to what the error was */
-char           *why;		/* explanation why the error occurred */
+void warn(what, why) char *what; /* message as to what the error was */
+char *why; /* explanation why the error occurred */
 
 #endif
 {
-    fprintf(stderr, "%s: %s : %s\n", myname, what, why);
-    fflush(stderr);
+	fprintf(stderr, "%s: %s : %s\n", myname, what, why);
+	fflush(stderr);
 }

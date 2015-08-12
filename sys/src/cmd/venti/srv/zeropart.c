@@ -22,7 +22,7 @@ zeropart(Part *part, int blocksize)
 	b = alloczblock(MaxIoSize, 1, blocksize);
 
 	w = 0;
-	for(addr = PartBlank; addr + MaxIoSize <= part->size; addr += MaxIoSize){
+	for(addr = PartBlank; addr + MaxIoSize <= part->size; addr += MaxIoSize) {
 		if(writepart(part, addr, b->data, MaxIoSize) < 0)
 			sysfatal("can't initialize %s, writing block %d failed: %r", part->name, w);
 		w++;

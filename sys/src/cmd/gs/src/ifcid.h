@@ -27,7 +27,7 @@
 /* Interface to zfcid.c */
 
 #ifndef ifcid_INCLUDED
-#  define ifcid_INCLUDED
+#define ifcid_INCLUDED
 
 /* Get the CIDSystemInfo of a CIDFont. */
 int cid_font_system_info_param(gs_cid_system_info_t *pcidsi,

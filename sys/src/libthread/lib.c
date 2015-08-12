@@ -14,21 +14,21 @@
 
 static int32_t totalmalloc;
 
-void*
+void *
 _threadmalloc(int32_t size, int z)
 {
 	void *m;
 
 	m = malloc(size);
-	if (m == nil)
+	if(m == nil)
 		sysfatal("Malloc of size %ld failed: %r", size);
 	setmalloctag(m, getcallerpc(&size));
 	totalmalloc += size;
-	if (size > 100000000) {
+	if(size > 100000000) {
 		fprint(2, "Malloc of size %ld, total %ld\n", size, totalmalloc);
 		abort();
 	}
-	if (z)
+	if(z)
 		memset(m, 0, size);
 	return m;
 }
@@ -37,10 +37,10 @@ void
 _threadsysfatal(char *fmt, ...)
 {
 	va_list arg;
-	char buf[1024];	/* size doesn't matter; we're about to exit */
+	char buf[1024]; /* size doesn't matter; we're about to exit */
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(argv0)
 		fprint(2, "%s: %s\n", argv0, buf);

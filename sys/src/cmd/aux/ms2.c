@@ -12,24 +12,23 @@
 #include <bio.h>
 #include <mach.h>
 
-void	record(uint8_t*, int32_t);
-void	usage(void);
-void	segment(int64_t, int64_t);
+void record(uint8_t *, int32_t);
+void usage(void);
+void segment(int64_t, int64_t);
 
-enum
-{
+enum {
 	Recordsize = 32,
 };
 
-int	dsegonly;
-int	supressend;
-int	binary;
-int	halfswap;
-int	srec = 2;
-uint64_t	addr;
-uint64_t 	psize = 4096;
-Biobuf 	stdout;
-Fhdr	exech;
+int dsegonly;
+int supressend;
+int binary;
+int halfswap;
+int srec = 2;
+uint64_t addr;
+uint64_t psize = 4096;
+Biobuf stdout;
+Fhdr exech;
 Biobuf *bio;
 
 void
@@ -38,7 +37,8 @@ main(int argc, char **argv)
 	Dir *dir;
 	uint64_t totsz;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		dsegonly++;
 		break;
@@ -68,7 +68,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -101,13 +102,13 @@ main(int argc, char **argv)
 
 	totsz = exech.txtsz + exech.datsz + exech.bsssz;
 	fprint(2, "%s: %lud+%lud+%lud=%llud\n",
-		exech.name, exech.txtsz, exech.datsz, exech.bsssz, totsz);
+	       exech.name, exech.txtsz, exech.datsz, exech.bsssz, totsz);
 
 	if(dsegonly)
 		segment(exech.datoff, exech.datsz);
 	else {
 		segment(exech.txtoff, exech.txtsz);
-		addr = (addr+(psize-1))&~(psize-1);
+		addr = (addr + (psize - 1)) & ~(psize - 1);
 		segment(exech.datoff, exech.datsz);
 	}
 
@@ -133,7 +134,7 @@ segment(int64_t foff, int64_t len)
 {
 	int i;
 	int32_t l, n;
-	uint8_t t, buf[2*Recordsize];
+	uint8_t t, buf[2 * Recordsize];
 
 	Bseek(bio, foff, 0);
 	for(;;) {
@@ -154,8 +155,8 @@ segment(int64_t foff, int64_t len)
 			}
 			for(i = 0; i < n; i += 2) {
 				t = buf[i];
-				buf[i] = buf[i+1];
-				buf[i+1] = t;
+				buf[i] = buf[i + 1];
+				buf[i + 1] = t;
 			}
 		}
 		record(buf, l);
@@ -171,25 +172,25 @@ record(uint8_t *s, int32_t l)
 
 	switch(srec) {
 	case 1:
-		cksum = l+3;
-		Bprint(&stdout, "S1%.2lX%.4lluX", l+3, addr);
-		cksum += addr&0xff;
-		cksum += (addr>>8)&0xff;
+		cksum = l + 3;
+		Bprint(&stdout, "S1%.2lX%.4lluX", l + 3, addr);
+		cksum += addr & 0xff;
+		cksum += (addr >> 8) & 0xff;
 		break;
 	case 2:
-		cksum = l+4;
-		Bprint(&stdout, "S2%.2lX%.6lluX", l+4, addr);
-		cksum += addr&0xff;
-		cksum += (addr>>8)&0xff;
-		cksum += (addr>>16)&0xff;
+		cksum = l + 4;
+		Bprint(&stdout, "S2%.2lX%.6lluX", l + 4, addr);
+		cksum += addr & 0xff;
+		cksum += (addr >> 8) & 0xff;
+		cksum += (addr >> 16) & 0xff;
 		break;
 	case 3:
-		cksum = l+5;
-		Bprint(&stdout, "S3%.2lX%.8lluX", l+5, addr);
-		cksum += addr&0xff;
-		cksum += (addr>>8)&0xff;
-		cksum += (addr>>16)&0xff;
-		cksum += (addr>>24)&0xff;
+		cksum = l + 5;
+		Bprint(&stdout, "S3%.2lX%.8lluX", l + 5, addr);
+		cksum += addr & 0xff;
+		cksum += (addr >> 8) & 0xff;
+		cksum += (addr >> 16) & 0xff;
+		cksum += (addr >> 24) & 0xff;
 		break;
 	}
 
@@ -197,7 +198,7 @@ record(uint8_t *s, int32_t l)
 		cksum += *s;
 		Bprint(&stdout, "%.2X", *s++);
 	}
-	Bprint(&stdout, "%.2luX\n", (~cksum)&0xff);
+	Bprint(&stdout, "%.2luX\n", (~cksum) & 0xff);
 	addr += l;
 }
 

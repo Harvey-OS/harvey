@@ -10,15 +10,14 @@
 #include "cc.h"
 
 typedef struct Com Com;
-struct Com
-{
-	int	n;
-	Node	*t[500];
+struct Com {
+	int n;
+	Node *t[500];
 };
 
-int compar(Node*, int);
-static void comma(Node*);
-static Node*	commas(Com*, Node*);
+int compar(Node *, int);
+static void comma(Node *);
+static Node *commas(Com *, Node *);
 
 void
 complex(Node *n)
@@ -56,11 +55,10 @@ complex(Node *n)
  * evaluate types
  * evaluate lvalues (addable == 1)
  */
-enum
-{
-	ADDROF	= 1<<0,
-	CASTOF	= 1<<1,
-	ADDROP	= 1<<2,
+enum {
+	ADDROF = 1 << 0,
+	CASTOF = 1 << 1,
+	ADDROP = 1 << 2,
 };
 
 int
@@ -104,11 +102,10 @@ tcomo(Node *n, int f)
 		if(n->type == T)
 			break;
 		if(n->type->width == types[TLONG]->width) {
-			if(tcomo(l, ADDROF|CASTOF))
+			if(tcomo(l, ADDROF | CASTOF))
 				goto bad;
-		} else
-			if(tcom(l))
-				goto bad;
+		} else if(tcom(l))
+			goto bad;
 		if(isfunct(n))
 			break;
 		if(tcompat(n, l->type, n->type, tcast))
@@ -134,7 +131,7 @@ tcomo(Node *n, int f)
 		}
 		break;
 
-	case OASI:	/* same as as, but no test for const */
+	case OASI: /* same as as, but no test for const */
 		n->op = OAS;
 		o = tcom(l);
 		if(o | tcom(r))
@@ -294,11 +291,11 @@ tcomo(Node *n, int f)
 			goto bad;
 		n->type = l->type;
 		if(n->type->etype == TIND)
-		if(n->type->link->width < 1) {
-			snap(n->type->link);
-			if(n->type->link->width < 1)
-				diag(n, "inc/dec of a void pointer");
-		}
+			if(n->type->link->width < 1) {
+				snap(n->type->link);
+				if(n->type->link->width < 1)
+					diag(n, "inc/dec of a void pointer");
+			}
 		break;
 
 	case OEQ:
@@ -542,8 +539,7 @@ tcomo(Node *n, int f)
 		n->type = r->type;
 		break;
 
-
-	case OSIGN:	/* extension signof(type) returns a hash */
+	case OSIGN: /* extension signof(type) returns a hash */
 		if(l != Z) {
 			if(l->op != OSTRING && l->op != OLSTRING)
 				if(tcomo(l, 0))
@@ -759,8 +755,8 @@ tcoma(Node *l, Node *n, Type *t, int f)
 	int o;
 
 	if(t != T)
-	if(t->etype == TOLD || t->etype == TDOT)	/* .../old in prototype */
-		t = T;
+		if(t->etype == TOLD || t->etype == TDOT) /* .../old in prototype */
+			t = T;
 	if(n == Z) {
 		if(t != T && !sametype(t, types[TVOID])) {
 			diag(n, "not enough function arguments: %F", l);
@@ -789,7 +785,7 @@ tcoma(Node *l, Node *n, Type *t, int f)
 		typeext(t, n);
 		if(stcompat(nodproto, t, n->type, tasign)) {
 			diag(l, "argument prototype mismatch \"%T\" for \"%T\": %F",
-				n->type, t, l);
+			     n->type, t, l);
 			return 1;
 		}
 		switch(t->etype) {
@@ -804,21 +800,20 @@ tcoma(Node *l, Node *n, Type *t, int f)
 			break;
 		}
 	} else
-	switch(n->type->etype)
-	{
-	case TCHAR:
-	case TSHORT:
-		t = types[TINT];
-		break;
+		switch(n->type->etype) {
+		case TCHAR:
+		case TSHORT:
+			t = types[TINT];
+			break;
 
-	case TUCHAR:
-	case TUSHORT:
-		t = types[TUINT];
-		break;
+		case TUCHAR:
+		case TUSHORT:
+			t = types[TUINT];
+			break;
 
-	case TFLOAT:
-		t = types[TDOUBLE];
-	}
+		case TFLOAT:
+			t = types[TDOUBLE];
+		}
 	if(t != T && !sametype(t, n->type)) {
 		n1 = new1(OXXX, Z, Z);
 		*n1 = *n;
@@ -914,24 +909,24 @@ tlvalue(Node *n)
  *	a OP (b,c) => (b, a OP c)
  */
 
-static Node*
+static Node *
 comargs(Com *com, Node *n)
 {
-	if(n != Z && n->op == OLIST){
+	if(n != Z && n->op == OLIST) {
 		n->left = comargs(com, n->left);
 		n->right = comargs(com, n->right);
 	}
 	return commas(com, n);
 }
 
-static Node*
+static Node *
 commas(Com *com, Node *n)
 {
 	Node *t;
 
 	if(n == Z)
 		return n;
-	switch(n->op){
+	switch(n->op) {
 	case OREGISTER:
 	case OINDREG:
 	case OCONST:
@@ -982,13 +977,16 @@ comma(Node *n)
 
 	com.n = 0;
 	nn = commas(&com, n);
-	if(com.n > 0){
-if(debug['y'])print("n=%d\n", com.n);
-if(debug['y']) prtree(nn, "res");
+	if(com.n > 0) {
+		if(debug['y'])
+			print("n=%d\n", com.n);
+		if(debug['y'])
+			prtree(nn, "res");
 		if(nn != n)
 			*n = *nn;
-		while(com.n > 0){
-if(debug['y']) prtree(com.t[com.n-1], "tree");
+		while(com.n > 0) {
+			if(debug['y'])
+				prtree(com.t[com.n - 1], "tree");
 			nn = new1(OXXX, Z, Z);
 			*nn = *n;
 			n->op = OCOMMA;
@@ -997,8 +995,9 @@ if(debug['y']) prtree(com.t[com.n-1], "tree");
 			n->right = nn;
 			n->lineno = n->left->lineno;
 		}
-if(debug['y']) prtree(n, "final");
-	}else if(n != nn)
+		if(debug['y'])
+			prtree(n, "final");
+	} else if(n != nn)
 		fatal(n, "odd tree");
 }
 
@@ -1041,11 +1040,11 @@ loop:
 		ccom(l);
 		ccom(r);
 		if(n->op == OASLSHR || n->op == OASASHR || n->op == OASASHL)
-		if(r->op == OCONST) {
-			t = n->type->width * 8;	/* bits per byte */
-			if(r->vconst >= t || r->vconst < 0)
-				warn(n, "stupid shift: %lld", r->vconst);
-		}
+			if(r->op == OCONST) {
+				t = n->type->width * 8; /* bits per byte */
+				if(r->vconst >= t || r->vconst < 0)
+					warn(n, "stupid shift: %lld", r->vconst);
+			}
 		break;
 
 	case OCAST:
@@ -1131,7 +1130,7 @@ loop:
 			break;
 		}
 		if(r->op == OCONST) {
-			t = n->type->width * 8;	/* bits per byte */
+			t = n->type->width * 8; /* bits per byte */
 			if(r->vconst >= t || r->vconst <= -t)
 				warn(n, "stupid shift: %lld", r->vconst);
 		}
@@ -1282,37 +1281,36 @@ loop:
 			ccom(r);
 	common:
 		if(l != Z)
-		if(l->op != OCONST)
-			break;
+			if(l->op != OCONST)
+				break;
 		if(r != Z)
-		if(r->op != OCONST)
-			break;
+			if(r->op != OCONST)
+				break;
 		evconst(n);
 	}
 }
 
 /*	OEQ, ONE, OLE, OLS, OLT, OLO, OGE, OHS, OGT, OHI */
-static char *cmps[12] = 
-{
-	"==", "!=", "<=", "<=", "<", "<", ">=", ">=", ">", ">",
+static char *cmps[12] =
+    {
+     "==", "!=", "<=", "<=", "<", "<", ">=", ">=", ">", ">",
 };
 
 /* 128-bit numbers */
 typedef struct Big Big;
-struct Big
-{
+struct Big {
 	int64_t a;
 	uint64_t b;
 };
 static int
 cmp(Big x, Big y)
 {
-	if(x.a != y.a){
+	if(x.a != y.a) {
 		if(x.a < y.a)
 			return -1;
 		return 1;
 	}
-	if(x.b != y.b){
+	if(x.b != y.b) {
 		if(x.b < y.b)
 			return -1;
 		return 1;
@@ -1323,7 +1321,7 @@ static Big
 add(Big x, int y)
 {
 	uint64_t ob;
-	
+
 	ob = x.b;
 	x.b += y;
 	if(y > 0 && x.b < ob)
@@ -1331,7 +1329,7 @@ add(Big x, int y)
 	if(y < 0 && x.b > ob)
 		x.a--;
 	return x;
-} 
+}
 
 Big
 big(int64_t a, uint64_t b)
@@ -1361,11 +1359,11 @@ compar(Node *n, int reverse)
 	 * what it says (but 8c compiles it wrong anyway).
 	 */
 
-	if(reverse){
+	if(reverse) {
 		r = n->left;
 		l = n->right;
 		op = comrel[relindex(n->op)];
-	}else{
+	} else {
 		l = n->left;
 		r = n->right;
 		op = n->op;
@@ -1379,7 +1377,7 @@ compar(Node *n, int reverse)
 	if(l->op == OCONST)
 		return 0;
 	lt = l->type;
-	if(l->op == ONAME && l->sym->type){
+	if(l->op == ONAME && l->sym->type) {
 		lt = l->sym->type;
 		if(lt->etype == TARRAY)
 			lt = lt->link;
@@ -1388,7 +1386,7 @@ compar(Node *n, int reverse)
 		return 0;
 	if(lt->etype == TXXX || lt->etype > TUVLONG)
 		return 0;
-	
+
 	/*
 	 * Skip over the right casts to find the on-screen value.
 	 */
@@ -1402,22 +1400,22 @@ compar(Node *n, int reverse)
 
 	x.b = r->vconst;
 	x.a = 0;
-	if((rt->etype&1) && r->vconst < 0)	/* signed negative */
+	if((rt->etype & 1) && r->vconst < 0) /* signed negative */
 		x.a = ~0ULL;
 
-	if((lt->etype&1)==0){
+	if((lt->etype & 1) == 0) {
 		/* unsigned */
 		lo = big(0, 0);
 		if(lt->width == 8)
 			hi = big(0, ~0ULL);
 		else
-			hi = big(0, (1LL<<(l->type->width*8))-1);
-	}else{
-		lo = big(~0ULL, -(1LL<<(l->type->width*8-1)));
-		hi = big(0, (1LL<<(l->type->width*8-1))-1);
+			hi = big(0, (1LL << (l->type->width * 8)) - 1);
+	} else {
+		lo = big(~0ULL, -(1LL << (l->type->width * 8 - 1)));
+		hi = big(0, (1LL << (l->type->width * 8 - 1)) - 1);
 	}
 
-	switch(op){
+	switch(op) {
 	case OLT:
 	case OLO:
 	case OGE:
@@ -1452,7 +1450,7 @@ compar(Node *n, int reverse)
 	return 0;
 
 useless:
-	if((x.a==0 && x.b<=9) || (x.a==~0LL && x.b >= -9ULL))
+	if((x.a == 0 && x.b <= 9) || (x.a == ~0LL && x.b >= -9ULL))
 		snprint(xbuf, sizeof xbuf, "%lld", x.b);
 	else if(x.a == 0)
 		snprint(xbuf, sizeof xbuf, "%#llux", x.b);
@@ -1464,8 +1462,8 @@ useless:
 	else
 		snprint(cmpbuf, sizeof cmpbuf, "%T %s %s",
 			lt, cmps[relindex(n->op)], xbuf);
-if(debug['y']) prtree(n, "strange");
+	if(debug['y'])
+		prtree(n, "strange");
 	warn(n, "useless or misleading comparison: %s", cmpbuf);
 	return 0;
 }
-

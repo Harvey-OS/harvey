@@ -34,19 +34,19 @@ getsockname(int fd, void *addr, int *alen)
 	struct sockaddr_un *lunix;
 
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
 
-	switch(r->domain){
+	switch(r->domain) {
 	case PF_INET:
-		lip = (struct sockaddr_in*)addr;
+		lip = (struct sockaddr_in *)addr;
 		_sock_ingetaddr(r, lip, alen, "local");
 		break;
 	case PF_UNIX:
-		lunix = (struct sockaddr_un*)&r->addr;
-		i = &lunix->sun_path[strlen(lunix->sun_path)] - (char*)lunix;
+		lunix = (struct sockaddr_un *)&r->addr;
+		i = &lunix->sun_path[strlen(lunix->sun_path)] - (char *)lunix;
 		memmove(addr, lunix, i);
 		*alen = i;
 		break;

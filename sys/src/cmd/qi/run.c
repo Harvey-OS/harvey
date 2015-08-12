@@ -14,100 +14,99 @@
 #define Extern extern
 #include "power.h"
 
-
-void	lfs(ulong);
-void	lfd(ulong);
-void	stfs(ulong);
-void	stfd(ulong);
+void lfs(ulong);
+void lfd(ulong);
+void stfs(ulong);
+void stfd(ulong);
 /* indexed versions are in 31 */
 
-void	addic(ulong);
-void	addiccc(ulong);
-void	addi(ulong);
-void	addis(ulong);
-void	andicc(ulong);
-void	andiscc(ulong);
-void	bcx(ulong);
-void	bx(ulong);
-void	cmpi(ulong);
-void	cmpli(ulong);
-void	lbz(ulong);
-void	lha(ulong);
-void	lhz(ulong);
-void	lmw(ulong);
-void	lwz(ulong);
-void	mulli(ulong);
-void	ori(ulong);
-void	oris(ulong);
-void	rlwimi(ulong);
-void	rlwinm(ulong);
-void	rlwnm(ulong);
-void	sc(ulong);
-void	stb(ulong);
-void	sth(ulong);
-void	stmw(ulong);
-void	stw(ulong);
-void	subfic(ulong);
-void	twi(ulong);
-void	xori(ulong);
-void	xoris(ulong);
+void addic(ulong);
+void addiccc(ulong);
+void addi(ulong);
+void addis(ulong);
+void andicc(ulong);
+void andiscc(ulong);
+void bcx(ulong);
+void bx(ulong);
+void cmpi(ulong);
+void cmpli(ulong);
+void lbz(ulong);
+void lha(ulong);
+void lhz(ulong);
+void lmw(ulong);
+void lwz(ulong);
+void mulli(ulong);
+void ori(ulong);
+void oris(ulong);
+void rlwimi(ulong);
+void rlwinm(ulong);
+void rlwnm(ulong);
+void sc(ulong);
+void stb(ulong);
+void sth(ulong);
+void stmw(ulong);
+void stw(ulong);
+void subfic(ulong);
+void twi(ulong);
+void xori(ulong);
+void xoris(ulong);
 
-Inst	op0[] = {
-[3] {twi, "twi", Ibranch},
-[7] {mulli, "mulli", Iarith},
-[8] {subfic, "subfic", Iarith},
-[10] {cmpli, "cmpli", Iarith},
-[11] {cmpi, "cmpi", Iarith},
-[12] {addic, "addic", Iarith},
-[13] {addiccc, "addic.", Iarith},
-[14] {addi, "addi", Iarith},
-[15] {addis, "addis", Iarith},
-[16] {bcx, "bc⋯", Ibranch},
-[17] {sc, "sc", Isyscall},
-[18] {bx, "b⋯", Ibranch},
-/* group 19; branch unit */
-[20] {rlwimi, "rlwimi", Ilog},
-[21] {rlwinm, "rlwinm", Ilog},
-[23] {rlwnm, "rlwnm", Ilog},
-[24] {ori, "ori", Ilog},
-[25] {oris, "oris", Ilog},
-[26] {xori, "xori", Ilog},
-[27] {xoris, "xoris", Ilog},
-[28] {andicc, "andi.", Ilog},
-[29] {andiscc, "andis.", Ilog},
-/* group 31; integer & misc. */
-[32] {lwz, "lwz", Iload},
-[33] {lwz, "lwzu", Iload},
-[34] {lbz, "lbz", Iload},
-[35] {lbz, "lbzu", Iload},
-[36] {stw, "stw", Istore},
-[37] {stw, "stwu", Istore},
-[38] {stb, "stb", Istore},
-[39] {stb, "stbu", Istore},
-[40] {lhz, "lhz", Iload},
-[41] {lhz, "lhzu", Iload},
-[42] {lha, "lha", Iload},
-[43] {lha, "lhau", Iload},
-[44] {sth, "sth", Istore},
-[45] {sth, "sthu", Istore},
-[46] {lmw, "lmw", Iload},
-[47] {stmw, "stmw", Istore},
-[48] {lfs, "lfs", Iload},
-[49] {lfs, "lfsu", Iload},
-[50] {lfd, "lfd", Iload},
-[51] {lfd, "lfdu", Iload},
-[52] {stfs, "stfs", Istore},
-[53] {stfs, "stfsu", Istore},
-[54] {stfd, "stfd", Istore},
-[55] {stfd, "stfdu", Istore},
-/* group 59; single precision floating point */
-/* group 63; double precision floating point; fpscr */
+Inst op0[] = {
+	[3]{twi, "twi", Ibranch},
+	[7]{mulli, "mulli", Iarith},
+	[8]{subfic, "subfic", Iarith},
+	[10]{cmpli, "cmpli", Iarith},
+	[11]{cmpi, "cmpi", Iarith},
+	[12]{addic, "addic", Iarith},
+	[13]{addiccc, "addic.", Iarith},
+	[14]{addi, "addi", Iarith},
+	[15]{addis, "addis", Iarith},
+	[16]{bcx, "bc⋯", Ibranch},
+	[17]{sc, "sc", Isyscall},
+	[18]{bx, "b⋯", Ibranch},
+	/* group 19; branch unit */
+	[20]{rlwimi, "rlwimi", Ilog},
+	[21]{rlwinm, "rlwinm", Ilog},
+	[23]{rlwnm, "rlwnm", Ilog},
+	[24]{ori, "ori", Ilog},
+	[25]{oris, "oris", Ilog},
+	[26]{xori, "xori", Ilog},
+	[27]{xoris, "xoris", Ilog},
+	[28]{andicc, "andi.", Ilog},
+	[29]{andiscc, "andis.", Ilog},
+	/* group 31; integer & misc. */
+	[32]{lwz, "lwz", Iload},
+	[33]{lwz, "lwzu", Iload},
+	[34]{lbz, "lbz", Iload},
+	[35]{lbz, "lbzu", Iload},
+	[36]{stw, "stw", Istore},
+	[37]{stw, "stwu", Istore},
+	[38]{stb, "stb", Istore},
+	[39]{stb, "stbu", Istore},
+	[40]{lhz, "lhz", Iload},
+	[41]{lhz, "lhzu", Iload},
+	[42]{lha, "lha", Iload},
+	[43]{lha, "lhau", Iload},
+	[44]{sth, "sth", Istore},
+	[45]{sth, "sthu", Istore},
+	[46]{lmw, "lmw", Iload},
+	[47]{stmw, "stmw", Istore},
+	[48]{lfs, "lfs", Iload},
+	[49]{lfs, "lfsu", Iload},
+	[50]{lfd, "lfd", Iload},
+	[51]{lfd, "lfdu", Iload},
+	[52]{stfs, "stfs", Istore},
+	[53]{stfs, "stfsu", Istore},
+	[54]{stfd, "stfd", Istore},
+	[55]{stfd, "stfdu", Istore},
+	/* group 59; single precision floating point */
+	/* group 63; double precision floating point; fpscr */
 	{0, 0, 0},
 };
 
-Inset	ops0 = {op0, nelem(op0)-1};
+Inset ops0 = {op0, nelem(op0) - 1};
 
-static	char	oemflag[] = {
+static char oemflag[] = {
 	[104] 1,
 	[10] 1,
 	[136] 1,
@@ -124,7 +123,6 @@ static	char	oemflag[] = {
 	[8] 1,
 };
 
-
 void
 run(void)
 {
@@ -133,9 +131,9 @@ run(void)
 	do {
 		reg.ir = ifetch(reg.pc);
 		ci = 0;
-		switch(reg.ir>>26) {
+		switch(reg.ir >> 26) {
 		default:
-			xo = reg.ir>>26;
+			xo = reg.ir >> 26;
 			if(xo >= nelem(op0))
 				break;
 			ci = &op0[xo];
@@ -149,7 +147,7 @@ run(void)
 		case 31:
 			xo = getxo(reg.ir);
 			f = xo & ~getxo(OE);
-			if(reg.ir&OE && f < sizeof(oemflag) && oemflag[f])
+			if(reg.ir & OE && f < sizeof(oemflag) && oemflag[f])
 				xo = f;
 			if(xo >= ops31.nel)
 				break;
@@ -175,7 +173,7 @@ run(void)
 			ci = &ops63b.tab[xo];
 			break;
 		}
-		if(ci && ci->func){
+		if(ci && ci->func) {
 			ci->count++;
 			(*ci->func)(reg.ir);
 		} else {
@@ -187,7 +185,7 @@ run(void)
 		reg.pc += 4;
 		if(bplist)
 			brkchk(reg.pc, Instruction);
-	}while(--count);
+	} while(--count);
 }
 
 void
@@ -198,9 +196,9 @@ ilock(int)
 void
 undef(uint32_t ir)
 {
-/*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7, (ir>>19)&0x3f); */
+	/*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7, (ir>>19)&0x3f); */
 	Bprint(bioout, "illegal_instruction IR #%.8lux (op=%ld/%ld, pc=#%.8lux)\n", ir, getop(ir), getxo(ir), reg.pc);
-	if(ci && ci->name && ci->func==0)
+	if(ci && ci->name && ci->func == 0)
 		Bprint(bioout, "(%s not yet implemented)\n", ci->name);
 	longjmp(errjmp, 0);
 }
@@ -208,7 +206,7 @@ undef(uint32_t ir)
 void
 unimp(uint32_t ir)
 {
-/*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7, (ir>>19)&0x3f); */
-	Bprint(bioout, "illegal_instruction IR #%.8lux (op=%ld/%ld, pc=#%.8lux) %s not in MPC601\n", ir, getop(ir), getxo(ir), reg.pc, ci->name?ci->name: "-");
+	/*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7, (ir>>19)&0x3f); */
+	Bprint(bioout, "illegal_instruction IR #%.8lux (op=%ld/%ld, pc=#%.8lux) %s not in MPC601\n", ir, getop(ir), getxo(ir), reg.pc, ci->name ? ci->name : "-");
 	longjmp(errjmp, 0);
 }

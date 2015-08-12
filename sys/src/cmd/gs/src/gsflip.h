@@ -27,7 +27,7 @@
 /* Interface to routines for "flipping" image data */
 
 #ifndef gsflip_INCLUDED
-#  define gsflip_INCLUDED
+#define gsflip_INCLUDED
 
 /*
  * Convert planar (MultipleDataSource) input to chunky format.  The input
@@ -38,7 +38,7 @@
  * bits_per_sample must be 1, 2, 4, 8, or 12.  Returns -1 if num_planes or
  * bits_per_sample is invalid, otherwise 0.
  */
-extern int image_flip_planes(byte * buffer, const byte ** planes,
+extern int image_flip_planes(byte *buffer, const byte **planes,
 			     int offset, int nbytes,
 			     int num_planes, int bits_per_sample);
 

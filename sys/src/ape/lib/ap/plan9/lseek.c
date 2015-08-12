@@ -22,7 +22,7 @@ lseek(int d, off_t offset, int whence)
 	int flags;
 
 	flags = _fdinfo[d].flags;
-	if(flags&(FD_BUFFERED|FD_BUFFEREDX|FD_ISTTY)) {
+	if(flags & (FD_BUFFERED | FD_BUFFEREDX | FD_ISTTY)) {
 		errno = ESPIPE;
 		return -1;
 	}

@@ -18,7 +18,7 @@ static void
 pie(IEntry *ie)
 {
 	Bprint(&bout, "%22lld %V %3d %5d\n",
-		ie->ia.addr, ie->score, ie->ia.type, ie->ia.size);
+	       ie->ia.addr, ie->score, ie->ia.type, ie->ia.size);
 }
 
 void
@@ -37,15 +37,14 @@ shoulddump(char *name, int argc, char **argv)
 
 	if(argc == 0)
 		return 1;
-	for(i=0; i<argc; i++)
+	for(i = 0; i < argc; i++)
 		if(strcmp(name, argv[i]) == 0)
 			return 1;
 	return 0;
 }
 
-enum
-{
-	ClumpChunks = 32*1024,
+enum {
+	ClumpChunks = 32 * 1024,
 };
 
 void
@@ -59,16 +58,16 @@ dumparena(Arena *arena, uint64_t a)
 	cis = MKN(ClumpInfo, ClumpChunks);
 	nskip = 0;
 	memset(&ie, 0, sizeof(IEntry));
-	for(clump = 0; clump < arena->memstats.clumps; clump += n){
+	for(clump = 0; clump < arena->memstats.clumps; clump += n) {
 		n = ClumpChunks;
 		if(n > arena->memstats.clumps - clump)
 			n = arena->memstats.clumps - clump;
-		if(readclumpinfos(arena, clump, cis, n) != n){
+		if(readclumpinfos(arena, clump, cis, n) != n) {
 			fprint(2, "arena directory read failed: %r\n");
 			break;
 		}
 
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			ci = &cis[i];
 			ie.ia.type = ci->type;
 			ie.ia.size = ci->uncsize;
@@ -90,14 +89,16 @@ threadmain(int argc, char *argv[])
 	u32int bcmem;
 
 	bcmem = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'B':
 		bcmem = unittoull(ARGF());
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -109,13 +110,14 @@ threadmain(int argc, char *argv[])
 
 	if(bcmem < maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16))
 		bcmem = maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16);
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(0)
+		fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
 	initdcache(bcmem);
 
 	Binit(&bout, 1, OWRITE);
 	ix = mainindex;
-	for(i=0; i<ix->narenas; i++)
-		if(shoulddump(ix->arenas[i]->name, argc-1, argv+1))
+	for(i = 0; i < ix->narenas; i++)
+		if(shoulddump(ix->arenas[i]->name, argc - 1, argv + 1))
 			dumparena(ix->arenas[i], ix->amap[i].start);
 	Bterm(&bout);
 	threadexitsall(0);

@@ -109,7 +109,7 @@ delbpt(char *addr)
 			free(b);
 			return;
 		}
-		l = &b->next;	
+		l = &b->next;
 	}
 
 	Bprint(bioout, "no breakpoint\n");
@@ -121,7 +121,7 @@ brkchk(uint32_t addr, int type)
 	Breakpoint *b;
 
 	for(b = bplist; b; b = b->next) {
-		if(b->addr == addr && (b->type&type)) {
+		if(b->addr == addr && (b->type & type)) {
 			if(b->type == Equal && getmem_4(addr) == b->count) {
 				count = 1;
 				atbpt = 1;
@@ -134,5 +134,5 @@ brkchk(uint32_t addr, int type)
 				return;
 			}
 		}
-	}	
+	}
 }

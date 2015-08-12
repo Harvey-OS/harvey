@@ -7,18 +7,16 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-typedef struct Event
-{
+typedef struct Event {
 	int pid;
 	Job *job;
 } Event;
 static Event *events;
 static int nevents, nrunning, nproclimit;
 
-typedef struct Process
-{
+typedef struct Process {
 	int pid;
 	int status;
 	struct Process *b, *f;
@@ -34,11 +32,11 @@ run(Job *j)
 {
 	Job *jj;
 
-	if(jobs){
+	if(jobs) {
 		for(jj = jobs; jj->next; jj = jj->next)
 			;
 		jj->next = j;
-	} else 
+	} else
 		jobs = j;
 	j->next = 0;
 	/* this code also in waitup after parse redirect */
@@ -56,7 +54,7 @@ sched(void)
 	Node *n;
 	Envy *e;
 
-	if(jobs == 0){
+	if(jobs == 0) {
 		usage();
 		return;
 	}
@@ -69,13 +67,13 @@ sched(void)
 	buf = newbuf();
 	e = buildenv(j, slot);
 	shprint(j->r->recipe, e, buf);
-	if(!tflag && (nflag || !(j->r->attr&QUIET)))
+	if(!tflag && (nflag || !(j->r->attr & QUIET)))
 		Bwrite(&bout, buf->start, (int32_t)strlen(buf->start));
 	freebuf(buf);
-	if(nflag||tflag){
-		for(n = j->n; n; n = n->next){
-			if(tflag){
-				if(!(n->flags&VIRTUAL))
+	if(nflag || tflag) {
+		for(n = j->n; n; n = n->next) {
+			if(tflag) {
+				if(!(n->flags & VIRTUAL))
 					touch(n->name);
 				else if(explain)
 					Bprint(&bout, "no touch of virtual '%s'\n", n->name);
@@ -85,9 +83,9 @@ sched(void)
 		}
 	} else {
 		if(DEBUG(D_EXEC))
-			fprint(1, "recipe='%s'\n", j->r->recipe);	/**/
+			fprint(1, "recipe='%s'\n", j->r->recipe); /**/
 		Bflush(&bout);
-		if(j->r->attr&NOMINUSE)
+		if(j->r->attr & NOMINUSE)
 			flags = 0;
 		else
 			flags = "-e";
@@ -119,16 +117,16 @@ waitup(int echildok, int *retstatus)
 	/* first check against the proces slist */
 	if(retstatus)
 		for(p = phead; p; p = p->f)
-			if(p->pid == *retstatus){
+			if(p->pid == *retstatus) {
 				*retstatus = p->status;
 				pdelete(p);
-				return(-1);
+				return (-1);
 			}
-again:		/* rogue processes */
+again: /* rogue processes */
 	pid = waitfor(buf);
-	if(pid == -1){
+	if(pid == -1) {
 		if(echildok > 0)
-			return(1);
+			return (1);
 		else {
 			fprint(2, "mk: (waitup %d) ", echildok);
 			perror("mk wait");
@@ -137,22 +135,22 @@ again:		/* rogue processes */
 	}
 	if(DEBUG(D_EXEC))
 		fprint(1, "waitup got pid=%d, status='%s'\n", pid, buf);
-	if(retstatus && pid == *retstatus){
-		*retstatus = buf[0]? 1:0;
-		return(-1);
+	if(retstatus && pid == *retstatus) {
+		*retstatus = buf[0] ? 1 : 0;
+		return (-1);
 	}
 	slot = pidslot(pid);
-	if(slot < 0){
+	if(slot < 0) {
 		if(DEBUG(D_EXEC))
 			fprint(2, "mk: wait returned unexpected process %d\n", pid);
-		pnew(pid, buf[0]? 1:0);
+		pnew(pid, buf[0] ? 1 : 0);
 		goto again;
 	}
 	j = events[slot].job;
 	usage();
 	nrunning--;
 	events[slot].pid = -1;
-	if(buf[0]){
+	if(buf[0]) {
 		e = buildenv(j, slot);
 		bp = newbuf();
 		shprint(j->r->recipe, e, bp);
@@ -160,14 +158,14 @@ again:		/* rogue processes */
 		fprint(2, "mk: %s: exit status=%s", bp->start, buf);
 		freebuf(bp);
 		for(n = j->n, done = 0; n; n = n->next)
-			if(n->flags&DELETE){
+			if(n->flags & DELETE) {
 				if(done++ == 0)
 					fprint(2, ", deleting");
 				fprint(2, " '%s'", n->name);
 				delete(n->name);
 			}
 		fprint(2, "\n");
-		if(kflag){
+		if(kflag) {
 			runerrs++;
 			uarg = 1;
 		} else {
@@ -175,14 +173,14 @@ again:		/* rogue processes */
 			Exit();
 		}
 	}
-	for(w = j->t; w; w = w->next){
+	for(w = j->t; w; w = w->next) {
 		if((s = symlook(w->s, S_NODE, 0)) == 0)
-			continue;	/* not interested in this node */
+			continue; /* not interested in this node */
 		update(uarg, s->u.ptr);
 	}
 	if(nrunning < nproclimit)
 		sched();
-	return(0);
+	return (0);
 }
 
 void
@@ -193,19 +191,19 @@ nproc(void)
 
 	if(sym = symlook("NPROC", S_VAR, 0)) {
 		w = sym->u.ptr;
-		if (w && w->s && w->s[0])
+		if(w && w->s && w->s[0])
 			nproclimit = atoi(w->s);
 	}
 	if(nproclimit < 1)
 		nproclimit = 1;
 	if(DEBUG(D_EXEC))
 		fprint(1, "nprocs = %d\n", nproclimit);
-	if(nproclimit > nevents){
+	if(nproclimit > nevents) {
 		if(nevents)
 			events = (Event *)Realloc((char *)events,
-						  nproclimit*sizeof(Event));
+						  nproclimit * sizeof(Event));
 		else
-			events = (Event *)Malloc(nproclimit*sizeof(Event));
+			events = (Event *)Malloc(nproclimit * sizeof(Event));
 		while(nevents < nproclimit)
 			events[nevents++].pid = 0;
 	}
@@ -217,9 +215,10 @@ nextslot(void)
 	int i;
 
 	for(i = 0; i < nproclimit; i++)
-		if(events[i].pid <= 0) return i;
+		if(events[i].pid <= 0)
+			return i;
 	assert(/*out of slots!!*/ 0);
-	return 0;	/* cyntax */
+	return 0; /* cyntax */
 }
 
 int
@@ -228,19 +227,19 @@ pidslot(int pid)
 	int i;
 
 	for(i = 0; i < nevents; i++)
-		if(events[i].pid == pid) return(i);
+		if(events[i].pid == pid)
+			return (i);
 	if(DEBUG(D_EXEC))
 		fprint(2, "mk: wait returned unexpected process %d\n", pid);
-	return(-1);
+	return (-1);
 }
-
 
 static void
 pnew(int pid, int status)
 {
 	Process *p;
 
-	if(pfree){
+	if(pfree) {
 		p = pfree;
 		pfree = p->f;
 	} else
@@ -272,8 +271,8 @@ killchildren(char *msg)
 {
 	Process *p;
 
-	kflag = 1;	/* to make sure waitup doesn't exit */
-	jobs = 0;	/* make sure no more get scheduled */
+	kflag = 1; /* to make sure waitup doesn't exit */
+	jobs = 0;  /* make sure no more get scheduled */
 	for(p = phead; p; p = p->f)
 		expunge(p->pid, msg);
 	while(waitup(1, (int *)0) == 0)

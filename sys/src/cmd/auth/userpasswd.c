@@ -23,16 +23,18 @@ main(int argc, char **argv)
 {
 	UserPasswd *up;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
 	up = auth_getuserpasswd(auth_getkey, "proto=pass %s", argv[0]);
-	if(up == nil)	/* bug in factotum, fixed but need to reboot servers -rsc, 2/10/2002 */
+	if(up == nil) /* bug in factotum, fixed but need to reboot servers -rsc, 2/10/2002 */
 		up = auth_getuserpasswd(nil, "proto=pass %s", argv[0]);
 	if(up == nil)
 		sysfatal("getuserpasswd: %r");

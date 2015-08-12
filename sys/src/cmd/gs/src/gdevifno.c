@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #undef printf
 
-#define nil ((void*)0)
+#define nil ((void *)0)
 enum {
 	ERROR = -2
 };
@@ -50,24 +50,37 @@ struct Rectangle {
 	Point min;
 	Point max;
 };
-private Point ZP = { 0, 0 };
+private
+Point ZP = {0, 0};
 
-private WImage* initwriteimage(FILE *f, Rectangle r, int ldepth);
-private int writeimageblock(WImage *w, uchar *data, int ndata);
-private int bytesperline(Rectangle, int);
-private int rgb2cmap(int, int, int);
-private long cmap2rgb(int);
+private
+WImage *initwriteimage(FILE *f, Rectangle r, int ldepth);
+private
+int writeimageblock(WImage *w, uchar *data, int ndata);
+private
+int bytesperline(Rectangle, int);
+private
+int rgb2cmap(int, int, int);
+private
+long cmap2rgb(int);
 
-#define X_DPI	100
-#define Y_DPI	100
+#define X_DPI 100
+#define Y_DPI 100
 
-private dev_proc_map_rgb_color(inferno_rgb2cmap);
-private dev_proc_map_color_rgb(inferno_cmap2rgb);
-private dev_proc_open_device(inferno_open);
-private dev_proc_close_device(inferno_close);
-private dev_proc_print_page(inferno_print_page);
-private dev_proc_put_params(inferno_put_params);
-private dev_proc_get_params(inferno_get_params);
+private
+dev_proc_map_rgb_color(inferno_rgb2cmap);
+private
+dev_proc_map_color_rgb(inferno_cmap2rgb);
+private
+dev_proc_open_device(inferno_open);
+private
+dev_proc_close_device(inferno_close);
+private
+dev_proc_print_page(inferno_print_page);
+private
+dev_proc_put_params(inferno_put_params);
+private
+dev_proc_get_params(inferno_get_params);
 
 typedef struct inferno_device_s {
 	gx_device_common;
@@ -81,44 +94,47 @@ typedef struct inferno_device_s {
 
 enum {
 	Nbits = 8,
-	Bitmask = (1<<Nbits)-1,
+	Bitmask = (1 << Nbits) - 1,
 };
 
-private const gx_device_procs inferno_procs =
-	prn_color_params_procs(inferno_open, gdev_prn_output_page, gdev_prn_close,
-		inferno_rgb2cmap, inferno_cmap2rgb,
-		gdev_prn_get_params, gdev_prn_put_params);
+private
+const gx_device_procs inferno_procs =
+    prn_color_params_procs(inferno_open, gdev_prn_output_page, gdev_prn_close,
+			   inferno_rgb2cmap, inferno_cmap2rgb,
+			   gdev_prn_get_params, gdev_prn_put_params);
 /*
 		inferno_get_params, inferno_put_params);
 */
 
-
 inferno_device far_data gs_inferno_device =
-{ prn_device_body(inferno_device, inferno_procs, "inferno",
-	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
-	X_DPI, Y_DPI,
-	0,0,0,0,	/* margins */
-	3,		/* 3 = RGB, 1 = gray, 4 = CMYK */
-	Nbits*3,		/* # of bits per pixel */
-	(1<<Nbits)-1,		/* # of distinct gray levels. */
-	(1<<Nbits)-1,		/* # of distinct color levels. */
-	1<<Nbits,		/* dither gray ramp size.  used in alpha? */
-	1<<Nbits,    	/* dither color ramp size.  used in alpha? */
-	inferno_print_page),
-	1,
+    {
+     prn_device_body(inferno_device, inferno_procs, "inferno",
+		     DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
+		     X_DPI, Y_DPI,
+		     0, 0, 0, 0,       /* margins */
+		     3,		       /* 3 = RGB, 1 = gray, 4 = CMYK */
+		     Nbits * 3,	/* # of bits per pixel */
+		     (1 << Nbits) - 1, /* # of distinct gray levels. */
+		     (1 << Nbits) - 1, /* # of distinct color levels. */
+		     1 << Nbits,       /* dither gray ramp size.  used in alpha? */
+		     1 << Nbits,       /* dither color ramp size.  used in alpha? */
+		     inferno_print_page),
+     1,
 };
 
 /*
  * ghostscript asks us how to convert between
  * rgb and color map entries
  */
-private gx_color_index 
-inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
+private
+gx_color_index
+inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3])
+{
 	int shift;
 	inferno_device *idev;
 	uint32_t red, green, blue;
 
-	idev = (inferno_device*) dev;
+	idev = (inferno_device *)dev;
 
 	shift = gx_color_value_bits - Nbits;
 	red = rgb[0] >> shift;
@@ -137,7 +153,7 @@ inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
 	if(red == green && green == blue) {
 		if(red == 0 || red == Bitmask)
 			;
-		else if(red == Bitmask/3 || red == 2*Bitmask/3) {
+		else if(red == Bitmask / 3 || red == 2 * Bitmask / 3) {
 			if(idev->ldepth < 1)
 				idev->ldepth = 1;
 		} else {
@@ -148,31 +164,34 @@ inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
 		idev->ldepth = 3;
 
 	idev->cmapcall = 1;
-	return (blue << (2*Nbits)) | (green << Nbits) | red;
+	return (blue << (2 * Nbits)) | (green << Nbits) | red;
 }
 
-private int 
+private
+int
 inferno_cmap2rgb(gx_device *dev, gx_color_index color,
-  gx_color_value rgb[3]) {
+		 gx_color_value rgb[3])
+{
 	int shift, i;
 	inferno_device *idev;
 
 	if((ulong)color > 0xFFFFFF)
 		return_error(gs_error_rangecheck);
 
-	idev = (inferno_device*) dev;
+	idev = (inferno_device *)dev;
 	shift = gx_color_value_bits - Nbits;
 
-	rgb[2] = ((color >> (2*Nbits)) & Bitmask) << shift;
+	rgb[2] = ((color >> (2 * Nbits)) & Bitmask) << shift;
 	rgb[1] = ((color >> Nbits) & Bitmask) << shift;
 	rgb[0] = (color & Bitmask) << shift;
 
 	return 0;
 }
 
-private int
+private
+int
 inferno_put_param_int(gs_param_list *plist, gs_param_name pname, int *pv,
-	int minval, int maxval, int ecode)
+		      int minval, int maxval, int ecode)
 {
 	int code, value;
 	switch(code = param_read_int(plist, pname, &value)) {
@@ -190,24 +209,25 @@ inferno_put_param_int(gs_param_list *plist, gs_param_name pname, int *pv,
 	}
 }
 
-private int
+private
+int
 inferno_get_params(gx_device *pdev, gs_param_list *plist)
 {
 	int code;
 	inferno_device *idev;
 
-	idev = (inferno_device*) pdev;
-//	printf("inferno_get_params dither %d\n", idev->dither);
+	idev = (inferno_device *)pdev;
+	//	printf("inferno_get_params dither %d\n", idev->dither);
 
-	if((code = gdev_prn_get_params(pdev, plist)) < 0
-	 || (code = param_write_int(plist, "Dither", &idev->dither)) < 0)
+	if((code = gdev_prn_get_params(pdev, plist)) < 0 || (code = param_write_int(plist, "Dither", &idev->dither)) < 0)
 		return code;
 	printf("getparams: dither=%d\n", idev->dither);
 	return code;
 }
 
-private int
-inferno_put_params(gx_device * pdev, gs_param_list * plist)
+private
+int
+inferno_put_params(gx_device *pdev, gs_param_list *plist)
 {
 	int code;
 	int dither;
@@ -215,7 +235,7 @@ inferno_put_params(gx_device * pdev, gs_param_list * plist)
 
 	printf("inferno_put_params\n");
 
-	idev = (inferno_device*)pdev;
+	idev = (inferno_device *)pdev;
 	dither = idev->dither;
 
 	code = inferno_put_param_int(plist, "Dither", &dither, 0, 1, 0);
@@ -232,39 +252,43 @@ inferno_put_params(gx_device * pdev, gs_param_list * plist)
 /* The following constants and tables define the mapping from fine-grained RGB
    triplets to 8-bit values based on the standard Plan 9 color map.
 */
-#define Rlevs	16		/* number of levels to cut red value into */
-#define Glevs	16
-#define Blevs	16
-#define Mlevs	16
-#define Rfactor 1		/* multiple of red level in p9color[] index */
+#define Rlevs 16 /* number of levels to cut red value into */
+#define Glevs 16
+#define Blevs 16
+#define Mlevs 16
+#define Rfactor 1 /* multiple of red level in p9color[] index */
 #define Gfactor Rlevs
-#define Bfactor	(Rlevs*Glevs)
-			
-uint32_t p9color[Rlevs*Glevs*Blevs];	/* index blue most sig, red least sig */
+#define Bfactor (Rlevs * Glevs)
 
-void init_p9color(void)		/* init at run time since p9color[] is so big */
+uint32_t p9color[Rlevs * Glevs * Blevs]; /* index blue most sig, red least sig */
+
+void init_p9color(void) /* init at run time since p9color[] is so big */
 {
 	int r, g, b, o;
-	uint32_t* cur = p9color;
-	for (b=0; b<16; b++) {
-	    for (g=0; g<16; g++) {
-		int m0 = (b>g) ? b : g;
-		for (r=0; r<16; r++) {
-		    int V, M, rM, gM, bM, m;
-		    int m1 = (r>m0) ? r : m0;
-		    V=m1&3; M=(m1-V)<<1;
-		    if (m1==0) m1=1;
-		    m = m1 << 3;
-		    rM=r*M; gM=g*M; bM=b*M;
-		    *cur = 0;
-		    for (o=7*m1; o>0; o-=2*m1) {
-			int rr=(rM+o)/m, gg=(gM+o)/m, bb=(bM+o)/m;
-			int ij = (rr<<6) + (V<<4) + ((V-rr+(gg<<2)+bb)&15);
-			*cur = (*cur << 8) + 255-ij;
-		    }
-		    cur++;
+	uint32_t *cur = p9color;
+	for(b = 0; b < 16; b++) {
+		for(g = 0; g < 16; g++) {
+			int m0 = (b > g) ? b : g;
+			for(r = 0; r < 16; r++) {
+				int V, M, rM, gM, bM, m;
+				int m1 = (r > m0) ? r : m0;
+				V = m1 & 3;
+				M = (m1 - V) << 1;
+				if(m1 == 0)
+					m1 = 1;
+				m = m1 << 3;
+				rM = r * M;
+				gM = g * M;
+				bM = b * M;
+				*cur = 0;
+				for(o = 7 * m1; o > 0; o -= 2 * m1) {
+					int rr = (rM + o) / m, gg = (gM + o) / m, bb = (bM + o) / m;
+					int ij = (rr << 6) + (V << 4) + ((V - rr + (gg << 2) + bb) & 15);
+					*cur = (*cur << 8) + 255 - ij;
+				}
+				cur++;
+			}
 		}
-	    }
 	}
 }
 
@@ -272,18 +296,19 @@ void init_p9color(void)		/* init at run time since p9color[] is so big */
  * inferno_open() is supposed to initialize the device.
  * there's not much to do.
  */
-private int
+private
+int
 inferno_open(gx_device *dev)
 {
 	int code;
 	inferno_device *idev;
 
-	idev = (inferno_device*) dev;
+	idev = (inferno_device *)dev;
 	idev->cmapcall = 0;
 	idev->ldepth = 0;
 
-//	printf("inferno_open gs_inferno_device.dither = %d idev->dither = %d\n",
-//		gs_inferno_device.dither, idev->dither);
+	//	printf("inferno_open gs_inferno_device.dither = %d idev->dither = %d\n",
+	//		gs_inferno_device.dither, idev->dither);
 	init_p9color();
 
 	return gdev_prn_open(dev);
@@ -294,17 +319,18 @@ inferno_open(gx_device *dev)
  * (actually once for each copy of each page, but we won't
  * worry about that).
  */
-private int
+private
+int
 inferno_print_page(gx_device_printer *pdev, FILE *f)
 {
-	uchar *buf;	/* [8192*3*8/Nbits] BUG: malloc this */
+	uchar *buf; /* [8192*3*8/Nbits] BUG: malloc this */
 	uchar *p;
 	WImage *w;
 	int bpl, y;
 	int x, xmod;
 	int ldepth;
-	int ppb[] = {8, 4, 2, 1};	/* pixels per byte */
-	int bpp[] = {1, 2, 4, 8};	/* bits per pixel */
+	int ppb[] = {8, 4, 2, 1}; /* pixels per byte */
+	int bpp[] = {1, 2, 4, 8}; /* bits per pixel */
 	int gsbpl;
 	int dither;
 	ulong u;
@@ -321,7 +347,7 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 		return_error(gs_error_Fatal);
 	}
 
-	idev = (inferno_device *) pdev;
+	idev = (inferno_device *)pdev;
 	if(idev->cmapcall) {
 		idev->lastldepth = idev->ldepth;
 		idev->ldepth = 0;
@@ -334,7 +360,7 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 		if(ldepth < 2)
 			ldepth = 2;
 
-//	printf("inferno_print_page dither %d ldepth %d idither %d\n", dither, ldepth, gs_inferno_device.dither);
+	//	printf("inferno_print_page dither %d ldepth %d idither %d\n", dither, ldepth, gs_inferno_device.dither);
 	rect.min = ZP;
 	rect.max.x = pdev->width;
 	rect.max.y = pdev->height;
@@ -349,40 +375,40 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 	 * i wonder if it is faster to put the switch around the for loops
 	 * to save all the ldepth lookups.
 	 */
-	for(y=0; y<pdev->height; y++) {
+	for(y = 0; y < pdev->height; y++) {
 		gdev_prn_get_bits(pdev, y, buf, &p);
-		for(x=0; x<pdev->width; x++) {
-			b = p[3*x];
-			g = p[3*x+1];
-			r = p[3*x+2];
-			us = ((b>>4) << 8) | ((g>>4) << 4) | (r>>4);
+		for(x = 0; x < pdev->width; x++) {
+			b = p[3 * x];
+			g = p[3 * x + 1];
+			r = p[3 * x + 2];
+			us = ((b >> 4) << 8) | ((g >> 4) << 4) | (r >> 4);
 			switch(ldepth) {
 			case 3:
-				if(1 || dither){
+				if(1 || dither) {
 					u = p9color[us];
 					/* the ulong in p9color is a 2x2 matrix.  pull the entry
 					 * u[x%2][y%2], more or less.
 					 */
-					p[x] = u >> (8*((y%2)+2*(x%2)));
+					p[x] = u >> (8 * ((y % 2) + 2 * (x % 2)));
 				} else {
 					p[x] = rgb2cmap(r, g, b);
 				}
 				break;
 			case 2:
 				us = ~us;
-				if((x%2) == 0)
-					p[x/2] = us & 0xf;
+				if((x % 2) == 0)
+					p[x / 2] = us & 0xf;
 				else
-					p[x/2] = (p[x/2]<<4)|(us&0xf);
+					p[x / 2] = (p[x / 2] << 4) | (us & 0xf);
 				break;
 			case 1:
 				return_error(gs_error_Fatal);
 			case 0:
 				us = ~us;
-				if((x%8) == 0)
-					p[x/8] = us & 0x1;
+				if((x % 8) == 0)
+					p[x / 8] = us & 0x1;
 				else
-					p[x/8] = (p[x/8]<<1)|(us&0x1);
+					p[x / 8] = (p[x / 8] << 1) | (us & 0x1);
 				break;
 			}
 		}
@@ -390,7 +416,7 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 		/* pad last byte over if we didn't fill it */
 		xmod = pdev->width % ppb[ldepth];
 		if(xmod)
-			p[(x-1)/ppb[ldepth]] <<= ((ppb[ldepth]-xmod)*bpp[ldepth]);
+			p[(x - 1) / ppb[ldepth]] <<= ((ppb[ldepth] - xmod) * bpp[ldepth]);
 		if(writeimageblock(w, p, bpl) == ERROR) {
 			gs_free(pdev->memory, buf, gsbpl, 1, "inferno_print_page");
 			return_error(gs_error_Fatal);
@@ -414,21 +440,21 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 /*
  * Compressed image file parameters
  */
-#define	NMATCH	3		/* shortest match possible */
-#define	NRUN	(NMATCH+31)	/* longest match possible */
-#define	NMEM	1024		/* window size */
-#define	NDUMP	128		/* maximum length of dump */
-#define	NCBLOCK	6000		/* size of compressed blocks */
+#define NMATCH 3	   /* shortest match possible */
+#define NRUN (NMATCH + 31) /* longest match possible */
+#define NMEM 1024	  /* window size */
+#define NDUMP 128	  /* maximum length of dump */
+#define NCBLOCK 6000       /* size of compressed blocks */
 
-#define	HSHIFT	3	/* HSHIFT==5 runs slightly faster, but hash table is 64x bigger */
-#define	NHASH	(1<<(HSHIFT*NMATCH))
-#define	HMASK	(NHASH-1)
-#define	hupdate(h, c)	((((h)<<HSHIFT)^(c))&HMASK)
+#define HSHIFT 3 /* HSHIFT==5 runs slightly faster, but hash table is 64x bigger */
+#define NHASH (1 << (HSHIFT * NMATCH))
+#define HMASK (NHASH - 1)
+#define hupdate(h, c) ((((h) << HSHIFT) ^ (c)) & HMASK)
 
-typedef struct Dump	Dump;
+typedef struct Dump Dump;
 typedef struct Hlist Hlist;
 
-struct Hlist{
+struct Hlist {
 	uint32_t p;
 	Hlist *next, *prev;
 };
@@ -436,7 +462,7 @@ struct Hlist{
 struct Dump {
 	int ndump;
 	uint8_t *dumpbuf;
-	uint8_t buf[1+NDUMP];
+	uint8_t buf[1 + NDUMP];
 };
 
 struct WImage {
@@ -458,11 +484,11 @@ struct WImage {
 	 * the ulongs in the Hlist structures are just
 	 * pointers relative to ibase.
 	 */
-	uint8_t *inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
+	uint8_t *inbuf; /* inbuf should be at least NMEM+NRUN+NMATCH long */
 	uint8_t *ibase;
-	int minbuf;	/* size of inbuf (malloc'ed bytes) */
-	int ninbuf;	/* size of inbuf (filled bytes) */
-	uint32_t line;	/* the beginning of the line we are currently encoding,
+	int minbuf;    /* size of inbuf (malloc'ed bytes) */
+	int ninbuf;    /* size of inbuf (filled bytes) */
+	uint32_t line; /* the beginning of the line we are currently encoding,
 			 * relative to inbuf (NOT relative to ibase) */
 
 	/* raw dump buffer */
@@ -475,30 +501,32 @@ struct WImage {
 	int needhash;
 };
 
-private void
+private
+void
 zerohash(WImage *w)
 {
 	memset(w->hash, 0, sizeof(w->hash));
 	memset(w->chain, 0, sizeof(w->chain));
-	w->cp=w->chain;
+	w->cp = w->chain;
 	w->needhash = 1;
 }
 
-private int
+private
+int
 addbuf(WImage *w, uchar *buf, int nbuf)
 {
 	int n;
-	if(buf == nil || w->outp+nbuf > w->eout) {
-		if(w->loutp==w->outbuf){	/* can't really happen -- we checked line length above */
+	if(buf == nil || w->outp + nbuf > w->eout) {
+		if(w->loutp == w->outbuf) { /* can't really happen -- we checked line length above */
 			errprintf("buffer too small for line\n");
 			return ERROR;
 		}
-		n=w->loutp-w->outbuf;
+		n = w->loutp - w->outbuf;
 		fprintf(w->f, "%11d %11d ", w->r.max.y, n);
 		fwrite(w->outbuf, 1, n, w->f);
-		w->r.min.y=w->r.max.y;
-		w->outp=w->outbuf;
-		w->loutp=w->outbuf;
+		w->r.min.y = w->r.max.y;
+		w->outp = w->outbuf;
+		w->loutp = w->outbuf;
 		zerohash(w);
 		return -1;
 	}
@@ -509,7 +537,8 @@ addbuf(WImage *w, uchar *buf, int nbuf)
 }
 
 /* return 0 on success, -1 if buffer is full */
-private int
+private
+int
 flushdump(WImage *w)
 {
 	int n = w->dump.ndump;
@@ -517,8 +546,8 @@ flushdump(WImage *w)
 	if(n == 0)
 		return 0;
 
-	w->dump.buf[0] = 0x80|(n-1);
-	if((n=addbuf(w, w->dump.buf, n+1)) == ERROR)
+	w->dump.buf[0] = 0x80 | (n - 1);
+	if((n = addbuf(w, w->dump.buf, n + 1)) == ERROR)
 		return ERROR;
 	if(n < 0)
 		return -1;
@@ -526,7 +555,8 @@ flushdump(WImage *w)
 	return 0;
 }
 
-private void
+private
+void
 updatehash(WImage *w, uchar *p, uchar *ep)
 {
 	uchar *q;
@@ -537,7 +567,7 @@ updatehash(WImage *w, uchar *p, uchar *ep)
 	hash = w->hash;
 	cp = w->cp;
 	h = w->h;
-	for(q=p; q<ep; q++) {
+	for(q = p; q < ep; q++) {
 		if(cp->prev)
 			cp->prev->next = cp->next;
 		cp->next = hash[h].next;
@@ -546,7 +576,7 @@ updatehash(WImage *w, uchar *p, uchar *ep)
 		if(cp->next)
 			cp->next->prev = cp;
 		cp->p = q - w->ibase;
-		if(++cp == w->chain+NMEM)
+		if(++cp == w->chain + NMEM)
 			cp = w->chain;
 		if(&q[NMATCH] < &w->inbuf[w->ninbuf])
 			h = hupdate(h, q[NMATCH]);
@@ -563,7 +593,8 @@ updatehash(WImage *w, uchar *p, uchar *ep)
  * the buffer and return 0.
  * otherwise we return bpl
  */
-private int
+private
+int
 gobbleline(WImage *w)
 {
 	int runlen, n, offs;
@@ -574,41 +605,42 @@ gobbleline(WImage *w)
 
 	if(w->needhash) {
 		w->h = 0;
-		for(n=0; n!=NMATCH; n++)
-			w->h = hupdate(w->h, w->inbuf[w->line+n]);
+		for(n = 0; n != NMATCH; n++)
+			w->h = hupdate(w->h, w->inbuf[w->line + n]);
 		w->needhash = 0;
 	}
-	w->dump.ndump=0;
-	eline=w->inbuf+w->line+w->bpl;
-	for(p=w->inbuf+w->line;p!=eline;){
-		es = (eline < p+NRUN) ? eline : p+NRUN;
+	w->dump.ndump = 0;
+	eline = w->inbuf + w->line + w->bpl;
+	for(p = w->inbuf + w->line; p != eline;) {
+		es = (eline < p + NRUN) ? eline : p + NRUN;
 
-		best=nil;
-		runlen=0;
+		best = nil;
+		runlen = 0;
 		/* hash table lookup */
-		for(hp=w->hash[w->h].next;hp;hp=hp->next){
+		for(hp = w->hash[w->h].next; hp; hp = hp->next) {
 			/*
 			 * the next block is an optimization of 
 			 * for(s=p, t=w->ibase+hp->p; s<es && *s == *t; s++, t++)
 			 * 	;
 			 */
 
-			{	uchar *ss, *tt;
-				s = p+runlen;
-				t = w->ibase+hp->p+runlen;
-				for(ss=s, tt=t; ss>=p && *ss == *tt; ss--, tt--)
+			{
+				uchar *ss, *tt;
+				s = p + runlen;
+				t = w->ibase + hp->p + runlen;
+				for(ss = s, tt = t; ss >= p && *ss == *tt; ss--, tt--)
 					;
 				if(ss < p)
-					while(s<es && *s == *t)
+					while(s < es && *s == *t)
 						s++, t++;
 			}
 
-			n = s-p;
+			n = s - p;
 
 			if(n > runlen) {
 				runlen = n;
-				best = w->ibase+hp->p;
-				if(p+runlen == es)
+				best = w->ibase + hp->p;
+				if(p + runlen == es)
 					break;
 			}
 		}
@@ -617,17 +649,17 @@ gobbleline(WImage *w)
 		 * if we didn't find a long enough run, append to 
 		 * the raw dump buffer
 		 */
-		if(runlen<NMATCH){
-			if(w->dump.ndump==NDUMP) {
+		if(runlen < NMATCH) {
+			if(w->dump.ndump == NDUMP) {
 				if((rv = flushdump(w)) == ERROR)
 					return ERROR;
 				if(rv < 0)
 					return 0;
 			}
-			w->dump.dumpbuf[w->dump.ndump++]=*p;
-			runlen=1;
-		}else{
-		/*
+			w->dump.dumpbuf[w->dump.ndump++] = *p;
+			runlen = 1;
+		} else {
+			/*
 		 * otherwise, assuming the dump buffer is empty,
 		 * add the compressed rep.
 		 */
@@ -635,9 +667,9 @@ gobbleline(WImage *w)
 				return ERROR;
 			if(rv < 0)
 				return 0;
-			offs=p-best-1;
-			buf[0] = ((runlen-NMATCH)<<2)|(offs>>8);
-			buf[1] = offs&0xff;
+			offs = p - best - 1;
+			buf[0] = ((runlen - NMATCH) << 2) | (offs >> 8);
+			buf[1] = offs & 0xff;
 			if(addbuf(w, buf, 2) < 0)
 				return 0;
 		}
@@ -645,7 +677,7 @@ gobbleline(WImage *w)
 		/*
 		 * add to hash tables what we just encoded
 		 */
-		updatehash(w, p, p+runlen);
+		updatehash(w, p, p + runlen);
 		p += runlen;
 	}
 
@@ -654,20 +686,21 @@ gobbleline(WImage *w)
 	if(rv < 0)
 		return 0;
 	w->line += w->bpl;
-	w->loutp=w->outp;
+	w->loutp = w->outp;
 	w->r.max.y++;
 	return w->bpl;
 }
 
-private uchar*
+private
+uchar *
 shiftwindow(WImage *w, uint8_t *data, uint8_t *edata)
 {
 	int n, m;
 
 	/* shift window over */
 	if(w->line > NMEM) {
-		n = w->line-NMEM;
-		memmove(w->inbuf, w->inbuf+n, w->ninbuf-n);
+		n = w->line - NMEM;
+		memmove(w->inbuf, w->inbuf + n, w->ninbuf - n);
 		w->line -= n;
 		w->ibase -= n;
 		w->ninbuf -= n;
@@ -676,9 +709,9 @@ shiftwindow(WImage *w, uint8_t *data, uint8_t *edata)
 	/* fill right with data if available */
 	if(w->minbuf > w->ninbuf && edata > data) {
 		m = w->minbuf - w->ninbuf;
-		if(edata-data < m)
-			m = edata-data;
-		memmove(w->inbuf+w->ninbuf, data, m);
+		if(edata - data < m)
+			m = edata - data;
+		memmove(w->inbuf + w->ninbuf, data, m);
 		data += m;
 		w->ninbuf += m;
 	}
@@ -686,7 +719,8 @@ shiftwindow(WImage *w, uint8_t *data, uint8_t *edata)
 	return data;
 }
 
-private WImage*
+private
+WImage *
 initwriteimage(FILE *f, Rectangle r, int ldepth)
 {
 	WImage *w;
@@ -698,11 +732,11 @@ initwriteimage(FILE *f, Rectangle r, int ldepth)
 		return nil;
 	}
 
-	n = NMEM+NMATCH+NRUN+bpl*2;
-	w = malloc(n+sizeof(*w));
+	n = NMEM + NMATCH + NRUN + bpl * 2;
+	w = malloc(n + sizeof(*w));
 	if(w == nil)
 		return nil;
-	w->inbuf = (uint8_t*) &w[1];
+	w->inbuf = (uint8_t *)&w[1];
 	w->ibase = w->inbuf;
 	w->line = 0;
 	w->minbuf = n;
@@ -710,11 +744,11 @@ initwriteimage(FILE *f, Rectangle r, int ldepth)
 	w->origr = r;
 	w->r = r;
 	w->r.max.y = w->r.min.y;
-	w->eout = w->outbuf+sizeof(w->outbuf);
+	w->eout = w->outbuf + sizeof(w->outbuf);
 	w->outp = w->loutp = w->outbuf;
 	w->bpl = bpl;
 	w->f = f;
-	w->dump.dumpbuf = w->dump.buf+1;
+	w->dump.dumpbuf = w->dump.buf + 1;
 	w->dump.ndump = 0;
 	zerohash(w);
 
@@ -723,12 +757,13 @@ initwriteimage(FILE *f, Rectangle r, int ldepth)
 	return w;
 }
 
-private int
+private
+int
 writeimageblock(WImage *w, uchar *data, int ndata)
 {
 	uchar *edata;
 
-	if(data == nil) {	/* end of data, flush everything */
+	if(data == nil) { /* end of data, flush everything */
 		while(w->line < w->ninbuf)
 			if(gobbleline(w) == ERROR)
 				return ERROR;
@@ -740,9 +775,9 @@ writeimageblock(WImage *w, uchar *data, int ndata)
 		return 0;
 	}
 
-	edata = data+ndata;
+	edata = data + ndata;
 	data = shiftwindow(w, data, edata);
-	while(w->ninbuf >= w->line+w->bpl+NMATCH) {
+	while(w->ninbuf >= w->line + w->bpl + NMATCH) {
 		if(gobbleline(w) == ERROR)
 			return ERROR;
 		data = shiftwindow(w, data, edata);
@@ -757,25 +792,27 @@ writeimageblock(WImage *w, uchar *data, int ndata)
 /*
  * functions from the Plan9/Brazil drawing libraries 
  */
-private int
+private
+int
 bytesperline(Rectangle r, int ld)
 {
 	ulong ws, l, t;
 	int bits = 8;
 
-	ws = bits>>ld;	/* pixels per unit */
-	if(r.min.x >= 0){
-		l = (r.max.x+ws-1)/ws;
-		l -= r.min.x/ws;
-	}else{			/* make positive before divide */
-		t = (-r.min.x)+ws-1;
-		t = (t/ws)*ws;
-		l = (t+r.max.x+ws-1)/ws;
+	ws = bits >> ld; /* pixels per unit */
+	if(r.min.x >= 0) {
+		l = (r.max.x + ws - 1) / ws;
+		l -= r.min.x / ws;
+	} else { /* make positive before divide */
+		t = (-r.min.x) + ws - 1;
+		t = (t / ws) * ws;
+		l = (t + r.max.x + ws - 1) / ws;
 	}
 	return l;
 }
 
-private int
+private
+int
 rgb2cmap(int cr, int cg, int cb)
 {
 	int r, g, b, v, cv;
@@ -792,16 +829,16 @@ rgb2cmap(int cr, int cg, int cb)
 		cb = 0;
 	else if(cb > 255)
 		cb = 255;
-	r = cr>>6;
-	g = cg>>6;
-	b = cb>>6;
+	r = cr >> 6;
+	g = cg >> 6;
+	b = cb >> 6;
 	cv = cr;
 	if(cg > cv)
 		cv = cg;
 	if(cb > cv)
 		cv = cb;
-	v = (cv>>4)&3;
-	return 255-((((r<<2)+v)<<4)+(((g<<2)+b+v-r)&15));
+	v = (cv >> 4) & 3;
+	return 255 - ((((r << 2) + v) << 4) + (((g << 2) + b + v - r) & 15));
 }
 
 /*
@@ -836,4 +873,3 @@ cmap2rgb(int c)
  *
  *
  */
-

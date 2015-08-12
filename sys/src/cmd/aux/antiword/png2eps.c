@@ -21,9 +21,8 @@
 #include "antiword.h"
 
 #if defined(DEBUG)
-static int	iPicCounter = 0;
+static int iPicCounter = 0;
 #endif /* DEBUG */
-
 
 /*
  * tSkipToData - skip until a IDAT chunk is found
@@ -33,23 +32,23 @@ static int	iPicCounter = 0;
 static size_t
 tSkipToData(FILE *pFile, size_t tMaxBytes, size_t *ptSkipped)
 {
-	ULONG	ulName, ulTmp;
-	size_t	tDataLength, tToSkip;
-	int	iCounter;
+	ULONG ulName, ulTmp;
+	size_t tDataLength, tToSkip;
+	int iCounter;
 
 	fail(pFile == NULL);
 	fail(ptSkipped == NULL);
 
 	/* Examine chunks */
-	while (*ptSkipped + 8 < tMaxBytes) {
+	while(*ptSkipped + 8 < tMaxBytes) {
 		tDataLength = (size_t)ulNextLongBE(pFile);
 		DBG_DEC(tDataLength);
 		*ptSkipped += 4;
 
 		ulName = 0x00;
-		for (iCounter = 0; iCounter < 4; iCounter++) {
+		for(iCounter = 0; iCounter < 4; iCounter++) {
 			ulTmp = (ULONG)iNextByte(pFile);
-			if (!isalpha((int)ulTmp)) {
+			if(!isalpha((int)ulTmp)) {
 				DBG_HEX(ulTmp);
 				return (size_t)-1;
 			}
@@ -59,15 +58,15 @@ tSkipToData(FILE *pFile, size_t tMaxBytes, size_t *ptSkipped)
 		DBG_HEX(ulName);
 		*ptSkipped += 4;
 
-		if (ulName == PNG_CN_IEND) {
+		if(ulName == PNG_CN_IEND) {
 			break;
 		}
-		if (ulName == PNG_CN_IDAT) {
+		if(ulName == PNG_CN_IDAT) {
 			return tDataLength;
 		}
 
 		tToSkip = tDataLength + 4;
-		if (tToSkip >= tMaxBytes - *ptSkipped) {
+		if(tToSkip >= tMaxBytes - *ptSkipped) {
 			DBG_DEC(tToSkip);
 			DBG_DEC(tMaxBytes - *ptSkipped);
 			return (size_t)-1;
@@ -91,7 +90,7 @@ tFindFirstPixelData(FILE *pFile, size_t tMaxBytes, size_t *ptSkipped)
 	fail(tMaxBytes == 0);
 	fail(ptSkipped == NULL);
 
-	if (tMaxBytes < 8) {
+	if(tMaxBytes < 8) {
 		DBG_DEC(tMaxBytes);
 		return (size_t)-1;
 	}
@@ -115,7 +114,7 @@ tFindNextPixelData(FILE *pFile, size_t tMaxBytes, size_t *ptSkipped)
 	fail(tMaxBytes == 0);
 	fail(ptSkipped == NULL);
 
-	if (tMaxBytes < 4) {
+	if(tMaxBytes < 4) {
 		DBG_DEC(tMaxBytes);
 		return (size_t)-1;
 	}
@@ -134,23 +133,23 @@ tFindNextPixelData(FILE *pFile, size_t tMaxBytes, size_t *ptSkipped)
 static void
 vCopy2File(FILE *pFile, ULONG ulFileOffset, size_t tPictureLen)
 {
-	FILE	*pOutFile;
-	size_t	tIndex;
-	int	iTmp;
-	char	szFilename[30];
+	FILE *pOutFile;
+	size_t tIndex;
+	int iTmp;
+	char szFilename[30];
 
-	if (!bSetDataOffset(pFile, ulFileOffset)) {
+	if(!bSetDataOffset(pFile, ulFileOffset)) {
 		return;
 	}
 
 	sprintf(szFilename, "/tmp/pic/pic%04d.png", ++iPicCounter);
 	pOutFile = fopen(szFilename, "wb");
-	if (pOutFile == NULL) {
+	if(pOutFile == NULL) {
 		return;
 	}
-	for (tIndex = 0; tIndex < tPictureLen; tIndex++) {
+	for(tIndex = 0; tIndex < tPictureLen; tIndex++) {
 		iTmp = iNextByte(pFile);
-		if (putc(iTmp, pOutFile) == EOF) {
+		if(putc(iTmp, pOutFile) == EOF) {
 			break;
 		}
 	}
@@ -167,22 +166,22 @@ vCopy2File(FILE *pFile, ULONG ulFileOffset, size_t tPictureLen)
  */
 BOOL
 bTranslatePNG(diagram_type *pDiag, FILE *pFile,
-	ULONG ulFileOffset, size_t tPictureLen, const imagedata_type *pImg)
+	      ULONG ulFileOffset, size_t tPictureLen, const imagedata_type *pImg)
 {
-	size_t	tMaxBytes, tDataLength, tSkipped;
+	size_t tMaxBytes, tDataLength, tSkipped;
 
 #if defined(DEBUG)
 	vCopy2File(pFile, ulFileOffset, tPictureLen);
 #endif /* DEBUG */
 
 	/* Seek to start position of PNG data */
-	if (!bSetDataOffset(pFile, ulFileOffset)) {
+	if(!bSetDataOffset(pFile, ulFileOffset)) {
 		return FALSE;
 	}
 
 	tMaxBytes = tPictureLen;
 	tDataLength = tFindFirstPixelData(pFile, tMaxBytes, &tSkipped);
-	if (tDataLength == (size_t)-1) {
+	if(tDataLength == (size_t)-1) {
 		return FALSE;
 	}
 
@@ -192,7 +191,7 @@ bTranslatePNG(diagram_type *pDiag, FILE *pFile,
 		vASCII85EncodeArray(pFile, pDiag->pOutFile, tDataLength);
 		tMaxBytes -= tDataLength;
 		tDataLength = tFindNextPixelData(pFile, tMaxBytes, &tSkipped);
-	} while (tDataLength != (size_t)-1);
+	} while(tDataLength != (size_t)-1);
 	vASCII85EncodeByte(pDiag->pOutFile, EOF);
 	vImageEpilogue(pDiag);
 

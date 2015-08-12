@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int64_t
 Bseek(Biobufhdr *bp, int64_t offset, int base)
@@ -45,7 +45,7 @@ Bseek(Biobufhdr *bp, int64_t offset, int base)
 			d = n - Boffset(bp);
 			bp->icount += d;
 			if(d <= bp->bsize && bp->icount <= 0 &&
-			    bp->ebuf - bp->gbuf >= -bp->icount)
+			   bp->ebuf - bp->gbuf >= -bp->icount)
 				return n;
 		}
 

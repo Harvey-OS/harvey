@@ -24,14 +24,14 @@
 #include <9p.h>
 #include "cifs.h"
 
-#define NTLMV2_TEST	1
-#define DEF_AUTH 	"ntlmv2"
+#define NTLMV2_TEST 1
+#define DEF_AUTH "ntlmv2"
 
 static enum {
-	MACkeylen	= 40,	/* MAC key len */
-	MAClen		= 8,	/* signature length */
-	MACoff		= 14,	/* sign. offset from start of SMB (not netbios) pkt */
-	Bliplen		= 8,	/* size of LMv2 client nonce */
+	MACkeylen = 40, /* MAC key len */
+	MAClen = 8,     /* signature length */
+	MACoff = 14,    /* sign. offset from start of SMB (not netbios) pkt */
+	Bliplen = 8,    /* size of LMv2 client nonce */
 };
 
 static void
@@ -41,7 +41,7 @@ dmp(char *s, int seq, void *buf, int n)
 	char *p = buf;
 
 	print("%s %3d      ", s, seq);
-	while(n > 0){
+	while(n > 0) {
 		for(i = 0; i < 16 && n > 0; i++, n--)
 			print("%02x ", *p++ & 0xff);
 		if(n > 0)
@@ -59,8 +59,8 @@ auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
 	USED(chal, len);
 
 	up = auth_getuserpasswd(auth_getkey, "windom=%s proto=pass service=cifs %s",
-		windom, keyp);
-	if(! up)
+				windom, keyp);
+	if(!up)
 		sysfatal("cannot get key - %r");
 
 	ap = emalloc9p(sizeof(Auth));
@@ -85,8 +85,8 @@ auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
 	MSchapreply mcr;
 
 	err = auth_respond(chal, len, user, sizeof user, &mcr, sizeof mcr,
-		auth_getkey, "windom=%s proto=mschap role=client service=cifs %s",
-		windom, keyp);
+			   auth_getkey, "windom=%s proto=mschap role=client service=cifs %s",
+			   windom, keyp);
 	if(err == -1)
 		sysfatal("cannot get key - %r");
 
@@ -136,13 +136,12 @@ auth_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
 static DigestState *
 hmac_t64(uint8_t *data, uint32_t dlen, uint8_t *key, uint32_t klen,
 	 uint8_t *digest,
-	DigestState *state)
+	 DigestState *state)
 {
 	if(klen > 64)
 		klen = 64;
 	return hmac_md5(data, dlen, key, klen, digest, state);
 }
-
 
 static int
 ntv2_blob(uint8_t *blob, int len, char *windom)
@@ -152,25 +151,25 @@ ntv2_blob(uint8_t *blob, int len, char *windom)
 	Rune r;
 	char *d;
 	uint8_t *p;
-	enum {			/* name types */
-		Beof,		/* end of name list */
-		Bnetbios,	/* Netbios machine name */
-		Bdomain,	/* Windows Domain name (NT) */
-		Bdnsfqdn,	/* DNS Fully Qualified Domain Name */
-		Bdnsname,	/* DNS machine name (win2k) */
+	enum {		 /* name types */
+	       Beof,     /* end of name list */
+	       Bnetbios, /* Netbios machine name */
+	       Bdomain,  /* Windows Domain name (NT) */
+	       Bdnsfqdn, /* DNS Fully Qualified Domain Name */
+	       Bdnsname, /* DNS machine name (win2k) */
 	};
 
 	p = blob;
-	*p++ = 1;		/* response type */
-	*p++ = 1;		/* max response type understood by client */
+	*p++ = 1; /* response type */
+	*p++ = 1; /* max response type understood by client */
 
 	*p++ = 0;
-	*p++ = 0;		/* 2 bytes reserved */
+	*p++ = 0; /* 2 bytes reserved */
 
 	*p++ = 0;
 	*p++ = 0;
 	*p++ = 0;
-	*p++ = 0;		/* 4 bytes unknown */
+	*p++ = 0; /* 4 bytes unknown */
 
 #ifdef NTLMV2_TEST
 	*p++ = 0xf0;
@@ -182,7 +181,7 @@ ntv2_blob(uint8_t *blob, int len, char *windom)
 	*p++ = 0xbe;
 	*p++ = 0x01;
 #else
-	nttime = time(nil);	/* nt time now */
+	nttime = time(nil); /* nt time now */
 	nttime = nttime + 11644473600LL;
 	nttime = nttime * 10000000LL;
 	*p++ = nttime & 0xff;
@@ -205,22 +204,22 @@ ntv2_blob(uint8_t *blob, int len, char *windom)
 	*p++ = 0x6d;
 #else
 	genrandom(p, 8);
-	p += 8;			/* client nonce */
+	p += 8; /* client nonce */
 #endif
 	*p++ = 0x6f;
 	*p++ = 0;
 	*p++ = 0x6e;
-	*p++ = 0;		/* unknown data */
+	*p++ = 0; /* unknown data */
 
 	*p++ = Bdomain;
-	*p++ = 0;		/* name type */
+	*p++ = 0; /* name type */
 
 	n = utflen(windom) * 2;
 	*p++ = n;
-	*p++ = n >> 8;		/* name length */
+	*p++ = n >> 8; /* name length */
 
 	d = windom;
-	while(*d && p - blob < len - 8){
+	while(*d && p - blob < len - 8) {
 		d += chartorune(&r, d);
 		r = toupperrune(r);
 		*p++ = r;
@@ -228,15 +227,15 @@ ntv2_blob(uint8_t *blob, int len, char *windom)
 	}
 
 	*p++ = 0;
-	*p++ = Beof;		/* name type */
+	*p++ = Beof; /* name type */
 
 	*p++ = 0;
-	*p++ = 0;		/* name length */
+	*p++ = 0; /* name length */
 
 	*p++ = 0x65;
 	*p++ = 0;
 	*p++ = 0;
-	*p++ = 0;		/* unknown data */
+	*p++ = 0; /* unknown data */
 	return p - blob;
 }
 
@@ -254,17 +253,17 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 	static Auth *ap;
 
 	up = auth_getuserpasswd(auth_getkey, "windom=%s proto=pass service=cifs-ntlmv2 %s",
-		windom, keyp);
-	if(! up)
+				windom, keyp);
+	if(!up)
 		sysfatal("cannot get key - %r");
 
 #ifdef NTLMV2_TEST
-{
-	static uchar srvchal[] = { 0x52, 0xaa, 0xc8, 0xe8, 0x2c, 0x06, 0x7f, 0xa1 };
-	up->user = "ADMINISTRATOR";
-	windom = "rocknroll";
-	chal = srvchal;
-}
+	{
+		static uchar srvchal[] = {0x52, 0xaa, 0xc8, 0xe8, 0x2c, 0x06, 0x7f, 0xa1};
+		up->user = "ADMINISTRATOR";
+		windom = "rocknroll";
+		chal = srvchal;
+	}
 #endif
 	ap = emalloc9p(sizeof(Auth));
 	memset(ap, 0, sizeof(ap));
@@ -284,13 +283,12 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 	md4(nil, 0, v1hash, ds);
 
 #ifdef NTLMV2_TEST
-{
-	uchar v1[] = {
-		0x0c, 0xb6, 0x94, 0x88, 0x05, 0xf7, 0x97, 0xbf,
-		0x2a, 0x82, 0x80, 0x79, 0x73, 0xb8, 0x95, 0x37
-	;
-	memcpy(v1hash, v1, sizeof(v1));
-}
+	{
+		uchar v1[] = {
+			0x0c, 0xb6, 0x94, 0x88, 0x05, 0xf7, 0x97, 0xbf,
+			0x2a, 0x82, 0x80, 0x79, 0x73, 0xb8, 0x95, 0x37;
+		memcpy(v1hash, v1, sizeof(v1));
+	}
 #endif
 	/*
 	 * Some documentation insists that the username must be forced to
@@ -299,26 +297,26 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 	 * the domain name passed from the remote server always seems to be in
 	 * uppercase already.
 	 */
-        ds = hmac_t64(nil, 0, v1hash, MD5dlen, nil, nil);
+	ds = hmac_t64(nil, 0, v1hash, MD5dlen, nil, nil);
 	u = up->user;
-	while(*u){
+	while(*u) {
 		u += chartorune(&r, u);
 		r = toupperrune(r);
 		c = r & 0xff;
-        	hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
+		hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
 		c = r >> 8;
-        	hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
+		hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
 	}
 	u = windom;
 
-	while(*u){
+	while(*u) {
 		u += chartorune(&r, u);
 		c = r;
-        	hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
+		hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
 		c = r >> 8;
-        	hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
+		hmac_t64(&c, 1, v1hash, MD5dlen, nil, ds);
 	}
-        hmac_t64(nil, 0, v1hash, MD5dlen, v2hash, ds);
+	hmac_t64(nil, 0, v1hash, MD5dlen, v2hash, ds);
 #ifdef NTLMV2_TEST
 	print("want:               40 e1 b3 24...\n");
 	dmp("v2hash==kr", 0, v2hash, MD5dlen);
@@ -330,17 +328,17 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 
 	genrandom(blip, Bliplen);
 #ifdef NTLMV2_TEST
-{
-	uchar t[] = { 0x05, 0x83, 0x32, 0xec, 0xfa, 0xe4, 0xf3, 0x6d };
-	memcpy(blip, t, 8);
-}
+	{
+		uchar t[] = {0x05, 0x83, 0x32, 0xec, 0xfa, 0xe4, 0xf3, 0x6d};
+		memcpy(blip, t, 8);
+	}
 #endif
-        ds = hmac_t64(chal, len, v2hash, MD5dlen, nil, nil);
+	ds = hmac_t64(chal, len, v2hash, MD5dlen, nil, nil);
 	hmac_t64(blip, Bliplen, v2hash, MD5dlen, lm_hmac, ds);
-	ap->len[0] = MD5dlen+Bliplen;
+	ap->len[0] = MD5dlen + Bliplen;
 	ap->resp[0] = emalloc9p(ap->len[0]);
 	memcpy(ap->resp[0], lm_hmac, MD5dlen);
-	memcpy(ap->resp[0]+MD5dlen, blip, Bliplen);
+	memcpy(ap->resp[0] + MD5dlen, blip, Bliplen);
 #ifdef NTLMV2_TEST
 	print("want:               38 6b ae...\n");
 	dmp("lmv2 resp ", 0, lm_hmac, MD5dlen);
@@ -352,16 +350,16 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 	/* LM v2 MAC key */
 	ap->mackey[0] = emalloc9p(MACkeylen);
 	memcpy(ap->mackey[0], lm_sesskey, MD5dlen);
-	memcpy(ap->mackey[0]+MD5dlen, ap->resp[0], MACkeylen-MD5dlen);
+	memcpy(ap->mackey[0] + MD5dlen, ap->resp[0], MACkeylen - MD5dlen);
 
 	/* NTLM v2 */
 	n = ntv2_blob(blob, sizeof(blob), windom);
-        ds = hmac_t64(chal, len, v2hash, MD5dlen, nil, nil);
+	ds = hmac_t64(chal, len, v2hash, MD5dlen, nil, nil);
 	hmac_t64(blob, n, v2hash, MD5dlen, nt_hmac, ds);
-	ap->len[1] = MD5dlen+n;
+	ap->len[1] = MD5dlen + n;
 	ap->resp[1] = emalloc9p(ap->len[1]);
 	memcpy(ap->resp[1], nt_hmac, MD5dlen);
-	memcpy(ap->resp[1]+MD5dlen, blob, n);
+	memcpy(ap->resp[1] + MD5dlen, blob, n);
 #ifdef NTLMV2_TEST
 	print("want:               1a ad 55...\n");
 	dmp("ntv2 resp ", 0, nt_hmac, MD5dlen);
@@ -373,21 +371,21 @@ auth_ntlmv2(char *windom, char *keyp, uchar *chal, int len)
 	/* NTLM v2 MAC key */
 	ap->mackey[1] = emalloc9p(MACkeylen);
 	memcpy(ap->mackey[1], nt_sesskey, MD5dlen);
-	memcpy(ap->mackey[1]+MD5dlen, ap->resp[1], MACkeylen-MD5dlen);
+	memcpy(ap->mackey[1] + MD5dlen, ap->resp[1], MACkeylen - MD5dlen);
 	free(up);
 
 	return ap;
 }
 
 struct {
-	char	*name;
-	Auth	*(*func)(char *, char *, uint8_t *, int);
+	char *name;
+	Auth *(*func)(char *, char *, uint8_t *, int);
 } methods[] = {
-	{ "plain",	auth_plain },
-	{ "lm+ntlm",	auth_lm_and_ntlm },
-	{ "ntlm",	auth_ntlm },
-	{ "ntlmv2",	auth_ntlmv2 },
-//	{ "kerberos",	auth_kerberos },
+    {"plain", auth_plain},
+    {"lm+ntlm", auth_lm_and_ntlm},
+    {"ntlm", auth_ntlm},
+    {"ntlmv2", auth_ntlmv2},
+    //	{ "kerberos",	auth_kerberos },
 };
 
 void
@@ -410,7 +408,7 @@ getauth(char *name, char *windom, char *keyp, int secmode,
 	int i;
 	Auth *ap;
 
-	if(name == nil){
+	if(name == nil) {
 		name = DEF_AUTH;
 		if((secmode & SECMODE_PW_ENCRYPT) == 0)
 			sysfatal("plaintext authentication required, use '-a plain'");
@@ -418,14 +416,14 @@ getauth(char *name, char *windom, char *keyp, int secmode,
 
 	ap = nil;
 	for(i = 0; i < nelem(methods); i++)
-		if(strcmp(methods[i].name, name) == 0){
+		if(strcmp(methods[i].name, name) == 0) {
 			ap = methods[i].func(windom, keyp, chal, len);
 			break;
 		}
 
-	if(! ap){
+	if(!ap) {
 		fprint(2, "%s: %s - unknown auth method\n", argv0, name);
-		autherr();		/* never returns */
+		autherr(); /* never returns */
 	}
 	return ap;
 }
@@ -437,7 +435,7 @@ genmac(uint8_t *buf, int len, int seq, uint8_t key[MACkeylen],
 	DigestState *ds;
 	uint8_t *sig, digest[MD5dlen], their[MAClen];
 
-	sig = buf+MACoff;
+	sig = buf + MACoff;
 	memcpy(their, sig, MAClen);
 	memset(sig, 0, MAClen);
 	sig[0] = seq;
@@ -463,21 +461,21 @@ macsign(Pkt *p)
 	buf = p->buf + NBHDRLEN;
 	len = (p->pos - p->buf) - NBHDRLEN;
 
-	for(i = -3; i < 4; i++){
+	for(i = -3; i < 4; i++) {
 		memset(zeros, 0, sizeof(zeros));
-		if(genmac(buf, len, p->seq+i, zeros, mac) == 0){
+		if(genmac(buf, len, p->seq + i, zeros, mac) == 0) {
 			dmp("got", 0, buf, len);
 			dmp("Zero OK", p->seq, mac, MAClen);
 			return 0;
 		}
 
-		if(genmac(buf, len, p->seq+i, p->s->auth->mackey[0], mac) == 0){
+		if(genmac(buf, len, p->seq + i, p->s->auth->mackey[0], mac) == 0) {
 			dmp("got", 0, buf, len);
 			dmp("LM-hash OK", p->seq, mac, MAClen);
 			return 0;
 		}
 
-		if(genmac(buf, len, p->seq+i, p->s->auth->mackey[1], mac) == 0){
+		if(genmac(buf, len, p->seq + i, p->s->auth->mackey[1], mac) == 0) {
 			dmp("got", 0, buf, len);
 			dmp("NT-hash OK", p->seq, mac, MAClen);
 			return 0;

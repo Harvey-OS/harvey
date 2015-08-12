@@ -13,36 +13,35 @@
  *	Cf. /lib/rfc/rfc1094
  */
 
-static int	mntnull(int, Rpccall*, Rpccall*);
-static int	mntmnt(int, Rpccall*, Rpccall*);
-static int	mntdump(int, Rpccall*, Rpccall*);
-static int	mntumnt(int, Rpccall*, Rpccall*);
-static int	mntumntall(int, Rpccall*, Rpccall*);
-static int	mntexport(int, Rpccall*, Rpccall*);
+static int mntnull(int, Rpccall *, Rpccall *);
+static int mntmnt(int, Rpccall *, Rpccall *);
+static int mntdump(int, Rpccall *, Rpccall *);
+static int mntumnt(int, Rpccall *, Rpccall *);
+static int mntumntall(int, Rpccall *, Rpccall *);
+static int mntexport(int, Rpccall *, Rpccall *);
 
 Procmap mntproc[] = {
-	0, mntnull,
-	1, mntmnt,
-	2, mntdump,
-	3, mntumnt,
-	4, mntumntall,
-	5, mntexport,
-	0, 0
-};
+    0, mntnull,
+    1, mntmnt,
+    2, mntdump,
+    3, mntumnt,
+    4, mntumntall,
+    5, mntexport,
+    0, 0};
 
-int32_t		starttime;
-static int	noauth;
-char *		config;
-Session *	head;
-Session *	tail;
-int staletime = 10*60;
+int32_t starttime;
+static int noauth;
+char *config;
+Session *head;
+Session *tail;
+int staletime = 10 * 60;
 
 void
 mnttimer(int32_t now)
 {
 	Session *s;
 
-	for(s=head; s; s=s->next)
+	for(s = head; s; s = s->next)
 		fidtimer(s, now);
 }
 
@@ -50,7 +49,8 @@ static void
 usage(void)
 {
 	sysfatal("usage: %s %s [-ns] [-a dialstring] [-c uidmap] [-f srvfile] "
-		"[-T staletime]", argv0, commonopts);
+		 "[-T staletime]",
+		 argv0, commonopts);
 }
 
 void
@@ -62,7 +62,8 @@ mntinit(int argc, char **argv)
 	starttime = time(0);
 	clog("nfs mount server init, starttime = %lud\n", starttime);
 	tries = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		++tries;
 		srvinit(-1, 0, EARGF(usage()));
@@ -87,11 +88,12 @@ mntinit(int argc, char **argv)
 	default:
 		if(argopt(ARGC()) < 0)
 			sysfatal("usage: %s %s [-ns] [-a dialstring] "
-				"[-c uidmap] [-f srvfile] [-T staletime]",
-				argv0, commonopts);
+				 "[-c uidmap] [-f srvfile] [-T staletime]",
+				 argv0, commonopts);
 		break;
-	}ARGEND
-noauth=1;	/* ZZZ */
+	}
+	ARGEND
+	noauth = 1; /* ZZZ */
 	if(tries == 0 && head == 0)
 		srvinit(-1, 0, "tcp!fs");
 	if(head == 0)
@@ -111,42 +113,42 @@ srvinit(int fd, char *file, char *addr)
 	s = calloc(1, sizeof(Session));
 	s->spec = "";
 	s->fd = -1;
-	if(fd >= 0){
+	if(fd >= 0) {
 		s->fd = fd;
 		sprint(fdservice, "/fd/%d", s->fd);
 		s->service = strstore(fdservice);
 		chat("fd = %d\n", s->fd);
-	}else if(file){
+	} else if(file) {
 		chat("file = \"%s\"\n", file);
 		s->service = file;
 		s->fd = open(file, ORDWR);
-		if(s->fd < 0){
+		if(s->fd < 0) {
 			clog("can't open %s: %r\n", file);
 			goto error;
 		}
-	}else if(addr){
+	} else if(addr) {
 		chat("addr = \"%s\"\n", addr);
 		naddr = netmkaddr(addr, 0, "9fs");
 		s->service = addr;
 		s->fd = dial(naddr, 0, 0, 0);
-		if(s->fd < 0){
+		if(s->fd < 0) {
 			clog("can't dial %s: %r\n", naddr);
 			goto error;
 		}
 	}
 
 	chat("version...");
-	s->tag = NOTAG-1;
-	s->f.msize = Maxfdata+IOHDRSZ;
+	s->tag = NOTAG - 1;
+	s->f.msize = Maxfdata + IOHDRSZ;
 	s->f.version = "9P2000";
 	xmesg(s, Tversion);
-	messagesize = IOHDRSZ+s->f.msize;
+	messagesize = IOHDRSZ + s->f.msize;
 	chat("version spec %s size %d\n", s->f.version, s->f.msize);
 
 	s->tag = 0;
 
 	chat("authenticate...");
-	if(authhostowner(s) < 0){
+	if(authhostowner(s) < 0) {
 		clog("auth failed %r\n");
 		goto error;
 	}
@@ -157,7 +159,7 @@ srvinit(int fd, char *file, char *addr)
 	s->f.afid = (int64_t)~0x0UL;
 	s->f.uname = "none";
 	s->f.aname = s->spec;
-	if(xmesg(s, Tattach)){
+	if(xmesg(s, Tattach)) {
 		clog("attach failed\n");
 		goto error;
 	}
@@ -169,7 +171,7 @@ srvinit(int fd, char *file, char *addr)
 	xf = xfid("none", xp, 1);
 	xf->urfid = f;
 	clog("service=%s uid=%s fid=%ld\n",
-		s->service, xf->uid, xf->urfid - s->fids);
+	     s->service, xf->uid, xf->urfid - s->fids);
 	if(tail)
 		tail->next = s;
 	else
@@ -186,7 +188,9 @@ error:
 static int
 mntnull(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n); USED(cmd); USED(reply);
+	USED(n);
+	USED(cmd);
+	USED(reply);
 	chat("mntnull\n");
 	return 0;
 }
@@ -222,28 +226,28 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	clog("host=%I, port=%ld, root=\"%.*s\"...",
-		cmd->host, cmd->port, utfnlen(root.s, root.n), root.s);
-	if(auth2unix(&cmd->cred, &au) != 0){
+	     cmd->host, cmd->port, utfnlen(root.s, root.n), root.s);
+	if(auth2unix(&cmd->cred, &au) != 0) {
 		chat("auth flavor=%ld, count=%ld\n",
-			cmd->cred.flavor, cmd->cred.count);
-		for(i=0; i<cmd->cred.count; i++)
+		     cmd->cred.flavor, cmd->cred.count);
+		for(i = 0; i < cmd->cred.count; i++)
 			chat(" %.2ux", ((uint8_t *)cmd->cred.data)[i]);
 		chat("\n");
 		clog("auth: bad credentials");
 		return error(reply, 1);
 	}
 	clog("auth: %ld %.*s u=%ld g=%ld",
-		au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
-	for(i=0; i<au.gidlen; i++)
+	     au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
+	for(i = 0; i < au.gidlen; i++)
 		chat(", %ld", au.gids[i]);
 	chat("...");
-	if(getdom(cmd->host, dom, sizeof(dom))<0){
+	if(getdom(cmd->host, dom, sizeof(dom)) < 0) {
 		clog("auth: unknown ip address");
 		return error(reply, 1);
 	}
 	chat("dom=%s...", dom);
 	xp = xfroot(root.s, root.n);
-	if(xp == 0){
+	if(xp == 0) {
 		chat("xp=0...");
 		clog("mntmnt: no fs");
 		return error(reply, 3);
@@ -295,19 +299,19 @@ mntexport(int n, Rpccall *cmd, Rpccall *reply)
 	chat("mntexport...");
 	if(n != 0)
 		return garbage(reply, "mntexport");
-	if(auth2unix(&cmd->cred, &au) != 0){
+	if(auth2unix(&cmd->cred, &au) != 0) {
 		chat("auth flavor=%ld, count=%ld\n",
-			cmd->cred.flavor, cmd->cred.count);
-		for(i=0; i<cmd->cred.count; i++)
+		     cmd->cred.flavor, cmd->cred.count);
+		for(i = 0; i < cmd->cred.count; i++)
 			chat(" %.2ux", ((uint8_t *)cmd->cred.data)[i]);
 		chat("...");
 		au.mach.n = 0;
-	}else
+	} else
 		chat("%ld@%.*s...", au.uid, utfnlen(au.mach.s, au.mach.n), au.mach.s);
 	PLONG(TRUE);
 	PLONG(1);
 	PPTR("/", 1);
-	if(au.mach.n > 0){
+	if(au.mach.n > 0) {
 		PLONG(TRUE);
 		PLONG(au.mach.n);
 		PPTR(au.mach.s, au.mach.n);
@@ -329,14 +333,14 @@ xfroot(char *name, int n)
 	chat("xfroot: %.*s...", utfnlen(name, n), name);
 	if(n == 1 && name[0] == '/')
 		return head->root;
-	for(s=head; s; s=s->next){
+	for(s = head; s; s = s->next) {
 		if(strncmp(name, s->service, n) == 0)
 			return s->root;
-		p = strrchr(s->service, '!');	/* for -a tcp!foo */
-		if(p && strncmp(name, p+1, n) == 0)
+		p = strrchr(s->service, '!'); /* for -a tcp!foo */
+		if(p && strncmp(name, p + 1, n) == 0)
 			return s->root;
-		p = strrchr(s->service, '/');	/* for -f /srv/foo */
-		if(p && strncmp(name, p+1, n) == 0)
+		p = strrchr(s->service, '/'); /* for -f /srv/foo */
+		if(p && strncmp(name, p + 1, n) == 0)
 			return s->root;
 	}
 	return 0;

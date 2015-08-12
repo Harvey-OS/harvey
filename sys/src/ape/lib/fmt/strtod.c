@@ -30,9 +30,9 @@
 #include "nan.h"
 
 #ifndef nelem
-#define nelem(x)	(sizeof(x)/sizeof *(x))
+#define nelem(x) (sizeof(x) / sizeof *(x))
 #endif
-#define nil ((void*)0)
+#define nil ((void *)0)
 #define ulong _fmtulong
 typedef unsigned long ulong;
 
@@ -60,43 +60,41 @@ umuldiv(uint32_t a, uint32_t b, uint32_t c)
  * Nbits is the max number of bits/word. (must be <= 28)
  * Prec is calculated - the number of words of fixed mantissa.
  */
-enum
-{
-	Nbits	= 28,				/* bits safely represented in a ulong */
-	Nmant	= 53,				/* bits of precision required */
-	Prec	= (Nmant+Nbits+1)/Nbits,	/* words of Nbits each to represent mantissa */
-	Sigbit	= 1<<(Prec*Nbits-Nmant),	/* first significant bit of Prec-th word */
-	Ndig	= 1500,
-	One	= (uint32_t)(1<<Nbits),
-	Half	= (uint32_t)(One>>1),
-	Maxe	= 310,
+enum {
+	Nbits = 28,			      /* bits safely represented in a ulong */
+	Nmant = 53,			      /* bits of precision required */
+	Prec = (Nmant + Nbits + 1) / Nbits,   /* words of Nbits each to represent mantissa */
+	Sigbit = 1 << (Prec * Nbits - Nmant), /* first significant bit of Prec-th word */
+	Ndig = 1500,
+	One = (uint32_t)(1 << Nbits),
+	Half = (uint32_t)(One >> 1),
+	Maxe = 310,
 
-	Fsign	= 1<<0,		/* found - */
-	Fesign	= 1<<1,		/* found e- */
-	Fdpoint	= 1<<2,		/* found . */
+	Fsign = 1 << 0,   /* found - */
+	Fesign = 1 << 1,  /* found e- */
+	Fdpoint = 1 << 2, /* found . */
 
-	S0	= 0,		/* _		_S0	+S1	#S2	.S3 */
-	S1,			/* _+		#S2	.S3 */
-	S2,			/* _+#		#S2	.S4	eS5 */
-	S3,			/* _+.		#S4 */
-	S4,			/* _+#.#	#S4	eS5 */
-	S5,			/* _+#.#e	+S6	#S7 */
-	S6,			/* _+#.#e+	#S7 */
-	S7,			/* _+#.#e+#	#S7 */
+	S0 = 0, /* _		_S0	+S1	#S2	.S3 */
+	S1,     /* _+		#S2	.S3 */
+	S2,     /* _+#		#S2	.S4	eS5 */
+	S3,     /* _+.		#S4 */
+	S4,     /* _+#.#	#S4	eS5 */
+	S5,     /* _+#.#e	+S6	#S7 */
+	S6,     /* _+#.#e+	#S7 */
+	S7,     /* _+#.#e+#	#S7 */
 };
 
-static	int	xcmp(char*, char*);
-static	int	fpcmp(char*, uint32_t*);
-static	void	frnorm(uint32_t*);
-static	void	divascii(char*, int*, int*, int*);
-static	void	mulascii(char*, int*, int*, int*);
+static int xcmp(char *, char *);
+static int fpcmp(char *, uint32_t *);
+static void frnorm(uint32_t *);
+static void divascii(char *, int *, int *, int *);
+static void mulascii(char *, int *, int *, int *);
 
-typedef	struct	Tab	Tab;
-struct	Tab
-{
-	int	bp;
-	int	siz;
-	char*	cmp;
+typedef struct Tab Tab;
+struct Tab {
+	int bp;
+	int siz;
+	char *cmp;
 };
 
 double
@@ -107,13 +105,13 @@ fmtstrtod(const char *as, char **aas)
 	double d;
 	char *s, a[Ndig];
 
-	flag = 0;	/* Fsign, Fesign, Fdpoint */
-	na = 0;		/* number of digits of a[] */
-	dp = 0;		/* na of decimal point */
-	ex = 0;		/* exonent */
+	flag = 0; /* Fsign, Fesign, Fdpoint */
+	na = 0;   /* number of digits of a[] */
+	dp = 0;   /* na of decimal point */
+	ex = 0;   /* exonent */
 
 	state = S0;
-	for(s=(char*)as;; s++) {
+	for(s = (char *)as;; s++) {
 		c = *s;
 		if(c >= '0' && c <= '9') {
 			switch(state) {
@@ -131,14 +129,14 @@ fmtstrtod(const char *as, char **aas)
 			case S6:
 			case S7:
 				state = S7;
-				ex = ex*10 + (c-'0');
+				ex = ex * 10 + (c - '0');
 				continue;
 			}
 			if(na == 0 && c == '0') {
 				dp--;
 				continue;
 			}
-			if(na < Ndig-50)
+			if(na < Ndig - 50)
 				a[na++] = c;
 			continue;
 		}
@@ -160,11 +158,10 @@ fmtstrtod(const char *as, char **aas)
 		case '+':
 			if(state == S0)
 				state = S1;
-			else
-			if(state == S5)
+			else if(state == S5)
 				state = S6;
 			else
-				break;	/* syntax */
+				break; /* syntax */
 			continue;
 		case '.':
 			flag |= Fdpoint;
@@ -196,56 +193,55 @@ fmtstrtod(const char *as, char **aas)
 	case S0:
 		if(xcmp(s, "nan") == 0) {
 			if(aas != nil)
-				*aas = s+3;
+				*aas = s + 3;
 			goto retnan;
 		}
 	case S1:
 		if(xcmp(s, "infinity") == 0) {
 			if(aas != nil)
-				*aas = s+8;
+				*aas = s + 8;
 			goto retinf;
 		}
 		if(xcmp(s, "inf") == 0) {
 			if(aas != nil)
-				*aas = s+3;
+				*aas = s + 3;
 			goto retinf;
 		}
 	case S3:
 		if(aas != nil)
-			*aas = (char*)as;
-		goto ret0;	/* no digits found */
+			*aas = (char *)as;
+		goto ret0; /* no digits found */
 	case S6:
-		s--;		/* back over +- */
+		s--; /* back over +- */
 	case S5:
-		s--;		/* back over e */
+		s--; /* back over e */
 		break;
 	}
 	if(aas != nil)
 		*aas = s;
 
 	if(flag & Fdpoint)
-	while(na > 0 && a[na-1] == '0')
-		na--;
+		while(na > 0 && a[na - 1] == '0')
+			na--;
 	if(na == 0)
-		goto ret0;	/* zero */
+		goto ret0; /* zero */
 	a[na] = 0;
 	if(!(flag & Fdpoint))
 		dp = na;
 	if(flag & Fesign)
 		ex = -ex;
 	dp += ex;
-	if(dp < -Maxe){
+	if(dp < -Maxe) {
 		errno = ERANGE;
-		goto ret0;	/* underflow by exp */
-	} else
-	if(dp > +Maxe)
-		goto retinf;	/* overflow by exp */
+		goto ret0; /* underflow by exp */
+	} else if(dp > +Maxe)
+		goto retinf; /* overflow by exp */
 
 	/*
 	 * normalize the decimal ascii number
 	 * to range .[5-9][0-9]* e0
 	 */
-	bp = 0;		/* binary exponent */
+	bp = 0; /* binary exponent */
 	while(dp > 0)
 		divascii(a, &na, &dp, &bp);
 	while(dp < 0 || a[0] < '5')
@@ -254,24 +250,24 @@ fmtstrtod(const char *as, char **aas)
 	/* close approx by naive conversion */
 	mid[0] = 0;
 	mid[1] = 1;
-	for(i=0; c=a[i]; i++) {
-		mid[0] = mid[0]*10 + (c-'0');
-		mid[1] = mid[1]*10;
+	for(i = 0; c = a[i]; i++) {
+		mid[0] = mid[0] * 10 + (c - '0');
+		mid[1] = mid[1] * 10;
 		if(i >= 8)
 			break;
 	}
 	low[0] = umuldiv(mid[0], One, mid[1]);
-	hig[0] = umuldiv(mid[0]+1, One, mid[1]);
-	for(i=1; i<Prec; i++) {
+	hig[0] = umuldiv(mid[0] + 1, One, mid[1]);
+	for(i = 1; i < Prec; i++) {
 		low[i] = 0;
-		hig[i] = One-1;
+		hig[i] = One - 1;
 	}
 
 	/* binary search for closest mantissa */
 	for(;;) {
 		/* mid = (hig + low) / 2 */
 		c = 0;
-		for(i=0; i<Prec; i++) {
+		for(i = 0; i < Prec; i++) {
 			mid[i] = hig[i] + low[i];
 			if(c)
 				mid[i] += One;
@@ -284,33 +280,33 @@ fmtstrtod(const char *as, char **aas)
 		c = fpcmp(a, mid);
 		if(c > 0) {
 			c = 1;
-			for(i=0; i<Prec; i++)
+			for(i = 0; i < Prec; i++)
 				if(low[i] != mid[i]) {
 					c = 0;
 					low[i] = mid[i];
 				}
 			if(c)
-				break;	/* between mid and hig */
+				break; /* between mid and hig */
 			continue;
 		}
 		if(c < 0) {
-			for(i=0; i<Prec; i++)
+			for(i = 0; i < Prec; i++)
 				hig[i] = mid[i];
 			continue;
 		}
 
 		/* only hard part is if even/odd roundings wants to go up */
-		c = mid[Prec-1] & (Sigbit-1);
-		if(c == Sigbit/2 && (mid[Prec-1]&Sigbit) == 0)
-			mid[Prec-1] -= c;
-		break;	/* exactly mid */
+		c = mid[Prec - 1] & (Sigbit - 1);
+		if(c == Sigbit / 2 && (mid[Prec - 1] & Sigbit) == 0)
+			mid[Prec - 1] -= c;
+		break; /* exactly mid */
 	}
 
 	/* normal rounding applies */
-	c = mid[Prec-1] & (Sigbit-1);
-	mid[Prec-1] -= c;
-	if(c >= Sigbit/2) {
-		mid[Prec-1] += Sigbit;
+	c = mid[Prec - 1] & (Sigbit - 1);
+	mid[Prec - 1] -= c;
+	if(c >= Sigbit / 2) {
+		mid[Prec - 1] += Sigbit;
 		frnorm(mid);
 	}
 	goto out;
@@ -331,12 +327,12 @@ retinf:
 
 out:
 	d = 0;
-	for(i=0; i<Prec; i++)
-		d = d*One + mid[i];
+	for(i = 0; i < Prec; i++)
+		d = d * One + mid[i];
 	if(flag & Fsign)
 		d = -d;
-	d = ldexp(d, bp - Prec*Nbits);
-	if(d == 0){	/* underflow */
+	d = ldexp(d, bp - Prec * Nbits);
+	if(d == 0) { /* underflow */
 		errno = ERANGE;
 	}
 	return d;
@@ -348,30 +344,30 @@ frnorm(uint32_t *f)
 	int i, c;
 
 	c = 0;
-	for(i=Prec-1; i>0; i--) {
+	for(i = Prec - 1; i > 0; i--) {
 		f[i] += c;
 		c = f[i] >> Nbits;
-		f[i] &= One-1;
+		f[i] &= One - 1;
 	}
 	f[0] += c;
 }
 
 static int
-fpcmp(char *a, uint32_t* f)
+fpcmp(char *a, uint32_t *f)
 {
 	uint32_t tf[Prec];
 	int i, d, c;
 
-	for(i=0; i<Prec; i++)
+	for(i = 0; i < Prec; i++)
 		tf[i] = f[i];
 
 	for(;;) {
 		/* tf *= 10 */
-		for(i=0; i<Prec; i++)
-			tf[i] = tf[i]*10;
+		for(i = 0; i < Prec; i++)
+			tf[i] = tf[i] * 10;
 		frnorm(tf);
 		d = (tf[0] >> Nbits) + '0';
-		tf[0] &= One-1;
+		tf[0] &= One - 1;
 
 		/* compare next digit */
 		c = *a;
@@ -380,7 +376,7 @@ fpcmp(char *a, uint32_t* f)
 				return -1;
 			if(tf[0] != 0)
 				goto cont;
-			for(i=1; i<Prec; i++)
+			for(i = 1; i < Prec; i++)
 				if(tf[i] != 0)
 					goto cont;
 			return 0;
@@ -390,7 +386,8 @@ fpcmp(char *a, uint32_t* f)
 		if(c < d)
 			return -1;
 		a++;
-	cont:;
+	cont:
+		;
 	}
 }
 
@@ -402,53 +399,53 @@ divby(char *a, int *na, int b)
 
 	p = a;
 	n = 0;
-	while(n>>b == 0) {
+	while(n >> b == 0) {
 		c = *a++;
 		if(c == 0) {
 			while(n) {
-				c = n*10;
-				if(c>>b)
+				c = n * 10;
+				if(c >> b)
 					break;
 				n = c;
 			}
 			goto xx;
 		}
-		n = n*10 + c-'0';
+		n = n * 10 + c - '0';
 		(*na)--;
 	}
 	for(;;) {
-		c = n>>b;
-		n -= c<<b;
+		c = n >> b;
+		n -= c << b;
 		*p++ = c + '0';
 		c = *a++;
 		if(c == 0)
 			break;
-		n = n*10 + c-'0';
+		n = n * 10 + c - '0';
 	}
 	(*na)++;
 xx:
 	while(n) {
-		n = n*10;
-		c = n>>b;
-		n -= c<<b;
+		n = n * 10;
+		c = n >> b;
+		n -= c << b;
 		*p++ = c + '0';
 		(*na)++;
 	}
 	*p = 0;
 }
 
-static	Tab	tab1[] =
-{
-	 1,  0, "",
-	 3,  1, "7",
-	 6,  2, "63",
-	 9,  3, "511",
-	13,  4, "8191",
-	16,  5, "65535",
-	19,  6, "524287",
-	23,  7, "8388607",
-	26,  8, "67108863",
-	27,  9, "134217727",
+static Tab tab1[] =
+    {
+     1, 0, "",
+     3, 1, "7",
+     6, 2, "63",
+     9, 3, "511",
+     13, 4, "8191",
+     16, 5, "65535",
+     19, 6, "524287",
+     23, 7, "8388607",
+     26, 8, "67108863",
+     27, 9, "134217727",
 };
 
 static void
@@ -459,7 +456,7 @@ divascii(char *a, int *na, int *dp, int *bp)
 
 	d = *dp;
 	if(d >= (int)(nelem(tab1)))
-		d = (int)(nelem(tab1))-1;
+		d = (int)(nelem(tab1)) - 1;
 	t = tab1 + d;
 	b = t->bp;
 	if(memcmp(a, t->cmp, t->siz) > 0)
@@ -481,33 +478,33 @@ mulby(char *a, char *p, char *q, int b)
 		if(q < a)
 			break;
 		c = *q - '0';
-		c = (c<<b) + n;
-		n = c/10;
-		c -= n*10;
+		c = (c << b) + n;
+		n = c / 10;
+		c -= n * 10;
 		p--;
 		*p = c + '0';
 	}
 	while(n) {
 		c = n;
-		n = c/10;
-		c -= n*10;
+		n = c / 10;
+		c -= n * 10;
 		p--;
 		*p = c + '0';
 	}
 }
 
-static	Tab	tab2[] =
-{
-	 1,  1, "",				/* dp = 0-0 */
-	 3,  3, "125",
-	 6,  5, "15625",
-	 9,  7, "1953125",
-	13, 10, "1220703125",
-	16, 12, "152587890625",
-	19, 14, "19073486328125",
-	23, 17, "11920928955078125",
-	26, 19, "1490116119384765625",
-	27, 19, "7450580596923828125",		/* dp 8-9 */
+static Tab tab2[] =
+    {
+     1, 1, "", /* dp = 0-0 */
+     3, 3, "125",
+     6, 5, "15625",
+     9, 7, "1953125",
+     13, 10, "1220703125",
+     16, 12, "152587890625",
+     19, 14, "19073486328125",
+     23, 17, "11920928955078125",
+     26, 19, "1490116119384765625",
+     27, 19, "7450580596923828125", /* dp 8-9 */
 };
 
 static void
@@ -519,7 +516,7 @@ mulascii(char *a, int *na, int *dp, int *bp)
 
 	d = -*dp;
 	if(d >= (int)(nelem(tab2)))
-		d = (int)(nelem(tab2))-1;
+		d = (int)(nelem(tab2)) - 1;
 	t = tab2 + d;
 	b = t->bp;
 	if(memcmp(a, t->cmp, t->siz) < 0)
@@ -528,7 +525,7 @@ mulascii(char *a, int *na, int *dp, int *bp)
 	*bp -= b;
 	*dp += d;
 	*na += d;
-	mulby(a, p+d, p, b);
+	mulby(a, p + d, p, b);
 }
 
 static int

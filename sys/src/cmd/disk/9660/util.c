@@ -15,7 +15,7 @@
 
 #include "iso9660.h"
 
-typedef struct Stringtab	Stringtab;
+typedef struct Stringtab Stringtab;
 struct Stringtab {
 	Stringtab *link;
 	char *str;
@@ -30,12 +30,12 @@ hash(char *s)
 	uint8_t *p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
-		h = h*37 + *p;
+	for(p = (uint8_t *)s; *p; p++)
+		h = h * 37 + *p;
 	return h;
 }
 
-static char*
+static char *
 estrdup(char *s)
 {
 	if((s = strdup(s)) == nil)
@@ -43,14 +43,14 @@ estrdup(char *s)
 	return s;
 }
 
-char*
+char *
 atom(char *str)
 {
 	uint h;
 	Stringtab *tab;
-	
+
 	h = hash(str) % nelem(stab);
-	for(tab=stab[h]; tab; tab=tab->link)
+	for(tab = stab[h]; tab; tab = tab->link)
 		if(strcmp(str, tab->str) == 0)
 			return tab->str;
 
@@ -61,7 +61,7 @@ atom(char *str)
 	return tab->str;
 }
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *p;
@@ -72,7 +72,7 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *v, uint32_t n)
 {
 	if((v = realloc(v, n)) == nil)
@@ -80,7 +80,7 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-char*
+char *
 struprcpy(char *p, char *s)
 {
 	char *op;

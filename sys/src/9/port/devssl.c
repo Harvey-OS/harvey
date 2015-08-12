@@ -10,93 +10,89 @@
 /*
  *  devssl - secure sockets layer
  */
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	<libsec.h>
+#include <libsec.h>
 
 #define NOSPOOKS 1
 
 typedef struct OneWay OneWay;
-struct OneWay
-{
-	QLock	q;
-	QLock	ctlq;
+struct OneWay {
+	QLock q;
+	QLock ctlq;
 
-	void	*state;		/* encryption state */
-	int	slen;		/* hash data length */
-	uint8_t	*secret;	/* secret */
-	uint32_t	mid;		/* message id */
+	void *state;     /* encryption state */
+	int slen;	/* hash data length */
+	uint8_t *secret; /* secret */
+	uint32_t mid;    /* message id */
 };
 
-enum
-{
+enum {
 	/* connection states */
-	Sincomplete=	0,
-	Sclear=		1,
-	Sencrypting=	2,
-	Sdigesting=	4,
-	Sdigenc=	Sencrypting|Sdigesting,
+	Sincomplete = 0,
+	Sclear = 1,
+	Sencrypting = 2,
+	Sdigesting = 4,
+	Sdigenc = Sencrypting | Sdigesting,
 
 	/* encryption algorithms */
-	Noencryption=	0,
-	DESCBC=		1,
-	DESECB=		2,
-	RC4=		3
+	Noencryption = 0,
+	DESCBC = 1,
+	DESECB = 2,
+	RC4 = 3
 };
 
 typedef struct Dstate Dstate;
-struct Dstate
-{
-	Chan	*c;		/* io channel */
-	uint8_t	state;		/* state of connection */
-	int	ref;		/* serialized by dslock for atomic destroy */
+struct Dstate {
+	Chan *c;       /* io channel */
+	uint8_t state; /* state of connection */
+	int ref;       /* serialized by dslock for atomic destroy */
 
-	uint8_t	encryptalg;	/* encryption algorithm */
-	uint16_t	blocklen;	/* blocking length */
+	uint8_t encryptalg; /* encryption algorithm */
+	uint16_t blocklen;  /* blocking length */
 
-	uint16_t	diglen;		/* length of digest */
-	DigestState *(*hf)(uint8_t*, uint32_t, uint8_t*, DigestState*);	/* hash func */
+	uint16_t diglen;						   /* length of digest */
+	DigestState *(*hf)(uint8_t *, uint32_t, uint8_t *, DigestState *); /* hash func */
 
 	/* for SSL format */
-	int	max;		/* maximum unpadded data per msg */
-	int	maxpad;		/* maximum padded data per msg */
+	int max;    /* maximum unpadded data per msg */
+	int maxpad; /* maximum padded data per msg */
 
 	/* input side */
-	OneWay	in;
-	Block	*processed;
-	Block	*unprocessed;
+	OneWay in;
+	Block *processed;
+	Block *unprocessed;
 
 	/* output side */
-	OneWay	out;
+	OneWay out;
 
 	/* protections */
-	char	*user;
-	int	perm;
+	char *user;
+	int perm;
 };
 
-enum
-{
-	Maxdmsg=	1<<16,
-	Maxdstate=	128,	/* must be a power of 2 */
+enum {
+	Maxdmsg = 1 << 16,
+	Maxdstate = 128, /* must be a power of 2 */
 };
 
-Lock	dslock;
-int	dshiwat;
-char	*dsname[Maxdstate];
-Dstate	*dstate[Maxdstate];
-char	*encalgs;
-char	*hashalgs;
+Lock dslock;
+int dshiwat;
+char *dsname[Maxdstate];
+Dstate *dstate[Maxdstate];
+char *encalgs;
+char *hashalgs;
 
-enum{
-	Qtopdir		= 1,	/* top level directory */
+enum {
+	Qtopdir = 1, /* top level directory */
 	Qprotodir,
 	Qclonus,
-	Qconvdir,		/* directory for a conversation */
+	Qconvdir, /* directory for a conversation */
 	Qdata,
 	Qctl,
 	Qsecretin,
@@ -105,35 +101,35 @@ enum{
 	Qhashalgs,
 };
 
-#define TYPE(x) 	((x).path & 0xf)
-#define CONV(x) 	(((x).path >> 5)&(Maxdstate-1))
-#define QID(c, y) 	(((c)<<5) | (y))
+#define TYPE(x) ((x).path & 0xf)
+#define CONV(x) (((x).path >> 5) & (Maxdstate - 1))
+#define QID(c, y) (((c) << 5) | (y))
 
-static void	ensure(Dstate*, Block**, int);
-static void	consume(Block**, uint8_t*, int);
-static void	setsecret(OneWay*, uint8_t*, int);
-static Block*	encryptb(Dstate*, Block*, int);
-static Block*	decryptb(Dstate*, Block*);
-static Block*	digestb(Dstate*, Block*, int);
-static void	checkdigestb(Dstate*, Block*);
-static Chan*	buftochan(char*);
-static void	sslhangup(Dstate*);
-static Dstate*	dsclone(Chan *c);
-static void	dsnew(Chan *c, Dstate **);
-static int32_t	sslput(Dstate *s, Block * volatile b);
+static void ensure(Dstate *, Block **, int);
+static void consume(Block **, uint8_t *, int);
+static void setsecret(OneWay *, uint8_t *, int);
+static Block *encryptb(Dstate *, Block *, int);
+static Block *decryptb(Dstate *, Block *);
+static Block *digestb(Dstate *, Block *, int);
+static void checkdigestb(Dstate *, Block *);
+static Chan *buftochan(char *);
+static void sslhangup(Dstate *);
+static Dstate *dsclone(Chan *c);
+static void dsnew(Chan *c, Dstate **);
+static int32_t sslput(Dstate *s, Block *volatile b);
 
 char *sslnames[] = {
-[Qclonus]	"clone",
-[Qdata]		"data",
-[Qctl]		"ctl",
-[Qsecretin]	"secretin",
-[Qsecretout]	"secretout",
-[Qencalgs]	"encalgs",
-[Qhashalgs]	"hashalgs",
+	[Qclonus] "clone",
+	[Qdata] "data",
+	[Qctl] "ctl",
+	[Qsecretin] "secretin",
+	[Qsecretout] "secretout",
+	[Qencalgs] "encalgs",
+	[Qhashalgs] "hashalgs",
 };
 
 static int
-sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
+sslgen(Chan *c, char *j, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Dstate *ds;
@@ -149,7 +145,7 @@ sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
 	ft = TYPE(c->qid);
 	switch(ft) {
 	case Qtopdir:
-		if(s == DEVDOTDOT){
+		if(s == DEVDOTDOT) {
 			q.path = QID(0, Qtopdir);
 			q.type = QTDIR;
 			devdir(c, q, "#D", 0, eve, 0555, dp);
@@ -162,7 +158,7 @@ sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
 		devdir(c, q, "ssl", 0, eve, 0555, dp);
 		return 1;
 	case Qprotodir:
-		if(s == DEVDOTDOT){
+		if(s == DEVDOTDOT) {
 			q.path = QID(0, Qtopdir);
 			q.type = QTDIR;
 			devdir(c, q, ".", 0, eve, 0555, dp);
@@ -176,7 +172,7 @@ sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
 				nm = ds->user;
 			else
 				nm = eve;
-			if(dsname[s] == nil){
+			if(dsname[s] == nil) {
 				sprint(name, "%d", s);
 				kstrdup(&dsname[s], name);
 			}
@@ -189,7 +185,7 @@ sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
 		devdir(c, q, "clone", 0, eve, 0555, dp);
 		return 1;
 	case Qconvdir:
-		if(s == DEVDOTDOT){
+		if(s == DEVDOTDOT) {
 			q.path = QID(0, Qprotodir);
 			q.type = QTDIR;
 			devdir(c, q, "ssl", 0, eve, 0555, dp);
@@ -244,7 +240,7 @@ sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
 	}
 }
 
-static Chan*
+static Chan *
 sslattach(char *spec)
 {
 	Chan *c;
@@ -256,7 +252,7 @@ sslattach(char *spec)
 	return c;
 }
 
-static Walkqid*
+static Walkqid *
 sslwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, sslgen);
@@ -268,7 +264,7 @@ sslstat(Chan *c, uint8_t *db, int32_t n)
 	return devstat(c, db, n, nil, 0, sslgen);
 }
 
-static Chan*
+static Chan *
 sslopen(Chan *c, int omode)
 {
 	Proc *up = externup();
@@ -319,9 +315,7 @@ sslopen(Chan *c, int omode)
 		if(s == 0)
 			dsnew(c, pp);
 		else {
-			if((perm & (s->perm>>6)) != perm
-			   && (strcmp(up->user, s->user) != 0
-			     || (perm & s->perm) != perm))
+			if((perm & (s->perm >> 6)) != perm && (strcmp(up->user, s->user) != 0 || (perm & s->perm) != perm))
 				error(Eperm);
 
 			s->ref++;
@@ -355,9 +349,9 @@ sslwstat(Chan *c, uint8_t *db, int32_t n)
 	if(strcmp(s->user, up->user) != 0)
 		error(Eperm);
 
-	dir = smalloc(sizeof(Dir)+n);
-	l = convM2D(db, n, &dir[0], (char*)&dir[1]);
-	if(l == 0){
+	dir = smalloc(sizeof(Dir) + n);
+	l = convM2D(db, n, &dir[0], (char *)&dir[1]);
+	if(l == 0) {
 		free(dir);
 		error(Eshortstat);
 	}
@@ -412,7 +406,6 @@ sslclose(Chan *c)
 		if(s->out.state)
 			free(s->out.state);
 		free(s);
-
 	}
 }
 
@@ -426,20 +419,20 @@ ensure(Dstate *s, Block **l, int n)
 	Block *b, *bl;
 
 	sofar = 0;
-	for(b = *l; b; b = b->next){
+	for(b = *l; b; b = b->next) {
 		sofar += BLEN(b);
 		if(sofar >= n)
 			return;
 		l = &b->next;
 	}
 
-	while(sofar < n){
+	while(sofar < n) {
 		bl = s->c->dev->bread(s->c, Maxdmsg, 0);
 		if(bl == 0)
 			nexterror();
 		*l = bl;
 		i = 0;
-		for(b = bl; b; b = b->next){
+		for(b = bl; b; b = b->next) {
 			i += BLEN(b);
 			l = &b->next;
 		}
@@ -459,7 +452,7 @@ consume(Block **l, uint8_t *p, int n)
 	Block *b;
 	int i;
 
-	for(; *l && n > 0; n -= i){
+	for(; *l && n > 0; n -= i) {
 		b = *l;
 		i = BLEN(b);
 		if(i > n)
@@ -503,32 +496,32 @@ regurgitate(Dstate *s, uchar *p, int n)
  *  remove at most n bytes from the queue, if discard is set
  *  dump the remainder
  */
-static Block*
+static Block *
 qtake(Block **l, int n, int discard)
 {
 	Block *nb, *b, *first;
 	int i;
 
 	first = *l;
-	for(b = first; b; b = b->next){
+	for(b = first; b; b = b->next) {
 		i = BLEN(b);
-		if(i == n){
-			if(discard){
+		if(i == n) {
+			if(discard) {
 				freeblist(b->next);
 				*l = 0;
 			} else
 				*l = b->next;
 			b->next = 0;
 			return first;
-		} else if(i > n){
+		} else if(i > n) {
 			i -= n;
-			if(discard){
+			if(discard) {
 				freeblist(b->next);
 				b->wp -= i;
 				*l = 0;
 			} else {
 				nb = allocb(i);
-				memmove(nb->wp, b->rp+n, i);
+				memmove(nb->wp, b->rp + n, i);
 				nb->wp += i;
 				b->wp -= i;
 				nb->next = b->next;
@@ -554,10 +547,10 @@ qtake(Block **l, int n, int discard)
  *  Therefore, we make sure we can always put back the bytes
  *  consumed before the last ensure.
  */
-static Block*
+static Block *
 sslbread(Chan *c, int32_t n, int64_t m)
 {
-	Dstate * volatile s;
+	Dstate *volatile s;
 	Proc *up = externup();
 	Block *b;
 	uint8_t consumed[3], *p;
@@ -571,12 +564,12 @@ sslbread(Chan *c, int32_t n, int64_t m)
 		error(Ebadusefd);
 
 	qlock(&s->in.q);
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&s->in.q);
 		nexterror();
 	}
 
-	if(s->processed == 0){
+	if(s->processed == 0) {
 		/*
 		 * Read in the whole message.  Until we've got it all,
 		 * it stays on s->unprocessed, so that if we get Eintr,
@@ -585,22 +578,22 @@ sslbread(Chan *c, int32_t n, int64_t m)
 		ensure(s, &s->unprocessed, 3);
 		s->unprocessed = pullupblock(s->unprocessed, 2);
 		p = s->unprocessed->rp;
-		if(p[0] & 0x80){
-			len = ((p[0] & 0x7f)<<8) | p[1];
+		if(p[0] & 0x80) {
+			len = ((p[0] & 0x7f) << 8) | p[1];
 			ensure(s, &s->unprocessed, len);
 			pad = 0;
 			toconsume = 2;
 		} else {
 			s->unprocessed = pullupblock(s->unprocessed, 3);
-			len = ((p[0] & 0x3f)<<8) | p[1];
+			len = ((p[0] & 0x3f) << 8) | p[1];
 			pad = p[2];
-			if(pad > len){
+			if(pad > len) {
 				print("pad %d buf len %d\n", pad, len);
 				error("bad pad in ssl message");
 			}
 			toconsume = 3;
 		}
-		ensure(s, &s->unprocessed, toconsume+len);
+		ensure(s, &s->unprocessed, toconsume + len);
 
 		/* skip header */
 		consume(&s->unprocessed, consumed, toconsume);
@@ -611,14 +604,14 @@ sslbread(Chan *c, int32_t n, int64_t m)
 		if(blocklen(b) != len)
 			print("devssl: sslbread got wrong count %d != %d", blocklen(b), len);
 
-		if(waserror()){
+		if(waserror()) {
 			qunlock(&s->in.ctlq);
 			if(b != nil)
 				freeb(b);
 			nexterror();
 		}
 		qlock(&s->in.ctlq);
-		switch(s->state){
+		switch(s->state) {
 		case Sencrypting:
 			if(b == nil)
 				error("ssl message too short (encrypting)");
@@ -666,7 +659,7 @@ sslbread(Chan *c, int32_t n, int64_t m)
 static int32_t
 sslread(Chan *c, void *a, int32_t n, int64_t off)
 {
-	Block * volatile b;
+	Block *volatile b;
 	Proc *up = externup();
 	Block *nb;
 	uint8_t *va;
@@ -698,16 +691,16 @@ sslread(Chan *c, void *a, int32_t n, int64_t off)
 		break;
 	}
 
-	if(waserror()){
+	if(waserror()) {
 		freeblist(b);
 		nexterror();
 	}
 
 	n = 0;
 	va = a;
-	for(nb = b; nb; nb = nb->next){
+	for(nb = b; nb; nb = nb->next) {
 		i = BLEN(nb);
-		memmove(va+n, nb->rp, i);
+		memmove(va + n, nb->rp, i);
 		n += i;
 	}
 
@@ -731,7 +724,7 @@ randfill(uint8_t *buf, int len)
 static int32_t
 sslbwrite(Chan *c, Block *b, int64_t m)
 {
-	Dstate * volatile s;
+	Dstate *volatile s;
 	Proc *up = externup();
 	int32_t rv;
 
@@ -739,13 +732,13 @@ sslbwrite(Chan *c, Block *b, int64_t m)
 	if(s == nil)
 		panic("sslbwrite");
 
-	if(s->state == Sincomplete){
+	if(s->state == Sincomplete) {
 		freeb(b);
 		error(Ebadusefd);
 	}
 
 	/* lock so split writes won't interleave */
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&s->out.q);
 		nexterror();
 	}
@@ -766,7 +759,7 @@ sslbwrite(Chan *c, Block *b, int64_t m)
  *  it since we don't know if any bytes have been written.
  */
 static int32_t
-sslput(Dstate *s, Block * volatile b)
+sslput(Dstate *s, Block *volatile b)
 {
 	Proc *up = externup();
 	Block *nb;
@@ -774,25 +767,25 @@ sslput(Dstate *s, Block * volatile b)
 	uint8_t *p;
 	int offset;
 
-	if(waserror()){
+	if(waserror()) {
 		if(b != nil)
 			freeb(b);
 		nexterror();
 	}
 
 	rv = 0;
-	while(b != nil){
+	while(b != nil) {
 		l = n = BLEN(b);
 		h = s->diglen + 2;
 
 		/* trim to maximum block size */
 		pad = 0;
-		if(l > s->max){
+		if(l > s->max) {
 			l = s->max;
-		} else if(s->blocklen != 1){
-			pad = (l + s->diglen)%s->blocklen;
-			if(pad){
-				if(l > s->maxpad){
+		} else if(s->blocklen != 1) {
+			pad = (l + s->diglen) % s->blocklen;
+			if(pad) {
+				if(l > s->maxpad) {
 					pad = 0;
 					l = s->maxpad;
 				} else {
@@ -803,7 +796,7 @@ sslput(Dstate *s, Block * volatile b)
 		}
 
 		rv += l;
-		if(l != n){
+		if(l != n) {
 			nb = allocb(l + h + pad);
 			memmove(nb->wp + h, b->rp, l);
 			nb->wp += l + h;
@@ -816,25 +809,25 @@ sslput(Dstate *s, Block * volatile b)
 		l += s->diglen;
 
 		/* SSL style count */
-		if(pad){
+		if(pad) {
 			nb = padblock(nb, -pad);
 			randfill(nb->wp, pad);
 			nb->wp += pad;
 			l += pad;
 
 			p = nb->rp;
-			p[0] = (l>>8);
+			p[0] = (l >> 8);
 			p[1] = l;
 			p[2] = pad;
 			offset = 3;
 		} else {
 			p = nb->rp;
-			p[0] = (l>>8) | 0x80;
+			p[0] = (l >> 8) | 0x80;
 			p[1] = l;
 			offset = 2;
 		}
 
-		switch(s->state){
+		switch(s->state) {
 		case Sencrypting:
 			nb = encryptb(s, nb, offset);
 			break;
@@ -872,14 +865,14 @@ setsecret(OneWay *w, uint8_t *secret, int n)
 static void
 initDESkey(OneWay *w)
 {
-	if(w->state){
+	if(w->state) {
 		free(w->state);
 		w->state = 0;
 	}
 
 	w->state = smalloc(sizeof(DESstate));
 	if(w->slen >= 16)
-		setupDESstate(w->state, w->secret, w->secret+8);
+		setupDESstate(w->state, w->secret, w->secret + 8);
 	else if(w->slen >= 8)
 		setupDESstate(w->state, w->secret, 0);
 	else
@@ -895,12 +888,12 @@ initDESkey_40(OneWay *w)
 {
 	uint8_t key[8];
 
-	if(w->state){
+	if(w->state) {
 		free(w->state);
 		w->state = 0;
 	}
 
-	if(w->slen >= 8){
+	if(w->slen >= 8) {
 		memmove(key, w->secret, 8);
 		key[0] &= 0x0f;
 		key[2] &= 0x0f;
@@ -910,7 +903,7 @@ initDESkey_40(OneWay *w)
 
 	w->state = smalloc(sizeof(DESstate));
 	if(w->slen >= 16)
-		setupDESstate(w->state, key, w->secret+8);
+		setupDESstate(w->state, key, w->secret + 8);
 	else if(w->slen >= 8)
 		setupDESstate(w->state, key, 0);
 	else
@@ -920,7 +913,7 @@ initDESkey_40(OneWay *w)
 static void
 initRC4key(OneWay *w)
 {
-	if(w->state){
+	if(w->state) {
 		free(w->state);
 		w->state = 0;
 	}
@@ -936,7 +929,7 @@ initRC4key(OneWay *w)
 static void
 initRC4key_40(OneWay *w)
 {
-	if(w->state){
+	if(w->state) {
 		free(w->state);
 		w->state = 0;
 	}
@@ -955,7 +948,7 @@ initRC4key_40(OneWay *w)
 static void
 initRC4key_128(OneWay *w)
 {
-	if(w->state){
+	if(w->state) {
 		free(w->state);
 		w->state = 0;
 	}
@@ -967,31 +960,36 @@ initRC4key_128(OneWay *w)
 	setupRC4state(w->state, w->secret, w->slen);
 }
 
-
 typedef struct Hashalg Hashalg;
-struct Hashalg
-{
-	char	*name;
-	int	diglen;
-	DigestState *(*hf)(uint8_t*, uint32_t, uint8_t*, DigestState*);
+struct Hashalg {
+	char *name;
+	int diglen;
+	DigestState *(*hf)(uint8_t *, uint32_t, uint8_t *, DigestState *);
 };
 
 Hashalg hashtab[] =
-{
-	{ "md4", MD4dlen, md4, },
-	{ "md5", MD5dlen, md5, },
-	{ "sha1", SHA1dlen, sha1, },
-	{ "sha", SHA1dlen, sha1, },
-	{ 0 }
-};
+    {
+     {
+      "md4", MD4dlen, md4,
+     },
+     {
+      "md5", MD5dlen, md5,
+     },
+     {
+      "sha1", SHA1dlen, sha1,
+     },
+     {
+      "sha", SHA1dlen, sha1,
+     },
+     {0}};
 
 static int
 parsehashalg(char *p, Dstate *s)
 {
 	Hashalg *ha;
 
-	for(ha = hashtab; ha->name; ha++){
-		if(strcmp(p, ha->name) == 0){
+	for(ha = hashtab; ha->name; ha++) {
+		if(strcmp(p, ha->name) == 0) {
 			s->hf = ha->hf;
 			s->diglen = ha->diglen;
 			s->state &= ~Sclear;
@@ -1003,38 +1001,63 @@ parsehashalg(char *p, Dstate *s)
 }
 
 typedef struct Encalg Encalg;
-struct Encalg
-{
-	char	*name;
-	int	blocklen;
-	int	alg;
-	void	(*keyinit)(OneWay*);
+struct Encalg {
+	char *name;
+	int blocklen;
+	int alg;
+	void (*keyinit)(OneWay *);
 };
 
 #ifdef NOSPOOKS
 Encalg encrypttab[] =
-{
-	{ "descbc", 8, DESCBC, initDESkey, },           /* DEPRECATED -- use des_56_cbc */
-	{ "desecb", 8, DESECB, initDESkey, },           /* DEPRECATED -- use des_56_ecb */
-	{ "des_56_cbc", 8, DESCBC, initDESkey, },
-	{ "des_56_ecb", 8, DESECB, initDESkey, },
-	{ "des_40_cbc", 8, DESCBC, initDESkey_40, },
-	{ "des_40_ecb", 8, DESECB, initDESkey_40, },
-	{ "rc4", 1, RC4, initRC4key_40, },              /* DEPRECATED -- use rc4_X      */
-	{ "rc4_256", 1, RC4, initRC4key, },
-	{ "rc4_128", 1, RC4, initRC4key_128, },
-	{ "rc4_40", 1, RC4, initRC4key_40, },
-	{ 0 }
-};
+    {
+     {
+      "descbc", 8, DESCBC, initDESkey,
+     }, /* DEPRECATED -- use des_56_cbc */
+     {
+      "desecb", 8, DESECB, initDESkey,
+     }, /* DEPRECATED -- use des_56_ecb */
+     {
+      "des_56_cbc", 8, DESCBC, initDESkey,
+     },
+     {
+      "des_56_ecb", 8, DESECB, initDESkey,
+     },
+     {
+      "des_40_cbc", 8, DESCBC, initDESkey_40,
+     },
+     {
+      "des_40_ecb", 8, DESECB, initDESkey_40,
+     },
+     {
+      "rc4", 1, RC4, initRC4key_40,
+     }, /* DEPRECATED -- use rc4_X      */
+     {
+      "rc4_256", 1, RC4, initRC4key,
+     },
+     {
+      "rc4_128", 1, RC4, initRC4key_128,
+     },
+     {
+      "rc4_40", 1, RC4, initRC4key_40,
+     },
+     {0}};
 #else
 Encalg encrypttab[] =
-{
-	{ "des_40_cbc", 8, DESCBC, initDESkey_40, },
-	{ "des_40_ecb", 8, DESECB, initDESkey_40, },
-	{ "rc4", 1, RC4, initRC4key_40, },              /* DEPRECATED -- use rc4_X      */
-	{ "rc4_40", 1, RC4, initRC4key_40, },
-	{ 0 }
-};
+    {
+     {
+      "des_40_cbc", 8, DESCBC, initDESkey_40,
+     },
+     {
+      "des_40_ecb", 8, DESECB, initDESkey_40,
+     },
+     {
+      "rc4", 1, RC4, initRC4key_40,
+     }, /* DEPRECATED -- use rc4_X      */
+     {
+      "rc4_40", 1, RC4, initRC4key_40,
+     },
+     {0}};
 #endif //NOSPOOKS
 
 static int
@@ -1042,8 +1065,8 @@ parseencryptalg(char *p, Dstate *s)
 {
 	Encalg *ea;
 
-	for(ea = encrypttab; ea->name; ea++){
-		if(strcmp(p, ea->name) == 0){
+	for(ea = encrypttab; ea->name; ea++) {
+		if(strcmp(p, ea->name) == 0) {
 			s->encryptalg = ea->alg;
 			s->blocklen = ea->blocklen;
 			(*ea->keyinit)(&s->in);
@@ -1059,8 +1082,8 @@ parseencryptalg(char *p, Dstate *s)
 static int32_t
 sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
-	Dstate * volatile s;
-	Block * volatile b;
+	Dstate *volatile s;
+	Block *volatile b;
 	Proc *up = externup();
 	int l, t;
 	char *p, *np, *e, buf[128];
@@ -1071,12 +1094,12 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 		panic("sslwrite");
 
 	t = TYPE(c->qid);
-	if(t == Qdata){
+	if(t == Qdata) {
 		if(s->state == Sincomplete)
 			error(Ebadusefd);
 
 		/* lock should a write gets split over multiple records */
-		if(waserror()){
+		if(waserror()) {
 			qunlock(&s->out.q);
 			nexterror();
 		}
@@ -1090,7 +1113,7 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 				l = s->max;
 
 			b = allocb(l);
-			if(waserror()){
+			if(waserror()) {
 				freeb(b);
 				nexterror();
 			}
@@ -1109,7 +1132,7 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 	}
 
 	/* mutex with operations using what we're about to change */
-	if(waserror()){
+	if(waserror()) {
 		qunlock(&s->in.ctlq);
 		qunlock(&s->out.q);
 		nexterror();
@@ -1117,7 +1140,7 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 	qlock(&s->in.ctlq);
 	qlock(&s->out.q);
 
-	switch(t){
+	switch(t) {
 	default:
 		panic("sslwrite");
 	case Qsecretin:
@@ -1141,17 +1164,17 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 	if(p)
 		*p++ = 0;
 
-	if(strcmp(buf, "fd") == 0){
+	if(strcmp(buf, "fd") == 0) {
 		s->c = buftochan(p);
 
 		/* default is clear (msg delimiters only) */
 		s->state = Sclear;
 		s->blocklen = 1;
 		s->diglen = 0;
-		s->maxpad = s->max = (1<<15) - s->diglen - 1;
+		s->maxpad = s->max = (1 << 15) - s->diglen - 1;
 		s->in.mid = 0;
 		s->out.mid = 0;
-	} else if(strcmp(buf, "alg") == 0 && p != 0){
+	} else if(strcmp(buf, "alg") == 0 && p != 0) {
 		s->blocklen = 1;
 		s->diglen = 0;
 
@@ -1159,8 +1182,8 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 			error("must set fd before algorithm");
 
 		s->state = Sclear;
-		s->maxpad = s->max = (1<<15) - s->diglen - 1;
-		if(strcmp(p, "clear") == 0){
+		s->maxpad = s->max = (1 << 15) - s->diglen - 1;
+		if(strcmp(p, "clear") == 0) {
 			goto out;
 		}
 
@@ -1175,14 +1198,14 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 		s->encryptalg = Noencryption;
 		s->blocklen = 1;
 
-		for(;;){
+		for(;;) {
 			np = strchr(p, ' ');
 			if(np)
 				*np++ = 0;
 
 			if(parsehashalg(p, s) < 0)
-			if(parseencryptalg(p, s) < 0)
-				error("bad algorithm");
+				if(parseencryptalg(p, s) < 0)
+					error("bad algorithm");
 
 			if(np == 0)
 				break;
@@ -1192,21 +1215,21 @@ sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 		if(s->hf == 0 && s->encryptalg == Noencryption)
 			error("bad algorithm");
 
-		if(s->blocklen != 1){
-			s->max = (1<<15) - s->diglen - 1;
+		if(s->blocklen != 1) {
+			s->max = (1 << 15) - s->diglen - 1;
 			s->max -= s->max % s->blocklen;
-			s->maxpad = (1<<14) - s->diglen - 1;
+			s->maxpad = (1 << 14) - s->diglen - 1;
 			s->maxpad -= s->maxpad % s->blocklen;
 		} else
-			s->maxpad = s->max = (1<<15) - s->diglen - 1;
+			s->maxpad = s->max = (1 << 15) - s->diglen - 1;
 	} else if(strcmp(buf, "secretin") == 0 && p != 0) {
-		l = (strlen(p)*3)/2;
+		l = (strlen(p) * 3) / 2;
 		x = smalloc(l);
 		t = dec64(x, l, p, strlen(p));
 		setsecret(&s->in, x, t);
 		free(x);
 	} else if(strcmp(buf, "secretout") == 0 && p != 0) {
-		l = (strlen(p)*3)/2 + 1;
+		l = (strlen(p) * 3) / 2 + 1;
 		x = smalloc(l);
 		t = dec64(x, l, p, strlen(p));
 		setsecret(&s->out, x, t);
@@ -1233,7 +1256,7 @@ sslinit(void)
 	for(e = encrypttab; e->name != nil; e++)
 		n += strlen(e->name) + 1;
 	cp = encalgs = smalloc(n);
-	for(e = encrypttab;;){
+	for(e = encrypttab;;) {
 		strcpy(cp, e->name);
 		cp += strlen(e->name);
 		e++;
@@ -1247,7 +1270,7 @@ sslinit(void)
 	for(h = hashtab; h->name != nil; h++)
 		n += strlen(h->name) + 1;
 	cp = hashalgs = smalloc(n);
-	for(h = hashtab;;){
+	for(h = hashtab;;) {
 		strcpy(cp, h->name);
 		cp += strlen(h->name);
 		h++;
@@ -1259,33 +1282,33 @@ sslinit(void)
 }
 
 Dev ssldevtab = {
-	'D',
-	"ssl",
+    'D',
+    "ssl",
 
-	devreset,
-	sslinit,
-	devshutdown,
-	sslattach,
-	sslwalk,
-	sslstat,
-	sslopen,
-	devcreate,
-	sslclose,
-	sslread,
-	sslbread,
-	sslwrite,
-	sslbwrite,
-	devremove,
-	sslwstat,
+    devreset,
+    sslinit,
+    devshutdown,
+    sslattach,
+    sslwalk,
+    sslstat,
+    sslopen,
+    devcreate,
+    sslclose,
+    sslread,
+    sslbread,
+    sslwrite,
+    sslbwrite,
+    devremove,
+    sslwstat,
 };
 
-static Block*
+static Block *
 encryptb(Dstate *s, Block *b, int offset)
 {
 	uint8_t *p, *ep, *p2, *ip, *eip;
 	DESstate *ds;
 
-	switch(s->encryptalg){
+	switch(s->encryptalg) {
 	case DESECB:
 		ds = s->out.state;
 		ep = b->rp + BLEN(b);
@@ -1295,10 +1318,10 @@ encryptb(Dstate *s, Block *b, int offset)
 	case DESCBC:
 		ds = s->out.state;
 		ep = b->rp + BLEN(b);
-		for(p = b->rp + offset; p < ep; p += 8){
+		for(p = b->rp + offset; p < ep; p += 8) {
 			p2 = p;
 			ip = ds->ivec;
-			for(eip = ip+8; ip < eip; )
+			for(eip = ip + 8; ip < eip;)
 				*p2++ ^= *ip++;
 			block_cipher(ds->expanded, p, 0);
 			memmove(ds->ivec, p, 8);
@@ -1311,7 +1334,7 @@ encryptb(Dstate *s, Block *b, int offset)
 	return b;
 }
 
-static Block*
+static Block *
 decryptb(Dstate *s, Block *bin)
 {
 	Block *b, **l;
@@ -1321,12 +1344,12 @@ decryptb(Dstate *s, Block *bin)
 	int i;
 
 	l = &bin;
-	for(b = bin; b; b = b->next){
+	for(b = bin; b; b = b->next) {
 		/* make sure we have a multiple of s->blocklen */
-		if(s->blocklen > 1){
+		if(s->blocklen > 1) {
 			i = BLEN(b);
-			if(i % s->blocklen){
-				*l = b = pullupblock(b, i + s->blocklen - (i%s->blocklen));
+			if(i % s->blocklen) {
+				*l = b = pullupblock(b, i + s->blocklen - (i % s->blocklen));
 				if(b == 0)
 					error("ssl encrypted message too short");
 			}
@@ -1334,7 +1357,7 @@ decryptb(Dstate *s, Block *bin)
 		l = &b->next;
 
 		/* decrypt */
-		switch(s->encryptalg){
+		switch(s->encryptalg) {
 		case DESECB:
 			ds = s->in.state;
 			ep = b->rp + BLEN(b);
@@ -1344,12 +1367,12 @@ decryptb(Dstate *s, Block *bin)
 		case DESCBC:
 			ds = s->in.state;
 			ep = b->rp + BLEN(b);
-			for(p = b->rp; p < ep;){
+			for(p = b->rp; p < ep;) {
 				memmove(tmp, p, 8);
 				block_cipher(ds->expanded, p, 1);
 				tp = tmp;
 				ip = ds->ivec;
-				for(eip = ip+8; ip < eip; ){
+				for(eip = ip + 8; ip < eip;) {
 					*p++ ^= *ip;
 					*ip++ = *tp++;
 				}
@@ -1363,7 +1386,7 @@ decryptb(Dstate *s, Block *bin)
 	return bin;
 }
 
-static Block*
+static Block *
 digestb(Dstate *s, Block *b, int offset)
 {
 	uint8_t *p;
@@ -1385,9 +1408,9 @@ digestb(Dstate *s, Block *b, int offset)
 	/* hash message id */
 	p = msgid;
 	n = w->mid;
-	*p++ = n>>24;
-	*p++ = n>>16;
-	*p++ = n>>8;
+	*p++ = n >> 24;
+	*p++ = n >> 16;
+	*p++ = n >> 8;
 	*p = n;
 	(*s->hf)(msgid, 4, b->rp + offset, &ss);
 
@@ -1414,7 +1437,7 @@ checkdigestb(Dstate *s, Block *bin)
 
 	/* hash message */
 	h = s->diglen;
-	for(b = bin; b; b = b->next){
+	for(b = bin; b; b = b->next) {
 		n = BLEN(b) - h;
 		if(n < 0)
 			panic("checkdigestb");
@@ -1425,9 +1448,9 @@ checkdigestb(Dstate *s, Block *bin)
 	/* hash message id */
 	p = msgid;
 	n = w->mid;
-	*p++ = n>>24;
-	*p++ = n>>16;
-	*p++ = n>>8;
+	*p++ = n >> 24;
+	*p++ = n >> 16;
+	*p++ = n >> 8;
 	*p = n;
 	(*s->hf)(msgid, 4, digest, &ss);
 
@@ -1436,7 +1459,7 @@ checkdigestb(Dstate *s, Block *bin)
 }
 
 /* get channel associated with an fd */
-static Chan*
+static Chan *
 buftochan(char *p)
 {
 	Chan *c;
@@ -1447,8 +1470,8 @@ buftochan(char *p)
 	fd = strtoul(p, 0, 0);
 	if(fd < 0)
 		error(Ebadarg);
-	c = fdtochan(fd, -1, 0, 1);	/* error check and inc ref */
-	if(c->dev == &ssldevtab){
+	c = fdtochan(fd, -1, 0, 1); /* error check and inc ref */
+	if(c->dev == &ssldevtab) {
 		cclose(c);
 		error("cannot ssl encrypt devssl files");
 	}
@@ -1462,11 +1485,11 @@ sslhangup(Dstate *s)
 	Block *b;
 
 	qlock(&s->in.q);
-	for(b = s->processed; b; b = s->processed){
+	for(b = s->processed; b; b = s->processed) {
 		s->processed = b->next;
 		freeb(b);
 	}
-	if(s->unprocessed){
+	if(s->unprocessed) {
 		freeb(s->unprocessed);
 		s->unprocessed = 0;
 	}
@@ -1474,7 +1497,7 @@ sslhangup(Dstate *s)
 	qunlock(&s->in.q);
 }
 
-static Dstate*
+static Dstate *
 dsclone(Chan *ch)
 {
 	int i;
@@ -1487,8 +1510,8 @@ dsclone(Chan *ch)
 	}
 	lock(&dslock);
 	ret = nil;
-	for(i=0; i<Maxdstate; i++){
-		if(dstate[i] == nil){
+	for(i = 0; i < Maxdstate; i++) {
+		if(dstate[i] == nil) {
 			dsnew(ch, &dstate[i]);
 			ret = dstate[i];
 			break;

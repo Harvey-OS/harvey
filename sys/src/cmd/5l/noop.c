@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
-static	Sym*	sym_div;
-static	Sym*	sym_divu;
-static	Sym*	sym_mod;
-static	Sym*	sym_modu;
+static Sym *sym_div;
+static Sym *sym_divu;
+static Sym *sym_mod;
+static Sym *sym_modu;
 
 void
 noops(void)
@@ -81,7 +81,7 @@ noops(void)
 
 		case ANOP:
 			q1 = p->link;
-			q->link = q1;		/* q is non-nop */
+			q->link = q1; /* q is non-nop */
 			q1->mark |= p->mark;
 			continue;
 
@@ -149,7 +149,7 @@ noops(void)
 					if(debug['b']) {
 						curp = p;
 						print("%D calling %D increase %d\n",
-							&curtext->from, &p->to, o);
+						      &curtext->from, &p->to, o);
 					}
 				}
 			}
@@ -164,15 +164,15 @@ noops(void)
 			curtext = p;
 			autosize = p->to.offset + 4;
 			if(autosize <= 4)
-			if(curtext->mark & LEAF) {
-				p->to.offset = -4;
-				autosize = 0;
-			}
+				if(curtext->mark & LEAF) {
+					p->to.offset = -4;
+					autosize = 0;
+				}
 
 			if(!autosize && !(curtext->mark & LEAF)) {
 				if(debug['v'])
 					Bprint(&bso, "save suppressed in: %s\n",
-						curtext->from.sym->name);
+					       curtext->from.sym->name);
 				Bflush(&bso);
 				curtext->mark |= LEAF;
 			}
@@ -320,19 +320,19 @@ noops(void)
 		 */
 		case AMOVWD:
 			if((q = p->link) != P && q->as == ACMP)
-			if((q = q->link) != P && q->as == AMOVF)
-			if((q1 = q->link) != P && q1->as == AADDF)
-			if(q1->to.type == D_FREG && q1->to.reg == p->to.reg) {
-				q1->as = AADDD;
-				q1 = prg();
-				q1->scond = q->scond;
-				q1->line = q->line;
-				q1->as = AMOVFD;
-				q1->from = q->to;
-				q1->to = q1->from;
-				q1->link = q->link;
-				q->link = q1;
-			}
+				if((q = q->link) != P && q->as == AMOVF)
+					if((q1 = q->link) != P && q1->as == AADDF)
+						if(q1->to.type == D_FREG && q1->to.reg == p->to.reg) {
+							q1->as = AADDD;
+							q1 = prg();
+							q1->scond = q->scond;
+							q1->line = q->line;
+							q1->as = AMOVFD;
+							q1->from = q->to;
+							q1->to = q1->from;
+							q1->link = q->link;
+							q->link = q1;
+						}
 			break;
 
 		case ADIV:
@@ -453,11 +453,10 @@ sigdiv(char *n)
 	Sym *s;
 
 	s = lookup(n, 0);
-	if(s->type == STEXT){
+	if(s->type == STEXT) {
 		if(s->sig == 0)
 			s->sig = SIGNINTERN;
-	}
-	else if(s->type == 0 || s->type == SXREF)
+	} else if(s->type == 0 || s->type == SXREF)
 		s->type = SUNDEF;
 }
 
@@ -473,14 +472,13 @@ divsig(void)
 static void
 sdiv(Sym *s)
 {
-	if(s->type == 0 || s->type == SXREF){
+	if(s->type == 0 || s->type == SXREF) {
 		/* undefsym(s); */
 		s->type = SXREF;
 		if(s->sig == 0)
 			s->sig = SIGNINTERN;
 		s->subtype = SIMPORT;
-	}
-	else if(s->type != STEXT)
+	} else if(s->type != STEXT)
 		diag("undefined: %s", s->name);
 }
 
@@ -497,10 +495,18 @@ initdiv(void)
 	sym_mod = s4 = lookup("_mod", 0);
 	sym_modu = s5 = lookup("_modu", 0);
 	if(dlm) {
-		sdiv(s2); if(s2->type == SXREF) prog_div = UP;
-		sdiv(s3); if(s3->type == SXREF) prog_divu = UP;
-		sdiv(s4); if(s4->type == SXREF) prog_mod = UP;
-		sdiv(s5); if(s5->type == SXREF) prog_modu = UP;
+		sdiv(s2);
+		if(s2->type == SXREF)
+			prog_div = UP;
+		sdiv(s3);
+		if(s3->type == SXREF)
+			prog_divu = UP;
+		sdiv(s4);
+		if(s4->type == SXREF)
+			prog_mod = UP;
+		sdiv(s5);
+		if(s5->type == SXREF)
+			prog_modu = UP;
 	}
 	for(p = firstp; p != P; p = p->link)
 		if(p->as == ATEXT) {

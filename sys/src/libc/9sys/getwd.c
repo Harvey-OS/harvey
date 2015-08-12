@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 getwd(char *buf, int nbuf)
 {
 	int n, fd;

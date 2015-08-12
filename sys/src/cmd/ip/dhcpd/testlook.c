@@ -19,14 +19,14 @@ static uint8_t noether[6];
  *  Look for a pair with the given attribute.  look first on the same line,
  *  then in the whole entry.
  */
-static Ndbtuple*
+static Ndbtuple *
 lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 {
 	Ndbtuple *nt;
 
 	/* first look on same line (closer binding) */
-	for(nt = line;;){
-		if(strcmp(attr, nt->attr) == 0){
+	for(nt = line;;) {
+		if(strcmp(attr, nt->attr) == 0) {
 			strncpy(to, nt->val, Ndbvlen);
 			return nt;
 		}
@@ -36,7 +36,7 @@ lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 	}
 	/* search whole tuple */
 	for(nt = entry; nt; nt = nt->entry)
-		if(strcmp(attr, nt->attr) == 0){
+		if(strcmp(attr, nt->attr) == 0) {
 			strncpy(to, nt->val, Ndbvlen);
 			return nt;
 		}
@@ -46,7 +46,7 @@ lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 /*
  *  lookup an ip address
  */
-static uint8_t*
+static uint8_t *
 lookupip(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
@@ -56,15 +56,15 @@ lookupip(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 	char *attr;
 
 	attr = ipattr(name);
-	if(strcmp(attr, "ip") == 0){
+	if(strcmp(attr, "ip") == 0) {
 		parseip(to, name);
 		return to;
 	}
 
 	t = ndbgetval(db, &s, attr, name, "ip", buf);
-	if(t){
+	if(t) {
 		/* first look for match on same subnet */
-		for(nt = t; nt; nt = nt->entry){
+		for(nt = t; nt; nt = nt->entry) {
 			if(strcmp(nt->attr, "ip") != 0)
 				continue;
 			parseip(to, nt->val);
@@ -97,16 +97,15 @@ recursesubnet(Ndb *db, uint8_t *mask, Ipinfo *iip, char *fs, char *gw,
 	maskip(iip->ipaddr, iip->ipmask, iip->ipnet);
 	sprint(ip, "%I", iip->ipnet);
 	t = ndbsearch(db, &s, "ip", ip);
-print("%s->", ip);
-	if(t){
+	print("%s->", ip);
+	if(t) {
 		/* look for a further subnet */
-		if(lookval(t, s.t, "ipmask", ip)){
+		if(lookval(t, s.t, "ipmask", ip)) {
 			parseip(submask, ip);
 
 			/* recurse only if it has changed */
 			if(!equivip(submask, mask))
 				recursesubnet(db, submask, iip, fs, gw, au);
-
 		}
 
 		/* fill in what we don't have */
@@ -151,7 +150,7 @@ ipinfo(Ndb *db, char *etherin, char *ipin, char *name, Ipinfo *iip)
 		t = ndbsearch(db, &s, "ip", ipin);
 	if(t == 0 && name)
 		t = ndbgetval(db, &s, ipattr(name), name, "ip", ip);
-	if(t){
+	if(t) {
 		/*
 		 *  copy in addresses and name
 		 */
@@ -166,7 +165,7 @@ ipinfo(Ndb *db, char *etherin, char *ipin, char *name, Ipinfo *iip)
 		 *  If necessary, search through all entries for
 		 *  this ip address.
 		 */
-		while(t){
+		while(t) {
 			if(iip->bootf[0] == 0)
 				lookval(t, s.t, "bootf", iip->bootf);
 			if(fsname[0] == 0)
@@ -198,7 +197,7 @@ ipinfo(Ndb *db, char *etherin, char *ipin, char *name, Ipinfo *iip)
 	recursesubnet(db, classmask[CLASS(iip->ipaddr)], iip, fsname, gwname, auname);
 
 	/* lookup fs's and gw's ip addresses */
-	
+
 	if(fsname[0])
 		lookupip(db, fsname, iip->fsip, iip);
 	if(gwname[0])
@@ -220,7 +219,7 @@ main(int argc, char **argv)
 	fmtinstall('I', eipconv);
 	if(argc < 2)
 		exits(0);
-	if(strchr(argv[1], '.')){
+	if(strchr(argv[1], '.')) {
 		if(ipinfo(db, 0, argv[1], 0, &ii) < 0)
 			exits(0);
 	} else {
@@ -228,5 +227,5 @@ main(int argc, char **argv)
 			exits(0);
 	}
 	fprint(2, "a %I m %I n %I f %s e %E\n", ii.ipaddr,
-		ii.ipmask, ii.ipnet, ii.bootf, ii.etheraddr);
+	       ii.ipmask, ii.ipnet, ii.bootf, ii.etheraddr);
 }

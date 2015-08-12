@@ -16,30 +16,29 @@
 
 #include "ip.h"
 
-static void	netdevbind(Ipifc *ifc, int argc, char **argv);
-static void	netdevunbind(Ipifc *ifc);
-static void	netdevbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
-static void	netdevread(void *a);
+static void netdevbind(Ipifc *ifc, int argc, char **argv);
+static void netdevunbind(Ipifc *ifc);
+static void netdevbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
+static void netdevread(void *a);
 
-typedef struct	Netdevrock Netdevrock;
-struct Netdevrock
-{
-	Fs	*f;		/* file system we belong to */
-	Proc	*readp;		/* reading process */
-	Chan	*mchan;		/* Data channel */
+typedef struct Netdevrock Netdevrock;
+struct Netdevrock {
+	Fs *f;       /* file system we belong to */
+	Proc *readp; /* reading process */
+	Chan *mchan; /* Data channel */
 };
 
 Medium netdevmedium =
-{
-.name=		"netdev",
-.hsize=		0,
-.mintu=	0,
-.maxtu=	64000,
-.maclen=	0,
-.bind=		netdevbind,
-.unbind=	netdevunbind,
-.bwrite=	netdevbwrite,
-.unbindonclose=	0,
+    {
+     .name = "netdev",
+     .hsize = 0,
+     .mintu = 0,
+     .maxtu = 64000,
+     .maclen = 0,
+     .bind = netdevbind,
+     .unbind = netdevunbind,
+     .bwrite = netdevbwrite,
+     .unbindonclose = 0,
 };
 
 /*
@@ -119,14 +118,14 @@ netdevread(void *a)
 
 	ifc = a;
 	er = ifc->arg;
-	er->readp = up;	/* hide identity under a rock for unbind */
-	if(waserror()){
+	er->readp = up; /* hide identity under a rock for unbind */
+	if(waserror()) {
 		er->readp = nil;
 		pexit("hangup", 1);
 	}
-	for(;;){
+	for(;;) {
 		bp = er->mchan->dev->bread(er->mchan, ifc->maxtu, 0);
-		if(bp == nil){
+		if(bp == nil) {
 			/*
 			 * get here if mchan is a pipe and other side hangs up
 			 * clean up this interface & get out
@@ -139,11 +138,11 @@ ZZZ is this a good idea?
 				ifc->conv->p->ctl(ifc->conv, argv, 1);
 			pexit("hangup", 1);
 		}
-		if(!canrlock(ifc)){
+		if(!canrlock(ifc)) {
 			freeb(bp);
 			continue;
 		}
-		if(waserror()){
+		if(waserror()) {
 			runlock(ifc);
 			nexterror();
 		}

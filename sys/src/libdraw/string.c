@@ -11,22 +11,21 @@
 #include <libc.h>
 #include <draw.h>
 
-enum
-{
+enum {
 	Max = 100
 };
 
 Point
 string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s)
 {
-	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP, SoverD);
+	return _string(dst, pt, src, sp, f, s, nil, 1 << 24, dst->clipr, nil, ZP, SoverD);
 }
 
 Point
 stringop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	 Drawop op)
 {
-	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP, op);
+	return _string(dst, pt, src, sp, f, s, nil, 1 << 24, dst->clipr, nil, ZP, op);
 }
 
 Point
@@ -46,13 +45,13 @@ stringnop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 Point
 runestring(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r)
 {
-	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, nil, ZP, SoverD);
+	return _string(dst, pt, src, sp, f, nil, r, 1 << 24, dst->clipr, nil, ZP, SoverD);
 }
 
 Point
 runestringop(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, Drawop op)
 {
-	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, nil, ZP, op);
+	return _string(dst, pt, src, sp, f, nil, r, 1 << 24, dst->clipr, nil, ZP, op);
 }
 
 Point
@@ -81,30 +80,30 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	Font *def;
 	Subfont *sf;
 
-	if(s == nil){
+	if(s == nil) {
 		s = "";
 		sptr = nil;
-	}else
+	} else
 		sptr = &s;
-	if(r == nil){
-		r = (Rune*) L"";
+	if(r == nil) {
+		r = (Rune *)L"";
 		rptr = nil;
-	}else
+	} else
 		rptr = &r;
 	sf = nil;
-	while((*s || *r) && len > 0){
+	while((*s || *r) && len > 0) {
 		max = Max;
 		if(len < max)
 			max = len;
 		n = cachechars(f, sptr, rptr, cbuf, max, &wid, &subfontname);
-		if(n > 0){
+		if(n > 0) {
 			_setdrawop(dst->display, op);
 
-			m = 47+2*n;
+			m = 47 + 2 * n;
 			if(bg)
-				m += 4+2*4;
+				m += 4 + 2 * 4;
 			b = bufimage(dst->display, m);
-			if(b == 0){
+			if(b == 0) {
 				fprint(2, "string: %r\n");
 				break;
 			}
@@ -112,38 +111,38 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 				b[0] = 'x';
 			else
 				b[0] = 's';
-			BPLONG(b+1, dst->id);
-			BPLONG(b+5, src->id);
-			BPLONG(b+9, f->cacheimage->id);
-			BPLONG(b+13, pt.x);
-			BPLONG(b+17, pt.y+f->ascent);
-			BPLONG(b+21, clipr.min.x);
-			BPLONG(b+25, clipr.min.y);
-			BPLONG(b+29, clipr.max.x);
-			BPLONG(b+33, clipr.max.y);
-			BPLONG(b+37, sp.x);
-			BPLONG(b+41, sp.y);
-			BPSHORT(b+45, n);
+			BPLONG(b + 1, dst->id);
+			BPLONG(b + 5, src->id);
+			BPLONG(b + 9, f->cacheimage->id);
+			BPLONG(b + 13, pt.x);
+			BPLONG(b + 17, pt.y + f->ascent);
+			BPLONG(b + 21, clipr.min.x);
+			BPLONG(b + 25, clipr.min.y);
+			BPLONG(b + 29, clipr.max.x);
+			BPLONG(b + 33, clipr.max.y);
+			BPLONG(b + 37, sp.x);
+			BPLONG(b + 41, sp.y);
+			BPSHORT(b + 45, n);
 			b += 47;
-			if(bg){
+			if(bg) {
 				BPLONG(b, bg->id);
-				BPLONG(b+4, bgp.x);
-				BPLONG(b+8, bgp.y);
+				BPLONG(b + 4, bgp.x);
+				BPLONG(b + 8, bgp.y);
 				b += 12;
 			}
 			ec = &cbuf[n];
-			for(c=cbuf; c<ec; c++, b+=2)
+			for(c = cbuf; c < ec; c++, b += 2)
 				BPSHORT(b, *c);
 			pt.x += wid;
 			bgp.x += wid;
 			agefont(f);
 			len -= n;
 		}
-		if(subfontname){
+		if(subfontname) {
 			freesubfont(sf);
-			if((sf=_getsubfont(f->display, subfontname)) == 0){
+			if((sf = _getsubfont(f->display, subfontname)) == 0) {
 				def = f->display ? f->display->defaultfont : nil;
-				if(def && f!=def)
+				if(def && f != def)
 					f = def;
 				else
 					break;

@@ -17,22 +17,22 @@
 #include "tapefs.h"
 #include "zip.h"
 
-#define FORCE_LOWER	1	/* force filenames to lower case */
-#define MUNGE_CR	1	/* replace '\r\n' with ' \n' */
-#define High64 (1LL<<63)
+#define FORCE_LOWER 1 /* force filenames to lower case */
+#define MUNGE_CR 1    /* replace '\r\n' with ' \n' */
+#define High64 (1LL << 63)
 
 /*
  * File system for zip archives (read-only)
  */
 
 enum {
-	IS_MSDOS = 0,	/* creator OS (interpretation of external flags) */
-	IS_RDONLY = 1,	/* file was readonly (external flags) */
-	IS_TEXT = 1,	/* file was text  (internal flags) */
+	IS_MSDOS = 0,  /* creator OS (interpretation of external flags) */
+	IS_RDONLY = 1, /* file was readonly (external flags) */
+	IS_TEXT = 1,   /* file was text  (internal flags) */
 };
 
 typedef struct Block Block;
-struct Block{
+struct Block {
 	uint8_t *pos;
 	uint8_t *limit;
 };
@@ -66,22 +66,22 @@ populate(char *name)
 		sysfatal("inflateinit failed: %s", flateerr(ok));
 
 	bin = Bopen(name, OREAD);
-	if (bin == nil)
+	if(bin == nil)
 		error("Can't open argument file");
 
 	entries = findCDir(bin);
 	if(entries < 0)
 		sysfatal("empty file");
 
-	while(entries-- > 0){
+	while(entries-- > 0) {
 		memset(&zh, 0, sizeof(zh));
 		if(!cheader(bin, &zh))
 			break;
 		f.addr = zh.off;
 		if(zh.iattr & IS_TEXT)
 			f.addr |= High64;
-		f.mode = (zh.madevers == IS_MSDOS && zh.eattr & IS_RDONLY)? 0444: 0644;
-		if (zh.meth == 0 && zh.uncsize == 0){
+		f.mode = (zh.madevers == IS_MSDOS && zh.eattr & IS_RDONLY) ? 0444 : 0644;
+		if(zh.meth == 0 && zh.uncsize == 0) {
 			p = strchr(zh.file, '\0');
 			if(p > zh.file && p[-1] == '/')
 				f.mode |= (DMDIR | 0111);
@@ -90,11 +90,11 @@ populate(char *name)
 		f.gid = 0;
 		f.size = zh.uncsize;
 		f.mdate = msdos2time(zh.modtime, zh.moddate);
-		f.name = zh.file + ((zh.file[0] == '/')? 1: 0);
+		f.name = zh.file + ((zh.file[0] == '/') ? 1 : 0);
 		poppath(f, 1);
 		free(zh.file);
 	}
-	return ;
+	return;
 }
 
 void
@@ -119,51 +119,51 @@ doread(Ram *r, int64_t off, int32_t cnt)
 	static char buf[Maxbuf];
 	static uint8_t *cache = nil;
 
-	if (cnt > Maxbuf)
+	if(cnt > Maxbuf)
 		sysfatal("file too big (>%d)", Maxbuf);
 
-	if (Bseek(bin, r->addr & 0x7FFFFFFFFFFFFFFFLL, 0) < 0)
+	if(Bseek(bin, r->addr & 0x7FFFFFFFFFFFFFFFLL, 0) < 0)
 		sysfatal("seek failed");
 
 	memset(&zh, 0, sizeof(zh));
-	if (!header(bin, &zh))
+	if(!header(bin, &zh))
 		sysfatal("cannot get local header");
 
-	switch(zh.meth){
+	switch(zh.meth) {
 	case 0:
-		if (Bseek(bin, off, 1) < 0)
+		if(Bseek(bin, off, 1) < 0)
 			sysfatal("seek failed");
-		if (Bread(bin, buf, cnt) != cnt)
+		if(Bread(bin, buf, cnt) != cnt)
 			sysfatal("read failed");
 		break;
 	case 8:
-		if (r->qid.path != oqid.path){
+		if(r->qid.path != oqid.path) {
 			oqid = r->qid;
-			if (cache)
+			if(cache)
 				free(cache);
 			cache = emalloc(r->ndata);
 
 			bs.pos = cache;
-			bs.limit = cache+r->ndata;
-			if ((err = inflate(&bs, blwrite, bin, (int(*)(void*))Bgetc)) != FlateOk)
+			bs.limit = cache + r->ndata;
+			if((err = inflate(&bs, blwrite, bin, (int (*)(void *))Bgetc)) != FlateOk)
 				sysfatal("inflate failed - %s", flateerr(err));
 
-			if (blockcrc(crctab, crc, cache, r->ndata) != zh.crc)
+			if(blockcrc(crctab, crc, cache, r->ndata) != zh.crc)
 				fprint(2, "%s - crc failed", r->name);
 
-			if ((r->addr & High64) && MUNGE_CR){
-				for (i = 0; i < r->ndata -1; i++)
-					if (cache[i] == '\r' && cache[i +1] == '\n')
+			if((r->addr & High64) && MUNGE_CR) {
+				for(i = 0; i < r->ndata - 1; i++)
+					if(cache[i] == '\r' && cache[i + 1] == '\n')
 						cache[i] = ' ';
 			}
 		}
-		memcpy(buf, cache+off, cnt);
+		memcpy(buf, cache + off, cnt);
 		break;
 	default:
 		sysfatal("%d - unsupported compression method", zh.meth);
 		break;
 	}
-	
+
 	return buf;
 }
 
@@ -176,7 +176,10 @@ popdir(Ram *r)
 void
 dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
-	USED(r); USED(buf); USED(off); USED(cnt);
+	USED(r);
+	USED(buf);
+	USED(off);
+	USED(cnt);
 }
 
 int
@@ -218,7 +221,6 @@ findCDir(Biobuf *bin)
 	return entries;
 }
 
-
 static int
 header(Biobuf *bin, ZipHead *zh)
 {
@@ -226,7 +228,7 @@ header(Biobuf *bin, ZipHead *zh)
 	int flen, xlen;
 
 	v = get4(bin);
-	if(v != ZHeader){
+	if(v != ZHeader) {
 		if(v == ZCHeader)
 			return 0;
 		sysfatal("bad magic on local header");
@@ -257,7 +259,7 @@ cheader(Biobuf *bin, ZipHead *zh)
 	int flen, xlen, fclen;
 
 	v = get4(bin);
-	if(v != ZCHeader){
+	if(v != ZCHeader) {
 		if(v == ZECHeader)
 			return 0;
 		sysfatal("bad magic number in file");
@@ -276,9 +278,9 @@ cheader(Biobuf *bin, ZipHead *zh)
 	flen = get2(bin);
 	xlen = get2(bin);
 	fclen = get2(bin);
-	get2(bin);		/* disk number start */
-	zh->iattr = get2(bin);	/* 1 == is-text-file */
-	zh->eattr = get4(bin);	/* 1 == readonly-file */
+	get2(bin);	     /* disk number start */
+	zh->iattr = get2(bin); /* 1 == is-text-file */
+	zh->eattr = get4(bin); /* 1 == readonly-file */
 	zh->off = get4(bin);
 
 	zh->file = getname(bin, flen);
@@ -303,25 +305,24 @@ blwrite(void *vb, void *buf, int n)
 	return n;
 }
 
-
 static void
 trailer(Biobuf *bin, ZipHead *zh)
 {
-	if(zh->flags & ZTrailInfo){
+	if(zh->flags & ZTrailInfo) {
 		zh->crc = get4(bin);
 		zh->csize = get4(bin);
 		zh->uncsize = get4(bin);
 	}
 }
 
-static char*
+static char *
 getname(Biobuf *bin, int len)
 {
 	char *s;
 	int i, c;
 
 	s = emalloc(len + 1);
-	for(i = 0; i < len; i++){
+	for(i = 0; i < len; i++) {
 		c = get1(bin);
 		if(FORCE_LOWER)
 			c = tolower(c);
@@ -331,7 +332,6 @@ getname(Biobuf *bin, int len)
 	return s;
 }
 
-
 static uint32_t
 get4(Biobuf *b)
 {
@@ -339,7 +339,7 @@ get4(Biobuf *b)
 	int i, c;
 
 	v = 0;
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		c = Bgetc(b);
 		if(c < 0)
 			sysfatal("unexpected eof");
@@ -354,7 +354,7 @@ get2(Biobuf *b)
 	int i, c, v;
 
 	v = 0;
-	for(i = 0; i < 2; i++){
+	for(i = 0; i < 2; i++) {
 		c = Bgetc(b);
 		if(c < 0)
 			sysfatal("unexpected eof");
@@ -390,4 +390,3 @@ msdos2time(int time, int date)
 
 	return tm2sec(&tm);
 }
-

@@ -23,7 +23,7 @@ statcheck(uint8_t *buf, uint nbuf)
 
 	buf += STATFIXLEN - 4 * BIT16SZ;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		if(buf + BIT16SZ > ebuf)
 			return -1;
 		buf += BIT16SZ + GBIT16(buf);
@@ -35,14 +35,13 @@ statcheck(uint8_t *buf, uint nbuf)
 	return 0;
 }
 
-static
-int32_t
+static int32_t
 dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 {
 	char *s;
 	int32_t ss, i, n, nn, m;
 
-	if(ts == 0){
+	if(ts == 0) {
 		*d = nil;
 		return 0;
 	}
@@ -52,7 +51,7 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 	 */
 	ss = 0;
 	n = 0;
-	for(i = 0; i < ts; i += m){
+	for(i = 0; i < ts; i += m) {
 		m = BIT16SZ + GBIT16(&buf[i]);
 		if(statcheck(&buf[i], m) < 0)
 			break;
@@ -70,11 +69,11 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 	/*
 	 * then convert all buffers
 	 */
-	s = (char*)*d + n * sizeof(Dir);
+	s = (char *)*d + n * sizeof(Dir);
 	nn = 0;
-	for(i = 0; i < ts; i += m){
-		m = BIT16SZ + GBIT16((uint8_t*)&buf[i]);
-		if(nn >= n || _convM2D(&buf[i], m, *d + nn, s) != m){
+	for(i = 0; i < ts; i += m) {
+		m = BIT16SZ + GBIT16((uint8_t *)&buf[i]);
+		if(nn >= n || _convM2D(&buf[i], m, *d + nn, s) != m) {
 			free(*d);
 			return -1;
 		}
@@ -109,14 +108,14 @@ _dirreadall(int fd, Dir **d)
 
 	buf = nil;
 	ts = 0;
-	for(;;){
-		nbuf = realloc(buf, ts+DIRMAX);
-		if(nbuf == nil){
+	for(;;) {
+		nbuf = realloc(buf, ts + DIRMAX);
+		if(nbuf == nil) {
 			free(buf);
 			return -1;
 		}
 		buf = nbuf;
-		n = _READ(fd, buf+ts, DIRMAX);
+		n = _READ(fd, buf + ts, DIRMAX);
 		if(n <= 0)
 			break;
 		ts += n;

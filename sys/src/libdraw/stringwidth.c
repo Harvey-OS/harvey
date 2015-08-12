@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <draw.h>
 
-static Rune empty[] = { 0 };
+static Rune empty[] = {0};
 
 int
 _stringnwidth(Font *f, char *s, Rune *r, int len)
@@ -24,24 +24,24 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 	char *subfontname, **sptr;
 	Font *def;
 
-	if(s == nil){
+	if(s == nil) {
 		s = "";
 		sptr = nil;
-	}else
+	} else
 		sptr = &s;
-	if(r == nil){
+	if(r == nil) {
 		r = empty;
 		rptr = nil;
-	}else
+	} else
 		rptr = &r;
 	twid = 0;
-	while(len>0 && (*s || *r)){
+	while(len > 0 && (*s || *r)) {
 		max = Max;
 		if(len < max)
 			max = len;
 		n = 0;
-		while((l = cachechars(f, sptr, rptr, cbuf, max, &wid, &subfontname)) <= 0){
-			if(++n > 10){
+		while((l = cachechars(f, sptr, rptr, cbuf, max, &wid, &subfontname)) <= 0) {
+			if(++n > 10) {
 				if(*r)
 					rune = *r;
 				else
@@ -53,10 +53,10 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 				fprint(2, "stringwidth: bad character set for rune 0x%.4ux in %s\n", rune, name);
 				return twid;
 			}
-			if(subfontname){
-				if(_getsubfont(f->display, subfontname) == 0){
+			if(subfontname) {
+				if(_getsubfont(f->display, subfontname) == 0) {
 					def = f->display->defaultfont;
-					if(def && f!=def)
+					if(def && f != def)
 						f = def;
 					else
 						break;
@@ -79,13 +79,13 @@ stringnwidth(Font *f, char *s, int len)
 int
 stringwidth(Font *f, char *s)
 {
-	return _stringnwidth(f, s, nil, 1<<24);
+	return _stringnwidth(f, s, nil, 1 << 24);
 }
 
 Point
 stringsize(Font *f, char *s)
 {
-	return Pt(_stringnwidth(f, s, nil, 1<<24), f->height);
+	return Pt(_stringnwidth(f, s, nil, 1 << 24), f->height);
 }
 
 int
@@ -97,11 +97,11 @@ runestringnwidth(Font *f, Rune *r, int len)
 int
 runestringwidth(Font *f, Rune *r)
 {
-	return _stringnwidth(f, nil, r, 1<<24);
+	return _stringnwidth(f, nil, r, 1 << 24);
 }
 
 Point
 runestringsize(Font *f, Rune *r)
 {
-	return Pt(_stringnwidth(f, nil, r, 1<<24), f->height);
+	return Pt(_stringnwidth(f, nil, r, 1 << 24), f->height);
 }

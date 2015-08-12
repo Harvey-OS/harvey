@@ -41,35 +41,35 @@
 int
 rename(const char *a, const char *b)
 {
-    if (access(a, 0) == -1)
-	return (-1);
-    unlink(b);
-    if (link(a, b) == -1)
-	return (-1);
-    if (unlink(a) == -1) {
-	unlink(b);		/* ??? */
-	return (-1);
-    }
-    return (0);
+	if(access(a, 0) == -1)
+		return (-1);
+	unlink(b);
+	if(link(a, b) == -1)
+		return (-1);
+	if(unlink(a) == -1) {
+		unlink(b); /* ??? */
+		return (-1);
+	}
+	return (0);
 }
 
 /* gettimeofday */
 #ifndef HZ
-#  define	HZ	100	/* see sys/param.h */
+#define HZ 100 /* see sys/param.h */
 #endif
 int
 gettimeofday(struct timeval *tvp, struct timezone *tzp)
 {
-    struct tms tms;
-    static int32_t offset = 0;
-    int32_t ticks;
+	struct tms tms;
+	static int32_t offset = 0;
+	int32_t ticks;
 
-    if (!offset) {
-	time(&offset);
-	offset -= (times(&tms) / HZ);
-    }
-    ticks = times(&tms);
-    tvp->tv_sec = ticks / HZ + offset;
-    tvp->tv_usec = (ticks % HZ) * (1000 * 1000 / HZ);
-    return 0;
+	if(!offset) {
+		time(&offset);
+		offset -= (times(&tms) / HZ);
+	}
+	ticks = times(&tms);
+	tvp->tv_sec = ticks / HZ + offset;
+	tvp->tv_usec = (ticks % HZ) * (1000 * 1000 / HZ);
+	return 0;
 }

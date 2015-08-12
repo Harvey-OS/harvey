@@ -27,7 +27,7 @@
 /* Font and CMap resource structure and API for pdfwrite */
 
 #ifndef gdevpdtf_INCLUDED
-#  define gdevpdtf_INCLUDED
+#define gdevpdtf_INCLUDED
 
 #include "gdevpdtx.h"
 
@@ -94,33 +94,33 @@
  */
 
 #ifndef gs_cmap_DEFINED
-#  define gs_cmap_DEFINED
+#define gs_cmap_DEFINED
 typedef struct gs_cmap_s gs_cmap_t;
 #endif
 
 #ifndef gs_font_type0_DEFINED
-#  define gs_font_type0_DEFINED
+#define gs_font_type0_DEFINED
 typedef struct gs_font_type0_s gs_font_type0;
 #endif
 
 #ifndef pdf_base_font_DEFINED
-#  define pdf_base_font_DEFINED
+#define pdf_base_font_DEFINED
 typedef struct pdf_base_font_s pdf_base_font_t;
 #endif
 
 #ifndef pdf_font_descriptor_DEFINED
-#  define pdf_font_descriptor_DEFINED
+#define pdf_font_descriptor_DEFINED
 typedef struct pdf_font_descriptor_s pdf_font_descriptor_t;
 #endif
 
 #ifndef pdf_char_glyph_pair_DEFINED
-#  define pdf_char_glyph_pair_DEFINED
+#define pdf_char_glyph_pair_DEFINED
 typedef struct pdf_char_glyph_pair_s pdf_char_glyph_pair_t;
 #endif
 
 struct pdf_char_glyph_pair_s {
-    gs_char chr;
-    gs_glyph glyph;
+	gs_char chr;
+	gs_glyph glyph;
 };
 
 /*
@@ -135,30 +135,29 @@ struct pdf_char_glyph_pair_s {
  * the write_contents procedure to write additional objects that the
  * resource object references, after closing the resource object.
  */
-typedef int (*pdf_font_write_contents_proc_t)
-     (gx_device_pdf *, pdf_font_resource_t *);
+typedef int (*pdf_font_write_contents_proc_t)(gx_device_pdf *, pdf_font_resource_t *);
 
 /*
  * Define an element of an Encoding.  The element is unused if glyph ==
  * GS_NO_GLYPH.
  */
 typedef struct pdf_encoding_element_s {
-    gs_glyph glyph;
-    gs_const_string str;
-    bool is_difference;		/* true if must be written in Differences */
+	gs_glyph glyph;
+	gs_const_string str;
+	bool is_difference; /* true if must be written in Differences */
 } pdf_encoding_element_t;
-#define private_st_pdf_encoding1() /* gdevpdtf.c */\
-  gs_private_st_const_strings1(st_pdf_encoding1,\
-    pdf_encoding_element_t, "pdf_encoding_element_t",\
-    pdf_encoding1_enum_ptrs, pdf_encoding1_reloc_ptrs, str)
-#define private_st_pdf_encoding_element() /* gdevpdtf.c */\
-  gs_private_st_element(st_pdf_encoding_element, pdf_encoding_element_t,\
-    "pdf_encoding_element_t[]", pdf_encoding_elt_enum_ptrs,\
-    pdf_encoding_elt_reloc_ptrs, st_pdf_encoding1)
+#define private_st_pdf_encoding1() /* gdevpdtf.c */                                    \
+	gs_private_st_const_strings1(st_pdf_encoding1,                                 \
+				     pdf_encoding_element_t, "pdf_encoding_element_t", \
+				     pdf_encoding1_enum_ptrs, pdf_encoding1_reloc_ptrs, str)
+#define private_st_pdf_encoding_element() /* gdevpdtf.c */                            \
+	gs_private_st_element(st_pdf_encoding_element, pdf_encoding_element_t,        \
+			      "pdf_encoding_element_t[]", pdf_encoding_elt_enum_ptrs, \
+			      pdf_encoding_elt_reloc_ptrs, st_pdf_encoding1)
 
 typedef struct {
-    gs_id id;
-    pdf_resource_type_t type;
+	gs_id id;
+	pdf_resource_type_t type;
 } pdf_resource_ref_t;
 
 /*
@@ -168,114 +167,115 @@ typedef struct {
  * actual advance widths of the characters in the PostScript text.
  */
 struct pdf_font_resource_s {
-    pdf_resource_common(pdf_font_resource_t);
-    font_type FontType;		/* copied from font, if any */
-    pdf_font_write_contents_proc_t write_contents;
-    gs_string BaseFont;		/* (not used for Type 3) */
-    pdf_font_descriptor_t *FontDescriptor; /* (not used for Type 0, Type 3, */
-				/* or standard 14 fonts) */
-    /*
+	pdf_resource_common(pdf_font_resource_t);
+	font_type FontType; /* copied from font, if any */
+	pdf_font_write_contents_proc_t write_contents;
+	gs_string BaseFont;		       /* (not used for Type 3) */
+	pdf_font_descriptor_t *FontDescriptor; /* (not used for Type 0, Type 3, */
+	/* or standard 14 fonts) */
+	/*
      * The base_font member is only used for
      * the standard 14 fonts, which do not have a FontDescriptor.
      */
-    pdf_base_font_t *base_font;	/* == FontDescriptor->base_font */
-    uint count;			/* # of chars/CIDs */
-    double *Widths;		/* [count] (not used for Type 0) */
-    byte *used;			/* [ceil(count/8)] bitmap of chars/CIDs used */
-				/* (not used for Type 0 or Type 3) */
-    pdf_resource_t *res_ToUnicode; /* CMap (not used for CIDFonts) */
-    gs_cmap_t *cmap_ToUnicode;	   /* CMap (not used for CIDFonts) */
-    union {
+	pdf_base_font_t *base_font; /* == FontDescriptor->base_font */
+	uint count;		    /* # of chars/CIDs */
+	double *Widths;		    /* [count] (not used for Type 0) */
+	byte *used;		    /* [ceil(count/8)] bitmap of chars/CIDs used */
+	/* (not used for Type 0 or Type 3) */
+	pdf_resource_t *res_ToUnicode; /* CMap (not used for CIDFonts) */
+	gs_cmap_t *cmap_ToUnicode;     /* CMap (not used for CIDFonts) */
+	union {
 
-	struct /*type0*/ {
+		struct /*type0*/ {
 
-	    pdf_font_resource_t *DescendantFont; /* CIDFont */
-	    /*
+			pdf_font_resource_t *DescendantFont; /* CIDFont */
+			/*
 	     * The Encoding_name must be long enough to hold either the
 	     * longest standard CMap name defined in the PDF Reference,
 	     * or the longest reference to an embedded CMap (# 0 R).
 	     */
-	    char Encoding_name[max( /* standard name or <id> 0 R */
-		      17,	/* /UniJIS-UCS2-HW-H */
-		      sizeof(long) * 8 / 3 + 1 + 4 /* <id> 0 R */
-		      ) + 1	/* \0 terminator */
-	    ];
-	    gs_const_string CMapName; /* copied from the original CMap, */
-				/* or references the table of standard names */
-	    bool cmap_is_standard;
-	    int WMode;		/* of CMap */
+			char Encoding_name[max(				    /* standard name or <id> 0 R */
+					       17,			    /* /UniJIS-UCS2-HW-H */
+					       sizeof(long) * 8 / 3 + 1 + 4 /* <id> 0 R */
+					       ) +
+					   1 /* \0 terminator */
+			];
+			gs_const_string CMapName; /* copied from the original CMap, */
+						  /* or references the table of standard names */
+			bool cmap_is_standard;
+			int WMode; /* of CMap */
 
-	} type0;
+		} type0;
 
-	struct /*cidfont*/ {
+		struct /*cidfont*/ {
 
-	    /* [D]W[2] is Widths. */
-	    long CIDSystemInfo_id; /* (written when font is allocated) */
-	    ushort *CIDToGIDMap; /* (CIDFontType 2 only) [count] */
- 	    gs_id glyphshow_font_id;
-	    double *Widths2;	/* [count * 2] (x, y) */
-	    double *v;		/* [count] */
-	    byte *used2;	/* [(count + 7) / 8] */
-	    pdf_font_resource_t *parent;
+			/* [D]W[2] is Widths. */
+			long CIDSystemInfo_id; /* (written when font is allocated) */
+			ushort *CIDToGIDMap;   /* (CIDFontType 2 only) [count] */
+			gs_id glyphshow_font_id;
+			double *Widths2; /* [count * 2] (x, y) */
+			double *v;       /* [count] */
+			byte *used2;     /* [(count + 7) / 8] */
+			pdf_font_resource_t *parent;
 
-	} cidfont;
+		} cidfont;
 
-	struct /*simple*/ {
+		struct /*simple*/ {
 
-	    int FirstChar, LastChar; /* 0 <= FirstChar <= LastChar <= 255 */
-	    /*
+			int FirstChar, LastChar; /* 0 <= FirstChar <= LastChar <= 255 */
+			/*
 	     * The BaseEncoding can only be ENCODING_INDEX_WINANSI,
 	     * ENCODING_INDEX_MACROMAN, ENCODING_INDEX_MACEXPERT, or -1.
 	     */
-	    gs_encoding_index_t BaseEncoding;
-	    pdf_encoding_element_t *Encoding; /* [256], not for Type 3 */
-	    gs_point *v; /* [256], glyph origin for WMode 1 */
+			gs_encoding_index_t BaseEncoding;
+			pdf_encoding_element_t *Encoding; /* [256], not for Type 3 */
+			gs_point *v;			  /* [256], glyph origin for WMode 1 */
 
-	    union {
+			union {
 
-		struct /*type1*/ {
-		    bool is_MM_instance;
-		} type1;
+				struct /*type1*/ {
+					bool is_MM_instance;
+				} type1;
 
-		struct /*truetype*/ {
-		    /*
+				struct /*truetype*/ {
+					/*
 		     * No extra info needed, but the ANSI standard doesn't
 		     * allow empty structs.
 		     */
-		    int _dummy;
-		} truetype;
+					int _dummy;
+				} truetype;
 
-		struct /*type3*/ {
-		    gs_int_rect FontBBox;
-		    gs_matrix FontMatrix;
-		    pdf_char_proc_t *char_procs;
-		    int max_y_offset;
-		    bool bitmap_font;
-		    pdf_resource_ref_t *used_resources;
-		    int used_resources_count;
-		    int used_resources_max;
-		    byte *cached;
-		} type3;
+				struct /*type3*/ {
+					gs_int_rect FontBBox;
+					gs_matrix FontMatrix;
+					pdf_char_proc_t *char_procs;
+					int max_y_offset;
+					bool bitmap_font;
+					pdf_resource_ref_t *used_resources;
+					int used_resources_count;
+					int used_resources_max;
+					byte *cached;
+				} type3;
 
-	    } s;
+			} s;
 
-	} simple;
+		} simple;
 
-    } u;
+	} u;
 };
 /* The GC descriptor for resource types must be public. */
-#define public_st_pdf_font_resource() /* gdevpdtf.c */\
-  gs_public_st_composite(st_pdf_font_resource, pdf_font_resource_t,\
-    "pdf_font_resource_t", pdf_font_resource_enum_ptrs,\
-    pdf_font_resource_reloc_ptrs)
+#define public_st_pdf_font_resource() /* gdevpdtf.c */                             \
+	gs_public_st_composite(st_pdf_font_resource, pdf_font_resource_t,          \
+			       "pdf_font_resource_t", pdf_font_resource_enum_ptrs, \
+			       pdf_font_resource_reloc_ptrs)
 
 /*
  * Define the possible embedding statuses of a font.
  */
 typedef enum {
-    FONT_EMBED_STANDARD,	/* 14 standard fonts */
-    FONT_EMBED_NO,
-    FONT_EMBED_YES
+	FONT_EMBED_STANDARD, /* 14 standard fonts */
+	FONT_EMBED_NO,
+	FONT_EMBED_YES
 } pdf_font_embed_t;
 
 /* ---------------- Global structures ---------------- */
@@ -287,17 +287,17 @@ typedef enum {
  * necessary information.
  */
 typedef struct pdf_standard_font_s {
-    pdf_font_resource_t *pdfont;
-    gs_matrix orig_matrix;	/* ****** do we need this? */
+	pdf_font_resource_t *pdfont;
+	gs_matrix orig_matrix; /* ****** do we need this? */
 } pdf_standard_font_t;
-#define private_st_pdf_standard_font() /* gdevpdtf.c */\
-  gs_private_st_ptrs1(st_pdf_standard_font, pdf_standard_font_t,\
-    "pdf_standard_font_t", pdf_std_font_enum_ptrs, pdf_std_font_reloc_ptrs,\
-    pdfont)
-#define private_st_pdf_standard_font_element() /* gdevpdtf.c */\
-  gs_private_st_element(st_pdf_standard_font_element, pdf_standard_font_t,\
-    "pdf_standard_font_t[]", pdf_std_font_elt_enum_ptrs,\
-    pdf_std_font_elt_reloc_ptrs, st_pdf_standard_font)
+#define private_st_pdf_standard_font() /* gdevpdtf.c */                                             \
+	gs_private_st_ptrs1(st_pdf_standard_font, pdf_standard_font_t,                              \
+			    "pdf_standard_font_t", pdf_std_font_enum_ptrs, pdf_std_font_reloc_ptrs, \
+			    pdfont)
+#define private_st_pdf_standard_font_element() /* gdevpdtf.c */                    \
+	gs_private_st_element(st_pdf_standard_font_element, pdf_standard_font_t,   \
+			      "pdf_standard_font_t[]", pdf_std_font_elt_enum_ptrs, \
+			      pdf_std_font_elt_reloc_ptrs, st_pdf_standard_font)
 
 /*
  * There is a single instance (per device) of a structure that tracks global
@@ -306,14 +306,14 @@ typedef struct pdf_standard_font_s {
  * needs access to it.
  */
 
-/*typedef struct pdf_outline_fonts_s pdf_outline_fonts_t;*/  /* gdevpdtx.h */
+/*typedef struct pdf_outline_fonts_s pdf_outline_fonts_t;*/ /* gdevpdtx.h */
 struct pdf_outline_fonts_s {
-    pdf_standard_font_t *standard_fonts; /* [PDF_NUM_STANDARD_FONTS] */
+	pdf_standard_font_t *standard_fonts; /* [PDF_NUM_STANDARD_FONTS] */
 };
-#define private_st_pdf_outline_fonts() /* gdevpdtf.c */\
-  gs_private_st_ptrs1(st_pdf_outline_fonts, pdf_outline_fonts_t,\
-    "pdf_outline_fonts_t", pdf_outline_fonts_enum_ptrs,\
-    pdf_outline_fonts_reloc_ptrs, standard_fonts)
+#define private_st_pdf_outline_fonts() /* gdevpdtf.c */                         \
+	gs_private_st_ptrs1(st_pdf_outline_fonts, pdf_outline_fonts_t,          \
+			    "pdf_outline_fonts_t", pdf_outline_fonts_enum_ptrs, \
+			    pdf_outline_fonts_reloc_ptrs, standard_fonts)
 
 /* ================ Procedures ================ */
 
@@ -346,20 +346,20 @@ int pdf_font_type0_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
 int pdf_font_type3_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
 			 pdf_font_write_contents_proc_t write_contents);
 int pdf_font_std_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
-		   bool is_original, gs_id rid, gs_font_base *pfont, int index);
+		       bool is_original, gs_id rid, gs_font_base *pfont, int index);
 int pdf_font_simple_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
 			  gs_id rid, pdf_font_descriptor_t *pfd);
 int pdf_font_cidfont_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
 			   gs_id rid, pdf_font_descriptor_t *pfd);
-int pdf_obtain_cidfont_widths_arrays(gx_device_pdf *pdev, pdf_font_resource_t *pdfont, 
-		    int wmode, double **w, double **w0, double **v);
+int pdf_obtain_cidfont_widths_arrays(gx_device_pdf *pdev, pdf_font_resource_t *pdfont,
+				     int wmode, double **w, double **w0, double **v);
 int font_resource_encoded_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
-			    gs_id rid, font_type ftype,
-			    pdf_font_write_contents_proc_t write_contents);
+				gs_id rid, font_type ftype,
+				pdf_font_write_contents_proc_t write_contents);
 
 /* Resize font resource arrays. */
-int pdf_resize_resource_arrays(gx_device_pdf *pdev, pdf_font_resource_t *pfres, 
-	int chars_count);
+int pdf_resize_resource_arrays(gx_device_pdf *pdev, pdf_font_resource_t *pfres,
+			       int chars_count);
 
 /*
  * Return the (copied, subset or complete) font associated with a font resource.

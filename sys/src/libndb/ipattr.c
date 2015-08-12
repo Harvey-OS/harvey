@@ -13,7 +13,7 @@
 /*
  *  return ndb attribute type of an ip name
  */
-char*
+char *
 ipattr(char *name)
 {
 	char *p, c;
@@ -22,7 +22,7 @@ ipattr(char *name)
 	int colon = 0;
 	int hex = 0;
 
-	for(p = name; *p; p++){
+	for(p = name; *p; p++) {
 		c = *p;
 		if(isdigit(c))
 			continue;
@@ -38,7 +38,7 @@ ipattr(char *name)
 			return "sys";
 	}
 
-	if(alpha){
+	if(alpha) {
 		if(dot)
 			return "dom";
 		else
@@ -46,7 +46,7 @@ ipattr(char *name)
 	}
 
 	if(colon)
-		return "ip";	/* ip v6 */
+		return "ip"; /* ip v6 */
 
 	if(dot && !hex)
 		return "ip";

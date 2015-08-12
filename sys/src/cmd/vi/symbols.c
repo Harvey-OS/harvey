@@ -14,7 +14,7 @@
 #define Extern extern
 #include "mips.h"
 
-#define	STRINGSZ	128
+#define STRINGSZ 128
 
 /*
  *	print the value of dot as file:line
@@ -24,7 +24,7 @@ printsource(int32_t dot)
 {
 	char str[STRINGSZ];
 
-	if (fileline(str, STRINGSZ, dot))
+	if(fileline(str, STRINGSZ, dot))
 		Bprint(bioout, "%s", str);
 }
 
@@ -35,10 +35,10 @@ printlocals(Symbol *fn, uint32_t fp)
 	Symbol s;
 
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
-		if (s.class != CAUTO)
+	for(i = 0; localsym(&s, i); i++) {
+		if(s.class != CAUTO)
 			continue;
-		Bprint(bioout, "\t%s=#%lux\n", s.name, getmem_4(fp-s.value));
+		Bprint(bioout, "\t%s=#%lux\n", s.name, getmem_4(fp - s.value));
 	}
 }
 
@@ -49,19 +49,19 @@ printparams(Symbol *fn, uint32_t fp)
 	Symbol s;
 	int first;
 
-	fp += mach->szreg;			/* skip saved pc */
+	fp += mach->szreg; /* skip saved pc */
 	s = *fn;
-	for (first = i = 0; localsym(&s, i); i++) {
-		if (s.class != CPARAM)
+	for(first = i = 0; localsym(&s, i); i++) {
+		if(s.class != CPARAM)
 			continue;
-		if (first++)
+		if(first++)
 			Bprint(bioout, ", ");
-		Bprint(bioout, "%s=#%lux", s.name, getmem_4(fp+s.value));
+		Bprint(bioout, "%s=#%lux", s.name, getmem_4(fp + s.value));
 	}
 	Bprint(bioout, ") ");
 }
-#define STARTSYM	"_main"
-#define	FRAMENAME	".frame"
+#define STARTSYM "_main"
+#define FRAMENAME ".frame"
 
 void
 stktrace(int modif)
@@ -74,30 +74,31 @@ stktrace(int modif)
 	pc = reg.pc;
 	sp = reg.r[29];
 	i = 0;
-	while (findsym(pc, CTEXT, &s)) {
+	while(findsym(pc, CTEXT, &s)) {
 		if(strcmp(STARTSYM, s.name) == 0) {
 			Bprint(bioout, "%s() at #%llux\n", s.name, s.value);
 			break;
 		}
-		if (pc == s.value)	/* at first instruction */
+		if(pc == s.value) /* at first instruction */
 			f.value = 0;
-		else if (findlocal(&s, FRAMENAME, &f) == 0)
+		else if(findlocal(&s, FRAMENAME, &f) == 0)
 			break;
-		if (s.type == 'L' || s.type == 'l' || pc <= s.value+4)
+		if(s.type == 'L' || s.type == 'l' || pc <= s.value + 4)
 			pc = reg.r[31];
-		else pc = getmem_4(sp);
+		else
+			pc = getmem_4(sp);
 		sp += f.value;
 		Bprint(bioout, "%s(", s.name);
 		printparams(&s, sp);
 		printsource(s.value);
 		Bprint(bioout, " called from ");
-		symoff(buf, sizeof(buf), pc-8, CTEXT);
+		symoff(buf, sizeof(buf), pc - 8, CTEXT);
 		Bprint(bioout, buf);
-		printsource(pc-8);
+		printsource(pc - 8);
 		Bprint(bioout, "\n");
 		if(modif == 'C')
 			printlocals(&s, sp);
-		if(++i > 40){
+		if(++i > 40) {
 			Bprint(bioout, "(trace truncated)\n");
 			break;
 		}

@@ -17,16 +17,16 @@
 #include "dat.h"
 
 char urlexpr[] =
-	"^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)"
-	"://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
-Reprog	*urlprog;
+    "^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)"
+    "://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
+Reprog *urlprog;
 
 int newitextitem;
 int inword = 0;
 int col = 0;
 int wordi = 0;
 
-char*
+char *
 loadhtml(int fd)
 {
 	URLwin *u;
@@ -44,13 +44,13 @@ loadhtml(int fd)
 	while((n = read(fd, buf, sizeof buf)) > 0)
 		growbytes(b, buf, n);
 	if(b->b == nil)
-		return nil;	/* empty file */
+		return nil; /* empty file */
 	rendertext(u, b);
 	freeurlwin(u);
 	return nil;
 }
 
-char*
+char *
 runetobyte(Rune *r, int n)
 {
 	char *s;
@@ -78,13 +78,13 @@ emitword(Bytes *b, Rune *r, int nr)
 	if(nr == 0)
 		return;
 	s = smprint("%.*S", nr, r);
-	space = b->n > 0 && !isspace(b->b[b->n-1]) && (!newitextitem || !closingpunct(*s));
-	if(col > 0 && col+space+nr > width){
+	space = b->n > 0 && !isspace(b->b[b->n - 1]) && (!newitextitem || !closingpunct(*s));
+	if(col > 0 && col + space + nr > width) {
 		growbytes(b, "\n", 1);
 		space = 0;
 		col = 0;
 	}
-	if(space && col > 0){
+	if(space && col > 0) {
 		growbytes(b, " ", 1);
 		col++;
 	}
@@ -103,20 +103,20 @@ renderrunes(Bytes *b, Rune *r)
 	newitextitem = 1;
 
 	n = runestrlen(r);
-	for(i=0; i<n; i++){
-		switch(r[i]){
+	for(i = 0; i < n; i++) {
+		switch(r[i]) {
 		case '\n':
 			if(inword)
-				emitword(b, r+wordi, i-wordi);
+				emitword(b, r + wordi, i - wordi);
 			col = 0;
 			if(b->n == 0)
-				break;	/* don't start with blank lines */
-			if(b->n<2 || b->b[b->n-1]!='\n' || b->b[b->n-2]!='\n')
+				break; /* don't start with blank lines */
+			if(b->n < 2 || b->b[b->n - 1] != '\n' || b->b[b->n - 2] != '\n')
 				growbytes(b, "\n", 1);
 			break;
 		case ' ':
 			if(inword)
-				emitword(b, r+wordi, i-wordi);
+				emitword(b, r + wordi, i - wordi);
 			break;
 		default:
 			if(!inword)
@@ -126,7 +126,7 @@ renderrunes(Bytes *b, Rune *r)
 		}
 	}
 	if(inword)
-		emitword(b, r+wordi, i-wordi);
+		emitword(b, r + wordi, i - wordi);
 }
 
 void
@@ -142,7 +142,7 @@ renderbytes(Bytes *b, char *fmt, ...)
 	free(r);
 }
 
-char*
+char *
 baseurl(char *url)
 {
 	char *base, *slash;
@@ -150,7 +150,7 @@ baseurl(char *url)
 
 	if(url == nil)
 		return nil;
-	if(urlprog == nil){
+	if(urlprog == nil) {
 		urlprog = regcomp(urlexpr);
 		if(urlprog == nil)
 			error("can't compile URL regexp");
@@ -160,14 +160,14 @@ baseurl(char *url)
 		return nil;
 	base = estrdup(url);
 	slash = strrchr(base, '/');
-	if(slash!=nil && slash>=&base[rs[0].ep-rs[0].sp])
+	if(slash != nil && slash >= &base[rs[0].ep - rs[0].sp])
 		*slash = '\0';
 	else
-		base[rs[0].ep-rs[0].sp] = '\0';
+		base[rs[0].ep - rs[0].sp] = '\0';
 	return base;
 }
 
-char*
+char *
 fullurl(URLwin *u, Rune *rhref)
 {
 	char *base, *href, *hrefbase;
@@ -178,13 +178,13 @@ fullurl(URLwin *u, Rune *rhref)
 	href = runetobyte(rhref, runestrlen(rhref));
 	hrefbase = baseurl(href);
 	result = nil;
-	if(hrefbase==nil && (base = baseurl(u->url))!=nil){
+	if(hrefbase == nil && (base = baseurl(u->url)) != nil) {
 		result = estrdup(base);
-		if(base[strlen(base)-1]!='/' && (href==nil || href[0]!='/'))
+		if(base[strlen(base) - 1] != '/' && (href == nil || href[0] != '/'))
 			result = eappend(result, "/", "");
 		free(base);
 	}
-	if(href){
+	if(href) {
 		if(result)
 			result = eappend(result, "", href);
 		else
@@ -214,15 +214,15 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 	col = 0;
 	wordi = 0;
 
-	for(il=items; il!=nil; il=il->next){
+	for(il = items; il != nil; il = il->next) {
 		if(il->state & IFbrk)
 			renderbytes(t, "\n");
 		if(il->state & IFbrksp)
 			renderbytes(t, "\n");
 
-		switch(il->tag){
+		switch(il->tag) {
 		case Itexttag:
-			it = (Itext*)il;
+			it = (Itext *)il;
 			if(it->state & IFwrap)
 				renderrunes(t, it->s);
 			else {
@@ -231,15 +231,15 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 			}
 			break;
 		case Iruletag:
-			if(t->n>0 && t->b[t->n-1]!='\n')
+			if(t->n > 0 && t->b[t->n - 1] != '\n')
 				renderbytes(t, "\n");
 			renderbytes(t, "=======\n");
 			break;
 		case Iimagetag:
 			if(!aflag)
 				break;
-			im = (Iimage*)il;
-			if(im->imsrc){
+			im = (Iimage *)il;
+			if(im->imsrc) {
 				href = fullurl(u, im->imsrc);
 				renderbytes(t, "[image %s]", href);
 				free(href);
@@ -250,29 +250,29 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 				renderbytes(t, "[formfield]");
 			break;
 		case Itabletag:
-			ita = (Itable*)il;
+			ita = (Itable *)il;
 			tab = ita->table;
-			for(cell=tab->cells; cell!=nil; cell=cell->next){
+			for(cell = tab->cells; cell != nil; cell = cell->next) {
 				render(u, t, cell->content, curanchor);
 			}
-			if(t->n>0 && t->b[t->n-1]!='\n')
+			if(t->n > 0 && t->b[t->n - 1] != '\n')
 				renderbytes(t, "\n");
 			break;
 		case Ifloattag:
-			ifl = (Ifloat*)il;
+			ifl = (Ifloat *)il;
 			render(u, t, ifl->item, curanchor);
 			break;
 		case Ispacertag:
-			is = (Ispacer*)il;
+			is = (Ispacer *)il;
 			if(is->spkind != ISPnull)
 				renderbytes(t, " ");
 			break;
 		default:
 			error("unknown item tag %d\n", il->tag);
 		}
-		if(il->anchorid != 0 && il->anchorid!=curanchor){
-			for(a=u->docinfo->anchors; a!=nil; a=a->next)
-				if(aflag && a->index == il->anchorid){
+		if(il->anchorid != 0 && il->anchorid != curanchor) {
+			for(a = u->docinfo->anchors; a != nil; a = a->next)
+				if(aflag && a->index == il->anchorid) {
 					href = fullurl(u, a->href);
 					renderbytes(t, "[%s]", href);
 					free(href);
@@ -281,7 +281,7 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 			curanchor = il->anchorid;
 		}
 	}
-	if(t->n>0 && t->b[t->n-1]!='\n')
+	if(t->n > 0 && t->b[t->n - 1] != '\n')
 		renderbytes(t, "\n");
 }
 
@@ -295,7 +295,7 @@ rerender(URLwin *u)
 	render(u, t, u->items, 0);
 
 	if(t->n)
-		write(u->outfd, (char*)t->b, t->n);
+		write(u->outfd, (char *)t->b, t->n);
 	free(t->b);
 	free(t);
 }
@@ -314,7 +314,7 @@ charset(char *s)
 	meta = cistrstr(s, "<meta");
 	if(meta == nil)
 		return defcharset;
-	for(emeta=meta; *emeta!='>' && *emeta!='\0'; emeta++)
+	for(emeta = meta; *emeta != '>' && *emeta != '\0'; emeta++)
 		;
 	charset = cistrstr(s, "charset=");
 	if(charset == nil)
@@ -332,14 +332,13 @@ rendertext(URLwin *u, Bytes *b)
 {
 	Rune *rurl;
 
-	rurl = toStr((uint8_t*)u->url, strlen(u->url), ISO_8859_1);
+	rurl = toStr((uint8_t *)u->url, strlen(u->url), ISO_8859_1);
 	u->items = parsehtml(b->b, b->n, rurl, u->type,
-			     charset((char*)b->b), &u->docinfo);
-//	free(rurl);
+			     charset((char *)b->b), &u->docinfo);
+	//	free(rurl);
 
 	rerender(u);
 }
-
 
 void
 freeurlwin(URLwin *u)

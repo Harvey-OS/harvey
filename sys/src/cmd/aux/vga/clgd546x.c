@@ -18,69 +18,69 @@
  * Laguna Visual Media Accelerators Family CL-GD546x.
  */
 typedef struct {
-	Pcidev*	pci;
-	uint8_t*	mmio;
-	int	mem;
+	Pcidev *pci;
+	uint8_t *mmio;
+	int mem;
 
-	int	format;			/* graphics and video format */
-	int	threshold;		/* display threshold */
-	int	tilectrl;		/* tiling control */
-	int	vsc;			/* vendor specific control */
-	int	control;		/* control */
-	int	tilectrl2D3D;		/* tiling control 2D3D */
+	int format;       /* graphics and video format */
+	int threshold;    /* display threshold */
+	int tilectrl;     /* tiling control */
+	int vsc;	  /* vendor specific control */
+	int control;      /* control */
+	int tilectrl2D3D; /* tiling control 2D3D */
 } Laguna;
 
 enum {
-	Format		= 0xC0,		/* graphics and video format */
+	Format = 0xC0, /* graphics and video format */
 
-	Threshold	= 0xEA,		/* Display Threshold */
+	Threshold = 0xEA, /* Display Threshold */
 
-	TileCtrl	= 0x2C4,
+	TileCtrl = 0x2C4,
 
-	Vsc		= 0x3FC,	/* Vendor Specific Control (32-bits) */
+	Vsc = 0x3FC, /* Vendor Specific Control (32-bits) */
 
-	Control		= 0x402,	/* 2D Control */
-	TileCtrl2D3D	= 0x407,	/* (8-bits) */
+	Control = 0x402,      /* 2D Control */
+	TileCtrl2D3D = 0x407, /* (8-bits) */
 };
 
 static int
-mmio8r(Laguna* laguna, int offset)
+mmio8r(Laguna *laguna, int offset)
 {
-	return *(laguna->mmio+offset) & 0xFF;
+	return *(laguna->mmio + offset) & 0xFF;
 }
 
 static void
-mmio8w(Laguna* laguna, int offset, int data)
+mmio8w(Laguna *laguna, int offset, int data)
 {
-	*(laguna->mmio+offset) = data;
+	*(laguna->mmio + offset) = data;
 }
 
 static int
-mmio16r(Laguna* laguna, int offset)
+mmio16r(Laguna *laguna, int offset)
 {
-	return *((uint16_t*)(laguna->mmio+offset)) & 0xFFFF;
+	return *((uint16_t *)(laguna->mmio + offset)) & 0xFFFF;
 }
 
 static void
-mmio16w(Laguna* laguna, int offset, int data)
+mmio16w(Laguna *laguna, int offset, int data)
 {
-	*((uint16_t*)(laguna->mmio+offset)) = data;
+	*((uint16_t *)(laguna->mmio + offset)) = data;
 }
 
 static int
-mmio32r(Laguna* laguna, int offset)
+mmio32r(Laguna *laguna, int offset)
 {
-	return *((uint32_t*)(laguna->mmio+offset));
+	return *((uint32_t *)(laguna->mmio + offset));
 }
 
 static void
-mmio32w(Laguna* laguna, int offset, int data)
+mmio32w(Laguna *laguna, int offset, int data)
 {
-	*((uint32_t*)(laguna->mmio+offset)) = data;
+	*((uint32_t *)(laguna->mmio + offset)) = data;
 }
 
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	int f, i;
 	uint8_t *mmio;
@@ -100,16 +100,16 @@ snarf(Vga* vga, Ctlr* ctlr)
 	for(i = 0x19; i < 0x20; i++)
 		vga->crt[i] = vgaxi(Crtx, i);
 
-	if(vga->private == nil){
+	if(vga->private == nil) {
 		vga->private = alloc(sizeof(Laguna));
 		if((p = pcimatch(0, 0x1013, 0)) == nil)
 			error("%s: not found\n", ctlr->name);
-		switch(p->did){
-		case 0xD0:			/* CL-GD5462 */
+		switch(p->did) {
+		case 0xD0: /* CL-GD5462 */
 			vga->f[1] = 170000000;
 			break;
-		case 0xD4:			/* CL-GD5464 */
-		case 0xD6:			/* CL-GD5465 */
+		case 0xD4: /* CL-GD5464 */
+		case 0xD6: /* CL-GD5465 */
 			vga->f[1] = 230000000;
 			break;
 		default:
@@ -121,9 +121,9 @@ snarf(Vga* vga, Ctlr* ctlr)
 		if(write(f, "type clgd546x", 13) != 13)
 			error("%s: can't set type\n", ctlr->name);
 		close(f);
-	
+
 		mmio = segattach(0, "clgd546xmmio", 0, p->mem[1].size);
-		if(mmio == (void*)-1)
+		if(mmio == (void *)-1)
 			error("%s: can't attach mmio segment\n", ctlr->name);
 		laguna = vga->private;
 		laguna->pci = p;
@@ -131,7 +131,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 	}
 	laguna = vga->private;
 
-	laguna->mem = (vga->sequencer[0x14] & 0x07)+1;
+	laguna->mem = (vga->sequencer[0x14] & 0x07) + 1;
 
 	laguna->format = mmio16r(laguna, Format);
 	laguna->threshold = mmio16r(laguna, Threshold);
@@ -147,7 +147,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Mode *mode;
 	uint16_t x;
@@ -174,7 +174,7 @@ init(Vga* vga, Ctlr* ctlr)
 	clgd54xxclock(vga, ctlr);
 	vga->misc |= 0x0C;
 	vga->sequencer[0x1E] = vga->n[0];
-	vga->sequencer[0x0E] = (vga->d[0]<<1)|vga->p[0];
+	vga->sequencer[0x0E] = (vga->d[0] << 1) | vga->p[0];
 
 	vga->sequencer[0x07] = 0x00;
 	if(mode->z == 8)
@@ -187,7 +187,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * Overflow bits.
 	 */
 	vga->crt[0x1A] = 0x00;
-	x = mode->ehb>>3;
+	x = mode->ehb >> 3;
 	if(x & 0x40)
 		vga->crt[0x1A] |= 0x10;
 	if(x & 0x80)
@@ -221,11 +221,11 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x1E] |= 0x80;
 
 	vga->graphics[0x0B] = 0x00;
-	if(vga->vmz > 1024*1024)
+	if(vga->vmz > 1024 * 1024)
 		vga->graphics[0x0B] |= 0x20;
 
-	if(mode->interlace == 'v'){
-		vga->crt[0x19] = vga->crt[0x00]/2;
+	if(mode->interlace == 'v') {
+		vga->crt[0x19] = vga->crt[0x00] / 2;
 		vga->crt[0x1A] |= 0x01;
 	}
 
@@ -253,45 +253,46 @@ init(Vga* vga, Ctlr* ctlr)
 		tiles = 26;
 	else
 		tiles = 32;
-	fetches = tiles;		/* -1? */
+	fetches = tiles; /* -1? */
 
 	if(nointerleave)
 		interleave = 0;
-	else switch(laguna->mem){
-	default:
-		interleave = 0;
-		break;
-	case 2:
-		interleave = 1;
-		break;
-	case 4:
-	case 8:
-		interleave = 2;
-		break;
-	}
+	else
+		switch(laguna->mem) {
+		default:
+			interleave = 0;
+			break;
+		case 2:
+			interleave = 1;
+			break;
+		case 4:
+		case 8:
+			interleave = 2;
+			break;
+		}
 
 	if(mode->z == 8)
 		format = 0;
 	else if(mode->z == 16)
-		format = (1<<12)|(2<<9);
+		format = (1 << 12) | (2 << 9);
 	else if(mode->z == 24)
-		format = (2<<12)|(2<<9);
+		format = (2 << 12) | (2 << 9);
 	else
-		format = (2<<12)|(2<<9);
+		format = (2 << 12) | (2 << 9);
 
 	//if(ctlr->flag & Ulinear)
 	//	laguna->vsc |= 0x10000000;
 	//else
-		laguna->vsc &= ~0x10000000;
+	laguna->vsc &= ~0x10000000;
 	laguna->format = format;
-	laguna->threshold = (interleave<<14)|(fetches<<8)|0x14;
+	laguna->threshold = (interleave << 14) | (fetches << 8) | 0x14;
 	laguna->tilectrl &= 0x3F;
-	laguna->tilectrl |= (interleave<<14)|(tiles<<8);
+	laguna->tilectrl |= (interleave << 14) | (tiles << 8);
 	if(!notile)
 		laguna->tilectrl |= 0x80;
 	if(pagesize == 1)
 		laguna->tilectrl |= 0x10;
-	laguna->tilectrl2D3D = (interleave<<6)|tiles;
+	laguna->tilectrl2D3D = (interleave << 6) | tiles;
 	laguna->control = 0;
 	if(notile)
 		laguna->control |= 0x1000;
@@ -300,7 +301,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctrl)
+load(Vga *vga, Ctlr *ctrl)
 {
 	Laguna *laguna;
 
@@ -327,7 +328,7 @@ load(Vga* vga, Ctlr* ctrl)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	char *name;
@@ -349,31 +350,31 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	laguna = vga->private;
 	Bprint(&stdout, "\n");
-	Bprint(&stdout, "%s mem\t\t%d\n", ctlr->name, laguna->mem*1024*1024);
+	Bprint(&stdout, "%s mem\t\t%d\n", ctlr->name, laguna->mem * 1024 * 1024);
 	Bprint(&stdout, "%s Format\t\t%uX\n", ctlr->name, laguna->format);
 	Bprint(&stdout, "%s Threshold\t\t\t%uX\n",
-		ctlr->name, laguna->threshold);
+	       ctlr->name, laguna->threshold);
 	Bprint(&stdout, "%s TileCtrl\t\t\t%uX\n", ctlr->name, laguna->tilectrl);
 	Bprint(&stdout, "%s Vsc\t\t%uX\n", ctlr->name, laguna->vsc);
 	Bprint(&stdout, "%s Control\t\t%uX\n", ctlr->name, laguna->control);
 	Bprint(&stdout, "%s TileCtrlC2D3D\t\t%uX\n",
-		ctlr->name, laguna->tilectrl2D3D);
+	       ctlr->name, laguna->tilectrl2D3D);
 }
 
 Ctlr clgd546x = {
-	"clgd546x",			/* name */
-	snarf,				/* snarf */
-	0,				/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "clgd546x", /* name */
+    snarf,      /* snarf */
+    0,		/* options */
+    init,       /* init */
+    load,       /* load */
+    dump,       /* dump */
 };
 
 Ctlr clgd546xhwgc = {
-	"clgd546xhwgc",			/* name */
-	0,				/* snarf */
-	0,				/* options */
-	0,				/* init */
-	0,				/* load */
-	0,				/* dump */
+    "clgd546xhwgc", /* name */
+    0,		    /* snarf */
+    0,		    /* options */
+    0,		    /* init */
+    0,		    /* load */
+    0,		    /* dump */
 };

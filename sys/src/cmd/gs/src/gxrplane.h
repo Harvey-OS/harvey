@@ -27,10 +27,10 @@
 /* Definitions for planar rendering */
 
 #ifndef gxrplane_INCLUDED
-#  define gxrplane_INCLUDED
+#define gxrplane_INCLUDED
 
 #ifndef gx_device_DEFINED
-#  define gx_device_DEFINED
+#define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
 #endif
 
@@ -40,9 +40,9 @@ typedef struct gx_device_s gx_device;
  * initialized with the procedure.
  */
 typedef struct gx_render_plane_s {
-    int depth;
-    int shift;			/* bit position of l.s.b. from low end */
-    int index;			/* index within multi-screen halftone */
+	int depth;
+	int shift; /* bit position of l.s.b. from low end */
+	int index; /* index within multi-screen halftone */
 } gx_render_plane_t;
 
 /*

@@ -28,7 +28,7 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
 	tp->next = 0;
 	repp->qd = tp;
 	repp->id = reqp->id;
-	repp->flags = Fresp  | Onotify | Fauth;
+	repp->flags = Fresp | Onotify | Fauth;
 
 	/* anything to do? */
 	if(zonerefreshprogram == nil)
@@ -46,7 +46,7 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
 		return;
 
 	dnslog("serial old %lud new %lud", a->soarr->soa->serial,
-		repp->qd->soa->serial);
+	       repp->qd->soa->serial);
 
 	/* do nothing if it didn't change */
 	if(a->soarr->soa->serial != repp->qd->soa->serial)
@@ -59,9 +59,9 @@ send_notify(char *slave, RR *soa, Request *req)
 {
 	int i, len, n, reqno, status, fd;
 	char *err;
-	uint8_t ibuf[Maxpayload+Udphdrsize], obuf[Maxpayload+Udphdrsize];
+	uint8_t ibuf[Maxpayload + Udphdrsize], obuf[Maxpayload + Udphdrsize];
 	RR *rp;
-	Udphdr *up = (Udphdr*)obuf;
+	Udphdr *up = (Udphdr *)obuf;
 	DNSmsg repmsg;
 
 	/* create the request */
@@ -70,7 +70,7 @@ send_notify(char *slave, RR *soa, Request *req)
 
 	/* get an address */
 	if(strcmp(ipattr(slave), "ip") == 0) {
-		if (parseip(up->raddr, slave) == -1)
+		if(parseip(up->raddr, slave) == -1)
 			dnslog("bad address %s to notify", slave);
 	} else {
 		rp = dnresolve(slave, Cin, Ta, req, nil, 0, 1, 1, &status);
@@ -79,7 +79,7 @@ send_notify(char *slave, RR *soa, Request *req)
 		if(rp == nil)
 			return;
 		parseip(up->raddr, rp->ip->name);
-		rrfreelist(rp);		/* was rrfree */
+		rrfreelist(rp); /* was rrfree */
 	}
 
 	fd = udpport(nil);
@@ -88,13 +88,13 @@ send_notify(char *slave, RR *soa, Request *req)
 
 	/* send 3 times or until we get anything back */
 	n += Udphdrsize;
-	for(i = 0; i < 3; i++, freeanswers(&repmsg)){
+	for(i = 0; i < 3; i++, freeanswers(&repmsg)) {
 		dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave,
-			up->raddr, nhgets(up->rport), soa->owner->name);
+		       up->raddr, nhgets(up->rport), soa->owner->name);
 		memset(&repmsg, 0, sizeof repmsg);
 		if(write(fd, obuf, n) != n)
 			break;
-		alarm(2*1000);
+		alarm(2 * 1000);
 		len = read(fd, ibuf, sizeof ibuf);
 		alarm(0);
 		if(len <= Udphdrsize)
@@ -107,7 +107,7 @@ send_notify(char *slave, RR *soa, Request *req)
 		if(repmsg.id == reqno && (repmsg.flags & Omask) == Onotify)
 			break;
 	}
-	if (i < 3)
+	if(i < 3)
 		freeanswers(&repmsg);
 	close(fd);
 }
@@ -118,7 +118,7 @@ notify_areas(Area *a, Request *req)
 {
 	Server *s;
 
-	for(; a != nil; a = a->next){
+	for(; a != nil; a = a->next) {
 		if(!a->neednotify)
 			continue;
 
@@ -138,7 +138,7 @@ notifyproc(void)
 {
 	Request req;
 
-	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
+	switch(rfork(RFPROC | RFNOTEG | RFMEM | RFNOWAIT)) {
 	case -1:
 		return;
 	case 0:
@@ -149,12 +149,12 @@ notifyproc(void)
 
 	procsetname("notify slaves");
 	memset(&req, 0, sizeof req);
-	req.isslave = 1;	/* don't fork off subprocesses */
+	req.isslave = 1; /* don't fork off subprocesses */
 
-	for(;;){
+	for(;;) {
 		getactivity(&req, 0);
 		notify_areas(owned, &req);
 		putactivity(0);
-		sleep(60*1000);
+		sleep(60 * 1000);
 	}
 }

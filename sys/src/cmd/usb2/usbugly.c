@@ -15,24 +15,24 @@ main(int argc, char *argv[])
 	epctl = -1;
 	fd = open(argv[1], ORDWR);
 	nconfs = usbconfread(fd, &confs);
-	for(i = 0; i < nconfs; i++){
-		if(usbconfprint(1, confs+i) == -1){
+	for(i = 0; i < nconfs; i++) {
+		if(usbconfprint(1, confs + i) == -1) {
 			fprint(2, "usbprint fail!\n");
 			goto fail;
 		}
 	}
 	epdata = usbopen(fd, confs, 0, &epctl);
-	if(epdata == -1){
+	if(epdata == -1) {
 		fprint(2, "usbopen fail!\n");
 		goto fail;
 	}
 
-	for(i = 0; i < 128; i++){
+	for(i = 0; i < 128; i++) {
 		char buf[8];
 		int j, n;
 		n = read(epdata, buf, sizeof buf);
 		for(j = 0; j < n; j++)
-			print("0x%02x%s", buf[j], j == n-1 ? "\n" : ", ");
+			print("0x%02x%s", buf[j], j == n - 1 ? "\n" : ", ");
 	}
 
 fail:

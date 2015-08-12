@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<libsec.h>
+#include <u.h>
+#include <libc.h>
+#include <libsec.h>
 
 /* 
  *  use the X917 random number generator to create random
@@ -19,7 +19,7 @@ uint32_t
 fastrand(void)
 {
 	uint32_t x;
-	
-	genrandom((uint8_t*)&x, sizeof x);
+
+	genrandom((uint8_t *)&x, sizeof x);
 	return x;
 }

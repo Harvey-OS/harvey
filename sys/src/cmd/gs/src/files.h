@@ -28,7 +28,7 @@
 /* Requires stream.h */
 
 #ifndef files_INCLUDED
-#  define files_INCLUDED
+#define files_INCLUDED
 
 /*
  * File objects store a pointer to a stream in value.pfile.
@@ -38,8 +38,8 @@
  * reuse closed streams for new files.
  */
 #define fptr(pref) (pref)->value.pfile
-#define make_file(pref,a,id,s)\
-  make_tasv(pref,t_file,a,id,pfile,s)
+#define make_file(pref, a, id, s) \
+	make_tasv(pref, t_file, a, id, pfile, s)
 
 /* The stdxxx files.  We have to access them through procedures, */
 /* because they might have to be opened when referenced. */
@@ -65,15 +65,16 @@ void make_invalid_file(ref *);
  * NOTE: in order to work around a bug in the Borland 5.0 compiler,
  * you must use file_is_invalid rather than !file_is_valid.
  */
-#define file_is_valid(svar,op)\
-  (svar = fptr(op), (svar->read_id | svar->write_id) == r_size(op))
-#define file_is_invalid(svar,op)\
-  (svar = fptr(op), (svar->read_id | svar->write_id) != r_size(op))
-#define check_file(svar,op)\
-  BEGIN\
-    check_type(*(op), t_file);\
-    if ( file_is_invalid(svar, op) ) return_error(e_invalidaccess);\
-  END
+#define file_is_valid(svar, op) \
+	(svar = fptr(op), (svar->read_id | svar->write_id) == r_size(op))
+#define file_is_invalid(svar, op) \
+	(svar = fptr(op), (svar->read_id | svar->write_id) != r_size(op))
+#define check_file(svar, op)                   \
+	BEGIN                                  \
+	check_type(*(op), t_file);             \
+	if(file_is_invalid(svar, op))          \
+		return_error(e_invalidaccess); \
+	END
 
 /*
  * If a file is open for both reading and writing, its read_id, write_id,
@@ -82,102 +83,103 @@ void make_invalid_file(ref *);
  */
 int file_switch_to_read(const ref *);
 
-#define check_read_file(svar,op)\
-  BEGIN\
-    check_read_type(*(op), t_file);\
-    check_read_known_file(svar, op, return);\
-  END
-#define check_read_known_file(svar,op,error_return)\
-  check_read_known_file_else(svar, op, error_return, svar = invalid_file_entry)
-#define check_read_known_file_else(svar,op,error_return,invalid_action)\
-  BEGIN\
-    svar = fptr(op);\
-    if (svar->read_id != r_size(op)) {\
-	if (svar->read_id == 0 && svar->write_id == r_size(op)) {\
-	    int fcode = file_switch_to_read(op);\
-\
-	    if (fcode < 0)\
-		 error_return(fcode);\
-	} else {\
-	    invalid_action;	/* closed or reopened file */\
-	}\
-    }\
-  END
+#define check_read_file(svar, op)                 \
+	BEGIN                                     \
+	check_read_type(*(op), t_file);           \
+	check_read_known_file(svar, op, return ); \
+	END
+#define check_read_known_file(svar, op, error_return) \
+	check_read_known_file_else(svar, op, error_return, svar = invalid_file_entry)
+#define check_read_known_file_else(svar, op, error_return, invalid_action) \
+	BEGIN                                                              \
+	svar = fptr(op);                                                   \
+	if(svar->read_id != r_size(op)) {                                  \
+		if(svar->read_id == 0 && svar->write_id == r_size(op)) {   \
+			int fcode = file_switch_to_read(op);               \
+                                                                           \
+			if(fcode < 0)                                      \
+				error_return(fcode);                       \
+		} else {                                                   \
+			invalid_action; /* closed or reopened file */      \
+		}                                                          \
+	}                                                                  \
+	END
 int file_switch_to_write(const ref *);
 
-#define check_write_file(svar,op)\
-  BEGIN\
-    check_write_type(*(op), t_file);\
-    check_write_known_file(svar, op, return);\
-  END
-#define check_write_known_file(svar,op,error_return)\
-  BEGIN\
-    svar = fptr(op);\
-    if ( svar->write_id != r_size(op) )\
-	{	int fcode = file_switch_to_write(op);\
-		if ( fcode < 0 ) error_return(fcode);\
-	}\
-  END
+#define check_write_file(svar, op)                 \
+	BEGIN                                      \
+	check_write_type(*(op), t_file);           \
+	check_write_known_file(svar, op, return ); \
+	END
+#define check_write_known_file(svar, op, error_return) \
+	BEGIN                                          \
+	svar = fptr(op);                               \
+	if(svar->write_id != r_size(op)) {             \
+		int fcode = file_switch_to_write(op);  \
+		if(fcode < 0)                          \
+			error_return(fcode);           \
+	}                                              \
+	END
 
 /* Data exported by zfile.c. */
-	/* for zfilter.c and ziodev.c */
+/* for zfilter.c and ziodev.c */
 extern const uint file_default_buffer_size;
 
 #ifndef gs_file_path_ptr_DEFINED
-#  define gs_file_path_ptr_DEFINED
+#define gs_file_path_ptr_DEFINED
 typedef struct gs_file_path_s *gs_file_path_ptr;
 #endif
 
 /* Procedures exported by zfile.c. */
-	/* for imainarg.c */
+/* for imainarg.c */
 FILE *lib_fopen(const gs_file_path_ptr pfpath, const gs_memory_t *mem, const char *);
 
-	/* for imain.c */
-int lib_file_open(const gs_file_path_ptr pfpath, i_ctx_t *, const char *, uint, byte *, uint, 
+/* for imain.c */
+int lib_file_open(const gs_file_path_ptr pfpath, i_ctx_t *, const char *, uint, byte *, uint,
 		  uint *, ref *, gs_memory_t *);
 
-	/* for imain.c */
+/* for imain.c */
 #ifndef gs_ref_memory_DEFINED
-#  define gs_ref_memory_DEFINED
+#define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;
 #endif
 int file_read_string(const byte *, uint, ref *, gs_ref_memory_t *);
 
-	/* for os_open in ziodev.c */
-#ifdef iodev_proc_fopen		/* in gxiodev.h */
+/* for os_open in ziodev.c */
+#ifdef iodev_proc_fopen /* in gxiodev.h */
 int file_open_stream(const char *, uint, const char *, uint, stream **,
 		     gx_io_device *, iodev_proc_fopen_t, gs_memory_t *);
 #endif
 
-	/* for zfilter.c */
+/* for zfilter.c */
 int filter_open(const char *, uint, ref *, const stream_procs *,
 		const stream_template *, const stream_state *,
 		gs_memory_t *);
 
-	/* for zfileio.c */
+/* for zfileio.c */
 void make_stream_file(ref *, stream *, const char *);
 
-	/* for ziodev.c */
+/* for ziodev.c */
 int file_close_finish(stream *);
 int file_close_disable(stream *);
 int file_close_file(stream *);
 
-	/* for gsmain.c, interp.c */
+/* for gsmain.c, interp.c */
 int file_close(ref *);
 
-	/* for zfproc.c, ziodev.c */
+/* for zfproc.c, ziodev.c */
 stream *file_alloc_stream(gs_memory_t *, client_name_t);
 
 /* Procedures exported by zfileio.c. */
-	/* for ziodev.c */
+/* for ziodev.c */
 int zreadline_from(stream *s, gs_string *buf, gs_memory_t *bufmem,
 		   uint *pcount, bool *pin_eol);
 
 /* Procedures exported by zfileio.c. */
-	/* for zfile.c */
+/* for zfile.c */
 int zfilelineedit(i_ctx_t *i_ctx_p);
 
-	/* for zfproc.c */
+/* for zfproc.c */
 int zneedstdin(i_ctx_t *i_ctx_p);
 int zneedstdout(i_ctx_t *i_ctx_p);
 int zneedstderr(i_ctx_t *i_ctx_p);

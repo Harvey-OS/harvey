@@ -39,40 +39,41 @@
 
 /* <string> <string> <bool> .file_name_combine <string> true */
 /* <string> <string> <bool> .file_name_combine <string> <string> false */
-private int
+private
+int
 zfile_name_combine(i_ctx_t *i_ctx_p)
 {
-    uint plen, flen, blen, blen0;
-    const byte *prefix, *fname;
-    byte *buffer;
-    os_ptr op = osp;
-    bool no_sibling;
+	uint plen, flen, blen, blen0;
+	const byte *prefix, *fname;
+	byte *buffer;
+	os_ptr op = osp;
+	bool no_sibling;
 
-    check_type(op[ 0], t_boolean);
-    check_type(op[-1], t_string);
-    check_type(op[-2], t_string);
-    plen = r_size(op - 2);
-    flen = r_size(op - 1);
-    blen = blen0 = plen + flen + 2; /* Inserts separator and ending zero byte. */
-    buffer = ialloc_string(blen, "zfile_name_combine");
-    if (buffer == 0)
-	return_error(e_VMerror);
-    prefix = op[-2].value.const_bytes;
-    fname =  op[-1].value.const_bytes;
-    no_sibling = op[0].value.boolval;
-    if (gp_file_name_combine((const char *)prefix, plen, 
-			     (const char *)fname, flen, no_sibling,
-		             (char *)buffer, &blen) != gp_combine_success) {
-	make_bool(op, false);
-    } else {
-	buffer = iresize_string(buffer, blen0, blen, "zfile_name_combine");
-	if (buffer == 0)
-	    return_error(e_VMerror);
-	make_string(op - 2, a_all | icurrent_space, blen, buffer);
-	make_bool(op - 1, true);
-	pop(1);
-    }
-    return 0;
+	check_type(op[0], t_boolean);
+	check_type(op[-1], t_string);
+	check_type(op[-2], t_string);
+	plen = r_size(op - 2);
+	flen = r_size(op - 1);
+	blen = blen0 = plen + flen + 2; /* Inserts separator and ending zero byte. */
+	buffer = ialloc_string(blen, "zfile_name_combine");
+	if(buffer == 0)
+		return_error(e_VMerror);
+	prefix = op[-2].value.const_bytes;
+	fname = op[-1].value.const_bytes;
+	no_sibling = op[0].value.boolval;
+	if(gp_file_name_combine((const char *)prefix, plen,
+				(const char *)fname, flen, no_sibling,
+				(char *)buffer, &blen) != gp_combine_success) {
+		make_bool(op, false);
+	} else {
+		buffer = iresize_string(buffer, blen0, blen, "zfile_name_combine");
+		if(buffer == 0)
+			return_error(e_VMerror);
+		make_string(op - 2, a_all | icurrent_space, blen, buffer);
+		make_bool(op - 1, true);
+		pop(1);
+	}
+	return 0;
 }
 
 /* This is compiled conditionally to let PS library to know
@@ -80,59 +81,69 @@ zfile_name_combine(i_ctx_t *i_ctx_p)
  */
 
 /* <string> .file_name_is_absolute <bool> */
-private int
+private
+int
 zfile_name_is_absolute(i_ctx_t *i_ctx_p)
-{   os_ptr op = osp;
+{
+	os_ptr op = osp;
 
-    check_type(op[0], t_string);
-    make_bool(op, (gp_file_name_root((const char *)op->value.const_bytes, 
-					r_size(op)) > 0));
-    return 0;
+	check_type(op[0], t_string);
+	make_bool(op, (gp_file_name_root((const char *)op->value.const_bytes,
+					 r_size(op)) > 0));
+	return 0;
 }
 
-private int
+private
+int
 push_string(i_ctx_t *i_ctx_p, const char *v)
-{   os_ptr op = osp;
-    int len = strlen(v);
+{
+	os_ptr op = osp;
+	int len = strlen(v);
 
-    push(1);
-    make_const_string(op, avm_foreign | a_readonly,
-		      len, (const byte *)v);
-    return 0;
+	push(1);
+	make_const_string(op, avm_foreign | a_readonly,
+			  len, (const byte *)v);
+	return 0;
 }
 
 /* - .file_name_separator <string> */
-private int
+private
+int
 zfile_name_separator(i_ctx_t *i_ctx_p)
-{   return push_string(i_ctx_p, gp_file_name_separator());
+{
+	return push_string(i_ctx_p, gp_file_name_separator());
 }
 
 /* - .file_name_directory_separator <string> */
-private int
+private
+int
 zfile_name_directory_separator(i_ctx_t *i_ctx_p)
-{   return push_string(i_ctx_p, gp_file_name_directory_separator());
+{
+	return push_string(i_ctx_p, gp_file_name_directory_separator());
 }
 
 /* - .file_name_current <string> */
-private int
+private
+int
 zfile_name_current(i_ctx_t *i_ctx_p)
-{   return push_string(i_ctx_p, gp_file_name_current());
+{
+	return push_string(i_ctx_p, gp_file_name_current());
 }
 
 /* - .file_name_parent <string> */
-private int
+private
+int
 zfile_name_parent(i_ctx_t *i_ctx_p)
-{   return push_string(i_ctx_p, gp_file_name_parent());
+{
+	return push_string(i_ctx_p, gp_file_name_parent());
 }
 
 const op_def zfile1_op_defs[] =
-{
-    {"0.file_name_combine", zfile_name_combine},
-    {"0.file_name_is_absolute", zfile_name_is_absolute},
-    {"0.file_name_separator", zfile_name_separator},
-    {"0.file_name_directory_separator", zfile_name_directory_separator},
-    {"0.file_name_current", zfile_name_current},
-    {"0.file_name_parent", zfile_name_parent},
-    op_def_end(0)
-};
-
+    {
+     {"0.file_name_combine", zfile_name_combine},
+     {"0.file_name_is_absolute", zfile_name_is_absolute},
+     {"0.file_name_separator", zfile_name_separator},
+     {"0.file_name_directory_separator", zfile_name_directory_separator},
+     {"0.file_name_current", zfile_name_current},
+     {"0.file_name_parent", zfile_name_parent},
+     op_def_end(0)};

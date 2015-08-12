@@ -12,8 +12,8 @@
 #include "String.h"
 
 /* grow a String's allocation by at least `incr' bytes */
-extern String*
-s_grow(String *s, int incr)	
+extern String *
+s_grow(String *s, int incr)
 {
 	char *cp;
 	int size;
@@ -25,14 +25,14 @@ s_grow(String *s, int incr)
 	/*
 	 *  take a larger increment to avoid mallocing too often
 	 */
-	size = s->end-s->base;
-	if(size/2 < incr)
+	size = s->end - s->base;
+	if(size / 2 < incr)
 		size += incr;
 	else
-		size += size/2;
+		size += size / 2;
 
 	cp = realloc(s->base, size);
-	if (cp == 0)
+	if(cp == 0)
 		sysfatal("s_grow: %r");
 	s->ptr = (s->ptr - s->base) + cp;
 	s->end = cp + size;
@@ -40,4 +40,3 @@ s_grow(String *s, int incr)
 
 	return s;
 }
-

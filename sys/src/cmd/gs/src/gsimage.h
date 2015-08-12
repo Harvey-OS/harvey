@@ -28,7 +28,7 @@
 /* Requires gsstate.h */
 
 #ifndef gsimage_INCLUDED
-#  define gsimage_INCLUDED
+#define gsimage_INCLUDED
 
 #include "gsiparam.h"
 
@@ -124,12 +124,12 @@
  * for this reason, we may move the prototype elsewhere in the future.
  */
 #ifndef gx_image_enum_common_t_DEFINED
-#  define gx_image_enum_common_t_DEFINED
+#define gx_image_enum_common_t_DEFINED
 typedef struct gx_image_enum_common_s gx_image_enum_common_t;
 #endif
 
-int gs_image_begin_typed(const gs_image_common_t * pic, gs_state * pgs,
-			 bool uses_color, gx_image_enum_common_t ** ppie);
+int gs_image_begin_typed(const gs_image_common_t *pic, gs_state *pgs,
+			 bool uses_color, gx_image_enum_common_t **ppie);
 
 typedef struct gs_image_enum_s gs_image_enum;
 gs_image_enum *gs_image_enum_alloc(gs_memory_t *, client_name_t);
@@ -140,29 +140,29 @@ gs_image_enum *gs_image_enum_alloc(gs_memory_t *, client_name_t);
  * depending on the value of ImageMask in the image structure.
  */
 #ifndef gx_device_DEFINED
-#  define gx_device_DEFINED
+#define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
 #endif
 
 /* Initialize an enumerator for an ImageType 1 image. */
-int gs_image_init(gs_image_enum * penum, const gs_image_t * pim,
-		  bool MultipleDataSources, gs_state * pgs);
+int gs_image_init(gs_image_enum *penum, const gs_image_t *pim,
+		  bool MultipleDataSources, gs_state *pgs);
 
 /* Initialize an enumerator for a general image. 
    penum->memory must be initialized in advance.
 */
-int gs_image_enum_init(gs_image_enum * penum,
-		       gx_image_enum_common_t * pie,
-		       const gs_data_image_t * pim, gs_state *pgs);
+int gs_image_enum_init(gs_image_enum *penum,
+		       gx_image_enum_common_t *pie,
+		       const gs_data_image_t *pim, gs_state *pgs);
 
 /*
  * Return the number of bytes of data per row
  * (per plane, if there are multiple planes).
  */
-uint gs_image_bytes_per_plane_row(const gs_image_enum * penum, int plane);
+uint gs_image_bytes_per_plane_row(const gs_image_enum *penum, int plane);
 
-#define gs_image_bytes_per_row(penum)\
-  gs_image_bytes_per_plane_row(penum, 0)
+#define gs_image_bytes_per_row(penum) \
+	gs_image_bytes_per_plane_row(penum, 0)
 
 /*
  * Return a byte vector indicating which planes (still) need data for the
@@ -193,13 +193,13 @@ int gs_image_next_planes(gs_image_enum *penum, gs_const_string *plane_data,
 			 uint *used);
 
 /* Pass the next plane of data for an image.  See above for details. */
-int gs_image_next(gs_image_enum * penum, const byte * dbytes,
-		  uint dsize, uint * pused);
+int gs_image_next(gs_image_enum *penum, const byte *dbytes,
+		  uint dsize, uint *pused);
 
 /* Clean up after processing an image. */
-int gs_image_cleanup(gs_image_enum * penum);
+int gs_image_cleanup(gs_image_enum *penum);
 
 /* Clean up after processing an image and free the enumerator. */
-int gs_image_cleanup_and_free_enum(gs_image_enum * penum);
+int gs_image_cleanup_and_free_enum(gs_image_enum *penum);
 
 #endif /* gsimage_INCLUDED */

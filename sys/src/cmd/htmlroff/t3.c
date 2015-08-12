@@ -24,14 +24,14 @@ po(int o)
 void
 r_po(int argc, Rune **argv)
 {
-	if(argc == 1){
+	if(argc == 1) {
 		po(getnr(L(".o0")));
 		return;
 	}
 	if(argv[1][0] == '+')
-		po(getnr(L(".o"))+evalscale(argv[1]+1, 'v'));
+		po(getnr(L(".o")) + evalscale(argv[1] + 1, 'v'));
 	else if(argv[1][0] == '-')
-		po(getnr(L(".o"))-evalscale(argv[1]+1, 'v'));
+		po(getnr(L(".o")) - evalscale(argv[1] + 1, 'v'));
 	else
 		po(evalscale(argv[1], 'v'));
 }
@@ -46,7 +46,7 @@ t3init(void)
 	nr(L(".o"), eval(L("1i")));
 	nr(L(".o0"), eval(L("1i")));
 	nr(L(".p"), eval(L("11i")));
-	
+
 	addreq(L("pl"), r_warn, -1);
 	addreq(L("bp"), r_nop, -1);
 	addreq(L("pn"), r_warn, -1);
@@ -55,4 +55,3 @@ t3init(void)
 	addreq(L("mk"), r_nop, -1);
 	addreq(L("rt"), r_warn, -1);
 }
-

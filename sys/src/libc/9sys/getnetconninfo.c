@@ -23,12 +23,12 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 
 	snprint(buf, sizeof buf, "%s/%s", dir, file);
 	fd = open(buf, OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n>0){
-			buf[n-1] = 0;
+	if(fd >= 0) {
+		n = read(fd, buf, sizeof(buf) - 1);
+		if(n > 0) {
+			buf[n - 1] = 0;
 			serv = strchr(buf, '!');
-			if(serv){
+			if(serv) {
 				*serv++ = 0;
 				serv = strdup(serv);
 			}
@@ -44,7 +44,7 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 	*sysp = sys;
 }
 
-NetConnInfo*
+NetConnInfo *
 getnetconninfo(char *dir, int fd)
 {
 	NetConnInfo *nci;
@@ -55,7 +55,7 @@ getnetconninfo(char *dir, int fd)
 	char netname[128], *p;
 
 	/* get a directory address via fd */
-	if(dir == nil || *dir == 0){
+	if(dir == nil || *dir == 0) {
 		if(fd2path(fd, path, sizeof(path)) < 0)
 			return nil;
 		cp = strrchr(path, '/');
@@ -78,14 +78,14 @@ getnetconninfo(char *dir, int fd)
 	nci->root = strdup(dir);
 	if(nci->root == nil)
 		goto err;
-	cp = strchr(nci->root+1, '/');
+	cp = strchr(nci->root + 1, '/');
 	if(cp == nil)
 		goto err;
 	*cp = 0;
 
 	/* figure out bind spec */
 	d = dirstat(nci->dir);
-	if(d != nil){
+	if(d != nil) {
 		sprint(spec, "#%C%d", d->type, d->dev);
 		nci->spec = strdup(spec);
 	}
@@ -101,11 +101,11 @@ getnetconninfo(char *dir, int fd)
 	if(nci->rsys == nil || nci->rserv == nil)
 		goto err;
 
-	strecpy(netname, netname+sizeof netname, nci->dir);
+	strecpy(netname, netname + sizeof netname, nci->dir);
 	if((p = strrchr(netname, '/')) != nil)
 		*p = 0;
 	if(strncmp(netname, "/net/", 5) == 0)
-		memmove(netname, netname+5, strlen(netname+5)+1);
+		memmove(netname, netname + 5, strlen(netname + 5) + 1);
 	nci->laddr = smprint("%s!%s!%s", netname, nci->lsys, nci->lserv);
 	nci->raddr = smprint("%s!%s!%s", netname, nci->rsys, nci->rserv);
 	if(nci->laddr == nil || nci->raddr == nil)

@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
-void*
+void *
 memset(void *ap, int c, uint32_t n)
 {
 	char *p;

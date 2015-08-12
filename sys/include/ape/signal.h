@@ -21,31 +21,31 @@ typedef int sig_atomic_t;
  * where the char * is the Plan 9 message and Ureg is defined in <ureg.h>
  */
 #define SIG_DFL ((void (*)())0)
-#define SIG_ERR ((void (*)())-1)
+#define SIG_ERR ((void (*)()) - 1)
 #define SIG_IGN ((void (*)())1)
 
-#define	SIGHUP	1	/* hangup */
-#define	SIGINT	2	/* interrupt */
-#define	SIGQUIT	3	/* quit */
-#define	SIGILL	4	/* illegal instruction (not reset when caught)*/
-#define SIGABRT 5	/* used by abort */
-#define	SIGFPE	6	/* floating point exception */
-#define	SIGKILL	7	/* kill (cannot be caught or ignored) */
-#define	SIGSEGV	8	/* segmentation violation */
-#define	SIGPIPE	9	/* write on a pipe with no one to read it */
-#define	SIGALRM	10	/* alarm clock */
-#define	SIGTERM	11	/* software termination signal from kill */
-#define	SIGUSR1	12	/* user defined signal 1 */
-#define	SIGUSR2	13	/* user defined signal 2 */
-#define	SIGBUS	14	/* bus error */
+#define SIGHUP 1   /* hangup */
+#define SIGINT 2   /* interrupt */
+#define SIGQUIT 3  /* quit */
+#define SIGILL 4   /* illegal instruction (not reset when caught)*/
+#define SIGABRT 5  /* used by abort */
+#define SIGFPE 6   /* floating point exception */
+#define SIGKILL 7  /* kill (cannot be caught or ignored) */
+#define SIGSEGV 8  /* segmentation violation */
+#define SIGPIPE 9  /* write on a pipe with no one to read it */
+#define SIGALRM 10 /* alarm clock */
+#define SIGTERM 11 /* software termination signal from kill */
+#define SIGUSR1 12 /* user defined signal 1 */
+#define SIGUSR2 13 /* user defined signal 2 */
+#define SIGBUS 14  /* bus error */
 
 /* The following symbols must be defined, but the signals needn't be supported */
-#define SIGCHLD	15	/* child process terminated or stopped */
-#define SIGCONT 16	/* continue if stopped */
-#define SIGSTOP 17	/* stop */
-#define SIGTSTP	18	/* interactive stop */
-#define SIGTTIN	19	/* read from ctl tty by member of background */
-#define SIGTTOU	20	/* write to ctl tty by member of background */
+#define SIGCHLD 15 /* child process terminated or stopped */
+#define SIGCONT 16 /* continue if stopped */
+#define SIGSTOP 17 /* stop */
+#define SIGTSTP 18 /* interactive stop */
+#define SIGTTIN 19 /* read from ctl tty by member of background */
+#define SIGTTOU 20 /* write to ctl tty by member of background */
 
 #ifdef _BSD_EXTENSION
 #define NSIG 21
@@ -66,17 +66,17 @@ extern int raise(int);
 
 typedef int32_t sigset_t;
 struct sigaction {
-	void		(*sa_handler)();
-	sigset_t	sa_mask;
-	int		sa_flags;
+	void (*sa_handler)();
+	sigset_t sa_mask;
+	int sa_flags;
 };
 /* values for sa_flags */
-#define SA_NOCLDSTOP	1
+#define SA_NOCLDSTOP 1
 
 /* first argument to sigprocmask */
-#define SIG_BLOCK	1
-#define SIG_UNBLOCK	2
-#define SIG_SETMASK	3
+#define SIG_BLOCK 1
+#define SIG_UNBLOCK 2
+#define SIG_SETMASK 3
 
 #ifdef __cplusplus
 extern "C" {

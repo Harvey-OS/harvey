@@ -28,7 +28,7 @@
 /* Requires strimpl.h */
 
 #ifndef siinterp_INCLUDED
-#  define siinterp_INCLUDED
+#define siinterp_INCLUDED
 
 #include "sisparam.h"
 

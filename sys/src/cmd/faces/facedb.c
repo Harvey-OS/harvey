@@ -15,20 +15,20 @@
 #include <bio.h>
 #include "faces.h"
 
-enum	/* number of deleted faces to cache */
+enum /* number of deleted faces to cache */
 {
-	Nsave	= 20,
+	Nsave = 20,
 };
 
-static Facefile	*facefiles;
-static int		nsaved;
-static char	*facedom;
+static Facefile *facefiles;
+static int nsaved;
+static char *facedom;
 static char *homeface;
 
 /*
  * Loading the files is slow enough on a dial-up line to be worth this trouble
  */
-typedef struct Readcache	Readcache;
+typedef struct Readcache Readcache;
 struct Readcache {
 	char *file;
 	char *data;
@@ -67,7 +67,7 @@ dirmtime(char *s)
 	return t;
 }
 
-static char*
+static char *
 doreadfile(char *s)
 {
 	char *p;
@@ -78,12 +78,11 @@ doreadfile(char *s)
 	if(len == 0)
 		return nil;
 
-	p = malloc(len+1);
+	p = malloc(len + 1);
 	if(p == nil)
 		return nil;
 
-	if((fd = open(s, OREAD)) < 0
-	|| (n = readn(fd, p, len)) < 0) {
+	if((fd = open(s, OREAD)) < 0 || (n = readn(fd, p, len)) < 0) {
 		close(fd);
 		free(p);
 		return nil;
@@ -93,14 +92,14 @@ doreadfile(char *s)
 	return p;
 }
 
-static char*
+static char *
 readfile(char *s)
 {
 	Readcache *r, **l;
 	char *p;
 	uint32_t mtime;
 
-	for(l=&rcache, r=*l; r; l=&r->next, r=*l) {
+	for(l = &rcache, r = *l; r; l = &r->next, r = *l) {
 		if(strcmp(r->file, s) != 0)
 			continue;
 
@@ -143,7 +142,7 @@ readfile(char *s)
 	return strdup(r->data);
 }
 
-static char*
+static char *
 translatedomain(char *dom, char *list)
 {
 	static char buf[200];
@@ -157,16 +156,16 @@ translatedomain(char *dom, char *list)
 	if(list == nil || (file = readfile(list)) == nil)
 		return dom;
 
-	for(p=file; p; p=nextp) {
+	for(p = file; p; p = nextp) {
 		if(nextp = strchr(p, '\n'))
 			*nextp++ = '\0';
 
-		if(*p == '#' || (q = strpbrk(p, " \t")) == nil || q-p > sizeof(buf)-2)
+		if(*p == '#' || (q = strpbrk(p, " \t")) == nil || q - p > sizeof(buf) - 2)
 			continue;
 
-		bbuf = buf+1;
-		ebuf = buf+(1+(q-p));
-		strncpy(bbuf, p, ebuf-bbuf);
+		bbuf = buf + 1;
+		ebuf = buf + (1 + (q - p));
+		strncpy(bbuf, p, ebuf - bbuf);
 		*ebuf = 0;
 		if(*bbuf != '^')
 			*--bbuf = '^';
@@ -175,21 +174,21 @@ translatedomain(char *dom, char *list)
 			*ebuf = 0;
 		}
 
-		if((exp = regcomp(bbuf)) == nil){
+		if((exp = regcomp(bbuf)) == nil) {
 			fprint(2, "bad regexp in machinelist: %s\n", bbuf);
 			killall("regexp");
 		}
 
-		if(regexec(exp, dom, 0, 0)){
+		if(regexec(exp, dom, 0, 0)) {
 			free(exp);
-			ep = p+strlen(p);
+			ep = p + strlen(p);
 			q += strspn(q, " \t");
-			if(ep-q+2 > sizeof buf) {
-				fprint(2, "huge replacement in machinelist: %.*s\n", utfnlen(q, ep-q), q);
+			if(ep - q + 2 > sizeof buf) {
+				fprint(2, "huge replacement in machinelist: %.*s\n", utfnlen(q, ep - q), q);
 				exits("bad big replacement");
 			}
-			strncpy(buf, q, ep-q);
-			ebuf = buf+(ep-q);
+			strncpy(buf, q, ep - q);
+			ebuf = buf + (ep - q);
 			*ebuf = 0;
 			while(ebuf > buf && (ebuf[-1] == ' ' || ebuf[-1] == '\t'))
 				*--ebuf = 0;
@@ -203,18 +202,18 @@ translatedomain(char *dom, char *list)
 	return dom;
 }
 
-static char*
+static char *
 tryfindpicture(char *dom, char *user, char *dir, char *dict)
 {
 	static char buf[1024];
 	char *file, *p, *nextp, *q;
-	
+
 	if((file = readfile(dict)) == nil)
 		return nil;
 
 	snprint(buf, sizeof buf, "%s/%s", dom, user);
 
-	for(p=file; p; p=nextp){
+	for(p = file; p; p = nextp) {
 		if(nextp = strchr(p, '\n'))
 			*nextp++ = '\0';
 
@@ -222,10 +221,10 @@ tryfindpicture(char *dom, char *user, char *dir, char *dict)
 			continue;
 		*q++ = 0;
 
-		if(strcmp(buf, p) == 0){
+		if(strcmp(buf, p) == 0) {
 			q += strspn(q, " \t");
 			snprint(buf, sizeof buf, "%s/%s", dir, q);
-			q = buf+strlen(buf);
+			q = buf + strlen(buf);
 			while(q > buf && (q[-1] == ' ' || q[-1] == '\t'))
 				*--q = 0;
 			free(file);
@@ -236,25 +235,25 @@ tryfindpicture(char *dom, char *user, char *dir, char *dict)
 	return nil;
 }
 
-static char*
+static char *
 estrstrdup(char *a, char *b)
 {
 	char *t;
-	
-	t = emalloc(strlen(a)+strlen(b)+1);
+
+	t = emalloc(strlen(a) + strlen(b) + 1);
 	strcpy(t, a);
 	strcat(t, b);
 	return t;
 }
 
-static char*
+static char *
 tryfindfiledir(char *dom, char *user, char *dir)
 {
 	char *dict, *ndir, *x;
 	int fd;
 	int i, n;
 	Dir *d;
-	
+
 	/*
 	 * If this directory has a .machinelist, use it.
 	 */
@@ -266,14 +265,14 @@ tryfindfiledir(char *dom, char *user, char *dir)
 	 * If this directory has a .dict, use it.
 	 */
 	dict = estrstrdup(dir, "/.dict");
-	if(access(dict, AEXIST) >= 0){
+	if(access(dict, AEXIST) >= 0) {
 		x = tryfindpicture(dom, user, dir, dict);
 		free(dict);
 		free(dom);
 		return x;
 	}
 	free(dict);
-	
+
 	/*
 	 * If not, recurse into subdirectories.
 	 * Ignore 512x512 directories.
@@ -281,16 +280,14 @@ tryfindfiledir(char *dom, char *user, char *dir)
 	 */
 	if((fd = open(dir, OREAD)) < 0)
 		return nil;
-	while((n = dirread(fd, &d)) > 0){
-		for(i=0; i<n; i++){
-			if((d[i].mode&DMDIR)
-			&& strncmp(d[i].name, "512x", 4) != 0
-			&& strncmp(d[i].name, "48x48x", 6) != 0){
-				ndir = emalloc(strlen(dir)+1+strlen(d[i].name)+1);
+	while((n = dirread(fd, &d)) > 0) {
+		for(i = 0; i < n; i++) {
+			if((d[i].mode & DMDIR) && strncmp(d[i].name, "512x", 4) != 0 && strncmp(d[i].name, "48x48x", 6) != 0) {
+				ndir = emalloc(strlen(dir) + 1 + strlen(d[i].name) + 1);
 				strcpy(ndir, dir);
 				strcat(ndir, "/");
 				strcat(ndir, d[i].name);
-				if((x = tryfindfiledir(dom, user, ndir)) != nil){
+				if((x = tryfindfiledir(dom, user, ndir)) != nil) {
 					free(ndir);
 					free(d);
 					close(fd);
@@ -302,14 +299,14 @@ tryfindfiledir(char *dom, char *user, char *dir)
 		free(d);
 	}
 	close(fd);
-	
+
 	/*
 	 * Handle 48x48 directories in the right order.
 	 */
 	ndir = estrstrdup(dir, "/48x48x8");
-	for(i=8; i>0; i>>=1){
-		ndir[strlen(ndir)-1] = i+'0';
-		if(access(ndir, AEXIST) >= 0 && (x = tryfindfiledir(dom, user, ndir)) != nil){
+	for(i = 8; i > 0; i >>= 1) {
+		ndir[strlen(ndir) - 1] = i + '0';
+		if(access(ndir, AEXIST) >= 0 && (x = tryfindfiledir(dom, user, ndir)) != nil) {
 			free(ndir);
 			free(dom);
 			return x;
@@ -320,12 +317,12 @@ tryfindfiledir(char *dom, char *user, char *dir)
 	return nil;
 }
 
-static char*
+static char *
 tryfindfile(char *dom, char *user)
 {
 	char *p;
 
-	while(dom && *dom){
+	while(dom && *dom) {
 		if(homeface && (p = tryfindfiledir(dom, user, homeface)) != nil)
 			return p;
 		if((p = tryfindfiledir(dom, user, "/lib/face")) != nil)
@@ -337,12 +334,12 @@ tryfindfile(char *dom, char *user)
 	return nil;
 }
 
-char*
+char *
 findfile(Face *f, char *dom, char *user)
 {
 	char *p;
 
-	if(facedom == nil){
+	if(facedom == nil) {
 		facedom = getenv("facedom");
 		if(facedom == nil)
 			facedom = DEFAULT;
@@ -362,16 +359,15 @@ findfile(Face *f, char *dom, char *user)
 	return tryfindfile("unknown", "unknown");
 }
 
-static
-void
+static void
 clearsaved(void)
 {
 	Facefile *f, *next, **lf;
 
 	lf = &facefiles;
-	for(f=facefiles; f!=nil; f=next){
+	for(f = facefiles; f != nil; f = next) {
 		next = f->next;
-		if(f->ref > 0){
+		if(f->ref > 0) {
 			*lf = f;
 			lf = &(f->next);
 			continue;
@@ -388,32 +384,31 @@ clearsaved(void)
 void
 freefacefile(Facefile *f)
 {
-	if(f==nil || f->ref-->1)
+	if(f == nil || f->ref-- > 1)
 		return;
 	if(++nsaved > Nsave)
 		clearsaved();
-}	
+}
 
-static Image*
+static Image *
 myallocimage(uint32_t chan)
 {
 	Image *img;
-	img = allocimage(display, Rect(0,0,Facesize,Facesize), chan, 0, DNofill);
-	if(img == nil){
+	img = allocimage(display, Rect(0, 0, Facesize, Facesize), chan, 0, DNofill);
+	if(img == nil) {
 		clearsaved();
-		img = allocimage(display, Rect(0,0,Facesize,Facesize), chan, 0, DNofill);
+		img = allocimage(display, Rect(0, 0, Facesize, Facesize), chan, 0, DNofill);
 		if(img == nil)
 			return nil;
 	}
 	return img;
 }
-		
 
-static Image*
+static Image *
 readbit(int fd, uint32_t chan)
 {
 	char buf[4096], hx[4], *p;
-	uint8_t data[Facesize*Facesize];	/* more than enough */
+	uint8_t data[Facesize * Facesize]; /* more than enough */
 	int nhx, i, n, ndata, nbit;
 	Image *img;
 
@@ -421,16 +416,16 @@ readbit(int fd, uint32_t chan)
 	if(n <= 0)
 		return nil;
 	if(n >= sizeof buf)
-		n = sizeof(buf)-1;
+		n = sizeof(buf) - 1;
 	buf[n] = '\0';
 
 	n = 0;
 	nhx = 0;
 	nbit = chantodepth(chan);
-	ndata = (Facesize*Facesize*nbit)/8;
+	ndata = (Facesize * Facesize * nbit) / 8;
 	p = buf;
 	while(n < ndata) {
-		p = strpbrk(p+1, "0123456789abcdefABCDEF");
+		p = strpbrk(p + 1, "0123456789abcdefABCDEF");
 		if(p == nil)
 			break;
 		if(p[0] == '0' && p[1] == 'x')
@@ -445,7 +440,7 @@ readbit(int fd, uint32_t chan)
 		}
 	}
 	if(n < ndata)
-		return allocimage(display, Rect(0,0,Facesize,Facesize), CMAP8, 0, 0x88888888);
+		return allocimage(display, Rect(0, 0, Facesize, Facesize), CMAP8, 0, 0x88888888);
 
 	img = myallocimage(chan);
 	if(img == nil)
@@ -454,7 +449,7 @@ readbit(int fd, uint32_t chan)
 	return img;
 }
 
-static Facefile*
+static Facefile *
 readface(char *fn)
 {
 	int x, y, fd;
@@ -463,17 +458,17 @@ readface(char *fn)
 	Image *mask;
 	Image *face;
 	char buf[16];
-	uint8_t data[Facesize*Facesize];
-	uint8_t mdata[(Facesize*Facesize)/8];
+	uint8_t data[Facesize * Facesize];
+	uint8_t mdata[(Facesize * Facesize) / 8];
 	Facefile *f;
 	Dir *d;
 
-	for(f=facefiles; f!=nil; f=f->next){
-		if(strcmp(fn, f->file) == 0){
+	for(f = facefiles; f != nil; f = f->next) {
+		if(strcmp(fn, f->file) == 0) {
 			if(f->image == nil)
 				break;
 			if(time(0) - f->rdtime >= 30) {
-				if(dirmtime(fn) != f->mtime){
+				if(dirmtime(fn) != f->mtime) {
 					f = nil;
 					break;
 				}
@@ -487,7 +482,7 @@ readface(char *fn)
 	if((fd = open(fn, OREAD)) < 0)
 		return nil;
 
-	if(readn(fd, buf, sizeof buf) != sizeof buf){
+	if(readn(fd, buf, sizeof buf) != sizeof buf) {
 		close(fd);
 		return nil;
 	}
@@ -495,18 +490,18 @@ readface(char *fn)
 	seek(fd, 0, 0);
 
 	mask = nil;
-	if(buf[0] == '0' && buf[1] == 'x'){
+	if(buf[0] == '0' && buf[1] == 'x') {
 		/* greyscale faces are just masks that we draw black through! */
-		if(buf[2+8] == ',')	/* ldepth 1 */
+		if(buf[2 + 8] == ',') /* ldepth 1 */
 			mask = readbit(fd, GREY2);
 		else
 			mask = readbit(fd, GREY1);
 		face = display->black;
-	}else{
+	} else {
 		face = readimage(display, fd, 0);
 		if(face == nil)
 			goto Done;
-		else if(face->chan == GREY4 || face->chan == GREY8){	/* greyscale: use inversion as mask */
+		else if(face->chan == GREY4 || face->chan == GREY8) { /* greyscale: use inversion as mask */
 			mask = myallocimage(face->chan);
 			/* okay if mask is nil: that will copy the image white background and all */
 			if(mask == nil)
@@ -517,26 +512,26 @@ readface(char *fn)
 			gendraw(mask, mask->r, display->black, ZP, face, face->r.min);
 			freeimage(face);
 			face = display->black;
-		}else if(face->depth == 8){	/* snarf the bytes back and do a fill. */
+		} else if(face->depth == 8) { /* snarf the bytes back and do a fill. */
 			mask = myallocimage(GREY1);
 			if(mask == nil)
 				goto Done;
-			if(unloadimage(face, face->r, data, Facesize*Facesize) != Facesize*Facesize){	
+			if(unloadimage(face, face->r, data, Facesize * Facesize) != Facesize * Facesize) {
 				freeimage(mask);
 				goto Done;
 			}
 			bits = 0;
 			p = mdata;
-			for(y=0; y<Facesize; y++){
-				for(x=0; x<Facesize; x++){	
+			for(y = 0; y < Facesize; y++) {
+				for(x = 0; x < Facesize; x++) {
 					bits <<= 1;
-					if(data[Facesize*y+x] != 0xFF)
+					if(data[Facesize * y + x] != 0xFF)
 						bits |= 1;
-					if((x&7) == 7)
-						*p++ = bits&0xFF;
+					if((x & 7) == 7)
+						*p++ = bits & 0xFF;
 				}
 			}
-			if(loadimage(mask, mask->r, mdata, sizeof mdata) != sizeof mdata){
+			if(loadimage(mask, mask->r, mdata, sizeof mdata) != sizeof mdata) {
 				freeimage(mask);
 				goto Done;
 			}
@@ -545,11 +540,11 @@ readface(char *fn)
 
 Done:
 	/* always add at beginning of list, so updated files don't collide in cache */
-	if(f == nil){
+	if(f == nil) {
 		f = emalloc(sizeof(Facefile));
 		f->file = estrdup(fn);
 		d = dirfstat(fd);
-		if(d != nil){
+		if(d != nil) {
 			f->mtime = d->mtime;
 			free(d);
 		}
@@ -575,12 +570,12 @@ findbit(Face *f)
 			f->unknown = 1;
 		f->file = readface(fn);
 	}
-	if(f->file){
+	if(f->file) {
 		f->bit = f->file->image;
 		f->mask = f->file->mask;
-	}else{
+	} else {
 		/* if returns nil, this is still ok: draw(nil) works */
-		f->bit = allocimage(display, Rect(0,0,1,1), CMAP8, 1, DYellow);
+		f->bit = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, DYellow);
 		replclipr(f->bit, 1, Rect(0, 0, Facesize, Facesize));
 		f->mask = nil;
 	}

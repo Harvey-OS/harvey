@@ -17,9 +17,9 @@ mousescrollsize(int maxlines)
 	static int lines, pcnt;
 	char *mss;
 
-	if(lines == 0 && pcnt == 0){
+	if(lines == 0 && pcnt == 0) {
 		mss = getenv("mousescrollsize");
-		if(mss){
+		if(mss) {
 			if(strchr(mss, '%') != nil)
 				pcnt = atof(mss);
 			else
@@ -28,11 +28,11 @@ mousescrollsize(int maxlines)
 		}
 		if(lines == 0 && pcnt == 0)
 			lines = 1;
-		if(pcnt>=100)
+		if(pcnt >= 100)
 			pcnt = 100;
 	}
 
 	if(lines)
 		return lines;
-	return pcnt * maxlines/100.0;	
+	return pcnt * maxlines / 100.0;
 }

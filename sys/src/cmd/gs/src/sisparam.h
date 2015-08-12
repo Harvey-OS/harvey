@@ -28,7 +28,7 @@
 /* Requires strimpl.h */
 
 #ifndef sisparam_INCLUDED
-#  define sisparam_INCLUDED
+#define sisparam_INCLUDED
 
 /*
  * Image scaling streams all use a common set of parameters to define the
@@ -37,11 +37,11 @@
 
 /* Input values */
 /*typedef byte PixelIn; */  /* per BitsPerComponentIn */
-/*#define MaxValueIn 255 */  /* per MaxValueIn */
+/*#define MaxValueIn 255 */ /* per MaxValueIn */
 
 /* Output values */
 /*typedef byte PixelOut; */  /* per BitsPerComponentOut */
-/*#define MaxValueOut 255 */  /* per MaxValueOut */
+/*#define MaxValueOut 255 */ /* per MaxValueOut */
 
 /*
  * The 'support' S of a digital filter is the value such that the filter is
@@ -58,25 +58,25 @@
 
 /* Define image scaling stream parameters. */
 typedef struct stream_image_scale_params_s {
-    int Colors;			/* >= 1 */
-    int BitsPerComponentIn;	/* bits per input value, 8 or 16 */
-    uint MaxValueIn;		/* max value of input component, */
-				/* 0 < MaxValueIn < 1 << BitsPerComponentIn */
-    int WidthIn, HeightIn;	/* > 0 */
-    int BitsPerComponentOut;	/* bits per output value, 8 or 16 */
-    uint MaxValueOut;		/* max value of output component, */
-				/* 0 < MaxValueOut < 1 << BitsPerComponentOut*/
-    int WidthOut, HeightOut;	/* > 0 */
+	int Colors;		/* >= 1 */
+	int BitsPerComponentIn; /* bits per input value, 8 or 16 */
+	uint MaxValueIn;	/* max value of input component, */
+	/* 0 < MaxValueIn < 1 << BitsPerComponentIn */
+	int WidthIn, HeightIn;   /* > 0 */
+	int BitsPerComponentOut; /* bits per output value, 8 or 16 */
+	uint MaxValueOut;	/* max value of output component, */
+	/* 0 < MaxValueOut < 1 << BitsPerComponentOut*/
+	int WidthOut, HeightOut; /* > 0 */
 } stream_image_scale_params_t;
 
 /* Define a generic image scaling stream state. */
 
-#define stream_image_scale_state_common\
-    stream_state_common;\
-    stream_image_scale_params_t params
+#define stream_image_scale_state_common \
+	stream_state_common;            \
+	stream_image_scale_params_t params
 
 typedef struct stream_image_scale_state_s {
-    stream_image_scale_state_common;
+	stream_image_scale_state_common;
 } stream_image_scale_state;
 
 #endif /* sisparam_INCLUDED */

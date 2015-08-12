@@ -43,51 +43,53 @@
 
 /* <source> <dict> arcfour/filter <file> */
 
-private int
-z_arcfour_d(i_ctx_t * i_ctx_p)
+private
+int
+z_arcfour_d(i_ctx_t *i_ctx_p)
 {
-    os_ptr op = osp;		/* i_ctx_p->op_stack.stack.p defined in osstack.h */
-    ref *sop = NULL;
-    stream_arcfour_state state;
+	os_ptr op = osp; /* i_ctx_p->op_stack.stack.p defined in osstack.h */
+	ref *sop = NULL;
+	stream_arcfour_state state;
 
-    /* extract the key from the parameter dictionary */
-    check_type(*op, t_dictionary);
-    check_dict_read(*op);
-    if (dict_find_string(op, "Key", &sop) <= 0)
-	return_error(e_rangecheck);
+	/* extract the key from the parameter dictionary */
+	check_type(*op, t_dictionary);
+	check_dict_read(*op);
+	if(dict_find_string(op, "Key", &sop) <= 0)
+		return_error(e_rangecheck);
 
-    s_arcfour_set_key(&state, sop->value.const_bytes, r_size(sop));
+	s_arcfour_set_key(&state, sop->value.const_bytes, r_size(sop));
 
-    /* we pass npop=0, since we've no arguments left to consume */
-    /* we pass 0 instead of the usual rspace(sop) will allocate storage for 
+	/* we pass npop=0, since we've no arguments left to consume */
+	/* we pass 0 instead of the usual rspace(sop) will allocate storage for 
        filter state from the same memory pool as the stream it's coding. this
        causes no trouble because we maintain no pointers */
-    return filter_read(i_ctx_p, 0, &s_arcfour_template,
-		       (stream_state *) & state, 0);
+	return filter_read(i_ctx_p, 0, &s_arcfour_template,
+			   (stream_state *)&state, 0);
 }
 
 /* encode version of the filter */
-private int
-z_arcfour_e(i_ctx_t * i_ctx_p)
+private
+int
+z_arcfour_e(i_ctx_t *i_ctx_p)
 {
-    os_ptr op = osp;		/* i_ctx_p->op_stack.stack.p defined in osstack.h */
-    ref *sop = NULL;
-    stream_arcfour_state state;
+	os_ptr op = osp; /* i_ctx_p->op_stack.stack.p defined in osstack.h */
+	ref *sop = NULL;
+	stream_arcfour_state state;
 
-    /* extract the key from the parameter dictionary */
-    check_type(*op, t_dictionary);
-    check_dict_read(*op);
-    if (dict_find_string(op, "Key", &sop) <= 0)
-	return_error(e_rangecheck);
+	/* extract the key from the parameter dictionary */
+	check_type(*op, t_dictionary);
+	check_dict_read(*op);
+	if(dict_find_string(op, "Key", &sop) <= 0)
+		return_error(e_rangecheck);
 
-    s_arcfour_set_key(&state, sop->value.const_bytes, r_size(sop));
+	s_arcfour_set_key(&state, sop->value.const_bytes, r_size(sop));
 
-    /* we pass npop=0, since we've no arguments left to consume */
-    /* we pass 0 instead of the usual rspace(sop) will allocate storage for 
+	/* we pass npop=0, since we've no arguments left to consume */
+	/* we pass 0 instead of the usual rspace(sop) will allocate storage for 
        filter state from the same memory pool as the stream it's coding. this
        causes no trouble because we maintain no pointers */
-    return filter_write(i_ctx_p, 0, &s_arcfour_template,
-			(stream_state *) & state, 0);
+	return filter_write(i_ctx_p, 0, &s_arcfour_template,
+			    (stream_state *)&state, 0);
 }
 
 /* match the above routines to their postscript filter names
@@ -96,5 +98,4 @@ const op_def zfarc4_op_defs[] = {
     op_def_begin_filter(),
     {"2ArcfourDecode", z_arcfour_d},
     {"2ArcfourEncode", z_arcfour_e},
-    op_def_end(0)
-};
+    op_def_end(0)};

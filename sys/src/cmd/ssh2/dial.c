@@ -18,30 +18,29 @@ typedef struct Conn Conn;
 typedef struct Dest Dest;
 typedef struct DS DS;
 
-enum
-{
-	Maxstring	= 128,
-	Maxpath		= 256,
+enum {
+	Maxstring = 128,
+	Maxpath = 256,
 
-	Maxcsreply	= 64*80,	/* this is probably overly generous */
+	Maxcsreply = 64 * 80, /* this is probably overly generous */
 	/*
 	 * this should be a plausible slight overestimate for non-interactive
 	 * use even if it's ridiculously long for interactive use.
 	 */
-	Maxconnms	= 2*60*1000,	/* 2 minutes */
+	Maxconnms = 2 * 60 * 1000, /* 2 minutes */
 };
 
 struct DS {
 	/* dist string */
-	char	buf[Maxstring];
-	char	*netdir;		/* e.g., /net.alt */
-	char	*proto;			/* e.g., tcp */
-	char	*rem;			/* e.g., host!service */
+	char buf[Maxstring];
+	char *netdir; /* e.g., /net.alt */
+	char *proto;  /* e.g., tcp */
+	char *rem;    /* e.g., host!service */
 
 	/* other args */
-	char	*local;
-	char	*dir;
-	int	*cfdp;
+	char *local;
+	char *dir;
+	int *cfdp;
 };
 
 /*
@@ -50,33 +49,32 @@ struct DS {
  * segment would not permit concurrent dials within a multi-process program.
  */
 struct Conn {
-	int	pid;
-	int	dead;
+	int pid;
+	int dead;
 
-	int	dfd;
-	int	cfd;
-	char	dir[NETPATHLEN+1];
-	char	err[ERRMAX];
+	int dfd;
+	int cfd;
+	char dir[NETPATHLEN + 1];
+	char err[ERRMAX];
 };
 struct Dest {
-	Conn	*conn;			/* allocated array */
-	Conn	*connend;
-	int	nkid;
+	Conn *conn; /* allocated array */
+	Conn *connend;
+	int nkid;
 
-	int32_t	oalarm;
-	int	naddrs;
+	int32_t oalarm;
+	int naddrs;
 
-	QLock	winlck;
-	int	winner;			/* index into conn[] */
+	QLock winlck;
+	int winner; /* index into conn[] */
 
-	char	*nextaddr;
-	char	addrlist[Maxcsreply];
+	char *nextaddr;
+	char addrlist[Maxcsreply];
 };
 
-static int	call(char*, char*, DS*, Dest*, Conn*);
-static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
-
+static int call(char *, char *, DS *, Dest *, Conn *);
+static int csdial(DS *);
+static void _dial_string_parse(char *, DS *);
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
@@ -102,7 +100,7 @@ dialimpl(char *dest, char *local, char *dir, int *cfdp)
 		return rv;
 	err[0] = '\0';
 	errstr(err, sizeof err);
-	if(strstr(err, "refused") != 0){
+	if(strstr(err, "refused") != 0) {
 		werrstr("%s", err);
 		return rv;
 	}
@@ -155,19 +153,19 @@ freedest(Dest *dp)
 {
 	int32_t oalarm;
 
-	if (dp == nil)
+	if(dp == nil)
 		return;
 	oalarm = dp->oalarm;
 	free(dp->conn);
 	free(dp);
-	if (oalarm >= 0)
+	if(oalarm >= 0)
 		alarm(oalarm);
 }
 
 static void
 closeopenfd(int *fdp)
 {
-	if (*fdp >= 0) {
+	if(*fdp >= 0) {
 		close(*fdp);
 		*fdp = -1;
 	}
@@ -177,20 +175,20 @@ static void
 notedeath(Dest *dp, char *exitsts)
 {
 	int i, n, pid;
-	char *fields[5];			/* pid + 3 times + error */
+	char *fields[5]; /* pid + 3 times + error */
 	Conn *conn;
 
-	for (i = 0; i < nelem(fields); i++)
+	for(i = 0; i < nelem(fields); i++)
 		fields[i] = "";
 	n = tokenize(exitsts, fields, nelem(fields));
-	if (n < 4)
+	if(n < 4)
 		return;
 	pid = atoi(fields[0]);
-	if (pid <= 0)
+	if(pid <= 0)
 		return;
-	for (conn = dp->conn; conn < dp->connend; conn++)
-		if (conn->pid == pid && !conn->dead) {  /* it's one we know? */
-			if (conn - dp->conn != dp->winner) {
+	for(conn = dp->conn; conn < dp->connend; conn++)
+		if(conn->pid == pid && !conn->dead) { /* it's one we know? */
+			if(conn - dp->conn != dp->winner) {
 				closeopenfd(&conn->dfd);
 				closeopenfd(&conn->cfd);
 			}
@@ -207,8 +205,8 @@ outstandingprocs(Dest *dp)
 {
 	Conn *conn;
 
-	for (conn = dp->conn; conn < dp->connend; conn++)
-		if (!conn->dead)
+	for(conn = dp->conn; conn < dp->connend; conn++)
+		if(!conn->dead)
 			return 1;
 	return 0;
 }
@@ -216,9 +214,9 @@ outstandingprocs(Dest *dp)
 static int
 reap(Dest *dp)
 {
-	char exitsts[2*ERRMAX];
+	char exitsts[2 * ERRMAX];
 
-	if (outstandingprocs(dp) && await(exitsts, sizeof exitsts) >= 0) {
+	if(outstandingprocs(dp) && await(exitsts, sizeof exitsts) >= 0) {
 		notedeath(dp, exitsts);
 		return 0;
 	}
@@ -230,14 +228,14 @@ fillinds(DS *ds, Dest *dp)
 {
 	Conn *conn;
 
-	if (dp->winner < 0)
+	if(dp->winner < 0)
 		return -1;
 	conn = &dp->conn[dp->winner];
-	if (ds->cfdp)
+	if(ds->cfdp)
 		*ds->cfdp = conn->cfd;
-	if (ds->dir) {
+	if(ds->dir) {
 		strncpy(ds->dir, conn->dir, NETPATHLEN);
-		ds->dir[NETPATHLEN-1] = '\0';
+		ds->dir[NETPATHLEN - 1] = '\0';
 	}
 	return conn->dfd;
 }
@@ -248,22 +246,22 @@ connectwait(Dest *dp, char *besterr)
 	Conn *conn;
 
 	/* wait for a winner or all attempts to time out */
-	while (dp->winner < 0 && reap(dp) >= 0)
+	while(dp->winner < 0 && reap(dp) >= 0)
 		;
 
 	/* kill all of our still-live kids & reap them */
-	for (conn = dp->conn; conn < dp->connend; conn++)
-		if (!conn->dead)
+	for(conn = dp->conn; conn < dp->connend; conn++)
+		if(!conn->dead)
 			postnote(PNPROC, conn->pid, "alarm");
-	while (reap(dp) >= 0)
+	while(reap(dp) >= 0)
 		;
 
 	/* rummage about and report some error string */
-	for (conn = dp->conn; conn < dp->connend; conn++)
-		if (conn - dp->conn != dp->winner && conn->dead &&
-		    conn->err[0]) {
-			strncpy(besterr, conn->err, ERRMAX-1);
-			conn->err[ERRMAX-1] = '\0';
+	for(conn = dp->conn; conn < dp->connend; conn++)
+		if(conn - dp->conn != dp->winner && conn->dead &&
+		   conn->err[0]) {
+			strncpy(besterr, conn->err, ERRMAX - 1);
+			conn->err[ERRMAX - 1] = '\0';
 			break;
 		}
 	return dp->winner;
@@ -284,7 +282,7 @@ parsecs(Dest *dp, char **clonep, char **destp)
 	*p++ = '\0';
 	*clonep = dp->nextaddr;
 	*destp = dest;
-	dp->nextaddr = p;		/* advance to next line */
+	dp->nextaddr = p; /* advance to next line */
 	return 0;
 }
 
@@ -318,12 +316,12 @@ dialmulti(DS *ds, Dest *dp)
 	dp->winner = -1;
 	dp->nkid = 0;
 	while(dp->winner < 0 && *dp->nextaddr != '\0' &&
-	    parsecs(dp, &clone, &dest) >= 0) {
-		kidme = dp->nkid++;		/* make private copy on stack */
-		kid = rfork(RFPROC|RFMEM);	/* spin off a call attempt */
-		if (kid < 0)
+	      parsecs(dp, &clone, &dest) >= 0) {
+		kidme = dp->nkid++;	  /* make private copy on stack */
+		kid = rfork(RFPROC | RFMEM); /* spin off a call attempt */
+		if(kid < 0)
 			--dp->nkid;
-		else if (kid == 0) {
+		else if(kid == 0) {
 			/* only in kid, to avoid atnotify callbacks in parent */
 			atnotify(catcher, 1);
 
@@ -331,7 +329,7 @@ dialmulti(DS *ds, Dest *dp)
 			rv = call(clone, dest, ds, dp, &dp->conn[kidme]);
 			if(rv < 0)
 				pickuperr(besterr, err);
-			_exits(besterr);	/* avoid atexit callbacks */
+			_exits(besterr); /* avoid atexit callbacks */
 		}
 	}
 	rv = connectwait(dp, besterr);
@@ -356,7 +354,7 @@ csdial(DS *ds)
 		return -1;
 	dp->winner = -1;
 	dp->oalarm = alarm(0);
-	if (connsalloc(dp, 1) < 0) {		/* room for a single conn. */
+	if(connsalloc(dp, 1) < 0) { /* room for a single conn. */
 		freedest(dp);
 		return -1;
 	}
@@ -366,7 +364,7 @@ csdial(DS *ds)
 	 */
 	snprint(buf, sizeof(buf), "%s/cs", ds->netdir);
 	fd = open(buf, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		/* no connection server, don't translate */
 		snprint(clone, sizeof(clone), "%s/%s/clone", ds->netdir, ds->proto);
 		rv = call(clone, ds->rem, ds, dp, &dp->conn[0]);
@@ -379,7 +377,7 @@ csdial(DS *ds)
 	 *  ask connection server to translate
 	 */
 	snprint(buf, sizeof(buf), "%s!%s", ds->proto, ds->rem);
-	if(write(fd, buf, strlen(buf)) < 0){
+	if(write(fd, buf, strlen(buf)) < 0) {
 		close(fd);
 		freedest(dp);
 		return -1;
@@ -391,9 +389,9 @@ csdial(DS *ds)
 	seek(fd, 0, 0);
 	addrs = 0;
 	addrp = dp->nextaddr = dp->addrlist;
-	bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+	bleft = sizeof dp->addrlist - 2; /* 2 is room for \n\0 */
 	while(bleft > 0 && (n = read(fd, addrp, bleft)) > 0) {
-		if (addrp[n-1] != '\n')
+		if(addrp[n - 1] != '\n')
 			addrp[n++] = '\n';
 		addrs++;
 		addrp += n;
@@ -404,27 +402,27 @@ csdial(DS *ds)
 	 * have been truncated and ignore it.  we really don't expect this
 	 * to happen.
 	 */
-	if (addrs > 0 && bleft <= 0 && read(fd, &c, 1) == 1)
+	if(addrs > 0 && bleft <= 0 && read(fd, &c, 1) == 1)
 		addrs--;
 	close(fd);
 
 	*besterr = 0;
-	rv = -1;				/* pessimistic default */
+	rv = -1; /* pessimistic default */
 	dp->naddrs = addrs;
-	if (addrs == 0)
+	if(addrs == 0)
 		werrstr("no address to dial");
-	else if (addrs == 1) {
+	else if(addrs == 1) {
 		/* common case: dial one address without forking */
-		if (parsecs(dp, &clone2, &dest) >= 0 &&
-		    (rv = call(clone2, dest, ds, dp, &dp->conn[0])) < 0) {
+		if(parsecs(dp, &clone2, &dest) >= 0 &&
+		   (rv = call(clone2, dest, ds, dp, &dp->conn[0])) < 0) {
 			pickuperr(besterr, err);
 			werrstr("%s", besterr);
 		}
-	} else if (connsalloc(dp, addrs) >= 0)
+	} else if(connsalloc(dp, addrs) >= 0)
 		rv = dialmulti(ds, dp);
 
 	/* fill in results */
-	if (rv >= 0 && dp->winner >= 0)
+	if(rv >= 0 && dp->winner >= 0)
 		rv = fillinds(ds, dp);
 
 	freedest(dp);
@@ -438,11 +436,11 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
 	/* because cs is in a different name space, replace the mount point */
-	if(*clone == '/'){
-		p = strchr(clone+1, '/');
+	if(*clone == '/') {
+		p = strchr(clone + 1, '/');
 		if(p == nil)
 			p = clone;
-		else 
+		else
 			p++;
 	} else
 		p = clone;
@@ -454,8 +452,8 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 		return -1;
 
 	/* get directory name */
-	n = read(cfd, name, sizeof(name)-1);
-	if(n < 0){
+	n = read(cfd, name, sizeof(name) - 1);
+	if(n < 0) {
 		closeopenfd(&conn->cfd);
 		return -1;
 	}
@@ -471,9 +469,9 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 
 	/* should be no alarm pending now; re-instate caller's alarm, if any */
 	calleralarm = dp->oalarm > 0;
-	if (calleralarm)
+	if(calleralarm)
 		alarm(dp->oalarm);
-	else if (dp->naddrs > 1)	/* in a sub-process? */
+	else if(dp->naddrs > 1) /* in a sub-process? */
 		alarm(Maxconnms);
 
 	/* connect */
@@ -481,18 +479,18 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 		snprint(name, sizeof(name), "connect %s %s", dest, ds->local);
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
-	if(write(cfd, name, strlen(name)) < 0){
+	if(write(cfd, name, strlen(name)) < 0) {
 		closeopenfd(&conn->cfd);
 		return -1;
 	}
 
-	oalarm = alarm(0);	/* don't let alarm interrupt critical section */
-	if (calleralarm)
-		dp->oalarm = oalarm;	/* time has passed, so update user's */
+	oalarm = alarm(0); /* don't let alarm interrupt critical section */
+	if(calleralarm)
+		dp->oalarm = oalarm; /* time has passed, so update user's */
 
 	/* open data connection */
 	conn->dfd = fd = open(data, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		closeopenfd(&conn->cfd);
 		alarm(dp->oalarm);
 		return -1;
@@ -501,13 +499,13 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 		closeopenfd(&conn->cfd);
 
 	n = conn - dp->conn;
-	if (dp->winner < 0) {
+	if(dp->winner < 0) {
 		qlock(&dp->winlck);
-		if (dp->winner < 0 && conn < dp->connend)
+		if(dp->winner < 0 && conn < dp->connend)
 			dp->winner = n;
 		qunlock(&dp->winlck);
 	}
-	alarm(calleralarm? dp->oalarm: 0);
+	alarm(calleralarm ? dp->oalarm : 0);
 	return fd;
 }
 
@@ -522,12 +520,12 @@ backoverchans(char *st, char *p)
 {
 	char *sl;
 
-	for (sl = p; --p >= st && isascii(*p) && isdigit(*p); sl = p) {
-		while (--p >= st && isascii(*p) && isdigit(*p))
+	for(sl = p; --p >= st && isascii(*p) && isdigit(*p); sl = p) {
+		while(--p >= st && isascii(*p) && isdigit(*p))
 			;
-		if (p < st || *p != '/')
-			break;			/* "net.alt2" or ran off start */
-		while (p > st && p[-1] == '/')	/* skip runs of slashes */
+		if(p < st || *p != '/')
+			break;		      /* "net.alt2" or ran off start */
+		while(p > st && p[-1] == '/') /* skip runs of slashes */
 			p--;
 	}
 	return sl;
@@ -542,7 +540,7 @@ _dial_string_parse(char *str, DS *ds)
 	char *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
-	ds->buf[Maxstring-1] = 0;
+	ds->buf[Maxstring - 1] = 0;
 
 	p = strchr(ds->buf, '!');
 	if(p == 0) {
@@ -550,14 +548,14 @@ _dial_string_parse(char *str, DS *ds)
 		ds->proto = "net";
 		ds->rem = ds->buf;
 	} else {
-		if(*ds->buf != '/' && *ds->buf != '#'){
+		if(*ds->buf != '/' && *ds->buf != '#') {
 			ds->netdir = 0;
 			ds->proto = ds->buf;
 		} else {
 			p2 = backoverchans(ds->buf, p);
 
 			/* back over last component of netdir (proto) */
-			while (--p2 > ds->buf && *p2 != '/')
+			while(--p2 > ds->buf && *p2 != '/')
 				;
 			*p2++ = 0;
 			ds->netdir = ds->buf;

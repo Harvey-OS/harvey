@@ -15,20 +15,20 @@
 #include "dat.h"
 #include "fns.h"
 
-#define	NIOBUF		100
-#define	HIOB		(NIOBUF/3)
+#define NIOBUF 100
+#define HIOB (NIOBUF / 3)
 
-static Iobuf*	hiob[HIOB];		/* hash buckets */
-static Iobuf	iobuf[NIOBUF];		/* buffer headers */
-static Iobuf*	iohead;
-static Iobuf*	iotail;
+static Iobuf *hiob[HIOB];   /* hash buckets */
+static Iobuf iobuf[NIOBUF]; /* buffer headers */
+static Iobuf *iohead;
+static Iobuf *iotail;
 
-Iobuf*
+Iobuf *
 getbuf(Xfs *dev, int32_t addr)
 {
 	Iobuf *p, *h, **l, **f;
 
-	l = &hiob[addr%HIOB];
+	l = &hiob[addr % HIOB];
 	for(p = *l; p; p = p->hash) {
 		if(p->addr == addr && p->dev == dev) {
 			p->busy++;
@@ -40,20 +40,20 @@ getbuf(Xfs *dev, int32_t addr)
 		;
 	if(!p)
 		panic("all buffers busy");
-	if(p->dirty){
+	if(p->dirty) {
 		xwrite(p);
 		p->dirty = 0;
 	}
 
-	if( xread(dev, p, addr) < 0)
+	if(xread(dev, p, addr) < 0)
 		return 0;
 	/* Delete from hash chain */
-	f = &hiob[p->addr%HIOB];
-	if( *f == p )
+	f = &hiob[p->addr % HIOB];
+	if(*f == p)
 		*f = p->hash;
 	else {
-		for(h = *f; h ; h = h->hash)
-			if( h->hash == p ){
+		for(h = *f; h; h = h->hash)
+			if(h->hash == p) {
 				h->hash = p->hash;
 				break;
 			}
@@ -63,7 +63,7 @@ getbuf(Xfs *dev, int32_t addr)
 	*l = p;
 	p->addr = addr;
 	p->dev = dev;
-	p->busy=1;
+	p->busy = 1;
 
 	return p;
 }
@@ -77,10 +77,10 @@ putbuf(Iobuf *p)
 	/* Link onto head for lru */
 	if(p == iohead)
 		return;
-	if( p == iotail ){
+	if(p == iotail) {
 		p->prev->next = 0;
 		iotail = p->prev;
-	}else{
+	} else {
 		p->prev->next = p->next;
 		p->next->prev = p->prev;
 	}
@@ -93,7 +93,7 @@ putbuf(Iobuf *p)
 void
 dirtybuf(Iobuf *p)
 {
-	if(p->busy <=0)
+	if(p->busy <= 0)
 		panic("dirtybuf");
 	p->dirty = 1;
 }
@@ -102,8 +102,8 @@ syncbuf(void)
 {
 	Iobuf *p;
 
-	for(p=&iobuf[0] ; p<&iobuf[NIOBUF]; p++)
-		if( p->dirty ){
+	for(p = &iobuf[0]; p < &iobuf[NIOBUF]; p++)
+		if(p->dirty) {
 			xwrite(p);
 			p->dirty = 0;
 		}
@@ -113,7 +113,7 @@ purgebuf(Xfs *dev)
 {
 	Iobuf *p;
 
-	for(p=&iobuf[0]; p<&iobuf[NIOBUF]; p++)
+	for(p = &iobuf[0]; p < &iobuf[NIOBUF]; p++)
 		if(p->dev == dev)
 			p->busy = 0;
 
@@ -126,12 +126,12 @@ iobuf_init(void)
 	Iobuf *p;
 
 	iohead = iobuf;
-	iotail = iobuf+NIOBUF-1;
+	iotail = iobuf + NIOBUF - 1;
 
 	for(p = iobuf; p <= iotail; p++) {
-		p->next = p+1;
-		p->prev = p-1;
-		
+		p->next = p + 1;
+		p->prev = p - 1;
+
 		p->iobuf = (char *)malloc(EXT2_MAX_BLOCK_SIZE);
 		if(p->iobuf == 0)
 			panic("iobuf_init");
@@ -145,8 +145,8 @@ xread(Xfs *dev, Iobuf *p, int32_t addr)
 {
 	/*chat("xread %d,%d...", dev->dev, addr);*/
 
-	seek(dev->dev, (int64_t)addr*dev->block_size, 0);
-	if(read(dev->dev, p->iobuf, dev->block_size) != dev->block_size){
+	seek(dev->dev, (int64_t)addr * dev->block_size, 0);
+	if(read(dev->dev, p->iobuf, dev->block_size) != dev->block_size) {
 		chat("xread %d, block=%d failed ...", dev->dev, addr);
 		errno = Eio;
 		return -1;
@@ -154,7 +154,7 @@ xread(Xfs *dev, Iobuf *p, int32_t addr)
 	/*chat("xread ok...");*/
 	return 0;
 }
-void 
+void
 xwrite(Iobuf *p)
 {
 	Xfs *dev;
@@ -164,8 +164,8 @@ xwrite(Iobuf *p)
 	addr = p->addr;
 	/*chat("xwrite %d,%d...", dev->dev, addr);*/
 
-	seek(dev->dev, (int64_t)addr*dev->block_size, 0);
-	if(write(dev->dev, p->iobuf, dev->block_size) != dev->block_size){
+	seek(dev->dev, (int64_t)addr * dev->block_size, 0);
+	if(write(dev->dev, p->iobuf, dev->block_size) != dev->block_size) {
 		chat("xwrite %d, block=%d failed ...", dev->dev, addr);
 		errno = Eio;
 		return;
@@ -176,8 +176,8 @@ void
 dumpbuf(void)
 {
 	Iobuf *p;
-	
-	for(p = iotail; p ; p = p->prev)
-		if( p->busy )
-			mchat("\nHi ERROR buf(%x, %d, %d)\n", p, p->addr, p->busy);	
+
+	for(p = iotail; p; p = p->prev)
+		if(p->busy)
+			mchat("\nHi ERROR buf(%x, %d, %d)\n", p, p->addr, p->busy);
 }

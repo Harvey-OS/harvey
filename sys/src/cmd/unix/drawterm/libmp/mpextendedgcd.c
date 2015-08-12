@@ -10,27 +10,27 @@
 #include "os.h"
 #include <mp.h>
 
-#define iseven(a)	(((a)->p[0] & 1) == 0)
+#define iseven(a) (((a)->p[0] & 1) == 0)
 
 // extended binary gcd
 //
 // For a anv b it solves, v = gcd(a,b) and finds x and y s.t.
 // ax + by = v
 //
-// Handbook of Applied Cryptography, Menezes et al, 1997, pg 608.  
+// Handbook of Applied Cryptography, Menezes et al, 1997, pg 608.
 void
 mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 {
 	mpint *u, *A, *B, *C, *D;
 	int g;
 
-	if(a->top == 0){
+	if(a->top == 0) {
 		mpassign(b, v);
 		mpassign(mpone, y);
 		mpassign(mpzero, x);
 		return;
 	}
-	if(b->top == 0){
+	if(b->top == 0) {
 		mpassign(a, v);
 		mpassign(mpone, x);
 		mpassign(mpzero, y);
@@ -41,7 +41,7 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 	a = mpcopy(a);
 	b = mpcopy(b);
 
-	while(iseven(a) && iseven(b)){
+	while(iseven(a) && iseven(b)) {
 		mpright(a, 1, a);
 		mpright(b, 1, b);
 		g++;
@@ -55,8 +55,8 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 	D = mpcopy(mpone);
 
 	for(;;) {
-//		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
-		while(iseven(u)){
+		//		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
+		while(iseven(u)) {
 			mpright(u, 1, u);
 			if(!iseven(A) || !iseven(B)) {
 				mpadd(A, b, A);
@@ -65,9 +65,9 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 			mpright(A, 1, A);
 			mpright(B, 1, B);
 		}
-	
-//		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
-		while(iseven(v)){
+
+		//		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
+		while(iseven(v)) {
 			mpright(v, 1, v);
 			if(!iseven(C) || !iseven(D)) {
 				mpadd(C, b, C);
@@ -76,9 +76,9 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 			mpright(C, 1, C);
 			mpright(D, 1, D);
 		}
-	
-//		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
-		if(mpcmp(u, v) >= 0){
+
+		//		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
+		if(mpcmp(u, v) >= 0) {
 			mpsub(u, v, u);
 			mpsub(A, C, A);
 			mpsub(B, D, B);
@@ -90,7 +90,6 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 
 		if(u->top == 0)
 			break;
-
 	}
 	mpassign(C, x);
 	mpassign(D, y);

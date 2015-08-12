@@ -17,11 +17,11 @@ sunCallPack(SunProg *prog, uint8_t *a, uint8_t *ea, uint8_t **pa,
 	    SunCall *c)
 {
 	uint8_t *x;
-	int (*pack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
+	int (*pack)(uint8_t *, uint8_t *, uint8_t **, SunCall *);
 
 	if(pa == nil)
 		pa = &x;
-	if(c->type < 0 || c->type >= prog->nproc || (pack=prog->proc[c->type].pack) == nil)
+	if(c->type < 0 || c->type >= prog->nproc || (pack = prog->proc[c->type].pack) == nil)
 		return SunProcUnavail;
 	if((*pack)(a, ea, pa, c) < 0)
 		return SunGarbageArgs;
@@ -33,14 +33,14 @@ sunCallUnpack(SunProg *prog, uint8_t *a, uint8_t *ea, uint8_t **pa,
 	      SunCall *c)
 {
 	uint8_t *x;
-	int (*unpack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
+	int (*unpack)(uint8_t *, uint8_t *, uint8_t **, SunCall *);
 
 	if(pa == nil)
 		pa = &x;
-	if(c->type < 0 || c->type >= prog->nproc || (unpack=prog->proc[c->type].unpack) == nil)
+	if(c->type < 0 || c->type >= prog->nproc || (unpack = prog->proc[c->type].unpack) == nil)
 		return SunProcUnavail;
-	if((*unpack)(a, ea, pa, c) < 0){
-		fprint(2, "in: %.*H unpack failed\n", (int)(ea-a), a);
+	if((*unpack)(a, ea, pa, c) < 0) {
+		fprint(2, "in: %.*H unpack failed\n", (int)(ea - a), a);
 		return SunGarbageArgs;
 	}
 	return SunSuccess;
@@ -52,12 +52,12 @@ sunCallUnpackAlloc(SunProg *prog, SunCallType type, uint8_t *a, uint8_t *ea,
 {
 	uint8_t *x;
 	uint size;
-	int (*unpack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
+	int (*unpack)(uint8_t *, uint8_t *, uint8_t **, SunCall *);
 	SunCall *c;
 
 	if(pa == nil)
 		pa = &x;
-	if(type < 0 || type >= prog->nproc || (unpack=prog->proc[type].unpack) == nil)
+	if(type < 0 || type >= prog->nproc || (unpack = prog->proc[type].unpack) == nil)
 		return SunProcUnavail;
 	size = prog->proc[type].sizeoftype;
 	if(size == 0)
@@ -66,8 +66,8 @@ sunCallUnpackAlloc(SunProg *prog, SunCallType type, uint8_t *a, uint8_t *ea,
 	if(c == nil)
 		return SunSystemErr;
 	c->type = type;
-	if((*unpack)(a, ea, pa, c) < 0){
-		fprint(2, "in: %.*H unpack failed\n", (int)(ea-a), a);
+	if((*unpack)(a, ea, pa, c) < 0) {
+		fprint(2, "in: %.*H unpack failed\n", (int)(ea - a), a);
 		free(c);
 		return SunGarbageArgs;
 	}
@@ -78,9 +78,9 @@ sunCallUnpackAlloc(SunProg *prog, SunCallType type, uint8_t *a, uint8_t *ea,
 uint
 sunCallSize(SunProg *prog, SunCall *c)
 {
-	uint (*size)(SunCall*);
+	uint (*size)(SunCall *);
 
-	if(c->type < 0 || c->type >= prog->nproc || (size=prog->proc[c->type].size) == nil)
+	if(c->type < 0 || c->type >= prog->nproc || (size = prog->proc[c->type].size) == nil)
 		return ~0;
 	return (*size)(c);
 }

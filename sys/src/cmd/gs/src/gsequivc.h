@@ -29,17 +29,17 @@
 /* For more information, see comment at the start of src/gsequivc.c */
 
 #ifndef gsequivc_INCLUDED
-# define gsequivc_INCLUDED
+#define gsequivc_INCLUDED
 
 /*
  * Structure for holding a CMYK color.
  */
 typedef struct cmyk_color_s {
-    bool color_info_valid;
-    frac c;
-    frac m;
-    frac y;
-    frac k;
+	bool color_info_valid;
+	frac c;
+	frac m;
+	frac y;
+	frac k;
 } cmyk_color;
 
 /*
@@ -47,13 +47,13 @@ typedef struct cmyk_color_s {
  * for a spot colorant.
  */
 typedef struct equivalent_cmyk_color_params_s {
-    bool all_color_info_valid;
-    cmyk_color color[GX_DEVICE_MAX_SEPARATIONS];
+	bool all_color_info_valid;
+	cmyk_color color[GX_DEVICE_MAX_SEPARATIONS];
 } equivalent_cmyk_color_params;
 
 /* If possible, update the equivalent CMYK color for a spot color */
-void update_spot_equivalent_cmyk_colors(gx_device * pdev,
-		const gs_state * pgs, gs_devn_params * pdevn_params,
-		equivalent_cmyk_color_params * pparams);
+void update_spot_equivalent_cmyk_colors(gx_device *pdev,
+					const gs_state *pgs, gs_devn_params *pdevn_params,
+					equivalent_cmyk_color_params *pparams);
 
-#endif		/* define gsequivc_INCLUDED */
+#endif /* define gsequivc_INCLUDED */

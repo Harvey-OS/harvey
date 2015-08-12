@@ -13,8 +13,8 @@ void
 nbdgramdump(NbDgram *s)
 {
 	print("type 0x%.2ux flags 0x%.2ux id 0x%.4ux srcip %I port %d\n",
-		s->type, s->flags, s->id, s->srcip, s->srcport);
-	switch (s->type) {
+	      s->type, s->flags, s->id, s->srcip, s->srcport);
+	switch(s->type) {
 	case NbDgramError:
 		print("\terror.code 0x%.2ux\n", s->error.code);
 		break;
@@ -22,7 +22,7 @@ nbdgramdump(NbDgram *s)
 	case NbDgramDirectGroup:
 	case NbDgramBroadcast:
 		print("\tlength %ud offset %ud srcname %B dstname %B\n",
-			s->datagram.length, s->datagram.offset, s->datagram.srcname, s->datagram.dstname);
+		      s->datagram.length, s->datagram.offset, s->datagram.srcname, s->datagram.dstname);
 		break;
 	}
 }

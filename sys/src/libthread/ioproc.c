@@ -12,8 +12,7 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-enum
-{
+enum {
 	STACK = 8192,
 };
 
@@ -34,17 +33,17 @@ xioproc(void *a)
 	 * first recvp acquires the ioproc.
 	 * second tells us that the data is ready.
 	 */
-	for(;;){
+	for(;;) {
 		while(recv(io->c, &x) == -1)
 			;
-		if(x == 0)	/* our cue to leave */
+		if(x == 0) /* our cue to leave */
 			break;
 		assert(x == io);
 
 		/* caller is now committed -- even if interrupted he'll return */
 		while(recv(io->creply, &x) == -1)
 			;
-		if(x == 0)	/* caller backed out */
+		if(x == 0) /* caller backed out */
 			continue;
 		assert(x == io);
 
@@ -58,7 +57,7 @@ xioproc(void *a)
 	}
 }
 
-Ioproc*
+Ioproc *
 ioproc(void)
 {
 	Ioproc *io;
@@ -66,8 +65,8 @@ ioproc(void)
 	io = mallocz(sizeof(*io), 1);
 	if(io == nil)
 		sysfatal("ioproc malloc: %r");
-	io->c = chancreate(sizeof(void*), 0);
-	io->creply = chancreate(sizeof(void*), 0);
+	io->c = chancreate(sizeof(void *), 0);
+	io->creply = chancreate(sizeof(void *), 0);
 	io->tid = proccreate(xioproc, io, STACK);
 	return io;
 }

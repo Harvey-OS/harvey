@@ -13,22 +13,25 @@
 
 /* from the kernel. Sorry. */
 enum {
-	Nipht = 521,				/* convenient prime */
+	Nipht = 521, /* convenient prime */
 };
 
-uint32_t newiphash(uint8_t * sa, uint16_t sp, uint8_t * da, uint16_t dp)
+uint32_t
+newiphash(uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 {
 	uint32_t kludge;
 	kludge =
-		((sa[IPaddrlen - 1] << 24) ^ (sp << 16) ^ (da[IPaddrlen - 1] << 8) ^
-		 dp);
+	    ((sa[IPaddrlen - 1] << 24) ^ (sp << 16) ^ (da[IPaddrlen - 1] << 8) ^
+	     dp);
 	return kludge % Nipht;
 }
 
-uint32_t oldiphash(uint8_t * sa, uint16_t sp, uint8_t * da, uint16_t dp)
+uint32_t
+oldiphash(uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 {
 	return ((sa[IPaddrlen - 1] << 24) ^ (sp << 16) ^ (da[IPaddrlen - 1] << 8) ^
-			dp) % Nipht;
+		dp) %
+	       Nipht;
 }
 
 /* conventions.
@@ -40,24 +43,27 @@ uint32_t oldiphash(uint8_t * sa, uint16_t sp, uint8_t * da, uint16_t dp)
  * FAIL tests should exits() with a message
  * We may consider not printing PASS/FAIL and using exits instead.
  */
-int main()
+int
+main()
 {
-	static uint8_t sa[IPaddrlen] = { 0x80, };
+	static uint8_t sa[IPaddrlen] = {
+	    0x80,
+	};
 	static uint8_t da[IPaddrlen];
 	uint16_t sp = 4;
 	uint16_t dp = 5;
 	uint32_t ohash, nhash;
 	sa[IPaddrlen - 1] = 0x80;
 	ohash = oldiphash(sa, sp, da, dp);
-	if (ohash > Nipht)
+	if(ohash > Nipht)
 		fprint(2, "oldiphash returns bad value: 0x%ulx, should be < 0x%ulx\n",
-			   ohash, Nipht);
+		       ohash, Nipht);
 	nhash = newiphash(sa, sp, da, dp);
-	if (nhash > Nipht)
+	if(nhash > Nipht)
 		fprint(2, "newiphash returns bad value: 0x%ulx, should be < 0x%ulx\n",
-			   ohash, Nipht);
+		       ohash, Nipht);
 	fprint(2, "ohash is 0x%ulx, nhash is 0x%ulx\n", ohash, nhash);
-	if (ohash == nhash) {
+	if(ohash == nhash) {
 		exits("FAIL:iphash failed. ohash and nhash should differ\n");
 	}
 	/* Always print PASS at the end. */

@@ -13,18 +13,19 @@
 
 typedef struct Memimage Memimage;
 
-static int	screenid;
+static int screenid;
 
-Screen*
+Screen *
 allocscreen(Image *image, Image *fill, int public)
 {
 	uint8_t *a;
 	Screen *s;
-	int id, try;
+	int id, try
+		;
 	Display *d;
 
 	d = image->display;
-	if(d != fill->display){
+	if(d != fill->display) {
 		werrstr("allocscreen: image and fill on different displays");
 		return 0;
 	}
@@ -32,18 +33,18 @@ allocscreen(Image *image, Image *fill, int public)
 	if(s == 0)
 		return 0;
 	SET(id);
-	for(try=0; try<25; try++){
+	for(try = 0; try < 25; try ++) {
 		/* loop until find a free id */
-		a = bufimage(d, 1+4+4+4+1);
-		if(a == 0){
+		a = bufimage(d, 1 + 4 + 4 + 4 + 1);
+		if(a == 0) {
 			free(s);
 			return 0;
 		}
 		id = ++screenid;
 		a[0] = 'A';
-		BPLONG(a+1, id);
-		BPLONG(a+5, image->id);
-		BPLONG(a+9, fill->id);
+		BPLONG(a + 1, id);
+		BPLONG(a + 5, image->id);
+		BPLONG(a + 9, fill->id);
 		a[13] = public;
 		if(flushimage(d, 0) != -1)
 			break;
@@ -57,7 +58,7 @@ allocscreen(Image *image, Image *fill, int public)
 	return s;
 }
 
-Screen*
+Screen *
 publicscreen(Display *d, int id, uint32_t chan)
 {
 	uint8_t *a;
@@ -66,15 +67,15 @@ publicscreen(Display *d, int id, uint32_t chan)
 	s = malloc(sizeof(Screen));
 	if(s == 0)
 		return 0;
-	a = bufimage(d, 1+4+4);
-	if(a == 0){
-    Error:
+	a = bufimage(d, 1 + 4 + 4);
+	if(a == 0) {
+	Error:
 		free(s);
 		return 0;
 	}
 	a[0] = 'S';
-	BPLONG(a+1, id);
-	BPLONG(a+5, chan);
+	BPLONG(a + 1, id);
+	BPLONG(a + 5, chan);
 	if(flushimage(d, 0) < 0)
 		goto Error;
 
@@ -94,11 +95,11 @@ freescreen(Screen *s)
 	if(s == 0)
 		return 0;
 	d = s->display;
-	a = bufimage(d, 1+4);
+	a = bufimage(d, 1 + 4);
 	if(a == 0)
 		return -1;
 	a[0] = 'F';
-	BPLONG(a+1, s->id);
+	BPLONG(a + 1, s->id);
 	/*
 	 * flush(1) because screen is likely holding last reference to
 	 * window, and want it to disappear visually.
@@ -109,13 +110,13 @@ freescreen(Screen *s)
 	return 1;
 }
 
-Image*
+Image *
 allocwindow(Screen *s, Rectangle r, int ref, uint32_t val)
 {
 	return _allocwindow(nil, s, r, ref, val);
 }
 
-Image*
+Image *
 _allocwindow(Image *i, Screen *s, Rectangle r, int ref, uint32_t val)
 {
 	Display *d;
@@ -130,22 +131,21 @@ _allocwindow(Image *i, Screen *s, Rectangle r, int ref, uint32_t val)
 	return i;
 }
 
-static
-void
+static void
 topbottom(Image **w, int n, int top)
 {
 	int i;
 	uint8_t *b;
 	Display *d;
 
-	if(n < 0){
-    Ridiculous:
+	if(n < 0) {
+	Ridiculous:
 		fprint(2, "top/bottom: ridiculous number of windows\n");
 		return;
 	}
 	if(n == 0)
 		return;
-	if(n > (w[0]->display->bufsize-100)/4)
+	if(n > (w[0]->display->bufsize - 100) / 4)
 		goto Ridiculous;
 	/*
 	 * this used to check that all images were on the same screen.
@@ -154,20 +154,20 @@ topbottom(Image **w, int n, int top)
 	 * the display will check that they are all on the same screen.
 	 */
 	d = w[0]->display;
-	for(i=1; i<n; i++)
-		if(w[i]->display != d){
+	for(i = 1; i < n; i++)
+		if(w[i]->display != d) {
 			fprint(2, "top/bottom: windows not on same screen\n");
 			return;
 		}
 
-	if(n==0)
+	if(n == 0)
 		return;
-	b = bufimage(d, 1+1+2+4*n);
+	b = bufimage(d, 1 + 1 + 2 + 4 * n);
 	b[0] = 't';
 	b[1] = top;
-	BPSHORT(b+2, n);
-	for(i=0; i<n; i++)
-		BPLONG(b+4+4*i, w[i]->id);
+	BPSHORT(b + 2, n);
+	for(i = 0; i < n; i++)
+		BPLONG(b + 4 + 4 * i, w[i]->id);
 }
 
 void
@@ -205,15 +205,15 @@ originwindow(Image *w, Point log, Point scr)
 	Point delta;
 
 	flushimage(w->display, 0);
-	b = bufimage(w->display, 1+4+2*4+2*4);
+	b = bufimage(w->display, 1 + 4 + 2 * 4 + 2 * 4);
 	if(b == nil)
 		return 0;
 	b[0] = 'o';
-	BPLONG(b+1, w->id);
-	BPLONG(b+5, log.x);
-	BPLONG(b+9, log.y);
-	BPLONG(b+13, scr.x);
-	BPLONG(b+17, scr.y);
+	BPLONG(b + 1, w->id);
+	BPLONG(b + 5, log.x);
+	BPLONG(b + 9, log.y);
+	BPLONG(b + 13, scr.x);
+	BPLONG(b + 17, scr.y);
 	if(flushimage(w->display, 1) < 0)
 		return -1;
 	delta = subpt(log, w->r.min);

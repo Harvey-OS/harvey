@@ -21,13 +21,13 @@
  * giving access to the Bt485 emulation mode registers.
  */
 static void
-options(Vga* vga, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
 	tvp3020.options(vga, ctlr);
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	/*
 	 * Although the Tvp3025 has a higher default
@@ -37,7 +37,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uint8_t crt5c, x;
 
@@ -59,15 +59,15 @@ dumpclock(uint32_t d, uint32_t n, uint32_t p)
 {
 	uint32_t f;
 
-	f = RefFreq*((n+2)*8);
-	f /= (d+2);
+	f = RefFreq * ((n + 2) * 8);
+	f /= (d + 2);
 	f >>= p;
 
 	return f;
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	uint8_t crt5c;
 	int i;
@@ -78,22 +78,22 @@ dump(Vga* vga, Ctlr* ctlr)
 	tvp3020.dump(vga, ctlr);
 
 	printitem(ctlr->name, "PCLK");
-	for(i = 0; i < 4; i++){
-		tvp3020xo(0x2C, (i<<4)|(i<<2)|i);
+	for(i = 0; i < 4; i++) {
+		tvp3020xo(0x2C, (i << 4) | (i << 2) | i);
 		printreg(clock[i] = tvp3020xi(0x2D));
 	}
 	Bprint(&stdout, "%23ld\n", dumpclock(clock[0], clock[1], clock[2] & 0x07));
 
 	printitem(ctlr->name, "MCLK");
-	for(i = 0; i < 4; i++){
-		tvp3020xo(0x2C, (i<<4)|(i<<2)|i);
+	for(i = 0; i < 4; i++) {
+		tvp3020xo(0x2C, (i << 4) | (i << 2) | i);
 		printreg(clock[i] = tvp3020xi(0x2E));
 	}
 	Bprint(&stdout, "%23ld\n", dumpclock(clock[0], clock[1], clock[2] & 0x07));
 
 	printitem(ctlr->name, "RCLK");
-	for(i = 0; i < 4; i++){
-		tvp3020xo(0x2C, (i<<4)|(i<<2)|i);
+	for(i = 0; i < 4; i++) {
+		tvp3020xo(0x2C, (i << 4) | (i << 2) | i);
 		printreg(clock[i] = tvp3020xi(0x2F));
 	}
 	Bprint(&stdout, "%23ld\n", dumpclock(clock[0], clock[1], clock[2] & 0x07));
@@ -102,10 +102,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr tvp3025 = {
-	"tvp3025",			/* name */
-	0,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "tvp3025", /* name */
+    0,	 /* snarf */
+    options,   /* options */
+    init,      /* init */
+    load,      /* load */
+    dump,      /* dump */
 };

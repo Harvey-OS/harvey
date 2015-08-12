@@ -15,13 +15,13 @@
 
 static Channel *reqs;
 
-Req*
+Req *
 reqalloc(void)
 {
 	Req *r;
 
 	if(reqs == nil)
-		reqs = chancreate(sizeof(Req*), 256);
+		reqs = chancreate(sizeof(Req *), 256);
 	if(r = nbrecvp(reqs))
 		return r;
 	r = malloc(sizeof(Req));
@@ -50,13 +50,13 @@ sendmsg(Channel *q, Wmsg *m)
 {
 	Worker *w;
 
-	while(w = nbrecvp(q)){
+	while(w = nbrecvp(q)) {
 		/* Test for markerdom (see bcastmsg) */
-		if(w->eventc){
+		if(w->eventc) {
 			send(w->eventc, m);
 			return 1;
 		}
-		sendp(q, w);	/* put back */
+		sendp(q, w); /* put back */
 	}
 	return 0;
 }
@@ -74,14 +74,15 @@ bcastmsg(Channel *q, Wmsg *m)
 	 * broadcast and putting themselves back on the
 	 * queue before the broadcast has finished
 	 */
-	marker.eventc = nil;	/* Only markers have eventc == nil */
+	marker.eventc = nil; /* Only markers have eventc == nil */
 	sendp(q, &marker);
-	while((w = recvp(q)) != &marker){
-		if(w->eventc == nil){
+	while((w = recvp(q)) != &marker) {
+		if(w->eventc == nil) {
 			/* somebody else's marker, put it back */
 			sendp(q, w);
-		}else{
-			if(a) m->arg = strdup(a);
+		} else {
+			if(a)
+				m->arg = strdup(a);
 			send(w->eventc, m);
 		}
 	}
@@ -93,13 +94,13 @@ void
 readbuf(Req *r, void *s, int32_t n)
 {
 	r->ofcall.count = r->ifcall.count;
-	if(r->ifcall.offset >= n){
+	if(r->ifcall.offset >= n) {
 		r->ofcall.count = 0;
 		return;
 	}
-	if(r->ifcall.offset+r->ofcall.count > n)
+	if(r->ifcall.offset + r->ofcall.count > n)
 		r->ofcall.count = n - r->ifcall.offset;
-	memmove(r->ofcall.data, (char*)s+r->ifcall.offset, r->ofcall.count);
+	memmove(r->ofcall.data, (char *)s + r->ifcall.offset, r->ofcall.count);
 }
 
 void

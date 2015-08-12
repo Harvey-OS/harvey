@@ -19,23 +19,22 @@
  * These #defines live in this file so that arch-specific
  * buffer sync'ing code can access them.
  */
-#define ESCAPE_CODE			~0UL
-#define CTX_SWITCH_CODE			1
-#define CPU_SWITCH_CODE			2
-#define COOKIE_SWITCH_CODE		3
-#define KERNEL_ENTER_SWITCH_CODE	4
-#define KERNEL_EXIT_SWITCH_CODE		5
-#define MODULE_LOADED_CODE		6
-#define CTX_TGID_CODE			7
-#define TRACE_BEGIN_CODE		8
-#define TRACE_END_CODE			9
-#define XEN_ENTER_SWITCH_CODE		10
-#define SPU_PROFILING_CODE		11
-#define SPU_CTX_SWITCH_CODE		12
-#define IBS_FETCH_CODE			13
-#define IBS_OP_CODE			14
+#define ESCAPE_CODE ~0UL
+#define CTX_SWITCH_CODE 1
+#define CPU_SWITCH_CODE 2
+#define COOKIE_SWITCH_CODE 3
+#define KERNEL_ENTER_SWITCH_CODE 4
+#define KERNEL_EXIT_SWITCH_CODE 5
+#define MODULE_LOADED_CODE 6
+#define CTX_TGID_CODE 7
+#define TRACE_BEGIN_CODE 8
+#define TRACE_END_CODE 9
+#define XEN_ENTER_SWITCH_CODE 10
+#define SPU_PROFILING_CODE 11
+#define SPU_CTX_SWITCH_CODE 12
+#define IBS_FETCH_CODE 13
+#define IBS_OP_CODE 14
 
- 
 /**
  * One-time exit/cleanup for the arch.
  */
@@ -44,7 +43,7 @@ void oprofile_arch_exit(void);
 /**
  * Add a sample. This may be called from any context.
  */
-void oprofile_add_sample(void* const regs, unsigned long event);
+void oprofile_add_sample(void *const regs, unsigned long event);
 
 /**
  * Add an extended sample.  Use this when the PC is not from the regs, and
@@ -53,8 +52,8 @@ void oprofile_add_sample(void* const regs, unsigned long event);
  * This function does perform a backtrace.
  *
  */
-void oprofile_add_ext_sample(unsigned long pc, void * const regs,
-				unsigned long event, int is_kernel);
+void oprofile_add_ext_sample(unsigned long pc, void *const regs,
+			     unsigned long event, int is_kernel);
 
 /**
  * Add an hardware sample.
@@ -73,16 +72,15 @@ void oprofile_add_userpc(uintptr_t pc);
 /* add a backtrace entry, to be called from the ->backtrace callback */
 void oprofile_add_trace(unsigned long eip);
 
-
 /**
  * Add the contents of a circular buffer to the event buffer.
  */
 void oprofile_put_buff(unsigned long *buf, unsigned int start,
-			unsigned int stop, unsigned int max);
+		       unsigned int stop, unsigned int max);
 
 unsigned long oprofile_get_cpu_buffer_size(void);
 void oprofile_cpu_buffer_inc_smpl_lost(void);
- 
+
 /* cpu buffer functions */
 
 struct op_sample;
@@ -109,7 +107,7 @@ unsigned long op_cpu_buffer_entries(int cpu);
 void oprofile_cpubuf_flushone(int core, int newbuf);
 void oprofile_cpubuf_flushall(int alloc);
 void oprofile_control_trace(int onoff);
-int oprofread(void *,int);
+int oprofread(void *, int);
 int oproflen(void);
 
 #endif /* OPROFILE_H */

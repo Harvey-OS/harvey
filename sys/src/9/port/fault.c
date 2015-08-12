@@ -7,22 +7,22 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 #undef DBG
-#define DBG if(0)print
+#define DBG   \
+	if(0) \
+	print
 
 char *faulttypes[] = {
 	[FT_WRITE] "write",
 	[FT_READ] "read",
-	[FT_EXEC] "exec"
-};
-
+	[FT_EXEC] "exec"};
 
 /*
  * Fault calls fixfault which ends up calling newpage, which
@@ -41,9 +41,9 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 
 	if(up->nlocks)
 		print("%s fault nlocks %d addr %p pc %p\n",
-			faulttypes[ftype],
-			up->nlocks,
-			addr, pc);
+		      faulttypes[ftype],
+		      up->nlocks,
+		      addr, pc);
 
 	sps = up->psstate;
 	up->psstate = "Fault";
@@ -51,15 +51,15 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 	machp()->pfault++;
 	spllo();
 	for(i = 0;; i++) {
-		s = seg(up, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
+		s = seg(up, addr, 1); /* leaves s->lk qlocked if seg != nil */
 		//print("%s fault seg for %p is %p base %p top %p\n", faulttypes[ftype], addr, s, s->base, s->top);
 		if(s == nil)
 			goto fail;
-		if(ftype == FT_READ && (s->type&SG_READ) == 0)
+		if(ftype == FT_READ && (s->type & SG_READ) == 0)
 			goto fail;
-		if(ftype == FT_WRITE && (s->type&SG_WRITE) == 0)
+		if(ftype == FT_WRITE && (s->type & SG_WRITE) == 0)
 			goto fail;
-		if(ftype == FT_EXEC && (s->type&SG_EXEC) == 0)
+		if(ftype == FT_EXEC && (s->type & SG_EXEC) == 0)
 			goto fail;
 
 		color = s->color;
@@ -73,26 +73,26 @@ fault(uintptr_t addr, uintptr_t pc, int ftype)
 		 * how to get here.
 		 */
 
-		if(i > 0 && (i%1000) == 0)
+		if(i > 0 && (i % 1000) == 0)
 			print("fault: tried %d times\n", i);
 	}
 	splhi();
 	up->psstate = sps;
 	return 0;
 fail:
-	if(s != nil){
+	if(s != nil) {
 		qunlock(&s->lk);
 		print("%s fault fail %s(%c%c%c) pid %d addr 0x%p pc 0x%p\n",
-			faulttypes[ftype],
-			segtypes[s->type & SG_TYPE],
-			(s->type & SG_READ) != 0 ? 'r' : '-',
-			(s->type & SG_WRITE) != 0 ? 'w' : '-',
-			(s->type & SG_EXEC) != 0 ? 'x' : '-',
-			up->pid, addr, pc);
+		      faulttypes[ftype],
+		      segtypes[s->type & SG_TYPE],
+		      (s->type & SG_READ) != 0 ? 'r' : '-',
+		      (s->type & SG_WRITE) != 0 ? 'w' : '-',
+		      (s->type & SG_EXEC) != 0 ? 'x' : '-',
+		      up->pid, addr, pc);
 	} else {
 		print("%s fault fail, no segment, pid %d addr 0x%p pc 0x%p\n",
-			faulttypes[ftype],
-			up->pid, addr, pc);
+		      faulttypes[ftype],
+		      up->pid, addr, pc);
 	}
 	splhi();
 	up->psstate = sps;
@@ -105,7 +105,7 @@ faulterror(char *s, Chan *c, int freemem)
 	Proc *up = externup();
 	char buf[ERRMAX];
 
-	if(c && c->path){
+	if(c && c->path) {
 		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
 		s = buf;
 	}
@@ -129,18 +129,18 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 	uintmem pgsz;
 	uint mmuattr;
 	Page **pg, *lkp, *new;
-	Page *(*fn)(Segment*, uintptr_t);
+	Page *(*fn)(Segment *, uintptr_t);
 
 	pgsz = sys->pgsz[s->pgszi];
-	addr &= ~(pgsz-1);
-	soff = addr-s->base;
-	p = &s->map[soff/PTEMAPMEM];
+	addr &= ~(pgsz - 1);
+	soff = addr - s->base;
+	p = &s->map[soff / PTEMAPMEM];
 	if(*p == 0)
 		*p = ptealloc(s);
 
 	etp = *p;
-	pg = &etp->pages[(soff&(PTEMAPMEM-1))/pgsz];
-	stype = s->type&SG_TYPE;
+	pg = &etp->pages[(soff & (PTEMAPMEM - 1)) / pgsz];
+	stype = s->type & SG_TYPE;
 
 	if(pg < etp->first)
 		etp->first = pg;
@@ -153,9 +153,8 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 		panic("fault");
 		break;
 
-
 	case SG_BSS:
-	case SG_SHARED:			/* Zero fill on demand */
+	case SG_SHARED: /* Zero fill on demand */
 	case SG_STACK:
 		if(*pg == 0) {
 			new = newpage(1, &s, addr, pgsz, color);
@@ -173,26 +172,26 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 			// hazardous.
 			char f[34];
 			snprint(f, sizeof(f), "W%016x%016x", addr, pgsz);
-			if (qwrite(up->req, f, sizeof(f)) != sizeof(f))
+			if(qwrite(up->req, f, sizeof(f)) != sizeof(f))
 				error("can't write mmap request");
 			/* read in answer here. */
 			error("not reading answer yet");
 		}
-			error("No mmap support yet");
+		error("No mmap support yet");
 		goto common;
 
 	case SG_LOAD:
 	case SG_DATA:
-	case SG_TEXT: 			/* Demand load */
+	case SG_TEXT: /* Demand load */
 		if(pagedout(*pg))
 			pio(s, addr, soff, pg, color);
 
-	common:			/* Demand load/pagein/copy on write */
+	common: /* Demand load/pagein/copy on write */
 
-		if(ftype != FT_WRITE){
+		if(ftype != FT_WRITE) {
 			/* never copy a non-writeable seg */
-			if((s->type & SG_WRITE) == 0){
-				mmuattr = PTERONLY|PTEVALID;
+			if((s->type & SG_WRITE) == 0) {
+				mmuattr = PTERONLY | PTEVALID;
 				if((s->type & SG_EXEC) == 0)
 					mmuattr |= PTENOEXEC;
 				(*pg)->modref = PG_REF;
@@ -201,7 +200,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 
 			/* delay copy if we are the only user (copy on write when it happens) */
 			if(conf.copymode == 0 && s->ref == 1) {
-				mmuattr = PTERONLY|PTEVALID;
+				mmuattr = PTERONLY | PTEVALID;
 				if((s->type & SG_EXEC) == 0)
 					mmuattr |= PTENOEXEC;
 				(*pg)->modref |= PG_REF;
@@ -212,28 +211,27 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 		if((s->type & SG_WRITE) == 0)
 			error("fixfault: write on read-only\n");
 
-		if((s->type & SG_TYPE) != SG_SHARED){
+		if((s->type & SG_TYPE) != SG_SHARED) {
 
 			lkp = *pg;
 			lock(lkp);
 
 			ref = lkp->ref;
 
-			if(ref > 1) {	/* page is shared but segment is not: copy for write */
+			if(ref > 1) { /* page is shared but segment is not: copy for write */
 				int pgref = lkp->ref;
 				unlock(lkp);
 
 				DBG("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
-					up->pid,
-					faulttypes[ftype],
-					segtypes[stype],
-					(s->type & SG_READ) != 0 ? 'r' : '-',
-					(s->type & SG_WRITE) != 0 ? 'w' : '-',
-					(s->type & SG_EXEC) != 0 ? 'x' : '-',
-					addr,
-					s->ref,
-					pgref
-				);
+				    up->pid,
+				    faulttypes[ftype],
+				    segtypes[stype],
+				    (s->type & SG_READ) != 0 ? 'r' : '-',
+				    (s->type & SG_WRITE) != 0 ? 'w' : '-',
+				    (s->type & SG_EXEC) != 0 ? 'x' : '-',
+				    addr,
+				    s->ref,
+				    pgref);
 				// No need to zero here as it is copied
 				// over.
 				new = newpage(0, &s, addr, pgsz, color);
@@ -242,17 +240,17 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 				*pg = new;
 				copypage(lkp, *pg);
 				putpage(lkp);
-			} else {	/* write: don't dirty the image cache */
+			} else { /* write: don't dirty the image cache */
 				if(lkp->image != nil)
 					duppage(lkp);
 
 				unlock(lkp);
 			}
 		}
-		mmuattr = PTEVALID|PTEWRITE;
+		mmuattr = PTEVALID | PTEWRITE;
 		if((s->type & SG_EXEC) == 0)
 			mmuattr |= PTENOEXEC;
-		(*pg)->modref = PG_MOD|PG_REF;
+		(*pg)->modref = PG_MOD | PG_REF;
 		break;
 
 	case SG_PHYSICAL:
@@ -263,7 +261,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 			else {
 				new = smalloc(sizeof(Page));
 				new->va = addr;
-				new->pa = s->pseg->pa+(addr-s->base);
+				new->pa = s->pseg->pa + (addr - s->base);
 				new->ref = 1;
 				new->pgszi = s->pseg->pgszi;
 				*pg = new;
@@ -277,12 +275,12 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 			mmuattr |= PTEUNCACHED;
 		if((s->type & SG_EXEC) == 0)
 			mmuattr |= PTENOEXEC;
-		(*pg)->modref = PG_MOD|PG_REF;
+		(*pg)->modref = PG_MOD | PG_REF;
 		break;
 	}
 	qunlock(&s->lk);
 
-	if(dommuput){
+	if(dommuput) {
 		assert(segppn(s, (*pg)->pa) == (*pg)->pa);
 		mmuput(addr, *pg, mmuattr);
 	}
@@ -306,18 +304,18 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	daddr = ask = 0;
 	c = nil;
 	pgsz = sys->pgsz[s->pgszi];
-	if(loadrec == nil) {	/* from a text/data image */
+	if(loadrec == nil) { /* from a text/data image */
 		daddr = s->ldseg.pg0fileoff + soff;
 		doff = s->ldseg.pg0off;
 
-		if(soff < doff+s->ldseg.filesz){
-			ask = doff+s->ldseg.filesz - soff;
+		if(soff < doff + s->ldseg.filesz) {
+			ask = doff + s->ldseg.filesz - soff;
 			if(ask > pgsz)
 				ask = pgsz;
 			if(soff > 0)
 				doff = 0;
 
-			newpg = lookpage(s->image, daddr+doff);
+			newpg = lookpage(s->image, daddr + doff);
 			if(newpg != nil) {
 				*p = newpg;
 				return;
@@ -342,9 +340,9 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	// part of the page.
 	newpg = newpage(1, nil, addr, pgsz, color);
 
-	if(ask > doff){
+	if(ask > doff) {
 		k = kmap(newpg);
-		kaddr = (char*)VA(k);
+		kaddr = (char *)VA(k);
 
 		while(waserror()) {
 			if(strcmp(up->errstr, Eintr) == 0)
@@ -355,31 +353,30 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		}
 
 		DBG(
-			"pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
-			up->pid, segtypes[s->type & SG_TYPE],
-			(s->type & SG_READ) != 0 ? 'r' : '-',
-			(s->type & SG_WRITE) != 0 ? 'w' : '-',
-			(s->type & SG_EXEC) != 0 ? 'x' : '-',
-			addr+doff, daddr+doff, ask-doff
-		);
+		    "pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
+		    up->pid, segtypes[s->type & SG_TYPE],
+		    (s->type & SG_READ) != 0 ? 'r' : '-',
+		    (s->type & SG_WRITE) != 0 ? 'w' : '-',
+		    (s->type & SG_EXEC) != 0 ? 'x' : '-',
+		    addr + doff, daddr + doff, ask - doff);
 
-		n = c->dev->read(c, kaddr+doff, ask-doff, daddr+doff);
-		if(n != ask-doff)
+		n = c->dev->read(c, kaddr + doff, ask - doff, daddr + doff);
+		if(n != ask - doff)
 			faulterror(Eioload, c, 0);
 		poperror();
 		kunmap(k);
 	}
 
 	qlock(&s->lk);
-	if(loadrec == nil) {	/* This is demand load */
+	if(loadrec == nil) { /* This is demand load */
 		/*
 		 *  race, another proc may have gotten here first while
 		 *  s->lk was unlocked
 		 */
 		if(*p == nil) {
 			// put it to page cache if there was i/o for it
-			if(ask > doff){
-				newpg->daddr = daddr+doff;
+			if(ask > doff) {
+				newpg->daddr = daddr + doff;
 				cachepage(newpg, s->image);
 			}
 			*p = newpg;
@@ -408,10 +405,10 @@ okaddr(uintptr_t addr, int32_t len, int write)
 	if(len >= 0) {
 		for(;;) {
 			s = seg(up, addr, 0);
-			if(s == 0 || (write && (s->type&SG_WRITE) == 0))
+			if(s == 0 || (write && (s->type & SG_WRITE) == 0))
 				break;
 
-			if(addr+len > s->top) {
+			if(addr + len > s->top) {
 				len -= s->top - addr;
 				addr = s->top;
 				continue;
@@ -422,12 +419,12 @@ okaddr(uintptr_t addr, int32_t len, int write)
 	return 0;
 }
 
-void*
-validaddr(void* addr, int32_t len, int write)
+void *
+validaddr(void *addr, int32_t len, int write)
 {
-	if(!okaddr(PTR2UINT(addr), len, write)){
+	if(!okaddr(PTR2UINT(addr), len, write)) {
 		pprint("suicide: invalid address %#p/%ld in sys call pc=%#p\n",
-			addr, len, userpc(nil));
+		       addr, len, userpc(nil));
 		pexit("Suicide", 0);
 	}
 
@@ -439,7 +436,7 @@ validaddr(void* addr, int32_t len, int write)
  * Assume 2M pages, so it works for both 2M and 1G pages.
  * Note this won't work for 4*KiB pages!
  */
-void*
+void *
 vmemchr(void *s, int c, int n)
 {
 	int m;
@@ -447,12 +444,12 @@ vmemchr(void *s, int c, int n)
 	char *t;
 
 	a = PTR2UINT(s);
-	while(ROUNDUP(a, BIGPGSZ) != ROUNDUP(a+n-1, BIGPGSZ)){
+	while(ROUNDUP(a, BIGPGSZ) != ROUNDUP(a + n - 1, BIGPGSZ)) {
 		/* spans pages; handle this page */
-		m = BIGPGSZ - (a & (BIGPGSZ-1));
-//		t = memchr(UINT2PTR(a), c, m);
+		m = BIGPGSZ - (a & (BIGPGSZ - 1));
+		//		t = memchr(UINT2PTR(a), c, m);
 		for(t = UINT2PTR(a); m > 0; m--, t++)
-			if (*t == c)
+			if(*t == c)
 				break;
 		if(*t == c)
 			return t;
@@ -469,14 +466,14 @@ vmemchr(void *s, int c, int n)
 
 	/* fits in one page */
 	for(t = UINT2PTR(a); n > 0; n--, t++)
-		if (*t == c)
+		if(*t == c)
 			break;
 	if(*t != c)
 		error("Bogus string");
 	return t;
 }
 
-Segment*
+Segment *
 seg(Proc *p, uintptr_t addr, int dolock)
 {
 	Segment **s, **et, *n;

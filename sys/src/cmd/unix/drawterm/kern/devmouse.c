@@ -7,44 +7,42 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
-#include	"draw.h"
-#include	"memdraw.h"
-#include	"screen.h"
+#include "draw.h"
+#include "memdraw.h"
+#include "screen.h"
 
-int	mousequeue = 1;
+int mousequeue = 1;
 
-Mouseinfo	mouse;
-Cursorinfo	cursor;
+Mouseinfo mouse;
+Cursorinfo cursor;
 
-static int	mousechanged(void*);
+static int mousechanged(void *);
 
-enum{
+enum {
 	Qdir,
 	Qcursor,
 	Qmouse
 };
 
-Dirtab mousedir[]={
-	".",		{Qdir, 0, QTDIR},	0,	DMDIR|0555,	
-	"cursor",	{Qcursor},	0,			0666,
-	"mouse",	{Qmouse},	0,			0666,
+Dirtab mousedir[] = {
+    ".", {Qdir, 0, QTDIR}, 0, DMDIR | 0555, "cursor", {Qcursor}, 0, 0666, "mouse", {Qmouse}, 0, 0666,
 };
 
-#define	NMOUSE	(sizeof(mousedir)/sizeof(Dirtab))
+#define NMOUSE (sizeof(mousedir) / sizeof(Dirtab))
 
-static Chan*
+static Chan *
 mouseattach(char *spec)
 {
 	return devattach('m', spec);
 }
 
-static Walkqid*
+static Walkqid *
 mousewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, mousedir, NMOUSE, devgen);
@@ -56,17 +54,17 @@ mousestat(Chan *c, uint8_t *db, int n)
 	return devstat(c, db, n, mousedir, NMOUSE, devgen);
 }
 
-static Chan*
+static Chan *
 mouseopen(Chan *c, int omode)
 {
-	switch((int32_t)c->qid.path){
+	switch((int32_t)c->qid.path) {
 	case Qdir:
 		if(omode != OREAD)
 			error(Eperm);
 		break;
 	case Qmouse:
 		lock(&mouse.lk);
-		if(mouse.open){
+		if(mouse.open) {
 			unlock(&mouse.lk);
 			error(Einuse);
 		}
@@ -83,7 +81,7 @@ mouseopen(Chan *c, int omode)
 void
 mouseclose(Chan *c)
 {
-	if(!(c->flag&COPEN))
+	if(!(c->flag & COPEN))
 		return;
 
 	switch((int32_t)c->qid.path) {
@@ -95,32 +93,31 @@ mouseclose(Chan *c)
 	}
 }
 
-
 int32_t
 mouseread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	char buf[4*12+1];
+	char buf[4 * 12 + 1];
 	uint8_t *p;
 	int i, nn;
 	uint32_t msec;
-/*	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };	*/
+	/*	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };	*/
 
 	p = va;
-	switch((int32_t)c->qid.path){
+	switch((int32_t)c->qid.path) {
 	case Qdir:
 		return devdirread(c, va, n, mousedir, NMOUSE, devgen);
 
 	case Qcursor:
 		if(offset != 0)
 			return 0;
-		if(n < 2*4+2*2*16)
+		if(n < 2 * 4 + 2 * 2 * 16)
 			error(Eshort);
-		n = 2*4+2*2*16;
+		n = 2 * 4 + 2 * 2 * 16;
 		lock(&cursor.lk);
-		BPLONG(p+0, cursor.offset.x);
-		BPLONG(p+4, cursor.offset.y);
-		memmove(p+8, cursor.clr, 2*16);
-		memmove(p+40, cursor.set, 2*16);
+		BPLONG(p + 0, cursor.offset.x);
+		BPLONG(p + 4, cursor.offset.y);
+		memmove(p + 8, cursor.clr, 2 * 16);
+		memmove(p + 40, cursor.set, 2 * 16);
 		unlock(&cursor.lk);
 		return n;
 
@@ -132,8 +129,8 @@ mouseread(Chan *c, void *va, int32_t n, int64_t offset)
 		if(screen.reshaped) {
 			screen.reshaped = 0;
 			sprint(buf, "t%11d %11d", 0, ticks());
-			if(n > 1+2*12)
-				n = 1+2*12;
+			if(n > 1 + 2 * 12)
+				n = 1 + 2 * 12;
 			memmove(va, buf, n);
 			unlock(&screen.lk);
 			return n;
@@ -149,18 +146,18 @@ mouseread(Chan *c, void *va, int32_t n, int64_t offset)
 		while(nn > 1) {
 			if(mouse.queue[i].msec + Mousewindow > msec)
 				break;
-			i = (i+1)%Mousequeue;
+			i = (i + 1) % Mousequeue;
 			nn--;
 		}
 		sprint(buf, "m%11d %11d %11d %11d",
-			mouse.queue[i].xy.x,
-			mouse.queue[i].xy.y,
-			mouse.queue[i].buttons,
-			mouse.queue[i].msec);
-		mouse.ri = (i+1)%Mousequeue;
+		       mouse.queue[i].xy.x,
+		       mouse.queue[i].xy.y,
+		       mouse.queue[i].buttons,
+		       mouse.queue[i].msec);
+		mouse.ri = (i + 1) % Mousequeue;
 		unlock(&mouse.lk);
-		if(n > 1+4*12)
-			n = 1+4*12;
+		if(n > 1 + 4 * 12)
+			n = 1 + 4 * 12;
 		memmove(va, buf, n);
 		return n;
 	}
@@ -177,32 +174,32 @@ mousewrite(Chan *c, void *va, int32_t n, int64_t offset)
 	USED(offset);
 
 	p = va;
-	switch((int32_t)c->qid.path){
+	switch((int32_t)c->qid.path) {
 	case Qdir:
 		error(Eisdir);
 
 	case Qcursor:
-		if(n < 2*4+2*2*16){
+		if(n < 2 * 4 + 2 * 2 * 16) {
 			cursorarrow();
-		}else{
-			n = 2*4+2*2*16;
+		} else {
+			n = 2 * 4 + 2 * 2 * 16;
 			lock(&cursor.lk);
-			cursor.offset.x = BGLONG(p+0);
-			cursor.offset.y = BGLONG(p+4);
-			memmove(cursor.clr, p+8, 2*16);
-			memmove(cursor.set, p+40, 2*16);
+			cursor.offset.x = BGLONG(p + 0);
+			cursor.offset.y = BGLONG(p + 4);
+			memmove(cursor.clr, p + 8, 2 * 16);
+			memmove(cursor.set, p + 40, 2 * 16);
 			unlock(&cursor.lk);
 			setcursor();
 		}
 		return n;
 
 	case Qmouse:
-		if(n > sizeof buf-1)
-			n = sizeof buf -1;
+		if(n > sizeof buf - 1)
+			n = sizeof buf - 1;
 		memmove(buf, va, n);
 		buf[n] = 0;
 		p = 0;
-		pt.x = strtoul(buf+1, &p, 0);
+		pt.x = strtoul(buf + 1, &p, 0);
 		if(p == 0)
 			error(Eshort);
 		pt.y = strtoul(p, 0, 0);
@@ -224,23 +221,22 @@ mousechanged(void *a)
 }
 
 Dev mousedevtab = {
-	'm',
-	"mouse",
+    'm',
+    "mouse",
 
-	devreset,
-	devinit,
-	devshutdown,
-	mouseattach,
-	mousewalk,
-	mousestat,
-	mouseopen,
-	devcreate,
-	mouseclose,
-	mouseread,
-	devbread,
-	mousewrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    devreset,
+    devinit,
+    devshutdown,
+    mouseattach,
+    mousewalk,
+    mousestat,
+    mouseopen,
+    devcreate,
+    mouseclose,
+    mouseread,
+    devbread,
+    mousewrite,
+    devbwrite,
+    devremove,
+    devwstat,
 };
-

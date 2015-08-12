@@ -30,40 +30,40 @@
  *					:*(f)->wp++=_IO_ctmp)
  *				
  */
-typedef struct{
-	int fd;		/* UNIX file pointer */
-	char flags;	/* bits for must free buffer on close, line-buffered */
-	char state;	/* last operation was read, write, position, error, eof */
-	char *buf;	/* pointer to i/o buffer */
-	char *rp;	/* read pointer (or write end-of-buffer) */
-	char *wp;	/* write pointer (or read end-of-buffer) */
-	char *lp;	/* actual write pointer used when line-buffering */
-	long bufl;	/* actual length of buffer */
-	char unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
-}FILE;
+typedef struct {
+	int fd;	/* UNIX file pointer */
+	char flags;    /* bits for must free buffer on close, line-buffered */
+	char state;    /* last operation was read, write, position, error, eof */
+	char *buf;     /* pointer to i/o buffer */
+	char *rp;      /* read pointer (or write end-of-buffer) */
+	char *wp;      /* write pointer (or read end-of-buffer) */
+	char *lp;      /* actual write pointer used when line-buffering */
+	long bufl;     /* actual length of buffer */
+	char unbuf[1]; /* tiny buffer for unbuffered io (used for ungetc?) */
+} FILE;
 typedef long fpos_t;
 #ifndef NULL
-#define	NULL	0
+#define NULL 0
 #endif
 /*
  * Third arg of setvbuf
  */
-#define	_IOFBF	1			/* block-buffered */
-#define	_IOLBF	2			/* line-buffered */
-#define	_IONBF	3			/* unbuffered */
-#define	BUFSIZ	4096			/* size of setbuf buffer */
-#define	EOF	(-1)			/* returned on end of file */
-#define	FOPEN_MAX	128		/* max files open */
-#define	FILENAME_MAX	BUFSIZ		/* silly filename length */
-#define	L_tmpnam	20		/* sizeof "/tmp/abcdefghij9999 */
-#define	SEEK_CUR	1
-#define	SEEK_END	2
-#define	SEEK_SET	0
-#define	TMP_MAX		64		/* very hard to set correctly */
-#define	stderr	(&_IO_stream[2])
-#define	stdin	(&_IO_stream[0])
-#define	stdout	(&_IO_stream[1])
-#define	_IO_CHMASK	0377		/* mask for 8 bit characters */
+#define _IOFBF 1	    /* block-buffered */
+#define _IOLBF 2	    /* line-buffered */
+#define _IONBF 3	    /* unbuffered */
+#define BUFSIZ 4096	 /* size of setbuf buffer */
+#define EOF (-1)	    /* returned on end of file */
+#define FOPEN_MAX 128       /* max files open */
+#define FILENAME_MAX BUFSIZ /* silly filename length */
+#define L_tmpnam 20	 /* sizeof "/tmp/abcdefghij9999 */
+#define SEEK_CUR 1
+#define SEEK_END 2
+#define SEEK_SET 0
+#define TMP_MAX 64 /* very hard to set correctly */
+#define stderr (&_IO_stream[2])
+#define stdin (&_IO_stream[0])
+#define stdout (&_IO_stream[1])
+#define _IO_CHMASK 0377 /* mask for 8 bit characters */
 FILE *tmpfile(void);
 char *tmpnam(char *);
 int fclose(FILE *);
@@ -87,16 +87,16 @@ char *fgets(char *, int, FILE *);
 int fputc(int, FILE *);
 int fputs(const char *, FILE *);
 int getc(FILE *);
-#define	getc(f)	((f)->rp>=(f)->wp?_IO_getc(f):*(f)->rp++&_IO_CHMASK)
+#define getc(f) ((f)->rp >= (f)->wp ? _IO_getc(f) : *(f)->rp++ & _IO_CHMASK)
 int _IO_getc(FILE *f);
 int getchar(void);
-#define	getchar()	getc(stdin)
+#define getchar() getc(stdin)
 char *gets(char *);
 int putc(int, FILE *);
-#define	putc(c, f) ((f)->wp>=(f)->rp?_IO_putc(c, f):(*(f)->wp++=c)&_IO_CHMASK)
+#define putc(c, f) ((f)->wp >= (f)->rp ? _IO_putc(c, f) : (*(f)->wp++ = c) & _IO_CHMASK)
 int _IO_putc(int, FILE *);
 int putchar(int);
-#define	putchar(c)	putc(c, stdout)
+#define putchar(c) putc(c, stdout)
 int puts(const char *);
 int ungetc(int, FILE *);
 int32_t fread(void *, int32_t, int32_t, FILE *);
@@ -114,5 +114,5 @@ extern FILE _IO_stream[FOPEN_MAX];
 FILE *sopenr(const char *);
 FILE *sopenw(void);
 char *sclose(FILE *);
-char	*dtoa(double, int, int, int*, int*, char**);
-void	freedtoa(char*);
+char *dtoa(double, int, int, int *, int *, char **);
+void freedtoa(char *);

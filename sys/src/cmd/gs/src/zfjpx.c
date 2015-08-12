@@ -42,37 +42,35 @@
 #include "ifilter.h"
 #include "sjpx.h"
 
-
 /* <source> /JPXDecode <file> */
 /* <source> <dict> /JPXDecode <file> */
-private int
-z_jpx_decode(i_ctx_t * i_ctx_p)
+private
+int
+z_jpx_decode(i_ctx_t *i_ctx_p)
 {
-    os_ptr op = osp;
-    ref *sop = NULL;
-    stream_jpxd_state state;
+	os_ptr op = osp;
+	ref *sop = NULL;
+	stream_jpxd_state state;
 
-    state.jpx_memory = imemory->non_gc_memory;
-    if (r_has_type(op, t_dictionary)) {
-        check_dict_read(*op);
-        if ( dict_find_string(op, "Colorspace", &sop) > 0) {
-	    dlprintf("found Colorspace parameter (NYI)\n");
-        }
-    }
-    	
-    /* we pass npop=0, since we've no arguments left to consume */
-    /* we pass 0 instead of the usual rspace(sop) which will allocate storage
+	state.jpx_memory = imemory->non_gc_memory;
+	if(r_has_type(op, t_dictionary)) {
+		check_dict_read(*op);
+		if(dict_find_string(op, "Colorspace", &sop) > 0) {
+			dlprintf("found Colorspace parameter (NYI)\n");
+		}
+	}
+
+	/* we pass npop=0, since we've no arguments left to consume */
+	/* we pass 0 instead of the usual rspace(sop) which will allocate storage
        for filter state from the same memory pool as the stream it's coding.
        this causes no trouble because we maintain no pointers */
-    return filter_read(i_ctx_p, 0, &s_jpxd_template,
-		       (stream_state *) & state, 0);
+	return filter_read(i_ctx_p, 0, &s_jpxd_template,
+			   (stream_state *)&state, 0);
 }
-
 
 /* match the above routine to the corresponding filter name
    this is how our 'private' routines get called externally */
 const op_def zfjpx_op_defs[] = {
     op_def_begin_filter(),
     {"2JPXDecode", z_jpx_decode},
-    op_def_end(0)
-};
+    op_def_end(0)};

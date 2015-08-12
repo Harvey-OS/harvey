@@ -15,7 +15,7 @@ main(int argc, char **argv)
 {
 	Dir d;
 
-	if(argc != 3){
+	if(argc != 3) {
 		fprint(2, "usage: trunc file size\n");
 		exits("usage");
 	}

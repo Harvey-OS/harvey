@@ -11,22 +11,22 @@
 #include <ip.h>
 
 enum {
-	Maxdoms	=	10,		/* max domains in a path */
-	Timeout =	2*60*60,	/* seconds until temporarily trusted addr times out */
+	Maxdoms = 10,	  /* max domains in a path */
+	Timeout = 2 * 60 * 60, /* seconds until temporarily trusted addr times out */
 };
 
-static	int	accountmatch(char*, char**, int, char*);
-static	Node*	acctwalk(char*,  Node*);
-static	int	dommatch(char*, char*);
-static	Address* ipsearch(uint32_t, Address*, int);
-static	Node*	ipwalk(char*,  Node*);
-static	Node*	trwalk(char*, Node*);
-static	int	usermatch(char*, char*);
+static int accountmatch(char *, char **, int, char *);
+static Node *acctwalk(char *, Node *);
+static int dommatch(char *, char *);
+static Address *ipsearch(uint32_t, Address *, int);
+static Node *ipwalk(char *, Node *);
+static Node *trwalk(char *, Node *);
+static int usermatch(char *, char *);
 
 /*
  *	Do a walk
  */
-char*
+char *
 walk(char *name, Fid *fidp)
 {
 	Node *np;
@@ -36,13 +36,13 @@ walk(char *name, Fid *fidp)
 
 	if(strcmp(name, ".") == 0)
 		return 0;
-	if(strcmp(name, "..") == 0){
+	if(strcmp(name, "..") == 0) {
 		fidp->node = fidp->node->parent;
 		fidp->name = 0;
 		return 0;
 	}
 
-	switch(fidp->node->d.type){
+	switch(fidp->node->d.type) {
 	case Directory:
 	case Addrdir:
 		np = dirwalk(name, fidp->node);
@@ -70,7 +70,7 @@ walk(char *name, Fid *fidp)
 /*
  *	Walk to a subdirectory
  */
-Node*
+Node *
 dirwalk(char *name, Node *np)
 {
 	Node *p;
@@ -84,7 +84,7 @@ dirwalk(char *name, Node *np)
 /*
  *	Walk the directory of trusted files
  */
-static Node*
+static Node *
 trwalk(char *name, Node *np)
 {
 	Node *p;
@@ -95,7 +95,7 @@ trwalk(char *name, Node *np)
 	peerip = nhgetl(addr);
 
 	for(p = np->children; p; p = p->sibs)
-		if((peerip&p->ip.mask) == p->ip.ipaddr)
+		if((peerip & p->ip.mask) == p->ip.ipaddr)
 			break;
 	return p;
 }
@@ -103,8 +103,8 @@ trwalk(char *name, Node *np)
 /*
  *	Walk a directory of IP addresses
  */
-static Node*
-ipwalk(char *name,  Node *np)
+static Node *
+ipwalk(char *name, Node *np)
 {
 	Address *ap;
 	uint32_t peerip;
@@ -114,8 +114,8 @@ ipwalk(char *name,  Node *np)
 	peerip = nhgetl(addr);
 
 	if(debugfd >= 0)
-		fprint(debugfd, "%d.%d.%d.%d - ", addr[0]&0xff, addr[1]&0xff,
-				addr[2]&0xff, addr[3]&0xff);
+		fprint(debugfd, "%d.%d.%d.%d - ", addr[0] & 0xff, addr[1] & 0xff,
+		       addr[2] & 0xff, addr[3] & 0xff);
 	ap = ipsearch(peerip, np->addrs, np->count);
 	if(ap == 0)
 		return 0;
@@ -127,7 +127,7 @@ ipwalk(char *name,  Node *np)
 /*
  *	Walk a directory of account names
  */
-static Node*
+static Node *
 acctwalk(char *name, Node *np)
 {
 	int i, n;
@@ -136,7 +136,7 @@ acctwalk(char *name, Node *np)
 	char buf[512];
 	char *doms[Maxdoms];
 
-	strecpy(buf, buf+sizeof buf, name);
+	strecpy(buf, buf + sizeof buf, name);
 	subslash(buf);
 
 	p = buf;
@@ -146,13 +146,13 @@ acctwalk(char *name, Node *np)
 			break;
 		*cp = 0;
 		doms[n] = p;
-		p = cp+1;
+		p = cp + 1;
 	}
 	user = p;
 
-	for(i = 0; i < np->count; i++){
+	for(i = 0; i < np->count; i++) {
 		ap = &np->addrs[i];
-		if (accountmatch(ap->name, doms, n, user)) {
+		if(accountmatch(ap->name, doms, n, user)) {
 			dummy.d.name = ap->name;
 			return &dummy;
 		}
@@ -164,7 +164,7 @@ acctwalk(char *name, Node *np)
  * binary search sorted IP address list
  */
 
-static Address*
+static Address *
 ipsearch(uint32_t addr, Address *base, int n)
 {
 	uint32_t top, bot, mid;
@@ -172,13 +172,13 @@ ipsearch(uint32_t addr, Address *base, int n)
 
 	bot = 0;
 	top = n;
-	for (mid = (bot+top)/2; mid < top; mid = (bot+top)/2) {
+	for(mid = (bot + top) / 2; mid < top; mid = (bot + top) / 2) {
 		ap = &base[mid];
-		if((addr&ap->ip.mask) == ap->ip.ipaddr)
+		if((addr & ap->ip.mask) == ap->ip.ipaddr)
 			return ap;
 		if(addr < ap->ip.ipaddr)
 			top = mid;
-		else if(mid != n-1 && addr >= base[mid+1].ip.ipaddr)
+		else if(mid != n - 1 && addr >= base[mid + 1].ip.ipaddr)
 			bot = mid;
 		else
 			break;
@@ -200,8 +200,8 @@ dread(Fid *fidp, int cnt)
 		fprint(debugfd, "dread %d\n", cnt);
 
 	np = fidp->node;
-	oq = q = rbuf+IOHDRSZ;
-	eq = q+cnt;
+	oq = q = rbuf + IOHDRSZ;
+	eq = q + cnt;
 	if(fidp->dirindex >= np->count)
 		return 0;
 
@@ -211,10 +211,10 @@ dread(Fid *fidp, int cnt)
 	if(np == 0)
 		return 0;
 
-	for(; q < eq && np; np = np->sibs){
+	for(; q < eq && np; np = np->sibs) {
 		if(debugfd >= 0)
 			printnode(np);
-		if((n=convD2M(&np->d, q, eq-q)) <= BIT16SZ)
+		if((n = convD2M(&np->d, q, eq - q)) <= BIT16SZ)
 			break;
 		q += n;
 		fidp->dirindex++;
@@ -237,17 +237,17 @@ hread(Fid *fidp, int cnt)
 		fprint(debugfd, "hread %d\n", cnt);
 
 	np = fidp->node;
-	oq = q = rbuf+IOHDRSZ;
-	eq = q+cnt;
+	oq = q = rbuf + IOHDRSZ;
+	eq = q + cnt;
 	if(fidp->dirindex >= np->count)
 		return 0;
 
 	path = np->baseqid;
-	for(i = fidp->dirindex; q < eq && i < np->count; i++){
+	for(i = fidp->dirindex; q < eq && i < np->count; i++) {
 		p = &np->addrs[i];
 		dummy.d.name = p->name;
 		dummy.d.qid.path = path++;
-		if((n=convD2M(&dummy.d, q, eq-q)) <= BIT16SZ)
+		if((n = convD2M(&dummy.d, q, eq - q)) <= BIT16SZ)
 			break;
 		q += n;
 	}
@@ -258,13 +258,13 @@ hread(Fid *fidp, int cnt)
 /*
  *	Find a directory node by type
  */
-Node*
+Node *
 finddir(int type)
 {
 	Node *np;
 
 	for(np = root->children; np; np = np->sibs)
-		if (np->d.type == type)
+		if(np->d.type == type)
 			return np;
 	return 0;
 }
@@ -280,12 +280,12 @@ cleantrusted(void)
 	uint32_t t;
 
 	np = finddir(Trusted);
-	if (np == 0)
+	if(np == 0)
 		return;
 
-	t = time(0)-Timeout;
+	t = time(0) - Timeout;
 	l = &np->children;
-	for (np = np->children; np; np = *l) {
+	for(np = np->children; np; np = *l) {
 		if(np->d.type == Trustedtemp && t >= np->d.mtime) {
 			*l = np->sibs;
 			if(debugfd >= 0)
@@ -321,23 +321,23 @@ accountmatch(char *spec, char **doms, int ndoms, char *user)
 	userp = 0;
 	ret = 0;
 	cp = strchr(spec, '!');
-	if(cp){
-		*cp++ = 0;		/* restored below */
+	if(cp) {
+		*cp++ = 0; /* restored below */
 		if(*cp)
-		if(strcmp(cp, "*"))	/* "!*" is the same as no user field */
-			userp = cp;	/* there is a user name */
+			if(strcmp(cp, "*")) /* "!*" is the same as no user field */
+				userp = cp; /* there is a user name */
 	}
 
-	if(userp == 0){			/* no user field - domain match only */
+	if(userp == 0) { /* no user field - domain match only */
 		for(i = 0; i < ndoms && doms[i]; i++)
 			if(dommatch(doms[i], spec) == 0)
 				ret = 1;
 	} else {
 		/* check for "!user", "*!user" or "domain!user" */
-		if(usermatch(user, userp) == 0){
+		if(usermatch(user, userp) == 0) {
 			if(*spec == 0 || strcmp(spec, "*") == 0)
 				ret = 1;
-			else if(ndoms > 0  && dommatch(doms[ndoms-1], spec) == 0)
+			else if(ndoms > 0 && dommatch(doms[ndoms - 1], spec) == 0)
 				ret = 1;
 		}
 	}
@@ -357,9 +357,9 @@ usermatch(char *pathuser, char *specuser)
 {
 	int n;
 
-	n = strlen(specuser)-1;
-	if(specuser[n] == '*'){
-		if(n == 0)		/* match everything */
+	n = strlen(specuser) - 1;
+	if(specuser[n] == '*') {
+		if(n == 0) /* match everything */
 			return 0;
 		return strncmp(pathuser, specuser, n);
 	}
@@ -374,12 +374,12 @@ dommatch(char *pathdom, char *specdom)
 {
 	int n;
 
-	if (*specdom == '*'){
-		if (specdom[1] == '.' && specdom[2]){
+	if(*specdom == '*') {
+		if(specdom[1] == '.' && specdom[2]) {
 			specdom += 2;
-			n = strlen(pathdom)-strlen(specdom);
-			if(n == 0 || (n > 0 && pathdom[n-1] == '.'))
-				return strcmp(pathdom+n, specdom);
+			n = strlen(pathdom) - strlen(specdom);
+			if(n == 0 || (n > 0 && pathdom[n - 1] == '.'))
+				return strcmp(pathdom + n, specdom);
 			return n;
 		}
 	}
@@ -390,19 +390,19 @@ dommatch(char *pathdom, char *specdom)
  *	Custom allocators to avoid malloc overheads on small objects.
  * 	We never free these.  (See below.)
  */
-typedef struct Stringtab	Stringtab;
+typedef struct Stringtab Stringtab;
 struct Stringtab {
 	Stringtab *link;
 	char *str;
 };
-static Stringtab*
+static Stringtab *
 taballoc(void)
 {
 	static Stringtab *t;
 	static uint nt;
 
-	if(nt == 0){
-		t = malloc(64*sizeof(Stringtab));
+	if(nt == 0) {
+		t = malloc(64 * sizeof(Stringtab));
 		if(t == 0)
 			fatal("out of memory");
 		nt = 64;
@@ -411,7 +411,7 @@ taballoc(void)
 	return t++;
 }
 
-static char*
+static char *
 xstrdup(char *s)
 {
 	char *r;
@@ -419,11 +419,11 @@ xstrdup(char *s)
 	static char *t;
 	static int nt;
 
-	len = strlen(s)+1;
+	len = strlen(s) + 1;
 	if(len >= 8192)
 		fatal("strdup big string");
 
-	if(nt < len){
+	if(nt < len) {
 		t = malloc(8192);
 		if(t == 0)
 			fatal("out of memory");
@@ -452,19 +452,19 @@ hash(char *s)
 	uint8_t *p;
 
 	h = 0;
-	for(p=(uint8_t*)s; *p; p++)
-		h = h*37 + *p;
+	for(p = (uint8_t *)s; *p; p++)
+		h = h * 37 + *p;
 	return h;
 }
 
-char*
+char *
 atom(char *str)
 {
 	uint h;
 	Stringtab *tab;
-	
+
 	h = hash(str) % nelem(stab);
-	for(tab=stab[h]; tab; tab=tab->link)
+	for(tab = stab[h]; tab; tab = tab->link)
 		if(strcmp(str, tab->str) == 0)
 			return tab->str;
 

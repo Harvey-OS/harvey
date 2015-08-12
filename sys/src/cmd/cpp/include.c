@@ -11,9 +11,9 @@
 #include <libc.h>
 #include "cpp.h"
 
-Includelist	includelist[NINCLUDE];
+Includelist includelist[NINCLUDE];
 
-char	*objname;
+char *objname;
 
 void
 doinclude(Tokenrow *trp)
@@ -23,26 +23,26 @@ doinclude(Tokenrow *trp)
 	int angled, len, fd, i;
 
 	trp->tp += 1;
-	if (trp->tp>=trp->lp)
+	if(trp->tp >= trp->lp)
 		goto syntax;
-	if (trp->tp->type!=STRING && trp->tp->type!=LT) {
+	if(trp->tp->type != STRING && trp->tp->type != LT) {
 		len = trp->tp - trp->bp;
 		expandrow(trp, "<include>", Notinmacro);
-		trp->tp = trp->bp+len;
+		trp->tp = trp->bp + len;
 	}
-	if (trp->tp->type==STRING) {
-		len = trp->tp->len-2;
-		if (len > sizeof(fname) - 1)
+	if(trp->tp->type == STRING) {
+		len = trp->tp->len - 2;
+		if(len > sizeof(fname) - 1)
 			len = sizeof(fname) - 1;
-		strncpy(fname, (char*)trp->tp->t+1, len);
+		strncpy(fname, (char *)trp->tp->t + 1, len);
 		angled = 0;
-	} else if (trp->tp->type==LT) {
+	} else if(trp->tp->type == LT) {
 		len = 0;
 		trp->tp++;
-		while (trp->tp->type!=GT) {
-			if (trp->tp>trp->lp || len+trp->tp->len+2 >= sizeof(fname))
+		while(trp->tp->type != GT) {
+			if(trp->tp > trp->lp || len + trp->tp->len + 2 >= sizeof(fname))
 				goto syntax;
-			strncpy(fname+len, (char*)trp->tp->t, trp->tp->len);
+			strncpy(fname + len, (char *)trp->tp->t, trp->tp->len);
 			len += trp->tp->len;
 			trp->tp++;
 		}
@@ -50,24 +50,25 @@ doinclude(Tokenrow *trp)
 	} else
 		goto syntax;
 	trp->tp += 2;
-	if (trp->tp < trp->lp || len==0)
+	if(trp->tp < trp->lp || len == 0)
 		goto syntax;
 	fname[len] = '\0';
-	if (fname[0]=='/') {
+	if(fname[0] == '/') {
 		fd = open(fname, 0);
 		strcpy(iname, fname);
-	} else for (fd=-1,i=NINCLUDE-1; i>=0; i--) {
-		ip = &includelist[i];
-		if (ip->file==NULL || ip->deleted || (angled && ip->always==0))
-			continue;
-		if (strlen(fname)+strlen(ip->file)+2 > sizeof(iname))
-			continue;
-		strcpy(iname, ip->file);
-		strcat(iname, "/");
-		strcat(iname, fname);
-		if ((fd = open(iname, 0)) >= 0)
-			break;
-	}
+	} else
+		for(fd = -1, i = NINCLUDE - 1; i >= 0; i--) {
+			ip = &includelist[i];
+			if(ip->file == NULL || ip->deleted || (angled && ip->always == 0))
+				continue;
+			if(strlen(fname) + strlen(ip->file) + 2 > sizeof(iname))
+				continue;
+			strcpy(iname, ip->file);
+			strcat(iname, "/");
+			strcat(iname, fname);
+			if((fd = open(iname, 0)) >= 0)
+				break;
+		}
 	if(fd < 0) {
 		strcpy(iname, cursource->filename);
 		p = strrchr(iname, '/');
@@ -78,19 +79,19 @@ doinclude(Tokenrow *trp)
 			fd = open(iname, 0);
 		}
 	}
-	if ( Mflag>1 || !angled&&Mflag==1 ) {
-		write(1,objname,strlen(objname));
-		write(1,iname,strlen(iname));
-		write(1,"\n",1);
+	if(Mflag > 1 || !angled && Mflag == 1) {
+		write(1, objname, strlen(objname));
+		write(1, iname, strlen(iname));
+		write(1, "\n", 1);
 	}
-	if (fd >= 0) {
-		if (++incdepth > 20)
+	if(fd >= 0) {
+		if(++incdepth > 20)
 			error(FATAL, "#include too deeply nested");
-		setsource((char*)newstring((uint8_t*)iname, strlen(iname), 0),
+		setsource((char *)newstring((uint8_t *)iname, strlen(iname), 0),
 			  fd, NULL);
 		genline();
 	} else {
-		trp->tp = trp->bp+2;
+		trp->tp = trp->bp + 2;
 		error(ERROR, "Could not find include file %r", trp);
 	}
 	return;
@@ -105,28 +106,30 @@ syntax:
 void
 genline(void)
 {
-	static Token ta = { UNCLASS, NULL, 0, 0 };
-	static Tokenrow tr = { &ta, &ta, &ta+1, 1 };
+	static Token ta = {UNCLASS, NULL, 0, 0};
+	static Tokenrow tr = {&ta, &ta, &ta + 1, 1};
 	uint8_t *p;
 
 	if(nolineinfo)
 		return;
 
-	ta.t = p = (uint8_t*)outp;
-	strcpy((char*)p, "#line ");
-	p += sizeof("#line ")-1;
-	p = (uint8_t*)outnum((char*)p, cursource->line);
-	*p++ = ' '; *p++ = '"';
-	if (cursource->filename[0]!='/' && wd[0]) {
-		strcpy((char*)p, wd);
+	ta.t = p = (uint8_t *)outp;
+	strcpy((char *)p, "#line ");
+	p += sizeof("#line ") - 1;
+	p = (uint8_t *)outnum((char *)p, cursource->line);
+	*p++ = ' ';
+	*p++ = '"';
+	if(cursource->filename[0] != '/' && wd[0]) {
+		strcpy((char *)p, wd);
 		p += strlen(wd);
 		*p++ = '/';
 	}
-	strcpy((char*)p, cursource->filename);
-	p += strlen((char*)p);
-	*p++ = '"'; *p++ = '\n';
-	ta.len = (char*)p-outp;
-	outp = (char*)p;
+	strcpy((char *)p, cursource->filename);
+	p += strlen((char *)p);
+	*p++ = '"';
+	*p++ = '\n';
+	ta.len = (char *)p - outp;
+	outp = (char *)p;
 	tr.tp = tr.bp;
 	puttokens(&tr);
 }
@@ -135,11 +138,11 @@ void
 setobjname(char *f)
 {
 	int n = strlen(f);
-	objname = (char*)domalloc(n+5);
-	strcpy(objname,f);
-	if(objname[n-2]=='.'){
-		strcpy(objname+n-1,"$O: ");
-	}else{
-		strcpy(objname+n,"$O: ");
+	objname = (char *)domalloc(n + 5);
+	strcpy(objname, f);
+	if(objname[n - 2] == '.') {
+		strcpy(objname + n - 1, "$O: ");
+	} else {
+		strcpy(objname + n, "$O: ");
 	}
 }

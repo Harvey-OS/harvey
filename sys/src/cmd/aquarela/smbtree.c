@@ -18,7 +18,7 @@ static void
 smbtreefree(SmbTree **tp)
 {
 	SmbTree *t = *tp;
-	if (t) {
+	if(t) {
 		smbserviceput(t->serv);
 		free(t);
 		*tp = nil;
@@ -30,7 +30,7 @@ closesearch(void *magic, void *a)
 {
 	SmbSearch *search = a;
 	DisconnectData *d = magic;
-	if (search->t == d->t)
+	if(search->t == d->t)
 		smbsearchclose(d->s, search);
 }
 
@@ -39,14 +39,14 @@ closefile(void *magic, void *a)
 {
 	SmbFile *f = a;
 	DisconnectData *d = magic;
-	if (f->t == d->t)
+	if(f->t == d->t)
 		smbfileclose(d->s, f);
 }
 
 void
 smbtreedisconnect(SmbSession *s, SmbTree *t)
 {
-	if (t) {
+	if(t) {
 		DisconnectData data;
 		smblogprintif(smbglobals.log.tids, "smbtreedisconnect: 0x%.4ux\n", t->id);
 		data.s = s;
@@ -70,7 +70,7 @@ smbtreeconnect(SmbSession *s, SmbService *serv)
 {
 	SmbTree *t;
 
-	if (s->tidmap == nil)
+	if(s->tidmap == nil)
 		s->tidmap = smbidmapnew();
 
 	t = smbemallocz(sizeof(*t), 1);

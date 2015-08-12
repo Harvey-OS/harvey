@@ -11,33 +11,33 @@
 #include <mp.h>
 #include "dat.h"
 
-#define VLDIGITS (sizeof(int64_t)/sizeof(mpdigit))
+#define VLDIGITS (sizeof(int64_t) / sizeof(mpdigit))
 
 /*
  *  this code assumes that a vlong is an integral number of
  *  mpdigits long.
  */
-mpint*
+mpint *
 vtomp(int64_t v, mpint *b)
 {
 	int s;
 	uint64_t uv;
 
 	if(b == nil)
-		b = mpnew(VLDIGITS*sizeof(mpdigit));
+		b = mpnew(VLDIGITS * sizeof(mpdigit));
 	else
-		mpbits(b, VLDIGITS*sizeof(mpdigit));
+		mpbits(b, VLDIGITS * sizeof(mpdigit));
 	mpassign(mpzero, b);
 	if(v == 0)
 		return b;
-	if(v < 0){
+	if(v < 0) {
 		b->sign = -1;
 		uv = -v;
 	} else
 		uv = v;
-	for(s = 0; s < VLDIGITS && uv != 0; s++){
+	for(s = 0; s < VLDIGITS && uv != 0; s++) {
 		b->p[s] = uv;
-		uv >>= sizeof(mpdigit)*8;
+		uv >>= sizeof(mpdigit) * 8;
 	}
 	b->top = s;
 	return b;
@@ -50,21 +50,21 @@ mptov(mpint *b)
 	int s;
 
 	if(b->top == 0)
-		return (int64_t) 0;
+		return (int64_t)0;
 
 	mpnorm(b);
-	if(b->top > VLDIGITS){
+	if(b->top > VLDIGITS) {
 		if(b->sign > 0)
 			return (int64_t)MAXVLONG;
 		else
 			return (int64_t)MINVLONG;
 	}
 
-	v = (uint64_t) 0;
+	v = (uint64_t)0;
 	for(s = 0; s < b->top; s++)
-		v |= b->p[s]<<(s*sizeof(mpdigit)*8);
+		v |= b->p[s] << (s * sizeof(mpdigit) * 8);
 
-	if(b->sign > 0){
+	if(b->sign > 0) {
 		if(v > MAXVLONG)
 			v = MAXVLONG;
 	} else {

@@ -21,27 +21,27 @@
 #include <ctype.h>
 #include "page.h"
 
-typedef struct PSInfo	PSInfo;
-typedef struct Page	Page;
-	
+typedef struct PSInfo PSInfo;
+typedef struct Page Page;
+
 struct Page {
 	char *name;
-	int offset;			/* offset of page beginning within file */
+	int offset; /* offset of page beginning within file */
 };
 
 struct PSInfo {
 	GSInfo;
-	Rectangle bbox;	/* default bounding box */
+	Rectangle bbox; /* default bounding box */
 	Page *page;
 	int npage;
-	int clueless;	/* don't know where page boundaries are */
-	long psoff;	/* location of %! in file */
+	int clueless; /* don't know where page boundaries are */
+	long psoff;   /* location of %! in file */
 	char ctm[256];
 };
 
-static int	pswritepage(Document *d, int fd, int page);
-static Image*	psdrawpage(Document *d, int page);
-static char*	pspagename(Document*, int);
+static int pswritepage(Document *d, int fd, int page);
+static Image *psdrawpage(Document *d, int page);
+static char *pspagename(Document *, int);
 
 #define R(r) (r).min.x, (r).min.y, (r).max.x, (r).max.y
 Rectangle
@@ -53,39 +53,41 @@ rdbbox(char *p)
 	while(*p == ':' || *p == ' ' || *p == '\t')
 		p++;
 	if(tokenize(p, f, 4) != 4)
-		return Rect(0,0,0,0);
+		return Rect(0, 0, 0, 0);
 	r = Rect(atoi(f[0]), atoi(f[1]), atoi(f[2]), atoi(f[3]));
 	r = canonrect(r);
 	if(Dx(r) <= 0 || Dy(r) <= 0)
-		return Rect(0,0,0,0);
+		return Rect(0, 0, 0, 0);
 
 	if(truetoboundingbox)
 		return r;
 
 	/* initdraw not called yet, can't use %R */
-	if(chatty) fprint(2, "[%d %d %d %d] -> ", R(r));
+	if(chatty)
+		fprint(2, "[%d %d %d %d] -> ", R(r));
 	/*
 	 * attempt to sniff out A4, 8½×11, others
 	 * A4 is 596×842
 	 * 8½×11 is 612×792
 	 */
 
-	a = Dx(r)*Dy(r);
-	if(a < 300*300){	/* really small, probably supposed to be */
-		/* empty */
-	} else if(Dx(r) <= 596 && r.max.x <= 596 && Dy(r) > 792 && Dy(r) <= 842 && r.max.y <= 842)	/* A4 */
+	a = Dx(r) * Dy(r);
+	if(a < 300 * 300) {									   /* really small, probably supposed to be */
+												   /* empty */
+	} else if(Dx(r) <= 596 && r.max.x <= 596 && Dy(r) > 792 && Dy(r) <= 842 && r.max.y <= 842) /* A4 */
 		r = Rect(0, 0, 596, 842);
-	else {	/* cast up to 8½×11 */
-		if(Dx(r) <= 612 && r.max.x <= 612){
+	else { /* cast up to 8½×11 */
+		if(Dx(r) <= 612 && r.max.x <= 612) {
 			r.min.x = 0;
 			r.max.x = 612;
 		}
-		if(Dy(r) <= 792 && r.max.y <= 792){
+		if(Dy(r) <= 792 && r.max.y <= 792) {
 			r.min.y = 0;
 			r.max.y = 792;
 		}
 	}
-	if(chatty) fprint(2, "[%d %d %d %d]\n", R(r));
+	if(chatty)
+		fprint(2, "[%d %d %d %d]\n", R(r));
 	return r;
 }
 
@@ -109,32 +111,31 @@ repaginate(PSInfo *ps, int n)
 
 	page = ps->page;
 	onp = ps->npage;
-	np = (ps->npage+n-1)/n;
+	np = (ps->npage + n - 1) / n;
 
 	if(chatty) {
-		for(i=0; i<=onp+1; i++)
+		for(i = 0; i <= onp + 1; i++)
 			print("page %d: %d\n", i, page[i].offset);
 	}
 
-	for(i=0; i<np; i++)
-		page[i] = page[n*i];
+	for(i = 0; i < np; i++)
+		page[i] = page[n * i];
 
 	/* trailer */
 	page[np] = page[onp];
 
 	/* EOF */
-	page[np+1] = page[onp+1];
+	page[np + 1] = page[onp + 1];
 
 	ps->npage = np;
 
 	if(chatty) {
-		for(i=0; i<=np+1; i++)
+		for(i = 0; i <= np + 1; i++)
 			print("page %d: %d\n", i, page[i].offset);
 	}
-
 }
 
-Document*
+Document *
 initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	Document *d;
@@ -149,14 +150,14 @@ initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	int i;
 	int incomments;
 	int cantranslate;
-	int trailer=0;
-	int nesting=0;
-	int dumb=0;
-	int landscape=0;
+	int trailer = 0;
+	int nesting = 0;
+	int dumb = 0;
+	int landscape = 0;
 	int32_t psoff;
 	int32_t npage, mpage;
 	Page *page;
-	Rectangle bbox = Rect(0,0,0,0);
+	Rectangle bbox = Rect(0, 0, 0, 0);
 
 	if(argc > 1) {
 		fprint(2, "can only view one ps file at a time\n");
@@ -164,11 +165,11 @@ initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	}
 
 	fprint(2, "reading through postscript...\n");
-	if(b == nil){	/* standard input; spool to disk (ouch) */
+	if(b == nil) { /* standard input; spool to disk (ouch) */
 		fd = spooltodisk(buf, nbuf, nil);
 		sprint(fdbuf, "/fd/%d", fd);
 		b = Bopen(fdbuf, OREAD);
-		if(b == nil){
+		if(b == nil) {
 			fprint(2, "cannot open disk spool file\n");
 			wexits("Bopen temp");
 		}
@@ -180,18 +181,18 @@ initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	Bseek(b, 0, 0);
 	psoff = 0;
 	eol = 0;
-	for(i=0; i<16; i++){
+	for(i = 0; i < 16; i++) {
 		psoff = Boffset(b);
-		if(!(p = Brdline(b, eol='\n')) && !(p = Brdline(b, eol='\r'))) {
+		if(!(p = Brdline(b, eol = '\n')) && !(p = Brdline(b, eol = '\r'))) {
 			fprint(2, "cannot find end of first line\n");
 			wexits("initps");
 		}
-		if(p[0]=='\x1B')
+		if(p[0] == '\x1B')
 			p++, psoff++;
 		if(p[0] == '%' && p[1] == '!')
 			break;
 	}
-	if(i == 16){
+	if(i == 16) {
 		werrstr("not ps");
 		return nil;
 	}
@@ -199,19 +200,20 @@ initps(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	/* page counting */
 	npage = 0;
 	mpage = 16;
-	page = emalloc(mpage*sizeof(*page));
-	memset(page, 0, mpage*sizeof(*page));
+	page = emalloc(mpage * sizeof(*page));
+	memset(page, 0, mpage * sizeof(*page));
 
 	cantranslate = goodps;
 	incomments = 1;
 Keepreading:
 	while(p = Brdline(b, eol)) {
 		if(p[0] == '%')
-			if(chatty > 1) fprint(2, "ps %.*s\n", utfnlen(p, Blinelen(b)-1), p);
+			if(chatty > 1)
+				fprint(2, "ps %.*s\n", utfnlen(p, Blinelen(b) - 1), p);
 		if(npage == mpage) {
 			mpage *= 2;
-			page = erealloc(page, mpage*sizeof(*page));
-			memset(&page[npage], 0, npage*sizeof(*page));
+			page = erealloc(page, mpage * sizeof(*page));
+			memset(&page[npage], 0, npage * sizeof(*page));
 		}
 
 		if(p[0] != '%' || p[1] != '%')
@@ -234,39 +236,39 @@ Keepreading:
 		}
 		if(reverse == -1 && prefix(p, "%%PageOrder")) {
 			/* glean whether we should reverse the viewing order */
-			p[Blinelen(b)-1] = 0;
+			p[Blinelen(b) - 1] = 0;
 			if(strstr(p, "Ascend"))
 				reverse = 0;
 			else if(strstr(p, "Descend"))
 				reverse = 1;
 			else if(strstr(p, "Special"))
 				dumb = 1;
-			p[Blinelen(b)-1] = '\n';
+			p[Blinelen(b) - 1] = '\n';
 			continue;
 		} else if(prefix(p, "%%Trailer")) {
 			incomments = 1;
-			page[npage].offset = Boffset(b)-Blinelen(b);
+			page[npage].offset = Boffset(b) - Blinelen(b);
 			trailer = 1;
 			continue;
 		} else if(incomments && prefix(p, "%%Orientation")) {
 			if(strstr(p, "Landscape"))
 				landscape = 1;
-		} else if(incomments && Dx(bbox)==0 && prefix(p, q="%%BoundingBox")) {
-			bbox = rdbbox(p+strlen(q)+1);
+		} else if(incomments && Dx(bbox) == 0 && prefix(p, q = "%%BoundingBox")) {
+			bbox = rdbbox(p + strlen(q) + 1);
 			if(chatty)
 				/* can't use %R because haven't initdraw() */
 				fprint(2, "document bbox [%d %d %d %d]\n",
-					RECT(bbox));
+				       RECT(bbox));
 			continue;
 		}
 
 		/*
 		 * If they use the initgraphics command, we can't play our translation tricks.
 		 */
-		p[Blinelen(b)-1] = 0;
-		if((q=strstr(p, "initgraphics")) && ((r=strchr(p, '%'))==nil || r > q))
+		p[Blinelen(b) - 1] = 0;
+		if((q = strstr(p, "initgraphics")) && ((r = strchr(p, '%')) == nil || r > q))
 			cantranslate = 0;
-		p[Blinelen(b)-1] = eol;
+		p[Blinelen(b) - 1] = eol;
 
 		if(!prefix(p, "%%Page:"))
 			continue;
@@ -279,9 +281,10 @@ Keepreading:
 		 * we prefer just x, and will generate our
 		 * own if necessary.
 		 */
-		p[Blinelen(b)-1] = 0;
-		if(chatty) fprint(2, "page %s\n", p);
-		r = p+7;
+		p[Blinelen(b) - 1] = 0;
+		if(chatty)
+			fprint(2, "page %s\n", p);
+		r = p + 7;
 		while(*r == ' ' || *r == '\t')
 			r++;
 		q = r;
@@ -296,7 +299,7 @@ Keepreading:
 			page[npage].name = estrdup(r);
 			*q = 'x';
 		} else {
-			snprint(tmp, sizeof tmp, "p %ld", npage+1);
+			snprint(tmp, sizeof tmp, "p %ld", npage + 1);
 			page[npage].name = estrdup(tmp);
 		}
 
@@ -304,24 +307,25 @@ Keepreading:
 		 * store the offset info for later viewing
 		 */
 		trailer = 0;
-		p[Blinelen(b)-1] = eol;
-		page[npage++].offset = Boffset(b)-Blinelen(b);
+		p[Blinelen(b) - 1] = eol;
+		page[npage++].offset = Boffset(b) - Blinelen(b);
 	}
-	if(Blinelen(b) > 0){
+	if(Blinelen(b) > 0) {
 		fprint(2, "page: linelen %d\n", Blinelen(b));
 		Bseek(b, Blinelen(b), 1);
 		goto Keepreading;
 	}
 
 	if(Dx(bbox) == 0 || Dy(bbox) == 0)
-		bbox = Rect(0,0,612,792);	/* 8½×11 */
+		bbox = Rect(0, 0, 612, 792); /* 8½×11 */
 	/*
 	 * if we didn't find any pages, assume the document
 	 * is one big page
 	 */
 	if(npage == 0) {
 		dumb = 1;
-		if(chatty) fprint(2, "don't know where pages are\n");
+		if(chatty)
+			fprint(2, "don't know where pages are\n");
 		reverse = 0;
 		goodps = 0;
 		trailer = 0;
@@ -329,17 +333,17 @@ Keepreading:
 		page[npage++].offset = 0;
 	}
 
-	if(npage+2 > mpage) {
+	if(npage + 2 > mpage) {
 		mpage += 2;
-		page = erealloc(page, mpage*sizeof(*page));
-		memset(&page[mpage-2], 0, 2*sizeof(*page));
+		page = erealloc(page, mpage * sizeof(*page));
+		memset(&page[mpage - 2], 0, 2 * sizeof(*page));
 	}
 
 	if(!trailer)
 		page[npage].offset = Boffset(b);
 
 	Bseek(b, 0, 2); /* EOF */
-	page[npage+1].offset = Boffset(b);
+	page[npage + 1].offset = Boffset(b);
 
 	d = emalloc(sizeof(*d));
 	ps = emalloc(sizeof(*ps));
@@ -364,7 +368,7 @@ Keepreading:
 		bbox.min = ZP;
 	setdim(ps, bbox, ppi, landscape);
 
-	if(goodps){
+	if(goodps) {
 		/*
 		 * We want to only send the page (i.e. not header and trailer) information
 	 	 * for each page, so initialize the device by sending the header now.
@@ -397,28 +401,29 @@ pswritepage(Document *d, int fd, int page)
 	else
 		begin = ps->page[page].offset;
 
-	end = ps->page[page+1].offset;
+	end = ps->page[page + 1].offset;
 
 	if(chatty) {
 		fprint(2, "writepage(%d)... from #%ld to #%ld...\n",
-			page, begin, end);
+		       page, begin, end);
 	}
 	Bseek(b, begin, 0);
 
-	t = end-begin;
+	t = end - begin;
 	n = sizeof(buf);
-	if(n > t) n = t;
-	while(t > 0 && (i=Bread(b, buf, n)) > 0) {
+	if(n > t)
+		n = t;
+	while(t > 0 && (i = Bread(b, buf, n)) > 0) {
 		if(write(fd, buf, i) != i)
 			return -1;
 		t -= i;
 		if(n > t)
 			n = t;
 	}
-	return end-begin;
+	return end - begin;
 }
 
-static Image*
+static Image *
 psdrawpage(Document *d, int page)
 {
 	PSInfo *ps = d->extra;
@@ -451,9 +456,9 @@ psdrawpage(Document *d, int page)
 	return im;
 }
 
-static char*
+static char *
 pspagename(Document *d, int page)
 {
-	PSInfo *ps = (PSInfo *) d->extra;
+	PSInfo *ps = (PSInfo *)d->extra;
 	return ps->page[page].name;
 }

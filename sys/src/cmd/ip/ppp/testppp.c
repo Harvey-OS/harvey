@@ -11,14 +11,14 @@
 #include <libc.h>
 #include <ctype.h>
 
-int	debug;
-int32_t	errrate;
-int32_t	droprate;
-int	framing;
-int	nocompress;
-int	noipcompress;
-char	*ppp = "8.out";
-char	*mtu;
+int debug;
+int32_t errrate;
+int32_t droprate;
+int framing;
+int nocompress;
+int noipcompress;
+char *ppp = "8.out";
+char *mtu;
 
 void
 pppopen(int fd, char *net, char *local, char *remote)
@@ -26,7 +26,7 @@ pppopen(int fd, char *net, char *local, char *remote)
 	char *argv[16];
 	int argc;
 
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "testppp: can't fork: %r\n");
 		exits(0);
@@ -49,13 +49,13 @@ pppopen(int fd, char *net, char *local, char *remote)
 		argv[argc++] = "-c";
 	if(noipcompress)
 		argv[argc++] = "-C";
-	if(mtu){
+	if(mtu) {
 		argv[argc++] = "-m";
 		argv[argc++] = mtu;
 	}
 	argv[argc++] = "-x";
 	argv[argc++] = net;
-	if(local){
+	if(local) {
 		argv[argc++] = local;
 		if(remote)
 			argv[argc++] = remote;
@@ -69,17 +69,17 @@ printbuf(uint8_t *p, int n)
 {
 	int i;
 	uint8_t *e;
-	char buf[32*5];
+	char buf[32 * 5];
 
 	if(n > 32)
 		n = 32;
-	
+
 	i = 0;
-	for(e = p + n; p < e; p++){
+	for(e = p + n; p < e; p++) {
 		if(isprint(*p))
-			i += sprint(buf+i, "%c ", *p);
+			i += sprint(buf + i, "%c ", *p);
 		else
-			i += sprint(buf+i, "%2.2ux ", *p);
+			i += sprint(buf + i, "%2.2ux ", *p);
 	}
 	fprint(2, "%s\n", buf);
 }
@@ -94,41 +94,41 @@ xfer(int from, int to)
 		return;
 
 	total = ok = errs = dropped = 0;
-	for(;;){
+	for(;;) {
 		n = read(from, buf, sizeof(buf));
-		if(n <= 0){
+		if(n <= 0) {
 			fprint(2, "%d -> %d EOF\n", from, to);
 			exits(0);
 		}
 		modified = 0;
-		if(errrate){
-			for(i = 0; i < n; i++){
-				if(lnrand(errrate) == 0){
+		if(errrate) {
+			for(i = 0; i < n; i++) {
+				if(lnrand(errrate) == 0) {
 					buf[i] ^= 0xff;
 					modified = 1;
 				}
 			}
 		}
-		if(droprate && lnrand(droprate) == 0){
+		if(droprate && lnrand(droprate) == 0) {
 			fprint(2, "!!!!!!!!!!!!!!%d -> %d dropped %d (%d/%d)\n", from, to, ok, dropped, total);
 			ok = 0;
 			dropped++;
 			total++;
 			continue;
 		}
-		if(modified){
+		if(modified) {
 			fprint(2, "!!!!!!!!!!!!!!%d -> %d %d (%d/%d)\n", from, to, ok, errs, total);
 			ok = 0;
 			errs++;
 		} else
 			ok++;
 		total++;
-		if(debug > 1){
+		if(debug > 1) {
 			fprint(2, "%d -> %d (%d)", from, to, n);
 			printbuf(buf, n);
 		}
 		n = write(to, buf, n);
-		if(n < 0){
+		if(n < 0) {
 			fprint(2, "%d -> %d write err\n", from, to);
 			exits(0);
 		}
@@ -151,7 +151,8 @@ main(int argc, char **argv)
 
 	errrate = 0;
 	droprate = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		nocompress = 1;
 		break;
@@ -185,7 +186,8 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		usage();
 
@@ -204,4 +206,3 @@ main(int argc, char **argv)
 	xfer(pfd2[1], pfd1[1]);
 	exits(0);
 }
-

@@ -7,13 +7,12 @@
  * in the LICENSE file.
  */
 
-enum
-{
-	Fmono		= 1,
-	Fin		= 2,
-	Fout		= 4,
+enum {
+	Fmono = 1,
+	Fin = 2,
+	Fout = 4,
 
-	Vaudio		= 0,
+	Vaudio = 0,
 	Vsynth,
 	Vcd,
 	Vline,
@@ -26,9 +25,9 @@ enum
 	Nvol,
 };
 
-void	audiodevopen(void);
-void	audiodevclose(void);
-int	audiodevread(void*, int);
-int	audiodevwrite(void*, int);
-void	audiodevgetvol(int, int*, int*);
-void	audiodevsetvol(int, int, int);
+void audiodevopen(void);
+void audiodevclose(void);
+int audiodevread(void *, int);
+int audiodevwrite(void *, int);
+void audiodevgetvol(int, int *, int *);
+void audiodevsetvol(int, int, int);

@@ -40,13 +40,13 @@ uint32_t outn;
 int verbose;
 int mindist;
 
-enum { Prime = 16777213 };	/* smallest prime < 2^24 (so p*256+256 < 2^32) */
+enum { Prime = 16777213 }; /* smallest prime < 2^24 (so p*256+256 < 2^32) */
 enum { NOFF = 3 };
 
 Biobuf bout;
 uint32_t length;
 uchar *data;
-uint32_t sum32(uint32_t, void*, long);
+uint32_t sum32(uint32_t, void *, long);
 uchar *odat;
 int nodat;
 int nraw;
@@ -72,22 +72,22 @@ uint nhash;
 
 uint maxlen;
 uint maxsame;
-uint replacesame = 8*1024*1024;
+uint replacesame = 8 * 1024 * 1024;
 
 Node *freelist, **freeend;
 uint nalloc;
 
-Node*
+Node *
 allocnode(void)
 {
 	int i;
 	Node *n;
 
-	if(nnodepool == 0){
-		nnodepool = 256*1024;
-		nodepool = malloc(sizeof(Node)*nnodepool);
+	if(nnodepool == 0) {
+		nnodepool = 256 * 1024;
+		nodepool = malloc(sizeof(Node) * nnodepool);
 	}
-	if(freelist){
+	if(freelist) {
 		n = freelist;
 		freelist = n->link;
 		return n;
@@ -95,7 +95,7 @@ allocnode(void)
 	assert(nnodepool > 0);
 	nalloc++;
 	n = &nodepool[--nnodepool];
-	for(i=0; i<NOFF; i++)
+	for(i = 0; i < NOFF; i++)
 		n->offset[i] = -1;
 
 	return n;
@@ -112,26 +112,26 @@ freenode(Node *n)
 	n->link = nil;
 }
 
-Node**
+Node **
 llookup(uint32_t key)
 {
 	uint c;
 	Node **l, **top, *n;
-	
-	if(nhash == 0){
+
+	if(nhash == 0) {
 		uint x;
 
-		x = length/8;
-		for(nhash=1; nhash<x; nhash<<=1)
+		x = length / 8;
+		for(nhash = 1; nhash < x; nhash <<= 1)
 			;
-		hash = sbrk(sizeof(Node*)*nhash);
+		hash = sbrk(sizeof(Node *) * nhash);
 	}
 
-	top = &hash[key&(nhash-1)];
+	top = &hash[key & (nhash - 1)];
 	c = 0;
-	for(l=top; *l; l=&(*l)->link){
+	for(l = top; *l; l = &(*l)->link) {
 		c++;
-		if((*l)->key == key){
+		if((*l)->key == key) {
 			/* move to front */
 			n = *l;
 			*l = n->link;
@@ -145,7 +145,7 @@ llookup(uint32_t key)
 	return l;
 }
 
-Node*
+Node *
 lookup(uint32_t key)
 {
 	return *llookup(key);
@@ -158,8 +158,8 @@ insertnode(uint32_t key, uint32_t offset)
 	Node *n, **l;
 
 	l = llookup(key);
-	if(*l == nil){
-		if(l==&hash[key&(nhash-1)])
+	if(*l == nil) {
+		if(l == &hash[key & (nhash - 1)])
 			nnew++;
 		*l = allocnode();
 		(*l)->key = key;
@@ -167,7 +167,7 @@ insertnode(uint32_t key, uint32_t offset)
 	n = *l;
 
 	/* add or replace last */
-	for(i=0; i<NOFF-1 && n->offset[i]!=-1; i++)
+	for(i = 0; i < NOFF - 1 && n->offset[i] != -1; i++)
 		;
 	n->offset[i] = offset;
 }
@@ -177,9 +177,9 @@ Bputint(Biobufhdr *b, int n)
 {
 	uchar p[4];
 
-	p[0] = n>>24;
-	p[1] = n>>16;
-	p[2] = n>>8;
+	p[0] = n >> 24;
+	p[1] = n >> 16;
+	p[2] = n >> 8;
 	p[3] = n;
 	Bwrite(b, p, 4);
 }
@@ -187,12 +187,12 @@ Bputint(Biobufhdr *b, int n)
 void
 flushraw(void)
 {
-	if(nraw){
+	if(nraw) {
 		if(verbose)
 			fprint(2, "Raw %d+%d\n", rawstart, nraw);
-		zlength += 4+nraw;
-		Bputint(&bout, (1<<31)|nraw);
-		memmove(odat+nodat, data+rawstart, nraw);
+		zlength += 4 + nraw;
+		Bputint(&bout, (1 << 31) | nraw);
+		memmove(odat + nodat, data + rawstart, nraw);
 		nodat += nraw;
 		nraw = 0;
 	}
@@ -220,7 +220,7 @@ refblock(int i, int len, int off)
 		fprint(2, "Copy %d+%d from %d\n", i, len, off);
 	Bputint(&bout, len);
 	Bputint(&bout, off);
-	zlength += 4+4;
+	zlength += 4 + 4;
 	return len;
 }
 
@@ -229,9 +229,9 @@ cmprun(uchar *a, uchar *b, int len)
 {
 	int i;
 
-	if(a==b)
+	if(a == b)
 		return 0;
-	for(i=0; i<len && a[i]==b[i]; i++)
+	for(i = 0; i < len && a[i] == b[i]; i++)
 		;
 	return i;
 }
@@ -257,53 +257,53 @@ compress(void)
 	Node *n;
 
 	sum = 0;
-	for(i=0; i<win && i<length; i++)
-		sum = (sum*256+data[i])%Prime;
-	for(i=0; i<length-win; ){
+	for(i = 0; i < win && i < length; i++)
+		sum = (sum * 256 + data[i]) % Prime;
+	for(i = 0; i < length - win;) {
 		maxrun = 0;
 		maxoff = 0;
 		if(verbose)
 			fprint(2, "look %.6lux\n", sum);
 		n = lookup(sum);
-		if(n){
+		if(n) {
 			best = -1;
-			for(o=0; o<NOFF; o++){
+			for(o = 0; o < NOFF; o++) {
 				if(n->offset[o] == -1)
 					break;
-				run = cmprun(data+i, data+n->offset[o], length-i);
-				if(run > maxrun && n->offset[o]+mindist < i){
+				run = cmprun(data + i, data + n->offset[o], length - i);
+				if(run > maxrun && n->offset[o] + mindist < i) {
 					maxrun = run;
 					maxoff = n->offset[o];
 					best = o;
 				}
 			}
-			if(best > 0){
+			if(best > 0) {
 				o = n->offset[best];
-				for(j=best; j>0; j--)
-					n->offset[j] = n->offset[j-1];
+				for(j = best; j > 0; j--)
+					n->offset[j] = n->offset[j - 1];
 				n->offset[0] = o;
 			}
 		}
-				
+
 		if(maxrun >= minrun)
-			j = i+refblock(i, maxrun, maxoff);
+			j = i + refblock(i, maxrun, maxoff);
 		else
-			j = i+rawbyte(i);
-		for(; i<j; i++){
+			j = i + rawbyte(i);
+		for(; i < j; i++) {
 			/* avoid huge chains from large runs of same byte */
-			rle = countrle(data+i);
-			if(rle<4)
+			rle = countrle(data + i);
+			if(rle < 4)
 				insertnode(sum, i);
-			else if(rle>maxrle[data[i]]){
+			else if(rle > maxrle[data[i]]) {
 				maxrle[data[i]] = rle;
 				insertnode(sum, i);
 			}
-			sum = (sum*256+data[i+win]) % Prime;
-			sum = (sum + data[i]*outn) % Prime;
+			sum = (sum * 256 + data[i + win]) % Prime;
+			sum = (sum + data[i] * outn) % Prime;
 		}
 	}
 	/* could do better here */
-	for(; i<length; i++)
+	for(; i < length; i++)
 		rawbyte(i);
 	flushraw();
 }
@@ -321,7 +321,8 @@ main(int argc, char **argv)
 	int fd, i, n;
 	char buf[10485760];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		verbose = 1;
 		break;
@@ -337,9 +338,10 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	switch(argc){
+	switch(argc) {
 	default:
 		usage();
 	case 0:
@@ -351,11 +353,11 @@ main(int argc, char **argv)
 		break;
 	}
 
-	while((n = readn(fd, buf, sizeof buf)) > 0){
-		data = realloc(data, length+n);
+	while((n = readn(fd, buf, sizeof buf)) > 0) {
+		data = realloc(data, length + n);
 		if(data == nil)
 			sysfatal("realloc: %r");
-		memmove(data+length, buf, n);
+		memmove(data + length, buf, n);
 		length += n;
 		if(n < sizeof buf)
 			break;
@@ -368,7 +370,7 @@ main(int argc, char **argv)
 	Bprint(&bout, "BLZ\n");
 	Bputint(&bout, length);
 	outn = 1;
-	for(i=0; i<win; i++)
+	for(i = 0; i < win; i++)
 		outn = (outn * 256) % Prime;
 
 	if(verbose)
@@ -382,5 +384,5 @@ main(int argc, char **argv)
 	Bterm(&bout);
 	fprint(2, "brk %p\n", sbrk(1));
 	fprint(2, "%d nodes used; %d of %d hash slots used\n", nalloc, nnew, nhash);
-	exits(nil);	
+	exits(nil);
 }

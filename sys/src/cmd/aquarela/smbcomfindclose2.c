@@ -13,7 +13,7 @@ SmbProcessResult
 smbcomfindclose2(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *)
 {
 	uint16_t sid;
-	if (!smbcheckwordcount("comfindclose2", h, 1))
+	if(!smbcheckwordcount("comfindclose2", h, 1))
 		return SmbProcessResultFormat;
 	sid = smbnhgets(pdata);
 	smbsearchclosebyid(s, sid);

@@ -34,13 +34,15 @@ main(int argc, char **argv)
 	char tmp[20];
 
 	t = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 't':
 		t = strtoul(EARGF(usage()), 0, 0);
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 2)
 		usage();
@@ -52,10 +54,10 @@ main(int argc, char **argv)
 		sysfatal("Brdwtxt: %r");
 
 	sprint(tmp, "D%lud\n", time(0));
-	if((h = pagetext(s_copy(tmp), (doc->doc+doc->ndoc-1)->wtxt, 1))==nil)
+	if((h = pagetext(s_copy(tmp), (doc->doc + doc->ndoc - 1)->wtxt, 1)) == nil)
 		sysfatal("wiki2text: %r");
 
-	if(writepage(atoi(argv[1]), t, h, doc->title) <0)
+	if(writepage(atoi(argv[1]), t, h, doc->title) < 0)
 		sysfatal("writepage: %r");
 	exits(0);
 }

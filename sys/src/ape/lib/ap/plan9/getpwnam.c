@@ -25,11 +25,11 @@ getpwnam(const char *name)
 	num = 0;
 	nam = (char *)name;
 	mem = 0;
-	if(_getpw(&num, &nam, &mem)){
+	if(_getpw(&num, &nam, &mem)) {
 		holdpw.pw_name = nam;
 		holdpw.pw_uid = num;
 		holdpw.pw_gid = num;
-		strncpy(dirbuf+5, nam, sizeof(dirbuf)-6);
+		strncpy(dirbuf + 5, nam, sizeof(dirbuf) - 6);
 		holdpw.pw_dir = dirbuf;
 		holdpw.pw_shell = rc;
 		return &holdpw;

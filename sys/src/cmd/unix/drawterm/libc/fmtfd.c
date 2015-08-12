@@ -35,7 +35,7 @@ fmtfdinit(Fmt *f, int fd, char *buf, int size)
 	f->to = buf;
 	f->stop = buf + size;
 	f->flush = __fmtFdFlush;
-	f->farg = (void*)(uintptr_t)fd;
+	f->farg = (void *)(uintptr_t)fd;
 	f->nfmt = 0;
 	return 0;
 }

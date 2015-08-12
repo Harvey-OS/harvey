@@ -13,11 +13,11 @@
 #include <mach.h>
 #include "arm.h"
 
-#define Percent(num, max)	((max)?((num)*100)/(max):0)
+#define Percent(num, max) ((max) ? ((num)*100) / (max) : 0)
 #define prof prof5i
 
-extern	Inst	itab[];
-Inst *tables[] = { itab, 0 };
+extern Inst itab[];
+Inst *tables[] = {itab, 0};
 
 void
 isum(void)
@@ -51,12 +51,12 @@ isum(void)
 				pct = Percent(i->count, total);
 				if(pct != 0)
 					Bprint(bioout, "%-8ud %3d%% %s\n",
-						i->count, Percent(i->count,
-						total), i->name);
+					       i->count, Percent(i->count,
+								 total),
+					       i->name);
 				else
 					Bprint(bioout, "%-8ud      %s\n",
-						i->count, i->name);
-
+					       i->count, i->name);
 
 				switch(i->type) {
 				default:
@@ -76,37 +76,36 @@ isum(void)
 					syscall += i->count;
 					break;
 				}
-		
 			}
 		}
 	}
 
-	Bprint(bioout, "\n%-8ud      Memory cycles\n", mems+total);	
+	Bprint(bioout, "\n%-8ud      Memory cycles\n", mems + total);
 	Bprint(bioout, "%-8ud %3d%% Instruction cycles\n",
-			total, Percent(total, mems+total));
+	       total, Percent(total, mems + total));
 	Bprint(bioout, "%-8ud %3d%% Data cycles\n\n",
-			mems, Percent(mems, mems+total));	
+	       mems, Percent(mems, mems + total));
 
 	Bprint(bioout, "%-8ud %3d%% Arithmetic\n",
-			arith, Percent(arith, total));
+	       arith, Percent(arith, total));
 
 	Bprint(bioout, "%-8ud %3d%% System calls\n",
-			syscall, Percent(syscall, total));
+	       syscall, Percent(syscall, total));
 
 	Bprint(bioout, "%-8ud %3d%% Branches\n",
-			branch, Percent(branch, total));
+	       branch, Percent(branch, total));
 
 	Bprint(bioout, "   %-8ud %3d%% Branches taken\n",
-			taken, Percent(taken, branch));
+	       taken, Percent(taken, branch));
 
 	Bprint(bioout, "   %-8ud %3d%% Delay slots\n",
-			useddelay, Percent(useddelay, branch));
+	       useddelay, Percent(useddelay, branch));
 
-	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n", 
-			branch-useddelay, Percent(branch-useddelay, branch));
+	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n",
+	       branch - useddelay, Percent(branch - useddelay, branch));
 
 	Bprint(bioout, "%-8ud %3d%% Program total delay slots\n",
-			nopcount, Percent(nopcount, total));
+	       nopcount, Percent(nopcount, total));
 }
 
 void
@@ -118,13 +117,13 @@ tlbsum(void)
 	Bprint(bioout, "\n\nTlb summary\n");
 
 	Bprint(bioout, "\n%-8d User entries\n", tlb.tlbsize);
-	Bprint(bioout, "%-8d Accesses\n", tlb.hit+tlb.miss);
+	Bprint(bioout, "%-8d Accesses\n", tlb.hit + tlb.miss);
 	Bprint(bioout, "%-8d Tlb hits\n", tlb.hit);
 	Bprint(bioout, "%-8d Tlb misses\n", tlb.miss);
-	Bprint(bioout, "%7d%% Hit rate\n", Percent(tlb.hit, tlb.hit+tlb.miss));
+	Bprint(bioout, "%7d%% Hit rate\n", Percent(tlb.hit, tlb.hit + tlb.miss));
 }
 
-char *stype[] = { "Stack", "Text", "Data", "Bss" };
+char *stype[] = {"Stack", "Text", "Data", "Bss"};
 
 void
 segsum(void)
@@ -137,17 +136,16 @@ segsum(void)
 	for(i = 0; i < Nseg; i++) {
 		s = &memory.seg[i];
 		Bprint(bioout, "%-5s %.8lux %.8lux %-8d %-8d\n",
-				stype[i], s->base, s->end, s->rss*BY2PG, s->refs);
+		       stype[i], s->base, s->end, s->rss * BY2PG, s->refs);
 	}
 }
 
 typedef struct Prof Prof;
-struct Prof
-{
-	Symbol	s;
-	int32_t	count;
+struct Prof {
+	Symbol s;
+	int32_t count;
 };
-Prof	prof[5000];
+Prof prof[5000];
 
 int
 profcmp(const void *va, const void *vb)
@@ -173,11 +171,11 @@ iprofile(void)
 		return;
 	i++;
 	for(;;) {
-		n = p+1;
+		n = p + 1;
 		if(textsym(&n->s, i) == 0)
 			break;
-		b = (p->s.value-textbase)/PROFGRAN;
-		e = (n->s.value-textbase)/PROFGRAN;
+		b = (p->s.value - textbase) / PROFGRAN;
+		e = (n->s.value - textbase) / PROFGRAN;
 		while(b < e)
 			p->count += iprof[b++];
 		i++;
@@ -196,13 +194,13 @@ iprofile(void)
 			continue;
 
 		Bprint(bioout, "%8ld %3ld.%ld %-15s ",
-			prof[b].count,
-			100*prof[b].count/total,
-			(1000*prof[b].count/total)%10,
-			prof[b].s.name);
+		       prof[b].count,
+		       100 * prof[b].count / total,
+		       (1000 * prof[b].count / total) % 10,
+		       prof[b].s.name);
 
 		printsource(prof[b].s.value);
 		Bputc(bioout, '\n');
 	}
-	memset(prof, 0, sizeof(Prof)*i);
+	memset(prof, 0, sizeof(Prof) * i);
 }

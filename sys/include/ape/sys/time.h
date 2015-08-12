@@ -14,14 +14,14 @@
 #ifndef __TIMEVAL__
 #define __TIMEVAL__
 struct timeval {
-	int32_t	tv_sec;
-	int32_t	tv_usec;
+	int32_t tv_sec;
+	int32_t tv_usec;
 };
 
 #ifdef _BSD_EXTENSION
 struct timezone {
-	int	tz_minuteswest;
-	int	tz_dsttime;
+	int tz_minuteswest;
+	int tz_dsttime;
 };
 #endif
 #endif /* __TIMEVAL__ */

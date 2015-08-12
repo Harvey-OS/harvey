@@ -10,63 +10,63 @@
 /* remote login via ssh v1 */
 #include "ssh.h"
 
-int cooked = 0;		/* user wants cooked mode */
-int raw = 0;		/* console is in raw mode */
+int cooked = 0; /* user wants cooked mode */
+int raw = 0;    /* console is in raw mode */
 int crstrip;
 int interactive = -1;
 int usemenu = 1;
 int isatty(int);
 int rawhack;
 int forwardagent = 0;
-char *buildcmd(int, char**);
-void fromnet(Conn*);
-void fromstdin(Conn*);
-void winchanges(Conn*);
-static void	sendwritemsg(Conn *c, char *buf, int n);
+char *buildcmd(int, char **);
+void fromnet(Conn *);
+void fromstdin(Conn *);
+void winchanges(Conn *);
+static void sendwritemsg(Conn *c, char *buf, int n);
 
 /*
  * Lifted from telnet.c, con.c
  */
 static int consctl = -1;
-static int outfd = 1;			/* changed during system */
-static void system(Conn*, char*);
+static int outfd = 1; /* changed during system */
+static void system(Conn *, char *);
 
 Cipher *allcipher[] = {
-	&cipherrc4,
-	&cipherblowfish,
-	&cipher3des,
-	&cipherdes,
-	&ciphernone,
-	&ciphertwiddle,
+    &cipherrc4,
+    &cipherblowfish,
+    &cipher3des,
+    &cipherdes,
+    &ciphernone,
+    &ciphertwiddle,
 };
 
 Auth *allauth[] = {
-	&authpassword,
-	&authrsa,
-	&authtis,
+    &authpassword,
+    &authrsa,
+    &authtis,
 };
 
 char *cipherlist = "blowfish rc4 3des";
 char *authlist = "rsa password tis";
 
-Cipher*
+Cipher *
 findcipher(char *name, Cipher **list, int nlist)
 {
 	int i;
 
-	for(i=0; i<nlist; i++)
+	for(i = 0; i < nlist; i++)
 		if(strcmp(name, list[i]->name) == 0)
 			return list[i];
 	error("unknown cipher %s", name);
 	return nil;
 }
 
-Auth*
+Auth *
 findauth(char *name, Auth **list, int nlist)
 {
 	int i;
 
-	for(i=0; i<nlist; i++)
+	for(i = 0; i < nlist; i++)
 		if(strcmp(name, list[i]->name) == 0)
 			return list[i];
 	error("unknown auth %s", name);
@@ -99,18 +99,19 @@ main(int argc, char **argv)
 		dowinchange = 1;
 	usepty = -1;
 	user = nil;
-	ARGBEGIN{
-	case 'B':	/* undocumented, debugging */
+	ARGBEGIN
+	{
+	case 'B': /* undocumented, debugging */
 		doabort = 1;
 		break;
-	case 'D':	/* undocumented, debugging */
+	case 'D': /* undocumented, debugging */
 		debuglevel = strtol(EARGF(usage()), nil, 0);
 		break;
-	case 'l':	/* deprecated */
+	case 'l': /* deprecated */
 	case 'u':
 		user = EARGF(usage());
 		break;
-	case 'a':	/* used by Unix scp implementations; we must ignore them. */
+	case 'a': /* used by Unix scp implementations; we must ignore them. */
 	case 'x':
 		break;
 
@@ -149,7 +150,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -158,9 +160,9 @@ main(int argc, char **argv)
 
 	cmd = nil;
 	if(argc > 1)
-		cmd = buildcmd(argc-1, argv+1);
+		cmd = buildcmd(argc - 1, argv + 1);
 
-	if((p = strchr(host, '@')) != nil){
+	if((p = strchr(host, '@')) != nil) {
 		*p++ = '\0';
 		user = host;
 		host = p;
@@ -171,7 +173,7 @@ main(int argc, char **argv)
 		sysfatal("cannot find user name");
 
 	privatefactotum();
-	if(interactive==-1)
+	if(interactive == -1)
 		interactive = isatty(0);
 
 	if((fd = dial(netmkaddr(host, "tcp", "ssh"), nil, nil, nil)) < 0)
@@ -185,34 +187,34 @@ main(int argc, char **argv)
 	setaliases(&c, host);
 
 	c.nokcipher = getfields(cipherlist, f, nelem(f), 1, ", ");
-	c.okcipher = emalloc(sizeof(Cipher*)*c.nokcipher);
-	for(i=0; i<c.nokcipher; i++)
+	c.okcipher = emalloc(sizeof(Cipher *) * c.nokcipher);
+	for(i = 0; i < c.nokcipher; i++)
 		c.okcipher[i] = findcipher(f[i], allcipher, nelem(allcipher));
 
 	c.nokauth = getfields(authlist, f, nelem(f), 1, ", ");
-	c.okauth = emalloc(sizeof(Auth*)*c.nokauth);
-	for(i=0; i<c.nokauth; i++)
+	c.okauth = emalloc(sizeof(Auth *) * c.nokauth);
+	for(i = 0; i < c.nokauth; i++)
 		c.okauth[i] = findauth(f[i], allauth, nelem(allauth));
 
 	sshclienthandshake(&c);
 
-	if(forwardagent){
+	if(forwardagent) {
 		if(startagent(&c) < 0)
 			forwardagent = 0;
 	}
 	if(usepty == -1)
-		usepty = cmd==nil;
+		usepty = cmd == nil;
 	if(usepty)
 		requestpty(&c);
-	if(cmd){
-		m = allocmsg(&c, SSH_CMSG_EXEC_CMD, 4+strlen(cmd));
+	if(cmd) {
+		m = allocmsg(&c, SSH_CMSG_EXEC_CMD, 4 + strlen(cmd));
 		putstring(m, cmd);
-	}else
+	} else
 		m = allocmsg(&c, SSH_CMSG_EXEC_SHELL, 0);
 	sendmsg(m);
 
 	fromstdin(&c);
-	rfork(RFNOTEG);	/* only fromstdin gets notes */
+	rfork(RFNOTEG); /* only fromstdin gets notes */
 	if(dowinchange)
 		winchanges(&c);
 	fromnet(&c);
@@ -226,23 +228,23 @@ isatty(int fd)
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
-	if(strlen(buf)>=9 && strcmp(buf+strlen(buf)-9, "/dev/cons")==0)
+	if(strlen(buf) >= 9 && strcmp(buf + strlen(buf) - 9, "/dev/cons") == 0)
 		return 1;
 	return 0;
 }
 
-char*
+char *
 buildcmd(int argc, char **argv)
 {
 	int i, len;
 	char *s, *t;
 
-	len = argc-1;
-	for(i=0; i<argc; i++)
+	len = argc - 1;
+	for(i = 0; i < argc; i++)
 		len += strlen(argv[i]);
-	s = emalloc(len+1);
+	s = emalloc(len + 1);
 	t = s;
-	for(i=0; i<argc; i++){
+	for(i = 0; i < argc; i++) {
 		if(i)
 			*t++ = ' ';
 		strcpy(t, argv[i]);
@@ -250,7 +252,6 @@ buildcmd(int argc, char **argv)
 	}
 	return s;
 }
-
 
 void
 fromnet(Conn *c)
@@ -261,17 +262,17 @@ fromnet(Conn *c)
 	char buf[64];
 	Msg *m;
 
-	for(;;){
+	for(;;) {
 		m = recvmsg(c, -1);
 		if(m == nil)
 			break;
-		switch(m->type){
+		switch(m->type) {
 		default:
 			badmsg(m, 0);
 
 		case SSH_SMSG_EXITSTATUS:
 			ex = getlong(m);
-			if(ex==0)
+			if(ex == 0)
 				exits(0);
 			sprint(buf, "%lud", ex);
 			exits(buf);
@@ -314,20 +315,20 @@ fromnet(Conn *c)
 			goto Dataout;
 		Dataout:
 			len = getlong(m);
-			s = (char*)getbytes(m, len);
-			if(crstrip){
-				es = s+len;
-				for(r=w=s; r<es; r++)
+			s = (char *)getbytes(m, len);
+			if(crstrip) {
+				es = s + len;
+				for(r = w = s; r < es; r++)
 					if(*r != '\r')
 						*w++ = *r;
-				len = w-s;
+				len = w - s;
 			}
 			write(fd, s, len);
 			break;
 		}
 		free(m);
 	}
-}		
+}
 
 /*
  *  turn keyboard raw mode on
@@ -368,7 +369,7 @@ rawoff(void)
 /*
  *  control menu
  */
-#define STDHELP	"\t(q)uit, (i)nterrupt, toggle printing (r)eturns, (.)continue, (!cmd)\n"
+#define STDHELP "\t(q)uit, (i)nterrupt, toggle printing (r)eturns, (.)continue, (!cmd)\n"
 
 static int
 menu(Conn *c)
@@ -384,15 +385,15 @@ menu(Conn *c)
 
 	buf[0] = '?';
 	fprint(2, ">>> ");
-	for(done = 0; !done; ){
-		n = read(0, buf, sizeof(buf)-1);
+	for(done = 0; !done;) {
+		n = read(0, buf, sizeof(buf) - 1);
 		if(n <= 0)
 			return -1;
 		buf[n] = 0;
-		switch(buf[0]){
+		switch(buf[0]) {
 		case '!':
 			print(buf);
-			system(c, buf+1);
+			system(c, buf + 1);
 			print("!\n");
 			done = 1;
 			break;
@@ -406,7 +407,7 @@ menu(Conn *c)
 			done = 1;
 			break;
 		case 'r':
-			crstrip = 1-crstrip;
+			crstrip = 1 - crstrip;
 			done = 1;
 			break;
 		default:
@@ -429,10 +430,10 @@ sendwritemsg(Conn *c, char *buf, int n)
 {
 	Msg *m;
 
-	if(n==0)
+	if(n == 0)
 		m = allocmsg(c, SSH_CMSG_EOF, 0);
-	else{
-		m = allocmsg(c, SSH_CMSG_STDIN_DATA, 4+n);
+	else {
+		m = allocmsg(c, SSH_CMSG_STDIN_DATA, 4 + n);
 		putlong(m, n);
 		putbytes(m, buf, n);
 	}
@@ -452,7 +453,7 @@ system(Conn *c, char *cmd)
 	int wasconsctl;
 	char buf[4096];
 
-	if(pipe(pfd) < 0){
+	if(pipe(pfd) < 0) {
 		perror("pipe");
 		return;
 	}
@@ -461,7 +462,7 @@ system(Conn *c, char *cmd)
 	wasconsctl = consctl;
 	close(consctl);
 	consctl = -1;
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		perror("con");
 		return;
@@ -469,7 +470,7 @@ system(Conn *c, char *cmd)
 		close(pfd[1]);
 		dup(pfd[0], 0);
 		dup(pfd[0], 1);
-		close(c->fd[0]);	/* same as c->fd[1] */
+		close(c->fd[0]); /* same as c->fd[1] */
 		close(pfd[0]);
 		if(*cmd)
 			execl("/bin/rc", "rc", "-c", cmd, nil);
@@ -489,7 +490,7 @@ system(Conn *c, char *cmd)
 			return;
 		break;
 	}
-	if(wasconsctl >= 0){
+	if(wasconsctl >= 0) {
 		consctl = open("/dev/consctl", OWRITE);
 		if(consctl < 0)
 			error("cannot open consctl");
@@ -497,7 +498,7 @@ system(Conn *c, char *cmd)
 }
 
 static void
-cookedcatchint(void*, char *msg)
+cookedcatchint(void *, char *msg)
 {
 	if(strstr(msg, "interrupt"))
 		noted(NCONT);
@@ -524,7 +525,7 @@ fromstdin(Conn *c)
 	int pid;
 	int eofs;
 
-	switch(pid = rfork(RFMEM|RFPROC|RFNOWAIT)){
+	switch(pid = rfork(RFMEM | RFPROC | RFNOWAIT)) {
 	case -1:
 		error("fork: %r");
 	case 0:
@@ -541,38 +542,38 @@ fromstdin(Conn *c)
 	notify(cookedcatchint);
 
 	eofs = 0;
-	for(;;){
+	for(;;) {
 		n = read(0, buf, sizeof(buf));
-		if(n < 0){
-			if(wasintr()){
-				if(!raw){
+		if(n < 0) {
+			if(wasintr()) {
+				if(!raw) {
 					buf[0] = 0x7f;
 					n = 1;
-				}else
+				} else
 					continue;
-			}else
+			} else
 				break;
 		}
-		if(n == 0){
+		if(n == 0) {
 			if(!c->interactive || ++eofs > 32)
 				break;
-		}else
+		} else
 			eofs = 0;
 		if(interactive && usemenu && n && memchr(buf, 0x1c, n)) {
-			if(menu(c)=='q'){
+			if(menu(c) == 'q') {
 				sendwritemsg(c, "", 0);
 				exits("quit");
 			}
 			continue;
 		}
-		if(!raw && n==0){
+		if(!raw && n == 0) {
 			buf[0] = 0x4;
 			n = 1;
 		}
 		sendwritemsg(c, buf, n);
 	}
 	sendwritemsg(c, "", 0);
-	if(n >= 0)				/* weren't hung up upon? */
+	if(n >= 0) /* weren't hung up upon? */
 		atexitdont(atexitkiller);
 	exits(nil);
 }
@@ -583,7 +584,7 @@ winchanges(Conn *c)
 	int nrow, ncol, width, height;
 	int pid;
 
-	switch(pid = rfork(RFMEM|RFPROC|RFNOWAIT)){
+	switch(pid = rfork(RFMEM | RFPROC | RFNOWAIT)) {
 	case -1:
 		error("fork: %r");
 	case 0:
@@ -593,7 +594,7 @@ winchanges(Conn *c)
 		return;
 	}
 
-	for(;;){
+	for(;;) {
 		if(readgeom(&nrow, &ncol, &width, &height) < 0)
 			break;
 		sendwindowsize(c, nrow, ncol, width, height);

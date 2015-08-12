@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 /*
  * fake malloc
  */
-void*
+void *
 malloc(uint32_t n)
 {
 	void *p;
@@ -33,7 +33,7 @@ free(void *p)
 	USED(p);
 }
 
-void*
+void *
 calloc(uint32_t m, uint32_t n)
 {
 	void *p;
@@ -44,7 +44,7 @@ calloc(uint32_t m, uint32_t n)
 	return p;
 }
 
-void*
+void *
 realloc(void *p, uint32_t n)
 {
 	fprint(2, "realloc(0x%p %ld) called\n", p, n);
@@ -52,7 +52,7 @@ realloc(void *p, uint32_t n)
 	return 0;
 }
 
-void*
+void *
 mysbrk(uint32_t size)
 {
 	return sbrk(size);

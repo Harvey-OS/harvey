@@ -27,10 +27,10 @@
 /* Definitions for Ghostscript operand stack */
 
 #ifndef ostack_INCLUDED
-#  define ostack_INCLUDED
+#define ostack_INCLUDED
 
 #include "iostack.h"
-#include "icstate.h"		/* for access to op_stack */
+#include "icstate.h" /* for access to op_stack */
 
 /* Define the operand stack pointers for operators. */
 #define iop_stack (i_ctx_p->op_stack)
@@ -41,19 +41,23 @@
 #define ostop (o_stack.top)
 
 /* Macro to ensure enough room on the operand stack */
-#define check_ostack(n)\
-  if ( ostop - osp < (n) )\
-    { o_stack.requested = (n); return_error(e_stackoverflow); }
+#define check_ostack(n)                        \
+	if(ostop - osp < (n)) {                \
+		o_stack.requested = (n);       \
+		return_error(e_stackoverflow); \
+	}
 
 /* Operand stack manipulation. */
 
 /* Note that push sets osp to (the new value of) op. */
-#define push(n)\
-  BEGIN\
-    if ( (op += (n)) > ostop )\
-      { o_stack.requested = (n); return_error(e_stackoverflow); }\
-    else osp = op;\
-  END
+#define push(n)                                \
+	BEGIN                                  \
+	if((op += (n)) > ostop) {              \
+		o_stack.requested = (n);       \
+		return_error(e_stackoverflow); \
+	} else                                 \
+		osp = op;                      \
+	END
 
 /*
  * Note that the pop macro only decrements osp, not op.  For this reason,
@@ -77,8 +81,9 @@
  * is really a stackunderflow when the stack has fewer than the
  * operator's declared minimum number of entries.)
  */
-#define check_op(nargs)\
-  if ( op < osbot + ((nargs) - 1) ) return_error(e_stackunderflow)
+#define check_op(nargs)              \
+	if(op < osbot + ((nargs)-1)) \
+	return_error(e_stackunderflow)
 /*
  * Similarly, in order to simplify some overflow checks, we allocate
  * a few guard entries just above the top of the o-stack.

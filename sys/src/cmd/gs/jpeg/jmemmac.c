@@ -61,24 +61,23 @@
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
-#include "jmemsys.h"    /* import the system-dependent declarations */
+#include "jmemsys.h" /* import the system-dependent declarations */
 
-#ifndef USE_MAC_MEMMGR	/* make sure user got configuration right */
-  You forgot to define USE_MAC_MEMMGR in jconfig.h. /* deliberate syntax error */
+#ifndef USE_MAC_MEMMGR				 /* make sure user got configuration right */
+You forgot to define USE_MAC_MEMMGR in jconfig.h./* deliberate syntax error */
 #endif
 
-#include <Memory.h>     /* we use the MacOS memory manager */
-#include <Files.h>      /* we use the MacOS File stuff */
-#include <Folders.h>    /* we use the MacOS HFS stuff */
-#include <Script.h>     /* for smSystemScript */
-#include <Gestalt.h>    /* we use Gestalt to test for specific functionality */
+#include <Memory.h>  /* we use the MacOS memory manager */
+#include <Files.h>   /* we use the MacOS File stuff */
+#include <Folders.h> /* we use the MacOS HFS stuff */
+#include <Script.h>  /* for smSystemScript */
+#include <Gestalt.h> /* we use Gestalt to test for specific functionality */
 
-#ifndef TEMP_FILE_NAME		/* can override from jconfig.h or Makefile */
-#define TEMP_FILE_NAME  "JPG%03d.TMP"
+#ifndef TEMP_FILE_NAME /* can override from jconfig.h or Makefile */
+#define TEMP_FILE_NAME "JPG%03d.TMP"
 #endif
 
-static int next_file_num;	/* to distinguish among several temp files */
-
+    static int next_file_num; /* to distinguish among several temp files */
 
 /*
  * Memory allocation and freeing are controlled by the MacOS library
@@ -88,17 +87,16 @@ static int next_file_num;	/* to distinguish among several temp files */
  */
 
 GLOBAL(void *)
-jpeg_get_small (j_common_ptr cinfo, size_t sizeofobject)
+jpeg_get_small(j_common_ptr cinfo, size_t sizeofobject)
 {
-  return (void *) NewPtr(sizeofobject);
+	return (void *)NewPtr(sizeofobject);
 }
 
 GLOBAL(void)
-jpeg_free_small (j_common_ptr cinfo, void * object, size_t sizeofobject)
+jpeg_free_small(j_common_ptr cinfo, void *object, size_t sizeofobject)
 {
-  DisposePtr((Ptr) object);
+	DisposePtr((Ptr)object);
 }
-
 
 /*
  * "Large" objects are treated the same as "small" ones.
@@ -108,48 +106,46 @@ jpeg_free_small (j_common_ptr cinfo, void * object, size_t sizeofobject)
  */
 
 GLOBAL(void FAR *)
-jpeg_get_large (j_common_ptr cinfo, size_t sizeofobject)
+jpeg_get_large(j_common_ptr cinfo, size_t sizeofobject)
 {
-  return (void FAR *) NewPtr(sizeofobject);
+	return (void FAR *)NewPtr(sizeofobject);
 }
 
 GLOBAL(void)
-jpeg_free_large (j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
+jpeg_free_large(j_common_ptr cinfo, void FAR *object, size_t sizeofobject)
 {
-  DisposePtr((Ptr) object);
+	DisposePtr((Ptr)object);
 }
-
 
 /*
  * This routine computes the total memory space available for allocation.
  */
 
 GLOBAL(int32_t)
-jpeg_mem_available (j_common_ptr cinfo, long min_bytes_needed,
-		    long max_bytes_needed, long already_allocated)
+jpeg_mem_available(j_common_ptr cinfo, long min_bytes_needed,
+		   long max_bytes_needed, long already_allocated)
 {
-  long limit = cinfo->mem->max_memory_to_use - already_allocated;
-  long slop, mem;
+	long limit = cinfo->mem->max_memory_to_use - already_allocated;
+	long slop, mem;
 
-  /* Don't ask for more than what application has told us we may use */
-  if (max_bytes_needed > limit && limit > 0)
-    max_bytes_needed = limit;
-  /* Find whether there's a big enough free block in the heap.
+	/* Don't ask for more than what application has told us we may use */
+	if(max_bytes_needed > limit && limit > 0)
+		max_bytes_needed = limit;
+	/* Find whether there's a big enough free block in the heap.
    * CompactMem tries to create a contiguous block of the requested size,
    * and then returns the size of the largest free block (which could be
    * much more or much less than we asked for).
    * We add some slop to ensure we don't use up all available memory.
    */
-  slop = max_bytes_needed / 16 + 32768L;
-  mem = CompactMem(max_bytes_needed + slop) - slop;
-  if (mem < 0)
-    mem = 0;			/* sigh, couldn't even get the slop */
-  /* Don't take more than the application says we can have */
-  if (mem > limit && limit > 0)
-    mem = limit;
-  return mem;
+	slop = max_bytes_needed / 16 + 32768L;
+	mem = CompactMem(max_bytes_needed + slop) - slop;
+	if(mem < 0)
+		mem = 0; /* sigh, couldn't even get the slop */
+	/* Don't take more than the application says we can have */
+	if(mem > limit && limit > 0)
+		mem = limit;
+	return mem;
 }
-
 
 /*
  * Backing store (temporary file) management.
@@ -158,50 +154,46 @@ jpeg_mem_available (j_common_ptr cinfo, long min_bytes_needed,
  * with these routines if you have plenty of virtual memory; see jmemnobs.c.
  */
 
+METHODDEF(void)
+read_backing_store(j_common_ptr cinfo, backing_store_ptr info,
+		   void FAR *buffer_address,
+		   long file_offset, long byte_count)
+{
+	long bytes = byte_count;
+	long retVal;
+
+	if(SetFPos(info->temp_file, fsFromStart, file_offset) != noErr)
+		ERREXIT(cinfo, JERR_TFILE_SEEK);
+
+	retVal = FSRead(info->temp_file, &bytes,
+			(unsigned char *)buffer_address);
+	if(retVal != noErr || bytes != byte_count)
+		ERREXIT(cinfo, JERR_TFILE_READ);
+}
 
 METHODDEF(void)
-read_backing_store (j_common_ptr cinfo, backing_store_ptr info,
-		    void FAR * buffer_address,
+write_backing_store(j_common_ptr cinfo, backing_store_ptr info,
+		    void FAR *buffer_address,
 		    long file_offset, long byte_count)
 {
-  long bytes = byte_count;
-  long retVal;
+	long bytes = byte_count;
+	long retVal;
 
-  if ( SetFPos ( info->temp_file, fsFromStart, file_offset ) != noErr )
-    ERREXIT(cinfo, JERR_TFILE_SEEK);
+	if(SetFPos(info->temp_file, fsFromStart, file_offset) != noErr)
+		ERREXIT(cinfo, JERR_TFILE_SEEK);
 
-  retVal = FSRead ( info->temp_file, &bytes,
-		    (unsigned char *) buffer_address );
-  if ( retVal != noErr || bytes != byte_count )
-    ERREXIT(cinfo, JERR_TFILE_READ);
+	retVal = FSWrite(info->temp_file, &bytes,
+			 (unsigned char *)buffer_address);
+	if(retVal != noErr || bytes != byte_count)
+		ERREXIT(cinfo, JERR_TFILE_WRITE);
 }
-
 
 METHODDEF(void)
-write_backing_store (j_common_ptr cinfo, backing_store_ptr info,
-		     void FAR * buffer_address,
-		     long file_offset, long byte_count)
+close_backing_store(j_common_ptr cinfo, backing_store_ptr info)
 {
-  long bytes = byte_count;
-  long retVal;
-
-  if ( SetFPos ( info->temp_file, fsFromStart, file_offset ) != noErr )
-    ERREXIT(cinfo, JERR_TFILE_SEEK);
-
-  retVal = FSWrite ( info->temp_file, &bytes,
-		     (unsigned char *) buffer_address );
-  if ( retVal != noErr || bytes != byte_count )
-    ERREXIT(cinfo, JERR_TFILE_WRITE);
+	FSClose(info->temp_file);
+	FSpDelete(&(info->tempSpec));
 }
-
-
-METHODDEF(void)
-close_backing_store (j_common_ptr cinfo, backing_store_ptr info)
-{
-  FSClose ( info->temp_file );
-  FSpDelete ( &(info->tempSpec) );
-}
-
 
 /*
  * Initial opening of a backing-store object.
@@ -211,66 +203,63 @@ close_backing_store (j_common_ptr cinfo, backing_store_ptr info)
  */
 
 GLOBAL(void)
-jpeg_open_backing_store (j_common_ptr cinfo, backing_store_ptr info,
-			 long total_bytes_needed)
+jpeg_open_backing_store(j_common_ptr cinfo, backing_store_ptr info,
+			long total_bytes_needed)
 {
-  short         tmpRef, vRefNum;
-  long          dirID;
-  FInfo         finderInfo;
-  FSSpec        theSpec;
-  Str255        fName;
-  OSErr         osErr;
-  long          gestaltResponse = 0;
+	short tmpRef, vRefNum;
+	long dirID;
+	FInfo finderInfo;
+	FSSpec theSpec;
+	Str255 fName;
+	OSErr osErr;
+	long gestaltResponse = 0;
 
-  /* Check that FSSpec calls are available. */
-  osErr = Gestalt( gestaltFSAttr, &gestaltResponse );
-  if ( ( osErr != noErr )
-       || !( gestaltResponse & (1<<gestaltHasFSSpecCalls) ) )
-    ERREXITS(cinfo, JERR_TFILE_CREATE, "- System 7.0 or later required");
-  /* TO DO: add a proper error message to jerror.h. */
+	/* Check that FSSpec calls are available. */
+	osErr = Gestalt(gestaltFSAttr, &gestaltResponse);
+	if((osErr != noErr) || !(gestaltResponse & (1 << gestaltHasFSSpecCalls)))
+		ERREXITS(cinfo, JERR_TFILE_CREATE, "- System 7.0 or later required");
+	/* TO DO: add a proper error message to jerror.h. */
 
-  /* Check that FindFolder is available. */
-  osErr = Gestalt( gestaltFindFolderAttr, &gestaltResponse );
-  if ( ( osErr != noErr )
-       || !( gestaltResponse & (1<<gestaltFindFolderPresent) ) )
-    ERREXITS(cinfo, JERR_TFILE_CREATE, "- System 7.0 or later required.");
-  /* TO DO: add a proper error message to jerror.h. */
+	/* Check that FindFolder is available. */
+	osErr = Gestalt(gestaltFindFolderAttr, &gestaltResponse);
+	if((osErr != noErr) || !(gestaltResponse & (1 << gestaltFindFolderPresent)))
+		ERREXITS(cinfo, JERR_TFILE_CREATE, "- System 7.0 or later required.");
+	/* TO DO: add a proper error message to jerror.h. */
 
-  osErr = FindFolder ( kOnSystemDisk, kTemporaryFolderType, kCreateFolder,
-                       &vRefNum, &dirID );
-  if ( osErr != noErr )
-    ERREXITS(cinfo, JERR_TFILE_CREATE, "- temporary items folder unavailable");
-  /* TO DO: Try putting the temp files somewhere else. */
+	osErr = FindFolder(kOnSystemDisk, kTemporaryFolderType, kCreateFolder,
+			   &vRefNum, &dirID);
+	if(osErr != noErr)
+		ERREXITS(cinfo, JERR_TFILE_CREATE, "- temporary items folder unavailable");
+	/* TO DO: Try putting the temp files somewhere else. */
 
-  /* Keep generating file names till we find one that's not in use */
-  for (;;) {
-    next_file_num++;		/* advance counter */
+	/* Keep generating file names till we find one that's not in use */
+	for(;;) {
+		next_file_num++; /* advance counter */
 
-    sprintf(info->temp_name, TEMP_FILE_NAME, next_file_num);
-    strcpy ( (Ptr)fName+1, info->temp_name );
-    *fName = strlen (info->temp_name);
-    osErr = FSMakeFSSpec ( vRefNum, dirID, fName, &theSpec );
+		sprintf(info->temp_name, TEMP_FILE_NAME, next_file_num);
+		strcpy((Ptr)fName + 1, info->temp_name);
+		*fName = strlen(info->temp_name);
+		osErr = FSMakeFSSpec(vRefNum, dirID, fName, &theSpec);
 
-    if ( (osErr = FSpGetFInfo ( &theSpec, &finderInfo ) ) != noErr )
-      break;
-  }
+		if((osErr = FSpGetFInfo(&theSpec, &finderInfo)) != noErr)
+			break;
+	}
 
-  osErr = FSpCreate ( &theSpec, '????', '????', smSystemScript );
-  if ( osErr != noErr )
-    ERREXITS(cinfo, JERR_TFILE_CREATE, info->temp_name);
+	osErr = FSpCreate(&theSpec, '????', '????', smSystemScript);
+	if(osErr != noErr)
+		ERREXITS(cinfo, JERR_TFILE_CREATE, info->temp_name);
 
-  osErr = FSpOpenDF ( &theSpec, fsRdWrPerm, &(info->temp_file) );
-  if ( osErr != noErr )
-    ERREXITS(cinfo, JERR_TFILE_CREATE, info->temp_name);
+	osErr = FSpOpenDF(&theSpec, fsRdWrPerm, &(info->temp_file));
+	if(osErr != noErr)
+		ERREXITS(cinfo, JERR_TFILE_CREATE, info->temp_name);
 
-  info->tempSpec = theSpec;
+	info->tempSpec = theSpec;
 
-  info->read_backing_store = read_backing_store;
-  info->write_backing_store = write_backing_store;
-  info->close_backing_store = close_backing_store;
-  TRACEMSS(cinfo, 1, JTRC_TFILE_OPEN, info->temp_name);
+	info->read_backing_store = read_backing_store;
+	info->write_backing_store = write_backing_store;
+	info->close_backing_store = close_backing_store;
+	TRACEMSS(cinfo, 1, JTRC_TFILE_OPEN, info->temp_name);
 }
-
 
 /*
  * These routines take care of any system-dependent initialization and
@@ -278,21 +267,21 @@ jpeg_open_backing_store (j_common_ptr cinfo, backing_store_ptr info,
  */
 
 GLOBAL(int32_t)
-jpeg_mem_init (j_common_ptr cinfo)
+jpeg_mem_init(j_common_ptr cinfo)
 {
-  next_file_num = 0;
+	next_file_num = 0;
 
-  /* max_memory_to_use will be initialized to FreeMem()'s result;
+	/* max_memory_to_use will be initialized to FreeMem()'s result;
    * the calling application might later reduce it, for example
    * to leave room to invoke multiple JPEG objects.
    * Note that FreeMem returns the total number of free bytes;
    * it may not be possible to allocate a single block of this size.
    */
-  return FreeMem();
+	return FreeMem();
 }
 
 GLOBAL(void)
-jpeg_mem_term (j_common_ptr cinfo)
+jpeg_mem_term(j_common_ptr cinfo)
 {
-  /* no work */
+	/* no work */
 }

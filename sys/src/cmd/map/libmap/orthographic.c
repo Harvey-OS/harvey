@@ -11,25 +11,24 @@
 #include <libc.h>
 #include "map.h"
 
-
 int
 Xorthographic(struct place *place, double *x, double *y)
 {
-	*x = - place->nlat.c * place->wlon.s;
-	*y = - place->nlat.c * place->wlon.c;
-	return(place->nlat.l<0.? 0 : 1);
+	*x = -place->nlat.c * place->wlon.s;
+	*y = -place->nlat.c * place->wlon.c;
+	return (place->nlat.l < 0. ? 0 : 1);
 }
 
 proj
 orthographic(void)
 {
-	return(Xorthographic);
+	return (Xorthographic);
 }
 
 int
 olimb(double *lat, double *lon, double res)
 {
-	static first  = 1;
+	static first = 1;
 	if(first) {
 		*lat = 0;
 		*lon = -180;

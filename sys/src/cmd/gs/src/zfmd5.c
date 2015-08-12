@@ -37,17 +37,17 @@
 
 /* <source> MD5Encode/filter <file> */
 /* <source> <dict> MD5Encode/filter <file> */
-private int
+private
+int
 zMD5E(i_ctx_t *i_ctx_p)
 {
-    return filter_write_simple(i_ctx_p, &s_MD5E_template);
+	return filter_write_simple(i_ctx_p, &s_MD5E_template);
 }
 
 /* ------ Initialization procedure ------ */
 
 const op_def zfmd5_op_defs[] =
-{
-    op_def_begin_filter(),
-    {"1MD5Encode", zMD5E},
-    op_def_end(0)
-};
+    {
+     op_def_begin_filter(),
+     {"1MD5Encode", zMD5E},
+     op_def_end(0)};

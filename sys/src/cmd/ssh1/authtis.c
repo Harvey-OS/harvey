@@ -23,7 +23,7 @@ authtisfn(Conn *c)
 	sendmsg(allocmsg(c, SSH_CMSG_AUTH_TIS, 0));
 
 	m = recvmsg(c, -1);
-	switch(m->type){
+	switch(m->type) {
 	default:
 		badmsg(m, SSH_SMSG_AUTH_TIS_CHALLENGE);
 	case SSH_SMSG_FAILURE:
@@ -40,7 +40,7 @@ authtisfn(Conn *c)
 		error("can't open console");
 
 	fprint(fd, "TIS Authentication\n%s", chal);
-	n = read(fd, resp, sizeof resp-1);
+	n = read(fd, resp, sizeof resp - 1);
 	if(n < 0)
 		resp[0] = '\0';
 	else
@@ -49,12 +49,12 @@ authtisfn(Conn *c)
 	if(resp[0] == 0 || resp[0] == '\n')
 		return -1;
 
-	m = allocmsg(c, SSH_CMSG_AUTH_TIS_RESPONSE, 4+strlen(resp));
+	m = allocmsg(c, SSH_CMSG_AUTH_TIS_RESPONSE, 4 + strlen(resp));
 	putstring(m, resp);
 	sendmsg(m);
-	
+
 	m = recvmsg(c, -1);
-	switch(m->type){
+	switch(m->type) {
 	default:
 		badmsg(m, 0);
 	case SSH_SMSG_SUCCESS:
@@ -67,8 +67,8 @@ authtisfn(Conn *c)
 }
 
 Auth authtis =
-{
-	SSH_AUTH_TIS,
-	"tis",
-	authtisfn,
+    {
+     SSH_AUTH_TIS,
+     "tis",
+     authtisfn,
 };

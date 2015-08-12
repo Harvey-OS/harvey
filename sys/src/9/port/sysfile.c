@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 /*
  * The sys*() routines needn't poperror() as they return directly to syscall().
@@ -31,34 +31,34 @@ unlockfgrp(Fgrp *f)
 }
 
 static int
-growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
+growfd(Fgrp *f, int fd) /* fd is always >= 0 */
 {
 	Chan **newfd, **oldfd;
 
 	if(fd < f->nfd)
 		return 0;
-	if(fd >= f->nfd+DELTAFD)
-		return -1;	/* out of range */
+	if(fd >= f->nfd + DELTAFD)
+		return -1; /* out of range */
 	/*
 	 * Unbounded allocation is unwise; besides, there are only 16 bits
 	 * of fid in 9P
 	 */
-	if(f->nfd >= 5000){
-    Exhausted:
+	if(f->nfd >= 5000) {
+	Exhausted:
 		print("no free file descriptors\n");
 		return -1;
 	}
-	newfd = malloc((f->nfd+DELTAFD)*sizeof(Chan*));
+	newfd = malloc((f->nfd + DELTAFD) * sizeof(Chan *));
 	if(newfd == 0)
 		goto Exhausted;
 	oldfd = f->fd;
-	memmove(newfd, oldfd, f->nfd*sizeof(Chan*));
+	memmove(newfd, oldfd, f->nfd * sizeof(Chan *));
 	f->fd = newfd;
 	free(oldfd);
 	f->nfd += DELTAFD;
-	if(fd > f->maxfd){
-		if(fd/100 > f->maxfd/100)
-			f->exceed = (fd/100)*100;
+	if(fd > f->maxfd) {
+		if(fd / 100 > f->maxfd / 100)
+			f->exceed = (fd / 100) * 100;
 		f->maxfd = fd;
 	}
 	return 1;
@@ -72,7 +72,7 @@ findfreefd(Fgrp *f, int start)
 {
 	int fd;
 
-	for(fd=start; fd<f->nfd; fd++)
+	for(fd = start; fd < f->nfd; fd++)
 		if(f->fd[fd] == 0)
 			break;
 	if(fd >= f->nfd && growfd(f, fd) < 0)
@@ -90,7 +90,7 @@ newfd(Chan *c)
 	f = up->fgrp;
 	lock(f);
 	fd = findfreefd(f, 0);
-	if(fd < 0){
+	if(fd < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
@@ -110,12 +110,12 @@ newfd2(int fd[2], Chan *c[2])
 	f = up->fgrp;
 	lock(f);
 	fd[0] = findfreefd(f, 0);
-	if(fd[0] < 0){
+	if(fd[0] < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
-	fd[1] = findfreefd(f, fd[0]+1);
-	if(fd[1] < 0){
+	fd[1] = findfreefd(f, fd[0] + 1);
+	if(fd[1] < 0) {
 		unlockfgrp(f);
 		return -1;
 	}
@@ -128,7 +128,7 @@ newfd2(int fd[2], Chan *c[2])
 	return 0;
 }
 
-Chan*
+Chan *
 fdtochan(int fd, int mode, int chkmnt, int iref)
 {
 	Proc *up = externup();
@@ -139,7 +139,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 	f = up->fgrp;
 
 	lock(f);
-	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
+	if(fd < 0 || f->nfd <= fd || (c = f->fd[fd]) == 0) {
 		unlock(f);
 		error(Ebadfd);
 	}
@@ -147,22 +147,22 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 		incref(c);
 	unlock(f);
 
-	if(chkmnt && (c->flag&CMSG)) {
+	if(chkmnt && (c->flag & CMSG)) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
 	}
 
-	if(mode<0 || c->mode==ORDWR)
+	if(mode < 0 || c->mode == ORDWR)
 		return c;
 
-	if((mode&OTRUNC) && c->mode==OREAD) {
+	if((mode & OTRUNC) && c->mode == OREAD) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
 	}
 
-	if((mode&~OTRUNC) != c->mode) {
+	if((mode & ~OTRUNC) != c->mode) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
@@ -174,7 +174,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 int
 openmode(int omode)
 {
-	omode &= ~(OTRUNC|OCEXEC|ORCLOSE);
+	omode &= ~(OTRUNC | OCEXEC | ORCLOSE);
 	if(omode > OEXEC)
 		error(Ebadarg);
 	if(omode == OEXEC)
@@ -183,7 +183,7 @@ openmode(int omode)
 }
 
 void
-sysfd2path(Ar0* ar0, ...)
+sysfd2path(Ar0 *ar0, ...)
 {
 	Chan *c;
 	char *buf;
@@ -198,7 +198,7 @@ sysfd2path(Ar0* ar0, ...)
 	 * int fd2path(int fd, char* buf, usize nbuf);
 	 */
 	fd = va_arg(list, int);
-	buf = va_arg(list, char*);
+	buf = va_arg(list, char *);
 	nbuf = va_arg(list, usize);
 	va_end(list);
 	buf = validaddr(buf, nbuf, 1);
@@ -211,7 +211,7 @@ sysfd2path(Ar0* ar0, ...)
 }
 
 void
-syspipe(Ar0* ar0, ...)
+syspipe(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	int *a, fd[2];
@@ -223,7 +223,7 @@ syspipe(Ar0* ar0, ...)
 	/*
 	 * int pipe(int fd[2]);
 	 */
-	a = va_arg(list, int*);
+	a = va_arg(list, int *);
 	va_end(list);
 	a = validaddr(a, sizeof(fd), 1);
 	evenaddr(PTR2UINT(a));
@@ -233,16 +233,16 @@ syspipe(Ar0* ar0, ...)
 	fd[0] = -1;
 	fd[1] = -1;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c[0]);
 		if(c[1])
 			cclose(c[1]);
 		nexterror();
 	}
 	c[1] = cclone(c[0]);
-	if(walk(&c[0], datastr+0, 1, 1, nil) < 0)
+	if(walk(&c[0], datastr + 0, 1, 1, nil) < 0)
 		error(Egreg);
-	if(walk(&c[1], datastr+1, 1, 1, nil) < 0)
+	if(walk(&c[1], datastr + 1, 1, 1, nil) < 0)
 		error(Egreg);
 	c[0] = c[0]->dev->open(c[0], ORDWR);
 	c[1] = c[1]->dev->open(c[1], ORDWR);
@@ -257,7 +257,7 @@ syspipe(Ar0* ar0, ...)
 }
 
 void
-sysdup(Ar0* ar0, ...)
+sysdup(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	int nfd, ofd;
@@ -276,7 +276,7 @@ sysdup(Ar0* ar0, ...)
 	nfd = va_arg(list, int);
 	va_end(list);
 
-	if(nfd != -1){
+	if(nfd != -1) {
 		f = up->fgrp;
 		lock(f);
 		if(nfd < 0 || growfd(f, nfd) < 0) {
@@ -292,7 +292,7 @@ sysdup(Ar0* ar0, ...)
 		unlockfgrp(f);
 		if(nc != nil)
 			cclose(nc);
-	}else{
+	} else {
 		if(waserror()) {
 			cclose(oc);
 			nexterror();
@@ -307,7 +307,7 @@ sysdup(Ar0* ar0, ...)
 }
 
 void
-sysopen(Ar0* ar0, ...)
+sysopen(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	va_list list;
@@ -319,13 +319,13 @@ sysopen(Ar0* ar0, ...)
 	 * int open(char* file, int omode);
 	 */
 	va_start(list, ar0);
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	omode = va_arg(list, int);
 	va_end(list);
-	openmode(omode);	/* error check only */
+	openmode(omode); /* error check only */
 
 	c = nil;
-	if(waserror()){
+	if(waserror()) {
 		if(c != nil)
 			cclose(c);
 		nexterror();
@@ -341,7 +341,7 @@ sysopen(Ar0* ar0, ...)
 }
 
 void
-sysnsec(Ar0* ar0, ...)
+sysnsec(Ar0 *ar0, ...)
 {
 	va_list list;
 	va_start(list, ar0);
@@ -363,20 +363,20 @@ fdclose(int fd, int flag)
 	f = up->fgrp;
 	lock(f);
 	c = f->fd[fd];
-	if(c == nil){
+	if(c == nil) {
 		/* can happen for users with shared fd tables */
 		unlock(f);
 		return;
 	}
-	if(flag){
-		if(c == nil || !(c->flag&flag)){
+	if(flag) {
+		if(c == nil || !(c->flag & flag)) {
 			unlock(f);
 			return;
 		}
 	}
 	f->fd[fd] = nil;
 	if(fd == f->maxfd)
-		for(i = fd; --i >= 0 && f->fd[i] == 0; )
+		for(i = fd; --i >= 0 && f->fd[i] == 0;)
 			f->maxfd = i;
 
 	unlock(f);
@@ -384,7 +384,7 @@ fdclose(int fd, int flag)
 }
 
 void
-sysclose(Ar0* ar0, ...)
+sysclose(Ar0 *ar0, ...)
 {
 	int fd;
 	va_list list;
@@ -420,10 +420,10 @@ unionread(Chan *c, void *va, int32_t n)
 		mount = mount->next;
 
 	nr = 0;
-	while(mount != nil){
+	while(mount != nil) {
 		/* Error causes component of union to be skipped */
-		if(mount->to && !waserror()){
-			if(c->umc == nil){
+		if(mount->to && !waserror()) {
+			if(c->umc == nil) {
 				c->umc = cclone(mount->to);
 				c->umc = c->umc->dev->open(c->umc, OREAD);
 			}
@@ -437,7 +437,7 @@ unionread(Chan *c, void *va, int32_t n)
 
 		/* Advance to next element */
 		c->uri++;
-		if(c->umc){
+		if(c->umc) {
 			cclose(c->umc);
 			c->umc = nil;
 		}
@@ -453,7 +453,7 @@ unionrewind(Chan *c)
 {
 	qlock(&c->umqlock);
 	c->uri = 0;
-	if(c->umc){
+	if(c->umc) {
 		cclose(c->umc);
 		c->umc = nil;
 	}
@@ -466,17 +466,16 @@ dirfixed(uint8_t *p, uint8_t *e, Dir *d)
 	int len;
 	Dev *dev;
 
-	len = GBIT16(p)+BIT16SZ;
+	len = GBIT16(p) + BIT16SZ;
 	if(p + len > e)
 		return 0;
 
-	p += BIT16SZ;	/* ignore size */
-	dev = devtabget(GBIT16(p), 1);			//XDYNX
-	if(dev != nil){
+	p += BIT16SZ;		       /* ignore size */
+	dev = devtabget(GBIT16(p), 1); //XDYNX
+	if(dev != nil) {
 		d->type = dev->dc;
 		//devtabdecr(dev);
-	}
-	else
+	} else
 		d->type = -1;
 	p += BIT16SZ;
 	d->dev = GBIT32(p);
@@ -498,14 +497,13 @@ dirfixed(uint8_t *p, uint8_t *e, Dir *d)
 	return len;
 }
 
-static char*
+static char *
 dirname(uint8_t *p, usize *n)
 {
-	p += BIT16SZ+BIT16SZ+BIT32SZ+BIT8SZ+BIT32SZ+BIT64SZ
-		+ BIT32SZ+BIT32SZ+BIT32SZ+BIT64SZ;
+	p += BIT16SZ + BIT16SZ + BIT32SZ + BIT8SZ + BIT32SZ + BIT64SZ + BIT32SZ + BIT32SZ + BIT32SZ + BIT64SZ;
 	*n = GBIT16(p);
 
-	return (char*)p+BIT16SZ;
+	return (char *)p + BIT16SZ;
 }
 
 static usize
@@ -519,14 +517,14 @@ dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
 
 	oname = dirname(p, &olen);
 
-	nn = n+len-olen;
-	PBIT16(p, nn-BIT16SZ);
+	nn = n + len - olen;
+	PBIT16(p, nn - BIT16SZ);
 	if(nn > maxn)
 		return BIT16SZ;
 
 	if(len != olen)
-		memmove(oname+len, oname+olen, p+n-(uint8_t*)(oname+olen));
-	PBIT16((uint8_t*)(oname-2), len);
+		memmove(oname + len, oname + olen, p + n - (uint8_t *)(oname + olen));
+	PBIT16((uint8_t *)(oname - 2), len);
 	memmove(oname, name, len);
 
 	return nn;
@@ -545,24 +543,24 @@ mountrock(Chan *c, uint8_t *p, uint8_t **pe)
 	e = *pe;
 
 	/* find last directory entry */
-	for(;;){
-		len = BIT16SZ+GBIT16(p);
-		if(p+len >= e)
+	for(;;) {
+		len = BIT16SZ + GBIT16(p);
+		if(p + len >= e)
 			break;
 		p += len;
 	}
 
 	/* save it away */
 	qlock(&c->rockqlock);
-	if(c->nrock+len > c->mrock){
-		n = ROUNDUP(c->nrock+len, 1024);
+	if(c->nrock + len > c->mrock) {
+		n = ROUNDUP(c->nrock + len, 1024);
 		r = smalloc(n);
 		memmove(r, c->dirrock, c->nrock);
 		free(c->dirrock);
 		c->dirrock = r;
 		c->mrock = n;
 	}
-	memmove(c->dirrock+c->nrock, p, len);
+	memmove(c->dirrock + c->nrock, p, len);
 	c->nrock += len;
 	qunlock(&c->rockqlock);
 
@@ -586,26 +584,26 @@ mountrockread(Chan *c, uint8_t *op, int32_t n, int32_t *nn)
 	/* copy out what we can */
 	qlock(&c->rockqlock);
 	rp = c->dirrock;
-	erp = rp+c->nrock;
+	erp = rp + c->nrock;
 	p = op;
-	ep = p+n;
-	while(rp+BIT16SZ <= erp){
-		dirlen = BIT16SZ+GBIT16(rp);
-		if(p+dirlen > ep)
+	ep = p + n;
+	while(rp + BIT16SZ <= erp) {
+		dirlen = BIT16SZ + GBIT16(rp);
+		if(p + dirlen > ep)
 			break;
 		memmove(p, rp, dirlen);
 		p += dirlen;
 		rp += dirlen;
 	}
 
-	if(p == op){
+	if(p == op) {
 		qunlock(&c->rockqlock);
 		return 0;
 	}
 
 	/* shift the rest */
 	if(rp != erp)
-		memmove(c->dirrock, rp, erp-rp);
+		memmove(c->dirrock, rp, erp - rp);
 	c->nrock = erp - rp;
 
 	*nn = p - op;
@@ -642,18 +640,18 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	p = op;
 	buf = nil;
 	nbuf = 0;
-	for(e=&p[n]; p+BIT16SZ<e; p+=dirlen){
+	for(e = &p[n]; p + BIT16SZ < e; p += dirlen) {
 		dirlen = dirfixed(p, e, &d);
 		if(dirlen == 0)
 			break;
 		nc = nil;
 		mh = nil;
-		if(findmount(&nc, &mh, d.type, d.dev, d.qid)){
+		if(findmount(&nc, &mh, d.type, d.dev, d.qid)) {
 			/*
 			 * If it's a union directory and the original is
 			 * in the union, don't rewrite anything.
 			 */
-			for(mount=mh->mount; mount; mount=mount->next)
+			for(mount = mh->mount; mount; mount = mount->next)
 				if(eqchanddq(mount->to, d.type, d.dev, d.qid, 1))
 					goto Norewrite;
 
@@ -665,7 +663,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 			 * the entry, what can we do?  Nothing, really.
 			 * Might as well skip it.
 			 */
-			if(buf == nil){
+			if(buf == nil) {
 				buf = smalloc(4096);
 				nbuf = 4096;
 			}
@@ -681,21 +679,21 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 			 * Shift data in buffer to accomodate new entry,
 			 * possibly overflowing into rock.
 			 */
-			rest = e - (p+dirlen);
-			if(r > dirlen){
-				while(p+r+rest > op+maxn){
+			rest = e - (p + dirlen);
+			if(r > dirlen) {
+				while(p + r + rest > op + maxn) {
 					mountrock(c, p, &e);
-					if(e == p){
+					if(e == p) {
 						dirlen = 0;
 						goto Norewrite;
 					}
-					rest = e - (p+dirlen);
+					rest = e - (p + dirlen);
 				}
 			}
-			if(r != dirlen){
-				memmove(p+r, p+dirlen, rest);
+			if(r != dirlen) {
+				memmove(p + r, p + dirlen, rest);
 				dirlen = r;
-				e = p+dirlen+rest;
+				e = p + dirlen + rest;
 			}
 
 			/*
@@ -703,7 +701,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 			 */
 			memmove(p, buf, r);
 
-		    Norewrite:
+		Norewrite:
 			cclose(nc);
 			putmhead(mh);
 		}
@@ -714,7 +712,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	if(p != e)
 		error("oops in mountfix");
 
-	return e-op;
+	return e - op;
 }
 
 static int32_t
@@ -728,7 +726,7 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 
 	c = fdtochan(fd, OREAD, 1, 1);
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -742,23 +740,22 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 	 * The number of bytes read on this fd (c->offset) may be different
 	 * due to rewritings in mountfix.
 	 */
-	if(ispread){
-		if(off == ~0LL){	/* use and maintain channel's offset */
+	if(ispread) {
+		if(off == ~0LL) { /* use and maintain channel's offset */
 			off = c->offset;
 			ispread = 0;
 		}
-	}
-	else
+	} else
 		off = c->offset;
-	if(c->qid.type & QTDIR){
+	if(c->qid.type & QTDIR) {
 		/*
 		 * Directory read:
 		 * rewind to the beginning of the file if necessary;
 		 * try to fill the buffer via mountrockread;
 		 * clear ispread to always maintain the Chan offset.
 		 */
-		if(off == 0LL){
-			if(!ispread){
+		if(off == 0LL) {
+			if(!ispread) {
 				c->offset = 0;
 				c->devoffset = 0;
 			}
@@ -766,10 +763,10 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 			unionrewind(c);
 		}
 
-		if(!mountrockread(c, p, n, &nn)){
+		if(!mountrockread(c, p, n, &nn)) {
 			if(c->umh)
 				nn = unionread(c, p, n);
-			else{
+			else {
 				if(off != c->offset)
 					error(Edirseek);
 				nn = c->dev->read(c, p, n, c->devoffset);
@@ -778,11 +775,10 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 		nnn = mountfix(c, p, nn, n);
 
 		ispread = 0;
-	}
-	else
+	} else
 		nnn = nn = c->dev->read(c, p, n, off);
 
-	if(!ispread){
+	if(!ispread) {
 		lock(c);
 		c->devoffset += nn;
 		c->offset += nnn;
@@ -796,7 +792,7 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 }
 
 void
-sysread(Ar0* ar0, ...)
+sysread(Ar0 *ar0, ...)
 {
 	int fd;
 	void *p;
@@ -805,7 +801,7 @@ sysread(Ar0* ar0, ...)
 	va_list list;
 	va_start(list, ar0);
 	fd = va_arg(list, int);
-	p = va_arg(list, void*);
+	p = va_arg(list, void *);
 	n = va_arg(list, int32_t);
 	va_end(list);
 	/*
@@ -815,7 +811,7 @@ sysread(Ar0* ar0, ...)
 }
 
 void
-syspread(Ar0* ar0, ...)
+syspread(Ar0 *ar0, ...)
 {
 	int fd;
 	void *p;
@@ -824,7 +820,7 @@ syspread(Ar0* ar0, ...)
 	va_list list;
 	va_start(list, ar0);
 	fd = va_arg(list, int);
-	p = va_arg(list, void*);
+	p = va_arg(list, void *);
 	n = va_arg(list, int32_t);
 	off = va_arg(list, int64_t);
 	va_end(list);
@@ -847,7 +843,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
 	if(waserror()) {
-		if(!ispwrite){
+		if(!ispwrite) {
 			lock(c);
 			c->offset -= n;
 			unlock(c);
@@ -861,7 +857,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	n = r;
 
-	if(off == ~0LL){	/* use and maintain channel's offset */
+	if(off == ~0LL) { /* use and maintain channel's offset */
 		lock(c);
 		off = c->offset;
 		c->offset += n;
@@ -870,7 +866,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 
 	r = c->dev->write(c, p, n, off);
 
-	if(!ispwrite && r < n){
+	if(!ispwrite && r < n) {
 		lock(c);
 		c->offset -= n - r;
 		unlock(c);
@@ -883,7 +879,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 }
 
 void
-syswrite(Ar0* ar0, ...)
+syswrite(Ar0 *ar0, ...)
 {
 	va_list list;
 	va_start(list, ar0);
@@ -899,7 +895,7 @@ syswrite(Ar0* ar0, ...)
 }
 
 void
-syspwrite(Ar0* ar0, ...)
+syspwrite(Ar0 *ar0, ...)
 {
 	va_list list;
 	va_start(list, ar0);
@@ -919,19 +915,19 @@ sseek(int fd, int64_t offset, int whence)
 {
 	Proc *up = externup();
 	Chan *c;
-	uint8_t buf[sizeof(Dir)+100];
+	uint8_t buf[sizeof(Dir) + 100];
 	Dir dir;
 	int n;
 
 	c = fdtochan(fd, -1, 1, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
 	if(c->dev->dc == '|')
 		error(Eisstream);
 
-	switch(whence){
+	switch(whence) {
 	case 0:
 		if((c->qid.type & QTDIR) && offset != 0LL)
 			error(Eisdir);
@@ -941,7 +937,7 @@ sseek(int fd, int64_t offset, int whence)
 	case 1:
 		if(c->qid.type & QTDIR)
 			error(Eisdir);
-		lock(c);	/* lock for read/write update */
+		lock(c); /* lock for read/write update */
 		offset += c->offset;
 		c->offset = offset;
 		unlock(c);
@@ -969,7 +965,7 @@ sseek(int fd, int64_t offset, int whence)
 }
 
 void
-sysseek(Ar0* ar0, ...)
+sysseek(Ar0 *ar0, ...)
 {
 	int fd, whence;
 	int64_t offset, *rv;
@@ -985,7 +981,7 @@ sysseek(Ar0* ar0, ...)
 	 * is returned. The C library arranges the
 	 * argument/return munging if necessary.
 	 */
-	rv = va_arg(list, int64_t*);
+	rv = va_arg(list, int64_t *);
 	rv = validaddr(rv, sizeof(int64_t), 1);
 
 	fd = va_arg(list, int);
@@ -998,7 +994,7 @@ sysseek(Ar0* ar0, ...)
 }
 
 void
-sysoseek(Ar0* ar0, ...)
+sysoseek(Ar0 *ar0, ...)
 {
 	int32_t offset;
 	int fd, whence;
@@ -1027,7 +1023,7 @@ validstat(uint8_t *s, usize n)
 	if(statcheck(s, n) < 0)
 		error(Ebadstat);
 	/* verify that name entry is acceptable */
-	s += STATFIXLEN - 4*BIT16SZ;	/* location of first string */
+	s += STATFIXLEN - 4 * BIT16SZ; /* location of first string */
 	/*
 	 * s now points at count for first string.
 	 * if it's too long, let the server decide; this is
@@ -1036,7 +1032,7 @@ validstat(uint8_t *s, usize n)
 	 */
 	m = GBIT16(s);
 	s += BIT16SZ;
-	if(m+1 > sizeof buf)
+	if(m + 1 > sizeof buf)
 		return;
 	memmove(buf, s, m);
 	buf[m] = '\0';
@@ -1045,7 +1041,7 @@ validstat(uint8_t *s, usize n)
 		validname(buf, 0);
 }
 
-static char*
+static char *
 pathlast(Path *p)
 {
 	char *s;
@@ -1056,12 +1052,12 @@ pathlast(Path *p)
 		return nil;
 	s = strrchr(p->s, '/');
 	if(s)
-		return s+1;
+		return s + 1;
 	return p->s;
 }
 
 void
-sysfstat(Ar0* ar0, ...)
+sysfstat(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	int fd;
@@ -1080,7 +1076,7 @@ sysfstat(Ar0* ar0, ...)
 	 * radical.
 	 */
 	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t*);
+	p = va_arg(list, uint8_t *);
 	n = va_arg(list, usize);
 	va_end(list);
 
@@ -1098,7 +1094,7 @@ sysfstat(Ar0* ar0, ...)
 }
 
 void
-sysstat(Ar0* ar0, ...)
+sysstat(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	char *aname;
@@ -1116,15 +1112,15 @@ sysstat(Ar0* ar0, ...)
 	 * but returning an unsigned is probably too
 	 * radical.
 	 */
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	aname = validaddr(aname, 1, 0);
-	p = va_arg(list, uint8_t*);
+	p = va_arg(list, uint8_t *);
 	n = va_arg(list, usize);
 	va_end(list);
 
 	p = validaddr(p, n, 1);
 	c = namec(aname, Aaccess, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1140,7 +1136,7 @@ sysstat(Ar0* ar0, ...)
 }
 
 void
-syschdir(Ar0* ar0, ...)
+syschdir(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Chan *c;
@@ -1151,7 +1147,7 @@ syschdir(Ar0* ar0, ...)
 	/*
 	 * int chdir(char* dirname);
 	 */
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	aname = validaddr(aname, 1, 0);
 	va_end(list);
 
@@ -1167,42 +1163,42 @@ syschdir(Ar0* ar0, ...)
  * really start using it.
  */
 
-static int dcok[] =  {
-	'M'
-};
-static int checkdc(int dc)
+static int dcok[] = {
+    'M'};
+static int
+checkdc(int dc)
 {
 	int i;
 	/* we check for non-zero in case somebody ever puts a ,
 	 * after the last element and we end up with 0 as the last thing ...
 	 */
 	for(i = 0; (i < nelem(dcok)) && dcok[i]; i++)
-		if (dcok[i] == dc)
+		if(dcok[i] == dc)
 			return 1;
 	return 0;
 }
 /* if dc is non-zero, it means we're doing a mount and dc is the mount device to use. */
 static int
-bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
+bindmount(int dc, int fd, int afd, char *arg0, char *arg1, int flag, char *spec)
 {
 	Proc *up = externup();
 	int i;
 	Dev *dev;
 	Chan *c0, *c1, *ac, *bc;
-	struct{
-		Chan	*chan;
-		Chan	*authchan;
-		char	*spec;
-		int	flags;
-	}bogus;
+	struct {
+		Chan *chan;
+		Chan *authchan;
+		char *spec;
+		int flags;
+	} bogus;
 
-	if((flag&~MMASK) || (flag&MORDER)==(MBEFORE|MAFTER))
+	if((flag & ~MMASK) || (flag & MORDER) == (MBEFORE | MAFTER))
 		error(Ebadarg);
 
 	bogus.flags = flag & MCACHE;
 
-	if(dc){
-		if (! checkdc(dc))
+	if(dc) {
+		if(!checkdc(dc))
 			error(Ebadarg);
 
 		if(up->pgrp->noattach)
@@ -1229,38 +1225,38 @@ bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 		spec = validnamedup(spec, 1);
 		poperror();
 
-		if(waserror()){
+		if(waserror()) {
 			free(spec);
 			nexterror();
 		}
 
-		dev = devtabget(dc, 0);		//XDYNX
-		if(waserror()){
+		dev = devtabget(dc, 0); //XDYNX
+		if(waserror()) {
 			//devtabdecr(dev);
 			nexterror();
 		}
-		c0 = dev->attach((char*)&bogus);
+		c0 = dev->attach((char *)&bogus);
 		poperror();
 		//devtabdecr(dev);
 
-		poperror();	/* spec */
+		poperror(); /* spec */
 		free(spec);
-		poperror();	/* ac bc */
+		poperror(); /* ac bc */
 		if(ac)
 			cclose(ac);
 		cclose(bc);
-	}else{
+	} else {
 		bogus.spec = nil;
 		c0 = namec(validaddr(arg0, 1, 0), Abind, 0, 0);
 	}
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c0);
 		nexterror();
 	}
 
 	c1 = namec(validaddr(arg1, 1, 0), Amount, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c1);
 		nexterror();
 	}
@@ -1278,7 +1274,7 @@ bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 }
 
 void
-sysbind(Ar0* ar0, ...)
+sysbind(Ar0 *ar0, ...)
 {
 	int flag;
 	char *name, *old;
@@ -1290,8 +1286,8 @@ sysbind(Ar0* ar0, ...)
 	 * should be
 	 * long bind(char* name, char* old, int flag);
 	 */
-	name = va_arg(list, char*);
-	old = va_arg(list, char*);
+	name = va_arg(list, char *);
+	old = va_arg(list, char *);
 	flag = va_arg(list, int);
 	va_end(list);
 
@@ -1299,7 +1295,7 @@ sysbind(Ar0* ar0, ...)
 }
 
 void
-sysmount(Ar0* ar0, ...)
+sysmount(Ar0 *ar0, ...)
 {
 	int afd, fd, flag;
 	char *aname, *old;
@@ -1314,16 +1310,16 @@ sysmount(Ar0* ar0, ...)
 	 */
 	fd = va_arg(list, int);
 	afd = va_arg(list, int);
-	old = va_arg(list, char*);
+	old = va_arg(list, char *);
 	flag = va_arg(list, int);
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	va_end(list);
 
 	ar0->i = bindmount(dc, fd, afd, nil, old, flag, aname);
 }
 
 void
-sys_mount(Ar0* ar0, ...)
+sys_mount(Ar0 *ar0, ...)
 {
 	int fd, flag;
 	char *aname, *old;
@@ -1338,16 +1334,16 @@ sys_mount(Ar0* ar0, ...)
 	 * Deprecated; backwards compatibility only.
 	 */
 	fd = va_arg(list, int);
-	old = va_arg(list, char*);
+	old = va_arg(list, char *);
 	flag = va_arg(list, int);
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	va_end(list);
 
 	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
 }
 
 void
-sysunmount(Ar0* ar0, ...)
+sysunmount(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	char *name, *old;
@@ -1358,8 +1354,8 @@ sysunmount(Ar0* ar0, ...)
 	/*
 	 * int unmount(char* name, char* old);
 	 */
-	name = va_arg(list, char*);
-	old = va_arg(list, char*);
+	name = va_arg(list, char *);
+	old = va_arg(list, char *);
 	cmount = namec(validaddr(old, 1, 0), Amount, 0, 0);
 	va_end(list);
 
@@ -1397,7 +1393,7 @@ sysunmount(Ar0* ar0, ...)
 }
 
 void
-syscreate(Ar0* ar0, ...)
+syscreate(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	char *aname;
@@ -1411,12 +1407,12 @@ syscreate(Ar0* ar0, ...)
 	 * should be
 	 * int create(char* file, int omode, int perm);
 	 */
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	omode = va_arg(list, int);
 	perm = va_arg(list, int);
 	va_end(list);
 
-	openmode(omode & ~OEXCL);	/* error check only; OEXCL okay here */
+	openmode(omode & ~OEXCL); /* error check only; OEXCL okay here */
 	c = nil;
 	if(waserror()) {
 		if(c != nil)
@@ -1433,7 +1429,7 @@ syscreate(Ar0* ar0, ...)
 }
 
 void
-sysremove(Ar0* ar0, ...)
+sysremove(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Chan *c;
@@ -1444,7 +1440,7 @@ sysremove(Ar0* ar0, ...)
 	/*
 	 * int remove(char* file);
 	 */
-	aname = va_arg(list, char*);
+	aname = va_arg(list, char *);
 	c = namec(validaddr(aname, 1, 0), Aremove, 0, 0);
 	va_end(list);
 
@@ -1452,12 +1448,12 @@ sysremove(Ar0* ar0, ...)
 	 * Removing mount points is disallowed to avoid surprises
 	 * (which should be removed: the mount point or the mounted Chan?).
 	 */
-	if(c->ismtpt){
+	if(c->ismtpt) {
 		cclose(c);
 		error(Eismtpt);
 	}
-	if(waserror()){
-		c->dev = nil;	/* see below */
+	if(waserror()) {
+		c->dev = nil; /* see below */
 		cclose(c);
 		nexterror();
 	}
@@ -1476,13 +1472,13 @@ Not sure this dicking around is right for Dev ref counts.
 }
 
 static int32_t
-wstat(Chan* c, uint8_t* p, usize n)
+wstat(Chan *c, uint8_t *p, usize n)
 {
 	Proc *up = externup();
 	int32_t l;
 	usize namelen;
 
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1491,7 +1487,7 @@ wstat(Chan* c, uint8_t* p, usize n)
 	 * Renaming mount points is disallowed to avoid surprises
 	 * (which should be renamed? the mount point or the mounted Chan?).
 	 */
-	if(c->ismtpt){
+	if(c->ismtpt) {
 		dirname(p, &namelen);
 		if(namelen)
 			nameerror(chanpath(c), Eismtpt);
@@ -1504,7 +1500,7 @@ wstat(Chan* c, uint8_t* p, usize n)
 }
 
 void
-syswstat(Ar0* ar0, ...)
+syswstat(Ar0 *ar0, ...)
 {
 	Chan *c;
 	char *aname;
@@ -1520,8 +1516,8 @@ syswstat(Ar0* ar0, ...)
 	 * but returning an unsigned is probably too
 	 * radical.
 	 */
-	aname = va_arg(list, char*);
-	p = va_arg(list, uint8_t*);
+	aname = va_arg(list, char *);
+	p = va_arg(list, uint8_t *);
 	n = va_arg(list, usize);
 
 	p = validaddr(p, n, 0);
@@ -1533,7 +1529,7 @@ syswstat(Ar0* ar0, ...)
 }
 
 void
-sysfwstat(Ar0* ar0, ...)
+sysfwstat(Ar0 *ar0, ...)
 {
 	Chan *c;
 	int fd;
@@ -1550,7 +1546,7 @@ sysfwstat(Ar0* ar0, ...)
 	 * radical.
 	 */
 	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t*);
+	p = va_arg(list, uint8_t *);
 	n = va_arg(list, usize);
 
 	p = validaddr(p, n, 0);
@@ -1569,14 +1565,14 @@ packoldstat(uint8_t *buf, Dir *d)
 
 	/* lay down old stat buffer - grotty code but it's temporary */
 	p = buf;
-	strncpy((char*)p, d->name, 28);
+	strncpy((char *)p, d->name, 28);
 	p += 28;
-	strncpy((char*)p, d->uid, 28);
+	strncpy((char *)p, d->uid, 28);
 	p += 28;
-	strncpy((char*)p, d->gid, 28);
+	strncpy((char *)p, d->gid, 28);
 	p += 28;
-	q = d->qid.path & ~DMDIR;	/* make sure doesn't accidentally look like directory */
-	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
+	q = d->qid.path & ~DMDIR; /* make sure doesn't accidentally look like directory */
+	if(d->qid.type & QTDIR)   /* this is the real test of a new directory */
 		q |= DMDIR;
 	PBIT32(p, q);
 	p += BIT32SZ;
@@ -1596,7 +1592,7 @@ packoldstat(uint8_t *buf, Dir *d)
 }
 
 void
-sys_stat(Ar0* ar0, ...)
+sys_stat(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Chan *c;
@@ -1615,8 +1611,8 @@ sys_stat(Ar0* ar0, ...)
 	 *
 	 * Deprecated; backwards compatibility only.
 	 */
-	aname = va_arg(list, char*);
-	p = va_arg(list, uint8_t*);
+	aname = va_arg(list, char *);
+	p = va_arg(list, uint8_t *);
 	va_end(list);
 
 	/*
@@ -1626,7 +1622,7 @@ sys_stat(Ar0* ar0, ...)
 	p = validaddr(p, 116, 1);
 
 	c = namec(validaddr(aname, 1, 0), Aaccess, 0, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1654,7 +1650,7 @@ sys_stat(Ar0* ar0, ...)
 }
 
 void
-sys_fstat(Ar0* ar0, ...)
+sys_fstat(Ar0 *ar0, ...)
 {
 	Proc *up = externup();
 	Chan *c;
@@ -1676,7 +1672,7 @@ sys_fstat(Ar0* ar0, ...)
 	 * Deprecated; backwards compatibility only.
 	 */
 	fd = va_arg(list, int);
-	p = va_arg(list, uint8_t*);
+	p = va_arg(list, uint8_t *);
 	va_end(list);
 
 	/*
@@ -1685,7 +1681,7 @@ sys_fstat(Ar0* ar0, ...)
 	 */
 	p = validaddr(p, 116, 1);
 	c = fdtochan(fd, -1, 0, 1);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -1713,7 +1709,7 @@ sys_fstat(Ar0* ar0, ...)
 }
 
 void
-sys_wstat(Ar0* ar0, ...)
+sys_wstat(Ar0 *ar0, ...)
 {
 	va_list list;
 	va_start(list, ar0);
@@ -1722,7 +1718,7 @@ sys_wstat(Ar0* ar0, ...)
 }
 
 void
-sys_fwstat(Ar0* ar0, ...)
+sys_fwstat(Ar0 *ar0, ...)
 {
 	va_list list;
 	va_start(list, ar0);

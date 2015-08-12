@@ -28,7 +28,7 @@
 /* Requires gxdevice.h (for gx_color_value) */
 
 #ifndef gdev8bcm_INCLUDED
-#  define gdev8bcm_INCLUDED
+#define gdev8bcm_INCLUDED
 
 /*
  * The MS-DOS, MS Windows, and X Windows drivers all use (at least on
@@ -44,20 +44,20 @@
  */
 
 #define gx_8bit_map_size 323
-#define gx_8bit_map_spreader 123	/* approx. 323 - (1.618 * 323) */
+#define gx_8bit_map_spreader 123 /* approx. 323 - (1.618 * 323) */
 typedef struct gx_8bit_map_entry_s {
-    ushort rgb;			/* key = 0rrrrrgggggbbbbb */
+	ushort rgb; /* key = 0rrrrrgggggbbbbb */
 #define gx_8bit_no_rgb ((ushort)0xffff)
-#define gx_8bit_rgb_key(r, g, b)\
-  (((r >> (gx_color_value_bits - 5)) << 10) +\
-   ((g >> (gx_color_value_bits - 5)) << 5) +\
-   (b >> (gx_color_value_bits - 5)))
-    short index;		/* value */
+#define gx_8bit_rgb_key(r, g, b)                    \
+	(((r >> (gx_color_value_bits - 5)) << 10) + \
+	 ((g >> (gx_color_value_bits - 5)) << 5) +  \
+	 (b >> (gx_color_value_bits - 5)))
+	short index; /* value */
 } gx_8bit_map_entry;
 typedef struct gx_8bit_color_map_s {
-    int count;			/* # of occupied entries */
-    int max_count;		/* max # of occupied entries */
-    gx_8bit_map_entry map[gx_8bit_map_size + 1];
+	int count;     /* # of occupied entries */
+	int max_count; /* max # of occupied entries */
+	gx_8bit_map_entry map[gx_8bit_map_size + 1];
 } gx_8bit_color_map;
 
 /* Initialize an 8-bit color map. */
@@ -69,8 +69,8 @@ int gx_8bit_map_rgb_color(const gx_8bit_color_map *, gx_color_value,
 			  gx_color_value, gx_color_value);
 
 /* Test whether an 8-bit color map has room for more entries. */
-#define gx_8bit_map_is_full(pcm)\
-  ((pcm)->count == (pcm)->max_count)
+#define gx_8bit_map_is_full(pcm) \
+	((pcm)->count == (pcm)->max_count)
 
 /* Add a color to an 8-bit color map. */
 /* Return -1 if the map is full. */

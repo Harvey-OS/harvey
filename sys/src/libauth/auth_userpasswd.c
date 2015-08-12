@@ -28,10 +28,10 @@ netresp(char *key, int32_t chal, char *answer)
 	snprint((char *)buf, sizeof buf, "%lud", chal);
 	if(encrypt(key, buf, 8) < 0)
 		abort();
-	sprint(answer, "%.8ux", buf[0]<<24 | buf[1]<<16 | buf[2]<<8 | buf[3]);
+	sprint(answer, "%.8ux", buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]);
 }
 
-AuthInfo*
+AuthInfo *
 auth_userpasswd(char *user, char *passwd)
 {
 	char key[DESKEYLEN], resp[16];

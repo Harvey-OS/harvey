@@ -12,10 +12,10 @@
 
 #include "multiproto.h"
 struct {
-	char *name; 
-	void (*fn)(int, char**);
+	char *name;
+	void (*fn)(int, char **);
 } mains[] =
-{
+    {
 #include "multi.h"
 };
 
@@ -24,20 +24,20 @@ main(int argc, char **argv)
 {
 	int i;
 	char *cmd, *p;
-	
-	if(argc == 1){
+
+	if(argc == 1) {
 		fprint(2, "usage: multi cmd args...\n");
 		exits("usage");
 	}
-	
+
 	cmd = argv[1];
 	if(p = strrchr(cmd, '/'))
-		cmd = p+1;
+		cmd = p + 1;
 	argv++;
 	argc--;
 
-	for(i=0; i<nelem(mains); i++){
-		if(strcmp(cmd, mains[i].name) == 0){
+	for(i = 0; i < nelem(mains); i++) {
+		if(strcmp(cmd, mains[i].name) == 0) {
 			mains[i].fn(argc, argv);
 			return;
 		}

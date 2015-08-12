@@ -28,7 +28,8 @@ main(int argc, char **argv)
 	int status = 0;
 
 	now = time(0);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 't':
 		t = EARGF(usage());
 		now = strtoul(t, &s, 0);
@@ -38,9 +39,10 @@ main(int argc, char **argv)
 	case 'c':
 		nocreate = 1;
 		break;
-	default:	
+	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(!*argv)
 		usage();
@@ -61,11 +63,11 @@ touch(int nocreate, char *name)
 	stbuff.mtime = now;
 	if(dirwstat(name, &stbuff) >= 0)
 		return 0;
-	if(nocreate){
+	if(nocreate) {
 		fprint(2, "touch: %s: cannot wstat: %r\n", name);
 		return 1;
 	}
-	if((fd = create(name, OREAD|OEXCL, 0666)) < 0){
+	if((fd = create(name, OREAD | OEXCL, 0666)) < 0) {
 		fprint(2, "touch: %s: cannot create: %r\n", name);
 		return 1;
 	}

@@ -33,7 +33,7 @@ freetoc(Toc *t)
 	int i;
 
 	free(t->title);
-	for(i=0; i<t->ntrack; i++)
+	for(i = 0; i < t->ntrack; i++)
 		free(t->track[i].title);
 }
 
@@ -61,8 +61,7 @@ cdstatusthread(void *v)
 	Cdstatus s;
 
 	d = v;
-	
+
 	for(;;)
 		recv(d->cstat, &s);
-
 }

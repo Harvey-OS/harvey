@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-static Lock	privlock;
-static int	privinit = 0;
-static void	**privs;
+static Lock privlock;
+static int privinit = 0;
+static void **privs;
 
-extern void	**_privates;
-extern int	_nprivates;
+extern void **_privates;
+extern int _nprivates;
 
 void **
 privalloc(void)
@@ -23,9 +23,9 @@ privalloc(void)
 	void **p;
 	int i;
 	lock(&privlock);
-	if(!privinit){
+	if(!privinit) {
 		privinit = 1;
-		if(_nprivates){
+		if(_nprivates) {
 			_privates[0] = 0;
 			for(i = 1; i < _nprivates; i++)
 				_privates[i] = &_privates[i - 1];
@@ -33,7 +33,7 @@ privalloc(void)
 		}
 	}
 	p = privs;
-	if(p != nil){
+	if(p != nil) {
 		privs = *p;
 		*p = nil;
 	}
@@ -46,7 +46,7 @@ void
 privfree(void **p)
 {
 	lock(&privlock);
-	if(p != nil && privinit){
+	if(p != nil && privinit) {
 		*p = privs;
 		privs = p;
 	}

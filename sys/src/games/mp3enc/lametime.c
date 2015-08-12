@@ -46,7 +46,7 @@
 #define _BSD_EXTENSION
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <stdio.h>
@@ -60,9 +60,10 @@
 
 #include "lametime.h"
 
-double GetCPUTime ( void )
+double
+GetCPUTime(void)
 {
-    return clock () / (double) CLOCKS_PER_SEC;
+	return clock() / (double)CLOCKS_PER_SEC;
 }
 
 /*
@@ -74,25 +75,27 @@ double GetCPUTime ( void )
  * known bugs:  bad precision with time()
  */
 
-double GetRealTime ( void )			/* conforming:  SVr4, BSD 4.3 */
+double GetRealTime(void) /* conforming:  SVr4, BSD 4.3 */
 {
-    struct timeval  t;
+	struct timeval t;
 
-    if ( 0 != gettimeofday (&t, NULL) )
-        assert (0);
-    return t.tv_sec + 1.e-6 * t.tv_usec;
-} 
-
-int  lame_set_stream_binary_mode ( FILE* const fp )
-{
-    return 0;
+	if(0 != gettimeofday(&t, NULL))
+		assert(0);
+	return t.tv_sec + 1.e-6 * t.tv_usec;
 }
 
-off_t  lame_get_file_size ( const char* const filename )
+int
+lame_set_stream_binary_mode(FILE *const fp)
 {
-    struct stat       sb;
+	return 0;
+}
 
-    if ( 0 == stat ( filename, &sb ) )
-        return sb.st_size;
-    return (off_t) -1;
+off_t
+lame_get_file_size(const char *const filename)
+{
+	struct stat sb;
+
+	if(0 == stat(filename, &sb))
+		return sb.st_size;
+	return (off_t)-1;
 }

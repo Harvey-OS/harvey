@@ -15,10 +15,10 @@
 #include "vga.h"
 
 enum {
-	NSeqx		= 0x05,
-	NCrtx		= 0x19,
-	NGrx		= 0x09,
-	NAttrx		= 0x15,
+	NSeqx = 0x05,
+	NCrtx = 0x19,
+	NGrx = 0x09,
+	NAttrx = 0x15,
 };
 
 uint8_t
@@ -26,7 +26,7 @@ vgai(int32_t port)
 {
 	uint8_t data;
 
-	switch(port){
+	switch(port) {
 
 	case MiscR:
 	case Status0:
@@ -53,13 +53,13 @@ vgaxi(int32_t port, uint8_t index)
 {
 	uint8_t data;
 
-	switch(port){
+	switch(port) {
 
 	case Seqx:
 	case Crtx:
 	case Grx:
 		outportb(port, index);
-		data = inportb(port+1);
+		data = inportb(port + 1);
 		break;
 
 	case Attrx:
@@ -73,15 +73,14 @@ vgaxi(int32_t port, uint8_t index)
 		 * off bit 0x20.
 		 */
 		inportb(Status1);
-		if(index < 0x10){
+		if(index < 0x10) {
 			outportb(Attrx, index);
-			data = inportb(Attrx+1);
+			data = inportb(Attrx + 1);
 			inportb(Status1);
-			outportb(Attrx, 0x20|index);
-		}
-		else{
-			outportb(Attrx, 0x20|index);
-			data = inportb(Attrx+1);
+			outportb(Attrx, 0x20 | index);
+		} else {
+			outportb(Attrx, 0x20 | index);
+			data = inportb(Attrx + 1);
 		}
 		break;
 
@@ -97,7 +96,7 @@ vgaxi(int32_t port, uint8_t index)
 void
 vgao(int32_t port, uint8_t data)
 {
-	switch(port){
+	switch(port) {
 
 	case MiscW:
 	case FeatureW:
@@ -118,7 +117,7 @@ vgao(int32_t port, uint8_t data)
 void
 vgaxo(int32_t port, uint8_t index, uint8_t data)
 {
-	switch(port){
+	switch(port) {
 
 	case Seqx:
 	case Crtx:
@@ -129,32 +128,31 @@ vgaxo(int32_t port, uint8_t index, uint8_t data)
 		 * registers.
 		 */
 		outportb(port, index);
-		outportb(port+1, data);
+		outportb(port + 1, data);
 		break;
 
 	case Attrx:
 		inportb(Status1);
-		if(index < 0x10){
+		if(index < 0x10) {
 			outportb(Attrx, index);
 			outportb(Attrx, data);
 			inportb(Status1);
-			outportb(Attrx, 0x20|index);
-		}
-		else{
-			outportb(Attrx, 0x20|index);
+			outportb(Attrx, 0x20 | index);
+		} else {
+			outportb(Attrx, 0x20 | index);
 			outportb(Attrx, data);
 		}
 		break;
 
 	default:
 		error("vgaxo(0x%4.4lX, 0x%2.2uX, 0x%2.2uX): unknown port\n",
-			port, index, data);
+		      port, index, data);
 		break;
 	}
 }
 
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 
@@ -189,7 +187,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Mode *mode;
 	int vt, vde, vrs, vre;
@@ -197,10 +195,10 @@ init(Vga* vga, Ctlr* ctlr)
 
 	mode = vga->mode;
 
-	memset(vga->sequencer, 0, NSeqx*sizeof(vga->sequencer[0]));
-	memset(vga->crt, 0, NCrtx*sizeof(vga->crt[0]));
-	memset(vga->graphics, 0, NGrx*sizeof(vga->graphics[0]));
-	memset(vga->attribute, 0, NAttrx*sizeof(vga->attribute[0]));
+	memset(vga->sequencer, 0, NSeqx * sizeof(vga->sequencer[0]));
+	memset(vga->crt, 0, NCrtx * sizeof(vga->crt[0]));
+	memset(vga->graphics, 0, NGrx * sizeof(vga->graphics[0]));
+	memset(vga->attribute, 0, NAttrx * sizeof(vga->attribute[0]));
 	if(dflag)
 		memset(vga->palette, 0, sizeof(vga->palette));
 
@@ -212,13 +210,12 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->misc = 0x23;
 	if(mode->frequency == VgaFreq1)
 		vga->misc |= 0x04;
-	if(mode->hsync && mode->vsync){
+	if(mode->hsync && mode->vsync) {
 		if(mode->hsync == '-')
 			vga->misc |= 0x40;
 		if(mode->vsync == '-')
 			vga->misc |= 0x80;
-	}
-	else{
+	} else {
 		if(mode->y < 480)
 			vga->misc |= 0x40;
 		else if(mode->y < 400)
@@ -245,25 +242,25 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	memset(vga->crt, 0, NCrtx);
 
-	vga->crt[0x00] = (mode->ht>>3)-5;
-	vga->crt[0x01] = (mode->x>>3)-1;
-	vga->crt[0x02] = (mode->shb>>3)-1;
+	vga->crt[0x00] = (mode->ht >> 3) - 5;
+	vga->crt[0x01] = (mode->x >> 3) - 1;
+	vga->crt[0x02] = (mode->shb >> 3) - 1;
 
 	/*
 	 * End Horizontal Blank is a 6-bit field, 5-bits
 	 * in Crt3, high bit in Crt5.
 	 */
-	tmp = mode->ehb>>3;
-	vga->crt[0x03] = 0x80|(tmp & 0x1F);
+	tmp = mode->ehb >> 3;
+	vga->crt[0x03] = 0x80 | (tmp & 0x1F);
 	if(tmp & 0x20)
 		vga->crt[0x05] |= 0x80;
 
 	if(mode->shs == 0)
 		mode->shs = mode->shb;
-	vga->crt[0x04] = mode->shs>>3;
+	vga->crt[0x04] = mode->shs >> 3;
 	if(mode->ehs == 0)
 		mode->ehs = mode->ehb;
-	vga->crt[0x05] |= ((mode->ehs>>3) & 0x1F);
+	vga->crt[0x05] |= ((mode->ehs >> 3) & 0x1F);
 
 	/*
 	 * Vertical Total is 10-bits, 8 in Crt6, the high
@@ -279,14 +276,14 @@ init(Vga* vga, Ctlr* ctlr)
 	vrs = mode->vrs;
 	vre = mode->vre;
 
-	if(mode->interlace == 'v'){
+	if(mode->interlace == 'v') {
 		vt /= 2;
 		vde /= 2;
 		vrs /= 2;
 		vre /= 2;
 	}
 
-	tmp = vt-2;
+	tmp = vt - 2;
 	vga->crt[0x06] = tmp;
 	if(tmp & 0x100)
 		vga->crt[0x07] |= 0x01;
@@ -300,9 +297,9 @@ init(Vga* vga, Ctlr* ctlr)
 	if(tmp & 0x200)
 		vga->crt[0x07] |= 0x80;
 
-	vga->crt[0x11] = 0x20|(vre & 0x0F);
+	vga->crt[0x11] = 0x20 | (vre & 0x0F);
 
-	tmp = vde-1;
+	tmp = vde - 1;
 	vga->crt[0x12] = tmp;
 	if(tmp & 0x100)
 		vga->crt[0x07] |= 0x02;
@@ -315,25 +312,23 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vrs & 0x200)
 		vga->crt[0x09] |= 0x20;
 
-	vga->crt[0x16] = (vrs+1);
+	vga->crt[0x16] = (vrs + 1);
 
 	vga->crt[0x17] = 0x83;
-	tmp = ((vga->virtx*mode->z)/8);
-	if(tmp >= 512){
+	tmp = ((vga->virtx * mode->z) / 8);
+	if(tmp >= 512) {
 		vga->crt[0x14] |= 0x60;
 		tmp /= 8;
-	}
-	else if(tmp >= 256){
+	} else if(tmp >= 256) {
 		vga->crt[0x17] |= 0x08;
 		tmp /= 4;
-	}
-	else{
+	} else {
 		vga->crt[0x17] |= 0x40;
 		tmp /= 2;
 	}
 	vga->crt[0x13] = tmp;
 
-	if(mode->x*mode->y*mode->z/8 > 64*1024)
+	if(mode->x * mode->y * mode->z / 8 > 64 * 1024)
 		vga->crt[0x17] |= 0x20;
 
 	vga->crt[0x18] = 0x7FF;
@@ -376,7 +371,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 
@@ -417,7 +412,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 
@@ -449,32 +444,32 @@ dump(Vga* vga, Ctlr* ctlr)
 	Bprint(&stdout, "%ld %ld\n", vga->virtx, vga->virty);
 	printitem(ctlr->name, "panning");
 	Bprint(&stdout, "%s\n", vga->panning ? "on" : "off");
-	if(vga->f[0]){
+	if(vga->f[0]) {
 		printitem(ctlr->name, "clock[0] f");
 		Bprint(&stdout, "%9ld\n", vga->f[0]);
 		printitem(ctlr->name, "clock[0] d i m");
 		Bprint(&stdout, "%9ld %8ld       - %8ld\n",
-			vga->d[0], vga->i[0], vga->m[0]);
+		       vga->d[0], vga->i[0], vga->m[0]);
 		printitem(ctlr->name, "clock[0] n p q r");
 		Bprint(&stdout, "%9ld %8ld       - %8ld %8ld\n",
-			vga->n[0], vga->p[0], vga->q[0], vga->r[0]);
+		       vga->n[0], vga->p[0], vga->q[0], vga->r[0]);
 	}
-	if(vga->f[1]){
+	if(vga->f[1]) {
 		printitem(ctlr->name, "clock[1] f");
 		Bprint(&stdout, "%9ld\n", vga->f[1]);
 		printitem(ctlr->name, "clock[1] d i m");
 		Bprint(&stdout, "%9ld %8ld       - %8ld\n",
-			vga->d[1], vga->i[1], vga->m[1]);
+		       vga->d[1], vga->i[1], vga->m[1]);
 		printitem(ctlr->name, "clock[1] n p q r");
 		Bprint(&stdout, "%9ld %8ld       - %8ld %8ld\n",
-			vga->n[1], vga->p[1], vga->q[1], vga->r[1]);
+		       vga->n[1], vga->p[1], vga->q[1], vga->r[1]);
 	}
 
-	if(vga->vma || vga->vmb){
+	if(vga->vma || vga->vmb) {
 		printitem(ctlr->name, "vm a b");
 		Bprint(&stdout, "%9lud %8lud\n", vga->vma, vga->vmb);
 	}
-	if(vga->vmz){
+	if(vga->vmz) {
 		printitem(ctlr->name, "vmz");
 		Bprint(&stdout, "%9lud\n", vga->vmz);
 	}
@@ -486,10 +481,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr generic = {
-	"vga",				/* name */
-	snarf,				/* snarf */
-	0,				/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "vga", /* name */
+    snarf, /* snarf */
+    0,     /* options */
+    init,  /* init */
+    load,  /* load */
+    dump,  /* dump */
 };

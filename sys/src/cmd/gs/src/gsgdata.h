@@ -27,9 +27,9 @@
 /* Interface for glyph data access */
 
 #ifndef gsgdata_INCLUDED
-#  define gsgdata_INCLUDED
+#define gsgdata_INCLUDED
 
-#include "gsstype.h"		/* for extern_st */
+#include "gsstype.h" /* for extern_st */
 
 /*
  * Define the structure used to return the data for a glyph upon
@@ -64,14 +64,14 @@
 
 typedef struct gs_glyph_data_procs_s gs_glyph_data_procs_t;
 #ifndef gs_glyph_data_DEFINED
-#   define gs_glyph_data_DEFINED
+#define gs_glyph_data_DEFINED
 typedef struct gs_glyph_data_s gs_glyph_data_t;
 #endif
 struct gs_glyph_data_s {
-    gs_const_bytestring bits;	/* pointer to actual data returned here */
-    const gs_glyph_data_procs_t *procs;
-    void *proc_data;
-    gs_memory_t *memory;	/* allocator to use (may be different than font) */
+	gs_const_bytestring bits; /* pointer to actual data returned here */
+	const gs_glyph_data_procs_t *procs;
+	void *proc_data;
+	gs_memory_t *memory; /* allocator to use (may be different than font) */
 };
 extern_st(st_glyph_data);
 #define ST_GLYPH_DATA_NUM_PTRS 2
@@ -81,12 +81,12 @@ extern_st(st_glyph_data);
  * gs_glyph_data_{substring,free} procedures declared below.
  */
 struct gs_glyph_data_procs_s {
-#define GS_PROC_GLYPH_DATA_FREE(proc)\
-  void proc(gs_glyph_data_t *pgd, client_name_t cname)
-    GS_PROC_GLYPH_DATA_FREE((*free));
-#define GS_PROC_GLYPH_DATA_SUBSTRING(proc)\
-  int proc(gs_glyph_data_t *pgd, uint offset, uint size)
-    GS_PROC_GLYPH_DATA_SUBSTRING((*substring));
+#define GS_PROC_GLYPH_DATA_FREE(proc) \
+	void proc(gs_glyph_data_t *pgd, client_name_t cname)
+	GS_PROC_GLYPH_DATA_FREE((*free));
+#define GS_PROC_GLYPH_DATA_SUBSTRING(proc) \
+	int proc(gs_glyph_data_t *pgd, uint offset, uint size)
+	GS_PROC_GLYPH_DATA_SUBSTRING((*substring));
 };
 
 /*
@@ -129,7 +129,7 @@ void gs_glyph_data_free(gs_glyph_data_t *pgd, client_name_t cname);
  * Initialize glyph data from a string or from bytes.
  */
 #ifndef gs_font_DEFINED
-#  define gs_font_DEFINED
+#define gs_font_DEFINED
 typedef struct gs_font_s gs_font;
 #endif
 void gs_glyph_data_from_string(gs_glyph_data_t *pgd, const byte *data,

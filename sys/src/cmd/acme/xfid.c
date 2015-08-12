@@ -20,21 +20,19 @@
 #include "dat.h"
 #include "fns.h"
 
-enum
-{
-	Ctlsize	= 5*12
+enum {
+	Ctlsize = 5 * 12
 };
 
-char	Edel[]		= "deleted window";
-char	Ebadctl[]		= "ill-formed control message";
-char	Ebadaddr[]	= "bad address syntax";
-char	Eaddr[]		= "address out of range";
-char	Einuse[]		= "already in use";
-char	Ebadevent[]	= "bad event syntax";
+char Edel[] = "deleted window";
+char Ebadctl[] = "ill-formed control message";
+char Ebadaddr[] = "bad address syntax";
+char Eaddr[] = "address out of range";
+char Einuse[] = "already in use";
+char Ebadevent[] = "bad event syntax";
 extern char Eperm[];
 
-static
-void
+static void
 clampaddr(Window *w)
 {
 	if(w->addr.q0 < 0)
@@ -51,11 +49,11 @@ void
 xfidctl(void *arg)
 {
 	Xfid *x;
-	void (*f)(Xfid*);
+	void (*f)(Xfid *);
 
 	threadsetname("xfidctlthread");
 	x = arg;
-	for(;;){
+	for(;;) {
 		f = recvp(x->c);
 		(*f)(x);
 		flushimage(display, 1);
@@ -74,13 +72,13 @@ xfidflush(Xfid *x)
 
 	/* search windows for matching tag */
 	qlock(&row);
-	for(j=0; j<row.ncol; j++){
+	for(j = 0; j < row.ncol; j++) {
 		c = row.col[j];
-		for(i=0; i<c->nw; i++){
+		for(i = 0; i < c->nw; i++) {
 			w = c->w[i];
 			winlock(w, 'E');
 			wx = w->eventx;
-			if(wx!=nil && wx->tag==x->oldtag){
+			if(wx != nil && wx->tag == x->oldtag) {
 				w->eventx = nil;
 				wx->flushed = TRUE;
 				sendp(wx->c, nil);
@@ -107,14 +105,14 @@ xfidopen(Xfid *x)
 
 	w = x->f->w;
 	t = &w->body;
-	if(w){
+	if(w) {
 		winlock(w, 'E');
 		q = FILE(x->f->qid);
-		switch(q){
+		switch(q) {
 		case QWaddr:
-			if(w->nopen[q]++ == 0){
-				w->addr = (Range){0,0};
-				w->limit = (Range){-1,-1};
+			if(w->nopen[q]++ == 0) {
+				w->addr = (Range){0, 0};
+				w->limit = (Range){-1, -1};
 			}
 			break;
 		case QWdata:
@@ -122,8 +120,8 @@ xfidopen(Xfid *x)
 			w->nopen[q]++;
 			break;
 		case QWevent:
-			if(w->nopen[q]++ == 0){
-				if(!w->isdir && w->col!=nil){
+			if(w->nopen[q]++ == 0) {
+				if(!w->isdir && w->col != nil) {
 					w->filemenu = FALSE;
 					winsettag(w);
 				}
@@ -138,13 +136,13 @@ xfidopen(Xfid *x)
 			 * though, we'd need to squirrel away the data in case it's
 			 * modified during the operation, e.g. by |sort
 			 */
-			if(w->rdselfd > 0){
+			if(w->rdselfd > 0) {
 				winunlock(w);
 				respond(x, &fc, Einuse);
 				return;
 			}
 			w->rdselfd = tempfile();
-			if(w->rdselfd < 0){
+			if(w->rdselfd < 0) {
 				winunlock(w);
 				respond(x, &fc, "can't create temp file");
 				return;
@@ -154,13 +152,13 @@ xfidopen(Xfid *x)
 			q1 = t->q1;
 			r = fbufalloc();
 			s = fbufalloc();
-			while(q0 < q1){
+			while(q0 < q1) {
 				n = q1 - q0;
-				if(n > BUFSIZE/UTFmax)
-					n = BUFSIZE/UTFmax;
+				if(n > BUFSIZE / UTFmax)
+					n = BUFSIZE / UTFmax;
 				bufread(t->file, q0, r, n);
-				m = snprint(s, BUFSIZE+1, "%.*S", n, r);
-				if(write(w->rdselfd, s, m) != m){
+				m = snprint(s, BUFSIZE + 1, "%.*S", n, r);
+				if(write(w->rdselfd, s, m) != m) {
 					warning(nil, "can't write temp file for pipe command %r\n");
 					break;
 				}
@@ -178,7 +176,7 @@ xfidopen(Xfid *x)
 			w->nomark = TRUE;
 			break;
 		case QWeditout:
-			if(editing == FALSE){
+			if(editing == FALSE) {
 				winunlock(w);
 				respond(x, &fc, Eperm);
 				return;
@@ -189,7 +187,7 @@ xfidopen(Xfid *x)
 		winunlock(w);
 	}
 	fc.qid = x->f->qid;
-	fc.iounit = messagesize-IOHDRSZ;
+	fc.iounit = messagesize - IOHDRSZ;
 	x->f->open = TRUE;
 	respond(x, &fc, nil);
 }
@@ -204,7 +202,7 @@ xfidclose(Xfid *x)
 
 	w = x->f->w;
 	x->f->busy = FALSE;
-	if(x->f->open == FALSE){
+	if(x->f->open == FALSE) {
 		if(w != nil)
 			winclose(w);
 		respond(x, &fc, nil);
@@ -212,12 +210,12 @@ xfidclose(Xfid *x)
 	}
 
 	x->f->open = FALSE;
-	if(w){
+	if(w) {
 		winlock(w, 'E');
 		q = FILE(x->f->qid);
-		switch(q){
+		switch(q) {
 		case QWctl:
-			if(w->ctlfid!=~0 && w->ctlfid==x->f->fid){
+			if(w->ctlfid != ~0 && w->ctlfid == x->f->fid) {
 				w->ctlfid = ~0;
 				qunlock(&w->ctllock);
 			}
@@ -225,17 +223,17 @@ xfidclose(Xfid *x)
 		case QWdata:
 		case QWxdata:
 			w->nomark = FALSE;
-			/* fall through */
+		/* fall through */
 		case QWaddr:
-		case QWevent:	/* BUG: do we need to shut down Xfid? */
-			if(--w->nopen[q] == 0){
+		case QWevent: /* BUG: do we need to shut down Xfid? */
+			if(--w->nopen[q] == 0) {
 				if(q == QWdata || q == QWxdata)
 					w->nomark = FALSE;
-				if(q==QWevent && !w->isdir && w->col!=nil){
+				if(q == QWevent && !w->isdir && w->col != nil) {
 					w->filemenu = TRUE;
 					winsettag(w);
 				}
-				if(q == QWevent){
+				if(q == QWevent) {
 					free(w->dumpstr);
 					free(w->dumpdir);
 					w->dumpstr = nil;
@@ -252,7 +250,7 @@ xfidclose(Xfid *x)
 			t = &w->body;
 			/* before: only did this if !w->noscroll, but that didn't seem right in practice */
 			textshow(t, min(w->wrselrange.q0, t->file->nc),
-				min(w->wrselrange.q1, t->file->nc), 1);
+				 min(w->wrselrange.q1, t->file->nc), 1);
 			textscrdraw(t);
 			break;
 		}
@@ -274,9 +272,9 @@ xfidread(Xfid *x)
 
 	q = FILE(x->f->qid);
 	w = x->f->w;
-	if(w == nil){
+	if(w == nil) {
 		fc.count = 0;
-		switch(q){
+		switch(q) {
 		case Qcons:
 		case Qlabel:
 			break;
@@ -291,13 +289,13 @@ xfidread(Xfid *x)
 		return;
 	}
 	winlock(w, 'F');
-	if(w->col == nil){
+	if(w->col == nil) {
 		winunlock(w);
 		respond(x, &fc, Edel);
 		return;
 	}
 	off = x->offset;
-	switch(q){
+	switch(q) {
 	case QWaddr:
 		textcommit(&w->body, TRUE);
 		clampaddr(w);
@@ -318,10 +316,10 @@ xfidread(Xfid *x)
 		n = strlen(b);
 		if(off > n)
 			off = n;
-		if(off+x->count > n)
-			x->count = n-off;
+		if(off + x->count > n)
+			x->count = n - off;
 		fc.count = x->count;
-		fc.data = b+off;
+		fc.data = b + off;
 		respond(x, &fc, nil);
 		if(b != buf)
 			free(b);
@@ -333,7 +331,7 @@ xfidread(Xfid *x)
 
 	case QWdata:
 		/* BUG: what should happen if q1 > q0? */
-		if(w->addr.q0 > w->body.file->nc){
+		if(w->addr.q0 > w->body.file->nc) {
 			respond(x, &fc, Eaddr);
 			break;
 		}
@@ -343,7 +341,7 @@ xfidread(Xfid *x)
 
 	case QWxdata:
 		/* BUG: what should happen if q1 > q0? */
-		if(w->addr.q0 > w->body.file->nc){
+		if(w->addr.q0 > w->body.file->nc) {
 			respond(x, &fc, Eaddr);
 			break;
 		}
@@ -361,7 +359,7 @@ xfidread(Xfid *x)
 			n = BUFSIZE;
 		b = fbufalloc();
 		n = read(w->rdselfd, b, n);
-		if(n < 0){
+		if(n < 0) {
 			respond(x, &fc, "I/O error in temp file");
 			break;
 		}
@@ -378,7 +376,7 @@ xfidread(Xfid *x)
 	winunlock(w);
 }
 
-static Rune*
+static Rune *
 fullrunewrite(Xfid *x, int *inr)
 {
 	int q, cnt, c, nb, nr;
@@ -386,24 +384,24 @@ fullrunewrite(Xfid *x, int *inr)
 
 	q = x->f->nrpart;
 	cnt = x->count;
-	if(q > 0){
-		memmove(x->data+q, x->data, cnt);	/* there's room; see fsysproc */
+	if(q > 0) {
+		memmove(x->data + q, x->data, cnt); /* there's room; see fsysproc */
 		memmove(x->data, x->f->rpart, q);
 		cnt += q;
 		x->f->nrpart = 0;
 	}
 	r = runemalloc(cnt);
-	cvttorunes(x->data, cnt-UTFmax, r, &nb, &nr, nil);
+	cvttorunes(x->data, cnt - UTFmax, r, &nb, &nr, nil);
 	/* approach end of buffer */
-	while(fullrune(x->data+nb, cnt-nb)){
+	while(fullrune(x->data + nb, cnt - nb)) {
 		c = nb;
-		nb += chartorune(&r[nr], x->data+c);
+		nb += chartorune(&r[nr], x->data + c);
 		if(r[nr])
 			nr++;
 	}
-	if(nb < cnt){
-		memmove(x->f->rpart, x->data+nb, cnt-nb);
-		x->f->nrpart = cnt-nb;
+	if(nb < cnt) {
+		memmove(x->f->rpart, x->data + nb, cnt - nb);
+		x->f->nrpart = cnt - nb;
 	}
 	*inr = nr;
 	return r;
@@ -423,22 +421,22 @@ xfidwrite(Xfid *x)
 
 	qid = FILE(x->f->qid);
 	w = x->f->w;
-	if(w){
+	if(w) {
 		c = 'F';
-		if(qid==QWtag || qid==QWbody)
+		if(qid == QWtag || qid == QWbody)
 			c = 'E';
 		winlock(w, c);
-		if(w->col == nil){
+		if(w->col == nil) {
 			winunlock(w);
 			respond(x, &fc, Edel);
 			return;
 		}
 	}
 	x->data[x->count] = 0;
-	switch(qid){
+	switch(qid) {
 	case Qcons:
 		w = errorwin(x->f->mntdir, 'X');
-		t=&w->body;
+		t = &w->body;
 		goto BodyTag;
 
 	case Qlabel:
@@ -452,13 +450,13 @@ xfidwrite(Xfid *x)
 		t = &w->body;
 		wincommit(w, t);
 		eval = TRUE;
-		a = address(x->f->mntdir, t, w->limit, w->addr, r, 0, nr, rgetc, &eval, (uint*)&nb);
+		a = address(x->f->mntdir, t, w->limit, w->addr, r, 0, nr, rgetc, &eval, (uint *)&nb);
 		free(r);
-		if(nb < nr){
+		if(nb < nr) {
 			respond(x, &fc, Ebadaddr);
 			break;
 		}
-		if(!eval){
+		if(!eval) {
 			respond(x, &fc, Eaddr);
 			break;
 		}
@@ -475,7 +473,7 @@ xfidwrite(Xfid *x)
 		else
 			err = edittext(nil, 0, r, nr);
 		free(r);
-		if(err != nil){
+		if(err != nil) {
 			respond(x, &fc, err);
 			break;
 		}
@@ -501,18 +499,18 @@ xfidwrite(Xfid *x)
 		a = w->addr;
 		t = &w->body;
 		wincommit(w, t);
-		if(a.q0>t->file->nc || a.q1>t->file->nc){
+		if(a.q0 > t->file->nc || a.q1 > t->file->nc) {
 			respond(x, &fc, Eaddr);
 			break;
 		}
 		r = runemalloc(x->count);
 		cvttorunes(x->data, x->count, r, &nb, &nr, nil);
-		if(w->nomark == FALSE){
+		if(w->nomark == FALSE) {
 			seq++;
 			filemark(t->file);
 		}
 		q0 = a.q0;
-		if(a.q1 > q0){
+		if(a.q1 > q0) {
 			textdelete(t, q0, a.q1, TRUE);
 			w->addr.q1 = q0;
 		}
@@ -525,7 +523,7 @@ xfidwrite(Xfid *x)
 			tq1 += nr;
 		textsetselect(t, tq0, tq1);
 		if(!t->w->noscroll)
-			textshow(t, q0, q0+nr, 0);
+			textshow(t, q0, q0 + nr, 0);
 		textscrdraw(t);
 		winsettag(w);
 		free(r);
@@ -545,25 +543,25 @@ xfidwrite(Xfid *x)
 
 	BodyTag:
 		r = fullrunewrite(x, &nr);
-		if(nr > 0){
+		if(nr > 0) {
 			wincommit(w, t);
-			if(qid == QWwrsel){
+			if(qid == QWwrsel) {
 				q0 = w->wrselrange.q1;
 				if(q0 > t->file->nc)
 					q0 = t->file->nc;
-			}else
+			} else
 				q0 = t->file->nc;
 			if(qid == QWtag)
 				textinsert(t, q0, r, nr, TRUE);
-			else{
-				if(w->nomark == FALSE){
+			else {
+				if(w->nomark == FALSE) {
 					seq++;
 					filemark(t->file);
 				}
 				q0 = textbsinsert(t, q0, r, nr, TRUE, &nr);
-				textsetselect(t, t->q0, t->q1);	/* insert could leave it somewhere else */
-				if(qid!=QWwrsel && !t->w->noscroll)
-					textshow(t, q0+nr, q0+nr, 1);
+				textsetselect(t, t->q0, t->q1); /* insert could leave it somewhere else */
+				if(qid != QWwrsel && !t->w->noscroll)
+					textshow(t, q0 + nr, q0 + nr, 1);
 				textscrdraw(t);
 			}
 			winsettag(w);
@@ -595,31 +593,29 @@ xfidctlwrite(Xfid *x, Window *w)
 	Text *t;
 
 	err = nil;
-	e = x->data+x->count;
+	e = x->data + x->count;
 	scrdraw = FALSE;
 	settag = FALSE;
 	isfbuf = TRUE;
 	if(x->count < RBUFSIZE)
 		r = fbufalloc();
-	else{
+	else {
 		isfbuf = FALSE;
-		r = emalloc(x->count*UTFmax+1);
+		r = emalloc(x->count * UTFmax + 1);
 	}
 	x->data[x->count] = 0;
 	textcommit(&w->tag, TRUE);
-	for(n=0; n<x->count; n+=m){
-		p = x->data+n;
-		if(strncmp(p, "lock", 4) == 0){	/* make window exclusive use */
+	for(n = 0; n < x->count; n += m) {
+		p = x->data + n;
+		if(strncmp(p, "lock", 4) == 0) { /* make window exclusive use */
 			qlock(&w->ctllock);
 			w->ctlfid = x->f->fid;
 			m = 4;
-		}else
-		if(strncmp(p, "unlock", 6) == 0){	/* release exclusive use */
+		} else if(strncmp(p, "unlock", 6) == 0) { /* release exclusive use */
 			w->ctlfid = ~0;
 			qunlock(&w->ctllock);
 			m = 6;
-		}else
-		if(strncmp(p, "clean", 5) == 0){	/* mark window 'clean', seq=0 */
+		} else if(strncmp(p, "clean", 5) == 0) { /* mark window 'clean', seq=0 */
 			t = &w->body;
 			t->eq0 = ~0;
 			filereset(t->file);
@@ -627,103 +623,93 @@ xfidctlwrite(Xfid *x, Window *w)
 			w->dirty = FALSE;
 			settag = TRUE;
 			m = 5;
-		}else
-		if(strncmp(p, "dirty", 5) == 0){	/* mark window 'dirty' */
+		} else if(strncmp(p, "dirty", 5) == 0) { /* mark window 'dirty' */
 			t = &w->body;
 			/* doesn't change sequence number, so "Put" won't appear.  it shouldn't. */
 			t->file->mod = TRUE;
 			w->dirty = TRUE;
 			settag = TRUE;
 			m = 5;
-		}else
-		if(strncmp(p, "show", 4) == 0){	/* show dot */
+		} else if(strncmp(p, "show", 4) == 0) { /* show dot */
 			t = &w->body;
 			textshow(t, t->q0, t->q1, 1);
 			m = 4;
-		}else
-		if(strncmp(p, "name ", 5) == 0){	/* set file name */
-			pp = p+5;
+		} else if(strncmp(p, "name ", 5) == 0) { /* set file name */
+			pp = p + 5;
 			m = 5;
-			q = memchr(pp, '\n', e-pp);
-			if(q==nil || q==pp){
+			q = memchr(pp, '\n', e - pp);
+			if(q == nil || q == pp) {
 				err = Ebadctl;
 				break;
 			}
 			*q = 0;
 			nulls = FALSE;
-			cvttorunes(pp, q-pp, r, &nb, &nr, &nulls);
-			if(nulls){
+			cvttorunes(pp, q - pp, r, &nb, &nr, &nulls);
+			if(nulls) {
 				err = "nulls in file name";
 				break;
 			}
-			for(i=0; i<nr; i++)
-				if(r[i] <= ' '){
+			for(i = 0; i < nr; i++)
+				if(r[i] <= ' ') {
 					err = "bad character in file name";
 					goto out;
 				}
-out:
+		out:
 			seq++;
 			filemark(w->body.file);
 			winsetname(w, r, nr);
-			m += (q+1) - pp;
-		}else
-		if(strncmp(p, "dump ", 5) == 0){	/* set dump string */
-			pp = p+5;
+			m += (q + 1) - pp;
+		} else if(strncmp(p, "dump ", 5) == 0) { /* set dump string */
+			pp = p + 5;
 			m = 5;
-			q = memchr(pp, '\n', e-pp);
-			if(q==nil || q==pp){
+			q = memchr(pp, '\n', e - pp);
+			if(q == nil || q == pp) {
 				err = Ebadctl;
 				break;
 			}
 			*q = 0;
 			nulls = FALSE;
-			cvttorunes(pp, q-pp, r, &nb, &nr, &nulls);
-			if(nulls){
+			cvttorunes(pp, q - pp, r, &nb, &nr, &nulls);
+			if(nulls) {
 				err = "nulls in dump string";
 				break;
 			}
 			w->dumpstr = runetobyte(r, nr);
-			m += (q+1) - pp;
-		}else
-		if(strncmp(p, "dumpdir ", 8) == 0){	/* set dump directory */
-			pp = p+8;
+			m += (q + 1) - pp;
+		} else if(strncmp(p, "dumpdir ", 8) == 0) { /* set dump directory */
+			pp = p + 8;
 			m = 8;
-			q = memchr(pp, '\n', e-pp);
-			if(q==nil || q==pp){
+			q = memchr(pp, '\n', e - pp);
+			if(q == nil || q == pp) {
 				err = Ebadctl;
 				break;
 			}
 			*q = 0;
 			nulls = FALSE;
-			cvttorunes(pp, q-pp, r, &nb, &nr, &nulls);
-			if(nulls){
+			cvttorunes(pp, q - pp, r, &nb, &nr, &nulls);
+			if(nulls) {
 				err = "nulls in dump directory string";
 				break;
 			}
 			w->dumpdir = runetobyte(r, nr);
-			m += (q+1) - pp;
-		}else
-		if(strncmp(p, "delete", 6) == 0){	/* delete for sure */
+			m += (q + 1) - pp;
+		} else if(strncmp(p, "delete", 6) == 0) { /* delete for sure */
 			colclose(w->col, w, TRUE);
 			m = 6;
-		}else
-		if(strncmp(p, "del", 3) == 0){	/* delete, but check dirty */
-			if(!winclean(w, TRUE)){
+		} else if(strncmp(p, "del", 3) == 0) { /* delete, but check dirty */
+			if(!winclean(w, TRUE)) {
 				err = "file dirty";
 				break;
 			}
 			colclose(w->col, w, TRUE);
 			m = 3;
-		}else
-		if(strncmp(p, "get", 3) == 0){	/* get file */
+		} else if(strncmp(p, "get", 3) == 0) { /* get file */
 			get(&w->body, nil, nil, FALSE, XXX, nil, 0);
 			m = 3;
-		}else
-		if(strncmp(p, "put", 3) == 0){	/* put file */
+		} else if(strncmp(p, "put", 3) == 0) { /* put file */
 			put(&w->body, nil, nil, XXX, XXX, nil, 0);
 			m = 3;
-		}else
-		if(strncmp(p, "dot=addr", 8) == 0){	/* set dot */
+		} else if(strncmp(p, "dot=addr", 8) == 0) { /* set dot */
 			textcommit(&w->body, TRUE);
 			clampaddr(w);
 			w->body.q0 = w->addr.q0;
@@ -731,50 +717,41 @@ out:
 			textsetselect(&w->body, w->body.q0, w->body.q1);
 			settag = TRUE;
 			m = 8;
-		}else
-		if(strncmp(p, "addr=dot", 8) == 0){	/* set addr */
+		} else if(strncmp(p, "addr=dot", 8) == 0) { /* set addr */
 			w->addr.q0 = w->body.q0;
 			w->addr.q1 = w->body.q1;
 			m = 8;
-		}else
-		if(strncmp(p, "limit=addr", 10) == 0){	/* set limit */
+		} else if(strncmp(p, "limit=addr", 10) == 0) { /* set limit */
 			textcommit(&w->body, TRUE);
 			clampaddr(w);
 			w->limit.q0 = w->addr.q0;
 			w->limit.q1 = w->addr.q1;
 			m = 10;
-		}else
-		if(strncmp(p, "nomark", 6) == 0){	/* turn off automatic marking */
+		} else if(strncmp(p, "nomark", 6) == 0) { /* turn off automatic marking */
 			w->nomark = TRUE;
 			m = 6;
-		}else
-		if(strncmp(p, "mark", 4) == 0){	/* mark file */
+		} else if(strncmp(p, "mark", 4) == 0) { /* mark file */
 			seq++;
 			filemark(w->body.file);
 			settag = TRUE;
 			m = 4;
-		}else
-		if(strncmp(p, "nomenu", 6) == 0){	/* turn off automatic menu */
+		} else if(strncmp(p, "nomenu", 6) == 0) { /* turn off automatic menu */
 			w->filemenu = FALSE;
 			m = 6;
-		}else
-		if(strncmp(p, "menu", 4) == 0){	/* enable automatic menu */
+		} else if(strncmp(p, "menu", 4) == 0) { /* enable automatic menu */
 			w->filemenu = TRUE;
 			m = 4;
-		}else
-		if(strncmp(p, "noscroll", 8) == 0){	/* turn off automatic scrolling */
+		} else if(strncmp(p, "noscroll", 8) == 0) { /* turn off automatic scrolling */
 			w->noscroll = TRUE;
 			m = 8;
-		}else
-		if(strncmp(p, "cleartag", 8) == 0){	/* wipe tag right of bar */
+		} else if(strncmp(p, "cleartag", 8) == 0) { /* wipe tag right of bar */
 			wincleartag(w);
 			settag = TRUE;
 			m = 8;
-		}else
-		if(strncmp(p, "scroll", 6) == 0){	/* turn on automatic scrolling (writes to body only) */
+		} else if(strncmp(p, "scroll", 6) == 0) { /* turn on automatic scrolling (writes to body only) */
 			w->noscroll = FALSE;
 			m = 6;
-		}else{
+		} else {
 			err = Ebadctl;
 			break;
 		}
@@ -812,13 +789,13 @@ xfideventwrite(Xfid *x, Window *w)
 	isfbuf = TRUE;
 	if(x->count < RBUFSIZE)
 		r = fbufalloc();
-	else{
+	else {
 		isfbuf = FALSE;
-		r = emalloc(x->count*UTFmax+1);
+		r = emalloc(x->count * UTFmax + 1);
 	}
-	for(n=0; n<x->count; n+=m){
-		p = x->data+n;
-		w->owner = *p++;	/* disgusting */
+	for(n = 0; n < x->count; n += m) {
+		p = x->data + n;
+		w->owner = *p++; /* disgusting */
 		c = *p++;
 		while(*p == ' ')
 			p++;
@@ -836,18 +813,18 @@ xfideventwrite(Xfid *x, Window *w)
 			p++;
 		if(*p++ != '\n')
 			goto Rescue;
-		m = p-(x->data+n);
-		if('a'<=c && c<='z')
+		m = p - (x->data + n);
+		if('a' <= c && c <= 'z')
 			t = &w->tag;
-		else if('A'<=c && c<='Z')
+		else if('A' <= c && c <= 'Z')
 			t = &w->body;
 		else
 			goto Rescue;
-		if(q0>t->file->nc || q1>t->file->nc || q0>q1)
+		if(q0 > t->file->nc || q1 > t->file->nc || q0 > q1)
 			goto Rescue;
 
-		qlock(&row);	/* just like mousethread */
-		switch(c){
+		qlock(&row); /* just like mousethread */
+		switch(c) {
 		case 'x':
 		case 'X':
 			execute(t, q0, q1, TRUE, nil);
@@ -861,10 +838,9 @@ xfideventwrite(Xfid *x, Window *w)
 			goto Rescue;
 		}
 		qunlock(&row);
-
 	}
 
-    Out:
+Out:
 	if(isfbuf)
 		fbuffree(r);
 	else
@@ -875,7 +851,7 @@ xfideventwrite(Xfid *x, Window *w)
 	respond(x, &fc, err);
 	return;
 
-    Rescue:
+Rescue:
 	err = Ebadevent;
 	goto Out;
 }
@@ -897,16 +873,16 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 	b = fbufalloc();
 	b1 = fbufalloc();
 	n = 0;
-	if(qid==w->utflastqid && off>=w->utflastboff && w->utflastq<=q1){
+	if(qid == w->utflastqid && off >= w->utflastboff && w->utflastq <= q1) {
 		boff = w->utflastboff;
 		q = w->utflastq;
-	}else{
+	} else {
 		/* BUG: stupid code: scan from beginning */
 		boff = 0;
 		q = 0;
 	}
 	w->utflastqid = qid;
-	while(q<q1 && n<x->count){
+	while(q < q1 && n < x->count) {
 		/*
 		 * Updating here avoids partial rune problem: we're always on a
 		 * char boundary. The cost is we will usually do one more read
@@ -914,24 +890,24 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 		 */
 		w->utflastboff = boff;
 		w->utflastq = q;
-		nr = q1-q;
-		if(nr > BUFSIZE/UTFmax)
-			nr = BUFSIZE/UTFmax;
+		nr = q1 - q;
+		if(nr > BUFSIZE / UTFmax)
+			nr = BUFSIZE / UTFmax;
 		bufread(t->file, q, r, nr);
-		nb = snprint(b, BUFSIZE+1, "%.*S", nr, r);
-		if(boff >= off){
+		nb = snprint(b, BUFSIZE + 1, "%.*S", nr, r);
+		if(boff >= off) {
 			m = nb;
-			if(boff+m > off+x->count)
-				m = off+x->count - boff;
-			memmove(b1+n, b, m);
+			if(boff + m > off + x->count)
+				m = off + x->count - boff;
+			memmove(b1 + n, b, m);
 			n += m;
-		}else if(boff+nb > off){
+		} else if(boff + nb > off) {
 			if(n != 0)
 				error("bad count in utfrune");
-			m = nb - (off-boff);
+			m = nb - (off - boff);
 			if(m > x->count)
 				m = x->count;
-			memmove(b1, b+(off-boff), m);
+			memmove(b1, b + (off - boff), m);
 			n += m;
 		}
 		boff += nb;
@@ -963,21 +939,21 @@ xfidruneread(Xfid *x, Text *t, uint q0, uint q1)
 	n = 0;
 	q = q0;
 	boff = 0;
-	while(q<q1 && n<x->count){
-		nr = q1-q;
-		if(nr > BUFSIZE/UTFmax)
-			nr = BUFSIZE/UTFmax;
+	while(q < q1 && n < x->count) {
+		nr = q1 - q;
+		if(nr > BUFSIZE / UTFmax)
+			nr = BUFSIZE / UTFmax;
 		bufread(t->file, q, r, nr);
-		nb = snprint(b, BUFSIZE+1, "%.*S", nr, r);
+		nb = snprint(b, BUFSIZE + 1, "%.*S", nr, r);
 		m = nb;
-		if(boff+m > x->count){
+		if(boff + m > x->count) {
 			i = x->count - boff;
 			/* copy whole runes only */
 			m = 0;
 			nr = 0;
-			while(m < i){
-				rw = chartorune(&junk, b+m);
-				if(m+rw > i)
+			while(m < i) {
+				rw = chartorune(&junk, b + m);
+				if(m + rw > i)
 					break;
 				m += rw;
 				nr++;
@@ -985,7 +961,7 @@ xfidruneread(Xfid *x, Text *t, uint q0, uint q1)
 			if(m == 0)
 				break;
 		}
-		memmove(b1+n, b, m);
+		memmove(b1 + n, b, m);
 		n += m;
 		boff += nb;
 		q += nr;
@@ -996,7 +972,7 @@ xfidruneread(Xfid *x, Text *t, uint q0, uint q1)
 	fc.data = b1;
 	respond(x, &fc, nil);
 	fbuffree(b1);
-	return q-q0;
+	return q - q0;
 }
 
 void
@@ -1008,8 +984,8 @@ xfideventread(Xfid *x, Window *w)
 
 	i = 0;
 	x->flushed = FALSE;
-	while(w->nevents == 0){
-		if(i){
+	while(w->nevents == 0) {
+		if(i) {
 			if(!x->flushed)
 				respond(x, &fc, "window shut down");
 			return;
@@ -1028,7 +1004,7 @@ xfideventread(Xfid *x, Window *w)
 	fc.data = w->events;
 	respond(x, &fc, nil);
 	b = w->events;
-	w->events = estrdup(w->events+n);
+	w->events = estrdup(w->events + n);
 	free(b);
 	w->nevents -= n;
 }
@@ -1045,34 +1021,34 @@ xfidindexread(Xfid *x)
 
 	qlock(&row);
 	nmax = 0;
-	for(j=0; j<row.ncol; j++){
+	for(j = 0; j < row.ncol; j++) {
 		c = row.col[j];
-		for(i=0; i<c->nw; i++){
+		for(i = 0; i < c->nw; i++) {
 			w = c->w[i];
-			nmax += Ctlsize + w->tag.file->nc*UTFmax + 1;
+			nmax += Ctlsize + w->tag.file->nc * UTFmax + 1;
 		}
 	}
 	nmax++;
-	isbuf = (nmax<=RBUFSIZE);
+	isbuf = (nmax <= RBUFSIZE);
 	if(isbuf)
-		b = (char*)x->buf;
+		b = (char *)x->buf;
 	else
 		b = emalloc(nmax);
 	r = fbufalloc();
 	n = 0;
-	for(j=0; j<row.ncol; j++){
+	for(j = 0; j < row.ncol; j++) {
 		c = row.col[j];
-		for(i=0; i<c->nw; i++){
+		for(i = 0; i < c->nw; i++) {
 			w = c->w[i];
 			/* only show the currently active window of a set */
 			if(w->body.file->curtext != &w->body)
 				continue;
-			winctlprint(w, b+n, 0);
+			winctlprint(w, b + n, 0);
 			n += Ctlsize;
 			m = min(RBUFSIZE, w->tag.file->nc);
 			bufread(w->tag.file, 0, r, m);
-			m = n + snprint(b+n, nmax-n-1, "%.*S", m, r);
-			while(n<m && b[n]!='\n')
+			m = n + snprint(b + n, nmax - n - 1, "%.*S", m, r);
+			while(n < m && b[n] != '\n')
 				n++;
 			b[n++] = '\n';
 		}
@@ -1082,11 +1058,11 @@ xfidindexread(Xfid *x)
 	cnt = x->count;
 	if(off > n)
 		off = n;
-	if(off+cnt > n)
-		cnt = n-off;
+	if(off + cnt > n)
+		cnt = n - off;
 	fc.count = cnt;
-	memmove(r, b+off, cnt);
-	fc.data = (char*)r;
+	memmove(r, b + off, cnt);
+	fc.data = (char *)r;
 	if(!isbuf)
 		free(b);
 	respond(x, &fc, nil);

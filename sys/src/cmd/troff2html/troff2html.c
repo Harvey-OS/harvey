@@ -11,9 +11,9 @@
 #include <libc.h>
 #include <bio.h>
 
-enum{
+enum {
 	Nfont = 11,
-	Wid = 20,	/* tmac.anhtml sets page width to 20" so we can recognize .nf text */
+	Wid = 20, /* tmac.anhtml sets page width to 20" so we can recognize .nf text */
 };
 
 typedef uintptr Char;
@@ -26,37 +26,34 @@ typedef struct HTMLfont HTMLfont;
  * a Char is >= 32 bits. low 16 bits are the rune. higher are attributes.
  * must be able to hold a pointer.
  */
-enum
-{
-	Italic	=	16,
+enum {
+	Italic = 16,
 	Bold,
 	CW,
 	Indent1,
 	Indent2,
 	Indent3,
-	Heading =	25,
-	Anchor =	26,	/* must be last */
+	Heading = 25,
+	Anchor = 26, /* must be last */
 };
 
-enum	/* magic emissions */
+enum /* magic emissions */
 {
 	Estring = 0,
-	Epp = 1<<16,
+	Epp = 1 << 16,
 };
 
-int attrorder[] = { Indent1, Indent2, Indent3, Heading, Anchor, Italic, Bold, CW };
+int attrorder[] = {Indent1, Indent2, Indent3, Heading, Anchor, Italic, Bold, CW};
 
 int nest[10];
 int nnest;
 
-struct Troffchar
-{
+struct Troffchar {
 	char *name;
 	char *value;
 };
 
-struct Htmlchar
-{
+struct Htmlchar {
 	char *utf;
 	char *name;
 	int value;
@@ -64,104 +61,104 @@ struct Htmlchar
 
 #include "chars.h"
 
-struct Font{
-	char		*name;
-	HTMLfont	*htmlfont;
+struct Font {
+	char *name;
+	HTMLfont *htmlfont;
 };
 
-struct HTMLfont{
-	char	*name;
-	char	*htmlname;
-	int	bit;
+struct HTMLfont {
+	char *name;
+	char *htmlname;
+	int bit;
 };
 
 /* R must be first; it's the default representation for fonts we don't recognize */
 HTMLfont htmlfonts[] =
-{
-	"R",		nil,	0,
-	"LucidaSans",	nil,	0,
-	"I",		"i",	Italic,
-	"LucidaSansI",	"i",	Italic,
-	"CW",		"tt",	CW,
-	"LucidaCW",	"tt",	CW,
-	nil,	nil,
+    {
+     "R", nil, 0,
+     "LucidaSans", nil, 0,
+     "I", "i", Italic,
+     "LucidaSansI", "i", Italic,
+     "CW", "tt", CW,
+     "LucidaCW", "tt", CW,
+     nil, nil,
 };
 
 #define TABLE "<table border=0 cellpadding=0 cellspacing=0>"
 
-char*
-onattr[8*sizeof(int)] =
-{
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	"<i>",			/* italic */
-	"<b>",			/* bold */
-	"<tt><font size=+1>",	/* cw */
-	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",		/* indent1 */
-	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",		/* indent2 */
-	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",		/* indent3 */
-	0,
-	0,
-	0,
-	"<p><font size=+1><b>",	/* heading 25 */
-	"<unused>",		/* anchor 26 */
+char *
+    onattr[8 * sizeof(int)] =
+	{
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 "<i>",											  /* italic */
+	 "<b>",											  /* bold */
+	 "<tt><font size=+1>",									  /* cw */
+	 "<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n", /* indent1 */
+	 "<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n", /* indent2 */
+	 "<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n", /* indent3 */
+	 0,
+	 0,
+	 0,
+	 "<p><font size=+1><b>", /* heading 25 */
+	 "<unused>",		 /* anchor 26 */
 };
 
-char*
-offattr[8*sizeof(int)] =
-{
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	"</i>",			/* italic */
-	"</b>",			/* bold */
-	"</font></tt>",		/* cw */
-	"<-/table>",		/* indent1 */
-	"<-/table>",		/* indent2 */
-	"<-/table>",		/* indent3 */
-	0,
-	0,
-	0,
-	"</b></font>",		/* heading 25 */
-	"</a>",			/* anchor 26 */
+char *
+    offattr[8 * sizeof(int)] =
+	{
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 "</i>",	 /* italic */
+	 "</b>",	 /* bold */
+	 "</font></tt>", /* cw */
+	 "<-/table>",    /* indent1 */
+	 "<-/table>",    /* indent2 */
+	 "<-/table>",    /* indent3 */
+	 0,
+	 0,
+	 0,
+	 "</b></font>", /* heading 25 */
+	 "</a>",	/* anchor 26 */
 };
 
-Font	*font[Nfont];
+Font *font[Nfont];
 
-Biobuf	bout;
-int	debug = 0;
+Biobuf bout;
+int debug = 0;
 
 /* troff state */
-int	page = 1;
-int	ft = 1;
-int	vp = 0;
-int	hp = 0;
-int	ps = 1;
-int	res = 720;
+int page = 1;
+int ft = 1;
+int vp = 0;
+int hp = 0;
+int ps = 1;
+int res = 720;
 
-int	didP = 0;
-int	atnewline = 1;
-int	prevlineH = 0;
-Char	attr = 0;	/* or'ed into each Char */
+int didP = 0;
+int atnewline = 1;
+int prevlineH = 0;
+Char attr = 0; /* or'ed into each Char */
 
-Char	*chars;
-int	nchars;
-int	nalloc;
-char**	anchors;	/* allocated in order */
-int	nanchors;
+Char *chars;
+int nchars;
+int nalloc;
+char **anchors; /* allocated in order */
+int nanchors;
 
-char	*filename;
-int	cno;
-char	buf[8192];
-char	*title = "Plan 9 man page";
+char *filename;
+int cno;
+char buf[8192];
+char *title = "Plan 9 man page";
 
-void	process(Biobuf*, char*);
-void	mountfont(int, char*);
-void	switchfont(int);
-void	header(char*);
-void	flush(void);
-void	trailer(void);
+void process(Biobuf *, char *);
+void mountfont(int, char *);
+void switchfont(int);
+void header(char *);
+void flush(void);
+void trailer(void);
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *p;
@@ -172,7 +169,7 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *p, uint32_t n)
 {
 
@@ -182,7 +179,7 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
@@ -205,8 +202,8 @@ hccmp(const void *va, const void *vb)
 {
 	Htmlchar *a, *b;
 
-	a = (Htmlchar*)va;
-	b = (Htmlchar*)vb;
+	a = (Htmlchar *)va;
+	b = (Htmlchar *)vb;
 	return a->value - b->value;
 }
 
@@ -217,13 +214,14 @@ main(int argc, char *argv[])
 	Biobuf in, *inp;
 	Rune r;
 
-	for(i=0; i<nelem(htmlchars); i++){
+	for(i = 0; i < nelem(htmlchars); i++) {
 		chartorune(&r, htmlchars[i].utf);
 		htmlchars[i].value = r;
 	}
 	qsort(htmlchars, nelem(htmlchars), sizeof(htmlchars[0]), hccmp);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 't':
 		title = ARGF();
 		if(title == nil)
@@ -234,16 +232,17 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	Binit(&bout, 1, OWRITE);
-	if(argc == 0){
+	if(argc == 0) {
 		header(title);
 		Binit(&in, 0, OREAD);
 		process(&in, "<stdin>");
-	}else{
+	} else {
 		header(title);
-		for(i=0; i<argc; i++){
+		for(i = 0; i < argc; i++) {
 			inp = Bopen(argv[i], OREAD);
 			if(inp == nil)
 				sysfatal("can't open %s: %r", argv[i]);
@@ -259,9 +258,9 @@ main(int argc, char *argv[])
 void
 emitchar(Char c)
 {
-	if(nalloc == nchars){
+	if(nalloc == nchars) {
 		nalloc += 10000;
-		chars = realloc(chars, nalloc*sizeof(chars[0]));
+		chars = realloc(chars, nalloc * sizeof(chars[0]));
 		if(chars == nil)
 			sysfatal("malloc failed: %r");
 	}
@@ -278,7 +277,7 @@ emit(Rune r)
 	 * doesn't make the comma part of the link.
 	 */
 	if(r == ')')
-		attr &= ~(1<<Anchor);
+		attr &= ~(1 << Anchor);
 }
 
 void
@@ -299,8 +298,8 @@ iputrune(Biobuf *b, Rune r)
 	if(linelen++ > 60 && r == ' ')
 		r = '\n';
 	Bputrune(b, r);
-	if(r == '\n'){
-		for(i=0; i<indentlevel; i++)
+	if(r == '\n') {
+		for(i = 0; i < indentlevel; i++)
 			Bprint(b, "    ");
 		linelen = 0;
 	}
@@ -309,17 +308,17 @@ iputrune(Biobuf *b, Rune r)
 void
 iputs(Biobuf *b, char *s)
 {
-	if(s[0]=='<' && s[1]=='+'){
+	if(s[0] == '<' && s[1] == '+') {
 		iputrune(b, '\n');
-		Bprint(b, "<%s", s+2);
+		Bprint(b, "<%s", s + 2);
 		indentlevel++;
 		iputrune(b, '\n');
-	}else if(s[0]=='<' && s[1]=='-'){
+	} else if(s[0] == '<' && s[1] == '-') {
 		indentlevel--;
 		iputrune(b, '\n');
-		Bprint(b, "<%s", s+2);
+		Bprint(b, "<%s", s + 2);
 		iputrune(b, '\n');
-	}else
+	} else
 		Bprint(b, "%s", s);
 }
 
@@ -333,31 +332,31 @@ setattr(Char a)
 	off = attr & ~a;
 
 	/* walk up the nest stack until we reach something we need to turn off. */
-	for(i=0; i<nnest; i++)
-		if(off&(1<<nest[i]))
+	for(i = 0; i < nnest; i++)
+		if(off & (1 << nest[i]))
 			break;
 
 	/* turn off everything above that */
-	for(j=nnest-1; j>=i; j--)
+	for(j = nnest - 1; j >= i; j--)
 		iputs(&bout, offattr[nest[j]]);
 
 	/* turn on everything we just turned off but didn't want to */
-	for(j=i; j<nnest; j++)
-		if(a&(1<<nest[j]))
+	for(j = i; j < nnest; j++)
+		if(a & (1 << nest[j]))
 			iputs(&bout, onattr[nest[j]]);
 		else
 			nest[j] = 0;
 
 	/* shift the zeros (turned off things) up */
-	for(i=j=0; i<nnest; i++)
+	for(i = j = 0; i < nnest; i++)
 		if(nest[i] != 0)
 			nest[j++] = nest[i];
 	nnest = j;
 
 	/* now turn on the new attributes */
-	for(i=0; i<nelem(attrorder); i++){
+	for(i = 0; i < nelem(attrorder); i++) {
 		j = attrorder[i];
-		if(on&(1<<j)){
+		if(on & (1 << j)) {
 			if(j == Anchor)
 				onattr[j] = anchors[nanchors++];
 			iputs(&bout, onattr[j]);
@@ -376,14 +375,14 @@ flush(void)
 	Char c, a;
 
 	nanchors = 0;
-	for(i=0; i<nchars; i++){
+	for(i = 0; i < nchars; i++) {
 		c = chars[i];
-		if(c == Estring){
+		if(c == Estring) {
 			/* next word is string to print */
-			iputs(&bout, (char*)chars[++i]);
+			iputs(&bout, (char *)chars[++i]);
 			continue;
 		}
-		if(c == Epp){
+		if(c == Epp) {
 			iputrune(&bout, '\n');
 			iputs(&bout, TABLE "<tr height=5><td></table>");
 			iputrune(&bout, '\n');
@@ -395,8 +394,8 @@ flush(void)
 		 * If we're going to something off after a space,
 		 * let's just turn it off before.
 		 */
-		if(c == ' ' && i<nchars-1 && (chars[i+1]&0xFFFF) >= 32)
-			a ^= a & ~chars[i+1];
+		if(c == ' ' && i < nchars - 1 && (chars[i + 1] & 0xFFFF) >= 32)
+			a ^= a & ~chars[i + 1];
 		setattr(a);
 		iputrune(&bout, c & 0xFFFF);
 	}
@@ -421,7 +420,7 @@ trailer(void)
 	t = localtime(time(nil));
 	Bprint(&bout, TABLE "<tr height=20><td></table>\n");
 	Bprint(&bout, "<font size=-1><a href=\"http://www.lucent.com/copyright.html\">\n");
-	Bprint(&bout, "Copyright</A> &#169; %d Alcatel-Lucent.  All rights reserved.</font>\n", t->year+1900);
+	Bprint(&bout, "Copyright</A> &#169; %d Alcatel-Lucent.  All rights reserved.</font>\n", t->year + 1900);
 #endif
 	Bprint(&bout, "</body></html>\n");
 }
@@ -440,17 +439,17 @@ ungetc(Biobuf *b)
 	Bungetrune(b);
 }
 
-char*
+char *
 getline(Biobuf *b)
 {
 	int i, c;
 
-	for(i=0; i<sizeof buf; i++){
+	for(i = 0; i < sizeof buf; i++) {
 		c = getc(b);
 		if(c == Beof)
 			return nil;
 		buf[i] = c;
-		if(c == '\n'){
+		if(c == '\n') {
 			buf[i] = '\0';
 			break;
 		}
@@ -464,30 +463,30 @@ getnum(Biobuf *b)
 	int i, c;
 
 	i = 0;
-	for(;;){
+	for(;;) {
 		c = getc(b);
-		if(c<'0' || '9'<c){
+		if(c < '0' || '9' < c) {
 			ungetc(b);
 			break;
 		}
-		i = i*10 + (c-'0');
+		i = i * 10 + (c - '0');
 	}
 	return i;
 }
 
-char*
+char *
 getstr(Biobuf *b)
 {
 	int i, c;
 
-	for(i=0; i<sizeof buf; i++){
+	for(i = 0; i < sizeof buf; i++) {
 		/* must get bytes not runes */
 		cno++;
 		c = Bgetc(b);
 		if(c == Beof)
 			return nil;
 		buf[i] = c;
-		if(c == '\n' || c==' ' || c=='\t'){
+		if(c == '\n' || c == ' ' || c == '\t') {
 			ungetc(b);
 			buf[i] = '\0';
 			break;
@@ -504,7 +503,7 @@ setnum(Biobuf *b, char *name, int min, int max)
 	i = getnum(b);
 	if(debug > 2)
 		fprint(2, "set %s = %d\n", name, i);
-	if(min<=i && i<max)
+	if(min <= i && i < max)
 		return i;
 	sysfatal("value of %s is %d; min %d max %d at %s:#%d", name, i, min, max, filename, cno);
 	return i;
@@ -525,13 +524,13 @@ xcmd(Biobuf *b)
 	nfld = tokenize(p, fld, nelem(fld));
 	if(nfld == 0)
 		return;
-	switch(fld[0][0]){
+	switch(fld[0][0]) {
 	case 'f':
 		/* mount font */
 		if(nfld != 3)
 			break;
 		i = atoi(fld[1]);
-		if(i<0 || Nfont<=i)
+		if(i < 0 || Nfont <= i)
 			sysfatal("font %d out of range at %s:#%d", i, filename, cno);
 		mountfont(i, fld[2]);
 		return;
@@ -539,8 +538,8 @@ xcmd(Biobuf *b)
 		/* init */
 		return;
 	case 'r':
-		if(nfld<2 || atoi(fld[1])!=res)
-			sysfatal("typesetter has unexpected resolution %s", fld[1]? fld[1] : "<unspecified>");
+		if(nfld < 2 || atoi(fld[1]) != res)
+			sysfatal("typesetter has unexpected resolution %s", fld[1] ? fld[1] : "<unspecified>");
 		return;
 	case 's':
 		/* stop */
@@ -549,49 +548,49 @@ xcmd(Biobuf *b)
 		/* trailer */
 		return;
 	case 'T':
-		if(nfld!=2 || strcmp(fld[1], "utf")!=0)
+		if(nfld != 2 || strcmp(fld[1], "utf") != 0)
 			sysfatal("output for unknown typesetter type %s", fld[1]);
 		return;
 	case 'X':
-		if(nfld<3 || strcmp(fld[1], "html")!=0)
+		if(nfld < 3 || strcmp(fld[1], "html") != 0)
 			break;
 		/* is it a man reference of the form cp(1)? */
 		/* X manref start/end cp (1) */
-		if(nfld==6 && strcmp(fld[2], "manref")==0){
+		if(nfld == 6 && strcmp(fld[2], "manref") == 0) {
 			/* was the right macro; is it the right form? */
-			if(strlen(fld[5])>=3 &&
-			   fld[5][0]=='(' && fld[5][2]==')' &&
-			   '0'<=fld[5][1] && fld[5][1]<='9'){
-				if(strcmp(fld[3], "start") == 0){
+			if(strlen(fld[5]) >= 3 &&
+			   fld[5][0] == '(' && fld[5][2] == ')' &&
+			   '0' <= fld[5][1] && fld[5][1] <= '9') {
+				if(strcmp(fld[3], "start") == 0) {
 					/* set anchor attribute and remember string */
-					attr |= (1<<Anchor);
+					attr |= (1 << Anchor);
 					snprint(buf, sizeof buf,
 						"<a href=\"/magic/man2html/%c/%s\">",
 						fld[5][1], fld[4]);
 					nanchors++;
 					anchors = erealloc(anchors,
-						           nanchors*sizeof(char*));
-					anchors[nanchors-1] = estrdup(buf);
-				}else if(strcmp(fld[3], "end") == 0)
-					attr &= ~(1<<Anchor);
+							   nanchors * sizeof(char *));
+					anchors[nanchors - 1] = estrdup(buf);
+				} else if(strcmp(fld[3], "end") == 0)
+					attr &= ~(1 << Anchor);
 			}
-		}else if(strcmp(fld[2], "manPP") == 0){
+		} else if(strcmp(fld[2], "manPP") == 0) {
 			didP = 1;
 			emitchar(Epp);
-		}else if(nfld<4 || strcmp(fld[2], "manref")!=0){
-			if(nfld>2 && strcmp(fld[2], "<P>")==0){	/* avoid triggering extra <br> */
+		} else if(nfld < 4 || strcmp(fld[2], "manref") != 0) {
+			if(nfld > 2 && strcmp(fld[2], "<P>") == 0) { /* avoid triggering extra <br> */
 				didP = 1;
 				/* clear all font attributes before paragraph */
-				emitchar(' ' | (attr & ~(0xFFFF|((1<<Italic)|(1<<Bold)|(1<<CW)))));
+				emitchar(' ' | (attr & ~(0xFFFF | ((1 << Italic) | (1 << Bold) | (1 << CW)))));
 				emitstr("<P>");
 				/* next emittec char will turn font attributes back on */
-			}else if(nfld>2 && strcmp(fld[2], "<H4>")==0)
-				attr |= (1<<Heading);
-			else if(nfld>2 && strcmp(fld[2], "</H4>")==0)
-				attr &= ~(1<<Heading);
+			} else if(nfld > 2 && strcmp(fld[2], "<H4>") == 0)
+				attr |= (1 << Heading);
+			else if(nfld > 2 && strcmp(fld[2], "</H4>") == 0)
+				attr &= ~(1 << Heading);
 			else if(debug)
 				fprint(2, "unknown in-line html %s... at %s:%#d\n",
-					fld[2], filename, cno);
+				       fld[2], filename, cno);
 		}
 		return;
 	}
@@ -606,8 +605,8 @@ lookup(int c, Htmlchar tab[], int ntab)
 
 	low = 0;
 	high = ntab - 1;
-	while(low <= high){
-		mid = (low+high)/2;
+	while(low <= high) {
+		mid = (low + high) / 2;
 		if(c < tab[mid].value)
 			high = mid - 1;
 		else if(c > tab[mid].value)
@@ -615,7 +614,7 @@ lookup(int c, Htmlchar tab[], int ntab)
 		else
 			return mid;
 	}
-	return -1;	/* no match */
+	return -1; /* no match */
 }
 
 void
@@ -631,12 +630,12 @@ emithtmlchar(int r)
 		emit(r);
 }
 
-char*
+char *
 troffchar(char *s)
 {
 	int i;
 
-	for(i=0; troffchars[i].name!=nil; i++)
+	for(i = 0; troffchars[i].name != nil; i++)
 		if(strcmp(s, troffchars[i].name) == 0)
 			return troffchars[i].value;
 	return "??";
@@ -648,18 +647,18 @@ indent(void)
 	int nind;
 
 	didP = 0;
-	if(atnewline){
-		if(hp != prevlineH){
+	if(atnewline) {
+		if(hp != prevlineH) {
 			prevlineH = hp;
 			/* these most peculiar numbers appear in the troff -man output */
-			nind = ((prevlineH-1*res)+323)/324;
-			attr &= ~((1<<Indent1)|(1<<Indent2)|(1<<Indent3));
+			nind = ((prevlineH - 1 * res) + 323) / 324;
+			attr &= ~((1 << Indent1) | (1 << Indent2) | (1 << Indent3));
 			if(nind >= 1)
-				attr |= (1<<Indent1);
+				attr |= (1 << Indent1);
 			if(nind >= 2)
-				attr |= (1<<Indent2);
+				attr |= (1 << Indent2);
 			if(nind >= 3)
-				attr |= (1<<Indent3);
+				attr |= (1 << Indent3);
 		}
 		atnewline = 0;
 	}
@@ -674,9 +673,9 @@ process(Biobuf *b, char *name)
 	cno = 0;
 	prevlineH = res;
 	filename = name;
-	for(;;){
+	for(;;) {
 		c = getc(b);
-		switch(c){
+		switch(c) {
 		case Beof:
 			/* go to ground state */
 			attr = 0;
@@ -684,15 +683,23 @@ process(Biobuf *b, char *name)
 			return;
 		case '\n':
 			break;
-		case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
-			v = c-'0';
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			v = c - '0';
 			c = getc(b);
-			if(c<'0' || '9'<c)
+			if(c < '0' || '9' < c)
 				sysfatal("illegal character motion at %s:#%d", filename, cno);
-			v = v*10 + (c-'0');
+			v = v * 10 + (c - '0');
 			hp += v;
-			/* fall through to character case */
+		/* fall through to character case */
 		case 'c':
 			indent();
 			r = getc(b);
@@ -702,7 +709,7 @@ process(Biobuf *b, char *name)
 			/* draw line; ignore */
 			do
 				c = getc(b);
-			while(c!='\n' && c!= Beof);
+			while(c != '\n' && c != Beof);
 			break;
 		case 'f':
 			v = setnum(b, "font", 0, Nfont);
@@ -711,18 +718,18 @@ process(Biobuf *b, char *name)
 		case 'h':
 			v = setnum(b, "hpos", -20000, 20000);
 			/* generate spaces if motion is large and within a line */
-			if(!atnewline && v>2*72)
-				for(i=0; i<v; i+=72)
+			if(!atnewline && v > 2 * 72)
+				for(i = 0; i < v; i += 72)
 					emitstr("&nbsp;");
 			hp += v;
 			break;
 		case 'n':
 			setnum(b, "n1", -10000, 10000);
 			//Bprint(&bout, " N1=%d", v);
-			getc(b);	/* space separates */
+			getc(b); /* space separates */
 			setnum(b, "n2", -10000, 10000);
 			atnewline = 1;
-			if(!didP && hp < (Wid-1)*res)	/* if line is less than 19" long, probably need a line break */
+			if(!didP && hp < (Wid - 1) * res) /* if line is less than 19" long, probably need a line break */
 				emitstr("<br>");
 			emit('\n');
 			break;
@@ -761,12 +768,12 @@ process(Biobuf *b, char *name)
 	}
 }
 
-HTMLfont*
+HTMLfont *
 htmlfont(char *name)
 {
 	int i;
 
-	for(i=0; htmlfonts[i].name!=nil; i++)
+	for(i = 0; htmlfonts[i].name != nil; i++)
 		if(strcmp(name, htmlfonts[i].name) == 0)
 			return &htmlfonts[i];
 	return &htmlfonts[0];
@@ -777,7 +784,7 @@ mountfont(int pos, char *name)
 {
 	if(debug)
 		fprint(2, "mount font %s on %d\n", name, pos);
-	if(font[pos] != nil){
+	if(font[pos] != nil) {
 		free(font[pos]->name);
 		free(font[pos]);
 	}
@@ -797,9 +804,9 @@ switchfont(int pos)
 		return;
 	hf = font[ft]->htmlfont;
 	if(hf->bit != 0)
-		attr &= ~(1<<hf->bit);
+		attr &= ~(1 << hf->bit);
 	ft = pos;
 	hf = font[ft]->htmlfont;
 	if(hf->bit != 0)
-		attr |= (1<<hf->bit);
+		attr |= (1 << hf->bit);
 }

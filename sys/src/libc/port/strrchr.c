@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 strrchr(char *s, int c)
 {
 	char *r;

@@ -12,7 +12,7 @@
 #include <oventi.h>
 #include "session.h"
 
-void vtDumpSome(Packet*);
+void vtDumpSome(Packet *);
 
 void
 vtDebug(VtSession *s, char *fmt, ...)
@@ -35,7 +35,6 @@ vtDebugMesg(VtSession *z, Packet *p, char *s)
 	int n;
 	uint8_t buf[100], *b;
 
-
 	if(!z->debug)
 		return;
 	n = packetSize(p);
@@ -47,7 +46,7 @@ vtDebugMesg(VtSession *z, Packet *p, char *s)
 	op = b[0];
 	tid = b[1];
 
-	fprint(2, "%c%d[%d] %d", ((op&1)==0)?'R':'Q', op, tid, n);
+	fprint(2, "%c%d[%d] %d", ((op & 1) == 0) ? 'R' : 'Q', op, tid, n);
 	vtDumpSome(p);
 	fprint(2, "%s", s);
 }
@@ -69,15 +68,15 @@ vtDumpSome(Packet *pkt)
 	if(n > sizeof(data))
 		n = sizeof(data);
 	p = packetPeek(pkt, data, 0, n);
-	for(i=0; i<n && printable; i++)
-		if((p[i]<32 && p[i] !='\n' && p[i] !='\t') || p[i]>127)
-				printable = 0;
+	for(i = 0; i < n && printable; i++)
+		if((p[i] < 32 && p[i] != '\n' && p[i] != '\t') || p[i] > 127)
+			printable = 0;
 	if(printable) {
-		for(i=0; i<n; i++)
+		for(i = 0; i < n; i++)
 			q = seprint(q, eq, "%c", p[i]);
 	} else {
-		for(i=0; i<n; i++) {
-			if(i>0 && i%4==0)
+		for(i = 0; i < n; i++) {
+			if(i > 0 && i % 4 == 0)
 				q = seprint(q, eq, " ");
 			q = seprint(q, eq, "%.2X", p[i]);
 		}

@@ -10,20 +10,20 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 utfrrune(char *s, int32_t c)
 {
 	int32_t c1;
 	Rune r;
 	char *s1;
 
-	if(c < Runesync)		/* not part of utf sequence */
+	if(c < Runesync) /* not part of utf sequence */
 		return strrchr(s, c);
 
 	s1 = 0;
 	for(;;) {
-		c1 = *(uint8_t*)s;
-		if(c1 < Runeself) {	/* one byte rune */
+		c1 = *(uint8_t *)s;
+		if(c1 < Runeself) { /* one byte rune */
 			if(c1 == 0)
 				return s1;
 			if(c1 == c)

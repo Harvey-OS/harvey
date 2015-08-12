@@ -14,7 +14,7 @@
 // decrypt rsa using garner's algorithm for the chinese remainder theorem
 //	seminumerical algorithms, knuth, pp 253-254
 //	applied cryptography, menezes et al, pg 612
-mpint*
+mpint *
 rsadecrypt(RSApriv *rsa, mpint *in, mpint *out)
 {
 	mpint *v1, *v2;
@@ -31,7 +31,7 @@ rsadecrypt(RSApriv *rsa, mpint *in, mpint *out)
 	// exponentiate the modular rep
 	mpexp(v1, rsa->kp, rsa->p, v1);
 	mpexp(v2, rsa->kq, rsa->q, v2);
-	
+
 	// out = v1 + p*((v2-v1)*c2 mod q)
 	mpsub(v2, v1, v2);
 	mpmul(v2, rsa->c2, v2);

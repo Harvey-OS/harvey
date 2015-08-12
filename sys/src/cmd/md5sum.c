@@ -12,18 +12,18 @@
 #include <bio.h>
 #include <libsec.h>
 
-#pragma	varargck	type	"M"	unsigned char*
+#pragma varargck type "M" unsigned char *
 
 static int
 digestfmt(Fmt *fmt)
 {
-	char buf[MD5dlen*2+1];
+	char buf[MD5dlen * 2 + 1];
 	uint8_t *p;
 	int i;
 
-	p = va_arg(fmt->args, uint8_t*);
-	for(i=0; i<MD5dlen; i++)
-		sprint(buf+2*i, "%.2ux", p[i]);
+	p = va_arg(fmt->args, uint8_t *);
+	for(i = 0; i < MD5dlen; i++)
+		sprint(buf + 2 * i, "%.2ux", p[i]);
 	return fmtstrcpy(fmt, buf);
 }
 
@@ -37,7 +37,7 @@ sum(int fd, char *name)
 	s = md5(nil, 0, nil, nil);
 	while((n = read(fd, buf, sizeof buf)) > 0)
 		md5(buf, n, nil, s);
-	if(n < 0){
+	if(n < 0) {
 		fprint(2, "reading %s: %r\n", name ? name : "stdin");
 		return;
 	}
@@ -53,24 +53,27 @@ main(int argc, char *argv[])
 {
 	int i, fd;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		fprint(2, "usage: md5sum [file...]\n");
 		exits("usage");
-	}ARGEND
+	}
+	ARGEND
 
 	fmtinstall('M', digestfmt);
 
 	if(argc == 0)
 		sum(0, nil);
-	else for(i = 0; i < argc; i++){
-		fd = open(argv[i], OREAD);
-		if(fd < 0){
-			fprint(2, "md5sum: can't open %s: %r\n", argv[i]);
-			continue;
+	else
+		for(i = 0; i < argc; i++) {
+			fd = open(argv[i], OREAD);
+			if(fd < 0) {
+				fprint(2, "md5sum: can't open %s: %r\n", argv[i]);
+				continue;
+			}
+			sum(fd, argv[i]);
+			close(fd);
 		}
-		sum(fd, argv[i]);
-		close(fd);
-	}
 	exits(nil);
 }

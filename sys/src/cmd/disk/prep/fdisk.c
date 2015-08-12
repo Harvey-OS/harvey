@@ -17,20 +17,20 @@
 #include <disk.h>
 #include "edit.h"
 
-typedef struct Dospart	Dospart;
+typedef struct Dospart Dospart;
 enum {
 	NTentry = 4,
 	Mpart = 64,
 };
 
-static void rdpart(Edit*, uint64_t, uint64_t);
-static void findmbr(Edit*);
-static void autopart(Edit*);
-static void wrpart(Edit*);
-static void blankpart(Edit*);
-static void cmdnamectl(Edit*);
-static void recover(Edit*);
-static int Dfmt(Fmt*);
+static void rdpart(Edit *, uint64_t, uint64_t);
+static void findmbr(Edit *);
+static void autopart(Edit *);
+static void wrpart(Edit *);
+static void blankpart(Edit *);
+static void cmdnamectl(Edit *);
+static void recover(Edit *);
+static int Dfmt(Fmt *);
 static int blank;
 static int dowrite;
 static int file;
@@ -42,28 +42,28 @@ static int printchs;
 static int sec2cyl;
 static int written;
 
-static void 	cmdsum(Edit*, Part*, int64_t, int64_t);
-static char 	*cmdadd(Edit*, char*, int64_t, int64_t);
-static char 	*cmddel(Edit*, Part*);
-static char 	*cmdext(Edit*, int, char**);
-static char 	*cmdhelp(Edit*);
-static char 	*cmdokname(Edit*, char*);
-static char 	*cmdwrite(Edit*);
-static void	cmdprintctl(Edit*, int);
+static void cmdsum(Edit *, Part *, int64_t, int64_t);
+static char *cmdadd(Edit *, char *, int64_t, int64_t);
+static char *cmddel(Edit *, Part *);
+static char *cmdext(Edit *, int, char **);
+static char *cmdhelp(Edit *);
+static char *cmdokname(Edit *, char *);
+static char *cmdwrite(Edit *);
+static void cmdprintctl(Edit *, int);
 
-#pragma varargck type "D" uchar*
+#pragma varargck type "D" uchar *
 
 Edit edit = {
-	.add=	cmdadd,
-	.del=		cmddel,
-	.ext=		cmdext,
-	.help=	cmdhelp,
-	.okname=	cmdokname,
-	.sum=	cmdsum,
-	.write=	cmdwrite,
-	.printctl=	cmdprintctl,
+    .add = cmdadd,
+    .del = cmddel,
+    .ext = cmdext,
+    .help = cmdhelp,
+    .okname = cmdokname,
+    .sum = cmdsum,
+    .write = cmdwrite,
+    .printctl = cmdprintctl,
 
-	.unit=	"cylinder",
+    .unit = "cylinder",
 };
 
 /*
@@ -76,7 +76,7 @@ sysfatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(argv0)
 		fprint(2, "%s: %s\n", argv0, buf);
@@ -109,7 +109,8 @@ main(int argc, char **argv)
 	int64_t secsize;
 
 	secsize = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		doauto++;
 		break;
@@ -134,7 +135,8 @@ main(int argc, char **argv)
 	case 'w':
 		dowrite++;
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	fmtinstall('D', Dfmt);
 
@@ -174,7 +176,7 @@ main(int argc, char **argv)
 	if(dowrite || printflag)
 		exits(0);
 
-	fprint(2, "cylinder = %lld bytes\n", sec2cyl*edit.disk->secsize);
+	fprint(2, "cylinder = %lld bytes\n", sec2cyl * edit.disk->secsize);
 	runcmd(&edit, (char[]){"p"});
 	for(;;) {
 		fprint(2, ">>> ");
@@ -182,90 +184,90 @@ main(int argc, char **argv)
 	}
 }
 
-typedef struct Tentry	Tentry;
-typedef struct Table	Table;
-typedef struct Type	Type;
-typedef struct Tab	Tab;
+typedef struct Tentry Tentry;
+typedef struct Table Table;
+typedef struct Type Type;
+typedef struct Tab Tab;
 typedef struct Recover Recover;
 
 struct Tentry {
-	uint8_t	active;			/* active flag */
-	uint8_t	starth;			/* starting head */
-	uint8_t	starts;			/* starting sector */
-	uint8_t	startc;			/* starting cylinder */
-	uint8_t	type;			/* partition type */
-	uint8_t	endh;			/* ending head */
-	uint8_t	ends;			/* ending sector */
-	uint8_t	endc;			/* ending cylinder */
-	uint8_t	xlba[4];		/* starting LBA from beginning of disc or ext. partition */
-	uint8_t	xsize[4];		/* size in sectors */
+	uint8_t active;   /* active flag */
+	uint8_t starth;   /* starting head */
+	uint8_t starts;   /* starting sector */
+	uint8_t startc;   /* starting cylinder */
+	uint8_t type;     /* partition type */
+	uint8_t endh;     /* ending head */
+	uint8_t ends;     /* ending sector */
+	uint8_t endc;     /* ending cylinder */
+	uint8_t xlba[4];  /* starting LBA from beginning of disc or ext. partition */
+	uint8_t xsize[4]; /* size in sectors */
 };
 
 struct Table {
-	Tentry	entry[NTentry];
-	uint8_t	magic[2];
-	uint8_t	size[];
+	Tentry entry[NTentry];
+	uint8_t magic[2];
+	uint8_t size[];
 };
 
 enum {
-	Active		= 0x80,		/* partition is active */
-	Primary		= 0x01,		/* internal flag */
+	Active = 0x80,  /* partition is active */
+	Primary = 0x01, /* internal flag */
 
-	TypeBB		= 0xFF,
+	TypeBB = 0xFF,
 
-	TypeEMPTY	= 0x00,
-	TypeFAT12	= 0x01,
-	TypeXENIX	= 0x02,		/* root */
-	TypeXENIXUSR	= 0x03,		/* usr */
-	TypeFAT16	= 0x04,
-	TypeEXTENDED	= 0x05,
-	TypeFATHUGE	= 0x06,
-	TypeHPFS	= 0x07,
-	TypeAIXBOOT	= 0x08,
-	TypeAIXDATA	= 0x09,
-	TypeOS2BOOT	= 0x0A,		/* OS/2 Boot Manager */
-	TypeFAT32	= 0x0B,		/* FAT 32 */
-	TypeFAT32LBA	= 0x0C,		/* FAT 32 needing LBA support */
-	TypeFAT16X	= 0x0E,		/* FAT 16 needing LBA support */
-	TypeEXTHUGE	= 0x0F,		/* FAT 32 extended partition */
-	TypeUNFORMATTED	= 0x16,		/* unformatted primary partition (OS/2 FDISK)? */
-	TypeHPFS2	= 0x17,
-	TypeIBMRecovery = 0x1C,		/* really hidden fat */
-	TypeCPM0	= 0x52,
-	TypeDMDDO	= 0x54,		/* Disk Manager Dynamic Disk Overlay */
-	TypeGB		= 0x56,		/* ???? */
-	TypeSPEEDSTOR	= 0x61,
-	TypeSYSV386	= 0x63,		/* also HURD? */
-	TypeNETWARE	= 0x64,
-	TypePCIX	= 0x75,
-	TypeMINIX13	= 0x80,		/* Minix v1.3 and below */
-	TypeMINIX	= 0x81,		/* Minix v1.5+ */
-	TypeLINUXSWAP	= 0x82,
-	TypeLINUX	= 0x83,
-	TypeLINUXEXT	= 0x85,
-	TypeLINUXLVM	= 0x8E,		/* logical volume manager */
-	TypeAMOEBA	= 0x93,
-	TypeAMOEBABB	= 0x94,
-	TypeBSD386	= 0xA5,
-	TypeNETBSD	= 0xA9,
-	TypeBSDI	= 0xB7,
-	TypeBSDISWAP	= 0xB8,
-	TypeOTHER	= 0xDA,
-	TypeCPM		= 0xDB,
-	TypeDellRecovery= 0xDE,
-	TypeSPEEDSTOR12	= 0xE1,
-	TypeSPEEDSTOR16	= 0xE4,
-	TypeEFIProtect	= 0xEE,
-	TypeEFI		= 0xEF,
-	TypeLANSTEP	= 0xFE,
+	TypeEMPTY = 0x00,
+	TypeFAT12 = 0x01,
+	TypeXENIX = 0x02,    /* root */
+	TypeXENIXUSR = 0x03, /* usr */
+	TypeFAT16 = 0x04,
+	TypeEXTENDED = 0x05,
+	TypeFATHUGE = 0x06,
+	TypeHPFS = 0x07,
+	TypeAIXBOOT = 0x08,
+	TypeAIXDATA = 0x09,
+	TypeOS2BOOT = 0x0A,     /* OS/2 Boot Manager */
+	TypeFAT32 = 0x0B,       /* FAT 32 */
+	TypeFAT32LBA = 0x0C,    /* FAT 32 needing LBA support */
+	TypeFAT16X = 0x0E,      /* FAT 16 needing LBA support */
+	TypeEXTHUGE = 0x0F,     /* FAT 32 extended partition */
+	TypeUNFORMATTED = 0x16, /* unformatted primary partition (OS/2 FDISK)? */
+	TypeHPFS2 = 0x17,
+	TypeIBMRecovery = 0x1C, /* really hidden fat */
+	TypeCPM0 = 0x52,
+	TypeDMDDO = 0x54, /* Disk Manager Dynamic Disk Overlay */
+	TypeGB = 0x56,    /* ???? */
+	TypeSPEEDSTOR = 0x61,
+	TypeSYSV386 = 0x63, /* also HURD? */
+	TypeNETWARE = 0x64,
+	TypePCIX = 0x75,
+	TypeMINIX13 = 0x80, /* Minix v1.3 and below */
+	TypeMINIX = 0x81,   /* Minix v1.5+ */
+	TypeLINUXSWAP = 0x82,
+	TypeLINUX = 0x83,
+	TypeLINUXEXT = 0x85,
+	TypeLINUXLVM = 0x8E, /* logical volume manager */
+	TypeAMOEBA = 0x93,
+	TypeAMOEBABB = 0x94,
+	TypeBSD386 = 0xA5,
+	TypeNETBSD = 0xA9,
+	TypeBSDI = 0xB7,
+	TypeBSDISWAP = 0xB8,
+	TypeOTHER = 0xDA,
+	TypeCPM = 0xDB,
+	TypeDellRecovery = 0xDE,
+	TypeSPEEDSTOR12 = 0xE1,
+	TypeSPEEDSTOR16 = 0xE4,
+	TypeEFIProtect = 0xEE,
+	TypeEFI = 0xEF,
+	TypeLANSTEP = 0xFE,
 
-	Type9		= 0x39,
+	Type9 = 0x39,
 
-	Toffset		= 446,		/* offset of partition table in sector */
-	Magic0		= 0x55,
-	Magic1		= 0xAA,
+	Toffset = 446, /* offset of partition table in sector */
+	Magic0 = 0x55,
+	Magic1 = 0xAA,
 
-	Tablesz		= offsetof(Table, size[0]),
+	Tablesz = offsetof(Table, size[0]),
 };
 
 struct Type {
@@ -277,72 +279,72 @@ struct Dospart {
 	Part;
 	Tentry;
 
-	uint32_t	lba;
-	uint32_t	size;
-	int		primary;
+	uint32_t lba;
+	uint32_t size;
+	int primary;
 };
 
 struct Recover {
-	Table	table;
-	uint32_t	lba;
+	Table table;
+	uint32_t lba;
 };
 
 static Type types[256] = {
-	[TypeEMPTY]		{ "EMPTY", "" },
-	[TypeFAT12]		{ "FAT12", "dos" },
-	[TypeFAT16]		{ "FAT16", "dos" },
-	[TypeFAT32]		{ "FAT32", "dos" },
-	[TypeFAT32LBA]		{ "FAT32LBA", "dos" },
-	[TypeFAT16X]		{ "FAT16X", "dos" },
-	[TypeEXTHUGE]		{ "EXTHUGE", "" },
-	[TypeIBMRecovery]	{ "IBMRECOVERY", "ibm" },
-	[TypeEXTENDED]		{ "EXTENDED", "" },
-	[TypeFATHUGE]		{ "FATHUGE", "dos" },
-	[TypeBB]		{ "BB", "bb" },
+    [TypeEMPTY] { "EMPTY", "" },
+    [TypeFAT12] { "FAT12", "dos" },
+    [TypeFAT16] { "FAT16", "dos" },
+    [TypeFAT32] { "FAT32", "dos" },
+    [TypeFAT32LBA] { "FAT32LBA", "dos" },
+    [TypeFAT16X] { "FAT16X", "dos" },
+    [TypeEXTHUGE] { "EXTHUGE", "" },
+    [TypeIBMRecovery] { "IBMRECOVERY", "ibm" },
+    [TypeEXTENDED] { "EXTENDED", "" },
+    [TypeFATHUGE] { "FATHUGE", "dos" },
+    [TypeBB] { "BB", "bb" },
 
-	[TypeXENIX]		{ "XENIX", "xenix" },
-	[TypeXENIXUSR]		{ "XENIX USR", "xenixusr" },
-	[TypeHPFS]		{ "HPFS", "ntfs" },
-	[TypeAIXBOOT]		{ "AIXBOOT", "aixboot" },
-	[TypeAIXDATA]		{ "AIXDATA", "aixdata" },
-	[TypeOS2BOOT]		{ "OS/2BOOT", "os2boot" },
-	[TypeUNFORMATTED]	{ "UNFORMATTED", "" },
-	[TypeHPFS2]		{ "HPFS2", "hpfs2" },
-	[TypeCPM0]		{ "CPM0", "cpm0" },
-	[TypeDMDDO]		{ "DMDDO", "dmdd0" },
-	[TypeGB]		{ "GB", "gb" },
-	[TypeSPEEDSTOR]		{ "SPEEDSTOR", "speedstor" },
-	[TypeSYSV386]		{ "SYSV386", "sysv386" },
-	[TypeNETWARE]		{ "NETWARE", "netware" },
-	[TypePCIX]		{ "PCIX", "pcix" },
-	[TypeMINIX13]		{ "MINIXV1.3", "minix13" },
-	[TypeMINIX]		{ "MINIXV1.5", "minix15" },
-	[TypeLINUXSWAP]		{ "LINUXSWAP", "linuxswap" },
-	[TypeLINUX]		{ "LINUX", "linux" },
-	[TypeLINUXEXT]		{ "LINUXEXTENDED", "" },
-	[TypeLINUXLVM]		{ "LINUXLVM", "linuxlvm" },
-	[TypeAMOEBA]		{ "AMOEBA", "amoeba" },
-	[TypeAMOEBABB]		{ "AMOEBABB", "amoebaboot" },
-	[TypeBSD386]		{ "BSD386", "bsd386" },
-	[TypeNETBSD]		{ "NETBSD", "netbsd" },
-	[TypeBSDI]		{ "BSDI", "bsdi" },
-	[TypeBSDISWAP]		{ "BSDISWAP", "bsdiswap" },
-	[TypeOTHER]		{ "OTHER", "other" },
-	[TypeCPM]		{ "CPM", "cpm" },
-	[TypeDellRecovery]	{ "DELLRECOVERY", "dell" },
-	[TypeSPEEDSTOR12]	{ "SPEEDSTOR12", "speedstor" },
-	[TypeSPEEDSTOR16]	{ "SPEEDSTOR16", "speedstor" },
-	[TypeEFIProtect]	{ "EFIPROTECT", "efiprotect" },
-	[TypeEFI]		{ "EFI", "efi" },
-	[TypeLANSTEP]		{ "LANSTEP", "lanstep" },
+    [TypeXENIX] { "XENIX", "xenix" },
+    [TypeXENIXUSR] { "XENIX USR", "xenixusr" },
+    [TypeHPFS] { "HPFS", "ntfs" },
+    [TypeAIXBOOT] { "AIXBOOT", "aixboot" },
+    [TypeAIXDATA] { "AIXDATA", "aixdata" },
+    [TypeOS2BOOT] { "OS/2BOOT", "os2boot" },
+    [TypeUNFORMATTED] { "UNFORMATTED", "" },
+    [TypeHPFS2] { "HPFS2", "hpfs2" },
+    [TypeCPM0] { "CPM0", "cpm0" },
+    [TypeDMDDO] { "DMDDO", "dmdd0" },
+    [TypeGB] { "GB", "gb" },
+    [TypeSPEEDSTOR] { "SPEEDSTOR", "speedstor" },
+    [TypeSYSV386] { "SYSV386", "sysv386" },
+    [TypeNETWARE] { "NETWARE", "netware" },
+    [TypePCIX] { "PCIX", "pcix" },
+    [TypeMINIX13] { "MINIXV1.3", "minix13" },
+    [TypeMINIX] { "MINIXV1.5", "minix15" },
+    [TypeLINUXSWAP] { "LINUXSWAP", "linuxswap" },
+    [TypeLINUX] { "LINUX", "linux" },
+    [TypeLINUXEXT] { "LINUXEXTENDED", "" },
+    [TypeLINUXLVM] { "LINUXLVM", "linuxlvm" },
+    [TypeAMOEBA] { "AMOEBA", "amoeba" },
+    [TypeAMOEBABB] { "AMOEBABB", "amoebaboot" },
+    [TypeBSD386] { "BSD386", "bsd386" },
+    [TypeNETBSD] { "NETBSD", "netbsd" },
+    [TypeBSDI] { "BSDI", "bsdi" },
+    [TypeBSDISWAP] { "BSDISWAP", "bsdiswap" },
+    [TypeOTHER] { "OTHER", "other" },
+    [TypeCPM] { "CPM", "cpm" },
+    [TypeDellRecovery] { "DELLRECOVERY", "dell" },
+    [TypeSPEEDSTOR12] { "SPEEDSTOR12", "speedstor" },
+    [TypeSPEEDSTOR16] { "SPEEDSTOR16", "speedstor" },
+    [TypeEFIProtect] { "EFIPROTECT", "efiprotect" },
+    [TypeEFI] { "EFI", "efi" },
+    [TypeLANSTEP] { "LANSTEP", "lanstep" },
 
-	[Type9]			{ "PLAN9", "plan9" },
+    [Type9] { "PLAN9", "plan9" },
 };
 
-static Dospart	part[Mpart];
-static int		npart;
+static Dospart part[Mpart];
+static int npart;
 
-static char*
+static char *
 typestr0(int type)
 {
 	static char buf[100];
@@ -356,42 +358,42 @@ typestr0(int type)
 }
 
 static uint32_t
-getle32(void* v)
+getle32(void *v)
 {
 	uint8_t *p;
 
 	p = v;
-	return (p[3]<<24)|(p[2]<<16)|(p[1]<<8)|p[0];
+	return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
 }
 
 static void
-putle32(void* v, uint32_t i)
+putle32(void *v, uint32_t i)
 {
 	uint8_t *p;
 
 	p = v;
 	p[0] = i;
-	p[1] = i>>8;
-	p[2] = i>>16;
-	p[3] = i>>24;
+	p[1] = i >> 8;
+	p[2] = i >> 16;
+	p[3] = i >> 24;
 }
 
 static void
 diskread(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 {
-	if(seek(disk->fd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
+	if(seek(disk->fd, (int64_t)sec * disk->secsize + off, 0) != (int64_t)sec * disk->secsize + off)
 		sysfatal("diskread seek %lud.%lud: %r", (uint32_t)sec,
-		         (uint32_t)off);
+			 (uint32_t)off);
 	if(readn(disk->fd, data, ndata) != ndata)
 		sysfatal("diskread %lud at %lud.%lud: %r", (uint32_t)ndata,
-		         (uint32_t)sec, (uint32_t)off);
+			 (uint32_t)sec, (uint32_t)off);
 }
 
 static int
 diskwrite(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 {
 	written = 1;
-	if(seek(disk->wfd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
+	if(seek(disk->wfd, (int64_t)sec * disk->secsize + off, 0) != (int64_t)sec * disk->secsize + off)
 		goto Error;
 	if(write(disk->wfd, data, ndata) != ndata)
 		goto Error;
@@ -403,7 +405,7 @@ Error:
 	return -1;
 }
 
-static Dospart*
+static Dospart *
 mkpart(char *name, int primary, int64_t lba, int64_t size, Tentry *t)
 {
 	static int n;
@@ -412,7 +414,7 @@ mkpart(char *name, int primary, int64_t lba, int64_t size, Tentry *t)
 	p = emalloc(sizeof(*p));
 	if(name)
 		p->name = estrdup(name);
-	else{
+	else {
 		p->name = emalloc(20);
 		sprint(p->name, "%c%d", primary ? 'p' : 's', ++n);
 	}
@@ -423,15 +425,15 @@ mkpart(char *name, int primary, int64_t lba, int64_t size, Tentry *t)
 		memset(&p->Tentry, 0, sizeof(Tentry));
 
 	p->changed = 0;
-	p->start = lba/sec2cyl;
-	p->end = (lba+size)/sec2cyl;
+	p->start = lba / sec2cyl;
+	p->end = (lba + size) / sec2cyl;
 	p->ctlstart = lba;
-	p->ctlend = lba+size;
+	p->ctlend = lba + size;
 	p->lba = lba;
-	if (p->lba != lba)
+	if(p->lba != lba)
 		fprint(2, "%s: start of partition (%lld) won't fit in MBR table\n", argv0, lba);
 	p->size = size;
-	if (p->size != size)
+	if(p->size != size)
 		fprint(2, "%s: size of partition (%lld) won't fit in MBR table\n", argv0, size);
 	p->primary = primary;
 	return p;
@@ -442,14 +444,14 @@ mkpart(char *name, int primary, int64_t lba, int64_t size, Tentry *t)
  * looked like when we started, attempting to restore them when
  * we are finished.
  */
-static Recover	*rtab;
-static int		nrtab;
+static Recover *rtab;
+static int nrtab;
 
 static void
 addrecover(Table t, uint32_t lba)
 {
-	if((nrtab%8) == 0) {
-		rtab = realloc(rtab, (nrtab+8)*sizeof(rtab[0]));
+	if((nrtab % 8) == 0) {
+		rtab = realloc(rtab, (nrtab + 8) * sizeof(rtab[0]));
 		if(rtab == nil)
 			sysfatal("out of memory");
 	}
@@ -464,7 +466,7 @@ recover(Edit *edit)
 	int64_t offset;
 
 	err = 0;
-	for(i=0; i<nrtab; i++)
+	for(i = 0; i < nrtab; i++)
 		if(diskwrite(edit->disk, &rtab[i].table, Tablesz, rtab[i].lba, Toffset) < 0)
 			err = 1;
 	if(err) {
@@ -476,23 +478,22 @@ recover(Edit *edit)
 
 	ctlfd = edit->disk->ctlfd;
 	offset = edit->disk->offset;
-	if(ctlfd >= 0){
-		for(i=0; i<edit->npart; i++)
-			if(edit->part[i]->ctlname && fprint(ctlfd, "delpart %s", edit->part[i]->ctlname)<0)
+	if(ctlfd >= 0) {
+		for(i = 0; i < edit->npart; i++)
+			if(edit->part[i]->ctlname && fprint(ctlfd, "delpart %s", edit->part[i]->ctlname) < 0)
 				fprint(2, "delpart failed: %s: %r", edit->part[i]->ctlname);
-		for(i=0; i<edit->nctlpart; i++)
-			if(edit->part[i]->name && fprint(ctlfd, "delpart %s", edit->ctlpart[i]->name)<0)
+		for(i = 0; i < edit->nctlpart; i++)
+			if(edit->part[i]->name && fprint(ctlfd, "delpart %s", edit->ctlpart[i]->name) < 0)
 				fprint(2, "delpart failed: %s: %r", edit->ctlpart[i]->name);
-		for(i=0; i<edit->nctlpart; i++){
+		for(i = 0; i < edit->nctlpart; i++) {
 			if(fprint(ctlfd, "part %s %lld %lld", edit->ctlpart[i]->name,
-				edit->ctlpart[i]->start+offset, edit->ctlpart[i]->end+offset) < 0){
+				  edit->ctlpart[i]->start + offset, edit->ctlpart[i]->end + offset) < 0) {
 				fprint(2, "restored disk partition table but not kernel; reboot\n");
 				exits("inconsistent");
 			}
 		}
 	}
 	exits("restored");
-
 }
 
 /*
@@ -510,25 +511,25 @@ rdpart(Edit *edit, uint64_t lba, uint64_t xbase)
 	if(xbase == 0)
 		xbase = lba;
 
-	diskread(edit->disk, &table, Tablesz, mbroffset+lba, Toffset);
-	addrecover(table, mbroffset+lba);
+	diskread(edit->disk, &table, Tablesz, mbroffset + lba, Toffset);
+	addrecover(table, mbroffset + lba);
 
 	if(table.magic[0] != Magic0 || table.magic[1] != Magic1) {
 		assert(lba != 0);
 		return;
 	}
 
-	for(tp=table.entry, ep=tp+NTentry; tp<ep && npart < Mpart; tp++) {
+	for(tp = table.entry, ep = tp + NTentry; tp < ep && npart < Mpart; tp++) {
 		switch(tp->type) {
 		case TypeEMPTY:
 			break;
 		case TypeEXTENDED:
 		case TypeEXTHUGE:
 		case TypeLINUXEXT:
-			rdpart(edit, xbase+getle32(tp->xlba), xbase);
+			rdpart(edit, xbase + getle32(tp->xlba), xbase);
 			break;
 		default:
-			p = mkpart(nil, lba==0, lba+getle32(tp->xlba), getle32(tp->xsize), tp);
+			p = mkpart(nil, lba == 0, lba + getle32(tp->xlba), getle32(tp->xsize), tp);
 			if(err = addpart(edit, p))
 				fprint(2, "adding partition: %s\n", err);
 			break;
@@ -572,14 +573,14 @@ haveroom(Edit *edit, int primary, int64_t start)
 		 */
 		n = 0;
 		lastsec = 0;
-		for(i=0; i<edit->npart; i++) {
-			p = (Dospart*)edit->part[i];
+		for(i = 0; i < edit->npart; i++) {
+			p = (Dospart *)edit->part[i];
 			if(p->primary)
-				n++, lastsec=0;
+				n++, lastsec = 0;
 			else if(!lastsec)
-				n++, lastsec=1;
+				n++, lastsec = 1;
 		}
-		return n<4;
+		return n < 4;
 	}
 
 	/* 
@@ -589,26 +590,26 @@ haveroom(Edit *edit, int primary, int64_t start)
 	 * to a secondary partition no problem.
 	 */
 	n = 0;
-	for(i=0; i<edit->npart; i++){
-		p = (Dospart*)edit->part[i];
+	for(i = 0; i < edit->npart; i++) {
+		p = (Dospart *)edit->part[i];
 		if(p->primary)
 			n++;
 		pend = p->end;
-		if(i+1<edit->npart){
-			q = (Dospart*)edit->part[i+1];
+		if(i + 1 < edit->npart) {
+			q = (Dospart *)edit->part[i + 1];
 			qstart = q->start;
-		}else{
+		} else {
 			qstart = edit->end;
 			q = nil;
 		}
 		if(start < pend || start >= qstart)
 			continue;
 		/* we go between these two */
-		if(p->primary==0 || (q && q->primary==0))
+		if(p->primary == 0 || (q && q->primary == 0))
 			return 1;
 	}
 	/* not next to a secondary, need a new primary */
-	return n<4;
+	return n < 4;
 }
 
 static void
@@ -619,16 +620,16 @@ autopart(Edit *edit)
 	int64_t bigstart, bigsize, start;
 	Dospart *p;
 
-	for(i=0; i<edit->npart; i++)
-		if(((Dospart*)edit->part[i])->type == Type9)
+	for(i = 0; i < edit->npart; i++)
+		if(((Dospart *)edit->part[i])->type == Type9)
 			return;
 
 	/* look for the biggest gap in which we can put a primary partition */
 	start = 0;
 	bigsize = 0;
 	SET(bigstart);
-	for(i=0; i<edit->npart; i++) {
-		p = (Dospart*)edit->part[i];
+	for(i = 0; i < edit->npart; i++) {
+		p = (Dospart *)edit->part[i];
 		if(p->start > start && p->start - start > bigsize && haveroom(edit, 1, start)) {
 			bigsize = p->start - start;
 			bigstart = start;
@@ -646,9 +647,9 @@ autopart(Edit *edit)
 	}
 
 	/* set new partition active only if no others are */
-	active = Active;	
-	for(i=0; i<edit->npart; i++)
-		if(((Dospart*)edit->part[i])->primary && (((Dospart*)edit->part[i])->active & Active))
+	active = Active;
+	for(i = 0; i < edit->npart; i++)
+		if(((Dospart *)edit->part[i])->primary && (((Dospart *)edit->part[i])->active & Active))
 			active = 0;
 
 	/* add new plan 9 partition */
@@ -685,13 +686,13 @@ plan9print(Dospart *part, int fd)
 	char *sep;
 
 	vname = types[part->type].name;
-	if(vname==nil || strcmp(vname, "")==0) {
+	if(vname == nil || strcmp(vname, "") == 0) {
 		part->ctlname = "";
 		return;
 	}
 
-	start = mbroffset+part->lba;
-	end = start+part->size;
+	start = mbroffset + part->lba;
+	end = start + part->size;
 
 	/* avoid names like plan90 */
 	i = strlen(vname) - 1;
@@ -701,12 +702,12 @@ plan9print(Dospart *part, int fd)
 		sep = "";
 
 	i = 0;
-	name = emalloc(strlen(vname)+10);
+	name = emalloc(strlen(vname) + 10);
 
 	sprint(name, "%s", vname);
 	do {
 		ok = 1;
-		for(n=namelist; n; n=n->link) {
+		for(n = namelist; n; n = n->link) {
 			if(strcmp(name, n->name) == 0) {
 				i++;
 				sprint(name, "%s%s%d", vname, sep, i);
@@ -730,7 +731,7 @@ freenamelist(void)
 {
 	Name *n, *next;
 
-	for(n=namelist; n; n=next) {
+	for(n = namelist; n; n = next) {
 		next = n->link;
 		free(n);
 	}
@@ -743,12 +744,12 @@ cmdprintctl(Edit *edit, int ctlfd)
 	int i;
 
 	freenamelist();
-	for(i=0; i<edit->npart; i++)
-		plan9print((Dospart*)edit->part[i], -1);
+	for(i = 0; i < edit->npart; i++)
+		plan9print((Dospart *)edit->part[i], -1);
 	ctldiff(edit, ctlfd);
 }
 
-static char*
+static char *
 cmdokname(Edit *e, char *name)
 {
 	char *q;
@@ -756,16 +757,16 @@ cmdokname(Edit *e, char *name)
 	if(name[0] != 'p' && name[0] != 's')
 		return "name must be pN or sN";
 
-	strtol(name+1, &q, 10);
+	strtol(name + 1, &q, 10);
 	if(*q != '\0')
 		return "name must be pN or sN";
 
 	return nil;
 }
 
-#define TB (1024LL*GB)
-#define GB (1024*1024*1024)
-#define MB (1024*1024)
+#define TB (1024LL * GB)
+#define GB (1024 * 1024 * 1024)
+#define MB (1024 * 1024)
 #define KB (1024)
 
 static void
@@ -777,7 +778,7 @@ cmdsum(Edit *edit, Part *vp, int64_t a, int64_t b)
 	Dospart *p;
 	int64_t sz, div;
 
-	p = (Dospart*)vp;
+	p = (Dospart *)vp;
 
 	buf[0] = p && p->changed ? '\'' : ' ';
 	buf[1] = p && (p->active & Active) ? '*' : ' ';
@@ -786,78 +787,78 @@ cmdsum(Edit *edit, Part *vp, int64_t a, int64_t b)
 	name = p ? p->name : "empty";
 	ty = p ? typestr0(p->type) : "";
 
-	sz = (b-a)*edit->disk->secsize*sec2cyl;
-	if(sz >= 1*TB){
+	sz = (b - a) * edit->disk->secsize * sec2cyl;
+	if(sz >= 1 * TB) {
 		suf = "TB";
 		div = TB;
-	}else if(sz >= 1*GB){
+	} else if(sz >= 1 * GB) {
 		suf = "GB";
 		div = GB;
-	}else if(sz >= 1*MB){
+	} else if(sz >= 1 * MB) {
 		suf = "MB";
 		div = MB;
-	}else if(sz >= 1*KB){
+	} else if(sz >= 1 * KB) {
 		suf = "KB";
 		div = KB;
-	}else{
+	} else {
 		suf = "B ";
 		div = 1;
 	}
 
 	if(div == 1)
 		print("%s %-12s %*lld %-*lld (%lld cylinders, %lld %s) %s\n", buf, name,
-			edit->disk->width, a, edit->disk->width, b, b-a, sz, suf, ty);
+		      edit->disk->width, a, edit->disk->width, b, b - a, sz, suf, ty);
 	else
 		print("%s %-12s %*lld %-*lld (%lld cylinders, %lld.%.2d %s) %s\n", buf, name,
-			edit->disk->width, a, edit->disk->width, b,  b-a,
-			sz/div, (int)(((sz%div)*100)/div), suf, ty);
+		      edit->disk->width, a, edit->disk->width, b, b - a,
+		      sz / div, (int)(((sz % div) * 100) / div), suf, ty);
 }
 
-static char*
+static char *
 cmdadd(Edit *edit, char *name, int64_t start, int64_t end)
 {
 	Dospart *p;
 
-	if(!haveroom(edit, name[0]=='p', start))
+	if(!haveroom(edit, name[0] == 'p', start))
 		return "no room for partition";
 	start *= sec2cyl;
 	end *= sec2cyl;
 	if(start == 0 || name[0] != 'p')
 		start += edit->disk->s;
-	p = mkpart(name, name[0]=='p', start, end-start, nil);
+	p = mkpart(name, name[0] == 'p', start, end - start, nil);
 	p->changed = 1;
 	p->type = Type9;
 	return addpart(edit, p);
 }
 
-static char*
+static char *
 cmddel(Edit *edit, Part *p)
 {
 	return delpart(edit, p);
 }
 
-static char*
+static char *
 cmdwrite(Edit *edit)
 {
 	wrpart(edit);
 	return nil;
 }
 
-static char *help = 
-	"A name - set partition active\n"
-	"P - print table in ctl format\n"
-	"R - restore disk back to initial configuration and exit\n"
-	"e - show empty dos partitions\n"
-	"t name [type] - set partition type\n";
+static char *help =
+    "A name - set partition active\n"
+    "P - print table in ctl format\n"
+    "R - restore disk back to initial configuration and exit\n"
+    "e - show empty dos partitions\n"
+    "t name [type] - set partition type\n";
 
-static char*
+static char *
 cmdhelp(Edit *e)
 {
 	print("%s\n", help);
 	return nil;
 }
 
-static char*
+static char *
 cmdactive(Edit *edit, int nf, char **f)
 {
 	int i;
@@ -869,11 +870,11 @@ cmdactive(Edit *edit, int nf, char **f)
 	if(f[1][0] != 'p')
 		return "cannot set secondary partition active";
 
-	if((p = (Dospart*)findpart(edit, f[1])) == nil)
+	if((p = (Dospart *)findpart(edit, f[1])) == nil)
 		return "unknown partition";
 
-	for(i=0; i<edit->npart; i++) {
-		ip = (Dospart*)edit->part[i];
+	for(i = 0; i < edit->npart; i++) {
+		ip = (Dospart *)edit->part[i];
 		if(ip->active & Active) {
 			ip->active &= ~Active;
 			ip->changed = 1;
@@ -890,12 +891,12 @@ cmdactive(Edit *edit, int nf, char **f)
 	return nil;
 }
 
-static char*
+static char *
 strupr(char *s)
 {
 	char *p;
 
-	for(p=s; *p; p++)
+	for(p = s; *p; p++)
 		*p = toupper(*p);
 	return s;
 }
@@ -906,18 +907,18 @@ dumplist(void)
 	int i, n;
 
 	n = 0;
-	for(i=0; i<256; i++) {
+	for(i = 0; i < 256; i++) {
 		if(types[i].desc) {
 			print("%-16s", types[i].desc);
-			if(n++%4 == 3)
+			if(n++ % 4 == 3)
 				print("\n");
 		}
 	}
-	if(n%4)
+	if(n % 4)
 		print("\n");
 }
 
-static char*
+static char *
 cmdtype(Edit *edit, int nf, char **f)
 {
 	char *q;
@@ -927,7 +928,7 @@ cmdtype(Edit *edit, int nf, char **f)
 	if(nf < 2)
 		return "args";
 
-	if((p = (Dospart*)findpart(edit, f[1])) == nil)
+	if((p = (Dospart *)findpart(edit, f[1])) == nil)
 		return "unknown partition";
 
 	if(nf == 2) {
@@ -943,7 +944,7 @@ cmdtype(Edit *edit, int nf, char **f)
 		q = f[2];
 
 	strupr(q);
-	for(i=0; i<256; i++)
+	for(i = 0; i < 256; i++)
 		if(types[i].desc && strcmp(types[i].desc, q) == 0)
 			break;
 	if(i < 256 && p->type != i) {
@@ -954,7 +955,7 @@ cmdtype(Edit *edit, int nf, char **f)
 	return nil;
 }
 
-static char*
+static char *
 cmdext(Edit *edit, int nf, char **f)
 {
 	switch(f[0][0]) {
@@ -977,10 +978,10 @@ Dfmt(Fmt *f)
 	uint8_t *p;
 	int c, h, s;
 
-	p = va_arg(f->args, uint8_t*);
+	p = va_arg(f->args, uint8_t *);
 	h = p[0];
 	c = p[2];
-	c |= (p[1]&0xC0)<<2;
+	c |= (p[1] & 0xC0) << 2;
 	s = (p[1] & 0x3F);
 
 	sprint(buf, "%d/%d/%d", c, h, s);
@@ -1003,7 +1004,7 @@ writechs(Disk *disk, uint8_t *p, int64_t lba)
 	}
 
 	p[0] = h;
-	p[1] = ((s+1) & 0x3F) | ((c>>2) & 0xC0);
+	p[1] = ((s + 1) & 0x3F) | ((c >> 2) & 0xC0);
 	p[2] = c;
 }
 
@@ -1013,9 +1014,9 @@ wrtentry(Disk *disk, Tentry *tp, int type, uint32_t xbase, uint32_t lba,
 {
 	tp->type = type;
 	writechs(disk, &tp->starth, lba);
-	writechs(disk, &tp->endh, end-1);
-	putle32(tp->xlba, lba-xbase);
-	putle32(tp->xsize, end-lba);
+	writechs(disk, &tp->endh, end - 1);
+	putle32(tp->xlba, lba - xbase);
+	putle32(tp->xsize, end - lba);
 }
 
 static int
@@ -1028,62 +1029,62 @@ wrextend(Edit *edit, int i, int64_t xbase, int64_t startlba,
 	Dospart *p;
 	Disk *disk;
 
-	if(i == edit->npart){
+	if(i == edit->npart) {
 		*endlba = edit->disk->secs;
 	Finish:
-		if(startlba < *endlba){
+		if(startlba < *endlba) {
 			disk = edit->disk;
-			diskread(disk, &table, Tablesz, mbroffset+startlba, Toffset);
+			diskread(disk, &table, Tablesz, mbroffset + startlba, Toffset);
 			tp = table.entry;
-			ep = tp+NTentry;
-			for(; tp<ep; tp++)
+			ep = tp + NTentry;
+			for(; tp < ep; tp++)
 				memset(tp, 0, sizeof *tp);
 			table.magic[0] = Magic0;
 			table.magic[1] = Magic1;
 
-			if(diskwrite(edit->disk, &table, Tablesz, mbroffset+startlba, Toffset) < 0)
+			if(diskwrite(edit->disk, &table, Tablesz, mbroffset + startlba, Toffset) < 0)
 				recover(edit);
 		}
 		return i;
 	}
 
-	p = (Dospart*)edit->part[i];
-	if(p->primary){
-		*endlba = (int64_t)p->start*sec2cyl;
+	p = (Dospart *)edit->part[i];
+	if(p->primary) {
+		*endlba = (int64_t)p->start * sec2cyl;
 		goto Finish;
 	}
 
 	disk = edit->disk;
-	diskread(disk, &table, Tablesz, mbroffset+startlba, Toffset);
+	diskread(disk, &table, Tablesz, mbroffset + startlba, Toffset);
 	tp = table.entry;
-	ep = tp+NTentry;
+	ep = tp + NTentry;
 
-	ni = wrextend(edit, i+1, xbase, p->end*sec2cyl, endlba);
+	ni = wrextend(edit, i + 1, xbase, p->end * sec2cyl, endlba);
 
 	*tp = p->Tentry;
-	wrtentry(disk, tp, p->type, startlba, startlba+disk->s, p->end*sec2cyl);
+	wrtentry(disk, tp, p->type, startlba, startlba + disk->s, p->end * sec2cyl);
 	tp++;
 
-	if(p->end*sec2cyl != *endlba){
+	if(p->end * sec2cyl != *endlba) {
 		memset(tp, 0, sizeof *tp);
-		wrtentry(disk, tp, TypeEXTENDED, xbase, p->end*sec2cyl, *endlba);
+		wrtentry(disk, tp, TypeEXTENDED, xbase, p->end * sec2cyl, *endlba);
 		tp++;
 	}
 
-	for(; tp<ep; tp++)
+	for(; tp < ep; tp++)
 		memset(tp, 0, sizeof *tp);
 
 	table.magic[0] = Magic0;
 	table.magic[1] = Magic1;
 
-	if(diskwrite(edit->disk, &table, Tablesz, mbroffset+startlba, Toffset) < 0)
+	if(diskwrite(edit->disk, &table, Tablesz, mbroffset + startlba, Toffset) < 0)
 		recover(edit);
 	return ni;
-}	
+}
 
 static void
 wrpart(Edit *edit)
-{	
+{
 	int i, ni, t;
 	Table table;
 	Tentry *tp, *ep;
@@ -1096,22 +1097,22 @@ wrpart(Edit *edit)
 	diskread(disk, &table, Tablesz, mbroffset, Toffset);
 
 	tp = table.entry;
-	ep = tp+NTentry;
-	for(i=0; i<edit->npart && tp<ep; ) {
-		p = (Dospart*)edit->part[i];
+	ep = tp + NTentry;
+	for(i = 0; i < edit->npart && tp < ep;) {
+		p = (Dospart *)edit->part[i];
 		if(p->start == 0)
 			s = disk->s;
 		else
-			s = p->start*sec2cyl;
+			s = p->start * sec2cyl;
 		if(p->primary) {
 			*tp = p->Tentry;
-			wrtentry(disk, tp, p->type, 0, s, p->end*sec2cyl);
+			wrtentry(disk, tp, p->type, 0, s, p->end * sec2cyl);
 			tp++;
 			i++;
 		} else {
-			ni = wrextend(edit, i, p->start*sec2cyl, p->start*sec2cyl, &endlba);
+			ni = wrextend(edit, i, p->start * sec2cyl, p->start * sec2cyl, &endlba);
 			memset(tp, 0, sizeof *tp);
-			if(endlba >= 1024*sec2cyl)
+			if(endlba >= 1024 * sec2cyl)
 				t = TypeEXTHUGE;
 			else
 				t = TypeEXTENDED;
@@ -1120,9 +1121,9 @@ wrpart(Edit *edit)
 			i = ni;
 		}
 	}
-	for(; tp<ep; tp++)
+	for(; tp < ep; tp++)
 		memset(tp, 0, sizeof(*tp));
-		
+
 	if(i != edit->npart)
 		sysfatal("cannot happen #1");
 
@@ -1131,8 +1132,8 @@ wrpart(Edit *edit)
 
 	/* bring parts up to date */
 	freenamelist();
-	for(i=0; i<edit->npart; i++)
-		plan9print((Dospart*)edit->part[i], -1);
+	for(i = 0; i < edit->npart; i++)
+		plan9print((Dospart *)edit->part[i], -1);
 
 	if(ctldiff(edit, disk->ctlfd) < 0)
 		fprint(2, "?warning: partitions could not be updated in devsd\n");

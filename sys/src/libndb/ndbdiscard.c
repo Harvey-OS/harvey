@@ -13,13 +13,13 @@
 #include <ndb.h>
 
 /* remove a from t and free it */
-Ndbtuple*
+Ndbtuple *
 ndbdiscard(Ndbtuple *t, Ndbtuple *a)
 {
 	Ndbtuple *nt;
 
 	/* unchain a */
-	for(nt = t; nt != nil; nt = nt->entry){
+	for(nt = t; nt != nil; nt = nt->entry) {
 		if(nt->line == a)
 			nt->line = a->line;
 		if(nt->entry == a)

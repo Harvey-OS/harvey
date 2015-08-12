@@ -15,7 +15,7 @@
 /*
  *  reorder the tuple to put x's line first in the entry and x fitst in its line
  */
-Ndbtuple*
+Ndbtuple *
 ndbreorder(Ndbtuple *t, Ndbtuple *x)
 {
 	Ndbtuple *nt;
@@ -30,13 +30,13 @@ ndbreorder(Ndbtuple *t, Ndbtuple *x)
 		;
 
 	/* rotate to make this line first */
-	if(last->line != t){
+	if(last->line != t) {
 
 		/* detach this line and everything after it from the entry */
 		for(nt = t; nt->entry != last->line; nt = nt->entry)
 			;
 		nt->entry = nil;
-	
+
 		/* switch */
 		for(nt = last; nt->entry != nil; nt = nt->entry)
 			;
@@ -44,11 +44,12 @@ ndbreorder(Ndbtuple *t, Ndbtuple *x)
 	}
 
 	/* rotate line to make x first */
-	if(x != last->line){
+	if(x != last->line) {
 
 		/* find entry before x */
-		for(prev = last; prev->line != x; prev = prev->line);
+		for(prev = last; prev->line != x; prev = prev->line)
 			;
+		;
 
 		/* detach line */
 		nt = last->entry;

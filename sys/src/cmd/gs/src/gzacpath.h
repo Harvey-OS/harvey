@@ -28,7 +28,7 @@
 /* Requires gxdevice.h, gzcpath.h */
 
 #ifndef gzacpath_INCLUDED
-#  define gzacpath_INCLUDED
+#define gzacpath_INCLUDED
 
 /*
  * Device for accumulating a rectangle list.  This device can clip
@@ -37,30 +37,30 @@
  * rendering a band list.
  */
 typedef struct gx_device_cpath_accum_s {
-    gx_device_common;
-    gs_memory_t *list_memory;
-    gs_int_rect clip_box;
-    gs_int_rect bbox;
-    gx_clip_list list;
+	gx_device_common;
+	gs_memory_t *list_memory;
+	gs_int_rect clip_box;
+	gs_int_rect bbox;
+	gx_clip_list list;
 } gx_device_cpath_accum;
 
 /* Start accumulating a clipping path. */
-void gx_cpath_accum_begin(gx_device_cpath_accum * padev, gs_memory_t * mem);
+void gx_cpath_accum_begin(gx_device_cpath_accum *padev, gs_memory_t *mem);
 
 /* Set the accumulator's clipping box. */
-void gx_cpath_accum_set_cbox(gx_device_cpath_accum * padev,
-			     const gs_fixed_rect * pbox);
+void gx_cpath_accum_set_cbox(gx_device_cpath_accum *padev,
+			     const gs_fixed_rect *pbox);
 
 /* Finish accumulating a clipping path. */
 /* Note that this releases the old contents of the clipping path. */
-int gx_cpath_accum_end(const gx_device_cpath_accum * padev,
-		       gx_clip_path * pcpath);
+int gx_cpath_accum_end(const gx_device_cpath_accum *padev,
+		       gx_clip_path *pcpath);
 
 /* Discard an accumulator in case of error. */
-void gx_cpath_accum_discard(gx_device_cpath_accum * padev);
+void gx_cpath_accum_discard(gx_device_cpath_accum *padev);
 
 /* Intersect two clipping paths using an accumulator. */
 int gx_cpath_intersect_path_slow(gx_clip_path *, gx_path *, int,
-					gs_imager_state *);
+				 gs_imager_state *);
 
 #endif /* gzacpath_INCLUDED */

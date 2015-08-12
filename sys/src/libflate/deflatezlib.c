@@ -12,13 +12,12 @@
 #include <flate.h>
 #include "zlib.h"
 
-typedef struct ZRead	ZRead;
+typedef struct ZRead ZRead;
 
-struct ZRead
-{
-	uint32_t	adler;
-	void	*rr;
-	int	(*r)(void*, void*, int);
+struct ZRead {
+	uint32_t adler;
+	void *rr;
+	int (*r)(void *, void *, int);
 };
 
 static int
@@ -35,7 +34,7 @@ zlread(void *vzr, void *buf, int n)
 }
 
 int
-deflatezlib(void *wr, int (*w)(void*, void*, int), void *rr, int (*r)(void*, void*, int), int level, int debug)
+deflatezlib(void *wr, int (*w)(void *, void *, int), void *rr, int (*r)(void *, void *, int), int level, int debug)
 {
 	ZRead zr;
 	uint8_t buf[4];

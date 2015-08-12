@@ -28,7 +28,7 @@
 /* Requires gstext.h */
 
 #ifndef ichar_INCLUDED
-#  define ichar_INCLUDED
+#define ichar_INCLUDED
 
 /*
  * All the character rendering operators use the execution stack

@@ -35,7 +35,7 @@ struct Arch {
 	int64_t length;
 };
 
-static void*
+static void *
 emalloc(int32_t sz)
 {
 	void *v;
@@ -47,7 +47,7 @@ emalloc(int32_t sz)
 	return v;
 }
 
-static char*
+static char *
 estrdup(char *s)
 {
 	s = strdup(s);
@@ -56,17 +56,17 @@ estrdup(char *s)
 	return s;
 }
 
-static char*
+static char *
 Bgetline(Biobuf *b)
 {
 	char *p;
 
 	if(p = Brdline(b, '\n'))
-		p[Blinelen(b)-1] = '\0';
+		p[Blinelen(b) - 1] = '\0';
 	return p;
 }
 
-Ahdr*
+Ahdr *
 gethdr(Biobuf *b)
 {
 	Ahdr *a;
@@ -95,7 +95,7 @@ gethdr(Biobuf *b)
 	return a;
 }
 
-static Arch*
+static Arch *
 newarch(int64_t off, int64_t length)
 {
 	static Arch *abuf;
@@ -103,7 +103,7 @@ newarch(int64_t off, int64_t length)
 
 	if(nabuf == 0) {
 		nabuf = 256;
-		abuf = emalloc(sizeof(Arch)*nabuf);
+		abuf = emalloc(sizeof(Arch) * nabuf);
 	}
 
 	nabuf--;
@@ -112,7 +112,7 @@ newarch(int64_t off, int64_t length)
 	return abuf++;
 }
 
-static File*
+static File *
 createpath(File *f, char *name, char *u, uint32_t m)
 {
 	char *p;
@@ -123,16 +123,16 @@ createpath(File *f, char *name, char *u, uint32_t m)
 	incref(f);
 	while(f && (p = strchr(name, '/'))) {
 		*p = '\0';
-		if(strcmp(name, "") != 0 && strcmp(name, ".") != 0){
+		if(strcmp(name, "") != 0 && strcmp(name, ".") != 0) {
 			/* this would be a race if we were multithreaded */
-			incref(f);	/* so walk doesn't kill it immediately on failure */
+			incref(f); /* so walk doesn't kill it immediately on failure */
 			if((nf = walkfile(f, name)) == nil)
-				nf = createfile(f, name, u, DMDIR|0777, nil);
+				nf = createfile(f, name, u, DMDIR | 0777, nil);
 			decref(f);
 			f = nf;
 		}
 		*p = '/';
-		name = p+1;
+		name = p + 1;
 	}
 	if(f == nil)
 		return nil;
@@ -167,25 +167,24 @@ fsread(Req *r)
 	int n;
 
 	a = r->fid->file->aux;
-	if(a->length <= r->ifcall.offset) 
+	if(a->length <= r->ifcall.offset)
 		r->ifcall.count = 0;
-	else if(a->length <= r->ifcall.offset+r->ifcall.count)
+	else if(a->length <= r->ifcall.offset + r->ifcall.count)
 		r->ifcall.count = a->length - r->ifcall.offset;
 
 	werrstr("unknown error");
-	if(Bseek(b, a->off+r->ifcall.offset, 0) < 0 
-	|| (n = Bread(b, r->ofcall.data, r->ifcall.count)) < 0) {
+	if(Bseek(b, a->off + r->ifcall.offset, 0) < 0 || (n = Bread(b, r->ofcall.data, r->ifcall.count)) < 0) {
 		err[0] = '\0';
 		errstr(err, sizeof err);
 		respond(r, err);
 	} else {
 		r->ofcall.count = n;
-		respond(r, nil);	
+		respond(r, nil);
 	}
 }
 
 Srv fs = {
-	.read=	fsread,
+    .read = fsread,
 };
 
 static void
@@ -205,7 +204,8 @@ main(int argc, char **argv)
 
 	flag = 0;
 	mtpt = "/mnt/arch";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -227,7 +227,8 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -235,7 +236,7 @@ main(int argc, char **argv)
 	if((b = Bopen(argv[0], OREAD)) == nil)
 		sysfatal("open '%s': %r", argv[0]);
 
-	archtree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
+	archtree = fs.tree = alloctree("sys", "sys", DMDIR | 0775, nil);
 	while(a = gethdr(b)) {
 		archcreatefile(a->_name, newarch(Boffset(b), a->length), a);
 		Bseek(b, a->length, 1);

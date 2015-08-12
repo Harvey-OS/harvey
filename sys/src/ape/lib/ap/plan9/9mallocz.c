@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void*
+void *
 _MALLOCZ(int n, int clr)
 {
 	void *v;
@@ -20,4 +20,3 @@ _MALLOCZ(int n, int clr)
 		memset(v, 0, n);
 	return v;
 }
-

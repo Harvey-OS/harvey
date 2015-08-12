@@ -12,9 +12,9 @@
 #include <mp.h>
 #include <libsec.h>
 
-#define STRLEN(s)	(sizeof(s)-1)
+#define STRLEN(s) (sizeof(s) - 1)
 
-uint8_t*
+uint8_t *
 decodepem(char *s, char *type, int *len)
 {
 	uint8_t *d;
@@ -27,38 +27,34 @@ decodepem(char *s, char *type, int *len)
 	 */
 	n = strlen(type);
 	e = strchr(s, '\0');
-	for(t = s; t != nil && t < e; ){
+	for(t = s; t != nil && t < e;) {
 		tt = t;
 		t = strchr(tt, '\n');
 		if(t != nil)
 			t++;
-		if(strncmp(tt, "-----BEGIN ", STRLEN("-----BEGIN ")) == 0
-		&& strncmp(&tt[STRLEN("-----BEGIN ")], type, n) == 0
-		&& strncmp(&tt[STRLEN("-----BEGIN ")+n], "-----\n", STRLEN("-----\n")) == 0)
+		if(strncmp(tt, "-----BEGIN ", STRLEN("-----BEGIN ")) == 0 && strncmp(&tt[STRLEN("-----BEGIN ")], type, n) == 0 && strncmp(&tt[STRLEN("-----BEGIN ") + n], "-----\n", STRLEN("-----\n")) == 0)
 			break;
 	}
-	for(tt = t; tt != nil && tt < e; tt++){
-		if(strncmp(tt, "-----END ", STRLEN("-----END ")) == 0
-		&& strncmp(&tt[STRLEN("-----END ")], type, n) == 0
-		&& strncmp(&tt[STRLEN("-----END ")+n], "-----\n", STRLEN("-----\n")) == 0)
+	for(tt = t; tt != nil && tt < e; tt++) {
+		if(strncmp(tt, "-----END ", STRLEN("-----END ")) == 0 && strncmp(&tt[STRLEN("-----END ")], type, n) == 0 && strncmp(&tt[STRLEN("-----END ") + n], "-----\n", STRLEN("-----\n")) == 0)
 			break;
 		tt = strchr(tt, '\n');
 		if(tt == nil)
 			break;
 	}
-	if(tt == nil || tt == e){
+	if(tt == nil || tt == e) {
 		werrstr("incorrect .pem file format: bad header or trailer");
 		return nil;
 	}
 
 	n = ((tt - t) * 6 + 7) / 8;
 	d = malloc(n);
-	if(d == nil){
+	if(d == nil) {
 		werrstr("out of memory");
 		return nil;
 	}
 	n = dec64(d, n, t, tt - t);
-	if(n < 0){
+	if(n < 0) {
 		free(d);
 		werrstr("incorrect .pem file format: bad base64 encoded data");
 		return nil;

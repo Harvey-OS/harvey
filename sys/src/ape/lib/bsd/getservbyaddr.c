@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-struct servent*
+struct servent *
 getservbyport(int port, char *proto)
 {
 	char buf[32];

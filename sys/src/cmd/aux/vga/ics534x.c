@@ -21,27 +21,25 @@
  * or an ARK2000pv (Diamond Stealth64 Graphics 2001).
  */
 static uint8_t
-setrs2(Vga* vga, Ctlr* ctlr)
+setrs2(Vga *vga, Ctlr *ctlr)
 {
 	uint8_t rs2;
 
 	rs2 = 0;
-	if(strncmp(vga->ctlr->name, "et4000-w32", 10) == 0){
+	if(strncmp(vga->ctlr->name, "et4000-w32", 10) == 0) {
 		rs2 = vgaxi(Crtx, 0x31);
-		vgaxo(Crtx, 0x31, 0x40|rs2);
-	}
-	else if(strncmp(vga->ctlr->name, "ark2000pv", 9) == 0){
+		vgaxo(Crtx, 0x31, 0x40 | rs2);
+	} else if(strncmp(vga->ctlr->name, "ark2000pv", 9) == 0) {
 		rs2 = vgaxi(Seqx, 0x1C);
-		vgaxo(Seqx, 0x1C, 0x80|rs2);
-	}
-	else
+		vgaxo(Seqx, 0x1C, 0x80 | rs2);
+	} else
 		error("%s: not configured for %s\n", vga->ctlr->name, ctlr->name);
 
 	return rs2;
 }
 
 static void
-restorers2(Vga* vga, uint8_t rs2)
+restorers2(Vga *vga, uint8_t rs2)
 {
 	if(strncmp(vga->ctlr->name, "et4000-w32", 10) == 0)
 		vgaxo(Crtx, 0x31, rs2);
@@ -50,13 +48,13 @@ restorers2(Vga* vga, uint8_t rs2)
 }
 
 static void
-options(Vga* vga, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
-	ctlr->flag |= Hpclk2x8|Foptions;
+	ctlr->flag |= Hpclk2x8 | Foptions;
 }
 
 static void
-clock(Vga* vga, Ctlr* ctlr)
+clock(Vga *vga, Ctlr *ctlr)
 {
 	uint32_t f, m, n, r;
 	double fmin, fmax, t, tok;
@@ -86,40 +84,40 @@ clock(Vga* vga, Ctlr* ctlr)
 	 */
 	if(ctlr->flag & Upclk2x8)
 		vga->r[0] = 2;
-	else{
+	else {
 		vga->r[0] = 4;
-		for(r = 0; r <= 3; r++){
-			f = vga->f[0]*(1<<r);
+		for(r = 0; r <= 3; r++) {
+			f = vga->f[0] * (1 << r);
 			if(60000000 < f && f <= 270000000)
 				vga->r[0] = r;
 		}
 		if(vga->r[0] > 3)
 			error("%s: pclk %lud out of range\n",
-				ctlr->name, vga->f[0]);
+			      ctlr->name, vga->f[0]);
 	}
 
 	/*
 	 * Now find the closest match for M and N.
 	 * Lower values of M and N give better noise rejection.
 	 */
-	fmin = vga->f[0]*0.995;
-	fmax = vga->f[0]*1.005;
+	fmin = vga->f[0] * 0.995;
+	fmax = vga->f[0] * 1.005;
 	tok = 0.0;
-	for(n = 31; n >= 1; n--){
-		t = RefFreq/(n+2);
+	for(n = 31; n >= 1; n--) {
+		t = RefFreq / (n + 2);
 		if(600000 >= t || t > 8000000)
 			continue;
 
-		t = vga->f[0]*(n+2)*(1<<vga->r[0]);
+		t = vga->f[0] * (n + 2) * (1 << vga->r[0]);
 		t /= RefFreq;
-		m = (t+0.5) - 2;
+		m = (t + 0.5) - 2;
 		if(m > 127)
 			continue;
 
-		t = (m+2)*RefFreq;
-		t /= (n+2)*(1<<vga->r[0]);
+		t = (m + 2) * RefFreq;
+		t /= (n + 2) * (1 << vga->r[0]);
 
-		if(fmin <= t && t < fmax){
+		if(fmin <= t && t < fmax) {
 			vga->m[0] = m;
 			vga->n[0] = n;
 			tok = t;
@@ -131,7 +129,7 @@ clock(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	uint32_t pclk;
 	char *p;
@@ -141,7 +139,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	pclk = 80000000;
 	if(p = strrchr(ctlr->name, '-'))
-		pclk = strtoul(p+1, 0, 0) * 1000000;
+		pclk = strtoul(p + 1, 0, 0) * 1000000;
 
 	/*
 	 * If we don't already have a desired pclk,
@@ -158,7 +156,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * If yes and the clock has already been initialised,
 	 * initialise it again.
 	 */
-	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f[0] >= pclk/2){
+	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f[0] >= pclk / 2) {
 		vga->f[0] /= 2;
 		resyncinit(vga, ctlr, Upclk2x8, 0);
 	}
@@ -172,11 +170,10 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->misc &= ~0x0C;
 	if(vga->f[0] == VgaFreq0)
 		vga->i[0] = 0;
-	else if(vga->f[0] == VgaFreq1){
+	else if(vga->f[0] == VgaFreq1) {
 		vga->misc |= 0x04;
 		vga->i[0] = 1;
-	}
-	else{
+	} else {
 		/*
 		 * Initialise the PLL parameters.
 		 * Use CLK0 f7 internal clock (there are only 3
@@ -190,7 +187,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uint8_t rs2, mode, pll;
 
@@ -213,10 +210,10 @@ load(Vga* vga, Ctlr* ctlr)
 	 */
 	outportb(PaddrR, 0x0E);
 	pll = inportb(Pdata) & 0x10;
-	if(vga->i[0] == 0x07){
+	if(vga->i[0] == 0x07) {
 		outportb(PaddrW, vga->i[0]);
 		outportb(Pdata, vga->m[0]);
-		outportb(Pdata, (vga->r[0]<<5)|vga->n[0]);
+		outportb(Pdata, (vga->r[0] << 5) | vga->n[0]);
 		pll |= 0x27;
 	}
 	outportb(PaddrW, 0x0E);
@@ -228,7 +225,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	uint8_t rs2, m, n;
@@ -241,7 +238,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	printreg(inportb(Pixmask));
 
 	outportb(PaddrR, 0x00);
-	for(i = 0; i < 0x0E; i++){
+	for(i = 0; i < 0x0E; i++) {
 		sprint(buf, "f%X m n", i);
 		printitem(ctlr->name, buf);
 		m = inportb(Pdata);
@@ -249,9 +246,9 @@ dump(Vga* vga, Ctlr* ctlr)
 		n = inportb(Pdata);
 		printreg(n);
 
-		f = 14318180*(m+2);
-		f /= (n & 0x1F)+2;
-		f /= 1<<((n>>5) & 0x03);
+		f = 14318180 * (m + 2);
+		f /= (n & 0x1F) + 2;
+		f /= 1 << ((n >> 5) & 0x03);
 		Bprint(&stdout, "%12lud", f);
 	}
 	printitem(ctlr->name, "control");
@@ -261,10 +258,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr ics534x = {
-	"ics534x",			/* name */
-	0,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "ics534x", /* name */
+    0,	 /* snarf */
+    options,   /* options */
+    init,      /* init */
+    load,      /* load */
+    dump,      /* dump */
 };

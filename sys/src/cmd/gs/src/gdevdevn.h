@@ -27,7 +27,7 @@
 /* Include file for common DeviceN process color model devices. */
 
 #ifndef gdevdevn_INCLUDED
-# define gdevdevn_INCLUDED
+#define gdevdevn_INCLUDED
 
 /*
  * Define the maximum number of spot colors supported by this device.
@@ -46,23 +46,23 @@
 /*
  * Type definitions associated with the fixed color model names.
  */
-typedef const char * fixed_colorant_name;
-typedef fixed_colorant_name * fixed_colorant_names_list;
+typedef const char *fixed_colorant_name;
+typedef fixed_colorant_name *fixed_colorant_names_list;
 
 /*
  * Structure for holding SeparationNames elements.
  */
 typedef struct devn_separation_name_s {
-    int size;
-    byte * data;
+	int size;
+	byte *data;
 } devn_separation_name;
 
 /*
  * Structure for holding SeparationNames elements.
  */
 typedef struct gs_separations_s {
-    int num_separations;
-    devn_separation_name names[GX_DEVICE_MAX_SEPARATIONS];
+	int num_separations;
+	devn_separation_name names[GX_DEVICE_MAX_SEPARATIONS];
 } gs_separations;
 
 /*
@@ -71,36 +71,36 @@ typedef struct gs_separations_s {
 typedef int gs_separation_map[GX_DEVICE_MAX_SEPARATIONS];
 
 typedef struct gs_devn_params_s {
-    /*
+	/*
      * Bits per component (device colorant).  Currently only 1 and 8 are
      * supported.
      */
-    int bitspercomponent;
+	int bitspercomponent;
 
-    /*
+	/*
      * Pointer to the colorant names for the color model.  This will be
      * null if we have DeviceN type device.  The actual possible colorant
      * names are those in this list plus those in the separation[i].name
      * list (below).
      */
-    fixed_colorant_names_list std_colorant_names;
-    int num_std_colorant_names;	/* Number of names in list */
-    int max_separations;	/* From MaxSeparation parameter */
+	fixed_colorant_names_list std_colorant_names;
+	int num_std_colorant_names; /* Number of names in list */
+	int max_separations;	/* From MaxSeparation parameter */
 
-    /*
+	/*
     * Separation info (if any).
     */
-    gs_separations separations;
+	gs_separations separations;
 
-    /*
+	/*
      * Separation Order (if specified).
      */
-    int num_separation_order_names;
-    /*
+	int num_separation_order_names;
+	/*
      * The SeparationOrder parameter may change the logical order of
      * components.
      */
-    gs_separation_map separation_order_map;
+	gs_separation_map separation_order_map;
 } gs_devn_params_t;
 
 typedef gs_devn_params_t gs_devn_params;
@@ -118,13 +118,13 @@ extern fixed_colorant_name DeviceCMYKComponents[];
  * Convert standard color spaces into DeviceN colorants.
  * Note;  This routine require SeparationOrder map.
  */
-void gray_cs_to_devn_cm(gx_device * dev, int * map, frac gray, frac out[]);
+void gray_cs_to_devn_cm(gx_device *dev, int *map, frac gray, frac out[]);
 
-void rgb_cs_to_devn_cm(gx_device * dev, int * map,
-		const gs_imager_state *pis, frac r, frac g, frac b, frac out[]);
+void rgb_cs_to_devn_cm(gx_device *dev, int *map,
+		       const gs_imager_state *pis, frac r, frac g, frac b, frac out[]);
 
-void cmyk_cs_to_devn_cm(gx_device * dev, int * map,
-		frac c, frac m, frac y, frac k, frac out[]);
+void cmyk_cs_to_devn_cm(gx_device *dev, int *map,
+			frac c, frac m, frac y, frac k, frac out[]);
 
 /*
  * Possible values for the 'auto_spot_colors' parameter.
@@ -138,7 +138,7 @@ void cmyk_cs_to_devn_cm(gx_device * dev, int * map,
  * Spot colors over that limit will be handled by the alternate color space
  * for the Separation or DeviceN color space.
  */
-#define ENABLE_AUTO_SPOT_COLORS	1
+#define ENABLE_AUTO_SPOT_COLORS 1
 /*
  * Automatically add spot colors up to the GX_DEVICE_MAX_SEPARATIONS value.
  * Note;  Spot colors beyond the number that the device can image will be
@@ -168,15 +168,15 @@ void cmyk_cs_to_devn_cm(gx_device * dev, int * map,
  * This routine will also add separations to the device if space is
  * available.
  */
-int devn_get_color_comp_index(const gx_device * dev,
-    gs_devn_params * pdevn_params, equivalent_cmyk_color_params * pequiv_colors,
-    const char * pname, int name_size, int component_type,
-    int auto_spot_colors);
+int devn_get_color_comp_index(const gx_device *dev,
+			      gs_devn_params *pdevn_params, equivalent_cmyk_color_params *pequiv_colors,
+			      const char *pname, int name_size, int component_type,
+			      int auto_spot_colors);
 
 /* Utility routine for getting DeviceN parameters */
-int devn_get_params(gx_device * pdev, gs_param_list * plist,
-		    gs_devn_params * pdevn_params,
-		    equivalent_cmyk_color_params * pequiv_colors);
+int devn_get_params(gx_device *pdev, gs_param_list *plist,
+		    gs_devn_params *pdevn_params,
+		    equivalent_cmyk_color_params *pequiv_colors);
 
 /*
  * Utility routine for handling DeviceN related parameters.  This routine
@@ -187,9 +187,9 @@ int devn_get_params(gx_device * pdev, gs_param_list * plist,
  * the device structure.  The pointer to the equivalent_cmyk_color_params is
  * optional (it should be NULL if this feature is not used by the device).
  */
-int devn_printer_put_params(gx_device * pdev, gs_param_list * plist,
-			gs_devn_params * pdevn_params,
-			equivalent_cmyk_color_params * pequiv_colors);
+int devn_printer_put_params(gx_device *pdev, gs_param_list *plist,
+			    gs_devn_params *pdevn_params,
+			    equivalent_cmyk_color_params *pequiv_colors);
 
 /* 
  * Utility routine for handling DeviceN related parameters.  This routine
@@ -200,9 +200,9 @@ int devn_printer_put_params(gx_device * pdev, gs_param_list * plist,
  * Note:  This routine does not restore values in case of a problem.  This
  * is left to the caller.
  */
-int devn_put_params(gx_device * pdev, gs_param_list * plist,
-			gs_devn_params * pdevn_params,
-			equivalent_cmyk_color_params * pequiv_colors);
+int devn_put_params(gx_device *pdev, gs_param_list *plist,
+		    gs_devn_params *pdevn_params,
+		    equivalent_cmyk_color_params *pequiv_colors);
 
 /*
  * This routine will check to see if the color component name  match those
@@ -217,9 +217,9 @@ int devn_put_params(gx_device * pdev, gs_param_list * plist,
  * This routine returns a positive value (0 to n) which is the device colorant
  * number if the name is found.  It returns a negative value if not found.
  */
-int check_pcm_and_separation_names(const gx_device * dev,
-		const gs_devn_params * pparams, const char * pname,
-		int name_size, int component_type);
+int check_pcm_and_separation_names(const gx_device *dev,
+				   const gs_devn_params *pparams, const char *pname,
+				   int name_size, int component_type);
 
 /*
  * This routine will extract a specified set of bits from a buffer and pack
@@ -237,7 +237,7 @@ int check_pcm_and_separation_names(const gx_device * dev,
  *   Length of the output line (in bytes)
  *   Data in dest.
  */
-int repack_data(byte * source, byte * dest, int depth, int first_bit,
+int repack_data(byte *source, byte *dest, int depth, int first_bit,
 		int bit_width, int npixel);
 
 /*
@@ -255,4 +255,4 @@ int repack_data(byte * source, byte * dest, int depth, int first_bit,
  */
 int bpc_to_depth(int ncomp, int bpc);
 
-#endif		/* ifndef gdevdevn_INCLUDED */
+#endif /* ifndef gdevdevn_INCLUDED */

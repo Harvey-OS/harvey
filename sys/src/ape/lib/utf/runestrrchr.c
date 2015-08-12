@@ -25,7 +25,7 @@
 #include "utf.h"
 #include "utfdef.h"
 
-Rune*
+Rune *
 runestrrchr(Rune *s, Rune c)
 {
 	Rune *r;

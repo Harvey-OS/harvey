@@ -15,10 +15,10 @@
 #include "dat.h"
 #include "fns.h"
 
-#define	SIZE	1024
-#define	DOTDOT	(&fmt+1)
+#define SIZE 1024
+#define DOTDOT (&fmt + 1)
 
-int	chatty;
+int chatty;
 
 void
 chat(char *fmt, ...)
@@ -26,13 +26,13 @@ chat(char *fmt, ...)
 	char buf[SIZE], *out;
 	va_list arg;
 
-	if (!chatty)
+	if(!chatty)
 		return;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
+	out = vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
-	write(2, buf, (int32_t)(out-buf));
+	write(2, buf, (int32_t)(out - buf));
 }
 
 void
@@ -42,9 +42,9 @@ mchat(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
+	out = vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
-	write(2, buf, (int32_t)(out-buf));
+	write(2, buf, (int32_t)(out - buf));
 }
 void
 panic(char *fmt, ...)
@@ -55,7 +55,7 @@ panic(char *fmt, ...)
 
 	n = sprint(buf, "%s %d: panic ", argv0, getpid());
 	va_start(arg, fmt);
-	vseprint(buf+n, buf+sizeof(buf)-n, fmt, arg);
+	vseprint(buf + n, buf + sizeof(buf) - n, fmt, arg);
 	va_end(arg);
 	fprint(2, "%s: %r\n", buf);
 	exits("panic");

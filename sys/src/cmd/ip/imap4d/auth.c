@@ -30,14 +30,14 @@ enableForwarding(void)
 		return;
 
 	now = time(0);
-	if(now < last + 5*60)
+	if(now < last + 5 * 60)
 		return;
 	last = now;
 
 	fd = open("/srv/ratify", ORDWR);
 	if(fd < 0)
 		return;
-	if(!mount(fd, -1, "/mail/ratify", MBEFORE, "")){
+	if(!mount(fd, -1, "/mail/ratify", MBEFORE, "")) {
 		close(fd);
 		return;
 	}
@@ -69,14 +69,14 @@ setupuser(AuthInfo *ai)
 	Waitmsg *w;
 	int pid;
 
-	if(ai){
-		strecpy(username, username+sizeof username, ai->cuid);
+	if(ai) {
+		strecpy(username, username + sizeof username, ai->cuid);
 
 		if(auth_chuid(ai, nil) < 0)
 			bye("user auth failed: %r");
 		auth_freeAI(ai);
-	}else
-		strecpy(username, username+sizeof username, getuser());
+	} else
+		strecpy(username, username + sizeof username, getuser());
 
 	if(newns(username, 0) < 0)
 		bye("user login failed: %r");
@@ -90,24 +90,24 @@ setupuser(AuthInfo *ai)
 	if(myChdir(mboxDir) < 0)
 		bye("can't open user's mailbox");
 
-	switch(pid = fork()){
+	switch(pid = fork()) {
 	case -1:
 		bye("can't initialize mail system");
 		break;
 	case 0:
 		execl("/bin/upas/fs", "upas/fs", "-np", nil);
-_exits("rob1");
+		_exits("rob1");
 		_exits(0);
 		break;
 	default:
 		break;
 	}
-	if((w=wait()) == nil || w->pid != pid || w->msg[0] != '\0')
+	if((w = wait()) == nil || w->pid != pid || w->msg[0] != '\0')
 		bye("can't initialize mail system");
 	free(w);
 }
 
-static char*
+static char *
 authresp(void)
 {
 	char *s, *t;
@@ -118,14 +118,14 @@ authresp(void)
 	if(n < 2)
 		return nil;
 	n--;
-	if(t[n-1] == '\r')
+	if(t[n - 1] == '\r')
 		n--;
 	t[n] = '\0';
 	if(n == 0 || strcmp(t, "*") == 0)
 		return nil;
 
 	s = binalloc(&parseBin, n + 1, 0);
-	n = dec64((uint8_t*)s, n, t, n);
+	n = dec64((uint8_t *)s, n, t, n);
 	s[n] = '\0';
 	return s;
 }
@@ -133,7 +133,7 @@ authresp(void)
 /*
  * rfc 2195 cram-md5 authentication
  */
-char*
+char *
 cramauth(void)
 {
 	AuthInfo *ai;
@@ -146,7 +146,7 @@ cramauth(void)
 
 	n = cs->nchal;
 	s = binalloc(&parseBin, n * 2, 0);
-	n = enc64(s, n * 2, (uint8_t*)cs->chal, n);
+	n = enc64(s, n * 2, (uint8_t *)cs->chal, n);
 	Bprint(&bout, "+ ");
 	Bwrite(&bout, s, n);
 	Bprint(&bout, "\r\n");
@@ -162,7 +162,7 @@ cramauth(void)
 		bye("bad auth response");
 	*t++ = '\0';
 	strncpy(username, s, UserNameLen);
-	username[UserNameLen-1] = '\0';
+	username[UserNameLen - 1] = '\0';
 
 	cs->user = username;
 	cs->resp = t;
@@ -174,23 +174,23 @@ cramauth(void)
 	return nil;
 }
 
-AuthInfo*
+AuthInfo *
 passLogin(char *user, char *secret)
 {
 	AuthInfo *ai;
 	Chalstate *cs;
 	uint8_t digest[MD5dlen];
-	char response[2*MD5dlen+1];
+	char response[2 * MD5dlen + 1];
 	int i;
 
 	if((cs = auth_challenge("proto=cram role=server")) == nil)
 		return nil;
 
-	hmac_md5((uint8_t*)cs->chal, strlen(cs->chal),
-		(uint8_t*)secret, strlen(secret), digest,
-		nil);
+	hmac_md5((uint8_t *)cs->chal, strlen(cs->chal),
+		 (uint8_t *)secret, strlen(secret), digest,
+		 nil);
 	for(i = 0; i < MD5dlen; i++)
-		snprint(response + 2*i, sizeof(response) - 2*i, "%2.2ux", digest[i]);
+		snprint(response + 2 * i, sizeof(response) - 2 * i, "%2.2ux", digest[i]);
 
 	cs->user = user;
 	cs->resp = response;

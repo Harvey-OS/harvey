@@ -12,93 +12,88 @@
 #include <flate.h>
 
 enum {
-	HistorySize=	32*1024,
-	BufSize=	4*1024,
-	MaxHuffBits=	17,	/* maximum bits in a encoded code */
-	Nlitlen=	288,	/* number of litlen codes */
-	Noff=		32,	/* number of offset codes */
-	Nclen=		19,	/* number of codelen codes */
-	LenShift=	10,	/* code = len<<LenShift|code */
-	LitlenBits=	7,	/* number of bits in litlen decode table */
-	OffBits=	6,	/* number of bits in offset decode table */
-	ClenBits=	6,	/* number of bits in code len decode table */
-	MaxFlatBits=	LitlenBits,
-	MaxLeaf=	Nlitlen
+	HistorySize = 32 * 1024,
+	BufSize = 4 * 1024,
+	MaxHuffBits = 17, /* maximum bits in a encoded code */
+	Nlitlen = 288,    /* number of litlen codes */
+	Noff = 32,	/* number of offset codes */
+	Nclen = 19,       /* number of codelen codes */
+	LenShift = 10,    /* code = len<<LenShift|code */
+	LitlenBits = 7,   /* number of bits in litlen decode table */
+	OffBits = 6,      /* number of bits in offset decode table */
+	ClenBits = 6,     /* number of bits in code len decode table */
+	MaxFlatBits = LitlenBits,
+	MaxLeaf = Nlitlen
 };
 
-typedef struct Input	Input;
-typedef struct History	History;
-typedef struct Huff	Huff;
+typedef struct Input Input;
+typedef struct History History;
+typedef struct Huff Huff;
 
-struct Input
-{
-	int	error;		/* first error encountered, or FlateOk */
-	void	*wr;
-	int	(*w)(void*, void*, int);
-	void	*getr;
-	int	(*get)(void*);
-	uint32_t	sreg;
-	int	nbits;
+struct Input {
+	int error; /* first error encountered, or FlateOk */
+	void *wr;
+	int (*w)(void *, void *, int);
+	void *getr;
+	int (*get)(void *);
+	uint32_t sreg;
+	int nbits;
 };
 
-struct History
-{
-	uint8_t	his[HistorySize];
-	uint8_t	*cp;		/* current pointer in history */
-	int	full;		/* his has been filled up at least once */
+struct History {
+	uint8_t his[HistorySize];
+	uint8_t *cp; /* current pointer in history */
+	int full;    /* his has been filled up at least once */
 };
 
-struct Huff
-{
-	int	maxbits;	/* max bits for any code */
-	int	minbits;	/* min bits to get before looking in flat */
-	int	flatmask;	/* bits used in "flat" fast decoding table */
-	uint32_t	flat[1<<MaxFlatBits];
-	uint32_t	maxcode[MaxHuffBits];
-	uint32_t	last[MaxHuffBits];
-	uint32_t	decode[MaxLeaf];
+struct Huff {
+	int maxbits;  /* max bits for any code */
+	int minbits;  /* min bits to get before looking in flat */
+	int flatmask; /* bits used in "flat" fast decoding table */
+	uint32_t flat[1 << MaxFlatBits];
+	uint32_t maxcode[MaxHuffBits];
+	uint32_t last[MaxHuffBits];
+	uint32_t decode[MaxLeaf];
 };
 
 /* litlen code words 257-285 extra bits */
-static int litlenextra[Nlitlen-257] =
-{
-/* 257 */	0, 0, 0,
-/* 260 */	0, 0, 0, 0, 0, 1, 1, 1, 1, 2,
-/* 270 */	2, 2, 2, 3, 3, 3, 3, 4, 4, 4,
-/* 280 */	4, 5, 5, 5, 5, 0, 0, 0
-};
+static int litlenextra[Nlitlen - 257] =
+    {
+     /* 257 */ 0, 0, 0,
+     /* 260 */ 0, 0, 0, 0, 0, 1, 1, 1, 1, 2,
+     /* 270 */ 2, 2, 2, 3, 3, 3, 3, 4, 4, 4,
+     /* 280 */ 4, 5, 5, 5, 5, 0, 0, 0};
 
-static int litlenbase[Nlitlen-257];
+static int litlenbase[Nlitlen - 257];
 
 /* offset code word extra bits */
 static int offextra[Noff] =
-{
-	0,  0,  0,  0,  1,  1,  2,  2,  3,  3,
-	4,  4,  5,  5,  6,  6,  7,  7,  8,  8,
-	9,  9,  10, 10, 11, 11, 12, 12, 13, 13,
-	0,  0,
+    {
+     0, 0, 0, 0, 1, 1, 2, 2, 3, 3,
+     4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
+     9, 9, 10, 10, 11, 11, 12, 12, 13, 13,
+     0, 0,
 };
 static int offbase[Noff];
 
 /* order code lengths */
 static int clenorder[Nclen] =
-{
-        16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
-};
+    {
+     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
 
 /* for static huffman tables */
-static	Huff	litlentab;
-static	Huff	offtab;
-static	uint8_t	revtab[256];
+static Huff litlentab;
+static Huff offtab;
+static uint8_t revtab[256];
 
-static int	uncblock(Input *in, History*);
-static int	fixedblock(Input *in, History*);
-static int	dynamicblock(Input *in, History*);
-static int	sregfill(Input *in, int n);
-static int	sregunget(Input *in);
-static int	decode(Input*, History*, Huff*, Huff*);
-static int	hufftab(Huff*, char*, int, int);
-static int	hdecsym(Input *in, Huff *h, int b);
+static int uncblock(Input *in, History *);
+static int fixedblock(Input *in, History *);
+static int dynamicblock(Input *in, History *);
+static int sregfill(Input *in, int n);
+static int sregunget(Input *in);
+static int decode(Input *, History *, Huff *, Huff *);
+static int hufftab(Huff *, char *, int, int);
+static int hdecsym(Input *in, Huff *h, int b);
 
 int
 inflateinit(void)
@@ -107,21 +102,21 @@ inflateinit(void)
 	int i, j, base;
 
 	/* byte reverse table */
-	for(i=0; i<256; i++)
-		for(j=0; j<8; j++)
-			if(i & (1<<j))
+	for(i = 0; i < 256; i++)
+		for(j = 0; j < 8; j++)
+			if(i & (1 << j))
 				revtab[i] |= 0x80 >> j;
 
-	for(i=257,base=3; i<Nlitlen; i++) {
-		litlenbase[i-257] = base;
-		base += 1<<litlenextra[i-257];
+	for(i = 257, base = 3; i < Nlitlen; i++) {
+		litlenbase[i - 257] = base;
+		base += 1 << litlenextra[i - 257];
 	}
 	/* strange table entry in spec... */
-	litlenbase[285-257]--;
+	litlenbase[285 - 257]--;
 
-	for(i=0,base=1; i<Noff; i++) {
+	for(i = 0, base = 1; i < Noff; i++) {
 		offbase[i] = base;
-		base += 1<<offextra[i];
+		base += 1 << offextra[i];
 	}
 
 	len = malloc(MaxLeaf);
@@ -129,20 +124,20 @@ inflateinit(void)
 		return FlateNoMem;
 
 	/* static Litlen bit lengths */
-	for(i=0; i<144; i++)
+	for(i = 0; i < 144; i++)
 		len[i] = 8;
-	for(i=144; i<256; i++)
+	for(i = 144; i < 256; i++)
 		len[i] = 9;
-	for(i=256; i<280; i++)
+	for(i = 256; i < 280; i++)
 		len[i] = 7;
-	for(i=280; i<Nlitlen; i++)
+	for(i = 280; i < Nlitlen; i++)
 		len[i] = 8;
 
 	if(!hufftab(&litlentab, len, Nlitlen, MaxFlatBits))
 		return FlateInternal;
 
 	/* static Offset bit lengths */
-	for(i=0; i<Noff; i++)
+	for(i = 0; i < Noff; i++)
 		len[i] = 5;
 
 	if(!hufftab(&offtab, len, Noff, MaxFlatBits))
@@ -153,7 +148,7 @@ inflateinit(void)
 }
 
 int
-inflate(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*))
+inflate(void *wr, int (*w)(void *, void *, int), void *getr, int (*get)(void *))
 {
 	History *his;
 	Input in;
@@ -176,7 +171,7 @@ inflate(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*))
 		if(!sregfill(&in, 3))
 			goto bad;
 		final = in.sreg & 0x1;
-		type = (in.sreg>>1) & 0x3;
+		type = (in.sreg >> 1) & 0x3;
 		in.sreg >>= 3;
 		in.nbits -= 3;
 		switch(type) {
@@ -230,10 +225,10 @@ uncblock(Input *in, History *his)
 	if(!sregunget(in))
 		return 0;
 	len = (*in->get)(in->getr);
-	len |= (*in->get)(in->getr)<<8;
+	len |= (*in->get)(in->getr) << 8;
 	nlen = (*in->get)(in->getr);
-	nlen |= (*in->get)(in->getr)<<8;
-	if(len != (~nlen&0xffff)) {
+	nlen |= (*in->get)(in->getr) << 8;
+	if(len != (~nlen & 0xffff)) {
 		in->error = FlateCorrupted;
 		return 0;
 	}
@@ -278,9 +273,9 @@ dynamicblock(Input *in, History *his)
 
 	if(!sregfill(in, 14))
 		return 0;
-	nlit = (in->sreg&0x1f) + 257;
-	ndist = ((in->sreg>>5) & 0x1f) + 1;
-	nclen = ((in->sreg>>10) & 0xf) + 4;
+	nlit = (in->sreg & 0x1f) + 257;
+	ndist = ((in->sreg >> 5) & 0x1f) + 1;
+	nclen = ((in->sreg >> 10) & 0xf) + 4;
 	in->sreg >>= 14;
 	in->nbits -= 14;
 
@@ -290,16 +285,16 @@ dynamicblock(Input *in, History *his)
 	}
 
 	/* huff table header */
-	len = malloc(Nlitlen+Noff);
+	len = malloc(Nlitlen + Noff);
 	lentab = malloc(sizeof(Huff));
 	offtab = malloc(sizeof(Huff));
-	if(len == nil || lentab == nil || offtab == nil){
+	if(len == nil || lentab == nil || offtab == nil) {
 		in->error = FlateNoMem;
 		goto bad;
 	}
-	for(i=0; i < Nclen; i++)
+	for(i = 0; i < Nclen; i++)
 		len[i] = 0;
-	for(i=0; i<nclen; i++) {
+	for(i = 0; i < nclen; i++) {
 		if(!sregfill(in, 3))
 			goto bad;
 		len[clenorder[i]] = in->sreg & 0x7;
@@ -307,26 +302,26 @@ dynamicblock(Input *in, History *his)
 		in->nbits -= 3;
 	}
 
-	if(!hufftab(lentab, len, Nclen, ClenBits)){
+	if(!hufftab(lentab, len, Nclen, ClenBits)) {
 		in->error = FlateCorrupted;
 		goto bad;
 	}
 
-	n = nlit+ndist;
-	for(i=0; i<n;) {
+	n = nlit + ndist;
+	for(i = 0; i < n;) {
 		nb = lentab->minbits;
-		for(;;){
-			if(in->nbits<nb && !sregfill(in, nb))
+		for(;;) {
+			if(in->nbits < nb && !sregfill(in, nb))
 				goto bad;
 			c = lentab->flat[in->sreg & lentab->flatmask];
 			nb = c & 0xff;
-			if(nb > in->nbits){
+			if(nb > in->nbits) {
 				if(nb != 0xff)
 					continue;
 				c = hdecsym(in, lentab, c);
 				if(c < 0)
 					goto bad;
-			}else{
+			} else {
 				c >>= 8;
 				in->sreg >>= nb;
 				in->nbits -= nb;
@@ -337,27 +332,27 @@ dynamicblock(Input *in, History *his)
 		if(c < 16) {
 			j = 1;
 		} else if(c == 16) {
-			if(in->nbits<2 && !sregfill(in, 2))
+			if(in->nbits < 2 && !sregfill(in, 2))
 				goto bad;
-			j = (in->sreg&0x3)+3;
+			j = (in->sreg & 0x3) + 3;
 			in->sreg >>= 2;
 			in->nbits -= 2;
 			if(i == 0) {
 				in->error = FlateCorrupted;
 				goto bad;
 			}
-			c = len[i-1];
+			c = len[i - 1];
 		} else if(c == 17) {
-			if(in->nbits<3 && !sregfill(in, 3))
+			if(in->nbits < 3 && !sregfill(in, 3))
 				goto bad;
-			j = (in->sreg&0x7)+3;
+			j = (in->sreg & 0x7) + 3;
 			in->sreg >>= 3;
 			in->nbits -= 3;
 			c = 0;
 		} else if(c == 18) {
-			if(in->nbits<7 && !sregfill(in, 7))
+			if(in->nbits < 7 && !sregfill(in, 7))
 				goto bad;
-			j = (in->sreg&0x7f)+11;
+			j = (in->sreg & 0x7f) + 11;
 			in->sreg >>= 7;
 			in->nbits -= 7;
 			c = 0;
@@ -366,7 +361,7 @@ dynamicblock(Input *in, History *his)
 			goto bad;
 		}
 
-		if(i+j > n) {
+		if(i + j > n) {
 			in->error = FlateCorrupted;
 			goto bad;
 		}
@@ -378,8 +373,7 @@ dynamicblock(Input *in, History *his)
 		}
 	}
 
-	if(!hufftab(lentab, len, nlit, LitlenBits)
-	|| !hufftab(offtab, &len[nlit], ndist, OffBits)){
+	if(!hufftab(lentab, len, nlit, LitlenBits) || !hufftab(offtab, &len[nlit], ndist, OffBits)) {
 		in->error = FlateCorrupted;
 		goto bad;
 	}
@@ -413,18 +407,18 @@ decode(Input *in, History *his, Huff *litlentab, Huff *offtab)
 
 	for(;;) {
 		nb = litlentab->minbits;
-		for(;;){
-			if(in->nbits<nb && !sregfill(in, nb))
+		for(;;) {
+			if(in->nbits < nb && !sregfill(in, nb))
 				return 0;
 			c = litlentab->flat[in->sreg & litlentab->flatmask];
 			nb = c & 0xff;
-			if(nb > in->nbits){
+			if(nb > in->nbits) {
 				if(nb != 0xff)
 					continue;
 				c = hdecsym(in, litlentab, c);
 				if(c < 0)
 					return 0;
-			}else{
+			} else {
 				c >>= 8;
 				in->sreg >>= nb;
 				in->nbits -= nb;
@@ -458,24 +452,24 @@ decode(Input *in, History *his, Huff *litlentab, Huff *offtab)
 		nb = litlenextra[c];
 		if(in->nbits < nb && !sregfill(in, nb))
 			return 0;
-		len = litlenbase[c] + (in->sreg & ((1<<nb)-1));
+		len = litlenbase[c] + (in->sreg & ((1 << nb) - 1));
 		in->sreg >>= nb;
 		in->nbits -= nb;
 
 		/* get offset */
 		nb = offtab->minbits;
-		for(;;){
-			if(in->nbits<nb && !sregfill(in, nb))
+		for(;;) {
+			if(in->nbits < nb && !sregfill(in, nb))
 				return 0;
 			c = offtab->flat[in->sreg & offtab->flatmask];
 			nb = c & 0xff;
-			if(nb > in->nbits){
+			if(nb > in->nbits) {
 				if(nb != 0xff)
 					continue;
 				c = hdecsym(in, offtab, c);
 				if(c < 0)
 					return 0;
-			}else{
+			} else {
 				c >>= 8;
 				in->sreg >>= nb;
 				in->nbits -= nb;
@@ -492,7 +486,7 @@ decode(Input *in, History *his, Huff *litlentab, Huff *offtab)
 		if(in->nbits < nb && !sregfill(in, nb))
 			return 0;
 
-		off = offbase[c] + (in->sreg & ((1<<nb)-1));
+		off = offbase[c] + (in->sreg & ((1 << nb) - 1));
 		in->sreg >>= nb;
 		in->nbits -= nb;
 
@@ -522,7 +516,6 @@ decode(Input *in, History *his, Huff *litlentab, Huff *offtab)
 			}
 			len--;
 		}
-
 	}
 
 	his->cp = hp;
@@ -534,8 +527,8 @@ static int
 revcode(int c, int b)
 {
 	/* shift encode up so it starts on bit 15 then reverse */
-	c <<= (16-b);
-	c = revtab[c>>8] | (revtab[c&0xff]<<8);
+	c <<= (16 - b);
+	c = revtab[c >> 8] | (revtab[c & 0xff] << 8);
 	return c;
 }
 
@@ -564,9 +557,9 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 		bitcount[i] = 0;
 	maxbits = -1;
 	minbits = MaxHuffBits + 1;
-	for(i=0; i < maxleaf; i++){
+	for(i = 0; i < maxleaf; i++) {
 		b = hb[i];
-		if(b){
+		if(b) {
 			bitcount[b]++;
 			if(b < minbits)
 				minbits = b;
@@ -576,7 +569,7 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 	}
 
 	h->maxbits = maxbits;
-	if(maxbits <= 0){
+	if(maxbits <= 0) {
 		h->maxbits = 0;
 		h->minbits = 0;
 		h->flatmask = 0;
@@ -584,7 +577,7 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 	}
 	code = 0;
 	c = 0;
-	for(b = 0; b <= maxbits; b++){
+	for(b = 0; b <= maxbits; b++) {
 		h->last[b] = c;
 		c += bitcount[b];
 		mincode = code << 1;
@@ -611,7 +604,7 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 	 * initialize the flat table to include the minimum possible
 	 * bit length for each code prefix
 	 */
-	for(b = maxbits; b > flatbits; b--){
+	for(b = maxbits; b > flatbits; b--) {
 		code = h->maxcode[b];
 		if(code == -1)
 			break;
@@ -622,20 +615,20 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 			h->flat[revcode(mincode, flatbits)] = (b << 8) | 0xff;
 	}
 
-	for(i = 0; i < maxleaf; i++){
+	for(i = 0; i < maxleaf; i++) {
 		b = hb[i];
 		if(b <= 0)
 			continue;
 		c = nc[b]++;
-		if(b <= flatbits){
+		if(b <= flatbits) {
 			code = (i << 8) | b;
 			ec = (c + 1) << (flatbits - b);
-			if(ec > (1<<flatbits))
-				return 0;	/* this is actually an internal error */
+			if(ec > (1 << flatbits))
+				return 0; /* this is actually an internal error */
 			for(fc = c << (flatbits - b); fc < ec; fc++)
 				h->flat[revcode(fc, flatbits)] = code;
 		}
-		if(b > minbits){
+		if(b > minbits) {
 			c = h->last[b] - c;
 			if(c >= maxleaf)
 				return 0;
@@ -654,13 +647,13 @@ hdecsym(Input *in, Huff *h, int nb)
 		nb = nb >> 8;
 	else
 		nb = nb & 0xff;
-	for(; nb <= h->maxbits; nb++){
-		if(in->nbits<nb && !sregfill(in, nb))
+	for(; nb <= h->maxbits; nb++) {
+		if(in->nbits < nb && !sregfill(in, nb))
 			return -1;
-		c = revtab[in->sreg&0xff]<<8;
-		c |= revtab[(in->sreg>>8)&0xff];
-		c >>= (16-nb);
-		if(c <= h->maxcode[nb]){
+		c = revtab[in->sreg & 0xff] << 8;
+		c |= revtab[(in->sreg >> 8) & 0xff];
+		c >>= (16 - nb);
+		if(c <= h->maxcode[nb]) {
 			in->sreg >>= nb;
 			in->nbits -= nb;
 			return h->decode[h->last[nb] - c];
@@ -677,11 +670,11 @@ sregfill(Input *in, int n)
 
 	while(n > in->nbits) {
 		c = (*in->get)(in->getr);
-		if(c < 0){
+		if(c < 0) {
 			in->error = FlateInputFail;
 			return 0;
 		}
-		in->sreg |= c<<in->nbits;
+		in->sreg |= c << in->nbits;
 		in->nbits += 8;
 	}
 	return 1;

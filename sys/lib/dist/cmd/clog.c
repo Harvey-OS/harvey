@@ -19,7 +19,7 @@ openlog(char *name)
 	int fd;
 
 	fd = open(name, OWRITE);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "%s: can't open %s: %r\n", argv0, name);
 		return -1;
 	}
@@ -36,13 +36,13 @@ main(int argc, char **argv)
 	char buf[8192];
 
 	argv0 = argv[0];
-	if(argc != 4){
+	if(argc != 4) {
 		fprint(2, "usage: %s console logfile prefix\n", argv0);
 		exits("usage");
 	}
 
 	fd = open(argv[1], OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "%s: can't open %s: %r\n", argv0, argv[1]);
 		exits("open");
 	}
@@ -50,15 +50,15 @@ main(int argc, char **argv)
 
 	fd = openlog(argv[2]);
 
-	for(;;){
-		if(p = Brdline(&in, '\n')){
-			p[Blinelen(&in)-1] = 0;
-			if(fprint(fd, "%s: %s\n", argv[3], p) < 0){
+	for(;;) {
+		if(p = Brdline(&in, '\n')) {
+			p[Blinelen(&in) - 1] = 0;
+			if(fprint(fd, "%s: %s\n", argv[3], p) < 0) {
 				close(fd);
 				fd = openlog(argv[2]);
 				fprint(fd, "%s: %s\n", t, p);
 			}
-		} else if(Blinelen(&in) == 0)	// true eof
+		} else if(Blinelen(&in) == 0) // true eof
 			break;
 		else {
 			Bread(&in, buf, sizeof buf);

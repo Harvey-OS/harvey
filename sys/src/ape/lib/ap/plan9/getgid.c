@@ -20,7 +20,7 @@ getgid(void)
 {
 	struct group *g;
 	g = getgrnam(getlogin());
-	return g? g->gr_gid : 1;
+	return g ? g->gr_gid : 1;
 }
 
 gid_t

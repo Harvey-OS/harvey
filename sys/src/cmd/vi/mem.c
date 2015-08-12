@@ -14,14 +14,14 @@
 #define Extern extern
 #include "mips.h"
 
-extern uint32_t	textbase;
+extern uint32_t textbase;
 
 uint32_t
 ifetch(uint32_t addr)
 {
 	uint8_t *va;
 
-	if(addr&3) {
+	if(addr & 3) {
 		Bprint(bioout, "Address error (I-fetch) vaddr %.8lux\n", addr);
 		longjmp(errjmp, 0);
 	}
@@ -29,12 +29,12 @@ ifetch(uint32_t addr)
 	if(icache.on)
 		updateicache(addr);
 
-	iprof[(addr-textbase)/PROFGRAN]++;
+	iprof[(addr - textbase) / PROFGRAN]++;
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
+	va += addr & (BY2PG - 1);
 
-	return va[0]<<24 | va[1]<<16 | va[2]<<8 | va[3];
+	return va[0] << 24 | va[1] << 16 | va[2] << 8 | va[3];
 }
 
 uint32_t
@@ -45,7 +45,7 @@ getmem_4(uint32_t addr)
 
 	val = 0;
 	for(i = 0; i < 4; i++)
-		val = val<<8 | getmem_b(addr++);
+		val = val << 8 | getmem_b(addr++);
 	return val;
 }
 
@@ -55,7 +55,7 @@ getmem_2(uint32_t addr)
 	uint32_t val;
 
 	val = getmem_b(addr);
-	val = val<<8 | getmem_b(addr+1);
+	val = val << 8 | getmem_b(addr + 1);
 
 	return val;
 }
@@ -65,7 +65,7 @@ getmem_w(uint32_t addr)
 {
 	uint8_t *va;
 
-	if(addr&3) {
+	if(addr & 3) {
 		Bprint(bioout, "Address error (Load) vaddr %.8lux\n", addr);
 		longjmp(errjmp, 0);
 	}
@@ -73,9 +73,10 @@ getmem_w(uint32_t addr)
 		brkchk(addr, Read);
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
+	va += addr & (BY2PG - 1);
 
-	return va[0]<<24 | va[1]<<16 | va[2]<<8 | va[3];;
+	return va[0] << 24 | va[1] << 16 | va[2] << 8 | va[3];
+	;
 }
 
 uint16_t
@@ -83,7 +84,7 @@ getmem_h(uint32_t addr)
 {
 	uint8_t *va;
 
-	if(addr&1) {
+	if(addr & 1) {
 		Bprint(bioout, "Address error (Load) vaddr %.8lux\n", addr);
 		longjmp(errjmp, 0);
 	}
@@ -91,9 +92,9 @@ getmem_h(uint32_t addr)
 		brkchk(addr, Read);
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
+	va += addr & (BY2PG - 1);
 
-	return va[0]<<8 | va[1];
+	return va[0] << 8 | va[1];
 }
 
 uint8_t
@@ -105,7 +106,7 @@ getmem_b(uint32_t addr)
 		brkchk(addr, Read);
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
+	va += addr & (BY2PG - 1);
 	return va[0];
 }
 
@@ -114,17 +115,17 @@ putmem_w(uint32_t addr, uint32_t data)
 {
 	uint8_t *va;
 
-	if(addr&3) {
+	if(addr & 3) {
 		Bprint(bioout, "Address error (Store) vaddr %.8lux\n", addr);
 		longjmp(errjmp, 0);
 	}
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
+	va += addr & (BY2PG - 1);
 
-	va[0] = data>>24;
-	va[1] = data>>16;
-	va[2] = data>>8;
+	va[0] = data >> 24;
+	va[1] = data >> 16;
+	va[2] = data >> 8;
 	va[3] = data;
 	if(membpt)
 		brkchk(addr, Write);
@@ -135,7 +136,7 @@ putmem_b(uint32_t addr, uint8_t data)
 	uint8_t *va;
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
+	va += addr & (BY2PG - 1);
 	va[0] = data;
 	if(membpt)
 		brkchk(addr, Write);
@@ -146,14 +147,14 @@ putmem_h(uint32_t addr, int16_t data)
 {
 	uint8_t *va;
 
-	if(addr&1) {
+	if(addr & 1) {
 		Bprint(bioout, "Address error (Store) vaddr %.8lux\n", addr);
 		longjmp(errjmp, 0);
 	}
 
 	va = vaddr(addr);
-	va += addr&(BY2PG-1);
-	va[0] = data>>8;
+	va += addr & (BY2PG - 1);
+	va[0] = data >> 8;
 	va[1] = data;
 	if(membpt)
 		brkchk(addr, Write);
@@ -201,7 +202,7 @@ dotlb(uint32_t vaddr)
 {
 	uint32_t *l, *e;
 
-	vaddr &= ~(BY2PG-1);
+	vaddr &= ~(BY2PG - 1);
 
 	e = &tlb.tlbent[tlb.tlbsize];
 	for(l = tlb.tlbent; l < e; l++)
@@ -214,7 +215,7 @@ dotlb(uint32_t vaddr)
 	tlb.tlbent[lnrand(tlb.tlbsize)] = vaddr;
 }
 
-void*
+void *
 vaddr1(uint32_t addr)
 {
 	Segment *s, *es;
@@ -228,7 +229,7 @@ vaddr1(uint32_t addr)
 	for(s = memory.seg; s < es; s++) {
 		if(addr >= s->base && addr < s->end) {
 			s->refs++;
-			off = (addr-s->base)/BY2PG;
+			off = (addr - s->base) / BY2PG;
 			p = &s->table[off];
 			if(*p)
 				return *p;
@@ -238,22 +239,22 @@ vaddr1(uint32_t addr)
 				fatal(0, "vaddr");
 			case Text:
 				*p = emalloc(BY2PG);
-				if(seek(text, s->fileoff+(off*BY2PG), 0) < 0)
+				if(seek(text, s->fileoff + (off * BY2PG), 0) < 0)
 					fatal(1, "vaddr text seek");
 				if(read(text, *p, BY2PG) < 0)
 					fatal(1, "vaddr text read");
 				return *p;
 			case Data:
 				*p = emalloc(BY2PG);
-				foff = s->fileoff+(off*BY2PG);
+				foff = s->fileoff + (off * BY2PG);
 				if(seek(text, foff, 0) < 0)
 					fatal(1, "vaddr text seek");
 				n = read(text, *p, BY2PG);
 				if(n < 0)
 					fatal(1, "vaddr text read");
 				if(foff + n > s->fileend) {
-					l = BY2PG - (s->fileend-foff);
-					a = *p+(s->fileend-foff);
+					l = BY2PG - (s->fileend - foff);
+					a = *p + (s->fileend - foff);
 					memset(a, 0, l);
 				}
 				return *p;
@@ -267,7 +268,7 @@ vaddr1(uint32_t addr)
 	return 0;
 }
 
-void*
+void *
 vaddr(uint32_t addr)
 {
 	void *v;
@@ -285,7 +286,7 @@ badvaddr(uint32_t addr, int n)
 {
 	void *v;
 
-	if(addr & (n-1))
+	if(addr & (n - 1))
 		return 1;
 	v = vaddr1(addr);
 	if(v == 0)

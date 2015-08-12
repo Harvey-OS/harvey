@@ -20,19 +20,19 @@
 
 typedef struct Allocs Allocs;
 struct Allocs {
-	uint32_t	mem;
-	uint32_t	bcmem;
-	uint32_t	icmem;
-	uint32_t	stfree;				/* free memory at start */
-	uint	mempcnt;
+	uint32_t mem;
+	uint32_t bcmem;
+	uint32_t icmem;
+	uint32_t stfree; /* free memory at start */
+	uint mempcnt;
 };
 
 int debug;
 int nofork;
-int mainstacksize = 256*1024;
+int mainstacksize = 256 * 1024;
 VtSrv *ventisrv;
 
-static void	ventiserver(void*);
+static void ventiserver(void *);
 
 static uint32_t
 freemem(void)
@@ -43,42 +43,42 @@ freemem(void)
 	char *fields[2];
 	Biobuf *bp;
 
-	size = 64*1024*1024;
+	size = 64 * 1024 * 1024;
 	bp = Bopen("#c/swap", OREAD);
-	if (bp != nil) {
-		while ((ln = Brdline(bp, '\n')) != nil) {
-			ln[Blinelen(bp)-1] = '\0';
+	if(bp != nil) {
+		while((ln = Brdline(bp, '\n')) != nil) {
+			ln[Blinelen(bp) - 1] = '\0';
 			nf = tokenize(ln, fields, nelem(fields));
-			if (nf != 2)
+			if(nf != 2)
 				continue;
-			if (strcmp(fields[1], "pagesize") == 0)
+			if(strcmp(fields[1], "pagesize") == 0)
 				pgsize = atoi(fields[0]);
-			else if (strcmp(fields[1], "user") == 0) {
+			else if(strcmp(fields[1], "user") == 0) {
 				sl = strchr(fields[0], '/');
-				if (sl == nil)
+				if(sl == nil)
 					continue;
-				userpgs = atoll(sl+1);
+				userpgs = atoll(sl + 1);
 				userused = atoll(fields[0]);
 			}
 		}
 		Bterm(bp);
-		if (pgsize > 0 && userpgs > 0 && userused > 0)
+		if(pgsize > 0 && userpgs > 0 && userused > 0)
 			size = (userpgs - userused) * pgsize;
 	}
 	/* cap it to keep the size within 32 bits */
-	if (size >= 3840UL * 1024 * 1024)
+	if(size >= 3840UL * 1024 * 1024)
 		size = 3840UL * 1024 * 1024;
 	return size;
 }
 
 static void
-allocminima(Allocs *all)			/* enforce minima for sanity */
+allocminima(Allocs *all) /* enforce minima for sanity */
 {
-	if (all->icmem < 6 * 1024 * 1024)
+	if(all->icmem < 6 * 1024 * 1024)
 		all->icmem = 6 * 1024 * 1024;
-	if (all->mem < 1024 * 1024 || all->mem == Unspecified)  /* lumps */
+	if(all->mem < 1024 * 1024 || all->mem == Unspecified) /* lumps */
 		all->mem = 1024 * 1024;
-	if (all->bcmem < 2 * 1024 * 1024)
+	if(all->bcmem < 2 * 1024 * 1024)
 		all->bcmem = 2 * 1024 * 1024;
 }
 
@@ -96,18 +96,19 @@ allocbypcnt(uint32_t mempcnt, uint32_t stfree)
 	all.mempcnt = mempcnt;
 	all.stfree = stfree;
 
-	if (free == 0)
+	if(free == 0)
 		free = freemem();
 	blmsize = stfree - free;
-	if (blmsize <= 0)
+	if(blmsize <= 0)
 		blmsize = 0;
 	avail = ((int64_t)stfree * mempcnt) / 100;
-	if (blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * 1024 * 1024)
+	if(blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * 1024 * 1024)
 		fprint(2, "%s: bloom filter bigger than mem pcnt; "
-			"resorting to minimum values (9MB total)\n", argv0);
+			  "resorting to minimum values (9MB total)\n",
+		       argv0);
 	else {
-		if (avail >= 3840UL * 1024 * 1024)
-			avail = 3840UL * 1024 * 1024;	/* sanity */
+		if(avail >= 3840UL * 1024 * 1024)
+			avail = 3840UL * 1024 * 1024; /* sanity */
 		avail /= 2;
 		all.icmem = avail;
 		avail /= 3;
@@ -132,19 +133,19 @@ sizeallocs(Allocs opt, Config *cfg)
 	all = allocbypcnt(20, opt.stfree);
 
 	/* config file parameters override */
-	if (cfg->mem && cfg->mem != Unspecified)
+	if(cfg->mem && cfg->mem != Unspecified)
 		all.mem = cfg->mem;
-	if (cfg->bcmem)
+	if(cfg->bcmem)
 		all.bcmem = cfg->bcmem;
-	if (cfg->icmem)
+	if(cfg->icmem)
 		all.icmem = cfg->icmem;
 
 	/* command-line options override */
-	if (opt.mem && opt.mem != Unspecified)
+	if(opt.mem && opt.mem != Unspecified)
 		all.mem = opt.mem;
-	if (opt.bcmem)
+	if(opt.bcmem)
 		all.bcmem = opt.bcmem;
-	if (opt.icmem)
+	if(opt.icmem)
 		all.icmem = opt.icmem;
 
 	/* automatic memory sizing? */
@@ -159,8 +160,8 @@ void
 usage(void)
 {
 	fprint(2, "usage: venti [-Ldrsw] [-a ventiaddr] [-c config] "
-"[-h httpaddr] [-m %%mem] [-B blockcachesize] [-C cachesize] [-I icachesize] "
-"[-W webroot]\n");
+		  "[-h httpaddr] [-m %%mem] [-B blockcachesize] [-C cachesize] [-I icachesize] "
+		  "[-W webroot]\n");
 	threadexitsall("usage");
 }
 
@@ -182,7 +183,8 @@ threadmain(int argc, char *argv[])
 	mem = Unspecified;
 	icmem = 0;
 	bcmem = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		vaddr = EARGF(usage());
 		break;
@@ -207,7 +209,7 @@ threadmain(int argc, char *argv[])
 		break;
 	case 'm':
 		mempcnt = atoi(EARGF(usage()));
-		if (mempcnt <= 0 || mempcnt >= 100)
+		if(mempcnt <= 0 || mempcnt >= 100)
 			usage();
 		break;
 	case 'I':
@@ -222,7 +224,7 @@ threadmain(int argc, char *argv[])
 	case 's':
 		nofork = 1;
 		break;
-	case 'w':			/* compatibility with old venti */
+	case 'w': /* compatibility with old venti */
 		queuewrites = 1;
 		break;
 	case 'W':
@@ -230,7 +232,8 @@ threadmain(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc)
 		usage();
@@ -256,7 +259,7 @@ threadmain(int argc, char *argv[])
 		configfile = "venti.conf";
 
 	/* remember free memory before initventi & loadbloom, for auto-sizing */
-	stfree = freemem(); 	 
+	stfree = freemem();
 	fprint(2, "conf...");
 	if(initventi(configfile, &config) < 0)
 		sysfatal("can't init server: %r");
@@ -270,12 +273,12 @@ threadmain(int argc, char *argv[])
 	 * size memory allocations; assumes bloom filter is loaded
 	 */
 	allocs = sizeallocs((Allocs){mem, bcmem, icmem, stfree, mempcnt},
-		&config);
+			    &config);
 	mem = allocs.mem;
 	bcmem = allocs.bcmem;
 	icmem = allocs.icmem;
 	fprint(2, "%s: mem %,ud bcmem %,ud icmem %,ud...",
-		argv0, mem, bcmem, icmem);
+	       argv0, mem, bcmem, icmem);
 
 	/*
 	 * default other configuration-file parameters
@@ -291,7 +294,7 @@ threadmain(int argc, char *argv[])
 	if(queuewrites == 0)
 		queuewrites = config.queuewrites;
 
-	if(haddr){
+	if(haddr) {
 		fprint(2, "httpd %s...", haddr);
 		if(httpdinit(haddr, webroot) < 0)
 			fprint(2, "warning: can't start http server: %r");
@@ -301,8 +304,9 @@ threadmain(int argc, char *argv[])
 	/*
 	 * lump cache
 	 */
-	if(0) fprint(2, "initialize %d bytes of lump cache for %d lumps\n",
-		mem, mem / (8 * 1024));
+	if(0)
+		fprint(2, "initialize %d bytes of lump cache for %d lumps\n",
+		       mem, mem / (8 * 1024));
 	initlumpcache(mem, mem / (8 * 1024));
 
 	/*
@@ -314,11 +318,12 @@ threadmain(int argc, char *argv[])
 	/*
 	 * block cache: need a block for every arena and every process
 	 */
-	minbcmem = maxblocksize * 
-		(mainindex->narenas + mainindex->nsects*4 + 16);
+	minbcmem = maxblocksize *
+		   (mainindex->narenas + mainindex->nsects * 4 + 16);
 	if(bcmem < minbcmem)
 		bcmem = minbcmem;
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(0)
+		fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
 	initdcache(bcmem);
 
 	if(mainindex->bloom)
@@ -328,11 +333,11 @@ threadmain(int argc, char *argv[])
 	if(!readonly && syncindex(mainindex) < 0)
 		sysfatal("can't sync server: %r");
 
-	if(!readonly && queuewrites){
+	if(!readonly && queuewrites) {
 		fprint(2, "queue...");
-		if(initlumpqueues(mainindex->nsects) < 0){
+		if(initlumpqueues(mainindex->nsects) < 0) {
 			fprint(2, "can't initialize lump queues,"
-				" disabling write queueing: %r");
+				  " disabling write queueing: %r");
 			queuewrites = 0;
 		}
 	}
@@ -373,15 +378,16 @@ ventiserver(void *v)
 	USED(v);
 	threadsetname("ventiserver");
 	trace(TraceWork, "start");
-	while((r = vtgetreq(ventisrv)) != nil){
+	while((r = vtgetreq(ventisrv)) != nil) {
 		trace(TraceWork, "finish");
 		trace(TraceWork, "start request %F", &r->tx);
 		trace(TraceRpc, "<- %F", &r->tx);
-		r->rx.msgtype = r->tx.msgtype+1;
+		r->rx.msgtype = r->tx.msgtype + 1;
 		addstat(StatRpcTotal, 1);
-		if(0) print("req (arenas[0]=%p sects[0]=%p) %F\n",
-			mainindex->arenas[0], mainindex->sects[0], &r->tx);
-		switch(r->tx.msgtype){
+		if(0)
+			print("req (arenas[0]=%p sects[0]=%p) %F\n",
+			      mainindex->arenas[0], mainindex->sects[0], &r->tx);
+		switch(r->tx.msgtype) {
 		default:
 			vtrerror(r, "unknown request");
 			break;
@@ -390,11 +396,11 @@ ventiserver(void *v)
 			r->rx.data = readlump(r->tx.score, r->tx.blocktype, r->tx.count, &cached);
 			ms = msec() - ms;
 			addstat2(StatRpcRead, 1, StatRpcReadTime, ms);
-			if(r->rx.data == nil){
+			if(r->rx.data == nil) {
 				addstat(StatRpcReadFail, 1);
 				rerrstr(err, sizeof err);
 				vtrerror(r, err);
-			}else{
+			} else {
 				addstat(StatRpcReadBytes, packetsize(r->rx.data));
 				addstat(StatRpcReadOk, 1);
 				if(cached)
@@ -404,7 +410,7 @@ ventiserver(void *v)
 			}
 			break;
 		case VtTwrite:
-			if(readonly){
+			if(readonly) {
 				vtrerror(r, "read only");
 				break;
 			}
@@ -416,7 +422,7 @@ ventiserver(void *v)
 			ms = msec() - ms;
 			addstat2(StatRpcWrite, 1, StatRpcWriteTime, ms);
 
-			if(ok < 0){
+			if(ok < 0) {
 				addstat(StatRpcWriteFail, 1);
 				rerrstr(err, sizeof err);
 				vtrerror(r, err);

@@ -20,27 +20,27 @@
 #include "../debug.h"
 
 enum {
-	STACKSIZE = 2048 * sizeof(void*),
+	STACKSIZE = 2048 * sizeof(void *),
 };
 
-int	debug = 0; //DBGSERVER|DBGPUMP|DBGSTATE|DBGPICKLE|DBGPLAY;
+int debug = 0; //DBGSERVER|DBGPUMP|DBGSTATE|DBGPICKLE|DBGPLAY;
 
-char	usage[] = "Usage: %s [-d mask] [-t] [-w]\n";
+char usage[] = "Usage: %s [-d mask] [-t] [-w]\n";
 
 typedef struct But {
-	char	*name;
-	Control	*ctl;
+	char *name;
+	Control *ctl;
 } But;
 
 typedef struct Simpleitem {
-	char	*address;
-	char	*data;
+	char *address;
+	char *data;
 } Simpleitem;
 
 typedef struct Multiitem {
-	char	*address;
-	int	ndata;
-	char	**data;
+	char *address;
+	int ndata;
+	char **data;
 } Multiitem;
 
 enum {
@@ -96,15 +96,15 @@ enum {
 };
 
 But buts[] = {
-	[Exitbutton] =		{"skull", nil},
-	[Pausebutton] =		{"pause", nil},
-	[Playbutton] =		{"play", nil},
-	[Stopbutton] =		{"stop", nil},
-	[Prevbutton] =		{"prev", nil},
-	[Nextbutton] =		{"next", nil},
-	[Rootbutton] =		{"root", nil},
-	[Deletebutton] =	{"trash", nil},
-	[Helpbutton] =		{"question", nil},
+	[Exitbutton] = {"skull", nil},
+	[Pausebutton] = {"pause", nil},
+	[Playbutton] = {"play", nil},
+	[Stopbutton] = {"stop", nil},
+	[Prevbutton] = {"prev", nil},
+	[Nextbutton] = {"next", nil},
+	[Rootbutton] = {"root", nil},
+	[Deletebutton] = {"trash", nil},
+	[Helpbutton] = {"question", nil},
 };
 
 struct tab {
@@ -113,89 +113,89 @@ struct tab {
 	Control *tab;
 	Control *win;
 } tabs[4] = {
-	[WinBrowse] =	{"Browse",	"browsewin",	nil, nil},
-	[WinPlay] =	{"Playing",	"playwin",	nil, nil},
-	[WinPlaylist] =	{"Playlist",	"listwin",	nil, nil},
-	[WinError] =	{"Errors",	"errorwin",	nil, nil},
+	[WinBrowse] = {"Browse", "browsewin", nil, nil},
+	[WinPlay] = {"Playing", "playwin", nil, nil},
+	[WinPlaylist] = {"Playlist", "listwin", nil, nil},
+	[WinError] = {"Errors", "errorwin", nil, nil},
 };
 
 char *helptext[] = {
-	"Buttons, left to right:",
-	"    Exit: exit jukebox",
-	"    Pause: pause/resume playback",
-	"    Play: play selection in Playlist",
-	"    Stop: stop playback",
-	"    Prev: play previous item in Playlist",
-	"    Next: play next item in Playlist",
-	"    Root: browse to root of database tree",
-	"    Delete: empty Playlist, reread database",
-	"    Help: show this window",
-	"",
-	"Browse window: (click tab to bring forward)",
-	"  Top window displays current item",
-	"  Bottom window displays selectable subitems",
-	"  Mouse commands:",
-	"    Left: selected subitem becomes current",
-	"    Right: parent of current item becomes current",
-	"    Middle: add item or subitem to Playlist",
-	"",
-	"Playing window",
-	"  Displays item currently playing",
-	"",
-	"Playlist window",
-	"  Displays contents of Playlist",
-	"  Mouse commands:",
-	"    Left: select item",
-	"    (then click the play button)",
-	"",
-	"Error window",
-	"  Displays error messages received from player",
-	"  (e.g., can't open file)",
-	nil,
+    "Buttons, left to right:",
+    "    Exit: exit jukebox",
+    "    Pause: pause/resume playback",
+    "    Play: play selection in Playlist",
+    "    Stop: stop playback",
+    "    Prev: play previous item in Playlist",
+    "    Next: play next item in Playlist",
+    "    Root: browse to root of database tree",
+    "    Delete: empty Playlist, reread database",
+    "    Help: show this window",
+    "",
+    "Browse window: (click tab to bring forward)",
+    "  Top window displays current item",
+    "  Bottom window displays selectable subitems",
+    "  Mouse commands:",
+    "    Left: selected subitem becomes current",
+    "    Right: parent of current item becomes current",
+    "    Middle: add item or subitem to Playlist",
+    "",
+    "Playing window",
+    "  Displays item currently playing",
+    "",
+    "Playlist window",
+    "  Displays contents of Playlist",
+    "  Mouse commands:",
+    "    Left: select item",
+    "    (then click the play button)",
+    "",
+    "Error window",
+    "  Displays error messages received from player",
+    "  (e.g., can't open file)",
+    nil,
 };
 
 struct Browsestack {
-	char	*onum;
-	int	scrollpos;
+	char *onum;
+	int scrollpos;
 } browsestack[Browsedepth];
-int browsesp;	/* browse stack pointer */
-int browseline;	/* current browse position */
+int browsesp;   /* browse stack pointer */
+int browseline; /* current browse position */
 
-Control		*vol;
-Control		*browsetopwin;
-Control		*browsebotwin;
-Control		*playlistwin;
-Control		*errortext;
-Control		*browsetopscr;
-Control		*browsebotscr;
+Control *vol;
+Control *browsetopwin;
+Control *browsebotwin;
+Control *playlistwin;
+Control *errortext;
+Control *browsetopscr;
+Control *browsebotscr;
 
-Playstate	playstate;
+Playstate playstate;
 
-uint32_t		playingbuts = 1<<Pausebutton | 1<<Stopbutton | 1<<Prevbutton | 1<<Nextbutton;
-uint32_t		activebuts;
+uint32_t playingbuts = 1 << Pausebutton | 1 << Stopbutton | 1 << Prevbutton | 1 << Nextbutton;
+uint32_t activebuts;
 
-int		tabht;
-Image		*vol1img;
-Image		*vol2img;
+int tabht;
+Image *vol1img;
+Image *vol2img;
 
-int		resizeready;
-int		borderwidth = 1;
-int		butht, butwid;
-int		errorlines;
+int resizeready;
+int borderwidth = 1;
+int butht, butwid;
+int errorlines;
 
-int		tflag;
-int		pflag;
+int tflag;
+int pflag;
 
-Controlset	*cs;
+Controlset *cs;
 
-char		*root;
-Multiitem	parent;
-Simpleitem	children[2048];
-int		nchildren;
+char *root;
+Multiitem parent;
+Simpleitem children[2048];
+int nchildren;
 
-int		selected;
+int selected;
 
-Channel		*playevent;
+Channel *playevent;
 
 void
 readbuts(void)
@@ -205,7 +205,7 @@ readbuts(void)
 	int fd;
 	Image *img, *mask;
 
-	for(b = buts; b < &buts[nelem(buts)]; b++){
+	for(b = buts; b < &buts[nelem(buts)]; b++) {
 		sprint(file, "%s/%s.bit", ICONPATH, b->name);
 		if((fd = open(file, OREAD)) < 0)
 			sysfatal("open: %s: %r", file);
@@ -238,16 +238,16 @@ readbuts(void)
 
 void
 activatebuttons(uint32_t mask)
-{	// mask bit i corresponds to buts[i];
+{ // mask bit i corresponds to buts[i];
 	uint32_t bit;
 	But *b;
 	static char str[40];
 	int i;
 
-	for(i = 0; i < nelem(buts); i++){
+	for(i = 0; i < nelem(buts); i++) {
 		b = &buts[i];
 		bit = 1 << i;
-		if((mask & bit) && (activebuts & bit) == 0){
+		if((mask & bit) && (activebuts & bit) == 0) {
 			// button was `deactive'
 			activate(b->ctl);
 			activebuts |= bit;
@@ -260,16 +260,16 @@ activatebuttons(uint32_t mask)
 
 void
 deactivatebuttons(uint32_t mask)
-{	// mask bit i corresponds with buts[i];
+{ // mask bit i corresponds with buts[i];
 	uint32_t bit;
 	But *b;
 	static char str[40];
 	int i;
 
-	for(i = 0; i < nelem(buts); i++){
+	for(i = 0; i < nelem(buts); i++) {
 		b = &buts[i];
 		bit = 1 << i;
-		if((mask & bit) && (activebuts & bit)){
+		if((mask & bit) && (activebuts & bit)) {
 			// button was active
 			deactivate(b->ctl);
 			activebuts &= ~bit;
@@ -281,7 +281,8 @@ deactivatebuttons(uint32_t mask)
 }
 
 void
-resizecontrolset(Controlset *){
+resizecontrolset(Controlset *)
+{
 	static Point pol[3];
 	char *p;
 
@@ -304,11 +305,11 @@ resizecontrolset(Controlset *){
 		sysfatal("huh?");
 	free(p);
 
-	if(vol1img){
+	if(vol1img) {
 		freectlimage("volume.img");
 		freeimage(vol1img);
 	}
-	if(vol2img){
+	if(vol2img) {
 		freectlimage("indicator.img");
 		freeimage(vol2img);
 	}
@@ -354,13 +355,13 @@ resizecontrolset(Controlset *){
 	vol2img = new2img;
 #endif
 	chanprint(cs->ctl, "browsetopscr vis '%d'",
-		Dy(controlcalled("browsetopscr")->rect)/romanfont->height);
+		  Dy(controlcalled("browsetopscr")->rect) / romanfont->height);
 	chanprint(cs->ctl, "browsebotscr vis '%d'",
-		Dy(controlcalled("browsebotscr")->rect)/romanfont->height);
+		  Dy(controlcalled("browsebotscr")->rect) / romanfont->height);
 	chanprint(cs->ctl, "playscr vis '%d'",
-		Dy(controlcalled("playscr")->rect)/romanfont->height);
+		  Dy(controlcalled("playscr")->rect) / romanfont->height);
 	chanprint(cs->ctl, "playlistscr vis '%d'",
-		Dy(controlcalled("playlistscr")->rect)/romanfont->height);
+		  Dy(controlcalled("playlistscr")->rect) / romanfont->height);
 	chanprint(cs->ctl, "wholewin show");
 }
 
@@ -373,10 +374,10 @@ maketab(void)
 
 	createtab(cs, "tabs");
 
-	for(i = 0; i < nelem(tabs); i++){
+	for(i = 0; i < nelem(tabs); i++) {
 		tabs[i].tab = createtextbutton(cs, tabs[i].tabname);
 		chanprint(cs->ctl, "%q size %d %d %d %d", tabs[i].tab->name,
-			stringwidth(boldfont, tabs[i].tabname), tabht, 1024, tabht);
+			  stringwidth(boldfont, tabs[i].tabname), tabht, 1024, tabht);
 		chanprint(cs->ctl, "%q align uppercenter", tabs[i].tab->name);
 		chanprint(cs->ctl, "%q font boldfont", tabs[i].tab->name);
 		chanprint(cs->ctl, "%q image background", tabs[i].tab->name);
@@ -405,7 +406,7 @@ makeplaycontrols(void)
 	chanprint(cs->ctl, "playscr size 12, 24, 12, 1024");
 	createtext(cs, "playtext");
 	chanprint(cs->ctl, "playtext size %d %d %d %d",
-		w, 5*romanfont->height, 2048, 1024);
+		  w, 5 * romanfont->height, 2048, 1024);
 
 	chanprint(cs->ctl, "playscr format '%%s: playtext topline %%d'");
 	controlwire(playscr, "event", cs->ctl);
@@ -421,10 +422,10 @@ makebrowsecontrols(void)
 
 	w = stringwidth(romanfont, "Roll over Beethoven");
 	browsetopscr = createslider(cs, "browsetopscr");
-	chanprint(cs->ctl, "browsetopscr size 12, 24, 12, %d", 12*romanfont->height);
+	chanprint(cs->ctl, "browsetopscr size 12, 24, 12, %d", 12 * romanfont->height);
 	browsetopwin = createtext(cs, "browsetopwin");
 	chanprint(cs->ctl, "browsetopwin size %d %d %d %d",
-		w, 3*romanfont->height, 2048, 12*romanfont->height);
+		  w, 3 * romanfont->height, 2048, 12 * romanfont->height);
 	createrow(cs, "browsetop");
 	chanprint(cs->ctl, "browsetop add browsetopscr browsetopwin");
 
@@ -432,14 +433,14 @@ makebrowsecontrols(void)
 	chanprint(cs->ctl, "browsebotscr size 12, 24, 12, 1024");
 	browsebotwin = createtext(cs, "browsebotwin");
 	chanprint(cs->ctl, "browsebotwin size %d %d %d %d",
-		w, 3*romanfont->height, 2048, 1024);
+		  w, 3 * romanfont->height, 2048, 1024);
 	createrow(cs, "browsebot");
 	chanprint(cs->ctl, "browsebot add browsebotscr browsebotwin");
 
 	chanprint(cs->ctl, "browsetopscr format '%%s: browsetopwin topline %%d'");
 	controlwire(browsetopscr, "event", cs->ctl);
-//	chanprint(cs->ctl, "browsebotscr format '%%s: browsebotwin topline %%d'");
-//	controlwire(browsebotscr, "event", cs->ctl);
+	//	chanprint(cs->ctl, "browsebotscr format '%%s: browsebotwin topline %%d'");
+	//	controlwire(browsebotscr, "event", cs->ctl);
 
 	tabs[WinBrowse].win = createcolumn(cs, tabs[WinBrowse].winname);
 	chanprint(cs->ctl, "%q add browsetop browsebot", tabs[WinBrowse].win->name);
@@ -456,8 +457,8 @@ makeplaylistcontrols(void)
 	chanprint(cs->ctl, "playlistscr size 12, 24, 12, 1024");
 	playlistwin = createtext(cs, "playlistwin");
 	chanprint(cs->ctl, "playlistwin size %d %d %d %d",
-		w, 5*romanfont->height, 2048, 1024);
-//	chanprint(cs->ctl, "playlistwin selectmode multi");
+		  w, 5 * romanfont->height, 2048, 1024);
+	//	chanprint(cs->ctl, "playlistwin selectmode multi");
 
 	chanprint(cs->ctl, "playlistscr format '%%s: playlistwin topline %%d'");
 	controlwire(playlistscr, "event", cs->ctl);
@@ -477,7 +478,7 @@ makeerrorcontrols(void)
 	chanprint(cs->ctl, "errorscr size 12, 24, 12, 1024");
 	errortext = createtext(cs, "errortext");
 	chanprint(cs->ctl, "errortext size %d %d %d %d",
-		w, 5*romanfont->height, 2048, 1024);
+		  w, 5 * romanfont->height, 2048, 1024);
 	chanprint(cs->ctl, "errortext selectmode multi");
 
 	chanprint(cs->ctl, "errorscr format '%%s: errortext topline %%d'");
@@ -498,7 +499,7 @@ makecontrols(void)
 	readbuts();
 
 	vol = createslider(cs, "volume");
-	chanprint(cs->ctl, "volume size %d %d %d %d", 2*butwid, butht, 2048, butht);
+	chanprint(cs->ctl, "volume size %d %d %d %d", 2 * butwid, butht, 2048, butht);
 	chanprint(cs->ctl, "volume absolute 1");
 	chanprint(cs->ctl, "volume indicatorcolor red");
 	chanprint(cs->ctl, "volume max 100");
@@ -537,42 +538,43 @@ makecontrols(void)
 }
 
 void
-makewindow(int dx, int dy, int wflag){
+makewindow(int dx, int dy, int wflag)
+{
 	int mountfd, fd, n;
 	static char aname[128];
 	static char rio[128] = "/mnt/term";
 	char *args[6];
 
-	if(wflag){
+	if(wflag) {
 		/* find out screen size */
 		fd = open("/mnt/wsys/screen", OREAD);
-		if(fd >= 0 && read(fd, aname, 60) == 60){
+		if(fd >= 0 && read(fd, aname, 60) == 60) {
 			aname[60] = '\0';
 			n = tokenize(aname, args, nelem(args));
 			if(n != 5)
 				fprint(2, "Not an image: /mnt/wsys/screen\n");
-			else{
+			else {
 				n = atoi(args[3]) - atoi(args[1]);
 				if(n <= 0 || n > 2048)
 					fprint(2, "/mnt/wsys/screen very wide: %d\n", n);
-				else
-					if(n < dx) dx = n-1;
+				else if(n < dx)
+					dx = n - 1;
 				n = atoi(args[4]) - atoi(args[2]);
 				if(n <= 0 || n > 2048)
 					fprint(2, "/mnt/wsys/screen very high: %d\n", n);
-				else
-					if(n < dy) dy = n-1;
+				else if(n < dy)
+					dy = n - 1;
 			}
 			close(fd);
 		}
 		n = 0;
-		if((fd = open("/env/wsys", OREAD)) < 0){
+		if((fd = open("/env/wsys", OREAD)) < 0) {
 			n = strlen(rio);
 			fd = open("/mnt/term/env/wsys", OREAD);
 			if(fd < 0)
 				sysfatal("/env/wsys");
 		}
-		if(read(fd, rio+n, sizeof(rio)-n-1) <= 0)
+		if(read(fd, rio + n, sizeof(rio) - n - 1) <= 0)
 			sysfatal("/env/wsys");
 		mountfd = open(rio, ORDWR);
 		if(mountfd < 0)
@@ -591,10 +593,10 @@ makewindow(int dx, int dy, int wflag){
 	initcontrols();
 	if(dx <= 320)
 		colorinit("/lib/font/bit/lucidasans/unicode.6.font",
-			"/lib/font/bit/lucidasans/boldunicode.8.font");
+			  "/lib/font/bit/lucidasans/boldunicode.8.font");
 	else
 		colorinit("/lib/font/bit/lucidasans/unicode.8.font",
-			"/lib/font/bit/lucidasans/boldunicode.10.font");
+			  "/lib/font/bit/lucidasans/boldunicode.10.font");
 	makecontrols();
 	resizeready = 1;
 
@@ -615,7 +617,7 @@ setparent(char *addr)
 		if(parent.data[i])
 			free(parent.data[i]);
 	parent.ndata = 0;
-	if(parent.data){
+	if(parent.data) {
 		free(parent.data);
 		parent.data = nil;
 	}
@@ -627,7 +629,7 @@ setparent(char *addr)
 void
 addparent(char *str)
 {
-	parent.data = realloc(parent.data, (parent.ndata+1)*sizeof(char*));
+	parent.data = realloc(parent.data, (parent.ndata + 1) * sizeof(char *));
 	parent.data[parent.ndata] = strdup(str);
 	parent.ndata++;
 	chanprint(cs->ctl, "browsetopwin accumulate %q", str);
@@ -639,13 +641,13 @@ clearchildren(void)
 {
 	int i;
 
-	for(i = 0; i < nchildren; i++){
+	for(i = 0; i < nchildren; i++) {
 		if(children[i].address)
 			free(children[i].address);
 		if(children[i].data)
 			free(children[i].data);
 	}
-	nchildren= 0;
+	nchildren = 0;
 	chanprint(cs->ctl, "browsebotwin clear");
 	chanprint(cs->ctl, "browsebotwin topline 0");
 	chanprint(cs->ctl, "browsebotscr max 0");
@@ -666,23 +668,24 @@ addchild(char *addr, char *data)
 static void
 playlistselect(int n)
 {
-	if(playlist.selected >= 0 && playlist.selected < playlist.nentries){
+	if(playlist.selected >= 0 && playlist.selected < playlist.nentries) {
 		chanprint(cs->ctl, "playlistwin select %d 0", playlist.selected);
-		deactivatebuttons(1<<Playbutton);
+		deactivatebuttons(1 << Playbutton);
 	}
 	playlist.selected = n;
 	if(playlist.selected < 0 || playlist.selected >= playlist.nentries)
 		return;
-	activatebuttons(1<<Playbutton);
+	activatebuttons(1 << Playbutton);
 	chanprint(cs->ctl, "playlistwin select %d 1", n);
-	if(n >= 0 && n <= playlist.nentries - Dy(playlistwin->rect)/romanfont->height)
+	if(n >= 0 && n <= playlist.nentries - Dy(playlistwin->rect) / romanfont->height)
 		n--;
 	else
-		n = playlist.nentries - Dy(playlistwin->rect)/romanfont->height + 1;
-	if(n < 0) n = 0;
-	if(n < playlist.nentries){
-		chanprint(cs->ctl, "playlistwin topline %d",  n);
-		chanprint(cs->ctl, "playlistscr value %d",  n);
+		n = playlist.nentries - Dy(playlistwin->rect) / romanfont->height + 1;
+	if(n < 0)
+		n = 0;
+	if(n < playlist.nentries) {
+		chanprint(cs->ctl, "playlistwin topline %d", n);
+		chanprint(cs->ctl, "playlistscr value %d", n);
 	}
 	chanprint(cs->ctl, "playlist show");
 }
@@ -693,36 +696,36 @@ updateplaylist(int trunc)
 	char *s;
 	int fd;
 
-	while(cs->ctl->s - cs->ctl->n < cs->ctl->s/4)
+	while(cs->ctl->s - cs->ctl->n < cs->ctl->s / 4)
 		sleep(100);
-	if(trunc){
+	if(trunc) {
 		playlistselect(-1);
 		chanprint(cs->ctl, "playlistwin clear");
 		chanprint(cs->ctl, "playlistwin topline 0");
 		chanprint(cs->ctl, "playlistscr max 0");
 		chanprint(cs->ctl, "playlistscr value 0");
-		deactivatebuttons(1<<Playbutton | 1<<Deletebutton);
+		deactivatebuttons(1 << Playbutton | 1 << Deletebutton);
 		chanprint(cs->ctl, "playlistwin show");
 		chanprint(cs->ctl, "playlistscr show");
 		s = smprint("%s/ctl", srvmount);
-		if((fd = open(s, OWRITE)) >= 0){
+		if((fd = open(s, OWRITE)) >= 0) {
 			fprint(fd, "reread");
 			close(fd);
 		}
 		free(s);
 		return;
 	}
-	if(playlist.entry[playlist.nentries].onum){
+	if(playlist.entry[playlist.nentries].onum) {
 		s = getoneliner(playlist.entry[playlist.nentries].onum);
 		chanprint(cs->ctl, "playlistwin accumulate %q", s);
 		free(s);
-	}else
+	} else
 		chanprint(cs->ctl, "playlistwin accumulate %q", playlist.entry[playlist.nentries].file);
 	playlist.nentries++;
 	chanprint(cs->ctl, "playlistscr max %d", playlist.nentries);
 	if(playlist.selected == playlist.nentries - 1)
 		playlistselect(playlist.selected);
-	activatebuttons(1<<Playbutton|1<<Deletebutton);
+	activatebuttons(1 << Playbutton | 1 << Deletebutton);
 	chanprint(cs->ctl, "playlistscr show");
 	chanprint(cs->ctl, "playlistwin show");
 }
@@ -736,7 +739,7 @@ browseto(char *onum, int line)
 	fillbrowsetop(onum);
 	chanprint(cs->ctl, "browsetop show");
 	fillbrowsebot(onum);
-	if(line){
+	if(line) {
 		chanprint(cs->ctl, "browsebotscr value %d", line);
 		chanprint(cs->ctl, "browsebotwin topline %d", line);
 	}
@@ -747,10 +750,10 @@ browseto(char *onum, int line)
 void
 browsedown(char *onum)
 {
-	if(browsesp == 0){
+	if(browsesp == 0) {
 		/* Make room for an entry by deleting the last */
-		free(browsestack[Browsedepth-1].onum);
-		memmove(browsestack + 1, browsestack, (Browsedepth-1) * sizeof(browsestack[0]));
+		free(browsestack[Browsedepth - 1].onum);
+		memmove(browsestack + 1, browsestack, (Browsedepth - 1) * sizeof(browsestack[0]));
 		browsesp++;
 	}
 	/* Store current position in current stack frame */
@@ -767,7 +770,7 @@ browsedown(char *onum)
 void
 browseup(char *onum)
 {
-	if(browsesp == Browsedepth){
+	if(browsesp == Browsedepth) {
 		/* Make room for an entry by deleting the first */
 		free(browsestack[0].onum);
 		memmove(browsestack, browsestack + 1, browsesp * sizeof(browsestack[0]));
@@ -797,28 +800,27 @@ work(void)
 	static char buf[4096];
 	int a, n, i;
 	Alt alts[] = {
-	[Exitbutton] =		{buts[Exitbutton].ctl->event, &eventstr, CHANRCV},
-	[Pausebutton] =		{buts[Pausebutton].ctl->event, &eventstr, CHANRCV},
-	[Playbutton] =		{buts[Playbutton].ctl->event, &eventstr, CHANRCV},
-	[Stopbutton] =		{buts[Stopbutton].ctl->event, &eventstr, CHANRCV},
-	[Prevbutton] =		{buts[Prevbutton].ctl->event, &eventstr, CHANRCV},
-	[Nextbutton] =		{buts[Nextbutton].ctl->event, &eventstr, CHANRCV},
-	[Rootbutton] =		{buts[Rootbutton].ctl->event, &eventstr, CHANRCV},
-	[Deletebutton] =	{buts[Deletebutton].ctl->event, &eventstr, CHANRCV},
-	[Helpbutton] =		{buts[Helpbutton].ctl->event, &eventstr, CHANRCV},
-	[Volume] =		{vol->event, &eventstr, CHANRCV},
-	[Browsetopwin] =	{browsetopwin->event, &eventstr, CHANRCV},
-	[Browsebotwin] =	{browsebotwin->event, &eventstr, CHANRCV},
-	[Browsebotscr] =	{browsebotscr->event, &eventstr, CHANRCV},
-	[Playevent] =		{playevent, &eventstr, CHANRCV},
-	[Playlistwin] =		{playlistwin->event, &eventstr, CHANRCV},
-	[Nalt] =		{nil, nil, CHANEND}
-	};
+		[Exitbutton] = {buts[Exitbutton].ctl->event, &eventstr, CHANRCV},
+		[Pausebutton] = {buts[Pausebutton].ctl->event, &eventstr, CHANRCV},
+		[Playbutton] = {buts[Playbutton].ctl->event, &eventstr, CHANRCV},
+		[Stopbutton] = {buts[Stopbutton].ctl->event, &eventstr, CHANRCV},
+		[Prevbutton] = {buts[Prevbutton].ctl->event, &eventstr, CHANRCV},
+		[Nextbutton] = {buts[Nextbutton].ctl->event, &eventstr, CHANRCV},
+		[Rootbutton] = {buts[Rootbutton].ctl->event, &eventstr, CHANRCV},
+		[Deletebutton] = {buts[Deletebutton].ctl->event, &eventstr, CHANRCV},
+		[Helpbutton] = {buts[Helpbutton].ctl->event, &eventstr, CHANRCV},
+		[Volume] = {vol->event, &eventstr, CHANRCV},
+		[Browsetopwin] = {browsetopwin->event, &eventstr, CHANRCV},
+		[Browsebotwin] = {browsebotwin->event, &eventstr, CHANRCV},
+		[Browsebotscr] = {browsebotscr->event, &eventstr, CHANRCV},
+		[Playevent] = {playevent, &eventstr, CHANRCV},
+		[Playlistwin] = {playlistwin->event, &eventstr, CHANRCV},
+		[Nalt] = {nil, nil, CHANEND}};
 
 	activate(vol);
 	activate(controlcalled("tabs"));
 	activatebuttons(1 << Exitbutton | 1 << Rootbutton | 1 << Helpbutton);
-	
+
 	root = getroot();
 	setparent(root);
 	clearchildren();
@@ -830,12 +832,12 @@ work(void)
 	eventstr = nil;
 	selected = -1;
 
-	for(;;){
+	for(;;) {
 		a = alt(alts);
 		if(debug & DBGCONTROL)
 			fprint(2, "Event: %s\n", eventstr);
 		n = tokenize(eventstr, args, nelem(args));
-		switch(a){
+		switch(a) {
 		default:
 			sysfatal("Illegal event %d in work", a);
 		case Volume:
@@ -856,9 +858,9 @@ work(void)
 		case Playbutton:
 			if(n != 3 || strcmp(args[0], "play:") || strcmp(args[1], "value"))
 				sysfatal("Bad Playbutton event[%d]: %s %s", n, args[0], args[1]);
-			if(playlist.selected >= 0){
+			if(playlist.selected >= 0) {
 				fprint(playctlfd, "play %d", playlist.selected);
-			}else
+			} else
 				fprint(playctlfd, "play");
 			break;
 		case Stopbutton:
@@ -885,19 +887,19 @@ work(void)
 			fprint(playctlfd, "skip 1");
 			break;
 		case Playlistwin:
-			if(debug & (DBGCONTROL|DBGPLAY))
+			if(debug & (DBGCONTROL | DBGPLAY))
 				fprint(2, "Playlistevent: %s %s\n", args[0], args[1]);
 			if(n != 4 || strcmp(args[0], "playlistwin:") || strcmp(args[1], "select"))
 				sysfatal("Bad Playlistwin event[%d]: %s %s", n, args[0], args[1]);
 			n = atoi(args[2]);
 			if(n < 0 || n >= playlist.nentries)
 				sysfatal("Selecting line %d of %d", n, playlist.nentries);
-			if(playlist.selected >= 0 && playlist.selected < playlist.nentries){
+			if(playlist.selected >= 0 && playlist.selected < playlist.nentries) {
 				chanprint(cs->ctl, "playlistwin select %d 0", playlist.selected);
 				chanprint(cs->ctl, "playlistwin show");
 			}
 			playlist.selected = -1;
-			deactivatebuttons(1<<Playbutton);
+			deactivatebuttons(1 << Playbutton);
 			if(strcmp(args[3], "1") == 0)
 				playlistselect(n);
 			break;
@@ -920,13 +922,13 @@ work(void)
 			break;
 		case Helpbutton:
 			chanprint(cs->ctl, "%q value 0", buts[Helpbutton].ctl->name);
-			if(errorlines > 0){
+			if(errorlines > 0) {
 				chanprint(cs->ctl, "errortext clear");
 				chanprint(cs->ctl, "errortext topline 0");
 				chanprint(cs->ctl, "errorscr max 0");
 				chanprint(cs->ctl, "errorscr value 0");
 			}
-			if(errorlines >= 0){
+			if(errorlines >= 0) {
 				for(i = 0; helptext[i]; i++)
 					chanprint(cs->ctl, "errortext accumulate %q", helptext[i]);
 				chanprint(cs->ctl, "errorscr max %d", i);
@@ -945,7 +947,7 @@ work(void)
 			selected = -1;
 			if(strcmp(args[3], "2") == 0)
 				doplay(parent.address);
-			else if(strcmp(args[3], "4") == 0){
+			else if(strcmp(args[3], "4") == 0) {
 				s = getparent(parent.address);
 				browsedown(s);
 			}
@@ -956,7 +958,7 @@ work(void)
 			n = atoi(args[2]);
 			if(n < 0 || n >= nchildren)
 				sysfatal("Selection out of range: %d [%d]", n, nchildren);
-			if(strcmp(args[3], "0") == 0){
+			if(strcmp(args[3], "0") == 0) {
 				selected = -1;
 				break;
 			}
@@ -966,9 +968,9 @@ work(void)
 			selected = n;
 			if(selected >= nchildren)
 				sysfatal("Select out of range: %d [0⋯%d)", selected, nchildren);
-			if(strcmp(args[3], "1") == 0){
+			if(strcmp(args[3], "1") == 0) {
 				browseup(children[selected].address);
-			}else if(strcmp(args[3], "2") == 0)
+			} else if(strcmp(args[3], "2") == 0)
 				doplay(children[selected].address);
 			else if(strcmp(args[3], "4") == 0)
 				browsedown(getparent(parent.address));
@@ -980,14 +982,14 @@ work(void)
 		case Playevent:
 			if(n < 3 || strcmp(args[0], "playctlproc:"))
 				sysfatal("Bad Playevent event[%d]: %s", n, args[0]);
-			if(debug & (DBGCONTROL|DBGPLAY))
+			if(debug & (DBGCONTROL | DBGPLAY))
 				fprint(2, "Playevent: %s %s\n", args[1], args[2]);
-			if(strcmp(args[1], "error") ==0){
-				if(n != 4){
+			if(strcmp(args[1], "error") == 0) {
+				if(n != 4) {
 					fprint(2, "Playevent: %s: arg count: %d\n", args[1], n);
 					break;
 				}
-				if(errorlines < 0){
+				if(errorlines < 0) {
 					chanprint(cs->ctl, "errortext clear");
 					chanprint(cs->ctl, "errortext topline 0");
 					chanprint(cs->ctl, "errorscr max 0");
@@ -997,17 +999,18 @@ work(void)
 				n = errorlines;
 				chanprint(cs->ctl, "errortext accumulate %q", args[3]);
 				chanprint(cs->ctl, "errorscr max %d", ++errorlines);
-				if(n >= 0 && n <= errorlines - Dy(errortext->rect)/romanfont->height)
+				if(n >= 0 && n <= errorlines - Dy(errortext->rect) / romanfont->height)
 					n--;
 				else
-					n = errorlines - Dy(errortext->rect)/romanfont->height + 1;
-				if(n < 0) n = 0;
-				if(n < errorlines){
-					chanprint(cs->ctl, "errortext topline %d",  n);
-					chanprint(cs->ctl, "errorscr value %d",  n);
+					n = errorlines - Dy(errortext->rect) / romanfont->height + 1;
+				if(n < 0)
+					n = 0;
+				if(n < errorlines) {
+					chanprint(cs->ctl, "errortext topline %d", n);
+					chanprint(cs->ctl, "errorscr value %d", n);
 				}
 				chanprint(cs->ctl, "tabs value %d", WinError);
-			}else if(strcmp(args[1], "play") ==0){
+			} else if(strcmp(args[1], "play") == 0) {
 				chanprint(cs->ctl, "%q value 1", buts[Playbutton].ctl->name);
 				chanprint(cs->ctl, "%q value 0", buts[Stopbutton].ctl->name);
 				chanprint(cs->ctl, "%q value 0", buts[Pausebutton].ctl->name);
@@ -1019,13 +1022,13 @@ work(void)
 				playstate = Playing;
 				activatebuttons(playingbuts);
 				qlock(&playlist);
-				if(playlist.selected < playlist.nentries){
+				if(playlist.selected < playlist.nentries) {
 					fillplaytext(playlist.entry[playlist.selected].onum);
 					chanprint(cs->ctl, "playscr max %d", n);
 				}
 				qunlock(&playlist);
 				chanprint(cs->ctl, "playwin show");
-			}else if(strcmp(args[1], "stop") ==0){
+			} else if(strcmp(args[1], "stop") == 0) {
 				chanprint(cs->ctl, "%q value 0", buts[Playbutton].ctl->name);
 				chanprint(cs->ctl, "%q value 1", buts[Stopbutton].ctl->name);
 				chanprint(cs->ctl, "%q value 0", buts[Pausebutton].ctl->name);
@@ -1033,28 +1036,28 @@ work(void)
 				chanprint(cs->ctl, "%q show", tabs[WinPlaylist].winname);
 				playstate = PlayIdle;
 				deactivatebuttons(playingbuts);
-			}else if(strcmp(args[1], "pause") ==0){
+			} else if(strcmp(args[1], "pause") == 0) {
 				activatebuttons(playingbuts);
 				chanprint(cs->ctl, "%q value 1", buts[Playbutton].ctl->name);
 				chanprint(cs->ctl, "%q value 0", buts[Stopbutton].ctl->name);
-				if(playstate == PlayPause){
+				if(playstate == PlayPause) {
 					chanprint(cs->ctl, "%q value 0", buts[Pausebutton].ctl->name);
 					playstate = Playing;
-				}else{
+				} else {
 					chanprint(cs->ctl, "%q value 1", buts[Pausebutton].ctl->name);
 					playstate = PlayPause;
 				}
-			}else if(strcmp(args[1], "exits") ==0){
+			} else if(strcmp(args[1], "exits") == 0) {
 				threadexits("exitevent");
-			}else{
+			} else {
 				fprint(2, "Unknown play event:");
-				for(i=0; i<n; i++)
+				for(i = 0; i < n; i++)
 					fprint(2, " %s", args[i]);
 				fprint(2, "\n");
 			}
 			break;
 		}
-		if(eventstr){
+		if(eventstr) {
 			free(eventstr);
 			eventstr = nil;
 		}
@@ -1062,11 +1065,13 @@ work(void)
 }
 
 void
-threadmain(int argc, char *argv[]){
+threadmain(int argc, char *argv[])
+{
 	int wflag;
 
 	wflag = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug = strtol(ARGF(), nil, 0);
 		break;
@@ -1078,7 +1083,8 @@ threadmain(int argc, char *argv[]){
 		break;
 	default:
 		sysfatal(usage, argv0);
-	}ARGEND
+	}
+	ARGEND
 
 	quotefmtinstall();
 

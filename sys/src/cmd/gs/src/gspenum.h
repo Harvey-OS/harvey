@@ -27,7 +27,7 @@
 /* Common definitions for client interface to path enumeration */
 
 #ifndef gspenum_INCLUDED
-#  define gspenum_INCLUDED
+#define gspenum_INCLUDED
 
 /* Define the path element types. */
 #define gs_pe_moveto 1

@@ -33,27 +33,26 @@ Pconv(Fmt *fp)
 	Prog *p;
 	int a;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(fp->args, Prog *);
 	curp = p;
 	a = p->as;
 	if(a == ADATA || a == ADYNT || a == AINIT)
 		sprint(str, "(%ld)	%A	%D/%d,%D",
-			p->line, a, &p->from, p->reg, &p->to);
-	else{
+		       p->line, a, &p->from, p->reg, &p->to);
+	else {
 		s = str;
 		s += sprint(s, "(%ld)", p->line);
 		if(p->mark & NOSCHED)
 			s += sprint(s, "*");
 		if(p->reg == NREG)
 			sprint(s, "	%A	%D,%D",
-				a, &p->from, &p->to);
-		else
-		if(p->from.type != D_FREG)
+			       a, &p->from, &p->to);
+		else if(p->from.type != D_FREG)
 			sprint(s, "	%A	%D,R%d,%D",
-				a, &p->from, p->reg, &p->to);
+			       a, &p->from, p->reg, &p->to);
 		else
 			sprint(s, "	%A	%D,F%d,%D",
-				a, &p->from, p->reg, &p->to);
+			       a, &p->from, p->reg, &p->to);
 	}
 	return fmtstrcpy(fp, str);
 }
@@ -78,7 +77,7 @@ Dconv(Fmt *fp)
 	Adr *a;
 	int32_t v;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	switch(a->type) {
 
 	default:
@@ -146,20 +145,19 @@ Dconv(Fmt *fp)
 			sprint(str, "%N(HI)(REG)", a);
 		break;
 
-	case D_BRANCH:	/* botch */
+	case D_BRANCH: /* botch */
 		if(curp->cond != P) {
 			v = curp->cond->pc;
 			if(v >= INITTEXT)
-				v -= INITTEXT-HEADR;
+				v -= INITTEXT - HEADR;
 			if(a->sym != S)
 				sprint(str, "%s+%.5lux(BRANCH)", a->sym->name, v);
 			else
 				sprint(str, "%.5lux(BRANCH)", v);
-		} else
-			if(a->sym != S)
-				sprint(str, "%s+%ld(APC)", a->sym->name, a->offset);
-			else
-				sprint(str, "%ld(APC)", a->offset);
+		} else if(a->sym != S)
+			sprint(str, "%s+%ld(APC)", a->sym->name, a->offset);
+		else
+			sprint(str, "%ld(APC)", a->offset);
 		break;
 
 	case D_FCONST:
@@ -180,7 +178,7 @@ Nconv(Fmt *fp)
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	s = a->sym;
 	switch(a->name) {
 	default:
@@ -229,9 +227,9 @@ Sconv(Fmt *fp)
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, char *);
 	p = str;
-	for(i=0; i<sizeof(int32_t); i++) {
+	for(i = 0; i < sizeof(int32_t); i++) {
 		c = a[i] & 0xff;
 		if(c >= 'a' && c <= 'z' ||
 		   c >= 'A' && c <= 'Z' ||
@@ -256,8 +254,8 @@ Sconv(Fmt *fp)
 			*p++ = 't';
 			continue;
 		}
-		*p++ = (c>>6) + '0';
-		*p++ = ((c>>3) & 7) + '0';
+		*p++ = (c >> 6) + '0';
+		*p++ = ((c >> 3) & 7) + '0';
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
@@ -274,7 +272,7 @@ diag(char *fmt, ...)
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%s: %s\n", tn, buf);
 

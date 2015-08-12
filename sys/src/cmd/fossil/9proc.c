@@ -14,51 +14,51 @@
 #include "fns.h"
 
 enum {
-	NConInit	= 128,
-	NMsgInit	= 384,
-	NMsgProcInit	= 64,
-	NMsizeInit	= 8192+IOHDRSZ,
+	NConInit = 128,
+	NMsgInit = 384,
+	NMsgProcInit = 64,
+	NMsizeInit = 8192 + IOHDRSZ,
 };
 
 static struct {
-	VtLock*	alock;			/* alloc */
-	Msg*	ahead;
-	VtRendez* arendez;
+	VtLock *alock; /* alloc */
+	Msg *ahead;
+	VtRendez *arendez;
 
-	int	maxmsg;
-	int	nmsg;
-	int	nmsgstarve;
+	int maxmsg;
+	int nmsg;
+	int nmsgstarve;
 
-	VtLock*	rlock;			/* read */
-	Msg*	rhead;
-	Msg*	rtail;
-	VtRendez* rrendez;
+	VtLock *rlock; /* read */
+	Msg *rhead;
+	Msg *rtail;
+	VtRendez *rrendez;
 
-	int	maxproc;
-	int	nproc;
-	int	nprocstarve;
+	int maxproc;
+	int nproc;
+	int nprocstarve;
 
-	uint32_t	msize;			/* immutable */
+	uint32_t msize; /* immutable */
 } mbox;
 
 static struct {
-	VtLock*	alock;			/* alloc */
-	Con*	ahead;
-	VtRendez* arendez;
+	VtLock *alock; /* alloc */
+	Con *ahead;
+	VtRendez *arendez;
 
-	VtLock*	clock;
-	Con*	chead;
-	Con*	ctail;
+	VtLock *clock;
+	Con *chead;
+	Con *ctail;
 
-	int	maxcon;
-	int	ncon;
-	int	nconstarve;
+	int maxcon;
+	int ncon;
+	int nconstarve;
 
-	uint32_t	msize;
+	uint32_t msize;
 } cbox;
 
 static void
-conFree(Con* con)
+conFree(Con *con)
 {
 	assert(con->version == nil);
 	assert(con->mhead == nil);
@@ -66,7 +66,7 @@ conFree(Con* con)
 	assert(con->nfid == 0);
 	assert(con->state == ConMoribund);
 
-	if(con->fd >= 0){
+	if(con->fd >= 0) {
 		close(con->fd);
 		con->fd = -1;
 	}
@@ -86,7 +86,7 @@ conFree(Con* con)
 		cbox.ctail = con->cprev;
 	con->cprev = con->cnext = nil;
 
-	if(cbox.ncon > cbox.maxcon){
+	if(cbox.ncon > cbox.maxcon) {
 		if(con->name != nil)
 			vtMemFree(con->name);
 		vtLockFree(con->fidlock);
@@ -110,13 +110,13 @@ conFree(Con* con)
 }
 
 static void
-msgFree(Msg* m)
+msgFree(Msg *m)
 {
 	assert(m->rwnext == nil);
 	assert(m->flush == nil);
 
 	vtLock(mbox.alock);
-	if(mbox.nmsg > mbox.maxmsg){
+	if(mbox.nmsg > mbox.maxmsg) {
 		vtMemFree(m->data);
 		vtMemFree(m);
 		mbox.nmsg--;
@@ -130,14 +130,14 @@ msgFree(Msg* m)
 	vtUnlock(mbox.alock);
 }
 
-static Msg*
-msgAlloc(Con* con)
+static Msg *
+msgAlloc(Con *con)
 {
 	Msg *m;
 
 	vtLock(mbox.alock);
-	while(mbox.ahead == nil){
-		if(mbox.nmsg >= mbox.maxmsg){
+	while(mbox.ahead == nil) {
+		if(mbox.nmsg >= mbox.maxmsg) {
 			mbox.nmsgstarve++;
 			vtSleep(mbox.arendez);
 			continue;
@@ -162,7 +162,7 @@ msgAlloc(Con* con)
 }
 
 static void
-msgMunlink(Msg* m)
+msgMunlink(Msg *m)
 {
 	Con *con;
 
@@ -180,7 +180,7 @@ msgMunlink(Msg* m)
 }
 
 void
-msgFlush(Msg* m)
+msgFlush(Msg *m)
 {
 	Con *con;
 	Msg *flush, *old;
@@ -198,14 +198,14 @@ msgFlush(Msg* m)
 	 * left the building and reply normally.
 	 */
 	vtLock(con->mlock);
-	if(m->state == MsgF){
+	if(m->state == MsgF) {
 		vtUnlock(con->mlock);
 		return;
 	}
 	for(old = con->mhead; old != nil; old = old->mnext)
 		if(old->t.tag == m->t.oldtag)
 			break;
-	if(old == nil){
+	if(old == nil) {
 		if(Dflag)
 			fprint(2, "msgFlush: cannot find %d\n", m->t.oldtag);
 		vtUnlock(con->mlock);
@@ -226,11 +226,11 @@ msgFlush(Msg* m)
 	 * message into MsgF state and let MsgWrite toss it after
 	 * pulling it off the queue.
 	 */
-	if(old->state == MsgR || old->t.type == Tflush){
+	if(old->state == MsgR || old->t.type == Tflush) {
 		old->state = MsgF;
 		if(Dflag)
 			fprint(2, "msgFlush: change %d from MsgR to MsgF\n",
-				m->t.oldtag);
+			       m->t.oldtag);
 	}
 
 	/*
@@ -247,10 +247,10 @@ msgFlush(Msg* m)
 	 * Msg.nowq, the only code to check it runs in this
 	 * process after this routine returns.
 	 */
-	if((flush = old->flush) != nil){
+	if((flush = old->flush) != nil) {
 		if(Dflag)
 			fprint(2, "msgFlush: remove %d from %d list\n",
-				old->flush->t.tag, old->t.tag);
+			       old->flush->t.tag, old->t.tag);
 		m->flush = flush->flush;
 		flush->flush = nil;
 		msgMunlink(flush);
@@ -261,7 +261,7 @@ msgFlush(Msg* m)
 
 	if(Dflag)
 		fprint(2, "msgFlush: add %d to %d queue\n",
-			m->t.tag, old->t.tag);
+		       m->t.tag, old->t.tag);
 	vtUnlock(con->mlock);
 }
 
@@ -274,14 +274,14 @@ msgProc(void *v)
 
 	vtThreadSetName("msgProc");
 
-	for(;;){
+	for(;;) {
 		/*
 		 * If surplus to requirements, exit.
 		 * If not, wait for and pull a message off
 		 * the read queue.
 		 */
 		vtLock(mbox.rlock);
-		if(mbox.nproc > mbox.maxproc){
+		if(mbox.nproc > mbox.maxproc) {
 			mbox.nproc--;
 			vtUnlock(mbox.rlock);
 			break;
@@ -308,25 +308,23 @@ msgProc(void *v)
 			m->state = Msg9;
 		vtUnlock(con->mlock);
 
-		if(e == nil){
+		if(e == nil) {
 			/*
 			 * explain this
 			 */
 			vtLock(con->lock);
-			if(m->t.type == Tversion){
+			if(m->t.type == Tversion) {
 				con->version = m;
 				con->state = ConDown;
 				while(con->mhead != m)
 					vtSleep(con->rendez);
 				assert(con->state == ConDown);
-				if(con->version == m){
+				if(con->version == m) {
 					con->version = nil;
 					con->state = ConInit;
-				}
-				else
+				} else
 					e = "Tversion aborted";
-			}
-			else if(con->state != ConUp)
+			} else if(con->state != ConUp)
 				e = "connection not ready";
 			vtUnlock(con->lock);
 		}
@@ -337,18 +335,17 @@ msgProc(void *v)
 		m->r.tag = m->t.tag;
 		if(e == nil && !(*rFcall[m->t.type])(m))
 			e = vtGetError();
-		if(e != nil){
+		if(e != nil) {
 			m->r.type = Rerror;
 			m->r.ename = e;
-		}
-		else
-			m->r.type = m->t.type+1;
+		} else
+			m->r.type = m->t.type + 1;
 
 		/*
 		 * Put the message (with reply) on the
 		 * write queue and wakeup the write process.
 		 */
-		if(!m->nowq){
+		if(!m->nowq) {
 			vtLock(con->wlock);
 			if(con->whead == nil)
 				con->whead = m;
@@ -362,7 +359,7 @@ msgProc(void *v)
 }
 
 static void
-msgRead(void* v)
+msgRead(void *v)
 {
 	Msg *m;
 	Con *con;
@@ -374,23 +371,22 @@ msgRead(void* v)
 	fd = con->fd;
 	eof = 0;
 
-	while(!eof){
+	while(!eof) {
 		m = msgAlloc(con);
 
 		while((n = read9pmsg(fd, m->data, con->msize)) == 0)
 			;
-		if(n < 0){
+		if(n < 0) {
 			m->t.type = Tversion;
 			m->t.fid = NOFID;
 			m->t.tag = NOTAG;
 			m->t.msize = con->msize;
 			m->t.version = "9PEoF";
 			eof = 1;
-		}
-		else if(convM2S(m->data, n, &m->t) != n){
+		} else if(convM2S(m->data, n, &m->t) != n) {
 			if(Dflag)
 				fprint(2, "msgRead: convM2S error: %s\n",
-					con->name);
+				       con->name);
 			msgFree(m);
 			continue;
 		}
@@ -398,11 +394,10 @@ msgRead(void* v)
 			fprint(2, "msgRead %p: t %F\n", con, &m->t);
 
 		vtLock(con->mlock);
-		if(con->mtail != nil){
+		if(con->mtail != nil) {
 			m->mprev = con->mtail;
 			con->mtail->mnext = m;
-		}
-		else{
+		} else {
 			con->mhead = m;
 			m->mprev = nil;
 		}
@@ -410,22 +405,20 @@ msgRead(void* v)
 		vtUnlock(con->mlock);
 
 		vtLock(mbox.rlock);
-		if(mbox.rhead == nil){
+		if(mbox.rhead == nil) {
 			mbox.rhead = m;
-			if(!vtWakeup(mbox.rrendez)){
-				if(mbox.nproc < mbox.maxproc){
+			if(!vtWakeup(mbox.rrendez)) {
+				if(mbox.nproc < mbox.maxproc) {
 					if(vtThread(msgProc, nil) > 0)
 						mbox.nproc++;
-				}
-				else
+				} else
 					mbox.nprocstarve++;
 			}
 			/*
 			 * don't need this surely?
 			vtWakeup(mbox.rrendez);
 			 */
-		}
-		else
+		} else
 			mbox.rtail->rwnext = m;
 		mbox.rtail = m;
 		vtUnlock(mbox.rlock);
@@ -433,7 +426,7 @@ msgRead(void* v)
 }
 
 static void
-msgWrite(void* v)
+msgWrite(void *v)
 {
 	Con *con;
 	int eof, n;
@@ -442,12 +435,12 @@ msgWrite(void* v)
 	vtThreadSetName("msgWrite");
 
 	con = v;
-	if(vtThread(msgRead, con) < 0){
+	if(vtThread(msgRead, con) < 0) {
 		conFree(con);
 		return;
 	}
 
-	for(;;){
+	for(;;) {
 		/*
 		 * Wait for and pull a message off the write queue.
 		 */
@@ -467,14 +460,14 @@ msgWrite(void* v)
 		 * followed by any messages waiting for it to complete.
 		 */
 		vtLock(con->mlock);
-		while(m != nil){
+		while(m != nil) {
 			msgMunlink(m);
 
 			if(Dflag)
 				fprint(2, "msgWrite %d: r %F\n",
-					m->state, &m->r);
+				       m->state, &m->r);
 
-			if(m->state != MsgF){
+			if(m->state != MsgF) {
 				m->state = MsgW;
 				vtUnlock(con->mlock);
 
@@ -485,7 +478,7 @@ msgWrite(void* v)
 				vtLock(con->mlock);
 			}
 
-			if((flush = m->flush) != nil){
+			if((flush = m->flush) != nil) {
 				assert(flush->nowq);
 				m->flush = nil;
 			}
@@ -495,13 +488,13 @@ msgWrite(void* v)
 		vtUnlock(con->mlock);
 
 		vtLock(con->lock);
-		if(eof && con->fd >= 0){
+		if(eof && con->fd >= 0) {
 			close(con->fd);
 			con->fd = -1;
 		}
 		if(con->state == ConDown)
 			vtWakeup(con->rendez);
-		if(con->state == ConMoribund && con->mhead == nil){
+		if(con->state == ConMoribund && con->mhead == nil) {
 			vtUnlock(con->lock);
 			conFree(con);
 			break;
@@ -510,16 +503,16 @@ msgWrite(void* v)
 	}
 }
 
-Con*
-conAlloc(int fd, char* name, int flags)
+Con *
+conAlloc(int fd, char *name, int flags)
 {
 	Con *con;
 	char buf[128], *p;
 	int rfd, n;
 
 	vtLock(cbox.alock);
-	while(cbox.ahead == nil){
-		if(cbox.ncon >= cbox.maxcon){
+	while(cbox.ahead == nil) {
+		if(cbox.ncon >= cbox.maxcon) {
 			cbox.nconstarve++;
 			vtSleep(cbox.arendez);
 			continue;
@@ -544,11 +537,10 @@ conAlloc(int fd, char* name, int flags)
 	cbox.ahead = con->anext;
 	con->anext = nil;
 
-	if(cbox.ctail != nil){
+	if(cbox.ctail != nil) {
 		con->cprev = cbox.ctail;
 		cbox.ctail->cnext = con;
-	}
-	else{
+	} else {
 		cbox.chead = con;
 		con->cprev = nil;
 	}
@@ -561,7 +553,7 @@ conAlloc(int fd, char* name, int flags)
 
 	con->state = ConNew;
 	con->fd = fd;
-	if(con->name != nil){
+	if(con->name != nil) {
 		vtMemFree(con->name);
 		con->name = nil;
 	}
@@ -571,21 +563,21 @@ conAlloc(int fd, char* name, int flags)
 		con->name = vtStrDup("unknown");
 	con->remote[0] = 0;
 	snprint(buf, sizeof buf, "%s/remote", con->name);
-	if((rfd = open(buf, OREAD)) >= 0){
-		n = read(rfd, buf, sizeof buf-1);
+	if((rfd = open(buf, OREAD)) >= 0) {
+		n = read(rfd, buf, sizeof buf - 1);
 		close(rfd);
-		if(n > 0){
+		if(n > 0) {
 			buf[n] = 0;
 			if((p = strchr(buf, '\n')) != nil)
 				*p = 0;
-			strecpy(con->remote, con->remote+sizeof con->remote, buf);
+			strecpy(con->remote, con->remote + sizeof con->remote, buf);
 		}
 	}
 	con->flags = flags;
 	con->isconsole = 0;
 	vtUnlock(cbox.alock);
 
-	if(vtThread(msgWrite, con) < 0){
+	if(vtThread(msgWrite, con) < 0) {
 		conFree(con);
 		return nil;
 	}
@@ -594,7 +586,7 @@ conAlloc(int fd, char* name, int flags)
 }
 
 static int
-cmdMsg(int argc, char* argv[])
+cmdMsg(int argc, char *argv[])
 {
 	char *p;
 	char *usage = "usage: msg [-m nmsg] [-p nproc]";
@@ -602,7 +594,8 @@ cmdMsg(int argc, char* argv[])
 
 	maxmsg = maxproc = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'm':
@@ -621,7 +614,8 @@ cmdMsg(int argc, char* argv[])
 		if(maxproc <= 0 || p == argv[0] || *p != '\0')
 			return cliError(usage);
 		break;
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
@@ -643,7 +637,7 @@ cmdMsg(int argc, char* argv[])
 
 	consPrint("\tmsg -m %d -p %d\n", maxmsg, maxproc);
 	consPrint("\tnmsg %d nmsgstarve %d nproc %d nprocstarve %d\n",
-		nmsg, nmsgstarve, nproc, nprocstarve);
+		  nmsg, nmsgstarve, nproc, nprocstarve);
 
 	return 1;
 }
@@ -658,18 +652,18 @@ scmp(Fid *a, Fid *b)
 	return strcmp(a->uname, b->uname);
 }
 
-static Fid*
+static Fid *
 fidMerge(Fid *a, Fid *b)
 {
 	Fid *s, **l;
 
 	l = &s;
-	while(a || b){
-		if(scmp(a, b) < 0){
+	while(a || b) {
+		if(scmp(a, b) < 0) {
 			*l = a;
 			l = &a->sort;
 			a = a->sort;
-		}else{
+		} else {
 			*l = b;
 			l = &b->sort;
 			b = b->sort;
@@ -679,7 +673,7 @@ fidMerge(Fid *a, Fid *b)
 	return s;
 }
 
-static Fid*
+static Fid *
 fidMergeSort(Fid *f)
 {
 	int delay;
@@ -692,8 +686,8 @@ fidMergeSort(Fid *f)
 
 	a = b = f;
 	delay = 1;
-	while(a && b){
-		if(delay)	/* easy way to handle 2-element list */
+	while(a && b) {
+		if(delay) /* easy way to handle 2-element list */
 			delay = 0;
 		else
 			a = a->sort;
@@ -711,17 +705,19 @@ fidMergeSort(Fid *f)
 }
 
 static int
-cmdWho(int argc, char* argv[])
+cmdWho(int argc, char *argv[])
 {
 	char *usage = "usage: who";
 	int i, l1, l2, l;
 	Con *con;
 	Fid *fid, *last;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 0)
 		return cliError(usage);
@@ -729,26 +725,26 @@ cmdWho(int argc, char* argv[])
 	vtRLock(cbox.clock);
 	l1 = 0;
 	l2 = 0;
-	for(con=cbox.chead; con; con=con->cnext){
+	for(con = cbox.chead; con; con = con->cnext) {
 		if((l = strlen(con->name)) > l1)
 			l1 = l;
 		if((l = strlen(con->remote)) > l2)
 			l2 = l;
 	}
-	for(con=cbox.chead; con; con=con->cnext){
+	for(con = cbox.chead; con; con = con->cnext) {
 		consPrint("\t%-*s %-*s", l1, con->name, l2, con->remote);
 		vtLock(con->fidlock);
 		last = nil;
-		for(i=0; i<NFidHash; i++)
-			for(fid=con->fidhash[i]; fid; fid=fid->hash)
-				if(fid->fidno != NOFID && fid->uname){
+		for(i = 0; i < NFidHash; i++)
+			for(fid = con->fidhash[i]; fid; fid = fid->hash)
+				if(fid->fidno != NOFID && fid->uname) {
 					fid->sort = last;
 					last = fid;
 				}
 		fid = fidMergeSort(last);
 		last = nil;
-		for(; fid; last=fid, fid=fid->sort)
-			if(last==nil || strcmp(fid->uname, last->uname) != 0)
+		for(; fid; last = fid, fid = fid->sort)
+			if(last == nil || strcmp(fid->uname, last->uname) != 0)
 				consPrint(" %q", fid->uname);
 		vtUnlock(con->fidlock);
 		consPrint("\n");
@@ -774,7 +770,7 @@ msgInit(void)
 }
 
 static int
-cmdCon(int argc, char* argv[])
+cmdCon(int argc, char *argv[])
 {
 	char *p;
 	Con *con;
@@ -783,7 +779,8 @@ cmdCon(int argc, char* argv[])
 
 	maxcon = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'm':
@@ -794,7 +791,8 @@ cmdCon(int argc, char* argv[])
 		if(maxcon <= 0 || p == argv[0] || *p != '\0')
 			return cliError(usage);
 		break;
-	}ARGEND
+	}
+	ARGEND
 	if(argc)
 		return cliError(usage);
 
@@ -810,7 +808,7 @@ cmdCon(int argc, char* argv[])
 	consPrint("\tncon %d nconstarve %d\n", ncon, nconstarve);
 
 	vtRLock(cbox.clock);
-	for(con = cbox.chead; con != nil; con = con->cnext){
+	for(con = cbox.chead; con != nil; con = con->cnext) {
 		consPrint("\t%s\n", con->name);
 	}
 	vtRUnlock(cbox.clock);

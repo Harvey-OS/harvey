@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	"cc.h"
+#include "cc.h"
 
 /* default, like old cc */
 int
-machcap(Node*)
+machcap(Node *)
 {
 	return 0;
 }

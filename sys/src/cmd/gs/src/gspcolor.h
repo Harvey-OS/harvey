@@ -27,7 +27,7 @@
 /* Client interface to Pattern color */
 
 #ifndef gspcolor_INCLUDED
-#  define gspcolor_INCLUDED
+#define gspcolor_INCLUDED
 
 #include "gsccolor.h"
 #include "gsrefct.h"
@@ -57,50 +57,50 @@
  */
 
 #ifndef gs_pattern_type_DEFINED
-#  define gs_pattern_type_DEFINED
+#define gs_pattern_type_DEFINED
 typedef struct gs_pattern_type_s gs_pattern_type_t;
 #endif
 
-#define gs_pattern_template_common\
-  const gs_pattern_type_t *type;\
-  int PatternType;		/* copied from the type structure */\
-  gs_uid uid;\
-  void *client_data		/* additional data for rendering */
+#define gs_pattern_template_common                            \
+	const gs_pattern_type_t *type;                        \
+	int PatternType; /* copied from the type structure */ \
+	gs_uid uid;                                           \
+	void *client_data /* additional data for rendering */
 
 typedef struct gs_pattern_template_s {
-    gs_pattern_template_common;
+	gs_pattern_template_common;
 } gs_pattern_template_t;
 
 /* The descriptor is public for subclassing. */
 extern_st(st_pattern_template);
-#define public_st_pattern_template() /* in gspcolor.c */\
-  gs_public_st_ptrs2(st_pattern_template, gs_pattern_template_t,\
-    "gs_pattern_template_t", pattern_template_enum_ptrs,\
-    pattern_template_reloc_ptrs, uid.xvalues, client_data)
+#define public_st_pattern_template() /* in gspcolor.c */                        \
+	gs_public_st_ptrs2(st_pattern_template, gs_pattern_template_t,          \
+			   "gs_pattern_template_t", pattern_template_enum_ptrs, \
+			   pattern_template_reloc_ptrs, uid.xvalues, client_data)
 #define st_pattern_template_max_ptrs 2
 
 /* Definition of Pattern instances. */
 #ifndef gs_pattern_instance_DEFINED
-#  define gs_pattern_instance_DEFINED
+#define gs_pattern_instance_DEFINED
 typedef struct gs_pattern_instance_s gs_pattern_instance_t;
 #endif
 
-#define gs_pattern_instance_common\
-    rc_header rc;\
-    /* Following are set by makepattern */\
-    const gs_pattern_type_t *type;  /* from template */\
-    gs_state *saved;\
-    gs_id pattern_id
+#define gs_pattern_instance_common                         \
+	rc_header rc;                                      \
+	/* Following are set by makepattern */             \
+	const gs_pattern_type_t *type; /* from template */ \
+	gs_state *saved;                                   \
+	gs_id pattern_id
 struct gs_pattern_instance_s {
-    gs_pattern_instance_common;
+	gs_pattern_instance_common;
 };
 
 /* The following is public for subclassing. */
 extern_st(st_pattern_instance);
-#define public_st_pattern_instance() /* in gspcolor.c */\
-  gs_public_st_ptrs1(st_pattern_instance, gs_pattern_instance_t,\
-    "gs_pattern_instance_t", pattern_instance_enum_ptrs,\
-    pattern_instance_reloc_ptrs, saved)
+#define public_st_pattern_instance() /* in gspcolor.c */                        \
+	gs_public_st_ptrs1(st_pattern_instance, gs_pattern_instance_t,          \
+			   "gs_pattern_instance_t", pattern_instance_enum_ptrs, \
+			   pattern_instance_reloc_ptrs, saved)
 #define st_pattern_instance_max_ptrs 1
 
 /* ---------------- Procedures ---------------- */
@@ -126,6 +126,6 @@ const gs_pattern_template_t *gs_get_pattern(const gs_client_color *);
  * applications, they need some way to release or retain the instances as
  * needed.
  */
-void gs_pattern_reference(gs_client_color * pcc, int delta);
+void gs_pattern_reference(gs_client_color *pcc, int delta);
 
 #endif /* gspcolor_INCLUDED */

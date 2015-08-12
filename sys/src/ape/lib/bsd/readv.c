@@ -15,7 +15,7 @@ int
 readv(int fd, struct iovec *v, int ent)
 {
 	int x, i, n, len;
-	char buf[10*1024];
+	char buf[10 * 1024];
 
 	for(len = i = 0; i < ent; i++)
 		len += v[i].iov_len;
@@ -26,7 +26,7 @@ readv(int fd, struct iovec *v, int ent)
 	if(len <= 0)
 		return len;
 
-	for(n = i = 0; n < len && i < ent; i++){
+	for(n = i = 0; n < len && i < ent; i++) {
 		x = len - n;
 		if(x > v[i].iov_len)
 			x = v[i].iov_len;

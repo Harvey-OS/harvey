@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<stdlib.h>
+#include <stdlib.h>
 
 double
 atof(const char *s)
 {
-	return(strtod(s, (char **)0));
+	return (strtod(s, (char **)0));
 }

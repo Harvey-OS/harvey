@@ -28,7 +28,7 @@ pppbinddev(void)
 	if(nip == 0)
 		writendb("", 0, 0);
 
-	switch(pid = rfork(RFPROC|RFFDG|RFMEM)){
+	switch(pid = rfork(RFPROC | RFFDG | RFMEM)) {
 	case -1:
 		sysfatal("can't start ppp: %r");
 	case 0:
@@ -39,7 +39,7 @@ pppbinddev(void)
 		av[ac++] = conf.dev;
 		av[ac++] = "-x";
 		av[ac++] = conf.mpoint;
-		if(conf.baud != nil){
+		if(conf.baud != nil) {
 			av[ac++] = "-b";
 			av[ac++] = conf.baud;
 		}
@@ -50,8 +50,8 @@ pppbinddev(void)
 	}
 
 	/* wait for ppp to finish connecting and configuring */
-	while((w = wait()) != nil){
-		if(w->pid == pid){
+	while((w = wait()) != nil) {
+		if(w->pid == pid) {
 			if(w->msg[0] != 0)
 				sysfatal("/ppp exited with status: %s", w->msg);
 			free(w);
@@ -66,4 +66,3 @@ pppbinddev(void)
 	noconfig = 1;
 	getndb();
 }
-

@@ -46,27 +46,24 @@ extern "C" {
 #define CDECL
 #endif
 
-
 typedef enum vbr_mode_e {
-  vbr_off=0,
-  vbr_mt,
-  vbr_rh,
-  vbr_abr,
-  vbr_mtrh,
-  vbr_default=vbr_rh  /* change this to change the default VBR mode of LAME */ 
+	vbr_off = 0,
+	vbr_mt,
+	vbr_rh,
+	vbr_abr,
+	vbr_mtrh,
+	vbr_default = vbr_rh /* change this to change the default VBR mode of LAME */
 } vbr_mode;
-
 
 /* MPEG modes */
 typedef enum MPEG_mode_e {
-  STEREO=0,
-  JOINT_STEREO,
-  DUAL_CHANNEL,   /* LAME doesn't supports this! */
-  MONO,
-  NOT_SET,
-  MAX_INDICATOR   /* Don't use this! It's used for sanity checks. */ 
+	STEREO = 0,
+	JOINT_STEREO,
+	DUAL_CHANNEL, /* LAME doesn't supports this! */
+	MONO,
+	NOT_SET,
+	MAX_INDICATOR /* Don't use this! It's used for sanity checks. */
 } MPEG_mode;
-
 
 /***********************************************************************
 *
@@ -76,100 +73,96 @@ typedef enum MPEG_mode_e {
 *
 *
 ***********************************************************************/
-typedef struct  {
-  /* input description */
-  unsigned long num_samples;  /* number of samples. default=2^32-1           */
-  int num_channels;           /* input number of channels. default=2         */
-  int in_samplerate;          /* input_samp_rate in Hz. default=44.1 kHz     */
-  int out_samplerate;         /* output_samp_rate.
+typedef struct {
+	/* input description */
+	unsigned long num_samples; /* number of samples. default=2^32-1           */
+	int num_channels;	  /* input number of channels. default=2         */
+	int in_samplerate;	 /* input_samp_rate in Hz. default=44.1 kHz     */
+	int out_samplerate;	/* output_samp_rate.
                                    default: LAME picks best value 
                                    at least not used for MP3 decoding:
                                    Remember 44.1 kHz MP3s and AC97           */
-  float scale;                /* scale input by this amount before encoding
+	float scale;		   /* scale input by this amount before encoding
                                  at least not used for MP3 decoding          */
 
-  /* general control params */
-  int analysis;               /* collect data for a MP3 frame analyzer?      */
-  int bWriteVbrTag;           /* add Xing VBR tag?                           */
-  int disable_waveheader;     /* disable writing of .wav header, when
+	/* general control params */
+	int analysis;		/* collect data for a MP3 frame analyzer?      */
+	int bWriteVbrTag;       /* add Xing VBR tag?                           */
+	int disable_waveheader; /* disable writing of .wav header, when
                                  *decoding*                                  */
-  int decode_only;            /* use lame/mpglib to convert mp3/ogg to wav   */
-  int ogg;                    /* encode to Vorbis .ogg file                  */
+	int decode_only;	/* use lame/mpglib to convert mp3/ogg to wav   */
+	int ogg;		/* encode to Vorbis .ogg file                  */
 
-  int quality;                /* quality setting 0=best,  9=worst  default=5 */
-  MPEG_mode mode;             /* see enum above
+	int quality;     /* quality setting 0=best,  9=worst  default=5 */
+	MPEG_mode mode;  /* see enum above
                                  default = LAME picks best value             */
-  int mode_fixed;             /* ignored                                     */
-  int mode_automs;            /* use a m/s threshold based on compression
+	int mode_fixed;  /* ignored                                     */
+	int mode_automs; /* use a m/s threshold based on compression
                                  ratio                                       */
-  int force_ms;               /* force M/S mode.  requires mode=1            */
-  int free_format;            /* use free format? default=0                  */
+	int force_ms;    /* force M/S mode.  requires mode=1            */
+	int free_format; /* use free format? default=0                  */
 
-  /*
+	/*
    * set either brate>0  or compression_ratio>0, LAME will compute
    * the value of the variable not set.
    * Default is compression_ratio = 11.025
    */
-  int brate;                  /* bitrate                                    */
-  float compression_ratio;    /* sizeof(wav file)/sizeof(mp3 file)          */
+	int brate;		 /* bitrate                                    */
+	float compression_ratio; /* sizeof(wav file)/sizeof(mp3 file)          */
 
-
-  /* frame params */
-  int copyright;                  /* mark as copyright. default=0           */
-  int original;                   /* mark as original. default=1            */
-  int error_protection;           /* use 2 bytes per frame for a CRC
+	/* frame params */
+	int copyright;	/* mark as copyright. default=0           */
+	int original;	 /* mark as original. default=1            */
+	int error_protection; /* use 2 bytes per frame for a CRC
                                      checksum. default=0                    */
-  int padding_type;               /* 0=no padding, 1=always pad,
+	int padding_type;     /* 0=no padding, 1=always pad,
                                      2=adjust padding, default=2            */
-  int extension;                  /* the MP3 'private extension' bit.
+	int extension;	/* the MP3 'private extension' bit.
                                      Meaningless                            */
-  int strict_ISO;                 /* enforce ISO spec as much as possible   */
+	int strict_ISO;       /* enforce ISO spec as much as possible   */
 
-  /* quantization/noise shaping */
-  int disable_reservoir;          /* use bit reservoir?                     */
-  int experimentalX;            
-  int experimentalY;
-  int experimentalZ;
-  int exp_nspsytune;
+	/* quantization/noise shaping */
+	int disable_reservoir; /* use bit reservoir?                     */
+	int experimentalX;
+	int experimentalY;
+	int experimentalZ;
+	int exp_nspsytune;
 
-  /* VBR control */
-  vbr_mode VBR;
-  int VBR_q;
-  int VBR_mean_bitrate_kbps;
-  int VBR_min_bitrate_kbps;
-  int VBR_max_bitrate_kbps;
-  int VBR_hard_min;             /* strictly enforce VBR_min_bitrate
+	/* VBR control */
+	vbr_mode VBR;
+	int VBR_q;
+	int VBR_mean_bitrate_kbps;
+	int VBR_min_bitrate_kbps;
+	int VBR_max_bitrate_kbps;
+	int VBR_hard_min; /* strictly enforce VBR_min_bitrate
                                    normaly, it will be violated for analog
                                    silence                                 */
 
-
-  /* resampling and filtering */
-  int lowpassfreq;                /* freq in Hz. 0=lame choses.
+	/* resampling and filtering */
+	int lowpassfreq;   /* freq in Hz. 0=lame choses.
                                      -1=no filter                          */
-  int highpassfreq;               /* freq in Hz. 0=lame choses.
+	int highpassfreq;  /* freq in Hz. 0=lame choses.
                                      -1=no filter                          */
-  int lowpasswidth;               /* freq width of filter, in Hz
+	int lowpasswidth;  /* freq width of filter, in Hz
                                      (default=15%)                         */
-  int highpasswidth;              /* freq width of filter, in Hz
+	int highpasswidth; /* freq width of filter, in Hz
                                      (default=15%)                         */
 
-
-
-  /*
+	/*
    * psycho acoustics and other arguments which you should not change 
    * unless you know what you are doing
    */
-  int ATHonly;                    /* only use ATH                         */
-  int ATHshort;                   /* only use ATH for short blocks        */
-  int noATH;                      /* disable ATH                          */
-  int ATHtype;                    /* select ATH formula                   */
-  float ATHlower;                 /* lower ATH by this many db            */
-  int cwlimit;                    /* predictability limit                 */
-  int allow_diff_short;           /* allow blocktypes to differ between
+	int ATHonly;	  /* only use ATH                         */
+	int ATHshort;	 /* only use ATH for short blocks        */
+	int noATH;	    /* disable ATH                          */
+	int ATHtype;	  /* select ATH formula                   */
+	float ATHlower;       /* lower ATH by this many db            */
+	int cwlimit;	  /* predictability limit                 */
+	int allow_diff_short; /* allow blocktypes to differ between
                                      channels?                            */
-  int useTemporal;                /* use temporal masking effect          */
-  int no_short_blocks;            /* disable short blocks                 */
-  int emphasis;                   /* Input PCM is emphased PCM (for
+	int useTemporal;      /* use temporal masking effect          */
+	int no_short_blocks;  /* disable short blocks                 */
+	int emphasis;	 /* Input PCM is emphased PCM (for
                                      instance from one of the rarely
                                      emphased CDs), it is STRONGLY not
                                      recommended to use this, because
@@ -177,49 +170,42 @@ typedef struct  {
 				     and last but not least many decoders
                                      don't care about these bits          */
 
-  struct {
-    void (*msgf)  (const char *format, va_list ap);
-    void (*debugf)(const char *format, va_list ap);
-    void (*errorf)(const char *format, va_list ap);
-  } report;
+	struct {
+		void (*msgf)(const char *format, va_list ap);
+		void (*debugf)(const char *format, va_list ap);
+		void (*errorf)(const char *format, va_list ap);
+	} report;
 
-  /************************************************************************/
-  /* internal variables, do not set...                                    */
-  /* provided because they may be of use to calling application           */
-  /************************************************************************/
+	/************************************************************************/
+	/* internal variables, do not set...                                    */
+	/* provided because they may be of use to calling application           */
+	/************************************************************************/
 
-  int version;                    /* 0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)     */
-  int encoder_delay;
-  int framesize;                  
-  int frameNum;                   /* number of frames encoded             */
-  int totalframes;
-  int lame_allocated_gfp;         /* is this struct owned by calling
+	int version; /* 0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)     */
+	int encoder_delay;
+	int framesize;
+	int frameNum; /* number of frames encoded             */
+	int totalframes;
+	int lame_allocated_gfp; /* is this struct owned by calling
                                      program or lame?                     */
 
+	/****************************************************************************/
+	/* more internal variables, which will not exist after lame_encode_finish() */
+	/****************************************************************************/
+	void *internal_flags;
 
-
-  /****************************************************************************/
-  /* more internal variables, which will not exist after lame_encode_finish() */
-  /****************************************************************************/
-  void *internal_flags;
-
-  /* VBR tags.  This data is here because VBR header is writen after
+	/* VBR tags.  This data is here because VBR header is writen after
    * input file is closed and *internal_flags struct is free'd */
-  int nZeroStreamSize;
-  int TotalFrameSize;
-  int* pVbrFrames;
-  int nVbrNumFrames;
-  int nVbrFrameBufferSize;
-
+	int nZeroStreamSize;
+	int TotalFrameSize;
+	int *pVbrFrames;
+	int nVbrNumFrames;
+	int nVbrFrameBufferSize;
 
 } lame_global_flags;
 
-// I give up. Klemm has worn me down on this one... 
+// I give up. Klemm has worn me down on this one...
 typedef lame_global_flags lame_t;
-
-
-
-
 
 /***********************************************************************
  *
@@ -229,17 +215,15 @@ typedef lame_global_flags lame_t;
  *
  ***********************************************************************/
 
-
 /*
  * REQUIRED:
  * initialize the encoder.  sets default for all encoder paramters,
  * returns -1 if some malloc()'s failed
  * otherwise returns 0
  */
-lame_global_flags * CDECL lame_init(void);
+lame_global_flags *CDECL lame_init(void);
 /* obsolete version */
 int CDECL lame_init_old(lame_global_flags *);
-
 
 /*
  * OPTIONAL:
@@ -249,7 +233,7 @@ int CDECL lame_init_old(lame_global_flags *);
 /********************************************************************
  *  input stream description
  ***********************************************************************/
-// number of samples.  default = 2^32-1  
+// number of samples.  default = 2^32-1
 int CDECL lame_set_num_samples(lame_global_flags *, unsigned long);
 unsigned long CDECL lame_get_num_samples(const lame_global_flags *);
 
@@ -257,7 +241,7 @@ unsigned long CDECL lame_get_num_samples(const lame_global_flags *);
 int CDECL lame_set_in_samplerate(lame_global_flags *, int);
 int CDECL lame_get_in_samplerate(const lame_global_flags *);
 
-// number of channels in input stream. default=2 
+// number of channels in input stream. default=2
 int CDECL lame_set_num_channels(lame_global_flags *, int);
 int CDECL lame_get_num_channels(const lame_global_flags *);
 
@@ -266,7 +250,7 @@ int CDECL lame_get_num_channels(const lame_global_flags *);
 int CDECL lame_set_scale(lame_global_flags *, float);
 float CDECL lame_get_scale(const lame_global_flags *);
 
-// output sample rate in Hz.  default = 0, which means LAME picks best value 
+// output sample rate in Hz.  default = 0, which means LAME picks best value
 // based on the amount of compression.  MPEG only allows:
 // MPEG1    32, 44.1,   48khz
 // MPEG2    16, 22.05,  24
@@ -274,7 +258,6 @@ float CDECL lame_get_scale(const lame_global_flags *);
 // (not used by decoding routines)
 int CDECL lame_set_out_samplerate(lame_global_flags *, int);
 int CDECL lame_get_out_samplerate(const lame_global_flags *);
-
 
 /********************************************************************
  *  general control parameters
@@ -303,7 +286,7 @@ int CDECL lame_get_ogg(const lame_global_flags *);
 
 // internal algorithm selection.  True quality is determined by the bitrate
 // but this variable will effect quality by selecting expensive or cheap algorithms.
-// quality=0..9.  0=best (very slow).  9=worst.  
+// quality=0..9.  0=best (very slow).  9=worst.
 // recommended:  2     near-best quality, not too slow
 //               5     good quality, fast
 //               7     ok quality, really fast
@@ -315,7 +298,7 @@ int CDECL lame_get_quality(const lame_global_flags *);
 int CDECL lame_set_mode(lame_global_flags *, MPEG_mode);
 MPEG_mode CDECL lame_get_mode(const lame_global_flags *);
 
-// mode_automs.  Us a M/S mode with a switching threshold based on 
+// mode_automs.  Us a M/S mode with a switching threshold based on
 // compression ratio
 // default = 0 (disabled)
 int CDECL lame_set_mode_automs(lame_global_flags *, int);
@@ -344,13 +327,11 @@ int CDECL lame_get_free_format(const lame_global_flags *);
  * with just "return;" and use it in the set function.
  */
 int CDECL lame_set_errorf(lame_global_flags *,
-                          void (*func)(const char *, va_list));
+			  void (*func)(const char *, va_list));
 int CDECL lame_set_debugf(lame_global_flags *,
-                          void (*func)(const char *, va_list));
-int CDECL lame_set_msgf  (lame_global_flags *,
-                          void (*func)(const char *, va_list));
-
-
+			  void (*func)(const char *, va_list));
+int CDECL lame_set_msgf(lame_global_flags *,
+			void (*func)(const char *, va_list));
 
 /* set one of brate compression ratio.  default is compression ratio of 11.  */
 int CDECL lame_set_brate(lame_global_flags *, int);
@@ -384,7 +365,6 @@ int CDECL lame_get_extension(const lame_global_flags *);
 // enforce strict ISO complience.  default=0
 int CDECL lame_set_strict_ISO(lame_global_flags *, int);
 int CDECL lame_get_strict_ISO(const lame_global_flags *);
- 
 
 /********************************************************************
  * quantization/noise shaping 
@@ -394,7 +374,7 @@ int CDECL lame_get_strict_ISO(const lame_global_flags *);
 int CDECL lame_set_disable_reservoir(lame_global_flags *, int);
 int CDECL lame_get_disable_reservoir(const lame_global_flags *);
 
-// select a different "best quantization" function. default=0 
+// select a different "best quantization" function. default=0
 int CDECL lame_set_experimentalX(lame_global_flags *, int);
 int CDECL lame_get_experimentalX(const lame_global_flags *);
 
@@ -410,8 +390,6 @@ int CDECL lame_get_experimentalZ(const lame_global_flags *);
 int CDECL lame_set_exp_nspsytune(lame_global_flags *, int);
 int CDECL lame_get_exp_nspsytune(const lame_global_flags *);
 
-
-
 /********************************************************************
  * VBR control
  ***********************************************************************/
@@ -419,7 +397,7 @@ int CDECL lame_get_exp_nspsytune(const lame_global_flags *);
 int CDECL lame_set_VBR(lame_global_flags *, vbr_mode);
 vbr_mode CDECL lame_get_exp_VBR(const lame_global_flags *);
 
-// VBR quality level.  0=highest  9=lowest 
+// VBR quality level.  0=highest  9=lowest
 int CDECL lame_set_VBR_q(lame_global_flags *, int);
 int CDECL lame_get_VBR_q(const lame_global_flags *);
 
@@ -438,7 +416,6 @@ int CDECL lame_get_VBR_max_bitrate_kbps(const lame_global_flags *);
 int CDECL lame_set_VBR_hard_min(lame_global_flags *, int);
 int CDECL lame_get_VBR_hard_min(const lame_global_flags *);
 
-
 /********************************************************************
  * Filtering control
  ***********************************************************************/
@@ -455,7 +432,6 @@ int CDECL lame_get_highpassfreq(const lame_global_flags *);
 // width of transition band, in Hz.  Default = one polyphase filter band
 int CDECL lame_set_highpasswidth(lame_global_flags *, int);
 int CDECL lame_get_highpasswidth(const lame_global_flags *);
-
 
 /********************************************************************
  * psycho acoustics and other arguments which you should not change 
@@ -505,13 +481,11 @@ int CDECL lame_get_no_short_blocks(const lame_global_flags *);
 int CDECL lame_set_emphasis(lame_global_flags *, int);
 int CDECL lame_get_emphasis(const lame_global_flags *);
 
-
-
 /************************************************************************/
 /* internal variables, cannot be set...                                 */
 /* provided because they may be of use to calling application           */
 /************************************************************************/
-// version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)    
+// version  0=MPEG-2  1=MPEG-1  (2=MPEG-2.5)
 int CDECL lame_get_version(const lame_global_flags *);
 
 // encoder delay
@@ -524,15 +498,8 @@ int CDECL lame_get_framesize(const lame_global_flags *);
 int CDECL lame_get_frameNum(const lame_global_flags *);
 
 // lame's estimate of the total number of frames to be encoded
-// only valid if calling program set num_samples 
+// only valid if calling program set num_samples
 int CDECL lame_get_totalframes(const lame_global_flags *);
-
-
-
-
-
-
-
 
 /*
  * REQUIRED:
@@ -541,49 +508,44 @@ int CDECL lame_get_totalframes(const lame_global_flags *);
  */
 int CDECL lame_init_params(lame_global_flags *);
 
-
 /*
  * OPTIONAL:
  * get the version number, in a string. of the form:  
  * "3.63 (beta)" or just "3.63". 
  */
-const /*@observer@*/ char*  CDECL get_lame_version       ( void );
-const /*@observer@*/ char*  CDECL get_lame_short_version ( void );
-const /*@observer@*/ char*  CDECL get_psy_version        ( void );
-const /*@observer@*/ char*  CDECL get_mp3x_version       ( void );
-const /*@observer@*/ char*  CDECL get_lame_url           ( void );
+const /*@observer@*/ char *CDECL get_lame_version(void);
+const /*@observer@*/ char *CDECL get_lame_short_version(void);
+const /*@observer@*/ char *CDECL get_psy_version(void);
+const /*@observer@*/ char *CDECL get_mp3x_version(void);
+const /*@observer@*/ char *CDECL get_lame_url(void);
 
 /*
  * OPTIONAL:
  * get the version numbers in numerical form.
  */
 typedef struct {
-    /* generic LAME version */
-    int major;
-    int minor;
-    int alpha;               /* 0 if not an alpha version                  */
-    int beta;                /* 0 if not a beta version                    */
+	/* generic LAME version */
+	int major;
+	int minor;
+	int alpha; /* 0 if not an alpha version                  */
+	int beta;  /* 0 if not a beta version                    */
 
-    /* version of the psy model */
-    int psy_major;
-    int psy_minor;
-    int psy_alpha;           /* 0 if not an alpha version                  */
-    int psy_beta;            /* 0 if not a beta version                    */
+	/* version of the psy model */
+	int psy_major;
+	int psy_minor;
+	int psy_alpha; /* 0 if not an alpha version                  */
+	int psy_beta;  /* 0 if not a beta version                    */
 
-    /* compile time features */
-    const char *features;    /* Don't make assumptions about the contents! */
+	/* compile time features */
+	const char *features; /* Don't make assumptions about the contents! */
 } lame_version_t;
-void CDECL get_lame_version_numerical ( lame_version_t *const );
-
+void CDECL get_lame_version_numerical(lame_version_t *const);
 
 /*
  * OPTIONAL:
  * print internal lame configuration to message handler
  */
-void CDECL lame_print_config(const lame_global_flags*  gfp);
-
-
-
+void CDECL lame_print_config(const lame_global_flags *gfp);
 
 /*
  * input pcm data, output (maybe) mp3 frames.
@@ -619,13 +581,13 @@ void CDECL lame_print_config(const lame_global_flags*  gfp);
  * This will overwrite the data in buffer_l[] and buffer_r[].
  * 
 */
-int CDECL lame_encode_buffer (
-        lame_global_flags*  gfp,           /* global context handle         */
-        const short int     buffer_l [],   /* PCM data for left channel     */
-        const short int     buffer_r [],   /* PCM data for right channel    */
-        const int           nsamples,      /* number of samples per channel */
-        unsigned char*      mp3buf,        /* pointer to encoded MP3 stream */
-        const int           mp3buf_size ); /* number of valid octets in this
+int CDECL lame_encode_buffer(
+    lame_global_flags *gfp,     /* global context handle         */
+    const short int buffer_l[], /* PCM data for left channel     */
+    const short int buffer_r[], /* PCM data for right channel    */
+    const int nsamples,		/* number of samples per channel */
+    unsigned char *mp3buf,      /* pointer to encoded MP3 stream */
+    const int mp3buf_size);     /* number of valid octets in this
                                               stream                        */
 
 /*
@@ -635,41 +597,35 @@ int CDECL lame_encode_buffer (
  * channel, not the total number of samples in pcm[]  
  */
 int CDECL lame_encode_buffer_interleaved(
-        lame_global_flags*  gfp,           /* global context handlei        */
-        short int           pcm[],         /* PCM data for left and right
+    lame_global_flags *gfp, /* global context handlei        */
+    short int pcm[],	/* PCM data for left and right
                                               channel, interleaved          */
-        int                 num_samples,   /* number of samples per channel,
+    int num_samples,	/* number of samples per channel,
                                               _not_ number of samples in
                                               pcm[]                         */
-        unsigned char*      mp3buf,        /* pointer to encoded MP3 stream */
-        int                 mp3buf_size ); /* number of valid octets in this
+    unsigned char *mp3buf,  /* pointer to encoded MP3 stream */
+    int mp3buf_size);       /* number of valid octets in this
                                               stream                        */
-
 
 /* as lame_encode_buffer, but for 'float's */
 int CDECL lame_encode_buffer_float(
-        lame_global_flags*  gfp,           /* global context handle         */
-        const float     buffer_l [],       /* PCM data for left channel     */
-        const float     buffer_r [],       /* PCM data for right channel    */
-        const int           nsamples,      /* number of samples per channel */
-        unsigned char*      mp3buf,        /* pointer to encoded MP3 stream */
-        const int           mp3buf_size ); /* number of valid octets in this
+    lame_global_flags *gfp, /* global context handle         */
+    const float buffer_l[], /* PCM data for left channel     */
+    const float buffer_r[], /* PCM data for right channel    */
+    const int nsamples,     /* number of samples per channel */
+    unsigned char *mp3buf,  /* pointer to encoded MP3 stream */
+    const int mp3buf_size); /* number of valid octets in this
                                               stream                        */
 
 /* as lame_encode_buffer, but for long's' */
 int CDECL lame_encode_buffer_long(
-        lame_global_flags*  gfp,           /* global context handle         */
-        const long     buffer_l [],       /* PCM data for left channel     */
-        const long     buffer_r [],       /* PCM data for right channel    */
-        const int           nsamples,      /* number of samples per channel */
-        unsigned char*      mp3buf,        /* pointer to encoded MP3 stream */
-        const int           mp3buf_size ); /* number of valid octets in this
+    lame_global_flags *gfp, /* global context handle         */
+    const long buffer_l[],  /* PCM data for left channel     */
+    const long buffer_r[],  /* PCM data for right channel    */
+    const int nsamples,     /* number of samples per channel */
+    unsigned char *mp3buf,  /* pointer to encoded MP3 stream */
+    const int mp3buf_size); /* number of valid octets in this
                                               stream                        */
-
-
-
-
-
 
 /*
  * REQUIRED:
@@ -682,26 +638,24 @@ int CDECL lame_encode_buffer_long(
  * return code = number of bytes output to mp3buf. Can be 0
  */
 int CDECL lame_encode_flush(
-        lame_global_flags *  gfp,    /* global context handle                 */
-        unsigned char*       mp3buf, /* pointer to encoded MP3 stream         */
-        int                  size);  /* number of valid octets in this stream */
-
+    lame_global_flags *gfp, /* global context handle                 */
+    unsigned char *mp3buf,  /* pointer to encoded MP3 stream         */
+    int size);		    /* number of valid octets in this stream */
 
 #ifdef KLEMM_44
- 
-int CDECL lame_encode_pcm (
-        lame_t* const   lame,      /* lame context handle                     */
-        octetstream_t*  os,        /* octet stream object                     */
-        const void*     pcm,       /* pointer to PCM data                     */
-        size_t          len,       /* samples per channel in this data stream */
-        uint32_t        flags );   /* PCM data description field              */
 
-int CDECL lame_encode_pcm_flush (
-        lame_t*        const  lame,  /* lame context handle                   */
-        octetstream_t* const  os );  /* octet stream object                   */
- 
+int CDECL lame_encode_pcm(
+    lame_t *const lame, /* lame context handle                     */
+    octetstream_t *os,  /* octet stream object                     */
+    const void *pcm,    /* pointer to PCM data                     */
+    size_t len,		/* samples per channel in this data stream */
+    uint32_t flags);    /* PCM data description field              */
+
+int CDECL lame_encode_pcm_flush(
+    lame_t *const lame,       /* lame context handle                   */
+    octetstream_t *const os); /* octet stream object                   */
+
 #endif /* KLEMM_44 */
-
 
 /*
  * OPTIONAL:    some simple statistics
@@ -717,22 +671,21 @@ int CDECL lame_encode_pcm_flush (
  * suggested: lame_encode_flush -> lame_*_hist -> lame_close
  */
 
-/*@-fixedformalarray@*/ 
-void CDECL lame_bitrate_hist( 
-        const lame_global_flags *const gfp, 
-              int                      bitrate_count[14] );
-void CDECL lame_bitrate_kbps( 
-        const lame_global_flags *const gfp, 
-              int                      bitrate_kbps [14] );
-void CDECL lame_stereo_mode_hist( 
-        const lame_global_flags *const gfp, 
-              int                      stereo_mode_count[4] );
+/*@-fixedformalarray@*/
+void CDECL lame_bitrate_hist(
+    const lame_global_flags *const gfp,
+    int bitrate_count[14]);
+void CDECL lame_bitrate_kbps(
+    const lame_global_flags *const gfp,
+    int bitrate_kbps[14]);
+void CDECL lame_stereo_mode_hist(
+    const lame_global_flags *const gfp,
+    int stereo_mode_count[4]);
 
-void CDECL lame_bitrate_stereo_mode_hist ( 
-        const lame_global_flags*  gfp, 
-        int  bitrate_stmode_count [14] [4] );
+void CDECL lame_bitrate_stereo_mode_hist(
+    const lame_global_flags *gfp,
+    int bitrate_stmode_count[14][4]);
 /*@=fixedformalarray@*/
-
 
 /*
  * OPTIONAL:
@@ -745,14 +698,13 @@ void CDECL lame_bitrate_stereo_mode_hist (
  * if VBR  tags are turned off by the user, or turned off by LAME because
  * the output is not a regular file, this call does nothing
 */
-void CDECL lame_mp3_tags_fid(lame_global_flags *,FILE* fid);
-
+void CDECL lame_mp3_tags_fid(lame_global_flags *, FILE *fid);
 
 /*
  * REQUIRED:
  * final call to free all remaining buffers
  */
-int  CDECL lame_close (lame_global_flags *);
+int CDECL lame_close(lame_global_flags *);
 
 /*
  * OBSOLETE:
@@ -761,15 +713,9 @@ int  CDECL lame_close (lame_global_flags *);
  * will no longer work because the data will have been cleared
  */
 int CDECL lame_encode_finish(
-        lame_global_flags*  gfp,
-        unsigned char*      mp3buf,
-        int                 size );
-
-
-
-
-
-
+    lame_global_flags *gfp,
+    unsigned char *mp3buf,
+    int size);
 
 /*********************************************************************
  *
@@ -780,23 +726,22 @@ int CDECL lame_encode_finish(
  *
  *********************************************************************/
 typedef struct {
-  int header_parsed;   /* 1 if header was parsed and following data was
+	int header_parsed; /* 1 if header was parsed and following data was
                           computed                                       */
-  int stereo;          /* number of channels                             */
-  int samplerate;      /* sample rate                                    */
-  int bitrate;         /* bitrate                                        */
-  int mode;            /* mp3 frame type                                 */
-  int mode_ext;        /* mp3 frame type                                 */
-  int framesize;       /* number of samples per mp3 frame                */
+	int stereo;	/* number of channels                             */
+	int samplerate;    /* sample rate                                    */
+	int bitrate;       /* bitrate                                        */
+	int mode;	  /* mp3 frame type                                 */
+	int mode_ext;      /* mp3 frame type                                 */
+	int framesize;     /* number of samples per mp3 frame                */
 
-  /* this data is only computed if mpglib detects a Xing VBR header */
-  unsigned long nsamp; /* number of samples in mp3 file.                 */
-  int totalframes;     /* total number of frames in mp3 file             */
+	/* this data is only computed if mpglib detects a Xing VBR header */
+	unsigned long nsamp; /* number of samples in mp3 file.                 */
+	int totalframes;     /* total number of frames in mp3 file             */
 
-  /* this data is not currently computed by the mpglib routines */
-  int framenum;        /* frames decoded counter                         */
+	/* this data is not currently computed by the mpglib routines */
+	int framenum; /* frames decoded counter                         */
 } mp3data_struct;
-
 
 /* required call to initialize decoder */
 int CDECL lame_decode_init(void);
@@ -809,33 +754,33 @@ int CDECL lame_decode_init(void);
  *  n>0: size of pcm output
  *********************************************************************/
 int CDECL lame_decode(
-        unsigned char *  mp3buf,
-        int              len,
-        short            pcm_l[],
-        short            pcm_r[] );
+    unsigned char *mp3buf,
+    int len,
+    short pcm_l[],
+    short pcm_r[]);
 
 /* same as lame_decode, and also returns mp3 header data */
 int CDECL lame_decode_headers(
-        unsigned char*   mp3buf,
-        int              len,
-        short            pcm_l[],
-        short            pcm_r[],
-        mp3data_struct*  mp3data );
+    unsigned char *mp3buf,
+    int len,
+    short pcm_l[],
+    short pcm_r[],
+    mp3data_struct *mp3data);
 
 /* same as lame_decode, but returns at most one frame */
 int CDECL lame_decode1(
-        unsigned char*  mp3buf,
-        int             len,
-        short           pcm_l[],
-        short           pcm_r[] );
+    unsigned char *mp3buf,
+    int len,
+    short pcm_l[],
+    short pcm_r[]);
 
 /* same as lame_decode1, but returns at most one frame and mp3 header data */
 int CDECL lame_decode1_headers(
-        unsigned char*   mp3buf,
-        int              len,
-        short            pcm_l[],
-        short            pcm_r[],
-        mp3data_struct*  mp3data );
+    unsigned char *mp3buf,
+    int len,
+    short pcm_l[],
+    short pcm_r[],
+    mp3data_struct *mp3data);
 
 #if 0
 /* Also useful for decoding is the ability to parse Xing VBR headers: */
@@ -859,12 +804,6 @@ int CDECL GetVbrTag(
         VBRTAGDATA*     pTagData,
         unsigned char*  buf);
 #endif
-
-
-
-
-
-
 
 /*********************************************************************
  *
@@ -894,49 +833,49 @@ int CDECL GetVbrTag(
 
 /* utility to obtain alphabetically sorted list of genre names with numbers */
 extern void id3tag_genre_list(
-        void (*handler)(int, const char *, void *),
-        void*  cookie);
+    void (*handler)(int, const char *, void *),
+    void *cookie);
 
-extern void id3tag_init   (lame_global_flags *gfp);
+extern void id3tag_init(lame_global_flags *gfp);
 
 /* force addition of version 2 tag */
-extern void id3tag_add_v2   (lame_global_flags *gfp);
+extern void id3tag_add_v2(lame_global_flags *gfp);
 
 /* add only a version 1 tag */
-extern void id3tag_v1_only  (lame_global_flags *gfp);
+extern void id3tag_v1_only(lame_global_flags *gfp);
 
 /* add only a version 2 tag */
-extern void id3tag_v2_only  (lame_global_flags *gfp);
+extern void id3tag_v2_only(lame_global_flags *gfp);
 
 /* pad version 1 tag with spaces instead of nulls */
-extern void id3tag_space_v1 (lame_global_flags *gfp);
+extern void id3tag_space_v1(lame_global_flags *gfp);
 
 /* pad version 2 tag with extra 128 bytes */
-extern void id3tag_pad_v2   (lame_global_flags *gfp);
+extern void id3tag_pad_v2(lame_global_flags *gfp);
 
 extern void id3tag_set_title(
-        lame_global_flags*  gfp,
-        const char*         title );
+    lame_global_flags *gfp,
+    const char *title);
 extern void id3tag_set_artist(
-        lame_global_flags*  gfp,
-        const char*         artist );
+    lame_global_flags *gfp,
+    const char *artist);
 extern void id3tag_set_album(
-        lame_global_flags*  gfp,
-        const char*         album );
+    lame_global_flags *gfp,
+    const char *album);
 extern void id3tag_set_year(
-        lame_global_flags*  gfp,
-        const char*         year );
+    lame_global_flags *gfp,
+    const char *year);
 extern void id3tag_set_comment(
-        lame_global_flags*  gfp,
-        const char*         comment );
+    lame_global_flags *gfp,
+    const char *comment);
 extern void id3tag_set_track(
-        lame_global_flags*  gfp,
-        const char*         track );
+    lame_global_flags *gfp,
+    const char *track);
 
 /* return non-zero result if genre name or number is invalid */
 extern int id3tag_set_genre(
-        lame_global_flags*  gfp,
-        const char*         genre );
+    lame_global_flags *gfp,
+    const char *genre);
 
 /***********************************************************************
 *
@@ -945,16 +884,13 @@ extern int id3tag_set_genre(
 *               1: MPEG-1   values  (sample frequencies 32...48 kHz)
 *               2: MPEG-2.5 values  (sample frequencies  8...12 kHz)
 ***********************************************************************/
-extern const int      bitrate_table    [3] [16];
-extern const int      samplerate_table [3] [ 4];
-
-
+extern const int bitrate_table[3][16];
+extern const int samplerate_table[3][4];
 
 /* maximum size of mp3buffer needed if you encode at most 1152 samples for
    each call to lame_encode_buffer.  see lame_encode_buffer() below  
    (LAME_MAXMP3BUFFER is now obsolete)  */
-#define LAME_MAXMP3BUFFER   16384
-
+#define LAME_MAXMP3BUFFER 16384
 
 #if defined(__cplusplus)
 }

@@ -11,7 +11,7 @@
 #include <fcall.h>
 #include <u9fs.h>
 
-static char*
+static char *
 noneauth(Fcall *rx, Fcall *tx)
 {
 	USED(rx);
@@ -19,7 +19,7 @@ noneauth(Fcall *rx, Fcall *tx)
 	return "u9fs authnone: no authentication required";
 }
 
-static char*
+static char *
 noneattach(Fcall *rx, Fcall *tx)
 {
 	USED(rx);
@@ -28,7 +28,7 @@ noneattach(Fcall *rx, Fcall *tx)
 }
 
 Auth authnone = {
-	"none",
-	noneauth,
-	noneattach,
+    "none",
+    noneauth,
+    noneattach,
 };

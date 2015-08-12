@@ -52,16 +52,16 @@ cd(char *s)
 		cleanname(s);
 		newpwd = strdup(s);
 	} else {
-		l = strlen(pwd)+1+strlen(s)+1+50;	/* 50 = crud for unicode mistakes */
+		l = strlen(pwd) + 1 + strlen(s) + 1 + 50; /* 50 = crud for unicode mistakes */
 		newpwd = malloc(l);
 		snprint(newpwd, l, "%s/%s", pwd, s);
 		cleanname(newpwd);
 		assert(newpwd[0] == '/');
 	}
 
-	if(chdir(root) < 0 || (newpwd[1] != '\0' && chdir(newpwd+1) < 0)) {
+	if(chdir(root) < 0 || (newpwd[1] != '\0' && chdir(newpwd + 1) < 0)) {
 		chdir(root);
-		chdir(pwd+1);
+		chdir(pwd + 1);
 		free(newpwd);
 		return -1;
 	} else {
@@ -79,7 +79,8 @@ main(int argc, char **argv)
 	char *f[2];
 	int nf;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'r':
 		root = ARGF();
 		if(root == nil)
@@ -91,7 +92,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 0)
 		usage();
@@ -104,7 +106,7 @@ main(int argc, char **argv)
 
 	Binit(&bin, 0, OREAD);
 	while(fprint(2, "%s%% ", pwd), (p = Brdline(&bin, '\n'))) {
-		p[Blinelen(&bin)-1] = '\0';
+		p[Blinelen(&bin) - 1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf < 1)
 			continue;

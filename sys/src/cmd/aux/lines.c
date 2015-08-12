@@ -32,15 +32,15 @@ main(int argc, char *argv[])
 	argv0 = "lines";
 	if(argc == 1)
 		cat(0, "<stdin>");
-	else for(i=1; i<argc; i++){
-		f = open(argv[i], OREAD);
-		if(f < 0)
-			sysfatal("can't open %s: %r", argv[i]);
-		else{
-			cat(f, argv[i]);
-			close(f);
+	else
+		for(i = 1; i < argc; i++) {
+			f = open(argv[i], OREAD);
+			if(f < 0)
+				sysfatal("can't open %s: %r", argv[i]);
+			else {
+				cat(f, argv[i]);
+				close(f);
+			}
 		}
-	}
 	exits(0);
 }
-

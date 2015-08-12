@@ -14,5 +14,5 @@ setlinebuf(FILE *f)
 {
 	static char buf[BUFSIZ];
 
-	setvbuf (f, buf, _IOLBF, BUFSIZ);
+	setvbuf(f, buf, _IOLBF, BUFSIZ);
 }

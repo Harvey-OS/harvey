@@ -34,11 +34,11 @@ enum {
 	Yaxis,
 };
 
-static void reverse(Image*, Image*, int);
-static void shuffle(Image*, Image*, int, int, Image*, int, int);
+static void reverse(Image *, Image *, int);
+static void shuffle(Image *, Image *, int, int, Image *, int, int);
 static void writefile(char *name, Image *im, int gran);
-static void halvemaskdim(Image*);
-static void swapranges(Image*, Image*, int, int, int, int);
+static void halvemaskdim(Image *);
+static void swapranges(Image *, Image *, int, int, int, int);
 
 /*
  * Rotate the image 180° by reflecting first
@@ -73,18 +73,18 @@ reverse(Image *img, Image *tmp, int axis)
 	 * The chunk size should be the largest power of
 	 * two that fits in the dimension.
 	 */
-	d = axis==Xaxis ? Dx(img) : Dy(img);
-	for(i = 1; i*2 <= d; i *= 2)
+	d = axis == Xaxis ? Dx(img) : Dy(img);
+	for(i = 1; i * 2 <= d; i *= 2)
 		;
 
-	r = axis==Xaxis ? Rect(0,0, i,100) : Rect(0,0, 100,i);
+	r = axis == Xaxis ? Rect(0, 0, i, 100) : Rect(0, 0, 100, i);
 	mask = xallocimage(display, r, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, r, GREY1, 1, DTransparent);
 
 	/*
 	 * Now color the bottom (or left) half of the mask opaque.
 	 */
-	if(axis==Xaxis)
+	if(axis == Xaxis)
 		r.max.x /= 2;
 	else
 		r.max.y /= 2;
@@ -127,14 +127,14 @@ shuffle(Image *img, Image *tmp, int axis, int imgdim, Image *mask, int maskdim)
 	 * Calculate the mask with gratings half as wide and recur.
 	 */
 	halvemaskdim(mask, maskdim, axis);
-	writefile("mask", mask, maskdim/2);
+	writefile("mask", mask, maskdim / 2);
 
-	shuffle(img, tmp, axis, imgdim, mask, maskdim/2);
+	shuffle(img, tmp, axis, imgdim, mask, maskdim / 2);
 
 	/*
 	 * Move the slop down to the bottom of the image.
 	 */
-	swapranges(img, tmp, 0, imgdim-slop, imgdim, axis);
+	swapranges(img, tmp, 0, imgdim - slop, imgdim, axis);
 	moveup(im, tmp, lastnn, nn, n, axis);
 }
 
@@ -162,10 +162,10 @@ halvemaskdim(Image *m, int maskdim, int axis)
 {
 	Point δ;
 
-	δ = axis==Xaxis ? Pt(maskdim,0) : Pt(0,maskdim);
+	δ = axis == Xaxis ? Pt(maskdim, 0) : Pt(0, maskdim);
 	draw(mtmp, mtmp->r, mask, nil, mask->r.min);
-	gendraw(mask, mask->r, mtmp, δ, mtmp, divpt(δ,2));
-	writefile("mask", mask, maskdim/2);
+	gendraw(mask, mask->r, mtmp, δ, mtmp, divpt(δ, 2));
+	writefile("mask", mask, maskdim / 2);
 }
 
 /*
@@ -185,24 +185,24 @@ swapranges(Image *img, Image *tmp, int a, int b, int c, int axis)
 
 	/* [a,a+(c-b)] gets [b,c] */
 	r = img->r;
-	if(axis==Xaxis){
-		δ = Pt(1,0);
+	if(axis == Xaxis) {
+		δ = Pt(1, 0);
 		r.min.x = img->r.min.x + a;
-		r.max.x = img->r.min.x + a + (c-b);
-	}else{
-		δ = Pt(0,1);
+		r.max.x = img->r.min.x + a + (c - b);
+	} else {
+		δ = Pt(0, 1);
 		r.min.y = img->r.min.y + a;
-		r.max.y = img->r.min.y + a + (c-b);
+		r.max.y = img->r.min.y + a + (c - b);
 	}
 	draw(img, r, tmp, nil, addpt(tmp->r.min, mulpt(δ, b)));
 
 	/* [a+(c-b), c] gets [a,b] */
 	r = img->r;
-	if(axis==Xaxis){
-		r.min.x = img->r.min.x + a + (c-b);
+	if(axis == Xaxis) {
+		r.min.x = img->r.min.x + a + (c - b);
 		r.max.x = img->r.min.x + c;
-	}else{
-		r.min.y = img->r.min.y + a + (c-b);
+	} else {
+		r.min.y = img->r.min.y + a + (c - b);
 		r.max.y = img->r.min.y + c;
 	}
 	draw(img, r, tmp, nil, addpt(tmp->r.min, mulpt(δ, a)));
@@ -220,11 +220,11 @@ swapadjacent(Image *img, Image *tmp, int axis, int imgdim, Image *mask, int mask
 	Point δ;
 	Rectangle r0, r1;
 
-	δ = axis==Xaxis ? Pt(1,0) : Pt(0,1);
+	δ = axis == Xaxis ? Pt(1, 0) : Pt(0, 1);
 
 	r0 = img->r;
 	r1 = img->r;
-	switch(axis){
+	switch(axis) {
 	case Xaxis:
 		r0.max.x = imgdim;
 		r1.min.x = imgdim;
@@ -237,7 +237,7 @@ swapadjacent(Image *img, Image *tmp, int axis, int imgdim, Image *mask, int mask
 	/*
 	 * r0 is the lower rectangle, while r1 is the upper one.
 	 */
-	draw(tmp, tmp->r, img, nil, 
+	draw(tmp, tmp->r, img, nil,
 }
 
 void
@@ -268,7 +268,6 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
 	gendraw(im, r0, tmp, p1, mask, p1);
 }
 
-
 static void
 writefile(char *name, Image *im, int gran)
 {
@@ -279,8 +278,7 @@ writefile(char *name, Image *im, int gran)
 	snprint(buf, sizeof buf, "%d%s%d", c++, name, gran);
 	fd = create(buf, OWRITE, 0666);
 	if(fd < 0)
-		return;	
+		return;
 	writeimage(fd, im, 0);
 	close(fd);
 }
-

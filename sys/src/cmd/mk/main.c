@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-#define		MKFILE		"mkfile"
+#define MKFILE "mkfile"
 
 static char *version = "@(#)mk general release 4 (plan 9)";
 int debug;
@@ -27,7 +27,7 @@ Job *jobs;
 Biobuf bout;
 Rule *patrule;
 void badusage(void);
-#ifdef	PROF
+#ifdef PROF
 int16_t buf[10000];
 #endif
 
@@ -53,23 +53,27 @@ main(int argc, char **argv)
 	buf = newbuf();
 	whatif = 0;
 	USED(argc);
-	for(argv++; *argv && (**argv == '-'); argv++)
-	{
+	for(argv++; *argv && (**argv == '-'); argv++) {
 		bufcpy(buf, argv[0], strlen(argv[0]));
 		insert(buf, ' ');
-		switch(argv[0][1])
-		{
+		switch(argv[0][1]) {
 		case 'a':
 			aflag = 1;
 			break;
 		case 'd':
 			if(*(s = &argv[0][2]))
-				while(*s) switch(*s++)
-				{
-				case 'p':	debug |= D_PARSE; break;
-				case 'g':	debug |= D_GRAPH; break;
-				case 'e':	debug |= D_EXEC; break;
-				}
+				while(*s)
+					switch(*s++) {
+					case 'p':
+						debug |= D_PARSE;
+						break;
+					case 'g':
+						debug |= D_GRAPH;
+						break;
+					case 'e':
+						debug |= D_EXEC;
+						break;
+					}
 			else
 				debug = 0xFFFF;
 			break;
@@ -118,7 +122,7 @@ main(int argc, char **argv)
 			badusage();
 		}
 	}
-#ifdef	PROF
+#ifdef PROF
 	{
 		extern etext();
 		monitor(main, etext, buf, sizeof buf, 300);
@@ -136,60 +140,62 @@ main(int argc, char **argv)
 		assignment args become null strings
 	*/
 	temp = 0;
-	for(i = 0; argv[i]; i++) if(utfrune(argv[i], '=')){
-		bufcpy(buf, argv[i], strlen(argv[i]));
-		insert(buf, ' ');
-		if(tfd < 0){
-			temp = maketmp();
-			if(temp == 0) {
-				perror("temp file");
-				Exit();
+	for(i = 0; argv[i]; i++)
+		if(utfrune(argv[i], '=')) {
+			bufcpy(buf, argv[i], strlen(argv[i]));
+			insert(buf, ' ');
+			if(tfd < 0) {
+				temp = maketmp();
+				if(temp == 0) {
+					perror("temp file");
+					Exit();
+				}
+				if((tfd = create(temp, ORDWR, 0600)) < 0) {
+					perror(temp);
+					Exit();
+				}
+				Binit(&tb, tfd, OWRITE);
 			}
-			if((tfd = create(temp, ORDWR, 0600)) < 0){
-				perror(temp);
-				Exit();
-			}
-			Binit(&tb, tfd, OWRITE);
+			Bprint(&tb, "%s\n", argv[i]);
+			*argv[i] = 0;
 		}
-		Bprint(&tb, "%s\n", argv[i]);
-		*argv[i] = 0;
-	}
-	if(tfd >= 0){
+	if(tfd >= 0) {
 		Bflush(&tb);
 		LSEEK(tfd, 0L, 0);
 		parse("command line args", tfd, 1);
 		remove(temp);
 	}
 
-	if (buf->current != buf->start) {
+	if(buf->current != buf->start) {
 		buf->current--;
 		insert(buf, 0);
 	}
-	symlook("MKFLAGS", S_VAR, (void *) stow(buf->start));
+	symlook("MKFLAGS", S_VAR, (void *)stow(buf->start));
 	buf->current = buf->start;
-	for(i = 0; argv[i]; i++){
-		if(*argv[i] == 0) continue;
+	for(i = 0; argv[i]; i++) {
+		if(*argv[i] == 0)
+			continue;
 		if(i)
 			insert(buf, ' ');
 		bufcpy(buf, argv[i], strlen(argv[i]));
 	}
 	insert(buf, 0);
-	symlook("MKARGS", S_VAR, (void *) stow(buf->start));
+	symlook("MKARGS", S_VAR, (void *)stow(buf->start));
 	freebuf(buf);
 
-	if(f == files){
+	if(f == files) {
 		if(access(MKFILE, 4) == 0)
 			parse(MKFILE, open(MKFILE, 0), 0);
 	} else
 		for(ff = files; ff < f; ff++)
 			parse(*ff, open(*ff, 0), 0);
-	if(DEBUG(D_PARSE)){
+	if(DEBUG(D_PARSE)) {
 		dumpw("default targets", target1);
 		dumpr("rules", rules);
 		dumpr("metarules", metarules);
 		dumpv("variables");
 	}
-	if(whatif){
+	if(whatif) {
 		insert(whatif, 0);
 		timeinit(whatif->start);
 		freebuf(whatif);
@@ -200,7 +206,7 @@ main(int argc, char **argv)
 		argv++;
 
 	catchnotes();
-	if(*argv == 0){
+	if(*argv == 0) {
 		if(target1)
 			for(w = target1; w; w = w->next)
 				mk(w->s);
@@ -209,7 +215,7 @@ main(int argc, char **argv)
 			Exit();
 		}
 	} else {
-		if(sflag){
+		if(sflag) {
 			for(; *argv; argv++)
 				if(**argv)
 					mk(*argv);
@@ -220,7 +226,7 @@ main(int argc, char **argv)
 			tail = 0;
 			t = 0;
 			for(; *argv; argv++)
-				if(**argv){
+				if(**argv) {
 					if(tail == 0)
 						tail = t = newword(*argv);
 					else {
@@ -260,7 +266,7 @@ Malloc(int n)
 		fprint(2, "mk: cannot alloc %d bytes\n", n);
 		Exit();
 	}
-	return(s);
+	return (s);
 }
 
 void *
@@ -274,7 +280,7 @@ Realloc(void *s, int n)
 		fprint(2, "mk: cannot alloc %d bytes\n", n);
 		Exit();
 	}
-	return(s);
+	return (s);
 }
 
 void
@@ -282,9 +288,9 @@ regerror(char *s)
 {
 	if(patrule)
 		fprint(2, "mk: %s:%d: regular expression error; %s\n",
-			patrule->file, patrule->line, s);
+		       patrule->file, patrule->line, s);
 	else
 		fprint(2, "mk: %s:%d: regular expression error; %s\n",
-			infile, mkinline, s);
+		       infile, mkinline, s);
 	Exit();
 }

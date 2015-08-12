@@ -41,7 +41,7 @@ cpuidinit(void)
 		machp()->ncpuinfoe = (eax & ~0x80000000) + 1;
 
 	/* is mnonitor supported? */
-	if (machp()->cpuinfo[1][2] & 8) {
+	if(machp()->cpuinfo[1][2] & 8) {
 		cpuid(5, 0, machp()->cpuinfo[2]);
 		mwait = k10mwait;
 	}
@@ -55,11 +55,10 @@ cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
 
-	if(!(eax & 0x80000000)){
+	if(!(eax & 0x80000000)) {
 		if(eax >= machp()->ncpuinfos)
 			return 0;
-	}
-	else if(eax >= (0x80000000|machp()->ncpuinfoe))
+	} else if(eax >= (0x80000000 | machp()->ncpuinfoe))
 		return 0;
 
 	cpuid(eax, ecx, info);
@@ -76,16 +75,16 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 
 	//print("CPUID Vendor: %s\n", (char *)&info0[1]);
 	//print("CPUID Signature: %d\n", info1[0]);
-	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
-		switch(info1[0] & 0x0fff3ff0){
+	if(memcmp(&info0[1], "GenuntelineI", 12) == 0) {
+		switch(info1[0] & 0x0fff3ff0) {
 		default:
 			return 0;
-		case 0x00000f30:		/* Xeon (MP), Pentium [4D] */
-		case 0x00000f40:		/* Xeon (MP), Pentium [4D] */
-		case 0x00000f60:		/* Xeon 7100, 5000 or above */
+		case 0x00000f30: /* Xeon (MP), Pentium [4D] */
+		case 0x00000f40: /* Xeon (MP), Pentium [4D] */
+		case 0x00000f60: /* Xeon 7100, 5000 or above */
 			msr = rdmsr(0x2c);
-			r = (msr>>16) & 0x07;
-			switch(r){
+			r = (msr >> 16) & 0x07;
+			switch(r) {
 			default:
 				return 0;
 			case 0:
@@ -111,42 +110,41 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			 * The manual is conflicting about
 			 * the size of the msr field.
 			 */
-			hz = (((hz*(msr>>24))/100)+5)/10;
+			hz = (((hz * (msr >> 24)) / 100) + 5) / 10;
 			break;
-		case 0x00000690:		/* Pentium M, Celeron M */
-		case 0x000006d0:		/* Pentium M, Celeron M */
-			hz = ((rdmsr(0x2a)>>22) & 0x1f)*100 * 1000000ll;
-//print("msr 2a is 0x%x >> 22 0x%x\n", rdmsr(0x2a), rdmsr(0x2a)>>22);
+		case 0x00000690: /* Pentium M, Celeron M */
+		case 0x000006d0: /* Pentium M, Celeron M */
+			hz = ((rdmsr(0x2a) >> 22) & 0x1f) * 100 * 1000000ll;
+			//print("msr 2a is 0x%x >> 22 0x%x\n", rdmsr(0x2a), rdmsr(0x2a)>>22);
 			break;
-		case 0x000006e0:		/* Core Duo */
-		case 0x000006f0:		/* Core 2 Duo/Quad/Extreme */
-		case 0x00010670:		/* Core 2 Extreme */
-		case 0x000106e0:		/* i5 7xx */
-		case 0x00020650:		/* i5 6xx, i3 5xx */
-		case 0x000306c0:		/* i5 4xxx */
-		case 0x000006a0:		/* i7 paurea... */
-		case 0x000106a0:		/* i7 9xx */
-		case 0x000206a0:		/* i7 2xxx, i3 2xxx */
-		case 0x000306a0:		/* i7 3xxx, i5 3xxx, i3 4xxx */
+		case 0x000006e0: /* Core Duo */
+		case 0x000006f0: /* Core 2 Duo/Quad/Extreme */
+		case 0x00010670: /* Core 2 Extreme */
+		case 0x000106e0: /* i5 7xx */
+		case 0x00020650: /* i5 6xx, i3 5xx */
+		case 0x000306c0: /* i5 4xxx */
+		case 0x000006a0: /* i7 paurea... */
+		case 0x000106a0: /* i7 9xx */
+		case 0x000206a0: /* i7 2xxx, i3 2xxx */
+		case 0x000306a0: /* i7 3xxx, i5 3xxx, i3 4xxx */
 			/*
 			 * Get the FSB frequemcy.
 			 * If processor has Enhanced Intel Speedstep Technology
 			 * then non-integer bus frequency ratios are possible.
 			 */
 			//print("CPUID EIST: %d\n", (info1[2] & 0x00000080));
-			if(info1[2] & 0x00000080){
+			if(info1[2] & 0x00000080) {
 				msr = rdmsr(0x198);
-				r = (msr>>40) & 0x1f;
-			}
-			else{
+				r = (msr >> 40) & 0x1f;
+			} else {
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
 			f = rdmsr(0xcd) & 0x07;
-//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));
-//iprint("Intel msr.lo %d\n", r);
-//iprint("Intel msr.hi %d\n", f);
-			switch(f){
+			//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));
+			//iprint("Intel msr.lo %d\n", r);
+			//iprint("Intel msr.hi %d\n", f);
+			switch(f) {
 			default:
 				return 0;
 			case 5:
@@ -171,56 +169,54 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 				hz = 400000000000ll;
 				break;
 			}
-//iprint("hz %d r %d\n", hz, r);
+			//iprint("hz %d r %d\n", hz, r);
 			/*
 			 * Hz is *1000 at this point.
 			 * Do the scaling then round it.
 			 */
 			if(msr & 0x0000400000000000ll)
-				hz = hz*(r+10) + hz/2;
+				hz = hz * (r + 10) + hz / 2;
 			else
-				hz = hz*(r+10);
-			hz = ((hz/100)+5)/10;
+				hz = hz * (r + 10);
+			hz = ((hz / 100) + 5) / 10;
 			break;
 		}
 		DBG("cpuidhz: 0x2a: %#llux hz %lld\n", rdmsr(0x2a), hz);
-	}
-	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
-		switch(info1[0] & 0x0fff0ff0){
+	} else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0) {
+		switch(info1[0] & 0x0fff0ff0) {
 		default:
 			return 0;
-		case 0x00050ff0:		/* K8 Athlon Venice 64 / Qemu64 */
-		case 0x00020fc0:		/* K8 Athlon Lima 64 */
-		case 0x00000f50:		/* K8 Opteron 2xxx */
+		case 0x00050ff0: /* K8 Athlon Venice 64 / Qemu64 */
+		case 0x00020fc0: /* K8 Athlon Lima 64 */
+		case 0x00000f50: /* K8 Opteron 2xxx */
 			msr = rdmsr(0xc0010042);
-			r = (msr>>16) & 0x3f;
-			hz = 200000000ULL*(4 * 2 + r)/2;
+			r = (msr >> 16) & 0x3f;
+			hz = 200000000ULL * (4 * 2 + r) / 2;
 			break;
-		case 0x00100f60:		/* K8 Athlon II */
-		case 0x00100f40:		/* Phenom II X2 */
-		case 0x00100f20:		/* Phenom II X4 */
-		case 0x00100fa0:		/* Phenom II X6 */
+		case 0x00100f60: /* K8 Athlon II */
+		case 0x00100f40: /* Phenom II X2 */
+		case 0x00100f20: /* Phenom II X4 */
+		case 0x00100fa0: /* Phenom II X6 */
 			msr = rdmsr(0xc0010042);
 			r = msr & 0x1f;
-			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
+			hz = ((r + 0x10) * 100000000ll) / (1 << (msr >> 6 & 0x07));
 			break;
-		case 0x00100f90:		/* K10 Opteron 61xx */
-		case 0x00600f00:		/* K10 Opteron 62xx */
-		case 0x00600f10:		/* K10 Opteron 6272, FX 6xxx/4xxx */
-		case 0x00600f20:		/* K10 Opteron 63xx, FX 3xxx/8xxx/9xxx */
+		case 0x00100f90: /* K10 Opteron 61xx */
+		case 0x00600f00: /* K10 Opteron 62xx */
+		case 0x00600f10: /* K10 Opteron 6272, FX 6xxx/4xxx */
+		case 0x00600f20: /* K10 Opteron 63xx, FX 3xxx/8xxx/9xxx */
 			msr = rdmsr(0xc0010064);
 			r = msr & 0x1f;
-			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
+			hz = ((r + 0x10) * 100000000ll) / (1 << (msr >> 6 & 0x07));
 			break;
-		case 0x00000620:		/* QEMU64 / Athlon MP/XP */
+		case 0x00000620: /* QEMU64 / Athlon MP/XP */
 			msr = rdmsr(0xc0010064);
-			r = (msr>>6) & 0x07;
-			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
+			r = (msr >> 6) & 0x07;
+			hz = (((msr & 0x3f) + 0x10) * 100000000ll) / (1 << r);
 			break;
 		}
 		DBG("cpuidhz: %#llux hz %lld\n", msr, hz);
-	}
-	else
+	} else
 		return 0;
 
 	return hz;
@@ -238,15 +234,15 @@ cpuiddump(void)
 	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return;
 
-	for(i = 0; i < machp()->ncpuinfos; i++){
+	for(i = 0; i < machp()->ncpuinfos; i++) {
 		cpuid(i, 0, info);
 		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
-			i, info[0], info[1], info[2], info[3]);
+		    i, info[0], info[1], info[2], info[3]);
 	}
-	for(i = 0; i < machp()->ncpuinfoe; i++){
-		cpuid(0x80000000|i, 0, info);
+	for(i = 0; i < machp()->ncpuinfoe; i++) {
+		cpuid(0x80000000 | i, 0, info);
 		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
-			0x80000000|i, info[0], info[1], info[2], info[3]);
+		    0x80000000 | i, info[0], info[1], info[2], info[3]);
 	}
 }
 
@@ -293,11 +289,11 @@ archmmu(void)
 	 * Always have 4*KiB, but need to check
 	 * configured correctly.
 	 */
-	assert(PGSZ == 4*KiB);
+	assert(PGSZ == 4 * KiB);
 
 	sys->pgszlg2[0] = 12;
-	sys->pgszmask[0] = (1<<12)-1;
-	sys->pgsz[0] = 1<<12;
+	sys->pgszmask[0] = (1 << 12) - 1;
+	sys->pgsz[0] = 1 << 12;
 	sys->npgsz = 1;
 	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return 1;
@@ -309,17 +305,17 @@ archmmu(void)
 	if(!(machp()->cpuinfo[1][3] & 0x00000008))
 		return 1;
 	sys->pgszlg2[1] = 21;
-	sys->pgszmask[1] = (1<<21)-1;
-	sys->pgsz[1] = 1<<21;
+	sys->pgszmask[1] = (1 << 21) - 1;
+	sys->pgsz[1] = 1 << 21;
 	sys->npgsz = 2;
 
 	/*
 	 * Check the Page1GB bit in function 0x80000001 DX for 1*GiB support.
 	 */
-	if(cpuidinfo(0x80000001, 0, info) && (info[3] & 0x04000000)){
+	if(cpuidinfo(0x80000001, 0, info) && (info[3] & 0x04000000)) {
 		sys->pgszlg2[2] = 30;
-		sys->pgszmask[2] = (1<<30)-1;
-		sys->pgsz[2] = 1<<30;
+		sys->pgszmask[2] = (1 << 30) - 1;
+		sys->pgsz[2] = 1 << 30;
 		sys->npgsz = 3;
 	}
 
@@ -327,7 +323,7 @@ archmmu(void)
 }
 
 static int
-fmtP(Fmt* f)
+fmtP(Fmt *f)
 {
 	uintmem pa;
 
@@ -340,7 +336,7 @@ fmtP(Fmt* f)
 }
 
 static int
-fmtL(Fmt* f)
+fmtL(Fmt *f)
 {
 	Mpl pl;
 
@@ -350,7 +346,7 @@ fmtL(Fmt* f)
 }
 
 static int
-fmtR(Fmt* f)
+fmtR(Fmt *f)
 {
 	uint64_t r;
 
@@ -367,9 +363,8 @@ fmtW(Fmt *f)
 
 	va = va_arg(f->args, uint64_t);
 	return fmtprint(f, "%#ullx=0x[%ullx][%ullx][%ullx][%ullx][%ullx]", va,
-		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
-		va & ((1<<PGSHFT)-1));
-
+			PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
+			va & ((1 << PGSHFT) - 1));
 }
 
 void
@@ -404,7 +399,7 @@ microdelay(int microsecs)
 	uint64_t r, t;
 
 	r = rdtsc();
-	for(t = r + (sys->cyclefreq*microsecs)/1000000ull; r < t; r = rdtsc())
+	for(t = r + (sys->cyclefreq * microsecs) / 1000000ull; r < t; r = rdtsc())
 		;
 }
 
@@ -414,6 +409,6 @@ millidelay(int millisecs)
 	uint64_t r, t;
 
 	r = rdtsc();
-	for(t = r + (sys->cyclefreq*millisecs)/1000ull; r < t; r = rdtsc())
+	for(t = r + (sys->cyclefreq * millisecs) / 1000ull; r < t; r = rdtsc())
 		;
 }

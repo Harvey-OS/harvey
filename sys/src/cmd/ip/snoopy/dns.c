@@ -16,70 +16,70 @@
 
 /* names of RR types - /sys/src/cmd/ndb/dn.c:/rrtname */
 char *rrtname[] =
-{
-[Ta]		"ip",
-[Tns]		"ns",
-[Tmd]		"md",
-[Tmf]		"mf",
-[Tcname]	"cname",
-[Tsoa]		"soa",
-[Tmb]		"mb",
-[Tmg]		"mg",
-[Tmr]		"mr",
-[Tnull]		"null",
-[Twks]		"wks",
-[Tptr]		"ptr",
-[Thinfo]	"hinfo",
-[Tminfo]	"minfo",
-[Tmx]		"mx",
-[Ttxt]		"txt",
-[Trp]		"rp",
-[Tafsdb]	"afsdb",
-[Tx25]		"x.25",
-[Tisdn]		"isdn",
-[Trt]		"rt",
-[Tnsap]		"nsap",
-[Tnsapptr]	"nsap-ptr",
-[Tsig]		"sig",
-[Tkey]		"key",
-[Tpx]		"px",
-[Tgpos]		"gpos",
-[Taaaa]		"ipv6",
-[Tloc]		"loc",
-[Tnxt]		"nxt",
-[Teid]		"eid",
-[Tnimloc]	"nimrod",
-[Tsrv]		"srv",
-[Tatma]		"atma",
-[Tnaptr]	"naptr",
-[Tkx]		"kx",
-[Tcert]		"cert",
-[Ta6]		"a6",
-[Tdname]	"dname",
-[Tsink]		"sink",
-[Topt]		"opt",
-[Tapl]		"apl",
-[Tds]		"ds",
-[Tsshfp]	"sshfp",
-[Tipseckey]	"ipseckey",
-[Trrsig]	"rrsig",
-[Tnsec]		"nsec",
-[Tdnskey]	"dnskey",
-[Tspf]		"spf",
-[Tuinfo]	"uinfo",
-[Tuid]		"uid",
-[Tgid]		"gid",
-[Tunspec]	"unspec",
-[Ttkey]		"tkey",
-[Ttsig]		"tsig",
-[Tixfr]		"ixfr",
-[Taxfr]		"axfr",
-[Tmailb]	"mailb",
-[Tmaila]	"maila",
-[Tall]		"all",
-		0,
+    {
+	 [Ta] "ip",
+	 [Tns] "ns",
+	 [Tmd] "md",
+	 [Tmf] "mf",
+	 [Tcname] "cname",
+	 [Tsoa] "soa",
+	 [Tmb] "mb",
+	 [Tmg] "mg",
+	 [Tmr] "mr",
+	 [Tnull] "null",
+	 [Twks] "wks",
+	 [Tptr] "ptr",
+	 [Thinfo] "hinfo",
+	 [Tminfo] "minfo",
+	 [Tmx] "mx",
+	 [Ttxt] "txt",
+	 [Trp] "rp",
+	 [Tafsdb] "afsdb",
+	 [Tx25] "x.25",
+	 [Tisdn] "isdn",
+	 [Trt] "rt",
+	 [Tnsap] "nsap",
+	 [Tnsapptr] "nsap-ptr",
+	 [Tsig] "sig",
+	 [Tkey] "key",
+	 [Tpx] "px",
+	 [Tgpos] "gpos",
+	 [Taaaa] "ipv6",
+	 [Tloc] "loc",
+	 [Tnxt] "nxt",
+	 [Teid] "eid",
+	 [Tnimloc] "nimrod",
+	 [Tsrv] "srv",
+	 [Tatma] "atma",
+	 [Tnaptr] "naptr",
+	 [Tkx] "kx",
+	 [Tcert] "cert",
+	 [Ta6] "a6",
+	 [Tdname] "dname",
+	 [Tsink] "sink",
+	 [Topt] "opt",
+	 [Tapl] "apl",
+	 [Tds] "ds",
+	 [Tsshfp] "sshfp",
+	 [Tipseckey] "ipseckey",
+	 [Trrsig] "rrsig",
+	 [Tnsec] "nsec",
+	 [Tdnskey] "dnskey",
+	 [Tspf] "spf",
+	 [Tuinfo] "uinfo",
+	 [Tuid] "uid",
+	 [Tgid] "gid",
+	 [Tunspec] "unspec",
+	 [Ttkey] "tkey",
+	 [Ttsig] "tsig",
+	 [Tixfr] "ixfr",
+	 [Taxfr] "axfr",
+	 [Tmailb] "mailb",
+	 [Tmaila] "maila",
+	 [Tall] "all",
+	 0,
 };
-static char*
+static char *
 rrtypestr(int t)
 {
 	char buf[20];
@@ -102,88 +102,88 @@ fmtrr(Msg *m, RR **rrp, int quest)
 	*rrp = rr->next;
 
 	m->p = seprint(m->p, m->e, "%s name=%s ttl=%lud",
-		rrtypestr(rr->type),
-		rr->owner->name, rr->ttl);
+		       rrtypestr(rr->type),
+		       rr->owner->name, rr->ttl);
 	if(!quest)
-	switch(rr->type){
-	default:
-		break;
-	case Thinfo:
-		m->p = seprint(m->p, m->e, " cpu=%s os=%s",
-			rr->cpu->name, rr->os->name);
-		break;
-	case Tcname:
-	case Tmb:
-	case Tmd:
-	case Tmf:
-	case Tns:
-		m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
-		break;
-	case Tmg:
-	case Tmr:
-		m->p = seprint(m->p, m->e, " mb=%s", rr->mb->name);
-		break;
-	case Tminfo:
-		m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
-		m->p = seprint(m->p, m->e, " mb=%s", rr->mb->name);
-		break;
-	case Tmx:
-		m->p = seprint(m->p, m->e, " pref=%lud", rr->pref);
-		m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
-		break;
-	case Ta:
-	case Taaaa:
-		m->p = seprint(m->p, m->e, " ip=%s", rr->ip->name);
-		break;
-	case Tptr:
-		m->p = seprint(m->p, m->e, " ptr=%s", rr->ptr->name);
-		break;
-	case Tsoa:
-		m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
-		m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
-		m->p = seprint(m->p, m->e, " soa.serial=%lud", rr->soa->serial);
-		m->p = seprint(m->p, m->e, " soa.refresh=%lud", rr->soa->refresh);
-		m->p = seprint(m->p, m->e, " soa.retry=%lud", rr->soa->retry);
-		m->p = seprint(m->p, m->e, " soa.expire=%lud", rr->soa->expire);
-		m->p = seprint(m->p, m->e, " soa.minttl=%lud", rr->soa->minttl);
-		break;
-	case Ttxt:
-		for(t=rr->txt; t; t=t->next)
-			m->p = seprint(m->p, m->e, " txt=%q", t->p);
-		break;
-	case Tnull:
-		m->p = seprint(m->p, m->e, " null=%.*H",
-			rr->null->dlen, rr->null->data);
-		break;
-	case Trp:
-		m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
-		m->p = seprint(m->p, m->e, " rp=%s", rr->rp->name);
-		break;
-	case Tkey:
-		m->p = seprint(m->p, m->e, " flags=%d proto=%d alg=%d data=%.*H",
-			rr->key->flags, rr->key->proto, rr->key->alg,
-			rr->key->dlen, rr->key->data);
-		break;
-	case Tsig:
-		m->p = seprint(m->p, m->e,
-" type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s data=%.*H",
-			rr->sig->type, rr->sig->alg, rr->sig->labels,
-			rr->sig->ttl, rr->sig->exp, rr->sig->incep, rr->sig->tag,
-			rr->sig->signer->name, rr->sig->dlen, rr->sig->data);
-		break;
-	case Tcert:
-		m->p = seprint(m->p, m->e, " type=%d tag=%d alg=%d data=%.*H",
-			rr->cert->type, rr->cert->tag, rr->cert->alg,
-			rr->cert->dlen, rr->cert->data);
-		break;
-	}
+		switch(rr->type) {
+		default:
+			break;
+		case Thinfo:
+			m->p = seprint(m->p, m->e, " cpu=%s os=%s",
+				       rr->cpu->name, rr->os->name);
+			break;
+		case Tcname:
+		case Tmb:
+		case Tmd:
+		case Tmf:
+		case Tns:
+			m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
+			break;
+		case Tmg:
+		case Tmr:
+			m->p = seprint(m->p, m->e, " mb=%s", rr->mb->name);
+			break;
+		case Tminfo:
+			m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
+			m->p = seprint(m->p, m->e, " mb=%s", rr->mb->name);
+			break;
+		case Tmx:
+			m->p = seprint(m->p, m->e, " pref=%lud", rr->pref);
+			m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
+			break;
+		case Ta:
+		case Taaaa:
+			m->p = seprint(m->p, m->e, " ip=%s", rr->ip->name);
+			break;
+		case Tptr:
+			m->p = seprint(m->p, m->e, " ptr=%s", rr->ptr->name);
+			break;
+		case Tsoa:
+			m->p = seprint(m->p, m->e, " host=%s", rr->host->name);
+			m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
+			m->p = seprint(m->p, m->e, " soa.serial=%lud", rr->soa->serial);
+			m->p = seprint(m->p, m->e, " soa.refresh=%lud", rr->soa->refresh);
+			m->p = seprint(m->p, m->e, " soa.retry=%lud", rr->soa->retry);
+			m->p = seprint(m->p, m->e, " soa.expire=%lud", rr->soa->expire);
+			m->p = seprint(m->p, m->e, " soa.minttl=%lud", rr->soa->minttl);
+			break;
+		case Ttxt:
+			for(t = rr->txt; t; t = t->next)
+				m->p = seprint(m->p, m->e, " txt=%q", t->p);
+			break;
+		case Tnull:
+			m->p = seprint(m->p, m->e, " null=%.*H",
+				       rr->null->dlen, rr->null->data);
+			break;
+		case Trp:
+			m->p = seprint(m->p, m->e, " rmb=%s", rr->rmb->name);
+			m->p = seprint(m->p, m->e, " rp=%s", rr->rp->name);
+			break;
+		case Tkey:
+			m->p = seprint(m->p, m->e, " flags=%d proto=%d alg=%d data=%.*H",
+				       rr->key->flags, rr->key->proto, rr->key->alg,
+				       rr->key->dlen, rr->key->data);
+			break;
+		case Tsig:
+			m->p = seprint(m->p, m->e,
+				       " type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s data=%.*H",
+				       rr->sig->type, rr->sig->alg, rr->sig->labels,
+				       rr->sig->ttl, rr->sig->exp, rr->sig->incep, rr->sig->tag,
+				       rr->sig->signer->name, rr->sig->dlen, rr->sig->data);
+			break;
+		case Tcert:
+			m->p = seprint(m->p, m->e, " type=%d tag=%d alg=%d data=%.*H",
+				       rr->cert->type, rr->cert->tag, rr->cert->alg,
+				       rr->cert->dlen, rr->cert->data);
+			break;
+		}
 	rrfree(rr);
 }
 
 void freealldn(void);
 static Proto dnsqd, dnsan, dnsns, dnsar;
 
-static void donext(Msg*);
+static void donext(Msg *);
 static DNSmsg dm;
 
 static int
@@ -191,7 +191,7 @@ p_seprint(Msg *m)
 {
 	char *e;
 
-	if((e = convM2DNS(m->ps, m->pe-m->ps, &dm, nil)) != nil){
+	if((e = convM2DNS(m->ps, m->pe - m->ps, &dm, nil)) != nil) {
 		m->p = seprint(m->p, m->e, "error: %s", e);
 		return 0;
 	}
@@ -211,7 +211,7 @@ donext(Msg *m)
 		m->pr = &dnsns;
 	else if(dm.ar)
 		m->pr = &dnsar;
-	else{
+	else {
 		freealldn();
 		memset(&dm, 0, sizeof dm);
 		m->pr = nil;
@@ -251,67 +251,66 @@ p_seprintar(Msg *m)
 }
 
 Proto dns =
-{
-	"dns",
-	nil,
-	nil,
-	p_seprint,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    {
+     "dns",
+     nil,
+     nil,
+     p_seprint,
+     nil,
+     nil,
+     nil,
+     defaultframer,
 };
 
 static Proto dnsqd =
-{
-	"dns.qd",
-	nil,
-	nil,
-	p_seprintqd,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    {
+     "dns.qd",
+     nil,
+     nil,
+     p_seprintqd,
+     nil,
+     nil,
+     nil,
+     defaultframer,
 };
 
 static Proto dnsan =
-{
-	"dns.an",
-	nil,
-	nil,
-	p_seprintan,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    {
+     "dns.an",
+     nil,
+     nil,
+     p_seprintan,
+     nil,
+     nil,
+     nil,
+     defaultframer,
 };
 
 static Proto dnsns =
-{
-	"dns.ns",
-	nil,
-	nil,
-	p_seprintns,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    {
+     "dns.ns",
+     nil,
+     nil,
+     p_seprintns,
+     nil,
+     nil,
+     nil,
+     defaultframer,
 };
 
 static Proto dnsar =
-{
-	"dns.ar",
-	nil,
-	nil,
-	p_seprintar,
-	nil,
-	nil,
-	nil,
-	defaultframer,
+    {
+     "dns.ar",
+     nil,
+     nil,
+     p_seprintar,
+     nil,
+     nil,
+     nil,
+     defaultframer,
 };
 
-
-void*
+void *
 emalloc(int n)
 {
 	void *v;
@@ -322,7 +321,7 @@ emalloc(int n)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	s = strdup(s);
@@ -333,7 +332,7 @@ estrdup(char *s)
 
 DN *alldn;
 
-DN*
+DN *
 dnlookup(char *name, int class, int)
 {
 	DN *dn;
@@ -352,18 +351,18 @@ freealldn(void)
 {
 	DN *dn;
 
-	while(dn = alldn){
+	while(dn = alldn) {
 		alldn = dn->next;
 		free(dn->name);
 		free(dn);
 	}
 }
 
-int debug;				/* for ndb/dns.h */
+int debug; /* for ndb/dns.h */
 uint32_t now = 0;
 
 void
-dnslog(char *fmt, ...)			/* don't log */
+dnslog(char *fmt, ...) /* don't log */
 {
 	USED(fmt);
 }
@@ -376,7 +375,7 @@ dnslog(char *fmt, ...)			/* don't log */
 /*
  *  convert an integer RR type to it's ascii name
  */
-char*
+char *
 rrname(int type, char *buf, int len)
 {
 	char *t;
@@ -384,7 +383,7 @@ rrname(int type, char *buf, int len)
 	t = nil;
 	if(type >= 0 && type <= Tall)
 		t = rrtname[type];
-	if(t==nil){
+	if(t == nil) {
 		snprint(buf, len, "%d", type);
 		t = buf;
 	}
@@ -399,7 +398,7 @@ rrfreelist(RR *rp)
 {
 	RR *next;
 
-	for(; rp; rp = next){
+	for(; rp; rp = next) {
 		next = rp->next;
 		rrfree(rp);
 	}
@@ -410,7 +409,7 @@ freeserverlist(Server *s)
 {
 	Server *next;
 
-	for(; s != nil; s = next){
+	for(; s != nil; s = next) {
 		next = s->next;
 		free(s);
 	}
@@ -419,7 +418,7 @@ freeserverlist(Server *s)
 /*
  *  allocate a resource record of a given type
  */
-RR*
+RR *
 rralloc(int type)
 {
 	RR *rp;
@@ -429,7 +428,7 @@ rralloc(int type)
 	rp->pc = getcallerpc(&type);
 	rp->type = type;
 	setmalloctag(rp, rp->pc);
-	switch(type){
+	switch(type) {
 	case Tsoa:
 		rp->soa = emalloc(sizeof(*rp->soa));
 		rp->soa->slaves = nil;
@@ -476,54 +475,54 @@ rrfree(RR *rp)
 	assert(!rp->cached);
 
 	dp = rp->owner;
-	if(dp){
+	if(dp) {
 		assert(dp->magic == DNmagic);
 		for(nrp = dp->rr; nrp; nrp = nrp->next)
-			assert(nrp != rp);	/* "rrfree of live rr" */
+			assert(nrp != rp); /* "rrfree of live rr" */
 	}
 
-	switch(rp->type){
+	switch(rp->type) {
 	case Tsoa:
 		freeserverlist(rp->soa->slaves);
-		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
+		memset(rp->soa, 0, sizeof *rp->soa); /* cause trouble */
 		free(rp->soa);
 		break;
 	case Tsrv:
-		memset(rp->srv, 0, sizeof *rp->srv);	/* cause trouble */
+		memset(rp->srv, 0, sizeof *rp->srv); /* cause trouble */
 		free(rp->srv);
 		break;
 	case Tkey:
 		free(rp->key->data);
-		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
+		memset(rp->key, 0, sizeof *rp->key); /* cause trouble */
 		free(rp->key);
 		break;
 	case Tcert:
 		free(rp->cert->data);
-		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
+		memset(rp->cert, 0, sizeof *rp->cert); /* cause trouble */
 		free(rp->cert);
 		break;
 	case Tsig:
 		free(rp->sig->data);
-		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
+		memset(rp->sig, 0, sizeof *rp->sig); /* cause trouble */
 		free(rp->sig);
 		break;
 	case Tnull:
 		free(rp->null->data);
-		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
+		memset(rp->null, 0, sizeof *rp->null); /* cause trouble */
 		free(rp->null);
 		break;
 	case Ttxt:
-		while(rp->txt != nil){
+		while(rp->txt != nil) {
 			t = rp->txt;
 			rp->txt = t->next;
 			free(t->p);
-			memset(t, 0, sizeof *t);	/* cause trouble */
+			memset(t, 0, sizeof *t); /* cause trouble */
 			free(t);
 		}
 		break;
 	}
 
 	rp->magic = ~rp->magic;
-	memset(rp, 0, sizeof *rp);		/* cause trouble */
+	memset(rp, 0, sizeof *rp); /* cause trouble */
 	free(rp);
 }

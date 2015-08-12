@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <venti.h>
 
-Packet*
+Packet *
 vtfcallpack(VtFcall *f)
 {
 	uint8_t buf[4];
@@ -23,7 +23,7 @@ vtfcallpack(VtFcall *f)
 	buf[1] = f->tag;
 	packetappend(p, buf, 2);
 
-	switch(f->msgtype){
+	switch(f->msgtype) {
 	default:
 		werrstr("vtfcallpack: unknown packet type %d", f->msgtype);
 		goto Err;
@@ -40,8 +40,7 @@ vtfcallpack(VtFcall *f)
 		break;
 
 	case VtThello:
-		if(vtputstring(p, f->version) < 0
-		|| vtputstring(p, f->uid) < 0)
+		if(vtputstring(p, f->version) < 0 || vtputstring(p, f->uid) < 0)
 			goto Err;
 		buf[0] = f->strength;
 		buf[1] = f->ncrypto;
@@ -120,7 +119,7 @@ vtfcallunpack(VtFcall *f, Packet *p)
 	f->msgtype = buf[0];
 	f->tag = buf[1];
 
-	switch(f->msgtype){
+	switch(f->msgtype) {
 	default:
 		werrstr("vtfcallunpack: unknown bad packet type %d", f->msgtype);
 		vtfcallclear(f);
@@ -138,13 +137,11 @@ vtfcallunpack(VtFcall *f, Packet *p)
 		break;
 
 	case VtThello:
-		if(vtgetstring(p, &f->version) < 0
-		|| vtgetstring(p, &f->uid) < 0
-		|| packetconsume(p, buf, 2) < 0)
+		if(vtgetstring(p, &f->version) < 0 || vtgetstring(p, &f->uid) < 0 || packetconsume(p, buf, 2) < 0)
 			goto Err;
 		f->strength = buf[0];
 		f->ncrypto = buf[1];
-		if(f->ncrypto){
+		if(f->ncrypto) {
 			f->crypto = vtmalloc(f->ncrypto);
 			if(packetconsume(p, buf, f->ncrypto) < 0)
 				goto Err;
@@ -152,7 +149,7 @@ vtfcallunpack(VtFcall *f, Packet *p)
 		if(packetconsume(p, buf, 1) < 0)
 			goto Err;
 		f->ncodec = buf[0];
-		if(f->ncodec){
+		if(f->ncodec) {
 			f->codec = vtmalloc(f->ncodec);
 			if(packetconsume(p, buf, f->ncodec) < 0)
 				goto Err;
@@ -160,8 +157,7 @@ vtfcallunpack(VtFcall *f, Packet *p)
 		break;
 
 	case VtRhello:
-		if(vtgetstring(p, &f->sid) < 0
-		|| packetconsume(p, buf, 2) < 0)
+		if(vtgetstring(p, &f->sid) < 0 || packetconsume(p, buf, 2) < 0)
 			goto Err;
 		f->rcrypto = buf[0];
 		f->rcodec = buf[1];
@@ -171,8 +167,7 @@ vtfcallunpack(VtFcall *f, Packet *p)
 		break;
 
 	case VtTread:
-		if(packetconsume(p, f->score, VtScoreSize) < 0
-		|| packetconsume(p, buf, 4) < 0)
+		if(packetconsume(p, f->score, VtScoreSize) < 0 || packetconsume(p, buf, 4) < 0)
 			goto Err;
 		f->blocktype = vtfromdisktype(buf[0]);
 		if(~f->blocktype == 0)

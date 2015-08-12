@@ -28,23 +28,23 @@
 #include "gen.h"
 #include "postio.h"
 
-extern char	*block;
-extern int	blocksize;
-extern int	head;
-extern int	tail;
-extern char	*line;
-extern char	mesg[];
-extern int	ttyo;
+extern char *block;
+extern int blocksize;
+extern int head;
+extern int tail;
+extern char *line;
+extern char mesg[];
+extern int ttyo;
 
 /*****************************************************************************/
 
 slowsend(fd_in)
 
-    int		fd_in;			/* next input file */
+    int fd_in; /* next input file */
 
 {
 
-/*
+	/*
  *
  * A slow version of send() that's very careful about when data is sent to the
  * printer. Should help prevent overflowing the printer's input buffer, provided
@@ -55,57 +55,57 @@ slowsend(fd_in)
  *
  */
 
-    while ( readblock(fd_in) )
-	switch ( getstatus(0) )  {
-	    case WAITING:
-		    writeblock(blocksize);
-		    break;
+	while(readblock(fd_in))
+		switch(getstatus(0)) {
+		case WAITING:
+			writeblock(blocksize);
+			break;
 
-	    case BUSY:
-	    case IDLE:
-	    case PRINTING:
-		    writeblock(30);
-		    break;
+		case BUSY:
+		case IDLE:
+		case PRINTING:
+			writeblock(30);
+			break;
 
-	    case NOSTATUS:
-	    case UNKNOWN:
-		    break;
+		case NOSTATUS:
+		case UNKNOWN:
+			break;
 
-	    case PRINTERERROR:
-		    sleep(30);
-		    break;
+		case PRINTERERROR:
+			sleep(30);
+			break;
 
-	    case ERROR:
-		    fprintf(stderr, "%s", mesg);	/* for csw */
-		    error(FATAL, "PostScript Error");
-		    break;
+		case ERROR:
+			fprintf(stderr, "%s", mesg); /* for csw */
+			error(FATAL, "PostScript Error");
+			break;
 
-	    case FLUSHING:
-		    error(FATAL, "Flushing Job");
-		    break;
+		case FLUSHING:
+			error(FATAL, "Flushing Job");
+			break;
 
-	    case DISCONNECT:
-		    error(FATAL, "Disconnected - printer may be offline");
-		    break;
+		case DISCONNECT:
+			error(FATAL, "Disconnected - printer may be offline");
+			break;
 
-	    default:
-		    sleep(2);
-		    break;
-	}   /* End switch */
+		default:
+			sleep(2);
+			break;
+		} /* End switch */
 
-}   /* End of send */
+} /* End of send */
 
 /*****************************************************************************/
 
 static writeblock(num)
 
-    int		num;			/* most bytes we'll write */
+    int num; /* most bytes we'll write */
 
 {
 
-    int		count;			/* bytes successfully written */
+	int count; /* bytes successfully written */
 
-/*
+	/*
  *
  * Called from send() when it's OK to send the next block to the printer. head
  * is adjusted after the write, and the number of bytes that were successfully
@@ -113,18 +113,17 @@ static writeblock(num)
  *
  */
 
-    if ( num > tail - head )
-	num = tail - head;
+	if(num > tail - head)
+		num = tail - head;
 
-    if ( (count = write(ttyo, &block[head], num)) == -1 )
-	error(FATAL, "error writing to %s", line);
-    else if ( count == 0 )
-	error(FATAL, "printer appears to be offline");
+	if((count = write(ttyo, &block[head], num)) == -1)
+		error(FATAL, "error writing to %s", line);
+	else if(count == 0)
+		error(FATAL, "printer appears to be offline");
 
-    head += count;
-    return(count);
+	head += count;
+	return (count);
 
-}   /* End of writeblock */
+} /* End of writeblock */
 
 /*****************************************************************************/
-

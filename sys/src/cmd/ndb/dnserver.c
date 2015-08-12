@@ -12,11 +12,11 @@
 #include <ip.h>
 #include "dns.h"
 
-static RR*	doextquery(DNSmsg*, Request*, int);
-static void	hint(RR**, RR*);
+static RR *doextquery(DNSmsg *, Request *, int);
+static void hint(RR **, RR *);
 
 /* set in dns.c */
-int	norecursion;		/* don't allow recursive requests */
+int norecursion; /* don't allow recursive requests */
 
 /*
  *  answer a dns request
@@ -33,7 +33,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 
 	dncheck(nil, 1);
 
-	recursionflag = norecursion? 0: Fcanrec;
+	recursionflag = norecursion ? 0 : Fcanrec;
 	memset(repp, 0, sizeof(*repp));
 	repp->id = reqp->id;
 	repp->flags = Fresp | recursionflag | Oquery;
@@ -44,46 +44,45 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 	tp->next = nil;
 	repp->qd = tp;
 
-	if (rcode) {
+	if(rcode) {
 		errmsg = "";
-		if (rcode >= 0 && rcode < nrname)
+		if(rcode >= 0 && rcode < nrname)
 			errmsg = rname[rcode];
 		dnslog("server: response code 0%o (%s), req from %I",
-			rcode, errmsg, srcip);
+		       rcode, errmsg, srcip);
 		/* provide feedback to clients who send us trash */
-		repp->flags = (rcode&Rmask) | Fresp | Fcanrec | Oquery;
+		repp->flags = (rcode & Rmask) | Fresp | Fcanrec | Oquery;
 		return;
 	}
-	if(!rrsupported(repp->qd->type)){
+	if(!rrsupported(repp->qd->type)) {
 		dnslog("server: unsupported request %s from %I",
-			rrname(repp->qd->type, tname, sizeof tname), srcip);
+		       rrname(repp->qd->type, tname, sizeof tname), srcip);
 		repp->flags = Runimplimented | Fresp | Fcanrec | Oquery;
 		return;
 	}
 
-	if(repp->qd->owner->class != Cin){
+	if(repp->qd->owner->class != Cin) {
 		dnslog("server: unsupported class %d from %I",
-			repp->qd->owner->class, srcip);
+		       repp->qd->owner->class, srcip);
 		repp->flags = Runimplimented | Fresp | Fcanrec | Oquery;
 		return;
 	}
 
 	myarea = inmyarea(repp->qd->owner->name);
 	if(myarea != nil) {
-		if(repp->qd->type == Tixfr || repp->qd->type == Taxfr){
+		if(repp->qd->type == Tixfr || repp->qd->type == Taxfr) {
 			dnslog("server: unsupported xfr request %s for %s from %I",
-				rrname(repp->qd->type, tname, sizeof tname),
-				repp->qd->owner->name, srcip);
+			       rrname(repp->qd->type, tname, sizeof tname),
+			       repp->qd->owner->name, srcip);
 			repp->flags = Runimplimented | Fresp | recursionflag |
-				Oquery;
+				      Oquery;
 			return;
 		}
-	} else
-		if(norecursion) {
-			/* we don't recurse and we're not authoritative */
-			repp->flags = Rok | Fresp | Oquery;
-			return;
-		}
+	} else if(norecursion) {
+		/* we don't recurse and we're not authoritative */
+		repp->flags = Rok | Fresp | Oquery;
+		return;
+	}
 
 	/*
 	 *  get the answer if we can, in *repp
@@ -98,7 +97,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 		repp->flags |= Fauth;
 
 	/* pass on error codes */
-	if(repp->an == nil){
+	if(repp->an == nil) {
 		dp = dnlookup(repp->qd->owner->name, repp->qd->owner->class, 0);
 		if(dp->rr == nil)
 			if(reqp->flags & Frecurse)
@@ -109,15 +108,15 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 		/*
 		 *  add name server if we know
 		 */
-		for(cp = repp->qd->owner->name; cp; cp = walkup(cp)){
+		for(cp = repp->qd->owner->name; cp; cp = walkup(cp)) {
 			nsdp = dnlookup(cp, repp->qd->owner->class, 0);
 			if(nsdp == nil)
 				continue;
 
 			repp->ns = rrlookup(nsdp, Tns, OKneg);
-			if(repp->ns){
+			if(repp->ns) {
 				/* don't pass on anything we know is wrong */
-				if(repp->ns->negative){
+				if(repp->ns->negative) {
 					lock(&dnlock);
 					rp = repp->ns;
 					repp->ns = nil;
@@ -127,7 +126,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 				break;
 			}
 
-			if (strncmp(nsdp->name, "local#", 6) == 0)
+			if(strncmp(nsdp->name, "local#", 6) == 0)
 				dnslog("returning %s as nameserver", nsdp->name);
 			repp->ns = dblookup(cp, repp->qd->owner->class, Tns, 0, 0);
 			if(repp->ns)
@@ -137,7 +136,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 	/*
 	 *  add ip addresses as hints
 	 */
-	if(repp->qd->type != Taxfr && repp->qd->type != Tixfr){
+	if(repp->qd->type != Taxfr && repp->qd->type != Tixfr) {
 		for(tp = repp->ns; tp; tp = tp->next)
 			hint(&repp->ar, tp);
 		for(tp = repp->an; tp; tp = tp->next)
@@ -151,7 +150,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 	 *  with negative caching
 	 */
 	if(repp->an == nil)
-		if(myarea != nil){
+		if(myarea != nil) {
 			lock(&dnlock);
 			rrcopy(myarea->soarr, &tp);
 			rrcat(&repp->ns, tp);
@@ -183,7 +182,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 /*
  *  satisfy a recursive request.  dnlookup will handle cnames.
  */
-static RR*
+static RR *
 doextquery(DNSmsg *mp, Request *req, int recurse)
 {
 	uint16_t type;
@@ -213,7 +212,7 @@ hint(RR **last, RR *rp)
 {
 	RR *hp;
 
-	switch(rp->type){
+	switch(rp->type) {
 	case Tns:
 	case Tmx:
 	case Tmb:
@@ -227,8 +226,8 @@ hint(RR **last, RR *rp)
 			hp = rrlookup(rp->host, Taaaa, NOneg);
 		if(hp == nil)
 			hp = dblookup(rp->host->name, Cin, Taaaa, 0, 0);
-		if (hp && hp->owner && hp->owner->name &&
-		    strncmp(hp->owner->name, "local#", 6) == 0)
+		if(hp && hp->owner && hp->owner->name &&
+		   strncmp(hp->owner->name, "local#", 6) == 0)
 			dnslog("returning %s as hint", hp->owner->name);
 		lock(&dnlock);
 		rrcat(last, hp);

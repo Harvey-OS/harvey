@@ -24,20 +24,18 @@
 
 #include "dat.h"
 
-struct State
-{
+struct State {
 	int asfd;
 	int astype;
 	Key *key;
-	Ticket	t;
-	Ticketreq	tr;
+	Ticket t;
+	Ticketreq tr;
 	char chal[128];
-	char	resp[64];
+	char resp[64];
 	char *user;
 };
 
-enum
-{
+enum {
 	CNeedChal,
 	CHaveResp,
 
@@ -49,16 +47,16 @@ enum
 };
 
 static char *phasenames[Maxphase] = {
-[CNeedChal]	"CNeedChal",
-[CHaveResp]	"CHaveResp",
+	[CNeedChal] "CNeedChal",
+	[CHaveResp] "CHaveResp",
 
-[SHaveChal]	"SHaveChal",
-[SNeedUser]	"SNeedUser",
-[SNeedResp]	"SNeedResp",
+	[SHaveChal] "SHaveChal",
+	[SNeedUser] "SNeedUser",
+	[SNeedResp] "SNeedResp",
 };
 
-static int dochal(State*);
-static int doreply(State*, char*, char*);
+static int dochal(State *);
+static int doreply(State *, char *, char *);
 
 static int
 apopinit(Proto *p, Fsstate *fss)
@@ -82,12 +80,12 @@ apopinit(Proto *p, Fsstate *fss)
 
 	if(iscli)
 		fss->phase = CNeedChal;
-	else{
-		if((ret = findp9authkey(&s->key, fss)) != RpcOk){
+	else {
+		if((ret = findp9authkey(&s->key, fss)) != RpcOk) {
 			free(s);
 			return ret;
 		}
-		if(dochal(s) < 0){
+		if(dochal(s) < 0) {
 			free(s);
 			return failure(fss, nil);
 		}
@@ -110,7 +108,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 
 	s = fss->ps;
 	a = va;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "write");
 
@@ -122,25 +120,25 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		if(v == nil)
 			return failure(fss, "key has no password");
 		setattrs(fss->attr, k->attr);
-		switch(s->astype){
+		switch(s->astype) {
 		default:
 			abort();
 		case AuthCram:
-			hmac_md5((uint8_t*)a, n, (uint8_t*)v, strlen(v),
-				digest, nil);
+			hmac_md5((uint8_t *)a, n, (uint8_t *)v, strlen(v),
+				 digest, nil);
 			snprint(s->resp, sizeof s->resp, "%.*H", MD5dlen, digest);
 			break;
 		case AuthApop:
-			ds = md5((uint8_t*)a, n, nil, nil);
-			md5((uint8_t*)v, strlen(v), digest, ds);
-			for(i=0; i<MD5dlen; i++)
-				sprint(&s->resp[2*i], "%2.2x", digest[i]);
+			ds = md5((uint8_t *)a, n, nil, nil);
+			md5((uint8_t *)v, strlen(v), digest, ds);
+			for(i = 0; i < MD5dlen; i++)
+				sprint(&s->resp[2 * i], "%2.2x", digest[i]);
 			break;
 		}
 		closekey(k);
 		fss->phase = CHaveResp;
 		return RpcOk;
-	
+
 	case SNeedUser:
 		if((v = _strfindattr(fss->attr, "user")) && strcmp(v, a) != 0)
 			return failure(fss, "bad user");
@@ -150,9 +148,9 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		return RpcOk;
 
 	case SNeedResp:
-		if(n != 2*MD5dlen)
+		if(n != 2 * MD5dlen)
 			return failure(fss, "response not MD5 digest");
-		if(doreply(s, s->user, a) < 0){
+		if(doreply(s, s->user, a) < 0) {
 			fss->phase = SNeedUser;
 			return failure(fss, nil);
 		}
@@ -172,7 +170,7 @@ apopread(Fsstate *fss, void *va, uint *n)
 	State *s;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "read");
 
@@ -199,15 +197,15 @@ apopclose(Fsstate *fss)
 	State *s;
 
 	s = fss->ps;
-	if(s->asfd >= 0){
+	if(s->asfd >= 0) {
 		close(s->asfd);
 		s->asfd = -1;
 	}
-	if(s->key != nil){
+	if(s->key != nil) {
 		closekey(s->key);
 		s->key = nil;
 	}
-	if(s->user != nil){
+	if(s->user != nil) {
 		free(s->user);
 		s->user = nil;
 	}
@@ -223,8 +221,7 @@ dochal(State *s)
 
 	/* send request to authentication server and get challenge */
 	/* send request to authentication server and get challenge */
-	if((dom = _strfindattr(s->key->attr, "dom")) == nil
-	|| (user = _strfindattr(s->key->attr, "user")) == nil){
+	if((dom = _strfindattr(s->key->attr, "dom")) == nil || (user = _strfindattr(s->key->attr, "user")) == nil) {
 		werrstr("apop/dochal cannot happen");
 		goto err;
 	}
@@ -257,7 +254,7 @@ err:
 static int
 doreply(State *s, char *user, char *response)
 {
-	char ticket[TICKETLEN+AUTHENTLEN];
+	char ticket[TICKETLEN + AUTHENTLEN];
 	char trbuf[TICKREQLEN];
 	int n;
 	Authenticator a;
@@ -265,41 +262,38 @@ doreply(State *s, char *user, char *response)
 	memrandom(s->tr.chal, CHALLEN);
 	safecpy(s->tr.uid, user, sizeof(s->tr.uid));
 	convTR2M(&s->tr, trbuf);
-	if((n=write(s->asfd, trbuf, TICKREQLEN)) != TICKREQLEN){
+	if((n = write(s->asfd, trbuf, TICKREQLEN)) != TICKREQLEN) {
 		if(n >= 0)
 			werrstr("short write to auth server");
 		goto err;
 	}
 	/* send response to auth server */
-	if(strlen(response) != MD5dlen*2){
+	if(strlen(response) != MD5dlen * 2) {
 		werrstr("response not MD5 digest");
 		goto err;
 	}
-	if((n=write(s->asfd, response, MD5dlen*2)) != MD5dlen*2){
+	if((n = write(s->asfd, response, MD5dlen * 2)) != MD5dlen * 2) {
 		if(n >= 0)
 			werrstr("short write to auth server");
 		goto err;
 	}
-	if(_asrdresp(s->asfd, ticket, TICKETLEN+AUTHENTLEN) < 0){
+	if(_asrdresp(s->asfd, ticket, TICKETLEN + AUTHENTLEN) < 0) {
 		/* leave connection open so we can try again */
 		return -1;
 	}
 	close(s->asfd);
 	s->asfd = -1;
 
-	convM2T(ticket, &s->t, (char*)s->key->priv);
-	if(s->t.num != AuthTs
-	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
+	convM2T(ticket, &s->t, (char *)s->key->priv);
+	if(s->t.num != AuthTs || memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0) {
 		if(s->key->successes == 0)
 			disablekey(s->key);
 		werrstr(Easproto);
 		goto err;
 	}
 	s->key->successes++;
-	convM2A(ticket+TICKETLEN, &a, s->t.key);
-	if(a.num != AuthAc
-	|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0
-	|| a.id != 0){
+	convM2A(ticket + TICKETLEN, &a, s->t.key);
+	if(a.num != AuthAc || memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0 || a.id != 0) {
 		werrstr(Easproto);
 		goto err;
 	}
@@ -313,21 +307,19 @@ err:
 }
 
 Proto apop = {
-.name=	"apop",
-.init=		apopinit,
-.write=	apopwrite,
-.read=	apopread,
-.close=	apopclose,
-.addkey=	replacekey,
-.keyprompt=	"!password?"
-};
+    .name = "apop",
+    .init = apopinit,
+    .write = apopwrite,
+    .read = apopread,
+    .close = apopclose,
+    .addkey = replacekey,
+    .keyprompt = "!password?"};
 
 Proto cram = {
-.name=	"cram",
-.init=		apopinit,
-.write=	apopwrite,
-.read=	apopread,
-.close=	apopclose,
-.addkey=	replacekey,
-.keyprompt=	"!password?"
-};
+    .name = "cram",
+    .init = apopinit,
+    .write = apopwrite,
+    .read = apopread,
+    .close = apopclose,
+    .addkey = replacekey,
+    .keyprompt = "!password?"};

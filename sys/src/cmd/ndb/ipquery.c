@@ -42,24 +42,26 @@ main(int argc, char **argv)
 	Ndb *db;
 	char *dbfile = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'f':
 		dbfile = ARGF();
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc < 3)
 		usage();
 
 	db = ndbopen(dbfile);
-	if(db == 0){
+	if(db == 0) {
 		fprint(2, "no db files\n");
 		exits("no db");
 	}
-	search(db, argv[0], argv[1], argv+2, argc-2);
+	search(db, argv[0], argv[1], argv + 2, argc - 2);
 	ndbclose(db);
 
 	exits(0);

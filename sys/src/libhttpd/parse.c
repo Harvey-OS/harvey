@@ -15,60 +15,57 @@
 #include <httpd.h>
 #include "escape.h"
 
-typedef struct Hlex	Hlex;
-typedef struct MimeHead	MimeHead;
+typedef struct Hlex Hlex;
+typedef struct MimeHead MimeHead;
 
-enum
-{
+enum {
 	/*
 	 * tokens
 	 */
-	Word	= 1,
+	Word = 1,
 	QString,
 };
 
-#define UlongMax	4294967295UL
+#define UlongMax 4294967295UL
 
-struct Hlex
-{
-	int	tok;
-	int	eoh;
-	int	eol;			/* end of header line encountered? */
-	uint8_t	*hstart;		/* start of header */
-	jmp_buf	jmp;			/* jmp here to parse header */
-	char	wordval[HMaxWord];
+struct Hlex {
+	int tok;
+	int eoh;
+	int eol;	 /* end of header line encountered? */
+	uint8_t *hstart; /* start of header */
+	jmp_buf jmp;     /* jmp here to parse header */
+	char wordval[HMaxWord];
 	HConnect *c;
 };
 
-struct MimeHead
-{
-	char	*name;
-	void	(*parse)(Hlex*, char*);
-	uint8_t	seen;
-	uint8_t	ignore;
+struct MimeHead {
+	char *name;
+	void (*parse)(Hlex *, char *);
+	uint8_t seen;
+	uint8_t ignore;
 };
 
-static void	mimeaccept(Hlex*, char*);
-static void	mimeacceptchar(Hlex*, char*);
-static void	mimeacceptenc(Hlex*, char*);
-static void	mimeacceptlang(Hlex*, char*);
-static void	mimeagent(Hlex*, char*);
-static void	mimeauthorization(Hlex*, char*);
-static void	mimeconnection(Hlex*, char*);
-static void	mimecontlen(Hlex*, char*);
-static void	mimecookie(Hlex*, char*);
-static void	mimeexpect(Hlex*, char*);
-static void	mimefresh(Hlex*, char*);
-static void	mimefrom(Hlex*, char*);
-static void	mimehost(Hlex*, char*);
-static void	mimeifrange(Hlex*, char*);
-static void	mimeignore(Hlex*, char*);
-static void	mimematch(Hlex*, char*);
-static void	mimemodified(Hlex*, char*);
-static void	mimenomatch(Hlex*, char*);
-static void	mimerange(Hlex*, char*);
-static void	mimetransenc(Hlex*, char*);
-static void	mimeunmodified(Hlex*, char*);
+static void mimeaccept(Hlex *, char *);
+static void mimeacceptchar(Hlex *, char *);
+static void mimeacceptenc(Hlex *, char *);
+static void mimeacceptlang(Hlex *, char *);
+static void mimeagent(Hlex *, char *);
+static void mimeauthorization(Hlex *, char *);
+static void mimeconnection(Hlex *, char *);
+static void mimecontlen(Hlex *, char *);
+static void mimecookie(Hlex *, char *);
+static void mimeexpect(Hlex *, char *);
+static void mimefresh(Hlex *, char *);
+static void mimefrom(Hlex *, char *);
+static void mimehost(Hlex *, char *);
+static void mimeifrange(Hlex *, char *);
+static void mimeignore(Hlex *, char *);
+static void mimematch(Hlex *, char *);
+static void mimemodified(Hlex *, char *);
+static void mimenomatch(Hlex *, char *);
+static void mimerange(Hlex *, char *);
+static void mimetransenc(Hlex *, char *);
+static void mimeunmodified(Hlex *, char *);
 
 /*
  * headers seen also include
@@ -79,44 +76,44 @@ static void	mimeunmodified(Hlex*, char*);
  * ua-color ua-cpu ua-os ua-pixels
  * upgrade via x-afs-tokens x-serial-number
  */
-static MimeHead	mimehead[] =
-{
-	{"accept",		mimeaccept},
-	{"accept-charset",	mimeacceptchar},
-	{"accept-encoding",	mimeacceptenc},
-	{"accept-language",	mimeacceptlang},
-	{"authorization",	mimeauthorization},
-	{"connection",		mimeconnection},
-	{"content-length",	mimecontlen},
-	{"cookie",		mimecookie},
-	{"expect",		mimeexpect},
-	{"fresh",		mimefresh},
-	{"from",		mimefrom},
-	{"host",		mimehost},
-	{"if-match",		mimematch},
-	{"if-modified-since",	mimemodified},
-	{"if-none-match",	mimenomatch},
-	{"if-range",		mimeifrange},
-	{"if-unmodified-since",	mimeunmodified},
-	{"range",		mimerange},
-	{"transfer-encoding",	mimetransenc},
-	{"user-agent",		mimeagent},
+static MimeHead mimehead[] =
+    {
+     {"accept", mimeaccept},
+     {"accept-charset", mimeacceptchar},
+     {"accept-encoding", mimeacceptenc},
+     {"accept-language", mimeacceptlang},
+     {"authorization", mimeauthorization},
+     {"connection", mimeconnection},
+     {"content-length", mimecontlen},
+     {"cookie", mimecookie},
+     {"expect", mimeexpect},
+     {"fresh", mimefresh},
+     {"from", mimefrom},
+     {"host", mimehost},
+     {"if-match", mimematch},
+     {"if-modified-since", mimemodified},
+     {"if-none-match", mimenomatch},
+     {"if-range", mimeifrange},
+     {"if-unmodified-since", mimeunmodified},
+     {"range", mimerange},
+     {"transfer-encoding", mimetransenc},
+     {"user-agent", mimeagent},
 };
 
-char*		hmydomain;
-char*		hversion = "HTTP/1.1";
+char *hmydomain;
+char *hversion = "HTTP/1.1";
 
-static	void	lexhead(Hlex*);
-static	void	parsejump(Hlex*, char*);
-static	int	getc(Hlex*);
-static	void	ungetc(Hlex*);
-static	int	wordcr(Hlex*);
-static	int	wordnl(Hlex*);
-static	void	word(Hlex*, char*);
-static	int	lex1(Hlex*, int);
-static	int	lex(Hlex*);
-static	int	lexbase64(Hlex*);
-static	uint32_t	digtoul(char *s, char **e);
+static void lexhead(Hlex *);
+static void parsejump(Hlex *, char *);
+static int getc(Hlex *);
+static void ungetc(Hlex *);
+static int wordcr(Hlex *);
+static int wordnl(Hlex *);
+static void word(Hlex *, char *);
+static int lex1(Hlex *, int);
+static int lex(Hlex *);
+static int lexbase64(Hlex *);
+static uint32_t digtoul(char *s, char **e);
 
 /*
  * flush and clean up junk from a request
@@ -132,7 +129,7 @@ hreqcleanup(HConnect *c)
 	c->hpos = c->header;
 	c->hstop = c->header;
 	binfree(&c->bin);
-	for(i = 0; i < nelem(mimehead); i++){
+	for(i = 0; i < nelem(mimehead); i++) {
 		mimehead[i].seen = 0;
 		mimehead[i].ignore = 0;
 	}
@@ -151,7 +148,7 @@ mimeconnection(Hlex *h, char *c)
 	int reparse, i;
 
 	reparse = 0;
-	for(;;){
+	for(;;) {
 		while(lex(h) != Word)
 			if(h->tok != ',')
 				goto breakout;
@@ -160,12 +157,12 @@ mimeconnection(Hlex *h, char *c)
 			h->c->head.persist = 1;
 		else if(cistrcmp(h->wordval, "close") == 0)
 			h->c->head.closeit = 1;
-		else if(!http11(h->c)){
-			for(i = 0; i < nelem(mimehead); i++){
-				if(cistrcmp(mimehead[i].name, h->wordval) == 0){
+		else if(!http11(h->c)) {
+			for(i = 0; i < nelem(mimehead); i++) {
+				if(cistrcmp(mimehead[i].name, h->wordval) == 0) {
 					reparse = mimehead[i].seen && !mimehead[i].ignore;
 					mimehead[i].ignore = 1;
-					if(cistrcmp(mimehead[i].name, "authorization") == 0){
+					if(cistrcmp(mimehead[i].name, "authorization") == 0) {
 						h->c->head.authuser = nil;
 						h->c->head.authpass = nil;
 					}
@@ -177,13 +174,14 @@ mimeconnection(Hlex *h, char *c)
 			break;
 	}
 
-breakout:;
+breakout:
+	;
 	/*
 	 * if need to ignore headers we've already parsed,
 	 * reset & start over.  need to save authorization
 	 * info because it's written over when parsed.
 	 */
-	if(reparse){
+	if(reparse) {
 		u = h->c->head.authuser;
 		p = h->c->head.authpass;
 		memset(&h->c->head, 0, sizeof(h->c->head));
@@ -203,7 +201,7 @@ hparseheaders(HConnect *c, int timeout)
 	c->head.fresh_thresh = 0;
 	c->head.fresh_have = 0;
 	c->head.persist = 0;
-	if(c->req.vermaj == 0){
+	if(c->req.vermaj == 0) {
 		c->head.host = hmydomain;
 		return 1;
 	}
@@ -224,7 +222,7 @@ hparseheaders(HConnect *c, int timeout)
 	h.eol = 0;
 	h.eoh = 0;
 	h.tok = '\n';
-	while(lex(&h) != '\n'){
+	while(lex(&h) != '\n') {
 		if(h.tok == Word && lex(&h) == ':')
 			parsejump(&h, hstrdup(c, h.wordval));
 		while(h.tok != '\n')
@@ -232,12 +230,12 @@ hparseheaders(HConnect *c, int timeout)
 		h.eol = h.eoh;
 	}
 
-	if(http11(c)){
+	if(http11(c)) {
 		/*
 		 * according to the http/1.1 spec,
 		 * these rules must be followed
 		 */
-		if(c->head.host == nil){
+		if(c->head.host == nil) {
 			hfail(c, HBadReq, nil);
 			return -1;
 		}
@@ -246,7 +244,7 @@ hparseheaders(HConnect *c, int timeout)
 		/*
 		 * also need to check host is actually this one
 		 */
-	}else if(c->head.host == nil)
+	} else if(c->head.host == nil)
 		c->head.host = hmydomain;
 	return 1;
 }
@@ -255,14 +253,14 @@ hparseheaders(HConnect *c, int timeout)
  * mimeparams	: | mimeparams ";" mimepara
  * mimeparam	: token "=" token | token "=" qstring
  */
-static HSPairs*
+static HSPairs *
 mimeparams(Hlex *h)
 {
 	HSPairs *p;
 	char *s;
 
 	p = nil;
-	for(;;){
+	for(;;) {
 		if(lex(h) != Word)
 			break;
 		s = hstrdup(h->c, h->wordval);
@@ -278,13 +276,13 @@ mimeparams(Hlex *h)
  * mimehfield	: token mimeparams
  * commas	: "," | commas ","
  */
-static HFields*
+static HFields *
 mimehfields(Hlex *h)
 {
 	HFields *f;
 
 	f = nil;
-	for(;;){
+	for(;;) {
 		while(lex(h) != Word)
 			if(h->tok != ',')
 				goto breakout;
@@ -296,14 +294,15 @@ mimehfields(Hlex *h)
 		if(h->tok != ',')
 			break;
 	}
-breakout:;
+breakout:
+	;
 	return hrevhfields(f);
 }
 
 /*
  * parse a list of acceptable types, encodings, languages, etc.
  */
-static HContent*
+static HContent *
 mimeok(Hlex *h, char *name, int multipart, HContent *head)
 {
 	char *generic, *specific, *s;
@@ -318,7 +317,7 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
 
 	generic = hstrdup(h->c, h->wordval);
 	lex(h);
-	if(h->tok == '/' || multipart){
+	if(h->tok == '/' || multipart) {
 		/*
 		 * at one time, IE5 improperly said '*' for single types
 		 */
@@ -330,12 +329,12 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
 		if(!multipart && strcmp(specific, "*") != 0)
 			return head;
 		lex(h);
-	}else
+	} else
 		specific = nil;
 	head = hmkcontent(h->c, generic, specific, head);
 
-	for(;;){
-		switch(h->tok){
+	for(;;) {
+		switch(h->tok) {
 		case ';':
 			/*
 			 * should make a list of these params
@@ -343,7 +342,7 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
 			 *	up to a q=..., they modify the media type.
 			 *	afterwards, they acceptance criteria
 			 */
-			if(lex(h) == Word){
+			if(lex(h) == Word) {
 				s = hstrdup(h->c, h->wordval);
 				if(lex(h) != '=' || lex(h) != Word && h->tok != QString)
 					return head;
@@ -352,16 +351,16 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
 					head->q = v;
 				else if(strcmp(s, "mxb") == 0)
 					head->mxb = v;
-				else{
+				else {
 					/* cope with accept: application/xhtml+xml; profile=http://www.wapforum.org/xhtml, */
-					while(lex(h) == Word || (h->tok != ',' && h->eol == 0) )
+					while(lex(h) == Word || (h->tok != ',' && h->eol == 0))
 						;
 					return mimeok(h, name, multipart, head);
 				}
 			}
 			break;
 		case ',':
-			return  mimeok(h, name, multipart, head);
+			return mimeok(h, name, multipart, head);
 		default:
 			return head;
 		}
@@ -376,19 +375,19 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
  * weak = "W/"
  * opaque-tag = quoted-string
  */
-static HETag*
+static HETag *
 mimeetag(Hlex *h, HETag *head)
 {
 	HETag *e;
 	int weak;
 
-	for(;;){
+	for(;;) {
 		while(lex(h) != Word && h->tok != QString)
 			if(h->tok != ',')
 				return head;
 
 		weak = 0;
-		if(h->tok == Word && strcmp(h->wordval, "*") != 0){
+		if(h->tok == Word && strcmp(h->wordval, "*") != 0) {
 			if(strcmp(h->wordval, "W") != 0)
 				return head;
 			if(lex(h) != '/' || lex(h) != QString)
@@ -421,7 +420,7 @@ mimeetag(Hlex *h, HETag *head)
  * it is syntactically incorrect for the second byte pos
  * to be smaller than the first byte pos
  */
-static HRange*
+static HRange *
 mimeranges(Hlex *h, HRange *head)
 {
 	HRange *r, *rh, *tail;
@@ -434,9 +433,9 @@ mimeranges(Hlex *h, HRange *head)
 
 	rh = nil;
 	tail = nil;
-	for(;;){
-		while(lex(h) != Word){
-			if(h->tok != ','){
+	for(;;) {
+		while(lex(h) != Word) {
+			if(h->tok != ',') {
 				if(h->tok == '\n')
 					goto breakout;
 				return head;
@@ -446,7 +445,7 @@ mimeranges(Hlex *h, HRange *head)
 		w = h->wordval;
 		start = 0;
 		suf = 1;
-		if(w[0] != '-'){
+		if(w[0] != '-') {
 			suf = 0;
 			start = digtoul(w, &w);
 			if(w[0] != '-')
@@ -454,7 +453,7 @@ mimeranges(Hlex *h, HRange *head)
 		}
 		w++;
 		stop = ~0UL;
-		if(w[0] != '\0'){
+		if(w[0] != '\0') {
 			stop = digtoul(w, &w);
 			if(w[0] != '\0')
 				return head;
@@ -473,13 +472,14 @@ mimeranges(Hlex *h, HRange *head)
 			tail->next = r;
 		tail = r;
 
-		if(lex(h) != ','){
+		if(lex(h) != ',') {
 			if(h->tok == '\n')
 				break;
 			return head;
 		}
 	}
-breakout:;
+breakout:
+	;
 
 	if(head == nil)
 		return rh;
@@ -554,16 +554,16 @@ mimeifrange(Hlex *h, char *name)
 		c = getc(h);
 	if(c == '"')
 		et = 1;
-	else if(c == 'W'){
+	else if(c == 'W') {
 		d = getc(h);
 		if(d == '/')
 			et = 1;
 		ungetc(h);
 	}
 	ungetc(h);
-	if(et){
+	if(et) {
 		h->c->head.ifrangeetag = mimeetag(h, h->c->head.ifrangeetag);
-	}else{
+	} else {
 		lexhead(h);
 		h->c->head.ifrangedate = hdate2sec(h->wordval);
 	}
@@ -585,13 +585,13 @@ authdigest(Hlex *h, char *name)
 	HSPairs *p;
 
 	p = nil;
-	for(;;){
+	for(;;) {
 		while(lex(h) != Word)
 			if(h->tok != ';' && h->tok != ',')
 				goto breakout;
 		s = hstrdup(h->c, h->wordval);
-		while (lex(h) != Word && h->tok != QString)
-			if (h->tok != '=')
+		while(lex(h) != Word && h->tok != QString)
+			if(h->tok != '=')
 				goto breakout;
 		p = hmkspairs(h->c, s, hstrdup(h->c, h->wordval), p);
 	}
@@ -631,10 +631,10 @@ authbasic(Hlex *h, char *name)
 	h->c->hpos[-1] = '=';
 
 	up = halloc(h->c, n + 1);
-	n = dec64((uint8_t*)up, n, h->wordval, n);
+	n = dec64((uint8_t *)up, n, h->wordval, n);
 	up[n] = '\0';
 	p = strchr(up, ':');
-	if(p != nil){
+	if(p != nil) {
 		*p++ = '\0';
 		h->c->head.authuser = hstrdup(h->c, up);
 		h->c->head.authpass = hstrdup(h->c, p);
@@ -649,15 +649,15 @@ mimeauthorization(Hlex *h, char *name)
 {
 	int i;
 	static MimeHead authparser[] = {
-		{ "basic", authbasic },
-		{ "digest", authdigest },
+	    {"basic", authbasic},
+	    {"digest", authdigest},
 	};
 
 	if(lex(h) != Word)
 		return;
 
-	for (i = 0; i < nelem(authparser); i++)
-		if (cistrcmp(h->wordval, authparser[i].name) == 0) {
+	for(i = 0; i < nelem(authparser); i++)
+		if(cistrcmp(h->wordval, authparser[i].name) == 0) {
 			(*authparser[i].parse)(h, nil);
 			break;
 		}
@@ -734,13 +734,13 @@ mimecookie(Hlex *h, char *name)
 	HSPairs *p;
 
 	p = nil;
-	for(;;){
+	for(;;) {
 		while(lex(h) != Word)
 			if(h->tok != ';' && h->tok != ',')
 				goto breakout;
 		s = hstrdup(h->c, h->wordval);
-		while (lex(h) != Word && h->tok != QString)
-			if (h->tok != '=')
+		while(lex(h) != Word && h->tok != QString)
+			if(h->tok != '=')
 				goto breakout;
 		p = hmkspairs(h->c, s, hstrdup(h->c, h->wordval), p);
 	}
@@ -754,12 +754,12 @@ mimefresh(Hlex *h, char *name)
 	char *s;
 
 	lexhead(h);
-	for(s = h->wordval; *s && (*s==' ' || *s=='\t'); s++)
+	for(s = h->wordval; *s && (*s == ' ' || *s == '\t'); s++)
 		;
 	if(strncmp(s, "pathstat/", 9) == 0)
-		h->c->head.fresh_thresh = atoi(s+9);
+		h->c->head.fresh_thresh = atoi(s + 9);
 	else if(strncmp(s, "have/", 5) == 0)
-		h->c->head.fresh_have = atoi(s+5);
+		h->c->head.fresh_have = atoi(s + 5);
 }
 
 static void
@@ -775,7 +775,7 @@ parsejump(Hlex *h, char *k)
 
 	l = 1;
 	r = nelem(mimehead) - 1;
-	while(l <= r){
+	while(l <= r) {
 		m = (r + l) >> 1;
 		if(cistrcmp(mimehead[m].name, k) <= 0)
 			l = m + 1;
@@ -783,10 +783,10 @@ parsejump(Hlex *h, char *k)
 			r = m - 1;
 	}
 	m = l - 1;
-	if(cistrcmp(mimehead[m].name, k) == 0 && !mimehead[m].ignore){
+	if(cistrcmp(mimehead[m].name, k) == 0 && !mimehead[m].ignore) {
 		mimehead[m].seen = 1;
 		(*mimehead[m].parse)(h, k);
-	}else
+	} else
 		mimeignore(h, k);
 }
 
@@ -804,12 +804,12 @@ lexbase64(Hlex *h)
 	n = 0;
 	lex1(h, 1);
 
-	while((c = getc(h)) >= 0){
-		if(!isalnum(c) && c != '+' && c != '/'){
+	while((c = getc(h)) >= 0) {
+		if(!isalnum(c) && c != '+' && c != '/') {
 			ungetc(h);
 			break;
 		}
-		if(n < HMaxWord-1)
+		if(n < HMaxWord - 1)
 			h->wordval[n++] = c;
 	}
 	h->wordval[n] = '\0';
@@ -829,11 +829,11 @@ lex1(Hlex *h, int skipwhite)
 
 top:
 	c = getc(h);
-	switch(c){
+	switch(c) {
 	case '(':
 		level = 1;
-		while((c = getc(h)) >= 0){
-			if(c == '\\'){
+		while((c = getc(h)) >= 0) {
+			if(c == '\\') {
 				c = getc(h);
 				if(c < 0)
 					return '\n';
@@ -843,13 +843,13 @@ top:
 				level++;
 			else if(c == ')' && --level == 0)
 				break;
-			else if(c == '\n'){
+			else if(c == '\n') {
 				c = getc(h);
 				if(c < 0)
 					return '\n';
 				if(c == ')' && --level == 0)
 					break;
-				if(c != ' ' && c != '\t'){
+				if(c != ' ' && c != '\t') {
 					ungetc(h);
 					return '\n';
 				}
@@ -857,28 +857,29 @@ top:
 		}
 		goto top;
 
-	case ' ': case '\t':
+	case ' ':
+	case '\t':
 		goto top;
 
 	case '\r':
 		c = getc(h);
-		if(c != '\n'){
+		if(c != '\n') {
 			ungetc(h);
 			goto top;
 		}
 
 	case '\n':
-		if(h->tok == '\n'){
+		if(h->tok == '\n') {
 			h->eol = 1;
 			h->eoh = 1;
 			return '\n';
 		}
 		c = getc(h);
-		if(c < 0){
+		if(c < 0) {
 			h->eol = 1;
 			return '\n';
 		}
-		if(c != ' ' && c != '\t'){
+		if(c != ' ' && c != '\t') {
 			ungetc(h);
 			h->eol = 1;
 			return '\n';
@@ -886,23 +887,30 @@ top:
 		goto top;
 
 	case ')':
-	case '<': case '>':
-	case '[': case ']':
-	case '@': case '/':
-	case ',': case ';': case ':': case '?': case '=':
-		if(skipwhite){
+	case '<':
+	case '>':
+	case '[':
+	case ']':
+	case '@':
+	case '/':
+	case ',':
+	case ';':
+	case ':':
+	case '?':
+	case '=':
+		if(skipwhite) {
 			ungetc(h);
 			return c;
 		}
 		return c;
 
 	case '"':
-		if(skipwhite){
+		if(skipwhite) {
 			ungetc(h);
 			return c;
 		}
 		word(h, "\"");
-		getc(h);		/* skip the closing quote */
+		getc(h); /* skip the closing quote */
 		return QString;
 
 	default:
@@ -910,7 +918,7 @@ top:
 		if(skipwhite)
 			return c;
 		word(h, "\"(){}<>@,;:/[]?=\r\n \t");
-		if(h->wordval[0] == '\0'){
+		if(h->wordval[0] == '\0') {
 			h->c->head.closeit = 1;
 			hfail(h->c, HSyntax);
 			longjmp(h->jmp, -1);
@@ -930,20 +938,20 @@ lexhead(Hlex *h)
 	int c, n;
 
 	n = 0;
-	while((c = getc(h)) >= 0){
+	while((c = getc(h)) >= 0) {
 		if(c == '\r')
 			c = wordcr(h);
 		else if(c == '\n')
 			c = wordnl(h);
 		if(c == '\n')
 			break;
-		if(c == '\\'){
+		if(c == '\\') {
 			c = getc(h);
 			if(c < 0)
 				break;
 		}
 
-		if(n < HMaxWord-1)
+		if(n < HMaxWord - 1)
 			h->wordval[n++] = c;
 	}
 	h->tok = '\n';
@@ -957,21 +965,21 @@ word(Hlex *h, char *stop)
 	int c, n;
 
 	n = 0;
-	while((c = getc(h)) >= 0){
+	while((c = getc(h)) >= 0) {
 		if(c == '\r')
 			c = wordcr(h);
 		else if(c == '\n')
 			c = wordnl(h);
-		if(c == '\\'){
+		if(c == '\\') {
 			c = getc(h);
 			if(c < 0)
 				break;
-		}else if(c < 32 || strchr(stop, c) != nil){
+		} else if(c < 32 || strchr(stop, c) != nil) {
 			ungetc(h);
 			break;
 		}
 
-		if(n < HMaxWord-1)
+		if(n < HMaxWord - 1)
 			h->wordval[n++] = c;
 	}
 	h->wordval[n] = '\0';
@@ -1030,13 +1038,13 @@ digtoul(char *s, char **e)
 
 	v = 0;
 	ovfl = 0;
-	for(;;){
+	for(;;) {
 		c = *s;
 		if(c < '0' || c > '9')
 			break;
 		s++;
 		c -= '0';
-		if(v > UlongMax/10 || v == UlongMax/10 && c >= UlongMax%10)
+		if(v > UlongMax / 10 || v == UlongMax / 10 && c >= UlongMax % 10)
 			ovfl = 1;
 		v = v * 10 + c;
 	}
@@ -1054,21 +1062,21 @@ http11(HConnect *c)
 	return c->req.vermaj > 1 || c->req.vermaj == 1 && c->req.vermin > 0;
 }
 
-char*
+char *
 hmkmimeboundary(HConnect *c)
 {
 	char buf[32];
 	int i;
 
-	srand((time(0)<<16)|getpid());
+	srand((time(0) << 16) | getpid());
 	strcpy(buf, "upas-");
-	for(i = 5; i < sizeof(buf)-1; i++)
+	for(i = 5; i < sizeof(buf) - 1; i++)
 		buf[i] = 'a' + nrand(26);
 	buf[i] = 0;
 	return hstrdup(c, buf);
 }
 
-HSPairs*
+HSPairs *
 hmkspairs(HConnect *c, char *s, char *t, HSPairs *next)
 {
 	HSPairs *sp;
@@ -1080,13 +1088,13 @@ hmkspairs(HConnect *c, char *s, char *t, HSPairs *next)
 	return sp;
 }
 
-HSPairs*
+HSPairs *
 hrevspairs(HSPairs *sp)
 {
 	HSPairs *last, *next;
 
 	last = nil;
-	for(; sp != nil; sp = next){
+	for(; sp != nil; sp = next) {
 		next = sp->next;
 		sp->next = last;
 		last = sp;
@@ -1094,7 +1102,7 @@ hrevspairs(HSPairs *sp)
 	return last;
 }
 
-HFields*
+HFields *
 hmkhfields(HConnect *c, char *s, HSPairs *p, HFields *next)
 {
 	HFields *hf;
@@ -1106,13 +1114,13 @@ hmkhfields(HConnect *c, char *s, HSPairs *p, HFields *next)
 	return hf;
 }
 
-HFields*
+HFields *
 hrevhfields(HFields *hf)
 {
 	HFields *last, *next;
 
 	last = nil;
-	for(; hf != nil; hf = next){
+	for(; hf != nil; hf = next) {
 		next = hf->next;
 		hf->next = last;
 		last = hf;
@@ -1120,7 +1128,7 @@ hrevhfields(HFields *hf)
 	return last;
 }
 
-HContent*
+HContent *
 hmkcontent(HConnect *c, char *generic, char *specific, HContent *next)
 {
 	HContent *ct;

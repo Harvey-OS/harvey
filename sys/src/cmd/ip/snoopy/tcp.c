@@ -13,69 +13,84 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct Hdr	Hdr;
-struct Hdr
-{
-	uint8_t	sport[2];
-	uint8_t	dport[2];
-	uint8_t	seq[4];
-	uint8_t	ack[4];
-	uint8_t	flag[2];
-	uint8_t	win[2];
-	uint8_t	cksum[2];
-	uint8_t	urg[2];
-	uint8_t	opt[1];
+typedef struct Hdr Hdr;
+struct Hdr {
+	uint8_t sport[2];
+	uint8_t dport[2];
+	uint8_t seq[4];
+	uint8_t ack[4];
+	uint8_t flag[2];
+	uint8_t win[2];
+	uint8_t cksum[2];
+	uint8_t urg[2];
+	uint8_t opt[1];
 };
 
-typedef struct PseudoHdr{
-	uint8_t	src[4];
-	uint8_t	dst[4];
-	uint8_t	zero;
-	uint8_t	proto;
-	uint8_t	length[2];
-	uint8_t	hdrdata[1580];
+typedef struct PseudoHdr {
+	uint8_t src[4];
+	uint8_t dst[4];
+	uint8_t zero;
+	uint8_t proto;
+	uint8_t length[2];
+	uint8_t hdrdata[1580];
 } PseudoHdr;
 
-enum
-{
-	TCPLEN= 20,
+enum {
+	TCPLEN = 20,
 };
 
-enum
-{
+enum {
 	Os,
 	Od,
 	Osd,
 };
 
 static Field p_fields[] =
-{
-	{"s",		Fnum,	Os,	"source port",	} ,
-	{"d",		Fnum,	Od,	"dest port",	} ,
-	{"a",		Fnum,	Osd,	"source/dest port",	} ,
-	{"sd",		Fnum,	Osd,	"source/dest port",	} ,
-	{0}
-};
+    {
+     {
+      "s", Fnum, Os, "source port",
+     },
+     {
+      "d", Fnum, Od, "dest port",
+     },
+     {
+      "a", Fnum, Osd, "source/dest port",
+     },
+     {
+      "sd", Fnum, Osd, "source/dest port",
+     },
+     {0}};
 
 static Mux p_mux[] =
-{
-	{"dns",		53, },
-	{"ninep",	17007, },	/* exportfs */
-	{"ninep",	564, },		/* 9fs */
-	{"ninep",	17005, },	/* ocpu */
-	{"ninep",	17010, },	/* ncpu */
-	{"ninep",	17013, },	/* cpu */
-	{0},
+    {
+     {
+      "dns", 53,
+     },
+     {
+      "ninep", 17007,
+     }, /* exportfs */
+     {
+      "ninep", 564,
+     }, /* 9fs */
+     {
+      "ninep", 17005,
+     }, /* ocpu */
+     {
+      "ninep", 17010,
+     }, /* ncpu */
+     {
+      "ninep", 17013,
+     }, /* cpu */
+     {0},
 };
 
-enum
-{
-	EOLOPT		= 0,
-	NOOPOPT		= 1,
-	MSSOPT		= 2,
-	MSS_LENGTH	= 4,		/* Mean segment size */
-	WSOPT		= 3,
-	WS_LENGTH	= 3,		/* Bits to scale window size by */
+enum {
+	EOLOPT = 0,
+	NOOPOPT = 1,
+	MSSOPT = 2,
+	MSS_LENGTH = 4, /* Mean segment size */
+	WSOPT = 3,
+	WS_LENGTH = 3, /* Bits to scale window size by */
 };
 
 static void
@@ -83,12 +98,12 @@ p_compile(Filter *f)
 {
 	Mux *m;
 
-	if(f->op == '='){
+	if(f->op == '=') {
 		compile_cmp(tcp.name, f, p_fields);
 		return;
 	}
 	for(m = p_mux; m->name != nil; m++)
-		if(strcmp(f->s, m->name) == 0){
+		if(strcmp(f->s, m->name) == 0) {
 			f->pr = m->pr;
 			f->ulv = m->val;
 			f->subop = Osd;
@@ -105,10 +120,10 @@ p_filter(Filter *f, Msg *m)
 	if(m->pe - m->ps < TCPLEN)
 		return 0;
 
-	h = (Hdr*)m->ps;
-	m->ps += (NetS(h->flag)>>10) & 0x3f;
+	h = (Hdr *)m->ps;
+	m->ps += (NetS(h->flag) >> 10) & 0x3f;
 
-	switch(f->subop){
+	switch(f->subop) {
 	case Os:
 		return NetS(h->sport) == f->ulv;
 	case Od:
@@ -119,17 +134,16 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-enum
-{
-	URG		= 0x20,		/* Data marked urgent */
-	ACK		= 0x10,		/* Aknowledge is valid */
-	PSH		= 0x08,		/* Whole data pipe is pushed */
-	RST		= 0x04,		/* Reset connection */
-	SYN		= 0x02,		/* Pkt. is synchronise */
-	FIN		= 0x01,		/* Start close down */
+enum {
+	URG = 0x20, /* Data marked urgent */
+	ACK = 0x10, /* Aknowledge is valid */
+	PSH = 0x08, /* Whole data pipe is pushed */
+	RST = 0x04, /* Reset connection */
+	SYN = 0x02, /* Pkt. is synchronise */
+	FIN = 0x01, /* Start close down */
 };
 
-static char*
+static char *
 flags(int f)
 {
 	static char fl[20];
@@ -152,7 +166,6 @@ flags(int f)
 	return fl;
 }
 
-
 static int
 p_seprint(Msg *m)
 {
@@ -162,11 +175,11 @@ p_seprint(Msg *m)
 
 	if(m->pe - m->ps < TCPLEN)
 		return -1;
-	h = (Hdr*)m->ps;
+	h = (Hdr *)m->ps;
 
 	/* get tcp header length */
 	flag = NetS(h->flag);
-	len = (flag>>10) & ~3;
+	len = (flag >> 10) & ~3;
 	flag &= 0x3ff;
 	m->ps += len;
 
@@ -176,16 +189,16 @@ p_seprint(Msg *m)
 	demux(p_mux, sport, dport, m, &dump);
 
 	m->p = seprint(m->p, m->e, "s=%d d=%d seq=%lud ack=%lud fl=%s win=%d ck=%4.4ux",
-			NetS(h->sport), dport,
-			(uint32_t)NetL(h->seq), (uint32_t)NetL(h->ack),
-			flags(flag), NetS(h->win),
-			NetS(h->cksum));
+		       NetS(h->sport), dport,
+		       (uint32_t)NetL(h->seq), (uint32_t)NetL(h->ack),
+		       flags(flag), NetS(h->win),
+		       NetS(h->cksum));
 
 	/* tcp options */
 	len -= TCPLEN;
 	optr = h->opt;
 	while(len > 0) {
-		if(*optr == EOLOPT){
+		if(*optr == EOLOPT) {
 			m->p = seprint(m->p, m->e, " opt=EOL");
 			break;
 		}
@@ -201,15 +214,15 @@ p_seprint(Msg *m)
 		switch(*optr) {
 		case MSSOPT:
 			m->p = seprint(m->p, m->e, " opt%d=(mss %ud)",
-				optlen, nhgets(optr+2));
+				       optlen, nhgets(optr + 2));
 			break;
 		case WSOPT:
 			m->p = seprint(m->p, m->e, " opt%d=(wscale %ud)",
-				optlen, *(optr+2));
+				       optlen, *(optr + 2));
 			break;
 		default:
 			m->p = seprint(m->p, m->e, " opt%d=(%ud %.*H)",
-				optlen, *optr, optlen-2, optr+2);
+				       optlen, *optr, optlen - 2, optr + 2);
 		}
 		len -= optlen;
 		optr += optlen;
@@ -218,13 +231,13 @@ p_seprint(Msg *m)
 }
 
 Proto tcp =
-{
-	"tcp",
-	p_compile,
-	p_filter,
-	p_seprint,
-	p_mux,
-	"%lud",
-	p_fields,
-	defaultframer,
+    {
+     "tcp",
+     p_compile,
+     p_filter,
+     p_seprint,
+     p_mux,
+     "%lud",
+     p_fields,
+     defaultframer,
 };

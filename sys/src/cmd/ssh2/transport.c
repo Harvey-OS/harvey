@@ -40,14 +40,14 @@ init_packet(Packet *p)
 void
 add_byte(Packet *p, char c)
 {
-	p->payload[p->rlength-1] = c;
+	p->payload[p->rlength - 1] = c;
 	p->rlength++;
 }
 
 void
 add_uint32(Packet *p, uint32_t l)
 {
-	hnputl(p->payload+p->rlength-1, l);
+	hnputl(p->payload + p->rlength - 1, l);
 	p->rlength += 4;
 }
 
@@ -78,7 +78,7 @@ add_block(Packet *p, void *data, int len)
 	add_packet(p, data, len);
 }
 
-void 
+void
 add_string(Packet *p, char *s)
 {
 	uint8_t *q;
@@ -89,7 +89,7 @@ add_string(Packet *p, char *s)
 	hnputl(nn, n);
 	q = p->payload + p->rlength - 1;
 	memmove(q, nn, 4);
-	memmove(q+4, s, n);
+	memmove(q + 4, s, n);
 	p->rlength += n + 4;
 }
 
@@ -98,7 +98,7 @@ get_string(Packet *p, uint8_t *q, char *s, int lim, int *len)
 {
 	int n, m;
 
-	if (p && q > p->payload + p->rlength)
+	if(p && q > p->payload + p->rlength)
 		s[0] = '\0';
 	m = nhgetl(q);
 	q += 4;
@@ -122,7 +122,7 @@ add_mp(Packet *p, mpint *x)
 
 	q = p->payload + p->rlength - 1;
 	n = mptobe(x, q + 4, Maxpktpay - p->rlength + 1 - 4, nil);
-	if(q[4] & 0x80){
+	if(q[4] & 0x80) {
 		memmove(q + 5, q + 4, n);
 		q[4] = 0;
 		n++;
@@ -148,8 +148,8 @@ finish_packet(Packet *p)
 	blklen = 8;
 	if(c && debug > 1)
 		fprint(2, "%s: in finish_packet: enc %d outmac %d len %ld\n",
-			argv0, c->encrypt, c->outmac, p->rlength);
-	if(c && c->encrypt != -1){
+		       argv0, c->encrypt, c->outmac, p->rlength);
+	if(c && c->encrypt != -1) {
 		blklen = cryptos[c->encrypt]->blklen;
 		if(blklen < 8)
 			blklen = 8;
@@ -164,7 +164,7 @@ finish_packet(Packet *p)
 	p->rlength = n1 + n2 + 1;
 	hnputl(p->nlength, p->rlength);
 	maclen = 0;
-	if(c && c->outmac != -1){
+	if(c && c->outmac != -1) {
 		maclen = SHA1dlen;
 		buf = emalloc9p(Maxpktpay);
 		hnputl(buf, c->outseq);
@@ -174,11 +174,11 @@ finish_packet(Packet *p)
 	}
 	if(c && c->encrypt != -1)
 		cryptos[c->encrypt]->encrypt(c->enccs, p->nlength, p->rlength + 4);
-	if (c)
+	if(c)
 		c->outseq++;
 	if(debug > 1)
 		fprint(2, "%s: leaving finish packet: len %ld n1 %d n2 %d maclen %d\n",
-			argv0, p->rlength, n1, n2, maclen);
+		       argv0, p->rlength, n1, n2, maclen);
 	return p->rlength + 4 + maclen;
 }
 
@@ -199,20 +199,20 @@ undo_packet(Packet *p)
 	if(c->decrypt != -1)
 		nb = cryptos[c->decrypt]->blklen;
 	if(c->inmac != -1)
-		p->rlength -= SHA1dlen;			/* was magic 20 */
+		p->rlength -= SHA1dlen; /* was magic 20 */
 	nlength = nhgetl(p->nlength);
 	if(c->decrypt != -1)
 		cryptos[c->decrypt]->decrypt(c->deccs, p->nlength + nb,
-			p->rlength + 4 - nb);
-	if(c->inmac != -1){
+					     p->rlength + 4 - nb);
+	if(c->inmac != -1) {
 		buf = emalloc9p(Maxpktpay);
 		hnputl(buf, c->inseq);
 		memmove(buf + 4, p->nlength, nlength + 4);
 		hmac_sha1(buf, nlength + 8, c->inik, SHA1dlen, rmac, nil);
 		free(buf);
-		if(memcmp(rmac, p->payload + nlength - 1, SHA1dlen) != 0){
+		if(memcmp(rmac, p->payload + nlength - 1, SHA1dlen) != 0) {
 			fprint(2, "%s: received MAC verification failed: seq=%d\n",
-				argv0, c->inseq);
+			       argv0, c->inseq);
 			return -1;
 		}
 	}
@@ -231,11 +231,11 @@ dump_packet(Packet *p)
 	fprint(2, "Length: %ld, Padding length: %d\n", p->rlength, p->pad_len);
 	q = buf = emalloc9p(Copybufsz);
 	e = buf + Copybufsz;
-	for(i = 0; i < p->rlength - 1; ++i){
+	for(i = 0; i < p->rlength - 1; ++i) {
 		q = seprint(q, e, " %02x", p->payload[i]);
 		if(i % 16 == 15)
 			q = seprint(q, e, "\n");
-		if(q - buf > Copybufsz - 4){
+		if(q - buf > Copybufsz - 4) {
 			fprint(2, "%s", buf);
 			q = buf;
 		}

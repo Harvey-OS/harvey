@@ -10,7 +10,7 @@
 /* Parameters derived from machine and compiler architecture. */
 /* This file is generated mechanically by genarch.c. */
 
-	 /* ---------------- Scalar alignments ---------------- */
+/* ---------------- Scalar alignments ---------------- */
 
 #define ARCH_ALIGN_SHORT_MOD 2
 #define ARCH_ALIGN_INT_MOD 4
@@ -20,7 +20,7 @@
 #define ARCH_ALIGN_DOUBLE_MOD 4
 #define ARCH_ALIGN_STRUCT_MOD 4
 
-	 /* ---------------- Scalar sizes ---------------- */
+/* ---------------- Scalar sizes ---------------- */
 
 #define ARCH_LOG2_SIZEOF_CHAR 0
 #define ARCH_LOG2_SIZEOF_SHORT 1
@@ -33,19 +33,19 @@
 #define ARCH_FLOAT_MANTISSA_BITS 24
 #define ARCH_DOUBLE_MANTISSA_BITS 53
 
-	 /* ---------------- Unsigned max values ---------------- */
+/* ---------------- Unsigned max values ---------------- */
 
 #define ARCH_MAX_UCHAR ((unsigned char)0xff + (unsigned char)0)
 #define ARCH_MAX_USHORT ((unsigned short)0xffff + (unsigned short)0)
 #define ARCH_MAX_UINT ((unsigned int)~0 + (unsigned int)0)
 #define ARCH_MAX_ULONG ((unsigned long)~0L + (unsigned long)0)
 
-	 /* ---------------- Cache sizes ---------------- */
+/* ---------------- Cache sizes ---------------- */
 
 #define ARCH_CACHE1_SIZE 131072
 #define ARCH_CACHE2_SIZE 4194304
 
-	 /* ---------------- Miscellaneous ---------------- */
+/* ---------------- Miscellaneous ---------------- */
 
 #define ARCH_IS_BIG_ENDIAN 0
 #define ARCH_PTRS_ARE_SIGNED 0

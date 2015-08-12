@@ -26,7 +26,7 @@
 /* $Id: gsfname.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 
 #ifndef gsfname_INCLUDED
-#  define gsfname_INCLUDED
+#define gsfname_INCLUDED
 
 /*
  * Structure and procedures for parsing file names.
@@ -39,15 +39,15 @@
  * Do not simply allocate the structure and fill it in.
  */
 #ifndef gx_io_device_DEFINED
-#  define gx_io_device_DEFINED
+#define gx_io_device_DEFINED
 typedef struct gx_io_device_s gx_io_device;
 #endif
 
 typedef struct gs_parsed_file_name_s {
-    gs_memory_t *memory;	/* allocator for terminated name string */
-    gx_io_device *iodev;
-    const char *fname;
-    uint len;
+	gs_memory_t *memory; /* allocator for terminated name string */
+	gx_io_device *iodev;
+	const char *fname;
+	uint len;
 } gs_parsed_file_name_t;
 
 /* Parse a file name into device and individual name. */

@@ -27,8 +27,7 @@
 /* Dropout prevention for a character rasterization. */
 
 #ifndef gxfdrop_INCLUDED
-#  define gxfdrop_INCLUDED
-
+#define gxfdrop_INCLUDED
 
 /*  The structure margin_set and related structures and functions are used for 
     preventing dropouts rasterizing a character with zero fill adjustment. The purpose
@@ -80,35 +79,35 @@
 /*
  * Configuration flags for the dropout prevention code.
  */
-#define ADJUST_SERIF 1 /* See comments near occurances. */
+#define ADJUST_SERIF 1		/* See comments near occurances. */
 #define CHECK_SPOT_CONTIGUITY 1 /* See comments near occurances. */
 
 #ifndef active_line_DEFINED
-#  define active_line_DEFINED
+#define active_line_DEFINED
 typedef struct active_line_s active_line;
 #endif
 
 #ifndef line_list_DEFINED
-#  define line_list_DEFINED
+#define line_list_DEFINED
 typedef struct line_list_s line_list;
 #endif
 
-typedef struct margin_s
-{   int ibeg, iend; /* Pixel indices of an interval to paint. */
-    struct margin_s *prev, *next;
+typedef struct margin_s {
+	int ibeg, iend; /* Pixel indices of an interval to paint. */
+	struct margin_s *prev, *next;
 } margin;
 
-typedef struct section_s
-{   short y0, y1; /* Fraction part of y coordinates of intersections of the margin with line x==i + bbox_left */
+typedef struct section_s {
+	short y0, y1; /* Fraction part of y coordinates of intersections of the margin with line x==i + bbox_left */
 #if ADJUST_SERIF && CHECK_SPOT_CONTIGUITY
-    short x0, x1; /* Pixel coverage by X for checking the contiguity. */
+	short x0, x1; /* Pixel coverage by X for checking the contiguity. */
 #endif
 } section;
 
-typedef struct margin_set_s
-{   fixed y; 
-    margin *margin_list, *margin_touched;
-    section *sect;
+typedef struct margin_set_s {
+	fixed y;
+	margin *margin_list, *margin_touched;
+	section *sect;
 } margin_set;
 
 extern_st(st_section);
@@ -120,11 +119,11 @@ extern_st(st_section);
 #define VD_MARG_COLOR RGB(255, 0, 0)
 
 void init_section(section *sect, int i0, int i1);
-void free_all_margins(line_list * ll);
-int close_margins(gx_device * dev, line_list * ll, margin_set *ms);
-int process_h_lists(line_list * ll, active_line * plp, active_line * flp, active_line * alp, fixed y0, fixed y1);
-int margin_interior(line_list * ll, active_line * flp, active_line * alp, fixed y0, fixed y1);
-int start_margin_set(gx_device * dev, line_list * ll, fixed y0);
-int continue_margin_common(line_list * ll, margin_set * set, active_line * flp, active_line * alp, fixed y0, fixed y1);
+void free_all_margins(line_list *ll);
+int close_margins(gx_device *dev, line_list *ll, margin_set *ms);
+int process_h_lists(line_list *ll, active_line *plp, active_line *flp, active_line *alp, fixed y0, fixed y1);
+int margin_interior(line_list *ll, active_line *flp, active_line *alp, fixed y0, fixed y1);
+int start_margin_set(gx_device *dev, line_list *ll, fixed y0);
+int continue_margin_common(line_list *ll, margin_set *set, active_line *flp, active_line *alp, fixed y0, fixed y1);
 
 #endif /* gxfdrop_INCLUDED */

@@ -14,13 +14,13 @@
 #include <u.h>
 #include <libc.h>
 
-int	uflag;
-int	aflag;
-int	*openf;
+int uflag;
+int aflag;
+int *openf;
 
 char in[8192];
 
-int	intignore(void *c, char*);
+int intignore(void *c, char *);
 
 void
 main(int argc, char **argv)
@@ -28,7 +28,8 @@ main(int argc, char **argv)
 	int i;
 	int r, n;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'a':
 		aflag++;
 		break;
@@ -45,9 +46,10 @@ main(int argc, char **argv)
 	default:
 		fprint(2, "usage: tee [-ai] [file ...]\n");
 		exits("usage");
-	} ARGEND
+	}
+	ARGEND
 
-	openf = malloc((1+argc)*sizeof(int));
+	openf = malloc((1 + argc) * sizeof(int));
 	if(openf == nil)
 		sysfatal("out of memory: %r");
 
@@ -72,7 +74,7 @@ main(int argc, char **argv)
 		r = read(0, in, sizeof in);
 		if(r <= 0)
 			exits(nil);
-		for(i=0; i<n; i++)
+		for(i = 0; i < n; i++)
 			write(openf[i], in, r);
 	}
 }

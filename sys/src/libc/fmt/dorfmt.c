@@ -22,11 +22,11 @@ dorfmt(Fmt *f, Rune *fmt)
 	int nfmt;
 
 	nfmt = f->nfmt;
-	for(;;){
-		if(f->runes){
+	for(;;) {
+		if(f->runes) {
 			rt = f->to;
 			rs = f->stop;
-			while((r = *fmt++) && r != '%'){
+			while((r = *fmt++) && r != '%') {
 				FMTRCHAR(f, rt, rs, r);
 			}
 			f->nfmt += rt - (Rune *)f->to;
@@ -34,10 +34,10 @@ dorfmt(Fmt *f, Rune *fmt)
 			if(!r)
 				return f->nfmt - nfmt;
 			f->stop = rs;
-		}else{
+		} else {
 			t = f->to;
 			s = f->stop;
-			while((r = *fmt++) && r != '%'){
+			while((r = *fmt++) && r != '%') {
 				FMTRUNE(f, t, f->stop, r);
 			}
 			f->nfmt += t - (char *)f->to;

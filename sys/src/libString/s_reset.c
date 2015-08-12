@@ -11,10 +11,10 @@
 #include <libc.h>
 #include "String.h"
 
-String*
+String *
 s_reset(String *s)
 {
-	if(s != nil){
+	if(s != nil) {
 		s = s_unique(s);
 		s->ptr = s->base;
 		*s->ptr = '\0';
@@ -23,7 +23,7 @@ s_reset(String *s)
 	return s;
 }
 
-String*
+String *
 s_restart(String *s)
 {
 	s = s_unique(s);

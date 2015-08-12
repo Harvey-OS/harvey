@@ -35,7 +35,7 @@ static void fdsetup(char *, char *);
 static void sigsetup(char *, char *);
 
 enum {
-	Envhunk=7000,
+	Envhunk = 7000,
 };
 
 void
@@ -44,11 +44,11 @@ _envsetup(void)
 	int dfd, fdinited, n, nd, m, i, j, f, nohandle, psize, cnt;
 	char *ps, *p;
 	char **pp;
-	char name[NAME_MAX+5];
+	char name[NAME_MAX + 5];
 	Dir *d9, *d9a;
 	static char **emptyenvp = 0;
 
-	environ = emptyenvp;		/* pessimism */
+	environ = emptyenvp; /* pessimism */
 	nohandle = 0;
 	fdinited = 0;
 	cnt = 0;
@@ -63,17 +63,17 @@ _envsetup(void)
 	psize = Envhunk;
 	nd = _dirreadall(dfd, &d9a);
 	_CLOSE(dfd);
-	for(j=0; j<nd; j++){
+	for(j = 0; j < nd; j++) {
 		d9 = &d9a[j];
 		n = strlen(d9->name);
 		if(n >= sizeof name - 4)
-			continue;	/* shouldn't be possible */
+			continue; /* shouldn't be possible */
 		m = d9->length;
 		i = p - ps;
-		if(i+n+1+m+1 > psize) {
-			psize += (n+m+2 < Envhunk)? Envhunk : n+m+2;
+		if(i + n + 1 + m + 1 > psize) {
+			psize += (n + m + 2 < Envhunk) ? Envhunk : n + m + 2;
 			ps = realloc(ps, psize);
-			if (ps == 0) {
+			if(ps == 0) {
 				free(d9a);
 				return;
 			}
@@ -81,39 +81,39 @@ _envsetup(void)
 		}
 		memcpy(p, d9->name, n);
 		p[n] = '=';
-		strcpy(name+3, d9->name);
+		strcpy(name + 3, d9->name);
 		f = _OPEN(name, O_RDONLY);
-		if(f < 0 || _READ(f, p+n+1, m) != m)
+		if(f < 0 || _READ(f, p + n + 1, m) != m)
 			m = 0;
 		_CLOSE(f);
-		if(p[n+m] == 0)
+		if(p[n + m] == 0)
 			m--;
-		for(i=0; i<m; i++)
-			if(p[n+1+i] == 0)
-				p[n+1+i] = 1;
-		p[n+1+m] = 0;
+		for(i = 0; i < m; i++)
+			if(p[n + 1 + i] == 0)
+				p[n + 1 + i] = 1;
+		p[n + 1 + m] = 0;
 		if(strcmp(d9->name, "_fdinfo") == 0) {
-			_fdinit(p+n+1, p+n+1+m);
+			_fdinit(p + n + 1, p + n + 1 + m);
 			fdinited = 1;
 		} else if(strcmp(d9->name, "_sighdlr") == 0)
-			sigsetup(p+n+1, p+n+1+m);
+			sigsetup(p + n + 1, p + n + 1 + m);
 		else if(strcmp(d9->name, "nohandle") == 0)
 			nohandle = 1;
-		p += n+m+2;
+		p += n + m + 2;
 		cnt++;
 	}
 	free(d9a);
 	if(!fdinited)
 		_fdinit(0, 0);
-	pp = malloc((1+cnt)*sizeof(char *));
-	if (pp == 0)
+	pp = malloc((1 + cnt) * sizeof(char *));
+	if(pp == 0)
 		return;
 	environ = pp;
 	p = ps;
 	for(i = 0; i < cnt; i++) {
 		*pp++ = p;
-		p = memchr(p, 0, ps+psize-p);
-		if (!p)
+		p = memchr(p, 0, ps + psize - p);
+		if(!p)
 			break;
 		p++;
 	}
@@ -128,7 +128,7 @@ sigsetup(char *s, char *se)
 	int sig;
 	char *e;
 
-	while(s < se){
+	while(s < se) {
 		sig = strtoul(s, &e, 10);
 		if(s == e)
 			break;

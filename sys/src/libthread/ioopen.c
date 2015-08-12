@@ -18,7 +18,7 @@ _ioopen(va_list *arg)
 	char *path;
 	int mode;
 
-	path = va_arg(*arg, char*);
+	path = va_arg(*arg, char *);
 	mode = va_arg(*arg, int);
 	return open(path, mode);
 }

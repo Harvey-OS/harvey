@@ -37,9 +37,9 @@ smbconnect(char *to, char *share, char **errmsgp)
 	peerinfo.oemdomainname = nil;
 	assert(smbglobals.nbname[0] != 0);
 	nbs = nbssconnect(nbto, smbglobals.nbname);
-	if (nbs == nil)
+	if(nbs == nil)
 		return nil;
-print("netbios session established\n");
+	print("netbios session established\n");
 	b = smbbuffernew(65535);
 	memset(&h, 0, sizeof(h));
 	h.command = SMB_COM_NEGOTIATE;
@@ -59,40 +59,49 @@ print("netbios session established\n");
 	 */
 	smbbufferreset(b);
 	n = nbssread(nbs, smbbufferwritepointer(b), smbbufferwritespace(b));
-	if (n < 0) {
+	if(n < 0) {
 		smbstringprint(errmsgp, "smbconnect: read error: %r");
 		goto fail;
 	}
 	smbbuffersetreadlen(b, n);
 	nbdumpdata(smbbufferreadpointer(b), smbbufferwriteoffset(b));
-	if (!smbbuffergetandcheckheader(b, &rh, h.command, 1, &pdata, &bytecount, errmsgp))
+	if(!smbbuffergetandcheckheader(b, &rh, h.command, 1, &pdata, &bytecount, errmsgp))
 		goto fail;
-	if (!smbsuccess(&rh, errmsgp))
+	if(!smbsuccess(&rh, errmsgp))
 		goto fail;
-	if (rh.wordcount == 0) {
+	if(rh.wordcount == 0) {
 		smbstringprint(errmsgp, "no parameters in negotiate response");
 		goto fail;
 	}
-	index = smbnhgets(pdata); pdata += 2;
-	if (index != 0) {
+	index = smbnhgets(pdata);
+	pdata += 2;
+	if(index != 0) {
 		smbstringprint(errmsgp, "no agreement on protocol");
 		goto fail;
 	}
-	if (rh.wordcount != 17) {
+	if(rh.wordcount != 17) {
 		smbstringprint(errmsgp, "wrong number of parameters for negotiate response");
 		goto fail;
 	}
 	peerinfo.securitymode = *pdata++;
-	peerinfo.maxmpxcount = smbnhgets(pdata); pdata += 2;
-	peerinfo.maxnumbervcs = smbnhgets(pdata); pdata += 2;
-	peerinfo.maxbuffersize = smbnhgetl(pdata); pdata += 4;
-	peerinfo.maxrawsize = smbnhgetl(pdata); pdata += 4;
-	peerinfo.sessionkey = smbnhgets(pdata); pdata += 4;
-	peerinfo.capabilities = smbnhgets(pdata); pdata += 4;
-	utcintenthsofaus = smbnhgetv(pdata); pdata += 8;
+	peerinfo.maxmpxcount = smbnhgets(pdata);
+	pdata += 2;
+	peerinfo.maxnumbervcs = smbnhgets(pdata);
+	pdata += 2;
+	peerinfo.maxbuffersize = smbnhgetl(pdata);
+	pdata += 4;
+	peerinfo.maxrawsize = smbnhgetl(pdata);
+	pdata += 4;
+	peerinfo.sessionkey = smbnhgets(pdata);
+	pdata += 4;
+	peerinfo.capabilities = smbnhgets(pdata);
+	pdata += 4;
+	utcintenthsofaus = smbnhgetv(pdata);
+	pdata += 8;
 	secssince1970 = utcintenthsofaus / 10000000 - 11644473600LL;
-	peerinfo.utc =  (int64_t)secssince1970 * (int64_t)1000000000 + (utcintenthsofaus % 10000000) * 100;
-	peerinfo.tzoff = -smbnhgets(pdata) * 60; pdata += 2;
+	peerinfo.utc = (int64_t)secssince1970 * (int64_t)1000000000 + (utcintenthsofaus % 10000000) * 100;
+	peerinfo.tzoff = -smbnhgets(pdata) * 60;
+	pdata += 2;
 	peerinfo.encryptionkeylength = *pdata++;
 	print("securitymode: 0x%.2ux\n", peerinfo.securitymode);
 	print("maxmpxcount: 0x%.4ux\n", peerinfo.maxmpxcount);
@@ -105,20 +114,20 @@ print("netbios session established\n");
 	print("tzoff: %d\n", peerinfo.tzoff);
 	print("encryptionkeylength: %d\n", peerinfo.encryptionkeylength);
 	smberealloc(&peerinfo.encryptionkey, peerinfo.encryptionkeylength);
-	if (!smbbuffergetbytes(b, peerinfo.encryptionkey, peerinfo.encryptionkeylength)) {
+	if(!smbbuffergetbytes(b, peerinfo.encryptionkey, peerinfo.encryptionkeylength)) {
 		smbstringprint(errmsgp, "not enough data for encryption key");
 		goto fail;
 	}
 	print("encryptionkey: ");
-	for (x = 0; x < peerinfo.encryptionkeylength; x++)
+	for(x = 0; x < peerinfo.encryptionkeylength; x++)
 		print("%.2ux", peerinfo.encryptionkey[x]);
 	print("\n");
-	if (!smbbuffergetucs2(b, 0, &peerinfo.oemdomainname)) {
+	if(!smbbuffergetucs2(b, 0, &peerinfo.oemdomainname)) {
 		smbstringprint(errmsgp, "not enough data for oemdomainname");
 		goto fail;
 	}
 	print("oemdomainname: %s\n", peerinfo.oemdomainname);
-	if (peerinfo.capabilities & CAP_EXTENDED_SECURITY) {
+	if(peerinfo.capabilities & CAP_EXTENDED_SECURITY) {
 		smbstringprint(errmsgp, "server wants extended security");
 		goto fail;
 	}
@@ -130,7 +139,7 @@ print("netbios session established\n");
 	h.command = SMB_COM_SESSION_SETUP_ANDX;
 	h.wordcount = 13;
 	h.flags2 &= ~SMB_FLAGS2_UNICODE;
-	if (smbsendunicode(&peerinfo))
+	if(smbsendunicode(&peerinfo))
 		h.flags2 |= SMB_FLAGS2_UNICODE;
 	smbbufferputheader(b, &h, &peerinfo);
 	smbbufferputb(b, SMB_COM_TREE_CONNECT_ANDX);
@@ -147,10 +156,10 @@ print("netbios session established\n");
 	smbbufferputl(b, CAP_UNICODE | CAP_LARGE_FILES);
 	bytecountfixupoffset = smbbufferwriteoffset(b);
 	smbbufferputs(b, 0);
-	if (auth_respond(peerinfo.encryptionkey, peerinfo.encryptionkeylength,
-		nil, 0,
-		&mschapreply, sizeof(mschapreply), auth_getkey,
-		"proto=mschap role=client server=%s", "cher") != sizeof(mschapreply)) {
+	if(auth_respond(peerinfo.encryptionkey, peerinfo.encryptionkeylength,
+			nil, 0,
+			&mschapreply, sizeof(mschapreply), auth_getkey,
+			"proto=mschap role=client server=%s", "cher") != sizeof(mschapreply)) {
 		print("auth_respond failed: %r\n");
 		goto fail;
 	}
@@ -180,22 +189,22 @@ print("netbios session established\n");
 	nbsswrite(nbs, smbbufferreadpointer(b), smbbufferwriteoffset(b));
 	smbbufferreset(b);
 	n = nbssread(nbs, smbbufferwritepointer(b), smbbufferwritespace(b));
-	if (n < 0) {
+	if(n < 0) {
 		smbstringprint(errmsgp, "read error: %r");
 		goto fail;
 	}
 	smbbuffersetreadlen(b, n);
 	nbdumpdata(smbbufferreadpointer(b), smbbufferwriteoffset(b));
-	if (!smbbuffergetandcheckheader(b, &rh, h.command, 1, &pdata, &bytecount, errmsgp))
+	if(!smbbuffergetandcheckheader(b, &rh, h.command, 1, &pdata, &bytecount, errmsgp))
 		goto fail;
-	if (!smbsuccess(&rh, errmsgp))
+	if(!smbsuccess(&rh, errmsgp))
 		goto fail;
 	h.uid = rh.uid;
 	ipctid = rh.tid;
 	/*
 	 * now do another TREE_CONNECT if needed
 	 */
-	if (share) {
+	if(share) {
 		smbbufferreset(b);
 		h.command = SMB_COM_TREE_CONNECT_ANDX;
 		h.wordcount = 4;
@@ -219,19 +228,18 @@ print("netbios session established\n");
 		nbsswrite(nbs, smbbufferreadpointer(b), smbbufferwriteoffset(b));
 		smbbufferreset(b);
 		n = nbssread(nbs, smbbufferwritepointer(b), smbbufferwritespace(b));
-		if (n < 0) {
+		if(n < 0) {
 			smbstringprint(errmsgp, "read error: %r");
 			goto fail;
 		}
 		smbbuffersetreadlen(b, n);
 		nbdumpdata(smbbufferreadpointer(b), smbbufferwriteoffset(b));
-		if (!smbbuffergetandcheckheader(b, &rh, h.command, 3, &pdata, &bytecount, errmsgp))
+		if(!smbbuffergetandcheckheader(b, &rh, h.command, 3, &pdata, &bytecount, errmsgp))
 			goto fail;
-		if (!smbsuccess(&rh, errmsgp))
+		if(!smbsuccess(&rh, errmsgp))
 			goto fail;
 		sharetid = rh.tid;
-	}
-	else
+	} else
 		sharetid = -2;
 	c = smbemalloc(sizeof(*c));
 	c->peerinfo = peerinfo;
@@ -251,7 +259,7 @@ fail:
 void
 smbclientfree(SmbClient *c)
 {
-	if (c) {
+	if(c) {
 		free(c->peerinfo.encryptionkey);
 		free(c->peerinfo.oemdomainname);
 		free(c);
@@ -263,22 +271,21 @@ int
 smbtransactionclientsend(void *magic, SmbBuffer *ob, char **)
 {
 	SmbClient *c = magic;
-smblogprint(-1, "sending:\n");
-smblogdata(-1, smblogprint, smbbufferreadpointer(ob), smbbufferwriteoffset(ob), 256);
+	smblogprint(-1, "sending:\n");
+	smblogdata(-1, smblogprint, smbbufferreadpointer(ob), smbbufferwriteoffset(ob), 256);
 	return nbsswrite(c->nbss, smbbufferreadpointer(ob), smbbufferwriteoffset(ob)) == 0;
 }
 
 int
 smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **)
 {
-	int32_t n; 
+	int32_t n;
 	SmbClient *c = magic;
 	smbbufferreset(ib);
 	n = nbssread(c->nbss, smbbufferwritepointer(ib), smbbufferwritespace(ib));
-	if (n >= 0) {
+	if(n >= 0) {
 		assert(smbbufferputbytes(ib, nil, n));
 		return 1;
 	}
 	return 0;
 }
-

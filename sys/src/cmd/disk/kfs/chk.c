@@ -7,56 +7,55 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-#define	DSIZE		546000
-#define	MAXDEPTH	100
+#define DSIZE 546000
+#define MAXDEPTH 100
 
-static	char*	abits;
-static	int32_t	sizabits;
-static	char*	qbits;
-static	int32_t	sizqbits;
-static	char*	name;
-static	int32_t	sizname;
-static	int32_t	fstart;
-static	int32_t	fsize;
-static	int32_t	nfiles;
-static	int32_t	maxq;
-static	char*	fence;
-static	char*	fencebase;
-static	Device	dev;
-static	int32_t	ndup;
-static	int32_t	nused;
-static	int32_t	nfdup;
-static	int32_t	nqbad;
-static	int32_t	nfree;
-static	int32_t	nbad;
-static	int	mod;
-static	int	flags;
-static	int	ronly;
-static	int	cwflag;
-static	int32_t	sbaddr;
-static	int32_t	oldblock;
-static	int	depth;
-static	int	maxdepth;
+static char *abits;
+static int32_t sizabits;
+static char *qbits;
+static int32_t sizqbits;
+static char *name;
+static int32_t sizname;
+static int32_t fstart;
+static int32_t fsize;
+static int32_t nfiles;
+static int32_t maxq;
+static char *fence;
+static char *fencebase;
+static Device dev;
+static int32_t ndup;
+static int32_t nused;
+static int32_t nfdup;
+static int32_t nqbad;
+static int32_t nfree;
+static int32_t nbad;
+static int mod;
+static int flags;
+static int ronly;
+static int cwflag;
+static int32_t sbaddr;
+static int32_t oldblock;
+static int depth;
+static int maxdepth;
 
 /* local prototypes */
-static	int	fsck(Dentry*);
-static	void	ckfreelist(Superb*);
-static	void	mkfreelist(Superb*);
-static	Dentry*	maked(int32_t, int, int32_t);
-static	void	modd(int32_t, int, Dentry*);
-static	void	xread(int32_t, int32_t);
-static	int	amark(int32_t);
-static	int	fmark(int32_t);
-static	void	missing(void);
-static	void	qmark(int32_t);
-static	void*	zalloc(uint32_t);
-static	void*	dalloc(uint32_t);
-static	Iobuf*	xtag(int32_t, int, int32_t);
+static int fsck(Dentry *);
+static void ckfreelist(Superb *);
+static void mkfreelist(Superb *);
+static Dentry *maked(int32_t, int, int32_t);
+static void modd(int32_t, int, Dentry *);
+static void xread(int32_t, int32_t);
+static int amark(int32_t);
+static int fmark(int32_t);
+static void missing(void);
+static void qmark(int32_t);
+static void *zalloc(uint32_t);
+static void *dalloc(uint32_t);
+static Iobuf *xtag(int32_t, int, int32_t);
 
-static
-void*
+static void *
 zalloc(uint32_t n)
 {
 	char *p;
@@ -68,17 +67,16 @@ zalloc(uint32_t n)
 	return p;
 }
 
-static
-void*
+static void *
 dalloc(uint32_t n)
 {
 	char *p;
 
 	if(fencebase == 0)
-		fence = fencebase = zalloc(MAXDEPTH*sizeof(Dentry));
+		fence = fencebase = zalloc(MAXDEPTH * sizeof(Dentry));
 	p = fence;
 	fence += n;
-	if(fence > fencebase+MAXDEPTH*sizeof(Dentry))
+	if(fence > fencebase + MAXDEPTH * sizeof(Dentry))
 		panic("dalloc too much memory\n");
 	return p;
 }
@@ -99,29 +97,29 @@ check(Filsys *fs, int32_t flag)
 
 	sizname = 4000;
 	name = zalloc(sizname);
-	sizname -= NAMELEN+10;	/* for safety */
+	sizname -= NAMELEN + 10; /* for safety */
 
 	sbaddr = superaddr(dev);
 	raddr = getraddr(dev);
 	p = xtag(sbaddr, Tsuper, QPSUPER);
-	if(!p){
+	if(!p) {
 		cprint("bad superblock\n");
 		goto out;
 	}
-	sb = (Superb*)p->iobuf;
+	sb = (Superb *)p->iobuf;
 	fstart = 1;
 
 	fsize = sb->fsize;
-	sizabits = (fsize-fstart + 7)/8;
+	sizabits = (fsize - fstart + 7) / 8;
 	abits = zalloc(sizabits);
 
-	nqid = sb->qidgen+100;		/* not as much of a botch */
-	if(nqid > 1024*1024*8)
-		nqid = 1024*1024*8;
-	if(nqid < 64*1024)
-		nqid = 64*1024;
+	nqid = sb->qidgen + 100; /* not as much of a botch */
+	if(nqid > 1024 * 1024 * 8)
+		nqid = 1024 * 1024 * 8;
+	if(nqid < 64 * 1024)
+		nqid = 64 * 1024;
 
-	sizqbits = (nqid+7)/8;
+	sizqbits = (nqid + 7) / 8;
 	qbits = zalloc(sizqbits);
 
 	mod = 0;
@@ -135,19 +133,19 @@ check(Filsys *fs, int32_t flag)
 	maxdepth = 0;
 
 	if(flags & Ctouch) {
-		oldblock = fsize/DSIZE;
+		oldblock = fsize / DSIZE;
 		oldblock *= DSIZE;
 		if(oldblock < 0)
 			oldblock = 0;
 		cprint("oldblock = %ld\n", oldblock);
 	}
-	if(amark(sbaddr))
-		{}
+	if(amark(sbaddr)) {
+	}
 	if(cwflag) {
-		if(amark(sb->roraddr))
-			{}
-		if(amark(sb->next))
-			{}
+		if(amark(sb->roraddr)) {
+		}
+		if(amark(sb->next)) {
+		}
 	}
 
 	if(!(flags & Cquiet))
@@ -157,8 +155,8 @@ check(Filsys *fs, int32_t flag)
 
 	d = maked(raddr, 0, QPROOT);
 	if(d) {
-		if(amark(raddr))
-			{}
+		if(amark(raddr)) {
+		}
 		if(fsck(d))
 			modd(raddr, 0, d);
 		depth--;
@@ -175,7 +173,7 @@ check(Filsys *fs, int32_t flag)
 
 	if(sb->qidgen < maxq)
 		cprint("qid generator low path=%ld maxq=%ld\n",
-			sb->qidgen, maxq);
+		       sb->qidgen, maxq);
 	if(!(flags & Cfree))
 		ckfreelist(sb);
 	if(mod) {
@@ -183,19 +181,19 @@ check(Filsys *fs, int32_t flag)
 		settag(p, Tsuper, QPNONE);
 	}
 
-	if(!(flags & Cquiet)){
+	if(!(flags & Cquiet)) {
 		cprint("%8ld files\n", nfiles);
-		cprint("%8ld blocks in the file system\n", fsize-fstart);
+		cprint("%8ld blocks in the file system\n", fsize - fstart);
 		cprint("%8ld used blocks\n", nused);
 		cprint("%8ld free blocks\n", sb->tfree);
 	}
-	if(!(flags & Cfree)){
+	if(!(flags & Cfree)) {
 		if(nfree != sb->tfree)
 			cprint("%8ld free blocks found\n", nfree);
 		if(nfdup)
 			cprint("%8ld blocks duplicated in the free list\n", nfdup);
-		if(fsize-fstart-nused-nfree)
-			cprint("%8ld missing blocks\n", fsize-fstart-nused-nfree);
+		if(fsize - fstart - nused - nfree)
+			cprint("%8ld missing blocks\n", fsize - fstart - nused - nfree);
 	}
 	if(ndup)
 		cprint("%8ld address duplications\n", ndup);
@@ -216,14 +214,13 @@ out:
 	wunlock(&mainlock);
 }
 
-static
-int
+static int
 touch(int32_t a)
 {
 	Iobuf *p;
 
-	if((flags&Ctouch) && a && a < oldblock){
-		p = getbuf(dev, a, Bread|Bmod);
+	if((flags & Ctouch) && a && a < oldblock) {
+		p = getbuf(dev, a, Bread | Bmod);
 		if(p)
 			putbuf(p);
 		return 1;
@@ -231,8 +228,7 @@ touch(int32_t a)
 	return 0;
 }
 
-static
-int
+static int
 checkdir(int32_t a, int32_t qpath)
 {
 	Dentry *nd;
@@ -240,7 +236,7 @@ checkdir(int32_t a, int32_t qpath)
 
 	ns = strlen(name);
 	dmod = touch(a);
-	for(i=0; i<DIRPERBUF; i++) {
+	for(i = 0; i < DIRPERBUF; i++) {
 		nd = maked(a, i, qpath);
 		if(!nd)
 			break;
@@ -256,8 +252,7 @@ checkdir(int32_t a, int32_t qpath)
 	return dmod;
 }
 
-static
-int
+static int
 checkindir(int32_t a, Dentry *d, int32_t qpath)
 {
 	Iobuf *p;
@@ -267,13 +262,13 @@ checkindir(int32_t a, Dentry *d, int32_t qpath)
 	p = xtag(a, Tind1, qpath);
 	if(!p)
 		return dmod;
-	for(i=0; i<INDPERBUF; i++) {
-		a = ((int32_t*)p->iobuf)[i];
+	for(i = 0; i < INDPERBUF; i++) {
+		a = ((int32_t *)p->iobuf)[i];
 		if(!a)
 			continue;
 		if(amark(a)) {
 			if(flags & Cbad) {
-				((int32_t*)p->iobuf)[i] = 0;
+				((int32_t *)p->iobuf)[i] = 0;
 				p->flags |= Bmod;
 			}
 			continue;
@@ -287,8 +282,7 @@ checkindir(int32_t a, Dentry *d, int32_t qpath)
 	return dmod;
 }
 
-static
-int
+static int
 fsck(Dentry *d)
 {
 	char *s;
@@ -298,9 +292,9 @@ fsck(Dentry *d)
 	int32_t a, qpath;
 
 	depth++;
-	if(depth >= maxdepth){
+	if(depth >= maxdepth) {
 		maxdepth = depth;
-		if(maxdepth >= MAXDEPTH){
+		if(maxdepth >= MAXDEPTH) {
 			cprint("max depth exceeded: %s\n", name);
 			return 0;
 		}
@@ -312,20 +306,20 @@ fsck(Dentry *d)
 
 	ns = strlen(name);
 	i = strlen(d->name);
-	if(i >= NAMELEN){
-		d->name[NAMELEN-1] = 0;
+	if(i >= NAMELEN) {
+		d->name[NAMELEN - 1] = 0;
 		cprint("%s->name (%s) not terminated\n", name, d->name);
 		return 0;
 	}
 	ns += i;
-	if(ns >= sizname){
+	if(ns >= sizname) {
 		cprint("%s->name (%s) name too large\n", name, d->name);
 		return 0;
 	}
-	for (s = d->name; *s; s += l){
+	for(s = d->name; *s; s += l) {
 		l = chartorune(&r, s);
-		if (r == Runeerror)
-			for (i = 0; i < l; i++){
+		if(r == Runeerror)
+			for(i = 0; i < l; i++) {
 				s[i] = '_';
 				cprint("%s->name (%s) bad UTF\n", name, d->name);
 				dmod++;
@@ -333,20 +327,19 @@ fsck(Dentry *d)
 	}
 	strcat(name, d->name);
 
-	if(d->mode & DDIR){
+	if(d->mode & DDIR) {
 		if(ns > 1)
 			strcat(name, "/");
 		if(flags & Cpdir)
 			cprint("%s\n", name);
-	} else
-	if(flags & Cpfile)
+	} else if(flags & Cpfile)
 		cprint("%s\n", name);
 
 	qpath = d->qid.path & ~QPDIR;
 	qmark(qpath);
 	if(qpath > maxq)
 		maxq = qpath;
-	for(i=0; i<NDBLOCK; i++) {
+	for(i = 0; i < NDBLOCK; i++) {
 		a = d->dblock[i];
 		if(!a)
 			continue;
@@ -364,8 +357,7 @@ fsck(Dentry *d)
 	if(a && amark(a)) {
 		d->iblock = 0;
 		dmod++;
-	}
-	else if(a)
+	} else if(a)
 		dmod += checkindir(a, d, qpath);
 
 	a = d->diblock;
@@ -374,14 +366,14 @@ fsck(Dentry *d)
 		return dmod + 1;
 	}
 	dmod += touch(a);
-	if(p = xtag(a, Tind2, qpath)){
-		for(i=0; i<INDPERBUF; i++){
-			a = ((int32_t*)p->iobuf)[i];
+	if(p = xtag(a, Tind2, qpath)) {
+		for(i = 0; i < INDPERBUF; i++) {
+			a = ((int32_t *)p->iobuf)[i];
 			if(!a)
 				continue;
 			if(amark(a)) {
 				if(flags & Cbad) {
-					((int32_t*)p->iobuf)[i] = 0;
+					((int32_t *)p->iobuf)[i] = 0;
 					p->flags |= Bmod;
 				}
 				continue;
@@ -393,15 +385,13 @@ fsck(Dentry *d)
 	return dmod;
 }
 
-static
-void
+static void
 ckfreelist(Superb *sb)
 {
 	int32_t a, lo, hi;
 	int n, i;
 	Iobuf *p;
 	Fbuf *fb;
-
 
 	strcpy(name, "free list");
 	cprint("check %s\n", name);
@@ -416,7 +406,7 @@ ckfreelist(Superb *sb)
 			cprint("check: nfree bad %ld\n", a);
 			break;
 		}
-		for(i=1; i<n; i++) {
+		for(i = 1; i < n; i++) {
 			a = fb->free[i];
 			if(a && !fmark(a)) {
 				if(!lo || lo > a)
@@ -439,7 +429,7 @@ ckfreelist(Superb *sb)
 		p = xtag(a, Tfree, QPNONE);
 		if(!p)
 			break;
-		fb = (Fbuf*)p->iobuf;
+		fb = (Fbuf *)p->iobuf;
 	}
 	if(p)
 		putbuf(p);
@@ -449,8 +439,7 @@ ckfreelist(Superb *sb)
 /*
  * make freelist from scratch
  */
-static
-void
+static void
 mkfreelist(Superb *sb)
 {
 	int32_t a;
@@ -460,20 +449,19 @@ mkfreelist(Superb *sb)
 	memset(&sb->fbuf, 0, sizeof(sb->fbuf));
 	sb->fbuf.nfree = 1;
 	sb->tfree = 0;
-	for(a=fsize-fstart-1; a >= 0; a--) {
-		i = a/8;
+	for(a = fsize - fstart - 1; a >= 0; a--) {
+		i = a / 8;
 		if(i < 0 || i >= sizabits)
 			continue;
-		b = 1 << (a&7);
+		b = 1 << (a & 7);
 		if(abits[i] & b)
 			continue;
-		addfree(dev, fstart+a, sb);
+		addfree(dev, fstart + a, sb);
 		abits[i] |= b;
 	}
 }
 
-static
-Dentry*
+static Dentry *
 maked(int32_t a, int s, int32_t qpath)
 {
 	Iobuf *p;
@@ -489,8 +477,7 @@ maked(int32_t a, int s, int32_t qpath)
 	return d1;
 }
 
-static
-void
+static void
 modd(int32_t a, int s, Dentry *d1)
 {
 	Iobuf *p;
@@ -510,8 +497,7 @@ modd(int32_t a, int s, Dentry *d1)
 	putbuf(p);
 }
 
-static
-void
+static void
 xread(int32_t a, int32_t qpath)
 {
 	Iobuf *p;
@@ -521,8 +507,7 @@ xread(int32_t a, int32_t qpath)
 		putbuf(p);
 }
 
-static
-Iobuf*
+static Iobuf *
 xtag(int32_t a, int tag, int32_t qpath)
 {
 	Iobuf *p;
@@ -532,7 +517,7 @@ xtag(int32_t a, int tag, int32_t qpath)
 	p = getbuf(dev, a, Bread);
 	if(!p) {
 		cprint("check: \"%s\": xtag: p null\n", name);
-		if(flags & (Cream|Ctag)) {
+		if(flags & (Cream | Ctag)) {
 			p = getbuf(dev, a, Bmod);
 			if(p) {
 				memset(p->iobuf, 0, RBUFSIZE);
@@ -547,7 +532,7 @@ xtag(int32_t a, int tag, int32_t qpath)
 		cprint("check: \"%s\": xtag: checktag\n", name);
 		if(flags & Cream)
 			memset(p->iobuf, 0, RBUFSIZE);
-		if(flags & (Cream|Ctag)) {
+		if(flags & (Cream | Ctag)) {
 			settag(p, tag, qpath);
 			mod++;
 		}
@@ -556,8 +541,7 @@ xtag(int32_t a, int tag, int32_t qpath)
 	return p;
 }
 
-static
-int
+static int
 amark(int32_t a)
 {
 	int32_t i;
@@ -565,32 +549,30 @@ amark(int32_t a)
 
 	if(a < fstart || a >= fsize) {
 		cprint("check: \"%s\": range %ld\n",
-			name, a);
+		       name, a);
 		nbad++;
 		return 1;
 	}
 	a -= fstart;
-	i = a/8;
-	b = 1 << (a&7);
+	i = a / 8;
+	b = 1 << (a & 7);
 	if(abits[i] & b) {
 		if(!ronly) {
 			if(ndup < 10)
 				cprint("check: \"%s\": address dup %ld\n",
-					name, fstart+a);
-			else
-			if(ndup == 10)
+				       name, fstart + a);
+			else if(ndup == 10)
 				cprint("...");
 		}
 		ndup++;
-		return 0;	/* really?? */
+		return 0; /* really?? */
 	}
 	abits[i] |= b;
 	nused++;
 	return 0;
 }
 
-static
-int
+static int
 fmark(int32_t a)
 {
 	int32_t i;
@@ -598,16 +580,16 @@ fmark(int32_t a)
 
 	if(a < fstart || a >= fsize) {
 		cprint("check: \"%s\": range %ld\n",
-			name, a);
+		       name, a);
 		nbad++;
 		return 1;
 	}
 	a -= fstart;
-	i = a/8;
-	b = 1 << (a&7);
+	i = a / 8;
+	b = 1 << (a & 7);
 	if(abits[i] & b) {
 		cprint("check: \"%s\": address dup %ld\n",
-			name, fstart+a);
+		       name, fstart + a);
 		nfdup++;
 		return 1;
 	}
@@ -616,19 +598,18 @@ fmark(int32_t a)
 	return 0;
 }
 
-static
-void
+static void
 missing(void)
 {
 	int32_t a, i;
 	int b, n;
 
 	n = 0;
-	for(a=fsize-fstart-1; a>=0; a--) {
-		i = a/8;
-		b = 1 << (a&7);
+	for(a = fsize - fstart - 1; a >= 0; a--) {
+		i = a / 8;
+		b = 1 << (a & 7);
 		if(!(abits[i] & b)) {
-			cprint("missing: %ld\n", fstart+a);
+			cprint("missing: %ld\n", fstart + a);
 			n++;
 		}
 		if(n > 10) {
@@ -638,26 +619,25 @@ missing(void)
 	}
 }
 
-static
-void
+static void
 qmark(int32_t qpath)
 {
 	int i, b;
 
-	i = qpath/8;
-	b = 1 << (qpath&7);
+	i = qpath / 8;
+	b = 1 << (qpath & 7);
 	if(i < 0 || i >= sizqbits) {
 		nqbad++;
 		if(nqbad < 20)
 			cprint("check: \"%s\": qid out of range %lux\n",
-				name, qpath);
+			       name, qpath);
 		return;
 	}
 	if((qbits[i] & b) && !ronly) {
 		nqbad++;
 		if(nqbad < 20)
 			cprint("check: \"%s\": qid dup %lux\n",
-				name, qpath);
+			       name, qpath);
 	}
 	qbits[i] |= b;
 }

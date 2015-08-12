@@ -37,26 +37,25 @@ enum {
 enum {
 	BadHeap = ~0
 };
-struct VtCache
-{
-	QLock	lk;
-	VtConn	*z;
-	uint32_t	blocksize;
-	uint32_t	now;		/* ticks for usage time stamps */
-	VtBlock	**hash;	/* hash table for finding addresses */
-	int		nhash;
-	VtBlock	**heap;	/* heap for finding victims */
-	int		nheap;
-	VtBlock	*block;	/* all allocated blocks */
-	int		nblock;
-	uint8_t	*mem;	/* memory for all blocks and data */
-	int		(*write)(VtConn*, uint8_t[VtScoreSize], uint,
-				    uint8_t*, int);
+struct VtCache {
+	QLock lk;
+	VtConn *z;
+	uint32_t blocksize;
+	uint32_t now;   /* ticks for usage time stamps */
+	VtBlock **hash; /* hash table for finding addresses */
+	int nhash;
+	VtBlock **heap; /* heap for finding victims */
+	int nheap;
+	VtBlock *block; /* all allocated blocks */
+	int nblock;
+	uint8_t *mem; /* memory for all blocks and data */
+	int (*write)(VtConn *, uint8_t[VtScoreSize], uint,
+		     uint8_t *, int);
 };
 
-static void cachecheck(VtCache*);
+static void cachecheck(VtCache *);
 
-VtCache*
+VtCache *
 vtcachealloc(VtConn *z, int blocksize, uint32_t nblock)
 {
 	uint8_t *p;
@@ -70,14 +69,14 @@ vtcachealloc(VtConn *z, int blocksize, uint32_t nblock)
 	c->blocksize = (blocksize + 127) & ~127;
 	c->nblock = nblock;
 	c->nhash = nblock;
-	c->hash = vtmallocz(nblock*sizeof(VtBlock*));
-	c->heap = vtmallocz(nblock*sizeof(VtBlock*));
-	c->block = vtmallocz(nblock*sizeof(VtBlock));
-	c->mem = vtmallocz(nblock*c->blocksize);
+	c->hash = vtmallocz(nblock * sizeof(VtBlock *));
+	c->heap = vtmallocz(nblock * sizeof(VtBlock *));
+	c->block = vtmallocz(nblock * sizeof(VtBlock));
+	c->mem = vtmallocz(nblock * c->blocksize);
 	c->write = vtwrite;
 
 	p = c->mem;
-	for(i=0; i<nblock; i++){
+	for(i = 0; i < nblock; i++) {
 		b = &c->block[i];
 		b->addr = NilBlock;
 		b->c = c;
@@ -98,7 +97,7 @@ vtcachealloc(VtConn *z, int blocksize, uint32_t nblock)
  */
 void
 vtcachesetwrite(VtCache *c,
-		int (*write)(VtConn*, uint8_t[VtScoreSize], uint, uint8_t*, int))
+		int (*write)(VtConn *, uint8_t[VtScoreSize], uint, uint8_t *, int))
 {
 	if(write == nil)
 		write = vtwrite;
@@ -113,7 +112,7 @@ vtcachefree(VtCache *c)
 	qlock(&c->lk);
 
 	cachecheck(c);
-	for(i=0; i<c->nblock; i++)
+	for(i = 0; i < c->nblock; i++)
 		assert(c->block[i].ref == 0);
 
 	vtfree(c->hash);
@@ -129,10 +128,10 @@ vtcachedump(VtCache *c)
 	int i;
 	VtBlock *b;
 
-	for(i=0; i<c->nblock; i++){
+	for(i = 0; i < c->nblock; i++) {
 		b = &c->block[i];
 		print("cache block %d: type %d score %V iostate %d addr %d ref %d nlock %d\n",
-			i, b->type, b->score, b->iostate, b->addr, b->ref, b->nlock);
+		      i, b->type, b->score, b->iostate, b->addr, b->ref, b->nlock);
 	}
 }
 
@@ -146,7 +145,7 @@ cachecheck(VtCache *c)
 	size = c->blocksize;
 	now = c->now;
 
-	for(i = 0; i < c->nheap; i++){
+	for(i = 0; i < c->nheap; i++) {
 		if(c->heap[i]->heap != i)
 			sysfatal("mis-heaped at %d: %d", i, c->heap[i]->heap);
 		if(i > 0 && c->heap[(i - 1) >> 1]->used - now > c->heap[i]->used - now)
@@ -160,7 +159,7 @@ cachecheck(VtCache *c)
 	}
 
 	refed = 0;
-	for(i = 0; i < c->nblock; i++){
+	for(i = 0; i < c->nblock; i++) {
 		b = &c->block[i];
 		if(b->data != &c->mem[i * size])
 			sysfatal("mis-blocked at %d", i);
@@ -171,9 +170,9 @@ cachecheck(VtCache *c)
 	}
 	assert(c->nheap + refed == c->nblock);
 	refed = 0;
-	for(i = 0; i < c->nblock; i++){
+	for(i = 0; i < c->nblock; i++) {
 		b = &c->block[i];
-		if(b->ref){
+		if(b->ref) {
 			refed++;
 		}
 	}
@@ -186,10 +185,10 @@ upheap(int i, VtBlock *b)
 	uint32_t now;
 	int p;
 	VtCache *c;
-	
+
 	c = b->c;
 	now = c->now;
-	for(; i != 0; i = p){
+	for(; i != 0; i = p) {
 		p = (i - 1) >> 1;
 		bb = c->heap[p];
 		if(b->used - now >= bb->used - now)
@@ -210,10 +209,10 @@ downheap(int i, VtBlock *b)
 	uint32_t now;
 	int k;
 	VtCache *c;
-	
+
 	c = b->c;
 	now = c->now;
-	for(; ; i = k){
+	for(;; i = k) {
 		k = (i << 1) + 1;
 		if(k >= c->nheap)
 			break;
@@ -271,7 +270,7 @@ heapins(VtBlock *b)
  * remove it from the heap, and fix up the heap.
  */
 /* called with c->lk held */
-static VtBlock*
+static VtBlock *
 vtcachebumpblock(VtCache *c)
 {
 	VtBlock *b;
@@ -280,7 +279,7 @@ vtcachebumpblock(VtCache *c)
 	 * locate the vtBlock with the oldest second to last use.
 	 * remove it from the heap, and fix up the heap.
 	 */
-	if(c->nheap == 0){
+	if(c->nheap == 0) {
 		vtcachedump(c);
 		fprint(2, "vtcachebumpblock: no free blocks in vtCache");
 		abort();
@@ -294,15 +293,15 @@ vtcachebumpblock(VtCache *c)
 	/*
 	 * unchain the vtBlock from hash chain if any
 	 */
-	if(b->prev){
+	if(b->prev) {
 		*(b->prev) = b->next;
 		if(b->next)
 			b->next->prev = b->prev;
 		b->prev = nil;
 	}
 
- 	
-if(0)fprint(2, "droping %x:%V\n", b->addr, b->score);
+	if(0)
+		fprint(2, "droping %x:%V\n", b->addr, b->score);
 	/* set vtBlock to a reasonable state */
 	b->ref = 1;
 	b->iostate = BioEmpty;
@@ -314,7 +313,7 @@ if(0)fprint(2, "droping %x:%V\n", b->addr, b->score);
  * if it's not there, load it, bumping some other Block.
  * if we're out of free blocks, we're screwed.
  */
-VtBlock*
+VtBlock *
 vtcachelocal(VtCache *c, uint32_t addr, int type)
 {
 	VtBlock *b;
@@ -323,9 +322,9 @@ vtcachelocal(VtCache *c, uint32_t addr, int type)
 		sysfatal("vtcachelocal: asked for nonexistent block 0");
 	if(addr > c->nblock)
 		sysfatal("vtcachelocal: asked for block #%ud; only %d blocks",
-			addr, c->nblock);
+			 addr, c->nblock);
 
-	b = &c->block[addr-1];
+	b = &c->block[addr - 1];
 	if(b->addr == NilBlock || b->iostate != BioLocal)
 		sysfatal("vtcachelocal: block is not local");
 
@@ -342,7 +341,7 @@ vtcachelocal(VtCache *c, uint32_t addr, int type)
 	return b;
 }
 
-VtBlock*
+VtBlock *
 vtcacheallocblock(VtCache *c, int type)
 {
 	VtBlock *b;
@@ -351,7 +350,7 @@ vtcacheallocblock(VtCache *c, int type)
 	b = vtcachebumpblock(c);
 	b->iostate = BioLocal;
 	b->type = type;
-	b->addr = (b - c->block)+1;
+	b->addr = (b - c->block) + 1;
 	vtzeroextend(type, b->data, 0, c->blocksize);
 	vtlocaltoglobal(b->addr, b->score);
 	qunlock(&c->lk);
@@ -366,7 +365,7 @@ vtcacheallocblock(VtCache *c, int type)
  * fetch a global (Venti) block from the memory cache.
  * if it's not there, load it, bumping some other block.
  */
-VtBlock*
+VtBlock *
 vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 {
 	VtBlock *b;
@@ -377,7 +376,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 	if(vttracelevel)
 		fprint(2, "vtcacheglobal %V %d from %p\n", score, type, getcallerpc(&c));
 	addr = vtglobaltolocal(score);
-	if(addr != NilBlock){
+	if(addr != NilBlock) {
 		if(vttracelevel)
 			fprint(2, "vtcacheglobal %V %d => local\n", score, type);
 		b = vtcachelocal(c, addr, type);
@@ -386,13 +385,13 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 		return b;
 	}
 
-	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
+	h = (uint32_t)(score[0] | (score[1] << 8) | (score[2] << 16) | (score[3] << 24)) % c->nhash;
 
 	/*
 	 * look for the block in the cache
 	 */
 	qlock(&c->lk);
-	for(b = c->hash[h]; b != nil; b = b->next){
+	for(b = c->hash[h]; b != nil; b = b->next) {
 		if(b->addr != NilBlock || memcmp(b->score, score, VtScoreSize) != 0 || b->type != type)
 			continue;
 		heapdel(b);
@@ -402,7 +401,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 			fprint(2, "vtcacheglobal %V %d => found in cache %p; locking\n", score, type, b);
 		qlock(&b->lk);
 		b->nlock = 1;
-		if(b->iostate == BioVentiError){
+		if(b->iostate == BioVentiError) {
 			if(chattyventi)
 				fprint(2, "cached read error for %V\n", score);
 			if(vttracelevel)
@@ -447,7 +446,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 
 	vtcachenread++;
 	n = vtread(c->z, score, type, b->data, c->blocksize);
-	if(n < 0){
+	if(n < 0) {
 		if(chattyventi)
 			fprint(2, "read %V: %r\n", score);
 		if(vttracelevel)
@@ -483,14 +482,15 @@ vtblockduplock(VtBlock *b)
  * unlock it.  can't use it after calling this.
  */
 void
-vtblockput(VtBlock* b)
+vtblockput(VtBlock *b)
 {
 	VtCache *c;
 
 	if(b == nil)
 		return;
 
-if(0)fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->iostate);
+	if(0)
+		fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->iostate);
 	if(vttracelevel)
 		fprint(2, "vtblockput %p from %p\n", b, getcallerpc(&b));
 
@@ -511,17 +511,17 @@ if(0)fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->ios
 	c = b->c;
 	qlock(&c->lk);
 
-	if(--b->ref > 0){
+	if(--b->ref > 0) {
 		qunlock(&c->lk);
 		return;
 	}
 
 	assert(b->ref == 0);
-	switch(b->iostate){
+	switch(b->iostate) {
 	case BioVenti:
-/*if(b->addr != NilBlock) print("blockput %d\n", b->addr); */
+		/*if(b->addr != NilBlock) print("blockput %d\n", b->addr); */
 		b->used = c->now++;
-		/* fall through */
+	/* fall through */
 	case BioVentiError:
 		heapins(b);
 		break;
@@ -539,7 +539,7 @@ vtblockwrite(VtBlock *b)
 	uint h;
 	int n;
 
-	if(b->iostate != BioLocal){
+	if(b->iostate != BioLocal) {
 		werrstr("vtblockwrite: not a local block");
 		return -1;
 	}
@@ -553,9 +553,9 @@ vtblockwrite(VtBlock *b)
 	memmove(b->score, score, VtScoreSize);
 
 	qlock(&c->lk);
-	b->addr = NilBlock;	/* now on venti */
+	b->addr = NilBlock; /* now on venti */
 	b->iostate = BioVenti;
-	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
+	h = (uint32_t)(score[0] | (score[1] << 8) | (score[2] << 16) | (score[3] << 24)) % c->nhash;
 	b->next = c->hash[h];
 	c->hash[h] = b;
 	if(b->next != nil)
@@ -571,14 +571,14 @@ vtcacheblocksize(VtCache *c)
 	return c->blocksize;
 }
 
-VtBlock*
+VtBlock *
 vtblockcopy(VtBlock *b)
 {
 	VtBlock *bb;
 
 	vtcachencopy++;
 	bb = vtcacheallocblock(b->c, b->type);
-	if(bb == nil){
+	if(bb == nil) {
 		vtblockput(b);
 		return nil;
 	}
@@ -592,12 +592,11 @@ void
 vtlocaltoglobal(uint32_t addr, uint8_t score[VtScoreSize])
 {
 	memset(score, 0, 16);
-	score[16] = addr>>24;
-	score[17] = addr>>16;
-	score[18] = addr>>8;
+	score[16] = addr >> 24;
+	score[17] = addr >> 16;
+	score[18] = addr >> 8;
 	score[19] = addr;
 }
-
 
 uint32_t
 vtglobaltolocal(uint8_t score[VtScoreSize])
@@ -605,6 +604,5 @@ vtglobaltolocal(uint8_t score[VtScoreSize])
 	static uint8_t zero[16];
 	if(memcmp(score, zero, 16) != 0)
 		return NilBlock;
-	return (score[16]<<24)|(score[17]<<16)|(score[18]<<8)|score[19];
+	return (score[16] << 24) | (score[17] << 16) | (score[18] << 8) | score[19];
 }
-

@@ -7,51 +7,49 @@
  * in the LICENSE file.
  */
 
-#include	<plan9.h>
+#include <plan9.h>
 
 #define lock(x)
 #define unlock(x)
 
-enum
-{
-	IDIGIT	= 40,
-	MAXCONV	= 40,
-	FDIGIT	= 30,
-	FDEFLT	= 6,
-	NONE	= -1000,
-	MAXFMT	= 512,
+enum {
+	IDIGIT = 40,
+	MAXCONV = 40,
+	FDIGIT = 30,
+	FDEFLT = 6,
+	NONE = -1000,
+	MAXFMT = 512,
 
-	FPLUS	= 1<<0,
-	FMINUS	= 1<<1,
-	FSHARP	= 1<<2,
-	FLONG	= 1<<3,
-	FUNSIGN	= 1<<5,
-	FVLONG	= 1<<6,
-	FPOINTER= 1<<7
+	FPLUS = 1 << 0,
+	FMINUS = 1 << 1,
+	FSHARP = 1 << 2,
+	FLONG = 1 << 3,
+	FUNSIGN = 1 << 5,
+	FVLONG = 1 << 6,
+	FPOINTER = 1 << 7
 };
 
-int	printcol;
+int printcol;
 
 static struct
-{
-/*	Lock;	*/
-	int	convcount;
-	char	index[MAXFMT];
-	int	(*conv[MAXCONV])(va_list*, Fconv*);
+    {
+	/*	Lock;	*/
+	int convcount;
+	char index[MAXFMT];
+	int (*conv[MAXCONV])(va_list *, Fconv *);
 } fmtalloc;
 
-static	int	noconv(va_list*, Fconv*);
-static	int	flags(va_list*, Fconv*);
+static int noconv(va_list *, Fconv *);
+static int flags(va_list *, Fconv *);
 
-static	int	cconv(va_list*, Fconv*);
-static	int	sconv(va_list*, Fconv*);
-static	int	percent(va_list*, Fconv*);
-static	int	column(va_list*, Fconv*);
+static int cconv(va_list *, Fconv *);
+static int sconv(va_list *, Fconv *);
+static int percent(va_list *, Fconv *);
+static int column(va_list *, Fconv *);
 
-extern	int	numbconv(va_list*, Fconv*);
+extern int numbconv(va_list *, Fconv *);
 
-
-static	void
+static void
 initfmt(void)
 {
 	int cc;
@@ -78,7 +76,6 @@ initfmt(void)
 		fmtalloc.index['p'] = cc;
 		cc++;
 
-
 		fmtalloc.conv[cc] = cconv;
 		fmtalloc.index['c'] = cc;
 		fmtalloc.index['C'] = cc;
@@ -103,7 +100,7 @@ initfmt(void)
 }
 
 int
-fmtinstall(int c, int (*f)(va_list*, Fconv*))
+fmtinstall(int c, int (*f)(va_list *, Fconv *))
 {
 
 	if(fmtalloc.convcount <= 0)
@@ -126,7 +123,7 @@ fmtinstall(int c, int (*f)(va_list*, Fconv*))
 	return 0;
 }
 
-static	void
+static void
 pchar(Rune c, Fconv *fp)
 {
 	int n;
@@ -146,7 +143,7 @@ pchar(Rune c, Fconv *fp)
 	}
 }
 
-char*
+char *
 doprint(char *s, char *es, char *fmt, va_list *argp)
 {
 	int n, c;
@@ -159,7 +156,7 @@ doprint(char *s, char *es, char *fmt, va_list *argp)
 	if(s >= es)
 		return s;
 	local.out = s;
-	local.eout = es-1;
+	local.eout = es - 1;
 
 loop:
 	c = *fmt & 0xff;
@@ -173,7 +170,7 @@ loop:
 	case 0:
 		*local.out = 0;
 		return local.out;
-	
+
 	default:
 		printcol++;
 		goto common;
@@ -183,7 +180,7 @@ loop:
 		goto common;
 
 	case '\t':
-		printcol = (printcol+8) & ~7;
+		printcol = (printcol + 8) & ~7;
 		goto common;
 
 	common:
@@ -197,7 +194,7 @@ loop:
 	local.f2 = NONE;
 	local.f3 = 0;
 
-	/*
+/*
 	 * read one of the following
 	 *	1. number, => f1, f2 in order.
 	 *	2. '*' same as number (from args)
@@ -226,10 +223,10 @@ l1:
 		goto l0;
 	}
 	if((c >= '1' && c <= '9') ||
-	   (c == '0' && local.f1 != NONE)) {	/* '0' is a digit for f2 */
+	   (c == '0' && local.f1 != NONE)) { /* '0' is a digit for f2 */
 		n = 0;
 		while(c >= '0' && c <= '9') {
-			n = n*10 + c-'0';
+			n = n * 10 + c - '0';
 			c = *fmt++;
 		}
 		if(local.f1 == NONE)
@@ -292,30 +289,30 @@ numbconv(va_list *arg, Fconv *fp)
 		b = 16;
 		break;
 	case 'p':
-		fp->f3 |= FPOINTER|FUNSIGN;
+		fp->f3 |= FPOINTER | FUNSIGN;
 		b = 16;
 		break;
 	}
 
 	f = 0;
-	switch(fp->f3 & (FVLONG|FLONG|FUNSIGN|FPOINTER)) {
-	case FVLONG|FLONG:
+	switch(fp->f3 & (FVLONG | FLONG | FUNSIGN | FPOINTER)) {
+	case FVLONG | FLONG:
 		vl = va_arg(*arg, int64_t);
 		break;
 
-	case FUNSIGN|FVLONG|FLONG:
+	case FUNSIGN | FVLONG | FLONG:
 		vl = va_arg(*arg, uvlong);
 		break;
 
-	case FUNSIGN|FPOINTER:
-		v = (uint32_t)va_arg(*arg, void*);
+	case FUNSIGN | FPOINTER:
+		v = (uint32_t)va_arg(*arg, void *);
 		break;
 
 	case FLONG:
 		v = va_arg(*arg, int32_t);
 		break;
 
-	case FUNSIGN|FLONG:
+	case FUNSIGN | FLONG:
 		v = va_arg(*arg, uint32_t);
 		break;
 
@@ -338,17 +335,17 @@ numbconv(va_list *arg, Fconv *fp)
 			f = 1;
 		}
 	}
-	s[IDIGIT-1] = 0;
-	for(i = IDIGIT-2;; i--) {
+	s[IDIGIT - 1] = 0;
+	for(i = IDIGIT - 2;; i--) {
 		if(fp->f3 & FVLONG)
 			n = (uint64_t)vl % b;
 		else
 			n = (uint32_t)v % b;
 		n += '0';
 		if(n > '9') {
-			n += 'a' - ('9'+1);
+			n += 'a' - ('9' + 1);
 			if(ucase)
-				n += 'A'-'a';
+				n += 'A' - 'a';
 		}
 		s[i] = n;
 		if(i < 2)
@@ -357,7 +354,7 @@ numbconv(va_list *arg, Fconv *fp)
 			vl = (uint64_t)vl / b;
 		else
 			v = (uint32_t)v / b;
-		if(fp->f2 != NONE && i >= IDIGIT-fp->f2)
+		if(fp->f2 != NONE && i >= IDIGIT - fp->f2)
 			continue;
 		if(fp->f3 & FVLONG) {
 			if(vl <= 0)
@@ -385,7 +382,7 @@ numbconv(va_list *arg, Fconv *fp)
 		s[--i] = '+';
 
 	fp->f2 = NONE;
-	strconv(s+i, fp);
+	strconv(s + i, fp);
 	return 0;
 }
 
@@ -423,7 +420,7 @@ Strconv(Rune *s, Fconv *fp)
 				printcol = 0;
 				break;
 			case '\t':
-				printcol = (printcol+8) & ~7;
+				printcol = (printcol + 8) & ~7;
 				break;
 			}
 		}
@@ -478,7 +475,7 @@ strconv(char *s, Fconv *fp)
 				printcol = 0;
 				break;
 			case '\t':
-				printcol = (printcol+8) & ~7;
+				printcol = (printcol + 8) & ~7;
 				break;
 			}
 		}
@@ -526,21 +523,21 @@ cconv(va_list *arg, Fconv *fp)
 	return 0;
 }
 
-static Rune null[] = { L'<', L'n', L'u', L'l', L'l', L'>', L'\0' };
+static Rune null[] = {L'<', L'n', L'u', L'l', L'l', L'>', L'\0'};
 
-static	int
+static int
 sconv(va_list *arg, Fconv *fp)
 {
 	char *s;
 	Rune *r;
 
 	if(fp->chr == 's') {
-		s = va_arg(*arg, char*);
+		s = va_arg(*arg, char *);
 		if(s == 0)
 			s = "<null>";
 		strconv(s, fp);
 	} else {
-		r = va_arg(*arg, Rune*);
+		r = va_arg(*arg, Rune *);
 		if(r == 0)
 			r = null;
 		Strconv(r, fp);
@@ -548,7 +545,7 @@ sconv(va_list *arg, Fconv *fp)
 	return 0;
 }
 
-static	int
+static int
 percent(va_list *va, Fconv *fp)
 {
 	USED(va);
@@ -558,14 +555,14 @@ percent(va_list *va, Fconv *fp)
 	return 0;
 }
 
-static	int
+static int
 column(va_list *arg, Fconv *fp)
 {
 	int col, pc;
 
 	col = va_arg(*arg, int);
 	while(printcol < col) {
-		pc = (printcol+8) & ~7;
+		pc = (printcol + 8) & ~7;
 		if(pc <= col) {
 			pchar('\t', fp);
 			printcol = pc;
@@ -616,4 +613,3 @@ flags(va_list *va, Fconv *fp)
  * using the more complex code.
  *
  */
-

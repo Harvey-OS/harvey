@@ -13,234 +13,232 @@
 #include "dict.h"
 
 Dict dicts[] = {
-	{"oed",		"Oxford English Dictionary, 2nd Ed.",
-	 "/lib/dict/oed2",	"/lib/dict/oed2index",
-	 oednextoff,	oedprintentry,		oedprintkey},
-	{"ahd",		"American Heritage Dictionary, 2nd College Ed.",
-	 "/lib/ahd/DICT.DB",	"/lib/ahd/index",
-	 ahdnextoff,	ahdprintentry,		ahdprintkey},
-	{"pgw",		"Project Gutenberg Webster Dictionary",
-	 "/lib/dict/pgw",	"/lib/dict/pgwindex",
-	 pgwnextoff,	pgwprintentry,		pgwprintkey},
-	{"thesaurus",	"Collins Thesaurus",
-	 "/lib/dict/thesaurus",	"/lib/dict/thesindex",
-	 thesnextoff,	thesprintentry,	thesprintkey},
-	{"roget",		"Project Gutenberg Roget's Thesaurus",
-	 "/lib/dict/roget", "/lib/dict/rogetindex",
-	 rogetnextoff,	rogetprintentry,	rogetprintkey},
+    {"oed", "Oxford English Dictionary, 2nd Ed.",
+     "/lib/dict/oed2", "/lib/dict/oed2index",
+     oednextoff, oedprintentry, oedprintkey},
+    {"ahd", "American Heritage Dictionary, 2nd College Ed.",
+     "/lib/ahd/DICT.DB", "/lib/ahd/index",
+     ahdnextoff, ahdprintentry, ahdprintkey},
+    {"pgw", "Project Gutenberg Webster Dictionary",
+     "/lib/dict/pgw", "/lib/dict/pgwindex",
+     pgwnextoff, pgwprintentry, pgwprintkey},
+    {"thesaurus", "Collins Thesaurus",
+     "/lib/dict/thesaurus", "/lib/dict/thesindex",
+     thesnextoff, thesprintentry, thesprintkey},
+    {"roget", "Project Gutenberg Roget's Thesaurus",
+     "/lib/dict/roget", "/lib/dict/rogetindex",
+     rogetnextoff, rogetprintentry, rogetprintkey},
 
-	{"ce",		"Gendai Chinese->English",
-	 "/lib/dict/world/sansdata/sandic24.dat",
-	 "/lib/dict/world/sansdata/ceindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"ceh",		"Gendai Chinese->English (Hanzi index)",
-	 "/lib/dict/world/sansdata/sandic24.dat",
-	 "/lib/dict/world/sansdata/cehindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"ec",		"Gendai English->Chinese",
-	 "/lib/dict/world/sansdata/sandic24.dat",
-	 "/lib/dict/world/sansdata/ecindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"ce", "Gendai Chinese->English",
+     "/lib/dict/world/sansdata/sandic24.dat",
+     "/lib/dict/world/sansdata/ceindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"ceh", "Gendai Chinese->English (Hanzi index)",
+     "/lib/dict/world/sansdata/sandic24.dat",
+     "/lib/dict/world/sansdata/cehindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"ec", "Gendai English->Chinese",
+     "/lib/dict/world/sansdata/sandic24.dat",
+     "/lib/dict/world/sansdata/ecindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"dae",		"Gyldendal Danish->English",
-	 "/lib/dict/world/gylddata/sandic30.dat",
-	 "/lib/dict/world/gylddata/daeindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"eda",		"Gyldendal English->Danish",
-	 "/lib/dict/world/gylddata/sandic29.dat",
-	 "/lib/dict/world/gylddata/edaindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"dae", "Gyldendal Danish->English",
+     "/lib/dict/world/gylddata/sandic30.dat",
+     "/lib/dict/world/gylddata/daeindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"eda", "Gyldendal English->Danish",
+     "/lib/dict/world/gylddata/sandic29.dat",
+     "/lib/dict/world/gylddata/edaindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"due",		"Wolters-Noordhoff Dutch->English",
-	 "/lib/dict/world/woltdata/sandic07.dat",
-	 "/lib/dict/world/woltdata/deindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"edu",		"Wolters-Noordhoff English->Dutch",
-	 "/lib/dict/world/woltdata/sandic06.dat",
-	 "/lib/dict/world/woltdata/edindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"due", "Wolters-Noordhoff Dutch->English",
+     "/lib/dict/world/woltdata/sandic07.dat",
+     "/lib/dict/world/woltdata/deindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"edu", "Wolters-Noordhoff English->Dutch",
+     "/lib/dict/world/woltdata/sandic06.dat",
+     "/lib/dict/world/woltdata/edindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"fie",		"WSOY Finnish->English",
-	 "/lib/dict/world/werndata/sandic32.dat",
-	 "/lib/dict/world/werndata/fieindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"efi",		"WSOY English->Finnish",
-	 "/lib/dict/world/werndata/sandic31.dat",
-	 "/lib/dict/world/werndata/efiindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"fie", "WSOY Finnish->English",
+     "/lib/dict/world/werndata/sandic32.dat",
+     "/lib/dict/world/werndata/fieindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"efi", "WSOY English->Finnish",
+     "/lib/dict/world/werndata/sandic31.dat",
+     "/lib/dict/world/werndata/efiindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"fe",		"Collins French->English",
-	 "/lib/dict/fe",	"/lib/dict/feindex",
-	 pcollnextoff,	pcollprintentry,	pcollprintkey},
-	{"ef",		"Collins English->French",
-	 "/lib/dict/ef",	"/lib/dict/efindex",
-	 pcollnextoff,	pcollprintentry,	pcollprintkey},
+    {"fe", "Collins French->English",
+     "/lib/dict/fe", "/lib/dict/feindex",
+     pcollnextoff, pcollprintentry, pcollprintkey},
+    {"ef", "Collins English->French",
+     "/lib/dict/ef", "/lib/dict/efindex",
+     pcollnextoff, pcollprintentry, pcollprintkey},
 
-	{"ge",		"Collins German->English",
-	 "/lib/dict/ge",	"/lib/dict/geindex",
-	 pcollgnextoff,	pcollgprintentry,	pcollgprintkey},
-	{"eg",		"Collins English->German",
-	 "/lib/dict/eg",	"/lib/dict/egindex",
-	 pcollgnextoff,	pcollgprintentry,	pcollgprintkey},
+    {"ge", "Collins German->English",
+     "/lib/dict/ge", "/lib/dict/geindex",
+     pcollgnextoff, pcollgprintentry, pcollgprintkey},
+    {"eg", "Collins English->German",
+     "/lib/dict/eg", "/lib/dict/egindex",
+     pcollgnextoff, pcollgprintentry, pcollgprintkey},
 
-	{"ie",		"Collins Italian->English",
-	 "/lib/dict/ie",	"/lib/dict/ieindex",
-	 pcollnextoff,	pcollprintentry,	pcollprintkey},
-	{"ei",		"Collins English->Italian",
-	 "/lib/dict/ei",	"/lib/dict/eiindex",
-	 pcollnextoff,	pcollprintentry,	pcollprintkey},
+    {"ie", "Collins Italian->English",
+     "/lib/dict/ie", "/lib/dict/ieindex",
+     pcollnextoff, pcollprintentry, pcollprintkey},
+    {"ei", "Collins English->Italian",
+     "/lib/dict/ei", "/lib/dict/eiindex",
+     pcollnextoff, pcollprintentry, pcollprintkey},
 
-	{"je",		"Sanshusha Japanese->English",
-	 "/lib/dict/world/sansdata/sandic18.dat",
-	 "/lib/dict/world/sansdata/jeindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"jek",		"Sanshusha Japanese->English (Kanji index)",
-	 "/lib/dict/world/sansdata/sandic18.dat",
-	 "/lib/dict/world/sansdata/jekindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"ej",		"Sanshusha English->Japanese",
-	 "/lib/dict/world/sansdata/sandic18.dat",
-	 "/lib/dict/world/sansdata/ejindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"je", "Sanshusha Japanese->English",
+     "/lib/dict/world/sansdata/sandic18.dat",
+     "/lib/dict/world/sansdata/jeindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"jek", "Sanshusha Japanese->English (Kanji index)",
+     "/lib/dict/world/sansdata/sandic18.dat",
+     "/lib/dict/world/sansdata/jekindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"ej", "Sanshusha English->Japanese",
+     "/lib/dict/world/sansdata/sandic18.dat",
+     "/lib/dict/world/sansdata/ejindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"tjeg",	"Sanshusha technical Japanese->English,German",
-	 "/lib/dict/world/sansdata/sandic16.dat",
-	 "/lib/dict/world/sansdata/tjegindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"tjegk",	"Sanshusha technical Japanese->English,German (Kanji index)",
-	 "/lib/dict/world/sansdata/sandic16.dat",
-	 "/lib/dict/world/sansdata/tjegkindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"tegj",	"Sanshusha technical English->German,Japanese",
-	 "/lib/dict/world/sansdata/sandic16.dat",
-	 "/lib/dict/world/sansdata/tegjindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"tgje",	"Sanshusha technical German->Japanese,English",
-	 "/lib/dict/world/sansdata/sandic16.dat",
-	 "/lib/dict/world/sansdata/tgjeindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"tjeg", "Sanshusha technical Japanese->English,German",
+     "/lib/dict/world/sansdata/sandic16.dat",
+     "/lib/dict/world/sansdata/tjegindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"tjegk", "Sanshusha technical Japanese->English,German (Kanji index)",
+     "/lib/dict/world/sansdata/sandic16.dat",
+     "/lib/dict/world/sansdata/tjegkindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"tegj", "Sanshusha technical English->German,Japanese",
+     "/lib/dict/world/sansdata/sandic16.dat",
+     "/lib/dict/world/sansdata/tegjindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"tgje", "Sanshusha technical German->Japanese,English",
+     "/lib/dict/world/sansdata/sandic16.dat",
+     "/lib/dict/world/sansdata/tgjeindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"ne",		"Kunnskapforlaget Norwegian->English",
-	 "/lib/dict/world/kunndata/sandic28.dat",
-	 "/lib/dict/world/kunndata/neindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"en",		"Kunnskapforlaget English->Norwegian",
-	 "/lib/dict/world/kunndata/sandic27.dat",
-	 "/lib/dict/world/kunndata/enindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"ne", "Kunnskapforlaget Norwegian->English",
+     "/lib/dict/world/kunndata/sandic28.dat",
+     "/lib/dict/world/kunndata/neindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"en", "Kunnskapforlaget English->Norwegian",
+     "/lib/dict/world/kunndata/sandic27.dat",
+     "/lib/dict/world/kunndata/enindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"re",		"Leon Ungier Russian->English",
-	 "/lib/dict/re",	"/lib/dict/reindex",
-	 simplenextoff,	simpleprintentry,	simpleprintkey},
-	{"er",		"Leon Ungier English->Russian",
-	 "/lib/dict/re",	"/lib/dict/erindex",
-	 simplenextoff,	simpleprintentry,	simpleprintkey},
+    {"re", "Leon Ungier Russian->English",
+     "/lib/dict/re", "/lib/dict/reindex",
+     simplenextoff, simpleprintentry, simpleprintkey},
+    {"er", "Leon Ungier English->Russian",
+     "/lib/dict/re", "/lib/dict/erindex",
+     simplenextoff, simpleprintentry, simpleprintkey},
 
-	{"se",		"Collins Spanish->English",
-	 "/lib/dict/se",	"/lib/dict/seindex",
-	 pcollnextoff,	pcollprintentry,	pcollprintkey},
-	{"es",		"Collins English->Spanish",
-	 "/lib/dict/es",	"/lib/dict/esindex",
-	 pcollnextoff,	pcollprintentry,	pcollprintkey},
+    {"se", "Collins Spanish->English",
+     "/lib/dict/se", "/lib/dict/seindex",
+     pcollnextoff, pcollprintentry, pcollprintkey},
+    {"es", "Collins English->Spanish",
+     "/lib/dict/es", "/lib/dict/esindex",
+     pcollnextoff, pcollprintentry, pcollprintkey},
 
-	{"swe",		"Esselte Studium Swedish->English",
-	 "/lib/dict/world/essedata/sandic34.dat",
-	 "/lib/dict/world/essedata/sweindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
-	{"esw",		"Esselte Studium English->Swedish",
-	 "/lib/dict/world/essedata/sandic33.dat",
-	 "/lib/dict/world/essedata/eswindex",
-	 worldnextoff,	worldprintentry,	worldprintkey},
+    {"swe", "Esselte Studium Swedish->English",
+     "/lib/dict/world/essedata/sandic34.dat",
+     "/lib/dict/world/essedata/sweindex",
+     worldnextoff, worldprintentry, worldprintkey},
+    {"esw", "Esselte Studium English->Swedish",
+     "/lib/dict/world/essedata/sandic33.dat",
+     "/lib/dict/world/essedata/eswindex",
+     worldnextoff, worldprintentry, worldprintkey},
 
-	{"movie",	"Movies -- by title",
-	 "/lib/movie/data",	"/lib/dict/movtindex",
-	 movienextoff,	movieprintentry,	movieprintkey},
-	{"moviea",	"Movies -- by actor",
-	 "/lib/movie/data",	"/lib/dict/movaindex",
-	 movienextoff,	movieprintentry,	movieprintkey},
-	{"movied",	"Movies -- by director",
-	 "/lib/movie/data",	"/lib/dict/movdindex",
-	 movienextoff,	movieprintentry,	movieprintkey},
+    {"movie", "Movies -- by title",
+     "/lib/movie/data", "/lib/dict/movtindex",
+     movienextoff, movieprintentry, movieprintkey},
+    {"moviea", "Movies -- by actor",
+     "/lib/movie/data", "/lib/dict/movaindex",
+     movienextoff, movieprintentry, movieprintkey},
+    {"movied", "Movies -- by director",
+     "/lib/movie/data", "/lib/dict/movdindex",
+     movienextoff, movieprintentry, movieprintkey},
 
-	{"slang",	"English Slang",
-	 "/lib/dict/slang",	"/lib/dict/slangindex",
-	 slangnextoff,	slangprintentry,	slangprintkey},
+    {"slang", "English Slang",
+     "/lib/dict/slang", "/lib/dict/slangindex",
+     slangnextoff, slangprintentry, slangprintkey},
 
-	{"robert",	"Robert Électronique",
-	 "/lib/dict/robert/_pointers",	"/lib/dict/robert/_index",
-	 robertnextoff,	robertindexentry,	robertprintkey},
-	{"robertv",	"Robert Électronique - formes des verbes",
-	 "/lib/dict/robert/flex.rob",	"/lib/dict/robert/_flexindex",
-	 robertnextflex,	robertflexentry,	robertprintkey},
+    {"robert", "Robert Électronique",
+     "/lib/dict/robert/_pointers", "/lib/dict/robert/_index",
+     robertnextoff, robertindexentry, robertprintkey},
+    {"robertv", "Robert Électronique - formes des verbes",
+     "/lib/dict/robert/flex.rob", "/lib/dict/robert/_flexindex",
+     robertnextflex, robertflexentry, robertprintkey},
 
-	{0, 0, 0, 0, 0}
-};
+    {0, 0, 0, 0, 0}};
 
 typedef struct Lig Lig;
 struct Lig {
-	Rune	start;		/* accent rune */
-	Rune	*pairs;		/* <char,accented version> pairs */
+	Rune start;  /* accent rune */
+	Rune *pairs; /* <char,accented version> pairs */
 };
 
 static Lig ligtab[Nligs] = {
-[LACU-LIGS]	{L'´',	L"AÁaáCĆcćEÉeégģIÍiíıíLĹlĺNŃnńOÓoóRŔrŕSŚsśUÚuúYÝyýZŹzź"},
-[LGRV-LIGS]	{L'ˋ',	L"AÀaàEÈeèIÌiìıìOÒoòUÙuù"},
-[LUML-LIGS]	{L'¨',	L"AÄaäEËeëIÏiïOÖoöUÜuüYŸyÿ"},
-[LCED-LIGS]	{L'¸',	L"CÇcçGĢKĶkķLĻlļNŅnņRŖrŗSŞsşTŢtţ"},
-[LTIL-LIGS]	{L'˜',	L"AÃaãIĨiĩıĩNÑnñOÕoõUŨuũ"},
-[LBRV-LIGS]	{L'˘',	L"AĂaăEĔeĕGĞgğIĬiĭıĭOŎoŏUŬuŭ"},
-[LRNG-LIGS]	{L'˚',	L"AÅaåUŮuů"},
-[LDOT-LIGS]	{L'˙',	L"CĊcċEĖeėGĠgġIİLĿlŀZŻzż"},
-[LDTB-LIGS]	{L'.',	L""},
-[LFRN-LIGS]	{L'⌢',	L"AÂaâCĈcĉEÊeêGĜgĝHĤhĥIÎiîıîJĴjĵOÔoôSŜsŝUÛuûWŴwŵYŶyŷ"},
-[LFRB-LIGS]	{L'̯',	L""},
-[LOGO-LIGS]	{L'˛',	L"AĄaąEĘeęIĮiįıįUŲuų"},
-[LMAC-LIGS]	{L'¯',	L"AĀaāEĒeēIĪiīıīOŌoōUŪuū"},
-[LHCK-LIGS]	{L'ˇ',	L"CČcčDĎdďEĚeěLĽlľNŇnňRŘrřSŠsšTŤtťZŽzž"},
-[LASP-LIGS]	{L'ʽ',	L""},
-[LLEN-LIGS]	{L'ʼ',	L""},
-[LBRB-LIGS]	{L'̮',	L""}
-};
+	[LACU - LIGS]{L'´', L"AÁaáCĆcćEÉeégģIÍiíıíLĹlĺNŃnńOÓoóRŔrŕSŚsśUÚuúYÝyýZŹzź"},
+	[LGRV - LIGS]{L'ˋ', L"AÀaàEÈeèIÌiìıìOÒoòUÙuù"},
+	[LUML - LIGS]{L'¨', L"AÄaäEËeëIÏiïOÖoöUÜuüYŸyÿ"},
+	[LCED - LIGS]{L'¸', L"CÇcçGĢKĶkķLĻlļNŅnņRŖrŗSŞsşTŢtţ"},
+	[LTIL - LIGS]{L'˜', L"AÃaãIĨiĩıĩNÑnñOÕoõUŨuũ"},
+	[LBRV - LIGS]{L'˘', L"AĂaăEĔeĕGĞgğIĬiĭıĭOŎoŏUŬuŭ"},
+	[LRNG - LIGS]{L'˚', L"AÅaåUŮuů"},
+	[LDOT - LIGS]{L'˙', L"CĊcċEĖeėGĠgġIİLĿlŀZŻzż"},
+	[LDTB - LIGS]{L'.', L""},
+	[LFRN - LIGS]{L'⌢', L"AÂaâCĈcĉEÊeêGĜgĝHĤhĥIÎiîıîJĴjĵOÔoôSŜsŝUÛuûWŴwŵYŶyŷ"},
+	[LFRB - LIGS]{L'̯', L""},
+	[LOGO - LIGS]{L'˛', L"AĄaąEĘeęIĮiįıįUŲuų"},
+	[LMAC - LIGS]{L'¯', L"AĀaāEĒeēIĪiīıīOŌoōUŪuū"},
+	[LHCK - LIGS]{L'ˇ', L"CČcčDĎdďEĚeěLĽlľNŇnňRŘrřSŠsšTŤtťZŽzž"},
+	[LASP - LIGS]{L'ʽ', L""},
+	[LLEN - LIGS]{L'ʼ', L""},
+	[LBRB - LIGS]{L'̮', L""}};
 
 Rune *multitab[Nmulti] = {
-[MAAS-MULTI]	L"ʽα",
-[MALN-MULTI]	L"ʼα",
-[MAND-MULTI]	L"and",
-[MAOQ-MULTI]	L"a/q",
-[MBRA-MULTI]	L"<|",
-[MDD-MULTI]	L"..",
-[MDDD-MULTI]	L"...",
-[MEAS-MULTI]	L"ʽε",
-[MELN-MULTI]	L"ʼε",
-[MEMM-MULTI]	L"——",
-[MHAS-MULTI]	L"ʽη",
-[MHLN-MULTI]	L"ʼη",
-[MIAS-MULTI]	L"ʽι",
-[MILN-MULTI]	L"ʼι",
-[MLCT-MULTI]	L"ct",
-[MLFF-MULTI]	L"ff",
-[MLFFI-MULTI]	L"ffi",
-[MLFFL-MULTI]	L"ffl",
-[MLFL-MULTI]	L"fl",
-[MLFI-MULTI]	L"fi",
-[MLLS-MULTI]	L"ɫɫ",
-[MLST-MULTI]	L"st",
-[MOAS-MULTI]	L"ʽο",
-[MOLN-MULTI]	L"ʼο",
-[MOR-MULTI]	L"or",
-[MRAS-MULTI]	L"ʽρ",
-[MRLN-MULTI]	L"ʼρ",
-[MTT-MULTI]	L"~~",
-[MUAS-MULTI]	L"ʽυ",
-[MULN-MULTI]	L"ʼυ",
-[MWAS-MULTI]	L"ʽω",
-[MWLN-MULTI]	L"ʼω",
-[MOE-MULTI]	L"oe",
-[MES-MULTI]	L"  ",
+	[MAAS - MULTI] L"ʽα",
+	[MALN - MULTI] L"ʼα",
+	[MAND - MULTI] L"and",
+	[MAOQ - MULTI] L"a/q",
+	[MBRA - MULTI] L"<|",
+	[MDD - MULTI] L"..",
+	[MDDD - MULTI] L"...",
+	[MEAS - MULTI] L"ʽε",
+	[MELN - MULTI] L"ʼε",
+	[MEMM - MULTI] L"——",
+	[MHAS - MULTI] L"ʽη",
+	[MHLN - MULTI] L"ʼη",
+	[MIAS - MULTI] L"ʽι",
+	[MILN - MULTI] L"ʼι",
+	[MLCT - MULTI] L"ct",
+	[MLFF - MULTI] L"ff",
+	[MLFFI - MULTI] L"ffi",
+	[MLFFL - MULTI] L"ffl",
+	[MLFL - MULTI] L"fl",
+	[MLFI - MULTI] L"fi",
+	[MLLS - MULTI] L"ɫɫ",
+	[MLST - MULTI] L"st",
+	[MOAS - MULTI] L"ʽο",
+	[MOLN - MULTI] L"ʼο",
+	[MOR - MULTI] L"or",
+	[MRAS - MULTI] L"ʽρ",
+	[MRLN - MULTI] L"ʼρ",
+	[MTT - MULTI] L"~~",
+	[MUAS - MULTI] L"ʽυ",
+	[MULN - MULTI] L"ʼυ",
+	[MWAS - MULTI] L"ʽω",
+	[MWLN - MULTI] L"ʼω",
+	[MOE - MULTI] L"oe",
+	[MES - MULTI] L"  ",
 };
 
-static Rune 	*ttabstack[20];
-static int	ntt;
+static Rune *ttabstack[20];
+static int ntt;
 
 /*
  * tab is an array of n Assoc's, sorted by key.
@@ -254,15 +252,15 @@ lookassoc(Assoc *tab, int n, char *key)
 	int32_t i, low, high;
 	int r;
 
-	for(low = -1, high = n; high > low+1; ){
-		i = (high+low)/2;
+	for(low = -1, high = n; high > low + 1;) {
+		i = (high + low) / 2;
 		q = &tab[i];
-		if((r=strcmp(key, q->key))<0)
+		if((r = strcmp(key, q->key)) < 0)
 			high = i;
 		else if(r == 0)
 			return q->val;
 		else
-			low=i;
+			low = i;
 	}
 	return -1;
 }
@@ -273,15 +271,15 @@ looknassoc(Nassoc *tab, int n, int32_t key)
 	Nassoc *q;
 	int32_t i, low, high;
 
-	for(low = -1, high = n; high > low+1; ){
-		i = (high+low)/2;
+	for(low = -1, high = n; high > low + 1;) {
+		i = (high + low) / 2;
 		q = &tab[i];
 		if(key < q->key)
 			high = i;
 		else if(key == q->key)
 			return q->val;
 		else
-			low=i;
+			low = i;
 	}
 	return -1;
 }
@@ -330,7 +328,7 @@ outchar(int c)
 	if(outinhibit)
 		return;
 	if(++linelen > breaklen && c == ' ') {
-		c ='\n';
+		c = '\n';
 		linelen = 0;
 	}
 	Bputc(bout, c);
@@ -496,13 +494,13 @@ runetol(Rune *r)
 	int32_t n;
 
 	n = 0;
-	for(;; r++){
+	for(;; r++) {
 		c = *r;
-		if(L'0'<=c && c<=L'9')
+		if(L'0' <= c && c <= L'9')
 			c -= '0';
 		else
 			break;
-		n = n*10 + c;
+		n = n * 10 + c;
 	}
 	return n;
 }
@@ -519,9 +517,9 @@ liglookup(Rune acc, Rune r)
 
 	if(acc < LIGS || acc >= LIGE)
 		return NONE;
-	for(p = ligtab[acc-LIGS].pairs; *p; p += 2)
+	for(p = ligtab[acc - LIGS].pairs; *p; p += 2)
 		if(*p == r)
-			return *(p+1);
+			return *(p + 1);
 	return NONE;
 }
 

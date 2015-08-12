@@ -26,7 +26,7 @@ auth_wep(char *dev, char *fmt, ...)
 
 	rv = -1;
 
-	if(dev == nil){
+	if(dev == nil) {
 		werrstr("no device specified");
 		return rv;
 	}
@@ -36,16 +36,15 @@ auth_wep(char *dev, char *fmt, ...)
 		return rv;
 
 	rpc = auth_allocrpc(fd);
-	if(rpc != nil){
-		quotefmtinstall();	/* just in case */
+	if(rpc != nil) {
+		quotefmtinstall(); /* just in case */
 		va_start(arg, fmt);
 		params = vsmprint(fmt, arg);
 		va_end(arg);
-		if(params != nil){
+		if(params != nil) {
 			p = smprint("proto=wep %s", params);
-			if(p != nil){
-				if(auth_rpc(rpc, "start", p, strlen(p)) == ARok
-				&& auth_rpc(rpc, "write", dev, strlen(dev)) == ARok)
+			if(p != nil) {
+				if(auth_rpc(rpc, "start", p, strlen(p)) == ARok && auth_rpc(rpc, "write", dev, strlen(dev)) == ARok)
 					rv = 0;
 				free(p);
 			}
@@ -54,6 +53,6 @@ auth_wep(char *dev, char *fmt, ...)
 		auth_freerpc(rpc);
 	}
 	close(fd);
-		
+
 	return rv;
 }

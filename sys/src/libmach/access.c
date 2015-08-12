@@ -16,9 +16,9 @@
 #include <bio.h>
 #include <mach.h>
 
-static	int	mget(Map*, uint64_t, void*, int);
-static	int	mput(Map*, uint64_t, void*, int);
-static	struct	segment*	reloc(Map*, uint64_t, int64_t*);
+static int mget(Map *, uint64_t, void *, int);
+static int mput(Map *, uint64_t, void *, int);
+static struct segment *reloc(Map *, uint64_t, int64_t *);
 
 /*
  * routines to get/put various types
@@ -29,14 +29,14 @@ geta(Map *map, uint64_t addr, uint64_t *x)
 	uint32_t l;
 	uint64_t vl;
 
-	if (mach->szaddr == 8){
-		if (get8(map, addr, &vl) < 0)
+	if(mach->szaddr == 8) {
+		if(get8(map, addr, &vl) < 0)
 			return -1;
 		*x = vl;
 		return 1;
 	}
 
-	if (get4(map, addr, &l) < 0)
+	if(get4(map, addr, &l) < 0)
 		return -1;
 	*x = l;
 
@@ -46,16 +46,16 @@ geta(Map *map, uint64_t addr, uint64_t *x)
 int
 get8(Map *map, uint64_t addr, uint64_t *x)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("get8: invalid map");
 		return -1;
 	}
 
-	if (map->nsegs == 1 && map->seg[0].fd < 0) {
+	if(map->nsegs == 1 && map->seg[0].fd < 0) {
 		*x = addr;
 		return 1;
 	}
-	if (mget(map, addr, x, 8) < 0)
+	if(mget(map, addr, x, 8) < 0)
 		return -1;
 	*x = machdata->swav(*x);
 	return 1;
@@ -64,16 +64,16 @@ get8(Map *map, uint64_t addr, uint64_t *x)
 int
 get4(Map *map, uint64_t addr, uint32_t *x)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("get4: invalid map");
 		return -1;
 	}
 
-	if (map->nsegs == 1 && map->seg[0].fd < 0) {
+	if(map->nsegs == 1 && map->seg[0].fd < 0) {
 		*x = addr;
 		return 1;
 	}
-	if (mget(map, addr, x, 4) < 0)
+	if(mget(map, addr, x, 4) < 0)
 		return -1;
 	*x = machdata->swal(*x);
 	return 1;
@@ -82,16 +82,16 @@ get4(Map *map, uint64_t addr, uint32_t *x)
 int
 get2(Map *map, uint64_t addr, uint16_t *x)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("get2: invalid map");
 		return -1;
 	}
 
-	if (map->nsegs == 1 && map->seg[0].fd < 0) {
+	if(map->nsegs == 1 && map->seg[0].fd < 0) {
 		*x = addr;
 		return 1;
 	}
-	if (mget(map, addr, x, 2) < 0)
+	if(mget(map, addr, x, 2) < 0)
 		return -1;
 	*x = machdata->swab(*x);
 	return 1;
@@ -102,16 +102,16 @@ get1(Map *map, uint64_t addr, uint8_t *x, int size)
 {
 	uint8_t *cp;
 
-	if (!map) {
+	if(!map) {
 		werrstr("get1: invalid map");
 		return -1;
 	}
 
-	if (map->nsegs == 1 && map->seg[0].fd < 0) {
-		cp = (uint8_t*)&addr;
-		while (cp < (uint8_t*)(&addr+1) && size-- > 0)
+	if(map->nsegs == 1 && map->seg[0].fd < 0) {
+		cp = (uint8_t *)&addr;
+		while(cp < (uint8_t *)(&addr + 1) && size-- > 0)
 			*x++ = *cp++;
-		while (size-- > 0)
+		while(size-- > 0)
 			*x++ = 0;
 	} else
 		return mget(map, addr, x, size);
@@ -121,7 +121,7 @@ get1(Map *map, uint64_t addr, uint8_t *x, int size)
 int
 puta(Map *map, uint64_t addr, uint64_t v)
 {
-	if (mach->szaddr == 8)
+	if(mach->szaddr == 8)
 		return put8(map, addr, v);
 
 	return put4(map, addr, v);
@@ -130,7 +130,7 @@ puta(Map *map, uint64_t addr, uint64_t v)
 int
 put8(Map *map, uint64_t addr, uint64_t v)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("put8: invalid map");
 		return -1;
 	}
@@ -141,7 +141,7 @@ put8(Map *map, uint64_t addr, uint64_t v)
 int
 put4(Map *map, uint64_t addr, uint32_t v)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("put4: invalid map");
 		return -1;
 	}
@@ -152,7 +152,7 @@ put4(Map *map, uint64_t addr, uint32_t v)
 int
 put2(Map *map, uint64_t addr, uint16_t v)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("put2: invalid map");
 		return -1;
 	}
@@ -163,7 +163,7 @@ put2(Map *map, uint64_t addr, uint16_t v)
 int
 put1(Map *map, uint64_t addr, uint8_t *v, int size)
 {
-	if (!map) {
+	if(!map) {
 		werrstr("put1: invalid map");
 		return -1;
 	}
@@ -181,21 +181,20 @@ spread(struct segment *s, void *buf, int n, uint64_t off)
 		uint64_t off;
 	} cache;
 
-	if(s->cache){
-		base = off&~(sizeof cache.a-1);
-		if(cache.s != s || cache.off != base){
+	if(s->cache) {
+		base = off & ~(sizeof cache.a - 1);
+		if(cache.s != s || cache.off != base) {
 			cache.off = ~0;
-			if(seek(s->fd, base, 0) >= 0
-			&& readn(s->fd, cache.a, sizeof cache.a) == sizeof cache.a){
+			if(seek(s->fd, base, 0) >= 0 && readn(s->fd, cache.a, sizeof cache.a) == sizeof cache.a) {
 				cache.s = s;
 				cache.off = base;
 			}
 		}
-		if(cache.s == s && cache.off == base){
-			off &= sizeof cache.a-1;
-			if(off+n > sizeof cache.a)
+		if(cache.s == s && cache.off == base) {
+			off &= sizeof cache.a - 1;
+			if(off + n > sizeof cache.a)
 				n = sizeof cache.a - off;
-			memmove(buf, cache.a+off, n);
+			memmove(buf, cache.a + off, n);
 			return n;
 		}
 	}
@@ -210,21 +209,21 @@ mget(Map *map, uint64_t addr, void *buf, int size)
 	int i, j, k;
 	struct segment *s;
 
-	s = reloc(map, addr, (int64_t*)&off);
-	if (!s)
+	s = reloc(map, addr, (int64_t *)&off);
+	if(!s)
 		return -1;
-	if (s->fd < 0) {
+	if(s->fd < 0) {
 		werrstr("unreadable map");
 		return -1;
 	}
-	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		k = spread(s, (void*)((uint8_t *)buf+j), size-j, off+j);
-		if (k < 0) {
+	for(i = j = 0; i < 2; i++) { /* in case read crosses page */
+		k = spread(s, (void *)((uint8_t *)buf + j), size - j, off + j);
+		if(k < 0) {
 			werrstr("can't read address %llux: %r", addr);
 			return -1;
 		}
 		j += k;
-		if (j == size)
+		if(j == size)
 			return j;
 	}
 	werrstr("partial read at address %llux (size %d j %d)", addr, size, j);
@@ -239,22 +238,22 @@ mput(Map *map, uint64_t addr, void *buf, int size)
 	struct segment *s;
 
 	s = reloc(map, addr, &off);
-	if (!s)
+	if(!s)
 		return -1;
-	if (s->fd < 0) {
+	if(s->fd < 0) {
 		werrstr("unwritable map");
 		return -1;
 	}
 
 	seek(s->fd, off, 0);
-	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		k = write(s->fd, buf, size-j);
-		if (k < 0) {
+	for(i = j = 0; i < 2; i++) { /* in case read crosses page */
+		k = write(s->fd, buf, size - j);
+		if(k < 0) {
 			werrstr("can't write address %llux: %r", addr);
 			return -1;
 		}
 		j += k;
-		if (j == size)
+		if(j == size)
 			return j;
 	}
 	werrstr("partial write at address %llux", addr);
@@ -264,17 +263,17 @@ mput(Map *map, uint64_t addr, void *buf, int size)
 /*
  *	convert address to file offset; returns nonzero if ok
  */
-static struct segment*
+static struct segment *
 reloc(Map *map, uint64_t addr, int64_t *offp)
 {
 	int i;
 
-	for (i = 0; i < map->nsegs; i++) {
-		if (map->seg[i].inuse)
-		if (map->seg[i].b <= addr && addr < map->seg[i].e) {
-			*offp = addr + map->seg[i].f - map->seg[i].b;
-			return &map->seg[i];
-		}
+	for(i = 0; i < map->nsegs; i++) {
+		if(map->seg[i].inuse)
+			if(map->seg[i].b <= addr && addr < map->seg[i].e) {
+				*offp = addr + map->seg[i].f - map->seg[i].b;
+				return &map->seg[i];
+			}
 	}
 	werrstr("can't translate address %llux", addr);
 	return 0;

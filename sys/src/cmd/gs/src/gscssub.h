@@ -27,7 +27,7 @@
 /* Client interface to color space substitution */
 
 #ifndef gscssub_INCLUDED
-#  define gscssub_INCLUDED
+#define gscssub_INCLUDED
 
 #include "gscspace.h"
 
@@ -66,8 +66,8 @@
 int gs_setsubstitutecolorspace(gs_state *pgs, gs_color_space_index csi,
 			       const gs_color_space *pcs);
 const gs_color_space *
-    gs_currentsubstitutecolorspace(const gs_state *pgs,
-				   gs_color_space_index csi);
+gs_currentsubstitutecolorspace(const gs_state *pgs,
+			       gs_color_space_index csi);
 
 /*
  * The following procedures are primarily for internal use, to provide

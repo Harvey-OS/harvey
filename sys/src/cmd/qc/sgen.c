@@ -209,12 +209,11 @@ xcom(Node *n)
 				nr += 3;
 		}
 		if(r->complex == n->complex)
-			n->complex = r->complex+nr;
-		else
-		if(r->complex > n->complex)
+			n->complex = r->complex + nr;
+		else if(r->complex > n->complex)
 			n->complex = r->complex;
 	}
-	if(n->complex == 0){
+	if(n->complex == 0) {
 		n->complex++;
 		if(n->type != T && typev[n->type->etype])
 			n->complex++;
@@ -263,4 +262,3 @@ xcom(Node *n)
 		break;
 	}
 }
-

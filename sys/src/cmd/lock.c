@@ -18,8 +18,8 @@
 static int debug;
 static int lockwait;
 
-void	error(char*);
-void	notifyf(void *c, char*);
+void error(char *);
+void notifyf(void *c, char *);
 
 static void
 usage(void)
@@ -34,15 +34,15 @@ waitfor(int pid)
 	char err[ERRMAX];
 	Waitmsg *w;
 
-	for (;;) {
+	for(;;) {
 		w = wait();
-		if (w == nil){
+		if(w == nil) {
 			errstr(err, sizeof err);
 			if(strcmp(err, "interrupted") == 0)
 				continue;
 			return nil;
 		}
-		if (w->pid == pid)
+		if(w->pid == pid)
 			return w;
 	}
 }
@@ -55,22 +55,22 @@ openlock(char *lock)
 
 	/* first ensure that the lock file has the lock bit set */
 	dir = dirstat(lock);
-	if (dir == nil)
+	if(dir == nil)
 		sysfatal("can't stat %s: %r", lock);
-	if (!(dir->mode & DMEXCL)) {
+	if(!(dir->mode & DMEXCL)) {
 		dir->mode |= DMEXCL;
 		dir->qid.type |= QTEXCL;
-		if (dirwstat(lock, dir) < 0)
+		if(dirwstat(lock, dir) < 0)
 			sysfatal("can't make %s exclusive access: %r", lock);
 	}
 	free(dir);
 
-	if (lockwait)
-		while ((lckfd = open(lock, ORDWR)) < 0)
+	if(lockwait)
+		while((lckfd = open(lock, ORDWR)) < 0)
 			sleep(1000);
 	else
 		lckfd = open(lock, ORDWR);
-	if (lckfd < 0)
+	if(lckfd < 0)
 		sysfatal("can't open %s read/write: %r", lock);
 	return lckfd;
 }
@@ -84,7 +84,8 @@ main(int argc, char *argv[])
 	char *argarr[2];
 	Waitmsg *w;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'd':
 		++debug;
 		break;
@@ -94,11 +95,12 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	} ARGEND
+	}
+	ARGEND
 
-	if (argc < 1)
+	if(argc < 1)
 		usage();
-	if (argc == 1) {
+	if(argc == 1) {
 		args = argarr;
 		args[0] = cmd = "rc";
 		args[1] = nil;
@@ -111,26 +113,26 @@ main(int argc, char *argv[])
 	lock = argv[0];
 	lckfd = openlock(lock);
 	lckpid = fork();
-	switch(lckpid){
+	switch(lckpid) {
 	case -1:
 		error("fork");
 	case 0:
 		/* keep lock alive until killed */
-		for (;;) {
-			sleep(60*1000);
+		for(;;) {
+			sleep(60 * 1000);
 			seek(lckfd, 0, 0);
 			fprint(lckfd, "\n");
 		}
 	}
 
 	/* spawn argument command */
-	cmdpid = rfork(RFFDG|RFREND|RFPROC|RFENVG);
-	switch(cmdpid){
+	cmdpid = rfork(RFFDG | RFREND | RFPROC | RFENVG);
+	switch(cmdpid) {
 	case -1:
 		error("fork");
 	case 0:
 		fd = create("/env/prompt", OWRITE, 0666);
-		if (fd >= 0) {
+		if(fd >= 0) {
 			fprint(fd, "%s%% ", lock);
 			close(fd);
 		}
@@ -144,18 +146,18 @@ main(int argc, char *argv[])
 	notify(notifyf);
 
 	w = waitfor(cmdpid);
-	if (w == nil)
+	if(w == nil)
 		error("wait");
 
 	postnote(PNPROC, lckpid, "die");
 	waitfor(lckpid);
-	if(w->msg[0]){
+	if(w->msg[0]) {
 		p = utfrune(w->msg, ':');
 		if(p && p[1])
 			p++;
 		else
 			p = w->msg;
-		while (isspace(*p))
+		while(isspace(*p))
 			p++;
 		fprint(2, "%s: %s  # status=%s\n", argv0, cmd, p);
 	}

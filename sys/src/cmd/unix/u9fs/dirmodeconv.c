@@ -11,15 +11,15 @@
 #include <fcall.h>
 
 static char *modes[] =
-{
-	"---",
-	"--x",
-	"-w-",
-	"-wx",
-	"r--",
-	"r-x",
-	"rw-",
-	"rwx",
+    {
+     "---",
+     "--x",
+     "-w-",
+     "-wx",
+     "r--",
+     "r-x",
+     "rw-",
+     "rwx",
 };
 
 static void
@@ -37,18 +37,18 @@ dirmodeconv(va_list *arg, Fconv *f)
 	m = va_arg(*arg, uint32_t);
 
 	if(m & DMDIR)
-		buf[0]='d';
+		buf[0] = 'd';
 	else if(m & DMAPPEND)
-		buf[0]='a';
+		buf[0] = 'a';
 	else
-		buf[0]='-';
+		buf[0] = '-';
 	if(m & DMEXCL)
-		buf[1]='l';
+		buf[1] = 'l';
 	else
-		buf[1]='-';
-	rwx((m>>6)&7, buf+2);
-	rwx((m>>3)&7, buf+5);
-	rwx((m>>0)&7, buf+8);
+		buf[1] = '-';
+	rwx((m >> 6) & 7, buf + 2);
+	rwx((m >> 3) & 7, buf + 5);
+	rwx((m >> 0) & 7, buf + 8);
 	buf[11] = 0;
 
 	strconv(buf, f);

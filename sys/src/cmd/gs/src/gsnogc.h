@@ -27,9 +27,9 @@
 /* Interface to non-tracing GC */
 
 #ifndef gsnogc_INCLUDED
-#  define gsnogc_INCLUDED
+#define gsnogc_INCLUDED
 
-#include "gsgc.h"		/* for vm_reclaim_proc */
+#include "gsgc.h" /* for vm_reclaim_proc */
 
 /* Declare the vm_reclaim procedure for the non-tracing GC. */
 extern vm_reclaim_proc(gs_nogc_reclaim);

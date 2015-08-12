@@ -7,27 +7,25 @@
  * in the LICENSE file.
  */
 
-
-enum{
+enum {
 	PmcCtlNullval = 0xdead,
 };
 
 typedef struct PmcCtlCtrId PmcCtlCtrId;
-
 
 struct PmcCtlCtrId {
 	char portdesc[KNAMELEN];
 	char archdesc[KNAMELEN];
 };
 
-int		pmcnregs(void);
-int		pmcsetctl(uint32_t coreno, PmcCtl *p, uint32_t regno);
-int		pmctrans(PmcCtl *p);
-int		pmcgetctl(uint32_t coreno, PmcCtl *p, uint32_t regno);
-int		pmcdescstr(char *str, int nstr);
-int		pmcctlstr(char *str, int nstr, PmcCtl *p);
-uint64_t	pmcgetctr(uint32_t coreno, uint32_t regno);
-int		pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno);
+int pmcnregs(void);
+int pmcsetctl(uint32_t coreno, PmcCtl *p, uint32_t regno);
+int pmctrans(PmcCtl *p);
+int pmcgetctl(uint32_t coreno, PmcCtl *p, uint32_t regno);
+int pmcdescstr(char *str, int nstr);
+int pmcctlstr(char *str, int nstr, PmcCtl *p);
+uint64_t pmcgetctr(uint32_t coreno, uint32_t regno);
+int pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno);
 
-void		pmcupdate(Mach *m);
-extern	void (*_pmcupdate)(Mach *m);
+void pmcupdate(Mach *m);
+extern void (*_pmcupdate)(Mach *m);

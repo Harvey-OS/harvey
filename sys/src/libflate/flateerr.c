@@ -14,7 +14,7 @@
 char *
 flateerr(int err)
 {
-	switch(err){
+	switch(err) {
 	case FlateOk:
 		return "no error";
 	case FlateNoMem:

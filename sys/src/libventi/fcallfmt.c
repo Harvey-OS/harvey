@@ -16,14 +16,14 @@ vtfcallfmt(Fmt *f)
 {
 	VtFcall *t;
 
-	t = va_arg(f->args, VtFcall*);
-	if(t == nil){
+	t = va_arg(f->args, VtFcall *);
+	if(t == nil) {
 		fmtprint(f, "<nil fcall>");
 		return 0;
 	}
-	switch(t->msgtype){
+	switch(t->msgtype) {
 	default:
-		return fmtprint(f, "%c%d tag %ud", "TR"[t->msgtype&1], t->msgtype>>1, t->tag);
+		return fmtprint(f, "%c%d tag %ud", "TR"[t->msgtype & 1], t->msgtype >> 1, t->tag);
 	case VtRerror:
 		return fmtprint(f, "Rerror tag %ud error %s", t->tag, t->error);
 	case VtTping:
@@ -32,8 +32,8 @@ vtfcallfmt(Fmt *f)
 		return fmtprint(f, "Rping tag %ud", t->tag);
 	case VtThello:
 		return fmtprint(f, "Thello tag %ud vers %s uid %s strength %d crypto %d:%.*H codec %d:%.*H", t->tag,
-			t->version, t->uid, t->strength, t->ncrypto, t->ncrypto, t->crypto,
-			t->ncodec, t->ncodec, t->codec);
+				t->version, t->uid, t->strength, t->ncrypto, t->ncrypto, t->crypto,
+				t->ncodec, t->ncodec, t->codec);
 	case VtRhello:
 		return fmtprint(f, "Rhello tag %ud sid %s rcrypto %d rcodec %d", t->tag, t->sid, t->rcrypto, t->rcodec);
 	case VtTgoodbye:

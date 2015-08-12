@@ -23,11 +23,11 @@
 
 typedef struct Cursor Cursor;
 
-#undef	long
-#define	Font		XFont
-#define	Screen	XScreen
-#define	Display	XDisplay
-#define	Cursor	XCursor
+#undef long
+#define Font XFont
+#define Screen XScreen
+#define Display XDisplay
+#define Cursor XCursor
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -37,71 +37,68 @@ typedef struct Cursor Cursor;
 #include <X11/keysym.h>
 #include "keysym2ucs.h"
 
-#undef	Font
-#undef	Screen
-#undef	Display
-#undef	Cursor
-#define	long	int
+#undef Font
+#undef Screen
+#undef Display
+#undef Cursor
+#define long int
 
 /* perfect approximation to NTSC = .299r+.587g+.114b when 0 ≤ r,g,b < 256 */
-#define RGB2K(r,g,b)	((156763*(r)+307758*(g)+59769*(b))>>19)
+#define RGB2K(r, g, b) ((156763 * (r) + 307758 * (g) + 59769 * (b)) >> 19)
 
-enum
-{
-	PMundef	= ~0		/* undefined pixmap id */
+enum {
+	PMundef = ~0 /* undefined pixmap id */
 };
 
 /*
  * Structure pointed to by X field of Memimage
  */
 typedef struct Xmem Xmem;
-struct Xmem
-{
-	int	pmid;	/* pixmap id for screen ldepth instance */
-	XImage *xi;	/* local image if we currenty have the data */
-	int	dirty;
+struct Xmem {
+	int pmid;   /* pixmap id for screen ldepth instance */
+	XImage *xi; /* local image if we currenty have the data */
+	int dirty;
 	Rectangle dirtyr;
 	Rectangle r;
-	uintptr pc;	/* who wrote into xi */
+	uintptr pc; /* who wrote into xi */
 };
 
-static int	xgcfillcolor;
-static int	xgcfillcolor0;
-static int	xgcsimplecolor0;
-static int	xgcsimplepm0;
+static int xgcfillcolor;
+static int xgcfillcolor0;
+static int xgcsimplecolor0;
+static int xgcsimplepm0;
 
-static	XDisplay*	xdisplay;	/* used holding draw lock */
-static int				xtblbit;
-static int 			plan9tox11[256]; /* Values for mapping between */
-static int 			x11toplan9[256]; /* X11 and Plan 9 */
-static	GC		xgcfill, xgccopy, xgcsimplesrc, xgczero, xgcreplsrc;
-static	GC		xgcfill0, xgccopy0, xgcsimplesrc0, xgczero0, xgcreplsrc0;
-static	uint32_t	xscreenchan;
-static	Drawable	xscreenid;
-static	Visual		*xvis;
+static XDisplay *xdisplay; /* used holding draw lock */
+static int xtblbit;
+static int plan9tox11[256]; /* Values for mapping between */
+static int x11toplan9[256]; /* X11 and Plan 9 */
+static GC xgcfill, xgccopy, xgcsimplesrc, xgczero, xgcreplsrc;
+static GC xgcfill0, xgccopy0, xgcsimplesrc0, xgczero0, xgcreplsrc0;
+static uint32_t xscreenchan;
+static Drawable xscreenid;
+static Visual *xvis;
 
-static int xdraw(Memdrawparam*);
+static int xdraw(Memdrawparam *);
 
 #define glenda_width 48
 #define glenda_height 48
 static unsigned short glenda_bits[] = {
-   0xffff, 0xffff, 0xffff, 0xffff, 0xffe9, 0xffff, 0x7fff, 0xffae, 0xffff,
-   0xffff, 0xffbe, 0xffff, 0x1fff, 0xff3f, 0xffff, 0xbfff, 0xfe6e, 0xffff,
-   0xbbff, 0xfcce, 0xffff, 0xffff, 0xf98c, 0xffff, 0xe5ff, 0xf31b, 0xffff,
-   0x87ff, 0xe617, 0xffff, 0x05ff, 0xdf37, 0xffff, 0x0fff, 0x7ffe, 0xffff,
-   0x1bff, 0xfffc, 0xfffa, 0x37ff, 0xfffc, 0xfffb, 0xd7ff, 0xfffc, 0xfff7,
-   0xcfff, 0xffff, 0xfff7, 0xcfff, 0xffff, 0xffef, 0xdfff, 0xffff, 0xffef,
-   0xafff, 0xffff, 0xffdf, 0xefff, 0xffff, 0xfff3, 0xdfff, 0xefff, 0xffd3,
-   0xdfff, 0xc7ff, 0xffdf, 0xefff, 0xefff, 0xffef, 0xcfff, 0xffff, 0xffcf,
-   0xdfff, 0xffff, 0xffd9, 0x9fff, 0x7fff, 0xffd0, 0xbfff, 0xffff, 0xffd7,
-   0x7fff, 0xbfff, 0xffd0, 0x3fff, 0x3fff, 0xffd9, 0x7fff, 0x3fff, 0xffcb,
-   0x3fff, 0xffff, 0xffdc, 0x3fff, 0xffff, 0xffdf, 0x3fff, 0xffff, 0xff9f,
-   0x3fff, 0xffff, 0xffdf, 0x8fff, 0xffff, 0xff9f, 0xa7ff, 0xffff, 0xffdf,
-   0xe3ff, 0xffff, 0xffcf, 0xe9ff, 0xffff, 0xffcf, 0xf1ff, 0xffff, 0xffef,
-   0xf3ff, 0xffff, 0xffe7, 0xf9ff, 0xffff, 0xffe7, 0x53ff, 0xffff, 0xffe1,
-   0x07ff, 0x7ffc, 0xffc6, 0x17ff, 0xeff0, 0xffee, 0xffff, 0xc781, 0xffe5,
-   0xffff, 0x8807, 0xffe0, 0xffff, 0x003f, 0xfff0, 0xffff, 0x1fff, 0xfffe
-};
+    0xffff, 0xffff, 0xffff, 0xffff, 0xffe9, 0xffff, 0x7fff, 0xffae, 0xffff,
+    0xffff, 0xffbe, 0xffff, 0x1fff, 0xff3f, 0xffff, 0xbfff, 0xfe6e, 0xffff,
+    0xbbff, 0xfcce, 0xffff, 0xffff, 0xf98c, 0xffff, 0xe5ff, 0xf31b, 0xffff,
+    0x87ff, 0xe617, 0xffff, 0x05ff, 0xdf37, 0xffff, 0x0fff, 0x7ffe, 0xffff,
+    0x1bff, 0xfffc, 0xfffa, 0x37ff, 0xfffc, 0xfffb, 0xd7ff, 0xfffc, 0xfff7,
+    0xcfff, 0xffff, 0xfff7, 0xcfff, 0xffff, 0xffef, 0xdfff, 0xffff, 0xffef,
+    0xafff, 0xffff, 0xffdf, 0xefff, 0xffff, 0xfff3, 0xdfff, 0xefff, 0xffd3,
+    0xdfff, 0xc7ff, 0xffdf, 0xefff, 0xefff, 0xffef, 0xcfff, 0xffff, 0xffcf,
+    0xdfff, 0xffff, 0xffd9, 0x9fff, 0x7fff, 0xffd0, 0xbfff, 0xffff, 0xffd7,
+    0x7fff, 0xbfff, 0xffd0, 0x3fff, 0x3fff, 0xffd9, 0x7fff, 0x3fff, 0xffcb,
+    0x3fff, 0xffff, 0xffdc, 0x3fff, 0xffff, 0xffdf, 0x3fff, 0xffff, 0xff9f,
+    0x3fff, 0xffff, 0xffdf, 0x8fff, 0xffff, 0xff9f, 0xa7ff, 0xffff, 0xffdf,
+    0xe3ff, 0xffff, 0xffcf, 0xe9ff, 0xffff, 0xffcf, 0xf1ff, 0xffff, 0xffef,
+    0xf3ff, 0xffff, 0xffe7, 0xf9ff, 0xffff, 0xffe7, 0x53ff, 0xffff, 0xffe1,
+    0x07ff, 0x7ffc, 0xffc6, 0x17ff, 0xeff0, 0xffee, 0xffff, 0xc781, 0xffe5,
+    0xffff, 0x8807, 0xffe0, 0xffff, 0x003f, 0xfff0, 0xffff, 0x1fff, 0xfffe};
 
 /*
  * Synchronize images between X bitmaps and in-memory bitmaps.
@@ -115,7 +112,7 @@ addrect(Rectangle *rp, Rectangle r)
 		combinerect(rp, r);
 }
 
-static XImage*
+static XImage *
 getXdata(Memimage *m, Rectangle r)
 {
 	uint8_t *p;
@@ -124,33 +121,33 @@ getXdata(Memimage *m, Rectangle r)
 	Point xdelta, delta;
 	Point tp;
 
- 	xm = m->X;
- 	if(xm == nil)
- 		return nil;
- 
+	xm = m->X;
+	if(xm == nil)
+		return nil;
+
 	assert(xm != nil && xm->xi != nil);
-	
- 	if(xm->dirty == 0)
- 		return xm->xi;
- 		
- 	r = xm->dirtyr;
-	if(Dx(r)==0 || Dy(r)==0)
+
+	if(xm->dirty == 0)
+		return xm->xi;
+
+	r = xm->dirtyr;
+	if(Dx(r) == 0 || Dy(r) == 0)
 		return xm->xi;
 
 	delta = subpt(r.min, m->r.min);
-	tp = xm->r.min;	/* avoid unaligned access on digital unix */
+	tp = xm->r.min; /* avoid unaligned access on digital unix */
 	xdelta = subpt(r.min, tp);
-	
+
 	XGetSubImage(xdisplay, xm->pmid, delta.x, delta.y, Dx(r), Dy(r),
-		AllPlanes, ZPixmap, xm->xi, xdelta.x, xdelta.y);
-		
+		     AllPlanes, ZPixmap, xm->xi, xdelta.x, xdelta.y);
+
 	if(xtblbit && m->chan == CMAP8)
-		for(y=r.min.y; y<r.max.y; y++)
-			for(x=r.min.x, p=byteaddr(m, Pt(x,y)); x<r.max.x; x++, p++)
+		for(y = r.min.y; y < r.max.y; y++)
+			for(x = r.min.x, p = byteaddr(m, Pt(x, y)); x < r.max.x; x++, p++)
 				*p = x11toplan9[*p];
-				
+
 	xm->dirty = 0;
-	xm->dirtyr = Rect(0,0,0,0);
+	xm->dirtyr = Rect(0, 0, 0, 0);
 	return xm->xi;
 }
 
@@ -168,7 +165,7 @@ putXdata(Memimage *m, Rectangle r)
 	xm = m->X;
 	if(xm == nil)
 		return;
-		
+
 	assert(xm != nil);
 	assert(xm->xi != nil);
 
@@ -177,19 +174,19 @@ putXdata(Memimage *m, Rectangle r)
 	g = (m->chan == GREY1) ? xgccopy0 : xgccopy;
 
 	delta = subpt(r.min, m->r.min);
-	tp = xm->r.min;	/* avoid unaligned access on digital unix */
+	tp = xm->r.min; /* avoid unaligned access on digital unix */
 	xdelta = subpt(r.min, tp);
-	
+
 	if(xtblbit && m->chan == CMAP8)
-		for(y=r.min.y; y<r.max.y; y++)
-			for(x=r.min.x, p=byteaddr(m, Pt(x,y)); x<r.max.x; x++, p++)
+		for(y = r.min.y; y < r.max.y; y++)
+			for(x = r.min.x, p = byteaddr(m, Pt(x, y)); x < r.max.x; x++, p++)
 				*p = plan9tox11[*p];
-	
+
 	XPutImage(xdisplay, xm->pmid, g, xi, xdelta.x, xdelta.y, delta.x, delta.y, Dx(r), Dy(r));
 
 	if(xtblbit && m->chan == CMAP8)
-		for(y=r.min.y; y<r.max.y; y++)
-			for(x=r.min.x, p=byteaddr(m, Pt(x,y)); x<r.max.x; x++, p++)
+		for(y = r.min.y; y < r.max.y; y++)
+			for(x = r.min.x, p = byteaddr(m, Pt(x, y)); x < r.max.x; x++, p++)
 				*p = x11toplan9[*p];
 }
 
@@ -197,14 +194,14 @@ static void
 dirtyXdata(Memimage *m, Rectangle r)
 {
 	Xmem *xm;
-	
-	if((xm = m->X) != nil){
+
+	if((xm = m->X) != nil) {
 		xm->dirty = 1;
 		addrect(&xm->dirtyr, r);
 	}
 }
 
-Memimage*
+Memimage *
 xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 {
 	Memimage *m;
@@ -212,7 +209,7 @@ xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 	XImage *xi;
 	int offset;
 	int d;
-	
+
 	m = _allocmemimage(r, chan);
 	if(m == nil)
 		return nil;
@@ -224,21 +221,21 @@ xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 	if(pmid != PMundef)
 		xm->pmid = pmid;
 	else
-		xm->pmid = XCreatePixmap(xdisplay, xscreenid, Dx(r), Dy(r), (d==32) ? 24 : d);
-		
+		xm->pmid = XCreatePixmap(xdisplay, xscreenid, Dx(r), Dy(r), (d == 32) ? 24 : d);
+
 	if(m->depth == 24)
-		offset = r.min.x&(4-1);
+		offset = r.min.x & (4 - 1);
 	else
-		offset = r.min.x&(31/m->depth);
+		offset = r.min.x & (31 / m->depth);
 	r.min.x -= offset;
-	
+
 	assert(wordsperline(r, m->depth) <= m->width);
 
-	xi = XCreateImage(xdisplay, xvis, m->depth==32?24:m->depth, ZPixmap, 0,
-		(char*)m->data->bdata, Dx(r), Dy(r), 32,
-			  m->width*sizeof(uint32_t));
-	
-	if(xi == nil){
+	xi = XCreateImage(xdisplay, xvis, m->depth == 32 ? 24 : m->depth, ZPixmap, 0,
+			  (char *)m->data->bdata, Dx(r), Dy(r), 32,
+			  m->width * sizeof(uint32_t));
+
+	if(xi == nil) {
 		_freememimage(m);
 		return nil;
 	}
@@ -246,7 +243,7 @@ xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 	xm->xi = xi;
 	xm->pc = getcallerpc(&r);
 	xm->r = r;
-	
+
 	/*
 	 * Set the parameters of the XImage so its memory looks exactly like a
 	 * Memimage, so we can call _memimagedraw on the same data.  All frame
@@ -257,7 +254,7 @@ xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 	xi->byte_order = LSBFirst;
 	xi->bitmap_bit_order = MSBFirst;
 	xi->bitmap_pad = 32;
-	xm->r = Rect(0,0,0,0);
+	xm->r = Rect(0, 0, 0, 0);
 	XInitImage(xi);
 	XFlush(xdisplay);
 
@@ -274,19 +271,19 @@ xfillcolor(Memimage *m, Rectangle r, uint32_t v)
 	dxm = m->X;
 	assert(dxm != nil);
 	r = rectsubpt(r, m->r.min);
-		
-	if(m->chan == GREY1){
+
+	if(m->chan == GREY1) {
 		gc = xgcfill0;
-		if(xgcfillcolor0 != v){
+		if(xgcfillcolor0 != v) {
 			XSetForeground(xdisplay, gc, v);
 			xgcfillcolor0 = v;
 		}
-	}else{
+	} else {
 		if(m->chan == CMAP8 && xtblbit)
 			v = plan9tox11[v];
-				
+
 		gc = xgcfill;
-		if(xgcfillcolor != v){
+		if(xgcfillcolor != v) {
 			XSetForeground(xdisplay, gc, v);
 			xgcfillcolor = v;
 		}
@@ -298,7 +295,7 @@ xfillcolor(Memimage *m, Rectangle r, uint32_t v)
  * Replacements for libmemdraw routines.
  * (They've been underscored.)
  */
-Memimage*
+Memimage *
 allocmemimage(Rectangle r, uint32_t chan)
 {
 	return xallocmemimage(r, chan, PMundef);
@@ -308,13 +305,13 @@ void
 freememimage(Memimage *m)
 {
 	Xmem *xm;
-	
+
 	if(m == nil)
 		return;
-		
-	if(m->data->ref == 1){
-		if((xm = m->X) != nil){
-			if(xm->xi){
+
+	if(m->data->ref == 1) {
+		if((xm = m->X) != nil) {
+			if(xm->xi) {
 				xm->xi->data = nil;
 				XFree(xm->xi);
 			}
@@ -330,7 +327,7 @@ void
 memfillcolor(Memimage *m, uint32_t val)
 {
 	_memfillcolor(m, val);
-	if(m->X){
+	if(m->X) {
 		if((val & 0xFF) == 0xFF)
 			xfillcolor(m, m->r, _rgbatoimg(m, val));
 		else
@@ -364,7 +361,7 @@ uint32_t
 pixelbits(Memimage *m, Point p)
 {
 	if(m->X)
-		getXdata(m, Rect(p.x, p.y, p.x+1, p.y+1));
+		getXdata(m, Rect(p.x, p.y, p.x + 1, p.y + 1));
 	return _pixelbits(m, p);
 }
 
@@ -372,13 +369,13 @@ void
 memimageinit(void)
 {
 	static int didinit = 0;
-	
+
 	if(didinit)
 		return;
 
 	didinit = 1;
 	_memimageinit();
-	
+
 	xfillcolor(memblack, memblack->r, 0);
 	xfillcolor(memwhite, memwhite->r, 1);
 }
@@ -387,7 +384,7 @@ void
 memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point sp, Memimage *mask, Point mp, int op)
 {
 	Memdrawparam *par;
-	
+
 	if((par = _memimagedrawsetup(dst, r, src, sp, mask, mp, op)) == nil)
 		return;
 	_memimagedraw(par);
@@ -429,8 +426,8 @@ xdraw(Memdrawparam *par)
 	 * If we have an opaque mask and source is one opaque pixel we can convert to the
 	 * destination format and just XFillRectangle.
 	 */
-	m = Simplesrc|Simplemask|Fullmask;
-	if((par->state&m)==m){
+	m = Simplesrc | Simplemask | Fullmask;
+	if((par->state & m) == m) {
 		xfillcolor(dst, r, sdval);
 		dirtyXdata(dst, par->r);
 		return 1;
@@ -441,45 +438,44 @@ xdraw(Memdrawparam *par)
 	 * source onto the destination.  If the channels are the same and
 	 * the source is not replicated, XCopyArea suffices.
 	 */
-	m = Simplemask|Fullmask;
-	if((par->state&(m|Replsrc))==m && src->chan == dst->chan && src->X){
+	m = Simplemask | Fullmask;
+	if((par->state & (m | Replsrc)) == m && src->chan == dst->chan && src->X) {
 		sxm = src->X;
-		r = rectsubpt(r, dst->r.min);		
+		r = rectsubpt(r, dst->r.min);
 		sr = rectsubpt(sr, src->r.min);
 		if(dst->chan == GREY1)
 			gc = xgccopy0;
 		else
 			gc = xgccopy;
-		XCopyArea(xdisplay, sxm->pmid, dxm->pmid, gc, 
-			sr.min.x, sr.min.y, dx, dy, r.min.x, r.min.y);
+		XCopyArea(xdisplay, sxm->pmid, dxm->pmid, gc,
+			  sr.min.x, sr.min.y, dx, dy, r.min.x, r.min.y);
 		dirtyXdata(dst, par->r);
 		return 1;
 	}
-	
+
 	/*
 	 * If no source alpha, a 1-bit mask, and a simple source
 	 * we can just copy through the mask onto the destination.
 	 */
-	if(dst->X && mask->X && !(mask->flags&Frepl)
-	&& mask->chan == GREY1 && (par->state&Simplesrc)){
+	if(dst->X && mask->X && !(mask->flags & Frepl) && mask->chan == GREY1 && (par->state & Simplesrc)) {
 		Point p;
 
 		mxm = mask->X;
-		r = rectsubpt(r, dst->r.min);		
+		r = rectsubpt(r, dst->r.min);
 		mr = rectsubpt(mr, mask->r.min);
 		p = subpt(r.min, mr.min);
-		if(dst->chan == GREY1){
+		if(dst->chan == GREY1) {
 			gc = xgcsimplesrc0;
-			if(xgcsimplecolor0 != sdval){
+			if(xgcsimplecolor0 != sdval) {
 				XSetForeground(xdisplay, gc, sdval);
 				xgcsimplecolor0 = sdval;
 			}
-			if(xgcsimplepm0 != mxm->pmid){
+			if(xgcsimplepm0 != mxm->pmid) {
 				XSetStipple(xdisplay, gc, mxm->pmid);
 				xgcsimplepm0 = mxm->pmid;
 			}
-		}else{
-		/* somehow this doesn't work on rob's mac 
+		} else {
+			/* somehow this doesn't work on rob's mac 
 			gc = xgcsimplesrc;
 			if(dst->chan == CMAP8 && xtblbit)
 				sdval = plan9tox11[sdval];
@@ -508,42 +504,42 @@ xdraw(Memdrawparam *par)
  * Oh, how I loathe this code!
  */
 
-static XColor			map[256];	/* Plan 9 colormap array */
-static XColor			map7[128];	/* Plan 9 colormap array */
-static uint8_t			map7to8[128][2];
-static Colormap		xcmap;		/* Default shared colormap  */
+static XColor map[256];  /* Plan 9 colormap array */
+static XColor map7[128]; /* Plan 9 colormap array */
+static uint8_t map7to8[128][2];
+static Colormap xcmap; /* Default shared colormap  */
 
 extern int mousequeue;
 
 /* for copy/paste, lifted from plan9ports */
-static Atom clipboard; 
+static Atom clipboard;
 static Atom utf8string;
 static Atom targets;
 static Atom text;
 static Atom compoundtext;
 
-static	Drawable	xdrawable;
-static	void		xexpose(XEvent*);
-static	void		xmouse(XEvent*);
-static	void		xkeyboard(XEvent*);
-static	void		xmapping(XEvent*);
-static	void		xdestroy(XEvent*);
-static	void		xselect(XEvent*, XDisplay*);
-static	void		xproc(void*);
-static	Memimage*		xinitscreen(void);
-static	void		initmap(Window);
-static	GC		creategc(Drawable);
-static	void		graphicscmap(XColor*);
-static	int		xscreendepth;
-static	XDisplay*	xkmcon;	/* used only in xproc */
-static	XDisplay*	xsnarfcon;	/* used holding clip.lk */
-static	uint32_t		xblack;
-static	uint32_t		xwhite;
+static Drawable xdrawable;
+static void xexpose(XEvent *);
+static void xmouse(XEvent *);
+static void xkeyboard(XEvent *);
+static void xmapping(XEvent *);
+static void xdestroy(XEvent *);
+static void xselect(XEvent *, XDisplay *);
+static void xproc(void *);
+static Memimage *xinitscreen(void);
+static void initmap(Window);
+static GC creategc(Drawable);
+static void graphicscmap(XColor *);
+static int xscreendepth;
+static XDisplay *xkmcon;    /* used only in xproc */
+static XDisplay *xsnarfcon; /* used holding clip.lk */
+static uint32_t xblack;
+static uint32_t xwhite;
 
-static	int	putsnarf, assertsnarf;
+static int putsnarf, assertsnarf;
 
-	Memimage *gscreen;
-	Screeninfo screen;
+Memimage *gscreen;
+Screeninfo screen;
 
 void
 flushmemscreen(Rectangle r)
@@ -570,9 +566,9 @@ screeninit(void)
 	drawqunlock();
 }
 
-uint8_t*
+uint8_t *
 attachscreen(Rectangle *r, uint32_t *chan, int *depth,
-	int *width, int *softscreen, void **X)
+	     int *width, int *softscreen, void **X)
 {
 	*r = gscreen->r;
 	*chan = gscreen->chan;
@@ -590,14 +586,14 @@ revbyte(int b)
 	int r;
 
 	r = 0;
-	r |= (b&0x01) << 7;
-	r |= (b&0x02) << 5;
-	r |= (b&0x04) << 3;
-	r |= (b&0x08) << 1;
-	r |= (b&0x10) >> 1;
-	r |= (b&0x20) >> 3;
-	r |= (b&0x40) >> 5;
-	r |= (b&0x80) >> 7;
+	r |= (b & 0x01) << 7;
+	r |= (b & 0x02) << 5;
+	r |= (b & 0x04) << 3;
+	r |= (b & 0x08) << 1;
+	r |= (b & 0x10) >> 1;
+	r |= (b & 0x20) >> 3;
+	r |= (b & 0x40) >> 5;
+	r |= (b & 0x80) >> 7;
 	return r;
 }
 
@@ -619,9 +615,9 @@ setcursor(void)
 	XColor fg, bg;
 	Pixmap xsrc, xmask;
 	int i;
-	uint8_t src[2*16], mask[2*16];
+	uint8_t src[2 * 16], mask[2 * 16];
 
-	for(i=0; i<2*16; i++){
+	for(i = 0; i < 2 * 16; i++) {
 		src[i] = revbyte(cursor.set[i]);
 		mask[i] = revbyte(cursor.set[i] | cursor.clr[i]);
 	}
@@ -629,9 +625,9 @@ setcursor(void)
 	drawqlock();
 	fg = map[0];
 	bg = map[255];
-	xsrc = XCreateBitmapFromData(xdisplay, xdrawable, (char*)src, 16,
+	xsrc = XCreateBitmapFromData(xdisplay, xdrawable, (char *)src, 16,
 				     16);
-	xmask = XCreateBitmapFromData(xdisplay, xdrawable, (char*)mask, 16,
+	xmask = XCreateBitmapFromData(xdisplay, xdrawable, (char *)mask, 16,
 				      16);
 	xc = XCreatePixmapCursor(xdisplay, xsrc, xmask, &fg, &bg, -cursor.offset.x, -cursor.offset.y);
 	if(xc != 0) {
@@ -650,7 +646,7 @@ void
 cursorarrow(void)
 {
 	drawqlock();
-	if(xcursor != 0){
+	if(xcursor != 0) {
 		XFreeCursor(xdisplay, xcursor);
 		xcursor = 0;
 	}
@@ -665,17 +661,17 @@ xproc(void *arg)
 	uint32_t mask;
 	XEvent event;
 
-	mask = 	KeyPressMask|
-		ButtonPressMask|
-		ButtonReleaseMask|
-		PointerMotionMask|
-		Button1MotionMask|
-		Button2MotionMask|
-		Button3MotionMask|
-		Button4MotionMask|
-		Button5MotionMask|
-		ExposureMask|
-		StructureNotifyMask;
+	mask = KeyPressMask |
+	       ButtonPressMask |
+	       ButtonReleaseMask |
+	       PointerMotionMask |
+	       Button1MotionMask |
+	       Button2MotionMask |
+	       Button3MotionMask |
+	       Button4MotionMask |
+	       Button5MotionMask |
+	       ExposureMask |
+	       StructureNotifyMask;
 
 	XSelectInput(xkmcon, xdrawable, mask);
 	for(;;) {
@@ -709,7 +705,7 @@ panicshutup(XDisplay *d)
 	return -1;
 }
 
-static Memimage*
+static Memimage *
 xinitscreen(void)
 {
 	Memimage *gscreen;
@@ -734,9 +730,9 @@ xinitscreen(void)
 	xdrawable = 0;
 
 	xdisplay = XOpenDisplay(NULL);
-	if(xdisplay == 0){
+	if(xdisplay == 0) {
 		iprint("xinitscreen: XOpenDisplay: %r [DISPLAY=%s]\n",
-			getenv("DISPLAY"));
+		       getenv("DISPLAY"));
 		exit(0);
 	}
 
@@ -744,28 +740,22 @@ xinitscreen(void)
 	XSetIOErrorHandler(panicshutup);
 	rootscreennum = DefaultScreen(xdisplay);
 	rootwin = DefaultRootWindow(xdisplay);
-	
+
 	xscreendepth = DefaultDepth(xdisplay, rootscreennum);
-	if(XMatchVisualInfo(xdisplay, rootscreennum, 16, TrueColor, &xvi)
-	|| XMatchVisualInfo(xdisplay, rootscreennum, 16, DirectColor, &xvi)){
+	if(XMatchVisualInfo(xdisplay, rootscreennum, 16, TrueColor, &xvi) || XMatchVisualInfo(xdisplay, rootscreennum, 16, DirectColor, &xvi)) {
 		xvis = xvi.visual;
 		xscreendepth = 16;
 		xtblbit = 1;
-	}
-	else if(XMatchVisualInfo(xdisplay, rootscreennum, 24, TrueColor, &xvi)
-	|| XMatchVisualInfo(xdisplay, rootscreennum, 24, DirectColor, &xvi)){
+	} else if(XMatchVisualInfo(xdisplay, rootscreennum, 24, TrueColor, &xvi) || XMatchVisualInfo(xdisplay, rootscreennum, 24, DirectColor, &xvi)) {
 		xvis = xvi.visual;
 		xscreendepth = 24;
 		xtblbit = 1;
-	}
-	else if(XMatchVisualInfo(xdisplay, rootscreennum, 8, PseudoColor, &xvi)
-	|| XMatchVisualInfo(xdisplay, rootscreennum, 8, StaticColor, &xvi)){
+	} else if(XMatchVisualInfo(xdisplay, rootscreennum, 8, PseudoColor, &xvi) || XMatchVisualInfo(xdisplay, rootscreennum, 8, StaticColor, &xvi)) {
 		if(xscreendepth > 8)
 			panic("drawterm: can't deal with colormapped depth %d screens\n", xscreendepth);
 		xvis = xvi.visual;
 		xscreendepth = 8;
-	}
-	else{
+	} else {
 		if(xscreendepth != 8)
 			panic("drawterm: can't deal with depth %d screens\n", xscreendepth);
 		xvis = DefaultVisual(xdisplay, rootscreennum);
@@ -778,16 +768,16 @@ xinitscreen(void)
 	 */
 	xscreenchan = 0; /* not a valid channel */
 	pfmt = XListPixmapFormats(xdisplay, &n);
-	for(i=0; i<n; i++){
-		if(pfmt[i].depth == xscreendepth){
-			switch(pfmt[i].bits_per_pixel){
-			case 1:	/* untested */
+	for(i = 0; i < n; i++) {
+		if(pfmt[i].depth == xscreendepth) {
+			switch(pfmt[i].bits_per_pixel) {
+			case 1: /* untested */
 				xscreenchan = GREY1;
 				break;
-			case 2:	/* untested */
+			case 2: /* untested */
 				xscreenchan = GREY2;
 				break;
-			case 4:	/* untested */
+			case 4: /* untested */
 				xscreenchan = GREY4;
 				break;
 			case 8:
@@ -807,11 +797,11 @@ xinitscreen(void)
 	}
 	if(xscreenchan == 0)
 		panic("drawterm: unknown screen pixel format\n");
-		
+
 	screen = DefaultScreenOfDisplay(xdisplay);
 	xcmap = DefaultColormapOfScreen(screen);
 
-	if(xvis->class != StaticColor){
+	if(xvis->class != StaticColor) {
 		graphicscmap(map);
 		initmap(rootwin);
 	}
@@ -820,34 +810,34 @@ xinitscreen(void)
 	r.max.x = WidthOfScreen(screen);
 	r.max.y = HeightOfScreen(screen);
 
-	xsize = Dx(r)*3/4;
-	ysize = Dy(r)*3/4;
-	
+	xsize = Dx(r) * 3 / 4;
+	ysize = Dy(r) * 3 / 4;
+
 	attrs.colormap = xcmap;
 	attrs.background_pixel = 0;
 	attrs.border_pixel = 0;
 	/* attrs.override_redirect = 1;*/ /* WM leave me alone! |CWOverrideRedirect */
-	xdrawable = XCreateWindow(xdisplay, rootwin, 0, 0, xsize, ysize, 0, 
-		xscreendepth, InputOutput, xvis, CWBackPixel|CWBorderPixel|CWColormap, &attrs);
+	xdrawable = XCreateWindow(xdisplay, rootwin, 0, 0, xsize, ysize, 0,
+				  xscreendepth, InputOutput, xvis, CWBackPixel | CWBorderPixel | CWColormap, &attrs);
 
 	/* load the given bitmap data and create an X pixmap containing it. */
 	icon_pixmap = XCreateBitmapFromData(xdisplay,
-		rootwin, (char *)glenda_bits,
-		glenda_width, glenda_height);
+					    rootwin, (char *)glenda_bits,
+					    glenda_width, glenda_height);
 
 	/*
 	 * set up property as required by ICCCM
 	 */
-	name.value = (uint8_t*)"drawterm";
+	name.value = (uint8_t *)"drawterm";
 	name.encoding = XA_STRING;
 	name.format = 8;
-	name.nitems = strlen((char*)name.value);
-	normalhints.flags = USSize|PMaxSize;
+	name.nitems = strlen((char *)name.value);
+	normalhints.flags = USSize | PMaxSize;
 	normalhints.max_width = Dx(r);
 	normalhints.max_height = Dy(r);
 	normalhints.width = xsize;
 	normalhints.height = ysize;
-	hints.flags = IconPixmapHint |InputHint|StateHint;
+	hints.flags = IconPixmapHint | InputHint | StateHint;
 	hints.input = 1;
 	hints.initial_state = NormalState;
 	hints.icon_pixmap = icon_pixmap;
@@ -857,15 +847,15 @@ xinitscreen(void)
 	argv[0] = "drawterm";
 	argv[1] = nil;
 	XSetWMProperties(xdisplay, xdrawable,
-		&name,			/* XA_WM_NAME property for ICCCM */
-		&name,			/* XA_WM_ICON_NAME */
-		argv,			/* XA_WM_COMMAND */
-		1,			/* argc */
-		&normalhints,		/* XA_WM_NORMAL_HINTS */
-		&hints,			/* XA_WM_HINTS */
-		&classhints);		/* XA_WM_CLASS */
+			 &name,	/* XA_WM_NAME property for ICCCM */
+			 &name,	/* XA_WM_ICON_NAME */
+			 argv,	 /* XA_WM_COMMAND */
+			 1,	    /* argc */
+			 &normalhints, /* XA_WM_NORMAL_HINTS */
+			 &hints,       /* XA_WM_HINTS */
+			 &classhints); /* XA_WM_CLASS */
 	XFlush(xdisplay);
-	
+
 	/*
 	 * put the window on the screen
 	 */
@@ -874,7 +864,7 @@ xinitscreen(void)
 
 	xscreenid = XCreatePixmap(xdisplay, xdrawable, Dx(r), Dy(r), xscreendepth);
 	gscreen = xallocmemimage(r, xscreenchan, xscreenid);
-	
+
 	xgcfill = creategc(xscreenid);
 	XSetFillStyle(xdisplay, xgcfill, FillSolid);
 	xgccopy = creategc(xscreenid);
@@ -900,7 +890,7 @@ xinitscreen(void)
 	XFillRectangle(xdisplay, xscreenid, xgccopy, 0, 0, xsize, ysize);
 
 	xkmcon = XOpenDisplay(NULL);
-	if(xkmcon == 0){
+	if(xkmcon == 0) {
 		disp_val = getenv("DISPLAY");
 		if(disp_val == 0)
 			disp_val = "not set";
@@ -908,7 +898,7 @@ xinitscreen(void)
 		exit(0);
 	}
 	xsnarfcon = XOpenDisplay(NULL);
-	if(xsnarfcon == 0){
+	if(xsnarfcon == 0) {
 		disp_val = getenv("DISPLAY");
 		if(disp_val == 0)
 			disp_val = "not set";
@@ -932,53 +922,51 @@ graphicscmap(XColor *map)
 {
 	int r, g, b, cr, cg, cb, v, num, den, idx, v7, idx7;
 
-	for(r=0; r!=4; r++) {
+	for(r = 0; r != 4; r++) {
 		for(g = 0; g != 4; g++) {
-			for(b = 0; b!=4; b++) {
-				for(v = 0; v!=4; v++) {
-					den=r;
+			for(b = 0; b != 4; b++) {
+				for(v = 0; v != 4; v++) {
+					den = r;
 					if(g > den)
-						den=g;
+						den = g;
 					if(b > den)
-						den=b;
+						den = b;
 					/* divide check -- pick grey shades */
-					if(den==0)
-						cr=cg=cb=v*17;
+					if(den == 0)
+						cr = cg = cb = v * 17;
 					else {
-						num=17*(4*den+v);
-						cr=r*num/den;
-						cg=g*num/den;
-						cb=b*num/den;
+						num = 17 * (4 * den + v);
+						cr = r * num / den;
+						cg = g * num / den;
+						cb = b * num / den;
 					}
-					idx = r*64 + v*16 + ((g*4 + b + v - r) & 15);
-					map[idx].red = cr*0x0101;
-					map[idx].green = cg*0x0101;
-					map[idx].blue = cb*0x0101;
+					idx = r * 64 + v * 16 + ((g * 4 + b + v - r) & 15);
+					map[idx].red = cr * 0x0101;
+					map[idx].green = cg * 0x0101;
+					map[idx].blue = cb * 0x0101;
 					map[idx].pixel = idx;
-					map[idx].flags = DoRed|DoGreen|DoBlue;
+					map[idx].flags = DoRed | DoGreen | DoBlue;
 
 					v7 = v >> 1;
-					idx7 = r*32 + v7*16 + g*4 + b;
-					if((v & 1) == v7){
+					idx7 = r * 32 + v7 * 16 + g * 4 + b;
+					if((v & 1) == v7) {
 						map7to8[idx7][0] = idx;
-						if(den == 0) { 		/* divide check -- pick grey shades */
-							cr = ((255.0/7.0)*v7)+0.5;
+						if(den == 0) { /* divide check -- pick grey shades */
+							cr = ((255.0 / 7.0) * v7) + 0.5;
 							cg = cr;
 							cb = cr;
+						} else {
+							num = 17 * 15 * (4 * den + v7 * 2) / 14;
+							cr = r * num / den;
+							cg = g * num / den;
+							cb = b * num / den;
 						}
-						else {
-							num=17*15*(4*den+v7*2)/14;
-							cr=r*num/den;
-							cg=g*num/den;
-							cb=b*num/den;
-						}
-						map7[idx7].red = cr*0x0101;
-						map7[idx7].green = cg*0x0101;
-						map7[idx7].blue = cb*0x0101;
+						map7[idx7].red = cr * 0x0101;
+						map7[idx7].green = cg * 0x0101;
+						map7[idx7].blue = cb * 0x0101;
 						map7[idx7].pixel = idx7;
-						map7[idx7].flags = DoRed|DoGreen|DoBlue;
-					}
-					else
+						map7[idx7].flags = DoRed | DoGreen | DoBlue;
+					} else
 						map7to8[idx7][1] = idx;
 				}
 			}
@@ -989,8 +977,8 @@ graphicscmap(XColor *map)
 /*
  * Initialize and install the drawterm colormap as a private colormap for this
  * application.  Drawterm gets the best colors here when it has the cursor focus.
- */  
-static void 
+ */
+static void
 initmap(Window w)
 {
 	XColor c;
@@ -1020,14 +1008,14 @@ initmap(Window w)
 		if(!XAllocColor(xdisplay, xcmap, &c))
 			panic("drawterm: screen-x11 can't alloc color");
 
-		p  = c.pixel;
-		pp = rgb2cmap((p>>16)&0xff,(p>>8)&0xff,p&0xff);
-		if(pp!=map[19].pixel) {
+		p = c.pixel;
+		pp = rgb2cmap((p >> 16) & 0xff, (p >> 8) & 0xff, p & 0xff);
+		if(pp != map[19].pixel) {
 			/* check if endian is other way */
-			pp = rgb2cmap(p&0xff,(p>>8)&0xff,(p>>16)&0xff);
-			if(pp!=map[19].pixel)
+			pp = rgb2cmap(p & 0xff, (p >> 8) & 0xff, (p >> 16) & 0xff);
+			if(pp != map[19].pixel)
 				panic("cannot detect x server byte order");
-			switch(xscreenchan){
+			switch(xscreenchan) {
 			case RGB24:
 				xscreenchan = BGR24;
 				break;
@@ -1035,22 +1023,21 @@ initmap(Window w)
 				xscreenchan = XBGR32;
 				break;
 			default:
-				panic("don't know how to byteswap channel %s", 
-					chantostr(buf, xscreenchan));
+				panic("don't know how to byteswap channel %s",
+				      chantostr(buf, xscreenchan));
 				break;
 			}
 		}
 	} else if(xvis->class == TrueColor || xvis->class == DirectColor) {
 	} else if(xvis->class == PseudoColor) {
-		if(xtblbit == 0){
-			xcmap = XCreateColormap(xdisplay, w, xvis, AllocAll); 
+		if(xtblbit == 0) {
+			xcmap = XCreateColormap(xdisplay, w, xvis, AllocAll);
 			XStoreColors(xdisplay, xcmap, map, 256);
 			for(i = 0; i < 256; i++) {
 				plan9tox11[i] = i;
 				x11toplan9[i] = i;
 			}
-		}
-		else {
+		} else {
 			for(i = 0; i < 128; i++) {
 				c = map7[i];
 				if(!XAllocColor(xdisplay, xcmap, &c)) {
@@ -1062,8 +1049,7 @@ initmap(Window w)
 				x11toplan9[c.pixel] = map7to8[i][0];
 			}
 		}
-	}
-	else
+	} else
 		panic("drawterm: unsupported visual class %d\n", xvis->class);
 }
 
@@ -1073,7 +1059,7 @@ xdestroy(XEvent *e)
 	XDestroyWindowEvent *xe;
 	if(e->type != DestroyNotify)
 		return;
-	xe = (XDestroyWindowEvent*)e;
+	xe = (XDestroyWindowEvent *)e;
 	if(xe->window == xdrawable)
 		exit(0);
 }
@@ -1085,10 +1071,9 @@ xmapping(XEvent *e)
 
 	if(e->type != MappingNotify)
 		return;
-	xe = (XMappingEvent*)e;
+	xe = (XMappingEvent *)e;
 	USED(xe);
 }
-
 
 /*
  * Disable generation of GraphicsExpose/NoExpose events in the GC.
@@ -1100,7 +1085,7 @@ creategc(Drawable d)
 
 	gcv.function = GXcopy;
 	gcv.graphics_exposures = False;
-	return XCreateGC(xdisplay, d, GCFunction|GCGraphicsExposures, &gcv);
+	return XCreateGC(xdisplay, d, GCFunction | GCGraphicsExposures, &gcv);
 }
 
 static void
@@ -1111,7 +1096,7 @@ xexpose(XEvent *e)
 
 	if(e->type != Expose)
 		return;
-	xe = (XExposeEvent*)e;
+	xe = (XExposeEvent *)e;
 	r.min.x = xe->x;
 	r.min.y = xe->y;
 	r.max.x = xe->x + xe->width;
@@ -1132,13 +1117,12 @@ xkeyboard(XEvent *e)
 	if(e->xany.type != KeyPress)
 		return;
 
-
-	XLookupString((XKeyEvent*)e, NULL, 0, &k, NULL);
+	XLookupString((XKeyEvent *)e, NULL, 0, &k, NULL);
 
 	if(k == XK_Multi_key || k == NoSymbol)
 		return;
-	if(k&0xFF00){
-		switch(k){
+	if(k & 0xFF00) {
+		switch(k) {
 		case XK_BackSpace:
 		case XK_Tab:
 		case XK_Escape:
@@ -1194,7 +1178,7 @@ xkeyboard(XEvent *e)
 		case XK_KP_End:
 			k = Kend;
 			break;
-		case XK_Page_Up:	
+		case XK_Page_Up:
 		case XK_KP_Page_Up:
 			k = Kpgup;
 			break;
@@ -1222,7 +1206,7 @@ xkeyboard(XEvent *e)
 		case XK_F10:
 		case XK_F11:
 		case XK_F12:
-			k = KF|(k - XK_F1 + 1);
+			k = KF | (k - XK_F1 + 1);
 			break;
 		case XK_Shift_L:
 		case XK_Shift_R:
@@ -1238,8 +1222,8 @@ xkeyboard(XEvent *e)
 		case XK_Hyper_L:
 		case XK_Hyper_R:
 			return;
-		default:		/* not ISO-1 or tty control */
-  			if(k>0xff){
+		default: /* not ISO-1 or tty control */
+			if(k > 0xff) {
 				k = keysym2ucs(k); /* supplied by X */
 				if(k == -1)
 					return;
@@ -1252,7 +1236,7 @@ xkeyboard(XEvent *e)
 	if(k == XK_hyphen)
 		k = XK_minus;
 	/* Do control mapping ourselves if translator doesn't */
-	if(e->xkey.state&ControlMask && k != Kalt)
+	if(e->xkey.state & ControlMask && k != Kalt)
 		k &= 0x9f;
 	if(k == NoSymbol) {
 		return;
@@ -1269,7 +1253,7 @@ xmouse(XEvent *e)
 	XButtonEvent *be;
 	XMotionEvent *me;
 
-	if(putsnarf != assertsnarf){
+	if(putsnarf != assertsnarf) {
 		assertsnarf = putsnarf;
 		XSetSelectionOwner(xkmcon, XA_PRIMARY, xdrawable, CurrentTime);
 		if(clipboard != None)
@@ -1277,7 +1261,7 @@ xmouse(XEvent *e)
 		XFlush(xkmcon);
 	}
 
-	switch(e->type){
+	switch(e->type) {
 	case ButtonPress:
 		be = (XButtonEvent *)e;
 		/* 
@@ -1286,15 +1270,13 @@ xmouse(XEvent *e)
 		 * the wire, since they are truncated by the time they
 		 * get to us.
 		 */
-		if(be->send_event
-		&& (~be->state&0xFFFF)==0
-		&& (~be->button&0xFF)==0)
+		if(be->send_event && (~be->state & 0xFFFF) == 0 && (~be->button & 0xFF) == 0)
 			return;
 		ms.xy.x = be->x;
 		ms.xy.y = be->y;
 		s = be->state;
 		ms.msec = be->time;
-		switch(be->button){
+		switch(be->button) {
 		case 1:
 			s |= Button1Mask;
 			break;
@@ -1318,7 +1300,7 @@ xmouse(XEvent *e)
 		ms.xy.y = be->y;
 		ms.msec = be->time;
 		s = be->state;
-		switch(be->button){
+		switch(be->button) {
 		case 1:
 			s &= ~Button1Mask;
 			break;
@@ -1363,15 +1345,15 @@ xmouse(XEvent *e)
 	i = mouse.wi;
 	if(mousequeue) {
 		if(i == mouse.ri || mouse.lastb != ms.buttons || mouse.trans) {
-			mouse.wi = (i+1)%Mousequeue;
+			mouse.wi = (i + 1) % Mousequeue;
 			if(mouse.wi == mouse.ri)
-				mouse.ri = (mouse.ri+1)%Mousequeue;
+				mouse.ri = (mouse.ri + 1) % Mousequeue;
 			mouse.trans = mouse.lastb != ms.buttons;
 		} else {
-			i = (i-1+Mousequeue)%Mousequeue;
+			i = (i - 1 + Mousequeue) % Mousequeue;
 		}
 	} else {
-		mouse.wi = (i+1)%Mousequeue;
+		mouse.wi = (i + 1) % Mousequeue;
 		mouse.ri = i;
 	}
 	mouse.queue[i] = ms;
@@ -1384,11 +1366,11 @@ void
 getcolor(uint32_t i, uint32_t *r, uint32_t *g, uint32_t *b)
 {
 	uint32_t v;
-	
+
 	v = cmap2rgb(i);
-	*r = (v>>16)&0xFF;
-	*g = (v>>8)&0xFF;
-	*b = v&0xFF;
+	*r = (v >> 16) & 0xFF;
+	*g = (v >> 8) & 0xFF;
+	*b = v & 0xFF;
 }
 
 void
@@ -1421,10 +1403,10 @@ atlocalconsole(void)
 		return 1;
 
 	/* try to match against system name (i.e. for ssh) */
-	if(gethostname(buf, sizeof buf) == 0){
+	if(gethostname(buf, sizeof buf) == 0) {
 		if(strcmp(p, buf) == 0)
 			return 1;
-		if(strncmp(p, buf, strlen(p)) == 0 && buf[strlen(p)]=='.')
+		if(strncmp(p, buf, strlen(p)) == 0 && buf[strlen(p)] == '.')
 			return 1;
 	}
 
@@ -1436,17 +1418,16 @@ atlocalconsole(void)
  */
 
 typedef struct Clip Clip;
-struct Clip
-{
+struct Clip {
 	char buf[SnarfSize];
 	QLock lk;
 };
 Clip clip;
 
-#undef long	/* sic */
+#undef long /* sic */
 #undef ulong
 
-static char*
+static char *
 _xgetsnarf(XDisplay *xd)
 {
 	uint8_t *data, *xdata;
@@ -1468,16 +1449,16 @@ _xgetsnarf(XDisplay *xd)
 	 */
 	clipboard = XA_PRIMARY;
 	w = XGetSelectionOwner(xd, XA_PRIMARY);
-	if(w == xdrawable){
+	if(w == xdrawable) {
 	mine:
-		data = (uint8_t*)strdup(clip.buf);
+		data = (uint8_t *)strdup(clip.buf);
 		goto out;
 	}
 
 	/*
 	 * If not, is there a clipboard selection?
 	 */
-	if(w == None && clipboard != None){
+	if(w == None && clipboard != None) {
 		clipboard = clipboard;
 		w = XGetSelectionOwner(xd, clipboard);
 		if(w == xdrawable)
@@ -1487,11 +1468,11 @@ _xgetsnarf(XDisplay *xd)
 	/*
 	 * If not, give up.
 	 */
-	if(w == None){
+	if(w == None) {
 		data = nil;
 		goto out;
 	}
-		
+
 	/*
 	 * We should be waiting for SelectionNotify here, but it might never
 	 * come, and we have no way to time out.  Instead, we will clear
@@ -1503,40 +1484,40 @@ _xgetsnarf(XDisplay *xd)
 	 */
 	prop = 1;
 	XChangeProperty(xd, xdrawable, prop, XA_STRING, 8, PropModeReplace,
-			(uint8_t*)"", 0);
+			(uint8_t *)"", 0);
 	XConvertSelection(xd, clipboard, XA_STRING, prop, xdrawable, CurrentTime);
 	XFlush(xd);
 	lastlen = 0;
-	for(i=0; i<10 || (lastlen!=0 && i<30); i++){
-		usleep(100*1000);
+	for(i = 0; i < 10 || (lastlen != 0 && i < 30); i++) {
+		usleep(100 * 1000);
 		XGetWindowProperty(xd, xdrawable, prop, 0, 0, 0, AnyPropertyType,
-			&type, &fmt, &dummy, &len, &data);
+				   &type, &fmt, &dummy, &len, &data);
 		if(lastlen == len && len > 0)
 			break;
 		lastlen = len;
 	}
-	if(i == 10){
+	if(i == 10) {
 		data = nil;
 		goto out;
 	}
 	/* get the property */
 	data = nil;
-	XGetWindowProperty(xd, xdrawable, prop, 0, SnarfSize/sizeof(unsigned long), 0, 
-		AnyPropertyType, &type, &fmt, &len, &dummy, &xdata);
-	if((type != XA_STRING && type != utf8string) || len == 0){
+	XGetWindowProperty(xd, xdrawable, prop, 0, SnarfSize / sizeof(unsigned long), 0,
+			   AnyPropertyType, &type, &fmt, &len, &dummy, &xdata);
+	if((type != XA_STRING && type != utf8string) || len == 0) {
 		if(xdata)
 			XFree(xdata);
 		data = nil;
-	}else{
-		if(xdata){
-			data = (uint8_t*)strdup((char*)xdata);
+	} else {
+		if(xdata) {
+			data = (uint8_t *)strdup((char *)xdata);
 			XFree(xdata);
-		}else
+		} else
 			data = nil;
 	}
 out:
 	qunlock(&clip.lk);
-	return (char*)data;
+	return (char *)data;
 }
 
 static void
@@ -1558,7 +1539,7 @@ _xputsnarf(XDisplay *xd, char *data)
 	e.window = xdrawable;
 	e.state = ~0;
 	e.button = ~0;
-	XSendEvent(xd, xdrawable, True, ButtonPressMask, (XEvent*)&e);
+	XSendEvent(xd, xdrawable, True, ButtonPressMask, (XEvent *)&e);
 	XFlush(xd);
 	qunlock(&clip.lk);
 }
@@ -1575,40 +1556,41 @@ xselect(XEvent *e, XDisplay *xd)
 		return;
 
 	memset(&r, 0, sizeof r);
-	xe = (XSelectionRequestEvent*)e;
-if(0) iprint("xselect target=%d requestor=%d property=%d selection=%d\n",
-	xe->target, xe->requestor, xe->property, xe->selection);
+	xe = (XSelectionRequestEvent *)e;
+	if(0)
+		iprint("xselect target=%d requestor=%d property=%d selection=%d\n",
+		       xe->target, xe->requestor, xe->property, xe->selection);
 	r.xselection.property = xe->property;
-	if(xe->target == targets){
+	if(xe->target == targets) {
 		a[0] = XA_STRING;
 		a[1] = utf8string;
 		a[2] = text;
 		a[3] = compoundtext;
 
 		XChangeProperty(xd, xe->requestor, xe->property, XA_ATOM,
-			32, PropModeReplace, (uint8_t*)a, sizeof a);
-	}else if(xe->target == XA_STRING || xe->target == utf8string || xe->target == text || xe->target == compoundtext){
+				32, PropModeReplace, (uint8_t *)a, sizeof a);
+	} else if(xe->target == XA_STRING || xe->target == utf8string || xe->target == text || xe->target == compoundtext) {
 	text:
 		/* if the target is STRING we're supposed to reply with Latin1 XXX */
 		qlock(&clip.lk);
 		XChangeProperty(xd, xe->requestor, xe->property, xe->target,
-			8, PropModeReplace, (uint8_t*)clip.buf,
+				8, PropModeReplace, (uint8_t *)clip.buf,
 				strlen(clip.buf));
 		qunlock(&clip.lk);
-	}else{
+	} else {
 		name = XGetAtomName(xd, xe->target);
 		if(name == nil)
 			iprint("XGetAtomName %d failed\n", xe->target);
-		if(name){
-			if(strcmp(name, "TIMESTAMP") == 0){
+		if(name) {
+			if(strcmp(name, "TIMESTAMP") == 0) {
 				/* nothing */
-			}else if(strncmp(name, "image/", 6) == 0){
+			} else if(strncmp(name, "image/", 6) == 0) {
 				/* nothing */
-			}else if(strcmp(name, "text/html") == 0){
+			} else if(strcmp(name, "text/html") == 0) {
 				/* nothing */
-			}else if(strcmp(name, "text/plain") == 0 || strcmp(name, "text/plain;charset=UTF-8") == 0){
+			} else if(strcmp(name, "text/plain") == 0 || strcmp(name, "text/plain;charset=UTF-8") == 0) {
 				goto text;
-			}else
+			} else
 				iprint("%s: cannot handle selection request for '%s' (%d)\n", argv0, name, (int)xe->target);
 		}
 		r.xselection.property = None;
@@ -1626,7 +1608,7 @@ if(0) iprint("xselect target=%d requestor=%d property=%d selection=%d\n",
 	XFlush(xd);
 }
 
-char*
+char *
 clipread(void)
 {
 	return _xgetsnarf(xsnarfcon);
@@ -1638,4 +1620,3 @@ clipwrite(char *buf)
 	_xputsnarf(xsnarfcon, buf);
 	return 0;
 }
-

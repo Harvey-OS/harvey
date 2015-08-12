@@ -21,8 +21,8 @@ mptobe(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	mpdigit x;
 	uint8_t *e, *s, c;
 
-	if(p == nil){
-		n = (b->top+1)*Dbytes;
+	if(p == nil) {
+		n = (b->top + 1) * Dbytes;
 		p = malloc(n);
 		setmalloctag(p, getcallerpc(&b));
 	}
@@ -33,20 +33,20 @@ mptobe(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	memset(p, 0, n);
 
 	// special case 0
-	if(b->top == 0){
+	if(b->top == 0) {
 		if(n < 1)
 			return -1;
 		else
 			return 1;
 	}
-		
+
 	s = p;
-	e = s+n;
+	e = s + n;
 	suppress = 1;
-	for(i = b->top-1; i >= 0; i--){
+	for(i = b->top - 1; i >= 0; i--) {
 		x = b->p[i];
-		for(j = Dbits-8; j >= 0; j -= 8){
-			c = x>>j;
+		for(j = Dbits - 8; j >= 0; j -= 8) {
+			c = x >> j;
 			if(c == 0 && suppress)
 				continue;
 			if(p >= e)
@@ -57,7 +57,7 @@ mptobe(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 	}
 
 	// guarantee at least one byte
-	if(s == p){
+	if(s == p) {
 		if(p >= e)
 			return -1;
 		*p++ = 0;

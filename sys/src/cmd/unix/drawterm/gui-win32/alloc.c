@@ -12,7 +12,7 @@
 #include <draw.h>
 #include <memdraw.h>
 
-Memimage*
+Memimage *
 allocmemimage(Rectangle r, uint32_t chan)
 {
 	return _allocmemimage(r, chan);
@@ -29,4 +29,3 @@ memfillcolor(Memimage *i, uint32_t val)
 {
 	_memfillcolor(i, val);
 }
-

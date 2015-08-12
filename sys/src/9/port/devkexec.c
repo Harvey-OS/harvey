@@ -7,46 +7,45 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
-#include	"kexec.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
+#include "kexec.h"
 
-enum
-{
+enum {
 	Maxkexecsize = 16300,
 };
 
 int kxdbg = 0;
-#define KXDBG if(!kxdbg) {} else print
+#define KXDBG        \
+	if(!kxdbg) { \
+	} else       \
+	print
 
+static Kexecgrp *kexecgrp(Chan *c);
+static int kexecwriteable(Chan *c);
 
+static Kexecgrp kgrp; /* global kexec group containing the kernel configuration */
 
-static Kexecgrp	*kexecgrp(Chan *c);
-static int	kexecwriteable(Chan *c);
-
-
-static Kexecgrp	kgrp;	/* global kexec group containing the kernel configuration */
-
-static Kvalue*
+static Kvalue *
 kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 {
 	Kvalue *e;
 	int i;
 
-	for(i=0; i<kg->nent; i++){
+	for(i = 0; i < kg->nent; i++) {
 		e = kg->ent[i];
-		if(e->qid.path == qidpath || e->addr==addr)
+		if(e->qid.path == qidpath || e->addr == addr)
 			return e;
 	}
 	return nil;
 }
 
 static int
-kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
+kexecgen(Chan *c, char *name, Dirtab *dir, int i, int s, Dir *dp)
 {
 	Proc *up = externup();
 	Kexecgrp *kg;
@@ -55,8 +54,8 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 
 	print("starting gen name %s\n", name);
 
-	if(s == DEVDOTDOT){
-		devdir(c, c->qid, "#§", 0, eve, DMDIR|0775, dp);
+	if(s == DEVDOTDOT) {
+		devdir(c, c->qid, "#§", 0, eve, DMDIR | 0775, dp);
 		return 1;
 	}
 	print("getting kg name %s\n", name);
@@ -69,7 +68,7 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 		print("got addr %p\n", addr);
 
 		e = kexeclookup(kg, addr, -1);
-	}else if(s < kg->nent)
+	} else if(s < kg->nent)
 		e = kg->ent[s];
 
 	if(e == 0) {
@@ -90,27 +89,25 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 	return 1;
 }
 
-#define QPATH(p,d,t)    ((p)<<16 | (d)<<8 | (t)<<0)
+#define QPATH(p, d, t) ((p) << 16 | (d) << 8 | (t) << 0)
 
-static Chan*
+static Chan *
 kexecattach(char *spec)
 {
 	Chan *c;
-//	Kexecgrp *kgrp = nil;
-//        Qid qid;
-
+	//	Kexecgrp *kgrp = nil;
+	//        Qid qid;
 
 	c = devattach(L'§', spec);
 	c->aux = &kgrp;
 	return c;
 }
 
-static Walkqid*
+static Walkqid *
 kexecwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, kexecgen);
 }
-
 
 static int32_t
 kexecstat(Chan *c, uint8_t *db, int32_t n)
@@ -124,7 +121,7 @@ kexecstat(Chan *c, uint8_t *db, int32_t n)
 	return nn;
 }
 
-static Chan*
+static Chan *
 kexecopen(Chan *c, int omode)
 {
 	Kexecgrp *kg;
@@ -135,7 +132,7 @@ kexecopen(Chan *c, int omode)
 	if(c->qid.type & QTDIR) {
 		if(omode != OREAD)
 			error(Eperm);
-	}else {
+	} else {
 		trunc = omode & OTRUNC;
 		if(omode != OREAD && !kexecwriteable(c))
 			error(Eperm);
@@ -196,11 +193,11 @@ kexeccreate(Chan *c, char *name, int omode, int i)
 	e = smalloc(sizeof(Kvalue));
 	e->addr = addr;
 
-	if(kg->nent == kg->ment){
+	if(kg->nent == kg->ment) {
 		kg->ment += 32;
-		ent = smalloc(sizeof(kg->ent[0])*kg->ment);
+		ent = smalloc(sizeof(kg->ent[0]) * kg->ment);
 		if(kg->nent)
-			memmove(ent, kg->ent, sizeof(kg->ent[0])*kg->nent);
+			memmove(ent, kg->ent, sizeof(kg->ent[0]) * kg->nent);
 		free(kg->ent);
 		kg->ent = ent;
 	}
@@ -231,8 +228,8 @@ kexecremove(Chan *c)
 	kg = kexecgrp(c);
 	wlock(kg);
 	e = 0;
-	for(i=0; i<kg->nent; i++){
-		if(kg->ent[i]->qid.path == c->qid.path){
+	for(i = 0; i < kg->nent; i++) {
+		if(kg->ent[i]->qid.path == c->qid.path) {
 			e = kg->ent[i];
 			kg->nent--;
 			kg->ent[i] = kg->ent[kg->nent];
@@ -277,14 +274,14 @@ kexecread(Chan *c, void *a, int32_t n, int64_t off)
 	}
 
 	offset = off;
-	if(offset > e->len)	/* protects against overflow converting int64_t to long */
+	if(offset > e->len) /* protects against overflow converting int64_t to long */
 		n = 0;
 	else if(offset + n > e->len)
 		n = e->len - offset;
 	if(n <= 0)
 		n = 0;
-//	else
-//		memmove(a, e->value+offset, n);
+	//	else
+	//		memmove(a, e->value+offset, n);
 	runlock(kg);
 	return n;
 }
@@ -345,24 +342,24 @@ kexecwrite(Chan *c, void *a, int32_t n, int64_t off)
 }
 
 Dev kexecdevtab = {
-	L'§',
-	"kexec",
+    L'§',
+    "kexec",
 
-	devreset,
-	devinit,
-	devshutdown,
-	kexecattach,
-	kexecwalk,
-	kexecstat,
-	kexecopen,
-	kexeccreate,
-	kexecclose,
-	kexecread,
-	devbread,
-	kexecwrite,
-	devbwrite,
-	kexecremove,
-	devwstat,
+    devreset,
+    devinit,
+    devshutdown,
+    kexecattach,
+    kexecwalk,
+    kexecstat,
+    kexecopen,
+    kexeccreate,
+    kexecclose,
+    kexecread,
+    devbread,
+    kexecwrite,
+    devbwrite,
+    kexecremove,
+    devwstat,
 };
 
 void
@@ -372,9 +369,9 @@ kexeccpy(Kexecgrp *to, Kexecgrp *from)
 	Kvalue *ne, *e;
 
 	rlock(from);
-	to->ment = (from->nent+31)&~31;
-	to->ent = smalloc(to->ment*sizeof(to->ent[0]));
-	for(i=0; i<from->nent; i++){
+	to->ment = (from->nent + 31) & ~31;
+	to->ent = smalloc(to->ment * sizeof(to->ent[0]));
+	for(i = 0; i < from->nent; i++) {
 		e = from->ent[i];
 		ne = smalloc(sizeof(Kvalue));
 		ne->addr = e->addr;
@@ -392,8 +389,8 @@ closekgrp(Kexecgrp *kg)
 	int i;
 	Kvalue *e;
 
-	if(decref(kg) == 0){
-		for(i=0; i<kg->nent; i++){
+	if(decref(kg) == 0) {
+		for(i = 0; i < kg->nent; i++) {
 			e = kg->ent[i];
 			free(e);
 		}
@@ -402,7 +399,7 @@ closekgrp(Kexecgrp *kg)
 	}
 }
 
-static Kexecgrp*
+static Kexecgrp *
 kexecgrp(Chan *c)
 {
 	if(c->aux == nil)
@@ -415,4 +412,3 @@ kexecwriteable(Chan *c)
 {
 	return iseve() || c->aux == nil;
 }
-

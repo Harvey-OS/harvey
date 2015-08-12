@@ -43,7 +43,7 @@
 #include "gserrors.h"
 #include "gserror.h"
 #include "gstypes.h"
-#include "gsmemory.h"		/* for gxiodev.h */
+#include "gsmemory.h" /* for gxiodev.h */
 #include "gxiodev.h"
 
 /* The OS/2 printer IODevice */
@@ -69,70 +69,67 @@
  * thread within ghostscript.
  */
 
-private iodev_proc_init(os2_printer_init);
-private iodev_proc_fopen(os2_printer_fopen);
-private iodev_proc_fclose(os2_printer_fclose);
+private
+iodev_proc_init(os2_printer_init);
+private
+iodev_proc_fopen(os2_printer_fopen);
+private
+iodev_proc_fclose(os2_printer_fclose);
 const gx_io_device gs_iodev_printer = {
-    "%printer%", "FileSystem",
-    {os2_printer_init, iodev_no_open_device,
-     NULL /*iodev_os_open_file */ , os2_printer_fopen, os2_printer_fclose,
-     iodev_no_delete_file, iodev_no_rename_file, iodev_no_file_status,
-     iodev_no_enumerate_files, NULL, NULL,
-     iodev_no_get_params, iodev_no_put_params
-    }
-};
+    "%printer%", "FileSystem", {os2_printer_init, iodev_no_open_device, NULL /*iodev_os_open_file */, os2_printer_fopen, os2_printer_fclose, iodev_no_delete_file, iodev_no_rename_file, iodev_no_file_status, iodev_no_enumerate_files, NULL, NULL, iodev_no_get_params, iodev_no_put_params}};
 
 typedef struct os2_printer_s {
-    char queue[gp_file_name_sizeof];
-    char filename[gp_file_name_sizeof];
+	char queue[gp_file_name_sizeof];
+	char filename[gp_file_name_sizeof];
 } os2_printer_t;
 
 /* The file device procedures */
-private int
-os2_printer_init(gx_io_device * iodev, gs_memory_t * mem)
+private
+int
+os2_printer_init(gx_io_device *iodev, gs_memory_t *mem)
 {
-    /* state -> structure containing thread handle */
-    iodev->state = gs_alloc_bytes(mem, sizeof(os2_printer_t), 
-	"os2_printer_init");
-    if (iodev->state == NULL)
-        return_error(gs_error_VMerror);
-    memset(iodev->state, 0, sizeof(os2_printer_t));
-    return 0;
+	/* state -> structure containing thread handle */
+	iodev->state = gs_alloc_bytes(mem, sizeof(os2_printer_t),
+				      "os2_printer_init");
+	if(iodev->state == NULL)
+		return_error(gs_error_VMerror);
+	memset(iodev->state, 0, sizeof(os2_printer_t));
+	return 0;
 }
 
-
-private int
-os2_printer_fopen(gx_io_device * iodev, const char *fname, const char *access,
-	   FILE ** pfile, char *rfname, uint rnamelen)
+private
+int
+os2_printer_fopen(gx_io_device *iodev, const char *fname, const char *access,
+		  FILE **pfile, char *rfname, uint rnamelen)
 {
-    os2_printer_t *pr = (os2_printer_t *)iodev->state;
-    char driver_name[256];
+	os2_printer_t *pr = (os2_printer_t *)iodev->state;
+	char driver_name[256];
 
-    /* Make sure that printer exists. */
-    if (pm_find_queue(fname, driver_name)) {
-	/* error, list valid queue names */
-	eprintf("Invalid queue name.  Use one of:\n");
-	pm_find_queue(NULL, NULL);
-	return_error(gs_error_undefinedfilename);
-    }
+	/* Make sure that printer exists. */
+	if(pm_find_queue(fname, driver_name)) {
+		/* error, list valid queue names */
+		eprintf("Invalid queue name.  Use one of:\n");
+		pm_find_queue(NULL, NULL);
+		return_error(gs_error_undefinedfilename);
+	}
 
-    strncpy(pr->queue, fname, sizeof(pr->queue)-1);
+	strncpy(pr->queue, fname, sizeof(pr->queue) - 1);
 
-    /* Create a temporary file */
-    *pfile = gp_open_scratch_file("gs", pr->filename, access);
-    if (*pfile == NULL)
-	return_error(gs_fopen_errno_to_code(errno));
+	/* Create a temporary file */
+	*pfile = gp_open_scratch_file("gs", pr->filename, access);
+	if(*pfile == NULL)
+		return_error(gs_fopen_errno_to_code(errno));
 
-    return 0;
+	return 0;
 }
 
-private int
-os2_printer_fclose(gx_io_device * iodev, FILE * file)
+private
+int
+os2_printer_fclose(gx_io_device *iodev, FILE *file)
 {
-    os2_printer_t *pr = (os2_printer_t *)iodev->state;
-    fclose(file);
-    pm_spool(pr->filename, pr->queue); 
-    unlink(pr->filename);
-    return 0;
+	os2_printer_t *pr = (os2_printer_t *)iodev->state;
+	fclose(file);
+	pm_spool(pr->filename, pr->queue);
+	unlink(pr->filename);
+	return 0;
 }
-

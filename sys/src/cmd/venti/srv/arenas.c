@@ -11,24 +11,22 @@
 #include "dat.h"
 #include "fns.h"
 
-typedef struct AHash	AHash;
+typedef struct AHash AHash;
 
 /*
  * hash table for finding arena's based on their names.
  */
-struct AHash
-{
-	AHash	*next;
-	Arena	*arena;
+struct AHash {
+	AHash *next;
+	Arena *arena;
 };
 
-enum
-{
-	AHashSize	= 512,
-	Emergency	= 0,		/* flag: performing emergency surgery */
+enum {
+	AHashSize = 512,
+	Emergency = 0, /* flag: performing emergency surgery */
 };
 
-static AHash	*ahash[AHashSize];
+static AHash *ahash[AHashSize];
 
 static uint32_t
 hashstr(char *s)
@@ -37,7 +35,7 @@ hashstr(char *s)
 	int c;
 
 	h = 0;
-	for(; c = *s; s++){
+	for(; c = *s; s++) {
 		c ^= c << 6;
 		h += (c << 11) ^ (c >> 1);
 		c = *s;
@@ -62,7 +60,7 @@ addarena(Arena *arena)
 	return 0;
 }
 
-Arena*
+Arena *
 findarena(char *name)
 {
 	AHash *a;
@@ -83,8 +81,8 @@ delarena(Arena *arena)
 
 	h = hashstr(arena->name) & (AHashSize - 1);
 	last = nil;
-	for(a = ahash[h]; a != nil; a = a->next){
-		if(a->arena == arena){
+	for(a = ahash[h]; a != nil; a = a->next) {
+		if(a->arena == arena) {
 			if(last != nil)
 				last->next = a->next;
 			else
@@ -97,7 +95,7 @@ delarena(Arena *arena)
 	return -1;
 }
 
-ArenaPart*
+ArenaPart *
 initarenapart(Part *part)
 {
 	AMapN amn;
@@ -107,36 +105,36 @@ initarenapart(Part *part)
 	int ok;
 
 	b = alloczblock(HeadSize, 0, 0);
-	if(b == nil || readpart(part, PartBlank, b->data, HeadSize) < 0){
+	if(b == nil || readpart(part, PartBlank, b->data, HeadSize) < 0) {
 		seterr(EAdmin, "can't read arena partition header: %r");
 		return nil;
 	}
 
 	ap = MKZ(ArenaPart);
-	if(ap == nil){
+	if(ap == nil) {
 		freezblock(b);
 		return nil;
 	}
 	ap->part = part;
 	ok = unpackarenapart(ap, b->data);
 	freezblock(b);
-	if(ok < 0){
+	if(ok < 0) {
 		freearenapart(ap, 0);
 		return nil;
 	}
 
 	ap->tabbase = (PartBlank + HeadSize + ap->blocksize - 1) & ~(ap->blocksize - 1);
-	if(ap->version != ArenaPartVersion){
+	if(ap->version != ArenaPartVersion) {
 		seterr(ECorrupt, "unknown arena partition version %d", ap->version);
 		freearenapart(ap, 0);
 		return nil;
 	}
-	if(ap->blocksize & (ap->blocksize - 1)){
+	if(ap->blocksize & (ap->blocksize - 1)) {
 		seterr(ECorrupt, "illegal non-power-of-2 block size %d\n", ap->blocksize);
 		freearenapart(ap, 0);
 		return nil;
 	}
-	if(ap->tabbase >= ap->arenabase){
+	if(ap->tabbase >= ap->arenabase) {
 		seterr(ECorrupt, "arena partition table overlaps with arena storage");
 		freearenapart(ap, 0);
 		return nil;
@@ -145,44 +143,44 @@ initarenapart(Part *part)
 	partblocksize(part, ap->blocksize);
 	ap->size = ap->part->size & ~(u64int)(ap->blocksize - 1);
 
-	if(readarenamap(&amn, part, ap->tabbase, ap->tabsize) < 0){
+	if(readarenamap(&amn, part, ap->tabbase, ap->tabsize) < 0) {
 		freearenapart(ap, 0);
 		return nil;
 	}
 	ap->narenas = amn.n;
 	ap->map = amn.map;
-	if(okamap(ap->map, ap->narenas, ap->arenabase, ap->size, "arena table") < 0){
-		if(!Emergency){
+	if(okamap(ap->map, ap->narenas, ap->arenabase, ap->size, "arena table") < 0) {
+		if(!Emergency) {
 			freearenapart(ap, 0);
 			return nil;
 		}
 		/* else keep on, for emergency use */
 	}
 
-	ap->arenas = MKNZ(Arena*, ap->narenas);
-	for(i = 0; i < ap->narenas; i++){
+	ap->arenas = MKNZ(Arena *, ap->narenas);
+	for(i = 0; i < ap->narenas; i++) {
 		debugarena = i;
 		ap->arenas[i] = initarena(part, ap->map[i].start, ap->map[i].stop - ap->map[i].start, ap->blocksize);
-		if(ap->arenas[i] == nil){
+		if(ap->arenas[i] == nil) {
 			seterr(ECorrupt, "%s: %r", ap->map[i].name);
-			if(!Emergency){
+			if(!Emergency) {
 				freearenapart(ap, 1);
 				return nil;
-			}else{
+			} else {
 				/* keep on, for emergency use */
 				ap->narenas = i;
 				break;
 			}
 		}
-		if(namecmp(ap->map[i].name, ap->arenas[i]->name) != 0){
+		if(namecmp(ap->map[i].name, ap->arenas[i]->name) != 0) {
 			seterr(ECorrupt, "arena name mismatches with expected name: %s vs. %s",
-				ap->map[i].name, ap->arenas[i]->name);
+			       ap->map[i].name, ap->arenas[i]->name);
 			freearenapart(ap, 1);
 			return nil;
 		}
-		if(findarena(ap->arenas[i]->name)){
+		if(findarena(ap->arenas[i]->name)) {
 			seterr(ECorrupt, "duplicate arena name %s in %s",
-				ap->map[i].name, ap->part->name);
+			       ap->map[i].name, ap->part->name);
 			freearenapart(ap, 1);
 			return nil;
 		}
@@ -197,12 +195,12 @@ initarenapart(Part *part)
 	return ap;
 }
 
-ArenaPart*
+ArenaPart *
 newarenapart(Part *part, uint32_t blocksize, uint32_t tabsize)
 {
 	ArenaPart *ap;
 
-	if(blocksize & (blocksize - 1)){
+	if(blocksize & (blocksize - 1)) {
 		seterr(ECorrupt, "illegal non-power-of-2 block size %d\n", blocksize);
 		return nil;
 	}
@@ -220,7 +218,7 @@ newarenapart(Part *part, uint32_t blocksize, uint32_t tabsize)
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	ap->narenas = 0;
 
-	if(wbarenapart(ap) < 0){
+	if(wbarenapart(ap) < 0) {
 		freearenapart(ap, 0);
 		return nil;
 	}
@@ -237,16 +235,16 @@ wbarenapart(ArenaPart *ap)
 		return -1;
 	b = alloczblock(HeadSize, 1, 0);
 	if(b == nil)
-/* ZZZ set error message? */
+		/* ZZZ set error message? */
 		return -1;
 
-	if(packarenapart(ap, b->data) < 0){
+	if(packarenapart(ap, b->data) < 0) {
 		seterr(ECorrupt, "can't make arena partition header: %r");
 		freezblock(b);
 		return -1;
 	}
 	if(writepart(ap->part, PartBlank, b->data, HeadSize) < 0 ||
-	   flushpart(ap->part) < 0){
+	   flushpart(ap->part) < 0) {
 		seterr(EAdmin, "can't write arena partition header: %r");
 		freezblock(b);
 		return -1;
@@ -263,8 +261,8 @@ freearenapart(ArenaPart *ap, int freearenas)
 
 	if(ap == nil)
 		return;
-	if(freearenas){
-		for(i = 0; i < ap->narenas; i++){
+	if(freearenas) {
+		for(i = 0; i < ap->narenas; i++) {
 			if(ap->arenas[i] == nil)
 				continue;
 			delarena(ap->arenas[i]);
@@ -283,21 +281,21 @@ okamap(AMap *am, int n, uint64_t start, uint64_t stop, char *what)
 	uint32_t i;
 
 	last = start;
-	for(i = 0; i < n; i++){
-		if(am[i].start < last){
+	for(i = 0; i < n; i++) {
+		if(am[i].start < last) {
 			if(i == 0)
 				seterr(ECorrupt, "invalid start address in %s", what);
 			else
 				seterr(ECorrupt, "overlapping ranges in %s", what);
 			return -1;
 		}
-		if(am[i].stop < am[i].start){
+		if(am[i].stop < am[i].start) {
 			seterr(ECorrupt, "invalid range in %s", what);
 			return -1;
 		}
 		last = am[i].stop;
 	}
-	if(last > stop){
+	if(last > stop) {
 		seterr(ECorrupt, "invalid ending address in %s", what);
 		return -1;
 	}
@@ -309,9 +307,9 @@ maparenas(AMap *am, Arena **arenas, int n, char *what)
 {
 	uint32_t i;
 
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		arenas[i] = findarena(am[i].name);
-		if(arenas[i] == nil){
+		if(arenas[i] == nil) {
 			seterr(EAdmin, "can't find arena '%s' for '%s'\n", am[i].name, what);
 			return -1;
 		}
@@ -344,12 +342,12 @@ wbarenamap(AMap *am, int n, Part *part, uint64_t base, uint64_t size)
 
 	fmtzbinit(&f, b);
 
-	if(outputamap(&f, am, n) < 0){
+	if(outputamap(&f, am, n) < 0) {
 		seterr(ECorrupt, "arena set size too small");
 		freezblock(b);
 		return -1;
 	}
-	if(writepart(part, base, b->data, size) < 0 || flushpart(part) < 0){
+	if(writepart(part, base, b->data, size) < 0 || flushpart(part) < 0) {
 		seterr(EAdmin, "can't write arena set: %r");
 		freezblock(b);
 		return -1;
@@ -376,28 +374,28 @@ parseamap(IFile *f, AMapN *amn)
 	/*
 	 * arenas
 	 */
-	if(ifileu32int(f, &v) < 0){
+	if(ifileu32int(f, &v) < 0) {
 		seterr(ECorrupt, "syntax error: bad number of elements in %s", f->name);
 		return -1;
 	}
 	n = v;
-	if(n > MaxAMap){
+	if(n > MaxAMap) {
 		seterr(ECorrupt, "illegal number of elements %d in %s",
-			n, f->name);
+		       n, f->name);
 		return -1;
 	}
 	am = MKNZ(AMap, n);
-	if(am == nil){
+	if(am == nil) {
 		fprint(2, "out of memory\n");
 		return -1;
 	}
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		s = ifileline(f);
 		if(s)
 			t = estrdup(s);
 		else
 			t = nil;
-		if(s == nil || getfields(s, flds, 4, 0, "\t") != 3){
+		if(s == nil || getfields(s, flds, 4, 0, "\t") != 3) {
 			fprint(2, "early eof after %d of %d, %s:#%d: %s\n", i, n, f->name, f->pos, t);
 			free(t);
 			return -1;
@@ -406,13 +404,13 @@ parseamap(IFile *f, AMapN *amn)
 		if(nameok(flds[0]) < 0)
 			return -1;
 		namecp(am[i].name, flds[0]);
-		if(stru64int(flds[1], &v64) < 0){
+		if(stru64int(flds[1], &v64) < 0) {
 			seterr(ECorrupt, "syntax error: bad arena base address in %s", f->name);
 			free(am);
 			return -1;
 		}
 		am[i].start = v64;
-		if(stru64int(flds[2], &v64) < 0){
+		if(stru64int(flds[2], &v64) < 0) {
 			seterr(ECorrupt, "syntax error: bad arena size in %s", f->name);
 			free(am);
 			return -1;

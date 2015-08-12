@@ -104,27 +104,25 @@ smbresponsesend(SmbSession *s)
 	SmbProcessResult pr;
 
 	assert(smbbufferoffsetgetb(s->response, 4, &cmd));
-smbloglock();
-smblogprint(cmd, "sending:\n");
-smblogdata(cmd, smblogprint, smbbufferreadpointer(s->response), smbbufferreadspace(s->response), 256);
-smblogunlock();
-	if (s->nbss) {
+	smbloglock();
+	smblogprint(cmd, "sending:\n");
+	smblogdata(cmd, smblogprint, smbbufferreadpointer(s->response), smbbufferreadspace(s->response), 256);
+	smblogunlock();
+	if(s->nbss) {
 		NbScatterGather a[2];
 		a[0].p = smbbufferreadpointer(s->response);
 		a[0].l = smbbufferreadspace(s->response);
 		a[1].p = nil;
 		nbssgatherwrite(s->nbss, a);
 		pr = SmbProcessResultOk;
-	}
-	else if (s->cifss) {
+	} else if(s->cifss) {
 		uint32_t l = smbbufferreadspace(s->response);
 		uint8_t nl[4];
 		hnputl(nl, l);
 		write(s->cifss->fd, nl, 4);
 		write(s->cifss->fd, smbbufferreadpointer(s->response), l);
 		pr = SmbProcessResultOk;
-	}
-	else
+	} else
 		pr = SmbProcessResultDie;
 	smbbufferreset(s->response);
 	return pr;
@@ -142,6 +140,5 @@ smbresponseputerror(SmbSession *s, SmbHeader *h, uint8_t errclass,
 		    uint16_t error)
 {
 	h->wordcount = 0;
-	return smbresponseputheader(s, h, errclass, error)
-		&& smbresponseputs(s, 0);
+	return smbresponseputheader(s, h, errclass, error) && smbresponseputs(s, 0);
 }

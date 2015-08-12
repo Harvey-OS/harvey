@@ -33,65 +33,65 @@ enum {
 };
 
 static char *filelist[] = {
-	"index.html",
-	"index.txt",
-	"current",
-	"history.html",
-	"history.txt",
-	"diff.html",
-	"edit.html",
-	"werror.html",
-	"werror.txt",
-	".httplogin",
+    "index.html",
+    "index.txt",
+    "current",
+    "history.html",
+    "history.txt",
+    "diff.html",
+    "edit.html",
+    "werror.html",
+    "werror.txt",
+    ".httplogin",
 };
 
 static int needhist[Nfile] = {
-[Qhistoryhtml] 1,
-[Qhistorytxt] 1,
-[Qdiffhtml] 1,
+	[Qhistoryhtml] 1,
+	[Qhistorytxt] 1,
+	[Qdiffhtml] 1,
 };
 
 /*
  * The qids are <8-bit type><16-bit page number><16-bit page version><8-bit file index>.
  */
-enum {		/* <8-bit type> */
-	Droot = 1,
-	D1st,
-	D2nd,
-	Fnew,
-	Fmap,
-	F1st,
-	F2nd,
+enum { /* <8-bit type> */
+       Droot = 1,
+       D1st,
+       D2nd,
+       Fnew,
+       Fmap,
+       F1st,
+       F2nd,
 };
 
 uint64_t
 mkqid(int type, int num, int vers, int file)
 {
-	return ((uint64_t)type<<40) | ((uint64_t)num<<24) | (vers<<8) | file;
+	return ((uint64_t)type << 40) | ((uint64_t)num << 24) | (vers << 8) | file;
 }
 
 int
 qidtype(uint64_t path)
 {
-	return (path>>40)&0xFF;
+	return (path >> 40) & 0xFF;
 }
 
 int
 qidnum(uint64_t path)
 {
-	return (path>>24)&0xFFFF;
+	return (path >> 24) & 0xFFFF;
 }
 
 int
 qidvers(uint64_t path)
 {
-	return (path>>8)&0xFFFF;
+	return (path >> 8) & 0xFFFF;
 }
 
 int
 qidfile(uint64_t path)
 {
-	return path&0xFF;
+	return path & 0xFF;
 }
 
 typedef struct Aux Aux;
@@ -109,7 +109,7 @@ fsattach(Req *r)
 {
 	Aux *a;
 
-	if(r->ifcall.aname && r->ifcall.aname[0]){
+	if(r->ifcall.aname && r->ifcall.aname[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -126,7 +126,7 @@ fsattach(Req *r)
 static String *
 httplogin(void)
 {
-	String *s=s_new();
+	String *s = s_new();
 	Biobuf *b;
 
 	if((b = wBopen(".httplogin", OREAD)) == nil)
@@ -140,7 +140,7 @@ Return:
 	return s;
 }
 
-static char*
+static char *
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	char *q;
@@ -150,49 +150,48 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	Whist *wh;
 	String *s;
 
-	isdotdot = strcmp(name, "..")==0;
+	isdotdot = strcmp(name, "..") == 0;
 	n = strtoul(name, &q, 10);
 	path = fid->qid.path;
 	a = fid->aux;
 
-	switch(qidtype(path)){
+	switch(qidtype(path)) {
 	case 0:
 		return "wikifs: bad path in server (bug)";
 
 	case Droot:
-		if(isdotdot){
+		if(isdotdot) {
 			*qid = fid->qid;
 			return nil;
 		}
-		if(strcmp(name, "new")==0){
+		if(strcmp(name, "new") == 0) {
 			*qid = (Qid){mkqid(Fnew, 0, 0, 0), 0, 0};
 			return nil;
 		}
-		if(strcmp(name, "map")==0){
+		if(strcmp(name, "map") == 0) {
 			*qid = (Qid){mkqid(Fmap, 0, 0, 0), 0, 0};
 			return nil;
 		}
-		if((*q!='\0' || (wh=getcurrent(n))==nil)
-		&& (wh=getcurrentbyname(name))==nil)
+		if((*q != '\0' || (wh = getcurrent(n)) == nil) && (wh = getcurrentbyname(name)) == nil)
 			return "file does not exist";
 		*qid = (Qid){mkqid(D1st, wh->n, 0, 0), wh->doc->time, QTDIR};
 		a->w = wh;
 		return nil;
 
 	case D1st:
-		if(isdotdot){
+		if(isdotdot) {
 			*qid = (Qid){mkqid(Droot, 0, 0, 0), 0, QTDIR};
 			return nil;
 		}
 
 		/* handle history directories */
-		if(*q == '\0'){
+		if(*q == '\0') {
 			if((wh = gethistory(qidnum(path))) == nil)
 				return "file does not exist";
-			for(i=0; i<wh->ndoc; i++)
+			for(i = 0; i < wh->ndoc; i++)
 				if(wh->doc[i].time == n)
 					break;
-			if(i==wh->ndoc){
+			if(i == wh->ndoc) {
 				closewhist(wh);
 				return "file does not exist";
 			}
@@ -204,9 +203,9 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 
 		/* handle files other than index */
-		for(i=0; i<nelem(filelist); i++){
-			if(strcmp(name, filelist[i])==0){
-				if(needhist[i]){
+		for(i = 0; i < nelem(filelist); i++) {
+			if(strcmp(name, filelist[i]) == 0) {
+				if(needhist[i]) {
 					if((wh = gethistory(qidnum(path))) == nil)
 						return "file does not exist";
 					closewhist(a->w);
@@ -219,7 +218,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		return "file does not exist";
 
 	case D2nd:
-		if(isdotdot){
+		if(isdotdot) {
 			/*
 			 * Can't use a->w[a->ndoc-1] because that
 			 * might be a failed write rather than the real one.
@@ -232,8 +231,8 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			a->n = 0;
 			return nil;
 		}
-		for(i=0; i<=Qraw; i++){
-			if(strcmp(name, filelist[i])==0){
+		for(i = 0; i <= Qraw; i++) {
+			if(strcmp(name, filelist[i]) == 0) {
 				*qid = (Qid){mkqid(F2nd, qidnum(path), qidvers(path), i), a->w->doc->time, 0};
 				goto Gotfile;
 			}
@@ -243,18 +242,18 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	default:
 		return "bad programming";
 	}
-	/* not reached */
+/* not reached */
 
 Gotfile:
 	t = qidtype(qid->path);
-	switch(qidfile(qid->path)){
+	switch(qidfile(qid->path)) {
 	case Qindexhtml:
-		s = tohtml(a->w, a->w->doc+a->n,
-			t==F1st? Tpage : Toldpage);
+		s = tohtml(a->w, a->w->doc + a->n,
+			   t == F1st ? Tpage : Toldpage);
 		break;
 	case Qindextxt:
-		s = totext(a->w, a->w->doc+a->n,
-			t==F1st? Tpage : Toldpage);
+		s = totext(a->w, a->w->doc + a->n,
+			   t == F1st ? Tpage : Toldpage);
 		break;
 	case Qraw:
 		s = s_copy(a->w->title);
@@ -262,22 +261,22 @@ Gotfile:
 		s = doctext(s, &a->w->doc[a->n]);
 		break;
 	case Qhistoryhtml:
-		s = tohtml(a->w, a->w->doc+a->n, Thistory);
+		s = tohtml(a->w, a->w->doc + a->n, Thistory);
 		break;
 	case Qhistorytxt:
-		s = totext(a->w, a->w->doc+a->n, Thistory);
+		s = totext(a->w, a->w->doc + a->n, Thistory);
 		break;
 	case Qdiffhtml:
-		s = tohtml(a->w, a->w->doc+a->n, Tdiff);
+		s = tohtml(a->w, a->w->doc + a->n, Tdiff);
 		break;
 	case Qedithtml:
-		s = tohtml(a->w, a->w->doc+a->n, Tedit);
+		s = tohtml(a->w, a->w->doc + a->n, Tedit);
 		break;
 	case Qwerrorhtml:
-		s = tohtml(a->w, a->w->doc+a->n, Twerror);
+		s = tohtml(a->w, a->w->doc + a->n, Twerror);
 		break;
 	case Qwerrortxt:
-		s = totext(a->w, a->w->doc+a->n, Twerror);
+		s = totext(a->w, a->w->doc + a->n, Twerror);
 		break;
 	case Qhttplogin:
 		s = httplogin();
@@ -301,14 +300,13 @@ fsopen(Req *r)
 	fid = r->fid;
 	path = fid->qid.path;
 	t = qidtype(fid->qid.path);
-	if((r->ifcall.mode != OREAD && t != Fnew && t != Fmap)
-	|| (r->ifcall.mode&ORCLOSE)){
+	if((r->ifcall.mode != OREAD && t != Fnew && t != Fmap) || (r->ifcall.mode & ORCLOSE)) {
 		respond(r, "permission denied");
 		return;
 	}
 
 	a = fid->aux;
-	switch(t){
+	switch(t) {
 	case Droot:
 		currentmap(0);
 		rlock(&maplock);
@@ -317,20 +315,20 @@ fsopen(Req *r)
 		runlock(&maplock);
 		respond(r, nil);
 		break;
-		
+
 	case D1st:
-		if((wh = gethistory(qidnum(path))) == nil){
+		if((wh = gethistory(qidnum(path))) == nil) {
 			respond(r, "file does not exist");
 			return;
 		}
 		closewhist(a->w);
 		a->w = wh;
-		a->n = a->w->ndoc-1;
+		a->n = a->w->ndoc - 1;
 		r->ofcall.qid.vers = wh->doc[a->n].time;
 		r->fid->qid = r->ofcall.qid;
 		respond(r, nil);
 		break;
-		
+
 	case D2nd:
 		respond(r, nil);
 		break;
@@ -352,13 +350,13 @@ fsopen(Req *r)
 	}
 }
 
-static char*
+static char *
 fsclone(Fid *old, Fid *new)
 {
 	Aux *a;
 
 	a = emalloc(sizeof(*a));
-	*a = *(Aux*)old->aux;
+	*a = *(Aux *)old->aux;
 	if(a->s)
 		s_incref(a->s);
 	if(a->w)
@@ -379,7 +377,7 @@ fsdestroyfid(Fid *fid)
 	Aux *a;
 
 	a = fid->aux;
-	if(a==nil)
+	if(a == nil)
 		return;
 
 	if(a->name)
@@ -404,7 +402,7 @@ fillstat(Dir *d, uint64_t path, uint32_t tm, uint32_t length)
 	d->uid = estrdup9p("wiki");
 	d->gid = estrdup9p("wiki");
 
-	switch(qidtype(path)){
+	switch(qidtype(path)) {
 	case Droot:
 	case D1st:
 	case D2nd:
@@ -421,26 +419,26 @@ fillstat(Dir *d, uint64_t path, uint32_t tm, uint32_t length)
 	if(qidfile(path) == Qedithtml)
 		d->atime = d->mtime = time(0);
 
-	switch(qidtype(path)){
+	switch(qidtype(path)) {
 	case Droot:
 		d->name = estrdup("/");
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		break;
 
 	case D1st:
 		d->name = numtoname(qidnum(path));
 		if(d->name == nil)
 			d->name = estrdup("<dead>");
-		for(p=d->name; *p; p++)
-			if(*p==' ')
+		for(p = d->name; *p; p++)
+			if(*p == ' ')
 				*p = '_';
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		break;
 
 	case D2nd:
 		snprint(tmp, sizeof tmp, "%lud", tm);
 		d->name = estrdup(tmp);
-		d->mode = DMDIR|0555;
+		d->mode = DMDIR | 0555;
 		break;
 
 	case Fmap:
@@ -499,14 +497,14 @@ rootgen(int i, Dir *d, void *aux)
 
 	b = aux;
 	a = b->a;
-	switch(i){
-	case 0:	/* new */
+	switch(i) {
+	case 0: /* new */
 		fillstat(d, mkqid(Fnew, 0, 0, 0), a->map->t, 0);
 		return 0;
-	case 1:	/* map */
+	case 1: /* map */
 		fillstat(d, mkqid(Fmap, 0, 0, 0), a->map->t, 0);
 		return 0;
-	default:	/* first-level directory */
+	default: /* first-level directory */
 		i -= 2;
 		if(i >= a->map->nel)
 			return -1;
@@ -528,13 +526,13 @@ firstgen(int i, Dir *d, void *aux)
 	a = b->a;
 	t = a->w->doc[a->n].time;
 
-	if(i < Nfile){	/* file in first-level directory */
+	if(i < Nfile) { /* file in first-level directory */
 		fillstat(d, mkqid(F1st, num, 0, i), t, 0);
 		return 0;
 	}
 	i -= Nfile;
 
-	if(i < a->w->ndoc){	/* second-level (history) directory */
+	if(i < a->w->ndoc) { /* second-level (history) directory */
 		fillstat(d, mkqid(D2nd, num, i, 0), a->w->doc[i].time, 0);
 		return 0;
 	}
@@ -554,7 +552,7 @@ secondgen(int i, Dir *d, void *aux)
 	path = b->path;
 	a = b->a;
 
-	if(i <= Qraw){	/* index.html, index.txt, raw */
+	if(i <= Qraw) { /* index.html, index.txt, raw */
 		fillstat(d, mkqid(F2nd, qidnum(path), qidvers(path), i), a->w->doc[a->n].time, 0);
 		return 0;
 	}
@@ -575,47 +573,47 @@ fsread(Req *r)
 	path = r->fid->qid.path;
 	b.a = a;
 	b.path = path;
-	switch(qidtype(path)){
+	switch(qidtype(path)) {
 	default:
 		respond(r, "cannot happen (bad qid)");
 		return;
 
 	case Droot:
-		if(a == nil || a->map == nil){
+		if(a == nil || a->map == nil) {
 			respond(r, "cannot happen (no map)");
 			return;
 		}
 		dirread9p(r, rootgen, &b);
 		respond(r, nil);
 		return;
-		
+
 	case D1st:
-		if(a == nil || a->w == nil){
+		if(a == nil || a->w == nil) {
 			respond(r, "cannot happen (no wh)");
 			return;
 		}
 		dirread9p(r, firstgen, &b);
 		respond(r, nil);
 		return;
-		
+
 	case D2nd:
 		dirread9p(r, secondgen, &b);
 		respond(r, nil);
 		return;
 
 	case Fnew:
-		if(a->s){
+		if(a->s) {
 			respond(r, "protocol botch");
 			return;
 		}
-		/* fall through */
+	/* fall through */
 	case Fmap:
 		t = numtoname(a->n);
-		if(t == nil){
+		if(t == nil) {
 			respond(r, "unknown name");
 			return;
 		}
-		for(s=t; *s; s++)
+		for(s = t; *s; s++)
 			if(*s == ' ')
 				*s = '_';
 		readstr(r, t);
@@ -625,7 +623,7 @@ fsread(Req *r)
 
 	case F1st:
 	case F2nd:
-		if(a == nil || a->s == nil){
+		if(a == nil || a->s == nil) {
 			respond(r, "cannot happen (no s)");
 			return;
 		}
@@ -640,7 +638,7 @@ struct Sread {
 	char *rp;
 };
 
-static char*
+static char *
 Srdline(void *v, int c)
 {
 	char *p, *rv;
@@ -649,11 +647,11 @@ Srdline(void *v, int c)
 	s = v;
 	if(s->rp == nil)
 		rv = nil;
-	else if(p = strchr(s->rp, c)){
+	else if(p = strchr(s->rp, c)) {
 		*p = '\0';
 		rv = s->rp;
-		s->rp = p+1;
-	}else{
+		s->rp = p + 1;
+	} else {
 		rv = s->rp;
 		s->rp = nil;
 	}
@@ -685,7 +683,7 @@ fswrite(Req *r)
 
 	fid = r->fid;
 	a = fid->aux;
-	switch(qidtype(fid->qid.path)){
+	switch(qidtype(fid->qid.path)) {
 	case Fmap:
 		stmp = s_nappend(s_reset(nil), r->ifcall.data, r->ifcall.count);
 		a->n = nametonum(s_to_c(stmp));
@@ -702,15 +700,15 @@ fswrite(Req *r)
 		return;
 	}
 
-	if(a->s == nil){
+	if(a->s == nil) {
 		respond(r, "protocol botch");
 		return;
 	}
-	if(r->ifcall.count==0){	/* do final processing */
+	if(r->ifcall.count == 0) { /* do final processing */
 		s.rp = s_to_c(a->s);
 		w = nil;
 		err = "bad format";
-		if((title = Srdline(&s, '\n')) == nil){
+		if((title = Srdline(&s, '\n')) == nil) {
 		Error:
 			if(w)
 				closewhist(w);
@@ -728,22 +726,22 @@ fswrite(Req *r)
 		author = estrdup(s_to_c(a->name));
 
 		comment = nil;
-		while(s.rp && *s.rp && *s.rp != '\n'){
+		while(s.rp && *s.rp && *s.rp != '\n') {
 			p = Srdline(&s, '\n');
 			assert(p != nil);
-			switch(p[0]){
+			switch(p[0]) {
 			case 'A':
 				free(author);
-				author = estrdup(p+1);
+				author = estrdup(p + 1);
 				break;
 			case 'D':
-				t = strtoul(p+1, &p, 10);
+				t = strtoul(p + 1, &p, 10);
 				if(*p != '\0')
 					goto Error;
 				break;
 			case 'C':
 				free(comment);
-				comment = estrdup(p+1);
+				comment = estrdup(p + 1);
 				break;
 			}
 		}
@@ -752,8 +750,8 @@ fswrite(Req *r)
 		w->doc->time = time(0);
 		w->doc->comment = comment;
 
-		if(net = r->pool->srv->aux){
-			p = emalloc(strlen(author)+10+strlen(net));
+		if(net = r->pool->srv->aux) {
+			p = emalloc(strlen(author) + 10 + strlen(net));
 			strcpy(p, author);
 			strcat(p, " (");
 			strcat(p, net);
@@ -763,7 +761,7 @@ fswrite(Req *r)
 		}
 		w->doc->author = author;
 
-		if((w->doc->wtxt = Brdpage(Srdline, &s)) == nil){
+		if((w->doc->wtxt = Brdpage(Srdline, &s)) == nil) {
 			err = "empty document";
 			goto Error;
 		}
@@ -786,7 +784,7 @@ fswrite(Req *r)
 		return;
 	}
 
-	if(s_len(a->s)+r->ifcall.count > Maxfile){
+	if(s_len(a->s) + r->ifcall.count > Maxfile) {
 		respond(r, "file too large");
 		s_free(a->s);
 		a->s = nil;
@@ -798,14 +796,14 @@ fswrite(Req *r)
 }
 
 Srv wikisrv = {
-.attach=	fsattach,
-.destroyfid=	fsdestroyfid,
-.clone=	fsclone,
-.walk1=	fswalk1,
-.open=	fsopen,
-.read=	fsread,
-.write=	fswrite,
-.stat=	fsstat,
+    .attach = fsattach,
+    .destroyfid = fsdestroyfid,
+    .clone = fsclone,
+    .walk1 = fswalk1,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .stat = fsstat,
 };
 
 void
@@ -831,13 +829,14 @@ main(int argc, char **argv)
 	perm = 0;
 	service = nil;
 	mtpt = "/mnt/wiki";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
 	case 'a':
-		if(naddr%8 == 0)
-			addr = erealloc(addr, (naddr+8)*sizeof(addr[0]));
+		if(naddr % 8 == 0)
+			addr = erealloc(addr, (naddr + 8) * sizeof(addr[0]));
 		addr[naddr++] = EARGF(usage());
 		break;
 	case 'm':
@@ -855,28 +854,29 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
 	if((dp = dirstat(argv[0])) == nil)
 		sysfatal("dirstat %s: %r", argv[0]);
-	if((dp->mode&DMDIR) == 0)
+	if((dp->mode & DMDIR) == 0)
 		sysfatal("%s: not a directory", argv[0]);
 	free(dp);
 	wikidir = argv[0];
 
 	currentmap(0);
 
-	for(i=0; i<naddr; i++)
+	for(i = 0; i < naddr; i++)
 		listensrv(&wikisrv, addr[i]);
 
 	s = emalloc(sizeof *s);
 	*s = wikisrv;
-	postmountsrv(s, service, mtpt, MREPL|MCREATE);
-	if(perm){
-		buf = emalloc9p(5+strlen(service)+1);
+	postmountsrv(s, service, mtpt, MREPL | MCREATE);
+	if(perm) {
+		buf = emalloc9p(5 + strlen(service) + 1);
 		strcpy(buf, "/srv/");
 		strcat(buf, service);
 		nulldir(&d);

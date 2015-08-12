@@ -18,9 +18,9 @@
 #include <sys/socket.h>
 
 int
-socketpair(int domain, int , int , int *sv)
+socketpair(int domain, int, int, int *sv)
 {
-	switch(domain){
+	switch(domain) {
 	case PF_UNIX:
 		return pipe(sv);
 	default:

@@ -40,33 +40,33 @@ bind(int fd, void *a, int alen)
 
 	/* assign the address */
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
-	if(alen > sizeof(r->addr)){
+	if(alen > sizeof(r->addr)) {
 		errno = ENAMETOOLONG;
 		return -1;
 	}
 	memmove(&r->addr, a, alen);
 
 	/* the rest is IP sepecific */
-	if (r->domain != PF_INET)
+	if(r->domain != PF_INET)
 		return 0;
 
 	cfd = open(r->ctl, O_RDWR);
-	if(cfd < 0){
+	if(cfd < 0) {
 		errno = EBADF;
 		return -1;
 	}
-	lip = (struct sockaddr_in*)&r->addr;
+	lip = (struct sockaddr_in *)&r->addr;
 	if(lip->sin_port > 0)
 		snprintf(msg, sizeof msg, "bind %d", ntohs(lip->sin_port));
 	else
 		strcpy(msg, "bind *");
 	n = write(cfd, msg, strlen(msg));
-	if(n < 0){
-		errno = EOPNOTSUPP;	/* Improve error reporting!!! */
+	if(n < 0) {
+		errno = EOPNOTSUPP; /* Improve error reporting!!! */
 		close(cfd);
 		return -1;
 	}

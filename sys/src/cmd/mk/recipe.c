@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
 int
 dorecipe(Node *node)
@@ -30,8 +30,8 @@ dorecipe(Node *node)
 	/*
 		no recipe? go to buggery!
 	*/
-	if(r == 0){
-		if(!(node->flags&VIRTUAL) && !(node->flags&NORECIPE)){
+	if(r == 0) {
+		if(!(node->flags & VIRTUAL) && !(node->flags & NORECIPE)) {
 			if(getwd(cwd, sizeof cwd))
 				fprint(2, "mk: no recipe to make '%s' in directory %s\n", node->name, cwd);
 			else
@@ -42,13 +42,13 @@ dorecipe(Node *node)
 			MADESET(node, MADE);
 		else
 			update(0, node);
-		if(tflag){
-			if(!(node->flags&VIRTUAL))
+		if(tflag) {
+			if(!(node->flags & VIRTUAL))
 				touch(node->name);
 			else if(explain)
 				Bprint(&bout, "no touch of virtual '%s'\n", node->name);
 		}
-		return(did);
+		return (did);
 	}
 	/*
 		build the node list
@@ -58,19 +58,19 @@ dorecipe(Node *node)
 	ww = &head;
 	ahead.next = 0;
 	aw = &ahead;
-	if(r->attr&REGEXP){
+	if(r->attr & REGEXP) {
 		ww->next = newword(node->name);
 		aw->next = newword(node->name);
 	} else {
-		for(w = r->alltargets; w; w = w->next){
-			if(r->attr&META)
+		for(w = r->alltargets; w; w = w->next) {
+			if(r->attr & META)
 				subst(aa->stem, w->s, buf, sizeof(buf));
 			else
 				strecpy(buf, buf + sizeof buf - 1, w->s);
 			aw->next = newword(buf);
 			aw = aw->next;
 			if((s = symlook(buf, S_NODE, 0)) == 0)
-				continue;	/* not a node we are interested in */
+				continue; /* not a node we are interested in */
 			n = s->u.ptr;
 			if(aflag == 0 && n->time) {
 				for(a = n->prereqs; a; a = a->next)
@@ -81,39 +81,40 @@ dorecipe(Node *node)
 			}
 			ww->next = newword(buf);
 			ww = ww->next;
-			if(n == node) continue;
+			if(n == node)
+				continue;
 			n->next = node->next;
 			node->next = n;
 		}
 	}
 	for(n = node; n; n = n->next)
-		if((n->flags&READY) == 0)
-			return(did);
+		if((n->flags & READY) == 0)
+			return (did);
 	/*
 		gather the params for the job
 	*/
 	lp.next = ln.next = 0;
-	for(n = node; n; n = n->next){
-		for(a = n->prereqs; a; a = a->next){
-			if(a->n){
+	for(n = node; n; n = n->next) {
+		for(a = n->prereqs; a; a = a->next) {
+			if(a->n) {
 				addw(&lp, a->n->name);
-				if(outofdate(n, a, 0)){
+				if(outofdate(n, a, 0)) {
 					addw(&ln, a->n->name);
 					if(explain)
 						fprint(1, "%s(%ld) < %s(%ld)\n",
-							n->name, n->time, a->n->name, a->n->time);
+						       n->name, n->time, a->n->name, a->n->time);
 				}
 			} else {
 				if(explain)
 					fprint(1, "%s has no prerequisites\n",
-							n->name);
+					       n->name);
 			}
 		}
 		MADESET(n, BEINGMADE);
 	}
-/*	print("lt=%s ln=%s lp=%s\n",wtos(head.next, ' '),wtos(ln.next, ' '),wtos(lp.next, ' '));/**/
+	/*	print("lt=%s ln=%s lp=%s\n",wtos(head.next, ' '),wtos(ln.next, ' '),wtos(lp.next, ' '));/**/
 	run(newjob(r, node, aa->stem, aa->match, lp.next, ln.next, head.next, ahead.next));
-	return(1);
+	return (1);
 }
 
 void
@@ -121,7 +122,7 @@ addw(Word *w, char *s)
 {
 	Word *lw;
 
-	for(lw = w; w = w->next; lw = w){
+	for(lw = w; w = w->next; lw = w) {
 		if(strcmp(s, w->s) == 0)
 			return;
 	}

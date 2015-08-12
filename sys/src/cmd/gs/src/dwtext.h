@@ -23,62 +23,58 @@
   San Rafael, CA  94903, U.S.A., +1(415)492-9861.
  */
 
-
 /* $Id: dwtext.h,v 1.7 2002/02/21 22:24:51 giles Exp $ */
 /* Text Window class */
 
 #ifndef dwtext_INCLUDED
-#  define dwtext_INCLUDED
-
+#define dwtext_INCLUDED
 
 #ifdef _WINDOWS
 #define _Windows
 #endif
 
-
 typedef struct TEXTWINDOW_S {
-    const char *Title;		/* required */
-    HICON hIcon;		/* optional */
-    BYTE *ScreenBuffer;
-    POINT ScreenSize;		/* optional */
-    char *DragPre;		/* optional */
-    char *DragPost;		/* optional */
-    int nCmdShow;		/* optional */
+	const char *Title; /* required */
+	HICON hIcon;       /* optional */
+	BYTE *ScreenBuffer;
+	POINT ScreenSize; /* optional */
+	char *DragPre;    /* optional */
+	char *DragPost;   /* optional */
+	int nCmdShow;     /* optional */
 
-    HWND hwnd;
+	HWND hwnd;
 
-    BYTE *KeyBuf;
-    BYTE *KeyBufIn;
-    BYTE *KeyBufOut;
-    unsigned int KeyBufSize;
-    BOOL quitnow;
+	BYTE *KeyBuf;
+	BYTE *KeyBufIn;
+	BYTE *KeyBufOut;
+	unsigned int KeyBufSize;
+	BOOL quitnow;
 
-    char line_buf[256];
-    int line_end;
-    int line_start;
-    BOOL line_complete;
-    BOOL line_eof;
+	char line_buf[256];
+	int line_end;
+	int line_start;
+	BOOL line_complete;
+	BOOL line_eof;
 
-    BOOL bFocus;
-    BOOL bGetCh;
+	BOOL bFocus;
+	BOOL bGetCh;
 
-    char *fontname;	/* font name */
-    int fontsize;	/* font size in pts */
+	char *fontname; /* font name */
+	int fontsize;   /* font size in pts */
 
-    HFONT hfont;
-    int CharAscent;
+	HFONT hfont;
+	int CharAscent;
 
-    int CaretHeight;
-    int CursorFlag;
-    POINT CursorPos;
-    POINT ClientSize;
-    POINT CharSize;
-    POINT ScrollPos;
-    POINT ScrollMax;
+	int CaretHeight;
+	int CursorFlag;
+	POINT CursorPos;
+	POINT ClientSize;
+	POINT CharSize;
+	POINT ScrollPos;
+	POINT ScrollMax;
 
-    int x, y, cx, cy;	/* window position */
+	int x, y, cx, cy; /* window position */
 } TW;
-
 
 /* Create new TW structure */
 TW *text_new(void);
@@ -152,6 +148,5 @@ void text_drag(TW *tw, const char *pre_drag, const char *post_drag);
 HWND text_get_handle(TW *tw);
 
 /* ================================== */
-
 
 #endif /* dwtext_INCLUDED */

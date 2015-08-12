@@ -7,6 +7,6 @@
  * in the LICENSE file.
  */
 
-#define		KUTEN212MAX	7768
+#define KUTEN212MAX 7768
 
-extern long tabkuten212[KUTEN212MAX];	/* runes indexed by kuten */
+extern long tabkuten212[KUTEN212MAX]; /* runes indexed by kuten */

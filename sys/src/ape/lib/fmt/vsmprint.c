@@ -28,7 +28,7 @@
 /*
  * print into an allocated string buffer
  */
-char*
+char *
 vsmprint(char *fmt, va_list args)
 {
 	Fmt f;
@@ -40,6 +40,6 @@ vsmprint(char *fmt, va_list args)
 	n = dofmt(&f, fmt);
 	if(n < 0)
 		return nil;
-	*(char*)f.to = '\0';
-	return (char*)f.start;
+	*(char *)f.to = '\0';
+	return (char *)f.start;
 }

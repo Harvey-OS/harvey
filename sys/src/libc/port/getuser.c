@@ -20,7 +20,7 @@ getuser(void)
 	fd = open("/dev/user", OREAD);
 	if(fd < 0)
 		return "none";
-	n = read(fd, user, (sizeof user)-1);
+	n = read(fd, user, (sizeof user) - 1);
 	close(fd);
 	if(n <= 0)
 		strcpy(user, "none");

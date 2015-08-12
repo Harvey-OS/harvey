@@ -12,14 +12,13 @@
 #include <bio.h>
 #include "lib/bzlib.h"
 
-static	int	bzipf(char*, int);
-static	int	bzip(char*, int32_t, int, Biobuf*);
+static int bzipf(char *, int);
+static int bzip(char *, int32_t, int, Biobuf *);
 
-static	Biobuf	bout;
-static	int	level;
-static	int	debug;
-static	int	verbose;
-
+static Biobuf bout;
+static int level;
+static int debug;
+static int verbose;
 
 static void
 usage(void)
@@ -35,7 +34,8 @@ main(int argc, char **argv)
 
 	level = 6;
 	stdout = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debug++;
 		break;
@@ -45,25 +45,33 @@ main(int argc, char **argv)
 	case 'c':
 		stdout++;
 		break;
-	case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 		level = ARGC() - '0';
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc == 0){
+	if(argc == 0) {
 		Binit(&bout, 1, OWRITE);
 		ok = bzip(nil, time(0), 0, &bout);
 		Bterm(&bout);
-	}else{
+	} else {
 		ok = 1;
 		for(i = 0; i < argc; i++)
 			ok &= bzipf(argv[i], stdout);
 	}
-	exits(ok ? nil: "errors");
+	exits(ok ? nil : "errors");
 }
 
 static int
@@ -74,40 +82,40 @@ bzipf(char *file, int stdout)
 	int ifd, ofd, ok;
 
 	ifd = open(file, OREAD);
-	if(ifd < 0){
+	if(ifd < 0) {
 		fprint(2, "bzip2: can't open %s: %r\n", file);
 		return 0;
 	}
 	dir = dirfstat(ifd);
-	if(dir == nil){
+	if(dir == nil) {
 		fprint(2, "bzip2: can't stat %s: %r\n", file);
 		close(ifd);
 		return 0;
 	}
-	if(dir->mode & DMDIR){
+	if(dir->mode & DMDIR) {
 		fprint(2, "bzip2: can't compress a directory\n");
 		close(ifd);
 		free(dir);
 		return 0;
 	}
 
-	if(stdout){
+	if(stdout) {
 		ofd = 1;
 		strcpy(ofile, "<stdout>");
-	}else{
+	} else {
 		f = strrchr(file, '/');
 		if(f != nil)
 			f++;
 		else
 			f = file;
 		s = strrchr(f, '.');
-		if(s != nil && s != ofile && strcmp(s, ".tar") == 0){
+		if(s != nil && s != ofile && strcmp(s, ".tar") == 0) {
 			*s = '\0';
 			snprint(ofile, sizeof(ofile), "%s.tbz", f);
-		}else
+		} else
 			snprint(ofile, sizeof(ofile), "%s.bz2", f);
 		ofd = create(ofile, OWRITE, 0666);
-		if(ofd < 0){
+		if(ofd < 0) {
 			fprint(2, "bzip2: can't open %s: %r\n", ofile);
 			free(dir);
 			close(ifd);
@@ -120,7 +128,7 @@ bzipf(char *file, int stdout)
 
 	Binit(&bout, ofd, OWRITE);
 	ok = bzip(file, dir->mtime, ifd, &bout);
-	if(!ok || Bflush(&bout) < 0){
+	if(!ok || Bflush(&bout) < 0) {
 		fprint(2, "bzip2: error writing %s: %r\n", ofile);
 		if(!stdout)
 			remove(ofile);
@@ -165,8 +173,8 @@ bzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 		if(!done && strm.avail_in < sizeof buf) {
 			if(strm.avail_in)
 				memmove(buf, strm.next_in, strm.avail_in);
-			
-			n = Bread(&bin, buf+strm.avail_in, sizeof(buf)-strm.avail_in);
+
+			n = Bread(&bin, buf + strm.avail_in, sizeof(buf) - strm.avail_in);
 			if(n <= 0)
 				done = 1;
 			else
@@ -174,14 +182,14 @@ bzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 			strm.next_in = buf;
 		}
 		if(strm.avail_out < sizeof obuf) {
-			Bwrite(bout, obuf, sizeof(obuf)-strm.avail_out);
+			Bwrite(bout, obuf, sizeof(obuf) - strm.avail_out);
 			strm.next_out = obuf;
 			strm.avail_out = sizeof obuf;
 		}
 
 		if(onemore == 0)
 			break;
-	} while((e=BZ2_bzCompress(&strm, done ? BZ_FINISH : BZ_RUN)) == BZ_RUN_OK || e == BZ_FINISH_OK || onemore--);
+	} while((e = BZ2_bzCompress(&strm, done ? BZ_FINISH : BZ_RUN)) == BZ_RUN_OK || e == BZ_FINISH_OK || onemore--);
 
 	if(e != BZ_STREAM_END) {
 		fprint(2, "bzip2: compress failed\n");

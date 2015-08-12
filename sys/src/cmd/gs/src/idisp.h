@@ -26,15 +26,14 @@
 /* $Id: idisp.h,v 1.4 2002/02/21 22:24:53 giles Exp $ */
 
 #ifndef idisp_INCLUDED
-#  define idisp_INCLUDED
+#define idisp_INCLUDED
 
 #ifndef display_callback_DEFINED
-# define display_callback_DEFINED
+#define display_callback_DEFINED
 typedef struct display_callback_s display_callback;
 #endif
 
 /* Called from imain.c to set the display callback in the device instance. */
 int display_set_callback(gs_main_instance *minst, display_callback *callback);
-
 
 #endif /* idisp_INCLUDED */

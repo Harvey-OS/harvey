@@ -28,5 +28,5 @@
 
 #include "sfxstdio.c"
 
-#define KEEP_FILENO_API		/* see sfxfd.c */
+#define KEEP_FILENO_API /* see sfxfd.c */
 #include "sfxfd.c"

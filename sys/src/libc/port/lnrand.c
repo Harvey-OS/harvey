@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
-#define	MASK	0x7fffffffL
+#define MASK 0x7fffffffL
 
 int32_t
 lnrand(int32_t n)

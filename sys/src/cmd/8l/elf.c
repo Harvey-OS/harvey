@@ -15,25 +15,24 @@
 
 enum {
 	/* offsets into string table */
-	Stitext		= 1,
-	Stidata		= 7,
-	Stistrtab	= 13,
+	Stitext = 1,
+	Stidata = 7,
+	Stistrtab = 13,
 };
 
 void
 elfident(int bo, int class)
 {
-	strnput("\177ELF", 4);		/* e_ident */
+	strnput("\177ELF", 4); /* e_ident */
 	cput(class);
-	cput(bo);			/* byte order */
-	cput(1);			/* version = CURRENT */
-	if(debug['k']){			/* boot/embedded/standalone */
+	cput(bo);	/* byte order */
+	cput(1);	 /* version = CURRENT */
+	if(debug['k']) { /* boot/embedded/standalone */
 		cput(255);
 		cput(0);
-	}
-	else{
-		cput(0);		/* osabi = SYSV */
-		cput(0);		/* abiversion = 3 */
+	} else {
+		cput(0); /* osabi = SYSV */
+		cput(0); /* abiversion = 3 */
 	}
 	strnput("", 7);
 }
@@ -43,18 +42,18 @@ elfstrtab(void)
 {
 	/* string table */
 	cput(0);
-	strnput(".text", 5);		/* +1 */
+	strnput(".text", 5); /* +1 */
 	cput(0);
-	strnput(".data", 5);		/* +7 */
+	strnput(".data", 5); /* +7 */
 	cput(0);
-	strnput(".strtab", 7);		/* +13 */
+	strnput(".strtab", 7); /* +13 */
 	cput(0);
 	cput(0);
 }
 
 void
 elf32phdr(void (*putl)(long), ulong type, ulong off, ulong vaddr, ulong paddr,
-	ulong filesz, ulong memsz, ulong prots, ulong align)
+	  ulong filesz, ulong memsz, ulong prots, ulong align)
 {
 	putl(type);
 	putl(off);
@@ -68,8 +67,8 @@ elf32phdr(void (*putl)(long), ulong type, ulong off, ulong vaddr, ulong paddr,
 
 void
 elf32shdr(void (*putl)(long), ulong name, ulong type, ulong flags, ulong vaddr,
-	ulong off, ulong sectsz, ulong link, ulong addnl, ulong align,
-	ulong entsz)
+	  ulong off, ulong sectsz, ulong link, ulong addnl, ulong align,
+	  ulong entsz)
 {
 	putl(name);
 	putl(type);
@@ -86,13 +85,13 @@ elf32shdr(void (*putl)(long), ulong name, ulong type, ulong flags, ulong vaddr,
 static void
 elf32sectab(void (*putl)(long))
 {
-	seek(cout, HEADR+textsize+datsize+symsize, 0);
-	elf32shdr(putl, Stitext, Progbits, Salloc|Sexec, INITTEXT,
-		HEADR, textsize, 0, 0, 0x10000, 0);
-	elf32shdr(putl, Stidata, Progbits, Salloc|Swrite, INITDAT,
-		HEADR+textsize, datsize, 0, 0, 0x10000, 0);
+	seek(cout, HEADR + textsize + datsize + symsize, 0);
+	elf32shdr(putl, Stitext, Progbits, Salloc | Sexec, INITTEXT,
+		  HEADR, textsize, 0, 0, 0x10000, 0);
+	elf32shdr(putl, Stidata, Progbits, Salloc | Swrite, INITDAT,
+		  HEADR + textsize, datsize, 0, 0, 0x10000, 0);
 	elf32shdr(putl, Stistrtab, Strtab, 1 << 5, 0,
-		HEADR+textsize+datsize+symsize+3*Shdr32sz, 14, 0, 0, 1, 0);
+		  HEADR + textsize + datsize + symsize + 3 * Shdr32sz, 14, 0, 0, 1, 0);
 	elfstrtab();
 }
 
@@ -103,13 +102,13 @@ elf32(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	ulong phydata;
 	void (*putw)(long), (*putl)(long);
 
-	if(bo == ELFDATA2MSB){
+	if(bo == ELFDATA2MSB) {
 		putw = wput;
 		putl = lput;
-	}else if(bo == ELFDATA2LSB){
+	} else if(bo == ELFDATA2LSB) {
 		putw = wputl;
 		putl = lputl;
-	}else{
+	} else {
 		print("elf32 byte order is mixed-endian\n");
 		errorexit();
 		return;
@@ -118,22 +117,22 @@ elf32(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	elfident(bo, ELFCLASS32);
 	putw(EXEC);
 	putw(mach);
-	putl(1L);			/* version = CURRENT */
-	putl(entryvalue());		/* entry vaddr */
-	putl(Ehdr32sz);			/* offset to first phdr */
+	putl(1L);	   /* version = CURRENT */
+	putl(entryvalue()); /* entry vaddr */
+	putl(Ehdr32sz);     /* offset to first phdr */
 	if(debug['S'])
-		putl(HEADR+textsize+datsize+symsize); /* offset to first shdr */
+		putl(HEADR + textsize + datsize + symsize); /* offset to first shdr */
 	else
 		putl(0);
-	putl(0L);			/* flags */
+	putl(0L); /* flags */
 	putw(Ehdr32sz);
 	putw(Phdr32sz);
-	putw(3 + addpsects);		/* # of Phdrs */
+	putw(3 + addpsects); /* # of Phdrs */
 	putw(Shdr32sz);
-	if(debug['S']){
-		putw(3);		/* # of Shdrs */
-		putw(2);		/* Shdr table index */
-	}else{
+	if(debug['S']) {
+		putw(3); /* # of Shdrs */
+		putw(2); /* Shdr table index */
+	} else {
 		putw(0);
 		putw(0);
 	}
@@ -143,18 +142,18 @@ elf32(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	 * but in theory it aids demand loading.
 	 */
 	elf32phdr(putl, PT_LOAD, HEADR, INITTEXT, INITTEXTP,
-		textsize, textsize, R|X, INITRND);	/* text */
+		  textsize, textsize, R | X, INITRND); /* text */
 	/*
 	 * we need INITDATP, but it has to be computed.
 	 * assume distance between INITTEXT & INITTEXTP is also
 	 * correct for INITDAT and INITDATP.
 	 */
 	phydata = INITDAT - (INITTEXT - INITTEXTP);
-	elf32phdr(putl, PT_LOAD, HEADR+textsize, INITDAT, phydata,
-		datsize, datsize+bsssize, R|W|X, INITRND); /* data */
-	elf32phdr(putl, NOPTYPE, HEADR+textsize+datsize, 0, 0,
-		symsize, lcsize, R, 4);			/* symbol table */
-	if (addpsects > 0)
+	elf32phdr(putl, PT_LOAD, HEADR + textsize, INITDAT, phydata,
+		  datsize, datsize + bsssize, R | W | X, INITRND); /* data */
+	elf32phdr(putl, NOPTYPE, HEADR + textsize + datsize, 0, 0,
+		  symsize, lcsize, R, 4); /* symbol table */
+	if(addpsects > 0)
 		putpsects(putl);
 	cflush();
 
@@ -168,23 +167,23 @@ elf32(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 
 void
 elf64phdr(void (*putl)(long), void (*putll)(vlong), ulong type, uvlong off,
-	uvlong vaddr, uvlong paddr, uvlong filesz, uvlong memsz, ulong prots,
-	uvlong align)
+	  uvlong vaddr, uvlong paddr, uvlong filesz, uvlong memsz, ulong prots,
+	  uvlong align)
 {
-	putl(type);		
-	putl(prots);		
-	putll(off);		
-	putll(vaddr);	
-	putll(paddr);	
-	putll(filesz);	
-	putll(memsz);	
-	putll(align);		
+	putl(type);
+	putl(prots);
+	putll(off);
+	putll(vaddr);
+	putll(paddr);
+	putll(filesz);
+	putll(memsz);
+	putll(align);
 }
 
 void
 elf64shdr(void (*putl)(long), void (*putll)(vlong), ulong name, ulong type,
-	uvlong flags, uvlong vaddr, uvlong off, uvlong sectsz, ulong link,
-	ulong addnl, uvlong align, uvlong entsz)
+	  uvlong flags, uvlong vaddr, uvlong off, uvlong sectsz, ulong link,
+	  ulong addnl, uvlong align, uvlong entsz)
 {
 	putl(name);
 	putl(type);
@@ -201,13 +200,13 @@ elf64shdr(void (*putl)(long), void (*putll)(vlong), ulong name, ulong type,
 static void
 elf64sectab(void (*putl)(long), void (*putll)(vlong))
 {
-	seek(cout, HEADR+textsize+datsize+symsize, 0);
-	elf64shdr(putl, putll, Stitext, Progbits, Salloc|Sexec, INITTEXT,
-		HEADR, textsize, 0, 0, 0x10000, 0);
-	elf64shdr(putl, putll, Stidata, Progbits, Salloc|Swrite, INITDAT,
-		HEADR+textsize, datsize, 0, 0, 0x10000, 0);
+	seek(cout, HEADR + textsize + datsize + symsize, 0);
+	elf64shdr(putl, putll, Stitext, Progbits, Salloc | Sexec, INITTEXT,
+		  HEADR, textsize, 0, 0, 0x10000, 0);
+	elf64shdr(putl, putll, Stidata, Progbits, Salloc | Swrite, INITDAT,
+		  HEADR + textsize, datsize, 0, 0, 0x10000, 0);
 	elf64shdr(putl, putll, Stistrtab, Strtab, 1 << 5, 0,
-		HEADR+textsize+datsize+symsize+3*Shdr64sz, 14, 0, 0, 1, 0);
+		  HEADR + textsize + datsize + symsize + 3 * Shdr64sz, 14, 0, 0, 1, 0);
 	elfstrtab();
 }
 
@@ -219,15 +218,15 @@ elf64(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	void (*putw)(long), (*putl)(long);
 	void (*putll)(vlong);
 
-	if(bo == ELFDATA2MSB){
+	if(bo == ELFDATA2MSB) {
 		putw = wput;
 		putl = lput;
 		putll = llput;
-	}else if(bo == ELFDATA2LSB){
+	} else if(bo == ELFDATA2LSB) {
 		putw = wputl;
 		putl = lputl;
 		putll = llputl;
-	}else{
+	} else {
 		print("elf64 byte order is mixed-endian\n");
 		errorexit();
 		return;
@@ -236,37 +235,37 @@ elf64(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	elfident(bo, ELFCLASS64);
 	putw(EXEC);
 	putw(mach);
-	putl(1L);			/* version = CURRENT */
-	putll(entryvalue());		/* entry vaddr */
-	putll(Ehdr64sz);		/* offset to first phdr */
+	putl(1L);	    /* version = CURRENT */
+	putll(entryvalue()); /* entry vaddr */
+	putll(Ehdr64sz);     /* offset to first phdr */
 	if(debug['S'])
-		putll(HEADR+textsize+datsize+symsize); /* offset to 1st shdr */
+		putll(HEADR + textsize + datsize + symsize); /* offset to 1st shdr */
 	else
 		putll(0);
-	putl(0L);			/* flags */
+	putl(0L); /* flags */
 	putw(Ehdr64sz);
 	putw(Phdr64sz);
-	putw(3 + addpsects);		/* # of Phdrs */
+	putw(3 + addpsects); /* # of Phdrs */
 	putw(Shdr64sz);
-	if(debug['S']){
-		putw(3);		/* # of Shdrs */
-		putw(2);		/* Shdr table index */
-	}else{
+	if(debug['S']) {
+		putw(3); /* # of Shdrs */
+		putw(2); /* Shdr table index */
+	} else {
 		putw(0);
 		putw(0);
 	}
 
 	elf64phdr(putl, putll, PT_LOAD, HEADR, INITTEXT, INITTEXTP,
-		textsize, textsize, R|X, INITRND);	/* text */
+		  textsize, textsize, R | X, INITRND); /* text */
 	/*
 	 * see 32-bit ELF case for physical data address computation.
 	 */
 	phydata = INITDAT - (INITTEXT - INITTEXTP);
-	elf64phdr(putl, putll, PT_LOAD, HEADR+textsize, INITDAT, phydata,
-		datsize, datsize+bsssize, R|W, INITRND); /* data */
-	elf64phdr(putl, putll, NOPTYPE, HEADR+textsize+datsize, 0, 0,
-		symsize, lcsize, R, 4);			/* symbol table */
-	if (addpsects > 0)
+	elf64phdr(putl, putll, PT_LOAD, HEADR + textsize, INITDAT, phydata,
+		  datsize, datsize + bsssize, R | W, INITRND); /* data */
+	elf64phdr(putl, putll, NOPTYPE, HEADR + textsize + datsize, 0, 0,
+		  symsize, lcsize, R, 4); /* symbol table */
+	if(addpsects > 0)
 		putpsects(putl);
 	cflush();
 

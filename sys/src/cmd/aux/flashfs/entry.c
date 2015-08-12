@@ -15,20 +15,19 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	int	nextfnum;
-static	Intmap*	map;
-static	Dir	dirproto;
+static int nextfnum;
+static Intmap *map;
+static Dir dirproto;
 
-static	char	user[]	= "flash";
+static char user[] = "flash";
 
-	Entry	*root;
-	uint32_t	used;
-	uint32_t	limit;
-	uint32_t	maxwrite;
+Entry *root;
+uint32_t used;
+uint32_t limit;
+uint32_t maxwrite;
 
-enum
-{
-	debug	= 0,
+enum {
+	debug = 0,
 };
 
 static int
@@ -68,8 +67,8 @@ dirinit(Entry *e)
 	Entry **t;
 
 	e->size = 0;
-	t = emalloc9p(HSIZE * sizeof(Entry*));
-	memset(t, 0, HSIZE * sizeof(Entry*));
+	t = emalloc9p(HSIZE * sizeof(Entry *));
+	memset(t, 0, HSIZE * sizeof(Entry *));
 	e->htab = t;
 	e->files = nil;
 	e->readers = nil;
@@ -183,13 +182,12 @@ esum(Entry *e, int sect, uint32_t addr, int *more)
 	if(u != nil) {
 		u->next = nil;
 		*more = 1;
-	}
-	else {
+	} else {
 		x->head = nil;
 		*more = 0;
 	}
 	x->tail = u;
-	x = &e->gen[eparity^1];
+	x = &e->gen[eparity ^ 1];
 	u = x->head;
 	t->next = u;
 	x->head = t;
@@ -373,8 +371,7 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 					a += z;
 					n -= z;
 					off += z;
-				}
-				else {
+				} else {
 					a0 = a;
 					n0 = e->off - off;
 					o0 = off;
@@ -387,8 +384,7 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 						a = a0;
 						n = n0;
 						off = o0;
-					}
-					else {
+					} else {
 						readdata(e->sect, a, z, e->addr);
 						a1 = a + z;
 						n1 = n - z;
@@ -398,8 +394,7 @@ eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 							a = a1;
 							n = n1;
 							off = o1;
-						}
-						else {
+						} else {
 							eread0(e->next, x, a1, n1, o1);
 							a = a0;
 							n = n0;
@@ -428,7 +423,7 @@ eread(Entry *e, int parity, void *a, uint32_t n, uint32_t off)
 		n = e->size - off;
 	if(n <= 0)
 		return 0;
-	eread0(e->gen[parity].head, e->gen[parity^1].head, a, n, off);
+	eread0(e->gen[parity].head, e->gen[parity ^ 1].head, a, n, off);
 	return n;
 }
 
@@ -489,8 +484,7 @@ estat(Entry *e, Dir *d, int alloc)
 		d->gid = estrdup9p(user);
 		d->muid = estrdup9p(user);
 		d->name = estrdup9p(e->name);
-	}
-	else {
+	} else {
 		d->uid = user;
 		d->gid = user;
 		d->muid = user;
@@ -563,7 +557,7 @@ edirclose(Dirr *d)
 	free(d);
 }
 
-static	Renum	R;
+static Renum R;
 
 static void
 xrenum(Extent *x)
@@ -581,8 +575,7 @@ renum(Entry *e)
 	if(e->mode & DMDIR) {
 		for(e = e->files; e != nil; e = e->fnext)
 			renum(e);
-	}
-	else {
+	} else {
 		xrenum(e->gen[0].head);
 		xrenum(e->gen[1].head);
 	}

@@ -13,13 +13,13 @@
 #include <html.h>
 #include "impl.h"
 
-Rune* whitespace = (Rune*)L" \t\n\r";
-Rune* notwhitespace = (Rune*)L"^ \t\n\r";
+Rune *whitespace = (Rune *)L" \t\n\r";
+Rune *notwhitespace = (Rune *)L"^ \t\n\r";
 
 // All lists start out like List structure.
 // List itself can be used as list of int.
 int
-_listlen(List* l)
+_listlen(List *l)
 {
 	int n = 0;
 
@@ -31,23 +31,23 @@ _listlen(List* l)
 }
 
 // Cons
-List*
-_newlist(int val, List* rest)
+List *
+_newlist(int val, List *rest)
 {
-	List* ans;
+	List *ans;
 
-	ans = (List*)emalloc(sizeof(List));
+	ans = (List *)emalloc(sizeof(List));
 	ans->val = val;
 	ans->next = rest;
 	return ans;
 }
 
 // Reverse a list in place
-List*
-_revlist(List* l)
+List *
+_revlist(List *l)
 {
-	List* newl;
-	List* nextl;
+	List *newl;
+	List *nextl;
 
 	newl = nil;
 	while(l != nil) {
@@ -69,9 +69,9 @@ _revlist(List* l)
 // If no split, the whole thing goes in the first component.
 // Note: answers contain pointers into original string.
 void
-_splitl(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
+_splitl(Rune *s, int n, Rune *cl, Rune **p1, int *n1, Rune **p2, int *n2)
 {
-	Rune* p;
+	Rune *p;
 
 	p = _Strnclass(s, cl, n);
 	*p1 = s;
@@ -79,11 +79,10 @@ _splitl(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
 		*n1 = n;
 		*p2 = nil;
 		*n2 = 0;
-	}
-	else {
+	} else {
 		*p2 = p;
-		*n1 = p-s;
-		*n2 = n-*n1;
+		*n1 = p - s;
+		*n2 = n - *n1;
 	}
 }
 
@@ -92,9 +91,9 @@ _splitl(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
 // If no split, the whole thing goes in the last component.
 // Note: answers contain pointers into original string.
 void
-_splitr(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
+_splitr(Rune *s, int n, Rune *cl, Rune **p1, int *n1, Rune **p2, int *n2)
 {
-	Rune* p;
+	Rune *p;
 
 	p = _Strnrclass(s, cl, n);
 	if(p == nil) {
@@ -102,12 +101,11 @@ _splitr(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
 		*n1 = 0;
 		*p2 = s;
 		*n2 = n;
-	}
-	else {
+	} else {
 		*p1 = s;
-		*p2 = p+1;
-		*n1 = *p2-s;
-		*n2 = n-*n1;
+		*p2 = p + 1;
+		*n1 = *p2 - s;
+		*n2 = n - *n1;
 	}
 }
 
@@ -117,29 +115,29 @@ _splitr(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int* n2)
 // the strarr array, while their lengths go into the lenarr array.
 // The return value is the number of parts found.
 int
-_splitall(Rune* s, int n, Rune* cl, Rune** strarr, int* lenarr, int alen)
+_splitall(Rune *s, int n, Rune *cl, Rune **strarr, int *lenarr, int alen)
 {
 	int i;
-	Rune* p;
-	Rune* q;
-	Rune* slast;
+	Rune *p;
+	Rune *q;
+	Rune *slast;
 
 	if(s == nil || n == 0)
 		return 0;
 	i = 0;
 	p = s;
-	slast = s+n;
+	slast = s + n;
 	while(p < slast && i < alen) {
 		while(p < slast && _inclass(*p, cl))
 			p++;
 		if(p == slast)
 			break;
-		q = _Strnclass(p, cl, slast-p);
+		q = _Strnclass(p, cl, slast - p);
 		if(q == nil)
 			q = slast;
 		assert(q > p && q <= slast);
 		strarr[i] = p;
-		lenarr[i] = q-p;
+		lenarr[i] = q - p;
 		i++;
 		p = q;
 	}
@@ -149,10 +147,10 @@ _splitall(Rune* s, int n, Rune* cl, Rune** strarr, int* lenarr, int alen)
 // Find part of s that excludes leading and trailing whitespace,
 // and return that part in *pans (and its length in *panslen).
 void
-_trimwhite(Rune* s, int n, Rune** pans, int* panslen)
+_trimwhite(Rune *s, int n, Rune **pans, int *panslen)
 {
-	Rune* p;
-	Rune* q;
+	Rune *p;
+	Rune *q;
 
 	p = nil;
 	if(n > 0) {
@@ -160,7 +158,7 @@ _trimwhite(Rune* s, int n, Rune** pans, int* panslen)
 		if(p != nil) {
 			q = _Strnrclass(s, notwhitespace, n);
 			assert(q != nil);
-			n = q+1-p;
+			n = q + 1 - p;
 		}
 	}
 	*pans = p;
@@ -169,10 +167,10 @@ _trimwhite(Rune* s, int n, Rune** pans, int* panslen)
 
 // _Strclass returns a pointer to the first element of s that is
 // a member of class cl, nil if none.
-Rune*
-_Strclass(Rune* s, Rune* cl)
+Rune *
+_Strclass(Rune *s, Rune *cl)
 {
-	Rune* p;
+	Rune *p;
 
 	for(p = s; *p != 0; p++)
 		if(_inclass(*p, cl))
@@ -182,10 +180,10 @@ _Strclass(Rune* s, Rune* cl)
 
 // _Strnclass returns a pointer to the first element of s[0:n] that is
 // a member of class cl, nil if none.
-Rune*
-_Strnclass(Rune* s, Rune* cl, int n)
+Rune *
+_Strnclass(Rune *s, Rune *cl, int n)
 {
-	Rune* p;
+	Rune *p;
 
 	for(p = s; n-- && *p != 0; p++)
 		if(_inclass(*p, cl))
@@ -195,10 +193,10 @@ _Strnclass(Rune* s, Rune* cl, int n)
 
 // _Strrclass returns a pointer to the last element of s that is
 // a member of class cl, nil if none
-Rune*
-_Strrclass(Rune* s, Rune* cl)
+Rune *
+_Strrclass(Rune *s, Rune *cl)
 {
-	Rune* p;
+	Rune *p;
 
 	if(s == nil || *s == 0)
 		return nil;
@@ -213,10 +211,10 @@ _Strrclass(Rune* s, Rune* cl)
 
 // _Strnrclass returns a pointer to the last element of s[0:n] that is
 // a member of class cl, nil if none
-Rune*
-_Strnrclass(Rune* s, Rune* cl, int n)
+Rune *
+_Strnrclass(Rune *s, Rune *cl, int n)
 {
-	Rune* p;
+	Rune *p;
 
 	if(s == nil || *s == 0 || n == 0)
 		return nil;
@@ -231,12 +229,12 @@ _Strnrclass(Rune* s, Rune* cl, int n)
 
 // Is c in the class cl?
 int
-_inclass(Rune c, Rune* cl)
+_inclass(Rune c, Rune *cl)
 {
-	int	n;
-	int	ans;
-	int	negate;
-	int	i;
+	int n;
+	int ans;
+	int negate;
+	int i;
 
 	n = _Strlen(cl);
 	if(n == 0)
@@ -255,8 +253,7 @@ _inclass(Rune c, Rune* cl)
 				break;
 			}
 			i++;
-		}
-		else if(c == cl[i]) {
+		} else if(c == cl[i]) {
 			ans = 1;
 			break;
 		}
@@ -268,11 +265,11 @@ _inclass(Rune c, Rune* cl)
 
 // Is pre a prefix of s?
 int
-_prefix(Rune* pre, Rune* s)
+_prefix(Rune *pre, Rune *s)
 {
-	int	ns;
-	int	n;
-	int	k;
+	int ns;
+	int n;
+	int k;
 
 	ns = _Strlen(s);
 	n = _Strlen(pre);
@@ -287,7 +284,7 @@ _prefix(Rune* pre, Rune* s)
 
 // Number of runes in (null-terminated) s
 int
-_Strlen(Rune* s)
+_Strlen(Rune *s)
 {
 	if(s == nil)
 		return 0;
@@ -334,8 +331,8 @@ _Strncmpci(Rune *s1, int n1, Rune *s2)
 }
 
 // emalloc and copy
-Rune*
-_Strdup(Rune* s)
+Rune *
+_Strdup(Rune *s)
 {
 	if(s == nil)
 		return nil;
@@ -345,39 +342,39 @@ _Strdup(Rune* s)
 // emalloc and copy n chars of s (assume s is at least that long),
 // and add 0 terminator.
 // Return nil if n==0.
-Rune*
-_Strndup(Rune* s, int n)
+Rune *
+_Strndup(Rune *s, int n)
 {
-	Rune* ans;
+	Rune *ans;
 
 	if(n <= 0)
 		return nil;
 	ans = _newstr(n);
-	memmove(ans, s, n*sizeof(Rune));
+	memmove(ans, s, n * sizeof(Rune));
 	ans[n] = 0;
 	return ans;
 }
 // emalloc enough room for n Runes, plus 1 null terminator.
 // (Not initialized to anything.)
-Rune*
+Rune *
 _newstr(int n)
 {
-	return (Rune*)emalloc((n+1)*sizeof(Rune));
+	return (Rune *)emalloc((n + 1) * sizeof(Rune));
 }
 
 // emalloc and copy s+t
-Rune*
-_Strdup2(Rune* s, Rune* t)
+Rune *
+_Strdup2(Rune *s, Rune *t)
 {
 	int ns, nt;
-	Rune* ans;
-	Rune* p;
+	Rune *ans;
+	Rune *p;
 
 	ns = _Strlen(s);
 	nt = _Strlen(t);
-	if(ns+nt == 0)
+	if(ns + nt == 0)
 		return nil;
-	ans = _newstr(ns+nt);
+	ans = _newstr(ns + nt);
 	p = _Stradd(ans, s, ns);
 	p = _Stradd(p, t, nt);
 	*p = 0;
@@ -385,36 +382,36 @@ _Strdup2(Rune* s, Rune* t)
 }
 
 // Return emalloc'd substring s[start:stop],
-Rune*
-_Strsubstr(Rune* s, int start, int stop)
+Rune *
+_Strsubstr(Rune *s, int start, int stop)
 {
-	Rune* t;
+	Rune *t;
 
 	if(start == stop)
 		return nil;
-	t = _Strndup(s+start, stop-start);
+	t = _Strndup(s + start, stop - start);
 	return t;
 }
 
 // Copy n chars to s1 from s2, and return s1+n
-Rune*
-_Stradd(Rune* s1, Rune* s2, int n)
+Rune *
+_Stradd(Rune *s1, Rune *s2, int n)
 {
 	if(n == 0)
 		return s1;
-	memmove(s1, s2, n*sizeof(Rune));
-	return s1+n;
+	memmove(s1, s2, n * sizeof(Rune));
+	return s1 + n;
 }
 
 // Like strtol, but converting from Rune* string
 
-#define LONG_MAX	2147483647L
-#define LONG_MIN	-2147483648L
+#define LONG_MAX 2147483647L
+#define LONG_MIN -2147483648L
 
 int32_t
-_Strtol(Rune* nptr, Rune** endptr, int base)
+_Strtol(Rune *nptr, Rune **endptr, int base)
 {
-	Rune* p;
+	Rune *p;
 	int32_t n, nn;
 	int c, ovfl, v, neg, ndig;
 
@@ -427,8 +424,8 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 	/*
 	 * White space
 	 */
-	for(;;p++){
-		switch(*p){
+	for(;; p++) {
+		switch(*p) {
 		case ' ':
 		case '\t':
 		case '\n':
@@ -443,55 +440,55 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 	/*
 	 * Sign
 	 */
-	if(*p=='-' || *p=='+')
+	if(*p == '-' || *p == '+')
 		if(*p++ == '-')
 			neg = 1;
 
 	/*
 	 * Base
 	 */
-	if(base==0){
+	if(base == 0) {
 		if(*p != '0')
 			base = 10;
-		else{
+		else {
 			base = 8;
-			if(p[1]=='x' || p[1]=='X'){
+			if(p[1] == 'x' || p[1] == 'X') {
 				p += 2;
 				base = 16;
 			}
 		}
-	}else if(base==16 && *p=='0'){
-		if(p[1]=='x' || p[1]=='X')
+	} else if(base == 16 && *p == '0') {
+		if(p[1] == 'x' || p[1] == 'X')
 			p += 2;
-	}else if(base<0 || 36<base)
+	} else if(base < 0 || 36 < base)
 		goto Return;
 
 	/*
 	 * Non-empty sequence of digits
 	 */
-	for(;; p++,ndig++){
+	for(;; p++, ndig++) {
 		c = *p;
 		v = base;
-		if('0'<=c && c<='9')
+		if('0' <= c && c <= '9')
 			v = c - '0';
-		else if('a'<=c && c<='z')
+		else if('a' <= c && c <= 'z')
 			v = c - 'a' + 10;
-		else if('A'<=c && c<='Z')
+		else if('A' <= c && c <= 'Z')
 			v = c - 'A' + 10;
 		if(v >= base)
 			break;
-		nn = n*base + v;
+		nn = n * base + v;
 		if(nn < n)
 			ovfl = 1;
 		n = nn;
 	}
 
-    Return:
+Return:
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
 		*endptr = p;
-	if(ovfl){
+	if(ovfl) {
 		if(neg)
 			return LONG_MIN;
 		return LONG_MAX;
@@ -503,18 +500,18 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 
 // Convert buf[0:n], bytes whose character set is chset,
 // into a emalloc'd null-terminated Unicode string.
-Rune*
-toStr(uint8_t* buf, int n, int chset)
+Rune *
+toStr(uint8_t *buf, int n, int chset)
 {
 	int i;
 	int m;
 	Rune ch;
-	Rune* ans;
+	Rune *ans;
 
 	switch(chset) {
 	case US_Ascii:
 	case ISO_8859_1:
-		ans = (Rune*)emalloc((n+1)*sizeof(Rune));
+		ans = (Rune *)emalloc((n + 1) * sizeof(Rune));
 		for(i = 0; i < n; i++)
 			ans[i] = buf[i];
 		ans[n] = 0;
@@ -522,14 +519,14 @@ toStr(uint8_t* buf, int n, int chset)
 
 	case UTF_8:
 		m = 0;
-		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (char*)(buf+i));
+		for(i = 0; i < n;) {
+			i += chartorune(&ch, (char *)(buf + i));
 			m++;
 		}
-		ans = (Rune*)emalloc((m+1)*sizeof(Rune));
+		ans = (Rune *)emalloc((m + 1) * sizeof(Rune));
 		m = 0;
-		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (char*)(buf+i));
+		for(i = 0; i < n;) {
+			i += chartorune(&ch, (char *)(buf + i));
 			ans[m++] = ch;
 		}
 		ans[m] = 0;
@@ -545,21 +542,21 @@ toStr(uint8_t* buf, int n, int chset)
 // Convert buf[0:n], Unicode characters,
 // into an emalloc'd null-terminated string in character set chset.
 // Use 0x80 for unconvertable characters.
-uint8_t*
-fromStr(Rune* buf, int n, int chset)
+uint8_t *
+fromStr(Rune *buf, int n, int chset)
 {
-	uint8_t* ans;
+	uint8_t *ans;
 	int i, lim, m;
 	Rune ch;
-	uint8_t* p;
+	uint8_t *p;
 	uint8_t s[UTFmax];
 
 	ans = nil;
 	switch(chset) {
 	case US_Ascii:
 	case ISO_8859_1:
-		ans = (uint8_t*)emalloc(n+1);
-		lim = (chset==US_Ascii)? 127 : 255;
+		ans = (uint8_t *)emalloc(n + 1);
+		lim = (chset == US_Ascii) ? 127 : 255;
 		for(i = 0; i < n; i++) {
 			ch = buf[i];
 			if(ch > lim)
@@ -572,12 +569,12 @@ fromStr(Rune* buf, int n, int chset)
 	case UTF_8:
 		m = 0;
 		for(i = 0; i < n; i++) {
-			m += runetochar((char*)s, &buf[i]);
+			m += runetochar((char *)s, &buf[i]);
 		}
-		ans = (uint8_t*)emalloc(m+1);
+		ans = (uint8_t *)emalloc(m + 1);
 		p = ans;
 		for(i = 0; i < n; i++)
-			p += runetochar((char*)p, &buf[i]);
+			p += runetochar((char *)p, &buf[i]);
 		*p = 0;
 		break;
 
@@ -585,5 +582,4 @@ fromStr(Rune* buf, int n, int chset)
 		assert(0);
 	}
 	return ans;
-
 }

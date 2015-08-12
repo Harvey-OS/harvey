@@ -20,12 +20,11 @@
 
 #include "antiword.h"
 
-#define HALF_INCH	36000L  /* In millipoints */
+#define HALF_INCH 36000L /* In millipoints */
 
 /* Variables needed to write the Document Information List */
 static document_block_type *pAnchor = NULL;
 static document_block_type tInfo;
-
 
 /*
  * vDestroyDocumentInfoList - destroy the Document Information List
@@ -33,7 +32,7 @@ static document_block_type tInfo;
 void
 vDestroyDocumentInfoList(void)
 {
-        DBG_MSG("vDestroyDocumentInfoList");
+	DBG_MSG("vDestroyDocumentInfoList");
 
 	pAnchor = NULL;
 } /* end of vDestoryDocumentInfoList */
@@ -57,10 +56,10 @@ vCreateDocumentInfoList(const document_block_type *pDocument)
 int32_t
 lGetDefaultTabWidth(void)
 {
-	int32_t	lDefaultTabWidth;
-	USHORT	usTmp;
+	int32_t lDefaultTabWidth;
+	USHORT usTmp;
 
-	if (pAnchor == NULL) {
+	if(pAnchor == NULL) {
 		DBG_FIXME();
 		return HALF_INCH;
 	}
@@ -76,7 +75,7 @@ lGetDefaultTabWidth(void)
 UCHAR
 ucGetDopHdrFtrSpecification(void)
 {
-	if (pAnchor == NULL) {
+	if(pAnchor == NULL) {
 		DBG_FIXME();
 		return 0x00;
 	}

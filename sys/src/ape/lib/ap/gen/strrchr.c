@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-char*
+char *
 strrchr(const char *s, int c)
 {
 	char *r;

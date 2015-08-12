@@ -25,10 +25,10 @@ nbnsaddname(uint8_t *serveripaddr, NbName name, uint32_t ttl,
 	NbnsMessage *response;
 
 	nq = nbnsmessagenameregistrationrequestnew(0, serveripaddr == nil, name, ttl, ipaddr);
-	if (nq == nil)
+	if(nq == nil)
 		return -1;
 	a = nbnsalarmnew();
-	if (a == nil) {
+	if(a == nil) {
 		free(nq);
 		return -1;
 	}
@@ -37,22 +37,21 @@ nbnsaddname(uint8_t *serveripaddr, NbName name, uint32_t ttl,
 	aa[0].op = CHANRCV;
 	aa[1].op = CHANRCV;
 	aa[2].op = CHANEND;
-	while (tries > 0) {
+	while(tries > 0) {
 		NbnsTransaction *t;
 		nq->id = nbnsnextid();
 		t = nbnstransactionnew(nq, serveripaddr);
 		aa[1].c = t->c;
 		aa[1].v = &response;
 		nbnsalarmset(a, NbnsTimeoutBroadcast);
-		for (;;) {
+		for(;;) {
 			int i;
 			i = alt(aa);
-			if (i == 0) {
+			if(i == 0) {
 				tries--;
 				break;
-			}
-			else if (i == 1) {
-				if (response->opcode == NbnsOpRegistration) {
+			} else if(i == 1) {
+				if(response->opcode == NbnsOpRegistration) {
 					nbnstransactionfree(&t);
 					goto done;
 				}
@@ -62,12 +61,12 @@ nbnsaddname(uint8_t *serveripaddr, NbName name, uint32_t ttl,
 		nbnstransactionfree(&t);
 	}
 done:
-	if (tries == 0)
+	if(tries == 0)
 		rv = -1;
 	else {
-		if (response->rcode != 0)
+		if(response->rcode != 0)
 			rv = response->rcode;
-		else if (response->an == nil)
+		else if(response->an == nil)
 			rv = -1;
 		else
 			rv = 0;

@@ -25,7 +25,7 @@
 #include "utf.h"
 #include "utfdef.h"
 
-Rune*
+Rune *
 runestrcpy(Rune *s1, Rune *s2)
 {
 	Rune *os1;

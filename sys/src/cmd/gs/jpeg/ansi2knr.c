@@ -239,7 +239,7 @@ BY ANY OTHER PARTY.
 /* or without the GNU configure machinery. */
 
 #if HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <stdio.h>
@@ -252,46 +252,46 @@ BY ANY OTHER PARTY.
    This will define HAVE_CONFIG_H and so, activate the following lines.
  */
 
-# if STDC_HEADERS || HAVE_STRING_H
-#  include <string.h>
-# else
-#  include <strings.h>
-# endif
+#if STDC_HEADERS || HAVE_STRING_H
+#include <string.h>
+#else
+#include <strings.h>
+#endif
 
 #else /* not HAVE_CONFIG_H */
 
 /* Otherwise do it the hard way */
 
-# ifdef BSD
-#  include <strings.h>
-# else
-#  ifdef VMS
-    extern int strlen(), strncmp();
-#  else
-#   include <string.h>
-#  endif
-# endif
+#ifdef BSD
+#include <strings.h>
+#else
+#ifdef VMS
+extern int strlen(), strncmp();
+#else
+#include <string.h>
+#endif
+#endif
 
 #endif /* not HAVE_CONFIG_H */
 
 #if STDC_HEADERS
-# include <stdlib.h>
+#include <stdlib.h>
 #else
 /*
    malloc and free should be declared in stdlib.h,
    but if you've got a K&R compiler, they probably aren't.
  */
-# ifdef MSDOS
-#  include <malloc.h>
-# else
-#  ifdef VMS
-     extern char *malloc();
-     extern void free();
-#  else
-     extern char *malloc();
-     extern int free();
-#  endif
-# endif
+#ifdef MSDOS
+#include <malloc.h>
+#else
+#ifdef VMS
+extern char *malloc();
+extern void free();
+#else
+extern char *malloc();
+extern int free();
+#endif
+#endif
 
 #endif
 
@@ -300,14 +300,14 @@ BY ANY OTHER PARTY.
  * Compensate for this here.
  */
 #ifdef isascii
-#  undef HAVE_ISASCII		/* just in case */
-#  define HAVE_ISASCII 1
+#undef HAVE_ISASCII /* just in case */
+#define HAVE_ISASCII 1
 #else
 #endif
 #if STDC_HEADERS || !HAVE_ISASCII
-#  define is_ascii(c) 1
+#define is_ascii(c) 1
 #else
-#  define is_ascii(c) isascii(c)
+#define is_ascii(c) isascii(c)
 #endif
 
 #define is_space(c) (is_ascii(c) && isspace(c))
@@ -326,11 +326,11 @@ int convert1();
 
 /* The main program */
 int
-main(argc, argv)
-    int argc;
-    char *argv[];
-{	FILE *in, *out;
-#define bufsize 5000			/* arbitrary size */
+    main(argc, argv) int argc;
+char *argv[];
+{
+	FILE *in, *out;
+#define bufsize 5000 /* arbitrary size */
 	char *buf;
 	char *line;
 	char *more;
@@ -344,19 +344,17 @@ main(argc, argv)
 	 */
 	int convert_varargs = 1;
 
-	if ( argc > 1 && argv[1][0] == '-' )
-	  {	if ( !strcmp(argv[1], "--varargs") )
-		  {	convert_varargs = 1;
+	if(argc > 1 && argv[1][0] == '-') {
+		if(!strcmp(argv[1], "--varargs")) {
+			convert_varargs = 1;
 			argc--;
 			argv++;
-		  }
-		else
-		  {	fprintf(stderr, "Unrecognized switch: %s\n", argv[1]);
+		} else {
+			fprintf(stderr, "Unrecognized switch: %s\n", argv[1]);
 			exit(1);
-		  }
-	  }
-	switch ( argc )
-	   {
+		}
+	}
+	switch(argc) {
 	default:
 		printf("Usage: ansi2knr input_file [output_file]\n");
 		exit(0);
@@ -365,67 +363,67 @@ main(argc, argv)
 		break;
 	case 3:
 		out = fopen(argv[2], "w");
-		if ( out == NULL )
-		   {	fprintf(stderr, "Cannot open output file %s\n", argv[2]);
+		if(out == NULL) {
+			fprintf(stderr, "Cannot open output file %s\n", argv[2]);
 			exit(1);
-		   }
-	   }
+		}
+	}
 	in = fopen(argv[1], "r");
-	if ( in == NULL )
-	   {	fprintf(stderr, "Cannot open input file %s\n", argv[1]);
+	if(in == NULL) {
+		fprintf(stderr, "Cannot open input file %s\n", argv[1]);
 		exit(1);
-	   }
+	}
 	fprintf(out, "#line 1 \"%s\"\n", argv[1]);
 	buf = malloc(bufsize);
 	line = buf;
-	while ( fgets(line, (unsigned)(buf + bufsize - line), in) != NULL )
-	   {
-test:		line += strlen(line);
-		switch ( test1(buf) )
-		   {
-		case 2:			/* a function header */
+	while(fgets(line, (unsigned)(buf + bufsize - line), in) != NULL) {
+	test:
+		line += strlen(line);
+		switch(test1(buf)) {
+		case 2: /* a function header */
 			convert1(buf, out, 1, convert_varargs);
 			break;
-		case 1:			/* a function */
+		case 1: /* a function */
 			/* Check for a { at the start of the next line. */
 			more = ++line;
-f:			if ( line >= buf + (bufsize - 1) ) /* overflow check */
-			  goto wl;
-			if ( fgets(line, (unsigned)(buf + bufsize - line), in) == NULL )
-			  goto wl;
-			switch ( *skipspace(more, 1) )
-			  {
-			  case '{':
-			    /* Definitely a function header. */
-			    convert1(buf, out, 0, convert_varargs);
-			    fputs(more, out);
-			    break;
-			  case 0:
-			    /* The next line was blank or a comment: */
-			    /* keep scanning for a non-comment. */
-			    line += strlen(line);
-			    goto f;
-			  default:
-			    /* buf isn't a function header, but */
-			    /* more might be. */
-			    fputs(buf, out);
-			    strcpy(buf, more);
-			    line = buf;
-			    goto test;
-			  }
+		f:
+			if(line >= buf + (bufsize - 1)) /* overflow check */
+				goto wl;
+			if(fgets(line, (unsigned)(buf + bufsize - line), in) == NULL)
+				goto wl;
+			switch(*skipspace(more, 1)) {
+			case '{':
+				/* Definitely a function header. */
+				convert1(buf, out, 0, convert_varargs);
+				fputs(more, out);
+				break;
+			case 0:
+				/* The next line was blank or a comment: */
+				/* keep scanning for a non-comment. */
+				line += strlen(line);
+				goto f;
+			default:
+				/* buf isn't a function header, but */
+				/* more might be. */
+				fputs(buf, out);
+				strcpy(buf, more);
+				line = buf;
+				goto test;
+			}
 			break;
-		case -1:		/* maybe the start of a function */
-			if ( line != buf + (bufsize - 1) ) /* overflow check */
-			  continue;
-			/* falls through */
-		default:		/* not a function */
-wl:			fputs(buf, out);
+		case -1:				/* maybe the start of a function */
+			if(line != buf + (bufsize - 1)) /* overflow check */
+				continue;
+		/* falls through */
+		default: /* not a function */
+		wl:
+			fputs(buf, out);
 			break;
-		   }
+		}
 		line = buf;
-	   }
-	if ( line != buf )
-	  fputs(buf, out);
+	}
+	if(line != buf)
+		fputs(buf, out);
 	free(buf);
 	fclose(out);
 	fclose(in);
@@ -434,22 +432,24 @@ wl:			fputs(buf, out);
 
 /* Skip over space and comments, in either direction. */
 char *
-skipspace(p, dir)
-    register char *p;
-    register int dir;			/* 1 for forward, -1 for backward */
-{	for ( ; ; )
-	   {	while ( is_space(*p) )
-		  p += dir;
-		if ( !(*p == '/' && p[dir] == '*') )
-		  break;
-		p += dir;  p += dir;
-		while ( !(*p == '*' && p[dir] == '/') )
-		   {	if ( *p == 0 )
-			  return p;	/* multi-line comment?? */
+    skipspace(p, dir) register char *p;
+register int dir; /* 1 for forward, -1 for backward */
+{
+	for(;;) {
+		while(is_space(*p))
 			p += dir;
-		   }
-		p += dir;  p += dir;
-	   }
+		if(!(*p == '/' && p[dir] == '*'))
+			break;
+		p += dir;
+		p += dir;
+		while(!(*p == '*' && p[dir] == '/')) {
+			if(*p == 0)
+				return p; /* multi-line comment?? */
+			p += dir;
+		}
+		p += dir;
+		p += dir;
+	}
 	return p;
 }
 
@@ -458,13 +458,13 @@ skipspace(p, dir)
  * Don't overwrite end-of-line characters.
  */
 int
-writeblanks(start, end)
-    char *start;
-    char *end;
-{	char *p;
-	for ( p = start; p < end; p++ )
-	  if ( *p != '\r' && *p != '\n' )
-	    *p = ' ';
+    writeblanks(start, end) char *start;
+char *end;
+{
+	char *p;
+	for(p = start; p < end; p++)
+		if(*p != '\r' && *p != '\n')
+			*p = ' ';
 	return 0;
 }
 
@@ -482,67 +482,73 @@ writeblanks(start, end)
  * prototypes, and confuse the algorithms.
  */
 int
-test1(buf)
-    char *buf;
-{	register char *p = buf;
+    test1(buf) char *buf;
+{
+	register char *p = buf;
 	char *bend;
 	char *endfn;
 	int contin;
 
-	if ( !isidfirstchar(*p) )
-	  return 0;		/* no name at left margin */
+	if(!isidfirstchar(*p))
+		return 0; /* no name at left margin */
 	bend = skipspace(buf + strlen(buf) - 1, -1);
-	switch ( *bend )
-	   {
-	   case ';': contin = 0 /*2*/; break;
-	   case ')': contin = 1; break;
-	   case '{': return 0;		/* not a function */
-	   case '}': return 0;		/* not a function */
-	   default: contin = -1;
-	   }
-	while ( isidchar(*p) )
-	  p++;
+	switch(*bend) {
+	case ';':
+		contin = 0 /*2*/;
+		break;
+	case ')':
+		contin = 1;
+		break;
+	case '{':
+		return 0; /* not a function */
+	case '}':
+		return 0; /* not a function */
+	default:
+		contin = -1;
+	}
+	while(isidchar(*p))
+		p++;
 	endfn = p;
 	p = skipspace(p, 1);
-	if ( *p++ != '(' )
-	  return 0;		/* not a function */
+	if(*p++ != '(')
+		return 0; /* not a function */
 	p = skipspace(p, 1);
-	if ( *p == ')' )
-	  return 0;		/* no parameters */
-	/* Check that the apparent function name isn't a keyword. */
-	/* We only need to check for keywords that could be followed */
-	/* by a left parenthesis (which, unfortunately, is most of them). */
-	   {	static char *words[] =
-		   {	"asm", "auto", "case", "char", "const", "double",
-			"extern", "float", "for", "if", "int", "long",
-			"register", "return", "short", "signed", "sizeof",
-			"static", "switch", "typedef", "unsigned",
-			"void", "volatile", "while", 0
-		   };
+	if(*p == ')')
+		return 0; /* no parameters */
+			  /* Check that the apparent function name isn't a keyword. */
+			  /* We only need to check for keywords that could be followed */
+			  /* by a left parenthesis (which, unfortunately, is most of them). */
+	{
+		static char *words[] =
+		    {"asm", "auto", "case", "char", "const", "double",
+		     "extern", "float", "for", "if", "int", "long",
+		     "register", "return", "short", "signed", "sizeof",
+		     "static", "switch", "typedef", "unsigned",
+		     "void", "volatile", "while", 0};
 		char **key = words;
 		char *kp;
 		int len = endfn - buf;
 
-		while ( (kp = *key) != 0 )
-		   {	if ( strlen(kp) == len && !strncmp(kp, buf, len) )
-			  return 0;	/* name is a keyword */
+		while((kp = *key) != 0) {
+			if(strlen(kp) == len && !strncmp(kp, buf, len))
+				return 0; /* name is a keyword */
 			key++;
-		   }
-	   }
+		}
+	}
 	return contin;
 }
 
 /* Convert a recognized function definition or header to K&R syntax. */
 int
-convert1(buf, out, header, convert_varargs)
-    char *buf;
-    FILE *out;
-    int header;			/* Boolean */
-    int convert_varargs;	/* Boolean */
-{	char *endfn;
+    convert1(buf, out, header, convert_varargs) char *buf;
+FILE *out;
+int header;	  /* Boolean */
+int convert_varargs; /* Boolean */
+{
+	char *endfn;
 	register char *p;
 	char **breaks;
-	unsigned num_breaks = 2;	/* for testing */
+	unsigned num_breaks = 2; /* for testing */
 	char **btop;
 	char **bp;
 	char **ap;
@@ -550,153 +556,160 @@ convert1(buf, out, header, convert_varargs)
 
 	/* Pre-ANSI implementations don't agree on whether strchr */
 	/* is called strchr or index, so we open-code it here. */
-	for ( endfn = buf; *(endfn++) != '('; )
-	  ;
-top:	p = endfn;
+	for(endfn = buf; *(endfn++) != '(';)
+		;
+top:
+	p = endfn;
 	breaks = (char **)malloc(sizeof(char *) * num_breaks * 2);
-	if ( breaks == 0 )
-	   {	/* Couldn't allocate break table, give up */
+	if(breaks == 0) {/* Couldn't allocate break table, give up */
 		fprintf(stderr, "Unable to allocate break table!\n");
 		fputs(buf, out);
 		return -1;
-	   }
+	}
 	btop = breaks + num_breaks * 2 - 2;
 	bp = breaks;
 	/* Parse the argument list */
-	do
-	   {	int level = 0;
+	do {
+		int level = 0;
 		char *lp = NULL;
 		char *rp;
 		char *end = NULL;
 
-		if ( bp >= btop )
-		   {	/* Filled up break table. */
+		if(bp >= btop) {/* Filled up break table. */
 			/* Allocate a bigger one and start over. */
 			free((char *)breaks);
 			num_breaks <<= 1;
 			goto top;
-		   }
+		}
 		*bp++ = p;
 		/* Find the end of the argument */
-		for ( ; end == NULL; p++ )
-		   {	switch(*p)
-			   {
-			   case ',':
-				if ( !level ) end = p;
+		for(; end == NULL; p++) {
+			switch(*p) {
+			case ',':
+				if(!level)
+					end = p;
 				break;
-			   case '(':
-				if ( !level ) lp = p;
+			case '(':
+				if(!level)
+					lp = p;
 				level++;
 				break;
-			   case ')':
-				if ( --level < 0 ) end = p;
-				else rp = p;
+			case ')':
+				if(--level < 0)
+					end = p;
+				else
+					rp = p;
 				break;
-			   case '/':
+			case '/':
 				p = skipspace(p, 1) - 1;
 				break;
-			   default:
+			default:
 				;
-			   }
-		   }
+			}
+		}
 		/* Erase any embedded prototype parameters. */
-		if ( lp )
-		  writeblanks(lp + 1, rp);
-		p--;			/* back up over terminator */
+		if(lp)
+			writeblanks(lp + 1, rp);
+		p--; /* back up over terminator */
 		/* Find the name being declared. */
 		/* This is complicated because of procedure and */
 		/* array modifiers. */
-		for ( ; ; )
-		   {	p = skipspace(p - 1, -1);
-			switch ( *p )
-			   {
-			   case ']':	/* skip array dimension(s) */
-			   case ')':	/* skip procedure args OR name */
-			   {	int level = 1;
-				while ( level )
-				 switch ( *--p )
-				   {
-				   case ']': case ')': level++; break;
-				   case '[': case '(': level--; break;
-				   case '/': p = skipspace(p, -1) + 1; break;
-				   default: ;
-				   }
-			   }
-				if ( *p == '(' && *skipspace(p + 1, 1) == '*' )
-				   {	/* We found the name being declared */
-					while ( !isidfirstchar(*p) )
-					  p = skipspace(p, 1) + 1;
+		for(;;) {
+			p = skipspace(p - 1, -1);
+			switch(*p) {
+			case ']': /* skip array dimension(s) */
+			case ')': /* skip procedure args OR name */
+			    {
+				int level = 1;
+				while(level)
+					switch(*--p) {
+					case ']':
+					case ')':
+						level++;
+						break;
+					case '[':
+					case '(':
+						level--;
+						break;
+					case '/':
+						p = skipspace(p, -1) + 1;
+						break;
+					default:
+						;
+					}
+			}
+				if(*p == '(' && *skipspace(p + 1, 1) == '*') {/* We found the name being declared */
+					while(!isidfirstchar(*p))
+						p = skipspace(p, 1) + 1;
 					goto found;
-				   }
+				}
 				break;
-			   default:
+			default:
 				goto found;
-			   }
-		   }
-found:		if ( *p == '.' && p[-1] == '.' && p[-2] == '.' )
-		  {	if ( convert_varargs )
-			  {	*bp++ = "va_alist";
-				vararg = p-2;
-			  }
-			else
-			  {	p++;
-				if ( bp == breaks + 1 )	/* sole argument */
-				  writeblanks(breaks[0], p);
+			}
+		}
+	found:
+		if(*p == '.' && p[-1] == '.' && p[-2] == '.') {
+			if(convert_varargs) {
+				*bp++ = "va_alist";
+				vararg = p - 2;
+			} else {
+				p++;
+				if(bp == breaks + 1) /* sole argument */
+					writeblanks(breaks[0], p);
 				else
-				  writeblanks(bp[-1] - 1, p);
+					writeblanks(bp[-1] - 1, p);
 				bp--;
-			  }
-		   }
-		else
-		   {	while ( isidchar(*p) ) p--;
-			*bp++ = p+1;
-		   }
+			}
+		} else {
+			while(isidchar(*p))
+				p--;
+			*bp++ = p + 1;
+		}
 		p = end;
-	   }
-	while ( *p++ == ',' );
+	} while(*p++ == ',');
 	*bp = p;
 	/* Make a special check for 'void' arglist */
-	if ( bp == breaks+2 )
-	   {	p = skipspace(breaks[0], 1);
-		if ( !strncmp(p, "void", 4) )
-		   {	p = skipspace(p+4, 1);
-			if ( p == breaks[2] - 1 )
-			   {	bp = breaks;	/* yup, pretend arglist is empty */
+	if(bp == breaks + 2) {
+		p = skipspace(breaks[0], 1);
+		if(!strncmp(p, "void", 4)) {
+			p = skipspace(p + 4, 1);
+			if(p == breaks[2] - 1) {
+				bp = breaks; /* yup, pretend arglist is empty */
 				writeblanks(breaks[0], p + 1);
-			   }
-		   }
-	   }
+			}
+		}
+	}
 	/* Put out the function name and left parenthesis. */
 	p = buf;
-	while ( p != endfn ) putc(*p, out), p++;
+	while(p != endfn)
+		putc(*p, out), p++;
 	/* Put out the declaration. */
-	if ( header )
-	  {	fputs(");", out);
-		for ( p = breaks[0]; *p; p++ )
-		  if ( *p == '\r' || *p == '\n' )
-		    putc(*p, out);
-	  }
-	else
-	  {	for ( ap = breaks+1; ap < bp; ap += 2 )
-		  {	p = *ap;
-			while ( isidchar(*p) )
-			  putc(*p, out), p++;
-			if ( ap < bp - 1 )
-			  fputs(", ", out);
-		  }
+	if(header) {
+		fputs(");", out);
+		for(p = breaks[0]; *p; p++)
+			if(*p == '\r' || *p == '\n')
+				putc(*p, out);
+	} else {
+		for(ap = breaks + 1; ap < bp; ap += 2) {
+			p = *ap;
+			while(isidchar(*p))
+				putc(*p, out), p++;
+			if(ap < bp - 1)
+				fputs(", ", out);
+		}
 		fputs(")  ", out);
 		/* Put out the argument declarations */
-		for ( ap = breaks+2; ap <= bp; ap += 2 )
-		  (*ap)[-1] = ';';
-		if ( vararg != 0 )
-		  {	*vararg = 0;
-			fputs(breaks[0], out);		/* any prior args */
-			fputs("va_dcl", out);		/* the final arg */
+		for(ap = breaks + 2; ap <= bp; ap += 2)
+			(*ap)[-1] = ';';
+		if(vararg != 0) {
+			*vararg = 0;
+			fputs(breaks[0], out); /* any prior args */
+			fputs("va_dcl", out);  /* the final arg */
 			fputs(bp[0], out);
-		  }
-		else
-		  fputs(breaks[0], out);
-	  }
+		} else
+			fputs(breaks[0], out);
+	}
 	free((char *)breaks);
 	return 0;
 }

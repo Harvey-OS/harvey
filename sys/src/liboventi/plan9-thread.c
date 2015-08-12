@@ -11,12 +11,10 @@
 #include <libc.h>
 #include <oventi.h>
 
-enum
-{
-	QueuingW,	/* queuing for write lock */
-	QueuingR,	/* queuing for read lock */
+enum {
+	QueuingW, /* queuing for write lock */
+	QueuingR, /* queuing for read lock */
 };
-
 
 typedef struct Thread Thread;
 
@@ -30,11 +28,11 @@ struct Thread {
 
 struct VtLock {
 	Lock lk;
-	Thread *writer;		/* thread writering write lock */
-	int readers;		/* number writering read lock */
+	Thread *writer; /* thread writering write lock */
+	int readers;    /* number writering read lock */
 	Thread *qfirst;
 	Thread *qlast;
-	uintptr	pc;
+	uintptr pc;
 };
 
 struct VtRendez {
@@ -49,17 +47,17 @@ enum {
 
 static Thread **vtRock;
 
-static void	vtThreadInit(void);
-static void	threadSleep(Thread*);
-static void	threadWakeup(Thread*);
+static void vtThreadInit(void);
+static void threadSleep(Thread *);
+static void threadWakeup(Thread *);
 
 int
-vtThread(void (*f)(void*), void *rock)
+vtThread(void (*f)(void *), void *rock)
 {
 	int tid;
 
-	tid = rfork(RFNOWAIT|RFMEM|RFPROC);
-	switch(tid){
+	tid = rfork(RFNOWAIT | RFMEM | RFPROC);
+	switch(tid) {
 	case -1:
 		vtOSError();
 		return -1;
@@ -137,8 +135,8 @@ vtGetError(void)
 	return s;
 }
 
-char*
-vtSetError(char* fmt, ...)
+char *
+vtSetError(char *fmt, ...)
 {
 	Thread *p;
 	char *s;
@@ -173,7 +171,7 @@ vtThreadInit(void)
 	unlock(&lk);
 }
 
-VtLock*
+VtLock *
 vtLockAlloc(void)
 {
 	return vtMemAllocZ(sizeof(VtLock));
@@ -205,7 +203,7 @@ vtLockFree(VtLock *p)
 	vtMemFree(p);
 }
 
-VtRendez*
+VtRendez *
 vtRendezAlloc(VtLock *p)
 {
 	VtRendez *q;
@@ -240,7 +238,6 @@ vtCanLock(VtLock *p)
 	unlock(&p->lk);
 	return 0;
 }
-
 
 void
 vtLock(VtLock *p)
@@ -327,7 +324,7 @@ vtUnlock(VtLock *p)
 	 * venti currently has code that assumes lock can be passed between threads :-)
  	 * assert(p->writer == *vtRock);
 	 */
- 	assert(p->writer != nil);
+	assert(p->writer != nil);
 	assert(p->readers == 0);
 	t = p->qfirst;
 	if(t == nil) {
@@ -461,7 +458,7 @@ vtWakeupAll(VtRendez *q)
 {
 	int i;
 
-	for(i=0; vtWakeup(q); i++)
+	for(i = 0; vtWakeup(q); i++)
 		;
 	return i;
 }
@@ -469,13 +466,13 @@ vtWakeupAll(VtRendez *q)
 static void
 threadSleep(Thread *t)
 {
-	if(rendezvous(t, (void*)0x22bbdfd6) != (void*)0x44391f14)
+	if(rendezvous(t, (void *)0x22bbdfd6) != (void *)0x44391f14)
 		sysfatal("threadSleep: rendezvous failed: %r");
 }
 
 static void
 threadWakeup(Thread *t)
 {
-	if(rendezvous(t, (void*)0x44391f14) != (void*)0x22bbdfd6)
+	if(rendezvous(t, (void *)0x44391f14) != (void *)0x22bbdfd6)
 		sysfatal("threadWakeup: rendezvous failed: %r");
 }

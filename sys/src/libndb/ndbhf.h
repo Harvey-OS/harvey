@@ -8,29 +8,30 @@
  */
 
 /* a hash file */
-struct Ndbhf
-{
-	Ndbhf	*next;
+struct Ndbhf {
+	Ndbhf *next;
 
-	int	fd;
-	uint32_t	dbmtime;	/* mtime of data base */
-	int	hlen;		/* length (in entries) of hash table */
-	char	attr[Ndbalen];	/* attribute hashed */
+	int fd;
+	uint32_t dbmtime;   /* mtime of data base */
+	int hlen;	   /* length (in entries) of hash table */
+	char attr[Ndbalen]; /* attribute hashed */
 
-	unsigned char	buf[256];	/* hash file buffer */
-	long	off;		/* offset of first byte of buffer */
-	int	len;		/* length of valid data in buffer */
+	unsigned char buf[256]; /* hash file buffer */
+	long off;		/* offset of first byte of buffer */
+	int len;		/* length of valid data in buffer */
 };
 
-char*		_ndbparsetuple(char*, Ndbtuple**);
-Ndbtuple*	_ndbparseline(char*);
+char *_ndbparsetuple(char *, Ndbtuple **);
+Ndbtuple *_ndbparseline(char *);
 
 #define ISWHITE(x) ((x) == ' ' || (x) == '\t' || (x) == '\r')
-#define EATWHITE(x) while(ISWHITE(*(x)))(x)++
+#define EATWHITE(x)          \
+	while(ISWHITE(*(x))) \
+	(x)++
 
 extern Ndbtuple *_ndbtfree;
 
 /* caches */
-void	_ndbcacheflush(Ndb *db);
-int	_ndbcachesearch(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple **t);
-Ndbtuple* _ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t);
+void _ndbcacheflush(Ndb *db);
+int _ndbcachesearch(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple **t);
+Ndbtuple *_ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t);

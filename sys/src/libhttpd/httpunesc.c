@@ -23,18 +23,18 @@ httpunesc(HConnect *cc, char *s)
 	int c;
 	Htmlesc *e;
 
-	v = halloc(cc, UTFmax*strlen(s) + 1);
-	for(t = v; c = *s;){
-		if(c == '&'){
-			if(s[1] == '#' && s[2] && s[3] && s[4] && s[5] == ';'){
-				c = atoi(s+2);
-				if(c < Runeself){
+	v = halloc(cc, UTFmax * strlen(s) + 1);
+	for(t = v; c = *s;) {
+		if(c == '&') {
+			if(s[1] == '#' && s[2] && s[3] && s[4] && s[5] == ';') {
+				c = atoi(s + 2);
+				if(c < Runeself) {
 					*t++ = c;
 					s += 6;
 					continue;
 				}
-				if(c < 256 && c >= 161){
-					e = &htmlesc[c-161];
+				if(c < 256 && c >= 161) {
+					e = &htmlesc[c - 161];
 					t += runetochar(t, &e->value);
 					s += 6;
 					continue;
@@ -43,7 +43,7 @@ httpunesc(HConnect *cc, char *s)
 				for(e = htmlesc; e->name != nil; e++)
 					if(strncmp(e->name, s, strlen(e->name)) == 0)
 						break;
-				if(e->name != nil){
+				if(e->name != nil) {
 					t += runetochar(t, &e->value);
 					s += strlen(e->name);
 					continue;

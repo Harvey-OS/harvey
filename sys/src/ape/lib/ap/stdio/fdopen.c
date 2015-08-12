@@ -21,22 +21,25 @@
  * w+ w+b wb+	open to read and write, truncating
  * a+ a+b ab+	open to read and write, positioned at eof, creating if non-existant.
  */
-FILE *fdopen(const int fd, const char *mode){
+FILE *
+fdopen(const int fd, const char *mode)
+{
 	FILE *f;
-	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++)
-		if(f->state==CLOSED)
+	for(f = _IO_stream; f != &_IO_stream[FOPEN_MAX]; f++)
+		if(f->state == CLOSED)
 			break;
-	if(f==&_IO_stream[FOPEN_MAX])
+	if(f == &_IO_stream[FOPEN_MAX])
 		return NULL;
-	f->fd=fd;
-	if(mode[0]=='a')
+	f->fd = fd;
+	if(mode[0] == 'a')
 		lseek(f->fd, 0L, 2);
-	if(f->fd==-1) return NULL;
-	f->flags=0;
-	f->state=OPEN;
-	f->buf=0;
-	f->rp=0;
-	f->wp=0;
-	f->lp=0;
+	if(f->fd == -1)
+		return NULL;
+	f->flags = 0;
+	f->state = OPEN;
+	f->buf = 0;
+	f->rp = 0;
+	f->wp = 0;
+	f->lp = 0;
 	return f;
 }

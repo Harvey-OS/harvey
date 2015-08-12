@@ -7,7 +7,6 @@
  * in the LICENSE file.
  */
 
-
 /*
  * Ticket locks.
  * D. P. Reed and R. K. Kanodia.
@@ -51,7 +50,7 @@ startwaitstats(int on)
 	newwaitstats();
 	mfence();
 	waitstats.on = on;
-	print("lockstats %s\n", on?"on":"off");
+	print("lockstats %s\n", on ? "on" : "off");
 }
 
 void
@@ -76,28 +75,28 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 	w -= t0;
 	mfence();
 	for(i = 0; i < NWstats; i++)
-		if(waitstats.pcs[i] == pc){
+		if(waitstats.pcs[i] == pc) {
 			ainc(&waitstats.ns[i]);
 			if(w > waitstats.wait[i])
-				waitstats.wait[i] = w;	/* race but ok */
-			waitstats.total[i] += w;		/* race but ok */
+				waitstats.wait[i] = w; /* race but ok */
+			waitstats.total[i] += w;       /* race but ok */
 			return;
 		}
 	if(!canlock(&waitstatslk))
 		return;
 
 	for(i = 0; i < NWstats; i++)
-		if(waitstats.pcs[i] == pc){
+		if(waitstats.pcs[i] == pc) {
 			ainc(&waitstats.ns[i]);
 			if(w > waitstats.wait[i])
-				waitstats.wait[i] = w;	/* race but ok */
+				waitstats.wait[i] = w; /* race but ok */
 			waitstats.total[i] += w;
 			unlock(&waitstatslk);
 			return;
 		}
 
 	for(i = 0; i < NWstats; i++)
-		if(waitstats.pcs[i] == 0){
+		if(waitstats.pcs[i] == 0) {
 			waitstats.ns[i] = 1;
 			waitstats.type[i] = type;
 			waitstats.wait[i] = w;
@@ -118,7 +117,7 @@ lockloop(Lock *l, uintptr_t pc)
 
 	p = l->p;
 	print("lock %#p loop key %#ux pc %#p held by pc %#p proc %d\n",
-		l, l->key, pc, l->pc, p ? p->pid : 0);
+	      l, l->key, pc, l->pc, p ? p->pid : 0);
 	dumpaproc(up);
 	if(p != nil)
 		dumpaproc(p);
@@ -133,7 +132,7 @@ getuser(uint32_t key)
 static uint32_t
 getticket(uint32_t key)
 {
-	return (key>>16) & 0xFFFF;
+	return (key >> 16) & 0xFFFF;
 }
 
 static uint32_t
@@ -141,10 +140,10 @@ incuser(uint32_t *key)
 {
 	uint32_t old, new;
 
-	do{
+	do {
 		old = *key;
-		new = (old&0xFFFF0000) | ((old+1)&0xFFFF);
-	}while(!cas32(key, old, new));
+		new = (old & 0xFFFF0000) | ((old + 1) & 0xFFFF);
+	} while(!cas32(key, old, new));
 	return getuser(new);
 }
 
@@ -153,18 +152,18 @@ incticket(uint32_t *key)
 {
 	uint32_t old, new;
 
-	do{
+	do {
 		old = *key;
 
-		new = ((old+0x10000)&0xFFFF0000) | (old&0xFFFF);
-	}while(!cas32(key, old, new));
+		new = ((old + 0x10000) & 0xFFFF0000) | (old & 0xFFFF);
+	} while(!cas32(key, old, new));
 	return getticket(new);
 }
 
 static uint32_t
 myticket(uint32_t user)
 {
-	return (user-1) & 0xFFFF;
+	return (user - 1) & 0xFFFF;
 }
 
 int
@@ -178,25 +177,25 @@ lock(Lock *l)
 	pc = getcallerpc(&l);
 	lockstats.locks++;
 	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
+		ainc(&up->nlocks); /* prevent being scheded */
 	cycles(&t0);
 	user = incuser(&l->key);
-	if(getticket(l->key) != myticket(user)){
+	if(getticket(l->key) != myticket(user)) {
 		if(up)
 			adec(&up->nlocks);
 		lockstats.glare++;
 		i = 0;
-		while(getticket(l->key) != myticket(user)){
-			if(conf.nmach < 2 && up && up->edf && (up->edf->flags & Admitted)){
+		while(getticket(l->key) != myticket(user)) {
+			if(conf.nmach < 2 && up && up->edf && (up->edf->flags & Admitted)) {
 				/*
 				 * Priority inversion, yield on a uniprocessor; on a
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */
+				      l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
+				up->edf->d = todget(nil); /* yield to process with lock */
 			}
-			if(i++ > 100000000){
+			if(i++ > 100000000) {
 				i = 0;
 				lockloop(l, pc);
 			}
@@ -230,7 +229,7 @@ ilock(Lock *l)
 	cycles(&t0);
 
 	user = incuser(&l->key);
-	if(getticket(l->key) != myticket(user)){
+	if(getticket(l->key) != myticket(user)) {
 		splx(pl);
 		while(getticket(l->key) != myticket(user))
 			;
@@ -251,7 +250,8 @@ ilock(Lock *l)
 int
 canlock(Lock *l)
 {
-	Lock try, new;
+	Lock try
+		, new;
 	uintptr_t pc;
 	uint64_t t0;
 
@@ -259,17 +259,19 @@ canlock(Lock *l)
 
 	lockstats.locks++;
 	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
+		ainc(&up->nlocks); /* prevent being scheded */
 	cycles(&t0);
 
-	try = *l;
-	if(getuser(try.key) != getticket(try.key)){
+	try
+		= *l;
+	if(getuser(try.key) != getticket(try.key)) {
 	Cant:
 		if(up)
 			adec(&up->nlocks);
 		return 0;
 	}
-	new = try;
+	new = try
+		;
 	incuser(&new.key);
 	if(!cas32(&l->key, try.key, new.key))
 		goto Cant;
@@ -291,11 +293,12 @@ unlock(Lock *l)
 		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
 	if(l->p != up)
 		print("unlock: up changed: pc %#p, acquired at pc %#p,"
-			" lock p %#p, unlock up %#p\n", getcallerpc(&l), l->pc, l->p, up);
+		      " lock p %#p, unlock up %#p\n",
+		      getcallerpc(&l), l->pc, l->p, up);
 	l->m = nil;
 	incticket(&l->key);
 
-	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()){
+	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()) {
 		/*
 		 * Call sched if the need arose while locks were held
 		 * But, don't do it from interrupt routines, hence the islo() test
@@ -315,9 +318,9 @@ iunlock(Lock *l)
 		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
 	if(islo())
 		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
-	if(l->m != m){
+	if(l->m != m) {
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			machp()->machno, l->machp()->machno, getcallerpc(&l), l->pc);
+		      machp()->machno, l->machp()->machno, getcallerpc(&l), l->pc);
 	}
 
 	pl = l->pl;
@@ -332,7 +335,7 @@ iunlock(Lock *l)
 void
 portmwait(void *value)
 {
-	while (*(void**)value == nil)
+	while(*(void **)value == nil)
 		;
 }
 

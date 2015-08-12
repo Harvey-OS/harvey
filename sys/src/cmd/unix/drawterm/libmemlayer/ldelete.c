@@ -28,14 +28,14 @@ memldelete(Memimage *i)
 
 	/* window is now the rearmost;  clean up screen structures and deallocate */
 	s = i->layer->screen;
-	if(s->fill){
+	if(s->fill) {
 		i->clipr = i->r;
 		memdraw(i, i->r, s->fill, i->r.min, nil, i->r.min, S);
 	}
-	if(l->front){
+	if(l->front) {
 		l->front->layer->rear = nil;
 		s->rearmost = l->front;
-	}else{
+	} else {
 		s->frontmost = nil;
 		s->rearmost = nil;
 	}
@@ -63,12 +63,12 @@ _memlsetclear(Memscreen *s)
 	Memimage *i, *j;
 	Memlayer *l;
 
-	for(i=s->rearmost; i; i=i->layer->front){
+	for(i = s->rearmost; i; i = i->layer->front) {
 		l = i->layer;
 		l->clear = rectinrect(l->screenr, l->screen->image->clipr);
 		if(l->clear)
-			for(j=l->front; j; j=j->layer->front)
-				if(rectXrect(l->screenr, j->layer->screenr)){
+			for(j = l->front; j; j = j->layer->front)
+				if(rectXrect(l->screenr, j->layer->screenr)) {
 					l->clear = 0;
 					break;
 				}

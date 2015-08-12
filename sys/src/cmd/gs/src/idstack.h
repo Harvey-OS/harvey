@@ -27,7 +27,7 @@
 /* Generic dictionary stack API */
 
 #ifndef idstack_INCLUDED
-#  define idstack_INCLUDED
+#define idstack_INCLUDED
 
 #include "iddstack.h"
 #include "idsdata.h"
@@ -55,18 +55,20 @@ ref *dstack_find_name_by_index(dict_stack_t *, uint);
  * (aside from operators, of course, which are handled either with
  * the special cache pointer or with 'bind').
  */
-#define dstack_find_name_by_index_inline(pds,nidx,htemp)\
-  ((pds)->top_keys[htemp = dict_hash_mod_inline(dict_name_index_hash(nidx),\
-     (pds)->top_npairs) + 1] == pt_tag(pt_literal_name) + (nidx) ?\
-   (pds)->top_values + htemp : dstack_find_name_by_index(pds, nidx))
+#define dstack_find_name_by_index_inline(pds, nidx, htemp)                        \
+	((pds)->top_keys[htemp = dict_hash_mod_inline(dict_name_index_hash(nidx), \
+						      (pds)->top_npairs) +        \
+				 1] == pt_tag(pt_literal_name) + (nidx)           \
+	     ? (pds)->top_values + htemp                                          \
+	     : dstack_find_name_by_index(pds, nidx))
 /*
  * Define a similar macro that only checks the top dictionary on the stack.
  */
-#define if_dstack_find_name_by_index_top(pds,nidx,htemp,pvslot)\
-  if ( (((pds)->top_keys[htemp = dict_hash_mod_inline(dict_name_index_hash(nidx),\
-	 (pds)->top_npairs) + 1] == pt_tag(pt_literal_name) + (nidx)) ?\
-	((pvslot) = (pds)->top_values + (htemp), 1) :\
-	0)\
-     )
+#define if_dstack_find_name_by_index_top(pds, nidx, htemp, pvslot)                    \
+	if((((pds)->top_keys[htemp = dict_hash_mod_inline(dict_name_index_hash(nidx), \
+							  (pds)->top_npairs) +        \
+				     1] == pt_tag(pt_literal_name) + (nidx))          \
+		? ((pvslot) = (pds)->top_values + (htemp), 1)                         \
+		: 0))
 
 #endif /* idstack_INCLUDED */

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 seprint(char *buf, char *e, char *fmt, ...)
 {
 	char *p;

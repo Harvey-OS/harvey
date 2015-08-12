@@ -13,21 +13,19 @@ SmbProcessResult
 smbcomecho(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	uint16_t echocount, e;
-	if (!smbcheckwordcount("comecho", h, 1))
+	if(!smbcheckwordcount("comecho", h, 1))
 		return SmbProcessResultFormat;
 	echocount = smbnhgets(pdata);
-	for (e = 0; e < echocount; e++) {
+	for(e = 0; e < echocount; e++) {
 		uint32_t bytecountfixupoffset;
 		SmbProcessResult pr;
-		if (!smbbufferputheader(s->response, h, &s->peerinfo)
-			|| !smbbufferputs(s->response, e))
+		if(!smbbufferputheader(s->response, h, &s->peerinfo) || !smbbufferputs(s->response, e))
 			return SmbProcessResultMisc;
 		bytecountfixupoffset = smbbufferwriteoffset(s->response);
-		if (!smbbufferputbytes(s->response, smbbufferreadpointer(b), smbbufferreadspace(b))
-			|| !smbbufferfixuprelatives(s->response, bytecountfixupoffset))
+		if(!smbbufferputbytes(s->response, smbbufferreadpointer(b), smbbufferreadspace(b)) || !smbbufferfixuprelatives(s->response, bytecountfixupoffset))
 			return SmbProcessResultMisc;
 		pr = smbresponsesend(s);
-		if (pr != SmbProcessResultOk)
+		if(pr != SmbProcessResultOk)
 			return SmbProcessResultDie;
 	}
 	return SmbProcessResultOk;

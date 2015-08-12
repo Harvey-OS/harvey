@@ -48,16 +48,16 @@
 /* pushpdf14devicefilter is defined in ztrans.c */
 
 /* - .popdevicefilter - */
-private int
+private
+int
 zpopdevicefilter(i_ctx_t *i_ctx_p)
 {
-    gs_memory_t *mem = gs_memory_stable(imemory);
+	gs_memory_t *mem = gs_memory_stable(imemory);
 
-    return gs_pop_device_filter(mem, igs);
+	return gs_pop_device_filter(mem, igs);
 }
 
 const op_def zdfilter_op_defs[] =
-{
-    {"0.popdevicefilter", zpopdevicefilter},
-    op_def_end(0)
-};
+    {
+     {"0.popdevicefilter", zpopdevicefilter},
+     op_def_end(0)};

@@ -19,9 +19,8 @@
 #include <mp.h>
 #include <libsec.h>
 
-enum
-{
-	Blocksize = 64*1024,
+enum {
+	Blocksize = 64 * 1024,
 	Stacksize = 8192,
 };
 
@@ -46,15 +45,14 @@ usage(void)
 	exits("usage");
 }
 
-enum
-{
+enum {
 	Qroot,
 	Qfile,
 };
 
-#define PATH(type, n)		((type)|((n)<<8))
-#define TYPE(path)			((int)(path) & 0xFF)
-#define NUM(path)			((uint)(path)>>8)
+#define PATH(type, n) ((type) | ((n) << 8))
+#define TYPE(path) ((int)(path)&0xFF)
+#define NUM(path) ((uint)(path) >> 8)
 
 Channel *reqchan;
 Channel *httpchan;
@@ -62,8 +60,7 @@ Channel *finishchan;
 uint32_t time0;
 
 typedef struct Block Block;
-struct Block
-{
+struct Block {
 	uint8_t *p;
 	int64_t off;
 	int64_t len;
@@ -74,8 +71,7 @@ struct Block
 };
 
 typedef struct Blocklist Blocklist;
-struct Blocklist
-{
+struct Blocklist {
 	Block *first;
 	Block **end;
 };
@@ -86,11 +82,11 @@ Blocklist inprogress;
 void
 queuereq(Block *b, Req *r)
 {
-	if(b->rq==nil)
+	if(b->rq == nil)
 		b->erq = &b->rq;
 	*b->erq = r;
 	r->aux = nil;
-	b->erq = (Req**)&r->aux;
+	b->erq = (Req **)&r->aux;
 }
 
 void
@@ -112,8 +108,8 @@ delreq(Block *b, Req *r)
 {
 	Req **l;
 
-	for(l = &b->rq; *l; l = (Req**)&(*l)->aux){
-		if(*l == r){
+	for(l = &b->rq; *l; l = (Req **)&(*l)->aux) {
+		if(*l == r) {
 			*l = r->aux;
 			if(*l == nil)
 				b->erq = l;
@@ -132,7 +128,7 @@ evictblock(Blocklist *cache)
 		return;
 
 	oldest = nil;
-	for(l=&cache->first; *l; l=&(*l)->link)
+	for(l = &cache->first; *l; l = &(*l)->link)
 		if(oldest == nil || (*oldest)->lastuse > (*l)->lastuse)
 			oldest = l;
 
@@ -150,8 +146,8 @@ findblock(Blocklist *s, int64_t off)
 {
 	Block *b;
 
-	for(b = s->first; b != nil; b = b->link){
-		if(b->off <= off && off < b->off + Blocksize){
+	for(b = s->first; b != nil; b = b->link) {
+		if(b->off <= off && off < b->off + Blocksize) {
 			if(debug)
 				print("found: %lld -> %lld\n", off, b->off);
 			b->lastuse = time(0);
@@ -195,7 +191,7 @@ dotls(int fd)
 {
 	TLSconn conn;
 
-	if((fd=tlsClient(fd, &conn)) < 0)
+	if((fd = tlsClient(fd, &conn)) < 0)
 		sysfatal("tlsclient: %r");
 
 	if(conn.cert != nil)
@@ -204,26 +200,25 @@ dotls(int fd)
 	return fd;
 }
 
-char*
+char *
 nocr(char *s)
 {
 	char *r, *w;
 
-	for(r=w=s; *r; r++)
+	for(r = w = s; *r; r++)
 		if(*r != '\r')
 			*w++ = *r;
 	*w = 0;
 	return s;
 }
 
-char*
+char *
 readhttphdr(Biobuf *netbio, int64_t *size)
 {
 	char *s, *stat;
 
 	stat = nil;
-	while((s = Brdstr(netbio, '\n', 1)) != nil && s[0] != '\r'
-			&& s[0] != '\0'){
+	while((s = Brdstr(netbio, '\n', 1)) != nil && s[0] != '\r' && s[0] != '\0') {
 		if(stat == nil)
 			stat = estrdup9p(s);
 		if(strncmp(s, "Content-Length: ", 16) == 0 && size != nil)
@@ -251,7 +246,7 @@ dialhttp(Biobuf *netbio)
 	return netfd;
 }
 
-uint8_t*
+uint8_t *
 getrange(Block *b)
 {
 	uint8_t *data;
@@ -268,13 +263,13 @@ getrange(Block *b)
 
 	netfd = dialhttp(&netbio);
 
-	fprint(netfd, 
-		"GET %s HTTP/1.1\r\n"
-		"Host: %s\r\n"
-		"Accept-Encoding:\r\n"
-		"Range: bytes=%lld-%lld\r\n"
-		"\r\n",
-		get, host, b->off, b->off+b->len);
+	fprint(netfd,
+	       "GET %s HTTP/1.1\r\n"
+	       "Host: %s\r\n"
+	       "Accept-Encoding:\r\n"
+	       "Range: bytes=%lld-%lld\r\n"
+	       "\r\n",
+	       get, host, b->off, b->off + b->len);
 	Bflush(&netbio);
 
 	status = readhttphdr(&netbio, nil);
@@ -285,8 +280,7 @@ getrange(Block *b)
 	 * Some servers (e.g., www.google.com) return 200 OK
 	 * when you ask for the entire page in one range.
 	 */
-	if(strstr(status, "206 Partial Content")==nil
-	&& (b->off!=0 || b->len!=size || strstr(status, "200 OK")==nil)){
+	if(strstr(status, "206 Partial Content") == nil && (b->off != 0 || b->len != size || strstr(status, "200 OK") == nil)) {
 		free(status);
 		close(netfd);
 		werrstr("did not get requested range");
@@ -295,7 +289,7 @@ getrange(Block *b)
 	free(status);
 
 	data = emalloc9p(b->len);
-	if(Bread(&netbio, data, b->len) != b->len){
+	if(Bread(&netbio, data, b->len) != b->len) {
 		free(data);
 		close(netfd);
 		werrstr("not enough bytes read");
@@ -315,7 +309,7 @@ httpfilereadproc(void *v)
 
 	threadsetname("httpfilereadproc");
 
-	for(;;){
+	for(;;) {
 		b = recvp(httpchan);
 		if(b == nil)
 			continue;
@@ -326,16 +320,15 @@ httpfilereadproc(void *v)
 }
 
 typedef struct Tab Tab;
-struct Tab
-{
+struct Tab {
 	char *name;
 	uint32_t mode;
 };
 
 Tab tab[] =
-{
-	"/",		DMDIR|0555,
-	nil,		0444,
+    {
+     "/", DMDIR | 0555,
+     nil, 0444,
 };
 
 static void
@@ -351,14 +344,14 @@ fillstat(Dir *d, uint64_t path)
 	t = &tab[TYPE(path)];
 	d->name = estrdup9p(t->name);
 	d->length = size;
-	d->qid.type = t->mode>>24;
+	d->qid.type = t->mode >> 24;
 	d->mode = t->mode;
 }
 
 static void
 fsattach(Req *r)
 {
-	if(r->ifcall.aname && r->ifcall.aname[0]){
+	if(r->ifcall.aname && r->ifcall.aname[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -380,14 +373,14 @@ static int
 rootgen(int i, Dir *d, void *v)
 {
 	i += Qroot + 1;
-	if(i <= Qfile){
+	if(i <= Qfile) {
 		fillstat(d, i);
 		return 0;
 	}
 	return -1;
 }
 
-static char*
+static char *
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
@@ -397,8 +390,8 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	if(!(fid->qid.type & QTDIR))
 		return "walk in non-directory";
 
-	if(strcmp(name, "..") == 0){
-		switch(TYPE(path)){
+	if(strcmp(name, "..") == 0) {
+		switch(TYPE(path)) {
 		case Qroot:
 			return nil;
 		default:
@@ -407,10 +400,10 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	}
 
 	i = TYPE(path) + 1;
-	while(i < nelem(tab)){
-		if(strcmp(name, tab[i].name) == 0){
+	while(i < nelem(tab)) {
+		if(strcmp(name, tab[i].name) == 0) {
 			qid->path = PATH(i, NUM(path));
-			qid->type = tab[i].mode>>24;
+			qid->type = tab[i].mode >> 24;
 			return nil;
 		}
 		if(tab[i].mode & DMDIR)
@@ -430,15 +423,15 @@ getfilesize(void)
 
 	netfd = dialhttp(&netbio);
 
-	fprint(netfd, 
-		"HEAD %s HTTP/1.1\r\n"
-		"Host: %s\r\n"
-		"Accept-Encoding:\r\n"
-		"\r\n",
-		get, host);
+	fprint(netfd,
+	       "HEAD %s HTTP/1.1\r\n"
+	       "Host: %s\r\n"
+	       "Accept-Encoding:\r\n"
+	       "\r\n",
+	       get, host);
 
 	status = readhttphdr(&netbio, &size);
-	if(strstr(status, "200 OK") == nil){
+	if(strstr(status, "200 OK") == nil) {
 		werrstr("%s", status);
 		size = -1;
 	}
@@ -453,16 +446,16 @@ fileread(Req *r)
 {
 	Block *b;
 
-	if(r->ifcall.offset > size){
+	if(r->ifcall.offset > size) {
 		respond(r, nil);
 		return;
 	}
 
-	if((b = findblock(&cache, r->ifcall.offset)) != nil){
+	if((b = findblock(&cache, r->ifcall.offset)) != nil) {
 		readfrom(r, b);
 		return;
 	}
-	if((b = findblock(&inprogress, r->ifcall.offset)) == nil){
+	if((b = findblock(&inprogress, r->ifcall.offset)) == nil) {
 		b = emalloc9p(sizeof(Block));
 		b->off = r->ifcall.offset - (r->ifcall.offset % Blocksize);
 		addblock(&inprogress, b);
@@ -475,7 +468,7 @@ fileread(Req *r)
 static void
 fsopen(Req *r)
 {
-	if(r->ifcall.mode != OREAD){
+	if(r->ifcall.mode != OREAD) {
 		respond(r, "permission denied");
 		return;
 	}
@@ -490,7 +483,7 @@ finishthread(void *v)
 
 	threadsetname("finishthread");
 
-	for(;;){
+	for(;;) {
 		b = recvp(finishchan);
 		assert(b == inprogress.first);
 		inprogress.first = b->link;
@@ -498,7 +491,7 @@ finishthread(void *v)
 		if(ncache >= mcache)
 			evictblock(&cache);
 		addblock(&cache, b);
-		for(r=b->rq; r; r=nextr){
+		for(r = b->rq; r; r = nextr) {
 			nextr = r->aux;
 			readfrom(r, b);
 		}
@@ -518,9 +511,9 @@ fsnetproc(void *v)
 
 	threadsetname("fsnetproc");
 
-	for(;;){
+	for(;;) {
 		r = recvp(reqchan);
-		switch(r->ifcall.type){
+		switch(r->ifcall.type) {
 		case Tflush:
 			b = findblock(&inprogress, r->ifcall.offset);
 			delreq(b, r->oldreq);
@@ -550,7 +543,7 @@ fsread(Req *r)
 	uint32_t path;
 
 	path = r->fid->qid.path;
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	case Qroot:
 		dirread9p(r, rootgen, nil);
 		respond(r, nil);
@@ -565,15 +558,15 @@ fsread(Req *r)
 	}
 }
 
-Srv fs = 
-{
-.attach=		fsattach,
-.walk1=		fswalk1,
-.open=		fsopen,
-.read=		fsread,
-.stat=		fsstat,
-.flush=		fsflush,
-.end=		hangupclient,
+Srv fs =
+    {
+     .attach = fsattach,
+     .walk1 = fswalk1,
+     .open = fsopen,
+     .read = fsread,
+     .stat = fsstat,
+     .flush = fsflush,
+     .end = hangupclient,
 };
 
 void
@@ -583,7 +576,8 @@ threadmain(int argc, char **argv)
 
 	mtpt = nil;
 	srvname = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -607,7 +601,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(srvname == nil && mtpt == nil)
 		mtpt = ".";
@@ -621,20 +616,20 @@ threadmain(int argc, char **argv)
 	host = url = estrdup9p(argv[0]);
 
 	defport = nil;
-	if(!cistrncmp(url, "https://", 8)){
+	if(!cistrncmp(url, "https://", 8)) {
 		host += 8;
 		usetls = 1;
 		defport = "https";
-	}else if(!cistrncmp(url, "http://", 7)){
+	} else if(!cistrncmp(url, "http://", 7)) {
 		host += 7;
 		defport = "http";
-	}else
+	} else
 		sysfatal("unsupported url: %s", url);
 
-	if((p = strchr(host, '/')) != nil){
+	if((p = strchr(host, '/')) != nil) {
 		get = estrdup9p(p);
 		*p = '\0';
-	}else
+	} else
 		get = "/";
 
 	port = strchr(host, ':');
@@ -643,8 +638,8 @@ threadmain(int argc, char **argv)
 	else
 		port = defport;
 
-	if(file == nil){
-		file = strrchr(get, '/')+1;
+	if(file == nil) {
+		file = strrchr(get, '/') + 1;
 		if(*file == 0)
 			file = "index";
 	}
@@ -655,12 +650,12 @@ threadmain(int argc, char **argv)
 	if(size < 0)
 		sysfatal("getfilesize: %r");
 
-	reqchan = chancreate(sizeof(Req*), 0);
-	httpchan = chancreate(sizeof(Block*), 0);
-	finishchan = chancreate(sizeof(Block*), 0);
+	reqchan = chancreate(sizeof(Req *), 0);
+	httpchan = chancreate(sizeof(Block *), 0);
+	finishchan = chancreate(sizeof(Block *), 0);
 
-	procrfork(fsnetproc, nil, Stacksize, RFNAMEG|RFNOTEG);
-	procrfork(httpfilereadproc, nil, Stacksize, RFNAMEG|RFNOTEG);
+	procrfork(fsnetproc, nil, Stacksize, RFNAMEG | RFNOTEG);
+	procrfork(httpfilereadproc, nil, Stacksize, RFNAMEG | RFNOTEG);
 
 	threadpostmountsrv(&fs, srvname, mtpt, MBEFORE);
 	threadexits(0);

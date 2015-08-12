@@ -43,89 +43,88 @@
 */
 
 /* lose those macros! */
-#define	C	fC()
-#define	C1	fC1()
+#define C fC()
+#define C1 fC1()
 
-#define	SKIP	while(C != '\n') 
-#define SKIP1	while(C1 != '\n')
-#define SKIP_TO_COM		SKIP;\
-				SKIP;\
-				pc=c;\
-				while(C != '.' || pc != '\n' || C > 'Z')\
-						pc=c
+#define SKIP while(C != '\n')
+#define SKIP1 while(C1 != '\n')
+#define SKIP_TO_COM                              \
+	SKIP;                                    \
+	SKIP;                                    \
+	pc = c;                                  \
+	while(C != '.' || pc != '\n' || C > 'Z') \
+	pc = c
 
-#define YES		1
-#define NO		0
-#define MS		0
-#define MM		1
-#define ONE		1
-#define TWO		2
+#define YES 1
+#define NO 0
+#define MS 0
+#define MM 1
+#define ONE 1
+#define TWO 2
 
-#define NOCHAR		-2
-#define	EXTENDED	-1		/* All runes above 0x7F */
-#define SPECIAL		0
-#define APOS		1
-#define PUNCT		2
-#define DIGIT		3
-#define LETTER		4
+#define NOCHAR -2
+#define EXTENDED -1 /* All runes above 0x7F */
+#define SPECIAL 0
+#define APOS 1
+#define PUNCT 2
+#define DIGIT 3
+#define LETTER 4
 
+int linect = 0;
+int wordflag = NO;
+int underscoreflag = NO;
+int msflag = NO;
+int iflag = NO;
+int mac = MM;
+int disp = 0;
+int inmacro = NO;
+int intable = NO;
+int eqnflag = 0;
 
-int	linect	= 0;
-int	wordflag= NO;
-int	underscoreflag = NO;
-int	msflag	= NO;
-int	iflag	= NO;
-int	mac	= MM;
-int	disp	= 0;
-int	inmacro	= NO;
-int	intable	= NO;
-int	eqnflag	= 0;
+#define MAX_ASCII 0X80
 
-#define	MAX_ASCII	0X80
+char chars[MAX_ASCII]; /* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
 
-char	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
+Rune line[30000];
+Rune *lp;
 
-Rune	line[30000];
-Rune*	lp;
+int32_t c;
+int32_t pc;
+int ldelim = NOCHAR;
+int rdelim = NOCHAR;
 
-int32_t	c;
-int32_t	pc;
-int	ldelim	= NOCHAR;
-int	rdelim	= NOCHAR;
+char **argv;
 
+char fname[50];
+Biobuf *files[15];
+Biobuf **filesp;
+Biobuf *infile;
+char *devnull = "/dev/null";
+Biobuf *infile;
+Biobuf bout;
 
-char**	argv;
-
-char	fname[50];
-Biobuf*	files[15];
-Biobuf**filesp;
-Biobuf*	infile;
-char*	devnull	= "/dev/null";
-Biobuf	*infile;
-Biobuf	bout;
-
-int32_t	skeqn(void);
-Biobuf*	opn(char *p);
-int	eof(void);
-int	charclass(int);
-void	getfname(void);
-void	fatal(char *s, char *p);
-void	usage(void);
-void	work(void);
-void	putmac(Rune *rp, int vconst);
-void	regline(int macline, int vconst);
-void	putwords(void);
-void	comline(void);
-void	macro(void);
-void	eqn(void);
-void	tbl(void);
-void	stbl(void);
-void	sdis(char a1, char a2);
-void	sce(void);
-void	backsl(void);
-char*	copys(char *s);
-void	refer(int c1);
-void	inpic(void);
+int32_t skeqn(void);
+Biobuf *opn(char *p);
+int eof(void);
+int charclass(int);
+void getfname(void);
+void fatal(char *s, char *p);
+void usage(void);
+void work(void);
+void putmac(Rune *rp, int vconst);
+void regline(int macline, int vconst);
+void putwords(void);
+void comline(void);
+void macro(void);
+void eqn(void);
+void tbl(void);
+void stbl(void);
+void sdis(char a1, char a2);
+void sce(void);
+void backsl(void);
+char *copys(char *s);
+void refer(int c1);
+void inpic(void);
 
 int
 fC(void)
@@ -159,7 +158,8 @@ main(int argc, char *av[])
 
 	argv = av;
 	Binit(&bout, 1, OWRITE);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'w':
 		wordflag = YES;
 		break;
@@ -170,12 +170,18 @@ main(int argc, char *av[])
 	case 'm':
 		msflag = YES;
 		if(f = ARGF())
-			switch(*f)
-			{
-			case 'm':	mac = MM; break;
-			case 's':	mac = MS; break;
-			case 'l':	disp = 1; break;
-			default:	usage();
+			switch(*f) {
+			case 'm':
+				mac = MM;
+				break;
+			case 's':
+				mac = MS;
+				break;
+			case 'l':
+				disp = 1;
+				break;
+			default:
+				usage();
 			}
 		else
 			usage();
@@ -185,21 +191,22 @@ main(int argc, char *av[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	if(*argv)
 		infile = opn(*argv++);
-	else{
+	else {
 		infile = malloc(sizeof(Biobuf));
 		Binit(infile, 0, OREAD);
 	}
 	files[0] = infile;
 	filesp = &files[0];
 
-	for(i='a'; i<='z' ; ++i)
+	for(i = 'a'; i <= 'z'; ++i)
 		chars[i] = LETTER;
-	for(i='A'; i<='Z'; ++i)
+	for(i = 'A'; i <= 'Z'; ++i)
 		chars[i] = LETTER;
-	for(i='0'; i<='9'; ++i)
+	for(i = '0'; i <= '9'; ++i)
 		chars[i] = DIGIT;
 	chars['\''] = APOS;
 	chars['&'] = APOS;
@@ -220,19 +227,19 @@ skeqn(void)
 			c = C1;
 		else if(c == '"')
 			while(C1 != '"')
-				if(c == '\\') 
+				if(c == '\\')
 					C1;
-	if (msflag)
+	if(msflag)
 		eqnflag = 1;
-	return(c = ' ');
+	return (c = ' ');
 }
 
-Biobuf*
+Biobuf *
 opn(char *p)
 {
 	Biobuf *fd;
 
-	while ((fd = Bopen(p, OREAD)) == 0) {
+	while((fd = Bopen(p, OREAD)) == 0) {
 		if(msflag || p == devnull)
 			fatal("Cannot open file %s - quitting\n", p);
 		else {
@@ -241,7 +248,7 @@ opn(char *p)
 		}
 	}
 	linect = 0;
-	return(fd);
+	return (fd);
 }
 
 int
@@ -251,12 +258,11 @@ eof(void)
 		Bterm(infile);
 	if(filesp > files)
 		infile = *--filesp;
-	else
-	if(*argv)
+	else if(*argv)
 		infile = opn(*argv++);
 	else
 		exits(0);
-	return(C);
+	return (C);
 }
 
 void
@@ -265,28 +271,26 @@ getfname(void)
 	char *p;
 	Rune r;
 	Dir *dir;
-	struct chain
-	{ 
-		struct	chain*	nextp; 
-		char*	datap; 
-	} *q;
+	struct chain {
+		struct chain *nextp;
+		char *datap;
+	} * q;
 
-	static struct chain *namechain= 0;
+	static struct chain *namechain = 0;
 
 	while(C == ' ')
 		;
-	for(p = fname; (r=c) != '\n' && r != ' ' && r != '\t' && r != '\\'; C)
+	for(p = fname; (r = c) != '\n' && r != ' ' && r != '\t' && r != '\\'; C)
 		p += runetochar(p, &r);
 	*p = '\0';
 	while(c != '\n')
 		C;
-	if(!strcmp(fname, "/sys/lib/tmac/tmac.cs")
-			|| !strcmp(fname, "/sys/lib/tmac/tmac.s")) {
+	if(!strcmp(fname, "/sys/lib/tmac/tmac.cs") || !strcmp(fname, "/sys/lib/tmac/tmac.s")) {
 		fname[0] = '\0';
 		return;
 	}
 	dir = dirstat(fname);
-	if(dir!=nil && ((dir->mode & DMDIR) || dir->type != 'M')) {
+	if(dir != nil && ((dir->mode & DMDIR) || dir->type != 'M')) {
 		free(dir);
 		fname[0] = '\0';
 		return;
@@ -297,11 +301,11 @@ getfname(void)
 	 */
 
 	for(q = namechain; q; q = q->nextp)
-		if( !strcmp(fname, q->datap)) {
+		if(!strcmp(fname, q->datap)) {
 			fname[0] = '\0';
 			return;
 		}
-	q = (struct chain*)malloc(sizeof(struct chain));
+	q = (struct chain *)malloc(sizeof(struct chain));
 	q->nextp = namechain;
 	q->datap = copys(fname);
 	namechain = q;
@@ -310,7 +314,7 @@ getfname(void)
 void
 usage(void)
 {
-	fprint(2,"usage: deroff [-nw_pi] [-m (m s l)] [file ...] \n");
+	fprint(2, "usage: deroff [-nw_pi] [-m (m s l)] [file ...] \n");
 	exits("usage");
 }
 
@@ -328,7 +332,7 @@ work(void)
 
 	for(;;) {
 		eqnflag = 0;
-		if(C == '.'  ||  c == '\'')
+		if(C == '.' || c == '\'')
 			comline();
 		else
 			regline(NO, TWO);
@@ -344,14 +348,14 @@ regline(int macline, int vconst)
 		if(c == '\\') {
 			*lp = ' ';
 			backsl();
-			if(c == '%')	/* no blank for hyphenation char */
+			if(c == '%') /* no blank for hyphenation char */
 				lp--;
 		}
 		if(c == '\n')
 			break;
-		if(intable && c=='T') {
+		if(intable && c == 'T') {
 			*++lp = C;
-			if(c=='{' || c=='}') {
+			if(c == '{' || c == '}') {
 				lp[-1] = ' ';
 				*lp = C;
 			}
@@ -367,9 +371,8 @@ regline(int macline, int vconst)
 	if(lp != line) {
 		if(wordflag)
 			putwords();
-		else
-		if(macline)
-			putmac(line,vconst);
+		else if(macline)
+			putmac(line, vconst);
 		else
 			Bprint(&bout, "%S\n", line);
 	}
@@ -391,8 +394,7 @@ putmac(Rune *rp, int vconst)
 			;
 		if(*rp == '\"')
 			rp++;
-		if(t > rp+vconst && charclass(*rp) == LETTER
-				&& charclass(rp[1]) == LETTER) {
+		if(t > rp + vconst && charclass(*rp) == LETTER && charclass(rp[1]) == LETTER) {
 			while(rp < t)
 				if(*rp == '\"')
 					rp++;
@@ -400,8 +402,7 @@ putmac(Rune *rp, int vconst)
 					Bputrune(&bout, *rp++);
 			last = t[-1];
 			found++;
-		} else
-		if(found && charclass(*rp) == PUNCT && rp[1] == '\0')
+		} else if(found && charclass(*rp) == PUNCT && rp[1] == '\0')
 			Bputrune(&bout, *rp++);
 		else {
 			last = t[-1];
@@ -422,7 +423,6 @@ putwords(void)
 	Rune *p, *p1;
 	int i, nlet;
 
-
 	for(p1 = line;;) {
 		/*
 		 * skip initial specials ampersands and apostrophes
@@ -431,7 +431,7 @@ putwords(void)
 			if(*p1++ == '\0')
 				return;
 		nlet = 0;
-		for(p = p1; (i = charclass(*p)) != SPECIAL || (underscoreflag && *p=='_'); p++)
+		for(p = p1; (i = charclass(*p)) != SPECIAL || (underscoreflag && *p == '_'); p++)
 			if(i == LETTER || (underscoreflag && *p == '_'))
 				nlet++;
 		/*
@@ -441,8 +441,7 @@ putwords(void)
 			/*
 			 * delete trailing ampersands and apostrophes
 			 */
-			while(*--p == '\'' || *p == '&'
-					   || charclass(*p) == PUNCT)
+			while(*--p == '\'' || *p == '&' || charclass(*p) == PUNCT)
 				;
 			while(p1 <= p)
 				Bputrune(&bout, *p1++);
@@ -457,15 +456,15 @@ comline(void)
 {
 	int32_t c1, c2;
 
-	while(C==' ' || c=='\t')
+	while(C == ' ' || c == '\t')
 		;
 comx:
-	if((c1=c) == '\n')
+	if((c1 = c) == '\n')
 		return;
 	c2 = C;
-	if(c1=='.' && c2!='.')
+	if(c1 == '.' && c2 != '.')
 		inmacro = NO;
-	if(msflag && c1 == '['){
+	if(msflag && c1 == '[') {
 		refer(c2);
 		return;
 	}
@@ -473,26 +472,21 @@ comx:
 		return;
 	if(c1 == '\\' && c2 == '\"')
 		SKIP;
-	else
-	if (filesp==files && c1=='E' && c2=='Q')
-			eqn();
-	else
-	if(filesp==files && c1=='T' && (c2=='S' || c2=='C' || c2=='&')) {
+	else if(filesp == files && c1 == 'E' && c2 == 'Q')
+		eqn();
+	else if(filesp == files && c1 == 'T' && (c2 == 'S' || c2 == 'C' || c2 == '&')) {
 		if(msflag)
-			stbl(); 
+			stbl();
 		else
 			tbl();
-	}
-	else
-	if(c1=='T' && c2=='E')
+	} else if(c1 == 'T' && c2 == 'E')
 		intable = NO;
-	else if (!inmacro &&
-			((c1 == 'd' && c2 == 'e') ||
-		   	 (c1 == 'i' && c2 == 'g') ||
-		   	 (c1 == 'a' && c2 == 'm')))
-				macro();
-	else
-	if(c1=='s' && c2=='o') {
+	else if(!inmacro &&
+		((c1 == 'd' && c2 == 'e') ||
+		 (c1 == 'i' && c2 == 'g') ||
+		 (c1 == 'a' && c2 == 'm')))
+		macro();
+	else if(c1 == 's' && c2 == 'o') {
 		if(iflag)
 			SKIP;
 		else {
@@ -500,12 +494,11 @@ comx:
 			if(fname[0]) {
 				if(infile = opn(fname))
 					*++filesp = infile;
-				else infile = *filesp;
+				else
+					infile = *filesp;
 			}
 		}
-	}
-	else
-	if(c1=='n' && c2=='x')
+	} else if(c1 == 'n' && c2 == 'x')
 		if(iflag)
 			SKIP;
 		else {
@@ -516,77 +509,59 @@ comx:
 				Bterm(infile);
 			infile = *filesp = opn(fname);
 		}
-	else
-	if(c1 == 't' && c2 == 'm')
+	else if(c1 == 't' && c2 == 'm')
 		SKIP;
-	else
-	if(c1=='h' && c2=='w')
-		SKIP; 
-	else
-	if(msflag && c1 == 'T' && c2 == 'L') {
+	else if(c1 == 'h' && c2 == 'w')
+		SKIP;
+	else if(msflag && c1 == 'T' && c2 == 'L') {
 		SKIP_TO_COM;
-		goto comx; 
-	}
-	else
-	if(msflag && c1=='N' && c2 == 'R')
+		goto comx;
+	} else if(msflag && c1 == 'N' && c2 == 'R')
 		SKIP;
-	else
-	if(msflag && c1 == 'A' && (c2 == 'U' || c2 == 'I')){
-		if(mac==MM)SKIP;
+	else if(msflag && c1 == 'A' && (c2 == 'U' || c2 == 'I')) {
+		if(mac == MM)
+			SKIP;
 		else {
 			SKIP_TO_COM;
-			goto comx; 
+			goto comx;
 		}
-	} else
-	if(msflag && c1=='F' && c2=='S') {
+	} else if(msflag && c1 == 'F' && c2 == 'S') {
 		SKIP_TO_COM;
-		goto comx; 
-	}
-	else
-	if(msflag && (c1=='S' || c1=='N') && c2=='H') {
+		goto comx;
+	} else if(msflag && (c1 == 'S' || c1 == 'N') && c2 == 'H') {
 		SKIP_TO_COM;
-		goto comx; 
-	} else
-	if(c1 == 'U' && c2 == 'X') {
+		goto comx;
+	} else if(c1 == 'U' && c2 == 'X') {
 		if(wordflag)
 			Bprint(&bout, "UNIX\n");
 		else
 			Bprint(&bout, "UNIX ");
-	} else
-	if(msflag && c1=='O' && c2=='K') {
+	} else if(msflag && c1 == 'O' && c2 == 'K') {
 		SKIP_TO_COM;
-		goto comx; 
-	} else
-	if(msflag && c1=='N' && c2=='D')
+		goto comx;
+	} else if(msflag && c1 == 'N' && c2 == 'D')
 		SKIP;
-	else
-	if(msflag && mac==MM && c1=='H' && (c2==' '||c2=='U'))
+	else if(msflag && mac == MM && c1 == 'H' && (c2 == ' ' || c2 == 'U'))
 		SKIP;
-	else
-	if(msflag && mac==MM && c2=='L') {
-		if(disp || c1=='R')
+	else if(msflag && mac == MM && c2 == 'L') {
+		if(disp || c1 == 'R')
 			sdis('L', 'E');
 		else {
 			SKIP;
 			Bprint(&bout, " .");
 		}
-	} else
-	if(!msflag && c1=='P' && c2=='S') {
+	} else if(!msflag && c1 == 'P' && c2 == 'S') {
 		inpic();
-	} else
-	if(msflag && (c1=='D' || c1=='N' || c1=='K'|| c1=='P') && c2=='S') { 
-		sdis(c1, 'E'); 
-	} else
-	if(msflag && (c1 == 'K' && c2 == 'F')) { 
-		sdis(c1,'E'); 
-	} else
-	if(msflag && c1=='n' && c2=='f')
-		sdis('f','i');
-	else
-	if(msflag && c1=='c' && c2=='e')
+	} else if(msflag && (c1 == 'D' || c1 == 'N' || c1 == 'K' || c1 == 'P') && c2 == 'S') {
+		sdis(c1, 'E');
+	} else if(msflag && (c1 == 'K' && c2 == 'F')) {
+		sdis(c1, 'E');
+	} else if(msflag && c1 == 'n' && c2 == 'f')
+		sdis('f', 'i');
+	else if(msflag && c1 == 'c' && c2 == 'e')
 		sce();
 	else {
-		if(c1=='.' && c2=='.') {
+		if(c1 == '.' && c2 == '.') {
 			if(msflag) {
 				SKIP;
 				return;
@@ -596,11 +571,11 @@ comx:
 		}
 		inmacro++;
 		if(c1 <= 'Z' && msflag)
-			regline(YES,ONE);
+			regline(YES, ONE);
 		else {
 			if(wordflag)
 				C;
-			regline(YES,TWO);
+			regline(YES, TWO);
 		}
 		inmacro--;
 	}
@@ -610,8 +585,8 @@ void
 macro(void)
 {
 	if(msflag) {
-		do { 
-			SKIP1; 
+		do {
+			SKIP1;
 		} while(C1 != '.' || C1 != '.' || C1 == '.');
 		if(c != '\n')
 			SKIP;
@@ -628,7 +603,7 @@ sdis(char a1, char a2)
 	int eqnf;
 	int lct;
 
-	if(a1 == 'P'){
+	if(a1 == 'P') {
 		while(C1 == ' ')
 			;
 		if(c == '<') {
@@ -646,16 +621,16 @@ sdis(char a1, char a2)
 				continue;
 			else
 				SKIP1;
-		if((c1=C1) == '\n')
+		if((c1 = C1) == '\n')
 			continue;
-		if((c2=C1) == '\n') {
+		if((c2 = C1) == '\n') {
 			if(a1 == 'f' && (c1 == 'P' || c1 == 'H'))
 				return;
 			continue;
 		}
-		if(c1==a1 && c2 == a2) {
+		if(c1 == a1 && c2 == a2) {
 			SKIP1;
-			if(lct != 0){
+			if(lct != 0) {
 				lct--;
 				continue;
 			}
@@ -663,24 +638,20 @@ sdis(char a1, char a2)
 				Bprint(&bout, " .");
 			Bputc(&bout, '\n');
 			return;
-		} else
-		if(a1 == 'L' && c2 == 'L') {
+		} else if(a1 == 'L' && c2 == 'L') {
 			lct++;
 			SKIP1;
-		} else
-		if(a1 == 'D' && c1 == 'E' && c2 == 'Q') {
-			eqn(); 
+		} else if(a1 == 'D' && c1 == 'E' && c2 == 'Q') {
+			eqn();
 			eqnf = 0;
-		} else
-		if(a1 == 'f') {
+		} else if(a1 == 'f') {
 			if((mac == MS && c2 == 'P') ||
-				(mac == MM && c1 == 'H' && c2 == 'U')){
+			   (mac == MM && c1 == 'H' && c2 == 'U')) {
 				SKIP1;
 				return;
 			}
 			SKIP1;
-		}
-		else
+		} else
 			SKIP1;
 	}
 }
@@ -720,29 +691,28 @@ eqn(void)
 	SKIP;
 
 	for(;;) {
-		if(C1 == '.'  || c == '\'') {
-			while(C1==' ' || c=='\t')
+		if(C1 == '.' || c == '\'') {
+			while(C1 == ' ' || c == '\t')
 				;
-			if(c=='E' && C1=='N') {
+			if(c == 'E' && C1 == 'N') {
 				SKIP;
 				if(msflag && dflg) {
 					Bputc(&bout, 'x');
 					Bputc(&bout, ' ');
 					if(last) {
-						Bputc(&bout, last); 
-						Bputc(&bout, '\n'); 
+						Bputc(&bout, last);
+						Bputc(&bout, '\n');
 					}
 				}
 				return;
 			}
-		} else
-		if(c == 'd') {
-			if(C1=='e' && C1=='l')
-				if(C1=='i' && C1=='m') {
+		} else if(c == 'd') {
+			if(C1 == 'e' && C1 == 'l')
+				if(C1 == 'i' && C1 == 'm') {
 					while(C1 == ' ')
 						;
-					if((c1=c)=='\n' || (c2=C1)=='\n' ||
-					  (c1=='o' && c2=='f' && C1=='f')) {
+					if((c1 = c) == '\n' || (c2 = C1) == '\n' ||
+					   (c1 == 'o' && c2 == 'f' && C1 == 'f')) {
 						ldelim = NOCHAR;
 						rdelim = NOCHAR;
 					} else {
@@ -753,11 +723,10 @@ eqn(void)
 			dflg = 0;
 		}
 		if(c != '\n')
-			while(C1 != '\n') { 
+			while(C1 != '\n') {
 				if(chars[c] == PUNCT)
 					last = c;
-				else
-				if(c != ' ')
+				else if(c != ' ')
 					last = 0;
 			}
 	}
@@ -771,9 +740,8 @@ backsl(void)
 {
 	int bdelim;
 
-sw:  
-	switch(C1)
-	{
+sw:
+	switch(C1) {
 	case '"':
 		SKIP1;
 		return;
@@ -782,7 +750,7 @@ sw:
 		if(C1 == '\\')
 			backsl();
 		else {
-			while(C1>='0' && c<='9')
+			while(C1 >= '0' && c <= '9')
 				;
 			Bungetrune(infile);
 			c = '0';
@@ -803,8 +771,7 @@ sw:
 					*lp = '-';
 					return;
 				}
-			} else
-			if(c != '\n')
+			} else if(c != '\n')
 				C1;
 			return;
 		}
@@ -813,7 +780,7 @@ sw:
 		return;
 
 	case '$':
-		C1;	/* discard argument number */
+		C1; /* discard argument number */
 		return;
 
 	case 'b':
@@ -824,9 +791,9 @@ sw:
 	case 'o':
 	case 'l':
 	case 'L':
-		if((bdelim=C1) == '\n')
+		if((bdelim = C1) == '\n')
 			return;
-		while(C1!='\n' && c!=bdelim)
+		while(C1 != '\n' && c != bdelim)
 			if(c == '\\')
 				backsl();
 		return;
@@ -839,16 +806,16 @@ sw:
 	}
 }
 
-char*
+char *
 copys(char *s)
 {
 	char *t, *t0;
 
-	if((t0 = t = malloc((strlen(s)+1))) == 0)
-		fatal("Cannot allocate memory", (char*)0);
+	if((t0 = t = malloc((strlen(s) + 1))) == 0)
+		fatal("Cannot allocate memory", (char *)0);
 	while(*t++ = *s++)
 		;
-	return(t0);
+	return (t0);
 }
 
 void
@@ -856,11 +823,11 @@ sce(void)
 {
 	int n = 1;
 
-	while (C != L'\n' && !(L'0' <= c && c <= L'9'))
+	while(C != L'\n' && !(L'0' <= c && c <= L'9'))
 		;
-	if (c != L'\n') {
-		for (n = c-L'0';'0' <= C && c <= L'9';)
-			n = n*10 + c-L'0';
+	if(c != L'\n') {
+		for(n = c - L'0'; '0' <= C && c <= L'9';)
+			n = n * 10 + c - L'0';
 	}
 	while(n) {
 		if(C == '.') {
@@ -875,14 +842,12 @@ sce(void)
 						SKIP;
 				} else
 					SKIP;
-			} else
-			if(c == 'P' || C == 'P') {
+			} else if(c == 'P' || C == 'P') {
 				if(c != '\n')
 					SKIP;
 				break;
-			} else
-				if(c != '\n')
-					SKIP;
+			} else if(c != '\n')
+				SKIP;
 		} else {
 			SKIP;
 			n--;
@@ -908,7 +873,7 @@ refer(int c1)
 				while(C != '\n')
 					c2 = c;
 				if(charclass(c2) == PUNCT)
-					Bprint(&bout, " %C",c2);
+					Bprint(&bout, " %C", c2);
 				return;
 			}
 		}
@@ -921,9 +886,9 @@ inpic(void)
 	int c1;
 	Rune *p1;
 
-/*	SKIP1;*/
+	/*	SKIP1;*/
 	while(C1 != '\n')
-		if(c == '<'){
+		if(c == '<') {
 			SKIP1;
 			return;
 		}
@@ -933,7 +898,7 @@ inpic(void)
 		c1 = c;
 		if(C1 == '.' && c1 == '\n') {
 			if(C1 != 'P' || C1 != 'E') {
-				if(c != '\n'){
+				if(c != '\n') {
 					SKIP1;
 					c = '\n';
 				}
@@ -941,8 +906,7 @@ inpic(void)
 			}
 			SKIP1;
 			return;
-		} else
-		if(c == '\"') {
+		} else if(c == '\"') {
 			while(C1 != '\"') {
 				if(c == '\\') {
 					if(C1 == '\"')
@@ -953,8 +917,7 @@ inpic(void)
 					*p1++ = c;
 			}
 			*p1++ = ' ';
-		} else
-		if(c == '\n' && p1 != line) {
+		} else if(c == '\n' && p1 != line) {
 			*p1 = '\0';
 			if(wordflag)
 				putwords();
@@ -970,8 +933,9 @@ charclass(int c)
 {
 	if(c < MAX_ASCII)
 		return chars[c];
-	switch(c){
-	case 0x2013: case 0x2014:	/* en dash, em dash */
+	switch(c) {
+	case 0x2013:
+	case 0x2014: /* en dash, em dash */
 		return SPECIAL;
 	}
 	return EXTENDED;

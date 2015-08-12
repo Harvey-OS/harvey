@@ -26,9 +26,8 @@
 /* $Id: gp_mac.h,v 1.5 2003/08/15 20:19:21 giles Exp $ */
 
 #ifndef gp_mac_INCLUDED
-#  define gp_mac_INCLUDED
+#define gp_mac_INCLUDED
 
 /* no special definitions for macos */
 
-#endif 				/* gp_mac_INCLUDED */
-
+#endif /* gp_mac_INCLUDED */

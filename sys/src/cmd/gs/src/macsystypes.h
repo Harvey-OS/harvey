@@ -39,7 +39,7 @@
 
 #define main gs_main
 
-#if (0)
+#if(0)
 #define fprintf myfprintf
 #define fputs myfputs
 #define getenv mygetenv

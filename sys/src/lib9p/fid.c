@@ -24,8 +24,8 @@ incfidref(void *v)
 		incref(&f->ref);
 }
 
-Fidpool*
-allocfidpool(void (*destroy)(Fid*))
+Fidpool *
+allocfidpool(void (*destroy)(Fid *))
 {
 	Fidpool *f;
 
@@ -38,11 +38,11 @@ allocfidpool(void (*destroy)(Fid*))
 void
 freefidpool(Fidpool *p)
 {
-	freemap(p->map, (void(*)(void*))p->destroy);
+	freemap(p->map, (void (*)(void *))p->destroy);
 	free(p);
 }
 
-Fid*
+Fid *
 allocfid(Fidpool *pool, uint32_t fid)
 {
 	Fid *f;
@@ -54,7 +54,7 @@ allocfid(Fidpool *pool, uint32_t fid)
 
 	incfidref(f);
 	incfidref(f);
-	if(caninsertkey(pool->map, fid, f) == 0){
+	if(caninsertkey(pool->map, fid, f) == 0) {
 		closefid(f);
 		closefid(f);
 		return nil;
@@ -63,7 +63,7 @@ allocfid(Fidpool *pool, uint32_t fid)
 	return f;
 }
 
-Fid*
+Fid *
 lookupfid(Fidpool *pool, uint32_t fid)
 {
 	return lookupkey(pool->map, fid);
@@ -84,7 +84,7 @@ closefid(Fid *f)
 	}
 }
 
-Fid*
+Fid *
 removefid(Fidpool *pool, uint32_t fid)
 {
 	return deletekey(pool->map, fid);

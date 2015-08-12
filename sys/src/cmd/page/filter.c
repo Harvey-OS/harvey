@@ -14,7 +14,7 @@
 #include <bio.h>
 #include "page.h"
 
-Document*
+Document *
 initfilt(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf,
 	 char *type, char *cmd, int docopy)
 {
@@ -30,24 +30,24 @@ initfilt(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf,
 
 	fprint(2, "converting from %s to postscript...\n", type);
 
-	if(docopy){
-		if(pipe(p) < 0){
+	if(docopy) {
+		if(pipe(p) < 0) {
 			fprint(2, "pipe fails: %r\n");
 			exits("Epipe");
 		}
-	}else{
+	} else {
 		p[0] = open("/dev/null", ORDWR);
 		p[1] = open("/dev/null", ORDWR);
 	}
 
 	ofd = opentemp("/tmp/pagecvtXXXXXXXXX");
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "fork fails: %r\n");
 		exits("Efork");
 	default:
 		close(p[1]);
-		if(docopy){
+		if(docopy) {
 			write(p[0], buf, nbuf);
 			if(b)
 				while((n = Bread(b, xbuf, sizeof xbuf)) > 0)
@@ -77,7 +77,7 @@ initfilt(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf,
 	return initps(b, argc, argv, nil, 0);
 }
 
-Document*
+Document *
 initdvi(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	int fd;
@@ -88,11 +88,11 @@ initdvi(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	/*
 	 * Stupid DVIPS won't take standard input.
 	 */
-	if(b == nil){	/* standard input; spool to disk (ouch) */
+	if(b == nil) { /* standard input; spool to disk (ouch) */
 		fd = spooltodisk(buf, nbuf, &name);
 		sprint(fdbuf, "/fd/%d", fd);
 		b = Bopen(fdbuf, OREAD);
-		if(b == nil){
+		if(b == nil) {
 			fprint(2, "cannot open disk spool file\n");
 			wexits("Bopen temp");
 		}
@@ -104,14 +104,14 @@ initdvi(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 	return initfilt(b, argc, argv, buf, nbuf, "dvi", cmd, 0);
 }
 
-Document*
+Document *
 inittroff(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	/* Added -H to eliminate header page [sape] */
 	return initfilt(b, argc, argv, buf, nbuf, "troff", "lp -H -dstdout", 1);
 }
 
-Document*
+Document *
 initmsdoc(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	return initfilt(b, argc, argv, buf, nbuf, "microsoft office", "doc2ps", 1);

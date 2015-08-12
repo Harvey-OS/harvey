@@ -12,18 +12,17 @@
 
 /* modf suitable for IEEE double-precision */
 
-#define	MASK	0x7ffL
-#define SIGN	0x80000000
-#define	SHIFT	20
-#define	BIAS	1022L
+#define MASK 0x7ffL
+#define SIGN 0x80000000
+#define SHIFT 20
+#define BIAS 1022L
 
-typedef	union
-{
-	double	d;
+typedef union {
+	double d;
 	struct
-	{
-		int32_t	ms;
-		int32_t	ls;
+	    {
+		int32_t ms;
+		int32_t ls;
 	} i;
 } Cheat;
 
@@ -40,22 +39,21 @@ modf(double d, double *ip)
 	x.d = d;
 	x.i.ms &= ~SIGN;
 	e = (x.i.ms >> SHIFT) & MASK;
-	if(e == MASK || e == 0){
+	if(e == MASK || e == 0) {
 		errno = EDOM;
-		*ip = (d > 0)? HUGE_VAL : -HUGE_VAL;
+		*ip = (d > 0) ? HUGE_VAL : -HUGE_VAL;
 		return 0;
 	}
 	e -= BIAS;
-	if(e <= SHIFT+1) {
+	if(e <= SHIFT + 1) {
 		x.i.ms &= ~(0x1fffffL >> e);
 		x.i.ls = 0;
-	} else
-	if(e <= SHIFT+33)
-		x.i.ls &= ~(0x7fffffffL >> (e-SHIFT-2));
-	if(d > 0){
+	} else if(e <= SHIFT + 33)
+		x.i.ls &= ~(0x7fffffffL >> (e - SHIFT - 2));
+	if(d > 0) {
 		*ip = x.d;
 		return d - x.d;
-	}else{
+	} else {
 		*ip = -x.d;
 		return d + x.d;
 	}

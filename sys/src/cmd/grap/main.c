@@ -15,46 +15,46 @@
 #include "grap.h"
 #include "y.tab.h"
 
-int	dbg	= 0;
+int dbg = 0;
 
 #ifndef GRAPDEFINES
 #define GRAPDEFINES "/sys/lib/grap.defines"
 #endif
-char	*lib_defines	= GRAPDEFINES;
+char *lib_defines = GRAPDEFINES;
 
-int	lib	= 1;		/* 1 to include lib_defines */
-FILE	*tfd	= NULL;
-char	tempfile[L_tmpnam];
+int lib = 1; /* 1 to include lib_defines */
+FILE *tfd = NULL;
+char tempfile[L_tmpnam];
 
-int	synerr	= 0;
-int	codegen	= 0;   		/* 1=>output for this picture; 0=>no output */
-char	*cmdname;
+int synerr = 0;
+int codegen = 0; /* 1=>output for this picture; 0=>no output */
+char *cmdname;
 
-Obj	*objlist = NULL;	/* all names stored here */
+Obj *objlist = NULL; /* all names stored here */
 
-#define	BIG	1e30
-Point	ptmin	= { NULL, -BIG, -BIG };
-Point	ptmax	= { NULL, BIG, BIG };
+#define BIG 1e30
+Point ptmin = {NULL, -BIG, -BIG};
+Point ptmax = {NULL, BIG, BIG};
 
-char	*version = "version Dec 30, 1995";
+char *version = "version Dec 30, 1995";
 
 extern int yyparse(void);
 extern void setdefaults(void);
 extern void getdata(void);
-extern	int	unlink(char *);
+extern int unlink(char *);
 
 void
 main(int argc, char *argv[])
 {
 	extern void onintr(int), fpecatch(int);
 
-	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
+	if(signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, onintr);
 	signal(SIGFPE, fpecatch);
 	cmdname = argv[0];
 	tmpnam(tempfile);
-	while (argc > 1 && *argv[1] == '-') {
-		switch (argv[1][1]) {
+	while(argc > 1 && *argv[1] == '-') {
+		switch(argv[1][1]) {
 		case 'd':
 			dbg = 1;
 			tfd = stdout;
@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 			unlink(tempfile);
 			fprintf(stderr, "%s\n", version);
 			break;
-		case 'l':	/* turn off /usr/lib inclusion */
+		case 'l': /* turn off /usr/lib inclusion */
 			lib = 0;
 			break;
 		}
@@ -71,14 +71,14 @@ main(int argc, char *argv[])
 	}
 	setdefaults();
 	curfile = infile;
-	if (argc <= 1) {
+	if(argc <= 1) {
 		curfile->fin = stdin;
 		curfile->fname = tostring("-");
 		pushsrc(File, curfile->fname);
 		getdata();
 	} else
-		while (argc-- > 1) {
-			if ((curfile->fin = fopen(*++argv, "r")) == NULL) {
+		while(argc-- > 1) {
+			if((curfile->fin = fopen(*++argv, "r")) == NULL) {
 				fprintf(stderr, "grap: can't open %s\n", *argv);
 				onintr(0);
 			}
@@ -88,61 +88,62 @@ main(int argc, char *argv[])
 			fclose(curfile->fin);
 			free(curfile->fname);
 		}
-	if (!dbg)
+	if(!dbg)
 		unlink(tempfile);
 	exit(0);
 }
 
-void onintr(int n)
+void
+onintr(int n)
 {
 	n;
-	if (!dbg)
+	if(!dbg)
 		unlink(tempfile);
 	exit(1);
 }
 
-void fpecatch(int n)
+void
+fpecatch(int n)
 {
 	ERROR "floating point exception" WARNING;
 	onintr(n);
 }
 
-char *grow(char *ptr, char *name, int num, int size)	/* make array bigger */
+char *grow(char *ptr, char *name, int num, int size) /* make array bigger */
 {
 	char *p;
 
-	if (ptr == NULL)
+	if(ptr == NULL)
 		p = malloc(num * size);
 	else
 		p = realloc(ptr, num * size);
-	if (p == NULL)
-		ERROR "can't grow %s to %d", name, num * size FATAL;
+	if(p == NULL)
+		ERROR "can't grow %s to %d", name, num *size FATAL;
 	return p;
 }
 
 static struct {
-	char	*name;
-	double	val;
-} defaults[] ={
-	"frameht", FRAMEHT,
-	"framewid", FRAMEWID,
-	"ticklen", TICKLEN,
-	"slop", SLOP,
-	NULL, 0
-};
+	char *name;
+	double val;
+} defaults[] = {
+    "frameht", FRAMEHT,
+    "framewid", FRAMEWID,
+    "ticklen", TICKLEN,
+    "slop", SLOP,
+    NULL, 0};
 
-void setdefaults(void)	/* set default sizes for variables */
+void setdefaults(void) /* set default sizes for variables */
 {
 	int i;
 	Obj *p;
 
-	for (i = 0; defaults[i].name != NULL; i++) {
+	for(i = 0; defaults[i].name != NULL; i++) {
 		p = lookup(defaults[i].name, 1);
 		setvar(p, defaults[i].val);
 	}
 }
 
-void getdata(void)		/* read input */
+void getdata(void) /* read input */
 {
 	register FILE *fin;
 	char buf[1000], buf1[100];
@@ -151,19 +152,19 @@ void getdata(void)		/* read input */
 	fin = curfile->fin;
 	curfile->lineno = 0;
 	printf(".lf 1 %s\n", curfile->fname);
-	while (fgets(buf, sizeof buf, fin) != NULL) {
+	while(fgets(buf, sizeof buf, fin) != NULL) {
 		curfile->lineno++;
-		if (*buf == '.' && *(buf+1) == 'G' && *(buf+2) == '1') {
+		if(*buf == '.' && *(buf + 1) == 'G' && *(buf + 2) == '1') {
 			setup();
-			fprintf(stdout, ".PS%s", &buf[3]);	/* maps .G1 [w] to .PS w */
-			printf("scale = 1\n");	/* defends against cip users */
-			printf(".lf %d\n", curfile->lineno+1);
+			fprintf(stdout, ".PS%s", &buf[3]); /* maps .G1 [w] to .PS w */
+			printf("scale = 1\n");		   /* defends against cip users */
+			printf(".lf %d\n", curfile->lineno + 1);
 			yyparse();
 			fprintf(stdout, ".PE\n");
-			printf(".lf %d\n", curfile->lineno+1);
+			printf(".lf %d\n", curfile->lineno + 1);
 			fflush(stdout);
-		} else if (buf[0] == '.' && buf[1] == 'l' && buf[2] == 'f') {
-			if (sscanf(buf+3, "%d %s", &ln, buf1) == 2) {
+		} else if(buf[0] == '.' && buf[1] == 'l' && buf[2] == 'f') {
+			if(sscanf(buf + 3, "%d %s", &ln, buf1) == 2) {
 				free(curfile->fname);
 				printf(".lf %d %s\n", curfile->lineno = ln, curfile->fname = tostring(buf1));
 			} else

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 getenv(char *name)
 {
 	int r, f;
@@ -21,13 +21,13 @@ getenv(char *name)
 	if(strchr(name, '/') != nil)
 		return nil;
 	snprint(ename, sizeof ename, "/env/%s", name);
-	if(strcmp(ename+5, name) != 0)
+	if(strcmp(ename + 5, name) != 0)
 		return nil;
 	f = open(ename, OREAD);
 	if(f < 0)
 		return 0;
 	s = seek(f, 0, 2);
-	ans = malloc(s+1);
+	ans = malloc(s + 1);
 	if(ans) {
 		setmalloctag(ans, getcallerpc(&name));
 		seek(f, 0, 0);

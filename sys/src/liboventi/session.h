@@ -17,7 +17,7 @@ enum {
 	VtQHello,
 	VtRHello,
 	VtQGoodbye,
-	VtRGoodbye,	/* not used */
+	VtRGoodbye, /* not used */
 	VtQAuth0,
 	VtRAuth0,
 	VtQAuth1,
@@ -56,8 +56,8 @@ struct VtAuth {
 
 struct VtSession {
 	VtLock *lk;
-	VtServerVtbl *vtbl;	/* == nil means client side */
-	int cstate;		/* connection state */
+	VtServerVtbl *vtbl; /* == nil means client side */
+	int cstate;	 /* connection state */
 	int fd;
 	char fderror[ERRMAX];
 
@@ -65,7 +65,7 @@ struct VtSession {
 
 	VtSha1 *inHash;
 	VtLock *inLock;
-	Packet *part;		/* partial packet */
+	Packet *part; /* partial packet */
 
 	VtSha1 *outHash;
 	VtLock *outLock;
@@ -80,4 +80,3 @@ struct VtSession {
 	int crypto;
 	int codec;
 };
-

@@ -12,12 +12,11 @@
 #include <flate.h>
 #include "zlib.h"
 
-typedef struct Block	Block;
+typedef struct Block Block;
 
-struct Block
-{
-	uint8_t	*pos;
-	uint8_t	*limit;
+struct Block {
+	uint8_t *pos;
+	uint8_t *limit;
 };
 
 static int
@@ -56,8 +55,7 @@ inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src, int ssize)
 
 	if(((src[0] << 8) | src[1]) % 31)
 		return FlateCorrupted;
-	if((src[0] & ZlibMeth) != ZlibDeflate
-	|| (src[0] & ZlibCInfo) > ZlibWin32k)
+	if((src[0] & ZlibMeth) != ZlibDeflate || (src[0] & ZlibCInfo) > ZlibWin32k)
 		return FlateCorrupted;
 
 	bs.pos = src + 2;

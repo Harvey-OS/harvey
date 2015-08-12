@@ -9,6 +9,7 @@
 
 #include "mplot.h"
 void
-pprompt(void){
+pprompt(void)
+{
 	fprintf(stderr, ":");
 }

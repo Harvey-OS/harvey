@@ -12,15 +12,14 @@
 #include <bio.h>
 #include "String.h"
 
-enum
-{
-	Minread=	256,
+enum {
+	Minread = 256,
 };
 
 /* Append up to 'len' input bytes to the string 'to'.
  *
  * Returns the number of characters read.
- */ 
+ */
 extern int
 s_read(Biobuf *fp, String *to, int len)
 {
@@ -29,9 +28,9 @@ s_read(Biobuf *fp, String *to, int len)
 
 	if(to->ref > 1)
 		sysfatal("can't s_read a shared string");
-	for(rv = 0; rv < len; rv += n){
+	for(rv = 0; rv < len; rv += n) {
 		n = to->end - to->ptr;
-		if(n < Minread){
+		if(n < Minread) {
 			s_grow(to, Minread);
 			n = to->end - to->ptr;
 		}

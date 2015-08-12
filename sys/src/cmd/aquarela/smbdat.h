@@ -89,7 +89,7 @@ struct SmbSession {
 	SmbPeerInfo peerinfo;
 	Chalstate *cs;
 	struct {
-		char *accountname;	
+		char *accountname;
 		char *primarydomain;
 		char *nativeos;
 		char *nativelanman;
@@ -103,7 +103,7 @@ struct SmbSession {
 	int state;
 	uchar errclass;
 	ushort error;
-	int tzoff;		// as passed to client during negotiation
+	int tzoff; // as passed to client during negotiation
 	SmbService *serv;
 };
 
@@ -212,17 +212,16 @@ extern SmbService *smbservices;
 
 typedef struct SmbClient SmbClient;
 
-
 typedef struct SmbTransactionMethod {
 	int (*encodeprimary)(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p,
-		SmbBuffer *ob, uchar *wordcount, ushort *bytecount, char **errmsgp);
+			     SmbBuffer *ob, uchar *wordcount, ushort *bytecount, char **errmsgp);
 	int (*encodesecondary)(SmbTransaction *t, SmbHeader *h, SmbBuffer *ob, char **errmsgp);
 	int (*sendrequest)(void *magic, SmbBuffer *ob, char **errmsgp);
 	int (*receiveintermediate)(void *magic, uchar *wordcountp, ushort *bytecountp, char **errmsgp);
 	int (*receiveresponse)(void *magic, SmbBuffer *ib, char **errmsgp);
 	int (*decoderesponse)(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp);
 	int (*encoderesponse)(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p,
-		SmbBuffer *ob, char **errmsgp);
+			      SmbBuffer *ob, char **errmsgp);
 	int (*sendresponse)(void *magic, SmbBuffer *ob, char **errmsgp);
 } SmbTransactionMethod;
 
@@ -238,11 +237,11 @@ struct SmbSearch {
 
 struct SmbFile {
 	long id;
-	SmbTree *t;		// tree this belongs to
+	SmbTree *t; // tree this belongs to
 	int fd;
 	char *name;
-	int p9mode;		// how it was opened
-	int share;			// additional sharing restictions added by this fid
+	int p9mode; // how it was opened
+	int share;  // additional sharing restictions added by this fid
 	int ioallowed;
 	SmbSharedFile *sf;
 };
@@ -251,8 +250,8 @@ struct SmbSharedFile {
 	ushort type;
 	uint32_t dev;
 	vlong path;
-//	char *name;
-	int share;			// current share level
+	//	char *name;
+	int share; // current share level
 	int deleteonclose;
 	SmbLockList *locklist;
 };
@@ -260,8 +259,8 @@ struct SmbSharedFile {
 struct SmbLock {
 	vlong base;
 	vlong limit;
-	SmbSession *s;		// owning session
-	ushort pid;		// owning pid
+	SmbSession *s; // owning session
+	ushort pid;    // owning pid
 };
 
 struct SmbCifsSession {

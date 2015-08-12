@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
 static Ref pgrpid;
 static Ref mountid;
@@ -25,18 +25,18 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	Proc *p;
 	char buf[ERRMAX];
 
-	if(n >= ERRMAX-1)
+	if(n >= ERRMAX - 1)
 		error(Etoobig);
 
 	memmove(buf, a, n);
 	buf[n] = 0;
-	for(i = 0; (p = psincref(i)) != nil; i++){
-		if(p == up || p->state == Dead || p->noteid != noteid || p->kp){
+	for(i = 0; (p = psincref(i)) != nil; i++) {
+		if(p == up || p->state == Dead || p->noteid != noteid || p->kp) {
 			psdecref(p);
 			continue;
 		}
 		qlock(&p->debug);
-		if(p->pid == 0 || p->noteid != noteid){
+		if(p->pid == 0 || p->noteid != noteid) {
 			qunlock(&p->debug);
 			psdecref(p);
 			continue;
@@ -50,7 +50,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	}
 }
 
-Pgrp*
+Pgrp *
 newpgrp(void)
 {
 	Pgrp *p;
@@ -61,7 +61,7 @@ newpgrp(void)
 	return p;
 }
 
-Rgrp*
+Rgrp *
 newrgrp(void)
 {
 	Rgrp *r;
@@ -169,7 +169,7 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	wunlock(&from->ns);
 }
 
-Fgrp*
+Fgrp *
 dupfgrp(Fgrp *f)
 {
 	Fgrp *new;
@@ -177,8 +177,8 @@ dupfgrp(Fgrp *f)
 	int i;
 
 	new = smalloc(sizeof(Fgrp));
-	if(f == nil){
-		new->fd = smalloc(DELTAFD*sizeof(Chan*));
+	if(f == nil) {
+		new->fd = smalloc(DELTAFD * sizeof(Chan *));
 		new->nfd = DELTAFD;
 		new->ref = 1;
 		return new;
@@ -186,12 +186,12 @@ dupfgrp(Fgrp *f)
 
 	lock(f);
 	/* Make new fd list shorter if possible, preserving quantization */
-	new->nfd = f->maxfd+1;
-	i = new->nfd%DELTAFD;
+	new->nfd = f->maxfd + 1;
+	i = new->nfd % DELTAFD;
 	if(i != 0)
 		new->nfd += DELTAFD - i;
-	new->fd = malloc(new->nfd*sizeof(Chan*));
-	if(new->fd == nil){
+	new->fd = malloc(new->nfd * sizeof(Chan *));
+	if(new->fd == nil) {
 		unlock(f);
 		free(new);
 		error("no memory for fgrp");
@@ -200,7 +200,7 @@ dupfgrp(Fgrp *f)
 
 	new->maxfd = f->maxfd;
 	for(i = 0; i <= f->maxfd; i++) {
-		if(c = f->fd[i]){
+		if(c = f->fd[i]) {
 			incref(c);
 			new->fd[i] = c;
 		}
@@ -228,8 +228,8 @@ closefgrp(Fgrp *f)
 	 * will bail us out.
 	 */
 	up->closingfgrp = f;
-	for(i = 0; i <= f->maxfd; i++){
-		if(c = f->fd[i]){
+	for(i = 0; i <= f->maxfd; i++) {
+		if(c = f->fd[i]) {
 			f->fd[i] = nil;
 			cclose(c);
 		}
@@ -258,21 +258,21 @@ forceclosefgrp(void)
 	Chan *c;
 	Fgrp *f;
 
-	if(up->procctl != Proc_exitme || up->closingfgrp == nil){
+	if(up->procctl != Proc_exitme || up->closingfgrp == nil) {
 		print("bad forceclosefgrp call");
 		return;
 	}
 
 	f = up->closingfgrp;
-	for(i = 0; i <= f->maxfd; i++){
-		if(c = f->fd[i]){
+	for(i = 0; i <= f->maxfd; i++) {
+		if(c = f->fd[i]) {
 			f->fd[i] = nil;
 			ccloseq(c);
 		}
 	}
 }
 
-Mount*
+Mount *
 newmount(Mhead *mh, Chan *to, int flag, char *spec)
 {
 	Mount *mount;

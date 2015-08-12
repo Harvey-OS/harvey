@@ -8,9 +8,9 @@
  */
 
 #include <string.h>
-#define	N	256
+#define N 256
 
-char*
+char *
 strpbrk(const char *s, const char *b)
 {
 	char map[N];

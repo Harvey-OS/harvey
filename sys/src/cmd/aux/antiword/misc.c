@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #endif /* __riscos */
 #if !defined(S_ISREG)
-#define S_ISREG(x)	(((x) & S_IFMT) == S_IFREG)
+#define S_ISREG(x) (((x)&S_IFMT) == S_IFREG)
 #endif /* !S_ISREG */
 #include "antiword.h"
 #if defined(__vms)
@@ -42,7 +42,7 @@
 const char *
 szGetHomeDirectory(void)
 {
-	const char	*szHome;
+	const char *szHome;
 
 #if defined(__vms)
 	szHome = decc$translate_vms(getenv("HOME"));
@@ -52,7 +52,7 @@ szGetHomeDirectory(void)
 	szHome = getenv("HOME");
 #endif /* __vms */
 
-	if (szHome == NULL || szHome[0] == '\0') {
+	if(szHome == NULL || szHome[0] == '\0') {
 #if defined(N_PLAT_NLM)
 		szHome = "SYS:";
 #elif defined(__dos)
@@ -87,31 +87,31 @@ int32_t
 lGetFilesize(const char *szFilename)
 {
 #if defined(__riscos)
-	os_error	*e;
-	int	iType, iSize;
+	os_error *e;
+	int iType, iSize;
 
 	e = SWI(2, 5, SWI_OS_File | XOS_Bit,
 		17, szFilename,
 		&iType, NULL, NULL, NULL, &iSize);
-	if (e != NULL) {
+	if(e != NULL) {
 		werr(0, "Get Filesize error %d: %s",
-			e->errnum, e->errmess);
+		     e->errnum, e->errmess);
 		return -1;
 	}
-	if (iType != 1) {
+	if(iType != 1) {
 		/* It's not a proper file or the file does not exist */
 		return -1;
 	}
 	return (int32_t)iSize;
 #else
-	struct stat	tBuffer;
+	struct stat tBuffer;
 
 	errno = 0;
-	if (stat(szFilename, &tBuffer) != 0) {
+	if(stat(szFilename, &tBuffer) != 0) {
 		werr(0, "Get Filesize error %d", errno);
 		return -1;
 	}
-	if (!S_ISREG(tBuffer.st_mode)) {
+	if(!S_ISREG(tBuffer.st_mode)) {
 		/* It's not a regular file */
 		return -1;
 	}
@@ -121,21 +121,21 @@ lGetFilesize(const char *szFilename)
 
 #if defined(DEBUG)
 void
-vPrintBlock(const char	*szFile, int iLine,
-		const UCHAR *aucBlock, size_t tLength)
+vPrintBlock(const char *szFile, int iLine,
+	    const UCHAR *aucBlock, size_t tLength)
 {
 	int i, j;
 
 	fail(szFile == NULL || iLine < 0 || aucBlock == NULL);
 
 	fprintf(stderr, "%s[%3d]:\n", szFile, iLine);
-	for (i = 0; i < 32; i++) {
-		if (16 * i >= (int)tLength) {
+	for(i = 0; i < 32; i++) {
+		if(16 * i >= (int)tLength) {
 			return;
 		}
 		fprintf(stderr, "%03x: ", (unsigned int)(16 * i));
-		for (j = 0; j < 16; j++) {
-			if (16 * i + j < (int)tLength) {
+		for(j = 0; j < 16; j++) {
+			if(16 * i + j < (int)tLength) {
 				fprintf(stderr, "%02x ",
 					(unsigned int)aucBlock[16 * i + j]);
 			}
@@ -148,33 +148,33 @@ void
 vPrintUnicode(const char *szFile, int iLine, const UCHAR *aucUni,
 	      size_t tLen)
 {
-	char	*szASCII;
+	char *szASCII;
 
 	fail(tLen % 2 != 0);
 
-	tLen /= 2;	/* Length in bytes to length in characters */
+	tLen /= 2; /* Length in bytes to length in characters */
 	szASCII = xmalloc(tLen + 1);
 	(void)unincpy(szASCII, aucUni, tLen);
 	szASCII[tLen] = '\0';
 	(void)fprintf(stderr, "%s[%3d]: %.*s\n",
-				szFile, iLine, (int)tLen, szASCII);
+		      szFile, iLine, (int)tLen, szASCII);
 	szASCII = xfree(szASCII);
 } /* end of vPrintUnicode */
 
 BOOL
 bCheckDoubleLinkedList(output_type *pAnchor)
 {
-	output_type	*pCurr, *pLast;
-	int		iInList;
+	output_type *pCurr, *pLast;
+	int iInList;
 
 	pLast = pAnchor;
 	iInList = 0;
-	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
+	for(pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
 		pLast = pCurr;
 		iInList++;
 	}
 	NO_DBG_DEC(iInList);
-	for (pCurr = pLast; pCurr != NULL; pCurr = pCurr->pPrev) {
+	for(pCurr = pLast; pCurr != NULL; pCurr = pCurr->pPrev) {
 		pLast = pCurr;
 		iInList--;
 	}
@@ -194,13 +194,13 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
 {
 	fail(aucBytes == NULL || pFile == NULL || ulOffset > (ULONG)LONG_MAX);
 
-	if (ulOffset > (ULONG)LONG_MAX) {
+	if(ulOffset > (ULONG)LONG_MAX) {
 		return FALSE;
 	}
-	if (fseek(pFile, (int32_t)ulOffset, SEEK_SET) != 0) {
+	if(fseek(pFile, (int32_t)ulOffset, SEEK_SET) != 0) {
 		return FALSE;
 	}
-	if (fread(aucBytes, sizeof(UCHAR), tMemb, pFile) != tMemb) {
+	if(fread(aucBytes, sizeof(UCHAR), tMemb, pFile) != tMemb) {
 		return FALSE;
 	}
 	return TRUE;
@@ -215,11 +215,11 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
  */
 BOOL
 bReadBuffer(FILE *pFile, ULONG ulStartBlock,
-	const ULONG *aulBlockDepot, size_t tBlockDepotLen, size_t tBlockSize,
-	UCHAR *aucBuffer, ULONG ulOffset, size_t tToRead)
+	    const ULONG *aulBlockDepot, size_t tBlockDepotLen, size_t tBlockSize,
+	    UCHAR *aucBuffer, ULONG ulOffset, size_t tToRead)
 {
-	ULONG	ulBegin, ulIndex;
-	size_t	tLen;
+	ULONG ulBegin, ulIndex;
+	size_t tLen;
 
 	fail(pFile == NULL);
 	fail(ulStartBlock > MAX_BLOCKNUMBER && ulStartBlock != END_OF_CHAIN);
@@ -228,26 +228,26 @@ bReadBuffer(FILE *pFile, ULONG ulStartBlock,
 	fail(aucBuffer == NULL);
 	fail(tToRead == 0);
 
-	for (ulIndex = ulStartBlock;
-	     ulIndex != END_OF_CHAIN && tToRead != 0;
-	     ulIndex = aulBlockDepot[ulIndex]) {
-		if (ulIndex >= (ULONG)tBlockDepotLen) {
+	for(ulIndex = ulStartBlock;
+	    ulIndex != END_OF_CHAIN && tToRead != 0;
+	    ulIndex = aulBlockDepot[ulIndex]) {
+		if(ulIndex >= (ULONG)tBlockDepotLen) {
 			DBG_DEC(ulIndex);
 			DBG_DEC(tBlockDepotLen);
-			if (tBlockSize >= BIG_BLOCK_SIZE) {
+			if(tBlockSize >= BIG_BLOCK_SIZE) {
 				werr(1, "The Big Block Depot is damaged");
 			} else {
 				werr(1, "The Small Block Depot is damaged");
 			}
 		}
-		if (ulOffset >= (ULONG)tBlockSize) {
+		if(ulOffset >= (ULONG)tBlockSize) {
 			ulOffset -= tBlockSize;
 			continue;
 		}
 		ulBegin = ulDepotOffset(ulIndex, tBlockSize) + ulOffset;
 		tLen = min(tBlockSize - (size_t)ulOffset, tToRead);
 		ulOffset = 0;
-		if (!bReadBytes(aucBuffer, tLen, ulBegin, pFile)) {
+		if(!bReadBytes(aucBuffer, tLen, ulBegin, pFile)) {
 			werr(0, "Read big block 0x%lx not possible", ulBegin);
 			return FALSE;
 		}
@@ -266,26 +266,26 @@ bReadBuffer(FILE *pFile, ULONG ulStartBlock,
 ULONG
 ulColor2Color(UCHAR ucFontColor)
 {
-	static const ULONG	aulColorTable[] = {
-		/*  0 */	0x00000000UL,	/* Automatic */
-		/*  1 */	0x00000000UL,	/* Black */
-		/*  2 */	0xff000000UL,	/* Blue */
-		/*  3 */	0xffff0000UL,	/* Turquoise */
-		/*  4 */	0x00ff0000UL,	/* Bright Green */
-		/*  5 */	0xff00ff00UL,	/* Pink */
-		/*  6 */	0x0000ff00UL,	/* Red */
-		/*  7 */	0x00ffff00UL,	/* Yellow */
-		/*  8 */	0xffffff00UL,	/* White */
-		/*  9 */	0x80000000UL,	/* Dark Blue */
-		/* 10 */	0x80800000UL,	/* Teal */
-		/* 11 */	0x00800000UL,	/* Green */
-		/* 12 */	0x80008000UL,	/* Violet */
-		/* 13 */	0x00008000UL,	/* Dark Red */
-		/* 14 */	0x00808000UL,	/* Dark Yellow */
-		/* 15 */	0x80808000UL,	/* Gray 50% */
-		/* 16 */	0xc0c0c000UL,	/* Gray 25% */
+	static const ULONG aulColorTable[] = {
+	    /*  0 */ 0x00000000UL, /* Automatic */
+	    /*  1 */ 0x00000000UL, /* Black */
+	    /*  2 */ 0xff000000UL, /* Blue */
+	    /*  3 */ 0xffff0000UL, /* Turquoise */
+	    /*  4 */ 0x00ff0000UL, /* Bright Green */
+	    /*  5 */ 0xff00ff00UL, /* Pink */
+	    /*  6 */ 0x0000ff00UL, /* Red */
+	    /*  7 */ 0x00ffff00UL, /* Yellow */
+	    /*  8 */ 0xffffff00UL, /* White */
+	    /*  9 */ 0x80000000UL, /* Dark Blue */
+	    /* 10 */ 0x80800000UL, /* Teal */
+	    /* 11 */ 0x00800000UL, /* Green */
+	    /* 12 */ 0x80008000UL, /* Violet */
+	    /* 13 */ 0x00008000UL, /* Dark Red */
+	    /* 14 */ 0x00808000UL, /* Dark Yellow */
+	    /* 15 */ 0x80808000UL, /* Gray 50% */
+	    /* 16 */ 0xc0c0c000UL, /* Gray 25% */
 	};
-	if ((size_t)ucFontColor >= elementsof(aulColorTable)) {
+	if((size_t)ucFontColor >= elementsof(aulColorTable)) {
 		return aulColorTable[0];
 	}
 	return aulColorTable[(int)ucFontColor];
@@ -299,15 +299,15 @@ ulColor2Color(UCHAR ucFontColor)
 static int
 iFindSplit(const char *szString, size_t tStringLen)
 {
-	size_t	tSplit;
+	size_t tSplit;
 
-	if (tStringLen == 0) {
+	if(tStringLen == 0) {
 		return -1;
 	}
 	tSplit = tStringLen - 1;
-	while (tSplit >= 1) {
-		if (szString[tSplit] == ' ' ||
-		    (szString[tSplit] == '-' && szString[tSplit - 1] != ' ')) {
+	while(tSplit >= 1) {
+		if(szString[tSplit] == ' ' ||
+		   (szString[tSplit] == '-' && szString[tSplit - 1] != ' ')) {
 			return (int)tSplit;
 		}
 		tSplit--;
@@ -323,22 +323,22 @@ iFindSplit(const char *szString, size_t tStringLen)
 output_type *
 pSplitList(output_type *pAnchor)
 {
-	output_type	*pCurr, *pLeftOver;
-	int		iIndex;
+	output_type *pCurr, *pLeftOver;
+	int iIndex;
 
- 	fail(pAnchor == NULL);
+	fail(pAnchor == NULL);
 
-	for (pCurr = pAnchor; pCurr->pNext != NULL; pCurr = pCurr->pNext)
-		;	/* EMPTY */
+	for(pCurr = pAnchor; pCurr->pNext != NULL; pCurr = pCurr->pNext)
+		; /* EMPTY */
 	iIndex = -1;
-	for (; pCurr != NULL; pCurr = pCurr->pPrev) {
+	for(; pCurr != NULL; pCurr = pCurr->pPrev) {
 		iIndex = iFindSplit(pCurr->szStorage, pCurr->tNextFree);
-		if (iIndex >= 0) {
+		if(iIndex >= 0) {
 			break;
 		}
 	}
 
-	if (pCurr == NULL || iIndex < 0) {
+	if(pCurr == NULL || iIndex < 0) {
 		/* No split, no leftover */
 		return NULL;
 	}
@@ -350,7 +350,7 @@ pSplitList(output_type *pAnchor)
 	pLeftOver->szStorage = xmalloc(pLeftOver->tStorageSize);
 	pLeftOver->tNextFree = pCurr->tNextFree - (size_t)iIndex - 1;
 	(void)strncpy(pLeftOver->szStorage,
-		pCurr->szStorage + iIndex + 1, pLeftOver->tNextFree);
+		      pCurr->szStorage + iIndex + 1, pLeftOver->tNextFree);
 	pLeftOver->szStorage[pLeftOver->tNextFree] = '\0';
 	NO_DBG_MSG(pLeftOver->szStorage);
 	pLeftOver->ucFontColor = pCurr->ucFontColor;
@@ -358,30 +358,30 @@ pSplitList(output_type *pAnchor)
 	pLeftOver->tFontRef = pCurr->tFontRef;
 	pLeftOver->usFontSize = pCurr->usFontSize;
 	pLeftOver->lStringWidth = lComputeStringWidth(
-					pLeftOver->szStorage,
-					pLeftOver->tNextFree,
-					pLeftOver->tFontRef,
-					pLeftOver->usFontSize);
+	    pLeftOver->szStorage,
+	    pLeftOver->tNextFree,
+	    pLeftOver->tFontRef,
+	    pLeftOver->usFontSize);
 	pLeftOver->pPrev = NULL;
 	pLeftOver->pNext = pCurr->pNext;
-	if (pLeftOver->pNext != NULL) {
+	if(pLeftOver->pNext != NULL) {
 		pLeftOver->pNext->pPrev = pLeftOver;
 	}
 	fail(!bCheckDoubleLinkedList(pLeftOver));
 
 	NO_DBG_MSG("pAnchor");
 	NO_DBG_HEX(pCurr->szStorage[iIndex]);
-	while (iIndex >= 0 && isspace((int)(UCHAR)pCurr->szStorage[iIndex])) {
+	while(iIndex >= 0 && isspace((int)(UCHAR)pCurr->szStorage[iIndex])) {
 		iIndex--;
 	}
 	pCurr->tNextFree = (size_t)iIndex + 1;
 	pCurr->szStorage[pCurr->tNextFree] = '\0';
 	NO_DBG_MSG(pCurr->szStorage);
 	pCurr->lStringWidth = lComputeStringWidth(
-					pCurr->szStorage,
-					pCurr->tNextFree,
-					pCurr->tFontRef,
-					pCurr->usFontSize);
+	    pCurr->szStorage,
+	    pCurr->tNextFree,
+	    pCurr->tFontRef,
+	    pCurr->usFontSize);
 	pCurr->pNext = NULL;
 	fail(!bCheckDoubleLinkedList(pAnchor));
 
@@ -396,13 +396,13 @@ pSplitList(output_type *pAnchor)
 size_t
 tNumber2Roman(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 {
-	char	*outp, *p, *q;
-	UINT	uiNextVal, uiValue;
+	char *outp, *p, *q;
+	UINT uiNextVal, uiValue;
 
 	fail(szOutput == NULL);
 
-	uiNumber %= 4000;	/* Very high numbers can't be represented */
-	if (uiNumber == 0) {
+	uiNumber %= 4000; /* Very high numbers can't be represented */
+	if(uiNumber == 0) {
 		szOutput[0] = '\0';
 		return 0;
 	}
@@ -410,22 +410,22 @@ tNumber2Roman(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 	outp = szOutput;
 	p = bUpperCase ? "M\2D\5C\2L\5X\2V\5I" : "m\2d\5c\2l\5x\2v\5i";
 	uiValue = 1000;
-	for (;;) {
-		while (uiNumber >= uiValue) {
+	for(;;) {
+		while(uiNumber >= uiValue) {
 			*outp++ = *p;
 			uiNumber -= uiValue;
 		}
-		if (uiNumber == 0) {
+		if(uiNumber == 0) {
 			*outp = '\0';
 			fail(outp < szOutput);
 			return (size_t)(outp - szOutput);
 		}
 		q = p + 1;
 		uiNextVal = uiValue / (UINT)(UCHAR)*q;
-		if ((int)*q == 2) {		/* magic */
-			uiNextVal /= (UINT)(UCHAR)*(q += 2);
+		if((int)*q == 2) { /* magic */
+			uiNextVal /= (UINT)(UCHAR) *(q += 2);
 		}
-		if (uiNumber + uiNextVal >= uiValue) {
+		if(uiNumber + uiNextVal >= uiValue) {
 			*outp++ = *++q;
 			uiNumber += uiNextVal;
 		} else {
@@ -443,28 +443,28 @@ tNumber2Roman(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 size_t
 tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 {
-	char	*outp;
-	UINT	uiTmp;
+	char *outp;
+	UINT uiTmp;
 
 	fail(szOutput == NULL);
 
-	if (uiNumber == 0) {
+	if(uiNumber == 0) {
 		szOutput[0] = '\0';
 		return 0;
 	}
 
 	outp = szOutput;
-	uiTmp = (UINT)(bUpperCase ? 'A': 'a');
-	if (uiNumber <= 26) {
+	uiTmp = (UINT)(bUpperCase ? 'A' : 'a');
+	if(uiNumber <= 26) {
 		uiNumber -= 1;
 		*outp++ = (char)(uiTmp + uiNumber);
-	} else if (uiNumber <= 26U + 26U*26U) {
+	} else if(uiNumber <= 26U + 26U * 26U) {
 		uiNumber -= 26 + 1;
 		*outp++ = (char)(uiTmp + uiNumber / 26);
 		*outp++ = (char)(uiTmp + uiNumber % 26);
-	} else if (uiNumber <= 26U + 26U*26U + 26U*26U*26U) {
-		uiNumber -= 26 + 26*26 + 1;
-		*outp++ = (char)(uiTmp + uiNumber / (26*26));
+	} else if(uiNumber <= 26U + 26U * 26U + 26U * 26U * 26U) {
+		uiNumber -= 26 + 26 * 26 + 1;
+		*outp++ = (char)(uiTmp + uiNumber / (26 * 26));
 		*outp++ = (char)(uiTmp + uiNumber / 26 % 26);
 		*outp++ = (char)(uiTmp + uiNumber % 26);
 	}
@@ -479,24 +479,24 @@ tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 char *
 unincpy(char *s1, const UCHAR *s2, size_t n)
 {
-	char	*pcDest;
-	ULONG	ulChar;
-	size_t	tLen;
-	USHORT	usUni;
+	char *pcDest;
+	ULONG ulChar;
+	size_t tLen;
+	USHORT usUni;
 
-	for (pcDest = s1, tLen = 0; tLen < n; pcDest++, tLen++) {
+	for(pcDest = s1, tLen = 0; tLen < n; pcDest++, tLen++) {
 		usUni = usGetWord(tLen * 2, s2);
-		if (usUni == 0) {
+		if(usUni == 0) {
 			break;
 		}
 		ulChar = ulTranslateCharacters(usUni, 0, 8,
-				conversion_unknown, encoding_neutral, FALSE);
-		if (ulChar == IGNORE_CHARACTER) {
+					       conversion_unknown, encoding_neutral, FALSE);
+		if(ulChar == IGNORE_CHARACTER) {
 			ulChar = (ULONG)'?';
 		}
 		*pcDest = (char)ulChar;
 	}
-	for (; tLen < n; tLen++) {
+	for(; tLen < n; tLen++) {
 		*pcDest++ = '\0';
 	}
 	return s1;
@@ -510,13 +510,13 @@ unincpy(char *s1, const UCHAR *s2, size_t n)
 size_t
 unilen(const UCHAR *s)
 {
-	size_t	tLen;
-	USHORT	usUni;
+	size_t tLen;
+	USHORT usUni;
 
 	tLen = 0;
-	for (;;) {
+	for(;;) {
 		usUni = usGetWord(tLen, s);
-		if (usUni == 0) {
+		if(usUni == 0) {
 			return tLen;
 		}
 		tLen += 2;
@@ -529,16 +529,16 @@ unilen(const UCHAR *s)
 const char *
 szBasename(const char *szFilename)
 {
-	const char	*szTmp;
+	const char *szTmp;
 
 	fail(szFilename == NULL);
 
-	if (szFilename == NULL || szFilename[0] == '\0') {
+	if(szFilename == NULL || szFilename[0] == '\0') {
 		return "null";
 	}
 
 	szTmp = strrchr(szFilename, FILE_SEPARATOR[0]);
-	if (szTmp == NULL) {
+	if(szTmp == NULL) {
 		return szFilename;
 	}
 	return ++szTmp;
@@ -554,16 +554,16 @@ szBasename(const char *szFilename)
 int32_t
 lComputeLeading(USHORT usFontSize)
 {
-	int32_t	lLeading;
+	int32_t lLeading;
 
 	lLeading = (int32_t)usFontSize * 500L;
-	if (usFontSize < 18) {		/* Small text: 112% */
+	if(usFontSize < 18) { /* Small text: 112% */
 		lLeading *= 112;
-	} else if (usFontSize < 28) {	/* Normal text: 124% */
+	} else if(usFontSize < 28) { /* Normal text: 124% */
 		lLeading *= 124;
-	} else if (usFontSize < 48) {	/* Small headlines: 104% */
+	} else if(usFontSize < 48) { /* Small headlines: 104% */
 		lLeading *= 104;
-	} else {			/* Large headlines: 100% */
+	} else { /* Large headlines: 100% */
 		lLeading *= 100;
 	}
 	lLeading = lMilliPoints2DrawUnits(lLeading);
@@ -580,29 +580,29 @@ lComputeLeading(USHORT usFontSize)
 size_t
 tUcs2Utf8(ULONG ulChar, char *szResult, size_t tMaxResultLen)
 {
-	if (szResult == NULL || tMaxResultLen == 0) {
+	if(szResult == NULL || tMaxResultLen == 0) {
 		return 0;
 	}
 
-	if (ulChar < 0x80 && tMaxResultLen >= 2) {
+	if(ulChar < 0x80 && tMaxResultLen >= 2) {
 		szResult[0] = (char)ulChar;
 		szResult[1] = '\0';
 		return 1;
 	}
-	if (ulChar < 0x800 && tMaxResultLen >= 3) {
+	if(ulChar < 0x800 && tMaxResultLen >= 3) {
 		szResult[0] = (char)(0xc0 | ulChar >> 6);
 		szResult[1] = (char)(0x80 | (ulChar & 0x3f));
 		szResult[2] = '\0';
 		return 2;
 	}
-	if (ulChar < 0x10000 && tMaxResultLen >= 4) {
+	if(ulChar < 0x10000 && tMaxResultLen >= 4) {
 		szResult[0] = (char)(0xe0 | ulChar >> 12);
 		szResult[1] = (char)(0x80 | (ulChar >> 6 & 0x3f));
 		szResult[2] = (char)(0x80 | (ulChar & 0x3f));
 		szResult[3] = '\0';
 		return 3;
 	}
-	if (ulChar < 0x200000 && tMaxResultLen >= 5) {
+	if(ulChar < 0x200000 && tMaxResultLen >= 5) {
 		szResult[0] = (char)(0xf0 | ulChar >> 18);
 		szResult[1] = (char)(0x80 | (ulChar >> 12 & 0x3f));
 		szResult[2] = (char)(0x80 | (ulChar >> 6 & 0x3f));
@@ -619,16 +619,16 @@ tUcs2Utf8(ULONG ulChar, char *szResult, size_t tMaxResultLen)
  */
 void
 vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
-	char *szResult, size_t tMaxResultLen)
+		char *szResult, size_t tMaxResultLen)
 {
 	fail(szResult == NULL);
 	fail(tMaxResultLen < 2);
 
-	if (eEncoding == encoding_utf_8) {
+	if(eEncoding == encoding_utf_8) {
 		(void)tUcs2Utf8(UNICODE_BULLET, szResult, tMaxResultLen);
 	} else {
 		szResult[0] = (char)ucGetBulletCharacter(eConversionType,
-							eEncoding);
+							 eEncoding);
 		szResult[1] = '\0';
 	}
 } /* end of vGetBulletValue */
@@ -639,14 +639,14 @@ vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
 BOOL
 bAllZero(const UCHAR *aucBytes, size_t tLength)
 {
-	size_t	tIndex;
+	size_t tIndex;
 
-	if (aucBytes == NULL || tLength == 0) {
+	if(aucBytes == NULL || tLength == 0) {
 		return TRUE;
 	}
 
-	for (tIndex = 0; tIndex < tLength; tIndex++) {
-		if (aucBytes[tIndex] != 0) {
+	for(tIndex = 0; tIndex < tLength; tIndex++) {
+		if(aucBytes[tIndex] != 0) {
 			return FALSE;
 		}
 	}
@@ -668,21 +668,21 @@ bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength,
 		      BOOL *pbEuro)
 {
 #if !defined(__dos)
-	const char	*szLocale;
-	const char	*pcTmp;
-	size_t		tIndex;
-	char		szModifier[6];
+	const char *szLocale;
+	const char *pcTmp;
+	size_t tIndex;
+	char szModifier[6];
 #endif /* __dos */
 
-	if (pbEuro != NULL) {
-		*pbEuro = FALSE;	/* Until proven otherwise */
+	if(pbEuro != NULL) {
+		*pbEuro = FALSE; /* Until proven otherwise */
 	}
-	if (szCodeset == NULL || tMaxCodesetLength == 0) {
+	if(szCodeset == NULL || tMaxCodesetLength == 0) {
 		return FALSE;
 	}
 
 #if defined(__dos)
-	if (tMaxCodesetLength < 2 + sizeof(int) * 3 + 1) {
+	if(tMaxCodesetLength < 2 + sizeof(int) * 3 + 1) {
 		DBG_DEC(tMaxCodesetLength);
 		DBG_DEC(2 + sizeof(int) * 3 + 1);
 		return FALSE;
@@ -693,28 +693,28 @@ bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength,
 #else
 	/* Get the locale from the environment */
 	szLocale = getenv("LC_ALL");
-	if (szLocale == NULL || szLocale[0] == '\0') {
+	if(szLocale == NULL || szLocale[0] == '\0') {
 		szLocale = getenv("LC_CTYPE");
-		if (szLocale == NULL || szLocale[0] == '\0') {
+		if(szLocale == NULL || szLocale[0] == '\0') {
 			szLocale = getenv("LANG");
 		}
 	}
-	if (szLocale == NULL || szLocale[0] == '\0') {
+	if(szLocale == NULL || szLocale[0] == '\0') {
 		/* No locale, so no codeset name and no modifier */
 		return FALSE;
 	}
 	DBG_MSG(szLocale);
 	pcTmp = strchr(szLocale, '.');
-	if (pcTmp == NULL) {
+	if(pcTmp == NULL) {
 		/* No codeset name */
 		szCodeset[0] = '\0';
 	} else {
 		/* Copy the codeset name */
 		pcTmp++;
-		for (tIndex = 0; tIndex < tMaxCodesetLength; tIndex++) {
-			if (*pcTmp == '@' || *pcTmp == '+' ||
-			    *pcTmp == ',' || *pcTmp == '_' ||
-			    *pcTmp == '\0') {
+		for(tIndex = 0; tIndex < tMaxCodesetLength; tIndex++) {
+			if(*pcTmp == '@' || *pcTmp == '+' ||
+			   *pcTmp == ',' || *pcTmp == '_' ||
+			   *pcTmp == '\0') {
 				szCodeset[tIndex] = '\0';
 				break;
 			}
@@ -723,17 +723,17 @@ bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength,
 		}
 		szCodeset[tMaxCodesetLength - 1] = '\0';
 	}
-	if (pbEuro == NULL) {
+	if(pbEuro == NULL) {
 		/* No need to get the modifier */
 		return TRUE;
 	}
 	pcTmp = strchr(szLocale, '@');
-	if (pcTmp != NULL) {
+	if(pcTmp != NULL) {
 		/* Copy the modifier */
 		pcTmp++;
-		for (tIndex = 0; tIndex < sizeof(szModifier); tIndex++) {
-			if (*pcTmp == '+' || *pcTmp == ',' ||
-			    *pcTmp == '_' || *pcTmp == '\0') {
+		for(tIndex = 0; tIndex < sizeof(szModifier); tIndex++) {
+			if(*pcTmp == '+' || *pcTmp == ',' ||
+			   *pcTmp == '_' || *pcTmp == '\0') {
 				szModifier[tIndex] = '\0';
 				break;
 			}
@@ -756,21 +756,21 @@ BOOL
 bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength,
 		      BOOL *pbEuro)
 {
-	BOOL	bOnlyDigits;
-	const char	*pcSrc;
-	char	*pcDest;
-	char	*szTmp, *szCodesetNorm;
+	BOOL bOnlyDigits;
+	const char *pcSrc;
+	char *pcDest;
+	char *szTmp, *szCodesetNorm;
 
-	if (pbEuro != NULL) {
-		*pbEuro = FALSE;	/* Until proven otherwise */
+	if(pbEuro != NULL) {
+		*pbEuro = FALSE; /* Until proven otherwise */
 	}
-	if (szCodeset == NULL || tMaxCodesetLength < 4) {
+	if(szCodeset == NULL || tMaxCodesetLength < 4) {
 		return FALSE;
 	}
 
 	/* Get the codeset name */
 	szTmp = xmalloc(tMaxCodesetLength - 3);
-	if (!bGetCodesetFromLocale(szTmp, tMaxCodesetLength - 3, pbEuro)) {
+	if(!bGetCodesetFromLocale(szTmp, tMaxCodesetLength - 3, pbEuro)) {
 		szTmp = xfree(szTmp);
 		return FALSE;
 	}
@@ -778,10 +778,10 @@ bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength,
 	szCodesetNorm = xmalloc(tMaxCodesetLength - 3);
 	bOnlyDigits = TRUE;
 	pcDest = szCodesetNorm;
-	for (pcSrc = szTmp; *pcSrc != '\0'; pcSrc++) {
-		if (isalnum(*pcSrc)) {
+	for(pcSrc = szTmp; *pcSrc != '\0'; pcSrc++) {
+		if(isalnum(*pcSrc)) {
 			*pcDest = tolower(*pcSrc);
-			if (!isdigit(*pcDest)) {
+			if(!isdigit(*pcDest)) {
 				bOnlyDigits = FALSE;
 			}
 			pcDest++;
@@ -790,7 +790,7 @@ bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength,
 	*pcDest = '\0';
 	DBG_MSG(szCodesetNorm);
 	/* Add "iso" when szCodesetNorm contains all digits */
-	if (bOnlyDigits && szCodesetNorm[0] != '\0') {
+	if(bOnlyDigits && szCodesetNorm[0] != '\0') {
 		fail(strlen(szCodesetNorm) + 3 >= tMaxCodesetLength);
 		sprintf(szCodeset, "iso%s", szCodesetNorm);
 	} else {
@@ -814,48 +814,48 @@ const char *
 szGetDefaultMappingFile(void)
 {
 	static const struct {
-		const char	*szCodeset;
-		const char	*szMappingFile;
+		const char *szCodeset;
+		const char *szMappingFile;
 	} atMappingFile[] = {
-		{ "iso88591",	MAPPING_FILE_8859_1 },
-		{ "iso88592",	MAPPING_FILE_8859_2 },
-		{ "iso88593",	"8859-3.txt" },
-		{ "iso88594",	"8859-4.txt" },
-		{ "iso88595",	"8859-5.txt" },
-		{ "iso88596",	MAPPING_FILE_8859_5 },
-		{ "iso88597",	"8859-7.txt" },
-		{ "iso88598",	"8859-8.txt" },
-		{ "iso88599",	"8859-9.txt" },
-		{ "iso885910",	"8859-10.txt" },
-		{ "iso885913",	"8859-13.txt" },
-		{ "iso885914",	"8859-14.txt" },
-		{ "iso885915",	MAPPING_FILE_8859_15 },
-		{ "iso885916",	"8859-16.txt" },
-		{ "koi8r",	MAPPING_FILE_KOI8_R },
-		{ "koi8u",	MAPPING_FILE_KOI8_U },
-		{ "utf8",	MAPPING_FILE_UTF_8 },
-		{ "cp437",	MAPPING_FILE_CP437 },
-		{ "cp850",	"cp850.txt" },
-		{ "cp852",	MAPPING_FILE_CP852 },
-		{ "cp862",	"cp862.txt" },
-		{ "cp864",	"cp864.txt" },
-		{ "cp866",	MAPPING_FILE_CP866 },
-		{ "cp1250",	MAPPING_FILE_CP1250 },
-		{ "cp1251",	MAPPING_FILE_CP1251 },
-		{ "cp1252",	"cp1252.txt" },
+	    {"iso88591", MAPPING_FILE_8859_1},
+	    {"iso88592", MAPPING_FILE_8859_2},
+	    {"iso88593", "8859-3.txt"},
+	    {"iso88594", "8859-4.txt"},
+	    {"iso88595", "8859-5.txt"},
+	    {"iso88596", MAPPING_FILE_8859_5},
+	    {"iso88597", "8859-7.txt"},
+	    {"iso88598", "8859-8.txt"},
+	    {"iso88599", "8859-9.txt"},
+	    {"iso885910", "8859-10.txt"},
+	    {"iso885913", "8859-13.txt"},
+	    {"iso885914", "8859-14.txt"},
+	    {"iso885915", MAPPING_FILE_8859_15},
+	    {"iso885916", "8859-16.txt"},
+	    {"koi8r", MAPPING_FILE_KOI8_R},
+	    {"koi8u", MAPPING_FILE_KOI8_U},
+	    {"utf8", MAPPING_FILE_UTF_8},
+	    {"cp437", MAPPING_FILE_CP437},
+	    {"cp850", "cp850.txt"},
+	    {"cp852", MAPPING_FILE_CP852},
+	    {"cp862", "cp862.txt"},
+	    {"cp864", "cp864.txt"},
+	    {"cp866", MAPPING_FILE_CP866},
+	    {"cp1250", MAPPING_FILE_CP1250},
+	    {"cp1251", MAPPING_FILE_CP1251},
+	    {"cp1252", "cp1252.txt"},
 	};
-	size_t	tIndex;
-	BOOL	bEuro;
-	char	szCodeset[20];
+	size_t tIndex;
+	BOOL bEuro;
+	char szCodeset[20];
 
 	szCodeset[0] = '\0';
 	bEuro = FALSE;
 	/* Get the normalized codeset name */
-	if (!bGetNormalizedCodeset(szCodeset, sizeof(szCodeset), &bEuro)) {
+	if(!bGetNormalizedCodeset(szCodeset, sizeof(szCodeset), &bEuro)) {
 		return MAPPING_FILE_8859_1;
 	}
-	if (szCodeset[0] == '\0') {
-		if (bEuro) {
+	if(szCodeset[0] == '\0') {
+		if(bEuro) {
 			/* Default mapping file (with Euro sign) */
 			return MAPPING_FILE_8859_15;
 		} else {
@@ -864,12 +864,12 @@ szGetDefaultMappingFile(void)
 		}
 	}
 	/* Find the name in the table */
-	for (tIndex = 0; tIndex < elementsof(atMappingFile); tIndex++) {
-		if (STREQ(atMappingFile[tIndex].szCodeset, szCodeset)) {
+	for(tIndex = 0; tIndex < elementsof(atMappingFile); tIndex++) {
+		if(STREQ(atMappingFile[tIndex].szCodeset, szCodeset)) {
 			return atMappingFile[tIndex].szMappingFile;
 		}
 	}
-	/* Default default mapping file */
+/* Default default mapping file */
 #if defined(__dos)
 	return MAPPING_FILE_CP437;
 #else
@@ -886,10 +886,10 @@ szGetDefaultMappingFile(void)
 time_t
 tConvertDTTM(ULONG ulDTTM)
 {
-	struct tm	tTime;
-	time_t		tResult;
+	struct tm tTime;
+	time_t tResult;
 
-	if (ulDTTM == 0) {
+	if(ulDTTM == 0) {
 		return (time_t)-1;
 	}
 	memset(&tTime, 0, sizeof(tTime));
@@ -899,7 +899,7 @@ tConvertDTTM(ULONG ulDTTM)
 	tTime.tm_mon = (int)((ulDTTM & 0x000f0000) >> 16);
 	tTime.tm_year = (int)((ulDTTM & 0x1ff00000) >> 20);
 	tTime.tm_isdst = -1;
-	tTime.tm_mon--;         /* From 01-12 to 00-11 */
+	tTime.tm_mon--; /* From 01-12 to 00-11 */
 	tResult = mktime(&tTime);
 	NO_DBG_MSG(ctime(&tResult));
 	return tResult;

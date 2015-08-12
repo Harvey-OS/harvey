@@ -13,17 +13,16 @@
 #include <ctype.h>
 #include "authcmdlib.h"
 
-
 #define TABLEN 8
 
-static char*
+static char *
 defreadln(char *prompt, char *def, int must, int *changed)
 {
 	char pr[512];
 	char reply[256];
 
 	do {
-		if(def && *def){
+		if(def && *def) {
 			if(must)
 				snprint(pr, sizeof pr, "%s[return = %s]: ", prompt, def);
 			else
@@ -31,7 +30,7 @@ defreadln(char *prompt, char *def, int must, int *changed)
 		} else
 			snprint(pr, sizeof pr, "%s: ", prompt);
 		readln(pr, reply, sizeof(reply), 0);
-		switch(*reply){
+		switch(*reply) {
 		case ' ':
 			break;
 		case 0:
@@ -44,7 +43,7 @@ defreadln(char *prompt, char *def, int must, int *changed)
 		}
 	} while(must);
 
-	if(def){
+	if(def) {
 		*changed = 1;
 		free(def);
 	}
@@ -66,8 +65,8 @@ querybio(char *file, char *user, Acctbio *a)
 	a->dept = defreadln("Department #", a->dept, 1, &changed);
 	a->email[0] = defreadln("User's email address", a->email[0], 1, &changed);
 	a->email[1] = defreadln("Sponsor's email address", a->email[1], 0, &changed);
-	for(i = 2; i < Nemail; i++){
-		if(a->email[i-1] == 0)
+	for(i = 2; i < Nemail; i++) {
+		if(a->email[i - 1] == 0)
 			break;
 		a->email[i] = defreadln("other email address", a->email[i], 0, &changed);
 	}

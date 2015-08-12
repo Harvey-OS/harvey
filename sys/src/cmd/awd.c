@@ -39,9 +39,9 @@ main(int argc, char **argv)
 	if(fd < 0)
 		exits(0);
 	getwd(dir, 512);
-	if(dir[0]!=0 && dir[strlen(dir)-1]=='/')
-		dir[strlen(dir)-1] = 0;
-	xfprint(fd, "name %s/-%s\n",  dir, argc > 1 ? argv[1] : "rc");
+	if(dir[0] != 0 && dir[strlen(dir) - 1] == '/')
+		dir[strlen(dir) - 1] = 0;
+	xfprint(fd, "name %s/-%s\n", dir, argc > 1 ? argv[1] : "rc");
 	xfprint(fd, "dumpdir %s\n", dir);
 	exits(0);
 }

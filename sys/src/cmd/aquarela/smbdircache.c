@@ -19,15 +19,15 @@ smbmkdircache(SmbTree *t, char *path)
 	char *fullpath = nil;
 
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
-//smblogprintif(1, "smbmkdircache: path %s\n", fullpath);
+	//smblogprintif(1, "smbmkdircache: path %s\n", fullpath);
 	fd = open(fullpath, OREAD);
 	free(fullpath);
 
-	if (fd < 0)
+	if(fd < 0)
 		return nil;
 	n = dirreadall(fd, &buf);
 	close(fd);
-	if (n < 0) {
+	if(n < 0) {
 		free(buf);
 		return nil;
 	}
@@ -43,10 +43,9 @@ smbdircachefree(SmbDirCache **cp)
 {
 	SmbDirCache *c;
 	c = *cp;
-	if (c) {
+	if(c) {
 		free(c->buf);
 		free(c);
 		*cp = nil;
 	}
 }
-

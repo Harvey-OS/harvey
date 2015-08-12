@@ -56,13 +56,12 @@ codgen(Node *n, Node *nn)
 	/*
 	 * isolate first argument
 	 */
-	if(REGARG >= 0) {	
+	if(REGARG >= 0) {
 		if(typecmplx[thisfn->link->etype]) {
 			nod1 = *nodret->left;
 			nodreg(&nod, &nod1, REGARG);
 			gmove(&nod, &nod1);
-		} else
-		if(firstarg && typeword[firstargtype->etype]) {
+		} else if(firstarg && typeword[firstargtype->etype]) {
 			nod1 = znode;
 			nod1.op = ONAME;
 			nod1.sym = firstarg;
@@ -79,7 +78,7 @@ codgen(Node *n, Node *nn)
 	canreach = 1;
 	warnreach = 1;
 	gen(n);
-	if(canreach && thisfn->link->etype != TVOID){
+	if(canreach && thisfn->link->etype != TVOID) {
 		if(debug['B'])
 			warn(Z, "no return at end of function: %s", n1->sym->name);
 		else
@@ -90,8 +89,8 @@ codgen(Node *n, Node *nn)
 
 	if(!debug['N'] || debug['R'] || debug['P'])
 		regopt(sp);
-	
-	if(thechar=='6' || thechar=='7' || thechar=='9' || hasdoubled)	/* [sic] */
+
+	if(thechar == '6' || thechar == '7' || thechar == '9' || hasdoubled) /* [sic] */
 		maxargsafe = round(maxargsafe, 8);
 	sp->to.offset += maxargsafe;
 }
@@ -118,7 +117,7 @@ supgen(Node *n)
 	warnreach = owarn;
 }
 
-Node*
+Node *
 uncomma(Node *n)
 {
 	while(n != Z && n->op == OCOMMA) {
@@ -206,7 +205,7 @@ loop:
 			gbranch(ORETURN);
 			break;
 		}
-		if(newvlongcode && !typefd[n->type->etype]){
+		if(newvlongcode && !typefd[n->type->etype]) {
 			regret(&rn, n);
 			regfree(&rn);
 			nod = znode;
@@ -238,7 +237,7 @@ loop:
 			if(l->label)
 				patch(l->label, pc);
 		}
-		gbranch(OGOTO);	/* prevent self reference in reg */
+		gbranch(OGOTO); /* prevent self reference in reg */
 		patch(p, pc);
 		goto rloop;
 
@@ -260,7 +259,7 @@ loop:
 			return;
 		}
 		if(n->label)
-			patch(n->label, pc-1);
+			patch(n->label, pc - 1);
 		n->label = p;
 		return;
 
@@ -301,7 +300,7 @@ loop:
 			break;
 		}
 
-		gbranch(OGOTO);		/* entry */
+		gbranch(OGOTO); /* entry */
 		sp = p;
 
 		cn = cases;
@@ -315,8 +314,8 @@ loop:
 		gbranch(OGOTO);
 		spb = p;
 
-		gen(n->right);		/* body */
-		if(canreach){
+		gen(n->right); /* body */
+		if(canreach) {
 			gbranch(OGOTO);
 			patch(p, breakpc);
 			nbreak++;
@@ -336,7 +335,7 @@ loop:
 
 		cases = cn;
 		breakpc = sbc;
-		canreach = nbreak!=0;
+		canreach = nbreak != 0;
 		if(canreach == 0)
 			warnreach = !suppress;
 		nbreak = snbreak;
@@ -345,7 +344,7 @@ loop:
 	case OWHILE:
 	case ODWHILE:
 		l = n->left;
-		gbranch(OGOTO);		/* entry */
+		gbranch(OGOTO); /* entry */
 		sp = p;
 
 		scc = continpc;
@@ -363,21 +362,21 @@ loop:
 		patch(spc, pc);
 		if(n->op == OWHILE)
 			patch(sp, pc);
-		bcomplex(l, Z);		/* test */
+		bcomplex(l, Z); /* test */
 		patch(p, breakpc);
 		if(l->op != OCONST || vconst(l) == 0)
 			nbreak++;
 
 		if(n->op == ODWHILE)
 			patch(sp, pc);
-		gen(n->right);		/* body */
+		gen(n->right); /* body */
 		gbranch(OGOTO);
 		patch(p, continpc);
 
 		patch(spb, pc);
 		continpc = scc;
 		breakpc = sbc;
-		canreach = nbreak!=0;
+		canreach = nbreak != 0;
 		if(canreach == 0)
 			warnreach = !suppress;
 		nbreak = snbreak;
@@ -389,8 +388,8 @@ loop:
 			warn(n, "unreachable code FOR");
 			warnreach = 0;
 		}
-		gen(l->right->left);	/* init */
-		gbranch(OGOTO);		/* entry */
+		gen(l->right->left); /* init */
+		gbranch(OGOTO);      /* entry */
 		sp = p;
 
 		/* 
@@ -417,17 +416,17 @@ loop:
 		spb = p;
 
 		patch(spc, pc);
-		gen(l->right->right);	/* inc */
-		patch(sp, pc);	
-		if(l->left != Z) {	/* test */
+		gen(l->right->right); /* inc */
+		patch(sp, pc);
+		if(l->left != Z) { /* test */
 			bcomplex(l->left, Z);
 			patch(p, breakpc);
 			if(l->left->op != OCONST || vconst(l->left) == 0)
 				nbreak++;
 		}
 		canreach = 1;
-		gen(n->right);		/* body */
-		if(canreach){
+		gen(n->right); /* body */
+		if(canreach) {
 			gbranch(OGOTO);
 			patch(p, continpc);
 			ncontin++;
@@ -440,7 +439,7 @@ loop:
 		patch(spb, pc);
 		continpc = scc;
 		breakpc = sbc;
-		canreach = nbreak!=0;
+		canreach = nbreak != 0;
 		if(canreach == 0)
 			warnreach = !suppress;
 		nbreak = snbreak;
@@ -501,8 +500,7 @@ loop:
 				 */
 				if(!canreach && oldreach && debug['w'] < 2)
 					warnreach = 0;
-			}
-			else {
+			} else {
 				canreach = 1;
 				gen(n->right->left);
 				oldreach = canreach;
@@ -516,8 +514,7 @@ loop:
 					warnreach = 0;
 				canreach = oldreach;
 			}
-		}
-		else {
+		} else {
 			sp = p;
 			canreach = 1;
 			if(n->right->left != Z)
@@ -554,7 +551,7 @@ usedset(Node *n, int o)
 	}
 	complex(n);
 	switch(n->op) {
-	case OADDR:	/* volatile */
+	case OADDR: /* volatile */
 		gins(ANOP, n, Z);
 		break;
 	case ONAME:
@@ -571,11 +568,10 @@ bcomplex(Node *n, Node *c)
 {
 	Node *b, nod;
 
-
 	complex(n);
 	if(n->type != T)
-	if(tcompat(n, T, n->type, tnot))
-		n->type = T;
+		if(tcompat(n, T, n->type, tnot))
+			n->type = T;
 	if(n->type == T) {
 		gbranch(OGOTO);
 		return 0;

@@ -18,7 +18,7 @@
  *
  *  return 0 if not found.
  */
-char*
+char *
 ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 	    Ndbtuple **pp)
 {
@@ -31,11 +31,11 @@ ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 	if(pp)
 		*pp = nil;
 	t = ndbsearch(db, s, attr, val);
-	while(t){
+	while(t) {
 		/* first look on same line (closer binding) */
 		nt = s->t;
-		for(;;){
-			if(strcmp(rattr, nt->attr) == 0){
+		for(;;) {
+			if(strcmp(rattr, nt->attr) == 0) {
 				rv = strdup(nt->val);
 				if(pp != nil)
 					*pp = t;
@@ -48,8 +48,8 @@ ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 				break;
 		}
 		/* search whole tuple */
-		for(nt = t; nt; nt = nt->entry){
-			if(strcmp(rattr, nt->attr) == 0){
+		for(nt = t; nt; nt = nt->entry) {
+			if(strcmp(rattr, nt->attr) == 0) {
 				rv = strdup(nt->val);
 				if(pp != nil)
 					*pp = t;
@@ -64,7 +64,7 @@ ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 	return nil;
 }
 
-Ndbtuple*
+Ndbtuple *
 ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 	  char *buf)
 {
@@ -72,13 +72,13 @@ ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 	char *p;
 
 	p = ndbgetvalue(db, s, attr, val, rattr, &t);
-	if(p == nil){
+	if(p == nil) {
 		if(buf != nil)
 			*buf = 0;
 	} else {
-		if(buf != nil){
-			strncpy(buf, p, Ndbvlen-1);
-			buf[Ndbvlen-1] = 0;
+		if(buf != nil) {
+			strncpy(buf, p, Ndbvlen - 1);
+			buf[Ndbvlen - 1] = 0;
 		}
 		free(p);
 	}

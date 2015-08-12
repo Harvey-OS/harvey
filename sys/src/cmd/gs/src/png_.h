@@ -27,7 +27,7 @@
 /* Wrapper for png.h */
 
 #ifndef png__INCLUDED
-#  define png__INCLUDED
+#define png__INCLUDED
 
 #if SHARE_LIBPNG
 #include <png.h>

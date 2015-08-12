@@ -7,94 +7,97 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "ureg.h"
 
-#define	DATASEGM(p) 	{ 0xFFFF, SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
-#define	EXECSEGM(p) 	{ 0xFFFF, SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
+#define DATASEGM(p)                                                                  \
+	{                                                                            \
+		0xFFFF, SEGG | SEGB | (0xF << 16) | SEGP | SEGPL(p) | SEGDATA | SEGW \
+	}
+#define EXECSEGM(p)                                                                  \
+	{                                                                            \
+		0xFFFF, SEGG | SEGD | (0xF << 16) | SEGP | SEGPL(p) | SEGEXEC | SEGR \
+	}
 
 Segdesc gdt[NGDT] =
-{
-[NULLSEG]	{ 0, 0},		/* null descriptor */
-[KDSEG]		DATASEGM(0),		/* kernel data/stack */
-[KESEG]		EXECSEGM(0),		/* kernel code */
+    {
+     [NULLSEG] { 0, 0 },       /* null descriptor */
+     [KDSEG] DATASEGM(0), /* kernel data/stack */
+     [KESEG] EXECSEGM(0), /* kernel code */
 };
 
-void	intr0(void), intr1(void), intr2(void), intr3(void);
-void	intr4(void), intr5(void), intr6(void), intr7(void);
-void	intr8(void), intr9(void), intr10(void), intr11(void);
-void	intr12(void), intr13(void), intr14(void), intr15(void);
-void	intr16(void);
-void	intr24(void), intr25(void), intr26(void), intr27(void);
-void	intr28(void), intr29(void), intr30(void), intr31(void);
-void	intr32(void), intr33(void), intr34(void), intr35(void);
-void	intr36(void), intr37(void), intr38(void), intr39(void);
-void	intr64(void);
-void	intrbad(void);
+void intr0(void), intr1(void), intr2(void), intr3(void);
+void intr4(void), intr5(void), intr6(void), intr7(void);
+void intr8(void), intr9(void), intr10(void), intr11(void);
+void intr12(void), intr13(void), intr14(void), intr15(void);
+void intr16(void);
+void intr24(void), intr25(void), intr26(void), intr27(void);
+void intr28(void), intr29(void), intr30(void), intr31(void);
+void intr32(void), intr33(void), intr34(void), intr35(void);
+void intr36(void), intr37(void), intr38(void), intr39(void);
+void intr64(void);
+void intrbad(void);
 
 /*
  *  8259 interrupt controllers
  */
-enum
-{
-	Int0ctl=	0x20,		/* control port (ICW1, OCW2, OCW3) */
-	Int0aux=	0x21,		/* everything else (ICW2, ICW3, ICW4, OCW1) */
-	Int1ctl=	0xA0,		/* control port */
-	Int1aux=	0xA1,		/* everything else (ICW2, ICW3, ICW4, OCW1) */
+enum {
+	Int0ctl = 0x20, /* control port (ICW1, OCW2, OCW3) */
+	Int0aux = 0x21, /* everything else (ICW2, ICW3, ICW4, OCW1) */
+	Int1ctl = 0xA0, /* control port */
+	Int1aux = 0xA1, /* everything else (ICW2, ICW3, ICW4, OCW1) */
 
-	Icw1=		0x10,		/* select bit in ctl register */
-	Ocw2=		0x00,
-	Ocw3=		0x08,
+	Icw1 = 0x10, /* select bit in ctl register */
+	Ocw2 = 0x00,
+	Ocw3 = 0x08,
 
-	EOI=		0x20,		/* non-specific end of interrupt */
+	EOI = 0x20, /* non-specific end of interrupt */
 
-	Elcr1=		0x4D0,		/* Edge/Level Triggered Register */
-	Elcr2=		0x4D1,
+	Elcr1 = 0x4D0, /* Edge/Level Triggered Register */
+	Elcr2 = 0x4D1,
 };
 
-int	int0mask = 0xff;	/* interrupts enabled for first 8259 */
-int	int1mask = 0xff;	/* interrupts enabled for second 8259 */
-int	i8259elcr;		/* mask of level-triggered interrupts */
+int int0mask = 0xff; /* interrupts enabled for first 8259 */
+int int1mask = 0xff; /* interrupts enabled for second 8259 */
+int i8259elcr;       /* mask of level-triggered interrupts */
 
 /*
  *  trap/interrupt gates
  */
 Segdesc ilt[256];
 
-enum
-{
-	Maxhandler=	32,		/* max number of interrupt handlers */
+enum {
+	Maxhandler = 32, /* max number of interrupt handlers */
 };
 
-typedef struct Handler	Handler;
-struct Handler
-{
-	void	(*r)(Ureg*, void*);
-	void	*arg;
-	Handler	*next;
+typedef struct Handler Handler;
+struct Handler {
+	void (*r)(Ureg *, void *);
+	void *arg;
+	Handler *next;
 };
 
 struct
-{
-	Handler	*ivec[256];
-	Handler	h[Maxhandler];
-	int	nextfree;
+    {
+	Handler *ivec[256];
+	Handler h[Maxhandler];
+	int nextfree;
 } halloc;
 
 void
 sethvec(int v, void (*r)(void), int type, int pri)
 {
-	ilt[v].d0 = ((uint32_t)r)&0xFFFF|(KESEL<<16);
-	ilt[v].d1 = ((uint32_t)r)&0xFFFF0000|SEGP|SEGPL(pri)|type;
+	ilt[v].d0 = ((uint32_t)r) & 0xFFFF | (KESEL << 16);
+	ilt[v].d1 = ((uint32_t)r) & 0xFFFF0000 | SEGP | SEGPL(pri) | type;
 }
 
 void
-setvec(int v, void (*r)(Ureg*, void*), void *arg)
+setvec(int v, void (*r)(Ureg *, void *), void *arg)
 {
 	Handler *h;
 
@@ -109,11 +112,11 @@ setvec(int v, void (*r)(Ureg*, void*), void *arg)
 	/*
 	 *  enable corresponding interrupt in 8259
 	 */
-	if((v&~0x7) == VectorPIC){
-		int0mask &= ~(1<<(v&7));
+	if((v & ~0x7) == VectorPIC) {
+		int0mask &= ~(1 << (v & 7));
 		outb(Int0aux, int0mask);
-	} else if((v&~0x7) == VectorPIC+8){
-		int1mask &= ~(1<<(v&7));
+	} else if((v & ~0x7) == VectorPIC + 8) {
+		int1mask &= ~(1 << (v & 7));
 		outb(Int1aux, int1mask);
 	}
 }
@@ -197,16 +200,16 @@ trapinit(void)
 	 */
 	memmove(m->gdt, gdt, sizeof gdt);
 
-	ptr[0] = sizeof(gdt)-1;
+	ptr[0] = sizeof(gdt) - 1;
 	a = (uint32_t)m->gdt;
 	ptr[1] = a & 0xFFFF;
-	ptr[2] = (a>>16) & 0xFFFF;
+	ptr[2] = (a >> 16) & 0xFFFF;
 	lgdt(ptr);
 
-	ptr[0] = sizeof(Segdesc)*256-1;
+	ptr[0] = sizeof(Segdesc) * 256 - 1;
 	a = (uint32_t)ilt;
 	ptr[1] = a & 0xFFFF;
-	ptr[2] = (a>>16) & 0xFFFF;
+	ptr[2] = (a >> 16) & 0xFFFF;
 	lidt(ptr);
 
 	/*
@@ -215,11 +218,11 @@ trapinit(void)
 	 *  Set the 8259 as master with edge triggered
 	 *  input with fully nested interrupts.
 	 */
-	outb(Int0ctl, Icw1|0x01);	/* ICW1 - edge triggered, master,
+	outb(Int0ctl, Icw1 | 0x01); /* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
-	outb(Int0aux, VectorPIC);	/* ICW2 - interrupt vector offset */
-	outb(Int0aux, 0x04);		/* ICW3 - have slave on level 2 */
-	outb(Int0aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
+	outb(Int0aux, VectorPIC);   /* ICW2 - interrupt vector offset */
+	outb(Int0aux, 0x04);	/* ICW3 - have slave on level 2 */
+	outb(Int0aux, 0x01);	/* ICW4 - 8086 mode, not buffered */
 
 	/*
 	 *  Set up the second 8259 interrupt processor.
@@ -227,11 +230,11 @@ trapinit(void)
 	 *  Set the 8259 as master with edge triggered
 	 *  input with fully nested interrupts.
 	 */
-	outb(Int1ctl, Icw1|0x01);	/* ICW1 - edge triggered, master,
+	outb(Int1ctl, Icw1 | 0x01);   /* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
-	outb(Int1aux, VectorPIC+8);	/* ICW2 - interrupt vector offset */
-	outb(Int1aux, 0x02);		/* ICW3 - I am a slave on level 2 */
-	outb(Int1aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
+	outb(Int1aux, VectorPIC + 8); /* ICW2 - interrupt vector offset */
+	outb(Int1aux, 0x02);	  /* ICW3 - I am a slave on level 2 */
+	outb(Int1aux, 0x01);	  /* ICW4 - 8086 mode, not buffered */
 	outb(Int1aux, int1mask);
 
 	/*
@@ -243,8 +246,8 @@ trapinit(void)
 	/*
 	 * Set Ocw3 to return the ISR when ctl read.
 	 */
-	outb(Int0ctl, Ocw3|0x03);
-	outb(Int1ctl, Ocw3|0x03);
+	outb(Int0ctl, Ocw3 | 0x03);
+	outb(Int1ctl, Ocw3 | 0x03);
 
 	/*
 	 * Check for Edge/Level register.
@@ -253,10 +256,10 @@ trapinit(void)
 	 * IRQs 13, 8, 2, 1 and 0 must be edge (0). If
 	 * that's OK try a R/W test.
 	 */
-	x = (inb(Elcr2)<<8)|inb(Elcr1);
-	if(!(x & 0x2107)){
+	x = (inb(Elcr2) << 8) | inb(Elcr1);
+	if(!(x & 0x2107)) {
 		outb(Elcr1, 0);
-		if(inb(Elcr1) == 0){
+		if(inb(Elcr1) == 0) {
 			outb(Elcr1, 0x20);
 			if(inb(Elcr1) == 0x20)
 				i8259elcr = x;
@@ -273,15 +276,15 @@ static void
 dumpregs(Ureg *ur)
 {
 	print("FLAGS=%lux TRAP=%lux ECODE=%lux PC=%lux\n",
-		ur->flags, ur->trap, ur->ecode, ur->pc);
+	      ur->flags, ur->trap, ur->ecode, ur->pc);
 	print("  AX %8.8lux  BX %8.8lux  CX %8.8lux  DX %8.8lux\n",
-		ur->ax, ur->bx, ur->cx, ur->dx);
+	      ur->ax, ur->bx, ur->cx, ur->dx);
 	print("  SI %8.8lux  DI %8.8lux  BP %8.8lux\n",
-		ur->si, ur->di, ur->bp);
+	      ur->si, ur->di, ur->bp);
 	print("  CS %4.4lux DS %4.4lux  ES %4.4lux  FS %4.4lux  GS %4.4lux\n",
-		ur->cs & 0xFF, ur->ds & 0xFFFF, ur->es & 0xFFFF, ur->fs & 0xFFFF, ur->gs & 0xFFFF);
+	      ur->cs & 0xFF, ur->ds & 0xFFFF, ur->es & 0xFFFF, ur->fs & 0xFFFF, ur->gs & 0xFFFF);
 	print("  CR0 %8.8lux CR2 %8.8lux CR3 %8.8lux\n",
-		getcr0(), getcr2(), getcr3());
+	      getcr0(), getcr2(), getcr3());
 }
 
 /*
@@ -301,19 +304,19 @@ trap(Ureg *ur)
 	 *  highest level interrupt (interrupts are still
 	 *  off at this point)
 	 */
-	c = v&~0x7;
+	c = v & ~0x7;
 	isr = 0;
-	if(c==VectorPIC || c==VectorPIC+8){
+	if(c == VectorPIC || c == VectorPIC + 8) {
 		isr = inb(Int0ctl);
 		outb(Int0ctl, EOI);
-		if(c == VectorPIC+8){
-			isr |= inb(Int1ctl)<<8;
+		if(c == VectorPIC + 8) {
+			isr |= inb(Int1ctl) << 8;
 			outb(Int1ctl, EOI);
 		}
 	}
 
-	if(v>=256 || (h = halloc.ivec[v]) == 0){
-		if(v >= VectorPIC && v < VectorPIC+16){
+	if(v >= 256 || (h = halloc.ivec[v]) == 0) {
+		if(v >= VectorPIC && v < VectorPIC + 16) {
 			v -= VectorPIC;
 			/*
 			 * Check for a default IRQ7. This can happen when
@@ -322,28 +325,27 @@ trap(Ureg *ur)
 			 * the corresponding bit in the ISR isn't set.
 			 * In fact, just ignore all such interrupts.
 			 */
-			if(isr & (1<<v))
+			if(isr & (1 << v))
 				print("unknown interrupt %d pc=0x%lux\n", v, ur->pc);
 			return;
 		}
 
-		switch(v){
+		switch(v) {
 
-		case 0x02:				/* NMI */
+		case 0x02: /* NMI */
 			print("NMI: nmisc=0x%2.2ux, nmiertc=0x%2.2ux, nmiesc=0x%2.2ux\n",
-				inb(0x61), inb(0x70), inb(0x461));
+			      inb(0x61), inb(0x70), inb(0x461));
 			return;
 
-		case 0x06:
-			{
-				uint8_t *p = (uint8_t*)(ur->pc-20);
-				int i;
+		case 0x06: {
+			uint8_t *p = (uint8_t *)(ur->pc - 20);
+			int i;
 
-				for(i = 0; i < 40; i++){
-					print(" %2.2ux", *p);
-					p++;
-				}
+			for(i = 0; i < 40; i++) {
+				print(" %2.2ux", *p);
+				p++;
 			}
+		}
 
 		default:
 			dumpregs(ur);

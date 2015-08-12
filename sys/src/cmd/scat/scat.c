@@ -15,53 +15,52 @@
 #include "sky.h"
 #include "strings.c"
 
-enum
-{
-	NNGC=7840,	/* number of NGC numbers [1..NNGC] */
-	NIC = 5386,	/* number of IC numbers */
-	NNGCrec=NNGC+NIC,	/* number of records in the NGC catalog (including IC's, starting at NNGC */
-	NMrec=122,	/* number of M records */
-	NM=110,		/* number of M numbers */
-	NAbell=2712,	/* number of records in the Abell catalog */
-	NName=1000,	/* number of prose names; estimated maximum (read from editable text file) */
-	NBayer=1517,	/* number of bayer entries */
-	NSAO=258998,	/* number of SAO stars */
-	MAXcon=1932,	/* maximum number of patches in a constellation */
-	Ncon=88,	/* number of constellations */
-	Npatch=92053,	/* highest patch number */
+enum {
+	NNGC = 7840,	  /* number of NGC numbers [1..NNGC] */
+	NIC = 5386,	   /* number of IC numbers */
+	NNGCrec = NNGC + NIC, /* number of records in the NGC catalog (including IC's, starting at NNGC */
+	NMrec = 122,	  /* number of M records */
+	NM = 110,	     /* number of M numbers */
+	NAbell = 2712,	/* number of records in the Abell catalog */
+	NName = 1000,	 /* number of prose names; estimated maximum (read from editable text file) */
+	NBayer = 1517,	/* number of bayer entries */
+	NSAO = 258998,	/* number of SAO stars */
+	MAXcon = 1932,	/* maximum number of patches in a constellation */
+	Ncon = 88,	    /* number of constellations */
+	Npatch = 92053,       /* highest patch number */
 };
 
-char		ngctype[NNGCrec];
-Mindexrec	mindex[NMrec];
-Namerec		name[NName];
-Bayerec		bayer[NBayer];
-int32_t		con[MAXcon];
-uint16_t		conindex[Ncon+1];
-int32_t		patchaddr[Npatch+1];
+char ngctype[NNGCrec];
+Mindexrec mindex[NMrec];
+Namerec name[NName];
+Bayerec bayer[NBayer];
+int32_t con[MAXcon];
+uint16_t conindex[Ncon + 1];
+int32_t patchaddr[Npatch + 1];
 
-Record	*rec;
-Record	*orec;
-Record	*cur;
+Record *rec;
+Record *orec;
+Record *cur;
 
-char	*dir=DIR;
-int	saodb;
-int	ngcdb;
-int	abelldb;
-int	ngctypedb;
-int	mindexdb;
-int	namedb;
-int	bayerdb;
-int	condb;
-int	conindexdb;
-int	patchdb;
-char	parsed[3];
-int32_t	nrec;
-int32_t	nreca;
-int32_t	norec;
-int32_t	noreca;
+char *dir = DIR;
+int saodb;
+int ngcdb;
+int abelldb;
+int ngctypedb;
+int mindexdb;
+int namedb;
+int bayerdb;
+int condb;
+int conindexdb;
+int patchdb;
+char parsed[3];
+int32_t nrec;
+int32_t nreca;
+int32_t norec;
+int32_t noreca;
 
-Biobuf	bin;
-Biobuf	bout;
+Biobuf bin;
+Biobuf bout;
 
 main(int argc, char *argv[])
 {
@@ -72,12 +71,12 @@ main(int argc, char *argv[])
 	if(argc != 1)
 		dir = argv[1];
 	astro("", 1);
-	while(line = Brdline(&bin, '\n')){
-		line[Blinelen(&bin)-1] = 0;
+	while(line = Brdline(&bin, '\n')) {
+		line[Blinelen(&bin) - 1] = 0;
 		lookup(line, 1);
 		Bflush(&bout);
 	}
-	if(display != nil){
+	if(display != nil) {
 		closedisplay(display);
 		/* automatic refresh of rio window is triggered by mouse */
 		close(open("/dev/mouse", OREAD));
@@ -96,29 +95,29 @@ void
 grow(void)
 {
 	nrec++;
-	if(nreca < nrec){
-		nreca = nrec+50;
-		rec = realloc(rec, nreca*sizeof(Record));
-		if(rec == 0){
+	if(nreca < nrec) {
+		nreca = nrec + 50;
+		rec = realloc(rec, nreca * sizeof(Record));
+		if(rec == 0) {
 			fprint(2, "scat: realloc fails\n");
 			exits("realloc");
 		}
 	}
-	cur = rec+nrec-1;
+	cur = rec + nrec - 1;
 }
 
 void
 copy(void)
 {
-	if(noreca < nreca){
+	if(noreca < nreca) {
 		noreca = nreca;
-		orec = realloc(orec, nreca*sizeof(Record));
-		if(orec == 0){
+		orec = realloc(orec, nreca * sizeof(Record));
+		if(orec == 0) {
 			fprint(2, "scat: realloc fails\n");
 			exits("realloc");
 		}
 	}
-	memmove(orec, rec, nrec*sizeof(Record));
+	memmove(orec, rec, nrec * sizeof(Record));
 	norec = nrec;
 }
 
@@ -130,35 +129,34 @@ eopen(char *s)
 
 	sprint(buf, "%s/%s.scat", dir, s);
 	f = open(buf, 0);
-	if(f<0){
+	if(f < 0) {
 		fprint(2, "scat: can't open %s\n", buf);
 		exits("open");
 	}
 	return f;
 }
 
-
 void
 Eread(int f, char *name, void *addr, int32_t n)
 {
-	if(read(f, addr, n) != n){	/* BUG! */
+	if(read(f, addr, n) != n) { /* BUG! */
 		fprint(2, "scat: read error on %s\n", name);
 		exits("read");
 	}
 }
 
-char*
+char *
 skipbl(char *s)
 {
-	while(*s!=0 && (*s==' ' || *s=='\t'))
+	while(*s != 0 && (*s == ' ' || *s == '\t'))
 		s++;
 	return s;
 }
 
-char*
+char *
 skipstr(char *s, char *t)
 {
-	while(*s && *s==*t)
+	while(*s && *s == *t)
 		s++, t++;
 	return skipbl(s);
 }
@@ -169,8 +167,8 @@ Long(int32_t *l)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)l;
-	return (int32_t)p[0]|((int32_t)p[1]<<8)|((int32_t)p[2]<<16)|((int32_t)p[3]<<24);
+	p = (uint8_t *)l;
+	return (int32_t)p[0] | ((int32_t)p[1] << 8) | ((int32_t)p[2] << 16) | ((int32_t)p[3] << 24);
 }
 
 /* produce little-endian long at address l */
@@ -179,8 +177,8 @@ Short(int16_t *s)
 {
 	uint8_t *p;
 
-	p = (uint8_t*)s;
-	return p[0]|(p[1]<<8);
+	p = (uint8_t *)s;
+	return p[0] | (p[1] << 8);
 }
 
 void
@@ -190,29 +188,29 @@ nameopen(void)
 	int i;
 	char *l, *p;
 
-	if(namedb == 0){
+	if(namedb == 0) {
 		namedb = eopen("name");
 		Binit(&b, namedb, OREAD);
-		for(i=0; i<NName; i++){
+		for(i = 0; i < NName; i++) {
 			l = Brdline(&b, '\n');
 			if(l == 0)
 				break;
 			p = strchr(l, '\t');
-			if(p == 0){
-		Badformat:
-				Bprint(&bout, "warning: name.scat bad format; line %d\n", i+1);
+			if(p == 0) {
+			Badformat:
+				Bprint(&bout, "warning: name.scat bad format; line %d\n", i + 1);
 				break;
 			}
 			*p++ = 0;
 			strcpy(name[i].name, l);
 			if(strncmp(p, "ngc", 3) == 0)
-				name[i].ngc = atoi(p+3);
+				name[i].ngc = atoi(p + 3);
 			else if(strncmp(p, "ic", 2) == 0)
-				name[i].ngc = atoi(p+2)+NNGC;
+				name[i].ngc = atoi(p + 2) + NNGC;
 			else if(strncmp(p, "sao", 3) == 0)
-				name[i].sao = atoi(p+3);
+				name[i].sao = atoi(p + 3);
 			else if(strncmp(p, "abell", 5) == 0)
-				name[i].abell = atoi(p+5);
+				name[i].abell = atoi(p + 5);
 			else
 				goto Badformat;
 		}
@@ -223,7 +221,7 @@ nameopen(void)
 		bayerdb = eopen("bayer");
 		Eread(bayerdb, "bayer", bayer, sizeof bayer);
 		close(bayerdb);
-		for(i=0; i<NBayer; i++)
+		for(i = 0; i < NBayer; i++)
 			bayer[i].sao = Long(&bayer[i].sao);
 	}
 }
@@ -231,7 +229,7 @@ nameopen(void)
 void
 saoopen(void)
 {
-	if(saodb == 0){
+	if(saodb == 0) {
 		nameopen();
 		saodb = eopen("sao");
 	}
@@ -240,7 +238,7 @@ saoopen(void)
 void
 ngcopen(void)
 {
-	if(ngcdb == 0){
+	if(ngcdb == 0) {
 		nameopen();
 		ngcdb = eopen("ngc2000");
 		ngctypedb = eopen("ngc2000type");
@@ -264,16 +262,16 @@ patchopen(void)
 	int32_t l, m;
 	char buf[100];
 
-	if(patchdb == 0){
+	if(patchdb == 0) {
 		patchdb = eopen("patch");
 		sprint(buf, "%s/patchindex.scat", dir);
 		b = Bopen(buf, OREAD);
-		if(b == 0){
+		if(b == 0) {
 			fprint(2, "can't open %s\n", buf);
 			exits("open");
 		}
-		for(m=0,l=0; l<=Npatch; l++)
-			patchaddr[l] = m += Bgetc(b)*4;
+		for(m = 0, l = 0; l <= Npatch; l++)
+			patchaddr[l] = m += Bgetc(b) * 4;
 		Bterm(b);
 	}
 }
@@ -283,11 +281,11 @@ mopen(void)
 {
 	int i;
 
-	if(mindexdb == 0){
+	if(mindexdb == 0) {
 		mindexdb = eopen("mindex");
 		Eread(mindexdb, "mindex", mindex, sizeof mindex);
 		close(mindexdb);
-		for(i=0; i<NMrec; i++)
+		for(i = 0; i < NMrec; i++)
 			mindex[i].ngc = Short(&mindex[i].ngc);
 	}
 }
@@ -297,13 +295,13 @@ constelopen(void)
 {
 	int i;
 
-	if(condb == 0){
+	if(condb == 0) {
 		condb = eopen("con");
 		conindexdb = eopen("conindex");
 		Eread(conindexdb, "conindex", conindex, sizeof conindex);
 		close(conindexdb);
-		for(i=0; i<Ncon+1; i++)
-			conindex[i] = Short((int16_t*)&conindex[i]);
+		for(i = 0; i < Ncon + 1; i++)
+			conindex[i] = Short((int16_t *)&conindex[i]);
 	}
 }
 
@@ -311,8 +309,8 @@ void
 lowercase(char *s)
 {
 	for(; *s; s++)
-		if('A'<=*s && *s<='Z')
-			*s += 'a'-'A';
+		if('A' <= *s && *s <= 'Z')
+			*s += 'a' - 'A';
 }
 
 int
@@ -322,14 +320,14 @@ loadngc(int32_t index)
 	int32_t j;
 
 	ngcopen();
-	j = (index-1)*sizeof(NGCrec);
+	j = (index - 1) * sizeof(NGCrec);
 	grow();
 	cur->type = NGC;
 	cur->index = index;
 	seek(ngcdb, j, 0);
 	/* special case: NGC data may not be available */
-	if(read(ngcdb, &cur->ngc, sizeof(NGCrec)) != sizeof(NGCrec)){
-		if(!failed){
+	if(read(ngcdb, &cur->ngc, sizeof(NGCrec)) != sizeof(NGCrec)) {
+		if(!failed) {
 			fprint(2, "scat: NGC database not available\n");
 			failed++;
 		}
@@ -355,14 +353,14 @@ loadabell(int32_t index)
 	int32_t j;
 
 	abellopen();
-	j = index-1;
+	j = index - 1;
 	grow();
 	cur->type = Abell;
 	cur->index = index;
-	seek(abelldb, j*sizeof(Abellrec), 0);
+	seek(abelldb, j * sizeof(Abellrec), 0);
 	Eread(abelldb, "abell", &cur->abell, sizeof(Abellrec));
 	cur->abell.abell = Short(&cur->abell.abell);
-	if(cur->abell.abell != index){
+	if(cur->abell.abell != index) {
 		fprint(2, "bad format in abell catalog\n");
 		exits("abell");
 	}
@@ -380,13 +378,13 @@ loadabell(int32_t index)
 int
 loadsao(int index)
 {
-	if(index<=0 || index>NSAO)
+	if(index <= 0 || index > NSAO)
 		return 0;
 	saoopen();
 	grow();
 	cur->type = SAO;
 	cur->index = index;
-	seek(saodb, (index-1)*sizeof(SAOrec), 0);
+	seek(saodb, (index - 1) * sizeof(SAOrec), 0);
 	Eread(saodb, "sao", &cur->sao, sizeof(SAOrec));
 	cur->sao.ra = Long(&cur->sao.ra);
 	cur->sao.dec = Long(&cur->sao.dec);
@@ -401,7 +399,7 @@ loadsao(int index)
 int
 loadplanet(int index, Record *r)
 {
-	if(index<0 || index>NPlanet || planet[index].name[0]=='\0')
+	if(index < 0 || index > NPlanet || planet[index].name[0] == '\0')
 		return 0;
 	grow();
 	cur->type = Planet;
@@ -420,15 +418,15 @@ loadpatch(int32_t index)
 	int i;
 
 	patchopen();
-	if(index<=0 || index>Npatch)
+	if(index <= 0 || index > Npatch)
 		return 0;
 	grow();
 	cur->type = Patch;
 	cur->index = index;
-	seek(patchdb, patchaddr[index-1], 0);
-	cur->patch.nkey = (patchaddr[index]-patchaddr[index-1])/4;
-	Eread(patchdb, "patch", cur->patch.key, cur->patch.nkey*4);
-	for(i=0; i<cur->patch.nkey; i++)
+	seek(patchdb, patchaddr[index - 1], 0);
+	cur->patch.nkey = (patchaddr[index] - patchaddr[index - 1]) / 4;
+	Eread(patchdb, "patch", cur->patch.key, cur->patch.nkey * 4);
+	for(i = 0; i < cur->patch.nkey; i++)
 		cur->patch.key[i] = Long(&cur->patch.key[i]);
 	return 1;
 }
@@ -439,11 +437,11 @@ loadtype(int t)
 	int i;
 
 	ngcopen();
-	for(i=0; i<NNGCrec; i++)
-		if(t == (ngctype[i])){
+	for(i = 0; i < NNGCrec; i++)
+		if(t == (ngctype[i])) {
 			grow();
 			cur->type = NGCN;
-			cur->index = i+1;
+			cur->index = i + 1;
 		}
 	return 1;
 }
@@ -452,15 +450,15 @@ void
 flatten(void)
 {
 	int i, j, notflat;
-	Record *or;
+	Record * or ;
 	int32_t key;
 
-    loop:
+loop:
 	copy();
 	reset();
 	notflat = 0;
-	for(i=0,or=orec; i<norec; i++,or++){
-		switch(or->type){
+	for(i = 0, or = orec; i < norec; i++, or ++) {
+		switch(or->type) {
 		default:
 			fprint(2, "bad type %d in flatten\n", or->type);
 			break;
@@ -502,14 +500,14 @@ flatten(void)
 			break;
 
 		case Patch:
-			for(j=1; j<or->patch.nkey; j++){
+			for(j = 1; j < or->patch.nkey; j++) {
 				key = or->patch.key[j];
-				if((key&0x3F) == SAO)
-					loadsao((key>>8)&0xFFFFFF);
-				else if((key&0x3F) == Abell)
-					loadabell((key>>8)&0xFFFFFF);
+				if((key & 0x3F) == SAO)
+					loadsao((key >> 8) & 0xFFFFFF);
+				else if((key & 0x3F) == Abell)
+					loadabell((key >> 8) & 0xFFFFFF);
 				else
-					loadngc((key>>16)&0xFFFF);
+					loadngc((key >> 16) & 0xFFFF);
 			}
 			break;
 		}
@@ -523,41 +521,39 @@ ism(int index)
 {
 	int i;
 
-	for(i=0; i<NMrec; i++)
+	for(i = 0; i < NMrec; i++)
 		if(mindex[i].ngc == index)
 			return 1;
 	return 0;
 }
 
-char*
+char *
 alpha(char *s, char *t)
 {
 	int n;
 
 	n = strlen(t);
-	if(strncmp(s, t, n)==0 && (s[n]<'a' || 'z'<s[n]))
-		return skipbl(s+n);
+	if(strncmp(s, t, n) == 0 && (s[n] < 'a' || 'z' < s[n]))
+		return skipbl(s + n);
 	return 0;
-	
 }
 
-char*
+char *
 text(char *s, char *t)
 {
 	int n;
 
 	n = strlen(t);
-	if(strncmp(s, t, n)==0 && (s[n]==0 || s[n]==' ' || s[n]=='\t'))
-		return skipbl(s+n);
+	if(strncmp(s, t, n) == 0 && (s[n] == 0 || s[n] == ' ' || s[n] == '\t'))
+		return skipbl(s + n);
 	return 0;
-	
 }
 
 int
 cull(char *s, int keep, int dobbox)
 {
 	int i, j, nobj, keepthis;
-	Record *or;
+	Record * or ;
 	char *t;
 	int dogrtr, doless, dom, dosao, dongc, doabell;
 	int mgrtr, mless;
@@ -571,53 +567,53 @@ cull(char *s, int keep, int dobbox)
 	dongc = 0;
 	dosao = 0;
 	doabell = 0;
-	mgrtr = mless= 0;
+	mgrtr = mless = 0;
 	if(dobbox)
 		goto Cull;
-	for(;;){
-		if(s[0] == '>'){
+	for(;;) {
+		if(s[0] == '>') {
 			dogrtr = 1;
-			mgrtr = 10 * strtod(s+1, &t);
-			if(mgrtr==0  && t==s+1){
+			mgrtr = 10 * strtod(s + 1, &t);
+			if(mgrtr == 0 && t == s + 1) {
 				fprint(2, "bad magnitude\n");
 				return 0;
 			}
 			s = skipbl(t);
 			continue;
 		}
-		if(s[0] == '<'){
+		if(s[0] == '<') {
 			doless = 1;
-			mless = 10 * strtod(s+1, &t);
-			if(mless==0  && t==s+1){
+			mless = 10 * strtod(s + 1, &t);
+			if(mless == 0 && t == s + 1) {
 				fprint(2, "bad magnitude\n");
 				return 0;
 			}
 			s = skipbl(t);
 			continue;
 		}
-		if(t = text(s, "m")){
- 			dom = 1;
+		if(t = text(s, "m")) {
+			dom = 1;
 			s = t;
 			continue;
 		}
-		if(t = text(s, "sao")){
+		if(t = text(s, "sao")) {
 			dosao = 1;
 			s = t;
 			continue;
 		}
-		if(t = text(s, "ngc")){
+		if(t = text(s, "ngc")) {
 			dongc = 1;
 			s = t;
 			continue;
 		}
-		if(t = text(s, "abell")){
+		if(t = text(s, "abell")) {
 			doabell = 1;
 			s = t;
 			continue;
 		}
-		for(i=0; names[i].name; i++)
-			if(t = alpha(s, names[i].name)){
-				if(nobj > 100){
+		for(i = 0; names[i].name; i++)
+			if(t = alpha(s, names[i].name)) {
+				if(nobj > 100) {
 					fprint(2, "too many object types\n");
 					return 0;
 				}
@@ -626,14 +622,15 @@ cull(char *s, int keep, int dobbox)
 				goto Continue;
 			}
 		break;
-	    Continue:;
+	Continue:
+		;
 	}
-	if(*s){
+	if(*s) {
 		fprint(2, "syntax error in object list\n");
 		return 0;
 	}
 
-    Cull:
+Cull:
 	flatten();
 	copy();
 	reset();
@@ -645,7 +642,7 @@ cull(char *s, int keep, int dobbox)
 		ngcopen();
 	if(doabell)
 		abellopen();
-	for(i=0,or=orec; i<norec; i++,or++){
+	for(i = 0, or = orec; i < norec; i++, or ++) {
 		keepthis = !keep;
 		if(dobbox && inbbox(or->ngc.ra, or->ngc.dec))
 			keepthis = keep;
@@ -653,18 +650,18 @@ cull(char *s, int keep, int dobbox)
 			keepthis = keep;
 		if(dogrtr && or->ngc.mag >= mgrtr)
 			keepthis = keep;
-		if(dom && (or->type==NGC && ism(or->ngc.ngc)))
+		if(dom && (or->type == NGC && ism(or->ngc.ngc)))
 			keepthis = keep;
-		if(dongc && or->type==NGC)
+		if(dongc && or->type == NGC)
 			keepthis = keep;
-		if(doabell && or->type==Abell)
+		if(doabell && or->type == Abell)
 			keepthis = keep;
-		if(dosao && or->type==SAO)
+		if(dosao && or->type == SAO)
 			keepthis = keep;
-		for(j=0; j<nobj; j++)
-			if(or->type==NGC && or->ngc.type==obj[j])
+		for(j = 0; j < nobj; j++)
+			if(or->type == NGC && or->ngc.type == obj[j])
 				keepthis = keep;
-		if(keepthis){
+		if(keepthis) {
 			grow();
 			memmove(cur, or, sizeof(Record));
 		}
@@ -675,7 +672,7 @@ cull(char *s, int keep, int dobbox)
 int
 compar(const void *va, const void *vb)
 {
-	Record *a=va, *b=vb;
+	Record *a = va, *b = vb;
 
 	if(a->type == b->type)
 		return a->index - b->index;
@@ -691,20 +688,20 @@ sort(void)
 	if(nrec == 0)
 		return;
 	qsort(rec, nrec, sizeof(Record), compar);
-	r = rec+1;
+	r = rec + 1;
 	s = rec;
-	for(i=1; i<nrec; i++,r++){
+	for(i = 1; i < nrec; i++, r++) {
 		/* may have multiple instances of a planet in the scene */
-		if(r->type==s->type && r->index==s->index && r->type!=Planet)
+		if(r->type == s->type && r->index == s->index && r->type != Planet)
 			continue;
 		memmove(++s, r, sizeof(Record));
 	}
-	nrec = (s+1)-rec;
+	nrec = (s + 1) - rec;
 }
 
-char	greekbuf[128];
+char greekbuf[128];
 
-char*
+char *
 togreek(char *s)
 {
 	char *t;
@@ -712,25 +709,26 @@ togreek(char *s)
 	Rune r;
 
 	t = greekbuf;
-	while(*s){
-		for(i=1; i<=24; i++){
+	while(*s) {
+		for(i = 1; i <= 24; i++) {
 			n = strlen(greek[i]);
-			if(strncmp(s, greek[i], n)==0 && (s[n]==' ' || s[n]=='\t')){
+			if(strncmp(s, greek[i], n) == 0 && (s[n] == ' ' || s[n] == '\t')) {
 				s += n;
 				t += runetochar(t, &greeklet[i]);
 				goto Cont;
 			}
 		}
 		n = chartorune(&r, s);
-		for(i=0; i<n; i++)
+		for(i = 0; i < n; i++)
 			*t++ = *s++;
-    Cont:;
+	Cont:
+		;
 	}
 	*t = 0;
 	return greekbuf;
 }
 
-char*
+char *
 fromgreek(char *s)
 {
 	char *t;
@@ -738,19 +736,20 @@ fromgreek(char *s)
 	Rune r;
 
 	t = greekbuf;
-	while(*s){
+	while(*s) {
 		n = chartorune(&r, s);
-		for(i=1; i<=24; i++){
-			if(r == greeklet[i]){
+		for(i = 1; i <= 24; i++) {
+			if(r == greeklet[i]) {
 				strcpy(t, greek[i]);
 				t += strlen(greek[i]);
 				s += n;
 				goto Cont;
 			}
 		}
-		for(i=0; i<n; i++)
+		for(i = 0; i < n; i++)
 			*t++ = *s++;
-    Cont:;
+	Cont:
+		;
 	}
 	*t = 0;
 	return greekbuf;
@@ -765,7 +764,7 @@ coords(int deg)
 {
 	int i;
 	int x, y;
-	Record *or;
+	Record * or ;
 	int32_t dec, ra, ndec, nra;
 	int rdeg;
 
@@ -773,29 +772,29 @@ coords(int deg)
 	copy();
 	reset();
 	deg *= 2;
-	for(i=0,or=orec; i<norec; i++,or++){
-		if(or->type == Planet)	/* must keep it here */
-			loadplanet(or->index, or);
-		dec = or->ngc.dec/MILLIARCSEC;
-		ra = or->ngc.ra/MILLIARCSEC;
-		rdeg = deg/cos((dec*PI)/180);
-		for(y=-deg; y<=+deg; y++){
-			ndec = dec*2+y;
-			if(ndec/2>=90 || ndec/2<=-90)
+	for(i = 0, or = orec; i < norec; i++, or ++) {
+		if(or->type == Planet) /* must keep it here */
+			loadplanet(or->index, or );
+		dec = or->ngc.dec / MILLIARCSEC;
+		ra = or->ngc.ra / MILLIARCSEC;
+		rdeg = deg / cos((dec * PI) / 180);
+		for(y = -deg; y <= +deg; y++) {
+			ndec = dec * 2 + y;
+			if(ndec / 2 >= 90 || ndec / 2 <= -90)
 				continue;
 			/* fp errors hurt here, so we round 1' to the pole */
 			if(ndec >= 0)
-				ndec = ndec*500*60*60 + 60000;
+				ndec = ndec * 500 * 60 * 60 + 60000;
 			else
-				ndec = ndec*500*60*60 - 60000;
-			for(x=-rdeg; x<=+rdeg; x++){
-				nra = ra*2+x;
-				if(nra/2 < 0)
-					nra += 360*2;
-				if(nra/2 >= 360)
-					nra -= 360*2;
+				ndec = ndec * 500 * 60 * 60 - 60000;
+			for(x = -rdeg; x <= +rdeg; x++) {
+				nra = ra * 2 + x;
+				if(nra / 2 < 0)
+					nra += 360 * 2;
+				if(nra / 2 >= 360)
+					nra -= 360 * 2;
 				/* fp errors hurt here, so we round up 1' */
-				nra = nra/2*MILLIARCSEC + 60000;
+				nra = nra / 2 * MILLIARCSEC + 60000;
 				loadpatch(patcha(angle(nra), angle(ndec)));
 			}
 		}
@@ -813,42 +812,42 @@ coords(int deg)
 {
 	int i;
 	int x, y, xx;
-	Record *or;
+	Record * or ;
 	int32_t min, circle;
 	double factor;
 
 	flatten();
-	circle = 360*MILLIARCSEC;
+	circle = 360 * MILLIARCSEC;
 	deg *= MILLIARCSEC;
 
 	/* find center */
 	folded = 0;
 	bbox(0, 0, 0);
 	/* now expand */
-	factor = cos(angle((decmax+decmin)/2));
+	factor = cos(angle((decmax + decmin) / 2));
 	if(factor < .2)
 		factor = .2;
-	factor = floor(1/factor);
+	factor = floor(1 / factor);
 	folded = 0;
-	bbox(factor*deg, deg, 1);
+	bbox(factor * deg, deg, 1);
 	Bprint(&bout, "%s to ", hms(angle(ramin)));
 	Bprint(&bout, "%s\n", hms(angle(ramax)));
 	Bprint(&bout, "%s to ", dms(angle(decmin)));
 	Bprint(&bout, "%s\n", dms(angle(decmax)));
 	copy();
 	reset();
-	for(i=0,or=orec; i<norec; i++,or++)
-		if(or->type == Planet)	/* must keep it here */
-			loadplanet(or->index, or);
+	for(i = 0, or = orec; i < norec; i++, or ++)
+		if(or->type == Planet) /* must keep it here */
+			loadplanet(or->index, or );
 	min = ramin;
 	if(ramin > ramax)
 		min -= circle;
-	for(x=min; x<=ramax; x+=250*60*60){
+	for(x = min; x <= ramax; x += 250 * 60 * 60) {
 		xx = x;
 		if(xx < 0)
 			xx += circle;
-		for(y=decmin; y<=decmax; y+=250*60*60)
-			if(-circle/4 < y && y < circle/4)
+		for(y = decmin; y <= decmax; y += 250 * 60 * 60)
+			if(-circle / 4 < y && y < circle / 4)
 				loadpatch(patcha(angle(xx), angle(y)));
 	}
 	sort();
@@ -864,7 +863,7 @@ pplate(char *flags)
 	int na, rah, ram, d1, d2;
 	double r0;
 	int ra, dec;
-	int32_t ramin, ramax, decmin, decmax;	/* all in degrees */
+	int32_t ramin, ramax, decmin, decmax; /* all in degrees */
 	Record *r;
 	int folded;
 	Angle racenter, deccenter, rasize, decsize, a[4];
@@ -873,25 +872,25 @@ pplate(char *flags)
 	rasize = -1.0;
 	decsize = -1.0;
 	na = 0;
-	for(;;){
-		while(*flags==' ')
+	for(;;) {
+		while(*flags == ' ')
 			flags++;
-		if(('0'<=*flags && *flags<='9') || *flags=='+' || *flags=='-'){
+		if(('0' <= *flags && *flags <= '9') || *flags == '+' || *flags == '-') {
 			if(na >= 3)
 				goto err;
 			a[na++] = getra(flags);
-			while(*flags && *flags!=' ')
+			while(*flags && *flags != ' ')
 				flags++;
 			continue;
 		}
-		if(*flags){
-	err:
+		if(*flags) {
+		err:
 			Bprint(&bout, "syntax error in plate\n");
 			return;
 		}
 		break;
 	}
-	switch(na){
+	switch(na) {
 	case 0:
 		break;
 	case 1:
@@ -911,7 +910,7 @@ pplate(char *flags)
 			decsize = a[3];
 		else
 			decsize = rasize;
-		if(rasize<0.0 || decsize<0.0){
+		if(rasize < 0.0 || decsize < 0.0) {
 			Bprint(&bout, "negative sizes\n");
 			return;
 		}
@@ -919,9 +918,9 @@ pplate(char *flags)
 	}
 	folded = 0;
 	/* convert to milliarcsec */
-	c = 1000*60*60;
-    Again:
-	if(nrec == 0){
+	c = 1000 * 60 * 60;
+Again:
+	if(nrec == 0) {
 		Bprint(&bout, "empty\n");
 		return;
 	}
@@ -929,11 +928,11 @@ pplate(char *flags)
 	ramax = -0x7FFFFFFF;
 	decmin = 0x7FFFFFFF;
 	decmax = -0x7FFFFFFF;
-	for(r=rec,i=0; i<nrec; i++,r++){
-		if(r->type == Patch){
+	for(r = rec, i = 0; i < nrec; i++, r++) {
+		if(r->type == Patch) {
 			radec(r->index, &rah, &ram, &dec);
-			ra = 15*rah+ram/4;
-			r0 = c/cos(RAD(dec));
+			ra = 15 * rah + ram / 4;
+			r0 = c / cos(RAD(dec));
 			ra *= c;
 			dec *= c;
 			if(dec == 0)
@@ -942,50 +941,50 @@ pplate(char *flags)
 				d1 = c, d2 = 0;
 			else
 				d1 = 0, d2 = c;
-		}else if(r->type==SAO || r->type==NGC || r->type==Abell){
+		} else if(r->type == SAO || r->type == NGC || r->type == Abell) {
 			ra = r->ngc.ra;
 			dec = r->ngc.dec;
 			d1 = 0, d2 = 0, r0 = 0;
-		}else if(r->type==NGCN){
+		} else if(r->type == NGCN) {
 			loadngc(r->index);
 			continue;
-		}else if(r->type==NamedSAO){
+		} else if(r->type == NamedSAO) {
 			loadsao(r->index);
 			continue;
-		}else if(r->type==NamedNGC){
+		} else if(r->type == NamedNGC) {
 			loadngc(r->index);
 			continue;
-		}else if(r->type==NamedAbell){
+		} else if(r->type == NamedAbell) {
 			loadabell(r->index);
 			continue;
-		}else
+		} else
 			continue;
-		if(dec+d2 > decmax)
-			decmax = dec+d2;
-		if(dec-d1 < decmin)
-			decmin = dec-d1;
-		if(folded){
-			ra -= 180*c;
+		if(dec + d2 > decmax)
+			decmax = dec + d2;
+		if(dec - d1 < decmin)
+			decmin = dec - d1;
+		if(folded) {
+			ra -= 180 * c;
 			if(ra < 0)
-				ra += 360*c;
+				ra += 360 * c;
 		}
-		if(ra+r0 > ramax)
-			ramax = ra+r0;
+		if(ra + r0 > ramax)
+			ramax = ra + r0;
 		if(ra < ramin)
 			ramin = ra;
 	}
-	if(!folded && ramax-ramin>270*c){
+	if(!folded && ramax - ramin > 270 * c) {
 		folded = 1;
 		goto Again;
 	}
-	racenter = angle(ramin+(ramax-ramin)/2);
-	deccenter = angle(decmin+(decmax-decmin)/2);
-	if(rasize<0 || decsize<0){
-		rasize = angle(ramax-ramin)*cos(deccenter);
-		decsize = angle(decmax-decmin);
+	racenter = angle(ramin + (ramax - ramin) / 2);
+	deccenter = angle(decmin + (decmax - decmin) / 2);
+	if(rasize < 0 || decsize < 0) {
+		rasize = angle(ramax - ramin) * cos(deccenter);
+		decsize = angle(decmax - decmin);
 	}
-    done:
-	if(DEG(rasize)>1.1 || DEG(decsize)>1.1){
+done:
+	if(DEG(rasize) > 1.1 || DEG(decsize) > 1.1) {
 		Bprint(&bout, "plate too big: %s", ms(rasize));
 		Bprint(&bout, " x %s\n", ms(decsize));
 		Bprint(&bout, "trimming to 30'x30'\n");
@@ -1010,7 +1009,7 @@ lookup(char *s, int doreset)
 {
 	int i, j, k;
 	int rah, ram, deg;
-	char *starts, *inputline=s, *t, *u;
+	char *starts, *inputline = s, *t, *u;
 	Record *r;
 	int32_t n;
 	double x;
@@ -1022,12 +1021,12 @@ lookup(char *s, int doreset)
 	if(*s == 0)
 		goto Print;
 
-	if(t = alpha(s, "flat")){
-		if(*t){
+	if(t = alpha(s, "flat")) {
+		if(*t) {
 			fprint(2, "flat takes no arguments\n");
 			return;
 		}
-		if(nrec == 0){
+		if(nrec == 0) {
 			fprint(2, "no records\n");
 			return;
 		}
@@ -1035,27 +1034,27 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "print")){
-		if(*t){
+	if(t = alpha(s, "print")) {
+		if(*t) {
 			fprint(2, "print takes no arguments\n");
 			return;
 		}
-		for(i=0,r=rec; i<nrec; i++,r++)
+		for(i = 0, r = rec; i < nrec; i++, r++)
 			prrec(r);
 		return;
 	}
 
-	if(t = alpha(s, "add")){
+	if(t = alpha(s, "add")) {
 		lookup(t, 0);
 		return;
 	}
 
-	if(t = alpha(s, "sao")){
+	if(t = alpha(s, "sao")) {
 		n = strtoul(t, &u, 10);
-		if(n<=0 || n>NSAO)
+		if(n <= 0 || n > NSAO)
 			goto NotFound;
 		t = skipbl(u);
-		if(*t){
+		if(*t) {
 			fprint(2, "syntax error in sao\n");
 			return;
 		}
@@ -1066,12 +1065,12 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "ngc")){
+	if(t = alpha(s, "ngc")) {
 		n = strtoul(t, &u, 10);
-		if(n<=0 || n>NNGC)
+		if(n <= 0 || n > NNGC)
 			goto NotFound;
 		t = skipbl(u);
-		if(*t){
+		if(*t) {
 			fprint(2, "syntax error in ngc\n");
 			return;
 		}
@@ -1082,25 +1081,25 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "ic")){
+	if(t = alpha(s, "ic")) {
 		n = strtoul(t, &u, 10);
-		if(n<=0 || n>NIC)
+		if(n <= 0 || n > NIC)
 			goto NotFound;
 		t = skipbl(u);
-		if(*t){
+		if(*t) {
 			fprint(2, "syntax error in ic\n");
 			return;
 		}
 		if(doreset)
 			reset();
-		if(!loadngc(n+NNGC))
+		if(!loadngc(n + NNGC))
 			goto NotFound;
 		goto Print;
 	}
 
-	if(t = alpha(s, "abell")){
+	if(t = alpha(s, "abell")) {
 		n = strtoul(t, &u, 10);
-		if(n<=0 || n>NAbell)
+		if(n <= 0 || n > NAbell)
 			goto NotFound;
 		if(doreset)
 			reset();
@@ -1109,17 +1108,17 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "m")){
+	if(t = alpha(s, "m")) {
 		n = strtoul(t, &u, 10);
-		if(n<=0 || n>NM)
+		if(n <= 0 || n > NM)
 			goto NotFound;
 		mopen();
-		for(j=n-1; mindex[j].m<n; j++)
+		for(j = n - 1; mindex[j].m < n; j++)
 			;
 		if(doreset)
 			reset();
-		while(mindex[j].m == n){
-			if(mindex[j].ngc){
+		while(mindex[j].m == n) {
+			if(mindex[j].ngc) {
 				grow();
 				cur->type = NGCN;
 				cur->index = mindex[j].ngc;
@@ -1129,19 +1128,19 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	for(i=1; i<=Ncon; i++)
-		if(t = alpha(s, constel[i])){
-			if(*t){
+	for(i = 1; i <= Ncon; i++)
+		if(t = alpha(s, constel[i])) {
+			if(*t) {
 				fprint(2, "syntax error in constellation\n");
 				return;
 			}
 			constelopen();
-			seek(condb, 4L*conindex[i-1], 0);
-			j = conindex[i]-conindex[i-1];
-			Eread(condb, "con", con, 4*j);
+			seek(condb, 4L * conindex[i - 1], 0);
+			j = conindex[i] - conindex[i - 1];
+			Eread(condb, "con", con, 4 * j);
 			if(doreset)
 				reset();
-			for(k=0; k<j; k++){
+			for(k = 0; k < j; k++) {
 				grow();
 				cur->type = PatchC;
 				cur->index = Long(&con[k]);
@@ -1149,11 +1148,11 @@ lookup(char *s, int doreset)
 			goto Print;
 		}
 
-	if(t = alpha(s, "expand")){
+	if(t = alpha(s, "expand")) {
 		n = 0;
-		if(*t){
-			if(*t<'0' && '9'<*t){
-		Expanderr:
+		if(*t) {
+			if(*t < '0' && '9' < *t) {
+			Expanderr:
 				fprint(2, "syntax error in expand\n");
 				return;
 			}
@@ -1166,8 +1165,8 @@ lookup(char *s, int doreset)
 		goto Print;
 	}
 
-	if(t = alpha(s, "plot")){
-		if(nrec == 0){
+	if(t = alpha(s, "plot")) {
+		if(nrec == 0) {
 			Bprint(&bout, "empty\n");
 			return;
 		}
@@ -1175,18 +1174,18 @@ lookup(char *s, int doreset)
 		return;
 	}
 
-	if(t = alpha(s, "astro")){
+	if(t = alpha(s, "astro")) {
 		astro(t, 0);
 		return;
 	}
 
-	if(t = alpha(s, "plate")){
+	if(t = alpha(s, "plate")) {
 		pplate(t);
 		return;
 	}
 
-	if(t = alpha(s, "gamma")){
-		while(*t==' ')
+	if(t = alpha(s, "gamma")) {
+		while(*t == ' ')
 			t++;
 		u = t;
 		x = strtod(t, &u);
@@ -1196,20 +1195,20 @@ lookup(char *s, int doreset)
 		return;
 	}
 
-	if(t = alpha(s, "keep")){
+	if(t = alpha(s, "keep")) {
 		if(!cull(t, 1, 0))
 			return;
 		goto Print;
 	}
 
-	if(t = alpha(s, "drop")){
+	if(t = alpha(s, "drop")) {
 		if(!cull(t, 0, 0))
 			return;
 		goto Print;
 	}
 
-	for(i=0; planet[i].name[0]; i++){
-		if(t = alpha(s, planet[i].name)){
+	for(i = 0; planet[i].name[0]; i++) {
+		if(t = alpha(s, planet[i].name)) {
 			if(doreset)
 				reset();
 			loadplanet(i, nil);
@@ -1217,9 +1216,9 @@ lookup(char *s, int doreset)
 		}
 	}
 
-	for(i=0; names[i].name; i++){
-		if(t = alpha(s, names[i].name)){
-			if(*t){
+	for(i = 0; names[i].name; i++) {
+		if(t = alpha(s, names[i].name)) {
+			if(*t) {
 				fprint(2, "syntax error in type\n");
 				return;
 			}
@@ -1230,11 +1229,11 @@ lookup(char *s, int doreset)
 		}
 	}
 
-	switch(s[0]){
+	switch(s[0]) {
 	case '"':
 		starts = ++s;
 		while(*s != '"')
-			if(*s++ == 0){
+			if(*s++ == 0) {
 				fprint(2, "bad star name\n");
 				return;
 			}
@@ -1244,18 +1243,18 @@ lookup(char *s, int doreset)
 		j = nrec;
 		saoopen();
 		starts = fromgreek(starts);
-		for(i=0; i<NName; i++)
-			if(equal(starts, name[i].name)){
+		for(i = 0; i < NName; i++)
+			if(equal(starts, name[i].name)) {
 				grow();
-				if(name[i].sao){
+				if(name[i].sao) {
 					rec[j].type = NamedSAO;
 					rec[j].index = name[i].sao;
 				}
-				if(name[i].ngc){
+				if(name[i].ngc) {
 					rec[j].type = NamedNGC;
 					rec[j].index = name[i].ngc;
 				}
-				if(name[i].abell){
+				if(name[i].abell) {
 					rec[j].type = NamedAbell;
 					rec[j].index = name[i].abell;
 				}
@@ -1263,36 +1262,44 @@ lookup(char *s, int doreset)
 				j++;
 			}
 		if(parsename(starts))
-			for(i=0; i<NBayer; i++)
-				if(bayer[i].name[0]==parsed[0] &&
-				  (bayer[i].name[1]==parsed[1] || parsed[1]==0) &&
-				   bayer[i].name[2]==parsed[2]){
+			for(i = 0; i < NBayer; i++)
+				if(bayer[i].name[0] == parsed[0] &&
+				   (bayer[i].name[1] == parsed[1] || parsed[1] == 0) &&
+				   bayer[i].name[2] == parsed[2]) {
 					grow();
 					rec[j].type = NamedSAO;
 					rec[j].index = bayer[i].sao;
 					strncpy(rec[j].named.name, starts, sizeof(rec[j].named.name));
 					j++;
 				}
-		if(j == 0){
+		if(j == 0) {
 			*s = '"';
 			goto NotFound;
 		}
 		break;
 
-	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9':
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 		strtoul(s, &t, 10);
-		if(*t != 'h'){
-	BadCoords:
+		if(*t != 'h') {
+		BadCoords:
 			fprint(2, "bad coordinates %s\n", inputline);
 			break;
 		}
 		ra = DEG(getra(s));
-		while(*s && *s!=' ' && *s!='\t')
+		while(*s && *s != ' ' && *s != '\t')
 			s++;
-		rah = ra/15;
-		ra = ra-rah*15;
-		ram = ra*4;
+		rah = ra / 15;
+		ra = ra - rah * 15;
+		ram = ra * 4;
 		deg = strtol(s, &t, 10);
 		if(t == s)
 			goto BadCoords;
@@ -1301,7 +1308,7 @@ lookup(char *s, int doreset)
 			deg = DEG(getra(s));
 		if(doreset)
 			reset();
-		if(abs(deg)>=90 || rah>=24)
+		if(abs(deg) >= 90 || rah >= 24)
 			goto BadCoords;
 		if(!loadpatch(patch(rah, ram, deg)))
 			goto NotFound;
@@ -1312,49 +1319,49 @@ lookup(char *s, int doreset)
 		return;
 	}
 
-    Print:
+Print:
 	if(nrec == 0)
 		Bprint(&bout, "empty\n");
 	else if(nrec <= 2)
-		for(i=0; i<nrec; i++)
-			prrec(rec+i);
+		for(i = 0; i < nrec; i++)
+			prrec(rec + i);
 	else
 		Bprint(&bout, "%ld items\n", nrec);
 	return;
 
-    NotFound:
+NotFound:
 	fprint(2, "%s not found\n", inputline);
 	return;
 }
 
 char *ngctypes[] =
-{
-[Galaxy] 		"Gx",
-[PlanetaryN]	"Pl",
-[OpenCl]		"OC",
-[GlobularCl]	"Gb",
-[DiffuseN]		"Nb",
-[NebularCl]	"C+N",
-[Asterism]		"Ast",
-[Knot]		"Kt",
-[Triple]		"***",
-[Double]		"D*",
-[Single]		"*",
-[Uncertain]	"?",
-[Nonexistent]	"-",
-[Unknown]	" ",
-[PlateDefect]	"PD",
+    {
+	 [Galaxy] "Gx",
+	 [PlanetaryN] "Pl",
+	 [OpenCl] "OC",
+	 [GlobularCl] "Gb",
+	 [DiffuseN] "Nb",
+	 [NebularCl] "C+N",
+	 [Asterism] "Ast",
+	 [Knot] "Kt",
+	 [Triple] "***",
+	 [Double] "D*",
+	 [Single] "*",
+	 [Uncertain] "?",
+	 [Nonexistent] "-",
+	 [Unknown] " ",
+	 [PlateDefect] "PD",
 };
 
-char*
+char *
 ngcstring(int d)
 {
-	if(d<Galaxy || d>PlateDefect)
+	if(d < Galaxy || d > PlateDefect)
 		return "can't happen";
 	return ngctypes[d];
 }
 
-int16_t	descindex[NINDEX];
+int16_t descindex[NINDEX];
 
 void
 printnames(Record *r)
@@ -1362,15 +1369,15 @@ printnames(Record *r)
 	int i, ok, done;
 
 	done = 0;
-	for(i=0; i<NName; i++){	/* stupid linear search! */
+	for(i = 0; i < NName; i++) { /* stupid linear search! */
 		ok = 0;
-		if(r->type==SAO && r->index==name[i].sao)
+		if(r->type == SAO && r->index == name[i].sao)
 			ok = 1;
-		if(r->type==NGC && r->ngc.ngc==name[i].ngc)
+		if(r->type == NGC && r->ngc.ngc == name[i].ngc)
 			ok = 1;
-		if(r->type==Abell && r->abell.abell==name[i].abell)
+		if(r->type == Abell && r->abell.abell == name[i].abell)
 			ok = 1;
-		if(ok){
+		if(ok) {
 			if(done++ == 0)
 				Bprint(&bout, "\t");
 			Bprint(&bout, " \"%s\"", togreek(name[i].name));
@@ -1385,18 +1392,18 @@ equal(char *s1, char *s2)
 {
 	int c;
 
-	while(*s1){
-		if(*s1==' '){
-			while(*s1==' ')
+	while(*s1) {
+		if(*s1 == ' ') {
+			while(*s1 == ' ')
 				s1++;
 			continue;
 		}
-		while(*s2==' ')
+		while(*s2 == ' ')
 			s2++;
-		c=*s2;
-		if('A'<=*s2 && *s2<='Z')
-			c^=' ';
-		if(*s1!=c)
+		c = *s2;
+		if('A' <= *s2 && *s2 <= 'Z')
+			c ^= ' ';
+		if(*s1 != c)
 			return 0;
 		s1++, s2++;
 	}
@@ -1410,38 +1417,38 @@ parsename(char *s)
 	int i;
 
 	blank = strchr(s, ' ');
-	if(blank==0 || strchr(blank+1, ' ') || strlen(blank+1)!=3)
+	if(blank == 0 || strchr(blank + 1, ' ') || strlen(blank + 1) != 3)
 		return 0;
 	blank++;
 	parsed[0] = parsed[1] = parsed[2] = 0;
-	if('0'<=s[0] && s[0]<='9'){
+	if('0' <= s[0] && s[0] <= '9') {
 		i = atoi(s);
 		parsed[0] = i;
 		if(i > 100)
 			return 0;
-	}else{
-		for(i=1; i<=24; i++)
-			if(strncmp(greek[i], s, strlen(greek[i]))==0){
-				parsed[0]=100+i;
+	} else {
+		for(i = 1; i <= 24; i++)
+			if(strncmp(greek[i], s, strlen(greek[i])) == 0) {
+				parsed[0] = 100 + i;
 				goto out;
 			}
 		return 0;
-	    out:
-		if('0'<=s[strlen(greek[i])] && s[strlen(greek[i])]<='9')
-			parsed[1]=s[strlen(greek[i])]-'0';
+	out:
+		if('0' <= s[strlen(greek[i])] && s[strlen(greek[i])] <= '9')
+			parsed[1] = s[strlen(greek[i])] - '0';
 	}
-	for(i=1; i<=88; i++)
-		if(strcmp(constel[i], blank)==0){
+	for(i = 1; i <= 88; i++)
+		if(strcmp(constel[i], blank) == 0) {
 			parsed[2] = i;
 			return 1;
 		}
 	return 0;
 }
 
-char*
+char *
 dist_grp(int dg)
 {
-	switch(dg){
+	switch(dg) {
 	default:
 		return "unknown";
 	case 1:
@@ -1461,10 +1468,10 @@ dist_grp(int dg)
 	}
 }
 
-char*
+char *
 rich_grp(int dg)
 {
-	switch(dg){
+	switch(dg) {
 	default:
 		return "unknown";
 	case 0:
@@ -1482,7 +1489,7 @@ rich_grp(int dg)
 	}
 }
 
-char*
+char *
 nameof(Record *r)
 {
 	NGCrec *n;
@@ -1491,20 +1498,20 @@ nameof(Record *r)
 	static char buf[128];
 	int i;
 
-	switch(r->type){
+	switch(r->type) {
 	default:
 		return nil;
 	case SAO:
 		s = &r->sao;
 		if(s->name[0] == 0)
 			return nil;
-		if(s->name[0] >= 100){
-			i = snprint(buf, sizeof buf, "%C", greeklet[s->name[0]-100]);
+		if(s->name[0] >= 100) {
+			i = snprint(buf, sizeof buf, "%C", greeklet[s->name[0] - 100]);
 			if(s->name[1])
-				i += snprint(buf+i, sizeof buf-i, "%d", s->name[1]);
-		}else
+				i += snprint(buf + i, sizeof buf - i, "%d", s->name[1]);
+		} else
 			i = snprint(buf, sizeof buf, " %d", s->name[0]);
-		snprint(buf+i, sizeof buf-i, " %s", constel[s->name[2]]);
+		snprint(buf + i, sizeof buf - i, " %s", constel[s->name[2]]);
 		break;
 	case NGC:
 		n = &r->ngc;
@@ -1513,7 +1520,7 @@ nameof(Record *r)
 		if(n->ngc <= NNGC)
 			snprint(buf, sizeof buf, "NGC%4d ", n->ngc);
 		else
-			snprint(buf, sizeof buf, "IC%4d ", n->ngc-NNGC);
+			snprint(buf, sizeof buf, "IC%4d ", n->ngc - NNGC);
 		break;
 	case Abell:
 		a = &r->abell;
@@ -1533,144 +1540,145 @@ prrec(Record *r)
 	int i, rah, ram, dec, nn;
 	int32_t key;
 
-	if(r) switch(r->type){
-	default:
-		fprint(2, "can't prrec type %d\n", r->type);
-		exits("type");
+	if(r)
+		switch(r->type) {
+		default:
+			fprint(2, "can't prrec type %d\n", r->type);
+			exits("type");
 
-	case Planet:
-		p = &r->planet;
-		Bprint(&bout, "%s", p->name);
-		Bprint(&bout, "\t%s %s",
-			hms(angle(p->ra)),
-			dms(angle(p->dec)));
-		Bprint(&bout, " %3.2f° %3.2f°",
-			p->az/(double)MILLIARCSEC, p->alt/(double)MILLIARCSEC);
-		Bprint(&bout, " %s",
-			ms(angle(p->semidiam)));
-		if(r->index <= 1)
-			Bprint(&bout, " %g", p->phase);
-		Bprint(&bout, "\n");
-		break;
+		case Planet:
+			p = &r->planet;
+			Bprint(&bout, "%s", p->name);
+			Bprint(&bout, "\t%s %s",
+			       hms(angle(p->ra)),
+			       dms(angle(p->dec)));
+			Bprint(&bout, " %3.2f° %3.2f°",
+			       p->az / (double)MILLIARCSEC, p->alt / (double)MILLIARCSEC);
+			Bprint(&bout, " %s",
+			       ms(angle(p->semidiam)));
+			if(r->index <= 1)
+				Bprint(&bout, " %g", p->phase);
+			Bprint(&bout, "\n");
+			break;
 
-	case NGC:
-		n = &r->ngc;
-		if(n->ngc <= NNGC)
-			Bprint(&bout, "NGC%4d ", n->ngc);
-		else
-			Bprint(&bout, "IC%4d ", n->ngc-NNGC);
-		Bprint(&bout, "%s ", ngcstring(n->type));
-		if(n->mag == UNKNOWNMAG)
-			Bprint(&bout, "----");
-		else
-			Bprint(&bout, "%.1f%c", n->mag/10.0, n->magtype);
-		Bprint(&bout, "\t%s %s\t%c%.1f'\n",
-			hm(angle(n->ra)),
-			dm(angle(n->dec)),
-			n->diamlim,
-			DEG(angle(n->diam))*60.);
-		prdesc(n->desc, desctab, descindex);
-		printnames(r);
-		break;
+		case NGC:
+			n = &r->ngc;
+			if(n->ngc <= NNGC)
+				Bprint(&bout, "NGC%4d ", n->ngc);
+			else
+				Bprint(&bout, "IC%4d ", n->ngc - NNGC);
+			Bprint(&bout, "%s ", ngcstring(n->type));
+			if(n->mag == UNKNOWNMAG)
+				Bprint(&bout, "----");
+			else
+				Bprint(&bout, "%.1f%c", n->mag / 10.0, n->magtype);
+			Bprint(&bout, "\t%s %s\t%c%.1f'\n",
+			       hm(angle(n->ra)),
+			       dm(angle(n->dec)),
+			       n->diamlim,
+			       DEG(angle(n->diam)) * 60.);
+			prdesc(n->desc, desctab, descindex);
+			printnames(r);
+			break;
 
-	case Abell:
-		a = &r->abell;
-		Bprint(&bout, "Abell%4d  %.1f %.2f° %dMpc", a->abell, a->mag10/10.0,
-			DEG(angle(a->rad)), a->dist);
-		Bprint(&bout, "\t%s %s\t%.2f %.2f\n",
-			hm(angle(a->ra)),
-			dm(angle(a->dec)),
-			DEG(angle(a->glat)),
-			DEG(angle(a->glong)));
-		Bprint(&bout, "\tdist grp: %s  rich grp: %s  %d galaxies/°²\n",
-			dist_grp(a->distgrp),
-			rich_grp(a->richgrp),
-			a->pop);
-		printnames(r);
-		break;
+		case Abell:
+			a = &r->abell;
+			Bprint(&bout, "Abell%4d  %.1f %.2f° %dMpc", a->abell, a->mag10 / 10.0,
+			       DEG(angle(a->rad)), a->dist);
+			Bprint(&bout, "\t%s %s\t%.2f %.2f\n",
+			       hm(angle(a->ra)),
+			       dm(angle(a->dec)),
+			       DEG(angle(a->glat)),
+			       DEG(angle(a->glong)));
+			Bprint(&bout, "\tdist grp: %s  rich grp: %s  %d galaxies/°²\n",
+			       dist_grp(a->distgrp),
+			       rich_grp(a->richgrp),
+			       a->pop);
+			printnames(r);
+			break;
 
-	case SAO:
-		s = &r->sao;
-		Bprint(&bout, "SAO%6ld  ", r->index);
-		if(s->mag==UNKNOWNMAG)
-			Bprint(&bout, "---");
-		else
-			Bprint(&bout, "%.1f", s->mag/10.0);
-		if(s->mpg==UNKNOWNMAG)
-			Bprint(&bout, ",---");
-		else
-			Bprint(&bout, ",%.1f", s->mpg/10.0);
-		Bprint(&bout, "  %s %s  %.4fs %.3f\"",
-			hms(angle(s->ra)),
-			dms(angle(s->dec)),
-			DEG(angle(s->dra))*(4*60),
-			DEG(angle(s->ddec))*(60*60));
-		Bprint(&bout, "  %.3s %c %.2s %ld %d",
-			s->spec, s->code, s->compid, s->hd, s->hdcode);
-		if(s->name[0])
-			Bprint(&bout, " \"%s\"", nameof(r));
-		Bprint(&bout, "\n");
-		printnames(r);
-		break;
+		case SAO:
+			s = &r->sao;
+			Bprint(&bout, "SAO%6ld  ", r->index);
+			if(s->mag == UNKNOWNMAG)
+				Bprint(&bout, "---");
+			else
+				Bprint(&bout, "%.1f", s->mag / 10.0);
+			if(s->mpg == UNKNOWNMAG)
+				Bprint(&bout, ",---");
+			else
+				Bprint(&bout, ",%.1f", s->mpg / 10.0);
+			Bprint(&bout, "  %s %s  %.4fs %.3f\"",
+			       hms(angle(s->ra)),
+			       dms(angle(s->dec)),
+			       DEG(angle(s->dra)) * (4 * 60),
+			       DEG(angle(s->ddec)) * (60 * 60));
+			Bprint(&bout, "  %.3s %c %.2s %ld %d",
+			       s->spec, s->code, s->compid, s->hd, s->hdcode);
+			if(s->name[0])
+				Bprint(&bout, " \"%s\"", nameof(r));
+			Bprint(&bout, "\n");
+			printnames(r);
+			break;
 
-	case Patch:
-		radec(r->index, &rah, &ram, &dec);
-		Bprint(&bout, "%dh%dm %d°", rah, ram, dec);
-		key = r->patch.key[0];
-		Bprint(&bout, " %s", constel[key&0xFF]);
-		if((key>>=8) & 0xFF)
-			Bprint(&bout, " %s", constel[key&0xFF]);
-		if((key>>=8) & 0xFF)
-			Bprint(&bout, " %s", constel[key&0xFF]);
-		if((key>>=8) & 0xFF)
-			Bprint(&bout, " %s", constel[key&0xFF]);
-		for(i=1; i<r->patch.nkey; i++){
-			key = r->patch.key[i];
-			switch(key&0x3F){
-			case SAO:
-				Bprint(&bout, " SAO%ld", (key>>8)&0xFFFFFF);
-				break;
-			case Abell:
-				Bprint(&bout, " Abell%ld", (key>>8)&0xFFFFFF);
-				break;
-			default:	/* NGC */
-				nn = (key>>16)&0xFFFF;
-				if(nn > NNGC)
-					Bprint(&bout, " IC%d", nn-NNGC);
-				else
-					Bprint(&bout, " NGC%d", nn);
-				Bprint(&bout, "(%s)", ngcstring(key&0x3F));
-				break;
+		case Patch:
+			radec(r->index, &rah, &ram, &dec);
+			Bprint(&bout, "%dh%dm %d°", rah, ram, dec);
+			key = r->patch.key[0];
+			Bprint(&bout, " %s", constel[key & 0xFF]);
+			if((key >>= 8) & 0xFF)
+				Bprint(&bout, " %s", constel[key & 0xFF]);
+			if((key >>= 8) & 0xFF)
+				Bprint(&bout, " %s", constel[key & 0xFF]);
+			if((key >>= 8) & 0xFF)
+				Bprint(&bout, " %s", constel[key & 0xFF]);
+			for(i = 1; i < r->patch.nkey; i++) {
+				key = r->patch.key[i];
+				switch(key & 0x3F) {
+				case SAO:
+					Bprint(&bout, " SAO%ld", (key >> 8) & 0xFFFFFF);
+					break;
+				case Abell:
+					Bprint(&bout, " Abell%ld", (key >> 8) & 0xFFFFFF);
+					break;
+				default: /* NGC */
+					nn = (key >> 16) & 0xFFFF;
+					if(nn > NNGC)
+						Bprint(&bout, " IC%d", nn - NNGC);
+					else
+						Bprint(&bout, " NGC%d", nn);
+					Bprint(&bout, "(%s)", ngcstring(key & 0x3F));
+					break;
+				}
 			}
+			Bprint(&bout, "\n");
+			break;
+
+		case NGCN:
+			if(r->index <= NNGC)
+				Bprint(&bout, "NGC%ld\n", r->index);
+			else
+				Bprint(&bout, "IC%ld\n", r->index - NNGC);
+			break;
+
+		case NamedSAO:
+			Bprint(&bout, "SAO%ld \"%s\"\n", r->index, togreek(r->named.name));
+			break;
+
+		case NamedNGC:
+			if(r->index <= NNGC)
+				Bprint(&bout, "NGC%ld \"%s\"\n", r->index, togreek(r->named.name));
+			else
+				Bprint(&bout, "IC%ld \"%s\"\n", r->index - NNGC, togreek(r->named.name));
+			break;
+
+		case NamedAbell:
+			Bprint(&bout, "Abell%ld \"%s\"\n", r->index, togreek(r->named.name));
+			break;
+
+		case PatchC:
+			radec(r->index, &rah, &ram, &dec);
+			Bprint(&bout, "%dh%dm %d\n", rah, ram, dec);
+			break;
 		}
-		Bprint(&bout, "\n");
-		break;
-
-	case NGCN:
-		if(r->index <= NNGC)
-			Bprint(&bout, "NGC%ld\n", r->index);
-		else
-			Bprint(&bout, "IC%ld\n", r->index-NNGC);
-		break;
-
-	case NamedSAO:
-		Bprint(&bout, "SAO%ld \"%s\"\n", r->index, togreek(r->named.name));
-		break;
-
-	case NamedNGC:
-		if(r->index <= NNGC)
-			Bprint(&bout, "NGC%ld \"%s\"\n", r->index, togreek(r->named.name));
-		else
-			Bprint(&bout, "IC%ld \"%s\"\n", r->index-NNGC, togreek(r->named.name));
-		break;
-
-	case NamedAbell:
-		Bprint(&bout, "Abell%ld \"%s\"\n", r->index, togreek(r->named.name));
-		break;
-
-	case PatchC:
-		radec(r->index, &rah, &ram, &dec);
-		Bprint(&bout, "%dh%dm %d\n", rah, ram, dec);
-		break;
-	}
 }

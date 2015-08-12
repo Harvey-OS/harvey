@@ -20,8 +20,7 @@
 #include "usbfs.h"
 #include "ums.h"
 
-enum
-{
+enum {
 	Arglen = 80,
 };
 
@@ -33,10 +32,10 @@ usage(void)
 }
 
 static int csps[] = {
-	CSP(Clstorage,Subatapi,Protobulk),
-	CSP(Clstorage,Sub8070,Protobulk),
-	CSP(Clstorage,Subscsi,Protobulk),
-	0,
+    CSP(Clstorage, Subatapi, Protobulk),
+    CSP(Clstorage, Sub8070, Protobulk),
+    CSP(Clstorage, Subscsi, Protobulk),
+    0,
 };
 
 void
@@ -49,9 +48,10 @@ threadmain(int argc, char **argv)
 	mnt = "/n/disk";
 
 	quotefmtinstall();
-	ae = args+sizeof(args);
+	ae = args + sizeof(args);
 	as = seprint(args, ae, "disk");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		usbfsdebug++;
 		break;
@@ -70,7 +70,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	rfork(RFNOTEG);
 	threadsetgrp(threadid());

@@ -21,8 +21,8 @@ ls(char *p, Dir **dirbuf)
 	Dir *db;
 
 	if((db = dirstat(p)) == nil ||
-		!(db->qid.type & QTDIR) ||
-		(fd = open(p, OREAD)) < 0 )
+	   !(db->qid.type & QTDIR) ||
+	   (fd = open(p, OREAD)) < 0)
 		return -1;
 	free(db);
 	n = dirreadall(fd, dirbuf);
@@ -30,7 +30,7 @@ ls(char *p, Dir **dirbuf)
 	return n;
 }
 
-static uint8_t*
+static uint8_t *
 sha1file(char *pfx, char *nm)
 {
 	int n, fd, len;
@@ -39,10 +39,10 @@ sha1file(char *pfx, char *nm)
 	static uint8_t digest[SHA1dlen];
 	DigestState *s;
 
-	len = strlen(pfx)+1+strlen(nm)+1;
+	len = strlen(pfx) + 1 + strlen(nm) + 1;
 	tmp = emalloc(len);
 	snprint(tmp, len, "%s/%s", pfx, nm);
-	if((fd = open(tmp, OREAD)) < 0){
+	if((fd = open(tmp, OREAD)) < 0) {
 		free(tmp);
 		return nil;
 	}
@@ -70,27 +70,26 @@ dirls(char *path)
 	int32_t i, n, ndir, len;
 	Dir *dirbuf;
 
-	if(path==nil || (ndir = ls(path, &dirbuf)) < 0)
+	if(path == nil || (ndir = ls(path, &dirbuf)) < 0)
 		return nil;
 
 	qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(const void *, const void *))compare);
-	for(nmwid=lenwid=i=0; i<ndir; i++){
+	for(nmwid = lenwid = i = 0; i < ndir; i++) {
 		if((m = strlen(dirbuf[i].name)) > nmwid)
 			nmwid = m;
 		snprint(buf, sizeof(buf), "%ulld", dirbuf[i].length);
 		if((m = strlen(buf)) > lenwid)
 			lenwid = m;
 	}
-	for(list=nil, len=0, i=0; i<ndir; i++){
+	for(list = nil, len = 0, i = 0; i < ndir; i++) {
 		date = ctime(dirbuf[i].mtime);
-		date[28] = 0;  // trim newline
-		n = snprint(buf, sizeof buf, "%*ulld %s", lenwid, dirbuf[i].length, date+4);
+		date[28] = 0; // trim newline
+		n = snprint(buf, sizeof buf, "%*ulld %s", lenwid, dirbuf[i].length, date + 4);
 		n += enc64(dig, sizeof dig, sha1file(path, dirbuf[i].name), SHA1dlen);
-		n += nmwid+3+strlen(dirbuf[i].name);
-		list = erealloc(list, len+n+1);
-		len += snprint(list+len, n+1, "%-*s\t%s %s\n", nmwid, dirbuf[i].name, buf, dig);
+		n += nmwid + 3 + strlen(dirbuf[i].name);
+		list = erealloc(list, len + n + 1);
+		len += snprint(list + len, n + 1, "%-*s\t%s %s\n", nmwid, dirbuf[i].name, buf, dig);
 	}
 	free(dirbuf);
 	return list;
 }
-

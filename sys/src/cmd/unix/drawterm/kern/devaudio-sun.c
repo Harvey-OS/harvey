@@ -12,22 +12,21 @@
  */
 #include <sys/ioctl.h>
 #include <sys/audio.h>
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
-#include	"devaudio.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
+#include "devaudio.h"
 
-enum
-{
+enum {
 	Channels = 2,
 	Rate = 44100,
 	Bits = 16,
 };
 
-static char* afn = 0;
-static char* cfn = 0;
+static char *afn = 0;
+static char *cfn = 0;
 static int afd = -1;
 static int cfd = -1;
 static int speed = Rate;
@@ -39,9 +38,9 @@ audiodevinit(void)
 	uint8_t *p;
 	uint16_t leorder;
 
-	if ((afn = getenv("AUDIODEV")) == nil)
+	if((afn = getenv("AUDIODEV")) == nil)
 		afn = "/dev/audio";
-	cfn = (char*)malloc(strlen(afn) + 3 + 1);
+	cfn = (char *)malloc(strlen(afn) + 3 + 1);
 	if(cfn == nil)
 		panic("out of memory");
 	strcpy(cfn, afn);
@@ -52,9 +51,9 @@ audiodevinit(void)
 	 * solaris /dev/audio seems to expect native byte order,
 	 * so on big endian machine (like sparc) we have to swap.
 	 */
-	leorder = (uint16_t) 0x0100;
-	p = (uint8_t*)&leorder;
-	if (p[0] == 0 && p[1] == 1) {
+	leorder = (uint16_t)0x0100;
+	p = (uint8_t *)&leorder;
+	if(p[0] == 0 && p[1] == 1) {
 		/* little-endian: nothing to do */
 		needswap = 0;
 	} else {
@@ -70,7 +69,7 @@ audiodevopen(void)
 	audio_info_t info;
 	struct audio_device ad;
 
-	if (afn == nil || cfn == nil)
+	if(afn == nil || cfn == nil)
 		audiodevinit();
 	if((afd = open(afn, O_WRONLY)) < 0)
 		goto err;
@@ -111,13 +110,13 @@ audiodevclose(void)
 static double
 fromsun(double val, double min, double max)
 {
-	return (val-min) / (max-min);
+	return (val - min) / (max - min);
 }
 
 static double
 tosun(double val, double min, double max)
 {
-	return val*(max-min) + min;
+	return val * (max - min) + min;
 }
 
 static void
@@ -126,22 +125,22 @@ setvolbal(double left, double right)
 	audio_info_t info;
 	double vol, bal;
 
-	if (left < 0 || right < 0) {
+	if(left < 0 || right < 0) {
 		/* should not happen */
 		return;
-	} else if (left == right) {
-		vol = tosun(left/100.0, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN);
+	} else if(left == right) {
+		vol = tosun(left / 100.0, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN);
 		bal = AUDIO_MID_BALANCE;
-	} else if (left < right) {
-		vol = tosun(right/100.0, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN);
-		bal = tosun(1.0 - left/right, AUDIO_MID_BALANCE, AUDIO_RIGHT_BALANCE);
-	} else if (right < left) {
-		vol = tosun(left/100.0, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN);
-		bal = tosun(1.0 - right/left, AUDIO_MID_BALANCE, AUDIO_LEFT_BALANCE);
+	} else if(left < right) {
+		vol = tosun(right / 100.0, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN);
+		bal = tosun(1.0 - left / right, AUDIO_MID_BALANCE, AUDIO_RIGHT_BALANCE);
+	} else if(right < left) {
+		vol = tosun(left / 100.0, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN);
+		bal = tosun(1.0 - right / left, AUDIO_MID_BALANCE, AUDIO_LEFT_BALANCE);
 	}
 	AUDIO_INITINFO(&info);
-	info.play.gain = (int32_t)(vol+0.5);
-	info.play.balance = (int32_t)(bal+0.5);
+	info.play.gain = (int32_t)(vol + 0.5);
+	info.play.balance = (int32_t)(bal + 0.5);
 	if(ioctl(cfd, AUDIO_SETINFO, &info) < 0)
 		oserror();
 }
@@ -153,24 +152,24 @@ getvolbal(int *left, int *right)
 	double gain, bal, vol, l, r;
 
 	AUDIO_INITINFO(&info);
-	if (ioctl(cfd, AUDIO_GETINFO, &info) < 0)
+	if(ioctl(cfd, AUDIO_GETINFO, &info) < 0)
 		oserror();
 
 	gain = info.play.gain;
 	bal = info.play.balance;
 	vol = fromsun(gain, AUDIO_MIN_GAIN, AUDIO_MAX_GAIN) * 100.0;
 
-	if (bal == AUDIO_MID_BALANCE) {
+	if(bal == AUDIO_MID_BALANCE) {
 		l = r = vol;
-	} else if (bal < AUDIO_MID_BALANCE) {
+	} else if(bal < AUDIO_MID_BALANCE) {
 		l = vol;
 		r = vol * (1.0 - fromsun(bal, AUDIO_MID_BALANCE, AUDIO_LEFT_BALANCE));
 	} else {
 		r = vol;
 		l = vol * (1.0 - fromsun(bal, AUDIO_MID_BALANCE, AUDIO_RIGHT_BALANCE));
 	}
-	*left = (int32_t)(l+0.5);
-	*right = (int32_t)(r+0.5);
+	*left = (int32_t)(l + 0.5);
+	*right = (int32_t)(r + 0.5);
 	return;
 }
 
@@ -180,15 +179,15 @@ audiodevsetvol(int what, int left, int right)
 	audio_info_t info;
 	uint32_t x;
 	int l, r;
-	
-	if (afn == nil || cfn == nil)
+
+	if(afn == nil || cfn == nil)
 		audiodevinit();
 	if(cfd < 0 && (cfd = open(cfn, O_RDWR)) < 0) {
 		cfd = -1;
 		oserror();
 	}
 
-	if(what == Vspeed){
+	if(what == Vspeed) {
 		x = left;
 		AUDIO_INITINFO(&info);
 		info.play.sample_rate = x;
@@ -197,13 +196,13 @@ audiodevsetvol(int what, int left, int right)
 		speed = x;
 		return;
 	}
-	if(what == Vaudio){
+	if(what == Vaudio) {
 		getvolbal(&l, &r);
-		if (left < 0)
+		if(left < 0)
 			setvolbal(l, right);
-		else if (right < 0)
+		else if(right < 0)
 			setvolbal(left, r);
-		else 
+		else
 			setvolbal(left, right);
 		return;
 	}
@@ -214,7 +213,7 @@ audiodevgetvol(int what, int *left, int *right)
 {
 	audio_info_t info;
 
-	if (afn == nil || cfn == nil)
+	if(afn == nil || cfn == nil)
 		audiodevinit();
 	if(cfd < 0 && (cfd = open(cfn, O_RDWR)) < 0) {
 		cfd = -1;
@@ -236,7 +235,6 @@ audiodevgetvol(int what, int *left, int *right)
 	}
 }
 
-
 static uint8_t *buf = 0;
 static int nbuf = 0;
 
@@ -246,25 +244,25 @@ audiodevwrite(void *v, int n)
 	int i, m, tot;
 	uint8_t *p;
 
-	if (needswap) {
-		if (nbuf < n) {
-			buf = (uint8_t*)erealloc(buf, n);
+	if(needswap) {
+		if(nbuf < n) {
+			buf = (uint8_t *)erealloc(buf, n);
 			if(buf == nil)
 				panic("out of memory");
 			nbuf = n;
 		}
 
-		p = (uint8_t*)v;
-		for(i=0; i+1<n; i+=2) {
-			buf[i] = p[i+1];
-			buf[i+1] = p[i];
+		p = (uint8_t *)v;
+		for(i = 0; i + 1 < n; i += 2) {
+			buf[i] = p[i + 1];
+			buf[i + 1] = p[i];
 		}
 		p = buf;
 	} else
-		p = (uint8_t*)v;
-	
-	for(tot=0; tot<n; tot+=m)
-		if((m = write(afd, p+tot, n-tot)) <= 0)
+		p = (uint8_t *)v;
+
+	for(tot = 0; tot < n; tot += m)
+		if((m = write(afd, p + tot, n - tot)) <= 0)
 			oserror();
 	return tot;
 }

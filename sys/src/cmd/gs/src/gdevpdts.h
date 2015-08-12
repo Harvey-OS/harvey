@@ -27,7 +27,7 @@
 /* Text state structure and API for pdfwrite */
 
 #ifndef gdevpdts_INCLUDED
-#  define gdevpdts_INCLUDED
+#define gdevpdts_INCLUDED
 
 #include "gsmatrix.h"
 
@@ -39,7 +39,7 @@
 /* ================ Types and structures ================ */
 
 #ifndef pdf_text_state_DEFINED
-#  define pdf_text_state_DEFINED
+#define pdf_text_state_DEFINED
 typedef struct pdf_text_state_s pdf_text_state_t;
 #endif
 
@@ -49,26 +49,26 @@ typedef struct pdf_text_state_s pdf_text_state_t;
  * set them in the output.
  */
 typedef struct pdf_text_state_values_s {
-    float character_spacing;	/* Tc */
-    pdf_font_resource_t *pdfont; /* for Tf */
-    double size;		/* for Tf */
-    /*
+	float character_spacing;     /* Tc */
+	pdf_font_resource_t *pdfont; /* for Tf */
+	double size;		     /* for Tf */
+	/*
      * The matrix is the transformation from text space to user space, which
      * in pdfwrite text output is the same as device space.  Thus this
      * matrix combines the effect of the PostScript CTM and the FontMatrix,
      * scaled by the inverse of the font size value.
      */
-    gs_matrix matrix;		/* Tm et al */
-    int render_mode;		/* Tr */
-    float word_spacing;		/* Tw */
+	gs_matrix matrix;   /* Tm et al */
+	int render_mode;    /* Tr */
+	float word_spacing; /* Tw */
 } pdf_text_state_values_t;
-#define TEXT_STATE_VALUES_DEFAULT\
-    0,				/* character_spacing */\
-    NULL,			/* font */\
-    0,				/* size */\
-    { identity_matrix_body },	/* matrix */\
-    0,				/* render_mode */\
-    0				/* word_spacing */
+#define TEXT_STATE_VALUES_DEFAULT                           \
+	0,			    /* character_spacing */ \
+	    NULL,		    /* font */              \
+	    0,			    /* size */              \
+	    {identity_matrix_body}, /* matrix */            \
+	    0,			    /* render_mode */       \
+	    0			    /* word_spacing */
 
 /* ================ Procedures ================ */
 
@@ -109,7 +109,6 @@ void pdf_get_text_state_values(gx_device_pdf *pdev,
  */
 void pdf_set_text_wmode(gx_device_pdf *pdev, int wmode);
 
-
 /*
  * Set the stored client view of text state values.
  */
@@ -134,7 +133,7 @@ void pdf_text_position(const gx_device_pdf *pdev, gs_point *ppt);
  * Append characters to text being accumulated, giving their advance width
  * in device space.
  */
-int pdf_append_chars(gx_device_pdf * pdev, const byte * str, uint size,
+int pdf_append_chars(gx_device_pdf *pdev, const byte *str, uint size,
 		     floatp wx, floatp wy, bool nobreak);
 
 #endif /* gdevpdts_INCLUDED */

@@ -22,7 +22,7 @@ usage(void)
 void
 xfer(int from, int to)
 {
-	char buf[12*1024];
+	char buf[12 * 1024];
 	int n;
 
 	while((n = read(from, buf, sizeof buf)) > 0)
@@ -42,7 +42,8 @@ main(int argc, char **argv)
 	file = nil;
 	filex = nil;
 	thumb = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 't':
 		file = EARGF(usage());
 		break;
@@ -51,14 +52,15 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
-	if(filex && !file)	
+	if(filex && !file)
 		sysfatal("specifying -x without -t is useless");
-	if(file){
+	if(file) {
 		thumb = initThumbprints(file, filex);
 		if(thumb == nil)
 			sysfatal("initThumbprints: %r");
@@ -72,11 +74,11 @@ main(int argc, char **argv)
 	fd = tlsClient(netfd, &conn);
 	if(fd < 0)
 		sysfatal("tlsclient: %r");
-	if(thumb){
-		if(conn.cert==nil || conn.certlen<=0)
+	if(thumb) {
+		if(conn.cert == nil || conn.certlen <= 0)
 			sysfatal("server did not provide TLS certificate");
 		sha1(conn.cert, conn.certlen, digest, nil);
-		if(!okThumbprint(digest, thumb)){
+		if(!okThumbprint(digest, thumb)) {
 			fmtinstall('H', encodefmt);
 			sysfatal("server certificate %.*H not recognized", SHA1dlen, digest);
 		}
@@ -85,7 +87,7 @@ main(int argc, char **argv)
 	close(netfd);
 
 	rfork(RFNOTEG);
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "%s: fork: %r\n", argv0);
 		exits("dial");

@@ -19,8 +19,8 @@ getval(char **p)
 	char *q;
 
 	v = strtoul(*p, &q, 0);
-	v |= v<<8;
-	v |= v<<16;
+	v |= v << 8;
+	v |= v << 16;
 	*p = q;
 	return v;
 }
@@ -50,9 +50,9 @@ readcolmap(Display *d, RGB *colmap)
 			exits("bad");
 		}
 		p = q;
-		colmap[255-i].red = getval(&p);
-		colmap[255-i].green = getval(&p);
-		colmap[255-i].blue = getval(&p);
+		colmap[255 - i].red = getval(&p);
+		colmap[255 - i].green = getval(&p);
+		colmap[255 - i].blue = getval(&p);
 	}
 	Bterm(b);
 }

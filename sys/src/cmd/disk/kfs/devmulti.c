@@ -9,28 +9,28 @@
 
 #include "all.h"
 
-enum{
+enum {
 	MAXWREN = 7,
 };
 
-static char WMAGIC[] =	"kfs wren device\n";
-static char MMAGIC[] =	"kfs multi-wren device %4d/%4d\n";
+static char WMAGIC[] = "kfs wren device\n";
+static char MMAGIC[] = "kfs multi-wren device %4d/%4d\n";
 
-typedef struct Wren	Wren;
+typedef struct Wren Wren;
 
-struct Wren{
+struct Wren {
 	QLock;
-	Device	dev;
-	uint32_t	nblocks;
-	int	fd;
+	Device dev;
+	uint32_t nblocks;
+	int fd;
 };
 
-static char	*wmagic = WMAGIC;
-static Wren	*wrens;
-static int	maxwren;
-char		*wrenfile;
-int		nwren;
-int		badmagic;
+static char *wmagic = WMAGIC;
+static Wren *wrens;
+static int maxwren;
+char *wrenfile;
+int nwren;
+int badmagic;
 
 static Wren *
 wren(Device dev)
@@ -56,11 +56,11 @@ statlen(char *ap)
 	uint8_t *p;
 	uint32_t ll, hl;
 
-	p = (uint8_t*)ap;
-	p += 3*NAMELEN+5*4;
-	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
-	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
-	return ll | ((uint64_t) hl << 32);
+	p = (uint8_t *)ap;
+	p += 3 * NAMELEN + 5 * 4;
+	ll = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+	hl = p[4] | (p[5] << 8) | (p[6] << 16) | (p[7] << 24);
+	return ll | ((uint64_t)hl << 32);
 }
 
 static void
@@ -91,18 +91,18 @@ wrenpartinit(Device dev, int k)
 	RBUFSIZE = 1024;
 	sprint(magic, wmagic, k, nwren);
 	nmagic = strlen(magic);
-	if(strncmp(buf+256, magic, nmagic) == 0){
-		RBUFSIZE = atol(buf+256+nmagic);
-		if(RBUFSIZE % 512){
+	if(strncmp(buf + 256, magic, nmagic) == 0) {
+		RBUFSIZE = atol(buf + 256 + nmagic);
+		if(RBUFSIZE % 512) {
 			fprint(2, "kfs: bad buffersize(%d): assuming 1k blocks\n", RBUFSIZE);
 			RBUFSIZE = 1024;
 		}
-	}else
+	} else
 		badmagic = 1;
 	w->dev = dev;
-	w->nblocks = statlen(d)/RBUFSIZE;
+	w->nblocks = statlen(d) / RBUFSIZE;
 	if(k > 0)
-		w->nblocks -= 1;	/* don't count magic */
+		w->nblocks -= 1; /* don't count magic */
 	w->fd = fd;
 	maxwren++;
 }
@@ -115,9 +115,9 @@ wreninit(Device dev)
 	if(nwren > 0)
 		wmagic = MMAGIC;
 	i = 0;
-	do{
+	do {
 		wrenpartinit(dev, i);
-	}while(++i < nwren);
+	} while(++i < nwren);
 }
 
 static void
@@ -130,11 +130,11 @@ wrenpartream(Device dev, int k)
 	if(RBUFSIZE % 512)
 		panic("kfs: bad buffersize(%d): restart a multiple of 512\n", RBUFSIZE);
 	print("kfs: reaming the file system using %d byte blocks\n", RBUFSIZE);
-	w = wren(dev)+k;
+	w = wren(dev) + k;
 	fd = w->fd;
 	memset(buf, 0, sizeof buf);
 	sprint(magic, wmagic, k, nwren);
-	sprint(buf+256, "%s%d\n", magic, RBUFSIZE);
+	sprint(buf + 256, "%s%d\n", magic, RBUFSIZE);
 	qlock(w);
 	i = seek(fd, 0, 0) < 0 || write(fd, buf, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
@@ -148,9 +148,9 @@ wrenream(Device dev)
 	int i;
 
 	i = 0;
-	do{
+	do {
 		wrenpartream(dev, i);
-	}while(++i < nwren);
+	} while(++i < nwren);
 }
 
 static int
@@ -158,8 +158,8 @@ wrentag(char *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
-	t = (Tag*)(p+BUFSIZE);
-	return t->tag != tag || (qpath&~QPDIR) != t->path;
+	t = (Tag *)(p + BUFSIZE);
+	return t->tag != tag || (qpath & ~QPDIR) != t->path;
 }
 
 int
@@ -171,8 +171,7 @@ wrencheck(Device dev)
 		return 1;
 	if(RBUFSIZE > sizeof buf)
 		panic("bufsize too big");
-	if(wrenread(dev, wrensuper(dev), buf) || wrentag(buf, Tsuper, QPSUPER)
-	|| wrenread(dev, wrenroot(dev), buf) || wrentag(buf, Tdir, QPROOT))
+	if(wrenread(dev, wrensuper(dev), buf) || wrentag(buf, Tsuper, QPSUPER) || wrenread(dev, wrenroot(dev), buf) || wrentag(buf, Tdir, QPROOT))
 		return 1;
 	if(((Dentry *)buf)[0].mode & DALLOC)
 		return 0;
@@ -188,9 +187,9 @@ wrensize(Device dev)
 	w = wren(dev);
 	nb = 0;
 	i = 0;
-	do{
+	do {
 		nb += w[i].nblocks;
-	}while(++i < nwren);
+	} while(++i < nwren);
 	return nb;
 }
 
@@ -215,7 +214,7 @@ wrenread(Device dev, int32_t addr, void *b)
 	int fd, i;
 
 	w = wren(dev);
-	for(i=0; i<nwren; i++){
+	for(i = 0; i < nwren; i++) {
 		if(addr < w->nblocks)
 			break;
 		addr -= w->nblocks;
@@ -225,7 +224,7 @@ wrenread(Device dev, int32_t addr, void *b)
 		addr++;
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr * RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }
@@ -237,7 +236,7 @@ wrenwrite(Device dev, int32_t addr, void *b)
 	int fd, i;
 
 	w = wren(dev);
-	for(i=0; i<nwren; i++){
+	for(i = 0; i < nwren; i++) {
 		if(addr < w->nblocks)
 			break;
 		addr -= w->nblocks;
@@ -247,7 +246,7 @@ wrenwrite(Device dev, int32_t addr, void *b)
 		addr++;
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr * RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }

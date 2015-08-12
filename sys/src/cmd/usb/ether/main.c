@@ -20,8 +20,7 @@
 #include "usbfs.h"
 #include "ether.h"
 
-enum
-{
+enum {
 	Arglen = 80,
 };
 
@@ -39,7 +38,7 @@ usage(void)
  * that we know are ethernets.
  */
 static int
-matchether(char *info, void*)
+matchether(char *info, void *)
 {
 	Cinfo *ip;
 	char buf[50];
@@ -49,7 +48,7 @@ matchether(char *info, void*)
 	 */
 	if(strstr(info, "comms") != nil)
 		return 0;
-	for(ip = cinfo; ip->vid != 0; ip++){
+	for(ip = cinfo; ip->vid != 0; ip++) {
 		snprint(buf, sizeof(buf), "vid %#06x did %#06x", ip->vid, ip->did);
 		if(strstr(info, buf) != nil)
 			return 0;
@@ -67,9 +66,10 @@ threadmain(int argc, char **argv)
 	mnt = "/net";
 
 	quotefmtinstall();
-	ae = args+sizeof(args);
+	ae = args + sizeof(args);
 	as = seprint(args, ae, "ether");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		as = seprint(as, ae, " -a %s", EARGF(usage()));
 		break;
@@ -91,12 +91,13 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	rfork(RFNOTEG);
 	threadsetgrp(threadid());
 	fmtinstall('U', Ufmt);
-	usbfsinit(srv, mnt, &usbdirfs, MAFTER|MCREATE);
+	usbfsinit(srv, mnt, &usbdirfs, MAFTER | MCREATE);
 	startdevs(args, argv, argc, matchether, nil, ethermain);
 	threadexits(nil);
 }

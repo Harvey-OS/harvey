@@ -27,10 +27,10 @@
 /* Type 1 / Type 2 character rendering operator procedures */
 
 #ifndef ichar1_INCLUDED
-#  define ichar1_INCLUDED
+#define ichar1_INCLUDED
 
 #ifndef gs_font_type1_DEFINED
-#  define gs_font_type1_DEFINED
+#define gs_font_type1_DEFINED
 typedef struct gs_font_type1_s gs_font_type1;
 #endif
 
@@ -61,10 +61,10 @@ z1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	      int members, gs_glyph_info_t *info);
 
 int z1_glyph_info_generic(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
-	      int members, gs_glyph_info_t *info, font_proc_glyph_info((*proc)), 
-	      int wmode);
+			  int members, gs_glyph_info_t *info, font_proc_glyph_info((*proc)),
+			  int wmode);
 
-int z1_set_cache(i_ctx_t *i_ctx_p, gs_font_base *pbfont, ref *cnref, 
-	    gs_glyph glyph, op_proc_t cont, op_proc_t *exec_cont);
+int z1_set_cache(i_ctx_t *i_ctx_p, gs_font_base *pbfont, ref *cnref,
+		 gs_glyph glyph, op_proc_t cont, op_proc_t *exec_cont);
 
 #endif /* ichar1_INCLUDED */

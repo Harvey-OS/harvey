@@ -13,16 +13,16 @@
 #include "dat.h"
 
 static struct {
-	int	inited;
+	int inited;
 
-	uint8_t	t64[256];
-	uint8_t	t32[256];
-	uint8_t	t16[256];
-	uint8_t	t10[256];
+	uint8_t t64[256];
+	uint8_t t32[256];
+	uint8_t t16[256];
+	uint8_t t10[256];
 } tab;
 
 enum {
-	INVAL=	255
+	INVAL = 255
 };
 
 static char set64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -41,18 +41,18 @@ init(void)
 	memset(tab.t10, INVAL, sizeof(tab.t10));
 
 	for(p = set64; *p; p++)
-		tab.t64[*p] = p-set64;
+		tab.t64[*p] = p - set64;
 	for(p = set32; *p; p++)
-		tab.t32[*p] = p-set32;
+		tab.t32[*p] = p - set32;
 	for(p = set16; *p; p++)
-		tab.t16[*p] = (p-set16)%16;
+		tab.t16[*p] = (p - set16) % 16;
 	for(p = set10; *p; p++)
-		tab.t10[*p] = (p-set10);
+		tab.t10[*p] = (p - set10);
 
 	tab.inited = 1;
 }
 
-static char*
+static char *
 from16(char *a, mpint *b)
 {
 	char *p, *next;
@@ -61,17 +61,17 @@ from16(char *a, mpint *b)
 
 	b->top = 0;
 	for(p = a; *p; p++)
-		if(tab.t16[*(uint8_t*)p] == INVAL)
+		if(tab.t16[*(uint8_t *)p] == INVAL)
 			break;
-	mpbits(b, (p-a)*4);
+	mpbits(b, (p - a) * 4);
 	b->top = 0;
 	next = p;
-	while(p > a){
+	while(p > a) {
 		x = 0;
-		for(i = 0; i < Dbits; i += 4){
+		for(i = 0; i < Dbits; i += 4) {
 			if(p <= a)
 				break;
-			x |= tab.t16[*(uint8_t*)--p]<<i;
+			x |= tab.t16[*(uint8_t *)--p] << i;
 		}
 		b->p[b->top++] = x;
 	}
@@ -79,10 +79,9 @@ from16(char *a, mpint *b)
 }
 
 static uint32_t mppow10[] = {
-	1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
-};
+    1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
 
-static char*
+static char *
 from10(char *a, mpint *b)
 {
 	uint32_t x, y;
@@ -93,11 +92,11 @@ from10(char *a, mpint *b)
 	r = mpnew(0);
 
 	b->top = 0;
-	for(;;){
+	for(;;) {
 		// do a billion at a time in native arithmetic
 		x = 0;
-		for(i = 0; i < 9; i++){
-			y = tab.t10[*(uint8_t*)a];
+		for(i = 0; i < 9; i++) {
+			y = tab.t10[*(uint8_t *)a];
 			if(y == INVAL)
 				break;
 			a++;
@@ -120,17 +119,17 @@ from10(char *a, mpint *b)
 	return a;
 }
 
-static char*
+static char *
 from64(char *a, mpint *b)
 {
 	char *buf = a;
 	uint8_t *p;
 	int n, m;
 
-	for(; tab.t64[*(uint8_t*)a] != INVAL; a++)
+	for(; tab.t64[*(uint8_t *)a] != INVAL; a++)
 		;
-	n = a-buf;
-	mpbits(b, n*6);
+	n = a - buf;
+	mpbits(b, n * 6);
 	p = malloc(n);
 	if(p == nil)
 		return a;
@@ -140,17 +139,17 @@ from64(char *a, mpint *b)
 	return a;
 }
 
-static char*
+static char *
 from32(char *a, mpint *b)
 {
 	char *buf = a;
 	uint8_t *p;
 	int n, m;
 
-	for(; tab.t64[*(uint8_t*)a] != INVAL; a++)
+	for(; tab.t64[*(uint8_t *)a] != INVAL; a++)
 		;
-	n = a-buf;
-	mpbits(b, n*5);
+	n = a - buf;
+	mpbits(b, n * 5);
 	p = malloc(n);
 	if(p == nil)
 		return buf;
@@ -163,7 +162,7 @@ from32(char *a, mpint *b)
 	return a;
 }
 
-mpint*
+mpint *
 strtomp(char *a, char **pp, int base, mpint *b)
 {
 	int sign;
@@ -175,12 +174,12 @@ strtomp(char *a, char **pp, int base, mpint *b)
 	if(tab.inited == 0)
 		init();
 
-	while(*a==' ' || *a=='\t')
+	while(*a == ' ' || *a == '\t')
 		a++;
 
 	sign = 1;
-	for(;; a++){
-		switch(*a){
+	for(;; a++) {
+		switch(*a) {
 		case '-':
 			sign *= -1;
 			continue;
@@ -188,7 +187,7 @@ strtomp(char *a, char **pp, int base, mpint *b)
 		break;
 	}
 
-	switch(base){
+	switch(base) {
 	case 10:
 		e = from10(a, b);
 		break;

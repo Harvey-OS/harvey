@@ -36,25 +36,28 @@
 
 /* Define the device parameters. */
 #ifndef X_DPI
-#  define X_DPI 72
+#define X_DPI 72
 #endif
 #ifndef Y_DPI
-#  define Y_DPI 72
+#define Y_DPI 72
 #endif
 
 /* The device descriptor */
-private dev_proc_print_page(cif_print_page);
+private
+dev_proc_print_page(cif_print_page);
 const gx_device_printer far_data gs_cif_device =
-  prn_device(prn_std_procs, "cif",
-	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
-	X_DPI, Y_DPI,
-	0,0,0,0,
-	1, cif_print_page);
+    prn_device(prn_std_procs, "cif",
+	       DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
+	       X_DPI, Y_DPI,
+	       0, 0, 0, 0,
+	       1, cif_print_page);
 
 /* Send the page to the output. */
-private int
+private
+int
 cif_print_page(gx_device_printer *pdev, FILE *prn_stream)
-{	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
+{
+	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
 	int lnum;
 	byte *in = (byte *)gs_malloc(pdev->memory, line_size, 1, "cif_print_page(in)");
 	char *s;
@@ -62,10 +65,10 @@ cif_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	int length, start; /* length is the number of successive 1 bits, */
 			   /* start is the set of 1 bit start position */
 
-	if (in == 0)
+	if(in == 0)
 		return_error(gs_error_VMerror);
 
-	if ((s = strchr(pdev->fname, '.')) == NULL)
+	if((s = strchr(pdev->fname, '.')) == NULL)
 		length = strlen(pdev->fname) + 1;
 	else
 		length = s - pdev->fname;
@@ -76,32 +79,32 @@ cif_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	fprintf(prn_stream, "DS1 25 1;\n9 %s;\nLCP;\n", s);
 	gs_free(pdev->memory, s, length, 1, "cif_print_page(s)");
 
-   for (lnum = 0; lnum < pdev->height; lnum++) {   
-      gdev_prn_copy_scan_lines(pdev, lnum, in, line_size);
-      length = 0;
-      for (scanline = 0; scanline < line_size; scanline++)
-#ifdef TILE			/* original, simple, inefficient algorithm */
-         for (scanbyte = 0; scanbyte < 8; scanbyte++)
-            if (((in[scanline] >> scanbyte) & 1) != 0)
-               fprintf(prn_stream, "B4 4 %d %d;\n",
-                  (scanline * 8 + (7 - scanbyte)) * 4,
-                  (pdev->height - lnum) * 4);
-#else				/* better algorithm */
-         for (scanbyte = 7; scanbyte >= 0; scanbyte--)
-            /* cheap linear reduction of rectangles in lines */
-            if (((in[scanline] >> scanbyte) & 1) != 0) {
-               if (length == 0)
-                  start = (scanline * 8 + (7 - scanbyte));
-               length++;
-            } else {
-               if (length != 0)
-                  fprintf(prn_stream, "B%d 4 %d %d;\n", length * 4,
-                           start * 4 + length * 2,
-                           (pdev->height - lnum) * 4);
-               length = 0;
-            }
+	for(lnum = 0; lnum < pdev->height; lnum++) {
+		gdev_prn_copy_scan_lines(pdev, lnum, in, line_size);
+		length = 0;
+		for(scanline = 0; scanline < line_size; scanline++)
+#ifdef TILE /* original, simple, inefficient algorithm */
+			for(scanbyte = 0; scanbyte < 8; scanbyte++)
+				if(((in[scanline] >> scanbyte) & 1) != 0)
+					fprintf(prn_stream, "B4 4 %d %d;\n",
+						(scanline * 8 + (7 - scanbyte)) * 4,
+						(pdev->height - lnum) * 4);
+#else /* better algorithm */
+			for(scanbyte = 7; scanbyte >= 0; scanbyte--)
+				/* cheap linear reduction of rectangles in lines */
+				if(((in[scanline] >> scanbyte) & 1) != 0) {
+					if(length == 0)
+						start = (scanline * 8 + (7 - scanbyte));
+					length++;
+				} else {
+					if(length != 0)
+						fprintf(prn_stream, "B%d 4 %d %d;\n", length * 4,
+							start * 4 + length * 2,
+							(pdev->height - lnum) * 4);
+					length = 0;
+				}
 #endif
-   }
+	}
 	fprintf(prn_stream, "DF;\nC1;\nE\n");
 	gs_free(pdev->memory, in, line_size, 1, "cif_print_page(in)");
 	return 0;

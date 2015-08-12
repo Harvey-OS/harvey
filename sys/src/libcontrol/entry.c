@@ -17,23 +17,22 @@
 
 typedef struct Entry Entry;
 
-struct Entry
-{
+struct Entry {
 	Control;
-	int		border;
-	CFont	*font;
-	CImage	*image;
-	CImage	*textcolor;
-	CImage	*bordercolor;
-	Rune		*text;
-	int		ntext;
-	int		cursor;
-	int		align;
-	int		hasfocus;
-	int		lastbut;
+	int border;
+	CFont *font;
+	CImage *image;
+	CImage *textcolor;
+	CImage *bordercolor;
+	Rune *text;
+	int ntext;
+	int cursor;
+	int align;
+	int hasfocus;
+	int lastbut;
 };
 
-enum{
+enum {
 	EAlign,
 	EBorder,
 	EBordercolor,
@@ -52,23 +51,22 @@ enum{
 };
 
 static char *cmds[] = {
-	[EAlign] =			"align",
-	[EBorder] =		"border",
-	[EBordercolor] =	"bordercolor",
-	[EData] = 			"data",
-	[EFocus] = 		"focus",
-	[EFont] =			"font",
-	[EFormat] = 		"format",
-	[EHide] =			"hide",
-	[EImage] =		"image",
-	[ERect] =			"rect",
-	[EReveal] =		"reveal",
-	[EShow] =			"show",
-	[ESize] =			"size",
-	[ETextcolor] =		"textcolor",
-	[EValue] =			"value",
-	nil
-};
+	[EAlign] = "align",
+	[EBorder] = "border",
+	[EBordercolor] = "bordercolor",
+	[EData] = "data",
+	[EFocus] = "focus",
+	[EFont] = "font",
+	[EFormat] = "format",
+	[EHide] = "hide",
+	[EImage] = "image",
+	[ERect] = "rect",
+	[EReveal] = "reveal",
+	[EShow] = "show",
+	[ESize] = "size",
+	[ETextcolor] = "textcolor",
+	[EValue] = "value",
+	nil};
 
 static void
 entryfree(Control *c)
@@ -93,8 +91,8 @@ entrypoint(Entry *e, int c)
 	if(e->border > 0)
 		r = insetrect(r, e->border);
 	p = _ctlalignpoint(r,
-		runestringnwidth(e->font->font, e->text, e->ntext),
-		e->font->font->height, e->align);
+			   runestringnwidth(e->font->font, e->text, e->ntext),
+			   e->font->font->height, e->align);
 	if(c > e->ntext)
 		c = e->ntext;
 	p.x += runestringnwidth(e->font->font, e->text, c);
@@ -107,24 +105,24 @@ entryshow(Entry *e)
 	Rectangle r, dr;
 	Point p;
 
-	if (e->hidden)
+	if(e->hidden)
 		return;
 	r = e->rect;
 	draw(e->screen, r, e->image->image, nil, e->image->image->r.min);
-	if(e->border > 0){
+	if(e->border > 0) {
 		border(e->screen, r, e->border, e->bordercolor->image, e->bordercolor->image->r.min);
 		dr = insetrect(r, e->border);
-	}else
+	} else
 		dr = r;
 	p = entrypoint(e, 0);
 	_string(e->screen, p, e->textcolor->image,
 		ZP, e->font->font, nil, e->text, e->ntext,
 		dr, nil, ZP, SoverD);
-	if(e->hasfocus){
+	if(e->hasfocus) {
 		p = entrypoint(e, e->cursor);
 		r.min = p;
-		r.max.x = p.x+1;
-		r.max.y = p.y+e->font->font->height;
+		r.max.x = p.x + 1;
+		r.max.y = p.y + e->font->font->height;
 		if(rectclip(&r, dr))
 			draw(e->screen, r, e->textcolor->image, nil, ZP);
 	}
@@ -140,8 +138,8 @@ entrysetpoint(Entry *e, Point cp)
 	if(!ptinrect(cp, insetrect(e->rect, e->border)))
 		return;
 	p = entrypoint(e, 0);
-	for(i=0; i<e->ntext; i++){
-		p.x += runestringnwidth(e->font->font, e->text+i, 1);
+	for(i = 0; i < e->ntext; i++) {
+		p.x += runestringnwidth(e->font->font, e->text + i, 1);
 		if(p.x > cp.x)
 			break;
 	}
@@ -154,8 +152,8 @@ entrymouse(Control *c, Mouse *m)
 {
 	Entry *e;
 
-	e = (Entry*)c;
-	if(m->buttons==1 && e->lastbut==0)
+	e = (Entry *)c;
+	if(m->buttons == 1 && e->lastbut == 0)
 		entrysetpoint(e, m->xy);
 	e->lastbut = m->buttons;
 }
@@ -168,9 +166,9 @@ entryctl(Control *c, CParse *cp)
 	Entry *e;
 	Rune *rp;
 
-	e = (Entry*)c;
+	e = (Entry *)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
-	switch(cmd){
+	switch(cmd) {
 	default:
 		ctlerror("%q: unrecognized message '%s'", e->name, cp->str);
 		break;
@@ -220,7 +218,7 @@ entryctl(Control *c, CParse *cp)
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
-		if(Dx(r)<=0 || Dy(r)<=0)
+		if(Dx(r) <= 0 || Dy(r) <= 0)
 			ctlerror("%q: bad rectangle: %s", e->name, cp->str);
 		e->rect = r;
 		break;
@@ -234,16 +232,16 @@ entryctl(Control *c, CParse *cp)
 		entryshow(e);
 		break;
 	case ESize:
-		if (cp->nargs == 3)
+		if(cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
-		else{
+		else {
 			_ctlargcount(e, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
-		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+		if(r.min.x <= 0 || r.min.y <= 0 || r.max.x <= 0 || r.max.y <= 0 || r.max.x < r.min.x || r.max.y < r.min.y)
 			ctlerror("%q: bad sizes: %s", e->name, cp->str);
 		e->size.min = r.min;
 		e->size.max = r.max;
@@ -255,13 +253,13 @@ entryctl(Control *c, CParse *cp)
 	case EValue:
 		_ctlargcount(e, cp, 2);
 		rp = _ctlrunestr(cp->args[1]);
-		if(runestrcmp(rp, e->text) != 0){
+		if(runestrcmp(rp, e->text) != 0) {
 			free(e->text);
 			e->text = rp;
 			e->ntext = runestrlen(e->text);
 			e->cursor = e->ntext;
 			entryshow(e);
-		}else
+		} else
 			free(rp);
 		break;
 	}
@@ -274,23 +272,23 @@ entrykey(Entry *e, Rune r)
 	int n;
 	char *p;
 
-	switch(r){
+	switch(r) {
 	default:
-		e->text = ctlrealloc(e->text, (e->ntext+1+1)*sizeof(Rune));
-		memmove(e->text+e->cursor+1, e->text+e->cursor,
-			(e->ntext+1-e->cursor)*sizeof(Rune));
+		e->text = ctlrealloc(e->text, (e->ntext + 1 + 1) * sizeof(Rune));
+		memmove(e->text + e->cursor + 1, e->text + e->cursor,
+			(e->ntext + 1 - e->cursor) * sizeof(Rune));
 		e->text[e->cursor++] = r;
 		e->ntext++;
 		break;
-	case L'\n':	/* newline: return value */
+	case L'\n': /* newline: return value */
 		p = _ctlstrrune(e->text);
 		chanprint(e->event, e->format, e->name, p);
 		free(p);
 		return;
 	case L'\b':
-		if(e->cursor > 0){
-			memmove(e->text+e->cursor-1, e->text+e->cursor,
-				(e->ntext+1-e->cursor)*sizeof(Rune));
+		if(e->cursor > 0) {
+			memmove(e->text + e->cursor - 1, e->text + e->cursor,
+				(e->ntext + 1 - e->cursor) * sizeof(Rune));
 			e->cursor--;
 			e->ntext--;
 		}
@@ -303,24 +301,24 @@ entrykey(Entry *e, Rune r)
 		if(e->cursor > 0)
 			e->cursor--;
 		break;
-	case 0x01:	/* control A: beginning of line */
+	case 0x01: /* control A: beginning of line */
 		e->cursor = 0;
 		break;
-	case 0x05:	/* control E: end of line */
+	case 0x05: /* control E: end of line */
 		e->cursor = e->ntext;
 		break;
-	case 0x15:	/* control U: kill line */
+	case 0x15: /* control U: kill line */
 		e->cursor = 0;
 		e->ntext = 0;
 		break;
-	case 0x16:	/* control V: paste (append snarf buffer) */
+	case 0x16: /* control V: paste (append snarf buffer) */
 		s = _ctlgetsnarf();
-		if(s != nil){
+		if(s != nil) {
 			n = runestrlen(s);
-			e->text = ctlrealloc(e->text, (e->ntext+n+1)*sizeof(Rune));
-			memmove(e->text+e->cursor+n, e->text+e->cursor,
-				(e->ntext+1-e->cursor)*sizeof(Rune));
-			memmove(e->text+e->cursor, s, n*sizeof(Rune));
+			e->text = ctlrealloc(e->text, (e->ntext + n + 1) * sizeof(Rune));
+			memmove(e->text + e->cursor + n, e->text + e->cursor,
+				(e->ntext + 1 - e->cursor) * sizeof(Rune));
+			memmove(e->text + e->cursor, s, n * sizeof(Rune));
 			e->cursor += n;
 			e->ntext += n;
 		}
@@ -336,17 +334,17 @@ entrykeys(Control *c, Rune *rp)
 	int i;
 
 	e = (Entry *)c;
-	for(i=0; rp[i]!=L'\0'; i++)
+	for(i = 0; rp[i] != L'\0'; i++)
 		entrykey(e, rp[i]);
 	entryshow(e);
 }
 
-Control*
+Control *
 createentry(Controlset *cs, char *name)
 {
 	Entry *e;
 
-	e = (Entry*) _createctl(cs, "entry", sizeof(Entry), name);
+	e = (Entry *)_createctl(cs, "entry", sizeof(Entry), name);
 	e->text = ctlmalloc(sizeof(Rune));
 	e->ntext = 0;
 	e->image = _getctlimage("white");

@@ -27,7 +27,7 @@
 /* Miscellaneous support for platform facilities */
 
 #ifndef gpmisc_INCLUDED
-#  define gpmisc_INCLUDED
+#define gpmisc_INCLUDED
 
 /*
  * The facilities defined in this file and implemented in gpmisc.c are
@@ -53,15 +53,15 @@ FILE *gp_fopentemp(const char *fname, const char *mode);
  * directory references from the concatenation when possible.
  * The trailing zero byte is being added.
  */
-gp_file_name_combine_result gp_file_name_combine_generic(const char *prefix, uint plen, 
-	    const char *fname, uint flen, bool no_sibling, char *buffer, uint *blen);
+gp_file_name_combine_result gp_file_name_combine_generic(const char *prefix, uint plen,
+							 const char *fname, uint flen, bool no_sibling, char *buffer, uint *blen);
 
 /*
  * Reduces parent references and current directory references when possible.
  * The trailing zero byte is being added.
  */
-gp_file_name_combine_result gp_file_name_reduce(const char *fname, uint flen, 
-		char *buffer, uint *blen);
+gp_file_name_combine_result gp_file_name_reduce(const char *fname, uint flen,
+						char *buffer, uint *blen);
 
 /* 
  * Answers whether a file name is absolute (starts from a root). 

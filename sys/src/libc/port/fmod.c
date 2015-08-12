@@ -14,14 +14,14 @@
  * floating-point mod function without infinity or NaN checking
  */
 double
-fmod (double x, double y)
+fmod(double x, double y)
 {
 	int sign, yexp, rexp;
 	double r, yfr, rfr;
 
-	if (y == 0)
+	if(y == 0)
 		return x;
-	if (y < 0)
+	if(y < 0)
 		y = -y;
 	yfr = frexp(y, &yexp);
 	sign = 0;

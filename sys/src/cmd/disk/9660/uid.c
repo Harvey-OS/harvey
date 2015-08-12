@@ -37,7 +37,6 @@ sniff(Biobuf *b)
 	return nil;
 }
 
-
 int
 isnumber(char *s)
 {

@@ -107,70 +107,70 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include "ifdef.h"			/* conditional compilation stuff */
-#include "gen.h"			/* general purpose definitions */
-#include "postio.h"			/* some special definitions */
+#include "ifdef.h"  /* conditional compilation stuff */
+#include "gen.h"    /* general purpose definitions */
+#include "postio.h" /* some special definitions */
 
-char	**argv;				/* global so everyone can use them */
-int	argc;
+char **argv; /* global so everyone can use them */
+int argc;
 
-char	*prog_name = "";		/* really just for error messages */
-int	x_stat = 0;			/* program exit status */
-int	debug = OFF;			/* debug flag */
-int	ignore = OFF;			/* what's done for FATAL errors */
+char *prog_name = ""; /* really just for error messages */
+int x_stat = 0;       /* program exit status */
+int debug = OFF;      /* debug flag */
+int ignore = OFF;     /* what's done for FATAL errors */
 
-char	*line = NULL;			/* printer is on this tty line */
-int16_t	baudrate = BAUDRATE;		/* and running at this baud rate */
-Baud	baudtable[] = BAUDTABLE;	/* converts strings to termio values */
+char *line = NULL;	    /* printer is on this tty line */
+int16_t baudrate = BAUDRATE;  /* and running at this baud rate */
+Baud baudtable[] = BAUDTABLE; /* converts strings to termio values */
 
-int	stopbits = 1;			/* number of stop bits */
-int	tostdout = FALSE;		/* non-status stuff goes to stdout? */
-int	quiet = FALSE;			/* no status queries in send() if TRUE */
-int	interactive = FALSE;		/* interactive mode */
-char	*postbegin = POSTBEGIN;		/* preceeds all the input files */
-int	useslowsend = FALSE;		/* not recommended! */
-int	sendctrlC = TRUE;		/* interrupt with ctrl-C when BUSY */
-int	window_size = -1;		/* for Datakit - use -w */
+int stopbits = 1;	    /* number of stop bits */
+int tostdout = FALSE;	/* non-status stuff goes to stdout? */
+int quiet = FALSE;	   /* no status queries in send() if TRUE */
+int interactive = FALSE;     /* interactive mode */
+char *postbegin = POSTBEGIN; /* preceeds all the input files */
+int useslowsend = FALSE;     /* not recommended! */
+int sendctrlC = TRUE;	/* interrupt with ctrl-C when BUSY */
+int window_size = -1;	/* for Datakit - use -w */
 
-char	*block = NULL;			/* input file buffer */
-int	blocksize = BLOCKSIZE;		/* and its size in bytes */
-int	head = 0;			/* block[head] is the next character */
-int	tail = 0;			/* one past the last byte in block[] */
+char *block = NULL;	/* input file buffer */
+int blocksize = BLOCKSIZE; /* and its size in bytes */
+int head = 0;		   /* block[head] is the next character */
+int tail = 0;		   /* one past the last byte in block[] */
 
-int	splitme = FALSE;		/* into READ and WRITE processes if TRUE */
-int	whatami = READWRITE;		/* a READ or WRITE process - or both */
-int	canread = TRUE;			/* allow reads */
-int	canwrite = TRUE;		/* and writes if TRUE */
-int	otherpid = -1;			/* who gets signals if greater than 1 */
-int	joinsig = SIGTRAP;		/* reader gets this when writing is done */
-int	writedone = FALSE;		/* and then sets this to TRUE */
+int splitme = FALSE;     /* into READ and WRITE processes if TRUE */
+int whatami = READWRITE; /* a READ or WRITE process - or both */
+int canread = TRUE;      /* allow reads */
+int canwrite = TRUE;     /* and writes if TRUE */
+int otherpid = -1;       /* who gets signals if greater than 1 */
+int joinsig = SIGTRAP;   /* reader gets this when writing is done */
+int writedone = FALSE;   /* and then sets this to TRUE */
 
-char	mesg[MESGSIZE];			/* exactly what came back on ttyi */
-char	sbuf[MESGSIZE];			/* for parsing the message */
-int	next = 0;			/* next character goes in mesg[next] */
-char	*mesgptr = NULL;		/* printer message starts here in mesg[] */
-char	*endmesg = NULL;		/* as far as readline() can go in mesg[] */
+char mesg[MESGSIZE];  /* exactly what came back on ttyi */
+char sbuf[MESGSIZE];  /* for parsing the message */
+int next = 0;	 /* next character goes in mesg[next] */
+char *mesgptr = NULL; /* printer message starts here in mesg[] */
+char *endmesg = NULL; /* as far as readline() can go in mesg[] */
 
-Status	status[] = STATUS;		/* for converting status strings */
-int	nostatus = NOSTATUS;		/* default getstatus() return value */
+Status status[] = STATUS; /* for converting status strings */
+int nostatus = NOSTATUS;  /* default getstatus() return value */
 
-int	currentstate = NOTCONNECTED;	/* what's happening START, SEND, or DONE */
+int currentstate = NOTCONNECTED; /* what's happening START, SEND, or DONE */
 
-int	ttyi = 0;			/* input */
-int	ttyo = 2;			/* and output file descriptors */
+int ttyi = 0; /* input */
+int ttyo = 2; /* and output file descriptors */
 
-FILE	*fp_log = stderr;		/* log file for stuff from the printer */
+FILE *fp_log = stderr; /* log file for stuff from the printer */
 
 /*****************************************************************************/
 
 main(agc, agv)
 
-    int		agc;
-    char	*agv[];
+    int agc;
+char *agv[];
 
 {
 
-/*
+	/*
  *
  * A simple program that manages input and output for PostScript printers. Can run
  * as a single process or as separate read/write processes. What's done depends on
@@ -178,23 +178,23 @@ main(agc, agv)
  *
  */
 
-    argc = agc;				/* other routines may want them */
-    argv = agv;
+	argc = agc; /* other routines may want them */
+	argv = agv;
 
-    prog_name = argv[0];		/* really just for error messages */
+	prog_name = argv[0]; /* really just for error messages */
 
-    init_signals();			/* sets up interrupt handling */
-    options();				/* get command line options */
-    initialize();			/* must be done after options() */
-    start();				/* make sure the printer is ready */
-    split();				/* into read/write processes - maybe */
-    arguments();			/* then send each input file */
-    done();				/* wait until the printer is finished */
-    cleanup();				/* make sure the write process stops */
+	init_signals(); /* sets up interrupt handling */
+	options();      /* get command line options */
+	initialize();   /* must be done after options() */
+	start();	/* make sure the printer is ready */
+	split();	/* into read/write processes - maybe */
+	arguments();    /* then send each input file */
+	done();		/* wait until the printer is finished */
+	cleanup();      /* make sure the write process stops */
 
-    exit(x_stat);			/* everything probably went OK */
+	exit(x_stat); /* everything probably went OK */
 
-}   /* End of main */
+} /* End of main */
 
 /*****************************************************************************/
 
@@ -202,9 +202,9 @@ init_signals()
 
 {
 
-    void	interrupt();		/* handles them if we catch signals */
+	void interrupt(); /* handles them if we catch signals */
 
-/*
+	/*
  *
  * Makes sure we handle interrupts. The proper way to kill the program, if
  * necessary, is to do a kill -15. That forces a call to interrupt(), which in
@@ -214,18 +214,18 @@ init_signals()
  *
  */
 
-    if ( signal(SIGINT, interrupt) == SIG_IGN )  {
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
-    } else {
-	signal(SIGHUP, interrupt);
-	signal(SIGQUIT, interrupt);
-    }	/* End else */
+	if(signal(SIGINT, interrupt) == SIG_IGN) {
+		signal(SIGINT, SIG_IGN);
+		signal(SIGQUIT, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);
+	} else {
+		signal(SIGHUP, interrupt);
+		signal(SIGQUIT, interrupt);
+	} /* End else */
 
-    signal(SIGTERM, interrupt);
+	signal(SIGTERM, interrupt);
 
-}   /* End of init_sig */
+} /* End of init_sig */
 
 /*****************************************************************************/
 
@@ -233,13 +233,13 @@ options()
 
 {
 
-    int		ch;			/* return value from getopt() */
-    char	*optnames = "b:cil:qs:tw:B:L:P:R:SDI";
+	int ch; /* return value from getopt() */
+	char *optnames = "b:cil:qs:tw:B:L:P:R:SDI";
 
-    extern char	*optarg;		/* used by getopt() */
-    extern int	optind;
+	extern char *optarg; /* used by getopt() */
+	extern int optind;
 
-/*
+	/*
  *
  * Reads and processes the command line options. The -R2, -t, and -i options all
  * force separate read and write processes by eventually setting splitme to TRUE
@@ -248,101 +248,102 @@ options()
  *
  */
 
-    while ( (ch = getopt(argc, argv, optnames)) != EOF )  {
-	switch ( ch )  {
-	    case 'b':			/* baud rate string */
-		    baudrate = getbaud(optarg);
-		    break;
+	while((ch = getopt(argc, argv, optnames)) != EOF) {
+		switch(ch) {
+		case 'b': /* baud rate string */
+			baudrate = getbaud(optarg);
+			break;
 
-	    case 'c':			/* no ctrl-C's */
-		    sendctrlC = FALSE;
-		    break;
+		case 'c': /* no ctrl-C's */
+			sendctrlC = FALSE;
+			break;
 
-	    case 'i':			/* interactive mode */
-		    interactive = TRUE;
-		    break;
+		case 'i': /* interactive mode */
+			interactive = TRUE;
+			break;
 
-	    case 'l':			/* printer line */
-		    line = optarg;
-		    break;
+		case 'l': /* printer line */
+			line = optarg;
+			break;
 
-	    case 'q':			/* no status queries - for RADIAN? */
-		    quiet = TRUE;
-		    break;
+		case 'q': /* no status queries - for RADIAN? */
+			quiet = TRUE;
+			break;
 
-	    case 's':			/* use 2 stop bits - for UNISON? */
-		    if ( (stopbits = atoi(optarg)) < 1 || stopbits > 2 )
-			stopbits = 1;
-		    break;
+		case 's': /* use 2 stop bits - for UNISON? */
+			if((stopbits = atoi(optarg)) < 1 || stopbits > 2)
+				stopbits = 1;
+			break;
 
-	    case 't':			/* non-status stuff goes to stdout */
-		    tostdout = TRUE;
-		    break;
+		case 't': /* non-status stuff goes to stdout */
+			tostdout = TRUE;
+			break;
 
-	    case 'w':			/* Datakit window size */
-		    window_size = atoi(optarg);
-		    break;
+		case 'w': /* Datakit window size */
+			window_size = atoi(optarg);
+			break;
 
-	    case 'B':			/* set the job buffer size */
-		    if ( (blocksize = atoi(optarg)) <= 0 )
-			blocksize = BLOCKSIZE;
-		    break;
+		case 'B': /* set the job buffer size */
+			if((blocksize = atoi(optarg)) <= 0)
+				blocksize = BLOCKSIZE;
+			break;
 
-	    case 'L':			/* printer log file */
-		    if ( (fp_log = fopen(optarg, "w")) == NULL )  {
-			fp_log = stderr;
-			error(NON_FATAL, "can't open log file %s", optarg);
-		    }	/* End if */
-		    break;
+		case 'L': /* printer log file */
+			if((fp_log = fopen(optarg, "w")) == NULL) {
+				fp_log = stderr;
+				error(NON_FATAL, "can't open log file %s", optarg);
+			} /* End if */
+			break;
 
-	    case 'P':			/* initial PostScript code */
-		    postbegin = optarg;
-		    break;
+		case 'P': /* initial PostScript code */
+			postbegin = optarg;
+			break;
 
-	    case 'R':			/* run as one or two processes */
-		    if ( atoi(optarg) == 2 )
-			splitme = TRUE;
-		    else splitme = FALSE;
-		    break;
+		case 'R': /* run as one or two processes */
+			if(atoi(optarg) == 2)
+				splitme = TRUE;
+			else
+				splitme = FALSE;
+			break;
 
-	    case 'S':			/* slow and kludged up version of send */
-		    useslowsend = TRUE;
-		    break;
+		case 'S': /* slow and kludged up version of send */
+			useslowsend = TRUE;
+			break;
 
-	    case 'D':			/* debug flag */
-		    debug = ON;
-		    break;
+		case 'D': /* debug flag */
+			debug = ON;
+			break;
 
-	    case 'I':			/* ignore FATAL errors */
-		    ignore = ON;
-		    break;
+		case 'I': /* ignore FATAL errors */
+			ignore = ON;
+			break;
 
-	    case '?':			/* don't understand the option */
-		    error(FATAL, "");
-		    break;
+		case '?': /* don't understand the option */
+			error(FATAL, "");
+			break;
 
-	    default:			/* don't know what to do for ch */
-		    error(FATAL, "missing case for option %c\n", ch);
-		    break;
-	}   /* End switch */
-    }   /* End while */
+		default: /* don't know what to do for ch */
+			error(FATAL, "missing case for option %c\n", ch);
+			break;
+		} /* End switch */
+	}	 /* End while */
 
-    argc -= optind;			/* get ready for non-option args */
-    argv += optind;
+	argc -= optind; /* get ready for non-option args */
+	argv += optind;
 
-}   /* End of options */
+} /* End of options */
 
 /*****************************************************************************/
 
 getbaud(rate)
 
-    char	*rate;			/* string representing the baud rate */
+    char *rate; /* string representing the baud rate */
 
 {
 
-    int		i;			/* for looking through baudtable[] */
+	int i; /* for looking through baudtable[] */
 
-/*
+	/*
  *
  * Called from options() to convert a baud rate string into an appropriate termio
  * value. *rate is looked up in baudtable[] and if it's found, the corresponding
@@ -350,13 +351,13 @@ getbaud(rate)
  *
  */
 
-    for ( i = 0; baudtable[i].rate != NULL; i++ )
-	if ( strcmp(rate, baudtable[i].rate) == 0 )
-	    return(baudtable[i].val);
+	for(i = 0; baudtable[i].rate != NULL; i++)
+		if(strcmp(rate, baudtable[i].rate) == 0)
+			return (baudtable[i].val);
 
-    error(FATAL, "don't recognize baud rate %s", rate);
+	error(FATAL, "don't recognize baud rate %s", rate);
 
-}   /* End of getbaud */
+} /* End of getbaud */
 
 /*****************************************************************************/
 
@@ -364,7 +365,7 @@ initialize()
 
 {
 
-/*
+	/*
  *
  * Initialization, a few checks, and a call to setupline() (file ifdef.c) to open
  * and configure the communications line. Settings for interactive mode always
@@ -377,45 +378,45 @@ initialize()
  *
  */
 
-    whatami = READWRITE;		/* always run start() as one process */
-    canread = canwrite = TRUE;
+	whatami = READWRITE; /* always run start() as one process */
+	canread = canwrite = TRUE;
 
-    if ( tostdout == TRUE )		/* force separate read/write processes */
-	splitme = TRUE;
+	if(tostdout == TRUE) /* force separate read/write processes */
+		splitme = TRUE;
 
-    if ( interactive == TRUE )  {	/* interactive mode settings always win */
-	quiet = FALSE;
-	tostdout = FALSE;
-	splitme = TRUE;
-	blocksize = 1;
-	postbegin = NULL;
-	useslowsend = FALSE;
-	nostatus = INTERACTIVE;
-	setbuf(stdout, NULL);
-    }	/* End if */
+	if(interactive == TRUE) { /* interactive mode settings always win */
+		quiet = FALSE;
+		tostdout = FALSE;
+		splitme = TRUE;
+		blocksize = 1;
+		postbegin = NULL;
+		useslowsend = FALSE;
+		nostatus = INTERACTIVE;
+		setbuf(stdout, NULL);
+	} /* End if */
 
-    if ( useslowsend == TRUE )  {	/* last resort only - not recommended */
-	quiet = FALSE;
-	splitme = FALSE;
-	if ( blocksize > 1024 )		/* don't send too much all at once */
-	    blocksize = 1024;
-    }	/* End if */
+	if(useslowsend == TRUE) { /* last resort only - not recommended */
+		quiet = FALSE;
+		splitme = FALSE;
+		if(blocksize > 1024) /* don't send too much all at once */
+			blocksize = 1024;
+	} /* End if */
 
-    if ( tostdout == TRUE && fp_log == stderr )
-	fp_log = NULL;
+	if(tostdout == TRUE && fp_log == stderr)
+		fp_log = NULL;
 
-    if ( line == NULL && (interactive == TRUE || tostdout == TRUE) )
-	error(FATAL, "a printer line must be supplied - use the -l option");
+	if(line == NULL && (interactive == TRUE || tostdout == TRUE))
+		error(FATAL, "a printer line must be supplied - use the -l option");
 
-    if ( (block = malloc(blocksize)) == NULL )
-	error(FATAL, "no memory");
+	if((block = malloc(blocksize)) == NULL)
+		error(FATAL, "no memory");
 
-    endmesg = mesg + sizeof mesg - 2;	/* one byte from last position in mesg */
+	endmesg = mesg + sizeof mesg - 2; /* one byte from last position in mesg */
 
-    setupline();			/* configure the communications line */
-    setupstdin(0);			/* save current stdin terminal settings */
+	setupline();   /* configure the communications line */
+	setupstdin(0); /* save current stdin terminal settings */
 
-}   /* End of initialize */
+} /* End of initialize */
 
 /*****************************************************************************/
 
@@ -423,7 +424,7 @@ start()
 
 {
 
-/*
+	/*
  *
  * Tries to put the printer in the IDLE state before anything important is sent.
  * Run as a single process no matter what has been assigned to splitme. Separate
@@ -431,53 +432,53 @@ start()
  *
  */
 
-    logit("printer startup\n");
+	logit("printer startup\n");
 
-    currentstate = START;
-    clearline();
+	currentstate = START;
+	clearline();
 
-    while ( 1 )
-	switch ( getstatus(1) )  {
-	    case IDLE:
-	    case INTERACTIVE:
-		    if ( postbegin != NULL && *postbegin != '\0' )
-			Write(ttyo, postbegin, strlen(postbegin));
-		    clearline();
-		    return;
+	while(1)
+		switch(getstatus(1)) {
+		case IDLE:
+		case INTERACTIVE:
+			if(postbegin != NULL && *postbegin != '\0')
+				Write(ttyo, postbegin, strlen(postbegin));
+			clearline();
+			return;
 
-	    case BUSY:
-		    if ( sendctrlC == TRUE ) {
-			Write(ttyo, "\003", 1);
+		case BUSY:
+			if(sendctrlC == TRUE) {
+				Write(ttyo, "\003", 1);
+				Rest(1);
+			} /* End if */
+			break;
+
+		case WAITING:
+		case ERROR:
+		case FLUSHING:
+			Write(ttyo, "\004", 1);
 			Rest(1);
-		    }	/* End if */
-		    break;
+			break;
 
-	    case WAITING:
-	    case ERROR:
-	    case FLUSHING:
-		    Write(ttyo, "\004", 1);
-		    Rest(1);
-		    break;
+		case PRINTERERROR:
+			Rest(15);
+			break;
 
-	    case PRINTERERROR:
-		    Rest(15);
-		    break;
+		case DISCONNECT:
+			error(FATAL, "Disconnected - printer may be offline");
+			break;
 
-	    case DISCONNECT:
-		    error(FATAL, "Disconnected - printer may be offline");
-		    break;
+		case ENDOFJOB:
+		case UNKNOWN:
+			clearline();
+			break;
 
-	    case ENDOFJOB:
-	    case UNKNOWN:
-		    clearline();
-		    break;
+		default:
+			Rest(1);
+			break;
+		} /* End switch */
 
-	    default:
-		    Rest(1);
-		    break;
-	}   /* End switch */
-
-}   /* End of start */
+} /* End of start */
 
 /*****************************************************************************/
 
@@ -485,10 +486,10 @@ split()
 
 {
 
-    int		pid;
-    void	interrupt();
+	int pid;
+	void interrupt();
 
-/*
+	/*
  *
  * If splitme is TRUE we fork a process, make the parent handle reading, and let
  * the child take care of writing. resetline() (file ifdef.c) contains all the
@@ -504,26 +505,28 @@ split()
  *
  */
 
-    if ( splitme == TRUE )
-	if ( resetline() == TRUE )  {
-	    pid = getpid();
-	    signal(joinsig, interrupt);
-	    if ( (otherpid = fork()) == -1 )
-		error(FATAL, "can't fork");
-	    else if ( otherpid == 0 )  {
-		whatami = WRITE;
-		nostatus = WRITEPROCESS;
-		otherpid = pid;
-		setupstdin(1);
-	    } else whatami = READ;
-	} else if ( interactive == TRUE || tostdout == TRUE )
-	    error(FATAL, "can't create two process - check resetline()");
- 	else error(NON_FATAL, "running as a single process - check resetline()");
+	if(splitme == TRUE)
+		if(resetline() == TRUE) {
+			pid = getpid();
+			signal(joinsig, interrupt);
+			if((otherpid = fork()) == -1)
+				error(FATAL, "can't fork");
+			else if(otherpid == 0) {
+				whatami = WRITE;
+				nostatus = WRITEPROCESS;
+				otherpid = pid;
+				setupstdin(1);
+			} else
+				whatami = READ;
+		} else if(interactive == TRUE || tostdout == TRUE)
+			error(FATAL, "can't create two process - check resetline()");
+		else
+			error(NON_FATAL, "running as a single process - check resetline()");
 
-    canread = (whatami & READ) ? TRUE : FALSE;
-    canwrite = (whatami & WRITE) ? TRUE : FALSE;
+	canread = (whatami & READ) ? TRUE : FALSE;
+	canwrite = (whatami & WRITE) ? TRUE : FALSE;
 
-}   /* End of split */
+} /* End of split */
 
 /*****************************************************************************/
 
@@ -531,9 +534,9 @@ arguments()
 
 {
 
-    int		fd_in;			/* next input file */
+	int fd_in; /* next input file */
 
-/*
+	/*
  *
  * Makes sure all the non-option command line arguments are processed. If there
  * aren't any arguments left when we get here we'll send stdin. Input files are
@@ -546,34 +549,34 @@ arguments()
  *
  */
 
-    if ( canwrite == TRUE )
-	do				/* loop is for interactive mode */
-	    if ( argc < 1 )
-		send(fileno(stdin), "pipe.end");
-	    else  {
-		while ( argc > 0 )  {
-		    if ( (fd_in = open(*argv, O_RDONLY)) == -1 )
-			error(FATAL, "can't open %s", *argv);
-		    send(fd_in, *argv);
-		    close(fd_in);
-		    argc--;
-		    argv++;
-		}   /* End while */
-	    }	/* End else */
-	while ( interactive == TRUE );
+	if(canwrite == TRUE)
+		do /* loop is for interactive mode */
+			if(argc < 1)
+				send(fileno(stdin), "pipe.end");
+			else {
+				while(argc > 0) {
+					if((fd_in = open(*argv, O_RDONLY)) == -1)
+						error(FATAL, "can't open %s", *argv);
+					send(fd_in, *argv);
+					close(fd_in);
+					argc--;
+					argv++;
+				} /* End while */
+			}	 /* End else */
+		while(interactive == TRUE);
 
-}   /* End of arguments */
+} /* End of arguments */
 
 /*****************************************************************************/
 
 send(fd_in, name)
 
-    int		fd_in;			/* next input file */
-    char	*name;			/* and it's pathname */
+    int fd_in; /* next input file */
+char *name;    /* and it's pathname */
 
 {
 
-/*
+	/*
  *
  * Sends file *name to the printer. There's nothing left here that depends on
  * sending and receiving status reports, although it can be reassuring to know
@@ -584,46 +587,46 @@ send(fd_in, name)
  *
  */
 
-    if ( interactive == FALSE )
-	logit("sending file %s\n", name);
+	if(interactive == FALSE)
+		logit("sending file %s\n", name);
 
-    currentstate = SEND;
+	currentstate = SEND;
 
-    if ( useslowsend == TRUE )  {
-	slowsend(fd_in);
-	return;
-    }	/* End if */
+	if(useslowsend == TRUE) {
+		slowsend(fd_in);
+		return;
+	} /* End if */
 
-    while ( readblock(fd_in) )
-	switch ( getstatus(0) )  {
-	    case IDLE:
-	    case BUSY:
-	    case WAITING:
-	    case PRINTING:
-	    case ENDOFJOB:
-	    case PRINTERERROR:
-	    case UNKNOWN:
-	    case NOSTATUS:
-	    case WRITEPROCESS:
-	    case INTERACTIVE:
-		    writeblock();
-		    break;
+	while(readblock(fd_in))
+		switch(getstatus(0)) {
+		case IDLE:
+		case BUSY:
+		case WAITING:
+		case PRINTING:
+		case ENDOFJOB:
+		case PRINTERERROR:
+		case UNKNOWN:
+		case NOSTATUS:
+		case WRITEPROCESS:
+		case INTERACTIVE:
+			writeblock();
+			break;
 
-	    case ERROR:
-		    fprintf(stderr, "%s", mesg);	/* for csw */
-		    error(USER_FATAL, "PostScript Error");
-		    break;
+		case ERROR:
+			fprintf(stderr, "%s", mesg); /* for csw */
+			error(USER_FATAL, "PostScript Error");
+			break;
 
-	    case FLUSHING:
-		    error(USER_FATAL, "Flushing Job");
-		    break;
+		case FLUSHING:
+			error(USER_FATAL, "Flushing Job");
+			break;
 
-	    case DISCONNECT:
-		    error(FATAL, "Disconnected - printer may be offline");
-		    break;
-	}   /* End switch */
+		case DISCONNECT:
+			error(FATAL, "Disconnected - printer may be offline");
+			break;
+		} /* End switch */
 
-}   /* End of send */
+} /* End of send */
 
 /*****************************************************************************/
 
@@ -631,9 +634,9 @@ done()
 
 {
 
-    int		sleeptime = 15;		/* for 'out of paper' etc. */
+	int sleeptime = 15; /* for 'out of paper' etc. */
 
-/*
+	/*
  *
  * Tries to stay connected to the printer until we're reasonably sure the job is
  * complete. It's the only way we can recover error messages or data generated by
@@ -659,72 +662,72 @@ done()
  *
  */
 
-    if ( canwrite == TRUE )
-	logit("waiting for end of job\n");
+	if(canwrite == TRUE)
+		logit("waiting for end of job\n");
 
-    currentstate = DONE;
-    writedone = (whatami == READWRITE) ? TRUE : FALSE;
+	currentstate = DONE;
+	writedone = (whatami == READWRITE) ? TRUE : FALSE;
 
-    while ( 1 )  {
-	switch ( getstatus(1) )  {
+	while(1) {
+		switch(getstatus(1)) {
 
-	    case WRITEPROCESS:
-		    if ( writedone == FALSE )  {
-			sendsignal(joinsig);
+		case WRITEPROCESS:
+			if(writedone == FALSE) {
+				sendsignal(joinsig);
+				Write(ttyo, "\004", 1);
+				writedone = TRUE;
+				sleeptime = 1;
+			} /* End if */
+			Rest(sleeptime++);
+			break;
+
+		case WAITING:
 			Write(ttyo, "\004", 1);
-			writedone = TRUE;
-			sleeptime = 1;
-		    }	/* End if */
-		    Rest(sleeptime++);
-		    break;
+			Rest(1);
+			sleeptime = 15;
+			break;
 
-	    case WAITING:
-		    Write(ttyo, "\004", 1);
-		    Rest(1);
-		    sleeptime = 15;
-		    break;
+		case IDLE:
+		case ENDOFJOB:
+			if(writedone == TRUE) {
+				logit("job complete\n");
+				return;
+			} /* End if */
+			break;
 
-	    case IDLE:
-	    case ENDOFJOB:
-		    if ( writedone == TRUE )  {
-			logit("job complete\n");
+		case BUSY:
+		case PRINTING:
+		case INTERACTIVE:
+			sleeptime = 15;
+			break;
+
+		case PRINTERERROR:
+			Rest(sleeptime++);
+			break;
+
+		case ERROR:
+			fprintf(stderr, "%s", mesg); /* for csw */
+			error(USER_FATAL, "PostScript Error");
 			return;
-		    }	/* End if */
-		    break;
 
-	    case BUSY:
-	    case PRINTING:
-	    case INTERACTIVE:
-		    sleeptime = 15;
-		    break;
+		case FLUSHING:
+			error(USER_FATAL, "Flushing Job");
+			return;
 
-	    case PRINTERERROR:
-		    Rest(sleeptime++);
-		    break;
+		case DISCONNECT:
+			error(FATAL, "Disconnected - printer may be offline");
+			return;
 
-	    case ERROR:
-		    fprintf(stderr, "%s", mesg);	/* for csw */
-		    error(USER_FATAL, "PostScript Error");
-		    return;
+		default:
+			Rest(1);
+			break;
+		} /* End switch */
 
-	    case FLUSHING:
-		    error(USER_FATAL, "Flushing Job");
-		    return;
+		if(sleeptime > 60)
+			sleeptime = 60;
+	} /* End while */
 
-	    case DISCONNECT:
-		    error(FATAL, "Disconnected - printer may be offline");
-		    return;
-
-	    default:
-		    Rest(1);
-		    break;
-	}   /* End switch */
-
-	if ( sleeptime > 60 )
-	    sleeptime = 60;
-    }	/* End while */
-
-}   /* End of done */
+} /* End of done */
 
 /*****************************************************************************/
 
@@ -732,9 +735,9 @@ cleanup()
 
 {
 
-    int		w;
+	int w;
 
-/*
+	/*
  *
  * Only needed if we're running separate read and write processes. Makes sure the
  * write process is killed after the read process has successfully finished with
@@ -743,21 +746,22 @@ cleanup()
  *
  */
 
-    while ( sendsignal(SIGKILL) != -1 && (w = wait((int *)0)) != otherpid && w != -1 ) ;
+	while(sendsignal(SIGKILL) != -1 && (w = wait((int *)0)) != otherpid && w != -1)
+		;
 
-}   /* End of cleanup */
+} /* End of cleanup */
 
 /*****************************************************************************/
 
 readblock(fd_in)
 
-    int		fd_in;			/* current input file */
+    int fd_in; /* current input file */
 
 {
 
-    static long	blocknum = 1;
+	static long blocknum = 1;
 
-/*
+	/*
  *
  * Fills the input buffer with the next block, provided we're all done with the
  * last one. Blocks from fd_in are stored in array block[]. head is the index
@@ -771,17 +775,17 @@ readblock(fd_in)
  *
  */
 
-    if ( head >= tail )  {		/* done with the last block */
-	if ( (tail = read(fd_in, block, blocksize)) == -1 )
-	    error(FATAL, "error reading input file");
-	if ( quiet == TRUE && tail > 0 )	/* put out a fake message? */
-	    logit("%%%%[ status: busy; block: %d ]%%%%\n", blocknum++);
-	head = 0;
-    }	/* End if */
+	if(head >= tail) {/* done with the last block */
+		if((tail = read(fd_in, block, blocksize)) == -1)
+			error(FATAL, "error reading input file");
+		if(quiet == TRUE && tail > 0) /* put out a fake message? */
+			logit("%%%%[ status: busy; block: %d ]%%%%\n", blocknum++);
+		head = 0;
+	} /* End if */
 
-    return(tail - head);
+	return (tail - head);
 
-}   /* End of readblock */
+} /* End of readblock */
 
 /*****************************************************************************/
 
@@ -789,9 +793,9 @@ writeblock()
 
 {
 
-    int		count;			/* bytes successfully written */
+	int count; /* bytes successfully written */
 
-/*
+	/*
  *
  * Called from send() when it's OK to send the next block to the printer. head
  * is adjusted after the write, and the number of bytes that were successfully
@@ -799,31 +803,31 @@ writeblock()
  *
  */
 
-    if ( (count = write(ttyo, &block[head], tail - head)) == -1 )
-	error(FATAL, "error writing to %s", line);
-    else if ( count == 0 )
-	error(FATAL, "printer appears to be offline");
+	if((count = write(ttyo, &block[head], tail - head)) == -1)
+		error(FATAL, "error writing to %s", line);
+	else if(count == 0)
+		error(FATAL, "printer appears to be offline");
 
-    head += count;
-    return(count);
+	head += count;
+	return (count);
 
-}   /* End of writeblock */
+} /* End of writeblock */
 
 /*****************************************************************************/
 
 getstatus(t)
 
-    int		t;			/* sleep time after sending '\024' */
+    int t; /* sleep time after sending '\024' */
 
 {
 
-    int		gotline = FALSE;	/* value returned by readline() */
-    int		state = nostatus;	/* representation of the current state */
-    int		mesgch;			/* to restore mesg[] when tostdout == TRUE */
+	int gotline = FALSE;  /* value returned by readline() */
+	int state = nostatus; /* representation of the current state */
+	int mesgch;	   /* to restore mesg[] when tostdout == TRUE */
 
-    static int	laststate = NOSTATUS;	/* last state recognized */
+	static int laststate = NOSTATUS; /* last state recognized */
 
-/*
+	/*
  *
  * Looks for things coming back from the printer on the communications line, parses
  * complete lines retrieved by readline(), and returns an integer representation
@@ -834,31 +838,32 @@ getstatus(t)
  * 
  */
 
-    if ( canread == TRUE && (gotline = readline()) == TRUE )  {
-	state = parsemesg();
-	if ( state != laststate || state == UNKNOWN || mesgptr != mesg || debug == ON )
-	    logit("%s", mesg);
+	if(canread == TRUE && (gotline = readline()) == TRUE) {
+		state = parsemesg();
+		if(state != laststate || state == UNKNOWN || mesgptr != mesg || debug == ON)
+			logit("%s", mesg);
 
-	if ( tostdout == TRUE && currentstate != START )  {
-	    mesgch = *mesgptr;
-	    *mesgptr = '\0';
-	    fprintf(stdout, "%s", mesg);
-	    fflush(stdout);
-	    *mesgptr = mesgch;		/* for ERROR in send() and done() */
-	}   /* End if */
-	return(laststate = state);
-    }	/* End if */
+		if(tostdout == TRUE && currentstate != START) {
+			mesgch = *mesgptr;
+			*mesgptr = '\0';
+			fprintf(stdout, "%s", mesg);
+			fflush(stdout);
+			*mesgptr = mesgch; /* for ERROR in send() and done() */
+		}			   /* End if */
+		return (laststate = state);
+	} /* End if */
 
-    if ( (quiet == FALSE || currentstate != SEND) &&
-	 (tostdout == FALSE || currentstate == START) && interactive == FALSE )  {
-	if ( Write(ttyo, "\024", 1) != 1 )
-	    error(FATAL, "printer appears to be offline");
-	if ( t > 0 ) Rest(t);
-    }	/* End if */
+	if((quiet == FALSE || currentstate != SEND) &&
+	   (tostdout == FALSE || currentstate == START) && interactive == FALSE) {
+		if(Write(ttyo, "\024", 1) != 1)
+			error(FATAL, "printer appears to be offline");
+		if(t > 0)
+			Rest(t);
+	} /* End if */
 
-    return(nostatus);
+	return (nostatus);
 
-}   /* End of getstatus */
+} /* End of getstatus */
 
 /*****************************************************************************/
 
@@ -866,12 +871,12 @@ parsemesg()
 
 {
 
-    char	*e;			/* end of printer message in mesg[] */
-    char	*key, *val;		/* keyword/value strings in sbuf[] */
-    char	*p;			/* for converting to lower case etc. */
-    int		i;			/* where *key was found in status[] */
+	char *e;	 /* end of printer message in mesg[] */
+	char *key, *val; /* keyword/value strings in sbuf[] */
+	char *p;	 /* for converting to lower case etc. */
+	int i;		 /* where *key was found in status[] */
 
-/*
+	/*
  *
  * Parsing the lines that readline() stores in mesg[] is messy, and what's done
  * here isn't completely correct nor as fast as it could be. The general format
@@ -900,59 +905,62 @@ parsemesg()
  *
  */
 
-    if ( *(mesgptr = find("%%[ ", mesg)) != '\0' && *(e = find(" ]%%", mesgptr+4)) != '\0' )  {
-	strcpy(sbuf, mesgptr+4);		/* don't change mesg[] */
-	sbuf[e-mesgptr-4] = '\0';		/* ignore the trailing " ]%%" */
+	if(*(mesgptr = find("%%[ ", mesg)) != '\0' && *(e = find(" ]%%", mesgptr + 4)) != '\0') {
+		strcpy(sbuf, mesgptr + 4);    /* don't change mesg[] */
+		sbuf[e - mesgptr - 4] = '\0'; /* ignore the trailing " ]%%" */
 
-	for ( key = strtok(sbuf, " :"); key != NULL; key = strtok(NULL, " :") )  {
-	    if ( (val = strtok(NULL, ";")) != NULL && strcmp(key, "status") == 0 )
-		key = val;
+		for(key = strtok(sbuf, " :"); key != NULL; key = strtok(NULL, " :")) {
+			if((val = strtok(NULL, ";")) != NULL && strcmp(key, "status") == 0)
+				key = val;
 
-	    for ( ; *key == ' '; key++ ) ;	/* skip any leading spaces */
-	    for ( p = key; *p; p++ )		/* convert to lower case */
-		if ( *p == ':' )  {
-		    *p = '\0';
-		    break;
-		} else if ( isupper(*p) ) *p = tolower(*p);
+			for(; *key == ' '; key++)
+				;	     /* skip any leading spaces */
+			for(p = key; *p; p++) /* convert to lower case */
+				if(*p == ':') {
+					*p = '\0';
+					break;
+				} else if(isupper(*p))
+					*p = tolower(*p);
 
-	    for ( i = 0; status[i].state != NULL; i++ )
-		if ( strcmp(status[i].state, key) == 0 )
-		    return(status[i].val);
-	}   /* End for */
-    } else if ( strcmp(mesg, "CONVERSATION ENDED.\n") == 0 )
-	return(DISCONNECT);
+			for(i = 0; status[i].state != NULL; i++)
+				if(strcmp(status[i].state, key) == 0)
+					return (status[i].val);
+		} /* End for */
+	} else if(strcmp(mesg, "CONVERSATION ENDED.\n") == 0)
+		return (DISCONNECT);
 
-    return(mesgptr == '\0' ? nostatus : UNKNOWN);
+	return (mesgptr == '\0' ? nostatus : UNKNOWN);
 
-}   /* End of parsemesg */
+} /* End of parsemesg */
 
 /*****************************************************************************/
 
 char *find(str1, str2)
 
-    char	*str1;			/* look for this string */
-    char	*str2;			/* in this one */
+    char *str1; /* look for this string */
+char *str2;     /* in this one */
 
 {
 
-    char	*s1, *s2;		/* can't change str1 or str2 too fast */
+	char *s1, *s2; /* can't change str1 or str2 too fast */
 
-/*
+	/*
  *
  * Looks for *str1 in string *str2. Returns a pointer to the start of the substring
  * if it's found or to the end of string str2 otherwise.
  *
- */ 
+ */
 
-    for ( ; *str2 != '\0'; str2++ )  {
-	for ( s1 = str1, s2 = str2; *s1 != '\0' && *s1 == *s2; s1++, s2++ ) ;
-	if ( *s1 == '\0' )
-	    break;
-    }	/* End for */
+	for(; *str2 != '\0'; str2++) {
+		for(s1 = str1, s2 = str2; *s1 != '\0' && *s1 == *s2; s1++, s2++)
+			;
+		if(*s1 == '\0')
+			break;
+	} /* End for */
 
-    return(str2);
+	return (str2);
 
-}   /* End of find */
+} /* End of find */
 
 /*****************************************************************************/
 
@@ -960,27 +968,28 @@ clearline()
 
 {
 
-/*
+	/*
  *
  * Reads characters from the input line until nothing's left. Don't do anything if
  * we're currently running separate read and write processes.
  * 
  */
 
-    if ( whatami == READWRITE )
-	while ( readline() != FALSE ) ;
+	if(whatami == READWRITE)
+		while(readline() != FALSE)
+			;
 
-}   /* End of clearline */
+} /* End of clearline */
 
 /*****************************************************************************/
 
 sendsignal(sig)
 
-    int		sig;			/* this goes to the other process */
+    int sig; /* this goes to the other process */
 
 {
 
-/*
+	/*
  *
  * Sends signal sig to the other process if we're running as separate read and
  * write processes. Returns the result of the kill if there's someone else to
@@ -988,22 +997,22 @@ sendsignal(sig)
  *
  */
 
-    if ( whatami != READWRITE && otherpid > 1 )
-	return(kill(otherpid, sig));
+	if(whatami != READWRITE && otherpid > 1)
+		return (kill(otherpid, sig));
 
-    return(-1);
+	return (-1);
 
-}   /* End of sendsignal */
+} /* End of sendsignal */
 
 /*****************************************************************************/
 
 void interrupt(sig)
 
-    int		sig;			/* signal that we caught */
+    int sig; /* signal that we caught */
 
 {
 
-/*
+	/*
  *
  * Caught a signal - all except joinsig cause the program to quit. joinsig is the
  * signal sent by the writer to the reader after all the jobs have been transmitted.
@@ -1011,57 +1020,58 @@ void interrupt(sig)
  *
  */
 
-    signal(sig, SIG_IGN);
+	signal(sig, SIG_IGN);
 
-    if ( sig != joinsig )  {
-	x_stat |= FATAL;
-	if ( canread == TRUE )
-	    if ( interactive == FALSE )
-		error(NON_FATAL, "signal %d abort", sig);
-	    else error(NON_FATAL, "quitting");
-	quit(sig);
-    }	/* End if */
+	if(sig != joinsig) {
+		x_stat |= FATAL;
+		if(canread == TRUE)
+			if(interactive == FALSE)
+				error(NON_FATAL, "signal %d abort", sig);
+			else
+				error(NON_FATAL, "quitting");
+		quit(sig);
+	} /* End if */
 
-    writedone = TRUE;
-    signal(joinsig, interrupt);
+	writedone = TRUE;
+	signal(joinsig, interrupt);
 
-}   /* End of interrupt */
+} /* End of interrupt */
 
 /*****************************************************************************/
 
 logit(mesg, a1, a2, a3)
 
-    char	*mesg;			/* control string */
-    unsigned	a1, a2, a3;		/* and possible arguments */
+    char *mesg;      /* control string */
+unsigned a1, a2, a3; /* and possible arguments */
 
 {
 
-/*
+	/*
  *
  * Simple routine that's used to write a message to the log file.
  *
  */
 
-    if ( mesg != NULL && fp_log != NULL )  {
-	fprintf(fp_log, mesg, a1, a2, a3);
-	fflush(fp_log);
-    }	/* End if */
+	if(mesg != NULL && fp_log != NULL) {
+		fprintf(fp_log, mesg, a1, a2, a3);
+		fflush(fp_log);
+	} /* End if */
 
-}   /* End of logit */
+} /* End of logit */
 
 /*****************************************************************************/
 
 error(kind, mesg, a1, a2, a3)
 
-    int		kind;			/* FATAL or NON_FATAL error */
-    char	*mesg;			/* error message control string */
-    unsigned	a1, a2, a3;		/* control string arguments */
+    int kind;	/* FATAL or NON_FATAL error */
+char *mesg;	  /* error message control string */
+unsigned a1, a2, a3; /* control string arguments */
 
 {
 
-    FILE	*fp_err;
+	FILE *fp_err;
 
-/*
+	/*
  *
  * Called when we've run into some kind of program error. First *mesg is printed
  * using the control string arguments a?. If kind is FATAL and we're not ignoring
@@ -1070,32 +1080,32 @@ error(kind, mesg, a1, a2, a3)
  *
  */
 
-    fp_err = (fp_log != NULL) ? fp_log : stderr;
+	fp_err = (fp_log != NULL) ? fp_log : stderr;
 
-    if ( mesg != NULL && *mesg != '\0' )  {
-	fprintf(fp_err, "%s: ", prog_name);
-	fprintf(fp_err, mesg, a1, a2, a3);
-	putc('\n', fp_err);
-    }	/* End if */
+	if(mesg != NULL && *mesg != '\0') {
+		fprintf(fp_err, "%s: ", prog_name);
+		fprintf(fp_err, mesg, a1, a2, a3);
+		putc('\n', fp_err);
+	} /* End if */
 
-    x_stat |= kind;
+	x_stat |= kind;
 
-    if ( kind != NON_FATAL && ignore == OFF )
-	quit(SIGTERM);
+	if(kind != NON_FATAL && ignore == OFF)
+		quit(SIGTERM);
 
-}   /* End of error */
+} /* End of error */
 
 /*****************************************************************************/
 
 quit(sig)
 
-    int		sig;
+    int sig;
 
 {
 
-    int		w;
+	int w;
 
-/*
+	/*
  *
  * Makes sure everything is properly cleaned up if there's a signal or FATAL error
  * that should cause the program to terminate. The sleep by the write process is
@@ -1113,37 +1123,38 @@ quit(sig)
  *
  */
 
-    signal(sig, SIG_IGN);
-    ignore = ON;
+	signal(sig, SIG_IGN);
+	ignore = ON;
 
-    while ( sendsignal(sig) != -1 && (w = wait((int *)0)) != otherpid && w != -1 ) ;
+	while(sendsignal(sig) != -1 && (w = wait((int *)0)) != otherpid && w != -1)
+		;
 
-    setupstdin(2);
+	setupstdin(2);
 
-    if ( currentstate != NOTCONNECTED ) {
-	if ( sendctrlC == TRUE ) {
-	    Write(ttyo, "\003", 1);
-	    Rest(1);			/* PS-810 turbo problem?? */
-	}   /* End if */
-	Write(ttyo, "\004", 1);
-    }	/* End if */
+	if(currentstate != NOTCONNECTED) {
+		if(sendctrlC == TRUE) {
+			Write(ttyo, "\003", 1);
+			Rest(1); /* PS-810 turbo problem?? */
+		}		 /* End if */
+		Write(ttyo, "\004", 1);
+	} /* End if */
 
-    alarm(0);				/* prevents sleep() loop on V9 systems */
-    Rest(2);
+	alarm(0); /* prevents sleep() loop on V9 systems */
+	Rest(2);
 
-    exit(x_stat);
+	exit(x_stat);
 
-}   /* End of quit */
+} /* End of quit */
 
 /*****************************************************************************/
 
 Rest(t)
 
-    int		t;
+    int t;
 
 {
 
-/*
+	/*
  *
  * Used to replace sleep() calls. Only needed if we're running the program as
  * a read and write process and don't want to have the read process sleep. Most
@@ -1152,24 +1163,24 @@ Rest(t)
  *
  */
 
-    if ( t > 0 && canwrite == TRUE )
-	sleep(t);
+	if(t > 0 && canwrite == TRUE)
+		sleep(t);
 
-}   /* End of Rest */
+} /* End of Rest */
 
 /*****************************************************************************/
 
 Read(fd, buf, n)
 
-    int		fd;
-    char	*buf;
-    int		n;
+    int fd;
+char *buf;
+int n;
 
 {
 
-    int		count;
+	int count;
 
-/*
+	/*
  *
  * Used to replace some of the read() calls. Only needed if we're running separate
  * read and write processes. Should only be used to replace read calls on ttyi.
@@ -1178,28 +1189,29 @@ Read(fd, buf, n)
  *
  */
 
-    if ( canread == TRUE )  {
-	if ( (count = read(fd, buf, n)) == -1 && errno == EINTR )
-	    count = 0;
-    } else count = 0;
+	if(canread == TRUE) {
+		if((count = read(fd, buf, n)) == -1 && errno == EINTR)
+			count = 0;
+	} else
+		count = 0;
 
-    return(count);
+	return (count);
 
-}   /* End of Read */
+} /* End of Read */
 
 /*****************************************************************************/
 
 Write(fd, buf, n)
 
-    int		fd;
-    char	*buf;
-    int		n;
+    int fd;
+char *buf;
+int n;
 
 {
 
-    int		count;
+	int count;
 
-/*
+	/*
  *
  * Used to replace some of the write() calls. Again only needed if we're running
  * separate read and write processes. Should only be used to replace write calls
@@ -1208,14 +1220,14 @@ Write(fd, buf, n)
  *
  */
 
-    if ( canwrite == TRUE )  {
-	if ( (count = write(fd, buf, n)) == -1 && errno == EINTR )
-	    count = n;
-    } else count = n;
+	if(canwrite == TRUE) {
+		if((count = write(fd, buf, n)) == -1 && errno == EINTR)
+			count = n;
+	} else
+		count = n;
 
-    return(count);
+	return (count);
 
-}   /* End of Write */
- 
+} /* End of Write */
+
 /*****************************************************************************/
-

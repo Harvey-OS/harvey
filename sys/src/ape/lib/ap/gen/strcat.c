@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-char*
+char *
 strcat(char *s1, const char *s2)
 {
 

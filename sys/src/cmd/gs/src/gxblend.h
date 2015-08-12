@@ -29,7 +29,7 @@
 /* PDF 1.4 blending functions */
 
 #ifndef gxblend_INCLUDED
-#  define gxblend_INCLUDED
+#define gxblend_INCLUDED
 
 typedef bits16 ArtPixMaxDepth;
 
@@ -61,8 +61,8 @@ typedef bits16 ArtPixMaxDepth;
  * mode. I wouldn't be surprised if it required an API change.
  **/
 void
-art_blend_pixel(ArtPixMaxDepth * dst, const ArtPixMaxDepth * backdrop,
-		const ArtPixMaxDepth * src, int n_chan,
+art_blend_pixel(ArtPixMaxDepth *dst, const ArtPixMaxDepth *backdrop,
+		const ArtPixMaxDepth *src, int n_chan,
 		gs_blend_mode_t blend_mode);
 
 /**

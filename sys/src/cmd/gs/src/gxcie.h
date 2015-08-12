@@ -28,7 +28,7 @@
 /* Requires gxcspace.h */
 
 #ifndef gxcie_INCLUDED
-#  define gxcie_INCLUDED
+#define gxcie_INCLUDED
 
 #include "gscie.h"
 
@@ -59,9 +59,9 @@ cs_proc_install_cspace(gx_install_CIEA);
  * using this imager state will do only the CIE->XYZ mapping.  This is a
  * semi-hack for the PDF writer.
  */
-extern	int	gx_cie_to_xyz_alloc(gs_imager_state **,
-				    const gs_color_space *, gs_memory_t *);
-extern	void	gx_cie_to_xyz_free(gs_imager_state *);
+extern int gx_cie_to_xyz_alloc(gs_imager_state **,
+			       const gs_color_space *, gs_memory_t *);
+extern void gx_cie_to_xyz_free(gs_imager_state *);
 
 /* Defined in gsciemap.c */
 
@@ -70,20 +70,20 @@ extern	void	gx_cie_to_xyz_free(gs_imager_state *);
  * caches are loaded.  Note that the procedure may return if no rendering
  * has been defined, and returns if an error occurs.
  */
-#define CIE_CHECK_RENDERING(pcs, pconc, pis, do_exit)                   \
-    BEGIN                                                               \
-        if (pis->cie_render == 0) {                                     \
-            /* No rendering has been defined yet: return black. */      \
-            pconc[0] = pconc[1] = pconc[2] = frac_0;                    \
-            do_exit;                                                    \
-        }                                                               \
-        if (pis->cie_joint_caches->status != CIE_JC_STATUS_COMPLETED) { \
-            int     code = gs_cie_jc_complete(pis, pcs);                \
-                                                                        \
-            if (code < 0)                                               \
-                return code;                                            \
-        }                                                               \
-    END
+#define CIE_CHECK_RENDERING(pcs, pconc, pis, do_exit)                  \
+	BEGIN                                                          \
+	if(pis->cie_render == 0) {                                     \
+		/* No rendering has been defined yet: return black. */ \
+		pconc[0] = pconc[1] = pconc[2] = frac_0;               \
+		do_exit;                                               \
+	}                                                              \
+	if(pis->cie_joint_caches->status != CIE_JC_STATUS_COMPLETED) { \
+		int code = gs_cie_jc_complete(pis, pcs);               \
+                                                                       \
+		if(code < 0)                                           \
+			return code;                                   \
+	}                                                              \
+	END
 
 /*
  * Do the common remapping operation for CIE color spaces. Returns the
@@ -91,10 +91,10 @@ extern	void	gx_cie_to_xyz_free(gs_imager_state *);
  * This simply calls a procedure variable stored in the joint caches
  * structure.
  */
-extern  int     gx_cie_remap_finish( cie_cached_vector3,
-				     frac *,
-				     const gs_imager_state *,
-				     const gs_color_space * );
+extern int gx_cie_remap_finish(cie_cached_vector3,
+			       frac *,
+			       const gs_imager_state *,
+			       const gs_color_space *);
 /* Make sure the prototype matches the one defined in gscie.h. */
 extern GX_CIE_REMAP_FINISH_PROC(gx_cie_remap_finish);
 
@@ -121,23 +121,23 @@ extern_st(st_cie_common);
 extern_st(st_cie_common_elements_t);
 
 /* set up the common default values for a CIE color space */
-extern  void    gx_set_common_cie_defaults( gs_cie_common *,
-					    void *  client_data );
+extern void gx_set_common_cie_defaults(gs_cie_common *,
+				       void *client_data);
 
 /* Load the common caches for a CIE color space */
-extern  void    gx_cie_load_common_cache(gs_cie_common *, gs_state *);
+extern void gx_cie_load_common_cache(gs_cie_common *, gs_state *);
 
 /* Complete loading of the common caches */
-extern  void    gx_cie_common_complete(gs_cie_common *);
+extern void gx_cie_common_complete(gs_cie_common *);
 
 /* "indirect" color space installation procedure */
 cs_proc_install_cspace(gx_install_CIE);
 
 /* allocate and initialize the common part of a cie color space */
-extern  void *  gx_build_cie_space( gs_color_space **           ppcspace,
-				    const gs_color_space_type * pcstype,
-				    gs_memory_type_ptr_t        stype,
-				    gs_memory_t *               pmem );
+extern void *gx_build_cie_space(gs_color_space **ppcspace,
+				const gs_color_space_type *pcstype,
+				gs_memory_type_ptr_t stype,
+				gs_memory_t *pmem);
 
 /*
  * Determine the concrete space which underlies a CIE based space. For all

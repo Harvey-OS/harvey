@@ -9,8 +9,8 @@
 
 #include <plan9.h>
 
-#define	SIZE	4096
-extern	int	printcol;
+#define SIZE 4096
+extern int printcol;
 
 int
 print(char *fmt, ...)
@@ -21,10 +21,10 @@ print(char *fmt, ...)
 
 	va_start(arg, fmt);
 	va_copy(temp, arg);
-	out = doprint(buf, buf+SIZE, fmt, &temp);
+	out = doprint(buf, buf + SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
-	n = write(1, buf, (int32_t)(out-buf));
+	n = write(1, buf, (int32_t)(out - buf));
 	return n;
 }
 
@@ -37,10 +37,10 @@ fprint(int f, char *fmt, ...)
 
 	va_start(arg, fmt);
 	va_copy(temp, arg);
-	out = doprint(buf, buf+SIZE, fmt, &temp);
+	out = doprint(buf, buf + SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
-	n = write(f, buf, (int32_t)(out-buf));
+	n = write(f, buf, (int32_t)(out - buf));
 	return n;
 }
 
@@ -54,11 +54,11 @@ sprint(char *buf, char *fmt, ...)
 	scol = printcol;
 	va_start(arg, fmt);
 	va_copy(temp, arg);
-	out = doprint(buf, buf+SIZE, fmt, &temp);
+	out = doprint(buf, buf + SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
 	printcol = scol;
-	return out-buf;
+	return out - buf;
 }
 
 int
@@ -71,14 +71,14 @@ snprint(char *buf, int len, char *fmt, ...)
 	scol = printcol;
 	va_start(arg, fmt);
 	va_copy(temp, arg);
-	out = doprint(buf, buf+len, fmt, &temp);
+	out = doprint(buf, buf + len, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
 	printcol = scol;
-	return out-buf;
+	return out - buf;
 }
 
-char*
+char *
 seprint(char *buf, char *e, char *fmt, ...)
 {
 	char *out;

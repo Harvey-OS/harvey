@@ -18,81 +18,81 @@
 #include "fns.h"
 #include "io.h"
 
-#define MEMDEBUG	0
+#define MEMDEBUG 0
 
-#define PDX(va)		((((ulong)(va))>>22) & 0x03FF)
-#define PTX(va)		((((ulong)(va))>>12) & 0x03FF)
+#define PDX(va) ((((ulong)(va)) >> 22) & 0x03FF)
+#define PTX(va) ((((ulong)(va)) >> 12) & 0x03FF)
 
 enum {
-	MemUPA		= 0,		/* unbacked physical address */
-	MemRAM		= 1,		/* physical memory */
-	MemUMB		= 2,		/* upper memory block (<16MiB) */
-	NMemType	= 3,
+	MemUPA = 0, /* unbacked physical address */
+	MemRAM = 1, /* physical memory */
+	MemUMB = 2, /* upper memory block (<16MiB) */
+	NMemType = 3,
 
-	MemMinMiB	= 4,		/* minimum physical memory (<=4MiB) */
-	MemMaxMiB	= 768,		/* maximum physical memory to check */
+	MemMinMiB = 4,   /* minimum physical memory (<=4MiB) */
+	MemMaxMiB = 768, /* maximum physical memory to check */
 
-	NMemBase	= 10,
+	NMemBase = 10,
 };
 
 typedef struct Map Map;
 struct Map {
-	uintptr	addr;
-	uint32_t	size;
+	uintptr addr;
+	uint32_t size;
 };
 
 typedef struct {
-	char*	name;
-	Map*	map;
-	Map*	mapend;
+	char *name;
+	Map *map;
+	Map *mapend;
 
 	Lock;
 } RMap;
 
 static Map mapupa[8];
 static RMap rmapupa = {
-	"unallocated unbacked physical memory",
-	mapupa,
-	&mapupa[7],
+    "unallocated unbacked physical memory",
+    mapupa,
+    &mapupa[7],
 };
 
 static Map xmapupa[8];
 static RMap xrmapupa = {
-	"unbacked physical memory",
-	xmapupa,
-	&xmapupa[7],
+    "unbacked physical memory",
+    xmapupa,
+    &xmapupa[7],
 };
 
 static Map mapram[8];
 static RMap rmapram = {
-	"physical memory",
-	mapram,
-	&mapram[7],
+    "physical memory",
+    mapram,
+    &mapram[7],
 };
 
 static Map mapumb[64];
 static RMap rmapumb = {
-	"upper memory block",
-	mapumb,
-	&mapumb[63],
+    "upper memory block",
+    mapumb,
+    &mapumb[63],
 };
 
 static Map mapumbrw[8];
 static RMap rmapumbrw = {
-	"UMB device memory",
-	mapumbrw,
-	&mapumbrw[7],
+    "UMB device memory",
+    mapumbrw,
+    &mapumbrw[7],
 };
 
 void
-mapprint(RMap* rmap)
+mapprint(RMap *rmap)
 {
 	Map *mp;
 
 	print("%s\n", rmap->name);
-	for(mp = rmap->map; mp->size; mp++){
+	for(mp = rmap->map; mp->size; mp++) {
 		print("\t%#16.16p %#8.8lux %#16.16p\n",
-			mp->addr, mp->size, mp->addr+mp->size);
+		      mp->addr, mp->size, mp->addr + mp->size);
 	}
 }
 
@@ -104,11 +104,11 @@ memdebug(void)
 	if(!MEMDEBUG)
 		return;
 
-	maxpa = (nvramread(0x18)<<8)|nvramread(0x17);
-	maxpa1 = (nvramread(0x31)<<8)|nvramread(0x30);
-	maxpa2 = (nvramread(0x16)<<8)|nvramread(0x15);
+	maxpa = (nvramread(0x18) << 8) | nvramread(0x17);
+	maxpa1 = (nvramread(0x31) << 8) | nvramread(0x30);
+	maxpa2 = (nvramread(0x16) << 8) | nvramread(0x15);
 	print("maxpa = %#p -> %#p, maxpa1 = %#p maxpa2 = %#p\n",
-		maxpa, MiB+maxpa*KiB, maxpa1, maxpa2);
+	      maxpa, MiB + maxpa * KiB, maxpa1, maxpa2);
 
 	mapprint(&rmapram);
 	mapprint(&rmapumb);
@@ -117,7 +117,7 @@ memdebug(void)
 }
 
 void
-mapfree(RMap* rmap, uint32_t addr, uint32_t size)
+mapfree(RMap *rmap, uint32_t addr, uint32_t size)
 {
 	Map *mp;
 	uint32_t t;
@@ -129,50 +129,49 @@ mapfree(RMap* rmap, uint32_t addr, uint32_t size)
 	for(mp = rmap->map; mp->addr <= addr && mp->size; mp++)
 		;
 
-	if(mp > rmap->map && (mp-1)->addr+(mp-1)->size == addr){
-		(mp-1)->size += size;
-		if(addr+size == mp->addr){
-			(mp-1)->size += mp->size;
-			while(mp->size){
+	if(mp > rmap->map && (mp - 1)->addr + (mp - 1)->size == addr) {
+		(mp - 1)->size += size;
+		if(addr + size == mp->addr) {
+			(mp - 1)->size += mp->size;
+			while(mp->size) {
 				mp++;
-				(mp-1)->addr = mp->addr;
-				(mp-1)->size = mp->size;
+				(mp - 1)->addr = mp->addr;
+				(mp - 1)->size = mp->size;
 			}
 		}
-	}
-	else{
-		if(addr+size == mp->addr && mp->size){
+	} else {
+		if(addr + size == mp->addr && mp->size) {
 			mp->addr -= size;
 			mp->size += size;
-		}
-		else do{
-			if(mp >= rmap->mapend){
-				print("mapfree: %s: losing 0x%luX, %lud\n",
-					rmap->name, addr, size);
-				break;
-			}
-			t = mp->addr;
-			mp->addr = addr;
-			addr = t;
-			t = mp->size;
-			mp->size = size;
-			mp++;
-		}while(size = t);
+		} else
+			do {
+				if(mp >= rmap->mapend) {
+					print("mapfree: %s: losing 0x%luX, %lud\n",
+					      rmap->name, addr, size);
+					break;
+				}
+				t = mp->addr;
+				mp->addr = addr;
+				addr = t;
+				t = mp->size;
+				mp->size = size;
+				mp++;
+			} while(size = t);
 	}
 	unlock(rmap);
 }
 
 uint32_t
-mapalloc(RMap* rmap, uint32_t addr, int size, int align)
+mapalloc(RMap *rmap, uint32_t addr, int size, int align)
 {
 	Map *mp;
 	uint32_t maddr, oaddr;
 
 	lock(rmap);
-	for(mp = rmap->map; mp->size; mp++){
+	for(mp = rmap->map; mp->size; mp++) {
 		maddr = mp->addr;
 
-		if(addr){
+		if(addr) {
 			/*
 			 * A specific address range has been given:
 			 *   if the current map entry is greater then
@@ -186,31 +185,31 @@ mapalloc(RMap* rmap, uint32_t addr, int size, int align)
 			 */
 			if(maddr > addr)
 				break;
-			if(mp->size < addr - maddr)	/* maddr+mp->size < addr, but no overflow */
+			if(mp->size < addr - maddr) /* maddr+mp->size < addr, but no overflow */
 				continue;
-			if(addr - maddr > mp->size - size)	/* addr+size > maddr+mp->size, but no overflow */
+			if(addr - maddr > mp->size - size) /* addr+size > maddr+mp->size, but no overflow */
 				break;
 			maddr = addr;
 		}
 
 		if(align > 0)
-			maddr = ((maddr+align-1)/align)*align;
-		if(mp->addr+mp->size-maddr < size)
+			maddr = ((maddr + align - 1) / align) * align;
+		if(mp->addr + mp->size - maddr < size)
 			continue;
 
 		oaddr = mp->addr;
-		mp->addr = maddr+size;
-		mp->size -= maddr-oaddr+size;
-		if(mp->size == 0){
-			do{
+		mp->addr = maddr + size;
+		mp->size -= maddr - oaddr + size;
+		if(mp->size == 0) {
+			do {
 				mp++;
-				(mp-1)->addr = mp->addr;
-			}while((mp-1)->size = mp->size);
+				(mp - 1)->addr = mp->addr;
+			} while((mp - 1)->size = mp->size);
 		}
 
 		unlock(rmap);
 		if(oaddr != maddr)
-			mapfree(rmap, oaddr, maddr-oaddr);
+			mapfree(rmap, oaddr, maddr - oaddr);
 
 		return maddr;
 	}
@@ -238,9 +237,9 @@ umbscan(void)
 	 * at 0xE0000 then the whole 64KiB up to 0xF0000 is theoretically up
 	 * for grabs; check anyway.
 	 */
-	p = KADDR(0xD0000);	/*RSC: changed from 0xC0000 */
-	while(p < (uint8_t*)KADDR(0xE0000)){
-		if (p[0] == 0x55 && p[1] == 0xAA) {
+	p = KADDR(0xD0000); /*RSC: changed from 0xC0000 */
+	while(p < (uint8_t *)KADDR(0xE0000)) {
+		if(p[0] == 0x55 && p[1] == 0xAA) {
 			/* Skip p[2] chunks of 512 bytes.  Test for 0x55 AA before
 			     poking obtrusively, or else the Thinkpad X20 dies when
 			     setting up the cardbus (PB) */
@@ -249,35 +248,33 @@ umbscan(void)
 		}
 
 		p[0] = 0xCC;
-		p[2*KiB-1] = 0xCC;
-		if(p[0] != 0xCC || p[2*KiB-1] != 0xCC){
+		p[2 * KiB - 1] = 0xCC;
+		if(p[0] != 0xCC || p[2 * KiB - 1] != 0xCC) {
 			p[0] = 0x55;
 			p[1] = 0xAA;
 			p[2] = 4;
-			if(p[0] == 0x55 && p[1] == 0xAA){
-				p += p[2]*512;
+			if(p[0] == 0x55 && p[1] == 0xAA) {
+				p += p[2] * 512;
 				continue;
 			}
 			if(p[0] == 0xFF && p[1] == 0xFF)
-				mapfree(&rmapumb, PADDR(p), 2*KiB);
-		}
-		else
-			mapfree(&rmapumbrw, PADDR(p), 2*KiB);
-		p += 2*KiB;
+				mapfree(&rmapumb, PADDR(p), 2 * KiB);
+		} else
+			mapfree(&rmapumbrw, PADDR(p), 2 * KiB);
+		p += 2 * KiB;
 	}
 
 	p = KADDR(0xE0000);
-	if(p[0] != 0x55 || p[1] != 0xAA){
+	if(p[0] != 0x55 || p[1] != 0xAA) {
 		p[0] = 0xCC;
-		p[64*KiB-1] = 0xCC;
-		if(p[0] != 0xCC && p[64*KiB-1] != 0xCC)
-			mapfree(&rmapumb, PADDR(p), 64*KiB);
+		p[64 * KiB - 1] = 0xCC;
+		if(p[0] != 0xCC && p[64 * KiB - 1] != 0xCC)
+			mapfree(&rmapumb, PADDR(p), 64 * KiB);
 	}
 }
 
-
 void
-meminit(uint32_t)
+    meminit(uint32_t)
 {
 	MMap *map;
 	uint32_t modend;
@@ -287,20 +284,20 @@ meminit(uint32_t)
 
 	modend = PADDR(memstart);
 	last = 0;
-	for(map = mmap; map < &mmap[nmmap]; map++){
-		addr = (((uint64_t)map->base[1])<<32)|map->base[0];
-		len = (((uint64_t)map->length[1])<<32)|map->length[0];
+	for(map = mmap; map < &mmap[nmmap]; map++) {
+		addr = (((uint64_t)map->base[1]) << 32) | map->base[0];
+		len = (((uint64_t)map->length[1]) << 32) | map->length[0];
 
-		switch(map->type){
+		switch(map->type) {
 		default:
-		case 2:				/* reserved */
-		case 3:				/* ACPI Reclaim Memory */
-		case 4:				/* ACPI NVS Memory */
+		case 2: /* reserved */
+		case 3: /* ACPI Reclaim Memory */
+		case 4: /* ACPI NVS Memory */
 			break;
-		case 1:				/* Memory */
-			if(addr < 1*MiB || addr+len < modend)
+		case 1: /* Memory */
+			if(addr < 1 * MiB || addr + len < modend)
 				break;
-			if(addr < modend){
+			if(addr < modend) {
 				len -= modend - addr;
 				addr = modend;
 			}
@@ -308,14 +305,14 @@ meminit(uint32_t)
 			break;
 		}
 
-		if(addr != last && addr > modend){
+		if(addr != last && addr > modend) {
 			/*
 			 * See the comments in main about space < 1MiB.
 			 */
-			if(addr >= 1*MiB || addr < 0x000A0000)
-				mapupainit(last, addr-last);
+			if(addr >= 1 * MiB || addr < 0x000A0000)
+				mapupainit(last, addr - last);
 		}
-		last = addr+len;
+		last = addr + len;
 	}
 
 	/*
@@ -350,7 +347,7 @@ umbrwmalloc(uint32_t addr, int size, int align)
 	uint8_t *p;
 
 	if(a = mapalloc(&rmapumbrw, addr, size, align))
-		return(uint32_t)KADDR(a);
+		return (uint32_t)KADDR(a);
 
 	/*
 	 * Perhaps the memory wasn't visible before
@@ -358,10 +355,10 @@ umbrwmalloc(uint32_t addr, int size, int align)
 	 */
 	if((a = umbmalloc(addr, size, align)) == 0)
 		return 0;
-	p = (uint8_t*)a;
+	p = (uint8_t *)a;
 	p[0] = 0xCC;
-	p[size-1] = 0xCC;
-	if(p[0] == 0xCC && p[size-1] == 0xCC)
+	p[size - 1] = 0xCC;
+	if(p[0] == 0xCC && p[size - 1] == 0xCC)
 		return a;
 	umbfree(a, size);
 
@@ -374,8 +371,8 @@ umbrwfree(uint32_t addr, int size)
 	mapfree(&rmapumbrw, PADDR(addr), size);
 }
 
-uint32_t*
-mmuwalk(uint32_t* pdb, uint32_t va, int level, int create)
+uint32_t *
+mmuwalk(uint32_t *pdb, uint32_t va, int level, int create)
 {
 	uint32_t pa, *table;
 
@@ -390,7 +387,7 @@ mmuwalk(uint32_t* pdb, uint32_t va, int level, int create)
 	if(!(*table & PTEVALID) && create == 0)
 		return 0;
 
-	switch(level){
+	switch(level) {
 
 	default:
 		return 0;
@@ -401,9 +398,9 @@ mmuwalk(uint32_t* pdb, uint32_t va, int level, int create)
 	case 2:
 		if(*table & PTESIZE)
 			panic("mmuwalk2: va 0x%ux entry 0x%ux\n", va, *table);
-		if(!(*table & PTEVALID)){
+		if(!(*table & PTEVALID)) {
 			pa = PADDR(ialloc(BY2PG, BY2PG));
-			*table = pa|PTEWRITE|PTEVALID;
+			*table = pa | PTEWRITE | PTEVALID;
 		}
 		table = KADDR(PPN(*table));
 
@@ -435,13 +432,13 @@ mmukmap(uint32_t pa, uint32_t va, int size)
 
 	pae = pa + size;
 	lock(&mmukmaplock);
-	while(pa < pae){
+	while(pa < pae) {
 		table = &pdb[PDX(va)];
 		/*
 		 * Possibly already mapped.
 		 */
-		if(*table & PTEVALID){
-			if(*table & PTESIZE){
+		if(*table & PTEVALID) {
+			if(*table & PTESIZE) {
 				/*
 				 * Big page. Does it fit within?
 				 * If it does, adjust pgsz so the correct end can be
@@ -452,9 +449,9 @@ mmukmap(uint32_t pa, uint32_t va, int size)
 				x = PPN(*table);
 				if(x != pa)
 					panic("mmukmap1: pa 0x%ux  entry 0x%ux\n",
-						pa, *table);
-				x += 4*MiB;
-				if(pae <= x){
+					      pa, *table);
+				x += 4 * MiB;
+				if(pae <= x) {
 					pa = pae;
 					break;
 				}
@@ -463,19 +460,18 @@ mmukmap(uint32_t pa, uint32_t va, int size)
 				va += pgsz;
 
 				continue;
-			}
-			else{
+			} else {
 				/*
 				 * Little page. Walk to the entry.
 				 * If the entry is valid, set pgsz and continue.
 				 * If not, make it so, set pgsz, sync and continue.
 				 */
 				pte = mmuwalk(pdb, va, 2, 0);
-				if(pte && *pte & PTEVALID){
+				if(pte && *pte & PTEVALID) {
 					x = PPN(*pte);
 					if(x != pa)
 						panic("mmukmap2: pa 0x%ux entry 0x%ux\n",
-							pa, *pte);
+						      pa, *pte);
 					pgsz = BY2PG;
 					pa += pgsz;
 					va += pgsz;
@@ -492,13 +488,12 @@ mmukmap(uint32_t pa, uint32_t va, int size)
 		 * If not a big page, walk the walk, talk the talk.
 		 * Sync is set.
 		 */
-		if(pse && (pa % (4*MiB)) == 0 && (pae >= pa+4*MiB)){
-			*table = pa|PTESIZE|PTEWRITE|PTEUNCACHED|PTEVALID;
-			pgsz = 4*MiB;
-		}
-		else{
+		if(pse && (pa % (4 * MiB)) == 0 && (pae >= pa + 4 * MiB)) {
+			*table = pa | PTESIZE | PTEWRITE | PTEUNCACHED | PTEVALID;
+			pgsz = 4 * MiB;
+		} else {
 			pte = mmuwalk(pdb, va, 2, 1);
-			*pte = pa|PTEWRITE|PTEUNCACHED|PTEVALID;
+			*pte = pa | PTEWRITE | PTEUNCACHED | PTEVALID;
 			pgsz = BY2PG;
 		}
 		pa += pgsz;
@@ -524,7 +519,7 @@ upamalloc(uint32_t addr, int size, int align)
 
 	USED(align);
 
-	if((a = mapalloc(&rmapupa, addr, size, align)) == 0){
+	if((a = mapalloc(&rmapupa, addr, size, align)) == 0) {
 		memdebug();
 		return 0;
 	}
@@ -566,7 +561,7 @@ mapraminit(uint64_t addr, uint32_t size)
 	s = a - addr;
 	if(s >= size)
 		return;
-	mapfree(&rmapram, a, size-s);
+	mapfree(&rmapram, a, size - s);
 }
 
 void
@@ -583,5 +578,5 @@ mapupainit(uint64_t addr, uint32_t size)
 	s = a - addr;
 	if(s >= size)
 		return;
-	mapfree(&rmapupa, a, size-s);
+	mapfree(&rmapupa, a, size - s);
 }

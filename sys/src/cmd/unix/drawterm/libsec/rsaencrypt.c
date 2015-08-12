@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-mpint*
+mpint *
 rsaencrypt(RSApub *rsa, mpint *in, mpint *out)
 {
 	if(out == nil)

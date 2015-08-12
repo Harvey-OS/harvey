@@ -19,28 +19,28 @@
  * There really should be a driver for this, it's not terribly safe
  * without locks or restrictions on what can be poked (e.g. Axil NX801).
  */
-enum {					/* configuration mechanism #1 */
-	PciADDR		= 0xCF8,	/* CONFIG_ADDRESS */
-	PciDATA		= 0xCFC,	/* CONFIG_DATA */
+enum {			/* configuration mechanism #1 */
+       PciADDR = 0xCF8, /* CONFIG_ADDRESS */
+       PciDATA = 0xCFC, /* CONFIG_DATA */
 
-					/* configuration mechanism #2 */
-	PciCSE		= 0xCF8,	/* configuration space enable */
-	PciFORWARD	= 0xCFA,	/* which bus */
+       /* configuration mechanism #2 */
+       PciCSE = 0xCF8,     /* configuration space enable */
+       PciFORWARD = 0xCFA, /* which bus */
 
-	MaxFNO		= 7,
-	MaxUBN		= 255,
+       MaxFNO = 7,
+       MaxUBN = 255,
 };
 
 static int pcicfgmode = -1;
 static int pcimaxdno;
-static Pcidev* pciroot;
-static Pcidev* pcilist;
-static Pcidev* pcitail;
+static Pcidev *pciroot;
+static Pcidev *pcilist;
+static Pcidev *pcitail;
 
 static int pcicfgrw32(int, int, int, int);
 
 static int
-pciscan(int bno, Pcidev** list)
+pciscan(int bno, Pcidev **list)
 {
 	uint32_t v;
 	Pcidev *p, *head, *tail;
@@ -49,9 +49,9 @@ pciscan(int bno, Pcidev** list)
 	maxubn = bno;
 	head = nil;
 	tail = nil;
-	for(dno = 0; dno <= pcimaxdno; dno++){
+	for(dno = 0; dno <= pcimaxdno; dno++) {
 		maxfno = 0;
-		for(fno = 0; fno <= maxfno; fno++){
+		for(fno = 0; fno <= maxfno; fno++) {
 			/*
 			 * For this possible device, form the bus+device+function
 			 * triplet needed to address it and try to read the vendor
@@ -66,8 +66,8 @@ pciscan(int bno, Pcidev** list)
 			p = mallocz(sizeof(*p), 1);
 			p->tbdf = tbdf;
 			p->vid = l;
-			p->did = l>>16;
-			p->rid = pcicfgr8(p, PciRID);	
+			p->did = l >> 16;
+			p->rid = pcicfgr8(p, PciRID);
 
 			if(pcilist != nil)
 				pcitail->list = p;
@@ -90,22 +90,22 @@ pciscan(int bno, Pcidev** list)
 			 * If appropriate, read the base address registers
 			 * and work out the sizes.
 			 */
-			switch(p->ccru>>8){
+			switch(p->ccru >> 8) {
 
-			case 0x01:		/* mass storage controller */
-			case 0x02:		/* network controller */
-			case 0x03:		/* display controller */
-			case 0x04:		/* multimedia device */
-			case 0x07:		/* simple communication controllers */
-			case 0x08:		/* base system peripherals */
-			case 0x09:		/* input devices */
-			case 0x0A:		/* docking stations */
-			case 0x0B:		/* processors */
-			case 0x0C:		/* serial bus controllers */
+			case 0x01: /* mass storage controller */
+			case 0x02: /* network controller */
+			case 0x03: /* display controller */
+			case 0x04: /* multimedia device */
+			case 0x07: /* simple communication controllers */
+			case 0x08: /* base system peripherals */
+			case 0x09: /* input devices */
+			case 0x0A: /* docking stations */
+			case 0x0B: /* processors */
+			case 0x0C: /* serial bus controllers */
 				if((hdt & 0x7F) != 0)
 					break;
 				rno = PciBAR0 - 4;
-				for(i = 0; i < nelem(p->mem); i++){
+				for(i = 0; i < nelem(p->mem); i++) {
 					rno += 4;
 					p->mem[i].bar = pcicfgr32(p, rno);
 					pcicfgw32(p, rno, -1);
@@ -116,8 +116,8 @@ pciscan(int bno, Pcidev** list)
 				break;
 
 			case 0x00:
-			case 0x05:		/* memory controller */
-			case 0x06:		/* bridge device */
+			case 0x05: /* memory controller */
+			case 0x06: /* bridge device */
 			default:
 				break;
 			}
@@ -131,11 +131,11 @@ pciscan(int bno, Pcidev** list)
 	}
 
 	*list = head;
-	for(p = head; p != nil; p = p->link){
+	for(p = head; p != nil; p = p->link) {
 		/*
 		 * Find PCI-PCI bridges and recursively descend the tree.
 		 */
-		if(p->ccru != ((0x06<<8)|0x04))
+		if(p->ccru != ((0x06 << 8) | 0x04))
 			continue;
 
 		/*
@@ -148,8 +148,8 @@ pciscan(int bno, Pcidev** list)
 		 */
 		sbn = pcicfgr8(p, PciSBN);
 		ubn = pcicfgr8(p, PciUBN);
-		if(sbn == 0 || ubn == 0){
-			sbn = maxubn+1;
+		if(sbn == 0 || ubn == 0) {
+			sbn = maxubn + 1;
 			/*
 			 * Make sure memory, I/O and master enables are off,
 			 * set the primary, secondary and subordinate bus numbers
@@ -159,14 +159,13 @@ pciscan(int bno, Pcidev** list)
 			 * Initialisation of the bridge should be done here.
 			 */
 			pcicfgw32(p, PciPCR, 0xFFFF0000);
-			l = (MaxUBN<<16)|(sbn<<8)|bno;
+			l = (MaxUBN << 16) | (sbn << 8) | bno;
 			pcicfgw32(p, PciPBN, l);
 			pcicfgw16(p, PciSPSR, 0xFFFF);
 			maxubn = pciscan(sbn, &p->bridge);
-			l = (maxubn<<16)|(sbn<<8)|bno;
+			l = (maxubn << 16) | (sbn << 8) | bno;
 			pcicfgw32(p, PciPBN, l);
-		}
-		else{
+		} else {
 			maxubn = ubn;
 			pciscan(sbn, &p->bridge);
 		}
@@ -184,7 +183,7 @@ pcicfginit(void)
 	int bno;
 	Pcidev **list;
 
-	if(pcicfgmode == -1){
+	if(pcicfgmode == -1) {
 		/*
 		 * Try to determine which PCI configuration mode is implemented.
 		 * Mode2 uses a byte at 0xCF8 and another at 0xCFA; Mode1 uses
@@ -194,26 +193,24 @@ pcicfginit(void)
 		 * for Mode1 (which is preferred, Mode2 is deprecated).
 		 */
 		outportb(PciCSE, 0);
-		if(inportb(PciCSE) == 0){
+		if(inportb(PciCSE) == 0) {
 			pcicfgmode = 2;
 			pcimaxdno = 15;
-		}
-		else{
+		} else {
 			outportl(PciADDR, 0);
-			if(inportl(PciADDR) == 0){
+			if(inportl(PciADDR) == 0) {
 				pcicfgmode = 1;
 				pcimaxdno = 31;
 			}
 		}
-	
-		if(pcicfgmode > 0){
+
+		if(pcicfgmode > 0) {
 			list = &pciroot;
-			for(bno = 0; bno < 256; bno++){
+			for(bno = 0; bno < 256; bno++) {
 				bno = pciscan(bno, list);
 				while(*list)
 					list = &(*list)->link;
 			}
-				
 		}
 	}
 }
@@ -234,26 +231,26 @@ pcicfgrw8(int tbdf, int rno, int data, int read)
 	if(BUSDNO(tbdf) > pcimaxdno)
 		return x;
 
-	switch(pcicfgmode){
+	switch(pcicfgmode) {
 
 	case 1:
 		o = rno & 0x03;
 		rno &= ~0x03;
-		outportl(PciADDR, 0x80000000|BUSBDF(tbdf)|rno|type);
+		outportl(PciADDR, 0x80000000 | BUSBDF(tbdf) | rno | type);
 		if(read)
-			x = inportb(PciDATA+o);
+			x = inportb(PciDATA + o);
 		else
-			outportb(PciDATA+o, data);
+			outportb(PciDATA + o, data);
 		outportl(PciADDR, 0);
 		break;
 
 	case 2:
-		outportb(PciCSE, 0x80|(BUSFNO(tbdf)<<1));
+		outportb(PciCSE, 0x80 | (BUSFNO(tbdf) << 1));
 		outportb(PciFORWARD, BUSBNO(tbdf));
 		if(read)
-			x = inportb((0xC000|(BUSDNO(tbdf)<<8)) + rno);
+			x = inportb((0xC000 | (BUSDNO(tbdf) << 8)) + rno);
 		else
-			outportb((0xC000|(BUSDNO(tbdf)<<8)) + rno, data);
+			outportb((0xC000 | (BUSDNO(tbdf) << 8)) + rno, data);
 		outportb(PciCSE, 0);
 		break;
 	}
@@ -262,13 +259,13 @@ pcicfgrw8(int tbdf, int rno, int data, int read)
 }
 
 int
-pcicfgr8(Pcidev* pcidev, int rno)
+pcicfgr8(Pcidev *pcidev, int rno)
 {
 	return pcicfgrw8(pcidev->tbdf, rno, 0, 1);
 }
 
 void
-pcicfgw8(Pcidev* pcidev, int rno, int data)
+pcicfgw8(Pcidev *pcidev, int rno, int data)
 {
 	pcicfgrw8(pcidev->tbdf, rno, data, 0);
 }
@@ -289,26 +286,26 @@ pcicfgrw16(int tbdf, int rno, int data, int read)
 	if(BUSDNO(tbdf) > pcimaxdno)
 		return x;
 
-	switch(pcicfgmode){
+	switch(pcicfgmode) {
 
 	case 1:
 		o = rno & 0x02;
 		rno &= ~0x03;
-		outportl(PciADDR, 0x80000000|BUSBDF(tbdf)|rno|type);
+		outportl(PciADDR, 0x80000000 | BUSBDF(tbdf) | rno | type);
 		if(read)
-			x = inportw(PciDATA+o);
+			x = inportw(PciDATA + o);
 		else
-			outportw(PciDATA+o, data);
+			outportw(PciDATA + o, data);
 		outportl(PciADDR, 0);
 		break;
 
 	case 2:
-		outportb(PciCSE, 0x80|(BUSFNO(tbdf)<<1));
+		outportb(PciCSE, 0x80 | (BUSFNO(tbdf) << 1));
 		outportb(PciFORWARD, BUSBNO(tbdf));
 		if(read)
-			x = inportw((0xC000|(BUSDNO(tbdf)<<8)) + rno);
+			x = inportw((0xC000 | (BUSDNO(tbdf) << 8)) + rno);
 		else
-			outportw((0xC000|(BUSDNO(tbdf)<<8)) + rno, data);
+			outportw((0xC000 | (BUSDNO(tbdf) << 8)) + rno, data);
 		outportb(PciCSE, 0);
 		break;
 	}
@@ -317,13 +314,13 @@ pcicfgrw16(int tbdf, int rno, int data, int read)
 }
 
 int
-pcicfgr16(Pcidev* pcidev, int rno)
+pcicfgr16(Pcidev *pcidev, int rno)
 {
 	return pcicfgrw16(pcidev->tbdf, rno, 0, 1);
 }
 
 void
-pcicfgw16(Pcidev* pcidev, int rno, int data)
+pcicfgw16(Pcidev *pcidev, int rno, int data)
 {
 	pcicfgrw16(pcidev->tbdf, rno, data, 0);
 }
@@ -344,11 +341,11 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 	if(BUSDNO(tbdf) > pcimaxdno)
 		return x;
 
-	switch(pcicfgmode){
+	switch(pcicfgmode) {
 
 	case 1:
 		rno &= ~0x03;
-		outportl(PciADDR, 0x80000000|BUSBDF(tbdf)|rno|type);
+		outportl(PciADDR, 0x80000000 | BUSBDF(tbdf) | rno | type);
 		if(read)
 			x = inportl(PciDATA);
 		else
@@ -357,12 +354,12 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 		break;
 
 	case 2:
-		outportb(PciCSE, 0x80|(BUSFNO(tbdf)<<1));
+		outportb(PciCSE, 0x80 | (BUSFNO(tbdf) << 1));
 		outportb(PciFORWARD, BUSBNO(tbdf));
 		if(read)
-			x = inportl((0xC000|(BUSDNO(tbdf)<<8)) + rno);
+			x = inportl((0xC000 | (BUSDNO(tbdf) << 8)) + rno);
 		else
-			outportl((0xC000|(BUSDNO(tbdf)<<8)) + rno, data);
+			outportl((0xC000 | (BUSDNO(tbdf) << 8)) + rno, data);
 		outportb(PciCSE, 0);
 		break;
 	}
@@ -371,19 +368,19 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 }
 
 int
-pcicfgr32(Pcidev* pcidev, int rno)
+pcicfgr32(Pcidev *pcidev, int rno)
 {
 	return pcicfgrw32(pcidev->tbdf, rno, 0, 1);
 }
 
 void
-pcicfgw32(Pcidev* pcidev, int rno, int data)
+pcicfgw32(Pcidev *pcidev, int rno, int data)
 {
 	pcicfgrw32(pcidev->tbdf, rno, data, 0);
 }
 
-Pcidev*
-pcimatch(Pcidev* prev, int vid, int did)
+Pcidev *
+pcimatch(Pcidev *prev, int vid, int did)
 {
 	if(pcicfgmode == -1)
 		pcicfginit();
@@ -402,7 +399,7 @@ pcimatch(Pcidev* prev, int vid, int did)
 }
 
 void
-pcihinv(Pcidev* p)
+pcihinv(Pcidev *p)
 {
 	int i;
 	Pcidev *t;
@@ -410,21 +407,20 @@ pcihinv(Pcidev* p)
 	if(pcicfgmode == -1)
 		pcicfginit();
 
-
 	if(p == nil) {
 		p = pciroot;
 		Bprint(&stdout, "bus dev type vid  did intl memory\n");
 	}
 	for(t = p; t != nil; t = t->link) {
 		Bprint(&stdout, "%d  %2d/%d %.4ux %.4ux %.4ux %2d  ",
-			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
-			t->ccru, t->vid, t->did, t->intl);
+		       BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
+		       t->ccru, t->vid, t->did, t->intl);
 
 		for(i = 0; i < nelem(p->mem); i++) {
 			if(t->mem[i].size == 0)
 				continue;
 			Bprint(&stdout, "%d:%.8lux %d ", i,
-				t->mem[i].bar, t->mem[i].size);
+			       t->mem[i].bar, t->mem[i].size);
 		}
 		Bprint(&stdout, "\n");
 	}

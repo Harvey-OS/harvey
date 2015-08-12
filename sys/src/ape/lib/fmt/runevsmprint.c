@@ -29,7 +29,7 @@
 /*
  * print into an allocated string buffer
  */
-Rune*
+Rune *
 runevsmprint(char *fmt, va_list args)
 {
 	Fmt f;
@@ -41,6 +41,6 @@ runevsmprint(char *fmt, va_list args)
 	n = dofmt(&f, fmt);
 	if(n < 0)
 		return nil;
-	*(Rune*)f.to = '\0';
-	return (Rune*)f.start;
+	*(Rune *)f.to = '\0';
+	return (Rune *)f.start;
 }

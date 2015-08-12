@@ -22,7 +22,7 @@ void
 usage(void)
 {
 	fprint(2, "usage: query [-am] [-f ndbfile] attr value "
-		"[returned-attr [reps]]\n");
+		  "[returned-attr [reps]]\n");
 	exits("usage");
 }
 
@@ -31,7 +31,7 @@ static void
 prmatch(Ndbtuple *nt, char *rattr)
 {
 	for(; nt; nt = nt->entry)
-		if (strcmp(nt->attr, rattr) == 0)
+		if(strcmp(nt->attr, rattr) == 0)
 			Bprint(&bout, "%s\n", nt->val);
 }
 
@@ -43,9 +43,9 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 	Ndbtuple *t, *nt;
 
 	/* first entry with a matching rattr */
-	if(rattr && !all){
+	if(rattr && !all) {
 		p = ndbgetvalue(db, &s, attr, val, rattr, &t);
-		if (multiple)
+		if(multiple)
 			prmatch(t, rattr);
 		else if(p)
 			Bprint(&bout, "%s\n", p);
@@ -57,7 +57,7 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 	/* all entries with matching rattrs */
 	if(rattr) {
 		for(t = ndbsearch(db, &s, attr, val); t != nil;
-		    t = ndbsnext(&s, attr, val)){
+		    t = ndbsnext(&s, attr, val)) {
 			prmatch(t, rattr);
 			ndbfree(t);
 		}
@@ -65,7 +65,7 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 	}
 
 	/* all entries */
-	for(t = ndbsearch(db, &s, attr, val); t; t = ndbsnext(&s, attr, val)){
+	for(t = ndbsearch(db, &s, attr, val); t; t = ndbsnext(&s, attr, val)) {
 		for(nt = t; nt; nt = nt->entry)
 			Bprint(&bout, "%s=%s ", nt->attr, nt->val);
 		Bprint(&bout, "\n");
@@ -79,8 +79,9 @@ main(int argc, char **argv)
 	int reps = 1;
 	char *rattr = nil, *dbfile = nil;
 	Ndb *db;
-	
-	ARGBEGIN{
+
+	ARGBEGIN
+	{
 	case 'a':
 		all++;
 		break;
@@ -92,12 +93,13 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
-	switch(argc){
+	switch(argc) {
 	case 4:
-		reps = atoi(argv[3]);	/* wtf use is this? */
-		/* fall through */
+		reps = atoi(argv[3]); /* wtf use is this? */
+				      /* fall through */
 	case 3:
 		rattr = argv[2];
 		break;
@@ -111,7 +113,7 @@ main(int argc, char **argv)
 	if(Binit(&bout, 1, OWRITE) == -1)
 		sysfatal("Binit: %r");
 	db = ndbopen(dbfile);
-	if(db == nil){
+	if(db == nil) {
 		fprint(2, "%s: no db files\n", argv0);
 		exits("no db");
 	}

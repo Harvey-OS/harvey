@@ -7,20 +7,20 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
-#include	"sky.h"
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include "sky.h"
 
-static	void	dodecode(Biobuf*, Pix*, int, int, uint8_t*);
-static	int32_t	getlong(uint8_t*);
-int	debug;
+static void dodecode(Biobuf *, Pix *, int, int, uint8_t *);
+static int32_t getlong(uint8_t *);
+int debug;
 
-Img*
+Img *
 dssread(char *file)
 {
 	int nx, ny, scale, sumall;
-	Pix  *p, *pend;
+	Pix *p, *pend;
 	uint8_t buf[21];
 	Biobuf *bp;
 	Img *ip;
@@ -31,31 +31,31 @@ dssread(char *file)
 	if(bp == 0)
 		return 0;
 	if(Bread(bp, buf, sizeof(buf)) != sizeof(buf) ||
-	   buf[0] != 0xdd || buf[1] != 0x99){
+	   buf[0] != 0xdd || buf[1] != 0x99) {
 		werrstr("bad format");
 		return 0;
 	}
-	nx = getlong(buf+2);
-	ny = getlong(buf+6);
-	scale = getlong(buf+10);
-	sumall = getlong(buf+14);
+	nx = getlong(buf + 2);
+	ny = getlong(buf + 6);
+	scale = getlong(buf + 10);
+	sumall = getlong(buf + 14);
 	if(debug)
 		fprint(2, "%s: nx=%d, ny=%d, scale=%d, sumall=%d, nbitplanes=%d,%d,%d\n",
-			file, nx, ny, scale, sumall, buf[18], buf[19], buf[20]);
-	ip = malloc(sizeof(Img) + (nx*ny-1)*sizeof(int));
-	if(ip == 0){
+		       file, nx, ny, scale, sumall, buf[18], buf[19], buf[20]);
+	ip = malloc(sizeof(Img) + (nx * ny - 1) * sizeof(int));
+	if(ip == 0) {
 		Bterm(bp);
 		werrstr("no memory");
 		return 0;
 	}
 	ip->nx = nx;
 	ip->ny = ny;
-	dodecode(bp, ip->a, nx, ny, buf+18);
-	ip->a[0] = sumall;	/* sum of all pixels */
+	dodecode(bp, ip->a, nx, ny, buf + 18);
+	ip->a[0] = sumall; /* sum of all pixels */
 	Bterm(bp);
-	if(scale > 1){
+	if(scale > 1) {
 		p = ip->a;
-		pend = &ip->a[nx*ny];
+		pend = &ip->a[nx * ny];
 		while(p < pend)
 			*p++ *= scale;
 	}
@@ -63,17 +63,16 @@ dssread(char *file)
 	return ip;
 }
 
-static
-void
-dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
+static void
+dodecode(Biobuf *infile, Pix *a, int nx, int ny, uint8_t *nbitplanes)
 {
 	int nel, nx2, ny2, bits, mask;
 	Pix *aend, px;
 
-	nel = nx*ny;
-	nx2 = (nx+1)/2;
-	ny2 = (ny+1)/2;
-	memset(a, 0, nel*sizeof(*a));
+	nel = nx * ny;
+	nx2 = (nx + 1) / 2;
+	ny2 = (ny + 1) / 2;
+	memset(a, 0, nel * sizeof(*a));
 
 	/*
 	 * Initialize bit input
@@ -83,15 +82,15 @@ dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
 	/*
 	 * read bit planes for each quadrant
 	 */
-	qtree_decode(infile, &a[0],          ny, nx2,  ny2,  nbitplanes[0]);
-	qtree_decode(infile, &a[ny2],        ny, nx2,  ny/2, nbitplanes[1]);
-	qtree_decode(infile, &a[ny*nx2],     ny, nx/2, ny2,  nbitplanes[1]);
-	qtree_decode(infile, &a[ny*nx2+ny2], ny, nx/2, ny/2, nbitplanes[2]);
+	qtree_decode(infile, &a[0], ny, nx2, ny2, nbitplanes[0]);
+	qtree_decode(infile, &a[ny2], ny, nx2, ny / 2, nbitplanes[1]);
+	qtree_decode(infile, &a[ny * nx2], ny, nx / 2, ny2, nbitplanes[1]);
+	qtree_decode(infile, &a[ny * nx2 + ny2], ny, nx / 2, ny / 2, nbitplanes[2]);
 
 	/*
 	 * make sure there is an EOF symbol (nybble=0) at end
 	 */
-	if(input_nybble(infile) != 0){
+	if(input_nybble(infile) != 0) {
 		fprint(2, "dodecode: bad bit plane values\n");
 		exits("format");
 	}
@@ -101,8 +100,9 @@ dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
 	 */
 	aend = &a[nel];
 	mask = 0;
-	bits = 0;;
-	for(; a<aend; a++) {
+	bits = 0;
+	;
+	for(; a < aend; a++) {
 		if(px = *a) {
 			if(mask == 0) {
 				mask = 0x80;
@@ -115,8 +115,8 @@ dodecode(Biobuf *infile, Pix  *a, int nx, int ny, uint8_t *nbitplanes)
 	}
 }
 
-static
-int32_t	getlong(uint8_t *p)
+static int32_t
+getlong(uint8_t *p)
 {
-	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
+	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 }

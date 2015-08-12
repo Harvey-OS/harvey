@@ -25,7 +25,7 @@
 #include "utf.h"
 #include "utfdef.h"
 
-Rune*
+Rune *
 runestrncat(Rune *s1, Rune *s2, int32_t n)
 {
 	Rune *os1;

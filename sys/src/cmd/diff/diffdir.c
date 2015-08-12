@@ -28,38 +28,38 @@ scandir(char *name)
 	int nitems;
 	int fd, n;
 
-	if ((fd = open(name, OREAD)) < 0) {
+	if((fd = open(name, OREAD)) < 0) {
 		fprint(2, "%s: can't open %s: %r\n", argv0, name);
 		/* fake an empty directory */
-		cp = MALLOC(char*, 1);
+		cp = MALLOC(char *, 1);
 		cp[0] = 0;
 		return cp;
 	}
 	cp = 0;
 	nitems = 0;
-	if((n = dirreadall(fd, &db)) > 0){
-		while (n--) {
-			cp = REALLOC(cp, char *, (nitems+1));
-			cp[nitems] = MALLOC(char, strlen((db+n)->name)+1);
-			strcpy(cp[nitems], (db+n)->name);
+	if((n = dirreadall(fd, &db)) > 0) {
+		while(n--) {
+			cp = REALLOC(cp, char *, (nitems + 1));
+			cp[nitems] = MALLOC(char, strlen((db + n)->name) + 1);
+			strcpy(cp[nitems], (db + n)->name);
 			nitems++;
 		}
 		free(db);
 	}
-	cp = REALLOC(cp, char*, (nitems+1));
+	cp = REALLOC(cp, char *, (nitems + 1));
 	cp[nitems] = 0;
 	close(fd);
-	qsort((char *)cp, nitems, sizeof(char*), itemcmp);
+	qsort((char *)cp, nitems, sizeof(char *), itemcmp);
 	return cp;
 }
 
 static int
 isdotordotdot(char *p)
 {
-	if (*p == '.') {
-		if (!p[1])
+	if(*p == '.') {
+		if(!p[1])
 			return 1;
-		if (p[1] == '.' && !p[2])
+		if(p[1] == '.' && !p[2])
 			return 1;
 	}
 	return 0;
@@ -68,54 +68,55 @@ isdotordotdot(char *p)
 void
 diffdir(char *f, char *t, int level)
 {
-	char  **df, **dt, **dirf, **dirt;
+	char **df, **dt, **dirf, **dirt;
 	char *from, *to;
 	int res;
-	char fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
+	char fb[MAXPATHLEN + 1], tb[MAXPATHLEN + 1];
 
 	df = scandir(f);
 	dt = scandir(t);
 	dirf = df;
 	dirt = dt;
-	while (*df || *dt) {
+	while(*df || *dt) {
 		from = *df;
 		to = *dt;
-		if (from && isdotordotdot(from)) {
+		if(from && isdotordotdot(from)) {
 			df++;
 			continue;
 		}
-		if (to && isdotordotdot(to)) {
+		if(to && isdotordotdot(to)) {
 			dt++;
 			continue;
 		}
-		if (!from)
+		if(!from)
 			res = 1;
-		else if (!to)
+		else if(!to)
 			res = -1;
 		else
 			res = strcmp(from, to);
-		if (res < 0) {
-			if (mode == 0 || mode == 'n')
+		if(res < 0) {
+			if(mode == 0 || mode == 'n')
 				Bprint(&stdout, "Only in %s: %s\n", f, from);
 			df++;
 			continue;
 		}
-		if (res > 0) {
-			if (mode == 0 || mode == 'n')
+		if(res > 0) {
+			if(mode == 0 || mode == 'n')
 				Bprint(&stdout, "Only in %s: %s\n", t, to);
 			dt++;
 			continue;
 		}
-		if (mkpathname(fb, f, from))
+		if(mkpathname(fb, f, from))
 			continue;
-		if (mkpathname(tb, t, to))
+		if(mkpathname(tb, t, to))
 			continue;
-		diff(fb, tb, level+1);
-		df++; dt++;
+		diff(fb, tb, level + 1);
+		df++;
+		dt++;
 	}
-	for (df = dirf; *df; df++)
+	for(df = dirf; *df; df++)
 		FREE(*df);
-	for (dt = dirt; *dt; dt++)
+	for(dt = dirt; *dt; dt++)
 		FREE(*dt);
 	FREE(dirf);
 	FREE(dirt);

@@ -13,23 +13,23 @@
 #include <ndb.h>
 
 /* replace a in t with b, the line structure in b is lost, c'est la vie */
-Ndbtuple*
+Ndbtuple *
 ndbsubstitute(Ndbtuple *t, Ndbtuple *a, Ndbtuple *b)
 {
 	Ndbtuple *nt;
 
-	if(a == b){
+	if(a == b) {
 		ndbsetmalloctag(t, getcallerpc(&t));
 		return t;
 	}
-	if(b == nil){
+	if(b == nil) {
 		t = ndbdiscard(t, a);
 		ndbsetmalloctag(t, getcallerpc(&t));
 		return t;
 	}
 
 	/* all pointers to a become pointers to b */
-	for(nt = t; nt != nil; nt = nt->entry){
+	for(nt = t; nt != nil; nt = nt->entry) {
 		if(nt->line == a)
 			nt->line = b;
 		if(nt->entry == a)
@@ -45,10 +45,10 @@ ndbsubstitute(Ndbtuple *t, Ndbtuple *a, Ndbtuple *b)
 	a->entry = nil;
 	ndbfree(a);
 
-	if(a == t){
+	if(a == t) {
 		ndbsetmalloctag(b, getcallerpc(&t));
 		return b;
-	}else{
+	} else {
 		ndbsetmalloctag(t, getcallerpc(&t));
 		return t;
 	}

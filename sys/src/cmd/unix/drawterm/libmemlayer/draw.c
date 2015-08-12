@@ -13,18 +13,16 @@
 #include <memdraw.h>
 #include <memlayer.h>
 
-struct Draw
-{
-	Point	deltas;
-	Point	deltam;
-	Memlayer		*dstlayer;
-	Memimage	*src;
-	Memimage	*mask;
-	int	op;
+struct Draw {
+	Point deltas;
+	Point deltam;
+	Memlayer *dstlayer;
+	Memimage *src;
+	Memimage *mask;
+	int op;
 };
 
-static
-void
+static void
 ldrawop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insave)
 {
 	struct Draw *d;
@@ -33,22 +31,22 @@ ldrawop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insave
 	int ok;
 
 	d = etc;
-	if(insave && d->dstlayer->save==nil)
+	if(insave && d->dstlayer->save == nil)
 		return;
 
 	p0 = addpt(screenr.min, d->deltas);
 	p1 = addpt(screenr.min, d->deltam);
 
-	if(insave){
+	if(insave) {
 		r = rectsubpt(screenr, d->dstlayer->delta);
 		clipr = rectsubpt(clipr, d->dstlayer->delta);
-	}else
+	} else
 		r = screenr;
 
 	/* now in logical coordinates */
 
 	/* clipr may have narrowed what we should draw on, so clip if necessary */
-	if(!rectinrect(r, clipr)){
+	if(!rectinrect(r, clipr)) {
 		oclipr = dst->clipr;
 		dst->clipr = clipr;
 		ok = drawclip(dst, &r, d->src, &p0, d->mask, &p1, &srcr, &mr);
@@ -72,19 +70,21 @@ memdraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask, Poi
 	if(mask == nil)
 		mask = memopaque;
 
-	if(mask->layer){
-if(drawdebug)	iprint("mask->layer != nil\n");
-		return;	/* too hard, at least for now */
+	if(mask->layer) {
+		if(drawdebug)
+			iprint("mask->layer != nil\n");
+		return; /* too hard, at least for now */
 	}
 
-    Top:
-	if(dst->layer==nil && src->layer==nil){
+Top:
+	if(dst->layer == nil && src->layer == nil) {
 		memimagedraw(dst, r, src, p0, mask, p1, op);
 		return;
 	}
 
-	if(drawclip(dst, &r, src, &p0, mask, &p1, &srcr, &mr) == 0){
-if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->clipr, mask->clipr);
+	if(drawclip(dst, &r, src, &p0, mask, &p1, &srcr, &mr) == 0) {
+		if(drawdebug)
+			iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->clipr, mask->clipr);
 		return;
 	}
 
@@ -92,15 +92,15 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
  	 * Convert to screen coordinates.
 	 */
 	dl = dst->layer;
-	if(dl != nil){
+	if(dl != nil) {
 		r.min.x += dl->delta.x;
 		r.min.y += dl->delta.y;
 		r.max.x += dl->delta.x;
 		r.max.y += dl->delta.y;
 	}
-    Clearlayer:
-	if(dl!=nil && dl->clear){
-		if(src == dst){
+Clearlayer:
+	if(dl != nil && dl->clear) {
+		if(src == dst) {
 			p0.x += dl->delta.x;
 			p0.y += dl->delta.y;
 			src = dl->screen->image;
@@ -110,7 +110,7 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 	}
 
 	sl = src->layer;
-	if(sl != nil){
+	if(sl != nil) {
 		p0.x += sl->delta.x;
 		p0.y += sl->delta.y;
 		srcr.min.x += sl->delta.x;
@@ -127,16 +127,16 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 	/*
 	 * if dst and src are the same layer, just draw in save area and expose.
 	 */
-	if(dl!=nil && dst==src){
+	if(dl != nil && dst == src) {
 		if(dl->save == nil)
-			return;	/* refresh function makes this case unworkable */
-		if(rectXrect(r, srcr)){
+			return; /* refresh function makes this case unworkable */
+		if(rectXrect(r, srcr)) {
 			tr = r;
-			if(srcr.min.x < tr.min.x){
+			if(srcr.min.x < tr.min.x) {
 				p1.x += tr.min.x - srcr.min.x;
 				tr.min.x = srcr.min.x;
 			}
-			if(srcr.min.y < tr.min.y){
+			if(srcr.min.y < tr.min.y) {
 				p1.y += tr.min.x - srcr.min.x;
 				tr.min.y = srcr.min.y;
 			}
@@ -145,7 +145,7 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 			if(srcr.max.y > tr.max.y)
 				tr.max.y = srcr.max.y;
 			memlhide(dst, tr);
-		}else{
+		} else {
 			memlhide(dst, r);
 			memlhide(dst, srcr);
 		}
@@ -155,10 +155,10 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 		return;
 	}
 
-	if(sl){
-		if(sl->clear){
+	if(sl) {
+		if(sl->clear) {
 			src = sl->screen->image;
-			if(dl != nil){
+			if(dl != nil) {
 				r.min.x -= dl->delta.x;
 				r.min.y -= dl->delta.y;
 				r.max.x -= dl->delta.x;
@@ -168,7 +168,7 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 		}
 		/* relatively rare case; use save area */
 		if(sl->save == nil)
-			return;	/* refresh function makes this case unworkable */
+			return; /* refresh function makes this case unworkable */
 		memlhide(src, srcr);
 		/* convert back to logical coordinates */
 		p0.x -= sl->delta.x;
@@ -183,7 +183,7 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 	/*
 	 * src is now an image.  dst may be an image or a clear layer
 	 */
-	if(dst->layer==nil)
+	if(dst->layer == nil)
 		goto Top;
 	if(dst->layer->clear)
 		goto Clearlayer;

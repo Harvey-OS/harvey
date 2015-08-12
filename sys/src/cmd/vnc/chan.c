@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	"compat.h"
-#include	"error.h"
+#include <u.h>
+#include <libc.h>
+#include "compat.h"
+#include "error.h"
 
-Chan*
+Chan *
 newchan(void)
 {
 	Chan *c;
@@ -44,12 +44,12 @@ chanfree(Chan *c)
 void
 cclose(Chan *c)
 {
-	if(c->flag&CFREE)
+	if(c->flag & CFREE)
 		panic("cclose %#p", getcallerpc(&c));
 	if(decref(c))
 		return;
 
-	if(!waserror()){
+	if(!waserror()) {
 		devtab[c->type]->close(c);
 		poperror();
 	}
@@ -57,7 +57,7 @@ cclose(Chan *c)
 	chanfree(c);
 }
 
-Chan*
+Chan *
 cclone(Chan *c)
 {
 	Chan *nc;
@@ -74,19 +74,18 @@ cclone(Chan *c)
 	return nc;
 }
 
-enum
-{
-	CNAMESLOP	= 20
+enum {
+	CNAMESLOP = 20
 };
 
 static Ref ncname;
 
-void cleancname(Cname*);
+void cleancname(Cname *);
 
 int
 isdotdot(char *p)
 {
-	return p[0]=='.' && p[1]=='.' && p[2]=='\0';
+	return p[0] == '.' && p[1] == '.' && p[2] == '\0';
 }
 
 int
@@ -114,7 +113,7 @@ decref(Ref *r)
 	return x;
 }
 
-Cname*
+Cname *
 newcname(char *s)
 {
 	Cname *n;
@@ -123,9 +122,9 @@ newcname(char *s)
 	n = smalloc(sizeof(Cname));
 	i = strlen(s);
 	n->len = i;
-	n->alen = i+CNAMESLOP;
+	n->alen = i + CNAMESLOP;
 	n->s = smalloc(n->alen);
-	memmove(n->s, s, i+1);
+	memmove(n->s, s, i + 1);
 	n->ref = 1;
 	incref(&ncname);
 	return n;
@@ -143,17 +142,17 @@ cnameclose(Cname *n)
 	free(n);
 }
 
-Cname*
+Cname *
 addelem(Cname *n, char *s)
 {
 	int i, a;
 	char *t;
 	Cname *new;
 
-	if(s[0]=='.' && s[1]=='\0')
+	if(s[0] == '.' && s[1] == '\0')
 		return n;
 
-	if(n->ref > 1){
+	if(n->ref > 1) {
 		/* copy on write */
 		new = newcname(n->s);
 		cnameclose(n);
@@ -161,17 +160,17 @@ addelem(Cname *n, char *s)
 	}
 
 	i = strlen(s);
-	if(n->len+1+i+1 > n->alen){
-		a = n->len+1+i+1 + CNAMESLOP;
+	if(n->len + 1 + i + 1 > n->alen) {
+		a = n->len + 1 + i + 1 + CNAMESLOP;
 		t = smalloc(a);
-		memmove(t, n->s, n->len+1);
+		memmove(t, n->s, n->len + 1);
 		free(n->s);
 		n->s = t;
 		n->alen = a;
 	}
-	if(n->len>0 && n->s[n->len-1]!='/' && s[0]!='/')	/* don't insert extra slash if one is present */
+	if(n->len > 0 && n->s[n->len - 1] != '/' && s[0] != '/') /* don't insert extra slash if one is present */
 		n->s[n->len++] = '/';
-	memmove(n->s+n->len, s, i+1);
+	memmove(n->s + n->len, s, i + 1);
 	n->len += i;
 	if(isdotdot(s))
 		cleancname(n);
@@ -186,7 +185,7 @@ cleancname(Cname *n)
 {
 	char *p;
 
-	if(n->s[0] == '#'){
+	if(n->s[0] == '#') {
 		p = strchr(n->s, '/');
 		if(p == nil)
 			return;
@@ -196,9 +195,9 @@ cleancname(Cname *n)
 		 * The correct name is #i rather than #i/,
 		 * but the correct name of #/ is #/.
 		 */
-		if(strcmp(p, "/")==0 && n->s[1] != '/')
+		if(strcmp(p, "/") == 0 && n->s[1] != '/')
 			*p = '\0';
-	}else
+	} else
 		cleanname(n->s);
 	n->len = strlen(n->s);
 }

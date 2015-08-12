@@ -33,12 +33,12 @@ _finish(int status, char *term)
 	if(_finishing)
 		_EXITS(exitstatus);
 	_finishing = 1;
-	if(status){
+	if(status) {
 		cp = _ultoa(exitstatus, status & 0xFF);
 		*cp = 0;
-	}else if(term){
+	} else if(term) {
 		strncpy(exitstatus, term, ERRMAX);
-		exitstatus[ERRMAX-1] = '\0';
+		exitstatus[ERRMAX - 1] = '\0';
 	}
 	if(_sessleader)
 		kill(0, SIGTERM);
@@ -53,14 +53,14 @@ _ultoa(char *p, unsigned long v)
 	char s[IDIGIT];
 	int n, i;
 
-	s[IDIGIT-1] = 0;
-	for(i = IDIGIT-2; i; i--){
+	s[IDIGIT - 1] = 0;
+	for(i = IDIGIT - 2; i; i--) {
 		n = v % 10;
 		s[i] = n + '0';
 		v = v / 10;
 		if(v == 0)
 			break;
 	}
-	strcpy(p, s+i);
-	return p + (IDIGIT-1-i);
+	strcpy(p, s + i);
+	return p + (IDIGIT - 1 - i);
 }

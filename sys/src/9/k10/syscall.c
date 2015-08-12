@@ -25,19 +25,19 @@
 extern int nosmp;
 
 typedef struct {
-	uintptr_t	ip;
-	Ureg*	arg0;
-	char*	arg1;
-	char	msg[ERRMAX];
-	Ureg*	old;
-	Ureg	ureg;
+	uintptr_t ip;
+	Ureg *arg0;
+	char *arg1;
+	char msg[ERRMAX];
+	Ureg *old;
+	Ureg ureg;
 } NFrame;
 
 /*
  *   Return user to state before notify()
  */
 void
-noted(Ureg* cur, uintptr_t arg0)
+noted(Ureg *cur, uintptr_t arg0)
 {
 	Proc *up = externup();
 	NFrame *nf;
@@ -45,7 +45,7 @@ noted(Ureg* cur, uintptr_t arg0)
 	Ureg *nur;
 
 	qlock(&up->debug);
-	if(arg0 != NRSTR && !up->notified){
+	if(arg0 != NRSTR && !up->notified) {
 		qunlock(&up->debug);
 		pprint("suicide: call to noted when not notified\n");
 		pexit("Suicide", 0);
@@ -56,7 +56,7 @@ noted(Ureg* cur, uintptr_t arg0)
 	nf = up->ureg;
 
 	/* sanity clause */
-	if(!okaddr(PTR2UINT(nf), sizeof(NFrame), 0)){
+	if(!okaddr(PTR2UINT(nf), sizeof(NFrame), 0)) {
 		qunlock(&up->debug);
 		pprint("suicide: bad ureg %#p in noted\n", nf);
 		pexit("Suicide", 0);
@@ -69,35 +69,34 @@ noted(Ureg* cur, uintptr_t arg0)
 	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
 		qunlock(&up->debug);
 		pprint("suicide: bad segment selector (cs %p want %p, ss %p want %p), in noted\n",
-			nur->cs, SSEL(SiUCS, SsRPL3),
-			nur->ss, SSEL(SiUDS, SsRPL3)
-		);
+		       nur->cs, SSEL(SiUCS, SsRPL3),
+		       nur->ss, SSEL(SiUDS, SsRPL3));
 		pexit("Suicide", 0);
 	}
 
 	/* don't let user change system flags */
-	nur->flags &= (Of|Df|Sf|Zf|Af|Pf|Cf);
-	nur->flags |= cur->flags & ~(Of|Df|Sf|Zf|Af|Pf|Cf);
+	nur->flags &= (Of | Df | Sf | Zf | Af | Pf | Cf);
+	nur->flags |= cur->flags & ~(Of | Df | Sf | Zf | Af | Pf | Cf);
 
 	memmove(cur, nur, sizeof(Ureg));
 
-	switch((int)arg0){
+	switch((int)arg0) {
 	case NCONT:
 	case NRSTR:
-		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
+		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)) {
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
-				nur->ip, nur->sp);
+			       nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
 		up->ureg = nf->old;
 		qunlock(&up->debug);
 		break;
 	case NSAVE:
-		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
+		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)) {
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
-				nur->ip, nur->sp);
+			       nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
 		qunlock(&up->debug);
@@ -130,7 +129,7 @@ noted(Ureg* cur, uintptr_t arg0)
  *  Pass user the Ureg struct and the note on his stack.
  */
 int
-notify(Ureg* ureg)
+notify(Ureg *ureg)
 {
 	Proc *up = externup();
 	int l;
@@ -154,39 +153,39 @@ notify(Ureg* ureg)
 
 	up->notepending = 0;
 	memmove(&note, &up->note[0], sizeof(Note));
-	if(strncmp(note.msg, "sys:", 4) == 0){
+	if(strncmp(note.msg, "sys:", 4) == 0) {
 		l = strlen(note.msg);
-		if(l > ERRMAX-sizeof(" pc=0x0123456789abcdef"))
-			l = ERRMAX-sizeof(" pc=0x0123456789abcdef");
-		sprint(note.msg+l, " pc=%#p", ureg->ip);
+		if(l > ERRMAX - sizeof(" pc=0x0123456789abcdef"))
+			l = ERRMAX - sizeof(" pc=0x0123456789abcdef");
+		sprint(note.msg + l, " pc=%#p", ureg->ip);
 	}
 
-	if(note.flag != NUser && (up->notified || up->notify == nil)){
+	if(note.flag != NUser && (up->notified || up->notify == nil)) {
 		qunlock(&up->debug);
 		if(note.flag == NDebug)
 			pprint("suicide: %s\n", note.msg);
 		pexit(note.msg, note.flag != NDebug);
 	}
 
-	if(up->notified){
+	if(up->notified) {
 		qunlock(&up->debug);
 		splhi();
 		return 0;
 	}
 
-	if(up->notify == nil){
+	if(up->notify == nil) {
 		qunlock(&up->debug);
 		pexit(note.msg, note.flag != NDebug);
 	}
-	if(!okaddr(PTR2UINT(up->notify), sizeof(ureg->ip), 0)){
+	if(!okaddr(PTR2UINT(up->notify), sizeof(ureg->ip), 0)) {
 		qunlock(&up->debug);
 		pprint("suicide: bad function address %#p in notify\n",
-			up->notify);
+		       up->notify);
 		pexit("Suicide", 0);
 	}
 
 	sp = ureg->sp - ROUNDUP(sizeof(NFrame), 16) - 128; // amd64 red zone, also wanted by go stack traces
-	if(!okaddr(sp, sizeof(NFrame), 1)){
+	if(!okaddr(sp, sizeof(NFrame), 1)) {
 		qunlock(&up->debug);
 		pprint("suicide: bad stack address %#p in notify\n", sp);
 		pexit("Suicide", 0);
@@ -195,7 +194,7 @@ notify(Ureg* ureg)
 	nf = UINT2PTR(sp);
 	memmove(&nf->ureg, ureg, sizeof(Ureg));
 	nf->old = up->ureg;
-	up->ureg = nf;	/* actually the NFrame, for noted */
+	up->ureg = nf; /* actually the NFrame, for noted */
 	memmove(nf->msg, note.msg, ERRMAX);
 	nf->arg1 = nf->msg;
 	nf->arg0 = &nf->ureg;
@@ -210,7 +209,7 @@ notify(Ureg* ureg)
 	up->notified = 1;
 	up->nnote--;
 	memmove(&up->lastnote, &note, sizeof(Note));
-	memmove(&up->note[0], &up->note[1], up->nnote*sizeof(Note));
+	memmove(&up->note[0], &up->note[1], up->nnote * sizeof(Note));
 
 	qunlock(&up->debug);
 	splx(pl);
@@ -224,7 +223,7 @@ noerrorsleft(void)
 	Proc *up = externup();
 	int i;
 
-	if(up->nerrlab){
+	if(up->nerrlab) {
 		/* NIX processes will have a waserror in their handler */
 		if(up->ac != nil && up->nerrlab == 1)
 			return;
@@ -232,7 +231,7 @@ noerrorsleft(void)
 		print("bad errstack: %d extra\n", up->nerrlab);
 		for(i = 0; i < NERR; i++)
 			print("sp=%#p pc=%#p\n",
-				up->errlab[i].sp, up->errlab[i].pc);
+			      up->errlab[i].sp, up->errlab[i].pc);
 		panic("error stack");
 	}
 }
@@ -252,10 +251,11 @@ syscall(int badscallnr, Ureg *ureg)
 	a3 = ureg->r10;
 	a4 = ureg->r8;
 	Proc *up = externup();
-	unsigned int scallnr = (unsigned int) badscallnr;
-	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
+	unsigned int scallnr = (unsigned int)badscallnr;
+	if(0)
+		iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
 	char *e;
-	uintptr_t	sp;
+	uintptr_t sp;
 	int s;
 	int64_t startns, stopns;
 	Ar0 ar0;
@@ -274,8 +274,9 @@ syscall(int badscallnr, Ureg *ureg)
 	up->dbgreg = ureg;
 	sp = ureg->sp;
 	startns = 0;
-	if (0) hi("so far syscall!\n");
-	if (printallsyscalls) {
+	if(0)
+		hi("so far syscall!\n");
+	if(printallsyscalls) {
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
 			print("E %s\n", up->syscalltrace);
@@ -284,7 +285,7 @@ syscall(int badscallnr, Ureg *ureg)
 		}
 	}
 
-	if(up->procctl == Proc_tracesyscall){
+	if(up->procctl == Proc_tracesyscall) {
 		/*
 		 * Redundant validaddr.  Do we care?
 		 * Tracing syscalls is not exactly a fast path...
@@ -292,8 +293,8 @@ syscall(int badscallnr, Ureg *ureg)
 		 * than an error if there's a problem; that might
 		 * change in the future.
 		 */
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		if(sp < (USTKTOP - BIGPGSZ) || sp > (USTKTOP - sizeof(up->arg) - BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg) + BY2SE, 0);
 
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		up->procctl = Proc_stopme;
@@ -303,7 +304,8 @@ syscall(int badscallnr, Ureg *ureg)
 		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
-	if (0) hi("more syscall!\n");
+	if(0)
+		hi("more syscall!\n");
 	up->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
@@ -312,23 +314,25 @@ syscall(int badscallnr, Ureg *ureg)
 	sp = ureg->sp;
 	up->nerrlab = 0;
 	ar0 = zar0;
-	if(!waserror()){
-		if(scallnr >= nsyscall || systab[scallnr].f == nil){
+	if(!waserror()) {
+		if(scallnr >= nsyscall || systab[scallnr].f == nil) {
 			pprint("bad sys call number %d pc %#llux\n",
-				scallnr, ureg->ip);
+			       scallnr, ureg->ip);
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);
 		}
 
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+		if(sp < (USTKTOP - BIGPGSZ) || sp > (USTKTOP - sizeof(up->arg) - BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg) + BY2SE, 0);
 
-		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
+		memmove(up->arg, UINT2PTR(sp + BY2SE), sizeof(up->arg));
 		up->psstate = systab[scallnr].n;
-	if (0) hi("call syscall!\n");
+		if(0)
+			hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
-	if (0) hi("it returned!\n");
-		if(scallnr == SYSR1){
+		if(0)
+			hi("it returned!\n");
+		if(scallnr == SYSR1) {
 			/*
 			 * BUG: must go when ron binaries go.
 			 * NIX: Returning from execac().
@@ -342,15 +346,14 @@ syscall(int badscallnr, Ureg *ureg)
 			return;
 		}
 		poperror();
-	}
-	else{
+	} else {
 		/* failure: save the error buffer for errstr */
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
 		up->errstr = e;
 		if(DBGFLG && up->pid == 1)
 			iprint("%s: syscall %s error %s\n",
-				up->text, systab[scallnr].n, up->syserrstr);
+			       up->text, systab[scallnr].n, up->syserrstr);
 		ar0 = systab[scallnr].r;
 	}
 
@@ -367,7 +370,7 @@ syscall(int badscallnr, Ureg *ureg)
 	 */
 	ureg->ax = ar0.p;
 
-	if (printallsyscalls) {
+	if(printallsyscalls) {
 		stopns = todget(nil);
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(up->syscalltrace) {
@@ -377,7 +380,7 @@ syscall(int badscallnr, Ureg *ureg)
 		}
 	}
 
-	if(up->procctl == Proc_tracesyscall){
+	if(up->procctl == Proc_tracesyscall) {
 		stopns = todget(nil);
 		up->procctl = Proc_stopme;
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
@@ -387,28 +390,31 @@ syscall(int badscallnr, Ureg *ureg)
 		if(up->syscalltrace)
 			free(up->syscalltrace);
 		up->syscalltrace = nil;
-	}else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
+	} else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
 		procctl(up);
 
-	if (0) hi("past sysretfmt\n");
+	if(0)
+		hi("past sysretfmt\n");
 	up->insyscall = 0;
 	up->psstate = 0;
 
 	if(scallnr == NOTED)
 		noted(ureg, a0);
 
-	if (0) hi("now to splhi\n");
+	if(0)
+		hi("now to splhi\n");
 	splhi();
 	if(scallnr != RFORK && (up->procctl || up->nnote))
 		notify(ureg);
 
 	/* if we delayed sched because we held a lock, sched now */
-	if(up->delaysched){
+	if(up->delaysched) {
 		sched();
 		splhi();
 	}
 	kexit(ureg);
-	if (0) hi("done kexit\n");
+	if(0)
+		hi("done kexit\n");
 }
 
 uintptr_t
@@ -437,7 +443,7 @@ sysexecstack(uintptr_t stack, int argc)
 	 * are pushed. So if we have odd arguments, we need an odd-8-byte
 	 * aligned stack; else, an even aligned stack.
 	 */
-	if (argc & 1)
+	if(argc & 1)
 		sp -= sp & 8 ? 0 : 8;
 	else
 		sp -= sp & 8 ? 8 : 0;
@@ -445,7 +451,7 @@ sysexecstack(uintptr_t stack, int argc)
 	return sp;
 }
 
-void*
+void *
 sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 {
 	Proc *up = externup();
@@ -453,33 +459,33 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 	Ureg *ureg;
 
 	// We made sure it was correctly aligned in sysexecstack, above.
-	if (ssize & 0xf) {
+	if(ssize & 0xf) {
 		print("your stack is wrong: stacksize is not 16-byte aligned: %d\n", ssize);
 		panic("misaligned stack in sysexecregs");
 	}
-	sp = (uintptr_t*)(USTKTOP - ssize);
+	sp = (uintptr_t *)(USTKTOP - ssize);
 
 	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
-	ureg->type = 64;			/* fiction for acid */
+	ureg->type = 64; /* fiction for acid */
 	ureg->dx = (uintptr_t)tos;
 
 	/*
 	 * return the address of kernel/user shared data
 	 * (e.g. clock stuff)
 	 */
-	return UINT2PTR(USTKTOP-sizeof(Tos));
+	return UINT2PTR(USTKTOP - sizeof(Tos));
 }
 
 void
-sysprocsetup(Proc* p)
+sysprocsetup(Proc *p)
 {
 	fpusysprocsetup(p);
 }
 
 void
-sysrforkchild(Proc* child, Proc* parent)
+sysrforkchild(Proc *child, Proc *parent)
 {
 	Ureg *cureg;
 // If STACKPAD is 1 things go very bad very quickly.
@@ -490,10 +496,10 @@ sysrforkchild(Proc* child, Proc* parent)
 	 *  - the return PC
 	 *  (NOT NOW) - trap's arguments (syscallnr, ureg)
 	 */
-	child->sched.sp = PTR2UINT(child->kstack+KSTACK-((sizeof(Ureg)+STACKPAD*BY2SE)));
+	child->sched.sp = PTR2UINT(child->kstack + KSTACK - ((sizeof(Ureg) + STACKPAD * BY2SE)));
 	child->sched.pc = PTR2UINT(sysrforkret);
 
-	cureg = (Ureg*)(child->sched.sp+STACKPAD*BY2SE);
+	cureg = (Ureg *)(child->sched.sp + STACKPAD * BY2SE);
 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
 
 	/* Things from bottom of syscall which were never executed */

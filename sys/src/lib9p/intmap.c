@@ -18,34 +18,32 @@ enum {
 	NHASH = 128
 };
 
-typedef struct Intlist	Intlist;
-struct Intlist
-{
-	uint32_t	id;
-	void*	aux;
-	Intlist*	link;
+typedef struct Intlist Intlist;
+struct Intlist {
+	uint32_t id;
+	void *aux;
+	Intlist *link;
 };
 
-struct Intmap
-{
+struct Intmap {
 	RWLock;
-	Intlist*	hash[NHASH];
-	void (*inc)(void*);
+	Intlist *hash[NHASH];
+	void (*inc)(void *);
 };
 
 static uint32_t
 hashid(uint32_t id)
 {
-	return id%NHASH;
+	return id % NHASH;
 }
 
 static void
-nop(void* v)
+nop(void *v)
 {
 }
 
-Intmap*
-allocmap(void (*inc)(void*))
+Intmap *
+allocmap(void (*inc)(void *))
 {
 	Intmap *m;
 
@@ -57,33 +55,33 @@ allocmap(void (*inc)(void*))
 }
 
 void
-freemap(Intmap *map, void (*destroy)(void*))
+freemap(Intmap *map, void (*destroy)(void *))
 {
 	int i;
 	Intlist *p, *nlink;
 
 	if(destroy == nil)
 		destroy = nop;
-	for(i=0; i<NHASH; i++){
-		for(p=map->hash[i]; p; p=nlink){
+	for(i = 0; i < NHASH; i++) {
+		for(p = map->hash[i]; p; p = nlink) {
 			nlink = p->link;
 			destroy(p->aux);
 			free(p);
 		}
 	}
-			
+
 	free(map);
 }
 
-static Intlist**
+static Intlist **
 llookup(Intmap *map, uint32_t id)
 {
 	Intlist **lf;
 
-	for(lf=&map->hash[hashid(id)]; *lf; lf=&(*lf)->link)
+	for(lf = &map->hash[hashid(id)]; *lf; lf = &(*lf)->link)
 		if((*lf)->id == id)
 			break;
-	return lf;	
+	return lf;
 }
 
 /*
@@ -92,23 +90,23 @@ llookup(Intmap *map, uint32_t id)
  * locking changes to the tree structure, not to the references.
  * Inc() is expected to have its own locking.
  */
-void*
+void *
 lookupkey(Intmap *map, uint32_t id)
 {
 	Intlist *f;
 	void *v;
 
 	rlock(map);
-	if(f = *llookup(map, id)){
+	if(f = *llookup(map, id)) {
 		v = f->aux;
 		map->inc(v);
-	}else
+	} else
 		v = nil;
 	runlock(map);
 	return v;
 }
 
-void*
+void *
 insertkey(Intmap *map, uint32_t id, void *v)
 {
 	Intlist *f;
@@ -116,11 +114,11 @@ insertkey(Intmap *map, uint32_t id, void *v)
 	uint32_t h;
 
 	wlock(map);
-	if(f = *llookup(map, id)){
+	if(f = *llookup(map, id)) {
 		/* no decrement for ov because we're returning it */
 		ov = f->aux;
 		f->aux = v;
-	}else{
+	} else {
 		f = emalloc9p(sizeof(*f));
 		f->id = id;
 		f->aux = v;
@@ -130,7 +128,7 @@ insertkey(Intmap *map, uint32_t id, void *v)
 		ov = nil;
 	}
 	wunlock(map);
-	return ov;	
+	return ov;
 }
 
 int
@@ -143,7 +141,7 @@ caninsertkey(Intmap *map, uint32_t id, void *v)
 	wlock(map);
 	if(*llookup(map, id))
 		rv = 0;
-	else{
+	else {
 		f = emalloc9p(sizeof *f);
 		f->id = id;
 		f->aux = v;
@@ -153,21 +151,21 @@ caninsertkey(Intmap *map, uint32_t id, void *v)
 		rv = 1;
 	}
 	wunlock(map);
-	return rv;	
+	return rv;
 }
 
-void*
+void *
 deletekey(Intmap *map, uint32_t id)
 {
 	Intlist **lf, *f;
 	void *ov;
 
 	wlock(map);
-	if(f = *(lf = llookup(map, id))){
+	if(f = *(lf = llookup(map, id))) {
 		ov = f->aux;
 		*lf = f->link;
 		free(f);
-	}else
+	} else
 		ov = nil;
 	wunlock(map);
 	return ov;

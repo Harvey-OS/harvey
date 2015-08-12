@@ -11,15 +11,15 @@
 #include <libsec.h>
 
 /* rfc2104 */
-DigestState*
+DigestState *
 hmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
        uint8_t *digest,
        DigestState *s,
-	DigestState*(*x)(uint8_t*, uint32_t, uint8_t*, DigestState*),
+       DigestState *(*x)(uint8_t *, uint32_t, uint8_t *, DigestState *),
        int xlen)
 {
 	int i;
-	uint8_t pad[Hmacblksz+1], innerdigest[256];
+	uint8_t pad[Hmacblksz + 1], innerdigest[256];
 
 	if(xlen > sizeof(innerdigest))
 		return nil;
@@ -27,7 +27,7 @@ hmac_x(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 		return nil;
 
 	/* first time through */
-	if(s == nil || s->seeded == 0){
+	if(s == nil || s->seeded == 0) {
 		memset(pad, 0x36, Hmacblksz);
 		pad[Hmacblksz] = 0;
 		for(i = 0; i < klen; i++)

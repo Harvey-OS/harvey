@@ -9,8 +9,7 @@
 
 #include "a.h"
 
-enum
-{
+enum {
 	MAXREQ = 100,
 	MAXRAW = 40,
 	MAXESC = 60,
@@ -24,52 +23,48 @@ typedef struct Req Req;
 typedef struct Raw Raw;
 
 /* escape sequence handler, like for \c */
-struct Esc
-{
+struct Esc {
 	Rune r;
 	int (*f)(void);
 	int mode;
 };
 
 /* raw request handler, like for .ie */
-struct Raw
-{
+struct Raw {
 	Rune *name;
-	void (*f)(Rune*);
+	void (*f)(Rune *);
 };
 
 /* regular request handler, like for .ft */
-struct Req
-{
+struct Req {
 	int argc;
 	Rune *name;
-	void (*f)(int, Rune**);
+	void (*f)(int, Rune **);
 };
 
-int		dot = '.';
-int		tick = '\'';
-int		backslash = '\\';
+int dot = '.';
+int tick = '\'';
+int backslash = '\\';
 
-int		inputmode;
-Req		req[MAXREQ];
-int		nreq;
-Raw		raw[MAXRAW];
-int		nraw;
-Esc		esc[MAXESC];
-int		nesc;
-int		iftrue[MAXIF];
-int		niftrue;
+int inputmode;
+Req req[MAXREQ];
+int nreq;
+Raw raw[MAXRAW];
+int nraw;
+Esc esc[MAXESC];
+int nesc;
+int iftrue[MAXIF];
+int niftrue;
 
 int isoutput;
 int linepos;
 
-
 void
-addraw(Rune *name, void (*f)(Rune*))
+addraw(Rune *name, void (*f)(Rune *))
 {
 	Raw *r;
-	
-	if(nraw >= nelem(raw)){
+
+	if(nraw >= nelem(raw)) {
 		fprint(2, "too many raw requets\n");
 		return;
 	}
@@ -82,10 +77,10 @@ void
 delraw(Rune *name)
 {
 	int i;
-	
-	for(i=0; i<nraw; i++){
-		if(runestrcmp(raw[i].name, name) == 0){
-			if(i != --nraw){
+
+	for(i = 0; i < nraw; i++) {
+		if(runestrcmp(raw[i].name, name) == 0) {
+			if(i != --nraw) {
 				free(raw[i].name);
 				raw[i] = raw[nraw];
 			}
@@ -98,23 +93,22 @@ void
 renraw(Rune *from, Rune *to)
 {
 	int i;
-	
+
 	delraw(to);
-	for(i=0; i<nraw; i++)
-		if(runestrcmp(raw[i].name, from) == 0){
+	for(i = 0; i < nraw; i++)
+		if(runestrcmp(raw[i].name, from) == 0) {
 			free(raw[i].name);
 			raw[i].name = erunestrdup(to);
 			return;
 		}
 }
 
-
 void
-addreq(Rune *s, void (*f)(int, Rune**), int argc)
+addreq(Rune *s, void (*f)(int, Rune **), int argc)
 {
 	Req *r;
 
-	if(nreq >= nelem(req)){
+	if(nreq >= nelem(req)) {
 		fprint(2, "too many requests\n");
 		return;
 	}
@@ -129,9 +123,9 @@ delreq(Rune *name)
 {
 	int i;
 
-	for(i=0; i<nreq; i++){
-		if(runestrcmp(req[i].name, name) == 0){
-			if(i != --nreq){
+	for(i = 0; i < nreq; i++) {
+		if(runestrcmp(req[i].name, name) == 0) {
+			if(i != --nreq) {
 				free(req[i].name);
 				req[i] = req[nreq];
 			}
@@ -144,10 +138,10 @@ void
 renreq(Rune *from, Rune *to)
 {
 	int i;
-	
+
 	delreq(to);
-	for(i=0; i<nreq; i++)
-		if(runestrcmp(req[i].name, from) == 0){
+	for(i = 0; i < nreq; i++)
+		if(runestrcmp(req[i].name, from) == 0) {
 			free(req[i].name);
 			req[i].name = erunestrdup(to);
 			return;
@@ -158,8 +152,8 @@ void
 addesc(Rune r, int (*f)(void), int mode)
 {
 	Esc *e;
-	
-	if(nesc >= nelem(esc)){
+
+	if(nesc >= nelem(esc)) {
 		fprint(2, "too many escapes\n");
 		return;
 	}
@@ -181,10 +175,10 @@ next:
 	r = getrune();
 	if(r < 0)
 		return -1;
-	if(r == Uformatted){
+	if(r == Uformatted) {
 		br();
 		assert(!isoutput);
-		while((r = getrune()) >= 0 && r != Uunformatted){
+		while((r = getrune()) >= 0 && r != Uunformatted) {
 			if(r == Uformatted)
 				continue;
 			outrune(r);
@@ -193,12 +187,12 @@ next:
 	}
 	if(r == Uunformatted)
 		goto next;
-	if(r == backslash){
+	if(r == backslash) {
 		r = getrune();
 		if(r < 0)
 			return -1;
-		for(i=0; i<nesc; i++){
-			if(r == esc[i].r && (inputmode&esc[i].mode)==inputmode){
+		for(i = 0; i < nesc; i++) {
+			if(r == esc[i].r && (inputmode & esc[i].mode) == inputmode) {
 				if(esc[i].f == e_warn)
 					warn("ignoring %C%C", backslash, r);
 				r = esc[i].f();
@@ -207,7 +201,7 @@ next:
 				return r;
 			}
 		}
-		if(inputmode&(ArgMode|CopyMode)){
+		if(inputmode & (ArgMode | CopyMode)) {
 			ungetrune(r);
 			r = backslash;
 		}
@@ -236,13 +230,13 @@ _readx(Rune *p, int n, int nmode, int line)
 	ungetrune(c);
 	omode = inputmode;
 	inputmode = nmode;
-	e = p+n-1;
-	for(c=getnext(); p<e; c=getnext()){
+	e = p + n - 1;
+	for(c = getnext(); p < e; c = getnext()) {
 		if(c < 0)
 			break;
 		if(!line && (c == ' ' || c == '\t'))
 			break;
-		if(c == '\n'){
+		if(c == '\n') {
 			if(!line)
 				ungetnext(c);
 			break;
@@ -259,23 +253,23 @@ _readx(Rune *p, int n, int nmode, int line)
 /*
  * Get the next argument from the current line.
  */
-Rune*
+Rune *
 copyarg(void)
 {
 	static Rune buf[MaxLine];
 	int c;
 	Rune *r;
-	
+
 	if(_readx(buf, sizeof buf, ArgMode, 0) < 0)
 		return nil;
 	r = runestrstr(buf, L("\\\""));
-	if(r){
+	if(r) {
 		*r = 0;
 		while((c = getrune()) >= 0 && c != '\n')
 			;
 		ungetrune('\n');
 	}
-	r = erunestrdup(buf);	
+	r = erunestrdup(buf);
 	return r;
 }
 
@@ -283,7 +277,7 @@ copyarg(void)
  * Read the current line in given mode.  Newline not kept.
  * Uses different buffer from copyarg!
  */
-Rune*
+Rune *
 readline(int m)
 {
 	static Rune buf[MaxLine];
@@ -306,40 +300,40 @@ parseargs(Rune *p, Rune **argv)
 	int argc;
 	Rune *w;
 
-	for(argc=0; argc<MAXARG; argc++){
+	for(argc = 0; argc < MAXARG; argc++) {
 		while(*p == ' ' || *p == '\t')
 			p++;
 		if(*p == 0)
 			break;
 		argv[argc] = p;
-		if(*p == '"'){
+		if(*p == '"') {
 			/* quoted argument */
-			if(*(p+1) == '"'){
+			if(*(p + 1) == '"') {
 				/* empty argument */
 				*p = 0;
 				p += 2;
-			}else{
+			} else {
 				/* parse quoted string */
 				w = p++;
-				for(; *p; p++){
-					if(*p == '"' && *(p+1) == '"')
+				for(; *p; p++) {
+					if(*p == '"' && *(p + 1) == '"')
 						*w++ = '"';
-					else if(*p == '"'){
+					else if(*p == '"') {
 						p++;
 						break;
-					}else
+					} else
 						*w++ = *p;
 				}
 				*w = 0;
-			}	
-		}else{
+			}
+		} else {
 			/* unquoted argument - need to watch out for \" comment */
-			for(; *p; p++){
-				if(*p == ' ' || *p == '\t'){
+			for(; *p; p++) {
+				if(*p == ' ' || *p == '\t') {
 					*p++ = 0;
 					break;
 				}
-				if(*p == '\\' && *(p+1) == '"'){
+				if(*p == '\\' && *(p + 1) == '"') {
 					*p = 0;
 					if(p != argv[argc])
 						argc++;
@@ -358,48 +352,48 @@ void
 dotline(int dot)
 {
 	int argc, i;
-	Rune *a, *argv[1+MAXARG];
+	Rune *a, *argv[1 + MAXARG];
 
 	/*
 	 * Read request/macro name
 	 */
 	a = copyarg();
-	if(a == nil || a[0] == 0){
+	if(a == nil || a[0] == 0) {
 		free(a);
-		getrune();	/* \n */
+		getrune(); /* \n */
 		return;
 	}
 	argv[0] = a;
 	/*
 	 * Check for .if, .ie, and others with special parsing.
 	 */
-	for(i=0; i<nraw; i++){
-		if(runestrcmp(raw[i].name, a) == 0){
+	for(i = 0; i < nraw; i++) {
+		if(runestrcmp(raw[i].name, a) == 0) {
 			raw[i].f(raw[i].name);
 			free(a);
 			return;
-		}	
+		}
 	}
 
 	/*
 	 * Read rest of line in copy mode, invoke regular request.
 	 */
 	a = readline(ArgMode);
-	if(a == nil){
+	if(a == nil) {
 		free(argv[0]);
 		return;
 	}
-	argc = 1+parseargs(a, argv+1);
-	for(i=0; i<nreq; i++){
-		if(runestrcmp(req[i].name, argv[0]) == 0){
-			if(req[i].argc != -1){
-				if(argc < 1+req[i].argc){
+	argc = 1 + parseargs(a, argv + 1);
+	for(i = 0; i < nreq; i++) {
+		if(runestrcmp(req[i].name, argv[0]) == 0) {
+			if(req[i].argc != -1) {
+				if(argc < 1 + req[i].argc) {
 					warn("not enough arguments for %C%S", dot, req[i].name);
 					free(argv[0]);
 					free(a);
 					return;
 				}
-				if(argc > 1+req[i].argc)
+				if(argc > 1 + req[i].argc)
 					warn("too many arguments for %C%S", dot, req[i].name);
 			}
 			req[i].f(argc, argv);
@@ -429,8 +423,8 @@ newline(void)
 	if(bol)
 		sp(eval(L("1v")));
 	bol = 1;
-	if((n=getnr(L(".ce"))) > 0){
-		nr(L(".ce"), n-1);
+	if((n = getnr(L(".ce"))) > 0) {
+		nr(L(".ce"), n - 1);
 		br();
 	}
 	if(getnr(L(".fi")) == 0)
@@ -460,19 +454,19 @@ startoutput(void)
 	ps /= 72.0;
 	USED(ps);
 
-	vs = getnr(L(".v"))*getnr(L(".ls")) * 1.0/UPI;
-	vs /= (10.0/72.0);	/* ps */
+	vs = getnr(L(".v")) * getnr(L(".ls")) * 1.0 / UPI;
+	vs /= (10.0 / 72.0); /* ps */
 	if(vs == 0)
 		vs = 1.2;
 
-	lm = (getnr(L(".o"))+getnr(L(".i"))) * 1.0/UPI;
-	ti = getnr(L(".ti")) * 1.0/UPI;
+	lm = (getnr(L(".o")) + getnr(L(".i"))) * 1.0 / UPI;
+	ti = getnr(L(".ti")) * 1.0 / UPI;
 	nr(L(".ti"), 0);
 
-	rm = 8.0 - getnr(L(".l"))*1.0/UPI - getnr(L(".o"))*1.0/UPI;
+	rm = 8.0 - getnr(L(".l")) * 1.0 / UPI - getnr(L(".o")) * 1.0 / UPI;
 	if(rm < 0)
 		rm = 0;
-	switch(getnr(L(".j"))){
+	switch(getnr(L(".j"))) {
 	default:
 	case 0:
 		align = "left";
@@ -491,10 +485,10 @@ startoutput(void)
 		align = "center";
 	if(!getnr(L(".margin")))
 		runesnprint(buf, nelem(buf), "<p style=\"line-height: %.1fem; text-indent: %.2fin; margin-top: 0; margin-bottom: 0; text-align: %s;\">\n",
-			vs, ti, align);
+			    vs, ti, align);
 	else
 		runesnprint(buf, nelem(buf), "<p style=\"line-height: %.1fem; margin-left: %.2fin; text-indent: %.2fin; margin-right: %.2fin; margin-top: 0; margin-bottom: 0; text-align: %s;\">\n",
-			vs, lm, ti, rm, align);
+			    vs, lm, ti, rm, align);
 	outhtml(buf);
 }
 void
@@ -524,31 +518,31 @@ void
 runinput(void)
 {
 	int c;
-	
+
 	bol = 1;
-	for(;;){
+	for(;;) {
 		c = getnext();
 		if(c < 0)
 			break;
-		if((c == dot || c == tick) && bol){
+		if((c == dot || c == tick) && bol) {
 			inrequest = 1;
 			dotline(c);
 			bol = 1;
 			inrequest = 0;
-		}else if(c == '\n'){
+		} else if(c == '\n') {
 			newline();
 			itrap();
 			linepos = 0;
-		}else{
+		} else {
 			outtrap();
 			startoutput();
 			showihtml();
-			if(c == '\t'){
+			if(c == '\t') {
 				/* XXX do better */
 				outrune(' ');
-				while(++linepos%4)
+				while(++linepos % 4)
 					outrune(' ');
-			}else{
+			} else {
 				outrune(c);
 				linepos++;
 			}
@@ -582,7 +576,7 @@ run(void)
 	t20init();
 	htmlinit();
 	hideihtml();
-	
+
 	addreq(L("margin"), r_margin, 1);
 	nr(L(".margin"), 1);
 	nr(L(".paragraph"), 1);
@@ -612,7 +606,7 @@ void
 inroman(Rune r)
 {
 	int f;
-	
+
 	f = getnr(L(".f"));
 	nr(L(".f"), 1);
 	runmacro1(L("font"));
@@ -640,9 +634,9 @@ void
 outhtml(Rune *s)
 {
 	Rune r;
-	
-	for(; *s; s++){
-		switch(r = *s){
+
+	for(; *s; s++) {
+		switch(r = *s) {
 		case '<':
 			r = Ult;
 			break;
@@ -663,7 +657,7 @@ outhtml(Rune *s)
 void
 outrune(Rune r)
 {
-	switch(r){
+	switch(r) {
 	case ' ':
 		if(getnr(L(".fi")) == 0)
 			r = Unbsp;
@@ -672,14 +666,14 @@ outrune(Rune r)
 	case Uunformatted:
 		abort();
 	}
-	if(outcb){
+	if(outcb) {
 		if(r == ' ')
 			r = Uspace;
 		outcb(r);
 		return;
 	}
 	/* writing to bout */
-	switch(r){
+	switch(r) {
 	case Uempty:
 		return;
 	case Upl:

@@ -28,7 +28,7 @@
 /* $Id: gsdfilt.h,v 1.9 2003/08/15 22:32:02 raph Exp $ */
 
 #ifndef gsdfilt_INCLUDED
-#  define gsdfilt_INCLUDED
+#define gsdfilt_INCLUDED
 
 /* The device filter stack lives in the gs_state structure. It represents
    a chained sequence of devices that filter device requests, each forwarding
@@ -41,22 +41,22 @@
 */
 
 #ifndef gs_device_filter_stack_DEFINED
-#  define gs_device_filter_stack_DEFINED
+#define gs_device_filter_stack_DEFINED
 typedef struct gs_device_filter_stack_s gs_device_filter_stack_t;
 #endif
 
 #ifndef gs_device_filter_DEFINED
-#  define gs_device_filter_DEFINED
+#define gs_device_filter_DEFINED
 typedef struct gs_device_filter_s gs_device_filter_t;
 #endif
 
 struct gs_device_filter_s {
-    int (*push)(gs_device_filter_t *self, gs_memory_t *mem, gs_state *pgs,
-		gx_device **pdev, gx_device *target);
-    int (*prepop)(gs_device_filter_t *self, gs_memory_t *mem, gs_state *pgs,
-		  gx_device *dev);
-    int (*postpop)(gs_device_filter_t *self, gs_memory_t *mem, gs_state *pgs,
-		   gx_device *dev);
+	int (*push)(gs_device_filter_t *self, gs_memory_t *mem, gs_state *pgs,
+		    gx_device **pdev, gx_device *target);
+	int (*prepop)(gs_device_filter_t *self, gs_memory_t *mem, gs_state *pgs,
+		      gx_device *dev);
+	int (*postpop)(gs_device_filter_t *self, gs_memory_t *mem, gs_state *pgs,
+		       gx_device *dev);
 };
 
 extern_st(st_gs_device_filter);
@@ -95,6 +95,5 @@ int gs_pop_device_filter(gs_memory_t *mem, gs_state *pgs);
  * Return value: 0 on success, or error code.
  **/
 int gs_clear_device_filters(gs_memory_t *mem, gs_state *pgs);
-
 
 #endif /* gsdfilt_INCLUDED */

@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
 int
 memcmp(const void *a1, const void *a2, uint32_t n)

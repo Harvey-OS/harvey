@@ -7,37 +7,36 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"io.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "io.h"
+#include "../port/error.h"
 
 enum {
-	Qdir		= 0,
+	Qdir = 0,
 	Qdata,
 	Qctl,
 	Qstat,
 };
 
-#define UARTTYPE(x)	(((unsigned)x)&0x1f)
-#define UARTID(x)	((((unsigned)x))>>5)
-#define UARTQID(i, t)	((((unsigned)i)<<5)|(t))
+#define UARTTYPE(x) (((unsigned)x) & 0x1f)
+#define UARTID(x) ((((unsigned)x)) >> 5)
+#define UARTQID(i, t) ((((unsigned)i) << 5) | (t))
 
-enum
-{
+enum {
 	/* soft flow control chars */
-	CTLS= 023,
-	CTLQ= 021,
+	CTLS = 023,
+	CTLQ = 021,
 };
 
 extern Dev uartdevtab;
-extern PhysUart* physuart[];
+extern PhysUart *physuart[];
 
-static Uart* uartlist;
-static Uart** uart;
+static Uart *uartlist;
+static Uart **uart;
 static int uartnuart;
 static Dirtab *uartdir;
 static int uartndir;
@@ -45,34 +44,32 @@ static Timer *uarttimer;
 
 struct Uartalloc {
 	Lock;
-	Uart *elist;	/* list of enabled interfaces */
+	Uart *elist; /* list of enabled interfaces */
 } uartalloc;
 
-static void	uartclock(void);
-static void	uartflow(void*);
+static void uartclock(void);
+static void uartflow(void *);
 
 /*
  *  enable/disable uart and add/remove to list of enabled uarts
  */
-static Uart*
+static Uart *
 uartenable(Uart *p)
 {
 	Uart **l;
 
-	if(p->iq == nil){
-		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
+	if(p->iq == nil) {
+		if((p->iq = qopen(8 * 1024, 0, uartflow, p)) == nil)
 			return nil;
-	}
-	else
+	} else
 		qreopen(p->iq);
-	if(p->oq == nil){
-		if((p->oq = qopen(8*1024, 0, uartkick, p)) == nil){
+	if(p->oq == nil) {
+		if((p->oq = qopen(8 * 1024, 0, uartkick, p)) == nil) {
 			qfree(p->iq);
 			p->iq = nil;
 			return nil;
 		}
-	}
-	else
+	} else
 		qreopen(p->oq);
 
 	p->ir = p->istage;
@@ -99,11 +96,11 @@ uartenable(Uart *p)
 	(*p->phys->enable)(p, 1);
 
 	lock(&uartalloc);
-	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
+	for(l = &uartalloc.elist; *l; l = &(*l)->elist) {
 		if(*l == p)
 			break;
 	}
-	if(*l == 0){
+	if(*l == 0) {
 		p->elist = uartalloc.elist;
 		uartalloc.elist = p;
 	}
@@ -121,8 +118,8 @@ uartdisable(Uart *p)
 	(*p->phys->disable)(p);
 
 	lock(&uartalloc);
-	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
-		if(*l == p){
+	for(l = &uartalloc.elist; *l; l = &(*l)->elist) {
+		if(*l == p) {
 			*l = p->elist;
 			break;
 		}
@@ -136,15 +133,16 @@ uartsetlength(int i)
 {
 	Uart *p;
 
-	if(i > 0){
+	if(i > 0) {
 		p = uart[i];
 		if(p && p->opens && p->iq)
-			uartdir[1+3*i].length = qlen(p->iq);
-	} else for(i = 0; i < uartnuart; i++){
-		p = uart[i];
-		if(p && p->opens && p->iq)
-			uartdir[1+3*i].length = qlen(p->iq);
-	}
+			uartdir[1 + 3 * i].length = qlen(p->iq);
+	} else
+		for(i = 0; i < uartnuart; i++) {
+			p = uart[i];
+			if(p && p->opens && p->iq)
+				uartdir[1 + 3 * i].length = qlen(p->iq);
+		}
 }
 
 /*
@@ -158,7 +156,7 @@ uartreset(void)
 	Uart *p, *tail;
 
 	tail = nil;
-	for(i = 0; physuart[i] != nil; i++){
+	for(i = 0; physuart[i] != nil; i++) {
 		if(physuart[i]->pnp == nil)
 			continue;
 		if((p = physuart[i]->pnp()) == nil)
@@ -173,9 +171,9 @@ uartreset(void)
 	}
 
 	if(uartnuart)
-		uart = malloc(uartnuart*sizeof(Uart*));
+		uart = malloc(uartnuart * sizeof(Uart *));
 
-	uartndir = 1 + 3*uartnuart;
+	uartndir = 1 + 3 * uartnuart;
 	uartdir = malloc(uartndir * sizeof(Dirtab));
 	if(uartnuart > 0 && uart == nil || uartdir == nil)
 		panic("uartreset: no memory");
@@ -183,10 +181,10 @@ uartreset(void)
 	strcpy(dp->name, ".");
 	mkqid(&dp->qid, 0, 0, QTDIR);
 	dp->length = 0;
-	dp->perm = DMDIR|0555;
+	dp->perm = DMDIR | 0555;
 	dp++;
 	p = uartlist;
-	for(i = 0; i < uartnuart; i++){
+	for(i = 0; i < uartnuart; i++) {
 		/* 3 directory entries per port */
 		sprint(dp->name, "eia%d", i);
 		dp->qid.path = UARTQID(i, Qdata);
@@ -206,7 +204,7 @@ uartreset(void)
 		p = p->next;
 	}
 
-	if(uartnuart){
+	if(uartnuart) {
 		/*
 		 * at 115200 baud, the 1024 char buffer takes 56 ms to process,
 		 * processing it every 22 ms should be fine.
@@ -215,14 +213,13 @@ uartreset(void)
 	}
 }
 
-
-static Chan*
+static Chan *
 uartattach(char *spec)
 {
 	return devattach('t', spec);
 }
 
-static Walkqid*
+static Walkqid *
 uartwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, uartdir, uartndir, devgen);
@@ -236,19 +233,19 @@ uartstat(Chan *c, uint8_t *dp, int32_t n)
 	return devstat(c, dp, n, uartdir, uartndir, devgen);
 }
 
-static Chan*
+static Chan *
 uartopen(Chan *c, int omode)
 {
 	Uart *p;
 
 	c = devopen(c, omode, uartdir, uartndir, devgen);
 
-	switch(UARTTYPE(c->qid.path)){
+	switch(UARTTYPE(c->qid.path)) {
 	case Qctl:
 	case Qdata:
 		p = uart[UARTID(c->qid.path)];
 		qlock(p);
-		if(p->opens == 0 && uartenable(p) == nil){
+		if(p->opens == 0 && uartenable(p) == nil) {
 			qunlock(p);
 			c->flag &= ~COPEN;
 			error(Enodev);
@@ -263,7 +260,7 @@ uartopen(Chan *c, int omode)
 }
 
 static int
-uartdrained(void* arg)
+uartdrained(void *arg)
 {
 	Uart *p;
 
@@ -279,7 +276,7 @@ uartdrainoutput(Uart *p)
 		return;
 
 	p->drain = 1;
-	if(waserror()){
+	if(waserror()) {
 		p->drain = 0;
 		nexterror();
 	}
@@ -297,12 +294,12 @@ uartclose(Chan *c)
 		return;
 	if((c->flag & COPEN) == 0)
 		return;
-	switch(UARTTYPE(c->qid.path)){
+	switch(UARTTYPE(c->qid.path)) {
 	case Qdata:
 	case Qctl:
 		p = uart[UARTID(c->qid.path)];
 		qlock(p);
-		if(--(p->opens) == 0){
+		if(--(p->opens) == 0) {
 			qclose(p->iq);
 			ilock(&p->rlock);
 			p->ir = p->iw = p->istage;
@@ -311,7 +308,7 @@ uartclose(Chan *c)
 			/*
 			 */
 			qhangup(p->oq, nil);
-			if(!waserror()){
+			if(!waserror()) {
 				uartdrainoutput(p);
 				poperror();
 			}
@@ -330,13 +327,13 @@ uartread(Chan *c, void *buf, int32_t n, int64_t off)
 	Uart *p;
 	uint32_t offset = off;
 
-	if(c->qid.type & QTDIR){
+	if(c->qid.type & QTDIR) {
 		uartsetlength(-1);
 		return devdirread(c, buf, n, uartdir, uartndir, devgen);
 	}
 
 	p = uart[UARTID(c->qid.path)];
-	switch(UARTTYPE(c->qid.path)){
+	switch(UARTTYPE(c->qid.path)) {
 	case Qdata:
 		return qread(p->iq, buf, n);
 	case Qctl:
@@ -355,14 +352,14 @@ uartctl(Uart *p, char *cmd)
 	int i, n, nf;
 
 	nf = tokenize(cmd, f, nelem(f));
-	for(i = 0; i < nf; i++){
-		if(strncmp(f[i], "break", 5) == 0){
+	for(i = 0; i < nf; i++) {
+		if(strncmp(f[i], "break", 5) == 0) {
 			(*p->phys->dobreak)(p, 0);
 			continue;
 		}
 
-		n = atoi(f[i]+1);
-		switch(*f[i]){
+		n = atoi(f[i] + 1);
+		switch(*f[i]) {
 		case 'B':
 		case 'b':
 			uartdrainoutput(p);
@@ -423,7 +420,7 @@ uartctl(Uart *p, char *cmd)
 		case 'P':
 		case 'p':
 			uartdrainoutput(p);
-			if((*p->phys->parity)(p, *(f[i]+1)) < 0)
+			if((*p->phys->parity)(p, *(f[i] + 1)) < 0)
 				return -1;
 			break;
 		case 'Q':
@@ -452,7 +449,7 @@ uartctl(Uart *p, char *cmd)
 			break;
 		case 'X':
 		case 'x':
-			if(p->enabled){
+			if(p->enabled) {
 				ilock(&p->tlock);
 				p->xonoff = n;
 				iunlock(&p->tlock);
@@ -475,10 +472,10 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 
 	p = uart[UARTID(c->qid.path)];
 
-	switch(UARTTYPE(c->qid.path)){
+	switch(UARTTYPE(c->qid.path)) {
 	case Qdata:
 		qlock(p);
-		if(waserror()){
+		if(waserror()) {
 			qunlock(p);
 			nexterror();
 		}
@@ -489,11 +486,11 @@ uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 		poperror();
 		break;
 	case Qctl:
-		cmd = malloc(n+1);
+		cmd = malloc(n + 1);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
 		qlock(p);
-		if(waserror()){
+		if(waserror()) {
 			qunlock(p);
 			free(cmd);
 			nexterror();
@@ -546,25 +543,25 @@ uartpower(int on)
 }
 
 Dev uartdevtab = {
-	't',
-	"uart",
+    't',
+    "uart",
 
-	uartreset,
-	devinit,
-	devshutdown,
-	uartattach,
-	uartwalk,
-	uartstat,
-	uartopen,
-	devcreate,
-	uartclose,
-	uartread,
-	devbread,
-	uartwrite,
-	devbwrite,
-	devremove,
-	uartwstat,
-	uartpower,
+    uartreset,
+    devinit,
+    devshutdown,
+    uartattach,
+    uartwalk,
+    uartstat,
+    uartopen,
+    devcreate,
+    uartclose,
+    uartread,
+    devbread,
+    uartwrite,
+    devbwrite,
+    devremove,
+    uartwstat,
+    uartpower,
 };
 
 /*
@@ -612,7 +609,7 @@ uartkick(void *v)
 	(*p->phys->kick)(p);
 	iunlock(&p->tlock);
 
-	if(p->drain && uartdrained(p)){
+	if(p->drain && uartdrained(p)) {
 		p->drain = 0;
 		wakeup(&p->r);
 	}
@@ -628,21 +625,19 @@ uartstageinput(Uart *p)
 	int n;
 	uint8_t *ir, *iw;
 
-	while(p->ir != p->iw){
+	while(p->ir != p->iw) {
 		ir = p->ir;
-		if(p->ir > p->iw){
+		if(p->ir > p->iw) {
 			iw = p->ie;
 			p->ir = p->istage;
-		}
-		else{
+		} else {
 			iw = p->iw;
 			p->ir = p->iw;
 		}
-		if((n = qproduce(p->iq, ir, iw - ir)) < 0){
+		if((n = qproduce(p->iq, ir, iw - ir)) < 0) {
 			p->serr++;
 			(*p->phys->rts)(p, 0);
-		}
-		else if(n == 0)
+		} else if(n == 0)
 			p->berr++;
 	}
 }
@@ -651,15 +646,15 @@ uartstageinput(Uart *p)
  *  receive a character at interrupt time
  */
 void
-uartrecv(Uart *p,  char ch)
+uartrecv(Uart *p, char ch)
 {
 	uint8_t *next;
 
 	/* software flow control */
-	if(p->xonoff){
-		if(ch == CTLS){
+	if(p->xonoff) {
+		if(ch == CTLS) {
 			p->blocked = 1;
-		}else if(ch == CTLQ){
+		} else if(ch == CTLQ) {
 			p->blocked = 0;
 			p->ctsbackoff = 2; /* clock gets output going again */
 		}
@@ -668,14 +663,14 @@ uartrecv(Uart *p,  char ch)
 	/* receive the character */
 	if(p->putc)
 		p->putc(p->iq, ch);
-	else{
+	else {
 		ilock(&p->rlock);
 		next = p->iw + 1;
 		if(next == p->ie)
 			next = p->istage;
 		if(next == p->ir)
 			uartstageinput(p);
-		if(next != p->ir){
+		if(next != p->ir) {
 			*p->iw = ch;
 			p->iw = next;
 		}
@@ -693,29 +688,29 @@ uartclock(void)
 	Uart *p;
 
 	lock(&uartalloc);
-	for(p = uartalloc.elist; p; p = p->elist){
+	for(p = uartalloc.elist; p; p = p->elist) {
 
 		if(p->phys->poll != nil)
 			(*p->phys->poll)(p);
 
 		/* this hopefully amortizes cost of qproduce to many chars */
-		if(p->iw != p->ir){
+		if(p->iw != p->ir) {
 			ilock(&p->rlock);
 			uartstageinput(p);
 			iunlock(&p->rlock);
 		}
 
 		/* hang up if requested */
-		if(p->dohup){
+		if(p->dohup) {
 			qhangup(p->iq, 0);
 			qhangup(p->oq, 0);
 			p->dohup = 0;
 		}
 
 		/* this adds hysteresis to hardware/software flow control */
-		if(p->ctsbackoff){
+		if(p->ctsbackoff) {
 			ilock(&p->tlock);
-			if(p->ctsbackoff){
+			if(p->ctsbackoff) {
 				if(--(p->ctsbackoff) == 0)
 					(*p->phys->kick)(p);
 			}

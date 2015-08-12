@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-void*
+void *
 memccpy(void *a1, void *a2, int c, size_t n)
 {
 	unsigned char *s1, *s2;

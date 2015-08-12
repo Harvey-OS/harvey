@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runestrchr(Rune *s, Rune c)
 {
 	Rune c0 = c;
@@ -19,11 +19,11 @@ runestrchr(Rune *s, Rune c)
 	if(c == 0) {
 		while(*s++)
 			;
-		return s-1;
+		return s - 1;
 	}
 
 	while(c1 = *s++)
 		if(c1 == c0)
-			return s-1;
+			return s - 1;
 	return 0;
 }

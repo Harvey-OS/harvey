@@ -27,7 +27,7 @@
 /* overprint/overprint mode compositor interface */
 
 #ifndef gsovrc_INCLUDED
-#  define gsovrc_INCLUDED
+#define gsovrc_INCLUDED
 
 #include "gsstype.h"
 #include "gxcomp.h"
@@ -226,13 +226,13 @@
  */
 
 #ifndef gs_overprint_params_t_DEFINED
-#  define gs_overprint_params_t_DEFINED
-typedef struct gs_overprint_params_s    gs_overprint_params_t;
+#define gs_overprint_params_t_DEFINED
+typedef struct gs_overprint_params_s gs_overprint_params_t;
 #endif
 
 struct gs_overprint_params_s {
 
-    /*
+	/*
      * Are any component values to be retained?
      *
      * If this is false (overprint off), all other fields in the compositor
@@ -246,9 +246,9 @@ struct gs_overprint_params_s {
      * would be the case if the current color space was a Separation color
      * space with the component "All".
      */
-    bool            retain_any_comps;
+	bool retain_any_comps;
 
-    /*
+	/*
      * Are spot (non-process) color component values retained?
      *
      * If overprint is true, this field will be true for all color spaces
@@ -270,16 +270,16 @@ struct gs_overprint_params_s {
      *     list the set of drawn components, so as to support overprint
      *     mode.
      */
-    bool            retain_spot_comps;
+	bool retain_spot_comps;
 
-    /*
+	/*
      * The list of color model compoents to be retained (i.e.: that are
      * not affected by drawing operations). The field is bit-encoded;
      * the bit corresponding to component i is (1 << i).  This bit will be
      * 1 if the corresponding component is set from the drawing color, 0 if
      * it is to be left unaffected.
      */
-    gx_color_index  drawn_comps;
+	gx_color_index drawn_comps;
 };
 
 /*
@@ -288,8 +288,8 @@ struct gs_overprint_params_s {
  * and the overprint-specific parameters.
  */
 typedef struct gs_overprint_s {
-    gs_composite_common;
-    gs_overprint_params_t   params;
+	gs_composite_common;
+	gs_overprint_params_t params;
 } gs_overprint_t;
 
 /*
@@ -299,24 +299,21 @@ typedef struct gs_overprint_s {
  * to be simple, so we just create a trivial structure descriptor for the
  * entire gs_overprint_s structure.
  */
-#define private_st_gs_overprint_t()	/* In gsovrc.c */\
-  gs_private_st_simple(st_overprint, gs_overprint_t, "gs_overprint_t");
-
-
+#define private_st_gs_overprint_t() /* In gsovrc.c */ \
+	gs_private_st_simple(st_overprint, gs_overprint_t, "gs_overprint_t");
 
 /* some elementary macros for manipulating drawn_comps */
 #define gs_overprint_set_drawn_comp(drawn_comps, i) \
-    ((drawn_comps) |= (gx_color_index)1 << (i))
+	((drawn_comps) |= (gx_color_index)1 << (i))
 
-#define gs_overprint_clear_drawn_comp(drawn_comps, i)   \
-    ((drawn_comps) &= ~((gx_color_index)1 << 1))
+#define gs_overprint_clear_drawn_comp(drawn_comps, i) \
+	((drawn_comps) &= ~((gx_color_index)1 << 1))
 
 #define gs_overprint_clear_all_drawn_comps(drawn_comps) \
-    ((drawn_comps) = 0)
+	((drawn_comps) = 0)
 
-#define gs_overprint_get_drawn_comp(drawn_comps, i)     \
-    (((drawn_comps) & ((gx_color_index)1 << (i))) != 0)
-
+#define gs_overprint_get_drawn_comp(drawn_comps, i) \
+	(((drawn_comps) & ((gx_color_index)1 << (i))) != 0)
 
 /*
  * In the unlikely event that the overprint parameters will ever be
@@ -325,19 +322,18 @@ typedef struct gs_overprint_s {
  */
 extern_st(st_overprint_params);
 
-#define public_st_overprint_params_t    /* in gsovrc.c */   \
-    gs_public_st_simple( st_overprint_params,               \
-                         gs_overprint_params_t,             \
-                         "gs_overprint_params_t" )
-
+#define public_st_overprint_params_t /* in gsovrc.c */ \
+	gs_public_st_simple(st_overprint_params,       \
+			    gs_overprint_params_t,     \
+			    "gs_overprint_params_t")
 
 /* create an overprint composition object */
-extern  int    gs_create_overprint(
-    gs_composite_t **               ppct,
-    const gs_overprint_params_t *   pparams,
-    gs_memory_t *                   mem );
+extern int gs_create_overprint(
+    gs_composite_t **ppct,
+    const gs_overprint_params_t *pparams,
+    gs_memory_t *mem);
 
 /* verify that a compositor is the overprint compositor */
-extern bool    gs_is_overprint_compositor(const gs_composite_t * pct);
+extern bool gs_is_overprint_compositor(const gs_composite_t *pct);
 
-#endif  /* gsovrc_INCLUDED */
+#endif /* gsovrc_INCLUDED */

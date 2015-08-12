@@ -7,17 +7,16 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-char	*termchars = "'= \t";	/*used in parse.c to isolate assignment attribute*/
-char	*shflags = "-I";	/* rc flag to force non-interactive mode */
-int	IWS = '\1';		/* inter-word separator in env - not used in plan 9 */
+char *termchars = "'= \t"; /*used in parse.c to isolate assignment attribute*/
+char *shflags = "-I";      /* rc flag to force non-interactive mode */
+int IWS = '\1';		   /* inter-word separator in env - not used in plan 9 */
 
 /*
  *	This file contains functions that depend on rc's syntax.  Most
  *	of the routines extract strings observing rc's escape conventions
  */
-
 
 /*
  *	skip a token in single quotes.
@@ -28,16 +27,16 @@ squote(char *cp)
 	Rune r;
 	int n;
 
-	while(*cp){
+	while(*cp) {
 		n = chartorune(&r, cp);
 		if(r == '\'') {
-			n += chartorune(&r, cp+n);
+			n += chartorune(&r, cp + n);
 			if(r != '\'')
-				return(cp);
+				return (cp);
 		}
 		cp += n;
 	}
-	SYNERR(-1);		/* should never occur */
+	SYNERR(-1); /* should never occur */
 	fprint(2, "missing closing '\n");
 	return 0;
 }
@@ -53,16 +52,16 @@ charin(char *cp, char *pat)
 	int n, vargen;
 
 	vargen = 0;
-	while(*cp){
+	while(*cp) {
 		n = chartorune(&r, cp);
-		switch(r){
-		case '\'':			/* skip quoted string */
-			cp = squote(cp+1);	/* n must = 1 */
+		switch(r) {
+		case '\'':		     /* skip quoted string */
+			cp = squote(cp + 1); /* n must = 1 */
 			if(!cp)
 				return 0;
 			break;
 		case '$':
-			if(*(cp+1) == '{')
+			if(*(cp + 1) == '{')
 				vargen = 1;
 			break;
 		case '}':
@@ -78,7 +77,7 @@ charin(char *cp, char *pat)
 		}
 		cp += n;
 	}
-	if(vargen){
+	if(vargen) {
 		SYNERR(-1);
 		fprint(2, "missing closing } in pattern generator\n");
 	}
@@ -90,15 +89,15 @@ charin(char *cp, char *pat)
  *	double-quote,and backslash.  Only the first is valid for rc. the
  *	others are just inserted into the receiving buffer.
  */
-char*
+char *
 expandquote(char *s, Rune r, Bufblock *b)
 {
-	if (r != '\'') {
+	if(r != '\'') {
 		rinsert(b, r);
 		return s;
 	}
 
-	while(*s){
+	while(*s) {
 		s += chartorune(&r, s);
 		if(r == '\'') {
 			if(*s == '\'')
@@ -125,21 +124,22 @@ escapetoken(Biobuf *bp, Bufblock *buf, int preserve, int esc)
 		return 1;
 
 	line = mkinline;
-	while((c = nextrune(bp, 0)) > 0){
-		if(c == '\''){
+	while((c = nextrune(bp, 0)) > 0) {
+		if(c == '\'') {
 			if(preserve)
 				rinsert(buf, c);
 			c = Bgetrune(bp);
-			if (c < 0)
+			if(c < 0)
 				break;
-			if(c != '\''){
+			if(c != '\'') {
 				Bungetrune(bp);
 				return 1;
 			}
 		}
 		rinsert(buf, c);
 	}
-	SYNERR(line); fprint(2, "missing closing %c\n", esc);
+	SYNERR(line);
+	fprint(2, "missing closing %c\n", esc);
 	return 0;
 }
 
@@ -151,7 +151,7 @@ copysingle(char *s, Bufblock *buf)
 {
 	Rune r;
 
-	while(*s){
+	while(*s) {
 		s += chartorune(&r, s);
 		rinsert(buf, r);
 		if(r == '\'')
@@ -166,19 +166,19 @@ copysingle(char *s, Bufblock *buf)
 char *
 copyq(char *s, Rune q, Bufblock *buf)
 {
-	if(q == '\'')				/* copy quoted string */
+	if(q == '\'') /* copy quoted string */
 		return copysingle(s, buf);
 
-	if(q != '`')				/* not quoted */
+	if(q != '`') /* not quoted */
 		return s;
 
-	while(*s){				/* copy backquoted string */
+	while(*s) { /* copy backquoted string */
 		s += chartorune(&q, s);
 		rinsert(buf, q);
 		if(q == '}')
 			break;
 		if(q == '\'')
-			s = copysingle(s, buf);	/* copy quoted string */
+			s = copysingle(s, buf); /* copy quoted string */
 	}
 	return s;
 }

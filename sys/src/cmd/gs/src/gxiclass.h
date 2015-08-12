@@ -27,13 +27,13 @@
 /* Define image rendering algorithm classes */
 
 #ifndef gxiclass_INCLUDED
-#  define gxiclass_INCLUDED
+#define gxiclass_INCLUDED
 
 /* Define the abstract type for the image enumerator state. */
 typedef struct gx_image_enum_s gx_image_enum;
 
 #ifndef gx_device_DEFINED
-#  define gx_device_DEFINED
+#define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
 #endif
 
@@ -54,9 +54,9 @@ typedef struct gx_device_s gx_device;
  * This is neither the width in pixels nor the width in bytes (in the case
  * of 12-bit samples, which expand to 2 bytes apiece).
  */
-#define irender_proc(proc)\
-  int proc(gx_image_enum *penum, const byte *buffer, int data_x,\
-	   uint w, int h, gx_device *dev)
+#define irender_proc(proc)                                             \
+	int proc(gx_image_enum *penum, const byte *buffer, int data_x, \
+		 uint w, int h, gx_device *dev)
 typedef irender_proc((*irender_proc_t));
 
 /*
@@ -67,8 +67,8 @@ typedef irender_proc((*irender_proc_t));
  * failed.  If a class procedure succeeds, it may update the enumerator
  * structure as well as returning the rendering procedure.
  */
-#define iclass_proc(proc)\
-  irender_proc_t proc(gx_image_enum *penum)
+#define iclass_proc(proc) \
+	irender_proc_t proc(gx_image_enum *penum)
 typedef iclass_proc((*gx_image_class_t));
 
 #endif /* gxiclass_INCLUDED */

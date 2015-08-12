@@ -37,11 +37,11 @@ dorfmt(Fmt *f, const Rune *fmt)
 	int nfmt;
 
 	nfmt = f->nfmt;
-	for(;;){
-		if(f->runes){
+	for(;;) {
+		if(f->runes) {
 			rt = f->to;
 			rs = f->stop;
-			while((r = *fmt++) && r != '%'){
+			while((r = *fmt++) && r != '%') {
 				FMTRCHAR(f, rt, rs, r);
 			}
 			f->nfmt += rt - (Rune *)f->to;
@@ -49,10 +49,10 @@ dorfmt(Fmt *f, const Rune *fmt)
 			if(!r)
 				return f->nfmt - nfmt;
 			f->stop = rs;
-		}else{
+		} else {
 			t = f->to;
 			s = f->stop;
-			while((r = *fmt++) && r != '%'){
+			while((r = *fmt++) && r != '%') {
 				FMTRUNE(f, t, f->stop, r);
 			}
 			f->nfmt += t - (char *)f->to;
@@ -66,5 +66,5 @@ dorfmt(Fmt *f, const Rune *fmt)
 		if(fmt == nil)
 			return -1;
 	}
-	return 0;		/* not reached */
+	return 0; /* not reached */
 }

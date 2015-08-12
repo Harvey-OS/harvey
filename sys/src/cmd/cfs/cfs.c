@@ -20,9 +20,8 @@
 #include "file.h"
 #include "stats.h"
 
-enum
-{
-	Nfid=		10240,
+enum {
+	Nfid = 10240,
 };
 
 /* maximum length of a file */
@@ -32,97 +31,95 @@ typedef struct Mfile Mfile;
 typedef struct Ram Ram;
 typedef struct P9fs P9fs;
 
-struct Mfile
-{
-	Qid	qid;
-	char	busy;
+struct Mfile {
+	Qid qid;
+	char busy;
 };
 
-Mfile	mfile[Nfid];
-Icache	ic;
-int	debug, statson, noauth, openserver;
+Mfile mfile[Nfid];
+Icache ic;
+int debug, statson, noauth, openserver;
 
-struct P9fs
-{
-	int	fd[2];
-	Fcall	rhdr;
-	Fcall	thdr;
-	int32_t	len;
-	char	*name;
+struct P9fs {
+	int fd[2];
+	Fcall rhdr;
+	Fcall thdr;
+	int32_t len;
+	char *name;
 };
 
-P9fs	c;	/* client conversation */
-P9fs	s;	/* server conversation */
+P9fs c; /* client conversation */
+P9fs s; /* server conversation */
 
-struct Cfsstat  cfsstat, cfsprev;
-char	statbuf[2048];
-int	statlen;
+struct Cfsstat cfsstat, cfsprev;
+char statbuf[2048];
+int statlen;
 
-#define	MAXFDATA	8192	/* i/o size for read/write */
+#define MAXFDATA 8192 /* i/o size for read/write */
 
-int		messagesize = MAXFDATA+IOHDRSZ;
+int messagesize = MAXFDATA + IOHDRSZ;
 
-uint8_t	datasnd[MAXFDATA + IOHDRSZ];
-uint8_t	datarcv[MAXFDATA + IOHDRSZ];
+uint8_t datasnd[MAXFDATA + IOHDRSZ];
+uint8_t datarcv[MAXFDATA + IOHDRSZ];
 
-Qid	rootqid;
-Qid	ctlqid = {0x5555555555555555LL, 0, 0};
+Qid rootqid;
+Qid ctlqid = {0x5555555555555555LL, 0, 0};
 
-void	rversion(void);
-void	rauth(Mfile*);
-void	rflush(void);
-void	rattach(Mfile*);
-void	rwalk(Mfile*);
-void	ropen(Mfile*);
-void	rcreate(Mfile*);
-void	rread(Mfile*);
-void	rwrite(Mfile*);
-void	rclunk(Mfile*);
-void	rremove(Mfile*);
-void	rstat(Mfile*);
-void	rwstat(Mfile*);
-void	error(char*, ...);
-void	warning(char*);
-void	mountinit(char*, char*);
-void	io(void);
-void	sendreply(char*);
-void	sendmsg(P9fs*, Fcall*);
-void	rcvmsg(P9fs*, Fcall*);
-int	delegate(void);
-int	askserver(void);
-void	cachesetup(int, char*, char*);
-int	ctltest(Mfile*);
-void	genstats(void);
+void rversion(void);
+void rauth(Mfile *);
+void rflush(void);
+void rattach(Mfile *);
+void rwalk(Mfile *);
+void ropen(Mfile *);
+void rcreate(Mfile *);
+void rread(Mfile *);
+void rwrite(Mfile *);
+void rclunk(Mfile *);
+void rremove(Mfile *);
+void rstat(Mfile *);
+void rwstat(Mfile *);
+void error(char *, ...);
+void warning(char *);
+void mountinit(char *, char *);
+void io(void);
+void sendreply(char *);
+void sendmsg(P9fs *, Fcall *);
+void rcvmsg(P9fs *, Fcall *);
+int delegate(void);
+int askserver(void);
+void cachesetup(int, char *, char *);
+int ctltest(Mfile *);
+void genstats(void);
 
-char *mname[]={
-	[Tversion]		"Tversion",
-	[Tauth]	"Tauth",
-	[Tflush]	"Tflush",
-	[Tattach]	"Tattach",
-	[Twalk]		"Twalk",
-	[Topen]		"Topen",
-	[Tcreate]	"Tcreate",
-	[Tclunk]	"Tclunk",
-	[Tread]		"Tread",
-	[Twrite]	"Twrite",
-	[Tremove]	"Tremove",
-	[Tstat]		"Tstat",
-	[Twstat]	"Twstat",
-	[Rversion]	"Rversion",
-	[Rauth]	"Rauth",
-	[Rerror]	"Rerror",
-	[Rflush]	"Rflush",
-	[Rattach]	"Rattach",
-	[Rwalk]		"Rwalk",
-	[Ropen]		"Ropen",
-	[Rcreate]	"Rcreate",
-	[Rclunk]	"Rclunk",
-	[Rread]		"Rread",
-	[Rwrite]	"Rwrite",
-	[Rremove]	"Rremove",
-	[Rstat]		"Rstat",
-	[Rwstat]	"Rwstat",
-			0,
+char *mname[] = {
+	[Tversion] "Tversion",
+	[Tauth] "Tauth",
+	[Tflush] "Tflush",
+	[Tattach] "Tattach",
+	[Twalk] "Twalk",
+	[Topen] "Topen",
+	[Tcreate] "Tcreate",
+	[Tclunk] "Tclunk",
+	[Tread] "Tread",
+	[Twrite] "Twrite",
+	[Tremove] "Tremove",
+	[Tstat] "Tstat",
+	[Twstat] "Twstat",
+	[Rversion] "Rversion",
+	[Rauth] "Rauth",
+	[Rerror] "Rerror",
+	[Rflush] "Rflush",
+	[Rattach] "Rattach",
+	[Rwalk] "Rwalk",
+	[Ropen] "Ropen",
+	[Rcreate] "Rcreate",
+	[Rclunk] "Rclunk",
+	[Rread] "Rread",
+	[Rwrite] "Rwrite",
+	[Rremove] "Rremove",
+	[Rstat] "Rstat",
+	[Rwstat] "Rwstat",
+	0,
 };
 
 void
@@ -147,7 +144,8 @@ main(int argc, char *argv[])
 	server = "tcp!fs";
 	mtpt = "/tmp";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		server = EARGF(usage());
 		break;
@@ -178,7 +176,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 	if(argc && *argv)
 		mtpt = *argv;
 
@@ -187,24 +186,24 @@ main(int argc, char *argv[])
 
 	c.name = "client";
 	s.name = "server";
-	if(std){
+	if(std) {
 		c.fd[0] = c.fd[1] = 1;
 		s.fd[0] = s.fd[1] = 0;
-	}else
+	} else
 		mountinit(server, mtpt);
 
-	if(chkid){
+	if(chkid) {
 		if((snci = getnetconninfo(nil, s.fd[0])) == nil)
 			/* Failed to lookup information; format */
 			cachesetup(1, nil, part);
 		else
 			/* Do partition check */
 			cachesetup(0, snci->raddr, part);
-	}else
+	} else
 		/* Obey -f w/o regard to cache vs. remote server */
 		cachesetup(format, nil, part);
 
-	switch(fork()){
+	switch(fork()) {
 	case 0:
 		io();
 		exits("");
@@ -225,18 +224,18 @@ cachesetup(int format, char *name, char *partition)
 
 	secsize = 512;
 	inodes = 1024;
-	blocksize = 4*1024;
+	blocksize = 4 * 1024;
 
 	f = open(partition, ORDWR);
 	if(f < 0)
 		error("opening partition");
 
-	if(format || iinit(&ic, f, secsize, name) < 0){
+	if(format || iinit(&ic, f, secsize, name) < 0) {
 		/*
 		 * If we need to format and don't have a name, fall
 		 * back to our old behavior of using "bootes"
 		 */
-		name = (name == nil? "bootes": name);
+		name = (name == nil ? "bootes" : name);
 		if(iformat(&ic, f, inodes, name, blocksize, secsize) < 0)
 			error("formatting failed");
 	}
@@ -251,7 +250,7 @@ mountinit(char *server, char *mountpoint)
 	/*
 	 *  grab a channel and call up the file server
 	 */
-	if (openserver)
+	if(openserver)
 		s.fd[0] = open(server, ORDWR);
 	else
 		s.fd[0] = dial(netmkaddr(server, 0, "9fs"), 0, 0, 0);
@@ -264,20 +263,20 @@ mountinit(char *server, char *mountpoint)
 	 */
 	if(pipe(p) < 0)
 		error("pipe failed");
-	switch(fork()){
+	switch(fork()) {
 	case 0:
 		break;
 	default:
-		if (noauth)
-			err = mount(p[1], -1, mountpoint, MREPL|MCREATE, "");
+		if(noauth)
+			err = mount(p[1], -1, mountpoint, MREPL | MCREATE, "");
 		else
-			err = amount(p[1], mountpoint, MREPL|MCREATE, "");
-		if (err < 0)
+			err = amount(p[1], mountpoint, MREPL | MCREATE, "");
+		if(err < 0)
 			error("mount failed: %r");
 		exits(0);
 	case -1:
 		error("fork failed\n");
-/*BUG: no wait!*/
+		/*BUG: no wait!*/
 	}
 	c.fd[0] = c.fd[1] = p[0];
 }
@@ -287,17 +286,17 @@ io(void)
 {
 	int type;
 	Mfile *mf;
-    loop:
+loop:
 	rcvmsg(&c, &c.thdr);
 
 	type = c.thdr.type;
 
-	if(statson){
+	if(statson) {
 		cfsstat.cm[type].n++;
 		cfsstat.cm[type].s = nsec();
 	}
 	mf = &mfile[c.thdr.fid];
-	switch(type){
+	switch(type) {
 	default:
 		error("type");
 		break;
@@ -342,8 +341,8 @@ io(void)
 		rwstat(mf);
 		break;
 	}
-	if(statson){
-		cfsstat.cm[type].t += nsec() -cfsstat.cm[type].s;
+	if(statson) {
+		cfsstat.cm[type].t += nsec() - cfsstat.cm[type].s;
 	}
 	goto loop;
 }
@@ -353,7 +352,7 @@ rversion(void)
 {
 	if(messagesize > c.thdr.msize)
 		messagesize = c.thdr.msize;
-	c.thdr.msize = messagesize;	/* set downstream size */
+	c.thdr.msize = messagesize; /* set downstream size */
 	delegate();
 }
 
@@ -363,14 +362,14 @@ rauth(Mfile *mf)
 	if(mf->busy)
 		error("auth to used channel");
 
-	if(delegate() == 0){
+	if(delegate() == 0) {
 		mf->qid = s.rhdr.aqid;
 		mf->busy = 1;
 	}
 }
 
 void
-rflush(void)		/* synchronous so easy */
+rflush(void) /* synchronous so easy */
 {
 	sendreply(0);
 }
@@ -378,10 +377,10 @@ rflush(void)		/* synchronous so easy */
 void
 rattach(Mfile *mf)
 {
-	if(delegate() == 0){
+	if(delegate() == 0) {
 		mf->qid = s.rhdr.qid;
 		mf->busy = 1;
-		if (statson == 1){
+		if(statson == 1) {
 			statson++;
 			rootqid = mf->qid;
 		}
@@ -394,9 +393,7 @@ rwalk(Mfile *mf)
 	Mfile *nmf;
 
 	nmf = nil;
-	if(statson
-	  && mf->qid.type == rootqid.type && mf->qid.path == rootqid.path
-	  && c.thdr.nwname == 1 && strcmp(c.thdr.wname[0], "cfsctl") == 0){
+	if(statson && mf->qid.type == rootqid.type && mf->qid.path == rootqid.path && c.thdr.nwname == 1 && strcmp(c.thdr.wname[0], "cfsctl") == 0) {
 		/* This is the ctl file */
 		nmf = &mfile[c.thdr.newfid];
 		if(c.thdr.newfid != c.thdr.fid && nmf->busy)
@@ -409,7 +406,7 @@ rwalk(Mfile *mf)
 		sendreply(0);
 		return;
 	}
-	if(c.thdr.newfid != c.thdr.fid){
+	if(c.thdr.newfid != c.thdr.fid) {
 		if(c.thdr.newfid >= Nfid)
 			error("clone nfid out of range");
 		nmf = &mfile[c.thdr.newfid];
@@ -421,15 +418,15 @@ rwalk(Mfile *mf)
 		mf = nmf; /* Walk mf */
 	}
 
-	if(delegate() < 0){	/* complete failure */
+	if(delegate() < 0) { /* complete failure */
 		if(nmf)
 			nmf->busy = 0;
 		return;
 	}
 
-	if(s.rhdr.nwqid == c.thdr.nwname){	/* complete success */
+	if(s.rhdr.nwqid == c.thdr.nwname) { /* complete success */
 		if(s.rhdr.nwqid > 0)
-			mf->qid = s.rhdr.wqid[s.rhdr.nwqid-1];
+			mf->qid = s.rhdr.wqid[s.rhdr.nwqid - 1];
 		return;
 	}
 
@@ -441,9 +438,9 @@ rwalk(Mfile *mf)
 void
 ropen(Mfile *mf)
 {
-	if(statson && ctltest(mf)){
+	if(statson && ctltest(mf)) {
 		/* Opening ctl file */
-		if(c.thdr.mode != OREAD){
+		if(c.thdr.mode != OREAD) {
 			sendreply("does not exist");
 			return;
 		}
@@ -453,7 +450,7 @@ ropen(Mfile *mf)
 		genstats();
 		return;
 	}
-	if(delegate() == 0){
+	if(delegate() == 0) {
 		mf->qid = s.rhdr.qid;
 		if(c.thdr.mode & OTRUNC)
 			iget(&ic, mf->qid);
@@ -463,11 +460,11 @@ ropen(Mfile *mf)
 void
 rcreate(Mfile *mf)
 {
-	if(statson && ctltest(mf)){
+	if(statson && ctltest(mf)) {
 		sendreply("exists");
 		return;
 	}
-	if(delegate() == 0){
+	if(delegate() == 0) {
 		mf->qid = s.rhdr.qid;
 		mf->qid.vers++;
 	}
@@ -476,7 +473,7 @@ rcreate(Mfile *mf)
 void
 rclunk(Mfile *mf)
 {
-	if(!mf->busy){
+	if(!mf->busy) {
 		sendreply(0);
 		return;
 	}
@@ -487,7 +484,7 @@ rclunk(Mfile *mf)
 void
 rremove(Mfile *mf)
 {
-	if(statson && ctltest(mf)){
+	if(statson && ctltest(mf)) {
 		sendreply("not removed");
 		return;
 	}
@@ -509,12 +506,12 @@ rread(Mfile *mf)
 	first = off;
 	cnt = c.thdr.count;
 
-	if(statson && ctltest(mf)){
-		if(cnt > statlen-off)
-			c.rhdr.count = statlen-off;
+	if(statson && ctltest(mf)) {
+		if(cnt > statlen - off)
+			c.rhdr.count = statlen - off;
 		else
 			c.rhdr.count = cnt;
-		if((int)c.rhdr.count < 0){
+		if((int)c.rhdr.count < 0) {
 			sendreply("eof");
 			return;
 		}
@@ -522,11 +519,11 @@ rread(Mfile *mf)
 		sendreply(0);
 		return;
 	}
-	if(mf->qid.type & (QTDIR|QTAUTH)){
+	if(mf->qid.type & (QTDIR | QTAUTH)) {
 		delegate();
-		if (statson) {
+		if(statson) {
 			cfsstat.ndirread++;
-			if(c.rhdr.count > 0){
+			if(c.rhdr.count > 0) {
 				cfsstat.bytesread += c.rhdr.count;
 				cfsstat.bytesfromdirs += c.rhdr.count;
 			}
@@ -535,12 +532,12 @@ rread(Mfile *mf)
 	}
 
 	b = iget(&ic, mf->qid);
-	if(b == 0){
+	if(b == 0) {
 		DPRINT(2, "delegating read\n");
 		delegate();
-		if (statson){
+		if(statson) {
 			cfsstat.ndelegateread++;
-			if(c.rhdr.count > 0){
+			if(c.rhdr.count > 0) {
 				cfsstat.bytesread += c.rhdr.count;
 				cfsstat.bytesfromserver += c.rhdr.count;
 			}
@@ -550,20 +547,20 @@ rread(Mfile *mf)
 
 	cp = data;
 	done = 0;
-	while(cnt>0 && !done){
-		if(off >= b->inode.length){
+	while(cnt > 0 && !done) {
+		if(off >= b->inode.length) {
 			DPRINT(2, "offset %lld greater than length %lld\n",
-				off, b->inode.length);
+			       off, b->inode.length);
 			break;
 		}
 		n = fread(&ic, b, cp, off, cnt);
-		if(n <= 0){
+		if(n <= 0) {
 			n = -n;
-			if(n==0 || n>cnt)
+			if(n == 0 || n > cnt)
 				n = cnt;
 			DPRINT(2,
-			 "fetch %ld bytes of data from server at offset %lld\n",
-				n, off);
+			       "fetch %ld bytes of data from server at offset %lld\n",
+			       n, off);
 			s.thdr.type = c.thdr.type;
 			s.thdr.fid = c.thdr.fid;
 			s.thdr.tag = c.thdr.tag;
@@ -571,30 +568,30 @@ rread(Mfile *mf)
 			s.thdr.count = n;
 			if(statson)
 				cfsstat.ndelegateread++;
-			if(askserver() < 0){
+			if(askserver() < 0) {
 				sendreply(s.rhdr.ename);
 				return;
 			}
 			if(s.rhdr.count != n)
 				done = 1;
 			n = s.rhdr.count;
-			if(n == 0){
+			if(n == 0) {
 				/* end of file */
-				if(b->inode.length > off){
+				if(b->inode.length > off) {
 					DPRINT(2, "file %llud.%ld, length %lld\n",
-						b->inode.qid.path,
-						b->inode.qid.vers, off);
+					       b->inode.qid.path,
+					       b->inode.qid.vers, off);
 					b->inode.length = off;
 				}
 				break;
 			}
 			memmove(cp, s.rhdr.data, n);
 			fwrite(&ic, b, cp, off, n);
-			if (statson){
+			if(statson) {
 				cfsstat.bytestocache += n;
 				cfsstat.bytesfromserver += n;
 			}
-		}else{
+		} else {
 			DPRINT(2, "fetched %ld bytes from cache\n", n);
 			if(statson)
 				cfsstat.bytesfromcache += n;
@@ -616,11 +613,11 @@ rwrite(Mfile *mf)
 	Ibuf *b;
 	char buf[MAXFDATA];
 
-	if(statson && ctltest(mf)){
+	if(statson && ctltest(mf)) {
 		sendreply("read only");
 		return;
 	}
-	if(mf->qid.type & (QTDIR|QTAUTH)){
+	if(mf->qid.type & (QTDIR | QTAUTH)) {
 		delegate();
 		if(statson && c.rhdr.count > 0)
 			cfsstat.byteswritten += c.rhdr.count;
@@ -639,13 +636,13 @@ rwrite(Mfile *mf)
 	b = iget(&ic, mf->qid);
 	if(b == 0)
 		return;
-	if (b->inode.length < c.thdr.offset + s.rhdr.count)
+	if(b->inode.length < c.thdr.offset + s.rhdr.count)
 		b->inode.length = c.thdr.offset + s.rhdr.count;
 	mf->qid.vers++;
-	if (s.rhdr.count != c.thdr.count)
+	if(s.rhdr.count != c.thdr.count)
 		syslog(0, "cfslog", "rhdr.count %ud, thdr.count %ud\n",
-			s.rhdr.count, c.thdr.count);
-	if(fwrite(&ic, b, buf, c.thdr.offset, s.rhdr.count) == s.rhdr.count){
+		       s.rhdr.count, c.thdr.count);
+	if(fwrite(&ic, b, buf, c.thdr.offset, s.rhdr.count) == s.rhdr.count) {
 		iinc(&ic, b);
 		if(statson)
 			cfsstat.bytestocache += s.rhdr.count;
@@ -657,11 +654,11 @@ rstat(Mfile *mf)
 {
 	Dir d;
 
-	if(statson && ctltest(mf)){
+	if(statson && ctltest(mf)) {
 		genstats();
 		d.qid = ctlqid;
 		d.mode = 0444;
-		d.length = statlen;	/* would be nice to do better */
+		d.length = statlen; /* would be nice to do better */
 		d.name = "cfsctl";
 		d.uid = "none";
 		d.gid = "none";
@@ -669,14 +666,14 @@ rstat(Mfile *mf)
 		d.atime = time(nil);
 		d.mtime = d.atime;
 		c.rhdr.nstat = convD2M(&d, c.rhdr.stat,
-			sizeof c.rhdr - (c.rhdr.stat - (uint8_t*)&c.rhdr));
+				       sizeof c.rhdr - (c.rhdr.stat - (uint8_t *)&c.rhdr));
 		sendreply(0);
 		return;
 	}
-	if(delegate() == 0){
+	if(delegate() == 0) {
 		Ibuf *b;
 
-		convM2D(s.rhdr.stat, s.rhdr.nstat , &d, nil);
+		convM2D(s.rhdr.stat, s.rhdr.nstat, &d, nil);
 		mf->qid = d.qid;
 		b = iget(&ic, mf->qid);
 		if(b)
@@ -689,7 +686,7 @@ rwstat(Mfile *mf)
 {
 	Ibuf *b;
 
-	if(statson && ctltest(mf)){
+	if(statson && ctltest(mf)) {
 		sendreply("read only");
 		return;
 	}
@@ -705,7 +702,7 @@ error(char *fmt, ...)
 	static char buf[2048];
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s: %s\n", argv0, buf);
 	exits("error");
@@ -724,11 +721,11 @@ void
 sendreply(char *err)
 {
 
-	if(err){
+	if(err) {
 		c.rhdr.type = Rerror;
 		c.rhdr.ename = err;
-	}else{
-		c.rhdr.type = c.thdr.type+1;
+	} else {
+		c.rhdr.type = c.thdr.type + 1;
 		c.rhdr.fid = c.thdr.fid;
 	}
 	c.rhdr.tag = c.thdr.tag;
@@ -745,7 +742,7 @@ delegate(void)
 	int type;
 
 	type = c.thdr.type;
-	if(statson){
+	if(statson) {
 		cfsstat.sm[type].n++;
 		cfsstat.sm[type].s = nsec();
 	}
@@ -757,7 +754,7 @@ delegate(void)
 		cfsstat.sm[type].t += nsec() - cfsstat.sm[type].s;
 
 	sendmsg(&c, &s.rhdr);
-	return c.thdr.type+1 == s.rhdr.type ? 0 : -1;
+	return c.thdr.type + 1 == s.rhdr.type ? 0 : -1;
 }
 
 /*
@@ -771,7 +768,7 @@ askserver(void)
 	s.thdr.tag = c.thdr.tag;
 
 	type = s.thdr.type;
-	if(statson){
+	if(statson) {
 		cfsstat.sm[type].n++;
 		cfsstat.sm[type].s = nsec();
 	}
@@ -782,7 +779,7 @@ askserver(void)
 	if(statson)
 		cfsstat.sm[type].t += nsec() - cfsstat.sm[type].s;
 
-	return s.thdr.type+1 == s.rhdr.type ? 0 : -1;
+	return s.thdr.type + 1 == s.rhdr.type ? 0 : -1;
 }
 
 /*
@@ -796,7 +793,7 @@ sendmsg(P9fs *p, Fcall *f)
 	p->len = convS2M(f, datasnd, messagesize);
 	if(p->len <= 0)
 		error("convS2M");
-	if(write(p->fd[1], datasnd, p->len)!=p->len)
+	if(write(p->fd[1], datasnd, p->len) != p->len)
 		error("sendmsg");
 }
 
@@ -817,7 +814,7 @@ rcvmsg(P9fs *p, Fcall *f)
 
 	olen = p->len;
 	p->len = read9pmsg(p->fd[0], datarcv, sizeof(datarcv));
-	if(p->len <= 0){
+	if(p->len <= 0) {
 		snprint(buf, sizeof buf, "read9pmsg(%d)->%ld: %r",
 			p->fd[0], p->len);
 		error(buf);
@@ -825,12 +822,12 @@ rcvmsg(P9fs *p, Fcall *f)
 
 	if((rlen = convM2S(datarcv, p->len, f)) != p->len)
 		error("rcvmsg format error, expected length %d, got %d",
-			rlen, p->len);
-	if(f->fid >= Nfid){
+		      rlen, p->len);
+	if(f->fid >= Nfid) {
 		fprint(2, "<-%s: %d %s on %d\n", p->name, f->type,
-			mname[f->type]? mname[f->type]: "mystery", f->fid);
-		dump((uint8_t*)datasnd, olen);
-		dump((uint8_t*)datarcv, p->len);
+		       mname[f->type] ? mname[f->type] : "mystery", f->fid);
+		dump((uint8_t *)datasnd, olen);
+		dump((uint8_t *)datarcv, p->len);
 		error("rcvmsg fid out of range");
 	}
 	DPRINT(2, "<-%s: %F\n", p->name, f);
@@ -840,7 +837,7 @@ int
 ctltest(Mfile *mf)
 {
 	return mf->busy && mf->qid.type == ctlqid.type &&
-		mf->qid.path == ctlqid.path;
+	       mf->qid.path == ctlqid.path;
 }
 
 void
@@ -851,80 +848,80 @@ genstats(void)
 
 	p = statbuf;
 
-	p += snprint(p, sizeof statbuf+statbuf-p,
-		"        Client                          Server\n");
-	p += snprint(p, sizeof statbuf+statbuf-p,
-	    "   #calls     Δ  ms/call    Δ      #calls     Δ  ms/call    Δ\n");
-	for (i = 0; i < nelem(cfsstat.cm); i++)
+	p += snprint(p, sizeof statbuf + statbuf - p,
+		     "        Client                          Server\n");
+	p += snprint(p, sizeof statbuf + statbuf - p,
+		     "   #calls     Δ  ms/call    Δ      #calls     Δ  ms/call    Δ\n");
+	for(i = 0; i < nelem(cfsstat.cm); i++)
 		if(cfsstat.cm[i].n || cfsstat.sm[i].n) {
-			p += snprint(p, sizeof statbuf+statbuf-p,
-				"%7lud %7lud ", cfsstat.cm[i].n,
-				cfsstat.cm[i].n - cfsprev.cm[i].n);
-			if (cfsstat.cm[i].n)
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"%7.3f ", 0.000001*cfsstat.cm[i].t/
-					cfsstat.cm[i].n);
+			p += snprint(p, sizeof statbuf + statbuf - p,
+				     "%7lud %7lud ", cfsstat.cm[i].n,
+				     cfsstat.cm[i].n - cfsprev.cm[i].n);
+			if(cfsstat.cm[i].n)
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "%7.3f ", 0.000001 * cfsstat.cm[i].t /
+							   cfsstat.cm[i].n);
 			else
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"        ");
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "        ");
 			if(cfsstat.cm[i].n - cfsprev.cm[i].n)
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"%7.3f ", 0.000001*
-					(cfsstat.cm[i].t - cfsprev.cm[i].t)/
-					(cfsstat.cm[i].n - cfsprev.cm[i].n));
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "%7.3f ", 0.000001 *
+							   (cfsstat.cm[i].t - cfsprev.cm[i].t) /
+							   (cfsstat.cm[i].n - cfsprev.cm[i].n));
 			else
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"        ");
-			p += snprint(p, sizeof statbuf+statbuf-p,
-				"%7lud %7lud ", cfsstat.sm[i].n,
-				cfsstat.sm[i].n - cfsprev.sm[i].n);
-			if (cfsstat.sm[i].n)
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"%7.3f ", 0.000001*cfsstat.sm[i].t/
-					cfsstat.sm[i].n);
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "        ");
+			p += snprint(p, sizeof statbuf + statbuf - p,
+				     "%7lud %7lud ", cfsstat.sm[i].n,
+				     cfsstat.sm[i].n - cfsprev.sm[i].n);
+			if(cfsstat.sm[i].n)
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "%7.3f ", 0.000001 * cfsstat.sm[i].t /
+							   cfsstat.sm[i].n);
 			else
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"        ");
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "        ");
 			if(cfsstat.sm[i].n - cfsprev.sm[i].n)
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"%7.3f ", 0.000001*
-					(cfsstat.sm[i].t - cfsprev.sm[i].t)/
-					(cfsstat.sm[i].n - cfsprev.sm[i].n));
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "%7.3f ", 0.000001 *
+							   (cfsstat.sm[i].t - cfsprev.sm[i].t) /
+							   (cfsstat.sm[i].n - cfsprev.sm[i].n));
 			else
-				p += snprint(p, sizeof statbuf+statbuf-p,
-					"        ");
-			p += snprint(p, sizeof statbuf+statbuf-p, "%s\n",
-				mname[i]);
+				p += snprint(p, sizeof statbuf + statbuf - p,
+					     "        ");
+			p += snprint(p, sizeof statbuf + statbuf - p, "%s\n",
+				     mname[i]);
 		}
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ndirread\n",
-		cfsstat.ndirread, cfsstat.ndirread - cfsprev.ndirread);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ndelegateread\n",
-		cfsstat.ndelegateread, cfsstat.ndelegateread -
-		cfsprev.ndelegateread);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ninsert\n",
-		cfsstat.ninsert, cfsstat.ninsert - cfsprev.ninsert);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ndelete\n",
-		cfsstat.ndelete, cfsstat.ndelete - cfsprev.ndelete);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud nupdate\n",
-		cfsstat.nupdate, cfsstat.nupdate - cfsprev.nupdate);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7lud %7lud ndirread\n",
+		     cfsstat.ndirread, cfsstat.ndirread - cfsprev.ndirread);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7lud %7lud ndelegateread\n",
+		     cfsstat.ndelegateread, cfsstat.ndelegateread -
+						cfsprev.ndelegateread);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7lud %7lud ninsert\n",
+		     cfsstat.ninsert, cfsstat.ninsert - cfsprev.ninsert);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7lud %7lud ndelete\n",
+		     cfsstat.ndelete, cfsstat.ndelete - cfsprev.ndelete);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7lud %7lud nupdate\n",
+		     cfsstat.nupdate, cfsstat.nupdate - cfsprev.nupdate);
 
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesread\n",
-		cfsstat.bytesread, cfsstat.bytesread - cfsprev.bytesread);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud byteswritten\n",
-		cfsstat.byteswritten, cfsstat.byteswritten -
-		cfsprev.byteswritten);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesfromserver\n",
-		cfsstat.bytesfromserver, cfsstat.bytesfromserver -
-		cfsprev.bytesfromserver);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesfromdirs\n",
-		cfsstat.bytesfromdirs, cfsstat.bytesfromdirs -
-		cfsprev.bytesfromdirs);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesfromcache\n",
-		cfsstat.bytesfromcache, cfsstat.bytesfromcache -
-		cfsprev.bytesfromcache);
-	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytestocache\n",
-		cfsstat.bytestocache, cfsstat.bytestocache -
-		cfsprev.bytestocache);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7llud %7llud bytesread\n",
+		     cfsstat.bytesread, cfsstat.bytesread - cfsprev.bytesread);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7llud %7llud byteswritten\n",
+		     cfsstat.byteswritten, cfsstat.byteswritten -
+					       cfsprev.byteswritten);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7llud %7llud bytesfromserver\n",
+		     cfsstat.bytesfromserver, cfsstat.bytesfromserver -
+						  cfsprev.bytesfromserver);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7llud %7llud bytesfromdirs\n",
+		     cfsstat.bytesfromdirs, cfsstat.bytesfromdirs -
+						cfsprev.bytesfromdirs);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7llud %7llud bytesfromcache\n",
+		     cfsstat.bytesfromcache, cfsstat.bytesfromcache -
+						 cfsprev.bytesfromcache);
+	p += snprint(p, sizeof statbuf + statbuf - p, "%7llud %7llud bytestocache\n",
+		     cfsstat.bytestocache, cfsstat.bytestocache -
+					       cfsprev.bytestocache);
 	statlen = p - statbuf;
 	cfsprev = cfsstat;
 }

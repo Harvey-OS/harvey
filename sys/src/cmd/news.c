@@ -18,37 +18,35 @@
 #include <libc.h>
 #include <bio.h>
 
-#define	NINC	50	/* Multiples of directory allocation */
-char	NEWS[] = "/lib/news";
-char	TFILE[] = "%s/lib/newstime";
+#define NINC 50 /* Multiples of directory allocation */
+char NEWS[] = "/lib/news";
+char TFILE[] = "%s/lib/newstime";
 
 /*
  *	The following items should not be printed.
  */
-char*	ignore[] =
-{
-	"core",
-	"dead.letter",
-	0
-};
+char *ignore[] =
+    {
+     "core",
+     "dead.letter",
+     0};
 
-typedef
-struct
-{
-	int32_t	time;
-	char	*name;
-	int64_t	length;
+typedef struct
+    {
+	int32_t time;
+	char *name;
+	int64_t length;
 } File;
-File*	n_list;
-int	n_count;
-int	n_items;
-Biobuf	bout;
+File *n_list;
+int n_count;
+int n_items;
+Biobuf bout;
 
-int	fcmp(const void *a, const void *b);
-void	read_dir(int update);
-void	print_item(char *f);
-void	eachitem(void (*emit)(char*), int all, int update);
-void	note(char *s);
+int fcmp(const void *a, const void *b);
+void read_dir(int update);
+void print_item(char *f);
+void eachitem(void (*emit)(char *), int all, int update);
+void note(char *s);
 
 void
 main(int argc, char *argv[])
@@ -60,12 +58,13 @@ main(int argc, char *argv[])
 		eachitem(print_item, 0, 1);
 		exits(0);
 	}
-	ARGBEGIN{
-	case 'a':	/* print all */
+	ARGBEGIN
+	{
+	case 'a': /* print all */
 		eachitem(print_item, 1, 0);
 		break;
 
-	case 'n':	/* names only */
+	case 'n': /* names only */
 		eachitem(note, 0, 0);
 		if(n_items)
 			Bputc(&bout, '\n');
@@ -74,8 +73,9 @@ main(int argc, char *argv[])
 	default:
 		fprint(2, "news: bad option %c\n", ARGC());
 		exits("usage");
-	}ARGEND
-	for(i=0; i<argc; i++)
+	}
+	ARGEND
+	for(i = 0; i < argc; i++)
 		print_item(argv[i]);
 	exits(0);
 }
@@ -85,7 +85,7 @@ fcmp(const void *a, const void *b)
 {
 	int32_t x;
 
-	x = ((File*)b)->time - ((File*)a)->time;
+	x = ((File *)b)->time - ((File *)a)->time;
 	if(x < 0)
 		return -1;
 	if(x > 0)
@@ -106,7 +106,7 @@ read_dir(int update)
 	int i, j, n, na, fd;
 
 	n_count = 0;
-	n_list = malloc(NINC*sizeof(File));
+	n_list = malloc(NINC * sizeof(File));
 	na = NINC;
 	home = getenv("home");
 	if(home) {
@@ -114,7 +114,7 @@ read_dir(int update)
 		d = dirstat(newstime);
 		if(d != nil) {
 			n_list[n_count].name = strdup("");
-			n_list[n_count].time =d->mtime-1;
+			n_list[n_count].time = d->mtime - 1;
 			n_list[n_count].length = 0;
 			n_count++;
 			free(d);
@@ -133,19 +133,20 @@ read_dir(int update)
 	}
 
 	n = dirreadall(fd, &d);
-	for(i=0; i<n; i++) {
-		for(j=0; ignore[j]; j++)
+	for(i = 0; i < n; i++) {
+		for(j = 0; ignore[j]; j++)
 			if(strcmp(ignore[j], d[i].name) == 0)
 				goto ign;
 		if(na <= n_count) {
 			na += NINC;
-			n_list = realloc(n_list, na*sizeof(File));
+			n_list = realloc(n_list, na * sizeof(File));
 		}
 		n_list[n_count].name = strdup(d[i].name);
 		n_list[n_count].time = d[i].mtime;
 		n_list[n_count].length = d[i].length;
 		n_count++;
-	ign:;
+	ign:
+		;
 	}
 	free(d);
 
@@ -173,18 +174,18 @@ print_item(char *file)
 	if(dbuf == nil)
 		return;
 	Bprint(&bout, "\n%s (%s) %s\n", file,
-		dbuf->muid[0]? dbuf->muid : dbuf->uid,
-		asctime(localtime(dbuf->mtime)));
+	       dbuf->muid[0] ? dbuf->muid : dbuf->uid,
+	       asctime(localtime(dbuf->mtime)));
 	free(dbuf);
 
-	bol = 1;	/* beginning of line ...\n */
-	bop = 1;	/* beginning of page ...\n\n */
+	bol = 1; /* beginning of line ...\n */
+	bop = 1; /* beginning of page ...\n\n */
 	for(;;) {
 		c = read(f, name, sizeof(name));
 		if(c <= 0)
 			break;
 		p = name;
-		ep = p+c;
+		ep = p + c;
 		while(p < ep) {
 			c = *p++;
 			if(c == '\n') {
@@ -210,18 +211,18 @@ print_item(char *file)
 }
 
 void
-eachitem(void (*emit)(char*), int all, int update)
+eachitem(void (*emit)(char *), int all, int update)
 {
 	int i;
 
 	read_dir(update);
-	for(i=0; i<n_count; i++) {
-		if(n_list[i].name[0] == 0) {	/* newstime */
+	for(i = 0; i < n_count; i++) {
+		if(n_list[i].name[0] == 0) { /* newstime */
 			if(all)
 				continue;
 			break;
 		}
-		if(n_list[i].length == 0)		/* in progress */
+		if(n_list[i].length == 0) /* in progress */
 			continue;
 		(*emit)(n_list[i].name);
 	}

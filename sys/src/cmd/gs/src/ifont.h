@@ -27,10 +27,10 @@
 /* Interpreter internal font representation */
 
 #ifndef ifont_INCLUDED
-#  define ifont_INCLUDED
+#define ifont_INCLUDED
 
-#include "gsccode.h"		/* for gs_glyph, NUM_KNOWN_ENCODINGS */
-#include "gsstype.h"		/* for extern_st */
+#include "gsccode.h" /* for gs_glyph, NUM_KNOWN_ENCODINGS */
+#include "gsstype.h" /* for extern_st */
 
 /* The external definition of fonts is given in the PostScript manual, */
 /* pp. 91-93. */
@@ -40,30 +40,30 @@
 /* point directly to a gs_font.  */
 
 typedef struct font_data_s {
-    ref dict;			/* font dictionary object */
-    ref BuildChar;
-    ref BuildGlyph;
-    ref Encoding;
-    ref CharStrings;
-    ref GlyphNames2Unicode;
-    union _fs {
-	struct _f1 {
-	    ref OtherSubrs;	/* from Private dictionary */
-	    ref Subrs;		/* from Private dictionary */
-	    ref GlobalSubrs;	/* from Private dictionary, */
-	    /* for Type 2 charstrings */
-	} type1;
-	struct _f42 {
-	    ref sfnts;
-	    ref CIDMap;		/* for CIDFontType 2 fonts */
-	    ref GlyphDirectory;
-	} type42;
-	struct _fc0 {
-	    ref GlyphDirectory;
-	    ref GlyphData;	/* (if preloaded) string or array of strings */
-	    ref DataSource;	/* (if not preloaded) reusable stream */
-	} cid0;
-    } u;
+	ref dict; /* font dictionary object */
+	ref BuildChar;
+	ref BuildGlyph;
+	ref Encoding;
+	ref CharStrings;
+	ref GlyphNames2Unicode;
+	union _fs {
+		struct _f1 {
+			ref OtherSubrs;  /* from Private dictionary */
+			ref Subrs;       /* from Private dictionary */
+			ref GlobalSubrs; /* from Private dictionary, */
+					 /* for Type 2 charstrings */
+		} type1;
+		struct _f42 {
+			ref sfnts;
+			ref CIDMap; /* for CIDFontType 2 fonts */
+			ref GlyphDirectory;
+		} type42;
+		struct _fc0 {
+			ref GlyphDirectory;
+			ref GlyphData;  /* (if preloaded) string or array of strings */
+			ref DataSource; /* (if not preloaded) reusable stream */
+		} cid0;
+	} u;
 } font_data;
 
 /*
@@ -74,8 +74,8 @@ typedef struct font_data_s {
  */
 /* st_font_data is exported for zdefault_make_font in zfont.c. */
 extern_st(st_font_data);
-#define public_st_font_data()	/* in zbfont.c */\
-  gs_public_st_ref_struct(st_font_data, font_data, "font_data")
+#define public_st_font_data() /* in zbfont.c */ \
+	gs_public_st_ref_struct(st_font_data, font_data, "font_data")
 #define pfont_data(pfont) ((font_data *)((pfont)->client_data))
 #define pfont_dict(pfont) (&pfont_data(pfont)->dict)
 
@@ -92,7 +92,7 @@ int font_bbox_param(const gs_memory_t *mem, const ref *pfdict, double bbox[4]);
 /* ---------------- Exported by zfont.c ---------------- */
 
 #ifndef gs_font_DEFINED
-#  define gs_font_DEFINED
+#define gs_font_DEFINED
 typedef struct gs_font_s gs_font;
 #endif
 
@@ -100,7 +100,7 @@ typedef struct gs_font_s gs_font;
  * Check a parameter that should be a valid font dictionary, and return
  * the gs_font stored in its FID entry.
  */
-int font_param(const ref * pfdict, gs_font ** ppfont);
+int font_param(const ref *pfdict, gs_font **ppfont);
 
 /*
  * Mark a glyph as a PostScript name (if it isn't a CID) for the garbage

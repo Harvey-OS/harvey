@@ -16,8 +16,8 @@
 
 enum {
 	Nibwidth = 4,
-	Nibmask = (1<<Nibwidth) - 1,
-	V6maxrevdomdepth = 128 / Nibwidth,	/* bits / bits-per-nibble */
+	Nibmask = (1 << Nibwidth) - 1,
+	V6maxrevdomdepth = 128 / Nibwidth, /* bits / bits-per-nibble */
 
 	/*
 	 * ttl for generated ptr records.  it was zero, which might seem
@@ -29,34 +29,34 @@ enum {
 };
 
 static Ndb *db;
-static Lock	dblock;
+static Lock dblock;
 
-static RR*	addrrr(Ndbtuple*, Ndbtuple*);
-static RR*	cnamerr(Ndbtuple*, Ndbtuple*);
-static void	createptrs(void);
-static RR*	dblookup1(char*, int, int, int);
-static RR*	doaxfr(Ndb*, char*);
-static Ndbtuple*look(Ndbtuple*, Ndbtuple*, char*);
-static RR*	mxrr(Ndbtuple*, Ndbtuple*);
-static RR*	nsrr(Ndbtuple*, Ndbtuple*);
-static RR*	nullrr(Ndbtuple*, Ndbtuple*);
-static RR*	ptrrr(Ndbtuple*, Ndbtuple*);
-static RR*	soarr(Ndbtuple*, Ndbtuple*);
-static RR*	srvrr(Ndbtuple*, Ndbtuple*);
-static RR*	txtrr(Ndbtuple*, Ndbtuple*);
+static RR *addrrr(Ndbtuple *, Ndbtuple *);
+static RR *cnamerr(Ndbtuple *, Ndbtuple *);
+static void createptrs(void);
+static RR *dblookup1(char *, int, int, int);
+static RR *doaxfr(Ndb *, char *);
+static Ndbtuple *look(Ndbtuple *, Ndbtuple *, char *);
+static RR *mxrr(Ndbtuple *, Ndbtuple *);
+static RR *nsrr(Ndbtuple *, Ndbtuple *);
+static RR *nullrr(Ndbtuple *, Ndbtuple *);
+static RR *ptrrr(Ndbtuple *, Ndbtuple *);
+static RR *soarr(Ndbtuple *, Ndbtuple *);
+static RR *srvrr(Ndbtuple *, Ndbtuple *);
+static RR *txtrr(Ndbtuple *, Ndbtuple *);
 
-static int	implemented[Tall] =
-{
-	[Ta]		1,
-	[Taaaa]		1,
-	[Tcname]	1,
-	[Tmx]		1,
-	[Tns]		1,
-	[Tnull]		1,
-	[Tptr]		1,
-	[Tsoa]		1,
-	[Tsrv]		1,
-	[Ttxt]		1,
+static int implemented[Tall] =
+    {
+	 [Ta] 1,
+	 [Taaaa] 1,
+	 [Tcname] 1,
+	 [Tmx] 1,
+	 [Tns] 1,
+	 [Tnull] 1,
+	 [Tptr] 1,
+	 [Tsoa] 1,
+	 [Tsrv] 1,
+	 [Ttxt] 1,
 };
 
 /* straddle server configuration */
@@ -66,7 +66,7 @@ static void
 nstrcpy(char *to, char *from, int len)
 {
 	strncpy(to, from, len);
-	to[len-1] = 0;
+	to[len - 1] = 0;
 }
 
 int
@@ -75,18 +75,18 @@ opendatabase(void)
 	char netdbnm[256];
 	Ndb *xdb, *netdb;
 
-	if (db)
+	if(db)
 		return 0;
 
-	xdb = ndbopen(dbfile);		/* /lib/ndb */
+	xdb = ndbopen(dbfile); /* /lib/ndb */
 
 	snprint(netdbnm, sizeof netdbnm, "%s/ndb", mntpt);
-	netdb = ndbopen(netdbnm);	/* /net/ndb */
+	netdb = ndbopen(netdbnm); /* /net/ndb */
 	if(netdb)
 		netdb->nohash = 1;
 
-	db = ndbcat(netdb, xdb);	/* both */
-	return db? 0: -1;
+	db = ndbcat(netdb, xdb); /* both */
+	return db ? 0 : -1;
 }
 
 /*
@@ -101,7 +101,7 @@ opendatabase(void)
  *       the x.research.bell-labs.com.  If nothing matches,
  *	 try *.research.bell-labs.com.
  */
-RR*
+RR *
 dblookup(char *name, int class, int type, int auth, int ttl)
 {
 	int err;
@@ -117,8 +117,8 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	err = Rname;
 	rp = nil;
 
-	if(type == Tall){
-		for (type = Ta; type < Tall; type++)
+	if(type == Tall) {
+		for(type = Ta; type < Tall; type++)
 			if(implemented[type]) {
 				tp = dblookup(name, class, type, auth, ttl);
 				lock(&dnlock);
@@ -155,7 +155,7 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 		goto out;
 
 	/* walk the domain name trying the wildcard '*' at each position */
-	for(wild = strchr(name, '.'); wild; wild = strchr(wild+1, '.')){
+	for(wild = strchr(name, '.'); wild; wild = strchr(wild + 1, '.')) {
 		snprint(buf, sizeof buf, "*%s", wild);
 		ndp = dnlookup(buf, class, 1);
 		if(ndp->rr)
@@ -191,13 +191,13 @@ intval(Ndbtuple *entry, Ndbtuple *pair, char *attr, uint32_t def)
 {
 	Ndbtuple *t = look(entry, pair, attr);
 
-	return (t? strtoul(t->val, 0, 10): def);
+	return (t ? strtoul(t->val, 0, 10) : def);
 }
 
 /*
  *  lookup an RR in the network database
  */
-static RR*
+static RR *
 dblookup1(char *name, int type, int auth, int ttl)
 {
 	Ndbtuple *t, *nt;
@@ -206,11 +206,11 @@ dblookup1(char *name, int type, int auth, int ttl)
 	char dname[Domlen];
 	char *attr;
 	DN *dp;
-	RR *(*f)(Ndbtuple*, Ndbtuple*);
+	RR *(*f)(Ndbtuple *, Ndbtuple *);
 	int found, x;
 
 	dp = nil;
-	switch(type){
+	switch(type) {
 	case Tptr:
 		attr = "ptr";
 		f = ptrrr;
@@ -251,7 +251,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 	case Tixfr:
 		return doaxfr(db, name);
 	default:
-//		dnslog("dnlookup1(%s) bad type", name);
+		//		dnslog("dnlookup1(%s) bad type", name);
 		return nil;
 	}
 
@@ -267,14 +267,14 @@ dblookup1(char *name, int type, int auth, int ttl)
 	if(t == nil && strchr(name, '.') == nil)
 		free(ndbgetvalue(db, &s, "sys", name, attr, &t));
 	if(t == nil) {
-//		dnslog("dnlookup1(%s) name not found", name);
+		//		dnslog("dnlookup1(%s) name not found", name);
 		return nil;
 	}
 
 	/* search whole entry for default domain name */
 	strncpy(dname, name, sizeof dname);
 	for(nt = t; nt; nt = nt->entry)
-		if(strcmp(nt->attr, "dom") == 0){
+		if(strcmp(nt->attr, "dom") == 0) {
 			nstrcpy(dname, nt->val, sizeof dname);
 			break;
 		}
@@ -296,12 +296,12 @@ dblookup1(char *name, int type, int auth, int ttl)
 	found = 0;
 	list = 0;
 	l = &list;
-	for(nt = s.t;; ){
-		if(found == 0 && strcmp(nt->attr, "dom") == 0){
+	for(nt = s.t;;) {
+		if(found == 0 && strcmp(nt->attr, "dom") == 0) {
 			nstrcpy(dname, nt->val, sizeof dname);
 			found = 1;
 		}
-		if(cistrcmp(attr, nt->attr) == 0){
+		if(cistrcmp(attr, nt->attr) == 0) {
 			rp = (*f)(t, nt);
 			rp->auth = auth;
 			rp->db = 1;
@@ -321,7 +321,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 
 	/* search whole entry */
 	for(nt = t; nt; nt = nt->entry)
-		if(nt->ptr == 0 && cistrcmp(attr, nt->attr) == 0){
+		if(nt->ptr == 0 && cistrcmp(attr, nt->attr) == 0) {
 			rp = (*f)(t, nt);
 			rp->db = 1;
 			if(ttl)
@@ -335,14 +335,14 @@ dblookup1(char *name, int type, int auth, int ttl)
 		}
 	ndbfree(t);
 
-//	dnslog("dnlookup1(%s) -> %#p", name, list);
+	//	dnslog("dnlookup1(%s) -> %#p", name, list);
 	return list;
 }
 
 /*
  *  make various types of resource records from a database entry
  */
-static RR*
+static RR *
 addrrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -357,15 +357,15 @@ addrrr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->ip = dnlookup(pair->val, Cin, 1);
 	return rp;
 }
-static RR*
+static RR *
 nullrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
 
 	USED(entry);
 	rp = rralloc(Tnull);
-	rp->null->data = (uint8_t*)estrdup(pair->val);
-	rp->null->dlen = strlen((char*)rp->null->data);
+	rp->null->data = (uint8_t *)estrdup(pair->val);
+	rp->null->dlen = strlen((char *)rp->null->data);
 	return rp;
 }
 /*
@@ -373,7 +373,7 @@ nullrr(Ndbtuple *entry, Ndbtuple *pair)
  *  can represent longer strings by multiple concatenated
  *  <= 255 byte ones.
  */
-static RR*
+static RR *
 txtrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -386,16 +386,16 @@ txtrr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->txt = nil;
 	len = strlen(pair->val);
 	sofar = 0;
-	while(len > sofar){
+	while(len > sofar) {
 		t = emalloc(sizeof(*t));
 		t->next = nil;
 
-		i = len-sofar;
+		i = len - sofar;
 		if(i > 255)
 			i = 255;
 
-		t->p = emalloc(i+1);
-		memmove(t->p, pair->val+sofar, i);
+		t->p = emalloc(i + 1);
+		memmove(t->p, pair->val + sofar, i);
 		t->p[i] = 0;
 		sofar += i;
 
@@ -404,7 +404,7 @@ txtrr(Ndbtuple *entry, Ndbtuple *pair)
 	}
 	return rp;
 }
-static RR*
+static RR *
 cnamerr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -414,7 +414,7 @@ cnamerr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->host = dnlookup(pair->val, Cin, 1);
 	return rp;
 }
-static RR*
+static RR *
 mxrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -424,7 +424,7 @@ mxrr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->pref = intval(entry, pair, "pref", 1);
 	return rp;
 }
-static RR*
+static RR *
 nsrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -437,7 +437,7 @@ nsrr(Ndbtuple *entry, Ndbtuple *pair)
 		rp->local = 1;
 	return rp;
 }
-static RR*
+static RR *
 ptrrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -447,7 +447,7 @@ ptrrr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->ptr = dnlookup(pair->val, Cin, 1);
 	return rp;
 }
-static RR*
+static RR *
 soarr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -462,7 +462,7 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 		if(ndb->mtime > rp->soa->serial)
 			rp->soa->serial = ndb->mtime;
 
-	rp->soa->retry  = intval(entry, pair, "retry", Hour);
+	rp->soa->retry = intval(entry, pair, "retry", Hour);
 	rp->soa->expire = intval(entry, pair, "expire", Day);
 	rp->soa->minttl = intval(entry, pair, "ttl", Day);
 	rp->soa->refresh = intval(entry, pair, "refresh", Day);
@@ -508,7 +508,7 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 	return rp;
 }
 
-static RR*
+static RR *
 srvrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
@@ -526,13 +526,13 @@ srvrr(Ndbtuple *entry, Ndbtuple *pair)
  *  Look for a pair with the given attribute.  look first on the same line,
  *  then in the whole entry.
  */
-static Ndbtuple*
+static Ndbtuple *
 look(Ndbtuple *entry, Ndbtuple *line, char *attr)
 {
 	Ndbtuple *nt;
 
 	/* first look on same line (closer binding) */
-	for(nt = line;;){
+	for(nt = line;;) {
 		if(cistrcmp(attr, nt->attr) == 0)
 			return nt;
 		nt = nt->line;
@@ -546,7 +546,7 @@ look(Ndbtuple *entry, Ndbtuple *line, char *attr)
 	return 0;
 }
 
-static RR**
+static RR **
 linkrr(RR *rp, DN *dp, RR **l)
 {
 	rp->owner = dp;
@@ -557,13 +557,12 @@ linkrr(RR *rp, DN *dp, RR **l)
 }
 
 /* these are answered specially by the tcp version */
-static RR*
+static RR *
 doaxfr(Ndb *db, char *name)
 {
 	USED(db, name);
 	return 0;
 }
-
 
 /*
  *  read the all the soa's from the database to determine area's.
@@ -592,10 +591,10 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 
 	rp = 0;
 	if(cistrcmp(pair->attr, "ip") == 0 ||
-	   cistrcmp(pair->attr, "ipv6") == 0){
+	   cistrcmp(pair->attr, "ipv6") == 0) {
 		dp->ordinal = ord++;
 		rp = addrrr(entry, pair);
-	} else 	if(cistrcmp(pair->attr, "ns") == 0)
+	} else if(cistrcmp(pair->attr, "ns") == 0)
 		rp = nsrr(entry, pair);
 	else if(cistrcmp(pair->attr, "soa") == 0) {
 		rp = soarr(entry, pair);
@@ -626,17 +625,17 @@ dbtuple2cache(Ndbtuple *t)
 	DN *dp;
 
 	for(et = t; et; et = et->entry)
-		if(strcmp(et->attr, "dom") == 0){
+		if(strcmp(et->attr, "dom") == 0) {
 			dp = dnlookup(et->val, Cin, 1);
 
 			/* first same line */
-			for(nt = et->line; nt != et; nt = nt->line){
+			for(nt = et->line; nt != et; nt = nt->line) {
 				dbpair2cache(dp, t, nt);
 				nt->ptr = 1;
 			}
 
 			/* then rest of entry */
-			for(nt = t; nt; nt = nt->entry){
+			for(nt = t; nt; nt = nt->entry) {
 				if(nt->ptr == 0)
 					dbpair2cache(dp, t, nt);
 				nt->ptr = 0;
@@ -651,7 +650,7 @@ dbfile2cache(Ndb *db)
 	if(debug)
 		dnslog("rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
-	while(t = ndbparse(db)){
+	while(t = ndbparse(db)) {
 		dbtuple2cache(t);
 		ndbfree(t);
 	}
@@ -663,21 +662,21 @@ loaddomsrvs(void)
 {
 	Ndbs s;
 
-	if (!cfg.inside || !cfg.straddle || !cfg.serve)
+	if(!cfg.inside || !cfg.straddle || !cfg.serve)
 		return;
-	if (indoms) {
+	if(indoms) {
 		ndbfree(indoms);
 		ndbfree(innmsrvs);
 		ndbfree(outnmsrvs);
 		indoms = innmsrvs = outnmsrvs = nil;
 	}
-	if (db == nil)
+	if(db == nil)
 		opendatabase();
 	free(ndbgetvalue(db, &s, "sys", "inside-dom", "dom", &indoms));
-	free(ndbgetvalue(db, &s, "sys", "inside-ns",  "ip",  &innmsrvs));
-	free(ndbgetvalue(db, &s, "sys", "outside-ns", "ip",  &outnmsrvs));
+	free(ndbgetvalue(db, &s, "sys", "inside-ns", "ip", &innmsrvs));
+	free(ndbgetvalue(db, &s, "sys", "outside-ns", "ip", &outnmsrvs));
 	dnslog("[%d] ndb changed: reloaded inside-dom, inside-ns, outside-ns",
-		getpid());
+	       getpid());
 }
 
 void
@@ -689,14 +688,14 @@ db2cache(int doit)
 	static uint32_t lastcheck, lastyoungest;
 
 	/* no faster than once every 2 minutes */
-	if(now < lastcheck + 2*Min && !doit)
+	if(now < lastcheck + 2 * Min && !doit)
 		return;
 
 	refresh_areas(owned);
 
 	lock(&dblock);
 
-	if(opendatabase() < 0){
+	if(opendatabase() < 0) {
 		unlock(&dblock);
 		return;
 	}
@@ -708,13 +707,13 @@ db2cache(int doit)
 	 *  we don't use the times in the ndb records because they may
 	 *  change outside of refreshing our cached knowledge.
 	 */
-	for(;;){
+	for(;;) {
 		lastcheck = now;
 		youngest = 0;
 		for(ndb = db; ndb; ndb = ndb->next)
 			/* dirfstat avoids walking the mount table each time */
 			if((d = dirfstat(Bfildes(&ndb->b))) != nil ||
-			   (d = dirstat(ndb->file)) != nil){
+			   (d = dirstat(ndb->file)) != nil) {
 				if(d->mtime > youngest)
 					youngest = d->mtime;
 				free(d);
@@ -733,7 +732,7 @@ db2cache(int doit)
 		/* reload straddle-server configuration */
 		loaddomsrvs();
 
-		if(cfg.cachedb){
+		if(cfg.cachedb) {
 			/* mark all db records as timed out */
 			dnagedb();
 
@@ -767,13 +766,13 @@ dnforceage(void)
 	unlock(&dblock);
 }
 
-extern uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+extern uint8_t ipaddr[IPaddrlen]; /* my ip address */
 
 /*
  *  get all my xxx
  *  caller ndbfrees the result
  */
-Ndbtuple*
+Ndbtuple *
 lookupinfo(char *attr)
 {
 	char buf[64];
@@ -784,7 +783,7 @@ lookupinfo(char *attr)
 	a[0] = attr;
 
 	lock(&dblock);
-	if(opendatabase() < 0){
+	if(opendatabase() < 0) {
 		unlock(&dblock);
 		return nil;
 	}
@@ -793,7 +792,7 @@ lookupinfo(char *attr)
 	return t;
 }
 
-char *localservers =	  "local#dns#servers";
+char *localservers = "local#dns#servers";
 char *localserverprefix = "local#dns#server";
 
 /*
@@ -811,29 +810,30 @@ baddelegation(RR *rp, RR *nsrp, uint8_t *addr)
 	if(t == nil)
 		return 0;
 
-	for(; rp; rp = rp->next){
+	for(; rp; rp = rp->next) {
 		if(rp->type != Tns)
 			continue;
 
 		/* see if delegation is looping */
 		if(nsrp)
-		if(rp->owner != nsrp->owner)
-		if(subsume(rp->owner->name, nsrp->owner->name) &&
-		   strcmp(nsrp->owner->name, localservers) != 0){
-			dnslog("delegation loop %R -> %R from %I",
-				nsrp, rp, addr);
-			return 1;
-		}
+			if(rp->owner != nsrp->owner)
+				if(subsume(rp->owner->name, nsrp->owner->name) &&
+				   strcmp(nsrp->owner->name, localservers) != 0) {
+					dnslog("delegation loop %R -> %R from %I",
+					       nsrp, rp, addr);
+					return 1;
+				}
 
 		/* see if delegating to us what we don't own */
 		for(nt = t; nt != nil; nt = nt->entry)
 			if(rp->host && cistrcmp(rp->host->name, nt->val) == 0)
 				break;
-		if(nt != nil && !inmyarea(rp->owner->name)){
-			if (!whined) {
+		if(nt != nil && !inmyarea(rp->owner->name)) {
+			if(!whined) {
 				whined = 1;
 				dnslog("bad delegation %R from %I; "
-					"no further logging of them", rp, addr);
+				       "no further logging of them",
+				       rp, addr);
 			}
 			return 1;
 		}
@@ -850,7 +850,7 @@ myaddr(char *addr)
 	Biobuf *bp;
 
 	snprint(buf, sizeof buf, "%I", ipaddr);
-	if (strcmp(addr, buf) == 0) {
+	if(strcmp(addr, buf) == 0) {
 		dnslog("rejecting my ip %s as local dns server", addr);
 		return 1;
 	}
@@ -858,15 +858,15 @@ myaddr(char *addr)
 	name = smprint("%s/ipselftab", mntpt);
 	bp = Bopen(name, OREAD);
 	free(name);
-	if (bp != nil) {
-		while ((line = Brdline(bp, '\n')) != nil) {
+	if(bp != nil) {
+		while((line = Brdline(bp, '\n')) != nil) {
 			line[Blinelen(bp) - 1] = '\0';
 			sp = strchr(line, ' ');
-			if (sp) {
+			if(sp) {
 				*sp = '\0';
-				if (strcmp(addr, line) == 0) {
+				if(strcmp(addr, line) == 0) {
 					dnslog("rejecting my ip %s as local dns server",
-						addr);
+					       addr);
 					return 1;
 				}
 			}
@@ -889,19 +889,19 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	uint8_t ip[IPaddrlen];
 
 	/* reject our own ip addresses so we don't query ourselves via udp */
-	if (myaddr(ipaddr))
+	if(myaddr(ipaddr))
 		return;
 
 	qlock(&locdnslck);
-	for (n = 0; n < i && n < nelem(locdns) && locdns[n]; n++)
-		if (strcmp(locdns[n], ipaddr) == 0) {
+	for(n = 0; n < i && n < nelem(locdns) && locdns[n]; n++)
+		if(strcmp(locdns[n], ipaddr) == 0) {
 			dnslog("rejecting duplicate local dns server ip %s",
-				ipaddr);
+			       ipaddr);
 			qunlock(&locdnslck);
 			return;
 		}
-	if (n < nelem(locdns))
-		if (locdns[n] == nil || ++n < nelem(locdns))
+	if(n < nelem(locdns))
+		if(locdns[n] == nil || ++n < nelem(locdns))
 			locdns[n] = strdup(ipaddr); /* remember 1st few local ns */
 	qunlock(&locdnslck);
 
@@ -910,15 +910,15 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	snprint(buf, sizeof buf, "%s%d", localserverprefix, i);
 	nsdp = dnlookup(buf, class, 1);
 	rp->host = nsdp;
-	rp->owner = dp;			/* e.g., local#dns#servers */
+	rp->owner = dp; /* e.g., local#dns#servers */
 	rp->local = 1;
 	rp->db = 1;
-//	rp->ttl = 10*Min;		/* seems too short */
-	rp->ttl = (1UL<<31)-1;
-	rrattach(rp, Authoritative);	/* will not attach rrs in my area */
+	//	rp->ttl = 10*Min;		/* seems too short */
+	rp->ttl = (1UL << 31) - 1;
+	rrattach(rp, Authoritative); /* will not attach rrs in my area */
 
 	/* A or AAAA record */
-	if (parseip(ip, ipaddr) >= 0 && isv4(ip))
+	if(parseip(ip, ipaddr) >= 0 && isv4(ip))
 		rp = rralloc(Ta);
 	else
 		rp = rralloc(Taaaa);
@@ -926,9 +926,9 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	rp->owner = nsdp;
 	rp->local = 1;
 	rp->db = 1;
-//	rp->ttl = 10*Min;		/* seems too short */
-	rp->ttl = (1UL<<31)-1;
-	rrattach(rp, Authoritative);	/* will not attach rrs in my area */
+	//	rp->ttl = 10*Min;		/* seems too short */
+	rp->ttl = (1UL << 31) - 1;
+	rrattach(rp, Authoritative); /* will not attach rrs in my area */
 
 	dnslog("added local dns server %s at %s", buf, ipaddr);
 }
@@ -937,7 +937,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
  *  return list of dns server addresses to use when
  *  acting just as a resolver.
  */
-RR*
+RR *
 dnsservers(int class)
 {
 	int i, n;
@@ -952,18 +952,18 @@ dnsservers(int class)
 	if(nsrp != nil)
 		return nsrp;
 
-	p = getenv("DNSSERVER");		/* list of ip addresses */
-	if(p != nil){
+	p = getenv("DNSSERVER"); /* list of ip addresses */
+	if(p != nil) {
 		n = tokenize(p, args, nelem(args));
 		for(i = 0; i < n; i++)
 			addlocaldnsserver(dp, class, args[i], i);
 		free(p);
 	} else {
-		t = lookupinfo("@dns");		/* @dns=ip1 @dns=ip2 ... */
+		t = lookupinfo("@dns"); /* @dns=ip1 @dns=ip2 ... */
 		if(t == nil)
 			return nil;
 		i = 0;
-		for(nt = t; nt != nil; nt = nt->entry){
+		for(nt = t; nt != nil; nt = nt->entry) {
 			addlocaldnsserver(dp, class, nt->val, i);
 			i++;
 		}
@@ -983,14 +983,14 @@ addlocaldnsdomain(DN *dp, int class, char *domain)
 	rp->ptr = dnlookup(domain, class, 1);
 	rp->owner = dp;
 	rp->db = 1;
-	rp->ttl = 10*Min;
+	rp->ttl = 10 * Min;
 	rrattach(rp, Authoritative);
 }
 
 /*
  *  return list of domains to use when resolving names without '.'s
  */
-RR*
+RR *
 domainlist(int class)
 {
 	Ndbtuple *t, *nt;
@@ -1013,12 +1013,11 @@ domainlist(int class)
 }
 
 char *v4ptrdom = ".in-addr.arpa";
-char *v6ptrdom = ".ip6.arpa";		/* ip6.int deprecated, rfc 3152 */
+char *v6ptrdom = ".ip6.arpa"; /* ip6.int deprecated, rfc 3152 */
 
 char *attribs[] = {
-	"ipmask",
-	0
-};
+    "ipmask",
+    0};
 
 /*
  *  create ptrs that are in our v4 areas
@@ -1028,57 +1027,57 @@ createv4ptrs(void)
 {
 	int len, dlen, n;
 	char *dom;
-	char buf[Domlen+1], ipa[48];
+	char buf[Domlen + 1], ipa[48];
 	char *f[40];
 	uint8_t net[IPaddrlen], mask[IPaddrlen];
 	Area *s;
 	Ndbtuple *t, *nt;
 
 	dlen = strlen(v4ptrdom);
-	for(s = owned; s; s = s->next){
+	for(s = owned; s; s = s->next) {
 		dom = s->soarr->owner->name;
 		len = strlen(dom);
-		if((len <= dlen || cistrcmp(dom+len-dlen, v4ptrdom) != 0) &&
-		    cistrcmp(dom, v4ptrdom+1) != 0)
+		if((len <= dlen || cistrcmp(dom + len - dlen, v4ptrdom) != 0) &&
+		   cistrcmp(dom, v4ptrdom + 1) != 0)
 			continue;
 
 		/* get mask and net value */
 		strncpy(buf, dom, sizeof buf);
-		buf[sizeof buf-1] = 0;
+		buf[sizeof buf - 1] = 0;
 		/* buf contains something like 178.204.in-addr.arpa (n==4) */
 		n = getfields(buf, f, nelem(f), 0, ".");
 		memset(mask, 0xff, IPaddrlen);
 		ipmove(net, v4prefix);
-		switch(n){
-		case 3:			/* /8 */
+		switch(n) {
+		case 3: /* /8 */
 			net[IPv4off] = atoi(f[0]);
-			mask[IPv4off+1] = 0;
-			mask[IPv4off+2] = 0;
-			mask[IPv4off+3] = 0;
+			mask[IPv4off + 1] = 0;
+			mask[IPv4off + 2] = 0;
+			mask[IPv4off + 3] = 0;
 			break;
-		case 4:			/* /16 */
+		case 4: /* /16 */
 			net[IPv4off] = atoi(f[1]);
-			net[IPv4off+1] = atoi(f[0]);
-			mask[IPv4off+2] = 0;
-			mask[IPv4off+3] = 0;
+			net[IPv4off + 1] = atoi(f[0]);
+			mask[IPv4off + 2] = 0;
+			mask[IPv4off + 3] = 0;
 			break;
-		case 5:			/* /24 */
+		case 5: /* /24 */
 			net[IPv4off] = atoi(f[2]);
-			net[IPv4off+1] = atoi(f[1]);
-			net[IPv4off+2] = atoi(f[0]);
-			mask[IPv4off+3] = 0;
+			net[IPv4off + 1] = atoi(f[1]);
+			net[IPv4off + 2] = atoi(f[0]);
+			mask[IPv4off + 3] = 0;
 			break;
-		case 6:		/* rfc2317: classless in-addr.arpa delegation */
+		case 6: /* rfc2317: classless in-addr.arpa delegation */
 			net[IPv4off] = atoi(f[3]);
-			net[IPv4off+1] = atoi(f[2]);
-			net[IPv4off+2] = atoi(f[1]);
-			net[IPv4off+3] = atoi(f[0]);
+			net[IPv4off + 1] = atoi(f[2]);
+			net[IPv4off + 2] = atoi(f[1]);
+			net[IPv4off + 3] = atoi(f[0]);
 			sprint(ipa, "%I", net);
 			t = ndbipinfo(db, "ip", ipa, attribs, 1);
-			if(t == nil)	/* could be a reverse with no forward */
+			if(t == nil) /* could be a reverse with no forward */
 				continue;
 			nt = look(t, t, "ipmask");
-			if(nt == nil){		/* we're confused */
+			if(nt == nil) { /* we're confused */
 				ndbfree(t);
 				continue;
 			}
@@ -1095,7 +1094,7 @@ createv4ptrs(void)
 		 * in this network and create ptrs.
 		 * +2 for ".in-addr.arpa".
 		 */
-		dnptr(net, mask, dom, Ta, 4+2-n, Ptrttl);
+		dnptr(net, mask, dom, Ta, 4 + 2 - n, Ptrttl);
 	}
 }
 
@@ -1103,20 +1102,20 @@ createv4ptrs(void)
 void
 bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes)
 {
-	while (nbytes-- > 0) {
+	while(nbytes-- > 0) {
 		*nibbles++ = *bytes >> Nibwidth;
-		*nibbles++ = *bytes++ & Nibmask;
+		*nibbles++ = *bytes++ &Nibmask;
 	}
 }
 
 void
 nibbles2bytes(uint8_t *bytes, uint8_t *nibbles, int nnibs)
 {
-	for (; nnibs >= 2; nnibs -= 2) {
-		*bytes++ = nibbles[0] << Nibwidth | (nibbles[1]&Nibmask);
+	for(; nnibs >= 2; nnibs -= 2) {
+		*bytes++ = nibbles[0] << Nibwidth | (nibbles[1] & Nibmask);
 		nibbles += 2;
 	}
-	if (nnibs > 0)
+	if(nnibs > 0)
 		*bytes = nibbles[0] << Nibwidth;
 }
 
@@ -1128,27 +1127,27 @@ createv6ptrs(void)
 {
 	int len, dlen, i, n, pfxnibs;
 	char *dom;
-	char buf[Domlen+1];
+	char buf[Domlen + 1];
 	char *f[40];
 	uint8_t net[IPaddrlen], mask[IPaddrlen];
-	uint8_t nibnet[IPaddrlen*2], nibmask[IPaddrlen*2];
+	uint8_t nibnet[IPaddrlen * 2], nibmask[IPaddrlen * 2];
 	Area *s;
 
 	dlen = strlen(v6ptrdom);
-	for(s = owned; s; s = s->next){
+	for(s = owned; s; s = s->next) {
 		dom = s->soarr->owner->name;
 		len = strlen(dom);
-		if((len <= dlen || cistrcmp(dom+len-dlen, v6ptrdom) != 0) &&
-		    cistrcmp(dom, v6ptrdom+1) != 0)
+		if((len <= dlen || cistrcmp(dom + len - dlen, v6ptrdom) != 0) &&
+		   cistrcmp(dom, v6ptrdom + 1) != 0)
 			continue;
 
 		/* get mask and net value */
 		strncpy(buf, dom, sizeof buf);
-		buf[sizeof buf-1] = 0;
+		buf[sizeof buf - 1] = 0;
 		/* buf contains something like 2.0.0.2.ip6.arpa (n==6) */
 		n = getfields(buf, f, nelem(f), 0, ".");
-		pfxnibs = n - 2;		/* 2 for .ip6.arpa */
-		if (pfxnibs < 0 || pfxnibs > V6maxrevdomdepth)
+		pfxnibs = n - 2; /* 2 for .ip6.arpa */
+		if(pfxnibs < 0 || pfxnibs > V6maxrevdomdepth)
 			continue;
 
 		memset(net, 0, IPaddrlen);
@@ -1157,13 +1156,13 @@ createv6ptrs(void)
 		bytes2nibbles(nibmask, mask, IPaddrlen);
 
 		/* copy prefix of f, in reverse order, to start of net. */
-		for (i = 0; i < pfxnibs; i++)
+		for(i = 0; i < pfxnibs; i++)
 			nibnet[i] = strtol(f[pfxnibs - 1 - i], nil, 16);
 		/* zero nibbles of mask after prefix in net */
 		memset(nibmask + pfxnibs, 0, V6maxrevdomdepth - pfxnibs);
 
-		nibbles2bytes(net, nibnet, 2*IPaddrlen);
-		nibbles2bytes(mask, nibmask, 2*IPaddrlen);
+		nibbles2bytes(net, nibnet, 2 * IPaddrlen);
+		nibbles2bytes(mask, nibmask, 2 * IPaddrlen);
 
 		/*
 		 * go through all domain entries looking for RR's
@@ -1195,29 +1194,29 @@ insideaddr(char *dom)
 	int domlen, vallen, rv;
 	Ndbtuple *t;
 
-	if (!cfg.inside || !cfg.straddle || !cfg.serve)
+	if(!cfg.inside || !cfg.straddle || !cfg.serve)
 		return 1;
-	if (dom[0] == '\0' || strcmp(dom, ".") == 0)	/* dns root? */
-		return 1;			/* hack for initialisation */
+	if(dom[0] == '\0' || strcmp(dom, ".") == 0) /* dns root? */
+		return 1;			    /* hack for initialisation */
 
 	lock(&dblock);
-	if (indoms == nil)
+	if(indoms == nil)
 		loaddomsrvs();
-	if (indoms == nil) {
+	if(indoms == nil) {
 		unlock(&dblock);
-		return 1;  /* no "inside-dom" sys, try inside nameservers */
+		return 1; /* no "inside-dom" sys, try inside nameservers */
 	}
 
 	rv = 0;
 	domlen = strlen(dom);
-	for (t = indoms; t != nil; t = t->entry) {
-		if (strcmp(t->attr, "dom") != 0)
+	for(t = indoms; t != nil; t = t->entry) {
+		if(strcmp(t->attr, "dom") != 0)
 			continue;
 		vallen = strlen(t->val);
-		if (cistrcmp(dom, t->val) == 0 ||
-		    domlen > vallen &&
-		     cistrcmp(dom + domlen - vallen, t->val) == 0 &&
-		     dom[domlen - vallen - 1] == '.') {
+		if(cistrcmp(dom, t->val) == 0 ||
+		   domlen > vallen &&
+		       cistrcmp(dom + domlen - vallen, t->val) == 0 &&
+		       dom[domlen - vallen - 1] == '.') {
 			rv = 1;
 			break;
 		}
@@ -1232,10 +1231,10 @@ insidens(uint8_t *ip)
 	uint8_t ipa[IPaddrlen];
 	Ndbtuple *t;
 
-	for (t = innmsrvs; t != nil; t = t->entry)
-		if (strcmp(t->attr, "ip") == 0) {
+	for(t = innmsrvs; t != nil; t = t->entry)
+		if(strcmp(t->attr, "ip") == 0) {
 			parseip(ipa, t->val);
-			if (memcmp(ipa, ip, sizeof ipa) == 0)
+			if(memcmp(ipa, ip, sizeof ipa) == 0)
 				return 1;
 		}
 	return 0;
@@ -1249,8 +1248,8 @@ outsidens(int n)
 	static uint8_t ipa[IPaddrlen];
 
 	i = 0;
-	for (t = outnmsrvs; t != nil; t = t->entry)
-		if (strcmp(t->attr, "ip") == 0 && i++ == n) {
+	for(t = outnmsrvs; t != nil; t = t->entry)
+		if(strcmp(t->attr, "ip") == 0 && i++ == n) {
 			parseip(ipa, t->val);
 			return ipa;
 		}

@@ -25,19 +25,19 @@ typedef struct Playfd Playfd;
 
 struct Playfd {
 	/* Describes a file to play for starting up pac4dec/mp3,... */
-	char	*filename;	/* mallocated */
-	int	fd;		/* filedesc to use */
-	int	cfd;		/* fildesc to close */
+	char *filename; /* mallocated */
+	int fd;		/* filedesc to use */
+	int cfd;	/* fildesc to close */
 };
 
 Channel *full, *empty, *playout, *spare;
-Channel	*playc, *pacc;
+Channel *playc, *pacc;
 
 char *playprog[] = {
-[Pac] = "/bin/games/pac4dec",
-[Mp3] = "/bin/games/mp3dec",
-[Pcm] = "/bin/cp",
-[Ogg] = "/bin/games/vorbisdec",
+	[Pac] = "/bin/games/pac4dec",
+	[Mp3] = "/bin/games/mp3dec",
+	[Pcm] = "/bin/cp",
+	[Ogg] = "/bin/games/vorbisdec",
 };
 
 uint32_t totbytes, totbuffers;
@@ -56,29 +56,29 @@ pac4dec(void *a)
 
 	threadsetname("pac4dec");
 	pfd = a;
-	close(pfd->cfd);	/* read fd */
+	close(pfd->cfd); /* read fd */
 	ext = strrchr(pfd->filename, '.');
 	fd = open(pfd->filename, OREAD);
-	if (fd < 0 && ext == nil){
+	if(fd < 0 && ext == nil) {
 		// Try the alternatives
 		ext = buf + strlen(pfd->filename);
 		snprint(buf, sizeof buf, "%s.pac", pfd->filename);
 		fd = open(buf, OREAD);
-		if (fd < 0){
+		if(fd < 0) {
 			snprint(buf, sizeof buf, "%s.mp3", pfd->filename);
 			fd = open(buf, OREAD);
 		}
-		if (fd < 0){
+		if(fd < 0) {
 			snprint(buf, sizeof buf, "%s.ogg", pfd->filename);
 			fd = open(buf, OREAD);
 		}
-		if (fd < 0){
+		if(fd < 0) {
 			snprint(buf, sizeof buf, "%s.pcm", pfd->filename);
 			fd = open(buf, OREAD);
 		}
 	}
-	if (fd < 0){
-		if (debug & DbgPlayer)
+	if(fd < 0) {
+		if(debug & DbgPlayer)
 			fprint(2, "pac4dec: %s: %r", pfd->filename);
 		pb = nbrecvp(spare);
 		pb->cmd = Error;
@@ -89,27 +89,27 @@ pac4dec(void *a)
 	}
 	dup(pfd->fd, 1);
 	close(pfd->fd);
-	if(ext == nil || strcmp(ext, ".pac") == 0){
+	if(ext == nil || strcmp(ext, ".pac") == 0) {
 		type = Pac;
 		snprint(args[0], sizeof args[0], "pac4dec");
 		snprint(args[1], sizeof args[1], "/fd/%d", fd);
 		snprint(args[2], sizeof args[2], "/fd/1");
 		argv[3] = nil;
-	}else if(strcmp(ext, ".mp3") == 0){
+	} else if(strcmp(ext, ".mp3") == 0) {
 		type = Mp3;
 		snprint(args[0], sizeof args[0], "mp3dec");
 		snprint(args[1], sizeof args[1], "-q");
 		snprint(args[2], sizeof args[1], "-s");
 		snprint(args[3], sizeof args[1], "/fd/%d", fd);
 		argv[4] = nil;
-	}else if(strcmp(ext, ".ogg") == 0){
+	} else if(strcmp(ext, ".ogg") == 0) {
 		type = Ogg;
 		snprint(args[0], sizeof args[0], "vorbisdec");
 		argv[1] = nil;
 		argv[2] = nil;
 		argv[3] = nil;
 		dup(fd, 0);
-	}else{
+	} else {
 		type = Pcm;
 		snprint(args[0], sizeof args[0], "cat");
 		snprint(args[1], sizeof args[1], "/fd/%d", fd);
@@ -118,9 +118,9 @@ pac4dec(void *a)
 	}
 	free(pfd->filename);
 	free(pfd);
-	if (debug & DbgPlayer)
+	if(debug & DbgPlayer)
 		fprint(2, "procexecl %s %s %s %s\n",
-			playprog[type], argv[0], argv[1], argv[2]);
+		       playprog[type], argv[0], argv[1], argv[2]);
 	procexec(nil, playprog[type], argv);
 	if((pb = nbrecvp(spare)) == nil)
 		pb = malloc(sizeof(Pacbuf));
@@ -141,17 +141,17 @@ startplay(uint16_t n)
 	file = getplaylist(n);
 	if(file == nil)
 		return Undef;
-	if (debug & DbgPlayer)
+	if(debug & DbgPlayer)
 		fprint(2, "startplay: file is `%s'\n", file);
 	if(pipe(fd) < 0)
 		sysfatal("pipe: %r");
 	pfd = malloc(sizeof(Playfd));
-	pfd->filename = file;	/* mallocated already */
+	pfd->filename = file; /* mallocated already */
 	pfd->fd = fd[1];
 	pfd->cfd = fd[0];
 	procrfork(pac4dec, pfd, STACKSIZE, RFFDG);
-	close(fd[1]);	/* write fd, for pac4dec */
-	return fd[0];	/* read fd */
+	close(fd[1]); /* write fd, for pac4dec */
+	return fd[0]; /* read fd */
 }
 
 static void
@@ -161,7 +161,7 @@ rtsched(void)
 	char *ctl;
 
 	ctl = smprint("/proc/%ud/ctl", getpid());
-	if((fd = open(ctl, ORDWR)) < 0) 
+	if((fd = open(ctl, ORDWR)) < 0)
 		sysfatal("%s: %r", ctl);
 	if(fprint(fd, "period 20ms") < 0)
 		sysfatal("%s: %r", ctl);
@@ -176,15 +176,15 @@ rtsched(void)
 }
 
 void
-pacproc(void*)
+pacproc(void *)
 {
 	Pmsg playstate, newstate;
 	int fd;
 	Pacbuf *pb;
 	Alt a[3] = {
-		{empty, &pb, CHANNOP},
-		{playc, &newstate.m, CHANRCV},
-		{nil, nil, CHANEND},
+	    {empty, &pb, CHANNOP},
+	    {playc, &newstate.m, CHANRCV},
+	    {nil, nil, CHANEND},
 	};
 
 	threadsetname("pacproc");
@@ -192,24 +192,24 @@ pacproc(void*)
 	newstate.cmd = playstate.cmd = Stop;
 	newstate.off = playstate.off = 0;
 	fd = -1;
-	for(;;){
-		switch(alt(a)){
+	for(;;) {
+		switch(alt(a)) {
 		case 0:
 			/* Play out next buffer (pb points to one already) */
-			assert(fd >= 0);	/* Because we must be in Play mode */
+			assert(fd >= 0); /* Because we must be in Play mode */
 			pb->m = playstate.m;
 			pb->len = read(fd, pb->data, sizeof pb->data);
-			if(pb->len > 0){
+			if(pb->len > 0) {
 				sendp(full, pb);
 				break;
 			}
-			if(pb->len < 0){
+			if(pb->len < 0) {
 				if(debug & DbgPlayer)
 					fprint(2, "pac, error: %d\n", playstate.off);
 				pb->cmd = Error;
 				pb->len = snprint(pb->data, sizeof pb->data, "%s: %r", curfile);
 				sendp(full, pb);
-			}else{
+			} else {
 				/* Simple end of file */
 				sendp(empty, pb); /* Don't need buffer after all */
 			}
@@ -223,10 +223,10 @@ pacproc(void*)
 		case 1:
 			if((debug & DbgPac) && newstate.cmd)
 				fprint(2, "Pacproc: newstate %s-%d, playstate %s-%d\n",
-					statetxt[newstate.cmd], newstate.off,
-					statetxt[playstate.cmd], playstate.off);
+				       statetxt[newstate.cmd], newstate.off,
+				       statetxt[playstate.cmd], playstate.off);
 			/* Deal with an incoming command */
-			if(newstate.cmd == Pause || newstate.cmd == Resume){
+			if(newstate.cmd == Pause || newstate.cmd == Resume) {
 				/* Just pass them on, don't change local state */
 				pb = recvp(spare);
 				pb->m = newstate.m;
@@ -234,7 +234,7 @@ pacproc(void*)
 				break;
 			}
 			/* Stop whatever we're doing */
-			if(fd >= 0){
+			if(fd >= 0) {
 				if(debug & DbgPlayer)
 					fprint(2, "pac, stop\n");
 				/* Stop any active (pac) decoders */
@@ -242,7 +242,7 @@ pacproc(void*)
 				fd = -1;
 			}
 			a[0].op = CHANNOP;
-			switch(newstate.cmd){
+			switch(newstate.cmd) {
 			default:
 				sysfatal("pacproc: unexpected newstate %d", newstate.cmd);
 			case Stop:
@@ -251,10 +251,10 @@ pacproc(void*)
 			case Skip:
 			case Play:
 				fd = startplay(newstate.off);
-				if(fd >=0){
+				if(fd >= 0) {
 					playstate = newstate;
 					a[0].op = CHANRCV;
-					continue;	/* Start reading */
+					continue; /* Start reading */
 				}
 				newstate.cmd = Stop;
 			}
@@ -267,15 +267,15 @@ pacproc(void*)
 }
 
 void
-pcmproc(void*)
+pcmproc(void *)
 {
 	Pmsg localstate, newstate, prevstate;
 	int fd, n;
 	Pacbuf *pb, *b;
 	Alt a[3] = {
-		{full, &pb, CHANRCV},
-		{playout, &pb, CHANRCV},
-		{nil, nil, CHANEND},
+	    {full, &pb, CHANRCV},
+	    {playout, &pb, CHANRCV},
+	    {nil, nil, CHANEND},
 	};
 
 	/*
@@ -291,25 +291,25 @@ pcmproc(void*)
 	threadsetname("pcmproc");
 	close(srvfd[1]);
 	fd = -1;
-	localstate.cmd = 0;	/* Force initial playupdate */
+	localstate.cmd = 0; /* Force initial playupdate */
 	newstate.cmd = Stop;
 	newstate.off = 0;
-//	rtsched();
-	for(;;){
-		if(newstate.m != localstate.m){
+	//	rtsched();
+	for(;;) {
+		if(newstate.m != localstate.m) {
 			playupdate(newstate, nil);
 			localstate = newstate;
 		}
-		switch(alt(a)){
+		switch(alt(a)) {
 		case 0:
 			/* buffer received from pacproc */
-			if((debug & DbgPcm) && localstate.m != prevstate.m){
+			if((debug & DbgPcm) && localstate.m != prevstate.m) {
 				fprint(2, "pcm, full: %s-%d, local state is %s-%d\n",
-					statetxt[pb->cmd], pb->off,
-					statetxt[localstate.cmd], localstate.off);
+				       statetxt[pb->cmd], pb->off,
+				       statetxt[localstate.cmd], localstate.off);
 				prevstate.m = localstate.m;
 			}
-			switch(pb->cmd){
+			switch(pb->cmd) {
 			default:
 				sysfatal("pcmproc: unknown newstate: %s-%d", statetxt[pb->cmd], pb->off);
 			case Resume:
@@ -319,7 +319,7 @@ pcmproc(void*)
 			case Pause:
 				a[1].op = CHANNOP;
 				newstate.cmd = Pause;
-				if(fd >= 0){
+				if(fd >= 0) {
 					close(fd);
 					fd = -1;
 				}
@@ -327,14 +327,14 @@ pcmproc(void*)
 			case Stop:
 				/* Dump all data in the buffer */
 				while(b = nbrecvp(playout))
-					if(b->cmd == Error){
+					if(b->cmd == Error) {
 						playupdate(b->Pmsg, b->data);
 						sendp(spare, b);
-					}else
+					} else
 						sendp(empty, b);
 				newstate.m = pb->m;
 				a[1].op = CHANRCV;
-				if(fd >= 0){
+				if(fd >= 0) {
 					close(fd);
 					fd = -1;
 				}
@@ -342,10 +342,10 @@ pcmproc(void*)
 			case Skip:
 				/* Dump all data in the buffer, then fall through */
 				while(b = nbrecvp(playout))
-					if(b->cmd == Error){
+					if(b->cmd == Error) {
 						playupdate(pb->Pmsg, pb->data);
 						sendp(spare, pb);
-					}else
+					} else
 						sendp(empty, b);
 				a[1].op = CHANRCV;
 				newstate.cmd = Play;
@@ -363,13 +363,13 @@ pcmproc(void*)
 			break;
 		case 1:
 			/* internal buffer */
-			if((debug & DbgPlayer) && localstate.m != prevstate.m){
+			if((debug & DbgPlayer) && localstate.m != prevstate.m) {
 				fprint(2, "pcm, playout: %s-%d, local state is %s-%d\n",
-					statetxt[pb->cmd], pb->off,
-					statetxt[localstate.cmd], localstate.off);
+				       statetxt[pb->cmd], pb->off,
+				       statetxt[localstate.cmd], localstate.off);
 				prevstate.m = localstate.m;
 			}
-			switch(pb->cmd){
+			switch(pb->cmd) {
 			default:
 				sysfatal("pcmproc: unknown newstate: %s-%d", statetxt[pb->cmd], pb->off);
 			case Error:
@@ -378,7 +378,7 @@ pcmproc(void*)
 				sendp(spare, pb);
 				break;
 			case Play:
-				if(fd < 0 && (fd = open("/dev/audio", OWRITE)) < 0){
+				if(fd < 0 && (fd = open("/dev/audio", OWRITE)) < 0) {
 					a[1].op = CHANNOP;
 					newstate.cmd = Pause;
 					pb->cmd = Error;
@@ -392,10 +392,10 @@ pcmproc(void*)
 				totbytes += pb->len;
 				totbuffers++;
 				n = write(fd, pb->data, pb->len);
-				if (n != pb->len){
-					if (debug & DbgPlayer)
+				if(n != pb->len) {
+					if(debug & DbgPlayer)
 						fprint(2, "pcmproc: file %d: %r\n", pb->off);
-					if (n < 0)
+					if(n < 0)
 						sysfatal("pcmproc: write: %r");
 				}
 				newstate.m = pb->m;
@@ -412,18 +412,18 @@ playinit(void)
 {
 	int i;
 
-	full = chancreate(sizeof(Pacbuf*), 1);
-	empty = chancreate(sizeof(Pacbuf*), NPacbuf);
-	spare = chancreate(sizeof(Pacbuf*), NSparebuf);
-	playout = chancreate(sizeof(Pacbuf*), NPacbuf+NSparebuf);
+	full = chancreate(sizeof(Pacbuf *), 1);
+	empty = chancreate(sizeof(Pacbuf *), NPacbuf);
+	spare = chancreate(sizeof(Pacbuf *), NSparebuf);
+	playout = chancreate(sizeof(Pacbuf *), NPacbuf + NSparebuf);
 	for(i = 0; i < NPacbuf; i++)
 		sendp(empty, malloc(sizeof(Pacbuf)));
 	for(i = 0; i < NSparebuf; i++)
 		sendp(spare, malloc(sizeof(Pacbuf)));
 
 	playc = chancreate(sizeof(Pmsg), 1);
-	procrfork(pacproc, nil, 8*STACKSIZE, RFFDG);
-	procrfork(pcmproc, nil, 8*STACKSIZE, RFFDG);
+	procrfork(pacproc, nil, 8 * STACKSIZE, RFFDG);
+	procrfork(pcmproc, nil, 8 * STACKSIZE, RFFDG);
 }
 
 char *

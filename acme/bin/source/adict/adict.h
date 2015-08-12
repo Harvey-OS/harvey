@@ -7,13 +7,12 @@
  * in the LICENSE file.
  */
 
-enum
-{
+enum {
 	Matchwin,
 	Entrywin,
 	Dictwin
 };
 
-#define MAXTAG	20
+#define MAXTAG 20
 #define MAXMATCH 100
-#define BUFSIZE	4096
+#define BUFSIZE 4096

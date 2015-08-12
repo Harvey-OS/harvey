@@ -17,7 +17,7 @@
  *
  */
 
-#define POSTBEGIN	"statusdict /waittimeout 0 put\n"
+#define POSTBEGIN "statusdict /waittimeout 0 put\n"
 
 /*
  *
@@ -29,10 +29,10 @@
  *
  */
 
-#define NOTCONNECTED	0
-#define START		1
-#define SEND		2
-#define DONE		3
+#define NOTCONNECTED 0
+#define START 1
+#define SEND 2
+#define DONE 3
 
 /*
  *
@@ -53,9 +53,9 @@
  *
  */
 
-#define READ		1
-#define WRITE		2
-#define READWRITE	3
+#define READ 1
+#define WRITE 2
+#define READWRITE 3
 
 /*
  *
@@ -88,21 +88,21 @@
  *
  */
 
-#define BUSY		0		/* processing data already sent */
-#define WAITING		1		/* printer wants more data */
-#define PRINTING	2		/* printing a page */
-#define IDLE		3		/* ready to start the next job */
-#define ENDOFJOB	4		/* readline() builds this up on EOF */
-#define PRINTERERROR	5		/* PrinterError - eg. out of paper */
-#define ERROR		6		/* some kind of PostScript error */
-#define FLUSHING	7		/* throwing out the rest of the job */
-#define INITIALIZING	8		/* printer is booting */
-#define DISCONNECT	9		/* from Datakit! */
-#define UNKNOWN		10		/* in case we missed anything */
-#define NOSTATUS	11		/* no response from the printer */
+#define BUSY 0	 /* processing data already sent */
+#define WAITING 1      /* printer wants more data */
+#define PRINTING 2     /* printing a page */
+#define IDLE 3	 /* ready to start the next job */
+#define ENDOFJOB 4     /* readline() builds this up on EOF */
+#define PRINTERERROR 5 /* PrinterError - eg. out of paper */
+#define ERROR 6	/* some kind of PostScript error */
+#define FLUSHING 7     /* throwing out the rest of the job */
+#define INITIALIZING 8 /* printer is booting */
+#define DISCONNECT 9   /* from Datakit! */
+#define UNKNOWN 10     /* in case we missed anything */
+#define NOSTATUS 11    /* no response from the printer */
 
-#define WRITEPROCESS	12		/* dummy states for write process */
-#define INTERACTIVE	13		/* and interactive mode */
+#define WRITEPROCESS 12 /* dummy states for write process */
+#define INTERACTIVE 13  /* and interactive mode */
 
 /*
  *
@@ -113,8 +113,8 @@
  */
 
 typedef struct {
-	char	*state;			/* printer's current status */
-	int	val;			/* value returned by getstatus() */
+	char *state; /* printer's current status */
+	int val;     /* value returned by getstatus() */
 } Status;
 
 /*
@@ -128,19 +128,10 @@ typedef struct {
  *
  */
 
-#define STATUS								\
-									\
-	{								\
-	    "busy", BUSY,						\
-	    "waiting", WAITING,						\
-	    "printing", PRINTING,					\
-	    "idle", IDLE,						\
-	    "endofjob", ENDOFJOB,					\
-	    "printererror", PRINTERERROR,				\
-	    "error", ERROR,						\
-	    "flushing", FLUSHING,					\
-	    "initializing", INITIALIZING,				\
-	    NULL, UNKNOWN						\
+#define STATUS                                                                                                                                                                                                              \
+                                                                                                                                                                                                                            \
+	{                                                                                                                                                                                                                   \
+		"busy", BUSY, "waiting", WAITING, "printing", PRINTING, "idle", IDLE, "endofjob", ENDOFJOB, "printererror", PRINTERERROR, "error", ERROR, "flushing", FLUSHING, "initializing", INITIALIZING, NULL, UNKNOWN \
 	}
 
 /*
@@ -150,7 +141,7 @@ typedef struct {
  *
  */
 
-#define BAUDRATE	B9600
+#define BAUDRATE B9600
 
 /*
  *
@@ -160,8 +151,8 @@ typedef struct {
  */
 
 typedef struct {
-	char	*rate;			/* string identifying the baud rate */
-	short	val;			/* and its termio.h value */
+	char *rate; /* string identifying the baud rate */
+	short val;  /* and its termio.h value */
 } Baud;
 
 /*
@@ -172,26 +163,10 @@ typedef struct {
  *
  */
 
-#define BAUDTABLE							\
-									\
-	{								\
-	    "9600", B9600,						\
-	    "B9600", B9600,						\
-	    "19200", EXTA,						\
-	    "19.2", EXTA,						\
-	    "B19200", EXTA,						\
-	    "EXTA", EXTA,						\
-	    "1200", B1200,						\
-	    "B1200", B1200,						\
-	    "2400", B2400,						\
-	    "B2400", B2400,						\
-	    "B4800", B4800,						\
-	    "4800", B4800,						\
-	    "38400", EXTB,						\
-	    "38.4", EXTB,						\
-	    "B38400", EXTB,						\
-	    "EXTB", EXTB,						\
-	    NULL, B9600							\
+#define BAUDTABLE                                                                                                                                                                                                                                                             \
+                                                                                                                                                                                                                                                                              \
+	{                                                                                                                                                                                                                                                                     \
+		"9600", B9600, "B9600", B9600, "19200", EXTA, "19.2", EXTA, "B19200", EXTA, "EXTA", EXTA, "1200", B1200, "B1200", B1200, "2400", B2400, "B2400", B2400, "B4800", B4800, "4800", B4800, "38400", EXTB, "38.4", EXTB, "B38400", EXTB, "EXTB", EXTB, NULL, B9600 \
 	}
 
 /*
@@ -203,8 +178,8 @@ typedef struct {
  *
  */
 
-#define BLOCKSIZE	2048
-#define MESGSIZE	512
+#define BLOCKSIZE 2048
+#define MESGSIZE 512
 
 /*
  *
@@ -212,7 +187,7 @@ typedef struct {
  *
  */
 
-char	*find();
+char *find();
 
-char	*malloc();
-char	*strtok();
+char *malloc();
+char *strtok();

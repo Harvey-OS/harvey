@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
- /* t0.c: storage allocation */
+/* t0.c: storage allocation */
 #
-# include "t.h"
+#include "t.h"
 int expflg = 0;
 int ctrflg = 0;
 int boxflg = 0;
@@ -30,7 +30,7 @@ int rightl = 0;
 char *cstore, *cspace;
 char *last;
 struct colstr *table[MAXLIN];
-int stynum[MAXLIN+1];
+int stynum[MAXLIN + 1];
 int fullbot[MAXLIN];
 char *instead[MAXLIN];
 int linestop[MAXLIN];
@@ -54,5 +54,5 @@ int texct = 0;
 char texstr[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789";
 int linstart;
 char *exstore, *exlim, *exspace;
-Biobuf *tabin  /*= stdin */;
-Biobuf tabout  /* = stdout */;
+Biobuf *tabin /*= stdin */;
+Biobuf tabout /* = stdout */;

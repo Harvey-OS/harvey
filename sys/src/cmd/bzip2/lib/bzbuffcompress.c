@@ -98,53 +98,55 @@
 #include "bzlib_private.h"
 
 /*---------------------------------------------------*/
-int BZ_API(BZ2_bzBuffToBuffCompress) 
-                         ( char*         dest, 
-                           unsigned int* destLen,
-                           char*         source, 
-                           unsigned int  sourceLen,
-                           int           blockSize100k, 
-                           int           verbosity, 
-                           int           workFactor )
+int BZ_API(BZ2_bzBuffToBuffCompress)(char *dest,
+				     unsigned int *destLen,
+				     char *source,
+				     unsigned int sourceLen,
+				     int blockSize100k,
+				     int verbosity,
+				     int workFactor)
 {
-   bz_stream strm;
-   int ret;
+	bz_stream strm;
+	int ret;
 
-   if (dest == NULL || destLen == NULL || 
-       source == NULL ||
-       blockSize100k < 1 || blockSize100k > 9 ||
-       verbosity < 0 || verbosity > 4 ||
-       workFactor < 0 || workFactor > 250) 
-      return BZ_PARAM_ERROR;
+	if(dest == NULL || destLen == NULL ||
+	   source == NULL ||
+	   blockSize100k < 1 || blockSize100k > 9 ||
+	   verbosity < 0 || verbosity > 4 ||
+	   workFactor < 0 || workFactor > 250)
+		return BZ_PARAM_ERROR;
 
-   if (workFactor == 0) workFactor = 30;
-   strm.bzalloc = NULL;
-   strm.bzfree = NULL;
-   strm.opaque = NULL;
-   ret = BZ2_bzCompressInit ( &strm, blockSize100k, 
-                              verbosity, workFactor );
-   if (ret != BZ_OK) return ret;
+	if(workFactor == 0)
+		workFactor = 30;
+	strm.bzalloc = NULL;
+	strm.bzfree = NULL;
+	strm.opaque = NULL;
+	ret = BZ2_bzCompressInit(&strm, blockSize100k,
+				 verbosity, workFactor);
+	if(ret != BZ_OK)
+		return ret;
 
-   strm.next_in = source;
-   strm.next_out = dest;
-   strm.avail_in = sourceLen;
-   strm.avail_out = *destLen;
+	strm.next_in = source;
+	strm.next_out = dest;
+	strm.avail_in = sourceLen;
+	strm.avail_out = *destLen;
 
-   ret = BZ2_bzCompress ( &strm, BZ_FINISH );
-   if (ret == BZ_FINISH_OK) goto output_overflow;
-   if (ret != BZ_STREAM_END) goto errhandler;
+	ret = BZ2_bzCompress(&strm, BZ_FINISH);
+	if(ret == BZ_FINISH_OK)
+		goto output_overflow;
+	if(ret != BZ_STREAM_END)
+		goto errhandler;
 
-   /* normal termination */
-   *destLen -= strm.avail_out;   
-   BZ2_bzCompressEnd ( &strm );
-   return BZ_OK;
+	/* normal termination */
+	*destLen -= strm.avail_out;
+	BZ2_bzCompressEnd(&strm);
+	return BZ_OK;
 
-   output_overflow:
-   BZ2_bzCompressEnd ( &strm );
-   return BZ_OUTBUFF_FULL;
+output_overflow:
+	BZ2_bzCompressEnd(&strm);
+	return BZ_OUTBUFF_FULL;
 
-   errhandler:
-   BZ2_bzCompressEnd ( &strm );
-   return ret;
+errhandler:
+	BZ2_bzCompressEnd(&strm);
+	return ret;
 }
-

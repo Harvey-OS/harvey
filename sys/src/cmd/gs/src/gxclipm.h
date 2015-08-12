@@ -28,7 +28,7 @@
 /* Requires gsstruct.h, gxdevice.h, gxdevmem.h */
 
 #ifndef gxclipm_INCLUDED
-#  define gxclipm_INCLUDED
+#define gxclipm_INCLUDED
 
 #include "gxmclip.h"
 

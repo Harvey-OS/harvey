@@ -19,26 +19,25 @@
 	octal <tab> word
  */
 
-typedef	struct	Dict	Dict;
-struct	Dict
-{
-	char*	word;
-	int	encode;
+typedef struct Dict Dict;
+struct Dict {
+	char *word;
+	int encode;
 };
 
-Dict	words[200000];
-char	space[500000];
-int32_t	encodes[4094];
-int32_t	nspace;
-int32_t	nwords;
-int	ncodes;
-Biobuf	bout;
+Dict words[200000];
+char space[500000];
+int32_t encodes[4094];
+int32_t nspace;
+int32_t nwords;
+int ncodes;
+Biobuf bout;
 
-void	readinput(int f);
-int32_t	typecode(char *str);
-int	wcmp(const void*, const void*);
-void	pdict(void);
-void	sput(int);
+void readinput(int f);
+int32_t typecode(char *str);
+int wcmp(const void *, const void *);
+void pdict(void);
+void sput(int);
 
 void
 main(int argc, char *argv[])
@@ -62,7 +61,7 @@ main(int argc, char *argv[])
 		argv++;
 	}
 	fprint(2, "words = %ld; space = %ld; codes = %d\n",
-		nwords, nspace, ncodes);
+	       nwords, nspace, ncodes);
 	qsort(words, nwords, sizeof(words[0]), wcmp);
 	pdict();
 	exits(0);
@@ -71,7 +70,7 @@ main(int argc, char *argv[])
 wcmp(const void *a, const void *b)
 {
 
-	return strcmp(((Dict*)a)->word, ((Dict*)b)->word);
+	return strcmp(((Dict *)a)->word, ((Dict *)b)->word);
 }
 
 void
@@ -84,7 +83,7 @@ readinput(int f)
 
 	Binit(&buf, f, OREAD);
 	while(line = Brdline(&buf, '\n')) {
-		line[Blinelen(&buf)-1] = 0;
+		line[Blinelen(&buf) - 1] = 0;
 		lineno++;
 		code = line;
 		while(isspace(*code))
@@ -93,9 +92,9 @@ readinput(int f)
 		while(*code && !isspace(*code))
 			code++;
 
-		i = code-bword;
-		memmove(space+nspace, bword, i);
-		words[nwords].word = space+nspace;
+		i = code - bword;
+		memmove(space + nspace, bword, i);
+		words[nwords].word = space + nspace;
 		nspace += i;
 		space[nspace] = 0;
 		nspace++;
@@ -107,11 +106,11 @@ readinput(int f)
 		}
 		words[nwords].encode = typecode(code);
 		nwords++;
-		if(nwords >= sizeof(words)/sizeof(words[0])) {
+		if(nwords >= sizeof(words) / sizeof(words[0])) {
 			fprint(2, "words array too small\n");
 			exits("words");
 		}
-		if(nspace >= sizeof(space)/sizeof(space[0])) {
+		if(nspace >= sizeof(space) / sizeof(space[0])) {
 			fprint(2, "space array too small\n");
 			exits("space");
 		}
@@ -119,116 +118,102 @@ readinput(int f)
 	Bterm(&buf);
 }
 
+typedef struct Class Class;
+struct Class {
+	char *codename;
+	int32_t bits;
+};
+Class codea[] =
+    {
+     {"a", ADJ},
+     {"adv", ADV},
+     0};
+Class codec[] =
+    {
+     {"comp", COMP},
+     0};
+Class coded[] =
+    {
+     {"d", DONT_TOUCH},
+     0};
 
-typedef	struct	Class	Class;
-struct	Class
-{
-	char*	codename;
-	int32_t	bits;
-};
-Class	codea[]  =
-{
-	{ "a", ADJ },
-	{ "adv", ADV },
-	0
-};
-Class	codec[] =
-{
-	{ "comp", COMP },
-	0
-};
-Class	coded[] =
-{
-	{ "d", DONT_TOUCH},
-	0
-};
+Class codee[] =
+    {
+     {"ed", ED},
+     {"er", ACTOR},
+     0};
 
-Class	codee[] =
-{
-	{ "ed",	ED },
-	{ "er", ACTOR },
-	0
-};
+Class codei[] =
+    {
+     {"in", IN},
+     {"ion", ION},
+     0};
 
-Class	codei[] =
-{
-	{ "in", IN },
-	{ "ion", ION },
-	0
-};
+Class codem[] =
+    {
+     {"man", MAN},
+     {"ms", MONO},
+     0};
 
-Class	codem[] =
-{
-	{ "man", MAN },
-	{ "ms", MONO },
-	0
-};
+Class coden[] =
+    {
+     {"n", NOUN},
+     {"na", N_AFFIX},
+     {"nopref", NOPREF},
+     0};
 
-Class	coden[] =
-{
-	{ "n", NOUN },
-	{ "na", N_AFFIX },
-	{ "nopref", NOPREF },
-	0
-};
+Class codep[] =
+    {
+     {"pc", PROP_COLLECT},
+     0};
+Class codes[] =
+    {
+     {"s", STOP},
+     0};
 
-Class	codep[] =
-{
-	{ "pc", PROP_COLLECT },
-	0
-};
-Class	codes[] =
-{
-	{ "s", STOP },
-	0
-};
+Class codev[] =
+    {
+     {"v", VERB},
+     {"va", V_AFFIX},
+     {"vi", V_IRREG},
+     0};
 
-Class	codev[] =
-{
-	{ "v", VERB },
-	{ "va", V_AFFIX },
-	{ "vi", V_IRREG },
-	0
-};
+Class codey[] =
+    {
+     {"y", _Y},
+     0};
 
-Class	codey[] =
-{
-	{ "y", _Y },
-	0
-};
-
-Class	codez[] =
-{
-	0
-};
-Class*	codetab[] =
-{
-	codea,
-	codez,
-	codec,
-	coded,
-	codee,
-	codez,
-	codez,
-	codez,
-	codei,
-	codez,
-	codez,
-	codez,
-	codem,
-	coden,
-	codez,
-	codep,
-	codez,
-	codez,
-	codes,
-	codez,
-	codez,
-	codev,
-	codez,
-	codez,
-	codey,
-	codez,
+Class codez[] =
+    {
+     0};
+Class *codetab[] =
+    {
+     codea,
+     codez,
+     codec,
+     coded,
+     codee,
+     codez,
+     codez,
+     codez,
+     codei,
+     codez,
+     codez,
+     codez,
+     codem,
+     coden,
+     codez,
+     codep,
+     codez,
+     codez,
+     codes,
+     codez,
+     codez,
+     codev,
+     codez,
+     codez,
+     codey,
+     codez,
 };
 
 int32_t
@@ -242,11 +227,11 @@ typecode(char *str)
 	code = 0;
 
 loop:
-	for(s=str; *s != 0 && *s != ','; s++)
+	for(s = str; *s != 0 && *s != ','; s++)
 		;
-	for(p = codetab[*str-'a']; sp = p->codename; p++) {
+	for(p = codetab[*str - 'a']; sp = p->codename; p++) {
 		st = str;
-		for(n=s-str;; st++,sp++) {
+		for(n = s - str;; st++, sp++) {
 			if(*st != *sp)
 				goto cont;
 			n--;
@@ -256,14 +241,15 @@ loop:
 		code |= p->bits;
 		if(*s == 0)
 			goto out;
-		str = s+1;
+		str = s + 1;
 		goto loop;
-	cont:;
+	cont:
+		;
 	}
 	fprint(2, "Unknown affix code \"%s\"\n", str);
 	return 0;
 out:
-	for(i=0; i<ncodes; i++)
+	for(i = 0; i < ncodes; i++)
 		if(encodes[i] == code)
 			return i;
 	encodes[i] = code;
@@ -275,16 +261,16 @@ void
 sput(int s)
 {
 
-	Bputc(&bout, s>>8);
+	Bputc(&bout, s >> 8);
 	Bputc(&bout, s);
 }
 
 void
 lput(int32_t l)
 {
-	Bputc(&bout, l>>24);
-	Bputc(&bout, l>>16);
-	Bputc(&bout, l>>8);
+	Bputc(&bout, l >> 24);
+	Bputc(&bout, l >> 16);
+	Bputc(&bout, l >> 8);
 	Bputc(&bout, l);
 }
 
@@ -313,15 +299,15 @@ pdict(void)
 	char *lastword, *thisword, *word;
 
 	sput(ncodes);
-	for(i=0; i<ncodes; i++)
+	for(i = 0; i < ncodes; i++)
 		lput(encodes[i]);
 
-	count = ncodes*4 + 2;
+	count = ncodes * 4 + 2;
 	lastword = "";
-	for(i=0; i<nwords; i++) {
+	for(i = 0; i < nwords; i++) {
 		word = words[i].word;
 		thisword = word;
-		for(j=0; *thisword == *lastword; j++) {
+		for(j = 0; *thisword == *lastword; j++) {
 			if(*thisword == 0) {
 				fprint(2, "identical words: %s\n", word);
 				break;
@@ -332,10 +318,10 @@ pdict(void)
 		if(j > 15)
 			j = 15;
 		encode = words[i].encode;
-		c = (1<<15) | (j<<11) | encode;
+		c = (1 << 15) | (j << 11) | encode;
 		sput(c);
 		count += 2;
-		for(thisword=word+j; c = *thisword; thisword++) {
+		for(thisword = word + j; c = *thisword; thisword++) {
 			Bputc(&bout, c);
 			count++;
 		}

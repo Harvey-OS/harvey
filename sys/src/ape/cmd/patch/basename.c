@@ -10,7 +10,7 @@
 /* basename.c -- return the last element in a path */
 
 #if HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <backupfile.h>
@@ -28,14 +28,13 @@
    In some environments the builtin `basename' modifies its argument.  */
 
 char *
-base_name (name)
-     char const *name;
+    base_name(name) char const *name;
 {
-  char const *base = name += FILESYSTEM_PREFIX_LEN (name);
+	char const *base = name += FILESYSTEM_PREFIX_LEN(name);
 
-  for (; *name; name++)
-    if (ISSLASH (*name))
-      base = name + 1;
+	for(; *name; name++)
+		if(ISSLASH(*name))
+			base = name + 1;
 
-  return (char *) base;
+	return (char *)base;
 }

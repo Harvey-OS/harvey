@@ -27,15 +27,17 @@ main(int argc, char **argv)
 	Header h;
 	Super s;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0 || argc > 2)
 		usage();
 
-	if((fd = open(argv[0], argc==2 ? ORDWR : OREAD)) < 0)
+	if((fd = open(argv[0], argc == 2 ? ORDWR : OREAD)) < 0)
 		sysfatal("open %s: %r", argv[0]);
 
 	if(pread(fd, buf, HeaderSize, HeaderOffset) != HeaderSize)
@@ -43,17 +45,17 @@ main(int argc, char **argv)
 	if(!headerUnpack(&h, buf))
 		sysfatal("unpacking header: %r");
 
-	if(pread(fd, buf, h.blockSize, (int64_t)h.super*h.blockSize) != h.blockSize)
+	if(pread(fd, buf, h.blockSize, (int64_t)h.super * h.blockSize) != h.blockSize)
 		sysfatal("reading super block: %r");
 
 	if(!superUnpack(&s, buf))
 		sysfatal("unpacking super block: %r");
 
 	print("epoch %d\n", s.epochLow);
-	if(argc == 2){
+	if(argc == 2) {
 		s.epochLow = strtoul(argv[1], 0, 0);
 		superPack(&s, buf);
-		if(pwrite(fd, buf, h.blockSize, (int64_t)h.super*h.blockSize) != h.blockSize)
+		if(pwrite(fd, buf, h.blockSize, (int64_t)h.super * h.blockSize) != h.blockSize)
 			sysfatal("writing super block: %r");
 	}
 	exits(0);

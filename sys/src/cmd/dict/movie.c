@@ -14,69 +14,69 @@
 
 /* Possible tags */
 enum {
-	BEG,	/* beginning of entry */
-	AB,	/* abstract */
-	AN,	/* database serial number */
-	AS,	/* author (one at a time) */
-	AU,	/* all authors */
-	AW,	/* award_awardee */
-	BW,	/* bw or c */
-	CA,	/* cast: character_actor */
-	CN,	/* cinematography */
-	CO,	/* country */
-	CR,	/* miscellaneous job_name */
-	DE,	/* topic keyword */
-	DR,	/* director */
-	ED,	/* editor */
-	MP,	/* MPAA rating (R, PG, etc.) */
-	NT,	/* note */
-	PR,	/* producer and for ...*/
-	PS,	/* producer (repeats info in PR) */
-	RA,	/* rating (letter) */
-	RD,	/* release date */
-	RT,	/* running time */
-	RV,	/* review citation */
-	ST,	/* production or release company (repeats info in PR) */
-	TI,	/* title[; original foreign title] */
-	TX,	/* paragraph of descriptive text */
-	VD,	/* video information (format_time_company; or "Not Avail.") */
-	NTAG	/* number of tags */
+	BEG, /* beginning of entry */
+	AB,  /* abstract */
+	AN,  /* database serial number */
+	AS,  /* author (one at a time) */
+	AU,  /* all authors */
+	AW,  /* award_awardee */
+	BW,  /* bw or c */
+	CA,  /* cast: character_actor */
+	CN,  /* cinematography */
+	CO,  /* country */
+	CR,  /* miscellaneous job_name */
+	DE,  /* topic keyword */
+	DR,  /* director */
+	ED,  /* editor */
+	MP,  /* MPAA rating (R, PG, etc.) */
+	NT,  /* note */
+	PR,  /* producer and for ...*/
+	PS,  /* producer (repeats info in PR) */
+	RA,  /* rating (letter) */
+	RD,  /* release date */
+	RT,  /* running time */
+	RV,  /* review citation */
+	ST,  /* production or release company (repeats info in PR) */
+	TI,  /* title[; original foreign title] */
+	TX,  /* paragraph of descriptive text */
+	VD,  /* video information (format_time_company; or "Not Avail.") */
+	NTAG /* number of tags */
 };
 
 /* Assoc tables must be sorted on first field */
 
 static char *tagtab[] = {
-[BEG]	"$$",
-[AB]	"AB",
-[AN]	"AN",
-[AS]	"AS",
-[AU]	"AU",
-[AW]	"AW",
-[BW]	"BW",
-[CA]	"CA",
-[CN]	"CN",
-[CO]	"CO",
-[CR]	"CR",
-[DE]	"DE",
-[DR]	"DR",
-[ED]	"ED",
-[MP]	"MP",
-[NT]	"NT",
-[PR]	"PR",
-[PS]	"PS",
-[RA]	"RA",
-[RD]	"RD",
-[RT]	"RT",
-[RV]	"RV",
-[ST]	"ST",
-[TI]	"TI",
-[TX]	"TX",
-[VD]	"VD",
+	[BEG] "$$",
+	[AB] "AB",
+	[AN] "AN",
+	[AS] "AS",
+	[AU] "AU",
+	[AW] "AW",
+	[BW] "BW",
+	[CA] "CA",
+	[CN] "CN",
+	[CO] "CO",
+	[CR] "CR",
+	[DE] "DE",
+	[DR] "DR",
+	[ED] "ED",
+	[MP] "MP",
+	[NT] "NT",
+	[PR] "PR",
+	[PS] "PS",
+	[RA] "RA",
+	[RD] "RD",
+	[RT] "RT",
+	[RV] "RV",
+	[ST] "ST",
+	[TI] "TI",
+	[TX] "TX",
+	[VD] "VD",
 };
 
-static char	*mget(int, char *, char *, char **);
-static void	moutall(int, char *, char *);
-static void	moutall2(int, char *, char *);
+static char *mget(int, char *, char *, char **);
+static void moutall(int, char *, char *);
+static void moutall2(int, char *, char *);
 
 void
 movieprintentry(Entry ent, int cmd)
@@ -87,7 +87,7 @@ movieprintentry(Entry ent, int cmd)
 	ps = ent.start;
 	pe = ent.end;
 	if(cmd == 'r') {
-		Bwrite(bout, ps, pe-ps);
+		Bwrite(bout, ps, pe - ps);
 		return;
 	}
 	p = mget(TI, ps, pe, &e);
@@ -223,7 +223,7 @@ movienextoff(int32_t fromoff)
 		if(!p)
 			break;
 		if(p[0] == '$' && p[1] == '$')
-			return (Boffset(bdict)-Blinelen(bdict));
+			return (Boffset(bdict) - Blinelen(bdict));
 	}
 	return -1;
 }
@@ -270,7 +270,7 @@ moutall2(int tag, char *b, char *e)
 		if(n++)
 			outchars(", ");
 		us = 0;
-		for(q = pn-1; q >= p; q--)
+		for(q = pn - 1; q >= p; q--)
 			if(*q == '_') {
 				us = q;
 				break;
@@ -279,14 +279,14 @@ moutall2(int tag, char *b, char *e)
 			/*
 			 * Hack to fix cast list Himself/Herself
 			 */
-			if(strncmp(us+1, "Himself", 7) == 0 ||
-			   strncmp(us+1, "Herself", 7) == 0) {
+			if(strncmp(us + 1, "Himself", 7) == 0 ||
+			   strncmp(us + 1, "Herself", 7) == 0) {
 				outpiece(p, us);
 				outchars(" (");
-				outpiece(us+1, pn);
+				outpiece(us + 1, pn);
 				outchar(')');
 			} else {
-				outpiece(us+1, pn);
+				outpiece(us + 1, pn);
 				outchars(" (");
 				outpiece(p, us);
 				outchar(')');
@@ -316,15 +316,15 @@ mget(int tag, char *b, char *e, char **eptr)
 		p = strchr(p, '\n');
 		if(!p || ++p >= e) {
 			if(ans)
-				*eptr = e-1;
+				*eptr = e - 1;
 			break;
 		}
 		if(!ans) {
 			if(p[0] == t[0] && p[1] == t[1])
-				ans = p+3;
+				ans = p + 3;
 		} else {
 			if(p[0] != ' ') {
-				*eptr = p-1;
+				*eptr = p - 1;
 				break;
 			}
 		}

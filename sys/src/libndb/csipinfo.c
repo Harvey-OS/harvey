@@ -19,7 +19,7 @@
  *
  *  return nil if not found.
  */
-Ndbtuple*
+Ndbtuple *
 csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 {
 	Ndbtuple *t, *first, *last;
@@ -38,25 +38,25 @@ csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 	seek(fd, 0, 0);
 	e = line + sizeof(line);
 	p = seprint(line, e, "!ipinfo %s=%s", attr, val);
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		if(*list == nil)
 			break;
 		p = seprint(p, e, " %s", *list++);
 	}
-	
-	if(write(fd, line, strlen(line)) < 0){
+
+	if(write(fd, line, strlen(line)) < 0) {
 		close(fd);
 		return 0;
 	}
 	seek(fd, 0, 0);
 
 	first = last = 0;
-	for(;;){
-		n = read(fd, line, sizeof(line)-2);
+	for(;;) {
+		n = read(fd, line, sizeof(line) - 2);
 		if(n <= 0)
 			break;
 		line[n] = '\n';
-		line[n+1] = 0;
+		line[n + 1] = 0;
 
 		t = _ndbparseline(line);
 		if(t == 0)

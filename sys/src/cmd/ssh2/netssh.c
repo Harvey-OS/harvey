@@ -32,46 +32,46 @@ void stread(Req *);
 void stwrite(Req *);
 
 Srv netsshsrv = {
-	.open = stopen,
-	.read = stread,
-	.write = stwrite,
-	.flush = stflush,
-	.destroyfid = stclunk,
-	.end = stend,
+    .open = stopen,
+    .read = stread,
+    .write = stwrite,
+    .flush = stflush,
+    .destroyfid = stclunk,
+    .end = stend,
 };
 
 Cipher *cryptos[] = {
-	&cipheraes128,
-	&cipheraes192,
-	&cipheraes256,
-//	&cipherblowfish,
-	&cipher3des,
-	&cipherrc4,
+    &cipheraes128,
+    &cipheraes192,
+    &cipheraes256,
+    //	&cipherblowfish,
+    &cipher3des,
+    &cipherrc4,
 };
 
 Kex *kexes[] = {
-	&dh1sha1,
-	&dh14sha1,
+    &dh1sha1,
+    &dh14sha1,
 };
 
 PKA *pkas[3];
 
 char *macnames[] = {
-	"hmac-sha1",
+    "hmac-sha1",
 };
 
 char *st_names[] = {
-[Empty]		"Empty",
-[Allocated]	"Allocated",
-[Initting]	"Initting",
-[Listening]	"Listening",
-[Opening]	"Opening",
-[Negotiating]	"Negotiating",
-[Authing]	"Authing",
-[Established]	"Established",
-[Eof]		"Eof",
-[Closing]	"Closing",
-[Closed]	"Closed",
+	[Empty] "Empty",
+	[Allocated] "Allocated",
+	[Initting] "Initting",
+	[Listening] "Listening",
+	[Opening] "Opening",
+	[Negotiating] "Negotiating",
+	[Authing] "Authing",
+	[Established] "Established",
+	[Eof] "Eof",
+	[Closing] "Closing",
+	[Closed] "Closed",
 };
 
 int debug;
@@ -114,15 +114,15 @@ sshlogint(Conn *c, char *file, char *p)
 {
 	char *role, *id;
 
-	if (c == nil)
+	if(c == nil)
 		role = "";
-	else if (c->role == Server)
+	else if(c->role == Server)
 		role = "server ";
 	else
 		role = "client ";
-	if (c == nil)
+	if(c == nil)
 		id = strdup("");
-	else if (c->user || c->remote)
+	else if(c->user || c->remote)
 		id = smprint("user %s@%s id %d ", c->user, c->remote, c->id);
 	else
 		id = smprint("id %d ", c->id);
@@ -143,7 +143,7 @@ sshlog(Conn *c, char *fmt, ...)
 	va_end(args);
 
 	sshlogint(c, "ssh", p);
-	sshlogint(c, "sshdebug", p);	/* log in both places */
+	sshlogint(c, "sshdebug", p); /* log in both places */
 	free(p);
 }
 
@@ -153,7 +153,7 @@ sshdebug(Conn *c, char *fmt, ...)
 	va_list args;
 	char *p;
 
-	if (!debug)
+	if(!debug)
 		return;
 
 	/* do this first in case fmt contains "%r" */
@@ -179,8 +179,9 @@ threadmain(int argc, char *argv[])
 
 	quotefmtinstall();
 	threadsetname("main");
-	nokeyverify = 1;	/* temporary until verification is fixed */
-	ARGBEGIN {
+	nokeyverify = 1; /* temporary until verification is fixed */
+	ARGBEGIN
+	{
 	case '9':
 		chatty9p = 1;
 		break;
@@ -205,14 +206,15 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	} ARGEND;
+	}
+	ARGEND;
 
 	p = getenv("nosshkeyverify");
-	if (p && p[0] != '\0')
+	if(p && p[0] != '\0')
 		nokeyverify = 1;
 	free(p);
 
-	if (readfile("/dev/user", uid, sizeof uid) <= 0)
+	if(readfile("/dev/user", uid, sizeof uid) <= 0)
 		strcpy(uid, "none");
 
 	keymbox.mchan = chancreate(4, 0);
@@ -220,7 +222,7 @@ threadmain(int argc, char *argv[])
 	dh_init(pkas);
 
 	/* become a daemon */
-	if (rfork(RFNOTEG) < 0)
+	if(rfork(RFNOTEG) < 0)
 		fprint(2, "%s: rfork(NOTEG) failed: %r\n", argv0);
 	server(mntpt, srvpt);
 	threadexits(nil);
@@ -229,7 +231,7 @@ threadmain(int argc, char *argv[])
 int
 readio(Ioproc *io, int fd, void *buf, int n)
 {
-	if (io)
+	if(io)
 		return ioread(io, fd, buf, n);
 	else
 		return read(fd, buf, n);
@@ -238,7 +240,7 @@ readio(Ioproc *io, int fd, void *buf, int n)
 int
 writeio(Ioproc *io, int fd, void *buf, int n)
 {
-	if (io)
+	if(io)
 		return iowrite(io, fd, buf, n);
 	else
 		return write(fd, buf, n);
@@ -250,29 +252,29 @@ read9pmsg(int fd, void *abuf, uint n)
 	int m, len;
 	uint8_t *buf;
 
-	if (io9p == nil)
+	if(io9p == nil)
 		io9p = ioproc();
 
 	buf = abuf;
 
 	/* read count */
 	m = ioreadn(io9p, fd, buf, BIT32SZ);
-	if(m != BIT32SZ){
+	if(m != BIT32SZ) {
 		if(m < 0)
 			return -1;
 		return 0;
 	}
 
 	len = GBIT32(buf);
-	if(len <= BIT32SZ || len > n){
+	if(len <= BIT32SZ || len > n) {
 		werrstr("bad length in 9P2000 message header");
 		return -1;
 	}
 	len -= BIT32SZ;
-	m = ioreadn(io9p, fd, buf+BIT32SZ, len);
+	m = ioreadn(io9p, fd, buf + BIT32SZ, len);
 	if(m < len)
 		return 0;
-	return BIT32SZ+m;
+	return BIT32SZ + m;
 }
 
 void
@@ -290,10 +292,10 @@ server(char *mntpt, char *srvpt)
 	int fd;
 
 	netsshsrv.tree = alloctree(uid, uid, 0777, nil);
-	rootfile = createfile(netsshsrv.tree->root, "ssh", uid, 0555|DMDIR,
-		(void*)Qroot);
-	clonefile = createfile(rootfile, "clone", uid, 0666, (void*)Qclone);
-	ctlfile = createfile(rootfile, "ctl", uid, 0666, (void*)Qctl);
+	rootfile = createfile(netsshsrv.tree->root, "ssh", uid, 0555 | DMDIR,
+			      (void *)Qroot);
+	clonefile = createfile(rootfile, "clone", uid, 0666, (void *)Qclone);
+	ctlfile = createfile(rootfile, "ctl", uid, 0666, (void *)Qctl);
 	keysfile = createfile(rootfile, "keys", uid, 0600, (void *)Qreqrem);
 
 	/*
@@ -305,11 +307,11 @@ server(char *mntpt, char *srvpt)
 	p = esmprint("%s/cs", mntpt);
 	fd = open(p, OWRITE);
 	free(p);
-	if (fd >= 0) {
+	if(fd >= 0) {
 		fprint(fd, "add ssh");
 		close(fd);
 	}
-	if (srvpt) {
+	if(srvpt) {
 		nulldir(&d);
 		d.mode = 0666;
 		p = esmprint("/srv/%s", srvpt);
@@ -322,12 +324,12 @@ server(char *mntpt, char *srvpt)
 static void
 respexit(Conn *c, Req *r, void *freeme, char *msg)
 {
-	if (msg)
+	if(msg)
 		sshdebug(c, "%s", msg);
 	r->aux = 0;
 	respond(r, msg);
 	free(freeme);
-	threadexits(nil);	/* maybe use msg here */
+	threadexits(nil); /* maybe use msg here */
 }
 
 void
@@ -342,21 +344,20 @@ stopen(Req *r)
 
 	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
-	switch ((ulong)(qidpath & Qtypemask)) {
+	switch((ulong)(qidpath & Qtypemask)) {
 	default:
 		respond(r, nil);
 		break;
 	case Qlisten:
-		r->aux = (void *)threadcreate((lev == Connection?
-			stlisconn: stlischan), r, Defstk);
+		r->aux = (void *)threadcreate((lev == Connection ? stlisconn : stlischan), r, Defstk);
 		break;
 	case Qclone:
-		switch (lev) {
+		switch(lev) {
 		case Top:
 			/* should use dial(2) instead of diddling /net/tcp */
 			p = esmprint("%s/tcp/clone", mntpt);
 			fd = open(p, ORDWR);
-			if (fd < 0) {
+			if(fd < 0) {
 				sshdebug(nil, "stopen: open %s failed: %r", p);
 				free(p);
 				responderror(r);
@@ -365,7 +366,7 @@ stopen(Req *r)
 			free(p);
 
 			c = alloc_conn();
-			if (c == nil) {
+			if(c == nil) {
 				close(fd);
 				respond(r, "no more connections");
 				return;
@@ -378,12 +379,12 @@ stopen(Req *r)
 		case Connection:
 			xconn = (qidpath >> Connshift) & Connmask;
 			c = connections[xconn];
-			if (c == nil) {
+			if(c == nil) {
 				respond(r, "bad connection");
 				return;
 			}
 			sc = alloc_chan(c);
-			if (sc == nil) {
+			if(sc == nil) {
 				respond(r, "no more channels");
 				return;
 			}
@@ -426,23 +427,23 @@ stlisconn(void *a)
 	xconn = (qidpath >> Connshift) & Connmask;
 
 	cl = connections[xconn];
-	if (cl == nil) {
+	if(cl == nil) {
 		sshlog(cl, "bad connection");
 		respond(r, "bad connection");
 		threadexits("bad connection");
 	}
-	if (cl->poisoned) {
+	if(cl->poisoned) {
 		sshdebug(cl, "stlisconn conn %d poisoned", xconn);
 		r->aux = 0;
 		respond(r, "top level listen conn poisoned");
 		threadexits("top level listen conn poisoned");
 	}
-	if (cl->ctlfd < 0) {
+	if(cl->ctlfd < 0) {
 		sshdebug(cl, "stlisconn conn %d ctlfd < 0; poisoned", xconn);
 		r->aux = 0;
 		respond(r, "top level listen with closed fd");
 		shutdown(cl);
-		cl->poisoned = 1;	/* no more use until ctlfd is set */
+		cl->poisoned = 1; /* no more use until ctlfd is set */
 		threadexits("top level listen with closed fd");
 	}
 
@@ -451,10 +452,10 @@ stlisconn(void *a)
 	/* read xconn's tcp conn's ctl file */
 	seek(cl->ctlfd, 0, 0);
 	n = ioread(io, cl->ctlfd, buf, sizeof buf - 1);
-	if (n == 0) {
+	if(n == 0) {
 		sshlog(cl, "stlisconn read eof on fd %d", cl->ctlfd);
 		listerrexit(r, io, cl);
-	} else if (n < 0) {
+	} else if(n < 0) {
 		sshlog(cl, "stlisconn read failed on fd %d: %r", cl->ctlfd);
 		listerrexit(r, io, cl);
 	}
@@ -465,27 +466,27 @@ stlisconn(void *a)
 	snprint(path, sizeof path, "%s/tcp/%s/listen", mntpt, buf);
 	for(;;) {
 		fd = ioopen(io, path, ORDWR);
-		if (fd < 0) 
+		if(fd < 0)
 			listerrexit(r, io, cl);
 		c = alloc_conn();
-		if (c)
+		if(c)
 			break;
 		n = ioread(io, fd, buf, sizeof buf - 1);
-		if (n <= 0)
+		if(n <= 0)
 			listerrexit(r, io, cl);
 		buf[n] = '\0';
 		msg = smprint("reject %s no available connections", buf);
 		iowrite(io, fd, msg, strlen(msg));
 		free(msg);
-		close(fd);			/* surely ioclose? */
+		close(fd); /* surely ioclose? */
 	}
 	c->ctlfd = fd;
-	if (c->ctlfd < 0) {
+	if(c->ctlfd < 0) {
 		sshlog(cl, "stlisconn c->ctlfd < 0 for conn %d", xconn);
 		threadexitsall("stlisconn c->ctlfd < 0");
 	}
 	c->poisoned = 0;
-	c->stifle = 1;			/* defer server; was for coexistence */
+	c->stifle = 1; /* defer server; was for coexistence */
 	filedup(r, c->ctlfile);
 	sshdebug(c, "responding to listen open");
 	r->aux = 0;
@@ -510,26 +511,26 @@ stlischan(void *a)
 	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
+	if(c == nil) {
 		respond(r, "bad channel");
 		sshlog(c, "bad channel");
 		threadexits(nil);
 	}
-	if (c->state == Closed || c->state == Closing)
+	if(c->state == Closed || c->state == Closing)
 		respexit(c, r, nil, "channel listen on closed connection");
 	sc = c->chans[qidpath & Chanmask];
 
 	qlock(&c->l);
 	sc->lreq = r;
-	for (i = 0; i < c->nchan; ++i)
-		if (c->chans[i] && c->chans[i]->state == Opening &&
-		    c->chans[i]->ann && strcmp(c->chans[i]->ann, sc->ann) == 0)
+	for(i = 0; i < c->nchan; ++i)
+		if(c->chans[i] && c->chans[i]->state == Opening &&
+		   c->chans[i]->ann && strcmp(c->chans[i]->ann, sc->ann) == 0)
 			break;
-	if (i >= c->nchan) {
+	if(i >= c->nchan) {
 		sc->state = Listening;
 		rsleep(&sc->r);
 		i = sc->waker;
-		if (i < 0) {
+		if(i < 0) {
 			qunlock(&c->l);
 			r->aux = 0;
 			responderror(r);
@@ -539,7 +540,7 @@ stlischan(void *a)
 		rwakeup(&c->chans[i]->r);
 	qunlock(&c->l);
 
-	if (c->state == Closed || c->state == Closing || c->state == Eof)
+	if(c->state == Closed || c->state == Closing || c->state == Eof)
 		respexit(c, r, nil, "channel listen on closed connection");
 	c->chans[i]->state = Established;
 
@@ -562,7 +563,7 @@ stlischan(void *a)
 
 	sshdebug(c, "responding to chan listen open");
 	r->aux = 0;
-	if (n < 0)
+	if(n < 0)
 		responderror(r);
 	else
 		respond(r, nil);
@@ -577,9 +578,9 @@ getdata(Conn *c, SSHChan *sc, Req *r)
 	int n;
 
 	n = r->ifcall.count;
-	if (sc->dataq->rem < n)
+	if(sc->dataq->rem < n)
 		n = sc->dataq->rem;
-	if (n > Maxrpcbuf)
+	if(n > Maxrpcbuf)
 		n = Maxrpcbuf;
 	r->ifcall.offset = 0;
 
@@ -587,24 +588,24 @@ getdata(Conn *c, SSHChan *sc, Req *r)
 	sc->dataq->st += n;
 	sc->dataq->rem -= n;
 	sc->inrqueue -= n;
-	if (sc->dataq->rem <= 0) {
+	if(sc->dataq->rem <= 0) {
 		d = sc->dataq;
 		sc->dataq = sc->dataq->next;
-		if (d->pack->tlength > sc->rwindow)
+		if(d->pack->tlength > sc->rwindow)
 			sc->rwindow = 0;
 		else
 			sc->rwindow -= d->pack->tlength;
 		free(d->pack);
 		free(d);
 	}
-	if (sc->rwindow < 16*1024) {		/* magic.  half-way, maybe? */
+	if(sc->rwindow < 16 * 1024) { /* magic.  half-way, maybe? */
 		sc->rwindow += Maxpayload;
 		sshdebug(c, "increasing receive window to %lud, inq %lud\n",
-			argv0, sc->rwindow, sc->inrqueue);
+			 argv0, sc->rwindow, sc->inrqueue);
 		p = new_packet(c);
 		add_byte(p, SSH_MSG_CHANNEL_WINDOW_ADJUST);
-		hnputl(p->payload+1, sc->otherid);
-		hnputl(p->payload+5, Maxpayload);
+		hnputl(p->payload + 1, sc->otherid);
+		hnputl(p->payload + 5, Maxpayload);
 		p->rlength += 8;
 		n = finish_packet(p);
 		iowrite(c->dio, c->datafd, p->nlength, n);
@@ -628,8 +629,8 @@ stread(Req *r)
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
-		if (lev != Top || (qidpath & Qtypemask) != Qreqrem) {
+	if(c == nil) {
+		if(lev != Top || (qidpath & Qtypemask) != Qreqrem) {
 			respond(r, "Invalid connection");
 			return;
 		}
@@ -639,21 +640,20 @@ stread(Req *r)
 		cnum = qidpath & Chanmask;
 		sc = c->chans[cnum];
 	}
-	switch ((ulong)(qidpath & Qtypemask)) {
+	switch((ulong)(qidpath & Qtypemask)) {
 	case Qctl:
 	case Qlisten:
-		if (r->ifcall.offset != 0) {
+		if(r->ifcall.offset != 0) {
 			respond(r, nil);
 			break;
 		}
-		switch (lev) {
+		switch(lev) {
 		case Top:
 			readstr(r, st_names[c->state]);
 			break;
 		case Connection:
 		case Subchannel:
-			snprint(buf, sizeof buf, "%d", lev == Connection?
-				xconn: cnum);
+			snprint(buf, sizeof buf, "%d", lev == Connection ? xconn : cnum);
 			readstr(r, buf);
 			break;
 		default:
@@ -664,7 +664,7 @@ stread(Req *r)
 		respond(r, nil);
 		break;
 	case Qclone:
-		if (r->ifcall.offset != 0) {
+		if(r->ifcall.offset != 0) {
 			respond(r, nil);
 			break;
 		}
@@ -672,19 +672,19 @@ stread(Req *r)
 		respond(r, nil);
 		break;
 	case Qdata:
-		if (lev == Top) {
+		if(lev == Top) {
 			respond(r, nil);
 			break;
 		}
-		if (lev == Connection) {
-			if (0 && c->stifle) {	/* was for coexistence */
+		if(lev == Connection) {
+			if(0 && c->stifle) { /* was for coexistence */
 				c->stifle = 0;
-				if (deferredinit(c) < 0) {
+				if(deferredinit(c) < 0) {
 					respond(r, "deferredinit failed");
 					break;
 				}
 			}
-			if (c->cap)			/* auth capability? */
+			if(c->cap) /* auth capability? */
 				readstr(r, c->cap);
 			respond(r, nil);
 			break;
@@ -693,12 +693,12 @@ stread(Req *r)
 		r->aux = (void *)threadcreate(readdata, r, Defstk);
 		break;
 	case Qlocal:
-		if (lev == Connection)
-			if (c->ctlfd < 0)
+		if(lev == Connection)
+			if(c->ctlfd < 0)
 				readstr(r, "::!0\n");
 			else {
 				n = pread(c->ctlfd, buf, 10, 0); // magic 10
-				buf[n >= 0? n: 0] = '\0';
+				buf[n >= 0 ? n : 0] = '\0';
 				snprint(path, sizeof path, "%s/tcp/%s/local",
 					mntpt, buf);
 				readfile(path, buf, sizeof buf);
@@ -710,29 +710,27 @@ stread(Req *r)
 		r->aux = (void *)threadcreate(readreqrem, r, Defstk);
 		break;
 	case Qstatus:
-		switch (lev) {
+		switch(lev) {
 		case Top:
 			readstr(r, "Impossible");
 			break;
 		case Connection:
-			readstr(r, (uint)c->state > Closed?
-				"Unknown": st_names[c->state]);
+			readstr(r, (uint)c->state > Closed ? "Unknown" : st_names[c->state]);
 			break;
 		case Subchannel:
-			readstr(r, (uint)sc->state > Closed?
-				"Unknown": st_names[sc->state]);
+			readstr(r, (uint)sc->state > Closed ? "Unknown" : st_names[sc->state]);
 			break;
 		}
 		respond(r, nil);
 		break;
 	case Qtcp:
 		/* connection number of underlying tcp connection */
-		if (lev == Connection)
-			if (c->ctlfd < 0)
+		if(lev == Connection)
+			if(c->ctlfd < 0)
 				readstr(r, "-1\n");
 			else {
 				n = pread(c->ctlfd, buf, 10, 0); /* magic 10 */
-				buf[n >= 0? n: 0] = '\0';
+				buf[n >= 0 ? n : 0] = '\0';
 				readstr(r, buf);
 			}
 		respond(r, nil);
@@ -760,8 +758,8 @@ readreqrem(void *a)
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
-		if (lev != Top) {
+	if(c == nil) {
+		if(lev != Top) {
 			respond(r, "Invalid connection");
 			return;
 		}
@@ -770,19 +768,19 @@ readreqrem(void *a)
 		cnum = qidpath & Chanmask;
 		sc = c->chans[cnum];
 	}
-	switch (lev) {
+	switch(lev) {
 	case Top:
-		if (r->ifcall.offset == 0 && keymbox.state != Empty) {
+		if(r->ifcall.offset == 0 && keymbox.state != Empty) {
 			r->aux = 0;
-			respond(r, "Key file collision");	/* WTF? */
+			respond(r, "Key file collision"); /* WTF? */
 			break;
 		}
-		if (r->ifcall.offset != 0) {
+		if(r->ifcall.offset != 0) {
 			readstr(r, keymbox.msg);
 			r->aux = 0;
 			respond(r, nil);
-			if (r->ifcall.offset + r->ifcall.count >=
-			    strlen(keymbox.msg))
+			if(r->ifcall.offset + r->ifcall.count >=
+			   strlen(keymbox.msg))
 				keymbox.state = Empty;
 			else
 				keymbox.state = Allocated;
@@ -790,20 +788,19 @@ readreqrem(void *a)
 		}
 		keymbox.state = Allocated;
 		for(;;) {
-			if (keymbox.msg == nil)
-				if (recv(keymbox.mchan, nil) < 0) {
+			if(keymbox.msg == nil)
+				if(recv(keymbox.mchan, nil) < 0) {
 					r->aux = 0;
 					responderror(r);
 					keymbox.state = Empty;
 					threadexits(nil);
 				}
-			if (keymbox.state == Empty)
+			if(keymbox.state == Empty)
 				break;
-			else if (keymbox.state == Allocated) {
-				if (keymbox.msg) {
+			else if(keymbox.state == Allocated) {
+				if(keymbox.msg) {
 					readstr(r, keymbox.msg);
-					if (r->ifcall.offset + r->ifcall.count
-					    >= strlen(keymbox.msg)) {
+					if(r->ifcall.offset + r->ifcall.count >= strlen(keymbox.msg)) {
 						free(keymbox.msg);
 						keymbox.msg = nil;
 						keymbox.state = Empty;
@@ -816,11 +813,11 @@ readreqrem(void *a)
 		respond(r, nil);
 		break;
 	case Connection:
-		if (c->ctlfd >= 0) {
+		if(c->ctlfd >= 0) {
 			io = ioproc();
 			seek(c->ctlfd, 0, 0);
 			n = ioread(io, c->ctlfd, buf, 10); /* magic 10 */
-			if (n < 0) {
+			if(n < 0) {
 				r->aux = 0;
 				responderror(r);
 				closeioproc(io);
@@ -828,11 +825,11 @@ readreqrem(void *a)
 			}
 			buf[n] = '\0';
 			snprint(path, NETPATHLEN, "%s/tcp/%s/remote", mntpt, buf);
-			if ((fd = ioopen(io, path, OREAD)) < 0 ||
-			    (n = ioread(io, fd, buf, Arbbufsz - 1)) < 0) {
+			if((fd = ioopen(io, path, OREAD)) < 0 ||
+			   (n = ioread(io, fd, buf, Arbbufsz - 1)) < 0) {
 				r->aux = 0;
 				responderror(r);
-				if (fd >= 0)
+				if(fd >= 0)
 					ioclose(io, fd);
 				closeioproc(io);
 				break;
@@ -847,37 +844,39 @@ readreqrem(void *a)
 		respond(r, nil);
 		break;
 	case Subchannel:
-		if ((sc->state == Closed || sc->state == Closing ||
-		    sc->state == Eof) && sc->reqq == nil && sc->dataq == nil) {
+		if((sc->state == Closed || sc->state == Closing ||
+		    sc->state == Eof) &&
+		   sc->reqq == nil && sc->dataq == nil) {
 			sshdebug(c, "sending EOF1 to channel request listener");
 			r->aux = 0;
 			respond(r, nil);
 			break;
 		}
-		while (sc->reqq == nil) {
-			if (recv(sc->reqchan, nil) < 0) {
+		while(sc->reqq == nil) {
+			if(recv(sc->reqchan, nil) < 0) {
 				r->aux = 0;
 				responderror(r);
 				threadexits(nil);
 			}
-			if ((sc->state == Closed || sc->state == Closing ||
-			    sc->state == Eof) && sc->reqq == nil &&
-			    sc->dataq == nil) {
+			if((sc->state == Closed || sc->state == Closing ||
+			    sc->state == Eof) &&
+			   sc->reqq == nil &&
+			   sc->dataq == nil) {
 				sshdebug(c, "sending EOF2 to channel request "
-					"listener");
+					    "listener");
 				respexit(c, r, nil, nil);
 			}
 		}
 		n = r->ifcall.count;
-		if (sc->reqq->rem < n)
+		if(sc->reqq->rem < n)
 			n = sc->reqq->rem;
-		if (n > Maxrpcbuf)
+		if(n > Maxrpcbuf)
 			n = Maxrpcbuf;
 		r->ifcall.offset = 0;
 		readbuf(r, sc->reqq->st, n);
 		sc->reqq->st += n;
 		sc->reqq->rem -= n;
-		if (sc->reqq->rem <= 0) {
+		if(sc->reqq->rem <= 0) {
 			Plist *d = sc->reqq;
 			sc->reqq = sc->reqq->next;
 			free(d->pack);
@@ -904,33 +903,33 @@ readdata(void *a)
 	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
+	if(c == nil) {
 		respond(r, "bad connection");
 		sshlog(c, "bad connection");
 		threadexits(nil);
 	}
 	cnum = qidpath & Chanmask;
 	sc = c->chans[cnum];
-	if (sc->dataq == nil && (sc->state == Closed || sc->state == Closing ||
-	    sc->state == Eof)) {
+	if(sc->dataq == nil && (sc->state == Closed || sc->state == Closing ||
+				sc->state == Eof)) {
 		sshdebug(c, "sending EOF1 to channel listener");
 		r->aux = 0;
 		respond(r, nil);
 		threadexits(nil);
 	}
-	if (sc->dataq != nil) {
+	if(sc->dataq != nil) {
 		getdata(c, sc, r);
 		threadexits(nil);
 	}
-	while (sc->dataq == nil) {
-		if (recv(sc->inchan, nil) < 0) {
+	while(sc->dataq == nil) {
+		if(recv(sc->inchan, nil) < 0) {
 			sshdebug(c, "got interrupt/error in readdata %r");
 			r->aux = 0;
 			responderror(r);
 			threadexits(nil);
 		}
-		if (sc->dataq == nil && (sc->state == Closed ||
-		    sc->state == Closing || sc->state == Eof)) {
+		if(sc->dataq == nil && (sc->state == Closed ||
+					sc->state == Closing || sc->state == Eof)) {
 			sshdebug(c, "sending EOF2 to channel listener");
 			r->aux = 0;
 			respond(r, nil);
@@ -954,27 +953,27 @@ stwrite(Req *r)
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
+	if(c == nil) {
 		respond(r, "invalid connection");
 		return;
 	}
 	ch = c->chans[qidpath & Chanmask];
-	switch ((ulong)(qidpath & Qtypemask)) {
+	switch((ulong)(qidpath & Qtypemask)) {
 	case Qclone:
 	case Qctl:
 		r->aux = (void *)threadcreate(writectlproc, r, Defstk);
 		break;
 	case Qdata:
 		r->ofcall.count = r->ifcall.count;
-		if (lev == Top || lev == Connection ||
-		    c->state == Closed || c->state == Closing ||
-		    ch->state == Closed || ch->state == Closing) {
+		if(lev == Top || lev == Connection ||
+		   c->state == Closed || c->state == Closing ||
+		   ch->state == Closed || ch->state == Closing) {
 			respond(r, nil);
 			break;
 		}
-		if (0 && c->stifle) {		/* was for coexistence */
+		if(0 && c->stifle) { /* was for coexistence */
 			c->stifle = 0;
-			if (deferredinit(c) < 0) {
+			if(deferredinit(c) < 0) {
 				respond(r, "deferredinit failed");
 				break;
 			}
@@ -997,8 +996,8 @@ dialbyhand(Conn *c, int ntok, char *toks[])
 	 * this uses /net/tcp to connect directly.
 	 * should use dial(2) instead of doing it by hand.
 	 */
-	sshdebug(c, "tcp connect %s %s", toks[1], ntok > 3? toks[2]: "");
-	return fprint(c->ctlfd, "connect %s %s", toks[1], ntok > 3? toks[2]: "");
+	sshdebug(c, "tcp connect %s %s", toks[1], ntok > 3 ? toks[2] : "");
+	return fprint(c->ctlfd, "connect %s %s", toks[1], ntok > 3 ? toks[2] : "");
 }
 
 static void
@@ -1008,26 +1007,26 @@ userauth(Conn *c, Req *r, char *buf, int ntok, char *toks[])
 	char *attrs[5];
 	Packet *p;
 
-	if (ntok < 3 || ntok > 4)
+	if(ntok < 3 || ntok > 4)
 		respexit(c, r, buf, "bad connect command");
-	if (!c->service)
+	if(!c->service)
 		c->service = estrdup9p(toks[0]);
-	if (c->user)
+	if(c->user)
 		free(c->user);
 	c->user = estrdup9p(toks[2]);
 	sshdebug(c, "userauth for user %s", c->user);
 
-	if (ntok == 4 && strcmp(toks[1], "k") == 0) {
-		if (c->authkey) {
+	if(ntok == 4 && strcmp(toks[1], "k") == 0) {
+		if(c->authkey) {
 			free(c->authkey);
 			c->authkey = nil;
 		}
-		if (c->password)
+		if(c->password)
 			free(c->password);
 		c->password = estrdup9p(toks[3]);
 		sshdebug(c, "userauth got password");
 	} else {
-		if (c->password) {
+		if(c->password) {
 			free(c->password);
 			c->password = nil;
 		}
@@ -1036,10 +1035,10 @@ userauth(Conn *c, Req *r, char *buf, int ntok, char *toks[])
 		attrs[1] = "!dk?";
 		attrs[2] = smprint("user=%s", c->user);
 		attrs[3] = smprint("sys=%s", c->remote);
-		if (c->authkey)
+		if(c->authkey)
 			free(c->authkey);
 		sshdebug(c, "userauth trying rsa");
-		if (ntok == 3)
+		if(ntok == 3)
 			c->authkey = factlookup(4, 2, attrs);
 		else {
 			attrs[4] = toks[3];
@@ -1049,15 +1048,15 @@ userauth(Conn *c, Req *r, char *buf, int ntok, char *toks[])
 		free(attrs[3]);
 	}
 
-	if (!c->password && !c->authkey)
+	if(!c->password && !c->authkey)
 		respexit(c, r, buf, "no auth info");
-	else if (c->state != Authing) {
+	else if(c->state != Authing) {
 		p = new_packet(c);
 		add_byte(p, SSH_MSG_SERVICE_REQUEST);
 		add_string(p, c->service);
 		n = finish_packet(p);
 		sshdebug(c, "sending msg svc req for %s", c->service);
-		if (writeio(c->dio, c->datafd, p->nlength, n) != n) {
+		if(writeio(c->dio, c->datafd, p->nlength, n) != n) {
 			sshdebug(c, "authing write failed: %r");
 			free(p);
 			r->aux = 0;
@@ -1066,16 +1065,15 @@ userauth(Conn *c, Req *r, char *buf, int ntok, char *toks[])
 			threadexits(nil);
 		}
 		free(p);
-	} else
-		if (client_auth(c, c->dio) < 0)
-			respexit(c, r, buf, "ssh-userauth client auth failed");
+	} else if(client_auth(c, c->dio) < 0)
+		respexit(c, r, buf, "ssh-userauth client auth failed");
 	qlock(&c->l);
-	if (c->state != Established) {
+	if(c->state != Established) {
 		sshdebug(c, "sleeping for auth");
 		rsleep(&c->r);
 	}
 	qunlock(&c->l);
-	if (c->state != Established)
+	if(c->state != Established)
 		respexit(c, r, buf, "ssh-userath auth failed (not Established)");
 }
 
@@ -1098,14 +1096,14 @@ writectlproc(void *a)
 	xconn = (qidpath >> Connshift) & Connmask;
 
 	c = connections[xconn];
-	if (c == nil) {
+	if(c == nil) {
 		respond(r, "bad connection");
 		sshlog(c, "bad connection");
 		threadexits(nil);
 	}
 	ch = c->chans[qidpath & Chanmask];
 
-	if (r->ifcall.count <= Numbsz)
+	if(r->ifcall.count <= Numbsz)
 		buf = emalloc9p(Numbsz + 1);
 	else
 		buf = emalloc9p(r->ifcall.count + 1);
@@ -1114,17 +1112,17 @@ writectlproc(void *a)
 
 	sshdebug(c, "level %d writectl: %s", lev, buf);
 	ntok = tokenize(buf, toks, nelem(toks));
-	switch (lev) {
+	switch(lev) {
 	case Connection:
-		if (strcmp(toks[0], "id") == 0) {	/* was for sshswitch */
-			if (ntok < 2)
+		if(strcmp(toks[0], "id") == 0) { /* was for sshswitch */
+			if(ntok < 2)
 				respexit(c, r, buf, "bad id request");
 			strncpy(c->idstring, toks[1], sizeof c->idstring);
 			sshdebug(c, "id %s", toks[1]);
 			break;
 		}
-		if (strcmp(toks[0], "connect") == 0) {
-			if (ntok < 2)
+		if(strcmp(toks[0], "connect") == 0) {
+			if(ntok < 2)
 				respexit(c, r, buf, "bad connect request");
 			/*
 			 * should use dial(2) instead of doing it by hand.
@@ -1141,9 +1139,10 @@ writectlproc(void *a)
 			tcpconn2 = estrdup9p(tcpconn);
 
 			/* swap id strings, negotiate crypto */
-			if (dohandshake(c, tcpconn2) < 0) {
+			if(dohandshake(c, tcpconn2) < 0) {
 				sshlog(c, "connect handshake failed: "
-					"tcp conn %s", tcpconn2);
+					  "tcp conn %s",
+				       tcpconn2);
 				free(tcpconn2);
 				respexit(c, r, buf, "connect handshake failed");
 			}
@@ -1153,20 +1152,20 @@ writectlproc(void *a)
 			break;
 		}
 
-		if (c->state == Closed || c->state == Closing)
+		if(c->state == Closed || c->state == Closing)
 			respexit(c, r, buf, "connection closed");
-		if (strcmp(toks[0], "ssh-userauth") == 0)
+		if(strcmp(toks[0], "ssh-userauth") == 0)
 			userauth(c, r, buf, ntok, toks);
-		else if (strcmp(toks[0], "ssh-connection") == 0) {
+		else if(strcmp(toks[0], "ssh-connection") == 0) {
 			/* your ad here */
-		} else if (strcmp(toks[0], "hangup") == 0) {
-			if (c->rpid >= 0)
+		} else if(strcmp(toks[0], "hangup") == 0) {
+			if(c->rpid >= 0)
 				threadint(c->rpid);
 			shutdown(c);
-		} else if (strcmp(toks[0], "announce") == 0) {
+		} else if(strcmp(toks[0], "announce") == 0) {
 			sshdebug(c, "got %s argument for announce", toks[1]);
 			write(c->ctlfd, r->ifcall.data, r->ifcall.count);
-		} else if (strcmp(toks[0], "accept") == 0) {
+		} else if(strcmp(toks[0], "accept") == 0) {
 			/* should use dial(2) instead of diddling /net/tcp */
 			memset(tcpconn, '\0', sizeof(tcpconn));
 			pread(c->ctlfd, tcpconn, sizeof tcpconn, 0);
@@ -1175,15 +1174,16 @@ writectlproc(void *a)
 			c->role = Server;
 			tcpconn2 = estrdup9p(tcpconn);
 			/* swap id strings, negotiate crypto */
-			if (dohandshake(c, tcpconn2) < 0) {
+			if(dohandshake(c, tcpconn2) < 0) {
 				sshlog(c, "accept handshake failed: "
-					"tcp conn %s", tcpconn2);
+					  "tcp conn %s",
+				       tcpconn2);
 				free(tcpconn2);
 				shutdown(c);
 				respexit(c, r, buf, "accept handshake failed");
 			}
 			free(tcpconn2);
-		} else if (strcmp(toks[0], "reject") == 0) {
+		} else if(strcmp(toks[0], "reject") == 0) {
 			memset(tcpconn, '\0', sizeof(tcpconn));
 			pread(c->ctlfd, tcpconn, sizeof tcpconn, 0);
 
@@ -1196,25 +1196,25 @@ writectlproc(void *a)
 			add_string(p, toks[2]);
 			add_string(p, "EN");
 			n = finish_packet(p);
-			if (c->dio && c->datafd >= 0)
+			if(c->dio && c->datafd >= 0)
 				iowrite(c->dio, c->datafd, p->nlength, n);
 			free(p);
-			if (c->ctlfd >= 0)
+			if(c->ctlfd >= 0)
 				fprint(c->ctlfd, "reject %s %s", buf, toks[2]);
-			if (c->rpid >= 0)
+			if(c->rpid >= 0)
 				threadint(c->rpid);
 			shutdown(c);
 		}
 		break;
 	case Subchannel:
-		if (c->state == Closed || c->state == Closing)
+		if(c->state == Closed || c->state == Closing)
 			respexit(c, r, buf, "channel closed");
-		if (strcmp(toks[0], "connect") == 0) {
+		if(strcmp(toks[0], "connect") == 0) {
 			p = new_packet(c);
 			add_byte(p, SSH_MSG_CHANNEL_OPEN);
 			sshdebug(c, "chan writectl: connect %s",
-				ntok > 1? toks[1]: "session");
-			add_string(p, ntok > 1? toks[1]: "session");
+				 ntok > 1 ? toks[1] : "session");
+			add_string(p, ntok > 1 ? toks[1] : "session");
 			add_uint32(p, ch->id);
 			add_uint32(p, Maxpayload);
 			add_uint32(p, Maxrpcbuf);
@@ -1223,15 +1223,15 @@ writectlproc(void *a)
 			iowrite(c->dio, c->datafd, p->nlength, n);
 			free(p);
 			qlock(&c->l);
-			if (ch->otherid == -1)
+			if(ch->otherid == -1)
 				rsleep(&ch->r);
 			qunlock(&c->l);
-		} else if (strcmp(toks[0], "global") == 0) {
+		} else if(strcmp(toks[0], "global") == 0) {
 			/* your ad here */
-		} else if (strcmp(toks[0], "hangup") == 0) {
-			if (ch->state != Closed && ch->state != Closing) {
+		} else if(strcmp(toks[0], "hangup") == 0) {
+			if(ch->state != Closed && ch->state != Closing) {
 				ch->state = Closing;
-				if (ch->otherid != -1) {
+				if(ch->otherid != -1) {
 					p = new_packet(c);
 					add_byte(p, SSH_MSG_CHANNEL_CLOSE);
 					add_uint32(p, ch->otherid);
@@ -1245,19 +1245,20 @@ writectlproc(void *a)
 				nbsendul(ch->inchan, 1);
 				nbsendul(ch->reqchan, 1);
 			}
-			for (n = 0; n < MAXCONN && (c->chans[n] == nil ||
-			    c->chans[n]->state == Empty ||
-			    c->chans[n]->state == Closing ||
-			    c->chans[n]->state == Closed); ++n)
+			for(n = 0; n < MAXCONN && (c->chans[n] == nil ||
+						   c->chans[n]->state == Empty ||
+						   c->chans[n]->state == Closing ||
+						   c->chans[n]->state == Closed);
+			    ++n)
 				;
-			if (n >= MAXCONN) {
-				if (c->rpid >= 0)
+			if(n >= MAXCONN) {
+				if(c->rpid >= 0)
 					threadint(c->rpid);
 				shutdown(c);
 			}
-		} else if (strcmp(toks[0], "announce") == 0) {
+		} else if(strcmp(toks[0], "announce") == 0) {
 			sshdebug(c, "got argument `%s' for chan announce",
-				toks[1]);
+				 toks[1]);
 			free(ch->ann);
 			ch->ann = estrdup9p(toks[1]);
 		}
@@ -1287,12 +1288,12 @@ writereqremproc(void *a)
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
+	if(c == nil) {
 		respond(r, "Invalid connection");
 		threadexits(nil);
 	}
 	ch = c->chans[qidpath & Chanmask];
-	if (r->ifcall.count <= 10)
+	if(r->ifcall.count <= 10)
 		buf = emalloc9p(10 + 1);
 	else
 		buf = emalloc9p(r->ifcall.count + 1);
@@ -1301,7 +1302,7 @@ writereqremproc(void *a)
 	sshdebug(c, "writereqrem: %s", buf);
 	ntok = tokenize(buf, toks, nelem(toks));
 
-	if (lev == Top) {
+	if(lev == Top) {
 		free(keymbox.msg);
 		keymbox.msg = buf;
 		nbsendul(keymbox.mchan, 1);
@@ -1310,22 +1311,22 @@ writereqremproc(void *a)
 	}
 
 	r->ofcall.count = r->ifcall.count;
-	if (c->state == Closed  || c->state == Closing ||
-	    ch->state == Closed || ch->state == Closing)
+	if(c->state == Closed || c->state == Closing ||
+	   ch->state == Closed || ch->state == Closing)
 		respexit(c, r, buf, nil);
 
 	p = new_packet(c);
-	if (strcmp(toks[0], "success") == 0) {
+	if(strcmp(toks[0], "success") == 0) {
 		add_byte(p, SSH_MSG_CHANNEL_SUCCESS);
 		add_uint32(p, ch->otherid);
-	} else if (strcmp(toks[0], "failure") == 0) {
+	} else if(strcmp(toks[0], "failure") == 0) {
 		add_byte(p, SSH_MSG_CHANNEL_FAILURE);
 		add_uint32(p, ch->otherid);
-	} else if (strcmp(toks[0], "close") == 0) {
+	} else if(strcmp(toks[0], "close") == 0) {
 		ch->state = Closing;
 		add_byte(p, SSH_MSG_CHANNEL_CLOSE);
 		add_uint32(p, ch->otherid);
-	} else if (strcmp(toks[0], "shell") == 0) {
+	} else if(strcmp(toks[0], "shell") == 0) {
 		ch->state = Established;
 		/*
 		 * Some servers *cough*OpenSSH*cough* don't seem to be able
@@ -1335,7 +1336,7 @@ writereqremproc(void *a)
 		add_uint32(p, ch->otherid);
 		add_string(p, "pty-req");
 		add_byte(p, 0);
-		if (ntok == 1)
+		if(ntok == 1)
 			add_string(p, "dumb");
 		else
 			add_string(p, toks[1]);
@@ -1353,8 +1354,8 @@ writereqremproc(void *a)
 		add_string(p, "shell");
 		add_byte(p, 0);
 		sshdebug(c, "sending shell request: rlength=%lud twindow=%lud",
-			p->rlength, ch->twindow);
-	} else if (strcmp(toks[0], "exec") == 0) {
+			 p->rlength, ch->twindow);
+	} else if(strcmp(toks[0], "exec") == 0) {
 		ch->state = Established;
 		add_byte(p, SSH_MSG_CHANNEL_REQUEST);
 		add_uint32(p, ch->otherid);
@@ -1362,10 +1363,10 @@ writereqremproc(void *a)
 		add_byte(p, 0);
 
 		cmd = emalloc9p(Bigbufsz);
-		q = seprint(cmd, cmd+Bigbufsz, "%s", toks[1]);
-		for (n = 2; n < ntok; ++n) {
-			q = seprint(q, cmd+Bigbufsz, " %q", toks[n]);
-			if (q == nil)
+		q = seprint(cmd, cmd + Bigbufsz, "%s", toks[1]);
+		for(n = 2; n < ntok; ++n) {
+			q = seprint(q, cmd + Bigbufsz, " %q", toks[n]);
+			if(q == nil)
 				break;
 		}
 		add_string(p, cmd);
@@ -1393,7 +1394,7 @@ writedataproc(void *a)
 	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
-	if (c == nil) {
+	if(c == nil) {
 		respond(r, "Invalid connection");
 		threadexits(nil);
 	}
@@ -1401,14 +1402,14 @@ writedataproc(void *a)
 
 	p = new_packet(c);
 	add_byte(p, SSH_MSG_CHANNEL_DATA);
-	hnputl(p->payload+1, ch->otherid);
+	hnputl(p->payload + 1, ch->otherid);
 	p->rlength += 4;
 	add_block(p, r->ifcall.data, r->ifcall.count);
 	n = finish_packet(p);
 
-	if (ch->sent + p->rlength > ch->twindow) {
+	if(ch->sent + p->rlength > ch->twindow) {
 		qlock(&ch->xmtlock);
-		while (ch->sent + p->rlength > ch->twindow)
+		while(ch->sent + p->rlength > ch->twindow)
 			rsleep(&ch->xmtrendez);
 		qunlock(&ch->xmtlock);
 	}
@@ -1432,7 +1433,7 @@ stclunk(Fid *f)
 	uint64_t qidpath;
 
 	threadsetname("stclunk");
-	if (f == nil || f->file == nil)
+	if(f == nil || f->file == nil)
 		return;
 	qidpath = (uint64_t)f->file->aux;
 	lev = qidpath >> Levshift;
@@ -1440,10 +1441,10 @@ stclunk(Fid *f)
 	chnum = qidpath & Chanmask;
 	c = connections[cnum];
 	sshdebug(c, "got clunk on file: %#llux %d %d %d: %s",
-		qidpath, lev, cnum, chnum, f->file->name);
+		 qidpath, lev, cnum, chnum, f->file->name);
 	/* qidpath test implies conn 0, chan 0 */
-	if (lev == Top && qidpath == Qreqrem) {
-		if (keymbox.state != Empty) {
+	if(lev == Top && qidpath == Qreqrem) {
+		if(keymbox.state != Empty) {
 			keymbox.state = Empty;
 			// nbsendul(keymbox.mchan, 1);
 		}
@@ -1451,18 +1452,19 @@ stclunk(Fid *f)
 		return;
 	}
 
-	if (c == nil)
+	if(c == nil)
 		return;
-	if (lev == Connection && (qidpath & Qtypemask) == Qctl &&
-	    (c->state == Opening || c->state == Negotiating ||
-	     c->state == Authing)) {
-		for (n = 0; n < MAXCONN && (!c->chans[n] ||
-		    c->chans[n]->state == Empty ||
-		    c->chans[n]->state == Closed ||
-		    c->chans[n]->state == Closing); ++n)
+	if(lev == Connection && (qidpath & Qtypemask) == Qctl &&
+	   (c->state == Opening || c->state == Negotiating ||
+	    c->state == Authing)) {
+		for(n = 0; n < MAXCONN && (!c->chans[n] ||
+					   c->chans[n]->state == Empty ||
+					   c->chans[n]->state == Closed ||
+					   c->chans[n]->state == Closing);
+		    ++n)
 			;
-		if (n >= MAXCONN) {
-			if (c->rpid >= 0)
+		if(n >= MAXCONN) {
+			if(c->rpid >= 0)
 				threadint(c->rpid);
 			shutdown(c);
 		}
@@ -1470,27 +1472,27 @@ stclunk(Fid *f)
 	}
 
 	sc = c->chans[chnum];
-	if (lev != Subchannel)
+	if(lev != Subchannel)
 		return;
-	if ((qidpath & Qtypemask) == Qlisten && sc->state == Listening) {
+	if((qidpath & Qtypemask) == Qlisten && sc->state == Listening) {
 		qlock(&c->l);
-		if (sc->state != Closed) {
+		if(sc->state != Closed) {
 			sc->state = Closed;
 			chanclose(sc->inchan);
 			chanclose(sc->reqchan);
 		}
 		qunlock(&c->l);
-	} else if ((qidpath & Qtypemask) == Qdata && sc->state != Empty &&
-	    sc->state != Closed && sc->state != Closing) {
-		if (f->file != sc->data && f->file != sc->request) {
+	} else if((qidpath & Qtypemask) == Qdata && sc->state != Empty &&
+		  sc->state != Closed && sc->state != Closing) {
+		if(f->file != sc->data && f->file != sc->request) {
 			sshlog(c, "great evil is upon us; destroying a fid "
-				"we didn't create");
+				  "we didn't create");
 			return;
 		}
 
 		p = new_packet(c);
 		add_byte(p, SSH_MSG_CHANNEL_CLOSE);
-		hnputl(p->payload+1, sc->otherid);
+		hnputl(p->payload + 1, sc->otherid);
 		p->rlength += 4;
 		n = finish_packet(p);
 		sc->state = Closing;
@@ -1503,12 +1505,13 @@ stclunk(Fid *f)
 		nbsendul(sc->inchan, 1);
 		nbsendul(sc->reqchan, 1);
 	}
-	for (n = 0; n < MAXCONN && (!c->chans[n] ||
-	    c->chans[n]->state == Empty || c->chans[n]->state == Closed ||
-	    c->chans[n]->state == Closing); ++n)
+	for(n = 0; n < MAXCONN && (!c->chans[n] ||
+				   c->chans[n]->state == Empty || c->chans[n]->state == Closed ||
+				   c->chans[n]->state == Closing);
+	    ++n)
 		;
-	if (n >= MAXCONN) {
-		if (c->rpid >= 0)
+	if(n >= MAXCONN) {
+		if(c->rpid >= 0)
 			threadint(c->rpid);
 		shutdown(c);
 	}
@@ -1517,25 +1520,24 @@ stclunk(Fid *f)
 void
 stflush(Req *r)
 {
-	Req *or;
+	Req * or ;
 	uint64_t qidpath;
 
 	threadsetname("stflush");
 	or = r->oldreq;
-	qidpath = (uint64_t)or->fid->file->aux;
+	qidpath = (uint64_t) or->fid->file->aux;
 	sshdebug(nil, "got flush on file %#llux %lld %lld %lld: %s %#p",
-		argv0, qidpath, qidpath >> Levshift,
-		(qidpath >> Connshift) & Connmask, qidpath & Chanmask,
-		or->fid->file->name, or->aux);
-	if (!or->aux)
+		 argv0, qidpath, qidpath >> Levshift,
+		 (qidpath >> Connshift) & Connmask, qidpath & Chanmask,
+		 or->fid->file->name, or->aux);
+	if(! or->aux)
 		respond(or, "interrupted");
-	else if (or->ifcall.type == Topen && (qidpath & Qtypemask) == Qlisten ||
-	    or->ifcall.type == Tread && (qidpath & Qtypemask) == Qdata &&
-	    (qidpath >> Levshift) == Subchannel ||
-	    or->ifcall.type == Tread && (qidpath & Qtypemask) == Qreqrem)
-		threadint((uintptr)or->aux);
+	else if(or->ifcall.type == Topen && (qidpath & Qtypemask) == Qlisten ||
+		or->ifcall.type == Tread && (qidpath & Qtypemask) == Qdata && (qidpath >> Levshift) == Subchannel ||
+		or->ifcall.type == Tread && (qidpath & Qtypemask) == Qreqrem)
+		threadint((uintptr) or->aux);
 	else {
-		threadkill((uintptr)or->aux);
+		threadkill((uintptr) or->aux);
 		or->aux = 0;
 		respond(or, "interrupted");
 	}
@@ -1561,18 +1563,18 @@ alloc_conn(void)
 
 	qlock(&aclock);
 	firstnil = -1;
-	for (i = 0; i < MAXCONN; ++i) {
-		if (connections[i] == nil) {
-			if (firstnil == -1)
+	for(i = 0; i < MAXCONN; ++i) {
+		if(connections[i] == nil) {
+			if(firstnil == -1)
 				firstnil = i;
 			continue;
 		}
 		s = connections[i]->state;
-		if (s == Empty || s == Closed)
+		if(s == Empty || s == Closed)
 			break;
 	}
-	if (i >= MAXCONN) {
-		if (firstnil == -1) {		/* all slots in use? */
+	if(i >= MAXCONN) {
+		if(firstnil == -1) { /* all slots in use? */
 			qunlock(&aclock);
 			return nil;
 		}
@@ -1594,41 +1596,41 @@ alloc_conn(void)
 	c->user = c->service = nil;
 	c->inseq = c->nchan = c->outseq = 0;
 	c->cscrypt = c->csmac = c->ctlfd = c->datafd = c->decrypt =
-		c->encrypt = c->inmac = c->ncscrypt = c->ncsmac =
+	    c->encrypt = c->inmac = c->ncscrypt = c->ncsmac =
 		c->nsccrypt = c->nscmac = c->outmac = c->rpid = c->sccrypt =
-		c->scmac = c->tcpconn = -1;
-	if (c->e) {
+		    c->scmac = c->tcpconn = -1;
+	if(c->e) {
 		mpfree(c->e);
 		c->e = nil;
 	}
-	if (c->x) {
+	if(c->x) {
 		mpfree(c->x);
 		c->x = nil;
 	}
 
 	snprint(buf, sizeof buf, "%d", i);
-	if (c->dir == nil) {
+	if(c->dir == nil) {
 		slevconn = Connection << Levshift | i << Connshift;
-		c->dir = createfile(rootfile, buf, uid, 0555|DMDIR,
-			(void *)(slevconn | Qroot));
+		c->dir = createfile(rootfile, buf, uid, 0555 | DMDIR,
+				    (void *)(slevconn | Qroot));
 		c->clonefile = createfile(c->dir, "clone", uid, 0666,
-			(void *)(slevconn | Qclone));
+					  (void *)(slevconn | Qclone));
 		c->ctlfile = createfile(c->dir, "ctl", uid, 0666,
-			(void *)(slevconn | Qctl));
+					(void *)(slevconn | Qctl));
 		c->datafile = createfile(c->dir, "data", uid, 0666,
-			(void *)(slevconn | Qdata));
+					 (void *)(slevconn | Qdata));
 		c->listenfile = createfile(c->dir, "listen", uid, 0666,
-			(void *)(slevconn | Qlisten));
+					   (void *)(slevconn | Qlisten));
 		c->localfile = createfile(c->dir, "local", uid, 0444,
-			(void *)(slevconn | Qlocal));
+					  (void *)(slevconn | Qlocal));
 		c->remotefile = createfile(c->dir, "remote", uid, 0444,
-			(void *)(slevconn | Qreqrem));
+					   (void *)(slevconn | Qreqrem));
 		c->statusfile = createfile(c->dir, "status", uid, 0444,
-			(void *)(slevconn | Qstatus));
+					   (void *)(slevconn | Qstatus));
 		c->tcpfile = createfile(c->dir, "tcp", uid, 0444,
-			(void *)(slevconn | Qtcp));
+					(void *)(slevconn | Qtcp));
 	}
-//	c->skexinit = c->rkexinit = nil;
+	//	c->skexinit = c->rkexinit = nil;
 	c->got_sessid = 0;
 	c->otherid = nil;
 	c->inik = c->outik = nil;
@@ -1645,11 +1647,11 @@ alloc_chan(Conn *c)
 	Plist *p, *next;
 	SSHChan *sc;
 
-	if (c->nchan >= MAXCONN)
+	if(c->nchan >= MAXCONN)
 		return nil;
 	qlock(&c->l);
 	cnum = c->nchan;
-	if (c->chans[cnum] == nil) {
+	if(c->chans[cnum] == nil) {
 		c->chans[cnum] = emalloc9p(sizeof(SSHChan));
 		memset(c->chans[cnum], 0, sizeof(SSHChan));
 	}
@@ -1665,26 +1667,26 @@ alloc_chan(Conn *c)
 	sc->ann = nil;
 	sc->lreq = nil;
 
-	if (sc->dir == nil) {
+	if(sc->dir == nil) {
 		slcn = Subchannel << Levshift | c->id << Connshift | cnum;
-		sc->dir = createfile(c->dir, buf, uid, 0555|DMDIR,
-			(void *)(slcn | Qroot));
+		sc->dir = createfile(c->dir, buf, uid, 0555 | DMDIR,
+				     (void *)(slcn | Qroot));
 		sc->ctl = createfile(sc->dir, "ctl", uid, 0666,
-			(void *)(slcn | Qctl));
+				     (void *)(slcn | Qctl));
 		sc->data = createfile(sc->dir, "data", uid, 0666,
-			(void *)(slcn | Qdata));
+				      (void *)(slcn | Qdata));
 		sc->listen = createfile(sc->dir, "listen", uid, 0666,
-			(void *)(slcn | Qlisten));
+					(void *)(slcn | Qlisten));
 		sc->request = createfile(sc->dir, "request", uid, 0666,
-			(void *)(slcn | Qreqrem));
+					 (void *)(slcn | Qreqrem));
 		sc->status = createfile(sc->dir, "status", uid, 0444,
-			(void *)(slcn | Qstatus));
+					(void *)(slcn | Qstatus));
 		sc->tcp = createfile(sc->dir, "tcp", uid, 0444,
-			(void *)(slcn | Qtcp));
+				     (void *)(slcn | Qtcp));
 	}
 	c->nchan++;
 
-	for (; sc->reqq != nil; sc->reqq = next) {
+	for(; sc->reqq != nil; sc->reqq = next) {
 		p = sc->reqq;
 		next = p->next;
 		free(p->pack);
@@ -1692,11 +1694,11 @@ alloc_chan(Conn *c)
 	}
 	sc->dataq = sc->datatl = sc->reqtl = nil;
 
-	if (sc->inchan)
+	if(sc->inchan)
 		chanfree(sc->inchan);
 	sc->inchan = chancreate(4, 0);
 
-	if (sc->reqchan)
+	if(sc->reqchan)
 		chanfree(sc->reqchan);
 	sc->reqchan = chancreate(4, 0);
 
@@ -1712,9 +1714,9 @@ readlineio(Conn *, Ioproc *io, int fd, char *buf, int size)
 	int n;
 	char *p;
 
-	for (p = buf; p < buf + size - 1; p++) {
+	for(p = buf; p < buf + size - 1; p++) {
 		n = ioread(io, fd, p, 1);
-		if (n != 1 || *p == '\n') {
+		if(n != 1 || *p == '\n') {
 			*p = '\0';
 			break;
 		}
@@ -1732,15 +1734,15 @@ readremote(Conn *c, Ioproc *io, char *tcpconn)
 	remote = nil;
 	snprint(path, sizeof path, "%s/tcp/%s/remote", mntpt, tcpconn);
 	remfd = ioopen(io, path, OREAD);
-	if (remfd < 0) {
+	if(remfd < 0) {
 		sshlog(c, "readremote: can't open %s: %r", path);
 		return nil;
 	}
 	n = ioread(io, remfd, buf, sizeof buf - 1);
-	if (n > 0) {
+	if(n > 0) {
 		buf[n] = 0;
 		p = strchr(buf, '!');
-		if (p)
+		if(p)
 			*p = 0;
 		remote = estrdup9p(buf);
 	}
@@ -1763,15 +1765,15 @@ stashremid(Conn *c, char *remid)
 {
 	char *nl;
 
-	if (c->otherid)
+	if(c->otherid)
 		free(c->otherid);
 	c->otherid = estrdup9p(remid);
 
 	nl = strchr(c->otherid, '\n');
-	if (nl)
+	if(nl)
 		*nl = '\0';
 	nl = strchr(c->otherid, '\r');
-	if (nl)
+	if(nl)
 		*nl = '\0';
 }
 
@@ -1794,25 +1796,25 @@ exchids(Conn *c, Ioproc *io, char *remid, int remsz)
 	 * exchange versions.  server writes id, then reads;
 	 * client reads id then writes (in theory).
 	 */
-	if (c->role == Server) {
+	if(c->role == Server) {
 		sendmyid(c, io);
 
 		n = readlineio(c, io, c->datafd, remid, remsz);
-		if (n < 5)		/* can't be a valid SSH id string */
+		if(n < 5) /* can't be a valid SSH id string */
 			return -1;
 		sshdebug(c, "dohandshake: server, got `%s', sent `%s'", remid,
-			MYID);
+			 MYID);
 	} else {
 		/* client: read server's id */
 		n = readlineio(c, io, c->datafd, remid, remsz);
-		if (n < 5)		/* can't be a valid SSH id string */
+		if(n < 5) /* can't be a valid SSH id string */
 			return -1;
 
 		sendmyid(c, io);
 		sshdebug(c, "dohandshake: client, got `%s' sent `%s'", remid, MYID);
-		if (remid[0] == '\0') {
+		if(remid[0] == '\0') {
 			sshlog(c, "dohandshake: client, empty remote id string;"
-				" out of sync");
+				  " out of sync");
 			return -1;
 		}
 	}
@@ -1832,15 +1834,15 @@ negotiate(Conn *c)
 	send_kexinit(c);
 
 	qlock(&c->l);
-	if ((c->role == Client && c->state != Negotiating) ||
-	    (c->role == Server && c->state != Established)) {
+	if((c->role == Client && c->state != Negotiating) ||
+	   (c->role == Server && c->state != Established)) {
 		sshdebug(c, "awaiting establishment");
 		rsleep(&c->r);
 	}
 	qunlock(&c->l);
 
-	if (c->role == Server && c->state != Established ||
-	    c->role == Client && c->state != Negotiating) {
+	if(c->role == Server && c->state != Established ||
+	   c->role == Client && c->state != Negotiating) {
 		sshdebug(c, "failed to establish");
 		return -1;
 	}
@@ -1860,9 +1862,9 @@ deferredinit(Conn *c)
 	 * don't bother checking the remote's id string.
 	 * as a client, we can cope with v1 if we don't verify the host key.
 	 */
-	if (exchids(c, io, remid, sizeof remid) < 0 ||
-	    0 && c->role == Client && strncmp(remid, "SSH-2", 5) != 0 &&
-	    strncmp(remid, "SSH-1.99", 8) != 0) {
+	if(exchids(c, io, remid, sizeof remid) < 0 ||
+	   0 && c->role == Client && strncmp(remid, "SSH-2", 5) != 0 &&
+	       strncmp(remid, "SSH-1.99", 8) != 0) {
 		/* not a protocol version we know; give up */
 		closeioproc(io);
 		hangupconn(c);
@@ -1874,7 +1876,7 @@ deferredinit(Conn *c)
 	c->state = Initting;
 
 	/* start the reader thread */
-	if (c->rpid < 0)
+	if(c->rpid < 0)
 		c->rpid = threadcreate(reader, c, Defstk);
 
 	return negotiate(c);
@@ -1892,7 +1894,7 @@ dohandshake(Conn *c, char *tcpconn)
 
 	/* read tcp conn's remote address into c->remote */
 	remote = readremote(c, io, tcpconn);
-	if (remote) {
+	if(remote) {
 		free(c->remote);
 		c->remote = remote;
 	}
@@ -1902,15 +1904,15 @@ dohandshake(Conn *c, char *tcpconn)
 	snprint(path, sizeof path, "%s/tcp/%s/data", mntpt, tcpconn);
 	tcpdfd = ioopen(io, path, ORDWR);
 	closeioproc(io);
-	if (tcpdfd < 0) {
+	if(tcpdfd < 0) {
 		sshlog(c, "dohandshake: can't open %s: %r", path);
 		return -1;
 	}
-	c->datafd = tcpdfd;		/* underlying tcp data descriptor */
+	c->datafd = tcpdfd; /* underlying tcp data descriptor */
 
 	return deferredinit(c);
 }
-#endif					/* COEXIST */
+#endif /* COEXIST */
 
 int
 dohandshake(Conn *c, char *tcpconn)
@@ -1924,10 +1926,10 @@ dohandshake(Conn *c, char *tcpconn)
 	snprint(path, sizeof path, "%s/tcp/%s/remote", mntpt, tcpconn);
 	fd = ioopen(io, path, OREAD);
 	n = ioread(io, fd, buf, sizeof buf - 1);
-	if (n > 0) {
+	if(n > 0) {
 		buf[n] = 0;
 		p = strchr(buf, '!');
-		if (p)
+		if(p)
 			*p = 0;
 		free(c->remote);
 		c->remote = estrdup9p(buf);
@@ -1936,7 +1938,7 @@ dohandshake(Conn *c, char *tcpconn)
 
 	snprint(path, sizeof path, "%s/tcp/%s/data", mntpt, tcpconn);
 	fd = ioopen(io, path, ORDWR);
-	if (fd < 0) {
+	if(fd < 0) {
 		closeioproc(io);
 		return -1;
 	}
@@ -1945,45 +1947,45 @@ dohandshake(Conn *c, char *tcpconn)
 	/* exchange versions--we're only doing SSH2, unfortunately */
 
 	snprint(path, sizeof path, "%s\r\n", MYID);
-	if (c->idstring && c->idstring[0])
+	if(c->idstring && c->idstring[0])
 		strncpy(path, c->idstring, sizeof path);
 	else {
 		iowrite(io, fd, path, strlen(path));
 		p = path;
 		n = 0;
 		do {
-			if (ioread(io, fd, p, 1) < 0) {
+			if(ioread(io, fd, p, 1) < 0) {
 				fprint(2, "%s: short read in ID exchange: %r\n",
-					argv0);
+				       argv0);
 				break;
 			}
 			++n;
-		} while (*p++ != '\n');
-		if (n < 5) {		/* can't be a valid SSH id string */
+		} while(*p++ != '\n');
+		if(n < 5) { /* can't be a valid SSH id string */
 			close(fd);
 			goto err;
 		}
 		*p = 0;
 	}
 	sshdebug(c, "id string `%s'", path);
-	if (c->idstring[0] == '\0' &&
-	    strncmp(path, "SSH-2", 5) != 0 &&
-	    strncmp(path, "SSH-1.99", 8) != 0) {
+	if(c->idstring[0] == '\0' &&
+	   strncmp(path, "SSH-2", 5) != 0 &&
+	   strncmp(path, "SSH-1.99", 8) != 0) {
 		/* not a protocol version we know; give up */
 		ioclose(io, fd);
 		goto err;
 	}
 	closeioproc(io);
 
-	if (c->otherid)
+	if(c->otherid)
 		free(c->otherid);
 	c->otherid = othid = estrdup9p(path);
-	for (n = strlen(othid) - 1; othid[n] == '\r' || othid[n] == '\n'; --n)
+	for(n = strlen(othid) - 1; othid[n] == '\r' || othid[n] == '\n'; --n)
 		othid[n] = '\0';
 	c->state = Initting;
 
 	/* start the reader thread */
-	if (c->rpid < 0)
+	if(c->rpid < 0)
 		c->rpid = threadcreate(reader, c, Defstk);
 
 	/*
@@ -1996,12 +1998,12 @@ dohandshake(Conn *c, char *tcpconn)
 	send_kexinit(c);
 
 	qlock(&c->l);
-	if ((c->role == Client && c->state != Negotiating) ||
-	    (c->role == Server && c->state != Established))
+	if((c->role == Client && c->state != Negotiating) ||
+	   (c->role == Server && c->state != Established))
 		rsleep(&c->r);
 	qunlock(&c->l);
-	if (c->role == Server && c->state != Established ||
-	    c->role == Client && c->state != Negotiating)
+	if(c->role == Server && c->state != Established ||
+	   c->role == Client && c->state != Negotiating)
 		return -1;
 	return 0;
 err:
@@ -2022,7 +2024,7 @@ send_kexinit(Conn *c)
 	int i, msglen;
 
 	sshdebug(c, "initializing kexinit packet");
-	if (c->skexinit != nil)
+	if(c->skexinit != nil)
 		free(c->skexinit);
 	c->skexinit = new_packet(c);
 
@@ -2030,45 +2032,45 @@ send_kexinit(Conn *c)
 	buf[0] = (uint8_t)SSH_MSG_KEXINIT;
 
 	add_packet(c->skexinit, buf, 1);
-	for (i = 0; i < 16; ++i)
+	for(i = 0; i < 16; ++i)
 		buf[i] = fastrand();
 
-	add_packet(c->skexinit, buf, 16);		/* cookie */
+	add_packet(c->skexinit, buf, 16); /* cookie */
 	e = buf + Bigbufsz - 1;
 	p = seprint(buf, e, "%s", kexes[0]->name);
-	for (i = 1; i < nelem(kexes); ++i)
+	for(i = 1; i < nelem(kexes); ++i)
 		p = seprint(p, e, ",%s", kexes[i]->name);
 	sshdebug(c, "sent KEX algs: %s", buf);
 
-	add_string(c->skexinit, buf);		/* Key exchange */
-	if (pkas[0] == nil)
+	add_string(c->skexinit, buf); /* Key exchange */
+	if(pkas[0] == nil)
 		add_string(c->skexinit, "");
-	else{
+	else {
 		p = seprint(buf, e, "%s", pkas[0]->name);
-		for (i = 1; i < nelem(pkas) && pkas[i] != nil; ++i)
+		for(i = 1; i < nelem(pkas) && pkas[i] != nil; ++i)
 			p = seprint(p, e, ",%s", pkas[i]->name);
 		sshdebug(c, "sent host key algs: %s", buf);
-		add_string(c->skexinit, buf);		/* server's key algs */
+		add_string(c->skexinit, buf); /* server's key algs */
 	}
 
 	p = seprint(buf, e, "%s", cryptos[0]->name);
-	for (i = 1; i < nelem(cryptos); ++i)
+	for(i = 1; i < nelem(cryptos); ++i)
 		p = seprint(p, e, ",%s", cryptos[i]->name);
 	sshdebug(c, "sent crypto algs: %s", buf);
 
-	add_string(c->skexinit, buf);		/* c->s crypto */
-	add_string(c->skexinit, buf);		/* s->c crypto */
+	add_string(c->skexinit, buf); /* c->s crypto */
+	add_string(c->skexinit, buf); /* s->c crypto */
 	p = seprint(buf, e, "%s", macnames[0]);
-	for (i = 1; i < nelem(macnames); ++i)
+	for(i = 1; i < nelem(macnames); ++i)
 		p = seprint(p, e, ",%s", macnames[i]);
 	sshdebug(c, "sent MAC algs: %s", buf);
 
-	add_string(c->skexinit, buf);		/* c->s mac */
-	add_string(c->skexinit, buf);		/* s->c mac */
-	add_string(c->skexinit, "none");	/* c->s compression */
-	add_string(c->skexinit, "none");	/* s->c compression */
-	add_string(c->skexinit, "");		/* c->s languages */
-	add_string(c->skexinit, "");		/* s->c languages */
+	add_string(c->skexinit, buf);    /* c->s mac */
+	add_string(c->skexinit, buf);    /* s->c mac */
+	add_string(c->skexinit, "none"); /* c->s compression */
+	add_string(c->skexinit, "none"); /* s->c compression */
+	add_string(c->skexinit, "");     /* c->s languages */
+	add_string(c->skexinit, "");     /* s->c languages */
 	memset(buf, 0, 5);
 	add_packet(c->skexinit, buf, 5);
 
@@ -2076,7 +2078,7 @@ send_kexinit(Conn *c)
 	memmove(ptmp, c->skexinit, sizeof(Packet));
 	msglen = finish_packet(ptmp);
 
-	if (c->dio && c->datafd >= 0)
+	if(c->dio && c->datafd >= 0)
 		iowrite(c->dio, c->datafd, ptmp->nlength, msglen);
 	free(ptmp);
 	free(buf);
@@ -2097,9 +2099,9 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	int i, n;
 
 	USED(size);
-	switch (p->payload[0]) {
+	switch(p->payload[0]) {
 	case SSH_MSG_DISCONNECT:
-		if (debug) {
+		if(debug) {
 			get_string(p, p->payload + 5, buf, Arbbufsz, nil);
 			sshdebug(c, "got disconnect: %s", buf);
 		}
@@ -2110,19 +2112,19 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		 * established, otherwise wait for auth'n.
 		 */
 		i = c->encrypt;
-		memmove(c->c2siv, c->nc2siv, SHA1dlen*2);
-		memmove(c->s2civ, c->ns2civ, SHA1dlen*2);
-		memmove(c->c2sek, c->nc2sek, SHA1dlen*2);
-		memmove(c->s2cek, c->ns2cek, SHA1dlen*2);
-		memmove(c->c2sik, c->nc2sik, SHA1dlen*2);
-		memmove(c->s2cik, c->ns2cik, SHA1dlen*2);
+		memmove(c->c2siv, c->nc2siv, SHA1dlen * 2);
+		memmove(c->s2civ, c->ns2civ, SHA1dlen * 2);
+		memmove(c->c2sek, c->nc2sek, SHA1dlen * 2);
+		memmove(c->s2cek, c->ns2cek, SHA1dlen * 2);
+		memmove(c->c2sik, c->nc2sik, SHA1dlen * 2);
+		memmove(c->s2cik, c->ns2cik, SHA1dlen * 2);
 		c->cscrypt = c->ncscrypt;
 		c->sccrypt = c->nsccrypt;
 		c->csmac = c->ncsmac;
 		c->scmac = c->nscmac;
 		c->c2scs = cryptos[c->cscrypt]->init(c, 0);
 		c->s2ccs = cryptos[c->sccrypt]->init(c, 1);
-		if (c->role == Server) {
+		if(c->role == Server) {
 			c->encrypt = c->sccrypt;
 			c->decrypt = c->cscrypt;
 			c->outmac = c->scmac;
@@ -2131,7 +2133,7 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			c->deccs = c->c2scs;
 			c->outik = c->s2cik;
 			c->inik = c->c2sik;
-		} else{
+		} else {
 			c->encrypt = c->cscrypt;
 			c->decrypt = c->sccrypt;
 			c->outmac = c->csmac;
@@ -2142,11 +2144,11 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			c->inik = c->s2cik;
 		}
 		sshdebug(c, "using %s for encryption and %s for decryption",
-			cryptos[c->encrypt]->name, cryptos[c->decrypt]->name);
+			 cryptos[c->encrypt]->name, cryptos[c->decrypt]->name);
 		qlock(&c->l);
-		if (i != -1)
+		if(i != -1)
 			c->state = Established;
-		if (c->role == Client)
+		if(c->role == Client)
 			rwakeup(&c->r);
 		qunlock(&c->l);
 		break;
@@ -2156,7 +2158,7 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	case SSH_MSG_KEXDH_REPLY:
 		init_packet(p2);
 		p2->c = c;
-		if (kexes[c->kexalg]->clientkex2(c, p) < 0) {
+		if(kexes[c->kexalg]->clientkex2(c, p) < 0) {
 			add_byte(p2, SSH_MSG_DISCONNECT);
 			add_byte(p2, SSH_DISCONNECT_KEY_EXCHANGE_FAILED);
 			add_string(p2, "Key exchange failure");
@@ -2187,8 +2189,8 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	case SSH_MSG_SERVICE_REQUEST:
 		get_string(p, p->payload + 1, buf, Arbbufsz, nil);
 		sshdebug(c, "got service request: %s", buf);
-		if (strcmp(buf, "ssh-userauth") == 0 ||
-		    strcmp(buf, "ssh-connection") == 0) {
+		if(strcmp(buf, "ssh-userauth") == 0 ||
+		   strcmp(buf, "ssh-connection") == 0) {
 			init_packet(p2);
 			p2->c = c;
 			sshdebug(c, "connection");
@@ -2197,7 +2199,7 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			n = finish_packet(p2);
 			iowrite(c->rio, c->datafd, p2->nlength, n);
 			c->state = Authing;
-		} else{
+		} else {
 			init_packet(p2);
 			p2->c = c;
 			add_byte(p2, SSH_MSG_DISCONNECT);
@@ -2211,15 +2213,15 @@ negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		break;
 	case SSH_MSG_SERVICE_ACCEPT:
 		get_string(p, p->payload + 1, buf, Arbbufsz, nil);
-		if (c->service && strcmp(c->service, "ssh-userauth") == 0) {
+		if(c->service && strcmp(c->service, "ssh-userauth") == 0) {
 			free(c->service);
 			c->service = estrdup9p("ssh-connection");
 		}
 		sshdebug(c, "got service accept: %s: responding with %s %s",
-			buf, c->user, c->service);
+			 buf, c->user, c->service);
 		n = client_auth(c, c->rio);
 		c->state = Authing;
-		if (n < 0) {
+		if(n < 0) {
 			qlock(&c->l);
 			rwakeup(&c->r);
 			qunlock(&c->l);
@@ -2255,13 +2257,13 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	SSHChan *ch;
 
 	USED(size);
-	if (debug > 1) {
+	if(debug > 1) {
 		sshdebug(c, "in Established state, got:");
 		dump_packet(p);
 	}
-	switch (p->payload[0]) {
+	switch(p->payload[0]) {
 	case SSH_MSG_DISCONNECT:
-		if (debug) {
+		if(debug) {
 			get_string(p, p->payload + 5, buf, Arbbufsz, nil);
 			sshdebug(c, "got disconnect: %s", buf);
 		}
@@ -2270,23 +2272,23 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	case SSH_MSG_UNIMPLEMENTED:
 		break;
 	case SSH_MSG_DEBUG:
-		if (debug || p->payload[1]) {
+		if(debug || p->payload[1]) {
 			get_string(p, p->payload + 2, buf, Arbbufsz, nil);
 			sshdebug(c, "got debug message: %s", buf);
 		}
 		break;
 	case SSH_MSG_KEXINIT:
 		send_kexinit(c);
-		if (c->rkexinit)
+		if(c->rkexinit)
 			free(c->rkexinit);
 		c->rkexinit = new_packet(c);
 		memmove(c->rkexinit, p, sizeof(Packet));
-		if (validatekex(c, p) < 0) {
+		if(validatekex(c, p) < 0) {
 			sshdebug(c, "kex crypto algorithm mismatch (Established)");
 			return -1;
 		}
 		sshdebug(c, "using %s Kex algorithm and %s PKA",
-			kexes[c->kexalg]->name, pkas[c->pkalg]->name);
+			 kexes[c->kexalg]->name, pkas[c->pkalg]->name);
 		c->state = Negotiating;
 		break;
 	case SSH_MSG_GLOBAL_REQUEST:
@@ -2297,7 +2299,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		q = get_string(p, p->payload + 1, buf, Arbbufsz, nil);
 		sshdebug(c, "searching for a listener for channel type %s", buf);
 		ch = alloc_chan(c);
-		if (ch == nil) {
+		if(ch == nil) {
 			nochans(c, p, p2);
 			break;
 		}
@@ -2305,22 +2307,22 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		sshdebug(c, "alloced channel %d for listener", ch->id);
 		qlock(&c->l);
 		ch->otherid = nhgetl(q);
-		ch->twindow = nhgetl(q+4);
+		ch->twindow = nhgetl(q + 4);
 		sshdebug(c, "got lock in channel open");
-		for (i = 0; i < c->nchan; ++i)
-			if (c->chans[i] && c->chans[i]->state == Listening &&
-			    c->chans[i]->ann &&
-			    strcmp(c->chans[i]->ann, buf) == 0)
+		for(i = 0; i < c->nchan; ++i)
+			if(c->chans[i] && c->chans[i]->state == Listening &&
+			   c->chans[i]->ann &&
+			   strcmp(c->chans[i]->ann, buf) == 0)
 				break;
-		if (i >= c->nchan) {
+		if(i >= c->nchan) {
 			sshdebug(c, "no listener: sleeping");
 			ch->state = Opening;
-			if (ch->ann)
+			if(ch->ann)
 				free(ch->ann);
 			ch->ann = estrdup9p(buf);
 			sshdebug(c, "waiting for someone to announce %s", ch->ann);
 			rsleep(&ch->r);
-		} else{
+		} else {
 			sshdebug(c, "found listener on channel %d", ch->id);
 			c->chans[i]->waker = ch->id;
 			rwakeup(&c->chans[i]->r);
@@ -2331,8 +2333,8 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		cnum = nhgetl(p->payload + 1);
 		ch = c->chans[cnum];
 		qlock(&c->l);
-		ch->otherid = nhgetl(p->payload+5);
-		ch->twindow = nhgetl(p->payload+9);
+		ch->otherid = nhgetl(p->payload + 5);
+		ch->twindow = nhgetl(p->payload + 9);
 		rwakeup(&ch->r);
 		qunlock(&c->l);
 		break;
@@ -2359,7 +2361,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 		pl = emalloc9p(sizeof(Plist));
 		pl->pack = emalloc9p(sizeof(Packet));
 		memmove(pl->pack, p, sizeof(Packet));
-		if (p->payload[0] == SSH_MSG_CHANNEL_DATA) {
+		if(p->payload[0] == SSH_MSG_CHANNEL_DATA) {
 			pl->rem = nhgetl(p->payload + 5);
 			pl->st = pl->pack->payload + 9;
 		} else {
@@ -2367,7 +2369,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			pl->st = pl->pack->payload + 13;
 		}
 		pl->next = nil;
-		if (ch->dataq == nil)
+		if(ch->dataq == nil)
 			ch->dataq = pl;
 		else
 			ch->datatl->next = pl;
@@ -2378,7 +2380,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	case SSH_MSG_CHANNEL_EOF:
 		cnum = nhgetl(p->payload + 1);
 		ch = c->chans[cnum];
-		if (ch->state != Closed && ch->state != Closing) {
+		if(ch->state != Closed && ch->state != Closing) {
 			ch->state = Eof;
 			nbsendul(ch->inchan, 1);
 			nbsendul(ch->reqchan, 1);
@@ -2387,7 +2389,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 	case SSH_MSG_CHANNEL_CLOSE:
 		cnum = nhgetl(p->payload + 1);
 		ch = c->chans[cnum];
-		if (ch->state != Closed && ch->state != Closing) {
+		if(ch->state != Closed && ch->state != Closing) {
 			init_packet(p2);
 			p2->c = c;
 			add_byte(p2, SSH_MSG_CHANNEL_CLOSE);
@@ -2397,7 +2399,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			iowrite(c->rio, c->datafd, p2->nlength, n);
 		}
 		qlock(&c->l);
-		if (ch->state != Closed) {
+		if(ch->state != Closed) {
 			ch->state = Closed;
 			rwakeup(&ch->r);
 			nbsendul(ch->inchan, 1);
@@ -2406,29 +2408,29 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			chanclose(ch->reqchan);
 		}
 		qunlock(&c->l);
-		for (i = 0; i < MAXCONN && (!c->chans[i] ||
-		    c->chans[i]->state == Empty || c->chans[i]->state == Closed);
+		for(i = 0; i < MAXCONN && (!c->chans[i] ||
+					   c->chans[i]->state == Empty || c->chans[i]->state == Closed);
 		    ++i)
 			;
-		if (i >= MAXCONN)
+		if(i >= MAXCONN)
 			return -1;
 		break;
 	case SSH_MSG_CHANNEL_REQUEST:
 		cnum = nhgetl(p->payload + 1);
 		ch = c->chans[cnum];
 		sshdebug(c, "queueing channel request for channel: %d", cnum);
-		q = get_string(p, p->payload+5, buf, Arbbufsz, nil);
+		q = get_string(p, p->payload + 5, buf, Arbbufsz, nil);
 		pl = emalloc9p(sizeof(Plist));
 		pl->pack = emalloc9p(sizeof(Packet));
 		n = snprint((char *)pl->pack->payload,
-			Maxpayload, "%s %c", buf, *q? 't': 'f');
+			    Maxpayload, "%s %c", buf, *q ? 't' : 'f');
 		sshdebug(c, "request message begins: %s",
-			(char *)pl->pack->payload);
-		memmove(pl->pack->payload + n, q + 1, p->rlength - (11 + n-2));
+			 (char *)pl->pack->payload);
+		memmove(pl->pack->payload + n, q + 1, p->rlength - (11 + n - 2));
 		pl->rem = p->rlength - 11 + 2;
 		pl->st = pl->pack->payload;
 		pl->next = nil;
-		if (ch->reqq == nil)
+		if(ch->reqq == nil)
 			ch->reqq = pl;
 		else
 			ch->reqtl->next = pl;
@@ -2449,7 +2451,7 @@ bail(Conn *c, Packet *p, Packet *p2, char *sts)
 	shutdown(c);
 	free(p);
 	free(p2);
-	if (c->rio) {
+	if(c->rio) {
 		closeioproc(c->rio);
 		c->rio = nil;
 	}
@@ -2465,91 +2467,91 @@ reader0(Conn *c, Packet *p, Packet *p2)
 
 	nm = 0;
 	nb = 4;
-	if (c->decrypt != -1)
+	if(c->decrypt != -1)
 		nb = cryptos[c->decrypt]->blklen;
 	sshdebug(c, "calling read for connection %d, state %d, nb %d, dc %d",
-		c->id, c->state, nb, c->decrypt);
-	if ((nl = ioreadn(c->rio, c->datafd, p->nlength, nb)) != nb) {
+		 c->id, c->state, nb, c->decrypt);
+	if((nl = ioreadn(c->rio, c->datafd, p->nlength, nb)) != nb) {
 		sshdebug(c, "reader for connection %d exiting, got %d: %r",
-			c->id, nl);
+			 c->id, nl);
 		bail(c, p, p2, "reader exiting");
 	}
-	if (c->decrypt != -1)
+	if(c->decrypt != -1)
 		cryptos[c->decrypt]->decrypt(c->deccs, p->nlength, nb);
 	p->rlength = nhgetl(p->nlength);
 	sshdebug(c, "got message length: %ld", p->rlength);
-	if (p->rlength > Maxpktpay) {
+	if(p->rlength > Maxpktpay) {
 		sshdebug(c, "absurd packet length: %ld, unrecoverable decrypt failure",
-			p->rlength);
+			 p->rlength);
 		bail(c, p, p2, "absurd packet length");
 	}
 	np = ioreadn(c->rio, c->datafd, p->nlength + nb, p->rlength + 4 - nb);
-	if (c->inmac != -1)
+	if(c->inmac != -1)
 		nm = ioreadn(c->rio, c->datafd, p->nlength + p->rlength + 4,
-			SHA1dlen);		/* SHA1dlen was magic 20 */
+			     SHA1dlen); /* SHA1dlen was magic 20 */
 	n = nl + np + nm;
-	if (debug) {
+	if(debug) {
 		sshdebug(c, "got message of %d bytes %d padding", n, p->pad_len);
-		if (p->payload[0] > SSH_MSG_CHANNEL_OPEN) {
-			i = nhgetl(p->payload+1);
-			if (c->chans[i])
+		if(p->payload[0] > SSH_MSG_CHANNEL_OPEN) {
+			i = nhgetl(p->payload + 1);
+			if(c->chans[i])
 				sshdebug(c, " for channel %d win %lud",
-					i, c->chans[i]->rwindow);
+					 i, c->chans[i]->rwindow);
 			else
 				sshdebug(c, " for invalid channel %d", i);
 		}
 		sshdebug(c, " first byte: %d", p->payload[0]);
 	}
 	/* SHA1dlen was magic 20 */
-	if (np != p->rlength + 4 - nb || c->inmac != -1 && nm != SHA1dlen) {
+	if(np != p->rlength + 4 - nb || c->inmac != -1 && nm != SHA1dlen) {
 		sshdebug(c, "got EOF/error on connection read: %d %d %r", np, nm);
 		bail(c, p, p2, "error or eof");
 	}
 	p->tlength = n;
 	p->rlength = n - 4;
-	if (undo_packet(p) < 0) {
+	if(undo_packet(p) < 0) {
 		sshdebug(c, "bad packet in connection %d: exiting", c->id);
 		bail(c, p, p2, "bad packet");
 	}
 
-	if (c->state == Initting) {
-		if (p->payload[0] != SSH_MSG_KEXINIT) {
+	if(c->state == Initting) {
+		if(p->payload[0] != SSH_MSG_KEXINIT) {
 			sshdebug(c, "missing KEX init packet: %d", p->payload[0]);
 			bail(c, p, p2, "bad kex");
 		}
-		if (c->rkexinit)
+		if(c->rkexinit)
 			free(c->rkexinit);
 		c->rkexinit = new_packet(c);
 		memmove(c->rkexinit, p, sizeof(Packet));
-		if (validatekex(c, p) < 0) {
+		if(validatekex(c, p) < 0) {
 			sshdebug(c, "kex crypto algorithm mismatch (Initting)");
 			bail(c, p, p2, "bad kex");
 		}
 		sshdebug(c, "using %s Kex algorithm and %s PKA",
-			kexes[c->kexalg]->name, pkas[c->pkalg]->name);
-		if (c->role == Client)
+			 kexes[c->kexalg]->name, pkas[c->pkalg]->name);
+		if(c->role == Client)
 			kexes[c->kexalg]->clientkex1(c, p);
 		c->state = Negotiating;
-	} else if (c->state == Negotiating) {
-		if (negotiating(c, p, p2, buf, sizeof buf) < 0)
+	} else if(c->state == Negotiating) {
+		if(negotiating(c, p, p2, buf, sizeof buf) < 0)
 			bail(c, p, p2, "negotiating");
-	} else if (c->state == Authing) {
-		switch (p->payload[0]) {
+	} else if(c->state == Authing) {
+		switch(p->payload[0]) {
 		case SSH_MSG_DISCONNECT:
-			if (debug) {
+			if(debug) {
 				get_string(p, p->payload + 5, buf, Arbbufsz, nil);
 				sshdebug(c, "got disconnect: %s", buf);
 			}
 			bail(c, p, p2, "msg disconnect");
 		case SSH_MSG_USERAUTH_REQUEST:
-			switch (auth_req(p, c)) {
-			case 0:			/* success */
+			switch(auth_req(p, c)) {
+			case 0: /* success */
 				establish(c);
 				break;
-			case 1:			/* ok to try again */
-			case -1:		/* failure */
+			case 1:  /* ok to try again */
+			case -1: /* failure */
 				break;
-			case -2:		/* can't happen, now at least */
+			case -2: /* can't happen, now at least */
 				bail(c, p, p2, "in userauth request");
 			}
 			break;
@@ -2564,8 +2566,8 @@ reader0(Conn *c, Packet *p, Packet *p2)
 		case SSH_MSG_USERAUTH_BANNER:
 			break;
 		}
-	} else if (c->state == Established) {
-		if (established(c, p, p2, buf, sizeof buf) < 0)
+	} else if(c->state == Established) {
+		if(established(c, p, p2, buf, sizeof buf) < 0)
 			bail(c, p, p2, "from established state");
 	} else {
 		sshdebug(c, "connection %d in bad state, reader exiting", c->id);
@@ -2594,7 +2596,7 @@ reader(void *a)
 int
 validatekex(Conn *c, Packet *p)
 {
-	if (c->role == Server)
+	if(c->role == Server)
 		return validatekexs(p);
 	else
 		return validatekexc(p);
@@ -2614,9 +2616,9 @@ validatekexs(Packet *p)
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	sshdebug(nil, "received KEX algs: %s", buf);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (i = 0; i < n; ++i)
-		for (j = 0; j < nelem(kexes); ++j)
-			if (strcmp(toks[i], kexes[j]->name) == 0)
+	for(i = 0; i < n; ++i)
+		for(j = 0; j < nelem(kexes); ++j)
+			if(strcmp(toks[i], kexes[j]->name) == 0)
 				goto foundk;
 	sshdebug(nil, "kex algs not in kexes");
 	free(buf);
@@ -2627,9 +2629,9 @@ foundk:
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	sshdebug(nil, "received host key algs: %s", buf);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (i = 0; i < n; ++i)
-		for (j = 0; j < nelem(pkas) && pkas[j] != nil; ++j)
-			if (strcmp(toks[i], pkas[j]->name) == 0)
+	for(i = 0; i < n; ++i)
+		for(j = 0; j < nelem(pkas) && pkas[j] != nil; ++j)
+			if(strcmp(toks[i], pkas[j]->name) == 0)
 				goto foundpka;
 	sshdebug(nil, "host key algs not in pkas");
 	free(buf);
@@ -2640,9 +2642,9 @@ foundpka:
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	sshdebug(nil, "received C2S crypto algs: %s", buf);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (i = 0; i < n; ++i)
-		for (j = 0; j < nelem(cryptos); ++j)
-			if (strcmp(toks[i], cryptos[j]->name) == 0)
+	for(i = 0; i < n; ++i)
+		for(j = 0; j < nelem(cryptos); ++j)
+			if(strcmp(toks[i], cryptos[j]->name) == 0)
 				goto foundc1;
 	sshdebug(nil, "c2s crypto algs not in cryptos");
 	free(buf);
@@ -2653,9 +2655,9 @@ foundc1:
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	sshdebug(nil, "received S2C crypto algs: %s", buf);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (i = 0; i < n; ++i)
-		for (j = 0; j < nelem(cryptos); ++j)
-			if (strcmp(toks[i], cryptos[j]->name) == 0)
+	for(i = 0; i < n; ++i)
+		for(j = 0; j < nelem(cryptos); ++j)
+			if(strcmp(toks[i], cryptos[j]->name) == 0)
 				goto foundc2;
 	sshdebug(nil, "s2c crypto algs not in cryptos");
 	free(buf);
@@ -2666,9 +2668,9 @@ foundc2:
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	sshdebug(nil, "received C2S MAC algs: %s", buf);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (i = 0; i < n; ++i)
-		for (j = 0; j < nelem(macnames); ++j)
-			if (strcmp(toks[i], macnames[j]) == 0)
+	for(i = 0; i < n; ++i)
+		for(j = 0; j < nelem(macnames); ++j)
+			if(strcmp(toks[i], macnames[j]) == 0)
 				goto foundm1;
 	sshdebug(nil, "c2s mac algs not in cryptos");
 	free(buf);
@@ -2679,9 +2681,9 @@ foundm1:
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	sshdebug(nil, "received S2C MAC algs: %s", buf);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (i = 0; i < n; ++i)
-		for (j = 0; j < nelem(macnames); ++j)
-			if (strcmp(toks[i], macnames[j]) == 0)
+	for(i = 0; i < n; ++i)
+		for(j = 0; j < nelem(macnames); ++j)
+			if(strcmp(toks[i], macnames[j]) == 0)
 				goto foundm2;
 	sshdebug(nil, "s2c mac algs not in cryptos");
 	free(buf);
@@ -2694,7 +2696,7 @@ foundm2:
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	free(buf);
-	if (*q)
+	if(*q)
 		return 1;
 	return 0;
 }
@@ -2711,9 +2713,9 @@ validatekexc(Packet *p)
 	q = p->payload + 17;
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (j = 0; j < nelem(kexes); ++j)
-		for (i = 0; i < n; ++i)
-			if (strcmp(toks[i], kexes[j]->name) == 0)
+	for(j = 0; j < nelem(kexes); ++j)
+		for(i = 0; i < n; ++i)
+			if(strcmp(toks[i], kexes[j]->name) == 0)
 				goto foundk;
 	free(buf);
 	return -1;
@@ -2722,9 +2724,9 @@ foundk:
 
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (j = 0; j < nelem(pkas) && pkas[j] != nil; ++j)
-		for (i = 0; i < n; ++i)
-			if (strcmp(toks[i], pkas[j]->name) == 0)
+	for(j = 0; j < nelem(pkas) && pkas[j] != nil; ++j)
+		for(i = 0; i < n; ++i)
+			if(strcmp(toks[i], pkas[j]->name) == 0)
 				goto foundpka;
 	free(buf);
 	return -1;
@@ -2733,9 +2735,9 @@ foundpka:
 
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (j = 0; j < nelem(cryptos); ++j)
-		for (i = 0; i < n; ++i)
-			if (strcmp(toks[i], cryptos[j]->name) == 0)
+	for(j = 0; j < nelem(cryptos); ++j)
+		for(i = 0; i < n; ++i)
+			if(strcmp(toks[i], cryptos[j]->name) == 0)
 				goto foundc1;
 	free(buf);
 	return -1;
@@ -2743,9 +2745,9 @@ foundc1:
 	p->c->ncscrypt = j;
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (j = 0; j < nelem(cryptos); ++j)
-		for (i = 0; i < n; ++i)
-			if (strcmp(toks[i], cryptos[j]->name) == 0)
+	for(j = 0; j < nelem(cryptos); ++j)
+		for(i = 0; i < n; ++i)
+			if(strcmp(toks[i], cryptos[j]->name) == 0)
 				goto foundc2;
 	free(buf);
 	return -1;
@@ -2754,9 +2756,9 @@ foundc2:
 
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (j = 0; j < nelem(macnames); ++j)
-		for (i = 0; i < n; ++i)
-			if (strcmp(toks[i], macnames[j]) == 0)
+	for(j = 0; j < nelem(macnames); ++j)
+		for(i = 0; i < n; ++i)
+			if(strcmp(toks[i], macnames[j]) == 0)
 				goto foundm1;
 	free(buf);
 	return -1;
@@ -2765,9 +2767,9 @@ foundm1:
 
 	q = get_string(p, q, buf, Bigbufsz, nil);
 	n = gettokens(buf, toks, nelem(toks), ",");
-	for (j = 0; j < nelem(macnames); ++j)
-		for (i = 0; i < n; ++i)
-			if (strcmp(toks[i], macnames[j]) == 0)
+	for(j = 0; j < nelem(macnames); ++j)
+		for(i = 0; i < n; ++i)
+			if(strcmp(toks[i], macnames[j]) == 0)
 				goto foundm2;
 	free(buf);
 	return -1;
@@ -2787,7 +2789,7 @@ memrandom(void *p, int n)
 {
 	uint8_t *cp;
 
-	for (cp = (uint8_t*)p; n > 0; n--)
+	for(cp = (uint8_t *)p; n > 0; n--)
 		*cp++ = fastrand();
 	return 0;
 }
@@ -2795,7 +2797,7 @@ memrandom(void *p, int n)
 /*
  *  create a change uid capability
  */
-char*
+char *
 mkcap(char *from, char *to)
 {
 	int fd, fromtosz;
@@ -2803,25 +2805,25 @@ mkcap(char *from, char *to)
 	uint8_t rand[SHA1dlen], hash[SHA1dlen];
 
 	fd = open("#¤/caphash", OWRITE);
-	if (fd < 0)
+	if(fd < 0)
 		sshlog(nil, "can't open #¤/caphash: %r");
 
 	/* create the capability */
 	fromtosz = strlen(from) + 1 + strlen(to) + 1;
-	cap = emalloc9p(fromtosz + sizeof(rand)*3 + 1);
-	snprint(cap, fromtosz + sizeof(rand)*3 + 1, "%s@%s", from, to);
+	cap = emalloc9p(fromtosz + sizeof(rand) * 3 + 1);
+	snprint(cap, fromtosz + sizeof(rand) * 3 + 1, "%s@%s", from, to);
 	memrandom(rand, sizeof(rand));
 	key = cap + fromtosz;
-	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
+	enc64(key, sizeof(rand) * 3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+	hmac_sha1((uint8_t *)cap, strlen(cap), (uint8_t *)key, strlen(key),
 		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
 	sshdebug(nil, "writing `%.*s' to caphash", SHA1dlen, hash);
-	if (write(fd, hash, SHA1dlen) != SHA1dlen) {
+	if(write(fd, hash, SHA1dlen) != SHA1dlen) {
 		close(fd);
 		free(cap);
 		return nil;
@@ -2840,22 +2842,22 @@ keyfsauth(char *me, char *user, char *pw, char *key1, char *key2)
 	char path[Arbpathlen];
 	AuthInfo *ai;
 
-	if (passtokey(key1, pw) == 0)
+	if(passtokey(key1, pw) == 0)
 		return nil;
 
 	snprint(path, Arbpathlen, "/mnt/keys/%s/key", user);
-	if ((fd = open(path, OREAD)) < 0) {
+	if((fd = open(path, OREAD)) < 0) {
 		werrstr("Invalid user %s", user);
 		return nil;
 	}
-	if (read(fd, key2, DESKEYLEN) != DESKEYLEN) {
+	if(read(fd, key2, DESKEYLEN) != DESKEYLEN) {
 		close(fd);
 		werrstr("Password mismatch 1");
 		return nil;
 	}
 	close(fd);
 
-	if (memcmp(key1, key2, DESKEYLEN) != 0) {
+	if(memcmp(key1, key2, DESKEYLEN) != 0) {
 		werrstr("Password mismatch 2");
 		return nil;
 	}
@@ -2879,7 +2881,7 @@ userauthfailed(Packet *p2)
 
 static int
 authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uint8_t *q,
-	char *alg, char *blob, char *sig, char *service,
+	  char *alg, char *blob, char *sig, char *service,
 	  char *me)
 {
 	int n, thisway, nblob, nsig;
@@ -2887,17 +2889,18 @@ authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uint8_t *q,
 
 	sshdebug(c, "auth_req publickey for user %s", user);
 	thisway = *q == '\0';
-	q = get_string(p, q+1, alg, Arbpathlen, nil);
+	q = get_string(p, q + 1, alg, Arbpathlen, nil);
 	q = get_string(p, q, blob, Blobsz, &nblob);
-	if (thisway) {
+	if(thisway) {
 		/*
 		 * Should really check to see if this user can
 		 * be authed this way.
 		 */
-		for (n = 0; n < nelem(pkas) && pkas[n] != nil &&
-		    strcmp(pkas[n]->name, alg) != 0; ++n)
+		for(n = 0; n < nelem(pkas) && pkas[n] != nil &&
+			       strcmp(pkas[n]->name, alg) != 0;
+		    ++n)
 			;
-		if (n >= nelem(pkas) || pkas[n] == nil) {
+		if(n >= nelem(pkas) || pkas[n] == nil) {
 			userauthfailed(p2);
 			return -1;
 		}
@@ -2908,10 +2911,11 @@ authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uint8_t *q,
 	}
 
 	get_string(p, q, sig, Blobsz, &nsig);
-	for (n = 0; n < nelem(pkas) && pkas[n] != nil &&
-	    strcmp(pkas[n]->name, alg) != 0; ++n)
+	for(n = 0; n < nelem(pkas) && pkas[n] != nil &&
+		       strcmp(pkas[n]->name, alg) != 0;
+	    ++n)
 		;
-	if (n >= nelem(pkas) || pkas[n] == nil) {
+	if(n >= nelem(pkas) || pkas[n] == nil) {
 		userauthfailed(p2);
 		return -1;
 	}
@@ -2924,8 +2928,7 @@ authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uint8_t *q,
 	add_byte(p2, 1);
 	add_string(p2, alg);
 	add_block(p2, blob, nblob);
-	if (pkas[n]->verify(c, p2->payload, p2->rlength - 1, user, sig, nsig)
-	    == 0) {
+	if(pkas[n]->verify(c, p2->payload, p2->rlength - 1, user, sig, nsig) == 0) {
 		init_packet(p2);
 		p2->c = c;
 		sshlog(c, "public key login failed");
@@ -2959,7 +2962,7 @@ auth_req(Packet *p, Conn *c)
 	path = emalloc9p(Arbpathlen);
 	blob = emalloc9p(Blobsz);
 	sig = emalloc9p(Blobsz);
-	ret = -1;				/* failure is default */
+	ret = -1; /* failure is default */
 
 	q = get_string(p, p->payload + 1, user, Arbpathlen, nil);
 	free(c->user);
@@ -2971,24 +2974,24 @@ auth_req(Packet *p, Conn *c)
 	readfile("/dev/user", me, Arbpathlen);
 
 	p2 = new_packet(c);
-	if (strcmp(method, "publickey") == 0)
+	if(strcmp(method, "publickey") == 0)
 		ret = authreqpk(p, p2, c, user, q, alg, blob, sig, service, me);
-	else if (strcmp(method, "password") == 0) {
+	else if(strcmp(method, "password") == 0) {
 		get_string(p, q + 1, pw, Arbpathlen, nil);
 		// sshdebug(c, "%s", pw);	/* bad idea to log passwords */
 		sshdebug(c, "auth_req password");
-		if (kflag)
+		if(kflag)
 			ai = keyfsauth(me, user, pw, key1, key2);
 		else
 			ai = auth_userpasswd(user, pw);
-		if (ai == nil) {
+		if(ai == nil) {
 			sshlog(c, "login failed: %r");
 			userauthfailed(p2);
 		} else {
 			sshdebug(c, "auth successful: cuid %s suid %s cap %s",
-				ai->cuid, ai->suid, ai->cap);
+				 ai->cuid, ai->suid, ai->cap);
 			free(c->cap);
-			if (strcmp(user, me) == 0)
+			if(strcmp(user, me) == 0)
 				c->cap = estrdup9p("n/a");
 			else
 				c->cap = estrdup9p(ai->cap);
@@ -3024,14 +3027,14 @@ client_auth(Conn *c, Ioproc *io)
 	int i, n;
 
 	sshdebug(c, "client_auth");
-	if (!c->password && !c->authkey)
+	if(!c->password && !c->authkey)
 		return -1;
 
 	p2 = new_packet(c);
 	add_byte(p2, SSH_MSG_USERAUTH_REQUEST);
 	add_string(p2, c->user);
 	add_string(p2, c->service);
-	if (c->password) {
+	if(c->password) {
 		add_string(p2, "password");
 		add_byte(p2, 0);
 		add_string(p2, c->password);
@@ -3044,20 +3047,20 @@ client_auth(Conn *c, Ioproc *io)
 
 		r = strstr(c->authkey, " ek=");
 		s = strstr(c->authkey, " n=");
-		if (!r || !s) {
+		if(!r || !s) {
 			shutdown(c);
 			free(p2);
 			sshdebug(c, "client_auth no rsa key");
 			return -1;
 		}
-		ek = strtomp(r+4, nil, 16, nil);
-		nk = strtomp(s+3, nil, 16, nil);
+		ek = strtomp(r + 4, nil, 16, nil);
+		nk = strtomp(s + 3, nil, 16, nil);
 
 		p3 = new_packet(c);
 		add_string(p3, "ssh-rsa");
 		add_mp(p3, ek);
 		add_mp(p3, nk);
-		add_block(p2, p3->payload, p3->rlength-1);
+		add_block(p2, p3->payload, p3->rlength - 1);
 
 		p4 = new_packet(c);
 		add_block(p4, c->sessid, SHA1dlen);
@@ -3067,28 +3070,28 @@ client_auth(Conn *c, Ioproc *io)
 		add_string(p4, "publickey");
 		add_byte(p4, 1);
 		add_string(p4, "ssh-rsa");
-		add_block(p4, p3->payload, p3->rlength-1);
+		add_block(p4, p3->payload, p3->rlength - 1);
 		mpfree(ek);
 		mpfree(nk);
 		free(p3);
 
-		for (i = 0; pkas[i] && strcmp("ssh-rsa", pkas[i]->name) != 0;
+		for(i = 0; pkas[i] && strcmp("ssh-rsa", pkas[i]->name) != 0;
 		    ++i)
 			;
-		sshdebug(c, "client_auth rsa signing alg %d: %r",  i);
-		if ((p3 = pkas[i]->sign(c, p4->payload, p4->rlength-1)) == nil) {
+		sshdebug(c, "client_auth rsa signing alg %d: %r", i);
+		if((p3 = pkas[i]->sign(c, p4->payload, p4->rlength - 1)) == nil) {
 			sshdebug(c, "client_auth rsa signing failed: %r");
 			free(p4);
 			free(p2);
 			return -1;
 		}
-		add_block(p2, p3->payload, p3->rlength-1);
+		add_block(p2, p3->payload, p3->rlength - 1);
 		free(p3);
 		free(p4);
 	}
 
 	n = finish_packet(p2);
-	if (writeio(io, c->datafd, p2->nlength, n) != n)
+	if(writeio(io, c->datafd, p2->nlength, n) != n)
 		sshdebug(c, "client_auth write failed: %r");
 	free(p2);
 	return 0;
@@ -3105,23 +3108,23 @@ factlookup(int nattr, int nreq, char *attrs[])
 
 	res = nil;
 	bp = Bopen("/mnt/factotum/ctl", OREAD);
-	if (bp == nil)
+	if(bp == nil)
 		return nil;
 	maxmatch = 0;
-	while (buf = Brdstr(bp, '\n', 1)) {
+	while(buf = Brdstr(bp, '\n', 1)) {
 		q = estrdup9p(buf);
 		ntok = gettokens(buf, toks, nelem(toks), " ");
 		nmatch = 0;
-		for (i = 0; i < nattr; ++i) {
-			for (j = 0; j < ntok; ++j)
-				if (strcmp(attrs[i], toks[j]) == 0) {
+		for(i = 0; i < nattr; ++i) {
+			for(j = 0; j < ntok; ++j)
+				if(strcmp(attrs[i], toks[j]) == 0) {
 					++nmatch;
 					break;
 				}
-			if (i < nreq && j >= ntok)
+			if(i < nreq && j >= ntok)
 				break;
 		}
-		if (i >= nattr && nmatch > maxmatch) {
+		if(i >= nattr && nmatch > maxmatch) {
 			free(res);
 			res = q;
 			maxmatch = nmatch;
@@ -3142,28 +3145,28 @@ shutdown(Conn *c)
 
 	sshdebug(c, "shutting down connection %d", c->id);
 	ostate = c->state;
-	if (c->clonefile->ref <= 2 && c->ctlfile->ref <= 2 &&
-	    c->datafile->ref <= 2 && c->listenfile->ref <= 2 &&
-	    c->localfile->ref <= 2 && c->remotefile->ref <= 2 &&
-	    c->statusfile->ref <= 2)
+	if(c->clonefile->ref <= 2 && c->ctlfile->ref <= 2 &&
+	   c->datafile->ref <= 2 && c->listenfile->ref <= 2 &&
+	   c->localfile->ref <= 2 && c->remotefile->ref <= 2 &&
+	   c->statusfile->ref <= 2)
 		c->state = Closed;
 	else {
-		if (c->state != Closed)
+		if(c->state != Closed)
 			c->state = Closing;
 		sshdebug(c, "clone %ld ctl %ld data %ld listen %ld "
-			"local %ld remote %ld status %ld",
-			c->clonefile->ref, c->ctlfile->ref, c->datafile->ref,
-			c->listenfile->ref, c->localfile->ref, c->remotefile->ref,
-			c->statusfile->ref);
+			    "local %ld remote %ld status %ld",
+			 c->clonefile->ref, c->ctlfile->ref, c->datafile->ref,
+			 c->listenfile->ref, c->localfile->ref, c->remotefile->ref,
+			 c->statusfile->ref);
 	}
-	if (ostate == Closed || ostate == Closing) {
+	if(ostate == Closed || ostate == Closing) {
 		c->state = Closed;
 		return;
 	}
-	if (c->role == Server && c->remote)
+	if(c->role == Server && c->remote)
 		sshlog(c, "closing connection");
 	hangupconn(c);
-	if (c->dio) {
+	if(c->dio) {
 		closeioproc(c->dio);
 		c->dio = nil;
 	}
@@ -3178,11 +3181,11 @@ shutdown(Conn *c)
 	c->c2scs = nil;
 	free(c->remote);
 	c->remote = nil;
-	if (c->x) {
+	if(c->x) {
 		mpfree(c->x);
 		c->x = nil;
 	}
-	if (c->e) {
+	if(c->e) {
 		mpfree(c->e);
 		c->e = nil;
 	}
@@ -3194,22 +3197,22 @@ shutdown(Conn *c)
 	qlock(&c->l);
 	rwakeupall(&c->r);
 	qunlock(&c->l);
-	for (i = 0; i < MAXCONN; ++i) {
+	for(i = 0; i < MAXCONN; ++i) {
 		sc = c->chans[i];
-		if (sc == nil)
+		if(sc == nil)
 			continue;
 		free(sc->ann);
 		sc->ann = nil;
-		if (sc->state != Empty && sc->state != Closed) {
+		if(sc->state != Empty && sc->state != Closed) {
 			sc->state = Closed;
 			sc->lreq = nil;
-			while (sc->dataq != nil) {
+			while(sc->dataq != nil) {
 				p = sc->dataq;
 				sc->dataq = p->next;
 				free(p->pack);
 				free(p);
 			}
-			while (sc->reqq != nil) {
+			while(sc->reqq != nil) {
 				p = sc->reqq;
 				sc->reqq = p->next;
 				free(p->pack);

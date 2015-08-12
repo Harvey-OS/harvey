@@ -12,53 +12,53 @@
 #include "9.h"
 
 enum {
-	Nl	= 256,			/* max. command line length */
-	Nq	= 8*1024,		/* amount of I/O buffered */
+	Nl = 256,      /* max. command line length */
+	Nq = 8 * 1024, /* amount of I/O buffered */
 };
 
 typedef struct Q {
-	VtLock*	lock;
-	VtRendez* full;
-	VtRendez* empty;
+	VtLock *lock;
+	VtRendez *full;
+	VtRendez *empty;
 
-	char	q[Nq];
-	int	n;
-	int	r;
-	int	w;
+	char q[Nq];
+	int n;
+	int r;
+	int w;
 } Q;
 
 typedef struct Cons {
-	VtLock*	lock;
-	int	ref;
-	int	closed;
-	int	fd;
-	int	srvfd;
-	int	ctlfd;
-	Q*	iq;		/* points to console.iq */
-	Q*	oq;		/* points to console.oq */
+	VtLock *lock;
+	int ref;
+	int closed;
+	int fd;
+	int srvfd;
+	int ctlfd;
+	Q *iq; /* points to console.iq */
+	Q *oq; /* points to console.oq */
 } Cons;
 
 char *currfsysname;
 
 static struct {
-	Q*	iq;		/* input */
-	Q*	oq;		/* output */
-	char	l[Nl];		/* command line assembly */
-	int	nl;		/* current line length */
-	int	nopens;
+	Q *iq;      /* input */
+	Q *oq;      /* output */
+	char l[Nl]; /* command line assembly */
+	int nl;     /* current line length */
+	int nopens;
 
-	char*	prompt;
-	int	np;
+	char *prompt;
+	int np;
 } console;
 
 static void
-consClose(Cons* cons)
+consClose(Cons *cons)
 {
 	vtLock(cons->lock);
 	cons->closed = 1;
 
 	cons->ref--;
-	if(cons->ref > 0){
+	if(cons->ref > 0) {
 		vtLock(cons->iq->lock);
 		vtWakeup(cons->iq->full);
 		vtUnlock(cons->iq->lock);
@@ -69,15 +69,15 @@ consClose(Cons* cons)
 		return;
 	}
 
-	if(cons->ctlfd != -1){
+	if(cons->ctlfd != -1) {
 		close(cons->ctlfd);
 		cons->srvfd = -1;
 	}
-	if(cons->srvfd != -1){
+	if(cons->srvfd != -1) {
 		close(cons->srvfd);
 		cons->srvfd = -1;
 	}
-	if(cons->fd != -1){
+	if(cons->fd != -1) {
 		close(cons->fd);
 		cons->fd = -1;
 	}
@@ -88,33 +88,32 @@ consClose(Cons* cons)
 }
 
 static void
-consIProc(void* v)
+consIProc(void *v)
 {
 	Q *q;
 	Cons *cons;
 	int n, w;
-	char buf[Nq/4];
+	char buf[Nq / 4];
 
 	vtThreadSetName("consI");
 
 	cons = v;
 	q = cons->iq;
-	for(;;){
+	for(;;) {
 		/*
 		 * Can't tell the difference between zero-length read
 		 * and eof, so keep calling read until we get an error.
 		 */
-		if(cons->closed || (n = read(cons->fd, buf, Nq/4)) < 0)
+		if(cons->closed || (n = read(cons->fd, buf, Nq / 4)) < 0)
 			break;
 		vtLock(q->lock);
 		while(Nq - q->n < n && !cons->closed)
 			vtSleep(q->full);
 		w = Nq - q->w;
-		if(w < n){
+		if(w < n) {
 			memmove(&q->q[q->w], buf, w);
 			memmove(&q->q[0], buf + w, n - w);
-		}
-		else
+		} else
 			memmove(&q->q[q->w], buf, n);
 		q->w = (q->w + n) % Nq;
 		q->n += n;
@@ -125,7 +124,7 @@ consIProc(void* v)
 }
 
 static void
-consOProc(void* v)
+consOProc(void *v)
 {
 	Q *q;
 	Cons *cons;
@@ -138,17 +137,16 @@ consOProc(void* v)
 	q = cons->oq;
 	vtLock(q->lock);
 	lastn = 0;
-	for(;;){
+	for(;;) {
 		while(lastn == q->n && !cons->closed)
 			vtSleep(q->empty);
 		if((n = q->n - lastn) > Nq)
 			n = Nq;
-		if(n > q->w){
+		if(n > q->w) {
 			r = n - q->w;
 			memmove(buf, &q->q[Nq - r], r);
-			memmove(buf+r, &q->q[0], n - r);
-		}
-		else
+			memmove(buf + r, &q->q[0], n - r);
+		} else
 			memmove(buf, &q->q[q->w - n], n);
 		lastn = q->n;
 		vtUnlock(q->lock);
@@ -177,7 +175,7 @@ consOpen(int fd, int srvfd, int ctlfd)
 	vtLock(cons->lock);
 	cons->ref = 2;
 	cons->closed = 0;
-	if(vtThread(consOProc, cons) < 0){
+	if(vtThread(consOProc, cons) < 0) {
 		cons->ref--;
 		vtUnlock(cons->lock);
 		consClose(cons);
@@ -187,7 +185,7 @@ consOpen(int fd, int srvfd, int ctlfd)
 
 	if(ctlfd >= 0)
 		consIProc(cons);
-	else if(vtThread(consIProc, cons) < 0){
+	else if(vtThread(consIProc, cons) < 0) {
 		consClose(cons);
 		return 0;
 	}
@@ -196,18 +194,17 @@ consOpen(int fd, int srvfd, int ctlfd)
 }
 
 static int
-qWrite(Q* q, char* p, int n)
+qWrite(Q *q, char *p, int n)
 {
 	int w;
 
 	vtLock(q->lock);
-	if(n > Nq - q->w){
+	if(n > Nq - q->w) {
 		w = Nq - q->w;
 		memmove(&q->q[q->w], p, w);
 		memmove(&q->q[0], p + w, n - w);
 		q->w = n - w;
-	}
-	else{
+	} else {
 		memmove(&q->q[q->w], p, n);
 		q->w += n;
 	}
@@ -218,7 +215,7 @@ qWrite(Q* q, char* p, int n)
 	return n;
 }
 
-static Q*
+static Q *
 qAlloc(void)
 {
 	Q *q;
@@ -246,37 +243,36 @@ consProc(void *v)
 	q = console.iq;
 	qWrite(console.oq, console.prompt, console.np);
 	vtLock(q->lock);
-	for(;;){
+	for(;;) {
 		while((n = q->n) == 0)
 			vtSleep(q->empty);
 		r = Nq - q->r;
-		if(r < n){
+		if(r < n) {
 			memmove(buf, &q->q[q->r], r);
 			memmove(buf + r, &q->q[0], n - r);
-		}
-		else
+		} else
 			memmove(buf, &q->q[q->r], n);
 		q->r = (q->r + n) % Nq;
 		q->n -= n;
 		vtWakeup(q->full);
 		vtUnlock(q->lock);
 
-		for(i = 0; i < n; i++){
-			switch(buf[i]){
-			case '\004':				/* ^D */
-				if(console.nl == 0){
+		for(i = 0; i < n; i++) {
+			switch(buf[i]) {
+			case '\004': /* ^D */
+				if(console.nl == 0) {
 					qWrite(console.oq, "\n", 1);
 					break;
 				}
-				/*FALLTHROUGH*/
+			/*FALLTHROUGH*/
 			default:
-				if(console.nl < Nl-1){
+				if(console.nl < Nl - 1) {
 					qWrite(console.oq, &buf[i], 1);
 					console.l[console.nl++] = buf[i];
 				}
 				continue;
 			case '\b':
-				if(console.nl != 0){
+				if(console.nl != 0) {
 					qWrite(console.oq, &buf[i], 1);
 					console.nl--;
 				}
@@ -284,14 +280,14 @@ consProc(void *v)
 			case '\n':
 				qWrite(console.oq, &buf[i], 1);
 				break;
-			case '\025':				/* ^U */
+			case '\025': /* ^U */
 				qWrite(console.oq, "^U\n", 3);
 				console.nl = 0;
 				break;
-			case '\027':				/* ^W */
+			case '\027': /* ^W */
 				console.l[console.nl] = '\0';
-				wbuf = vtMemAlloc(console.nl+1);
-				memmove(wbuf, console.l, console.nl+1);
+				wbuf = vtMemAlloc(console.nl + 1);
+				memmove(wbuf, console.l, console.nl + 1);
 				argc = tokenize(wbuf, argv, nelem(argv));
 				if(argc > 0)
 					argc--;
@@ -325,7 +321,7 @@ consProc(void *v)
 }
 
 int
-consWrite(char* buf, int len)
+consWrite(char *buf, int len)
 {
 	if(console.oq == nil)
 		return write(2, buf, len);
@@ -335,7 +331,7 @@ consWrite(char* buf, int len)
 }
 
 int
-consPrompt(char* prompt)
+consPrompt(char *prompt)
 {
 	char buf[ERRMAX];
 
@@ -356,22 +352,22 @@ consTTY(void)
 	char *name, *p;
 
 	name = "/dev/cons";
-	if((fd = open(name, ORDWR)) < 0){
+	if((fd = open(name, ORDWR)) < 0) {
 		name = "#c/cons";
-		if((fd = open(name, ORDWR)) < 0){
+		if((fd = open(name, ORDWR)) < 0) {
 			vtSetError("consTTY: open %s: %r", name);
 			return 0;
 		}
 	}
 
 	p = smprint("%sctl", name);
-	if((ctl = open(p, OWRITE)) < 0){
+	if((ctl = open(p, OWRITE)) < 0) {
 		close(fd);
 		vtSetError("consTTY: open %s: %r", p);
 		free(p);
 		return 0;
 	}
-	if(write(ctl, "rawon", 5) < 0){
+	if(write(ctl, "rawon", 5) < 0) {
 		close(ctl);
 		close(fd);
 		vtSetError("consTTY: write %s: %r", p);
@@ -380,7 +376,7 @@ consTTY(void)
 	}
 	free(p);
 
-	if(consOpen(fd, fd, ctl) == 0){
+	if(consOpen(fd, fd, ctl) == 0) {
 		close(ctl);
 		close(fd);
 		return 0;
@@ -398,7 +394,7 @@ consInit(void)
 
 	consPrompt(nil);
 
-	if(vtThread(consProc, nil) < 0){
+	if(vtThread(consProc, nil) < 0) {
 		vtFatal("can't start console proc");
 		return 0;
 	}

@@ -13,7 +13,6 @@
 #include <libsec.h>
 #include <thread.h>
 
-
 enum { STACK = 32768 };
 void xxxsrand(int32_t);
 int32_t xxxlrand(void);
@@ -47,8 +46,8 @@ wr(char *buf, char *buf2)
 	USED(buf2);
 	memset(&ds, 0, sizeof ds);
 	if(doublecheck)
-		sha1((uint8_t*)buf, blocksize, score, &ds);
-	if(vtwrite(z, score2, VtDataType, (uint8_t*)buf, blocksize) < 0)
+		sha1((uint8_t *)buf, blocksize, score, &ds);
+	if(vtwrite(z, score2, VtDataType, (uint8_t *)buf, blocksize) < 0)
 		sysfatal("vtwrite %V at %,lld: %r", score, cur);
 	if(doublecheck && memcmp(score, score2, VtScoreSize) != 0)
 		sysfatal("score mismatch! %V %V", score, score2);
@@ -60,7 +59,7 @@ wrthread(void *v)
 	char *p;
 
 	USED(v);
-	while((p = recvp(cw)) != nil){
+	while((p = recvp(cw)) != nil) {
 		wr(p, nil);
 		free(p);
 	}
@@ -73,8 +72,8 @@ rd(char *buf, char *buf2)
 	DigestState ds;
 
 	memset(&ds, 0, sizeof ds);
-	sha1((uint8_t*)buf, blocksize, score, &ds);
-	if(vtread(z, score, VtDataType, (uint8_t*)buf2, blocksize) < 0)
+	sha1((uint8_t *)buf, blocksize, score, &ds);
+	if(vtread(z, score, VtDataType, (uint8_t *)buf2, blocksize) < 0)
 		sysfatal("vtread %V at %,lld: %r", score, cur);
 	if(memcmp(buf, buf2, blocksize) != 0)
 		sysfatal("bad data read! %V", score);
@@ -87,7 +86,7 @@ rdthread(void *v)
 
 	buf2 = vtmalloc(blocksize);
 	USED(v);
-	while((p = recvp(cr)) != nil){
+	while((p = recvp(cr)) != nil) {
 		rd(p, buf2);
 		free(p);
 	}
@@ -96,7 +95,7 @@ rdthread(void *v)
 char *template;
 
 void
-run(void (*fn)(char*, char*), Channel *c)
+run(void (*fn)(char *, char *), Channel *c)
 {
 	int i, t, j, packets;
 	char *buf2, *buf;
@@ -104,34 +103,34 @@ run(void (*fn)(char*, char*), Channel *c)
 	buf2 = vtmalloc(blocksize);
 	buf = vtmalloc(blocksize);
 	cur = 0;
-	packets = totalbytes/blocksize;
+	packets = totalbytes / blocksize;
 	if(maxpackets == 0)
 		maxpackets = packets;
-	order = vtmalloc(packets*sizeof order[0]);
-	for(i=0; i<packets; i++)
+	order = vtmalloc(packets * sizeof order[0]);
+	for(i = 0; i < packets; i++)
 		order[i] = i;
-	if(permute){
-		for(i=1; i<packets; i++){
-			j = nrand(i+1);
+	if(permute) {
+		for(i = 1; i < packets; i++) {
+			j = nrand(i + 1);
 			t = order[i];
 			order[i] = order[j];
 			order[j] = t;
 		}
 	}
-	for(i=0; i<packets && i<maxpackets; i++){
+	for(i = 0; i < packets && i < maxpackets; i++) {
 		memmove(buf, template, blocksize);
-		*(uint*)buf = order[i];
-		if(c){
+		*(uint *)buf = order[i];
+		if(c) {
 			sendp(c, buf);
 			buf = vtmalloc(blocksize);
-		}else
+		} else
 			(*fn)(buf, buf2);
 		cur += blocksize;
 	}
 	free(order);
 }
 
-#define TWID64	((uint64_t)~(uint64_t)0)
+#define TWID64 ((uint64_t) ~(uint64_t)0)
 
 uint64_t
 unittoull(char *s)
@@ -142,18 +141,18 @@ unittoull(char *s)
 	if(s == nil)
 		return TWID64;
 	n = strtoul(s, &es, 0);
-	if(*es == 'k' || *es == 'K'){
+	if(*es == 'k' || *es == 'K') {
 		n *= 1024;
 		es++;
-	}else if(*es == 'm' || *es == 'M'){
-		n *= 1024*1024;
+	} else if(*es == 'm' || *es == 'M') {
+		n *= 1024 * 1024;
 		es++;
-	}else if(*es == 'g' || *es == 'G'){
-		n *= 1024*1024*1024;
+	} else if(*es == 'g' || *es == 'G') {
+		n *= 1024 * 1024 * 1024;
 		es++;
-	}else if(*es == 't' || *es == 'T'){
-		n *= 1024*1024;
-		n *= 1024*1024;
+	} else if(*es == 't' || *es == 'T') {
+		n *= 1024 * 1024;
+		n *= 1024 * 1024;
 	}
 	if(*es != '\0')
 		return TWID64;
@@ -173,11 +172,12 @@ threadmain(int argc, char *argv[])
 	host = nil;
 	doread = 0;
 	dowrite = 0;
-	totalbytes = 1*1024*1024*1024;
+	totalbytes = 1 * 1024 * 1024 * 1024;
 	fmtinstall('V', vtscorefmt);
 	fmtinstall('F', vtfcallfmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		blocksize = unittoull(EARGF(usage()));
 		break;
@@ -217,9 +217,10 @@ threadmain(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(doread==0 && dowrite==0){
+	if(doread == 0 && dowrite == 0) {
 		doread = 1;
 		dowrite = 1;
 	}
@@ -230,10 +231,10 @@ threadmain(int argc, char *argv[])
 	if(vtconnect(z) < 0)
 		sysfatal("vtconnect: %r");
 
-	if(multi){
-		cr = chancreate(sizeof(void*), 0);
-		cw = chancreate(sizeof(void*), 0);
-		for(i=0; i<multi; i++){
+	if(multi) {
+		cr = chancreate(sizeof(void *), 0);
+		cw = chancreate(sizeof(void *), 0);
+		for(i = 0; i < multi; i++) {
 			proccreate(wrthread, nil, STACK);
 			proccreate(rdthread, nil, STACK);
 		}
@@ -241,50 +242,49 @@ threadmain(int argc, char *argv[])
 
 	template = vtmalloc(blocksize);
 	xxxsrand(seed);
-	max = (256*randpct)/100;
+	max = (256 * randpct) / 100;
 	if(max == 0)
 		max = 1;
-	for(i=0; i<blocksize; i++)
-		template[i] = xxxlrand()%max;
-	if(dowrite){
+	for(i = 0; i < blocksize; i++)
+		template[i] = xxxlrand() % max;
+	if(dowrite) {
 		t0 = nsec();
 		run(wr, cw);
-		for(i=0; i<multi; i++)
+		for(i = 0; i < multi; i++)
 			sendp(cw, nil);
-		t = (nsec() - t0)/1.e9;
+		t = (nsec() - t0) / 1.e9;
 		print("write: %lld bytes / %.3f seconds = %.6f MB/s\n",
-			totalbytes, t, (double)totalbytes/1e6/t);
+		      totalbytes, t, (double)totalbytes / 1e6 / t);
 	}
-	if(doread){
+	if(doread) {
 		t0 = nsec();
 		run(rd, cr);
-		for(i=0; i<multi; i++)
+		for(i = 0; i < multi; i++)
 			sendp(cr, nil);
-		t = (nsec() - t0)/1.e9;
+		t = (nsec() - t0) / 1.e9;
 		print("read: %lld bytes / %.3f seconds = %.6f MB/s\n",
-			totalbytes, t, (double)totalbytes/1e6/t);
+		      totalbytes, t, (double)totalbytes / 1e6 / t);
 	}
 	threadexitsall(nil);
 }
-
 
 /*
  *	algorithm by
  *	D. P. Mitchell & J. A. Reeds
  */
 
-#define	LEN	607
-#define	TAP	273
-#define	MASK	0x7fffffffL
-#define	A	48271
-#define	M	2147483647
-#define	Q	44488
-#define	R	3399
-#define	NORM	(1.0/(1.0+MASK))
+#define LEN 607
+#define TAP 273
+#define MASK 0x7fffffffL
+#define A 48271
+#define M 2147483647
+#define Q 44488
+#define R 3399
+#define NORM (1.0 / (1.0 + MASK))
 
-static	uint32_t	rng_vec[LEN];
-static	uint32_t*	rng_tap = rng_vec;
-static	uint32_t*	rng_feed = 0;
+static uint32_t rng_vec[LEN];
+static uint32_t *rng_tap = rng_vec;
+static uint32_t *rng_feed = 0;
 
 static void
 isrand(int32_t seed)
@@ -293,8 +293,8 @@ isrand(int32_t seed)
 	int i;
 
 	rng_tap = rng_vec;
-	rng_feed = rng_vec+LEN-TAP;
-	seed = seed%M;
+	rng_feed = rng_vec + LEN - TAP;
+	seed = seed % M;
 	if(seed < 0)
 		seed += M;
 	if(seed == 0)
@@ -306,7 +306,7 @@ isrand(int32_t seed)
 	for(i = -20; i < LEN; i++) {
 		hi = x / Q;
 		lo = x % Q;
-		x = A*lo - R*hi;
+		x = A * lo - R * hi;
 		if(x < 0)
 			x += M;
 		if(i >= 0)
@@ -341,4 +341,3 @@ xxxlrand(void)
 
 	return x;
 }
-

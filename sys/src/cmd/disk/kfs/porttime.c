@@ -7,47 +7,45 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-static	int	sunday(Tm *t, int d);
-static	int	dysize(int);
-static	void	ct_numb(char*, int);
-static	void	klocaltime(int32_t tim, Tm *ct);
-static	void	kgmtime(int32_t tim, Tm *ct);
+static int sunday(Tm *t, int d);
+static int dysize(int);
+static void ct_numb(char *, int);
+static void klocaltime(int32_t tim, Tm *ct);
+static void kgmtime(int32_t tim, Tm *ct);
 
-static	char	dmsize[12] =
-{
-	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
+static char dmsize[12] =
+    {
+     31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 /*
  * The following table is used for 1974 and 1975 and
  * gives the day number of the first day after the Sunday of the
  * change.
  */
-static	struct
-{
-	int16_t	yrfrom;
-	int16_t	yrto;
-	int16_t	daylb;
-	int16_t	dayle;
+static struct
+    {
+	int16_t yrfrom;
+	int16_t yrto;
+	int16_t daylb;
+	int16_t dayle;
 } daytab[] =
-{
-	87,	999,	97,	303,
-	76,	86,	119,	303,
-	75,	75,	58,	303,
-	74,	74,	5,	333,
-	0,	73,	119,	303,
+    {
+     87, 999, 97, 303,
+     76, 86, 119, 303,
+     75, 75, 58, 303,
+     74, 74, 5, 333,
+     0, 73, 119, 303,
 };
 
 static struct
-{
-	int16_t	minuteswest;	/* minutes west of Greenwich */
-	int16_t	dsttime;	/* dst correction */
+    {
+	int16_t minuteswest; /* minutes west of Greenwich */
+	int16_t dsttime;     /* dst correction */
 } timezone =
-{
-	5*60, 1
-};
+    {
+     5 * 60, 1};
 
 static void
 klocaltime(int32_t tim, Tm *ct)
@@ -55,10 +53,10 @@ klocaltime(int32_t tim, Tm *ct)
 	int daylbegin, daylend, dayno, i;
 	int32_t copyt;
 
-	copyt = tim - timezone.minuteswest*60L;
+	copyt = tim - timezone.minuteswest * 60L;
 	kgmtime(copyt, ct);
 	dayno = ct->yday;
-	for(i=0;; i++)
+	for(i = 0;; i++)
 		if(ct->year >= daytab[i].yrfrom &&
 		   ct->year <= daytab[i].yrto) {
 			daylbegin = sunday(ct, daytab[i].daylb);
@@ -66,9 +64,9 @@ klocaltime(int32_t tim, Tm *ct)
 			break;
 		}
 	if(timezone.dsttime &&
-	    (dayno>daylbegin || (dayno==daylbegin && ct->hour>=2)) &&
-	    (dayno<daylend || (dayno==daylend && ct->hour<1))) {
-		copyt += 60L*60L;
+	   (dayno > daylbegin || (dayno == daylbegin && ct->hour >= 2)) &&
+	   (dayno < daylend || (dayno == daylend && ct->hour < 1))) {
+		copyt += 60L * 60L;
 		kgmtime(copyt, ct);
 	}
 }
@@ -78,8 +76,7 @@ klocaltime(int32_t tim, Tm *ct)
  * The value is the day number of the last
  * Sunday before or after the day.
  */
-static
-sunday(Tm *t, int d)
+static sunday(Tm *t, int d)
 {
 	if(d >= 58)
 		d += dysize(t->year) - 365;
@@ -126,8 +123,8 @@ kgmtime(int32_t tim, Tm *ct)
 		for(d1 = 70; day >= dysize(d1); d1++)
 			day -= dysize(d1);
 	else
-		for (d1 = 70; day < 0; d1--)
-			day += dysize(d1-1);
+		for(d1 = 70; day < 0; d1--)
+			day += dysize(d1 - 1);
 	ct->year = d1;
 	ct->yday = d0 = day;
 
@@ -150,7 +147,7 @@ datestr(char *s, int32_t t)
 	Tm tm;
 
 	klocaltime(t, &tm);
-	sprint(s, "%.4d%.2d%.2d", tm.year+1900, tm.mon+1, tm.mday);
+	sprint(s, "%.4d%.2d%.2d", tm.year + 1900, tm.mon + 1, tm.mday);
 }
 
 int
@@ -167,46 +164,44 @@ Tfmt(Fmt *f1)
 
 	klocaltime(t, &tm);
 	strcpy(s, "Day Mon 00 00:00:00 1900");
-	cp = &"SunMonTueWedThuFriSat"[tm.wday*3];
+	cp = &"SunMonTueWedThuFriSat"[tm.wday * 3];
 	s[0] = cp[0];
 	s[1] = cp[1];
 	s[2] = cp[2];
-	cp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[tm.mon*3];
+	cp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[tm.mon * 3];
 	s[4] = cp[0];
 	s[5] = cp[1];
 	s[6] = cp[2];
-	ct_numb(s+8, tm.mday);
-	ct_numb(s+11, tm.hour+100);
-	ct_numb(s+14, tm.min+100);
-	ct_numb(s+17, tm.sec+100);
+	ct_numb(s + 8, tm.mday);
+	ct_numb(s + 11, tm.hour + 100);
+	ct_numb(s + 14, tm.min + 100);
+	ct_numb(s + 17, tm.sec + 100);
 	if(tm.year >= 100) {
 		s[20] = '2';
 		s[21] = '0';
 	}
-	ct_numb(s+22, tm.year+100);
+	ct_numb(s + 22, tm.year + 100);
 
 	return fmtstrcpy(f1, s);
 }
 
-static
-dysize(int y)
+static dysize(int y)
 {
 
-	if((y%4) == 0)
+	if((y % 4) == 0)
 		return 366;
 	return 365;
 }
 
-static
-void
+static void
 ct_numb(char *cp, int n)
 {
 
 	if(n >= 10)
-		cp[0] = (n/10)%10 + '0';
+		cp[0] = (n / 10) % 10 + '0';
 	else
 		cp[0] = ' ';
-	cp[1] = n%10 + '0';
+	cp[1] = n % 10 + '0';
 }
 
 /*
@@ -223,29 +218,29 @@ nextime(int32_t t, int hr, int day)
 
 	if(hr < 0 || hr >= 24)
 		hr = 5;
-	if((day&0x7f) == 0x7f)
+	if((day & 0x7f) == 0x7f)
 		day = 0;
 
 loop:
 	klocaltime(t, &tm);
 	t -= tm.sec;
-	t -= tm.min*60;
+	t -= tm.min * 60;
 	nhr = tm.hour;
 	do {
-		t += 60*60;
+		t += 60 * 60;
 		nhr++;
-	} while(nhr%24 != hr);
+	} while(nhr % 24 != hr);
 	klocaltime(t, &tm);
 	if(tm.hour != hr) {
-		t += 60*60;
+		t += 60 * 60;
 		klocaltime(t, &tm);
 		if(tm.hour != hr) {
-			t -= 60*60;
+			t -= 60 * 60;
 			klocaltime(t, &tm);
 		}
 	}
-	if(day & (1<<tm.wday)) {
-		t += 12*60*60;
+	if(day & (1 << tm.wday)) {
+		t += 12 * 60 * 60;
 		goto loop;
 	}
 	return t;

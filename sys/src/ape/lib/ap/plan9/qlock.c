@@ -19,17 +19,15 @@
 #define rendezvous _RENDEZVOUS
 #define _rendezvousp rendezvous
 #define _tas tas
-#define nelem(x) (sizeof(x)/sizeof((x)[0]))
+#define nelem(x) (sizeof(x) / sizeof((x)[0]))
 
 static struct {
-	QLp	*p;
-	QLp	x[1024];
+	QLp *p;
+	QLp x[1024];
 } ql = {
-	ql.x
-};
+    ql.x};
 
-enum
-{
+enum {
 	Queuing,
 	QueuingR,
 	QueuingW,
@@ -37,18 +35,18 @@ enum
 };
 
 /* find a free shared memory location to queue ourselves in */
-static QLp*
+static QLp *
 getqlp(void)
 {
 	QLp *p, *op;
 
 	op = ql.p;
-	for(p = op+1; ; p++){
+	for(p = op + 1;; p++) {
 		if(p == &ql.x[nelem(ql.x)])
 			p = ql.x;
 		if(p == op)
 			abort();
-		if(_tas(&(p->inuse)) == 0){
+		if(_tas(&(p->inuse)) == 0) {
 			ql.p = p;
 			p->next = nil;
 			break;
@@ -63,12 +61,11 @@ qlock(QLock *q)
 	QLp *p, *mp;
 
 	lock(&q->lock);
-	if(!q->locked){
+	if(!q->locked) {
 		q->locked = 1;
 		unlock(&q->lock);
 		return;
 	}
-
 
 	/* chain into waiting list */
 	mp = getqlp();
@@ -94,7 +91,7 @@ qunlock(QLock *q)
 
 	lock(&q->lock);
 	p = q->head;
-	if(p != nil){
+	if(p != nil) {
 		/* wakeup head waiting process */
 		q->head = p->next;
 		if(q->head == nil)
@@ -113,7 +110,7 @@ canqlock(QLock *q)
 {
 	if(!canlock(&q->lock))
 		return 0;
-	if(!q->locked){
+	if(!q->locked) {
 		q->locked = 1;
 		unlock(&q->lock);
 		return 1;

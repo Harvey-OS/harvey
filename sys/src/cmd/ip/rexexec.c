@@ -22,8 +22,10 @@ main(int argc, char **argv)
 	int n, nn;
 	AuthInfo *ai;
 
-	ARGBEGIN{
-	}ARGEND;
+	ARGBEGIN
+	{
+	}
+	ARGEND;
 
 	ai = auth_proxy(0, auth_getkey, "proto=p9any role=server");
 	if(ai == nil)
@@ -35,13 +37,13 @@ main(int argc, char **argv)
 
 	n = 0;
 	do {
-		nn = read(0, buf+n, 1);
+		nn = read(0, buf + n, 1);
 		if(nn <= 0)
 			sysfatal("can't read command");
 		n += nn;
 		if(n == sizeof buf)
-			buf[n-1] = '\0';
-	} while (buf[n-1] != '\0');
+			buf[n - 1] = '\0';
+	} while(buf[n - 1] != '\0');
 
 	putenv("service", "rx");
 	execl("/bin/rc", "rc", "-lc", buf, nil);

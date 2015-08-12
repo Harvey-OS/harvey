@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<stdlib.h>
+#include <stdlib.h>
 
 long long
 atoll(const char *s)
 {
-	return(strtoll(s, (char **)0, 10));
+	return (strtoll(s, (char **)0, 10));
 }

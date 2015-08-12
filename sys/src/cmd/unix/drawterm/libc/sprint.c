@@ -18,13 +18,13 @@ sprint(char *buf, char *fmt, ...)
 	uint len;
 	va_list args;
 
-	len = 1<<30;  /* big number, but sprint is deprecated anyway */
+	len = 1 << 30; /* big number, but sprint is deprecated anyway */
 	/*
 	 * on PowerPC, the stack is near the top of memory, so
 	 * we must be sure not to overflow a 32-bit pointer.
 	 */
-	if((uintptr)buf+len < (uintptr)buf)
-		len = -(uintptr)buf-1;
+	if((uintptr)buf + len < (uintptr)buf)
+		len = -(uintptr)buf - 1;
 
 	va_start(args, fmt);
 	n = vsnprint(buf, len, fmt, args);

@@ -41,28 +41,30 @@
 /*
  * Initiailze a high level saved color to null
  */
-void gx_hld_saved_color_init(gx_hl_saved_color * psc)
+void
+gx_hld_saved_color_init(gx_hl_saved_color *psc)
 {
-    gx_device_color temp_devc;
+	gx_device_color temp_devc;
 
-    memset(psc, 0, sizeof(*psc));	/* clear the entire structure */   
-    psc->color_space_id = psc->pattern_id = gs_no_id;
-    color_set_null(&temp_devc);
-    temp_devc.type->save_dc(&temp_devc, &(psc->saved_dev_color));
+	memset(psc, 0, sizeof(*psc)); /* clear the entire structure */
+	psc->color_space_id = psc->pattern_id = gs_no_id;
+	color_set_null(&temp_devc);
+	temp_devc.type->save_dc(&temp_devc, &(psc->saved_dev_color));
 }
 
 /*
  * Get graphics state pointer (from imager state pointer)
  */
-const gs_state * gx_hld_get_gstate_ptr(const gs_imager_state * pis)
+const gs_state *
+gx_hld_get_gstate_ptr(const gs_imager_state *pis)
 {
-    extern_st(st_gs_state);		/* only for testing */
+	extern_st(st_gs_state); /* only for testing */
 
-    /* Check to verify the structure type is really st_gs_state */
-    if (pis == NULL || gs_object_type(pis->memory, pis) != &st_gs_state)
-	return NULL;
+	/* Check to verify the structure type is really st_gs_state */
+	if(pis == NULL || gs_object_type(pis->memory, pis) != &st_gs_state)
+		return NULL;
 
-    return (const gs_state *) pis;
+	return (const gs_state *)pis;
 }
 
 /*
@@ -72,45 +74,44 @@ const gs_state * gx_hld_get_gstate_ptr(const gs_imager_state * pis)
  * More description in src/gxhldevc.h
  */
 bool
-gx_hld_save_color(const gs_imager_state * pis, const gx_device_color * pdevc,
-		gx_hl_saved_color * psc)
+gx_hld_save_color(const gs_imager_state *pis, const gx_device_color *pdevc,
+		  gx_hl_saved_color *psc)
 {
-    const gs_state * pgs = gx_hld_get_gstate_ptr(pis);
-    memset(psc, 0, sizeof(*psc));	/* clear the entire structure */
+	const gs_state *pgs = gx_hld_get_gstate_ptr(pis);
+	memset(psc, 0, sizeof(*psc)); /* clear the entire structure */
 
-    if (pdevc == NULL) {
-        /* No device color given, should not happen */
-        gx_hld_saved_color_init(psc);	/* revert to unknown color */
-	return false;
-    } else if (pgs == NULL) {
-        /* No color space, simply save device color specific info */
-        psc->color_space_id = psc->pattern_id = gs_no_id;
-        pdevc->type->save_dc(pdevc, &(psc->saved_dev_color));
-	return false;
-    } else {
-        /*
+	if(pdevc == NULL) {
+		/* No device color given, should not happen */
+		gx_hld_saved_color_init(psc); /* revert to unknown color */
+		return false;
+	} else if(pgs == NULL) {
+		/* No color space, simply save device color specific info */
+		psc->color_space_id = psc->pattern_id = gs_no_id;
+		pdevc->type->save_dc(pdevc, &(psc->saved_dev_color));
+		return false;
+	} else {
+		/*
 	 * Have color space, save id,  ccolor, & device color specific info.
 	 * Also save the high level colors since two gx_color_index values
 	 * may be the same but for differing high level colors (due to the
 	 * usual lower resolution of the gx_color_index values.
 	 */
-        const gs_color_space * pcs = pgs->color_space;
-        int i = gs_color_space_num_components(pcs);
+		const gs_color_space *pcs = pgs->color_space;
+		int i = gs_color_space_num_components(pcs);
 
-        psc->color_space_id = pcs->id;
-        pdevc->type->save_dc(pdevc, &(psc->saved_dev_color));
-        i = any_abs(i);
-        for (i--; i >= 0; i--)
-	    psc->ccolor.paint.values[i] = pdevc->ccolor.paint.values[i];
+		psc->color_space_id = pcs->id;
+		pdevc->type->save_dc(pdevc, &(psc->saved_dev_color));
+		i = any_abs(i);
+		for(i--; i >= 0; i--)
+			psc->ccolor.paint.values[i] = pdevc->ccolor.paint.values[i];
 
-	/* Save the pattern id - if present */
-	if ((pdevc->type == gx_dc_type_pattern 
-	   || pdevc->type == gx_dc_type_pattern2) && pdevc->ccolor_valid)
-            psc->pattern_id = pdevc->ccolor.pattern->pattern_id;
-	else
-            psc->pattern_id = gs_no_id;
-	return true;
-    }
+		/* Save the pattern id - if present */
+		if((pdevc->type == gx_dc_type_pattern || pdevc->type == gx_dc_type_pattern2) && pdevc->ccolor_valid)
+			psc->pattern_id = pdevc->ccolor.pattern->pattern_id;
+		else
+			psc->pattern_id = gs_no_id;
+		return true;
+	}
 }
 
 /*
@@ -118,41 +119,43 @@ gx_hld_save_color(const gs_imager_state * pis, const gx_device_color * pdevc,
  * unused parts of the saved color have been zeroed.  See gx_hld_save_color()
  * for what is actually being compared.
  */
-bool gx_hld_saved_color_equal(const gx_hl_saved_color * psc1,
-			   const gx_hl_saved_color * psc2)
+bool
+gx_hld_saved_color_equal(const gx_hl_saved_color *psc1,
+			 const gx_hl_saved_color *psc2)
 {
-    return (memcmp(psc1, psc2, sizeof(*psc1)) == 0);
+	return (memcmp(psc1, psc2, sizeof(*psc1)) == 0);
 }
 
 /*
  * Check whether two saved colors have same color space.
  */
-bool gx_hld_saved_color_same_cspace(const gx_hl_saved_color * psc1,
-			   const gx_hl_saved_color * psc2)
+bool
+gx_hld_saved_color_same_cspace(const gx_hl_saved_color *psc1,
+			       const gx_hl_saved_color *psc2)
 {
-    if (psc1->color_space_id != psc2->color_space_id)
-	return false;
-    if (psc1->pattern_id != psc2->pattern_id)
-	return false;
-    if (psc1->ccolor_valid != psc2->ccolor_valid)
-	return false;
-    if (psc1->color_space_id != psc2->color_space_id)
-	return false;
-    return true;
+	if(psc1->color_space_id != psc2->color_space_id)
+		return false;
+	if(psc1->pattern_id != psc2->pattern_id)
+		return false;
+	if(psc1->ccolor_valid != psc2->ccolor_valid)
+		return false;
+	if(psc1->color_space_id != psc2->color_space_id)
+		return false;
+	return true;
 }
 
 /*
  * Check if a high level color is availavble.
  */
 bool
-gx_hld_is_hl_color_available(const gs_imager_state * pis,
-		const gx_device_color * pdevc)
+gx_hld_is_hl_color_available(const gs_imager_state *pis,
+			     const gx_device_color *pdevc)
 {
-    const gs_state * pgs = gx_hld_get_gstate_ptr(pis);
+	const gs_state *pgs = gx_hld_get_gstate_ptr(pis);
 
-    if (pgs != NULL && pdevc != NULL && pdevc->ccolor_valid)
-	return true;
-    return false;
+	if(pgs != NULL && pdevc != NULL && pdevc->ccolor_valid)
+		return true;
+	return false;
 }
 
 /*
@@ -161,29 +164,27 @@ gx_hld_is_hl_color_available(const gs_imager_state * pis,
  * More description in src/gxhldevc.h
  */
 gx_hld_get_color_space_and_ccolor_status
-gx_hld_get_color_space_and_ccolor(const gs_imager_state * pis,
-		const gx_device_color * pdevc, const gs_color_space ** ppcs,
-		const gs_client_color ** ppcc)
+gx_hld_get_color_space_and_ccolor(const gs_imager_state *pis,
+				  const gx_device_color *pdevc, const gs_color_space **ppcs,
+				  const gs_client_color **ppcc)
 {
-    /* Check if the current color space was used to build the device color */
-    if (gx_hld_is_hl_color_available(pis, pdevc)) {
-	const gs_state * pgs = gx_hld_get_gstate_ptr(pis);
-        const gs_color_space * pcs = pgs->color_space;
+	/* Check if the current color space was used to build the device color */
+	if(gx_hld_is_hl_color_available(pis, pdevc)) {
+		const gs_state *pgs = gx_hld_get_gstate_ptr(pis);
+		const gs_color_space *pcs = pgs->color_space;
 
-	*ppcs = pcs;
-	*ppcc = &(pdevc->ccolor);
-	if (pdevc->type == gx_dc_type_pattern 
-	   || pdevc->type == &gx_dc_pure_masked
-	   || pdevc->type == gx_dc_type_pattern2)
-            return pattern_color_sapce;
-	else {
-            return non_pattern_color_space;
+		*ppcs = pcs;
+		*ppcc = &(pdevc->ccolor);
+		if(pdevc->type == gx_dc_type_pattern || pdevc->type == &gx_dc_pure_masked || pdevc->type == gx_dc_type_pattern2)
+			return pattern_color_sapce;
+		else {
+			return non_pattern_color_space;
+		}
 	}
-    }
-    /* No color space */
-    *ppcs = NULL;
-    *ppcc = NULL;
-    return use_process_color;
+	/* No color space */
+	*ppcs = NULL;
+	*ppcc = NULL;
+	return use_process_color;
 }
 
 /*
@@ -192,17 +193,17 @@ gx_hld_get_color_space_and_ccolor(const gs_imager_state * pis,
  * More description in src/gxhldevc.h
  */
 int
-gx_hld_get_number_color_components(const gs_imager_state * pis)
+gx_hld_get_number_color_components(const gs_imager_state *pis)
 {
-    const gs_state * pgs = gx_hld_get_gstate_ptr(pis);
+	const gs_state *pgs = gx_hld_get_gstate_ptr(pis);
 
-    if (pgs != NULL) {
-        const gs_color_space * pcs = pgs->color_space;
-	int n = gs_color_space_num_components(pcs);
+	if(pgs != NULL) {
+		const gs_color_space *pcs = pgs->color_space;
+		int n = gs_color_space_num_components(pcs);
 
-	return (n >= 0 ? n : -n - 1);
-    } else
-	return -1;
+		return (n >= 0 ? n : -n - 1);
+	} else
+		return -1;
 }
 
 /*
@@ -211,20 +212,19 @@ gx_hld_get_number_color_components(const gs_imager_state * pis)
  * More description in src/gxhldevc.h
  */
 gx_hld_get_color_component_status
-gx_hld_get_color_component(const gs_imager_state * pis,
-			  const gx_device_color * pdevc,
-			  int comp_num, float * output)
+gx_hld_get_color_component(const gs_imager_state *pis,
+			   const gx_device_color *pdevc,
+			   int comp_num, float *output)
 {
-    if (pdevc != NULL && pdevc->ccolor_valid) {
-	int ncomp = gx_hld_get_number_color_components(pis);
+	if(pdevc != NULL && pdevc->ccolor_valid) {
+		int ncomp = gx_hld_get_number_color_components(pis);
 
-	if (ncomp < 0)
-	    return invalid_color_info;
-	if (comp_num < 0 || comp_num >= ncomp) 
-	    return invalid_component_requested;
-	*output = pdevc->ccolor.paint.values[comp_num];
-        return valid_result;
-    }
-    return invalid_color_info;
+		if(ncomp < 0)
+			return invalid_color_info;
+		if(comp_num < 0 || comp_num >= ncomp)
+			return invalid_component_requested;
+		*output = pdevc->ccolor.paint.values[comp_num];
+		return valid_result;
+	}
+	return invalid_color_info;
 }
-

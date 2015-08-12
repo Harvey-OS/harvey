@@ -42,35 +42,34 @@
 #define TM_LOCAL_ZONE LONG_MIN
 #define TM_UNDEFINED_ZONE (LONG_MIN + 1)
 
-struct partime
-  {
-    /* This structure describes the parsed time.
+struct partime {
+	/* This structure describes the parsed time.
        Only the following tm_* values in it are used:
 		sec, min, hour, mday, mon, year, wday, yday.
        If TM_UNDEFINED (value), the parser never found the value.
        The tm_year field is the actual year, not the year - 1900;
        but see ymodulus below.  */
-    struct tm tm;
+	struct tm tm;
 
-    /* If !TM_UNDEFINED (ymodulus),
+	/* If !TM_UNDEFINED (ymodulus),
        then tm.tm_year is actually modulo ymodulus.  */
-    int ymodulus;
+	int ymodulus;
 
-    /* Week of year, ISO 8601 style.
+	/* Week of year, ISO 8601 style.
        If TM_UNDEFINED (yweek), the parser never found yweek.
        Weeks start on Mondays.
        Week 1 includes Jan 4.  */
-    int yweek;
+	int yweek;
 
-    /* Seconds east of UTC; or TM_LOCAL_ZONE or TM_UNDEFINED_ZONE.  */
-    long zone;
-  };
+	/* Seconds east of UTC; or TM_LOCAL_ZONE or TM_UNDEFINED_ZONE.  */
+	long zone;
+};
 
 #if defined __STDC__ || has_prototypes
-# define __PARTIME_P(x) x
+#define __PARTIME_P(x) x
 #else
-# define __PARTIME_P(x) ()
+#define __PARTIME_P(x) ()
 #endif
 
-char *partime __PARTIME_P ((char const *, struct partime *));
-char *parzone __PARTIME_P ((char const *, long *));
+char *partime __PARTIME_P((char const *, struct partime *));
+char *parzone __PARTIME_P((char const *, long *));

@@ -8,16 +8,14 @@
  */
 
 typedef struct Msg Msg;
-struct Msg
-{
+struct Msg {
 	Msg *link;
 	uchar *rp;
 	uchar *ep;
 };
 
 typedef struct Client Client;
-struct Client
-{
+struct Client {
 	int moribund;
 	int activethread;
 	int num;
@@ -31,23 +29,23 @@ struct Client
 	Req *execreq;
 	Channel *execpid;
 
-	Req *rq, **erq;		/* reading */
+	Req *rq, **erq; /* reading */
 	Msg *mq, **emq;
 	Ioproc *readerproc;
 
 	Channel *writerkick;
-	Req *wq, **ewq;	/* writing */
-	Req *curw;		/* currently writing */
-	Ioproc *writerproc;	/* writing */
+	Req *wq, **ewq;     /* writing */
+	Req *curw;	  /* currently writing */
+	Ioproc *writerproc; /* writing */
 };
 extern int nclient;
 extern Client **client;
-extern void dataread(Req*, Client*);
+extern void dataread(Req *, Client *);
 extern int newclient(void);
-extern void closeclient(Client*);
-extern void datawrite(Req*, Client*);
-extern void ctlwrite(Req*, Client*);
-extern void clientflush(Req*, Client*);
+extern void closeclient(Client *);
+extern void datawrite(Req *, Client *);
+extern void ctlwrite(Req *, Client *);
+extern void clientflush(Req *, Client *);
 
 #define emalloc emalloc9p
 #define estrdup estrdup9p
@@ -55,18 +53,16 @@ extern void clientflush(Req*, Client*);
 
 extern Srv fs;
 extern void initfs(void);
-extern void setexecname(char*);
+extern void setexecname(char *);
 
-enum
-{
+enum {
 	STACK = 8192,
 };
 
-enum	/* Client.status */
+enum /* Client.status */
 {
 	Closed,
 	Exec,
 	Established,
 	Hangup,
 };
-

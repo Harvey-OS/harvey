@@ -66,137 +66,136 @@
 
 /* -- ttcalc ------------------------------------------------------------- */
 
-#define MulDiv        FTMulDiv
-#define MulDiv_Round  FTMulDiv_Round
-#define Sqrt32        FTSqrt32
-#define Sqrt64        FTSqrt64
-#define Add64         FTAdd64
-#define Sub64         FTSub64
-#define Neg64         FTNeg64
-#define MulTo64       FTMulTo64
-#define Div64by32     FTDiv64by32
-#define Order32       FTOrder32
-#define Order64       FTOrder64
+#define MulDiv FTMulDiv
+#define MulDiv_Round FTMulDiv_Round
+#define Sqrt32 FTSqrt32
+#define Sqrt64 FTSqrt64
+#define Add64 FTAdd64
+#define Sub64 FTSub64
+#define Neg64 FTNeg64
+#define MulTo64 FTMulTo64
+#define Div64by32 FTDiv64by32
+#define Order32 FTOrder32
+#define Order64 FTOrder64
 
 /* -- ttlists ------------------------------------------------------------ */
 
-#define Element_New   FTElement_New
-#define Element_Done  FTElement_Done
-#define List_Add      FTList_Add
-#define List_Remove   FTList_Remove
-#define List_Find     FTList_Find
-#define List_Extract  FTList_Extract
+#define Element_New FTElement_New
+#define Element_Done FTElement_Done
+#define List_Add FTList_Add
+#define List_Remove FTList_Remove
+#define List_Find FTList_Find
+#define List_Extract FTList_Extract
 
 /* -- ttcache ------------------------------------------------------------ */
 
-#define Cache_Create   FTCache_Create
-#define Cache_Destroy  FTCache_Destroy
-#define Cache_New      FTCache_New
-#define Cache_Done     FTCache_Done
+#define Cache_Create FTCache_Create
+#define Cache_Destroy FTCache_Destroy
+#define Cache_New FTCache_New
+#define Cache_Done FTCache_Done
 
 /* -- tterror ------------------------------------------------------------ */
 
-#define Message        FTMessage
-#define Panic          FTPanic
+#define Message FTMessage
+#define Panic FTPanic
 
 /* -- ttmutex ------------------------------------------------------------ */
 
-#define Mutex_Create   FTMutex_Create
-#define Mutex_Destroy  FTMutex_Destroy
-#define Mutex_Lock     FTMutex_Lock
-#define Mutex_Release  FTMutex_Release
+#define Mutex_Create FTMutex_Create
+#define Mutex_Destroy FTMutex_Destroy
+#define Mutex_Lock FTMutex_Lock
+#define Mutex_Release FTMutex_Release
 
 /* -- ttraster ----------------------------------------------------------- */
 
-#define Render_Glyph        FTRender_Glyph
-#define Render_Gray_Glyph   FTRender_Gray_Glyph
-#define Set_High_Precision  FTSet_High_Precision
-#define Set_Second_Pass     FTSet_Second_Pass
+#define Render_Glyph FTRender_Glyph
+#define Render_Gray_Glyph FTRender_Gray_Glyph
+#define Set_High_Precision FTSet_High_Precision
+#define Set_Second_Pass FTSet_Second_Pass
 
 /* -- ttcmap ------------------------------------------------------------- */
 
-#define CharMap_Load   FTCharMap_Load
-#define CharMap_Free   FTCharMap_Free
-#define CharMap_Index  FTCharMap_Index
+#define CharMap_Load FTCharMap_Load
+#define CharMap_Free FTCharMap_Free
+#define CharMap_Index FTCharMap_Index
 
 /* -- ttobjs ------------------------------------------------------------- */
 
-#define Goto_CodeRange    FTGoto_CodeRange
-#define Get_CodeRange     FTGet_CodeRange
-#define Set_CodeRange     FTSet_CodeRange
-#define Clear_CodeRange   FTClear_CodeRange
+#define Goto_CodeRange FTGoto_CodeRange
+#define Get_CodeRange FTGet_CodeRange
+#define Set_CodeRange FTSet_CodeRange
+#define Clear_CodeRange FTClear_CodeRange
 
-#define New_Context       FTNew_Context
-#define Done_Context      FTDone_Context
-#define Context_Create    FTContext_Create
-#define Context_Destroy   FTContext_Destroy
-#define Context_Load      FTContext_Load
-#define Context_Save      FTContext_Save
-#define Context_Run       FTContext_Run
+#define New_Context FTNew_Context
+#define Done_Context FTDone_Context
+#define Context_Create FTContext_Create
+#define Context_Destroy FTContext_Destroy
+#define Context_Load FTContext_Load
+#define Context_Save FTContext_Save
+#define Context_Run FTContext_Run
 
-#define New_Instance      FTNew_Instance
-#define Done_Instance     FTDone_Instance
-#define Instance_Create   FTInstance_Create
-#define Instance_Destroy  FTInstance_Destroy
-#define Instance_Init     FTInstance_Init
-#define Instance_Reset    FTInstance_Reset
+#define New_Instance FTNew_Instance
+#define Done_Instance FTDone_Instance
+#define Instance_Create FTInstance_Create
+#define Instance_Destroy FTInstance_Destroy
+#define Instance_Init FTInstance_Init
+#define Instance_Reset FTInstance_Reset
 
-#define Face_Create       FTFace_Create
-#define Face_Destroy      FTFace_Destroy
+#define Face_Create FTFace_Create
+#define Face_Destroy FTFace_Destroy
 
-#define Glyph_Create      FTGlyph_Create
-#define Glyph_Destroy     FTGlyph_Destroy
+#define Glyph_Create FTGlyph_Create
+#define Glyph_Destroy FTGlyph_Destroy
 
-#define Default_GraphicsState   FTDefault_GraphicsState
+#define Default_GraphicsState FTDefault_GraphicsState
 
 /* -- ttload ------------------------------------------------------------- */
 
-#define LookUp_TrueType_Table            FTLookUp_TrueType_Table
-#define Load_TrueType_Directory          FTLoad_TrueType_Directory
-#define Load_TrueType_MaxProfile         FTLoad_TrueType_MaxProfile
-#define Load_TrueType_Gasp               FTLoad_TrueType_Gasp
-#define Load_TrueType_Header             FTLoad_TrueType_Header
-#define Load_TrueType_Horizontal_Header  FTLoad_TrueType_Horizontal_Header
-#define Load_TrueType_Locations          FTLoad_TrueType_Locations
-#define Load_TrueType_Names              FTLoad_TrueType_Names
-#define Load_TrueType_CVT                FTLoad_TrueType_CVT
-#define Load_TrueType_CMap               FTLoad_TrueType_CMap
-#define Load_TrueType_HMTX               FTLoad_TrueType_HMTX
-#define Load_TrueType_Hdmx               FTLoad_TrueType_Hdmx
-#define Load_TrueType_Programs           FTLoad_TrueType_Programs
-#define Load_TrueType_OS2                FTLoad_TrueType_OS2
-#define Load_TrueType_PostScript         FTLoad_TrueType_PostScript
+#define LookUp_TrueType_Table FTLookUp_TrueType_Table
+#define Load_TrueType_Directory FTLoad_TrueType_Directory
+#define Load_TrueType_MaxProfile FTLoad_TrueType_MaxProfile
+#define Load_TrueType_Gasp FTLoad_TrueType_Gasp
+#define Load_TrueType_Header FTLoad_TrueType_Header
+#define Load_TrueType_Horizontal_Header FTLoad_TrueType_Horizontal_Header
+#define Load_TrueType_Locations FTLoad_TrueType_Locations
+#define Load_TrueType_Names FTLoad_TrueType_Names
+#define Load_TrueType_CVT FTLoad_TrueType_CVT
+#define Load_TrueType_CMap FTLoad_TrueType_CMap
+#define Load_TrueType_HMTX FTLoad_TrueType_HMTX
+#define Load_TrueType_Hdmx FTLoad_TrueType_Hdmx
+#define Load_TrueType_Programs FTLoad_TrueType_Programs
+#define Load_TrueType_OS2 FTLoad_TrueType_OS2
+#define Load_TrueType_PostScript FTLoad_TrueType_PostScript
 
-#define Free_TrueType_Names              FTFree_TrueType_Names
-#define Free_TrueType_Hdmx               FTFree_TrueType_Hdmx
+#define Free_TrueType_Names FTFree_TrueType_Names
+#define Free_TrueType_Hdmx FTFree_TrueType_Hdmx
 
 /* -- ttgload ------------------------------------------------------------ */
 
-#define Load_TrueType_Glyph    FTLoad_TrueType_Glyph
+#define Load_TrueType_Glyph FTLoad_TrueType_Glyph
 
 /* -- ttinterp ----------------------------------------------------------- */
 
-#define RunIns       FTRunIns
+#define RunIns FTRunIns
 
 /* -- ttdebug ------------------------------------------------------------ */
 
-#define Cur_U_Line   FTCur_U_Line
+#define Cur_U_Line FTCur_U_Line
 
 /* -- ttextend ----------------------------------------------------------- */
 
-#define Extension_Create   FTExtension_Create
-#define Extension_Destroy  FTExtension_Destroy
-#define Extension_Get      FTExtension_Get
+#define Extension_Create FTExtension_Create
+#define Extension_Destroy FTExtension_Destroy
+#define Extension_Get FTExtension_Get
 #define Extension_Register FTExtension_Register
 
 /* -- ttkern ------------------------------------------------------------- */
 
-#define Kerning_Create     FTKerning_Create
-#define Kerning_Destroy    FTKerning_Destroy
+#define Kerning_Create FTKerning_Create
+#define Kerning_Destroy FTKerning_Destroy
 
 #endif /* TT_PREFIX_ALL_NAMES */
 
 #endif /* TTCOMMON_H */
-
 
 /* END */

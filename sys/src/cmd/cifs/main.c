@@ -15,45 +15,45 @@
 #include <9p.h>
 #include "cifs.h"
 
-#define max(a,b)	(((a) > (b))? (a): (b))
-#define min(a,b)	(((a) < (b))? (a): (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 
 typedef struct Aux Aux;
 struct Aux {
-	Aux	*next;
-	Aux	*prev;
-	char	*path;		/* full path fo file */
-	Share	*sp;		/* this share's info */
-	int32_t	expire;		/* expiration time of cache */
-	int32_t	off;		/* file pos of start of cache */
-	int32_t	end;		/* file pos of end of cache */
-	char	*cache;
-	int	fh;		/* file handle */
-	int	sh;		/* search handle */
-	int32_t	srch;		/* find first's internal state */
+	Aux *next;
+	Aux *prev;
+	char *path;     /* full path fo file */
+	Share *sp;      /* this share's info */
+	int32_t expire; /* expiration time of cache */
+	int32_t off;    /* file pos of start of cache */
+	int32_t end;    /* file pos of end of cache */
+	char *cache;
+	int fh;       /* file handle */
+	int sh;       /* search handle */
+	int32_t srch; /* find first's internal state */
 };
 
 extern int chatty9p;
 
-int Checkcase = 1;		/* enforce case significance on filenames */
-int Dfstout = 100;		/* timeout (in ms) for ping of dfs servers (assume they are local)  */
-int Billtrog = 1;		/* enable file owner/group resolution */
-int Attachpid;			/* pid of proc that attaches (ugh !) */
-char *Debug = nil;		/* messages */
-Qid Root;			/* root of remote system */
-Share Ipc;			/* Share info of IPC$ share */
-Session *Sess;			/* current session */
-int Active = IDLE_TIME;		/* secs until next keepalive is sent */
-static int Keeppid;		/* process ID of keepalive thread */
-Share Shares[MAX_SHARES]; 	/* table of connected shares */
-int Nshares = 0;		/* number of Shares connected */
-Aux *Auxroot = nil;		/* linked list of Aux structs */
-char *Host = nil;		/* host we are connected to */
+int Checkcase = 1;	/* enforce case significance on filenames */
+int Dfstout = 100;	/* timeout (in ms) for ping of dfs servers (assume they are local)  */
+int Billtrog = 1;	 /* enable file owner/group resolution */
+int Attachpid;		  /* pid of proc that attaches (ugh !) */
+char *Debug = nil;	/* messages */
+Qid Root;		  /* root of remote system */
+Share Ipc;		  /* Share info of IPC$ share */
+Session *Sess;		  /* current session */
+int Active = IDLE_TIME;   /* secs until next keepalive is sent */
+static int Keeppid;       /* process ID of keepalive thread */
+Share Shares[MAX_SHARES]; /* table of connected shares */
+int Nshares = 0;	  /* number of Shares connected */
+Aux *Auxroot = nil;       /* linked list of Aux structs */
+char *Host = nil;	 /* host we are connected to */
 
 static char *Ipcname = "IPC$";
 
-#define ptype(x)	(((x) & 0xf))
-#define pindex(x)	(((x) & 0xff0) >> 4)
+#define ptype(x) (((x)&0xf))
+#define pindex(x) (((x)&0xff0) >> 4)
 
 void
 setup(void)
@@ -70,7 +70,7 @@ setup(void)
 	Attachpid = getpid();
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
+	if((fd = open(buf, OWRITE)) >= 0) {
 		fprint(fd, "%s network", Host);
 		close(fd);
 	}
@@ -83,7 +83,7 @@ filetableinfo(Fmt *f)
 	char *type;
 
 	if((ap = Auxroot) != nil)
-		do{
+		do {
 			type = "walked";
 			if(ap->sh != -1)
 				type = "opendir";
@@ -91,7 +91,7 @@ filetableinfo(Fmt *f)
 				type = "openfile";
 			fmtprint(f, "%-9s %s\n", type, ap->path);
 			ap = ap->next;
-		}while(ap != Auxroot);
+		} while(ap != Auxroot);
 	return 0;
 }
 
@@ -99,20 +99,19 @@ Qid
 mkqid(char *s, int is_dir, int32_t vers, int subtype, int32_t path)
 {
 	Qid q;
-	union {				/* align digest suitably */
-		uint8_t	digest[SHA1dlen];
-		uint64_t	uvl;
+	union { /* align digest suitably */
+		uint8_t digest[SHA1dlen];
+		uint64_t uvl;
 	} u;
 
 	sha1((uint8_t *)s, strlen(s), u.digest, nil);
-	q.type = (is_dir)? QTDIR: 0;
+	q.type = (is_dir) ? QTDIR : 0;
 	q.vers = vers;
-	if(subtype){
+	if(subtype) {
 		q.path = *((uint64_t *)u.digest) & ~0xfffL;
 		q.path |= ((path & 0xff) << 4);
 		q.path |= (subtype & 0xf);
-	}
-	else
+	} else
 		q.path = *((uint64_t *)u.digest) & ~0xfL;
 	return q;
 }
@@ -163,9 +162,9 @@ I2D(Dir *d, Share *sp, char *path, FInfo *fi)
 	d->length = fi->size;
 	d->qid = mkqid(path, fi->attribs & ATTR_DIRECTORY, fi->changed, 0, 0);
 
-	if(fi->attribs & ATTR_DIRECTORY){
+	if(fi->attribs & ATTR_DIRECTORY) {
 		d->length = 0;
-		d->mode |= DMDIR|0111;
+		d->mode |= DMDIR | 0111;
 	}
 }
 
@@ -186,11 +185,11 @@ newpath(char *path, char *name)
 
 	assert((p = strrchr(path, '/')) != nil);
 
-	if(strcmp(name, "..") == 0){
+	if(strcmp(name, "..") == 0) {
 		if(p == path)
 			return estrdup9p("/");
-		q = emalloc9p((p-path)+1);
-		strecpy(q, q+(p-path)+1, path);
+		q = emalloc9p((p - path) + 1);
+		strecpy(q, q + (p - path) + 1, path);
 		return q;
 	}
 	if(strcmp(path, "/") == 0)
@@ -209,8 +208,8 @@ dirgen(int slot, Dir *d, void *aux)
 	int numinf = numinfo();
 	int slots = min(Sess->mtu, MTU) / sizeof(FInfo);
 
-	if(strcmp(a->path, "/") == 0){
-		if(slot < numinf){
+	if(strcmp(a->path, "/") == 0) {
+		if(slot < numinf) {
 			dirgeninfo(slot, d);
 			return 0;
 		} else
@@ -219,7 +218,7 @@ dirgen(int slot, Dir *d, void *aux)
 		if(slot >= Nshares)
 			return -1;
 		V2D(d, mkqid(Shares[slot].name, 1, 1, Pshare, slot),
-			Shares[slot].name);
+		    Shares[slot].name);
 		return 0;
 	}
 
@@ -227,11 +226,11 @@ dirgen(int slot, Dir *d, void *aux)
 	if(off >= a->off && off < a->end && time(nil) < a->expire)
 		goto from_cache;
 
-	if(off == 0){
+	if(off == 0) {
 		fi = (FInfo *)a->cache;
 		npath = smprint("%s/*", mapfile(a->path));
 		a->sh = T2findfirst(Sess, a->sp, slots, npath, &got, &a->srch,
-			(FInfo *)a->cache);
+				    (FInfo *)a->cache);
 		free(npath);
 		if(a->sh == -1)
 			return -1;
@@ -240,19 +239,19 @@ dirgen(int slot, Dir *d, void *aux)
 		a->end = got * sizeof(FInfo);
 
 		if(got >= 2 && strcmp(fi[0].name, ".") == 0 &&
-		    strcmp(fi[1].name, "..") == 0){
+		   strcmp(fi[1].name, "..") == 0) {
 			a->end = (got - 2) * sizeof(FInfo);
-			memmove(a->cache, a->cache + sizeof(FInfo)*2,
+			memmove(a->cache, a->cache + sizeof(FInfo) * 2,
 				a->end - a->off);
 		}
 	}
 
-	while(off >= a->end && a->sh != -1){
+	while(off >= a->end && a->sh != -1) {
 		fi = (FInfo *)(a->cache + (a->end - a->off) - sizeof(FInfo));
 		a->off = a->end;
 		npath = smprint("%s/%s", mapfile(a->path), fi->name);
 		rc = T2findnext(Sess, a->sp, slots, npath,
-			&got, &a->srch, (FInfo *)a->cache, a->sh);
+				&got, &a->srch, (FInfo *)a->cache, a->sh);
 		free(npath);
 		if(rc == -1 || got == 0)
 			break;
@@ -260,7 +259,7 @@ dirgen(int slot, Dir *d, void *aux)
 	}
 	a->expire = time(nil) + CACHETIME;
 
-	if(got < slots){
+	if(got < slots) {
 		if(a->sh != -1)
 			CIFSfindclose2(Sess, a->sp, a->sh);
 		a->sh = -1;
@@ -289,7 +288,7 @@ fsattach(Req *r)
 	if(first)
 		setup();
 
-	if(spec && *spec){
+	if(spec && *spec) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -304,7 +303,7 @@ fsattach(Req *r)
 	a->fh = -1;
 	a->sh = -1;
 
-	if(Auxroot){
+	if(Auxroot) {
 		a->prev = Auxroot;
 		a->next = Auxroot->next;
 		Auxroot->next->prev = a;
@@ -317,7 +316,7 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static char*
+static char *
 fsclone(Fid *ofid, Fid *fid)
 {
 	Aux *oa = ofid->aux;
@@ -331,7 +330,7 @@ fsclone(Fid *ofid, Fid *fid)
 	a->sp = oa->sp;
 	a->path = estrdup9p(oa->path);
 
-	if(Auxroot){
+	if(Auxroot) {
 		a->prev = Auxroot;
 		a->next = Auxroot->next;
 		Auxroot->next->prev = a;
@@ -366,7 +365,7 @@ validfile(char *found, char *want, char *winpath, Share *sp)
 
 	if(strcmp(want, "..") == 0)
 		return 1;
-	if(strcmp(winpath, "/") == 0){
+	if(strcmp(winpath, "/") == 0) {
 		share = trimshare(sp->name);
 		if(cistrcmp(want, share) == 0)
 			return strcmp(want, share) == 0;
@@ -386,8 +385,7 @@ validfile(char *found, char *want, char *winpath, Share *sp)
 	return 0;
 }
 
-
-static char*
+static char *
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	FInfo fi;
@@ -398,7 +396,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 
 	*e = 0;
 	npath = newpath(a->path, name);
-	if(strcmp(npath, "/") == 0){			/* root dir */
+	if(strcmp(npath, "/") == 0) { /* root dir */
 		*qid = mkqid("/", 1, 1, Proot, 0);
 		free(a->path);
 		a->path = npath;
@@ -406,26 +404,25 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		return nil;
 	}
 
-	if(strrchr(npath, '/') == npath){		/* top level dir */
-		if((n = walkinfo(name)) != -1){		/* info file */
+	if(strrchr(npath, '/') == npath) {       /* top level dir */
+		if((n = walkinfo(name)) != -1) { /* info file */
 			*qid = mkqid(npath, 0, 1, Pinfo, n);
-		}
-		else {					/* volume name */
-			for(i = 0; i < Nshares; i++){
+		} else { /* volume name */
+			for(i = 0; i < Nshares; i++) {
 				n = strlen(Shares[i].name);
-				if(cistrncmp(npath+1, Shares[i].name, n) != 0)
+				if(cistrncmp(npath + 1, Shares[i].name, n) != 0)
 					continue;
-				if(Checkcase && strncmp(npath+1, Shares[i].name, n) != 0)
+				if(Checkcase && strncmp(npath + 1, Shares[i].name, n) != 0)
 					continue;
-				if(npath[n+1] != 0 && npath[n+1] != '/')
+				if(npath[n + 1] != 0 && npath[n + 1] != '/')
 					continue;
 				break;
 			}
-			if(i >= Nshares){
+			if(i >= Nshares) {
 				free(npath);
 				return "not found";
 			}
-			a->sp = Shares+i;
+			a->sp = Shares + i;
 			*qid = mkqid(npath, 1, 1, Pshare, i);
 		}
 		free(a->path);
@@ -434,9 +431,9 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		return nil;
 	}
 
-	/* must be a vanilla file or directory */
+/* must be a vanilla file or directory */
 again:
-	if(mapshare(npath, &a->sp) == -1){
+	if(mapshare(npath, &a->sp) == -1) {
 		rerrstr(e, sizeof(e));
 		free(npath);
 		return e;
@@ -449,14 +446,14 @@ again:
 	else
 		rc = T2querystandard(Sess, a->sp, winpath, &fi);
 
-	if(rc == -1){
+	if(rc == -1) {
 		rerrstr(e, sizeof(e));
 		free(npath);
 		return e;
 	}
 
 	if((a->sp->options & SMB_SHARE_IS_IN_DFS) != 0 &&
-	    (fi.attribs & ATTR_REPARSE) != 0){
+	   (fi.attribs & ATTR_REPARSE) != 0) {
 		if(redirect(Sess, a->sp, npath) != -1)
 			goto again;
 	}
@@ -466,10 +463,9 @@ again:
 	else
 		p++;
 
-	if(! validfile(p, name, winpath, a->sp)){
+	if(!validfile(p, name, winpath, a->sp)) {
 		free(npath);
 		return "not found";
-
 	}
 	*qid = mkqid(npath, fi.attribs & ATTR_DIRECTORY, fi.changed, 0, 0);
 
@@ -491,14 +487,14 @@ fsstat(Req *r)
 	else if(ptype(r->fid->qid.path) == Pinfo)
 		dirgeninfo(pindex(r->fid->qid.path), &r->d);
 	else if(ptype(r->fid->qid.path) == Pshare)
-		V2D(&r->d, r->fid->qid, a->path +1);
-	else{
+		V2D(&r->d, r->fid->qid, a->path + 1);
+	else {
 		memset(&fi, 0, sizeof fi);
 		if(Sess->caps & CAP_NT_SMBS)
 			rc = T2queryall(Sess, a->sp, mapfile(a->path), &fi);
 		else
 			rc = T2querystandard(Sess, a->sp, mapfile(a->path), &fi);
-		if(rc == -1){
+		if(rc == -1) {
 			responderrstr(r);
 			return;
 		}
@@ -511,11 +507,11 @@ fsstat(Req *r)
 
 static int
 smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
-	int is_dir, FInfo *fip)
+	      int is_dir, FInfo *fip)
 {
 	int rc, action, attrs, access, result;
 
-	if(is_create && is_dir){
+	if(is_create && is_dir) {
 		if(CIFScreatedirectory(Sess, a->sp, path) == -1)
 			return -1;
 		return 0;
@@ -536,9 +532,9 @@ smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 	if(perm & 0222)
 		attrs = ATTR_NORMAL;
 	else
-		attrs = ATTR_NORMAL|ATTR_READONLY;
+		attrs = ATTR_NORMAL | ATTR_READONLY;
 
-	switch (mode & OMASK){
+	switch(mode & OMASK) {
 	case OREAD:
 		access = 0;
 		break;
@@ -563,19 +559,19 @@ smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 		access |= 0x40;
 
 	if((a->fh = CIFS_SMB_opencreate(Sess, a->sp, path, access, attrs,
-	    action, &result)) == -1)
+					action, &result)) == -1)
 		return -1;
 
 	if(Sess->caps & CAP_NT_SMBS)
 		rc = T2queryall(Sess, a->sp, mapfile(a->path), fip);
 	else
 		rc = T2querystandard(Sess, a->sp, mapfile(a->path), fip);
-	if(rc == -1){
+	if(rc == -1) {
 		fprint(2, "internal error: stat of newly open/created file failed\n");
 		return -1;
 	}
 
-	if((mode & OEXCL) && (result & 0x8000) == 0){
+	if((mode & OEXCL) && (result & 0x8000) == 0) {
 		werrstr("%d bad open mode", mode & OMASK);
 		return -1;
 	}
@@ -585,16 +581,16 @@ smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 /* Uncle Bill, you have a lot to answer for... */
 static int
 ntcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
-	int is_dir, FInfo *fip)
+	     int is_dir, FInfo *fip)
 {
 	int options, result, attrs, flags, access, action, share;
 
-	if(mode & DMAPPEND){
+	if(mode & DMAPPEND) {
 		werrstr("CIFSopen, DMAPPEND not supported");
 		return -1;
 	}
 
-	if(is_create){
+	if(is_create) {
 		if(mode & OEXCL)
 			action = FILE_OPEN;
 		else if(mode & OTRUNC)
@@ -608,14 +604,14 @@ ntcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 			action = FILE_OPEN_IF;
 	}
 
-	flags = 0;		/* FIXME: really not sure */
+	flags = 0; /* FIXME: really not sure */
 
 	if(mode & OEXCL)
 		share = FILE_NO_SHARE;
 	else
 		share = FILE_SHARE_ALL;
 
-	switch (mode & OMASK){
+	switch(mode & OMASK) {
 	case OREAD:
 		access = GENERIC_READ;
 		break;
@@ -634,31 +630,31 @@ ntcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 		break;
 	}
 
-	if(is_dir){
+	if(is_dir) {
 		action = FILE_CREATE;
 		options = FILE_DIRECTORY_FILE;
 		if(perm & 0222)
 			attrs = ATTR_DIRECTORY;
 		else
-			attrs = ATTR_DIRECTORY|ATTR_READONLY;
+			attrs = ATTR_DIRECTORY | ATTR_READONLY;
 	} else {
 		options = FILE_NON_DIRECTORY_FILE;
 		if(perm & 0222)
 			attrs = ATTR_NORMAL;
 		else
-			attrs = ATTR_NORMAL|ATTR_READONLY;
+			attrs = ATTR_NORMAL | ATTR_READONLY;
 	}
 
-	if(mode & ORCLOSE){
+	if(mode & ORCLOSE) {
 		options |= FILE_DELETE_ON_CLOSE;
 		attrs |= ATTR_DELETE_ON_CLOSE;
 	}
 
 	if((a->fh = CIFS_NT_opencreate(Sess, a->sp, path, flags, options,
-	    attrs, access, share, action, &result, fip)) == -1)
+				       attrs, access, share, action, &result, fip)) == -1)
 		return -1;
 
-	if((mode & OEXCL) && (result & 0x8000) == 0){
+	if((mode & OEXCL) && (result & 0x8000) == 0) {
 		werrstr("%d bad open mode", mode & OMASK);
 		return -1;
 	}
@@ -682,11 +678,11 @@ fscreate(Req *r)
 
 	if(Sess->caps & CAP_NT_SMBS)
 		rc = ntcreateopen(a, mapfile(npath), r->ifcall.mode,
-			r->ifcall.perm, 1, is_dir, &fi);
+				  r->ifcall.perm, 1, is_dir, &fi);
 	else
 		rc = smbcreateopen(a, mapfile(npath), r->ifcall.mode,
-			r->ifcall.perm, 1, is_dir, &fi);
-	if(rc == -1){
+				   r->ifcall.perm, 1, is_dir, &fi);
+	if(rc == -1) {
 		free(npath);
 		responderrstr(r);
 		return;
@@ -711,7 +707,7 @@ fsopen(Req *r)
 	a->end = a->off = 0;
 	a->cache = emalloc9p(max(Sess->mtu, MTU));
 
-	if(ptype(r->fid->qid.path) == Pinfo){
+	if(ptype(r->fid->qid.path) == Pinfo) {
 		if(makeinfo(pindex(r->fid->qid.path)) != -1)
 			respond(r, nil);
 		else
@@ -719,18 +715,18 @@ fsopen(Req *r)
 		return;
 	}
 
-	if(r->fid->qid.type & QTDIR){
+	if(r->fid->qid.type & QTDIR) {
 		respond(r, nil);
 		return;
 	}
 
 	if(Sess->caps & CAP_NT_SMBS)
 		rc = ntcreateopen(a, mapfile(a->path), r->ifcall.mode, 0777,
-			0, 0, &fi);
+				  0, 0, &fi);
 	else
 		rc = smbcreateopen(a, mapfile(a->path), r->ifcall.mode, 0777,
-			0, 0, &fi);
-	if(rc == -1){
+				   0, 0, &fi);
+	if(rc == -1) {
 		responderrstr(r);
 		return;
 	}
@@ -747,8 +743,8 @@ fswrite(Req *r)
 	char *buf = r->ifcall.data;
 
 	got = 0;
-	n = Sess->mtu -OVERHEAD;
-	do{
+	n = Sess->mtu - OVERHEAD;
+	do {
 		if(len - got < n)
 			n = len - got;
 		m = CIFSwrite(Sess, a->sp, a->fh, off + got, buf + got, n);
@@ -772,22 +768,22 @@ fsread(Req *r)
 	int64_t len = r->ifcall.count;
 	int64_t off = r->ifcall.offset;
 
-	if(ptype(r->fid->qid.path) == Pinfo){
+	if(ptype(r->fid->qid.path) == Pinfo) {
 		r->ofcall.count = readinfo(pindex(r->fid->qid.path), buf, len,
-			off);
+					   off);
 		respond(r, nil);
 		return;
 	}
 
-	if(r->fid->qid.type & QTDIR){
+	if(r->fid->qid.type & QTDIR) {
 		dirread9p(r, dirgen, a);
 		respond(r, nil);
 		return;
 	}
 
 	got = 0;
-	n = Sess->mtu -OVERHEAD;
-	do{
+	n = Sess->mtu - OVERHEAD;
+	do {
 		if(len - got < n)
 			n = len - got;
 		m = CIFSread(Sess, a->sp, a->fh, off + got, buf + got, n, len);
@@ -810,7 +806,7 @@ fsdestroyfid(Fid *f)
 	if(ptype(f->qid.path) == Pinfo)
 		freeinfo(pindex(f->qid.path));
 	f->omode = -1;
-	if(! a)
+	if(!a)
 		return;
 	if(a->fh != -1)
 		if(CIFSclose(Sess, a->sp, a->fh) == -1)
@@ -818,7 +814,7 @@ fsdestroyfid(Fid *f)
 	if(a->sh != -1)
 		if(CIFSfindclose2(Sess, a->sp, a->sh) == -1)
 			fprint(2, "%s: findclose failed sh=%d %r\n",
-				argv0, a->sh);
+			       argv0, a->sh);
 	if(a->path)
 		free(a->path);
 	if(a->cache)
@@ -848,9 +844,9 @@ rdonly(Session *s, Share *sp, char *path, int rdonly)
 		return -1;
 
 	if((rdonly && !(fi.attribs & ATTR_READONLY)) ||
-	    (!rdonly && (fi.attribs & ATTR_READONLY))){
+	   (!rdonly && (fi.attribs & ATTR_READONLY))) {
 		fi.attribs &= ~ATTR_READONLY;
-		fi.attribs |= rdonly? ATTR_READONLY: 0;
+		fi.attribs |= rdonly ? ATTR_READONLY : 0;
 		rc = CIFSsetinfo(s, sp, path, &fi);
 	}
 	return rc;
@@ -859,21 +855,22 @@ rdonly(Session *s, Share *sp, char *path, int rdonly)
 static void
 fsremove(Req *r)
 {
-	int try, rc;
+	int try
+		, rc;
 	char e[ERRMAX];
 	Aux *ap, *a = r->fid->aux;
 
 	*e = 0;
 	if(ptype(r->fid->qid.path) == Proot ||
-	   ptype(r->fid->qid.path) == Pshare){
+	   ptype(r->fid->qid.path) == Pshare) {
 		respond(r, "illegal operation");
 		return;
 	}
 
 	/* close all instences of this file/dir */
 	if((ap = Auxroot) != nil)
-		do{
-			if(strcmp(ap->path, a->path) == 0){
+		do {
+			if(strcmp(ap->path, a->path) == 0) {
 				if(ap->sh != -1)
 					CIFSfindclose2(Sess, ap->sp, ap->sh);
 				ap->sh = -1;
@@ -882,8 +879,9 @@ fsremove(Req *r)
 				ap->fh = -1;
 			}
 			ap = ap->next;
-		}while(ap != Auxroot);
-	try = 0;
+		} while(ap != Auxroot);
+	try
+		= 0;
 again:
 	if(r->fid->qid.type & QTDIR)
 		rc = CIFSdeletedirectory(Sess, a->sp, mapfile(a->path));
@@ -891,8 +889,8 @@ again:
 		rc = CIFSdeletefile(Sess, a->sp, mapfile(a->path));
 
 	rerrstr(e, sizeof(e));
-	if(rc == -1 && try++ == 0 && strcmp(e, "permission denied") == 0 &&
-	    rdonly(Sess, a->sp, mapfile(a->path), 0) == 0)
+	if(rc == -1 && try ++ == 0 && strcmp(e, "permission denied") == 0 &&
+	   rdonly(Sess, a->sp, mapfile(a->path), 0) == 0)
 		goto again;
 	if(rc == -1)
 		responderrstr(r);
@@ -909,12 +907,12 @@ fswstat(Req *r)
 	Aux *a = r->fid->aux;
 
 	if(ptype(r->fid->qid.path) == Proot ||
-	   ptype(r->fid->qid.path) == Pshare){
+	   ptype(r->fid->qid.path) == Pshare) {
 		respond(r, "illegal operation");
 		return;
 	}
 
-	if((r->d.uid && r->d.uid[0]) || (r->d.gid && r->d.gid[0])){
+	if((r->d.uid && r->d.uid[0]) || (r->d.gid && r->d.gid[0])) {
 		respond(r, "cannot change ownership");
 		return;
 	}
@@ -926,7 +924,7 @@ fswstat(Req *r)
 		rc = T2queryall(Sess, a->sp, mapfile(a->path), &fi);
 	else
 		rc = T2querystandard(Sess, a->sp, mapfile(a->path), &fi);
-	if(rc == -1){
+	if(rc == -1) {
 		werrstr("(query) - %r");
 		responderrstr(r);
 		return;
@@ -944,17 +942,17 @@ fswstat(Req *r)
 	 * rename - one piece of joy, renaming open files
 	 * is legal (sharing permitting).
 	 */
-	if(r->d.name && r->d.name[0]){
-		if((p = strrchr(a->path, '/')) == nil){
+	if(r->d.name && r->d.name[0]) {
+		if((p = strrchr(a->path, '/')) == nil) {
 			respond(r, "illegal path");
 			return;
 		}
-		npath = emalloc9p((p-a->path)+strlen(r->d.name)+2);
-		strecpy(npath, npath+(p- a->path)+2, a->path);
+		npath = emalloc9p((p - a->path) + strlen(r->d.name) + 2);
+		strecpy(npath, npath + (p - a->path) + 2, a->path);
 		strcat(npath, r->d.name);
 
 		from = estrdup9p(mapfile(a->path));
-		if(CIFSrename(Sess, a->sp, from, mapfile(npath)) == -1){
+		if(CIFSrename(Sess, a->sp, from, mapfile(npath)) == -1) {
 			werrstr("(rename) - %r");
 			responderrstr(r);
 			free(npath);
@@ -970,35 +968,35 @@ fswstat(Req *r)
 	 * set the files length, do this before setting
 	 * the file times as open() will alter them
 	 */
-	if(~r->d.length){
+	if(~r->d.length) {
 		fi.size = r->d.length;
 
-		if(Sess->caps & CAP_NT_SMBS){
+		if(Sess->caps & CAP_NT_SMBS) {
 			if((fh = CIFS_NT_opencreate(Sess, a->sp, mapfile(a->path),
-			    0, FILE_NON_DIRECTORY_FILE,
-	    		    ATTR_NORMAL, GENERIC_WRITE, FILE_SHARE_ALL,
-			    FILE_OPEN_IF, &result, &tmpfi)) == -1){
+						    0, FILE_NON_DIRECTORY_FILE,
+						    ATTR_NORMAL, GENERIC_WRITE, FILE_SHARE_ALL,
+						    FILE_OPEN_IF, &result, &tmpfi)) == -1) {
 				werrstr("(set length, open) - %r");
 				responderrstr(r);
 				return;
 			}
 			rc = T2setfilelength(Sess, a->sp, fh, &fi);
 			CIFSclose(Sess, a->sp, fh);
-			if(rc == -1){
+			if(rc == -1) {
 				werrstr("(set length), set) - %r");
 				responderrstr(r);
 				return;
 			}
 		} else {
 			if((fh = CIFS_SMB_opencreate(Sess, a->sp, mapfile(a->path),
-			    1, ATTR_NORMAL, 1, &result)) == -1){
+						     1, ATTR_NORMAL, 1, &result)) == -1) {
 				werrstr("(set length, open) failed - %r");
 				responderrstr(r);
 				return;
 			}
 			rc = CIFSwrite(Sess, a->sp, fh, fi.size, 0, 0);
 			CIFSclose(Sess, a->sp, fh);
-			if(rc == -1){
+			if(rc == -1) {
 				werrstr("(set length, write) - %r");
 				responderrstr(r);
 				return;
@@ -1010,12 +1008,12 @@ fswstat(Req *r)
 	 * This doesn't appear to set length or
 	 * attributes, no idea why, so I do those seperately
 	 */
-	if(~r->d.mtime || ~r->d.atime){
+	if(~r->d.mtime || ~r->d.atime) {
 		if(~r->d.mtime)
 			fi.written = r->d.mtime;
 		if(~r->d.atime)
 			fi.accessed = r->d.atime;
-		if(T2setpathinfo(Sess, a->sp, mapfile(a->path), &fi) == -1){
+		if(T2setpathinfo(Sess, a->sp, mapfile(a->path), &fi) == -1) {
 			werrstr("(set path info) - %r");
 			responderrstr(r);
 			return;
@@ -1026,13 +1024,13 @@ fswstat(Req *r)
 	 * always update the readonly flag as
 	 * we may have cleared it above.
 	 */
-	if(~r->d.mode){
+	if(~r->d.mode) {
 		if(r->d.mode & 0222)
 			fi.attribs &= ~ATTR_READONLY;
 		else
 			fi.attribs |= ATTR_READONLY;
 	}
-	if(rdonly(Sess, a->sp, mapfile(a->path), fi.attribs & ATTR_READONLY) == -1){
+	if(rdonly(Sess, a->sp, mapfile(a->path), fi.attribs & ATTR_READONLY) == -1) {
 		werrstr("(set info) - %r");
 		responderrstr(r);
 		return;
@@ -1043,7 +1041,7 @@ fswstat(Req *r)
 	 * on open files (writes go to the cache, reads bypass
 	 * the cache), so we must flush the file.
 	 */
-	if(r->fid->omode != -1 && CIFSflush(Sess, a->sp, a->fh) == -1){
+	if(r->fid->omode != -1 && CIFSflush(Sess, a->sp, a->fh) == -1) {
 		werrstr("(flush) %r");
 		responderrstr(r);
 		return;
@@ -1058,32 +1056,33 @@ fsend(Srv *srv)
 	USED(srv);
 
 	for(i = 0; i < Nshares; i++)
-		CIFStreedisconnect(Sess, Shares+i);
+		CIFStreedisconnect(Sess, Shares + i);
 	CIFSlogoff(Sess);
 	postnote(PNPROC, Keeppid, "die");
 }
 
 Srv fs = {
-	.destroyfid =	fsdestroyfid,
-	.attach=	fsattach,
-	.open=		fsopen,
-	.create=	fscreate,
-	.read=		fsread,
-	.write=		fswrite,
-	.remove=	fsremove,
-	.stat=		fsstat,
-	.wstat=		fswstat,
-	.clone= 	fsclone,
-	.walk1= 	fswalk1,
-	.end=		fsend,
+    .destroyfid = fsdestroyfid,
+    .attach = fsattach,
+    .open = fsopen,
+    .create = fscreate,
+    .read = fsread,
+    .write = fswrite,
+    .remove = fsremove,
+    .stat = fsstat,
+    .wstat = fswstat,
+    .clone = fsclone,
+    .walk1 = fswalk1,
+    .end = fsend,
 };
 
 void
 usage(void)
 {
 	fprint(2, "usage: %s [-d name] [-Dvb] [-a auth-method] [-s srvname] "
-		"[-n called-name] [-k factotum-params] [-m mntpnt] "
-		"host [share...]\n", argv0);
+		  "[-n called-name] [-k factotum-params] [-m mntpnt] "
+		  "host [share...]\n",
+	       argv0);
 	exits("usage");
 }
 
@@ -1101,27 +1100,26 @@ keepalive(void)
 	int fd, i, slot, rc;
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
+	if((fd = open(buf, OWRITE)) >= 0) {
 		fprint(fd, "%s keepalive", Host);
 		close(fd);
 	}
 
 	rc = 0;
 	slot = 0;
-	do{
+	do {
 		sleep(6000);
 		if(Active-- != 0)
 			continue;
-		for(i = 0; i < Nshares; i++){
+		for(i = 0; i < Nshares; i++) {
 			if((rc = T2fssizeinfo(Sess, &Shares[slot], &tot, &fre)) == 0)
 				break;
 			if(++slot >= Nshares)
 				slot = 0;
 		}
-	}while(rc != -1);
+	} while(rc != -1);
 	postnote(PNPROC, Attachpid, "die");
 }
-
 
 static void
 ding(void *u, char *msg)
@@ -1161,7 +1159,8 @@ main(int argc, char **argv)
 
 	notify(ding);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		method = EARGF(autherr());
 		break;
@@ -1196,7 +1195,8 @@ main(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -1213,7 +1213,7 @@ main(int argc, char **argv)
 		goto connected;
 
 	if(calledname(Host, cname) == 0 &&
-	    (Sess = cifsdial(Host, cname, sysname)) != nil)
+	   (Sess = cifsdial(Host, cname, sysname)) != nil)
 		goto connected;
 
 	strcpy(cname, Host);
@@ -1231,7 +1231,7 @@ connected:
 #endif
 
 	Sess->auth = getauth(method, windom, keyp, Sess->secmode, Sess->chal,
-		Sess->challen);
+			     Sess->challen);
 
 	if(CIFSsession(Sess) < 0)
 		sysfatal("session authentication failed, %r\n");
@@ -1243,25 +1243,25 @@ connected:
 		fprint(2, "%s, %r - can't connect\n", Ipcname);
 
 	Nshares = 0;
-	if(argc == 1){
+	if(argc == 1) {
 		Share *sip;
 
 		if((n = RAPshareenum(Sess, &Ipc, &sip)) < 1)
 			sysfatal("can't enumerate shares: %r - specify share "
-				"names on command line\n");
+				 "names on command line\n");
 
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 #ifdef NO_HIDDEN_SHARES
 			int l = strlen(sip[i].name);
 
-			if(l > 1 && sip[i].name[l-1] == '$'){
+			if(l > 1 && sip[i].name[l - 1] == '$') {
 				free(sip[i].name);
 				continue;
 			}
 #endif
-			memcpy(Shares+Nshares, sip+i, sizeof(Share));
+			memcpy(Shares + Nshares, sip + i, sizeof(Share));
 			if(CIFStreeconnect(Sess, Sess->cname,
-			    Shares[Nshares].name, Shares+Nshares) == -1){
+					   Shares[Nshares].name, Shares + Nshares) == -1) {
 				free(Shares[Nshares].name);
 				continue;
 			}
@@ -1269,11 +1269,12 @@ connected:
 		}
 		free(sip);
 	} else
-		for(i = 1; i < argc; i++){
+		for(i = 1; i < argc; i++) {
 			if(CIFStreeconnect(Sess, Sess->cname, argv[i],
-			    Shares+Nshares) == -1){
+					   Shares + Nshares) == -1) {
 				fprint(2, "%s: %s  %q - can't connect to share"
-					", %r\n", argv0, Host, argv[i]);
+					  ", %r\n",
+				       argv0, Host, argv[i]);
 				continue;
 			}
 			Shares[Nshares].name = strlwr(estrdup9p(argv[i]));
@@ -1283,10 +1284,10 @@ connected:
 	if(Nshares == 0)
 		fprint(2, "no available shares\n");
 
-	if((Keeppid = rfork(RFPROC|RFMEM|RFNOTEG|RFFDG|RFNAMEG)) == 0){
+	if((Keeppid = rfork(RFPROC | RFMEM | RFNOTEG | RFFDG | RFNAMEG)) == 0) {
 		keepalive();
 		exits(nil);
 	}
-	postmountsrv(&fs, svs, mtpt, MREPL|MCREATE);
+	postmountsrv(&fs, svs, mtpt, MREPL | MCREATE);
 	exits(nil);
 }

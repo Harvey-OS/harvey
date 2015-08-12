@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "String.h"
 
-extern String*	_s_alloc(void);
+extern String *_s_alloc(void);
 
 /* return a String containing a character array (this had better not grow) */
 extern String *

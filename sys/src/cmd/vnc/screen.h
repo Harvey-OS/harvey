@@ -14,30 +14,30 @@ struct Cursorinfo {
 	Lock;
 };
 
-extern Cursorinfo	cursor;
-extern Cursor		arrow;
-extern Memimage		*gscreen;
-extern int		cursorver;
-extern Point		cursorpos;
+extern Cursorinfo cursor;
+extern Cursor arrow;
+extern Memimage *gscreen;
+extern int cursorver;
+extern Point cursorpos;
 
-Point 		mousexy(void);
-int		cursoron(int);
-void		cursoroff(int);
-void		setcursor(Cursor*);
-void		flushmemscreen(Rectangle r);
-Rectangle	cursorrect(void);
-void		cursordraw(Memimage *dst, Rectangle r);
+Point mousexy(void);
+int cursoron(int);
+void cursoroff(int);
+void setcursor(Cursor *);
+void flushmemscreen(Rectangle r);
+Rectangle cursorrect(void);
+void cursordraw(Memimage *dst, Rectangle r);
 
-void		drawactive(int);
-void		drawlock(void);
-void		drawunlock(void);
-int		candrawlock(void);
-void		getcolor(ulong, uint32_t*, uint32_t*, uint32_t*);
-int		setcolor(ulong, ulong, ulong, ulong);
-#define		TK2SEC(x)	0
-extern void	blankscreen(int);
-void		screeninit(int x, int y, char *chanstr);
-void		mousetrack(int x, int y, int b, int msec);
-uchar		*attachscreen(Rectangle*, uint32_t*, int*, int*, int*);
+void drawactive(int);
+void drawlock(void);
+void drawunlock(void);
+int candrawlock(void);
+void getcolor(ulong, uint32_t *, uint32_t *, uint32_t *);
+int setcolor(ulong, ulong, ulong, ulong);
+#define TK2SEC(x) 0
+extern void blankscreen(int);
+void screeninit(int x, int y, char *chanstr);
+void mousetrack(int x, int y, int b, int msec);
+uchar *attachscreen(Rectangle *, uint32_t *, int *, int *, int *);
 
-void		fsinit(char *mntpt, int x, int y, char *chanstr);
+void fsinit(char *mntpt, int x, int y, char *chanstr);

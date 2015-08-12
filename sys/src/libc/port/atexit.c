@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-#define	NEXIT	33
+#define NEXIT 33
 
 typedef struct Onex Onex;
-struct Onex{
-	void	(*f)(void);
-	int	pid;
+struct Onex {
+	void (*f)(void);
+	int pid;
 };
 
 static Lock onexlock;
@@ -27,7 +27,7 @@ atexit(void (*f)(void))
 	int i;
 
 	lock(&onexlock);
-	for(i=0; i<NEXIT; i++)
+	for(i = 0; i < NEXIT; i++)
 		if(onex[i].f == 0) {
 			onex[i].pid = getpid();
 			onex[i].f = f;
@@ -44,7 +44,7 @@ atexitdont(void (*f)(void))
 	int i, pid;
 
 	pid = getpid();
-	for(i=0; i<NEXIT; i++)
+	for(i = 0; i < NEXIT; i++)
 		if(onex[i].f == f && onex[i].pid == pid)
 			onex[i].f = 0;
 }
@@ -58,7 +58,7 @@ exits(char *s)
 	void (*f)(void);
 
 	pid = getpid();
-	for(i = NEXIT-1; i >= 0; i--)
+	for(i = NEXIT - 1; i >= 0; i--)
 		if((f = onex[i].f) && pid == onex[i].pid) {
 			onex[i].f = 0;
 			(*f)();

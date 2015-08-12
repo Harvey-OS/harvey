@@ -17,7 +17,6 @@
 
 #include "antiword.h"
 
-
 /*
  * bGetDocumentText - make a list of the text blocks of a Word document
  *
@@ -26,11 +25,11 @@
 static BOOL
 bGetDocumentText(FILE *pFile, const UCHAR *aucHeader)
 {
-	text_block_type	tTextBlock;
-	ULONG	ulBeginOfText, ulEndOfText;
-	ULONG	ulTextLen;
-	UCHAR	ucDocStatus;
-	BOOL    bFastSaved;
+	text_block_type tTextBlock;
+	ULONG ulBeginOfText, ulEndOfText;
+	ULONG ulTextLen;
+	UCHAR ucDocStatus;
+	BOOL bFastSaved;
 
 	fail(pFile == NULL);
 	fail(aucHeader == NULL);
@@ -44,7 +43,7 @@ bGetDocumentText(FILE *pFile, const UCHAR *aucHeader)
 	DBG_HEX(ucDocStatus);
 	bFastSaved = (ucDocStatus & BIT(5)) != 0;
 	DBG_MSG_C(bFastSaved, "This document is Fast Saved");
-	if (bFastSaved) {
+	if(bFastSaved) {
 		werr(0, "MacWord: fast saved documents are not supported yet");
 		return FALSE;
 	}
@@ -61,7 +60,7 @@ bGetDocumentText(FILE *pFile, const UCHAR *aucHeader)
 	tTextBlock.ulLength = ulTextLen;
 	tTextBlock.bUsesUnicode = FALSE;
 	tTextBlock.usPropMod = IGNORE_PROPMOD;
-	if (!bAdd2TextBlockList(&tTextBlock)) {
+	if(!bAdd2TextBlockList(&tTextBlock)) {
 		DBG_HEX(tTextBlock.ulFileOffset);
 		DBG_HEX(tTextBlock.ulCharPos);
 		DBG_DEC(tTextBlock.ulLength);
@@ -80,38 +79,38 @@ bGetDocumentText(FILE *pFile, const UCHAR *aucHeader)
 int
 iInitDocumentMAC(FILE *pFile, int32_t lFilesize)
 {
-	int	iWordVersion;
-	BOOL	bSuccess;
-	USHORT	usIdent;
-	UCHAR	aucHeader[256];
+	int iWordVersion;
+	BOOL bSuccess;
+	USHORT usIdent;
+	UCHAR aucHeader[256];
 
 	fail(pFile == NULL);
 
-	if (lFilesize < 256) {
+	if(lFilesize < 256) {
 		return -1;
 	}
 
 	/* Read the headerblock */
-	if (!bReadBytes(aucHeader, 256, 0x00, pFile)) {
+	if(!bReadBytes(aucHeader, 256, 0x00, pFile)) {
 		return -1;
 	}
 	/* Get the "magic number" from the header */
 	usIdent = usGetWord(0x00, aucHeader);
 	DBG_HEX(usIdent);
-	fail(usIdent != 0x37fe);	/* MacWord 4 and 5 */
+	fail(usIdent != 0x37fe); /* MacWord 4 and 5 */
 	iWordVersion = iGetVersionNumber(aucHeader);
-	if (iWordVersion != 4 && iWordVersion != 5) {
+	if(iWordVersion != 4 && iWordVersion != 5) {
 		werr(0, "This file is not from ''Mac Word 4 or 5'.");
 		return -1;
 	}
 	bSuccess = bGetDocumentText(pFile, aucHeader);
-	if (bSuccess) {
+	if(bSuccess) {
 		vGetPropertyInfo(pFile, NULL,
-				NULL, 0, NULL, 0,
-				aucHeader, iWordVersion);
+				 NULL, 0, NULL, 0,
+				 aucHeader, iWordVersion);
 		vSetDefaultTabWidth(pFile, NULL,
-				NULL, 0, NULL, 0,
-				aucHeader, iWordVersion);
+				    NULL, 0, NULL, 0,
+				    aucHeader, iWordVersion);
 	}
 	return bSuccess ? iWordVersion : -1;
 } /* end of iInitDocumentMAC */

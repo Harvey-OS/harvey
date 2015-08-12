@@ -27,7 +27,7 @@
 /* Miscellaneous common types for Ghostscript library */
 
 #ifndef gstypes_INCLUDED
-#  define gstypes_INCLUDED
+#define gstypes_INCLUDED
 
 /*
  * Define a type used internally for unique IDs of various kinds
@@ -49,21 +49,21 @@ typedef uint32_t gs_id;
  * gs_string S is valid (until the string is deallocated) if it has P <=
  * S.data and S.data + S.size <= P + N.
  */
-#define GS_STRING_COMMON\
-    byte *data;\
-    uint size
+#define GS_STRING_COMMON \
+	byte *data;      \
+	uint size
 typedef struct gs_string_s {
-    GS_STRING_COMMON;
+	GS_STRING_COMMON;
 } gs_string;
-#define GS_CONST_STRING_COMMON\
-    const byte *data;\
-    uint size
+#define GS_CONST_STRING_COMMON \
+	const byte *data;      \
+	uint size
 typedef struct gs_const_string_s {
-    GS_CONST_STRING_COMMON;
+	GS_CONST_STRING_COMMON;
 } gs_const_string;
 typedef struct gs_param_string_s {
-    GS_CONST_STRING_COMMON;
-    bool persistent;
+	GS_CONST_STRING_COMMON;
+	bool persistent;
 } gs_param_string;
 
 /*
@@ -79,27 +79,27 @@ typedef struct gs_param_string_s {
  * come first.
  */
 typedef struct gs_bytestring_s {
-    GS_STRING_COMMON;
-    byte *bytes;		/* see above */
+	GS_STRING_COMMON;
+	byte *bytes; /* see above */
 } gs_bytestring;
 typedef struct gs_const_bytestring_s {
-    GS_CONST_STRING_COMMON;
-    const byte *bytes;		/* see above */
+	GS_CONST_STRING_COMMON;
+	const byte *bytes; /* see above */
 } gs_const_bytestring;
 
-#define gs_bytestring_from_string(pbs, dat, siz)\
-  ((pbs)->data = (dat), (pbs)->size = (siz), (pbs)->bytes = 0)
-#define gs_bytestring_from_bytes(pbs, byts, offset, siz)\
-  ((pbs)->data = ((pbs)->bytes = (byts)) + (offset), (pbs)->size = (siz))
+#define gs_bytestring_from_string(pbs, dat, siz) \
+	((pbs)->data = (dat), (pbs)->size = (siz), (pbs)->bytes = 0)
+#define gs_bytestring_from_bytes(pbs, byts, offset, siz) \
+	((pbs)->data = ((pbs)->bytes = (byts)) + (offset), (pbs)->size = (siz))
 
 /*
  * Define types for Cartesian points.
  */
 typedef struct gs_point_s {
-    double x, y;
+	double x, y;
 } gs_point;
 typedef struct gs_int_point_s {
-    int x, y;
+	int x, y;
 } gs_int_point;
 
 /*
@@ -107,7 +107,7 @@ typedef struct gs_int_point_s {
  * but this seemed like the handiest place for it.
  */
 typedef struct gs_log2_scale_point_s {
-    int x, y;
+	int x, y;
 } gs_log2_scale_point;
 
 /*
@@ -117,10 +117,10 @@ typedef struct gs_log2_scale_point_s {
  * (x,y) such that p.x<=x<q.x and p.y<=y<q.y.
  */
 typedef struct gs_rect_s {
-    gs_point p, q;		/* origin point, corner point */
+	gs_point p, q; /* origin point, corner point */
 } gs_rect;
 typedef struct gs_int_rect_s {
-    gs_int_point p, q;
+	gs_int_point p, q;
 } gs_int_rect;
 
 /*
@@ -129,7 +129,7 @@ typedef struct gs_int_rect_s {
  * (i.e., they represent rmin <= x <= rmax, not rmin <= x < rmax).
  */
 typedef struct gs_range_s {
-    float rmin, rmax;
+	float rmin, rmax;
 } gs_range_t;
 
 #endif /* gstypes_INCLUDED */

@@ -18,25 +18,25 @@ main(int argc, char *argv[])
 	int32_t len, slen;
 	int c;
 
-	if(argc != 2){
+	if(argc != 2) {
 		fprint(2, "usage: data2s name\n");
 		exits("usage");
 	}
 	Binit(&bin, 0, OREAD);
 	Binit(&bout, 1, OWRITE);
-	for(len=0; (c=Bgetc(&bin))!=Beof; len++){
-		if((len&7) == 0)
+	for(len = 0; (c = Bgetc(&bin)) != Beof; len++) {
+		if((len & 7) == 0)
 			Bprint(&bout, "DATA %scode+%ld(SB)/8, $\"", argv[1], len);
 		if(c)
 			Bprint(&bout, "\\%uo", c);
 		else
 			Bprint(&bout, "\\z");
-		if((len&7) == 7)
+		if((len & 7) == 7)
 			Bprint(&bout, "\"\n");
 	}
 	slen = len;
-	if(len & 7){
-		while(len & 7){
+	if(len & 7) {
+		while(len & 7) {
 			Bprint(&bout, "\\z");
 			len++;
 		}

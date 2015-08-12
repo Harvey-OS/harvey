@@ -18,139 +18,134 @@
 
 #include "paqfs.h"
 
-enum
-{
-	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	OffsetSize = 4,		/* size in bytes of an offset */
+enum {
+	OPERM = 0x3,    /* mask of all permission types in open mode */
+	OffsetSize = 4, /* size in bytes of an offset */
 };
 
 typedef struct Fid Fid;
 typedef struct Paq Paq;
 typedef struct Block Block;
 
-struct Fid
-{
-	int16_t	busy;
-	int16_t	open;
-	int	fid;
-	char	*user;
-	uint32_t	offset;		/* for directory reading */
+struct Fid {
+	int16_t busy;
+	int16_t open;
+	int fid;
+	char *user;
+	uint32_t offset; /* for directory reading */
 
-	Paq	*paq;
-	Fid	*next;
+	Paq *paq;
+	Fid *next;
 };
 
-struct Paq
-{	
+struct Paq {
 	int ref;
 	Paq *up;
 	PaqDir *dir;
 	Qid qid;
 };
 
-struct Block
-{
+struct Block {
 	int ref;
-	uint32_t addr;	/* block byte address */
+	uint32_t addr; /* block byte address */
 	uint32_t age;
 	uint8_t *data;
 };
 
-enum
-{
-	Pexec =		1,
-	Pwrite = 	2,
-	Pread = 	4,
-	Pother = 	1,
-	Pgroup = 	8,
-	Powner =	64,
+enum {
+	Pexec = 1,
+	Pwrite = 2,
+	Pread = 4,
+	Pother = 1,
+	Pgroup = 8,
+	Powner = 64,
 };
 
-int	noauth;
-Fid	*fids;
-Fcall	rhdr, thdr;
-int 	blocksize;
-int 	cachesize = 20;
-int	mesgsize = 8*1024 + IOHDRSZ;
-Paq 	*root, *rootfile;
-Block 	*cache;
-uint32_t 	cacheage;
-Biobuf	*bin;
-int	qflag;
+int noauth;
+Fid *fids;
+Fcall rhdr, thdr;
+int blocksize;
+int cachesize = 20;
+int mesgsize = 8 * 1024 + IOHDRSZ;
+Paq *root, *rootfile;
+Block *cache;
+uint32_t cacheage;
+Biobuf *bin;
+int qflag;
 
-Fid *	newfid(int);
-void	paqstat(PaqDir*, char*);
-void	io(int fd);
-void	*erealloc(void*, uint32_t);
-void	*emalloc(uint32_t);
-void 	*emallocz(uint32_t n);
-char 	*estrdup(char*);
-void	usage(void);
-uint32_t	getl(uint8_t *p);
-int	gets(uint8_t *p);
-char 	*getstr(uint8_t *p);
-PaqDir	*getDir(uint8_t*);
-void	getHeader(uint8_t *p, PaqHeader *b);
-void	getBlock(uint8_t *p, PaqBlock *b);
-void	getTrailer(uint8_t *p, PaqTrailer *b);
-void	init(char*, int);
-void	paqDirFree(PaqDir*);
-Qid	paqDirQid(PaqDir *d);
-Paq	*paqCpy(Paq *s);
-Paq	*paqLookup(Paq *s, char *name);
-void	paqFree(Paq*);
-Paq	*paqWalk(Paq *s, char *name);
-int	perm(PaqDir *s, char *user, int p);
-int	dirRead(Fid*, uint8_t*, int);
-Block	*blockLoad(uint32_t addr, int type);
-void	blockFree(Block*);
-int	checkDirSize(uint8_t *p, uint8_t *ep);
-int	packDir(PaqDir*, uint8_t*, int);
-int	blockRead(uint8_t *data, uint32_t addr, int type);
-void	readHeader(PaqHeader *hdr, char *name, DigestState *ds);
-void	readBlocks(char *name, DigestState *ds);
-void	readTrailer(PaqTrailer *tlr, char *name, DigestState *ds);
+Fid *newfid(int);
+void paqstat(PaqDir *, char *);
+void io(int fd);
+void *erealloc(void *, uint32_t);
+void *emalloc(uint32_t);
+void *emallocz(uint32_t n);
+char *estrdup(char *);
+void usage(void);
+uint32_t getl(uint8_t *p);
+int gets(uint8_t *p);
+char *getstr(uint8_t *p);
+PaqDir *getDir(uint8_t *);
+void getHeader(uint8_t *p, PaqHeader *b);
+void getBlock(uint8_t *p, PaqBlock *b);
+void getTrailer(uint8_t *p, PaqTrailer *b);
+void init(char *, int);
+void paqDirFree(PaqDir *);
+Qid paqDirQid(PaqDir *d);
+Paq *paqCpy(Paq *s);
+Paq *paqLookup(Paq *s, char *name);
+void paqFree(Paq *);
+Paq *paqWalk(Paq *s, char *name);
+int perm(PaqDir *s, char *user, int p);
+int dirRead(Fid *, uint8_t *, int);
+Block *blockLoad(uint32_t addr, int type);
+void blockFree(Block *);
+int checkDirSize(uint8_t *p, uint8_t *ep);
+int packDir(PaqDir *, uint8_t *, int);
+int blockRead(uint8_t *data, uint32_t addr, int type);
+void readHeader(PaqHeader *hdr, char *name, DigestState *ds);
+void readBlocks(char *name, DigestState *ds);
+void readTrailer(PaqTrailer *tlr, char *name, DigestState *ds);
 
-char	*rflush(Fid*), *rversion(Fid*),
-	*rauth(Fid*), *rattach(Fid*), *rwalk(Fid*),
-	*ropen(Fid*), *rcreate(Fid*),
-	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
+char *rflush(Fid *), *rversion(Fid *),
+    *rauth(Fid *), *rattach(Fid *), *rwalk(Fid *),
+    *ropen(Fid *), *rcreate(Fid *),
+    *rread(Fid *), *rwrite(Fid *), *rclunk(Fid *),
+    *rremove(Fid *), *rstat(Fid *), *rwstat(Fid *);
 
-char 	*(*fcalls[])(Fid*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tattach]	rattach,
-	[Tauth]		rauth,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char *(*fcalls[])(Fid *) = {
+	[Tflush] rflush,
+	[Tversion] rversion,
+	[Tattach] rattach,
+	[Tauth] rauth,
+	[Twalk] rwalk,
+	[Topen] ropen,
+	[Tcreate] rcreate,
+	[Tread] rread,
+	[Twrite] rwrite,
+	[Tclunk] rclunk,
+	[Tremove] rremove,
+	[Tstat] rstat,
+	[Twstat] rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"authentication not required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Erdonly[] = 	"read only file system";
-char	Ebadblock[] = 	"bad block";
-char	Eversion[] = 	"bad version of P9";
-char	Edirtoobig[] = 	"directory entry too big";
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enoauth[] = "authentication not required";
+char Enotexist[] = "file does not exist";
+char Einuse[] = "file in use";
+char Eexist[] = "file exists";
+char Enotowner[] = "not owner";
+char Eisopen[] = "file already open for I/O";
+char Excl[] = "exclusive use file already open";
+char Ename[] = "illegal name";
+char Erdonly[] = "read only file system";
+char Ebadblock[] = "bad block";
+char Eversion[] = "bad version of P9";
+char Edirtoobig[] = "directory entry too big";
 
 int debug;
 
-#pragma varargck	type	"V"	uchar*
+#pragma varargck type "V" uchar *
 
 static int
 sha1fmt(Fmt *f)
@@ -158,11 +153,10 @@ sha1fmt(Fmt *f)
 	int i;
 	uint8_t *v;
 
-	v = va_arg(f->args, uint8_t*);
-	if(v == nil){
+	v = va_arg(f->args, uint8_t *);
+	if(v == nil) {
 		fmtprint(f, "*");
-	}
-	else{
+	} else {
 		for(i = 0; i < SHA1dlen; i++)
 			fmtprint(f, "%2.2ux", v[i]);
 	}
@@ -184,7 +178,8 @@ main(int argc, char *argv[])
 	mnt = 1;
 	srv = stdio = verify = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'a':
@@ -211,8 +206,8 @@ main(int argc, char *argv[])
 		mesgsize = atoi(p);
 		if(mesgsize < 512)
 			mesgsize = 512;
-		if(mesgsize > 128*1024)
-			mesgsize = 128*1024;
+		if(mesgsize > 128 * 1024)
+			mesgsize = 128 * 1024;
 		break;
 	case 'p':
 		srv = 1;
@@ -231,17 +226,18 @@ main(int argc, char *argv[])
 	case 'v':
 		verify = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
 	init(argv[0], verify);
-	
-	if(!stdio){
+
+	if(!stdio) {
 		if(pipe(pfd) < 0)
 			sysfatal("pipe: %r");
-		if(srv){
+		if(srv) {
 			snprint(buf, sizeof buf, "#s/%s", srvname);
 			fd = create(buf, OWRITE, 0666);
 			if(fd < 0)
@@ -253,7 +249,7 @@ main(int argc, char *argv[])
 
 	if(debug)
 		fmtinstall('F', fcallfmt);
-	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
+	switch(rfork(RFFDG | RFPROC | RFNAMEG | RFNOTEG)) {
 	case -1:
 		sysfatal("fork");
 	case 0:
@@ -261,15 +257,15 @@ main(int argc, char *argv[])
 		io(pfd[1]);
 		break;
 	default:
-		close(pfd[1]);	/* don't deadlock if child fails */
-		if(mnt && mount(pfd[0], -1, mntpoint, MREPL|MCREATE, "") < 0)
+		close(pfd[1]); /* don't deadlock if child fails */
+		if(mnt && mount(pfd[0], -1, mntpoint, MREPL | MCREATE, "") < 0)
 			sysfatal("mount %s: %r", mntpoint);
 	}
 	exits(0);
 }
 
-char*
-rversion(Fid*)
+char *
+rversion(Fid *)
 {
 	Fid *f;
 
@@ -286,20 +282,20 @@ rversion(Fid*)
 	return 0;
 }
 
-char*
-rauth(Fid*)
+char *
+rauth(Fid *)
 {
 	return Enoauth;
 }
 
-char*
+char *
 rflush(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-char*
+char *
 rattach(Fid *f)
 {
 	/* no authentication! */
@@ -313,7 +309,7 @@ rattach(Fid *f)
 	return 0;
 }
 
-char*
+char *
 clone(Fid *f, Fid **res)
 {
 	Fid *nf;
@@ -331,7 +327,7 @@ clone(Fid *f, Fid **res)
 	return 0;
 }
 
-char*
+char *
 rwalk(Fid *f)
 {
 	Paq *paq, *npaq;
@@ -343,11 +339,11 @@ rwalk(Fid *f)
 	if(f->busy == 0)
 		return Enotexist;
 	nf = nil;
-	if(rhdr.fid != rhdr.newfid){
+	if(rhdr.fid != rhdr.newfid) {
 		err = clone(f, &nf);
 		if(err)
 			return err;
-		f = nf;	/* walk the new fid */
+		f = nf; /* walk the new fid */
 	}
 
 	nwname = rhdr.nwname;
@@ -362,8 +358,8 @@ rwalk(Fid *f)
 	qid = paq->qid;
 	err = nil;
 
-	for(nqid = 0; nqid < nwname; nqid++){
-		if((qid.type & QTDIR) == 0){
+	for(nqid = 0; nqid < nwname; nqid++) {
+		if((qid.type & QTDIR) == 0) {
 			err = Enotdir;
 			break;
 		}
@@ -384,7 +380,7 @@ rwalk(Fid *f)
 
 	thdr.nwqid = nqid;
 
-	if(nqid == nwname){
+	if(nqid == nwname) {
 		/* success */
 		paqFree(f->paq);
 		f->paq = paq;
@@ -412,7 +408,7 @@ ropen(Fid *f)
 	if(f->busy == 0)
 		return Enotexist;
 	mode = rhdr.mode;
-	if(f->paq->qid.type & QTDIR){
+	if(f->paq->qid.type & QTDIR) {
 		if(mode != OREAD)
 			return Eperm;
 		thdr.qid = f->paq->qid;
@@ -422,12 +418,12 @@ ropen(Fid *f)
 		return Erdonly;
 	trunc = mode & OTRUNC;
 	mode &= OPERM;
-	if(mode==OWRITE || mode==ORDWR || trunc)
+	if(mode == OWRITE || mode == ORDWR || trunc)
 		return Erdonly;
-	if(mode==OREAD)
+	if(mode == OREAD)
 		if(!perm(f->paq->dir, f->user, Pread))
 			return Eperm;
-	if(mode==OEXEC)
+	if(mode == OEXEC)
 		if(!perm(f->paq->dir, f->user, Pexec))
 			return Eperm;
 	thdr.qid = f->paq->qid;
@@ -455,14 +451,14 @@ readdir(Fid *f)
 	uint8_t *buf;
 	Block *ptr, *b;
 
-	buf = (uint8_t*)thdr.data;
+	buf = (uint8_t *)thdr.data;
 	cnt = rhdr.count;
 	if(rhdr.offset == 0)
 		f->offset = 0;
 	off = f->offset;
 
-	if(rootfile && f->paq == root){
-		if(off != 0){
+	if(rootfile && f->paq == root) {
+		if(off != 0) {
 			rhdr.count = 0;
 			return nil;
 		}
@@ -474,11 +470,11 @@ readdir(Fid *f)
 	ptr = blockLoad(f->paq->dir->offset, PointerBlock);
 	if(ptr == nil)
 		return Ebadblock;
-	i = off/blocksize;
-	off -= i*blocksize;
+	i = off / blocksize;
+	off -= i * blocksize;
 
 	thdr.count = 0;
-	b = blockLoad(getl(ptr->data + i*4), DirBlock);
+	b = blockLoad(getl(ptr->data + i * 4), DirBlock);
 	while(b != nil) {
 		p = b->data + off;
 		ep = b->data + blocksize;
@@ -502,16 +498,16 @@ readdir(Fid *f)
 			off = 0;
 			i++;
 			blockFree(b);
-			b = blockLoad(getl(ptr->data + i*4), DirBlock);
+			b = blockLoad(getl(ptr->data + i * 4), DirBlock);
 		}
 	}
-	f->offset = i*blocksize + off;
+	f->offset = i * blocksize + off;
 	blockFree(ptr);
 
 	return 0;
 }
 
-char*
+char *
 rread(Fid *f)
 {
 	PaqDir *pd;
@@ -527,7 +523,7 @@ rread(Fid *f)
 		return readdir(f);
 	pd = f->paq->dir;
 	off = rhdr.offset;
-	buf = (uint8_t*)thdr.data;
+	buf = (uint8_t *)thdr.data;
 	cnt = rhdr.count;
 
 	thdr.count = 0;
@@ -541,11 +537,11 @@ rread(Fid *f)
 	if(ptr == nil)
 		return Ebadblock;
 
-	i = off/blocksize;
-	uoff = off-i*blocksize;
+	i = off / blocksize;
+	uoff = off - i * blocksize;
 
 	while(cnt > 0) {
-		b = blockLoad(getl(ptr->data + i*4), DataBlock);
+		b = blockLoad(getl(ptr->data + i * 4), DataBlock);
 		if(b == nil) {
 			blockFree(ptr);
 			return Ebadblock;
@@ -565,7 +561,7 @@ rread(Fid *f)
 	return 0;
 }
 
-char*
+char *
 rwrite(Fid *f)
 {
 	if(f->busy == 0)
@@ -595,7 +591,7 @@ rstat(Fid *f)
 {
 	if(f->busy == 0)
 		return Enotexist;
-	thdr.stat = (uint8_t*)thdr.data;
+	thdr.stat = (uint8_t *)thdr.data;
 	thdr.nstat = packDir(f->paq->dir, thdr.stat, mesgsize);
 	if(thdr.nstat == 0)
 		return Edirtoobig;
@@ -610,7 +606,7 @@ rwstat(Fid *f)
 	return Erdonly;
 }
 
-Paq*
+Paq *
 paqCpy(Paq *s)
 {
 	s->ref++;
@@ -625,7 +621,7 @@ paqFree(Paq *p)
 	p->ref--;
 	if(p->ref > 0)
 		return;
-assert(p != root);
+	assert(p != root);
 	paqFree(p->up);
 	paqDirFree(p->dir);
 	free(p);
@@ -690,13 +686,13 @@ blockLoad(uint32_t addr, int type)
 
 	/* age has wraped */
 	if(cacheage == 0) {
-		for(i=0; i<cachesize; i++)
+		for(i = 0; i < cachesize; i++)
 			cache[i].age = 0;
 	}
 
 	j = -1;
 	age = ~0;
-	for(i=0; i<cachesize; i++) {
+	for(i = 0; i < cachesize; i++) {
 		b = &cache[i];
 		if(b->age < age && b->ref == 0) {
 			age = b->age;
@@ -722,7 +718,7 @@ blockLoad(uint32_t addr, int type)
 	b->age = cacheage;
 	b->addr = addr;
 	b->ref = 1;
-	
+
 	return b;
 }
 
@@ -736,7 +732,7 @@ blockFree(Block *b)
 	assert(b->ref == 0);
 }
 
-Paq*
+Paq *
 paqWalk(Paq *s, char *name)
 {
 	Block *ptr, *b;
@@ -748,7 +744,7 @@ paqWalk(Paq *s, char *name)
 	if(strcmp(name, "..") == 0)
 		return paqCpy(s->up);
 
-	if(rootfile && s == root){
+	if(rootfile && s == root) {
 		if(strcmp(name, rootfile->dir->name) == 0)
 			return paqCpy(rootfile);
 		return nil;
@@ -758,8 +754,8 @@ paqWalk(Paq *s, char *name)
 	if(ptr == nil)
 		return nil;
 
-	for(i=0; i<blocksize/4; i++) {
-		b = blockLoad(getl(ptr->data+i*4), DirBlock);
+	for(i = 0; i < blocksize / 4; i++) {
+		b = blockLoad(getl(ptr->data + i * 4), DirBlock);
 		if(b == nil)
 			break;
 		p = b->data;
@@ -798,7 +794,7 @@ newfid(int fid)
 			return f;
 		else if(!ff && !f->busy)
 			ff = f;
-	if(ff){
+	if(ff) {
 		ff->fid = fid;
 		return ff;
 	}
@@ -820,7 +816,7 @@ io(int fd)
 
 	pid = getpid();
 
-	for(;;){
+	for(;;) {
 		n = read9pmsg(fd, mdata, mesgsize);
 		if(n < 0)
 			sysfatal("mount read");
@@ -832,21 +828,21 @@ io(int fd)
 		if(debug)
 			fprint(2, "paqfs %d:<-%F\n", pid, &rhdr);
 
-		thdr.data = (char*)mdata + IOHDRSZ;
+		thdr.data = (char *)mdata + IOHDRSZ;
 		if(!fcalls[rhdr.type])
 			err = "bad fcall type";
 		else
 			err = (*fcalls[rhdr.type])(newfid(rhdr.fid));
-		if(err){
+		if(err) {
 			thdr.type = Rerror;
 			thdr.ename = err;
-		}else{
+		} else {
 			thdr.type = rhdr.type + 1;
 			thdr.fid = rhdr.fid;
 		}
 		thdr.tag = rhdr.tag;
 		if(debug)
-			fprint(2, "paqfs %d:->%F\n", pid, &thdr);/**/
+			fprint(2, "paqfs %d:->%F\n", pid, &thdr); /**/
 		n = convS2M(&thdr, mdata, mesgsize);
 		if(n == 0)
 			sysfatal("convS2M sysfatal on write");
@@ -860,11 +856,11 @@ perm(PaqDir *s, char *user, int p)
 {
 	uint32_t perm = s->mode;
 
-	if((p*Pother) & perm)
+	if((p * Pother) & perm)
 		return 1;
-	if((noauth || strcmp(user, s->gid)==0) && ((p*Pgroup) & perm))
+	if((noauth || strcmp(user, s->gid) == 0) && ((p * Pgroup) & perm))
 		return 1;
-	if((noauth || strcmp(user, s->uid)==0) && ((p*Powner) & perm))
+	if((noauth || strcmp(user, s->uid) == 0) && ((p * Powner) & perm))
 		return 1;
 	return 0;
 }
@@ -889,7 +885,7 @@ init(char *file, int verify)
 		sysfatal("could not open file: %s: %r", file);
 	if(verify)
 		ds = sha1(0, 0, 0, 0);
-	
+
 	readHeader(&hdr, file, ds);
 	blocksize = hdr.blocksize;
 
@@ -908,21 +904,21 @@ init(char *file, int verify)
 	readTrailer(&tlr, file, ds);
 
 	/* asctime includes a newline - yuk */
-	if(!qflag){
+	if(!qflag) {
 		fprint(2, "%s: %s", hdr.label, asctime(gmtime(hdr.time)));
 		fprint(2, "fingerprint: %V\n", tlr.sha1);
 	}
 
-	cache = emallocz(cachesize*sizeof(Block));
-	p = emalloc(cachesize*blocksize);
-	for(i=0; i<cachesize; i++) {
+	cache = emallocz(cachesize * sizeof(Block));
+	p = emalloc(cachesize * blocksize);
+	for(i = 0; i < cachesize; i++) {
 		cache[i].data = p;
 		p += blocksize;
 	}
 
 	/* hand craft root */
 	b = blockLoad(tlr.root, DirBlock);
-	if(b == nil || !checkDirSize(b->data, b->data+blocksize))
+	if(b == nil || !checkDirSize(b->data, b->data + blocksize))
 		sysfatal("could not read root block: %s", file);
 	r = getDir(b->data);
 	blockFree(b);
@@ -930,10 +926,10 @@ init(char *file, int verify)
 	root->qid = paqDirQid(r);
 	root->ref = 1;
 	root->dir = r;
-	root->up = root;	/* parent of root is root */
+	root->up = root; /* parent of root is root */
 
 	/* craft root directory if root is a normal file */
-	if(!(root->qid.type&QTDIR)){
+	if(!(root->qid.type & QTDIR)) {
 		rootfile = root;
 		root = emallocz(sizeof(Paq));
 		root->qid = rootfile->qid;
@@ -942,7 +938,7 @@ init(char *file, int verify)
 		root->ref = 1;
 		root->dir = emallocz(sizeof(PaqDir));
 		*root->dir = *r;
-		root->dir->mode |= DMDIR|0111;
+		root->dir->mode |= DMDIR | 0111;
 		root->up = root;
 	}
 }
@@ -954,18 +950,18 @@ blockRead(uint8_t *data, uint32_t addr, int type)
 	PaqBlock b;
 	uint8_t *cdat;
 
-	if(Bseek(bin, addr, 0) != addr){
+	if(Bseek(bin, addr, 0) != addr) {
 		fprint(2, "paqfs: seek %lud: %r\n", addr);
 		return 0;
 	}
-	if(Bread(bin, buf, BlockSize) != BlockSize){
+	if(Bread(bin, buf, BlockSize) != BlockSize) {
 		fprint(2, "paqfs: read %d at %lud: %r\n", BlockSize, addr);
 		return 0;
 	}
 	getBlock(buf, &b);
-	if(b.magic != BlockMagic || b.size > blocksize || b.type != type){
+	if(b.magic != BlockMagic || b.size > blocksize || b.type != type) {
 		fprint(2, "paqfs: bad block: magic %.8lux (want %.8ux) size %lud (max %d) type %ud (want %ud)\n",
-			b.magic, BlockMagic, b.size, blocksize, b.type, type);
+		       b.magic, BlockMagic, b.size, blocksize, b.type, type);
 		return 0;
 	}
 
@@ -999,7 +995,7 @@ void
 readHeader(PaqHeader *hdr, char *name, DigestState *ds)
 {
 	uint8_t buf[HeaderSize];
-	
+
 	if(Bread(bin, buf, HeaderSize) < HeaderSize)
 		sysfatal("could not read header: %s: %r", name);
 	if(ds)
@@ -1017,7 +1013,7 @@ readBlocks(char *name, DigestState *ds)
 	uint8_t *buf;
 	PaqBlock b;
 
-	buf = emalloc(BlockSize+blocksize);
+	buf = emalloc(BlockSize + blocksize);
 
 	for(;;) {
 		if(Bread(bin, buf, 4) < 4)
@@ -1059,7 +1055,7 @@ readTrailer(PaqTrailer *tlr, char *name, DigestState *ds)
 	if(tlr->magic != TrailerMagic)
 		sysfatal("bad trailer magic: %s", name);
 	if(ds) {
-		sha1(buf, TrailerSize-SHA1dlen, digest, ds);
+		sha1(buf, TrailerSize - SHA1dlen, digest, ds);
 		if(memcmp(digest, tlr->sha1, SHA1dlen) != 0)
 			sysfatal("bad sha1 digest: %s", name);
 	}
@@ -1105,38 +1101,36 @@ estrdup(char *s)
 	return s;
 }
 
-
 uint32_t
 getl(uint8_t *p)
 {
-	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
+	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 }
-
 
 int
 gets(uint8_t *p)
 {
-	return (p[0]<<8) | p[1];
+	return (p[0] << 8) | p[1];
 }
 
 int
 checkDirSize(uint8_t *p, uint8_t *ep)
 {
-	int n;	
+	int n;
 	int i;
 
-	if(ep-p < 2)
+	if(ep - p < 2)
 		return 0;
 	n = gets(p);
-	if(p+n > ep)
+	if(p + n > ep)
 		return 0;
-	ep = p+n;
+	ep = p + n;
 	p += 22;
-	for(i=0; i<3; i++) {
-		if(p+2 > ep)
+	for(i = 0; i < 3; i++) {
+		if(p + 2 > ep)
 			return 0;
 		n = gets(p);
-		if(p+n > ep)
+		if(p + n > ep)
 			return 0;
 		p += n;
 	}
@@ -1147,38 +1141,38 @@ void
 getHeader(uint8_t *p, PaqHeader *h)
 {
 	h->magic = getl(p);
-	h->version = gets(p+4);
-	h->blocksize = gets(p+6);
-	if((h->magic>>16) == BigHeaderMagic){
+	h->version = gets(p + 4);
+	h->blocksize = gets(p + 6);
+	if((h->magic >> 16) == BigHeaderMagic) {
 		h->magic = HeaderMagic;
-		h->version = gets(p+2);
-		h->blocksize = getl(p+4);
+		h->version = gets(p + 2);
+		h->blocksize = getl(p + 4);
 	}
-	h->time = getl(p+8);
-	memmove(h->label, p+12, sizeof(h->label));
-	h->label[sizeof(h->label)-1] = 0;
+	h->time = getl(p + 8);
+	memmove(h->label, p + 12, sizeof(h->label));
+	h->label[sizeof(h->label) - 1] = 0;
 }
 
 void
 getTrailer(uint8_t *p, PaqTrailer *t)
 {
 	t->magic = getl(p);
-	t->root = getl(p+4);
-	memmove(t->sha1, p+8, SHA1dlen);
+	t->root = getl(p + 4);
+	memmove(t->sha1, p + 8, SHA1dlen);
 }
 
 void
 getBlock(uint8_t *p, PaqBlock *b)
 {
 	b->magic = getl(p);
-	b->size = gets(p+4);
-	if((b->magic>>16) == BigBlockMagic){
+	b->size = gets(p + 4);
+	if((b->magic >> 16) == BigBlockMagic) {
 		b->magic = BlockMagic;
-		b->size = getl(p+2);
+		b->size = getl(p + 2);
 	}
 	b->type = p[6];
 	b->encoding = p[7];
-	b->adler32 = getl(p+8);
+	b->adler32 = getl(p + 8);
 }
 
 PaqDir *
@@ -1187,11 +1181,11 @@ getDir(uint8_t *p)
 	PaqDir *pd;
 
 	pd = emallocz(sizeof(PaqDir));
-	pd->qid = getl(p+2);
-	pd->mode = getl(p+6);
-	pd->mtime = getl(p+10);
-	pd->length = getl(p+14);
-	pd->offset = getl(p+18);
+	pd->qid = getl(p + 2);
+	pd->mode = getl(p + 6);
+	pd->mtime = getl(p + 10);
+	pd->length = getl(p + 14);
+	pd->offset = getl(p + 18);
 	p += 22;
 	pd->name = getstr(p);
 	p += gets(p);
@@ -1202,7 +1196,6 @@ getDir(uint8_t *p)
 	return pd;
 }
 
-
 char *
 getstr(uint8_t *p)
 {
@@ -1210,8 +1203,8 @@ getstr(uint8_t *p)
 	int n;
 
 	n = gets(p);
-	s = emalloc(n+1);
-	memmove(s, p+2, n);
+	s = emalloc(n + 1);
+	memmove(s, p + 2, n);
 	s[n] = 0;
 	return s;
 }
@@ -1222,4 +1215,3 @@ usage(void)
 	fprint(2, "usage: %s [-disv] [-c cachesize] [-m mountpoint] [-M mesgsize] paqfile\n", argv0);
 	exits("usage");
 }
-

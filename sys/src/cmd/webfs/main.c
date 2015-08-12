@@ -22,12 +22,12 @@ char *cookiefile;
 char *mtpt = "/mnt/web";
 char *service;
 
-Ctl globalctl = 
-{
-	1,	/* accept cookies */
-	1,	/* send cookies */
-	10,	/* redirect limit */
-	"webfs/2.0 (plan 9)"	/* user agent */
+Ctl globalctl =
+    {
+     1,			  /* accept cookies */
+     1,			  /* send cookies */
+     10,		  /* redirect limit */
+     "webfs/2.0 (plan 9)" /* user agent */
 };
 
 void
@@ -42,9 +42,10 @@ void
 threadmain(int argc, char **argv)
 {
 	rfork(RFNOTEG);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
-		mainmem->flags |= POOL_PARANOIA|POOL_ANTAGONISM;
+		mainmem->flags |= POOL_PARANOIA | POOL_ANTAGONISM;
 		break;
 	case 'D':
 		chatty9p++;
@@ -60,7 +61,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	quotefmtinstall();
 	if(argc != 0)

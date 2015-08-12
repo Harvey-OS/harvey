@@ -24,7 +24,7 @@ mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient)
 	lo = dividend[0];
 
 	// return highest digit value if the result >= 2**32
-	if(hi >= divisor || divisor == 0){
+	if(hi >= divisor || divisor == 0) {
 		divisor = 0;
 		*quotient = ~divisor;
 		return;
@@ -34,19 +34,19 @@ mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient)
 	// just shift and subtract till we're done
 	q = 0;
 	x = divisor;
-	for(i = Dbits-1; hi > 0 && i >= 0; i--){
+	for(i = Dbits - 1; hi > 0 && i >= 0; i--) {
 		x >>= 1;
 		if(x > hi)
 			continue;
-		y = divisor<<i;
+		y = divisor << i;
 		if(x == hi && y > lo)
 			continue;
 		if(y > lo)
 			hi--;
 		lo -= y;
 		hi -= x;
-		q |= 1<<i;
+		q |= 1 << i;
 	}
-	q += lo/divisor;
+	q += lo / divisor;
 	*quotient = q;
 }

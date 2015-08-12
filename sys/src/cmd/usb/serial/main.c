@@ -33,10 +33,10 @@ usage(void)
 }
 
 static int
-matchserial(char *info, void*)
+matchserial(char *info, void *)
 {
 	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
-	    ftmatch(nil, info) == 0 || slmatch(info) == 0)
+	   ftmatch(nil, info) == 0 || slmatch(info) == 0)
 		return 0;
 	return -1;
 }
@@ -53,7 +53,8 @@ threadmain(int argc, char **argv)
 	quotefmtinstall();
 	ae = args + sizeof args;
 	as = seprint(args, ae, "serial");
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		usbfsdebug++;
 		break;
@@ -73,13 +74,14 @@ threadmain(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	rfork(RFNOTEG);
 	fmtinstall('U', Ufmt);
 	threadsetgrp(threadid());
 
-	usbfsinit(srv, mnt, &usbdirfs, MAFTER|MCREATE);
+	usbfsinit(srv, mnt, &usbdirfs, MAFTER | MCREATE);
 	startdevs(args, argv, argc, matchserial, nil, serialmain);
 	threadexits(nil);
 }

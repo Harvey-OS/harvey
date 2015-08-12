@@ -23,13 +23,13 @@
 void
 vUpdateIcon(window_handle tWindow, icon_block *pIcon)
 {
-	window_redrawblock	tRedraw;
-	BOOL		bMore;
+	window_redrawblock tRedraw;
+	BOOL bMore;
 
 	tRedraw.window = tWindow;
 	tRedraw.rect = pIcon->workarearect;
 	Error_CheckFatal(Wimp_UpdateWindow(&tRedraw, &bMore));
-	while (bMore) {
+	while(bMore) {
 		Error_CheckFatal(Wimp_PlotIcon(pIcon));
 		Error_CheckFatal(Wimp_GetRectangle(&tRedraw, &bMore));
 	}
@@ -37,19 +37,19 @@ vUpdateIcon(window_handle tWindow, icon_block *pIcon)
 
 void
 vUpdateRadioButton(window_handle tWindow, icon_handle tIconNumber,
-	BOOL bSelected)
+		   BOOL bSelected)
 {
-	icon_block	tIcon;
+	icon_block tIcon;
 
 	Error_CheckFatal(Wimp_GetIconState(tWindow, tIconNumber, &tIcon));
 	DBG_DEC(tIconNumber);
 	DBG_HEX(tIcon.flags.data.selected);
-	if (bSelected == (tIcon.flags.data.selected == 1)) {
+	if(bSelected == (tIcon.flags.data.selected == 1)) {
 		/* No update needed */
 		return;
 	}
 	Error_CheckFatal(Wimp_SetIconState(tWindow, tIconNumber,
-			bSelected ? 0x00200000 : 0, 0x00200000));
+					   bSelected ? 0x00200000 : 0, 0x00200000));
 	vUpdateIcon(tWindow, &tIcon);
 } /* end of vUpdateRadioButton */
 
@@ -58,11 +58,11 @@ vUpdateRadioButton(window_handle tWindow, icon_handle tIconNumber,
  */
 void
 vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
-	const char *szString)
+		 const char *szString)
 {
-	icon_block	tIcon;
-	caret_block	tCaret;
-	int		iLen;
+	icon_block tIcon;
+	caret_block tCaret;
+	int iLen;
 
 	fail(szString == NULL);
 
@@ -71,7 +71,7 @@ vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
 
 	Error_CheckFatal(Wimp_GetIconState(tWindow, tIconNumber, &tIcon));
 	NO_DBG_HEX(tIcon.flags);
-	if (!tIcon.flags.data.text || !tIcon.flags.data.indirected) {
+	if(!tIcon.flags.data.text || !tIcon.flags.data.indirected) {
 		werr(1, "Icon %d must be indirected text", (int)tIconNumber);
 		return;
 	}
@@ -80,9 +80,9 @@ vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
 		tIcon.data.indirecttext.bufflen - 1);
 	/* Ensure the caret is behind the last character of the text */
 	Error_CheckFatal(Wimp_GetCaretPosition(&tCaret));
-	if (tCaret.window == tWindow && tCaret.icon == tIconNumber) {
+	if(tCaret.window == tWindow && tCaret.icon == tIconNumber) {
 		iLen = strlen(tIcon.data.indirecttext.buffer);
-		if (tCaret.index != iLen) {
+		if(tCaret.index != iLen) {
 			tCaret.index = iLen;
 			Error_CheckFatal(Wimp_SetCaretPosition(&tCaret));
 		}
@@ -96,9 +96,9 @@ vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
  */
 void
 vUpdateWriteableNumber(window_handle tWindow, icon_handle tIconNumber,
-	int iNumber)
+		       int iNumber)
 {
-	char	szTmp[1+3*sizeof(int)+1];
+	char szTmp[1 + 3 * sizeof(int) + 1];
 
 	(void)sprintf(szTmp, "%d", iNumber);
 	vUpdateWriteable(tWindow, tIconNumber, szTmp);

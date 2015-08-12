@@ -10,9 +10,9 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-strdup(char *s) 
-{  
+char *
+strdup(char *s)
+{
 	char *ns;
 
 	ns = malloc(strlen(s) + 1);

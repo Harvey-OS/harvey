@@ -32,15 +32,17 @@ getscreen(int argc, char **argv)
 {
 	char *t;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		autoindent = 1;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	if(initdraw(panic1, nil, "sam") < 0){
+	if(initdraw(panic1, nil, "sam") < 0) {
 		fprint(2, "samterm: initdraw: %r\n");
 		threadexitsall("init");
 	}
@@ -54,24 +56,24 @@ int
 screensize(int *w, int *h)
 {
 	int fd, n;
-	char buf[5*12+1];
+	char buf[5 * 12 + 1];
 
 	fd = open("/dev/screen", OREAD);
 	if(fd < 0)
 		return 0;
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	close(fd);
-	if (n != sizeof(buf)-1)
+	if(n != sizeof(buf) - 1)
 		return 0;
 	buf[n] = 0;
-	if (h) {
-		*h = atoi(buf+4*12)-atoi(buf+2*12);
-		if (*h < 0)
+	if(h) {
+		*h = atoi(buf + 4 * 12) - atoi(buf + 2 * 12);
+		if(*h < 0)
 			return 0;
 	}
-	if (w) {
-		*w = atoi(buf+3*12)-atoi(buf+1*12);
-		if (*w < 0)
+	if(w) {
+		*w = atoi(buf + 3 * 12) - atoi(buf + 1 * 12);
+		if(*w < 0)
 			return 0;
 	}
 	return 1;
@@ -90,17 +92,17 @@ snarfswap(char *fromsam, int nc, char **tosam)
 	if(hversion < 2)
 		ss = 4096;
 	*tosam = s1 = alloc(ss);
-	n = read(f, s1, ss-1);
+	n = read(f, s1, ss - 1);
 	close(f);
 	if(n < 0)
 		n = 0;
-	if (n == 0) {
+	if(n == 0) {
 		*tosam = 0;
 		free(s1);
 	} else
 		s1[n] = 0;
 	f = create("/dev/snarf", 1, 0666);
-	if(f >= 0){
+	if(f >= 0) {
 		write(f, fromsam, nc);
 		close(f);
 	}
@@ -111,7 +113,7 @@ void
 dumperrmsg(int count, int type, int count0, int c)
 {
 	fprint(2, "samterm: host mesg: count %d %ux %ux %ux %s...ignored\n",
-		count, type, count0, c, rcvstring());
+	       count, type, count0, c, rcvstring());
 }
 
 void
@@ -120,8 +122,8 @@ removeextern(void)
 	remove(exname);
 }
 
-Readbuf	hostbuf[2];
-Readbuf	plumbbuf[2];
+Readbuf hostbuf[2];
+Readbuf plumbbuf[2];
 
 void
 extproc(void *argv)
@@ -135,12 +137,12 @@ extproc(void *argv)
 	fdp = arg[1];
 
 	i = 0;
-	for(;;){
-		i = 1-i;	/* toggle */
+	for(;;) {
+		i = 1 - i; /* toggle */
 		n = read(*fdp, plumbbuf[i].data, sizeof plumbbuf[i].data);
-		if(n <= 0){
+		if(n <= 0) {
 			fprint(2, "samterm: extern read error: %r\n");
-			threadexits("extern");	/* not a fatal error */
+			threadexits("extern"); /* not a fatal error */
 		}
 		plumbbuf[i].n = n;
 		which = i;
@@ -160,8 +162,8 @@ extstart(void)
 		return;
 	sprint(exname, "/srv/sam.%s", getuser());
 	fd = create(exname, 1, 0600);
-	if(fd < 0){	/* assume existing guy is more important */
-    Err:
+	if(fd < 0) { /* assume existing guy is more important */
+	Err:
 		close(p[0]);
 		close(p[1]);
 		return;
@@ -188,36 +190,36 @@ plumbformat(int i)
 	char *addr, *data, *act;
 	int n;
 
-	data = (char*)plumbbuf[i].data;
+	data = (char *)plumbbuf[i].data;
 	m = plumbunpack(data, plumbbuf[i].n);
 	if(m == nil)
 		return 0;
 	n = m->ndata;
-	if(n == 0){
+	if(n == 0) {
 		plumbfree(m);
 		return 0;
 	}
 	act = plumblookup(m->attr, "action");
-	if(act!=nil && strcmp(act, "showfile")!=0){
+	if(act != nil && strcmp(act, "showfile") != 0) {
 		/* can't handle other cases yet */
 		plumbfree(m);
 		return 0;
 	}
 	addr = plumblookup(m->attr, "addr");
-	if(addr){
+	if(addr) {
 		if(addr[0] == '\0')
 			addr = nil;
 		else
-			addr = strdup(addr);	/* copy to safe storage; we'll overwrite data */
+			addr = strdup(addr); /* copy to safe storage; we'll overwrite data */
 	}
-	memmove(data, "B ", 2);	/* we know there's enough room for this */
-	memmove(data+2, m->data, n);
+	memmove(data, "B ", 2); /* we know there's enough room for this */
+	memmove(data + 2, m->data, n);
 	n += 2;
-	if(data[n-1] != '\n')
+	if(data[n - 1] != '\n')
 		data[n++] = '\n';
-	if(addr != nil){
-		if(n+strlen(addr)+1+1 <= READBUFSIZE)
-			n += sprint(data+n, "%s\n", addr);
+	if(addr != nil) {
+		if(n + strlen(addr) + 1 + 1 <= READBUFSIZE)
+			n += sprint(data + n, "%s\n", addr);
 		free(addr);
 	}
 	plumbbuf[i].n = n;
@@ -237,15 +239,15 @@ plumbproc(void *argv)
 	fdp = arg[1];
 
 	i = 0;
-	for(;;){
-		i = 1-i;	/* toggle */
+	for(;;) {
+		i = 1 - i; /* toggle */
 		n = read(*fdp, plumbbuf[i].data, READBUFSIZE);
-		if(n <= 0){
+		if(n <= 0) {
 			fprint(2, "samterm: plumb read error: %r\n");
-			threadexits("plumb");	/* not a fatal error */
+			threadexits("plumb"); /* not a fatal error */
 		}
 		plumbbuf[i].n = n;
-		if(plumbformat(i)){
+		if(plumbformat(i)) {
 			which = i;
 			send(c, &which);
 		}
@@ -258,16 +260,16 @@ plumbstart(void)
 	static int fd;
 	static void *arg[2];
 
-	plumbfd = plumbopen("send", OWRITE|OCEXEC);	/* not open is ok */
-	fd = plumbopen("edit", OREAD|OCEXEC);
+	plumbfd = plumbopen("send", OWRITE | OCEXEC); /* not open is ok */
+	fd = plumbopen("edit", OREAD | OCEXEC);
 	if(fd < 0)
 		return -1;
 	plumbc = chancreate(sizeof(int), 0);
-	if(plumbc == nil){
+	if(plumbc == nil) {
 		close(fd);
 		return -1;
 	}
-	arg[0] =plumbc;
+	arg[0] = plumbc;
 	arg[1] = &fd;
 	proccreate(plumbproc, arg, 4096);
 	return 1;
@@ -282,11 +284,11 @@ hostproc(void *arg)
 	c = arg;
 
 	i = 0;
-	for(;;){
-		i = 1-i;	/* toggle */
+	for(;;) {
+		i = 1 - i; /* toggle */
 		n = read(0, hostbuf[i].data, sizeof hostbuf[i].data);
-		if(n <= 0){
-			if(n==0){
+		if(n <= 0) {
+			if(n == 0) {
 				if(exiting)
 					threadexits(nil);
 				werrstr("unexpected eof");

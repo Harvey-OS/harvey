@@ -27,14 +27,14 @@
 /* Error code definitions */
 
 #ifndef gserrors_INCLUDED
-#  define gserrors_INCLUDED
+#define gserrors_INCLUDED
 
 /* A procedure that may return an error always returns */
 /* a non-negative value (zero, unless otherwise noted) for success, */
 /* or negative for failure. */
 /* We use ints rather than an enum to avoid a lot of casting. */
 
-#define gs_error_unknownerror (-1)	/* unknown error */
+#define gs_error_unknownerror (-1) /* unknown error */
 #define gs_error_interrupt (-6)
 #define gs_error_invalidaccess (-7)
 #define gs_error_invalidfileaccess (-9)

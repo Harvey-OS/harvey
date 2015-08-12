@@ -28,7 +28,7 @@
 /* Must be compiled with -I$(ZSRCDIR) */
 
 #ifndef szlibxx_INCLUDED
-#  define szlibxx_INCLUDED
+#define szlibxx_INCLUDED
 
 #include "szlibx.h"
 #include "zlib.h"
@@ -42,23 +42,23 @@
  */
 typedef struct zlib_block_s zlib_block_t;
 struct zlib_block_s {
-    void *data;
-    zlib_block_t *next;
-    zlib_block_t *prev;
+	void *data;
+	zlib_block_t *next;
+	zlib_block_t *prev;
 };
-#define private_st_zlib_block()	/* in szlibc.c */\
-  gs_private_st_ptrs3(st_zlib_block, zlib_block_t, "zlib_block_t",\
-    zlib_block_enum_ptrs, zlib_block_reloc_ptrs, next, prev, data)
+#define private_st_zlib_block() /* in szlibc.c */                        \
+	gs_private_st_ptrs3(st_zlib_block, zlib_block_t, "zlib_block_t", \
+			    zlib_block_enum_ptrs, zlib_block_reloc_ptrs, next, prev, data)
 /* The typedef is in szlibx.h */
 /*typedef*/ struct zlib_dynamic_state_s {
-    gs_memory_t *memory;
-    zlib_block_t *blocks;
-    z_stream zstate;
+	gs_memory_t *memory;
+	zlib_block_t *blocks;
+	z_stream zstate;
 } /*zlib_dynamic_state_t*/;
-#define private_st_zlib_dynamic_state()	/* in szlibc.c */\
-  gs_private_st_ptrs1(st_zlib_dynamic_state, zlib_dynamic_state_t,\
-    "zlib_dynamic_state_t", zlib_dynamic_enum_ptrs, zlib_dynamic_reloc_ptrs,\
-    blocks)
+#define private_st_zlib_dynamic_state() /* in szlibc.c */                                            \
+	gs_private_st_ptrs1(st_zlib_dynamic_state, zlib_dynamic_state_t,                             \
+			    "zlib_dynamic_state_t", zlib_dynamic_enum_ptrs, zlib_dynamic_reloc_ptrs, \
+			    blocks)
 
 /*
  * Provide zlib-compatible allocation and freeing functions.

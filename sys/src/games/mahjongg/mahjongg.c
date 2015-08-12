@@ -15,11 +15,11 @@
 
 #define MJDIR "/sys/games/lib/mahjongg/"
 
-char *Border	= MJDIR "images/border.bit";
-char *Mask	= MJDIR "images/mask.bit";
-char *Gameover	= MJDIR "images/gameover.bit";
+char *Border = MJDIR "images/border.bit";
+char *Mask = MJDIR "images/mask.bit";
+char *Gameover = MJDIR "images/gameover.bit";
 
-char *deftileset= MJDIR "tilesets/default.tileset";
+char *deftileset = MJDIR "tilesets/default.tileset";
 char *defbackgr = MJDIR "backgrounds/default.bit";
 char *deflayout = MJDIR "layouts/default.layout";
 
@@ -27,19 +27,17 @@ uint32_t defchan;
 int trace;
 
 char *buttons[] =
-{
-	"deselect",
-	"new",
-	"restart",
-	"resize",
-	"exit",
-	0
-};
+    {
+     "deselect",
+     "new",
+     "restart",
+     "resize",
+     "exit",
+     0};
 
 Menu menu =
-{
-	buttons
-};
+    {
+     buttons};
 
 void
 usage(void)
@@ -86,7 +84,7 @@ allocimages(void)
 	selected = eallocimage(one, 1, RGBA32, setalpha(DPalebluegreen, 0x5f));
 	litbrdr = eallocimage(one, 1, RGBA32, DGreen);
 	img = eallocimage(Rect(0, 0, Sizex, Sizey), 0,
-		defchan? defchan: screen->chan, DBlack);
+			  defchan ? defchan : screen->chan, DBlack);
 	textcol = eallocimage(one, 1, RGBA32, DWhite);
 
 	background = eloadfile(defbackgr);
@@ -97,11 +95,10 @@ allocimages(void)
 	tileset = eloadfile(deftileset);
 }
 
-
 void
 eresized(int new)
 {
-	if(new && getwindow(display, Refnone) < 0)
+	if(new &&getwindow(display, Refnone) < 0)
 		sysfatal("can't reattach to window");
 	drawlevel();
 }
@@ -114,7 +111,8 @@ main(int argc, char **argv)
 	Event e;
 	Point origin = Pt(Bord, Bord);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		defbackgr = EARGF(usage());
 		break;
@@ -132,19 +130,20 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 0)
 		usage();
 
-	if(! parse(deflayout)) {
+	if(!parse(deflayout)) {
 		fprint(2, "usage: %s [levelfile]\n", argv[0]);
 		exits("usage");
 	}
 
 	if(initdraw(nil, nil, "mahjongg") < 0)
 		sysfatal("initdraw failed: %r");
-	einit(Emouse|Ekeyboard);
+	einit(Emouse | Ekeyboard);
 
 	allocimages();
 
@@ -159,24 +158,24 @@ main(int argc, char **argv)
 		switch(event(&e)) {
 		case Emouse:
 			m = e.mouse;
-			if(m.buttons&1) {
+			if(m.buttons & 1) {
 				if(level.done)
 					break;
 				if(!clickety && level.remaining > 0) {
 					clickety = 1;
 					clicked(subpt(m.xy, addpt(screen->r.min,
-						origin)));
+								  origin)));
 				}
 			} else {
 				clickety = 0;
 				if(trace)
 					light(subpt(m.xy, addpt(screen->r.min,
-						origin)));
+								origin)));
 			}
-			if(m.buttons&2) {
+			if(m.buttons & 2) {
 				/* nothing here for the moment */
 			}
-			if(m.buttons&4)
+			if(m.buttons & 4)
 				switch(emenuhit(3, &m, &menu)) {
 				case 0:
 					deselect();

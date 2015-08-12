@@ -29,31 +29,30 @@
 #include "antiword.h"
 
 /* The work area must be a little bit larger than the diagram */
-#define WORKAREA_EXTENSION	    5
+#define WORKAREA_EXTENSION 5
 /* Diagram memory */
-#define INITIAL_SIZE		32768	/* 32k */
-#define EXTENSION_SIZE		 4096	/*  4k */
+#define INITIAL_SIZE 32768  /* 32k */
+#define EXTENSION_SIZE 4096 /*  4k */
 /* Main window title */
-#define WINDOW_TITLE_LEN	   28
-#define FILENAME_TITLE_LEN	(WINDOW_TITLE_LEN - 10)
-
+#define WINDOW_TITLE_LEN 28
+#define FILENAME_TITLE_LEN (WINDOW_TITLE_LEN - 10)
 
 #if !defined(__GNUC__)
 int
 flex_alloc(flex_ptr anchor, int n)
 {
-	void	*pvTmp;
+	void *pvTmp;
 
 	TRACE_MSG("flex_alloc");
 
-	if (anchor == NULL || n < 0) {
+	if(anchor == NULL || n < 0) {
 		return 0;
 	}
-	if (n == 0) {
+	if(n == 0) {
 		n = 1;
 	}
 	pvTmp = malloc(n);
-	if (pvTmp == NULL) {
+	if(pvTmp == NULL) {
 		return 0;
 	}
 	*anchor = pvTmp;
@@ -65,7 +64,7 @@ flex_free(flex_ptr anchor)
 {
 	TRACE_MSG("flex_free");
 
-	if (anchor == NULL || *anchor == NULL) {
+	if(anchor == NULL || *anchor == NULL) {
 		return;
 	}
 	free(*anchor);
@@ -75,18 +74,18 @@ flex_free(flex_ptr anchor)
 int
 flex_extend(flex_ptr anchor, int newsize)
 {
-	void	*pvTmp;
+	void *pvTmp;
 
 	TRACE_MSG("flex_extend");
 
-	if (anchor == NULL || newsize < 0) {
+	if(anchor == NULL || newsize < 0) {
 		return 0;
 	}
-	if (newsize == 0) {
+	if(newsize == 0) {
 		newsize = 1;
 	}
 	pvTmp = realloc(*anchor, newsize);
-	if (pvTmp == NULL) {
+	if(pvTmp == NULL) {
 		return 0;
 	}
 	*anchor = pvTmp;
@@ -102,12 +101,12 @@ flex_extend(flex_ptr anchor, int newsize)
 static window_handle
 tCreateMainWindow(void)
 {
-	window_handle	tMainWindow;
+	window_handle tMainWindow;
 
 	TRACE_MSG("tCreateMainWindow");
 
 	tMainWindow = Window_Create("MainWindow", template_TITLEMIN);
-	if (tMainWindow == 0) {
+	if(tMainWindow == 0) {
 		werr(1, "I can't find the 'MainWindow' template");
 	}
 	return tMainWindow;
@@ -121,12 +120,12 @@ tCreateMainWindow(void)
 static window_handle
 tCreateScaleWindow(void)
 {
-	window_handle	tScaleWindow;
+	window_handle tScaleWindow;
 
 	TRACE_MSG("tCreateScaleWindow");
 
 	tScaleWindow = Window_Create("ScaleView", template_TITLEMIN);
-	if (tScaleWindow == 0) {
+	if(tScaleWindow == 0) {
 		werr(1, "I can't find the 'ScaleView' template");
 	}
 	return tScaleWindow;
@@ -140,10 +139,10 @@ tCreateScaleWindow(void)
 diagram_type *
 pCreateDiagram(const char *szTask, const char *szFilename)
 {
-	diagram_type	*pDiag;
-	options_type	tOptions;
-	window_handle	tMainWindow, tScaleWindow;
-	wimp_box	tBox;
+	diagram_type *pDiag;
+	options_type tOptions;
+	window_handle tMainWindow, tScaleWindow;
+	wimp_box tBox;
 
 	TRACE_MSG("pCreateDiagram");
 
@@ -157,7 +156,7 @@ pCreateDiagram(const char *szTask, const char *szFilename)
 
 	/* Get the necessary memory */
 	pDiag = xmalloc(sizeof(diagram_type));
-	if (flex_alloc((flex_ptr)&pDiag->tInfo.data, INITIAL_SIZE) != 1) {
+	if(flex_alloc((flex_ptr)&pDiag->tInfo.data, INITIAL_SIZE) != 1) {
 		werr(1, "Memory allocation failed, unable to continue");
 	}
 
@@ -173,12 +172,12 @@ pCreateDiagram(const char *szTask, const char *szFilename)
 	tBox.max.x = Drawfile_ScreenToDraw(16) * MIN_SCREEN_WIDTH + 1;
 	tBox.max.y = 0;
 	Error_CheckFatal(Drawfile_CreateDiagram(&pDiag->tInfo,
-					pDiag->tMemorySize, szTask, tBox));
+						pDiag->tMemorySize, szTask, tBox));
 	DBG_DEC(pDiag->tInfo.length);
 	pDiag->lXleft = 0;
 	pDiag->lYtop = 0;
 	strncpy(pDiag->szFilename,
-			szBasename(szFilename), sizeof(pDiag->szFilename) - 1);
+		szBasename(szFilename), sizeof(pDiag->szFilename) - 1);
 	pDiag->szFilename[sizeof(pDiag->szFilename) - 1] = '\0';
 	/* Return success */
 	return pDiag;
@@ -190,21 +189,21 @@ pCreateDiagram(const char *szTask, const char *szFilename)
 BOOL
 bDestroyDiagram(event_pollblock *pEvent, void *pvReference)
 {
-	diagram_type	*pDiag;
-	window_handle	tWindow;
+	diagram_type *pDiag;
+	window_handle tWindow;
 
 	TRACE_MSG("bDestroyDiagram");
 
 	fail(pEvent == NULL);
 	fail(pvReference == NULL);
 
-	if (pEvent == NULL || pvReference == NULL) {
+	if(pEvent == NULL || pvReference == NULL) {
 		return FALSE;
 	}
 
 	pDiag = (diagram_type *)pvReference;
 
-	switch (pEvent->type) {
+	switch(pEvent->type) {
 	case event_CLOSE:
 		tWindow = pEvent->data.openblock.window;
 		break;
@@ -215,7 +214,7 @@ bDestroyDiagram(event_pollblock *pEvent, void *pvReference)
 		DBG_DEC(pEvent->type);
 		return FALSE;
 	}
-	if (tWindow != pDiag->tMainWindow) {
+	if(tWindow != pDiag->tMainWindow) {
 		return FALSE;
 	}
 
@@ -232,19 +231,19 @@ bDestroyDiagram(event_pollblock *pEvent, void *pvReference)
 	 * Remove all references to the diagram that will be free-ed
 	 * by undoing the EventMsg_Claim's from within the Menu_Warn's
 	 */
-	while (EventMsg_ReleaseSpecific(message_MENUWARNING, window_ANY,
-					bSaveTextfile, pDiag))
+	while(EventMsg_ReleaseSpecific(message_MENUWARNING, window_ANY,
+				       bSaveTextfile, pDiag))
 		; /* EMPTY */
-	while (EventMsg_ReleaseSpecific(message_MENUWARNING, window_ANY,
-					bSaveDrawfile, pDiag))
+	while(EventMsg_ReleaseSpecific(message_MENUWARNING, window_ANY,
+				       bSaveDrawfile, pDiag))
 		; /* EMPTY */
-	while (EventMsg_ReleaseSpecific(message_MENUWARNING, window_ANY,
-					bScaleOpenAction, pDiag))
+	while(EventMsg_ReleaseSpecific(message_MENUWARNING, window_ANY,
+				       bScaleOpenAction, pDiag))
 		; /* EMPTY */
-#endif /* __GNUC__ */
+#endif		  /* __GNUC__ */
 
 	/* Free the memory */
-	if (pDiag->tInfo.data != NULL && pDiag->tMemorySize != 0) {
+	if(pDiag->tInfo.data != NULL && pDiag->tMemorySize != 0) {
 		flex_free((flex_ptr)&pDiag->tInfo.data);
 	}
 	/* Just to be on the save side */
@@ -267,9 +266,9 @@ vExtendDiagramSize(diagram_type *pDiag, size_t tSize)
 
 	fail(pDiag == NULL || tSize % 4 != 0);
 
-	while (pDiag->tInfo.length + tSize > pDiag->tMemorySize) {
-		if (flex_extend((flex_ptr)&pDiag->tInfo.data,
-				pDiag->tMemorySize + EXTENSION_SIZE) != 1) {
+	while(pDiag->tInfo.length + tSize > pDiag->tMemorySize) {
+		if(flex_extend((flex_ptr)&pDiag->tInfo.data,
+			       pDiag->tMemorySize + EXTENSION_SIZE) != 1) {
 			werr(1, "Memory extend failed, unable to continue");
 		}
 		pDiag->tMemorySize += EXTENSION_SIZE;
@@ -284,22 +283,22 @@ vExtendDiagramSize(diagram_type *pDiag, size_t tSize)
 void
 vPrologue2(diagram_type *pDiag, int iWordVersion)
 {
-	drawfile_object	*pNew;
-	const font_table_type	*pTmp;
-	char	*pcTmp;
-	size_t	tRealSize, tSize;
-	int	iCount;
+	drawfile_object *pNew;
+	const font_table_type *pTmp;
+	char *pcTmp;
+	size_t tRealSize, tSize;
+	int iCount;
 
 	TRACE_MSG("vPrologue2");
 
 	fail(pDiag == NULL);
 
-	if (tGetFontTableLength() == 0) {
+	if(tGetFontTableLength() == 0) {
 		return;
 	}
 	tRealSize = offsetof(drawfile_object, data);
 	pTmp = NULL;
-	while ((pTmp = pGetNextFontTableRecord(pTmp)) != NULL) {
+	while((pTmp = pGetNextFontTableRecord(pTmp)) != NULL) {
 		tRealSize += 2 + strlen(pTmp->szOurFontname);
 	}
 	DBG_DEC(tRealSize);
@@ -312,14 +311,14 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
 	pcTmp = (char *)&pNew->data.font_table.font_def[0].font_ref;
 	iCount = 0;
 	pTmp = NULL;
-	while ((pTmp = pGetNextFontTableRecord(pTmp)) != NULL) {
+	while((pTmp = pGetNextFontTableRecord(pTmp)) != NULL) {
 		*pcTmp = ++iCount;
 		pcTmp++;
 		strcpy(pcTmp, pTmp->szOurFontname);
 		pcTmp += 1 + strlen(pTmp->szOurFontname);
 	}
 	Error_CheckFatal(Drawfile_AppendObject(&pDiag->tInfo,
-			pDiag->tMemorySize, pNew, TRUE));
+					       pDiag->tMemorySize, pNew, TRUE));
 	pNew = xfree(pNew);
 } /* end of vPrologue2 */
 
@@ -328,13 +327,13 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
  */
 void
 vSubstring2Diagram(diagram_type *pDiag,
-	char *szString, size_t tStringLength, int32_t lStringWidth,
-	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
-	USHORT usFontSize, USHORT usMaxFontSize)
+		   char *szString, size_t tStringLength, int32_t lStringWidth,
+		   UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
+		   USHORT usFontSize, USHORT usMaxFontSize)
 {
-	drawfile_object	*pNew;
-	int32_t	lSizeX, lSizeY, lOffset, l20, lYMove;
-	size_t	tRealSize, tSize;
+	drawfile_object *pNew;
+	int32_t lSizeX, lSizeY, lOffset, l20, lYMove;
+	size_t tRealSize, tSize;
 
 	TRACE_MSG("vSubstring2Diagram");
 
@@ -345,11 +344,11 @@ vSubstring2Diagram(diagram_type *pDiag,
 	fail(usMaxFontSize < MIN_FONT_SIZE || usMaxFontSize > MAX_FONT_SIZE);
 	fail(usFontSize > usMaxFontSize);
 
-	if (szString[0] == '\0' || tStringLength == 0) {
+	if(szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
-	if (tFontRef == 0) {
+	if(tFontRef == 0) {
 		lOffset = Drawfile_ScreenToDraw(2);
 		l20 = Drawfile_ScreenToDraw(32 + 3);
 		lSizeX = Drawfile_ScreenToDraw(16);
@@ -364,11 +363,11 @@ vSubstring2Diagram(diagram_type *pDiag,
 	lYMove = 0;
 
 	/* Up for superscript */
-	if (bIsSuperscript(usFontstyle)) {
+	if(bIsSuperscript(usFontstyle)) {
 		lYMove = lMilliPoints2DrawUnits((((int32_t)usFontSize + 1) / 2) * 375);
 	}
 	/* Down for subscript */
-	if (bIsSubscript(usFontstyle)) {
+	if(bIsSubscript(usFontstyle)) {
 		lYMove = -lMilliPoints2DrawUnits((int32_t)usFontSize * 125);
 	}
 
@@ -385,7 +384,7 @@ vSubstring2Diagram(diagram_type *pDiag,
 	pNew->data.text.bbox.max.x = (int)(pDiag->lXleft + lStringWidth);
 	pNew->data.text.bbox.max.y = (int)(pDiag->lYtop + l20 + lYMove);
 	pNew->data.text.fill.value = (int)ulColor2Color(ucFontColor);
-	pNew->data.text.bg_hint.value = 0xffffff00;	/* White */
+	pNew->data.text.bg_hint.value = 0xffffff00; /* White */
 	pNew->data.text.style.font_ref = tFontRef;
 	pNew->data.text.style.reserved[0] = 0;
 	pNew->data.text.style.reserved[1] = 0;
@@ -397,7 +396,7 @@ vSubstring2Diagram(diagram_type *pDiag,
 	strncpy(pNew->data.text.text, szString, tStringLength);
 	pNew->data.text.text[tStringLength] = '\0';
 	Error_CheckFatal(Drawfile_AppendObject(&pDiag->tInfo,
-			pDiag->tMemorySize, pNew, TRUE));
+					       pDiag->tMemorySize, pNew, TRUE));
 	pNew = xfree(pNew);
 	/*draw_translateText(&pDiag->tInfo);*/
 	pDiag->lXleft += lStringWidth;
@@ -409,11 +408,11 @@ vSubstring2Diagram(diagram_type *pDiag,
  */
 void
 vImage2Diagram(diagram_type *pDiag, const imagedata_type *pImg,
-	UCHAR *pucImage, size_t tImageSize)
+	       UCHAR *pucImage, size_t tImageSize)
 {
-  	drawfile_object	*pNew;
-	int32_t	lWidth, lHeight;
-	size_t	tRealSize, tSize;
+	drawfile_object *pNew;
+	int32_t lWidth, lHeight;
+	size_t tRealSize, tSize;
 
 	TRACE_MSG("vImage2Diagram");
 
@@ -433,7 +432,7 @@ vImage2Diagram(diagram_type *pDiag, const imagedata_type *pImg,
 	pDiag->lYtop -= lHeight;
 
 	tRealSize = offsetof(drawfile_object, data);
-	switch (pImg->eImageType) {
+	switch(pImg->eImageType) {
 	case imagetype_is_dib:
 		tRealSize += sizeof(drawfile_sprite) + tImageSize;
 		tSize = ROUND4(tRealSize);
@@ -483,7 +482,7 @@ vImage2Diagram(diagram_type *pDiag, const imagedata_type *pImg,
 	}
 
 	Error_CheckFatal(Drawfile_AppendObject(&pDiag->tInfo,
-					pDiag->tMemorySize, pNew, TRUE));
+					       pDiag->tMemorySize, pNew, TRUE));
 	pNew = xfree(pNew);
 	pDiag->lXleft = 0;
 } /* end of vImage2Diagram */
@@ -496,10 +495,10 @@ vImage2Diagram(diagram_type *pDiag, const imagedata_type *pImg,
 BOOL
 bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
-  	drawfile_object	*pNew;
-	int	*piTmp;
-	int32_t	lWidth, lHeight;
-	size_t	tRealSize, tSize;
+	drawfile_object *pNew;
+	int *piTmp;
+	int32_t lWidth, lHeight;
+	size_t tRealSize, tSize;
 
 	TRACE_MSG("bAddDummyImage");
 
@@ -507,7 +506,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 	fail(pImg == NULL);
 	fail(pDiag->lXleft < 0);
 
-	if (pImg->iVerSizeScaled <= 0 || pImg->iHorSizeScaled <= 0) {
+	if(pImg->iVerSizeScaled <= 0 || pImg->iHorSizeScaled <= 0) {
 		return FALSE;
 	}
 
@@ -531,7 +530,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 	pNew->data.path.bbox.max.x = (int)(pDiag->lXleft + lWidth);
 	pNew->data.path.bbox.max.y = (int)(pDiag->lYtop + lHeight);
 	pNew->data.path.fill.value = -1;
-	pNew->data.path.outline.value = 0x4d4d4d00;	/* Gray 70 percent */
+	pNew->data.path.outline.value = 0x4d4d4d00; /* Gray 70 percent */
 	pNew->data.path.width = (int)lMilliPoints2DrawUnits(500);
 	pNew->data.path.style.flags = 0;
 	pNew->data.path.style.reserved = 0;
@@ -554,7 +553,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 	*piTmp++ = drawfile_PATH_END_PATH;
 
 	Error_CheckFatal(Drawfile_AppendObject(&pDiag->tInfo,
-					pDiag->tMemorySize, pNew, TRUE));
+					       pDiag->tMemorySize, pNew, TRUE));
 	pNew = xfree(pNew);
 	pDiag->lXleft = 0;
 	return TRUE;
@@ -565,16 +564,16 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
  */
 void
 vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
-	USHORT usFontSize)
+	       USHORT usFontSize)
 {
-	int32_t	l20;
+	int32_t l20;
 
 	TRACE_MSG("vMove2NextLine");
 
 	fail(pDiag == NULL);
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 
-	if (tFontRef == 0) {
+	if(tFontRef == 0) {
 		l20 = Drawfile_ScreenToDraw(32 + 3);
 	} else {
 		l20 = lWord2DrawUnits20(usFontSize);
@@ -612,7 +611,7 @@ vStartOfParagraph2(diagram_type *pDiag)
  */
 void
 vEndOfParagraph(diagram_type *pDiag,
-	drawfile_fontref tFontRef, USHORT usFontSize,
+		drawfile_fontref tFontRef, USHORT usFontSize,
 		int32_t lAfterIndentation)
 {
 	TRACE_MSG("vEndOfParagraph");
@@ -698,7 +697,7 @@ vEndOfTable(diagram_type *pDiag)
  */
 BOOL
 bAddTableRow(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
+	     int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	TRACE_MSG("bAddTableRow");
 
@@ -711,9 +710,9 @@ bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 static void
 vForceRedraw(diagram_type *pDiag)
 {
-	window_state		tWindowState;
-	window_redrawblock	tRedraw;
-	int	x0, y0, x1, y1;
+	window_state tWindowState;
+	window_redrawblock tRedraw;
+	int x0, y0, x1, y1;
 
 	TRACE_MSG("vForceRedraw");
 
@@ -753,8 +752,8 @@ vForceRedraw(diagram_type *pDiag)
 void
 vShowDiagram(diagram_type *pDiag)
 {
-	wimp_box	tRect;
-	int	x0, y0, x1, y1;
+	wimp_box tRect;
+	int x0, y0, x1, y1;
 
 	TRACE_MSG("vShowDiagram");
 
@@ -777,8 +776,8 @@ vShowDiagram(diagram_type *pDiag)
 void
 vMainButtonClick(mouse_block *pMouse)
 {
-	caret_block	tCaret;
-	window_state	ws;
+	caret_block tCaret;
+	window_state ws;
 
 	TRACE_MSG("vMainButtonClick");
 
@@ -789,9 +788,9 @@ vMainButtonClick(mouse_block *pMouse)
 	DBG_DEC(pMouse->window);
 	DBG_DEC(pMouse->icon);
 
-	if (pMouse->window >= 0 &&
-	    pMouse->icon == -1 &&
-	    (pMouse->button.data.select || pMouse->button.data.adjust)) {
+	if(pMouse->window >= 0 &&
+	   pMouse->icon == -1 &&
+	   (pMouse->button.data.select || pMouse->button.data.adjust)) {
 		/* Get the input focus */
 		Error_CheckFatal(Wimp_GetWindowState(pMouse->window, &ws));
 		tCaret.window = pMouse->window;
@@ -810,7 +809,7 @@ vMainButtonClick(mouse_block *pMouse)
 BOOL
 bMainKeyPressed(event_pollblock *pEvent, void *pvReference)
 {
-	diagram_type 	*pDiag;
+	diagram_type *pDiag;
 
 	TRACE_MSG("bMainKeyPressed");
 
@@ -822,15 +821,14 @@ bMainKeyPressed(event_pollblock *pEvent, void *pvReference)
 
 	fail(pEvent->data.key.caret.window != pDiag->tMainWindow);
 
-
-	switch (pEvent->data.key.code) {
-	case keycode_CTRL_F2:		/* Ctrl F2 */
+	switch(pEvent->data.key.code) {
+	case keycode_CTRL_F2: /* Ctrl F2 */
 		bDestroyDiagram(pEvent, pvReference);
 		break;
-	case keycode_F3:		/* F3 */
+	case keycode_F3: /* F3 */
 		bSaveDrawfile(pEvent, pvReference);
 		break;
-	case keycode_SHIFT_F3:		/* Shift F3 */
+	case keycode_SHIFT_F3: /* Shift F3 */
 		bSaveTextfile(pEvent, pvReference);
 		break;
 	default:
@@ -846,11 +844,11 @@ bMainKeyPressed(event_pollblock *pEvent, void *pvReference)
 BOOL
 bRedrawMainWindow(event_pollblock *pEvent, void *pvReference)
 {
-	window_redrawblock	tBlock;
-	diagram_type	*pDiag;
-	drawfile_info	*pInfo;
-	double		dScaleFactor;
-	BOOL		bMore;
+	window_redrawblock tBlock;
+	diagram_type *pDiag;
+	drawfile_info *pInfo;
+	double dScaleFactor;
+	BOOL bMore;
 
 	TRACE_MSG("bRedrawMainWindow");
 
@@ -871,10 +869,10 @@ bRedrawMainWindow(event_pollblock *pEvent, void *pvReference)
 	Error_CheckFatal(Wimp_RedrawWindow(&tBlock, &bMore));
 
 	/* If there is no real diagram just go thru the motions */
-	while (bMore) {
-		if (pInfo->data != NULL && pInfo->length != 0) {
+	while(bMore) {
+		if(pInfo->data != NULL && pInfo->length != 0) {
 			Error_CheckFatal(Drawfile_RenderDiagram(pInfo,
-						&tBlock, dScaleFactor));
+								&tBlock, dScaleFactor));
 		}
 		Error_CheckFatal(Wimp_GetRectangle(&tBlock, &bMore));
 	}
@@ -887,8 +885,8 @@ bRedrawMainWindow(event_pollblock *pEvent, void *pvReference)
 BOOL
 bScaleOpenAction(event_pollblock *pEvent, void *pvReference)
 {
-	window_state	tWindowState;
-	diagram_type	*pDiag;
+	window_state tWindowState;
+	diagram_type *pDiag;
 
 	TRACE_MSG("bScaleOpenAction");
 
@@ -899,14 +897,14 @@ bScaleOpenAction(event_pollblock *pEvent, void *pvReference)
 
 	pDiag = (diagram_type *)pvReference;
 
-	if (menu_currentopen != pDiag->pSaveMenu ||
-	    pEvent->data.message.data.menuwarn.selection[0] != SAVEMENU_SCALEVIEW) {
+	if(menu_currentopen != pDiag->pSaveMenu ||
+	   pEvent->data.message.data.menuwarn.selection[0] != SAVEMENU_SCALEVIEW) {
 		return FALSE;
 	}
 
 	Error_CheckFatal(Wimp_GetWindowState(pDiag->tScaleWindow,
-						&tWindowState));
-	if (tWindowState.flags.data.open) {
+					     &tWindowState));
+	if(tWindowState.flags.data.open) {
 		/* The window is already open */
 		return TRUE;
 	}
@@ -915,7 +913,7 @@ bScaleOpenAction(event_pollblock *pEvent, void *pvReference)
 
 	pDiag->iScaleFactorTemp = pDiag->iScaleFactorCurr;
 	vUpdateWriteableNumber(pDiag->tScaleWindow,
-			SCALE_SCALE_WRITEABLE, pDiag->iScaleFactorTemp);
+			       SCALE_SCALE_WRITEABLE, pDiag->iScaleFactorTemp);
 	Window_Show(pDiag->tScaleWindow, open_UNDERPOINTER);
 	return TRUE;
 } /* end of bScaleOpenAction */
@@ -926,7 +924,7 @@ bScaleOpenAction(event_pollblock *pEvent, void *pvReference)
 void
 vSetTitle(diagram_type *pDiag)
 {
-	char	szTitle[WINDOW_TITLE_LEN];
+	char szTitle[WINDOW_TITLE_LEN];
 
 	TRACE_MSG("vSetTitle");
 
@@ -934,10 +932,10 @@ vSetTitle(diagram_type *pDiag)
 	fail(pDiag->szFilename[0] == '\0');
 
 	(void)sprintf(szTitle, "%.*s at %d%%",
-				FILENAME_TITLE_LEN,
-				pDiag->szFilename,
-				pDiag->iScaleFactorCurr % 1000);
-	if (strlen(pDiag->szFilename) > FILENAME_TITLE_LEN) {
+		      FILENAME_TITLE_LEN,
+		      pDiag->szFilename,
+		      pDiag->iScaleFactorCurr % 1000);
+	if(strlen(pDiag->szFilename) > FILENAME_TITLE_LEN) {
 		szTitle[FILENAME_TITLE_LEN - 1] = OUR_ELLIPSIS;
 	}
 
@@ -950,7 +948,7 @@ vSetTitle(diagram_type *pDiag)
 void
 vScaleButtonClick(mouse_block *pMouse, diagram_type *pDiag)
 {
-	BOOL	bCloseWindow, bRedraw;
+	BOOL bCloseWindow, bRedraw;
 
 	TRACE_MSG("vScaleButtonClick");
 
@@ -959,7 +957,7 @@ vScaleButtonClick(mouse_block *pMouse, diagram_type *pDiag)
 
 	bCloseWindow = FALSE;
 	bRedraw = FALSE;
-	switch (pMouse->icon) {
+	switch(pMouse->icon) {
 	case SCALE_CANCEL_BUTTON:
 		bCloseWindow = TRUE;
 		pDiag->iScaleFactorTemp = pDiag->iScaleFactorCurr;
@@ -985,18 +983,18 @@ vScaleButtonClick(mouse_block *pMouse, diagram_type *pDiag)
 		DBG_DEC(pMouse->icon);
 		break;
 	}
-	if (bCloseWindow) {
+	if(bCloseWindow) {
 		/* Close the scale window */
 		Error_CheckFatal(Wimp_CloseWindow(pMouse->window));
-		if (bRedraw) {
+		if(bRedraw) {
 			/* Redraw the main window */
 			vSetTitle(pDiag);
 			vForceRedraw(pDiag);
 		}
 	} else {
 		vUpdateWriteableNumber(pMouse->window,
-				SCALE_SCALE_WRITEABLE,
-				pDiag->iScaleFactorTemp);
+				       SCALE_SCALE_WRITEABLE,
+				       pDiag->iScaleFactorTemp);
 	}
 } /* end of vScaleButtonClick */
 
@@ -1006,42 +1004,42 @@ vScaleButtonClick(mouse_block *pMouse, diagram_type *pDiag)
 BOOL
 bScaleKeyPressed(event_pollblock *pEvent, void *pvReference)
 {
-	icon_block	tIcon;
-	diagram_type	*pDiag;
-	caret_block	*pCaret;
-	char		*pcChar;
-	int		iTmp;
+	icon_block tIcon;
+	diagram_type *pDiag;
+	caret_block *pCaret;
+	char *pcChar;
+	int iTmp;
 
 	TRACE_MSG("bScaleKeyPressed");
 
-        fail(pEvent == NULL);
-        fail(pEvent->type != event_KEY);
-        fail(pvReference == NULL);
+	fail(pEvent == NULL);
+	fail(pEvent->type != event_KEY);
+	fail(pvReference == NULL);
 
 	pCaret = &pEvent->data.key.caret;
 	pDiag = (diagram_type *)pvReference;
 
-        fail(pEvent->data.key.caret.window != pDiag->tScaleWindow);
+	fail(pEvent->data.key.caret.window != pDiag->tScaleWindow);
 
 	DBG_DEC_C(pCaret->icon != SCALE_SCALE_WRITEABLE, pCaret->icon);
 	DBG_DEC_C(pCaret->icon == SCALE_SCALE_WRITEABLE, pEvent->data.key.code);
 
-	if (pEvent->data.key.code != '\r' ||
-	    pCaret->icon != SCALE_SCALE_WRITEABLE) {
+	if(pEvent->data.key.code != '\r' ||
+	   pCaret->icon != SCALE_SCALE_WRITEABLE) {
 		Error_CheckFatal(Wimp_ProcessKey(pEvent->data.key.code));
 		return TRUE;
 	}
 
 	Error_CheckFatal(Wimp_GetIconState(pCaret->window, pCaret->icon, &tIcon));
-	if (!tIcon.flags.data.text || !tIcon.flags.data.indirected) {
+	if(!tIcon.flags.data.text || !tIcon.flags.data.indirected) {
 		werr(1, "Icon %d must be indirected text", (int)pCaret->icon);
 	}
 	iTmp = (int)strtol(tIcon.data.indirecttext.buffer, &pcChar, 10);
-	if (*pcChar != '\0' && *pcChar != '\r') {
+	if(*pcChar != '\0' && *pcChar != '\r') {
 		DBG_DEC(*pcChar);
-	} else if (iTmp < MIN_SCALE_FACTOR) {
+	} else if(iTmp < MIN_SCALE_FACTOR) {
 		pDiag->iScaleFactorTemp = MIN_SCALE_FACTOR;
-	} else if (iTmp > MAX_SCALE_FACTOR) {
+	} else if(iTmp > MAX_SCALE_FACTOR) {
 		pDiag->iScaleFactorTemp = MAX_SCALE_FACTOR;
 	} else {
 		pDiag->iScaleFactorTemp = iTmp;
@@ -1054,4 +1052,3 @@ bScaleKeyPressed(event_pollblock *pEvent, void *pvReference)
 	vForceRedraw(pDiag);
 	return TRUE;
 } /* end of bScaleKeyPressed */
-

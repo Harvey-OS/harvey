@@ -25,7 +25,7 @@ srand(int32_t seed)
 int32_t
 lrand(void)
 {
-	randomreg = randomreg*104381 + 81761;
+	randomreg = randomreg * 104381 + 81761;
 	return randomreg;
 }
 
@@ -79,11 +79,11 @@ testshift(char *str)
 
 	b1 = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
-	for(i = 0; i < 64; i++){
+	for(i = 0; i < 64; i++) {
 		mpleft(b1, i, b2);
 		print("%2.2d %B\n", i, b2);
 	}
-	for(i = 0; i < 64; i++){
+	for(i = 0; i < 64; i++) {
 		mpright(b2, i, b1);
 		print("%2.2d %B\n", i, b1);
 	}
@@ -99,11 +99,11 @@ testaddsub(char *str)
 
 	b1 = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
-	for(i = 0; i < 16; i++){
+	for(i = 0; i < 16; i++) {
 		mpadd(b1, b2, b2);
 		print("%2.2d %B\n", i, b2);
 	}
-	for(i = 0; i < 16; i++){
+	for(i = 0; i < 16; i++) {
 		mpsub(b2, b1, b2);
 		print("%2.2d %B\n", i, b2);
 	}
@@ -121,14 +121,14 @@ testvecdigmuladd(char *str, mpdigit d)
 	b = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
 
-	mpbits(b2, (b->top+1)*Dbits);
+	mpbits(b2, (b->top + 1) * Dbits);
 	now = nsec();
-	for(i = 0; i < loops; i++){
-		memset(b2->p, 0, b2->top*Dbytes);
+	for(i = 0; i < loops; i++) {
+		memset(b2->p, 0, b2->top * Dbytes);
 		mpvecdigmuladd(b->p, b->top, d, b2->p);
 	}
 	if(loops > 1)
-		print("%lld ns for a %d*%d vecdigmul\n", (nsec()-now)/loops, b->top*Dbits, Dbits);
+		print("%lld ns for a %d*%d vecdigmul\n", (nsec() - now) / loops, b->top * Dbits, Dbits);
 	mpnorm(b2);
 	print("0 + %B * %ux = %B\n", b, d, b2);
 
@@ -146,14 +146,14 @@ testvecdigmulsub(char *str, mpdigit d)
 	b = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
 
-	mpbits(b2, (b->top+1)*Dbits);
+	mpbits(b2, (b->top + 1) * Dbits);
 	now = nsec();
-	for(i = 0; i < loops; i++){
-		memset(b2->p, 0, b2->top*Dbytes);
+	for(i = 0; i < loops; i++) {
+		memset(b2->p, 0, b2->top * Dbytes);
 		mpvecdigmulsub(b->p, b->top, d, b2->p);
 	}
 	if(loops > 1)
-		print("%lld ns for a %d*%d vecdigmul\n", (nsec()-now)/loops, b->top*Dbits, Dbits);
+		print("%lld ns for a %d*%d vecdigmul\n", (nsec() - now) / loops, b->top * Dbits, Dbits);
 	mpnorm(b2);
 	print("0 - %B * %ux = %B\n", b, d, b2);
 
@@ -176,8 +176,8 @@ testmul(char *str)
 	for(i = 0; i < loops; i++)
 		mpmul(b, b1, b2);
 	if(loops > 1)
-		print("%lld µs for a %d*%d mult\n", (nsec()-now)/(loops*1000),
-			b->top*Dbits, b1->top*Dbits);
+		print("%lld µs for a %d*%d mult\n", (nsec() - now) / (loops * 1000),
+		      b->top * Dbits, b1->top * Dbits);
 	print("%B * %B = %B\n", b, b1, b2);
 
 	mpfree(b);
@@ -198,7 +198,7 @@ testmul2(mpint *b, mpint *b1)
 	for(i = 0; i < loops; i++)
 		mpmul(b, b1, b2);
 	if(loops > 1)
-		print("%lld µs for a %d*%d mult\n", (nsec()-now)/(loops*1000), b->top*Dbits, b1->top*Dbits);
+		print("%lld µs for a %d*%d mult\n", (nsec() - now) / (loops * 1000), b->top * Dbits, b1->top * Dbits);
 	print("%B * ", b);
 	print("%B = ", b1);
 	print("%B\n", b2);
@@ -219,7 +219,7 @@ testdigdiv(char *str, mpdigit d)
 	for(i = 0; i < loops; i++)
 		mpdigdiv(b->p, d, &q);
 	if(loops > 1)
-		print("%lld ns for a %d / %d div\n", (nsec()-now)/loops, 2*Dbits, Dbits);
+		print("%lld ns for a %d / %d div\n", (nsec() - now) / loops, 2 * Dbits, Dbits);
 	print("%B / %ux = %ux\n", b, d, q);
 	mpfree(b);
 }
@@ -237,8 +237,8 @@ testdiv(mpint *x, mpint *y)
 	for(i = 0; i < loops; i++)
 		mpdiv(x, y, b2, b3);
 	if(loops > 1)
-		print("%lld µs for a %d/%d div\n", (nsec()-now)/(1000*loops),
-			x->top*Dbits, y->top*Dbits);
+		print("%lld µs for a %d/%d div\n", (nsec() - now) / (1000 * loops),
+		      x->top * Dbits, y->top * Dbits);
 	print("%B / %B = %B %B\n", x, y, b2, b3);
 	mpfree(b2);
 	mpfree(b3);
@@ -256,8 +256,8 @@ testmod(mpint *x, mpint *y)
 	for(i = 0; i < loops; i++)
 		mpmod(x, y, r);
 	if(loops > 1)
-		print("%lld µs for a %d/%d mod\n", (nsec()-now)/(1000*loops),
-			x->top*Dbits, y->top*Dbits);
+		print("%lld µs for a %d/%d mod\n", (nsec() - now) / (1000 * loops),
+		      x->top * Dbits, y->top * Dbits);
 	print("%B mod %B = %B\n", x, y, r);
 	mpfree(r);
 }
@@ -279,8 +279,8 @@ testinvert(mpint *x, mpint *y)
 	for(i = 0; i < loops; i++)
 		mpinvert(x, y, r);
 	if(loops > 1)
-		print("%lld µs for a %d in %d invert\n", (nsec()-now)/(1000*loops),
-			x->top*Dbits, y->top*Dbits);
+		print("%lld µs for a %d in %d invert\n", (nsec() - now) / (1000 * loops),
+		      x->top * Dbits, y->top * Dbits);
 	print("%B**-1 mod %B = %B\n", x, y, r);
 	mpmul(r, x, d1);
 	mpmod(d1, y, d2);
@@ -332,8 +332,8 @@ testexp(char *base, char *exp, char *mod)
 	for(i = 0; i < loops; i++)
 		mpexp(b, e, m, res);
 	if(loops > 1)
-		print("%ulldµs for a %d to the %d bit exp\n", (nsec()-now)/(loops*1000),
-			b->top*Dbits, e->top*Dbits);
+		print("%ulldµs for a %d to the %d bit exp\n", (nsec() - now) / (loops * 1000),
+		      b->top * Dbits, e->top * Dbits);
 	if(m != nil)
 		print("%B ^ %B mod %B == %B\n", b, e, m, res);
 	else
@@ -368,20 +368,20 @@ testgcd(void)
 	mpfree(a);
 	mpfree(b);
 
-	for(i = 0; i < loops; i++){
+	for(i = 0; i < loops; i++) {
 		a = mprand(2048, prng, nil);
 		b = mprand(2048, prng, nil);
 		then = nsec();
 		mpextendedgcd(a, b, d, x, y);
 		now = nsec();
-		etime += now-then;
+		etime += now - then;
 		mpmul(a, x, t1);
 		mpmul(b, y, t2);
 		mpadd(t1, t2, t2);
 		if(mpcmp(d, t2) != 0)
 			print("%d gcd %B*%B+%B*%B != %B\n", i, a, x, b, y, d);
-//		else
-//			print("%d euclid %B*%B+%B*%B == %B\n", i, a, x, b, y, d);
+		//		else
+		//			print("%d euclid %B*%B+%B*%B == %B\n", i, a, x, b, y, d);
 		mpfree(a);
 		mpfree(b);
 	}
@@ -403,16 +403,18 @@ main(int argc, char **argv)
 {
 	mpint *x, *y;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'n':
 		loops = atoi(ARGF());
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	fmtinstall('B', mpconv);
 	fmtinstall('Q', mpconv);
 	srand(0);
-	mpsetminbits(2*Dbits);
+	mpsetminbits(2 * Dbits);
 	testshift("1111111111111111");
 	testaddsub("fffffffffffffffff");
 	testdigdiv("1234567812345678", 0x76543218);
@@ -442,9 +444,9 @@ main(int argc, char **argv)
 	x = mprand(2048, prng, nil);
 	y = mprand(1024, prng, nil);
 	testdiv(x, y);
-//	x = mprand(4*1024, prng, nil);
-//	y = mprand(4*1024, prng, nil);
-//	testmul2(x, y);
+	//	x = mprand(4*1024, prng, nil);
+	//	y = mprand(4*1024, prng, nil);
+	//	testmul2(x, y);
 	testsub1("677132C9", "-A26559B6");
 	testgcd();
 	x = mprand(512, prng, nil);

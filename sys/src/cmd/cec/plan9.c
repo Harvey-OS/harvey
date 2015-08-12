@@ -12,9 +12,9 @@
 #include <libc.h>
 #include "cec.h"
 
-int	fd = -1;
-int	cfd = -1;
-int	efd = -1;
+int fd = -1;
+int cfd = -1;
+int efd = -1;
 
 int
 netopen0(char *e)
@@ -73,11 +73,11 @@ netget(void *v, int len)
 	int l;
 
 	l = read(fd, v, len);
-	if(debug && l > 0){
+	if(debug && l > 0) {
 		fprint(2, "read %d bytes\n", l);
-		dump((uint8_t*)v, l);
+		dump((uint8_t *)v, l);
 	}
-	if (l <= 0)
+	if(l <= 0)
 		return 0;
 	return l;
 }
@@ -88,11 +88,11 @@ netsend(void *v, int len)
 	uint8_t *p;
 
 	p = v;
-	if (debug) {
+	if(debug) {
 		fprint(2, "sending %d bytes\n", len);
 		dump(p, len);
 	}
-	if (len < 60)
-		len = 60;	/* mintu */
+	if(len < 60)
+		len = 60; /* mintu */
 	return write(fd, p, len);
 }

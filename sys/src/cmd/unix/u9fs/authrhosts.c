@@ -19,7 +19,7 @@
  * not such a great idea.  it's grandfathered.
  */
 
-static char*
+static char *
 rhostsauth(Fcall *rx, Fcall *tx)
 {
 	USED(rx);
@@ -28,12 +28,12 @@ rhostsauth(Fcall *rx, Fcall *tx)
 	return "u9fs rhostsauth: no authentication required";
 }
 
-static char*
+static char *
 rhostsattach(Fcall *rx, Fcall *tx)
 {
 	USED(tx);
 
-	if(ruserok(remotehostname, 0, rx->uname, rx->uname) < 0){
+	if(ruserok(remotehostname, 0, rx->uname, rx->uname) < 0) {
 		fprint(2, "ruserok(%s, %s) not okay\n", remotehostname, rx->uname);
 		return "u9fs: rhosts authentication failed";
 	}
@@ -41,7 +41,7 @@ rhostsattach(Fcall *rx, Fcall *tx)
 }
 
 Auth authrhosts = {
-	"rhosts",
-	rhostsauth,
-	rhostsattach,
+    "rhosts",
+    rhostsauth,
+    rhostsattach,
 };

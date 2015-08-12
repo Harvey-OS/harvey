@@ -13,7 +13,7 @@ void
 main(void)
 {
 	void (*f)(void) = nil;
-	if (notify(handler)){
+	if(notify(handler)) {
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}

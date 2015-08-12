@@ -12,14 +12,14 @@
 #include <bio.h>
 #include <auth.h>
 
-char	*dest = "system";
-int	mountflag = MREPL;
+char *dest = "system";
+int mountflag = MREPL;
 
-void	error(char *);
-void	rpc(int, int);
-void	post(char*, int);
-void	mountfs(char*, int);
-int	doauth = 1;
+void error(char *);
+void rpc(int, int);
+void post(char *, int);
+void mountfs(char *, int);
+int doauth = 1;
 
 void
 usage(void)
@@ -34,11 +34,11 @@ void
 ignore(void *a, char *c)
 {
 	USED(a);
-	if(strcmp(c, "alarm") == 0){
+	if(strcmp(c, "alarm") == 0) {
 		fprint(2, "srv: timeout establishing connection to %s\n", dest);
 		exits("timeout");
 	}
-	if(strstr(c, "write on closed pipe") == 0){
+	if(strstr(c, "write on closed pipe") == 0) {
 		fprint(2, "write on closed pipe\n");
 		noted(NCONT);
 	}
@@ -52,7 +52,7 @@ connectcmd(char *cmd)
 
 	if(pipe(p) < 0)
 		return -1;
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		fprint(2, "fork failed: %r\n");
 		_exits("exec");
@@ -78,7 +78,8 @@ main(int argc, char *argv[])
 	char dir[1024];
 	char err[ERRMAX];
 	char *p, *p2;
-	int domount, reallymount, try, sleeptime;
+	int domount, reallymount, try
+		, sleeptime;
 
 	notify(ignore);
 
@@ -87,7 +88,8 @@ main(int argc, char *argv[])
 	doexec = 0;
 	sleeptime = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		mountflag |= MAFTER;
 		domount = 1;
@@ -131,29 +133,30 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if((mountflag&MAFTER)&&(mountflag&MBEFORE))
+	if((mountflag & MAFTER) && (mountflag & MBEFORE))
 		usage();
 
-	switch(argc){
-	case 1:	/* calculate srv and mtpt from address */
+	switch(argc) {
+	case 1: /* calculate srv and mtpt from address */
 		p = strrchr(argv[0], '/');
-		p = p ? p+1 : argv[0];
+		p = p ? p + 1 : argv[0];
 		srv = smprint("/srv/%s", p);
 		p2 = strchr(p, '!');
-		p2 = p2 ? p2+1 : p;
+		p2 = p2 ? p2 + 1 : p;
 		mtpt = smprint("/n/%s", p2);
 		break;
-	case 2:	/* calculate mtpt from address, srv given */
+	case 2: /* calculate mtpt from address, srv given */
 		srv = smprint("/srv/%s", argv[1]);
 		p = strrchr(argv[0], '/');
-		p = p ? p+1 : argv[0];
+		p = p ? p + 1 : argv[0];
 		p2 = strchr(p, '!');
-		p2 = p2 ? p2+1 : p;
+		p2 = p2 ? p2 + 1 : p;
 		mtpt = smprint("/n/%s", p2);
 		break;
-	case 3:	/* srv and mtpt given */
+	case 3: /* srv and mtpt given */
 		domount = 1;
 		reallymount = 1;
 		srv = smprint("/srv/%s", argv[1]);
@@ -164,19 +167,20 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	try = 0;
+	try
+		= 0;
 	dest = *argv;
 Again:
-	try++;
+	try
+		++;
 
-	if(access(srv, 0) == 0){
-		if(domount){
+	if(access(srv, 0) == 0) {
+		if(domount) {
 			fd = open(srv, ORDWR);
 			if(fd >= 0)
 				goto Mount;
 			remove(srv);
-		}
-		else{
+		} else {
 			fprint(2, "srv: %s already exists\n", srv);
 			exits(0);
 		}
@@ -185,7 +189,7 @@ Again:
 	alarm(10000);
 	if(doexec)
 		fd = connectcmd(dest);
-	else{
+	else {
 		dest = netmkaddr(dest, 0, "9fs");
 		fd = dial(dest, 0, dir, 0);
 	}
@@ -195,9 +199,9 @@ Again:
 	}
 	alarm(0);
 
-	if(sleeptime){
+	if(sleeptime) {
 		fprint(2, "sleep...");
-		sleep(sleeptime*1000);
+		sleep(sleeptime * 1000);
 	}
 
 	post(srv, fd);
@@ -206,11 +210,10 @@ Mount:
 	if(domount == 0 || reallymount == 0)
 		exits(0);
 
-	if((!doauth && mount(fd, -1, mtpt, mountflag, "") < 0)
-	|| (doauth && amount(fd, mtpt, mountflag, "") < 0)){
+	if((!doauth && mount(fd, -1, mtpt, mountflag, "") < 0) || (doauth && amount(fd, mtpt, mountflag, "") < 0)) {
 		err[0] = 0;
 		errstr(err, sizeof err);
-		if(strstr(err, "Hangup") || strstr(err, "hungup") || strstr(err, "timed out")){
+		if(strstr(err, "Hangup") || strstr(err, "hungup") || strstr(err, "timed out")) {
 			remove(srv);
 			if(try == 1)
 				goto Again;
@@ -229,7 +232,7 @@ post(char *srv, int fd)
 
 	fprint(2, "post...\n");
 	f = create(srv, OWRITE, 0666);
-	if(f < 0){
+	if(f < 0) {
 		sprint(buf, "create(%s)", srv);
 		error(buf);
 	}

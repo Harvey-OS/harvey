@@ -35,7 +35,7 @@
 /* 12/1/98 soho@crl.com - Upgraded gx_page_queue_action_t comments */
 
 #ifndef gxpageq_INCLUDED
-# define gxpageq_INCLUDED
+#define gxpageq_INCLUDED
 
 #include "gsmemory.h"
 #include "gxband.h"
@@ -110,10 +110,10 @@
 	be rendered, but should not be imaged.
  */
 typedef enum {
-    GX_PAGE_QUEUE_ACTION_PARTIAL_PAGE,
-    GX_PAGE_QUEUE_ACTION_FULL_PAGE,
-    GX_PAGE_QUEUE_ACTION_COPY_PAGE,
-    GX_PAGE_QUEUE_ACTION_TERMINATE
+	GX_PAGE_QUEUE_ACTION_PARTIAL_PAGE,
+	GX_PAGE_QUEUE_ACTION_FULL_PAGE,
+	GX_PAGE_QUEUE_ACTION_COPY_PAGE,
+	GX_PAGE_QUEUE_ACTION_TERMINATE
 } gx_page_queue_action_t;
 
 /*
@@ -122,7 +122,7 @@ typedef enum {
  * list files ready for rendering.
  */
 #ifndef gx_page_queue_DEFINED
-# define gx_page_queue_DEFINED
+#define gx_page_queue_DEFINED
 typedef struct gx_page_queue_s gx_page_queue_t;
 #endif
 
@@ -131,19 +131,19 @@ typedef struct gx_page_queue_s gx_page_queue_t;
  */
 typedef struct gx_page_queue_entry_s gx_page_queue_entry_t;
 struct gx_page_queue_entry_s {
-    gx_band_page_info_t page_info;
-    gx_page_queue_action_t action;	/* action code */
-    int num_copies;		/* number of copies to render, only defined */
-                                /* if action == ...FULL_PAGE or ...COPY_PAGE */
-    gx_page_queue_entry_t *next;		/* link to next in queue */
-    gx_page_queue_t *queue;	/* link to queue the entry is in */
+	gx_band_page_info_t page_info;
+	gx_page_queue_action_t action; /* action code */
+	int num_copies;		       /* number of copies to render, only defined */
+				       /* if action == ...FULL_PAGE or ...COPY_PAGE */
+	gx_page_queue_entry_t *next;   /* link to next in queue */
+	gx_page_queue_t *queue;	/* link to queue the entry is in */
 };
 
-#define private_st_gx_page_queue_entry()\
-  gs_private_st_ptrs2(st_gx_page_queue_entry, gx_page_queue_entry_t,\
-    "gx_page_queue_entry",\
-    gx_page_queue_entry_enum_ptrs, gx_page_queue_entry_reloc_ptrs,\
-    next, queue)
+#define private_st_gx_page_queue_entry()                                                   \
+	gs_private_st_ptrs2(st_gx_page_queue_entry, gx_page_queue_entry_t,                 \
+			    "gx_page_queue_entry",                                         \
+			    gx_page_queue_entry_enum_ptrs, gx_page_queue_entry_reloc_ptrs, \
+			    next, queue)
 
 /* -------------- Public Procedure Declaraions --------------------- */
 
@@ -157,7 +157,7 @@ gx_page_queue_t *gx_page_queue_alloc(gs_memory_t *mem);
 /* rets ptr to allocated object, 0 if VM error */
 gx_page_queue_entry_t *
 gx_page_queue_entry_alloc(
-    gx_page_queue_t * queue	/* queue that entry is being alloc'd for */
+    gx_page_queue_t *queue /* queue that entry is being alloc'd for */
     );
 
 /*
@@ -165,7 +165,7 @@ gx_page_queue_entry_alloc(
  * All page queue entries must be destroyed by this routine.
  */
 void gx_page_queue_entry_free(
-    gx_page_queue_entry_t * entry	/* entry to free up */
+    gx_page_queue_entry_t *entry /* entry to free up */
     );
 
 /*
@@ -178,7 +178,7 @@ void gx_page_queue_entry_free(
  * memory (lots).
  */
 void gx_page_queue_entry_free_page_info(
-    gx_page_queue_entry_t * entry	/* entry to free up */
+    gx_page_queue_entry_t *entry /* entry to free up */
     );
 
 /*
@@ -188,8 +188,8 @@ void gx_page_queue_entry_free_page_info(
  */
 /* -ve error code, or 0 */
 int gx_page_queue_init(
-    gx_page_queue_t * queue,	/* page queue to init */
-    gs_memory_t * memory	/* allocator for dynamic memory */
+    gx_page_queue_t *queue, /* page queue to init */
+    gs_memory_t *memory     /* allocator for dynamic memory */
     );
 
 /*
@@ -198,7 +198,7 @@ int gx_page_queue_init(
  * dynamic allocations are released.
  */
 void gx_page_queue_dnit(
-    gx_page_queue_t * queue	/* page queue to dnit */
+    gx_page_queue_t *queue /* page queue to dnit */
     );
 
 /*
@@ -208,7 +208,7 @@ void gx_page_queue_dnit(
  */
 /* rets 0 if no pages were waiting for rendering, 1 if actually waited */
 int gx_page_queue_wait_one_page(
-    gx_page_queue_t * queue	/* queue to wait on */
+    gx_page_queue_t *queue /* queue to wait on */
     );
 
 /*
@@ -217,7 +217,7 @@ int gx_page_queue_wait_one_page(
  * continuing.
  */
 void gx_page_queue_wait_until_empty(
-    gx_page_queue_t * queue		/* page queue to wait on */
+    gx_page_queue_t *queue /* page queue to wait on */
     );
 
 /*
@@ -225,7 +225,7 @@ void gx_page_queue_wait_until_empty(
  * reader thread has an outstanding gx_page_queue_start_deque(), wake it up.
  */
 void gx_page_queue_enqueue(
-    gx_page_queue_entry_t * entry	/* entry to add */
+    gx_page_queue_entry_t *entry /* entry to add */
     );
 
 /*
@@ -239,11 +239,11 @@ void gx_page_queue_enqueue(
  */
 /* rets 0 ok, gs_error_Fatal if error */
 int gx_page_queue_add_page(
-    gx_page_queue_t * queue,		/* page queue to add to */
-    gx_page_queue_action_t action,		/* action code to queue */
-    const gx_band_page_info_t * page_info,	/* bandinfo incl. bandlist */
-    int page_count		/* # of copies to print if final "print," */
-				   /* 0 if partial page, -1 if cancel */
+    gx_page_queue_t *queue,		  /* page queue to add to */
+    gx_page_queue_action_t action,	/* action code to queue */
+    const gx_band_page_info_t *page_info, /* bandinfo incl. bandlist */
+    int page_count			  /* # of copies to print if final "print," */
+					  /* 0 if partial page, -1 if cancel */
     );
 
 /*
@@ -263,10 +263,10 @@ int gx_page_queue_add_page(
 	gx_page_queue_finish_dequeue(...);
     } while (some condition);
  */
-gx_page_queue_entry_t *		/* removed entry */
-gx_page_queue_start_dequeue(
-    gx_page_queue_t * queue	/* page queue to retrieve from */
-    );
+gx_page_queue_entry_t * /* removed entry */
+    gx_page_queue_start_dequeue(
+	gx_page_queue_t *queue /* page queue to retrieve from */
+	);
 
 /*
  * Free the pageq entry and its associated band list data, then signal any
@@ -276,7 +276,7 @@ gx_page_queue_start_dequeue(
  * gx_page_queue_entry_free_page_info is required).
  */
 void gx_page_queue_finish_dequeue(
-    gx_page_queue_entry_t * entry  /* entry that was retrieved to delete */
+    gx_page_queue_entry_t *entry /* entry that was retrieved to delete */
     );
 
 #endif /*!defined(gxpageq_INCLUDED) */

@@ -12,7 +12,7 @@
 #include <draw.h>
 #include <memdraw.h>
 
-Memsubfont*
+Memsubfont *
 getmemdefont(void)
 {
 	char *hdr, *p;
@@ -29,46 +29,46 @@ getmemdefont(void)
 	 * but not in general.  the byte order is right because the data is
 	 * declared as char*, not ulong*.
 	 */
-	p = (char*)defontdata;
+	p = (char *)defontdata;
 	n = (uintptr)p & 3;
-	if(n != 0){
-		memmove(p+(4-n), p, sizeofdefont-n);
-		p += 4-n;
+	if(n != 0) {
+		memmove(p + (4 - n), p, sizeofdefont - n);
+		p += 4 - n;
 	}
-	ld = atoi(p+0*12);
-	r.min.x = atoi(p+1*12);
-	r.min.y = atoi(p+2*12);
-	r.max.x = atoi(p+3*12);
-	r.max.y = atoi(p+4*12);
+	ld = atoi(p + 0 * 12);
+	r.min.x = atoi(p + 1 * 12);
+	r.min.y = atoi(p + 2 * 12);
+	r.max.x = atoi(p + 3 * 12);
+	r.max.y = atoi(p + 4 * 12);
 
 	md = mallocz(sizeof(Memdata), 1);
 	if(md == nil)
 		return nil;
-	
-	p += 5*12;
 
-	md->base = nil;		/* so freememimage doesn't free p */
-	md->bdata = (uint8_t*)p;	/* ick */
+	p += 5 * 12;
+
+	md->base = nil;		  /* so freememimage doesn't free p */
+	md->bdata = (uint8_t *)p; /* ick */
 	md->ref = 1;
-	md->allocd = 1;		/* so freememimage does free md */
+	md->allocd = 1; /* so freememimage does free md */
 
 	i = allocmemimaged(r, drawld2chan[ld], md);
-	if(i == nil){
+	if(i == nil) {
 		free(md);
 		return nil;
 	}
 
-	hdr = p+Dy(r)*i->width*sizeof(unsigned long);
+	hdr = p + Dy(r) * i->width * sizeof(unsigned long);
 	n = atoi(hdr);
-	p = hdr+3*12;
-	fc = malloc(sizeof(Fontchar)*(n+1));
-	if(fc == 0){
+	p = hdr + 3 * 12;
+	fc = malloc(sizeof(Fontchar) * (n + 1));
+	if(fc == 0) {
 		freememimage(i);
 		return 0;
 	}
-	_unpackinfo(fc, (uint8_t*)p, n);
-	f = allocmemsubfont("*default*", n, atoi(hdr+12), atoi(hdr+24), fc, i);
-	if(f == 0){
+	_unpackinfo(fc, (uint8_t *)p, n);
+	f = allocmemsubfont("*default*", n, atoi(hdr + 12), atoi(hdr + 24), fc, i);
+	if(f == 0) {
 		freememimage(i);
 		free(fc);
 		return 0;

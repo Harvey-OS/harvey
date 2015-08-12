@@ -25,7 +25,7 @@ symlink(char *, char *)
 }
 
 int
-readlink(char *, char *, int )
+readlink(char *, char *, int)
 {
 	errno = EIO;
 	return -1;

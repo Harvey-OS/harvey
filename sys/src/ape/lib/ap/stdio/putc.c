@@ -12,6 +12,8 @@
  */
 #include "iolib.h"
 #undef putc
-int putc(int c, FILE *f){
+int
+putc(int c, FILE *f)
+{
 	return fputc(c, f);
 }

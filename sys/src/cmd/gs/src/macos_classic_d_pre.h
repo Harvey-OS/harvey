@@ -30,6 +30,6 @@
 #define macos_classic_d_pre_INCLUDED
 
 /* turn on (verbose) debugging output */
-#define DEBUG 
+#define DEBUG
 
 #endif /* macos_classic_d_pre_INCLUDED */

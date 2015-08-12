@@ -13,22 +13,21 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-typedef struct Suffix	Suffix;
-struct Suffix 
-{
-	Suffix	*next;
-	char	*suffix;
-	char	*generic;
-	char	*specific;
-	char	*encoding;
+typedef struct Suffix Suffix;
+struct Suffix {
+	Suffix *next;
+	char *suffix;
+	char *generic;
+	char *specific;
+	char *encoding;
 };
 
-Suffix	*suffixes = nil;
+Suffix *suffixes = nil;
 
-static	Suffix*			parsesuffix(char*, Suffix*);
-static	char*			skipwhite(char*);
-static	HContents		suffixclass(char*);
-static	char*			towhite(char*);
+static Suffix *parsesuffix(char *, Suffix *);
+static char *skipwhite(char *);
+static HContents suffixclass(char *);
+static char *towhite(char *);
 
 int
 updateQid(int fd, Qid *q)
@@ -56,7 +55,7 @@ contentinit(void)
 	Suffix *this;
 
 	file = "/sys/lib/mimetype";
-	if(b == nil){ /* first time */
+	if(b == nil) { /* first time */
 		b = Bopen(file, OREAD);
 		if(b == nil)
 			sysfatal("can't read from %s", file);
@@ -64,7 +63,7 @@ contentinit(void)
 	if(updateQid(Bfildes(b), &qid) == 0)
 		return;
 	Bseek(b, 0, 0);
-	while(suffixes!=nil){
+	while(suffixes != nil) {
 		this = suffixes;
 		suffixes = suffixes->next;
 		free(this->suffix);
@@ -74,13 +73,13 @@ contentinit(void)
 		free(this);
 	}
 
-	while((s = Brdline(b, '\n')) != nil){
+	while((s = Brdline(b, '\n')) != nil) {
 		s[Blinelen(b) - 1] = 0;
 		suffixes = parsesuffix(s, suffixes);
 	}
 }
 
-static Suffix*
+static Suffix *
 parsesuffix(char *line, Suffix *suffix)
 {
 	Suffix *s;
@@ -105,7 +104,7 @@ parsesuffix(char *line, Suffix *suffix)
 	s = ezalloc(sizeof *s);
 	s->next = suffix;
 	s->suffix = estrdup(fields[0]);
-	if(fields[1] != nil){
+	if(fields[1] != nil) {
 		s->generic = estrdup(fields[1]);
 		s->specific = estrdup(fields[2]);
 	}
@@ -130,9 +129,9 @@ uriclass(HConnect *hc, char *name)
 	if((p = strrchr(name, '/')) != nil)
 		name = p + 1;
 	buf = hstrdup(hc, name);
-	while((p = strrchr(buf, '.')) != nil){
-		for(s = suffixes; s; s = s->next){
-			if(strcmp(p, s->suffix) == 0){
+	while((p = strrchr(buf, '.')) != nil) {
+		for(s = suffixes; s; s = s->next) {
+			if(strcmp(p, s->suffix) == 0) {
 				if(s->generic != nil && type == nil)
 					type = hmkcontent(hc, s->generic, s->specific, nil);
 				if(s->encoding != nil && enc == nil)
@@ -156,18 +155,18 @@ dataclass(HConnect *hc, char *buf, int n)
 	Rune r;
 	int c, m;
 
-	for(; n > 0; n -= m){
+	for(; n > 0; n -= m) {
 		c = *buf;
-		if(c < Runeself){
-			if(c < 32 && c != '\n' && c != '\r' && c != '\t' && c != '\v'){
+		if(c < Runeself) {
+			if(c < 32 && c != '\n' && c != '\r' && c != '\t' && c != '\v') {
 				conts.type = nil;
 				conts.encoding = nil;
 				return conts;
 			}
 			m = 1;
-		}else{
+		} else {
 			m = chartorune(&r, buf);
-			if(r == Runeerror){
+			if(r == Runeerror) {
 				conts.type = nil;
 				conts.encoding = nil;
 				return conts;

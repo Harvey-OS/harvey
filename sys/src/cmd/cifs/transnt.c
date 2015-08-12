@@ -25,7 +25,7 @@ tnthdr(Session *s, Share *sp, int cmd)
 	pl32(p, 0);			/*  3  Total parameter count */
 	pl32(p, 0);			/*  7  Total data count */
 	pl32(p, 64);			/* 11  Max parameter count to return */
-	pl32(p, (MTU - T2HDRLEN)-64);	/* 15  Max data count to return */
+	pl32(p, (MTU - T2HDRLEN) - 64); /* 15  Max data count to return */
 	pl32(p, 0);			/* 19  Parameter count (in this buffer) */
 	pl32(p, 0);			/* 23  Offset to parameters (in this buffer) */
 	pl32(p, 0);			/* 27  Count of data  in this buffer */
@@ -43,7 +43,7 @@ ptntparam(Pkt *p)
 	uint8_t *pos = p->pos;
 	assert(p->tbase != 0);
 
-	p->pos = p->tbase +23;
+	p->pos = p->tbase + 23;
 	pl32(p, (pos - p->buf) - NBHDRLEN); /* param offset */
 
 	p->tparam = p->pos = pos;
@@ -56,14 +56,14 @@ ptntdata(Pkt *p)
 	assert(p->tbase != 0);
 	assert(p->tparam != 0);
 
-	p->pos = p->tbase +3;
-	pl32(p, pos - p->tparam);		/* total param count */
+	p->pos = p->tbase + 3;
+	pl32(p, pos - p->tparam); /* total param count */
 
-	p->pos = p->tbase +19;
-	pl32(p, pos - p->tparam);		/* param count */
+	p->pos = p->tbase + 19;
+	pl32(p, pos - p->tparam); /* param count */
 
-	p->pos = p->tbase +31;
-	pl32(p, (pos - p->buf) - NBHDRLEN);	/* data offset */
+	p->pos = p->tbase + 31;
+	pl32(p, (pos - p->buf) - NBHDRLEN); /* data offset */
 	p->tdata = p->pos = pos;
 }
 
@@ -77,29 +77,29 @@ tntrpc(Pkt *p)
 
 	pos = p->pos;
 
-	p->pos = p->tbase +7;
-	pl32(p, pos - p->tdata);		/* total data count */
+	p->pos = p->tbase + 7;
+	pl32(p, pos - p->tdata); /* total data count */
 
-	p->pos = p->tbase +27;
-	pl32(p, pos - p->tdata);		/* data count */
+	p->pos = p->tbase + 27;
+	pl32(p, pos - p->tdata); /* data count */
 
 	p->pos = pos;
 	if((got = cifsrpc(p)) == -1)
 		return -1;
 
-	g8(p);				/* Reserved */
-	g8(p);				/* Reserved */
-	g8(p);				/* Reserved */
-	gl32(p);			/* Total parameter count */
-	gl32(p);			/* Total data count */
-	gl32(p);			/* Parameter count in this buffer */
-	p->tparam = p->buf +NBHDRLEN +gl32(p); /* Parameter offset */
-	gl32(p);			/* Parameter displacement */
-	gl32(p);			/* Data count (this buffer); */
-	p->tdata = p->buf +NBHDRLEN +gl32(p); /* Data offset */
-	gl32(p);			/* Data displacement */
-	g8(p);				/* Setup count */
- 	gl16(p);			/* padding ???  */
+	g8(p);					 /* Reserved */
+	g8(p);					 /* Reserved */
+	g8(p);					 /* Reserved */
+	gl32(p);				 /* Total parameter count */
+	gl32(p);				 /* Total data count */
+	gl32(p);				 /* Parameter count in this buffer */
+	p->tparam = p->buf + NBHDRLEN + gl32(p); /* Parameter offset */
+	gl32(p);				 /* Parameter displacement */
+	gl32(p);				 /* Data count (this buffer); */
+	p->tdata = p->buf + NBHDRLEN + gl32(p);  /* Data offset */
+	gl32(p);				 /* Data displacement */
+	g8(p);					 /* Setup count */
+	gl16(p);				 /* padding ???  */
 
 	return got;
 }
@@ -116,7 +116,6 @@ gtntdata(Pkt *p)
 	p->pos = p->tdata;
 }
 
-
 int
 TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 {
@@ -128,14 +127,14 @@ TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 	p = tnthdr(s, sp, NT_TRANSACT_QUERY_SECURITY_DESC);
 	ptntparam(p);
 
-	pl16(p, fh); 		/* File handle */
-	pl16(p, 0); 		/* Reserved */
+	pl16(p, fh); /* File handle */
+	pl16(p, 0);  /* Reserved */
 	pl32(p, QUERY_OWNER_SECURITY_INFORMATION |
-		QUERY_GROUP_SECURITY_INFORMATION);
+		    QUERY_GROUP_SECURITY_INFORMATION);
 
 	ptntdata(p);
 
-	if(tntrpc(p) == -1){
+	if(tntrpc(p) == -1) {
 		free(p);
 		return -1;
 	}
@@ -143,32 +142,32 @@ TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 	gtntdata(p);
 
 	base = p->pos;
-	gl16(p);			/* revision */
-	gl16(p);			/* type */
-	off2owner = gl32(p);		/* offset to owner */
-	off2group = gl32(p);		/* offset to group */
+	gl16(p);	     /* revision */
+	gl16(p);	     /* type */
+	off2owner = gl32(p); /* offset to owner */
+	off2group = gl32(p); /* offset to group */
 	gl32(p);
 	gl32(p);
 
-	if(off2owner){
-		p->pos = base +  off2owner;
+	if(off2owner) {
+		p->pos = base + off2owner;
 		fmtstrinit(f);
-		fmtprint(f, "S-%ud", g8(p));	/* revision */
+		fmtprint(f, "S-%ud", g8(p));    /* revision */
 		n = g8(p);			/* num auth */
-		fmtprint(f, "-%llud", gb48(p));	/* authority */
+		fmtprint(f, "-%llud", gb48(p)); /* authority */
 		for(i = 0; i < n; i++)
-			fmtprint(f, "-%ud", gl32(p));	/* sub-authorities */
+			fmtprint(f, "-%ud", gl32(p)); /* sub-authorities */
 		*usid = fmtstrflush(f);
 	}
 
-	if(off2group){
-		p->pos = base +  off2group;
+	if(off2group) {
+		p->pos = base + off2group;
 		fmtstrinit(f);
-		fmtprint(f, "S-%ud", g8(p));	/* revision */
+		fmtprint(f, "S-%ud", g8(p));    /* revision */
 		n = g8(p);			/* num auth */
-		fmtprint(f, "-%llud", gb48(p));	/* authority */
+		fmtprint(f, "-%llud", gb48(p)); /* authority */
 		for(i = 0; i < n; i++)
-			fmtprint(f, "-%ud", gl32(p));	/* sub-authorities */
+			fmtprint(f, "-%ud", gl32(p)); /* sub-authorities */
 		*gsid = fmtstrflush(f);
 	}
 	free(p);

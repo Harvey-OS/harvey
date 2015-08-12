@@ -37,4 +37,3 @@ vthangup(VtConn *z)
 		_vtqhangup(z->readq);
 	qunlock(&z->lk);
 }
-

@@ -11,18 +11,16 @@
 #include <bio.h>
 
 typedef struct Key Key;
-struct Key
-{
+struct Key {
 	mpint *mod;
 	mpint *ek;
 	char *comment;
 };
 
 typedef struct Achan Achan;
-struct Achan
-{
+struct Achan {
 	int open;
-	uint32_t chan;	/* of remote */
+	uint32_t chan; /* of remote */
 	uint8_t lbuf[4];
 	uint nlbuf;
 	uint len;
@@ -34,15 +32,15 @@ struct Achan
 
 Achan achan[16];
 
-static char*
+static char *
 find(char **f, int nf, char *k)
 {
 	int i, len;
 
 	len = strlen(k);
-	for(i=1; i<nf; i++)	/* i=1: f[0] is "key" */
+	for(i = 1; i < nf; i++) /* i=1: f[0] is "key" */
 		if(strncmp(f[i], k, len) == 0 && f[i][len] == '=')
-			return f[i]+len+1;
+			return f[i] + len + 1;
 	return nil;
 }
 
@@ -55,15 +53,15 @@ listkeys(Key **kp)
 	char *p, *f[20];
 	int nf;
 	mpint *mod, *ek;
-	
+
 	*kp = nil;
 	if((b = Bopen("/mnt/factotum/ctl", OREAD)) == nil)
 		return -1;
-	
+
 	k = nil;
 	nk = 0;
-	while((p = Brdline(b, '\n')) != nil){
-		p[Blinelen(b)-1] = '\0';
+	while((p = Brdline(b, '\n')) != nil) {
+		p[Blinelen(b) - 1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf == 0 || strcmp(f[0], "key") != 0)
 			continue;
@@ -74,25 +72,24 @@ listkeys(Key **kp)
 		if(p == nil || (mod = strtomp(p, nil, 16, nil)) == nil)
 			continue;
 		p = find(f, nf, "ek");
-		if(p == nil || (ek = strtomp(p, nil, 16, nil)) == nil){
+		if(p == nil || (ek = strtomp(p, nil, 16, nil)) == nil) {
 			mpfree(mod);
 			continue;
 		}
 		p = find(f, nf, "comment");
 		if(p == nil)
 			p = "";
-		k = erealloc(k, (nk+1)*sizeof(k[0]));
+		k = erealloc(k, (nk + 1) * sizeof(k[0]));
 		k[nk].mod = mod;
 		k[nk].ek = ek;
-		k[nk].comment = emalloc(strlen(p)+1);
+		k[nk].comment = emalloc(strlen(p) + 1);
 		strcpy(k[nk].comment, p);
 		nk++;
 	}
 	Bterm(b);
 	*kp = k;
-	return nk;	
+	return nk;
 }
-
 
 static int
 dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
@@ -106,16 +103,16 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
 	USED(exp);
 
 	snprint(buf, sizeof buf, "proto=rsa service=ssh role=client");
-	if((afd = open("/mnt/factotum/rpc", ORDWR)) < 0){
+	if((afd = open("/mnt/factotum/rpc", ORDWR)) < 0) {
 		debug(DBG_AUTH, "open /mnt/factotum/rpc: %r\n");
 		return -1;
 	}
-	if((rpc = auth_allocrpc(afd)) == nil){
+	if((rpc = auth_allocrpc(afd)) == nil) {
 		debug(DBG_AUTH, "auth_allocrpc: %r\n");
 		close(afd);
 		return -1;
 	}
-	if(auth_rpc(rpc, "start", buf, strlen(buf)) != ARok){
+	if(auth_rpc(rpc, "start", buf, strlen(buf)) != ARok) {
 		debug(DBG_AUTH, "auth_rpc start failed: %r\n");
 	Die:
 		auth_freerpc(rpc);
@@ -124,8 +121,8 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
 	}
 	m = nil;
 	debug(DBG_AUTH, "trying factotum rsa keys\n");
-	while(auth_rpc(rpc, "read", nil, 0) == ARok){
-		debug(DBG_AUTH, "try %s\n", (char*)rpc->arg);
+	while(auth_rpc(rpc, "read", nil, 0) == ARok) {
+		debug(DBG_AUTH, "try %s\n", (char *)rpc->arg);
 		m = strtomp(rpc->arg, nil, 16, nil);
 		if(mpcmp(m, mod) == 0)
 			break;
@@ -135,30 +132,30 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
 	if(m == nil)
 		goto Die;
 	mpfree(m);
-	
+
 	p = mptoa(chal, 16, nil, 0);
-	if(p == nil){
+	if(p == nil) {
 		debug(DBG_AUTH, "\tmptoa failed: %r\n");
 		goto Die;
 	}
-	if(auth_rpc(rpc, "write", p, strlen(p)) != ARok){
+	if(auth_rpc(rpc, "write", p, strlen(p)) != ARok) {
 		debug(DBG_AUTH, "\tauth_rpc write failed: %r\n");
 		free(p);
 		goto Die;
 	}
 	free(p);
-	if(auth_rpc(rpc, "read", nil, 0) != ARok){
+	if(auth_rpc(rpc, "read", nil, 0) != ARok) {
 		debug(DBG_AUTH, "\tauth_rpc read failed: %r\n");
 		goto Die;
 	}
 	decr = strtomp(rpc->arg, nil, 16, nil);
-	if(decr == nil){
+	if(decr == nil) {
 		debug(DBG_AUTH, "\tdecr %s failed\n", rpc->arg);
 		goto Die;
 	}
 	debug(DBG_AUTH, "\tdecrypted %B\n", decr);
 	unpad = rsaunpad(decr);
-	if(unpad == nil){
+	if(unpad == nil) {
 		debug(DBG_AUTH, "\tunpad %B failed\n", decr);
 		mpfree(decr);
 		goto Die;
@@ -182,7 +179,7 @@ startagent(Conn *c)
 	sendmsg(m);
 
 	m = recvmsg(c, -1);
-	switch(m->type){
+	switch(m->type) {
 	case SSH_SMSG_SUCCESS:
 		debug(DBG_AUTH, "agent allocated\n");
 		ret = 0;
@@ -200,7 +197,7 @@ startagent(Conn *c)
 	return ret;
 }
 
-void handlefullmsg(Conn*, Achan*);
+void handlefullmsg(Conn *, Achan *);
 
 void
 handleagentmsg(Msg *m)
@@ -215,7 +212,7 @@ handleagentmsg(Msg *m)
 	debug(DBG_AUTH, "\t%.*H\n", (int)(m->ep - m->rp), m->rp);
 	chan = getlong(m);
 	len = getlong(m);
-	if(m->rp+len != m->ep)
+	if(m->rp + len != m->ep)
 		sysfatal("got bad channel data");
 
 	if(chan >= nelem(achan))
@@ -223,24 +220,24 @@ handleagentmsg(Msg *m)
 
 	a = &achan[chan];
 
-	while(m->rp < m->ep){
-		if(a->nlbuf < 4){
+	while(m->rp < m->ep) {
+		if(a->nlbuf < 4) {
 			a->lbuf[a->nlbuf++] = getbyte(m);
-			if(a->nlbuf == 4){
-				a->len = (a->lbuf[0]<<24) | (a->lbuf[1]<<16) | (a->lbuf[2]<<8) | a->lbuf[3];
+			if(a->nlbuf == 4) {
+				a->len = (a->lbuf[0] << 24) | (a->lbuf[1] << 16) | (a->lbuf[2] << 8) | a->lbuf[3];
 				a->data = erealloc(a->data, a->len);
 				a->ndata = 0;
 			}
 			continue;
 		}
-		if(a->ndata < a->len){
+		if(a->ndata < a->len) {
 			n = a->len - a->ndata;
 			if(n > m->ep - m->rp)
 				n = m->ep - m->rp;
-			memmove(a->data+a->ndata, getbytes(m, n), n);
+			memmove(a->data + a->ndata, getbytes(m, n), n);
 			a->ndata += n;
 		}
-		if(a->ndata == a->len){
+		if(a->ndata == a->len) {
 			handlefullmsg(m->c, a);
 			a->nlbuf = 0;
 		}
@@ -268,18 +265,18 @@ handlefullmsg(Conn *c, Achan *a)
 
 	chan = a->chan;
 	mm.rp = a->data;
-	mm.ep = a->data+a->ndata;
+	mm.ep = a->data + a->ndata;
 	mm.c = c;
 	m = &mm;
 
 	type = getbyte(m);
 
-	if(first == 0){
+	if(first == 0) {
 		first++;
 		fmtinstall('H', encodefmt);
 	}
 
-	switch(type){
+	switch(type) {
 	default:
 		debug(DBG_AUTH, "unknown msg type\n");
 	Failure:
@@ -297,20 +294,20 @@ handlefullmsg(Conn *c, Achan *a)
 		nk = listkeys(&k);
 		if(nk < 0)
 			goto Failure;
-		len = 1+4;	/* type, nk */
-		for(i=0; i<nk; i++){
+		len = 1 + 4; /* type, nk */
+		for(i = 0; i < nk; i++) {
 			len += 4;
-			len += 2+(mpsignif(k[i].ek)+7)/8;
-			len += 2+(mpsignif(k[i].mod)+7)/8;
-			len += 4+strlen(k[i].comment);
+			len += 2 + (mpsignif(k[i].ek) + 7) / 8;
+			len += 2 + (mpsignif(k[i].mod) + 7) / 8;
+			len += 4 + strlen(k[i].comment);
 		}
-		r = allocmsg(m->c, SSH_MSG_CHANNEL_DATA, 12+len);
+		r = allocmsg(m->c, SSH_MSG_CHANNEL_DATA, 12 + len);
 		putlong(r, chan);
-		putlong(r, len+4);
+		putlong(r, len + 4);
 		putlong(r, len);
 		putbyte(r, SSH_AGENT_RSA_IDENTITIES_ANSWER);
 		putlong(r, nk);
-		for(i=0; i<nk; i++){
+		for(i = 0; i < nk; i++) {
 			debug(DBG_AUTH, "\t%B %B %s\n", k[i].ek, k[i].mod, k[i].comment);
 			putlong(r, mpsignif(k[i].mod));
 			putmpint(r, k[i].ek);
@@ -326,15 +323,15 @@ handlefullmsg(Conn *c, Achan *a)
 
 	case SSH_AGENTC_RSA_CHALLENGE:
 		n = getlong(m);
-		USED(n);	/* number of bits in key; who cares? */
+		USED(n); /* number of bits in key; who cares? */
 		ek = getmpint(m);
 		mod = getmpint(m);
 		chal = getmpint(m);
 		memmove(sessid, getbytes(m, 16), 16);
 		rt = getlong(m);
 		debug(DBG_AUTH, "agent challenge %B %B %B %ud (%p %p)\n",
-			ek, mod, chal, rt, m->rp, m->ep);
-		if(rt != 1 || dorsa(mod, ek, chal, chalbuf) < 0){
+		      ek, mod, chal, rt, m->rp, m->ep);
+		if(rt != 1 || dorsa(mod, ek, chal, chalbuf) < 0) {
 			mpfree(ek);
 			mpfree(mod);
 			mpfree(chal);
@@ -342,10 +339,10 @@ handlefullmsg(Conn *c, Achan *a)
 		}
 		s = md5(chalbuf, 32, nil, nil);
 		md5(sessid, 16, digest, s);
-		r = allocmsg(m->c, SSH_MSG_CHANNEL_DATA, 12+1+16);
+		r = allocmsg(m->c, SSH_MSG_CHANNEL_DATA, 12 + 1 + 16);
 		putlong(r, chan);
-		putlong(r, 4+16+1);
-		putlong(r, 16+1);
+		putlong(r, 4 + 16 + 1);
+		putlong(r, 16 + 1);
 		putbyte(r, SSH_AGENT_RSA_RESPONSE);
 		putbytes(r, digest, 16);
 		debug(DBG_AUTH, "digest %.16H\n", digest);
@@ -357,7 +354,7 @@ handlefullmsg(Conn *c, Achan *a)
 
 	case SSH_AGENTC_ADD_RSA_IDENTITY:
 		goto Failure;
-/*
+	/*
 		n = getlong(m);
 		pubmod = getmpint(m);
 		pubexp = getmpint(m);
@@ -372,7 +369,7 @@ handlefullmsg(Conn *c, Achan *a)
 
 	case SSH_AGENTC_REMOVE_RSA_IDENTITY:
 		goto Failure;
-/*
+		/*
 		n = getlong(m);
 		pubmod = getmpint(m);
 		pubexp = getmpint(m);
@@ -392,10 +389,10 @@ handleagentopen(Msg *m)
 	remote = getlong(m);
 	debug(DBG_AUTH, "agent open %d\n", remote);
 
-	for(i=0; i<nelem(achan); i++)
+	for(i = 0; i < nelem(achan); i++)
 		if(achan[i].open == 0 && achan[i].needeof == 0 && achan[i].needclosed == 0)
 			break;
-	if(i == nelem(achan)){
+	if(i == nelem(achan)) {
 		m = allocmsg(m->c, SSH_MSG_CHANNEL_OPEN_FAILURE, 4);
 		putlong(m, remote);
 		sendmsg(m);
@@ -422,15 +419,15 @@ handleagentieof(Msg *m)
 	assert(m->type == SSH_MSG_CHANNEL_INPUT_EOF);
 	local = getlong(m);
 	debug(DBG_AUTH, "agent close %d\n", local);
-	if(local < nelem(achan)){
+	if(local < nelem(achan)) {
 		debug(DBG_AUTH, "\tlocal %d is remote %d\n", local, achan[local].chan);
 		achan[local].open = 0;
-/*
+		/*
 		m = allocmsg(m->c, SSH_MSG_CHANNEL_OUTPUT_CLOSED, 4);
 		putlong(m, achan[local].chan);
 		sendmsg(m);
 */
-		if(achan[local].needeof){
+		if(achan[local].needeof) {
 			achan[local].needeof = 0;
 			m = allocmsg(m->c, SSH_MSG_CHANNEL_INPUT_EOF, 4);
 			putlong(m, achan[local].chan);
@@ -447,9 +444,9 @@ handleagentoclose(Msg *m)
 	assert(m->type == SSH_MSG_CHANNEL_OUTPUT_CLOSED);
 	local = getlong(m);
 	debug(DBG_AUTH, "agent close %d\n", local);
-	if(local < nelem(achan)){
+	if(local < nelem(achan)) {
 		debug(DBG_AUTH, "\tlocal %d is remote %d\n", local, achan[local].chan);
-		if(achan[local].needclosed){
+		if(achan[local].needclosed) {
 			achan[local].needclosed = 0;
 			m = allocmsg(m->c, SSH_MSG_CHANNEL_OUTPUT_CLOSED, 4);
 			putlong(m, achan[local].chan);

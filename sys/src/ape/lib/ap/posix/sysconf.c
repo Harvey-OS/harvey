@@ -7,18 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	<stdio.h>
-#include	<unistd.h>
-#include	<limits.h>
-#include	<time.h>
-#include	<errno.h>
-#include	<sys/limits.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <limits.h>
+#include <time.h>
+#include <errno.h>
+#include <sys/limits.h>
 
 int32_t
 sysconf(int name)
 {
-	switch(name)
-	{
+	switch(name) {
 	case _SC_ARG_MAX:
 		return ARG_MAX;
 	case _SC_CHILD_MAX:
@@ -30,13 +29,13 @@ sysconf(int name)
 	case _SC_OPEN_MAX:
 		return OPEN_MAX;
 	case _SC_JOB_CONTROL:
-#ifdef	_POSIX_JOB_CONTROL
+#ifdef _POSIX_JOB_CONTROL
 		return _POSIX_JOB_CONTROL;
 #else
 		return -1;
 #endif
 	case _SC_SAVED_IDS:
-#ifdef	_POSIX_SAVED_IDS
+#ifdef _POSIX_SAVED_IDS
 		return _POSIX_SAVED_IDS;
 #else
 		return -1;

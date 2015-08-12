@@ -12,47 +12,46 @@
 #include <bio.h>
 #include <ctype.h>
 
-#define	Bungetrune	Bungetc		/* ok for now. */
+#define Bungetrune Bungetc /* ok for now. */
 
 /*
  * all these are 32 bit
  */
-#define TBITSET		((32+NTERMS)/32)	/* BOTCH?? +31 */
-#define BIT(a,i)	((a)[(i)>>5] & (1<<((i)&037)))
-#define SETBIT(a,i)	((a)[(i)>>5] |= (1<<((i)&037)))
-#define NWORDS(n)	(((n)+32)/32)
+#define TBITSET ((32 + NTERMS) / 32) /* BOTCH?? +31 */
+#define BIT(a, i) ((a)[(i) >> 5] & (1 << ((i)&037)))
+#define SETBIT(a, i) ((a)[(i) >> 5] |= (1 << ((i)&037)))
+#define NWORDS(n) (((n) + 32) / 32)
 
-#define PARSER		"/sys/lib/yaccpar"
-#define PARSERS		"/sys/lib/yaccpars"
-#define TEMPNAME	"y.tmp.XXXXXX"
-#define ACTNAME		"y.acts.XXXXXX"
-#define OFILE		"tab.c"
-#define FILEU		"output"
-#define FILED		"tab.h"
-#define FILEDEBUG	"debug"
+#define PARSER "/sys/lib/yaccpar"
+#define PARSERS "/sys/lib/yaccpars"
+#define TEMPNAME "y.tmp.XXXXXX"
+#define ACTNAME "y.acts.XXXXXX"
+#define OFILE "tab.c"
+#define FILEU "output"
+#define FILED "tab.h"
+#define FILEDEBUG "debug"
 
-enum
-{
-/*
+enum {
+	/*
  * the following are adjustable
  * according to memory size
  */
-	ACTSIZE		= 40000,
-	MEMSIZE		= 40000,
-	NSTATES		= 2000,
-	NTERMS		= 511,
-	NPROD		= 1600,
-	NNONTERM	= 600,
-	TEMPSIZE	= 2000,
-	CNAMSZ		= 10000,
-	LSETSIZE	= 2400,
-	WSETSIZE	= 350,
+	ACTSIZE = 40000,
+	MEMSIZE = 40000,
+	NSTATES = 2000,
+	NTERMS = 511,
+	NPROD = 1600,
+	NNONTERM = 600,
+	TEMPSIZE = 2000,
+	CNAMSZ = 10000,
+	LSETSIZE = 2400,
+	WSETSIZE = 350,
 
-	NAMESIZE	= 50,
-	NTYPES		= 63,
-	ISIZE		= 400,
+	NAMESIZE = 50,
+	NTYPES = 63,
+	ISIZE = 400,
 
-	PRIVATE		= 0xE000,	/* unicode private use */
+	PRIVATE = 0xE000, /* unicode private use */
 
 	/* relationships which must hold:
 		TBITSET ints must hold NTERMS+1 bits...
@@ -62,31 +61,31 @@ enum
 		TEMPSIZE >= NSTATES
 	*/
 
-	NTBASE		= 010000,
-	ERRCODE		= 8190,
-	ACCEPTCODE	= 8191,
+	NTBASE = 010000,
+	ERRCODE = 8190,
+	ACCEPTCODE = 8191,
 
-	NOASC		= 0,	/* no assoc. */
-	LASC		= 1,	/* left assoc. */
-	RASC		= 2,	/* right assoc. */
-	BASC		= 3,	/* binary assoc. */
+	NOASC = 0, /* no assoc. */
+	LASC = 1,  /* left assoc. */
+	RASC = 2,  /* right assoc. */
+	BASC = 3,  /* binary assoc. */
 
 	/* flags for state generation */
 
-	DONE		= 0,
-	MUSTDO		= 1,
-	MUSTLOOKAHEAD	= 2,
+	DONE = 0,
+	MUSTDO = 1,
+	MUSTLOOKAHEAD = 2,
 
 	/* flags for a rule having an action, and being reduced */
 
-	ACTFLAG		= 04,
-	REDFLAG		= 010,
+	ACTFLAG = 04,
+	REDFLAG = 010,
 
 	/* output parser flags */
-	YYFLAG1		= -1000,
+	YYFLAG1 = -1000,
 
 	/* parse tokens */
-	IDENTIFIER	= PRIVATE,
+	IDENTIFIER = PRIVATE,
 	MARK,
 	TERM,
 	LEFT,
@@ -101,297 +100,294 @@ enum
 	TYPENAME,
 	UNION,
 
-	ENDFILE		= 0,
+	ENDFILE = 0,
 
-	EMPTY		= 1,
-	WHOKNOWS	= 0,
-	OK		= 1,
-	NOMORE		= -1000,
+	EMPTY = 1,
+	WHOKNOWS = 0,
+	OK = 1,
+	NOMORE = -1000,
 };
 
-	/* macros for getting associativity and precedence levels */
+/* macros for getting associativity and precedence levels */
 
-#define ASSOC(i)	((i)&03)
-#define PLEVEL(i)	(((i)>>4)&077)
-#define TYPE(i)		(((i)>>10)&077)
+#define ASSOC(i) ((i)&03)
+#define PLEVEL(i) (((i) >> 4) & 077)
+#define TYPE(i) (((i) >> 10) & 077)
 
-	/* macros for setting associativity and precedence levels */
+/* macros for setting associativity and precedence levels */
 
-#define SETASC(i,j)	i |= j
-#define SETPLEV(i,j)	i |= (j<<4)
-#define SETTYPE(i,j)	i |= (j<<10)
+#define SETASC(i, j) i |= j
+#define SETPLEV(i, j) i |= (j << 4)
+#define SETTYPE(i, j) i |= (j << 10)
 
-	/* looping macros */
+/* looping macros */
 
-#define TLOOP(i)	for(i=1; i<=ntokens; i++)
-#define NTLOOP(i)	for(i=0; i<=nnonter; i++)
-#define PLOOP(s,i)	for(i=s; i<nprod; i++)
-#define SLOOP(i)	for(i=0; i<nstate; i++)
-#define WSBUMP(x)	x++
-#define WSLOOP(s,j)	for(j=s; j<cwp; j++)
-#define ITMLOOP(i,p,q)	for(q=pstate[i+1], p=pstate[i]; p<q; p++)
-#define SETLOOP(i)	for(i=0; i<tbitset; i++)
+#define TLOOP(i) for(i = 1; i <= ntokens; i++)
+#define NTLOOP(i) for(i = 0; i <= nnonter; i++)
+#define PLOOP(s, i) for(i = s; i < nprod; i++)
+#define SLOOP(i) for(i = 0; i < nstate; i++)
+#define WSBUMP(x) x++
+#define WSLOOP(s, j) for(j = s; j < cwp; j++)
+#define ITMLOOP(i, p, q) for(q = pstate[i + 1], p = pstate[i]; p < q; p++)
+#define SETLOOP(i) for(i = 0; i < tbitset; i++)
 
-	/* command to clobber tempfiles after use */
+/* command to clobber tempfiles after use */
 
-#define	ZAPFILE(x)	if(x) remove(x)
+#define ZAPFILE(x) \
+	if(x)      \
+	remove(x)
 
-	/* I/O descriptors */
+/* I/O descriptors */
 
-Biobuf*	faction;	/* file for saving actions */
-Biobuf*	fdefine;	/* file for #defines */
-Biobuf*	fdebug;		/* y.debug for strings for debugging */
-Biobuf*	ftable;		/* y.tab.c file */
-Biobuf*	ftemp;		/* tempfile to pass 2 */
-Biobuf*	finput;		/* input file */
-Biobuf*	foutput;	/* y.output file */
+Biobuf *faction; /* file for saving actions */
+Biobuf *fdefine; /* file for #defines */
+Biobuf *fdebug;  /* y.debug for strings for debugging */
+Biobuf *ftable;  /* y.tab.c file */
+Biobuf *ftemp;   /* tempfile to pass 2 */
+Biobuf *finput;  /* input file */
+Biobuf *foutput; /* y.output file */
 
-	/* communication variables between various I/O routines */
+/* communication variables between various I/O routines */
 
-char*	infile;			/* input file name */
-int	numbval;		/* value of an input number */
-char	tokname[NAMESIZE+UTFmax+1]; /* input token name, slop for runes and 0 */
+char *infile;			     /* input file name */
+int numbval;			     /* value of an input number */
+char tokname[NAMESIZE + UTFmax + 1]; /* input token name, slop for runes and 0 */
 
-	/* structure declarations */
+/* structure declarations */
 
-typedef
-struct
-{
-	int	lset[TBITSET];
+typedef struct
+    {
+	int lset[TBITSET];
 } Lkset;
 
-typedef
-struct
-{
-	int*	pitem;
-	Lkset*	look;
+typedef struct
+    {
+	int *pitem;
+	Lkset *look;
 } Item;
 
-typedef
-struct
-{
-	char*	name;
-	int	value;
+typedef struct
+    {
+	char *name;
+	int value;
 } Symb;
 
-typedef
-struct
-{
-	int*	pitem;
-	int	flag;
-	Lkset	ws;
+typedef struct
+    {
+	int *pitem;
+	int flag;
+	Lkset ws;
 } Wset;
 
-	/* storage of names */
+/* storage of names */
 
-char	cnames[CNAMSZ];		/* place where token and nonterminal names are stored */
-int	cnamsz = CNAMSZ;	/* size of cnames */
-char*	cnamp = cnames;		/* place where next name is to be put in */
-int	ndefout = 4;		/* number of defined symbols output */
-char*	tempname;
-char*	actname;
-char	ttempname[] = TEMPNAME;
-char	tactname[] = ACTNAME;
-char*	parser = PARSER;
-char*	yydebug;
+char cnames[CNAMSZ];  /* place where token and nonterminal names are stored */
+int cnamsz = CNAMSZ;  /* size of cnames */
+char *cnamp = cnames; /* place where next name is to be put in */
+int ndefout = 4;      /* number of defined symbols output */
+char *tempname;
+char *actname;
+char ttempname[] = TEMPNAME;
+char tactname[] = ACTNAME;
+char *parser = PARSER;
+char *yydebug;
 
-	/* storage of types */
-int	ntypes;			/* number of types defined */
-char*	typeset[NTYPES];	/* pointers to type tags */
+/* storage of types */
+int ntypes;	    /* number of types defined */
+char *typeset[NTYPES]; /* pointers to type tags */
 
-	/* token information */
+/* token information */
 
-int	ntokens = 0 ;		/* number of tokens */
-Symb	tokset[NTERMS];
-int	toklev[NTERMS];		/* vector with the precedence of the terminals */
+int ntokens = 0; /* number of tokens */
+Symb tokset[NTERMS];
+int toklev[NTERMS]; /* vector with the precedence of the terminals */
 
-	/* nonterminal information */
+/* nonterminal information */
 
-int	nnonter = -1;		/* the number of nonterminals */
-Symb	nontrst[NNONTERM];
-int	start;			/* start symbol */
+int nnonter = -1; /* the number of nonterminals */
+Symb nontrst[NNONTERM];
+int start; /* start symbol */
 
-	/* assigned token type values */
-int	extval = 0;
+/* assigned token type values */
+int extval = 0;
 
-char*	ytabc = OFILE;	/* name of y.tab.c */
+char *ytabc = OFILE; /* name of y.tab.c */
 
-	/* grammar rule information */
+/* grammar rule information */
 
-int	mem0[MEMSIZE] ;		/* production storage */
-int*	mem = mem0;
-int	nprod = 1;		/* number of productions */
-int*	prdptr[NPROD];		/* pointers to descriptions of productions */
-int	levprd[NPROD];		/* precedence levels for the productions */
-int	rlines[NPROD];		/* line number for this rule */
+int mem0[MEMSIZE]; /* production storage */
+int *mem = mem0;
+int nprod = 1;      /* number of productions */
+int *prdptr[NPROD]; /* pointers to descriptions of productions */
+int levprd[NPROD];  /* precedence levels for the productions */
+int rlines[NPROD];  /* line number for this rule */
 
-	/* state information */
+/* state information */
 
-int	nstate = 0;		/* number of states */
-Item*	pstate[NSTATES+2];	/* pointers to the descriptions of the states */
-int	tystate[NSTATES];	/* contains type information about the states */
-int	defact[NSTATES];	/* the default actions of states */
-int	tstates[NTERMS];	/* states generated by terminal gotos */
-int	ntstates[NNONTERM]; 	/* states generated by nonterminal gotos */
-int	mstates[NSTATES];	/* chain of overflows of term/nonterm generation lists  */
-int	lastred; 		/* the number of the last reduction of a state */
+int nstate = 0;		   /* number of states */
+Item *pstate[NSTATES + 2]; /* pointers to the descriptions of the states */
+int tystate[NSTATES];      /* contains type information about the states */
+int defact[NSTATES];       /* the default actions of states */
+int tstates[NTERMS];       /* states generated by terminal gotos */
+int ntstates[NNONTERM];    /* states generated by nonterminal gotos */
+int mstates[NSTATES];      /* chain of overflows of term/nonterm generation lists  */
+int lastred;		   /* the number of the last reduction of a state */
 
-	/* lookahead set information */
+/* lookahead set information */
 
-Lkset	lkst[LSETSIZE];
-int	nolook;			/* flag to turn off lookahead computations */
-int	tbitset;		/* size of lookahead sets */
-int	nlset = 0;		/* next lookahead set index */
-int	nolook = 0;		/* flag to suppress lookahead computations */
-Lkset	clset;  		/* temporary storage for lookahead computations */
+Lkset lkst[LSETSIZE];
+int nolook;     /* flag to turn off lookahead computations */
+int tbitset;    /* size of lookahead sets */
+int nlset = 0;  /* next lookahead set index */
+int nolook = 0; /* flag to suppress lookahead computations */
+Lkset clset;    /* temporary storage for lookahead computations */
 
-	/* working set information */
+/* working set information */
 
-Wset	wsets[WSETSIZE];
-Wset*	cwp;
+Wset wsets[WSETSIZE];
+Wset *cwp;
 
-	/* storage for action table */
+/* storage for action table */
 
-int	amem[ACTSIZE];		/* action table storage */
-int*	memp = amem;		/* next free action table position */
-int	indgo[NSTATES];		/* index to the stored goto table */
+int amem[ACTSIZE];  /* action table storage */
+int *memp = amem;   /* next free action table position */
+int indgo[NSTATES]; /* index to the stored goto table */
 
-	/* temporary vector, indexable by states, terms, or ntokens */
+/* temporary vector, indexable by states, terms, or ntokens */
 
-int	temp1[TEMPSIZE];	/* temporary storage, indexed by terms + ntokens or states */
-int	lineno = 1;		/* current input line number */
-int	fatfl = 1;  		/* if on, error is fatal */
-int	nerrors = 0;		/* number of errors */
+int temp1[TEMPSIZE]; /* temporary storage, indexed by terms + ntokens or states */
+int lineno = 1;      /* current input line number */
+int fatfl = 1;       /* if on, error is fatal */
+int nerrors = 0;     /* number of errors */
 
-	/* statistics collection variables */
+/* statistics collection variables */
 
-int	zzgoent;
-int	zzgobest;
-int	zzacent;
-int	zzexcp;
-int	zzclose;
-int	zzrrconf;
-int	zzsrconf;
+int zzgoent;
+int zzgobest;
+int zzacent;
+int zzexcp;
+int zzclose;
+int zzrrconf;
+int zzsrconf;
 
-int*	ggreed = lkst[0].lset;
-int*	pgo = wsets[0].ws.lset;
-int*	yypgo = &nontrst[0].value;
+int *ggreed = lkst[0].lset;
+int *pgo = wsets[0].ws.lset;
+int *yypgo = &nontrst[0].value;
 
-int	maxspr = 0;  		/* maximum spread of any entry */
-int	maxoff = 0;  		/* maximum offset into a array */
-int*	pmem = mem0;
-int*	maxa;
-int	nxdb = 0;
-int	adb = 0;
+int maxspr = 0; /* maximum spread of any entry */
+int maxoff = 0; /* maximum offset into a array */
+int *pmem = mem0;
+int *maxa;
+int nxdb = 0;
+int adb = 0;
 
+/* storage for information about the nonterminals */
 
-	/* storage for information about the nonterminals */
+int **pres[NNONTERM + 2];    /* vector of pointers to productions yielding each nonterminal */
+Lkset *pfirst[NNONTERM + 2]; /* vector of pointers to first sets for each nonterminal */
+int pempty[NNONTERM + 1];    /* vector of nonterminals nontrivially deriving e */
 
-int**	pres[NNONTERM+2];  	/* vector of pointers to productions yielding each nonterminal */
-Lkset*	pfirst[NNONTERM+2];	/* vector of pointers to first sets for each nonterminal */
-int	pempty[NNONTERM+1];	/* vector of nonterminals nontrivially deriving e */
+/* random stuff picked out from between functions */
 
-	/* random stuff picked out from between functions */
-
-int	indebug = 0;
-Wset*	zzcwp = wsets;
-int	zzgoent = 0;
-int	zzgobest = 0;
-int	zzacent = 0;
-int	zzexcp = 0;
-int	zzclose = 0;
-int	zzsrconf = 0;
-int*	zzmemsz = mem0;
-int	zzrrconf = 0;
-int	pidebug = 0;		/* debugging flag for putitem */
-int	gsdebug = 0;
-int	cldebug = 0;		/* debugging flag for closure */
-int	pkdebug = 0;
-int	g2debug = 0;
+int indebug = 0;
+Wset *zzcwp = wsets;
+int zzgoent = 0;
+int zzgobest = 0;
+int zzacent = 0;
+int zzexcp = 0;
+int zzclose = 0;
+int zzsrconf = 0;
+int *zzmemsz = mem0;
+int zzrrconf = 0;
+int pidebug = 0; /* debugging flag for putitem */
+int gsdebug = 0;
+int cldebug = 0; /* debugging flag for closure */
+int pkdebug = 0;
+int g2debug = 0;
 
 struct
-{
-	char*	name;
-	int32_t	value;
+    {
+	char *name;
+	int32_t value;
 } resrv[] =
-{
-	"binary",	BINARY,
-	"left",		LEFT,
-	"nonassoc",	BINARY,
-	"prec",		PREC,
-	"right",	RIGHT,
-	"start",	START,
-	"term",		TERM,
-	"token",	TERM,
-	"type",		TYPEDEF,
-	"union",	UNION,
-	0,
+    {
+     "binary", BINARY,
+     "left", LEFT,
+     "nonassoc", BINARY,
+     "prec", PREC,
+     "right", RIGHT,
+     "start", START,
+     "term", TERM,
+     "token", TERM,
+     "type", TYPEDEF,
+     "union", UNION,
+     0,
 };
 
-	/* define functions */
+/* define functions */
 
-void	main(int, char**);
-void	others(void);
-char*	chcopy(char*, char*);
-char*	writem(int*);
-char*	symnam(int);
-void	summary(void);
-void	error(char*, ...);
-void	aryfil(int*, int, int);
-int	setunion(int*, int*);
-void	prlook(Lkset*);
-void	cpres(void);
-void	cpfir(void);
-int	state(int);
-void	putitem(int*, Lkset*);
-void	cempty(void);
-void	stagen(void);
-void	closure(int);
-Lkset*	flset(Lkset*);
-void	cleantmp(void);
-void	intr(void);
-void	setup(int, char**);
-void	finact(void);
-int	defin(int, char*);
-void	defout(int);
-char*	cstash(char*);
-int32_t	gettok(void);
-int	fdtype(int);
-int	chfind(int, char*);
-void	cpyunion(void);
-void	cpycode(void);
-int	skipcom(void);
-void	cpyact(int);
-void	openup(char*, int, int, int, char*);
-void	output(void);
-int	apack(int*, int);
-void	go2out(void);
-void	go2gen(int);
-void	precftn(int, int, int);
-void	wract(int);
-void	wrstate(int);
-void	warray(char*, int*, int);
-void	hideprod(void);
-void	callopt(void);
-void	gin(int);
-void	stin(int);
-int	nxti(void);
-void	osummary(void);
-void	aoutput(void);
-void	arout(char*, int*, int);
-int	gtnm(void);
+void main(int, char **);
+void others(void);
+char *chcopy(char *, char *);
+char *writem(int *);
+char *symnam(int);
+void summary(void);
+void error(char *, ...);
+void aryfil(int *, int, int);
+int setunion(int *, int *);
+void prlook(Lkset *);
+void cpres(void);
+void cpfir(void);
+int state(int);
+void putitem(int *, Lkset *);
+void cempty(void);
+void stagen(void);
+void closure(int);
+Lkset *flset(Lkset *);
+void cleantmp(void);
+void intr(void);
+void setup(int, char **);
+void finact(void);
+int defin(int, char *);
+void defout(int);
+char *cstash(char *);
+int32_t gettok(void);
+int fdtype(int);
+int chfind(int, char *);
+void cpyunion(void);
+void cpycode(void);
+int skipcom(void);
+void cpyact(int);
+void openup(char *, int, int, int, char *);
+void output(void);
+int apack(int *, int);
+void go2out(void);
+void go2gen(int);
+void precftn(int, int, int);
+void wract(int);
+void wrstate(int);
+void warray(char *, int *, int);
+void hideprod(void);
+void callopt(void);
+void gin(int);
+void stin(int);
+int nxti(void);
+void osummary(void);
+void aoutput(void);
+void arout(char *, int *, int);
+int gtnm(void);
 
 void
 main(int argc, char *argv[])
 {
 
-	setup(argc, argv);	/* initialize and read productions */
+	setup(argc, argv); /* initialize and read productions */
 	tbitset = NWORDS(ntokens);
-	cpres();		/* make table of which productions yield a given nonterminal */
-	cempty();		/* make a table of which nonterminals can match the empty string */
-	cpfir();		/* make a table of firsts of nonterminals */
-	stagen();		/* generate the states */
-	output();		/* write the states and the tables */
+	cpres();  /* make table of which productions yield a given nonterminal */
+	cempty(); /* make a table of which nonterminals can match the empty string */
+	cpfir();  /* make a table of firsts of nonterminals */
+	stagen(); /* generate the states */
+	output(); /* write the states and the tables */
 	go2out();
 	hideprod();
 	summary();
@@ -414,16 +410,16 @@ others(void)
 	warray("yyr1", levprd, nprod);
 	aryfil(temp1, nprod, 0);
 	PLOOP(1, i)
-		temp1[i] = prdptr[i+1]-prdptr[i]-2;
+	temp1[i] = prdptr[i + 1] - prdptr[i] - 2;
 	warray("yyr2", temp1, nprod);
 
 	aryfil(temp1, nstate, -1000);
 	TLOOP(i)
-		for(j=tstates[i]; j!=0; j=mstates[j])
-			temp1[j] = i;
+	for(j = tstates[i]; j != 0; j = mstates[j])
+		temp1[j] = i;
 	NTLOOP(i)
-		for(j=ntstates[i]; j!=0; j=mstates[j])
-			temp1[j] = -i;
+	for(j = ntstates[i]; j != 0; j = mstates[j])
+		temp1[j] = -i;
 	warray("yychk", temp1, nstate);
 	warray("yydef", defact, nstate);
 
@@ -431,7 +427,8 @@ others(void)
 	/* table 1 has 0-256 */
 	aryfil(temp1, 256, 0);
 	c = 0;
-	TLOOP(i) {
+	TLOOP(i)
+	{
 		j = tokset[i].value;
 		if(j >= 0 && j < 256) {
 			if(temp1[j]) {
@@ -444,12 +441,13 @@ others(void)
 				c = j;
 		}
 	}
-	warray("yytok1", temp1, c+1);
+	warray("yytok1", temp1, c + 1);
 
 	/* table 2 has PRIVATE-PRIVATE+256 */
 	aryfil(temp1, 256, 0);
 	c = 0;
-	TLOOP(i) {
+	TLOOP(i)
+	{
 		j = tokset[i].value - PRIVATE;
 		if(j >= 0 && j < 256) {
 			if(temp1[j]) {
@@ -462,27 +460,28 @@ others(void)
 				c = j;
 		}
 	}
-	warray("yytok2", temp1, c+1);
+	warray("yytok2", temp1, c + 1);
 
 	/* table 3 has everything else */
 	Bprint(ftable, "int32_t	yytok3[] =\n{\n");
 	c = 0;
-	TLOOP(i) {
+	TLOOP(i)
+	{
 		j = tokset[i].value;
 		if(j >= 0 && j < 256)
 			continue;
-		if(j >= PRIVATE && j < 256+PRIVATE)
+		if(j >= PRIVATE && j < 256 + PRIVATE)
 			continue;
 
 		Bprint(ftable, "%4d,%4d,", j, i);
 		c++;
-		if(c%5 == 0)
+		if(c % 5 == 0)
 			Bprint(ftable, "\n");
 	}
 	Bprint(ftable, "%4d\n};\n", 0);
 
 	/* copy parser text */
-	while((c=Bgetrune(finput)) != Beof) {
+	while((c = Bgetrune(finput)) != Beof) {
 		if(c == '$') {
 			if((c = Bgetrune(finput)) != 'A')
 				Bputrune(ftable, '$');
@@ -490,7 +489,7 @@ others(void)
 				faction = Bopen(actname, OREAD);
 				if(faction == 0)
 					error("cannot reopen action tempfile");
-				while((c=Bgetrune(faction)) != Beof)
+				while((c = Bgetrune(faction)) != Beof)
 					Bputrune(ftable, c);
 				Bterm(faction);
 				ZAPFILE(actname);
@@ -505,8 +504,8 @@ others(void)
 /*
  * copies string q into p, returning next free char ptr
  */
-char*
-chcopy(char* p, char* q)
+char *
+chcopy(char *p, char *q)
 {
 	int c;
 
@@ -523,17 +522,17 @@ chcopy(char* p, char* q)
 /*
  * creates output string for item pointed to by pp
  */
-char*
+char *
 writem(int *pp)
 {
-	int i,*p;
+	int i, *p;
 	static char sarr[ISIZE];
-	char* q;
+	char *q;
 
-	for(p=pp; *p>0; p++)
+	for(p = pp; *p > 0; p++)
 		;
 	p = prdptr[-*p];
-	q = chcopy(sarr, nontrst[*p-NTBASE].name);
+	q = chcopy(sarr, nontrst[*p - NTBASE].name);
 	q = chcopy(q, ": ");
 	for(;;) {
 		*q = ' ';
@@ -546,13 +545,13 @@ writem(int *pp)
 		if(i <= 0)
 			break;
 		q = chcopy(q, symnam(i));
-		if(q > &sarr[ISIZE-30])
+		if(q > &sarr[ISIZE - 30])
 			error("item too big");
 	}
 
 	/* an item calling for a reduction */
 	i = *pp;
-	if(i < 0 ) {
+	if(i < 0) {
 		q = chcopy(q, "    (");
 		sprint(q, "%d)", -i);
 	}
@@ -562,12 +561,12 @@ writem(int *pp)
 /*
  * return a pointer to the name of symbol i
  */
-char*
+char *
 symnam(int i)
 {
-	char* cp;
+	char *cp;
 
-	cp = (i >= NTBASE)? nontrst[i-NTBASE].name: tokset[i].name;
+	cp = (i >= NTBASE) ? nontrst[i - NTBASE].name : tokset[i].name;
 	if(*cp == ' ')
 		cp++;
 	return cp;
@@ -582,17 +581,17 @@ summary(void)
 
 	if(foutput != 0) {
 		Bprint(foutput, "\n%d/%d terminals, %d/%d nonterminals\n",
-			ntokens, NTERMS, nnonter, NNONTERM);
+		       ntokens, NTERMS, nnonter, NNONTERM);
 		Bprint(foutput, "%d/%d grammar rules, %d/%d states\n",
-			nprod, NPROD, nstate, NSTATES);
+		       nprod, NPROD, nstate, NSTATES);
 		Bprint(foutput, "%d shift/reduce, %d reduce/reduce conflicts reported\n",
-			zzsrconf, zzrrconf);
+		       zzsrconf, zzrrconf);
 		Bprint(foutput, "%d/%d working sets used\n",
-			(int)(zzcwp-wsets), WSETSIZE);
+		       (int)(zzcwp - wsets), WSETSIZE);
 		Bprint(foutput, "memory: states,etc. %d/%d, parser %d/%d\n",
-			(int)(zzmemsz-mem0), MEMSIZE, (int)(memp-amem), ACTSIZE);
+		       (int)(zzmemsz - mem0), MEMSIZE, (int)(memp - amem), ACTSIZE);
 		Bprint(foutput, "%d/%d distinct lookahead sets\n", nlset, LSETSIZE);
-		Bprint(foutput, "%d extra closures\n", zzclose - 2*nstate);
+		Bprint(foutput, "%d extra closures\n", zzclose - 2 * nstate);
 		Bprint(foutput, "%d shift entries, %d exceptions\n", zzacent, zzexcp);
 		Bprint(foutput, "%d goto entries\n", zzgoent);
 		Bprint(foutput, "%d entries saved by goto default\n", zzgobest);
@@ -643,7 +642,7 @@ aryfil(int *v, int n, int c)
 {
 	int i;
 
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		v[i] = c;
 }
 
@@ -657,7 +656,8 @@ setunion(int *a, int *b)
 	int i, x, sub;
 
 	sub = 0;
-	SETLOOP(i) {
+	SETLOOP(i)
+	{
 		x = *a;
 		*a |= *b;
 		if(*a != x)
@@ -669,7 +669,7 @@ setunion(int *a, int *b)
 }
 
 void
-prlook(Lkset* p)
+prlook(Lkset *p)
 {
 	int j, *pp;
 
@@ -679,8 +679,8 @@ prlook(Lkset* p)
 	else {
 		Bprint(foutput, " { ");
 		TLOOP(j)
-			if(BIT(pp,j))
-				Bprint(foutput, "%s ", symnam(j));
+		if(BIT(pp, j))
+			Bprint(foutput, "%s ", symnam(j));
 		Bprint(foutput, "}");
 	}
 }
@@ -697,13 +697,14 @@ cpres(void)
 	static int *pyield[NPROD];
 
 	pmem = pyield;
-	NTLOOP(i) {
-		c = i+NTBASE;
+	NTLOOP(i)
+	{
+		c = i + NTBASE;
 		pres[i] = pmem;
-		fatfl = 0;  	/* make undefined  symbols  nonfatal */
+		fatfl = 0; /* make undefined  symbols  nonfatal */
 		PLOOP(0, j)
-			if(*prdptr[j] == c)
-				*pmem++ =  prdptr[j]+1;
+		if(*prdptr[j] == c)
+			*pmem++ = prdptr[j] + 1;
 		if(pres[i] == pmem)
 			error("nonterminal %s not defined!", nontrst[i].name);
 	}
@@ -715,7 +716,7 @@ cpres(void)
 		exits("error");
 	}
 	if(pmem != &pyield[nprod])
-		error("internal Yacc error: pyield %d", pmem-&pyield[nprod]);
+		error("internal Yacc error: pyield %d", pmem - &pyield[nprod]);
 }
 
 /*
@@ -727,17 +728,18 @@ cpfir(void)
 	int *p, **s, i, **t, ch, changes;
 
 	zzcwp = &wsets[nnonter];
-	NTLOOP(i) {
+	NTLOOP(i)
+	{
 		aryfil(wsets[i].ws.lset, tbitset, 0);
-		t = pres[i+1];
+		t = pres[i + 1];
 		/* initially fill the sets */
-		for(s=pres[i]; s<t; ++s)
+		for(s = pres[i]; s < t; ++s)
 			for(p = *s; (ch = *p) > 0; ++p) {
 				if(ch < NTBASE) {
 					SETBIT(wsets[i].ws.lset, ch);
 					break;
 				}
-				if(!pempty[ch-NTBASE])
+				if(!pempty[ch - NTBASE])
 					break;
 			}
 	}
@@ -746,10 +748,11 @@ cpfir(void)
 	changes = 1;
 	while(changes) {
 		changes = 0;
-		NTLOOP(i) {
-			t = pres[i+1];
+		NTLOOP(i)
+		{
+			t = pres[i + 1];
 			for(s = pres[i]; s < t; ++s)
-				for(p = *s; (ch = (*p-NTBASE)) >= 0; ++p) {
+				for(p = *s; (ch = (*p - NTBASE)) >= 0; ++p) {
 					changes |= setunion(wsets[i].ws.lset, wsets[ch].ws.lset);
 					if(!pempty[ch])
 						break;
@@ -758,11 +761,12 @@ cpfir(void)
 	}
 
 	NTLOOP(i)
-		pfirst[i] = flset(&wsets[i].ws);
+	pfirst[i] = flset(&wsets[i].ws);
 	if(!indebug)
 		return;
 	if(foutput != 0)
-		NTLOOP(i) {
+		NTLOOP(i)
+		{
 			Bprint(foutput, "\n%s: ", nontrst[i].name);
 			prlook(pfirst[i]);
 			Bprint(foutput, " %d\n", pempty[i]);
@@ -779,12 +783,12 @@ state(int c)
 	int size1, size2, i;
 
 	p1 = pstate[nstate];
-	p2 = pstate[nstate+1];
+	p2 = pstate[nstate + 1];
 	if(p1 == p2)
-		return 0;	/* null state */
+		return 0; /* null state */
 	/* sort the items */
-	for(k = p2-1; k > p1; k--)	/* make k the biggest */
-		for(l = k-1; l >= p1; --l)
+	for(k = p2 - 1; k > p1; k--) /* make k the biggest */
+		for(l = k - 1; l >= p1; --l)
 			if(l->pitem > k->pitem) {
 				int *s;
 				Lkset *ss;
@@ -796,12 +800,12 @@ state(int c)
 				k->look = l->look;
 				l->look = ss;
 			}
-	size1 = p2 - p1;	/* size of state */
+	size1 = p2 - p1; /* size of state */
 
-	for(i = (c>=NTBASE)? ntstates[c-NTBASE]: tstates[c]; i != 0; i = mstates[i]) {
+	for(i = (c >= NTBASE) ? ntstates[c - NTBASE] : tstates[c]; i != 0; i = mstates[i]) {
 		/* get ith state */
 		q1 = pstate[i];
-		q2 = pstate[i+1];
+		q2 = pstate[i + 1];
 		size2 = q2 - q1;
 		if(size1 != size2)
 			continue;
@@ -814,19 +818,19 @@ state(int c)
 		if(l != q2)
 			continue;
 		/* found it */
-		pstate[nstate+1] = pstate[nstate];	/* delete last state */
+		pstate[nstate + 1] = pstate[nstate]; /* delete last state */
 		/* fix up lookaheads */
 		if(nolook)
 			return i;
-		for(l = q1, k = p1; l < q2; ++l, ++k ) {
+		for(l = q1, k = p1; l < q2; ++l, ++k) {
 			int s;
 
 			SETLOOP(s)
-				clset.lset[s] = l->look->lset[s];
+			clset.lset[s] = l->look->lset[s];
 			if(setunion(clset.lset, k->look->lset)) {
 				tystate[i] = MUSTDO;
 				/* register the new set */
-				l->look = flset( &clset );
+				l->look = flset(&clset);
 			}
 		}
 		return i;
@@ -834,12 +838,12 @@ state(int c)
 	/* state is new */
 	if(nolook)
 		error("yacc state/nolook error");
-	pstate[nstate+2] = p2;
-	if(nstate+1 >= NSTATES)
+	pstate[nstate + 2] = p2;
+	if(nstate + 1 >= NSTATES)
 		error("too many states");
 	if(c >= NTBASE) {
-		mstates[nstate] = ntstates[c-NTBASE];
-		ntstates[c-NTBASE] = nstate;
+		mstates[nstate] = ntstates[c - NTBASE];
+		ntstates[c - NTBASE] = nstate;
 	} else {
 		mstates[nstate] = tstates[c];
 		tstates[c] = nstate;
@@ -855,14 +859,14 @@ putitem(int *ptr, Lkset *lptr)
 
 	if(pidebug && foutput != 0)
 		Bprint(foutput, "putitem(%s), state %d\n", writem(ptr), nstate);
-	j = pstate[nstate+1];
+	j = pstate[nstate + 1];
 	j->pitem = ptr;
 	if(!nolook)
 		j->look = flset(lptr);
-	pstate[nstate+1] = ++j;
-	if((int*)j > zzmemsz) {
-		zzmemsz = (int*)j;
-		if(zzmemsz >=  &mem0[MEMSIZE])
+	pstate[nstate + 1] = ++j;
+	if((int *)j > zzmemsz) {
+		zzmemsz = (int *)j;
+		if(zzmemsz >= &mem0[MEMSIZE])
 			error("out of state space");
 	}
 }
@@ -879,25 +883,27 @@ cempty(void)
 
 	/* first, use the array pempty to detect productions that can never be reduced */
 	/* set pempty to WHONOWS */
-	aryfil(pempty, nnonter+1, WHOKNOWS);
+	aryfil(pempty, nnonter + 1, WHOKNOWS);
 
-	/* now, look at productions, marking nonterminals which derive something */
+/* now, look at productions, marking nonterminals which derive something */
 more:
-	PLOOP(0, i) {
+	PLOOP(0, i)
+	{
 		if(pempty[*prdptr[i] - NTBASE])
 			continue;
-		for(p = prdptr[i]+1; *p >= 0; ++p)
-			if(*p >= NTBASE && pempty[*p-NTBASE] == WHOKNOWS)
+		for(p = prdptr[i] + 1; *p >= 0; ++p)
+			if(*p >= NTBASE && pempty[*p - NTBASE] == WHOKNOWS)
 				break;
 		/* production can be derived */
 		if(*p < 0) {
-			pempty[*prdptr[i]-NTBASE] = OK;
+			pempty[*prdptr[i] - NTBASE] = OK;
 			goto more;
 		}
 	}
 
 	/* now, look at the nonterminals, to see if they are all OK */
-	NTLOOP(i) {
+	NTLOOP(i)
+	{
 		/* the added production rises or falls as the start symbol ... */
 		if(i == 0)
 			continue;
@@ -915,19 +921,20 @@ more:
 
 	/* now, compute the pempty array, to see which nonterminals derive the empty string */
 	/* set pempty to WHOKNOWS */
-	aryfil( pempty, nnonter+1, WHOKNOWS);
+	aryfil(pempty, nnonter + 1, WHOKNOWS);
 
-	/* loop as int32_t as we keep finding empty nonterminals */
+/* loop as int32_t as we keep finding empty nonterminals */
 
 again:
-	PLOOP(1, i) {
+	PLOOP(1, i)
+	{
 		/* not known to be empty */
-		if(pempty[*prdptr[i]-NTBASE] == WHOKNOWS) {
-			for(p = prdptr[i]+1; *p >= NTBASE && pempty[*p-NTBASE] == EMPTY ; ++p)
+		if(pempty[*prdptr[i] - NTBASE] == WHOKNOWS) {
+			for(p = prdptr[i] + 1; *p >= NTBASE && pempty[*p - NTBASE] == EMPTY; ++p)
 				;
 			/* we have a nontrivially empty nonterminal */
 			if(*p < 0) {
-				pempty[*prdptr[i]-NTBASE] = EMPTY;
+				pempty[*prdptr[i] - NTBASE] = EMPTY;
 				/* got one ... try for another */
 				goto again;
 			}
@@ -956,9 +963,9 @@ stagen(void)
 	 * accept that if pointers don't fit in integers, there is a problem...
 	 */
 
-	pstate[0] = pstate[1] = (Item*)mem;
+	pstate[0] = pstate[1] = (Item *)mem;
 	aryfil(clset.lset, tbitset, 0);
-	putitem(prdptr[0]+1, &clset);
+	putitem(prdptr[0] + 1, &clset);
 	tystate[0] = MUSTDO;
 	nstate = 1;
 	pstate[2] = pstate[1];
@@ -966,47 +973,49 @@ stagen(void)
 	aryfil(amem, ACTSIZE, 0);
 
 	/* now, the main state generation loop */
-	for(more=1; more;) {
+	for(more = 1; more;) {
 		more = 0;
-		SLOOP(i) {
+		SLOOP(i)
+		{
 			if(tystate[i] != MUSTDO)
 				continue;
 			tystate[i] = DONE;
-			aryfil(temp1, nnonter+1, 0);
+			aryfil(temp1, nnonter + 1, 0);
 			/* take state i, close it, and do gotos */
 			closure(i);
 			/* generate goto's */
-			WSLOOP(wsets, p) {
+			WSLOOP(wsets, p)
+			{
 				if(p->flag)
 					continue;
 				p->flag = 1;
 				c = *(p->pitem);
 				if(c <= 1) {
-					if(pstate[i+1]-pstate[i] <= p-wsets)
+					if(pstate[i + 1] - pstate[i] <= p - wsets)
 						tystate[i] = MUSTLOOKAHEAD;
 					continue;
 				}
 				/* do a goto on c */
 				WSLOOP(p, q)
-					/* this item contributes to the goto */
-					if(c == *(q->pitem)) {
-						putitem(q->pitem+1, &q->ws);
-						q->flag = 1;
-					}
+				/* this item contributes to the goto */
+				if(c == *(q->pitem)) {
+					putitem(q->pitem + 1, &q->ws);
+					q->flag = 1;
+				}
 				if(c < NTBASE)
-					state(c);	/* register new state */
+					state(c); /* register new state */
 				else
-					temp1[c-NTBASE] = state(c);
+					temp1[c - NTBASE] = state(c);
 			}
 			if(gsdebug && foutput != 0) {
 				Bprint(foutput, "%d: ", i);
 				NTLOOP(j)
-					if(temp1[j])
-						Bprint(foutput, "%s %d, ",
-						nontrst[j].name, temp1[j]);
+				if(temp1[j])
+					Bprint(foutput, "%s %d, ",
+					       nontrst[j].name, temp1[j]);
 				Bprint(foutput, "\n");
 			}
-			indgo[i] = apack(&temp1[1], nnonter-1) - 1;
+			indgo[i] = apack(&temp1[1], nnonter - 1) - 1;
 			/* do some more */
 			more = 1;
 		}
@@ -1028,11 +1037,12 @@ closure(int i)
 
 	/* first, copy kernel of state i to wsets */
 	cwp = wsets;
-	ITMLOOP(i, p, q) {
+	ITMLOOP(i, p, q)
+	{
 		cwp->pitem = p->pitem;
-		cwp->flag = 1;			/* this item must get closed */
+		cwp->flag = 1; /* this item must get closed */
 		SETLOOP(k)
-			cwp->ws.lset[k] = p->look->lset[k];
+		cwp->ws.lset[k] = p->look->lset[k];
 		WSBUMP(cwp);
 	}
 
@@ -1040,7 +1050,8 @@ closure(int i)
 	work = 1;
 	while(work) {
 		work = 0;
-		WSLOOP(wsets, u) {
+		WSLOOP(wsets, u)
+		{
 			if(u->flag == 0)
 				continue;
 			/* dot is before c */
@@ -1056,49 +1067,49 @@ closure(int i)
 
 			/* find items involving c */
 			WSLOOP(u, v)
-				if(v->flag == 1 && *(pi=v->pitem) == c) {
-					v->flag = 0;
-					if(nolook)
-						continue;
-					while((ch = *++pi) > 0) {
-						/* terminal symbol */
-						if(ch < NTBASE) {
-							SETBIT(clset.lset, ch);
-							break;
-						}
-						/* nonterminal symbol */
-						setunion(clset.lset, pfirst[ch-NTBASE]->lset);
-						if(!pempty[ch-NTBASE])
-							break;
+			if(v->flag == 1 && *(pi = v->pitem) == c) {
+				v->flag = 0;
+				if(nolook)
+					continue;
+				while((ch = *++pi) > 0) {
+					/* terminal symbol */
+					if(ch < NTBASE) {
+						SETBIT(clset.lset, ch);
+						break;
 					}
-					if(ch <= 0)
-						setunion(clset.lset, v->ws.lset);
+					/* nonterminal symbol */
+					setunion(clset.lset, pfirst[ch - NTBASE]->lset);
+					if(!pempty[ch - NTBASE])
+						break;
 				}
+				if(ch <= 0)
+					setunion(clset.lset, v->ws.lset);
+			}
 
 			/*
 			 * now loop over productions derived from c
 			 * c is now nonterminal number
 			 */
 			c -= NTBASE;
-			t = pres[c+1];
+			t = pres[c + 1];
 			for(s = pres[c]; s < t; ++s) {
 				/*
 				 * put these items into the closure
 				 * is the item there
 				 */
 				WSLOOP(wsets, v)
-					/* yes, it is there */
-					if(v->pitem == *s) {
-						if(nolook)
-							goto nexts;
-						if(setunion(v->ws.lset, clset.lset))
-							v->flag = work = 1;
+				/* yes, it is there */
+				if(v->pitem == *s) {
+					if(nolook)
 						goto nexts;
-					}
+					if(setunion(v->ws.lset, clset.lset))
+						v->flag = work = 1;
+					goto nexts;
+				}
 
 				/*  not there; make a new entry */
-				if(cwp-wsets+1 >= WSETSIZE)
-					error( "working set overflow");
+				if(cwp - wsets + 1 >= WSETSIZE)
+					error("working set overflow");
 				cwp->pitem = *s;
 				cwp->flag = 1;
 				if(!nolook) {
@@ -1107,7 +1118,8 @@ closure(int i)
 				}
 				WSBUMP(cwp);
 
-			nexts:;
+			nexts:
+				;
 			}
 		}
 	}
@@ -1117,7 +1129,8 @@ closure(int i)
 		zzcwp = cwp;
 	if(cldebug && foutput != 0) {
 		Bprint(foutput, "\nState %d, nolook = %d\n", i, nolook);
-		WSLOOP(wsets, u) {
+		WSLOOP(wsets, u)
+		{
 			if(u->flag)
 				Bprint(foutput, "flag set!\n");
 			u->flag = 0;
@@ -1132,7 +1145,7 @@ closure(int i)
  * decide if the lookahead set pointed to by p is known
  * return pointer to a perminent location for the set
  */
-Lkset*
+Lkset *
 flset(Lkset *p)
 {
 	Lkset *q;
@@ -1147,14 +1160,15 @@ flset(Lkset *p)
 				goto more;
 		/* we have matched */
 		return q;
-	more:;
+	more:
+		;
 	}
 	/* add a new one */
 	q = &lkst[nlset++];
 	if(nlset >= LSETSIZE)
 		error("too many lookahead sets");
 	SETLOOP(j)
-		q->lset[j] = p->lset[j];
+	q->lset[j] = p->lset[j];
 	return q;
 }
 
@@ -1195,7 +1209,8 @@ setup(int argc, char *argv[])
 	foutput = 0;
 	fdefine = 0;
 	fdebug = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 	case 'V':
 		vflag++;
@@ -1219,7 +1234,8 @@ setup(int argc, char *argv[])
 		break;
 	default:
 		error("illegal option: %c", ARGC());
-	}ARGEND
+	}
+	ARGEND
 	openup(stemc, dflag, vflag, ytab, ytabc);
 
 	ftemp = Bopen(tempname = mktemp(ttempname), OWRITE);
@@ -1229,10 +1245,10 @@ setup(int argc, char *argv[])
 	if(argc < 1)
 		error("no input file");
 	infile = argv[0];
-	if(infile[0] != '/' && getwd(dirbuf, sizeof dirbuf)!=nil){
-		i = strlen(infile)+1+strlen(dirbuf)+1+10;
+	if(infile[0] != '/' && getwd(dirbuf, sizeof dirbuf) != nil) {
+		i = strlen(infile) + 1 + strlen(dirbuf) + 1 + 10;
 		s = malloc(i);
-		if(s != nil){
+		if(s != nil) {
 			snprint(s, i, "%s/%s", dirbuf, infile);
 			cleanname(s);
 			infile = s;
@@ -1244,7 +1260,7 @@ setup(int argc, char *argv[])
 	cnamp = cnames;
 
 	defin(0, "$end");
-	extval = PRIVATE;	/* tokens start in unicode 'private use' */
+	extval = PRIVATE; /* tokens start in unicode 'private use' */
 	defin(0, "error");
 	defin(1, "$accept");
 	defin(0, "$unk");
@@ -1252,123 +1268,123 @@ setup(int argc, char *argv[])
 	i = 0;
 
 	for(t = gettok(); t != MARK && t != ENDFILE;)
-	switch(t) {
-	case ';':
-		t = gettok();
-		break;
-
-	case START:
-		if(gettok() != IDENTIFIER)
-			error("bad %%start construction");
-		start = chfind(1, tokname);
-		t = gettok();
-		continue;
-
-	case TYPEDEF:
-		if(gettok() != TYPENAME)
-			error("bad syntax in %%type");
-		ty = numbval;
-		for(;;) {
+		switch(t) {
+		case ';':
 			t = gettok();
-			switch(t) {
-			case IDENTIFIER:
-				if((t=chfind(1, tokname)) < NTBASE) {
-					j = TYPE(toklev[t]);
-					if(j != 0 && j != ty)
-						error("type redeclaration of token %s",
-							tokset[t].name);
-					else
-						SETTYPE(toklev[t], ty);
-				} else {
-					j = nontrst[t-NTBASE].value;
-					if(j != 0 && j != ty)
-						error("type redeclaration of nonterminal %s",
-							nontrst[t-NTBASE].name );
-					else
-						nontrst[t-NTBASE].value = ty;
-				}
-			case ',':
-				continue;
-			case ';':
-				t = gettok();
-			default:
-				break;
-			}
 			break;
-		}
-		continue;
 
-	case UNION:
-		/* copy the union declaration to the output */
-		cpyunion();
-		t = gettok();
-		continue;
+		case START:
+			if(gettok() != IDENTIFIER)
+				error("bad %%start construction");
+			start = chfind(1, tokname);
+			t = gettok();
+			continue;
 
-	case LEFT:
-	case BINARY:
-	case RIGHT:
-		i++;
-
-	case TERM:
-		/* nonzero means new prec. and assoc. */
-		lev = t-TERM;
-		ty = 0;
-
-		/* get identifiers so defined */
-		t = gettok();
-
-		/* there is a type defined */
-		if(t == TYPENAME) {
+		case TYPEDEF:
+			if(gettok() != TYPENAME)
+				error("bad syntax in %%type");
 			ty = numbval;
-			t = gettok();
-		}
-		for(;;) {
-			switch(t) {
-			case ',':
+			for(;;) {
 				t = gettok();
-				continue;
-
-			case ';':
-				break;
-
-			case IDENTIFIER:
-				j = chfind(0, tokname);
-				if(j >= NTBASE)
-					error("%s defined earlier as nonterminal", tokname);
-				if(lev) {
-					if(ASSOC(toklev[j]))
-						error("redeclaration of precedence of %s", tokname);
-					SETASC(toklev[j], lev);
-					SETPLEV(toklev[j], i);
-				}
-				if(ty) {
-					if(TYPE(toklev[j]))
-						error("redeclaration of type of %s", tokname);
-					SETTYPE(toklev[j],ty);
-				}
-				t = gettok();
-				if(t == NUMBER) {
-					tokset[j].value = numbval;
-					if(j < ndefout && j > 3)
-						error("please define type number of %s earlier",
-							tokset[j].name);
+				switch(t) {
+				case IDENTIFIER:
+					if((t = chfind(1, tokname)) < NTBASE) {
+						j = TYPE(toklev[t]);
+						if(j != 0 && j != ty)
+							error("type redeclaration of token %s",
+							      tokset[t].name);
+						else
+							SETTYPE(toklev[t], ty);
+					} else {
+						j = nontrst[t - NTBASE].value;
+						if(j != 0 && j != ty)
+							error("type redeclaration of nonterminal %s",
+							      nontrst[t - NTBASE].name);
+						else
+							nontrst[t - NTBASE].value = ty;
+					}
+				case ',':
+					continue;
+				case ';':
 					t = gettok();
+				default:
+					break;
 				}
-				continue;
+				break;
 			}
-			break;
+			continue;
+
+		case UNION:
+			/* copy the union declaration to the output */
+			cpyunion();
+			t = gettok();
+			continue;
+
+		case LEFT:
+		case BINARY:
+		case RIGHT:
+			i++;
+
+		case TERM:
+			/* nonzero means new prec. and assoc. */
+			lev = t - TERM;
+			ty = 0;
+
+			/* get identifiers so defined */
+			t = gettok();
+
+			/* there is a type defined */
+			if(t == TYPENAME) {
+				ty = numbval;
+				t = gettok();
+			}
+			for(;;) {
+				switch(t) {
+				case ',':
+					t = gettok();
+					continue;
+
+				case ';':
+					break;
+
+				case IDENTIFIER:
+					j = chfind(0, tokname);
+					if(j >= NTBASE)
+						error("%s defined earlier as nonterminal", tokname);
+					if(lev) {
+						if(ASSOC(toklev[j]))
+							error("redeclaration of precedence of %s", tokname);
+						SETASC(toklev[j], lev);
+						SETPLEV(toklev[j], i);
+					}
+					if(ty) {
+						if(TYPE(toklev[j]))
+							error("redeclaration of type of %s", tokname);
+						SETTYPE(toklev[j], ty);
+					}
+					t = gettok();
+					if(t == NUMBER) {
+						tokset[j].value = numbval;
+						if(j < ndefout && j > 3)
+							error("please define type number of %s earlier",
+							      tokset[j].name);
+						t = gettok();
+					}
+					continue;
+				}
+				break;
+			}
+			continue;
+
+		case LCURLY:
+			defout(0);
+			cpycode();
+			t = gettok();
+			continue;
+
+		default:
+			error("syntax error");
 		}
-		continue;
-
-	case LCURLY:
-		defout(0);
-		cpycode();
-		t = gettok();
-		continue;
-
-	default:
-		error("syntax error");
-	}
 	if(t == ENDFILE)
 		error("unexpected EOF before %%");
 
@@ -1376,7 +1392,7 @@ setup(int argc, char *argv[])
 	Bprint(ftable, "extern	int	yyerrflag;\n");
 	Bprint(ftable, "#ifndef	YYMAXDEPTH\n");
 	Bprint(ftable, "#define	YYMAXDEPTH	150\n");
-	Bprint(ftable, "#endif\n" );
+	Bprint(ftable, "#endif\n");
 	if(!ntypes) {
 		Bprint(ftable, "#ifndef	YYSTYPE\n");
 		Bprint(ftable, "#define	YYSTYPE	int\n");
@@ -1395,7 +1411,7 @@ setup(int argc, char *argv[])
 	*mem++ = 1;
 	*mem++ = 0;
 	prdptr[1] = mem;
-	while((t=gettok()) == LCURLY)
+	while((t = gettok()) == LCURLY)
 		cpycode();
 	if(t != IDENTCOLON)
 		error("bad syntax on first rule");
@@ -1408,15 +1424,14 @@ setup(int argc, char *argv[])
 		/* process a rule */
 		rlines[nprod] = lineno;
 		if(t == '|')
-			*mem++ = *prdptr[nprod-1];
-		else
-			if(t == IDENTCOLON) {
-				*mem = chfind(1, tokname);
-				if(*mem < NTBASE)
-					error("token illegal on LHS of grammar rule");
-				mem++;
-			} else
-				error("illegal rule: missing semicolon or | ?");
+			*mem++ = *prdptr[nprod - 1];
+		else if(t == IDENTCOLON) {
+			*mem = chfind(1, tokname);
+			if(*mem < NTBASE)
+				error("token illegal on LHS of grammar rule");
+			mem++;
+		} else
+			error("illegal rule: missing semicolon or | ?");
 		/* read rule body */
 		t = gettok();
 
@@ -1434,16 +1449,16 @@ setup(int argc, char *argv[])
 			j = chfind(2, tokname);
 			if(j >= NTBASE)
 				error("nonterminal %s illegal after %%prec",
-					nontrst[j-NTBASE].name);
+				      nontrst[j - NTBASE].name);
 			levprd[nprod] = toklev[j];
 			t = gettok();
 		}
 		if(t == '=') {
 			levprd[nprod] |= ACTFLAG;
 			Bprint(faction, "\ncase %d:", nprod);
-			cpyact(mem-prdptr[nprod]-1);
+			cpyact(mem - prdptr[nprod] - 1);
 			Bprint(faction, " break;");
-			if((t=gettok()) == IDENTIFIER) {
+			if((t = gettok()) == IDENTIFIER) {
 
 				/* action within rule... */
 				sprint(actnm, "$$%d", nprod);
@@ -1465,7 +1480,7 @@ setup(int argc, char *argv[])
 				*p++ = -nprod;
 
 				/* update the production information */
-				levprd[nprod+1] = levprd[nprod] & ~ACTFLAG;
+				levprd[nprod + 1] = levprd[nprod] & ~ACTFLAG;
 				levprd[nprod] = ACTFLAG;
 				if(++nprod >= NPROD)
 					error("more than %d rules", NPROD);
@@ -1484,7 +1499,7 @@ setup(int argc, char *argv[])
 		*mem++ = -nprod;
 
 		/* check that default action is reasonable */
-		if(ntypes && !(levprd[nprod]&ACTFLAG) && nontrst[*prdptr[nprod]-NTBASE].value) {
+		if(ntypes && !(levprd[nprod] & ACTFLAG) && nontrst[*prdptr[nprod] - NTBASE].value) {
 
 			/* no explicit action, LHS has value */
 			int tempty;
@@ -1492,12 +1507,11 @@ setup(int argc, char *argv[])
 			tempty = prdptr[nprod][1];
 			if(tempty < 0)
 				error("must return a value, since LHS has a type");
+			else if(tempty >= NTBASE)
+				tempty = nontrst[tempty - NTBASE].value;
 			else
-				if(tempty >= NTBASE)
-					tempty = nontrst[tempty-NTBASE].value;
-				else
-					tempty = TYPE(toklev[tempty]);
-			if(tempty != nontrst[*prdptr[nprod]-NTBASE].value)
+				tempty = TYPE(toklev[tempty]);
+			if(tempty != nontrst[*prdptr[nprod] - NTBASE].value)
 				error("default action causes potential type clash");
 		}
 		nprod++;
@@ -1513,7 +1527,7 @@ setup(int argc, char *argv[])
 	finact();
 	if(t == MARK) {
 		Bprint(ftable, "\n#line\t%d\t\"%s\"\n", lineno, infile);
-		while((c=Bgetrune(finput)) != Beof)
+		while((c = Bgetrune(finput)) != Beof)
 			Bputrune(ftable, c);
 	}
 	Bterm(finput);
@@ -1545,7 +1559,7 @@ defin(int nt, char *s)
 	if(nt) {
 		nnonter++;
 		if(nnonter >= NNONTERM)
-			error("too many nonterminals, limit %d",NNONTERM);
+			error("too many nonterminals, limit %d", NNONTERM);
 		nontrst[nnonter].name = cstash(s);
 		return NTBASE + nnonter;
 	}
@@ -1560,7 +1574,7 @@ defin(int nt, char *s)
 	/* single character literal */
 	if(s[0] == ' ') {
 		val = chartorune(&rune, &s[1]);
-		if(s[val+1] == 0) {
+		if(s[val + 1] == 0) {
 			val = rune;
 			goto out;
 		}
@@ -1571,15 +1585,32 @@ defin(int nt, char *s)
 		if(s[3] == 0) {
 			/* single character escape sequence */
 			switch(s[2]) {
-			case 'n':	val = '\n'; break;
-			case 'r':	val = '\r'; break;
-			case 'b':	val = '\b'; break;
-			case 't':	val = '\t'; break;
-			case 'f':	val = '\f'; break;
-			case '\'':	val = '\''; break;
-			case '"':	val = '"'; break;
-			case '\\':	val = '\\'; break;
-			default:	error("invalid escape");
+			case 'n':
+				val = '\n';
+				break;
+			case 'r':
+				val = '\r';
+				break;
+			case 'b':
+				val = '\b';
+				break;
+			case 't':
+				val = '\t';
+				break;
+			case 'f':
+				val = '\f';
+				break;
+			case '\'':
+				val = '\'';
+				break;
+			case '"':
+				val = '"';
+				break;
+			case '\\':
+				val = '\\';
+				break;
+			default:
+				error("invalid escape");
 			}
 			goto out;
 		}
@@ -1592,7 +1623,7 @@ defin(int nt, char *s)
 			   s[4] > '7' ||
 			   s[5] != 0)
 				error("illegal \\nnn construction");
-			val = 64*s[2] + 8*s[3] + s[4] - 73*'0';
+			val = 64 * s[2] + 8 * s[3] + s[4] - 73 * '0';
 			if(val == 0)
 				error("'\\000' is illegal");
 			goto out;
@@ -1614,23 +1645,24 @@ void
 defout(int last)
 {
 	int i, c;
-	char sar[NAMESIZE+10];
+	char sar[NAMESIZE + 10];
 
-	for(i=ndefout; i<=ntokens; i++) {
+	for(i = ndefout; i <= ntokens; i++) {
 		/* non-literals */
 		c = tokset[i].name[0];
 		if(c != ' ' && c != '$') {
 			Bprint(ftable, "#define	%s	%d\n",
-				tokset[i].name, tokset[i].value);
+			       tokset[i].name, tokset[i].value);
 			if(fdefine)
 				Bprint(fdefine, "#define\t%s\t%d\n",
-					tokset[i].name, tokset[i].value);
+				       tokset[i].name, tokset[i].value);
 		}
 	}
-	ndefout = ntokens+1;
+	ndefout = ntokens + 1;
 	if(last && fdebug) {
 		Bprint(fdebug, "char*	yytoknames[] =\n{\n");
-		TLOOP(i) {
+		TLOOP(i)
+		{
 			if(tokset[i].name) {
 				chcopy(sar, tokset[i].name);
 				Bprint(fdebug, "\t\"%s\",\n", sar);
@@ -1642,7 +1674,7 @@ defout(int last)
 	}
 }
 
-char*
+char *
 cstash(char *s)
 {
 	char *temp;
@@ -1692,7 +1724,7 @@ begin:
 	case '<':
 		/* get, and look up, a type name (union member name) */
 		i = 0;
-		while((c=Bgetrune(finput)) != '>' && c >= 0 && c != '\n') {
+		while((c = Bgetrune(finput)) != '>' && c >= 0 && c != '\n') {
 			rune = c;
 			c = runetochar(&tokname[i], &rune);
 			if(i < NAMESIZE)
@@ -1701,7 +1733,7 @@ begin:
 		if(c != '>')
 			error("unterminated < ... > clause");
 		tokname[i] = 0;
-		for(i=1; i<=ntypes; i++)
+		for(i = 1; i <= ntypes; i++)
 			if(!strcmp(typeset[i], tokname)) {
 				numbval = i;
 				return TYPENAME;
@@ -1719,15 +1751,14 @@ begin:
 		for(;;) {
 			c = Bgetrune(finput);
 			if(c == '\n' || c <= 0)
-				error("illegal or missing ' or \"" );
+				error("illegal or missing ' or \"");
 			if(c == '\\') {
 				tokname[i] = '\\';
 				if(i < NAMESIZE)
 					i++;
 				c = Bgetrune(finput);
-			} else
-				if(c == match)
-					break;
+			} else if(c == match)
+				break;
 			rune = c;
 			c = runetochar(&tokname[i], &rune);
 			if(i < NAMESIZE)
@@ -1738,33 +1769,41 @@ begin:
 	case '%':
 	case '\\':
 		switch(c = Bgetrune(finput)) {
-		case '0':	return TERM;
-		case '<':	return LEFT;
-		case '2':	return BINARY;
-		case '>':	return RIGHT;
+		case '0':
+			return TERM;
+		case '<':
+			return LEFT;
+		case '2':
+			return BINARY;
+		case '>':
+			return RIGHT;
 		case '%':
-		case '\\':	return MARK;
-		case '=':	return PREC;
-		case '{':	return LCURLY;
-		default:	reserve = 1;
+		case '\\':
+			return MARK;
+		case '=':
+			return PREC;
+		case '{':
+			return LCURLY;
+		default:
+			reserve = 1;
 		}
 
 	default:
 		/* number */
 		if(isdigit(c)) {
-			numbval = c-'0';
-			base = (c=='0')? 8: 10;
+			numbval = c - '0';
+			base = (c == '0') ? 8 : 10;
 			for(c = Bgetrune(finput); isdigit(c); c = Bgetrune(finput))
-				numbval = numbval*base + (c-'0');
+				numbval = numbval * base + (c - '0');
 			Bungetrune(finput);
 			return NUMBER;
 		}
-		if(islower(c) || isupper(c) || c=='_' || c=='.' || c=='$')  {
+		if(islower(c) || isupper(c) || c == '_' || c == '.' || c == '$') {
 			i = 0;
 			while(islower(c) || isupper(c) || isdigit(c) ||
-			    c == '-' || c=='_' || c=='.' || c=='$') {
+			      c == '-' || c == '_' || c == '.' || c == '$') {
 				if(reserve && isupper(c))
-					c += 'a'-'A';
+					c += 'a' - 'A';
 				rune = c;
 				c = runetochar(&tokname[i], &rune);
 				if(i < NAMESIZE)
@@ -1779,7 +1818,7 @@ begin:
 
 	/* find a reserved word */
 	if(reserve) {
-		for(c=0; resrv[c].name; c++)
+		for(c = 0; resrv[c].name; c++)
 			if(strcmp(tokname, resrv[c].name) == 0)
 				return resrv[c].value;
 		error("invalid escape, or illegal reserved word: %s", tokname);
@@ -1787,7 +1826,7 @@ begin:
 
 	/* look ahead to distinguish IDENTIFIER from IDENTCOLON */
 	c = Bgetrune(finput);
-	while(c == ' ' || c == '\t'|| c == '\n' || c == '\f' || c == '/') {
+	while(c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '/') {
 		if(c == '\n')
 			peekline++;
 		/* look for comments */
@@ -1810,12 +1849,11 @@ fdtype(int t)
 	int v;
 
 	if(t >= NTBASE)
-		v = nontrst[t-NTBASE].value;
+		v = nontrst[t - NTBASE].value;
 	else
 		v = TYPE(toklev[t]);
 	if(v <= 0)
-		error("must specify type for %s", (t>=NTBASE)?
-			nontrst[t-NTBASE].name: tokset[t].name);
+		error("must specify type for %s", (t >= NTBASE) ? nontrst[t - NTBASE].name : tokset[t].name);
 	return v;
 }
 
@@ -1827,11 +1865,11 @@ chfind(int t, char *s)
 	if(s[0] == ' ')
 		t = 0;
 	TLOOP(i)
-		if(!strcmp(s, tokset[i].name))
-			return i;
+	if(!strcmp(s, tokset[i].name))
+		return i;
 	NTLOOP(i)
-		if(!strcmp(s, nontrst[i].name))
-			return NTBASE+i;
+	if(!strcmp(s, nontrst[i].name))
+		return NTBASE + i;
 
 	/* cannot find name */
 	if(t > 1)
@@ -1855,7 +1893,7 @@ cpyunion(void)
 
 	level = 0;
 	for(;;) {
-		if((c=Bgetrune(finput)) == Beof)
+		if((c = Bgetrune(finput)) == Beof)
 			error("EOF encountered while processing %%union");
 		Bputrune(ftable, c);
 		if(fdefine != 0)
@@ -1898,12 +1936,12 @@ cpycode(void)
 	Bprint(ftable, "\n#line\t%d\t\"%s\"\n", lineno, infile);
 	while(c != Beof) {
 		if(c == '\\') {
-			if((c=Bgetrune(finput)) == '}')
+			if((c = Bgetrune(finput)) == '}')
 				return;
 			Bputc(ftable, '\\');
 		}
 		if(c == '%') {
-			if((c=Bgetrune(finput)) == '}')
+			if((c = Bgetrune(finput)) == '}')
 				return;
 			Bputc(ftable, '%');
 		}
@@ -1928,11 +1966,11 @@ skipcom(void)
 	/* i is the number of lines skipped */
 	i = 0;
 	c = Bgetrune(finput);
-	if(c == '/'){			/* C++ //: skip to end of line */
+	if(c == '/') { /* C++ //: skip to end of line */
 		while((c = Bgetrune(finput)) != Beof)
 			if(c == '\n')
 				return 1;
-	}else if(c == '*'){		/* normal C comment */
+	} else if(c == '*') { /* normal C comment */
 		while((c = Bgetrune(finput)) != Beof) {
 			while(c == '*')
 				if((c = Bgetrune(finput)) == '/')
@@ -1940,7 +1978,7 @@ skipcom(void)
 			if(c == '\n')
 				i++;
 		}
-	}else
+	} else
 		error("illegal comment");
 
 	error("EOF inside comment");
@@ -2005,23 +2043,23 @@ swt:
 		if(isdigit(c)) {
 			j = 0;
 			while(isdigit(c)) {
-				j = j*10 + (c-'0');
+				j = j * 10 + (c - '0');
 				c = Bgetrune(finput);
 			}
 			Bungetrune(finput);
-			j = j*s - offset;
+			j = j * s - offset;
 			if(j > 0)
-				error("Illegal use of $%d", j+offset);
+				error("Illegal use of $%d", j + offset);
 
 		dollar:
 			Bprint(faction, "yypt[-%d].yyv", -j);
 
 			/* put out the proper tag */
 			if(ntypes) {
-				if(j+offset <= 0 && tok < 0)
-					error("must specify type of $%d", j+offset);
+				if(j + offset <= 0 && tok < 0)
+					error("must specify type of $%d", j + offset);
 				if(tok < 0)
-					tok = fdtype(prdptr[nprod][j+offset]);
+					tok = fdtype(prdptr[nprod][j + offset]);
 				Bprint(faction, ".%s", typeset[tok]);
 			}
 			goto loop;
@@ -2037,13 +2075,12 @@ swt:
 			if((c = Bgetrune(finput)) != '#') {
 				Bungetrune(finput);
 				fnd = -1;
+			} else if(gettok() != NUMBER) {
+				error("# must be followed by number");
+				fnd = -1;
 			} else
-				if(gettok() != NUMBER) {
-					error("# must be followed by number");
-					fnd = -1;
-				} else
-					fnd = numbval;
-			for(j=1; j<=offset; ++j)
+				fnd = numbval;
+			for(j = 1; j <= offset; ++j)
 				if(tok == prdptr[nprod][j]) {
 					if(--fnd <= 0) {
 						j -= offset;
@@ -2053,7 +2090,7 @@ swt:
 			error("$name or $name#number not found");
 		}
 		Bputc(faction, '$');
-		if(s < 0 )
+		if(s < 0)
 			Bputc(faction, '-');
 		goto swt;
 
@@ -2077,7 +2114,7 @@ swt:
 		while(c >= 0) {
 			while(c == '*') {
 				Bputrune(faction, c);
-				if((c=Bgetrune(finput)) == '/')
+				if((c = Bgetrune(finput)) == '/')
 					goto lcopy;
 			}
 			Bputrune(faction, c);
@@ -2104,11 +2141,10 @@ swt:
 				c = Bgetrune(finput);
 				if(c == '\n')
 					lineno++;
-			} else
-				if(c == match)
-					goto lcopy;
-				if(c == '\n')
-					error("newline in string or char. const.");
+			} else if(c == match)
+				goto lcopy;
+			if(c == '\n')
+				error("newline in string or char. const.");
 			Bputrune(faction, c);
 		}
 		error("EOF in string or character constant");
@@ -2151,7 +2187,7 @@ openup(char *stem, int dflag, int vflag, int ytab, char *ytabc)
 	if(ytab == 0)
 		snprint(buf, sizeof buf, "%s.%s", stem, OFILE);
 	else
-		strecpy(buf, buf+sizeof buf, ytabc);
+		strecpy(buf, buf + sizeof buf, ytabc);
 	ftable = Bopen(buf, OWRITE);
 	if(ftable == 0)
 		error("cannot open table file %s", buf);
@@ -2171,55 +2207,56 @@ output(void)
 		Bprint(fdebug, "char*	yystates[] =\n{\n");
 
 	/* output the stuff for state i */
-	SLOOP(i) {
-		nolook = tystate[i]!=MUSTLOOKAHEAD;
+	SLOOP(i)
+	{
+		nolook = tystate[i] != MUSTLOOKAHEAD;
 		closure(i);
 
 		/* output actions */
 		nolook = 1;
-		aryfil(temp1, ntokens+nnonter+1, 0);
-		WSLOOP(wsets, u) {
+		aryfil(temp1, ntokens + nnonter + 1, 0);
+		WSLOOP(wsets, u)
+		{
 			c = *(u->pitem);
 			if(c > 1 && c < NTBASE && temp1[c] == 0) {
 				WSLOOP(u, v)
-					if(c == *(v->pitem))
-						putitem(v->pitem+1, (Lkset*)0);
+				if(c == *(v->pitem))
+					putitem(v->pitem + 1, (Lkset *)0);
 				temp1[c] = state(c);
-			} else
-				if(c > NTBASE && temp1[(c -= NTBASE) + ntokens] == 0)
-					temp1[c+ntokens] = amem[indgo[i]+c];
+			} else if(c > NTBASE && temp1[(c -= NTBASE) + ntokens] == 0)
+				temp1[c + ntokens] = amem[indgo[i] + c];
 		}
 		if(i == 1)
 			temp1[1] = ACCEPTCODE;
 
 		/* now, we have the shifts; look at the reductions */
 		lastred = 0;
-		WSLOOP(wsets, u) {
+		WSLOOP(wsets, u)
+		{
 			c = *u->pitem;
 
 			/* reduction */
 			if(c <= 0) {
 				lastred = -c;
 				TLOOP(k)
-					if(BIT(u->ws.lset, k)) {
-						if(temp1[k] == 0)
-							temp1[k] = c;
-						else
-						if(temp1[k] < 0) { /* reduce/reduce conflict */
-							if(foutput)
-								Bprint(foutput,
-									"\n%d: reduce/reduce conflict"
-									" (red'ns %d and %d ) on %s",
-									i, -temp1[k], lastred,
-									symnam(k));
-							if(-temp1[k] > lastred)
-								temp1[k] = -lastred;
-							zzrrconf++;
-						} else
-							/* potential shift/reduce conflict */
-							precftn( lastred, k, i );
-					}
+				if(BIT(u->ws.lset, k)) {
+					if(temp1[k] == 0)
+						temp1[k] = c;
+					else if(temp1[k] < 0) { /* reduce/reduce conflict */
+						if(foutput)
+							Bprint(foutput,
+							       "\n%d: reduce/reduce conflict"
+							       " (red'ns %d and %d ) on %s",
+							       i, -temp1[k], lastred,
+							       symnam(k));
+						if(-temp1[k] > lastred)
+							temp1[k] = -lastred;
+						zzrrconf++;
+					} else
+						/* potential shift/reduce conflict */
+						precftn(lastred, k, i);
 				}
+			}
 		}
 		wract(i);
 	}
@@ -2246,16 +2283,16 @@ apack(int *p, int n)
 	 * eliminate leading and trailing 0's
 	 */
 
-	q = p+n;
+	q = p + n;
 	for(pp = p, off = 0; *pp == 0 && pp <= q; ++pp, --off)
 		;
- 	/* no actions */
+	/* no actions */
 	if(pp > q)
 		return 0;
 	p = pp;
 
 	/* now, find a place for the elements from p to q, inclusive */
-	r = &amem[ACTSIZE-1];
+	r = &amem[ACTSIZE - 1];
 	for(rr = amem; rr <= r; rr++, off++) {
 		for(qq = rr, pp = p; pp <= q; pp++, qq++)
 			if(*pp != 0)
@@ -2264,7 +2301,7 @@ apack(int *p, int n)
 
 		/* we have found an acceptable k */
 		if(pkdebug && foutput != 0)
-			Bprint(foutput, "off = %d, k = %d\n", off, (int)(rr-amem));
+			Bprint(foutput, "off = %d, k = %d\n", off, (int)(rr - amem));
 		for(qq = rr, pp = p; pp <= q; pp++, qq++)
 			if(*pp) {
 				if(qq > r)
@@ -2276,12 +2313,13 @@ apack(int *p, int n)
 		if(pkdebug && foutput != 0)
 			for(pp = amem; pp <= memp; pp += 10) {
 				Bprint(foutput, "\t");
-				for(qq = pp; qq <= pp+9; qq++)
+				for(qq = pp; qq <= pp + 9; qq++)
 					Bprint(foutput, "%d ", *qq);
 				Bprint(foutput, "\n");
 			}
-		return(off);
-	nextk:;
+		return (off);
+	nextk:
+		;
 	}
 	error("no space in action table");
 	return 0;
@@ -2324,7 +2362,7 @@ go2out(void)
 		}
 
 		/* best is now the default entry */
-		zzgobest += times-1;
+		zzgobest += times - 1;
 		for(j = 0; j <= nstate; j++)
 			if(tystate[j] != 0 && tystate[j] != best) {
 				Bprint(ftemp, "%d,%d,", j, tystate[j]);
@@ -2348,48 +2386,47 @@ go2gen(int c)
 	int i, work, cc;
 	Item *p, *q;
 
-
 	/* first, find nonterminals with gotos on c */
-	aryfil(temp1, nnonter+1, 0);
+	aryfil(temp1, nnonter + 1, 0);
 	temp1[c] = 1;
 	work = 1;
 	while(work) {
 		work = 0;
 		PLOOP(0, i)
 
-			/* cc is a nonterminal */
-			if((cc=prdptr[i][1]-NTBASE) >= 0)
-				/* cc has a goto on c */
-				if(temp1[cc] != 0) {
+		/* cc is a nonterminal */
+		if((cc = prdptr[i][1] - NTBASE) >= 0)
+			/* cc has a goto on c */
+			if(temp1[cc] != 0) {
 
-					/* thus, the left side of production i does too */
-					cc = *prdptr[i]-NTBASE;
-					if(temp1[cc] == 0) {
-						  work = 1;
-						  temp1[cc] = 1;
-					}
+				/* thus, the left side of production i does too */
+				cc = *prdptr[i] - NTBASE;
+				if(temp1[cc] == 0) {
+					work = 1;
+					temp1[cc] = 1;
 				}
+			}
 	}
 
 	/* now, we have temp1[c] = 1 if a goto on c in closure of cc */
 	if(g2debug && foutput != 0) {
 		Bprint(foutput, "%s: gotos on ", nontrst[c].name);
 		NTLOOP(i)
-			if(temp1[i])
-				Bprint(foutput, "%s ", nontrst[i].name);
+		if(temp1[i])
+			Bprint(foutput, "%s ", nontrst[i].name);
 		Bprint(foutput, "\n");
 	}
 
 	/* now, go through and put gotos into tystate */
 	aryfil(tystate, nstate, 0);
 	SLOOP(i)
-		ITMLOOP(i, p, q)
-			if((cc = *p->pitem) >= NTBASE)
-				/* goto on c is possible */
-				if(temp1[cc-NTBASE]) {
-					tystate[i] = amem[indgo[i]+c];
-					break;
-				}
+	ITMLOOP(i, p, q)
+	if((cc = *p->pitem) >= NTBASE)
+		/* goto on c is possible */
+		if(temp1[cc - NTBASE]) {
+			tystate[i] = amem[indgo[i] + c];
+			break;
+		}
 }
 
 /*
@@ -2410,23 +2447,22 @@ precftn(int r, int t, int s)
 		/* conflict */
 		if(foutput != 0)
 			Bprint(foutput,
-				"\n%d: shift/reduce conflict (shift %d(%d), red'n %d(%d)) on %s",
-				s, temp1[t], PLEVEL(lt), r, PLEVEL(lp), symnam(t));
+			       "\n%d: shift/reduce conflict (shift %d(%d), red'n %d(%d)) on %s",
+			       s, temp1[t], PLEVEL(lt), r, PLEVEL(lp), symnam(t));
 		zzsrconf++;
 		return;
 	}
 	if(PLEVEL(lt) == PLEVEL(lp))
 		action = ASSOC(lt);
+	else if(PLEVEL(lt) > PLEVEL(lp))
+		action = RASC; /* shift */
 	else
-		if(PLEVEL(lt) > PLEVEL(lp))
-			action = RASC;  /* shift */
-		else
-			action = LASC;  /* reduce */
+		action = LASC; /* reduce */
 	switch(action) {
-	case BASC:  /* error action */
+	case BASC: /* error action */
 		temp1[t] = ERRCODE;
 		break;
-	case LASC:  /* reduce */
+	case LASC: /* reduce */
 		temp1[t] = -r;
 		break;
 	}
@@ -2444,18 +2480,19 @@ wract(int i)
 	/* find the best choice for lastred */
 	lastred = 0;
 	ntimes = 0;
-	TLOOP(j) {
+	TLOOP(j)
+	{
 		if(temp1[j] >= 0)
 			continue;
-		if(temp1[j]+lastred == 0)
+		if(temp1[j] + lastred == 0)
 			continue;
 		/* count the number of appearances of temp1[j] */
 		count = 0;
 		tred = -temp1[j];
 		levprd[tred] |= REDFLAG;
 		TLOOP(p)
-			if(temp1[p]+tred == 0)
-				count++;
+		if(temp1[p] + tred == 0)
+			count++;
 		if(count > ntimes) {
 			lastred = tred;
 			ntimes = count;
@@ -2471,34 +2508,34 @@ wract(int i)
 
 	/* clear out entries in temp1 which equal lastred */
 	TLOOP(p)
-		if(temp1[p]+lastred == 0)
-			temp1[p] = 0;
+	if(temp1[p] + lastred == 0)
+		temp1[p] = 0;
 
 	wrstate(i);
 	defact[i] = lastred;
 	flag = 0;
 	TLOOP(p0)
-		if((p1=temp1[p0]) != 0) {
-			if(p1 < 0) {
-				p1 = -p1;
-				goto exc;
-			}
-			if(p1 == ACCEPTCODE) {
-				p1 = -1;
-				goto exc;
-			}
-			if(p1 == ERRCODE) {
-				p1 = 0;
-			exc:
-				if(flag++ == 0)
-					Bprint(ftable, "-1, %d,\n", i);
-				Bprint(ftable, "\t%d, %d,\n", p0, p1);
-				zzexcp++;
-				continue;
-			}
-			Bprint(ftemp, "%d,%d,", p0, p1);
-			zzacent++;
+	if((p1 = temp1[p0]) != 0) {
+		if(p1 < 0) {
+			p1 = -p1;
+			goto exc;
 		}
+		if(p1 == ACCEPTCODE) {
+			p1 = -1;
+			goto exc;
+		}
+		if(p1 == ERRCODE) {
+			p1 = 0;
+		exc:
+			if(flag++ == 0)
+				Bprint(ftable, "-1, %d,\n", i);
+			Bprint(ftable, "\t%d, %d,\n", p0, p1);
+			zzexcp++;
+			continue;
+		}
+		Bprint(ftemp, "%d,%d,", p0, p1);
+		zzacent++;
+	}
 	if(flag) {
 		defact[i] = -2;
 		Bprint(ftable, "\t-2, %d,\n", lastred);
@@ -2522,11 +2559,11 @@ wrstate(int i)
 		} else {
 			Bprint(fdebug, "	\"");
 			ITMLOOP(i, pp, qq)
-				Bprint(fdebug, "%s\\n", writem(pp->pitem));
+			Bprint(fdebug, "%s\\n", writem(pp->pitem));
 			if(tystate[i] == MUSTLOOKAHEAD)
-				WSLOOP(wsets + (pstate[i+1] - pstate[i]), u)
-					if(*u->pitem < 0)
-						Bprint(fdebug, "%s\\n", writem(u->pitem));
+				WSLOOP(wsets + (pstate[i + 1] - pstate[i]), u)
+			if(*u->pitem < 0)
+				Bprint(fdebug, "%s\\n", writem(u->pitem));
 			Bprint(fdebug, "\", /*%d*/\n", i);
 		}
 	}
@@ -2534,34 +2571,33 @@ wrstate(int i)
 		return;
 	Bprint(foutput, "\nstate %d\n", i);
 	ITMLOOP(i, pp, qq)
-		Bprint(foutput, "\t%s\n", writem(pp->pitem));
+	Bprint(foutput, "\t%s\n", writem(pp->pitem));
 	if(tystate[i] == MUSTLOOKAHEAD)
 		/* print out empty productions in closure */
-		WSLOOP(wsets+(pstate[i+1]-pstate[i]), u)
-			if(*u->pitem < 0)
-				Bprint(foutput, "\t%s\n", writem(u->pitem));
+		WSLOOP(wsets + (pstate[i + 1] - pstate[i]), u)
+	if(*u->pitem < 0)
+		Bprint(foutput, "\t%s\n", writem(u->pitem));
 
 	/* check for state equal to another */
 	TLOOP(j0)
-		if((j1=temp1[j0]) != 0) {
-			Bprint(foutput, "\n\t%s  ", symnam(j0));
-			/* shift, error, or accept */
-			if(j1 > 0) {
-				if(j1 == ACCEPTCODE)
-					Bprint(foutput,  "accept");
-				else
-					if(j1 == ERRCODE)
-						Bprint(foutput, "error");
-					else
-						Bprint(foutput, "shift %d", j1);
-			} else
-				Bprint(foutput, "reduce %d (src line %d)", -j1, rlines[-j1]);
-		}
+	if((j1 = temp1[j0]) != 0) {
+		Bprint(foutput, "\n\t%s  ", symnam(j0));
+		/* shift, error, or accept */
+		if(j1 > 0) {
+			if(j1 == ACCEPTCODE)
+				Bprint(foutput, "accept");
+			else if(j1 == ERRCODE)
+				Bprint(foutput, "error");
+			else
+				Bprint(foutput, "shift %d", j1);
+		} else
+			Bprint(foutput, "reduce %d (src line %d)", -j1, rlines[-j1]);
+	}
 
 	/* output the final production */
 	if(lastred)
 		Bprint(foutput, "\n\t.  reduce %d (src line %d)\n\n",
-			lastred, rlines[lastred]);
+		       lastred, rlines[lastred]);
 	else
 		Bprint(foutput, "\n\t.  error\n\n");
 
@@ -2570,7 +2606,7 @@ wrstate(int i)
 	for(j0 = 1; j0 <= nnonter; j0++) {
 		j1++;
 		if(temp1[j1])
-			Bprint(foutput, "\t%s  goto %d\n", symnam(j0+NTBASE), temp1[j1]);
+			Bprint(foutput, "\t%s  goto %d\n", symnam(j0 + NTBASE), temp1[j1]);
 	}
 }
 
@@ -2580,8 +2616,8 @@ warray(char *s, int *v, int n)
 	int i;
 
 	Bprint(ftable, "short	%s[] =\n{", s);
-	for(i=0;;) {
-		if(i%10 == 0)
+	for(i = 0;;) {
+		if(i % 10 == 0)
 			Bprint(ftable, "\n");
 		Bprint(ftable, "%4d", v[i]);
 		i++;
@@ -2607,7 +2643,8 @@ hideprod(void)
 
 	j = 0;
 	levprd[0] = 0;
-	PLOOP(1, i) {
+	PLOOP(1, i)
+	{
 		if(!(levprd[i] & REDFLAG)) {
 			j++;
 			if(foutput != 0)
@@ -2655,7 +2692,7 @@ callopt(void)
 		switch(gtnm()) {
 		case '\n':
 			nnonter++;
-			yypgo[nnonter] = pmem-mem0;
+			yypgo[nnonter] = pmem - mem0;
 		case ',':
 			continue;
 		case -1:
@@ -2670,8 +2707,8 @@ callopt(void)
 	for(i = 0; i < nstate; i++) {
 		k = 32000;
 		j = 0;
-		q = mem0 + temp1[i+1];
-		for(p = mem0 + temp1[i]; p < q ; p += 2) {
+		q = mem0 + temp1[i + 1];
+		for(p = mem0 + temp1[i]; p < q; p += 2) {
 			if(*p > j)
 				j = *p;
 			if(*p < k)
@@ -2680,11 +2717,11 @@ callopt(void)
 		/* nontrivial situation */
 		if(k <= j) {
 			/* j is now the range */
-/*			j -= k;			*//* call scj */
+			/*			j -= k;			*/ /* call scj */
 			if(k > maxoff)
 				maxoff = k;
 		}
-		tystate[i] = (temp1[i+1]-temp1[i]) + 2*j;
+		tystate[i] = (temp1[i + 1] - temp1[i]) + 2 * j;
 		if(j > maxspr)
 			maxspr = j;
 	}
@@ -2695,13 +2732,13 @@ callopt(void)
 		j = 0;
 
 		/* minimum entry index is always 0 */
-		q = mem0 + yypgo[i+1] - 1;
-		for(p = mem0+yypgo[i]; p < q ; p += 2) {
+		q = mem0 + yypgo[i + 1] - 1;
+		for(p = mem0 + yypgo[i]; p < q; p += 2) {
 			ggreed[i] += 2;
 			if(*p > j)
 				j = *p;
 		}
-		ggreed[i] = ggreed[i] + 2*j;
+		ggreed[i] = ggreed[i] + 2 * j;
 		if(j > maxoff)
 			maxoff = j;
 	}
@@ -2722,9 +2759,9 @@ callopt(void)
 			gin(-i);
 
 	/* print amem array */
-	if(adb > 2 )
+	if(adb > 2)
 		for(p = amem; p <= maxa; p += 10) {
-			Bprint(ftable, "%4d  ", (int)(p-amem));
+			Bprint(ftable, "%4d  ", (int)(p - amem));
 			for(i = 0; i < 10; ++i)
 				Bprint(ftable, "%4d  ", p[i]);
 			Bprint(ftable, "\n");
@@ -2744,7 +2781,7 @@ gin(int i)
 	/* enter gotos on nonterminal i into array amem */
 	ggreed[i] = 0;
 
-	q2 = mem0+ yypgo[i+1] - 1;
+	q2 = mem0 + yypgo[i + 1] - 1;
 	q1 = mem0 + yypgo[i];
 
 	/* now, find amem place for it */
@@ -2768,12 +2805,13 @@ gin(int i)
 			s = p + *r + 1;
 			*s = r[1];
 		}
-		pgo[i] = p-amem;
+		pgo[i] = p - amem;
 		if(adb > 1)
 			Bprint(ftable, "Nonterminal %d, entry at %d\n", i, pgo[i]);
 		return;
 
-	nextgp:;
+	nextgp:
+		;
 	}
 	error("cannot place goto %d\n", i);
 }
@@ -2786,8 +2824,8 @@ stin(int i)
 	tystate[i] = 0;
 
 	/* enter state i into the amem array */
-	q2 = mem0+temp1[i+1];
-	q1 = mem0+temp1[i];
+	q2 = mem0 + temp1[i + 1];
+	q1 = mem0 + temp1[i];
 	/* find an acceptable place */
 	for(n = -maxoff; n < ACTSIZE; n++) {
 		flag = 0;
@@ -2796,26 +2834,25 @@ stin(int i)
 				goto nextn;
 			if(*s == 0)
 				flag++;
-			else
-				if(*s != r[1])
-					goto nextn;
+			else if(*s != r[1])
+				goto nextn;
 		}
 
 		/* check that the position equals another only if the states are identical */
-		for(j=0; j<nstate; j++) {
+		for(j = 0; j < nstate; j++) {
 			if(indgo[j] == n) {
 
 				/* we have some disagreement */
 				if(flag)
 					goto nextn;
-				if(temp1[j+1]+temp1[i] == temp1[j]+temp1[i+1]) {
+				if(temp1[j + 1] + temp1[i] == temp1[j] + temp1[i + 1]) {
 
 					/* states are equal */
 					indgo[i] = n;
 					if(adb > 1)
 						Bprint(ftable,
-						"State %d: entry at %d equals state %d\n",
-						i, n, j);
+						       "State %d: entry at %d equals state %d\n",
+						       i, n, j);
 					return;
 				}
 
@@ -2825,19 +2862,20 @@ stin(int i)
 		}
 
 		for(r = q1; r < q2; r += 2) {
-			if((s = *r+n+amem) >= &amem[ACTSIZE])
+			if((s = *r + n + amem) >= &amem[ACTSIZE])
 				error("out of space in optimizer a array");
 			if(s > maxa)
 				maxa = s;
 			if(*s != 0 && *s != r[1])
-				error("clobber of a array, pos'n %d, by %d", s-amem, r[1]);
+				error("clobber of a array, pos'n %d, by %d", s - amem, r[1]);
 			*s = r[1];
 		}
 		indgo[i] = n;
 		if(adb > 1)
 			Bprint(ftable, "State %d: entry at %d\n", i, indgo[i]);
 		return;
-	nextn:;
+	nextn:
+		;
 	}
 	error("Error; failure to place state %d\n", i);
 }
@@ -2886,8 +2924,8 @@ osummary(void)
 			i++;
 
 	Bprint(foutput, "Optimizer space used: input %d/%d, output %d/%d\n",
-		(int)(pmem-mem0+1), MEMSIZE, (int)(maxa-amem+1), ACTSIZE);
-	Bprint(foutput, "%d table entries, %d zero\n", (int)(maxa-amem+1), i);
+	       (int)(pmem - mem0 + 1), MEMSIZE, (int)(maxa - amem + 1), ACTSIZE);
+	Bprint(foutput, "%d table entries, %d zero\n", (int)(maxa - amem + 1), i);
 	Bprint(foutput, "maximum spread: %d, maximum offset: %d\n", maxspr, maxoff);
 }
 
@@ -2898,10 +2936,10 @@ osummary(void)
 void
 aoutput(void)
 {
-	Bprint(ftable, "#define\tYYLAST\t%d\n", (int)(maxa-amem+1));
-	arout("yyact", amem, (maxa-amem)+1);
+	Bprint(ftable, "#define\tYYLAST\t%d\n", (int)(maxa - amem + 1));
+	arout("yyact", amem, (maxa - amem) + 1);
 	arout("yypact", indgo, nstate);
-	arout("yypgo", pgo, nnonter+1);
+	arout("yypgo", pgo, nnonter + 1);
 }
 
 void
@@ -2911,7 +2949,7 @@ arout(char *s, int *v, int n)
 
 	Bprint(ftable, "short	%s[] =\n{", s);
 	for(i = 0; i < n;) {
-		if(i%10 == 0)
+		if(i % 10 == 0)
 			Bprint(ftable, "\n");
 		Bprint(ftable, "%4d", v[i]);
 		i++;
@@ -2934,9 +2972,9 @@ gtnm(void)
 
 	sign = 0;
 	val = 0;
-	while((c=Bgetrune(finput)) != Beof) {
+	while((c = Bgetrune(finput)) != Beof) {
 		if(isdigit(c)) {
-			val = val*10 + c-'0';
+			val = val * 10 + c - '0';
 			continue;
 		}
 		if(c == '-') {

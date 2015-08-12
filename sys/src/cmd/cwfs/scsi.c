@@ -15,21 +15,21 @@
 #include "io.h"
 
 enum {
-	Ninquiry	= 255,
-	Nsense		= 255,
+	Ninquiry = 255,
+	Nsense = 255,
 
-	CMDtest		= 0x00,
-	CMDreqsense	= 0x03,
-	CMDread6	= 0x08,
-	CMDwrite6	= 0x0A,
-	CMDinquiry	= 0x12,
-	CMDstart	= 0x1B,
-	CMDread10	= 0x28,
-	CMDwrite10	= 0x2A,
+	CMDtest = 0x00,
+	CMDreqsense = 0x03,
+	CMDread6 = 0x08,
+	CMDwrite6 = 0x0A,
+	CMDinquiry = 0x12,
+	CMDstart = 0x1B,
+	CMDread10 = 0x28,
+	CMDwrite10 = 0x2A,
 };
 
 typedef struct {
-	Target	target[NTarget];
+	Target target[NTarget];
 } Ctlr;
 static Ctlr scsictlr[MaxScsi];
 
@@ -43,10 +43,10 @@ scsiinit(void)
 	Target *tp;
 
 	scsiverbose = 1;
-	for(ctlrno = 0; ctlrno < MaxScsi; ctlrno++){
+	for(ctlrno = 0; ctlrno < MaxScsi; ctlrno++) {
 		ctlr = &scsictlr[ctlrno];
 		memset(ctlr, 0, sizeof(Ctlr));
-		for(targetno = 0; targetno < NTarget; targetno++){
+		for(targetno = 0; targetno < NTarget; targetno++) {
 			tp = &ctlr->target[targetno];
 
 			qlock(tp);
@@ -67,8 +67,8 @@ static int lastcmdsz;
 static int
 sense2stcode(uint8_t *sense)
 {
-	switch(sense[2] & 0x0F){
-	case 6:						/* unit attention */
+	switch(sense[2] & 0x0F) {
+	case 6: /* unit attention */
 		/*
 		 * 0x28 - not ready to ready transition,
 		 *	  medium may have changed.
@@ -76,16 +76,16 @@ sense2stcode(uint8_t *sense)
 		 */
 		if(sense[12] != 0x28 && sense[12] != 0x29)
 			return STcheck;
-		/*FALLTHROUGH*/
-	case 0:						/* no sense */
-	case 1:						/* recovered error */
+	/*FALLTHROUGH*/
+	case 0: /* no sense */
+	case 1: /* recovered error */
 		return STok;
-	case 8:						/* blank data */
+	case 8: /* blank data */
 		return STblank;
-	case 2:						/* not ready */
-		if(sense[12] == 0x3A)			/* medium not present */
+	case 2:			      /* not ready */
+		if(sense[12] == 0x3A) /* medium not present */
 			return STcheck;
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	default:
 		/*
 		 * If unit is becoming ready, rather than not ready,
@@ -96,7 +96,7 @@ sense2stcode(uint8_t *sense)
 			// delay(500);
 			// scsitest(tp, lun);
 			fprint(2, "sense2stcode: unit becoming ready\n");
-			return STcheck;			/* not exactly right */
+			return STcheck; /* not exactly right */
 		}
 		return STcheck;
 	}
@@ -106,35 +106,35 @@ sense2stcode(uint8_t *sense)
  * issue the SCSI command via scsi(2).  lun must already be in cmd[1].
  */
 static int
-doscsi(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
-       int* dbytes)
+doscsi(Target *tp, int rw, uint8_t *cmd, int cbytes, void *data,
+       int *dbytes)
 {
 	int lun, db = 0;
 	uint8_t reqcmd[6], reqdata[Nsense], dummy[1];
 	Scsi *sc;
 
 	sc = tp->sc;
-	if (sc == nil)
+	if(sc == nil)
 		panic("doscsi: nil tp->sc");
-	lun = cmd[1] >> 5;	/* save lun in case we need it for reqsense */
+	lun = cmd[1] >> 5; /* save lun in case we need it for reqsense */
 
 	/* cope with zero arguments */
-	if (dbytes != nil)
+	if(dbytes != nil)
 		db = *dbytes;
-	if (data == nil)
+	if(data == nil)
 		data = dummy;
 
-	if (scsi(sc, cmd, cbytes, data, db, rw) >= 0)
+	if(scsi(sc, cmd, cbytes, data, db, rw) >= 0)
 		return STok;
 
 	/* cmd failed, get whatever sense data we can */
 	memset(reqcmd, 0, sizeof reqcmd);
 	reqcmd[0] = CMDreqsense;
-	reqcmd[1] = lun<<5;
+	reqcmd[1] = lun << 5;
 	reqcmd[4] = Nsense;
 	memset(reqdata, 0, sizeof reqdata);
-	if (scsicmd(sc, reqcmd, sizeof reqcmd, reqdata, sizeof reqdata,
-	    Sread) < 0)
+	if(scsicmd(sc, reqcmd, sizeof reqcmd, reqdata, sizeof reqdata,
+		   Sread) < 0)
 		return STharderr;
 
 	/* translate sense data to ST* codes */
@@ -142,8 +142,8 @@ doscsi(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
 }
 
 static int
-scsiexec(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
-	 int* dbytes)
+scsiexec(Target *tp, int rw, uint8_t *cmd, int cbytes, void *data,
+	 int *dbytes)
 {
 	int s;
 
@@ -151,12 +151,12 @@ scsiexec(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
 	 * issue the SCSI command.  lun must already be in cmd[1].
 	 */
 	s = doscsi(tp, rw, cmd, cbytes, data, dbytes);
-	switch(s){
+	switch(s) {
 
 	case STcheck:
 		memmove(lastcmd, cmd, cbytes);
 		lastcmdsz = cbytes;
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 
 	default:
 		/*
@@ -175,75 +175,74 @@ scsiexec(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
 }
 
 static int
-scsitest(Target* tp, char lun)
+scsitest(Target *tp, char lun)
 {
 	uint8_t cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = CMDtest;
-	cmd[1] = lun<<5;
+	cmd[1] = lun << 5;
 	return scsiexec(tp, SCSIread, cmd, sizeof cmd, 0, 0);
-
 }
 
 static int
-scsistart(Target* tp, char lun, int start)
+scsistart(Target *tp, char lun, int start)
 {
 	uint8_t cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = CMDstart;
-	cmd[1] = lun<<5;
+	cmd[1] = lun << 5;
 	if(start)
 		cmd[4] = 1;
 	return scsiexec(tp, SCSIread, cmd, sizeof cmd, 0, 0);
 }
 
 static int
-scsiinquiry(Target* tp, char lun, int* nbytes)
+scsiinquiry(Target *tp, char lun, int *nbytes)
 {
 	uint8_t cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = CMDinquiry;
-	cmd[1] = lun<<5;
+	cmd[1] = lun << 5;
 	*nbytes = Ninquiry;
 	cmd[4] = *nbytes;
 	return scsiexec(tp, SCSIread, cmd, sizeof cmd, tp->inquiry, nbytes);
 }
 
 static char *key[] =
-{
-	"no sense",
-	"recovered error",
-	"not ready",
-	"medium error",
-	"hardware error",
-	"illegal request",
-	"unit attention",
-	"data protect",
-	"blank check",
-	"vendor specific",
-	"copy aborted",
-	"aborted command",
-	"equal",
-	"volume overflow",
-	"miscompare",
-	"reserved"
-};
+    {
+     "no sense",
+     "recovered error",
+     "not ready",
+     "medium error",
+     "hardware error",
+     "illegal request",
+     "unit attention",
+     "data protect",
+     "blank check",
+     "vendor specific",
+     "copy aborted",
+     "aborted command",
+     "equal",
+     "volume overflow",
+     "miscompare",
+     "reserved"};
 
 static int
-scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
+scsireqsense(Target *tp, char lun, int *nbytes, int quiet)
 {
 	char *s;
-	int n, status, try;
+	int n, status, try
+		;
 	uint8_t cmd[6], *sense;
 
 	sense = tp->sense;
-	for(try = 0; try < 20; try++) {
+	for(try = 0; try < 20; try ++) {
 		memset(cmd, 0, sizeof cmd);
 		cmd[0] = CMDreqsense;
-		cmd[1] = lun<<5;
+		cmd[1] = lun << 5;
 		cmd[4] = Ninquiry;
 		memset(sense, 0, Ninquiry);
 
@@ -251,10 +250,10 @@ scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
 		status = scsiexec(tp, SCSIread, cmd, sizeof cmd, sense, nbytes);
 		if(status != STok)
 			return status;
-		*nbytes = sense[0x07]+8;
+		*nbytes = sense[0x07] + 8;
 
-		switch(sense[2] & 0x0F){
-		case 6:					/* unit attention */
+		switch(sense[2] & 0x0F) {
+		case 6: /* unit attention */
 			/*
 			 * 0x28 - not ready to ready transition,
 			 *	  medium may have changed.
@@ -262,23 +261,23 @@ scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
 			 */
 			if(sense[12] != 0x28 && sense[12] != 0x29)
 				goto buggery;
-			/*FALLTHROUGH*/
-		case 0:					/* no sense */
-		case 1:					/* recovered error */
+		/*FALLTHROUGH*/
+		case 0: /* no sense */
+		case 1: /* recovered error */
 			return STok;
-		case 8:					/* blank data */
+		case 8: /* blank data */
 			return STblank;
-		case 2:					/* not ready */
-			if(sense[12] == 0x3A)		/* medium not present */
+		case 2:			      /* not ready */
+			if(sense[12] == 0x3A) /* medium not present */
 				goto buggery;
-			/*FALLTHROUGH*/
+		/*FALLTHROUGH*/
 		default:
 			/*
 			 * If unit is becoming ready, rather than not ready,
 			 * then wait a little then poke it again; should this
 			 * be here or in the caller?
 			 */
-			if((sense[12] == 0x04 && sense[13] == 0x01)){
+			if((sense[12] == 0x04 && sense[13] == 0x01)) {
 				delay(500);
 				scsitest(tp, lun);
 				break;
@@ -288,12 +287,12 @@ scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
 	}
 
 buggery:
-	if(quiet == 0){
-		s = key[sense[2]&0x0F];
+	if(quiet == 0) {
+		s = key[sense[2] & 0x0F];
 		print("%s: reqsense: '%s' code #%2.2ux #%2.2ux\n",
-			tp->id, s, sense[12], sense[13]);
+		      tp->id, s, sense[12], sense[13]);
 		print("%s: byte 2: #%2.2ux, bytes 15-17: #%2.2ux #%2.2ux #%2.2ux\n",
-			tp->id, sense[2], sense[15], sense[16], sense[17]);
+		      tp->id, sense[2], sense[15], sense[16], sense[17]);
 		print("lastcmd (%d): ", lastcmdsz);
 		for(n = 0; n < lastcmdsz; n++)
 			print(" #%2.2ux", lastcmd[n]);
@@ -303,8 +302,8 @@ buggery:
 	return STcheck;
 }
 
-static Target*
-scsitarget(Device* d)
+static Target *
+scsitarget(Device *d)
 {
 	int ctlrno, targetno;
 
@@ -318,7 +317,7 @@ scsitarget(Device* d)
 }
 
 static void
-scsiprobe(Device* d)
+scsiprobe(Device *d)
 {
 	Target *tp;
 	int nbytes, s;
@@ -331,7 +330,7 @@ scsiprobe(Device* d)
 	acount = 0;
 again:
 	s = scsitest(tp, d->wren.lun);
-	if(s < STok){
+	if(s < STok) {
 		print("%s: test, status %d\n", tp->id, s);
 		return;
 	}
@@ -347,27 +346,27 @@ again:
 	 */
 	s = scsireqsense(tp, d->wren.lun, &nbytes, acount);
 	sense = tp->sense;
-	switch(s){
+	switch(s) {
 	case STok:
-		if ((sense[2] & 0x0F) == 0x06 &&
-		    (sense[12] == 0x28 || sense[12] == 0x29))
-			if(acount == 0){
+		if((sense[2] & 0x0F) == 0x06 &&
+		   (sense[12] == 0x28 || sense[12] == 0x29))
+			if(acount == 0) {
 				acount = 1;
 				goto again;
 			}
 		break;
 	case STcheck:
-		if((sense[2] & 0x0F) == 0x02){
+		if((sense[2] & 0x0F) == 0x02) {
 			if(sense[12] == 0x3A)
 				break;
-			if(sense[12] == 0x04 && sense[13] == 0x02){
+			if(sense[12] == 0x04 && sense[13] == 0x02) {
 				print("%s: starting...\n", tp->id);
 				if(scsistart(tp, d->wren.lun, 1) == STok)
 					break;
 				s = scsireqsense(tp, d->wren.lun, &nbytes, 0);
 			}
 		}
-		/*FALLTHROUGH*/
+	/*FALLTHROUGH*/
 	default:
 		print("%s: unavailable, status %d\n", tp->id, s);
 		return;
@@ -382,12 +381,12 @@ again:
 		print("%s: inquiry failed, status %d\n", tp->id, s);
 		return;
 	}
-	print("%s: %s\n", tp->id, (char*)tp->inquiry+8);
+	print("%s: %s\n", tp->id, (char *)tp->inquiry + 8);
 	tp->ok = 1;
 }
 
 int
-scsiio(Device* d, int rw, uint8_t* cmd, int cbytes, void* data, int dbytes)
+scsiio(Device *d, int rw, uint8_t *cmd, int cbytes, void *data, int dbytes)
 {
 	Target *tp;
 	int e, nbytes, s;
@@ -401,8 +400,8 @@ scsiio(Device* d, int rw, uint8_t* cmd, int cbytes, void* data, int dbytes)
 	qunlock(tp);
 
 	s = STinit;
-	for(e = 0; e < 10; e++){
-		for(;;){
+	for(e = 0; e < 10; e++) {
+		for(;;) {
 			nbytes = dbytes;
 			s = scsiexec(tp, rw, cmd, cbytes, data, &nbytes);
 			if(s == STok)
@@ -430,5 +429,5 @@ newscsi(Device *d, Scsi *sc)
 
 	if((tp = scsitarget(d)) == nil)
 		panic("newscsi: device = %Z", d);
-	tp->sc = sc;		/* connect Target to Scsi */
+	tp->sc = sc; /* connect Target to Scsi */
 }

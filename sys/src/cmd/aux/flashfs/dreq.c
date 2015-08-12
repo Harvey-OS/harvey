@@ -15,17 +15,16 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	Srv	flashsrv;
+static Srv flashsrv;
 
-typedef struct	State	State;
+typedef struct State State;
 
-struct State
-{
-	Entry	*e;
-	Dirr	*r;
+struct State {
+	Entry *e;
+	Dirr *r;
 };
 
-#define	writeable(e)	((e)->mode & 0222)
+#define writeable(e) ((e)->mode & 0222)
 
 static State *
 state(Entry *e)
@@ -87,7 +86,7 @@ flopen(Req *r)
 		p = AWRITE;
 		break;
 	case ORDWR:
-		p = AREAD|AWRITE;
+		p = AREAD | AWRITE;
 		break;
 	case OEXEC:
 		p = AEXEC;
@@ -245,8 +244,7 @@ flwalk(Req *r)
 		if(f) {
 			r->ofcall.wqid[i] = eqid(f);
 			e = f;
-		}
-		else {
+		} else {
 			e->ref--;
 			break;
 		}
@@ -258,8 +256,7 @@ flwalk(Req *r)
 			s = r->newfid->aux;
 			s->e = f;
 			r->newfid->qid = eqid(f);
-		}
-		else {
+		} else {
 			s = r->fid->aux;
 			s->e->ref--;
 			s->e = f;
@@ -285,5 +282,5 @@ serve(char *mount)
 	flashsrv.destroyfid = destroy;
 	flashsrv.destroyreq = trace;
 	einit();
-	postmountsrv(&flashsrv, "brzr", mount, MREPL|MCREATE);
+	postmountsrv(&flashsrv, "brzr", mount, MREPL | MCREATE);
 }

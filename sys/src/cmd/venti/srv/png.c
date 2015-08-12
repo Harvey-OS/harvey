@@ -11,17 +11,15 @@
 #include "dat.h"
 #include "fns.h"
 
-enum
-{
-	IDATSIZE	= 20000,
+enum {
+	IDATSIZE = 20000,
 	FilterNone = 0
 };
 
 typedef struct ZlibR ZlibR;
 typedef struct ZlibW ZlibW;
 
-struct ZlibR
-{
+struct ZlibR {
 	uint8_t *data;
 	int width;
 	int dx;
@@ -31,8 +29,7 @@ struct ZlibR
 	int pixwid;
 };
 
-struct ZlibW
-{
+struct ZlibW {
 	Hio *io;
 	uint8_t *buf;
 	uint8_t *b;
@@ -40,14 +37,14 @@ struct ZlibW
 };
 
 static uint32_t *crctab;
-static uint8_t PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static uint8_t PNGmagic[] = {137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
 
 static void
 put4(uint8_t *a, uint32_t v)
 {
-	a[0] = v>>24;
-	a[1] = v>>16;
-	a[2] = v>>8;
+	a[0] = v >> 24;
+	a[1] = v >> 16;
+	a[2] = v >> 8;
 	a[3] = v;
 }
 
@@ -79,45 +76,45 @@ zread(void *va, void *buf, int n)
 	z = va;
 	pixwid = z->pixwid;
 	b = buf;
-	e = b+n;
-	while(b+pixwid <= e){
+	e = b + n;
+	while(b + pixwid <= e) {
 		if(z->y >= z->dy)
 			break;
 		if(z->x == 0)
 			*b++ = FilterNone;
-		pixels = (e-b)/pixwid;
+		pixels = (e - b) / pixwid;
 		if(pixels > z->dx - z->x)
 			pixels = z->dx - z->x;
-		img = z->data + z->width*z->y + pixwid*z->x;
-		memmove(b, img, pixwid*pixels);
-		if(pixwid == 4){
+		img = z->data + z->width * z->y + pixwid * z->x;
+		memmove(b, img, pixwid * pixels);
+		if(pixwid == 4) {
 			/*
 			 * Convert to non-premultiplied alpha.
 			 */
-			for(i=0; i<pixels; i++, b+=4){
+			for(i = 0; i < pixels; i++, b += 4) {
 				a = b[3];
-				if(a != 0 && a != 255){
+				if(a != 0 && a != 255) {
 					if(b[0] >= a)
 						b[0] = a;
-					b[0] = (b[0]*255)/a;
+					b[0] = (b[0] * 255) / a;
 					if(b[1] >= a)
 						b[1] = a;
-					b[1] = (b[1]*255)/a;
+					b[1] = (b[1] * 255) / a;
 					if(b[2] >= a)
 						b[2] = a;
-					b[2] = (b[2]*255)/a;
+					b[2] = (b[2] * 255) / a;
 				}
 			}
-		}else	
-			b += pixwid*pixels;
+		} else
+			b += pixwid * pixels;
 
 		z->x += pixels;
-		if(z->x >= z->dx){
+		if(z->x >= z->dx) {
 			z->x = 0;
 			z->y++;
 		}
 	}
-	return b - (uint8_t*)buf;
+	return b - (uint8_t *)buf;
 }
 
 static void
@@ -136,9 +133,9 @@ zwrite(void *va, void *buf, int n)
 
 	z = va;
 	b = buf;
-	e = b+n;
+	e = b + n;
 
-	while(b < e){
+	while(b < e) {
 		m = z->e - z->b;
 		if(m > e - b)
 			m = e - b;
@@ -151,13 +148,13 @@ zwrite(void *va, void *buf, int n)
 	return n;
 }
 
-static Memimage*
+static Memimage *
 memRGBA(Memimage *i)
 {
 	Memimage *ni;
 	char buf[32];
 	uint32_t dst;
-	
+
 	/*
 	 * [A]BGR because we want R,G,B,[A] in big-endian order.  Sigh.
 	 */
@@ -166,7 +163,7 @@ memRGBA(Memimage *i)
 		dst = ABGR32;
 	else
 		dst = BGR24;
-		
+
 	if(i->chan == dst)
 		return i;
 
@@ -188,9 +185,9 @@ writepng(Hio *io, Memimage *m)
 	ZlibR zr;
 	ZlibW zw;
 
-	if(first){
+	if(first) {
 		qlock(&lk);
-		if(first){
+		if(first) {
 			deflateinit();
 			crctab = mkcrctab(0xedb88320);
 			first = 0;
@@ -203,20 +200,22 @@ writepng(Hio *io, Memimage *m)
 		return -1;
 
 	hwrite(io, PNGmagic, sizeof PNGmagic);
-	
+
 	/* IHDR chunk */
 	h = buf;
-	put4(h, Dx(m->r)); h += 4;
-	put4(h, Dy(m->r)); h += 4;
-	*h++ = 8;	/* 8 bits per channel */
+	put4(h, Dx(m->r));
+	h += 4;
+	put4(h, Dy(m->r));
+	h += 4;
+	*h++ = 8; /* 8 bits per channel */
 	if(rgb->chan == BGR24)
-		*h++ = 2;		/* RGB */
+		*h++ = 2; /* RGB */
 	else
-		*h++ = 6;		/* RGBA */
-	*h++ = 0;	/* compression - deflate */
-	*h++ = 0;	/* filter - none */
-	*h++ = 0;	/* interlace - none */
-	chunk(io, "IHDR", buf, h-buf);
+		*h++ = 6; /* RGBA */
+	*h++ = 0;	 /* compression - deflate */
+	*h++ = 0;	 /* filter - none */
+	*h++ = 0;	 /* interlace - none */
+	chunk(io, "IHDR", buf, h - buf);
 
 	/* image data */
 	zr.dx = Dx(m->r);
@@ -225,12 +224,12 @@ writepng(Hio *io, Memimage *m)
 	zr.data = rgb->data->bdata;
 	zr.x = 0;
 	zr.y = 0;
-	zr.pixwid = chantodepth(rgb->chan)/8;
+	zr.pixwid = chantodepth(rgb->chan) / 8;
 	zw.io = io;
 	zw.buf = vtmalloc(IDATSIZE);
 	zw.b = zw.buf;
 	zw.e = zw.b + IDATSIZE;
-	if(deflatezlib(&zw, zwrite, &zr, zread, 6, 0) < 0){
+	if(deflatezlib(&zw, zwrite, &zr, zread, 6, 0) < 0) {
 		free(zw.buf);
 		return -1;
 	}
@@ -239,7 +238,7 @@ writepng(Hio *io, Memimage *m)
 	free(zw.buf);
 	chunk(io, "IEND", nil, 0);
 
-	if(m != rgb){
+	if(m != rgb) {
 		qlock(&memdrawlock);
 		freememimage(rgb);
 		qunlock(&memdrawlock);

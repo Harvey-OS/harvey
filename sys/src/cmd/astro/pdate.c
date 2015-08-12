@@ -9,21 +9,20 @@
 
 #include "astro.h"
 
-
-char*	month[] =
-{
-	"January",
-	"February",
-	"March",
-	"April",
-	"May",
-	"June",
-	"July",
-	"August",
-	"September",
-	"October",
-	"November",
-	"December",
+char *month[] =
+    {
+     "January",
+     "February",
+     "March",
+     "April",
+     "May",
+     "June",
+     "July",
+     "August",
+     "September",
+     "October",
+     "November",
+     "December",
 };
 
 double
@@ -47,19 +46,19 @@ dtsetup(double d, Tim *t)
 {
 	double v;
 
-	t->ifa[0] = floor(1900 + d/365.24220);
+	t->ifa[0] = floor(1900 + d / 365.24220);
 	t->ifa[1] = 1;
 	t->ifa[2] = 1;
 	t->ifa[3] = 0;
 	t->ifa[4] = 0;
-	t->ifa[1] = floor(1 + dsrc(d, t, 0)/30);
+	t->ifa[1] = floor(1 + dsrc(d, t, 0) / 30);
 	t->ifa[2] = floor(1 + dsrc(d, t, 1));
 	dsrc(d, t, 2);
 
 	v = (d - convdate(t)) * 24;
 	t->ifa[3] = floor(v);
 	t->ifa[4] = (v - t->ifa[3]) * 60;
-	convdate(t);	/* to set timezone */
+	convdate(t); /* to set timezone */
 }
 
 void
@@ -71,7 +70,7 @@ pdate(double d)
 	dtsetup(d, &t);
 	if(flags['s']) {
 		i = t.ifa[1];
-		print("%s ", month[i-1]);
+		print("%s ", month[i - 1]);
 		i = t.ifa[2];
 		numb(i);
 		print("...");
@@ -80,9 +79,9 @@ pdate(double d)
 
 	/* year month day */
 	print("%4d %2d %2d",
-		(int)t.ifa[0],
-		(int)t.ifa[1],
-		(int)t.ifa[2]);
+	      (int)t.ifa[0],
+	      (int)t.ifa[1],
+	      (int)t.ifa[2]);
 }
 
 void
@@ -94,7 +93,7 @@ ptime(double d)
 
 	if(flags['s']) {
 		/* hour minute */
-		dtsetup(d + .5/(24*60), &t);
+		dtsetup(d + .5 / (24 * 60), &t);
 		h = t.ifa[3];
 		m = floor(t.ifa[4]);
 
@@ -121,44 +120,42 @@ ptime(double d)
 	dtsetup(d, &t);
 	h = t.ifa[3];
 	m = floor(t.ifa[4]);
-	s = floor((t.ifa[4]-m) * 60);
+	s = floor((t.ifa[4] - m) * 60);
 	print("%.2d:%.2d:%.2d %.*s", h, m, s, utfnlen(t.tz, 3), t.tz);
 }
 
-char*	unit[] =
-{
-	"zero",
-	"one",
-	"two",
-	"three",
-	"four",
-	"five",
-	"six",
-	"seven",
-	"eight",
-	"nine",
-	"ten",
-	"eleven",
-	"twelve",
-	"thirteen",
-	"fourteen",
-	"fifteen",
-	"sixteen",
-	"seventeen",
-	"eighteen",
-	"nineteen"
-};
-char*	decade[] =
-{
-	"twenty",
-	"thirty",
-	"forty",
-	"fifty",
-	"sixty",
-	"seventy",
-	"eighty",
-	"ninety"
-};
+char *unit[] =
+    {
+     "zero",
+     "one",
+     "two",
+     "three",
+     "four",
+     "five",
+     "six",
+     "seven",
+     "eight",
+     "nine",
+     "ten",
+     "eleven",
+     "twelve",
+     "thirteen",
+     "fourteen",
+     "fifteen",
+     "sixteen",
+     "seventeen",
+     "eighteen",
+     "nineteen"};
+char *decade[] =
+    {
+     "twenty",
+     "thirty",
+     "forty",
+     "fifty",
+     "sixty",
+     "seventy",
+     "eighty",
+     "ninety"};
 
 void
 pstime(double d)
@@ -172,17 +169,17 @@ pstime(double d)
 	lambda = 0;
 	beta = 0;
 
-// uses lambda, beta, rad, motion
-// sets alpha, delta, rp
+	// uses lambda, beta, rad, motion
+	// sets alpha, delta, rp
 
 	helio();
 
-// uses alpha, delta, rp
-// sets ra, decl, lha, decl2, az, el
+	// uses alpha, delta, rp
+	// sets ra, decl, lha, decl2, az, el
 
 	geo();
 
-	print(" %R %D %D %4.0f", lha, nlat, awlong, elev/3.28084);
+	print(" %R %D %D %4.0f", lha, nlat, awlong, elev / 3.28084);
 }
 
 void
@@ -194,7 +191,7 @@ numb(int n)
 		return;
 	}
 	if(n >= 20) {
-		print("%s ", decade[n/10 - 2]);
+		print("%s ", decade[n / 10 - 2]);
 		n %= 10;
 		if(n == 0)
 			return;
@@ -230,15 +227,15 @@ tzone(double y, Tim *z)
 	 * pick up year crossings
 	 */
 	if(t1.yday == 0 && t2.yday > 1)
-		t1.yday = t2.yday+1;
+		t1.yday = t2.yday + 1;
 	if(t2.yday == 0 && t1.yday > 1)
-		t2.yday = t1.yday+1;
+		t2.yday = t1.yday + 1;
 
 	/*
 	 * convert times to days
 	 */
-	l1 = t1.yday + t1.hour/24. + t1.min/1440. + t1.sec/86400.;
-	l2 = t2.yday + t2.hour/24. + t2.min/1440. + t2.sec/86400.;
+	l1 = t1.yday + t1.hour / 24. + t1.min / 1440. + t1.sec / 86400.;
+	l2 = t2.yday + t2.hour / 24. + t2.min / 1440. + t2.sec / 86400.;
 
 	/*
 	 * return difference
@@ -247,21 +244,20 @@ tzone(double y, Tim *z)
 	return y + (l2 - l1);
 }
 
-int	dmo[12] =
-{
-	0,
-	31,
-	59,
-	90,
-	120,
-	151,
-	181,
-	212,
-	243,
-	273,
-	304,
-	334
-};
+int dmo[12] =
+    {
+     0,
+     31,
+     59,
+     90,
+     120,
+     151,
+     181,
+     212,
+     243,
+     273,
+     304,
+     334};
 
 /*
  * input date conversion
@@ -302,15 +298,15 @@ convdate(Tim *t)
 	y += 4712;
 	if(fmod(y, 4) == 0 && m > 2)
 		d += 1;
-	y = y*365 + floor((y+3)/4) + dmo[m-1] + d - 1;
+	y = y * 365 + floor((y + 3) / 4) + dmo[m - 1] + d - 1;
 
 	/*
 	 * gregorian change
 	 */
 	if(y > 2361232)
-		y -= floor((y-1794167)/36524.220) -
-			floor((y-1721117)/146100);
-	y += t->ifa[3]/24 + t->ifa[4]/1440 - 2415020.5;
+		y -= floor((y - 1794167) / 36524.220) -
+		     floor((y - 1721117) / 146100);
+	y += t->ifa[3] / 24 + t->ifa[4] / 1440 - 2415020.5;
 
 	/*
 	 * kitchen clock correction

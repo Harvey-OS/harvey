@@ -14,7 +14,10 @@
 uint8_t zeroscore[VtScoreSize];
 
 /* Call this function to force linking of score.o for zeroscore on OS X */
-void needzeroscore(void) { }
+void
+needzeroscore(void)
+{
+}
 
 void
 scoremem(uint8_t *score, uint8_t *buf, int n)
@@ -42,7 +45,7 @@ strscore(char *s, uint8_t *score)
 {
 	int i, c, d;
 
-	for(i = 0; i < VtScoreSize; i++){
+	for(i = 0; i < VtScoreSize; i++) {
 		c = hexv(s[2 * i]);
 		if(c < 0)
 			return -1;

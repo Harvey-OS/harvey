@@ -26,14 +26,14 @@ void
 r_nx(int argc, Rune **argv)
 {
 	int n;
-	
-	if(argc == 1){
+
+	if(argc == 1) {
 		while(popinput())
 			;
-	}else{
+	} else {
 		if(argc > 2)
 			warn("too many arguments for .nx");
-		while((n=popinput()) && n != 2)
+		while((n = popinput()) && n != 2)
 			;
 		pushinputfile(argv[1]);
 	}
@@ -65,7 +65,7 @@ r_cf(int argc, Rune **argv)
 
 	USED(argc);
 	p = esmprint("%S", argv[1]);
-	if((b = Bopen(p, OREAD)) == nil){
+	if((b = Bopen(p, OREAD)) == nil) {
 		fprint(2, "%L: open %s: %r\n", p);
 		free(p);
 		return;
@@ -83,18 +83,18 @@ r_inputpipe(Rune *name)
 	Rune *cmd, *stop, *line;
 	int n, pid, p[2], len;
 	Waitmsg *w;
-	
+
 	USED(name);
-	if(pipe(p) < 0){
+	if(pipe(p) < 0) {
 		warn("pipe: %r");
 		return;
 	}
 	stop = copyarg();
 	cmd = readline(CopyMode);
 	pid = fork();
-	switch(pid){
+	switch(pid) {
 	case 0:
-		if(p[0] != 0){
+		if(p[0] != 0) {
 			dup(p[0], 0);
 			close(p[0]);
 		}
@@ -112,20 +112,18 @@ r_inputpipe(Rune *name)
 		fprint(p[1], ".ft %d\n", getnr(L(".f")));
 		fprint(p[1], ".ll 8i\n");
 		fprint(p[1], ".pl 30i\n");
-		while((line = readline(~0)) != nil){
-			if(runestrncmp(line, stop, len) == 0 
-			&& (line[len]==' ' || line[len]==0 || line[len]=='\t'
-				|| (line[len]=='\\' && line[len+1]=='}')))
+		while((line = readline(~0)) != nil) {
+			if(runestrncmp(line, stop, len) == 0 && (line[len] == ' ' || line[len] == 0 || line[len] == '\t' || (line[len] == '\\' && line[len + 1] == '}')))
 				break;
 			n = runestrlen(line);
 			line[n] = '\n';
-			fprint(p[1], "%.*S", n+1, line);
+			fprint(p[1], "%.*S", n + 1, line);
 			free(line);
 		}
 		free(stop);
 		close(p[1]);
 		w = wait();
-		if(w == nil){
+		if(w == nil) {
 			warn("wait: %r");
 			return;
 		}
@@ -134,7 +132,7 @@ r_inputpipe(Rune *name)
 		free(cmd);
 		free(w);
 	}
-}	
+}
 
 void
 t19init(void)
@@ -145,7 +143,6 @@ t19init(void)
 	addraw(L("inputpipe"), r_inputpipe);
 	addraw(L("pi"), r_pi);
 	addreq(L("cf"), r_cf, 1);
-	
+
 	nr(L("$$"), getpid());
 }
-

@@ -26,7 +26,7 @@
 #include "fmt.h"
 #include "fmtdef.h"
 
-Rune*
+Rune *
 runeseprint(Rune *buf, Rune *e, char *fmt, ...)
 {
 	Rune *p;

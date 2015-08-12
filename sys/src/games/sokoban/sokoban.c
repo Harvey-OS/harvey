@@ -22,35 +22,34 @@ char *levelfile;
 
 #define SOKOIMG SOKOTREE "images/"
 
-char	*GRImage =	SOKOIMG "right.bit";
-char	*GLImage =	SOKOIMG "left.bit";
-char	*WallImage =	SOKOIMG "wall.bit";
-char	*EmptyImage =	SOKOIMG "empty.bit";
-char	*CargoImage =	SOKOIMG "cargo.bit";
-char	*GoalCargoImage= SOKOIMG "goalcargo.bit";
-char	*GoalImage =	SOKOIMG "goal.bit";
-char	*WinImage =	SOKOIMG "win.bit";
+char *GRImage = SOKOIMG "right.bit";
+char *GLImage = SOKOIMG "left.bit";
+char *WallImage = SOKOIMG "wall.bit";
+char *EmptyImage = SOKOIMG "empty.bit";
+char *CargoImage = SOKOIMG "cargo.bit";
+char *GoalCargoImage = SOKOIMG "goalcargo.bit";
+char *GoalImage = SOKOIMG "goal.bit";
+char *WinImage = SOKOIMG "win.bit";
 
-char *buttons[] = 
-{
-	"restart",
-	"easy",
-	"hard",
-	"noanimate", /* this menu string initialized in main */
-	"exit",
-	0
-};
+char *buttons[] =
+    {
+     "restart",
+     "easy",
+     "hard",
+     "noanimate", /* this menu string initialized in main */
+     "exit",
+     0};
 
 char **levelnames;
 
-Menu menu = 
-{
-	buttons,
+Menu menu =
+    {
+     buttons,
 };
 
 Menu lmenu =
-{
-	levelnames,
+    {
+     levelnames,
 };
 
 void
@@ -58,14 +57,14 @@ buildmenu(void)
 {
 	int i;
 
-	if (levelnames != nil) {
-		for(i=0; levelnames[i] != 0; i++)
+	if(levelnames != nil) {
+		for(i = 0; levelnames[i] != 0; i++)
 			free(levelnames[i]);
 	}
-	levelnames = realloc(levelnames, sizeof(char*)*(numlevels+1));
-	if (levelnames == nil)
+	levelnames = realloc(levelnames, sizeof(char *) * (numlevels + 1));
+	if(levelnames == nil)
 		sysfatal("cannot allocate levelnames");
-	for(i=0; i < numlevels; i++)
+	for(i = 0; i < numlevels; i++)
 		levelnames[i] = genlevels(i);
 	levelnames[numlevels] = 0;
 	lmenu.item = levelnames;
@@ -98,18 +97,17 @@ eloadfile(char *path)
 	if(img == nil)
 		sysfatal("cannot load image: %r");
 	close(fd);
-	
+
 	return img;
 }
-
 
 void
 allocimages(void)
 {
 	Rectangle one = Rect(0, 0, 1, 1);
-	
-	bg		= eallocimage(one, 1, DDarkyellow);
-	text 		= eallocimage(one, 1, DBluegreen);
+
+	bg = eallocimage(one, 1, DDarkyellow);
+	text = eallocimage(one, 1, DBluegreen);
 
 	gright = eloadfile(GRImage);
 	gleft = eloadfile(GLImage);
@@ -145,7 +143,7 @@ key2move(int key)
 	return k;
 }
 
-static Route*
+static Route *
 mouse2route(Mouse m)
 {
 	Point p, q;
@@ -158,22 +156,22 @@ mouse2route(Mouse m)
 	q = subpt(p, level.glenda);
 	// fprint(2, "x=%d y=%d\n", q.x, q.y);
 
-	if (q.x == 0 && q.y ==  0)
+	if(q.x == 0 && q.y == 0)
 		return nil;
 
-	if (q.x == 0 || q.y ==  0) {
-		if (q.x < 0)
+	if(q.x == 0 || q.y == 0) {
+		if(q.x < 0)
 			r = extend(nil, Left, -q.x, Pt(level.glenda.x, p.y));
-		else if (q.x > 0)
+		else if(q.x > 0)
 			r = extend(nil, Right, q.x, Pt(level.glenda.x, p.y));
-		else if (q.y < 0)
+		else if(q.y < 0)
 			r = extend(nil, Up, -q.y, level.glenda);
-		else if (q.y > 0)
+		else if(q.y > 0)
 			r = extend(nil, Down, q.y, level.glenda);
 		else
 			r = nil;
 
-		if (r != nil && isvalid(level.glenda, r, validpush))
+		if(r != nil && isvalid(level.glenda, r, validpush))
 			return r;
 		freeroute(r);
 	}
@@ -184,13 +182,12 @@ mouse2route(Mouse m)
 char *
 genlevels(int i)
 {
-	
+
 	if(i >= numlevels)
 		return 0;
 
-	return smprint("level %d", i+1);
+	return smprint("level %d", i + 1);
 }
-
 
 int
 finished(void)
@@ -209,9 +206,9 @@ eresized(int new)
 {
 	Point p;
 
-	if(new && getwindow(display, Refnone) < 0)
+	if(new &&getwindow(display, Refnone) < 0)
 		sysfatal("can't reattach to window");
-	
+
 	p = Pt(Dx(screen->r), Dy(screen->r));
 
 	if(!new || !eqpt(p, boardsize(level.max))) {
@@ -220,7 +217,7 @@ eresized(int new)
 	drawscreen();
 }
 
-void 
+void
 main(int argc, char **argv)
 {
 	Mouse m;
@@ -231,13 +228,12 @@ main(int argc, char **argv)
 	Animation a;
 	int animate;
 
-
-	if(argc == 2) 
+	if(argc == 2)
 		levelfile = argv[1];
 	else
 		levelfile = LEasy;
-		
-	if(! loadlevels(levelfile)) {
+
+	if(!loadlevels(levelfile)) {
 		fprint(2, "usage: %s [levelfile]\n", argv[0]);
 		exits("usage");
 	}
@@ -248,7 +244,7 @@ main(int argc, char **argv)
 
 	if(initdraw(nil, nil, "sokoban") < 0)
 		sysfatal("initdraw failed: %r");
-	einit(Emouse|Ekeyboard);
+	einit(Emouse | Ekeyboard);
 
 	timer = etimer(0, 200);
 	initanimation(&a);
@@ -262,30 +258,30 @@ main(int argc, char **argv)
 		switch(e) {
 		case Emouse:
 			m = ev.mouse;
-			if(m.buttons&1) {
+			if(m.buttons & 1) {
 				stopanimation(&a);
 				r = mouse2route(m);
-				if (r)
+				if(r)
 					setupanimation(&a, r);
-				if (! animate) {
+				if(!animate) {
 					while(onestep(&a))
 						;
 					drawscreen();
 				}
 			}
-			if(m.buttons&2) {
+			if(m.buttons & 2) {
 				int l;
 				/* levels start from 1 */
 				lmenu.lasthit = level.index;
-				l=emenuhit(2, &m, &lmenu);
-				if(l>=0){
+				l = emenuhit(2, &m, &lmenu);
+				if(l >= 0) {
 					stopanimation(&a);
 					level = levels[l];
 					drawlevel();
 					drawscreen();
 				}
 			}
-			if(m.buttons&4)
+			if(m.buttons & 4)
 				switch(emenuhit(3, &m, &menu)) {
 				case 0:
 					stopanimation(&a);
@@ -364,8 +360,8 @@ main(int argc, char **argv)
 			break;
 
 		default:
-			if (e == timer) {
-				if (animate)
+			if(e == timer) {
+				if(animate)
 					onestep(&a);
 				else
 					while(onestep(&a))

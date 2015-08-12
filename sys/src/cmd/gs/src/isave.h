@@ -28,7 +28,7 @@
 /* Requires imemory.h */
 
 #ifndef isave_INCLUDED
-#  define isave_INCLUDED
+#define isave_INCLUDED
 
 #include "idosave.h"
 
@@ -43,9 +43,9 @@
  * and this approach means we don't have to do anything to invalidate
  * save objects when we do a restore.
  */
-#ifndef alloc_save_t_DEFINED	/* also in inamedef.h */
+#ifndef alloc_save_t_DEFINED /* also in inamedef.h */
 typedef struct alloc_save_s alloc_save_t;
-#  define alloc_save_t_DEFINED
+#define alloc_save_t_DEFINED
 #endif
 
 /* Initialize the save machinery. */
@@ -123,6 +123,6 @@ void alloc_set_in_save(gs_dual_memory_t *);
 void alloc_set_not_in_save(gs_dual_memory_t *);
 
 /* Remove entries from font and character caches. */
-void font_restore(const alloc_save_t * save);
+void font_restore(const alloc_save_t *save);
 
 #endif /* isave_INCLUDED */

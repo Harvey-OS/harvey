@@ -17,23 +17,22 @@
 
 typedef struct Cache Cache;
 
-struct Cache
-{
-	char		*name;
-	CCache	**cache;
-	int		ncache;
+struct Cache {
+	char *name;
+	CCache **cache;
+	int ncache;
 };
 
 static struct Cache imagecache = {"image"};
 static struct Cache fontcache = {"font"};
 
-static CCache*
+static CCache *
 getcacheitem(Cache *c, char *name)
 {
 	int i;
 
-	for(i=0; i<c->ncache; i++)
-		if(c->cache[i]!=nil && strcmp(c->cache[i]->name, name)==0){
+	for(i = 0; i < c->ncache; i++)
+		if(c->cache[i] != nil && strcmp(c->cache[i]->name, name) == 0) {
 			c->cache[i]->ref++;
 			return c->cache[i];
 		}
@@ -47,12 +46,12 @@ namecacheitem(Cache *c, void *image, char *name)
 	CCache *cc;
 
 	free = -1;
-	for(i=0; i<c->ncache; i++){
-		if(c->cache[i] == nil){
+	for(i = 0; i < c->ncache; i++) {
+		if(c->cache[i] == nil) {
 			free = i;
 			continue;
 		}
-		if(strcmp(c->cache[i]->name, name) == 0){
+		if(strcmp(c->cache[i]->name, name) == 0) {
 			werrstr("%s name %q already in use", c->name, name);
 			return -1;
 		}
@@ -60,12 +59,12 @@ namecacheitem(Cache *c, void *image, char *name)
 	cc = ctlmalloc(sizeof(CCache));
 	cc->image = image;
 	cc->name = ctlstrdup(name);
-	if(free >= 0){
+	if(free >= 0) {
 		cc->index = free;
 		c->cache[free] = cc;
-	}else{
+	} else {
 		cc->index = c->ncache;
-		c->cache = ctlrealloc(c->cache, (c->ncache+1)*sizeof(CCache*));
+		c->cache = ctlrealloc(c->cache, (c->ncache + 1) * sizeof(CCache *));
 		c->cache[c->ncache++] = cc;
 	}
 	cc->ref = 1;
@@ -75,15 +74,15 @@ namecacheitem(Cache *c, void *image, char *name)
 static int
 freecacheitem(Cache *c, char *name)
 {
-	CCache	*cc;
+	CCache *cc;
 
 	cc = getcacheitem(c, name);
-	if(cc == nil){
+	if(cc == nil) {
 		werrstr("%s name %q not in use", c->name, name);
 		return -1;
 	}
-	cc->ref--;	/* getcacheitem increments ref */
-	if(cc->ref-- == 1){
+	cc->ref--; /* getcacheitem increments ref */
+	if(cc->ref-- == 1) {
 		/* client must free object itself */
 		free(cc->name);
 		c->cache[cc->index] = nil;
@@ -114,7 +113,7 @@ setcacheitemptr(Cache *c, Control *ctl, CCache **cp, char *s)
 
 /* Images */
 
-CImage*
+CImage *
 _getctlimage(char *name)
 {
 	return getcacheitem(&imagecache, name);
@@ -146,7 +145,7 @@ _setctlimage(Control *c, CImage **cp, char *s)
 
 /* Fonts */
 
-CFont*
+CFont *
 _getctlfont(char *name)
 {
 	return getcacheitem(&fontcache, name);

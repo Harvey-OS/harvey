@@ -18,8 +18,8 @@
 #include "dat.h"
 #include "fns.h"
 
-Buf*
-bopen(int32_t (*fn)(Buf*, void*, int32_t, uint32_t), int omode, int bs,
+Buf *
+bopen(int32_t (*fn)(Buf *, void *, int32_t, uint32_t), int omode, int bs,
       int nblock)
 {
 	Buf *b;
@@ -29,12 +29,12 @@ bopen(int32_t (*fn)(Buf*, void*, int32_t, uint32_t), int omode, int bs,
 	assert(fn != nil);
 
 	b = emalloc(sizeof(*b));
-	b->data = emalloc(bs*nblock);
+	b->data = emalloc(bs * nblock);
 	b->ndata = 0;
 	b->nblock = nblock;
 	b->bs = bs;
 	b->omode = omode;
-	b->fn = fn;		/* function to read or write bs-byte blocks */
+	b->fn = fn; /* function to read or write bs-byte blocks */
 
 	return b;
 }
@@ -48,12 +48,12 @@ bread(Buf *b, void *v, int32_t n, int64_t off)
 	assert(b->omode == OREAD);
 
 	/* Refill buffer */
-	if(b->off > off || off >= b->off+b->ndata) {
+	if(b->off > off || off >= b->off + b->ndata) {
 		noff = off - off % b->bs;
 		if(vflag > 1)
 			fprint(2, "try refill at %lld...", noff);
-		if((m = b->fn(b, b->data, b->nblock, noff/b->bs)) <= 0) {
-			if (vflag)
+		if((m = b->fn(b, b->data, b->nblock, noff / b->bs)) <= 0) {
+			if(vflag)
 				fprint(2, "read failed: %r\n");
 			return m;
 		}
@@ -63,12 +63,12 @@ bread(Buf *b, void *v, int32_t n, int64_t off)
 			fprint(2, "got %ld\n", b->ndata);
 	}
 
-//	fprint(2, "read %ld at %ld\n", n, off);
+	//	fprint(2, "read %ld at %ld\n", n, off);
 	/* Satisfy request from buffer */
 	off -= b->off;
 	if(n > b->ndata - off)
 		n = b->ndata - off;
-	memmove(v, b->data+off, n);
+	memmove(v, b->data + off, n);
 	return n;
 }
 
@@ -82,11 +82,11 @@ bwrite(Buf *b, void *v, int32_t n)
 	on = n;
 
 	/* Fill buffer */
-	mdata = b->bs*b->nblock;
+	mdata = b->bs * b->nblock;
 	m = mdata - b->ndata;
 	if(m > n)
 		m = n;
-	memmove(b->data+b->ndata, p, m);
+	memmove(b->data + b->ndata, p, m);
 	p += m;
 	n -= m;
 	b->ndata += m;
@@ -118,7 +118,7 @@ bterm(Buf *b)
 {
 	/* DVD & BD prefer full ecc blocks (tracks), but can cope with less */
 	if(b->omode == OWRITE && b->ndata)
-		b->fn(b, b->data, (b->ndata + b->bs - 1)/b->bs, 0); 
+		b->fn(b, b->data, (b->ndata + b->bs - 1) / b->bs, 0);
 
 	free(b->data);
 	free(b);

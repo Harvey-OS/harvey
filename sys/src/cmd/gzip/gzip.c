@@ -13,19 +13,19 @@
 #include <flate.h>
 #include "gzip.h"
 
-static	int	gzipf(char*, int);
-static	int	gzip(char*, int32_t, int, Biobuf*);
-static	int	crcread(void *fd, void *buf, int n);
-static	int	gzwrite(void *bout, void *buf, int n);
+static int gzipf(char *, int);
+static int gzip(char *, int32_t, int, Biobuf *);
+static int crcread(void *fd, void *buf, int n);
+static int gzwrite(void *bout, void *buf, int n);
 
-static	Biobuf	bout;
-static	uint32_t	crc;
-static	uint32_t	*crctab;
-static	int	debug;
-static	int	eof;
-static	int	level;
-static	uint32_t	totr;
-static	int	verbose;
+static Biobuf bout;
+static uint32_t crc;
+static uint32_t *crctab;
+static int debug;
+static int eof;
+static int level;
+static uint32_t totr;
+static int verbose;
 
 void
 usage(void)
@@ -41,7 +41,8 @@ main(int argc, char *argv[])
 
 	level = 6;
 	stdout = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debug++;
 		break;
@@ -51,30 +52,38 @@ main(int argc, char *argv[])
 	case 'c':
 		stdout = 1;
 		break;
-	case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 		level = ARGC() - '0';
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	crctab = mkcrctab(GZCRCPOLY);
 	ok = deflateinit();
 	if(ok != FlateOk)
 		sysfatal("deflateinit failed: %s", flateerr(ok));
 
-	if(argc == 0){
+	if(argc == 0) {
 		Binit(&bout, 1, OWRITE);
 		ok = gzip(nil, time(0), 0, &bout);
 		Bterm(&bout);
-	}else{
+	} else {
 		ok = 1;
 		for(i = 0; i < argc; i++)
 			ok &= gzipf(argv[i], stdout);
 	}
-	exits(ok ? nil: "errors");
+	exits(ok ? nil : "errors");
 }
 
 static int
@@ -85,40 +94,40 @@ gzipf(char *file, int stdout)
 	int ifd, ofd, ok;
 
 	ifd = open(file, OREAD);
-	if(ifd < 0){
+	if(ifd < 0) {
 		fprint(2, "gzip: can't open %s: %r\n", file);
 		return 0;
 	}
 	dir = dirfstat(ifd);
-	if(dir == nil){
+	if(dir == nil) {
 		fprint(2, "gzip: can't stat %s: %r\n", file);
 		close(ifd);
 		return 0;
 	}
-	if(dir->mode & DMDIR){
+	if(dir->mode & DMDIR) {
 		fprint(2, "gzip: can't compress a directory\n");
 		close(ifd);
 		free(dir);
 		return 0;
 	}
 
-	if(stdout){
+	if(stdout) {
 		ofd = 1;
 		strcpy(ofile, "<stdout>");
-	}else{
+	} else {
 		f = strrchr(file, '/');
 		if(f != nil)
 			f++;
 		else
 			f = file;
 		s = strrchr(f, '.');
-		if(s != nil && s != ofile && strcmp(s, ".tar") == 0){
+		if(s != nil && s != ofile && strcmp(s, ".tar") == 0) {
 			*s = '\0';
 			snprint(ofile, sizeof(ofile), "%s.tgz", f);
-		}else
+		} else
 			snprint(ofile, sizeof(ofile), "%s.gz", f);
 		ofd = create(ofile, OWRITE, 0666);
-		if(ofd < 0){
+		if(ofd < 0) {
 			fprint(2, "gzip: can't open %s: %r\n", ofile);
 			close(ifd);
 			return 0;
@@ -130,7 +139,7 @@ gzipf(char *file, int stdout)
 
 	Binit(&bout, ofd, OWRITE);
 	ok = gzip(file, dir->mtime, ifd, &bout);
-	if(!ok || Bflush(&bout) < 0){
+	if(!ok || Bflush(&bout) < 0) {
 		fprint(2, "gzip: error writing %s: %r\n", ofile);
 		if(!stdout)
 			remove(ofile);
@@ -157,34 +166,34 @@ gzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 	Bputc(bout, flags);
 
 	Bputc(bout, mtime);
-	Bputc(bout, mtime>>8);
-	Bputc(bout, mtime>>16);
-	Bputc(bout, mtime>>24);
+	Bputc(bout, mtime >> 8);
+	Bputc(bout, mtime >> 16);
+	Bputc(bout, mtime >> 24);
 
 	Bputc(bout, 0);
 	Bputc(bout, GZOSINFERNO);
 
 	if(flags & GZFNAME)
-		Bwrite(bout, file, strlen(file)+1);
+		Bwrite(bout, file, strlen(file) + 1);
 
 	crc = 0;
 	eof = 0;
 	totr = 0;
-	err = deflate(bout, gzwrite, (void*)ifd, crcread, level, debug);
-	if(err != FlateOk){
+	err = deflate(bout, gzwrite, (void *)ifd, crcread, level, debug);
+	if(err != FlateOk) {
 		fprint(2, "gzip: deflate failed: %s\n", flateerr(err));
 		return 0;
 	}
 
 	Bputc(bout, crc);
-	Bputc(bout, crc>>8);
-	Bputc(bout, crc>>16);
-	Bputc(bout, crc>>24);
+	Bputc(bout, crc >> 8);
+	Bputc(bout, crc >> 16);
+	Bputc(bout, crc >> 24);
 
 	Bputc(bout, totr);
-	Bputc(bout, totr>>8);
-	Bputc(bout, totr>>16);
-	Bputc(bout, totr>>24);
+	Bputc(bout, totr >> 8);
+	Bputc(bout, totr >> 16);
+	Bputc(bout, totr >> 24);
 
 	return 1;
 }
@@ -195,9 +204,9 @@ crcread(void *fd, void *buf, int n)
 	int nr, m;
 
 	nr = 0;
-	for(; !eof && n > 0; n -= m){
-		m = read((int)(uintptr)fd, (char*)buf+nr, n);
-		if(m <= 0){
+	for(; !eof && n > 0; n -= m) {
+		m = read((int)(uintptr)fd, (char *)buf + nr, n);
+		if(m <= 0) {
 			eof = 1;
 			if(m < 0)
 				return -1;
@@ -213,7 +222,7 @@ crcread(void *fd, void *buf, int n)
 static int
 gzwrite(void *bout, void *buf, int n)
 {
-	if(n != Bwrite(bout, buf, n)){
+	if(n != Bwrite(bout, buf, n)) {
 		eof = 1;
 		return -1;
 	}

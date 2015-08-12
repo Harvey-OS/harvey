@@ -12,16 +12,16 @@
 #include <ctype.h>
 
 enum {
-	Soh=	0x1,
-	Stx=	0x2,
-	Eot=	0x4,
-	Ack=	0x6,
-	Nak=	0x15,
-	Cancel=	0x18,
+	Soh = 0x1,
+	Stx = 0x2,
+	Eot = 0x4,
+	Ack = 0x6,
+	Nak = 0x15,
+	Cancel = 0x18,
 };
 
-int send(uint8_t*, int);
-int notifyf(void*, char*);
+int send(uint8_t *, int);
+int notifyf(void *, char *);
 
 int debug, progress, onek;
 
@@ -42,25 +42,24 @@ updcrc(int c, uint16_t crc)
 {
 	int count;
 
-	for (count=8; --count>=0;) {
-		if (crc & 0x8000) {
+	for(count = 8; --count >= 0;) {
+		if(crc & 0x8000) {
 			crc <<= 1;
-			crc += (((c<<=1) & 0400)  !=  0);
+			crc += (((c <<= 1) & 0400) != 0);
 			crc ^= 0x1021;
-		}
-		else {
+		} else {
 			crc <<= 1;
-			crc += (((c<<=1) & 0400)  !=  0);
+			crc += (((c <<= 1) & 0400) != 0);
 		}
 	}
-	return crc;	
+	return crc;
 }
 
 void
 main(int argc, char **argv)
 {
 	unsigned char c;
-	unsigned char buf[1024+5];
+	unsigned char buf[1024 + 5];
 	unsigned char seqno;
 	int fd, ctl;
 	int32_t n;
@@ -69,7 +68,8 @@ main(int argc, char **argv)
 	int bytes;
 	int crcmode;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug = 1;
 		break;
@@ -79,20 +79,21 @@ main(int argc, char **argv)
 	case '1':
 		onek = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc != 1){
+	if(argc != 1) {
 		fprint(2, "usage: xms filename\n");
 		exits("usage");
 	}
 	fd = open(argv[0], OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		perror("xms");
 		exits("open");
 	}
 
 	ctl = open("/dev/consctl", OWRITE);
-	if(ctl < 0){
+	if(ctl < 0) {
 		perror("xms");
 		exits("consctl");
 	}
@@ -100,10 +101,10 @@ main(int argc, char **argv)
 
 	/* give the other side a 30 seconds to signal ready */
 	atnotify(notifyf, 1);
-	alarm(30*1000);
+	alarm(30 * 1000);
 	crcmode = 0;
-	for(;;){
-		if(read(0, &c, 1) != 1){
+	for(;;) {
+		if(read(0, &c, 1) != 1) {
 			fprint(2, "xms: timeout\n");
 			exits("timeout");
 		}
@@ -111,7 +112,7 @@ main(int argc, char **argv)
 		if(c == Nak)
 			break;
 		if(c == 'C') {
-			if (debug)
+			if(debug)
 				fprint(2, "crc mode engaged\n");
 			crcmode = 1;
 			break;
@@ -120,39 +121,38 @@ main(int argc, char **argv)
 	alarm(0);
 
 	/* send the file in 128/1024 byte chunks */
-	for(bytes = 0, seqno = 1; ; bytes += n, seqno++){
-		n = read(fd, buf+3, onek ? 1024 : 128);
+	for(bytes = 0, seqno = 1;; bytes += n, seqno++) {
+		n = read(fd, buf + 3, onek ? 1024 : 128);
 		if(n < 0)
 			exits("read");
 		if(n == 0)
 			break;
 		if(n < (onek ? 1024 : 128))
-			memset(&buf[n+3], 0, (onek ? 1024 : 128)-n);
+			memset(&buf[n + 3], 0, (onek ? 1024 : 128) - n);
 		buf[0] = onek ? Stx : Soh;
 		buf[1] = seqno;
 		buf[2] = 255 - seqno;
 
 		/* calculate checksum and stuff into last byte */
-		if (crcmode) {
+		if(crcmode) {
 			unsigned short crc;
 			crc = 0;
-			for(p = buf + 3; p < &buf[(onek ? 1024 : 128)+3]; p++)
+			for(p = buf + 3; p < &buf[(onek ? 1024 : 128) + 3]; p++)
 				crc = updcrc(*p, crc);
 			crc = updcrc(0, crc);
 			crc = updcrc(0, crc);
 			buf[(onek ? 1024 : 128) + 3] = crc >> 8;
 			buf[(onek ? 1024 : 128) + 4] = crc;
-		}
-		else {
+		} else {
 			sum = 0;
-			for(p = buf + 3; p < &buf[(onek ? 1024 : 128)+3]; p++)
+			for(p = buf + 3; p < &buf[(onek ? 1024 : 128) + 3]; p++)
 				sum += *p;
 			buf[(onek ? 1024 : 128) + 3] = sum;
 		}
 
 		if(send(buf, (onek ? 1024 : 128) + 4 + crcmode) < 0)
 			errorout(ctl, bytes);
-		if (progress && bytes % 10240 == 0)
+		if(progress && bytes % 10240 == 0)
 			fprint(2, "%dK\n", bytes / 1024);
 	}
 
@@ -176,37 +176,38 @@ send(uint8_t *buf, int len)
 	int n;
 	uint8_t c;
 
-	for(tries = 0;; tries++, sleep(2*1000)){
+	for(tries = 0;; tries++, sleep(2 * 1000)) {
 		if(tries == 10)
 			return -1;
 		if(write(1, buf, len) != len)
 			return -1;
-		
-		alarm(30*1000);
+
+		alarm(30 * 1000);
 		n = read(0, &c, 1);
 		alarm(0);
-		if(debug) switch(c){
-		case Soh:
-			fprint(2, " Soh");
-			break;
-		case Eot:
-			fprint(2, " Eot");
-			break;
-		case Ack:
-			fprint(2, " Ack");
-			break;
-		case Nak:
-			fprint(2, " Nak");
-			break;
-		case Cancel:
-			fprint(2, "\nremote Cancel\n");
-			return -1;
-		default:
-			if(isprint(c))
-				fprint(2, "%c", c);
-			else
-				fprint(2, " \\0%o", c);
-		}
+		if(debug)
+			switch(c) {
+			case Soh:
+				fprint(2, " Soh");
+				break;
+			case Eot:
+				fprint(2, " Eot");
+				break;
+			case Ack:
+				fprint(2, " Ack");
+				break;
+			case Nak:
+				fprint(2, " Nak");
+				break;
+			case Cancel:
+				fprint(2, "\nremote Cancel\n");
+				return -1;
+			default:
+				if(isprint(c))
+					fprint(2, "%c", c);
+				else
+					fprint(2, " \\0%o", c);
+			}
 		c = c & 0x7f;
 		if(n == 1 && c == Ack)
 			break;

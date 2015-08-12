@@ -7,21 +7,21 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
-#include	"sky.h"
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include "sky.h"
 
-static void	qtree_expand(Biobuf*, uint8_t*, int, int, uint8_t*);
-static void	qtree_copy(uint8_t*, int, int, uint8_t*, int);
-static void	qtree_bitins(uint8_t*, int, int, Pix*, int, int);
-static void	read_bdirect(Biobuf*, Pix*, int, int, int, uint8_t*, int);
+static void qtree_expand(Biobuf *, uint8_t *, int, int, uint8_t *);
+static void qtree_copy(uint8_t *, int, int, uint8_t *, int);
+static void qtree_bitins(uint8_t *, int, int, Pix *, int, int);
+static void read_bdirect(Biobuf *, Pix *, int, int, int, uint8_t *, int);
 
 void
 qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 {
 	int log2n, k, bit, b, nqmax;
-	int nx,ny,nfx,nfy,c;
+	int nx, ny, nfx, nfy, c;
 	int nqx2, nqy2;
 	unsigned char *scratch;
 
@@ -31,16 +31,16 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 	nqmax = nqy;
 	if(nqx > nqmax)
 		nqmax = nqx;
-	log2n = log(nqmax)/LN2+0.5;
-	if (nqmax > (1<<log2n))
+	log2n = log(nqmax) / LN2 + 0.5;
+	if(nqmax > (1 << log2n))
 		log2n++;
 
 	/*
 	 * allocate scratch array for working space
 	 */
-	nqx2 = (nqx+1)/2;
-	nqy2 = (nqy+1)/2;
-	scratch = (uint8_t*)malloc(nqx2*nqy2);
+	nqx2 = (nqx + 1) / 2;
+	nqy2 = (nqy + 1) / 2;
+	scratch = (uint8_t *)malloc(nqx2 * nqy2);
 	if(scratch == nil) {
 		fprint(2, "qtree_decode: insufficient memory\n");
 		exits("memory");
@@ -50,7 +50,7 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 	 * now decode each bit plane, starting at the top
 	 * A is assumed to be initialized to zero
 	 */
-	for(bit = nbitplanes-1; bit >= 0; bit--) {
+	for(bit = nbitplanes - 1; bit >= 0; bit--) {
 		/*
 		 * Was bitplane was quadtree-coded or written directly?
 		 */
@@ -60,9 +60,8 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 			 * bit map was written directly
 			 */
 			read_bdirect(infile, a, n, nqx, nqy, scratch, bit);
-		} else
-		if(b != 0xf) {
-			fprint(2, "qtree_decode: bad format code %x\n",b);
+		} else if(b != 0xf) {
+			fprint(2, "qtree_decode: bad format code %x\n", b);
 			exits("format");
 		} else {
 			/*
@@ -79,15 +78,15 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 			ny = 1;
 			nfx = nqx;
 			nfy = nqy;
-			c = 1<<log2n;
-			for(k = 1; k<log2n; k++) {
+			c = 1 << log2n;
+			for(k = 1; k < log2n; k++) {
 				/*
 				 * this somewhat cryptic code generates the sequence
 				 * n[k-1] = (n[k]+1)/2 where n[log2n]=nqx or nqy
 				 */
-				c = c>>1;
-				nx = nx<<1;
-				ny = ny<<1;
+				c = c >> 1;
+				nx = nx << 1;
+				ny = ny << 1;
 				if(nfx <= c)
 					nx--;
 				else
@@ -112,8 +111,7 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
  * do one quadtree expansion step on array a[(nqx+1)/2,(nqy+1)/2]
  * results put into b[nqx,nqy] (which may be the same as a)
  */
-static
-void
+static void
 qtree_expand(Biobuf *infile, uint8_t *a, int nx, int ny, uint8_t *b)
 {
 	uint8_t *b1;
@@ -126,7 +124,7 @@ qtree_expand(Biobuf *infile, uint8_t *a, int nx, int ny, uint8_t *b)
 	/*
 	 * now read new 4-bit values into b for each non-zero element
 	 */
-	b1 = &b[nx*ny];
+	b1 = &b[nx * ny];
 	while(b1 > b) {
 		b1--;
 		if(*b1 != 0)
@@ -139,8 +137,7 @@ qtree_expand(Biobuf *infile, uint8_t *a, int nx, int ny, uint8_t *b)
  * each value to 2x2 pixels
  * a,b may be same array
  */
-static
-void
+static void
 qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 {
 	int i, j, k, nx2, ny2;
@@ -150,12 +147,12 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 	 * first copy 4-bit values to b
 	 * start at end in case a,b are same array
 	 */
-	nx2 = (nx+1)/2;
-	ny2 = (ny+1)/2;
-	k = ny2*(nx2-1) + ny2-1;	/* k   is index of a[i,j] */
-	for (i = nx2-1; i >= 0; i--) {
-		s00 = 2*(n*i+ny2-1);	/* s00 is index of b[2*i,2*j] */
-		for (j = ny2-1; j >= 0; j--) {
+	nx2 = (nx + 1) / 2;
+	ny2 = (ny + 1) / 2;
+	k = ny2 * (nx2 - 1) + ny2 - 1; /* k   is index of a[i,j] */
+	for(i = nx2 - 1; i >= 0; i--) {
+		s00 = 2 * (n * i + ny2 - 1); /* s00 is index of b[2*i,2*j] */
+		for(j = ny2 - 1; j >= 0; j--) {
 			b[s00] = a[k];
 			k -= 1;
 			s00 -= 2;
@@ -165,14 +162,14 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 	/*
 	 * now expand each 2x2 block
 	 */
-	for(i = 0; i<nx-1; i += 2) {
-		s00 = n*i;				/* s00 is index of b[i,j] */
-		s10 = s00+n;				/* s10 is index of b[i+1,j] */
-		for(j = 0; j<ny-1; j += 2) {
-			b[s10+1] =  b[s00]     & 1;
-			b[s10  ] = (b[s00]>>1) & 1;
-			b[s00+1] = (b[s00]>>2) & 1;
-			b[s00  ] = (b[s00]>>3) & 1;
+	for(i = 0; i < nx - 1; i += 2) {
+		s00 = n * i;   /* s00 is index of b[i,j] */
+		s10 = s00 + n; /* s10 is index of b[i+1,j] */
+		for(j = 0; j < ny - 1; j += 2) {
+			b[s10 + 1] = b[s00] & 1;
+			b[s10] = (b[s00] >> 1) & 1;
+			b[s00 + 1] = (b[s00] >> 2) & 1;
+			b[s00] = (b[s00] >> 3) & 1;
 			s00 += 2;
 			s10 += 2;
 		}
@@ -181,8 +178,8 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 			 * row size is odd, do last element in row
 			 * s00+1, s10+1 are off edge
 			 */
-			b[s10  ] = (b[s00]>>1) & 1;
-			b[s00  ] = (b[s00]>>3) & 1;
+			b[s10] = (b[s00] >> 1) & 1;
+			b[s00] = (b[s00] >> 3) & 1;
 		}
 	}
 	if(i < nx) {
@@ -190,10 +187,10 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 		 * column size is odd, do last row
 		 * s10, s10+1 are off edge
 		 */
-		s00 = n*i;
-		for (j = 0; j<ny-1; j += 2) {
-			b[s00+1] = (b[s00]>>2) & 1;
-			b[s00  ] = (b[s00]>>3) & 1;
+		s00 = n * i;
+		for(j = 0; j < ny - 1; j += 2) {
+			b[s00 + 1] = (b[s00] >> 2) & 1;
+			b[s00] = (b[s00] >> 3) & 1;
 			s00 += 2;
 		}
 		if(j < ny) {
@@ -201,7 +198,7 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 			 * both row and column size are odd, do corner element
 			 * s00+1, s10, s10+1 are off edge
 			 */
-			b[s00  ] = (b[s00]>>3) & 1;
+			b[s00] = (b[s00] >> 3) & 1;
 		}
 	}
 }
@@ -212,8 +209,7 @@ qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
  * A,B may NOT be same array (it wouldn't make sense to be inserting
  * bits into the same array anyway.)
  */
-static
-void
+static void
 qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 {
 	int i, j;
@@ -223,15 +219,15 @@ qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 	/*
 	 * expand each 2x2 block
 	 */
-	for(i=0; i<nx-1; i+=2) {
-		s00 = &b[n*i];			/* s00 is index of b[i,j] */
-		s10 = s00+n;			/* s10 is index of b[i+1,j] */
-		for(j=0; j<ny-1; j+=2) {
+	for(i = 0; i < nx - 1; i += 2) {
+		s00 = &b[n * i]; /* s00 is index of b[i,j] */
+		s10 = s00 + n;   /* s10 is index of b[i+1,j] */
+		for(j = 0; j < ny - 1; j += 2) {
 			px = *a++;
-			s10[1] |= ( px     & 1) << bit;
-			s10[0] |= ((px>>1) & 1) << bit;
-			s00[1] |= ((px>>2) & 1) << bit;
-			s00[0] |= ((px>>3) & 1) << bit;
+			s10[1] |= (px & 1) << bit;
+			s10[0] |= ((px >> 1) & 1) << bit;
+			s00[1] |= ((px >> 2) & 1) << bit;
+			s00[0] |= ((px >> 3) & 1) << bit;
 			s00 += 2;
 			s10 += 2;
 		}
@@ -241,8 +237,8 @@ qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 			 * s00+1, s10+1 are off edge
 			 */
 			px = *a++;
-			s10[0] |= ((px>>1) & 1) << bit;
-			s00[0] |= ((px>>3) & 1) << bit;
+			s10[0] |= ((px >> 1) & 1) << bit;
+			s00[0] |= ((px >> 3) & 1) << bit;
 		}
 	}
 	if(i < nx) {
@@ -250,11 +246,11 @@ qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 		 * column size is odd, do last row
 		 * s10, s10+1 are off edge
 		 */
-		s00 = &b[n*i];
-		for(j=0; j<ny-1; j+=2) {
+		s00 = &b[n * i];
+		for(j = 0; j < ny - 1; j += 2) {
 			px = *a++;
-			s00[1] |= ((px>>2) & 1) << bit;
-			s00[0] |= ((px>>3) & 1) << bit;
+			s00[1] |= ((px >> 2) & 1) << bit;
+			s00[0] |= ((px >> 3) & 1) << bit;
 			s00 += 2;
 		}
 		if(j < ny) {
@@ -262,13 +258,12 @@ qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 			 * both row and column size are odd, do corner element
 			 * s00+1, s10, s10+1 are off edge
 			 */
-			s00[0] |= ((*a>>3) & 1) << bit;
+			s00[0] |= ((*a >> 3) & 1) << bit;
 		}
 	}
 }
 
-static
-void
+static void
 read_bdirect(Biobuf *infile, Pix *a, int n, int nqx, int nqy,
 	     uint8_t *scratch, int bit)
 {
@@ -277,7 +272,7 @@ read_bdirect(Biobuf *infile, Pix *a, int n, int nqx, int nqy,
 	/*
 	 * read bit image packed 4 pixels/nybble
 	 */
-	for(i = 0; i < ((nqx+1)/2) * ((nqy+1)/2); i++) {
+	for(i = 0; i < ((nqx + 1) / 2) * ((nqy + 1) / 2); i++) {
 		scratch[i] = input_nybble(infile);
 	}
 

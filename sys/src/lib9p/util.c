@@ -18,13 +18,13 @@ void
 readbuf(Req *r, void *s, int32_t n)
 {
 	r->ofcall.count = r->ifcall.count;
-	if(r->ifcall.offset >= n){
+	if(r->ifcall.offset >= n) {
 		r->ofcall.count = 0;
 		return;
 	}
-	if(r->ifcall.offset+r->ofcall.count > n)
+	if(r->ifcall.offset + r->ofcall.count > n)
 		r->ofcall.count = n - r->ifcall.offset;
-	memmove(r->ofcall.data, (char*)s+r->ifcall.offset, r->ofcall.count);
+	memmove(r->ofcall.data, (char *)s + r->ifcall.offset, r->ofcall.count);
 }
 
 void

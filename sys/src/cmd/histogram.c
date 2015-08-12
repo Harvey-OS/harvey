@@ -16,12 +16,12 @@
 #include <keyboard.h>
 
 enum {
-	STACK 	= 8*1024,
+	STACK = 8 * 1024,
 
-	Dot	= 2,	/* height of dot */
-	Lx	= 4,	/* x offset */
-	Ly	= 4,	/* y offset */
-	Bw	= 2,	/* border width */
+	Dot = 2, /* height of dot */
+	Lx = 4,  /* x offset */
+	Ly = 4,  /* y offset */
+	Bw = 2,  /* border width */
 };
 
 Image *neutral;
@@ -38,28 +38,28 @@ uint nval;
 int dontdie = 0, col = 1;
 
 int colors[][3] = {
-	{ 0xFFAAAAFF,	0xFFAAAAFF,	0xBB5D5DFF },		/* Peach */
-	{ DPalebluegreen, DPalegreygreen, DPurpleblue },	/* Aqua */
-	{ DPaleyellow,	DDarkyellow,	DYellowgreen },		/* Yellow */
-	{ DPalegreen,	DMedgreen,	DDarkgreen },		/* Green */
-	{ 0x00AAFFFF,	0x00AAFFFF,	0x0088CCFF },		/* Blue */
-	{ 0xEEEEEEFF,	0xCCCCCCFF,	0x888888F },		/* Grey */
+    {0xFFAAAAFF, 0xFFAAAAFF, 0xBB5D5DFF},	  /* Peach */
+    {DPalebluegreen, DPalegreygreen, DPurpleblue}, /* Aqua */
+    {DPaleyellow, DDarkyellow, DYellowgreen},      /* Yellow */
+    {DPalegreen, DMedgreen, DDarkgreen},	   /* Green */
+    {0x00AAFFFF, 0x00AAFFFF, 0x0088CCFF},	  /* Blue */
+    {0xEEEEEEFF, 0xCCCCCCFF, 0x888888F},	   /* Grey */
 };
 
 void
 initcolor(int i)
 {
 	neutral = allocimagemix(display, colors[i][0], DWhite);
-	light = allocimage(display, Rect(0,0,1,1), CMAP8, 1, colors[i][1]);
-	dark  = allocimage(display, Rect(0,0,1,1), CMAP8, 1, colors[i][2]);
+	light = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, colors[i][1]);
+	dark = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, colors[i][2]);
 	txtcolor = display->black;
 }
 
-void*
+void *
 erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
-	if(v == nil){
+	if(v == nil) {
 		sysfatal("realloc: %r");
 		threadexitsall("memory");
 	}
@@ -73,8 +73,8 @@ datapoint(int x, double v)
 	double y;
 
 	p.x = x;
-	y = (v*scale) / vmax;
-	p.y = hrect.max.y - Dy(hrect)*y - Dot;
+	y = (v * scale) / vmax;
+	p.y = hrect.max.y - Dy(hrect) * y - Dot;
 	if(p.y < hrect.min.y)
 		p.y = hrect.min.y;
 	if(p.y > hrect.max.y - Dot)
@@ -89,20 +89,19 @@ drawdatum(int x, double prev, double v)
 
 	p = datapoint(x, v);
 	q = datapoint(x, prev);
-	if(p.y < q.y){
-		draw(screen, Rect(p.x, hrect.min.y, p.x+1, p.y), neutral,
-			nil, ZP);
-		draw(screen, Rect(p.x, p.y, p.x+1, q.y+Dot), dark, nil, ZP);
-		draw(screen, Rect(p.x, q.y+Dot, p.x+1, hrect.max.y), light,
-			nil, ZP);
-	}else{
-		draw(screen, Rect(p.x, hrect.min.y, p.x+1, q.y), neutral,
-			nil, ZP);
-		draw(screen, Rect(p.x, q.y, p.x+1, p.y+Dot), dark, nil, ZP);
-		draw(screen, Rect(p.x, p.y+Dot, p.x+1, hrect.max.y), light,
-			nil, ZP);
+	if(p.y < q.y) {
+		draw(screen, Rect(p.x, hrect.min.y, p.x + 1, p.y), neutral,
+		     nil, ZP);
+		draw(screen, Rect(p.x, p.y, p.x + 1, q.y + Dot), dark, nil, ZP);
+		draw(screen, Rect(p.x, q.y + Dot, p.x + 1, hrect.max.y), light,
+		     nil, ZP);
+	} else {
+		draw(screen, Rect(p.x, hrect.min.y, p.x + 1, q.y), neutral,
+		     nil, ZP);
+		draw(screen, Rect(p.x, q.y, p.x + 1, p.y + Dot), dark, nil, ZP);
+		draw(screen, Rect(p.x, p.y + Dot, p.x + 1, hrect.max.y), light,
+		     nil, ZP);
 	}
-
 }
 
 void
@@ -110,15 +109,15 @@ updatehistogram(double v)
 {
 	char buf[32];
 
-	draw(screen, hrect, screen, nil, Pt(hrect.min.x+1, hrect.min.y));
+	draw(screen, hrect, screen, nil, Pt(hrect.min.x + 1, hrect.min.y));
 	if(v * scale > vmax)
 		v = vmax / scale;
-	drawdatum(hrect.max.x-1, data[0], v);
-	memmove(&data[1], &data[0], (nval-1) * sizeof data[0]);
+	drawdatum(hrect.max.x - 1, data[0], v);
+	memmove(&data[1], &data[0], (nval - 1) * sizeof data[0]);
 	data[0] = v;
 	snprint(buf, sizeof buf, "%0.9f", v);
 	stringbg(screen, maxvloc, txtcolor, ZP, display->defaultfont, buf,
-		neutral, ZP);
+		 neutral, ZP);
 	flushimage(display, 1);
 }
 
@@ -131,13 +130,13 @@ redrawhistogram(int new)
 	int i;
 	char buf[32];
 
-	if(new && getwindow(display, Refnone) < 0)
+	if(new &&getwindow(display, Refnone) < 0)
 		sysfatal("getwindow: %r");
 
 	r = screen->r;
 	draw(screen, r, neutral, nil, ZP);
 	p = string(screen, addpt(r.min, Pt(Lx, Ly)), txtcolor, ZP,
-		display->defaultfont, title);
+		   display->defaultfont, title);
 
 	p.x = r.min.x + Lx;
 	p.y += display->defaultfont->height + Ly;
@@ -146,22 +145,23 @@ redrawhistogram(int new)
 	hrect = Rpt(p, q);
 
 	maxvloc = Pt(r.max.x - Lx - stringwidth(display->defaultfont,
-		"999999999"), r.min.y + Ly);
+						"999999999"),
+		     r.min.y + Ly);
 
 	nval = abs(Dx(hrect));
-	if(nval != onval){
+	if(nval != onval) {
 		data = erealloc(data, nval * sizeof data[0]);
 		if(nval > onval)
-			memset(data+onval, 0, (nval - onval) * sizeof data[0]);
+			memset(data + onval, 0, (nval - onval) * sizeof data[0]);
 	}
 
 	border(screen, hrect, -Bw, dark, ZP);
 	snprint(buf, sizeof buf, "%0.9f", data[0]);
 	stringbg(screen, maxvloc, txtcolor, ZP, display->defaultfont, buf,
-		neutral, ZP);
+		 neutral, ZP);
 	draw(screen, hrect, neutral, nil, ZP);
 	for(i = 1; i < nval - 1; i++)
-		drawdatum(hrect.max.x - i, data[i-1], data[i]);
+		drawdatum(hrect.max.x - i, data[i - 1], data[i]);
 	drawdatum(hrect.min.x, data[i], data[i]);
 	flushimage(display, 1);
 }
@@ -191,7 +191,6 @@ reader(void *arg)
 		threadexitsall(nil);
 }
 
-
 void
 histogram(char *rect)
 {
@@ -203,22 +202,20 @@ histogram(char *rect)
 	Mousectl *mc;
 	Rune km;
 	Alt a[] = {
-		/* c	v	op */
-		{nil,	&dm,	CHANRCV},	/* data from stdin */
-		{nil,	&mm,	CHANRCV},	/* mouse message */
-		{nil,	&km,	CHANRCV},	/* keyboard runes */
-		{nil,	&rm,	CHANRCV},	/* resize event */
-		{nil,	nil,	CHANEND},
+	    /* c	v	op */
+	    {nil, &dm, CHANRCV}, /* data from stdin */
+	    {nil, &mm, CHANRCV}, /* mouse message */
+	    {nil, &km, CHANRCV}, /* keyboard runes */
+	    {nil, &rm, CHANRCV}, /* resize event */
+	    {nil, nil, CHANEND},
 	};
 	static char *mitems[] = {
-		"exit",
-		nil
-	};
+	    "exit",
+	    nil};
 	static Menu menu = {
-		mitems,
-		nil,
-		-1
-	};
+	    mitems,
+	    nil,
+	    -1};
 
 	memset(&mm, 0, sizeof mm);
 	memset(&km, 0, sizeof km);
@@ -251,7 +248,7 @@ histogram(char *rect)
 
 	redrawhistogram(0);
 	for(;;)
-		switch(alt(a)){
+		switch(alt(a)) {
 		case 0:
 			updatehistogram(dm);
 			break;
@@ -280,7 +277,7 @@ void
 usage(void)
 {
 	fprint(2, "usage: histogram [-h] [-c index] [-r minx,miny,maxx,maxy] "
-		"[-s scale] [-t title] [-v maxv]\n");
+		  "[-s scale] [-t title] [-v maxv]\n");
 	exits("usage");
 }
 
@@ -291,7 +288,8 @@ threadmain(int argc, char **argv)
 
 	p = "-r 0,0,400,150";
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		vmax = strtod(EARGF(usage()), 0);
 		break;
@@ -314,7 +312,8 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	while((q = strchr(p, ',')) != nil)
 		*q = ' ';

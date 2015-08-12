@@ -31,7 +31,7 @@
 /*
  *  parse the next entry in the file
  */
-Ndbtuple*
+Ndbtuple *
 ndbparse(Ndb *db)
 {
 	char *line;
@@ -40,13 +40,13 @@ ndbparse(Ndb *db)
 	int len;
 
 	first = last = 0;
-	for(;;){
+	for(;;) {
 		if((line = Brdline(&db->b, '\n')) == 0)
 			break;
 		len = Blinelen(&db->b);
-		if(line[len-1] != '\n')
+		if(line[len - 1] != '\n')
 			break;
-		if(first && !ISWHITE(*line) && *line != '#'){
+		if(first && !ISWHITE(*line) && *line != '#') {
 			Bseek(&db->b, -len, 1);
 			break;
 		}

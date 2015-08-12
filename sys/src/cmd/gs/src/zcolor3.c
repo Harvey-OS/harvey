@@ -29,7 +29,6 @@
 #include "oper.h"
 #include "igstate.h"
 
-
 /*
  *  <bool>   .setuseciecolor  -
  *
@@ -45,23 +44,22 @@
  * only under controlled conditions. Hence, it does not do any operand
  * checking.
  */
-private int
-zsetuseciecolor(i_ctx_t * i_ctx_p)
+private
+int
+zsetuseciecolor(i_ctx_t *i_ctx_p)
 {
-    os_ptr  op = osp;
+	os_ptr op = osp;
 
-    istate->use_cie_color = *op;
-    pop(1);
-    return 0;
+	istate->use_cie_color = *op;
+	pop(1);
+	return 0;
 }
-
 
 /*
  * Initialization procedure
  */
 
-const op_def    zcolor3_l3_op_defs[] = {
+const op_def zcolor3_l3_op_defs[] = {
     op_def_begin_ll3(),
-    { "0.setuseciecolor", zsetuseciecolor },
-    op_def_end(0)
-};
+    {"0.setuseciecolor", zsetuseciecolor},
+    op_def_end(0)};

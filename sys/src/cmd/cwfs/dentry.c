@@ -9,12 +9,12 @@
 
 #include "all.h"
 
-Dentry*
+Dentry *
 getdir(Iobuf *p, int slot)
 {
 	if(!p)
 		return 0;
-	return (Dentry*)p->iobuf + slot%DIRPERBUF;
+	return (Dentry *)p->iobuf + slot % DIRPERBUF;
 }
 
 void
@@ -25,7 +25,7 @@ accessdir(Iobuf *p, Dentry *d, int f, int uid)
 	if(p && p->dev->type != Devro) {
 		p->flags |= Bmod;
 		t = time(nil);
-		if(f & (FREAD|FWRITE))
+		if(f & (FREAD | FWRITE))
 			d->atime = t;
 		if(f & FWRITE) {
 			d->mtime = t;
@@ -42,7 +42,7 @@ preread(Device *d, Off addr)
 
 	if(addr == 0)
 		return;
-	if(raheadq->count+10 >= raheadq->size)	/* ugly knowing layout */
+	if(raheadq->count + 10 >= raheadq->size) /* ugly knowing layout */
 		return;
 	lock(&rabuflock);
 	rb = rabuffree;
@@ -79,7 +79,7 @@ rel2abs(Iobuf *p, Dentry *d, Off a, int tag, int putb, int uid)
 		if(!addr && tag) {
 			addr = bufalloc(dev, tag, qpath, uid);
 			d->dblock[a] = addr;
-			p->flags |= Bmod|Bimm;
+			p->flags |= Bmod | Bimm;
 		}
 		if(putb)
 			putbuf(p);
@@ -90,27 +90,27 @@ rel2abs(Iobuf *p, Dentry *d, Off a, int tag, int putb, int uid)
 	/*
 	 * loop through indirect block depths.
 	 */
-	for (i = 0; i < NIBLOCK; i++) {
+	for(i = 0; i < NIBLOCK; i++) {
 		indaddrs *= INDPERBUF;
 		/* is a's disk addr in this indir block or one of its kids? */
-		if (a < indaddrs) {
+		if(a < indaddrs) {
 			addr = d->iblocks[i];
 			if(!addr && tag) {
-				addr = bufalloc(dev, Tind1+i, qpath, uid);
+				addr = bufalloc(dev, Tind1 + i, qpath, uid);
 				d->iblocks[i] = addr;
-				p->flags |= Bmod|Bimm;
+				p->flags |= Bmod | Bimm;
 			}
 			if(putb)
 				putbuf(p);
 
 			div = indaddrs;
-			for (; i >= 0; i--) {
+			for(; i >= 0; i--) {
 				div /= INDPERBUF;
-				if (div <= 0)
+				if(div <= 0)
 					panic("rel2abs: non-positive divisor");
 				addr = indfetch(dev, qpath, addr,
-					(a/div)%INDPERBUF, Tind1+i,
-					(i == 0? tag: Tind1+i-1), uid);
+						(a / div) % INDPERBUF, Tind1 + i,
+						(i == 0 ? tag : Tind1 + i - 1), uid);
 			}
 			return addr;
 		}
@@ -120,7 +120,7 @@ rel2abs(Iobuf *p, Dentry *d, Off a, int tag, int putb, int uid)
 		putbuf(p);
 
 	/* quintuple-indirect blocks not implemented. */
-	print("rel2abs: no %d-deep indirect\n", NIBLOCK+1);
+	print("rel2abs: no %d-deep indirect\n", NIBLOCK + 1);
 	return 0;
 }
 
@@ -137,26 +137,26 @@ dbufread(Iobuf *p, Dentry *d, Off a, Off ra, int uid)
 	if(a == 0)
 		return 1;
 	if(a == 1 && ra == 1) {
-		while(ra < a+RAGAP) {
+		while(ra < a + RAGAP) {
 			ra++;
 			addr = rel2abs(p, d, ra, 0, 0, uid);
 			if(!addr)
 				return 0;
 			preread(p->dev, addr);
 		}
-		return ra+1;
+		return ra + 1;
 	}
-	if(ra == a+RAGAP) {
+	if(ra == a + RAGAP) {
 		addr = rel2abs(p, d, ra, 0, 0, uid);
 		if(!addr)
 			return 0;
 		preread(p->dev, addr);
-		return ra+1;
+		return ra + 1;
 	}
 	return ra;
 }
 
-Iobuf*
+Iobuf *
 dnodebuf(Iobuf *p, Dentry *d, Off a, int tag, int uid)
 {
 	Off addr;
@@ -171,7 +171,7 @@ dnodebuf(Iobuf *p, Dentry *d, Off a, int tag, int uid)
  * same as dnodebuf but it calls putbuf(p)
  * to reduce interference.
  */
-Iobuf*
+Iobuf *
 dnodebuf1(Iobuf *p, Dentry *d, Off a, int tag, int uid)
 {
 	Off addr;
@@ -182,11 +182,10 @@ dnodebuf1(Iobuf *p, Dentry *d, Off a, int tag, int uid)
 	if(addr)
 		return getbuf(dev, addr, Brd);
 	return 0;
-
 }
 
 Off
-indfetch(Device* d, Off qpath, Off addr, Off a, int itag, int tag, int uid)
+indfetch(Device *d, Off qpath, Off addr, Off a, int itag, int tag, int uid)
 {
 	Iobuf *bp;
 
@@ -222,19 +221,19 @@ Off
 ibbpow(int exp)
 {
 	static Off pows[] = {
-		1,
-		INDPERBUF,
-		(Off)INDPERBUF*INDPERBUF,
-		(Off)INDPERBUF*(Off)INDPERBUF*INDPERBUF,
-		(Off)INDPERBUF*(Off)INDPERBUF*(Off)INDPERBUF*INDPERBUF,
+	    1,
+	    INDPERBUF,
+	    (Off)INDPERBUF * INDPERBUF,
+	    (Off)INDPERBUF * (Off)INDPERBUF * INDPERBUF,
+	    (Off)INDPERBUF * (Off)INDPERBUF * (Off)INDPERBUF * INDPERBUF,
 	};
 
-	if (exp < 0)
+	if(exp < 0)
 		return 0;
-	else if (exp >= nelem(pows)) {	/* not in table? do it long-hand */
+	else if(exp >= nelem(pows)) { /* not in table? do it long-hand */
 		Off indpow = 1;
 
-		while (exp-- > 0 && indpow > 0)
+		while(exp-- > 0 && indpow > 0)
 			indpow *= INDPERBUF;
 		return indpow;
 	} else
@@ -247,7 +246,7 @@ ibbpowsum(int exp)
 {
 	Off indsum = 0;
 
-	for (; exp > 0; exp--)
+	for(; exp > 0; exp--)
 		indsum += ibbpow(exp);
 	return indsum;
 }
@@ -260,13 +259,13 @@ trunczero(Truncstate *ts)
 	Iobuf *pd;
 
 	pd = dnodebuf(ts->p, ts->d, ts->lastblk, Tfile, ts->uid);
-	if (pd == nil || checktag(pd, Tfile, QPNONE)) {
-		if (pd != nil)
+	if(pd == nil || checktag(pd, Tfile, QPNONE)) {
+		if(pd != nil)
 			putbuf(pd);
 		ts->err = Ephase;
 		return Ephase;
 	}
-	memset(pd->iobuf+blkoff, 0, BUFSIZE - blkoff);
+	memset(pd->iobuf + blkoff, 0, BUFSIZE - blkoff);
 	putbuf(pd);
 	return 0;
 }
@@ -287,7 +286,7 @@ dtrunclen(Iobuf *p, Dentry *d, Off newsize, int uid)
 	int i, pastlast;
 	Truncstate trunc;
 
-	if (newsize <= 0) {
+	if(newsize <= 0) {
 		dtrunc(p, d, uid);
 		return 0;
 	}
@@ -296,28 +295,28 @@ dtrunclen(Iobuf *p, Dentry *d, Off newsize, int uid)
 	trunc.p = p;
 	trunc.uid = uid;
 	trunc.newsize = newsize;
-	trunc.lastblk = newsize/BUFSIZE;
-	if (newsize % BUFSIZE == 0)
+	trunc.lastblk = newsize / BUFSIZE;
+	if(newsize % BUFSIZE == 0)
 		trunc.lastblk--;
 	else
 		trunczero(&trunc);
-	for (i = 0; i < NDBLOCK; i++)
-		if (trunc.pastlast) {
+	for(i = 0; i < NDBLOCK; i++)
+		if(trunc.pastlast) {
 			trunc.relblk = i;
 			buffree(p->dev, d->dblock[i], 0, &trunc);
 			d->dblock[i] = 0;
-		} else if (i == trunc.lastblk)
+		} else if(i == trunc.lastblk)
 			trunc.pastlast = 1;
 	trunc.relblk = NDBLOCK;
-	for (i = 0; i < NIBLOCK; i++) {
+	for(i = 0; i < NIBLOCK; i++) {
 		pastlast = trunc.pastlast;
-		buffree(p->dev, d->iblocks[i], i+1, &trunc);
-		if (pastlast)
+		buffree(p->dev, d->iblocks[i], i + 1, &trunc);
+		if(pastlast)
 			d->iblocks[i] = 0;
 	}
 
 	d->size = newsize;
-	p->flags |= Bmod|Bimm;
+	p->flags |= Bmod | Bimm;
 	accessdir(p, d, FWRITE, uid);
 	return trunc.err;
 }
@@ -332,15 +331,15 @@ dtrunc(Iobuf *p, Dentry *d, int uid)
 {
 	int i;
 
-	for (i = NIBLOCK-1; i >= 0; i--) {
-		buffree(p->dev, d->iblocks[i], i+1, nil);
+	for(i = NIBLOCK - 1; i >= 0; i--) {
+		buffree(p->dev, d->iblocks[i], i + 1, nil);
 		d->iblocks[i] = 0;
 	}
-	for (i = NDBLOCK-1; i >= 0; i--) {
+	for(i = NDBLOCK - 1; i >= 0; i--) {
 		buffree(p->dev, d->dblock[i], 0, nil);
 		d->dblock[i] = 0;
 	}
 	d->size = 0;
-	p->flags |= Bmod|Bimm;
+	p->flags |= Bmod | Bimm;
 	accessdir(p, d, FWRITE, uid);
 }

@@ -99,20 +99,19 @@
 #include "bzlib_stdio.h"
 #include "bzlib_stdio_private.h"
 
-
-void BZ2_bz__AssertH__fail ( int errcode )
+void
+BZ2_bz__AssertH__fail(int errcode)
 {
-   fprintf(stderr, 
-      "\n\nbzip2/libbzip2: internal error number %d.\n"
-      "This is a bug in bzip2/libbzip2, %s.\n"
-      "Please report it to me at: jseward@acm.org.  If this happened\n"
-      "when you were using some program which uses libbzip2 as a\n"
-      "component, you should also report this bug to the author(s)\n"
-      "of that program.  Please make an effort to report this bug;\n"
-      "timely and accurate bug reports eventually lead to higher\n"
-      "quality software.  Thanks.  Julian Seward, 21 March 2000.\n\n",
-      errcode,
-      BZ2_bzlibVersion()
-   );
-   exit(3);
+	fprintf(stderr,
+		"\n\nbzip2/libbzip2: internal error number %d.\n"
+		"This is a bug in bzip2/libbzip2, %s.\n"
+		"Please report it to me at: jseward@acm.org.  If this happened\n"
+		"when you were using some program which uses libbzip2 as a\n"
+		"component, you should also report this bug to the author(s)\n"
+		"of that program.  Please make an effort to report this bug;\n"
+		"timely and accurate bug reports eventually lead to higher\n"
+		"quality software.  Thanks.  Julian Seward, 21 March 2000.\n\n",
+		errcode,
+		BZ2_bzlibVersion());
+	exit(3);
 }

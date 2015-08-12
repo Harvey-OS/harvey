@@ -15,10 +15,10 @@
 #include "sparc.h"
 
 #define prof profki
-#define Percent(num, max)	(((num)*100)/(max))
+#define Percent(num, max) (((num)*100) / (max))
 
 extern Inst op0[], op2[], op3[];
-Inst *tables[] = { op0, op2, op3, 0 };
+Inst *tables[] = {op0, op2, op3, 0};
 
 void
 isum(void)
@@ -48,18 +48,18 @@ isum(void)
 	Bprint(bioout, "\nInstruction summary.\n\n");
 
 	for(j = 0; tables[j]; j++) {
-		for(i =tables[j]; i->func; i++) {
+		for(i = tables[j]; i->func; i++) {
 			if(i->name) {
 				if(i->count == 0)
 					continue;
 				pct = Percent(i->count, total);
 				if(pct != 0)
 					Bprint(bioout, "%-8ud %3d%% %s\n",
-					i->count, Percent(i->count, total), i->name);
+					       i->count, Percent(i->count, total), i->name);
 				else
 					Bprint(bioout, "%-8ud      %s\n",
-					i->count, i->name);
-	
+					       i->count, i->name);
+
 				switch(i->type) {
 				default:
 					fatal(0, "isum bad stype %d\n", i->type);
@@ -96,50 +96,50 @@ isum(void)
 	}
 
 	total += anulled;
-	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads+stores+total);
-	
+	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads + stores + total);
+
 	Bprint(bioout, "%-8ud %3d%% Instruction cycles\n",
-				total, Percent(total, loads+stores+total));
+	       total, Percent(total, loads + stores + total));
 	Bprint(bioout, "%-8lud %3ld%% Annulled branch cycles\n",
-				anulled, Percent(anulled, total));
+	       anulled, Percent(anulled, total));
 
 	Bprint(bioout, "%-8ud %3d%% Data cycles\n\n",
-				loads+stores, Percent(loads+stores, loads+stores+total));	
+	       loads + stores, Percent(loads + stores, loads + stores + total));
 
 	Bprint(bioout, "%-8ud %3d%% Stores\n", stores, Percent(stores, total));
 
 	Bprint(bioout, "%-8ud %3d%% Loads\n", loads, Percent(loads, total));
 
-	Bprint(bioout, "   %-8ud Store stall\n", stores*2);
+	Bprint(bioout, "   %-8ud Store stall\n", stores * 2);
 
 	Bprint(bioout, "   %-8lud Load stall\n", loadlock);
 
 	Bprint(bioout, "%-8ud %3d%% Arithmetic\n", arith, Percent(arith, total));
 
 	Bprint(bioout, "%-8ud %3d%% Floating point\n",
-					realarith, Percent(realarith, total));
+	       realarith, Percent(realarith, total));
 
 	Bprint(bioout, "%-8ud %3d%% Sparc special register load/stores\n",
-					sparcreg, Percent(sparcreg, total));
+	       sparcreg, Percent(sparcreg, total));
 
 	Bprint(bioout, "%-8ud %3d%% System calls\n", syscall, Percent(syscall, total));
 
 	Bprint(bioout, "%-8ud %3d%% Branches\n", branch, Percent(branch, total));
 
 	Bprint(bioout, "   %-8ud %3d%% Branches taken\n",
-					taken, Percent(taken, branch));
+	       taken, Percent(taken, branch));
 
 	Bprint(bioout, "   %-8ud %3d%% Delay slots\n",
-					useddelay, Percent(useddelay, branch));
+	       useddelay, Percent(useddelay, branch));
 
-	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n", 
-					nopcount, Percent(nopcount, branch));
+	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n",
+	       nopcount, Percent(nopcount, branch));
 
 	Bprint(bioout, "%-8ud %3d%% Program total delay slots\n",
-					nopcount, Percent(nopcount, total));
+	       nopcount, Percent(nopcount, total));
 }
 
-char *stype[] = { "Stack", "Text", "Data", "Bss" };
+char *stype[] = {"Stack", "Text", "Data", "Bss"};
 
 void
 segsum(void)
@@ -152,17 +152,16 @@ segsum(void)
 	for(i = 0; i < Nseg; i++) {
 		s = &memory.seg[i];
 		Bprint(bioout, "%-5s %.8lux %.8lux %-8d %-8d\n",
-				stype[i], s->base, s->end, s->rss*BY2PG, s->refs);
+		       stype[i], s->base, s->end, s->rss * BY2PG, s->refs);
 	}
 }
 
 typedef struct Prof Prof;
-struct Prof
-{
-	Symbol	s;
-	int32_t	count;
+struct Prof {
+	Symbol s;
+	int32_t count;
 };
-Prof	prof[5000];
+Prof prof[5000];
 
 int
 profcmp(const void *va, const void *vb)
@@ -188,11 +187,11 @@ iprofile(void)
 		return;
 	i++;
 	for(;;) {
-		n = p+1;
+		n = p + 1;
 		if(textsym(&n->s, i) == 0)
 			break;
-		b = (p->s.value-textbase)/PROFGRAN;
-		e = (n->s.value-textbase)/PROFGRAN;
+		b = (p->s.value - textbase) / PROFGRAN;
+		e = (n->s.value - textbase) / PROFGRAN;
 		while(b < e)
 			p->count += iprof[b++];
 		i++;
@@ -211,13 +210,13 @@ iprofile(void)
 			continue;
 
 		Bprint(bioout, "%8ld %3ld.%ld %-15s ",
-			prof[b].count,
-			100*prof[b].count/total,
-			(1000*prof[b].count/total)%10,
-			prof[b].s.name);
+		       prof[b].count,
+		       100 * prof[b].count / total,
+		       (1000 * prof[b].count / total) % 10,
+		       prof[b].s.name);
 
 		printsource(prof[b].s.value);
 		Bputc(bioout, '\n');
 	}
-	memset(prof, 0, sizeof(Prof)*i);
+	memset(prof, 0, sizeof(Prof) * i);
 }

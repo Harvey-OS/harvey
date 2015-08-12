@@ -36,17 +36,17 @@ vaddr(Node *n, int a)
 long
 hi64v(Node *n)
 {
-	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+	if(align(0, types[TCHAR], Aarg1)) /* isbigendian */
 		return (long)(n->vconst) & ~0L;
 	else
-		return (long)((uvlong)n->vconst>>32) & ~0L;
+		return (long)((uvlong)n->vconst >> 32) & ~0L;
 }
 
 long
 lo64v(Node *n)
 {
-	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-		return (long)((uvlong)n->vconst>>32) & ~0L;
+	if(align(0, types[TCHAR], Aarg1)) /* isbigendian */
+		return (long)((uvlong)n->vconst >> 32) & ~0L;
 	else
 		return (long)(n->vconst) & ~0L;
 }
@@ -123,8 +123,7 @@ instpair(Node *n, Node *l)
 		if(l != Z) {
 			n->left->reg = l->reg;
 			r = 1;
-		}
-		else
+		} else
 			regalloc(n->left, n->left, Z);
 	}
 	if(n->right->reg == D_NONE)
@@ -198,10 +197,9 @@ storepair(Node *n, Node *nn, int f)
 		freepair(n);
 }
 
-enum
-{
-/* 4 only, see WW */
-	WNONE	= 0,
+enum {
+	/* 4 only, see WW */
+	WNONE = 0,
 	WCONST,
 	WADDR,
 	WHARD,
@@ -298,9 +296,8 @@ snarfreg(Node *n, Node *t, int r, Node *d, Node *c)
 	return Z;
 }
 
-enum
-{
-	Vstart	= OEND,
+enum {
+	Vstart = OEND,
 
 	Vgo,
 	Vamv,
@@ -385,11 +382,11 @@ enum
 	V_S0,
 	V_S1,
 
-	VOPS	= 5,
-	VLEN	= 5,
-	VARGS	= 2,
+	VOPS = 5,
+	VLEN = 5,
+	VARGS = 2,
 
-	S00	= 0,
+	S00 = 0,
 	Sc0,
 	Sc1,
 	Sc2,
@@ -397,7 +394,7 @@ enum
 	Sac4,
 	S10,
 
-	SAgen	= 0,
+	SAgen = 0,
 	SAclo,
 	SAc32,
 	SAchi,
@@ -406,14 +403,14 @@ enum
 	SAdc32,
 	SAdchi,
 
-	B0c	= 0,
+	B0c = 0,
 	Bca,
 	Bac,
 
-	T0i	= 0,
+	T0i = 0,
 	Tii,
 
-	Bop0	= 0,
+	Bop0 = 0,
 	Bop1,
 };
 
@@ -431,768 +428,768 @@ enum
  * code:
  */
 
-static uchar	testi[][VLEN] =
-{
-	{Vop, ONE, O_l_lo, C00},
-	{V_s0, Vop, ONE, O_l_hi, C00},
-	{V_s1, Vgo, V_s2, Vgo, V_s3},
-	{VF, V_p0, V_p1, VT, V_p2},
-	{Vgo, V_p3},
-	{VT, V_p0, V_p1, VF, V_p2},
-	{Vend},
+static uchar testi[][VLEN] =
+    {
+     {Vop, ONE, O_l_lo, C00},
+     {V_s0, Vop, ONE, O_l_hi, C00},
+     {V_s1, Vgo, V_s2, Vgo, V_s3},
+     {VF, V_p0, V_p1, VT, V_p2},
+     {Vgo, V_p3},
+     {VT, V_p0, V_p1, VF, V_p2},
+     {Vend},
 };
 
 /* shift left general case */
-static uchar	shll00[][VLEN] =
-{
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vinsl, ASHLL, O_r, O_l_rp},
-	{Vins, ASHLL, O_r, O_l_lo, Vgo},
-	{V_p0, V_s0},
-	{Vins, ASHLL, O_r, O_l_lo},
-	{Vins, AMOVL, O_l_lo, O_l_hi},
-	{Vzero, O_l_lo, V_p0, Vend},
+static uchar shll00[][VLEN] =
+    {
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vinsl, ASHLL, O_r, O_l_rp},
+     {Vins, ASHLL, O_r, O_l_lo, Vgo},
+     {V_p0, V_s0},
+     {Vins, ASHLL, O_r, O_l_lo},
+     {Vins, AMOVL, O_l_lo, O_l_hi},
+     {Vzero, O_l_lo, V_p0, Vend},
 };
 
 /* shift left rp, const < 32 */
-static uchar	shllc0[][VLEN] =
-{
-	{Vinsl, ASHLL, O_r, O_l_rp},
-	{Vshll, O_r, O_l_lo, Vend},
+static uchar shllc0[][VLEN] =
+    {
+     {Vinsl, ASHLL, O_r, O_l_rp},
+     {Vshll, O_r, O_l_lo, Vend},
 };
 
 /* shift left rp, const == 32 */
-static uchar	shllc1[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_l_hi},
-	{Vzero, O_l_lo, Vend},
+static uchar shllc1[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_l_hi},
+     {Vzero, O_l_lo, Vend},
 };
 
 /* shift left rp, const > 32 */
-static uchar	shllc2[][VLEN] =
-{
-	{Vshll, O_r, O_l_lo},
-	{Vins, AMOVL, O_l_lo, O_l_hi},
-	{Vzero, O_l_lo, Vend},
+static uchar shllc2[][VLEN] =
+    {
+     {Vshll, O_r, O_l_lo},
+     {Vins, AMOVL, O_l_lo, O_l_hi},
+     {Vzero, O_l_lo, Vend},
 };
 
 /* shift left addr, const == 32 */
-static uchar	shllac3[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{Vzero, O_t_lo, Vend},
+static uchar shllac3[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_hi},
+     {Vzero, O_t_lo, Vend},
 };
 
 /* shift left addr, const > 32 */
-static uchar	shllac4[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{Vshll, O_r, O_t_hi},
-	{Vzero, O_t_lo, Vend},
+static uchar shllac4[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_hi},
+     {Vshll, O_r, O_t_hi},
+     {Vzero, O_t_lo, Vend},
 };
 
 /* shift left of constant */
-static uchar	shll10[][VLEN] =
-{
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsl, ASHLL, O_r, O_t_rp},
-	{Vins, ASHLL, O_r, O_t_lo, Vgo},
-	{V_p0, V_s0},
-	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{V_l_lo_t, Vins, ASHLL, O_r, O_t_hi},
-	{Vzero, O_t_lo, V_p0, Vend},
+static uchar shll10[][VLEN] =
+    {
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsl, ASHLL, O_r, O_t_rp},
+     {Vins, ASHLL, O_r, O_t_lo, Vgo},
+     {V_p0, V_s0},
+     {Vins, AMOVL, O_l_lo, O_t_hi},
+     {V_l_lo_t, Vins, ASHLL, O_r, O_t_hi},
+     {Vzero, O_t_lo, V_p0, Vend},
 };
 
-static uchar	(*shlltab[])[VLEN] =
-{
-	shll00,
-	shllc0,
-	shllc1,
-	shllc2,
-	shllac3,
-	shllac4,
-	shll10,
+static uchar (*shlltab[])[VLEN] =
+    {
+     shll00,
+     shllc0,
+     shllc1,
+     shllc2,
+     shllac3,
+     shllac4,
+     shll10,
 };
 
 /* shift right general case */
-static uchar	shrl00[][VLEN] =
-{
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vinsr, ASHRL, O_r, O_l_rp},
-	{Vins, O_a0, O_r, O_l_hi, Vgo},
-	{V_p0, V_s0},
-	{Vins, O_a0, O_r, O_l_hi},
-	{Vins, AMOVL, O_l_hi, O_l_lo},
-	{V_T1, Vzero, O_l_hi},
-	{V_F1, Vins, ASARL, C31, O_l_hi},
-	{V_p0, Vend},
+static uchar shrl00[][VLEN] =
+    {
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vinsr, ASHRL, O_r, O_l_rp},
+     {Vins, O_a0, O_r, O_l_hi, Vgo},
+     {V_p0, V_s0},
+     {Vins, O_a0, O_r, O_l_hi},
+     {Vins, AMOVL, O_l_hi, O_l_lo},
+     {V_T1, Vzero, O_l_hi},
+     {V_F1, Vins, ASARL, C31, O_l_hi},
+     {V_p0, Vend},
 };
 
 /* shift right rp, const < 32 */
-static uchar	shrlc0[][VLEN] =
-{
-	{Vinsr, ASHRL, O_r, O_l_rp},
-	{Vins, O_a0, O_r, O_l_hi, Vend},
+static uchar shrlc0[][VLEN] =
+    {
+     {Vinsr, ASHRL, O_r, O_l_rp},
+     {Vins, O_a0, O_r, O_l_hi, Vend},
 };
 
 /* shift right rp, const == 32 */
-static uchar	shrlc1[][VLEN] =
-{
-	{Vins, AMOVL, O_l_hi, O_l_lo},
-	{V_T1, Vzero, O_l_hi},
-	{V_F1, Vins, ASARL, C31, O_l_hi},
-	{Vend},
+static uchar shrlc1[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_hi, O_l_lo},
+     {V_T1, Vzero, O_l_hi},
+     {V_F1, Vins, ASARL, C31, O_l_hi},
+     {Vend},
 };
 
 /* shift right rp, const > 32 */
-static uchar	shrlc2[][VLEN] =
-{
-	{Vins, O_a0, O_r, O_l_hi},
-	{Vins, AMOVL, O_l_hi, O_l_lo},
-	{V_T1, Vzero, O_l_hi},
-	{V_F1, Vins, ASARL, C31, O_l_hi},
-	{Vend},
+static uchar shrlc2[][VLEN] =
+    {
+     {Vins, O_a0, O_r, O_l_hi},
+     {Vins, AMOVL, O_l_hi, O_l_lo},
+     {V_T1, Vzero, O_l_hi},
+     {V_F1, Vins, ASARL, C31, O_l_hi},
+     {Vend},
 };
 
 /* shift right addr, const == 32 */
-static uchar	shrlac3[][VLEN] =
-{
-	{Vins, AMOVL, O_l_hi, O_t_lo},
-	{V_T1, Vzero, O_t_hi},
-	{V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
-	{V_F1, Vins, ASARL, C31, O_t_hi},
-	{Vend},
+static uchar shrlac3[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_hi, O_t_lo},
+     {V_T1, Vzero, O_t_hi},
+     {V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
+     {V_F1, Vins, ASARL, C31, O_t_hi},
+     {Vend},
 };
 
 /* shift right addr, const > 32 */
-static uchar	shrlac4[][VLEN] =
-{
-	{Vins, AMOVL, O_l_hi, O_t_lo},
-	{Vins, O_a0, O_r, O_t_lo},
-	{V_T1, Vzero, O_t_hi},
-	{V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
-	{V_F1, Vins, ASARL, C31, O_t_hi},
-	{Vend},
+static uchar shrlac4[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_hi, O_t_lo},
+     {Vins, O_a0, O_r, O_t_lo},
+     {V_T1, Vzero, O_t_hi},
+     {V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
+     {V_F1, Vins, ASARL, C31, O_t_hi},
+     {Vend},
 };
 
 /* shift right of constant */
-static uchar	shrl10[][VLEN] =
-{
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsr, ASHRL, O_r, O_t_rp},
-	{Vins, O_a0, O_r, O_t_hi, Vgo},
-	{V_p0, V_s0},
-	{Vins, AMOVL, O_l_hi, O_t_lo},
-	{V_l_hi_t, Vins, O_a0, O_r, O_t_lo},
-	{V_l_hi_u, V_S1},
-	{V_T1, Vzero, O_t_hi, V_p0},
-	{V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
-	{V_F1, Vins, ASARL, C31, O_t_hi},
-	{Vend},
+static uchar shrl10[][VLEN] =
+    {
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsr, ASHRL, O_r, O_t_rp},
+     {Vins, O_a0, O_r, O_t_hi, Vgo},
+     {V_p0, V_s0},
+     {Vins, AMOVL, O_l_hi, O_t_lo},
+     {V_l_hi_t, Vins, O_a0, O_r, O_t_lo},
+     {V_l_hi_u, V_S1},
+     {V_T1, Vzero, O_t_hi, V_p0},
+     {V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
+     {V_F1, Vins, ASARL, C31, O_t_hi},
+     {Vend},
 };
 
-static uchar	(*shrltab[])[VLEN] =
-{
-	shrl00,
-	shrlc0,
-	shrlc1,
-	shrlc2,
-	shrlac3,
-	shrlac4,
-	shrl10,
+static uchar (*shrltab[])[VLEN] =
+    {
+     shrl00,
+     shrlc0,
+     shrlc1,
+     shrlc2,
+     shrlac3,
+     shrlac4,
+     shrl10,
 };
 
 /* shift asop left general case */
-static uchar	asshllgen[][VLEN] =
-{
-	{V_a0, V_a1},
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vins, AMOVL, O_l_lo, O_r0},
-	{Vins, AMOVL, O_l_hi, O_r1},
-	{Vinsla, ASHLL, O_r, O_r0},
-	{Vins, ASHLL, O_r, O_r0},
-	{Vins, AMOVL, O_r1, O_l_hi},
-	{Vins, AMOVL, O_r0, O_l_lo, Vgo},
-	{V_p0, V_s0},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vzero, O_l_lo},
-	{Vins, ASHLL, O_r, O_r0},
-	{Vins, AMOVL, O_r0, O_l_hi, V_p0},
-	{V_f0, V_f1, Vend},
+static uchar asshllgen[][VLEN] =
+    {
+     {V_a0, V_a1},
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vins, AMOVL, O_l_lo, O_r0},
+     {Vins, AMOVL, O_l_hi, O_r1},
+     {Vinsla, ASHLL, O_r, O_r0},
+     {Vins, ASHLL, O_r, O_r0},
+     {Vins, AMOVL, O_r1, O_l_hi},
+     {Vins, AMOVL, O_r0, O_l_lo, Vgo},
+     {V_p0, V_s0},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vzero, O_l_lo},
+     {Vins, ASHLL, O_r, O_r0},
+     {Vins, AMOVL, O_r0, O_l_hi, V_p0},
+     {V_f0, V_f1, Vend},
 };
 
 /* shift asop left, const < 32 */
-static uchar	asshllclo[][VLEN] =
-{
-	{V_a0, V_a1},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vins, AMOVL, O_l_hi, O_r1},
-	{Vinsla, ASHLL, O_r, O_r0},
-	{Vshll, O_r, O_r0},
-	{Vins, AMOVL, O_r1, O_l_hi},
-	{Vins, AMOVL, O_r0, O_l_lo},
-	{V_f0, V_f1, Vend},
+static uchar asshllclo[][VLEN] =
+    {
+     {V_a0, V_a1},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vins, AMOVL, O_l_hi, O_r1},
+     {Vinsla, ASHLL, O_r, O_r0},
+     {Vshll, O_r, O_r0},
+     {Vins, AMOVL, O_r1, O_l_hi},
+     {Vins, AMOVL, O_r0, O_l_lo},
+     {V_f0, V_f1, Vend},
 };
 
 /* shift asop left, const == 32 */
-static uchar	asshllc32[][VLEN] =
-{
-	{V_a0},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vzero, O_l_lo},
-	{Vins, AMOVL, O_r0, O_l_hi},
-	{V_f0, Vend},
+static uchar asshllc32[][VLEN] =
+    {
+     {V_a0},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vzero, O_l_lo},
+     {Vins, AMOVL, O_r0, O_l_hi},
+     {V_f0, Vend},
 };
 
 /* shift asop left, const > 32 */
-static uchar	asshllchi[][VLEN] =
-{
-	{V_a0},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vzero, O_l_lo},
-	{Vshll, O_r, O_r0},
-	{Vins, AMOVL, O_r0, O_l_hi},
-	{V_f0, Vend},
+static uchar asshllchi[][VLEN] =
+    {
+     {V_a0},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vzero, O_l_lo},
+     {Vshll, O_r, O_r0},
+     {Vins, AMOVL, O_r0, O_l_hi},
+     {V_f0, Vend},
 };
 
 /* shift asop dest left general case */
-static uchar	asdshllgen[][VLEN] =
-{
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsl, ASHLL, O_r, O_t_rp},
-	{Vins, ASHLL, O_r, O_t_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo, Vgo},
-	{V_p0, V_s0},
-	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{Vzero, O_l_lo},
-	{Vins, ASHLL, O_r, O_t_hi},
-	{Vzero, O_t_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi, V_p0},
-	{Vend},
+static uchar asdshllgen[][VLEN] =
+    {
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsl, ASHLL, O_r, O_t_rp},
+     {Vins, ASHLL, O_r, O_t_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo, Vgo},
+     {V_p0, V_s0},
+     {Vins, AMOVL, O_l_lo, O_t_hi},
+     {Vzero, O_l_lo},
+     {Vins, ASHLL, O_r, O_t_hi},
+     {Vzero, O_t_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi, V_p0},
+     {Vend},
 };
 
 /* shift asop dest left, const < 32 */
-static uchar	asdshllclo[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsl, ASHLL, O_r, O_t_rp},
-	{Vshll, O_r, O_t_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vend},
+static uchar asdshllclo[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsl, ASHLL, O_r, O_t_rp},
+     {Vshll, O_r, O_t_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vend},
 };
 
 /* shift asop dest left, const == 32 */
-static uchar	asdshllc32[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{Vzero, O_t_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vend},
+static uchar asdshllc32[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_hi},
+     {Vzero, O_t_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vend},
 };
 
 /* shift asop dest, const > 32 */
-static uchar	asdshllchi[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{Vzero, O_t_lo},
-	{Vshll, O_r, O_t_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vend},
+static uchar asdshllchi[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_hi},
+     {Vzero, O_t_lo},
+     {Vshll, O_r, O_t_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vend},
 };
 
-static uchar	(*asshlltab[])[VLEN] =
-{
-	asshllgen,
-	asshllclo,
-	asshllc32,
-	asshllchi,
-	asdshllgen,
-	asdshllclo,
-	asdshllc32,
-	asdshllchi,
+static uchar (*asshlltab[])[VLEN] =
+    {
+     asshllgen,
+     asshllclo,
+     asshllc32,
+     asshllchi,
+     asdshllgen,
+     asdshllclo,
+     asdshllc32,
+     asdshllchi,
 };
 
 /* shift asop right general case */
-static uchar	asshrlgen[][VLEN] =
-{
-	{V_a0, V_a1},
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vins, AMOVL, O_l_lo, O_r0},
-	{Vins, AMOVL, O_l_hi, O_r1},
-	{Vinsra, ASHRL, O_r, O_r0},
-	{Vinsx, Bop0, O_r, O_r1},
-	{Vins, AMOVL, O_r0, O_l_lo},
-	{Vins, AMOVL, O_r1, O_l_hi, Vgo},
-	{V_p0, V_s0},
-	{Vins, AMOVL, O_l_hi, O_r0},
-	{Vinsx, Bop0, O_r, O_r0},
-	{V_T1, Vzero, O_l_hi},
-	{Vins, AMOVL, O_r0, O_l_lo},
-	{V_F1, Vins, ASARL, C31, O_r0},
-	{V_F1, Vins, AMOVL, O_r0, O_l_hi},
-	{V_p0, V_f0, V_f1, Vend},
+static uchar asshrlgen[][VLEN] =
+    {
+     {V_a0, V_a1},
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vins, AMOVL, O_l_lo, O_r0},
+     {Vins, AMOVL, O_l_hi, O_r1},
+     {Vinsra, ASHRL, O_r, O_r0},
+     {Vinsx, Bop0, O_r, O_r1},
+     {Vins, AMOVL, O_r0, O_l_lo},
+     {Vins, AMOVL, O_r1, O_l_hi, Vgo},
+     {V_p0, V_s0},
+     {Vins, AMOVL, O_l_hi, O_r0},
+     {Vinsx, Bop0, O_r, O_r0},
+     {V_T1, Vzero, O_l_hi},
+     {Vins, AMOVL, O_r0, O_l_lo},
+     {V_F1, Vins, ASARL, C31, O_r0},
+     {V_F1, Vins, AMOVL, O_r0, O_l_hi},
+     {V_p0, V_f0, V_f1, Vend},
 };
 
 /* shift asop right, const < 32 */
-static uchar	asshrlclo[][VLEN] =
-{
-	{V_a0, V_a1},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vins, AMOVL, O_l_hi, O_r1},
-	{Vinsra, ASHRL, O_r, O_r0},
-	{Vinsx, Bop0, O_r, O_r1},
-	{Vins, AMOVL, O_r0, O_l_lo},
-	{Vins, AMOVL, O_r1, O_l_hi},
-	{V_f0, V_f1, Vend},
+static uchar asshrlclo[][VLEN] =
+    {
+     {V_a0, V_a1},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vins, AMOVL, O_l_hi, O_r1},
+     {Vinsra, ASHRL, O_r, O_r0},
+     {Vinsx, Bop0, O_r, O_r1},
+     {Vins, AMOVL, O_r0, O_l_lo},
+     {Vins, AMOVL, O_r1, O_l_hi},
+     {V_f0, V_f1, Vend},
 };
 
 /* shift asop right, const == 32 */
-static uchar	asshrlc32[][VLEN] =
-{
-	{V_a0},
-	{Vins, AMOVL, O_l_hi, O_r0},
-	{V_T1, Vzero, O_l_hi},
-	{Vins, AMOVL, O_r0, O_l_lo},
-	{V_F1, Vins, ASARL, C31, O_r0},
-	{V_F1, Vins, AMOVL, O_r0, O_l_hi},
-	{V_f0, Vend},
+static uchar asshrlc32[][VLEN] =
+    {
+     {V_a0},
+     {Vins, AMOVL, O_l_hi, O_r0},
+     {V_T1, Vzero, O_l_hi},
+     {Vins, AMOVL, O_r0, O_l_lo},
+     {V_F1, Vins, ASARL, C31, O_r0},
+     {V_F1, Vins, AMOVL, O_r0, O_l_hi},
+     {V_f0, Vend},
 };
 
 /* shift asop right, const > 32 */
-static uchar	asshrlchi[][VLEN] =
-{
-	{V_a0},
-	{Vins, AMOVL, O_l_hi, O_r0},
-	{V_T1, Vzero, O_l_hi},
-	{Vinsx, Bop0, O_r, O_r0},
-	{Vins, AMOVL, O_r0, O_l_lo},
-	{V_F1, Vins, ASARL, C31, O_r0},
-	{V_F1, Vins, AMOVL, O_r0, O_l_hi},
-	{V_f0, Vend},
+static uchar asshrlchi[][VLEN] =
+    {
+     {V_a0},
+     {Vins, AMOVL, O_l_hi, O_r0},
+     {V_T1, Vzero, O_l_hi},
+     {Vinsx, Bop0, O_r, O_r0},
+     {Vins, AMOVL, O_r0, O_l_lo},
+     {V_F1, Vins, ASARL, C31, O_r0},
+     {V_F1, Vins, AMOVL, O_r0, O_l_hi},
+     {V_f0, Vend},
 };
 
 /* shift asop dest right general case */
-static uchar	asdshrlgen[][VLEN] =
-{
-	{Vop, OGE, O_r, C32},
-	{V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsr, ASHRL, O_r, O_t_rp},
-	{Vinsx, Bop0, O_r, O_t_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi, Vgo},
-	{V_p0, V_s0},
-	{Vins, AMOVL, O_l_hi, O_t_lo},
-	{V_T1, Vzero, O_t_hi},
-	{Vinsx, Bop0, O_r, O_t_lo},
-	{V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
-	{V_F1, Vins, ASARL, C31, O_t_hi},
-	{Vins, AMOVL, O_t_hi, O_l_hi, V_p0},
-	{Vend},
+static uchar asdshrlgen[][VLEN] =
+    {
+     {Vop, OGE, O_r, C32},
+     {V_s0, Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsr, ASHRL, O_r, O_t_rp},
+     {Vinsx, Bop0, O_r, O_t_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi, Vgo},
+     {V_p0, V_s0},
+     {Vins, AMOVL, O_l_hi, O_t_lo},
+     {V_T1, Vzero, O_t_hi},
+     {Vinsx, Bop0, O_r, O_t_lo},
+     {V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
+     {V_F1, Vins, ASARL, C31, O_t_hi},
+     {Vins, AMOVL, O_t_hi, O_l_hi, V_p0},
+     {Vend},
 };
 
 /* shift asop dest right, const < 32 */
-static uchar	asdshrlclo[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsr, ASHRL, O_r, O_t_rp},
-	{Vinsx, Bop0, O_r, O_t_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vend},
+static uchar asdshrlclo[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsr, ASHRL, O_r, O_t_rp},
+     {Vinsx, Bop0, O_r, O_t_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vend},
 };
 
 /* shift asop dest right, const == 32 */
-static uchar	asdshrlc32[][VLEN] =
-{
-	{Vins, AMOVL, O_l_hi, O_t_lo},
-	{V_T1, Vzero, O_t_hi},
-	{V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
-	{V_F1, Vins, ASARL, C31, O_t_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vend},
+static uchar asdshrlc32[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_hi, O_t_lo},
+     {V_T1, Vzero, O_t_hi},
+     {V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
+     {V_F1, Vins, ASARL, C31, O_t_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vend},
 };
 
 /* shift asop dest, const > 32 */
-static uchar	asdshrlchi[][VLEN] =
-{
-	{Vins, AMOVL, O_l_hi, O_t_lo},
-	{V_T1, Vzero, O_t_hi},
-	{Vinsx, Bop0, O_r, O_t_lo},
-	{V_T1, Vins, AMOVL, O_t_hi, O_l_hi},
-	{V_T1, Vins, AMOVL, O_t_lo, O_l_lo},
-	{V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
-	{V_F1, Vins, ASARL, C31, O_t_hi},
-	{V_F1, Vins, AMOVL, O_t_lo, O_l_lo},
-	{V_F1, Vins, AMOVL, O_t_hi, O_l_hi},
-	{Vend},
+static uchar asdshrlchi[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_hi, O_t_lo},
+     {V_T1, Vzero, O_t_hi},
+     {Vinsx, Bop0, O_r, O_t_lo},
+     {V_T1, Vins, AMOVL, O_t_hi, O_l_hi},
+     {V_T1, Vins, AMOVL, O_t_lo, O_l_lo},
+     {V_F1, Vins, AMOVL, O_t_lo, O_t_hi},
+     {V_F1, Vins, ASARL, C31, O_t_hi},
+     {V_F1, Vins, AMOVL, O_t_lo, O_l_lo},
+     {V_F1, Vins, AMOVL, O_t_hi, O_l_hi},
+     {Vend},
 };
 
-static uchar	(*asshrltab[])[VLEN] =
-{
-	asshrlgen,
-	asshrlclo,
-	asshrlc32,
-	asshrlchi,
-	asdshrlgen,
-	asdshrlclo,
-	asdshrlc32,
-	asdshrlchi,
+static uchar (*asshrltab[])[VLEN] =
+    {
+     asshrlgen,
+     asshrlclo,
+     asshrlc32,
+     asshrlchi,
+     asdshrlgen,
+     asdshrlclo,
+     asdshrlc32,
+     asdshrlchi,
 };
 
-static uchar	shrlargs[]	= { ASHRL, 1 };
-static uchar	sarlargs[]	= { ASARL, 0 };
+static uchar shrlargs[] = {ASHRL, 1};
+static uchar sarlargs[] = {ASARL, 0};
 
 /* ++ -- */
-static uchar	incdec[][VLEN] =
-{
-	{Vinsx, Bop0, C01, O_l_lo},
-	{Vinsx, Bop1, C00, O_l_hi, Vend},
+static uchar incdec[][VLEN] =
+    {
+     {Vinsx, Bop0, C01, O_l_lo},
+     {Vinsx, Bop1, C00, O_l_hi, Vend},
 };
 
 /* ++ -- *p */
-static uchar	incdecpre[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsx, Bop0, C01, O_t_lo},
-	{Vinsx, Bop1, C00, O_t_hi},
-	{Vins, AMOVL, O_t_lo, O_l_lo},
-	{Vins, AMOVL, O_t_hi, O_l_hi, Vend},
+static uchar incdecpre[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsx, Bop0, C01, O_t_lo},
+     {Vinsx, Bop1, C00, O_t_hi},
+     {Vins, AMOVL, O_t_lo, O_l_lo},
+     {Vins, AMOVL, O_t_hi, O_l_hi, Vend},
 };
 
 /* *p ++ -- */
-static uchar	incdecpost[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsx, Bop0, C01, O_l_lo},
-	{Vinsx, Bop1, C00, O_l_hi, Vend},
+static uchar incdecpost[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsx, Bop0, C01, O_l_lo},
+     {Vinsx, Bop1, C00, O_l_hi, Vend},
 };
 
 /* binop rp, rp */
-static uchar	binop00[][VLEN] =
-{
-	{Vinsx, Bop0, O_r_lo, O_l_lo},
-	{Vinsx, Bop1, O_r_hi, O_l_hi, Vend},
-	{Vend},
+static uchar binop00[][VLEN] =
+    {
+     {Vinsx, Bop0, O_r_lo, O_l_lo},
+     {Vinsx, Bop1, O_r_hi, O_l_hi, Vend},
+     {Vend},
 };
 
 /* binop rp, addr */
-static uchar	binoptmp[][VLEN] =
-{
-	{V_a0, Vins, AMOVL, O_r_lo, O_r0},
-	{Vinsx, Bop0, O_r0, O_l_lo},
-	{Vins, AMOVL, O_r_hi, O_r0},
-	{Vinsx, Bop1, O_r0, O_l_hi},
-	{V_f0, Vend},
+static uchar binoptmp[][VLEN] =
+    {
+     {V_a0, Vins, AMOVL, O_r_lo, O_r0},
+     {Vinsx, Bop0, O_r0, O_l_lo},
+     {Vins, AMOVL, O_r_hi, O_r0},
+     {Vinsx, Bop1, O_r0, O_l_hi},
+     {V_f0, Vend},
 };
 
 /* binop t = *a op *b */
-static uchar	binop11[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vinsx, Bop0, O_r_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsx, Bop1, O_r_hi, O_t_hi, Vend},
+static uchar binop11[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vinsx, Bop0, O_r_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsx, Bop1, O_r_hi, O_t_hi, Vend},
 };
 
 /* binop t = rp +- c */
-static uchar	add0c[][VLEN] =
-{
-	{V_r_lo_t, Vinsx, Bop0, O_r_lo, O_l_lo},
-	{V_r_lo_f, Vamv, Bop0, Bop1},
-	{Vinsx, Bop1, O_r_hi, O_l_hi},
-	{Vend},
+static uchar add0c[][VLEN] =
+    {
+     {V_r_lo_t, Vinsx, Bop0, O_r_lo, O_l_lo},
+     {V_r_lo_f, Vamv, Bop0, Bop1},
+     {Vinsx, Bop1, O_r_hi, O_l_hi},
+     {Vend},
 };
 
 /* binop t = rp & c */
-static uchar	and0c[][VLEN] =
-{
-	{V_r_lo_t, Vinsx, Bop0, O_r_lo, O_l_lo},
-	{V_r_lo_f, Vins, AMOVL, C00, O_l_lo},
-	{V_r_hi_t, Vinsx, Bop1, O_r_hi, O_l_hi},
-	{V_r_hi_f, Vins, AMOVL, C00, O_l_hi},
-	{Vend},
+static uchar and0c[][VLEN] =
+    {
+     {V_r_lo_t, Vinsx, Bop0, O_r_lo, O_l_lo},
+     {V_r_lo_f, Vins, AMOVL, C00, O_l_lo},
+     {V_r_hi_t, Vinsx, Bop1, O_r_hi, O_l_hi},
+     {V_r_hi_f, Vins, AMOVL, C00, O_l_hi},
+     {Vend},
 };
 
 /* binop t = rp | c */
-static uchar	or0c[][VLEN] =
-{
-	{V_r_lo_t, Vinsx, Bop0, O_r_lo, O_l_lo},
-	{V_r_hi_t, Vinsx, Bop1, O_r_hi, O_l_hi},
-	{Vend},
+static uchar or0c[][VLEN] =
+    {
+     {V_r_lo_t, Vinsx, Bop0, O_r_lo, O_l_lo},
+     {V_r_hi_t, Vinsx, Bop1, O_r_hi, O_l_hi},
+     {Vend},
 };
 
 /* binop t = c - rp */
-static uchar	sub10[][VLEN] =
-{
-	{V_a0, Vins, AMOVL, O_l_lo, O_r0},
-	{Vinsx, Bop0, O_r_lo, O_r0},
-	{Vins, AMOVL, O_l_hi, O_r_lo},
-	{Vinsx, Bop1, O_r_hi, O_r_lo},
-	{Vspazz, V_f0, Vend},
+static uchar sub10[][VLEN] =
+    {
+     {V_a0, Vins, AMOVL, O_l_lo, O_r0},
+     {Vinsx, Bop0, O_r_lo, O_r0},
+     {Vins, AMOVL, O_l_hi, O_r_lo},
+     {Vinsx, Bop1, O_r_hi, O_r_lo},
+     {Vspazz, V_f0, Vend},
 };
 
 /* binop t = c + *b */
-static uchar	addca[][VLEN] =
-{
-	{Vins, AMOVL, O_r_lo, O_t_lo},
-	{V_l_lo_t, Vinsx, Bop0, O_l_lo, O_t_lo},
-	{V_l_lo_f, Vamv, Bop0, Bop1},
-	{Vins, AMOVL, O_r_hi, O_t_hi},
-	{Vinsx, Bop1, O_l_hi, O_t_hi},
-	{Vend},
+static uchar addca[][VLEN] =
+    {
+     {Vins, AMOVL, O_r_lo, O_t_lo},
+     {V_l_lo_t, Vinsx, Bop0, O_l_lo, O_t_lo},
+     {V_l_lo_f, Vamv, Bop0, Bop1},
+     {Vins, AMOVL, O_r_hi, O_t_hi},
+     {Vinsx, Bop1, O_l_hi, O_t_hi},
+     {Vend},
 };
 
 /* binop t = c & *b */
-static uchar	andca[][VLEN] =
-{
-	{V_l_lo_t, Vins, AMOVL, O_r_lo, O_t_lo},
-	{V_l_lo_t, Vinsx, Bop0, O_l_lo, O_t_lo},
-	{V_l_lo_f, Vzero, O_t_lo},
-	{V_l_hi_t, Vins, AMOVL, O_r_hi, O_t_hi},
-	{V_l_hi_t, Vinsx, Bop1, O_l_hi, O_t_hi},
-	{V_l_hi_f, Vzero, O_t_hi},
-	{Vend},
+static uchar andca[][VLEN] =
+    {
+     {V_l_lo_t, Vins, AMOVL, O_r_lo, O_t_lo},
+     {V_l_lo_t, Vinsx, Bop0, O_l_lo, O_t_lo},
+     {V_l_lo_f, Vzero, O_t_lo},
+     {V_l_hi_t, Vins, AMOVL, O_r_hi, O_t_hi},
+     {V_l_hi_t, Vinsx, Bop1, O_l_hi, O_t_hi},
+     {V_l_hi_f, Vzero, O_t_hi},
+     {Vend},
 };
 
 /* binop t = c | *b */
-static uchar	orca[][VLEN] =
-{
-	{Vins, AMOVL, O_r_lo, O_t_lo},
-	{V_l_lo_t, Vinsx, Bop0, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_r_hi, O_t_hi},
-	{V_l_hi_t, Vinsx, Bop1, O_l_hi, O_t_hi},
-	{Vend},
+static uchar orca[][VLEN] =
+    {
+     {Vins, AMOVL, O_r_lo, O_t_lo},
+     {V_l_lo_t, Vinsx, Bop0, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_r_hi, O_t_hi},
+     {V_l_hi_t, Vinsx, Bop1, O_l_hi, O_t_hi},
+     {Vend},
 };
 
 /* binop t = c - *b */
-static uchar	subca[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsx, Bop0, O_r_lo, O_t_lo},
-	{Vinsx, Bop1, O_r_hi, O_t_hi},
-	{Vend},
+static uchar subca[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsx, Bop0, O_r_lo, O_t_lo},
+     {Vinsx, Bop1, O_r_hi, O_t_hi},
+     {Vend},
 };
 
 /* binop t = *a +- c */
-static uchar	addac[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{V_r_lo_t, Vinsx, Bop0, O_r_lo, O_t_lo},
-	{V_r_lo_f, Vamv, Bop0, Bop1},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{Vinsx, Bop1, O_r_hi, O_t_hi},
-	{Vend},
+static uchar addac[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {V_r_lo_t, Vinsx, Bop0, O_r_lo, O_t_lo},
+     {V_r_lo_f, Vamv, Bop0, Bop1},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {Vinsx, Bop1, O_r_hi, O_t_hi},
+     {Vend},
 };
 
 /* binop t = *a | c */
-static uchar	orac[][VLEN] =
-{
-	{Vins, AMOVL, O_l_lo, O_t_lo},
-	{V_r_lo_t, Vinsx, Bop0, O_r_lo, O_t_lo},
-	{Vins, AMOVL, O_l_hi, O_t_hi},
-	{V_r_hi_t, Vinsx, Bop1, O_r_hi, O_t_hi},
-	{Vend},
+static uchar orac[][VLEN] =
+    {
+     {Vins, AMOVL, O_l_lo, O_t_lo},
+     {V_r_lo_t, Vinsx, Bop0, O_r_lo, O_t_lo},
+     {Vins, AMOVL, O_l_hi, O_t_hi},
+     {V_r_hi_t, Vinsx, Bop1, O_r_hi, O_t_hi},
+     {Vend},
 };
 
 /* binop t = *a & c */
-static uchar	andac[][VLEN] =
-{
-	{V_r_lo_t, Vins, AMOVL, O_l_lo, O_t_lo},
-	{V_r_lo_t, Vinsx, Bop0, O_r_lo, O_t_lo},
-	{V_r_lo_f, Vzero, O_t_lo},
-	{V_r_hi_t, Vins, AMOVL, O_l_hi, O_t_hi},
-	{V_r_hi_t, Vinsx, Bop0, O_r_hi, O_t_hi},
-	{V_r_hi_f, Vzero, O_t_hi},
-	{Vend},
+static uchar andac[][VLEN] =
+    {
+     {V_r_lo_t, Vins, AMOVL, O_l_lo, O_t_lo},
+     {V_r_lo_t, Vinsx, Bop0, O_r_lo, O_t_lo},
+     {V_r_lo_f, Vzero, O_t_lo},
+     {V_r_hi_t, Vins, AMOVL, O_l_hi, O_t_hi},
+     {V_r_hi_t, Vinsx, Bop0, O_r_hi, O_t_hi},
+     {V_r_hi_f, Vzero, O_t_hi},
+     {Vend},
 };
 
-static uchar	ADDargs[]	= { AADDL, AADCL };
-static uchar	ANDargs[]	= { AANDL, AANDL };
-static uchar	ORargs[]	= { AORL, AORL };
-static uchar	SUBargs[]	= { ASUBL, ASBBL };
-static uchar	XORargs[]	= { AXORL, AXORL };
+static uchar ADDargs[] = {AADDL, AADCL};
+static uchar ANDargs[] = {AANDL, AANDL};
+static uchar ORargs[] = {AORL, AORL};
+static uchar SUBargs[] = {ASUBL, ASBBL};
+static uchar XORargs[] = {AXORL, AXORL};
 
-static uchar	(*ADDtab[])[VLEN] =
-{
-	add0c, addca, addac,
+static uchar (*ADDtab[])[VLEN] =
+    {
+     add0c, addca, addac,
 };
 
-static uchar	(*ANDtab[])[VLEN] =
-{
-	and0c, andca, andac,
+static uchar (*ANDtab[])[VLEN] =
+    {
+     and0c, andca, andac,
 };
 
-static uchar	(*ORtab[])[VLEN] =
-{
-	or0c, orca, orac,
+static uchar (*ORtab[])[VLEN] =
+    {
+     or0c, orca, orac,
 };
 
-static uchar	(*SUBtab[])[VLEN] =
-{
-	add0c, subca, addac,
+static uchar (*SUBtab[])[VLEN] =
+    {
+     add0c, subca, addac,
 };
 
 /* mul of const32 */
-static uchar	mulc32[][VLEN] =
-{
-	{V_a0, Vop, ONE, O_l_hi, C00},
-	{V_s0, Vins, AMOVL, O_r_lo, O_r0},
-	{Vins, AMULL, O_r0, O_Zop},
-	{Vgo, V_p0, V_s0},
-	{Vins, AMOVL, O_l_hi, O_r0},
-	{Vmul, O_r_lo, O_r0},
-	{Vins, AMOVL, O_r_lo, O_l_hi},
-	{Vins, AMULL, O_l_hi, O_Zop},
-	{Vins, AADDL, O_r0, O_l_hi},
-	{V_f0, V_p0, Vend},
+static uchar mulc32[][VLEN] =
+    {
+     {V_a0, Vop, ONE, O_l_hi, C00},
+     {V_s0, Vins, AMOVL, O_r_lo, O_r0},
+     {Vins, AMULL, O_r0, O_Zop},
+     {Vgo, V_p0, V_s0},
+     {Vins, AMOVL, O_l_hi, O_r0},
+     {Vmul, O_r_lo, O_r0},
+     {Vins, AMOVL, O_r_lo, O_l_hi},
+     {Vins, AMULL, O_l_hi, O_Zop},
+     {Vins, AADDL, O_r0, O_l_hi},
+     {V_f0, V_p0, Vend},
 };
 
 /* mul of const64 */
-static uchar	mulc64[][VLEN] =
-{
-	{V_a0, Vins, AMOVL, O_r_hi, O_r0},
-	{Vop, OOR, O_l_hi, O_r0},
-	{Vop, ONE, O_r0, C00},
-	{V_s0, Vins, AMOVL, O_r_lo, O_r0},
-	{Vins, AMULL, O_r0, O_Zop},
-	{Vgo, V_p0, V_s0},
-	{Vmul, O_r_lo, O_l_hi},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vmul, O_r_hi, O_r0},
-	{Vins, AADDL, O_l_hi, O_r0},
-	{Vins, AMOVL, O_r_lo, O_l_hi},
-	{Vins, AMULL, O_l_hi, O_Zop},
-	{Vins, AADDL, O_r0, O_l_hi},
-	{V_f0, V_p0, Vend},
+static uchar mulc64[][VLEN] =
+    {
+     {V_a0, Vins, AMOVL, O_r_hi, O_r0},
+     {Vop, OOR, O_l_hi, O_r0},
+     {Vop, ONE, O_r0, C00},
+     {V_s0, Vins, AMOVL, O_r_lo, O_r0},
+     {Vins, AMULL, O_r0, O_Zop},
+     {Vgo, V_p0, V_s0},
+     {Vmul, O_r_lo, O_l_hi},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vmul, O_r_hi, O_r0},
+     {Vins, AADDL, O_l_hi, O_r0},
+     {Vins, AMOVL, O_r_lo, O_l_hi},
+     {Vins, AMULL, O_l_hi, O_Zop},
+     {Vins, AADDL, O_r0, O_l_hi},
+     {V_f0, V_p0, Vend},
 };
 
 /* mul general */
-static uchar	mull[][VLEN] =
-{
-	{V_a0, Vins, AMOVL, O_r_hi, O_r0},
-	{Vop, OOR, O_l_hi, O_r0},
-	{Vop, ONE, O_r0, C00},
-	{V_s0, Vins, AMOVL, O_r_lo, O_r0},
-	{Vins, AMULL, O_r0, O_Zop},
-	{Vgo, V_p0, V_s0},
-	{Vins, AIMULL, O_r_lo, O_l_hi},
-	{Vins, AMOVL, O_l_lo, O_r0},
-	{Vins, AIMULL, O_r_hi, O_r0},
-	{Vins, AADDL, O_l_hi, O_r0},
-	{Vins, AMOVL, O_r_lo, O_l_hi},
-	{Vins, AMULL, O_l_hi, O_Zop},
-	{Vins, AADDL, O_r0, O_l_hi},
-	{V_f0, V_p0, Vend},
+static uchar mull[][VLEN] =
+    {
+     {V_a0, Vins, AMOVL, O_r_hi, O_r0},
+     {Vop, OOR, O_l_hi, O_r0},
+     {Vop, ONE, O_r0, C00},
+     {V_s0, Vins, AMOVL, O_r_lo, O_r0},
+     {Vins, AMULL, O_r0, O_Zop},
+     {Vgo, V_p0, V_s0},
+     {Vins, AIMULL, O_r_lo, O_l_hi},
+     {Vins, AMOVL, O_l_lo, O_r0},
+     {Vins, AIMULL, O_r_hi, O_r0},
+     {Vins, AADDL, O_l_hi, O_r0},
+     {Vins, AMOVL, O_r_lo, O_l_hi},
+     {Vins, AMULL, O_l_hi, O_Zop},
+     {Vins, AADDL, O_r0, O_l_hi},
+     {V_f0, V_p0, Vend},
 };
 
 /* cast rp l to rp t */
-static uchar	castrp[][VLEN] =
-{
-	{Vmv, O_l, O_t_lo},
-	{VT, Vins, AMOVL, O_t_lo, O_t_hi},
-	{VT, Vins, ASARL, C31, O_t_hi},
-	{VF, Vzero, O_t_hi},
-	{Vend},
+static uchar castrp[][VLEN] =
+    {
+     {Vmv, O_l, O_t_lo},
+     {VT, Vins, AMOVL, O_t_lo, O_t_hi},
+     {VT, Vins, ASARL, C31, O_t_hi},
+     {VF, Vzero, O_t_hi},
+     {Vend},
 };
 
 /* cast rp l to addr t */
-static uchar	castrpa[][VLEN] =
-{
-	{VT, V_a0, Vmv, O_l, O_r0},
-	{VT, Vins, AMOVL, O_r0, O_t_lo},
-	{VT, Vins, ASARL, C31, O_r0},
-	{VT, Vins, AMOVL, O_r0, O_t_hi},
-	{VT, V_f0},
-	{VF, Vmv, O_l, O_t_lo},
-	{VF, Vzero, O_t_hi},
-	{Vend},
+static uchar castrpa[][VLEN] =
+    {
+     {VT, V_a0, Vmv, O_l, O_r0},
+     {VT, Vins, AMOVL, O_r0, O_t_lo},
+     {VT, Vins, ASARL, C31, O_r0},
+     {VT, Vins, AMOVL, O_r0, O_t_hi},
+     {VT, V_f0},
+     {VF, Vmv, O_l, O_t_lo},
+     {VF, Vzero, O_t_hi},
+     {Vend},
 };
 
-static uchar	netab0i[][VLEN] =
-{
-	{Vop, ONE, O_l_lo, O_r_lo},
-	{V_s0, Vop, ONE, O_l_hi, O_r_hi},
-	{V_s1, Vgo, V_s2, Vgo, V_s3},
-	{VF, V_p0, V_p1, VT, V_p2},
-	{Vgo, V_p3},
-	{VT, V_p0, V_p1, VF, V_p2},
-	{Vend},
+static uchar netab0i[][VLEN] =
+    {
+     {Vop, ONE, O_l_lo, O_r_lo},
+     {V_s0, Vop, ONE, O_l_hi, O_r_hi},
+     {V_s1, Vgo, V_s2, Vgo, V_s3},
+     {VF, V_p0, V_p1, VT, V_p2},
+     {Vgo, V_p3},
+     {VT, V_p0, V_p1, VF, V_p2},
+     {Vend},
 };
 
-static uchar	netabii[][VLEN] =
-{
-	{V_a0, Vins, AMOVL, O_l_lo, O_r0},
-	{Vop, ONE, O_r0, O_r_lo},
-	{V_s0, Vins, AMOVL, O_l_hi, O_r0},
-	{Vop, ONE, O_r0, O_r_hi},
-	{V_s1, Vgo, V_s2, Vgo, V_s3},
-	{VF, V_p0, V_p1, VT, V_p2},
-	{Vgo, V_p3},
-	{VT, V_p0, V_p1, VF, V_p2},
-	{V_f0, Vend},
+static uchar netabii[][VLEN] =
+    {
+     {V_a0, Vins, AMOVL, O_l_lo, O_r0},
+     {Vop, ONE, O_r0, O_r_lo},
+     {V_s0, Vins, AMOVL, O_l_hi, O_r0},
+     {Vop, ONE, O_r0, O_r_hi},
+     {V_s1, Vgo, V_s2, Vgo, V_s3},
+     {VF, V_p0, V_p1, VT, V_p2},
+     {Vgo, V_p3},
+     {VT, V_p0, V_p1, VF, V_p2},
+     {V_f0, Vend},
 };
 
-static uchar	cmptab0i[][VLEN] =
-{
-	{Vopx, Bop0, O_l_hi, O_r_hi},
-	{V_s0, Vins0, AJNE},
-	{V_s1, Vopx, Bop1, O_l_lo, O_r_lo},
-	{V_s2, Vgo, V_s3, Vgo, V_s4},
-	{VT, V_p1, V_p3},
-	{VF, V_p0, V_p2},
-	{Vgo, V_p4},
-	{VT, V_p0, V_p2},
-	{VF, V_p1, V_p3},
-	{Vend},
+static uchar cmptab0i[][VLEN] =
+    {
+     {Vopx, Bop0, O_l_hi, O_r_hi},
+     {V_s0, Vins0, AJNE},
+     {V_s1, Vopx, Bop1, O_l_lo, O_r_lo},
+     {V_s2, Vgo, V_s3, Vgo, V_s4},
+     {VT, V_p1, V_p3},
+     {VF, V_p0, V_p2},
+     {Vgo, V_p4},
+     {VT, V_p0, V_p2},
+     {VF, V_p1, V_p3},
+     {Vend},
 };
 
-static uchar	cmptabii[][VLEN] =
-{
-	{V_a0, Vins, AMOVL, O_l_hi, O_r0},
-	{Vopx, Bop0, O_r0, O_r_hi},
-	{V_s0, Vins0, AJNE},
-	{V_s1, Vins, AMOVL, O_l_lo, O_r0},
-	{Vopx, Bop1, O_r0, O_r_lo},
-	{V_s2, Vgo, V_s3, Vgo, V_s4},
-	{VT, V_p1, V_p3},
-	{VF, V_p0, V_p2},
-	{Vgo, V_p4},
-	{VT, V_p0, V_p2},
-	{VF, V_p1, V_p3},
-	{V_f0, Vend},
+static uchar cmptabii[][VLEN] =
+    {
+     {V_a0, Vins, AMOVL, O_l_hi, O_r0},
+     {Vopx, Bop0, O_r0, O_r_hi},
+     {V_s0, Vins0, AJNE},
+     {V_s1, Vins, AMOVL, O_l_lo, O_r0},
+     {Vopx, Bop1, O_r0, O_r_lo},
+     {V_s2, Vgo, V_s3, Vgo, V_s4},
+     {VT, V_p1, V_p3},
+     {VF, V_p0, V_p2},
+     {Vgo, V_p4},
+     {VT, V_p0, V_p2},
+     {VF, V_p1, V_p3},
+     {V_f0, Vend},
 };
 
-static uchar	(*NEtab[])[VLEN] =
-{
-	netab0i, netabii,
+static uchar (*NEtab[])[VLEN] =
+    {
+     netab0i, netabii,
 };
 
-static uchar	(*cmptab[])[VLEN] =
-{
-	cmptab0i, cmptabii,
+static uchar (*cmptab[])[VLEN] =
+    {
+     cmptab0i, cmptabii,
 };
 
-static uchar	GEargs[]	= { OGT, OHS };
-static uchar	GTargs[]	= { OGT, OHI };
-static uchar	HIargs[]	= { OHI, OHI };
-static uchar	HSargs[]	= { OHI, OHS };
+static uchar GEargs[] = {OGT, OHS};
+static uchar GTargs[] = {OGT, OHI};
+static uchar HIargs[] = {OHI, OHI};
+static uchar HSargs[] = {OHI, OHS};
 
 /* Big Generator */
 static void
@@ -1206,18 +1203,18 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 
 	if(a != nil)
 		memmove(args, a, VARGS);
-//print("biggen %d %d %d\n", args[0], args[1], args[2]);
-//if(l) prtree(l, "l");
-//if(r) prtree(r, "r");
-//if(t) prtree(t, "t");
+	//print("biggen %d %d %d\n", args[0], args[1], args[2]);
+	//if(l) prtree(l, "l");
+	//if(r) prtree(r, "r");
+	//if(t) prtree(t, "t");
 	lo = ro = to = 0;
 	cp = code;
 
-	for (;;) {
+	for(;;) {
 		c = *cp++;
 		g = 1;
 		i = 0;
-//print("code %d %d %d %d %d\n", c[0], c[1], c[2], c[3], c[4]);
+		//print("code %d %d %d %d %d\n", c[0], c[1], c[2], c[3], c[4]);
 		for(;;) {
 			switch(op = c[i]) {
 			case Vgo:
@@ -1245,17 +1242,17 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 				j = i - 1;
 				goto op;
 
-			case Vspazz:	// nasty hack to save a reg in SUB
-//print("spazz\n");
+			case Vspazz: // nasty hack to save a reg in SUB
+				     //print("spazz\n");
 				if(g) {
-//print("hi %R lo %R t %R\n", r->right->reg, r->left->reg, tmps[0].reg);
+					//print("hi %R lo %R t %R\n", r->right->reg, r->left->reg, tmps[0].reg);
 					ot = r->right;
 					r->right = r->left;
 					tl = new(0, Z, Z);
 					*tl = tmps[0];
 					r->left = tl;
 					tmps[0] = *ot;
-//print("hi %R lo %R t %R\n", r->right->reg, r->left->reg, tmps[0].reg);
+					//print("hi %R lo %R t %R\n", r->right->reg, r->left->reg, tmps[0].reg);
 				}
 				i++;
 				break;
@@ -1318,23 +1315,35 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 
 					case O_l:
 					case O_l_lo:
-						ot = l; xp = &lo; xo = 0;
+						ot = l;
+						xp = &lo;
+						xo = 0;
 						goto op0;
 					case O_l_hi:
-						ot = l; xp = &lo; xo = SZ_LONG;
+						ot = l;
+						xp = &lo;
+						xo = SZ_LONG;
 						goto op0;
 					case O_r:
 					case O_r_lo:
-						ot = r; xp = &ro; xo = 0;
+						ot = r;
+						xp = &ro;
+						xo = 0;
 						goto op0;
 					case O_r_hi:
-						ot = r; xp = &ro; xo = SZ_LONG;
+						ot = r;
+						xp = &ro;
+						xo = SZ_LONG;
 						goto op0;
 					case O_t_lo:
-						ot = t; xp = &to; xo = 0;
+						ot = t;
+						xp = &to;
+						xo = 0;
 						goto op0;
 					case O_t_hi:
-						ot = t; xp = &to; xo = SZ_LONG;
+						ot = t;
+						xp = &to;
+						xo = SZ_LONG;
 						goto op0;
 					case O_l_rp:
 						ot = l;
@@ -1376,7 +1385,7 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 							}
 						}
 						break;
-					
+
 					default:
 						diag(l, "bad V_lop");
 						return;
@@ -1392,10 +1401,9 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 				}
 				oc = c[i - 3];
 				if(op == Vinsx || op == Vopx) {
-//print("%d -> %d\n", oc, args[oc]);
+					//print("%d -> %d\n", oc, args[oc]);
 					oc = args[oc];
-				}
-				else {
+				} else {
 					switch(oc) {
 					case O_a0:
 					case O_a1:
@@ -1449,23 +1457,27 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 				i++;
 				break;
 
-			case V_T0: case V_T1:
+			case V_T0:
+			case V_T1:
 				g = args[op - V_T0];
 				i++;
 				break;
 
-			case V_F0: case V_F1:
+			case V_F0:
+			case V_F1:
 				g = !args[op - V_F0];
 				i++;
 				break;
 
-			case V_C0: case V_C1:
+			case V_C0:
+			case V_C1:
 				if(g)
 					args[op - V_C0] = 0;
 				i++;
 				break;
 
-			case V_S0: case V_S1:
+			case V_S0:
+			case V_S1:
 				if(g)
 					args[op - V_S0] = 1;
 				i++;
@@ -1523,7 +1535,8 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 			case Vend:
 				goto out;
 
-			case V_a0: case V_a1:
+			case V_a0:
+			case V_a1:
 				if(g) {
 					lt = l->type;
 					l->type = types[TULONG];
@@ -1533,19 +1546,28 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 				i++;
 				break;
 
-			case V_f0: case V_f1:
+			case V_f0:
+			case V_f1:
 				if(g)
 					regfree(&tmps[op - V_f0]);
 				i++;
 				break;
 
-			case V_p0: case V_p1: case V_p2: case V_p3: case V_p4:
+			case V_p0:
+			case V_p1:
+			case V_p2:
+			case V_p3:
+			case V_p4:
 				if(g)
 					patch(pr[op - V_p0], pc);
 				i++;
 				break;
 
-			case V_s0: case V_s1: case V_s2: case V_s3: case V_s4:
+			case V_s0:
+			case V_s1:
+			case V_s2:
+			case V_s3:
+			case V_s4:
 				if(g)
 					pr[op - V_s0] = p;
 				i++;
@@ -1689,7 +1711,7 @@ cgen64(Node *n, Node *nn)
 		optab = nil;
 		goto twoop;
 
-twoop:
+	twoop:
 		dr = nn != Z && nn->op == OREGPAIR;
 		l = vfunc(n->left, nn);
 		if(sh)
@@ -1700,7 +1722,7 @@ twoop:
 		li = l->op == ONAME || l->op == OINDREG || l->op == OCONST;
 		ri = r->op == ONAME || r->op == OINDREG || r->op == OCONST;
 
-#define	IMM(l, r)	((l) | ((r) << 1))
+#define IMM(l, r) ((l) | ((r) << 1))
 
 		lri = IMM(li, ri);
 
@@ -1730,8 +1752,7 @@ twoop:
 				t = regpair(Z, n);
 				sugen(r, t, 8);
 				r = t;
-			}
-			else {
+			} else {
 				t = regpair(Z, n);
 				sugen(r, t, 8);
 				r = t;
@@ -1767,7 +1788,7 @@ twoop:
 			break;
 		}
 
-#define	WW(l, r)	((l) | ((r) << 2))
+#define WW(l, r) ((l) | ((r) << 2))
 		d = Z;
 		dt = nn->type;
 		nn->type = types[TLONG];
@@ -1787,7 +1808,7 @@ twoop:
 			case WHARD:
 				reglcgen(&nod2, r, Z);
 				r = &nod2;
-				/* fall thru */
+			/* fall thru */
 			case WADDR:
 				biggen(l, r, Z, 0, binoptmp, args);
 				if(ri == WHARD)
@@ -1804,7 +1825,7 @@ twoop:
 				case WHARD:
 					reglcgen(&nod2, l, Z);
 					l = &nod2;
-					/* fall thru */
+				/* fall thru */
 				case WADDR:
 				case WCONST:
 					biggen(l, r, Z, 0, sub10, args);
@@ -1812,8 +1833,7 @@ twoop:
 				}
 				if(li == WHARD)
 					regfree(l);
-			}
-			else {
+			} else {
 				switch(li) {
 				case WNONE:
 					diag(l, "bad whatof\n");
@@ -1824,7 +1844,7 @@ twoop:
 				case WHARD:
 					reglcgen(&nod2, l, Z);
 					l = &nod2;
-					/* fall thru */
+				/* fall thru */
 				case WADDR:
 					biggen(r, l, Z, 0, binoptmp, args);
 					if(li == WHARD)
@@ -1924,8 +1944,7 @@ twoop:
 				c = snarfreg(l, t, D_CX, r, &nod2);
 				cgen(r, t);
 				r = t;
-			}
-			else {
+			} else {
 				t = &nod1;
 				c = snarfreg(nn, t, D_CX, r, &nod2);
 				cgen(r, t);
@@ -2018,8 +2037,7 @@ twoop:
 					loadpair(l, d);
 					l = d;
 					cp = optab[Sc0];
-				}
-				else if(m == 32)
+				} else if(m == 32)
 					cp = optab[Sac3];
 				else
 					cp = optab[Sac4];
@@ -2044,7 +2062,7 @@ twoop:
 		switch(lri) {
 		case IMM(0, 0):
 			regfree(r);
-			/* fall thru */
+		/* fall thru */
 		case IMM(0, 1):
 			if(!dr)
 				storepair(l, nn, 1);
@@ -2069,8 +2087,7 @@ twoop:
 				t = regpair(Z, r);
 				sugen(r, t, 8);
 				r = t;
-			}
-			else {
+			} else {
 				t = regpair(Z, r);
 				sugen(r, t, 8);
 				r = t;
@@ -2085,7 +2102,7 @@ twoop:
 			l = t;
 			ri = li;
 			op = invrel[relindex(op)];
-			/* fall thru */
+		/* fall thru */
 		case IMM(0, 1):
 			t = regpair(Z, l);
 			sugen(l, t, 8);
@@ -2154,7 +2171,7 @@ twoop:
 			case WHARD:
 				reglcgen(&nod2, r, Z);
 				r = &nod2;
-				/* fall thru */
+			/* fall thru */
 			case WADDR:
 				biggen(l, r, Z, true, optab[T0i], args);
 				if(ri == WHARD)
@@ -2212,8 +2229,7 @@ twoop:
 					t = l;
 					l = r;
 					r = t;
-				}
-				else if(!vaddr(l, 1)) {
+				} else if(!vaddr(l, 1)) {
 					reglcgen(&nod5, l, Z);
 					l = &nod5;
 					evacaxdx(l);
@@ -2238,17 +2254,17 @@ twoop:
 		c = Z;
 		d = Z;
 		if(!nodreg(&nod1, t->left, D_AX)) {
-			if(t->left->reg != D_AX){
+			if(t->left->reg != D_AX) {
 				t->left->reg = D_AX;
 				reg[D_AX]++;
-			}else if(reg[D_AX] == 0)
+			} else if(reg[D_AX] == 0)
 				fatal(Z, "vlong mul AX botch");
 		}
 		if(!nodreg(&nod2, t->right, D_DX)) {
-			if(t->right->reg != D_DX){
+			if(t->right->reg != D_DX) {
 				t->right->reg = D_DX;
 				reg[D_DX]++;
-			}else if(reg[D_DX] == 0)
+			} else if(reg[D_DX] == 0)
 				fatal(Z, "vlong mul DX botch");
 		}
 		//prtree(t, "t1"); print("reg/ax = %d reg/dx = %d\n", reg[D_AX], reg[D_DX]);
@@ -2269,10 +2285,10 @@ twoop:
 			d = &nod4;
 			regsalloc(d, t->right);
 			gmove(&nod2, d);
-			if(t->right->reg == D_AX && c != nil){
+			if(t->right->reg == D_AX && c != nil) {
 				/* need previous value of AX in DX */
 				gmove(c, &nod2);
-			}else
+			} else
 				gmove(t->right, &nod2);
 			zapreg(t->right);
 		}
@@ -2280,18 +2296,16 @@ twoop:
 			s = regpair(Z, n);
 			s->left = &nod1;
 			s->right = &nod2;
-		}
-		else
+		} else
 			s = t;
-		reg[D_AX]++;	/* don't allow biggen to allocate AX or DX (smashed by MUL) as temp */
+		reg[D_AX]++; /* don't allow biggen to allocate AX or DX (smashed by MUL) as temp */
 		reg[D_DX]++;
 		if(r->op == OCONST) {
 			if(hi64v(r) == 0)
 				biggen(s, r, Z, 0, mulc32, nil);
 			else
 				biggen(s, r, Z, 0, mulc64, nil);
-		}
-		else
+		} else
 			biggen(s, r, Z, 0, mull, nil);
 		instpair(t, Z);
 		reg[D_AX]--;
@@ -2355,8 +2369,7 @@ twoop:
 				r = t;
 				m = 1;
 			}
-		}
-		else {
+		} else {
 			if(!vaddr(r, 1) || nn != Z || r->op == OCONST) {
 				if(dr)
 					t = nn;
@@ -2377,8 +2390,7 @@ twoop:
 			else
 				biggen(r, l, Z, 0, binoptmp, args);
 			storepair(r, l, 0);
-		}
-		else {
+		} else {
 			if(m)
 				biggen(l, r, Z, 0, binop00, args);
 			else
@@ -2419,8 +2431,7 @@ twoop:
 				m = SAc32;
 			else
 				m = SAchi;
-		}
-		else
+		} else
 			m = SAgen;
 		if(l->complex > r->complex) {
 			if(!vaddr(l, 0)) {
@@ -2434,14 +2445,12 @@ twoop:
 					gmove(l, t);
 					l->reg = t->reg;
 					t->reg = D_CX;
-				}
-				else
+				} else
 					c = snarfreg(nn, t, D_CX, r, &nod3);
 				cgen(r, t);
 				r = t;
 			}
-		}
-		else {
+		} else {
 			if(m == SAgen) {
 				t = &nod2;
 				c = snarfreg(nn, t, D_CX, r, &nod3);
@@ -2469,8 +2478,7 @@ twoop:
 			}
 			if(d != nn)
 				storepair(d, nn, 1);
-		}
-		else
+		} else
 			biggen(l, r, Z, 0, optab[m], args);
 
 		if(c != Z) {
@@ -2506,7 +2514,7 @@ twoop:
 			reglcgen(&nod1, l, Z);
 			l = &nod1;
 		}
-		
+
 		if(nn != Z) {
 			d = regpair(nn, n);
 			instpair(d, Z);
@@ -2517,8 +2525,7 @@ twoop:
 			}
 			if(d != nn)
 				storepair(d, nn, 1);
-		}
-		else
+		} else
 			biggen(l, Z, Z, 0, incdec, args);
 
 		if(l == &nod1)
@@ -2535,40 +2542,34 @@ twoop:
 					if(!vaddr(nn, 1)) {
 						reglcgen(&nod1, nn, Z);
 						r = &nod1;
-					}
-					else
+					} else
 						r = nn;
-				}
-				else {
+				} else {
 					if(!vaddr(nn, 1)) {
 						reglcgen(&nod1, nn, Z);
 						r = &nod1;
-					}
-					else
+					} else
 						r = nn;
 					d = regpair(Z, l);
 					sugen(l, d, 8);
 				}
-//				d->left->type = r->type;
+				//				d->left->type = r->type;
 				d->left->type = types[TLONG];
 				gmove(d->left, r);
 				freepair(d);
-			}
-			else {
+			} else {
 				if(nn->op != OREGISTER && !vaddr(nn, 1)) {
 					reglcgen(&nod1, nn, Z);
 					r = &nod1;
-				}
-				else
+				} else
 					r = nn;
-//				l->type = r->type;
+				//				l->type = r->type;
 				l->type = types[TLONG];
 				gmove(l, r);
 			}
 			if(r != nn)
 				regfree(r);
-		}
-		else {
+		} else {
 			if(typeu[l->type->etype] || cond(l->op))
 				si = TUNSIGNED;
 			else
@@ -2578,8 +2579,7 @@ twoop:
 			if(nn->op == OREGPAIR) {
 				m = instpair(nn, &nod1);
 				biggen(&nod1, Z, nn, si == TSIGNED, castrp, nil);
-			}
-			else {
+			} else {
 				m = 0;
 				if(!vaddr(nn, si != TSIGNED)) {
 					dt = nn->type;
@@ -2652,8 +2652,7 @@ testv(Node *n, int true)
 			biggen(n, Z, Z, true, testi, nil);
 			if(n == &nod)
 				regfree(n);
-		}
-		else {
+		} else {
 			nn = regpair(Z, n);
 			sugen(n, nn, 8);
 			biggen(nn, Z, Z, true, testi, nil);

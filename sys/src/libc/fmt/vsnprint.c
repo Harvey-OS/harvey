@@ -25,9 +25,9 @@ vsnprint(char *buf, int len, char *fmt, va_list args)
 	f.farg = nil;
 	f.nfmt = 0;
 	//f.args = args;
-	va_copy(f.args,args);
+	va_copy(f.args, args);
 	dofmt(&f, fmt);
 	va_end(f.args);
-	*(char*)f.to = '\0';
-	return (char*)f.to - buf;
+	*(char *)f.to = '\0';
+	return (char *)f.to - buf;
 }

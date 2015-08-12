@@ -27,7 +27,7 @@
 /* Declarations for transfer function & similar cache remapping */
 
 #ifndef icolor_INCLUDED
-#  define icolor_INCLUDED
+#define icolor_INCLUDED
 
 /*
  * Define the number of stack slots needed for zcolor_remap_one.

@@ -13,17 +13,17 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-static	void		printtype(Hio *hout, HContent *type, HContent *enc);
+static void printtype(Hio *hout, HContent *type, HContent *enc);
 
 /*
  * these should be done better; see the reponse codes in /lib/rfc/rfc2616 for
  * more info on what should be included.
  */
-#define UNAUTHED	"You are not authorized to see this area.\n"
-#define NOCONTENT	"No acceptable type of data is available.\n"
-#define NOENCODE	"No acceptable encoding of the contents is available.\n"
-#define UNMATCHED	"The entity requested does not match the existing entity.\n"
-#define BADRANGE	"No bytes are avaible for the range you requested.\n"
+#define UNAUTHED "You are not authorized to see this area.\n"
+#define NOCONTENT "No acceptable type of data is available.\n"
+#define NOENCODE "No acceptable encoding of the contents is available.\n"
+#define UNMATCHED "The entity requested does not match the existing entity.\n"
+#define BADRANGE "No bytes are avaible for the range you requested.\n"
 
 /*
  * fd references a file which has been authorized & checked for relocations.
@@ -56,14 +56,14 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 	r = nil;
 	multir = 0;
 	boundary = nil;
-	if(c->req.vermaj){
-		if(type == nil && enc == nil){
+	if(c->req.vermaj) {
+		if(type == nil && enc == nil) {
 			conts = uriclass(c, c->req.uri);
 			type = conts.type;
 			enc = conts.encoding;
-			if(type == nil && enc == nil){
-				n = read(fd, c->xferbuf, HBufSize-1);
-				if(n > 0){
+			if(type == nil && enc == nil) {
+				n = read(fd, c->xferbuf, HBufSize - 1);
+				if(n > 0) {
 					c->xferbuf[n] = '\0';
 					conts = dataclass(c, c->xferbuf, n);
 					type = conts.type;
@@ -76,7 +76,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 
 		snprint(etag, sizeof(etag), "\"%lluxv%lux\"", qid.path, qid.vers);
 		ok = checkreq(c, type, enc, mtime, etag);
-		if(ok <= 0){
+		if(ok <= 0) {
 			close(fd);
 			return ok;
 		}
@@ -84,18 +84,16 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		/*
 		 * check for if-range requests
 		 */
-		if(c->head.range == nil
-		|| c->head.ifrangeetag != nil && !etagmatch(1, c->head.ifrangeetag, etag)
-		|| c->head.ifrangedate != 0 && c->head.ifrangedate != mtime){
+		if(c->head.range == nil || c->head.ifrangeetag != nil && !etagmatch(1, c->head.ifrangeetag, etag) || c->head.ifrangedate != 0 && c->head.ifrangedate != mtime) {
 			c->head.range = nil;
 			c->head.ifrangeetag = nil;
 			c->head.ifrangedate = 0;
 		}
 
-		if(c->head.range != nil){
+		if(c->head.range != nil) {
 			c->head.range = fixrange(c->head.range, length);
-			if(c->head.range == nil){
-				if(c->head.ifrangeetag == nil && c->head.ifrangedate == 0){
+			if(c->head.range == nil) {
+				if(c->head.ifrangeetag == nil && c->head.ifrangedate == 0) {
 					hprint(hout, "%s 416 Request range not satisfiable\r\n", hversion);
 					hprint(hout, "Date: %D\r\n", time(nil));
 					hprint(hout, "Server: Plan9\r\n");
@@ -134,15 +132,15 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		r = c->head.range;
 		if(r == nil)
 			hprint(hout, "Content-Length: %lld\r\n", length);
-		else if(r->next == nil){
+		else if(r->next == nil) {
 			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
 			hprint(hout, "Content-Length: %ld\r\n", r->stop - r->start);
-		}else{
+		} else {
 			multir = 1;
 			boundary = hmkmimeboundary(c);
 			hprint(hout, "Content-Type: multipart/byteranges; boundary=%s\r\n", boundary);
 		}
-		if(c->head.ifrangeetag == nil){
+		if(c->head.ifrangeetag == nil) {
 			hprint(hout, "Last-Modified: %D\r\n", mtime);
 			if(!multir)
 				printtype(hout, type, enc);
@@ -156,7 +154,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 			hprint(hout, "Connection: Keep-Alive\r\n");
 		hprint(hout, "\r\n");
 	}
-	if(strcmp(c->req.meth, "HEAD") == 0){
+	if(strcmp(c->req.meth, "HEAD") == 0) {
 		if(c->head.range == nil)
 			writelog(c, "Reply: 200 file 0\n");
 		else
@@ -169,16 +167,16 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 	/*
 	 * send the file if it's a normal file
 	 */
-	if(r == nil){
+	if(r == nil) {
 		hflush(hout);
 
 		wrote = 0;
 		if(n > 0)
 			wrote = write(hout->fd, c->xferbuf, n);
-		if(n <= 0 || wrote == n){
-			while((n = read(fd, c->xferbuf, HBufSize)) > 0){
+		if(n <= 0 || wrote == n) {
+			while((n = read(fd, c->xferbuf, HBufSize)) > 0) {
 				nw = write(hout->fd, c->xferbuf, n);
-				if(nw != n){
+				if(nw != n) {
 					if(nw > 0)
 						wrote += nw;
 					break;
@@ -200,8 +198,8 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 	 */
 	wrote = 0;
 	ok = 1;
-	for(; r != nil; r = r->next){
-		if(multir){
+	for(; r != nil; r = r->next) {
+		if(multir) {
 			hprint(hout, "\r\n--%s\r\n", boundary);
 			printtype(hout, type, enc);
 			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
@@ -210,20 +208,20 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		}
 		hflush(hout);
 
-		if(seek(fd, r->start, 0) != r->start){
+		if(seek(fd, r->start, 0) != r->start) {
 			ok = -1;
 			break;
 		}
-		for(tr = r->stop - r->start + 1; tr; tr -= n){
+		for(tr = r->stop - r->start + 1; tr; tr -= n) {
 			n = tr;
 			if(n > HBufSize)
 				n = HBufSize;
-			if(read(fd, c->xferbuf, n) != n){
+			if(read(fd, c->xferbuf, n) != n) {
 				ok = -1;
 				goto breakout;
 			}
 			nw = write(hout->fd, c->xferbuf, n);
-			if(nw != n){
+			if(nw != n) {
 				if(nw > 0)
 					wrote += nw;
 				ok = -1;
@@ -232,14 +230,15 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 			wrote += nw;
 		}
 	}
-breakout:;
-	if(r == nil){
-		if(multir){
+breakout:
+	;
+	if(r == nil) {
+		if(multir) {
 			hprint(hout, "--%s--\r\n", boundary);
 			hflush(hout);
 		}
 		writelog(c, "Reply: 206 partial content %lld %lld\n", length, wrote);
-	}else
+	} else
 		writelog(c, "Reply: 206 partial content, early termination %lld %lld\n", length, wrote);
 	close(fd);
 	return ok;
@@ -249,7 +248,7 @@ static void
 printtype(Hio *hout, HContent *type, HContent *enc)
 {
 	hprint(hout, "Content-Type: %s/%s", type->generic, type->specific);
-/*
+	/*
 	if(cistrcmp(type->generic, "text") == 0)
 		hprint(hout, ";charset=utf-8");
 */
@@ -263,7 +262,7 @@ etagmatch(int strong, HETag *tags, char *e)
 {
 	char *s, *t;
 
-	for(; tags != nil; tags = tags->next){
+	for(; tags != nil; tags = tags->next) {
 		if(strong && tags->weak)
 			continue;
 		s = tags->etag;
@@ -271,7 +270,7 @@ etagmatch(int strong, HETag *tags, char *e)
 			return 1;
 
 		t = e + 1;
-		while(*t != '"'){
+		while(*t != '"') {
 			if(*s != *t)
 				break;
 			s++;
@@ -293,7 +292,7 @@ acceptcont(char *s, char *e, HContent *ok, char *which)
 		return seprint(s, e, "Your browser accepts any %s.<br>\n", which);
 	s = seprint(s, e, "Your browser accepts %s: ", which);
 	sep = "";
-	for(; ok != nil; ok = ok->next){
+	for(; ok != nil; ok = ok->next) {
 		if(ok->specific)
 			s = seprint(s, e, "%s%s/%s", sep, ok->generic, ok->specific);
 		else
@@ -367,9 +366,7 @@ checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime,
 	 */
 	m = etagmatch(1, c->head.ifnomatch, etag);
 
-	if(m && strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0
-	|| c->head.ifunmodsince && c->head.ifunmodsince < mtime
-	|| c->head.ifmatch != nil && !etagmatch(1, c->head.ifmatch, etag)){
+	if(m && strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0 || c->head.ifunmodsince && c->head.ifunmodsince < mtime || c->head.ifmatch != nil && !etagmatch(1, c->head.ifmatch, etag)) {
 		hprint(hout, "%s 412 Precondition Failed\r\n", hversion);
 		hprint(hout, "Server: Plan9\r\n");
 		hprint(hout, "Date: %D\r\n", time(nil));
@@ -386,8 +383,7 @@ checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime,
 		return hflush(hout);
 	}
 
-	if(c->head.ifmodsince >= mtime
-	&& (m || c->head.ifnomatch == nil)){
+	if(c->head.ifmodsince >= mtime && (m || c->head.ifnomatch == nil)) {
 		/*
 		 * can only send back Date, ETag, Content-Location,
 		 * Expires, Cache-Control, and Vary entity-headers
@@ -413,7 +409,7 @@ checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime,
  * ie start after the end, or have stop before start.
  * rewrite suffix requests
  */
-HRange*
+HRange *
 fixrange(HRange *h, int32_t length)
 {
 	HRange *r, *rr;
@@ -426,8 +422,8 @@ fixrange(HRange *h, int32_t length)
 	 * toss out any invalid ranges
 	 */
 	rr = nil;
-	for(r = h; r != nil; r = r->next){
-		if(r->suffix){
+	for(r = h; r != nil; r = r->next) {
+		if(r->suffix) {
 			r->start = length - r->stop;
 			if(r->start >= length)
 				r->start = 0;
@@ -436,12 +432,12 @@ fixrange(HRange *h, int32_t length)
 		}
 		if(r->stop >= length)
 			r->stop = length - 1;
-		if(r->start > r->stop){
+		if(r->start > r->stop) {
 			if(rr == nil)
 				h = r->next;
 			else
 				rr->next = r->next;
-		}else
+		} else
 			rr = r;
 	}
 
@@ -457,15 +453,15 @@ fixrange(HRange *h, int32_t length)
 	if(h == nil)
 		return h;
 	r = h;
-	for(;;){
+	for(;;) {
 		rr = r->next;
 		if(rr == nil)
 			break;
-		if(r->start <= rr->start && r->stop + 1 >= rr->start){
+		if(r->start <= rr->start && r->stop + 1 >= rr->start) {
 			if(r->stop < rr->stop)
 				r->stop = rr->stop;
 			r->next = rr->next;
-		}else
+		} else
 			r = rr;
 	}
 	return h;

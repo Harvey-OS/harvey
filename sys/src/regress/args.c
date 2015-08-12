@@ -20,14 +20,14 @@ main(int argc, char *argv[])
 	int i;
 	double sum;
 
-	if(((uintptr_t)&p & 15) != 0){
+	if(((uintptr_t)&p & 15) != 0) {
 		fprint(2, "%p not 16-aligned\n", &p);
 		print("FAIL\n");
 		exits("FAIL");
 	}
 
 	sum = 0.0;
-	for(i = 0; i < argc; i++){
+	for(i = 0; i < argc; i++) {
 		p = argv[i];
 		sum += strtod(p, nil);
 	}

@@ -8,67 +8,64 @@
  */
 
 /* tm.c: split numerical fields */
-# include "t.h"
+#include "t.h"
 
-char	*
+char *
 maknew(char *str)
 {
-				/* make two numerical fields */
-	int	c;
-	char	*p, *q, *ba, *dpoint;
+	/* make two numerical fields */
+	int c;
+	char *p, *q, *ba, *dpoint;
 
 	p = str;
-	for (ba = 0; c = *str; str++)
-		if (c == '\\' && *(str + 1) == '&')
+	for(ba = 0; c = *str; str++)
+		if(c == '\\' && *(str + 1) == '&')
 			ba = str;
 	str = p;
-	if (ba == 0) {
-		for (dpoint = 0; *str; str++) {
-			if (*str == '.' && !ineqn(str, p) && 
-			    (str > p && digit(*(str - 1)) || 
+	if(ba == 0) {
+		for(dpoint = 0; *str; str++) {
+			if(*str == '.' && !ineqn(str, p) &&
+			   (str > p && digit(*(str - 1)) ||
 			    digit(*(str + 1))))
 				dpoint = str;
 		}
-		if (dpoint == 0)
-			for (; str > p; str--) {
-				if (digit( *(str - 1) ) && !ineqn(str, p))
+		if(dpoint == 0)
+			for(; str > p; str--) {
+				if(digit(*(str - 1)) && !ineqn(str, p))
 					break;
 			}
-		if (!dpoint && p == str) /* not numerical, don't split */
-			return(0);
-		if (dpoint) 
+		if(!dpoint && p == str) /* not numerical, don't split */
+			return (0);
+		if(dpoint)
 			str = dpoint;
 	} else
 		str = ba;
 	p = str;
-	if (exstore == 0 || exstore > exlim) {
+	if(exstore == 0 || exstore > exlim) {
 		exstore = exspace = chspace();
 		exlim = exstore + MAXCHS;
 	}
 	q = exstore;
-	while (*exstore++ = *str++)
+	while(*exstore++ = *str++)
 		;
 	*p = 0;
-	return(q);
+	return (q);
 }
-
 
 int
-ineqn (char *s, char *p)
+ineqn(char *s, char *p)
 {
-				/* true if s is in a eqn within p */
-	int	ineq = 0, c;
+	/* true if s is in a eqn within p */
+	int ineq = 0, c;
 
-	while (c = *p) {
-		if (s == p)
-			return(ineq);
+	while(c = *p) {
+		if(s == p)
+			return (ineq);
 		p++;
-		if ((ineq == 0) && (c == delim1))
+		if((ineq == 0) && (c == delim1))
 			ineq = 1;
-		else if ((ineq == 1) && (c == delim2))
+		else if((ineq == 1) && (c == delim2))
 			ineq = 0;
 	}
-	return(0);
+	return (0);
 }
-
-

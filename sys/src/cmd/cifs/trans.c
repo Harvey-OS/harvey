@@ -22,20 +22,20 @@ thdr(Session *s, Share *sp)
 	Pkt *p;
 
 	p = cifshdr(s, sp, SMB_COM_TRANSACTION);
-	p->tbase = pl16(p, 0);	/* 0  Total parameter bytes to be sent, filled later */
-	pl16(p, 0);		/* 2  Total data bytes to be sent, filled later */
-	pl16(p, 64);			/* 4  Max parameter to return */
-	pl16(p, MTU - T2HDRLEN - 128);	/* 6  Max data to return */
-	pl16(p, 1);			/* 8  Max setup count to return */
-	pl16(p, 0);			/* 10 Flags */
-	pl32(p, 1000);			/* 12 Timeout (ms) */
-	pl16(p, 0);			/* 16 Reserved */
-	pl16(p, 0);			/* 18 Parameter count, filled later */
-	pl16(p, 0);			/* 20 Parameter offset, filled later */
-	pl16(p, 0);			/* 22 Data count, filled later */
-	pl16(p, 0);			/* 24 Data offset, filled later */
-	pl16(p, 0);			/* 26 Setup count (in words) */
-	pbytes(p);			/* end of cifs words section */
+	p->tbase = pl16(p, 0);	 /* 0  Total parameter bytes to be sent, filled later */
+	pl16(p, 0);		       /* 2  Total data bytes to be sent, filled later */
+	pl16(p, 64);		       /* 4  Max parameter to return */
+	pl16(p, MTU - T2HDRLEN - 128); /* 6  Max data to return */
+	pl16(p, 1);		       /* 8  Max setup count to return */
+	pl16(p, 0);		       /* 10 Flags */
+	pl32(p, 1000);		       /* 12 Timeout (ms) */
+	pl16(p, 0);		       /* 16 Reserved */
+	pl16(p, 0);		       /* 18 Parameter count, filled later */
+	pl16(p, 0);		       /* 20 Parameter offset, filled later */
+	pl16(p, 0);		       /* 22 Data count, filled later */
+	pl16(p, 0);		       /* 24 Data offset, filled later */
+	pl16(p, 0);		       /* 26 Setup count (in words) */
+	pbytes(p);		       /* end of cifs words section */
 	return p;
 }
 
@@ -45,10 +45,10 @@ ptparam(Pkt *p)
 	uint8_t *pos;
 
 	if(((p->pos - p->tbase) % 2) != 0)
-		p8(p, 0);			/* pad to word boundry */
+		p8(p, 0); /* pad to word boundry */
 	pos = p->pos;
 	p->pos = p->tbase + 20;
-	pl16(p, pos - p->buf - NBHDRLEN);	/* param offset */
+	pl16(p, pos - p->buf - NBHDRLEN); /* param offset */
 	p->tparam = p->pos = pos;
 }
 
@@ -59,13 +59,13 @@ ptdata(Pkt *p)
 
 	assert(p->tparam != 0);
 	if(((p->pos - p->tbase) % 2) != 0)
-		p8(p, 0);		/* pad to word boundry */
+		p8(p, 0); /* pad to word boundry */
 
 	p->pos = p->tbase + 0;
-	pl16(p, pos - p->tparam);	/* total param count */
+	pl16(p, pos - p->tparam); /* total param count */
 
 	p->pos = p->tbase + 18;
-	pl16(p, pos - p->tparam);	/* param count */
+	pl16(p, pos - p->tparam); /* param count */
 
 	p->pos = p->tbase + 24;
 	pl16(p, pos - p->buf - NBHDRLEN); /* data offset */
@@ -83,26 +83,26 @@ trpc(Pkt *p)
 	assert(p->tdata != 0);
 
 	p->pos = p->tbase + 2;
-	pl16(p, pos - p->tdata);	/* total data count */
+	pl16(p, pos - p->tdata); /* total data count */
 
 	p->pos = p->tbase + 22;
-	pl16(p, pos - p->tdata);	/* data count */
+	pl16(p, pos - p->tdata); /* data count */
 
 	p->pos = pos;
 	if((got = cifsrpc(p)) == -1)
 		return -1;
 
-	gl16(p);			/* Total parameter count */
-	gl16(p);			/* Total data count */
-	gl16(p);			/* Reserved */
-	gl16(p);			/* Parameter count in this buffer */
+	gl16(p);				 /* Total parameter count */
+	gl16(p);				 /* Total data count */
+	gl16(p);				 /* Reserved */
+	gl16(p);				 /* Parameter count in this buffer */
 	p->tparam = p->buf + NBHDRLEN + gl16(p); /* Parameter offset */
-	gl16(p);			/* Parameter displacement */
-	gl16(p);			/* Data count (this buffer); */
-	p->tdata = p->buf + NBHDRLEN + gl16(p); /* Data offset */
-	gl16(p);			/* Data displacement */
-	g8(p);				/* Setup count */
-	g8(p);				/* Reserved */
+	gl16(p);				 /* Parameter displacement */
+	gl16(p);				 /* Data count (this buffer); */
+	p->tdata = p->buf + NBHDRLEN + gl16(p);  /* Data offset */
+	gl16(p);				 /* Data displacement */
+	g8(p);					 /* Setup count */
+	g8(p);					 /* Reserved */
 	return got;
 }
 
@@ -118,7 +118,6 @@ gtdata(Pkt *p)
 	p->pos = p->tdata;
 }
 
-
 int
 RAPshareenum(Session *s, Share *sp, Share **ent)
 {
@@ -132,37 +131,37 @@ RAPshareenum(Session *s, Share *sp, Share **ent)
 	ptparam(p);
 
 	pl16(p, API_WShareEnum);
-	pascii(p, REMSmb_NetShareEnum_P);	/* request descriptor */
-	pascii(p, REMSmb_share_info_0);		/* reply descriptor */
-	pl16(p, 0);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetShareEnum_P); /* request descriptor */
+	pascii(p, REMSmb_share_info_0);   /* reply descriptor */
+	pl16(p, 0);			  /* detail level */
+	pl16(p, MTU - 200);		  /* receive buffer length */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	gl16(p);	  /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
 	}
 
-	if(ngot == 0){
+	if(ngot == 0) {
 		*ent = emalloc9p(sizeof(Share) * navail);
 		memset(*ent, 0, sizeof(Share) * navail);
 	}
 
 	q = *ent + ngot;
-	for (; ngot < navail && nret--; ngot++){
-		gmem(p, tmp, 13); 		/* name */
+	for(; ngot < navail && nret--; ngot++) {
+		gmem(p, tmp, 13); /* name */
 		tmp[13] = 0;
 		q->name = estrdup9p(tmp);
 		q++;
@@ -174,7 +173,6 @@ RAPshareenum(Session *s, Share *sp, Share **ent)
 	free(p);
 	return ngot;
 }
-
 
 int
 RAPshareinfo(Session *s, Share *sp, char *share, Shareinfo2 *si2p)
@@ -188,26 +186,26 @@ RAPshareinfo(Session *s, Share *sp, char *share, Shareinfo2 *si2p)
 
 	ptparam(p);
 	pl16(p, API_WShareGetInfo);
-	pascii(p, REMSmb_NetShareGetInfo_P);	/* request descriptor */
-	pascii(p, REMSmb_share_info_2);		/* reply descriptor */
+	pascii(p, REMSmb_NetShareGetInfo_P); /* request descriptor */
+	pascii(p, REMSmb_share_info_2);      /* reply descriptor */
 	pascii(p, share);
-	pl16(p, 1);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pl16(p, 1);	 /* detail level */
+	pl16(p, MTU - 200); /* receive buffer length */
 
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	conv = gl16(p);				/* rx buffer offset */
-	gl16(p);				/* number of entries returned */
-	gl16(p);				/* number of entries available */
+	err = gl16(p);  /* error code */
+	conv = gl16(p); /* rx buffer offset */
+	gl16(p);	/* number of entries returned */
+	gl16(p);	/* number of entries available */
 
-	if(err){
+	if(err) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
@@ -217,18 +215,18 @@ RAPshareinfo(Session *s, Share *sp, char *share, Shareinfo2 *si2p)
 
 	gmem(p, tmp, 13);
 	tmp[13] = 0;
-	g8(p);					/* padding */
+	g8(p); /* padding */
 	si2p->name = estrdup9p(tmp);
 	si2p->type = gl16(p);
 	gconv(p, conv, tmp, sizeof tmp);
 	si2p->comment = estrdup9p(tmp);
-	gl16(p);				/* comment offset high (unused) */
+	gl16(p); /* comment offset high (unused) */
 	si2p->perms = gl16(p);
 	si2p->maxusrs = gl16(p);
 	si2p->activeusrs = gl16(p);
 	gconv(p, conv, tmp, sizeof tmp);
 	si2p->path = estrdup9p(tmp);
-	gl16(p);				/* path offset high (unused) */
+	gl16(p); /* path offset high (unused) */
 	gmem(p, tmp, 9);
 	tmp[9] = 0;
 	si2p->passwd = estrdup9p(tmp);
@@ -258,36 +256,36 @@ RAPsessionenum(Session *s, Share *sp, Sessinfo **sip)
 	ptparam(p);
 
 	pl16(p, API_WSessionEnum);
-	pascii(p, REMSmb_NetSessionEnum_P);	/* request descriptor */
-	pascii(p, REMSmb_session_info_10);	/* reply descriptor */
-	pl16(p, 10);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetSessionEnum_P); /* request descriptor */
+	pascii(p, REMSmb_session_info_10);  /* reply descriptor */
+	pl16(p, 10);			    /* detail level */
+	pl16(p, MTU - 200);		    /* receive buffer length */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	conv = gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	conv = gl16(p);   /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
 	}
 
-	if(ngot == 0){
+	if(ngot == 0) {
 		*sip = emalloc9p(sizeof(Sessinfo) * navail);
 		memset(*sip, 0, sizeof(Sessinfo) * navail);
 	}
 
 	q = *sip + ngot;
-	while(nret-- != 0){
+	while(nret-- != 0) {
 		gconv(p, conv, tmp, sizeof tmp);
 		q->wrkstn = estrdup9p(tmp);
 		gconv(p, conv, tmp, sizeof tmp);
@@ -303,7 +301,6 @@ RAPsessionenum(Session *s, Share *sp, Sessinfo **sip)
 	return ngot;
 }
 
-
 int
 RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 {
@@ -318,24 +315,24 @@ RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 	ptparam(p);
 
 	pl16(p, API_WGroupEnum);
-	pascii(p, REMSmb_NetGroupEnum_P);	/* request descriptor */
-	pascii(p, REMSmb_group_info_0);		/* reply descriptor */
-	pl16(p, 0);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetGroupEnum_P); /* request descriptor */
+	pascii(p, REMSmb_group_info_0);   /* reply descriptor */
+	pl16(p, 0);			  /* detail level */
+	pl16(p, MTU - 200);		  /* receive buffer length */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	gl16(p);	  /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
@@ -345,19 +342,18 @@ RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 	memset(*nlp, 0, sizeof(Namelist) * navail);
 
 	q = *nlp + ngot;
-	while(ngot < navail && nret--){
- 		gmem(p, tmp, 21);
+	while(ngot < navail && nret--) {
+		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
 		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		if(p->pos >= p->eop) /* Windows seems to lie somtimes */
 			break;
 	}
 	free(p);
 	return ngot;
 }
-
 
 int
 RAPgroupusers(Session *s, Share *sp, char *group, Namelist **nlp)
@@ -373,25 +369,25 @@ RAPgroupusers(Session *s, Share *sp, char *group, Namelist **nlp)
 	ptparam(p);
 
 	pl16(p, API_WGroupGetUsers);
-	pascii(p, REMSmb_NetGroupGetUsers_P);	/* request descriptor */
-	pascii(p, REMSmb_user_info_0);		/* reply descriptor */
-	pascii(p, group);			/* group name for list */
-	pl16(p, 0);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetGroupGetUsers_P); /* request descriptor */
+	pascii(p, REMSmb_user_info_0);	/* reply descriptor */
+	pascii(p, group);		      /* group name for list */
+	pl16(p, 0);			      /* detail level */
+	pl16(p, MTU - 200);		      /* receive buffer length */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	gl16(p);	  /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
@@ -401,13 +397,13 @@ RAPgroupusers(Session *s, Share *sp, char *group, Namelist **nlp)
 	memset(*nlp, 0, sizeof(Namelist) * navail);
 
 	q = *nlp + ngot;
-	while(ngot < navail && nret--){
- 		gmem(p, tmp, 21);
+	while(ngot < navail && nret--) {
+		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
 		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		if(p->pos >= p->eop) /* Windows seems to lie somtimes */
 			break;
 	}
 	free(p);
@@ -428,24 +424,24 @@ RAPuserenum(Session *s, Share *sp, Namelist **nlp)
 	ptparam(p);
 
 	pl16(p, API_WUserEnum);
-	pascii(p, REMSmb_NetUserEnum_P);	/* request descriptor */
-	pascii(p, REMSmb_user_info_0);		/* reply descriptor */
-	pl16(p, 0);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetUserEnum_P); /* request descriptor */
+	pascii(p, REMSmb_user_info_0);   /* reply descriptor */
+	pl16(p, 0);			 /* detail level */
+	pl16(p, MTU - 200);		 /* receive buffer length */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	gl16(p);	  /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
@@ -455,13 +451,13 @@ RAPuserenum(Session *s, Share *sp, Namelist **nlp)
 	memset(*nlp, 0, sizeof(Namelist) * navail);
 
 	q = *nlp + ngot;
-	while(ngot < navail && nret--){
- 		gmem(p, tmp, 21);
+	while(ngot < navail && nret--) {
+		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
 		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		if(p->pos >= p->eop) /* Windows seems to lie somtimes */
 			break;
 	}
 	free(p);
@@ -484,43 +480,43 @@ more:
 	ptparam(p);
 
 	pl16(p, API_WUserEnum2);
-	pascii(p, REMSmb_NetUserEnum2_P);	/* request descriptor */
-	pascii(p, REMSmb_user_info_0);		/* reply descriptor */
-	pl16(p, 0);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
-	pl32(p, resume);			/* resume key to allow multiple fetches */
+	pascii(p, REMSmb_NetUserEnum2_P); /* request descriptor */
+	pascii(p, REMSmb_user_info_0);    /* reply descriptor */
+	pl16(p, 0);			  /* detail level */
+	pl16(p, MTU - 200);		  /* receive buffer length */
+	pl32(p, resume);		  /* resume key to allow multiple fetches */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	gl16(p);				/* rx buffer offset */
-	resume = gl32(p);			/* resume key returned */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	gl16(p);	  /* rx buffer offset */
+	resume = gl32(p); /* resume key returned */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
 	}
 
-	if(ngot == 0){
+	if(ngot == 0) {
 		*nlp = emalloc9p(sizeof(Namelist) * navail);
 		memset(*nlp, 0, sizeof(Namelist) * navail);
 	}
 	q = *nlp + ngot;
-	while(ngot < navail && nret--){
- 		gmem(p, tmp, 21);
+	while(ngot < navail && nret--) {
+		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
 		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		if(p->pos >= p->eop) /* Windows seems to lie somtimes */
 			break;
 	}
 	free(p);
@@ -541,34 +537,34 @@ RAPuserinfo(Session *s, Share *sp, char *user, Userinfo *uip)
 	ptparam(p);
 
 	pl16(p, API_WUserGetInfo);
-	pascii(p, REMSmb_NetUserGetInfo_P);	/* request descriptor */
-	pascii(p, REMSmb_user_info_10);		/* reply descriptor */
-	pascii(p, user);			/* username */
-	pl16(p, 10);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetUserGetInfo_P); /* request descriptor */
+	pascii(p, REMSmb_user_info_10);     /* reply descriptor */
+	pascii(p, user);		    /* username */
+	pl16(p, 10);			    /* detail level */
+	pl16(p, MTU - 200);		    /* receive buffer length */
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	conv = gl16(p);				/* rx buffer offset */
-	gl16(p);				/* number of entries returned */
-	gl16(p);				/* number of entries available */
+	err = gl16(p);  /* error code */
+	conv = gl16(p); /* rx buffer offset */
+	gl16(p);	/* number of entries returned */
+	gl16(p);	/* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
 	}
 
- 	gmem(p, tmp, 21);
+	gmem(p, tmp, 21);
 	tmp[21] = 0;
 	uip->user = estrdup9p(tmp);
-	g8(p);				/* padding */
+	g8(p); /* padding */
 	gconv(p, conv, tmp, sizeof tmp);
 	uip->comment = estrdup9p(tmp);
 	gconv(p, conv, tmp, sizeof tmp);
@@ -587,7 +583,7 @@ RAPuserinfo(Session *s, Share *sp, char *user, Userinfo *uip)
 int
 RAPServerenum2(Session *s, Share *sp, char *workgroup, int type,
 	       int *more,
-	Serverinfo **si)
+	       Serverinfo **si)
 {
 	int ngot = 0, conv, err, nret, navail;
 	char tmp[1024];
@@ -599,27 +595,27 @@ RAPServerenum2(Session *s, Share *sp, char *workgroup, int type,
 
 	ptparam(p);
 	pl16(p, API_NetServerEnum2);
-	pascii(p, REMSmb_NetServerEnum2_P);	/* request descriptor */
-	pascii(p, REMSmb_server_info_1);	/* reply descriptor */
-	pl16(p, 1);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetServerEnum2_P); /* request descriptor */
+	pascii(p, REMSmb_server_info_1);    /* reply descriptor */
+	pl16(p, 1);			    /* detail level */
+	pl16(p, MTU - 200);		    /* receive buffer length */
 	pl32(p, type);
 	pascii(p, workgroup);
 
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	conv = gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	conv = gl16(p);   /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
@@ -629,7 +625,7 @@ RAPServerenum2(Session *s, Share *sp, char *workgroup, int type,
 	memset(*si, 0, sizeof(Serverinfo) * navail);
 
 	q = *si;
-	for (; nret-- != 0 && ngot < navail; ngot++){
+	for(; nret-- != 0 && ngot < navail; ngot++) {
 		gmem(p, tmp, 16);
 		tmp[16] = 0;
 		q->name = estrdup9p(tmp);
@@ -647,14 +643,14 @@ RAPServerenum2(Session *s, Share *sp, char *workgroup, int type,
 
 int
 RAPServerenum3(Session *s, Share *sp, char *workgroup, int type, int last,
-	Serverinfo *si)
+	       Serverinfo *si)
 {
 	int conv, err, ngot, nret, navail;
 	char *first, tmp[1024];
 	Pkt *p;
 	Serverinfo *q;
 
-	ngot = last +1;
+	ngot = last + 1;
 	first = si[last].name;
 more:
 	p = thdr(s, sp);
@@ -662,40 +658,40 @@ more:
 
 	ptparam(p);
 	pl16(p, API_NetServerEnum3);
-	pascii(p, REMSmb_NetServerEnum3_P);	/* request descriptor */
-	pascii(p, REMSmb_server_info_1);	/* reply descriptor */
-	pl16(p, 1);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
+	pascii(p, REMSmb_NetServerEnum3_P); /* request descriptor */
+	pascii(p, REMSmb_server_info_1);    /* reply descriptor */
+	pl16(p, 1);			    /* detail level */
+	pl16(p, MTU - 200);		    /* receive buffer length */
 	pl32(p, type);
 	pascii(p, workgroup);
 	pascii(p, first);
 
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	conv = gl16(p);				/* rx buffer offset */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	conv = gl16(p);   /* rx buffer offset */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
 	}
 
-	if(nret < 2){				/* paranoia */
+	if(nret < 2) { /* paranoia */
 		free(p);
 		return ngot;
 	}
 
-	q = si+ngot;
-	while(nret-- != 0 && ngot < navail){
+	q = si + ngot;
+	while(nret-- != 0 && ngot < navail) {
 		gmem(p, tmp, 16);
 		tmp[16] = 0;
 		q->name = estrdup9p(tmp);
@@ -705,7 +701,7 @@ more:
 		gconv(p, conv, tmp, sizeof tmp);
 		tmp[sizeof tmp - 1] = 0;
 		q->comment = estrdup9p(tmp);
-		if(strcmp(first, tmp) == 0){ /* 1st one thru _may_ be a repeat */
+		if(strcmp(first, tmp) == 0) { /* 1st one thru _may_ be a repeat */
 			free(q->name);
 			free(q->comment);
 			continue;
@@ -737,47 +733,47 @@ more:
 
 	ptparam(p);
 	pl16(p, API_WFileEnum2);
-	pascii(p, REMSmb_NetFileEnum2_P);	/* request descriptor */
-	pascii(p, REMSmb_file_info_1);		/* reply descriptor */
+	pascii(p, REMSmb_NetFileEnum2_P); /* request descriptor */
+	pascii(p, REMSmb_file_info_1);    /* reply descriptor */
 	pascii(p, path);
 	pascii(p, user);
-	pl16(p, 1);				/* detail level */
-	pl16(p, MTU - 200);			/* receive buffer length */
-	pl32(p, resume);			/* resume key */
-/* FIXME: maybe the padding and resume key are the wrong way around? */
-	pl32(p, 0);				/* padding ? */
+	pl16(p, 1);	 /* detail level */
+	pl16(p, MTU - 200); /* receive buffer length */
+	pl32(p, resume);    /* resume key */
+			    /* FIXME: maybe the padding and resume key are the wrong way around? */
+	pl32(p, 0);	 /* padding ? */
 
 	ptdata(p);
 
-	if(trpc(p) == -1){
+	if(trpc(p) == -1) {
 		free(p);
 		return -1;
 	}
 
 	gtparam(p);
-	err = gl16(p);				/* error code */
-	conv = gl16(p);				/* rx buffer offset */
-	resume = gl32(p);			/* resume key returned */
-	nret = gl16(p);				/* number of entries returned */
-	navail = gl16(p);			/* number of entries available */
+	err = gl16(p);    /* error code */
+	conv = gl16(p);   /* rx buffer offset */
+	resume = gl32(p); /* resume key returned */
+	nret = gl16(p);   /* number of entries returned */
+	navail = gl16(p); /* number of entries available */
 
-	if(err && err != RAP_ERR_MOREINFO){
+	if(err && err != RAP_ERR_MOREINFO) {
 		werrstr("%s", raperrstr(err));
 		free(p);
 		return -1;
 	}
 
-	if(nret < 2){				/* paranoia */
+	if(nret < 2) { /* paranoia */
 		free(p);
 		return ngot;
 	}
 
-	if(ngot == 0){
+	if(ngot == 0) {
 		*fip = emalloc9p(sizeof(Fileinfo) * navail);
 		memset(*fip, 0, sizeof(Fileinfo) * navail);
 	}
 	q = *fip + ngot;
-	for(; nret-- && ngot < navail; ngot++){
+	for(; nret-- && ngot < navail; ngot++) {
 		q->ident = gl16(p);
 		q->perms = gl16(p);
 		q->locks = gl16(p);

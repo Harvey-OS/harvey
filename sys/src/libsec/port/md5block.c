@@ -39,105 +39,104 @@
 /*
  *	Rotate ammounts used in the algorithm
  */
-enum
-{
-	S11=	7,
-	S12=	12,
-	S13=	17,
-	S14=	22,
+enum {
+	S11 = 7,
+	S12 = 12,
+	S13 = 17,
+	S14 = 22,
 
-	S21=	5,
-	S22=	9,
-	S23=	14,
-	S24=	20,
+	S21 = 5,
+	S22 = 9,
+	S23 = 14,
+	S24 = 20,
 
-	S31=	4,
-	S32=	11,
-	S33=	16,
-	S34=	23,
+	S31 = 4,
+	S32 = 11,
+	S33 = 16,
+	S34 = 23,
 
-	S41=	6,
-	S42=	10,
-	S43=	15,
-	S44=	21,
+	S41 = 6,
+	S42 = 10,
+	S43 = 15,
+	S44 = 21,
 };
 
 static uint32_t md5tab[] =
-{
-	/* round 1 */
-/*[0]*/	0xd76aa478,	
-	0xe8c7b756,	
-	0x242070db,	
-	0xc1bdceee,	
-	0xf57c0faf,	
-	0x4787c62a,	
-	0xa8304613,	
-	0xfd469501,	
-	0x698098d8,	
-	0x8b44f7af,	
-	0xffff5bb1,	
-	0x895cd7be,	
-	0x6b901122,	
-	0xfd987193,	
-	0xa679438e,	
-	0x49b40821,
+    {
+     /* round 1 */
+     /*[0]*/ 0xd76aa478,
+     0xe8c7b756,
+     0x242070db,
+     0xc1bdceee,
+     0xf57c0faf,
+     0x4787c62a,
+     0xa8304613,
+     0xfd469501,
+     0x698098d8,
+     0x8b44f7af,
+     0xffff5bb1,
+     0x895cd7be,
+     0x6b901122,
+     0xfd987193,
+     0xa679438e,
+     0x49b40821,
 
-	/* round 2 */
-/*[16]*/0xf61e2562,	
-	0xc040b340,	
-	0x265e5a51,	
-	0xe9b6c7aa,	
-	0xd62f105d,	
-	 0x2441453,	
-	0xd8a1e681,	
-	0xe7d3fbc8,	
-	0x21e1cde6,	
-	0xc33707d6,	
-	0xf4d50d87,	
-	0x455a14ed,	
-	0xa9e3e905,	
-	0xfcefa3f8,	
-	0x676f02d9,	
-	0x8d2a4c8a,
+     /* round 2 */
+     /*[16]*/ 0xf61e2562,
+     0xc040b340,
+     0x265e5a51,
+     0xe9b6c7aa,
+     0xd62f105d,
+     0x2441453,
+     0xd8a1e681,
+     0xe7d3fbc8,
+     0x21e1cde6,
+     0xc33707d6,
+     0xf4d50d87,
+     0x455a14ed,
+     0xa9e3e905,
+     0xfcefa3f8,
+     0x676f02d9,
+     0x8d2a4c8a,
 
-	/* round 3 */
-/*[32]*/0xfffa3942,	
-	0x8771f681,	
-	0x6d9d6122,	
-	0xfde5380c,	
-	0xa4beea44,	
-	0x4bdecfa9,	
-	0xf6bb4b60,	
-	0xbebfbc70,	
-	0x289b7ec6,	
-	0xeaa127fa,	
-	0xd4ef3085,	
-	 0x4881d05,	
-	0xd9d4d039,	
-	0xe6db99e5,	
-	0x1fa27cf8,	
-	0xc4ac5665,	
+     /* round 3 */
+     /*[32]*/ 0xfffa3942,
+     0x8771f681,
+     0x6d9d6122,
+     0xfde5380c,
+     0xa4beea44,
+     0x4bdecfa9,
+     0xf6bb4b60,
+     0xbebfbc70,
+     0x289b7ec6,
+     0xeaa127fa,
+     0xd4ef3085,
+     0x4881d05,
+     0xd9d4d039,
+     0xe6db99e5,
+     0x1fa27cf8,
+     0xc4ac5665,
 
-	/* round 4 */
-/*[48]*/0xf4292244,	
-	0x432aff97,	
-	0xab9423a7,	
-	0xfc93a039,	
-	0x655b59c3,	
-	0x8f0ccc92,	
-	0xffeff47d,	
-	0x85845dd1,	
-	0x6fa87e4f,	
-	0xfe2ce6e0,	
-	0xa3014314,	
-	0x4e0811a1,	
-	0xf7537e82,	
-	0xbd3af235,	
-	0x2ad7d2bb,	
-	0xeb86d391,	
+     /* round 4 */
+     /*[48]*/ 0xf4292244,
+     0x432aff97,
+     0xab9423a7,
+     0xfc93a039,
+     0x655b59c3,
+     0x8f0ccc92,
+     0xffeff47d,
+     0x85845dd1,
+     0x6fa87e4f,
+     0xfe2ce6e0,
+     0xa3014314,
+     0x4e0811a1,
+     0xf7537e82,
+     0xbd3af235,
+     0x2ad7d2bb,
+     0xeb86d391,
 };
 
-static void decode(uint32_t*, uint8_t*, uint32_t);
+static void decode(uint32_t *, uint8_t *, uint32_t);
 extern void _md5block(uint8_t *p, uint32_t len, uint32_t *s);
 
 void
@@ -148,17 +147,17 @@ _md5block(uint8_t *p, uint32_t len, uint32_t *s)
 	uint8_t *end;
 	uint32_t x[16];
 
-	for(end = p+len; p < end; p += 64){
+	for(end = p + len; p < end; p += 64) {
 		a = s[0];
 		b = s[1];
 		c = s[2];
 		d = s[3];
 
 		decode(x, p, 64);
-	
+
 		t = md5tab;
 		sh = 0;
-		for(; sh != 16; t += 4){
+		for(; sh != 16; t += 4) {
 			a += ((c ^ d) & b) ^ d;
 			a += x[sh] + t[0];
 			a = (a << S11) | (a >> (32 - S11));
@@ -182,7 +181,7 @@ _md5block(uint8_t *p, uint32_t len, uint32_t *s)
 			sh += 4;
 		}
 		sh = 1;
-		for(; sh != 1+20*4; t += 4){
+		for(; sh != 1 + 20 * 4; t += 4) {
 			a += ((b ^ c) & d) ^ c;
 			a += x[sh & 0xf] + t[0];
 			a = (a << S21) | (a >> (32 - S21));
@@ -206,7 +205,7 @@ _md5block(uint8_t *p, uint32_t len, uint32_t *s)
 			sh += 20;
 		}
 		sh = 5;
-		for(; sh != 5+12*4; t += 4){
+		for(; sh != 5 + 12 * 4; t += 4) {
 			a += b ^ c ^ d;
 			a += x[sh & 0xf] + t[0];
 			a = (a << S31) | (a >> (32 - S31));
@@ -230,7 +229,7 @@ _md5block(uint8_t *p, uint32_t len, uint32_t *s)
 			sh += 12;
 		}
 		sh = 0;
-		for(; sh != 28*4; t += 4){
+		for(; sh != 28 * 4; t += 4) {
 			a += c ^ (b | ~d);
 			a += x[sh & 0xf] + t[0];
 			a = (a << S41) | (a >> (32 - S41));
@@ -270,7 +269,7 @@ decode(uint32_t *output, uint8_t *input, uint32_t len)
 {
 	uint8_t *e;
 
-	for(e = input+len; input < e; input += 4)
+	for(e = input + len; input < e; input += 4)
 		*output++ = input[0] | (input[1] << 8) |
-			(input[2] << 16) | (input[3] << 24);
+			    (input[2] << 16) | (input[3] << 24);
 }

@@ -13,20 +13,19 @@
 
 #include "sh.h"
 
-#define	INIT_TBLS	8	/* initial table size (power of 2) */
+#define INIT_TBLS 8 /* initial table size (power of 2) */
 
-static void     texpand     ARGS((struct table *tp, int nsize));
-static int      tnamecmp    ARGS((const void *p1, const void *p2));
-
+static void texpand ARGS((struct table * tp, int nsize));
+static int tnamecmp ARGS((const void *p1, const void *p2));
 
 unsigned int
 hash(const char *n)
 {
 	unsigned int h = 0;
 
-	while (*n != '\0')
-		h = 2*h + *n++;
-	return h * 32821;	/* scatter bits */
+	while(*n != '\0')
+		h = 2 * h + *n++;
+	return h * 32821; /* scatter bits */
 }
 
 void
@@ -35,7 +34,7 @@ tinit(struct table *tp, Area *ap, int tsize)
 	tp->areap = ap;
 	tp->tbls = NULL;
 	tp->size = tp->nfree = 0;
-	if (tsize)
+	if(tsize)
 		texpand(tp, tsize);
 }
 
@@ -47,28 +46,27 @@ texpand(struct table *tp, int nsize)
 	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
-	ntblp = (struct tbl**) alloc(sizeofN(struct tbl *, nsize), tp->areap);
-	for (i = 0; i < nsize; i++)
+	ntblp = (struct tbl **)alloc(sizeofN(struct tbl *, nsize), tp->areap);
+	for(i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
-	tp->nfree = 8*nsize/10;	/* table can get 80% full */
+	tp->nfree = 8 * nsize / 10; /* table can get 80% full */
 	tp->tbls = ntblp;
-	if (otblp == NULL)
+	if(otblp == NULL)
 		return;
-	for (i = 0; i < osize; i++)
-		if ((tblp = otblp[i]) != NULL)
-			if ((tblp->flag&DEFINED)) {
-				for (p = &ntblp[hash(tblp->name)
-					  & (tp->size-1)];
-				     *p != NULL; p--)
-					if (p == ntblp) /* wrap */
+	for(i = 0; i < osize; i++)
+		if((tblp = otblp[i]) != NULL)
+			if((tblp->flag & DEFINED)) {
+				for(p = &ntblp[hash(tblp->name) & (tp->size - 1)];
+				    *p != NULL; p--)
+					if(p == ntblp) /* wrap */
 						p += tp->size;
 				*p = tblp;
 				tp->nfree--;
-			} else if (!(tblp->flag & FINUSE)) {
-				afree((void*)tblp, tp->areap);
+			} else if(!(tblp->flag & FINUSE)) {
+				afree((void *)tblp, tp->areap);
 			}
-	afree((void*)otblp, tp->areap);
+	afree((void *)otblp, tp->areap);
 }
 
 struct tbl *
@@ -76,15 +74,14 @@ tsearch(struct table *tp, const char *n, unsigned int h)
 {
 	struct tbl **pp, *p;
 
-	if (tp->size == 0)
+	if(tp->size == 0)
 		return NULL;
 
 	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size-1)]; (p = *pp) != NULL; pp--) {
-		if (*p->name == *n && strcmp(p->name, n) == 0
-		    && (p->flag&DEFINED))
+	for(pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
+		if(*p->name == *n && strcmp(p->name, n) == 0 && (p->flag & DEFINED))
 			return p;
-		if (pp == tp->tbls) /* wrap */
+		if(pp == tp->tbls) /* wrap */
 			pp += tp->size;
 	}
 
@@ -97,26 +94,26 @@ tenter(struct table *tp, const char *n, unsigned int h)
 	struct tbl **pp, *p;
 	int len;
 
-	if (tp->size == 0)
+	if(tp->size == 0)
 		texpand(tp, INIT_TBLS);
-  Search:
+Search:
 	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size-1)]; (p = *pp) != NULL; pp--) {
-		if (*p->name == *n && strcmp(p->name, n) == 0)
-			return p; 	/* found */
-		if (pp == tp->tbls) /* wrap */
+	for(pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
+		if(*p->name == *n && strcmp(p->name, n) == 0)
+			return p;  /* found */
+		if(pp == tp->tbls) /* wrap */
 			pp += tp->size;
 	}
 
-	if (tp->nfree <= 0) {	/* too full */
-		texpand(tp, 2*tp->size);
+	if(tp->nfree <= 0) { /* too full */
+		texpand(tp, 2 * tp->size);
 		goto Search;
 	}
 
 	/* create new tbl entry */
 	len = strlen(n) + 1;
-	p = (struct tbl *) alloc(offsetof(struct tbl, name[0]) + len,
-				 tp->areap);
+	p = (struct tbl *)alloc(offsetof(struct tbl, name[0]) + len,
+				tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
@@ -146,9 +143,9 @@ twalk(struct tstate *ts, struct table *tp)
 struct tbl *
 tnext(tstate *ts)
 {
-	while (--ts->left >= 0) {
+	while(--ts->left >= 0) {
 		struct tbl *p = *ts->next++;
-		if (p != NULL && (p->flag&DEFINED))
+		if(p != NULL && (p->flag & DEFINED))
 			return p;
 	}
 	return NULL;
@@ -166,22 +163,22 @@ tsort(table struct *tp)
 	int i;
 	struct tbl **p, **sp, **dp;
 
-	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size+1), ATEMP);
-	sp = tp->tbls;		/* source */
-	dp = p;			/* dest */
-	for (i = 0; i < tp->size; i++)
-		if ((*dp = *sp++) != NULL && (((*dp)->flag&DEFINED) ||
-					      ((*dp)->flag&ARRAY)))
+	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size + 1), ATEMP);
+	sp = tp->tbls; /* source */
+	dp = p;	/* dest */
+	for(i = 0; i < tp->size; i++)
+		if((*dp = *sp++) != NULL && (((*dp)->flag & DEFINED) ||
+					     ((*dp)->flag & ARRAY)))
 			dp++;
 	i = dp - p;
-	qsortp((void**)p, (size_t)i, tnamecmp);
+	qsortp((void **)p, (size_t)i, tnamecmp);
 	p[i] = NULL;
 	return p;
 }
 
 #ifdef PERF_DEBUG /* performance debugging */
 
-void tprintinfo ARGS((struct table *tp));
+void tprintinfo ARGS((struct table * tp));
 
 void
 tprintinfo(struct table *tp)
@@ -197,31 +194,30 @@ tprintinfo(struct table *tp)
 	shellf("table size %d, nfree %d\n", tp->size, tp->nfree);
 	shellf("    Ncmp name\n");
 	twalk(&ts, tp);
-	while ((te = tnext(&ts))) {
+	while((te = tnext(&ts))) {
 		struct tbl **pp, *p;
 
 		h = hash(n = te->name);
 		ncmp = 0;
 
 		/* taken from tsearch() and added counter */
-		for (pp = &tp->tbls[h & (tp->size-1)]; (p = *pp); pp--) {
+		for(pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp); pp--) {
 			ncmp++;
-			if (*p->name == *n && strcmp(p->name, n) == 0
-			    && (p->flag&DEFINED))
-				break; /* return p; */
-			if (pp == tp->tbls) /* wrap */
+			if(*p->name == *n && strcmp(p->name, n) == 0 && (p->flag & DEFINED))
+				break;     /* return p; */
+			if(pp == tp->tbls) /* wrap */
 				pp += tp->size;
 		}
 		shellf("    %4d %s\n", ncmp, n);
 		totncmp += ncmp;
 		nentries++;
-		if (ncmp > maxncmp)
+		if(ncmp > maxncmp)
 			maxncmp = ncmp;
 	}
-	if (nentries)
+	if(nentries)
 		shellf("  %d entries, worst ncmp %d, avg ncmp %d.%02d\n",
-			nentries, maxncmp,
-			totncmp / nentries,
-			(totncmp % nentries) * 100 / nentries);
+		       nentries, maxncmp,
+		       totncmp / nentries,
+		       (totncmp % nentries) * 100 / nentries);
 }
 #endif /* PERF_DEBUG */

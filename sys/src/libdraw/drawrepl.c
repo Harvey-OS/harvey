@@ -16,10 +16,10 @@ drawreplxy(int min, int max, int x)
 {
 	int sx;
 
-	sx = (x-min)%(max-min);
+	sx = (x - min) % (max - min);
 	if(sx < 0)
-		sx += max-min;
-	return sx+min;
+		sx += max - min;
+	return sx + min;
 }
 
 Point
@@ -29,4 +29,3 @@ drawrepl(Rectangle r, Point p)
 	p.y = drawreplxy(r.min.y, r.max.y, p.y);
 	return p;
 }
-

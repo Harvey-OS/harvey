@@ -19,8 +19,7 @@
  * arranged in a tree (e.g., after the first snapshot).  But it's great
  * for debugging.
  */
-enum
-{
+enum {
 	MaxLock = 16,
 	HashSize = 1009,
 };
@@ -29,9 +28,8 @@ enum
  * Thread-specific watch state.
  */
 typedef struct WThread WThread;
-struct WThread
-{
-	Block *b[MaxLock];	/* blocks currently held */
+struct WThread {
+	Block *b[MaxLock]; /* blocks currently held */
 	uint nb;
 	uint pid;
 };
@@ -39,8 +37,7 @@ struct WThread
 typedef struct WMap WMap;
 typedef struct WEntry WEntry;
 
-struct WEntry
-{
+struct WEntry {
 	uint8_t c[VtScoreSize];
 	uint8_t p[VtScoreSize];
 	int off;
@@ -51,8 +48,7 @@ struct WEntry
 	WEntry *pnext;
 };
 
-struct WMap
-{
+struct WMap {
 	VtLock *lk;
 
 	WEntry *hchild[HashSize];
@@ -71,9 +67,9 @@ hash(uint8_t score[VtScoreSize])
 	uint i, h;
 
 	h = 0;
-	for(i=0; i<VtScoreSize; i++)
-		h = h*37 + score[i];
-	return h%HashSize;
+	for(i = 0; i < VtScoreSize; i++)
+		h = h * 37 + score[i];
+	return h % HashSize;
 }
 
 #include <pool.h>
@@ -85,16 +81,16 @@ freeWEntry(WEntry *e)
 	pool = e;
 }
 
-static WEntry*
+static WEntry *
 allocWEntry(void)
 {
 	int i;
 	WEntry *w;
 
 	w = pool;
-	if(w == nil){
-		w = vtMemAllocZ(1024*sizeof(WEntry));
-		for(i=0; i<1024; i++)
+	if(w == nil) {
+		w = vtMemAllocZ(1024 * sizeof(WEntry));
+		for(i = 0; i < 1024; i++)
 			freeWEntry(&w[i]);
 		w = pool;
 	}
@@ -113,9 +109,9 @@ _bwatchResetParent(uint8_t *score)
 	uint h;
 
 	h = hash(score);
-	for(w=map.hparent[h]; w; w=next){
+	for(w = map.hparent[h]; w; w = next) {
 		next = w->pnext;
-		if(memcmp(w->p, score, VtScoreSize) == 0){
+		if(memcmp(w->p, score, VtScoreSize) == 0) {
 			if(w->pnext)
 				w->pnext->pprev = w->pprev;
 			if(w->pprev)
@@ -142,9 +138,9 @@ _bwatchResetChild(uint8_t *score)
 	uint h;
 
 	h = hash(score);
-	for(w=map.hchild[h]; w; w=next){
+	for(w = map.hchild[h]; w; w = next) {
 		next = w->cnext;
-		if(memcmp(w->c, score, VtScoreSize) == 0){
+		if(memcmp(w->c, score, VtScoreSize) == 0) {
 			if(w->pnext)
 				w->pnext->pprev = w->pprev;
 			if(w->pprev)
@@ -162,15 +158,15 @@ _bwatchResetChild(uint8_t *score)
 	}
 }
 
-static uint8_t*
+static uint8_t *
 parent(uint8_t c[VtScoreSize], int *off)
 {
 	WEntry *w;
 	uint h;
 
 	h = hash(c);
-	for(w=map.hchild[h]; w; w=w->cnext)
-		if(memcmp(w->c, c, VtScoreSize) == 0){
+	for(w = map.hchild[h]; w; w = w->cnext)
+		if(memcmp(w->c, c, VtScoreSize) == 0) {
 			*off = w->off;
 			return w->p;
 		}
@@ -224,13 +220,13 @@ bwatchSetBlockSize(uint bs)
 	blockSize = bs;
 }
 
-static WThread*
+static WThread *
 getWThread(void)
 {
 	WThread *w;
 
 	w = *wp;
-	if(w == nil || w->pid != getpid()){
+	if(w == nil || w->pid != getpid()) {
 		w = vtMemAllocZ(sizeof(WThread));
 		*wp = w;
 		w->pid = getpid();
@@ -253,13 +249,13 @@ bwatchDependency(Block *b)
 	vtLock(map.lk);
 	_bwatchResetParent(b->score);
 
-	switch(b->l.type){
+	switch(b->l.type) {
 	case BtData:
 		break;
 
 	case BtDir:
 		epb = blockSize / VtEntrySize;
-		for(i=0; i<epb; i++){
+		for(i = 0; i < epb; i++) {
 			entryUnpack(&e, b->data, i);
 			if(!(e.flags & VtEntryActive))
 				continue;
@@ -269,8 +265,8 @@ bwatchDependency(Block *b)
 
 	default:
 		ppb = blockSize / VtScoreSize;
-		for(i=0; i<ppb; i++)
-			addChild(b->score, b->data+i*VtScoreSize, i);
+		for(i = 0; i < ppb; i++)
+			addChild(b->score, b->data + i * VtScoreSize, i);
 		break;
 	}
 	vtUnlock(map.lk);
@@ -282,7 +278,7 @@ depth(uint8_t *s)
 	int d, x;
 
 	d = -1;
-	while(s){
+	while(s) {
 		d++;
 		s = parent(s, &x);
 	}
@@ -309,11 +305,11 @@ lockConflicts(uint8_t xhave[VtScoreSize], uint8_t xwant[VtScoreSize])
 	wantpos = -1;
 	have = xhave;
 	want = xwant;
-	while(wantdepth > havedepth){
+	while(wantdepth > havedepth) {
 		wantdepth--;
 		want = parent(want, &wantpos);
 	}
-	while(havedepth > wantdepth){
+	while(havedepth > wantdepth) {
 		havedepth--;
 		have = parent(have, &havepos);
 	}
@@ -322,7 +318,7 @@ lockConflicts(uint8_t xhave[VtScoreSize], uint8_t xwant[VtScoreSize])
 	 * walk them up simultaneously until we reach
 	 * a common ancestor.
 	 */
-	while(have && want && memcmp(have, want, VtScoreSize) != 0){
+	while(have && want && memcmp(have, want, VtScoreSize) != 0) {
 		have = parent(have, &havepos);
 		want = parent(want, &wantpos);
 	}
@@ -387,18 +383,18 @@ bwatchLock(Block *b)
 
 	vtLock(map.lk);
 	w = getWThread();
-	for(i=0; i<w->nb; i++){
-		if(lockConflicts(w->b[i]->score, b->score)){
+	for(i = 0; i < w->nb; i++) {
+		if(lockConflicts(w->b[i]->score, b->score)) {
 			fprint(2, "%d: have block %V; shouldn't lock %V\n",
-				w->pid, w->b[i]->score, b->score);
+			       w->pid, w->b[i]->score, b->score);
 			stop();
 		}
 	}
 	vtUnlock(map.lk);
-	if(w->nb >= MaxLock){
+	if(w->nb >= MaxLock) {
 		fprint(2, "%d: too many blocks held\n", w->pid);
 		stop();
-	}else
+	} else
 		w->b[w->nb++] = b;
 }
 
@@ -418,13 +414,12 @@ bwatchUnlock(Block *b)
 		return;
 
 	w = getWThread();
-	for(i=0; i<w->nb; i++)
+	for(i = 0; i < w->nb; i++)
 		if(w->b[i] == b)
 			break;
-	if(i>=w->nb){
+	if(i >= w->nb) {
 		fprint(2, "%d: unlock of unlocked block %V\n", w->pid, b->score);
 		stop();
-	}else
+	} else
 		w->b[i] = w->b[--w->nb];
 }
-

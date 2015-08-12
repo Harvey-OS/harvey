@@ -16,7 +16,7 @@
  *  big as an int.
  */
 
-mpint*
+mpint *
 uitomp(uint i, mpint *b)
 {
 	if(b == nil)
@@ -37,6 +37,6 @@ mptoui(mpint *b)
 	if(b->sign < 0)
 		x = 0;
 	else if(b->top > 1 || (sizeof(mpdigit) > sizeof(uint) && x > MAXUINT))
-		x =  MAXUINT;
+		x = MAXUINT;
 	return x;
 }

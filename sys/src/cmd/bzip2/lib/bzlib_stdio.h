@@ -99,101 +99,84 @@
 
 typedef void BZFILE;
 
-BZ_EXTERN BZFILE * BZ_API(BZ2_bzopen) (
-      const char *path,
-      const char *mode
-   );
+BZ_EXTERN BZFILE *BZ_API(BZ2_bzopen)(
+    const char *path,
+    const char *mode);
 
-BZ_EXTERN BZFILE * BZ_API(BZ2_bzdopen) (
-      int        fd,
-      const char *mode
-   );
-         
-BZ_EXTERN int BZ_API(BZ2_bzread) (
-      BZFILE* b, 
-      void* buf, 
-      int len 
-   );
+BZ_EXTERN BZFILE *BZ_API(BZ2_bzdopen)(
+    int fd,
+    const char *mode);
 
-BZ_EXTERN int BZ_API(BZ2_bzwrite) (
-      BZFILE* b, 
-      void*   buf, 
-      int     len 
-   );
+BZ_EXTERN int BZ_API(BZ2_bzread)(
+    BZFILE *b,
+    void *buf,
+    int len);
 
-BZ_EXTERN int BZ_API(BZ2_bzflush) (
-      BZFILE* b
-   );
+BZ_EXTERN int BZ_API(BZ2_bzwrite)(
+    BZFILE *b,
+    void *buf,
+    int len);
 
-BZ_EXTERN void BZ_API(BZ2_bzclose) (
-      BZFILE* b
-   );
+BZ_EXTERN int BZ_API(BZ2_bzflush)(
+    BZFILE *b);
 
-BZ_EXTERN const char * BZ_API(BZ2_bzerror) (
-      BZFILE *b, 
-      int    *errnum
-   );
+BZ_EXTERN void BZ_API(BZ2_bzclose)(
+    BZFILE *b);
 
+BZ_EXTERN const char *BZ_API(BZ2_bzerror)(
+    BZFILE *b,
+    int *errnum);
 
 /*-- High(er) level library functions --*/
-BZ_EXTERN BZFILE* BZ_API(BZ2_bzReadOpen) ( 
-      int*  bzerror,   
-      FILE* f, 
-      int   verbosity, 
-      int   small,
-      void* unused,    
-      int   nUnused 
-   );
+BZ_EXTERN BZFILE *BZ_API(BZ2_bzReadOpen)(
+    int *bzerror,
+    FILE *f,
+    int verbosity,
+    int small,
+    void *unused,
+    int nUnused);
 
-BZ_EXTERN void BZ_API(BZ2_bzReadClose) ( 
-      int*    bzerror, 
-      BZFILE* b 
-   );
+BZ_EXTERN void BZ_API(BZ2_bzReadClose)(
+    int *bzerror,
+    BZFILE *b);
 
-BZ_EXTERN void BZ_API(BZ2_bzReadGetUnused) ( 
-      int*    bzerror, 
-      BZFILE* b, 
-      void**  unused,  
-      int*    nUnused 
-   );
+BZ_EXTERN void BZ_API(BZ2_bzReadGetUnused)(
+    int *bzerror,
+    BZFILE *b,
+    void **unused,
+    int *nUnused);
 
-BZ_EXTERN int BZ_API(BZ2_bzRead) ( 
-      int*    bzerror, 
-      BZFILE* b, 
-      void*   buf, 
-      int     len 
-   );
+BZ_EXTERN int BZ_API(BZ2_bzRead)(
+    int *bzerror,
+    BZFILE *b,
+    void *buf,
+    int len);
 
-BZ_EXTERN BZFILE* BZ_API(BZ2_bzWriteOpen) ( 
-      int*  bzerror,      
-      FILE* f, 
-      int   blockSize100k, 
-      int   verbosity, 
-      int   workFactor 
-   );
+BZ_EXTERN BZFILE *BZ_API(BZ2_bzWriteOpen)(
+    int *bzerror,
+    FILE *f,
+    int blockSize100k,
+    int verbosity,
+    int workFactor);
 
-BZ_EXTERN void BZ_API(BZ2_bzWrite) ( 
-      int*    bzerror, 
-      BZFILE* b, 
-      void*   buf, 
-      int     len 
-   );
+BZ_EXTERN void BZ_API(BZ2_bzWrite)(
+    int *bzerror,
+    BZFILE *b,
+    void *buf,
+    int len);
 
-BZ_EXTERN void BZ_API(BZ2_bzWriteClose) ( 
-      int*          bzerror, 
-      BZFILE*       b, 
-      int           abandon, 
-      unsigned int* nbytes_in, 
-      unsigned int* nbytes_out 
-   );
+BZ_EXTERN void BZ_API(BZ2_bzWriteClose)(
+    int *bzerror,
+    BZFILE *b,
+    int abandon,
+    unsigned int *nbytes_in,
+    unsigned int *nbytes_out);
 
-BZ_EXTERN void BZ_API(BZ2_bzWriteClose64) ( 
-      int*          bzerror, 
-      BZFILE*       b, 
-      int           abandon, 
-      unsigned int* nbytes_in_lo32, 
-      unsigned int* nbytes_in_hi32, 
-      unsigned int* nbytes_out_lo32, 
-      unsigned int* nbytes_out_hi32
-   );
-
+BZ_EXTERN void BZ_API(BZ2_bzWriteClose64)(
+    int *bzerror,
+    BZFILE *b,
+    int abandon,
+    unsigned int *nbytes_in_lo32,
+    unsigned int *nbytes_in_hi32,
+    unsigned int *nbytes_out_lo32,
+    unsigned int *nbytes_out_hi32);

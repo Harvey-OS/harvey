@@ -28,7 +28,7 @@
 /* Requires gsmemory.h */
 
 #ifndef gp_INCLUDED
-#  define gp_INCLUDED
+#define gp_INCLUDED
 
 #include "gstypes.h"
 /*
@@ -200,12 +200,12 @@ FILE *gp_fopen(const char *fname, const char *mode);
 
 /* Force given file into binary mode (no eol translations, etc) */
 /* if 2nd param true, text mode if 2nd param false */
-int gp_setmode_binary(FILE * pfile, bool mode);
+int gp_setmode_binary(FILE *pfile, bool mode);
 
 typedef enum {
-    gp_combine_small_buffer = -1,
-    gp_combine_cant_handle = 0,
-    gp_combine_success = 1
+	gp_combine_small_buffer = -1,
+	gp_combine_cant_handle = 0,
+	gp_combine_success = 1
 } gp_file_name_combine_result;
 
 /*
@@ -215,8 +215,8 @@ typedef enum {
  * The trailing zero byte is being added.
  * Various platforms may share this code.
  */
-gp_file_name_combine_result gp_file_name_combine(const char *prefix, uint plen, 
-	    const char *fname, uint flen, bool no_sibling, char *buffer, uint *blen);
+gp_file_name_combine_result gp_file_name_combine(const char *prefix, uint plen,
+						 const char *fname, uint flen, bool no_sibling, char *buffer, uint *blen);
 
 /* -------------- Helpers for gp_file_name_combine_generic ------------- */
 /* Platforms, which do not call gp_file_name_combine_generic, */
@@ -289,9 +289,8 @@ bool gp_file_name_is_empty_item_meanful(void);
 /* 'type' and 16 bit 'id' in an extended attribute of a file. The is   */
 /* primarily for accessing fonts on MacOS, which classically used this */
 /* format. Presumedly a 'nop' on systems that don't support Apple HFS. */
-int gp_read_macresource(byte *buf, const char *fname, 
-                                     const uint type, const ushort id);
-
+int gp_read_macresource(byte *buf, const char *fname,
+			const uint type, const ushort id);
 
 /* ------ persistent cache interface ------ */
 
@@ -317,14 +316,13 @@ int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen);
 
 /* return the length of the buffer on success, a negative value otherwise */
 typedef void *(*gp_cache_alloc)(void *userdata, int bytes);
-int gp_cache_query(int type, byte* key, int keylen, void **buffer,
-    gp_cache_alloc alloc, void *userdata);
+int gp_cache_query(int type, byte *key, int keylen, void **buffer,
+		   gp_cache_alloc alloc, void *userdata);
 
 /* cache data types */
 #define GP_CACHE_TYPE_TEST 0
 #define GP_CACHE_TYPE_FONTMAP 1
 #define GP_CACHE_TYPE_WTS 2
-
 
 /* ------ Printer accessing ------ */
 
@@ -351,12 +349,12 @@ FILE *gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode);
  * values of filedevice are handled by calling the fclose procedure
  * associated with that kind of "file".
  */
-void gp_close_printer(FILE * pfile, const char *fname);
+void gp_close_printer(FILE *pfile, const char *fname);
 
 /* ------ File enumeration ------ */
 
-#ifndef file_enum_DEFINED	/* also defined in iodev.h */
-#  define file_enum_DEFINED
+#ifndef file_enum_DEFINED /* also defined in iodev.h */
+#define file_enum_DEFINED
 typedef struct file_enum_s file_enum;
 #endif
 
@@ -372,7 +370,7 @@ typedef struct file_enum_s file_enum;
  * the pattern also, as a quoting character.
  */
 file_enum *gp_enumerate_files_init(const char *pat, uint patlen,
-				   gs_memory_t * memory);
+				   gs_memory_t *memory);
 
 /*
  * Return the next file name in the enumeration.  The client passes in
@@ -381,7 +379,7 @@ file_enum *gp_enumerate_files_init(const char *pat, uint patlen,
  * returns max length +1.  If there are no more files, the procedure
  * returns -1.
  */
-uint gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen);
+uint gp_enumerate_files_next(file_enum *pfen, char *ptr, uint maxlen);
 
 /*
  * Clean up a file enumeration.  This is only called to abandon
@@ -389,8 +387,7 @@ uint gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen);
  * no more files to enumerate.  This should deallocate the file_enum
  * structure and any subsidiary structures, strings, buffers, etc.
  */
-void gp_enumerate_files_close(file_enum * pfen);
-
+void gp_enumerate_files_close(file_enum *pfen);
 
 /* ------ Font enumeration ------ */
 

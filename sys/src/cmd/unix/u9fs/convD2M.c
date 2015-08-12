@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#include	<plan9.h>
-#include	<fcall.h>
+#include <plan9.h>
+#include <fcall.h>
 
 uint
 sizeD2M(Dir *d)
@@ -47,7 +47,7 @@ convD2M(Dir *d, uint8_t *buf, uint nbuf)
 	sv[3] = d->muid;
 
 	ns = 0;
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		nsv[i] = strlen(sv[i]);
 		ns += nsv[i];
 	}
@@ -56,7 +56,7 @@ convD2M(Dir *d, uint8_t *buf, uint nbuf)
 
 	/* set size befor erroring, so user can know how much is needed */
 	/* note that length excludes count field itself */
-	PBIT16(p, ss-BIT16SZ);
+	PBIT16(p, ss - BIT16SZ);
 	p += BIT16SZ;
 
 	if(ss > nbuf)
@@ -81,7 +81,7 @@ convD2M(Dir *d, uint8_t *buf, uint nbuf)
 	PBIT64(p, d->length);
 	p += BIT64SZ;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		ns = nsv[i];
 		if(p + ns + BIT16SZ > ebuf)
 			return 0;

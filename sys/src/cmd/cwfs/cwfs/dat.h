@@ -16,7 +16,7 @@
  * the number of elements in a free-list-block array.
  */
 #ifndef RBUFSIZE
-#define RBUFSIZE	(16*1024)	/* raw buffer size */
+#define RBUFSIZE (16 * 1024) /* raw buffer size */
 #endif
 #include "32bit.h"
 /*
@@ -26,20 +26,19 @@
  */
 enum { FIXEDSIZE = 1 };
 
-
 #include "portdat.h"
 
 enum { MAXBANK = 2 };
 
 typedef struct Mbank {
-	uint32_t	base;
-	uint32_t	limit;
+	uint32_t base;
+	uint32_t limit;
 } Mbank;
 
 typedef struct Mconf {
 	Lock;
-	Mbank	bank[MAXBANK];
-	int	nbank;
-	ulong	memsize;
+	Mbank bank[MAXBANK];
+	int nbank;
+	ulong memsize;
 } Mconf;
 extern Mconf mconf;

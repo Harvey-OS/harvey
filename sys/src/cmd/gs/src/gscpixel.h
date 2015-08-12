@@ -28,9 +28,9 @@
 /* Requires gscspace.h */
 
 #ifndef gscpixel_INCLUDED
-#  define gscpixel_INCLUDED
+#define gscpixel_INCLUDED
 
 /* Initialize a DevicePixel color space. */
-int gs_cspace_init_DevicePixel(gs_memory_t *mem, gs_color_space * pcs, int depth);
+int gs_cspace_init_DevicePixel(gs_memory_t *mem, gs_color_space *pcs, int depth);
 
 #endif /* gscpixel_INCLUDED */

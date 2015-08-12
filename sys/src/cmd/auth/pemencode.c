@@ -29,10 +29,12 @@ main(int argc, char **argv)
 	int len;
 	char *tag, *file;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1 && argc != 2)
 		usage();
@@ -47,23 +49,23 @@ main(int argc, char **argv)
 		sysfatal("open %s: %r", file);
 	buf = nil;
 	tot = 0;
-	for(;;){
-		buf = realloc(buf, tot+8192);
+	for(;;) {
+		buf = realloc(buf, tot + 8192);
 		if(buf == nil)
 			sysfatal("realloc: %r");
-		if((n = read(fd, buf+tot, 8192)) < 0)
+		if((n = read(fd, buf + tot, 8192)) < 0)
 			sysfatal("read: %r");
 		if(n == 0)
 			break;
 		tot += n;
 	}
 	buf[tot] = 0;
-	cbuf = malloc(2*tot);
+	cbuf = malloc(2 * tot);
 	if(cbuf == nil)
 		sysfatal("malloc: %r");
-	len = enc64(cbuf, 2*tot, (unsigned char*)buf, tot);
+	len = enc64(cbuf, 2 * tot, (unsigned char *)buf, tot);
 	print("-----BEGIN %s-----\n", tag);
-	while(len > 0){
+	while(len > 0) {
 		print("%.64s\n", cbuf);
 		cbuf += 64;
 		len -= 64;

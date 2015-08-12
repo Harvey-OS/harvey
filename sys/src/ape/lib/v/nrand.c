@@ -9,8 +9,8 @@
 
 #include <stdlib.h>
 
-#define	MASK	0x7FFFFFFFL
-#define	FRACT	(1.0 / (MASK + 1.0))
+#define MASK 0x7FFFFFFFL
+#define FRACT (1.0 / (MASK + 1.0))
 
 extern int32_t lrand(void);
 

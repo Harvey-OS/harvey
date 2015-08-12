@@ -16,7 +16,7 @@
 /*
  * these should be in libraries
  */
-char	*csquery(char *attr, char *val, char *rattr);
+char *csquery(char *attr, char *val, char *rattr);
 
 /*
  * /lib/rfc/rfc2060 imap4rev1
@@ -37,175 +37,170 @@ char	*csquery(char *attr, char *val, char *rattr);
  * CAPABILITY IMAP4 IMAP4REV1 NAMESPACE IDLE SCAN SORT MAILBOX-REFERRALS LOGIN-REFERRALS AUTH=LOGIN THREAD=ORDEREDSUBJECT
  */
 
-typedef struct	ParseCmd	ParseCmd;
+typedef struct ParseCmd ParseCmd;
 
-enum
-{
-	UlongMax	= 4294967295,
+enum {
+	UlongMax = 4294967295,
 };
 
-struct ParseCmd
-{
-	char	*name;
-	void	(*f)(char *tg, char *cmd);
+struct ParseCmd {
+	char *name;
+	void (*f)(char *tg, char *cmd);
 };
 
-static	void	appendCmd(char *tg, char *cmd);
-static	void	authenticateCmd(char *tg, char *cmd);
-static	void	capabilityCmd(char *tg, char *cmd);
-static	void	closeCmd(char *tg, char *cmd);
-static	void	copyCmd(char *tg, char *cmd);
-static	void	createCmd(char *tg, char *cmd);
-static	void	deleteCmd(char *tg, char *cmd);
-static	void	expungeCmd(char *tg, char *cmd);
-static	void	fetchCmd(char *tg, char *cmd);
-static	void	idleCmd(char *tg, char *cmd);
-static	void	listCmd(char *tg, char *cmd);
-static	void	loginCmd(char *tg, char *cmd);
-static	void	logoutCmd(char *tg, char *cmd);
-static	void	namespaceCmd(char *tg, char *cmd);
-static	void	noopCmd(char *tg, char *cmd);
-static	void	renameCmd(char *tg, char *cmd);
-static	void	searchCmd(char *tg, char *cmd);
-static	void	selectCmd(char *tg, char *cmd);
-static	void	statusCmd(char *tg, char *cmd);
-static	void	storeCmd(char *tg, char *cmd);
-static	void	subscribeCmd(char *tg, char *cmd);
-static	void	uidCmd(char *tg, char *cmd);
-static	void	unsubscribeCmd(char *tg, char *cmd);
+static void appendCmd(char *tg, char *cmd);
+static void authenticateCmd(char *tg, char *cmd);
+static void capabilityCmd(char *tg, char *cmd);
+static void closeCmd(char *tg, char *cmd);
+static void copyCmd(char *tg, char *cmd);
+static void createCmd(char *tg, char *cmd);
+static void deleteCmd(char *tg, char *cmd);
+static void expungeCmd(char *tg, char *cmd);
+static void fetchCmd(char *tg, char *cmd);
+static void idleCmd(char *tg, char *cmd);
+static void listCmd(char *tg, char *cmd);
+static void loginCmd(char *tg, char *cmd);
+static void logoutCmd(char *tg, char *cmd);
+static void namespaceCmd(char *tg, char *cmd);
+static void noopCmd(char *tg, char *cmd);
+static void renameCmd(char *tg, char *cmd);
+static void searchCmd(char *tg, char *cmd);
+static void selectCmd(char *tg, char *cmd);
+static void statusCmd(char *tg, char *cmd);
+static void storeCmd(char *tg, char *cmd);
+static void subscribeCmd(char *tg, char *cmd);
+static void uidCmd(char *tg, char *cmd);
+static void unsubscribeCmd(char *tg, char *cmd);
 
-static	void	copyUCmd(char *tg, char *cmd, int uids);
-static	void	fetchUCmd(char *tg, char *cmd, int uids);
-static	void	searchUCmd(char *tg, char *cmd, int uids);
-static	void	storeUCmd(char *tg, char *cmd, int uids);
+static void copyUCmd(char *tg, char *cmd, int uids);
+static void fetchUCmd(char *tg, char *cmd, int uids);
+static void searchUCmd(char *tg, char *cmd, int uids);
+static void storeUCmd(char *tg, char *cmd, int uids);
 
-static	void	imap4(int);
-static	void	status(int expungeable, int uids);
-static	void	cleaner(void);
-static	void	check(void);
-static	int	catcher(void*, char*);
+static void imap4(int);
+static void status(int expungeable, int uids);
+static void cleaner(void);
+static void check(void);
+static int catcher(void *, char *);
 
-static	Search	*searchKey(int first);
-static	Search	*searchKeys(int first, Search *tail);
-static	char	*astring(void);
-static	char	*atomString(char *disallowed, char *initial);
-static	char	*atom(void);
-static	void	badsyn(void);
-static	void	clearcmd(void);
-static	char	*command(void);
-static	void	crnl(void);
-static	Fetch	*fetchAtt(char *s, Fetch *f);
-static	Fetch	*fetchWhat(void);
-static	int	flagList(void);
-static	int	flags(void);
-static	int	getc(void);
-static	char	*listmbox(void);
-static	char	*literal(void);
-static	uint32_t	litlen(void);
-static	MsgSet	*msgSet(int);
-static	void	mustBe(int c);
-static	uint32_t	number(int nonzero);
-static	int	peekc(void);
-static	char	*quoted(void);
-static	void	sectText(Fetch *f, int mimeOk);
-static	uint32_t	seqNo(void);
-static	Store	*storeWhat(void);
-static	char	*tag(void);
-static	uint32_t	uidNo(void);
-static	void	ungetc(void);
+static Search *searchKey(int first);
+static Search *searchKeys(int first, Search *tail);
+static char *astring(void);
+static char *atomString(char *disallowed, char *initial);
+static char *atom(void);
+static void badsyn(void);
+static void clearcmd(void);
+static char *command(void);
+static void crnl(void);
+static Fetch *fetchAtt(char *s, Fetch *f);
+static Fetch *fetchWhat(void);
+static int flagList(void);
+static int flags(void);
+static int getc(void);
+static char *listmbox(void);
+static char *literal(void);
+static uint32_t litlen(void);
+static MsgSet *msgSet(int);
+static void mustBe(int c);
+static uint32_t number(int nonzero);
+static int peekc(void);
+static char *quoted(void);
+static void sectText(Fetch *f, int mimeOk);
+static uint32_t seqNo(void);
+static Store *storeWhat(void);
+static char *tag(void);
+static uint32_t uidNo(void);
+static void ungetc(void);
 
-static	ParseCmd	SNonAuthed[] =
-{
-	{"capability",		capabilityCmd},
-	{"logout",		logoutCmd},
-	{"x-exit",		logoutCmd},
-	{"noop",		noopCmd},
+static ParseCmd SNonAuthed[] =
+    {
+     {"capability", capabilityCmd},
+     {"logout", logoutCmd},
+     {"x-exit", logoutCmd},
+     {"noop", noopCmd},
 
-	{"login",		loginCmd},
-	{"authenticate",	authenticateCmd},
+     {"login", loginCmd},
+     {"authenticate", authenticateCmd},
 
-	nil
-};
+     nil};
 
-static	ParseCmd	SAuthed[] =
-{
-	{"capability",		capabilityCmd},
-	{"logout",		logoutCmd},
-	{"x-exit",		logoutCmd},
-	{"noop",		noopCmd},
+static ParseCmd SAuthed[] =
+    {
+     {"capability", capabilityCmd},
+     {"logout", logoutCmd},
+     {"x-exit", logoutCmd},
+     {"noop", noopCmd},
 
-	{"append",		appendCmd},
-	{"create",		createCmd},
-	{"delete",		deleteCmd},
-	{"examine",		selectCmd},
-	{"select",		selectCmd},
-	{"idle",		idleCmd},
-	{"list",		listCmd},
-	{"lsub",		listCmd},
-	{"namespace",		namespaceCmd},
-	{"rename",		renameCmd},
-	{"status",		statusCmd},
-	{"subscribe",		subscribeCmd},
-	{"unsubscribe",		unsubscribeCmd},
+     {"append", appendCmd},
+     {"create", createCmd},
+     {"delete", deleteCmd},
+     {"examine", selectCmd},
+     {"select", selectCmd},
+     {"idle", idleCmd},
+     {"list", listCmd},
+     {"lsub", listCmd},
+     {"namespace", namespaceCmd},
+     {"rename", renameCmd},
+     {"status", statusCmd},
+     {"subscribe", subscribeCmd},
+     {"unsubscribe", unsubscribeCmd},
 
-	nil
-};
+     nil};
 
-static	ParseCmd	SSelected[] =
-{
-	{"capability",		capabilityCmd},
-	{"logout",		logoutCmd},
-	{"x-exit",		logoutCmd},
-	{"noop",		noopCmd},
+static ParseCmd SSelected[] =
+    {
+     {"capability", capabilityCmd},
+     {"logout", logoutCmd},
+     {"x-exit", logoutCmd},
+     {"noop", noopCmd},
 
-	{"append",		appendCmd},
-	{"create",		createCmd},
-	{"delete",		deleteCmd},
-	{"examine",		selectCmd},
-	{"select",		selectCmd},
-	{"idle",		idleCmd},
-	{"list",		listCmd},
-	{"lsub",		listCmd},
-	{"namespace",		namespaceCmd},
-	{"rename",		renameCmd},
-	{"status",		statusCmd},
-	{"subscribe",		subscribeCmd},
-	{"unsubscribe",		unsubscribeCmd},
+     {"append", appendCmd},
+     {"create", createCmd},
+     {"delete", deleteCmd},
+     {"examine", selectCmd},
+     {"select", selectCmd},
+     {"idle", idleCmd},
+     {"list", listCmd},
+     {"lsub", listCmd},
+     {"namespace", namespaceCmd},
+     {"rename", renameCmd},
+     {"status", statusCmd},
+     {"subscribe", subscribeCmd},
+     {"unsubscribe", unsubscribeCmd},
 
-	{"check",		noopCmd},
-	{"close",		closeCmd},
-	{"copy",		copyCmd},
-	{"expunge",		expungeCmd},
-	{"fetch",		fetchCmd},
-	{"search",		searchCmd},
-	{"store",		storeCmd},
-	{"uid",			uidCmd},
+     {"check", noopCmd},
+     {"close", closeCmd},
+     {"copy", copyCmd},
+     {"expunge", expungeCmd},
+     {"fetch", fetchCmd},
+     {"search", searchCmd},
+     {"store", storeCmd},
+     {"uid", uidCmd},
 
-	nil
-};
+     nil};
 
-static	char		*atomStop = "(){%*\"\\";
-static	Chalstate	*chal;
-static	int		chaled;
-static	ParseCmd	*imapState;
-static	jmp_buf		parseJmp;
-static	char		*parseMsg;
-static	int		allowPass;
-static	int		allowCR;
-static	int		exiting;
-static	QLock		imaplock;
-static	int		idlepid = -1;
+static char *atomStop = "(){%*\"\\";
+static Chalstate *chal;
+static int chaled;
+static ParseCmd *imapState;
+static jmp_buf parseJmp;
+static char *parseMsg;
+static int allowPass;
+static int allowCR;
+static int exiting;
+static QLock imaplock;
+static int idlepid = -1;
 
-Biobuf	bout;
-Biobuf	bin;
-char	username[UserNameLen];
-char	mboxDir[MboxNameLen];
-char	*servername;
-char	*site;
-char	*remote;
-Box	*selected;
-Bin	*parseBin;
-int	debug;
+Biobuf bout;
+Biobuf bin;
+char username[UserNameLen];
+char mboxDir[MboxNameLen];
+char *servername;
+char *site;
+char *remote;
+Box *selected;
+Bin *parseBin;
+int debug;
 
 void
 main(int argc, char *argv[])
@@ -219,7 +214,8 @@ main(int argc, char *argv[])
 	preauth = 0;
 	allowPass = 0;
 	allowCR = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		preauth = 1;
 		break;
@@ -246,9 +242,10 @@ main(int argc, char *argv[])
 		fprint(2, "usage: ip/imap4d [-acpv] [-d site] [-r remotehost] [-s servername]\n");
 		bye("usage");
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(allowPass && allowCR){
+	if(allowPass && allowCR) {
 		fprint(2, "%s: -c and -p are mutually exclusive\n", argv0);
 		bye("usage");
 	}
@@ -256,20 +253,20 @@ main(int argc, char *argv[])
 	if(preauth)
 		setupuser(nil);
 
-	if(servername == nil){
+	if(servername == nil) {
 		servername = csquery("sys", sysname(), "dom");
 		if(servername == nil)
 			servername = sysname();
-		if(servername == nil){
+		if(servername == nil) {
 			fprint(2, "ip/imap4d can't find server name: %r\n");
 			bye("can't find system name");
 		}
 	}
-	if(site == nil){
+	if(site == nil) {
 		t = getenv("site");
 		if(t == nil)
 			site = servername;
-		else{
+		else {
 			n = strlen(t);
 			s = strchr(servername, '.');
 			if(s == nil)
@@ -282,7 +279,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	rfork(RFNOTEG|RFREND);
+	rfork(RFNOTEG | RFREND);
 
 	atnotify(catcher, 1);
 	qlock(&imaplock);
@@ -297,10 +294,10 @@ imap4(int preauth)
 	char *volatile cmd;
 	ParseCmd *st;
 
-	if(preauth){
+	if(preauth) {
 		Bprint(&bout, "* preauth %s IMAP4rev1 server ready user %s authenticated\r\n", servername, username);
 		imapState = SAuthed;
-	}else{
+	} else {
 		Bprint(&bout, "* OK %s IMAP4rev1 server ready\r\n", servername);
 		imapState = SNonAuthed;
 	}
@@ -311,7 +308,7 @@ imap4(int preauth)
 
 	tg = nil;
 	cmd = nil;
-	if(setjmp(parseJmp)){
+	if(setjmp(parseJmp)) {
 		if(tg == nil)
 			Bprint(&bout, "* bad empty command line: %s\r\n", parseMsg);
 		else if(cmd == nil)
@@ -323,7 +320,7 @@ imap4(int preauth)
 			writeErr();
 		binfree(&parseBin);
 	}
-	for(;;){
+	for(;;) {
 		if(mbLocked())
 			bye("internal error: mailbox lock held");
 		tg = nil;
@@ -336,13 +333,13 @@ imap4(int preauth)
 		 * note: outlook express is broken: it requires echoing the
 		 * command as part of matching response
 		 */
-		for(st = imapState; st->name != nil; st++){
-			if(cistrcmp(cmd, st->name) == 0){
+		for(st = imapState; st->name != nil; st++) {
+			if(cistrcmp(cmd, st->name) == 0) {
 				(*st->f)(tg, cmd);
 				break;
 			}
 		}
-		if(st->name == nil){
+		if(st->name == nil) {
 			clearcmd();
 			Bprint(&bout, "%s BAD %s illegal command\r\n", tg, cmd);
 		}
@@ -363,7 +360,7 @@ bye(char *fmt, ...)
 	Bvprint(&bout, fmt, arg);
 	Bprint(&bout, "\r\n");
 	Bflush(&bout);
-exits("rob2");
+	exits("rob2");
 	exits(0);
 }
 
@@ -465,11 +462,11 @@ status(int expungeable, int uids)
 		tell = expungeMsgs(selected, 1);
 	if(selected->sendFlags)
 		sendFlags(selected, uids);
-	if(tell || selected->toldMax != selected->max){
+	if(tell || selected->toldMax != selected->max) {
 		Bprint(&bout, "* %lud EXISTS\r\n", selected->max);
 		selected->toldMax = selected->max;
 	}
-	if(tell || selected->toldRecent != selected->recent){
+	if(tell || selected->toldRecent != selected->recent) {
 		Bprint(&bout, "* %lud RECENT\r\n", selected->recent);
 		selected->toldRecent = selected->recent;
 	}
@@ -500,29 +497,29 @@ appendCmd(char *tg, char *cmd)
 	mbox = astring();
 	mustBe(' ');
 	flags = 0;
-	if(peekc() == '('){
+	if(peekc() == '(') {
 		flags = flagList();
 		mustBe(' ');
 	}
 	now = time(nil);
-	if(peekc() == '"'){
+	if(peekc() == '"') {
 		t = imap4DateTime(quoted());
 		if(t == ~0)
 			parseErr("illegal date format");
 		mustBe(' ');
 		if(t > now)
 			t = now;
-	}else
+	} else
 		t = now;
 	n = litlen();
 
 	mbox = mboxName(mbox);
-	if(mbox == nil || !okMbox(mbox)){
+	if(mbox == nil || !okMbox(mbox)) {
 		check();
 		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
-	if(!cdExists(mboxDir, mbox)){
+	if(!cdExists(mboxDir, mbox)) {
 		check();
 		Bprint(&bout, "%s NO [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
 		return;
@@ -548,14 +545,14 @@ authenticateCmd(char *tg, char *cmd)
 	crnl();
 	auth_freechal(chal);
 	chal = nil;
-	if(cistrcmp(s, "cram-md5") == 0){
+	if(cistrcmp(s, "cram-md5") == 0) {
 		t = cramauth();
-		if(t == nil){
+		if(t == nil) {
 			Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 			imapState = SAuthed;
-		}else
+		} else
 			Bprint(&bout, "%s NO %s failed %s\r\n", tg, cmd, t);
-	}else
+	} else
 		Bprint(&bout, "%s NO %s unsupported authentication protocol\r\n", tg, cmd);
 }
 
@@ -564,8 +561,8 @@ capabilityCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
-// nslocum's capabilities
-//	Bprint(&bout, "* CAPABILITY IMAP4 IMAP4REV1 NAMESPACE IDLE SCAN SORT MAILBOX-REFERRALS LOGIN-REFERRALS AUTH=LOGIN THREAD=ORDEREDSUBJECT\r\n");
+	// nslocum's capabilities
+	//	Bprint(&bout, "* CAPABILITY IMAP4 IMAP4REV1 NAMESPACE IDLE SCAN SORT MAILBOX-REFERRALS LOGIN-REFERRALS AUTH=LOGIN THREAD=ORDEREDSUBJECT\r\n");
 	Bprint(&bout, "* CAPABILITY IMAP4REV1 IDLE NAMESPACE AUTH=CRAM-MD5\r\n");
 	Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 }
@@ -608,14 +605,14 @@ copyUCmd(char *tg, char *cmd, int uids)
 		uid = "uid ";
 
 	mbox = mboxName(mbox);
-	if(mbox == nil || !okMbox(mbox)){
+	if(mbox == nil || !okMbox(mbox)) {
 		status(1, uids);
 		Bprint(&bout, "%s NO %s%s bad mailbox\r\n", tg, uid, cmd);
 		return;
 	}
 	if(cistrcmp(mbox, "inbox") == 0)
 		mbox = "mbox";
-	if(!cdExists(mboxDir, mbox)){
+	if(!cdExists(mboxDir, mbox)) {
 		check();
 		Bprint(&bout, "%s NO [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
 		return;
@@ -648,15 +645,15 @@ createCmd(char *tg, char *cmd)
 	m = strchr(mbox, '\0');
 	slash = m != mbox && m[-1] == '/';
 	mbox = mboxName(mbox);
-	if(mbox == nil || !okMbox(mbox)){
+	if(mbox == nil || !okMbox(mbox)) {
 		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
-	if(cistrcmp(mbox, "inbox") == 0){
+	if(cistrcmp(mbox, "inbox") == 0) {
 		Bprint(&bout, "%s NO %s cannot remotely create INBOX\r\n", tg, cmd);
 		return;
 	}
-	if(access(mbox, AEXIST) >= 0){
+	if(access(mbox, AEXIST) >= 0) {
 		Bprint(&bout, "%s NO %s mailbox already exists\r\n", tg, cmd);
 		return;
 	}
@@ -680,15 +677,13 @@ deleteCmd(char *tg, char *cmd)
 	check();
 
 	mbox = mboxName(mbox);
-	if(mbox == nil || !okMbox(mbox)){
+	if(mbox == nil || !okMbox(mbox)) {
 		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 
 	imp = impName(mbox);
-	if(cistrcmp(mbox, "inbox") == 0
-	|| imp != nil && cdRemove(mboxDir, imp) < 0 && cdExists(mboxDir, imp)
-	|| cdRemove(mboxDir, mbox) < 0)
+	if(cistrcmp(mbox, "inbox") == 0 || imp != nil && cdRemove(mboxDir, imp) < 0 && cdExists(mboxDir, imp) || cdRemove(mboxDir, mbox) < 0)
 		Bprint(&bout, "%s NO %s cannot delete mailbox %s\r\n", tg, cmd, mbox);
 	else
 		Bprint(&bout, "%s OK %s %s completed\r\n", tg, mbox, cmd);
@@ -755,10 +750,10 @@ idleCmd(char *tg, char *cmd)
 	if(Bflush(&bout) < 0)
 		writeErr();
 
-	if(idlepid < 0){
-		pid = rfork(RFPROC|RFMEM|RFNOWAIT);
-		if(pid == 0){
-			for(;;){
+	if(idlepid < 0) {
+		pid = rfork(RFPROC | RFMEM | RFNOWAIT);
+		if(pid == 0) {
+			for(;;) {
 				qlock(&imaplock);
 				if(exiting)
 					break;
@@ -772,10 +767,10 @@ idleCmd(char *tg, char *cmd)
 				if(Bflush(&bout) < 0)
 					writeErr();
 				qunlock(&imaplock);
-				sleep(15*1000);
+				sleep(15 * 1000);
 				enableForwarding();
 			}
-_exits("rob3");
+			_exits("rob3");
 			_exits(0);
 		}
 		idlepid = pid;
@@ -789,13 +784,13 @@ _exits("rob3");
 	 * this is special code since it has to dance with the idle polling proc
 	 * and handle exiting correctly.
 	 */
-	for(;;){
+	for(;;) {
 		c = getc();
-		if(c < 0){
+		if(c < 0) {
 			qlock(&imaplock);
 			if(!exiting)
 				cleaner();
-_exits("rob4");
+			_exits("rob4");
 			_exits(0);
 		}
 		if(c == '\n')
@@ -803,10 +798,10 @@ _exits("rob4");
 	}
 
 	qlock(&imaplock);
-	if(exiting)
-{_exits("rob5");
+	if(exiting) {
+		_exits("rob5");
 		_exits(0);
-}
+	}
 
 	/*
 	 * child may have changed curDir, but it doesn't change our .
@@ -831,7 +826,7 @@ listCmd(char *tg, char *cmd)
 	check();
 	ref = mutf7str(s);
 	mbox = mutf7str(t);
-	if(ref == nil || mbox == nil){
+	if(ref == nil || mbox == nil) {
 		Bprint(&bout, "%s BAD %s mailbox name not in modified utf-7\r\n", tg, cmd);
 		return;
 	}
@@ -843,7 +838,7 @@ listCmd(char *tg, char *cmd)
 	 *
 	 * this must change if the # namespace convention is supported.
 	 */
-	if(*mbox == '\0'){
+	if(*mbox == '\0') {
 		s = strchr(ref, '/');
 		if(s == nil)
 			ref = "";
@@ -853,7 +848,6 @@ listCmd(char *tg, char *cmd)
 		Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 		return;
 	}
-
 
 	/*
 	 * massage the listing name:
@@ -869,13 +863,13 @@ listCmd(char *tg, char *cmd)
 		*mbox = '\0';
 	if(mbox[0] == '/')
 		*ref = '\0';
-	else if(*ref != '\0'){
+	else if(*ref != '\0') {
 		cleanname(ref);
 		if(strcmp(ref, ".") == 0)
 			*ref = '\0';
-	}else
+	} else
 		*ref = '\0';
-	while(*ref && isdotdot(mbox)){
+	while(*ref && isdotdot(mbox)) {
 		s = strrchr(ref, '/');
 		if(s == nil)
 			s = ref;
@@ -886,10 +880,10 @@ listCmd(char *tg, char *cmd)
 		if(*mbox == '/')
 			mbox++;
 	}
-	if(*ref == '\0'){
+	if(*ref == '\0') {
 		s = mbox;
 		ss = s;
-	}else{
+	} else {
 		n = strlen(ref) + strlen(mbox) + 2;
 		t = binalloc(&parseBin, n, 0);
 		if(t == nil)
@@ -902,7 +896,7 @@ listCmd(char *tg, char *cmd)
 	/*
 	 * only allow activity in /mail/box
 	 */
-	if(s[0] == '/' || isdotdot(s)){
+	if(s[0] == '/' || isdotdot(s)) {
 		Bprint(&bout, "%s NO illegal mailbox pattern\r\n", tg);
 		return;
 	}
@@ -914,8 +908,8 @@ listCmd(char *tg, char *cmd)
 	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
-static char*
-passCR(char*u, char*p)
+static char *
+passCR(char *u, char *p)
 {
 	static char Ebadch[] = "can't get challenge";
 	static char nchall[64];
@@ -924,7 +918,7 @@ passCR(char*u, char*p)
 	AuthInfo *ai;
 
 again:
-	if (ch == nil){
+	if(ch == nil) {
 		if(!(ch = auth_challenge("proto=p9cr role=server user=%q", u)))
 			return Ebadch;
 		snprint(nchall, 64, " encrypt challenge: %s", ch->chal);
@@ -936,12 +930,11 @@ again:
 		ai = auth_response(ch);
 		auth_freechal(ch);
 		ch = nil;
-		if (ai == nil)
+		if(ai == nil)
 			goto again;
 		setupuser(ai);
 		return nil;
 	}
-		
 }
 
 static void
@@ -949,14 +942,14 @@ loginCmd(char *tg, char *cmd)
 {
 	char *s, *t;
 	AuthInfo *ai;
-	char*r;
+	char *r;
 	mustBe(' ');
-	s = astring();	/* uid */
+	s = astring(); /* uid */
 	mustBe(' ');
-	t = astring();	/* password */
+	t = astring(); /* password */
 	crnl();
-	if(allowCR){
-		if ((r = passCR(s, t)) == nil){
+	if(allowCR) {
+		if((r = passCR(s, t)) == nil) {
 			Bprint(&bout, "%s OK %s succeeded\r\n", tg, cmd);
 			imapState = SAuthed;
 		} else {
@@ -964,13 +957,12 @@ loginCmd(char *tg, char *cmd)
 			Bprint(&bout, "%s NO %s succeeded\r\n", tg, cmd);
 		}
 		return;
-	}
-	else if(allowPass){
-		if(ai = passLogin(s, t)){
+	} else if(allowPass) {
+		if(ai = passLogin(s, t)) {
 			setupuser(ai);
 			Bprint(&bout, "%s OK %s succeeded\r\n", tg, cmd);
 			imapState = SAuthed;
-		}else
+		} else
 			Bprint(&bout, "%s NO %s failed check\r\n", tg, cmd);
 		return;
 	}
@@ -985,13 +977,13 @@ logoutCmd(char *tg, char *cmd)
 {
 	crnl();
 
-	if(cmd[0] != 'x' && selected){
+	if(cmd[0] != 'x' && selected) {
 		closeBox(selected, 1);
 		selected = nil;
 	}
 	Bprint(&bout, "* bye\r\n");
 	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
-exits("rob6");
+	exits("rob6");
 	exits(0);
 }
 
@@ -1037,16 +1029,16 @@ renameCmd(char *tg, char *cmd)
 	check();
 
 	to = mboxName(to);
-	if(to == nil || !okMbox(to) || cistrcmp(to, "inbox") == 0){
+	if(to == nil || !okMbox(to) || cistrcmp(to, "inbox") == 0) {
 		Bprint(&bout, "%s NO %s bad mailbox destination name\r\n", tg, cmd);
 		return;
 	}
-	if(access(to, AEXIST) >= 0){
+	if(access(to, AEXIST) >= 0) {
 		Bprint(&bout, "%s NO %s mailbox already exists\r\n", tg, cmd);
 		return;
 	}
 	from = mboxName(from);
-	if(from == nil || !okMbox(from)){
+	if(from == nil || !okMbox(from)) {
 		Bprint(&bout, "%s NO %s bad mailbox destination name\r\n", tg, cmd);
 		return;
 	}
@@ -1082,11 +1074,10 @@ searchUCmd(char *tg, char *cmd, int uids)
 	uid = "";
 	if(uids)
 		uid = "uid ";
-	if(rock.next != nil && rock.next->key == SKCharset){
-		if(cistrcmp(rock.next->s, "utf-8") != 0
-		&& cistrcmp(rock.next->s, "us-ascii") != 0){
+	if(rock.next != nil && rock.next->key == SKCharset) {
+		if(cistrcmp(rock.next->s, "utf-8") != 0 && cistrcmp(rock.next->s, "us-ascii") != 0) {
 			Bprint(&bout, "%s NO [BADCHARSET] (\"US-ASCII\" \"UTF-8\") %s%s failed\r\n",
-				tg, uid, cmd);
+			       tg, uid, cmd);
 			checkBox(selected, 0);
 			status(uids, uids);
 			return;
@@ -1096,8 +1087,8 @@ searchUCmd(char *tg, char *cmd, int uids)
 	Bprint(&bout, "* search");
 	for(m = selected->msgs; m != nil; m = m->next)
 		m->matched = searchMsg(m, rock.next);
-	for(m = selected->msgs; m != nil; m = m->next){
-		if(m->matched){
+	for(m = selected->msgs; m != nil; m = m->next) {
+		if(m->matched) {
 			if(uids)
 				id = m->uid;
 			else
@@ -1121,20 +1112,20 @@ selectCmd(char *tg, char *cmd)
 	mbox = astring();
 	crnl();
 
-	if(selected){
+	if(selected) {
 		imapState = SAuthed;
 		closeBox(selected, 1);
 		selected = nil;
 	}
 
 	mbox = mboxName(mbox);
-	if(mbox == nil || !okMbox(mbox)){
+	if(mbox == nil || !okMbox(mbox)) {
 		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 
 	selected = openBox(mbox, "imap", cistrcmp(cmd, "select") == 0);
-	if(selected == nil){
+	if(selected == nil) {
 		Bprint(&bout, "%s NO %s can't open mailbox %s: %r\r\n", tg, cmd, mbox);
 		return;
 	}
@@ -1146,8 +1137,8 @@ selectCmd(char *tg, char *cmd)
 	selected->toldMax = selected->max;
 	Bprint(&bout, "* %lud RECENT\r\n", selected->recent);
 	selected->toldRecent = selected->recent;
-	for(m = selected->msgs; m != nil; m = m->next){
-		if(!m->expunged && (m->flags & MSeen) != MSeen){
+	for(m = selected->msgs; m != nil; m = m->next) {
+		if(!m->expunged && (m->flags & MSeen) != MSeen) {
 			Bprint(&bout, "* OK [UNSEEN %ld]\r\n", m->seq);
 			break;
 		}
@@ -1161,15 +1152,14 @@ selectCmd(char *tg, char *cmd)
 	Bprint(&bout, "%s OK [%s] %s %s completed\r\n", tg, s, cmd, mbox);
 }
 
-static NamedInt	statusItems[] =
-{
-	{"MESSAGES",	SMessages},
-	{"RECENT",	SRecent},
-	{"UIDNEXT",	SUidNext},
-	{"UIDVALIDITY",	SUidValidity},
-	{"UNSEEN",	SUnseen},
-	{nil,		0}
-};
+static NamedInt statusItems[] =
+    {
+     {"MESSAGES", SMessages},
+     {"RECENT", SRecent},
+     {"UIDNEXT", SUidNext},
+     {"UIDVALIDITY", SUidValidity},
+     {"UNSEEN", SUnseen},
+     {nil, 0}};
 
 static void
 statusCmd(char *tg, char *cmd)
@@ -1185,7 +1175,7 @@ statusCmd(char *tg, char *cmd)
 	mustBe(' ');
 	mustBe('(');
 	si = 0;
-	for(;;){
+	for(;;) {
 		s = atom();
 		i = mapInt(statusItems, s);
 		if(i == 0)
@@ -1199,14 +1189,14 @@ statusCmd(char *tg, char *cmd)
 	crnl();
 
 	mbox = mboxName(mbox);
-	if(mbox == nil || !okMbox(mbox)){
+	if(mbox == nil || !okMbox(mbox)) {
 		check();
 		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 
 	box = openBox(mbox, "status", 1);
-	if(box == nil){
+	if(box == nil) {
 		check();
 		Bprint(&bout, "%s NO [TRYCREATE] %s can't open mailbox %s: %r\r\n", tg, cmd, mbox);
 		return;
@@ -1214,10 +1204,10 @@ statusCmd(char *tg, char *cmd)
 
 	Bprint(&bout, "* STATUS %s (", mbox);
 	s = "";
-	for(i = 0; statusItems[i].name != nil; i++){
-		if(si & statusItems[i].v){
+	for(i = 0; statusItems[i].name != nil; i++) {
+		if(si & statusItems[i].v) {
 			v = 0;
-			switch(statusItems[i].v){
+			switch(statusItems[i].v) {
 			case SMessages:
 				v = box->max;
 				break;
@@ -1305,9 +1295,9 @@ subscribeCmd(char *tg, char *cmd)
 	check();
 	mbox = mboxName(mbox);
 	ok = 0;
-	if(mbox != nil && okMbox(mbox)){
+	if(mbox != nil && okMbox(mbox)) {
 		box = openBox(mbox, "subscribe", 0);
-		if(box != nil){
+		if(box != nil) {
 			ok = subscribe(mbox, 's');
 			closeBox(box, 1);
 		}
@@ -1333,7 +1323,7 @@ uidCmd(char *tg, char *cmd)
 		searchUCmd(tg, sub, 1);
 	else if(cistrcmp(sub, "store") == 0)
 		storeUCmd(tg, sub, 1);
-	else{
+	else {
 		clearcmd();
 		Bprint(&bout, "%s BAD %s illegal uid command %s\r\n", tg, cmd, sub);
 	}
@@ -1366,7 +1356,7 @@ clearcmd(void)
 {
 	int c;
 
-	for(;;){
+	for(;;) {
 		c = getc();
 		if(c < 0)
 			bye("end of input");
@@ -1390,7 +1380,7 @@ crnl(void)
 static void
 mustBe(int c)
 {
-	if(getc() != c){
+	if(getc() != c) {
 		ungetc();
 		badsyn();
 	}
@@ -1425,12 +1415,12 @@ flags(void)
 	int c;
 
 	flags = 0;
-	for(;;){
+	for(;;) {
 		c = peekc();
-		if(c == '\\'){
+		if(c == '\\') {
 			mustBe('\\');
 			s = atomString(atomStop, "\\");
-		}else if(strchr(atomStop, c) != nil)
+		} else if(strchr(atomStop, c) != nil)
 			s = atom();
 		else
 			break;
@@ -1454,7 +1444,7 @@ flags(void)
  *		| '+' | '-'
  * storeflags	: flagList | flags
  */
-static Store*
+static Store *
 storeWhat(void)
 {
 	int f;
@@ -1486,17 +1476,17 @@ storeWhat(void)
  * fetchWhat	: "ALL" | "FULL" | "FAST" | fetchAtt | '(' fetchAtts ')'
  * fetchAtts	: fetchAtt | fetchAtts ' ' fetchAtt
  */
-static char *fetchAtom	= "(){}%*\"\\[]";
-static Fetch*
+static char *fetchAtom = "(){}%*\"\\[]";
+static Fetch *
 fetchWhat(void)
 {
 	Fetch *f;
 	char *s;
 
-	if(peekc() == '('){
+	if(peekc() == '(') {
 		getc();
 		f = nil;
-		for(;;){
+		for(;;) {
 			s = atomString(fetchAtom, "");
 			f = fetchAtt(s, f);
 			if(peekc() == ')')
@@ -1536,7 +1526,7 @@ fetchWhat(void)
  * sectPart	: nz-number
  *		| sectPart '.' nz-number
  */
-static Fetch*
+static Fetch *
 fetchAtt(char *s, Fetch *f)
 {
 	NList *sect;
@@ -1561,25 +1551,25 @@ fetchAtt(char *s, Fetch *f)
 	if(cistrcmp(s, "uid") == 0)
 		return mkFetch(FUid, f);
 
-	if(cistrcmp(s, "body") == 0){
+	if(cistrcmp(s, "body") == 0) {
 		if(peekc() != '[')
 			return mkFetch(FBody, f);
 		f = mkFetch(FBodySect, f);
-	}else if(cistrcmp(s, "body.peek") == 0)
+	} else if(cistrcmp(s, "body.peek") == 0)
 		f = mkFetch(FBodyPeek, f);
 	else
 		parseErr("illegal fetch attribute");
 
 	mustBe('[');
 	c = peekc();
-	if(c >= '1' && c <= '9'){
+	if(c >= '1' && c <= '9') {
 		sect = mkNList(number(1), nil);
-		while(peekc() == '.'){
+		while(peekc() == '.') {
 			getc();
 			c = peekc();
-			if(c >= '1' && c <= '9'){
+			if(c >= '1' && c <= '9') {
 				sect = mkNList(number(1), sect);
-			}else{
+			} else {
 				break;
 			}
 		}
@@ -1618,15 +1608,15 @@ sectText(Fetch *f, int mimeOk)
 	char *s;
 
 	s = atomString(fetchAtom, "");
-	if(cistrcmp(s, "header") == 0){
+	if(cistrcmp(s, "header") == 0) {
 		f->part = FPHead;
 		return;
 	}
-	if(cistrcmp(s, "text") == 0){
+	if(cistrcmp(s, "text") == 0) {
 		f->part = FPText;
 		return;
 	}
-	if(mimeOk && cistrcmp(s, "mime") == 0){
+	if(mimeOk && cistrcmp(s, "mime") == 0) {
 		f->part = FPMime;
 		return;
 	}
@@ -1639,7 +1629,7 @@ sectText(Fetch *f, int mimeOk)
 	mustBe(' ');
 	mustBe('(');
 	h = nil;
-	for(;;){
+	for(;;) {
 		h = mkSList(astring(), h);
 		if(peekc() == ')')
 			break;
@@ -1667,73 +1657,68 @@ sectText(Fetch *f, int mimeOk)
  * datekey	: "BEFORE" | "ON" | "SINCE" | "SENTBEFORE" | "SENTON" | "SENTSINCE"
  */
 static NamedInt searchMap[] =
-{
-	{"ALL",		SKAll},
-	{"ANSWERED",	SKAnswered},
-	{"DELETED",	SKDeleted},
-	{"FLAGGED",	SKFlagged},
-	{"NEW",		SKNew},
-	{"OLD",		SKOld},
-	{"RECENT",	SKRecent},
-	{"SEEN",	SKSeen},
-	{"UNANSWERED",	SKUnanswered},
-	{"UNDELETED",	SKUndeleted},
-	{"UNFLAGGED",	SKUnflagged},
-	{"DRAFT",	SKDraft},
-	{"UNDRAFT",	SKUndraft},
-	{"UNSEEN",	SKUnseen},
-	{nil,		0}
-};
+    {
+     {"ALL", SKAll},
+     {"ANSWERED", SKAnswered},
+     {"DELETED", SKDeleted},
+     {"FLAGGED", SKFlagged},
+     {"NEW", SKNew},
+     {"OLD", SKOld},
+     {"RECENT", SKRecent},
+     {"SEEN", SKSeen},
+     {"UNANSWERED", SKUnanswered},
+     {"UNDELETED", SKUndeleted},
+     {"UNFLAGGED", SKUnflagged},
+     {"DRAFT", SKDraft},
+     {"UNDRAFT", SKUndraft},
+     {"UNSEEN", SKUnseen},
+     {nil, 0}};
 
 static NamedInt searchMapStr[] =
-{
-	{"CHARSET",	SKCharset},
-	{"BCC",		SKBcc},
-	{"BODY",	SKBody},
-	{"CC",		SKCc},
-	{"FROM",	SKFrom},
-	{"SUBJECT",	SKSubject},
-	{"TEXT",	SKText},
-	{"TO",		SKTo},
-	{nil,		0}
-};
+    {
+     {"CHARSET", SKCharset},
+     {"BCC", SKBcc},
+     {"BODY", SKBody},
+     {"CC", SKCc},
+     {"FROM", SKFrom},
+     {"SUBJECT", SKSubject},
+     {"TEXT", SKText},
+     {"TO", SKTo},
+     {nil, 0}};
 
 static NamedInt searchMapDate[] =
-{
-	{"BEFORE",	SKBefore},
-	{"ON",		SKOn},
-	{"SINCE",	SKSince},
-	{"SENTBEFORE",	SKSentBefore},
-	{"SENTON",	SKSentOn},
-	{"SENTSINCE",	SKSentSince},
-	{nil,		0}
-};
+    {
+     {"BEFORE", SKBefore},
+     {"ON", SKOn},
+     {"SINCE", SKSince},
+     {"SENTBEFORE", SKSentBefore},
+     {"SENTON", SKSentOn},
+     {"SENTSINCE", SKSentSince},
+     {nil, 0}};
 
 static NamedInt searchMapFlag[] =
-{
-	{"KEYWORD",	SKKeyword},
-	{"UNKEYWORD",	SKUnkeyword},
-	{nil,		0}
-};
+    {
+     {"KEYWORD", SKKeyword},
+     {"UNKEYWORD", SKUnkeyword},
+     {nil, 0}};
 
 static NamedInt searchMapNum[] =
-{
-	{"SMALLER",	SKSmaller},
-	{"LARGER",	SKLarger},
-	{nil,		0}
-};
+    {
+     {"SMALLER", SKSmaller},
+     {"LARGER", SKLarger},
+     {nil, 0}};
 
-static Search*
+static Search *
 searchKeys(int first, Search *tail)
 {
 	Search *s;
 
-	for(;;){
-		if(peekc() == '('){
+	for(;;) {
+		if(peekc() == '(') {
 			getc();
 			tail = searchKeys(0, tail);
 			mustBe(')');
-		}else{
+		} else {
 			s = searchKey(first);
 			tail->next = s;
 			tail = s;
@@ -1746,7 +1731,7 @@ searchKeys(int first, Search *tail)
 	return tail;
 }
 
-static Search*
+static Search *
 searchKey(int first)
 {
 	Search *sr, rock;
@@ -1759,7 +1744,7 @@ searchKey(int first)
 		parseErr("out of memory");
 
 	c = peekc();
-	if(c >= '0' && c <= '9'){
+	if(c >= '0' && c <= '9') {
 		sr->key = SKSet;
 		sr->set = msgSet(0);
 		return sr;
@@ -1768,13 +1753,13 @@ searchKey(int first)
 	a = atom();
 	if(i = mapInt(searchMap, a))
 		sr->key = i;
-	else if(i = mapInt(searchMapStr, a)){
+	else if(i = mapInt(searchMapStr, a)) {
 		if(!first && i == SKCharset)
 			parseErr("illegal search key");
 		sr->key = i;
 		mustBe(' ');
 		sr->s = astring();
-	}else if(i = mapInt(searchMapDate, a)){
+	} else if(i = mapInt(searchMapDate, a)) {
 		sr->key = i;
 		mustBe(' ');
 		c = peekc();
@@ -1788,40 +1773,40 @@ searchKey(int first)
 		sr->mday = tm.mday;
 		if(c == '"')
 			mustBe('"');
-	}else if(i = mapInt(searchMapFlag, a)){
+	} else if(i = mapInt(searchMapFlag, a)) {
 		sr->key = i;
 		mustBe(' ');
 		c = peekc();
-		if(c == '\\'){
+		if(c == '\\') {
 			mustBe('\\');
 			a = atomString(atomStop, "\\");
-		}else
+		} else
 			a = atom();
 		i = mapFlag(a);
 		if(i == 0)
 			parseErr("flag not supported");
 		sr->num = i;
-	}else if(i = mapInt(searchMapNum, a)){
+	} else if(i = mapInt(searchMapNum, a)) {
 		sr->key = i;
 		mustBe(' ');
 		sr->num = number(0);
-	}else if(cistrcmp(a, "HEADER") == 0){
+	} else if(cistrcmp(a, "HEADER") == 0) {
 		sr->key = SKHeader;
 		mustBe(' ');
 		sr->hdr = astring();
 		mustBe(' ');
 		sr->s = astring();
-	}else if(cistrcmp(a, "UID") == 0){
+	} else if(cistrcmp(a, "UID") == 0) {
 		sr->key = SKUid;
 		mustBe(' ');
 		sr->set = msgSet(0);
-	}else if(cistrcmp(a, "NOT") == 0){
+	} else if(cistrcmp(a, "NOT") == 0) {
 		sr->key = SKNot;
 		mustBe(' ');
 		rock.next = nil;
 		searchKeys(0, &rock);
 		sr->left = rock.next;
-	}else if(cistrcmp(a, "OR") == 0){
+	} else if(cistrcmp(a, "OR") == 0) {
 		sr->key = SKOr;
 		mustBe(' ');
 		rock.next = nil;
@@ -1831,7 +1816,7 @@ searchKey(int first)
 		rock.next = nil;
 		searchKeys(0, &rock);
 		sr->right = rock.next;
-	}else
+	} else
 		parseErr("illegal search key");
 	return sr;
 }
@@ -1844,7 +1829,7 @@ searchKey(int first)
  *	| '*'
  *
  */
-static MsgSet*
+static MsgSet *
 msgSet(int uids)
 {
 	MsgSet head, *last, *ms;
@@ -1852,10 +1837,10 @@ msgSet(int uids)
 
 	last = &head;
 	head.next = nil;
-	for(;;){
+	for(;;) {
 		from = uids ? uidNo() : seqNo();
 		to = from;
-		if(peekc() == ':'){
+		if(peekc() == ':') {
 			getc();
 			to = uids ? uidNo() : seqNo();
 		}
@@ -1877,9 +1862,9 @@ msgSet(int uids)
 static uint32_t
 seqNo(void)
 {
-	if(peekc() == '*'){
+	if(peekc() == '*') {
 		getc();
-		return ~0UL&0xFF;
+		return ~0UL & 0xFF;
 	}
 	return number(1);
 }
@@ -1887,9 +1872,9 @@ seqNo(void)
 static uint32_t
 uidNo(void)
 {
-	if(peekc() == '*'){
+	if(peekc() == '*') {
 		getc();
-		return ~0UL&0xFF;
+		return ~0UL & 0xFF;
 	}
 	return number(0);
 }
@@ -1960,14 +1945,14 @@ atomString(char *disallowed, char *initial)
 		parseErr("out of memory");
 	strcpy(s, initial);
 	as = ns + StrAlloc;
-	for(;;){
+	for(;;) {
 		c = getc();
-		if(c <= ' ' || c >= 0x7f || strchr(disallowed, c) != nil){
+		if(c <= ' ' || c >= 0x7f || strchr(disallowed, c) != nil) {
 			ungetc();
 			break;
 		}
 		s[ns++] = c;
-		if(ns >= as){
+		if(ns >= as) {
 			s = bingrow(&parseBin, s, as, as + StrAlloc, 0);
 			if(s == nil)
 				parseErr("out of memory");
@@ -1996,19 +1981,19 @@ quoted(void)
 		parseErr("out of memory");
 	as = StrAlloc;
 	ns = 0;
-	for(;;){
+	for(;;) {
 		c = getc();
 		if(c == '"')
 			break;
 		if(c < 1 || c > 0x7f || c == '\r' || c == '\n')
 			badsyn();
-		if(c == '\\'){
+		if(c == '\\') {
 			c = getc();
 			if(c != '\\' && c != '"')
 				badsyn();
 		}
 		s[ns++] = c;
-		if(ns >= as){
+		if(ns >= as) {
 			s = bingrow(&parseBin, s, as, as + StrAlloc, 0);
 			if(s == nil)
 				parseErr("out of memory");
@@ -2044,7 +2029,7 @@ literal(void)
 	uint32_t v;
 
 	v = litlen();
-	s = binalloc(&parseBin, v+1, 0);
+	s = binalloc(&parseBin, v + 1, 0);
 	if(s == nil)
 		parseErr("out of memory");
 	Bprint(&bout, "+ Ready for literal data\r\n");
@@ -2067,9 +2052,9 @@ number(int nonzero)
 
 	v = 0;
 	first = 1;
-	for(;;){
+	for(;;) {
 		c = getc();
-		if(c < '0' || c > '9'){
+		if(c < '0' || c > '9') {
 			ungetc();
 			if(first)
 				badsyn();
@@ -2079,7 +2064,7 @@ number(int nonzero)
 			badsyn();
 		c -= '0';
 		first = 0;
-		if(v > UlongMax/10 || v == UlongMax/10 && c > UlongMax%10)
+		if(v > UlongMax / 10 || v == UlongMax / 10 && c > UlongMax % 10)
 			parseErr("number out of range\r\n");
 		v = v * 10 + c;
 	}
@@ -2107,4 +2092,3 @@ peekc(void)
 	Bungetc(&bin);
 	return c;
 }
-

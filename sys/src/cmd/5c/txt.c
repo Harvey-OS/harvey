@@ -9,7 +9,7 @@
 
 #include "gc.h"
 
-static	char	resvreg[nelem(reg)];
+static char resvreg[nelem(reg)];
 
 void
 ginit(void)
@@ -39,7 +39,7 @@ ginit(void)
 	zprog.from.name = D_NONE;
 	zprog.from.reg = NREG;
 	zprog.to = zprog.from;
-	zprog.scond = 0xE;  
+	zprog.scond = 0xE;
 
 	regnode.op = OREGISTER;
 	regnode.class = CEXREG;
@@ -99,7 +99,7 @@ ginit(void)
 	reg[REGPC] = 1;
 	/* keep two external registers */
 	reg[REGEXT] = 1;
-	reg[REGEXT-1] = 1;
+	reg[REGEXT - 1] = 1;
 	memmove(resvreg, reg, sizeof(reg));
 }
 
@@ -109,28 +109,28 @@ gclean(void)
 	int i;
 	Sym *s;
 
-	for(i=0; i<NREG; i++)
+	for(i = 0; i < NREG; i++)
 		if(reg[i] && !resvreg[i])
 			diag(Z, "reg %d left allocated", i);
-	for(i=NREG; i<NREG+NFREG; i++)
+	for(i = NREG; i < NREG + NFREG; i++)
 		if(reg[i] && !resvreg[i])
-			diag(Z, "freg %d left allocated", i-NREG);
+			diag(Z, "freg %d left allocated", i - NREG);
 	while(mnstring)
 		outstring("", 1L);
 	symstring->type->width = nstring;
 	symrathole->type->width = nrathole;
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		if(s->type == T)
-			continue;
-		if(s->type->width == 0)
-			continue;
-		if(s->class != CGLOBL && s->class != CSTATIC)
-			continue;
-		if(s->type == types[TENUM])
-			continue;
-		gpseudo(AGLOBL, s, nodconst(s->type->width));
-	}
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type == T)
+				continue;
+			if(s->type->width == 0)
+				continue;
+			if(s->class != CGLOBL && s->class != CSTATIC)
+				continue;
+			if(s->type == types[TENUM])
+				continue;
+			gpseudo(AGLOBL, s, nodconst(s->type->width));
+		}
 	nextpc();
 	p->as = AEND;
 	outcode();
@@ -162,11 +162,11 @@ gargs(Node *n, Node *tn1, Node *tn2)
 	regs = cursafe;
 
 	fnxp = fnxargs;
-	garg1(n, tn1, tn2, 0, &fnxp);	/* compile fns to temps */
+	garg1(n, tn1, tn2, 0, &fnxp); /* compile fns to temps */
 
 	curarg = 0;
 	fnxp = fnxargs;
-	garg1(n, tn1, tn2, 1, &fnxp);	/* compile normal args and temps */
+	garg1(n, tn1, tn2, 1, &fnxp); /* compile normal args and temps */
 
 	cursafe = regs;
 }
@@ -225,21 +225,21 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 	regfree(tn1);
 }
 
-Node*
+Node *
 nodconst(int32_t v)
 {
 	constnode.vconst = v;
 	return &constnode;
 }
 
-Node*
+Node *
 nod32const(int64_t v)
 {
 	constnode.vconst = v & MASK(32);
 	return &constnode;
 }
 
-Node*
+Node *
 nodfconst(double d)
 {
 	fconstnode.fconst = d;
@@ -262,7 +262,7 @@ regret(Node *n, Node *nn)
 
 	r = REGRET;
 	if(typefd[nn->type->etype])
-		r = FREGRET+NREG;
+		r = FREGRET + NREG;
 	nodreg(n, nn, r);
 	reg[r]++;
 }
@@ -272,7 +272,7 @@ tmpreg(void)
 {
 	int i;
 
-	for(i=REGRET+1; i<NREG; i++)
+	for(i = REGRET + 1; i < NREG; i++)
 		if(reg[i] == 0)
 			return i;
 	diag(Z, "out of fixed registers");
@@ -300,10 +300,10 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(i >= 0 && i < NREG)
 				goto out;
 		}
-		j = lasti + REGRET+1;
-		for(i=REGRET+1; i<NREG; i++) {
+		j = lasti + REGRET + 1;
+		for(i = REGRET + 1; i < NREG; i++) {
 			if(j >= NREG)
-				j = REGRET+1;
+				j = REGRET + 1;
 			if(reg[j] == 0 && resvreg[j] == 0) {
 				i = j;
 				goto out;
@@ -318,12 +318,12 @@ regalloc(Node *n, Node *tn, Node *o)
 	case TVLONG:
 		if(o != Z && o->op == OREGISTER) {
 			i = o->reg;
-			if(i >= NREG && i < NREG+NFREG)
+			if(i >= NREG && i < NREG + NFREG)
 				goto out;
 		}
-		j = 0*2 + NREG;
-		for(i=NREG; i<NREG+NFREG; i++) {
-			if(j >= NREG+NFREG)
+		j = 0 * 2 + NREG;
+		for(i = NREG; i < NREG + NFREG; i++) {
+			if(j >= NREG + NFREG)
 				j = NREG;
 			if(reg[j] == 0) {
 				i = j;
@@ -379,7 +379,7 @@ void
 regsalloc(Node *n, Node *nn)
 {
 	cursafe = align(cursafe, nn->type, Aaut3);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 	*n = *nodsafe;
 	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
@@ -394,7 +394,7 @@ regaalloc1(Node *n, Node *nn)
 	reg[REGARG]++;
 	curarg = align(curarg, nn->type, Aarg1);
 	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 }
 
 void
@@ -408,7 +408,7 @@ regaalloc(Node *n, Node *nn)
 	n->complex = 0;
 	n->addable = 20;
 	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 }
 
 void
@@ -540,7 +540,6 @@ naddr(Node *n, Adr *a)
 		}
 		a->offset += v;
 		break;
-
 	}
 }
 
@@ -549,8 +548,8 @@ fop(int as, int f1, int f2, Node *t)
 {
 	Node nod1, nod2, nod3;
 
-	nodreg(&nod1, t, NREG+f1);
-	nodreg(&nod2, t, NREG+f2);
+	nodreg(&nod1, t, NREG + f1);
+	nodreg(&nod2, t, NREG + f2);
 	regalloc(&nod3, t, t);
 	gopcode(as, &nod1, &nod2, &nod3);
 	gmove(&nod3, t);
@@ -741,7 +740,7 @@ gmove(Node *f, Node *t)
 			patch(p1, pc);
 			return;
 		}
-		// fall through
+	// fall through
 
 	case TINT:
 	case TLONG:
@@ -886,8 +885,8 @@ gmove(Node *f, Node *t)
 	if(a == AGOK)
 		diag(Z, "bad opcode in gmove %T -> %T", f->type, t->type);
 	if(a == AMOVW || a == AMOVF || a == AMOVD)
-	if(samaddr(f, t))
-		return;
+		if(samaddr(f, t))
+			return;
 	gins(a, f, t);
 }
 
@@ -899,8 +898,8 @@ gmover(Node *f, Node *t)
 	ft = f->type->etype;
 	tt = t->type->etype;
 	a = AGOK;
-	if(typechlp[ft] && typechlp[tt] && ewidth[ft] >= ewidth[tt]){
-		switch(tt){
+	if(typechlp[ft] && typechlp[tt] && ewidth[ft] >= ewidth[tt]) {
+		switch(tt) {
 		case TSHORT:
 			a = AMOVH;
 			break;
@@ -957,8 +956,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = AADD;
 		if(et == TFLOAT)
 			a = AADDF;
-		else
-		if(et == TDOUBLE || et == TVLONG)
+		else if(et == TDOUBLE || et == TVLONG)
 			a = AADDD;
 		break;
 
@@ -973,8 +971,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 			a = ASUB;
 		if(et == TFLOAT)
 			a = ASUBF;
-		else
-		if(et == TDOUBLE || et == TVLONG)
+		else if(et == TDOUBLE || et == TVLONG)
 			a = ASUBD;
 		break;
 
@@ -1017,8 +1014,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = AMUL;
 		if(et == TFLOAT)
 			a = AMULF;
-		else
-		if(et == TDOUBLE || et == TVLONG)
+		else if(et == TDOUBLE || et == TVLONG)
 			a = AMULD;
 		break;
 
@@ -1027,8 +1023,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = ADIV;
 		if(et == TFLOAT)
 			a = ADIVF;
-		else
-		if(et == TDOUBLE || et == TVLONG)
+		else if(et == TDOUBLE || et == TVLONG)
 			a = ADIVD;
 		break;
 
@@ -1066,14 +1061,13 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = ACMP;
 		if(et == TFLOAT)
 			a = ACMPF;
-		else
-		if(et == TDOUBLE || et == TVLONG)
+		else if(et == TDOUBLE || et == TVLONG)
 			a = ACMPD;
 		nextpc();
 		p->as = a;
 		naddr(f1, &p->from);
 		if(a == ACMP && f1->op == OCONST && p->from.offset < 0 &&
-		    p->from.offset != 0x80000000) {
+		   p->from.offset != 0x80000000) {
 			p->as = ACMN;
 			p->from.offset = -p->from.offset;
 		}
@@ -1177,7 +1171,7 @@ gbranch(int o)
 	}
 	nextpc();
 	if(a == AGOK) {
-		diag(Z, "bad in gbranch %O",  o);
+		diag(Z, "bad in gbranch %O", o);
 		nextpc();
 	}
 	p->as = a;
@@ -1235,12 +1229,12 @@ sval(int32_t v)
 {
 	int i;
 
-	for(i=0; i<16; i++) {
+	for(i = 0; i < 16; i++) {
 		if((v & ~0xff) == 0)
 			return 1;
 		if((~v & ~0xff) == 0)
 			return 1;
-		v = (v<<2) | ((uint32_t)v>>30);
+		v = (v << 2) | ((uint32_t)v >> 30);
 	}
 	return 0;
 }
@@ -1251,7 +1245,7 @@ exreg(Type *t)
 	int32_t o;
 
 	if(typechlp[t->etype]) {
-		if(exregoffset <= REGEXT-2)
+		if(exregoffset <= REGEXT - 2)
 			return 0;
 		o = exregoffset;
 		if(reg[o] && !resvreg[o])
@@ -1261,7 +1255,7 @@ exreg(Type *t)
 		return o;
 	}
 	if(typefd[t->etype]) {
-		if(exfregoffset <= NFREG-1)
+		if(exfregoffset <= NFREG - 1)
 			return 0;
 		o = exfregoffset + NREG;
 		if(reg[o] && !resvreg[o])
@@ -1273,50 +1267,50 @@ exreg(Type *t)
 	return 0;
 }
 
-schar	ewidth[NTYPE] =
-{
-	-1,		/* [TXXX] */
-	SZ_CHAR,	/* [TCHAR] */
-	SZ_CHAR,	/* [TUCHAR] */
-	SZ_SHORT,	/* [TSHORT] */
-	SZ_SHORT,	/* [TUSHORT] */
-	SZ_INT,		/* [TINT] */
-	SZ_INT,		/* [TUINT] */
-	SZ_LONG,	/* [TLONG] */
-	SZ_LONG,	/* [TULONG] */
-	SZ_VLONG,	/* [TVLONG] */
-	SZ_VLONG,	/* [TUVLONG] */
-	SZ_FLOAT,	/* [TFLOAT] */
-	SZ_DOUBLE,	/* [TDOUBLE] */
-	SZ_IND,		/* [TIND] */
-	0,		/* [TFUNC] */
-	-1,		/* [TARRAY] */
-	0,		/* [TVOID] */
-	-1,		/* [TSTRUCT] */
-	-1,		/* [TUNION] */
-	SZ_INT,		/* [TENUM] */
+schar ewidth[NTYPE] =
+    {
+     -1,	/* [TXXX] */
+     SZ_CHAR,   /* [TCHAR] */
+     SZ_CHAR,   /* [TUCHAR] */
+     SZ_SHORT,  /* [TSHORT] */
+     SZ_SHORT,  /* [TUSHORT] */
+     SZ_INT,    /* [TINT] */
+     SZ_INT,    /* [TUINT] */
+     SZ_LONG,   /* [TLONG] */
+     SZ_LONG,   /* [TULONG] */
+     SZ_VLONG,  /* [TVLONG] */
+     SZ_VLONG,  /* [TUVLONG] */
+     SZ_FLOAT,  /* [TFLOAT] */
+     SZ_DOUBLE, /* [TDOUBLE] */
+     SZ_IND,    /* [TIND] */
+     0,		/* [TFUNC] */
+     -1,	/* [TARRAY] */
+     0,		/* [TVOID] */
+     -1,	/* [TSTRUCT] */
+     -1,	/* [TUNION] */
+     SZ_INT,    /* [TENUM] */
 };
 
-int32_t	ncast[NTYPE] =
-{
-	0,				/* [TXXX] */
-	BCHAR|BUCHAR,			/* [TCHAR] */
-	BCHAR|BUCHAR,			/* [TUCHAR] */
-	BSHORT|BUSHORT,			/* [TSHORT] */
-	BSHORT|BUSHORT,			/* [TUSHORT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TINT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TUINT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TLONG] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TULONG] */
-	BVLONG|BUVLONG,			/* [TVLONG] */
-	BVLONG|BUVLONG,			/* [TUVLONG] */
-	BFLOAT,				/* [TFLOAT] */
-	BDOUBLE,			/* [TDOUBLE] */
-	BLONG|BULONG|BIND,		/* [TIND] */
-	0,				/* [TFUNC] */
-	0,				/* [TARRAY] */
-	0,				/* [TVOID] */
-	BSTRUCT,			/* [TSTRUCT] */
-	BUNION,				/* [TUNION] */
-	0,				/* [TENUM] */
+int32_t ncast[NTYPE] =
+    {
+     0,					   /* [TXXX] */
+     BCHAR | BUCHAR,			   /* [TCHAR] */
+     BCHAR | BUCHAR,			   /* [TUCHAR] */
+     BSHORT | BUSHORT,			   /* [TSHORT] */
+     BSHORT | BUSHORT,			   /* [TUSHORT] */
+     BINT | BUINT | BLONG | BULONG | BIND, /* [TINT] */
+     BINT | BUINT | BLONG | BULONG | BIND, /* [TUINT] */
+     BINT | BUINT | BLONG | BULONG | BIND, /* [TLONG] */
+     BINT | BUINT | BLONG | BULONG | BIND, /* [TULONG] */
+     BVLONG | BUVLONG,			   /* [TVLONG] */
+     BVLONG | BUVLONG,			   /* [TUVLONG] */
+     BFLOAT,				   /* [TFLOAT] */
+     BDOUBLE,				   /* [TDOUBLE] */
+     BLONG | BULONG | BIND,		   /* [TIND] */
+     0,					   /* [TFUNC] */
+     0,					   /* [TARRAY] */
+     0,					   /* [TVOID] */
+     BSTRUCT,				   /* [TSTRUCT] */
+     BUNION,				   /* [TUNION] */
+     0,					   /* [TENUM] */
 };

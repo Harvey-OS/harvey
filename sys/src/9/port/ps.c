@@ -40,7 +40,7 @@ psunhash(Proc *p)
 	h = p->pid % nelem(procalloc.ht);
 	lock(&procalloc);
 	for(l = &procalloc.ht[h]; *l != nil; l = &(*l)->pidhash)
-		if(*l == p){
+		if(*l == p) {
 			*l = p->pidhash;
 			break;
 		}
@@ -58,7 +58,7 @@ psindex(int pid)
 	h = pid % nelem(procalloc.ht);
 	lock(&procalloc);
 	for(p = procalloc.ht[h]; p != nil; p = p->pidhash)
-		if(p->pid == pid){
+		if(p->pid == pid) {
 			s = p->index;
 			break;
 		}
@@ -66,7 +66,7 @@ psindex(int pid)
 	return s;
 }
 
-Proc*
+Proc *
 psincref(int i)
 {
 	/*
@@ -87,14 +87,14 @@ psdecref(Proc *p)
 }
 
 void
-psrelease(Proc* p)
+psrelease(Proc *p)
 {
 	p->qnext = procalloc.free;
 	procalloc.free = p;
 	procalloc.nproc--;
 }
 
-Proc*
+Proc *
 psalloc(void)
 {
 	Proc *p;
@@ -121,14 +121,14 @@ psinit(int nproc)
 	Proc *p;
 	int i;
 
-	procalloc.free = malloc(nproc*sizeof(Proc));
+	procalloc.free = malloc(nproc * sizeof(Proc));
 	if(procalloc.free == nil)
-		panic("cannot allocate %ud procs (%udMB)\n", nproc, nproc*sizeof(Proc)/(1024*1024));
+		panic("cannot allocate %ud procs (%udMB)\n", nproc, nproc * sizeof(Proc) / (1024 * 1024));
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;
-	for(i=0; i<nproc-1; i++,p++){
-		p->qnext = p+1;
+	for(i = 0; i < nproc - 1; i++, p++) {
+		p->qnext = p + 1;
 		p->index = i;
 	}
 	p->qnext = 0;

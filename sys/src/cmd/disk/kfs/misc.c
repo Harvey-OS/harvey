@@ -42,7 +42,7 @@ beint32(char *s)
 	uint8_t *x;
 
 	x = (uint8_t *)s;
-	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3]; 
+	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3];
 }
 
 void
@@ -51,7 +51,6 @@ panic(char *fmt, ...)
 	char buf[8192], *s;
 	va_list arg;
 
-
 	s = buf;
 	s += sprint(s, "%s %s %d: ", progname, procname, getpid());
 	va_start(arg, fmt);
@@ -59,11 +58,11 @@ panic(char *fmt, ...)
 	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);
-abort();
+	abort();
 	exits(buf);
 }
 
-#define	SIZE	4096
+#define SIZE 4096
 
 void
 cprint(char *fmt, ...)
@@ -72,9 +71,9 @@ cprint(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+SIZE, fmt, arg);
+	out = vseprint(buf, buf + SIZE, fmt, arg);
 	va_end(arg);
-	write(cmdfd, buf, (int32_t)(out-buf));
+	write(cmdfd, buf, (int32_t)(out - buf));
 }
 
 /*
@@ -92,4 +91,3 @@ print(char *fmt, ...)
 	va_end(arg);
 	return n;
 }
-

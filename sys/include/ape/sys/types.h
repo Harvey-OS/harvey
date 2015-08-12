@@ -11,14 +11,14 @@
 #define __TYPES_H
 
 #pragma lib "/$M/lib/ape/libap.a"
-typedef	unsigned short	ino_t;
-typedef	unsigned short	dev_t;
-typedef	long long		off_t;
-typedef unsigned short	mode_t;
-typedef int16_t		uid_t;
-typedef int16_t		gid_t;
-typedef int16_t		nlink_t;
-typedef int		pid_t;
+typedef unsigned short ino_t;
+typedef unsigned short dev_t;
+typedef long long off_t;
+typedef unsigned short mode_t;
+typedef int16_t uid_t;
+typedef int16_t gid_t;
+typedef int16_t nlink_t;
+typedef int pid_t;
 
 #ifndef _SIZE_T
 #define _SIZE_T
@@ -37,7 +37,7 @@ typedef int32_t time_t;
 #ifdef _BSD_EXTENSION
 #ifndef _CADDR_T
 #define _CADDR_T
-typedef char * caddr_t;
+typedef char *caddr_t;
 #endif
 #ifndef _FD_SET_T
 #define _FD_SET_T
@@ -45,10 +45,10 @@ typedef char * caddr_t;
 typedef struct fd_set {
 	int32_t fds_bits[3];
 } fd_set;
-#define FD_SET(n,p)	((p)->fds_bits[(n)>>5] |= (1 << ((n) &0x1f)))
-#define FD_CLR(n,p)	((p)->fds_bits[(n)>>5] &= ~(1 << ((n) &0x1f)))
-#define FD_ISSET(n,p)	((p)->fds_bits[(n)>>5] & (1 << ((n) &0x1f)))
-#define FD_ZERO(p)	((p)->fds_bits[0] =0, (p)->fds_bits[1] =0, (p)->fds_bits[2] =0)
+#define FD_SET(n, p) ((p)->fds_bits[(n) >> 5] |= (1 << ((n)&0x1f)))
+#define FD_CLR(n, p) ((p)->fds_bits[(n) >> 5] &= ~(1 << ((n)&0x1f)))
+#define FD_ISSET(n, p) ((p)->fds_bits[(n) >> 5] & (1 << ((n)&0x1f)))
+#define FD_ZERO(p) ((p)->fds_bits[0] = 0, (p)->fds_bits[1] = 0, (p)->fds_bits[2] = 0)
 #endif
 #endif
 

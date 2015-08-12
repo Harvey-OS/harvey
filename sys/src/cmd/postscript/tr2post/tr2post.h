@@ -7,16 +7,16 @@
  * in the LICENSE file.
  */
 
-#define MAXSPECHARS 	512
-#define MAXTOKENSIZE	128
-#define CHARLIB	"/sys/lib/troff/font/devutf/charlib"
+#define MAXSPECHARS 512
+#define MAXTOKENSIZE 128
+#define CHARLIB "/sys/lib/troff/font/devutf/charlib"
 
 extern int debug;
 extern int fontsize;
 extern int fontpos;
-extern int resolution;	/* device resolution, goobies per inch */
-extern int minx;		/* minimum x motion */
-extern int miny;		/* minimum y motion */
+extern int resolution; /* device resolution, goobies per inch */
+extern int minx;       /* minimum x motion */
+extern int miny;       /* minimum y motion */
 extern char devname[];
 extern int devres;
 extern int unitwidth;
@@ -25,7 +25,7 @@ extern char *encoding;
 extern int fontmnt;
 extern char **fontmtab;
 
-extern int curtrofffontid;	/* index into trofftab of current troff font */
+extern int curtrofffontid; /* index into trofftab of current troff font */
 extern int troffontcnt;
 
 extern BOOLEAN drawflag;
@@ -39,8 +39,8 @@ struct specname {
  * to by multiple character names, e.g. \(mu for multiply.
  */
 struct charent {
-	char postfontid;	/* index into pfnamtab */
-	char postcharid;	/* e.g., 0x00 */
+	char postfontid; /* index into pfnamtab */
+	char postcharid; /* e.g., 0x00 */
 	short troffcharwidth;
 	char *name;
 	struct charent *next;
@@ -65,8 +65,8 @@ struct psfent {
 };
 
 struct troffont {
-	char *trfontid;		/* the common troff font name e.g., `R' */
-	BOOLEAN special;	/* flag says this is a special font. */
+	char *trfontid;  /* the common troff font name e.g., `R' */
+	BOOLEAN special; /* flag says this is a special font. */
 	int spacewidth;
 	int psfmapsize;
 	struct psfent *psfmap;
@@ -78,7 +78,7 @@ extern struct charent spechars[];
 
 /** prototypes **/
 void initialize(void);
-void mountfont(int, char*);
+void mountfont(int, char *);
 int findtfn(char *, int);
 void runeout(Rune);
 void specialout(char *);
@@ -105,8 +105,8 @@ int hash(char *, int);
 BOOLEAN readDESC(void);
 void finish(void);
 void ps_include(Biobufhdr *, Biobufhdr *, int, int,
-	int, int, double, double, double, double,
-	double, double, double);
+		int, int, double, double, double, double,
+		double, double, double);
 void picture(Biobufhdr *, char *);
-void beginpath(char*, int);
-void drawpath(char*, int);
+void beginpath(char *, int);
+void drawpath(char *, int);

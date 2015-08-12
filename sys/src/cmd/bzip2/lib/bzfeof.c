@@ -99,11 +99,12 @@
 #include "bzlib_stdio.h"
 #include "bzlib_stdio_private.h"
 
-Bool bz_feof ( FILE* f )
+Bool
+bz_feof(FILE *f)
 {
-   Int32 c = fgetc ( f );
-   if (c == EOF) return True;
-   ungetc ( c, f );
-   return False;
+	Int32 c = fgetc(f);
+	if(c == EOF)
+		return True;
+	ungetc(c, f);
+	return False;
 }
-

@@ -11,32 +11,32 @@
 #include <u.h>
 #include <libc.h>
 
-uint8_t*	buf;
+uint8_t *buf;
 
-Lock	arithlock;	/* protect 64-bit accesses: unlikely to be atomic */
-uint64_t	nin;
-uint64_t	nout;
+Lock arithlock; /* protect 64-bit accesses: unlikely to be atomic */
+uint64_t nin;
+uint64_t nout;
 
-uint32_t	kilo;
-uint32_t	max;
-int32_t	ssize;
-int64_t	tsize;
-int	dsize;
-int	done;
-int	ibsize;
-int	obsize;
-int	verb;
-int64_t	off;
+uint32_t kilo;
+uint32_t max;
+int32_t ssize;
+int64_t tsize;
+int dsize;
+int done;
+int ibsize;
+int obsize;
+int verb;
+int64_t off;
 
-void	doinput(int);
-void	dooutput(int);
+void doinput(int);
+void dooutput(int);
 
 static void
 usage(void)
 {
 	fprint(2, "usage: pump [-b iando] [-d sleeptime] [-f ofile] "
-		"[-i ireadsize]\n\t[-k KB-buffer] [-o owritesize] "
-		"[-s start-KB] [-S seek-offset]\n\t[-t mins] [files]\n");
+		  "[-i ireadsize]\n\t[-k KB-buffer] [-o owritesize] "
+		  "[-s start-KB] [-S seek-offset]\n\t[-t mins] [files]\n");
 	exits("usage");
 }
 
@@ -47,12 +47,13 @@ main(int argc, char *argv[])
 	char *file;
 
 	kilo = 5000;
-	obsize = ibsize = 8*1024;
+	obsize = ibsize = 8 * 1024;
 	dsize = 0;
 	fo = 1;
 	off = 0;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'b':
@@ -89,9 +90,10 @@ main(int argc, char *argv[])
 		break;
 	case 't':
 		tsize = atoll(EARGF(usage()));
-		tsize *= 10584000;		/* minutes */
+		tsize *= 10584000; /* minutes */
 		break;
-	} ARGEND
+	}
+	ARGEND
 	kilo <<= 10;
 
 	buf = malloc(kilo);
@@ -102,16 +104,16 @@ main(int argc, char *argv[])
 	done = 0;
 	max = 0;
 
-	switch(rfork(RFPROC|RFNOWAIT|RFNAMEG|RFMEM)) {
+	switch(rfork(RFPROC | RFNOWAIT | RFNAMEG | RFMEM)) {
 	default:
 		dooutput(fo);
 		break;
 	case 0:
-		for(i=0; i<argc; i++) {
+		for(i = 0; i < argc; i++) {
 			f = open(argv[i], OREAD);
 			if(f < 0) {
 				fprint(2, "%s: can't open %s: %r\n",
-					argv0, argv[i]);
+				       argv0, argv[i]);
 				break;
 			}
 			doinput(f);
@@ -147,7 +149,7 @@ dooutput(int f)
 
 	seek(f, off, 0);
 	lock(&arithlock);
-	for (;;) {
+	for(;;) {
 		n = nin - nout;
 		if(n == 0) {
 			if(done)
@@ -162,16 +164,16 @@ dooutput(int f)
 		l = nout % kilo;
 		unlock(&arithlock);
 
-		if(kilo-l < n)
-			n = kilo-l;
+		if(kilo - l < n)
+			n = kilo - l;
 		if(n > obsize)
 			n = obsize;
-		c = write(f, buf+l, n);
+		c = write(f, buf + l, n);
 
 		lock(&arithlock);
 		if(c != n) {
 			fprint(2, "%s: write error at offset %,lld: %r\n",
-				argv0, seek(f, 0, 1));
+			       argv0, seek(f, 0, 1));
 			break;
 		}
 		nout += c;
@@ -191,18 +193,18 @@ doinput(int f)
 	seek(f, off, 0);
 	lock(&arithlock);
 	if(ssize > 0) {
-		for (xnin = 0; xnin < ssize && !done; xnin += c) {
+		for(xnin = 0; xnin < ssize && !done; xnin += c) {
 			n = kilo - (xnin - nout);
 			if(n == 0)
 				break;
 			unlock(&arithlock);
 
 			l = xnin % kilo;
-			if(kilo-l < n)
-				n = kilo-l;
+			if(kilo - l < n)
+				n = kilo - l;
 			if(n > ibsize)
 				n = ibsize;
-			c = read(f, buf+l, n);
+			c = read(f, buf + l, n);
 
 			lock(&arithlock);
 			if(c <= 0) {
@@ -222,11 +224,11 @@ doinput(int f)
 		l = nin % kilo;
 		unlock(&arithlock);
 
-		if(kilo-l < n)
-			n = kilo-l;
+		if(kilo - l < n)
+			n = kilo - l;
 		if(n > ibsize)
 			n = ibsize;
-		c = read(f, buf+l, n);
+		c = read(f, buf + l, n);
 
 		lock(&arithlock);
 		if(c <= 0) {

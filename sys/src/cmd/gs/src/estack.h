@@ -27,10 +27,10 @@
 /* Definitions for the execution stack */
 
 #ifndef estack_INCLUDED
-#  define estack_INCLUDED
+#define estack_INCLUDED
 
 #include "iestack.h"
-#include "icstate.h"		/* for access to exec_stack */
+#include "icstate.h" /* for access to exec_stack */
 
 /* Define access to the cached current_file pointer. */
 #define esfile (iexec_stack.current_file)
@@ -119,39 +119,42 @@
  */
 
 /* Macro for marking the execution stack */
-#define make_mark_estack(ep, es_idx, proc)\
-  make_tasv(ep, t_null, a_executable, es_idx, opproc, proc)
-#define push_mark_estack(es_idx, proc)\
-  (++esp, make_mark_estack(esp, es_idx, proc))
-#define r_is_estack_mark(ep)\
-  r_has_type_attrs(ep, t_null, a_executable)
+#define make_mark_estack(ep, es_idx, proc) \
+	make_tasv(ep, t_null, a_executable, es_idx, opproc, proc)
+#define push_mark_estack(es_idx, proc) \
+	(++esp, make_mark_estack(esp, es_idx, proc))
+#define r_is_estack_mark(ep) \
+	r_has_type_attrs(ep, t_null, a_executable)
 #define estack_mark_index(ep) r_size(ep)
 #define set_estack_mark_index(ep, es_idx) r_set_size(ep, es_idx)
 
 /* Macro for pushing an operator on the execution stack */
 /* to represent a continuation procedure */
-#define make_op_estack(ep, proc)\
-  make_oper(ep, 0, proc)
-#define push_op_estack(proc)\
-  (++esp, make_op_estack(esp, proc))
+#define make_op_estack(ep, proc) \
+	make_oper(ep, 0, proc)
+#define push_op_estack(proc) \
+	(++esp, make_op_estack(esp, proc))
 
 /* Macro to ensure enough room on the execution stack */
-#define check_estack(n)\
-  if ( esp > estop - (n) )\
-    { int es_code_ = ref_stack_extend(&e_stack, n);\
-      if ( es_code_ < 0 ) return es_code_;\
-    }
+#define check_estack(n)                                       \
+	if(esp > estop - (n)) {                               \
+		int es_code_ = ref_stack_extend(&e_stack, n); \
+		if(es_code_ < 0)                              \
+			return es_code_;                      \
+	}
 
 /* Macro to ensure enough entries on the execution stack */
-#define check_esp(n)\
-  if ( esp < esbot + ((n) - 1) )\
-    { e_stack.requested = (n); return_error(e_ExecStackUnderflow); }
+#define check_esp(n)                                \
+	if(esp < esbot + ((n)-1)) {                 \
+		e_stack.requested = (n);            \
+		return_error(e_ExecStackUnderflow); \
+	}
 
 /* Define the various kinds of execution stack marks. */
-#define es_other 0		/* internal use */
-#define es_show 1		/* show operators */
-#define es_for 2		/* iteration operators */
-#define es_stopped 3		/* stopped operator */
+#define es_other 0   /* internal use */
+#define es_show 1    /* show operators */
+#define es_for 2     /* iteration operators */
+#define es_stopped 3 /* stopped operator */
 
 /*
  * Pop a given number of elements off the execution stack,

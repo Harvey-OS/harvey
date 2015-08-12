@@ -13,58 +13,52 @@
 #include <auth.h>
 #include "ppp.h"
 
-enum
-{
-	PAD	= 128,
-	NLIST	= (1<<5),
-	BPOW	= 10,
+enum {
+	PAD = 128,
+	NLIST = (1 << 5),
+	BPOW = 10,
 };
 
 typedef struct Barena Barena;
-struct Barena
-{
+struct Barena {
 	QLock;
-	Block*	list[NLIST];
+	Block *list[NLIST];
 };
 static Barena area;
 
 #define ADEBUG if(0)
 
-
 /*
  *  allocation tracing
  */
-enum
-{
-	Npc=	64,
+enum {
+	Npc = 64,
 };
 typedef struct Arefent Arefent;
-struct Arefent
-{
-	uint	pc;
-	uint	n;
+struct Arefent {
+	uint pc;
+	uint n;
 };
 typedef struct Aref Aref;
-struct  Aref
-{
-	Arefent	tab[Npc];
+struct Aref {
+	Arefent tab[Npc];
 	QLock;
 };
 Aref arefblock;
 
-static uint32_t	callerpc(void*);
-static void	aref(Aref*, uint32_t);
-static void	aunref(Aref*, uint32_t);
+static uint32_t callerpc(void *);
+static void aref(Aref *, uint32_t);
+static void aunref(Aref *, uint32_t);
 
-Block*
+Block *
 allocb(int len)
 {
 	int sz;
 	Block *bp, **l;
 
 	len += PAD;
-	sz = (len>>BPOW)&(NLIST-1);
-	
+	sz = (len >> BPOW) & (NLIST - 1);
+
 	qlock(&area);
 	l = &area.list[sz];
 	for(bp = *l; bp; bp = bp->flist) {
@@ -75,13 +69,14 @@ allocb(int len)
 			bp->next = nil;
 			bp->list = nil;
 			bp->flist = nil;
-			bp->base = (uint8_t*)bp+sizeof(Block);
-			bp->rptr = bp->base+PAD;
+			bp->base = (uint8_t *)bp + sizeof(Block);
+			bp->rptr = bp->base + PAD;
 			bp->wptr = bp->rptr;
-			bp->lim  = bp->base+bp->bsz;
+			bp->lim = bp->base + bp->bsz;
 			bp->flow = nil;
-			bp->flags= 0;
-			ADEBUG {
+			bp->flags = 0;
+			ADEBUG
+			{
 				bp->pc = callerpc(&len);
 				aref(&arefblock, bp->pc);
 			}
@@ -92,14 +87,15 @@ allocb(int len)
 
 	qunlock(&area);
 
-	bp = mallocz(sizeof(Block)+len, 1);
+	bp = mallocz(sizeof(Block) + len, 1);
 
-	bp->bsz  = len;
-	bp->base = (uint8_t*)bp+sizeof(Block);
-	bp->rptr = bp->base+PAD;
+	bp->bsz = len;
+	bp->base = (uint8_t *)bp + sizeof(Block);
+	bp->rptr = bp->base + PAD;
 	bp->wptr = bp->rptr;
-	bp->lim  = bp->base+len;
-	ADEBUG {
+	bp->lim = bp->base + len;
+	ADEBUG
+	{
 		bp->pc = callerpc(&len);
 		aref(&arefblock, bp->pc);
 	}
@@ -114,7 +110,7 @@ freeb(Block *bp)
 
 	qlock(&area);
 	while(bp) {
-		sz = (bp->bsz>>BPOW)&(NLIST-1);
+		sz = (bp->bsz >> BPOW) & (NLIST - 1);
 
 		l = &area.list[sz];
 		bp->flist = *l;
@@ -123,10 +119,10 @@ freeb(Block *bp)
 		next = bp->next;
 
 		/* to catch use after free */
-		bp->rptr = (uint8_t*)0xdeadbabe;
-		bp->wptr = (uint8_t*)0xdeadbabe;
-		bp->next = (Block*)0xdeadbabe;
-		bp->list = (Block*)0xdeadbabe;
+		bp->rptr = (uint8_t *)0xdeadbabe;
+		bp->wptr = (uint8_t *)0xdeadbabe;
+		bp->next = (Block *)0xdeadbabe;
+		bp->list = (Block *)0xdeadbabe;
 
 		ADEBUG aunref(&arefblock, bp->pc);
 
@@ -139,7 +135,7 @@ freeb(Block *bp)
  *  concatenate a list of blocks into a single one and make sure
  *  the result is at least min uchars
  */
-Block*
+Block *
 concat(Block *bp)
 {
 	int len;
@@ -185,7 +181,7 @@ pullup(Block *bp, int n)
 	 *  if not enough room in the first block,
 	 *  add another to the front of the list.
 	 */
-	if(bp->lim - bp->rptr < n){
+	if(bp->lim - bp->rptr < n) {
 		nbp = allocb(n);
 		nbp->next = bp;
 		bp = nbp;
@@ -195,15 +191,14 @@ pullup(Block *bp, int n)
 	 *  copy uchars from the trailing blocks into the first
 	 */
 	n -= BLEN(bp);
-	while(nbp = bp->next){
+	while(nbp = bp->next) {
 		i = BLEN(nbp);
 		if(i >= n) {
 			memmove(bp->wptr, nbp->rptr, n);
 			bp->wptr += n;
 			nbp->rptr += n;
 			return bp;
-		}
-		else {
+		} else {
 			memmove(bp->wptr, nbp->rptr, i);
 			bp->wptr += i;
 			bp->next = nbp->next;
@@ -220,16 +215,15 @@ pullup(Block *bp, int n)
  *  Pad a block to the front with n uchars.  This is used to add protocol
  *  headers to the front of blocks.
  */
-Block*
+Block *
 padb(Block *bp, int n)
 {
 	Block *nbp;
 
-	if(bp->rptr-bp->base >= n) {
+	if(bp->rptr - bp->base >= n) {
 		bp->rptr -= n;
 		return bp;
-	}
-	else {
+	} else {
 		/* fprint(2, "padb: required %d PAD %d\n", n, PAD) = malloc(sizeof(*required %d PAD %d\n", n, PAD))); */
 		nbp = allocb(n);
 		nbp->wptr = nbp->lim;
@@ -237,7 +231,7 @@ padb(Block *bp, int n)
 		nbp->next = bp;
 		return nbp;
 	}
-} 
+}
 
 Block *
 btrim(Block *bp, int offset, int len)
@@ -245,7 +239,7 @@ btrim(Block *bp, int offset, int len)
 	uint32_t l;
 	Block *nb, *startb;
 
-	if(blen(bp) < offset+len) {
+	if(blen(bp) < offset + len) {
 		freeb(bp);
 		return nil;
 	}
@@ -277,7 +271,7 @@ btrim(Block *bp, int offset, int len)
 	return startb;
 }
 
-Block*
+Block *
 copyb(Block *bp, int count)
 {
 	int l;
@@ -344,14 +338,14 @@ pullb(Block **bph, int count)
 static uint32_t
 callerpc(void *a)
 {
-	return ((uint32_t*)a)[-1];
+	return ((uint32_t *)a)[-1];
 }
 static void
 aref(Aref *ap, uint32_t pc)
 {
 	Arefent *a, *e;
 
-	e = &ap->tab[Npc-1];
+	e = &ap->tab[Npc - 1];
 	qlock(ap);
 	for(a = ap->tab; a < e; a++)
 		if(a->pc == pc || a->pc == 0)
@@ -365,7 +359,7 @@ aunref(Aref *ap, uint32_t pc)
 {
 	Arefent *a, *e;
 
-	e = &ap->tab[Npc-1];
+	e = &ap->tab[Npc - 1];
 	qlock(ap);
 	for(a = ap->tab; a < e; a++)
 		if(a->pc == pc || a->pc == 0)

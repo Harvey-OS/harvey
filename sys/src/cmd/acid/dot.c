@@ -15,7 +15,7 @@
 #define Extern extern
 #include "acid.h"
 
-Type*
+Type *
 srch(Type *t, char *s)
 {
 	Type *f;
@@ -55,19 +55,17 @@ odot(Node *n, Node *r)
 		error("no tag for (expr).%s", s);
 
 	/* Propagate types */
-	if(t->type) 
+	if(t->type)
 		r->comt = t->type->lt;
-	
-	addr = res.ival+t->offset;
+
+	addr = res.ival + t->offset;
 	if(t->fmt == 'a') {
 		r->op = OCONST;
 		r->fmt = 'a';
 		r->type = TINT;
 		r->ival = addr;
-	}
-	else 
+	} else
 		indir(cormap, addr, t->fmt, r);
-
 }
 
 static Type **tail;
@@ -83,12 +81,12 @@ buildtype(Node *m, int d)
 
 	switch(m->op) {
 	case OLIST:
-		buildtype(m->left, d);		
+		buildtype(m->left, d);
 		buildtype(m->right, d);
 		break;
 
 	case OCTRUCT:
-		buildtype(m->left, d+1);
+		buildtype(m->left, d + 1);
 		break;
 	default:
 		t = malloc(sizeof(Type));
@@ -99,9 +97,8 @@ buildtype(Node *m, int d)
 		t->offset = m->ival;
 		if(m->left) {
 			t->type = m->left->sym;
-			t->fmt = 'a';			
-		}
-		else {
+			t->fmt = 'a';
+		} else {
 			t->type = 0;
 			if(m->right)
 				t->type = m->right->sym;
@@ -110,7 +107,7 @@ buildtype(Node *m, int d)
 
 		*tail = t;
 		tail = &t->next;
-	}			
+	}
 }
 
 void

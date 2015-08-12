@@ -61,7 +61,7 @@
  *
  * Define USG if you are running Unix System V or some similar variant
  */
-#define USG 	/* Running on a USG System */
+#define USG /* Running on a USG System */
 
 /*
  * BSD - BSD (Berkely) specific modifications
@@ -77,7 +77,7 @@
  * device.  Normally this would be a tape drive, but it may be a disk drive
  * on those systems that don't have tape drives.
  */
-#define DEF_AR_FILE	"-"	/* The default archive on your system */
+#define DEF_AR_FILE "-" /* The default archive on your system */
 
 /*
  * TTY - device which interactive queries should be directed to (required)
@@ -88,7 +88,7 @@
  */
 /* #define	TTY	"/dev/tty"	/* for most versions of UNIX */
 /* #define	TTY	"con:"		/* For MS-DOS */
-#define	TTY	"/dev/cons"		/* for Plan 9 */
+#define TTY "/dev/cons" /* for Plan 9 */
 
 /*
  * PAXDIR - if you do not have directory access routines
@@ -109,7 +109,7 @@
  *
  * NOTE: DO NOT DEFINE THIS IF YOU HAVE BERKELEY DIRECTORY ACCESS ROUTINES.
  */
-#define DIRENT		/* use POSIX compatible directory routines */
+#define DIRENT /* use POSIX compatible directory routines */
 
 /*
  * OFFSET - compiler dependent offset type
@@ -117,7 +117,7 @@
  * OFFSET is the type which is returned by lseek().  It is different on
  * some systems.  Most define it to be off_t, but some define it to be long.
  */
-#define OFFSET	off_t	/* for most BSD, USG and other systems */
+#define OFFSET off_t /* for most BSD, USG and other systems */
 /* #define OFFSET	long	/* for most of the rest of them... */
 
 /*
@@ -138,7 +138,7 @@
  * Some systems have signal defines to return an int *, other return a
  * void *.  Please choose the correct value for your system.
  */
-#define SIG_T	void	/* signal defined as "void (*signal)()" */
+#define SIG_T void /* signal defined as "void (*signal)()" */
 /* #define SIG_T	int	/* signal defined as "int (*signal)()" */
 
 /*
@@ -176,13 +176,13 @@
  * Do a little sanity checking
  */
 #ifdef PAXDIR
-#  ifndef DIRENT
-#    define DIRENT
-#  endif
+#ifndef DIRENT
+#define DIRENT
+#endif
 #endif
 
 #ifdef XENIX_286
-#  define USG
+#define USG
 #endif /* XENIX_286 */
 
 #endif /* _PAX_CONFIG_H */

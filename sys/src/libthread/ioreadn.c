@@ -20,7 +20,7 @@ _ioreadn(va_list *arg)
 	int32_t n;
 
 	fd = va_arg(*arg, int);
-	a = va_arg(*arg, void*);
+	a = va_arg(*arg, void *);
 	n = va_arg(*arg, int32_t);
 	return readn(fd, a, n);
 }

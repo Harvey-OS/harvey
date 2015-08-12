@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-char*
+char *
 strncpy(char *s1, const char *s2, size_t n)
 {
 	int i;

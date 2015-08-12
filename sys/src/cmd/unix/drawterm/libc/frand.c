@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
-#define	MASK	0x7fffffffL
-#define	NORM	(1.0/(1.0+MASK))
+#define MASK 0x7fffffffL
+#define NORM (1.0 / (1.0 + MASK))
 
 double
 frand(void)

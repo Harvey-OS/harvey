@@ -35,16 +35,16 @@ hypot(double p, double q)
 	if(p == 0)
 		return 0;
 	pfac = p;
-	r = q = q/p;
+	r = q = q / p;
 	p = 1;
 	for(;;) {
 		r *= r;
-		s = r+4;
+		s = r + 4;
 		if(s == 4)
-			return p*pfac;
+			return p * pfac;
 		r /= s;
-		p += 2*r*p;
+		p += 2 * r * p;
 		q *= r;
-		r = q/p;
+		r = q / p;
 	}
 }

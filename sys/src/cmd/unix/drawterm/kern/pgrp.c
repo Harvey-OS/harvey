@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
 static Ref pgrpid;
 static Ref mountid;
@@ -23,19 +23,19 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	Proc *p, *ep;
 	char buf[ERRMAX];
 
-	if(n >= ERRMAX-1)
+	if(n >= ERRMAX - 1)
 		error(Etoobig);
 
 	memmove(buf, a, n);
 	buf[n] = 0;
 	p = proctab(0);
-	ep = p+conf.nproc;
+	ep = p + conf.nproc;
 	for(; p < ep; p++) {
 		if(p->state == Dead)
 			continue;
 		if(up != p && p->noteid == noteid && p->kp == 0) {
 			qlock(&p->debug);
-			if(p->pid == 0 || p->noteid != noteid){
+			if(p->pid == 0 || p->noteid != noteid) {
 				qunlock(&p->debug);
 				continue;
 			}
@@ -49,7 +49,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 }
 #endif
 
-Pgrp*
+Pgrp *
 newpgrp(void)
 {
 	Pgrp *p;
@@ -60,7 +60,7 @@ newpgrp(void)
 	return p;
 }
 
-Rgrp*
+Rgrp *
 newrgrp(void)
 {
 	Rgrp *r;
@@ -168,7 +168,7 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	wunlock(&from->ns);
 }
 
-Fgrp*
+Fgrp *
 dupfgrp(Fgrp *f)
 {
 	Fgrp *new;
@@ -176,8 +176,8 @@ dupfgrp(Fgrp *f)
 	int i;
 
 	new = smalloc(sizeof(Fgrp));
-	if(f == nil){
-		new->fd = smalloc(DELTAFD*sizeof(Chan*));
+	if(f == nil) {
+		new->fd = smalloc(DELTAFD * sizeof(Chan *));
 		new->nfd = DELTAFD;
 		new->ref.ref = 1;
 		return new;
@@ -185,12 +185,12 @@ dupfgrp(Fgrp *f)
 
 	lock(&f->ref.lk);
 	/* Make new fd list shorter if possible, preserving quantization */
-	new->nfd = f->maxfd+1;
-	i = new->nfd%DELTAFD;
+	new->nfd = f->maxfd + 1;
+	i = new->nfd % DELTAFD;
 	if(i != 0)
 		new->nfd += DELTAFD - i;
-	new->fd = malloc(new->nfd*sizeof(Chan*));
-	if(new->fd == 0){
+	new->fd = malloc(new->nfd * sizeof(Chan *));
+	if(new->fd == 0) {
 		unlock(&f->ref.lk);
 		error("no memory for fgrp");
 	}
@@ -198,7 +198,7 @@ dupfgrp(Fgrp *f)
 
 	new->maxfd = f->maxfd;
 	for(i = 0; i <= f->maxfd; i++) {
-		if((c = f->fd[i])){
+		if((c = f->fd[i])) {
 			incref(&c->ref);
 			new->fd[i] = c;
 		}
@@ -228,7 +228,7 @@ closefgrp(Fgrp *f)
 	free(f);
 }
 
-Mount*
+Mount *
 newmount(Mhead *mh, Chan *to, int flag, char *spec)
 {
 	Mount *m;

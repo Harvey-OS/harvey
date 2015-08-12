@@ -64,19 +64,17 @@
 #include "ttcommon.h"
 #include "ttobjs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Run instructions in current execution context */
+TT_Error RunIns(PExecution_Context exc);
 
 #ifdef __cplusplus
-  extern "C" {
-#endif
-  
-  /* Run instructions in current execution context */
-  TT_Error  RunIns( PExecution_Context  exc );
- 
-#ifdef __cplusplus
-  }
+}
 #endif
 
 #endif /* TTINTERP_H */
-
 
 /* END */

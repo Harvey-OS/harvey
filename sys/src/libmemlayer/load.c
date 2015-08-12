@@ -16,7 +16,7 @@
 int
 memload(Memimage *dst, Rectangle r, uint8_t *data, int n, int iscompressed)
 {
-	int (*loadfn)(Memimage*, Rectangle, uint8_t*, int);
+	int (*loadfn)(Memimage *, Rectangle, uint8_t *, int);
 	Memimage *tmp;
 	Memlayer *dl;
 	Rectangle lr;
@@ -26,7 +26,7 @@ memload(Memimage *dst, Rectangle r, uint8_t *data, int n, int iscompressed)
 	if(iscompressed)
 		loadfn = cloadmemimage;
 
-    Top:
+Top:
 	dl = dst->layer;
 	if(dl == nil)
 		return loadfn(dst, r, data, n);
@@ -39,8 +39,8 @@ memload(Memimage *dst, Rectangle r, uint8_t *data, int n, int iscompressed)
 	r.min.y += dl->delta.y;
 	r.max.x += dl->delta.x;
 	r.max.y += dl->delta.y;
-	dx = dl->delta.x&(7/dst->depth);
-	if(dl->clear && dx==0){
+	dx = dl->delta.x & (7 / dst->depth);
+	if(dl->clear && dx == 0) {
 		dst = dl->screen->image;
 		goto Top;
 	}
@@ -48,7 +48,7 @@ memload(Memimage *dst, Rectangle r, uint8_t *data, int n, int iscompressed)
 	/*
 	 * dst is an obscured layer or data is unaligned
 	 */
-	if(dl->save && dx==0){
+	if(dl->save && dx == 0) {
 		n = loadfn(dl->save, lr, data, n);
 		if(n > 0)
 			memlexpose(dst, r);

@@ -10,7 +10,6 @@
 #include <u.h>
 #include <libc.h>
 
-
 int
 execl(char *f, ...)
 {
@@ -25,7 +24,7 @@ execl(char *f, ...)
 	while((arg = va_arg(va, char *)) != nil)
 		n++;
 
-	char *args[n+1];
+	char *args[n + 1];
 
 	n = 0;
 	while((arg = va_arg(va2, char *)) != nil)

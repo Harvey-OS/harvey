@@ -17,13 +17,13 @@ main(int argc, char *argv[])
 	int fd;
 
 	fd = plumbopen("audioplay", OREAD);
-	if (fd < 0)
+	if(fd < 0)
 		sysfatal("port audioplay: %r");
-	for (;;) {
+	for(;;) {
 		m = plumbrecv(fd);
-		if (m == nil)
+		if(m == nil)
 			sysfatal("plumrecv: %r");
-		
+
 		plumbfree(m);
 	}
 }

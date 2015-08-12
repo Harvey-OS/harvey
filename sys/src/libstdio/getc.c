@@ -12,6 +12,8 @@
  */
 #include "iolib.h"
 #undef getc
-int getc(FILE *f){
+int
+getc(FILE *f)
+{
 	return fgetc(f);
 }

@@ -13,7 +13,7 @@
 #include <ndb.h>
 
 /* concatenate two tuples */
-Ndbtuple*
+Ndbtuple *
 ndbconcatenate(Ndbtuple *a, Ndbtuple *b)
 {
 	Ndbtuple *t;

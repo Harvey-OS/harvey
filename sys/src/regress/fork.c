@@ -10,24 +10,25 @@
 #include <u.h>
 #include <libc.h>
 
-int main()
+int
+main()
 {
 	static int c;
 	int pid;
-	pid = rfork(RFMEM|RFPROC);
-	if (pid < 0) {
+	pid = rfork(RFMEM | RFPROC);
+	if(pid < 0) {
 		print("FAIL\n");
 		exits("FAIL");
 	}
-	if (pid > 0) {
+	if(pid > 0) {
 		c++;
 	}
-	if (pid == 0) {
+	if(pid == 0) {
 		print("PASS\n");
 		exits("PASS");
 	}
 
-	if (c > 1) {
+	if(c > 1) {
 		print("FAIL\n");
 		exits("FAIL");
 	}

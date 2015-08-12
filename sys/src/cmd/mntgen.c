@@ -25,8 +25,7 @@ usage(void)
 uint32_t time0;
 
 typedef struct Tab Tab;
-struct Tab
-{
+struct Tab {
 	char *name;
 	int64_t qid;
 	uint32_t time;
@@ -37,12 +36,12 @@ Tab *tab;
 int ntab;
 int mtab;
 
-static Tab*
+static Tab *
 findtab(int64_t path)
 {
 	int i;
 
-	for(i=0; i<ntab; i++)
+	for(i = 0; i < ntab; i++)
 		if(tab[i].qid == path)
 			return &tab[i];
 	return nil;
@@ -53,7 +52,7 @@ hash(char *name)
 {
 	int64_t digest[MD5dlen / sizeof(int64_t) + 1];
 	md5((uint8_t *)name, strlen(name), (uint8_t *)digest, nil);
-	return digest[0] & ((1ULL<<48)-1);
+	return digest[0] & ((1ULL << 48) - 1);
 }
 
 static void
@@ -74,12 +73,12 @@ dirgen(int i, Dir *d, void *v)
 	d->qid.type = QTDIR;
 	d->uid = estrdup9p("sys");
 	d->gid = estrdup9p("sys");
-	d->mode = DMDIR|0555;
+	d->mode = DMDIR | 0555;
 	d->length = 0;
-	if(i == -1){
+	if(i == -1) {
 		d->name = estrdup9p("/");
 		d->atime = d->mtime = time0;
-	}else{
+	} else {
 		d->qid.path = tab[i].qid;
 		d->name = estrdup9p(tab[i].name);
 		d->atime = d->mtime = tab[i].time;
@@ -106,26 +105,26 @@ fsstat(Req *r)
 	qid = r->fid->qid.path;
 	if(qid == 0)
 		dirgen(-1, &r->d, nil);
-	else{
-		if((t = findtab(qid)) == nil){
+	else {
+		if((t = findtab(qid)) == nil) {
 			respond(r, "path not found (???)");
 			return;
 		}
-		dirgen(t-tab, &r->d, nil);
+		dirgen(t - tab, &r->d, nil);
 	}
 	respond(r, nil);
 }
 
-static char*
+static char *
 fswalk1(Fid *fid, char *name, void *v)
 {
 	int i;
 	Tab *t;
 	int64_t h;
 
-	if(fid->qid.path != 0){
+	if(fid->qid.path != 0) {
 		/* nothing in child directory */
-		if(strcmp(name, "..") == 0){
+		if(strcmp(name, "..") == 0) {
 			if((t = findtab(fid->qid.path)) != nil)
 				t->ref--;
 			fid->qid.path = 0;
@@ -136,8 +135,8 @@ fswalk1(Fid *fid, char *name, void *v)
 	/* root */
 	if(strcmp(name, "..") == 0)
 		return nil;
-	for(i=0; i<ntab; i++)
-		if(strcmp(tab[i].name, name) == 0){
+	for(i = 0; i < ntab; i++)
+		if(strcmp(tab[i].name, name) == 0) {
 			tab[i].ref++;
 			fid->qid.path = tab[i].qid;
 			return nil;
@@ -147,12 +146,12 @@ fswalk1(Fid *fid, char *name, void *v)
 		return "hash collision";
 
 	/* create it */
-	if(ntab == mtab){
+	if(ntab == mtab) {
 		if(mtab == 0)
 			mtab = 16;
 		else
 			mtab *= 2;
-		tab = erealloc9p(tab, sizeof(tab[0])*mtab);
+		tab = erealloc9p(tab, sizeof(tab[0]) * mtab);
 	}
 	tab[ntab].qid = h;
 	fid->qid.path = tab[ntab].qid;
@@ -164,7 +163,7 @@ fswalk1(Fid *fid, char *name, void *v)
 	return nil;
 }
 
-static char*
+static char *
 fsclone(Fid *fid, Fid *f, void *v)
 {
 	Tab *t;
@@ -189,14 +188,14 @@ fsclunk(Fid *fid)
 	qid = fid->qid.path;
 	if(qid == 0)
 		return;
-	if((t = findtab(qid)) == nil){
+	if((t = findtab(qid)) == nil) {
 		fprint(2, "warning: cannot find %llux\n", qid);
 		return;
 	}
-	if(--t->ref == 0){
+	if(--t->ref == 0) {
 		free(t->name);
-		tab[t-tab] = tab[--ntab];
-	}else if(t->ref < 0)
+		tab[t - tab] = tab[--ntab];
+	} else if(t->ref < 0)
 		fprint(2, "warning: negative ref count for %s\n", t->name);
 }
 
@@ -206,25 +205,24 @@ fsattach(Req *r)
 	char *spec;
 
 	spec = r->ifcall.aname;
-	if(spec && spec[0]){
+	if(spec && spec[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
-	
+
 	r->ofcall.qid = (Qid){0, 0, QTDIR};
 	r->fid->qid = r->ofcall.qid;
 	respond(r, nil);
 }
 
-Srv fs=
-{
-.attach=	fsattach,
-.open=	fsopen,
-.read=	fsread,
-.stat=	fsstat,
-.walk=	fswalk,
-.destroyfid=	fsclunk
-};
+Srv fs =
+    {
+     .attach = fsattach,
+     .open = fsopen,
+     .read = fsread,
+     .stat = fsstat,
+     .walk = fswalk,
+     .destroyfid = fsclunk};
 
 void
 main(int argc, char **argv)
@@ -233,7 +231,8 @@ main(int argc, char **argv)
 
 	time0 = time(0);
 	service = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -242,7 +241,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();

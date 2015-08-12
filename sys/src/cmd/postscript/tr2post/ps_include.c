@@ -17,15 +17,18 @@
 extern int curpostfontid;
 extern int curfontsize;
 
-typedef struct {int32_t start, end;} Section;
+typedef struct {
+	int32_t start, end;
+} Section;
 static char *buf;
 
 static void
-copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
-	if (s->end <= s->start)
+copy(Biobufhdr *fin, Biobufhdr *fout, Section *s)
+{
+	if(s->end <= s->start)
 		return;
 	Bseek(fin, s->start, 0);
-	while (Bseek(fin, 0L, 1) < s->end && (buf=Brdline(fin, '\n')) != NULL){
+	while(Bseek(fin, 0L, 1) < s->end && (buf = Brdline(fin, '\n')) != NULL) {
 		/*
 		 * We have to be careful here, because % can legitimately appear
 		 * in Ascii85 encodings, and must not be elided.
@@ -64,28 +67,29 @@ copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
 
 void
 ps_include(Biobufhdr *fin, Biobufhdr *fout, int page_no, int whiteout,
-	int outline, int scaleboth, double cx, double cy, double sx, double sy,
-	double ax, double ay, double rot) {
-	int foundpage = 0;		/* found the page when non zero */
-	int foundpbox = 0;		/* found the page bounding box */
+	   int outline, int scaleboth, double cx, double cy, double sx, double sy,
+	   double ax, double ay, double rot)
+{
+	int foundpage = 0; /* found the page when non zero */
+	int foundpbox = 0; /* found the page bounding box */
 	int i;
-	int maxglobal = 0;		/* the number we've got room for */
-	int nglobal = 0;		/* number of global defs so far */
+	int maxglobal = 0; /* the number we've got room for */
+	int nglobal = 0;   /* number of global defs so far */
 	char **strp;
-	double llx, lly;		/* lower left and */
+	double llx, lly; /* lower left and */
 	double o = outline != 0;
 	double s = scaleboth != 0;
-	double urx, ury;		/* upper right corners - default coords */
-	double w = whiteout != 0;	/* mostly for the var() macro */
-	Section *global;		/* offsets for all global definitions */
-	Section prolog, page, trailer;	/* prologue, page, and trailer offsets */
+	double urx, ury;	       /* upper right corners - default coords */
+	double w = whiteout != 0;      /* mostly for the var() macro */
+	Section *global;	       /* offsets for all global definitions */
+	Section prolog, page, trailer; /* prologue, page, and trailer offsets */
 
-#define has(word)	(strncmp(buf, word, strlen(word)) == 0)
-#define grab(n)		((Section *)(nglobal \
-			? realloc((char *)global, n*sizeof(Section)) \
-			: calloc(n, sizeof(Section))))
+#define has(word) (strncmp(buf, word, strlen(word)) == 0)
+#define grab(n) ((Section *)(nglobal                                            \
+				 ? realloc((char *)global, n * sizeof(Section)) \
+				 : calloc(n, sizeof(Section))))
 	global = nil;
-	llx = lly = 0;		/* default BoundingBox - 8.5x11 inches */
+	llx = lly = 0; /* default BoundingBox - 8.5x11 inches */
 	urx = 72 * 8.5;
 	ury = 72 * 11.0;
 
@@ -96,61 +100,61 @@ ps_include(Biobufhdr *fin, Biobufhdr *fout, int page_no, int whiteout,
 	trailer.start = 0;
 	Bseek(fin, 0L, 0);
 
-	while ((buf=Brdline(fin, '\n')) != NULL) {
-		buf[Blinelen(fin)-1] = '\0';
-		if (!has("%%"))
+	while((buf = Brdline(fin, '\n')) != NULL) {
+		buf[Blinelen(fin) - 1] = '\0';
+		if(!has("%%"))
 			continue;
-		else if (has("%%Page: ")) {
-			if (!foundpage)
+		else if(has("%%Page: ")) {
+			if(!foundpage)
 				page.start = Bseek(fin, 0L, 1);
 			sscanf(buf, "%*s %*s %d", &i);
-			if (i == page_no)
+			if(i == page_no)
 				foundpage = 1;
-			else if (foundpage && page.end <= page.start)
+			else if(foundpage && page.end <= page.start)
 				page.end = Bseek(fin, 0L, 1);
-		} else if (has("%%EndPage: ")) {
+		} else if(has("%%EndPage: ")) {
 			sscanf(buf, "%*s %*s %d", &i);
-			if (i == page_no) {
+			if(i == page_no) {
 				foundpage = 1;
 				page.end = Bseek(fin, 0L, 1);
 			}
-			if (!foundpage)
+			if(!foundpage)
 				page.start = Bseek(fin, 0L, 1);
-		} else if (has("%%PageBoundingBox: ")) {
-			if (i == page_no) {
+		} else if(has("%%PageBoundingBox: ")) {
+			if(i == page_no) {
 				foundpbox = 1;
 				sscanf(buf, "%*s %lf %lf %lf %lf",
-						&llx, &lly, &urx, &ury);
+				       &llx, &lly, &urx, &ury);
 			}
-		} else if (has("%%BoundingBox: ")) {
-			if (!foundpbox)
-				sscanf(buf,"%*s %lf %lf %lf %lf",
-						&llx, &lly, &urx, &ury);
-		} else if (has("%%EndProlog") || has("%%EndSetup") || has("%%EndDocumentSetup"))
+		} else if(has("%%BoundingBox: ")) {
+			if(!foundpbox)
+				sscanf(buf, "%*s %lf %lf %lf %lf",
+				       &llx, &lly, &urx, &ury);
+		} else if(has("%%EndProlog") || has("%%EndSetup") || has("%%EndDocumentSetup"))
 			prolog.end = page.start = Bseek(fin, 0L, 1);
-		else if (has("%%Trailer"))
+		else if(has("%%Trailer"))
 			trailer.start = Bseek(fin, 0L, 1);
-		else if (has("%%BeginGlobal")) {
-			if (page.end <= page.start) {
-				if (nglobal >= maxglobal) {
+		else if(has("%%BeginGlobal")) {
+			if(page.end <= page.start) {
+				if(nglobal >= maxglobal) {
 					maxglobal += 20;
 					global = grab(maxglobal);
 				}
 				global[nglobal].start = Bseek(fin, 0L, 1);
 			}
-		} else if (has("%%EndGlobal"))
-			if (page.end <= page.start)
+		} else if(has("%%EndGlobal"))
+			if(page.end <= page.start)
 				global[nglobal++].end = Bseek(fin, 0L, 1);
 	}
 	Bseek(fin, 0L, 2);
-	if (trailer.start == 0)
+	if(trailer.start == 0)
 		trailer.start = Bseek(fin, 0L, 1);
 	trailer.end = Bseek(fin, 0L, 1);
 
-	if (page.end <= page.start)
+	if(page.end <= page.start)
 		page.end = trailer.start;
 
-/*
+	/*
 fprint(2, "prolog=(%d,%d)\n", prolog.start, prolog.end);
 fprint(2, "page=(%d,%d)\n", page.start, page.end);
 for(i = 0; i < nglobal; i++)
@@ -159,7 +163,7 @@ fprint(2, "trailer=(%d,%d)\n", trailer.start, trailer.end);
 */
 
 	/* all output here */
-	for (strp = PS_head; *strp != NULL; strp++)
+	for(strp = PS_head; *strp != NULL; strp++)
 		Bwrite(fout, *strp, strlen(*strp));
 
 	Bprint(fout, "/llx %g def\n", llx);
@@ -177,7 +181,7 @@ fprint(2, "trailer=(%d,%d)\n", trailer.start, trailer.end);
 	Bprint(fout, "/ay %g def\n", ay);
 	Bprint(fout, "/rot %g def\n", rot);
 
-	for (strp = PS_setup; *strp != NULL; strp++)
+	for(strp = PS_setup; *strp != NULL; strp++)
 		Bwrite(fout, *strp, strlen(*strp));
 
 	copy(fin, fout, &prolog);
@@ -185,7 +189,7 @@ fprint(2, "trailer=(%d,%d)\n", trailer.start, trailer.end);
 		copy(fin, fout, &global[i]);
 	copy(fin, fout, &page);
 	copy(fin, fout, &trailer);
-	for (strp = PS_tail; *strp != NULL; strp++)
+	for(strp = PS_tail; *strp != NULL; strp++)
 		Bwrite(fout, *strp, strlen(*strp));
 
 	if(nglobal)

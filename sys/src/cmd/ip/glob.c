@@ -19,7 +19,7 @@
  *  better, certainly faster. - presotto
  */
 
-static Glob*
+static Glob *
 globnew(void)
 {
 	Glob *g;
@@ -42,13 +42,13 @@ globfree(Glob *g)
 {
 	Glob *next;
 
-	for(; g != nil; g = next){
+	for(; g != nil; g = next) {
 		next = g->next;
 		globfree1(g);
 	}
 }
 
-static Globlist*
+static Globlist *
 globlistnew(char *x)
 {
 	Globlist *gl;
@@ -82,7 +82,7 @@ globadd(Globlist *gl, char *dir, char *file)
 		s_append(g->glob, "/");
 	s_append(g->glob, file);
 	*(gl->l) = g;
-	gl->l = &(g->next); 
+	gl->l = &(g->next);
 }
 
 static void
@@ -112,7 +112,7 @@ globdot(Globlist *gl, char *dir)
 {
 	Dir *d;
 
-	if(*dir == 0){
+	if(*dir == 0) {
 		globadd(gl, "", ".");
 		return;
 	}
@@ -143,12 +143,12 @@ globnext(Globlist *gl, char *pattern)
 	/* pick off next pattern and turn into a reg exp */
 	np = s_new();
 	s_putc(np, '^');
-	for(; c = *pattern; pattern++){
-		if(c == '/'){
+	for(; c = *pattern; pattern++) {
+		if(c == '/') {
 			pattern++;
 			break;
 		}
-		switch(c){
+		switch(c) {
 		case '|':
 		case '+':
 		case '.':
@@ -173,7 +173,7 @@ globnext(Globlist *gl, char *pattern)
 	}
 	s_putc(np, '$');
 	s_terminate(np);
-	if(strcmp(s_to_c(np), "^\\.$") == 0){
+	if(strcmp(s_to_c(np), "^\\.$") == 0) {
 		/* anything that's a directory works */
 		for(g = inlist; g != nil; g = g->next)
 			globdot(gl, s_to_c(g->glob));
@@ -211,14 +211,14 @@ globiter(Globlist *gl)
 	return s;
 }
 
-Globlist*
+Globlist *
 glob(char *pattern)
 {
 	Globlist *gl;
 
 	if(pattern == nil || *pattern == 0)
 		return nil;
-	if(*pattern == '/'){
+	if(*pattern == '/') {
 		pattern++;
 		gl = globlistnew("/");
 	} else

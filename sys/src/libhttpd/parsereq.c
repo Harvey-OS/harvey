@@ -12,20 +12,19 @@
 #include <bin.h>
 #include <httpd.h>
 
-typedef struct Strings		Strings;
+typedef struct Strings Strings;
 
-struct Strings
-{
-	char	*s1;
-	char	*s2;
+struct Strings {
+	char *s1;
+	char *s2;
 };
 
-static	char*		abspath(HConnect *cc, char *origpath,
-					     char *curdir);
-static	int		getc(HConnect*);
-static	char*		getword(HConnect*);
-static	Strings		parseuri(HConnect *c, char*);
-static	Strings		stripsearch(char*);
+static char *abspath(HConnect *cc, char *origpath,
+		     char *curdir);
+static int getc(HConnect *);
+static char *getword(HConnect *);
+static Strings parseuri(HConnect *c, char *);
+static Strings stripsearch(char *);
 
 /*
  * parse the next request line
@@ -40,7 +39,7 @@ hparsereq(HConnect *c, int timeout)
 	Strings ss;
 	char *vs, *v, *search, *uri, *origuri, *extra;
 
-	if(c->bin != nil){
+	if(c->bin != nil) {
 		hfail(c, HInternal);
 		return -1;
 	}
@@ -58,44 +57,44 @@ hparsereq(HConnect *c, int timeout)
 		alarm(0);
 	c->reqtime = time(nil);
 	c->req.meth = getword(c);
-	if(c->req.meth == nil){
+	if(c->req.meth == nil) {
 		hfail(c, HSyntax);
 		return -1;
 	}
 	uri = getword(c);
-	if(uri == nil || strlen(uri) == 0){
+	if(uri == nil || strlen(uri) == 0) {
 		hfail(c, HSyntax);
 		return -1;
 	}
 	v = getword(c);
-	if(v == nil){
-		if(strcmp(c->req.meth, "GET") != 0){
+	if(v == nil) {
+		if(strcmp(c->req.meth, "GET") != 0) {
 			hfail(c, HUnimp, c->req.meth);
 			return -1;
 		}
 		c->req.vermaj = 0;
 		c->req.vermin = 9;
-	}else{
+	} else {
 		vs = v;
-		if(strncmp(vs, "HTTP/", 5) != 0){
+		if(strncmp(vs, "HTTP/", 5) != 0) {
 			hfail(c, HUnkVers, vs);
 			return -1;
 		}
 		vs += 5;
 		c->req.vermaj = strtoul(vs, &vs, 10);
-		if(*vs != '.' || c->req.vermaj != 1){
+		if(*vs != '.' || c->req.vermaj != 1) {
 			hfail(c, HUnkVers, vs);
 			return -1;
 		}
 		vs++;
 		c->req.vermin = strtoul(vs, &vs, 10);
-		if(*vs != '\0'){
+		if(*vs != '\0') {
 			hfail(c, HUnkVers, vs);
 			return -1;
 		}
 
 		extra = getword(c);
-		if(extra != nil){
+		if(extra != nil) {
 			hfail(c, HSyntax);
 			return -1;
 		}
@@ -114,11 +113,11 @@ hparsereq(HConnect *c, int timeout)
 	 * http/1.1 requires the server to accept absolute
 	 * or relative uri's.  convert to relative with an absolute path
 	 */
-	if(http11(c)){
+	if(http11(c)) {
 		ss = parseuri(c, origuri);
 		uri = ss.s1;
 		c->req.urihost = ss.s2;
-		if(uri == nil){
+		if(uri == nil) {
 			hfail(c, HBadReq, uri);
 			return -1;
 		}
@@ -133,7 +132,7 @@ hparsereq(HConnect *c, int timeout)
 	search = ss.s2;
 	uri = hurlunesc(c, origuri);
 	uri = abspath(c, uri, "/");
-	if(uri == nil || uri[0] == '\0'){
+	if(uri == nil || uri[0] == '\0') {
 		hfail(c, HNotFound, "no object specified");
 		return -1;
 	}
@@ -156,9 +155,9 @@ parseuri(HConnect *c, char *uri)
 	ss.s1 = ss.s2 = nil;
 	if(uri[0] != '/')
 		if(cistrncmp(uri, "http://", 7) == 0)
-			uri += 5;		/* skip http: */
-		else if (cistrncmp(uri, "https://", 8) == 0)
-			uri += 6;		/* skip https: */
+			uri += 5; /* skip http: */
+		else if(cistrncmp(uri, "https://", 8) == 0)
+			uri += 6; /* skip https: */
 		else
 			return ss;
 
@@ -167,12 +166,12 @@ parseuri(HConnect *c, char *uri)
 	 * hostnames consists of letters, digits, - and .
 	 * for now, just ignore any port given
 	 */
-	if(uri[0] == '/' && uri[1] == '/'){
+	if(uri[0] == '/' && uri[1] == '/') {
 		urihost = uri + 2;
 		p = strchr(urihost, '/');
 		if(p == nil)
 			uri = hstrdup(c, "/");
-		else{
+		else {
 			uri = hstrdup(c, p);
 			*p = '\0';
 		}
@@ -206,7 +205,7 @@ stripsearch(char *uri)
  *  to circumscribe the accessible files we have to eliminate ..'s
  *  and resolve all names from the root.
  */
-static char*
+static char *
 abspath(HConnect *cc, char *origpath, char *curdir)
 {
 	char *p, *sp, *path, *work, *rpath;
@@ -222,7 +221,7 @@ abspath(HConnect *cc, char *origpath, char *curdir)
 	/*
 	 * remove any really special characters
 	 */
-	for(sp = "`;|"; *sp; sp++){
+	for(sp = "`;|"; *sp; sp++) {
 		p = strchr(path, *sp);
 		if(p)
 			*p = 0;
@@ -238,24 +237,24 @@ abspath(HConnect *cc, char *origpath, char *curdir)
 		strcpy(rpath, curdir);
 	n = strlen(rpath);
 
-	while(path){
+	while(path) {
 		p = strchr(path, '/');
 		if(p)
 			*p++ = 0;
-		if(strcmp(path, "..") == 0){
-			while(n > 1){
+		if(strcmp(path, "..") == 0) {
+			while(n > 1) {
 				n--;
 				c = rpath[n];
 				rpath[n] = 0;
 				if(c == '/')
 					break;
 			}
-		}else if(strcmp(path, ".") == 0){
+		} else if(strcmp(path, ".") == 0) {
 			;
-		}else if(n == 1)
-			n += snprint(rpath+n, len-n, "%s", path);
+		} else if(n == 1)
+			n += snprint(rpath + n, len - n, "%s", path);
 		else
-			n += snprint(rpath+n, len-n, "/%s", path);
+			n += snprint(rpath + n, len - n, "/%s", path);
 		path = p;
 	}
 
@@ -264,7 +263,7 @@ abspath(HConnect *cc, char *origpath, char *curdir)
 	return rpath;
 }
 
-static char*
+static char *
 getword(HConnect *c)
 {
 	char *buf;
@@ -276,8 +275,8 @@ getword(HConnect *c)
 		return nil;
 	n = 0;
 	buf = halloc(c, 1);
-	for(;;){
-		switch(ch){
+	for(;;) {
+		switch(ch) {
 		case ' ':
 		case '\t':
 		case '\r':
@@ -286,7 +285,7 @@ getword(HConnect *c)
 			return hstrdup(c, buf);
 		}
 
-		if(n < HMaxWord-1){
+		if(n < HMaxWord - 1) {
 			buf = bingrow(&c->bin, buf, n, n + 1, 0);
 			if(buf == nil)
 				return nil;

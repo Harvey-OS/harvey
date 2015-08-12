@@ -17,10 +17,10 @@
  * File system for cpio tapes (read-only)
  */
 
-#define TBLOCK	512
-#define NBLOCK	40	/* maximum blocksize */
-#define DBLOCK	20	/* default blocksize */
-#define TNAMSIZ	100
+#define TBLOCK 512
+#define NBLOCK 40 /* maximum blocksize */
+#define DBLOCK 20 /* default blocksize */
+#define TNAMSIZ 100
 
 union hblock {
 	char dummy[TBLOCK];
@@ -39,13 +39,13 @@ union hblock {
 		char size[11];
 	} dbuf;
 	struct hname {
-		struct	header x;
-		char	name[1];
+		struct header x;
+		char name[1];
 	} nbuf;
 } dblock;
 
-int	tapefile;
-int64_t	getoct(char*, int);
+int tapefile;
+int64_t getoct(char *, int);
 
 void
 populate(char *name)
@@ -55,22 +55,22 @@ populate(char *name)
 	Fileinf f;
 
 	tapefile = open(name, OREAD);
-	if (tapefile<0)
+	if(tapefile < 0)
 		error("Can't open argument file");
 	replete = 1;
-	for (offset = 0;;) {
+	for(offset = 0;;) {
 		seek(tapefile, offset, 0);
-		if (read(tapefile, (char *)&dblock.dbuf, TBLOCK)<TBLOCK)
+		if(read(tapefile, (char *)&dblock.dbuf, TBLOCK) < TBLOCK)
 			break;
 		magic = getoct(dblock.dbuf.magic, sizeof(dblock.dbuf.magic));
-		if (magic != 070707){
+		if(magic != 070707) {
 			print("%lo\n", magic);
 			error("out of phase--get help");
 		}
-		if (dblock.nbuf.name[0]=='\0' || strcmp(dblock.nbuf.name, "TRAILER!!!")==0)
+		if(dblock.nbuf.name[0] == '\0' || strcmp(dblock.nbuf.name, "TRAILER!!!") == 0)
 			break;
 		mode = getoct(dblock.dbuf.mode, sizeof(dblock.dbuf.mode));
-		f.mode = mode&0777;
+		f.mode = mode & 0777;
 		switch(mode & 0170000) {
 		case 0040000:
 			f.mode |= DMDIR;
@@ -86,11 +86,11 @@ populate(char *name)
 		f.size = getoct(dblock.dbuf.size, sizeof(dblock.dbuf.size));
 		f.mdate = getoct(dblock.dbuf.mtime, sizeof(dblock.dbuf.mtime));
 		namesize = getoct(dblock.dbuf.namesize, sizeof(dblock.dbuf.namesize));
-		f.addr = offset+sizeof(struct header)+namesize;
-		isabs = dblock.nbuf.name[0]=='/';
+		f.addr = offset + sizeof(struct header) + namesize;
+		isabs = dblock.nbuf.name[0] == '/';
 		f.name = &dblock.nbuf.name[isabs];
 		poppath(f, 1);
-		offset += sizeof(struct header)+namesize+f.size;
+		offset += sizeof(struct header) + namesize + f.size;
 	}
 }
 
@@ -99,9 +99,9 @@ getoct(char *p, int l)
 {
 	int64_t r;
 
-	for (r=0; l>0; p++, l--){
+	for(r = 0; l > 0; p++, l--) {
 		r <<= 3;
-		r += *p-'0';
+		r += *p - '0';
 	}
 	return r;
 }
@@ -121,8 +121,8 @@ docreate(Ram *r)
 char *
 doread(Ram *r, int64_t off, int32_t cnt)
 {
-	seek(tapefile, r->addr+off, 0);
-	if (cnt>sizeof(dblock.tbuf))
+	seek(tapefile, r->addr + off, 0);
+	if(cnt > sizeof(dblock.tbuf))
 		error("read too big");
 	read(tapefile, dblock.tbuf, cnt);
 	return dblock.tbuf;
@@ -137,7 +137,10 @@ popdir(Ram *r)
 void
 dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
-	USED(r); USED(buf); USED(off); USED(cnt);
+	USED(r);
+	USED(buf);
+	USED(off);
+	USED(cnt);
 }
 
 int

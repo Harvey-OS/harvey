@@ -28,7 +28,8 @@ threadmain(int argc, char **argv)
 	Dir *d;
 
 	rfork(RFNAMEG);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debug++;
 		break;
@@ -38,7 +39,8 @@ threadmain(int argc, char **argv)
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
@@ -47,21 +49,21 @@ threadmain(int argc, char **argv)
 	else
 		dir = "/mnt/wiki";
 
-	if(chdir(dir) < 0){
+	if(chdir(dir) < 0) {
 		fprint(2, "chdir(%s) fails: %r\n", dir);
 		threadexitsall(nil);
 	}
 
-	if((mapfd = open("map", ORDWR)) < 0){
+	if((mapfd = open("map", ORDWR)) < 0) {
 		fprint(2, "open(map): %r\n");
 		threadexitsall(nil);
 	}
 
-	if((d = dirstat("1")) == nil){
+	if((d = dirstat("1")) == nil) {
 		fprint(2, "dirstat(%s/1) fails: %r\n", dir);
 		threadexitsall(nil);
 	}
-	s = emalloc(strlen(d->name)+2);
+	s = emalloc(strlen(d->name) + 2);
 	strcpy(s, d->name);
 	strcat(s, "/");
 	wikiopen(s, nil);

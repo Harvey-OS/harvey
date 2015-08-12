@@ -13,9 +13,8 @@
 
 enum {
 	IdealAlignment = 32,
-	ChunkSize 	= 128*1024
+	ChunkSize = 128 * 1024
 };
-
 
 void
 vtfree(void *p)
@@ -71,20 +70,20 @@ vtbrk(int n)
 		align = IdealAlignment;
 	else if(n > 8)
 		align = 8;
-	else	
+	else
 		align = 4;
 
 	lock(&lk);
-	pad = (align - (uintptr)buf) & (align-1);
+	pad = (align - (uintptr)buf) & (align - 1);
 	if(n + pad > nbuf) {
 		buf = vtmallocz(ChunkSize);
 		nbuf = ChunkSize;
-		pad = (align - (uintptr)buf) & (align-1);
+		pad = (align - (uintptr)buf) & (align - 1);
 		nchunk++;
 	}
 
-	assert(n + pad <= nbuf);	
-	
+	assert(n + pad <= nbuf);
+
 	p = buf + pad;
 	buf += pad + n;
 	nbuf -= pad + n;
@@ -92,4 +91,3 @@ vtbrk(int n)
 
 	return p;
 }
-

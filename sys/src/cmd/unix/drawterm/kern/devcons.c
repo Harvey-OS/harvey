@@ -7,84 +7,83 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"error.h"
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 
-#include 	"keyboard.h"
+#include "keyboard.h"
 
-void	(*consdebug)(void) = 0;
-void	(*screenputs)(char*, int) = 0;
+void (*consdebug)(void) = 0;
+void (*screenputs)(char *, int) = 0;
 
-Queue*	kbdq;			/* unprocessed console input */
-Queue*	lineq;			/* processed console input */
-Queue*	serialoq;		/* serial console output */
-Queue*	kprintoq;		/* console output, for /dev/kprint */
-int32_t	kprintinuse;		/* test and set whether /dev/kprint is open */
-Lock	kprintlock;
-int	iprintscreenputs = 0;
+Queue *kbdq;	 /* unprocessed console input */
+Queue *lineq;	/* processed console input */
+Queue *serialoq;     /* serial console output */
+Queue *kprintoq;     /* console output, for /dev/kprint */
+int32_t kprintinuse; /* test and set whether /dev/kprint is open */
+Lock kprintlock;
+int iprintscreenputs = 0;
 
-int	panicking;
+int panicking;
 
 struct
-{
+    {
 	int exiting;
 	int machs;
 } active;
 
 static struct
-{
+    {
 	QLock lk;
 
-	int	raw;		/* true if we shouldn't process input */
-	int	ctl;		/* number of opens to the control file */
-	int	x;		/* index into line */
-	char	line[1024];	/* current input line */
+	int raw;	 /* true if we shouldn't process input */
+	int ctl;	 /* number of opens to the control file */
+	int x;		 /* index into line */
+	char line[1024]; /* current input line */
 
-	int	count;
-	int	ctlpoff;
+	int count;
+	int ctlpoff;
 
 	/* a place to save up characters at interrupt time before dumping them in the queue */
-	Lock	lockputc;
-	char	istage[1024];
-	char	*iw;
-	char	*ir;
-	char	*ie;
+	Lock lockputc;
+	char istage[1024];
+	char *iw;
+	char *ir;
+	char *ie;
 } kbd = {
-	{ 0 },
-	0,
-	0,
-	0,
-	{ 0 },
-	0,
-	0,
-	{ 0 },
-	{ 0 },
-	kbd.istage,
-	kbd.istage,
-	kbd.istage + sizeof(kbd.istage),
+    {0},
+    0,
+    0,
+    0,
+    {0},
+    0,
+    0,
+    {0},
+    {0},
+    kbd.istage,
+    kbd.istage,
+    kbd.istage + sizeof(kbd.istage),
 };
 
-char	*sysname;
-int64_t	fasthz;
+char *sysname;
+int64_t fasthz;
 
-static int	readtime(uint32_t, char*, int);
-static int	readbintime(char*, int);
-static int	writetime(char*, int);
-static int	writebintime(char*, int);
+static int readtime(uint32_t, char *, int);
+static int readbintime(char *, int);
+static int writetime(char *, int);
+static int writebintime(char *, int);
 
-enum
-{
+enum {
 	CMreboot,
 	CMpanic,
 };
 
 Cmdtab rebootmsg[] =
-{
-	CMreboot,	"reboot",	0,
-	CMpanic,	"panic",	0,
+    {
+     CMreboot, "reboot", 0,
+     CMpanic, "panic", 0,
 };
 
 int
@@ -96,12 +95,12 @@ return0(void *v)
 void
 printinit(void)
 {
-	lineq = qopen(2*1024, 0, 0, nil);
+	lineq = qopen(2 * 1024, 0, 0, nil);
 	if(lineq == nil)
 		panic("printinit");
 	qnoblock(lineq, 1);
 
-	kbdq = qopen(4*1024, 0, 0, 0);
+	kbdq = qopen(4 * 1024, 0, 0, 0);
 	if(kbdq == nil)
 		panic("kbdinit");
 	qnoblock(kbdq, 1);
@@ -118,7 +117,7 @@ consactive(void)
 void
 prflush(void)
 {
-/*
+	/*
 	ulong now;
 
 	now = m->ticks;
@@ -146,12 +145,12 @@ putstrn0(char *str, int n, int usewrite)
 	 *  if there's a serial line being used as a console,
 	 *  put the message there.
 	 */
-	if(kprintoq != nil && !qisclosed(kprintoq)){
+	if(kprintoq != nil && !qisclosed(kprintoq)) {
 		if(usewrite)
 			qwrite(kprintoq, str, n);
 		else
 			qiwrite(kprintoq, str, n);
-	}else if(screenputs != 0)
+	} else if(screenputs != 0)
 		screenputs(str, n);
 }
 
@@ -174,7 +173,7 @@ print(char *fmt, ...)
 		return -1;
 
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf, buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 	putstrn(buf, n);
 
@@ -188,24 +187,25 @@ panic(char *fmt, ...)
 	va_list arg;
 	char buf[PRINTSIZE];
 
-	kprintoq = nil;	/* don't try to write to /dev/kprint */
+	kprintoq = nil; /* don't try to write to /dev/kprint */
 
 	if(panicking)
-		for(;;);
+		for(;;)
+			;
 	panicking = 1;
 
 	splhi();
 	strcpy(buf, "panic: ");
 	va_start(arg, fmt);
-	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf + strlen(buf), buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 	buf[n] = '\n';
-	uartputs(buf, n+1);
+	uartputs(buf, n + 1);
 	if(consdebug)
 		(*consdebug)();
 	spllo();
 	prflush();
-	putstrn(buf, n+1);
+	putstrn(buf, n + 1);
 	dumpstack();
 
 	exit(1);
@@ -217,17 +217,17 @@ pprint(char *fmt, ...)
 	int n;
 	Chan *c;
 	va_list arg;
-	char buf[2*PRINTSIZE];
+	char buf[2 * PRINTSIZE];
 
 	if(up == nil || up->fgrp == nil)
 		return 0;
 
 	c = up->fgrp->fd[2];
-	if(c==0 || (c->mode!=OWRITE && c->mode!=ORDWR))
+	if(c == 0 || (c->mode != OWRITE && c->mode != ORDWR))
 		return 0;
 	n = sprint(buf, "%s %lud: ", up->text, up->pid);
 	va_start(arg, fmt);
-	n = vseprint(buf+n, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf + n, buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 
 	if(waserror())
@@ -251,13 +251,13 @@ echoscreen(char *buf, int n)
 
 	p = ebuf;
 	e = ebuf + sizeof(ebuf) - 4;
-	while(n-- > 0){
-		if(p >= e){
+	while(n-- > 0) {
+		if(p >= e) {
 			screenputs(ebuf, p - ebuf);
 			p = ebuf;
 		}
 		x = *buf++;
-		if(x == 0x15){
+		if(x == 0x15) {
 			*p++ = '^';
 			*p++ = 'U';
 			*p++ = '\n';
@@ -277,16 +277,16 @@ echoserialoq(char *buf, int n)
 
 	p = ebuf;
 	e = ebuf + sizeof(ebuf) - 4;
-	while(n-- > 0){
-		if(p >= e){
+	while(n-- > 0) {
+		if(p >= e) {
 			qiwrite(serialoq, ebuf, p - ebuf);
 			p = ebuf;
 		}
 		x = *buf++;
-		if(x == '\n'){
+		if(x == '\n') {
 			*p++ = '\r';
 			*p++ = '\n';
-		} else if(x == 0x15){
+		} else if(x == 0x15) {
 			*p++ = '^';
 			*p++ = 'U';
 			*p++ = '\n';
@@ -304,16 +304,16 @@ echo(char *buf, int n)
 	int x;
 	char *e, *p;
 
-	e = buf+n;
-	for(p = buf; p < e; p++){
-		switch(*p){
-		case 0x10:	/* ^P */
-			if(cpuserver && !kbd.ctlpoff){
+	e = buf + n;
+	for(p = buf; p < e; p++) {
+		switch(*p) {
+		case 0x10: /* ^P */
+			if(cpuserver && !kbd.ctlpoff) {
 				active.exiting = 1;
 				return;
 			}
 			break;
-		case 0x14:	/* ^T */
+		case 0x14: /* ^T */
 			ctrlt++;
 			if(ctrlt > 2)
 				ctrlt = 2;
@@ -325,7 +325,7 @@ echo(char *buf, int n)
 
 		/* ^T escapes */
 		ctrlt = 0;
-		switch(*p){
+		switch(*p) {
 		case 'S':
 			x = splhi();
 			dumpstack();
@@ -390,21 +390,20 @@ kbdcr2nl(Queue *q, int ch)
 	char *next;
 
 	USED(q);
-	ilock(&kbd.lockputc);		/* just a mutex */
+	ilock(&kbd.lockputc); /* just a mutex */
 	if(ch == '\r' && !kbd.raw)
 		ch = '\n';
-	next = kbd.iw+1;
+	next = kbd.iw + 1;
 	if(next >= kbd.ie)
 		next = kbd.istage;
-	if(next != kbd.ir){
+	if(next != kbd.ir) {
 		*kbd.iw = ch;
 		kbd.iw = next;
 	}
 	iunlock(&kbd.lockputc);
 	return 0;
 }
-static
-void
+static void
 _kbdputc(int c)
 {
 	Rune r;
@@ -416,46 +415,45 @@ _kbdputc(int c)
 	if(n == 0)
 		return;
 	echo(buf, n);
-//	kbd.c = r;
-//	qproduce(kbdq, buf, n);
+	//	kbd.c = r;
+	//	qproduce(kbdq, buf, n);
 }
 
 /* _kbdputc, but with compose translation */
 int
 kbdputc(Queue *q, int c)
 {
-	int	i;
+	int i;
 	static int collecting, nk;
 	static Rune kc[5];
 
-	 if(c == Kalt){
-		 collecting = 1;
-		 nk = 0;
-		 return 0;
-	 }
+	if(c == Kalt) {
+		collecting = 1;
+		nk = 0;
+		return 0;
+	}
 
-	 if(!collecting){
-		 _kbdputc(c);
-		 return 0;
-	 }
+	if(!collecting) {
+		_kbdputc(c);
+		return 0;
+	}
 
 	kc[nk++] = c;
 	c = latin1(kc, nk);
-	if(c < -1)  /* need more keystrokes */
+	if(c < -1) /* need more keystrokes */
 		return 0;
 	if(c != -1) /* valid sequence */
 		_kbdputc(c);
 	else
-		for(i=0; i<nk; i++)
-		 	_kbdputc(kc[i]);
+		for(i = 0; i < nk; i++)
+			_kbdputc(kc[i]);
 	nk = 0;
 	collecting = 0;
 
 	return 0;
 }
 
-
-enum{
+enum {
 	Qdir,
 	Qbintime,
 	Qcons,
@@ -484,38 +482,12 @@ enum{
 	Qzero,
 };
 
-enum
-{
-	VLNUMSIZE=	22,
+enum {
+	VLNUMSIZE = 22,
 };
 
-static Dirtab consdir[]={
-	".",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"bintime",	{Qbintime},	24,		0664,
-	"cons",		{Qcons},	0,		0660,
-	"consctl",	{Qconsctl},	0,		0220,
-	"cpunote",	{Qcpunote},	0,		0444,
-	"cputime",	{Qcputime},	6*NUMSIZE,	0444,
-	"drivers",	{Qdrivers},	0,		0444,
-	"hostdomain",	{Qhostdomain},	DOMLEN,		0664,
-	"hostowner",	{Qhostowner},	0,	0664,
-	"kprint",		{Qkprint, 0, QTEXCL},	0,	DMEXCL|0440,
-	"null",		{Qnull},	0,		0666,
-	"osversion",	{Qosversion},	0,		0444,
-	"pgrpid",	{Qpgrpid},	NUMSIZE,	0444,
-	"pid",		{Qpid},		NUMSIZE,	0444,
-	"ppid",		{Qppid},	NUMSIZE,	0444,
-	"random",	{Qrandom},	0,		0444,
-	"reboot",	{Qreboot},	0,		0664,
-	"secstore",	{Qsecstore},	0,		0666,
-	"showfile",	{Qshowfile},	0,	0220,
-	"snarf",	{Qsnarf},		0,		0666,
-	"swap",		{Qswap},	0,		0664,
-	"sysname",	{Qsysname},	0,		0664,
-	"sysstat",	{Qsysstat},	0,		0666,
-	"time",		{Qtime},	NUMSIZE+3*VLNUMSIZE,	0664,
-	"user",		{Quser},	0,	0666,
-	"zero",		{Qzero},	0,		0444,
+static Dirtab consdir[] = {
+    ".", {Qdir, 0, QTDIR}, 0, DMDIR | 0555, "bintime", {Qbintime}, 24, 0664, "cons", {Qcons}, 0, 0660, "consctl", {Qconsctl}, 0, 0220, "cpunote", {Qcpunote}, 0, 0444, "cputime", {Qcputime}, 6 * NUMSIZE, 0444, "drivers", {Qdrivers}, 0, 0444, "hostdomain", {Qhostdomain}, DOMLEN, 0664, "hostowner", {Qhostowner}, 0, 0664, "kprint", {Qkprint, 0, QTEXCL}, 0, DMEXCL | 0440, "null", {Qnull}, 0, 0666, "osversion", {Qosversion}, 0, 0444, "pgrpid", {Qpgrpid}, NUMSIZE, 0444, "pid", {Qpid}, NUMSIZE, 0444, "ppid", {Qppid}, NUMSIZE, 0444, "random", {Qrandom}, 0, 0444, "reboot", {Qreboot}, 0, 0664, "secstore", {Qsecstore}, 0, 0666, "showfile", {Qshowfile}, 0, 0220, "snarf", {Qsnarf}, 0, 0666, "swap", {Qswap}, 0, 0664, "sysname", {Qsysname}, 0, 0664, "sysstat", {Qsysstat}, 0, 0666, "time", {Qtime}, NUMSIZE + 3 * VLNUMSIZE, 0664, "user", {Quser}, 0, 0666, "zero", {Qzero}, 0, 0444,
 };
 
 char secstorebuf[65536];
@@ -527,13 +499,13 @@ readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
 {
 	char tmp[64];
 
-	snprint(tmp, sizeof(tmp), "%*.0lud", size-1, val);
-	tmp[size-1] = ' ';
+	snprint(tmp, sizeof(tmp), "%*.0lud", size - 1, val);
+	tmp[size - 1] = ' ';
 	if(off >= size)
 		return 0;
-	if(off+n > size)
-		n = size-off;
-	memmove(buf, tmp+off, n);
+	if(off + n > size)
+		n = size - off;
+	memmove(buf, tmp + off, n);
 	return n;
 }
 
@@ -545,9 +517,9 @@ readstr(uint32_t off, char *buf, uint32_t n, char *str)
 	size = strlen(str);
 	if(off >= size)
 		return 0;
-	if(off+n > size)
-		n = size-off;
-	memmove(buf, str+off, n);
+	if(off + n > size)
+		n = size - off;
+	memmove(buf, str + off, n);
 	return n;
 }
 
@@ -560,19 +532,19 @@ consinit(void)
 	 * at 115200 baud, the 1024 char buffer takes 56 ms to process,
 	 * processing it every 22 ms should be fine
 	 */
-/*	addclock0link(kbdputcclock, 22); */
+	/*	addclock0link(kbdputcclock, 22); */
 }
 
-static Chan*
+static Chan *
 consattach(char *spec)
 {
 	return devattach('c', spec);
 }
 
-static Walkqid*
+static Walkqid *
 conswalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, nc, name,nname, consdir, nelem(consdir), devgen);
+	return devwalk(c, nc, name, nname, consdir, nelem(consdir), devgen);
 }
 
 static int
@@ -581,12 +553,12 @@ consstat(Chan *c, uint8_t *dp, int n)
 	return devstat(c, dp, n, consdir, nelem(consdir), devgen);
 }
 
-static Chan*
+static Chan *
 consopen(Chan *c, int omode)
 {
 	c->aux = nil;
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qconsctl:
 		qlock(&kbd.lk);
 		kbd.ctl++;
@@ -595,21 +567,21 @@ consopen(Chan *c, int omode)
 
 	case Qkprint:
 		lock(&kprintlock);
-		if(kprintinuse != 0){
+		if(kprintinuse != 0) {
 			c->flag &= ~COPEN;
 			unlock(&kprintlock);
 			error(Einuse);
 		}
 		kprintinuse = 1;
 		unlock(&kprintlock);
-		if(kprintoq == nil){
-			kprintoq = qopen(8*1024, Qcoalesce, 0, 0);
-			if(kprintoq == nil){
+		if(kprintoq == nil) {
+			kprintoq = qopen(8 * 1024, Qcoalesce, 0, 0);
+			if(kprintoq == nil) {
 				c->flag &= ~COPEN;
 				error(Enomem);
 			}
 			qnoblock(kprintoq, 1);
-		}else
+		} else
 			qreopen(kprintoq);
 		c->iounit = qiomaxatomic;
 		break;
@@ -636,10 +608,10 @@ consopen(Chan *c, int omode)
 static void
 consclose(Chan *c)
 {
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	/* last close of control file turns off raw */
 	case Qconsctl:
-		if(c->flag&COPEN){
+		if(c->flag & COPEN) {
 			qlock(&kbd.lk);
 			if(--kbd.ctl == 0)
 				kbd.raw = 0;
@@ -649,7 +621,7 @@ consclose(Chan *c)
 
 	/* close of kprint allows other opens */
 	case Qkprint:
-		if(c->flag & COPEN){
+		if(c->flag & COPEN) {
 			kprintinuse = 0;
 			qhangup(kprintoq, nil);
 		}
@@ -667,14 +639,14 @@ static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	char *b;
-	char tmp[128];		/* must be >= 6*NUMSIZE */
+	char tmp[128]; /* must be >= 6*NUMSIZE */
 	char *cbuf = buf;
 	int ch, i, eol;
 	int64_t offset = off;
 
 	if(n <= 0)
 		return n;
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qdir:
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
 
@@ -693,15 +665,15 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 					i = qread(kbdq, cbuf, n);
 					cbuf += i;
 					n -= i;
-				} while (n>0 && qcanread(kbdq));
-				n = cbuf - (char*)buf;
+				} while(n > 0 && qcanread(kbdq));
+				n = cbuf - (char *)buf;
 			}
 		} else {
 			while(!qcanread(lineq)) {
 				qread(kbdq, &kbd.line[kbd.x], 1);
 				ch = kbd.line[kbd.x];
 				eol = 0;
-				switch(ch){
+				switch(ch) {
 				case '\b':
 					if(kbd.x)
 						kbd.x--;
@@ -716,7 +688,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 					kbd.line[kbd.x++] = ch;
 					break;
 				}
-				if(kbd.x == sizeof(kbd.line) || eol){
+				if(kbd.x == sizeof(kbd.line) || eol) {
 					if(ch == 0x04)
 						kbd.x--;
 					qwrite(lineq, kbd.line, kbd.x);
@@ -768,7 +740,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return 0;
 
 	case Qsnarf:
-		if(offset == 0){
+		if(offset == 0) {
 			free(c->aux);
 			c->aux = clipread();
 		}
@@ -799,8 +771,8 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 			error(Enomem);
 		n = 0;
 		for(i = 0; devtab[i] != nil; i++)
-			n += snprint(b+n, READSTR-n, "#%C %s\n", devtab[i]->dc,  devtab[i]->name);
-		if(waserror()){
+			n += snprint(b + n, READSTR - n, "#%C %s\n", devtab[i]->dc, devtab[i]->name);
+		if(waserror()) {
 			free(b);
 			nexterror();
 		}
@@ -822,7 +794,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		print("consread 0x%llux\n", c->qid.path);
 		error(Egreg);
 	}
-	return -1;		/* never reached */
+	return -1; /* never reached */
 }
 
 static int32_t
@@ -837,13 +809,13 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 	Cmdbuf *cb;
 	Cmdtab *ct;
 
-	switch((uint32_t)c->qid.path){
+	switch((uint32_t)c->qid.path) {
 	case Qcons:
 		/*
 		 * Can't page fault in putstrn, so copy the data locally.
 		 */
 		l = n;
-		while(l > 0){
+		while(l > 0) {
 			bp = l;
 			if(bp > sizeof buf)
 				bp = sizeof buf;
@@ -856,26 +828,26 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 
 	case Qconsctl:
 		if(n >= sizeof(buf))
-			n = sizeof(buf)-1;
+			n = sizeof(buf) - 1;
 		strncpy(buf, a, n);
 		buf[n] = 0;
-		for(a = buf; a;){
-			if(strncmp(a, "rawon", 5) == 0){
+		for(a = buf; a;) {
+			if(strncmp(a, "rawon", 5) == 0) {
 				qlock(&kbd.lk);
-				if(kbd.x){
+				if(kbd.x) {
 					qwrite(kbdq, kbd.line, kbd.x);
 					kbd.x = 0;
 				}
 				kbd.raw = 1;
 				qunlock(&kbd.lk);
-			} else if(strncmp(a, "rawoff", 6) == 0){
+			} else if(strncmp(a, "rawoff", 6) == 0) {
 				qlock(&kbd.lk);
 				kbd.raw = 0;
 				kbd.x = 0;
 				qunlock(&kbd.lk);
-			} else if(strncmp(a, "ctlpon", 6) == 0){
+			} else if(strncmp(a, "ctlpon", 6) == 0) {
 				kbd.ctlpoff = 0;
-			} else if(strncmp(a, "ctlpoff", 7) == 0){
+			} else if(strncmp(a, "ctlpoff", 7) == 0) {
 				kbd.ctlpoff = 1;
 			}
 			if((a = strchr(a, ' ')))
@@ -917,7 +889,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		ct = lookupcmd(cb, rebootmsg, nelem(rebootmsg));
 		switch(ct->index) {
 		case CMreboot:
-			rebootcmd(cb->nf-1, cb->f+1);
+			rebootcmd(cb->nf - 1, cb->f + 1);
 			break;
 		case CMpanic:
 			panic("/dev/reboot");
@@ -927,20 +899,20 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		break;
 
 	case Qsecstore:
-		if(offset >= sizeof secstorebuf || offset+n+1 >= sizeof secstorebuf)
+		if(offset >= sizeof secstorebuf || offset + n + 1 >= sizeof secstorebuf)
 			error(Etoobig);
 		secstoretab->qid.vers++;
-		memmove(secstorebuf+offset, va, n);
+		memmove(secstorebuf + offset, va, n);
 		return n;
 
 	case Qshowfile:
 		return showfilewrite(a, n);
 
 	case Qsnarf:
-		if(offset >= SnarfSize || offset+n >= SnarfSize)
+		if(offset >= SnarfSize || offset + n >= SnarfSize)
 			error(Etoobig);
 		snarftab->qid.vers++;
-		memmove((uint8_t*)c->aux+offset, va, n);
+		memmove((uint8_t *)c->aux + offset, va, n);
 		return n;
 
 	case Qsysstat:
@@ -950,16 +922,16 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 	case Qswap:
 		if(n >= sizeof buf)
 			error(Egreg);
-		memmove(buf, va, n);	/* so we can NUL-terminate */
+		memmove(buf, va, n); /* so we can NUL-terminate */
 		buf[n] = 0;
 		/* start a pager if not already started */
-		if(strncmp(buf, "start", 5) == 0){
+		if(strncmp(buf, "start", 5) == 0) {
 			kickpager();
 			break;
 		}
 		if(cpuserver && !iseve())
 			error(Eperm);
-		if(buf[0]<'0' || '9'<buf[0])
+		if(buf[0] < '0' || '9' < buf[0])
 			error(Ebadarg);
 		fd = strtoul(buf, 0, 0);
 		swc = fdtochan(fd, -1, 1, 1);
@@ -973,8 +945,8 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 			error(Ebadarg);
 		strncpy(buf, a, n);
 		buf[n] = 0;
-		if(buf[n-1] == '\n')
-			buf[n-1] = 0;
+		if(buf[n - 1] == '\n')
+			buf[n - 1] = 0;
 		kstrdup(&sysname, buf);
 		break;
 
@@ -986,67 +958,67 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 }
 
 Dev consdevtab = {
-	'c',
-	"cons",
+    'c',
+    "cons",
 
-	devreset,
-	consinit,
-	devshutdown,
-	consattach,
-	conswalk,
-	consstat,
-	consopen,
-	devcreate,
-	consclose,
-	consread,
-	devbread,
-	conswrite,
-	devbwrite,
-	devremove,
-	devwstat,
+    devreset,
+    consinit,
+    devshutdown,
+    consattach,
+    conswalk,
+    consstat,
+    consopen,
+    devcreate,
+    consclose,
+    consread,
+    devbread,
+    conswrite,
+    devbwrite,
+    devremove,
+    devwstat,
 };
 
-static uint64_t uvorder = (uint64_t) 0x0001020304050607ULL;
+static uint64_t uvorder = (uint64_t)0x0001020304050607ULL;
 
-static uint8_t*
+static uint8_t *
 le2vlong(int64_t *to, uint8_t *f)
 {
 	uint8_t *t, *o;
 	int i;
 
-	t = (uint8_t*)to;
-	o = (uint8_t*)&uvorder;
+	t = (uint8_t *)to;
+	o = (uint8_t *)&uvorder;
 	for(i = 0; i < sizeof(int64_t); i++)
 		t[o[i]] = f[i];
-	return f+sizeof(int64_t);
+	return f + sizeof(int64_t);
 }
 
-static uint8_t*
+static uint8_t *
 vlong2le(uint8_t *t, int64_t from)
 {
 	uint8_t *f, *o;
 	int i;
 
-	f = (uint8_t*)&from;
-	o = (uint8_t*)&uvorder;
+	f = (uint8_t *)&from;
+	o = (uint8_t *)&uvorder;
 	for(i = 0; i < sizeof(int64_t); i++)
 		t[i] = f[o[i]];
-	return t+sizeof(int64_t);
+	return t + sizeof(int64_t);
 }
 
 static int32_t order = 0x00010203;
 
-static uint8_t*
+static uint8_t *
 le2long(int32_t *to, uint8_t *f)
 {
 	uint8_t *t, *o;
 	int i;
 
-	t = (uint8_t*)to;
-	o = (uint8_t*)&order;
+	t = (uint8_t *)to;
+	o = (uint8_t *)&order;
 	for(i = 0; i < sizeof(int32_t); i++)
 		t[o[i]] = f[i];
-	return f+sizeof(int32_t);
+	return f + sizeof(int32_t);
 }
 
 /*
@@ -1074,19 +1046,19 @@ char *Ebadtimectl = "bad time control";
 static int
 readtime(uint32_t off, char *buf, int n)
 {
-	int64_t	nsec, ticks;
+	int64_t nsec, ticks;
 	int32_t sec;
-	char str[7*NUMSIZE];
+	char str[7 * NUMSIZE];
 
 	nsec = todget(&ticks);
 	if(fasthz == (int64_t)0)
-		fastticks((uint64_t*)&fasthz);
-	sec = nsec/((uint64_t) 1000000000);
+		fastticks((uint64_t *)&fasthz);
+	sec = nsec / ((uint64_t)1000000000);
 	snprint(str, sizeof(str), "%*.0lud %*.0llud %*.0llud %*.0llud ",
-		NUMSIZE-1, sec,
-		VLNUMSIZE-1, nsec,
-		VLNUMSIZE-1, ticks,
-		VLNUMSIZE-1, fasthz);
+		NUMSIZE - 1, sec,
+		VLNUMSIZE - 1, nsec,
+		VLNUMSIZE - 1, ticks,
+		VLNUMSIZE - 1, fasthz);
 	return readstr(off, buf, n, str);
 }
 
@@ -1107,7 +1079,7 @@ writetime(char *buf, int n)
 	i = strtol(b, 0, 0);
 	if(i <= 0)
 		error(Ebadtimectl);
-	now = i*((int64_t) 1000000000);
+	now = i * ((int64_t)1000000000);
 	todset(now, 0, 0);
 	return n;
 }
@@ -1121,21 +1093,21 @@ readbintime(char *buf, int n)
 {
 	int i;
 	int64_t nsec, ticks;
-	uint8_t *b = (uint8_t*)buf;
+	uint8_t *b = (uint8_t *)buf;
 
 	i = 0;
 	if(fasthz == (int64_t)0)
-		fastticks((uint64_t*)&fasthz);
+		fastticks((uint64_t *)&fasthz);
 	nsec = todget(&ticks);
-	if(n >= 3*sizeof(uint64_t)){
-		vlong2le(b+2*sizeof(uint64_t), fasthz);
+	if(n >= 3 * sizeof(uint64_t)) {
+		vlong2le(b + 2 * sizeof(uint64_t), fasthz);
 		i += sizeof(uint64_t);
 	}
-	if(n >= 2*sizeof(uint64_t)){
-		vlong2le(b+sizeof(uint64_t), ticks);
+	if(n >= 2 * sizeof(uint64_t)) {
+		vlong2le(b + sizeof(uint64_t), ticks);
 		i += sizeof(uint64_t);
 	}
-	if(n >= 8){
+	if(n >= 8) {
 		vlong2le(b, nsec);
 		i += sizeof(int64_t);
 	}
@@ -1156,8 +1128,8 @@ writebintime(char *buf, int n)
 	int32_t period;
 
 	n--;
-	p = (uint8_t*)buf + 1;
-	switch(*buf){
+	p = (uint8_t *)buf + 1;
+	switch(*buf) {
 	case 'n':
 		if(n < sizeof(int64_t))
 			error(Ebadtimectl);
@@ -1165,7 +1137,7 @@ writebintime(char *buf, int n)
 		todset(delta, 0, 0);
 		break;
 	case 'd':
-		if(n < sizeof(int64_t)+sizeof(int32_t))
+		if(n < sizeof(int64_t) + sizeof(int32_t))
 			error(Ebadtimectl);
 		p = le2vlong(&delta, p);
 		le2long(&period, p);
@@ -1181,7 +1153,6 @@ writebintime(char *buf, int n)
 	return n;
 }
 
-
 int
 iprint(char *fmt, ...)
 {
@@ -1191,7 +1162,7 @@ iprint(char *fmt, ...)
 
 	s = splhi();
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf, buf + sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 	if(screenputs != 0 && iprintscreenputs)
 		screenputs(buf, n);
@@ -1201,4 +1172,3 @@ iprint(char *fmt, ...)
 
 	return n;
 }
-

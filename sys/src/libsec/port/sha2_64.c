@@ -14,11 +14,11 @@
 #include <libc.h>
 #include <libsec.h>
 
-static void encode32(uint8_t*, uint32_t*, uint32_t);
-static DigestState* sha2_64(uint8_t *, uint32_t, uint8_t *, SHA2_256state *,
+static void encode32(uint8_t *, uint32_t *, uint32_t);
+static DigestState *sha2_64(uint8_t *, uint32_t, uint8_t *, SHA2_256state *,
 			    int);
 
-extern void _sha2block64(uint8_t*, uint32_t, uint32_t*);
+extern void _sha2block64(uint8_t *, uint32_t, uint32_t *);
 
 /*
  *  for sha2_224 and sha2_256, len must be multiple of 64 for all but
@@ -29,7 +29,7 @@ extern void _sha2block64(uint8_t*, uint32_t, uint32_t*);
  *  the same as sha2_256.
  */
 
-SHA2_224state*
+SHA2_224state *
 sha2_224(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_224state *s)
 {
 	if(s == nil) {
@@ -38,7 +38,7 @@ sha2_224(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_224state *s)
 			return nil;
 		s->malloced = 1;
 	}
-	if(s->seeded == 0){
+	if(s->seeded == 0) {
 		/*
 		 * seed the state with the first 32 bits of the fractional
 		 * parts of the square roots of the first 8 primes 2..19).
@@ -56,7 +56,7 @@ sha2_224(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_224state *s)
 	return sha2_64(p, len, digest, s, SHA2_224dlen);
 }
 
-SHA2_256state*
+SHA2_256state *
 sha2_256(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s)
 {
 	if(s == nil) {
@@ -65,7 +65,7 @@ sha2_256(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s)
 			return nil;
 		s->malloced = 1;
 	}
-	if(s->seeded == 0){
+	if(s->seeded == 0) {
 		/*
 		 * seed the state with the first 32 bits of the fractional
 		 * parts of the square roots of the first 8 primes 2..19).
@@ -84,7 +84,7 @@ sha2_256(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s)
 }
 
 /* common 64 byte block padding and count code for SHA2_224 and SHA2_256 */
-static DigestState*
+static DigestState *
 sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	int dlen)
 {
@@ -94,7 +94,7 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	uint8_t *e;
 
 	/* fill out the partial 64 byte block from previous calls */
-	if(s->blen){
+	if(s->blen) {
 		i = 64 - s->blen;
 		if(len < i)
 			i = len;
@@ -102,7 +102,7 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 		len -= i;
 		s->blen += i;
 		p += i;
-		if(s->blen == 64){
+		if(s->blen == 64) {
 			_sha2block64(s->buf, s->blen, s->state);
 			s->len += s->blen;
 			s->blen = 0;
@@ -110,8 +110,8 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	}
 
 	/* do 64 byte blocks */
-	i = len & ~(64-1);
-	if(i){
+	i = len & ~(64 - 1);
+	if(i) {
 		_sha2block64(p, i, s->state);
 		s->len += i;
 		len -= i;
@@ -119,8 +119,8 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	}
 
 	/* save the left overs if not last call */
-	if(digest == 0){
-		if(len){
+	if(digest == 0) {
+		if(len) {
 			memmove(s->buf, p, len);
 			s->blen += len;
 		}
@@ -131,7 +131,7 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	 *  this is the last time through, pad what's left with 0x80,
 	 *  0's, and the input count to create a multiple of 64 bytes.
 	 */
-	if(s->blen){
+	if(s->blen) {
 		p = s->buf;
 		len = s->blen;
 	} else {
@@ -149,13 +149,13 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	len += i;
 
 	/* append the count */
-	x[0] = s->len>>29;
-	x[1] = s->len<<3;
-	encode32(p+len, x, 8);
+	x[0] = s->len >> 29;
+	x[1] = s->len << 3;
+	encode32(p + len, x, 8);
 
 	/* digest the last part */
-	_sha2block64(p, len+8, s->state);
-	s->len += len+8;
+	_sha2block64(p, len + 8, s->state);
+	s->len += len + 8;
 
 	/* return result and free state */
 	encode32(digest, s->state, dlen);
@@ -183,18 +183,18 @@ encode32(uint8_t *output, uint32_t *input, uint32_t len)
 	}
 }
 
-DigestState*
+DigestState *
 hmac_sha2_224(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 	      uint8_t *digest,
-	DigestState *s)
+	      DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha2_224, SHA2_224dlen);
 }
 
-DigestState*
+DigestState *
 hmac_sha2_256(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 	      uint8_t *digest,
-	DigestState *s)
+	      DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha2_256, SHA2_256dlen);
 }

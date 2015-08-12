@@ -27,10 +27,10 @@
 /* Dictionary stack API subset needed by idict.h */
 
 #ifndef iddstack_INCLUDED
-#  define iddstack_INCLUDED
+#define iddstack_INCLUDED
 
 #ifndef dict_stack_DEFINED
-#  define dict_stack_DEFINED
+#define dict_stack_DEFINED
 typedef struct dict_stack_s dict_stack_t;
 #endif
 

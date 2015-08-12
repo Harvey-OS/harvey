@@ -9,12 +9,12 @@
 
 #include "all.h"
 
-#define STRHASH	509	/* prime */
+#define STRHASH 509 /* prime */
 
-static Strnode *	stab[STRHASH];
+static Strnode *stab[STRHASH];
 
-static int32_t	hashfun(void*);
-static Strnode*	nalloc(int);
+static int32_t hashfun(void *);
+static Strnode *nalloc(int);
 
 char *
 strfind(char *a)
@@ -22,12 +22,12 @@ strfind(char *a)
 	Strnode **bin, *x, *xp;
 
 	bin = &stab[hashfun(a) % STRHASH];
-	for(xp=0, x=*bin; x; xp=x, x=x->next)
+	for(xp = 0, x = *bin; x; xp = x, x = x->next)
 		if(x->str[0] == a[0] && strcmp(x->str, a) == 0)
 			break;
 	if(x == 0)
 		return 0;
-	if(xp){
+	if(xp) {
 		xp->next = x->next;
 		x->next = *bin;
 		*bin = x;
@@ -42,16 +42,16 @@ strstore(char *a)
 	int n;
 
 	bin = &stab[hashfun(a) % STRHASH];
-	for(xp=0, x=*bin; x; xp=x, x=x->next)
+	for(xp = 0, x = *bin; x; xp = x, x = x->next)
 		if(x->str[0] == a[0] && strcmp(x->str, a) == 0)
 			break;
-	if(x == 0){
-		n = strlen(a)+1;
+	if(x == 0) {
+		n = strlen(a) + 1;
 		x = nalloc(n);
 		memmove(x->str, a, n);
 		x->next = *bin;
 		*bin = x;
-	}else if(xp){
+	} else if(xp) {
 		xp->next = x->next;
 		x->next = *bin;
 		*bin = x;
@@ -64,9 +64,9 @@ strprint(int fd)
 {
 	Strnode **bin, *x;
 
-	for(bin = stab; bin < stab+STRHASH; bin++)
-		for(x=*bin; x; x=x->next)
-			fprint(fd, "%ld %s\n", bin-stab, x->str);
+	for(bin = stab; bin < stab + STRHASH; bin++)
+		for(x = *bin; x; x = x->next)
+			fprint(fd, "%ld %s\n", bin - stab, x->str);
 }
 
 static int32_t
@@ -75,9 +75,9 @@ hashfun(void *v)
 	uint32_t a = 0, b;
 	uint8_t *s = v;
 
-	while(*s){
+	while(*s) {
 		a = (a << 4) + *s++;
-		if(b = a&0xf0000000){	/* assign = */
+		if(b = a & 0xf0000000) { /* assign = */
 			a ^= b >> 24;
 			a ^= b;
 		}
@@ -85,10 +85,10 @@ hashfun(void *v)
 	return a;
 }
 
-#define STRSIZE	1000
+#define STRSIZE 1000
 
 static Strnode *
-nalloc(int n)	/* get permanent storage for Strnode */
+nalloc(int n) /* get permanent storage for Strnode */
 {
 	static char *curstp;
 	static int nchleft;
@@ -97,10 +97,10 @@ nalloc(int n)	/* get permanent storage for Strnode */
 
 	if(n < 4)
 		n = 4;
-	else if(k = n&3)	/* assign = */
-		n += 4-k;
-	n += sizeof(Strnode)-4;
-	if(n > nchleft){
+	else if(k = n & 3) /* assign = */
+		n += 4 - k;
+	n += sizeof(Strnode) - 4;
+	if(n > nchleft) {
 		nchleft = STRSIZE;
 		while(nchleft < n)
 			nchleft *= 2;
@@ -110,5 +110,5 @@ nalloc(int n)	/* get permanent storage for Strnode */
 	p = curstp;
 	curstp += n;
 	nchleft -= n;
-	return (Strnode*)p;
+	return (Strnode *)p;
 }

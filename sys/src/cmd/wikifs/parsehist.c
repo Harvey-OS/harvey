@@ -26,24 +26,24 @@
 #include <thread.h>
 #include "wiki.h"
 
-static char*
+static char *
 Brdwline(void *vb, int sep)
 {
 	Biobufhdr *b;
 	char *p;
 
 	b = vb;
-	if(Bgetc(b) == '#'){
+	if(Bgetc(b) == '#') {
 		if(p = Brdline(b, sep))
-			p[Blinelen(b)-1] = '\0';
+			p[Blinelen(b) - 1] = '\0';
 		return p;
-	}else{
+	} else {
 		Bungetc(b);
-		return nil;	
+		return nil;
 	}
 }
 
-Whist*
+Whist *
 Brdwhist(Biobuf *b)
 {
 	int i, current, conflict, c, n;
@@ -52,12 +52,12 @@ Brdwhist(Biobuf *b)
 	Wdoc *w;
 	Whist *h;
 
-	if((p = Brdline(b, '\n')) == nil){
+	if((p = Brdline(b, '\n')) == nil) {
 		werrstr("short read: %r");
 		return nil;
 	}
 
-	p[Blinelen(b)-1] = '\0';
+	p[Blinelen(b) - 1] = '\0';
 	p = strcondense(p, 1);
 	title = estrdup(p);
 
@@ -68,14 +68,14 @@ Brdwhist(Biobuf *b)
 	comment = nil;
 	conflict = 0;
 	current = 0;
-	while((c = Bgetc(b)) != Beof){
-		if(c != '#'){
+	while((c = Bgetc(b)) != Beof) {
+		if(c != '#') {
 			p = Brdline(b, '\n');
 			if(p == nil)
 				break;
-			p[Blinelen(b)-1] = '\0';
+			p[Blinelen(b) - 1] = '\0';
 
-			switch(c){
+			switch(c) {
 			case 'D':
 				t = strtoul(p, 0, 10);
 				break;
@@ -90,10 +90,10 @@ Brdwhist(Biobuf *b)
 			case 'X':
 				conflict = 1;
 			}
-		} else {	/* c=='#' */
+		} else { /* c=='#' */
 			Bungetc(b);
-			if(n%8 == 0)
-				w = erealloc(w, (n+8)*sizeof(w[0]));
+			if(n % 8 == 0)
+				w = erealloc(w, (n + 8) * sizeof(w[0]));
 			w[n].time = t;
 			w[n].author = author;
 			w[n].comment = comment;
@@ -110,7 +110,7 @@ Brdwhist(Biobuf *b)
 			t = -1;
 		}
 	}
-	if(w==nil)
+	if(w == nil)
 		goto Error;
 
 	free(comment);
@@ -128,7 +128,7 @@ Error:
 	free(title);
 	free(author);
 	free(comment);
-	for(i=0; i<n; i++){
+	for(i = 0; i < n; i++) {
 		free(w[i].author);
 		free(w[i].comment);
 		freepage(w[i].wtxt);
@@ -136,4 +136,3 @@ Error:
 	free(w);
 	return nil;
 }
-

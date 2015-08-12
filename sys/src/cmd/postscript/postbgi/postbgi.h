@@ -13,47 +13,47 @@
  *
  */
 
-#define BRCHAR		033		/* rotated character mode */
-#define BCHAR		034		/* graphical character mode */
-#define BGRAPH		035		/* graphical master mode */
+#define BRCHAR 033 /* rotated character mode */
+#define BCHAR 034  /* graphical character mode */
+#define BGRAPH 035 /* graphical master mode */
 
-#define BSUB		042		/* subroutine definition */
-#define BRET		043		/* end of subroutine */
-#define BCALL		044		/* subroutine call */
+#define BSUB 042  /* subroutine definition */
+#define BRET 043  /* end of subroutine */
+#define BCALL 044 /* subroutine call */
 
-#define BEND		045		/* end page */
-#define BERASE		046		/* erase - obsolete */
-#define BREP		047		/* repeat */
-#define BENDR		050		/* end repeat */
+#define BEND 045   /* end page */
+#define BERASE 046 /* erase - obsolete */
+#define BREP 047   /* repeat */
+#define BENDR 050  /* end repeat */
 
-#define BSETX		051		/* set horizontal position */
-#define BSETY		052		/* set vertical position */
-#define BSETXY		053		/* set horizontal and vertical positions */
-#define BINTEN		054		/* intensify - mark current pixel */
+#define BSETX 051  /* set horizontal position */
+#define BSETY 052  /* set vertical position */
+#define BSETXY 053 /* set horizontal and vertical positions */
+#define BINTEN 054 /* intensify - mark current pixel */
 
-#define BVISX		055		/* manhattan vector - change x first */
-#define BINVISX		056		/* same as BVISX but nothing drawn */
-#define BVISY		057		/* manhattan vector - change y first */
-#define BINVISY		060		/* same as BVISY but nothing drawn */
+#define BVISX 055   /* manhattan vector - change x first */
+#define BINVISX 056 /* same as BVISX but nothing drawn */
+#define BVISY 057   /* manhattan vector - change y first */
+#define BINVISY 060 /* same as BVISY but nothing drawn */
 
-#define BVEC		061		/* arbitrary long vector */
-#define BSVEC		062		/* arbitrary short vector */
-#define BRECT		063		/* outline rectangle */
-#define BPOINT1		064		/* point plot - mode 1 */
-#define BPOINT		065		/* point plot - mode 2 */
-#define BLINE		066		/* line plot */
+#define BVEC 061    /* arbitrary long vector */
+#define BSVEC 062   /* arbitrary short vector */
+#define BRECT 063   /* outline rectangle */
+#define BPOINT1 064 /* point plot - mode 1 */
+#define BPOINT 065  /* point plot - mode 2 */
+#define BLINE 066   /* line plot */
 
-#define BCSZ		067		/* set character size */
-#define BLTY		070		/* select line type */
-#define BARC		071		/* draw circular arc */
-#define BFARC		072		/* filled circular arc */
-#define BFRECT		073		/* filled rectangle */
-#define BRASRECT	074		/* raster rectangle */
-#define BCOL		075		/* select color */
-#define BFTRAPH		076		/* filled trapezoid */
-#define BPAT		077		/* pattern are for filling - no info */
+#define BCSZ 067     /* set character size */
+#define BLTY 070     /* select line type */
+#define BARC 071     /* draw circular arc */
+#define BFARC 072    /* filled circular arc */
+#define BFRECT 073   /* filled rectangle */
+#define BRASRECT 074 /* raster rectangle */
+#define BCOL 075     /* select color */
+#define BFTRAPH 076  /* filled trapezoid */
+#define BPAT 077     /* pattern are for filling - no info */
 
-#define BNOISE		0		/* from bad file format */
+#define BNOISE 0 /* from bad file format */
 
 /*
  *
@@ -62,7 +62,7 @@
  *
  */
 
-#define BGISIZE		2		/* default character grid spacing */
+#define BGISIZE 2 /* default character grid spacing */
 
 /*
  *
@@ -70,11 +70,11 @@
  *
  */
 
-#define CHMASK		0177		/* characters only use 7 bits */
-#define DMASK		077		/* data values use lower 6 bits */
-#define MSB		0100		/* used to check for data or opcode */
-#define SGNB		040		/* sign bit for integers */
-#define MSBMAG		037		/* mag of most sig byte in a BGI int */
+#define CHMASK 0177 /* characters only use 7 bits */
+#define DMASK 077   /* data values use lower 6 bits */
+#define MSB 0100    /* used to check for data or opcode */
+#define SGNB 040    /* sign bit for integers */
+#define MSBMAG 037  /* mag of most sig byte in a BGI int */
 
 /*
  *
@@ -82,13 +82,13 @@
  *
  */
 
-#define X_COORD		0		/* change x next in manhattan vector */
-#define Y_COORD		1		/* same but y change comes next */
-#define LONGVECTOR	2		/* arbitrary long vector */
-#define SHORTVECTOR	3		/* components given in 6 bits */
+#define X_COORD 0     /* change x next in manhattan vector */
+#define Y_COORD 1     /* same but y change comes next */
+#define LONGVECTOR 2  /* arbitrary long vector */
+#define SHORTVECTOR 3 /* components given in 6 bits */
 
-#define VISIBLE		0		/* really draw the vector */
-#define INVISIBLE	1		/* just move the current position */
+#define VISIBLE 0   /* really draw the vector */
+#define INVISIBLE 1 /* just move the current position */
 
 /*
  *
@@ -96,8 +96,8 @@
  *
  */
 
-#define OUTLINE		0		/* outline the defined path */
-#define FILL		1		/* fill it in */
+#define OUTLINE 0 /* outline the defined path */
+#define FILL 1    /* fill it in */
 
 /*
  *
@@ -106,24 +106,18 @@
  *
  */
 
-#define SOLID		0
-#define DOTTED		1
-#define SHORTDASH	2
-#define DASH		3
-#define LONGDASH	4
-#define DOTDASH		5
-#define THREEDOT	6
+#define SOLID 0
+#define DOTTED 1
+#define SHORTDASH 2
+#define DASH 3
+#define LONGDASH 4
+#define DOTDASH 5
+#define THREEDOT 6
 
-#define STYLES								\
-									\
-	{								\
-	    "[]",							\
-	    "[.5 2]",							\
-	    "[2 4]",							\
-	    "[4 4]",							\
-	    "[8 4]",							\
-	    "[.5 2 4 2]",						\
-	    "[.5 2 .5 2 .5 2 4 2]"					\
+#define STYLES                                                                                  \
+                                                                                                \
+	{                                                                                       \
+		"[]", "[.5 2]", "[2 4]", "[4 4]", "[8 4]", "[.5 2 4 2]", "[.5 2 .5 2 .5 2 4 2]" \
 	}
 
 /*
@@ -135,9 +129,9 @@
  *
  */
 
-#define RED		0
-#define GREEN		1
-#define BLUE		2
+#define RED 0
+#define GREEN 1
+#define BLUE 2
 
 /*
  *
@@ -152,8 +146,8 @@
  */
 
 typedef struct {
-	int	dx;			/* horizontal and */
-	int	dy;			/* vertical displacements */
+	int dx; /* horizontal and */
+	int dy; /* vertical displacements */
 } Disp;
 
 /*
@@ -165,25 +159,14 @@ typedef struct {
  */
 
 typedef struct {
-	char	*name;			/* user's font name */
-	char	*val;			/* corresponding PostScript name */
+	char *name; /* user's font name */
+	char *val;  /* corresponding PostScript name */
 } Fontmap;
 
-#define FONTMAP								\
-									\
-	{								\
-	    "R", "Courier",						\
-	    "I", "Courier-Oblique",					\
-	    "B", "Courier-Bold",					\
-	    "CO", "Courier",						\
-	    "CI", "Courier-Oblique",					\
-	    "CB", "Courier-Bold",					\
-	    "CW", "Courier",						\
-	    "PO", "Courier",						\
-	    "courier", "Courier",					\
-	    "cour", "Courier",						\
-	    "co", "Courier",						\
-	    NULL, NULL							\
+#define FONTMAP                                                                                                                                                                                                                                     \
+                                                                                                                                                                                                                                                    \
+	{                                                                                                                                                                                                                                           \
+		"R", "Courier", "I", "Courier-Oblique", "B", "Courier-Bold", "CO", "Courier", "CI", "Courier-Oblique", "CB", "Courier-Bold", "CW", "Courier", "PO", "Courier", "courier", "Courier", "cour", "Courier", "co", "Courier", NULL, NULL \
 	}
 
 /*
@@ -199,8 +182,8 @@ typedef struct {
  *
  */
 
-#define MAG(A, B)	(((A & MSBMAG) << 6) | (B & DMASK))
-#define LINESPACE(A)	(8 * A)
+#define MAG(A, B) (((A & MSBMAG) << 6) | (B & DMASK))
+#define LINESPACE(A) (8 * A)
 
 /*
  *
@@ -208,5 +191,4 @@ typedef struct {
  *
  */
 
-char	*get_font();
-
+char *get_font();

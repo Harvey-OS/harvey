@@ -12,35 +12,33 @@
 #include <String.h>
 #include "ftpfs.h"
 
-enum
-{
-	Chunk=		1024,		/* chunk size for buffered data */
-	Nfile=		128,		/* maximum number of cached files */
+enum {
+	Chunk = 1024, /* chunk size for buffered data */
+	Nfile = 128,  /* maximum number of cached files */
 };
 
 /* a file (with cached data) */
-struct File
-{
-	char	*mem;		/* part of file cached in memory */
-	uint32_t	len;		/* length of cached data */
-	int32_t	off;		/* current offset into tpath */
-	int16_t	fd;		/* fd to cache file */
-	char	inuse;
-	char	dirty;
-	uint32_t	atime;		/* time of last access */
-	Node	*node;
-	char 	*template;
+struct File {
+	char *mem;    /* part of file cached in memory */
+	uint32_t len; /* length of cached data */
+	int32_t off;  /* current offset into tpath */
+	int16_t fd;   /* fd to cache file */
+	char inuse;
+	char dirty;
+	uint32_t atime; /* time of last access */
+	Node *node;
+	char *template;
 };
 
-static File	files[Nfile];
-static uint32_t	now;
-static int	ntmp;
+static File files[Nfile];
+static uint32_t now;
+static int ntmp;
 
 /*
  *  lookup a file, create one if not found.  if there are no
  *  free files, free the last oldest clean one.
  */
-static File*
+static File *
 fileget(Node *node)
 {
 	File *fp;
@@ -51,14 +49,14 @@ fileget(Node *node)
 		return fp;
 
 	oldest = 0;
-	for(fp = files; fp < &files[Nfile]; fp++){
+	for(fp = files; fp < &files[Nfile]; fp++) {
 		if(fp->inuse == 0)
 			break;
 		if(fp->dirty == 0 && (oldest == 0 || oldest->atime > fp->atime))
 			oldest = fp;
 	}
 
-	if(fp == &files[Nfile]){
+	if(fp == &files[Nfile]) {
 		uncache(oldest->node);
 		fp = oldest;
 	}
@@ -67,7 +65,7 @@ fileget(Node *node)
 	fp->atime = now++;
 	fp->inuse = 1;
 	fp->fd = -1;
-	if(fp->mem){
+	if(fp->mem) {
 		free(fp->mem);
 		fp->mem = nil;
 	}
@@ -86,7 +84,7 @@ filefree(Node *node)
 	if(fp == 0)
 		return;
 
-	if(fp->fd > 0){
+	if(fp->fd > 0) {
 		ntmp--;
 		close(fp->fd);
 		remove(fp->template);
@@ -94,7 +92,7 @@ filefree(Node *node)
 		fp->template = 0;
 	}
 	fp->fd = -1;
-	if(fp->mem){
+	if(fp->mem) {
 		free(fp->mem);
 		fp->mem = nil;
 	}
@@ -123,10 +121,10 @@ fileread(Node *node, char *a, int32_t off, int n)
 	if(off + n > fp->len)
 		n = fp->len - off;
 
-	for(sofar = 0; sofar < n; sofar += i, off += i, a += i){
+	for(sofar = 0; sofar < n; sofar += i, off += i, a += i) {
 		if(off >= fp->len)
 			return sofar;
-		if(off < Chunk){
+		if(off < Chunk) {
 			i = n;
 			if(off + i > Chunk)
 				i = Chunk - off;
@@ -134,12 +132,12 @@ fileread(Node *node, char *a, int32_t off, int n)
 			continue;
 		}
 		if(fp->off != off)
-			if(seek(fp->fd, off, 0) < 0){
+			if(seek(fp->fd, off, 0) < 0) {
 				fp->off = -1;
 				return -1;
 			}
-		i = read(fp->fd, a, n-sofar);
-		if(i < 0){
+		i = read(fp->fd, a, n - sofar);
+		if(i < 0) {
 			fp->off = -1;
 			return -1;
 		}
@@ -159,13 +157,13 @@ uncachedir(Node *parent, Node *child)
 		return;
 	for(sp = parent->children; sp; sp = sp->sibs)
 		if(sp->opens == 0)
-		if(sp != child)
-		if(sp->fp != nil)
-		if(sp->fp->dirty == 0)
-		if(sp->fp->fd >= 0){
-			filefree(sp);
-			UNCACHED(sp);
-		}
+			if(sp != child)
+				if(sp->fp != nil)
+					if(sp->fp->dirty == 0)
+						if(sp->fp->fd >= 0) {
+							filefree(sp);
+							UNCACHED(sp);
+						}
 }
 
 static int
@@ -175,14 +173,14 @@ createtmp(File *fp)
 
 	strcpy(template, "/tmp/ftpXXXXXXXXXXX");
 	mktemp(template);
-	if(strcmp(template, "/") == 0){
+	if(strcmp(template, "/") == 0) {
 		fprint(2, "ftpfs can't create tmp file %s: %r\n", template);
 		return -1;
 	}
 	if(ntmp >= 16)
 		uncachedir(fp->node->parent, fp->node);
 
-	fp->fd = create(template, ORDWR|ORCLOSE, 0600);
+	fp->fd = create(template, ORDWR | ORCLOSE, 0600);
 	fp->template = strdup(template);
 	fp->off = 0;
 	ntmp++;
@@ -200,14 +198,14 @@ filewrite(Node *node, char *a, int32_t off, int n)
 
 	fp = fileget(node);
 
-	if(fp->mem == nil){
+	if(fp->mem == nil) {
 		fp->mem = malloc(Chunk);
 		if(fp->mem == nil)
 			return seterr("out of memory");
 	}
 
-	for(sofar = 0; sofar < n; sofar += i, off += i, a += i){
-		if(off < Chunk){
+	for(sofar = 0; sofar < n; sofar += i, off += i, a += i) {
+		if(off < Chunk) {
 			i = n;
 			if(off + i > Chunk)
 				i = Chunk - off;
@@ -218,12 +216,12 @@ filewrite(Node *node, char *a, int32_t off, int n)
 			if(createtmp(fp) < 0)
 				return seterr("can't create temp file");
 		if(fp->off != off)
-			if(seek(fp->fd, off, 0) < 0){
+			if(seek(fp->fd, off, 0) < 0) {
 				fp->off = -1;
 				return seterr("can't seek temp file");
 			}
-		i = write(fp->fd, a, n-sofar);
-		if(i <= 0){
+		i = write(fp->fd, a, n - sofar);
+		if(i <= 0) {
 			fp->off = -1;
 			return seterr("can't write temp file");
 		}

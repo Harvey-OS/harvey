@@ -11,22 +11,22 @@
 #include "vncv.h"
 
 static struct {
-	char	*name;
-	int	num;
+	char *name;
+	int num;
 } enctab[] = {
-	"copyrect",	EncCopyRect,
-	"corre",	EncCorre,
-	"hextile",	EncHextile,
-	"raw",		EncRaw,
-	"rre",		EncRre,
-	"mousewarp",	EncMouseWarp,
+    "copyrect", EncCopyRect,
+    "corre", EncCorre,
+    "hextile", EncHextile,
+    "raw", EncRaw,
+    "rre", EncRre,
+    "mousewarp", EncMouseWarp,
 };
 
-static	uint8_t	*pixbuf;
-static	uint8_t	*linebuf;
-static	int	vpixb;
-static	int	pixb;
-static	void	(*pixcp)(uint8_t*, uint8_t*);
+static uint8_t *pixbuf;
+static uint8_t *linebuf;
+static int vpixb;
+static int pixb;
+static void (*pixcp)(uint8_t *, uint8_t *);
 
 static void
 vncrdcolor(Vnc *v, uint8_t *color)
@@ -45,11 +45,11 @@ sendencodings(Vnc *v)
 
 	nf = tokenize(encodings, f, nelem(f));
 	nenc = 0;
-	for(i=0; i<nf; i++){
-		for(j=0; j<nelem(enctab); j++)
+	for(i = 0; i < nf; i++) {
+		for(j = 0; j < nelem(enctab); j++)
 			if(strcmp(f[i], enctab[j].name) == 0)
 				break;
-		if(j == nelem(enctab)){
+		if(j == nelem(enctab)) {
 			print("warning: unknown encoding %s\n", f[i]);
 			continue;
 		}
@@ -60,7 +60,7 @@ sendencodings(Vnc *v)
 	vncwrchar(v, MSetEnc);
 	vncwrchar(v, 0);
 	vncwrshort(v, nenc);
-	for(i=0; i<nenc; i++)
+	for(i = 0; i < nenc; i++)
 		vncwrlong(v, enc[i]);
 	vncflush(v);
 	vncunlock(v);
@@ -92,7 +92,7 @@ clippixbuf(Rectangle r, int maxx, int maxy)
 {
 	int y, h, stride1, stride2;
 
-	if(r.min.x > maxx || r.min.y > maxy){
+	if(r.min.x > maxx || r.min.y > maxy) {
 		r.max.x = 0;
 		return r;
 	}
@@ -115,13 +115,13 @@ clippixbuf(Rectangle r, int maxx, int maxy)
 static void
 updatescreen(Rectangle r)
 {
-	Image* img;
+	Image *img;
 	int b, bb;
 
 	lockdisplay(display);
-	if(r.max.x > Dx(screen->r) || r.max.y > Dy(screen->r)){
+	if(r.max.x > Dx(screen->r) || r.max.y > Dy(screen->r)) {
 		r = clippixbuf(r, Dx(screen->r), Dy(screen->r));
-		if(r.max.x == 0){
+		if(r.max.x == 0) {
 			unlockdisplay(display);
 			return;
 		}
@@ -149,7 +149,7 @@ fillrect(Rectangle r, int stride, uint8_t *color)
 
 	y = r.min.y;
 	off = y * stride;
-	for(; y < r.max.y; y++){
+	for(; y < r.max.y; y++) {
 		xe = off + r.max.x * pixb;
 		for(x = off + r.min.x * pixb; x < xe; x += pixb)
 			(*pixcp)(&pixbuf[x], color);
@@ -162,18 +162,18 @@ loadbuf(Vnc *v, Rectangle r, int stride)
 {
 	int off, y;
 
-	if(cvtpixels){
+	if(cvtpixels) {
 		y = r.min.y;
 		off = y * stride;
-		for(; y < r.max.y; y++){
+		for(; y < r.max.y; y++) {
 			vncrdbytes(v, linebuf, Dx(r) * vpixb);
 			(*cvtpixels)(&pixbuf[off + r.min.x * pixb], linebuf, Dx(r));
 			off += stride;
 		}
-	}else{
+	} else {
 		y = r.min.y;
 		off = y * stride;
-		for(; y < r.max.y; y++){
+		for(; y < r.max.y; y++) {
 			vncrdbytes(v, &pixbuf[off + r.min.x * pixb], Dx(r) * pixb);
 			off += stride;
 		}
@@ -185,14 +185,13 @@ hexrect(uint16_t u)
 {
 	int x, y, w, h;
 
-	x = u>>12;
-	y = (u>>8)&15;
-	w = ((u>>4)&15)+1;
-	h = (u&15)+1;
+	x = u >> 12;
+	y = (u >> 8) & 15;
+	w = ((u >> 4) & 15) + 1;
+	h = (u & 15) + 1;
 
-	return Rect(x, y, x+w, y+h);
+	return Rect(x, y, x + w, y + h);
 }
-
 
 static void
 dohextile(Vnc *v, Rectangle r, int stride)
@@ -204,37 +203,37 @@ dohextile(Vnc *v, Rectangle r, int stride)
 	fg = bg = 0;
 	h = Dy(r);
 	w = Dx(r);
-	for(sy = 0; sy < h; sy += HextileDim){
+	for(sy = 0; sy < h; sy += HextileDim) {
 		th = h - sy;
 		if(th > HextileDim)
 			th = HextileDim;
-		for(sx = 0; sx < w; sx += HextileDim){
+		for(sx = 0; sx < w; sx += HextileDim) {
 			tw = w - sx;
 			if(tw > HextileDim)
 				tw = HextileDim;
 
 			sr = Rect(sx, sy, sx + tw, sy + th);
 			enc = vncrdchar(v);
-			if(enc & HextileRaw){
+			if(enc & HextileRaw) {
 				loadbuf(v, sr, stride);
 				continue;
 			}
 
 			if(enc & HextileBack)
-				vncrdcolor(v, (uint8_t*)&bg);
-			fillrect(sr, stride, (uint8_t*)&bg);
+				vncrdcolor(v, (uint8_t *)&bg);
+			fillrect(sr, stride, (uint8_t *)&bg);
 
 			if(enc & HextileFore)
-				vncrdcolor(v, (uint8_t*)&fg);
+				vncrdcolor(v, (uint8_t *)&fg);
 
-			if(enc & HextileRects){
+			if(enc & HextileRects) {
 				nsub = vncrdchar(v);
-				(*pixcp)((uint8_t*)&c, (uint8_t*)&fg);
-				while(nsub-- > 0){
+				(*pixcp)((uint8_t *)&c, (uint8_t *)&fg);
+				while(nsub-- > 0) {
 					if(enc & HextileCols)
-						vncrdcolor(v, (uint8_t*)&c);
+						vncrdcolor(v, (uint8_t *)&c);
 					ssr = rectaddpt(hexrect(vncrdshort(v)), sr.min);
-					fillrect(ssr, stride, (uint8_t*)&c);
+					fillrect(ssr, stride, (uint8_t *)&c);
 				}
 			}
 		}
@@ -257,7 +256,7 @@ dorectangle(Vnc *v)
 		sysfatal("bad rectangle from server: %R not in %R", r, Rpt(ZP, v->dim));
 	stride = Dx(r) * pixb;
 	type = vncrdlong(v);
-	switch(type){
+	switch(type) {
 	default:
 		sysfatal("bad rectangle encoding from server");
 		break;
@@ -279,17 +278,17 @@ dorectangle(Vnc *v)
 	case EncCorre:
 		maxr = Rpt(ZP, Pt(Dx(r), Dy(r)));
 		n = vncrdlong(v);
-		vncrdcolor(v, (uint8_t*)&color);
-		fillrect(maxr, stride, (uint8_t*)&color);
-		while(n-- > 0){
-			vncrdcolor(v, (uint8_t*)&color);
+		vncrdcolor(v, (uint8_t *)&color);
+		fillrect(maxr, stride, (uint8_t *)&color);
+		while(n-- > 0) {
+			vncrdcolor(v, (uint8_t *)&color);
 			if(type == EncRre)
 				subr = vncrdrect(v);
 			else
 				subr = vncrdcorect(v);
 			if(!rectinrect(subr, maxr))
 				sysfatal("bad encoding from server");
-			fillrect(subr, stride, (uint8_t*)&color);
+			fillrect(subr, stride, (uint8_t *)&color);
 		}
 		updatescreen(r);
 		break;
@@ -314,13 +313,13 @@ pixcp8(uint8_t *dst, uint8_t *src)
 static void
 pixcp16(uint8_t *dst, uint8_t *src)
 {
-	*(uint16_t*)dst = *(uint16_t*)src;
+	*(uint16_t *)dst = *(uint16_t *)src;
 }
 
 static void
 pixcp32(uint8_t *dst, uint8_t *src)
 {
-	*(uint32_t*)dst = *(uint32_t*)src;
+	*(uint32_t *)dst = *(uint32_t *)src;
 }
 
 static void
@@ -348,7 +347,7 @@ readfromserver(Vnc *v)
 
 	vpixb = calcpixb(v->bpp);
 	pixb = calcpixb(screen->depth);
-	switch(pixb){
+	switch(pixb) {
 	case 1:
 		pixcp = pixcp8;
 		break;
@@ -368,9 +367,9 @@ readfromserver(Vnc *v)
 	pixbuf = malloc(v->dim.x * pixb * v->dim.y);
 	if(linebuf == nil || pixbuf == nil)
 		sysfatal("can't allocate pix decompression storage");
-	for(;;){
+	for(;;) {
 		type = vncrdchar(v);
-		switch(type){
+		switch(type) {
 		default:
 			sysfatal("bad message from server");
 			break;
@@ -386,7 +385,7 @@ readfromserver(Vnc *v)
 		case MSetCmap:
 			vncrdbytes(v, junk, 3);
 			n = vncrdshort(v);
-			vncgobble(v, n*3*2);
+			vncgobble(v, n * 3 * 2);
 			break;
 
 		case MBell:

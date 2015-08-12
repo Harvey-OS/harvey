@@ -13,14 +13,14 @@
 #include "error.h"
 #include "9.h"
 
-static int	sizeToDepth(uint64_t s, int psize, int dsize);
-static uint32_t 	tagGen(void);
-static Block 	*sourceLoad(Source *r, Entry *e);
-static int	sourceShrinkDepth(Source*, Block*, Entry*, int);
-static int	sourceShrinkSize(Source*, Entry*, uint64_t);
-static int	sourceGrowDepth(Source*, Block*, Entry*, int);
+static int sizeToDepth(uint64_t s, int psize, int dsize);
+static uint32_t tagGen(void);
+static Block *sourceLoad(Source *r, Entry *e);
+static int sourceShrinkDepth(Source *, Block *, Entry *, int);
+static int sourceShrinkSize(Source *, Entry *, uint64_t);
+static int sourceGrowDepth(Source *, Block *, Entry *, int);
 
-#define sourceIsLocked(r)	((r)->b != nil)
+#define sourceIsLocked(r) ((r)->b != nil)
 
 static Source *
 sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
@@ -32,12 +32,12 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 	Source *r;
 	Entry e;
 
-	assert(p==nil || sourceIsLocked(p));
+	assert(p == nil || sourceIsLocked(p));
 
-	if(p == nil){
+	if(p == nil) {
 		assert(offset == 0);
 		epb = 1;
-	}else
+	} else
 		epb = p->dsize / VtEntrySize;
 
 	if(b->l.type != BtDir)
@@ -48,56 +48,59 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 	 * can legitimately happen here. all the others
 	 * get prints.
 	 */
-	if(!entryUnpack(&e, b->data, offset % epb)){
+	if(!entryUnpack(&e, b->data, offset % epb)) {
 		pname = sourceName(p);
 		consPrint("%s: %s %V: sourceAlloc: entryUnpack failed\n",
-			fs->name, pname, b->score);
+			  fs->name, pname, b->score);
 		goto Bad;
 	}
-	if(!(e.flags & VtEntryActive)){
+	if(!(e.flags & VtEntryActive)) {
 		pname = sourceName(p);
-		if(0) consPrint("%s: %s %V: sourceAlloc: not active\n",
-			fs->name, pname, e.score);
+		if(0)
+			consPrint("%s: %s %V: sourceAlloc: not active\n",
+				  fs->name, pname, e.score);
 		goto Bad;
 	}
-	if(e.psize < 256 || e.dsize < 256){
+	if(e.psize < 256 || e.dsize < 256) {
 		pname = sourceName(p);
 		consPrint("%s: %s %V: sourceAlloc: psize %ud or dsize %ud < 256\n",
-			fs->name, pname, e.score, e.psize, e.dsize);
+			  fs->name, pname, e.score, e.psize, e.dsize);
 		goto Bad;
 	}
 
-	if(e.depth < sizeToDepth(e.size, e.psize, e.dsize)){
+	if(e.depth < sizeToDepth(e.size, e.psize, e.dsize)) {
 		pname = sourceName(p);
 		consPrint("%s: %s %V: sourceAlloc: depth %ud size %llud "
-			"psize %ud dsize %ud\n", fs->name, pname,
-			e.score, e.depth, e.size, e.psize, e.dsize);
+			  "psize %ud dsize %ud\n",
+			  fs->name, pname,
+			  e.score, e.depth, e.size, e.psize, e.dsize);
 		goto Bad;
 	}
 
-	if((e.flags & VtEntryLocal) && e.tag == 0){
+	if((e.flags & VtEntryLocal) && e.tag == 0) {
 		pname = sourceName(p);
 		consPrint("%s: %s %V: sourceAlloc: flags %#ux tag %#ux\n",
-			fs->name, pname, e.score, e.flags, e.tag);
+			  fs->name, pname, e.score, e.flags, e.tag);
 		goto Bad;
 	}
 
-	if(e.dsize > fs->blockSize || e.psize > fs->blockSize){
+	if(e.dsize > fs->blockSize || e.psize > fs->blockSize) {
 		pname = sourceName(p);
 		consPrint("%s: %s %V: sourceAlloc: psize %ud or dsize %ud "
-			"> blocksize %ud\n", fs->name, pname, e.score,
-			e.psize, e.dsize, fs->blockSize);
+			  "> blocksize %ud\n",
+			  fs->name, pname, e.score,
+			  e.psize, e.dsize, fs->blockSize);
 		goto Bad;
 	}
 
 	epoch = b->l.epoch;
-	if(mode == OReadWrite){
-		if(e.snap != 0){
+	if(mode == OReadWrite) {
+		if(e.snap != 0) {
 			vtSetError(ESnapRO);
 			return nil;
 		}
-	}else if(e.snap != 0){
-		if(e.snap < fs->elo){
+	} else if(e.snap != 0) {
+		if(e.snap < fs->elo) {
 			vtSetError(ESnapOld);
 			return nil;
 		}
@@ -116,22 +119,22 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 	r->lk = vtLockAlloc();
 	r->ref = 1;
 	r->parent = p;
-	if(p){
+	if(p) {
 		vtLock(p->lk);
 		assert(mode == OReadOnly || p->mode == OReadWrite);
 		p->ref++;
 		vtUnlock(p->lk);
 	}
 	r->epoch = epoch;
-//	consPrint("sourceAlloc: have %V be.%d fse.%d %s\n", b->score,
-//		b->l.epoch, r->fs->ehi, mode == OReadWrite? "rw": "ro");
+	//	consPrint("sourceAlloc: have %V be.%d fse.%d %s\n", b->score,
+	//		b->l.epoch, r->fs->ehi, mode == OReadWrite? "rw": "ro");
 	memmove(r->score, b->score, VtScoreSize);
 	r->scoreEpoch = b->l.epoch;
 	r->offset = offset;
 	r->epb = epb;
 	r->tag = b->l.tag;
 
-//	consPrint("%s: sourceAlloc: %p -> %V %d\n", r, r->score, r->offset);
+	//	consPrint("%s: sourceAlloc: %p -> %V %d\n", r, r->score, r->offset);
 
 	return r;
 Bad:
@@ -150,9 +153,9 @@ sourceRoot(Fs *fs, uint32_t addr, int mode)
 	if(b == nil)
 		return nil;
 
-	if(mode == OReadWrite && b->l.epoch != fs->ehi){
+	if(mode == OReadWrite && b->l.epoch != fs->ehi) {
 		consPrint("sourceRoot: fs->ehi = %ud, b->l = %L\n",
-			fs->ehi, &b->l);
+			  fs->ehi, &b->l);
 		blockPut(b);
 		vtSetError(EBadRoot);
 		return nil;
@@ -172,12 +175,12 @@ sourceOpen(Source *r, uint32_t offset, int mode, int issnapshot)
 	assert(sourceIsLocked(r));
 	if(r->mode == OReadWrite)
 		assert(r->epoch == r->b->l.epoch);
-	if(!r->dir){
+	if(!r->dir) {
 		vtSetError(ENotDir);
 		return nil;
 	}
 
-	bn = offset/(r->dsize/VtEntrySize);
+	bn = offset / (r->dsize / VtEntrySize);
 
 	b = sourceBlock(r, bn, mode);
 	if(b == nil)
@@ -198,36 +201,36 @@ sourceCreate(Source *r, int dsize, int dir, uint32_t offset)
 
 	assert(sourceIsLocked(r));
 
-	if(!r->dir){
+	if(!r->dir) {
 		vtSetError(ENotDir);
 		return nil;
 	}
 
-	epb = r->dsize/VtEntrySize;
-	psize = (dsize/VtScoreSize)*VtScoreSize;
+	epb = r->dsize / VtEntrySize;
+	psize = (dsize / VtScoreSize) * VtScoreSize;
 
 	size = sourceGetDirSize(r);
-	if(offset == 0){
+	if(offset == 0) {
 		/*
 		 * look at a random block to see if we can find an empty entry
 		 */
-		offset = lnrand(size+1);
+		offset = lnrand(size + 1);
 		offset -= offset % epb;
 	}
 
 	/* try the given block and then try the last block */
-	for(;;){
-		bn = offset/epb;
+	for(;;) {
+		bn = offset / epb;
 		b = sourceBlock(r, bn, OReadWrite);
 		if(b == nil)
 			return nil;
-		for(i=offset%r->epb; i<epb; i++){
+		for(i = offset % r->epb; i < epb; i++) {
 			entryUnpack(&e, b->data, i);
-			if((e.flags&VtEntryActive) == 0 && e.gen != ~0)
+			if((e.flags & VtEntryActive) == 0 && e.gen != ~0)
 				goto Found;
 		}
 		blockPut(b);
-		if(offset == size){
+		if(offset == size) {
 			fprint(2, "sourceCreate: cannot happen\n");
 			vtSetError("sourceCreate: cannot happen");
 			return nil;
@@ -252,9 +255,9 @@ Found:
 	entryPack(&e, b->data, i);
 	blockDirty(b);
 
-	offset = bn*epb + i;
-	if(offset+1 > size){
-		if(!sourceSetDirSize(r, offset+1)){
+	offset = bn * epb + i;
+	if(offset + 1 > size) {
+		if(!sourceSetDirSize(r, offset + 1)) {
 			blockPut(b);
 			return nil;
 		}
@@ -281,7 +284,7 @@ sourceKill(Source *r, int doremove)
 
 	assert(b->l.epoch == r->fs->ehi);
 
-	if(doremove==0 && e.size == 0){
+	if(doremove == 0 && e.size == 0) {
 		/* already truncated */
 		blockPut(b);
 		return 1;
@@ -292,13 +295,13 @@ sourceKill(Source *r, int doremove)
 	type = entryType(&e);
 	tag = e.tag;
 
-	if(doremove){
+	if(doremove) {
 		if(e.gen != ~0)
 			e.gen++;
 		e.dsize = 0;
 		e.psize = 0;
 		e.flags = 0;
-	}else{
+	} else {
 		e.flags &= ~VtEntryLocal;
 	}
 	e.depth = 0;
@@ -311,7 +314,7 @@ sourceKill(Source *r, int doremove)
 		blockRemoveLink(b, addr, type, tag, 1);
 	blockPut(b);
 
-	if(doremove){
+	if(doremove) {
 		sourceUnlock(r);
 		sourceClose(r);
 	}
@@ -361,12 +364,12 @@ sourceShrinkSize(Source *r, Entry *e, uint64_t size)
 		return 0;
 
 	ptrsz = e->dsize;
-	ppb = e->psize/VtScoreSize;
-	for(i=0; i+1<e->depth; i++)
+	ppb = e->psize / VtScoreSize;
+	for(i = 0; i + 1 < e->depth; i++)
 		ptrsz *= ppb;
 
-	while(type&BtLevelMask){
-		if(b->addr == NilBlock || b->l.epoch != r->fs->ehi){
+	while(type & BtLevelMask) {
+		if(b->addr == NilBlock || b->l.epoch != r->fs->ehi) {
 			/* not worth copying the block just so we can zero some of it */
 			blockPut(b);
 			return 0;
@@ -377,32 +380,32 @@ sourceShrinkSize(Source *r, Entry *e, uint64_t size)
 		 */
 
 		/* zero the pointers to unnecessary blocks */
-		i = (size+ptrsz-1)/ptrsz;
-		for(; i<ppb; i++){
-			addr = globalToLocal(b->data+i*VtScoreSize);
-			memmove(b->data+i*VtScoreSize, vtZeroScore, VtScoreSize);
+		i = (size + ptrsz - 1) / ptrsz;
+		for(; i < ppb; i++) {
+			addr = globalToLocal(b->data + i * VtScoreSize);
+			memmove(b->data + i * VtScoreSize, vtZeroScore, VtScoreSize);
 			blockDirty(b);
 			if(addr != NilBlock)
-				blockRemoveLink(b, addr, type-1, e->tag, 1);
+				blockRemoveLink(b, addr, type - 1, e->tag, 1);
 		}
 
 		/* recurse (go around again) on the partially necessary block */
-		i = size/ptrsz;
-		size = size%ptrsz;
-		if(size == 0){
+		i = size / ptrsz;
+		size = size % ptrsz;
+		if(size == 0) {
 			blockPut(b);
 			return 1;
 		}
 		ptrsz /= ppb;
 		type--;
-		memmove(score, b->data+i*VtScoreSize, VtScoreSize);
+		memmove(score, b->data + i * VtScoreSize, VtScoreSize);
 		blockPut(b);
 		b = cacheGlobal(r->fs->cache, score, type, e->tag, OReadWrite);
 		if(b == nil)
 			return 0;
 	}
 
-	if(b->addr == NilBlock || b->l.epoch != r->fs->ehi){
+	if(b->addr == NilBlock || b->l.epoch != r->fs->ehi) {
 		blockPut(b);
 		return 0;
 	}
@@ -410,8 +413,8 @@ sourceShrinkSize(Source *r, Entry *e, uint64_t size)
 	/*
 	 * No one ever truncates BtDir blocks.
 	 */
-	if(type == BtData && e->dsize > size){
-		memset(b->data+size, 0, e->dsize-size);
+	if(type == BtData && e->dsize > size) {
+		memset(b->data + size, 0, e->dsize - size);
 		blockDirty(b);
 	}
 	blockPut(b);
@@ -429,7 +432,7 @@ sourceSetSize(Source *r, uint64_t size)
 	if(size == 0)
 		return sourceTruncate(r);
 
-	if(size > VtMaxFileSize || size > ((uint64_t)MaxBlock)*r->dsize){
+	if(size > VtMaxFileSize || size > ((uint64_t)MaxBlock) * r->dsize) {
 		vtSetError(ETooBig);
 		return 0;
 	}
@@ -439,20 +442,20 @@ sourceSetSize(Source *r, uint64_t size)
 		return 0;
 
 	/* quick out */
-	if(e.size == size){
+	if(e.size == size) {
 		blockPut(b);
 		return 1;
 	}
 
 	depth = sizeToDepth(size, e.psize, e.dsize);
 
-	if(depth < e.depth){
-		if(!sourceShrinkDepth(r, b, &e, depth)){
+	if(depth < e.depth) {
+		if(!sourceShrinkDepth(r, b, &e, depth)) {
 			blockPut(b);
 			return 0;
 		}
-	}else if(depth > e.depth){
-		if(!sourceGrowDepth(r, b, &e, depth)){
+	} else if(depth > e.depth) {
+		if(!sourceGrowDepth(r, b, &e, depth)) {
 			blockPut(b);
 			return 0;
 		}
@@ -476,10 +479,10 @@ sourceSetDirSize(Source *r, uint32_t ds)
 	int epb;
 
 	assert(sourceIsLocked(r));
-	epb = r->dsize/VtEntrySize;
+	epb = r->dsize / VtEntrySize;
 
-	size = (uint64_t)r->dsize*(ds/epb);
-	size += VtEntrySize*(ds%epb);
+	size = (uint64_t)r->dsize * (ds / epb);
+	size += VtEntrySize * (ds % epb);
 	return sourceSetSize(r, size);
 }
 
@@ -491,11 +494,11 @@ sourceGetDirSize(Source *r)
 	int epb;
 
 	assert(sourceIsLocked(r));
-	epb = r->dsize/VtEntrySize;
+	epb = r->dsize / VtEntrySize;
 
 	size = sourceGetSize(r);
-	ds = epb*(size/r->dsize);
-	ds += (size%r->dsize)/VtEntrySize;
+	ds = epb * (size / r->dsize);
+	ds += (size % r->dsize) / VtEntrySize;
 	return ds;
 }
 
@@ -527,7 +530,7 @@ sourceSetEntry(Source *r, Entry *e)
 	b = sourceLoad(r, &oe);
 	if(b == nil)
 		return 0;
-	entryPack(e, b->data, r->offset%r->epb);
+	entryPack(e, b->data, r->offset % r->epb);
 	blockDirty(b);
 	blockPut(b);
 
@@ -546,13 +549,13 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 
 	c = fs->cache;
 
-	if((p->l.type & BtLevelMask) == 0){
+	if((p->l.type & BtLevelMask) == 0) {
 		assert(p->l.type == BtDir);
 		type = entryType(e);
 		b = cacheGlobal(c, e->score, type, e->tag, mode);
-	}else{
+	} else {
 		type = p->l.type - 1;
-		b = cacheGlobal(c, p->data + index*VtScoreSize, type, e->tag, mode);
+		b = cacheGlobal(c, p->data + index * VtScoreSize, type, e->tag, mode);
 	}
 
 	if(b)
@@ -561,7 +564,7 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	if(b == nil || mode == OReadOnly)
 		return b;
 
-	if(p->l.epoch != fs->ehi){
+	if(p->l.epoch != fs->ehi) {
 		fprint(2, "blockWalk: parent not writable\n");
 		abort();
 	}
@@ -573,7 +576,7 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	/*
 	 * Copy on write.
 	 */
-	if(e->tag == 0){
+	if(e->tag == 0) {
 		assert(p->l.type == BtDir);
 		e->tag = tagGen();
 		e->flags |= VtEntryLocal;
@@ -589,13 +592,13 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 
 	blockDirty(b);
 	memmove(score, b->score, VtScoreSize);
-	if(p->l.type == BtDir){
+	if(p->l.type == BtDir) {
 		memmove(e->score, b->score, VtScoreSize);
 		entryPack(e, p->data, index);
 		blockDependency(p, b, index, nil, &oe);
-	}else{
-		memmove(oscore, p->data+index*VtScoreSize, VtScoreSize);
-		memmove(p->data+index*VtScoreSize, b->score, VtScoreSize);
+	} else {
+		memmove(oscore, p->data + index * VtScoreSize, VtScoreSize);
+		memmove(p->data + index * VtScoreSize, b->score, VtScoreSize);
 		blockDependency(p, b, index, oscore, nil);
 	}
 	blockDirty(p);
@@ -636,11 +639,11 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 	 * Keep adding layers until we get to the right depth
 	 * or an error occurs.
 	 */
-	while(e->depth < depth){
-		bb = cacheAllocBlock(r->fs->cache, type+1, tag, r->fs->ehi, r->fs->elo);
+	while(e->depth < depth) {
+		bb = cacheAllocBlock(r->fs->cache, type + 1, tag, r->fs->ehi, r->fs->elo);
 		if(bb == nil)
 			break;
-//fprint(2, "alloc %lux grow %V\n", bb->addr, b->score);
+		//fprint(2, "alloc %lux grow %V\n", bb->addr, b->score);
 		memmove(bb->data, b->score, VtScoreSize);
 		memmove(e->score, bb->score, VtScoreSize);
 		e->depth++;
@@ -689,18 +692,18 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 
 	ob = nil;
 	b = rb;
-/* BUG: explain type++.  i think it is a real bug */
-	for(d=e->depth; d > depth; d--, type++){
-		nb = cacheGlobal(r->fs->cache, b->data, type-1, tag, OReadWrite);
+	/* BUG: explain type++.  i think it is a real bug */
+	for(d = e->depth; d > depth; d--, type++) {
+		nb = cacheGlobal(r->fs->cache, b->data, type - 1, tag, OReadWrite);
 		if(nb == nil)
 			break;
-		if(ob!=nil && ob!=rb)
+		if(ob != nil && ob != rb)
 			blockPut(ob);
 		ob = b;
 		b = nb;
 	}
 
-	if(b == rb){
+	if(b == rb) {
 		blockPut(rb);
 		return 0;
 	}
@@ -737,7 +740,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 		blockRemoveLink(p, rb->addr, rb->l.type, rb->l.tag, 1);
 
 	blockPut(rb);
-	if(ob!=nil && ob!=rb)
+	if(ob != nil && ob != rb)
 		blockPut(ob);
 	blockPut(b);
 
@@ -753,7 +756,7 @@ Block *
 _sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 {
 	Block *b, *bb;
-	int index[VtPointerDepth+1];
+	int index[VtPointerDepth + 1];
 	Entry e;
 	int i, np;
 	int m;
@@ -769,26 +772,26 @@ _sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 	b = sourceLoad(r, &e);
 	if(b == nil)
 		return nil;
-	if(r->issnapshot && (e.flags & VtEntryNoArchive)){
+	if(r->issnapshot && (e.flags & VtEntryNoArchive)) {
 		blockPut(b);
 		vtSetError(ENotArchived);
 		return nil;
 	}
 
-	if(tag){
+	if(tag) {
 		if(e.tag == 0)
 			e.tag = tag;
-		else if(e.tag != tag){
+		else if(e.tag != tag) {
 			fprint(2, "tag mismatch\n");
 			vtSetError("tag mismatch");
 			goto Err;
 		}
 	}
 
-	np = e.psize/VtScoreSize;
+	np = e.psize / VtScoreSize;
 	memset(index, 0, sizeof(index));
-	for(i=0; bn > 0; i++){
-		if(i >= VtPointerDepth){
+	for(i = 0; bn > 0; i++) {
+		if(i >= VtPointerDepth) {
 			vtSetError(EBadAddr);
 			goto Err;
 		}
@@ -796,8 +799,8 @@ _sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 		bn /= np;
 	}
 
-	if(i > e.depth){
-		if(mode == OReadOnly){
+	if(i > e.depth) {
+		if(mode == OReadOnly) {
 			vtSetError(EBadAddr);
 			goto Err;
 		}
@@ -807,7 +810,7 @@ _sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 
 	index[e.depth] = r->offset % r->epb;
 
-	for(i=e.depth; i>=early; i--){
+	for(i = e.depth; i >= early; i--) {
 		bb = blockWalk(b, index[i], m, r->fs, &e);
 		if(bb == nil)
 			goto Err;
@@ -821,7 +824,7 @@ Err:
 	return nil;
 }
 
-Block*
+Block *
 sourceBlock(Source *r, uint32_t bn, int mode)
 {
 	Block *b;
@@ -839,7 +842,7 @@ sourceClose(Source *r)
 		return;
 	vtLock(r->lk);
 	r->ref--;
-	if(r->ref){
+	if(r->ref) {
 		vtUnlock(r->lk);
 		return;
 	}
@@ -863,13 +866,13 @@ sourceClose(Source *r)
  * file system sources (OReadWrite) and sources for the
  * snapshot file system (OReadOnly).
  */
-static Block*
+static Block *
 sourceLoadBlock(Source *r, int mode)
 {
 	uint32_t addr;
 	Block *b;
 
-	switch(r->mode){
+	switch(r->mode) {
 	default:
 		assert(0);
 	case OReadWrite:
@@ -882,7 +885,7 @@ sourceLoadBlock(Source *r, int mode)
 		 * Proceed.
 		assert(r->epoch >= r->fs->elo);
 		 */
-		if(r->epoch == r->fs->ehi){
+		if(r->epoch == r->fs->ehi) {
 			b = cacheGlobal(r->fs->cache, r->score, BtDir, r->tag, OReadWrite);
 			if(b == nil)
 				return nil;
@@ -892,12 +895,12 @@ sourceLoadBlock(Source *r, int mode)
 		assert(r->parent != nil);
 		if(!sourceLock(r->parent, OReadWrite))
 			return nil;
-		b = sourceBlock(r->parent, r->offset/r->epb, OReadWrite);
+		b = sourceBlock(r->parent, r->offset / r->epb, OReadWrite);
 		sourceUnlock(r->parent);
 		if(b == nil)
 			return nil;
 		assert(b->l.epoch == r->fs->ehi);
-	//	fprint(2, "sourceLoadBlock %p %V => %V\n", r, r->score, b->score);
+		//	fprint(2, "sourceLoadBlock %p %V => %V\n", r, r->score, b->score);
 		memmove(r->score, b->score, VtScoreSize);
 		r->scoreEpoch = b->l.epoch;
 		r->tag = b->l.tag;
@@ -922,14 +925,14 @@ sourceLoadBlock(Source *r, int mode)
 		 * a snapshot.  (Or else the file system is read-only, but then
 		 * the archiver isn't going around deleting blocks.)
 		 */
-		if(strcmp(vtGetError(), ELabelMismatch) == 0){
+		if(strcmp(vtGetError(), ELabelMismatch) == 0) {
 			if(!sourceLock(r->parent, OReadOnly))
 				return nil;
-			b = sourceBlock(r->parent, r->offset/r->epb, OReadOnly);
+			b = sourceBlock(r->parent, r->offset / r->epb, OReadOnly);
 			sourceUnlock(r->parent);
-			if(b){
+			if(b) {
 				fprint(2, "sourceAlloc: lost %V found %V\n",
-					r->score, b->score);
+				       r->score, b->score);
 				memmove(r->score, b->score, VtScoreSize);
 				r->scoreEpoch = b->l.epoch;
 				return b;
@@ -977,11 +980,11 @@ sourceLock2(Source *r, Source *rr, int mode)
 	if(mode == -1)
 		mode = r->mode;
 
-	if(r->parent==rr->parent && r->offset/r->epb == rr->offset/rr->epb){
+	if(r->parent == rr->parent && r->offset / r->epb == rr->offset / rr->epb) {
 		b = sourceLoadBlock(r, mode);
 		if(b == nil)
 			return 0;
-		if(memcmp(r->score, rr->score, VtScoreSize) != 0){
+		if(memcmp(r->score, rr->score, VtScoreSize) != 0) {
 			memmove(rr->score, b->score, VtScoreSize);
 			rr->scoreEpoch = b->l.epoch;
 			rr->tag = b->l.tag;
@@ -989,14 +992,14 @@ sourceLock2(Source *r, Source *rr, int mode)
 		}
 		blockDupLock(b);
 		bb = b;
-	}else if(r->parent==rr->parent || r->offset > rr->offset){
+	} else if(r->parent == rr->parent || r->offset > rr->offset) {
 		bb = sourceLoadBlock(rr, mode);
 		b = sourceLoadBlock(r, mode);
-	}else{
+	} else {
 		b = sourceLoadBlock(r, mode);
 		bb = sourceLoadBlock(rr, mode);
 	}
-	if(b == nil || bb == nil){
+	if(b == nil || bb == nil) {
 		if(b)
 			blockPut(b);
 		if(bb)
@@ -1018,7 +1021,7 @@ sourceUnlock(Source *r)
 {
 	Block *b;
 
-	if(r->b == nil){
+	if(r->b == nil) {
 		fprint(2, "sourceUnlock: already unlocked\n");
 		abort();
 	}
@@ -1027,7 +1030,7 @@ sourceUnlock(Source *r)
 	blockPut(b);
 }
 
-static Block*
+static Block *
 sourceLoad(Source *r, Entry *e)
 {
 	Block *b;
@@ -1036,7 +1039,7 @@ sourceLoad(Source *r, Entry *e)
 	b = r->b;
 	if(!entryUnpack(e, b->data, r->offset % r->epb))
 		return nil;
-	if(e->gen != r->gen){
+	if(e->gen != r->gen) {
 		vtSetError(ERemoved);
 		return nil;
 	}
@@ -1051,10 +1054,10 @@ sizeToDepth(uint64_t s, int psize, int dsize)
 	int d;
 
 	/* determine pointer depth */
-	np = psize/VtScoreSize;
-	s = (s + dsize - 1)/dsize;
+	np = psize / VtScoreSize;
+	s = (s + dsize - 1) / dsize;
 	for(d = 0; s > 1; d++)
-		s = (s + np - 1)/np;
+		s = (s + np - 1) / np;
 	return d;
 }
 
@@ -1063,7 +1066,7 @@ tagGen(void)
 {
 	uint32_t tag;
 
-	for(;;){
+	for(;;) {
 		tag = lrand();
 		if(tag >= UserTag)
 			break;

@@ -28,7 +28,7 @@
 /* Requires gxdevice.h */
 
 #ifndef gxcpath_INCLUDED
-#  define gxcpath_INCLUDED
+#define gxcpath_INCLUDED
 
 /* We expose the implementation of clipping lists so that clients */
 /* can allocate clipping lists or devices on the stack. */
@@ -53,17 +53,17 @@
  */
 typedef struct gx_clip_rect_s gx_clip_rect;
 struct gx_clip_rect_s {
-    gx_clip_rect *next, *prev;
-    int ymin, ymax;		/* ymax > ymin */
-    int xmin, xmax;		/* xmax > xmin */
-    byte to_visit;		/* bookkeeping for gs_clippath */
+	gx_clip_rect *next, *prev;
+	int ymin, ymax; /* ymax > ymin */
+	int xmin, xmax; /* xmax > xmin */
+	byte to_visit;  /* bookkeeping for gs_clippath */
 };
 
 /* The descriptor is public only for gxacpath.c. */
 extern_st(st_clip_rect);
-#define public_st_clip_rect()	/* in gxcpath.c */\
-  gs_public_st_ptrs2(st_clip_rect, gx_clip_rect, "clip_rect",\
-    clip_rect_enum_ptrs, clip_rect_reloc_ptrs, next, prev)
+#define public_st_clip_rect() /* in gxcpath.c */                    \
+	gs_public_st_ptrs2(st_clip_rect, gx_clip_rect, "clip_rect", \
+			   clip_rect_enum_ptrs, clip_rect_reloc_ptrs, next, prev)
 #define st_clip_rect_max_ptrs 2
 
 /*
@@ -74,22 +74,22 @@ extern_st(st_clip_rect);
  * ending at max_int.  This eliminates the need for end tests.
  */
 #ifndef gx_clip_list_DEFINED
-#  define gx_clip_list_DEFINED
+#define gx_clip_list_DEFINED
 typedef struct gx_clip_list_s gx_clip_list;
 #endif
 struct gx_clip_list_s {
-    gx_clip_rect single;	/* (has next = prev = 0) */
-    gx_clip_rect *head;
-    gx_clip_rect *tail;
-    int xmin, xmax;		/* min and max X over all but head/tail */
-    int count;			/* # of rectangles not counting */
-				/* head or tail */
+	gx_clip_rect single; /* (has next = prev = 0) */
+	gx_clip_rect *head;
+	gx_clip_rect *tail;
+	int xmin, xmax; /* min and max X over all but head/tail */
+	int count;      /* # of rectangles not counting */
+			/* head or tail */
 };
 
-#define private_st_clip_list()	/* in gxcpath.c */\
-  gs_private_st_ptrs2(st_clip_list, gx_clip_list, "clip_list",\
-    clip_list_enum_ptrs, clip_list_reloc_ptrs, head, tail)
-#define st_clip_list_max_ptrs 2	/* head, tail */
+#define private_st_clip_list() /* in gxcpath.c */                    \
+	gs_private_st_ptrs2(st_clip_list, gx_clip_list, "clip_list", \
+			    clip_list_enum_ptrs, clip_list_reloc_ptrs, head, tail)
+#define st_clip_list_max_ptrs 2 /* head, tail */
 #define clip_list_is_rectangle(clp) ((clp)->count <= 1)
 
 /*
@@ -103,34 +103,34 @@ struct gx_clip_list_s {
  * is opened.
  */
 #ifndef gx_device_clip_DEFINED
-#  define gx_device_clip_DEFINED
+#define gx_device_clip_DEFINED
 typedef struct gx_device_clip_s gx_device_clip;
 #endif
 struct gx_device_clip_s {
-    gx_device_forward_common;	/* target is set by client */
-    gx_clip_list list;		/* set by client */
-    gx_clip_rect *current;	/* cursor in list */
-    gs_int_point translation;
-    gs_fixed_rect clipping_box;
-    bool clipping_box_set;
+	gx_device_forward_common; /* target is set by client */
+	gx_clip_list list;	/* set by client */
+	gx_clip_rect *current;    /* cursor in list */
+	gs_int_point translation;
+	gs_fixed_rect clipping_box;
+	bool clipping_box_set;
 };
 
 extern_st(st_device_clip);
-#define public_st_device_clip()	/* in gxcpath.c */\
-  gs_public_st_composite_use_final(st_device_clip, gx_device_clip,\
-    "gx_device_clip", device_clip_enum_ptrs, device_clip_reloc_ptrs,\
-    gx_device_finalize)
-void gx_make_clip_translate_device(gx_device_clip * dev,
-				   const gx_clip_list * list,
+#define public_st_device_clip() /* in gxcpath.c */                                                        \
+	gs_public_st_composite_use_final(st_device_clip, gx_device_clip,                                  \
+					 "gx_device_clip", device_clip_enum_ptrs, device_clip_reloc_ptrs, \
+					 gx_device_finalize)
+void gx_make_clip_translate_device(gx_device_clip *dev,
+				   const gx_clip_list *list,
 				   int tx, int ty, gs_memory_t *mem);
 
-#define gx_make_clip_device(dev, list)\
-  gx_make_clip_translate_device(dev, list, 0, 0, NULL)
+#define gx_make_clip_device(dev, list) \
+	gx_make_clip_translate_device(dev, list, 0, 0, NULL)
 void gx_make_clip_path_device(gx_device_clip *, const gx_clip_path *);
 
-#define clip_rect_print(ch, str, ar)\
-  if_debug7(ch, "[%c]%s 0x%lx: (%d,%d),(%d,%d)\n", ch, str, (uint32_t)ar,\
-	    (ar)->xmin, (ar)->ymin, (ar)->xmax, (ar)->ymax)
+#define clip_rect_print(ch, str, ar)                                            \
+	if_debug7(ch, "[%c]%s 0x%lx: (%d,%d),(%d,%d)\n", ch, str, (uint32_t)ar, \
+		  (ar)->xmin, (ar)->ymin, (ar)->xmax, (ar)->ymax)
 
 /* Exported by gxcpath.c for gxacpath.c */
 

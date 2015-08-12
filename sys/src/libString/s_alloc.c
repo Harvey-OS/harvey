@@ -16,10 +16,10 @@
 extern void
 s_free(String *sp)
 {
-	if (sp == nil)
+	if(sp == nil)
 		return;
 	lock(sp);
-	if(--(sp->ref) != 0){
+	if(--(sp->ref) != 0) {
 		unlock(sp);
 		return;
 	}
@@ -68,7 +68,7 @@ s_newalloc(int len)
 	if(len < STRLEN)
 		len = STRLEN;
 	sp->base = sp->ptr = malloc(len);
-	if (sp->base == nil)
+	if(sp->base == nil)
 		sysfatal("s_newalloc: %r");
 	setmalloctag(sp->base, getcallerpc(&len));
 
@@ -87,7 +87,7 @@ s_new(void)
 	if(sp == nil)
 		sysfatal("s_new: %r");
 	sp->base = sp->ptr = malloc(STRLEN);
-	if (sp->base == nil)
+	if(sp->base == nil)
 		sysfatal("s_new: %r");
 	sp->end = sp->base + STRLEN;
 	s_terminate(sp);

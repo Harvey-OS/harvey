@@ -19,7 +19,7 @@ readfile(char *file, char *buf, int n)
 	int fd;
 
 	fd = open(file, OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		werrstr("%s: %r", file);
 		return -1;
 	}
@@ -41,7 +41,7 @@ writefile(char *file, char *buf, int n)
 	return n;
 }
 
-char*
+char *
 findkey(char *db, char *user, char *key)
 {
 	int n;
@@ -55,22 +55,22 @@ findkey(char *db, char *user, char *key)
 		return key;
 }
 
-char*
+char *
 findsecret(char *db, char *user, char *secret)
 {
 	int n;
 	char filename[Maxpath];
 
 	snprint(filename, sizeof filename, "%s/%s/secret", db, user);
-	n = readfile(filename, secret, SECRETLEN-1);
-	secret[n]=0;
+	n = readfile(filename, secret, SECRETLEN - 1);
+	secret[n] = 0;
 	if(n <= 0)
 		return 0;
 	else
 		return secret;
 }
 
-char*
+char *
 setkey(char *db, char *user, char *key)
 {
 	int n;
@@ -84,7 +84,7 @@ setkey(char *db, char *user, char *key)
 		return key;
 }
 
-char*
+char *
 setsecret(char *db, char *user, char *secret)
 {
 	int n;

@@ -27,26 +27,26 @@
 /* Internal definitions for Ghostscript command lists. */
 
 #ifndef gxcldev_INCLUDED
-#  define gxcldev_INCLUDED
+#define gxcldev_INCLUDED
 
 #include "gxclist.h"
 #include "gsropt.h"
-#include "gxht.h"		/* for gxdht.h */
-#include "gxtmap.h"		/* ditto */
-#include "gxdht.h"		/* for halftones */
-#include "strimpl.h"		/* for compressed bitmaps */
-#include "scfx.h"		/* ditto */
-#include "srlx.h"		/* ditto */
+#include "gxht.h"    /* for gxdht.h */
+#include "gxtmap.h"  /* ditto */
+#include "gxdht.h"   /* for halftones */
+#include "strimpl.h" /* for compressed bitmaps */
+#include "scfx.h"    /* ditto */
+#include "srlx.h"    /* ditto */
 #include "gsdcolor.h"
 
 /* ---------------- Commands ---------------- */
 
 /* Define the compression modes for bitmaps. */
-/*#define cmd_compress_none 0 *//* (implicit) */
+/*#define cmd_compress_none 0 */ /* (implicit) */
 #define cmd_compress_rle 1
 #define cmd_compress_cfe 2
-#define cmd_mask_compress_any\
-  ((1 << cmd_compress_rle) | (1 << cmd_compress_cfe))
+#define cmd_mask_compress_any \
+	((1 << cmd_compress_rle) | (1 << cmd_compress_cfe))
 /* Exported by gxclutil.c */
 void clist_rle_init(stream_RLE_state *ss);
 void clist_rld_init(stream_RLD_state *ss);
@@ -68,74 +68,74 @@ void clist_cfd_init(stream_CFD_state *ss, int width, int height,
  *         and/or previous operands.
  */
 typedef enum {
-    cmd_op_misc = 0x00,		/* (see below) */
-    cmd_opv_end_run = 0x00,	/* (nothing) */
-    cmd_opv_set_tile_size = 0x01,   /* rs?(1)nry?(1)nrx?(1)depth(5, encoded), */
-				/* rep_width#, rep_height#, */
-				/* [, nreps_x#][, nreps_y #] */
-				/* [, rep_shift#] */
-    cmd_opv_set_tile_phase = 0x02,	/* x#, y# */
-    cmd_opv_set_tile_bits = 0x03,	/* index#, offset#, <bits> */
-    cmd_opv_set_bits = 0x04,	/* depth*4+compress, width#, height#, */
-				/* index#, offset#, <bits> */
-    cmd_opv_set_tile_color = 0x05,	/* (nothing; next set/delta_color */
-				/* refers to tile) */
-    cmd_opv_set_misc = 0x06,
-#define cmd_set_misc_lop (0 << 6)	/* 00: lop_lsb(6), lop_msb# */
-#define cmd_set_misc_data_x (1 << 6)	/* 01: more(1)dx_lsb(5)[, dx_msb#] */
-#define cmd_set_misc_map (2 << 6)	/* 10: contents(2)map_index(4) */
-    /* [, n x frac] */
-#define cmd_set_misc_halftone (3 << 6)	/* 11: type(6), num_comp# */
-    cmd_opv_enable_lop = 0x07,	/* (nothing) */
-    cmd_opv_disable_lop = 0x08,	/* (nothing) */
-    /* obsolete */
-    /* cmd_opv_set_ht_order = 0x09, */	/* component+1#[, cname#], */
-				/* width#, height#, raster#, */
-				/* shift#, num_levels#, num_bits#, */
-				/* order_procs_index */
-    /* obsolete */
-    /* cmd_opv_set_ht_data = 0x0a, */	/* n, n x (uint|gx_ht_bit|ushort) */
-    cmd_opv_end_page = 0x0b,	/* (nothing) */
-    cmd_opv_delta_color0 = 0x0c,	/* See cmd_put_color in gxclutil.c */
-    cmd_opv_delta_color1 = 0x0d,	/* <<same as color0>> */
-    cmd_opv_set_copy_color = 0x0e,	/* (nothing) */
-    cmd_opv_set_copy_alpha = 0x0f,	/* (nothing) */
-    cmd_op_set_color0 = 0x10,	/* +n = number of low order zero bytes | */
-#define cmd_no_color_index 15	/* +15 = transparent - "no color" */
-    cmd_op_set_color1 = 0x20,	/* <<same as color0>> */
-    cmd_op_fill_rect = 0x30,	/* +dy2dh2, x#, w# | +0, rect# */
-    cmd_op_fill_rect_short = 0x40,	/* +dh, dx, dw | +0, rect_short */
-    cmd_op_fill_rect_tiny = 0x50,	/* +dw+0, rect_tiny | +dw+8 */
-    cmd_op_tile_rect = 0x60,	/* +dy2dh2, x#, w# | +0, rect# */
-    cmd_op_tile_rect_short = 0x70,	/* +dh, dx, dw | +0, rect_short */
-    cmd_op_tile_rect_tiny = 0x80,	/* +dw+0, rect_tiny | +dw+8 */
-    cmd_op_copy_mono = 0x90,	/* +compress, x#, y#, (w+data_x)#, */
-				/* h#, <bits> | */
+	cmd_op_misc = 0x00,	   /* (see below) */
+	cmd_opv_end_run = 0x00,       /* (nothing) */
+	cmd_opv_set_tile_size = 0x01, /* rs?(1)nry?(1)nrx?(1)depth(5, encoded), */
+	/* rep_width#, rep_height#, */
+	/* [, nreps_x#][, nreps_y #] */
+	/* [, rep_shift#] */
+	cmd_opv_set_tile_phase = 0x02, /* x#, y# */
+	cmd_opv_set_tile_bits = 0x03,  /* index#, offset#, <bits> */
+	cmd_opv_set_bits = 0x04,       /* depth*4+compress, width#, height#, */
+	/* index#, offset#, <bits> */
+	cmd_opv_set_tile_color = 0x05, /* (nothing; next set/delta_color */
+	/* refers to tile) */
+	cmd_opv_set_misc = 0x06,
+#define cmd_set_misc_lop (0 << 6)      /* 00: lop_lsb(6), lop_msb# */
+#define cmd_set_misc_data_x (1 << 6)   /* 01: more(1)dx_lsb(5)[, dx_msb#] */
+#define cmd_set_misc_map (2 << 6)      /* 10: contents(2)map_index(4) */
+				       /* [, n x frac] */
+#define cmd_set_misc_halftone (3 << 6) /* 11: type(6), num_comp# */
+	cmd_opv_enable_lop = 0x07,     /* (nothing) */
+	cmd_opv_disable_lop = 0x08,    /* (nothing) */
+	/* obsolete */
+	/* cmd_opv_set_ht_order = 0x09, */ /* component+1#[, cname#], */
+	/* width#, height#, raster#, */
+	/* shift#, num_levels#, num_bits#, */
+	/* order_procs_index */
+	/* obsolete */
+	/* cmd_opv_set_ht_data = 0x0a, */ /* n, n x (uint|gx_ht_bit|ushort) */
+	cmd_opv_end_page = 0x0b,	  /* (nothing) */
+	cmd_opv_delta_color0 = 0x0c,      /* See cmd_put_color in gxclutil.c */
+	cmd_opv_delta_color1 = 0x0d,      /* <<same as color0>> */
+	cmd_opv_set_copy_color = 0x0e,    /* (nothing) */
+	cmd_opv_set_copy_alpha = 0x0f,    /* (nothing) */
+	cmd_op_set_color0 = 0x10,	 /* +n = number of low order zero bytes | */
+#define cmd_no_color_index 15		  /* +15 = transparent - "no color" */
+	cmd_op_set_color1 = 0x20,	 /* <<same as color0>> */
+	cmd_op_fill_rect = 0x30,	  /* +dy2dh2, x#, w# | +0, rect# */
+	cmd_op_fill_rect_short = 0x40,    /* +dh, dx, dw | +0, rect_short */
+	cmd_op_fill_rect_tiny = 0x50,     /* +dw+0, rect_tiny | +dw+8 */
+	cmd_op_tile_rect = 0x60,	  /* +dy2dh2, x#, w# | +0, rect# */
+	cmd_op_tile_rect_short = 0x70,    /* +dh, dx, dw | +0, rect_short */
+	cmd_op_tile_rect_tiny = 0x80,     /* +dw+0, rect_tiny | +dw+8 */
+	cmd_op_copy_mono = 0x90,	  /* +compress, x#, y#, (w+data_x)#, */
+					  /* h#, <bits> | */
 #define cmd_copy_ht_color 4
-				/* +4+compress, x#, y#, (w+data_x)#, */
-				/* h#, <bits> | */
+/* +4+compress, x#, y#, (w+data_x)#, */
+/* h#, <bits> | */
 #define cmd_copy_use_tile 8
-				/* +8 (use tile), x#, y# | */
-				/* +12 (use tile), x#, y# */
-    cmd_op_copy_color_alpha = 0xa0,	/* (same as copy_mono, except: */
-				/* if color, ignore ht_color; */
-				/* if alpha & !use_tile, depth is */
-				/*   first operand) */
-    cmd_op_delta_tile_index = 0xb0,	/* +delta+8 */
-    cmd_op_set_tile_index = 0xc0	/* +index[11:8], index[7:0] */
+	/* +8 (use tile), x#, y# | */
+	/* +12 (use tile), x#, y# */
+	cmd_op_copy_color_alpha = 0xa0, /* (same as copy_mono, except: */
+	/* if color, ignore ht_color; */
+	/* if alpha & !use_tile, depth is */
+	/*   first operand) */
+	cmd_op_delta_tile_index = 0xb0, /* +delta+8 */
+	cmd_op_set_tile_index = 0xc0    /* +index[11:8], index[7:0] */
 } gx_cmd_op;
 
-#define cmd_op_name_strings\
-  "(misc)", "set_color[0]", "set_color[1]", "fill_rect",\
-  "fill_rect_short", "fill_rect_tiny", "tile_rect", "tile_rect_short",\
-  "tile_rect_tiny", "copy_mono", "copy_color_alpha", "delta_tile_index",\
-  "set_tile_index", "(misc2)", "(segment)", "(path)"
+#define cmd_op_name_strings                                                        \
+	"(misc)", "set_color[0]", "set_color[1]", "fill_rect",                     \
+	    "fill_rect_short", "fill_rect_tiny", "tile_rect", "tile_rect_short",   \
+	    "tile_rect_tiny", "copy_mono", "copy_color_alpha", "delta_tile_index", \
+	    "set_tile_index", "(misc2)", "(segment)", "(path)"
 
-#define cmd_misc_op_name_strings\
-  "end_run", "set_tile_size", "set_tile_phase", "set_tile_bits",\
-  "set_bits", "set_tile_color", "set_misc", "enable_lop",\
-  "disable_lop", "set_ht_order", "set_ht_data", "end_page",\
-  "delta2_color0", "delta2_color1", "set_copy_color", "set_copy_alpha",
+#define cmd_misc_op_name_strings                                       \
+	"end_run", "set_tile_size", "set_tile_phase", "set_tile_bits", \
+	    "set_bits", "set_tile_color", "set_misc", "enable_lop",    \
+	    "disable_lop", "set_ht_order", "set_ht_data", "end_page",  \
+	    "delta2_color0", "delta2_color1", "set_copy_color", "set_copy_alpha",
 
 #ifdef DEBUG
 extern const char *const cmd_op_names[16];
@@ -148,21 +148,21 @@ extern const char *const *const cmd_sub_op_names[16];
  * The variable-size integer encoding is little-endian.  The low 7 bits
  * of each byte contain data; the top bit is 1 for all but the last byte.
  */
-#define cmd_max_intsize(siz)\
-  (((siz) * 8 + 6) / 7)
-#define cmd_largest_size\
-  (2 + (1 + cmd_max_dash) * sizeof(float))
+#define cmd_max_intsize(siz) \
+	(((siz)*8 + 6) / 7)
+#define cmd_largest_size \
+	(2 + (1 + cmd_max_dash) * sizeof(float))
 
 /* ---------------- Command parameters ---------------- */
 
 /* Rectangle */
 typedef struct {
-    int x, y, width, height;
+	int x, y, width, height;
 } gx_cmd_rect;
 
 /* Short rectangle */
 typedef struct {
-    byte dx, dwidth, dy, dheight;	/* dy and dheight are optional */
+	byte dx, dwidth, dy, dheight; /* dy and dheight are optional */
 } gx_cmd_rect_short;
 
 #define cmd_min_short (-128)
@@ -171,8 +171,8 @@ typedef struct {
 #define cmd_min_dw_tiny (-4)
 #define cmd_max_dw_tiny 3
 typedef struct {
-    unsigned dx:4;
-    unsigned dy:4;
+	unsigned dx : 4;
+	unsigned dy : 4;
 } gx_cmd_rect_tiny;
 
 #define cmd_min_dxy_tiny (-8)
@@ -190,9 +190,9 @@ typedef struct {
  * which is the case; it is cleared if the depth is represented directly,
  * and set if the depth is represented as a multiple of 8.
  */
-#define cmd_depth_to_code(d)    ((d) > 0xf ? 0x10 | ((d) >> 3) : (d))
-#define cmd_code_to_depth(v)    \
-    (((v) & 0x10) != 0 ? ((v) & 0xf) << 3 : (v) & 0xf)
+#define cmd_depth_to_code(d) ((d) > 0xf ? 0x10 | ((d) >> 3) : (d))
+#define cmd_code_to_depth(v) \
+	(((v)&0x10) != 0 ? ((v)&0xf) << 3 : (v)&0xf)
 
 /*
  * When we write bitmaps, we remove raster padding selectively:
@@ -213,7 +213,7 @@ typedef struct {
  */
 uint clist_bitmap_bytes(uint width_bits, uint height,
 			int compression_mask,
-			uint * width_bytes, uint * raster);
+			uint *width_bytes, uint *raster);
 
 /*
  * For halftone cells, we always write an unreplicated bitmap, but we
@@ -225,58 +225,61 @@ uint clist_bitmap_bytes(uint width_bits, uint height,
 /* ---------------- Block file entries ---------------- */
 
 typedef struct cmd_block_s {
-    int band_min, band_max;
-#define cmd_band_end (-1)	/* end of band file */
-    long pos;			/* starting position in cfile */
+	int band_min, band_max;
+#define cmd_band_end (-1) /* end of band file */
+	long pos;	 /* starting position in cfile */
 } cmd_block;
 
 /* ---------------- Band state ---------------- */
 
 /* Remember the current state of one band when writing or reading. */
 struct gx_clist_state_s {
-    gx_color_index colors[2];	/* most recent colors */
-    gx_device_color_saved sdc;  /* last device color for this band */
-    uint tile_index;		/* most recent tile index */
-    gx_bitmap_id tile_id;	/* most recent tile id */
+	gx_color_index colors[2];  /* most recent colors */
+	gx_device_color_saved sdc; /* last device color for this band */
+	uint tile_index;	   /* most recent tile index */
+	gx_bitmap_id tile_id;      /* most recent tile id */
 /* Since tile table entries may be deleted and/or moved at any time, */
 /* the following is the only reliable way to check whether tile_index */
 /* references a particular tile id: */
-#define cls_has_tile_id(cldev, pcls, tid, offset_temp)\
-  ((pcls)->tile_id == (tid) &&\
-   (offset_temp = cldev->tile_table[(pcls)->tile_index].offset) != 0 &&\
-   ((tile_slot *)(cldev->data + offset_temp))->id == (tid))
-    gs_int_point tile_phase;	/* most recent tile phase */
-    gx_color_index tile_colors[2];	/* most recent tile colors */
-    gx_cmd_rect rect;		/* most recent rectangle */
-    gs_logical_operation_t lop;	/* most recent logical op */
-    short lop_enabled;		/* 0 = don't use lop, 1 = use lop, */
-				/* -1 is used internally */
-    short clip_enabled;		/* 0 = don't clip, 1 = do clip, */
-				/* -1 is used internally */
-    bool color_is_alpha;	/* for copy_color_alpha */
-    uint known;			/* flags for whether this band */
-				/* knows various misc. parameters */
-    /* We assign 'known' flags here from the high end; */
-    /* gxclpath.h assigns them from the low end. */
-#define tile_params_known (1<<15)
-#define begin_image_known (1<<14) /* gxclimag.c */
+#define cls_has_tile_id(cldev, pcls, tid, offset_temp)                        \
+	((pcls)->tile_id == (tid) &&                                          \
+	 (offset_temp = cldev->tile_table[(pcls)->tile_index].offset) != 0 && \
+	 ((tile_slot *)(cldev->data + offset_temp))->id == (tid))
+	gs_int_point tile_phase;       /* most recent tile phase */
+	gx_color_index tile_colors[2]; /* most recent tile colors */
+	gx_cmd_rect rect;	      /* most recent rectangle */
+	gs_logical_operation_t lop;    /* most recent logical op */
+	short lop_enabled;	     /* 0 = don't use lop, 1 = use lop, */
+	/* -1 is used internally */
+	short clip_enabled; /* 0 = don't clip, 1 = do clip, */
+	/* -1 is used internally */
+	bool color_is_alpha; /* for copy_color_alpha */
+	uint known;	  /* flags for whether this band */
+			     /* knows various misc. parameters */
+			     /* We assign 'known' flags here from the high end; */
+			     /* gxclpath.h assigns them from the low end. */
+#define tile_params_known (1 << 15)
+#define begin_image_known (1 << 14) /* gxclimag.c */
 #define initial_known 0x3fff	/* exclude tile & image params */
-    /* Following are only used when writing */
-    cmd_list list;		/* list of commands for band */
-    /* Following are set when writing, read when reading */
-    uint32_t cost;			/* cost of rendering the band */
-    gx_colors_used_t colors_used;
+	/* Following are only used when writing */
+	cmd_list list; /* list of commands for band */
+	/* Following are set when writing, read when reading */
+	uint32_t cost; /* cost of rendering the band */
+	gx_colors_used_t colors_used;
 };
 
 /* The initial values for a band state */
 /*static const gx_clist_state cls_initial */
-#define cls_initial_values\
-	 { gx_no_color_index, gx_no_color_index },\
-	{ gx_dc_type_none },\
-	0, gx_no_bitmap_id,\
-	 { 0, 0 }, { gx_no_color_index, gx_no_color_index },\
-	 { 0, 0, 0, 0 }, lop_default, 0, 0, 0, initial_known,\
-	{ 0, 0 }, 0, { 0 }
+#define cls_initial_values                                     \
+	{                                                      \
+		gx_no_color_index, gx_no_color_index           \
+	}                                                      \
+	,                                                      \
+	    {gx_dc_type_none},                                 \
+	    0, gx_no_bitmap_id,                                \
+	    {0, 0}, {gx_no_color_index, gx_no_color_index},    \
+	    {0, 0, 0, 0}, lop_default, 0, 0, 0, initial_known, \
+	    {0, 0}, 0, { 0 }
 
 /* Define the size of the command buffer used for reading. */
 /* This is needed to split up operations with a large amount of data, */
@@ -373,54 +376,50 @@ int cmd_put_params(gx_device_clist_writer *, gs_param_list *);
 int cmd_count_op(int op, uint size);
 void cmd_uncount_op(int op, uint size);
 void cmd_print_stats(void);
-#  define cmd_count_add1(v) (v++)
+#define cmd_count_add1(v) (v++)
 #else
-#  define cmd_count_op(op, size) (op)
-#  define cmd_uncount_op(op, size) DO_NOTHING
-#  define cmd_count_add1(v) DO_NOTHING
+#define cmd_count_op(op, size) (op)
+#define cmd_uncount_op(op, size) DO_NOTHING
+#define cmd_count_add1(v) DO_NOTHING
 #endif
 
 /* Add a command to the appropriate band list, */
 /* and allocate space for its data. */
-byte *cmd_put_list_op(gx_device_clist_writer * cldev, cmd_list * pcl, uint size);
+byte *cmd_put_list_op(gx_device_clist_writer *cldev, cmd_list *pcl, uint size);
 
 #ifdef DEBUG
-byte *cmd_put_op(gx_device_clist_writer * cldev, gx_clist_state * pcls, uint size);
+byte *cmd_put_op(gx_device_clist_writer *cldev, gx_clist_state *pcls, uint size);
 #else
-#  define cmd_put_op(cldev, pcls, size)\
-     cmd_put_list_op(cldev, &(pcls)->list, size)
+#define cmd_put_op(cldev, pcls, size) \
+	cmd_put_list_op(cldev, &(pcls)->list, size)
 #endif
 /* Call cmd_put_op and update stats if no error occurs. */
-#define set_cmd_put_op(dp, cldev, pcls, op, csize)\
-  ( (dp = cmd_put_op(cldev, pcls, csize)) == 0 ?\
-      (cldev)->error_code :\
-    (*dp = cmd_count_op(op, csize), 0) )
+#define set_cmd_put_op(dp, cldev, pcls, op, csize) \
+	((dp = cmd_put_op(cldev, pcls, csize)) == 0 ? (cldev)->error_code : (*dp = cmd_count_op(op, csize), 0))
 
 /* Add a command for all bands or a range of bands. */
-byte *cmd_put_range_op(gx_device_clist_writer * cldev, int band_min,
+byte *cmd_put_range_op(gx_device_clist_writer *cldev, int band_min,
 		       int band_max, uint size);
 
-#define cmd_put_all_op(cldev, size)\
-  cmd_put_range_op(cldev, 0, (cldev)->nbands - 1, size)
+#define cmd_put_all_op(cldev, size) \
+	cmd_put_range_op(cldev, 0, (cldev)->nbands - 1, size)
 /* Call cmd_put_all/range_op and update stats if no error occurs. */
-#define set_cmd_put_range_op(dp, cldev, op, bmin, bmax, csize)\
-  ( (dp = cmd_put_range_op(cldev, bmin, bmax, csize)) == 0 ?\
-      (cldev)->error_code :\
-    (*dp = cmd_count_op(op, csize), 0) )
-#define set_cmd_put_all_op(dp, cldev, op, csize)\
-  set_cmd_put_range_op(dp, cldev, op, 0, (cldev)->nbands - 1, csize)
+#define set_cmd_put_range_op(dp, cldev, op, bmin, bmax, csize) \
+	((dp = cmd_put_range_op(cldev, bmin, bmax, csize)) == 0 ? (cldev)->error_code : (*dp = cmd_count_op(op, csize), 0))
+#define set_cmd_put_all_op(dp, cldev, op, csize) \
+	set_cmd_put_range_op(dp, cldev, op, 0, (cldev)->nbands - 1, csize)
 
 /* Shorten the last allocated command. */
 /* Note that this does not adjust the statistics. */
-#define cmd_shorten_list_op(cldev, pcls, delta)\
-  ((pcls)->tail->size -= (delta), (cldev)->cnext -= (delta))
-#define cmd_shorten_op(cldev, pcls, delta)\
-  cmd_shorten_list_op(cldev, &(pcls)->list, delta)
+#define cmd_shorten_list_op(cldev, pcls, delta) \
+	((pcls)->tail->size -= (delta), (cldev)->cnext -= (delta))
+#define cmd_shorten_op(cldev, pcls, delta) \
+	cmd_shorten_list_op(cldev, &(pcls)->list, delta)
 
 /* Write out the buffered commands, and reset the buffer. */
 /* Return 0 if OK, 1 if OK with low-memory warning, */
 /* or the usual negative error code. */
-int cmd_write_buffer(gx_device_clist_writer * cldev, byte cmd_end);
+int cmd_write_buffer(gx_device_clist_writer *cldev, byte cmd_end);
 
 /* End a page by flushing the buffer and terminating the command list. */
 int clist_end_page(gx_device_clist_writer *);
@@ -432,78 +431,77 @@ int cmd_size_w(uint);
 
 #define w1byte(w) (!((w) & ~0x7f))
 #define w2byte(w) (!((w) & ~0x3fff))
-#define cmd_sizew(w)\
-  (w1byte(w) ? 1 : w2byte(w) ? 2 : cmd_size_w((uint)(w)))
-#define cmd_size2w(wx,wy)\
-  (w1byte((wx) | (wy)) ? 2 :\
-   cmd_size_w((uint)(wx)) + cmd_size_w((uint)(wy)))
+#define cmd_sizew(w) \
+	(w1byte(w) ? 1 : w2byte(w) ? 2 : cmd_size_w((uint)(w)))
+#define cmd_size2w(wx, wy) \
+	(w1byte((wx) | (wy)) ? 2 : cmd_size_w((uint)(wx)) + cmd_size_w((uint)(wy)))
 #define cmd_sizexy(xy) cmd_size2w((xy).x, (xy).y)
 #define cmd_sizew_max ((sizeof(uint) * 8 + 6) / 7)
 
 /* Put a variable-size integer in the buffer. */
 byte *cmd_put_w(uint, byte *);
 
-#define cmd_putw(w,dp)\
-  (w1byte(w) ? (*dp = w, ++dp) :\
-   w2byte(w) ? (*dp = (w) | 0x80, dp[1] = (w) >> 7, dp += 2) :\
-   (dp = cmd_put_w((uint)(w), dp)))
-#define cmd_put2w(wx,wy,dp)\
-  (w1byte((wx) | (wy)) ? (dp[0] = (wx), dp[1] = (wy), dp += 2) :\
-   (dp = cmd_put_w((uint)(wy), cmd_put_w((uint)(wx), dp))))
-#define cmd_putxy(xy,dp) cmd_put2w((xy).x, (xy).y, dp)
+#define cmd_putw(w, dp) \
+	(w1byte(w) ? (*dp = w, ++dp) : w2byte(w) ? (*dp = (w) | 0x80, dp[1] = (w) >> 7, dp += 2) : (dp = cmd_put_w((uint)(w), dp)))
+#define cmd_put2w(wx, wy, dp) \
+	(w1byte((wx) | (wy)) ? (dp[0] = (wx), dp[1] = (wy), dp += 2) : (dp = cmd_put_w((uint)(wy), cmd_put_w((uint)(wx), dp))))
+#define cmd_putxy(xy, dp) cmd_put2w((xy).x, (xy).y, dp)
 
 /* Put out a command to set a color. */
 typedef struct {
-    byte set_op;
-    byte delta_op;
-    bool tile_color;
+	byte set_op;
+	byte delta_op;
+	bool tile_color;
 } clist_select_color_t;
 extern const clist_select_color_t
-      clist_select_color0, clist_select_color1, clist_select_tile_color0,
-      clist_select_tile_color1;
+    clist_select_color0,
+    clist_select_color1, clist_select_tile_color0,
+    clist_select_tile_color1;
 
 /* See comments in gxclutil.c */
-int cmd_put_color(gx_device_clist_writer * cldev, gx_clist_state * pcls,
-                  const clist_select_color_t * select,
-                  gx_color_index color, gx_color_index * pcolor);
+int cmd_put_color(gx_device_clist_writer *cldev, gx_clist_state *pcls,
+		  const clist_select_color_t *select,
+		  gx_color_index color, gx_color_index *pcolor);
 
-extern const gx_color_index cmd_delta_offsets[];	/* In gxclutil.c */
+extern const gx_color_index cmd_delta_offsets[]; /* In gxclutil.c */
 
-#define cmd_set_color0(dev, pcls, color0)\
-  cmd_put_color(dev, pcls, &clist_select_color0, color0, &(pcls)->colors[0])
-#define cmd_set_color1(dev, pcls, color1)\
-  cmd_put_color(dev, pcls, &clist_select_color1, color1, &(pcls)->colors[1])
+#define cmd_set_color0(dev, pcls, color0) \
+	cmd_put_color(dev, pcls, &clist_select_color0, color0, &(pcls)->colors[0])
+#define cmd_set_color1(dev, pcls, color1) \
+	cmd_put_color(dev, pcls, &clist_select_color1, color1, &(pcls)->colors[1])
 
 /* Put out a command to set the tile colors. */
-int cmd_set_tile_colors(gx_device_clist_writer *cldev, gx_clist_state * pcls,
+int cmd_set_tile_colors(gx_device_clist_writer *cldev, gx_clist_state *pcls,
 			gx_color_index color0, gx_color_index color1);
 
 /* Put out a command to set the tile phase. */
-int cmd_set_tile_phase(gx_device_clist_writer *cldev, gx_clist_state * pcls,
+int cmd_set_tile_phase(gx_device_clist_writer *cldev, gx_clist_state *pcls,
 		       int px, int py);
 
 /* Enable or disable the logical operation. */
 int cmd_put_enable_lop(gx_device_clist_writer *, gx_clist_state *, int);
-#define cmd_do_enable_lop(cldev, pcls, enable)\
-  ( (pcls)->lop_enabled == ((enable) ^ 1) &&\
-    cmd_put_enable_lop(cldev, pcls, enable) < 0 ?\
-      (cldev)->error_code : 0 )
-#define cmd_enable_lop(cldev, pcls)\
-  cmd_do_enable_lop(cldev, pcls, 1)
-#define cmd_disable_lop(cldev, pcls)\
-  cmd_do_enable_lop(cldev, pcls, 0)
+#define cmd_do_enable_lop(cldev, pcls, enable)               \
+	((pcls)->lop_enabled == ((enable) ^ 1) &&            \
+		 cmd_put_enable_lop(cldev, pcls, enable) < 0 \
+	     ? (cldev)->error_code                           \
+	     : 0)
+#define cmd_enable_lop(cldev, pcls) \
+	cmd_do_enable_lop(cldev, pcls, 1)
+#define cmd_disable_lop(cldev, pcls) \
+	cmd_do_enable_lop(cldev, pcls, 0)
 
 /* Enable or disable clipping. */
 int cmd_put_enable_clip(gx_device_clist_writer *, gx_clist_state *, int);
 
-#define cmd_do_enable_clip(cldev, pcls, enable)\
-  ( (pcls)->clip_enabled == ((enable) ^ 1) &&\
-    cmd_put_enable_clip(cldev, pcls, enable) < 0 ?\
-      (cldev)->error_code : 0 )
-#define cmd_enable_clip(cldev, pcls)\
-  cmd_do_enable_clip(cldev, pcls, 1)
-#define cmd_disable_clip(cldev, pcls)\
-  cmd_do_enable_clip(cldev, pcls, 0)
+#define cmd_do_enable_clip(cldev, pcls, enable)               \
+	((pcls)->clip_enabled == ((enable) ^ 1) &&            \
+		 cmd_put_enable_clip(cldev, pcls, enable) < 0 \
+	     ? (cldev)->error_code                            \
+	     : 0)
+#define cmd_enable_clip(cldev, pcls) \
+	cmd_do_enable_clip(cldev, pcls, 1)
+#define cmd_disable_clip(cldev, pcls) \
+	cmd_do_enable_clip(cldev, pcls, 0)
 
 /* Write a command to set the logical operation. */
 int cmd_set_lop(gx_device_clist_writer *, gx_clist_state *,
@@ -572,81 +570,81 @@ int cmd_update_lop(gx_device_clist_writer *, gx_clist_state *,
  * stupid compilers from giving "statement not reached" warnings.
  */
 
-#define FOR_RECTS_NO_ERROR\
-    BEGIN\
-	int yend = y + height;\
-	int band_height = cdev->page_band_height;\
-	/* no band_code */\
-\
-	if (cdev->permanent_error < 0)\
-	  return (cdev->permanent_error);\
-	do {\
-	    int band = y / band_height;\
-	    gx_clist_state *pcls = cdev->states + band;\
-	    int band_end = (band + 1) * band_height;\
-\
-	    height = min(band_end, yend) - y;\
+#define FOR_RECTS_NO_ERROR                                  \
+	BEGIN                                               \
+	int yend = y + height;                              \
+	int band_height = cdev->page_band_height;           \
+	/* no band_code */                                  \
+                                                            \
+	if(cdev->permanent_error < 0)                       \
+		return (cdev->permanent_error);             \
+	do {                                                \
+		int band = y / band_height;                 \
+		gx_clist_state *pcls = cdev->states + band; \
+		int band_end = (band + 1) * band_height;    \
+                                                            \
+		height = min(band_end, yend) - y;           \
 /* no retry_rect: */
-#define FOR_RECTS\
-    BEGIN\
-	int yend = y + height;\
-	int band_height = cdev->page_band_height;\
-	int band_code;\
-\
-	if (cdev->permanent_error < 0)\
-	  return (cdev->permanent_error);\
-	do {\
-	    int band = y / band_height;\
-	    gx_clist_state *pcls = cdev->states + band;\
-	    int band_end = (band + 1) * band_height;\
-\
-	    height = min(band_end, yend) - y;\
-retry_rect:\
-	    ;
-#define NEST_RECT    ++cdev->driver_call_nesting;
-#define UNNEST_RECT  --cdev->driver_call_nesting
-#define ERROR_RECT(code_value)\
-		BEGIN\
-		    band_code = (code_value);\
-		    if (1) goto error_in_rect;\
-		END
-#define TRY_RECT\
-		BEGIN\
-		    do
-#define HANDLE_RECT_UNLESS(codevar, unless_clause)\
-		    while (codevar < 0 &&\
-			   (codevar = clist_VMerror_recover(cdev, codevar)) >= 0\
-			   );\
-		    if (codevar < 0 && !(unless_clause))\
-			ERROR_RECT(codevar);\
-		END
-#define HANDLE_RECT(codevar)\
-		HANDLE_RECT_UNLESS(codevar, 0)
-#define END_RECTS_ON_ERROR(retry_cleanup, is_error, after_recovering)\
-	    continue;\
-error_in_rect:\
-		if (cdev->error_is_retryable) {\
-		    retry_cleanup;\
-		    if ((is_error) &&\
-			cdev->driver_call_nesting == 0 &&\
-			(band_code =\
-			 clist_VMerror_recover_flush(cdev, band_code)) >= 0 &&\
-			(after_recovering)\
-			)\
-			goto retry_rect;\
-		}\
-		if (1) return band_code;\
-	} while ((y += height) < yend);\
-    END
+#define FOR_RECTS                                           \
+	BEGIN                                               \
+	int yend = y + height;                              \
+	int band_height = cdev->page_band_height;           \
+	int band_code;                                      \
+                                                            \
+	if(cdev->permanent_error < 0)                       \
+		return (cdev->permanent_error);             \
+	do {                                                \
+		int band = y / band_height;                 \
+		gx_clist_state *pcls = cdev->states + band; \
+		int band_end = (band + 1) * band_height;    \
+                                                            \
+		height = min(band_end, yend) - y;           \
+	retry_rect:                                         \
+		;
+#define NEST_RECT ++cdev->driver_call_nesting;
+#define UNNEST_RECT --cdev->driver_call_nesting
+#define ERROR_RECT(code_value)      \
+	BEGIN                       \
+	band_code = (code_value);   \
+	if(1)                       \
+		goto error_in_rect; \
+	END
+#define TRY_RECT \
+	BEGIN    \
+	do
+#define HANDLE_RECT_UNLESS(codevar, unless_clause)                                  \
+	while(codevar < 0 && (codevar = clist_VMerror_recover(cdev, codevar)) >= 0) \
+		;                                                                   \
+	if(codevar < 0 && !(unless_clause))                                         \
+		ERROR_RECT(codevar);                                                \
+	END
+#define HANDLE_RECT(codevar) \
+	HANDLE_RECT_UNLESS(codevar, 0)
+#define END_RECTS_ON_ERROR(retry_cleanup, is_error, after_recovering)                                                                                     \
+	continue;                                                                                                                                         \
+	error_in_rect:                                                                                                                                    \
+	if(cdev->error_is_retryable) {                                                                                                                    \
+		retry_cleanup;                                                                                                                            \
+		if((is_error) && cdev->driver_call_nesting == 0 && (band_code = clist_VMerror_recover_flush(cdev, band_code)) >= 0 && (after_recovering)) \
+			goto retry_rect;                                                                                                                  \
+	}                                                                                                                                                 \
+	if(1)                                                                                                                                             \
+		return band_code;                                                                                                                         \
+	}                                                                                                                                                 \
+	while((y += height) < yend)                                                                                                                       \
+		;                                                                                                                                         \
+	END
 #define END_RECTS END_RECTS_ON_ERROR(DO_NOTHING, 1, 1)
-#define END_RECTS_NO_ERROR\
-	} while ((y += height) < yend);\
-    END
+#define END_RECTS_NO_ERROR          \
+	}                           \
+	while((y += height) < yend) \
+		;                   \
+	END
 
 /* ------ Exported by gxclrect.c ------ */
 
 /* Put out a fill or tile rectangle command. */
-int cmd_write_rect_cmd(gx_device_clist_writer * cldev, gx_clist_state * pcls,
+int cmd_write_rect_cmd(gx_device_clist_writer *cldev, gx_clist_state *pcls,
 		       int op, int x, int y, int width, int height);
 
 /* ------ Exported by gxclbits.c ------ */
@@ -673,10 +671,10 @@ int cmd_write_rect_cmd(gx_device_clist_writer * cldev, gx_clist_state * pcls,
  */
 #define decompress_spread 0x200
 
-int cmd_put_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
-		 const byte * data, uint width_bits, uint height,
+int cmd_put_bits(gx_device_clist_writer *cldev, gx_clist_state *pcls,
+		 const byte *data, uint width_bits, uint height,
 		 uint raster, int op_size, int compression_mask,
-		 byte ** pdp, uint * psize);
+		 byte **pdp, uint *psize);
 
 /*
  * Put out commands for a color map (transfer function, black generation, or
@@ -684,50 +682,50 @@ int cmd_put_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
  * from the current one, and update the saved ID in the case.
  */
 typedef enum {
-    cmd_map_transfer = 0,	/* all transfer functions */
-    cmd_map_transfer_0,		/* transfer[0] */
-    cmd_map_transfer_1,		/* transfer[1] */
-    cmd_map_transfer_2,		/* transfer[2] */
-    cmd_map_transfer_3,		/* transfer[3] */
-    cmd_map_black_generation,
-    cmd_map_undercolor_removal
+	cmd_map_transfer = 0, /* all transfer functions */
+	cmd_map_transfer_0,   /* transfer[0] */
+	cmd_map_transfer_1,   /* transfer[1] */
+	cmd_map_transfer_2,   /* transfer[2] */
+	cmd_map_transfer_3,   /* transfer[3] */
+	cmd_map_black_generation,
+	cmd_map_undercolor_removal
 } cmd_map_index;
 typedef enum {
-    cmd_map_none = 0,		/* no map, use default */
-    cmd_map_identity,		/* identity map */
-    cmd_map_other		/* other map */
+	cmd_map_none = 0, /* no map, use default */
+	cmd_map_identity, /* identity map */
+	cmd_map_other     /* other map */
 } cmd_map_contents;
-int cmd_put_color_map(gx_device_clist_writer * cldev,
-                      cmd_map_index map_index, int comp_num,
-                      const gx_transfer_map * map, gs_id * pid);
+int cmd_put_color_map(gx_device_clist_writer *cldev,
+		      cmd_map_index map_index, int comp_num,
+		      const gx_transfer_map *map, gs_id *pid);
 
 /*
  * Change tiles for clist_tile_rectangle.  (We make this a separate
  * procedure primarily for readability.)
  */
-int clist_change_tile(gx_device_clist_writer * cldev, gx_clist_state * pcls,
-		      const gx_strip_bitmap * tiles, int depth);
+int clist_change_tile(gx_device_clist_writer *cldev, gx_clist_state *pcls,
+		      const gx_strip_bitmap *tiles, int depth);
 
 /*
  * Change "tile" for clist_copy_*.  Only uses tiles->{data, id, raster,
  * rep_width, rep_height}.  tiles->[rep_]shift must be zero.
  */
-int clist_change_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
-		      const gx_strip_bitmap * tiles, int depth);
+int clist_change_bits(gx_device_clist_writer *cldev, gx_clist_state *pcls,
+		      const gx_strip_bitmap *tiles, int depth);
 
 /* ------ Exported by gxclimag.c ------ */
 
 /*
  * Write out any necessary color mapping data.
  */
-int cmd_put_color_mapping(gx_device_clist_writer * cldev,
-				  const gs_imager_state * pis);
+int cmd_put_color_mapping(gx_device_clist_writer *cldev,
+			  const gs_imager_state *pis);
 /*
  * Add commands to represent a full (device) halftone.
  * (This routine should probably be in some other module.)
  */
-int cmd_put_halftone(gx_device_clist_writer * cldev,
-		     const gx_device_halftone * pdht);
+int cmd_put_halftone(gx_device_clist_writer *cldev,
+		     const gx_device_halftone *pdht);
 
 /* ------ Exported by gxclrast.c for gxclread.c ------ */
 
@@ -736,8 +734,8 @@ int cmd_put_halftone(gx_device_clist_writer * cldev,
  * the put_params that occurs at the beginning of each page.
  */
 typedef enum {
-    playback_action_render,
-    playback_action_setup
+	playback_action_render,
+	playback_action_setup
 } clist_playback_action;
 
 /* Play back and rasterize one band. */

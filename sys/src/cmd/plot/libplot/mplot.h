@@ -12,11 +12,11 @@
 #include <stdio.h>
 #include <draw.h>
 #include <event.h>
-#define SCX(A) ((((A) - e1->xmin)*e1->scalex  + e1->left)+.5)
-#define SCY(A) ((((A) - e1->ymin)*e1->scaley + e1->bottom)+.5)
-#define	SCR(A) ((A)*e1->scalex+.5)
-#define unorm(y)	(double)(e1->sidey - y)
-#define	BIGINT	0x3FFFFFFF	/* a large, but valid, int */
+#define SCX(A) ((((A)-e1->xmin) * e1->scalex + e1->left) + .5)
+#define SCY(A) ((((A)-e1->ymin) * e1->scaley + e1->bottom) + .5)
+#define SCR(A) ((A)*e1->scalex + .5)
+#define unorm(y) (double)(e1->sidey - y)
+#define BIGINT 0x3FFFFFFF /* a large, but valid, int */
 extern struct penvir {
 	double left, bottom;
 	double xmin, ymin;
@@ -28,8 +28,8 @@ extern struct penvir {
 	int pgap;
 	double pslant;
 	int pmode, foregr, backgr;
-} *e0, *e1, *esave;
-#define RADIAN 57.3	/* radians per degree */
+} * e0, *e1, *esave;
+#define RADIAN 57.3 /* radians per degree */
 struct seg {
 	int x, y, X, Y;
 	char stat;
@@ -38,8 +38,8 @@ struct seg {
 /*
  * display parameters
  */
-int clipminx, clipminy, clipmaxx, clipmaxy;	/* clipping rectangle */
-int mapminx, mapminy, mapmaxx, mapmaxy;		/* centered square */
+int clipminx, clipminy, clipmaxx, clipmaxy; /* clipping rectangle */
+int mapminx, mapminy, mapmaxx, mapmaxy;     /* centered square */
 /*
  * Prototypes
  */

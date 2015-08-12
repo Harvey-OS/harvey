@@ -55,22 +55,22 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef S_ISSOCK
 #endif
 #ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
 #endif
 #ifndef S_ISREG
-#define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
+#define S_ISREG(mode) (((mode)&S_IFMT) == S_IFREG)
 #endif
 #if !defined(S_ISBLK) && defined(S_IFBLK)
-#define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
+#define S_ISBLK(mode) (((mode)&S_IFMT) == S_IFBLK)
 #endif
 #if !defined(S_ISCHR) && defined(S_IFCHR)
-#define S_ISCHR(mode) (((mode) & S_IFMT) == S_IFCHR)
+#define S_ISCHR(mode) (((mode)&S_IFMT) == S_IFCHR)
 #endif
 #if !defined(S_ISFIFO) && defined(S_IFFIFO)
-#define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFFIFO)
+#define S_ISFIFO(mode) (((mode)&S_IFMT) == S_IFFIFO)
 #endif
 #if !defined(S_ISSOCK) && defined(S_IFSOCK)
-#define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
+#define S_ISSOCK(mode) (((mode)&S_IFMT) == S_IFSOCK)
 #endif
 
 #if HAVE_UNISTD_H
@@ -109,7 +109,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #if !HAVE_DUP2
-#define dup2(f,t)	(close (t),  fcntl (f,F_DUPFD,t))
+#define dup2(f, t) (close(t), fcntl(f, F_DUPFD, t))
 #endif
 
 #ifndef O_RDONLY
@@ -120,10 +120,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/wait.h>
 #endif
 #ifndef WEXITSTATUS
-#define WEXITSTATUS(stat_val) ((unsigned) (stat_val) >> 8)
+#define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
 #endif
 #ifndef WIFEXITED
-#define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#define WIFEXITED(stat_val) (((stat_val)&255) == 0)
 #endif
 
 #ifndef STAT_BLOCKSIZE
@@ -135,20 +135,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #if HAVE_DIRENT_H
-# include <dirent.h>
-# define NAMLEN(dirent) strlen((dirent)->d_name)
+#include <dirent.h>
+#define NAMLEN(dirent) strlen((dirent)->d_name)
 #else
-# define dirent direct
-# define NAMLEN(dirent) ((dirent)->d_namlen)
-# if HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# if HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# if HAVE_NDIR_H
-#  include <ndir.h>
-# endif
+#define dirent direct
+#define NAMLEN(dirent) ((dirent)->d_namlen)
+#if HAVE_SYS_NDIR_H
+#include <sys/ndir.h>
+#endif
+#if HAVE_SYS_DIR_H
+#include <sys/dir.h>
+#endif
+#if HAVE_NDIR_H
+#include <ndir.h>
+#endif
 #endif
 
 #if HAVE_VFORK_H
@@ -158,11 +158,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #else
-VOID *malloc ();
-VOID *realloc ();
+VOID *malloc();
+VOID *realloc();
 #endif
 #ifndef getenv
-char *getenv ();
+char *getenv();
 #endif
 
 #if HAVE_LIMITS_H
@@ -176,21 +176,21 @@ char *getenv ();
 #endif
 
 #if STDC_HEADERS || HAVE_STRING_H
-# include <string.h>
-# ifndef bzero
-#  define bzero(s, n) memset (s, 0, n)
-# endif
+#include <string.h>
+#ifndef bzero
+#define bzero(s, n) memset(s, 0, n)
+#endif
 #else
-# if !HAVE_STRCHR
-#  define strchr index
-#  define strrchr rindex
-# endif
-char *strchr (), *strrchr ();
-# if !HAVE_MEMCHR
-#  define memcmp(s1, s2, n) bcmp (s1, s2, n)
-#  define memcpy(d, s, n) bcopy (s, d, n)
-void *memchr ();
-# endif
+#if !HAVE_STRCHR
+#define strchr index
+#define strrchr rindex
+#endif
+char *strchr(), *strrchr();
+#if !HAVE_MEMCHR
+#define memcmp(s1, s2, n) bcmp(s1, s2, n)
+#define memcpy(d, s, n) bcopy(s, d, n)
+void *memchr();
+#endif
 #endif
 
 #include <ctype.h>
@@ -199,20 +199,20 @@ void *memchr ();
 #if STDC_HEADERS
 #define CTYPE_DOMAIN(c) 1
 #else
-#define CTYPE_DOMAIN(c) ((unsigned) (c) <= 0177)
+#define CTYPE_DOMAIN(c) ((unsigned)(c) <= 0177)
 #endif
 #ifndef ISPRINT
-#define ISPRINT(c) (CTYPE_DOMAIN (c) && isprint (c))
+#define ISPRINT(c) (CTYPE_DOMAIN(c) && isprint(c))
 #endif
 #ifndef ISSPACE
-#define ISSPACE(c) (CTYPE_DOMAIN (c) && isspace (c))
+#define ISSPACE(c) (CTYPE_DOMAIN(c) && isspace(c))
 #endif
 #ifndef ISUPPER
-#define ISUPPER(c) (CTYPE_DOMAIN (c) && isupper (c))
+#define ISUPPER(c) (CTYPE_DOMAIN(c) && isupper(c))
 #endif
 
 #ifndef ISDIGIT
-#define ISDIGIT(c) ((unsigned) (c) - '0' <= 9)
+#define ISDIGIT(c) ((unsigned)(c) - '0' <= 9)
 #endif
 
 #include <errno.h>
@@ -226,18 +226,18 @@ extern int errno;
 #ifdef max
 #undef max
 #endif
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
-
+#define min(a, b) ((a) <= (b) ? (a) : (b))
+#define max(a, b) ((a) >= (b) ? (a) : (b))
+
 /* This section contains Posix-compliant defaults for macros
    that are meant to be overridden by hand in config.h as needed.  */
 
 #ifndef filename_cmp
-#define filename_cmp(a, b) strcmp (a, b)
+#define filename_cmp(a, b) strcmp(a, b)
 #endif
 
 #ifndef filename_lastdirchar
-#define filename_lastdirchar(filename) strrchr (filename, '/')
+#define filename_lastdirchar(filename) strrchr(filename, '/')
 #endif
 
 #ifndef HAVE_FORK
@@ -255,25 +255,24 @@ extern int errno;
 /* Do struct stat *S, *T describe the same file?  Answer -1 if unknown.  */
 #ifndef same_file
 /* #define same_file(s,t) ((s)->st_ino==(t)->st_ino && (s)->st_dev==(t)->st_dev) */
-#define same_file(s,t) 0
+#define same_file(s, t) 0
 #endif
 
 /* Place into Q a quoted version of A suitable for `popen' or `system',
    incrementing Q and junking A.
    Do not increment Q by more than 4 * strlen (A) + 2.  */
 #ifndef SYSTEM_QUOTE_ARG
-#define SYSTEM_QUOTE_ARG(q, a) \
-  { \
-    *(q)++ = '\''; \
-    for (;  *(a);  *(q)++ = *(a)++) \
-      if (*(a) == '\'') \
-	{ \
-	  *(q)++ = '\''; \
-	  *(q)++ = '\\'; \
-	  *(q)++ = '\''; \
-	} \
-    *(q)++ = '\''; \
-  }
+#define SYSTEM_QUOTE_ARG(q, a)                 \
+	{                                      \
+		*(q)++ = '\'';                 \
+		for(; *(a); *(q)++ = *(a)++)   \
+			if(*(a) == '\'') {     \
+				*(q)++ = '\''; \
+				*(q)++ = '\\'; \
+				*(q)++ = '\''; \
+			}                      \
+		*(q)++ = '\'';                 \
+	}
 #endif
 #ifndef FOLD_FN_CHAR
 #define FOLD_FN_CHAR(c) (c)

@@ -69,14 +69,13 @@
 #undef HAVE_PRINT_FUNCTION
 
 /* The number of bytes in a int. */
-#define SIZEOF_INT  (1 << ARCH_LOG2_SIZEOF_INT)
+#define SIZEOF_INT (1 << ARCH_LOG2_SIZEOF_INT)
 
 /* The number of bytes in a long.  */
 #define SIZEOF_LONG (1 << ARCH_LOG2_SIZEOF_LONG)
 
 /* Define if you have the basename function.  */
 #undef HAVE_BASENAME
-
 
 /* End of ft_conf.h */
 

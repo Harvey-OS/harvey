@@ -22,7 +22,7 @@ usage(void)
 	exits("usage");
 }
 
-#pragma	varargck	argpos	flprint	1
+#pragma varargck argpos flprint 1
 
 static int
 flprint(char *fmt, ...)
@@ -66,10 +66,11 @@ main(int argc, char *argv[])
 	int csize = 1000;
 	VtSession *z;
 	char *host = nil;
-	
+
 	fsck.useventi = 1;
 	Binit(&bout, 1, OWRITE);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'c':
@@ -86,7 +87,8 @@ main(int argc, char *argv[])
 	case 'v':
 		fsck.printdirs = 1;
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -101,10 +103,10 @@ main(int argc, char *argv[])
 	 * Connect to Venti.
 	 */
 	z = vtDial(host, 0);
-	if(z == nil){
+	if(z == nil) {
 		if(fsck.useventi)
 			vtFatal("could not connect to server: %s", vtGetError());
-	}else if(!vtConnect(z, 0))
+	} else if(!vtConnect(z, 0))
 		vtFatal("vtConnect: %s", vtGetError());
 
 	/*
@@ -124,4 +126,3 @@ main(int argc, char *argv[])
 
 	exits(0);
 }
-

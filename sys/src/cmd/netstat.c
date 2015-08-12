@@ -13,15 +13,15 @@
 #include <ip.h>
 #include <ndb.h>
 
-void	pip(char*, Dir*);
-void	nstat(char*, void (*)(char*, Dir*));
-void	pipifc(void);
+void pip(char *, Dir *);
+void nstat(char *, void (*)(char *, Dir *));
+void pipifc(void);
 
-Biobuf	out;
-char	*netroot;
+Biobuf out;
+char *netroot;
 char *proto[20];
 int nproto;
-int	notrans;
+int notrans;
 
 void
 usage(void)
@@ -38,7 +38,8 @@ main(int argc, char *argv[])
 	Dir *d;
 	char buf[128];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'i':
 		justinterfaces = 1;
 		break;
@@ -52,10 +53,11 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	netroot = "/net";
-	switch(argc){
+	switch(argc) {
 	case 0:
 		break;
 	case 1:
@@ -67,21 +69,21 @@ main(int argc, char *argv[])
 
 	Binit(&out, 1, OWRITE);
 
-	if(justinterfaces){
+	if(justinterfaces) {
 		pipifc();
 		exits(0);
 	}
 
-	if(nproto){
-		for(i=0; i<nproto; i++)
+	if(nproto) {
+		for(i = 0; i < nproto; i++)
 			nstat(proto[i], pip);
-	}else{
+	} else {
 		fd = open(netroot, OREAD);
 		if(fd < 0)
 			sysfatal("open %s: %r", netroot);
 
 		tot = dirreadall(fd, &d);
-		for(i=0; i<tot; i++){
+		for(i = 0; i < tot; i++) {
 			if(strcmp(d[i].name, "ipifc") == 0)
 				continue;
 			snprint(buf, sizeof buf, "%s/%s/0/local", netroot, d[i].name);
@@ -93,7 +95,7 @@ main(int argc, char *argv[])
 }
 
 void
-nstat(char *net, void (*f)(char*, Dir*))
+nstat(char *net, void (*f)(char *, Dir *))
 {
 	int fdir, i, tot;
 	Dir *dir;
@@ -113,17 +115,17 @@ nstat(char *net, void (*f)(char*, Dir*))
 	close(fdir);
 }
 
-char*
+char *
 getport(char *net, char *p)
 {
 	static char port[10];
 
-	strncpy(port, p, sizeof(port)-1);
-	port[sizeof(port)-1] = 0;
+	strncpy(port, p, sizeof(port) - 1);
+	port[sizeof(port) - 1] = 0;
 	if(notrans || (p = csgetvalue(netroot, "port", p, net, nil)) == nil)
 		return port;
-	strncpy(port, p, sizeof(port)-1);
-	port[sizeof(port)-1] = 0;
+	strncpy(port, p, sizeof(port) - 1);
+	port[sizeof(port) - 1] = 0;
 	free(p);
 	return port;
 }
@@ -170,14 +172,14 @@ pip(char *net, Dir *db)
 		Bprint(&out, "\n");
 		return;
 	}
-	buf[n-1] = 0;
+	buf[n - 1] = 0;
 	p = strchr(buf, '!');
 	if(p == 0) {
 		Bprint(&out, "\n");
 		return;
 	}
 	*p = '\0';
-	Bprint(&out, "%-10s ", getport(net, p+1));
+	Bprint(&out, "%-10s ", getport(net, p + 1));
 
 	snprint(buf, sizeof buf, "%s/%s/%s/remote", netroot, net, db->name);
 	fd = open(buf, OREAD);
@@ -191,12 +193,12 @@ pip(char *net, Dir *db)
 		print("\n");
 		return;
 	}
-	buf[n-1] = 0;
+	buf[n - 1] = 0;
 	p = strchr(buf, '!');
 	if(p != nil)
 		*p++ = '\0';
 
-	if(notrans){
+	if(notrans) {
 		Bprint(&out, "%-10s %s\n", getport(net, p), buf);
 		return;
 	}
@@ -224,8 +226,8 @@ pipifc(void)
 	ip = readipifc(netroot, nil, -1);
 
 	l = 7;
-	for(nip = ip; nip; nip = nip->next){
-		for(lifc = nip->lifc; lifc; lifc = lifc->next){
+	for(nip = ip; nip; nip = nip->next) {
+		for(lifc = nip->lifc; lifc; lifc = lifc->next) {
 			i = snprint(buf, sizeof buf, "%I", lifc->ip);
 			if(i > l)
 				l = i;
@@ -235,13 +237,13 @@ pipifc(void)
 		}
 	}
 
-	for(nip = ip; nip; nip = nip->next){
+	for(nip = ip; nip; nip = nip->next) {
 		for(lifc = nip->lifc; lifc; lifc = lifc->next)
 			Bprint(&out, "%-12s %5d %-*I %5M %-*I %8lud %8lud %8lud %8lud\n",
-				nip->dev, nip->mtu, 
-				l, lifc->ip, lifc->mask, l, lifc->net,
-				nip->pktin, nip->pktout,
-				nip->errin, nip->errout);
+			       nip->dev, nip->mtu,
+			       l, lifc->ip, lifc->mask, l, lifc->net,
+			       nip->pktin, nip->pktout,
+			       nip->errin, nip->errout);
 	}
 	Bflush(&out);
 }

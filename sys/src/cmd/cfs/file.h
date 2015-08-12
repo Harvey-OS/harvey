@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-void	fmerge(Dptr*, char*, char*, int, int);
-int	fbwrite(Icache*, Ibuf*, char*, uint32_t, int);
-long	fwrite(Icache*, Ibuf*, char*, uint32_t, long);
-Dptr*	fpget(Icache*, Ibuf*, uint32_t);
-long	fread(Icache*, Ibuf*, char*, uint32_t, long);
+void fmerge(Dptr *, char *, char *, int, int);
+int fbwrite(Icache *, Ibuf *, char *, uint32_t, int);
+long fwrite(Icache *, Ibuf *, char *, uint32_t, long);
+Dptr *fpget(Icache *, Ibuf *, uint32_t);
+long fread(Icache *, Ibuf *, char *, uint32_t, long);

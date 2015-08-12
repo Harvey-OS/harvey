@@ -22,13 +22,13 @@ _threaddebug(uint32_t flag, char *fmt, ...)
 	Fmt f;
 	Proc *p;
 
-	if((_threaddebuglevel&flag) == 0)
+	if((_threaddebuglevel & flag) == 0)
 		return;
 
 	fmtfdinit(&f, 2, buf, sizeof buf);
 
 	p = _threadgetproc();
-	if(p==nil)
+	if(p == nil)
 		fmtprint(&f, "noproc ");
 	else if(p->thread)
 		fmtprint(&f, "%d.%d ", p->pid, p->thread->id);
@@ -54,7 +54,7 @@ _threadassert(char *s)
 		n = sprint(buf, "%d.%d ", p->pid, p->thread->id);
 	else
 		n = 0;
-	snprint(buf+n, sizeof(buf)-n, "%s: assertion failed\n", s);
+	snprint(buf + n, sizeof(buf) - n, "%s: assertion failed\n", s);
 	write(2, buf, strlen(buf));
 	abort();
 }

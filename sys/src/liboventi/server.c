@@ -52,7 +52,6 @@ Err:
 	return 0;
 }
 
-
 static int
 dispatchHello(VtSession *z, Packet **pkt)
 {
@@ -65,7 +64,7 @@ dispatchHello(VtSession *z, Packet **pkt)
 
 	p = *pkt;
 
-	version = nil;	
+	version = nil;
 	uid = nil;
 	crypto = nil;
 	codec = nil;
@@ -126,7 +125,7 @@ dispatchRead(VtSession *z, Packet **pkt)
 	if(!packetConsume(p, buf, 4))
 		return 0;
 	type = buf[0];
-	n = (buf[2]<<8) | buf[3];
+	n = (buf[2] << 8) | buf[3];
 	if(packetSize(p) != 0) {
 		vtSetError(EProtocolBotch);
 		return 0;
@@ -180,7 +179,7 @@ vtExport(VtSession *z)
 	}
 
 	/* fork off slave */
-	switch(rfork(RFNOWAIT|RFMEM|RFPROC)){
+	switch(rfork(RFNOWAIT | RFMEM | RFPROC)) {
 	case -1:
 		vtOSError();
 		return 0;
@@ -190,7 +189,6 @@ vtExport(VtSession *z)
 		return 1;
 	}
 
-	
 	p = nil;
 	clean = 0;
 	vtAttach();
@@ -198,7 +196,8 @@ vtExport(VtSession *z)
 		goto Exit;
 
 	vtDebug(z, "server connected!\n");
-if(0)	vtSetDebug(z, 1);
+	if(0)
+		vtSetDebug(z, 1);
 
 	for(;;) {
 		p = vtRecvPacket(z);
@@ -242,7 +241,7 @@ if(0)	vtSetDebug(z, 1);
 		}
 		if(p != nil) {
 			hdr = packetHeader(p, 2);
-			hdr[0] = op+1;
+			hdr[0] = op + 1;
 			hdr[1] = tid;
 		} else {
 			p = packetAlloc();
@@ -271,6 +270,5 @@ Exit:
 	vtDetach();
 
 	exits(0);
-	return 0;	/* never gets here */
+	return 0; /* never gets here */
 }
-

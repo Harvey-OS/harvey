@@ -27,7 +27,7 @@
 /* Arc operator declarations */
 
 #ifndef oparc_INCLUDED
-#  define oparc_INCLUDED
+#define oparc_INCLUDED
 
 /*
  * These declarations are in a separate from, rather than in opextern.h,

@@ -14,24 +14,21 @@
 #include <sunrpc.h>
 
 typedef struct SunMsgUdp SunMsgUdp;
-struct SunMsgUdp
-{
-	SunMsg	msg;
-	Udphdr	udp;
+struct SunMsgUdp {
+	SunMsg msg;
+	Udphdr udp;
 };
 
 typedef struct Arg Arg;
-struct Arg
-{
-	SunSrv	*srv;
-	Channel	*creply;
-	Channel	*csync;
-	int 	fd;
+struct Arg {
+	SunSrv *srv;
+	Channel *creply;
+	Channel *csync;
+	int fd;
 };
 
-enum
-{
-	UdpMaxRead = 65536+Udphdrsize
+enum {
+	UdpMaxRead = 65536 + Udphdrsize
 };
 
 static void
@@ -39,20 +36,20 @@ sunUdpRead(void *v)
 {
 	int n;
 	uint8_t *buf;
-	Arg arg = *(Arg*)v;
+	Arg arg = *(Arg *)v;
 	SunMsgUdp *msg;
 
 	sendp(arg.csync, 0);
 
 	buf = emalloc(UdpMaxRead);
-	while((n = read(arg.fd, buf, UdpMaxRead)) > 0){
+	while((n = read(arg.fd, buf, UdpMaxRead)) > 0) {
 		if(arg.srv->chatty)
 			fprint(2, "udp got %d (%d)\n", n, Udphdrsize);
 		msg = emalloc(sizeof(SunMsgUdp));
 		memmove(&msg->udp, buf, Udphdrsize);
 		msg->msg.data = emalloc(n);
-		msg->msg.count = n-Udphdrsize;
-		memmove(msg->msg.data, buf+Udphdrsize, n-Udphdrsize);
+		msg->msg.count = n - Udphdrsize;
+		memmove(msg->msg.data, buf + Udphdrsize, n - Udphdrsize);
 		memmove(&msg->udp, buf, Udphdrsize);
 		msg->msg.creply = arg.creply;
 		if(arg.srv->chatty)
@@ -65,14 +62,14 @@ static void
 sunUdpWrite(void *v)
 {
 	uint8_t *buf;
-	Arg arg = *(Arg*)v;
+	Arg arg = *(Arg *)v;
 	SunMsgUdp *msg;
 
 	sendp(arg.csync, 0);
 
 	buf = emalloc(UdpMaxRead);
-	while((msg = recvp(arg.creply)) != nil){
-		memmove(buf+Udphdrsize, msg->msg.data, msg->msg.count);
+	while((msg = recvp(arg.creply)) != nil) {
+		memmove(buf + Udphdrsize, msg->msg.data, msg->msg.count);
 		memmove(buf, &msg->udp, Udphdrsize);
 		msg->msg.count += Udphdrsize;
 		if(write(arg.fd, buf, msg->msg.count) != msg->msg.count)
@@ -92,24 +89,24 @@ sunSrvUdp(SunSrv *srv, char *address)
 	acfd = announce(address, adir);
 	if(acfd < 0)
 		return -1;
-	if(write(acfd, "headers", 7) < 0){
+	if(write(acfd, "headers", 7) < 0) {
 		werrstr("setting headers: %r");
 		close(acfd);
 		return -1;
 	}
 	snprint(data, sizeof data, "%s/data", adir);
-	if((fd = open(data, ORDWR)) < 0){
+	if((fd = open(data, ORDWR)) < 0) {
 		werrstr("open %s: %r", data);
 		close(acfd);
 		return -1;
 	}
-	close(acfd); 
-	
+	close(acfd);
+
 	arg = emalloc(sizeof(Arg));
 	arg->fd = fd;
 	arg->srv = srv;
-	arg->creply = chancreate(sizeof(SunMsg*), 10);
-	arg->csync =  chancreate(sizeof(void*), 10);
+	arg->creply = chancreate(sizeof(SunMsg *), 10);
+	arg->csync = chancreate(sizeof(void *), 10);
 
 	proccreate(sunUdpRead, arg, SunStackSize);
 	proccreate(sunUdpWrite, arg, SunStackSize);

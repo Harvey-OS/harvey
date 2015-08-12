@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
+#include <u.h>
+#include <libc.h>
 
-void*
+void *
 memchr(const void *ap, int c, uint32_t n)
 {
 	const char *sp;
@@ -19,7 +19,7 @@ memchr(const void *ap, int c, uint32_t n)
 	c &= 0xFF;
 	while(n > 0) {
 		if(*sp++ == c)
-			return (char *)sp-1;
+			return (char *)sp - 1;
 		n--;
 	}
 	return 0;

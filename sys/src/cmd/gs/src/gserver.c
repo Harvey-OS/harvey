@@ -28,13 +28,13 @@
 #include "memory_.h"
 #include "string_.h"
 #include "ghost.h"
-#include "imemory.h"		/* for iutil.h */
-#include "interp.h"		/* for gs_interp_reset */
-#include "iutil.h"		/* for obj_cvs */
+#include "imemory.h" /* for iutil.h */
+#include "interp.h"  /* for gs_interp_reset */
+#include "iutil.h"   /* for obj_cvs */
 #include "main.h"
 #include "ostack.h"
 #include "store.h"
-#include "gspaint.h"		/* for gs_erasepage */
+#include "gspaint.h" /* for gs_erasepage */
 
 /*
  * This file provides a very simple procedural interface to the Ghostscript
@@ -180,9 +180,12 @@ main(int argc, char *argv[])
 /* ------ Private definitions ------ */
 
 /* Forward references */
-private int job_begin(void);
-private int job_end(void);
-private void errstr_report(ref *, char *, int, int *);
+private
+int job_begin(void);
+private
+int job_end(void);
+private
+void errstr_report(ref *, char *, int, int *);
 
 /* ------ Public routines ------ */
 
@@ -192,34 +195,32 @@ int
 gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
 		     const char *init_str)
 {
-    int code, exit_code;	/* discard exit_code for now */
-    int errstr_len;		/* discard */
-    FILE *c_stdin, *c_stdout, *c_stderr;
+	int code, exit_code; /* discard exit_code for now */
+	int errstr_len;      /* discard */
+	FILE *c_stdin, *c_stdout, *c_stderr;
 
-    /* Establish C-compatible files for stdout and stderr. */
-    c_stdin = fdopen(fno_stdin, "r");
-    if (c_stdin == NULL)
-	return -1;
-    c_stdout = fdopen(fno_stdout, "w");
-    if (c_stdout == NULL)
-	return -1;
-    c_stderr = fdopen(fno_stderr, "w");
-    if (c_stderr == NULL)
-	return -1;
-    /* Initialize the Ghostscript interpreter. */
-    if ((code = gs_init0(c_stdin, c_stdout, c_stderr, 0)) < 0 ||
-	(code = gs_init1()) < 0 ||
-	(code = gs_init2()) < 0
-	)
-	return code;
-    code = gs_server_run_string("/QUIET true def /NOPAUSE true def",
-				&exit_code,
-				(char *)0, 0, &errstr_len);
-    if (code < 0)
-	return code;
-    return (init_str == NULL ? 0 :
-	    gs_server_run_string(init_str, &exit_code,
-				 (char *)0, 0, &errstr_len));
+	/* Establish C-compatible files for stdout and stderr. */
+	c_stdin = fdopen(fno_stdin, "r");
+	if(c_stdin == NULL)
+		return -1;
+	c_stdout = fdopen(fno_stdout, "w");
+	if(c_stdout == NULL)
+		return -1;
+	c_stderr = fdopen(fno_stderr, "w");
+	if(c_stderr == NULL)
+		return -1;
+	/* Initialize the Ghostscript interpreter. */
+	if((code = gs_init0(c_stdin, c_stdout, c_stderr, 0)) < 0 ||
+	   (code = gs_init1()) < 0 ||
+	   (code = gs_init2()) < 0)
+		return code;
+	code = gs_server_run_string("/QUIET true def /NOPAUSE true def",
+				    &exit_code,
+				    (char *)0, 0, &errstr_len);
+	if(code < 0)
+		return code;
+	return (init_str == NULL ? 0 : gs_server_run_string(init_str, &exit_code,
+							    (char *)0, 0, &errstr_len));
 }
 
 /* Run a string. */
@@ -228,39 +229,39 @@ int
 gs_server_run_string(const char *str, int *exit_code_ptr,
 		     char *errstr, int errstr_max_len, int *errstr_len_ptr)
 {
-    ref error_object;
-    int code;
+	ref error_object;
+	int code;
 
-    make_tasv(&error_object, t_string, 0, 0, bytes, 0);
-    code = gs_run_string(str, 0, exit_code_ptr, &error_object);
-    if (code < 0)
-	errstr_report(&error_object, errstr, errstr_max_len,
-		      errstr_len_ptr);
-    return code;
+	make_tasv(&error_object, t_string, 0, 0, bytes, 0);
+	code = gs_run_string(str, 0, exit_code_ptr, &error_object);
+	if(code < 0)
+		errstr_report(&error_object, errstr, errstr_max_len,
+			      errstr_len_ptr);
+	return code;
 }
 
 /* Run files. */
 
 int
 gs_server_run_files(const char **file_names, int permanent,
-  int *exit_code_ptr, char *errstr, int errstr_max_len,
-                    int *errstr_len_ptr)
+		    int *exit_code_ptr, char *errstr, int errstr_max_len,
+		    int *errstr_len_ptr)
 {
-    int code = 0;
-    ref error_object;
-    const char **pfn;
+	int code = 0;
+	ref error_object;
+	const char **pfn;
 
-    if (!permanent)
-	job_begin();
-    make_tasv(&error_object, t_string, 0, 0, bytes, 0);
-    for (pfn = file_names; *pfn != NULL && code == 0; pfn++)
-	code = gs_run_file(*pfn, 0, exit_code_ptr, &error_object);
-    if (!permanent)
-	job_end();
-    if (code < 0)
-	errstr_report(&error_object, errstr, errstr_max_len,
-		      errstr_len_ptr);
-    return code;
+	if(!permanent)
+		job_begin();
+	make_tasv(&error_object, t_string, 0, 0, bytes, 0);
+	for(pfn = file_names; *pfn != NULL && code == 0; pfn++)
+		code = gs_run_file(*pfn, 0, exit_code_ptr, &error_object);
+	if(!permanent)
+		job_end();
+	if(code < 0)
+		errstr_report(&error_object, errstr, errstr_max_len,
+			      errstr_len_ptr);
+	return code;
 }
 
 /* Terminate Ghostscript. */
@@ -268,60 +269,64 @@ gs_server_run_files(const char **file_names, int permanent,
 int
 gs_server_terminate()
 {
-    gs_finit(0, 0);
-    return 0;
+	gs_finit(0, 0);
+	return 0;
 }
 
 /* ------ Private routines ------ */
 
-private ref job_save;		/* 'save' object for baseline state */
+private
+ref job_save; /* 'save' object for baseline state */
 
 extern int zsave(os_ptr), zrestore(os_ptr);
 
 /* Start a 'job' by restoring the baseline state. */
 
-private int
+private
+int
 job_begin()
 {
-    int code;
+	int code;
 
-    /* Ghostscript doesn't provide erasepage as an operator. */
-    /* However, we can get the same effect by calling gs_erasepage. */
-    extern gs_state *igs;
+	/* Ghostscript doesn't provide erasepage as an operator. */
+	/* However, we can get the same effect by calling gs_erasepage. */
+	extern gs_state *igs;
 
-    if ((code = gs_erasepage(igs)) < 0)
+	if((code = gs_erasepage(igs)) < 0)
+		return code;
+	code = zsave(osp);
+	if(code == 0)
+		job_save = *osp--;
 	return code;
-    code = zsave(osp);
-    if (code == 0)
-	job_save = *osp--;
-    return code;
 }
 
 /* End a 'job'. */
 
-private int
+private
+int
 job_end()
 {
-    gs_interp_reset();
-    *++osp = job_save;
-    return zrestore(osp);
+	gs_interp_reset();
+	*++osp = job_save;
+	return zrestore(osp);
 }
 
 /* Produce a printable representation of an error object. */
 
-private void
-errstr_report(ref * perror_object, char *errstr, int errstr_max_len,
+private
+void
+errstr_report(ref *perror_object, char *errstr, int errstr_max_len,
 	      int *errstr_len_ptr)
 {
-    int code = obj_cvs(perror_object, (byte *) errstr,
-		       (uint) errstr_max_len, (uint *) errstr_len_ptr,
-		       false);
+	int code = obj_cvs(perror_object, (byte *)errstr,
+			   (uint)errstr_max_len, (uint *)errstr_len_ptr,
+			   false);
 
-    if (code < 0) {
-	const char *ustr = "[unprintable]";
-	int len = min(strlen(ustr), errstr_max_len);
+	if(code < 0) {
+		const char *ustr = "[unprintable]";
+		int len = min(strlen(ustr), errstr_max_len);
 
-	memcpy(errstr, ustr, len);
-	*errstr_len_ptr = len;
-    }
+		memcpy(errstr, ustr, len);
+		*errstr_len_ptr = len;
+	}
 }

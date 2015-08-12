@@ -7,9 +7,9 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
 int
 Bflush(Biobufhdr *bp)
@@ -18,7 +18,7 @@ Bflush(Biobufhdr *bp)
 
 	switch(bp->state) {
 	case Bwactive:
-		n = bp->bsize+bp->ocount;
+		n = bp->bsize + bp->ocount;
 		if(n == 0)
 			return 0;
 		c = write(bp->fid, bp->bbuf, n);

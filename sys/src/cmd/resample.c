@@ -12,8 +12,8 @@
 #include <draw.h>
 #include <memdraw.h>
 
-#define K2 7	/* from -.7 to +.7 inclusive, meaning .2 into each adjacent pixel */
-#define NK (2*K2+1)
+#define K2 7 /* from -.7 to +.7 inclusive, meaning .2 into each adjacent pixel */
+#define NK (2 * K2 + 1)
 double K[NK];
 
 double
@@ -22,7 +22,7 @@ fac(int L)
 	int i, f;
 
 	f = 1;
-	for(i=L; i>1; --i)
+	for(i = L; i > 1; --i)
 		f *= i;
 	return f;
 }
@@ -39,8 +39,8 @@ i0(double x)
 	int L;
 
 	v = 1.0;
-	for(L=1; L<10; L++)
-		v += pow(x/2., 2*L)/pow(fac(L), 2);
+	for(L = 1; L < 10; L++)
+		v += pow(x / 2., 2 * L) / pow(fac(L), 2);
 	return v;
 }
 
@@ -49,7 +49,7 @@ kaiser(double x, double tau, double alpha)
 {
 	if(fabs(x) > tau)
 		return 0.;
-	return i0(alpha*sqrt(1-(x*x/(tau*tau))))/i0(alpha);
+	return i0(alpha * sqrt(1 - (x * x / (tau * tau)))) / i0(alpha);
 }
 
 void
@@ -65,11 +65,11 @@ getint(char *s, int *percent)
 {
 	if(s == nil)
 		usage();
-	*percent = (s[strlen(s)-1] == '%');
+	*percent = (s[strlen(s) - 1] == '%');
 	if(*s == '+')
-		return atoi(s+1);
+		return atoi(s + 1);
 	if(*s == '-')
-		return -atoi(s+1);
+		return -atoi(s + 1);
 	return atoi(s);
 }
 
@@ -79,26 +79,25 @@ resamplex(uint8_t *in, int off, int d, int inx, uint8_t *out, int outx)
 	int i, x, k;
 	double X, xx, v, rat;
 
-
-	rat = (double)inx/(double)outx;
-	for(x=0; x<outx; x++){
-		if(inx == outx){
+	rat = (double)inx / (double)outx;
+	for(x = 0; x < outx; x++) {
+		if(inx == outx) {
 			/* don't resample if size unchanged */
-			out[off+x*d] = in[off+x*d];
+			out[off + x * d] = in[off + x * d];
 			continue;
 		}
 		v = 0.0;
-		X = x*rat;
-		for(k=-K2; k<=K2; k++){
-			xx = X + rat*k/10.;
+		X = x * rat;
+		for(k = -K2; k <= K2; k++) {
+			xx = X + rat * k / 10.;
 			i = xx;
 			if(i < 0)
 				i = 0;
 			if(i >= inx)
-				i = inx-1;
-			v += in[off+i*d] * K[K2+k];
+				i = inx - 1;
+			v += in[off + i * d] * K[K2 + k];
 		}
-		out[off+x*d] = v;
+		out[off + x * d] = v;
 	}
 }
 
@@ -108,27 +107,26 @@ resampley(uint8_t **in, int off, int iny, uint8_t **out, int outy)
 	int y, i, k;
 	double Y, yy, v, rat;
 
-	rat = (double)iny/(double)outy;
-	for(y=0; y<outy; y++){
-		if(iny == outy){
+	rat = (double)iny / (double)outy;
+	for(y = 0; y < outy; y++) {
+		if(iny == outy) {
 			/* don't resample if size unchanged */
 			out[y][off] = in[y][off];
 			continue;
 		}
 		v = 0.0;
-		Y = y*rat;
-		for(k=-K2; k<=K2; k++){
-			yy = Y + rat*k/10.;
+		Y = y * rat;
+		for(k = -K2; k <= K2; k++) {
+			yy = Y + rat * k / 10.;
 			i = yy;
 			if(i < 0)
 				i = 0;
 			if(i >= iny)
-				i = iny-1;
-			v += in[i][off] * K[K2+k];
+				i = iny - 1;
+			v += in[i][off] * K[K2 + k];
 		}
 		out[y][off] = v;
 	}
-
 }
 
 int
@@ -139,7 +137,7 @@ max(int a, int b)
 	return b;
 }
 
-Memimage*
+Memimage *
 resample(int xsize, int ysize, Memimage *m)
 {
 	int i, j, bpl, nchan;
@@ -150,35 +148,35 @@ resample(int xsize, int ysize, Memimage *m)
 	if(new == nil)
 		sysfatal("can't allocate new image: %r");
 
-	oscan = malloc(Dy(m->r)*sizeof(uint8_t*));
-	nscan = malloc(max(ysize, Dy(m->r))*sizeof(uint8_t*));
+	oscan = malloc(Dy(m->r) * sizeof(uint8_t *));
+	nscan = malloc(max(ysize, Dy(m->r)) * sizeof(uint8_t *));
 	if(oscan == nil || nscan == nil)
 		sysfatal("can't allocate: %r");
 
 	/* unload original image into scan lines */
 	bpl = bytesperline(m->r, m->depth);
-	for(i=0; i<Dy(m->r); i++){
+	for(i = 0; i < Dy(m->r); i++) {
 		oscan[i] = malloc(bpl);
 		if(oscan[i] == nil)
 			sysfatal("can't allocate: %r");
-		j = unloadmemimage(m, Rect(m->r.min.x, m->r.min.y+i, m->r.max.x, m->r.min.y+i+1), oscan[i], bpl);
+		j = unloadmemimage(m, Rect(m->r.min.x, m->r.min.y + i, m->r.max.x, m->r.min.y + i + 1), oscan[i], bpl);
 		if(j != bpl)
 			sysfatal("unloadmemimage");
 	}
 
 	/* allocate scan lines for destination. we do y first, so need at least Dy(m->r) lines */
 	bpl = bytesperline(Rect(0, 0, xsize, Dy(m->r)), m->depth);
-	for(i=0; i<max(ysize, Dy(m->r)); i++){
+	for(i = 0; i < max(ysize, Dy(m->r)); i++) {
 		nscan[i] = malloc(bpl);
 		if(nscan[i] == nil)
 			sysfatal("can't allocate: %r");
 	}
 
 	/* resample in X */
-	nchan = m->depth/8;
-	for(i=0; i<Dy(m->r); i++){
-		for(j=0; j<nchan; j++){
-			if(j==0 && m->chan==XRGB32)
+	nchan = m->depth / 8;
+	for(i = 0; i < Dy(m->r); i++) {
+		for(j = 0; j < nchan; j++) {
+			if(j == 0 && m->chan == XRGB32)
 				continue;
 			resamplex(oscan[i], j, nchan, Dx(m->r), nscan[i], xsize);
 		}
@@ -190,14 +188,14 @@ resample(int xsize, int ysize, Memimage *m)
 	}
 
 	/* resample in Y */
-	for(i=0; i<xsize; i++)
-		for(j=0; j<nchan; j++)
-			resampley(oscan, nchan*i+j, Dy(m->r), nscan, ysize);
+	for(i = 0; i < xsize; i++)
+		for(j = 0; j < nchan; j++)
+			resampley(oscan, nchan * i + j, Dy(m->r), nscan, ysize);
 
 	/* pack data into destination */
 	bpl = bytesperline(new->r, m->depth);
-	for(i=0; i<ysize; i++){
-		j = loadmemimage(new, Rect(0, i, xsize, i+1), nscan[i], bpl);
+	for(i = 0; i < ysize; i++) {
+		j = loadmemimage(new, Rect(0, i, xsize, i + 1), nscan[i], bpl);
 		if(j != bpl)
 			sysfatal("loadmemimage: %r");
 	}
@@ -215,16 +213,16 @@ main(int argc, char *argv[])
 	char tmp[100];
 	double v;
 
-	for(i=-K2; i<=K2; i++){
-		K[K2+i] = kaiser(i/10., K2/10., 4.);
-//		print("%g %g\n", i/10., K[K2+i]);
+	for(i = -K2; i <= K2; i++) {
+		K[K2 + i] = kaiser(i / 10., K2 / 10., 4.);
+		//		print("%g %g\n", i/10., K[K2+i]);
 	}
 
 	/* normalize */
 	v = 0.0;
-	for(i=0; i<NK; i++)
+	for(i = 0; i < NK; i++)
 		v += K[i];
-	for(i=0; i<NK; i++)
+	for(i = 0; i < NK; i++)
 		K[i] /= v;
 
 	memimageinit();
@@ -232,8 +230,9 @@ main(int argc, char *argv[])
 	xsize = ysize = 0;
 	xpercent = ypercent = 0;
 
-	ARGBEGIN{
-	case 'a':	/* compatibility; equivalent to just -x or -y */
+	ARGBEGIN
+	{
+	case 'a': /* compatibility; equivalent to just -x or -y */
 		if(xsize != 0 || ysize != 0)
 			usage();
 		xsize = getint(ARGF(), &xpercent);
@@ -258,7 +257,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(xsize == 0 && ysize == 0)
 		usage();
@@ -267,7 +267,7 @@ main(int argc, char *argv[])
 	fd = 0;
 	if(argc > 1)
 		usage();
-	else if(argc == 1){
+	else if(argc == 1) {
 		file = argv[0];
 		fd = open(file, OREAD);
 		if(fd < 0)
@@ -279,16 +279,16 @@ main(int argc, char *argv[])
 		sysfatal("can't read %s: %r", file);
 
 	if(xpercent)
-		xsize = Dx(m->r)*xsize/100;
+		xsize = Dx(m->r) * xsize / 100;
 	if(ypercent)
-		ysize = Dy(m->r)*ysize/100;
+		ysize = Dy(m->r) * ysize / 100;
 	if(ysize == 0)
 		ysize = (xsize * Dy(m->r)) / Dx(m->r);
 	if(xsize == 0)
 		xsize = (ysize * Dx(m->r)) / Dy(m->r);
 
 	new = nil;
-	switch(m->chan){
+	switch(m->chan) {
 
 	case GREY8:
 	case RGB24:

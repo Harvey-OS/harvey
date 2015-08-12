@@ -16,7 +16,7 @@
 #include "dns.h"
 
 enum {
-	Maxrequest=		128,
+	Maxrequest = 128,
 };
 
 Cfg cfg;
@@ -25,26 +25,26 @@ static char *servername;
 static RR *serverrr;
 static RR *serveraddrs;
 
-char	*dbfile;
-int	debug;
-uint8_t	ipaddr[IPaddrlen];	/* my ip address */
-char	*logfile = "dnsdebug";
-int	maxage  = 60*60;
-char	mntpt[Maxpath];
-int	needrefresh;
-uint32_t	now;
-int64_t	nowns;
-int	testing;
-char	*trace;
-int	traceactivity;
-char	*zonerefreshprogram;
+char *dbfile;
+int debug;
+uint8_t ipaddr[IPaddrlen]; /* my ip address */
+char *logfile = "dnsdebug";
+int maxage = 60 * 60;
+char mntpt[Maxpath];
+int needrefresh;
+uint32_t now;
+int64_t nowns;
+int testing;
+char *trace;
+int traceactivity;
+char *zonerefreshprogram;
 
-void	docmd(int, char**);
-void	doquery(char*, char*);
-void	preloadserveraddrs(void);
-int	prettyrrfmt(Fmt*);
-int	setserver(char*);
-void	squirrelserveraddrs(void);
+void docmd(int, char **);
+void doquery(char *, char *);
+void preloadserveraddrs(void);
+int prettyrrfmt(Fmt *);
+int setserver(char *);
+void squirrelserveraddrs(void);
 
 void
 usage(void)
@@ -64,7 +64,8 @@ main(int argc, char *argv[])
 	strcpy(mntpt, "/net");
 	cfg.inside = 1;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'f':
 		dbfile = EARGF(usage());
 		break;
@@ -77,7 +78,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	now = time(nil);
 	nowns = nsec();
@@ -92,32 +94,32 @@ main(int argc, char *argv[])
 
 	debug = 1;
 
-	if(argc > 0){
+	if(argc > 0) {
 		docmd(argc, argv);
 		exits(0);
 	}
 
 	Binit(&in, 0, OREAD);
-	for(print("> "); p = Brdline(&in, '\n'); print("> ")){
-		p[Blinelen(&in)-1] = 0;
+	for(print("> "); p = Brdline(&in, '\n'); print("> ")) {
+		p[Blinelen(&in) - 1] = 0;
 		n = tokenize(p, f, 3);
-		if(n>=1) {
-			dnpurge();		/* flush the cache */
+		if(n >= 1) {
+			dnpurge(); /* flush the cache */
 			docmd(n, f);
 		}
 	}
 	exits(0);
 }
 
-static char*
+static char *
 longtime(int32_t t)
 {
 	int d, h, m, n;
 	static char x[128];
 
-	for(d = 0; t >= 24*60*60; t -= 24*60*60)
+	for(d = 0; t >= 24 * 60 * 60; t -= 24 * 60 * 60)
 		d++;
-	for(h = 0; t >= 60*60; t -= 60*60)
+	for(h = 0; t >= 60 * 60; t -= 60 * 60)
 		h++;
 	for(m = 0; t >= 60; t -= 60)
 		m++;
@@ -125,11 +127,11 @@ longtime(int32_t t)
 	if(d)
 		n += sprint(x, "%d day ", d);
 	if(h)
-		n += sprint(x+n, "%d hr ", h);
+		n += sprint(x + n, "%d hr ", h);
 	if(m)
-		n += sprint(x+n, "%d min ", m);
+		n += sprint(x + n, "%d min ", m);
 	if(t || n == 0)
-		sprint(x+n, "%ld sec", t);
+		sprint(x + n, "%ld sec", t);
 	return x;
 }
 
@@ -137,12 +139,12 @@ int
 prettyrrfmt(Fmt *f)
 {
 	RR *rp;
-	char buf[3*Domlen];
+	char buf[3 * Domlen];
 	char *p, *e;
 	Txt *t;
 
-	rp = va_arg(f->args, RR*);
-	if(rp == 0){
+	rp = va_arg(f->args, RR *);
+	if(rp == 0) {
 		strcpy(buf, "<null>");
 		goto out;
 	}
@@ -150,15 +152,15 @@ prettyrrfmt(Fmt *f)
 	p = buf;
 	e = buf + sizeof(buf);
 	p = seprint(p, e, "%-32.32s %-15.15s %-5.5s", rp->owner->name,
-		longtime(rp->db? rp->ttl: (rp->ttl - now)),
-		rrname(rp->type, buf, sizeof buf));
+		    longtime(rp->db ? rp->ttl : (rp->ttl - now)),
+		    rrname(rp->type, buf, sizeof buf));
 
-	if(rp->negative){
+	if(rp->negative) {
 		seprint(p, e, "negative rcode %d", rp->negrcode);
 		goto out;
 	}
 
-	switch(rp->type){
+	switch(rp->type) {
 	case Thinfo:
 		seprint(p, e, "\t%s %s", rp->cpu->name, rp->os->name);
 		break;
@@ -167,26 +169,26 @@ prettyrrfmt(Fmt *f)
 	case Tmd:
 	case Tmf:
 	case Tns:
-		seprint(p, e, "\t%s", (rp->host? rp->host->name: ""));
+		seprint(p, e, "\t%s", (rp->host ? rp->host->name : ""));
 		break;
 	case Tmg:
 	case Tmr:
-		seprint(p, e, "\t%s", (rp->mb? rp->mb->name: ""));
+		seprint(p, e, "\t%s", (rp->mb ? rp->mb->name : ""));
 		break;
 	case Tminfo:
-		seprint(p, e, "\t%s %s", (rp->mb? rp->mb->name: ""),
-			(rp->rmb? rp->rmb->name: ""));
+		seprint(p, e, "\t%s %s", (rp->mb ? rp->mb->name : ""),
+			(rp->rmb ? rp->rmb->name : ""));
 		break;
 	case Tmx:
 		seprint(p, e, "\t%lud %s", rp->pref,
-			(rp->host? rp->host->name: ""));
+			(rp->host ? rp->host->name : ""));
 		break;
 	case Ta:
 	case Taaaa:
-		seprint(p, e, "\t%s", (rp->ip? rp->ip->name: ""));
+		seprint(p, e, "\t%s", (rp->ip ? rp->ip->name : ""));
 		break;
 	case Tptr:
-		seprint(p, e, "\t%s", (rp->ptr? rp->ptr->name: ""));
+		seprint(p, e, "\t%s", (rp->ptr ? rp->ptr->name : ""));
 		break;
 	case Tsoa:
 		seprint(p, e, "\t%s %s %lud %lud %lud %lud %lud",
@@ -244,7 +246,7 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 	RR *rp;
 	char buf[12], resp[32];
 
-	switch(mp->flags & Rmask){
+	switch(mp->flags & Rmask) {
 	case Rok:
 		strcpy(resp, "OK");
 		break;
@@ -269,14 +271,14 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 	}
 
 	print("%d: rcvd %s from %I (%s%s%s%s%s)\n", id, resp, addr,
-		mp->flags & Fauth? "authoritative": "",
-		mp->flags & Ftrunc? " truncated": "",
-		mp->flags & Frecurse? " recurse": "",
-		mp->flags & Fcanrec? " can_recurse": "",
-		(mp->flags & (Fauth|Rmask)) == (Fauth|Rname)? " nx": "");
+	      mp->flags & Fauth ? "authoritative" : "",
+	      mp->flags & Ftrunc ? " truncated" : "",
+	      mp->flags & Frecurse ? " recurse" : "",
+	      mp->flags & Fcanrec ? " can_recurse" : "",
+	      (mp->flags & (Fauth | Rmask)) == (Fauth | Rname) ? " nx" : "");
 	for(rp = mp->qd; rp != nil; rp = rp->next)
 		print("\tQ:    %s %s\n", rp->owner->name,
-			rrname(rp->type, buf, sizeof buf));
+		      rrname(rp->type, buf, sizeof buf));
 	logsection("Ans:  ", mp->an);
 	logsection("Auth: ", mp->ns);
 	logsection("Hint: ", mp->ar);
@@ -289,10 +291,10 @@ logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
 	char buf[12];
 
 	print("%d.%d: sending to %I/%s %s %s\n", id, subid,
-		addr, sname, rname, rrname(type, buf, sizeof buf));
+	      addr, sname, rname, rrname(type, buf, sizeof buf));
 }
 
-RR*
+RR *
 getdnsservers(int class)
 {
 	RR *rr;
@@ -323,11 +325,11 @@ squirrelserveraddrs(void)
 	serveraddrs = nil;
 	rr = getdnsservers(Cin);
 	l = &serveraddrs;
-	for(rp = rr; rp != nil; rp = rp->next){
+	for(rp = rr; rp != nil; rp = rp->next) {
 		attr = ipattr(rp->host->name);
 		v4 = strcmp(attr, "ip") == 0;
-		if(v4 || strcmp(attr, "ipv6") == 0){
-			*l = rralloc(v4? Ta: Taaaa);
+		if(v4 || strcmp(attr, "ipv6") == 0) {
+			*l = rralloc(v4 ? Ta : Taaaa);
 			(*l)->owner = rp->host;
 			(*l)->ip = rp->host;
 			l = &(*l)->next;
@@ -339,7 +341,7 @@ squirrelserveraddrs(void)
 		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 0, 0);
 		if(*l == nil)
 			*l = dnresolve(rp->host->name, Cin, Taaaa, &req,
-				0, 0, Recurse, 0, 0);
+				       0, 0, Recurse, 0, 0);
 		while(*l != nil)
 			l = &(*l)->next;
 	}
@@ -353,7 +355,7 @@ preloadserveraddrs(void)
 	RR *rp, **l, *first;
 
 	l = &first;
-	for(rp = serveraddrs; rp != nil; rp = rp->next){
+	for(rp = serveraddrs; rp != nil; rp = rp->next) {
 		lock(&dnlock);
 		rrcopy(rp, l);
 		unlock(&dnlock);
@@ -364,7 +366,7 @@ preloadserveraddrs(void)
 int
 setserver(char *server)
 {
-	if(servername != nil){
+	if(servername != nil) {
 		free(servername);
 		servername = nil;
 		cfg.resolver = 0;
@@ -373,12 +375,12 @@ setserver(char *server)
 		return 0;
 	servername = strdup(server);
 	squirrelserveraddrs();
-	if(serveraddrs == nil){
+	if(serveraddrs == nil) {
 		print("can't resolve %s\n", servername);
 		cfg.resolver = 0;
 	} else
 		cfg.resolver = 1;
-	return cfg.resolver? 0: -1;
+	return cfg.resolver ? 0 : -1;
 }
 
 void
@@ -402,38 +404,38 @@ doquery(char *name, char *tstr)
 
 	/* if name end in '.', remove it */
 	len = strlen(name);
-	if(len > 0 && name[len-1] == '.'){
+	if(len > 0 && name[len - 1] == '.') {
 		rooted = 1;
-		name[len-1] = 0;
+		name[len - 1] = 0;
 	} else
 		rooted = 0;
 
 	/* inverse queries may need to be permuted */
 	strncpy(buf, name, sizeof buf);
-	if(strcmp("ptr", tstr) == 0 && cistrstr(name, ".arpa") == nil){
+	if(strcmp("ptr", tstr) == 0 && cistrstr(name, ".arpa") == nil) {
 		/* TODO: reversing v6 addrs is harder */
 		for(p = name; *p; p++)
 			;
 		*p = '.';
 		np = buf;
 		len = 0;
-		while(p >= name){
+		while(p >= name) {
 			len++;
 			p--;
-			if(*p == '.'){
-				memmove(np, p+1, len);
+			if(*p == '.') {
+				memmove(np, p + 1, len);
 				np += len;
 				len = 0;
 			}
 		}
-		memmove(np, p+1, len);
+		memmove(np, p + 1, len);
 		np += len;
-		strcpy(np, "in-addr.arpa");	/* TODO: ip6.arpa for v6 */
+		strcpy(np, "in-addr.arpa"); /* TODO: ip6.arpa for v6 */
 	}
 
 	/* look it up */
 	type = rrtype(tstr);
-	if(type < 0){
+	if(type < 0) {
 		print("!unknown type %s\n", tstr);
 		return;
 	}
@@ -443,7 +445,7 @@ doquery(char *name, char *tstr)
 	req.isslave = 1;
 	req.aborttime = NS2MS(nowns) + Maxreqtm;
 	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, rooted, 0);
-	if(rr){
+	if(rr) {
 		print("----------------------------\n");
 		for(rp = rr; rp; rp = rp->next)
 			print("answer %R\n", rp);
@@ -464,23 +466,23 @@ docmd(int n, char **f)
 	tmpsrv = 0;
 
 	if(*f[0] == '@') {
-		if(setserver(f[0]+1) < 0)
+		if(setserver(f[0] + 1) < 0)
 			return;
 
-		switch(n){
+		switch(n) {
 		case 3:
 			type = f[2];
-			/* fall through */
+		/* fall through */
 		case 2:
 			name = f[1];
 			tmpsrv = 1;
 			break;
 		}
 	} else
-		switch(n){
+		switch(n) {
 		case 2:
 			type = f[1];
-			/* fall through */
+		/* fall through */
 		case 1:
 			name = f[0];
 			break;

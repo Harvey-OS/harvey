@@ -27,7 +27,7 @@
 /* jconfig.h file for Independent JPEG Group code */
 
 #ifndef gsjconf_INCLUDED
-#  define gsjconf_INCLUDED
+#define gsjconf_INCLUDED
 
 /*
  * We should have the following here:
@@ -44,20 +44,20 @@
 /* See IJG's jconfig.doc for the contents of this file. */
 
 #ifdef __PROTOTYPES__
-#  define HAVE_PROTOTYPES
+#define HAVE_PROTOTYPES
 #endif
 
 #define HAVE_UNSIGNED_CHAR
 #define HAVE_UNSIGNED_SHORT
 #undef CHAR_IS_UNSIGNED
 
-#ifdef __STDC__			/* is this right? */
-#  define HAVE_STDDEF_H
-#  define HAVE_STDLIB_H
+#ifdef __STDC__ /* is this right? */
+#define HAVE_STDDEF_H
+#define HAVE_STDLIB_H
 #endif
 
-#undef NEED_BSD_STRINGS		/* WRONG */
-#undef NEED_SYS_TYPES_H		/* WRONG */
+#undef NEED_BSD_STRINGS /* WRONG */
+#undef NEED_SYS_TYPES_H /* WRONG */
 #undef NEED_FAR_POINTERS
 #undef NEED_SHORT_EXTERNAL_NAMES
 
@@ -65,16 +65,16 @@
 
 /* The following is documented in jmemsys.h, not jconfig.doc. */
 #if ARCH_SIZEOF_INT <= 2
-#  undef MAX_ALLOC_CHUNK
-#  define MAX_ALLOC_CHUNK 0xfff0
+#undef MAX_ALLOC_CHUNK
+#define MAX_ALLOC_CHUNK 0xfff0
 #endif
 
 #ifdef JPEG_INTERNALS
 
 #if ARCH_ARITH_RSHIFT == 0
-#  define RIGHT_SHIFT_IS_UNSIGNED
+#define RIGHT_SHIFT_IS_UNSIGNED
 #else
-#  undef RIGHT_SHIFT_IS_UNSIGNED
+#undef RIGHT_SHIFT_IS_UNSIGNED
 #endif
 
 #endif /* JPEG_INTERNALS */

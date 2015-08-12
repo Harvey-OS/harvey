@@ -53,11 +53,9 @@ static char *ident = "$Id: mem.c,v 1.2 89/02/12 10:04:53 mark Exp $";
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /* mem_get - allocate memory
  *
@@ -87,25 +85,25 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-char *mem_get(uint len)
+char *
+mem_get(uint len)
 
 #else
 
 char *mem_get(len)
-uint            len;		/* amount of memory to get */
+    uint len; /* amount of memory to get */
 
 #endif
 {
-    char           *mem;
-    static int16_t    outofmem = 0;
+	char *mem;
+	static int16_t outofmem = 0;
 
-    if ((mem = (char *)malloc(len)) == (char *)NULL && !outofmem) {
-	outofmem++;
-	warn("mem_get()", "Out of memory");
-    }
-    return (mem);
+	if((mem = (char *)malloc(len)) == (char *)NULL && !outofmem) {
+		outofmem++;
+		warn("mem_get()", "Out of memory");
+	}
+	return (mem);
 }
-
 
 /* mem_str - duplicate a string into dynamic memory
  *
@@ -129,19 +127,19 @@ uint            len;		/* amount of memory to get */
 
 #ifdef __STDC__
 
-char *mem_str(char *str)
+char *
+mem_str(char *str)
 
 #else
 
-char *mem_str(str)
-char           *str;		/* string to make a copy of */
+char *mem_str(str) char *str; /* string to make a copy of */
 
 #endif
 {
-    char           *mem;
+	char *mem;
 
-    if (mem = mem_get((uint) strlen(str) + 1)) {
-	strcpy(mem, str);
-    }
-    return (mem);
+	if(mem = mem_get((uint)strlen(str) + 1)) {
+		strcpy(mem, str);
+	}
+	return (mem);
 }

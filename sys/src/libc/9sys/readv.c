@@ -10,8 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-static
-int32_t
+static int32_t
 ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 {
 	int i;
@@ -19,7 +18,7 @@ ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 	char *buf, *p;
 
 	tot = 0;
-	for(i=0; i<nio; i++)
+	for(i = 0; i < nio; i++)
 		tot += io[i].len;
 	buf = malloc(tot);
 	if(buf == nil)
@@ -29,7 +28,7 @@ ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 
 	p = buf;
 	n = tot;
-	for(i=0; i<nio; i++){
+	for(i = 0; i < nio; i++) {
 		if(n <= 0)
 			break;
 		m = io->len;

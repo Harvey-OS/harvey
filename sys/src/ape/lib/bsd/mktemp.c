@@ -14,7 +14,7 @@
 #include <string.h>
 #include <stdio.h>
 
-char*
+char *
 mktemp(char *template)
 {
 	int n;
@@ -24,8 +24,8 @@ mktemp(char *template)
 	struct stat stbuf;
 
 	n = strlen(template);
-	p = template+n-6;
-	if (n < 6 || strcmp(p, "XXXXXX") != 0) {
+	p = template + n - 6;
+	if(n < 6 || strcmp(p, "XXXXXX") != 0) {
 		*template = 0;
 	} else {
 		x = getpid() % 100000;
@@ -33,7 +33,7 @@ mktemp(char *template)
 		p += 5;
 		for(c = 'a'; c <= 'z'; c++) {
 			*p = c;
-			if (stat(template, &stbuf) < 0)
+			if(stat(template, &stbuf) < 0)
 				return template;
 		}
 		*template = 0;

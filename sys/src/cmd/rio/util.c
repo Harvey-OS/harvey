@@ -33,23 +33,23 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 * knows this.  If n is a firm limit, the caller should
 	 * set p[n] = 0.
 	 */
-	q = (uint8_t*)p;
+	q = (uint8_t *)p;
 	s = r;
-	for(j=0; j<n; j+=w){
-		if(*q < Runeself){
+	for(j = 0; j < n; j += w) {
+		if(*q < Runeself) {
 			w = 1;
 			*s = *q++;
-		}else{
-			w = chartorune(s, (char*)q);
+		} else {
+			w = chartorune(s, (char *)q);
 			q += w;
 		}
 		if(*s)
 			s++;
 		else if(nulls)
-				*nulls = TRUE;
+			*nulls = TRUE;
 	}
-	*nb = (char*)q-p;
-	*nr = s-r;
+	*nb = (char *)q - p;
+	*nr = s - r;
 }
 
 void
@@ -61,7 +61,7 @@ error(char *s)
 	threadexitsall("error");
 }
 
-void*
+void *
 erealloc(void *p, uint n)
 {
 	p = realloc(p, n);
@@ -70,7 +70,7 @@ erealloc(void *p, uint n)
 	return p;
 }
 
-void*
+void *
 emalloc(uint n)
 {
 	void *p;
@@ -82,12 +82,12 @@ emalloc(uint n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *p;
 
-	p = malloc(strlen(s)+1);
+	p = malloc(strlen(s) + 1);
 	if(p == nil)
 		error("strdup failed");
 	strcpy(p, s);
@@ -104,14 +104,14 @@ isalnum(Rune c)
 	 */
 	if(c <= ' ')
 		return FALSE;
-	if(0x7F<=c && c<=0xA0)
+	if(0x7F <= c && c <= 0xA0)
 		return FALSE;
 	if(utfrune("!\"#$%&'()*+,-./:;<=>?@[\\]^`{|}~", c))
 		return FALSE;
 	return TRUE;
 }
 
-Rune*
+Rune *
 strrune(Rune *s, Rune c)
 {
 	Rune c1;
@@ -119,12 +119,12 @@ strrune(Rune *s, Rune c)
 	if(c == 0) {
 		while(*s++)
 			;
-		return s-1;
+		return s - 1;
 	}
 
 	while(c1 = *s++)
 		if(c1 == c)
-			return s-1;
+			return s - 1;
 	return nil;
 }
 
@@ -144,15 +144,14 @@ max(int a, int b)
 	return b;
 }
 
-char*
+char *
 runetobyte(Rune *r, int n, int *ip)
 {
 	char *s;
 	int m;
 
-	s = emalloc(n*UTFmax+1);
-	m = snprint(s, n*UTFmax+1, "%.*S", n, r);
+	s = emalloc(n * UTFmax + 1);
+	m = snprint(s, n * UTFmax + 1, "%.*S", n, r);
 	*ip = m;
 	return s;
 }
-

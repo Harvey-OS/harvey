@@ -7,15 +7,15 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
-#include	"io.h"
+#include "all.h"
+#include "io.h"
 
 enum { DEBUG = 0 };
 
-extern	int32_t nhiob;
-extern	Hiob *hiob;
+extern int32_t nhiob;
+extern Hiob *hiob;
 
-Iobuf*
+Iobuf *
 getbuf(Device *d, Off addr, int flag)
 {
 	Iobuf *p, *s;
@@ -24,7 +24,7 @@ getbuf(Device *d, Off addr, int flag)
 
 	if(DEBUG)
 		print("getbuf %Z(%lld) f=%x\n", d, (Wideoff)addr, flag);
-	h = addr + (Off)(uintptr)d*1009;
+	h = addr + (Off)(uintptr)d * 1009;
 	if(h < 0)
 		h = ~h;
 	h %= nhiob;
@@ -33,11 +33,11 @@ getbuf(Device *d, Off addr, int flag)
 loop:
 	lock(hp);
 
-/*
+	/*
  * look for it in the active list
  */
 	s = hp->link;
-	for(p=s;;) {
+	for(p = s;;) {
 		if(p->addr == addr && p->dev == d) {
 			if(p != s) {
 				p->back->fore = p->fore;
@@ -101,7 +101,7 @@ xloop:
 		unlock(hp);
 		if(iobufmap(p)) {
 			if(!devwrite(p->dev, p->addr, p->iobuf))
-				p->flags &= ~(Bimm|Bmod);
+				p->flags &= ~(Bimm | Bmod);
 			iobufunmap(p);
 		}
 		qunlock(p);
@@ -111,7 +111,7 @@ xloop:
 	p->addr = addr;
 	p->dev = d;
 	p->flags = flag;
-//	p->pc = getcallerpc(&d);
+	//	p->pc = getcallerpc(&d);
 	unlock(hp);
 	if(iobufmap(p))
 		if(flag & Brd) {
@@ -143,15 +143,15 @@ syncblock(void)
 	int flag;
 
 	flag = 0;
-	for(h=0; h<nhiob; h++) {
+	for(h = 0; h < nhiob; h++) {
 		q = 0;
 		hp = &hiob[h];
 		lock(hp);
 		s = hp->link;
-		for(p=s;;) {
+		for(p = s;;) {
 			if(p->flags & Bmod) {
 				if(q)
-					flag = 1;	/* more than 1 mod/line */
+					flag = 1; /* more than 1 mod/line */
 				q = p;
 			}
 			p = p->fore;
@@ -161,7 +161,7 @@ syncblock(void)
 		unlock(hp);
 		if(q) {
 			if(!canqlock(q)) {
-				flag = 1;		/* missed -- was locked */
+				flag = 1; /* missed -- was locked */
 				continue;
 			}
 			if(!(q->flags & Bmod)) {
@@ -170,7 +170,7 @@ syncblock(void)
 			}
 			if(iobufmap(q)) {
 				if(!devwrite(q->dev, q->addr, q->iobuf))
-					q->flags &= ~(Bmod|Bimm);
+					q->flags &= ~(Bmod | Bimm);
 				iobufunmap(q);
 			} else
 				flag = 1;
@@ -186,7 +186,7 @@ sync(char *reason)
 	int32_t i;
 
 	print("sync: %s\n", reason);
-	for(i=10*nhiob; i>0; i--)
+	for(i = 10 * nhiob; i > 0; i--)
 		if(!syncblock())
 			return;
 	print("sync shorted\n");
@@ -201,9 +201,9 @@ putbuf(Iobuf *p)
 	if(p->flags & Bimm) {
 		if(!(p->flags & Bmod))
 			print("imm and no mod %Z(%lld)\n",
-				p->dev, (Wideoff)p->addr);
+			      p->dev, (Wideoff)p->addr);
 		if(!devwrite(p->dev, p->addr, p->iobuf))
-			p->flags &= ~(Bmod|Bimm);
+			p->flags &= ~(Bmod | Bimm);
 	}
 	iobufunmap(p);
 	qunlock(p);
@@ -215,19 +215,19 @@ checktag(Iobuf *p, int tag, Off qpath)
 	Tag *t;
 	static Off lastaddr;
 
-	t = (Tag*)(p->iobuf+BUFSIZE);
+	t = (Tag *)(p->iobuf + BUFSIZE);
 	if(t->tag != tag) {
 		if(p->flags & Bmod) {
 			print("\ttag = %d/%llud; expected %lld/%d -- not flushed\n",
-				t->tag, (Wideoff)t->path, (Wideoff)qpath, tag);
+			      t->tag, (Wideoff)t->path, (Wideoff)qpath, tag);
 			return 2;
 		}
 		if(p->dev != nil && p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
 		if(p->addr != lastaddr)
 			print("\ttag = %G/%llud; expected %G/%lld -- flushed (%lld)\n",
-				t->tag, (Wideoff)t->path, tag, (Wideoff)qpath,
-				(Wideoff)p->addr);
+			      t->tag, (Wideoff)t->path, tag, (Wideoff)qpath,
+			      (Wideoff)p->addr);
 		lastaddr = p->addr;
 		p->dev = devnone;
 		p->addr = -1;
@@ -238,7 +238,7 @@ checktag(Iobuf *p, int tag, Off qpath)
 		if((qpath ^ t->path) & ~QPDIR) {
 			if(1 || CHAT(0))
 				print("\ttag/path = %llud; expected %d/%llux\n",
-					(Wideoff)t->path, tag, (Wideoff)qpath);
+				      (Wideoff)t->path, tag, (Wideoff)qpath);
 			return 0;
 		}
 	}
@@ -250,7 +250,7 @@ settag(Iobuf *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
-	t = (Tag*)(p->iobuf+BUFSIZE);
+	t = (Tag *)(p->iobuf + BUFSIZE);
 	t->tag = tag;
 	if(qpath != QPNONE)
 		t->path = qpath & ~QPDIR;
@@ -273,18 +273,18 @@ iobufql(QLock *q)
 	int32_t h;
 	int tag;
 
-	for(h=0; h<nhiob; h++) {
+	for(h = 0; h < nhiob; h++) {
 		hp = &hiob[h];
 		lock(hp);
 		s = hp->link;
-		for(p=s;;) {
+		for(p = s;;) {
 			if(qlmatch(q, p)) {
-				t = (Tag*)(p->iobuf+BUFSIZE);
+				t = (Tag *)(p->iobuf + BUFSIZE);
 				tag = t->tag;
 				if(tag < 0 || tag >= MAXTAG)
 					tag = Tnone;
 				print("\tIobuf %Z(%lld) t=%s\n",
-					p->dev, (Wideoff)p->addr, tagnames[tag]);
+				      p->dev, (Wideoff)p->addr, tagnames[tag]);
 				unlock(hp);
 				return 1;
 			}

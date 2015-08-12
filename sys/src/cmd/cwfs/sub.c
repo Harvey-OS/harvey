@@ -11,26 +11,26 @@
 #include "io.h"
 
 enum {
-	Slop = 256,	/* room at the start of a message buf for proto hdrs */
+	Slop = 256, /* room at the start of a message buf for proto hdrs */
 };
 
-Filsys*
+Filsys *
 fsstr(char *p)
 {
 	Filsys *fs;
 
-	for(fs=filsys; fs->name; fs++)
+	for(fs = filsys; fs->name; fs++)
 		if(strcmp(fs->name, p) == 0)
 			return fs;
 	return 0;
 }
 
-Filsys*
+Filsys *
 dev2fs(Device *dev)
 {
 	Filsys *fs;
 
-	for(fs=filsys; fs->name; fs++)
+	for(fs = filsys; fs->name; fs++)
 		if(fs->dev == dev)
 			return fs;
 	return 0;
@@ -40,17 +40,17 @@ dev2fs(Device *dev)
  * allocate 'count' contiguous channels
  * of type 'type' and return pointer to base
  */
-Chan*
+Chan *
 fs_chaninit(int type, int count, int data)
 {
 	uint8_t *p;
 	Chan *cp, *icp;
 	int i;
 
-	p = malloc(count * (sizeof(Chan)+data));
-	icp = (Chan*)p;
+	p = malloc(count * (sizeof(Chan) + data));
+	icp = (Chan *)p;
 	for(i = 0; i < count; i++) {
-		cp = (Chan*)p;
+		cp = (Chan *)p;
 		cp->next = chans;
 		chans = cp;
 		cp->type = type;
@@ -63,7 +63,7 @@ fs_chaninit(int type, int count, int data)
 		runlock(&cp->reflock);
 
 		p += sizeof(Chan);
-		if(data){
+		if(data) {
 			cp->pdata = p;
 			p += data;
 		}
@@ -80,8 +80,8 @@ fileinit(Chan *cp)
 
 loop:
 	lock(&flock);
-	for (h=0; h < nelem(flist); h++)
-		for (prev=0, f = flist[h]; f; prev=f, f=f->next) {
+	for(h = 0; h < nelem(flist); h++)
+		for(prev = 0, f = flist[h]; f; prev = f, f = f->next) {
 			if(f->cp != cp)
 				continue;
 			if(prev) {
@@ -95,7 +95,7 @@ loop:
 			qlock(f);
 			if(t = f->tlock) {
 				if(t->file == f)
-					t->time = 0;	/* free the lock */
+					t->time = 0; /* free the lock */
 				f->tlock = 0;
 			}
 			if(f->open & FREMOV)
@@ -116,7 +116,7 @@ enum { NOFID = (uint32_t)~0 };
 /*
  * returns a locked file structure
  */
-File*
+File *
 filep(Chan *cp, uint32_t fid, int flag)
 {
 	File *f;
@@ -132,8 +132,8 @@ filep(Chan *cp, uint32_t fid, int flag)
 
 loop:
 	lock(&flock);
-	for(f=flist[h]; f; f=f->next)
-		if(f->fid == fid && f->cp == cp){
+	for(f = flist[h]; f; f = f->next)
+		if(f->fid == fid && f->cp == cp) {
 			/*
 			 * Already in use is an error
 			 * when called from attach or clone (walk
@@ -176,7 +176,7 @@ out:
 /*
  * always called with flock locked
  */
-File*
+File *
 newfp(void)
 {
 	static int first;
@@ -216,7 +216,7 @@ freefp(File *fp)
 	h %= nelem(flist);
 
 	lock(&flock);
-	for(prev=0,f=flist[h]; f; prev=f,f=f->next)
+	for(prev = 0, f = flist[h]; f; prev = f, f = f->next)
 		if(f == fp) {
 			if(prev)
 				prev->next = f->next;
@@ -237,13 +237,13 @@ iaccess(File *f, Dentry *d, int m)
 		 * owner
 		 */
 		if(f->uid == d->uid)
-			if((m<<6) & d->mode)
+			if((m << 6) & d->mode)
 				return 0;
 		/*
 		 * group membership
 		 */
 		if(ingroup(f->uid, d->gid))
-			if((m<<3) & d->mode)
+			if((m << 3) & d->mode)
 				return 0;
 	}
 
@@ -269,7 +269,7 @@ iaccess(File *f, Dentry *d, int m)
 	return 1;
 }
 
-Tlock*
+Tlock *
 tlocked(Iobuf *p, Dentry *d)
 {
 	Tlock *t, *t1;
@@ -283,18 +283,18 @@ tlocked(Iobuf *p, Dentry *d)
 
 again:
 	t1 = 0;
-	for(t=tlocks+NTLOCK-1; t>=tlocks; t--) {
+	for(t = tlocks + NTLOCK - 1; t >= tlocks; t--) {
 		if(t->qpath == qpath)
-		if(t->time >= tim)
-		if(t->dev == dev)
-			return nil;		/* its locked */
+			if(t->time >= tim)
+				if(t->dev == dev)
+					return nil; /* its locked */
 		if(t1 != nil && t->time == 0)
-			t1 = t;			/* remember free lock */
+			t1 = t; /* remember free lock */
 	}
 	if(t1 == 0) {
 		// reclaim old locks
 		lock(&tlocklock);
-		for(t=tlocks+NTLOCK-1; t>=tlocks; t--)
+		for(t = tlocks + NTLOCK - 1; t >= tlocks; t--)
 			if(t->time < tim) {
 				t->time = 0;
 				t1 = t;
@@ -319,7 +319,7 @@ again:
 	return t1;
 }
 
-Wpath*
+Wpath *
 newwp(void)
 {
 	static int si = 0;
@@ -332,7 +332,7 @@ newwp(void)
 	si = i;
 	sw = &wpaths[i];
 	ew = &wpaths[conf.nwpath];
-	for(w=sw;;) {
+	for(w = sw;;) {
 		w++;
 		if(w >= ew)
 			w = &wpaths[0];
@@ -352,14 +352,13 @@ newwp(void)
 		unlock(&wpathlock);
 		return w;
 	}
-
 }
 
 void
 freewp(Wpath *w)
 {
 	lock(&wpathlock);
-	for(; w; w=w->up)
+	for(; w; w = w->up)
 		w->refs--;
 	unlock(&wpathlock);
 }
@@ -371,10 +370,10 @@ qidpathgen(Device *dev)
 	Superb *sb;
 	Off path;
 
-	p = getbuf(dev, superaddr(dev), Brd|Bmod);
+	p = getbuf(dev, superaddr(dev), Brd | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("newqid: super block");
-	sb = (Superb*)p->iobuf;
+	sb = (Superb *)p->iobuf;
 	sb->qidgen++;
 	path = sb->qidgen;
 	putbuf(p);
@@ -390,14 +389,14 @@ truncfree(Truncstate *ts, Device *dev, int d, Iobuf *p, int i)
 
 	pastlast = ts->pastlast;
 	a = ((Off *)p->iobuf)[i];
-	if (d > 0 || pastlast)
+	if(d > 0 || pastlast)
 		buffree(dev, a, d, ts);
-	if (pastlast) {
+	if(pastlast) {
 		((Off *)p->iobuf)[i] = 0;
-		p->flags |= Bmod|Bimm;
-	} else if (d == 0 && ts->relblk == ts->lastblk)
+		p->flags |= Bmod | Bimm;
+	} else if(d == 0 && ts->relblk == ts->lastblk)
 		ts->pastlast = 1;
-	if (d == 0)
+	if(d == 0)
 		ts->relblk++;
 }
 
@@ -419,7 +418,7 @@ buffree(Device *dev, Off addr, int d, Truncstate *ts)
 
 	if(!addr)
 		return;
-	pastlast = (ts == nil? 1: ts->pastlast);
+	pastlast = (ts == nil ? 1 : ts->pastlast);
 	/*
 	 * if this is an indirect block, recurse and free any
 	 * suitable blocks within it (possibly via further indirect blocks).
@@ -428,18 +427,18 @@ buffree(Device *dev, Off addr, int d, Truncstate *ts)
 		d--;
 		p = getbuf(dev, addr, Brd);
 		if(p) {
-			if (ts == nil)		/* common case: create */
-				for(i=INDPERBUF-1; i>=0; i--) {
+			if(ts == nil) /* common case: create */
+				for(i = INDPERBUF - 1; i >= 0; i--) {
 					a = ((Off *)p->iobuf)[i];
 					buffree(dev, a, d, nil);
 				}
-			else			/* wstat truncation */
-				for (i = 0; i < INDPERBUF; i++)
+			else /* wstat truncation */
+				for(i = 0; i < INDPERBUF; i++)
 					truncfree(ts, dev, d, p, i);
 			putbuf(p);
 		}
 	}
-	if (!pastlast)
+	if(!pastlast)
 		return;
 	/*
 	 * having zeroed the pointer to this block, add it to the free list.
@@ -447,7 +446,7 @@ buffree(Device *dev, Off addr, int d, Truncstate *ts)
 	 */
 	p = getbuf(dev, addr, Bprobe);
 	if(p) {
-		p->flags &= ~(Bmod|Bimm);
+		p->flags &= ~(Bmod | Bimm);
 		putbuf(p);
 	}
 	/*
@@ -459,10 +458,10 @@ buffree(Device *dev, Off addr, int d, Truncstate *ts)
 		if(i)
 			return;
 	}
-	p = getbuf(dev, superaddr(dev), Brd|Bmod);
+	p = getbuf(dev, superaddr(dev), Brd | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("buffree: super block");
-	addfree(dev, addr, (Superb*)p->iobuf);
+	addfree(dev, addr, (Superb *)p->iobuf);
 	putbuf(p);
 }
 
@@ -473,14 +472,14 @@ bufalloc(Device *dev, int tag, int32_t qid, int uid)
 	Superb *sb;
 	Off a, n;
 
-	p = getbuf(dev, superaddr(dev), Brd|Bmod);
+	p = getbuf(dev, superaddr(dev), Brd | Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER)) {
 		print("bufalloc: super block\n");
 		if(p)
 			putbuf(p);
 		return 0;
 	}
-	sb = (Superb*)p->iobuf;
+	sb = (Superb *)p->iobuf;
 
 loop:
 	n = --sb->fbuf.nfree;
@@ -514,7 +513,7 @@ loop:
 			putbuf(p);
 			return 0;
 		}
-		sb->fbuf = *(Fbuf*)bp->iobuf;
+		sb->fbuf = *(Fbuf *)bp->iobuf;
 		putbuf(bp);
 	}
 
@@ -523,9 +522,9 @@ loop:
 	settag(bp, tag, qid);
 	if(tag == Tind1 || tag == Tind2 ||
 #ifndef COMPAT32
-	    tag == Tind3 || tag == Tind4 ||  /* add more Tind tags here ... */
+	   tag == Tind3 || tag == Tind4 || /* add more Tind tags here ... */
 #endif
-	    tag == Tdir)
+	   tag == Tdir)
 		bp->flags |= Bimm;
 	putbuf(bp);
 	putbuf(p);
@@ -543,19 +542,19 @@ checkname(char *n)
 {
 	int i, c;
 
-	for(i=0; i<NAMELEN; i++) {
+	for(i = 0; i < NAMELEN; i++) {
 		c = *n & 0xff;
 		if(c == 0) {
 			if(i == 0)
 				return 1;
-			memset(n, 0, NAMELEN-i);
+			memset(n, 0, NAMELEN - i);
 			return 0;
 		}
 		if(c <= 040)
 			return 1;
 		n++;
 	}
-	return 1;	/* too long */
+	return 1; /* too long */
 }
 
 void
@@ -568,10 +567,10 @@ addfree(Device *dev, Off addr, Superb *sb)
 	if(n < 0 || n > FEPERBUF)
 		panic("addfree: bad freelist");
 	if(n >= FEPERBUF) {
-		p = getbuf(dev, addr, Bmod|Bimm);
+		p = getbuf(dev, addr, Bmod | Bimm);
 		if(p == 0)
 			panic("addfree: getbuf");
-		*(Fbuf*)p->iobuf = sb->fbuf;
+		*(Fbuf *)p->iobuf = sb->fbuf;
 		settag(p, Tfree, QPNONE);
 		putbuf(p);
 		n = 0;
@@ -580,7 +579,7 @@ addfree(Device *dev, Off addr, Superb *sb)
 	sb->fbuf.nfree = n;
 	sb->tfree++;
 	if(addr >= sb->fsize)
-		sb->fsize = addr+1;
+		sb->fsize = addr + 1;
 }
 
 /*
@@ -597,13 +596,13 @@ Yfmt(Fmt* fmt)
  */
 
 static int
-Zfmt(Fmt* fmt)
+Zfmt(Fmt *fmt)
 {
 	Device *d;
 	int c, c1;
 	char s[100];
 
-	d = va_arg(fmt->args, Device*);
+	d = va_arg(fmt->args, Device *);
 	if(d == nil) {
 		sprint(s, "Z***");
 		goto out;
@@ -615,32 +614,32 @@ Zfmt(Fmt* fmt)
 		break;
 	case Devwren:
 		c = 'w';
-		/* fallthrough */
+	/* fallthrough */
 	case Devworm:
-		if (c == '\0')
+		if(c == '\0')
 			c = 'r';
-		/* fallthrough */
+	/* fallthrough */
 	case Devlworm:
-		if (c == '\0')
+		if(c == '\0')
 			c = 'l';
 		if(d->wren.ctrl == 0 && d->wren.lun == 0)
 			sprint(s, "%c%d", c, d->wren.targ);
 		else
 			sprint(s, "%c%d.%d.%d", c, d->wren.ctrl, d->wren.targ,
-				d->wren.lun);
+			       d->wren.lun);
 		break;
 	case Devmcat:
 		c = '(';
 		c1 = ')';
-		/* fallthrough */
+	/* fallthrough */
 	case Devmlev:
-		if (c == '\0') {
+		if(c == '\0') {
 			c = '[';
 			c1 = ']';
 		}
-		/* fallthrough */
+	/* fallthrough */
 	case Devmirr:
-		if (c == '\0') {
+		if(c == '\0') {
 			c = '{';
 			c1 = '}';
 		}
@@ -678,7 +677,7 @@ out:
 }
 
 static int
-Gfmt(Fmt* fmt)
+Gfmt(Fmt *fmt)
 {
 	int t;
 	char *s;
@@ -694,12 +693,12 @@ void
 formatinit(void)
 {
 	quotefmtinstall();
-//	fmtinstall('Y', Yfmt);	/* print channels */
-	fmtinstall('Z', Zfmt);	/* print devices */
-	fmtinstall('G', Gfmt);	/* print tags */
-	fmtinstall('T', Tfmt);	/* print times */
-//	fmtinstall('E', eipfmt);	/* print ether addresses */
-	fmtinstall('I', eipfmt);	/* print ip addresses */
+	//	fmtinstall('Y', Yfmt);	/* print channels */
+	fmtinstall('Z', Zfmt);   /* print devices */
+	fmtinstall('G', Gfmt);   /* print tags */
+	fmtinstall('T', Tfmt);   /* print times */
+				 //	fmtinstall('E', eipfmt);	/* print ether addresses */
+	fmtinstall('I', eipfmt); /* print ip addresses */
 }
 
 void
@@ -708,7 +707,7 @@ rootream(Device *dev, Off addr)
 	Iobuf *p;
 	Dentry *d;
 
-	p = getbuf(dev, addr, Bmod|Bimm);
+	p = getbuf(dev, addr, Bmod | Bimm);
 	memset(p->iobuf, 0, RBUFSIZE);
 	settag(p, Tdir, QPROOT);
 	d = getdir(p, 0);
@@ -716,10 +715,10 @@ rootream(Device *dev, Off addr)
 	d->uid = -1;
 	d->gid = -1;
 	d->mode = DALLOC | DDIR |
-		((DREAD|DEXEC) << 6) |
-		((DREAD|DEXEC) << 3) |
-		((DREAD|DEXEC) << 0);
-	d->qid = QID9P1(QPROOT|QPDIR,0);
+		  ((DREAD | DEXEC) << 6) |
+		  ((DREAD | DEXEC) << 3) |
+		  ((DREAD | DEXEC) << 0);
+	d->qid = QID9P1(QPROOT | QPDIR, 0);
 	d->atime = time(nil);
 	d->mtime = d->atime;
 	d->muid = 0;
@@ -733,25 +732,25 @@ superream(Device *dev, Off addr)
 	Superb *s;
 	Off i;
 
-	p = getbuf(dev, addr, Bmod|Bimm);
+	p = getbuf(dev, addr, Bmod | Bimm);
 	memset(p->iobuf, 0, RBUFSIZE);
 	settag(p, Tsuper, QPSUPER);
 
-	s = (Superb*)p->iobuf;
+	s = (Superb *)p->iobuf;
 	s->fstart = 2;
 	s->fsize = devsize(dev);
 	s->fbuf.nfree = 1;
 	s->qidgen = 10;
-	for(i = s->fsize-1; i >= addr+2; i--)
+	for(i = s->fsize - 1; i >= addr + 2; i--)
 		addfree(dev, i, s);
 	putbuf(p);
 }
 
 struct
-{
+    {
 	Lock;
-	Msgbuf	*smsgbuf;
-	Msgbuf	*lmsgbuf;
+	Msgbuf *smsgbuf;
+	Msgbuf *lmsgbuf;
 } msgalloc;
 
 /*
@@ -769,18 +768,18 @@ mbinit(void)
 	unlock(&msgalloc);
 	msgalloc.lmsgbuf = 0;
 	msgalloc.smsgbuf = 0;
-	for(i=0; i<conf.nlgmsg; i++) {
+	for(i = 0; i < conf.nlgmsg; i++) {
 		mb = malloc(sizeof(Msgbuf));
 		mb->magic = Mbmagic;
-		mb->xdata = malloc(LARGEBUF+Slop);
+		mb->xdata = malloc(LARGEBUF + Slop);
 		mb->flags = LARGE;
 		mbfree(mb);
 		cons.nlarge++;
 	}
-	for(i=0; i<conf.nsmmsg; i++) {
+	for(i = 0; i < conf.nsmmsg; i++) {
 		mb = malloc(sizeof(Msgbuf));
 		mb->magic = Mbmagic;
-		mb->xdata = malloc(SMALLBUF+Slop);
+		mb->xdata = malloc(SMALLBUF + Slop);
 		mb->flags = 0;
 		mbfree(mb);
 		cons.nsmall++;
@@ -790,14 +789,14 @@ mbinit(void)
 	lock(&rabuflock);
 	unlock(&rabuflock);
 	rabuffree = 0;
-	for(i=0; i<1000; i++) {
+	for(i = 0; i < 1000; i++) {
 		rb = malloc(sizeof(*rb));
 		rb->link = rabuffree;
 		rabuffree = rb;
 	}
 }
 
-Msgbuf*
+Msgbuf *
 mballoc(int count, Chan *cp, int category)
 {
 	Msgbuf *mb;
@@ -809,7 +808,7 @@ mballoc(int count, Chan *cp, int category)
 		mb = msgalloc.lmsgbuf;
 		if(mb == nil) {
 			mb = malloc(sizeof(Msgbuf));
-			mb->xdata = malloc(LARGEBUF+Slop);
+			mb->xdata = malloc(LARGEBUF + Slop);
 			cons.nlarge++;
 		} else
 			msgalloc.lmsgbuf = mb->next;
@@ -818,7 +817,7 @@ mballoc(int count, Chan *cp, int category)
 		mb = msgalloc.smsgbuf;
 		if(mb == nil) {
 			mb = malloc(sizeof(Msgbuf));
-			mb->xdata = malloc(SMALLBUF+Slop);
+			mb->xdata = malloc(SMALLBUF + Slop);
 			cons.nsmall++;
 		} else
 			msgalloc.smsgbuf = mb->next;
@@ -832,7 +831,7 @@ mballoc(int count, Chan *cp, int category)
 	mb->next = 0;
 	mb->param = 0;
 	mb->category = category;
-	mb->data = mb->xdata+Slop;
+	mb->data = mb->xdata + Slop;
 	return mb;
 }
 
@@ -842,11 +841,11 @@ mbfree(Msgbuf *mb)
 	if(mb == nil)
 		return;
 	assert(mb->magic == Mbmagic);
-	if (mb->magic != Mbmagic)
+	if(mb->magic != Mbmagic)
 		panic("mbfree: bad magic 0x%lux", mb->magic);
 	if(mb->flags & BTRACE)
 		print("mbfree: BTRACE cat=%d flags=%ux, caller %#p\n",
-			mb->category, mb->flags, getcallerpc(&mb));
+		      mb->category, mb->flags, getcallerpc(&mb));
 
 	if(mb->flags & FREE)
 		panic("mbfree already free");
@@ -877,17 +876,17 @@ prime(int64_t n)
 {
 	int32_t i;
 
-	if((n%2) == 0)
+	if((n % 2) == 0)
 		return 0;
-	for(i=3;; i+=2) {
-		if((n%i) == 0)
+	for(i = 3;; i += 2) {
+		if((n % i) == 0)
 			return 0;
-		if((int64_t)i*i >= n)
+		if((int64_t)i * i >= n)
 			return 1;
 	}
 }
 
-char*
+char *
 getwrd(char *word, char *line)
 {
 	int c, n;
@@ -917,7 +916,7 @@ hexdump(void *a, int n)
 	for(i = 0; i < n; i++) {
 		sprint(s2, " %.2ux", p[i]);
 		strcat(s1, s2);
-		if((i&7) == 7) {
+		if((i & 7) == 7) {
 			print("%s\n", s1);
 			s1[0] = 0;
 		}
@@ -926,7 +925,7 @@ hexdump(void *a, int n)
 		print("%s\n", s1);
 }
 
-void*
+void *
 fs_recv(Queue *q, int)
 {
 	void *a;
@@ -944,8 +943,8 @@ fs_recv(Queue *q, int)
 	if(i >= q->size)
 		i = 0;
 	q->loc = i;
-	q->count = c-1;
-	rwakeup(&q->full);			/* no longer full */
+	q->count = c - 1;
+	rwakeup(&q->full); /* no longer full */
 	qunlock(q);
 	return a;
 }
@@ -958,7 +957,7 @@ fs_send(Queue *q, void *a)
 	if(q == nil)
 		panic("send null q");
 	if(!q->waitedfor) {
-		for (i = 0; i < 5 && !q->waitedfor; i++)
+		for(i = 0; i < 5 && !q->waitedfor; i++)
 			sleep(1000);
 		if(!q->waitedfor) {
 			/* likely a bug; don't wait forever */
@@ -973,17 +972,17 @@ fs_send(Queue *q, void *a)
 	if(i >= q->size)
 		i -= q->size;
 	q->args[i] = a;
-	q->count = c+1;
-	rwakeup(&q->empty);			/* no longer empty */
+	q->count = c + 1;
+	rwakeup(&q->empty); /* no longer empty */
 	qunlock(q);
 }
 
-Queue*
+Queue *
 newqueue(int size, char *name)
 {
 	Queue *q;
 
-	q = malloc(sizeof(Queue) + (size-1)*sizeof(void*));
+	q = malloc(sizeof(Queue) + (size - 1) * sizeof(void *));
 	q->size = size;
 	q->full.l = q->empty.l = &q->QLock;
 	q->name = name;
@@ -995,7 +994,7 @@ devread(Device *d, Off b, void *c)
 {
 	int e;
 
-	for (;;)
+	for(;;)
 		switch(d->type) {
 		case Devcw:
 			return cwread(d, b, c);
@@ -1040,7 +1039,7 @@ devread(Device *d, Off b, void *c)
 			return 1;
 		default:
 			panic("illegal device in devread: %Z %lld",
-				d, (Wideoff)b);
+			      d, (Wideoff)b);
 			return 1;
 		}
 }
@@ -1054,9 +1053,9 @@ devwrite(Device *d, Off b, void *c)
 	 * set readonly to non-0 to prevent all writes;
 	 * mainly for trying dangerous experiments.
 	 */
-	if (readonly)
+	if(readonly)
 		return 0;
-	for (;;)
+	for(;;)
 		switch(d->type) {
 		case Devcw:
 			return cwwrite(d, b, c);
@@ -1102,7 +1101,7 @@ devwrite(Device *d, Off b, void *c)
 			return 0;
 		default:
 			panic("illegal device in devwrite: %Z %lld",
-				d, (Wideoff)b);
+			      d, (Wideoff)b);
 			return 1;
 		}
 }
@@ -1110,7 +1109,7 @@ devwrite(Device *d, Off b, void *c)
 Devsize
 devsize(Device *d)
 {
-	for (;;)
+	for(;;)
 		switch(d->type) {
 		case Devcw:
 		case Devro:
@@ -1157,10 +1156,10 @@ sdof(Device *d)
 {
 	static char name[256];
 
-	for (;;)
+	for(;;)
 		switch(d->type) {
 		case Devjuke:
-			d = d->j.j;		/* robotics */
+			d = d->j.j; /* robotics */
 			break;
 		case Devwren:
 			snprint(name, sizeof name, "/dev/sd%d%d", d->wren.ctrl,
@@ -1178,7 +1177,7 @@ sdof(Device *d)
 Off
 superaddr(Device *d)
 {
-	for (;;)
+	for(;;)
 		switch(d->type) {
 		default:
 			return SUPER_ADDR;
@@ -1194,7 +1193,7 @@ superaddr(Device *d)
 Off
 getraddr(Device *d)
 {
-	for (;;)
+	for(;;)
 		switch(d->type) {
 		default:
 			return ROOT_ADDR;
@@ -1242,7 +1241,7 @@ loop:
 	case Devmlev:
 	case Devmcat:
 	case Devmirr:
-		for(l=d->cat.first; l; l=l->link)
+		for(l = d->cat.first; l; l = l->link)
 			devream(l, 0);
 		break;
 
@@ -1268,7 +1267,7 @@ loop:
 void
 devrecover(Device *d)
 {
-	for (;;) {
+	for(;;) {
 		print("recover: %Z\n", d);
 		switch(d->type) {
 		default:
@@ -1276,7 +1275,7 @@ devrecover(Device *d)
 			return;
 
 		case Devcw:
-			wlock(&mainlock);	/* recover */
+			wlock(&mainlock); /* recover */
 			cwrecover(d);
 			wunlock(&mainlock);
 			return;
@@ -1291,7 +1290,7 @@ devrecover(Device *d)
 void
 devinit(Device *d)
 {
-	for (;;) {
+	for(;;) {
 		if(d->init)
 			return;
 		d->init = 1;
@@ -1426,8 +1425,8 @@ swab(void *c, int flag)
 	Off *l;
 
 	/* swab the tag */
-	p = (uint8_t*)c;
-	t = (Tag*)(p + BUFSIZE);
+	p = (uint8_t *)c;
+	t = (Tag *)(p + BUFSIZE);
 	if(!flag) {
 		swab2(&t->pad);
 		swab2(&t->tag);
@@ -1439,22 +1438,22 @@ swab(void *c, int flag)
 
 	default:
 		print("no swab for tag=%G rw=%d\n", t->tag, flag);
-		for(j=0; j<16; j++)
-			print(" %.2x", p[BUFSIZE+j]);
+		for(j = 0; j < 16; j++)
+			print(" %.2x", p[BUFSIZE + j]);
 		print("\n");
-		for(i=0; i<16; i++) {
-			print("%.4x", i*16);
-			for(j=0; j<16; j++)
-				print(" %.2x", p[i*16+j]);
+		for(i = 0; i < 16; i++) {
+			print("%.4x", i * 16);
+			for(j = 0; j < 16; j++)
+				print(" %.2x", p[i * 16 + j]);
 			print("\n");
 		}
 		panic("swab");
 		break;
 
 	case Tsuper:
-		s = (Superb*)p;
+		s = (Superb *)p;
 		swaboff(&s->fbuf.nfree);
-		for(i=0; i<FEPERBUF; i++)
+		for(i = 0; i < FEPERBUF; i++)
 			swaboff(&s->fbuf.free[i]);
 		swaboff(&s->fstart);
 		swaboff(&s->fsize);
@@ -1467,8 +1466,8 @@ swab(void *c, int flag)
 		break;
 
 	case Tdir:
-		for(i=0; i<DIRPERBUF; i++) {
-			d = (Dentry*)p + i;
+		for(i = 0; i < DIRPERBUF; i++) {
+			d = (Dentry *)p + i;
 			swab2(&d->uid);
 			swab2(&d->gid);
 			swab2(&d->mode);
@@ -1476,9 +1475,9 @@ swab(void *c, int flag)
 			swaboff(&d->qid.path);
 			swab4(&d->qid.version);
 			swaboff(&d->size);
-			for(j=0; j<NDBLOCK; j++)
+			for(j = 0; j < NDBLOCK; j++)
 				swaboff(&d->dblock[j]);
-			for (j = 0; j < NIBLOCK; j++)
+			for(j = 0; j < NIBLOCK; j++)
 				swaboff(&d->iblocks[j]);
 			swab4(&d->atime);
 			swab4(&d->mtime);
@@ -1490,27 +1489,27 @@ swab(void *c, int flag)
 #ifndef COMPAT32
 	case Tind3:
 	case Tind4:
-	/* add more Tind tags here ... */
+/* add more Tind tags here ... */
 #endif
 		l = (Off *)p;
-		for(i=0; i<INDPERBUF; i++) {
+		for(i = 0; i < INDPERBUF; i++) {
 			swaboff(l);
 			l++;
 		}
 		break;
 
 	case Tfree:
-		f = (Fbuf*)p;
+		f = (Fbuf *)p;
 		swaboff(&f->nfree);
-		for(i=0; i<FEPERBUF; i++)
+		for(i = 0; i < FEPERBUF; i++)
 			swaboff(&f->free[i]);
 		break;
 
 	case Tbuck:
-		for(i=0; i<BKPERBLK; i++) {
-			b = (Bucket*)p + i;
+		for(i = 0; i < BKPERBLK; i++) {
+			b = (Bucket *)p + i;
 			swab4(&b->agegen);
-			for(j=0; j<CEPERBK; j++) {
+			for(j = 0; j < CEPERBK; j++) {
 				swab2(&b->entry[j].age);
 				swab2(&b->entry[j].state);
 				swaboff(&b->entry[j].waddr);
@@ -1519,7 +1518,7 @@ swab(void *c, int flag)
 		break;
 
 	case Tcache:
-		h = (Cache*)p;
+		h = (Cache *)p;
 		swaboff(&h->maddr);
 		swaboff(&h->msize);
 		swaboff(&h->caddr);
@@ -1534,10 +1533,10 @@ swab(void *c, int flag)
 		swab4(&h->time);
 		break;
 
-	case Tnone:	// unitialized
-	case Tfile:	// someone elses problem
-	case Tvirgo:	// bit map -- all bytes
-	case Tconfig:	// configuration string -- all bytes
+	case Tnone:   // unitialized
+	case Tfile:   // someone elses problem
+	case Tvirgo:  // bit map -- all bytes
+	case Tconfig: // configuration string -- all bytes
 		break;
 	}
 

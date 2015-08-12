@@ -15,73 +15,72 @@
 #include <fcall.h>
 #include "imap4d.h"
 
-static void	body64(int in, int out);
-static void	bodystrip(int in, int out);
-static void	cleanupHeader(Header *h);
-static char	*domBang(char *s);
-static void	freeMAddr(MAddr *a);
-static void	freeMimeHdr(MimeHdr *mh);
-static char	*headAddrSpec(char *e, char *w);
-static MAddr	*headAddresses(void);
-static MAddr	*headAddress(void);
-static char	*headAtom(char *disallowed);
-static int	headChar(int eat);
-static char	*headDomain(char *e);
-static MAddr	*headMAddr(MAddr *old);
-static char	*headPhrase(char *e, char *w);
-static char	*headQuoted(int start, int stop);
-static char	*headSkipWhite(int);
-static void	headSkip(void);
-static char	*headSubDomain(void);
-static char	*headText(void);
-static void	headToEnd(void);
-static char	*headWord(void);
-static void	mimeDescription(Header *h);
-static void	mimeDisposition(Header *h);
-static void	mimeEncoding(Header *h);
-static void	mimeId(Header *h);
-static void	mimeLanguage(Header *h);
-static void	mimeMd5(Header *h);
-static MimeHdr	*mimeParams(void);
-static void	mimeType(Header *h);
-static MimeHdr	*mkMimeHdr(char *s, char *t, MimeHdr *next);
-static void	msgAddDate(Msg *m);
-static void	msgAddHead(Msg *m, char *head, char *body);
-static int	msgBodySize(Msg *m);
-static int	msgHeader(Msg *m, Header *h, char *file);
-static int32_t	msgReadFile(Msg *m, char *file, char **ss);
-static int	msgUnix(Msg *m, int top);
-static void	stripQuotes(char *q);
-static MAddr	*unixFrom(char *s);
+static void body64(int in, int out);
+static void bodystrip(int in, int out);
+static void cleanupHeader(Header *h);
+static char *domBang(char *s);
+static void freeMAddr(MAddr *a);
+static void freeMimeHdr(MimeHdr *mh);
+static char *headAddrSpec(char *e, char *w);
+static MAddr *headAddresses(void);
+static MAddr *headAddress(void);
+static char *headAtom(char *disallowed);
+static int headChar(int eat);
+static char *headDomain(char *e);
+static MAddr *headMAddr(MAddr *old);
+static char *headPhrase(char *e, char *w);
+static char *headQuoted(int start, int stop);
+static char *headSkipWhite(int);
+static void headSkip(void);
+static char *headSubDomain(void);
+static char *headText(void);
+static void headToEnd(void);
+static char *headWord(void);
+static void mimeDescription(Header *h);
+static void mimeDisposition(Header *h);
+static void mimeEncoding(Header *h);
+static void mimeId(Header *h);
+static void mimeLanguage(Header *h);
+static void mimeMd5(Header *h);
+static MimeHdr *mimeParams(void);
+static void mimeType(Header *h);
+static MimeHdr *mkMimeHdr(char *s, char *t, MimeHdr *next);
+static void msgAddDate(Msg *m);
+static void msgAddHead(Msg *m, char *head, char *body);
+static int msgBodySize(Msg *m);
+static int msgHeader(Msg *m, Header *h, char *file);
+static int32_t msgReadFile(Msg *m, char *file, char **ss);
+static int msgUnix(Msg *m, int top);
+static void stripQuotes(char *q);
+static MAddr *unixFrom(char *s);
 
-
-static char bogusBody[] = 
-	"This message contains null characters, so it cannot be displayed correctly.\r\n"
-	"Most likely you were sent a bogus message or a binary file.\r\n"
-	"\r\n"
-	"Each of the following attachments has a different version of the message.\r\n"
-	"The first is inlined with all non-printable characters stripped.\r\n"
-	"The second contains the message as it was stored in your mailbox.\r\n"
-	"The third has the initial header stripped.\r\n";
+static char bogusBody[] =
+    "This message contains null characters, so it cannot be displayed correctly.\r\n"
+    "Most likely you were sent a bogus message or a binary file.\r\n"
+    "\r\n"
+    "Each of the following attachments has a different version of the message.\r\n"
+    "The first is inlined with all non-printable characters stripped.\r\n"
+    "The second contains the message as it was stored in your mailbox.\r\n"
+    "The third has the initial header stripped.\r\n";
 
 static char bogusMimeText[] =
-	"Content-Disposition: inline\r\n"
-	"Content-Type: text/plain; charset=\"US-ASCII\"\r\n"
-	"Content-Transfer-Encoding: 7bit\r\n";
+    "Content-Disposition: inline\r\n"
+    "Content-Type: text/plain; charset=\"US-ASCII\"\r\n"
+    "Content-Transfer-Encoding: 7bit\r\n";
 
 static char bogusMimeBinary[] =
-	"Content-Disposition: attachment\r\n"
-	"Content-Type: application/octet-stream\r\n"
-	"Content-Transfer-Encoding: base64\r\n";
+    "Content-Disposition: attachment\r\n"
+    "Content-Type: application/octet-stream\r\n"
+    "Content-Transfer-Encoding: base64\r\n";
 
 /*
  * stop list for header fields
  */
-static char	*headFieldStop = ":";
-static char	*mimeTokenStop = "()<>@,;:\\\"/[]?=";
-static char	*headAtomStop = "()<>@,;:\\\".[]";
-static uint8_t	*headStr;
-static uint8_t	*lastWhite;
+static char *headFieldStop = ":";
+static char *mimeTokenStop = "()<>@,;:\\\"/[]?=";
+static char *headAtomStop = "()<>@,;:\\\".[]";
+static uint8_t *headStr;
+static uint8_t *lastWhite;
 
 int32_t
 selectFields(char *dst, int32_t n, char *hdr, SList *fields,
@@ -92,16 +91,16 @@ selectFields(char *dst, int32_t n, char *hdr, SList *fields,
 	char *s;
 	int32_t m, nf;
 
-	headStr = (uint8_t*)hdr;
+	headStr = (uint8_t *)hdr;
 	m = 0;
-	for(;;){
+	for(;;) {
 		start = headStr;
 		s = headAtom(headFieldStop);
 		if(s == nil)
 			break;
 		headSkip();
-		for(f = fields; f != nil; f = f->next){
-			if(cistrcmp(s, f->s) == !matches){
+		for(f = fields; f != nil; f = f->next) {
+			if(cistrcmp(s, f->s) == !matches) {
 				nf = headStr - start;
 				if(m + nf > n)
 					return 0;
@@ -138,7 +137,7 @@ freeMsg(Msg *m)
 	free(m->unixDate);
 	cleanupHeader(&m->head);
 	cleanupHeader(&m->mime);
-	for(k = m->kids; k != nil; ){
+	for(k = m->kids; k != nil;) {
 		last = k;
 		k = k->next;
 		freeMsg(last);
@@ -159,7 +158,7 @@ infoIsNil(char *s)
 	return s == nil || s[0] == '\0';
 }
 
-char*
+char *
 maddrStr(MAddr *a)
 {
 	char *host, *addr;
@@ -195,10 +194,7 @@ msgFile(Msg *m, char *f)
 	uint8_t dbuf[64];
 	int i, n, fd, fd1, fd2;
 
-	if(!m->bogus
-	|| strcmp(f, "") != 0 && strcmp(f, "rawbody") != 0
-	&& strcmp(f, "rawheader") != 0 && strcmp(f, "mimeheader") != 0
-	&& strcmp(f, "info") != 0 && strcmp(f, "unixheader") != 0){
+	if(!m->bogus || strcmp(f, "") != 0 && strcmp(f, "rawbody") != 0 && strcmp(f, "rawheader") != 0 && strcmp(f, "mimeheader") != 0 && strcmp(f, "info") != 0 && strcmp(f, "unixheader") != 0) {
 		if(strlen(f) > MsgNameLen)
 			bye("internal error: msgFile name too long");
 		strcpy(m->efs, f);
@@ -209,7 +205,7 @@ msgFile(Msg *m, char *f)
 	 * walk up the stupid runt message parts for non-multipart messages
 	 */
 	parent = m->parent;
-	if(parent != nil && parent->parent != nil){
+	if(parent != nil && parent->parent != nil) {
 		m = parent;
 		parent = m->parent;
 	}
@@ -217,7 +213,7 @@ msgFile(Msg *m, char *f)
 	if(parent != nil)
 		p = parent;
 
-	if(strcmp(f, "info") == 0 || strcmp(f, "unixheader") == 0){
+	if(strcmp(f, "info") == 0 || strcmp(f, "unixheader") == 0) {
 		strcpy(p->efs, f);
 		return cdOpen(p->fsDir, p->fs, OREAD);
 	}
@@ -229,18 +225,18 @@ msgFile(Msg *m, char *f)
 	/*
 	 * craft the message parts for bogus messages
 	 */
-	if(strcmp(f, "") == 0){
+	if(strcmp(f, "") == 0) {
 		/*
 		 * make a fake directory for each kid
 		 * all we care about is the name
 		 */
-		if(parent == nil){
+		if(parent == nil) {
 			nulldir(&d);
-			d.mode = DMDIR|0600;
+			d.mode = DMDIR | 0600;
 			d.qid.type = QTDIR;
 			d.name = nbuf;
 			nbuf[1] = '\0';
-			for(i = '1'; i <= '4'; i++){
+			for(i = '1'; i <= '4'; i++) {
 				nbuf[0] = i;
 				n = convD2M(&d, dbuf, sizeof(dbuf));
 				if(n <= BIT16SZ)
@@ -248,9 +244,9 @@ msgFile(Msg *m, char *f)
 				write(fd, dbuf, n);
 			}
 		}
-	}else if(strcmp(f, "mimeheader") == 0){
-		if(parent != nil){
-			switch(m->id){
+	} else if(strcmp(f, "mimeheader") == 0) {
+		if(parent != nil) {
+			switch(m->id) {
 			case 1:
 			case 2:
 				fprint(fd, "%s", bogusMimeText);
@@ -261,64 +257,64 @@ msgFile(Msg *m, char *f)
 				break;
 			}
 		}
-	}else if(strcmp(f, "rawheader") == 0){
-		if(parent == nil){
+	} else if(strcmp(f, "rawheader") == 0) {
+		if(parent == nil) {
 			date2tm(&tm, m->unixDate);
 			rfc822date(buf, sizeof(buf), &tm);
 			fprint(fd,
-				"Date: %s\r\n"
-				"From: imap4 daemon <%s@%s>\r\n"
-				"To: <%s@%s>\r\n"
-				"Subject: This message was illegal or corrupted\r\n"
-				"MIME-Version: 1.0\r\n"
-				"Content-Type: multipart/mixed;\r\n\tboundary=\"upas-%s\"\r\n",
-					buf, username, site, username, site, m->info[IDigest]);
+			       "Date: %s\r\n"
+			       "From: imap4 daemon <%s@%s>\r\n"
+			       "To: <%s@%s>\r\n"
+			       "Subject: This message was illegal or corrupted\r\n"
+			       "MIME-Version: 1.0\r\n"
+			       "Content-Type: multipart/mixed;\r\n\tboundary=\"upas-%s\"\r\n",
+			       buf, username, site, username, site, m->info[IDigest]);
 		}
-	}else if(strcmp(f, "rawbody") == 0){
+	} else if(strcmp(f, "rawbody") == 0) {
 		fd1 = msgFile(p, "raw");
 		strcpy(p->efs, "rawbody");
 		fd2 = cdOpen(p->fsDir, p->fs, OREAD);
-		if(fd1 < 0 || fd2 < 0){
+		if(fd1 < 0 || fd2 < 0) {
 			close(fd);
 			close(fd1);
 			close(fd2);
 			return -1;
 		}
-		if(parent == nil){
+		if(parent == nil) {
 			fprint(fd,
-				"This is a multi-part message in MIME format.\r\n"
-				"--upas-%s\r\n"
-				"%s"
-				"\r\n"
-				"%s"
-				"\r\n",
-					m->info[IDigest], bogusMimeText, bogusBody);
+			       "This is a multi-part message in MIME format.\r\n"
+			       "--upas-%s\r\n"
+			       "%s"
+			       "\r\n"
+			       "%s"
+			       "\r\n",
+			       m->info[IDigest], bogusMimeText, bogusBody);
 
 			fprint(fd,
-				"--upas-%s\r\n"
-				"%s"
-				"\r\n",
-					m->info[IDigest], bogusMimeText);
+			       "--upas-%s\r\n"
+			       "%s"
+			       "\r\n",
+			       m->info[IDigest], bogusMimeText);
 			bodystrip(fd1, fd);
 
 			fprint(fd,
-				"--upas-%s\r\n"
-				"%s"
-				"\r\n",
-					m->info[IDigest], bogusMimeBinary);
+			       "--upas-%s\r\n"
+			       "%s"
+			       "\r\n",
+			       m->info[IDigest], bogusMimeBinary);
 			seek(fd1, 0, 0);
 			body64(fd1, fd);
 
 			fprint(fd,
-				"--upas-%s\r\n"
-				"%s"
-				"\r\n",
-					m->info[IDigest], bogusMimeBinary);
+			       "--upas-%s\r\n"
+			       "%s"
+			       "\r\n",
+			       m->info[IDigest], bogusMimeBinary);
 			body64(fd2, fd);
 
 			fprint(fd, "--upas-%s--\r\n", m->info[IDigest]);
-		}else{
-			switch(m->id){
+		} else {
+			switch(m->id) {
 			case 1:
 				fprint(fd, "%s", bogusBody);
 				break;
@@ -383,7 +379,7 @@ msgInfo(Msg *m)
 		return 0;
 
 	s = m->iBuf;
-	for(i = 0; i < IMax; i++){
+	for(i = 0; i < IMax; i++) {
 		m->info[i] = s;
 		s = strchr(s, '\n');
 		if(s == nil)
@@ -416,13 +412,8 @@ msgStruct(Msg *m, int top)
 	if(m->kids != nil)
 		return 1;
 
-	if(m->expunged
-	|| !msgInfo(m)
-	|| !msgUnix(m, top)
-	|| !msgBodySize(m)
-	|| !msgHeader(m, &m->mime, "mimeheader")
-	|| (top || msgIsRfc822(&m->mime) || msgIsMulti(&m->mime)) && !msgHeader(m, &m->head, "rawheader")){
-		if(top && m->bogus && !(m->bogus & BogusTried)){
+	if(m->expunged || !msgInfo(m) || !msgUnix(m, top) || !msgBodySize(m) || !msgHeader(m, &m->mime, "mimeheader") || (top || msgIsRfc822(&m->mime) || msgIsMulti(&m->mime)) && !msgHeader(m, &m->head, "rawheader")) {
+		if(top && m->bogus && !(m->bogus & BogusTried)) {
 			m->bogus |= BogusTried;
 			return msgStruct(m, top);
 		}
@@ -433,7 +424,7 @@ msgStruct(Msg *m, int top)
 	/*
 	 * if a message has no kids, it has a kid which is just the body of the real message
 	 */
-	if(!msgIsMulti(&m->head) && !msgIsMulti(&m->mime) && !msgIsRfc822(&m->head) && !msgIsRfc822(&m->mime)){
+	if(!msgIsMulti(&m->head) && !msgIsMulti(&m->mime) && !msgIsRfc822(&m->head) && !msgIsRfc822(&m->mime)) {
 		k = MKZ(Msg);
 		k->id = 1;
 		k->fsDir = m->fsDir;
@@ -453,7 +444,7 @@ msgStruct(Msg *m, int top)
 	 * read in all child messages messages
 	 */
 	fd = msgFile(m, "");
-	if(fd < 0){
+	if(fd < 0) {
 		msgDead(m);
 		return 0;
 	}
@@ -461,12 +452,11 @@ msgStruct(Msg *m, int top)
 	max = 0;
 	head.next = nil;
 	last = &head;
-	while((nd = dirread(fd, &d)) > 0){
-		for(i = 0; i < nd; i++){
+	while((nd = dirread(fd, &d)) > 0) {
+		for(i = 0; i < nd; i++) {
 			s = d[i].name;
 			id = strtol(s, &s, 10);
-			if(id <= max || *s != '\0'
-			|| (d[i].mode & DMDIR) != DMDIR)
+			if(id <= max || *s != '\0' || (d[i].mode & DMDIR) != DMDIR)
 				continue;
 
 			max = id;
@@ -480,8 +470,8 @@ msgStruct(Msg *m, int top)
 			k->fs = emalloc(ns + 2 * (MsgNameLen + 1));
 			k->efs = seprint(k->fs, k->fs + ns + (MsgNameLen + 1), "%s%lud/", m->fs, id);
 			k->prev = last;
-			k->size = ~0UL&0xFF;
-			k->lines = ~0UL&0xFF;
+			k->size = ~0UL & 0xFF;
+			k->lines = ~0UL & 0xFF;
 			last->next = k;
 			last = k;
 		}
@@ -493,9 +483,9 @@ msgStruct(Msg *m, int top)
 	 * if kids fail, just whack them
 	 */
 	top = top && (msgIsRfc822(&m->head) || msgIsMulti(&m->head));
-	for(k = m->kids; k != nil; k = k->next){
-		if(!msgStruct(k, top)){
-			for(k = m->kids; k != nil; ){
+	for(k = m->kids; k != nil; k = k->next) {
+		if(!msgStruct(k, top)) {
+			for(k = m->kids; k != nil;) {
 				last = k;
 				k = k->next;
 				freeMsg(last);
@@ -517,15 +507,15 @@ msgReadFile(Msg *m, char *file, char **ss)
 	int fd;
 
 	fd = msgFile(m, file);
-	if(fd < 0){
+	if(fd < 0) {
 		msgDead(m);
 		return -1;
 	}
 
 	n = read(fd, buf, BufSize);
-	if(n < BufSize){
+	if(n < BufSize) {
 		close(fd);
-		if(n < 0){
+		if(n < 0) {
 			*ss = nil;
 			return -1;
 		}
@@ -537,7 +527,7 @@ msgReadFile(Msg *m, char *file, char **ss)
 	}
 
 	d = dirfstat(fd);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return -1;
 	}
@@ -547,9 +537,9 @@ msgReadFile(Msg *m, char *file, char **ss)
 	s = emalloc(nn + 1);
 	memmove(s, buf, n);
 	if(nn > n)
-		nn = readn(fd, s+n, nn-n) + n;
+		nn = readn(fd, s + n, nn - n) + n;
 	close(fd);
-	if(nn != length){
+	if(nn != length) {
 		free(s);
 		return -1;
 	}
@@ -563,7 +553,7 @@ freeMAddr(MAddr *a)
 {
 	MAddr *p;
 
-	while(a != nil){
+	while(a != nil) {
 		p = a;
 		a = a->next;
 		free(p->personal);
@@ -607,7 +597,7 @@ enc64x18(char *out, int lim, uint8_t *in, int n)
 	int m, mm, nn;
 
 	nn = 0;
-	for(; n > 0; n -= m){
+	for(; n > 0; n -= m) {
 		m = 18 * 3;
 		if(m > n)
 			m = n;
@@ -624,11 +614,11 @@ enc64x18(char *out, int lim, uint8_t *in, int n)
 static void
 body64(int in, int out)
 {
-	uint8_t buf[3*18*54];
-	char obuf[3*18*54*2];
+	uint8_t buf[3 * 18 * 54];
+	char obuf[3 * 18 * 54 * 2];
 	int m, n;
 
-	for(;;){
+	for(;;) {
 		n = read(in, buf, sizeof(buf));
 		if(n < 0)
 			return;
@@ -646,20 +636,20 @@ body64(int in, int out)
 static void
 bodystrip(int in, int out)
 {
-	uint8_t buf[3*18*54];
+	uint8_t buf[3 * 18 * 54];
 	int m, n, i, c;
 
-	for(;;){
+	for(;;) {
 		n = read(in, buf, sizeof(buf));
 		if(n < 0)
 			return;
 		if(n == 0)
 			break;
 		m = 0;
-		for(i = 0; i < n; i++){
+		for(i = 0; i < n; i++) {
 			c = buf[i];
-			if(c > 0x1f && c < 0x7f		/* normal characters */
-			|| c >= 0x9 && c <= 0xd)	/* \t, \n, vertical tab, form feed, \r */
+			if(c > 0x1f && c < 0x7f     /* normal characters */
+			   || c >= 0x9 && c <= 0xd) /* \t, \n, vertical tab, form feed, \r */
 				buf[m++] = c;
 		}
 
@@ -686,7 +676,7 @@ msgBodySize(Msg *m)
 	if(fd < 0)
 		return 0;
 	d = dirfstat(fd);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return 0;
 	}
@@ -697,15 +687,15 @@ msgBodySize(Msg *m)
 	lines = 0;
 	bad = 0;
 	buf[0] = ' ';
-	for(;;){
+	for(;;) {
 		n = read(fd, &buf[1], BufSize);
 		if(n <= 0)
 			break;
 		size += n;
 		se = &buf[n + 1];
-		for(s = &buf[1]; s < se; s++){
+		for(s = &buf[1]; s < se; s++) {
 			c = *s;
-			if(c == '\0'){
+			if(c == '\0') {
 				close(fd);
 				return msgBogus(m, BogusBody);
 			}
@@ -738,8 +728,8 @@ msgUnix(Msg *m, int top)
 	if(m->unixDate != nil)
 		return 1;
 
-	if(!top){
-bogus:
+	if(!top) {
+	bogus:
 		m->unixDate = estrdup("");
 		m->unixFrom = unixFrom(nil);
 		return 1;
@@ -749,16 +739,16 @@ bogus:
 		return 0;
 	s = ss;
 	s = strchr(s, ' ');
-	if(s == nil){
+	if(s == nil) {
 		free(ss);
 		goto bogus;
 	}
 	s++;
 	m->unixFrom = unixFrom(s);
-	s = (char*)headStr;
+	s = (char *)headStr;
 	if(date2tm(&tm, s) == nil)
 		s = m->info[IUnixDate];
-	if(s == nil){
+	if(s == nil) {
 		free(ss);
 		goto bogus;
 	}
@@ -779,12 +769,12 @@ unixFrom(char *s)
 
 	if(s == nil)
 		return nil;
-	headStr = (uint8_t*)s;
+	headStr = (uint8_t *)s;
 	t = emalloc(strlen(s) + 2);
 	e = headAddrSpec(t, nil);
 	if(e == nil)
 		a = nil;
-	else{
+	else {
 		if(*e != '\0')
 			*e++ = '\0';
 		else
@@ -826,7 +816,7 @@ msgHeader(Msg *m, Header *h, char *file)
 	 */
 	lines = 1;
 	te = s + ns;
-	for(t = s; t < te; t++){
+	for(t = s; t < te; t++) {
 		c = *t;
 		if(c == '\0')
 			return msgBogus(m, BogusHeader);
@@ -836,7 +826,7 @@ msgHeader(Msg *m, Header *h, char *file)
 			n++;
 		lines++;
 	}
-	if(t > s && t[-1] != '\n'){
+	if(t > s && t[-1] != '\n') {
 		if(t[-1] != '\r')
 			n++;
 		n++;
@@ -850,17 +840,17 @@ msgHeader(Msg *m, Header *h, char *file)
 	 * make sure all headers end in \r\n
 	 */
 	nn = 0;
-	for(t = s; t < te; t++){
+	for(t = s; t < te; t++) {
 		c = *t;
-		if(c == '\n'){
+		if(c == '\n') {
 			if(!nn || h->buf[nn - 1] != '\r')
 				h->buf[nn++] = '\r';
 			lines++;
 		}
 		h->buf[nn++] = c;
 	}
-	if(nn && h->buf[nn-1] != '\n'){
-		if(h->buf[nn-1] != '\r')
+	if(nn && h->buf[nn - 1] != '\n') {
+		if(h->buf[nn - 1] != '\r')
 			h->buf[nn++] = '\r';
 		h->buf[nn++] = '\n';
 	}
@@ -874,9 +864,9 @@ msgHeader(Msg *m, Header *h, char *file)
 	/*
 	 * and parse some mime headers
 	 */
-	headStr = (uint8_t*)h->buf;
+	headStr = (uint8_t *)h->buf;
 	dated = 0;
-	while(s = headAtom(headFieldStop)){
+	while(s = headAtom(headFieldStop)) {
 		if(cistrcmp(s, "content-type") == 0)
 			mimeType(h);
 		else if(cistrcmp(s, "content-transfer-encoding") == 0)
@@ -909,10 +899,10 @@ msgHeader(Msg *m, Header *h, char *file)
 		free(s);
 	}
 
-	if(h == &m->head){
-		if(m->from == nil){
+	if(h == &m->head) {
+		if(m->from == nil) {
 			m->from = m->unixFrom;
-			if(m->from != nil){
+			if(m->from != nil) {
 				s = maddrStr(m->from);
 				msgAddHead(m, "From", s);
 				free(s);
@@ -965,7 +955,7 @@ msgAddDate(Msg *m)
 	msgAddHead(m, "Date", buf);
 }
 
-static MimeHdr*
+static MimeHdr *
 mkMimeHdr(char *s, char *t, MimeHdr *next)
 {
 	MimeHdr *mh;
@@ -982,7 +972,7 @@ freeMimeHdr(MimeHdr *mh)
 {
 	MimeHdr *last;
 
-	while(mh != nil){
+	while(mh != nil) {
 		last = mh;
 		mh = mh->next;
 		free(last->s);
@@ -1018,12 +1008,12 @@ mimeType(Header *h)
 	if(headChar(1) != ':')
 		return;
 	s = headAtom(mimeTokenStop);
-	if(s == nil || headChar(1) != '/'){
+	if(s == nil || headChar(1) != '/') {
 		free(s);
 		return;
 	}
 	t = headAtom(mimeTokenStop);
-	if(t == nil){
+	if(t == nil) {
 		free(s);
 		return;
 	}
@@ -1035,7 +1025,7 @@ mimeType(Header *h)
  *		| params ';' token '=' token
  * 		| params ';' token '=' quoted-str
  */
-static MimeHdr*
+static MimeHdr *
 mimeParams(void)
 {
 	MimeHdr head, *last;
@@ -1043,20 +1033,20 @@ mimeParams(void)
 
 	head.next = nil;
 	last = &head;
-	for(;;){
+	for(;;) {
 		if(headChar(1) != ';')
 			break;
 		s = headAtom(mimeTokenStop);
-		if(s == nil || headChar(1) != '='){
+		if(s == nil || headChar(1) != '=') {
 			free(s);
 			break;
 		}
-		if(headChar(0) == '"'){
+		if(headChar(0) == '"') {
 			t = headQuoted('"', '"');
 			stripQuotes(t);
-		}else
+		} else
 			t = headAtom(mimeTokenStop);
-		if(t == nil){
+		if(t == nil) {
 			free(s);
 			break;
 		}
@@ -1085,7 +1075,7 @@ mimeEncoding(Header *h)
 /*
  * mailaddr	: ':' addresses
  */
-static MAddr*
+static MAddr *
 headMAddr(MAddr *old)
 {
 	MAddr *a;
@@ -1107,7 +1097,7 @@ headMAddr(MAddr *old)
 /*
  * addresses	: address | addresses ',' address
  */
-static MAddr*
+static MAddr *
 headAddresses(void)
 {
 	MAddr *addr, *tail, *a;
@@ -1116,10 +1106,10 @@ headAddresses(void)
 	if(addr == nil)
 		return nil;
 	tail = addr;
-	while(headChar(0) == ','){
+	while(headChar(0) == ',') {
 		headChar(1);
 		a = headAddress();
-		if(a == nil){
+		if(a == nil) {
 			freeMAddr(addr);
 			return nil;
 		}
@@ -1141,7 +1131,7 @@ headAddresses(void)
  * personal names are the phrase before '<',
  * or a comment before or after a simple addr-spec
  */
-static MAddr*
+static MAddr *
 headAddress(void)
 {
 	MAddr *addr;
@@ -1149,29 +1139,29 @@ headAddress(void)
 	char *s, *e, *w, *personal;
 	int c;
 
-	s = emalloc(strlen((char*)headStr) + 2);
+	s = emalloc(strlen((char *)headStr) + 2);
 	e = s;
 	personal = headSkipWhite(1);
 	c = headChar(0);
 	if(c == '<')
 		w = nil;
-	else{
+	else {
 		w = headWord();
 		c = headChar(0);
 	}
-	if(c == '.' || c == '@' || c == ',' || c == '\n' || c == '\0'){
+	if(c == '.' || c == '@' || c == ',' || c == '\n' || c == '\0') {
 		lastWhite = headStr;
 		e = headAddrSpec(s, w);
-		if(personal == nil){
+		if(personal == nil) {
 			hs = headStr;
 			headStr = lastWhite;
 			personal = headSkipWhite(1);
 			headStr = hs;
 		}
-	}else{
-		if(c != '<' || w != nil){
+	} else {
+		if(c != '<' || w != nil) {
 			free(personal);
-			if(!headPhrase(e, w)){
+			if(!headPhrase(e, w)) {
 				free(s);
 				return nil;
 			}
@@ -1181,12 +1171,12 @@ headAddress(void)
 			 * so the only thing left if <
 			 */
 			c = headChar(1);
-			if(c != '<'){
+			if(c != '<') {
 				free(s);
 				return nil;
 			}
 			personal = estrdup(s);
-		}else
+		} else
 			headChar(1);
 
 		/*
@@ -1198,16 +1188,16 @@ headAddress(void)
 		 */
 		e = s;
 		c = headChar(0);
-		if(c == '@'){
-			for(;;){
+		if(c == '@') {
+			for(;;) {
 				c = headChar(1);
-				if(c != '@'){
+				if(c != '@') {
 					e = nil;
 					break;
 				}
 				headDomain(e);
 				c = headChar(1);
-				if(c != ','){
+				if(c != ',') {
 					e = s;
 					break;
 				}
@@ -1225,10 +1215,10 @@ headAddress(void)
 	/*
 	 * e points to @host, or nil if an error occured
 	 */
-	if(e == nil){
+	if(e == nil) {
 		free(personal);
 		addr = nil;
-	}else{
+	} else {
 		if(*e != '\0')
 			*e++ = '\0';
 		else
@@ -1249,13 +1239,13 @@ headAddress(void)
  * w is the optional initial word of the phrase
  * returns the end of the phrase, or nil if a failure occured
  */
-static char*
+static char *
 headPhrase(char *e, char *w)
 {
 	int c;
 
-	for(;;){
-		if(w == nil){
+	for(;;) {
+		if(w == nil) {
 			w = headWord();
 			if(w == nil)
 				return nil;
@@ -1288,15 +1278,15 @@ headPhrase(char *e, char *w)
  *
  * returns a pointer to '@', the end if none, or nil if there was an error
  */
-static char*
+static char *
 headAddrSpec(char *e, char *w)
 {
 	char *s, *at, *b, *bang, *dom;
 	int c;
 
 	s = e;
-	for(;;){
-		if(w == nil){
+	for(;;) {
+		if(w == nil) {
 			w = headWord();
 			if(w == nil)
 				return nil;
@@ -1314,7 +1304,7 @@ headAddrSpec(char *e, char *w)
 		*e = '\0';
 	}
 
-	if(c != '@'){
+	if(c != '@') {
 		/*
 		 * extenstion: allow name without domain
 		 * check for domain!xxx
@@ -1335,10 +1325,10 @@ headAddrSpec(char *e, char *w)
 		 */
 		*bang = '@';
 		strrev(dom, bang);
-		strrev(bang+1, e);
+		strrev(bang + 1, e);
 		strrev(dom, e);
 		bang = &dom[e - bang - 1];
-		if(dom > s){
+		if(dom > s) {
 			bang -= dom - s;
 			for(e = s; *e = *dom; e++)
 				dom++;
@@ -1365,14 +1355,14 @@ headAddrSpec(char *e, char *w)
  * find the ! in domain!rest, where domain must have at least
  * one internal '.'
  */
-static char*
+static char *
 domBang(char *s)
 {
 	int dot, c;
 
 	dot = 0;
-	for(; c = *s; s++){
-		if(c == '!'){
+	for(; c = *s; s++) {
+		if(c == '!') {
 			if(!dot || dot == 1 && s[-1] == '.' || s[1] == '\0')
 				return nil;
 			return s;
@@ -1390,12 +1380,12 @@ domBang(char *s)
  *		| domain '.' sub-domain
  * returns the end of the domain, or nil if a failure occured
  */
-static char*
+static char *
 headDomain(char *e)
 {
 	char *w;
 
-	for(;;){
+	for(;;) {
 		w = headSubDomain();
 		if(w == nil)
 			return nil;
@@ -1426,11 +1416,11 @@ mimeId(Header *h)
 	if(headChar(1) != '<')
 		return;
 
-	s = emalloc(strlen((char*)headStr) + 3);
+	s = emalloc(strlen((char *)headStr) + 3);
 	e = s;
 	*e++ = '<';
 	e = headAddrSpec(e, nil);
-	if(e == nil || headChar(1) != '>'){
+	if(e == nil || headChar(1) != '>') {
 		free(s);
 		return;
 	}
@@ -1501,7 +1491,7 @@ mimeLanguage(Header *h)
 
 	head.next = nil;
 	last = &head;
-	for(;;){
+	for(;;) {
 		s = headAtom(mimeTokenStop);
 		if(s == nil)
 			break;
@@ -1518,7 +1508,7 @@ mimeLanguage(Header *h)
  * atom		: 1*<chars 33-255, except "()<>@,;:\\\".[]" aka headAtomStop>
  * note this allows 8 bit characters, which occur in utf.
  */
-static char*
+static char *
 headAtom(char *disallowed)
 {
 	char *s;
@@ -1529,19 +1519,19 @@ headAtom(char *disallowed)
 	s = emalloc(StrAlloc);
 	as = StrAlloc;
 	ns = 0;
-	for(;;){
+	for(;;) {
 		c = *headStr++;
-		if(c <= ' ' || strchr(disallowed, c) != nil){
+		if(c <= ' ' || strchr(disallowed, c) != nil) {
 			headStr--;
 			break;
 		}
 		s[ns++] = c;
-		if(ns >= as){
+		if(ns >= as) {
 			as += StrAlloc;
 			s = erealloc(s, as);
 		}
 	}
-	if(ns == 0){
+	if(ns == 0) {
 		free(s);
 		return 0;
 	}
@@ -1583,8 +1573,8 @@ stripQuotes(char *q)
 	if(q == nil)
 		return;
 	s = q++;
-	while(c = *q++){
-		if(c == '\\'){
+	while(c = *q++) {
+		if(c == '\\') {
 			c = *q++;
 			if(!c)
 				return;
@@ -1610,38 +1600,38 @@ headQuoted(int start, int stop)
 	as = StrAlloc;
 	ns = 0;
 	s[ns++] = start;
-	for(;;){
+	for(;;) {
 		c = *headStr;
-		if(c == stop){
+		if(c == stop) {
 			headStr++;
 			break;
 		}
-		if(c == '\0'){
+		if(c == '\0') {
 			free(s);
 			return nil;
 		}
-		if(c == '\r'){
+		if(c == '\r') {
 			headStr++;
 			continue;
 		}
-		if(c == '\n'){
+		if(c == '\n') {
 			headStr++;
 			while(*headStr == ' ' || *headStr == '\t' || *headStr == '\r' || *headStr == '\n')
 				headStr++;
 			c = ' ';
-		}else if(c == '\\'){
+		} else if(c == '\\') {
 			headStr++;
 			s[ns++] = c;
 			c = *headStr;
-			if(c == '\0'){
+			if(c == '\0') {
 				free(s);
 				return nil;
 			}
 			headStr++;
-		}else
+		} else
 			headStr++;
 		s[ns++] = c;
-		if(ns + 1 >= as){	/* leave room for \c or "0 */
+		if(ns + 1 >= as) { /* leave room for \c or "0 */
 			as += StrAlloc;
 			s = erealloc(s, as);
 		}
@@ -1674,7 +1664,7 @@ headText(void)
  * if com and a comment is seen,
  * return it's contents and stop processing white space.
  */
-static char*
+static char *
 headSkipWhite(int com)
 {
 	char *s;
@@ -1686,8 +1676,8 @@ headSkipWhite(int com)
 	if(com)
 		s = emalloc(StrAlloc);
 	incom = 0;
-	for(; c = *headStr; headStr++){
-		switch(c){
+	for(; c = *headStr; headStr++) {
+		switch(c) {
 		case ' ':
 		case '\t':
 		case '\r':
@@ -1714,7 +1704,7 @@ headSkipWhite(int com)
 			break;
 		case ')':
 			incom--;
-			if(com && !incom){
+			if(com && !incom) {
 				s[ns] = '\0';
 				return s;
 			}
@@ -1724,15 +1714,16 @@ headSkipWhite(int com)
 				goto breakout;
 			break;
 		}
-		if(com && incom && (c != ' ' || ns > 0 && s[ns-1] != ' ')){
+		if(com && incom && (c != ' ' || ns > 0 && s[ns - 1] != ' ')) {
 			s[ns++] = c;
-			if(ns + 1 >= as){	/* leave room for \c or 0 */
+			if(ns + 1 >= as) { /* leave room for \c or 0 */
 				as += StrAlloc;
 				s = erealloc(s, as);
 			}
 		}
 	}
-breakout:;
+breakout:
+	;
 	free(s);
 	return nil;
 }
@@ -1758,12 +1749,12 @@ headToEnd(void)
 	uint8_t *s;
 	int c;
 
-	for(;;){
+	for(;;) {
 		s = headStr;
 		c = *s++;
 		while(c == '\r')
 			c = *s++;
-		if(c == '\n'){
+		if(c == '\n') {
 			c = *s++;
 			if(c != ' ' && c != '\t')
 				return;
@@ -1779,9 +1770,9 @@ headSkip(void)
 {
 	int c;
 
-	while(c = *headStr){
+	while(c = *headStr) {
 		headStr++;
-		if(c == '\n'){
+		if(c == '\n') {
 			c = *headStr;
 			if(c == ' ' || c == '\t')
 				continue;

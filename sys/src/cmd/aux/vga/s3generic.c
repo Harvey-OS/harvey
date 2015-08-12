@@ -18,7 +18,7 @@
  * Generic S3 GUI Accelerator.
  */
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 
@@ -42,26 +42,26 @@ snarf(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Memory size.
 	 */
-	switch((vga->crt[0x36]>>5) & 0x07){
+	switch((vga->crt[0x36] >> 5) & 0x07) {
 
 	case 0x00:
-		vga->vmz = 4*1024*1024;
+		vga->vmz = 4 * 1024 * 1024;
 		break;
 
 	case 0x02:
-		vga->vmz = 3*1024*1024;
+		vga->vmz = 3 * 1024 * 1024;
 		break;
 
 	case 0x04:
-		vga->vmz = 2*1024*1024;
+		vga->vmz = 2 * 1024 * 1024;
 		break;
 
 	case 0x06:
-		vga->vmz = 1*1024*1024;
+		vga->vmz = 1 * 1024 * 1024;
 		break;
 
 	case 0x07:
-		vga->vmz = 512*1024;
+		vga->vmz = 512 * 1024;
 		break;
 	}
 
@@ -69,7 +69,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Mode *mode;
 	uint32_t x;
@@ -80,11 +80,11 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Is enhanced mode is necessary?
 	 */
-	if((ctlr->flag & (Uenhanced|Henhanced)) == Henhanced){
+	if((ctlr->flag & (Uenhanced | Henhanced)) == Henhanced) {
 		if(mode->z >= 8)
 			resyncinit(vga, ctlr, Uenhanced, 0);
 		else
-			resyncinit(vga, ctlr, 0, Uenhanced|Henhanced);
+			resyncinit(vga, ctlr, 0, Uenhanced | Henhanced);
 	}
 	if((ctlr->flag & Uenhanced) == 0 && mode->x > 1024)
 		error("%s: no support for 1-bit mode > 1024x768x1\n", ctlr->name);
@@ -104,11 +104,10 @@ init(Vga* vga, Ctlr* ctlr)
 
 	vga->crt[0x34] = 0x10;
 	vga->crt[0x35] = 0x00;
-	if(mode->interlace){
-		vga->crt[0x3C] = vga->crt[0]/2;
+	if(mode->interlace) {
+		vga->crt[0x3C] = vga->crt[0] / 2;
 		vga->crt[0x42] |= 0x20;
-	}
-	else{
+	} else {
 		vga->crt[0x3C] = 0x00;
 		vga->crt[0x42] &= ~0x20;
 	}
@@ -132,7 +131,7 @@ init(Vga* vga, Ctlr* ctlr)
 		x = 0x81;
 	vga->crt[0x50] |= x;
 
-	vga->crt[0x51] = (vga->crt[0x51] & 0xC3)|((vga->crt[0x13]>>4) & 0x30);
+	vga->crt[0x51] = (vga->crt[0x51] & 0xC3) | ((vga->crt[0x13] >> 4) & 0x30);
 	vga->crt[0x53] &= ~0x10;
 
 	/*
@@ -140,16 +139,16 @@ init(Vga* vga, Ctlr* ctlr)
 	 * The real base address will be assigned before load is called.
 	 */
 	vga->crt[0x58] = 0x88;
-	if(ctlr->flag & Uenhanced){
+	if(ctlr->flag & Uenhanced) {
 		vga->crt[0x58] |= 0x10;
 		if(vga->linear && (ctlr->flag & Hlinear))
 			ctlr->flag |= Ulinear;
-		if(vga->vmz <= 1024*1024)
-			vga->vma = 1024*1024;
-		else if(vga->vmz <= 2*1024*1024)
-			vga->vma = 2*1024*1024;
+		if(vga->vmz <= 1024 * 1024)
+			vga->vma = 1024 * 1024;
+		else if(vga->vmz <= 2 * 1024 * 1024)
+			vga->vma = 2 * 1024 * 1024;
 		else
-			vga->vma = 8*1024*1024;
+			vga->vma = 8 * 1024 * 1024;
 	}
 	vga->crt[0x59] = 0x00;
 	vga->crt[0x5A] = 0x0A;
@@ -182,7 +181,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uint32_t l;
 
@@ -197,7 +196,7 @@ load(Vga* vga, Ctlr* ctlr)
 	vgaxo(Crtx, 0x3B, vga->crt[0x3B]);
 	vgaxo(Crtx, 0x3C, vga->crt[0x3C]);
 
-	vgaxo(Crtx, 0x40, vga->crt[0x40]|0x01);
+	vgaxo(Crtx, 0x40, vga->crt[0x40] | 0x01);
 	vgaxo(Crtx, 0x42, vga->crt[0x42]);
 	vgaxo(Crtx, 0x43, vga->crt[0x43]);
 	vgaxo(Crtx, 0x45, vga->crt[0x45]);
@@ -208,13 +207,13 @@ load(Vga* vga, Ctlr* ctlr)
 	vgaxo(Crtx, 0x54, vga->crt[0x54]);
 	vgaxo(Crtx, 0x55, vga->crt[0x55]);
 
-	if(ctlr->flag & Ulinear){
-		l = vga->vmb>>16;
-		vga->crt[0x59] = (l>>8) & 0xFF;
+	if(ctlr->flag & Ulinear) {
+		l = vga->vmb >> 16;
+		vga->crt[0x59] = (l >> 8) & 0xFF;
 		vga->crt[0x5A] = l & 0xFF;
-		if(vga->vmz <= 1024*1024)
+		if(vga->vmz <= 1024 * 1024)
 			vga->crt[0x58] |= 0x01;
-		else if(vga->vmz <= 2*1024*1024)
+		else if(vga->vmz <= 2 * 1024 * 1024)
 			vga->crt[0x58] |= 0x02;
 		else
 			vga->crt[0x58] |= 0x03;
@@ -232,7 +231,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i, id, interlace, mul, div;
 	char *name;
@@ -264,7 +263,6 @@ dump(Vga* vga, Ctlr* ctlr)
 	if(ctlr->flag & Finit)
 		return;
 
-
 	/*
 	 * If hde <= 400, assume this is a 928 or Vision964
 	 * and the horizontal values have been divided by 4.
@@ -275,10 +273,10 @@ dump(Vga* vga, Ctlr* ctlr)
 	mul = 1;
 	div = 1;
 
-	if(strcmp(name, "virge") == 0){
-		id = (vga->crt[0x2D]<<8)|vga->crt[0x2E];
+	if(strcmp(name, "virge") == 0) {
+		id = (vga->crt[0x2D] << 8) | vga->crt[0x2E];
 		/* S3 ViRGE/[DG]X */
-		if(id==0x8A01 && ((vga->crt[0x67] & 0x30) || (vga->crt[0x67] & 0x50))){
+		if(id == 0x8A01 && ((vga->crt[0x67] & 0x30) || (vga->crt[0x67] & 0x50))) {
 			mul = 1;
 			div = 2;
 		}
@@ -287,9 +285,9 @@ dump(Vga* vga, Ctlr* ctlr)
 	x = vga->crt[0x01];
 	if(vga->crt[0x5D] & 0x02)
 		x |= 0x100;
-	x = (x+1)<<3;
+	x = (x + 1) << 3;
 
-	if(x <= 400){
+	if(x <= 400) {
 		mul = 4;
 		div = 1;
 	}
@@ -302,7 +300,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	shb = vga->crt[0x02];
 	if(vga->crt[0x5D] & 0x04)
 		shb |= 0x100;
-	shb = (shb+1)<<3;
+	shb = (shb + 1) << 3;
 	shb = (shb * mul) / div;
 	printitem(name, "shb");
 	printreg(shb);
@@ -312,7 +310,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	if(vga->crt[0x05] & 0x80)
 		x |= 0x20;
 	x = (x * mul) / div;
-	x = shb|x;					/* ???? */
+	x = shb | x; /* ???? */
 	if(vga->crt[0x5D] & 0x08)
 		x += 64;
 	printitem(name, "ehb");
@@ -322,7 +320,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	x = vga->crt[0x00];
 	if(vga->crt[0x5D] & 0x01)
 		x |= 0x100;
-	x = (x+5)<<3;
+	x = (x + 5) << 3;
 	x = (x * mul) / div;
 	printitem(name, "ht");
 	printreg(x);
@@ -358,7 +356,7 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	if(interlace)
 		vrs /= 2;
-	x = (vrs & ~0x0F)|(vga->crt[0x11] & 0x0F);
+	x = (vrs & ~0x0F) | (vga->crt[0x11] & 0x0F);
 	if(interlace)
 		x *= 2;
 	printitem(name, "vre");
@@ -381,10 +379,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr s3generic = {
-	"s3",				/* name */
-	snarf,				/* snarf */
-	0,				/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "s3",  /* name */
+    snarf, /* snarf */
+    0,     /* options */
+    init,  /* init */
+    load,  /* load */
+    dump,  /* dump */
 };

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runeseprint(Rune *buf, Rune *e, char *fmt, ...)
 {
 	Rune *p;

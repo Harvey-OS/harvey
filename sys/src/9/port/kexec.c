@@ -7,18 +7,17 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"tos.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "tos.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	"../port/edf.h"
-#include	<a.out.h>
+#include "../port/edf.h"
+#include <a.out.h>
 #include "kexec.h"
-
 
 /* XXX: MOVE ME TO K10 */
 
@@ -32,21 +31,21 @@ typedef struct {
 } Khdr;
 
 enum {
-	AsmNONE		= 0,
-	AsmMEMORY	= 1,
-	AsmRESERVED	= 2,
-	AsmACPIRECLAIM	= 3,
-	AsmACPINVS	= 4,
+	AsmNONE = 0,
+	AsmMEMORY = 1,
+	AsmRESERVED = 2,
+	AsmACPIRECLAIM = 3,
+	AsmACPINVS = 4,
 
-	AsmDEV		= 5,
+	AsmDEV = 5,
 };
 
-Proc*
+Proc *
 setupseg(int core)
 {
 	Proc *up = externup();
 	Segment *s;
-	uintptr_t  ka;
+	uintptr_t ka;
 	Proc *p;
 	static Pgrp *kpgrp;
 	Segment *tseg;
@@ -88,7 +87,6 @@ setupseg(int core)
 
 	procpriority(p, PriKproc, 0);
 
-
 	// XXX: kluge 4 pages of address space for this.
 	// how will it expand up? gives us <50 kprocs as is.
 
@@ -102,25 +100,24 @@ setupseg(int core)
 	// XXX: now that we are asmalloc we are no long proc.
 	/* Stack */
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
-	tseg = newseg(SG_STACK|SG_READ|SG_WRITE, ka, 1);
+	tseg = newseg(SG_STACK | SG_READ | SG_WRITE, ka, 1);
 	tseg = p->seg[sno++];
 
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
-	s = newseg(SG_TEXT|SG_READ|SG_EXEC, ka, 1);
+	s = newseg(SG_TEXT | SG_READ | SG_EXEC, ka, 1);
 	p->seg[sno++] = s;
-//	s->color = acpicorecolor(core);
+	//	s->color = acpicorecolor(core);
 
 	/* Data. Shared. */
 	// XXX; Now that the address space is all funky how are we going to handle shared data segments?
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 2));
-	s = newseg(SG_DATA|SG_READ|SG_WRITE, ka, 1);
+	s = newseg(SG_DATA | SG_READ | SG_WRITE, ka, 1);
 	p->seg[sno++] = s;
 	s->color = tseg->color;
 
 	/* BSS. Uses asm from data map. */
-	p->seg[sno++] = newseg(SG_BSS|SG_READ|SG_WRITE, ka+BIGPGSZ, 1);
-	p->seg[sno++]->color= tseg->color;
-
+	p->seg[sno++] = newseg(SG_BSS | SG_READ | SG_WRITE, ka + BIGPGSZ, 1);
+	p->seg[sno++]->color = tseg->color;
 
 	nixprepage(-1);
 

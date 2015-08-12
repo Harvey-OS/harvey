@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <authsrv.h>
 
-static int32_t	finddosfile(int, char*);
+static int32_t finddosfile(int, char *);
 
 static int
 check(void *x, int len, uint8_t sum, char *msg)
@@ -33,22 +33,22 @@ static struct {
 	int off;
 	int len;
 } nvtab[] = {
-	"sparc", "#r/nvram", 1024+850, sizeof(Nvrsafe),
-	"pc", "#S/sdC0/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
-	"pc", "#f/fd1disk", -1, 512,
-	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
-	"power", "#F/flash/flash0", 0x300000, sizeof(Nvrsafe),
-	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
-	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
+    "sparc", "#r/nvram", 1024 + 850, sizeof(Nvrsafe),
+    "pc", "#S/sdC0/nvram", 0, sizeof(Nvrsafe),
+    "pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
+    "pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe),
+    "pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
+    "pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
+    "pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe),
+    "pc", "#f/fd0disk", -1, 512, /* 512: #f requires whole sector reads */
+    "pc", "#f/fd1disk", -1, 512,
+    "mips", "#r/nvram", 1024 + 900, sizeof(Nvrsafe),
+    "power", "#F/flash/flash0", 0x300000, sizeof(Nvrsafe),
+    "power", "#r/nvram", 4352, sizeof(Nvrsafe), /* OK for MTX-604e */
+    "debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
 
-static char*
+static char *
 readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 {
 	int fdin, fdout, ctl, n, m;
@@ -64,7 +64,7 @@ readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 		fprint(fdout, "%s[%s]: ", prompt, def);
 	else
 		fprint(fdout, "%s: ", prompt);
-	if(raw){
+	if(raw) {
 		ctl = open("/dev/consctl", OWRITE);
 		if(ctl >= 0)
 			write(ctl, "rawon", 5);
@@ -72,55 +72,54 @@ readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 		ctl = -1;
 
 	m = 0;
-	for(;;){
+	for(;;) {
 		n = read(fdin, line, 1);
-		if(n == 0){
+		if(n == 0) {
 			close(ctl);
 			werrstr("readcons: EOF");
 			return nil;
 		}
-		if(n < 0){
+		if(n < 0) {
 			close(ctl);
 			werrstr("can't read cons");
 			return nil;
 		}
 		if(line[0] == 0x7f)
 			exits(0);
-		if(n == 0 || line[0] == '\n' || line[0] == '\r'){
-			if(raw){
+		if(n == 0 || line[0] == '\n' || line[0] == '\r') {
+			if(raw) {
 				write(ctl, "rawoff", 6);
 				write(fdout, "\n", 1);
 				close(ctl);
 			}
 			buf[m] = '\0';
-			if(buf[0]=='\0' && def)
+			if(buf[0] == '\0' && def)
 				strcpy(buf, def);
 			return buf;
 		}
-		if(line[0] == '\b'){
+		if(line[0] == '\b') {
 			if(m > 0)
 				m--;
-		}else if(line[0] == 0x15){	/* ^U: line kill */
+		} else if(line[0] == 0x15) { /* ^U: line kill */
 			m = 0;
 			if(def != nil)
 				fprint(fdout, "%s[%s]: ", prompt, def);
 			else
 				fprint(fdout, "%s: ", prompt);
-		}else{
-			if(m >= nbuf-1){
+		} else {
+			if(m >= nbuf - 1) {
 				fprint(fdout, "line too long\n");
 				m = 0;
 				if(def != nil)
 					fprint(fdout, "%s[%s]: ", prompt, def);
 				else
 					fprint(fdout, "%s: ", prompt);
-			}else
+			} else
 				buf[m++] = line[0];
 		}
 	}
-	return buf;	/* how does this happen */
+	return buf; /* how does this happen */
 }
-
 
 /*
  *  get key info out of nvram.  since there isn't room in the PC's nvram use
@@ -140,15 +139,15 @@ readnvram(Nvrsafe *safep, int flag)
 	cputype = getenv("cputype");
 	if(cputype == nil)
 		cputype = "mips";
-	if(strcmp(cputype, "386")==0 || strcmp(cputype, "alpha")==0)
+	if(strcmp(cputype, "386") == 0 || strcmp(cputype, "alpha") == 0)
 		cputype = "pc";
 
-	safe = (Nvrsafe*)buf;
+	safe = (Nvrsafe *)buf;
 
 	fd = -1;
 	safeoff = -1;
 	safelen = -1;
-	if(nvrfile != nil){
+	if(nvrfile != nil) {
 		/* accept device and device!file */
 		i = gettokens(nvrfile, v, nelem(v), "!");
 		fd = open(v[0], ORDWR);
@@ -159,16 +158,16 @@ readnvram(Nvrsafe *safep, int flag)
 		if(nvrlen != nil)
 			safelen = atoi(nvrlen);
 		nvroff = getenv("nvroff");
-		if(nvroff != nil){
+		if(nvroff != nil) {
 			if(strcmp(nvroff, "dos") == 0)
 				safeoff = -1;
 			else
 				safeoff = atoi(nvroff);
 		}
-		if(safeoff < 0 && fd >= 0){
+		if(safeoff < 0 && fd >= 0) {
 			safelen = 512;
 			safeoff = finddosfile(fd, i == 2 ? v[1] : "plan9.nvr");
-			if(safeoff < 0){
+			if(safeoff < 0) {
 				close(fd);
 				fd = -1;
 			}
@@ -178,17 +177,17 @@ readnvram(Nvrsafe *safep, int flag)
 			free(nvrlen);
 		if(nvroff != nil)
 			free(nvroff);
-	}else{
-		for(i=0; i<nelem(nvtab); i++){
+	} else {
+		for(i = 0; i < nelem(nvtab); i++) {
 			if(strcmp(cputype, nvtab[i].cputype) != 0)
 				continue;
 			if((fd = open(nvtab[i].file, ORDWR)) < 0)
 				continue;
 			safeoff = nvtab[i].off;
 			safelen = nvtab[i].len;
-			if(safeoff == -1){
+			if(safeoff == -1) {
 				safeoff = finddosfile(fd, "plan9.nvr");
-				if(safeoff < 0){
+				if(safeoff < 0) {
 					close(fd);
 					fd = -1;
 					continue;
@@ -198,29 +197,27 @@ readnvram(Nvrsafe *safep, int flag)
 		}
 	}
 
-	if(fd < 0
-	|| seek(fd, safeoff, 0) < 0
-	|| read(fd, buf, safelen) != safelen){
+	if(fd < 0 || seek(fd, safeoff, 0) < 0 || read(fd, buf, safelen) != safelen) {
 		err = 1;
-		if(flag&(NVwrite|NVwriteonerr))
+		if(flag & (NVwrite | NVwriteonerr))
 			fprint(2, "can't read nvram: %r\n");
 		memset(safep, 0, sizeof(*safep));
 		safe = safep;
-	}else{
+	} else {
 		*safep = *safe;
 		safe = safep;
 
 		err |= check(safe->machkey, DESKEYLEN, safe->machsum, "bad nvram key");
-//		err |= check(safe->config, CONFIGLEN, safe->configsum, "bad secstore key");
+		//		err |= check(safe->config, CONFIGLEN, safe->configsum, "bad secstore key");
 		err |= check(safe->authid, ANAMELEN, safe->authidsum, "bad authentication id");
 		err |= check(safe->authdom, DOMLEN, safe->authdomsum, "bad authentication domain");
 	}
 
-	if((flag&NVwrite) || (err && (flag&NVwriteonerr))){
+	if((flag & NVwrite) || (err && (flag & NVwriteonerr))) {
 		readcons("authid", nil, 0, safe->authid, sizeof(safe->authid));
 		readcons("authdom", nil, 0, safe->authdom, sizeof(safe->authdom));
 		readcons("secstore key", nil, 1, safe->config, sizeof(safe->config));
-		for(;;){
+		for(;;) {
 			if(readcons("password", nil, 1, in, sizeof in) == nil)
 				goto Out;
 			if(passtokey(safe->machkey, in))
@@ -230,12 +227,11 @@ readnvram(Nvrsafe *safep, int flag)
 		safe->configsum = nvcsum(safe->config, CONFIGLEN);
 		safe->authidsum = nvcsum(safe->authid, sizeof(safe->authid));
 		safe->authdomsum = nvcsum(safe->authdom, sizeof(safe->authdom));
-		*(Nvrsafe*)buf = *safe;
-		if(seek(fd, safeoff, 0) < 0
-		|| write(fd, buf, safelen) != safelen){
+		*(Nvrsafe *)buf = *safe;
+		if(seek(fd, safeoff, 0) < 0 || write(fd, buf, safelen) != safelen) {
 			fprint(2, "can't write key to nvram: %r\n");
 			err = 1;
-		}else
+		} else
 			err = 0;
 	}
 Out:
@@ -243,46 +239,45 @@ Out:
 	return err ? -1 : 0;
 }
 
-typedef struct Dosboot	Dosboot;
-struct Dosboot{
-	uint8_t	magic[3];	/* really an xx86 JMP instruction */
-	uint8_t	version[8];
-	uint8_t	sectsize[2];
-	uint8_t	clustsize;
-	uint8_t	nresrv[2];
-	uint8_t	nfats;
-	uint8_t	rootsize[2];
-	uint8_t	volsize[2];
-	uint8_t	mediadesc;
-	uint8_t	fatsize[2];
-	uint8_t	trksize[2];
-	uint8_t	nheads[2];
-	uint8_t	nhidden[4];
-	uint8_t	bigvolsize[4];
-	uint8_t	driveno;
-	uint8_t	reserved0;
-	uint8_t	bootsig;
-	uint8_t	volid[4];
-	uint8_t	label[11];
-	uint8_t	type[8];
+typedef struct Dosboot Dosboot;
+struct Dosboot {
+	uint8_t magic[3]; /* really an xx86 JMP instruction */
+	uint8_t version[8];
+	uint8_t sectsize[2];
+	uint8_t clustsize;
+	uint8_t nresrv[2];
+	uint8_t nfats;
+	uint8_t rootsize[2];
+	uint8_t volsize[2];
+	uint8_t mediadesc;
+	uint8_t fatsize[2];
+	uint8_t trksize[2];
+	uint8_t nheads[2];
+	uint8_t nhidden[4];
+	uint8_t bigvolsize[4];
+	uint8_t driveno;
+	uint8_t reserved0;
+	uint8_t bootsig;
+	uint8_t volid[4];
+	uint8_t label[11];
+	uint8_t type[8];
 };
-#define	GETSHORT(p) (((p)[1]<<8) | (p)[0])
-#define	GETLONG(p) ((GETSHORT((p)+2) << 16) | GETSHORT((p)))
+#define GETSHORT(p) (((p)[1] << 8) | (p)[0])
+#define GETLONG(p) ((GETSHORT((p) + 2) << 16) | GETSHORT((p)))
 
-typedef struct Dosdir	Dosdir;
-struct Dosdir
-{
-	char	name[8];
-	char	ext[3];
-	uint8_t	attr;
-	uint8_t	reserved[10];
-	uint8_t	time[2];
-	uint8_t	date[2];
-	uint8_t	start[2];
-	uint8_t	length[4];
+typedef struct Dosdir Dosdir;
+struct Dosdir {
+	char name[8];
+	char ext[3];
+	uint8_t attr;
+	uint8_t reserved[10];
+	uint8_t time[2];
+	uint8_t date[2];
+	uint8_t start[2];
+	uint8_t length[4];
 };
 
-static char*
+static char *
 dosparse(char *from, char *to, int len)
 {
 	char c;
@@ -290,7 +285,7 @@ dosparse(char *from, char *to, int len)
 	memset(to, ' ', len);
 	if(from == 0)
 		return 0;
-	while(len-- > 0){
+	while(len-- > 0) {
 		c = *from++;
 		if(c == '.')
 			return from;
@@ -324,7 +319,7 @@ finddosfile(int fd, char *file)
 	uint8_t secbuf[512];
 	char name[8];
 	char ext[3];
-	Dosboot	*b;
+	Dosboot *b;
 	Dosdir *root, *dp;
 	int nroot, sectsize, rootoff, rootsects, n;
 
@@ -333,7 +328,7 @@ finddosfile(int fd, char *file)
 	dosparse(file, ext, 3);
 
 	/* read boot block, check for sanity */
-	b = (Dosboot*)secbuf;
+	b = (Dosboot *)secbuf;
 	if(read(fd, secbuf, sizeof(secbuf)) != sizeof(secbuf))
 		return -1;
 	if(b->magic[0] != 0xEB || b->magic[1] != 0x3C || b->magic[2] != 0x90)
@@ -341,11 +336,11 @@ finddosfile(int fd, char *file)
 	sectsize = GETSHORT(b->sectsize);
 	if(sectsize != 512)
 		return -1;
-	rootoff = (GETSHORT(b->nresrv) + b->nfats*GETSHORT(b->fatsize)) * sectsize;
+	rootoff = (GETSHORT(b->nresrv) + b->nfats * GETSHORT(b->fatsize)) * sectsize;
 	if(seek(fd, rootoff, 0) < 0)
 		return -1;
 	nroot = GETSHORT(b->rootsize);
-	rootsects = (nroot*sizeof(Dosdir)+sectsize-1)/sectsize;
+	rootsects = (nroot * sizeof(Dosdir) + sectsize - 1) / sectsize;
 	if(rootsects <= 0 || rootsects > 64)
 		return -1;
 
@@ -353,12 +348,12 @@ finddosfile(int fd, char *file)
 	 *  read root. it is contiguous to make stuff like
 	 *  this easier
 	 */
-	root = malloc(rootsects*sectsize);
-	if(read(fd, root, rootsects*sectsize) != rootsects*sectsize)
+	root = malloc(rootsects * sectsize);
+	if(read(fd, root, rootsects * sectsize) != rootsects * sectsize)
 		return -1;
 	n = -1;
 	for(dp = root; dp < &root[nroot]; dp++)
-		if(memcmp(name, dp->name, 8) == 0 && memcmp(ext, dp->ext, 3) == 0){
+		if(memcmp(name, dp->name, 8) == 0 && memcmp(ext, dp->ext, 3) == 0) {
 			n = GETSHORT(dp->start);
 			break;
 		}
@@ -372,6 +367,5 @@ finddosfile(int fd, char *file)
 	 *  cluster is cluster 2 which starts immediately after the
 	 *  root directory
 	 */
-	return rootoff + rootsects*sectsize + (n-2)*sectsize*b->clustsize;
+	return rootoff + rootsects * sectsize + (n - 2) * sectsize * b->clustsize;
 }
-

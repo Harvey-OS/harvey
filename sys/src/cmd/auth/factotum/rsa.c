@@ -42,17 +42,16 @@ enum {
 };
 
 static char *phasenames[] = {
-[CHavePub]	"CHavePub",
-[CHaveResp]	"CHaveResp",
-[VNeedHash]	"VNeedHash",
-[VNeedSig]	"VNeedSig",
-[VHaveResp]	"VHaveResp",
-[SNeedHash]	"SNeedHash",
-[SHaveResp]	"SHaveResp",
+	[CHavePub] "CHavePub",
+	[CHaveResp] "CHaveResp",
+	[VNeedHash] "VNeedHash",
+	[VNeedSig] "VNeedSig",
+	[VHaveResp] "VHaveResp",
+	[SNeedHash] "SNeedHash",
+	[SHaveResp] "SHaveResp",
 };
 
-struct State
-{
+struct State {
 	RSApriv *priv;
 	mpint *resp;
 	int off;
@@ -61,10 +60,10 @@ struct State
 	int sigresp;
 };
 
-static mpint* mkdigest(RSApub *key, char *hashalg, uint8_t *hash,
+static mpint *mkdigest(RSApub *key, char *hashalg, uint8_t *hash,
 		       uint dlen);
 
-static RSApriv*
+static RSApriv *
 readrsapriv(Key *k)
 {
 	char *a;
@@ -72,23 +71,23 @@ readrsapriv(Key *k)
 
 	priv = rsaprivalloc();
 
-	if((a=_strfindattr(k->attr, "ek"))==nil || (priv->pub.ek=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->attr, "ek")) == nil || (priv->pub.ek = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if((a=_strfindattr(k->attr, "n"))==nil || (priv->pub.n=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->attr, "n")) == nil || (priv->pub.n = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if(k->privattr == nil)		/* only public half */
+	if(k->privattr == nil) /* only public half */
 		return priv;
-	if((a=_strfindattr(k->privattr, "!p"))==nil || (priv->p=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->privattr, "!p")) == nil || (priv->p = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!q"))==nil || (priv->q=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->privattr, "!q")) == nil || (priv->q = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!kp"))==nil || (priv->kp=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->privattr, "!kp")) == nil || (priv->kp = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!kq"))==nil || (priv->kq=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->privattr, "!kq")) == nil || (priv->kq = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!c2"))==nil || (priv->c2=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->privattr, "!c2")) == nil || (priv->c2 = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!dk"))==nil || (priv->dk=strtomp(a, nil, 16, nil))==nil)
+	if((a = _strfindattr(k->privattr, "!dk")) == nil || (priv->dk = strtomp(a, nil, 16, nil)) == nil)
 		goto Error;
 	return priv;
 
@@ -98,7 +97,7 @@ Error:
 }
 
 static int
-rsainit(Proto* p, Fsstate *fss)
+rsainit(Proto *p, Fsstate *fss)
 {
 	Keyinfo ki;
 	State *s;
@@ -120,7 +119,7 @@ rsainit(Proto* p, Fsstate *fss)
 	fss->maxphase = Maxphase;
 	fss->ps = s;
 
-	switch(fss->phase){
+	switch(fss->phase) {
 	case SNeedHash:
 	case VNeedHash:
 		mkkeyinfo(&ki, fss, nil);
@@ -129,7 +128,7 @@ rsainit(Proto* p, Fsstate *fss)
 		/* signing needs private key */
 		if(fss->phase == SNeedHash && s->key->privattr == nil)
 			return failure(fss,
-				"missing private half of key -- cannot sign");
+				       "missing private half of key -- cannot sign");
 	}
 	return RpcOk;
 }
@@ -144,11 +143,11 @@ rsaread(Fsstate *fss, void *va, uint *n)
 	int len, r;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "read");
 	case CHavePub:
-		if(s->key){
+		if(s->key) {
 			closekey(s->key);
 			s->key = nil;
 		}
@@ -167,22 +166,21 @@ rsaread(Fsstate *fss, void *va, uint *n)
 		return RpcOk;
 	case SHaveResp:
 		priv = s->key->priv;
-		len = (mpsignif(priv->pub.n)+7)/8;
+		len = (mpsignif(priv->pub.n) + 7) / 8;
 		if(len > *n)
 			return failure(fss, "signature buffer too short");
 		m = rsadecrypt(priv, s->digest, nil);
-		r = mptobe(m, (uint8_t*)va, len, nil);
-		if(r < len){
-			memmove((uint8_t*)va+len-r, va, r);
-			memset(va, 0, len-r);
+		r = mptobe(m, (uint8_t *)va, len, nil);
+		if(r < len) {
+			memmove((uint8_t *)va + len - r, va, r);
+			memset(va, 0, len - r);
 		}
 		*n = len;
 		mpfree(m);
 		fss->phase = Established;
 		return RpcOk;
 	case VHaveResp:
-		*n = snprint(va, *n, "%s", s->sigresp == 0? "ok":
-			"signature does not verify");
+		*n = snprint(va, *n, "%s", s->sigresp == 0 ? "ok" : "signature does not verify");
 		fss->phase = Established;
 		return RpcOk;
 	}
@@ -198,13 +196,13 @@ rsawrite(Fsstate *fss, void *va, uint n)
 	int dlen;
 
 	s = fss->ps;
-	switch(fss->phase){
+	switch(fss->phase) {
 	default:
 		return phaseerror(fss, "write");
 	case CHavePub:
 		if(s->key == nil)
 			return failure(fss, "no current key");
-		switch(canusekey(fss, s->key)){
+		switch(canusekey(fss, s->key)) {
 		case -1:
 			return RpcConfirm;
 		case 0:
@@ -233,7 +231,7 @@ rsawrite(Fsstate *fss, void *va, uint n)
 			return failure(fss, "unknown hash function %s", hash);
 		if(n != dlen)
 			return failure(fss, "hash length %d should be %d",
-				n, dlen);
+				       n, dlen);
 		priv = s->key->priv;
 		s->digest = mkdigest(&priv->pub, hash, (uint8_t *)va, n);
 		if(s->digest == nil)
@@ -245,7 +243,7 @@ rsawrite(Fsstate *fss, void *va, uint n)
 		return RpcOk;
 	case VNeedSig:
 		priv = s->key->priv;
-		m = betomp((uint8_t*)va, n, nil);
+		m = betomp((uint8_t *)va, n, nil);
 		mm = rsaencrypt(&priv->pub, m, nil);
 		s->sigresp = mpcmp(s->digest, mm);
 		mpfree(m);
@@ -275,7 +273,7 @@ rsaaddkey(Key *k, int before)
 {
 	fmtinstall('B', mpfmt);
 
-	if((k->priv = readrsapriv(k)) == nil){
+	if((k->priv = readrsapriv(k)) == nil) {
 		werrstr("malformed key data");
 		return -1;
 	}
@@ -289,13 +287,13 @@ rsaclosekey(Key *k)
 }
 
 Proto rsa = {
-.name=	"rsa",
-.init=		rsainit,
-.write=	rsawrite,
-.read=	rsaread,
-.close=	rsaclose,
-.addkey=	rsaaddkey,
-.closekey=	rsaclosekey,
+    .name = "rsa",
+    .init = rsainit,
+    .write = rsawrite,
+    .read = rsaread,
+    .close = rsaclose,
+    .addkey = rsaaddkey,
+    .closekey = rsaclosekey,
 };
 
 /*
@@ -310,17 +308,17 @@ Proto rsa = {
  * SHA1 = 1.3.14.3.2.26
  * MDx = 1.2.840.113549.2.x
  */
-#define O0(a,b)	((a)*40+(b))
-#define O2(x)	\
-	(((x)>> 7)&0x7F)|0x80, \
-	((x)&0x7F)
-#define O3(x)	\
-	(((x)>>14)&0x7F)|0x80, \
-	(((x)>> 7)&0x7F)|0x80, \
-	((x)&0x7F)
-uint8_t oidsha1[] = { O0(1, 3), 14, 3, 2, 26 };
-uint8_t oidmd2[] = { O0(1, 2), O2(840), O3(113549), 2, 2 };
-uint8_t oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
+#define O0(a, b) ((a)*40 + (b))
+#define O2(x)                       \
+	(((x) >> 7) & 0x7F) | 0x80, \
+	    ((x)&0x7F)
+#define O3(x)                           \
+	(((x) >> 14) & 0x7F) | 0x80,    \
+	    (((x) >> 7) & 0x7F) | 0x80, \
+	    ((x)&0x7F)
+uint8_t oidsha1[] = {O0(1, 3), 14, 3, 2, 26};
+uint8_t oidmd2[] = {O0(1, 2), O2(840), O3(113549), 2, 2};
+uint8_t oidmd5[] = {O0(1, 2), O2(840), O3(113549), 2, 5};
 
 /*
  *	DigestInfo ::= SEQUENCE {
@@ -343,44 +341,44 @@ mkasn1(uint8_t *asn1, char *alg, uint8_t *d, uint dlen)
 	uint8_t *obj, *p;
 	uint olen;
 
-	if(strcmp(alg, "sha1") == 0){
+	if(strcmp(alg, "sha1") == 0) {
 		obj = oidsha1;
 		olen = sizeof(oidsha1);
-	}else if(strcmp(alg, "md5") == 0){
+	} else if(strcmp(alg, "md5") == 0) {
 		obj = oidmd5;
 		olen = sizeof(oidmd5);
-	}else{
+	} else {
 		sysfatal("bad alg in mkasn1");
 		return -1;
 	}
 
 	p = asn1;
-	*p++ = 0x30;		/* sequence */
+	*p++ = 0x30; /* sequence */
 	p++;
 
-	*p++ = 0x30;		/* another sequence */
+	*p++ = 0x30; /* another sequence */
 	p++;
 
-	*p++ = 0x06;		/* object id */
+	*p++ = 0x06; /* object id */
 	*p++ = olen;
 	memmove(p, obj, olen);
 	p += olen;
 
-	*p++ = 0x05;		/* null */
+	*p++ = 0x05; /* null */
 	*p++ = 0;
 
-	asn1[3] = p - (asn1+4);	/* end of inner sequence */
+	asn1[3] = p - (asn1 + 4); /* end of inner sequence */
 
-	*p++ = 0x04;		/* octet string */
+	*p++ = 0x04; /* octet string */
 	*p++ = dlen;
 	memmove(p, d, dlen);
 	p += dlen;
 
-	asn1[1] = p - (asn1+2);	/* end of outer sequence */
+	asn1[1] = p - (asn1 + 2); /* end of outer sequence */
 	return p - asn1;
 }
 
-static mpint*
+static mpint *
 mkdigest(RSApub *key, char *hashalg, uint8_t *hash, uint dlen)
 {
 	mpint *m;
@@ -395,17 +393,17 @@ mkdigest(RSApub *key, char *hashalg, uint8_t *hash, uint dlen)
 	/*
 	 * PKCS#1 padding
 	 */
-	len = (mpsignif(key->n)+7)/8 - 1;
-	if(len < n+2){
+	len = (mpsignif(key->n) + 7) / 8 - 1;
+	if(len < n + 2) {
 		werrstr("rsa key too short");
 		return nil;
 	}
-	pad = len - (n+2);
+	pad = len - (n + 2);
 	buf = emalloc(len);
 	buf[0] = 0x01;
-	memset(buf+1, 0xFF, pad);
-	buf[1+pad] = 0x00;
-	memmove(buf+1+pad+1, asn1, n);
+	memset(buf + 1, 0xFF, pad);
+	buf[1 + pad] = 0x00;
+	memmove(buf + 1 + pad + 1, asn1, n);
 	m = betomp(buf, len, nil);
 	free(buf);
 	return m;

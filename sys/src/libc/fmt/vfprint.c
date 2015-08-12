@@ -20,7 +20,7 @@ _fmtFdFlush(Fmt *f)
 {
 	int n;
 
-	n = (char*)f->to - (char*)f->start;
+	n = (char *)f->to - (char *)f->start;
 	if(n && write((int)(uintptr)f->farg, f->start, n) != n)
 		return 0;
 	f->to = f->start;
@@ -36,7 +36,7 @@ vfprint(int fd, char *fmt, va_list args)
 
 	fmtfdinit(&f, fd, buf, sizeof(buf));
 	//f.args = args;
-	va_copy(f.args,args);
+	va_copy(f.args, args);
 	n = dofmt(&f, fmt);
 	va_end(f.args);
 	if(n > 0 && _fmtFdFlush(&f) == 0)

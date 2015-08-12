@@ -11,19 +11,18 @@
 #include <libc.h>
 #include <bio.h>
 
-uint64_t	count[Runemax+1];
-Biobuf	bout;
+uint64_t count[Runemax + 1];
+Biobuf bout;
 
-void	usage(void);
-void	freq(int, char*);
-int32_t	flag;
-enum
-{
-	Fdec	= 1<<0,
-	Fhex	= 1<<1,
-	Foct	= 1<<2,
-	Fchar	= 1<<3,
-	Frune	= 1<<4,
+void usage(void);
+void freq(int, char *);
+int32_t flag;
+enum {
+	Fdec = 1 << 0,
+	Fhex = 1 << 1,
+	Foct = 1 << 2,
+	Fchar = 1 << 3,
+	Frune = 1 << 4,
 };
 
 void
@@ -33,7 +32,8 @@ main(int argc, char *argv[])
 
 	flag = 0;
 	Binit(&bout, 1, OWRITE);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		flag |= Fdec;
 		break;
@@ -51,14 +51,15 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
-	if((flag&(Fdec|Fhex|Foct|Fchar)) == 0)
+	}
+	ARGEND
+	if((flag & (Fdec | Fhex | Foct | Fchar)) == 0)
 		flag |= Fdec | Fhex | Foct | Fchar;
 	if(argc < 1) {
 		freq(0, "-");
 		exits(0);
 	}
-	for(i=0; i<argc; i++) {
+	for(i = 0; i < argc; i++) {
 		f = open(argv[i], 0);
 		if(f < 0) {
 			fprint(2, "open %s: %r\n", argv[i]);
@@ -104,7 +105,7 @@ freq(int f, char *s)
 	if(c != Beof)
 		fprint(2, "freq: read error on %s\n", s);
 
-	for(i=0; i<nelem(count); i++) {
+	for(i = 0; i < nelem(count); i++) {
 		if(count[i] == 0)
 			continue;
 		if(flag & Fdec)

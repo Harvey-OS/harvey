@@ -11,19 +11,18 @@
 #include "vncv.h"
 #include <libsec.h>
 
-char*	encodings = "copyrect hextile corre rre raw mousewarp";
-int		bpp12;
-int		shared;
-int		verbose;
-Vnc*		vnc;
-int		mousefd;
-int		tls;
+char *encodings = "copyrect hextile corre rre raw mousewarp";
+int bpp12;
+int shared;
+int verbose;
+Vnc *vnc;
+int mousefd;
+int tls;
 
-static int	vncstart(Vnc*, int);
+static int vncstart(Vnc *, int);
 
-enum
-{
-	NProcs	= 4
+enum {
+	NProcs = 4
 };
 
 static int pids[NProcs];
@@ -49,7 +48,7 @@ shutdown(void)
 			postnote(PNPROC, pids[i], killkin);
 }
 
-char*
+char *
 netmkvncaddr(char *inserver)
 {
 	char *p, portstr[NETPATHLEN], *server;
@@ -73,7 +72,7 @@ netmkvncaddr(char *inserver)
 }
 
 void
-vnchungup(Vnc*)
+vnchungup(Vnc *)
 {
 	sysfatal("connection closed");
 }
@@ -95,7 +94,8 @@ main(int argc, char **argv)
 
 	keypattern = nil;
 	shared = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'c':
 		bpp12 = 1;
 		break;
@@ -116,7 +116,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -126,7 +127,7 @@ main(int argc, char **argv)
 	dfd = dial(addr, nil, nil, &cfd);
 	if(dfd < 0)
 		sysfatal("cannot dial %s: %r", addr);
-	if(tls){
+	if(tls) {
 		dfd = tlsClient(dfd, &conn);
 		if(dfd < 0)
 			sysfatal("tlsClient: %r");
@@ -145,7 +146,7 @@ main(int argc, char **argv)
 	display->locking = 1;
 	unlockdisplay(display);
 
-	d = addpt(vnc->dim, Pt(2*Borderwidth, 2*Borderwidth));
+	d = addpt(vnc->dim, Pt(2 * Borderwidth, 2 * Borderwidth));
 	if(verbose)
 		fprint(2, "screen size %P, desktop size %P\n", display->image->r.max, d);
 
@@ -157,7 +158,7 @@ main(int argc, char **argv)
 	atexit(shutdown);
 	pids[0] = getpid();
 
-	switch(p = rfork(RFPROC|RFMEM)){
+	switch(p = rfork(RFPROC | RFMEM)) {
 	case -1:
 		sysfatal("rfork: %r");
 	default:
@@ -169,7 +170,7 @@ main(int argc, char **argv)
 	}
 	pids[1] = p;
 
-	switch(p = rfork(RFPROC|RFMEM)){
+	switch(p = rfork(RFPROC | RFMEM)) {
 	case -1:
 		sysfatal("rfork: %r");
 	default:
@@ -182,12 +183,12 @@ main(int argc, char **argv)
 	pids[2] = p;
 
 	fd = open("/dev/label", OWRITE);
-	if(fd >= 0){
+	if(fd >= 0) {
 		fprint(fd, "vnc %s", serveraddr);
 		close(fd);
 	}
-	if(access("/dev/snarf", AEXIST) >= 0){
-		switch(p = rfork(RFPROC|RFMEM)){
+	if(access("/dev/snarf", AEXIST) >= 0) {
+		switch(p = rfork(RFPROC | RFMEM)) {
 		case -1:
 			sysfatal("rfork: %r");
 		default:

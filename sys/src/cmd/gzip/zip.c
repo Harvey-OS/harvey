@@ -13,38 +13,37 @@
 #include <flate.h>
 #include "zip.h"
 
-enum
-{
-	HeadAlloc	= 64,
+enum {
+	HeadAlloc = 64,
 };
 
-static	void	zip(Biobuf *bout, char *file, int stdout);
-static	void	zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout);
-static	int	crcread(void *fd, void *buf, int n);
-static	int	zwrite(void *bout, void *buf, int n);
-static	void	put4(Biobuf *b, uint32_t v);
-static	void	put2(Biobuf *b, int v);
-static	void	put1(Biobuf *b, int v);
-static	void	header(Biobuf *bout, ZipHead *zh);
-static	void	trailer(Biobuf *bout, ZipHead *zh, int64_t off);
-static	void	putCDir(Biobuf *bout);
+static void zip(Biobuf *bout, char *file, int stdout);
+static void zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout);
+static int crcread(void *fd, void *buf, int n);
+static int zwrite(void *bout, void *buf, int n);
+static void put4(Biobuf *b, uint32_t v);
+static void put2(Biobuf *b, int v);
+static void put1(Biobuf *b, int v);
+static void header(Biobuf *bout, ZipHead *zh);
+static void trailer(Biobuf *bout, ZipHead *zh, int64_t off);
+static void putCDir(Biobuf *bout);
 
-static	void	error(char*, ...);
-#pragma	varargck	argpos	error	1
+static void error(char *, ...);
+#pragma varargck argpos error 1
 
-static	Biobuf	bout;
-static	uint32_t	crc;
-static	uint32_t	*crctab;
-static	int	debug;
-static	int	eof;
-static	int	level;
-static	int	nzheads;
-static	uint32_t	totr;
-static	uint32_t	totw;
-static	int	verbose;
-static	int	zhalloc;
-static	ZipHead	*zheads;
-static	jmp_buf	zjmp;
+static Biobuf bout;
+static uint32_t crc;
+static uint32_t *crctab;
+static int debug;
+static int eof;
+static int level;
+static int nzheads;
+static uint32_t totr;
+static uint32_t totw;
+static int verbose;
+static int zhalloc;
+static ZipHead *zheads;
+static jmp_buf zjmp;
 
 void
 usage(void)
@@ -61,7 +60,8 @@ main(int argc, char *argv[])
 
 	zfile = nil;
 	level = 6;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		debug++;
 		break;
@@ -73,14 +73,22 @@ main(int argc, char *argv[])
 	case 'v':
 		verbose++;
 		break;
-	case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 		level = ARGC() - '0';
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		usage();
@@ -92,15 +100,15 @@ main(int argc, char *argv[])
 
 	if(zfile == nil)
 		fd = 1;
-	else{
+	else {
 		fd = create(zfile, OWRITE, 0664);
 		if(fd < 0)
 			sysfatal("can't create %s: %r", zfile);
 	}
 	Binit(&bout, fd, OWRITE);
 
-	if(setjmp(zjmp)){
-		if(zfile != nil){
+	if(setjmp(zjmp)) {
+		if(zfile != nil) {
 			fprint(2, "zip: removing output file %s\n", zfile);
 			remove(zfile);
 		}
@@ -134,7 +142,7 @@ zip(Biobuf *bout, char *file, int stdout)
 	/*
 	 * create the header
 	 */
-	if(nzheads >= zhalloc){
+	if(nzheads >= zhalloc) {
 		zhalloc += HeadAlloc;
 		zheads = realloc(zheads, zhalloc * sizeof(ZipHead));
 		if(zheads == nil)
@@ -145,10 +153,10 @@ zip(Biobuf *bout, char *file, int stdout)
 	zh->madevers = (2 * 10) + 0;
 	zh->extos = ZDos;
 	zh->extvers = (2 * 10) + 0;
-	
+
 	t = localtime(dir->mtime);
-	zh->modtime = (t->hour<<11) | (t->min<<5) | (t->sec>>1);
-	zh->moddate = ((t->year-80)<<9) | ((t->mon+1)<<5) | t->mday;
+	zh->modtime = (t->hour << 11) | (t->min << 5) | (t->sec >> 1);
+	zh->moddate = ((t->year - 80) << 9) | ((t->mon + 1) << 5) | t->mday;
 
 	zh->flags = 0;
 	zh->crc = 0;
@@ -163,11 +171,11 @@ zip(Biobuf *bout, char *file, int stdout)
 		zh->eattr |= ZDROnly;
 	zh->off = Boffset(bout);
 
-	if(dir->mode & DMDIR){
+	if(dir->mode & DMDIR) {
 		zh->eattr |= ZDDir;
 		zh->meth = 0;
 		zipDir(bout, fd, zh, stdout);
-	}else{
+	} else {
 		zh->meth = 8;
 		if(stdout)
 			zh->flags |= ZTrailInfo;
@@ -178,7 +186,7 @@ zip(Biobuf *bout, char *file, int stdout)
 		eof = 0;
 		totr = 0;
 		totw = 0;
-		err = deflate(bout, zwrite, (void*)fd, crcread, level, debug);
+		err = deflate(bout, zwrite, (void *)fd, crcread, level, debug);
 		if(err != FlateOk)
 			error("deflate failed: %s: %r", flateerr(err));
 
@@ -199,12 +207,12 @@ zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout)
 	int i, nf, nd;
 
 	nf = strlen(zh->file) + 1;
-	if(strcmp(zh->file, ".") == 0){
+	if(strcmp(zh->file, ".") == 0) {
 		nzheads--;
 		free(zh->file);
 		pfile = "";
 		nf = 1;
-	}else{
+	} else {
 		nf++;
 		pfile = malloc(nf);
 		if(pfile == nil)
@@ -215,12 +223,12 @@ zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout)
 		header(bout, zh);
 	}
 
-	nf += 256;	/* plenty of room */
+	nf += 256; /* plenty of room */
 	file = malloc(nf);
 	if(file == nil)
 		error("out of memory");
-	while((nd = dirread(fd, &dirs)) > 0){
-		for(i = 0; i < nd; i++){
+	while((nd = dirread(fd, &dirs)) > 0) {
+		for(i = 0; i < nd; i++) {
 			snprint(file, nf, "%s%s", pfile, dirs[i].name);
 			zip(bout, file, stdout);
 		}
@@ -258,7 +266,7 @@ trailer(Biobuf *bout, ZipHead *zh, int64_t off)
 	int64_t coff;
 
 	coff = -1;
-	if(!(zh->flags & ZTrailInfo)){
+	if(!(zh->flags & ZTrailInfo)) {
 		coff = Boffset(bout);
 		if(Bseek(bout, off + ZHeadCrc, 0) < 0)
 			error("can't seek in archive");
@@ -266,7 +274,7 @@ trailer(Biobuf *bout, ZipHead *zh, int64_t off)
 	put4(bout, zh->crc);
 	put4(bout, zh->csize);
 	put4(bout, zh->uncsize);
-	if(!(zh->flags & ZTrailInfo)){
+	if(!(zh->flags & ZTrailInfo)) {
 		if(Bseek(bout, coff, 0) < 0)
 			error("can't seek in archive");
 	}
@@ -332,15 +340,14 @@ crcread(void *fd, void *buf, int n)
 	int nr, m;
 
 	nr = 0;
-	for(; !eof && n > 0; n -= m){
-		m = read((int)(uintptr)fd, (char*)buf+nr, n);
-		if(m <= 0){
+	for(; !eof && n > 0; n -= m) {
+		m = read((int)(uintptr)fd, (char *)buf + nr, n);
+		if(m <= 0) {
 			eof = 1;
-			if(m < 0)
-{
-fprint(2, "input error %r\n");
+			if(m < 0) {
+				fprint(2, "input error %r\n");
 				return -1;
-}
+			}
 			break;
 		}
 		nr += m;
@@ -353,7 +360,7 @@ fprint(2, "input error %r\n");
 static int
 zwrite(void *bout, void *buf, int n)
 {
-	if(n != Bwrite(bout, buf, n)){
+	if(n != Bwrite(bout, buf, n)) {
 		eof = 1;
 		return -1;
 	}
@@ -366,7 +373,7 @@ put4(Biobuf *b, uint32_t v)
 {
 	int i;
 
-	for(i = 0; i < 4; i++){
+	for(i = 0; i < 4; i++) {
 		if(Bputc(b, v) < 0)
 			error("write error");
 		v >>= 8;
@@ -378,7 +385,7 @@ put2(Biobuf *b, int v)
 {
 	int i;
 
-	for(i = 0; i < 2; i++){
+	for(i = 0; i < 2; i++) {
 		if(Bputc(b, v) < 0)
 			error("write error");
 		v >>= 8;
@@ -388,7 +395,7 @@ put2(Biobuf *b, int v)
 static void
 put1(Biobuf *b, int v)
 {
-	if(Bputc(b, v)< 0)
+	if(Bputc(b, v) < 0)
 		error("unexpected eof reading file information");
 }
 

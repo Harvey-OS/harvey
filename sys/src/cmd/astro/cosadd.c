@@ -9,7 +9,6 @@
 
 #include "astro.h"
 
-
 void
 icosadd(double *fp, char *cp)
 {

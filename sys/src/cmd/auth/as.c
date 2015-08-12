@@ -19,21 +19,21 @@
 #include <auth.h>
 #include "authcmdlib.h"
 
-int	debug;
+int debug;
 
-int	becomeuser(char*);
-void	createuser(void);
-void	*emalloc(uint32_t);
-void	*erealloc(void*, uint32_t);
-void	initcap(void);
-int	mkcmd(char*, char*, int);
-int	myauth(int, char*);
-int	qidcmp(Qid, Qid);
-void	runas(char *, char *);
-void	usage(void);
+int becomeuser(char *);
+void createuser(void);
+void *emalloc(uint32_t);
+void *erealloc(void *, uint32_t);
+void initcap(void);
+int mkcmd(char *, char *, int);
+int myauth(int, char *);
+int qidcmp(Qid, Qid);
+void runas(char *, char *);
+void usage(void);
 
-#pragma varargck	argpos clog 1
-#pragma varargck	argpos fatal 1
+#pragma varargck argpos clog 1
+#pragma varargck argpos fatal 1
 
 static void
 fatal(char *fmt, ...)
@@ -51,16 +51,18 @@ void
 main(int argc, char *argv[])
 {
 	debug = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug = 1;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	initcap();
-	srand(getpid()*time(0));
+	srand(getpid() * time(0));
 	runas(argv[0], argv[1]);
 }
 
@@ -106,7 +108,7 @@ memrandom(void *p, int n)
 {
 	uint8_t *cp;
 
-	for(cp = (uint8_t*)p; n > 0; n--)
+	for(cp = (uint8_t *)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -118,7 +120,7 @@ static int caphashfd;
 void
 initcap(void)
 {
-	caphashfd = open("#¤/caphash", OCEXEC|OWRITE);
+	caphashfd = open("#¤/caphash", OCEXEC | OWRITE);
 	if(caphashfd < 0)
 		fprint(2, "%s: opening #¤/caphash: %r\n", argv0);
 }
@@ -126,7 +128,7 @@ initcap(void)
 /*
  *  create a change uid capability 
  */
-char*
+char *
 mkcap(char *from, char *to)
 {
 	uint8_t rand[20];
@@ -141,20 +143,20 @@ mkcap(char *from, char *to)
 	/* create the capability */
 	nto = strlen(to);
 	nfrom = strlen(from);
-	ncap = nfrom + 1 + nto + 1 + sizeof(rand)*3 + 1;
+	ncap = nfrom + 1 + nto + 1 + sizeof(rand) * 3 + 1;
 	cap = emalloc(ncap);
 	snprint(cap, ncap, "%s@%s", from, to);
 	memrandom(rand, sizeof(rand));
-	key = cap+nfrom+1+nto+1;
-	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
+	key = cap + nfrom + 1 + nto + 1;
+	enc64(key, sizeof(rand) * 3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+	hmac_sha1((uint8_t *)cap, strlen(cap), (uint8_t *)key, strlen(key),
 		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
-	if(write(caphashfd, hash, SHA1dlen) < 0){
+	if(write(caphashfd, hash, SHA1dlen) < 0) {
 		free(cap);
 		return nil;
 	}

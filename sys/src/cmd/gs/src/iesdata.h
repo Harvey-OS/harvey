@@ -27,16 +27,16 @@
 /* Generic execution stack structure definition */
 
 #ifndef iesdata_INCLUDED
-#  define iesdata_INCLUDED
+#define iesdata_INCLUDED
 
 #include "isdata.h"
 
 /* Define the execution stack structure. */
 typedef struct exec_stack_s {
 
-    ref_stack_t stack;		/* the actual execution stack */
+	ref_stack_t stack; /* the actual execution stack */
 
-/*
+	/*
  * To improve performance, we cache the currentfile pointer
  * (i.e., `shallow-bind' it in Lisp terminology).  The invariant is as
  * follows: either esfile points to the currentfile slot on the estack
@@ -46,7 +46,7 @@ typedef struct exec_stack_s {
  * an executable file, invoke esfile_clear_cache(); alternatively,
  * immediately after pushing an object, invoke esfile_check_cache().
  */
-    ref *current_file;
+	ref *current_file;
 
 } exec_stack_t;
 
@@ -54,9 +54,9 @@ typedef struct exec_stack_s {
  * current_file is cleared by garbage collection, so we don't declare it
  * as a pointer.
  */
-#define public_st_exec_stack()	/* in interp.c */\
-  gs_public_st_suffix_add0(st_exec_stack, exec_stack_t, "exec_stack_t",\
-    exec_stack_enum_ptrs, exec_stack_reloc_ptrs, st_ref_stack)
+#define public_st_exec_stack() /* in interp.c */                              \
+	gs_public_st_suffix_add0(st_exec_stack, exec_stack_t, "exec_stack_t", \
+				 exec_stack_enum_ptrs, exec_stack_reloc_ptrs, st_ref_stack)
 #define st_exec_stack_num_ptrs st_ref_stack_num_ptrs
 
 #endif /* iesdata_INCLUDED */

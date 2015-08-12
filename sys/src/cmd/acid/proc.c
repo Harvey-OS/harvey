@@ -26,8 +26,8 @@ nocore(void)
 	if(cormap == 0)
 		return;
 
-	for (i = 0; i < cormap->nsegs; i++)
-		if (cormap->seg[i].inuse && cormap->seg[i].fd >= 0)
+	for(i = 0; i < cormap->nsegs; i++)
+		if(cormap->seg[i].inuse && cormap->seg[i].fd >= 0)
 			close(cormap->seg[i].fd);
 	free(cormap);
 	cormap = 0;
@@ -55,13 +55,13 @@ sproc(int pid)
 
 	nocore();
 	cormap = attachproc(pid, kernel, fcor, &fhdr);
-	if (cormap == 0)
+	if(cormap == 0)
 		error("setproc: can't make coremap: %r");
 	i = findseg(cormap, "text");
-	if (i > 0)
+	if(i > 0)
 		cormap->seg[i].name = "*text";
 	i = findseg(cormap, "data");
-	if (i > 0)
+	if(i > 0)
 		cormap->seg[i].name = "*data";
 	install(pid);
 }
@@ -77,7 +77,7 @@ nproc(char **argv)
 	case -1:
 		error("new: fork %r");
 	case 0:
-		rfork(RFNAMEG|RFNOTEG);
+		rfork(RFNAMEG | RFNOTEG);
 
 		snprint(buf, sizeof(buf), "/proc/%d/ctl", getpid());
 		fd = open(buf, ORDWR);
@@ -261,19 +261,19 @@ getstatus(int pid)
 	if(fd < 0)
 		error("open %s: %r", buf);
 
-	n = read(fd, status, sizeof(status)-1);
+	n = read(fd, status, sizeof(status) - 1);
 	close(fd);
 	if(n <= 0)
 		error("read %s: %r", buf);
 	status[n] = '\0';
 
-	if(tokenize(status, argv, nelem(argv)-1) < 3)
+	if(tokenize(status, argv, nelem(argv) - 1) < 3)
 		error("tokenize %s: %r", buf);
 
 	return argv[2];
 }
 
-Waitmsg*
+Waitmsg *
 waitfor(int pid)
 {
 	Waitmsg *w;

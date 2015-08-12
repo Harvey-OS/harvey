@@ -27,7 +27,7 @@
 /* Abstract types for compositing objects */
 
 #ifndef gscompt_INCLUDED
-#  define gscompt_INCLUDED
+#define gscompt_INCLUDED
 
 /*
  * Compositing is the next-to-last step in the rendering pipeline.
@@ -55,6 +55,6 @@ typedef struct gs_composite_s gs_composite_t;
  * like halftones, black generation functions, etc., carry a unique ID (time
  * stamp).
  */
-gs_id gs_composite_id(const gs_composite_t * pcte);
+gs_id gs_composite_id(const gs_composite_t *pcte);
 
 #endif /* gscompt_INCLUDED */

@@ -24,22 +24,22 @@
 #include "tl.h"
 
 #if 1
-#define log(e, u, d)	event[e][(int) u] += (int32_t) d;
+#define log(e, u, d) event[e][(int)u] += (int32_t)d;
 #else
 #define log(e, u, d)
 #endif
 
-#define A_LARGE		80
-#define A_USER		0x55000000
-#define NOTOOBIG	32768
+#define A_LARGE 80
+#define A_USER 0x55000000
+#define NOTOOBIG 32768
 
-#define POOL		0
-#define ALLOC		1
-#define FREE		2
-#define NREVENT		3
+#define POOL 0
+#define ALLOC 1
+#define FREE 2
+#define NREVENT 3
 
-extern	unsigned long All_Mem;
-extern	int tl_verbose;
+extern unsigned long All_Mem;
+extern int tl_verbose;
 
 union M {
 	int32_t size;
@@ -47,65 +47,67 @@ union M {
 };
 
 static union M *freelist[A_LARGE];
-static int32_t	req[A_LARGE];
-static int32_t	event[NREVENT][A_LARGE];
+static int32_t req[A_LARGE];
+static int32_t event[NREVENT][A_LARGE];
 
 void *
 tl_emalloc(int U)
-{	union M *m;
-  	int32_t r, u;
+{
+	union M *m;
+	int32_t r, u;
 	void *rp;
 
-	u = (int32_t) ((U-1)/sizeof(union M) + 2);
+	u = (int32_t)((U - 1) / sizeof(union M) + 2);
 
-	if (u >= A_LARGE)
-	{	log(ALLOC, 0, 1);
-		if (tl_verbose)
-		printf("tl_spin: memalloc %ld bytes\n", u);
-		m = (union M *) emalloc((int) u*sizeof(union M));
-		All_Mem += (unsigned long) u*sizeof(union M);
-	} else
-	{	if (!freelist[u])
-		{	r = req[u] += req[u] ? req[u] : 1;
-			if (r >= NOTOOBIG)
+	if(u >= A_LARGE) {
+		log(ALLOC, 0, 1);
+		if(tl_verbose)
+			printf("tl_spin: memalloc %ld bytes\n", u);
+		m = (union M *)emalloc((int)u * sizeof(union M));
+		All_Mem += (unsigned long)u * sizeof(union M);
+	} else {
+		if(!freelist[u]) {
+			r = req[u] += req[u] ? req[u] : 1;
+			if(r >= NOTOOBIG)
 				r = req[u] = NOTOOBIG;
 			log(POOL, u, r);
 			freelist[u] = (union M *)
-				emalloc((int) r*u*sizeof(union M));
-			All_Mem += (unsigned long) r*u*sizeof(union M);
-			m = freelist[u] + (r-2)*u;
-			for ( ; m >= freelist[u]; m -= u)
-				m->link = m+u;
+			    emalloc((int)r * u * sizeof(union M));
+			All_Mem += (unsigned long)r * u * sizeof(union M);
+			m = freelist[u] + (r - 2) * u;
+			for(; m >= freelist[u]; m -= u)
+				m->link = m + u;
 		}
 		log(ALLOC, u, 1);
 		m = freelist[u];
 		freelist[u] = m->link;
 	}
-	m->size = (u|A_USER);
+	m->size = (u | A_USER);
 
-	for (r = 1; r < u; )
+	for(r = 1; r < u;)
 		(&m->size)[r++] = 0;
 
-	rp = (void *) (m+1);
+	rp = (void *)(m + 1);
 	memset(rp, 0, U);
 	return rp;
 }
 
 void
 tfree(void *v)
-{	union M *m = (union M *) v;
+{
+	union M *m = (union M *)v;
 	int32_t u;
 
 	--m;
-	if ((m->size&0xFF000000) != A_USER)
+	if((m->size & 0xFF000000) != A_USER)
 		Fatal("releasing a free block", (char *)0);
 
 	u = (m->size &= 0xFFFFFF);
-	if (u >= A_LARGE)
-	{	log(FREE, 0, 1);
+	if(u >= A_LARGE) {
+		log(FREE, 0, 1);
 		/* free(m); */
-	} else
-	{	log(FREE, u, 1);
+	} else {
+		log(FREE, u, 1);
 		m->link = freelist[u];
 		freelist[u] = m;
 	}
@@ -113,17 +115,18 @@ tfree(void *v)
 
 void
 a_stats(void)
-{	int32_t	p, a, f;
-	int	i;
+{
+	int32_t p, a, f;
+	int i;
 
 	printf(" size\t  pool\tallocs\t frees\n");
-	for (i = 0; i < A_LARGE; i++)
-	{	p = event[POOL][i];
+	for(i = 0; i < A_LARGE; i++) {
+		p = event[POOL][i];
 		a = event[ALLOC][i];
 		f = event[FREE][i];
 
-		if(p|a|f)
-		printf("%5d\t%6ld\t%6ld\t%6ld\n",
-			i, p, a, f);
+		if(p | a | f)
+			printf("%5d\t%6ld\t%6ld\t%6ld\n",
+			       i, p, a, f);
 	}
 }

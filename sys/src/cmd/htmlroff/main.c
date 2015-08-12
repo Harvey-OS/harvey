@@ -13,10 +13,10 @@
 
 #include "a.h"
 
-Biobuf	bout;
-char*	tmacdir;
-int		verbose;
-int		utf8 = 0;
+Biobuf bout;
+char *tmacdir;
+int verbose;
+int utf8 = 0;
 
 void
 usage(void)
@@ -32,14 +32,15 @@ main(int argc, char **argv)
 	char *p;
 	Rune *r;
 	Rune buf[2];
-	
+
 	Binit(&bout, 1, OWRITE);
 	fmtinstall('L', linefmt);
 	quotefmtinstall();
-	
+
 	tmacdir = "/sys/lib/tmac";
 	dostdin = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'i':
 		dostdin = 1;
 		break;
@@ -52,7 +53,7 @@ main(int argc, char **argv)
 		p = EARGF(usage());
 		p += chartorune(buf, p);
 		buf[1] = 0;
-		_nr(buf, erunesmprint("%s", p+1));
+		_nr(buf, erunesmprint("%s", p + 1));
 		break;
 	case 'u':
 		utf8 = 1;
@@ -62,9 +63,10 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
-	for(i=0; i<argc; i++){
+	for(i = 0; i < argc; i++) {
 		if(strcmp(argv[i], "-") == 0)
 			queuestdin();
 		else
@@ -72,10 +74,9 @@ main(int argc, char **argv)
 	}
 	if(argc == 0 || dostdin)
 		queuestdin();
-	
+
 	run();
 	Bprint(&bout, "\n");
 	Bterm(&bout);
 	exits(nil);
 }
-

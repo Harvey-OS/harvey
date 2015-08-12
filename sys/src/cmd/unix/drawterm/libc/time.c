@@ -10,7 +10,6 @@
 #include <u.h>
 #include <libc.h>
 
-
 /*
  *  After a fork with fd's copied, both fd's are pointing to
  *  the same Chan structure.  Since the offset is kept in the Chan
@@ -27,12 +26,12 @@ oldtime(int32_t *tp)
 	int32_t t;
 
 	memset(b, 0, sizeof(b));
-	for(retries = 0; retries < 100; retries++){
+	for(retries = 0; retries < 100; retries++) {
 		if(f < 0)
-			f = open("/dev/time", OREAD|OCEXEC);
+			f = open("/dev/time", OREAD | OCEXEC);
 		if(f < 0)
 			break;
-		if(seek(f, 0, 0) < 0 || (i = read(f, b, sizeof(b))) < 0){
+		if(seek(f, 0, 0) < 0 || (i = read(f, b, sizeof(b))) < 0) {
 			close(f);
 			f = -1;
 		} else {
@@ -51,7 +50,7 @@ time(int32_t *tp)
 {
 	int64_t t;
 
-	t = nsec()/((int64_t)1000000000);
+	t = nsec() / ((int64_t)1000000000);
 	if(t == 0)
 		t = oldtime(0);
 	if(tp != nil)

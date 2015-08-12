@@ -13,18 +13,17 @@
 
 QLock godot;
 char *host;
-int readonly = 1;	/* for part.c */
-int mainstacksize = 256*1024;
+int readonly = 1; /* for part.c */
+int mainstacksize = 256 * 1024;
 Channel *c;
 VtConn *z;
-int fast;	/* and a bit unsafe; only for benchmarking */
+int fast; /* and a bit unsafe; only for benchmarking */
 int haveaoffset;
 int maxwrites = -1;
 int verbose;
 
 typedef struct ZClump ZClump;
-struct ZClump
-{
+struct ZClump {
 	ZBlock *lump;
 	Clump cl;
 	uint64_t aa;
@@ -43,7 +42,7 @@ vtsendthread(void *v)
 	ZClump zcl;
 
 	USED(v);
-	while(recv(c, &zcl) == 1){
+	while(recv(c, &zcl) == 1) {
 		if(zcl.lump == nil)
 			break;
 		if(vtwrite(z, zcl.cl.info.score, zcl.cl.info.type, zcl.lump->data, zcl.cl.info.uncsize) < 0)
@@ -91,13 +90,13 @@ rdarena(Arena *arena, uint64_t offset)
 
 	i = 0;
 	for(a = 0; maxwrites != 0 && i < arena->memstats.clumps;
-	    a += ClumpSize + ci.size){
+	    a += ClumpSize + ci.size) {
 		if(readclumpinfo(arena, i++, &ci) < 0)
 			break;
-		if(a < aa || ci.type == VtCorruptType){
+		if(a < aa || ci.type == VtCorruptType) {
 			if(ci.type == VtCorruptType)
 				fprint(2, "%s: corrupt clump read at %#llx: +%d\n",
-					argv0, a, ClumpSize+ci.size);
+				       argv0, a, ClumpSize + ci.size);
 			continue;
 		}
 		lump = loadclump(arena, a, 0, &cl, score, 0);
@@ -109,21 +108,21 @@ rdarena(Arena *arena, uint64_t offset)
 			scoremem(score, lump->data, cl.info.uncsize);
 			if(scorecmp(cl.info.score, score) != 0) {
 				fprint(2, "clump %#llx has mismatched score\n",
-					a);
+				       a);
 				break;
 			}
 			if(vttypevalid(cl.info.type) < 0) {
 				fprint(2, "clump %#llx has bad type %d\n",
-					a, cl.info.type);
+				       a, cl.info.type);
 				break;
 			}
 		}
-		if(z && cl.info.type != VtCorruptType){
+		if(z && cl.info.type != VtCorruptType) {
 			zcl.cl = cl;
 			zcl.lump = lump;
 			zcl.aa = a;
 			send(c, &zcl);
-		}else
+		} else
 			freezblock(lump);
 		if(maxwrites > 0)
 			--maxwrites;
@@ -149,7 +148,8 @@ threadmain(int argc, char *argv[])
 	ventifmtinstall();
 	qlock(&godot);
 	aoffset = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'f':
 		fast = 1;
 		ventidoublechecksha1 = 0;
@@ -170,7 +170,8 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	offset = ~(u64int)0;
 	switch(argc) {
@@ -178,7 +179,7 @@ threadmain(int argc, char *argv[])
 		usage();
 	case 2:
 		offset = strtoull(argv[1], 0, 0);
-		/* fall through */
+	/* fall through */
 	case 1:
 		file = argv[0];
 	}
@@ -196,9 +197,9 @@ threadmain(int argc, char *argv[])
 	if(unpackarenahead(&head, buf) < 0)
 		sysfatal("corrupted arena header: %r");
 
-	if(aoffset+head.size > part->size)
+	if(aoffset + head.size > part->size)
 		sysfatal("arena is truncated: want %llud bytes have %llud",
-			head.size, part->size);
+			 head.size, part->size);
 
 	partblocksize(part, head.blocksize);
 	initdcache(8 * MaxDiskBlock);
@@ -208,16 +209,16 @@ threadmain(int argc, char *argv[])
 		sysfatal("initarena: %r");
 
 	z = nil;
-	if(host==nil || strcmp(host, "/dev/null") != 0){
+	if(host == nil || strcmp(host, "/dev/null") != 0) {
 		z = vtdial(host);
 		if(z == nil)
 			sysfatal("could not connect to server: %r");
 		if(vtconnect(z) < 0)
 			sysfatal("vtconnect: %r");
 	}
-	
+
 	c = chancreate(sizeof(ZClump), 0);
-	for(i=0; i<12; i++)
+	for(i = 0; i < 12; i++)
 		vtproc(vtsendthread, nil);
 
 	rdarena(arena, offset);
@@ -225,9 +226,9 @@ threadmain(int argc, char *argv[])
 		sysfatal("executing sync: %r");
 
 	memset(&zerocl, 0, sizeof zerocl);
-	for(i=0; i<12; i++)
+	for(i = 0; i < 12; i++)
 		send(c, &zerocl);
-	if(z){
+	if(z) {
 		vthangup(z);
 	}
 	threadexitsall(0);

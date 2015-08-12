@@ -27,7 +27,7 @@
 /* Line parameter and quality definitions */
 
 #ifndef gsline_INCLUDED
-#  define gsline_INCLUDED
+#define gsline_INCLUDED
 
 #include "gslparam.h"
 
@@ -66,7 +66,7 @@ int gs_dotorientation(gs_state *);
 
 /* Imager-level procedures */
 #ifndef gs_imager_state_DEFINED
-#  define gs_imager_state_DEFINED
+#define gs_imager_state_DEFINED
 typedef struct gs_imager_state_s gs_imager_state;
 #endif
 int gs_imager_setflat(gs_imager_state *, floatp);

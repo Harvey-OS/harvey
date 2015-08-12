@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#define  _BSDTIME_EXTENSION
+#define _BSDTIME_EXTENSION
 #define _LOCK_EXTENSION
 #include "lib.h"
 #include <stdlib.h>
@@ -23,32 +23,32 @@
 #include "sys9.h"
 
 typedef struct Muxseg {
-	Lock	lock;			/* for mutual exclusion access to buffer variables */
-	int	curfds;			/* number of fds currently buffered */
-	int	selwait;		/* true if selecting process is waiting */
-	int	waittime;		/* time for timer process to wait */
-	fd_set	rwant;			/* fd's that select wants to read */
-	fd_set	ewant;			/* fd's that select wants to know eof info on */
-	Muxbuf	bufs[INITBUFS];		/* can grow, via segbrk() */
+	Lock lock;	     /* for mutual exclusion access to buffer variables */
+	int curfds;	    /* number of fds currently buffered */
+	int selwait;	   /* true if selecting process is waiting */
+	int waittime;	  /* time for timer process to wait */
+	fd_set rwant;	  /* fd's that select wants to read */
+	fd_set ewant;	  /* fd's that select wants to know eof info on */
+	Muxbuf bufs[INITBUFS]; /* can grow, via segbrk() */
 } Muxseg;
 
-#define MUXADDR ((void*)0x6000000)
-static Muxseg *mux = 0;			/* shared memory segment */
+#define MUXADDR ((void *)0x6000000)
+static Muxseg *mux = 0; /* shared memory segment */
 
 /* _muxsid and _killmuxsid are known in libbsd's listen.c */
-int _muxsid = -1;			/* group id of copy processes */
+int _muxsid = -1; /* group id of copy processes */
 static int _mainpid = -1;
-static int timerpid = -1;		/* pid of a timer process */
+static int timerpid = -1; /* pid of a timer process */
 
 void _killmuxsid(void);
-static void _copyproc(int, Muxbuf*);
+static void _copyproc(int, Muxbuf *);
 static void _timerproc(void);
 static void _resettimer(void);
 
 static int copynotehandler(void *, char *);
 
 /* assume FD_SETSIZE is 96 */
-#define FD_ANYSET(p)	((p)->fds_bits[0] || (p)->fds_bits[1] || (p)->fds_bits[2])
+#define FD_ANYSET(p) ((p)->fds_bits[0] || (p)->fds_bits[1] || (p)->fds_bits[2])
 
 /*
  * Start making fd read-buffered: make the shared segment, if necessary,
@@ -64,10 +64,10 @@ _startbuf(int fd)
 	Fdinfo *f;
 	Muxbuf *b;
 
-	if(mux == 0){
+	if(mux == 0) {
 		_RFORK(RFREND);
-		mux = (Muxseg*)_SEGATTACH(0, "shared", MUXADDR, sizeof(Muxseg));
-		if((int32_t)mux == -1){
+		mux = (Muxseg *)_SEGATTACH(0, "shared", MUXADDR, sizeof(Muxseg));
+		if((int32_t)mux == -1) {
 			_syserrno();
 			return -1;
 		}
@@ -81,7 +81,7 @@ _startbuf(int fd)
 	lock(&mux->lock);
 	slot = mux->curfds++;
 	if(mux->curfds > INITBUFS) {
-		if(_SEGBRK(mux, mux->bufs+mux->curfds) < 0){
+		if(_SEGBRK(mux, mux->bufs + mux->curfds) < 0) {
 			_syserrno();
 			unlock(&mux->lock);
 			return -1;
@@ -97,7 +97,7 @@ _startbuf(int fd)
 	b->fd = fd;
 	if(_mainpid == -1)
 		_mainpid = getpid();
-	if((pid = _RFORK(RFFDG|RFPROC|RFNOWAIT)) == 0){
+	if((pid = _RFORK(RFFDG | RFPROC | RFNOWAIT)) == 0) {
 		/* copy process ... */
 		if(_muxsid == -1) {
 			_RFORK(RFNOTEG);
@@ -105,8 +105,8 @@ _startbuf(int fd)
 		} else
 			setpgid(getpid(), _muxsid);
 		_NOTIFY(copynotehandler);
-		for(i=0; i<OPEN_MAX; i++)
-			if(i!=fd && (_fdinfo[i].flags&FD_ISOPEN))
+		for(i = 0; i < OPEN_MAX; i++)
+			if(i != fd && (_fdinfo[i].flags & FD_ISOPEN))
 				_CLOSE(i);
 		_RENDEZVOUS(0, _muxsid);
 		_copyproc(fd, b);
@@ -174,7 +174,7 @@ _copyproc(int fd, Muxbuf *b)
 		do {
 			n = _READ(fd, b->putnext, READMAX);
 			if(b->fd == -1) {
-				_exit(0);		/* we've been closed */
+				_exit(0); /* we've been closed */
 			}
 		} while(n == 0 && ++nzeros < 3);
 		lock(&mux->lock);
@@ -227,7 +227,7 @@ _readbuf(int fd, void *addr, int nwant, int noblock)
 
 	b = _fdinfo[fd].buf;
 	if(b->eof && b->n == 0) {
-goteof:
+	goteof:
 		return 0;
 	}
 	if(b->n == 0 && noblock) {
@@ -278,11 +278,10 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 	Muxbuf *b;
 
 	if(timeout)
-		t = timeout->tv_sec*1000 + (timeout->tv_usec+999)/1000;
+		t = timeout->tv_sec * 1000 + (timeout->tv_usec + 999) / 1000;
 	else
 		t = -1;
-	if(!((rfds && FD_ANYSET(rfds)) || (wfds && FD_ANYSET(wfds))
-			|| (efds && FD_ANYSET(efds)))) {
+	if(!((rfds && FD_ANYSET(rfds)) || (wfds && FD_ANYSET(wfds)) || (efds && FD_ANYSET(efds)))) {
 		/* no requested fds */
 		if(t > 0)
 			_SLEEP(t);
@@ -295,17 +294,17 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 	if(nfds >= OPEN_MAX)
 		nfds = OPEN_MAX;
 	for(i = 0; i < nfds; i++)
-		if((rfds && FD_ISSET(i, rfds)) || (efds && FD_ISSET(i, efds))){
+		if((rfds && FD_ISSET(i, rfds)) || (efds && FD_ISSET(i, efds))) {
 			f = &_fdinfo[i];
-			if(!(f->flags&FD_BUFFERED))
+			if(!(f->flags & FD_BUFFERED))
 				if(_startbuf(i) != 0)
 					return -1;
 		}
 
 	/* check wfds;  for now, we'll say they are all ready */
 	n = 0;
-	if(wfds && FD_ANYSET(wfds)){
-		for(i = 0; i<nfds; i++)
+	if(wfds && FD_ANYSET(wfds)) {
+		for(i = 0; i < nfds; i++)
 			if(FD_ISSET(i, wfds)) {
 				n++;
 			}
@@ -317,17 +316,17 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 	FD_ZERO(&mux->rwant);
 	FD_ZERO(&mux->ewant);
 
-	for(i = 0; i<slots; i++) {
+	for(i = 0; i < slots; i++) {
 		b = &mux->bufs[i];
 		fd = b->fd;
 		if(fd == -1)
 			continue;
 		err = 0;
 		if(efds && FD_ISSET(fd, efds)) {
-			if(b->eof && b->n == 0){
+			if(b->eof && b->n == 0) {
 				err = 1;
 				n++;
-			}else{
+			} else {
 				FD_CLR(fd, efds);
 				FD_SET(fd, &mux->ewant);
 			}
@@ -335,7 +334,7 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 		if(rfds && FD_ISSET(fd, rfds)) {
 			if(!err && (b->n > 0 || b->eof))
 				n++;
-			else{
+			else {
 				FD_CLR(fd, rfds);
 				FD_SET(fd, &mux->rwant);
 			}
@@ -397,12 +396,12 @@ _timerproc(void)
 {
 	int i;
 
-	if((timerpid = _RFORK(RFFDG|RFPROC|RFNOWAIT)) == 0){
+	if((timerpid = _RFORK(RFFDG | RFPROC | RFNOWAIT)) == 0) {
 		/* timer process */
 		setpgid(getpid(), _muxsid);
 		signal(SIGALRM, alarmed);
-		for(i=0; i<OPEN_MAX; i++)
-				_CLOSE(i);
+		for(i = 0; i < OPEN_MAX; i++)
+			_CLOSE(i);
 		_RENDEZVOUS(1, 0);
 		for(;;) {
 			_SLEEP(mux->waittime);
@@ -437,7 +436,7 @@ void
 _killmuxsid(void)
 {
 	if(_muxsid != -1 && (_mainpid == getpid() || _mainpid == -1))
-		kill(-_muxsid,SIGTERM);
+		kill(-_muxsid, SIGTERM);
 }
 
 /* call this on fork(), because reading a BUFFERED fd won't work in child */
@@ -450,11 +449,11 @@ _detachbuf(void)
 	if(mux == 0)
 		return;
 	_SEGDETACH(mux);
-	for(i = 0; i < OPEN_MAX; i++){
+	for(i = 0; i < OPEN_MAX; i++) {
 		f = &_fdinfo[i];
-		if(f->flags&FD_BUFFERED)
-			f->flags = (f->flags&~FD_BUFFERED) | FD_BUFFEREDX;
-				/* mark 'poisoned' */
+		if(f->flags & FD_BUFFERED)
+			f->flags = (f->flags & ~FD_BUFFERED) | FD_BUFFEREDX;
+		/* mark 'poisoned' */
 	}
 	mux = 0;
 	_muxsid = -1;

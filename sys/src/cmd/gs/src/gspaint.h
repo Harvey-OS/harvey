@@ -28,7 +28,7 @@
 /* Requires gsstate.h */
 
 #ifndef gspaint_INCLUDED
-#  define gspaint_INCLUDED
+#define gspaint_INCLUDED
 
 /* Painting */
 int gs_erasepage(gs_state *),

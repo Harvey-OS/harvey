@@ -21,12 +21,11 @@
  * meaning that each user is the leader of his own group.
  */
 
-enum
-{
-	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	Ndev	= 8,
-	Nreq	= (Ndev*3)/2,
-	Nrbuf	= 32*1024,
+enum {
+	OPERM = 0x3, /* mask of all permission types in open mode */
+	Ndev = 8,
+	Nreq = (Ndev * 3) / 2,
+	Nrbuf = 32 * 1024,
 };
 
 typedef struct Fid Fid;
@@ -34,111 +33,105 @@ typedef struct Dev Dev;
 typedef struct Request Request;
 typedef struct Type Type;
 
-struct Fid
-{
-	Qid	qid;
-	int16_t	busy;
-	int16_t	open;
-	int	fid;
-	Fid	*next;
-	char	*user;
+struct Fid {
+	Qid qid;
+	int16_t busy;
+	int16_t open;
+	int fid;
+	Fid *next;
+	char *user;
 };
 
-struct Request
-{
-	Request	*next;
+struct Request {
+	Request *next;
 
-	Fid	*fid;
-	uint32_t	tag;
-	int	count;
-	int	flushed;
+	Fid *fid;
+	uint32_t tag;
+	int count;
+	int flushed;
 };
 
-struct Dev
-{
+struct Dev {
 	Lock;
 
 	/* device state */
-	int	ctl;		/* control fd */
-	int	data;		/* data fd */
-	char	*path;		/* to device */
-	Type	*t;
-	Type	*baset;
-	int	speed;
-	int	fclass;
+	int ctl;    /* control fd */
+	int data;   /* data fd */
+	char *path; /* to device */
+	Type *t;
+	Type *baset;
+	int speed;
+	int fclass;
 
 	/* fs emulation */
-	int	open;
-	long	perm;
-	char	*name;
-	char	*user;
-	char	msgbuf[128];
-	Request	*r;
+	int open;
+	long perm;
+	char *name;
+	char *user;
+	char msgbuf[128];
+	Request *r;
 	Request *rlast;
 
 	/* input reader */
-	int	monitoring;	/* monitor pid */
-	char	rbuf[Nrbuf];
-	char	*rp;
-	char	*wp;
-	long	pid;
+	int monitoring; /* monitor pid */
+	char rbuf[Nrbuf];
+	char *rp;
+	char *wp;
+	long pid;
 };
 
-enum
-{
-	Devmask=	(Ndev-1)<<8,
-	
-	Qlvl1=		0,
-	Qlvl2=		1,
-	Qclone=		2,
-	Qlvl3=		3,
-	Qdata=		4,
-	Qctl=		5,
+enum {
+	Devmask = (Ndev - 1) << 8,
 
-	Pexec =		1,
-	Pwrite = 	2,
-	Pread = 	4,
-	Pother = 	1,
-	Pgroup = 	8,
-	Powner =	64,
+	Qlvl1 = 0,
+	Qlvl2 = 1,
+	Qclone = 2,
+	Qlvl3 = 3,
+	Qdata = 4,
+	Qctl = 5,
+
+	Pexec = 1,
+	Pwrite = 2,
+	Pread = 4,
+	Pother = 1,
+	Pgroup = 8,
+	Powner = 64,
 };
 
 char *names[] =
-{
-[Qlvl1]		"/",
-[Qlvl2]		"telco",
-[Qclone]	"clone",
-[Qlvl3]		"",
-[Qdata]		"data",
-[Qctl]		"ctl",
+    {
+	 [Qlvl1] "/",
+	 [Qlvl2] "telco",
+	 [Qclone] "clone",
+	 [Qlvl3] "",
+	 [Qdata] "data",
+	 [Qctl] "ctl",
 };
 
-#define DEV(q) ((((uint32_t)(q).path)&Devmask)>>8)
-#define TYPE(q) (((uint32_t)(q).path)&((1<<8)-1))
-#define MKQID(t, i) ((((i)<<8)&Devmask) | (t))
+#define DEV(q) ((((uint32_t)(q).path) & Devmask) >> 8)
+#define TYPE(q) (((uint32_t)(q).path) & ((1 << 8) - 1))
+#define MKQID(t, i) ((((i) << 8) & Devmask) | (t))
 
-enum
-{
+enum {
 	/*
 	 *  modem specific commands
 	 */
-	Cerrorcorrection	= 0,	/* error correction */
-	Ccompression,			/* compression */
-	Cflowctl,			/* CTS/RTS */
-	Crateadjust,			/* follow line speed */
-	Cfclass2,			/* set up for fax */
-	Cfclass0,			/* set up for data */
+	Cerrorcorrection = 0, /* error correction */
+	Ccompression,	 /* compression */
+	Cflowctl,	     /* CTS/RTS */
+	Crateadjust,	  /* follow line speed */
+	Cfclass2,	     /* set up for fax */
+	Cfclass0,	     /* set up for data */
 	Ncommand,
 };
 
-struct Type
-{
-	char	*name;
-	char	*ident;		/* inquire request */
-	char	*response;	/* inquire response (strstr) */
-	char	*basetype;	/* name of base type */
+struct Type {
+	char *name;
+	char *ident;    /* inquire request */
+	char *response; /* inquire response (strstr) */
+	char *basetype; /* name of base type */
 
-	char	*commands[Ncommand];
+	char *commands[Ncommand];
 };
 
 /*
@@ -155,69 +148,76 @@ struct Type
  */
 
 Type typetab[] =
-{
- {	"Rockwell",		0,	0,	0,
-	"AT\\N7",	/* auto reliable (V.42, fall back to MNP, to none) */
-	"AT%C1\\J0",	/* negotiate for compression, don't change port baud rate */
-	"AT\\Q3",	/* CTS/RTS flow control */
- 	"AT\\J1",
-	"AT+FCLASS=2\rAT+FCR=1\r",
-	"AT+FCLASS=0",
- },
+    {
+     {
+      "Rockwell", 0, 0, 0,
+      "AT\\N7",    /* auto reliable (V.42, fall back to MNP, to none) */
+      "AT%C1\\J0", /* negotiate for compression, don't change port baud rate */
+      "AT\\Q3",    /* CTS/RTS flow control */
+      "AT\\J1",
+      "AT+FCLASS=2\rAT+FCR=1\r",
+      "AT+FCLASS=0",
+     },
 
- {	"ATT2400",	"ATI9",	"E2400",	"Rockwell",
-	"AT\\N3",	/* auto reliable (MNP, fall back to none) */
-	0,	
-	0,
-	0,
-	0,
- 	0,
- },
+     {
+      "ATT2400", "ATI9", "E2400", "Rockwell",
+      "AT\\N3", /* auto reliable (MNP, fall back to none) */
+      0,
+      0,
+      0,
+      0,
+      0,
+     },
 
- {	"ATT14400",	"ATI9",	"E14400",	"Rockwell",
-	0,
-	0,	
-	0,
-	0,
-	0,
- 	0,
- },
+     {
+      "ATT14400", "ATI9", "E14400", "Rockwell",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+     },
 
- {	"MT1432",	"ATI2",	"MT1432",	0,
-	"AT&E1",	/* auto reliable (V.42, fall back to none) */
-	"AT&E15$BA0",	/* negotiate for compression */
-	"AT&E4",	/* CTS/RTS flow control */
-	"AT$BA1",	/* don't change port baud rate */
-	"AT+FCLASS=2\rAT+FTBC=0\rAT+FREL=1\rAT+FCQ=1\rAT+FBOR=1\rAT+FCR=1\rAT+FDIS=,3",
-	"AT+FCLASS=0",
- },
+     {
+      "MT1432", "ATI2", "MT1432", 0,
+      "AT&E1",      /* auto reliable (V.42, fall back to none) */
+      "AT&E15$BA0", /* negotiate for compression */
+      "AT&E4",      /* CTS/RTS flow control */
+      "AT$BA1",     /* don't change port baud rate */
+      "AT+FCLASS=2\rAT+FTBC=0\rAT+FREL=1\rAT+FCQ=1\rAT+FBOR=1\rAT+FCR=1\rAT+FDIS=,3",
+      "AT+FCLASS=0",
+     },
 
- {	"MT2834",	"ATI2",	"MT2834",	"MT1432",
-	0,
-	0,
-	0,
-	0,
- 	"AT+FCLASS=2\rAT+FTBC=0\rAT+FREL=1\rAT+FCQ=1\rAT+FBOR=1\rAT+FCR=1",
-	0,
- },
+     {
+      "MT2834", "ATI2", "MT2834", "MT1432",
+      0,
+      0,
+      0,
+      0,
+      "AT+FCLASS=2\rAT+FTBC=0\rAT+FREL=1\rAT+FCQ=1\rAT+FBOR=1\rAT+FCR=1",
+      0,
+     },
 
- {	"VOCAL",	"ATI6",	"144DPL+FAX",	"Rockwell",
-	"AT\\N3",	/* auto reliable (V.42, fall back to MNP, fall back to none) */
-	"AT%C3\\J0",	/* negotiate for compression, don't change port baud rate */	
-	0,
-	0,
- 	"AT+FCLASS=2\rAT+FTBC=0\rAT+FREL=1\rAT+FCQ=1\rAT+FBOR=1\rAT+FCR=1",
-	"AT+FCLASS=0",
- },
+     {
+      "VOCAL", "ATI6", "144DPL+FAX", "Rockwell",
+      "AT\\N3",    /* auto reliable (V.42, fall back to MNP, fall back to none) */
+      "AT%C3\\J0", /* negotiate for compression, don't change port baud rate */
+      0,
+      0,
+      "AT+FCLASS=2\rAT+FTBC=0\rAT+FREL=1\rAT+FCQ=1\rAT+FBOR=1\rAT+FCR=1",
+      "AT+FCLASS=0",
+     },
 
- { 0, },
+     {
+      0,
+     },
 };
 
 /*
  *  modem return codes
  */
-enum
-{
+enum {
 	Ok,
 	Success,
 	Failure,
@@ -228,95 +228,107 @@ enum
 /*
  *  modem return messages
  */
-typedef struct Msg	Msg;
-struct Msg
-{
-	char	*text;
-	int	type;
+typedef struct Msg Msg;
+struct Msg {
+	char *text;
+	int type;
 };
 
 Msg msgs[] =
-{
-	{ "OK",			Ok, },
-	{ "NO CARRIER", 	Failure, },
-	{ "ERROR",		Failure, },
-	{ "NO DIALTONE",	Failure, },
-	{ "BUSY",		Failure, },
-	{ "NO ANSWER",		Failure, },
-	{ "CONNECT",		Success, },
-	{ 0,			0 },
+    {
+     {
+      "OK", Ok,
+     },
+     {
+      "NO CARRIER", Failure,
+     },
+     {
+      "ERROR", Failure,
+     },
+     {
+      "NO DIALTONE", Failure,
+     },
+     {
+      "BUSY", Failure,
+     },
+     {
+      "NO ANSWER", Failure,
+     },
+     {
+      "CONNECT", Success,
+     },
+     {0, 0},
 };
 
-Fid	*fids;
-Dev	*dev;
-int	ndev;
-int	mfd[2];
-char	*user;
-uint8_t	mdata[8192+IOHDRSZ];
-int	messagesize = sizeof mdata;
-Fcall	thdr;
-Fcall	rhdr;
-char	errbuf[ERRMAX];
-uint8_t	statbuf[STATMAX];
-int	pulsed;
-int	verbose;
-int	maxspeed = 56000;
-char	*srcid = "plan9";
-int	answer = 1;
+Fid *fids;
+Dev *dev;
+int ndev;
+int mfd[2];
+char *user;
+uint8_t mdata[8192 + IOHDRSZ];
+int messagesize = sizeof mdata;
+Fcall thdr;
+Fcall rhdr;
+char errbuf[ERRMAX];
+uint8_t statbuf[STATMAX];
+int pulsed;
+int verbose;
+int maxspeed = 56000;
+char *srcid = "plan9";
+int answer = 1;
 
-Fid	*newfid(int);
-int	devstat(Dir*, uint8_t*, int);
-int	devgen(Qid, int, Dir*, uint8_t*, int);
-void	error(char*);
-void	io(void);
-void	*erealloc(void*, uint32_t);
-void	*emalloc(uint32_t);
-void	usage(void);
-int	perm(Fid*, Dev*, int);
-void	setspeed(Dev*, int);
-int	getspeed(char*, int);
-char	*dialout(Dev*, char*);
-void	onhook(Dev*);
-int	readmsg(Dev*, int, char*);
-void	monitor(Dev*);
-int	getinput(Dev*, char*, int);
-void	serve(Dev*);
-void	receiver(Dev*);
-char*	modemtype(Dev*, int, int);
+Fid *newfid(int);
+int devstat(Dir *, uint8_t *, int);
+int devgen(Qid, int, Dir *, uint8_t *, int);
+void error(char *);
+void io(void);
+void *erealloc(void *, uint32_t);
+void *emalloc(uint32_t);
+void usage(void);
+int perm(Fid *, Dev *, int);
+void setspeed(Dev *, int);
+int getspeed(char *, int);
+char *dialout(Dev *, char *);
+void onhook(Dev *);
+int readmsg(Dev *, int, char *);
+void monitor(Dev *);
+int getinput(Dev *, char *, int);
+void serve(Dev *);
+void receiver(Dev *);
+char *modemtype(Dev *, int, int);
 
+char *rflush(Fid *), *rversion(Fid *),
+    *rattach(Fid *), *rauth(Fid *), *rwalk(Fid *),
+    *ropen(Fid *), *rcreate(Fid *),
+    *rread(Fid *), *rwrite(Fid *), *rclunk(Fid *),
+    *rremove(Fid *), *rstat(Fid *), *rwstat(Fid *);
 
-char	*rflush(Fid*), *rversion(Fid*),
-	*rattach(Fid*), *rauth(Fid*), *rwalk(Fid*),
-	*ropen(Fid*), *rcreate(Fid*),
-	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
-
-char 	*(*fcalls[])(Fid*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tattach]	rattach,
-	[Tauth]	rauth,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char *(*fcalls[])(Fid *) = {
+	[Tflush] rflush,
+	[Tversion] rversion,
+	[Tattach] rattach,
+	[Tauth] rauth,
+	[Twalk] rwalk,
+	[Topen] ropen,
+	[Tcreate] rcreate,
+	[Tread] rread,
+	[Twrite] rwrite,
+	[Tclunk] rclunk,
+	[Tremove] rremove,
+	[Tstat] rstat,
+	[Twstat] rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enotexist[] =	"file does not exist";
-char	Ebadaddr[] = 	"bad address";
-char	Eattn[] = 	"can't get modem's attention";
-char	Edial[] = 	"can't dial";
-char	Enoauth[] =	"telco: authentication not required";
-char	Eisopen[] = 	"file already open for I/O";
-char	Enodev[] = 	"no free modems";
-char	Enostream[] =	"stream closed prematurely";
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enotexist[] = "file does not exist";
+char Ebadaddr[] = "bad address";
+char Eattn[] = "can't get modem's attention";
+char Edial[] = "can't dial";
+char Enoauth[] = "telco: authentication not required";
+char Eisopen[] = "file already open for I/O";
+char Enodev[] = "no free modems";
+char Enostream[] = "stream closed prematurely";
 
 void
 usage(void)
@@ -342,7 +354,8 @@ main(int argc, char *argv[])
 	char buf[10];
 	Dev *d;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'p':
 		pulsed = 1;
 		break;
@@ -360,7 +373,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		usage();
@@ -374,7 +388,7 @@ main(int argc, char *argv[])
 	fmtinstall('F', fcallfmt);
 	user = getuser();
 
-	switch(rfork(RFFDG|RFPROC|RFREND|RFNOTEG)){
+	switch(rfork(RFFDG | RFPROC | RFREND | RFNOTEG)) {
 	case -1:
 		error("fork");
 	case 0:
@@ -395,8 +409,8 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	dev = mallocz(argc*sizeof(Dev), 1);
-	for(ndev = 0; ndev < argc; ndev++){
+	dev = mallocz(argc * sizeof(Dev), 1);
+	for(ndev = 0; ndev < argc; ndev++) {
 		d = &dev[ndev];
 		d->path = argv[ndev];
 		d->rp = d->wp = d->rbuf;
@@ -423,7 +437,7 @@ devstat(Dir *dir, uint8_t *buf, int nbuf)
 	t = TYPE(dir->qid);
 	if(t != Qlvl3)
 		dir->name = names[t];
-	else{
+	else {
 		dir->name = tmp[ntmp % nelem(tmp)];
 		sprint(dir->name, "%lud", DEV(dir->qid));
 		ntmp++;
@@ -432,16 +446,16 @@ devstat(Dir *dir, uint8_t *buf, int nbuf)
 	dir->uid = user;
 	dir->gid = user;
 	dir->muid = user;
-	if(t >= Qlvl3){
+	if(t >= Qlvl3) {
 		d = &dev[DEV(dir->qid)];
-		if(d->open){
+		if(d->open) {
 			dir->mode = d->perm;
 			dir->uid = d->user;
 		}
 	}
 	if(dir->qid.type & QTDIR)
 		dir->mode |= DMDIR;
-	if(t == Qdata){
+	if(t == Qdata) {
 		d = &dev[DEV(dir->qid)];
 		dir->length = d->wp - d->rp;
 		if(dir->length < 0)
@@ -464,7 +478,7 @@ devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 	static uint32_t v;
 
 	d->qid.vers = v++;
-	switch(TYPE(q)){
+	switch(TYPE(q)) {
 	case Qlvl1:
 		if(i != 0)
 			return -1;
@@ -472,7 +486,7 @@ devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 		d->qid.path = Qlvl2;
 		break;
 	case Qlvl2:
-		switch(i){
+		switch(i) {
 		case -1:
 			d->qid.type = QTDIR;
 			d->qid.path = Qlvl1;
@@ -485,12 +499,12 @@ devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 			if(i > ndev)
 				return -1;
 			d->qid.type = QTDIR;
-			d->qid.path = MKQID(Qlvl3, i-1);
+			d->qid.path = MKQID(Qlvl3, i - 1);
 			break;
 		}
 		break;
 	case Qlvl3:
-		switch(i){
+		switch(i) {
 		case -1:
 			d->qid.type = QTDIR;
 			d->qid.path = Qlvl2;
@@ -513,7 +527,7 @@ devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 	return devstat(d, buf, nbuf);
 }
 
-char*
+char *
 rversion(Fid *)
 {
 	Fid *f;
@@ -534,17 +548,17 @@ rversion(Fid *)
 	return 0;
 }
 
-char*
+char *
 rflush(Fid *f)
 {
 	Request *r, **l;
 	Dev *d;
 
 	USED(f);
-	for(d = dev; d < &dev[ndev]; d++){
+	for(d = dev; d < &dev[ndev]; d++) {
 		lock(d);
 		for(l = &d->r; r = *l; l = &r->next)
-			if(r->tag == thdr.oldtag){
+			if(r->tag == thdr.oldtag) {
 				*l = r->next;
 				free(r);
 				break;
@@ -561,7 +575,7 @@ rauth(Fid *f)
 	return Enoauth;
 }
 
-char*
+char *
 rattach(Fid *f)
 {
 	f->busy = 1;
@@ -576,7 +590,7 @@ rattach(Fid *f)
 	return 0;
 }
 
-char*
+char *
 rwalk(Fid *f)
 {
 	Fid *nf;
@@ -586,7 +600,7 @@ rwalk(Fid *f)
 	Qid q;
 
 	nf = nil;
-	if(thdr.fid != thdr.newfid){
+	if(thdr.fid != thdr.newfid) {
 		if(f->open)
 			return Eisopen;
 		if(f->busy == 0)
@@ -596,28 +610,27 @@ rwalk(Fid *f)
 		nf->open = 0;
 		nf->qid = f->qid;
 		nf->user = strdup(f->user);
-		f = nf;	/* walk f */
+		f = nf; /* walk f */
 	}
 
 	err = nil;
 	dir.qid = f->qid;
 	nqid = 0;
-	if(thdr.nwname > 0){
+	if(thdr.nwname > 0) {
 		for(; nqid < thdr.nwname; nqid++) {
-			if((dir.qid.type & QTDIR) == 0){
+			if((dir.qid.type & QTDIR) == 0) {
 				err = Enotdir;
 				break;
 			}
 			name = thdr.wname[nqid];
-			if(strcmp(name, ".") == 0){
+			if(strcmp(name, ".") == 0) {
 				/* nothing to do */
-			}else if(strcmp(name, "..") == 0) {
+			} else if(strcmp(name, "..") == 0) {
 				if(devgen(f->qid, -1, &dir, 0, 0) < 0)
 					break;
-			}
-			else{
+			} else {
 				q = dir.qid;
-				for(i = 0;; i++){
+				for(i = 0;; i++) {
 					if(devgen(q, i, &dir, 0, 0) < 0)
 						goto Out;
 					if(strcmp(name, dir.name) == 0)
@@ -626,7 +639,7 @@ rwalk(Fid *f)
 			}
 			rhdr.wqid[nqid] = dir.qid;
 		}
-    Out:
+	Out:
 		if(nqid == 0 && err == nil)
 			err = Enotexist;
 		if(nf != nil && thdr.fid != thdr.newfid && nqid < thdr.nwname)
@@ -649,36 +662,36 @@ ropen(Fid *f)
 		return Eisopen;
 	mode = thdr.mode;
 	mode &= OPERM;
-	if(f->qid.type & QTDIR){
+	if(f->qid.type & QTDIR) {
 		if(mode != OREAD)
 			return Eperm;
 		rhdr.qid = f->qid;
 		return 0;
 	}
-	if(mode==OEXEC)
+	if(mode == OEXEC)
 		return Eperm;
 	t = TYPE(f->qid);
-	if(t == Qclone){
+	if(t == Qclone) {
 		for(d = dev; d < &dev[ndev]; d++)
 			if(d->open == 0)
 				break;
 		if(d == &dev[ndev])
 			return Enodev;
-		f->qid.path = MKQID(Qctl, d-dev);
+		f->qid.path = MKQID(Qctl, d - dev);
 		t = Qctl;
 	}
-	switch(t){
+	switch(t) {
 	case Qdata:
 	case Qctl:
 		d = &dev[DEV(f->qid)];
-		if(d->open == 0){
+		if(d->open == 0) {
 			d->user = strdup(f->user);
 			d->perm = 0660;
-		}else {
-			if(mode==OWRITE || mode==ORDWR)
+		} else {
+			if(mode == OWRITE || mode == ORDWR)
 				if(!perm(f, d, Pwrite))
 					return Eperm;
-			if(mode==OREAD || mode==ORDWR)
+			if(mode == OREAD || mode == ORDWR)
 				if(!perm(f, d, Pread))
 					return Eperm;
 		}
@@ -710,7 +723,7 @@ takeanote(void *u, char *note)
 	noted(NDFLT);
 }
 
-char*
+char *
 rread(Fid *f)
 {
 	char *buf;
@@ -727,11 +740,11 @@ rread(Fid *f)
 	cnt = thdr.count;
 	buf = rhdr.data;
 	t = TYPE(f->qid);
-	switch(t){
+	switch(t) {
 	default:
 		start = 0;
-		for(i = 0; n < cnt; i++){
-			m = devgen(f->qid, i, &dir, (uint8_t*)buf+n, cnt-n);
+		for(i = 0; n < cnt; i++) {
+			m = devgen(f->qid, i, &dir, (uint8_t *)buf + n, cnt - n);
 			if(m <= BIT16SZ)
 				break;
 			if(start >= off)
@@ -741,7 +754,7 @@ rread(Fid *f)
 		break;
 	case Qctl:
 		i = sprint(num, "%lud", DEV(f->qid));
-		if(off < i){
+		if(off < i) {
 			n = cnt;
 			if(off + n > i)
 				n = i - off;
@@ -773,7 +786,7 @@ rread(Fid *f)
 char *cmsg = "connect ";
 int clen;
 
-char*
+char *
 rwrite(Fid *f)
 {
 	Dev *d;
@@ -784,17 +797,17 @@ rwrite(Fid *f)
 
 	off = thdr.offset;
 	cnt = thdr.count;
-	switch(TYPE(f->qid)){
+	switch(TYPE(f->qid)) {
 	default:
 		return "file is a directory";
 	case Qctl:
 		d = &dev[DEV(f->qid)];
 		clen = strlen(cmsg);
-		if(cnt < clen || strncmp(thdr.data, cmsg, clen) != 0){
+		if(cnt < clen || strncmp(thdr.data, cmsg, clen) != 0) {
 			/*
 			 *  send control message to real control file
 			 */
-			if(seek(d->ctl, off, 0) < 0 || write(d->ctl, thdr.data, cnt) < 0){
+			if(seek(d->ctl, off, 0) < 0 || write(d->ctl, thdr.data, cnt) < 0) {
 				errstr(errbuf, sizeof errbuf);
 				return errbuf;
 			}
@@ -817,7 +830,7 @@ rwrite(Fid *f)
 		break;
 	case Qdata:
 		d = &dev[DEV(f->qid)];
-		if(write(d->data, thdr.data, cnt) < 0){
+		if(write(d->data, thdr.data, cnt) < 0) {
 			errstr(errbuf, sizeof errbuf);
 			return errbuf;
 		}
@@ -833,7 +846,7 @@ rclunk(Fid *f)
 	Dev *d;
 
 	if(f->open)
-		switch(TYPE(f->qid)){
+		switch(TYPE(f->qid)) {
 		case Qdata:
 		case Qctl:
 			d = &dev[DEV(f->qid)];
@@ -875,16 +888,16 @@ rwstat(Fid *f)
 	if(TYPE(f->qid) < Qlvl3)
 		return Eperm;
 
-	convM2D(thdr.stat, thdr.nstat, &dir, rhdr.data);	/* rhdr.data is a known place to scribble */
+	convM2D(thdr.stat, thdr.nstat, &dir, rhdr.data); /* rhdr.data is a known place to scribble */
 	d = &dev[DEV(f->qid)];
 
 	/*
 	 * To change mode, must be owner
 	 */
-	if(d->perm != dir.mode){
+	if(d->perm != dir.mode) {
 		if(strcmp(f->user, d->user) != 0)
-		if(strcmp(f->user, user) != 0)
-			return Eperm;
+			if(strcmp(f->user, user) != 0)
+				return Eperm;
 	}
 
 	/* all ok; do it */
@@ -903,7 +916,7 @@ newfid(int fid)
 			return f;
 		else if(!ff && !f->busy)
 			ff = f;
-	if(ff){
+	if(ff) {
 		ff->fid = fid;
 		return ff;
 	}
@@ -923,7 +936,7 @@ io(void)
 	char *err;
 	int n;
 
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads
@@ -940,17 +953,17 @@ io(void)
 		if(convM2S(mdata, n, &thdr) != n)
 			error("convM2S error");
 
-		rhdr.data = (char*)mdata + IOHDRSZ;
+		rhdr.data = (char *)mdata + IOHDRSZ;
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
 			err = (*fcalls[thdr.type])(newfid(thdr.fid));
-		if(err){
+		if(err) {
 			if(*err == 0)
-				continue;	/* assigned to a slave */
+				continue; /* assigned to a slave */
 			rhdr.type = Rerror;
 			rhdr.ename = err;
-		}else{
+		} else {
 			rhdr.type = thdr.type + 1;
 			rhdr.fid = thdr.fid;
 		}
@@ -961,15 +974,14 @@ io(void)
 	}
 }
 
-
 int
 perm(Fid *f, Dev *d, int p)
 {
-	if((p*Pother) & d->perm)
+	if((p * Pother) & d->perm)
 		return 1;
-	if(strcmp(f->user, user)==0 && ((p*Pgroup) & d->perm))
+	if(strcmp(f->user, user) == 0 && ((p * Pgroup) & d->perm))
 		return 1;
-	if(strcmp(f->user, d->user)==0 && ((p*Powner) & d->perm))
+	if(strcmp(f->user, d->user) == 0 && ((p * Powner) & d->perm))
 		return 1;
 	return 0;
 }
@@ -1027,9 +1039,9 @@ apply(Dev *d, char *s, char *substr, int secs)
 
 	p = buf;
 	m = Ok;
-	while(*s){
+	while(*s) {
 		c = *p++ = *s++;
-		if(c == '\r' || *s == 0){
+		if(c == '\r' || *s == 0) {
 			if(c != '\r')
 				*p++ = '\r';
 			*p = 0;
@@ -1067,7 +1079,7 @@ attention(Dev *d)
 {
 	int i;
 
-	for(i = 0; i < 2; i++){
+	for(i = 0; i < 2; i++) {
 		sleep(250);
 		if(send(d, "+") < 0)
 			continue;
@@ -1085,13 +1097,13 @@ attention(Dev *d)
 	return Failure;
 }
 
-int portspeed[] = { 56000, 38400, 19200, 14400, 9600, 4800, 2400, 1200, 600, 300, 0 };
+int portspeed[] = {56000, 38400, 19200, 14400, 9600, 4800, 2400, 1200, 600, 300, 0};
 
 /*
  *  get the modem's type and speed
  */
-char*
-modemtype(Dev *d, int limit,  int fax)
+char *
+modemtype(Dev *d, int limit, int fax)
 {
 	int *p;
 	Type *t, *bt;
@@ -1104,7 +1116,7 @@ modemtype(Dev *d, int limit,  int fax)
 	attention(d);
 
 	/* find a common port rate */
-	for(p = portspeed; *p; p++){
+	for(p = portspeed; *p; p++) {
 		if(*p > limit)
 			continue;
 		setspeed(d, *p);
@@ -1129,7 +1141,7 @@ modemtype(Dev *d, int limit,  int fax)
 		return Eattn;
 
 	/* find modem type */
-	for(t = typetab; t->name; t++){
+	for(t = typetab; t->name; t++) {
 		if(t->ident == 0 || t->response == 0)
 			continue;
 		if(apply(d, t->ident, t->response, 2) == Found)
@@ -1137,9 +1149,9 @@ modemtype(Dev *d, int limit,  int fax)
 		readmsg(d, 0, 0);
 	}
 	readmsg(d, 0, 0);
-	if(t->name){
+	if(t->name) {
 		d->t = t;
-		if(t->basetype){
+		if(t->basetype) {
 			for(bt = typetab; bt->name; bt++)
 				if(strcmp(bt->name, t->basetype) == 0)
 					break;
@@ -1152,13 +1164,13 @@ modemtype(Dev *d, int limit,  int fax)
 
 	/* try setting fax modes */
 	d->fclass = 0;
-	if(fax){
+	if(fax) {
 		/* set up fax parameters */
 		if(applyspecial(d, Cfclass2) != Failure)
 			d->fclass = 2;
 
 		/* setup a source id */
-		if(srcid){
+		if(srcid) {
 			sprint(buf, "AT+FLID=\"%s\"", srcid);
 			apply(d, buf, 0, 2);
 		}
@@ -1184,7 +1196,7 @@ monitor(Dev *d)
 	background = 0;
 	d->ctl = d->data = -1;
 
-	for(;;){
+	for(;;) {
 		lock(d);
 		sprint(file, "%sctl", d->path);
 		d->ctl = open(file, ORDWR);
@@ -1196,9 +1208,9 @@ monitor(Dev *d)
 		d->wp = d->rp = d->rbuf;
 		unlock(d);
 
-		if(!background){
+		if(!background) {
 			background = 1;
-			switch(d->pid = rfork(RFPROC|RFMEM)){
+			switch(d->pid = rfork(RFPROC | RFMEM)) {
 			case -1:
 				error("out of processes");
 			case 0:
@@ -1209,7 +1221,7 @@ monitor(Dev *d)
 		}
 
 		/* wait for ring or off hook */
-		while(d->open == 0){
+		while(d->open == 0) {
 			d->rp = d->rbuf;
 			p = d->wp;
 			n = read(d->data, p, 1);
@@ -1217,11 +1229,11 @@ monitor(Dev *d)
 				continue;
 			if(p < &d->rbuf[Nrbuf] - 2)
 				d->wp++;
-			if(*p == '\r' || *p == '\n'){
-				*(p+1) = 0;
+			if(*p == '\r' || *p == '\n') {
+				*(p + 1) = 0;
 				if(verbose)
 					syslog(0, LOGFILE, "<:-%s", d->rp);
-				if(answer && strncmp(d->rp, "RING", 4) == 0){
+				if(answer && strncmp(d->rp, "RING", 4) == 0) {
 					receiver(d);
 					continue;
 				}
@@ -1231,7 +1243,7 @@ monitor(Dev *d)
 		}
 
 		/* shuttle bytes till on hook */
-		while(d->open){
+		while(d->open) {
 			if(d->wp >= d->rp)
 				n = &d->rbuf[Nrbuf] - d->wp;
 			else
@@ -1268,7 +1280,7 @@ getinput(Dev *d, char *buf, int n)
 	int i;
 
 	p = buf;
-	while(n > 0){
+	while(n > 0) {
 		if(d->wp == d->rp)
 			break;
 		if(d->wp < d->rp)
@@ -1301,9 +1313,9 @@ serve(Dev *d)
 	char *buf;
 
 	mdata = malloc(messagesize);
-	buf = malloc(messagesize-IOHDRSZ);
+	buf = malloc(messagesize - IOHDRSZ);
 
-	for(;;){
+	for(;;) {
 		if(d->r == 0 || d->rp == d->wp)
 			break;
 		r = d->r;
@@ -1332,7 +1344,7 @@ serve(Dev *d)
 /*
  *  dial a number
  */
-char*
+char *
 dialout(Dev *d, char *number)
 {
 	int i, m, compress, rateadjust, speed, fax;
@@ -1346,7 +1358,7 @@ dialout(Dev *d, char *number)
 	fax = Failure;
 
 	m = getfields(number, field, 5, 1, "!");
-	for(i = 1; i < m; i++){
+	for(i = 1; i < m; i++) {
 		if(field[i][0] >= '0' && field[i][0] <= '9')
 			speed = atoi(field[i]);
 		else if(strcmp(field[i], "nocompress") == 0)
@@ -1355,8 +1367,8 @@ dialout(Dev *d, char *number)
 			fax = Ok;
 	}
 
-	syslog(0, LOGFILE, "dialing %s speed=%d %s", number, speed, fax==Ok?"fax":"");
-	
+	syslog(0, LOGFILE, "dialing %s speed=%d %s", number, speed, fax == Ok ? "fax" : "");
+
 	err = modemtype(d, speed, fax == Ok);
 	if(err)
 		return err;
@@ -1364,7 +1376,7 @@ dialout(Dev *d, char *number)
 	/*
 	 *  extented Hayes commands, meaning depends on modem (VGA all over again)
 	 */
-	if(fax != Ok){
+	if(fax != Ok) {
 		if(d->fclass != 0)
 			applyspecial(d, Cfclass0);
 		applyspecial(d, Cerrorcorrection);
@@ -1381,9 +1393,9 @@ dialout(Dev *d, char *number)
 		return Edial;
 
 	if(fax == Ok)
-		return 0;		/* fax sender worries about the rest */
+		return 0; /* fax sender worries about the rest */
 
-	switch(readmsg(d, 120, 0)){
+	switch(readmsg(d, 120, 0)) {
 	case Success:
 		break;
 	default:
@@ -1411,16 +1423,16 @@ receiver(Dev *d)
 	char *prog;
 
 	pipe(pfd);
-	switch(rfork(RFPROC|RFMEM|RFFDG|RFNAMEG)){
+	switch(rfork(RFPROC | RFMEM | RFFDG | RFNAMEG)) {
 	case -1:
 		return;
 	case 0:
 		fd = open("/srv/telco", ORDWR);
-		if(fd < 0){
+		if(fd < 0) {
 			syslog(0, LOGFILE, "can't open telco: %r");
 			exits(0);
 		}
-		if(mount(fd, -1, "/net", MAFTER, "") < 0){
+		if(mount(fd, -1, "/net", MAFTER, "") < 0) {
 			syslog(0, LOGFILE, "can't mount: %r");
 			exits(0);
 		}
@@ -1429,7 +1441,7 @@ receiver(Dev *d)
 		/* open connection through the file system interface */
 		sprint(file, "/net/telco/%ld/data", d - dev);
 		fd = open(file, ORDWR);
-		if(fd < 0){
+		if(fd < 0) {
 			syslog(0, LOGFILE, "can't open %s: %r", file);
 			exits(0);
 		}
@@ -1440,7 +1452,7 @@ receiver(Dev *d)
 
 		/* answer the phone and see what flavor call this is */
 		prog = "/bin/service/telcodata";
-		switch(apply(d, "ATA", "+FCON", 30)){
+		switch(apply(d, "ATA", "+FCON", 30)) {
 		case Success:
 			break;
 		case Found:
@@ -1456,7 +1468,7 @@ receiver(Dev *d)
 		dup(fd, 1);
 		close(fd);
 		argc = 0;
-		argv[argc++] = strrchr(prog, '/')+1;
+		argv[argc++] = strrchr(prog, '/') + 1;
 		argv[argc++] = file;
 		argv[argc++] = dev->t->name;
 		argv[argc] = 0;
@@ -1500,22 +1512,22 @@ readmsg(Dev *d, int secs, char *substr)
 
 	p = d->msgbuf;
 	len = sizeof(d->msgbuf) - 1;
-	for(start = time(0); time(0) <= start+secs;){
-		if(len && d->rp == d->wp){
+	for(start = time(0); time(0) <= start + secs;) {
+		if(len && d->rp == d->wp) {
 			sleep(100);
 			continue;
 		}
 		i = getinput(d, p, 1);
 		if(i == 0)
 			continue;
-		if(*p == '\n' || *p == '\r' || len == 0){
+		if(*p == '\n' || *p == '\r' || len == 0) {
 			*p = 0;
 			if(verbose && p != d->msgbuf)
 				syslog(0, LOGFILE, "<-%s", d->msgbuf);
 			if(substr && strstr(d->msgbuf, substr))
 				found = 1;
 			for(pp = msgs; pp->text; pp++)
-				if(strncmp(pp->text, d->msgbuf, strlen(pp->text))==0)
+				if(strncmp(pp->text, d->msgbuf, strlen(pp->text)) == 0)
 					return found ? Found : pp->type;
 			start = time(0);
 			p = d->msgbuf;

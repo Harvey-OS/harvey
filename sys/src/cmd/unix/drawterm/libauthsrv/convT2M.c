@@ -11,11 +11,21 @@
 #include <libc.h>
 #include <authsrv.h>
 
-#define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	p[0] = f->x; p[1] = f->x>>8; p += 2
-#define	VLONG(q)	p[0] = (q); p[1] = (q)>>8; p[2] = (q)>>16; p[3] = (q)>>24; p += 4
-#define	LONG(x)		VLONG(f->x)
-#define	STRING(x,n)	memmove(p, f->x, n); p += n
+#define CHAR(x) *p++ = f->x
+#define SHORT(x)          \
+	p[0] = f->x;      \
+	p[1] = f->x >> 8; \
+	p += 2
+#define VLONG(q)          \
+	p[0] = (q);       \
+	p[1] = (q) >> 8;  \
+	p[2] = (q) >> 16; \
+	p[3] = (q) >> 24; \
+	p += 4
+#define LONG(x) VLONG(f->x)
+#define STRING(x, n)         \
+	memmove(p, f->x, n); \
+	p += n
 
 int
 convT2M(Ticket *f, char *ap, char *key)
@@ -23,13 +33,13 @@ convT2M(Ticket *f, char *ap, char *key)
 	int n;
 	uint8_t *p;
 
-	p = (uint8_t*)ap;
+	p = (uint8_t *)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, ANAMELEN);
 	STRING(suid, ANAMELEN);
 	STRING(key, DESKEYLEN);
-	n = p - (uint8_t*)ap;
+	n = p - (uint8_t *)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

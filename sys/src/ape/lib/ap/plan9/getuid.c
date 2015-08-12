@@ -16,7 +16,7 @@ getuid(void)
 {
 	struct passwd *p;
 	p = getpwnam(getlogin());
-	return p? p->pw_uid : 1;
+	return p ? p->pw_uid : 1;
 }
 
 uid_t

@@ -27,12 +27,12 @@
 /* Interface to gxdither.c */
 
 #ifndef gxdither_INCLUDED
-#  define gxdither_INCLUDED
+#define gxdither_INCLUDED
 
 #include "gxfrac.h"
 
 #ifndef gx_device_halftone_DEFINED
-#  define gx_device_halftone_DEFINED
+#define gx_device_halftone_DEFINED
 typedef struct gx_device_halftone_s gx_device_halftone;
 #endif
 
@@ -46,8 +46,8 @@ typedef struct gx_device_halftone_s gx_device_halftone;
  *  This is part of a kludge to minimize differences in the
  *  regression testing.
  */
-int gx_render_device_DeviceN(frac * pcolor, gx_device_color * pdevc,
-    gx_device * dev, gx_device_halftone * pdht, const gs_int_point * ht_phase);
+int gx_render_device_DeviceN(frac *pcolor, gx_device_color *pdevc,
+			     gx_device *dev, gx_device_halftone *pdht, const gs_int_point *ht_phase);
 /*
  * Reduce a colored halftone with 0 or 1 varying plane(s) to a pure color
  * or a binary halftone.

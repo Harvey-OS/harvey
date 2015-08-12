@@ -13,14 +13,14 @@
 #include <ip.h>
 
 enum {
-	Eaddrlen = 6,	/* 48 bits */
+	Eaddrlen = 6, /* 48 bits */
 };
 
 typedef struct Wolpack Wolpack;
-struct Wolpack{
-	uint8_t	magic[6];
-	uint8_t	macs[16][Eaddrlen];
-	char	pass[6+1];
+struct Wolpack {
+	uint8_t magic[6];
+	uint8_t macs[16][Eaddrlen];
+	char pass[6 + 1];
 };
 
 int verbose;
@@ -55,19 +55,20 @@ dumppack(Wolpack *w)
 }
 
 void
-main(int argc, char* argv[])
+main(int argc, char *argv[])
 {
 	int fd, nw;
 	char *argmac, *pass, *address;
 	uint8_t mac[Eaddrlen];
 	static Wolpack w = {
-		.magic = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, }
-	};
+	    .magic = {
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, }};
 
 	address = pass = nil;
 	fmtinstall('E', eipfmt);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'a':
 		address = EARGF(usage());
 		break;
@@ -79,7 +80,8 @@ main(int argc, char* argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -89,7 +91,7 @@ main(int argc, char* argv[])
 
 	parseether(mac, argmac);
 	fillmac(&w, mac);
-	if(pass){
+	if(pass) {
 		if(strlen(pass) > 6)
 			sysfatal("password greater than 6 bytes");
 		strcpy(w.pass, pass);

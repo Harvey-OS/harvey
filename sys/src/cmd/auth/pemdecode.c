@@ -30,10 +30,12 @@ main(int argc, char **argv)
 	int len;
 	char *tag, *file;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1 && argc != 2)
 		usage();
@@ -48,11 +50,11 @@ main(int argc, char **argv)
 		sysfatal("open %s: %r", file);
 	buf = nil;
 	tot = 0;
-	for(;;){
-		buf = realloc(buf, tot+8192);
+	for(;;) {
+		buf = realloc(buf, tot + 8192);
 		if(buf == nil)
 			sysfatal("realloc: %r");
-		if((n = read(fd, buf+tot, 8192)) < 0)
+		if((n = read(fd, buf + tot, 8192)) < 0)
 			sysfatal("read: %r");
 		if(n == 0)
 			break;
@@ -62,7 +64,7 @@ main(int argc, char **argv)
 	bin = decodePEM(buf, tag, &len, nil);
 	if(bin == nil)
 		sysfatal("cannot extract section '%s' from pem", tag);
-	if((n=write(1, bin, len)) != len)
+	if((n = write(1, bin, len)) != len)
 		sysfatal("writing %d bytes got %ld: %r", len, n);
 	exits(0);
 }

@@ -24,27 +24,26 @@ finished(int hand, int isclient)
 	uint8_t buf[500], buf2[500];
 
 	buf[0] = HFinished;
-	buf[1] = TLSFinishedLen>>16;
-	buf[2] = TLSFinishedLen>>8;
+	buf[1] = TLSFinishedLen >> 16;
+	buf[2] = TLSFinishedLen >> 8;
 	buf[3] = TLSFinishedLen;
-	n = TLSFinishedLen+4;
+	n = TLSFinishedLen + 4;
 
-	for(i=0; i<2; i++){
-		if(i==0)
-			memmove(buf+4, "client finished", TLSFinishedLen);
+	for(i = 0; i < 2; i++) {
+		if(i == 0)
+			memmove(buf + 4, "client finished", TLSFinishedLen);
 		else
-			memmove(buf+4, "server finished", TLSFinishedLen);
-		if(isclient == 1-i){
+			memmove(buf + 4, "server finished", TLSFinishedLen);
+		if(isclient == 1 - i) {
 			if(write(hand, buf, n) != n)
 				return -1;
-		}else{
-			if(readn(hand, buf2, n) != n || memcmp(buf,buf2,n) != 0)
+		} else {
+			if(readn(hand, buf2, n) != n || memcmp(buf, buf2, n) != 0)
 				return -1;
 		}
 	}
 	return 1;
 }
-
 
 // given a plain fd and secrets established beforehand, return encrypted connection
 int
@@ -62,7 +61,7 @@ pushtls(int fd, char *hashalg, char *encalg, int isclient,
 	ctl = open("#a/tls/clone", ORDWR);
 	if(ctl < 0)
 		goto error;
-	n = read(ctl, buf, sizeof(buf)-1);
+	n = read(ctl, buf, sizeof(buf) - 1);
 	if(n < 0)
 		goto error;
 	buf[n] = 0;
@@ -87,7 +86,7 @@ pushtls(int fd, char *hashalg, char *encalg, int isclient,
 	   fprint(ctl, "secret %s %s %d %s", hashalg, encalg, isclient, secret) < 0 ||
 	   fprint(ctl, "changecipher") < 0 ||
 	   finished(hand, isclient) < 0 ||
-	   fprint(ctl, "opened") < 0){
+	   fprint(ctl, "opened") < 0) {
 		close(hand);
 		hand = -1;
 		goto error;
@@ -98,11 +97,11 @@ pushtls(int fd, char *hashalg, char *encalg, int isclient,
 	return data;
 
 error:
-	if(data>=0)
+	if(data >= 0)
 		close(data);
-	if(ctl>=0)
+	if(ctl >= 0)
 		close(ctl);
-	if(hand>=0)
+	if(hand >= 0)
 		close(hand);
 	return -1;
 }

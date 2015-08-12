@@ -17,86 +17,84 @@
 typedef struct Wmsg Wmsg;
 
 enum {
-	Busy =	0x01,
-	Open =	0x02,
-	Trunc =	0x04,
-	Eof =	0x08,
+	Busy = 0x01,
+	Open = 0x02,
+	Trunc = 0x04,
+	Eof = 0x08,
 };
 
 File files[] = {
-[Qdir] =	{.dir = {0,0,{Qdir, 0,QTDIR},		0555|DMDIR,	0,0,0,	"."}},
-[Qplayctl] =	{.dir = {0,0,{Qplayctl, 0,QTFILE},	0666,		0,0,0,	"playctl"}},
-[Qplaylist] =	{.dir = {0,0,{Qplaylist, 0,QTFILE},	0666|DMAPPEND,	0,0,0,	"playlist"}},
-[Qplayvol] =	{.dir = {0,0,{Qplayvol, 0,QTFILE},	0666,		0,0,0,	"playvol"}},
-[Qplaystat] =	{.dir = {0,0,{Qplaystat, 0,QTFILE},	0444,		0,0,0,	"playstat"}},
+	[Qdir] = {.dir = {0, 0, {Qdir, 0, QTDIR}, 0555 | DMDIR, 0, 0, 0, "."}},
+	[Qplayctl] = {.dir = {0, 0, {Qplayctl, 0, QTFILE}, 0666, 0, 0, 0, "playctl"}},
+	[Qplaylist] = {.dir = {0, 0, {Qplaylist, 0, QTFILE}, 0666 | DMAPPEND, 0, 0, 0, "playlist"}},
+	[Qplayvol] = {.dir = {0, 0, {Qplayvol, 0, QTFILE}, 0666, 0, 0, 0, "playvol"}},
+	[Qplaystat] = {.dir = {0, 0, {Qplaystat, 0, QTFILE}, 0444, 0, 0, 0, "playstat"}},
 };
 
-Channel		*reqs;
-Channel		*workers;
-Channel		*volumechan;
-Channel		*playchan;
-Channel		*playlistreq;
-Playlist	playlist;
-int		volume[8];
+Channel *reqs;
+Channel *workers;
+Channel *volumechan;
+Channel *playchan;
+Channel *playlistreq;
+Playlist playlist;
+int volume[8];
 
 char *statetxt[] = {
-	[Nostate] =	"panic!",
-	[Error] =	"error",
-	[Stop] =	"stop",
-	[Pause] =	"pause",
-	[Play] =	"play",
-	[Resume] =	"resume",
-	[Skip] =	"skip",
-	nil
-};
+	[Nostate] = "panic!",
+	[Error] = "error",
+	[Stop] = "stop",
+	[Pause] = "pause",
+	[Play] = "play",
+	[Resume] = "resume",
+	[Skip] = "skip",
+	nil};
 
 // low-order bits: position in play list, high-order: play state:
-Pmsg	playstate = {Stop, 0};
+Pmsg playstate = {Stop, 0};
 
-char	*rflush(Worker*), *rauth(Worker*),
-	*rattach(Worker*), *rwalk(Worker*),
-	*ropen(Worker*), *rcreate(Worker*),
-	*rread(Worker*), *rwrite(Worker*), *rclunk(Worker*),
-	*rremove(Worker*), *rstat(Worker*), *rwstat(Worker*),
-	*rversion(Worker*);
+char *rflush(Worker *), *rauth(Worker *),
+    *rattach(Worker *), *rwalk(Worker *),
+    *ropen(Worker *), *rcreate(Worker *),
+    *rread(Worker *), *rwrite(Worker *), *rclunk(Worker *),
+    *rremove(Worker *), *rstat(Worker *), *rwstat(Worker *),
+    *rversion(Worker *);
 
-char 	*(*fcalls[])(Worker*) = {
-	[Tflush]	rflush,
-	[Tversion]	rversion,
-	[Tauth]		rauth,
-	[Tattach]	rattach,
-	[Twalk]		rwalk,
-	[Topen]		ropen,
-	[Tcreate]	rcreate,
-	[Tread]		rread,
-	[Twrite]	rwrite,
-	[Tclunk]	rclunk,
-	[Tremove]	rremove,
-	[Tstat]		rstat,
-	[Twstat]	rwstat,
+char *(*fcalls[])(Worker *) = {
+	[Tflush] rflush,
+	[Tversion] rversion,
+	[Tauth] rauth,
+	[Tattach] rattach,
+	[Twalk] rwalk,
+	[Topen] ropen,
+	[Tcreate] rcreate,
+	[Tread] rread,
+	[Twrite] rwrite,
+	[Tclunk] rclunk,
+	[Tremove] rremove,
+	[Tstat] rstat,
+	[Twstat] rwstat,
 };
 
-int	messagesize = Messagesize;
-Fid	*fids;
+int messagesize = Messagesize;
+Fid *fids;
 
+char Eperm[] = "permission denied";
+char Enotdir[] = "not a directory";
+char Enoauth[] = "authentication not required";
+char Enotexist[] = "file does not exist";
+char Einuse[] = "file in use";
+char Eexist[] = "file exists";
+char Enotowner[] = "not owner";
+char Eisopen[] = "file already open for I/O";
+char Excl[] = "exclusive use file already open";
+char Ename[] = "illegal name";
+char Ebadctl[] = "unknown control message";
+char Epast[] = "reading past eof";
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"authentication not required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Ebadctl[] =	"unknown control message";
-char	Epast[] =	"reading past eof";
-
-Fid	*oldfid(int);
-Fid	*newfid(int);
-void	volumeupdater(void*);
-void	playupdater(void*);
+Fid *oldfid(int);
+Fid *newfid(int);
+void volumeupdater(void *);
+void playupdater(void *);
 
 char *playerror;
 
@@ -105,13 +103,13 @@ lookup(char *cmd, char *list[])
 {
 	int i;
 
-	for (i = 0; list[i] != nil; i++)
-		if (strcmp(cmd, list[i]) == 0)
+	for(i = 0; list[i] != nil; i++)
+		if(strcmp(cmd, list[i]) == 0)
 			return i;
 	return -1;
 }
 
-char*
+char *
 rversion(Worker *w)
 {
 	Req *r;
@@ -129,17 +127,17 @@ rversion(Worker *w)
 		r->ofcall.version = "9P2000";
 	for(f = fids; f; f = f->next)
 		if(f->flags & Busy)
-			f->flags &= ~(Open|Busy);
+			f->flags &= ~(Open | Busy);
 	return nil;
 }
 
-char*
-rauth(Worker*)
+char *
+rauth(Worker *)
 {
 	return Enoauth;
 }
 
-char*
+char *
 rflush(Worker *w)
 {
 	Wmsg m;
@@ -152,12 +150,12 @@ rflush(Worker *w)
 	m.arg = nil;
 	for(i = 1; i < nelem(files); i++)
 		bcastmsg(files[i].workers, &m);
-	if (debug & DbgWorker)
+	if(debug & DbgWorker)
 		fprint(2, "flush done on tag %d\n", r->ifcall.oldtag);
 	return 0;
 }
 
-char*
+char *
 rattach(Worker *w)
 {
 	Fid *f;
@@ -174,7 +172,7 @@ rattach(Worker *w)
 	return 0;
 }
 
-static Fid*
+static Fid *
 doclone(Fid *f, int nfid)
 {
 	Fid *nf;
@@ -188,21 +186,21 @@ doclone(Fid *f, int nfid)
 	return nf;
 }
 
-char*
+char *
 dowalk(Fid *f, char *name)
 {
 	int t;
 
-	if (strcmp(name, ".") == 0)
+	if(strcmp(name, ".") == 0)
 		return nil;
-	if (strcmp(name, "..") == 0){
+	if(strcmp(name, "..") == 0) {
 		f->file = &files[Qdir];
 		return nil;
 	}
 	if(f->file != &files[Qdir])
 		return Enotexist;
-	for (t = 1; t < Nqid; t++){
-		if(strcmp(name, files[t].dir.name) == 0){
+	for(t = 1; t < Nqid; t++) {
+		if(strcmp(name, files[t].dir.name) == 0) {
 			f->file = &files[t];
 			return nil;
 		}
@@ -210,7 +208,7 @@ dowalk(Fid *f, char *name)
 	return Enotexist;
 }
 
-char*
+char *
 rwalk(Worker *w)
 {
 	Fid *f, *nf;
@@ -230,7 +228,7 @@ rwalk(Worker *w)
 	nf = nil;
 	savefile = f->file;
 	/* clone if requested */
-	if(r->ifcall.newfid != r->ifcall.fid){
+	if(r->ifcall.newfid != r->ifcall.fid) {
 		nf = doclone(f, r->ifcall.newfid);
 		if(nf == nil)
 			return "new fid in use";
@@ -243,11 +241,11 @@ rwalk(Worker *w)
 
 	/* walk each element */
 	rv = nil;
-	for(i = 0; i < r->ifcall.nwname; i++){
+	for(i = 0; i < r->ifcall.nwname; i++) {
 		rv = dowalk(f, r->ifcall.wname[i]);
-		if(rv != nil){
-			if(nf != nil)	
-				nf->flags &= ~(Open|Busy);
+		if(rv != nil) {
+			if(nf != nil)
+				nf->flags &= ~(Open | Busy);
 			else
 				f->file = savefile;
 			break;
@@ -280,7 +278,7 @@ ropen(Worker *w)
 	if(r->ifcall.mode != OREAD)
 		if((f->file->dir.mode & 0x2) == 0)
 			return Eperm;
-	if((r->ifcall.mode & OTRUNC) && f->file == &files[Qplaylist]){
+	if((r->ifcall.mode & OTRUNC) && f->file == &files[Qplaylist]) {
 		playlist.nlines = 0;
 		playlist.ndata = 0;
 		free(playlist.lines);
@@ -305,22 +303,22 @@ ropen(Worker *w)
 }
 
 char *
-rcreate(Worker*)
+rcreate(Worker *)
 {
 	return Eperm;
 }
 
 int
-readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
+readtopdir(Fid *, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	int i, m, n;
 	int32_t pos;
 
 	n = 0;
 	pos = 0;
-	for (i = 1; i < Nqid; i++){
-		m = convD2M(&files[i].dir, &buf[n], blen-n);
-		if(off <= pos){
+	for(i = 1; i < Nqid; i++) {
+		m = convD2M(&files[i].dir, &buf[n], blen - n);
+		if(off <= pos) {
 			if(m <= BIT16SZ || m > cnt)
 				break;
 			n += m;
@@ -331,7 +329,7 @@ readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 	return n;
 }
 
-char*
+char *
 rread(Worker *w)
 {
 	Fid *f;
@@ -352,57 +350,57 @@ rread(Worker *w)
 	if(cnt > messagesize - IOHDRSZ)
 		cnt = messagesize - IOHDRSZ;
 
-	if(f->file == &files[Qdir]){
+	if(f->file == &files[Qdir]) {
 		n = readtopdir(f, r->indata, off, cnt, messagesize - IOHDRSZ);
 		r->ofcall.count = n;
 		return nil;
 	}
 
-	if(f->file == files + Qplaystat){
+	if(f->file == files + Qplaystat) {
 		p = getplaystat(r->ofcall.data, r->ofcall.data + sizeof r->indata);
 		readbuf(r, r->ofcall.data, p - r->ofcall.data);
 		return nil;
 	}
 
 	m.cmd = 0;
-	while(f->vers == f->file->dir.qid.vers && (f->flags & Eof)){
+	while(f->vers == f->file->dir.qid.vers && (f->flags & Eof)) {
 		/* Wait until file state changes (f->file->dir.qid.vers is incremented) */
 		m = waitmsg(w, f->file->workers);
 		if(m.cmd == Flush && m.off == r->ifcall.tag)
-			return (char*)~0;	/* no answer needed */
+			return (char *)~0; /* no answer needed */
 		assert(m.cmd != Work);
 		yield();
 	}
-	if(f->file == files + Qplaylist){
+	if(f->file == files + Qplaylist) {
 		f->flags &= ~Eof;
-		if((f->flags & Trunc) && r->ifcall.offset != 0){
+		if((f->flags & Trunc) && r->ifcall.offset != 0) {
 			f->flags &= ~Trunc;
 			return Epast;
 		}
 		f->flags &= ~Trunc;
 		if(r->ifcall.offset < playlist.ndata)
 			readbuf(r, playlist.data, playlist.ndata);
-		else if(r->ifcall.offset == playlist.ndata){
+		else if(r->ifcall.offset == playlist.ndata) {
 			r->ofcall.count = 0;
 			/* Arrange for this fid to wait next time: */
 			f->vers = f->file->dir.qid.vers;
 			f->flags |= Eof;
-		}else{
+		} else {
 			/* Beyond eof, bad seek? */
 			return Epast;
 		}
-	}else if(f->file == files + Qplayctl){
+	} else if(f->file == files + Qplayctl) {
 		f->flags &= ~Eof;
-		if(m.cmd == Error){
+		if(m.cmd == Error) {
 			snprint(r->ofcall.data, sizeof r->indata, "%s %ud %q",
 				statetxt[m.cmd], m.off, m.arg);
 			free(m.arg);
-		}else if(f->vers == f->file->dir.qid.vers){
+		} else if(f->vers == f->file->dir.qid.vers) {
 			r->ofcall.count = 0;
 			/* Arrange for this fid to wait next time: */
 			f->flags |= Eof;
 			return nil;
-		}else{
+		} else {
 			snprint(r->ofcall.data, sizeof r->indata, "%s %ud",
 				statetxt[playstate.cmd], playstate.off);
 			f->vers = f->file->dir.qid.vers;
@@ -410,15 +408,15 @@ rread(Worker *w)
 		r->ofcall.count = strlen(r->ofcall.data);
 		if(r->ofcall.count > r->ifcall.count)
 			r->ofcall.count = r->ifcall.count;
-	}else if(f->file == files + Qplayvol){
+	} else if(f->file == files + Qplayvol) {
 		f->flags &= ~Eof;
-		if(f->vers == f->file->dir.qid.vers){
+		if(f->vers == f->file->dir.qid.vers) {
 			r->ofcall.count = 0;
 			/* Arrange for this fid to wait next time: */
 			f->flags |= Eof;
-		}else{
+		} else {
 			p = seprint(r->ofcall.data, r->ofcall.data + sizeof r->indata, "volume	'");
-			for(i = 0; i < nelem(volume); i++){
+			for(i = 0; i < nelem(volume); i++) {
 				if(volume[i] == Undef)
 					break;
 				p = seprint(p, r->ofcall.data + sizeof r->indata, "%d ", volume[i]);
@@ -429,12 +427,12 @@ rread(Worker *w)
 				r->ofcall.count = r->ifcall.count;
 			f->vers = f->file->dir.qid.vers;
 		}
-	}else
+	} else
 		abort();
 	return nil;
 }
 
-char*
+char *
 rwrite(Worker *w)
 {
 	int32_t cnt, i, nf, cmd;
@@ -454,31 +452,31 @@ rwrite(Worker *w)
 	if(cnt > messagesize - IOHDRSZ)
 		cnt = messagesize - IOHDRSZ;
 
-	if(f->file == &files[Qplayctl]){
+	if(f->file == &files[Qplayctl]) {
 		r->ifcall.data[cnt] = '\0';
-		if (debug & DbgPlayer)
+		if(debug & DbgPlayer)
 			fprint(2, "rwrite playctl: %s\n", r->ifcall.data);
 		nf = tokenize(r->ifcall.data, fields, 4);
-		if (nf == 0){
+		if(nf == 0) {
 			r->ofcall.count = r->ifcall.count;
 			return nil;
 		}
-		if (nf == 2)
+		if(nf == 2)
 			i = strtol(fields[1], nil, 0);
 		else
 			i = playstate.off;
 		newstate = playstate;
-		if ((cmd = lookup(fields[0], statetxt)) < 0)
-			return  Ebadctl;
-		switch(cmd){
+		if((cmd = lookup(fields[0], statetxt)) < 0)
+			return Ebadctl;
+		switch(cmd) {
 		case Play:
 			newstate.cmd = cmd;
 			newstate.off = i;
 			break;
 		case Pause:
-			if (playstate.cmd != Play)
+			if(playstate.cmd != Play)
 				break;
-			// fall through
+		// fall through
 		case Stop:
 			newstate.cmd = cmd;
 			newstate.off = playstate.off;
@@ -490,92 +488,92 @@ rwrite(Worker *w)
 			newstate.off = playstate.off;
 			break;
 		case Skip:
-			if (nf == 2)
+			if(nf == 2)
 				i += playstate.off;
 			else
-				i = playstate.off +1;
+				i = playstate.off + 1;
 			if(i < 0)
 				i = 0;
-			else if (i >= playlist.nlines)
+			else if(i >= playlist.nlines)
 				i = playlist.nlines - 1;
 			newstate.cmd = Play;
 			newstate.off = i;
 		}
-		if (newstate.off >= playlist.nlines){
+		if(newstate.off >= playlist.nlines) {
 			newstate.cmd = Stop;
 			newstate.off = playlist.nlines;
 		}
-		if (debug & DbgPlayer)
+		if(debug & DbgPlayer)
 			fprint(2, "new state %s-%ud\n",
-				statetxt[newstate.cmd], newstate.off);
-		if (newstate.m != playstate.m)
+			       statetxt[newstate.cmd], newstate.off);
+		if(newstate.m != playstate.m)
 			sendul(playc, newstate.m);
 		f->file->dir.qid.vers++;
-	} else if(f->file == &files[Qplayvol]){
+	} else if(f->file == &files[Qplayvol]) {
 		char *subfields[nelem(volume)];
 		int v[nelem(volume)];
 
 		r->ifcall.data[cnt] = '\0';
-		if (debug & DbgPlayer)
+		if(debug & DbgPlayer)
 			fprint(2, "rwrite playvol: %s\n", r->ifcall.data);
 		nf = tokenize(r->ifcall.data, fields, 4);
-		if (nf == 0){
+		if(nf == 0) {
 			r->ofcall.count = r->ifcall.count;
 			return nil;
 		}
-		if (nf != 2 || strcmp(fields[0], "volume") != 0)
+		if(nf != 2 || strcmp(fields[0], "volume") != 0)
 			return Ebadctl;
-		if (debug & DbgPlayer)
+		if(debug & DbgPlayer)
 			fprint(2, "new volume '");
 		nf = tokenize(fields[1], subfields, nelem(subfields));
-		if (nf <= 0 || nf > nelem(volume))
+		if(nf <= 0 || nf > nelem(volume))
 			return "volume";
-		for (i = 0; i < nf; i++){
+		for(i = 0; i < nf; i++) {
 			v[i] = strtol(subfields[i], nil, 0);
-			if (debug & DbgPlayer)
+			if(debug & DbgPlayer)
 				fprint(2, " %d", v[i]);
 		}
-		if (debug & DbgPlayer)
+		if(debug & DbgPlayer)
 			fprint(2, "'\n");
-		while (i < nelem(volume))
+		while(i < nelem(volume))
 			v[i++] = Undef;
 		volumeset(v);
 		r->ofcall.count = r->ifcall.count;
 		return nil;
-	} else if(f->file == &files[Qplaylist]){
-		if (debug & DbgPlayer){
+	} else if(f->file == &files[Qplaylist]) {
+		if(debug & DbgPlayer) {
 			fprint(2, "rwrite playlist: `");
 			write(2, r->ifcall.data, cnt);
 			fprint(2, "'\n");
 		}
 		playlist.data = realloc(playlist.data, playlist.ndata + cnt + 2);
-		if (playlist.data == 0)
+		if(playlist.data == 0)
 			sysfatal("realloc: %r");
 		memmove(playlist.data + playlist.ndata, r->ifcall.data, cnt);
-		if (playlist.data[playlist.ndata + cnt-1] != '\n')
+		if(playlist.data[playlist.ndata + cnt - 1] != '\n')
 			playlist.data[playlist.ndata + cnt++] = '\n';
 		playlist.data[playlist.ndata + cnt] = '\0';
 		p = playlist.data + playlist.ndata;
-		while (*p){
-			playlist.lines = realloc(playlist.lines, (playlist.nlines+1)*sizeof(playlist.lines[0]));
+		while(*p) {
+			playlist.lines = realloc(playlist.lines, (playlist.nlines + 1) * sizeof(playlist.lines[0]));
 			if(playlist.lines == nil)
 				sysfatal("realloc: %r");
 			playlist.lines[playlist.nlines] = playlist.ndata;
 			q = strchr(p, '\n');
-			if (q == nil)
+			if(q == nil)
 				break;
 			if(debug & DbgPlayer)
 				fprint(2, "[%lud]: ", playlist.nlines);
 			playlist.nlines++;
 			q++;
 			if(debug & DbgPlayer)
-				write(2, p, q-p);
+				write(2, p, q - p);
 			playlist.ndata += q - p;
 			p = q;
 		}
 		f->file->dir.length = playlist.ndata;
 		f->file->dir.qid.vers++;
-	}else
+	} else
 		return Eperm;
 	r->ofcall.count = r->ifcall.count;
 	m.cmd = Check;
@@ -593,12 +591,12 @@ rclunk(Worker *w)
 	f = oldfid(w->r->ifcall.fid);
 	if(f == nil)
 		return Enotexist;
-	f->flags &= ~(Open|Busy);
+	f->flags &= ~(Open | Busy);
 	return 0;
 }
 
 char *
-rremove(Worker*)
+rremove(Worker *)
 {
 	return Eperm;
 }
@@ -618,7 +616,7 @@ rstat(Worker *w)
 }
 
 char *
-rwstat(Worker*)
+rwstat(Worker *)
 {
 	return Eperm;
 }
@@ -641,13 +639,13 @@ newfid(int fid)
 
 	ff = nil;
 	for(f = fids; f; f = f->next)
-		if(f->fid == fid){
+		if(f->fid == fid) {
 			return f;
-		}else if(ff == nil && (f->flags & Busy) == 0)
+		} else if(ff == nil && (f->flags & Busy) == 0)
 			ff = f;
-	if(ff == nil){
+	if(ff == nil) {
 		ff = mallocz(sizeof *ff, 1);
-		if (ff == nil)
+		if(ff == nil)
 			sysfatal("malloc: %r");
 		ff->next = fids;
 		ff->readers = 0;
@@ -667,22 +665,22 @@ work(Worker *w)
 	int n;
 
 	r = w->r;
-	r->ofcall.data = (char*)r->indata;
+	r->ofcall.data = (char *)r->indata;
 	if(!fcalls[r->ifcall.type])
 		err = "bad fcall type";
 	else
 		err = (*fcalls[r->ifcall.type])(w);
-	if(err != (char*)~0){	/* ~0 indicates Flush received */
-		if(err){
+	if(err != (char *)~0) { /* ~0 indicates Flush received */
+		if(err) {
 			r->ofcall.type = Rerror;
 			r->ofcall.ename = err;
-		}else{
+		} else {
 			r->ofcall.type = r->ifcall.type + 1;
 			r->ofcall.fid = r->ifcall.fid;
 		}
 		r->ofcall.tag = r->ifcall.tag;
 		if(debug & DbgFs)
-			fprint(2, "io:->%F\n", &r->ofcall);/**/
+			fprint(2, "io:->%F\n", &r->ofcall); /**/
 		n = convS2M(&r->ofcall, r->outdata, messagesize);
 		if(write(srvfd[0], r->outdata, n) != n)
 			sysfatal("mount write");
@@ -699,7 +697,7 @@ worker(void *arg)
 
 	w = arg;
 	recv(w->eventc, &m);
-	for(;;){
+	for(;;) {
 		assert(m.cmd == Work);
 		w->r = m.arg;
 		if(debug & DbgWorker)
@@ -726,7 +724,7 @@ allocwork(Req *r)
 	w = malloc(sizeof(Worker));
 	w->eventc = chancreate(sizeof(Wmsg), 1);
 	if(debug & DbgWorker)
-		fprint(2, "new worker 0x%p\n", w);/**/
+		fprint(2, "new worker 0x%p\n", w); /**/
 	threadcreate(worker, w, STACKSIZE);
 	send(w->eventc, &m);
 }
@@ -743,7 +741,7 @@ srvio(void *arg)
 	dispatchc = arg;
 
 	r = reqalloc();
-	for(;;){
+	for(;;) {
 		/*
 		 * reading from a pipe or a network device
 		 * will give an error after a few eof reads
@@ -755,10 +753,11 @@ srvio(void *arg)
 		n = read9pmsg(srvfd[0], r->indata, messagesize);
 		if(n == 0)
 			continue;
-		if(n < 0){
+		if(n < 0) {
 			rerrstr(e, sizeof e);
-			if (strcmp(e, "interrupted") == 0){
-				if (debug & DbgFs) fprint(2, "read9pmsg interrupted\n");
+			if(strcmp(e, "interrupted") == 0) {
+				if(debug & DbgFs)
+					fprint(2, "read9pmsg interrupted\n");
 				continue;
 			}
 			sysfatal("srvio: %s", e);
@@ -791,7 +790,7 @@ getplaylist(int n)
 }
 
 void
-playlistsrv(void*)
+playlistsrv(void *)
 {
 	Wmsg m;
 	char *p, *q, *r;
@@ -800,16 +799,16 @@ playlistsrv(void*)
 	/* Runs in the srv proc */
 
 	threadsetname("playlistsrv");
-	while(recv(playlistreq, &m)){
+	while(recv(playlistreq, &m)) {
 		assert(m.cmd == Preq);
 		m.cmd = Error;
-		if(m.off < playlist.nlines){
+		if(m.off < playlist.nlines) {
 			p = playlist.data + playlist.lines[m.off];
 			q = strchr(p, '\n');
-			if (q == nil)
+			if(q == nil)
 				sysfatal("playlistsrv: no newline character found");
-			n = q-p;
-			r = malloc(n+1);
+			n = q - p;
+			r = malloc(n + 1);
 			memmove(r, p, n);
 			r[n] = 0;
 			tokenize(r, fields, nelem(fields));
@@ -822,7 +821,7 @@ playlistsrv(void*)
 }
 
 void
-srv(void*)
+srv(void *)
 {
 	Req *r;
 	Channel *dispatchc;
@@ -837,7 +836,7 @@ srv(void*)
 	threadsetname("srv");
 	close(srvfd[1]);
 
-	dispatchc = chancreate(sizeof(Req*), 1);
+	dispatchc = chancreate(sizeof(Req *), 1);
 	procrfork(srvio, dispatchc, STACKSIZE, RFFDG);
 
 	threadcreate(volumeupdater, nil, STACKSIZE);
@@ -846,23 +845,22 @@ srv(void*)
 
 	while(r = recvp(dispatchc))
 		allocwork(r);
-		
 }
 
 void
-playupdater(void*)
+playupdater(void *)
 {
 	Wmsg m;
 	/* This is a thread in the srv proc */
 
-	while(recv(playchan, &m)){
+	while(recv(playchan, &m)) {
 		if(debug & DbgPlayer)
-			fprint(2, "playupdate: %s %d %s\n", statetxt[m.cmd], m.off, m.arg?m.arg:"");
+			fprint(2, "playupdate: %s %d %s\n", statetxt[m.cmd], m.off, m.arg ? m.arg : "");
 		if(playstate.m == m.m)
 			continue;
 		if(m.cmd == Stop && m.off == 0xffff)
 			m.off = playlist.nlines;
-		if(m.cmd != Error){
+		if(m.cmd != Error) {
 			playstate.m = m.m;
 			m.cmd = Check;
 			assert(m.arg == nil);
@@ -873,13 +871,13 @@ playupdater(void*)
 }
 
 void
-volumeupdater(void*)
+volumeupdater(void *)
 {
 	Wmsg m;
 	int v[nelem(volume)];
 	/* This is a thread in the srv proc */
 
-	while(recv(volumechan, v)){
+	while(recv(volumechan, v)) {
 		if(debug & DbgPlayer)
 			fprint(2, "volumeupdate: volume now %d %d %d %d\n", volume[0], volume[1], volume[2], volume[3]);
 		memmove(volume, v, sizeof(volume));

@@ -39,20 +39,22 @@
 #include "dwdll.h"
 
 /* We are static linking, so just store the function addresses */
-int load_dll(GSDLL *gsdll, char *last_error, int len)
+int
+load_dll(GSDLL *gsdll, char *last_error, int len)
 {
-    gsdll->new_instance = &gsapi_new_instance;
-    gsdll->delete_instance = &gsapi_delete_instance;
-    gsdll->set_stdio = &gsapi_set_stdio;
-    gsdll->set_poll = &gsapi_set_poll;
-    gsdll->set_display_callback = &gsapi_set_display_callback;
-    gsdll->init_with_args = &gsapi_init_with_args;
-    gsdll->run_string = &gsapi_run_string;
-    gsdll->exit = &gsapi_exit;
-    gsdll->set_visual_tracer = &gsapi_set_visual_tracer;
-    return 0;
+	gsdll->new_instance = &gsapi_new_instance;
+	gsdll->delete_instance = &gsapi_delete_instance;
+	gsdll->set_stdio = &gsapi_set_stdio;
+	gsdll->set_poll = &gsapi_set_poll;
+	gsdll->set_display_callback = &gsapi_set_display_callback;
+	gsdll->init_with_args = &gsapi_init_with_args;
+	gsdll->run_string = &gsapi_run_string;
+	gsdll->exit = &gsapi_exit;
+	gsdll->set_visual_tracer = &gsapi_set_visual_tracer;
+	return 0;
 }
 
-void unload_dll(GSDLL *gsdll)
+void
+unload_dll(GSDLL *gsdll)
 {
 }

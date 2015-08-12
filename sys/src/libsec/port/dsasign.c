@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-DSAsig*
+DSAsig *
 dsasign(DSApriv *priv, mpint *m)
 {
 	DSApub *pub = &priv->pub;
@@ -28,7 +28,7 @@ dsasign(DSApriv *priv, mpint *m)
 	mpsub(pub->q, mpone, qm1);
 
 	// find a k that has an inverse mod q
-	while(1){
+	while(1) {
 		mprand(qlen, genrandom, k);
 		if((mpcmp(mpone, k) > 0) || (mpcmp(k, pub->q) >= 0))
 			continue;
@@ -38,7 +38,7 @@ dsasign(DSApriv *priv, mpint *m)
 		break;
 	}
 
-  	// make kinv positive
+	// make kinv positive
 	mpmod(kinv, pub->q, kinv);
 
 	// r = ((alpha**k) mod p) mod q

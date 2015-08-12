@@ -23,76 +23,75 @@ typedef struct DS DS;
 typedef struct Kidargs Kidargs;
 typedef struct Restup Restup;
 
-enum
-{
+enum {
 	Noblock,
 	Block,
 
-	Defstksize	= 8192,
+	Defstksize = 8192,
 
-	Maxstring	= 128,
-	Maxpath		= 256,
+	Maxstring = 128,
+	Maxpath = 256,
 
-	Maxcsreply	= 64*80,	/* this is probably overly generous */
+	Maxcsreply = 64 * 80, /* this is probably overly generous */
 	/*
 	 * this should be a plausible slight overestimate for non-interactive
 	 * use even if it's ridiculously long for interactive use.
 	 */
-	Maxconnms	= 2*60*1000,	/* 2 minutes */
+	Maxconnms = 2 * 60 * 1000, /* 2 minutes */
 };
 
 struct DS {
 	/* dial string */
-	char	buf[Maxstring];
-	char	*netdir;
-	char	*proto;
-	char	*rem;
+	char buf[Maxstring];
+	char *netdir;
+	char *proto;
+	char *rem;
 
 	/* other args */
-	char	*local;
-	char	*dir;
-	int	*cfdp;
+	char *local;
+	char *dir;
+	int *cfdp;
 };
 
 struct Conn {
-	int	cfd;
-	char	dir[NETPATHLEN+1];
+	int cfd;
+	char dir[NETPATHLEN + 1];
 };
 struct Dest {
-	DS	*ds;
+	DS *ds;
 
-	Channel *reschan;		/* all callprocs send results on this */
-	int	nkid;
-	int	kidthrids[64];		/* one per addr; ought to be enough */
+	Channel *reschan; /* all callprocs send results on this */
+	int nkid;
+	int kidthrids[64]; /* one per addr; ought to be enough */
 
-	int	windfd;
-	char	err[ERRMAX];
+	int windfd;
+	char err[ERRMAX];
 
-	int32_t	oalarm;
+	int32_t oalarm;
 
-	int	naddrs;
-	char	*nextaddr;
-	char	addrlist[Maxcsreply];
+	int naddrs;
+	char *nextaddr;
+	char addrlist[Maxcsreply];
 };
 
-struct Kidargs {			/* arguments to callproc */
-	Dest	*dp;
-	int	thridsme;
-	char	*clone;
-	char	*dest;
+struct Kidargs {/* arguments to callproc */
+	Dest *dp;
+	int thridsme;
+	char *clone;
+	char *dest;
 };
 
-struct Restup {				/* result tuple from callproc */
-	int	dfd;
-	int	cfd;
-	char	*err;
-	char	*conndir;
+struct Restup {/* result tuple from callproc */
+	int dfd;
+	int cfd;
+	char *err;
+	char *conndir;
 };
 
-static int	call(char*, char*, Dest*, Conn*);
-static int	call1(char*, char*, Dest*, Conn*);
-static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
+static int call(char *, char *, Dest *, Conn *);
+static int call1(char *, char *, Dest *, Conn *);
+static int csdial(DS *);
+static void _dial_string_parse(char *, DS *);
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
@@ -118,7 +117,7 @@ dialimpl(char *dest, char *local, char *dir, int *cfdp)
 		return rv;
 	err[0] = '\0';
 	errstr(err, sizeof err);
-	if(strstr(err, "refused") != 0){
+	if(strstr(err, "refused") != 0) {
 		werrstr("%s", err);
 		return rv;
 	}
@@ -151,8 +150,8 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 static void
 freedest(Dest *dp)
 {
-	if (dp) {
-		if (dp->oalarm >= 0)
+	if(dp) {
+		if(dp->oalarm >= 0)
 			alarm(dp->oalarm);
 		free(dp);
 	}
@@ -161,7 +160,7 @@ freedest(Dest *dp)
 static void
 closeopenfd(int *fdp)
 {
-	if (*fdp >= 0) {
+	if(*fdp >= 0) {
 		close(*fdp);
 		*fdp = -1;
 	}
@@ -182,7 +181,7 @@ parsecs(Dest *dp, char **clonep, char **destp)
 	*p++ = '\0';
 	*clonep = dp->nextaddr;
 	*destp = dest;
-	dp->nextaddr = p;		/* advance to next line */
+	dp->nextaddr = p; /* advance to next line */
 	return 0;
 }
 
@@ -213,7 +212,7 @@ callproc(void *p)
 	Kidargs *args;
 	Restup *tup;
 
-	threadnotify(catcher, 1);	/* avoid atnotify callbacks in parent */
+	threadnotify(catcher, 1); /* avoid atnotify callbacks in parent */
 
 	conn = &lconn;
 	memset(conn, 0, sizeof *conn);
@@ -225,7 +224,7 @@ callproc(void *p)
 
 	tup = (Restup *)emalloc9p(sizeof *tup);
 	*tup = (Restup){dfd, conn->cfd, nil, nil};
-	if (dfd >= 0)
+	if(dfd >= 0)
 		tup->conndir = strdup(conn->dir);
 	else
 		tup->err = strdup(besterr);
@@ -233,7 +232,7 @@ callproc(void *p)
 
 	args->dp->kidthrids[args->thridsme] = -1;
 	free(args);
-	threadexits(besterr);		/* better be no atexit callbacks */
+	threadexits(besterr); /* better be no atexit callbacks */
 }
 
 /* interrupt all of our still-live kids */
@@ -242,8 +241,8 @@ intrcallprocs(Dest *dp)
 {
 	int i;
 
-	for (i = 0; i < nelem(dp->kidthrids); i++)
-		if (dp->kidthrids[i] >= 0)
+	for(i = 0; i < nelem(dp->kidthrids); i++)
+		if(dp->kidthrids[i] >= 0)
 			threadint(dp->kidthrids[i]);
 }
 
@@ -253,30 +252,30 @@ recvresults(Dest *dp, int block)
 	DS *ds;
 	Restup *tup;
 
-	for (; dp->nkid > 0; dp->nkid--) {
-		if (block)
+	for(; dp->nkid > 0; dp->nkid--) {
+		if(block)
 			tup = recvp(dp->reschan);
 		else
 			tup = nbrecvp(dp->reschan);
-		if (tup == nil)
+		if(tup == nil)
 			break;
-		if (tup->dfd >= 0)		/* connected? */
-			if (dp->windfd < 0) {	/* first connection? */
+		if(tup->dfd >= 0)	    /* connected? */
+			if(dp->windfd < 0) { /* first connection? */
 				ds = dp->ds;
 				dp->windfd = tup->dfd;
-				if (ds->cfdp)
+				if(ds->cfdp)
 					*ds->cfdp = tup->cfd;
-				if (ds->dir) {
+				if(ds->dir) {
 					strncpy(ds->dir, tup->conndir,
 						NETPATHLEN);
-					ds->dir[NETPATHLEN-1] = '\0';
+					ds->dir[NETPATHLEN - 1] = '\0';
 				}
 				intrcallprocs(dp);
 			} else {
 				close(tup->dfd);
 				close(tup->cfd);
 			}
-		else if (dp->err[0] == '\0' && tup->err) {
+		else if(dp->err[0] == '\0' && tup->err) {
 			strncpy(dp->err, tup->err, ERRMAX - 1);
 			dp->err[ERRMAX - 1] = '\0';
 		}
@@ -305,14 +304,14 @@ dialmulti(Dest *dp)
 	dp->windfd = -1;
 	/* if too many addresses for dp->kidthrids, ignore the last few */
 	while(dp->windfd < 0 && dp->nkid < nelem(dp->kidthrids) &&
-	    *dp->nextaddr != '\0' && parsecs(dp, &clone, &dest) >= 0) {
+	      *dp->nextaddr != '\0' && parsecs(dp, &clone, &dest) >= 0) {
 		kidme = dp->nkid++;
 
 		argp = (Kidargs *)emalloc9p(sizeof *argp);
 		*argp = (Kidargs){dp, kidme, clone, dest};
 
 		dp->kidthrids[kidme] = proccreate(callproc, argp, Defstksize);
-		if (dp->kidthrids[kidme] < 0)
+		if(dp->kidthrids[kidme] < 0)
 			--dp->nkid;
 	}
 
@@ -335,14 +334,14 @@ call1(char *clone, char *rem, Dest *dp, Conn *conn)
 
 	ds = dp->ds;
 	dfd = call(clone, rem, dp, conn);
-	if (dfd < 0)
+	if(dfd < 0)
 		return dfd;
 
-	if (ds->cfdp)
+	if(ds->cfdp)
 		*ds->cfdp = conn->cfd;
-	if (ds->dir) {
+	if(ds->dir) {
 		strncpy(ds->dir, conn->dir, NETPATHLEN);
-		ds->dir[NETPATHLEN-1] = '\0';
+		ds->dir[NETPATHLEN - 1] = '\0';
 	}
 	return dfd;
 }
@@ -364,9 +363,9 @@ csdial(DS *ds)
 	conn = &lconn;
 	memset(conn, 0, sizeof *conn);
 	dp->ds = ds;
-	if (ds->cfdp)
+	if(ds->cfdp)
 		*ds->cfdp = -1;
-	if (ds->dir)
+	if(ds->dir)
 		ds->dir[0] = '\0';
 	dp->oalarm = alarm(0);
 
@@ -375,7 +374,7 @@ csdial(DS *ds)
 	 */
 	snprint(buf, sizeof(buf), "%s/cs", ds->netdir);
 	fd = open(buf, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		/* no connection server, don't translate */
 		snprint(clone, sizeof(clone), "%s/%s/clone", ds->netdir, ds->proto);
 		dfd = call1(clone, ds->rem, dp, conn);
@@ -387,7 +386,7 @@ csdial(DS *ds)
 	 *  ask connection server to translate
 	 */
 	snprint(buf, sizeof(buf), "%s!%s", ds->proto, ds->rem);
-	if(write(fd, buf, strlen(buf)) < 0){
+	if(write(fd, buf, strlen(buf)) < 0) {
 		close(fd);
 		freedest(dp);
 		return -1;
@@ -399,9 +398,9 @@ csdial(DS *ds)
 	seek(fd, 0, 0);
 	addrs = 0;
 	addrp = dp->nextaddr = dp->addrlist;
-	bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+	bleft = sizeof dp->addrlist - 2; /* 2 is room for \n\0 */
 	while(bleft > 0 && (n = read(fd, addrp, bleft)) > 0) {
-		if (addrp[n-1] != '\n')
+		if(addrp[n - 1] != '\n')
 			addrp[n++] = '\n';
 		addrs++;
 		addrp += n;
@@ -412,19 +411,19 @@ csdial(DS *ds)
 	 * have been truncated and ignore it.  we really don't expect this
 	 * to happen.
 	 */
-	if (addrs > 0 && bleft <= 0 && read(fd, &c, 1) == 1)
+	if(addrs > 0 && bleft <= 0 && read(fd, &c, 1) == 1)
 		addrs--;
 	close(fd);
 
 	*besterr = 0;
-	dfd = -1;				/* pessimistic default */
+	dfd = -1; /* pessimistic default */
 	dp->naddrs = addrs;
-	if (addrs == 0)
+	if(addrs == 0)
 		werrstr("no address to dial");
-	else if (addrs == 1) {
+	else if(addrs == 1) {
 		/* common case: dial one address without forking */
-		if (parsecs(dp, &clone2, &dest) >= 0 &&
-		    (dfd = call1(clone2, dest, dp, conn)) < 0) {
+		if(parsecs(dp, &clone2, &dest) >= 0 &&
+		   (dfd = call1(clone2, dest, dp, conn)) < 0) {
 			pickuperr(besterr);
 			werrstr("%s", besterr);
 		}
@@ -444,11 +443,11 @@ call(char *clone, char *dest, Dest *dp, Conn *conn)
 	DS *ds;
 
 	/* because cs is in a different name space, replace the mount point */
-	if(*clone == '/'){
-		p = strchr(clone+1, '/');
+	if(*clone == '/') {
+		p = strchr(clone + 1, '/');
 		if(p == nil)
 			p = clone;
-		else 
+		else
 			p++;
 	} else
 		p = clone;
@@ -460,8 +459,8 @@ call(char *clone, char *dest, Dest *dp, Conn *conn)
 		return -1;
 
 	/* get directory name */
-	n = read(cfd, name, sizeof(name)-1);
-	if(n < 0){
+	n = read(cfd, name, sizeof(name) - 1);
+	if(n < 0) {
 		closeopenfd(&conn->cfd);
 		return -1;
 	}
@@ -477,9 +476,9 @@ call(char *clone, char *dest, Dest *dp, Conn *conn)
 
 	/* should be no alarm pending now; re-instate caller's alarm, if any */
 	calleralarm = dp->oalarm > 0;
-	if (calleralarm)
+	if(calleralarm)
 		alarm(dp->oalarm);
-	else if (dp->naddrs > 1)	/* in a sub-process? */
+	else if(dp->naddrs > 1) /* in a sub-process? */
 		alarm(Maxconnms);
 
 	/* connect */
@@ -487,18 +486,18 @@ call(char *clone, char *dest, Dest *dp, Conn *conn)
 		snprint(name, sizeof(name), "connect %s %s", dest, ds->local);
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
-	if(write(cfd, name, strlen(name)) < 0){
+	if(write(cfd, name, strlen(name)) < 0) {
 		closeopenfd(&conn->cfd);
 		return -1;
 	}
 
-	oalarm = alarm(0);	/* don't let alarm interrupt critical section */
-	if (calleralarm)
-		dp->oalarm = oalarm;	/* time has passed, so update user's */
+	oalarm = alarm(0); /* don't let alarm interrupt critical section */
+	if(calleralarm)
+		dp->oalarm = oalarm; /* time has passed, so update user's */
 
 	/* open data connection */
 	fd = open(data, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		closeopenfd(&conn->cfd);
 		alarm(dp->oalarm);
 		return -1;
@@ -506,7 +505,7 @@ call(char *clone, char *dest, Dest *dp, Conn *conn)
 	if(ds->cfdp == nil)
 		closeopenfd(&conn->cfd);
 
-	alarm(calleralarm? dp->oalarm: 0);
+	alarm(calleralarm ? dp->oalarm : 0);
 	return fd;
 }
 
@@ -521,12 +520,12 @@ backoverchans(char *st, char *p)
 {
 	char *sl;
 
-	for (sl = p; --p >= st && isascii(*p) && isdigit(*p); sl = p) {
-		while (--p >= st && isascii(*p) && isdigit(*p))
+	for(sl = p; --p >= st && isascii(*p) && isdigit(*p); sl = p) {
+		while(--p >= st && isascii(*p) && isdigit(*p))
 			;
-		if (p < st || *p != '/')
-			break;			/* "net.alt2" or ran off start */
-		while (p > st && p[-1] == '/')	/* skip runs of slashes */
+		if(p < st || *p != '/')
+			break;		      /* "net.alt2" or ran off start */
+		while(p > st && p[-1] == '/') /* skip runs of slashes */
 			p--;
 	}
 	return sl;
@@ -541,7 +540,7 @@ _dial_string_parse(char *str, DS *ds)
 	char *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
-	ds->buf[Maxstring-1] = 0;
+	ds->buf[Maxstring - 1] = 0;
 
 	p = strchr(ds->buf, '!');
 	if(p == 0) {
@@ -549,14 +548,14 @@ _dial_string_parse(char *str, DS *ds)
 		ds->proto = "net";
 		ds->rem = ds->buf;
 	} else {
-		if(*ds->buf != '/' && *ds->buf != '#'){
+		if(*ds->buf != '/' && *ds->buf != '#') {
 			ds->netdir = 0;
 			ds->proto = ds->buf;
 		} else {
 			p2 = backoverchans(ds->buf, p);
 
 			/* back over last component of netdir (proto) */
-			while (--p2 > ds->buf && *p2 != '/')
+			while(--p2 > ds->buf && *p2 != '/')
 				;
 			*p2++ = 0;
 			ds->netdir = ds->buf;

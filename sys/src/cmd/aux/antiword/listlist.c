@@ -25,32 +25,31 @@
  * is stored from the rest of the program
  */
 typedef struct list_desc_tag {
-	list_block_type		tInfo;
-	ULONG			ulListID;
-	USHORT			usIstd;
-	UCHAR			ucListLevel;
-	struct list_desc_tag	*pNext;
+	list_block_type tInfo;
+	ULONG ulListID;
+	USHORT usIstd;
+	UCHAR ucListLevel;
+	struct list_desc_tag *pNext;
 } list_desc_type;
 
 typedef struct list_value_tag {
-	USHORT			usValue;
-	USHORT			usListIndex;
-	UCHAR			ucListLevel;
-	struct list_value_tag	*pNext;
+	USHORT usValue;
+	USHORT usListIndex;
+	UCHAR ucListLevel;
+	struct list_value_tag *pNext;
 } list_value_type;
 
 /* Variables needed to describe the LFO list (pllfo) */
-static ULONG		*aulLfoList = NULL;
-static USHORT		usLfoLen = 0;
+static ULONG *aulLfoList = NULL;
+static USHORT usLfoLen = 0;
 /* Variables needed to write the List Information List */
-static list_desc_type	*pAnchor = NULL;
-static list_desc_type	*pBlockLast = NULL;
+static list_desc_type *pAnchor = NULL;
+static list_desc_type *pBlockLast = NULL;
 /* Variable needed for numbering new lists */
-static list_value_type	*pValues = NULL;
+static list_value_type *pValues = NULL;
 /* Variables needed for numbering old lists */
-static int	iOldListSeqNumber = 0;
-static USHORT	usOldListValue = 0;
-
+static int iOldListSeqNumber = 0;
+static USHORT usOldListValue = 0;
 
 /*
  * vDestroyListInfoList - destroy the List Information List
@@ -58,8 +57,8 @@ static USHORT	usOldListValue = 0;
 void
 vDestroyListInfoList(void)
 {
-	list_desc_type	*pCurr, *pNext;
-	list_value_type	*pValueCurr, *pValueNext;
+	list_desc_type *pCurr, *pNext;
+	list_value_type *pValueCurr, *pValueNext;
 
 	DBG_MSG("vDestroyListInfoList");
 
@@ -69,7 +68,7 @@ vDestroyListInfoList(void)
 
 	/* Free the List Information List */
 	pCurr = pAnchor;
-	while (pCurr != NULL) {
+	while(pCurr != NULL) {
 		pNext = pCurr->pNext;
 		pCurr = xfree(pCurr);
 		pCurr = pNext;
@@ -80,7 +79,7 @@ vDestroyListInfoList(void)
 
 	/* Free the values list */
 	pValueCurr = pValues;
-	while (pValueCurr != NULL) {
+	while(pValueCurr != NULL) {
 		pValueNext = pValueCurr->pNext;
 		pValueCurr = xfree(pValueCurr);
 		pValueCurr = pValueNext;
@@ -97,17 +96,17 @@ vDestroyListInfoList(void)
 void
 vBuildLfoList(const UCHAR *aucBuffer, size_t tBufLen)
 {
-	size_t	tRecords;
-	int	iIndex;
+	size_t tRecords;
+	int iIndex;
 
 	fail(aucBuffer == NULL);
 
-	if (tBufLen < 4) {
+	if(tBufLen < 4) {
 		return;
 	}
 	tRecords = (size_t)ulGetLong(0, aucBuffer);
 	NO_DBG_DEC(tRecords);
-	if (4 + 16 * tRecords > tBufLen || tRecords >= 0x7fff) {
+	if(4 + 16 * tRecords > tBufLen || tRecords >= 0x7fff) {
 		/* Just a sanity check */
 		DBG_DEC(tRecords);
 		DBG_DEC(4 + 16 * tRecords);
@@ -115,7 +114,7 @@ vBuildLfoList(const UCHAR *aucBuffer, size_t tBufLen)
 		return;
 	}
 	aulLfoList = xcalloc(tRecords, sizeof(ULONG));
-	for (iIndex = 0; iIndex < (int)tRecords; iIndex++) {
+	for(iIndex = 0; iIndex < (int)tRecords; iIndex++) {
 		aulLfoList[iIndex] = ulGetLong(4 + 16 * iIndex, aucBuffer);
 		NO_DBG_HEX(aulLfoList[iIndex]);
 	}
@@ -127,9 +126,9 @@ vBuildLfoList(const UCHAR *aucBuffer, size_t tBufLen)
  */
 void
 vAdd2ListInfoList(ULONG ulListID, USHORT usIstd, UCHAR ucListLevel,
-	const list_block_type *pListBlock)
+		  const list_block_type *pListBlock)
 {
-	list_desc_type	*pListMember;
+	list_desc_type *pListMember;
 
 	fail(pListBlock == NULL);
 
@@ -151,12 +150,12 @@ vAdd2ListInfoList(ULONG ulListID, USHORT usIstd, UCHAR ucListLevel,
 	pListMember->ucListLevel = ucListLevel;
 	pListMember->pNext = NULL;
 	/* Correct the values where needed */
-	if (pListMember->tInfo.ulStartAt > 0xffff) {
+	if(pListMember->tInfo.ulStartAt > 0xffff) {
 		DBG_DEC(pListMember->tInfo.ulStartAt);
 		pListMember->tInfo.ulStartAt = 1;
 	}
 	/* Add the new member to the list */
-	if (pAnchor == NULL) {
+	if(pAnchor == NULL) {
 		pAnchor = pListMember;
 	} else {
 		fail(pBlockLast == NULL);
@@ -173,14 +172,14 @@ vAdd2ListInfoList(ULONG ulListID, USHORT usIstd, UCHAR ucListLevel,
 const list_block_type *
 pGetListInfo(USHORT usListIndex, UCHAR ucListLevel)
 {
-	list_desc_type	*pCurr;
-	list_block_type	*pNearMatch;
-	ULONG	ulListID;
+	list_desc_type *pCurr;
+	list_block_type *pNearMatch;
+	ULONG ulListID;
 
-	if (usListIndex == 0) {
+	if(usListIndex == 0) {
 		return NULL;
 	}
-	if (usListIndex - 1 >= usLfoLen || ucListLevel > 8) {
+	if(usListIndex - 1 >= usLfoLen || ucListLevel > 8) {
 		DBG_DEC(usListIndex);
 		DBG_DEC(ucListLevel);
 		return NULL;
@@ -190,16 +189,16 @@ pGetListInfo(USHORT usListIndex, UCHAR ucListLevel)
 	NO_DBG_HEX(ulListID);
 
 	pNearMatch = NULL;
-	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
-		if (pCurr->ulListID != ulListID) {
+	for(pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
+		if(pCurr->ulListID != ulListID) {
 			/* No match */
 			continue;
 		}
-		if (pCurr->ucListLevel == ucListLevel) {
+		if(pCurr->ucListLevel == ucListLevel) {
 			/* Exact match */
 			return &pCurr->tInfo;
 		}
-		if (pCurr->ucListLevel == 0) {
+		if(pCurr->ucListLevel == 0) {
 			/* Near match */
 			pNearMatch = &pCurr->tInfo;
 		}
@@ -216,14 +215,14 @@ pGetListInfo(USHORT usListIndex, UCHAR ucListLevel)
 const list_block_type *
 pGetListInfoByIstd(USHORT usIstd)
 {
-	list_desc_type	*pCurr;
+	list_desc_type *pCurr;
 
-	if (usIstd == ISTD_INVALID || usIstd == STI_NIL || usIstd == STI_USER) {
+	if(usIstd == ISTD_INVALID || usIstd == STI_NIL || usIstd == STI_USER) {
 		return NULL;
 	}
 
-	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
-		if (pCurr->usIstd == usIstd) {
+	for(pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
+		if(pCurr->usIstd == usIstd) {
 			return &pCurr->tInfo;
 		}
 	}
@@ -236,23 +235,23 @@ pGetListInfoByIstd(USHORT usIstd)
 static void
 vRestartListValues(USHORT usListIndex, UCHAR ucListLevel)
 {
-	list_value_type	*pPrev, *pCurr, *pNext;
-	int		iCounter;
+	list_value_type *pPrev, *pCurr, *pNext;
+	int iCounter;
 
 	iCounter = 0;
 	pPrev = NULL;
 	pCurr = pValues;
 
-	while (pCurr != NULL) {
-		if (pCurr->usListIndex != usListIndex ||
-		    pCurr->ucListLevel <= ucListLevel) {
+	while(pCurr != NULL) {
+		if(pCurr->usListIndex != usListIndex ||
+		   pCurr->ucListLevel <= ucListLevel) {
 			pPrev = pCurr;
 			pCurr = pCurr->pNext;
 			continue;
 		}
 		/* Reset the level by deleting the record */
 		pNext = pCurr->pNext;
-		if (pPrev == NULL) {
+		if(pPrev == NULL) {
 			pValues = pNext;
 		} else {
 			pPrev->pNext = pNext;
@@ -273,26 +272,26 @@ vRestartListValues(USHORT usListIndex, UCHAR ucListLevel)
  */
 USHORT
 usGetListValue(int iListSeqNumber, int iWordVersion,
-	const style_block_type *pStyle)
+	       const style_block_type *pStyle)
 {
-	list_value_type	*pCurr;
-	USHORT		usValue;
+	list_value_type *pCurr;
+	USHORT usValue;
 
 	fail(iListSeqNumber < 0);
 	fail(iListSeqNumber < iOldListSeqNumber);
 	fail(iWordVersion < 0);
 	fail(pStyle == NULL);
 
-	if (iListSeqNumber <= 0) {
+	if(iListSeqNumber <= 0) {
 		return 0;
 	}
 
-	if (iWordVersion < 8) {
+	if(iWordVersion < 8) {
 		/* Old style list */
-		if (iListSeqNumber == iOldListSeqNumber ||
-		    (iListSeqNumber == iOldListSeqNumber + 1 &&
-		     eGetNumType(pStyle->ucNumLevel) == level_type_sequence)) {
-			if (!pStyle->bNumPause) {
+		if(iListSeqNumber == iOldListSeqNumber ||
+		   (iListSeqNumber == iOldListSeqNumber + 1 &&
+		    eGetNumType(pStyle->ucNumLevel) == level_type_sequence)) {
+			if(!pStyle->bNumPause) {
 				usOldListValue++;
 			}
 		} else {
@@ -303,22 +302,22 @@ usGetListValue(int iListSeqNumber, int iWordVersion,
 	}
 
 	/* New style list */
-	if (pStyle->usListIndex == 0 ||
-	    pStyle->usListIndex - 1 >= usLfoLen ||
-	    pStyle->ucListLevel > 8) {
+	if(pStyle->usListIndex == 0 ||
+	   pStyle->usListIndex - 1 >= usLfoLen ||
+	   pStyle->ucListLevel > 8) {
 		/* Out of range; no need to search */
 		return 0;
 	}
 
-	for (pCurr = pValues; pCurr != NULL; pCurr = pCurr->pNext) {
-		if (pCurr->usListIndex == pStyle->usListIndex &&
-		    pCurr->ucListLevel == pStyle->ucListLevel) {
+	for(pCurr = pValues; pCurr != NULL; pCurr = pCurr->pNext) {
+		if(pCurr->usListIndex == pStyle->usListIndex &&
+		   pCurr->ucListLevel == pStyle->ucListLevel) {
 			/* Record found; increment and return the value */
 			pCurr->usValue++;
 			usValue = pCurr->usValue;
-			if (!pStyle->bNoRestart) {
+			if(!pStyle->bNoRestart) {
 				vRestartListValues(pStyle->usListIndex,
-						pStyle->ucListLevel);
+						   pStyle->ucListLevel);
 			}
 			return usValue;
 		}
@@ -332,7 +331,7 @@ usGetListValue(int iListSeqNumber, int iWordVersion,
 	pCurr->pNext = pValues;
 	pValues = pCurr;
 	usValue = pCurr->usValue;
-	if (!pStyle->bNoRestart) {
+	if(!pStyle->bNoRestart) {
 		vRestartListValues(pStyle->usListIndex, pStyle->ucListLevel);
 	}
 	return usValue;

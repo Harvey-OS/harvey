@@ -12,32 +12,32 @@
 #include <ctype.h>
 #include <ip.h>
 
-char*
+char *
 v4parseip(uint8_t *to, char *from)
 {
 	int i;
 	char *p;
 
 	p = from;
-	for(i = 0; i < 4 && *p; i++){
+	for(i = 0; i < 4 && *p; i++) {
 		to[i] = strtoul(p, &p, 0);
 		if(*p == '.')
 			p++;
 	}
-	switch(CLASS(to)){
-	case 0:	/* class A - 1 uchar net */
+	switch(CLASS(to)) {
+	case 0: /* class A - 1 uchar net */
 	case 1:
-		if(i == 3){
+		if(i == 3) {
 			to[3] = to[2];
 			to[2] = to[1];
 			to[1] = 0;
-		} else if (i == 2){
+		} else if(i == 2) {
 			to[3] = to[1];
 			to[1] = 0;
 		}
 		break;
-	case 2:	/* class B - 2 uchar net */
-		if(i == 3){
+	case 2: /* class B - 2 uchar net */
+		if(i == 3) {
 			to[3] = to[2];
 			to[2] = 0;
 		}
@@ -79,44 +79,44 @@ parseip(uint8_t *to, char *from)
 
 	memset(to, 0, IPaddrlen);
 	p = from;
-	for(i = 0; i < IPaddrlen && ipcharok(*p); i+=2){
+	for(i = 0; i < IPaddrlen && ipcharok(*p); i += 2) {
 		op = p;
 		x = strtoul(p, &p, 16);
-		if((*p == '.' && i <= IPaddrlen-4) || (*p == 0 && i == 0)){
+		if((*p == '.' && i <= IPaddrlen - 4) || (*p == 0 && i == 0)) {
 			/* ends with v4 */
-			p = v4parseip(to+i, op);
+			p = v4parseip(to + i, op);
 			i += 4;
 			break;
 		}
 		/* v6: at most 4 hex digits, followed by colon or delim */
 		if(x != (uint16_t)x || (*p != ':' && !delimchar(*p))) {
 			memset(to, 0, IPaddrlen);
-			return -1;			/* parse error */
+			return -1; /* parse error */
 		}
-		to[i] = x>>8;
-		to[i+1] = x;
-		if(*p == ':'){
+		to[i] = x >> 8;
+		to[i + 1] = x;
+		if(*p == ':') {
 			v4 = 0;
-			if(*++p == ':'){	/* :: is elided zero short(s) */
-				if (elipsis) {
+			if(*++p == ':') { /* :: is elided zero short(s) */
+				if(elipsis) {
 					memset(to, 0, IPaddrlen);
-					return -1;	/* second :: */
+					return -1; /* second :: */
 				}
-				elipsis = i+2;
+				elipsis = i + 2;
 				p++;
 			}
-		} else if (p == op)		/* strtoul made no progress? */
+		} else if(p == op) /* strtoul made no progress? */
 			break;
 	}
-	if (p == from || !delimchar(*p)) {
+	if(p == from || !delimchar(*p)) {
 		memset(to, 0, IPaddrlen);
-		return -1;				/* parse error */
+		return -1; /* parse error */
 	}
-	if(i < IPaddrlen){
-		memmove(&to[elipsis+IPaddrlen-i], &to[elipsis], i-elipsis);
-		memset(&to[elipsis], 0, IPaddrlen-i);
+	if(i < IPaddrlen) {
+		memmove(&to[elipsis + IPaddrlen - i], &to[elipsis], i - elipsis);
+		memset(&to[elipsis], 0, IPaddrlen - i);
 	}
-	if(v4){
+	if(v4) {
 		to[10] = to[11] = 0xff;
 		return nhgetl(to + IPv4off);
 	} else
@@ -134,9 +134,9 @@ parseipmask(uint8_t *to, char *from)
 	int64_t x;
 	uint8_t *p;
 
-	if(*from == '/'){
+	if(*from == '/') {
 		/* as a number of prefix bits */
-		i = atoi(from+1);
+		i = atoi(from + 1);
 		if(i < 0)
 			i = 0;
 		if(i > 128)
@@ -146,19 +146,19 @@ parseipmask(uint8_t *to, char *from)
 		for(p = to; i >= 8; i -= 8)
 			*p++ = 0xff;
 		if(i > 0)
-			*p = ~((1<<(8-i))-1);
-		x = nhgetl(to+IPv4off);
+			*p = ~((1 << (8 - i)) - 1);
+		x = nhgetl(to + IPv4off);
 		/*
 		 * identify as ipv6 if the mask is inexpressible as a v4 mask
 		 * (because it has too few mask bits).  Arguably, we could
 		 * always return 6 here.
 		 */
-		if (w < 8*(IPaddrlen-IPv4addrlen))
+		if(w < 8 * (IPaddrlen - IPv4addrlen))
 			return 6;
 	} else {
 		/* as a straight v4 bit mask */
 		x = parseip(to, from);
-		if (x != -1)
+		if(x != -1)
 			x = (uint32_t)nhgetl(to + IPv4off);
 		if(memcmp(to, v4prefix, IPv4off) == 0)
 			memset(to, 0xff, IPv4off);
@@ -169,7 +169,7 @@ parseipmask(uint8_t *to, char *from)
 /*
  *  parse a v4 ip address/mask in cidr format
  */
-char*
+char *
 v4parsecidr(uint8_t *addr, uint8_t *mask, char *from)
 {
 	int i;
@@ -178,17 +178,17 @@ v4parsecidr(uint8_t *addr, uint8_t *mask, char *from)
 
 	p = v4parseip(addr, from);
 
-	if(*p == '/'){
+	if(*p == '/') {
 		/* as a number of prefix bits */
-		i = strtoul(p+1, &p, 0);
+		i = strtoul(p + 1, &p, 0);
 		if(i > 32)
 			i = 32;
 		memset(mask, 0, IPv4addrlen);
 		for(a = mask; i >= 8; i -= 8)
 			*a++ = 0xff;
 		if(i > 0)
-			*a = ~((1<<(8-i))-1);
-	} else 
+			*a = ~((1 << (8 - i)) - 1);
+	} else
 		memcpy(mask, defmask(addr), IPv4addrlen);
 	return p;
 }

@@ -17,25 +17,25 @@
 
 Cfg cfg;
 
-char	*caller = "";
-char	*dbfile;
-int	debug;
-uint8_t	ipaddr[IPaddrlen];	/* my ip address */
-char	*logfile = "dns";
-int	maxage = 60*60;
-char	mntpt[Maxpath];
-int	needrefresh;
-uint32_t	now;
-int64_t	nowns;
-int	testing;
-int	traceactivity;
-char	*zonerefreshprogram;
+char *caller = "";
+char *dbfile;
+int debug;
+uint8_t ipaddr[IPaddrlen]; /* my ip address */
+char *logfile = "dns";
+int maxage = 60 * 60;
+char mntpt[Maxpath];
+int needrefresh;
+uint32_t now;
+int64_t nowns;
+int testing;
+int traceactivity;
+char *zonerefreshprogram;
 
-static int	readmsg(int, uint8_t*, int);
-static void	reply(int, DNSmsg*, Request*);
-static void	dnzone(DNSmsg*, DNSmsg*, Request*);
-static void	getcaller(char*);
-static void	refreshmain(char*);
+static int readmsg(int, uint8_t *, int);
+static void reply(int, DNSmsg *, Request *);
+static void dnzone(DNSmsg *, DNSmsg *, Request *);
+static void getcaller(char *);
+static void refreshmain(char *);
 
 void
 usage(void)
@@ -50,13 +50,14 @@ main(int argc, char *argv[])
 	volatile int len, rcode;
 	volatile char tname[32];
 	char *volatile err, *volatile ext = "";
-	volatile uchar buf[64*1024], callip[IPaddrlen];
+	volatile uchar buf[64 * 1024], callip[IPaddrlen];
 	volatile DNSmsg reqmsg, repmsg;
 	volatile Request req;
 
-	alarm(2*60*1000);
+	alarm(2 * 60 * 1000);
 	cfg.cachedb = 1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug++;
 		break;
@@ -75,7 +76,8 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(debug < 2)
 		debug = 0;
@@ -101,7 +103,7 @@ main(int argc, char *argv[])
 	procsetname("main loop");
 
 	/* loop on requests */
-	for(;; putactivity(0)){
+	for(;; putactivity(0)) {
 		now = time(nil);
 		memset(&repmsg, 0, sizeof repmsg);
 		len = readmsg(0, buf, sizeof buf);
@@ -109,33 +111,33 @@ main(int argc, char *argv[])
 			break;
 
 		getactivity(&req, 0);
-		req.aborttime = timems() + S2MS(15*Min);
+		req.aborttime = timems() + S2MS(15 * Min);
 		rcode = 0;
 		memset(&reqmsg, 0, sizeof reqmsg);
 		err = convM2DNS(buf, len, &reqmsg, &rcode);
-		if(err){
+		if(err) {
 			dnslog("server: input error: %s from %s", err, caller);
 			free(err);
 			break;
 		}
-		if (rcode == 0)
-			if(reqmsg.qdcount < 1){
+		if(rcode == 0)
+			if(reqmsg.qdcount < 1) {
 				dnslog("server: no questions from %s", caller);
 				break;
-			} else if(reqmsg.flags & Fresp){
+			} else if(reqmsg.flags & Fresp) {
 				dnslog("server: reply not request from %s",
-					caller);
+				       caller);
 				break;
-			} else if((reqmsg.flags & Omask) != Oquery){
+			} else if((reqmsg.flags & Omask) != Oquery) {
 				dnslog("server: op %d from %s",
-					reqmsg.flags & Omask, caller);
+				       reqmsg.flags & Omask, caller);
 				break;
 			}
 		if(debug)
 			dnslog("[%d] %d: serve (%s) %d %s %s",
-				getpid(), req.id, caller,
-				reqmsg.id, reqmsg.qd->owner->name,
-				rrname(reqmsg.qd->type, tname, sizeof tname));
+			       getpid(), req.id, caller,
+			       reqmsg.id, reqmsg.qd->owner->name,
+			       rrname(reqmsg.qd->type, tname, sizeof tname));
 
 		/* loop through each question */
 		while(reqmsg.qd)
@@ -149,12 +151,12 @@ main(int argc, char *argv[])
 				rrfreelist(repmsg.ns);
 				rrfreelist(repmsg.ar);
 			}
-		rrfreelist(reqmsg.qd);		/* qd will be nil */
+		rrfreelist(reqmsg.qd); /* qd will be nil */
 		rrfreelist(reqmsg.an);
 		rrfreelist(reqmsg.ns);
 		rrfreelist(reqmsg.ar);
 
-		if(req.isslave){
+		if(req.isslave) {
 			putactivity(0);
 			_exits(0);
 		}
@@ -170,7 +172,7 @@ readmsg(int fd, uint8_t *buf, int max)
 
 	if(readn(fd, x, 2) != 2)
 		return -1;
-	n = x[0]<<8 | x[1];
+	n = x[0] << 8 | x[1];
 	if(n > max)
 		return -1;
 	if(readn(fd, buf, n) != n)
@@ -183,15 +185,15 @@ reply(int fd, DNSmsg *rep, Request *req)
 {
 	int len, rv;
 	char tname[32];
-	uint8_t buf[64*1024];
+	uint8_t buf[64 * 1024];
 	RR *rp;
 
-	if(debug){
+	if(debug) {
 		dnslog("%d: reply (%s) %s %s %ux",
-			req->id, caller,
-			rep->qd->owner->name,
-			rrname(rep->qd->type, tname, sizeof tname),
-			rep->flags);
+		       req->id, caller,
+		       rep->qd->owner->name,
+		       rrname(rep->qd->type, tname, sizeof tname),
+		       rep->flags);
 		for(rp = rep->an; rp; rp = rp->next)
 			dnslog("an %R", rp);
 		for(rp = rep->ns; rp; rp = rp->next)
@@ -200,14 +202,13 @@ reply(int fd, DNSmsg *rep, Request *req)
 			dnslog("ar %R", rp);
 	}
 
-
-	len = convDNS2M(rep, buf+2, sizeof(buf) - 2);
-	buf[0] = len>>8;
+	len = convDNS2M(rep, buf + 2, sizeof(buf) - 2);
+	buf[0] = len >> 8;
 	buf[1] = len;
-	rv = write(fd, buf, len+2);
-	if(rv != len+2){
+	rv = write(fd, buf, len + 2);
+	if(rv != len + 2) {
 		dnslog("[%d] sending reply: %d instead of %d", getpid(), rv,
-			len+2);
+		       len + 2);
 		exits(0);
 	}
 }
@@ -216,7 +217,7 @@ reply(int fd, DNSmsg *rep, Request *req)
  *  Hash table for domain names.  The hash is based only on the
  *  first element of the domain name.
  */
-extern DN	*ht[HTLEN];
+extern DN *ht[HTLEN];
 
 static int
 numelem(char *name)
@@ -278,20 +279,20 @@ dnzone(DNSmsg *reqp, DNSmsg *repp, Request *req)
 
 	/* construct a breadth-first search of the name space (hard with a hash) */
 	repp->an = &r;
-	for(depth = numelem(dp->name); ; depth++){
+	for(depth = numelem(dp->name);; depth++) {
 		found = 0;
 		for(h = 0; h < HTLEN; h++)
 			for(ndp = ht[h]; ndp; ndp = ndp->next)
-				if(inzone(ndp, dp->name, nlen, depth)){
-					for(rp = ndp->rr; rp; rp = rp->next){
+				if(inzone(ndp, dp->name, nlen, depth)) {
+					for(rp = ndp->rr; rp; rp = rp->next) {
 						/*
 						 * there shouldn't be negatives,
 						 * but just in case.
 						 * don't send any soa's,
 						 * ns's are enough.
 						 */
-						if (rp->negative ||
-						    rp->type == Tsoa)
+						if(rp->negative ||
+						   rp->type == Tsoa)
 							continue;
 						r = *rp;
 						r.next = 0;
@@ -327,7 +328,7 @@ getcaller(char *dir)
 	close(fd);
 	if(n <= 0)
 		return;
-	if(remote[n-1] == '\n')
+	if(remote[n - 1] == '\n')
 		n--;
 	remote[n] = 0;
 	caller = remote;
@@ -360,11 +361,11 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 	RR *rp;
 
 	dnslog("%d: rcvd %I flags:%s%s%s%s%s", id, addr,
-		mp->flags & Fauth? " auth": "",
-		mp->flags & Ftrunc? " trunc": "",
-		mp->flags & Frecurse? " rd": "",
-		mp->flags & Fcanrec? " ra": "",
-		(mp->flags & (Fauth|Rmask)) == (Fauth|Rname)? " nx": "");
+	       mp->flags & Fauth ? " auth" : "",
+	       mp->flags & Ftrunc ? " trunc" : "",
+	       mp->flags & Frecurse ? " rd" : "",
+	       mp->flags & Fcanrec ? " ra" : "",
+	       (mp->flags & (Fauth | Rmask)) == (Fauth | Rname) ? " nx" : "");
 	for(rp = mp->qd; rp != nil; rp = rp->next)
 		dnslog("%d: rcvd %I qd %s", id, addr, rp->owner->name);
 	for(rp = mp->an; rp != nil; rp = rp->next)
@@ -382,10 +383,10 @@ logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
 	char buf[12];
 
 	dnslog("%d.%d: sending to %I/%s %s %s",
-		id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));
+	       id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));
 }
 
-RR*
+RR *
 getdnsservers(int class)
 {
 	return dnsservers(class);

@@ -28,7 +28,7 @@
 /* Requires gxbitmap.h */
 
 #ifndef gxhttile_INCLUDED
-#  define gxhttile_INCLUDED
+#define gxhttile_INCLUDED
 
 /*
  * A halftone tile is just an ordinary bitmap tile, plus a couple of other
@@ -38,18 +38,18 @@
  */
 
 #ifndef gx_ht_tile_DEFINED
-#  define gx_ht_tile_DEFINED
+#define gx_ht_tile_DEFINED
 typedef struct gx_ht_tile_s gx_ht_tile;
 
 #endif
 
 struct gx_ht_tile_s {
-    gx_strip_bitmap tiles;	/* the currently rendered tile */
-    int level;			/* the cached gray level, i.e. */
-    /* the number of spots whitened, */
-    /* or -1 if the cache is empty */
-    uint index;			/* the index of the tile within */
-    /* the cache (for GC) */
+	gx_strip_bitmap tiles; /* the currently rendered tile */
+	int level;	     /* the cached gray level, i.e. */
+	/* the number of spots whitened, */
+	/* or -1 if the cache is empty */
+	uint index; /* the index of the tile within */
+		    /* the cache (for GC) */
 };
 
 #endif /* gxhttile_INCLUDED */

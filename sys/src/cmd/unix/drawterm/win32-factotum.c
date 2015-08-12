@@ -17,7 +17,7 @@
 
 #undef getenv
 
-char*
+char *
 getuser(void)
 {
 	return getenv("USER");
@@ -28,4 +28,3 @@ dialfactotum(void)
 {
 	return -1;
 }
-

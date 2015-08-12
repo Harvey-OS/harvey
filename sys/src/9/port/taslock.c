@@ -18,7 +18,7 @@
 /*
  * measure max lock cycles and max lock waiting time.
  */
-#define	LOCKCYCLES	0
+#define LOCKCYCLES 0
 
 uint64_t maxlockcycles;
 uint64_t maxilockcycles;
@@ -47,7 +47,7 @@ startwaitstats(int on)
 	newwaitstats();
 	mfence();
 	waitstats.on = on;
-	print("lockstats %s\n", on?"on":"off");
+	print("lockstats %s\n", on ? "on" : "off");
 }
 
 void
@@ -72,28 +72,28 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 	w -= t0;
 	mfence();
 	for(i = 0; i < NWstats; i++)
-		if(waitstats.pcs[i] == pc){
+		if(waitstats.pcs[i] == pc) {
 			ainc(&waitstats.ns[i]);
 			if(w > waitstats.wait[i])
-				waitstats.wait[i] = w;	/* race but ok */
-			waitstats.total[i] += w;		/* race but ok */
+				waitstats.wait[i] = w; /* race but ok */
+			waitstats.total[i] += w;       /* race but ok */
 			return;
 		}
 	if(!canlock(&waitstatslk))
 		return;
 
 	for(i = 0; i < NWstats; i++)
-		if(waitstats.pcs[i] == pc){
+		if(waitstats.pcs[i] == pc) {
 			ainc(&waitstats.ns[i]);
 			if(w > waitstats.wait[i])
-				waitstats.wait[i] = w;	/* race but ok */
+				waitstats.wait[i] = w; /* race but ok */
 			waitstats.total[i] += w;
 			unlock(&waitstatslk);
 			return;
 		}
 
 	for(i = 0; i < NWstats; i++)
-		if(waitstats.pcs[i] == 0){
+		if(waitstats.pcs[i] == 0) {
 			waitstats.ns[i] = 1;
 			waitstats.type[i] = type;
 			waitstats.wait[i] = w;
@@ -115,7 +115,7 @@ lockloop(Lock *l, uintptr_t pc)
 
 	p = l->p;
 	print("lock %#p loop key %#ux pc %#p held by pc %#p proc %d\n",
-		l, l->key, pc, l->_pc, p ? p->pid : 0);
+	      l, l->key, pc, l->_pc, p ? p->pid : 0);
 	dumpaproc(up);
 	if(p != nil)
 		dumpaproc(p);
@@ -133,8 +133,8 @@ lock(Lock *l)
 
 	lockstats.locks++;
 	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
-	if(TAS(&l->key) == 0){
+		ainc(&up->nlocks); /* prevent being scheded */
+	if(TAS(&l->key) == 0) {
 		if(up)
 			up->lastlock = l;
 		l->_pc = pc;
@@ -150,27 +150,27 @@ lock(Lock *l)
 
 	cycles(&t0);
 	lockstats.glare++;
-	for(;;){
+	for(;;) {
 		lockstats.inglare++;
 		i = 0;
-		while(l->key){
-			if(sys->nmach < 2 && up && up->edf && (up->edf->flags & Admitted)){
+		while(l->key) {
+			if(sys->nmach < 2 && up && up->edf && (up->edf->flags & Admitted)) {
 				/*
 				 * Priority inversion, yield on a uniprocessor; on a
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? up->pid : 0, l->_pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */
+				      l, pc, up ? up->pid : 0, l->_pc, l->p ? l->p->pid : 0);
+				up->edf->d = todget(nil); /* yield to process with lock */
 			}
-			if(i++ > 100000000){
+			if(i++ > 100000000) {
 				i = 0;
 				lockloop(l, pc);
 			}
 		}
 		if(up)
 			ainc(&up->nlocks);
-		if(TAS(&l->key) == 0){
+		if(TAS(&l->key) == 0) {
 			if(up)
 				up->lastlock = l;
 			l->_pc = pc;
@@ -199,7 +199,7 @@ ilock(Lock *l)
 	lockstats.locks++;
 
 	pl = splhi();
-	if(TAS(&l->key) != 0){
+	if(TAS(&l->key) != 0) {
 		cycles(&t0);
 		lockstats.glare++;
 		/*
@@ -207,13 +207,13 @@ ilock(Lock *l)
 		 * because they might just not be set yet, or
 		 * (for pc and m) the lock might have just been unlocked.
 		 */
-		for(;;){
+		for(;;) {
 			lockstats.inglare++;
 			splx(pl);
 			while(l->key)
 				;
 			pl = splhi();
-			if(TAS(&l->key) == 0){
+			if(TAS(&l->key) == 0) {
 				if(l != &waitstatslk)
 					addwaitstat(pc, t0, WSlock);
 				goto acquire;
@@ -239,7 +239,7 @@ canlock(Lock *l)
 	Proc *up = externup();
 	if(up)
 		ainc(&up->nlocks);
-	if(TAS(&l->key)){
+	if(TAS(&l->key)) {
 		if(up)
 			adec(&up->nlocks);
 		return 0;
@@ -262,10 +262,10 @@ unlock(Lock *l)
 	Proc *up = externup();
 	uint64_t x;
 
-	if(LOCKCYCLES){
+	if(LOCKCYCLES) {
 		cycles(&x);
 		l->lockcycles = x - l->lockcycles;
-		if(l->lockcycles > maxlockcycles){
+		if(l->lockcycles > maxlockcycles) {
 			maxlockcycles = l->lockcycles;
 			maxlockpc = l->_pc;
 		}
@@ -281,7 +281,7 @@ unlock(Lock *l)
 	l->key = 0;
 	coherence();
 
-	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()){
+	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()) {
 		/*
 		 * Call sched if the need arose while locks were held
 		 * But, don't do it from interrupt routines, hence the islo() test
@@ -297,10 +297,10 @@ iunlock(Lock *l)
 	Mpl pl;
 	uint64_t x;
 
-	if(LOCKCYCLES){
+	if(LOCKCYCLES) {
 		cycles(&x);
 		l->lockcycles = x - l->lockcycles;
-		if(l->lockcycles > maxilockcycles){
+		if(l->lockcycles > maxilockcycles) {
 			maxilockcycles = l->lockcycles;
 			maxilockpc = l->_pc;
 		}
@@ -312,9 +312,9 @@ iunlock(Lock *l)
 		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
 	if(islo())
 		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
-	if(l->m != machp()){
+	if(l->m != machp()) {
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			machp()->machno, l->m->machno, getcallerpc(&l), l->_pc);
+		      machp()->machno, l->m->machno, getcallerpc(&l), l->_pc);
 	}
 
 	pl = l->pl;
@@ -330,7 +330,7 @@ iunlock(Lock *l)
 void
 portmwait(void *value)
 {
-	while (*(void**)value == nil)
+	while(*(void **)value == nil)
 		;
 }
 

@@ -17,12 +17,12 @@
  * format (with tags surrounded by >....<)
  */
 enum {
-	Buflen=1000,
+	Buflen = 1000,
 };
 
 /* More special runes */
 enum {
-	B = MULTIE+1,	/* bold */
+	B = MULTIE + 1, /* bold */
 	H,		/* headword start */
 	I,		/* italics */
 	Ps,		/* pronunciation start */
@@ -34,62 +34,62 @@ enum {
 /* Assoc tables must be sorted on first field */
 
 static Assoc tagtab[] = {
-	{"AA",		L'Å'},
-	{"AC",		LACU},
-	{"B",		B},
-	{"CE",		LCED},
-	{"CI",		LFRN},
-	{"Di",		L'ı'},
-	{"EL",		L'-'},
-	{"GR",		LGRV},
-	{"H",		H},
-	{"I",		I},
-	{"OE",		L'Œ'},
-	{"R",		R},
-	{"TI",		LTIL},
-	{"UM",		LUML},
-	{"X",		X},
-	{"[",		Ps},
-	{"]",		Pe},
-	{"ac",		LACU},
-	{"ce",		LCED},
-	{"ci",		LFRN},
-	{"gr",		LGRV},
-	{"oe",		L'œ'},
-	{"supe",	L'e'},		/* should be raised */
-	{"supo",	L'o'},		/* should be raised */
-	{"ti",		LTIL},
-	{"um",		LUML},
-	{"{",		Ps},
-	{"~",		L'~'},
-	{"~~",		MTT},
+    {"AA", L'Å'},
+    {"AC", LACU},
+    {"B", B},
+    {"CE", LCED},
+    {"CI", LFRN},
+    {"Di", L'ı'},
+    {"EL", L'-'},
+    {"GR", LGRV},
+    {"H", H},
+    {"I", I},
+    {"OE", L'Œ'},
+    {"R", R},
+    {"TI", LTIL},
+    {"UM", LUML},
+    {"X", X},
+    {"[", Ps},
+    {"]", Pe},
+    {"ac", LACU},
+    {"ce", LCED},
+    {"ci", LFRN},
+    {"gr", LGRV},
+    {"oe", L'œ'},
+    {"supe", L'e'}, /* should be raised */
+    {"supo", L'o'}, /* should be raised */
+    {"ti", LTIL},
+    {"um", LUML},
+    {"{", Ps},
+    {"~", L'~'},
+    {"~~", MTT},
 };
 
 static Rune normtab[128] = {
-	/*0*/	/*1*/	/*2*/	/*3*/	/*4*/	/*5*/	/*6*/	/*7*/
-/*00*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	L' ',	NONE,	NONE,	NONE,	NONE,	NONE,
-/*10*/	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,	NONE,
-/*20*/	L' ',	L'!',	L'"',	L'#',	L'$',	L'%',	L'&',	L'\'',
-	L'(',	L')',	L'*',	L'+',	L',',	L'-',	L'.',	L'/',
-/*30*/  L'0',	L'1',	L'2',	L'3',	L'4',	L'5',	L'6',	L'7',
-	L'8',	L'9',	L':',	L';',	TAGE,	L'=',	TAGS,	L'?',
-/*40*/  L'@',	L'A',	L'B',	L'C',	L'D',	L'E',	L'F',	L'G',
-	L'H',	L'I',	L'J',	L'K',	L'L',	L'M',	L'N',	L'O',
-/*50*/	L'P',	L'Q',	L'R',	L'S',	L'T',	L'U',	L'V',	L'W',
-	L'X',	L'Y',	L'Z',	L'[',	L'\\',	L']',	L'^',	L'_',
-/*60*/	L'`',	L'a',	L'b',	L'c',	L'd',	L'e',	L'f',	L'g',
-	L'h',	L'i',	L'j',	L'k',	L'l',	L'm',	L'n',	L'o',
-/*70*/	L'p',	L'q',	L'r',	L's',	L't',	L'u',	L'v',	L'w',
-	L'x',	L'y',	L'z',	L'{',	L'|',	L'}',	L'~',	NONE,
+    /*0*/ /*1*/ /*2*/ /*3*/ /*4*/ /*5*/ /*6*/ /*7*/
+    /*00*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, L' ', NONE, NONE, NONE, NONE, NONE,
+    /*10*/ NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE,
+    /*20*/ L' ', L'!', L'"', L'#', L'$', L'%', L'&', L'\'',
+    L'(', L')', L'*', L'+', L',', L'-', L'.', L'/',
+    /*30*/ L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7',
+    L'8', L'9', L':', L';', TAGE, L'=', TAGS, L'?',
+    /*40*/ L'@', L'A', L'B', L'C', L'D', L'E', L'F', L'G',
+    L'H', L'I', L'J', L'K', L'L', L'M', L'N', L'O',
+    /*50*/ L'P', L'Q', L'R', L'S', L'T', L'U', L'V', L'W',
+    L'X', L'Y', L'Z', L'[', L'\\', L']', L'^', L'_',
+    /*60*/ L'`', L'a', L'b', L'c', L'd', L'e', L'f', L'g',
+    L'h', L'i', L'j', L'k', L'l', L'm', L'n', L'o',
+    /*70*/ L'p', L'q', L'r', L's', L't', L'u', L'v', L'w',
+    L'x', L'y', L'z', L'{', L'|', L'}', L'~', NONE,
 };
 
 static char *gettag(char *, char *);
 
-static Entry	curentry;
-static char	tag[Buflen];
-#define cursize (curentry.end-curentry.start)
+static Entry curentry;
+static char tag[Buflen];
+#define cursize (curentry.end - curentry.start)
 
 void
 pcollprintentry(Entry e, int cmd)
@@ -113,7 +113,7 @@ pcollprintentry(Entry e, int cmd)
 			outchar(*p++);
 			continue;
 		}
-		r = transtab[(*p++)&0x7F];
+		r = transtab[(*p++) & 0x7F];
 		if(r < NONE) {
 			/* Emit the rune, but buffer in case of ligature */
 			if(rprev != NONE)
@@ -125,7 +125,7 @@ pcollprintentry(Entry e, int cmd)
 			if(t == -1) {
 				if(debug && !outinhibit)
 					err("tag %ld %d %s",
-						e.doff, cursize, tag);
+					    e.doff, cursize, tag);
 				continue;
 			}
 			if(t < NONE) {
@@ -136,10 +136,11 @@ pcollprintentry(Entry e, int cmd)
 				/* handle possible ligature */
 				rlig = liglookup(t, rprev);
 				if(rlig != NONE)
-					rprev = rlig;	/* overwrite rprev */
+					rprev = rlig; /* overwrite rprev */
 				else {
 					/* could print accent, but let's not */
-					if(rprev != NONE) outrune(rprev);
+					if(rprev != NONE)
+						outrune(rprev);
 					rprev = NONE;
 				}
 			} else if(t >= MULTI && t < MULTIE) {
@@ -147,13 +148,13 @@ pcollprintentry(Entry e, int cmd)
 					outrune(rprev);
 					rprev = NONE;
 				}
-				outrunes(multitab[t-MULTI]);
+				outrunes(multitab[t - MULTI]);
 			} else {
 				if(rprev != NONE) {
 					outrune(rprev);
 					rprev = NONE;
 				}
-				switch(t){
+				switch(t) {
 				case H:
 					if(cmd == 'h')
 						outinhibit = 0;
@@ -197,7 +198,7 @@ pcollnextoff(int32_t fromoff)
 		if(!p)
 			break;
 		if(p[0] == '>' && p[1] == 'H' && p[2] == '<')
-			return (Boffset(bdict)-Blinelen(bdict));
+			return (Boffset(bdict) - Blinelen(bdict));
 	}
 	return -1;
 }

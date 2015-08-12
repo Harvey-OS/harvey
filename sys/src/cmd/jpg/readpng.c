@@ -17,66 +17,62 @@
 
 int debug;
 
-enum
-{
+enum {
 	IDATSIZE = 1000000,
 
 	/* filtering algorithms */
-	FilterNone =	0,	/* new[x][y] = buf[x][y] */
-	FilterSub =	1,	/* new[x][y] = buf[x][y] + new[x-1][y] */ 
-	FilterUp =	2,	/* new[x][y] = buf[x][y] + new[x][y-1] */ 
-	FilterAvg =	3,	/* new[x][y] = buf[x][y] + (new[x-1][y]+new[x][y-1])/2 */ 
-	FilterPaeth =	4,	/* new[x][y] = buf[x][y] + paeth(new[x-1][y],new[x][y-1],new[x-1][y-1]) */
-	FilterLast =	5,
+	FilterNone = 0,  /* new[x][y] = buf[x][y] */
+	FilterSub = 1,   /* new[x][y] = buf[x][y] + new[x-1][y] */
+	FilterUp = 2,    /* new[x][y] = buf[x][y] + new[x][y-1] */
+	FilterAvg = 3,   /* new[x][y] = buf[x][y] + (new[x-1][y]+new[x][y-1])/2 */
+	FilterPaeth = 4, /* new[x][y] = buf[x][y] + paeth(new[x-1][y],new[x][y-1],new[x-1][y-1]) */
+	FilterLast = 5,
 
-	PropertyBit = 1<<5,
+	PropertyBit = 1 << 5,
 };
 
 typedef struct ZlibR ZlibR;
 typedef struct ZlibW ZlibW;
 
-struct ZlibW
-{
-	uint8_t *data;		/* Rawimage data */
+struct ZlibW {
+	uint8_t *data; /* Rawimage data */
 	int ndata;
 	int noutchan;
 	int chandesc;
 	int nchan;
 
-	uint8_t *scan;		/* new scanline */
-	uint8_t *lastscan;	/* previous scan line */
-	int scanlen;		/* scan line length */
-	int scanpos;		/* scan position */
+	uint8_t *scan;     /* new scanline */
+	uint8_t *lastscan; /* previous scan line */
+	int scanlen;       /* scan line length */
+	int scanpos;       /* scan position */
 
-	int dx;			/* width of image */
-	int dy;			/* height of image */
-	int bpc;			/* bits per channel (per pixel) */
-	int y;				/* current scan line */
-	int pass;			/* adam7 pass#; 0 means no adam7 */
-	uint8_t palette[3*256];	/* color palette */
-	int palsize;		/* number of palette entries */
+	int dx;			  /* width of image */
+	int dy;			  /* height of image */
+	int bpc;		  /* bits per channel (per pixel) */
+	int y;			  /* current scan line */
+	int pass;		  /* adam7 pass#; 0 means no adam7 */
+	uint8_t palette[3 * 256]; /* color palette */
+	int palsize;		  /* number of palette entries */
 };
 
-struct ZlibR
-{
-	Biobuf *io;		/* input buffer */
-	uint8_t *buf;		/* malloc'ed staging buffer */
-	uint8_t *p;			/* next byte to decompress */
-	uint8_t *e;			/* end of buffer */
+struct ZlibR {
+	Biobuf *io;   /* input buffer */
+	uint8_t *buf; /* malloc'ed staging buffer */
+	uint8_t *p;   /* next byte to decompress */
+	uint8_t *e;   /* end of buffer */
 	ZlibW *w;
 };
 
 static uint32_t *crctab;
-static uint8_t PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static uint8_t PNGmagic[] = {137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
 
 static uint32_t
 get4(uint8_t *a)
 {
-	return (a[0]<<24) | (a[1]<<16) | (a[2]<<8) | a[3];
+	return (a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3];
 }
 
-static
-void
+static void
 pnginit(void)
 {
 	static int inited;
@@ -90,8 +86,7 @@ pnginit(void)
 	inflateinit();
 }
 
-static
-void*
+static void *
 pngmalloc(uint32_t n, int clear)
 {
 	void *p;
@@ -112,7 +107,7 @@ getchunk(Biobuf *b, char *type, uint8_t *d, int m)
 	if(Bread(b, buf, 8) != 8)
 		return -1;
 	n = get4(buf);
-	memmove(type, buf+4, 4);
+	memmove(type, buf + 4, 4);
 	type[4] = 0;
 	if(n > m)
 		sysfatal("getchunk needed %d, had %d", n, m);
@@ -136,7 +131,7 @@ zread(void *va)
 	char type[5];
 	int n;
 
-	if(z->p >= z->e){
+	if(z->p >= z->e) {
 	Again:
 		z->p = z->buf;
 		z->e = z->p;
@@ -144,16 +139,16 @@ zread(void *va)
 		if(n < 0 || strcmp(type, "IEND") == 0)
 			return -1;
 		z->e = z->p + n;
-		if(!strcmp(type,"PLTE")){
-			if(n < 3 || n > 3*256 || n%3)
+		if(!strcmp(type, "PLTE")) {
+			if(n < 3 || n > 3 * 256 || n % 3)
 				sysfatal("invalid PLTE chunk len %d", n);
 			memcpy(z->w->palette, z->p, n);
 			z->w->palsize = 256;
 			goto Again;
 		}
 		if(type[0] & PropertyBit)
-			goto Again;  /* skip auxiliary chunks fornow */
-		if(strcmp(type,"IDAT")){
+			goto Again; /* skip auxiliary chunks fornow */
+		if(strcmp(type, "IDAT")) {
 			sysfatal("unrecognized mandatory chunk %s", type);
 			goto Again;
 		}
@@ -161,7 +156,7 @@ zread(void *va)
 	return *z->p++;
 }
 
-static uint8_t 
+static uint8_t
 paeth(uint8_t a, uint8_t b, uint8_t c)
 {
 	int p, pa, pb, pc;
@@ -183,13 +178,13 @@ unfilter(int alg, uint8_t *buf, uint8_t *up, int len, int bypp)
 {
 	int i;
 
-	switch(alg){
+	switch(alg) {
 	case FilterNone:
 		break;
 
 	case FilterSub:
 		for(i = bypp; i < len; ++i)
-			buf[i] += buf[i-bypp];
+			buf[i] += buf[i - bypp];
 		break;
 
 	case FilterUp:
@@ -199,16 +194,16 @@ unfilter(int alg, uint8_t *buf, uint8_t *up, int len, int bypp)
 
 	case FilterAvg:
 		for(i = 0; i < bypp; ++i)
-			buf[i] += (0+up[i])/2;
+			buf[i] += (0 + up[i]) / 2;
 		for(; i < len; ++i)
-			buf[i] += (buf[i-bypp]+up[i])/2;
+			buf[i] += (buf[i - bypp] + up[i]) / 2;
 		break;
 
 	case FilterPaeth:
 		for(i = 0; i < bypp; ++i)
 			buf[i] += paeth(0, up[i], 0);
 		for(; i < len; ++i)
-			buf[i] += paeth(buf[i-bypp], up[i], up[i-bypp]);
+			buf[i] += paeth(buf[i - bypp], up[i], up[i - bypp]);
 		break;
 
 	default:
@@ -222,14 +217,14 @@ struct {
 	int dx;
 	int dy;
 } adam7[] = {
-	{0,0,1,1},	/* eve alone */
-	{0,0,8,8},	/* pass 1 */
-	{4,0,8,8},	/* pass 2 */
-	{0,4,4,8},	/* pass 3 */
-	{2,0,4,4},	/* pass 4 */
-	{0,2,2,4},	/* pass 5 */
-	{1,0,2,2},	/* pass 6 */
-	{0,1,1,2},	/* pass 7 */
+    {0, 0, 1, 1}, /* eve alone */
+    {0, 0, 8, 8}, /* pass 1 */
+    {4, 0, 8, 8}, /* pass 2 */
+    {0, 4, 4, 8}, /* pass 3 */
+    {2, 0, 4, 4}, /* pass 4 */
+    {0, 2, 2, 4}, /* pass 5 */
+    {1, 0, 2, 2}, /* pass 6 */
+    {0, 1, 1, 2}, /* pass 7 */
 };
 
 static void
@@ -238,7 +233,7 @@ scan(int len, ZlibW *z)
 	int chan, i, j, nbit, off, val;
 	uint8_t pixel[4], *p, *w;
 
-	unfilter(z->scan[0], z->scan+1, z->lastscan+1, len-1, (z->nchan*z->bpc+7)/8);
+	unfilter(z->scan[0], z->scan + 1, z->lastscan + 1, len - 1, (z->nchan * z->bpc + 7) / 8);
 
 	/*
 	 * loop over raw bits extracting pixel values and converting to 8-bit
@@ -246,45 +241,45 @@ scan(int len, ZlibW *z)
 	nbit = 0;
 	chan = 0;
 	val = 0;
-	off = z->y*z->dx + adam7[z->pass].x;
-	w = z->data + z->noutchan*off;
-	p = z->scan+1;	/* skip alg byte */
+	off = z->y * z->dx + adam7[z->pass].x;
+	w = z->data + z->noutchan * off;
+	p = z->scan + 1; /* skip alg byte */
 	len--;
-	for(i=0; i<len*8; i++){
+	for(i = 0; i < len * 8; i++) {
 		val <<= 1;
-		if(p[i>>3] & (1<<(7-(i&7))))
+		if(p[i >> 3] & (1 << (7 - (i & 7))))
 			val++;
-		if(++nbit == z->bpc){
+		if(++nbit == z->bpc) {
 			/* finished the value */
-			pixel[chan++] = (val*255)/((1<<z->bpc)-1);
+			pixel[chan++] = (val * 255) / ((1 << z->bpc) - 1);
 			val = 0;
 			nbit = 0;
-			if(chan == z->nchan){
+			if(chan == z->nchan) {
 				/* finished the pixel */
-				if(off < z->dx*z->dy){
-					if(z->nchan < 3 && z->palsize){
+				if(off < z->dx * z->dy) {
+					if(z->nchan < 3 && z->palsize) {
 						j = pixel[0];
 						if(z->bpc < 8)
-							j >>= 8-z->bpc;
+							j >>= 8 - z->bpc;
 						if(j >= z->palsize)
 							sysfatal("index %d >= palette size %d", j, z->palsize);
-						pixel[3] = pixel[1];	/* alpha */
-						pixel[0] = z->palette[3*j];
-						pixel[1] = z->palette[3*j+1];
-						pixel[2] = z->palette[3*j+2];
+						pixel[3] = pixel[1]; /* alpha */
+						pixel[0] = z->palette[3 * j];
+						pixel[1] = z->palette[3 * j + 1];
+						pixel[2] = z->palette[3 * j + 2];
 					}
-					switch(z->chandesc){
+					switch(z->chandesc) {
 					case CYA16:
-					//	print("%.2x%.2x ", pixel[0], pixel[1]);
+						//	print("%.2x%.2x ", pixel[0], pixel[1]);
 						*w++ = pixel[1];
-						*w++ += (pixel[0]*pixel[1])/255;
+						*w++ += (pixel[0] * pixel[1]) / 255;
 						break;
 					case CRGBA32:
-					//	print("%.2x%.2x%.2x%.2x ", pixel[0], pixel[1], pixel[2], pixel[3]);
+						//	print("%.2x%.2x%.2x%.2x ", pixel[0], pixel[1], pixel[2], pixel[3]);
 						*w++ += pixel[3];
-						*w++ += (pixel[2]*pixel[3])/255;
-						*w++ += (pixel[1]*pixel[3])/255;
-						*w++ += (pixel[0]*pixel[3])/255;
+						*w++ += (pixel[2] * pixel[3]) / 255;
+						*w++ += (pixel[1] * pixel[3]) / 255;
+						*w++ += (pixel[0] * pixel[3]) / 255;
 						break;
 					case CRGB24:
 						*w++ = pixel[2];
@@ -293,10 +288,10 @@ scan(int len, ZlibW *z)
 						*w++ = pixel[0];
 						break;
 					}
-					w += (adam7[z->pass].dx-1)*z->noutchan;
+					w += (adam7[z->pass].dx - 1) * z->noutchan;
 				}
 				off += adam7[z->pass].dx;
-				if(off >= (z->y+1)*z->dx){
+				if(off >= (z->y + 1) * z->dx) {
 					/* finished the line */
 					return;
 				}
@@ -319,15 +314,15 @@ scanbytes(ZlibW *z)
 	if(dx <= 0)
 		n = 1;
 	else
-		n = (dx+adx-1)/adx;
-	if(n != 1 + (z->dx - (adam7[z->pass].x+1)) / adam7[z->pass].dx){
+		n = (dx + adx - 1) / adx;
+	if(n != 1 + (z->dx - (adam7[z->pass].x + 1)) / adam7[z->pass].dx) {
 		print("%d/%d != 1+(%d-1)/%d = %d\n",
-			z->dx - adam7[z->pass].x - 1 + adx, adx,
-			z->dx - (adam7[z->pass].x+1), adam7[z->pass].dx,
-			1 + (z->dx - (adam7[z->pass].x+1)) / adam7[z->pass].dx);
+		      z->dx - adam7[z->pass].x - 1 + adx, adx,
+		      z->dx - (adam7[z->pass].x + 1), adam7[z->pass].dx,
+		      1 + (z->dx - (adam7[z->pass].x + 1)) / adam7[z->pass].dx);
 	}
-	bits = n*z->bpc*z->nchan;
-	return 1 + (bits+7)/8;
+	bits = n * z->bpc * z->nchan;
+	return 1 + (bits + 7) / 8;
 }
 
 static int
@@ -336,11 +331,11 @@ nextpass(ZlibW *z)
 	int len;
 
 	memset(z->lastscan, 0, z->scanlen);
-	do{
-		z->pass = (z->pass+1)%8;
+	do {
+		z->pass = (z->pass + 1) % 8;
 		z->y = adam7[z->pass].y;
 		len = scanbytes(z);
-	}while(len < 2);
+	} while(len < 2);
 	return len;
 }
 
@@ -359,17 +354,17 @@ zwrite(void *vz, void *vbuf, int n)
 	if(len < 2)
 		len = nextpass(z);
 
-	while(n > 0){
+	while(n > 0) {
 		m = len - z->scanpos;
-		if(m > n){
+		if(m > n) {
 			/* save final partial line */
-			memmove(z->scan+z->scanpos, buf, n);
+			memmove(z->scan + z->scanpos, buf, n);
 			z->scanpos += n;
 			break;
 		}
 
 		/* fill line */
-		memmove(z->scan+z->scanpos, buf, m);
+		memmove(z->scan + z->scanpos, buf, m);
 		buf += m;
 		n -= m;
 
@@ -387,7 +382,7 @@ zwrite(void *vz, void *vbuf, int n)
 	return oldn;
 }
 
-static Rawimage*
+static Rawimage *
 readslave(Biobuf *b)
 {
 	char type[5];
@@ -399,11 +394,11 @@ readslave(Biobuf *b)
 
 	buf = pngmalloc(IDATSIZE, 0);
 	if(Bread(b, buf, sizeof PNGmagic) != sizeof PNGmagic ||
-	    memcmp(PNGmagic, buf, sizeof PNGmagic) != 0)
+	   memcmp(PNGmagic, buf, sizeof PNGmagic) != 0)
 		sysfatal("bad PNGmagic");
 
 	n = getchunk(b, type, buf, IDATSIZE);
-	if(n < 13 || strcmp(type,"IHDR") != 0)
+	if(n < 13 || strcmp(type, "IHDR") != 0)
 		sysfatal("missing IHDR chunk");
 	h = buf;
 	dx = get4(h);
@@ -428,14 +423,14 @@ readslave(Biobuf *b)
 	image = pngmalloc(sizeof(Rawimage), 1);
 	image->r = Rect(0, 0, dx, dy);
 	nout = 0;
-	switch(colorfmt){
-	case 0:	/* grey */
+	switch(colorfmt) {
+	case 0: /* grey */
 		image->nchans = 1;
 		image->chandesc = CY;
 		nout = 1;
 		nchan = 1;
 		break;
-	case 2:	/* rgb */
+	case 2: /* rgb */
 		image->nchans = 1;
 		image->chandesc = CRGB24;
 		nout = 3;
@@ -447,13 +442,13 @@ readslave(Biobuf *b)
 		nout = 3;
 		nchan = 1;
 		break;
-	case 4:	/* grey+alpha */
+	case 4: /* grey+alpha */
 		image->nchans = 1;
 		image->chandesc = CYA16;
 		nout = 2;
 		nchan = 2;
 		break;
-	case 6:	/* rgb+alpha */
+	case 6: /* rgb+alpha */
 		image->nchans = 1;
 		image->chandesc = CRGBA32;
 		nout = 4;
@@ -462,7 +457,7 @@ readslave(Biobuf *b)
 	default:
 		sysfatal("unsupported color scheme %d", h[-1]);
 	}
-	image->chanlen = dx*dy*nout;
+	image->chanlen = dx * dy * nout;
 	image->chans[0] = pngmalloc(image->chanlen, 0);
 	memset(image->chans[0], 0, image->chanlen);
 
@@ -481,7 +476,7 @@ readslave(Biobuf *b)
 
 	zw.dx = dx;
 	zw.dy = dy;
-	zw.scanlen = (nchan*dx*bpc+7)/8+1;
+	zw.scanlen = (nchan * dx * bpc + 7) / 8 + 1;
 	zw.scan = pngmalloc(zw.scanlen, 1);
 	zw.lastscan = pngmalloc(zw.scanlen, 1);
 	zw.nchan = nchan;
@@ -498,18 +493,18 @@ readslave(Biobuf *b)
 	return image;
 }
 
-Rawimage**
+Rawimage **
 Breadpng(Biobuf *b, int colorspace)
 {
 	Rawimage **array, *r;
 
-	if(colorspace != CRGB){
+	if(colorspace != CRGB) {
 		werrstr("ReadPNG: unknown color space %d", colorspace);
 		return nil;
 	}
 	pnginit();
-	array = malloc(2*sizeof(*array));
-	if(array==nil)
+	array = malloc(2 * sizeof(*array));
+	if(array == nil)
 		return nil;
 	r = readslave(b);
 	array[0] = r;
@@ -517,7 +512,7 @@ Breadpng(Biobuf *b, int colorspace)
 	return array;
 }
 
-Rawimage**
+Rawimage **
 readpng(int fd, int colorspace)
 {
 	Biobuf b;

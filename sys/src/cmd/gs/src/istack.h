@@ -28,7 +28,7 @@
 /* Requires iref.h */
 
 #ifndef istack_INCLUDED
-#  define istack_INCLUDED
+#define istack_INCLUDED
 
 #include "isdata.h"
 
@@ -59,9 +59,9 @@
  *      - In all blocks but the top, we fill the unused elements with nulls.
  */
 typedef struct ref_stack_block_s {
-    ref next;			/* t_array, next lower block on stack */
-    ref used;			/* t_array, subinterval of this block */
-    /* Actual stack starts here */
+	ref next; /* t_array, next lower block on stack */
+	ref used; /* t_array, subinterval of this block */
+		  /* Actual stack starts here */
 } ref_stack_block;
 
 #define stack_block_refs (sizeof(ref_stack_block) / sizeof(ref))
@@ -99,8 +99,8 @@ int ref_stack_set_margin(ref_stack_t *pstack, uint margin);
 /* Return the number of elements on a stack. */
 uint ref_stack_count(const ref_stack_t *pstack);
 
-#define ref_stack_count_inline(pstk)\
-  ((pstk)->p + 1 - (pstk)->bot + (pstk)->extension_used)
+#define ref_stack_count_inline(pstk) \
+	((pstk)->p + 1 - (pstk)->bot + (pstk)->extension_used)
 
 /* Return the maximum number of elements allowed on a stack. */
 #define ref_stack_max_count(pstk) (uint)((pstk)->max_stack.value.intval)
@@ -132,7 +132,7 @@ int ref_stack_store_check(const ref_stack_t *pstack, ref *parray,
  * e_invalidaccess.
  */
 #ifndef gs_dual_memory_DEFINED
-#  define gs_dual_memory_DEFINED
+#define gs_dual_memory_DEFINED
 typedef struct gs_dual_memory_s gs_dual_memory_t;
 #endif
 int ref_stack_store(const ref_stack_t *pstack, ref *parray, uint count,
@@ -146,8 +146,8 @@ int ref_stack_store(const ref_stack_t *pstack, ref *parray, uint count,
 void ref_stack_pop(ref_stack_t *pstack, uint count);
 
 #define ref_stack_clear(pstk) ref_stack_pop(pstk, ref_stack_count(pstk))
-#define ref_stack_pop_to(pstk, depth)\
-  ref_stack_pop(pstk, ref_stack_count(pstk) - (depth))
+#define ref_stack_pop_to(pstk, depth) \
+	ref_stack_pop(pstk, ref_stack_count(pstk) - (depth))
 
 /* Pop the top block off a stack.  May return underflow_error. */
 int ref_stack_pop_block(ref_stack_t *pstack);
@@ -179,9 +179,9 @@ int ref_stack_push(ref_stack_t *pstack, uint count);
 
  */
 typedef struct ref_stack_enum_s {
-    ref_stack_block *block;
-    ref *ptr;
-    uint size;
+	ref_stack_block *block;
+	ref *ptr;
+	uint size;
 } ref_stack_enum_t;
 void ref_stack_enum_begin(ref_stack_enum_t *prse, const ref_stack_t *pstack);
 bool ref_stack_enum_next(ref_stack_enum_t *prse);

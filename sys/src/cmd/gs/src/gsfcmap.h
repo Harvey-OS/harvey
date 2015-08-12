@@ -27,13 +27,13 @@
 /* Public interface to CMaps */
 
 #ifndef gsfcmap_INCLUDED
-#  define gsfcmap_INCLUDED
+#define gsfcmap_INCLUDED
 
 #include "gsccode.h"
 
 /* Define the abstract type for a CMap. */
 #ifndef gs_cmap_DEFINED
-#  define gs_cmap_DEFINED
+#define gs_cmap_DEFINED
 typedef struct gs_cmap_s gs_cmap_t;
 #endif
 
@@ -66,7 +66,7 @@ int gs_cmap_decode_next(const gs_cmap_t *pcmap, const gs_const_string *str,
 /*
  * Allocate and initialize a ToUnicode CMap.
  */
-int gs_cmap_ToUnicode_alloc(gs_memory_t *mem, int id, int num_codes, int key_size, 
+int gs_cmap_ToUnicode_alloc(gs_memory_t *mem, int id, int num_codes, int key_size,
 			    gs_cmap_t **ppcmap);
 
 /*

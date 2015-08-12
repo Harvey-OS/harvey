@@ -10,8 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-static void
-catch(void *p, char *s)
+static void catch(void *p, char *s)
 {
 	print("catch %p %s\n", p, s);
 	alarm(5000);
@@ -24,8 +23,7 @@ main(int argc, char *argv[])
 	notify(catch);
 
 	alarm(5000);
-	while (1)
+	while(1)
 		;
 	exits(0);
 }
-

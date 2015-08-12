@@ -7,35 +7,33 @@
  * in the LICENSE file.
  */
 
-#define	NSNAME	8
-#define	NSYM	50
-#define	NREG	32
-#define NOPROF	(1<<0)
-#define DUPOK	(1<<1)
+#define NSNAME 8
+#define NSYM 50
+#define NREG 32
+#define NOPROF (1 << 0)
+#define DUPOK (1 << 1)
 
-enum
-{
-	REGRET		= 0,	/* return register and first temp, grows++ */
-	REGARG		= 0,	/* first arg passed in */
-	REGEXT		= 15,	/* first external register, grows-- */
+enum {
+	REGRET = 0,  /* return register and first temp, grows++ */
+	REGARG = 0,  /* first arg passed in */
+	REGEXT = 15, /* first external register, grows-- */
 
-	REGLINK		= 26,	/* subroutine linkage */
-	REGTMP		= 27,	/* used by the loader */
-	REGTMP2		= 28,	/* used by the loader */
-	REGSB		= 29,	/* static pointer */
-	REGSP		= 30,	/* stack pointer */
-	REGZERO		= 31,	/* always zero */
+	REGLINK = 26, /* subroutine linkage */
+	REGTMP = 27,  /* used by the loader */
+	REGTMP2 = 28, /* used by the loader */
+	REGSB = 29,   /* static pointer */
+	REGSP = 30,   /* stack pointer */
+	REGZERO = 31, /* always zero */
 
-	FREGRET		= 0,
-	FREGEXT		= 27,	/* first external register */
-	FREGHALF	= 28,	/* double */
-	FREGONE		= 29,	/* double */
-	FREGTWO		= 30,	/* double */
-	FREGZERO	= 31,	/* both float and double */
+	FREGRET = 0,
+	FREGEXT = 27,  /* first external register */
+	FREGHALF = 28, /* double */
+	FREGONE = 29,  /* double */
+	FREGTWO = 30,  /* double */
+	FREGZERO = 31, /* both float and double */
 };
 
-enum	as
-{
+enum as {
 	AXXX,
 	AGOK,
 	ATEXT,
@@ -230,18 +228,17 @@ enum	as
 };
 
 /* type/name */
-enum
-{
-	D_GOK	= 0,
+enum {
+	D_GOK = 0,
 	D_NONE,
 
-/* name */
+	/* name */
 	D_EXTERN,
 	D_STATIC,
 	D_AUTO,
 	D_PARAM,
 
-/* type */
+	/* type */
 	D_BRANCH,
 	D_OREG,
 	D_CONST,
@@ -259,16 +256,15 @@ enum
 /*
  * this is the ranlib header
  */
-#define	SYMDEF	"__.SYMDEF"
+#define SYMDEF "__.SYMDEF"
 
 /*
  * this is the simulated IEEE floating point
  */
-typedef	struct	ieee	Ieee;
-struct	ieee
-{
-	long	l;	/* contains ls-man	0xffffffff */
-	long	h;	/* contains sign	0x80000000
+typedef struct ieee Ieee;
+struct ieee {
+	long l; /* contains ls-man	0xffffffff */
+	long h; /* contains sign	0x80000000
 				    exp		0x7ff00000
 				    ms-man	0x000fffff */
 };

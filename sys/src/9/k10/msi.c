@@ -16,35 +16,35 @@
 #include "apic.h"
 
 enum {
-	Dpcicap		= 1<<0,
-	Dmsicap		= 1<<1,
-	Dvec		= 1<<2,
-	Debug		= 0,
+	Dpcicap = 1 << 0,
+	Dmsicap = 1 << 1,
+	Dvec = 1 << 2,
+	Debug = 0,
 };
 
 enum {
 	/* address */
-	Msiabase		= 0xfee00000u,
-	Msiadest		= 1<<12,		/* same as 63:56 of apic vector */
-	Msiaedest	= 1<<4,		/* same as 55:48 of apic vector */
-	Msialowpri	= 1<<3,		/* redirection hint */
-	Msialogical	= 1<<2,
+	Msiabase = 0xfee00000u,
+	Msiadest = 1 << 12,  /* same as 63:56 of apic vector */
+	Msiaedest = 1 << 4,  /* same as 55:48 of apic vector */
+	Msialowpri = 1 << 3, /* redirection hint */
+	Msialogical = 1 << 2,
 
 	/* data */
-	Msidlevel	= 1<<15,
-	Msidassert	= 1<<14,
-	Msidlogical	= 1<<11,
-	Msidmode	= 1<<8,		/* 3 bits; delivery mode */
-	Msidvector	= 0xff<<0,
+	Msidlevel = 1 << 15,
+	Msidassert = 1 << 14,
+	Msidlogical = 1 << 11,
+	Msidmode = 1 << 8, /* 3 bits; delivery mode */
+	Msidvector = 0xff << 0,
 };
 
-enum{
+enum {
 	/* msi capabilities */
-	Vmask		= 1<<8,
-	Cap64		= 1<<7,
-	Mmesgmsk	= 7<<4,
-	Mmcap		= 7<<1,
-	Msienable	= 1<<0,
+	Vmask = 1 << 8,
+	Cap64 = 1 << 7,
+	Mmesgmsk = 7 << 4,
+	Mmcap = 7 << 1,
+	Msienable = 1 << 0,
 };
 
 static int
@@ -61,8 +61,8 @@ msicap(Pcidev *p)
 static int
 blacklist(Pcidev *p)
 {
-	switch(p->vid<<16 | p->did){
-	case 0x11ab<<16 | 0x6485:
+	switch(p->vid << 16 | p->did) {
+	case 0x11ab << 16 | 0x6485:
 		return -1;
 	}
 	return 0;
@@ -82,18 +82,16 @@ pcimsienable(Pcidev *p, uint64_t vec)
 	if(blacklist(p) != 0)
 		return -1;
 	datao = 8;
-	d = vec>>48;
+	d = vec >> 48;
 	lopri = (vec & 0x700) == MTlp;
 	logical = (vec & Lm) != 0;
-	pcicfgw32(p, c + 4, Msiabase | Msiaedest * d
-		| Msialowpri * lopri | Msialogical * logical);
-	if(f & Cap64){
+	pcicfgw32(p, c + 4, Msiabase | Msiaedest * d | Msialowpri * lopri | Msialogical * logical);
+	if(f & Cap64) {
 		datao += 4;
 		pcicfgw32(p, c + 8, 0);
 	}
 	dmode = (vec >> 8) & 7;
-	pcicfgw16(p, c + datao, Msidassert | Msidlogical * logical
-		| Msidmode * dmode | (uint)vec & 0xff);
+	pcicfgw16(p, c + datao, Msidassert | Msidlogical * logical | Msidmode * dmode | (uint)vec & 0xff);
 	if(f & Vmask)
 		pcicfgw32(p, c + datao + 4, 0);
 
@@ -114,10 +112,10 @@ pcimsimask(Pcidev *p, int mask)
 	if(c == 0)
 		return -1;
 	f = pcicfgr16(p, c + 2) & ~Msienable;
-	if(mask){
+	if(mask) {
 		pcicfgw16(p, c + 2, f & ~Msienable);
-//		pciclrbme(p);		cheeze
-	}else{
+		//		pciclrbme(p);		cheeze
+	} else {
 		pcisetbme(p);
 		pcicfgw16(p, c + 2, f | Msienable);
 	}

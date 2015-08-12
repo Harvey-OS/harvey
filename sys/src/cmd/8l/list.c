@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
 listinit(void)
@@ -20,7 +20,7 @@ listinit(void)
 	fmtinstall('P', Pconv);
 }
 
-static	Prog	*bigP;
+static Prog *bigP;
 
 int
 Pconv(Fmt *fp)
@@ -28,7 +28,7 @@ Pconv(Fmt *fp)
 	char str[STRINGSZ];
 	Prog *p;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(fp->args, Prog *);
 	bigP = p;
 	switch(p->as) {
 	case ATEXT:
@@ -64,17 +64,17 @@ Aconv(Fmt *fp)
 int
 Dconv(Fmt *fp)
 {
-	char str[STRINGSZ+40], s[20];
+	char str[STRINGSZ + 40], s[20];
 	Adr *a;
 	int i;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	i = a->type;
 	if(i >= D_INDIR) {
 		if(a->offset)
-			snprint(str, sizeof(str), "%ld(%R)", a->offset, i-D_INDIR);
+			snprint(str, sizeof(str), "%ld(%R)", a->offset, i - D_INDIR);
 		else
-			snprint(str, sizeof(str), "(%R)", i-D_INDIR);
+			snprint(str, sizeof(str), "(%R)", i - D_INDIR);
 		goto brk;
 	}
 	switch(i) {
@@ -147,76 +147,76 @@ conv:
 	return fmtstrcpy(fp, str);
 }
 
-char*	regstr[] =
-{
-	"AL",		/* [D_AL] */
-	"CL",
-	"DL",
-	"BL",
-	"AH",
-	"CH",
-	"DH",
-	"BH",
+char *regstr[] =
+    {
+     "AL", /* [D_AL] */
+     "CL",
+     "DL",
+     "BL",
+     "AH",
+     "CH",
+     "DH",
+     "BH",
 
-	"AX",		/* [D_AX] */
-	"CX",
-	"DX",
-	"BX",
-	"SP",
-	"BP",
-	"SI",
-	"DI",
+     "AX", /* [D_AX] */
+     "CX",
+     "DX",
+     "BX",
+     "SP",
+     "BP",
+     "SI",
+     "DI",
 
-	"F0",		/* [D_F0] */
-	"F1",
-	"F2",
-	"F3",
-	"F4",
-	"F5",
-	"F6",
-	"F7",
+     "F0", /* [D_F0] */
+     "F1",
+     "F2",
+     "F3",
+     "F4",
+     "F5",
+     "F6",
+     "F7",
 
-	"CS",		/* [D_CS] */
-	"SS",
-	"DS",
-	"ES",
-	"FS",
-	"GS",
+     "CS", /* [D_CS] */
+     "SS",
+     "DS",
+     "ES",
+     "FS",
+     "GS",
 
-	"GDTR",		/* [D_GDTR] */
-	"IDTR",		/* [D_IDTR] */
-	"LDTR",		/* [D_LDTR] */
-	"MSW",		/* [D_MSW] */
-	"TASK",		/* [D_TASK] */
+     "GDTR", /* [D_GDTR] */
+     "IDTR", /* [D_IDTR] */
+     "LDTR", /* [D_LDTR] */
+     "MSW",  /* [D_MSW] */
+     "TASK", /* [D_TASK] */
 
-	"CR0",		/* [D_CR] */
-	"CR1",
-	"CR2",
-	"CR3",
-	"CR4",
-	"CR5",
-	"CR6",
-	"CR7",
+     "CR0", /* [D_CR] */
+     "CR1",
+     "CR2",
+     "CR3",
+     "CR4",
+     "CR5",
+     "CR6",
+     "CR7",
 
-	"DR0",		/* [D_DR] */
-	"DR1",
-	"DR2",
-	"DR3",
-	"DR4",
-	"DR5",
-	"DR6",
-	"DR7",
+     "DR0", /* [D_DR] */
+     "DR1",
+     "DR2",
+     "DR3",
+     "DR4",
+     "DR5",
+     "DR6",
+     "DR7",
 
-	"TR0",		/* [D_TR] */
-	"TR1",
-	"TR2",
-	"TR3",
-	"TR4",
-	"TR5",
-	"TR6",
-	"TR7",
+     "TR0", /* [D_TR] */
+     "TR1",
+     "TR2",
+     "TR3",
+     "TR4",
+     "TR5",
+     "TR6",
+     "TR7",
 
-	"NONE",		/* [D_NONE] */
+     "NONE", /* [D_NONE] */
 };
 
 int
@@ -227,7 +227,7 @@ Rconv(Fmt *fp)
 
 	r = va_arg(fp->args, int);
 	if(r >= D_AL && r <= D_NONE)
-		snprint(str, sizeof(str), "%s", regstr[r-D_AL]);
+		snprint(str, sizeof(str), "%s", regstr[r - D_AL]);
 	else
 		snprint(str, sizeof(str), "gok(%d)", r);
 
@@ -240,9 +240,9 @@ Sconv(Fmt *fp)
 	int i, c;
 	char str[30], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, char *);
 	p = str;
-	for(i=0; i<sizeof(double); i++) {
+	for(i = 0; i < sizeof(double); i++) {
 		c = a[i] & 0xff;
 		if(c >= 'a' && c <= 'z' ||
 		   c >= 'A' && c <= 'Z' ||
@@ -254,7 +254,7 @@ Sconv(Fmt *fp)
 		switch(c) {
 		default:
 			if(c < 040 || c >= 0177)
-				break;	/* not portable */
+				break; /* not portable */
 			p[-1] = c;
 			continue;
 		case 0:
@@ -271,8 +271,8 @@ Sconv(Fmt *fp)
 			*p++ = 't';
 			continue;
 		}
-		*p++ = (c>>6) + '0';
-		*p++ = ((c>>3) & 7) + '0';
+		*p++ = (c >> 6) + '0';
+		*p++ = ((c >> 3) & 7) + '0';
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
@@ -289,7 +289,7 @@ diag(char *fmt, ...)
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%s: %s\n", tn, buf);
 

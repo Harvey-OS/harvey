@@ -27,7 +27,7 @@
 /* Bitmap font interface for pdfwrite */
 
 #ifndef gdevpdti_INCLUDED
-#  define gdevpdti_INCLUDED
+#define gdevpdti_INCLUDED
 
 #include "gdevpdt.h"
 
@@ -39,7 +39,7 @@
 /* ================ Types and structures ================ */
 
 #ifndef pdf_bitmap_fonts_DEFINED
-#  define pdf_bitmap_fonts_DEFINED
+#define pdf_bitmap_fonts_DEFINED
 typedef struct pdf_bitmap_fonts_s pdf_bitmap_fonts_t;
 #endif
 
@@ -58,16 +58,16 @@ void pdf_close_text_page(gx_device_pdf *pdev);
 int pdf_char_image_y_offset(const gx_device_pdf *pdev, int x, int y, int h);
 
 /* Begin a CharProc for an embedded (bitmap) font. */
-int pdf_begin_char_proc(gx_device_pdf * pdev, int w, int h, int x_width,
+int pdf_begin_char_proc(gx_device_pdf *pdev, int w, int h, int x_width,
 			int y_offset, gs_id id, pdf_char_proc_t **ppcp,
-			pdf_stream_position_t * ppos);
+			pdf_stream_position_t *ppos);
 
 /* End a CharProc. */
-int pdf_end_char_proc(gx_device_pdf * pdev, pdf_stream_position_t * ppos);
+int pdf_end_char_proc(gx_device_pdf *pdev, pdf_stream_position_t *ppos);
 
 /* Put out a reference to an image as a character in an embedded font. */
-int pdf_do_char_image(gx_device_pdf * pdev, const pdf_char_proc_t * pcp,
-		      const gs_matrix * pimat);
+int pdf_do_char_image(gx_device_pdf *pdev, const pdf_char_proc_t *pcp,
+		      const gs_matrix *pimat);
 
 /* Only used within text code */
 

@@ -22,14 +22,14 @@ _twiddlecompressed(uint8_t *buf, int n)
 	uint8_t *ebuf;
 	int j, k, c;
 
-	ebuf = buf+n;
-	while(buf < ebuf){
+	ebuf = buf + n;
+	while(buf < ebuf) {
 		c = *buf++;
-		if(c >= 128){
-			k = c-128+1;
-			for(j=0; j<k; j++, buf++)
+		if(c >= 128) {
+			k = c - 128 + 1;
+			for(j = 0; j < k; j++, buf++)
 				*buf ^= 0xFF;
-		}else
+		} else
 			buf++;
 	}
 }
@@ -40,7 +40,7 @@ _compblocksize(Rectangle r, int depth)
 	int bpl;
 
 	bpl = bytesperline(r, depth);
-	bpl = 2*bpl;	/* add plenty extra for blocking, etc. */
+	bpl = 2 * bpl; /* add plenty extra for blocking, etc. */
 	if(bpl < NCBLOCK)
 		return NCBLOCK;
 	return bpl;

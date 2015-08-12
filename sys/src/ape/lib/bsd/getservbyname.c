@@ -25,15 +25,14 @@
 
 #include "priv.h"
 
-enum
-{
-	Nname= 6,
+enum {
+	Nname = 6,
 };
 
 /*
  *  for inet addresses only
  */
-struct servent*
+struct servent *
 getservbyname(char *name, char *proto)
 {
 	int i, fd, m, num;
@@ -41,7 +40,7 @@ getservbyname(char *name, char *proto)
 	int nn, na;
 	static struct servent s;
 	static char buf[1024];
-	static char *nptr[Nname+1];
+	static char *nptr[Nname + 1];
 
 	num = 1;
 	for(p = name; *p; p++)
@@ -52,7 +51,7 @@ getservbyname(char *name, char *proto)
 
 	/* connect to server */
 	fd = open("/net/cs", O_RDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		_syserrno();
 		return 0;
 	}
@@ -64,31 +63,31 @@ getservbyname(char *name, char *proto)
 		snprintf(buf, sizeof buf, "!%s=%s port=*", proto, name);
 
 	/* query the server */
-	if(write(fd, buf, strlen(buf)) < 0){
+	if(write(fd, buf, strlen(buf)) < 0) {
 		_syserrno();
 		return 0;
 	}
 	lseek(fd, 0, 0);
-	for(i = 0; i < sizeof(buf)-1; i += m){
-		m = read(fd, buf+i, sizeof(buf) - 1 - i);
+	for(i = 0; i < sizeof(buf) - 1; i += m) {
+		m = read(fd, buf + i, sizeof(buf) - 1 - i);
 		if(m <= 0)
 			break;
-		buf[i+m++] = ' ';
+		buf[i + m++] = ' ';
 	}
 	close(fd);
 	buf[i] = 0;
 
 	/* parse the reply */
 	nn = na = 0;
-	for(bp = buf;;){
+	for(bp = buf;;) {
 		p = strchr(bp, '=');
 		if(p == 0)
 			break;
 		*p++ = 0;
-		if(strcmp(bp, proto) == 0){
+		if(strcmp(bp, proto) == 0) {
 			if(nn < Nname)
 				nptr[nn++] = p;
-		} else if(strcmp(bp, "port") == 0){
+		} else if(strcmp(bp, "port") == 0) {
 			s.s_port = htons(atoi(p));
 		}
 		while(*p && *p != ' ')
@@ -97,7 +96,7 @@ getservbyname(char *name, char *proto)
 			*p++ = 0;
 		bp = p;
 	}
-	if(nn+na == 0)
+	if(nn + na == 0)
 		return 0;
 
 	nptr[nn] = 0;

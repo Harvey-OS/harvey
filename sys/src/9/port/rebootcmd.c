@@ -7,24 +7,23 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"../port/lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"../port/error.h"
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
 
-#include	<a.out.h>
+#include <a.out.h>
 
 static uint32_t
 l2be(int32_t l)
 {
 	uint8_t *cp;
 
-	cp = (uint8_t*)&l;
-	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
+	cp = (uint8_t *)&l;
+	return (cp[0] << 24) | (cp[1] << 16) | (cp[2] << 8) | cp[3];
 }
-
 
 static void
 readn(Chan *c, void *vp, int32_t n)
@@ -54,7 +53,7 @@ setbootcmd(int argc, char *argv[])
 		error(Enomem);
 	p = buf;
 	ep = buf + 1024;
-	for(i=0; i<argc; i++)
+	for(i = 0; i < argc; i++)
 		p = seprint(p, ep, "%q ", argv[i]);
 	*p = 0;
 	ksetenv("bootcmd", buf, 1);
@@ -75,7 +74,7 @@ rebootcmd(int argc, char *argv[])
 
 	panic("Reboot with a file is not supported yet");
 	c = namec(argv[0], Aopen, OEXEC, 0);
-	if(waserror()){
+	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
@@ -89,13 +88,13 @@ rebootcmd(int argc, char *argv[])
 		error(Ebadexec);
 
 	/* round text out to page boundary */
-	rtext = BIGPGROUND(entry+text)-entry;
+	rtext = BIGPGROUND(entry + text) - entry;
 	size = rtext + data;
 	p = malloc(size);
 	if(p == nil)
 		error(Enomem);
 
-	if(waserror()){
+	if(waserror()) {
 		free(p);
 		nexterror();
 	}
@@ -105,9 +104,9 @@ rebootcmd(int argc, char *argv[])
 	readn(c, p + rtext, data);
 
 	ksetenv("bootfile", argv[0], 1);
-	setbootcmd(argc-1, argv+1);
+	setbootcmd(argc - 1, argv + 1);
 
-	reboot((void*)entry, p, size);
+	reboot((void *)entry, p, size);
 
 	panic("return from reboot!");
 }

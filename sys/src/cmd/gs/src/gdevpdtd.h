@@ -27,7 +27,7 @@
 /* FontDescriptor structure and API for pdfwrite */
 
 #ifndef gdevpdtd_INCLUDED
-#  define gdevpdtd_INCLUDED
+#define gdevpdtd_INCLUDED
 
 #include "gdevpdtx.h"
 #include "gdevpdtb.h"
@@ -66,7 +66,7 @@
  */
 
 #ifndef pdf_font_descriptor_DEFINED
-#  define pdf_font_descriptor_DEFINED
+#define pdf_font_descriptor_DEFINED
 typedef struct pdf_font_descriptor_s pdf_font_descriptor_t;
 #endif
 
@@ -143,8 +143,8 @@ int pdf_finish_FontDescriptor(gx_device_pdf *pdev,
 			      pdf_font_descriptor_t *pfd);
 
 int pdf_finish_font_descriptors(gx_device_pdf *pdev,
-			int (*finish_proc)(gx_device_pdf *,
-					   pdf_font_descriptor_t *));
+				int (*finish_proc)(gx_device_pdf *,
+						   pdf_font_descriptor_t *));
 /*
  * Write a FontDescriptor.
  */

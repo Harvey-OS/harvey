@@ -17,7 +17,7 @@
 
 static List **tail;
 
-List*
+List *
 construct(Node *l)
 {
 	List *lh, **save;
@@ -63,11 +63,11 @@ build(Node *n)
 		l = al(res.type);
 		l->Store = res.Store;
 		*tail = l;
-		tail = &l->next;	
+		tail = &l->next;
 	}
 }
 
-List*
+List *
 addlist(List *l, List *r)
 {
 	List *f;
@@ -161,8 +161,7 @@ nthelem(List *l, int n, Node *res)
 	res->Store = l->Store;
 }
 
-void
-delete(List *l, int n, Node *res)
+void delete(List *l, int n, Node *res)
 {
 	List **tl;
 
@@ -181,7 +180,7 @@ delete(List *l, int n, Node *res)
 	*tl = l->next;
 }
 
-List*
+List *
 listvar(char *s, int64_t v)
 {
 	List *l, *tl;
@@ -200,7 +199,7 @@ listvar(char *s, int64_t v)
 	return tl;
 }
 
-static List*
+static List *
 listlocals(Map *map, Symbol *fn, uint64_t fp)
 {
 	int i;
@@ -218,7 +217,7 @@ listlocals(Map *map, Symbol *fn, uint64_t fp)
 		if(s.name[0] == '.')
 			continue;
 
-		if(geta(map, fp-s.value, &val) > 0) {
+		if(geta(map, fp - s.value, &val) > 0) {
 			*tail = listvar(s.name, val);
 			tail = &(*tail)->next;
 		}
@@ -226,7 +225,7 @@ listlocals(Map *map, Symbol *fn, uint64_t fp)
 	return l2;
 }
 
-static List*
+static List *
 listparams(Map *map, Symbol *fn, uint64_t fp)
 {
 	int i;
@@ -236,13 +235,13 @@ listparams(Map *map, Symbol *fn, uint64_t fp)
 
 	l2 = 0;
 	tail = &l2;
-	fp += mach->szaddr;			/* skip saved pc */
+	fp += mach->szaddr; /* skip saved pc */
 	s = *fn;
 	for(i = 0; localsym(&s, i); i++) {
-		if (s.class != CPARAM)
+		if(s.class != CPARAM)
 			continue;
 
-		if(geta(map, fp+s.value, &v) > 0) {
+		if(geta(map, fp + s.value, &v) > 0) {
 			*tail = listvar(s.name, v);
 			tail = &(*tail)->next;
 		}
@@ -257,7 +256,7 @@ trlist(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 
 	static List **tail;
 
-	if (tracelist == 0) {		/* first time */
+	if(tracelist == 0) { /* first time */
 		tracelist = al(TLIST);
 		tail = &tracelist;
 	}
@@ -266,21 +265,21 @@ trlist(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 	*tail = q;
 	tail = &q->next;
 
-	l = al(TINT);			/* Function address */
+	l = al(TINT); /* Function address */
 	q->l = l;
 	l->ival = sym->value;
 	l->fmt = 'X';
 
-	l->next = al(TINT);		/* called from address */
+	l->next = al(TINT); /* called from address */
 	l = l->next;
 	l->ival = pc;
 	l->fmt = 'Y';
 
-	l->next = al(TLIST);		/* make list of params */
+	l->next = al(TLIST); /* make list of params */
 	l = l->next;
 	l->l = listparams(map, sym, sp);
 
-	l->next = al(TLIST);		/* make list of locals */
+	l->next = al(TLIST); /* make list of locals */
 	l = l->next;
 	l->l = listlocals(map, sym, sp);
 }

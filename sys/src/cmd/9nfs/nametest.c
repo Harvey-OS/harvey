@@ -9,11 +9,11 @@
 
 #include "all.h"
 
-void	mapinit(char*, char*);
+void mapinit(char *, char *);
 
-int	debug;
-int	rpcdebug;
-int	style = 'u';
+int debug;
+int rpcdebug;
+int style = 'u';
 Biobuf *in;
 Unixid *ids;
 Unixid **pids;
@@ -22,11 +22,13 @@ Unixidmap *mp;
 void
 main(int argc, char **argv)
 {
-	int id, arc; char *arv[4];
+	int id, arc;
+	char *arv[4];
 	char *l, *name;
 
 	chatty = 1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case '9':
 	case 'u':
 		style = ARGC();
@@ -34,8 +36,9 @@ main(int argc, char **argv)
 	case 'D':
 		++debug;
 		break;
-	}ARGEND
-	if(argc <= 0){
+	}
+	ARGEND
+	if(argc <= 0) {
 		ids = readunixids("/fd/0", style);
 		if(ids)
 			idprint(1, ids);
@@ -43,12 +46,12 @@ main(int argc, char **argv)
 	}
 	mapinit(argv[0], 0);
 	in = Bopen("/fd/0", OREAD);
-	while(l = Brdline(in, '\n')){	/* assign = */
-		l[Blinelen(in)-1] = 0;
+	while(l = Brdline(in, '\n')) { /* assign = */
+		l[Blinelen(in) - 1] = 0;
 		arc = strparse(l, nelem(arv), arv);
 		if(arc <= 0)
 			continue;
-		switch(arv[0][0]){
+		switch(arv[0][0]) {
 		case 'r':
 			if(arc < 2)
 				continue;
@@ -90,16 +93,16 @@ main(int argc, char **argv)
 void
 mapinit(char *file, char *client)
 {
-	if(file){
+	if(file) {
 		print("reading %s...\n", file);
 		if(readunixidmaps(file) < 0)
 			exits("readunixidmaps");
 		if(!client)
-		client = "nslocum.research.bell-labs.com";
+			client = "nslocum.research.bell-labs.com";
 	}
 	print("client = %s...\n", client);
 	mp = pair2idmap("bootes", client, 0);
-	if(mp == 0){
+	if(mp == 0) {
 		fprint(2, "%s: pair2idmap failed\n", argv0);
 		exits("pair2idmap");
 	}

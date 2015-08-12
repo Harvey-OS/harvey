@@ -27,7 +27,7 @@
 /* Interface to Ghostscript interpreter memory allocator */
 
 #ifndef ialloc_INCLUDED
-#  define ialloc_INCLUDED
+#define ialloc_INCLUDED
 
 #include "imemory.h"
 
@@ -48,26 +48,26 @@
 /*
  * Aliases for invoking the standard allocator interface.
  */
-#define ialloc_bytes(nbytes, cname)\
-  gs_alloc_bytes(imemory, nbytes, cname)
-#define ialloc_struct(typ, pstype, cname)\
-  gs_alloc_struct(imemory, typ, pstype, cname)
-#define ialloc_byte_array(nelts, esize, cname)\
-  gs_alloc_byte_array(imemory, nelts, esize, cname)
-#define ialloc_struct_array(nelts, typ, pstype, cname)\
-  gs_alloc_struct_array(imemory, nelts, typ, pstype, cname)
-#define ifree_object(data, cname)\
-  gs_free_object(imemory, data, cname)
-#define ifree_const_object(data, cname)\
-  gs_free_const_object(imemory, data, cname)
-#define ialloc_string(nbytes, cname)\
-  gs_alloc_string(imemory, nbytes, cname)
-#define iresize_string(data, oldn, newn, cname)\
-  gs_resize_string(imemory, data, oldn, newn, cname)
-#define ifree_string(data, nbytes, cname)\
-  gs_free_string(imemory, data, nbytes, cname)
-#define ifree_const_string(data, nbytes, cname)\
-  gs_free_const_string(imemory, data, nbytes, cname)
+#define ialloc_bytes(nbytes, cname) \
+	gs_alloc_bytes(imemory, nbytes, cname)
+#define ialloc_struct(typ, pstype, cname) \
+	gs_alloc_struct(imemory, typ, pstype, cname)
+#define ialloc_byte_array(nelts, esize, cname) \
+	gs_alloc_byte_array(imemory, nelts, esize, cname)
+#define ialloc_struct_array(nelts, typ, pstype, cname) \
+	gs_alloc_struct_array(imemory, nelts, typ, pstype, cname)
+#define ifree_object(data, cname) \
+	gs_free_object(imemory, data, cname)
+#define ifree_const_object(data, cname) \
+	gs_free_const_object(imemory, data, cname)
+#define ialloc_string(nbytes, cname) \
+	gs_alloc_string(imemory, nbytes, cname)
+#define iresize_string(data, oldn, newn, cname) \
+	gs_resize_string(imemory, data, oldn, newn, cname)
+#define ifree_string(data, nbytes, cname) \
+	gs_free_string(imemory, data, nbytes, cname)
+#define ifree_const_string(data, nbytes, cname) \
+	gs_free_const_string(imemory, data, nbytes, cname)
 
 /* Initialize the interpreter's allocator. */
 int ialloc_init(gs_dual_memory_t *, gs_memory_t *, uint, bool);
@@ -104,29 +104,29 @@ int imemory_save_level(const gs_ref_memory_t *);
  * Ref-related facilities.
  */
 
-#ifdef r_type			/* i.e., we know about refs */
+#ifdef r_type /* i.e., we know about refs */
 
 /* Allocate and free ref arrays. */
-#define ialloc_ref_array(paref, attrs, nrefs, cname)\
-  gs_alloc_ref_array(iimemory, paref, attrs, nrefs, cname)
-#define iresize_ref_array(paref, nrefs, cname)\
-  gs_resize_ref_array(iimemory, paref, nrefs, cname)
-#define ifree_ref_array(paref, cname)\
-  gs_free_ref_array(iimemory, paref, cname)
+#define ialloc_ref_array(paref, attrs, nrefs, cname) \
+	gs_alloc_ref_array(iimemory, paref, attrs, nrefs, cname)
+#define iresize_ref_array(paref, nrefs, cname) \
+	gs_resize_ref_array(iimemory, paref, nrefs, cname)
+#define ifree_ref_array(paref, cname) \
+	gs_free_ref_array(iimemory, paref, cname)
 
 /* Allocate a string ref. */
-#define ialloc_string_ref(psref, attrs, nbytes, cname)\
-  gs_alloc_string_ref(iimemory, psref, attrs, nbytes, cname)
+#define ialloc_string_ref(psref, attrs, nbytes, cname) \
+	gs_alloc_string_ref(iimemory, psref, attrs, nbytes, cname)
 
 /* Make a ref for a newly allocated structure. */
-#define make_istruct(pref,attrs,ptr)\
-  make_struct(pref, (attrs) | icurrent_space, ptr)
-#define make_istruct_new(pref,attrs,ptr)\
-  make_struct_new(pref, (attrs) | icurrent_space, ptr)
-#define make_iastruct(pref,attrs,ptr)\
-  make_astruct(pref, (attrs) | icurrent_space, ptr)
-#define make_iastruct_new(pref,attrs,ptr)\
-  make_astruct_new(pref, (attrs) | icurrent_space, ptr)
+#define make_istruct(pref, attrs, ptr) \
+	make_struct(pref, (attrs) | icurrent_space, ptr)
+#define make_istruct_new(pref, attrs, ptr) \
+	make_struct_new(pref, (attrs) | icurrent_space, ptr)
+#define make_iastruct(pref, attrs, ptr) \
+	make_astruct(pref, (attrs) | icurrent_space, ptr)
+#define make_iastruct_new(pref, attrs, ptr) \
+	make_astruct_new(pref, (attrs) | icurrent_space, ptr)
 
 #endif /* ifdef r_type */
 

@@ -18,9 +18,9 @@ static void
 writelittlebig4(uint8_t *buf, uint32_t x)
 {
 	buf[0] = buf[7] = x;
-	buf[1] = buf[6] = x>>8;
-	buf[2] = buf[5] = x>>16;
-	buf[3] = buf[4] = x>>24;
+	buf[1] = buf[6] = x >> 8;
+	buf[2] = buf[5] = x >> 16;
+	buf[3] = buf[4] = x >> 24;
 }
 
 void
@@ -30,9 +30,9 @@ rewritedot(Cdimg *cd, Direc *d)
 	Cdir *c;
 
 	Creadblock(cd, buf, d->block, Blocksize);
-	c = (Cdir*)buf;
+	c = (Cdir *)buf;
 	assert(c->len != 0);
-	assert(c->namelen == 1 && c->name[0] == '\0');	/* dot */
+	assert(c->namelen == 1 && c->name[0] == '\0'); /* dot */
 	writelittlebig4(c->dloc, d->block);
 	writelittlebig4(c->dlen, d->length);
 
@@ -47,13 +47,13 @@ rewritedotdot(Cdimg *cd, Direc *d, Direc *dparent)
 	Cdir *c;
 
 	Creadblock(cd, buf, d->block, Blocksize);
-	c = (Cdir*)buf;
+	c = (Cdir *)buf;
 	assert(c->len != 0);
-	assert(c->namelen == 1 && c->name[0] == '\0');	/* dot */
+	assert(c->namelen == 1 && c->name[0] == '\0'); /* dot */
 
-	c = (Cdir*)(buf+c->len);
+	c = (Cdir *)(buf + c->len);
 	assert(c->len != 0);
-	assert(c->namelen == 1 && c->name[0] == '\001');	/* dotdot*/
+	assert(c->namelen == 1 && c->name[0] == '\001'); /* dotdot*/
 
 	writelittlebig4(c->dloc, dparent->block);
 	writelittlebig4(c->dlen, dparent->length);
@@ -81,14 +81,14 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 	Dumpdir *dd;
 
 	if(direc->mode & DMDIR) {
-		for(i=0; i<direc->nchild; i++)
+		for(i = 0; i < direc->nchild; i++)
 			writefiles(d, cd, &direc->child[i]);
 		return;
 	}
 
 	assert(direc->block == 0);
 
-	if((b = Bopen(direc->srcfile, OREAD)) == nil){
+	if((b = Bopen(direc->srcfile, OREAD)) == nil) {
 		fprint(2, "warning: cannot open '%s': %r\n", direc->srcfile);
 		direc->block = 0;
 		direc->length = 0;
@@ -97,11 +97,11 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 
 	start = cd->nextblock;
 	assert(start != 0);
-	if(blocksize && start%blocksize)
-		start += blocksize-start%blocksize;
+	if(blocksize && start % blocksize)
+		start += blocksize - start % blocksize;
 
 	Cwseek(cd, (int64_t)start * Blocksize);
-	
+
 	s = md5(nil, 0, nil, nil);
 	length = 0;
 	while((n = Bread(b, buf, sizeof buf)) > 0) {
@@ -138,7 +138,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
  * and patch the dotdot pointers afterward.
  */
 static void
-_writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int level)
+_writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg *, Direc *, int, int, int), int level)
 {
 	int i, l, ll;
 	uint32_t start, next;
@@ -147,26 +147,26 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 		return;
 
 	if(chatty)
-		fprint(2, "%*s%s\n", 4*level, "", d->name);
+		fprint(2, "%*s%s\n", 4 * level, "", d->name);
 
-	for(i=0; i<d->nchild; i++)
-		_writedirs(cd, &d->child[i], put, level+1);
+	for(i = 0; i < d->nchild; i++)
+		_writedirs(cd, &d->child[i], put, level + 1);
 
 	l = 0;
 	l += put(cd, d, (level == 0) ? DTrootdot : DTdot, 0, l);
 	l += put(cd, nil, DTdotdot, 0, l);
-	for(i=0; i<d->nchild; i++)
+	for(i = 0; i < d->nchild; i++)
 		l += put(cd, &d->child[i], DTiden, 0, l);
 
 	start = cd->nextblock;
-	cd->nextblock += (l+Blocksize-1)/Blocksize;
+	cd->nextblock += (l + Blocksize - 1) / Blocksize;
 	next = cd->nextblock;
 
 	Cwseek(cd, (int64_t)start * Blocksize);
 	ll = 0;
 	ll += put(cd, d, (level == 0) ? DTrootdot : DTdot, 1, ll);
 	ll += put(cd, nil, DTdotdot, 1, ll);
-	for(i=0; i<d->nchild; i++)
+	for(i = 0; i < d->nchild; i++)
 		ll += put(cd, &d->child[i], DTiden, 1, ll);
 	assert(ll == l);
 	Cpadblock(cd);
@@ -177,13 +177,13 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 	rewritedot(cd, d);
 	rewritedotdot(cd, d, d);
 
-	for(i=0; i<d->nchild; i++)
+	for(i = 0; i < d->nchild; i++)
 		if(d->child[i].mode & DMDIR)
 			rewritedotdot(cd, &d->child[i], d);
 }
 
 void
-writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int))
+writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg *, Direc *, int, int, int))
 {
 	/*
 	 * If we're writing a mk9660 image, then the root really
@@ -196,13 +196,12 @@ writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int))
 	_writedirs(cd, d, put, mk9660 ? 0 : 1);
 }
 
-
 /*
  * Write the dump tree.  This is like writedirs but once we get to
  * the roots of the individual days we just patch the parent dotdot blocks.
  */
 static void
-_writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int level)
+_writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg *, Direc *, int, int, int), int level)
 {
 	int i;
 	uint32_t start;
@@ -210,15 +209,15 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 	switch(level) {
 	case 0:
 		/* write root, list of years, also conform.map */
-		for(i=0; i<d->nchild; i++)
+		for(i = 0; i < d->nchild; i++)
 			if(d->child[i].mode & DMDIR)
-				_writedumpdirs(cd, &d->child[i], put, level+1);
+				_writedumpdirs(cd, &d->child[i], put, level + 1);
 		chat("write dump root dir at %lud\n", cd->nextblock);
 		goto Writedir;
 
-	case 1:	/* write year, list of days */
-		for(i=0; i<d->nchild; i++)
-			_writedumpdirs(cd, &d->child[i], put, level+1);
+	case 1: /* write year, list of days */
+		for(i = 0; i < d->nchild; i++)
+			_writedumpdirs(cd, &d->child[i], put, level + 1);
 		chat("write dump %s dir at %lud\n", d->name, cd->nextblock);
 		goto Writedir;
 
@@ -228,7 +227,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 
 		put(cd, d, (level == 0) ? DTrootdot : DTdot, 1, Cwoffset(cd));
 		put(cd, nil, DTdotdot, 1, Cwoffset(cd));
-		for(i=0; i<d->nchild; i++)
+		for(i = 0; i < d->nchild; i++)
 			put(cd, &d->child[i], DTiden, 1, Cwoffset(cd));
 		Cpadblock(cd);
 
@@ -238,12 +237,12 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 		rewritedot(cd, d);
 		rewritedotdot(cd, d, d);
 
-		for(i=0; i<d->nchild; i++)
+		for(i = 0; i < d->nchild; i++)
 			if(d->child[i].mode & DMDIR)
 				rewritedotdot(cd, &d->child[i], d);
 		break;
 
-	case 2:	/* write day: already written, do nothing */
+	case 2: /* write day: already written, do nothing */
 		break;
 
 	default:
@@ -252,7 +251,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 }
 
 void
-writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int))
+writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg *, Direc *, int, int, int))
 {
 	_writedumpdirs(cd, d, put, 0);
 }
@@ -268,7 +267,7 @@ Cputplan9(Cdimg *cd, Direc *d, int dot, int dowrite)
 	l = 0;
 	if(d->flags & Dbadname) {
 		n = strlen(d->name);
-		l += 1+n;
+		l += 1 + n;
 		if(dowrite) {
 			Cputc(cd, n);
 			Cputs(cd, d->name, n);
@@ -280,14 +279,14 @@ Cputplan9(Cdimg *cd, Direc *d, int dot, int dowrite)
 	}
 
 	n = strlen(d->uid);
-	l += 1+n;
+	l += 1 + n;
 	if(dowrite) {
 		Cputc(cd, n);
 		Cputs(cd, d->uid, n);
 	}
 
 	n = strlen(d->gid);
-	l += 1+n;
+	l += 1 + n;
 	if(dowrite) {
 		Cputc(cd, n);
 		Cputs(cd, d->gid, n);
@@ -321,12 +320,12 @@ genputdir(Cdimg *cd, Direc *d, int dot, int joliet, int dowrite, int offset)
 	n = 1;
 	if(dot == DTiden) {
 		if(joliet)
-			n = 2*utflen(d->confname);
+			n = 2 * utflen(d->confname);
 		else
 			n = strlen(d->confname);
 	}
 
-	l = 33+n;
+	l = 33 + n;
 	if(l & 1)
 		l++;
 	assert(l <= 255);
@@ -340,62 +339,61 @@ genputdir(Cdimg *cd, Direc *d, int dot, int joliet, int dowrite, int offset)
 	}
 
 	if(dowrite == 0) {
-		if(Blocksize - offset%Blocksize < l)
-			l += Blocksize - offset%Blocksize;
+		if(Blocksize - offset % Blocksize < l)
+			l += Blocksize - offset % Blocksize;
 		return l;
 	}
 
-	assert(offset%Blocksize == Cwoffset(cd)%Blocksize);
+	assert(offset % Blocksize == Cwoffset(cd) % Blocksize);
 
 	o = Cwoffset(cd);
 	lp = 0;
-	if(Blocksize - Cwoffset(cd)%Blocksize < l) {
-		lp = Blocksize - Cwoffset(cd)%Blocksize;
+	if(Blocksize - Cwoffset(cd) % Blocksize < l) {
+		lp = Blocksize - Cwoffset(cd) % Blocksize;
 		Cpadblock(cd);
 	}
 
-	Cputc(cd, l);			/* length of directory record */
-	Cputc(cd, 0);			/* extended attribute record length */
+	Cputc(cd, l); /* length of directory record */
+	Cputc(cd, 0); /* extended attribute record length */
 	if(d) {
 		if((d->mode & DMDIR) == 0)
 			assert(d->length == 0 || d->block >= 18);
 
-		Cputn(cd, d->block, 4);		/* location of extent */
-		Cputn(cd, d->length, 4);		/* data length */
+		Cputn(cd, d->block, 4);  /* location of extent */
+		Cputn(cd, d->length, 4); /* data length */
 	} else {
 		Cputn(cd, 0, 4);
 		Cputn(cd, 0, 4);
 	}
-	Cputdate(cd, d ? d->mtime : now);		/* recorded date */
-	Cputc(cd, f);			/* file flags */
-	Cputc(cd, 0);			/* file unit size */
-	Cputc(cd, 0);			/* interleave gap size */
-	Cputn(cd, 1, 2);	       	/* volume sequence number */
-	Cputc(cd, n);			/* length of file identifier */
+	Cputdate(cd, d ? d->mtime : now); /* recorded date */
+	Cputc(cd, f);			  /* file flags */
+	Cputc(cd, 0);			  /* file unit size */
+	Cputc(cd, 0);			  /* interleave gap size */
+	Cputn(cd, 1, 2);		  /* volume sequence number */
+	Cputc(cd, n);			  /* length of file identifier */
 
-	if(dot == DTiden) {		/* identifier */
+	if(dot == DTiden) { /* identifier */
 		if(joliet)
 			Cputrscvt(cd, d->confname, n);
 		else
 			Cputs(cd, d->confname, n);
-	}else
-	if(dot == DTdotdot)
+	} else if(dot == DTdotdot)
 		Cputc(cd, 1);
 	else
 		Cputc(cd, 0);
 
-	if(Cwoffset(cd) & 1)			/* pad */
+	if(Cwoffset(cd) & 1) /* pad */
 		Cputc(cd, 0);
 
 	if(joliet == 0) {
 		if(cd->flags & CDplan9)
 			Cputplan9(cd, d, dot, 1);
 		else if(cd->flags & CDrockridge)
-			Cputsysuse(cd, d, dot, 1, Cwoffset(cd)-(o+lp));
+			Cputsysuse(cd, d, dot, 1, Cwoffset(cd) - (o + lp));
 	}
 
-	assert(o+lp+l == Cwoffset(cd));
-	return lp+l;
+	assert(o + lp + l == Cwoffset(cd));
+	return lp + l;
 }
 
 int
@@ -413,8 +411,8 @@ Cputjolietdir(Cdimg *cd, Direc *d, int dot, int dowrite, int offset)
 void
 Cputendvd(Cdimg *cd)
 {
-	Cputc(cd, 255);				/* volume descriptor set terminator */
-	Cputs(cd, "CD001", 5);			/* standard identifier */
-	Cputc(cd, 1);				/* volume descriptor version */
+	Cputc(cd, 255);	/* volume descriptor set terminator */
+	Cputs(cd, "CD001", 5); /* standard identifier */
+	Cputc(cd, 1);	  /* volume descriptor version */
 	Cpadblock(cd);
 }

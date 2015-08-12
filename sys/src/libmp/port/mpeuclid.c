@@ -22,10 +22,10 @@ mpeuclid(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y)
 {
 	mpint *tmp, *x0, *x1, *x2, *y0, *y1, *y2, *q, *r;
 
-	if(a->sign<0 || b->sign<0)
+	if(a->sign < 0 || b->sign < 0)
 		sysfatal("mpeuclid: negative arg");
 
-	if(mpcmp(a, b) < 0){
+	if(mpcmp(a, b) < 0) {
 		tmp = a;
 		a = b;
 		b = tmp;
@@ -34,7 +34,7 @@ mpeuclid(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y)
 		y = tmp;
 	}
 
-	if(b->top == 0){
+	if(b->top == 0) {
 		mpassign(a, d);
 		mpassign(mpone, x);
 		mpassign(mpzero, y);
@@ -52,7 +52,7 @@ mpeuclid(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y)
 	q = mpnew(0);
 	r = mpnew(0);
 
-	while(b->top != 0 && b->sign > 0){
+	while(b->top != 0 && b->sign > 0) {
 		// q = a/b
 		// r = a mod b
 		mpdiv(a, b, q, r);

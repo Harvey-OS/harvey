@@ -18,13 +18,13 @@ sigprocmask(int how, sigset_t *set, sigset_t *oset)
 {
 	if(oset)
 		*oset = _psigblocked;
-	if(how==SIG_BLOCK)
+	if(how == SIG_BLOCK)
 		_psigblocked |= *set;
-	else if(how==SIG_UNBLOCK)
+	else if(how == SIG_UNBLOCK)
 		_psigblocked &= ~*set;
-	else if(how==SIG_SETMASK)
+	else if(how == SIG_SETMASK)
 		_psigblocked = *set;
-	else{
+	else {
 		errno = EINVAL;
 		return -1;
 	}

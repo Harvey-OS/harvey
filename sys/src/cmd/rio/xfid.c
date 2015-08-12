@@ -20,38 +20,40 @@
 #include "dat.h"
 #include "fns.h"
 
-#define	MAXSNARF	100*1024
+#define MAXSNARF 100 * 1024
 
-char Einuse[] =		"file in use";
-char Edeleted[] =	"window deleted";
-char Ebadreq[] =	"bad graphics request";
-char Etooshort[] =	"buffer too small";
-char Ebadtile[] =	"unknown tile";
-char Eshort[] =		"short i/o request";
-char Elong[] = 		"snarf buffer too long";
-char Eunkid[] = 	"unknown id in attach";
-char Ebadrect[] = 	"bad rectangle in attach";
-char Ewindow[] = 	"cannot make window";
-char Enowindow[] = 	"window has no image";
-char Ebadmouse[] = 	"bad format on /dev/mouse";
-char Ebadwrect[] = 	"rectangle outside screen";
-char Ebadoffset[] = 	"window read not on scan line boundary";
+char Einuse[] = "file in use";
+char Edeleted[] = "window deleted";
+char Ebadreq[] = "bad graphics request";
+char Etooshort[] = "buffer too small";
+char Ebadtile[] = "unknown tile";
+char Eshort[] = "short i/o request";
+char Elong[] = "snarf buffer too long";
+char Eunkid[] = "unknown id in attach";
+char Ebadrect[] = "bad rectangle in attach";
+char Ewindow[] = "cannot make window";
+char Enowindow[] = "window has no image";
+char Ebadmouse[] = "bad format on /dev/mouse";
+char Ebadwrect[] = "rectangle outside screen";
+char Ebadoffset[] = "window read not on scan line boundary";
 extern char Eperm[];
 
-static	Xfid	*xfidfree;
-static	Xfid	*xfid;
-static	Channel	*cxfidalloc;	/* chan(Xfid*) */
-static	Channel	*cxfidfree;	/* chan(Xfid*) */
+static Xfid *xfidfree;
+static Xfid *xfid;
+static Channel *cxfidalloc; /* chan(Xfid*) */
+static Channel *cxfidfree;  /* chan(Xfid*) */
 
-static	char	*tsnarf;
-static	int	ntsnarf;
+static char *tsnarf;
+static int ntsnarf;
 
 void
-xfidallocthread(void* vacio)
+xfidallocthread(void *vacio)
 {
 	Xfid *x;
-	enum { Alloc, Free, N };
-	static Alt alts[N+1];
+	enum { Alloc,
+	       Free,
+	       N };
+	static Alt alts[N + 1];
 
 	alts[Alloc].c = cxfidalloc;
 	alts[Alloc].v = nil;
@@ -60,22 +62,22 @@ xfidallocthread(void* vacio)
 	alts[Free].v = &x;
 	alts[Free].op = CHANRCV;
 	alts[N].op = CHANEND;
-	for(;;){
-		switch(alt(alts)){
+	for(;;) {
+		switch(alt(alts)) {
 		case Alloc:
 			x = xfidfree;
 			if(x)
 				xfidfree = x->free;
-			else{
+			else {
 				x = emalloc(sizeof(Xfid));
-				x->c = chancreate(sizeof(void(*)(Xfid*)), 0);
-				x->flushc = chancreate(sizeof(int), 0);	/* notification only; no data */
+				x->c = chancreate(sizeof(void (*)(Xfid *)), 0);
+				x->flushc = chancreate(sizeof(int), 0); /* notification only; no data */
 				x->flushtag = -1;
 				x->next = xfid;
 				xfid = x;
 				threadcreate(xfidctl, x, 16384);
 			}
-			if(x->ref != 0){
+			if(x->ref != 0) {
 				fprint(2, "%p incref %ld\n", x, x->ref);
 				error("incref");
 			}
@@ -85,7 +87,7 @@ xfidallocthread(void* vacio)
 			sendp(cxfidalloc, x);
 			break;
 		case Free:
-			if(x->ref != 0){
+			if(x->ref != 0) {
 				fprint(2, "%p decref %ld\n", x, x->ref);
 				error("decref");
 			}
@@ -98,11 +100,11 @@ xfidallocthread(void* vacio)
 	}
 }
 
-Channel*
+Channel *
 xfidinit(void)
 {
-	cxfidalloc = chancreate(sizeof(Xfid*), 0);
-	cxfidfree = chancreate(sizeof(Xfid*), 0);
+	cxfidalloc = chancreate(sizeof(Xfid *), 0);
+	cxfidfree = chancreate(sizeof(Xfid *), 0);
 	threadcreate(xfidallocthread, nil, STACK);
 	return cxfidalloc;
 }
@@ -111,13 +113,13 @@ void
 xfidctl(void *arg)
 {
 	Xfid *x;
-	void (*f)(Xfid*);
+	void (*f)(Xfid *);
 	char buf[64];
 
 	x = arg;
 	snprint(buf, sizeof buf, "xfid.%p", x);
 	threadsetname(buf);
-	for(;;){
+	for(;;) {
 		f = recvp(x->c);
 		(*f)(x);
 		if(decref(x) == 0)
@@ -131,18 +133,18 @@ xfidflush(Xfid *x)
 	Fcall t;
 	Xfid *xf;
 
-	for(xf=xfid; xf; xf=xf->next)
-		if(xf->flushtag == x->oldtag){
+	for(xf = xfid; xf; xf = xf->next)
+		if(xf->flushtag == x->oldtag) {
 			xf->flushtag = -1;
 			xf->flushing = TRUE;
-			incref(xf);	/* to hold data structures up at tail of synchronization */
+			incref(xf); /* to hold data structures up at tail of synchronization */
 			if(xf->ref == 1)
 				error("ref 1 in flush");
-			if(canqlock(&xf->active)){
+			if(canqlock(&xf->active)) {
 				qunlock(&xf->active);
 				sendul(xf->flushc, 0);
-			}else{
-				qlock(&xf->active);	/* wait for him to finish */
+			} else {
+				qlock(&xf->active); /* wait for him to finish */
 				qunlock(&xf->active);
 			}
 			xf->flushing = FALSE;
@@ -171,8 +173,8 @@ xfidattach(Xfid *x)
 	newlymade = FALSE;
 	hideit = 0;
 
-	if(x->aname[0] == 'N'){	/* N 100,100, 200, 200 - old syntax */
-		n = x->aname+1;
+	if(x->aname[0] == 'N') { /* N 100,100, 200, 200 - old syntax */
+		n = x->aname + 1;
 		pid = strtoul(n, &n, 0);
 		if(*n == ',')
 			n++;
@@ -186,42 +188,42 @@ xfidattach(Xfid *x)
 		if(*n == ',')
 			n++;
 		r.max.y = strtoul(n, &n, 0);
-  Allocate:
+	Allocate:
 		if(!goodrect(r))
 			err = Ebadrect;
-		else{
+		else {
 			if(hideit)
 				i = allocimage(display, r, screen->chan, 0, DWhite);
 			else
 				i = allocwindow(wscreen, r, Refbackup, DWhite);
-			if(i){
+			if(i) {
 				border(i, r, Selborder, display->black, ZP);
 				if(pid == 0)
-					pid = -1;	/* make sure we don't pop a shell! - UGH */
+					pid = -1; /* make sure we don't pop a shell! - UGH */
 				w = new(i, hideit, scrolling, pid, nil, nil, nil);
 				flushimage(display, 1);
 				newlymade = TRUE;
-			}else
+			} else
 				err = Ewindow;
 		}
-	}else if(strncmp(x->aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
+	} else if(strncmp(x->aname, "new", 3) == 0) { /* new -dx -dy - new syntax, as in wctl */
 		pid = 0;
 		if(parsewctl(nil, ZR, &r, &pid, nil, &hideit, &scrollit, &dir, x->aname, errbuf) < 0)
 			err = errbuf;
 		else
 			goto Allocate;
-	}else{
+	} else {
 		id = atoi(x->aname);
 		w = wlookid(id);
 	}
 	x->f->w = w;
-	if(w == nil){
+	if(w == nil) {
 		qunlock(&all);
 		x->f->busy = FALSE;
 		filsysrespond(x->fs, x, &t, err);
 		return;
 	}
-	if(!newlymade)	/* counteract dec() in winshell() */
+	if(!newlymade) /* counteract dec() in winshell() */
 		incref(w);
 	qunlock(&all);
 	filsysrespond(x->fs, x, &t, nil);
@@ -234,26 +236,26 @@ xfidopen(Xfid *x)
 	Window *w;
 
 	w = x->f->w;
-	if(w->deleted){
+	if(w->deleted) {
 		filsysrespond(x->fs, x, &t, Edeleted);
 		return;
 	}
-	switch(FILE(x->f->qid)){
+	switch(FILE(x->f->qid)) {
 	case Qconsctl:
-		if(w->ctlopen){
+		if(w->ctlopen) {
 			filsysrespond(x->fs, x, &t, Einuse);
 			return;
 		}
 		w->ctlopen = TRUE;
 		break;
 	case Qkbdin:
-		if(w !=  wkeyboard){
+		if(w != wkeyboard) {
 			filsysrespond(x->fs, x, &t, Eperm);
 			return;
 		}
 		break;
 	case Qmouse:
-		if(w->mouseopen){
+		if(w->mouseopen) {
 			filsysrespond(x->fs, x, &t, Einuse);
 			return;
 		}
@@ -269,15 +271,15 @@ xfidopen(Xfid *x)
 		w->mouseopen = TRUE;
 		break;
 	case Qsnarf:
-		if(x->mode==ORDWR || x->mode==OWRITE){
+		if(x->mode == ORDWR || x->mode == OWRITE) {
 			if(tsnarf)
-				free(tsnarf);	/* collision, but OK */
+				free(tsnarf); /* collision, but OK */
 			ntsnarf = 0;
 			tsnarf = malloc(1);
 		}
 		break;
 	case Qwctl:
-		if(x->mode==OREAD || x->mode==ORDWR){
+		if(x->mode == OREAD || x->mode == ORDWR) {
 			/*
 			 * It would be much nicer to implement fan-out for wctl reads,
 			 * so multiple people can see the resizings, but rio just isn't
@@ -286,7 +288,7 @@ xfidopen(Xfid *x)
 			 * wctl, we compromise and give an error if two people try to
 			 * open it.  Apologies.
 			 */
-			if(w->wctlopen){
+			if(w->wctlopen) {
 				filsysrespond(x->fs, x, &t, Einuse);
 				return;
 			}
@@ -297,7 +299,7 @@ xfidopen(Xfid *x)
 		break;
 	}
 	t.qid = x->f->qid;
-	t.iounit = messagesize-IOHDRSZ;
+	t.iounit = messagesize - IOHDRSZ;
 	x->f->open = TRUE;
 	x->f->mode = x->mode;
 	filsysrespond(x->fs, x, &t, nil);
@@ -311,13 +313,13 @@ xfidclose(Xfid *x)
 	int nb, nulls;
 
 	w = x->f->w;
-	switch(FILE(x->f->qid)){
+	switch(FILE(x->f->qid)) {
 	case Qconsctl:
-		if(w->rawing){
+		if(w->rawing) {
 			w->rawing = FALSE;
 			wsendctlmesg(w, Rawoff, ZR, nil);
 		}
-		if(w->holding){
+		if(w->holding) {
 			w->holding = FALSE;
 			wsendctlmesg(w, Holdoff, ZR, nil);
 		}
@@ -335,8 +337,8 @@ xfidclose(Xfid *x)
 		break;
 	/* odd behavior but really ok: replace snarf buffer when /dev/snarf is closed */
 	case Qsnarf:
-		if(x->f->mode==ORDWR || x->f->mode==OWRITE){
-			snarf = runerealloc(snarf, ntsnarf+1);
+		if(x->f->mode == ORDWR || x->f->mode == OWRITE) {
+			snarf = runerealloc(snarf, ntsnarf + 1);
 			cvttorunes(tsnarf, ntsnarf, snarf, &nb, &nsnarf, &nulls);
 			free(tsnarf);
 			tsnarf = nil;
@@ -344,7 +346,7 @@ xfidclose(Xfid *x)
 		}
 		break;
 	case Qwctl:
-		if(x->f->mode==OREAD || x->f->mode==ORDWR)
+		if(x->f->mode == OREAD || x->f->mode == ORDWR)
 			w->wctlopen = FALSE;
 		break;
 	}
@@ -363,11 +365,13 @@ xfidwrite(Xfid *x)
 	Rune *r;
 	Conswritemesg cwm;
 	Stringpair pair;
-	enum { CWdata, CWflush, NCW };
-	Alt alts[NCW+1];
+	enum { CWdata,
+	       CWflush,
+	       NCW };
+	Alt alts[NCW + 1];
 
 	w = x->f->w;
-	if(w->deleted){
+	if(w->deleted) {
 		filsysrespond(x->fs, x, &fc, Edeleted);
 		return;
 	}
@@ -375,27 +379,27 @@ xfidwrite(Xfid *x)
 	cnt = x->count;
 	off = x->offset;
 	x->data[cnt] = 0;
-	switch(qid){
+	switch(qid) {
 	case Qcons:
 		nr = x->f->nrpart;
-		if(nr > 0){
-			memmove(x->data+nr, x->data, cnt);	/* there's room: see malloc in filsysproc */
+		if(nr > 0) {
+			memmove(x->data + nr, x->data, cnt); /* there's room: see malloc in filsysproc */
 			memmove(x->data, x->f->rpart, nr);
 			cnt += nr;
 			x->f->nrpart = 0;
 		}
 		r = runemalloc(cnt);
-		cvttorunes(x->data, cnt-UTFmax, r, &nb, &nr, nil);
+		cvttorunes(x->data, cnt - UTFmax, r, &nb, &nr, nil);
 		/* approach end of buffer */
-		while(fullrune(x->data+nb, cnt-nb)){
+		while(fullrune(x->data + nb, cnt - nb)) {
 			c = nb;
-			nb += chartorune(&r[nr], x->data+c);
+			nb += chartorune(&r[nr], x->data + c);
 			if(r[nr])
 				nr++;
 		}
-		if(nb < cnt){
-			memmove(x->f->rpart, x->data+nb, cnt-nb);
-			x->f->nrpart = cnt-nb;
+		if(nb < cnt) {
+			memmove(x->f->rpart, x->data + nb, cnt - nb);
+			x->f->nrpart = cnt - nb;
 		}
 		x->flushtag = x->tag;
 
@@ -406,8 +410,8 @@ xfidwrite(Xfid *x)
 		alts[CWflush].v = nil;
 		alts[CWflush].op = CHANRCV;
 		alts[NCW].op = CHANEND;
-	
-		switch(alt(alts)){
+
+		switch(alt(alts)) {
 		case CWdata:
 			break;
 		case CWflush:
@@ -417,11 +421,11 @@ xfidwrite(Xfid *x)
 
 		/* received data */
 		x->flushtag = -1;
-		if(x->flushing){
-			recv(x->flushc, nil);	/* wake up flushing xfid */
+		if(x->flushing) {
+			recv(x->flushc, nil); /* wake up flushing xfid */
 			pair.s = runemalloc(1);
 			pair.ns = 0;
-			send(cwm.cw, &pair);		/* wake up window with empty data */
+			send(cwm.cw, &pair); /* wake up window with empty data */
 			filsyscancel(x);
 			return;
 		}
@@ -435,18 +439,18 @@ xfidwrite(Xfid *x)
 		return;
 
 	case Qconsctl:
-		if(strncmp(x->data, "holdon", 6)==0){
+		if(strncmp(x->data, "holdon", 6) == 0) {
 			if(w->holding++ == 0)
 				wsendctlmesg(w, Holdon, ZR, nil);
 			break;
 		}
-		if(strncmp(x->data, "holdoff", 7)==0 && w->holding){
+		if(strncmp(x->data, "holdoff", 7) == 0 && w->holding) {
 			if(--w->holding == FALSE)
 				wsendctlmesg(w, Holdoff, ZR, nil);
 			break;
 		}
-		if(strncmp(x->data, "rawon", 5)==0){
-			if(w->holding){
+		if(strncmp(x->data, "rawon", 5) == 0) {
+			if(w->holding) {
 				w->holding = FALSE;
 				wsendctlmesg(w, Holdoff, ZR, nil);
 			}
@@ -454,7 +458,7 @@ xfidwrite(Xfid *x)
 				wsendctlmesg(w, Rawon, ZR, nil);
 			break;
 		}
-		if(strncmp(x->data, "rawoff", 6)==0 && w->rawing){
+		if(strncmp(x->data, "rawoff", 6) == 0 && w->rawing) {
 			if(--w->rawing == 0)
 				wsendctlmesg(w, Rawoff, ZR, nil);
 			break;
@@ -463,54 +467,54 @@ xfidwrite(Xfid *x)
 		return;
 
 	case Qcursor:
-		if(cnt < 2*4+2*2*16)
+		if(cnt < 2 * 4 + 2 * 2 * 16)
 			w->cursorp = nil;
-		else{
-			w->cursor.offset.x = BGLONG(x->data+0*4);
-			w->cursor.offset.y = BGLONG(x->data+1*4);
-			memmove(w->cursor.clr, x->data+2*4, 2*2*16);
+		else {
+			w->cursor.offset.x = BGLONG(x->data + 0 * 4);
+			w->cursor.offset.y = BGLONG(x->data + 1 * 4);
+			memmove(w->cursor.clr, x->data + 2 * 4, 2 * 2 * 16);
 			w->cursorp = &w->cursor;
 		}
 		wsetcursor(w, !sweeping);
 		break;
 
 	case Qlabel:
-		if(off != 0){
+		if(off != 0) {
 			filsysrespond(x->fs, x, &fc, "non-zero offset writing label");
 			return;
 		}
 		free(w->label);
-		w->label = emalloc(cnt+1);
+		w->label = emalloc(cnt + 1);
 		memmove(w->label, x->data, cnt);
 		w->label[cnt] = 0;
 		break;
 
 	case Qmouse:
-		if(w!=input || Dx(w->screenr)<=0)
+		if(w != input || Dx(w->screenr) <= 0)
 			break;
-		if(x->data[0] != 'm'){
+		if(x->data[0] != 'm') {
 			filsysrespond(x->fs, x, &fc, Ebadmouse);
 			return;
 		}
 		p = nil;
-		pt.x = strtoul(x->data+1, &p, 0);
-		if(p == nil){
+		pt.x = strtoul(x->data + 1, &p, 0);
+		if(p == nil) {
 			filsysrespond(x->fs, x, &fc, Eshort);
 			return;
 		}
 		pt.y = strtoul(p, nil, 0);
-		if(w==input && wpointto(mouse->xy)==w)
+		if(w == input && wpointto(mouse->xy) == w)
 			wsendctlmesg(w, Movemouse, Rpt(pt, pt), nil);
 		break;
 
 	case Qsnarf:
 		/* always append only */
-		if(ntsnarf > MAXSNARF){	/* avoid thrashing when people cut huge text */
+		if(ntsnarf > MAXSNARF) { /* avoid thrashing when people cut huge text */
 			filsysrespond(x->fs, x, &fc, Elong);
 			return;
 		}
-		tsnarf = erealloc(tsnarf, ntsnarf+cnt+1);	/* room for NUL */
-		memmove(tsnarf+ntsnarf, x->data, cnt);
+		tsnarf = erealloc(tsnarf, ntsnarf + cnt + 1); /* room for NUL */
+		memmove(tsnarf + ntsnarf, x->data, cnt);
 		ntsnarf += cnt;
 		snarfversion++;
 		break;
@@ -518,10 +522,10 @@ xfidwrite(Xfid *x)
 	case Qwdir:
 		if(cnt == 0)
 			break;
-		if(x->data[cnt-1] == '\n'){
+		if(x->data[cnt - 1] == '\n') {
 			if(cnt == 1)
 				break;
-			x->data[cnt-1] = '\0';
+			x->data[cnt - 1] = '\0';
 		}
 		/* assume data comes in a single write */
 		/*
@@ -529,10 +533,10 @@ xfidwrite(Xfid *x)
 		  * we must cope by converting it first.
 		  */
 		snprint(buf, sizeof buf, "%.*s", cnt, x->data);
-		if(buf[0] == '/'){
+		if(buf[0] == '/') {
 			free(w->dir);
 			w->dir = estrdup(buf);
-		}else{
+		} else {
 			p = emalloc(strlen(w->dir) + 1 + strlen(buf) + 1);
 			sprint(p, "%s/%s", w->dir, buf);
 			free(w->dir);
@@ -545,7 +549,7 @@ xfidwrite(Xfid *x)
 		break;
 
 	case Qwctl:
-		if(writewctl(x, buf) < 0){
+		if(writewctl(x, buf) < 0) {
 			filsysrespond(x->fs, x, &fc, buf);
 			return;
 		}
@@ -567,17 +571,17 @@ readwindow(Image *i, char *t, Rectangle r, int offset, int n)
 {
 	int ww, y;
 
-	offset -= 5*12;
+	offset -= 5 * 12;
 	ww = bytesperline(r, screen->depth);
-	r.min.y += offset/ww;
+	r.min.y += offset / ww;
 	if(r.min.y >= r.max.y)
 		return 0;
-	y = r.min.y + n/ww;
+	y = r.min.y + n / ww;
 	if(y < r.max.y)
 		r.max.y = y;
 	if(r.max.y <= r.min.y)
 		return 0;
-	return unloadimage(i, r, (uint8_t*)t, n);
+	return unloadimage(i, r, (uint8_t *)t, n);
 }
 
 void
@@ -592,25 +596,31 @@ xfidread(Xfid *x)
 	Mouse ms;
 	Rectangle r;
 	Image *i;
-	Channel *c1, *c2;	/* chan (tuple(char*, int)) */
+	Channel *c1, *c2; /* chan (tuple(char*, int)) */
 	Consreadmesg crm;
 	Mousereadmesg mrm;
 	Consreadmesg cwrm;
 	Stringpair pair;
-	enum { CRdata, CRflush, NCR };
-	enum { MRdata, MRflush, NMR };
-	enum { WCRdata, WCRflush, NWCR };
-	Alt alts[NCR+1];
+	enum { CRdata,
+	       CRflush,
+	       NCR };
+	enum { MRdata,
+	       MRflush,
+	       NMR };
+	enum { WCRdata,
+	       WCRflush,
+	       NWCR };
+	Alt alts[NCR + 1];
 
 	w = x->f->w;
-	if(w->deleted){
+	if(w->deleted) {
 		filsysrespond(x->fs, x, &fc, Edeleted);
 		return;
 	}
 	qid = FILE(x->f->qid);
 	off = x->offset;
 	cnt = x->count;
-	switch(qid){
+	switch(qid) {
 	case Qcons:
 		x->flushtag = x->tag;
 
@@ -622,7 +632,7 @@ xfidread(Xfid *x)
 		alts[CRflush].op = CHANRCV;
 		alts[NMR].op = CHANEND;
 
-		switch(alt(alts)){
+		switch(alt(alts)) {
 		case CRdata:
 			break;
 		case CRflush:
@@ -634,13 +644,13 @@ xfidread(Xfid *x)
 		x->flushtag = -1;
 		c1 = crm.c1;
 		c2 = crm.c2;
-		t = malloc(cnt+UTFmax+1);	/* room to unpack partial rune plus */
+		t = malloc(cnt + UTFmax + 1); /* room to unpack partial rune plus */
 		pair.s = t;
 		pair.ns = cnt;
 		send(c1, &pair);
-		if(x->flushing){
-			recv(x->flushc, nil);	/* wake up flushing xfid */
-			recv(c2, nil);			/* wake up window and toss data */
+		if(x->flushing) {
+			recv(x->flushc, nil); /* wake up flushing xfid */
+			recv(c2, nil);	/* wake up window and toss data */
 			free(t);
 			filsyscancel(x);
 			return;
@@ -658,9 +668,9 @@ xfidread(Xfid *x)
 		n = strlen(w->label);
 		if(off > n)
 			off = n;
-		if(off+cnt > n)
-			cnt = n-off;
-		fc.data = w->label+off;
+		if(off + cnt > n)
+			cnt = n - off;
+		fc.data = w->label + off;
 		fc.count = cnt;
 		filsysrespond(x->fs, x, &fc, nil);
 		break;
@@ -676,7 +686,7 @@ xfidread(Xfid *x)
 		alts[MRflush].op = CHANRCV;
 		alts[NMR].op = CHANEND;
 
-		switch(alt(alts)){
+		switch(alt(alts)) {
 		case MRdata:
 			break;
 		case MRflush:
@@ -686,9 +696,9 @@ xfidread(Xfid *x)
 
 		/* received data */
 		x->flushtag = -1;
-		if(x->flushing){
-			recv(x->flushc, nil);		/* wake up flushing xfid */
-			recv(mrm.cm, nil);			/* wake up window and toss data */
+		if(x->flushing) {
+			recv(x->flushc, nil); /* wake up flushing xfid */
+			recv(mrm.cm, nil);    /* wake up window and toss data */
 			filsyscancel(x);
 			return;
 		}
@@ -725,13 +735,13 @@ xfidread(Xfid *x)
 		goto Text;
 
 	Text:
-		if(off > n){
+		if(off > n) {
 			off = n;
 			cnt = 0;
 		}
-		if(off+cnt > n)
-			cnt = n-off;
-		fc.data = t+off;
+		if(off + cnt > n)
+			cnt = n - off;
+		fc.data = t + off;
 		fc.count = cnt;
 		filsysrespond(x->fs, x, &fc, nil);
 		free(t);
@@ -747,10 +757,9 @@ xfidread(Xfid *x)
 		t = estrdup(buf);
 		goto Text;
 
-
 	case Qwinname:
 		n = strlen(w->name);
-		if(n == 0){
+		if(n == 0) {
 			filsysrespond(x->fs, x, &fc, "window has no name");
 			break;
 		}
@@ -759,7 +768,7 @@ xfidread(Xfid *x)
 
 	case Qwindow:
 		i = w->i;
-		if(i == nil || Dx(w->screenr)<=0){
+		if(i == nil || Dx(w->screenr) <= 0) {
 			filsysrespond(x->fs, x, &fc, Enowindow);
 			return;
 		}
@@ -768,37 +777,37 @@ xfidread(Xfid *x)
 
 	case Qscreen:
 		i = display->image;
-		if(i == nil){
+		if(i == nil) {
 			filsysrespond(x->fs, x, &fc, "no top-level screen");
 			break;
 		}
 		r = i->r;
-		/* fall through */
+	/* fall through */
 
 	caseImage:
-		if(off < 5*12){
+		if(off < 5 * 12) {
 			n = sprint(buf, "%11s %11d %11d %11d %11d ",
-				chantostr(cbuf, screen->chan),
-				i->r.min.x, i->r.min.y, i->r.max.x, i->r.max.y);
+				   chantostr(cbuf, screen->chan),
+				   i->r.min.x, i->r.min.y, i->r.max.x, i->r.max.y);
 			t = estrdup(buf);
 			goto Text;
 		}
 		t = malloc(cnt);
 		fc.data = t;
-		n = readwindow(i, t, r, off, cnt);	/* careful; fc.count is unsigned */
-		if(n < 0){
+		n = readwindow(i, t, r, off, cnt); /* careful; fc.count is unsigned */
+		if(n < 0) {
 			buf[0] = 0;
 			errstr(buf, sizeof buf);
 			filsysrespond(x->fs, x, &fc, buf);
-		}else{
+		} else {
 			fc.count = n;
 			filsysrespond(x->fs, x, &fc, nil);
 		}
 		free(t);
 		return;
 
-	case Qwctl:	/* read returns rectangle, hangs if not resized */
-		if(cnt < 4*12){
+	case Qwctl: /* read returns rectangle, hangs if not resized */
+		if(cnt < 4 * 12) {
 			filsysrespond(x->fs, x, &fc, Etooshort);
 			break;
 		}
@@ -812,7 +821,7 @@ xfidread(Xfid *x)
 		alts[WCRflush].op = CHANRCV;
 		alts[NMR].op = CHANEND;
 
-		switch(alt(alts)){
+		switch(alt(alts)) {
 		case WCRdata:
 			break;
 		case WCRflush:
@@ -824,13 +833,13 @@ xfidread(Xfid *x)
 		x->flushtag = -1;
 		c1 = cwrm.c1;
 		c2 = cwrm.c2;
-		t = malloc(cnt+1);	/* be sure to have room for NUL */
+		t = malloc(cnt + 1); /* be sure to have room for NUL */
 		pair.s = t;
-		pair.ns = cnt+1;
+		pair.ns = cnt + 1;
 		send(c1, &pair);
-		if(x->flushing){
-			recv(x->flushc, nil);	/* wake up flushing xfid */
-			recv(c2, nil);			/* wake up window and toss data */
+		if(x->flushing) {
+			recv(x->flushc, nil); /* wake up flushing xfid */
+			recv(c2, nil);	/* wake up window and toss data */
 			free(t);
 			filsyscancel(x);
 			return;

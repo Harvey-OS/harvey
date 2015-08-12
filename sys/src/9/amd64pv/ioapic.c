@@ -20,73 +20,73 @@ typedef struct Rbus Rbus;
 typedef struct Rdt Rdt;
 
 struct Rbus {
-	Rbus	*next;
-	int	devno;
-	Rdt	*rdt;
+	Rbus *next;
+	int devno;
+	Rdt *rdt;
 };
 
 struct Rdt {
-	Apic	*apic;
-	int	intin;
-	uint32_t	lo;
+	Apic *apic;
+	int intin;
+	uint32_t lo;
 
-	int	ref;				/* could map to multiple busses */
-	int	enabled;				/* times enabled */
+	int ref;     /* could map to multiple busses */
+	int enabled; /* times enabled */
 };
 
-enum {						/* IOAPIC registers */
-	Ioregsel	= 0x00,			/* indirect register address */
-	Iowin		= 0x04,			/* indirect register data */
-	Ioipa		= 0x08,			/* IRQ Pin Assertion */
-	Ioeoi		= 0x10,			/* EOI */
+enum {			/* IOAPIC registers */
+       Ioregsel = 0x00, /* indirect register address */
+       Iowin = 0x04,    /* indirect register data */
+       Ioipa = 0x08,    /* IRQ Pin Assertion */
+       Ioeoi = 0x10,    /* EOI */
 
-	Ioapicid	= 0x00,			/* Identification */
-	Ioapicver	= 0x01,			/* Version */
-	Ioapicarb	= 0x02,			/* Arbitration */
-	Ioabcfg		= 0x03,			/* Boot Coniguration */
-	Ioredtbl	= 0x10,			/* Redirection Table */
+       Ioapicid = 0x00,  /* Identification */
+       Ioapicver = 0x01, /* Version */
+       Ioapicarb = 0x02, /* Arbitration */
+       Ioabcfg = 0x03,   /* Boot Coniguration */
+       Ioredtbl = 0x10,  /* Redirection Table */
 };
 
 static Rdt rdtarray[Nrdt];
 static int nrdtarray;
 static int gsib;
-static Rbus* rdtbus[Nbus];
-static Rdt* rdtvecno[IdtMAX+1];
+static Rbus *rdtbus[Nbus];
+static Rdt *rdtvecno[IdtMAX + 1];
 
 static Lock idtnolock;
 static int idtno = IdtIOAPIC;
 
-Apic	xioapic[Napic];
+Apic xioapic[Napic];
 
 static void
-rtblget(Apic* apic, int sel, uint32_t* hi, uint32_t* lo)
+rtblget(Apic *apic, int sel, uint32_t *hi, uint32_t *lo)
 {
-	sel = Ioredtbl + 2*sel;
+	sel = Ioredtbl + 2 * sel;
 
-	*(apic->addr+Ioregsel) = sel+1;
-	*hi = *(apic->addr+Iowin);
-	*(apic->addr+Ioregsel) = sel;
-	*lo = *(apic->addr+Iowin);
+	*(apic->addr + Ioregsel) = sel + 1;
+	*hi = *(apic->addr + Iowin);
+	*(apic->addr + Ioregsel) = sel;
+	*lo = *(apic->addr + Iowin);
 }
 
 static void
-rtblput(Apic* apic, int sel, uint32_t hi, uint32_t lo)
+rtblput(Apic *apic, int sel, uint32_t hi, uint32_t lo)
 {
-	sel = Ioredtbl + 2*sel;
+	sel = Ioredtbl + 2 * sel;
 
-	*(apic->addr+Ioregsel) = sel+1;
-	*(apic->addr+Iowin) = hi;
-	*(apic->addr+Ioregsel) = sel;
-	*(apic->addr+Iowin) = lo;
+	*(apic->addr + Ioregsel) = sel + 1;
+	*(apic->addr + Iowin) = hi;
+	*(apic->addr + Ioregsel) = sel;
+	*(apic->addr + Iowin) = lo;
 }
 
-Rdt*
+Rdt *
 rdtlookup(Apic *apic, int intin)
 {
 	int i;
 	Rdt *r;
 
-	for(i = 0; i < nrdtarray; i++){
+	for(i = 0; i < nrdtarray; i++) {
 		r = rdtarray + i;
 		if(apic == r->apic && intin == r->intin)
 			return r;
@@ -108,15 +108,15 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 		return;
 
 	rdt = rdtlookup(apic, intin);
-	if(rdt == nil){
+	if(rdt == nil) {
 		rdt = &rdtarray[nrdtarray++];
 		rdt->apic = apic;
 		rdt->intin = intin;
 		rdt->lo = lo;
-	}else{
-		if(lo != rdt->lo){
+	} else {
+		if(lo != rdt->lo) {
 			print("mutiple irq botch bus %d %d/%d/%d lo %d vs %d\n",
-				busno, apicno, intin, devno, lo, rdt->lo);
+			      busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
 		DBG("dup rdt %d %d %d %d %.8ux\n", busno, apicno, intin, devno, lo);
@@ -152,13 +152,13 @@ ioapicinit(int id, uintptr_t pa)
 	 * responsibility of the O/S to set the APIC ID.
 	 */
 	lock(apic);
-	*(apic->addr+Ioregsel) = Ioapicver;
-	apic->nrdt = ((*(apic->addr+Iowin)>>16) & 0xff) + 1;
+	*(apic->addr + Ioregsel) = Ioapicver;
+	apic->nrdt = ((*(apic->addr + Iowin) >> 16) & 0xff) + 1;
 	apic->gsib = gsib;
 	gsib += apic->nrdt;
 
-	*(apic->addr+Ioregsel) = Ioapicid;
-	*(apic->addr+Iowin) = id<<24;
+	*(apic->addr + Ioregsel) = Ioapicid;
+	*(apic->addr + Iowin) = id << 24;
 	unlock(apic);
 }
 
@@ -173,28 +173,28 @@ ioapicdump(void)
 
 	if(!DBGFLG)
 		return;
-	for(i = 0; i < Napic; i++){
+	for(i = 0; i < Napic; i++) {
 		apic = &xioapic[i];
 		if(!apic->useable || apic->addr == 0)
 			continue;
 		print("ioapic %d addr %#p nrdt %d gsib %d\n",
-			i, apic->addr, apic->nrdt, apic->gsib);
-		for(n = 0; n < apic->nrdt; n++){
+		      i, apic->addr, apic->nrdt, apic->gsib);
+		for(n = 0; n < apic->nrdt; n++) {
 			lock(apic);
 			rtblget(apic, n, &hi, &lo);
 			unlock(apic);
 			print(" rdt %2.2d %#8.8ux %#8.8ux\n", n, hi, lo);
 		}
 	}
-	for(i = 0; i < Nbus; i++){
+	for(i = 0; i < Nbus; i++) {
 		if((rbus = rdtbus[i]) == nil)
 			continue;
 		print("iointr bus %d:\n", i);
-		for(; rbus != nil; rbus = rbus->next){
+		for(; rbus != nil; rbus = rbus->next) {
 			rdt = rbus->rdt;
 			print(" apic %ld devno %#ux (%d %d) intin %d lo %#ux ref %d\n",
-				rdt->apic-xioapic, rbus->devno, rbus->devno>>2,
-				rbus->devno & 0x03, rdt->intin, rdt->lo, rdt->ref);
+			      rdt->apic - xioapic, rbus->devno, rbus->devno >> 2,
+			      rbus->devno & 0x03, rdt->intin, rdt->lo, rdt->ref);
 		}
 	}
 }
@@ -205,10 +205,10 @@ ioapiconline(void)
 	int i;
 	Apic *apic;
 
-	for(apic = xioapic; apic < &xioapic[Napic]; apic++){
+	for(apic = xioapic; apic < &xioapic[Napic]; apic++) {
 		if(!apic->useable || apic->addr == nil)
 			continue;
-		for(i = 0; i < apic->nrdt; i++){
+		for(i = 0; i < apic->nrdt; i++) {
 			lock(apic);
 			rtblput(apic, i, 0, Im);
 			unlock(apic);
@@ -220,7 +220,7 @@ ioapiconline(void)
 static int dfpolicy = 0;
 
 static void
-ioapicintrdd(uint32_t* hi, uint32_t* lo)
+ioapicintrdd(uint32_t *hi, uint32_t *lo)
 {
 	int i;
 	static int df;
@@ -242,11 +242,11 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 	 *
 	 * Interrupt routing policy can be set here.
 	 */
-	switch(dfpolicy){
-	default:				/* noise core 0 */
-		*hi = sys->machptr[0]->apicno<<24;
+	switch(dfpolicy) {
+	default: /* noise core 0 */
+		*hi = sys->machptr[0]->apicno << 24;
 		break;
-	case 1:					/* round-robin */
+	case 1: /* round-robin */
 		/*
 		 * Assign each interrupt to a different CPU on a round-robin
 		 * Some idea of the packages/cores/thread topology would be
@@ -255,9 +255,9 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 		 * task.
 		 */
 		lock(&dflock);
-		for(;;){
+		for(;;) {
 			i = df++;
-			if(df >= sys->nmach+1)
+			if(df >= sys->nmach + 1)
 				df = 0;
 			if(sys->machptr[i] == nil || !sys->machptr[i]->online)
 				continue;
@@ -267,10 +267,10 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 		}
 		unlock(&dflock);
 
-		*hi = i<<24;
+		*hi = i << 24;
 		break;
 	}
-	*lo |= Pm|MTf;
+	*lo |= Pm | MTf;
 }
 
 int
@@ -280,7 +280,7 @@ nextvec(void)
 
 	lock(&idtnolock);
 	vecno = idtno;
-	idtno = (idtno+8) % IdtMAX;
+	idtno = (idtno + 8) % IdtMAX;
 	if(idtno < IdtIOAPIC)
 		idtno += IdtIOAPIC;
 	unlock(&idtnolock);
@@ -300,7 +300,7 @@ msimask(Vkey *v, int mask)
 }
 
 static int
-intrenablemsi(Vctl* v, Pcidev *p)
+intrenablemsi(Vctl *v, Pcidev *p)
 {
 	uint vno, lo, hi;
 	uint64_t msivec;
@@ -313,7 +313,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 	if(lo & Lm)
 		lo |= MTlp;
 
-	msivec = (uint64_t)hi<<32 | lo;
+	msivec = (uint64_t)hi << 32 | lo;
 	if(pcimsienable(p, msivec) == -1)
 		return -1;
 	v->isr = apicisr;
@@ -327,7 +327,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 }
 
 int
-disablemsi(Vctl* v, Pcidev *p)
+disablemsi(Vctl *v, Pcidev *p)
 {
 	if(p == nil)
 		return -1;
@@ -335,7 +335,7 @@ disablemsi(Vctl* v, Pcidev *p)
 }
 
 int
-ioapicintrenable(Vctl* v)
+ioapicintrenable(Vctl *v)
 {
 	Rbus *rbus;
 	Rdt *rdt;
@@ -346,14 +346,13 @@ ioapicintrenable(Vctl* v)
 	 * Bridge between old and unspecified new scheme,
 	 * the work in progress...
 	 */
-	if(v->tbdf == BUSUNKNOWN){
-		if(v->irq >= IrqLINT0 && v->irq <= MaxIrqLAPIC){
+	if(v->tbdf == BUSUNKNOWN) {
+		if(v->irq >= IrqLINT0 && v->irq <= MaxIrqLAPIC) {
 			if(v->irq != IrqSPURIOUS)
 				v->isr = apiceoi;
 			v->type = "lapic";
 			return v->irq;
-		}
-		else{
+		} else {
 			/*
 			 * Legacy ISA.
 			 * Make a busno and devno using the
@@ -364,10 +363,9 @@ ioapicintrenable(Vctl* v)
 			if(mpisabusno == -1)
 				panic("no ISA bus allocated");
 			busno = mpisabusno;
-			devno = v->irq<<2;
+			devno = v->irq << 2;
 		}
-	}
-	else if(BUSTYPE(v->tbdf) == BusPCI){
+	} else if(BUSTYPE(v->tbdf) == BusPCI) {
 		/*
 		 * PCI.
 		 * Make a devno from BUSDNO(tbdf) and pcidev->intp.
@@ -382,22 +380,22 @@ ioapicintrenable(Vctl* v)
 		disablemsi(v, pcidev);
 		if((devno = pcicfgr8(pcidev, PciINTP)) == 0)
 			panic("no INTP for tbdf %#8.8ux\n", v->tbdf);
-		devno = BUSDNO(v->tbdf)<<2|(devno-1);
+		devno = BUSDNO(v->tbdf) << 2 | (devno - 1);
 		DBG("ioapicintrenable: tbdf %#8.8ux busno %d devno %d\n",
-			v->tbdf, busno, devno);
-	}
-	else{
-		SET(busno); SET(devno);
+		    v->tbdf, busno, devno);
+	} else {
+		SET(busno);
+		SET(devno);
 		panic("unknown tbdf %#8.8ux\n", v->tbdf);
 	}
 
 	rdt = nil;
 	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
-		if(rbus->devno == devno){
+		if(rbus->devno == devno) {
 			rdt = rbus->rdt;
 			break;
 		}
-	if(rdt == nil){
+	if(rdt == nil) {
 		extern int mpisabusno;
 
 		/*
@@ -408,14 +406,14 @@ ioapicintrenable(Vctl* v)
 		 */
 		if((busno = mpisabusno) == -1)
 			return -1;
-		devno = v->irq<<2;
+		devno = v->irq << 2;
 		for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
-			if(rbus->devno == devno){
+			if(rbus->devno == devno) {
 				rdt = rbus->rdt;
 				break;
 			}
 		DBG("isa: tbdf %#8.8ux busno %d devno %d %#p\n",
-			v->tbdf, busno, devno, rdt);
+		    v->tbdf, busno, devno, rdt);
 	}
 	if(rdt == nil)
 		return -1;
@@ -434,11 +432,11 @@ ioapicintrenable(Vctl* v)
 	 */
 	lock(rdt->apic);
 	DBG("%T: %ld/%d/%d (%d)\n", v->tbdf, rdt->apic - xioapic, rbus->devno, rdt->intin, devno);
-	if((rdt->lo & 0xff) == 0){
+	if((rdt->lo & 0xff) == 0) {
 		vecno = nextvec();
 		rdt->lo |= vecno;
 		rdtvecno[vecno] = rdt;
-	}else
+	} else
 		DBG("%T: mutiple irq bus %d dev %d\n", v->tbdf, busno, devno);
 
 	rdt->enabled++;
@@ -449,7 +447,7 @@ ioapicintrenable(Vctl* v)
 	unlock(rdt->apic);
 
 	DBG("busno %d devno %d hi %#8.8ux lo %#8.8ux vecno %d\n",
-		busno, devno, hi, lo, vecno);
+	    busno, devno, hi, lo, vecno);
 	v->isr = apicisr;
 	v->eoi = apiceoi;
 	v->vno = vecno;
@@ -471,11 +469,11 @@ ioapicintrdisable(int vecno)
 	 *
 	 * What about any pending interrupts?
 	 */
-	if(vecno < 0 || vecno > MaxVectorAPIC){
+	if(vecno < 0 || vecno > MaxVectorAPIC) {
 		panic("ioapicintrdisable: vecno %d out of range", vecno);
 		return -1;
 	}
-	if((rdt = rdtvecno[vecno]) == nil){
+	if((rdt = rdtvecno[vecno]) == nil) {
 		panic("ioapicintrdisable: vecno %d has no rdt", vecno);
 		return -1;
 	}

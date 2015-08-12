@@ -17,10 +17,10 @@
 
 #include "errstr.h"
 
-int	errno;
+int errno;
 int rdonly;
-char	*srvfile;
-char	*deffile;
+char *srvfile;
+char *deffile;
 
 extern void iobuf_init(void);
 extern Srv ext2srv;
@@ -45,7 +45,8 @@ main(int argc, char **argv)
 	int stdio;
 
 	stdio = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		++chatty9p;
 		break;
@@ -69,7 +70,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc == 0)
 		srvfile = "ext2";
@@ -77,17 +79,17 @@ main(int argc, char **argv)
 		srvfile = argv[0];
 	else
 		usage();
-	
+
 	iobuf_init();
 	/*notify(handler);*/
 
-	if(!chatty){
+	if(!chatty) {
 		close(2);
 		open("#c/cons", OWRITE);
 	}
-	if(stdio){
+	if(stdio) {
 		srv(&ext2srv);
-	}else{
+	} else {
 		chat("%s %d: serving %s\n", argv0, getpid(), srvfile);
 		postmountsrv(&ext2srv, srvfile, 0, 0);
 	}
@@ -97,7 +99,7 @@ main(int argc, char **argv)
 char *
 xerrstr(int e)
 {
-	if (e < 0 || e >= sizeof errmsg/sizeof errmsg[0])
+	if(e < 0 || e >= sizeof errmsg / sizeof errmsg[0])
 		return "no such error";
 	else
 		return errmsg[e];

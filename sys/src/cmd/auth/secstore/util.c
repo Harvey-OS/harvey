@@ -28,7 +28,7 @@ emalloc(uint32_t n)
 void *
 erealloc(void *p, uint32_t n)
 {
-	if ((p = realloc(p, n)) == nil)
+	if((p = realloc(p, n)) == nil)
 		sysfatal("erealloc");
 	return p;
 }
@@ -36,19 +36,19 @@ erealloc(void *p, uint32_t n)
 char *
 estrdup(char *s)
 {
-	if ((s = strdup(s)) == nil)
+	if((s = strdup(s)) == nil)
 		sysfatal("estrdup");
 	return s;
 }
 
-char*
+char *
 getpassm(char *prompt)
 {
 	char *p, line[4096];
 	int n, nr;
 	static int cons, consctl; /* closing & reopening fails in ssh environment */
 
-	if(cons == 0){			/* first time? */
+	if(cons == 0) { /* first time? */
 		cons = open("/dev/cons", ORDWR);
 		if(cons < 0)
 			sysfatal("couldn't open cons");
@@ -60,14 +60,14 @@ getpassm(char *prompt)
 	fprint(cons, "%s", prompt);
 	nr = 0;
 	p = line;
-	for(;;){
+	for(;;) {
 		n = read(cons, p, 1);
-		if(n < 0){
+		if(n < 0) {
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");
 			return nil;
 		}
-		if(n == 0 || *p == '\n' || *p == '\r' || *p == 0x7f){
+		if(n == 0 || *p == '\n' || *p == '\r' || *p == 0x7f) {
 			*p = '\0';
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");
@@ -75,20 +75,20 @@ getpassm(char *prompt)
 			memset(line, 0, nr);
 			return p;
 		}
-		if(*p == '\b'){
-			if(nr > 0){
+		if(*p == '\b') {
+			if(nr > 0) {
 				nr--;
 				p--;
 			}
-		}else if(*p == ('u' & 037)){		/* cntrl-u */
+		} else if(*p == ('u' & 037)) { /* cntrl-u */
 			fprint(cons, "\n%s", prompt);
 			nr = 0;
 			p = line;
-		}else{
+		} else {
 			nr++;
 			p++;
 		}
-		if(nr+1 == sizeof line){
+		if(nr + 1 == sizeof line) {
 			fprint(cons, "line too long; try again\n%s", prompt);
 			nr = 0;
 			p = line;

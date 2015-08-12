@@ -27,9 +27,9 @@
 /* Common internal definitions for Ghostscript library */
 
 #ifndef gx_INCLUDED
-#  define gx_INCLUDED
+#define gx_INCLUDED
 
-#include "stdio_.h"		/* includes std.h */
+#include "stdio_.h" /* includes std.h */
 #include "gserror.h"
 #include "gsio.h"
 #include "gstypes.h"
@@ -40,12 +40,12 @@
 /* This is used so pervasively that we define it here, */
 /* rather than at a higher level as perhaps would be more appropriate. */
 #ifndef gs_imager_state_DEFINED
-#  define gs_imager_state_DEFINED
+#define gs_imager_state_DEFINED
 typedef struct gs_imager_state_s gs_imager_state;
 
 #endif
 #ifndef gs_state_DEFINED
-#  define gs_state_DEFINED
+#define gs_state_DEFINED
 typedef struct gs_state_s gs_state;
 
 #endif

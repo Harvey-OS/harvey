@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-DSApriv*
+DSApriv *
 dsagen(DSApub *opub)
 {
 	DSApub *pub;
@@ -24,7 +24,7 @@ dsagen(DSApub *opub)
 	priv = dsaprivalloc();
 	pub = &priv->pub;
 
-	if(opub != nil){
+	if(opub != nil) {
 		pub->p = mpcopy(opub->p);
 		pub->q = mpcopy(opub->q);
 	} else {
@@ -32,7 +32,7 @@ dsagen(DSApub *opub)
 		pub->q = mpnew(0);
 		DSAprimes(pub->q, pub->p, nil);
 	}
-	bits = Dbits*pub->p->top;
+	bits = Dbits * pub->p->top;
 
 	pub->alpha = mpnew(0);
 	pub->key = mpnew(0);
@@ -51,7 +51,7 @@ dsagen(DSApub *opub)
 	mpdiv(exp, pub->q, exp, r);
 	if(mpcmp(r, mpzero) != 0)
 		sysfatal("dsagen foul up");
-	while(1){
+	while(1) {
 		mprand(bits, genrandom, g);
 		mpmod(g, pub->p, g);
 		mpexp(g, exp, pub->p, pub->alpha);

@@ -21,45 +21,45 @@
 
 int rawhack = 1;
 Conn *conn;
-char *remoteip	= "<remote>";
+char *remoteip = "<remote>";
 char *mtpt;
 
 Cipher *allcipher[] = {
-	&cipherrc4,
-	&cipherblowfish,
-	&cipher3des,
-	&cipherdes,
-	&ciphernone,
-	&ciphertwiddle,
+    &cipherrc4,
+    &cipherblowfish,
+    &cipher3des,
+    &cipherdes,
+    &ciphernone,
+    &ciphertwiddle,
 };
 
 Auth *allauth[] = {
-	&authpassword,
-	&authrsa,
-	&authtis,
+    &authpassword,
+    &authrsa,
+    &authtis,
 };
 
 char *cipherlist = "rc4 3des";
 char *authlist = "rsa password tis";
 
-Cipher*
+Cipher *
 findcipher(char *name, Cipher **list, int nlist)
 {
 	int i;
 
-	for(i=0; i<nlist; i++)
+	for(i = 0; i < nlist; i++)
 		if(strcmp(name, list[i]->name) == 0)
 			return list[i];
 	error("unknown cipher %s", name);
 	return nil;
 }
 
-Auth*
+Auth *
 findauth(char *name, Auth **list, int nlist)
 {
 	int i;
 
-	for(i=0; i<nlist; i++)
+	for(i = 0; i < nlist; i++)
 		if(strcmp(name, list[i]->name) == 0)
 			return list[i];
 	error("unknown auth %s", name);
@@ -80,13 +80,12 @@ isatty(int fd)
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
-	if(strlen(buf)>=9 && strcmp(buf+strlen(buf)-9, "/dev/cons")==0)
+	if(strlen(buf) >= 9 && strcmp(buf + strlen(buf) - 9, "/dev/cons") == 0)
 		return 1;
 	return 0;
 }
 
-enum
-{
+enum {
 	Qroot,
 	Qcs,
 	Qtcp,
@@ -99,19 +98,18 @@ enum
 	Qstatus,
 };
 
-#define PATH(type, n)		((type)|((n)<<8))
-#define TYPE(path)			((int)(path) & 0xFF)
-#define NUM(path)			((uint)(path)>>8)
+#define PATH(type, n) ((type) | ((n) << 8))
+#define TYPE(path) ((int)(path)&0xFF)
+#define NUM(path) ((uint)(path) >> 8)
 
-Channel *sshmsgchan;		/* chan(Msg*) */
-Channel *fsreqchan;			/* chan(Req*) */
-Channel *fsreqwaitchan;		/* chan(nil) */
-Channel *fsclunkchan;		/* chan(Fid*) */
-Channel *fsclunkwaitchan;	/* chan(nil) */
+Channel *sshmsgchan;      /* chan(Msg*) */
+Channel *fsreqchan;       /* chan(Req*) */
+Channel *fsreqwaitchan;   /* chan(nil) */
+Channel *fsclunkchan;     /* chan(Fid*) */
+Channel *fsclunkwaitchan; /* chan(nil) */
 uint32_t time0;
 
-enum
-{
+enum {
 	Closed,
 	Dialing,
 	Established,
@@ -119,15 +117,14 @@ enum
 };
 
 char *statestr[] = {
-	"Closed",
-	"Dialing",
-	"Established",
-	"Teardown",
+    "Closed",
+    "Dialing",
+    "Established",
+    "Teardown",
 };
 
 typedef struct Client Client;
-struct Client
-{
+struct Client {
 	int ref;
 	int state;
 	int num;
@@ -148,12 +145,12 @@ newclient(void)
 	int i;
 	Client *c;
 
-	for(i=0; i<nclient; i++)
-		if(client[i]->ref==0 && client[i]->state == Closed)
+	for(i = 0; i < nclient; i++)
+		if(client[i]->ref == 0 && client[i]->state == Closed)
 			return i;
 
-	if(nclient%16 == 0)
-		client = erealloc9p(client, (nclient+16)*sizeof(client[0]));
+	if(nclient % 16 == 0)
+		client = erealloc9p(client, (nclient + 16) * sizeof(client[0]));
 
 	c = emalloc9p(sizeof(Client));
 	memset(c, 0, sizeof(*c));
@@ -165,21 +162,21 @@ newclient(void)
 void
 queuereq(Client *c, Req *r)
 {
-	if(c->rq==nil)
+	if(c->rq == nil)
 		c->erq = &c->rq;
 	*c->erq = r;
 	r->aux = nil;
-	c->erq = (Req**)&r->aux;
+	c->erq = (Req **)&r->aux;
 }
 
 void
 queuemsg(Client *c, Msg *m)
 {
-	if(c->mq==nil)
+	if(c->mq == nil)
 		c->emq = &c->mq;
 	*c->emq = m;
 	m->link = nil;
-	c->emq = (Msg**)&m->link;
+	c->emq = (Msg **)&m->link;
 }
 
 void
@@ -189,14 +186,14 @@ matchmsgs(Client *c)
 	Msg *m;
 	int n, rm;
 
-	while(c->rq && c->mq){
+	while(c->rq && c->mq) {
 		r = c->rq;
 		c->rq = r->aux;
 
 		rm = 0;
 		m = c->mq;
 		n = r->ifcall.count;
-		if(n >= m->ep - m->rp){
+		if(n >= m->ep - m->rp) {
 			n = m->ep - m->rp;
 			c->mq = m->link;
 			rm = 1;
@@ -211,13 +208,13 @@ matchmsgs(Client *c)
 	}
 }
 
-Req*
+Req *
 findreq(Client *c, Req *r)
 {
 	Req **l;
 
-	for(l=&c->rq; *l; l=(Req**)&(*l)->aux){
-		if(*l == r){
+	for(l = &c->rq; *l; l = (Req **)&(*l)->aux) {
+		if(*l == r) {
 			*l = r->aux;
 			if(*l == nil)
 				c->erq = l;
@@ -232,7 +229,7 @@ dialedclient(Client *c)
 {
 	Req *r;
 
-	if(r=c->rq){
+	if(r = c->rq) {
 		if(r->aux != nil)
 			sysfatal("more than one outstanding dial request (BUG)");
 		if(c->state == Established)
@@ -261,12 +258,12 @@ hangupclient(Client *c)
 	Msg *m, *mnext;
 
 	c->state = Closed;
-	for(m=c->mq; m; m=mnext){
+	for(m = c->mq; m; m = mnext) {
 		mnext = m->link;
 		free(m);
 	}
 	c->mq = nil;
-	for(r=c->rq; r; r=next){
+	for(r = c->rq; r; r = next) {
 		next = r->aux;
 		respond(r, "hangup on network connection");
 	}
@@ -284,7 +281,7 @@ closeclient(Client *c)
 	if(c->rq != nil)
 		sysfatal("ref count reached zero with requests pending (BUG)");
 
-	for(m=c->mq; m; m=next){
+	for(m = c->mq; m; m = next) {
 		next = m->link;
 		free(m);
 	}
@@ -294,7 +291,6 @@ closeclient(Client *c)
 		teardownclient(c);
 }
 
-	
 void
 sshreadproc(void *a)
 {
@@ -302,7 +298,7 @@ sshreadproc(void *a)
 	Msg *m;
 
 	c = a;
-	for(;;){
+	for(;;) {
 		m = recvmsg(c, -1);
 		if(m == nil)
 			sysfatal("eof on ssh connection");
@@ -311,24 +307,23 @@ sshreadproc(void *a)
 }
 
 typedef struct Tab Tab;
-struct Tab
-{
+struct Tab {
 	char *name;
 	uint32_t mode;
 };
 
 Tab tab[] =
-{
-	"/",		DMDIR|0555,
-	"cs",		0666,
-	"tcp",	DMDIR|0555,	
-	"clone",	0666,
-	nil,		DMDIR|0555,
-	"ctl",		0666,
-	"data",	0666,
-	"local",	0444,
-	"remote",	0444,
-	"status",	0444,
+    {
+     "/", DMDIR | 0555,
+     "cs", 0666,
+     "tcp", DMDIR | 0555,
+     "clone", 0666,
+     nil, DMDIR | 0555,
+     "ctl", 0666,
+     "data", 0666,
+     "local", 0444,
+     "remote", 0444,
+     "status", 0444,
 };
 
 static void
@@ -344,19 +339,19 @@ fillstat(Dir *d, uint64_t path)
 	t = &tab[TYPE(path)];
 	if(t->name)
 		d->name = estrdup9p(t->name);
-	else{
+	else {
 		d->name = smprint("%ud", NUM(path));
 		if(d->name == nil)
 			sysfatal("out of memory");
 	}
-	d->qid.type = t->mode>>24;
+	d->qid.type = t->mode >> 24;
 	d->mode = t->mode;
 }
 
 static void
 fsattach(Req *r)
 {
-	if(r->ifcall.aname && r->ifcall.aname[0]){
+	if(r->ifcall.aname && r->ifcall.aname[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
@@ -375,10 +370,10 @@ fsstat(Req *r)
 }
 
 static int
-rootgen(int i, Dir *d, void*)
+rootgen(int i, Dir *d, void *)
 {
-	i += Qroot+1;
-	if(i <= Qtcp){
+	i += Qroot + 1;
+	if(i <= Qtcp) {
 		fillstat(d, i);
 		return 0;
 	}
@@ -386,15 +381,15 @@ rootgen(int i, Dir *d, void*)
 }
 
 static int
-tcpgen(int i, Dir *d, void*)
+tcpgen(int i, Dir *d, void *)
 {
-	i += Qtcp+1;
-	if(i < Qn){
+	i += Qtcp + 1;
+	if(i < Qn) {
 		fillstat(d, i);
 		return 0;
 	}
 	i -= Qn;
-	if(i < nclient){
+	if(i < nclient) {
 		fillstat(d, PATH(Qn, i));
 		return 0;
 	}
@@ -407,15 +402,15 @@ clientgen(int i, Dir *d, void *aux)
 	Client *c;
 
 	c = aux;
-	i += Qn+1;
-	if(i <= Qstatus){
+	i += Qn + 1;
+	if(i <= Qstatus) {
 		fillstat(d, PATH(i, c->num));
 		return 0;
 	}
 	return -1;
 }
 
-static char*
+static char *
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i, n;
@@ -423,18 +418,18 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	uint32_t path;
 
 	path = fid->qid.path;
-	if(!(fid->qid.type&QTDIR))
+	if(!(fid->qid.type & QTDIR))
 		return "walk in non-directory";
 
-	if(strcmp(name, "..") == 0){
-		switch(TYPE(path)){
+	if(strcmp(name, "..") == 0) {
+		switch(TYPE(path)) {
 		case Qn:
 			qid->path = PATH(Qtcp, NUM(path));
-			qid->type = tab[Qtcp].mode>>24;
+			qid->type = tab[Qtcp].mode >> 24;
 			return nil;
 		case Qtcp:
 			qid->path = PATH(Qroot, 0);
-			qid->type = tab[Qroot].mode>>24;
+			qid->type = tab[Qroot].mode >> 24;
 			return nil;
 		case Qroot:
 			return nil;
@@ -443,32 +438,31 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		}
 	}
 
-	i = TYPE(path)+1;
-	for(; i<nelem(tab); i++){
-		if(i==Qn){
+	i = TYPE(path) + 1;
+	for(; i < nelem(tab); i++) {
+		if(i == Qn) {
 			n = atoi(name);
 			snprint(buf, sizeof buf, "%d", n);
-			if(n < nclient && strcmp(buf, name) == 0){
+			if(n < nclient && strcmp(buf, name) == 0) {
 				qid->path = PATH(i, n);
-				qid->type = tab[i].mode>>24;
+				qid->type = tab[i].mode >> 24;
 				return nil;
 			}
 			break;
 		}
-		if(strcmp(name, tab[i].name) == 0){
+		if(strcmp(name, tab[i].name) == 0) {
 			qid->path = PATH(i, NUM(path));
-			qid->type = tab[i].mode>>24;
+			qid->type = tab[i].mode >> 24;
 			return nil;
 		}
-		if(tab[i].mode&DMDIR)
+		if(tab[i].mode & DMDIR)
 			break;
 	}
 	return "directory entry not found";
 }
 
 typedef struct Cs Cs;
-struct Cs
-{
+struct Cs {
 	char *resp;
 	int isnew;
 };
@@ -487,7 +481,7 @@ ndbfindport(char *p)
 	if(*s == '\0')
 		return n;
 
-	if(db == nil){
+	if(db == nil) {
 		db = ndbopen("/lib/ndb/common");
 		if(db == nil)
 			return -1;
@@ -500,7 +494,7 @@ ndbfindport(char *p)
 	free(port);
 
 	return n;
-}	
+}
 
 static void
 csread(Req *r)
@@ -508,12 +502,12 @@ csread(Req *r)
 	Cs *cs;
 
 	cs = r->fid->aux;
-	if(cs->resp==nil){
+	if(cs->resp == nil) {
 		respond(r, "cs read without write");
 		return;
 	}
-	if(r->ifcall.offset==0){
-		if(!cs->isnew){
+	if(r->ifcall.offset == 0) {
+		if(!cs->isnew) {
 			r->ofcall.count = 0;
 			respond(r, nil);
 			return;
@@ -532,30 +526,30 @@ cswrite(Req *r)
 	Cs *cs;
 
 	cs = r->fid->aux;
-	s = emalloc(r->ifcall.count+1);
+	s = emalloc(r->ifcall.count + 1);
 	memmove(s, r->ifcall.data, r->ifcall.count);
 	s[r->ifcall.count] = '\0';
 
 	nf = getfields(s, f, nelem(f), 0, "!");
-	if(nf != 3){
+	if(nf != 3) {
 		free(s);
 		respond(r, "can't translate");
 		return;
 	}
-	if(strcmp(f[0], "tcp") != 0 && strcmp(f[0], "net") != 0){
+	if(strcmp(f[0], "tcp") != 0 && strcmp(f[0], "net") != 0) {
 		free(s);
 		respond(r, "unknown protocol");
 		return;
 	}
 	port = ndbfindport(f[2]);
-	if(port <= 0){
+	if(port <= 0) {
 		free(s);
 		respond(r, "no translation found");
 		return;
 	}
 
 	ns = smprint("%s/tcp/clone %s!%d", mtpt, f[1], port);
-	if(ns == nil){
+	if(ns == nil) {
 		free(s);
 		rerrstr(err, sizeof err);
 		respond(r, err);
@@ -586,45 +580,45 @@ ctlwrite(Req *r, Client *c)
 	int nf;
 	Msg *m;
 
-	s = emalloc(r->ifcall.count+1);
+	s = emalloc(r->ifcall.count + 1);
 	memmove(s, r->ifcall.data, r->ifcall.count);
 	s[r->ifcall.count] = '\0';
 
 	nf = tokenize(s, f, 3);
-	if(nf == 0){
+	if(nf == 0) {
 		free(s);
 		respond(r, nil);
 		return;
 	}
 
-	if(strcmp(f[0], "hangup") == 0){
+	if(strcmp(f[0], "hangup") == 0) {
 		if(c->state != Established)
 			goto Badarg;
 		if(nf != 1)
 			goto Badarg;
 		queuereq(c, r);
 		teardownclient(c);
-	}else if(strcmp(f[0], "connect") == 0){
+	} else if(strcmp(f[0], "connect") == 0) {
 		if(c->state != Closed)
 			goto Badarg;
 		if(nf != 2)
 			goto Badarg;
 		c->connect = estrdup9p(f[1]);
 		nf = getfields(f[1], f, nelem(f), 0, "!");
-		if(nf != 2){
+		if(nf != 2) {
 			free(c->connect);
 			c->connect = nil;
 			goto Badarg;
 		}
 		c->state = Dialing;
-		m = allocmsg(conn, SSH_MSG_PORT_OPEN, 4+4+strlen(f[0])+4+4+strlen("localhost"));
+		m = allocmsg(conn, SSH_MSG_PORT_OPEN, 4 + 4 + strlen(f[0]) + 4 + 4 + strlen("localhost"));
 		putlong(m, c->num);
 		putstring(m, f[0]);
 		putlong(m, ndbfindport(f[1]));
 		putstring(m, "localhost");
 		queuereq(c, r);
 		sendmsg(m);
-	}else{
+	} else {
 	Badarg:
 		respond(r, "bad or inappropriate tcp control message");
 	}
@@ -634,7 +628,7 @@ ctlwrite(Req *r, Client *c)
 static void
 dataread(Req *r, Client *c)
 {
-	if(c->state != Established){
+	if(c->state != Established) {
 		respond(r, "not connected");
 		return;
 	}
@@ -647,12 +641,12 @@ datawrite(Req *r, Client *c)
 {
 	Msg *m;
 
-	if(c->state != Established){
+	if(c->state != Established) {
 		respond(r, "not connected");
 		return;
 	}
-	if(r->ifcall.count){
-		m = allocmsg(conn, SSH_MSG_CHANNEL_DATA, 4+4+r->ifcall.count);
+	if(r->ifcall.count) {
+		m = allocmsg(conn, SSH_MSG_CHANNEL_DATA, 4 + 4 + r->ifcall.count);
 		putlong(m, c->servernum);
 		putlong(m, r->ifcall.count);
 		putbytes(m, r->ifcall.data, r->ifcall.count);
@@ -705,7 +699,7 @@ fsread(Req *r)
 	uint32_t path;
 
 	path = r->fid->qid.path;
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	default:
 		snprint(e, sizeof e, "bug in fsread path=%lux", path);
 		respond(r, e);
@@ -759,7 +753,7 @@ fswrite(Req *r)
 	char e[ERRMAX];
 
 	path = r->fid->qid.path;
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	default:
 		snprint(e, sizeof e, "bug in fswrite path=%lux", path);
 		respond(r, e);
@@ -782,7 +776,7 @@ fswrite(Req *r)
 static void
 fsopen(Req *r)
 {
-	static int need[4] = { 4, 2, 6, 1 };
+	static int need[4] = {4, 2, 6, 1};
 	uint32_t path;
 	int n;
 	Tab *t;
@@ -794,13 +788,13 @@ fsopen(Req *r)
 	 */
 	path = r->fid->qid.path;
 	t = &tab[TYPE(path)];
-	n = need[r->ifcall.mode&3];
-	if((n&t->mode) != n){
+	n = need[r->ifcall.mode & 3];
+	if((n & t->mode) != n) {
 		respond(r, "permission denied");
 		return;
 	}
 
-	switch(TYPE(path)){
+	switch(TYPE(path)) {
 	case Qcs:
 		cs = emalloc(sizeof(Cs));
 		r->fid->aux = cs;
@@ -814,9 +808,9 @@ fsopen(Req *r)
 		if(chatty9p)
 			fprint(2, "open clone => path=%lux\n", path);
 		t = &tab[Qctl];
-		/* fall through */
+	/* fall through */
 	default:
-		if(t-tab >= Qn)
+		if(t - tab >= Qn)
 			client[NUM(path)]->ref++;
 		respond(r, nil);
 		break;
@@ -828,7 +822,7 @@ fsflush(Req *r)
 {
 	int i;
 
-	for(i=0; i<nclient; i++)
+	for(i = 0; i < nclient; i++)
 		if(findreq(client[i], r->oldreq))
 			respond(r->oldreq, "interrupted");
 	respond(r, nil);
@@ -840,7 +834,7 @@ handlemsg(Msg *m)
 	int chan, n;
 	Client *c;
 
-	switch(m->type){
+	switch(m->type) {
 	case SSH_MSG_DISCONNECT:
 	case SSH_CMSG_EXIT_CONFIRMATION:
 		sysfatal("disconnect");
@@ -855,19 +849,19 @@ handlemsg(Msg *m)
 	case SSH_MSG_CHANNEL_DATA:
 		chan = getlong(m);
 		n = getlong(m);
-		if(m->rp+n != m->ep)
+		if(m->rp + n != m->ep)
 			sysfatal("got bad channel data");
-		if(chan<nclient && (c=client[chan])->state==Established){
+		if(chan < nclient && (c = client[chan])->state == Established) {
 			queuemsg(c, m);
 			matchmsgs(c);
-		}else
+		} else
 			free(m);
 		break;
 
 	case SSH_MSG_CHANNEL_INPUT_EOF:
 		chan = getlong(m);
 		free(m);
-		if(chan<nclient){
+		if(chan < nclient) {
 			c = client[chan];
 			chan = c->servernum;
 			hangupclient(c);
@@ -879,7 +873,7 @@ handlemsg(Msg *m)
 
 	case SSH_MSG_CHANNEL_OUTPUT_CLOSED:
 		chan = getlong(m);
-		if(chan<nclient)
+		if(chan < nclient)
 			hangupclient(client[chan]);
 		free(m);
 		break;
@@ -887,7 +881,7 @@ handlemsg(Msg *m)
 	case SSH_MSG_CHANNEL_OPEN_CONFIRMATION:
 		chan = getlong(m);
 		c = nil;
-		if(chan>=nclient || (c=client[chan])->state != Dialing){
+		if(chan >= nclient || (c = client[chan])->state != Dialing) {
 			if(c)
 				fprint(2, "cstate %d\n", c->state);
 			sysfatal("got unexpected open confirmation for %d", chan);
@@ -901,9 +895,9 @@ handlemsg(Msg *m)
 	case SSH_MSG_CHANNEL_OPEN_FAILURE:
 		chan = getlong(m);
 		c = nil;
-		if(chan>=nclient || (c=client[chan])->state != Dialing)
+		if(chan >= nclient || (c = client[chan])->state != Dialing)
 			sysfatal("got unexpected open failure");
-		if(m->rp+4 <= m->ep)
+		if(m->rp + 4 <= m->ep)
 			c->servernum = getlong(m);
 		c->state = Closed;
 		dialedclient(c);
@@ -913,7 +907,7 @@ handlemsg(Msg *m)
 }
 
 void
-fsnetproc(void*)
+fsnetproc(void *)
 {
 	uint32_t path;
 	Alt a[4];
@@ -935,14 +929,14 @@ fsnetproc(void*)
 	a[2].v = &m;
 	a[3].op = CHANEND;
 
-	for(;;){
-		switch(alt(a)){
+	for(;;) {
+		switch(alt(a)) {
 		case 0:
 			path = fid->qid.path;
-			switch(TYPE(path)){
+			switch(TYPE(path)) {
 			case Qcs:
 				cs = fid->aux;
-				if(cs){
+				if(cs) {
 					free(cs->resp);
 					free(cs);
 				}
@@ -953,7 +947,7 @@ fsnetproc(void*)
 			sendp(fsclunkwaitchan, nil);
 			break;
 		case 1:
-			switch(r->ifcall.type){
+			switch(r->ifcall.type) {
 			case Tattach:
 				fsattach(r);
 				break;
@@ -989,7 +983,7 @@ static void
 fssend(Req *r)
 {
 	sendp(fsreqchan, r);
-	recvp(fsreqwaitchan);	/* avoids need to deal with spurious flushes */
+	recvp(fsreqwaitchan); /* avoids need to deal with spurious flushes */
 }
 
 static void
@@ -1000,22 +994,22 @@ fsdestroyfid(Fid *fid)
 }
 
 void
-takedown(Srv*)
+takedown(Srv *)
 {
 	threadexitsall("done");
 }
 
-Srv fs = 
-{
-.attach=		fssend,
-.destroyfid=	fsdestroyfid,
-.walk1=		fswalk1,
-.open=		fssend,
-.read=		fssend,
-.write=		fssend,
-.stat=		fssend,
-.flush=		fssend,
-.end=		takedown,
+Srv fs =
+    {
+     .attach = fssend,
+     .destroyfid = fsdestroyfid,
+     .walk1 = fswalk1,
+     .open = fssend,
+     .read = fssend,
+     .write = fssend,
+     .stat = fssend,
+     .flush = fssend,
+     .end = takedown,
 };
 
 void
@@ -1033,14 +1027,15 @@ threadmain(int argc, char **argv)
 	mtpt = "/net";
 	service = nil;
 	user = nil;
-	ARGBEGIN{
-	case 'B':	/* undocumented, debugging */
+	ARGBEGIN
+	{
+	case 'B': /* undocumented, debugging */
 		doabort = 1;
 		break;
-	case 'D':	/* undocumented, debugging */
+	case 'D': /* undocumented, debugging */
 		debuglevel = strtol(EARGF(usage()), nil, 0);
 		break;
-	case '9':	/* undocumented, debugging */
+	case '9': /* undocumented, debugging */
 		chatty9p++;
 		break;
 
@@ -1058,14 +1053,15 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
 	host = argv[0];
 
-	if((p = strchr(host, '@')) != nil){
+	if((p = strchr(host, '@')) != nil) {
 		*p++ = '\0';
 		user = host;
 		host = p;
@@ -1087,33 +1083,32 @@ threadmain(int argc, char **argv)
 	setaliases(&c, host);
 
 	c.nokcipher = getfields(cipherlist, f, nelem(f), 1, ", ");
-	c.okcipher = emalloc(sizeof(Cipher*)*c.nokcipher);
-	for(i=0; i<c.nokcipher; i++)
+	c.okcipher = emalloc(sizeof(Cipher *) * c.nokcipher);
+	for(i = 0; i < c.nokcipher; i++)
 		c.okcipher[i] = findcipher(f[i], allcipher, nelem(allcipher));
 
 	c.nokauth = getfields(authlist, f, nelem(f), 1, ", ");
-	c.okauth = emalloc(sizeof(Auth*)*c.nokauth);
-	for(i=0; i<c.nokauth; i++)
+	c.okauth = emalloc(sizeof(Auth *) * c.nokauth);
+	for(i = 0; i < c.nokauth; i++)
 		c.okauth[i] = findauth(f[i], allauth, nelem(allauth));
 
 	sshclienthandshake(&c);
 
-	requestpty(&c);		/* turns on TCP_NODELAY on other side */
+	requestpty(&c); /* turns on TCP_NODELAY on other side */
 	m = allocmsg(&c, SSH_CMSG_EXEC_SHELL, 0);
 	sendmsg(m);
 
 	time0 = time(0);
-	sshmsgchan = chancreate(sizeof(Msg*), 16);
-	fsreqchan = chancreate(sizeof(Req*), 0);
-	fsreqwaitchan = chancreate(sizeof(void*), 0);
-	fsclunkchan = chancreate(sizeof(Fid*), 0);
-	fsclunkwaitchan = chancreate(sizeof(void*), 0);
+	sshmsgchan = chancreate(sizeof(Msg *), 16);
+	fsreqchan = chancreate(sizeof(Req *), 0);
+	fsreqwaitchan = chancreate(sizeof(void *), 0);
+	fsclunkchan = chancreate(sizeof(Fid *), 0);
+	fsclunkwaitchan = chancreate(sizeof(void *), 0);
 
 	conn = &c;
-	procrfork(sshreadproc, &c, 8192, RFNAMEG|RFNOTEG);
-	procrfork(fsnetproc, nil, 8192, RFNAMEG|RFNOTEG);
+	procrfork(sshreadproc, &c, 8192, RFNAMEG | RFNOTEG);
+	procrfork(fsnetproc, nil, 8192, RFNAMEG | RFNOTEG);
 
 	threadpostmountsrv(&fs, service, mtpt, MREPL);
 	exits(0);
 }
-

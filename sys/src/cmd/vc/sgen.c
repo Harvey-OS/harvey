@@ -201,9 +201,8 @@ xcom(Node *n)
 		n->complex = l->complex;
 	if(r != Z) {
 		if(r->complex == n->complex)
-			n->complex = r->complex+1;
-		else
-		if(r->complex > n->complex)
+			n->complex = r->complex + 1;
+		else if(r->complex > n->complex)
 			n->complex = r->complex;
 	}
 	if(n->complex == 0)
@@ -233,4 +232,3 @@ xcom(Node *n)
 		break;
 	}
 }
-

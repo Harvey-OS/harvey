@@ -21,7 +21,7 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	char *service = nil;
 	uint16_t flags;
 	uint16_t passwordlength;
-//	ushort bytecount;
+	//	ushort bytecount;
 	uint8_t errclass;
 	uint16_t error;
 	SmbService *serv;
@@ -29,13 +29,13 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	uint32_t andxfixupoffset, bytecountfixup;
 	SmbProcessResult pr;
 
-	if (!smbcheckwordcount("comtreeconnectandx", h, 4)) {
+	if(!smbcheckwordcount("comtreeconnectandx", h, 4)) {
 	fmtfail:
 		pr = SmbProcessResultFormat;
 		goto done;
 	}
 
-	switch (s->state) {
+	switch(s->state) {
 	case SmbSessionNeedNegotiate:
 		smblogprint(-1, "smbcomtreeconnectandx: called when negotiate expected\n");
 		return SmbProcessResultUnimp;
@@ -45,7 +45,7 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	}
 
 	andxcommand = *pdata++;
-	switch (andxcommand) {
+	switch(andxcommand) {
 	case SMB_COM_OPEN:
 	case SMB_COM_CREATE_NEW:
 	case SMB_COM_DELETE_DIRECTORY:
@@ -68,32 +68,33 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 		break;
 	default:
 		smblogprint(h->command, "smbcomtreeconnectandx: invalid andxcommand %s (0x%.2ux)\n",
-			smboptable[andxcommand].name, andxcommand);
+			    smboptable[andxcommand].name, andxcommand);
 		goto fmtfail;
 	}
 	pdata++;
-	andxoffset = smbnhgets(pdata); pdata += 2;
-	flags = smbnhgets(pdata); pdata += 2;
+	andxoffset = smbnhgets(pdata);
+	pdata += 2;
+	flags = smbnhgets(pdata);
+	pdata += 2;
 	passwordlength = smbnhgets(pdata); //pdata += 2;
-//	bytecount = smbnhgets(pdata); pdata += 2;
-smblogprint(h->command, "passwordlength: %ud\n", passwordlength);
-smblogprint(h->command, "flags: 0x%.4ux\n", flags);
-	if (!smbbuffergetbytes(b, nil, passwordlength)) {
+	//	bytecount = smbnhgets(pdata); pdata += 2;
+	smblogprint(h->command, "passwordlength: %ud\n", passwordlength);
+	smblogprint(h->command, "flags: 0x%.4ux\n", flags);
+	if(!smbbuffergetbytes(b, nil, passwordlength)) {
 		smblogprint(h->command, "smbcomtreeconnectandx: not enough bytes for password\n");
 		goto fmtfail;
 	}
-smblogprint(h->command, "offset %lud limit %lud\n", smbbufferreadoffset(b), smbbufferwriteoffset(b));
-	if (!smbbuffergetstring(b, h, SMB_STRING_PATH, &path)
-		|| !smbbuffergetstr(b, 0, &service)) {
+	smblogprint(h->command, "offset %lud limit %lud\n", smbbufferreadoffset(b), smbbufferwriteoffset(b));
+	if(!smbbuffergetstring(b, h, SMB_STRING_PATH, &path) || !smbbuffergetstr(b, 0, &service)) {
 		smblogprint(h->command, "smbcomtreeconnectandx: not enough bytes for strings\n");
 		goto fmtfail;
 	}
-smblogprint(h->command, "path: %s\n", path);
-smblogprint(h->command, "service: %s\n", service);
-	if (flags & 1)
+	smblogprint(h->command, "path: %s\n", path);
+	smblogprint(h->command, "service: %s\n", service);
+	if(flags & 1)
 		smbtreedisconnectbyid(s, h->tid);
 	serv = smbservicefind(s, path, service, &errclass, &error);
-	if (serv == nil) {
+	if(serv == nil) {
 		pr = SmbProcessResultError;
 		smbseterror(s, errclass, error);
 		goto done;
@@ -101,23 +102,19 @@ smblogprint(h->command, "service: %s\n", service);
 	tree = smbtreeconnect(s, serv);
 	h->tid = tree->id;
 	h->wordcount = 3;
-	if (!smbresponseputandxheader(s, h, andxcommand, &andxfixupoffset)
-		|| !smbresponseputs(s, 1)) {
+	if(!smbresponseputandxheader(s, h, andxcommand, &andxfixupoffset) || !smbresponseputs(s, 1)) {
 	misc:
 		pr = SmbProcessResultMisc;
 		goto done;
 	}
 	bytecountfixup = smbresponseoffset(s);
-	if (!smbresponseputs(s, 0)
-		|| !smbresponseputstr(s, serv->type)
-		|| !smbresponseputstring(s, 1, s9p2000))
+	if(!smbresponseputs(s, 0) || !smbresponseputstr(s, serv->type) || !smbresponseputstring(s, 1, s9p2000))
 		goto misc;
-	if (!smbbufferfixuprelatives(s->response, bytecountfixup))
+	if(!smbbufferfixuprelatives(s->response, bytecountfixup))
 		goto misc;
-	if (andxcommand != SMB_COM_NO_ANDX_COMMAND) {
+	if(andxcommand != SMB_COM_NO_ANDX_COMMAND) {
 		pr = smbchaincommand(s, h, andxfixupoffset, andxcommand, andxoffset, b);
-	}
-	else
+	} else
 		pr = SmbProcessResultReply;
 done:
 	free(path);

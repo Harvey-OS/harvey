@@ -27,10 +27,10 @@
 /* Shared procedures for outline character rendering */
 
 #ifndef gxchrout_INCLUDED
-#  define gxchrout_INCLUDED
+#define gxchrout_INCLUDED
 
 #ifndef gs_imager_state_DEFINED
-#  define gs_imager_state_DEFINED
+#define gs_imager_state_DEFINED
 typedef struct gs_imager_state_s gs_imager_state;
 #endif
 

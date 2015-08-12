@@ -27,10 +27,10 @@ readfile(char *file, char *buf, int size)
 	int n, fd;
 
 	fd = open(file, OREAD);
-	if (fd < 0)
+	if(fd < 0)
 		return -1;
 	n = readn(fd, buf, size - 1);
-	if (n < 0)
+	if(n < 0)
 		buf[0] = '\0';
 	else
 		buf[n] = '\0';

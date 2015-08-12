@@ -10,19 +10,19 @@
 #include <u.h>
 #include <libc.h>
 
-void*	listalloc(int32_t, int32_t);
+void *listalloc(int32_t, int32_t);
 
 void *
 listalloc(int32_t n, int32_t size)
 {
 	char *p, *base;
 
-	size = (size+sizeof(uint32_t)-1)/sizeof(uint32_t)*sizeof(uint32_t);
-	p = base = malloc(n*size);
-	while(--n > 0){
-		*(char**)p = p+size;
+	size = (size + sizeof(uint32_t) - 1) / sizeof(uint32_t) * sizeof(uint32_t);
+	p = base = malloc(n * size);
+	while(--n > 0) {
+		*(char **)p = p + size;
 		p += size;
 	}
-	*(char**)p = 0;
+	*(char **)p = 0;
 	return base;
 }

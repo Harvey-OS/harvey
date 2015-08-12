@@ -11,26 +11,24 @@
 #include <libc.h>
 #include <draw.h>
 
-static
-uint8_t*
+static uint8_t *
 addcoord(uint8_t *p, int oldx, int newx)
 {
 	int dx;
 
-	dx = newx-oldx;
+	dx = newx - oldx;
 	/* does dx fit in 7 signed bits? */
 	if((unsigned)(dx - -0x40) <= 0x7F)
-		*p++ = dx&0x7F;
-	else{
-		*p++ = 0x80 | (newx&0x7F);
-		*p++ = newx>>7;
-		*p++ = newx>>15;
+		*p++ = dx & 0x7F;
+	else {
+		*p++ = 0x80 | (newx & 0x7F);
+		*p++ = newx >> 7;
+		*p++ = newx >> 15;
 	}
 	return p;
 }
 
-static
-void
+static void
 dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, Image *src, Point *sp, Drawop op)
 {
 	uint8_t *a, *t, *u;
@@ -38,12 +36,12 @@ dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, I
 
 	if(np == 0)
 		return;
-	t = malloc(np*2*3);
+	t = malloc(np * 2 * 3);
 	if(t == nil)
 		return;
 	u = t;
 	ox = oy = 0;
-	for(i=0; i<np; i++){
+	for(i = 0; i < np; i++) {
 		u = addcoord(u, ox, pp[i].x);
 		ox = pp[i].x;
 		u = addcoord(u, oy, pp[i].y);
@@ -52,22 +50,22 @@ dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, I
 
 	_setdrawop(dst->display, op);
 
-	a = bufimage(dst->display, 1+4+2+4+4+4+4+2*4+(u-t));
-	if(a == 0){
+	a = bufimage(dst->display, 1 + 4 + 2 + 4 + 4 + 4 + 4 + 2 * 4 + (u - t));
+	if(a == 0) {
 		free(t);
 		fprint(2, "image poly: %r\n");
 		return;
 	}
 	a[0] = cmd;
-	BPLONG(a+1, dst->id);
-	BPSHORT(a+5, np-1);
-	BPLONG(a+7, end0);
-	BPLONG(a+11, end1);
-	BPLONG(a+15, radius);
-	BPLONG(a+19, src->id);
-	BPLONG(a+23, sp->x);
-	BPLONG(a+27, sp->y);
-	memmove(a+31, t, u-t);
+	BPLONG(a + 1, dst->id);
+	BPSHORT(a + 5, np - 1);
+	BPLONG(a + 7, end0);
+	BPLONG(a + 11, end1);
+	BPLONG(a + 15, radius);
+	BPLONG(a + 19, src->id);
+	BPLONG(a + 23, sp->x);
+	BPLONG(a + 27, sp->y);
+	memmove(a + 31, t, u - t);
 	free(t);
 }
 

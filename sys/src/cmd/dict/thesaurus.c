@@ -47,11 +47,21 @@ thesprintentry(Entry e, int cmd)
 			if(i < 0 || i > 4)
 				break;
 			switch(c) {
-			case 'a': outrune(L"áàâäa"[i]); break;
-			case 'e': outrune(L"éèêëe"[i]); break;
-			case 'o': outrune(L"óòôöo"[i]); break;
-			case 'c': outrune(L"ccccç"[i]); break;
-			default: outchar(c); break;
+			case 'a':
+				outrune(L"áàâäa"[i]);
+				break;
+			case 'e':
+				outrune(L"éèêëe"[i]);
+				break;
+			case 'o':
+				outrune(L"óòôöo"[i]);
+				break;
+			case 'c':
+				outrune(L"ccccç"[i]);
+				break;
+			default:
+				outchar(c);
+				break;
 			}
 			break;
 		case '+':
@@ -83,7 +93,7 @@ thesnextoff(int32_t fromoff)
 		if(!p)
 			break;
 		if(p[0] == '*' && p[1] == 'L')
-			return (Boffset(bdict)-Blinelen(bdict));
+			return (Boffset(bdict) - Blinelen(bdict));
 	}
 	return -1;
 }

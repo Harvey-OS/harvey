@@ -9,7 +9,7 @@
 
 #include "acd.h"
 
-void*
+void *
 emalloc(uint n)
 {
 	void *p;
@@ -21,36 +21,36 @@ emalloc(uint n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
 
-	t = emalloc(strlen(s)+1);
+	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
 	return t;
 }
 
-char*
+char *
 estrstrdup(char *s, char *t)
 {
 	char *u;
 
-	u = emalloc(strlen(s)+strlen(t)+1);
+	u = emalloc(strlen(s) + strlen(t) + 1);
 	strcpy(u, s);
 	strcat(u, t);
 	return u;
 }
 
-char*
+char *
 eappend(char *s, char *sep, char *t)
 {
 	char *u;
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
-	else{
-		u = emalloc(strlen(s)+strlen(sep)+strlen(t)+1);
+	else {
+		u = emalloc(strlen(s) + strlen(sep) + strlen(t) + 1);
 		strcpy(u, s);
 		strcat(u, sep);
 		strcat(u, t);
@@ -59,7 +59,7 @@ eappend(char *s, char *sep, char *t)
 	return u;
 }
 
-char*
+char *
 egrow(char *s, char *sep, char *t)
 {
 	s = eappend(s, sep, t);

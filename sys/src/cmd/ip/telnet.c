@@ -12,10 +12,10 @@
 #include <bio.h>
 #include "telnet.h"
 
-int ctl = -1;		/* control fd (for break's) */
-int consctl = -1;	/* consctl fd */
+int ctl = -1;     /* control fd (for break's) */
+int consctl = -1; /* consctl fd */
 
-int ttypid;		/* pid's if the 2 processes (used to kill them) */
+int ttypid; /* pid's if the 2 processes (used to kill them) */
 int netpid;
 int interrupted;
 int localecho;
@@ -30,19 +30,19 @@ struct Comm {
 };
 Comm *comm;
 
-int	dodial(char*);
-void	fromkbd(int);
-void	fromnet(int);
-int	menu(Biobuf*,  int);
-void	notifyf(void*, char*);
-void	rawoff(void);
-void	rawon(void);
-void	telnet(int);
-char*	system(int, char*);
-int	echochange(Biobuf*, int);
-int	termsub(Biobuf*, uint8_t*, int);
-int	xlocsub(Biobuf*, uint8_t*, int);
-void*	share(uint32_t);
+int dodial(char *);
+void fromkbd(int);
+void fromnet(int);
+int menu(Biobuf *, int);
+void notifyf(void *, char *);
+void rawoff(void);
+void rawon(void);
+void telnet(int);
+char *system(int, char *);
+int echochange(Biobuf *, int);
+int termsub(Biobuf *, uint8_t *, int);
+int xlocsub(Biobuf *, uint8_t *, int);
+void *share(uint32_t);
 
 static int islikeatty(int);
 
@@ -58,7 +58,8 @@ main(int argc, char *argv[])
 	int returns;
 
 	returns = 1;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'C':
 		opt[Echo].noway = 1;
 		break;
@@ -67,7 +68,7 @@ main(int argc, char *argv[])
 		break;
 	case 'n':
 		notkbd = 1;
-		break; 
+		break;
 	case 'r':
 		returns = 0;
 		break;
@@ -76,7 +77,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -138,10 +140,10 @@ telnet(int net)
 
 	rawoff();
 	svc = nil;
-	if (srv) {
+	if(srv) {
 		if(pipe(p) < 0)
 			sysfatal("pipe: %r");
-		if (srv[0] != '/')
+		if(srv[0] != '/')
 			svc = smprint("/srv/%s", srv);
 		else
 			svc = srv;
@@ -152,7 +154,7 @@ telnet(int net)
 		/* pipe is now std in & out */
 	}
 	ttypid = getpid();
-	switch(pid = rfork(RFPROC|RFFDG|RFMEM)){
+	switch(pid = rfork(RFPROC | RFFDG | RFMEM)) {
 	case -1:
 		perror("con");
 		exits("fork");
@@ -160,7 +162,7 @@ telnet(int net)
 		rawoff();
 		notify(notifyf);
 		fromnet(net);
-		if (svc)
+		if(svc)
 			remove(svc);
 		sendnote(ttypid, "die");
 		exits(0);
@@ -171,7 +173,7 @@ telnet(int net)
 		if(notkbd)
 			for(;;)
 				sleep(1000); // sleep(0) is a cpuhog
-		if (svc)
+		if(svc)
 			remove(svc);
 		sendnote(netpid, "die");
 		exits(0);
@@ -194,7 +196,7 @@ fromkbd(int net)
 
 	likeatty = islikeatty(0);
 	eofs = 0;
-	for(;;){
+	for(;;) {
 		c = Bgetc(&ib);
 
 		/*
@@ -203,7 +205,7 @@ fromkbd(int net)
 		 *  10 in a row implies that the terminal is really gone so
 		 *  just hang up.
 		 */
-		if(c < 0){
+		if(c < 0) {
 			if(notkbd)
 				return;
 			if(eofs++ > 10)
@@ -216,8 +218,8 @@ fromkbd(int net)
 		 *  if not in binary mode, look for the ^\ escape to menu.
 		 *  also turn \n into \r\n
 		 */
-		if(likeatty || !opt[Binary].local){
-			if(c == 0034){ /* CTRL \ */
+		if(likeatty || !opt[Binary].local) {
+			if(c == 0034) { /* CTRL \ */
 				if(Bflush(&ob) < 0)
 					return;
 				if(menu(&ib, net) < 0)
@@ -225,8 +227,8 @@ fromkbd(int net)
 				continue;
 			}
 		}
-		if(!opt[Binary].local){
-			if(c == '\n'){
+		if(!opt[Binary].local) {
+			if(c == '\n') {
 				/*
 				 *  This is a very strange use of the SGA option.
 				 *  I did this because some systems that don't
@@ -235,7 +237,7 @@ fromkbd(int net)
 				 *  If someone can explain this to me, please
 				 *  send me mail. - presotto
 				 */
-				if(opt[SGA].remote){
+				if(opt[SGA].remote) {
 					c = '\r';
 				} else {
 					if(Bputc(&ob, '\r') < 0)
@@ -265,23 +267,23 @@ fromnet(int net)
 	Binit(&ib, net, OREAD);
 	Binit(&ob, 1, OWRITE);
 	eofs = 0;
-	for(;;){
+	for(;;) {
 		if(Bbuffered(&ib) == 0)
 			Bflush(&ob);
-		if(interrupted){
+		if(interrupted) {
 			interrupted = 0;
 			send2(net, Iac, Interrupt);
 		}
 		c = Bgetc(&ib);
-		if(c < 0){
+		if(c < 0) {
 			if(eofs++ >= 2)
 				return;
 			continue;
 		}
 		eofs = 0;
-		switch(c){
-		case '\n':	/* skip nl after string of cr's */
-			if(!opt[Binary].local && !comm->returns){
+		switch(c) {
+		case '\n': /* skip nl after string of cr's */
+			if(!opt[Binary].local && !comm->returns) {
 				++crnls;
 				if(freenl == 0)
 					break;
@@ -289,9 +291,9 @@ fromnet(int net)
 				continue;
 			}
 			break;
-		case '\r':	/* first cr becomes nl, remainder dropped */
-			if(!opt[Binary].local && !comm->returns){
-				if(crnls++ == 0){
+		case '\r': /* first cr becomes nl, remainder dropped */
+			if(!opt[Binary].local && !comm->returns) {
+				if(crnls++ == 0) {
 					freenl = 1;
 					c = '\n';
 					break;
@@ -299,7 +301,7 @@ fromnet(int net)
 				continue;
 			}
 			break;
-		case 0:		/* remove nulls from crnl string */
+		case 0: /* remove nulls from crnl string */
 			if(crnls)
 				continue;
 			break;
@@ -336,7 +338,7 @@ rawon(void)
 		fprint(2, "rawon\n");
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
-	if(consctl < 0){
+	if(consctl < 0) {
 		fprint(2, "%s: can't open consctl: %r\n", argv0);
 		return;
 	}
@@ -353,7 +355,7 @@ rawoff(void)
 		fprint(2, "rawoff\n");
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
-	if(consctl < 0){
+	if(consctl < 0) {
 		fprint(2, "%s: can't open consctl: %r\n", argv0);
 		return;
 	}
@@ -363,7 +365,7 @@ rawoff(void)
 /*
  *  control menu
  */
-#define STDHELP	"\t(b)reak, (i)nterrupt, (q)uit, (r)eturns, (!cmd), (.)continue\n"
+#define STDHELP "\t(b)reak, (i)nterrupt, (q)uit, (r)eturns, (!cmd), (.)continue\n"
 
 int
 menu(Biobuf *bp, int net)
@@ -375,16 +377,16 @@ menu(Biobuf *bp, int net)
 
 	rawoff();
 	fprint(2, ">>> ");
-	for(done = 0; !done; ){
+	for(done = 0; !done;) {
 		cp = Brdline(bp, '\n');
-		if(cp == 0){
+		if(cp == 0) {
 			comm->stopped = 0;
 			return -1;
 		}
-		cp[Blinelen(bp)-1] = 0;
-		switch(*cp){
+		cp[Blinelen(bp) - 1] = 0;
+		switch(*cp) {
 		case '!':
-			system(Bfildes(bp), cp+1);
+			system(Bfildes(bp), cp + 1);
 			done = 1;
 			break;
 		case '.':
@@ -394,12 +396,12 @@ menu(Biobuf *bp, int net)
 			comm->stopped = 0;
 			return -1;
 		case 'o':
-			switch(*(cp+1)){
+			switch(*(cp + 1)) {
 			case 'd':
-				send3(net, Iac, Do, atoi(cp+2));
+				send3(net, Iac, Do, atoi(cp + 2));
 				break;
 			case 'w':
-				send3(net, Iac, Will, atoi(cp+2));
+				send3(net, Iac, Will, atoi(cp + 2));
 				break;
 			}
 			break;
@@ -433,7 +435,7 @@ void
 notifyf(void *a, char *msg)
 {
 	USED(a);
-	if(strcmp(msg, "interrupt") == 0){
+	if(strcmp(msg, "interrupt") == 0) {
 		interrupted = 1;
 		noted(NCONT);
 	}
@@ -452,11 +454,10 @@ system(int fd, char *cmd)
 	int p;
 	static Waitmsg msg;
 
-	if((pid = fork()) == -1){
+	if((pid = fork()) == -1) {
 		perror("con");
 		return "fork failed";
-	}
-	else if(pid == 0){
+	} else if(pid == 0) {
 		dup(fd, 0);
 		close(ctl);
 		close(fd);
@@ -467,9 +468,9 @@ system(int fd, char *cmd)
 		perror("con");
 		exits("exec");
 	}
-	for(p = waitpid(); p >= 0; p = waitpid()){
+	for(p = waitpid(); p >= 0; p = waitpid()) {
 		if(p == pid)
-			return msg.msg;	
+			return msg.msg;
 	}
 	return "lost child";
 }
@@ -482,7 +483,7 @@ echochange(Biobuf *bp, int cmd)
 {
 	USED(bp);
 
-	switch(cmd){
+	switch(cmd) {
 	case Will:
 		rawon();
 		break;
@@ -505,7 +506,7 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 
 	if(n < 1)
 		return 0;
-	if(sub[0] == 1){
+	if(sub[0] == 1) {
 		*p++ = Iac;
 		*p++ = Sb;
 		*p++ = opt[Term].code;
@@ -514,11 +515,11 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 		if(term == 0 || *term == 0)
 			term = "p9win";
 		strncpy(p, term, sizeof(buf) - (p - buf) - 2);
-		buf[sizeof(buf)-2] = 0;
+		buf[sizeof(buf) - 2] = 0;
 		p += strlen(p);
 		*p++ = Iac;
 		*p++ = Se;
-		return iwrite(Bfildes(bp), buf, p-buf);
+		return iwrite(Bfildes(bp), buf, p - buf);
 	}
 	return 0;
 }
@@ -535,7 +536,7 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
 
 	if(n < 1)
 		return 0;
-	if(sub[0] == 1){
+	if(sub[0] == 1) {
 		*p++ = Iac;
 		*p++ = Sb;
 		*p++ = opt[Xloc].code;
@@ -547,7 +548,7 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
 		p += strlen(term);
 		*p++ = Iac;
 		*p++ = Se;
-		return iwrite(Bfildes(bp), buf, p-buf);
+		return iwrite(Bfildes(bp), buf, p - buf);
 	}
 	return 0;
 }
@@ -561,24 +562,24 @@ islikeatty(int fd)
 		return 0;
 
 	/* might be /mnt/term/dev/cons */
-	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+	return strlen(buf) >= 9 && strcmp(buf + strlen(buf) - 9, "/dev/cons") == 0;
 }
 
 /*
  *  create a shared segment.  Make is start 2 meg higher than the current
  *  end of process memory.
  */
-void*
+void *
 share(uint32_t len)
 {
 	uint8_t *vastart;
 
 	vastart = sbrk(0);
-	if(vastart == (void*)-1)
+	if(vastart == (void *)-1)
 		return 0;
-	vastart += 2*1024*1024;
+	vastart += 2 * 1024 * 1024;
 
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
+	if(segattach(0, "shared", vastart, len) == (void *)-1)
 		return 0;
 
 	return vastart;

@@ -27,7 +27,7 @@
 /* Externally accessible operator declarations */
 
 #ifndef opextern_INCLUDED
-#  define opextern_INCLUDED
+#define opextern_INCLUDED
 
 /*
  * Normally, the procedures that implement PostScript operators (named zX
@@ -137,17 +137,17 @@ int zcvr(i_ctx_t *);
 
 /* Operators exported for CIE cache loading. */
 int zcvx(i_ctx_t *);
-int zexec(i_ctx_t *);		/* also for .runexec */
+int zexec(i_ctx_t *); /* also for .runexec */
 int zfor(i_ctx_t *);
 
 /* Odds and ends */
 int zbegin(i_ctx_t *);
 int zcleartomark(i_ctx_t *);
-int zclosefile(i_ctx_t *);	/* for runexec_cleanup */
-int zcopy_dict(i_ctx_t *);	/* for zcopy */
+int zclosefile(i_ctx_t *); /* for runexec_cleanup */
+int zcopy_dict(i_ctx_t *); /* for zcopy */
 int zend(i_ctx_t *);
 int zfor_samples(i_ctx_t *); /* for function sampling */
-int zsetfont(i_ctx_t *);	/* for cshow_continue */
+int zsetfont(i_ctx_t *);     /* for cshow_continue */
 
 /* Operators exported for special customer needs. */
 int zcurrentdevice(i_ctx_t *);

@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "httpd.h"
 
-void*
+void *
 ezalloc(uint32_t n)
 {
 	void *p;
@@ -23,7 +23,7 @@ ezalloc(uint32_t n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	s = strdup(s);
@@ -31,4 +31,3 @@ estrdup(char *s)
 		sysfatal("out of memory");
 	return s;
 }
-

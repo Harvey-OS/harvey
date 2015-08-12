@@ -25,7 +25,7 @@
 #include "utf.h"
 #include "utfdef.h"
 
-char*
+char *
 utfecpy(char *to, char *e, char *from)
 {
 	char *end;
@@ -33,12 +33,12 @@ utfecpy(char *to, char *e, char *from)
 	if(to >= e)
 		return to;
 	end = memccpy(to, from, '\0', e - to);
-	if(end == nil){
-		end = e-1;
-		while(end>to && (*--end&0xC0)==0x80)
+	if(end == nil) {
+		end = e - 1;
+		while(end > to && (*--end & 0xC0) == 0x80)
 			;
 		*end = '\0';
-	}else{
+	} else {
 		end--;
 	}
 	return end;

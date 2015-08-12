@@ -28,7 +28,7 @@
 /* Requires gsmemory.h, gstypes.h */
 
 #ifndef srdline_INCLUDED
-#  define srdline_INCLUDED
+#define srdline_INCLUDED
 
 /*
  * Read a line from s_in, starting at index *pcount in buf.  Start by
@@ -42,14 +42,14 @@
  * an obscure condition in the default implementation.
  */
 #ifndef stream_DEFINED
-#  define stream_DEFINED
+#define stream_DEFINED
 typedef struct stream_s stream;
 #endif
-#define sreadline_proc(proc)\
-  int proc(stream *s_in, stream *s_out, void *readline_data,\
-	   gs_const_string *prompt, gs_string *buf,\
-	   gs_memory_t *bufmem, uint *pcount, bool *pin_eol,\
-	   bool (*is_stdin)(const stream *))
+#define sreadline_proc(proc)                                       \
+	int proc(stream *s_in, stream *s_out, void *readline_data, \
+		 gs_const_string *prompt, gs_string *buf,          \
+		 gs_memory_t *bufmem, uint *pcount, bool *pin_eol, \
+		 bool (*is_stdin)(const stream *))
 
 /* Declare the default implementation. */
 extern sreadline_proc(sreadline);

@@ -27,7 +27,7 @@
 /* RasterOp / transparency procedure interface */
 
 #ifndef gsrop_INCLUDED
-#  define gsrop_INCLUDED
+#define gsrop_INCLUDED
 
 #include "gsropt.h"
 

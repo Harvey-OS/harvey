@@ -53,7 +53,7 @@ struct oprofile_cpu_buffer {
 };
 
 /* extra data flags */
-#define KERNEL_CTX_SWITCH	(1UL << 0)
-#define IS_KERNEL		(1UL << 1)
-#define TRACE_BEGIN		(1UL << 2)
-#define USER_CTX_SWITCH		(1UL << 3)
+#define KERNEL_CTX_SWITCH (1UL << 0)
+#define IS_KERNEL (1UL << 1)
+#define TRACE_BEGIN (1UL << 2)
+#define USER_CTX_SWITCH (1UL << 3)

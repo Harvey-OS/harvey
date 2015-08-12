@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
-#include	"9p1.h"
+#include "all.h"
+#include "9p1.h"
 
 void
 fcall9p1(Chan *cp, Oldfcall *in, Oldfcall *ou)
@@ -17,11 +17,11 @@ fcall9p1(Chan *cp, Oldfcall *in, Oldfcall *ou)
 
 	rlock(&mainlock);
 	t = in->type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !call9p1[t]) {
+	if(t < 0 || t >= MAXSYSCALL || (t & 1) || !call9p1[t]) {
 		print("bad message type %d\n", t);
 		panic("");
 	}
-	ou->type = t+1;
+	ou->type = t + 1;
 	ou->err = 0;
 
 	rlock(&cp->reflock);
@@ -84,7 +84,7 @@ loop:
 		return 0;
 	strncpy(in.name, path, NAMELEN);
 	if(p = strchr(path, '/')) {
-		path = p+1;
+		path = p + 1;
 		if(p = strchr(in.name, '/'))
 			*p = 0;
 	} else
@@ -200,7 +200,7 @@ con_create(int fid, char *name, int uid, int gid, int32_t perm,
 	strncpy(in.name, name, NAMELEN);
 	in.perm = perm;
 	in.mode = mode;
-	cons.uid = uid;			/* beyond ugly */
+	cons.uid = uid; /* beyond ugly */
 	cons.gid = gid;
 	fcall9p1(cons.chan, &in, &ou);
 	return ou.err;
@@ -243,7 +243,6 @@ doclri(File *f)
 	 */
 	p = getbuf(f->fs->dev, f->addr, Bread);
 	d = getdir(p, f->slot);
-
 
 	/*
 	 * do it
@@ -295,7 +294,7 @@ con_clri(int fid)
 	cp = cons.chan;
 
 	rlock(&mainlock);
-	ou.type = Tremove9p1+1;
+	ou.type = Tremove9p1 + 1;
 	ou.err = 0;
 
 	rlock(&cp->reflock);
@@ -327,29 +326,28 @@ con_swap(int fid1, int fid2)
 	f2 = nil;
 	p1 = p2 = nil;
 	f1 = filep(cp, fid1, 0);
-	if(!f1){
+	if(!f1) {
 		err = Efid;
 		goto out;
 	}
-	p1 = getbuf(f1->fs->dev, f1->addr, Bread|Bmod);
+	p1 = getbuf(f1->fs->dev, f1->addr, Bread | Bmod);
 	d1 = getdir(p1, f1->slot);
-	if(!d1 || !(d1->mode&DALLOC)){
+	if(!d1 || !(d1->mode & DALLOC)) {
 		err = Ealloc;
 		goto out;
 	}
 
 	f2 = filep(cp, fid2, 0);
-	if(!f2){
+	if(!f2) {
 		err = Efid;
 		goto out;
 	}
-	if(memcmp(&f1->fs->dev, &f2->fs->dev, 4)==0
-	&& f2->addr == f1->addr)
+	if(memcmp(&f1->fs->dev, &f2->fs->dev, 4) == 0 && f2->addr == f1->addr)
 		p2 = p1;
 	else
-		p2 = getbuf(f2->fs->dev, f2->addr, Bread|Bmod);
+		p2 = getbuf(f2->fs->dev, f2->addr, Bread | Bmod);
 	d2 = getdir(p2, f2->slot);
-	if(!d2 || !(d2->mode&DALLOC)){
+	if(!d2 || !(d2->mode & DALLOC)) {
 		err = Ealloc;
 		goto out;
 	}
@@ -370,7 +368,7 @@ out:
 		qunlock(f2);
 	if(p1)
 		putbuf(p1);
-	if(p2 && p2!=p1)
+	if(p2 && p2 != p1)
 		putbuf(p2);
 
 	runlock(&cp->reflock);

@@ -27,7 +27,7 @@
 /* (Internal) interface to iinit.c */
 
 #ifndef iinit_INCLUDED
-#  define iinit_INCLUDED
+#define iinit_INCLUDED
 
 /*
  * Declare initialization procedures exported by iinit.c for imain.c.

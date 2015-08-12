@@ -27,8 +27,7 @@
 /* Declarations for exits */
 
 #ifndef gsexit_INCLUDED
-#  define gsexit_INCLUDED
-
+#define gsexit_INCLUDED
 
 /** The client must provide this.
  *  normally they do exit cleanup and error messaging

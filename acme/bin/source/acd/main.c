@@ -36,15 +36,20 @@ freetoc(Toc *t)
 	int i;
 
 	free(t->title);
-	for(i=0; i<t->ntrack; i++)
+	for(i = 0; i < t->ntrack; i++)
 		free(t->track[i].title);
 }
 
 void
 eventwatcher(Drive *d)
 {
-	enum { STATUS, WEVENT, TOCDISP, DBREQ, DBREPLY, NALT };
-	Alt alts[NALT+1];
+	enum { STATUS,
+	       WEVENT,
+	       TOCDISP,
+	       DBREQ,
+	       DBREPLY,
+	       NALT };
+	Alt alts[NALT + 1];
 	Toc nt, tdb;
 	Event *e;
 	Window *w;
@@ -84,7 +89,7 @@ eventwatcher(Drive *d)
 			tdb = nt;
 			alts[DBREQ].op = CHANSND;
 			break;
-		case DBREQ:	/* sent */
+		case DBREQ: /* sent */
 			//DPRINT(2,"dreq...");
 			alts[DBREQ].op = CHANNOP;
 			break;
@@ -105,11 +110,13 @@ threadmain(int argc, char **argv)
 	Drive *d;
 	char buf[80];
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'v':
 		debug++;
 		scsiverbose++;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -139,6 +146,6 @@ threadmain(int argc, char **argv)
 	snprint(buf, sizeof(buf), "%s/", argv[0]);
 	winname(d->w, buf);
 
-	wintagwrite(d->w, "Stop Pause Resume Eject Ingest ", 5+6+7+6+7);
+	wintagwrite(d->w, "Stop Pause Resume Eject Ingest ", 5 + 6 + 7 + 6 + 7);
 	eventwatcher(d);
 }

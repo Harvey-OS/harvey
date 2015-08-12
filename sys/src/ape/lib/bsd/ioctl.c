@@ -23,7 +23,7 @@
 #include <sys/ioctl.h>
 
 int
-ioctl(int fd, unsigned long request, void* arg)
+ioctl(int fd, unsigned long request, void *arg)
 {
 	struct stat d;
 
@@ -33,7 +33,7 @@ ioctl(int fd, unsigned long request, void* arg)
 			return -1;
 		}
 		/* this works if the file is buffered somehow */
-		*(int32_t*)arg = d.st_size;
+		*(int32_t *)arg = d.st_size;
 		return 0;
 	} else {
 		errno = EINVAL;

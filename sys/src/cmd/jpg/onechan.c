@@ -16,26 +16,24 @@
 
 /* Convert image to a single channel, one byte per pixel */
 
-static
-int
+static int
 notrans(uint32_t chan)
 {
-	switch(chan){
+	switch(chan) {
 	case GREY1:
 	case GREY2:
 	case GREY4:
-	case	CMAP8:
+	case CMAP8:
 	case GREY8:
 		return 1;
 	}
 	return 0;
 }
 
-static
-int
+static int
 easycase(uint32_t chan)
 {
-	switch(chan){
+	switch(chan) {
 	case RGB16:
 	case RGB24:
 	case RGBA32:
@@ -49,8 +47,7 @@ easycase(uint32_t chan)
  * Convert to one byte per pixel, RGBV or grey, depending
  */
 
-static
-uint8_t*
+static uint8_t *
 load(Image *image, Memimage *memimage)
 {
 	uint8_t *data, *p, *q0, *q1, *q2;
@@ -60,11 +57,11 @@ load(Image *image, Memimage *memimage)
 	Rectangle r;
 	Rawimage ri, *nri;
 
-	if(memimage == nil){
+	if(memimage == nil) {
 		r = image->r;
 		depth = image->depth;
 		chan = image->chan;
-	}else{
+	} else {
 		r = memimage->r;
 		depth = memimage->depth;
 		chan = memimage->chan;
@@ -76,7 +73,7 @@ load(Image *image, Memimage *memimage)
 	 * Read image data into memory
 	 * potentially one extra byte on each end of each scan line.
 	 */
-	ndata = dy*(2+bytesperline(r, depth));
+	ndata = dy * (2 + bytesperline(r, depth));
 	data = malloc(ndata);
 	if(data == nil)
 		return nil;
@@ -84,7 +81,7 @@ load(Image *image, Memimage *memimage)
 		ndata = unloadmemimage(memimage, r, data, ndata);
 	else
 		ndata = unloadimage(image, r, data, ndata);
-	if(ndata < 0){
+	if(ndata < 0) {
 		werrstr("onechan: %r");
 		free(data);
 		return nil;
@@ -98,12 +95,12 @@ load(Image *image, Memimage *memimage)
 	ri.cmap = nil;
 	ri.cmaplen = 0;
 	ri.nchans = 3;
-	ri.chanlen = dx*dy;
+	ri.chanlen = dx * dy;
 	ri.chans[0] = malloc(ri.chanlen);
 	ri.chans[1] = malloc(ri.chanlen);
 	ri.chans[2] = malloc(ri.chanlen);
-	if(ri.chans[0]==nil || ri.chans[1]==nil || ri.chans[2]==nil){
-    Err:
+	if(ri.chans[0] == nil || ri.chans[1] == nil || ri.chans[2] == nil) {
+	Err:
 		free(ri.chans[0]);
 		free(ri.chans[1]);
 		free(ri.chans[2]);
@@ -117,30 +114,30 @@ load(Image *image, Memimage *memimage)
 	q1 = ri.chans[1];
 	q2 = ri.chans[2];
 
-	switch(chan){
+	switch(chan) {
 	default:
 		werrstr("can't handle image type 0x%lux", chan);
 		goto Err;
 	case RGB16:
-		for(i=0; i<ri.chanlen; i++, p+=2){
-			pixel = (p[1]<<8)|p[0];	/* rrrrrggg gggbbbbb */
+		for(i = 0; i < ri.chanlen; i++, p += 2) {
+			pixel = (p[1] << 8) | p[0]; /* rrrrrggg gggbbbbb */
 			v = (pixel & 0xF800) >> 8;
-			*q0++ = v | (v>>5);
+			*q0++ = v | (v >> 5);
 			v = (pixel & 0x07E0) >> 3;
-			*q1++ = v | (v>>6);
+			*q1++ = v | (v >> 6);
 			v = (pixel & 0x001F) << 3;
-			*q2++ = v | (v>>5);
+			*q2++ = v | (v >> 5);
 		}
 		break;
 	case RGB24:
-		for(i=0; i<ri.chanlen; i++){
+		for(i = 0; i < ri.chanlen; i++) {
 			*q2++ = *p++;
 			*q1++ = *p++;
 			*q0++ = *p++;
 		}
 		break;
 	case RGBA32:
-		for(i=0; i<ri.chanlen; i++){
+		for(i = 0; i < ri.chanlen; i++) {
 			*q2++ = *p++;
 			*q1++ = *p++;
 			*q0++ = *p++;
@@ -148,7 +145,7 @@ load(Image *image, Memimage *memimage)
 		}
 		break;
 	case ARGB32:
-		for(i=0; i<ri.chanlen; i++){
+		for(i = 0; i < ri.chanlen; i++) {
 			p++;
 			*q2++ = *p++;
 			*q1++ = *p++;
@@ -159,7 +156,7 @@ load(Image *image, Memimage *memimage)
 
 	rgbv = nil;
 	nri = torgbv(&ri, 1);
-	if(nri != nil){
+	if(nri != nil) {
 		rgbv = nri->chans[0];
 		free(nri);
 	}
@@ -171,7 +168,7 @@ load(Image *image, Memimage *memimage)
 	return rgbv;
 }
 
-Image*
+Image *
 onechan(Image *i)
 {
 	uint8_t *data;
@@ -182,7 +179,7 @@ onechan(Image *i)
 
 	if(easycase(i->chan))
 		data = load(i, nil);
-	else{
+	else {
 		ni = allocimage(display, i->r, RGB24, 0, DNofill);
 		if(ni == nil)
 			return ni;
@@ -196,7 +193,7 @@ onechan(Image *i)
 
 	ni = allocimage(display, i->r, CMAP8, 0, DNofill);
 	if(ni != nil)
-		if(loadimage(ni, ni->r, data, Dx(ni->r)*Dy(ni->r)) < 0){
+		if(loadimage(ni, ni->r, data, Dx(ni->r) * Dy(ni->r)) < 0) {
 			freeimage(ni);
 			ni = nil;
 		}
@@ -204,7 +201,7 @@ onechan(Image *i)
 	return ni;
 }
 
-Memimage*
+Memimage *
 memonechan(Memimage *i)
 {
 	uint8_t *data;
@@ -215,7 +212,7 @@ memonechan(Memimage *i)
 
 	if(easycase(i->chan))
 		data = load(nil, i);
-	else{
+	else {
 		ni = allocmemimage(i->r, RGB24);
 		if(ni == nil)
 			return ni;
@@ -229,7 +226,7 @@ memonechan(Memimage *i)
 
 	ni = allocmemimage(i->r, CMAP8);
 	if(ni != nil)
-		if(loadmemimage(ni, ni->r, data, Dx(ni->r)*Dy(ni->r)) < 0){
+		if(loadmemimage(ni, ni->r, data, Dx(ni->r) * Dy(ni->r)) < 0) {
 			freememimage(ni);
 			ni = nil;
 		}

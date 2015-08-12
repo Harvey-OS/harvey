@@ -13,7 +13,7 @@
 #include "fns.h"
 #include "error.h"
 
-Label*
+Label *
 pwaserror(void)
 {
 	if(up->nerrlab == NERR)
@@ -31,6 +31,6 @@ void
 error(char *e)
 {
 	kstrcpy(up->errstr, e, ERRMAX);
-	setjmp(up->errlab[NERR-1].buf);
+	setjmp(up->errlab[NERR - 1].buf);
 	nexterror();
 }

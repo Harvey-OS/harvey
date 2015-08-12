@@ -8,21 +8,22 @@
 #include "io.h"
 #include "amd64.h"
 
-int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
+int
+backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
 {
 	size_t nr_pcs = 0;
-	while (fp && nr_pcs < nr_slots) {
+	while(fp && nr_pcs < nr_slots) {
 		/* could put some sanity checks in here... */
 		pcs[nr_pcs++] = pc;
 		//iprint("PC %p FP %p\n", pc, fp);
-		if (fp < KTZERO)
+		if(fp < KTZERO)
 			break;
 		/* PC becomes the retaddr - 1.  the -1 is to put our PC back inside the
 		 * function that called us.  this was necessary in case we called as the
 		 * last instruction in a function (would have to never return).  not
 		 * sure how necessary this still is. */
-		pc = *(uintptr_t*)(fp + sizeof(uintptr_t)) - 1;
-		fp = *(uintptr_t*)fp;
+		pc = *(uintptr_t *)(fp + sizeof(uintptr_t)) - 1;
+		fp = *(uintptr_t *)fp;
 	}
 	return nr_pcs;
 }
@@ -31,7 +32,7 @@ int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
 void backtrace_frame(uintptr_t eip, uintptr_t ebp)
 {
 	char *func_name;
-	#define MAX_BT_DEPTH 20
+#define MAX_BT_DEPTH 20
 	uintptr_t pcs[MAX_BT_DEPTH];
 	size_t nr_pcs = backtrace_list(eip, ebp, pcs, MAX_BT_DEPTH);
 

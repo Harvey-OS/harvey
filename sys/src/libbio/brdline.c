@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
-void*
+void *
 Brdline(Biobufhdr *bp, int delim)
 {
 	char *ip, *ep;
@@ -34,7 +34,7 @@ Brdline(Biobufhdr *bp, int delim)
 	/*
 	 * first try in remainder of buffer (gbuf doesn't change)
 	 */
-	ip = (char*)bp->ebuf - i;
+	ip = (char *)bp->ebuf - i;
 	ep = memchr(ip, delim, i);
 	if(ep) {
 		j = (ep - ip) + 1;
@@ -53,17 +53,17 @@ Brdline(Biobufhdr *bp, int delim)
 	/*
 	 * append to buffer looking for the delim
 	 */
-	ip = (char*)bp->bbuf + i;
+	ip = (char *)bp->bbuf + i;
 	while(i < bp->bsize) {
-		j = read(bp->fid, ip, bp->bsize-i);
+		j = read(bp->fid, ip, bp->bsize - i);
 		if(j <= 0) {
 			/*
 			 * end of file with no delim
 			 */
-			memmove(bp->ebuf-i, bp->bbuf, i);
+			memmove(bp->ebuf - i, bp->bbuf, i);
 			bp->rdline = i;
 			bp->icount = -i;
-			bp->gbuf = bp->ebuf-i;
+			bp->gbuf = bp->ebuf - i;
 			return 0;
 		}
 		bp->offset += j;
@@ -74,12 +74,12 @@ Brdline(Biobufhdr *bp, int delim)
 			 * found in new piece
 			 * copy back up and reset everything
 			 */
-			ip = (char*)bp->ebuf - i;
-			if(i < bp->bsize){
+			ip = (char *)bp->ebuf - i;
+			if(i < bp->bsize) {
 				memmove(ip, bp->bbuf, i);
-				bp->gbuf = (uint8_t*)ip;
+				bp->gbuf = (uint8_t *)ip;
 			}
-			j = (ep - (char*)bp->bbuf) + 1;
+			j = (ep - (char *)bp->bbuf) + 1;
 			bp->rdline = j;
 			bp->icount = j - i;
 			return ip;

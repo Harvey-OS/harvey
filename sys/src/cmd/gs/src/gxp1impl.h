@@ -28,7 +28,7 @@
 /* Requires gxpcolor.h */
 
 #ifndef gxp1impl_INCLUDED
-#  define gxp1impl_INCLUDED
+#define gxp1impl_INCLUDED
 
 /*
  * Declare the filling algorithms implemented in gxp1fill.c.

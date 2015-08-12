@@ -34,7 +34,7 @@ becomenone(void)
 		sysfatal("can't build namespace: %r");
 }
 
-char*
+char *
 remoteaddr(char *dir)
 {
 	static char buf[128];
@@ -47,7 +47,7 @@ remoteaddr(char *dir)
 		return "";
 	n = read(fd, buf, sizeof(buf));
 	close(fd);
-	if(n > 0){
+	if(n > 0) {
 		buf[n] = 0;
 		p = strchr(buf, '!');
 		if(p)
@@ -63,7 +63,8 @@ main(int argc, char **argv)
 	char data[60], dir[40], ndir[40];
 	int ctl, nctl, fd;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 't':
@@ -72,15 +73,16 @@ main(int argc, char **argv)
 	case 'v':
 		verbose = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 2)
 		usage();
 
-	if(!verbose){
+	if(!verbose) {
 		close(1);
 		fd = open("/dev/null", OWRITE);
-		if(fd != 1){
+		if(fd != 1) {
 			dup(fd, 1);
 			close(fd);
 		}
@@ -94,25 +96,25 @@ main(int argc, char **argv)
 	if(ctl < 0)
 		sysfatal("announce %s: %r", argv[0]);
 
-	for(;;){
+	for(;;) {
 		nctl = listen(dir, ndir);
 		if(nctl < 0)
 			sysfatal("listen %s: %r", argv[0]);
 
-		switch(rfork(RFFDG|RFPROC|RFNOWAIT|RFENVG|RFNAMEG|RFNOTEG)){
+		switch(rfork(RFFDG | RFPROC | RFNOWAIT | RFENVG | RFNAMEG | RFNOTEG)) {
 		case -1:
 			reject(nctl, ndir, "host overloaded");
 			close(nctl);
 			continue;
 		case 0:
 			fd = accept(nctl, ndir);
-			if(fd < 0){
+			if(fd < 0) {
 				fprint(2, "accept %s: can't open  %s/data: %r\n",
-					argv[0], ndir);
+				       argv[0], ndir);
 				_exits(0);
 			}
 			print("incoming call for %s from %s in %s\n", argv[0],
-				remoteaddr(ndir), ndir);
+			      remoteaddr(ndir), ndir);
 			fprint(nctl, "keepalive");
 			close(ctl);
 			close(nctl);
@@ -123,9 +125,9 @@ main(int argc, char **argv)
 			dup(fd, 1);
 			dup(fd, 2);
 			close(fd);
-			exec(argv[1], argv+1);
+			exec(argv[1], argv + 1);
 			if(argv[1][0] != '/')
-				exec(smprint("/bin/%s", argv[1]), argv+1);
+				exec(smprint("/bin/%s", argv[1]), argv + 1);
 			fprint(2, "%s: exec: %r\n", argv0);
 			exits(nil);
 		default:

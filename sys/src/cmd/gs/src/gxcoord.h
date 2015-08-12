@@ -28,7 +28,7 @@
 /* Requires gxmatrix.h and gzstate.h */
 
 #ifndef gxcoord_INCLUDED
-#  define gxcoord_INCLUDED
+#define gxcoord_INCLUDED
 
 #include "gscoord.h"
 

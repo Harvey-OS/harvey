@@ -18,90 +18,92 @@
 /*
  * Leading flags
  */
-#define	SPACE	1		/* ' ' prepend space if no sign printed */
-#define	ALT	2		/* '#' use alternate conversion */
-#define	SIGN	4		/* '+' prepend sign, even if positive */
-#define	LEFT	8		/* '-' left-justify */
-#define	ZPAD	16		/* '0' zero-pad */
+#define SPACE 1 /* ' ' prepend space if no sign printed */
+#define ALT 2   /* '#' use alternate conversion */
+#define SIGN 4  /* '+' prepend sign, even if positive */
+#define LEFT 8  /* '-' left-justify */
+#define ZPAD 16 /* '0' zero-pad */
 /*
  * Trailing flags
  */
-#define	SHORT	32		/* 'h' convert a short integer */
-#define	LONG	64		/* 'l' convert a long integer */
-#define	LDBL	128		/* 'L' convert a long double */
-#define	PTR	256		/*     convert a void * (%p) */
-#define	VLONG	512		/* 'll' convert a long long integer */
+#define SHORT 32  /* 'h' convert a short integer */
+#define LONG 64   /* 'l' convert a long integer */
+#define LDBL 128  /* 'L' convert a long double */
+#define PTR 256   /*     convert a void * (%p) */
+#define VLONG 512 /* 'll' convert a long long integer */
 
-static int lflag[] = {	/* leading flags */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^@ ^A ^B ^C ^D ^E ^F ^G */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^H ^I ^J ^K ^L ^M ^N ^O */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^P ^Q ^R ^S ^T ^U ^V ^W */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^X ^Y ^Z ^[ ^\ ^] ^^ ^_ */
-SPACE,	0,	0,	ALT,	0,	0,	0,	0,	/* sp  !  "  #  $  %  &  ' */
-0,	0,	0,	SIGN,	0,	LEFT,	0,	0,	/*  (  )  *  +  ,  -  .  / */
-ZPAD,	0,	0,	0,	0,	0,	0,	0,	/*  0  1  2  3  4  5  6  7 */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  8  9  :  ;  <  =  >  ? */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  @  A  B  C  D  E  F  G */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  H  I  J  K  L  M  N  O */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  P  Q  R  S  T  U  V  W */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  X  Y  Z  [  \  ]  ^  _ */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  `  a  b  c  d  e  f  g */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  h  i  j  k  l  m  n  o */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  p  q  r  s  t  u  v  w */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
+static int lflag[] = {
+    /* leading flags */
+    0, 0, 0, 0, 0, 0, 0, 0,       /* ^@ ^A ^B ^C ^D ^E ^F ^G */
+    0, 0, 0, 0, 0, 0, 0, 0,       /* ^H ^I ^J ^K ^L ^M ^N ^O */
+    0, 0, 0, 0, 0, 0, 0, 0,       /* ^P ^Q ^R ^S ^T ^U ^V ^W */
+    0, 0, 0, 0, 0, 0, 0, 0,       /* ^X ^Y ^Z ^[ ^\ ^] ^^ ^_ */
+    SPACE, 0, 0, ALT, 0, 0, 0, 0, /* sp  !  "  #  $  %  &  ' */
+    0, 0, 0, SIGN, 0, LEFT, 0, 0, /*  (  )  *  +  ,  -  .  / */
+    ZPAD, 0, 0, 0, 0, 0, 0, 0,    /*  0  1  2  3  4  5  6  7 */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  8  9  :  ;  <  =  >  ? */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  @  A  B  C  D  E  F  G */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  H  I  J  K  L  M  N  O */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  P  Q  R  S  T  U  V  W */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  X  Y  Z  [  \  ]  ^  _ */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  `  a  b  c  d  e  f  g */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  h  i  j  k  l  m  n  o */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  p  q  r  s  t  u  v  w */
+    0, 0, 0, 0, 0, 0, 0, 0,       /*  x  y  z  {  |  }  ~ ^? */
 
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static int tflag[] = {	/* trailing flags */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^@ ^A ^B ^C ^D ^E ^F ^G */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^H ^I ^J ^K ^L ^M ^N ^O */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^P ^Q ^R ^S ^T ^U ^V ^W */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^X ^Y ^Z ^[ ^\ ^] ^^ ^_ */
-0,	0,	0,	0,	0,	0,	0,	0,	/* sp  !  "  #  $  %  &  ' */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  (  )  *  +  ,  -  .  / */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  0  1  2  3  4  5  6  7 */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  8  9  :  ;  <  =  >  ? */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  @  A  B  C  D  E  F  G */
-0,	0,	0,	0,	LDBL,	0,	0,	0,	/*  H  I  J  K  L  M  N  O */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  P  Q  R  S  T  U  V  W */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  X  Y  Z  [  \  ]  ^  _ */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  `  a  b  c  d  e  f  g */
-SHORT,	0,	0,	0,	LONG,	0,	0,	0,	/*  h  i  j  k  l  m  n  o */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  p  q  r  s  t  u  v  w */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
+static int tflag[] = {
+    /* trailing flags */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* ^@ ^A ^B ^C ^D ^E ^F ^G */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* ^H ^I ^J ^K ^L ^M ^N ^O */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* ^P ^Q ^R ^S ^T ^U ^V ^W */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* ^X ^Y ^Z ^[ ^\ ^] ^^ ^_ */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* sp  !  "  #  $  %  &  ' */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  (  )  *  +  ,  -  .  / */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  0  1  2  3  4  5  6  7 */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  8  9  :  ;  <  =  >  ? */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  @  A  B  C  D  E  F  G */
+    0, 0, 0, 0, LDBL, 0, 0, 0,     /*  H  I  J  K  L  M  N  O */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  P  Q  R  S  T  U  V  W */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  X  Y  Z  [  \  ]  ^  _ */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  `  a  b  c  d  e  f  g */
+    SHORT, 0, 0, 0, LONG, 0, 0, 0, /*  h  i  j  k  l  m  n  o */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  p  q  r  s  t  u  v  w */
+    0, 0, 0, 0, 0, 0, 0, 0,	/*  x  y  z  {  |  }  ~ ^? */
 
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 static int ocvt_E(FILE *, va_list *, int, int, int);
@@ -119,40 +121,40 @@ static int ocvt_s(FILE *, va_list *, int, int, int);
 static int ocvt_u(FILE *, va_list *, int, int, int);
 static int ocvt_x(FILE *, va_list *, int, int, int);
 
-static int(*ocvt[])(FILE *, va_list *, int, int, int) = {
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^@ ^A ^B ^C ^D ^E ^F ^G */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^H ^I ^J ^K ^L ^M ^N ^O */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^P ^Q ^R ^S ^T ^U ^V ^W */
-0,	0,	0,	0,	0,	0,	0,	0,	/* ^X ^Y ^Z ^[ ^\ ^] ^^ ^_ */
-0,	0,	0,	0,	0,	0,	0,	0,	/* sp  !  "  #  $  %  &  ' */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  (  )  *  +  ,  -  .  / */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  0  1  2  3  4  5  6  7 */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  8  9  :  ;  <  =  >  ? */
-0,	0,	0,	0,	0,	ocvt_E,	0,	ocvt_G,	/*  @  A  B  C  D  E  F  G */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  H  I  J  K  L  M  N  O */
-0,	0,	0,	0,	0,	0,	0,	0,	/*  P  Q  R  S  T  U  V  W */
-ocvt_X,	0,	0,	0,	0,	0,	0,	0,	/*  X  Y  Z  [  \  ]  ^  _ */
-0,	0,	0,	ocvt_c,	ocvt_d,	ocvt_e,	ocvt_f,	ocvt_g,	/*  `  a  b  c  d  e  f  g */
-0,	ocvt_d,	0,	0,	0,	0,	ocvt_n,	ocvt_o,	/*  h  i  j  k  l  m  n  o */
-ocvt_p,	0,	0,	ocvt_s,	0,	ocvt_u,	0,	0,	/*  p  q  r  s  t  u  v  w */
-ocvt_x,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
+static int (*ocvt[])(FILE *, va_list *, int, int, int) = {
+    0, 0, 0, 0, 0, 0, 0, 0,			     /* ^@ ^A ^B ^C ^D ^E ^F ^G */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /* ^H ^I ^J ^K ^L ^M ^N ^O */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /* ^P ^Q ^R ^S ^T ^U ^V ^W */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /* ^X ^Y ^Z ^[ ^\ ^] ^^ ^_ */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /* sp  !  "  #  $  %  &  ' */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /*  (  )  *  +  ,  -  .  / */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /*  0  1  2  3  4  5  6  7 */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /*  8  9  :  ;  <  =  >  ? */
+    0, 0, 0, 0, 0, ocvt_E, 0, ocvt_G,		     /*  @  A  B  C  D  E  F  G */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /*  H  I  J  K  L  M  N  O */
+    0, 0, 0, 0, 0, 0, 0, 0,			     /*  P  Q  R  S  T  U  V  W */
+    ocvt_X, 0, 0, 0, 0, 0, 0, 0,		     /*  X  Y  Z  [  \  ]  ^  _ */
+    0, 0, 0, ocvt_c, ocvt_d, ocvt_e, ocvt_f, ocvt_g, /*  `  a  b  c  d  e  f  g */
+    0, ocvt_d, 0, 0, 0, 0, ocvt_n, ocvt_o,	   /*  h  i  j  k  l  m  n  o */
+    ocvt_p, 0, 0, ocvt_s, 0, ocvt_u, 0, 0,	   /*  p  q  r  s  t  u  v  w */
+    ocvt_x, 0, 0, 0, 0, 0, 0, 0,		     /*  x  y  z  {  |  }  ~ ^? */
 
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
-0,	0,	0,	0,	0,	0,	0,	0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 static int nprint;
@@ -163,55 +165,57 @@ vfprintf(FILE *f, const char *s, va_list args)
 	int tfl, flags, width, precision;
 
 	nprint = 0;
-	while(*s){
-		if(*s != '%'){
+	while(*s) {
+		if(*s != '%') {
 			putc(*s++, f);
 			nprint++;
 			continue;
 		}
 		s++;
 		flags = 0;
-		while(lflag[*s&_IO_CHMASK]) flags |= lflag[*s++&_IO_CHMASK];
-		if(*s == '*'){
+		while(lflag[*s & _IO_CHMASK])
+			flags |= lflag[*s++ & _IO_CHMASK];
+		if(*s == '*') {
 			width = va_arg(args, int);
 			s++;
-			if(width<0){
+			if(width < 0) {
 				flags |= LEFT;
 				width = -width;
 			}
-		}
-		else{
+		} else {
 			width = 0;
-			while('0'<=*s && *s<='9') width = width*10 + *s++ - '0';
+			while('0' <= *s && *s <= '9')
+				width = width * 10 + *s++ - '0';
 		}
-		if(*s == '.'){
+		if(*s == '.') {
 			s++;
-			if(*s == '*'){
+			if(*s == '*') {
 				precision = va_arg(args, int);
 				s++;
-			}
-			else{
+			} else {
 				precision = 0;
-				while('0'<=*s && *s<='9') precision = precision*10 + *s++ - '0';
+				while('0' <= *s && *s <= '9')
+					precision = precision * 10 + *s++ - '0';
 			}
-		}
-		else
+		} else
 			precision = -1;
-		while(tfl = tflag[*s&_IO_CHMASK]){
-			if(tfl == LONG && (flags & LONG)){
+		while(tfl = tflag[*s & _IO_CHMASK]) {
+			if(tfl == LONG && (flags & LONG)) {
 				flags &= ~LONG;
 				tfl = VLONG;
 			}
 			flags |= tfl;
 			s++;
 		}
-		if(ocvt[*s]) nprint += (*ocvt[*s++])(f, &args, flags, width, precision);
-		else if(*s){
+		if(ocvt[*s])
+			nprint += (*ocvt[*s++])(f, &args, flags, width, precision);
+		else if(*s) {
 			putc(*s++, f);
 			nprint++;
 		}
 	}
-	return ferror(f)? -1: nprint;;
+	return ferror(f) ? -1 : nprint;
+	;
 }
 
 static int
@@ -220,10 +224,14 @@ ocvt_c(FILE *f, va_list *args, int flags, int width, int precision)
 #pragma ref precision
 	int i;
 
-	if(!(flags&LEFT)) for(i=1; i<width; i++) putc(' ', f);
+	if(!(flags & LEFT))
+		for(i = 1; i < width; i++)
+			putc(' ', f);
 	putc((unsigned char)va_arg(*args, int), f);
-	if(flags&LEFT) for(i=1; i<width; i++) putc(' ', f);
-	return width<1 ? 1 : width;
+	if(flags & LEFT)
+		for(i = 1; i < width; i++)
+			putc(' ', f);
+	return width < 1 ? 1 : width;
 }
 
 static int
@@ -235,29 +243,31 @@ ocvt_s(FILE *f, va_list *args, int flags, int width, int precision)
 	s = va_arg(*args, char *);
 	if(!s)
 		s = "";
-	if(!(flags&LEFT)){
+	if(!(flags & LEFT)) {
 		if(precision >= 0)
-			for(i=0; i!=precision && s[i]; i++);
+			for(i = 0; i != precision && s[i]; i++)
+				;
 		else
-			for(i=0; s[i]; i++);
-		for(; i<width; i++){
+			for(i = 0; s[i]; i++)
+				;
+		for(; i < width; i++) {
 			putc(' ', f);
 			n++;
 		}
 	}
-	if(precision >= 0){
-		for(i=0; i!=precision && *s; i++){
+	if(precision >= 0) {
+		for(i = 0; i != precision && *s; i++) {
 			putc(*s++, f);
 			n++;
 		}
-	} else{
-		for(i=0;*s;i++){
+	} else {
+		for(i = 0; *s; i++) {
 			putc(*s++, f);
 			n++;
 		}
 	}
-	if(flags&LEFT){
-		for(; i<width; i++){
+	if(flags & LEFT) {
+		for(; i < width; i++) {
 			putc(' ', f);
 			n++;
 		}
@@ -271,12 +281,12 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
 #pragma ref f
 #pragma ref width
 #pragma ref precision
-	if(flags&SHORT)
+	if(flags & SHORT)
 		*va_arg(*args, int16_t *) = nprint;
-	else if(flags&LONG)
+	else if(flags & LONG)
 		*va_arg(*args, int32_t *) = nprint;
-	else if(flags&VLONG)
-		*va_arg(*args, long long*) = nprint;
+	else if(flags & VLONG)
+		*va_arg(*args, long long *) = nprint;
 	else
 		*va_arg(*args, int *) = nprint;
 	return 0;
@@ -294,92 +304,111 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
  */
 static int
 ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
-	int radix, int sgned, char alphabet[], char *prefix)
+	   int radix, int sgned, char alphabet[], char *prefix)
 {
-	char digits[128];	/* no reasonable machine will ever overflow this */
+	char digits[128]; /* no reasonable machine will ever overflow this */
 	char *sign;
 	char *dp;
 	long long snum;
 	unsigned long long num;
 	int nout, npad, nlzero;
 
-	if(sgned){
-		if(flags&PTR) snum = (int32_t)va_arg(*args, void *);
-		else if(flags&SHORT) snum = va_arg(*args, int16_t);
-		else if(flags&LONG) snum = va_arg(*args, int32_t);
-		else if(flags&VLONG) snum = va_arg(*args, long long);
-		else snum = va_arg(*args, int);
-		if(snum < 0){
+	if(sgned) {
+		if(flags & PTR)
+			snum = (int32_t)va_arg(*args, void *);
+		else if(flags & SHORT)
+			snum = va_arg(*args, int16_t);
+		else if(flags & LONG)
+			snum = va_arg(*args, int32_t);
+		else if(flags & VLONG)
+			snum = va_arg(*args, long long);
+		else
+			snum = va_arg(*args, int);
+		if(snum < 0) {
 			sign = "-";
 			num = -snum;
-		} else{
-			if(flags&SIGN) sign = "+";
-			else if(flags&SPACE) sign = " ";
-			else sign = "";
+		} else {
+			if(flags & SIGN)
+				sign = "+";
+			else if(flags & SPACE)
+				sign = " ";
+			else
+				sign = "";
 			num = snum;
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (int32_t)va_arg(*args, void *);
-		else if(flags&SHORT) num = va_arg(*args, unsigned short);
-		else if(flags&LONG) num = va_arg(*args, unsigned long);
-		else if(flags&VLONG) num = va_arg(*args, unsigned long long);
-		else num = va_arg(*args, unsigned int);
+		if(flags & PTR)
+			num = (int32_t)va_arg(*args, void *);
+		else if(flags & SHORT)
+			num = va_arg(*args, unsigned short);
+		else if(flags & LONG)
+			num = va_arg(*args, unsigned long);
+		else if(flags & VLONG)
+			num = va_arg(*args, unsigned long long);
+		else
+			num = va_arg(*args, unsigned int);
 	}
-	if(num == 0) prefix = "";
+	if(num == 0)
+		prefix = "";
 	dp = digits;
-	do{
-		*dp++ = alphabet[num%radix];
+	do {
+		*dp++ = alphabet[num % radix];
 		num /= radix;
-	}while(num);
-	if(precision==0 && dp-digits==1 && dp[-1]=='0')
+	} while(num);
+	if(precision == 0 && dp - digits == 1 && dp[-1] == '0')
 		dp--;
-	nlzero = precision-(dp-digits);
-	if(nlzero < 0) nlzero = 0;
-	if(flags&ALT){
-		if(radix == 8) if(dp[-1]=='0' || nlzero) prefix = "";
-	}
-	else prefix = "";
-	nout = dp-digits+nlzero+strlen(prefix)+strlen(sign);
-	npad = width-nout;
-	if(npad < 0) npad = 0;
+	nlzero = precision - (dp - digits);
+	if(nlzero < 0)
+		nlzero = 0;
+	if(flags & ALT) {
+		if(radix == 8)
+			if(dp[-1] == '0' || nlzero)
+				prefix = "";
+	} else
+		prefix = "";
+	nout = dp - digits + nlzero + strlen(prefix) + strlen(sign);
+	npad = width - nout;
+	if(npad < 0)
+		npad = 0;
 	nout += npad;
-	if(!(flags&LEFT)){
-		if(flags&ZPAD && precision <= 0){
+	if(!(flags & LEFT)) {
+		if(flags & ZPAD && precision <= 0) {
 			fputs(sign, f);
 			fputs(prefix, f);
-			while(npad){
+			while(npad) {
 				putc('0', f);
 				--npad;
 			}
-		} else{
-			while(npad){
+		} else {
+			while(npad) {
 				putc(' ', f);
 				--npad;
 			}
 			fputs(sign, f);
 			fputs(prefix, f);
 		}
-		while(nlzero){
+		while(nlzero) {
 			putc('0', f);
 			--nlzero;
 		}
-		while(dp!=digits) putc(*--dp, f);
-	}
-	else{
+		while(dp != digits)
+			putc(*--dp, f);
+	} else {
 		fputs(sign, f);
 		fputs(prefix, f);
-		while(nlzero){
+		while(nlzero) {
 			putc('0', f);
 			--nlzero;
 		}
-		while(dp != digits) putc(*--dp, f);
-		while(npad){
+		while(dp != digits)
+			putc(*--dp, f);
+		while(npad) {
 			putc(' ', f);
 			--npad;
 		}
 	}
-	return nout;	
+	return nout;
 }
 
 static int
@@ -403,8 +432,8 @@ ocvt_o(FILE *f, va_list *args, int flags, int width, int precision)
 static int
 ocvt_p(FILE *f, va_list *args, int flags, int width, int precision)
 {
-	return ocvt_fixed(f, args, flags|PTR|ALT, width, precision, 16, 0,
-		"0123456789ABCDEF", "0x");
+	return ocvt_fixed(f, args, flags | PTR | ALT, width, precision, 16, 0,
+			  "0123456789ABCDEF", "0x");
 }
 
 static int
@@ -455,7 +484,7 @@ static int
 ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision,
 	 char afmt)
 {
-	extern char *_dtoa(double, int, int, int*, int*, char **);
+	extern char *_dtoa(double, int, int, int *, int *, char **);
 	int echr;
 	char *digits, *edigits;
 	int exponent;
@@ -463,112 +492,126 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision,
 	int sign;
 	int ndig;
 	int nout, i;
-	char ebuf[20];	/* no sensible machine will overflow this */
+	char ebuf[20]; /* no sensible machine will overflow this */
 	char *eptr;
 	double d;
 
 	echr = 'e';
 	fmt = afmt;
 	d = va_arg(*args, double);
-	if(precision < 0) precision = 6;
-	switch(fmt){
+	if(precision < 0)
+		precision = 6;
+	switch(fmt) {
 	case 'f':
 		digits = _dtoa(d, 3, precision, &exponent, &sign, &edigits);
 		break;
 	case 'E':
 		echr = 'E';
 		fmt = 'e';
-		/* fall through */
+	/* fall through */
 	case 'e':
-		digits = _dtoa(d, 2, 1+precision, &exponent, &sign, &edigits);
+		digits = _dtoa(d, 2, 1 + precision, &exponent, &sign, &edigits);
 		break;
 	case 'G':
 		echr = 'E';
-		/* fall through */
+	/* fall through */
 	case 'g':
-		if (precision > 0)
+		if(precision > 0)
 			digits = _dtoa(d, 2, precision, &exponent, &sign, &edigits);
 		else {
 			digits = _dtoa(d, 0, precision, &exponent, &sign, &edigits);
 			precision = edigits - digits;
-			if (exponent > precision && exponent <= precision + 4)
+			if(exponent > precision && exponent <= precision + 4)
 				precision = exponent;
-			}
-		if(exponent >= -3 && exponent <= precision){
+		}
+		if(exponent >= -3 && exponent <= precision) {
 			fmt = 'f';
 			precision -= exponent;
-		}else{
+		} else {
 			fmt = 'e';
 			--precision;
 		}
 		break;
 	}
-	if (exponent == 9999) {
+	if(exponent == 9999) {
 		/* Infinity or Nan */
 		precision = 0;
 		exponent = edigits - digits;
 		fmt = 'f';
 	}
-	ndig = edigits-digits;
+	ndig = edigits - digits;
 	if(ndig == 0) {
 		ndig = 1;
 		digits = "0";
 	}
-	if((afmt=='g' || afmt=='G') && !(flags&ALT)){	/* knock off trailing zeros */
-		if(fmt == 'f'){
-			if(precision+exponent > ndig) {
+	if((afmt == 'g' || afmt == 'G') && !(flags & ALT)) { /* knock off trailing zeros */
+		if(fmt == 'f') {
+			if(precision + exponent > ndig) {
 				precision = ndig - exponent;
 				if(precision < 0)
 					precision = 0;
 			}
-		}
-		else{
-			if(precision > ndig-1) precision = ndig-1;
+		} else {
+			if(precision > ndig - 1)
+				precision = ndig - 1;
 		}
 	}
-	nout = precision;				/* digits after decimal point */
-	if(precision!=0 || flags&ALT) nout++;		/* decimal point */
-	if(fmt=='f' && exponent>0) nout += exponent;	/* digits before decimal point */
-	else nout++;					/* there's always at least one */
-	if(sign || flags&(SPACE|SIGN)) nout++;		/* sign */
-	if(fmt != 'f'){					/* exponent */
+	nout = precision; /* digits after decimal point */
+	if(precision != 0 || flags & ALT)
+		nout++; /* decimal point */
+	if(fmt == 'f' && exponent > 0)
+		nout += exponent; /* digits before decimal point */
+	else
+		nout++; /* there's always at least one */
+	if(sign || flags & (SPACE | SIGN))
+		nout++;  /* sign */
+	if(fmt != 'f') { /* exponent */
 		eptr = ebuf;
-		for(i=exponent<=0?1-exponent:exponent-1; i; i/=10)
-			*eptr++ = '0' + i%10;
-		while(eptr<ebuf+2) *eptr++ = '0';
-		nout += eptr-ebuf+2;			/* e+99 */
+		for(i = exponent <= 0 ? 1 - exponent : exponent - 1; i; i /= 10)
+			*eptr++ = '0' + i % 10;
+		while(eptr < ebuf + 2)
+			*eptr++ = '0';
+		nout += eptr - ebuf + 2; /* e+99 */
 	}
-	if(!(flags&ZPAD) && !(flags&LEFT))
-		while(nout < width){
+	if(!(flags & ZPAD) && !(flags & LEFT))
+		while(nout < width) {
 			putc(' ', f);
 			nout++;
 		}
-	if(sign) putc('-', f);
-	else if(flags&SIGN) putc('+', f);
-	else if(flags&SPACE) putc(' ', f);
-	if((flags&ZPAD) && !(flags&LEFT))
-		while(nout < width){
+	if(sign)
+		putc('-', f);
+	else if(flags & SIGN)
+		putc('+', f);
+	else if(flags & SPACE)
+		putc(' ', f);
+	if((flags & ZPAD) && !(flags & LEFT))
+		while(nout < width) {
 			putc('0', f);
 			nout++;
 		}
-	if(fmt == 'f'){
-		for(i=0; i<exponent; i++) putc(i<ndig?digits[i]:'0', f);
-		if(i == 0) putc('0', f);
-		if(precision>0 || flags&ALT) putc('.', f);
-		for(i=0; i!=precision; i++)
-			putc(0<=i+exponent && i+exponent<ndig?digits[i+exponent]:'0', f);
-	}
-	else{
+	if(fmt == 'f') {
+		for(i = 0; i < exponent; i++)
+			putc(i < ndig ? digits[i] : '0', f);
+		if(i == 0)
+			putc('0', f);
+		if(precision > 0 || flags & ALT)
+			putc('.', f);
+		for(i = 0; i != precision; i++)
+			putc(0 <= i + exponent && i + exponent < ndig ? digits[i + exponent] : '0', f);
+	} else {
 		putc(digits[0], f);
-		if(precision>0 || flags&ALT) putc('.', f);
-		for(i=0; i!=precision; i++) putc(i<ndig-1?digits[i+1]:'0', f);
+		if(precision > 0 || flags & ALT)
+			putc('.', f);
+		for(i = 0; i != precision; i++)
+			putc(i < ndig - 1 ? digits[i + 1] : '0', f);
 	}
-	if(fmt != 'f'){
+	if(fmt != 'f') {
 		putc(echr, f);
-		putc(exponent<=0?'-':'+', f);
-		while(eptr>ebuf) putc(*--eptr, f);
+		putc(exponent <= 0 ? '-' : '+', f);
+		while(eptr > ebuf)
+			putc(*--eptr, f);
 	}
-	while(nout < width){
+	while(nout < width) {
 		putc(' ', f);
 		nout++;
 	}

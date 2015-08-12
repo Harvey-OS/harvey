@@ -23,8 +23,7 @@
 
 static void pageload1(Page *, Url *, int);
 
-static
-void
+static void
 addchild(Page *p, Page *c)
 {
 	Page *t;
@@ -36,15 +35,14 @@ addchild(Page *p, Page *c)
 	c->row = p->row;
 	if(p->child == nil)
 		p->child = c;
-	else{
-		for(t=p->child; t->next!=nil; t=t->next)
+	else {
+		for(t = p->child; t->next != nil; t = t->next)
 			;
 		t->next = c;
 	}
 }
 
-static
-void
+static void
 loadchilds(Page *p, Kidinfo *k)
 {
 	Runestr rs;
@@ -53,16 +51,16 @@ loadchilds(Page *p, Kidinfo *k)
 
 	addrefresh(p, "loading frames...");
 	p->kidinfo = k;
-	for(t=k->kidinfos; t!=nil; t=t->next){
+	for(t = k->kidinfos; t != nil; t = t->next) {
 		c = emalloc(sizeof(Page));
 		addchild(p, c);
-		if(t->isframeset){
+		if(t->isframeset) {
 			c->url = urldup(p->url);
 			loadchilds(c, t);
-		}else{
+		} else {
 			c->kidinfo = t;
 			/* this check shouldn't be necessary, but... */
-			if(t->src){
+			if(t->src) {
 				rs.r = urlcombine(p->url->act.r, t->src);
 				rs.nr = runestrlen(rs.r);
 				pageload1(c, urlalloc(&rs, nil, HGet), FALSE);
@@ -75,14 +73,14 @@ loadchilds(Page *p, Kidinfo *k)
 static struct {
 	char *mime;
 	char *filter;
-}filtertab[] = {
-	"image/gif",	"gif -t9",
-	"image/jpeg",	"jpg -t9",
-	"image/jpg",	"jpg -t9",
-	"image/pjpeg",	"jpg -t9",
-	"image/png",	"png -t9",
-	"image/ppm",	"ppm -t9",
-	nil,	nil,
+} filtertab[] = {
+    "image/gif", "gif -t9",
+    "image/jpeg", "jpg -t9",
+    "image/jpg", "jpg -t9",
+    "image/pjpeg", "jpg -t9",
+    "image/png", "png -t9",
+    "image/ppm", "ppm -t9",
+    nil, nil,
 };
 
 char *
@@ -92,16 +90,16 @@ getfilter(Rune *r, int x, int y)
 	int i;
 
 	snprint(buf, sizeof(buf), "%S", r);
-	for(i=0; filtertab[i].mime!=nil; i++)
+	for(i = 0; filtertab[i].mime != nil; i++)
 		if(cistrncmp(buf, filtertab[i].mime, strlen(filtertab[i].mime)) == 0)
 			break;
 
 	if(filtertab[i].filter == nil)
 		return nil;
 
-	if(x==0 && y==0)
+	if(x == 0 && y == 0)
 		return smprint("%s", filtertab[i].filter);
-	if(x!=0 && y!=0)
+	if(x != 0 && y != 0)
 		return smprint("%s | resample -x %d -y %d", filtertab[i].filter, x, y);
 	if(x != 0)
 		return smprint("%s | resample -x %d", filtertab[i].filter, x);
@@ -112,14 +110,13 @@ getfilter(Rune *r, int x, int y)
 static Cimage *cimages = nil;
 static QLock cimagelock;
 
-static
-void
+static void
 freecimage(Cimage *ci)
 {
 	Cimage *ci1;
 
 	qlock(&cimagelock);
-	if(decref(ci) == 0){
+	if(decref(ci) == 0) {
 		if(ci->i)
 			freeimage(ci->i);
 		else if(ci->mi)
@@ -128,9 +125,9 @@ freecimage(Cimage *ci)
 		ci1 = cimages;
 		if(ci1 == ci)
 			cimages = ci->next;
-		else{
-			while(ci1){
-				if(ci1->next == ci){
+		else {
+			while(ci1) {
+				if(ci1->next == ci) {
 					ci1->next = ci->next;
 					break;
 				}
@@ -142,22 +139,20 @@ freecimage(Cimage *ci)
 	qunlock(&cimagelock);
 }
 
-static
-void
+static void
 closeimages(Page *p)
 {
 	int i;
 
-	for(i=0; i<p->ncimage; i++)
+	for(i = 0; i < p->ncimage; i++)
 		freecimage(p->cimage[i]);
 	free(p->cimage);
-	p->cimage =nil;
+	p->cimage = nil;
 	p->ncimage = 0;
 }
 
-static
-Cimage *
-loadimg(Rune *src, int x , int y)
+static Cimage *
+loadimg(Rune *src, int x, int y)
 {
 	Channel *sync;
 	Cimage *ci;
@@ -167,23 +162,23 @@ loadimg(Rune *src, int x , int y)
 	int fd, p[2], q[2];
 
 	ci = emalloc(sizeof(Cimage));
-	rs. r = src;
+	rs.r = src;
 	rs.nr = runestrlen(rs.r);
 	ci->url = urlalloc(&rs, nil, HGet);
 	fd = urlopen(ci->url);
-	if(fd < 0){
-    Err1:
+	if(fd < 0) {
+	Err1:
 		return ci;
 	}
 	filter = getfilter(ci->url->ctype.r, x, y);
-	if(filter == nil){
+	if(filter == nil) {
 		werrstr("%S unsupported: %S", ci->url->ctype.r, ci->url->act.r);
-    Err2:
+	Err2:
 		close(fd);
 		goto Err1;
 	}
 
-	if(pipe(p)<0 || pipe(q)<0)
+	if(pipe(p) < 0 || pipe(q) < 0)
 		error("can't create pipe");
 	close(p[0]);
 	p[0] = fd;
@@ -206,7 +201,7 @@ loadimg(Rune *src, int x , int y)
 
 	ci->mi = readmemimage(q[0]);
 	close(q[0]);
-	if(ci->mi == nil){
+	if(ci->mi == nil) {
 		werrstr("can't read image");
 		goto Err2;
 	}
@@ -214,14 +209,13 @@ loadimg(Rune *src, int x , int y)
 	return ci;
 }
 
-static
-Cimage *
+static Cimage *
 findimg(Rune *s)
 {
 	Cimage *ci;
 
 	qlock(&cimagelock);
-	for(ci=cimages; ci!=nil; ci=ci->next)
+	for(ci = cimages; ci != nil; ci = ci->next)
 		if(runestrcmp(ci->url->src.r, s) == 0)
 			break;
 
@@ -238,12 +232,12 @@ loadimages(Page *p)
 
 	addrefresh(p, "loading images...");
 	reverseimages(&p->doc->images);
-	for(i=p->doc->images; i!=nil; i=i->nextimage){
+	for(i = p->doc->images; i != nil; i = i->nextimage) {
 		if(p->aborting)
 			break;
 		src = urlcombine(getbase(p), i->imsrc);
 		ci = findimg(src);
-		if(ci == nil){
+		if(ci == nil) {
 			ci = loadimg(src, i->imwidth, i->imheight);
 			qlock(&cimagelock);
 			ci->next = cimages;
@@ -253,21 +247,20 @@ loadimages(Page *p)
 		free(src);
 		incref(ci);
 		i->aux = ci;
-		p->cimage = erealloc(p->cimage, ++p->ncimage*sizeof(Cimage *));
-		p->cimage[p->ncimage-1] = ci;
+		p->cimage = erealloc(p->cimage, ++p->ncimage * sizeof(Cimage *));
+		p->cimage[p->ncimage - 1] = ci;
 		p->changed = TRUE;
 		addrefresh(p, "");
 	}
 }
 
 static char *mimetab[] = {
-	"text/html",
-	"application/xhtml",
-	nil,
+    "text/html",
+    "application/xhtml",
+    nil,
 };
 
-static
-void
+static void
 pageloadproc(void *v)
 {
 	Page *p;
@@ -281,9 +274,9 @@ pageloadproc(void *v)
 	p = v;
 	addrefresh(p, "opening: %S...", p->url->src.r);
 	fd = urlopen(p->url);
-	if(fd < 0){
+	if(fd < 0) {
 		addrefresh(p, "%S: %r", p->url->src.r);
-    Err:
+	Err:
 		p->loading = FALSE;
 		return;
 	}
@@ -291,16 +284,16 @@ pageloadproc(void *v)
 		goto Html;
 
 	snprint(buf, sizeof(buf), "%S", p->url->ctype.r);
-	for(i=0; mimetab[i]!=nil; i++)
+	for(i = 0; mimetab[i] != nil; i++)
 		if(cistrncmp(buf, mimetab[i], strlen(mimetab[i])) == 0)
 			break;
 
-	if(mimetab[i]){
-    Html:
+	if(mimetab[i]) {
+	Html:
 		ctype = TextHtml;
-	}else if(cistrncmp(buf, "text/", 5) == 0)
+	} else if(cistrncmp(buf, "text/", 5) == 0)
 		ctype = TextPlain;
-	else{
+	else {
 		close(fd);
 		addrefresh(p, "%S: unsupported mime type: '%S'", p->url->act.r, p->url->ctype.r);
 		goto Err;
@@ -308,31 +301,31 @@ pageloadproc(void *v)
 	addrefresh(p, "loading: %S...", p->url->src.r);
 	s = nil;
 	l = 0;
-	while((n=read(fd, buf, sizeof(buf))) > 0){
-		if(p->aborting){
-			if(s){
+	while((n = read(fd, buf, sizeof(buf))) > 0) {
+		if(p->aborting) {
+			if(s) {
 				free(s);
 				s = nil;
 			}
 			break;
 		}
-		s = erealloc(s, l+n+1);
-		memmove(s+l, buf, n);
+		s = erealloc(s, l + n + 1);
+		memmove(s + l, buf, n);
 		l += n;
 		s[l] = '\0';
 	}
 	close(fd);
 	n = l;
-	if(s){
+	if(s) {
 		s = convert(p->url->ctype, s, &n);
 		p->items = parsehtml((uint8_t *)s, n, p->url->act.r, ctype,
 				     UTF_8, &p->doc);
 		free(s);
 		fixtext(p);
-		if(ctype==TextHtml && p->aborting==FALSE){
+		if(ctype == TextHtml && p->aborting == FALSE) {
 			p->changed = TRUE;
 			addrefresh(p, "");
-			if(p->doc->doctitle){
+			if(p->doc->doctitle) {
 				p->title.r = erunestrdup(p->doc->doctitle);
 				p->title.nr = runestrlen(p->title.r);
 			}
@@ -348,8 +341,7 @@ pageloadproc(void *v)
 	addrefresh(p, "");
 }
 
-static
-void
+static void
 pageload1(Page *p, Url *u, int dohist)
 {
 	pageclose(p);
@@ -370,7 +362,7 @@ pageload(Page *p, Url *u, int dohist)
 }
 
 void
-pageget(Page *p, Runestr *src, Runestr *post,  int m, int dohist)
+pageget(Page *p, Runestr *src, Runestr *post, int m, int dohist)
 {
 	pageload(p, urlalloc(src, post, m), dohist);
 }
@@ -386,7 +378,7 @@ pageclose(Page *p)
 	closeimages(p);
 	urlfree(p->url);
 	p->url = nil;
-	if(p->doc){
+	if(p->doc) {
 		freedocinfo(p->doc);
 		p->doc = nil;
 	}
@@ -394,7 +386,7 @@ pageclose(Page *p)
 	p->lay = nil;
 	freeitems(p->items);
 	p->items = nil;
-	for(c=p->child; c!=nil; c=nc){
+	for(c = p->child; c != nil; c = nc) {
 		nc = c->next;
 		pageclose(c);
 		free(c);
@@ -414,7 +406,7 @@ pageabort(Page *p)
 {
 	Page *c;
 
-	for(c=p->child; c!=nil; c=c->next)
+	for(c = p->child; c != nil; c = c->next)
 		pageabort(c);
 
 	p->aborting = TRUE;
@@ -425,7 +417,6 @@ pageabort(Page *p)
 	return TRUE;
 }
 
-
 static Image *tmp;
 
 void
@@ -434,11 +425,10 @@ tmpresize(void)
 	if(tmp)
 		freeimage(tmp);
 
-	tmp = eallocimage(display, Rect(0,0,Dx(screen->r),Dy(screen->r)), screen->chan, 0, -1);
+	tmp = eallocimage(display, Rect(0, 0, Dx(screen->r), Dy(screen->r)), screen->chan, 0, -1);
 }
 
-static
-void
+static void
 renderchilds(Page *p)
 {
 	Rectangle r;
@@ -453,13 +443,13 @@ renderchilds(Page *p)
 	k = p->kidinfo;
 	frdims(k->rows, k->nrows, Dy(r), &h);
 	frdims(k->cols, k->ncols, Dx(r), &w);
-	for(i=0; i<k->nrows; i++){
+	for(i = 0; i < k->nrows; i++) {
 		x = r.min.x;
-		for(j=0; j<k->ncols; j++){
+		for(j = 0; j < k->ncols; j++) {
 			if(c->aborting)
 				return;
 			c->b = p->b;
-			c->all = Rect(x,y,x+w[j],y+h[i]);
+			c->all = Rect(x, y, x + w[j], y + h[i]);
 			c->w = p->w;
 			pagerender(c);
 			c = c->next;
@@ -471,17 +461,16 @@ renderchilds(Page *p)
 	free(h);
 }
 
-static
-void
+static void
 pagerender1(Page *p)
 {
 	Rectangle r;
 
 	r = p->all;
 	p->hscrollr = r;
-	p->hscrollr.min.y = r.max.y-Scrollsize;
+	p->hscrollr.min.y = r.max.y - Scrollsize;
 	p->vscrollr = r;
-	p->vscrollr.max.x = r.min.x+Scrollsize;
+	p->vscrollr.max.x = r.min.x + Scrollsize;
 	r.max.y -= Scrollsize;
 	r.min.x += Scrollsize;
 	p->r = r;
@@ -494,7 +483,7 @@ pagerender1(Page *p)
 void
 pagerender(Page *p)
 {
-	if(p->child && p->loading==FALSE)
+	if(p->child && p->loading == FALSE)
 		renderchilds(p);
 	else if(p->doc)
 		pagerender1(p);
@@ -506,7 +495,7 @@ pageredraw(Page *p)
 	Rectangle r;
 
 	r = p->lay->r;
-	if(Dx(r)==0 || Dy(r)==0){
+	if(Dx(r) == 0 || Dy(r) == 0) {
 		draw(p->b, p->r, display->white, nil, ZP);
 		return;
 	}
@@ -525,9 +514,8 @@ pageredraw(Page *p)
 	pagescrldraw(p);
 }
 
-static
-void
-pageselect1(Page *p)	/* when called, button 1 is down */
+static void
+pageselect1(Page *p) /* when called, button 1 is down */
 {
 	Point mp, npos, opos;
 	int b, scrled, x, y;
@@ -535,23 +523,23 @@ pageselect1(Page *p)	/* when called, button 1 is down */
 	b = mouse->buttons;
 	mp = mousectl->xy;
 	opos = getpt(p, mp);
-	do{
+	do {
 		x = y = 0;
 		if(mp.x < p->r.min.x)
-			x -= p->r.min.x-mp.x;
+			x -= p->r.min.x - mp.x;
 		else if(mp.x > p->r.max.x)
-			x += mp.x-p->r.max.x;
+			x += mp.x - p->r.max.x;
 		if(mp.y < p->r.min.y)
-			y -= (p->r.min.y-mp.y)*Panspeed;
+			y -= (p->r.min.y - mp.y) * Panspeed;
 		else if(mp.y > p->r.max.y)
-			y += (mp.y-p->r.max.y)*Panspeed;
+			y += (mp.y - p->r.max.y) * Panspeed;
 
 		scrled = pagescrollxy(p, x, y);
 		npos = getpt(p, mp);
-		if(opos.y <  npos.y){
+		if(opos.y < npos.y) {
 			p->top = opos;
 			p->bot = npos;
-		}else{
+		} else {
 			p->top = npos;
 			p->bot = opos;
 		}
@@ -562,25 +550,21 @@ pageselect1(Page *p)	/* when called, button 1 is down */
 			readmouse(mousectl);
 
 		mp = mousectl->xy;
-	}while(mousectl->buttons == b);
+	} while(mousectl->buttons == b);
 }
 
-static Rune left1[] =  { L'{', L'[', L'(', L'<', L'«', 0 };
-static Rune right1[] = { L'}', L']', L')', L'>', L'»', 0 };
-static Rune left2[] =  { L'\'', L'"', L'`', 0 };
+static Rune left1[] = {L'{', L'[', L'(', L'<', L'«', 0};
+static Rune right1[] = {L'}', L']', L')', L'>', L'»', 0};
+static Rune left2[] = {L'\'', L'"', L'`', 0};
 
-static
-Rune *left[] = {
-	left1,
-	left2,
-	nil
-};
-static
-Rune *right[] = {
-	right1,
-	left2,
-	nil
-};
+static Rune *left[] = {
+    left1,
+    left2,
+    nil};
+static Rune *right[] = {
+    right1,
+    left2,
+    nil};
 
 void
 pagedoubleclick(Page *p)
@@ -591,28 +575,29 @@ pagedoubleclick(Page *p)
 
 	xy = getpt(p, mouse->xy);
 	l = linewhich(p->lay, xy);
-	if(l==nil || l->hastext==FALSE)
+	if(l == nil || l->hastext == FALSE)
 		return;
 
-	if(xy.x<l->boxes->r.min.x && hasbrk(l->state)){	/* beginning of line? */
+	if(xy.x < l->boxes->r.min.x && hasbrk(l->state)) { /* beginning of line? */
 		p->top = l->boxes->r.min;
-		if(l->next && !hasbrk(l->next->state)){
-			for(l=l->next; l->next!=nil; l=l->next)
+		if(l->next && !hasbrk(l->next->state)) {
+			for(l = l->next; l->next != nil; l = l->next)
 				if(hasbrk(l->next->state))
 					break;
 		}
-		p->bot = l->lastbox->r.max;;
-	}else if(xy.x>l->lastbox->r.max.x && hasbrk(l->next->state)){	/* end of line? */
 		p->bot = l->lastbox->r.max;
-		if(!hasbrk(l->state) && l->prev!=nil){
-			for(l=l->prev; l->prev!=nil; l=l->prev)
+		;
+	} else if(xy.x > l->lastbox->r.max.x && hasbrk(l->next->state)) { /* end of line? */
+		p->bot = l->lastbox->r.max;
+		if(!hasbrk(l->state) && l->prev != nil) {
+			for(l = l->prev; l->prev != nil; l = l->prev)
 				if(hasbrk(l->state))
 					break;
 		}
 		p->top = l->boxes->r.min;
-	}else{
+	} else {
 		b = pttobox(l, xy);
-		if(b!=nil && b->i->tag==Itexttag){
+		if(b != nil && b->i->tag == Itexttag) {
 			p->top = b->r.min;
 			p->bot = b->r.max;
 		}
@@ -629,37 +614,36 @@ pageselect(Page *p)
 {
 	int b, x, y;
 
-
 	selpage = p;
 	/*
 	 * To have double-clicking and chording, we double-click
 	 * immediately if it might make sense.
 	 */
 	b = mouse->buttons;
-	if(mouse->msec-clickmsec<500){
+	if(mouse->msec - clickmsec < 500) {
 		pagedoubleclick(p);
 		x = mouse->xy.x;
 		y = mouse->xy.y;
 		/* stay here until something interesting happens */
 		do
 			readmouse(mousectl);
-		while(mouse->buttons==b && abs(mouse->xy.x-x)<3 && abs(mouse->xy.y-y)<3);
-		mouse->xy.x = x;	/* in case we're calling pageselect1 */
+		while(mouse->buttons == b && abs(mouse->xy.x - x) < 3 && abs(mouse->xy.y - y) < 3);
+		mouse->xy.x = x; /* in case we're calling pageselect1 */
 		mouse->xy.y = y;
 	}
 	if(mousectl->buttons == b)
 		pageselect1(p);
 
-	if(eqpt(p->top, p->bot)){
-		if(mouse->msec-clickmsec<500)
+	if(eqpt(p->top, p->bot)) {
+		if(mouse->msec - clickmsec < 500)
 			pagedoubleclick(p);
 		else
 			clickmsec = mouse->msec;
 	}
-	while(mouse->buttons){
+	while(mouse->buttons) {
 		mouse->msec = 0;
 		b = mouse->buttons;
-		if(b & 2)	/* snarf only */
+		if(b & 2) /* snarf only */
 			cut(nil, nil, TRUE, FALSE, nil, 0);
 		while(mouse->buttons == b)
 			readmouse(mousectl);
@@ -674,7 +658,7 @@ pagewhich(Page *p, Point xy)
 	if(p->child == nil)
 		return p;
 
-	for(c=p->child; c!=nil; c=c->next)
+	for(c = p->child; c != nil; c = c->next)
 		if(ptinrect(xy, c->all))
 			return pagewhich(c, xy);
 
@@ -696,11 +680,11 @@ pagemouse(Page *p, Point xy, int but)
 	if(p->lay == nil)
 		return;
 
-	if(ptinrect(xy, p->vscrollr)){
+	if(ptinrect(xy, p->vscrollr)) {
 		pagescroll(p, but, FALSE);
 		return;
 	}
-	if(ptinrect(xy, p->hscrollr)){
+	if(ptinrect(xy, p->hscrollr)) {
 		pagescroll(p, but, TRUE);
 		return;
 	}
@@ -731,41 +715,41 @@ pagetype(Page *p, Rune r, Point xy)
 	/* text field? */
 	xy = getpt(p, xy);
 	b = boxwhich(p->lay, xy);
-	if(b && b->key){
+	if(b && b->key) {
 		b->key(b, p, r);
 		return;
 	}
 	/* ^H: same as 'Back' */
-	if(r == 0x08){
+	if(r == 0x08) {
 		wingohist(p->w, FALSE);
 		return;
 	}
 
 	x = 0;
 	y = 0;
-	switch(r){
+	switch(r) {
 	case Kleft:
-		x -= Dx(p->r)/2;
+		x -= Dx(p->r) / 2;
 		break;
 	case Kright:
-		x += Dx(p->r)/2;
+		x += Dx(p->r) / 2;
 		break;
 	case Kdown:
 	case Kscrollonedown:
-		y += Dy(p->r)/2;
+		y += Dy(p->r) / 2;
 		break;
 	case Kpgdown:
 		y += Dy(p->r);
 		break;
 	case Kup:
 	case Kscrolloneup:
-		y -= Dy(p->r)/2;
+		y -= Dy(p->r) / 2;
 		break;
 	case Kpgup:
 		y -= Dy(p->r);
 		break;
 	case Khome:
-		y -= Dy(p->lay->r);	/* force p->pos.y = 0 */
+		y -= Dy(p->lay->r); /* force p->pos.y = 0 */
 		break;
 	case Kend:
 		y = Dy(p->lay->r) - Dy(p->r);
@@ -810,26 +794,26 @@ pagesetrefresh(Page *p)
 	if(*q == L'''){
 		q++;
 		n -= 2;
-	}
-	if(n <= 0)
-		return;
-	t = runesmprint("%.*S", n, q);
-	rs.r = urlcombine(getbase(p), t);
-	rs.nr = runestrlen(rs.r);
-	copyrunestr(&p->refresh.rs, &rs);
-	closerunestr(&rs);
-	free(t);
+}
+if(n <= 0)
+	return;
+t = runesmprint("%.*S", n, q);
+rs.r = urlcombine(getbase(p), t);
+rs.nr = runestrlen(rs.r);
+copyrunestr(&p->refresh.rs, &rs);
+closerunestr(&rs);
+free(t);
 
-	/* now the time */
-	q = runestrchr(s, L';');
-	if(q){
-		v = smprint("%.*S", (int)(q-s),  s);
-		p->refresh.t = atoi(v);
-		free(v);
-	}else
-		p->refresh.t = 1;
+/* now the time */
+q = runestrchr(s, L';');
+if(q) {
+	v = smprint("%.*S", (int)(q - s), s);
+	p->refresh.t = atoi(v);
+	free(v);
+} else
+	p->refresh.t = 1;
 
-	p->refresh.t += time(0);
+p->refresh.t += time(0);
 }
 
 int

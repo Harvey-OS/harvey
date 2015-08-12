@@ -27,7 +27,7 @@
 /* Internal matrix routines for Ghostscript library */
 
 #ifndef gxmatrix_INCLUDED
-#  define gxmatrix_INCLUDED
+#define gxmatrix_INCLUDED
 
 #include "gsmatrix.h"
 
@@ -43,9 +43,9 @@
  * is false if this is the case, and true otherwise.
  */
 struct gs_matrix_fixed_s {
-    _matrix_body;
-    fixed tx_fixed, ty_fixed;
-    bool txy_fixed_valid;
+	_matrix_body;
+	fixed tx_fixed, ty_fixed;
+	bool txy_fixed_valid;
 };
 
 #ifndef gs_matrix_fixed_DEFINED
@@ -62,8 +62,8 @@ int gs_point_transform2fixed(const gs_matrix_fixed *, floatp, floatp,
 int gs_distance_transform2fixed(const gs_matrix_fixed *, floatp, floatp,
 				gs_fixed_point *);
 #if PRECISE_CURRENTPOINT
-int gs_point_transform2fixed_rounding(const gs_matrix_fixed * pmat,
-			 floatp x, floatp y, gs_fixed_point * ppt);
+int gs_point_transform2fixed_rounding(const gs_matrix_fixed *pmat,
+				      floatp x, floatp y, gs_fixed_point *ppt);
 #endif
 
 /*
@@ -73,11 +73,11 @@ int gs_point_transform2fixed_rounding(const gs_matrix_fixed * pmat,
  * The setup is in gscoord.c.
  */
 typedef struct {
-    long xx, xy, yx, yy;
-    int skewed;
-    int shift;			/* see m_fixed */
-    int max_bits;		/* max bits of coefficient */
-    fixed round;		/* ditto */
+	long xx, xy, yx, yy;
+	int skewed;
+	int shift;    /* see m_fixed */
+	int max_bits; /* max bits of coefficient */
+	fixed round;  /* ditto */
 } fixed_coeff;
 
 /*
@@ -98,10 +98,11 @@ fixed fixed_coeff_mult(fixed, long, const fixed_coeff *, int);
  * We can use a faster algorithm if the fixed is an integer within
  * a range that doesn't cause the multiplication to overflow an int.
  */
-#define m_fixed(v, c, fc, maxb)\
-  (((v) + (fixed_1 << (maxb - 1))) &\
-    ((-fixed_1 << maxb) | _fixed_fraction_v) ?	/* out of range, or has fraction */\
-    fixed_coeff_mult((v), (fc).c, &(fc), maxb) : \
-   arith_rshift(fixed2int_var(v) * (fc).c + (fc).round, (fc).shift))
+#define m_fixed(v, c, fc, maxb)                           \
+	(((v) + (fixed_1 << (maxb - 1))) &                \
+		 ((-fixed_1 << maxb) | _fixed_fraction_v) \
+	     ? /* out of range, or has fraction */        \
+	     fixed_coeff_mult((v), (fc).c, &(fc), maxb)   \
+	     : arith_rshift(fixed2int_var(v) * (fc).c + (fc).round, (fc).shift))
 
 #endif /* gxmatrix_INCLUDED */

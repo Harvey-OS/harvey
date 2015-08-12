@@ -55,11 +55,9 @@ static char *ident = "$Id: port.c,v 1.2 89/02/12 10:05:35 mark Exp $";
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /*
  * Some computers are not so crass as to align themselves into the BSD or USG
@@ -91,53 +89,52 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-int mkdir(char *dpath, int dmode)
+int
+mkdir(char *dpath, int dmode)
 
 #else
-    
-int mkdir(dpath, dmode)
-char           *dpath;
-int             dmode;
+
+int mkdir(dpath, dmode) char *dpath;
+int dmode;
 
 #endif
 {
-    int             cpid, status;
-    Stat            statbuf;
-    extern int      errno;
+	int cpid, status;
+	Stat statbuf;
+	extern int errno;
 
-    if (STAT(dpath, &statbuf) == 0) {
-	errno = EEXIST;		/* Stat worked, so it already exists */
-	return (-1);
-    }
-    /* If stat fails for a reason other than non-existence, return error */
-    if (errno != ENOENT)
-	return (-1);
-
-    switch (cpid = fork()) {
-
-    case -1:			/* Error in fork() */
-	return (-1);		/* Errno is set already */
-
-    case 0:			/* Child process */
-
-	status = umask(0);	/* Get current umask */
-	status = umask(status | (0777 & ~dmode));	/* Set for mkdir */
-	execl("/bin/mkdir", "mkdir", dpath, (char *) 0);
-	_exit(-1);		/* Can't exec /bin/mkdir */
-
-    default:			/* Parent process */
-	while (cpid != wait(&status)) {
-	    /* Wait for child to finish */
+	if(STAT(dpath, &statbuf) == 0) {
+		errno = EEXIST; /* Stat worked, so it already exists */
+		return (-1);
 	}
-    }
+	/* If stat fails for a reason other than non-existence, return error */
+	if(errno != ENOENT)
+		return (-1);
 
-    if (TERM_SIGNAL(status) != 0 || TERM_VALUE(status) != 0) {
-	errno = EIO;		/* We don't know why, but */
-	return (-1);		/* /bin/mkdir failed */
-    }
-    return (0);
+	switch(cpid = fork()) {
+
+	case -1:	     /* Error in fork() */
+		return (-1); /* Errno is set already */
+
+	case 0: /* Child process */
+
+		status = umask(0);			  /* Get current umask */
+		status = umask(status | (0777 & ~dmode)); /* Set for mkdir */
+		execl("/bin/mkdir", "mkdir", dpath, (char *)0);
+		_exit(-1); /* Can't exec /bin/mkdir */
+
+	default: /* Parent process */
+		while(cpid != wait(&status)) {
+			/* Wait for child to finish */
+		}
+	}
+
+	if(TERM_SIGNAL(status) != 0 || TERM_VALUE(status) != 0) {
+		errno = EIO; /* We don't know why, but */
+		return (-1); /* /bin/mkdir failed */
+	}
+	return (0);
 }
-
 
 /* rmdir - remove a directory
  *
@@ -159,43 +156,43 @@ int             dmode;
 
 #ifdef __STDC__
 
-int rmdir(char *dpath)
+int
+rmdir(char *dpath)
 
 #else
-    
-int rmdir(dpath)
-char           *dpath;
+
+int rmdir(dpath) char *dpath;
 
 #endif
 {
-    int             cpid, status;
-    Stat            statbuf;
-    extern int      errno;
+	int cpid, status;
+	Stat statbuf;
+	extern int errno;
 
-    /* check to see if it exists */
-    if (STAT(dpath, &statbuf) == -1) {
-	return (-1);
-    }
-    switch (cpid = fork()) {
-
-    case -1:			/* Error in fork() */
-	return (-1);		/* Errno is set already */
-
-    case 0:			/* Child process */
-	execl("/bin/rmdir", "rmdir", dpath, (char *) 0);
-	_exit(-1);		/* Can't exec /bin/rmdir */
-
-    default:			/* Parent process */
-	while (cpid != wait(&status)) {
-	    /* Wait for child to finish */
+	/* check to see if it exists */
+	if(STAT(dpath, &statbuf) == -1) {
+		return (-1);
 	}
-    }
+	switch(cpid = fork()) {
 
-    if (TERM_SIGNAL(status) != 0 || TERM_VALUE(status) != 0) {
-	errno = EIO;		/* We don't know why, but */
-	return (-1);		/* /bin/rmdir failed */
-    }
-    return (0);
+	case -1:	     /* Error in fork() */
+		return (-1); /* Errno is set already */
+
+	case 0: /* Child process */
+		execl("/bin/rmdir", "rmdir", dpath, (char *)0);
+		_exit(-1); /* Can't exec /bin/rmdir */
+
+	default: /* Parent process */
+		while(cpid != wait(&status)) {
+			/* Wait for child to finish */
+		}
+	}
+
+	if(TERM_SIGNAL(status) != 0 || TERM_VALUE(status) != 0) {
+		errno = EIO; /* We don't know why, but */
+		return (-1); /* /bin/rmdir failed */
+	}
+	return (0);
 }
 
 #endif /* MASSCOMP, BSD */

@@ -28,7 +28,7 @@
 /* Written by David MacKenzie <djm@gnu.ai.mit.edu> */
 
 #if HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <argmatch.h>
@@ -37,9 +37,9 @@
 
 #include <stdio.h>
 #if HAVE_STRING_H
-# include <string.h>
+#include <string.h>
 #else
-# include <strings.h>
+#include <strings.h>
 #endif
 
 /* If ARG is an unambiguous match for an element of the
@@ -48,37 +48,35 @@
    or -2 if it is ambiguous (is a prefix of more than one element).  */
 
 int
-argmatch (arg, optlist)
-     const char *arg;
-     const char *const *optlist;
+    argmatch(arg, optlist)
+	const char *arg;
+const char *const *optlist;
 {
-  int i;			/* Temporary index in OPTLIST.  */
-  size_t arglen;		/* Length of ARG.  */
-  int matchind = -1;		/* Index of first nonexact match.  */
-  int ambiguous = 0;		/* If nonzero, multiple nonexact match(es).  */
+	int i;		   /* Temporary index in OPTLIST.  */
+	size_t arglen;     /* Length of ARG.  */
+	int matchind = -1; /* Index of first nonexact match.  */
+	int ambiguous = 0; /* If nonzero, multiple nonexact match(es).  */
 
-  arglen = strlen (arg);
+	arglen = strlen(arg);
 
-  /* Test all elements for either exact match or abbreviated matches.  */
-  for (i = 0; optlist[i]; i++)
-    {
-      if (!strncmp (optlist[i], arg, arglen))
-	{
-	  if (strlen (optlist[i]) == arglen)
-	    /* Exact match found.  */
-	    return i;
-	  else if (matchind == -1)
-	    /* First nonexact match found.  */
-	    matchind = i;
-	  else
-	    /* Second nonexact match found.  */
-	    ambiguous = 1;
+	/* Test all elements for either exact match or abbreviated matches.  */
+	for(i = 0; optlist[i]; i++) {
+		if(!strncmp(optlist[i], arg, arglen)) {
+			if(strlen(optlist[i]) == arglen)
+				/* Exact match found.  */
+				return i;
+			else if(matchind == -1)
+				/* First nonexact match found.  */
+				matchind = i;
+			else
+				/* Second nonexact match found.  */
+				ambiguous = 1;
+		}
 	}
-    }
-  if (ambiguous)
-    return -2;
-  else
-    return matchind;
+	if(ambiguous)
+		return -2;
+	else
+		return matchind;
 }
 
 /* Error reporting for argmatch.
@@ -87,15 +85,15 @@ argmatch (arg, optlist)
    PROBLEM is the return value from argmatch.  */
 
 void
-invalid_arg (kind, value, problem)
-     const char *kind;
-     const char *value;
-     int problem;
+    invalid_arg(kind, value, problem)
+	const char *kind;
+const char *value;
+int problem;
 {
-  fprintf (stderr, "%s: ", program_name);
-  if (problem == -1)
-    fprintf (stderr, "invalid");
-  else				/* Assume -2.  */
-    fprintf (stderr, "ambiguous");
-  fprintf (stderr, " %s `%s'\n", kind, value);
+	fprintf(stderr, "%s: ", program_name);
+	if(problem == -1)
+		fprintf(stderr, "invalid");
+	else /* Assume -2.  */
+		fprintf(stderr, "ambiguous");
+	fprintf(stderr, " %s `%s'\n", kind, value);
 }

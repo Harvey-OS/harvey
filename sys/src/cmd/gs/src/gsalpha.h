@@ -27,7 +27,7 @@
 /* API for alpha value in graphics state */
 
 #ifndef gsalpha_INCLUDED
-#  define gsalpha_INCLUDED
+#define gsalpha_INCLUDED
 
 /*
  * This tiny little file is separate so that it can be included by

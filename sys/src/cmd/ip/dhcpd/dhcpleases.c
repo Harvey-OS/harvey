@@ -14,7 +14,7 @@
 #include <ip.h>
 #include <dat.h>
 
-extern	char *binddir;
+extern char *binddir;
 
 int32_t now;
 char *blog = "ipboot";
@@ -43,12 +43,12 @@ main(void)
 	b.boundto = 0;
 	b.lease = b.offer = 0;
 	now = time(0);
-	for(i = 0; i < nall; i++){
+	for(i = 0; i < nall; i++) {
 		if(parseip(b.ip, all[i].name) == -1 || syncbinding(&b, 0) < 0)
 			continue;
 		if(b.lease > now)
 			print("%I leased by %s until %s", b.ip, b.boundto,
-				ctime(b.lease));
+			      ctime(b.lease));
 	}
 	exits(0);
 }

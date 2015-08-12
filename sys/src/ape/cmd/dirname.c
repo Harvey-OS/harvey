@@ -16,7 +16,7 @@ main(int argc, char **argv)
 	char *f, *s;
 	int n;
 
-	if(argc != 2){
+	if(argc != 2) {
 		fprintf(stderr, "Usage: dirname string\n");
 		exit(1);
 	}
@@ -28,7 +28,7 @@ main(int argc, char **argv)
 	/* now f is after last char of string, trailing slashes removed */
 
 	for(; f >= s; f--)
-		if(*f == '/'){
+		if(*f == '/') {
 			f++;
 			break;
 		}

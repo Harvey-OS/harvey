@@ -25,17 +25,21 @@
  * the name, so that code is duplicated.
  */
 #include "iolib.h"
-FILE *tmpfile(void){
+FILE *
+tmpfile(void)
+{
 	FILE *f;
-	static char name[]="/tmp/tf000000000000";
+	static char name[] = "/tmp/tf000000000000";
 	char *p;
-	while(access(name, 0)==0){
-		p=name+7;
-		while(*p=='9') *p++='0';
-		if(*p=='\0') return NULL;
+	while(access(name, 0) == 0) {
+		p = name + 7;
+		while(*p == '9')
+			*p++ = '0';
+		if(*p == '\0')
+			return NULL;
 		++*p;
 	}
-	f=fopen(name, "wb+");
+	f = fopen(name, "wb+");
 	unlink(name);
 	return f;
 }

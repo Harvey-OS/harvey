@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
-#define	NHASH	4099
-#define	HASHMUL	79L	/* this is a good value */
+#define NHASH 4099
+#define HASHMUL 79L /* this is a good value */
 static Symtab *hash[NHASH];
 
 void
@@ -18,7 +18,7 @@ syminit(void)
 {
 	Symtab **s, *ss;
 
-	for(s = hash; s < &hash[NHASH]; s++){
+	for(s = hash; s < &hash[NHASH]; s++) {
 		for(ss = *s; ss; ss = ss->next)
 			free((char *)ss);
 		*s = 0;
@@ -39,16 +39,16 @@ symlook(char *sym, int space, void *install)
 	h %= NHASH;
 	for(s = hash[h]; s; s = s->next)
 		if((s->space == space) && (strcmp(s->name, sym) == 0))
-			return(s);
+			return (s);
 	if(install == 0)
-		return(0);
+		return (0);
 	s = (Symtab *)Malloc(sizeof(Symtab));
 	s->space = space;
 	s->name = sym;
 	s->u.ptr = install;
 	s->next = hash[h];
 	hash[h] = s;
-	return(s);
+	return (s);
 }
 
 void
@@ -66,7 +66,7 @@ symdel(char *sym, int space)
 		h = ~h;
 	h %= NHASH;
 	for(s = hash[h], ls = 0; s; ls = s, s = s->next)
-		if((s->space == space) && (strcmp(s->name, sym) == 0)){
+		if((s->space == space) && (strcmp(s->name, sym) == 0)) {
 			if(ls)
 				ls->next = s->next;
 			else
@@ -76,7 +76,7 @@ symdel(char *sym, int space)
 }
 
 void
-symtraverse(int space, void (*fn)(Symtab*))
+symtraverse(int space, void (*fn)(Symtab *))
 {
 	Symtab **s, *ss;
 
@@ -94,11 +94,12 @@ symstat(void)
 	int l[1000];
 
 	memset((char *)l, 0, sizeof(l));
-	for(s = hash; s < &hash[NHASH]; s++){
+	for(s = hash; s < &hash[NHASH]; s++) {
 		for(ss = *s, n = 0; ss; ss = ss->next)
 			n++;
 		l[n]++;
 	}
 	for(n = 0; n < 1000; n++)
-		if(l[n]) Bprint(&bout, "%d of length %d\n", l[n], n);
+		if(l[n])
+			Bprint(&bout, "%d of length %d\n", l[n], n);
 }

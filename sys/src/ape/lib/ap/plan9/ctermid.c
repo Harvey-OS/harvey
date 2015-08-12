@@ -19,7 +19,7 @@ ctermid(char *s)
 	if(s == 0)
 		s = buf;
 	strncpy(s, "/dev/cons", sizeof buf);
-	return(s);
+	return (s);
 }
 
 char *

@@ -34,11 +34,11 @@ getfields(char *str, char **args, int max, int mflag)
 		narg++;
 	intok = 0;
 	for(;;) {
-		nr = 1;			/* utf bytes in this rune */
+		nr = 1; /* utf bytes in this rune */
 		r = *str++;
 		if(r == 0)
 			break;
-		if(r == ' ' || r == '\t'){
+		if(r == ' ' || r == '\t') {
 			if(narg >= max)
 				break;
 			*str = 0;
@@ -64,7 +64,7 @@ _IOUNIT(int fd)
 	cfd = _OPEN(buf, OREAD);
 	if(cfd < 0)
 		return 0;
-	i = _READ(cfd, buf, sizeof buf-1);
+	i = _READ(cfd, buf, sizeof buf - 1);
 	_CLOSE(cfd);
 	if(i <= 0)
 		return 0;

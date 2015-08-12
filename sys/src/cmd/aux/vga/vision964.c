@@ -18,7 +18,7 @@
  * S3 Vision964 GUI Accelerator.
  */
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	s3generic.snarf(vga, ctlr);
 	vga->crt[0x22] = vgaxi(Crtx, 0x22);
@@ -27,13 +27,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-options(Vga* vga, Ctlr* ctlr)
-{	
-	ctlr->flag |= Hlinear|Henhanced|Foptions;
+options(Vga *vga, Ctlr *ctlr)
+{
+	ctlr->flag |= Hlinear | Henhanced | Foptions;
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Mode *mode;
 	uint32_t x;
@@ -44,28 +44,27 @@ init(Vga* vga, Ctlr* ctlr)
 		error("depth %d not supported\n", vga->mode->z);
 
 	mode = vga->mode;
-	if(vga->ramdac && (vga->ramdac->flag & Uclk2)){
+	if(vga->ramdac && (vga->ramdac->flag & Uclk2)) {
 		resyncinit(vga, ctlr, Uenhanced, 0);
-		vga->crt[0x00] = ((mode->ht/2)>>3)-5;
-		vga->crt[0x01] = ((mode->x/2)>>3)-1;
-		vga->crt[0x02] = ((mode->shb/2)>>3)-1;
-	
-		x = (mode->ehb/2)>>3;
-		vga->crt[0x03] = 0x80|(x & 0x1F);
-		vga->crt[0x04] = (mode->shs/2)>>3;
-		vga->crt[0x05] = ((mode->ehs/2)>>3) & 0x1F;
+		vga->crt[0x00] = ((mode->ht / 2) >> 3) - 5;
+		vga->crt[0x01] = ((mode->x / 2) >> 3) - 1;
+		vga->crt[0x02] = ((mode->shb / 2) >> 3) - 1;
+
+		x = (mode->ehb / 2) >> 3;
+		vga->crt[0x03] = 0x80 | (x & 0x1F);
+		vga->crt[0x04] = (mode->shs / 2) >> 3;
+		vga->crt[0x05] = ((mode->ehs / 2) >> 3) & 0x1F;
 		if(x & 0x20)
 			vga->crt[0x05] |= 0x80;
-		vga->crt[0x13] = mode->x/8;
-	}
-	else if(mode->z == 8)
+		vga->crt[0x13] = mode->x / 8;
+	} else if(mode->z == 8)
 		resyncinit(vga, ctlr, Uenhanced, 0);
 	s3generic.init(vga, ctlr);
 	/*
 	if((ctlr->flag & Uenhanced) == 0)
 		vga->crt[0x33] &= ~0x20;
 	 */
-	vga->crt[0x3B] = (vga->crt[0]+vga->crt[4]+1)/2;
+	vga->crt[0x3B] = (vga->crt[0] + vga->crt[4] + 1) / 2;
 	if(vga->crt[0x3B] & 0x100)
 		vga->crt[0x5D] |= 0x40;
 	vga->crt[0x55] = 0x00;
@@ -74,11 +73,11 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->crt[0x53] &= ~0x20;
 	vga->crt[0x58] &= ~0x48;
 	if(dbattr(vga->attr, "sam512") == 0)
-		vga->crt[0x58] |= 0x40;		/* set 256 word SAM, always works */
+		vga->crt[0x58] |= 0x40; /* set 256 word SAM, always works */
 	vga->crt[0x65] = 0x00;
 	vga->crt[0x66] &= ~0x07;
 	vga->crt[0x6D] = 0x00;
-	if(ctlr->flag & Uenhanced){
+	if(ctlr->flag & Uenhanced) {
 		if(vga->ramdac && (vga->ramdac->flag & Hsid32))
 			sid = 32;
 		else
@@ -91,8 +90,8 @@ init(Vga* vga, Ctlr* ctlr)
 			bpp = 4;
 		else
 			bpp = mode->z;
-		divide = sid/(dbl*bpp);
-		switch(divide){
+		divide = sid / (dbl * bpp);
+		switch(divide) {
 		case 2:
 			vga->crt[0x66] |= 0x01;
 			break;
@@ -130,12 +129,12 @@ init(Vga* vga, Ctlr* ctlr)
 			vga->crt[0x6D] |= 0x03;
 
 		if(val = dbattr(vga->attr, "delaysc"))
-			vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07)<<4;
+			vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07) << 4;
 	}
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uint16_t advfunc;
 
@@ -151,7 +150,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	s3generic.dump(vga, ctlr);
 	printitem(ctlr->name, "Crt22");
@@ -163,10 +162,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr vision964 = {
-	"vision964",			/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "vision964", /* name */
+    snarf,       /* snarf */
+    options,     /* options */
+    init,	/* init */
+    load,	/* load */
+    dump,	/* dump */
 };

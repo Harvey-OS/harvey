@@ -27,7 +27,7 @@
 /* Common platform-specific routines for OS/2 */
 
 #ifndef gp_os2_INCLUDED
-#  define gp_os2_INCLUDED
+#define gp_os2_INCLUDED
 
 /* If queue_name is NULL, list available queues */
 /* If strlen(queue_name)==0, return default queue and driver name */
@@ -39,6 +39,5 @@ int pm_find_queue(char *queue_name, char *driver_name);
 /* Return 0 if successful, non-zero if error. */
 /* If filename is NULL, return 0 if spool queue is valid, non-zero if error */
 int pm_spool(char *filename, const char *queue);
-
 
 #endif /* gp_os2_INCLUDED */

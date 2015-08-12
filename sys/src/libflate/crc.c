@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <flate.h>
 
-uint32_t*
+uint32_t *
 mkcrctab(uint32_t poly)
 {
 	uint32_t *crctab;
@@ -22,9 +22,9 @@ mkcrctab(uint32_t poly)
 	if(crctab == nil)
 		return nil;
 
-	for(i = 0; i < 256; i++){
+	for(i = 0; i < 256; i++) {
 		crc = i;
-		for(j = 0; j < 8; j++){
+		for(j = 0; j < 8; j++) {
 			if(crc & 1)
 				crc = (crc >> 1) ^ poly;
 			else

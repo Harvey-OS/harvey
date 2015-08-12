@@ -40,7 +40,7 @@ get8bits(Chain *ch, int nbits)
 	else
 		high = 0;
 	ch->b += nbits;
-	return MSK(nbits)&(high | low);
+	return MSK(nbits) & (high | low);
 }
 
 static void
@@ -65,7 +65,7 @@ int
 parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 {
 	int i, j, l, n, isptr, hasxy, hasbut, nk, ncoll, dsize;
-	uint8_t ks[MaxVals+1];
+	uint8_t ks[MaxVals + 1];
 	HidInterface *ifs;
 
 	ifs = temp->ifcs;
@@ -75,34 +75,34 @@ parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 	n = 0;
 	nk = 0;
 	memset(ifs, 0, sizeof *ifs * MaxIfc);
-	for(i = 0; i < repsz; i += dsize+1){
+	for(i = 0; i < repsz; i += dsize + 1) {
 		dsize = (1 << (repdesc[i] & 03)) >> 1;
-		if(nk > MaxVals){
+		if(nk > MaxVals) {
 			fprint(2, "bad report: too many input types\n");
 			return -1;
 		}
 		if(n == MaxIfc)
 			break;
-		if(repdesc[i] == HidEnd){
+		if(repdesc[i] == HidEnd) {
 			ncoll--;
 			if(ncoll == 0)
 				break;
 		}
 
-		switch(repdesc[i]){
+		switch(repdesc[i]) {
 		case HidReportId:
-			switch(repdesc[i+1]){
+			switch(repdesc[i + 1]) {
 			case HidReportIdPtr:
-				temp->id = repdesc[i+1];
+				temp->id = repdesc[i + 1];
 				break;
 			default:
 				fprint(2, "report type %#ux bad\n",
-					repdesc[i+1]);
+				       repdesc[i + 1]);
 				return -1;
 			}
 			break;
 		case HidTypeUsg:
-			switch(repdesc[i+1]){
+			switch(repdesc[i + 1]) {
 			case HidX:
 				hasxy++;
 				ks[nk++] = KindX;
@@ -123,7 +123,7 @@ parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 			}
 			break;
 		case HidTypeUsgPg:
-			switch(repdesc[i+1]){
+			switch(repdesc[i + 1]) {
 			case HidPgButts:
 				hasbut++;
 				ks[nk++] = KindButtons;
@@ -131,25 +131,25 @@ parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 			}
 			break;
 		case HidTypeRepSz:
-			ifs[n].nbits = repdesc[i+1];
+			ifs[n].nbits = repdesc[i + 1];
 			break;
 		case HidTypeCnt:
-			ifs[n].count = repdesc[i+1];
+			ifs[n].count = repdesc[i + 1];
 			break;
 		case HidInput:
-			if(ifs[n].count > MaxVals){
+			if(ifs[n].count > MaxVals) {
 				fprint(2, "bad report: input count too big\n");
 				return -1;
 			}
-			for(j = 0; j <nk; j++)
+			for(j = 0; j < nk; j++)
 				ifs[n].kind[j] = ks[j];
 			if(nk != 0 && nk < ifs[n].count)
-				for(l = j; l <ifs[n].count; l++)
-					ifs[n].kind[l] = ks[j-1];
+				for(l = j; l < ifs[n].count; l++)
+					ifs[n].kind[l] = ks[j - 1];
 			n++;
-			if(n < MaxIfc){
-				ifs[n].count = ifs[n-1].count;	/* inherit values */
-				ifs[n].nbits = ifs[n-1].nbits;
+			if(n < MaxIfc) {
+				ifs[n].count = ifs[n - 1].count; /* inherit values */
+				ifs[n].nbits = ifs[n - 1].nbits;
 				if(ifs[n].nbits == 0)
 					ifs[n].nbits = 1;
 			}
@@ -164,11 +164,11 @@ parsereportdesc(HidRepTempl *temp, uint8_t *repdesc, int repsz)
 	for(i = 0; i < n; i++)
 		temp->sz += temp->ifcs[i].nbits * temp->ifcs[i].count;
 	temp->sz = (temp->sz + 7) / 8;
-	
+
 	if(isptr && hasxy && hasbut)
 		return 0;
 	fprint(2, "bad report: isptr %d, hasxy %d, hasbut %d\n",
-		isptr, hasxy, hasbut);
+	       isptr, hasxy, hasbut);
 	return -1;
 }
 
@@ -183,18 +183,18 @@ parsereport(HidRepTempl *templ, Chain *rep)
 	ifssz = templ->nifcs;
 	ifs = templ->ifcs;
 	for(i = 0; i < ifssz; i++)
-		for(j = 0; j < ifs[i].count; j++){
-			if(ifs[i].nbits > 8 * sizeof ifs[i].v[0]){
+		for(j = 0; j < ifs[i].count; j++) {
+			if(ifs[i].nbits > 8 * sizeof ifs[i].v[0]) {
 				fprint(2, "ptr: bad bits in parsereport");
 				return -1;
 			}
-			u =0;
+			u = 0;
 			getbits(&u, rep, ifs[i].nbits);
 			p = (uint8_t *)&u;
 			/* le to host */
-			ifs[i].v[j] = p[3]<<24 | p[2]<<16 | p[1]<<8 | p[0]<<0;
+			ifs[i].v[j] = p[3] << 24 | p[2] << 16 | p[1] << 8 | p[0] << 0;
 			k = ifs[i].kind[j];
-			if(k == KindX || k == KindY || k == KindWheel){
+			if(k == KindX || k == KindY || k == KindWheel) {
 				/* propagate sign */
 				if(ifs[i].v[j] & (1 << (ifs[i].nbits - 1)))
 					ifs[i].v[j] |= ~MSK(ifs[i].nbits);
@@ -212,11 +212,11 @@ dumpreport(HidRepTempl *templ)
 
 	ifssz = templ->nifcs;
 	ifs = templ->ifcs;
-	for(i = 0; i < ifssz; i++){
+	for(i = 0; i < ifssz; i++) {
 		fprint(2, "\tcount %#ux", ifs[i].count);
 		fprint(2, " nbits %d ", ifs[i].nbits);
 		fprint(2, "\n");
-		for(j = 0; j < ifs[i].count; j++){
+		for(j = 0; j < ifs[i].count; j++) {
 			fprint(2, "\t\tkind %#ux ", ifs[i].kind[j]);
 			fprint(2, "v %#lux\n", ifs[i].v[j]);
 		}
@@ -239,5 +239,5 @@ hidifcval(HidRepTempl *templ, int kind, int n)
 		for(j = 0; j < ifs[i].count; j++)
 			if(ifs[i].kind[j] == kind && n-- == 0)
 				return (int)ifs[i].v[j];
-	return 0;		/* least damage (no buttons, no movement) */
+	return 0; /* least damage (no buttons, no movement) */
 }

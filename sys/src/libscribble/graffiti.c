@@ -43,47 +43,50 @@
 int ScribbleDebug;
 
 char *cl_name[3] = {
-	DEFAULT_LETTERS_FILE,
-	DEFAULT_DIGITS_FILE,
-	DEFAULT_PUNC_FILE
-};
+    DEFAULT_LETTERS_FILE,
+    DEFAULT_DIGITS_FILE,
+    DEFAULT_PUNC_FILE};
 
 Rune
-recognize (Scribble *s)
+recognize(Scribble *s)
 {
 	struct graffiti *graf = s->graf;
-	Stroke	    *ps = &s->ps;
-	Rune		    rune;
-	int		    	c;
-	int				nr;
-	rec_alternative	*ret;
+	Stroke *ps = &s->ps;
+	Rune rune;
+	int c;
+	int nr;
+	rec_alternative *ret;
 
-	if (ps->npts == 0)
+	if(ps->npts == 0)
 		return '\0';
 
 	c = recognizer_translate(
-		graf->rec[s->puncShift ? CS_PUNCTUATION : s->curCharSet],
-		1, ps, false, &nr, &ret);
-	if (c != -1)
+	    graf->rec[s->puncShift ? CS_PUNCTUATION : s->curCharSet],
+	    1, ps, false, &nr, &ret);
+	if(c != -1)
 		delete_rec_alternative_array(nr, ret, false);
 
 	rune = '\0';
 
-	switch (c) {
+	switch(c) {
 	case '\0':
-		if(ScribbleDebug)fprint(2, "(case '\\0')\n");
+		if(ScribbleDebug)
+			fprint(2, "(case '\\0')\n");
 		break;
-	case 'A':	/* space */
+	case 'A': /* space */
 		rune = ' ';
-		if(ScribbleDebug)fprint(2, "(case A) character = ' %C' (0x%x)\n", rune, rune);
+		if(ScribbleDebug)
+			fprint(2, "(case A) character = ' %C' (0x%x)\n", rune, rune);
 		break;
-	case 'B':	/* backspace */
+	case 'B': /* backspace */
 		rune = '\b';
-		if(ScribbleDebug)fprint(2, "(case B) character = \\b (0x%x)\n", rune);
+		if(ScribbleDebug)
+			fprint(2, "(case B) character = \\b (0x%x)\n", rune);
 		break;
 	case 'N': /* numlock */
-		if(ScribbleDebug)fprint(2, "(case N)\n");
-		if (s->curCharSet == CS_DIGITS) {
+		if(ScribbleDebug)
+			fprint(2, "(case N)\n");
+		if(s->curCharSet == CS_DIGITS) {
 			s->curCharSet = CS_LETTERS;
 		} else {
 			s->curCharSet = CS_DIGITS;
@@ -93,69 +96,74 @@ recognize (Scribble *s)
 		s->ctrlShift = 0;
 		break;
 	case 'P': /* usually puncshift, but we'll make it CTRL */
-		if(ScribbleDebug)fprint(2, "(case P)\n");
+		if(ScribbleDebug)
+			fprint(2, "(case P)\n");
 		s->ctrlShift = !s->ctrlShift;
 		s->tmpShift = 0;
 		s->puncShift = 0;
 		break;
-	case 'R':	/* newline */
+	case 'R': /* newline */
 		rune = '\n';
-		if(ScribbleDebug)fprint(2, "(case R) character = \\n (0x%x)\n", rune);
+		if(ScribbleDebug)
+			fprint(2, "(case R) character = \\n (0x%x)\n", rune);
 		break;
 	case 'S': /* shift */
-		if(ScribbleDebug)fprint(2, "(case S)\n");
+		if(ScribbleDebug)
+			fprint(2, "(case S)\n");
 		s->puncShift = 0;
 		s->ctrlShift = 0;
-		if (s->capsLock) {
+		if(s->capsLock) {
 			s->capsLock = 0;
 			s->tmpShift = 0;
 			break;
 		}
-		if (s->tmpShift == 0) {
+		if(s->tmpShift == 0) {
 			s->tmpShift++;
 			break;
 		}
-		/* fall through */
+	/* fall through */
 	case 'L': /* caps lock */
-		if(ScribbleDebug)fprint(2, "(case L)\n");
+		if(ScribbleDebug)
+			fprint(2, "(case L)\n");
 		s->capsLock = !s->capsLock;
 		break;
-	case '.':	/* toggle punctuation mode */
-		if (s->puncShift) {
+	case '.': /* toggle punctuation mode */
+		if(s->puncShift) {
 			s->puncShift = 0;
 		} else {
 			s->puncShift = 1;
 			s->ctrlShift = 0;
 			s->tmpShift = 0;
 			return rune;
-		}		  	
+		}
 		rune = '.';
-		if(0)fprint(2, "(case .) character = %c (0x%x)\n", rune, rune);
+		if(0)
+			fprint(2, "(case .) character = %c (0x%x)\n", rune, rune);
 		break;
 	default:
-		if ('A' <= c && c <= 'Z') {
-			if(ScribbleDebug)fprint(2, "(bad case?) character = %c (0x%x)\n", c, c);
+		if('A' <= c && c <= 'Z') {
+			if(ScribbleDebug)
+				fprint(2, "(bad case?) character = %c (0x%x)\n", c, c);
 			return rune;
 		}
 		rune = c;
-		if (s->ctrlShift) 
-		{
-			if (c < 'a' || 'z' < c)
-			{
-				if(ScribbleDebug)fprint(2, "(default) character = %c (0x%x)\n", rune, rune);
+		if(s->ctrlShift) {
+			if(c < 'a' || 'z' < c) {
+				if(ScribbleDebug)
+					fprint(2, "(default) character = %c (0x%x)\n", rune, rune);
 				return rune;
 			}
 			rune = rune & 0x1f;
-		} else if ((s->capsLock && !s->tmpShift) || 
-				 (!s->capsLock && s->tmpShift)) 
-		{
-			if (rune < 0xff)
+		} else if((s->capsLock && !s->tmpShift) ||
+			  (!s->capsLock && s->tmpShift)) {
+			if(rune < 0xff)
 				rune = toupper(rune);
-		} 
+		}
 		s->tmpShift = 0;
 		s->puncShift = 0;
 		s->ctrlShift = 0;
-		if(ScribbleDebug)fprint(2, "(default) character = %c (0x%x)\n", rune, rune);
+		if(ScribbleDebug)
+			fprint(2, "(default) character = %c (0x%x)\n", rune, rune);
 	}
 	return rune;
 }
@@ -174,53 +182,56 @@ static int
 graffiti_load_recognizers(struct graffiti *pg)
 {
 	bool usingDefault;
-	char* homedir;
+	char *homedir;
 	int i;
 	rec_fn *fns;
 
 	/* First, load the recognizers... */
 	/* call recognizer_unload if an error ? */
-	for (i = 0; i < NUM_RECS; i++) {
+	for(i = 0; i < NUM_RECS; i++) {
 		/* Load the recognizer itself... */
 		pg->rec[i] = recognizer_load(DEFAULT_REC_DIR, "", nil);
-		if (pg->rec[i] == nil) {
-			fprint(2,"Error loading recognizer from %s.", DEFAULT_REC_DIR);
+		if(pg->rec[i] == nil) {
+			fprint(2, "Error loading recognizer from %s.", DEFAULT_REC_DIR);
 			return 0;
 		}
-		if ((* (int *)(pg->rec[i])) != 0xfeed) {
-			fprint(2,"Error in recognizer_magic.");
+		if((*(int *)(pg->rec[i])) != 0xfeed) {
+			fprint(2, "Error in recognizer_magic.");
 			return 0;
 		}
 	}
 
 	/* ...then figure out where the classifiers are... */
-	if ( (homedir = (char*)getenv("home")) == nil ) {
-		if(0)fprint(2, "no homedir, using = %s\n", REC_DEFAULT_USER_DIR);
-		strecpy(pg->cldir, pg->cldir+sizeof pg->cldir, REC_DEFAULT_USER_DIR);
+	if((homedir = (char *)getenv("home")) == nil) {
+		if(0)
+			fprint(2, "no homedir, using = %s\n", REC_DEFAULT_USER_DIR);
+		strecpy(pg->cldir, pg->cldir + sizeof pg->cldir, REC_DEFAULT_USER_DIR);
 		usingDefault = true;
 	} else {
-		if(0)fprint(2, "homedir = %s\n", homedir);
+		if(0)
+			fprint(2, "homedir = %s\n", homedir);
 		snprint(pg->cldir, sizeof pg->cldir, "%s/%s", homedir, CLASSIFIER_DIR);
 		usingDefault = false;
 	}
 
 	/* ...then load the classifiers... */
-	for (i = 0; i < NUM_RECS; i++) {
+	for(i = 0; i < NUM_RECS; i++) {
 		int rec_return;
 		char *s;
 
 		rec_return = recognizer_load_state(pg->rec[i], pg->cldir, cl_name[i]);
-		if ((rec_return == -1) && (usingDefault == false)) {
-			if(0)fprint(2, "Unable to load custom classifier file %s/%s.\nTrying default classifier file instead.\nOriginal error: %s\n ", 
-				pg->cldir, cl_name[i], 
-				(s = recognizer_error(pg->rec[i])) ? s : "(none)");
+		if((rec_return == -1) && (usingDefault == false)) {
+			if(0)
+				fprint(2, "Unable to load custom classifier file %s/%s.\nTrying default classifier file instead.\nOriginal error: %s\n ",
+				       pg->cldir, cl_name[i],
+				       (s = recognizer_error(pg->rec[i])) ? s : "(none)");
 			rec_return = recognizer_load_state(pg->rec[i],
-						REC_DEFAULT_USER_DIR, cl_name[i]);
+							   REC_DEFAULT_USER_DIR, cl_name[i]);
 		}
-		if (rec_return == -1) {
+		if(rec_return == -1) {
 			fprint(2, "Unable to load default classifier file %s.\nOriginal error: %s\n",
-				cl_name[i], 
-				(s = recognizer_error(pg->rec[i])) ? s : "(none)");
+			       cl_name[i],
+			       (s = recognizer_error(pg->rec[i])) ? s : "(none)");
 			return 0;
 		}
 	}
@@ -228,25 +239,25 @@ graffiti_load_recognizers(struct graffiti *pg)
 	/* We have recognizers and classifiers now.   */
 	/* Get the vector of LIextension functions..     */
 	fns = recognizer_get_extension_functions(pg->rec[CS_LETTERS]);
-	if (fns == nil) {
+	if(fns == nil) {
 		fprint(2, "LI Recognizer Training:No extension functions!");
 		return 0;
 	}
-	
+
 	/* ... and make sure the training & get-classes functions are okay. */
-	if( (pg->rec_train = (li_recognizer_train)fns[LI_TRAIN]) == nil ) {
+	if((pg->rec_train = (li_recognizer_train)fns[LI_TRAIN]) == nil) {
 		fprint(2,
-			"LI Recognizer Training:li_recognizer_train() not found!");
-		if (fns != nil) {
+		       "LI Recognizer Training:li_recognizer_train() not found!");
+		if(fns != nil) {
 			free(fns);
 		}
 		return 0;
 	}
-  
-	if( (pg->rec_getClasses = (li_recognizer_getClasses)fns[LI_GET_CLASSES]) == nil ) {
+
+	if((pg->rec_getClasses = (li_recognizer_getClasses)fns[LI_GET_CLASSES]) == nil) {
 		fprint(2,
-			"LI Recognizer Training:li_recognizer_getClasses() not found!");
-		if (fns != nil) {
+		       "LI Recognizer Training:li_recognizer_getClasses() not found!");
+		if(fns != nil) {
 			free(fns);
 		}
 		return 0;
@@ -261,12 +272,12 @@ scribblealloc(void)
 	Scribble *s;
 
 	s = mallocz(sizeof(Scribble), 1);
-	if (s == nil)
+	if(s == nil)
 		sysfatal("Initialize: %r");
 	s->curCharSet = CS_LETTERS;
 
 	s->graf = mallocz(sizeof(struct graffiti), 1);
-	if (s->graf == nil)
+	if(s->graf == nil)
 		sysfatal("Initialize: %r");
 
 	graffiti_load_recognizers(s->graf);

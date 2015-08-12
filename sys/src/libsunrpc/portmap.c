@@ -28,10 +28,14 @@ portMapSize(PortMap *x)
 static int
 portMapPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortMap *x)
 {
-	if(sunUint32Pack(a, ea, &a, &x->prog) < 0) goto Err;
-	if(sunUint32Pack(a, ea, &a, &x->vers) < 0) goto Err;
-	if(sunUint32Pack(a, ea, &a, &x->prot) < 0) goto Err;
-	if(sunUint32Pack(a, ea, &a, &x->port) < 0) goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->prog) < 0)
+		goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->vers) < 0)
+		goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->prot) < 0)
+		goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->port) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -41,10 +45,14 @@ Err:
 static int
 portMapUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortMap *x)
 {
-	if(sunUint32Unpack(a, ea, &a, &x->prog) < 0) goto Err;
-	if(sunUint32Unpack(a, ea, &a, &x->vers) < 0) goto Err;
-	if(sunUint32Unpack(a, ea, &a, &x->prot) < 0) goto Err;
-	if(sunUint32Unpack(a, ea, &a, &x->port) < 0) goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->prog) < 0)
+		goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->vers) < 0)
+		goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->prot) < 0)
+		goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->port) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -128,7 +136,8 @@ portTSetSize(PortTSet *x)
 static int
 portTSetPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTSet *x)
 {
-	if(portMapPack(a, ea, &a, &x->map) < 0) goto Err;
+	if(portMapPack(a, ea, &a, &x->map) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -138,7 +147,8 @@ Err:
 static int
 portTSetUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTSet *x)
 {
-	if(portMapUnpack(a, ea, &a, &x->map) < 0) goto Err;
+	if(portMapUnpack(a, ea, &a, &x->map) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -161,7 +171,8 @@ portRSetSize(PortRSet *x)
 static int
 portRSetPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRSet *x)
 {
-	if(sunUint1Pack(a, ea, &a, &x->b) < 0) goto Err;
+	if(sunUint1Pack(a, ea, &a, &x->b) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -171,7 +182,8 @@ Err:
 static int
 portRSetUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRSet *x)
 {
-	if(sunUint1Unpack(a, ea, &a, &x->b) < 0) goto Err;
+	if(sunUint1Unpack(a, ea, &a, &x->b) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -195,7 +207,8 @@ portTUnsetSize(PortTUnset *x)
 static int
 portTUnsetPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTUnset *x)
 {
-	if(portMapPack(a, ea, &a, &x->map) < 0) goto Err;
+	if(portMapPack(a, ea, &a, &x->map) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -205,7 +218,8 @@ Err:
 static int
 portTUnsetUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTUnset *x)
 {
-	if(portMapUnpack(a, ea, &a, &x->map) < 0) goto Err;
+	if(portMapUnpack(a, ea, &a, &x->map) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -228,7 +242,8 @@ portRUnsetSize(PortRUnset *x)
 static int
 portRUnsetPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRUnset *x)
 {
-	if(sunUint1Pack(a, ea, &a, &x->b) < 0) goto Err;
+	if(sunUint1Pack(a, ea, &a, &x->b) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -238,7 +253,8 @@ Err:
 static int
 portRUnsetUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRUnset *x)
 {
-	if(sunUint1Unpack(a, ea, &a, &x->b) < 0) goto Err;
+	if(sunUint1Unpack(a, ea, &a, &x->b) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -262,7 +278,8 @@ portTGetportSize(PortTGetport *x)
 static int
 portTGetportPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTGetport *x)
 {
-	if(portMapPack(a, ea, &a, &x->map) < 0) goto Err;
+	if(portMapPack(a, ea, &a, &x->map) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -272,7 +289,8 @@ Err:
 static int
 portTGetportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTGetport *x)
 {
-	if(portMapUnpack(a, ea, &a, &x->map) < 0) goto Err;
+	if(portMapUnpack(a, ea, &a, &x->map) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -295,7 +313,8 @@ portRGetportSize(PortRGetport *x)
 static int
 portRGetportPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRGetport *x)
 {
-	if(sunUint32Pack(a, ea, &a, &x->port) < 0) goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->port) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -305,7 +324,8 @@ Err:
 static int
 portRGetportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRGetport *x)
 {
-	if(sunUint32Unpack(a, ea, &a, &x->port) < 0) goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->port) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -348,7 +368,7 @@ portRDumpPrint(Fmt *fmt, PortRDump *x)
 	int i;
 
 	fmtprint(fmt, "PortRDump");
-	for(i=0; i<x->nmap; i++){
+	for(i = 0; i < x->nmap; i++) {
 		fmtprint(fmt, " ");
 		portMapPrint(fmt, &x->map[i]);
 	}
@@ -356,7 +376,7 @@ portRDumpPrint(Fmt *fmt, PortRDump *x)
 static uint
 portRDumpSize(PortRDump *x)
 {
-	return (5*4*x->nmap) + 4;
+	return (5 * 4 * x->nmap) + 4;
 }
 static int
 portRDumpPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRDump *x)
@@ -366,9 +386,8 @@ portRDumpPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRDump *x)
 
 	zero = 0;
 	one = 1;
-	for(i=0; i<x->nmap; i++){
-		if(sunUint32Pack(a, ea, &a, &one) < 0
-		|| portMapPack(a, ea, &a, &x->map[i]) < 0)
+	for(i = 0; i < x->nmap; i++) {
+		if(sunUint32Pack(a, ea, &a, &one) < 0 || portMapPack(a, ea, &a, &x->map[i]) < 0)
 			goto Err;
 	}
 	if(sunUint32Pack(a, ea, &a, &zero) < 0)
@@ -386,8 +405,8 @@ portRDumpUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRDump *x)
 	u1int u1;
 	PortMap *m;
 
-	m = (PortMap*)a;
-	for(i=0;; i++){
+	m = (PortMap *)a;
+	for(i = 0;; i++) {
 		if(sunUint1Unpack(a, ea, &a, &u1) < 0)
 			goto Err;
 		if(u1 == 0)
@@ -420,10 +439,14 @@ portTCallitSize(PortTCallit *x)
 static int
 portTCallitPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTCallit *x)
 {
-	if(sunUint32Pack(a, ea, &a, &x->prog) < 0) goto Err;
-	if(sunUint32Pack(a, ea, &a, &x->vers) < 0) goto Err;
-	if(sunUint32Pack(a, ea, &a, &x->proc) < 0) goto Err;
-	if(sunVarOpaquePack(a, ea, &a, &x->data, &x->count, -1) < 0) goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->prog) < 0)
+		goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->vers) < 0)
+		goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->proc) < 0)
+		goto Err;
+	if(sunVarOpaquePack(a, ea, &a, &x->data, &x->count, -1) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -433,10 +456,14 @@ Err:
 static int
 portTCallitUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortTCallit *x)
 {
-	if(sunUint32Unpack(a, ea, &a, &x->prog) < 0) goto Err;
-	if(sunUint32Unpack(a, ea, &a, &x->vers) < 0) goto Err;
-	if(sunUint32Unpack(a, ea, &a, &x->proc) < 0) goto Err;
-	if(sunVarOpaqueUnpack(a, ea, &a, &x->data, &x->count, -1) < 0) goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->prog) < 0)
+		goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->vers) < 0)
+		goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->proc) < 0)
+		goto Err;
+	if(sunVarOpaqueUnpack(a, ea, &a, &x->data, &x->count, -1) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -459,8 +486,10 @@ portRCallitSize(PortRCallit *x)
 static int
 portRCallitPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRCallit *x)
 {
-	if(sunUint32Pack(a, ea, &a, &x->port) < 0) goto Err;
-	if(sunVarOpaquePack(a, ea, &a, &x->data, &x->count, -1) < 0) goto Err;
+	if(sunUint32Pack(a, ea, &a, &x->port) < 0)
+		goto Err;
+	if(sunVarOpaquePack(a, ea, &a, &x->data, &x->count, -1) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -470,8 +499,10 @@ Err:
 static int
 portRCallitUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRCallit *x)
 {
-	if(sunUint32Unpack(a, ea, &a, &x->port) < 0) goto Err;
-	if(sunVarOpaqueUnpack(a, ea, &a, &x->data, &x->count, -1) < 0) goto Err;
+	if(sunUint32Unpack(a, ea, &a, &x->port) < 0)
+		goto Err;
+	if(sunVarOpaqueUnpack(a, ea, &a, &x->data, &x->count, -1) < 0)
+		goto Err;
 	*pa = a;
 	return 0;
 Err:
@@ -479,29 +510,29 @@ Err:
 	return -1;
 }
 
-typedef int (*P)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
-typedef void (*F)(Fmt*, SunCall*);
-typedef uint (*S)(SunCall*);
+typedef int (*P)(uint8_t *, uint8_t *, uint8_t **, SunCall *);
+typedef void (*F)(Fmt *, SunCall *);
+typedef uint (*S)(SunCall *);
 
 static SunProc proc[] = {
-	(P)portTNullPack, (P)portTNullUnpack, (S)portTNullSize, (F)portTNullPrint, sizeof(PortTNull),
-	(P)portRNullPack, (P)portRNullUnpack, (S)portRNullSize, (F)portRNullPrint, sizeof(PortRNull),
-	(P)portTSetPack, (P)portTSetUnpack, (S)portTSetSize, (F)portTSetPrint, sizeof(PortTSet),
-	(P)portRSetPack, (P)portRSetUnpack, (S)portRSetSize, (F)portRSetPrint, sizeof(PortRSet),
-	(P)portTUnsetPack, (P)portTUnsetUnpack, (S)portTUnsetSize, (F)portTUnsetPrint, sizeof(PortTUnset),
-	(P)portRUnsetPack, (P)portRUnsetUnpack, (S)portRUnsetSize, (F)portRUnsetPrint, sizeof(PortRUnset),
-	(P)portTGetportPack, (P)portTGetportUnpack, (S)portTGetportSize, (F)portTGetportPrint, sizeof(PortTGetport),
-	(P)portRGetportPack, (P)portRGetportUnpack, (S)portRGetportSize, (F)portRGetportPrint, sizeof(PortRGetport),
-	(P)portTDumpPack, (P)portTDumpUnpack, (S)portTDumpSize, (F)portTDumpPrint, sizeof(PortTDump),
-	(P)portRDumpPack, (P)portRDumpUnpack, (S)portRDumpSize, (F)portRDumpPrint, sizeof(PortRDump),
-	(P)portTCallitPack, (P)portTCallitUnpack, (S)portTCallitSize, (F)portTCallitPrint, sizeof(PortTCallit),
-	(P)portRCallitPack, (P)portRCallitUnpack, (S)portRCallitSize, (F)portRCallitPrint, sizeof(PortRCallit),
+    (P)portTNullPack, (P)portTNullUnpack, (S)portTNullSize, (F)portTNullPrint, sizeof(PortTNull),
+    (P)portRNullPack, (P)portRNullUnpack, (S)portRNullSize, (F)portRNullPrint, sizeof(PortRNull),
+    (P)portTSetPack, (P)portTSetUnpack, (S)portTSetSize, (F)portTSetPrint, sizeof(PortTSet),
+    (P)portRSetPack, (P)portRSetUnpack, (S)portRSetSize, (F)portRSetPrint, sizeof(PortRSet),
+    (P)portTUnsetPack, (P)portTUnsetUnpack, (S)portTUnsetSize, (F)portTUnsetPrint, sizeof(PortTUnset),
+    (P)portRUnsetPack, (P)portRUnsetUnpack, (S)portRUnsetSize, (F)portRUnsetPrint, sizeof(PortRUnset),
+    (P)portTGetportPack, (P)portTGetportUnpack, (S)portTGetportSize, (F)portTGetportPrint, sizeof(PortTGetport),
+    (P)portRGetportPack, (P)portRGetportUnpack, (S)portRGetportSize, (F)portRGetportPrint, sizeof(PortRGetport),
+    (P)portTDumpPack, (P)portTDumpUnpack, (S)portTDumpSize, (F)portTDumpPrint, sizeof(PortTDump),
+    (P)portRDumpPack, (P)portRDumpUnpack, (S)portRDumpSize, (F)portRDumpPrint, sizeof(PortRDump),
+    (P)portTCallitPack, (P)portTCallitUnpack, (S)portTCallitSize, (F)portTCallitPrint, sizeof(PortTCallit),
+    (P)portRCallitPack, (P)portRCallitUnpack, (S)portRCallitSize, (F)portRCallitPrint, sizeof(PortRCallit),
 };
 
-SunProg portProg = 
-{
-	PortProgram,
-	PortVersion,
-	proc,
-	nelem(proc),
+SunProg portProg =
+    {
+     PortProgram,
+     PortVersion,
+     proc,
+     nelem(proc),
 };

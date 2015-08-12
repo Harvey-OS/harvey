@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <oventi.h>
 
-char*
+char *
 vtStrDup(char *s)
 {
 	int n;
@@ -25,4 +25,3 @@ vtStrDup(char *s)
 	setmalloctag(ss, getcallerpc(&s));
 	return ss;
 }
-

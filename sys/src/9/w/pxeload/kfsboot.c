@@ -7,44 +7,42 @@
  * in the LICENSE file.
  */
 
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
-#include	"fs.h"
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "fs.h"
 
 typedef struct Tag Tag;
 
 /*
  * tags on block
  */
-enum
-{
-	Tnone		= 0,
-	Tsuper,			/* the super block */
-	Tdir,			/* directory contents */
-	Tind1,			/* points to blocks */
-	Tind2,			/* points to Tind1 */
-	Tfile,			/* file contents */
-	Tfree,			/* in free list */
-	Tbuck,			/* cache fs bucket */
-	Tvirgo,			/* fake worm virgin bits */
-	Tcache,			/* cw cache things */
+enum {
+	Tnone = 0,
+	Tsuper, /* the super block */
+	Tdir,   /* directory contents */
+	Tind1,  /* points to blocks */
+	Tind2,  /* points to Tind1 */
+	Tfile,  /* file contents */
+	Tfree,  /* in free list */
+	Tbuck,  /* cache fs bucket */
+	Tvirgo, /* fake worm virgin bits */
+	Tcache, /* cw cache things */
 	MAXTAG
 };
 
-#define	QPDIR	0x80000000L
-#define	QPNONE	0
-#define	QPROOT	1
-#define	QPSUPER	2
+#define QPDIR 0x80000000L
+#define QPNONE 0
+#define QPROOT 1
+#define QPSUPER 2
 
 /* DONT TOUCH, this is the disk structure */
-struct	Tag
-{
-	int16_t	pad;
-	int16_t	tag;
-	int32_t	path;
+struct Tag {
+	int16_t pad;
+	int16_t tag;
+	int32_t path;
 };
 
 static int thisblock = -1;
@@ -67,7 +65,7 @@ getblock(Fs *fs, uint32_t n)
 	if(thisblock == n && thisfs == fs)
 		return 0;
 	thisblock = -1;
-	if(fs->diskseek(fs, (int64_t)n*fs->kfs.RBUFSIZE) < 0)
+	if(fs->diskseek(fs, (int64_t)n * fs->kfs.RBUFSIZE) < 0)
 		return -1;
 	if(fs->diskread(fs, block, fs->kfs.RBUFSIZE) != fs->kfs.RBUFSIZE)
 		return -1;
@@ -82,10 +80,10 @@ checktag(Fs *fs, uint8_t *block, int tag, int32_t qpath)
 {
 	Tag *t;
 
-	t = (Tag*)(block+fs->kfs.BUFSIZE);
+	t = (Tag *)(block + fs->kfs.BUFSIZE);
 	if(t->tag != tag)
 		return -1;
-	if(qpath != QPNONE && (qpath&~QPDIR) != t->path)
+	if(qpath != QPNONE && (qpath & ~QPDIR) != t->path)
 		return -1;
 	return 1;
 }
@@ -105,11 +103,11 @@ readinfo(Fs *fs)
 	if(getblock(fs, 0) < 0)
 		return -1;
 
-	if(memcmp(block+256, "kfs wren device\n", 16) != 0)
+	if(memcmp(block + 256, "kfs wren device\n", 16) != 0)
 		return -1;
 
-	fs->kfs.RBUFSIZE = atoi((char*)block+256+16);
-	if(!fs->kfs.RBUFSIZE || (fs->kfs.RBUFSIZE&(fs->kfs.RBUFSIZE-1)))
+	fs->kfs.RBUFSIZE = atoi((char *)block + 256 + 16);
+	if(!fs->kfs.RBUFSIZE || (fs->kfs.RBUFSIZE & (fs->kfs.RBUFSIZE - 1)))
 		return -1;
 
 	fs->kfs.BUFSIZE = fs->kfs.RBUFSIZE - sizeof(Tag);
@@ -127,10 +125,10 @@ readroot(Fs *fs, Dentry *d)
 
 	if(getblocktag(fs, 2, Tdir, QPROOT) < 0)
 		return -1;
-	d2 = (Dentry*)block;
+	d2 = (Dentry *)block;
 	if(strcmp(d2->name, "/") != 0)
 		return -1;
-	*d = *(Dentry*)block;
+	*d = *(Dentry *)block;
 	return 1;
 }
 
@@ -139,7 +137,7 @@ indfetch(Fs *fs, int32_t addr, int32_t off, int tag, int32_t path)
 {
 	if(getblocktag(fs, addr, tag, path) < 0)
 		return -1;
-	return ((int32_t*)block)[off];
+	return ((int32_t *)block)[off];
 }
 
 static int32_t
@@ -150,7 +148,7 @@ rel2abs(Fs *fs, Dentry *d, int32_t a)
 	if(a < NDBLOCK)
 		return d->dblock[a];
 	a -= NDBLOCK;
-	if(a < fs->kfs.INDPERBUF){
+	if(a < fs->kfs.INDPERBUF) {
 		if(d->iblock == 0)
 			return 0;
 		addr = indfetch(fs, d->iblock, a, Tind1, d->qid.path);
@@ -159,15 +157,15 @@ rel2abs(Fs *fs, Dentry *d, int32_t a)
 		return addr;
 	}
 	a -= fs->kfs.INDPERBUF;
-	if(a < fs->kfs.INDPERBUF2){
+	if(a < fs->kfs.INDPERBUF2) {
 		if(d->diblock == 0)
 			return 0;
-		addr = indfetch(fs, d->diblock, a/fs->kfs.INDPERBUF, Tind2, d->qid.path);
-		if(addr == 0){
-			print("rel2abs indfetch 0 %s %ld\n", d->name, a/fs->kfs.INDPERBUF);
+		addr = indfetch(fs, d->diblock, a / fs->kfs.INDPERBUF, Tind2, d->qid.path);
+		if(addr == 0) {
+			print("rel2abs indfetch 0 %s %ld\n", d->name, a / fs->kfs.INDPERBUF);
 			return 0;
 		}
-		addr = indfetch(fs, addr, a%fs->kfs.INDPERBUF, Tind1, d->qid.path);
+		addr = indfetch(fs, addr, a % fs->kfs.INDPERBUF, Tind1, d->qid.path);
 		return addr;
 	}
 	print("rel2abs trip ind %s %ld\n", d->name, a);
@@ -179,12 +177,12 @@ readdentry(Fs *fs, Dentry *d, int n, Dentry *e)
 {
 	int32_t addr, m;
 
-	m = n/fs->kfs.DIRPERBUF;
+	m = n / fs->kfs.DIRPERBUF;
 	if((addr = rel2abs(fs, d, m)) <= 0)
 		return addr;
 	if(getblocktag(fs, addr, Tdir, d->qid.path) < 0)
 		return -1;
-	*e = *(Dentry*)(block+(n%fs->kfs.DIRPERBUF)*sizeof(Dentry));
+	*e = *(Dentry *)(block + (n % fs->kfs.DIRPERBUF) * sizeof(Dentry));
 	return 1;
 }
 
@@ -204,10 +202,10 @@ walk(Fs *fs, Dentry *d, char *name, Dentry *e)
 	int i, n;
 	Dentry x;
 
-	for(i=0;; i++){
-		if((n=readdentry(fs, d, i, &x)) <= 0)
+	for(i = 0;; i++) {
+		if((n = readdentry(fs, d, i, &x)) <= 0)
 			return n;
-		if(strcmp(x.name, name) == 0){
+		if(strcmp(x.name, name) == 0) {
 			*e = x;
 			return 1;
 		}
@@ -225,14 +223,14 @@ kfsread(File *f, void *va, int32_t len)
 	fs = f->fs;
 	off = f->kfs.off;
 	tot = 0;
-	while(tot < len){
-		if(getdatablock(fs, &f->kfs, off/fs->kfs.BUFSIZE) < 0)
+	while(tot < len) {
+		if(getdatablock(fs, &f->kfs, off / fs->kfs.BUFSIZE) < 0)
 			return -1;
-		o = off%fs->kfs.BUFSIZE;
+		o = off % fs->kfs.BUFSIZE;
 		n = fs->kfs.BUFSIZE - o;
-		if(n > len-tot)
-			n = len-tot;
-		memmove(a+tot, block+o, n);
+		if(n > len - tot)
+			n = len - tot;
+		memmove(a + tot, block + o, n);
 		off += n;
 		tot += n;
 	}

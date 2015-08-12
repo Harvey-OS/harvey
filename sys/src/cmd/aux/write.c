@@ -18,10 +18,10 @@ fill(void)
 {
 	int i;
 
-	for(i = 0; i < sizeof(x); i += sizeof(s)){
+	for(i = 0; i < sizeof(x); i += sizeof(s)) {
 		memmove(&x[i], s, sizeof(s));
-		x[i] = i>>8;
-		x[i+1] = i;
+		x[i] = i >> 8;
+		x[i + 1] = i;
 	}
 }
 
@@ -30,8 +30,9 @@ main(int argc, char *argv[])
 {
 	int i = 2560;
 
-	if(argc > 1){
-		argc--; argv++;
+	if(argc > 1) {
+		argc--;
+		argv++;
 		i = atoi(*argv);
 	}
 	USED(argc);

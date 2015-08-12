@@ -27,7 +27,7 @@
 /* Prototypes for debugging procedures in idebug.c */
 
 #ifndef idebug_INCLUDED
-#  define idebug_INCLUDED
+#define idebug_INCLUDED
 
 /* Print individual values. */
 void debug_print_name(const gs_memory_t *mem, const ref *);
@@ -37,16 +37,16 @@ void debug_print_ref_packed(const gs_memory_t *mem, const ref_packed *);
 
 /* Dump regions of memory. */
 void debug_dump_one_ref(const gs_memory_t *mem, const ref *);
-void debug_dump_refs(const gs_memory_t *mem, 
-		     const ref * from, uint size, const char *msg);
-void debug_dump_array(const gs_memory_t *mem, const ref * array);
+void debug_dump_refs(const gs_memory_t *mem,
+		     const ref *from, uint size, const char *msg);
+void debug_dump_array(const gs_memory_t *mem, const ref *array);
 
 /* Dump a stack.  Using this requires istack.h. */
 #ifndef ref_stack_DEFINED
-typedef struct ref_stack_s ref_stack_t;	/* also defined in isdata.h */
-#  define ref_stack_DEFINED
+typedef struct ref_stack_s ref_stack_t; /* also defined in isdata.h */
+#define ref_stack_DEFINED
 #endif
-void debug_dump_stack(const gs_memory_t *mem, 
-		      const ref_stack_t * pstack, const char *msg);
+void debug_dump_stack(const gs_memory_t *mem,
+		      const ref_stack_t *pstack, const char *msg);
 
 #endif /* idebug_INCLUDED */

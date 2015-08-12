@@ -27,7 +27,7 @@
 /* PostScript/PDF font writing interface */
 
 #ifndef gdevpsf_INCLUDED
-#  define gdevpsf_INCLUDED
+#define gdevpsf_INCLUDED
 
 #include "gsccode.h"
 #include "gsgdata.h"
@@ -35,15 +35,15 @@
 /* ---------------- Embedded font writing ---------------- */
 
 #ifndef gs_font_DEFINED
-#  define gs_font_DEFINED
+#define gs_font_DEFINED
 typedef struct gs_font_s gs_font;
 #endif
 #ifndef gs_font_base_DEFINED
-#  define gs_font_base_DEFINED
+#define gs_font_base_DEFINED
 typedef struct gs_font_base_s gs_font_base;
 #endif
 #ifndef stream_DEFINED
-#  define stream_DEFINED
+#define stream_DEFINED
 typedef struct stream_s stream;
 #endif
 
@@ -54,17 +54,17 @@ typedef struct stream_s stream;
  */
 typedef struct psf_glyph_enum_s psf_glyph_enum_t;
 struct psf_glyph_enum_s {
-    gs_font *font;
-    struct su_ {
-	union sus_ {
-	    const gs_glyph *list;	/* if subset given by a list */
-	    const byte *bits;	/* if CID or TT subset given by a bitmap */
-	} selected;
-	uint size;
-    } subset;
-    gs_glyph_space_t glyph_space;
-    uint32_t index;
-    int (*enumerate_next)(psf_glyph_enum_t *, gs_glyph *);
+	gs_font *font;
+	struct su_ {
+		union sus_ {
+			const gs_glyph *list; /* if subset given by a list */
+			const byte *bits;     /* if CID or TT subset given by a bitmap */
+		} selected;
+		uint size;
+	} subset;
+	gs_glyph_space_t glyph_space;
+	uint32_t index;
+	int (*enumerate_next)(psf_glyph_enum_t *, gs_glyph *);
 };
 
 /*
@@ -85,8 +85,8 @@ void psf_enumerate_bits_begin(psf_glyph_enum_t *ppge, gs_font *font,
 			      const byte *subset_bits, uint subset_size,
 			      gs_glyph_space_t glyph_space);
 /* Backward compatibility */
-#define psf_enumerate_cids_begin(ppge, font, bits, size)\
-   psf_enumerate_bits_begin(ppge, font, bits, size, GLYPH_SPACE_NAME)
+#define psf_enumerate_cids_begin(ppge, font, bits, size) \
+	psf_enumerate_bits_begin(ppge, font, bits, size, GLYPH_SPACE_NAME)
 
 /*
  * Reset a glyph enumeration.
@@ -135,15 +135,15 @@ bool psf_sorted_glyphs_include(const gs_glyph *glyphs, int count,
 #define MAX_CFF_MISC_STRINGS 40
 #define MAX_CFF_STD_STRINGS 500 /* 391 entries used */
 typedef struct psf_outline_glyphs_s {
-    gs_glyph notdef;
-    /* gs_glyph subset_data[256 * 3 + 1]; *3 for seac, +1 for .notdef */
-    gs_glyph *subset_data;
-    gs_glyph *subset_glyphs;	/* 0 or subset_data */
-    uint subset_size;
+	gs_glyph notdef;
+	/* gs_glyph subset_data[256 * 3 + 1]; *3 for seac, +1 for .notdef */
+	gs_glyph *subset_data;
+	gs_glyph *subset_glyphs; /* 0 or subset_data */
+	uint subset_size;
 } psf_outline_glyphs_t;
 
 #ifndef gs_font_type1_DEFINED
-#  define gs_font_type1_DEFINED
+#define gs_font_type1_DEFINED
 typedef struct gs_font_type1_s gs_font_type1;
 #endif
 
@@ -182,11 +182,11 @@ int psf_get_type1_glyphs(psf_outline_glyphs_t *pglyphs,
  * or free any data.
  */
 #define WRITE_TYPE1_EEXEC 1
-#define WRITE_TYPE1_ASCIIHEX 2  /* use ASCII hex rather than binary */
-#define WRITE_TYPE1_EEXEC_PAD 4  /* add 512 0s */
+#define WRITE_TYPE1_ASCIIHEX 2    /* use ASCII hex rather than binary */
+#define WRITE_TYPE1_EEXEC_PAD 4   /* add 512 0s */
 #define WRITE_TYPE1_EEXEC_MARK 8  /* assume 512 0s will be added */
-#define WRITE_TYPE1_POSTSCRIPT 16  /* don't observe ATM restrictions */
-#define WRITE_TYPE1_WITH_LENIV 32  /* don't allow lenIV = -1 */
+#define WRITE_TYPE1_POSTSCRIPT 16 /* don't observe ATM restrictions */
+#define WRITE_TYPE1_WITH_LENIV 32 /* don't allow lenIV = -1 */
 int psf_write_type1_font(stream *s, gs_font_type1 *pfont, int options,
 			 gs_glyph *subset_glyphs, uint subset_size,
 			 const gs_const_string *alt_font_name,
@@ -198,17 +198,17 @@ int psf_write_type1_font(stream *s, gs_font_type1 *pfont, int options,
  * Write a Type 1 or Type 2 font definition as CFF.
  * This procedure does not allocate or free any data.
  */
-#define WRITE_TYPE2_NO_LENIV 1	/* always use lenIV = -1 */
+#define WRITE_TYPE2_NO_LENIV 1    /* always use lenIV = -1 */
 #define WRITE_TYPE2_CHARSTRINGS 2 /* convert T1 charstrings to T2 */
-#define WRITE_TYPE2_AR3 4	/* work around bugs in Acrobat Reader 3 */
-#define WRITE_TYPE2_NO_GSUBRS 8	/* omit GlobalSubrs */
+#define WRITE_TYPE2_AR3 4	 /* work around bugs in Acrobat Reader 3 */
+#define WRITE_TYPE2_NO_GSUBRS 8   /* omit GlobalSubrs */
 int psf_write_type2_font(stream *s, gs_font_type1 *pfont, int options,
 			 gs_glyph *subset_glyphs, uint subset_size,
 			 const gs_const_string *alt_font_name,
 			 gs_int_rect *FontBBox);
 
 #ifndef gs_font_cid0_DEFINED
-#  define gs_font_cid0_DEFINED
+#define gs_font_cid0_DEFINED
 typedef struct gs_font_cid0_s gs_font_cid0;
 #endif
 
@@ -229,7 +229,7 @@ int psf_write_cid0_font(stream *s, gs_font_cid0 *pfont, int options,
  * This procedure does not allocate or free any data.
  */
 #ifndef gs_cmap_DEFINED
-#  define gs_cmap_DEFINED
+#define gs_cmap_DEFINED
 typedef struct gs_cmap_s gs_cmap_t;
 #endif
 typedef int (*psf_put_name_chars_proc_t)(stream *, const byte *, uint);
@@ -243,14 +243,14 @@ int psf_write_cmap(const gs_memory_t *mem, stream *s, const gs_cmap_t *pcmap,
  * This procedure does not allocate or free any data.
  */
 #ifndef gs_font_type42_DEFINED
-#  define gs_font_type42_DEFINED
+#define gs_font_type42_DEFINED
 typedef struct gs_font_type42_s gs_font_type42;
 #endif
-#define WRITE_TRUETYPE_CMAP 1	/* generate cmap from the Encoding */
-#define WRITE_TRUETYPE_NAME 2	/* generate name if missing */
-#define WRITE_TRUETYPE_POST 4	/* generate post if missing */
-#define WRITE_TRUETYPE_NO_TRIMMED_TABLE 8  /* not OK to use cmap format 6 */
-#define WRITE_TRUETYPE_HVMTX 16	/* generate [hv]mtx from glyph_info */
+#define WRITE_TRUETYPE_CMAP 1		  /* generate cmap from the Encoding */
+#define WRITE_TRUETYPE_NAME 2		  /* generate name if missing */
+#define WRITE_TRUETYPE_POST 4		  /* generate post if missing */
+#define WRITE_TRUETYPE_NO_TRIMMED_TABLE 8 /* not OK to use cmap format 6 */
+#define WRITE_TRUETYPE_HVMTX 16		  /* generate [hv]mtx from glyph_info */
 int psf_write_truetype_font(stream *s, gs_font_type42 *pfont, int options,
 			    gs_glyph *subset_glyphs, uint subset_size,
 			    const gs_const_string *alt_font_name);
@@ -271,7 +271,7 @@ int psf_write_truetype_font(stream *s, gs_font_type42 *pfont, int options,
 int psf_write_truetype_stripped(stream *s, gs_font_type42 *pfont);
 
 #ifndef gs_font_cid2_DEFINED
-#  define gs_font_cid2_DEFINED
+#define gs_font_cid2_DEFINED
 typedef struct gs_font_cid2_s gs_font_cid2;
 #endif
 

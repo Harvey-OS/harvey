@@ -14,7 +14,7 @@
 #include <bio.h>
 #include "page.h"
 
-void*
+void *
 emalloc(int sz)
 {
 	void *v;
@@ -27,7 +27,7 @@ emalloc(int sz)
 	return v;
 }
 
-void*
+void *
 erealloc(void *v, int sz)
 {
 	v = realloc(v, sz);
@@ -38,7 +38,7 @@ erealloc(void *v, int sz)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
@@ -57,13 +57,13 @@ opentemp(char *template)
 
 	p = estrdup(template);
 	fd = -1;
-	for(i=0; i<10; i++){
+	for(i = 0; i < 10; i++) {
 		mktemp(p);
-		if(access(p, 0) < 0 && (fd=create(p, ORDWR|ORCLOSE, 0400)) >= 0)
+		if(access(p, 0) < 0 && (fd = create(p, ORDWR | ORCLOSE, 0400)) >= 0)
 			break;
 		strcpy(p, template);
 	}
-	if(fd < 0){
+	if(fd < 0) {
 		fprint(2, "couldn't make temporary file\n");
 		wexits("Ecreat");
 	}
@@ -89,13 +89,13 @@ spooltodisk(uint8_t *ibuf, int in, char **name)
 	if(name)
 		*name = estrdup(temp);
 
-	if(write(fd, ibuf, in) != in){
+	if(write(fd, ibuf, in) != in) {
 		fprint(2, "error writing temporary file\n");
 		wexits("write temp");
 	}
 
-	while((n = read(stdinfd, buf, sizeof buf)) > 0){
-		if(write(fd, buf, n) != n){
+	while((n = read(stdinfd, buf, sizeof buf)) > 0) {
+		if(write(fd, buf, n) != n) {
 			fprint(2, "error writing temporary file\n");
 			wexits("write temp0");
 		}
@@ -114,12 +114,12 @@ stdinpipe(uint8_t *ibuf, int in)
 	uint8_t buf[8192];
 	int n;
 	int p[2];
-	if(pipe(p) < 0){
-		fprint(2, "pipe fails: %r\n");	
+	if(pipe(p) < 0) {
+		fprint(2, "pipe fails: %r\n");
 		wexits("pipe");
 	}
 
-	switch(rfork(RFMEM|RFPROC|RFFDG)){
+	switch(rfork(RFMEM | RFPROC | RFFDG)) {
 	case -1:
 		fprint(2, "fork fails: %r\n");
 		wexits("fork");
@@ -136,7 +136,7 @@ stdinpipe(uint8_t *ibuf, int in)
 		write(p[1], buf, n);
 
 	_exits(0);
-	return -1;	/* not reached */
+	return -1; /* not reached */
 }
 
 /* try to update the label, but don't fail on any errors */
@@ -147,11 +147,11 @@ setlabel(char *label)
 	int fd;
 
 	s = smprint("%s/label", display->windir);
-	if (s == nil)
+	if(s == nil)
 		return;
 	fd = open(s, OWRITE);
 	free(s);
-	if(fd >= 0){
+	if(fd >= 0) {
 		write(fd, label, strlen(label));
 		close(fd);
 	}

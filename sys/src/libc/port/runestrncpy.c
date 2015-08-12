@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runestrncpy(Rune *s1, Rune *s2, int32_t n)
 {
 	int i;

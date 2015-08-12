@@ -12,82 +12,81 @@
 #include "9.h"
 
 enum {
-	NUserHash	= 1009,
+	NUserHash = 1009,
 };
 
 typedef struct Ubox Ubox;
 typedef struct User User;
 
 struct User {
-	char*	uid;
-	char*	uname;
-	char*	leader;
-	char**	group;
-	int	ngroup;
+	char *uid;
+	char *uname;
+	char *leader;
+	char **group;
+	int ngroup;
 
-	User*	next;			/* */
-	User*	ihash;			/* lookup by .uid */
-	User*	nhash;			/* lookup by .uname */
+	User *next;  /* */
+	User *ihash; /* lookup by .uid */
+	User *nhash; /* lookup by .uname */
 };
 
-#pragma varargck type "U"   User*
+#pragma varargck type "U" User *
 
 struct Ubox {
-	User*	head;
-	User*	tail;
-	int	nuser;
-	int	len;
+	User *head;
+	User *tail;
+	int nuser;
+	int len;
 
-	User*	ihash[NUserHash];	/* lookup by .uid */
-	User*	nhash[NUserHash];	/* lookup by .uname */
+	User *ihash[NUserHash]; /* lookup by .uid */
+	User *nhash[NUserHash]; /* lookup by .uname */
 };
 
 static struct {
-	VtLock*	lock;
+	VtLock *lock;
 
-	Ubox*	box;
+	Ubox *box;
 } ubox;
 
 static char usersDefault[] = {
-	"adm:adm:adm:sys\n"
-	"none:none::\n"
-	"noworld:noworld::\n"
-	"sys:sys::glenda\n"
-	"glenda:glenda:glenda:\n"
+    "adm:adm:adm:sys\n"
+    "none:none::\n"
+    "noworld:noworld::\n"
+    "sys:sys::glenda\n"
+    "glenda:glenda:glenda:\n"};
+
+static char *usersMandatory[] = {
+    "adm",
+    "none",
+    "noworld",
+    "sys",
+    nil,
 };
 
-static char* usersMandatory[] = {
-	"adm",
-	"none",
-	"noworld",
-	"sys",
-	nil,
-};
-
-char* uidadm = "adm";
-char* unamenone = "none";
-char* uidnoworld = "noworld";
+char *uidadm = "adm";
+char *unamenone = "none";
+char *uidnoworld = "noworld";
 
 static uint32_t
-userHash(char* s)
+userHash(char *s)
 {
 	uint8_t *p;
 	uint32_t hash;
 
 	hash = 0;
-	for(p = (uint8_t*)s; *p != '\0'; p++)
-		hash = hash*7 + *p;
+	for(p = (uint8_t *)s; *p != '\0'; p++)
+		hash = hash * 7 + *p;
 
 	return hash % NUserHash;
 }
 
-static User*
-_userByUid(Ubox* box, char* uid)
+static User *
+_userByUid(Ubox *box, char *uid)
 {
 	User *u;
 
-	if(box != nil){
-		for(u = box->ihash[userHash(uid)]; u != nil; u = u->ihash){
+	if(box != nil) {
+		for(u = box->ihash[userHash(uid)]; u != nil; u = u->ihash) {
 			if(strcmp(u->uid, uid) == 0)
 				return u;
 		}
@@ -96,14 +95,14 @@ _userByUid(Ubox* box, char* uid)
 	return nil;
 }
 
-char*
-unameByUid(char* uid)
+char *
+unameByUid(char *uid)
 {
 	User *u;
 	char *uname;
 
 	vtRLock(ubox.lock);
-	if((u = _userByUid(ubox.box, uid)) == nil){
+	if((u = _userByUid(ubox.box, uid)) == nil) {
 		vtRUnlock(ubox.lock);
 		return nil;
 	}
@@ -113,13 +112,13 @@ unameByUid(char* uid)
 	return uname;
 }
 
-static User*
-_userByUname(Ubox* box, char* uname)
+static User *
+_userByUname(Ubox *box, char *uname)
 {
 	User *u;
 
-	if(box != nil){
-		for(u = box->nhash[userHash(uname)]; u != nil; u = u->nhash){
+	if(box != nil) {
+		for(u = box->nhash[userHash(uname)]; u != nil; u = u->nhash) {
 			if(strcmp(u->uname, uname) == 0)
 				return u;
 		}
@@ -128,14 +127,14 @@ _userByUname(Ubox* box, char* uname)
 	return nil;
 }
 
-char*
-uidByUname(char* uname)
+char *
+uidByUname(char *uname)
 {
 	User *u;
 	char *uid;
 
 	vtRLock(ubox.lock);
-	if((u = _userByUname(ubox.box, uname)) == nil){
+	if((u = _userByUname(ubox.box, uname)) == nil) {
 		vtRUnlock(ubox.lock);
 		return nil;
 	}
@@ -146,7 +145,7 @@ uidByUname(char* uname)
 }
 
 static int
-_groupMember(Ubox* box, char* group, char* member, int whenNoGroup)
+_groupMember(Ubox *box, char *group, char *member, int whenNoGroup)
 {
 	int i;
 	User *g, *m;
@@ -162,7 +161,7 @@ _groupMember(Ubox* box, char* group, char* member, int whenNoGroup)
 		return 0;
 	if(m == g)
 		return 1;
-	for(i = 0; i < g->ngroup; i++){
+	for(i = 0; i < g->ngroup; i++) {
 		if(strcmp(g->group[i], member) == 0)
 			return 1;
 	}
@@ -170,7 +169,7 @@ _groupMember(Ubox* box, char* group, char* member, int whenNoGroup)
 }
 
 int
-groupWriteMember(char* uname)
+groupWriteMember(char *uname)
 {
 	int ret;
 
@@ -198,23 +197,23 @@ groupWriteMember(char* uname)
 }
 
 static int
-_groupRemMember(Ubox* box, User* g, char* member)
+_groupRemMember(Ubox *box, User *g, char *member)
 {
 	int i;
 
 	if(_userByUname(box, member) == nil)
 		return 0;
 
-	for(i = 0; i < g->ngroup; i++){
+	for(i = 0; i < g->ngroup; i++) {
 		if(strcmp(g->group[i], member) == 0)
 			break;
 	}
-	if(i >= g->ngroup){
+	if(i >= g->ngroup) {
 		if(strcmp(g->uname, member) == 0)
 			vtSetError("uname: '%s' always in own group", member);
 		else
 			vtSetError("uname: '%s' not in group '%s'",
-				member, g->uname);
+				   member, g->uname);
 		return 0;
 	}
 
@@ -224,16 +223,16 @@ _groupRemMember(Ubox* box, User* g, char* member)
 	if(g->ngroup > 1)
 		box->len--;
 	g->ngroup--;
-	switch(g->ngroup){
+	switch(g->ngroup) {
 	case 0:
 		vtMemFree(g->group);
 		g->group = nil;
 		break;
 	default:
 		for(; i < g->ngroup; i++)
-			g->group[i] = g->group[i+1];
-		g->group[i] = nil;		/* prevent accidents */
-		g->group = vtMemRealloc(g->group, g->ngroup * sizeof(char*));
+			g->group[i] = g->group[i + 1];
+		g->group[i] = nil; /* prevent accidents */
+		g->group = vtMemRealloc(g->group, g->ngroup * sizeof(char *));
 		break;
 	}
 
@@ -241,22 +240,22 @@ _groupRemMember(Ubox* box, User* g, char* member)
 }
 
 static int
-_groupAddMember(Ubox* box, User* g, char* member)
+_groupAddMember(Ubox *box, User *g, char *member)
 {
 	User *u;
 
 	if((u = _userByUname(box, member)) == nil)
 		return 0;
-	if(_groupMember(box, g->uid, u->uname, 0)){
+	if(_groupMember(box, g->uid, u->uname, 0)) {
 		if(strcmp(g->uname, member) == 0)
 			vtSetError("uname: '%s' always in own group", member);
 		else
 			vtSetError("uname: '%s' already in group '%s'",
-				member, g->uname);
+				   member, g->uname);
 		return 0;
 	}
 
-	g->group = vtMemRealloc(g->group, (g->ngroup+1)*sizeof(char*));
+	g->group = vtMemRealloc(g->group, (g->ngroup + 1) * sizeof(char *));
 	g->group[g->ngroup] = vtStrDup(member);
 	box->len += strlen(member);
 	g->ngroup++;
@@ -267,7 +266,7 @@ _groupAddMember(Ubox* box, User* g, char* member)
 }
 
 int
-groupMember(char* group, char* member)
+groupMember(char *group, char *member)
 {
 	int r;
 
@@ -282,7 +281,7 @@ groupMember(char* group, char* member)
 }
 
 int
-groupLeader(char* group, char* member)
+groupLeader(char *group, char *member)
 {
 	int r;
 	User *g;
@@ -296,18 +295,17 @@ groupLeader(char* group, char* member)
 		return 0;
 
 	vtRLock(ubox.lock);
-	if((g = _userByUid(ubox.box, group)) == nil){
+	if((g = _userByUid(ubox.box, group)) == nil) {
 		vtRUnlock(ubox.lock);
 		return 0;
 	}
-	if(g->leader != nil){
-		if(strcmp(g->leader, member) == 0){
+	if(g->leader != nil) {
+		if(strcmp(g->leader, member) == 0) {
 			vtRUnlock(ubox.lock);
 			return 1;
 		}
 		r = 0;
-	}
-	else
+	} else
 		r = _groupMember(ubox.box, group, member, 0);
 	vtRUnlock(ubox.lock);
 
@@ -315,7 +313,7 @@ groupLeader(char* group, char* member)
 }
 
 static void
-userFree(User* u)
+userFree(User *u)
 {
 	int i;
 
@@ -323,7 +321,7 @@ userFree(User* u)
 	vtMemFree(u->uname);
 	if(u->leader != nil)
 		vtMemFree(u->leader);
-	if(u->ngroup){
+	if(u->ngroup) {
 		for(i = 0; i < u->ngroup; i++)
 			vtMemFree(u->group[i]);
 		vtMemFree(u->group);
@@ -331,8 +329,8 @@ userFree(User* u)
 	vtMemFree(u);
 }
 
-static User*
-userAlloc(char* uid, char* uname)
+static User *
+userAlloc(char *uid, char *uname)
 {
 	User *u;
 
@@ -344,13 +342,13 @@ userAlloc(char* uid, char* uname)
 }
 
 int
-validUserName(char* name)
+validUserName(char *name)
 {
 	Rune *r;
 	//static Rune invalid[] = L"#:,()";
 	static Rune invalid[] = {'#', ':', ',', '(', ')', '\0'};
 
-	for(r = invalid; *r != '\0'; r++){
+	for(r = invalid; *r != '\0'; r++) {
 		if(utfrune(name, *r))
 			return 0;
 	}
@@ -358,18 +356,18 @@ validUserName(char* name)
 }
 
 static int
-userFmt(Fmt* fmt)
+userFmt(Fmt *fmt)
 {
 	User *u;
 	int i, r;
 
-	u = va_arg(fmt->args, User*);
+	u = va_arg(fmt->args, User *);
 
 	r = fmtprint(fmt, "%s:%s:", u->uid, u->uname);
 	if(u->leader != nil)
 		r += fmtprint(fmt, u->leader);
 	r += fmtprint(fmt, ":");
-	if(u->ngroup){
+	if(u->ngroup) {
 		r += fmtprint(fmt, u->group[0]);
 		for(i = 1; i < u->ngroup; i++)
 			r += fmtprint(fmt, ",%s", u->group[i]);
@@ -379,7 +377,7 @@ userFmt(Fmt* fmt)
 }
 
 static int
-usersFileWrite(Ubox* box)
+usersFileWrite(Ubox *box)
 {
 	Fs *fs;
 	User *u;
@@ -401,7 +399,7 @@ usersFileWrite(Ubox* box)
 	if((dir = fileOpen(fs, "/active")) == nil)
 		goto tidy0;
 	if((file = fileWalk(dir, uidadm)) == nil)
-		file = fileCreate(dir, uidadm, ModeDir|0775, uidadm);
+		file = fileCreate(dir, uidadm, ModeDir | 0775, uidadm);
 	fileDecRef(dir);
 	if(file == nil)
 		goto tidy;
@@ -414,19 +412,19 @@ usersFileWrite(Ubox* box)
 	if(!fileTruncate(file, uidadm))
 		goto tidy;
 
-	p = s = vtMemAlloc(box->len+1);
-	q = p + box->len+1;
-	for(u = box->head; u != nil; u = u->next){
-		p += snprint(p, q-p, "%s:%s:", u->uid, u->uname);
+	p = s = vtMemAlloc(box->len + 1);
+	q = p + box->len + 1;
+	for(u = box->head; u != nil; u = u->next) {
+		p += snprint(p, q - p, "%s:%s:", u->uid, u->uname);
 		if(u->leader != nil)
-			p+= snprint(p, q-p, u->leader);
-		p += snprint(p, q-p, ":");
-		if(u->ngroup){
-			p += snprint(p, q-p, u->group[0]);
+			p += snprint(p, q - p, u->leader);
+		p += snprint(p, q - p, ":");
+		if(u->ngroup) {
+			p += snprint(p, q - p, u->group[0]);
 			for(i = 1; i < u->ngroup; i++)
-				p += snprint(p, q-p, ",%s", u->group[i]);
+				p += snprint(p, q - p, ",%s", u->group[i]);
 		}
-		p += snprint(p, q-p, "\n");
+		p += snprint(p, q - p, "\n");
 	}
 	r = fileWrite(file, s, box->len, 0, uidadm);
 	vtMemFree(s);
@@ -442,7 +440,7 @@ tidy0:
 }
 
 static void
-uboxRemUser(Ubox* box, User *u)
+uboxRemUser(Ubox *box, User *u)
 {
 	User **h, *up;
 
@@ -472,7 +470,7 @@ uboxRemUser(Ubox* box, User *u)
 }
 
 static void
-uboxAddUser(Ubox* box, User* u)
+uboxAddUser(Ubox *box, User *u)
 {
 	User **h, *up;
 
@@ -497,9 +495,9 @@ uboxAddUser(Ubox* box, User* u)
 }
 
 static void
-uboxDump(Ubox* box)
+uboxDump(Ubox *box)
 {
-	User* u;
+	User *u;
 
 	consPrint("nuser %d len = %d\n", box->nuser, box->len);
 
@@ -508,11 +506,11 @@ uboxDump(Ubox* box)
 }
 
 static void
-uboxFree(Ubox* box)
+uboxFree(Ubox *box)
 {
 	User *next, *u;
 
-	for(u = box->head; u != nil; u = next){
+	for(u = box->head; u != nil; u = next) {
 		next = u->next;
 		userFree(u);
 	}
@@ -520,7 +518,7 @@ uboxFree(Ubox* box)
 }
 
 static int
-uboxInit(char* users, int len)
+uboxInit(char *users, int len)
 {
 	User *g, *u;
 	Ubox *box, *obox;
@@ -535,13 +533,13 @@ uboxInit(char* users, int len)
 	blank = 1;
 	comment = nline = 0;
 
-	s = p = buf = vtMemAlloc(len+1);
-	for(q = users; *q != '\0'; q++){
+	s = p = buf = vtMemAlloc(len + 1);
+	for(q = users; *q != '\0'; q++) {
 		if(*q == '\r' || *q == '\t' || *q == ' ')
 			continue;
-		if(*q == '\n'){
-			if(!blank){
-				if(p != s){
+		if(*q == '\n') {
+			if(!blank) {
+				if(p != s) {
 					*p++ = '\n';
 					nline++;
 					s = p;
@@ -559,8 +557,8 @@ uboxInit(char* users, int len)
 	}
 	*p = '\0';
 
-	line = vtMemAllocZ((nline+2)*sizeof(char*));
-	if((i = gettokens(buf, line, nline+2, "\n")) != nline){
+	line = vtMemAllocZ((nline + 2) * sizeof(char *));
+	if((i = gettokens(buf, line, nline + 2, "\n")) != nline) {
 		fprint(2, "nline %d (%d) botch\n", nline, i);
 		vtMemFree(line);
 		vtMemFree(buf);
@@ -577,34 +575,34 @@ uboxInit(char* users, int len)
 	 * and enter in hash buckets.
 	 */
 	nuser = 0;
-	for(i = 0; i < nline; i++){
+	for(i = 0; i < nline; i++) {
 		s = vtStrDup(line[i]);
-		if(getfields(s, f, nelem(f), 0, ":") != 4){
+		if(getfields(s, f, nelem(f), 0, ":") != 4) {
 			fprint(2, "bad line '%s'\n", line[i]);
 			vtMemFree(s);
 			continue;
 		}
-		if(*f[0] == '\0' || *f[1] == '\0'){
+		if(*f[0] == '\0' || *f[1] == '\0') {
 			fprint(2, "bad line '%s'\n", line[i]);
 			vtMemFree(s);
 			continue;
 		}
-		if(!validUserName(f[0])){
+		if(!validUserName(f[0])) {
 			fprint(2, "invalid uid '%s'\n", f[0]);
 			vtMemFree(s);
 			continue;
 		}
-		if(_userByUid(box, f[0]) != nil){
+		if(_userByUid(box, f[0]) != nil) {
 			fprint(2, "duplicate uid '%s'\n", f[0]);
 			vtMemFree(s);
 			continue;
 		}
-		if(!validUserName(f[1])){
+		if(!validUserName(f[1])) {
 			fprint(2, "invalid uname '%s'\n", f[0]);
 			vtMemFree(s);
 			continue;
 		}
-		if(_userByUname(box, f[1]) != nil){
+		if(_userByUname(box, f[1]) != nil) {
 			fprint(2, "duplicate uname '%s'\n", f[1]);
 			vtMemFree(s);
 			continue;
@@ -622,22 +620,22 @@ uboxInit(char* users, int len)
 	/*
 	 * Second pass - fill in leader and group information.
 	 */
-	for(i = 0; i < nuser; i++){
+	for(i = 0; i < nuser; i++) {
 		s = vtStrDup(line[i]);
 		getfields(s, f, nelem(f), 0, ":");
 
 		assert(g = _userByUname(box, f[1]));
-		if(*f[2] != '\0'){
+		if(*f[2] != '\0') {
 			if((u = _userByUname(box, f[2])) == nil)
 				g->leader = vtStrDup(g->uname);
 			else
 				g->leader = vtStrDup(u->uname);
 			box->len += strlen(g->leader);
 		}
-		for(p = f[3]; p != nil; p = q){
+		for(p = f[3]; p != nil; p = q) {
 			if((q = utfrune(p, L',')) != nil)
 				*q++ = '\0';
-			if(!_groupAddMember(box, g, p)){
+			if(!_groupAddMember(box, g, p)) {
 				// print/log error here
 			}
 		}
@@ -648,15 +646,15 @@ uboxInit(char* users, int len)
 	vtMemFree(line);
 	vtMemFree(buf);
 
-	for(i = 0; usersMandatory[i] != nil; i++){
-		if((u = _userByUid(box, usersMandatory[i])) == nil){
+	for(i = 0; usersMandatory[i] != nil; i++) {
+		if((u = _userByUid(box, usersMandatory[i])) == nil) {
 			vtSetError("user '%s' is mandatory", usersMandatory[i]);
 			uboxFree(box);
 			return 0;
 		}
-		if(strcmp(u->uid, u->uname) != 0){
+		if(strcmp(u->uid, u->uname) != 0) {
 			vtSetError("uid/uname for user '%s' must match",
-				usersMandatory[i]);
+				   usersMandatory[i]);
 			uboxFree(box);
 			return 0;
 		}
@@ -674,7 +672,7 @@ uboxInit(char* users, int len)
 }
 
 int
-usersFileRead(char* path)
+usersFileRead(char *path)
 {
 	char *p;
 	File *file;
@@ -690,11 +688,11 @@ usersFileRead(char* path)
 		path = "/active/adm/users";
 
 	r = 0;
-	if((file = fileOpen(fsysGetFs(fsys), path)) != nil){
-		if(fileGetSize(file, &size)){
+	if((file = fileOpen(fsysGetFs(fsys), path)) != nil) {
+		if(fileGetSize(file, &size)) {
 			len = size;
-			p = vtMemAlloc(size+1);
-			if(fileRead(file, p, len, 0) == len){
+			p = vtMemAlloc(size + 1);
+			if(fileRead(file, p, len, 0) == len) {
 				p[len] = '\0';
 				r = uboxInit(p, len);
 			}
@@ -709,7 +707,7 @@ usersFileRead(char* path)
 }
 
 static int
-cmdUname(int argc, char* argv[])
+cmdUname(int argc, char *argv[])
 {
 	User *u, *up;
 	int d, dflag, i, r;
@@ -719,15 +717,17 @@ cmdUname(int argc, char* argv[])
 
 	dflag = 0;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'd':
 		dflag = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if(argc < 1){
+	if(argc < 1) {
 		if(!dflag)
 			return cliError(usage);
 		vtRLock(ubox.lock);
@@ -737,11 +737,12 @@ cmdUname(int argc, char* argv[])
 	}
 
 	uname = argv[0];
-	argc--; argv++;
+	argc--;
+	argv++;
 
-	if(argc == 0){
+	if(argc == 0) {
 		vtRLock(ubox.lock);
-		if((u = _userByUname(ubox.box, uname)) == nil){
+		if((u = _userByUname(ubox.box, uname)) == nil) {
 			vtRUnlock(ubox.lock);
 			return 0;
 		}
@@ -752,38 +753,38 @@ cmdUname(int argc, char* argv[])
 
 	vtLock(ubox.lock);
 	u = _userByUname(ubox.box, uname);
-	while(argc--){
-		if(argv[0][0] == '%'){
-			if(u == nil){
+	while(argc--) {
+		if(argv[0][0] == '%') {
+			if(u == nil) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
 			p = &argv[0][1];
-			if((up = _userByUname(ubox.box, p)) != nil){
+			if((up = _userByUname(ubox.box, p)) != nil) {
 				vtSetError("uname: uname '%s' already exists",
-					up->uname);
+					   up->uname);
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-			for(i = 0; usersMandatory[i] != nil; i++){
+			for(i = 0; usersMandatory[i] != nil; i++) {
 				if(strcmp(usersMandatory[i], uname) != 0)
 					continue;
 				vtSetError("uname: uname '%s' is mandatory",
-					uname);
+					   uname);
 				vtUnlock(ubox.lock);
 				return 0;
 			}
 
 			d = strlen(p) - strlen(u->uname);
-			for(up = ubox.box->head; up != nil; up = up->next){
-				if(up->leader != nil){
-					if(strcmp(up->leader, u->uname) == 0){
+			for(up = ubox.box->head; up != nil; up = up->next) {
+				if(up->leader != nil) {
+					if(strcmp(up->leader, u->uname) == 0) {
 						vtMemFree(up->leader);
 						up->leader = vtStrDup(p);
 						ubox.box->len += d;
 					}
 				}
-				for(i = 0; i < up->ngroup; i++){
+				for(i = 0; i < up->ngroup; i++) {
 					if(strcmp(up->group[i], u->uname) != 0)
 						continue;
 					vtMemFree(up->group[i]);
@@ -797,60 +798,56 @@ cmdUname(int argc, char* argv[])
 			vtMemFree(u->uname);
 			u->uname = vtStrDup(p);
 			uboxAddUser(ubox.box, u);
-		}
-		else if(argv[0][0] == '='){
-			if(u == nil){
+		} else if(argv[0][0] == '=') {
+			if(u == nil) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-			if((up = _userByUname(ubox.box, &argv[0][1])) == nil){
-				if(argv[0][1] != '\0'){
+			if((up = _userByUname(ubox.box, &argv[0][1])) == nil) {
+				if(argv[0][1] != '\0') {
 					vtUnlock(ubox.lock);
 					return 0;
 				}
 			}
-			if(u->leader != nil){
+			if(u->leader != nil) {
 				ubox.box->len -= strlen(u->leader);
 				vtMemFree(u->leader);
 				u->leader = nil;
 			}
-			if(up != nil){
+			if(up != nil) {
 				u->leader = vtStrDup(up->uname);
 				ubox.box->len += strlen(u->leader);
 			}
-		}
-		else if(argv[0][0] == '+'){
-			if(u == nil){
+		} else if(argv[0][0] == '+') {
+			if(u == nil) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-			if((up = _userByUname(ubox.box, &argv[0][1])) == nil){
+			if((up = _userByUname(ubox.box, &argv[0][1])) == nil) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-			if(!_groupAddMember(ubox.box, u, up->uname)){
+			if(!_groupAddMember(ubox.box, u, up->uname)) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-		}
-		else if(argv[0][0] == '-'){
-			if(u == nil){
+		} else if(argv[0][0] == '-') {
+			if(u == nil) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-			if((up = _userByUname(ubox.box, &argv[0][1])) == nil){
+			if((up = _userByUname(ubox.box, &argv[0][1])) == nil) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-			if(!_groupRemMember(ubox.box, u, up->uname)){
+			if(!_groupRemMember(ubox.box, u, up->uname)) {
 				vtUnlock(ubox.lock);
 				return 0;
 			}
-		}
-		else{
-			if(u != nil){
+		} else {
+			if(u != nil) {
 				vtSetError("uname: uname '%s' already exists",
-					u->uname);
+					   u->uname);
 				vtUnlock(ubox.lock);
 				return 0;
 			}
@@ -858,21 +855,21 @@ cmdUname(int argc, char* argv[])
 			uid = argv[0];
 			if(*uid == ':')
 				uid++;
-			if((u = _userByUid(ubox.box, uid)) != nil){
+			if((u = _userByUid(ubox.box, uid)) != nil) {
 				vtSetError("uname: uid '%s' already exists",
-					u->uid);
+					   u->uid);
 				vtUnlock(ubox.lock);
 				return 0;
 			}
 
 			u = userAlloc(uid, uname);
 			uboxAddUser(ubox.box, u);
-			if(argv[0][0] != ':'){
+			if(argv[0][0] != ':') {
 				// should have an option for the mode and gid
 				p = smprint(createfmt, uname, uname, uname);
 				r = cliExec(p);
 				vtMemFree(p);
-				if(r == 0){
+				if(r == 0) {
 					vtUnlock(ubox.lock);
 					return 0;
 				}
@@ -881,7 +878,7 @@ cmdUname(int argc, char* argv[])
 		argv++;
 	}
 
-	if(usersFileWrite(ubox.box) == 0){
+	if(usersFileWrite(ubox.box) == 0) {
 		vtUnlock(ubox.lock);
 		return 0;
 	}
@@ -893,7 +890,7 @@ cmdUname(int argc, char* argv[])
 }
 
 static int
-cmdUsers(int argc, char* argv[])
+cmdUsers(int argc, char *argv[])
 {
 	Ubox *box;
 	int dflag, r, wflag;
@@ -903,7 +900,8 @@ cmdUsers(int argc, char* argv[])
 	dflag = wflag = 0;
 	file = nil;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		return cliError(usage);
 	case 'd':
@@ -917,7 +915,8 @@ cmdUsers(int argc, char* argv[])
 	case 'w':
 		wflag = 1;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc)
 		return cliError(usage);
@@ -927,7 +926,7 @@ cmdUsers(int argc, char* argv[])
 
 	if(dflag)
 		uboxInit(usersDefault, sizeof(usersDefault));
-	else if(file){
+	else if(file) {
 		if(usersFileRead(file) == 0)
 			return 0;
 	}

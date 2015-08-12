@@ -11,16 +11,13 @@
 #include "dat.h"
 #include "fns.h"
 
-static int	writeclumphead(Arena *arena, uint64_t aa, Clump *cl);
-static int	writeclumpmagic(Arena *arena, uint64_t aa, uint32_t magic);
+static int writeclumphead(Arena *arena, uint64_t aa, Clump *cl);
+static int writeclumpmagic(Arena *arena, uint64_t aa, uint32_t magic);
 
 int
 clumpinfocmp(ClumpInfo *c, ClumpInfo *d)
 {
-	return c->type != d->type
-		|| c->size != d->size
-		|| c->uncsize != d->uncsize
-		|| scorecmp(c->score, d->score)!=0;
+	return c->type != d->type || c->size != d->size || c->uncsize != d->uncsize || scorecmp(c->score, d->score) != 0;
 }
 
 /*
@@ -39,7 +36,7 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 	ZBlock *lump;
 	Clump cl;
 	ClumpInfo ci;
-	static ClumpInfo zci = { .type = -1 };
+	static ClumpInfo zci = {.type = -1};
 	uint8_t score[VtScoreSize];
 	uint64_t uncsize, used, aa;
 	uint32_t clump, clumps, cclumps, magic;
@@ -52,16 +49,16 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 	trace(TraceProc, "syncarena start");
 	flush = 0;
 	err = 0;
-	for(; n; n--){
+	for(; n; n--) {
 		aa = arena->memstats.used;
 		clump = arena->memstats.clumps;
 		magic = clumpmagic(arena, aa);
 		if(magic == ClumpFreeMagic)
 			break;
-		if(magic != arena->clumpmagic){
+		if(magic != arena->clumpmagic) {
 			fprint(2, "%s: illegal clump magic number=%#8.8ux at clump=%d\n", arena->name, magic, clump);
 			/* err |= SyncDataErr; */
-			if(fix && writeclumpmagic(arena, aa, ClumpFreeMagic) < 0){
+			if(fix && writeclumpmagic(arena, aa, ClumpFreeMagic) < 0) {
 				fprint(2, "%s: can't write corrected clump free magic: %r", arena->name);
 				err |= SyncFixErr;
 			}
@@ -70,26 +67,26 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 
 		broken = 0;
 		lump = loadclump(arena, aa, 0, &cl, score, 0);
-		if(lump == nil){
+		if(lump == nil) {
 			fprint(2, "%s: clump=%d failed to read correctly: %r\n", arena->name, clump);
 			break;
-		}else if(cl.info.type != VtCorruptType){
+		} else if(cl.info.type != VtCorruptType) {
 			scoremem(score, lump->data, cl.info.uncsize);
-			if(scorecmp(cl.info.score, score) != 0){
+			if(scorecmp(cl.info.score, score) != 0) {
 				/* ignore partially written block */
 				if(cl.encoding == ClumpENone)
 					break;
 				fprint(2, "%s: clump=%d has mismatched score\n", arena->name, clump);
 				err |= SyncDataErr;
 				broken = 1;
-			}else if(vttypevalid(cl.info.type) < 0){
+			} else if(vttypevalid(cl.info.type) < 0) {
 				fprint(2, "%s: clump=%d has invalid type %d", arena->name, clump, cl.info.type);
 				err |= SyncDataErr;
 				broken = 1;
 			}
-			if(broken && fix){
+			if(broken && fix) {
 				cl.info.type = VtCorruptType;
-				if(writeclumphead(arena, aa, &cl) < 0){
+				if(writeclumphead(arena, aa, &cl) < 0) {
 					fprint(2, "%s: can't write corrected clump header: %r", arena->name);
 					err |= SyncFixErr;
 				}
@@ -99,28 +96,28 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 		arena->memstats.used += ClumpSize + cl.info.size;
 
 		arena->memstats.clumps++;
-		if(!broken && readclumpinfo(arena, clump, &ci)<0){
+		if(!broken && readclumpinfo(arena, clump, &ci) < 0) {
 			fprint(2, "%s: arena directory read failed\n", arena->name);
 			broken = 1;
-		}else if(!broken && clumpinfocmp(&ci, &cl.info)!=0){
-			if(clumpinfocmp(&ci, &zci) == 0){
+		} else if(!broken && clumpinfocmp(&ci, &cl.info) != 0) {
+			if(clumpinfocmp(&ci, &zci) == 0) {
 				err |= SyncCIZero;
 				if(!zok)
 					fprint(2, "%s: unwritten clump info for clump=%d\n", arena->name, clump);
-			}else{
+			} else {
 				err |= SyncCIErr;
 				fprint(2, "%s: bad clump info for clump=%d\n", arena->name, clump);
 				fprint(2, "\texpected score=%V type=%d size=%d uncsize=%d\n",
-					cl.info.score, cl.info.type, cl.info.size, cl.info.uncsize);
+				       cl.info.score, cl.info.type, cl.info.size, cl.info.uncsize);
 				fprint(2, "\tfound score=%V type=%d size=%d uncsize=%d\n",
-					ci.score, ci.type, ci.size, ci.uncsize);
+				       ci.score, ci.type, ci.size, ci.uncsize);
 			}
 			broken = 1;
 		}
-		if(broken && fix){
+		if(broken && fix) {
 			flush = 1;
 			ci = cl.info;
-			if(writeclumpinfo(arena, clump, &ci) < 0){
+			if(writeclumpinfo(arena, clump, &ci) < 0) {
 				fprint(2, "%s: can't write correct clump directory: %r\n", arena->name);
 				err |= SyncFixErr;
 			}
@@ -132,7 +129,7 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 			arena->memstats.cclumps++;
 	}
 
-	if(flush){
+	if(flush) {
 		trace(TraceProc, "syncarena flush");
 		arena->wtime = now();
 		if(arena->ctime == 0 && arena->memstats.clumps)
@@ -140,19 +137,16 @@ syncarena(Arena *arena, uint32_t n, int zok, int fix)
 		flushdcache();
 	}
 
-	if(used != arena->memstats.used
-	|| clumps != arena->memstats.clumps
-	|| cclumps != arena->memstats.cclumps
-	|| uncsize != arena->memstats.uncsize){
+	if(used != arena->memstats.used || clumps != arena->memstats.clumps || cclumps != arena->memstats.cclumps || uncsize != arena->memstats.uncsize) {
 		err |= SyncHeader;
 		fprint(2, "arena %s: fix=%d flush=%d %lld->%lld %ud->%ud %ud->%ud %lld->%lld\n",
-			arena->name,
-			fix,
-			flush,
-			used, arena->memstats.used,
-			clumps, arena->memstats.clumps,
-			cclumps, arena->memstats.cclumps,
-			uncsize, arena->memstats.uncsize);
+		       arena->name,
+		       fix,
+		       flush,
+		       used, arena->memstats.used,
+		       clumps, arena->memstats.clumps,
+		       cclumps, arena->memstats.cclumps,
+		       uncsize, arena->memstats.uncsize);
 	}
 
 	return err;
@@ -167,8 +161,7 @@ writeclumphead(Arena *arena, uint64_t aa, Clump *cl)
 	zb = alloczblock(ClumpSize, 0, arena->blocksize);
 	if(zb == nil)
 		return -1;
-	bad = packclump(cl, zb->data, arena->clumpmagic)<0
-		|| writearena(arena, aa, zb->data, ClumpSize) != ClumpSize;
+	bad = packclump(cl, zb->data, arena->clumpmagic) < 0 || writearena(arena, aa, zb->data, ClumpSize) != ClumpSize;
 	freezblock(zb);
 	return bad ? -1 : 0;
 }

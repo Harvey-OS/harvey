@@ -15,18 +15,16 @@
 #include "dat.h"
 
 typedef struct State State;
-struct State 
-{
+struct State {
 	Key *key;
 };
 
-enum
-{
+enum {
 	HavePass,
 };
 
 static int
-wepinit(Proto* p, Fsstate *fss)
+wepinit(Proto *p, Fsstate *fss)
 {
 	int ret;
 	Key *k;
@@ -64,7 +62,7 @@ wepclose(Fsstate *fss)
 }
 
 static int
-wepread(Fsstate *fss, void* v, uint* u)
+wepread(Fsstate *fss, void *v, uint *u)
 {
 	return phaseerror(fss, "read");
 }
@@ -80,7 +78,7 @@ wepwrite(Fsstate *fss, void *va, uint n)
 	char *p;
 
 	/* get the device */
-	if(n > sizeof(dev)-5){
+	if(n > sizeof(dev) - 5) {
 		werrstr("device too long");
 		return RpcErrstr;
 	}
@@ -89,7 +87,7 @@ wepwrite(Fsstate *fss, void *va, uint n)
 	s = fss->ps;
 
 	/* legal? */
-	if(dev[0] != '#' || dev[1] != 'l'){
+	if(dev[0] != '#' || dev[1] != 'l') {
 		werrstr("%s not an ether device", dev);
 		return RpcErrstr;
 	}
@@ -126,12 +124,12 @@ out:
 }
 
 Proto wep =
-{
-.name=		"wep",
-.init=		wepinit,
-.write=		wepwrite,
-.read=		wepread,
-.close=		wepclose,
-.addkey=	replacekey,
-.keyprompt=	"!key1? !key2? !key3? essid?",
+    {
+     .name = "wep",
+     .init = wepinit,
+     .write = wepwrite,
+     .read = wepread,
+     .close = wepclose,
+     .addkey = replacekey,
+     .keyprompt = "!key1? !key2? !key3? essid?",
 };

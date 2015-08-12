@@ -12,7 +12,7 @@
 int
 smbclientopen(SmbClient *c, uint16_t mode, char *name, uint8_t *errclassp,
 	      uint16_t *errorp,
-	uint16_t *fidp, uint16_t *attrp, uint32_t *mtimep, uint32_t *sizep,
+	      uint16_t *fidp, uint16_t *attrp, uint32_t *mtimep, uint32_t *sizep,
 	      uint16_t *accessallowedp, char **errmsgp)
 {
 	SmbBuffer *b;
@@ -38,27 +38,30 @@ smbclientopen(SmbClient *c, uint16_t mode, char *name, uint8_t *errclassp,
 	nbsswrite(c->nbss, smbbufferreadpointer(b), smbbufferwriteoffset(b));
 	smbbufferreset(b);
 	n = nbssread(c->nbss, smbbufferwritepointer(b), smbbufferwritespace(b));
-	if (n < 0) {
+	if(n < 0) {
 		smbstringprint(errmsgp, "read error: %r");
 		smbbufferfree(&b);
 		return 0;
 	}
 	smbbuffersetreadlen(b, n);
-	if (!smbbuffergetandcheckheader(b, &h, h.command, 7, &pdata, &bytecount, errmsgp)) {
+	if(!smbbuffergetandcheckheader(b, &h, h.command, 7, &pdata, &bytecount, errmsgp)) {
 		smbbufferfree(&b);
 		return 0;
 	}
-	if (h.errclass) {
+	if(h.errclass) {
 		*errclassp = h.errclass;
 		*errorp = h.error;
 		smbbufferfree(&b);
 		return 0;
 	}
-	*fidp = smbnhgets(pdata); pdata += 2;
-	*attrp = smbnhgets(pdata); pdata += 2;
-	*mtimep = smbnhgetl(pdata); pdata += 4;
-	*sizep = smbnhgets(pdata); pdata += 4;
+	*fidp = smbnhgets(pdata);
+	pdata += 2;
+	*attrp = smbnhgets(pdata);
+	pdata += 2;
+	*mtimep = smbnhgetl(pdata);
+	pdata += 4;
+	*sizep = smbnhgets(pdata);
+	pdata += 4;
 	*accessallowedp = smbnhgets(pdata);
 	return 1;
 }
-

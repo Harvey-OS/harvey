@@ -28,7 +28,7 @@ _iovfprint(va_list *arg)
 	va_list arg2;
 
 	fd = va_arg(*arg, int);
-	fmt = va_arg(*arg, char*);
+	fmt = va_arg(*arg, char *);
 	arg2 = va_arg(*arg, va_list);
 	return vfprint(fd, fmt, arg2);
 }
@@ -58,10 +58,10 @@ _iotlsdial(va_list *arg)
 	int *cfdp, fd, tfd, usetls;
 	TLSconn conn;
 
-	addr = va_arg(*arg, char*);
-	local = va_arg(*arg, char*);
-	dir = va_arg(*arg, char*);
-	cfdp = va_arg(*arg, int*);
+	addr = va_arg(*arg, char *);
+	local = va_arg(*arg, char *);
+	dir = va_arg(*arg, char *);
+	cfdp = va_arg(*arg, int *);
 	usetls = va_arg(*arg, int);
 
 	fd = dial(addr, local, dir, cfdp);

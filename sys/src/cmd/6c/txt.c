@@ -9,7 +9,7 @@
 
 #include "gc.h"
 
-static	int	resvreg[nelem(reg)];
+static int resvreg[nelem(reg)];
 
 void
 ginit(void)
@@ -106,7 +106,7 @@ ginit(void)
 		com64init();
 
 	memset(reg, 0, sizeof(reg));
-	for(i=0; i<nelem(reg); i++) {
+	for(i = 0; i < nelem(reg); i++) {
 		reg[i] = 1;
 		if(i >= D_AX && i <= D_R15 && i != D_SP)
 			reg[i] = 0;
@@ -115,7 +115,7 @@ ginit(void)
 	}
 	/* keep two external registers */
 	reg[REGEXT] = 1;
-	reg[REGEXT-1] = 1;
+	reg[REGEXT - 1] = 1;
 	memmove(resvreg, reg, sizeof(resvreg));
 }
 
@@ -126,28 +126,28 @@ gclean(void)
 	Sym *s;
 
 	reg[D_SP]--;
-	for(i=D_AX; i<=D_R15; i++)
+	for(i = D_AX; i <= D_R15; i++)
 		if(reg[i] && !resvreg[i])
 			diag(Z, "reg %R left allocated", i);
-	for(i=D_X0; i<=D_X7; i++)
+	for(i = D_X0; i <= D_X7; i++)
 		if(reg[i] && !resvreg[i])
 			diag(Z, "reg %R left allocated", i);
 	while(mnstring)
 		outstring("", 1L);
 	symstring->type->width = nstring;
 	symrathole->type->width = nrathole;
-	for(i=0; i<NHASH; i++)
-	for(s = hash[i]; s != S; s = s->link) {
-		if(s->type == T)
-			continue;
-		if(s->type->width == 0)
-			continue;
-		if(s->class != CGLOBL && s->class != CSTATIC)
-			continue;
-		if(s->type == types[TENUM])
-			continue;
-		gpseudo(AGLOBL, s, nodconst(s->type->width));
-	}
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type == T)
+				continue;
+			if(s->type->width == 0)
+				continue;
+			if(s->class != CGLOBL && s->class != CSTATIC)
+				continue;
+			if(s->type == types[TENUM])
+				continue;
+			gpseudo(AGLOBL, s, nodconst(s->type->width));
+		}
 	nextpc();
 	p->as = AEND;
 	outcode();
@@ -179,11 +179,11 @@ gargs(Node *n, Node *tn1, Node *tn2)
 	regs = cursafe;
 
 	fnxp = fnxargs;
-	garg1(n, tn1, tn2, 0, &fnxp);	/* compile fns to temps */
+	garg1(n, tn1, tn2, 0, &fnxp); /* compile fns to temps */
 
 	curarg = 0;
 	fnxp = fnxargs;
-	garg1(n, tn1, tn2, 1, &fnxp);	/* compile normal args and temps */
+	garg1(n, tn1, tn2, 1, &fnxp); /* compile normal args and temps */
 
 	cursafe = regs;
 }
@@ -194,7 +194,7 @@ nareg(void)
 	int i, n;
 
 	n = 0;
-	for(i=D_AX; i<=D_R15; i++)
+	for(i = D_AX; i <= D_R15; i++)
 		if(reg[i] == 0 && !resvreg[i])
 			n++;
 	return n;
@@ -259,7 +259,7 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 	regfree(tn1);
 }
 
-Node*
+Node *
 nodgconst(int64_t v, Type *t)
 {
 	if(!typev[t->etype])
@@ -268,14 +268,14 @@ nodgconst(int64_t v, Type *t)
 	return &vconstnode;
 }
 
-Node*
+Node *
 nodconst(int32_t v)
 {
 	constnode.vconst = v;
 	return &constnode;
 }
 
-Node*
+Node *
 nodfconst(double d)
 {
 	fconstnode.fconst = d;
@@ -299,21 +299,21 @@ nodreg(Node *n, Node *nn, int r)
 
 	*n = qregnode;
 	n->reg = r;
-	if(nn != Z){
+	if(nn != Z) {
 		et = nn->type->etype;
 		if(!typefd[et] && nn->type->width <= SZ_LONG && 0)
-			n->type = typeu[et]? types[TUINT]: types[TINT];
+			n->type = typeu[et] ? types[TUINT] : types[TINT];
 		else
 			n->type = nn->type;
-//print("nodreg %s [%s]\n", tnames[et], tnames[n->type->etype]);
+		//print("nodreg %s [%s]\n", tnames[et], tnames[n->type->etype]);
 		n->lineno = nn->lineno;
 	}
 	if(reg[r] == 0)
 		return 0;
 	if(nn != Z) {
 		if(nn->op == OREGISTER)
-		if(nn->reg == r)
-			return 0;
+			if(nn->reg == r)
+				return 0;
 	}
 	return 1;
 }
@@ -352,7 +352,7 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(i >= D_AX && i <= D_R15)
 				goto out;
 		}
-		for(i=D_AX; i<=D_R15; i++)
+		for(i = D_AX; i <= D_R15; i++)
 			if(reg[i] == 0 && !resvreg[i])
 				goto out;
 		diag(tn, "out of fixed registers");
@@ -365,7 +365,7 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(i >= D_X0 && i <= D_X7)
 				goto out;
 		}
-		for(i=D_X0; i<=D_X7; i++)
+		for(i = D_X0; i <= D_X7; i++)
 			if(reg[i] == 0 && !resvreg[i])
 				goto out;
 		diag(tn, "out of float registers");
@@ -413,7 +413,7 @@ void
 regsalloc(Node *n, Node *nn)
 {
 	cursafe = align(cursafe, nn->type, Aaut3);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 	*n = *nodsafe;
 	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
@@ -428,7 +428,7 @@ regaalloc1(Node *n, Node *nn)
 	reg[REGARG]++;
 	curarg = align(curarg, nn->type, Aarg1);
 	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 }
 
 void
@@ -442,7 +442,7 @@ regaalloc(Node *n, Node *nn)
 	n->complex = 0;
 	n->addable = 20;
 	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	maxargsafe = maxround(maxargsafe, cursafe + curarg);
 }
 
 void
@@ -476,16 +476,13 @@ naddr(Node *n, Adr *a)
 		a->sym = S;
 		break;
 
-
 	case OIND:
 		naddr(n->left, a);
 		if(a->type >= D_AX && a->type <= D_R15)
 			a->type += D_INDIR;
-		else
-		if(a->type == D_CONST)
-			a->type = D_NONE+D_INDIR;
-		else
-		if(a->type == D_ADDR) {
+		else if(a->type == D_CONST)
+			a->type = D_NONE + D_INDIR;
+		else if(a->type == D_ADDR) {
 			a->type = a->index;
 			a->index = D_NONE;
 		} else
@@ -498,11 +495,9 @@ naddr(Node *n, Adr *a)
 			naddr(n->left, a);
 		if(a->type >= D_AX && a->type <= D_R15)
 			a->type += D_INDIR;
-		else
-		if(a->type == D_CONST)
-			a->type = D_NONE+D_INDIR;
-		else
-		if(a->type == D_ADDR) {
+		else if(a->type == D_CONST)
+			a->type = D_NONE + D_INDIR;
+		else if(a->type == D_ADDR) {
 			a->type = a->index;
 			a->index = D_NONE;
 		} else
@@ -513,7 +508,7 @@ naddr(Node *n, Adr *a)
 		break;
 
 	case OINDREG:
-		a->type = n->reg+D_INDIR;
+		a->type = n->reg + D_INDIR;
 		a->sym = S;
 		a->offset = n->xoffset;
 		break;
@@ -550,7 +545,7 @@ naddr(Node *n, Adr *a)
 		if(typev[n->type->etype] || n->type->etype == TIND)
 			a->offset = n->vconst;
 		else
-			a->offset = convvtox(n->vconst, typeu[n->type->etype]? TULONG: TLONG);
+			a->offset = convvtox(n->vconst, typeu[n->type->etype] ? TULONG : TLONG);
 		break;
 
 	case OADDR:
@@ -572,15 +567,13 @@ naddr(Node *n, Adr *a)
 		if(n->right->op == OCONST) {
 			v = n->right->vconst;
 			naddr(n->left, a);
-		} else
-		if(n->left->op == OCONST) {
+		} else if(n->left->op == OCONST) {
 			v = n->left->vconst;
 			naddr(n->right, a);
 		} else
 			goto bad;
 		a->offset += v;
 		break;
-
 	}
 }
 
@@ -590,16 +583,16 @@ gcmp(int op, Node *n, int64_t val)
 	Node *cn, nod;
 
 	cn = nodgconst(val, n->type);
-	if(!immconst(cn)){
+	if(!immconst(cn)) {
 		regalloc(&nod, n, Z);
 		gmove(cn, &nod);
 		gopcode(op, n->type, n, &nod);
 		regfree(&nod);
-	}else
+	} else
 		gopcode(op, n->type, n, cn);
 }
 
-#define	CASE(a,b)	((a<<8)|(b<<0))
+#define CASE(a, b) ((a << 8) | (b << 0))
 
 void
 gmove(Node *f, Node *t)
@@ -613,10 +606,10 @@ gmove(Node *f, Node *t)
 	t64 = tt == TVLONG || tt == TUVLONG || tt == TIND;
 	if(debug['M'])
 		print("gop: %O %O[%s],%O[%s]\n", OAS,
-			f->op, tnames[ft], t->op, tnames[tt]);
+		      f->op, tnames[ft], t->op, tnames[tt]);
 	if(typefd[ft] && f->op == OCONST) {
 		/* TO DO: pick up special constants, possibly preloaded */
-		if(f->fconst == 0.0){
+		if(f->fconst == 0.0) {
 			regalloc(&nod, t, t);
 			gins(AXORPD, &nod, &nod);
 			gmove(&nod, t);
@@ -624,146 +617,150 @@ gmove(Node *f, Node *t)
 			return;
 		}
 	}
-/*
+	/*
  * load
  */
 	if(f->op == ONAME || f->op == OINDREG ||
 	   f->op == OIND || f->op == OINDEX)
-	switch(ft) {
-	case TCHAR:
-		a = AMOVBLSX;
-		if(t64)
-			a = AMOVBQSX;
-		goto ld;
-	case TUCHAR:
-		a = AMOVBLZX;
-		if(t64)
-			a = AMOVBQZX;
-		goto ld;
-	case TSHORT:
-		a = AMOVWLSX;
-		if(t64)
-			a = AMOVWQSX;
-		goto ld;
-	case TUSHORT:
-		a = AMOVWLZX;
-		if(t64)
-			a = AMOVWQZX;
-		goto ld;
-	case TINT:
-	case TLONG:
-		if(typefd[tt]) {
-			regalloc(&nod, t, t);
-			if(tt == TDOUBLE)
-				a = ACVTSL2SD;
-			else
-				a = ACVTSL2SS;
+		switch(ft) {
+		case TCHAR:
+			a = AMOVBLSX;
+			if(t64)
+				a = AMOVBQSX;
+			goto ld;
+		case TUCHAR:
+			a = AMOVBLZX;
+			if(t64)
+				a = AMOVBQZX;
+			goto ld;
+		case TSHORT:
+			a = AMOVWLSX;
+			if(t64)
+				a = AMOVWQSX;
+			goto ld;
+		case TUSHORT:
+			a = AMOVWLZX;
+			if(t64)
+				a = AMOVWQZX;
+			goto ld;
+		case TINT:
+		case TLONG:
+			if(typefd[tt]) {
+				regalloc(&nod, t, t);
+				if(tt == TDOUBLE)
+					a = ACVTSL2SD;
+				else
+					a = ACVTSL2SS;
+				gins(a, f, &nod);
+				gmove(&nod, t);
+				regfree(&nod);
+				return;
+			}
+			a = AMOVL;
+			if(t64)
+				a = AMOVLQSX;
+			goto ld;
+		case TUINT:
+		case TULONG:
+			a = AMOVL;
+			if(t64)
+				a = AMOVLQZX; /* could probably use plain MOVL */
+			goto ld;
+		case TVLONG:
+			if(typefd[tt]) {
+				regalloc(&nod, t, t);
+				if(tt == TDOUBLE)
+					a = ACVTSQ2SD;
+				else
+					a = ACVTSQ2SS;
+				gins(a, f, &nod);
+				gmove(&nod, t);
+				regfree(&nod);
+				return;
+			}
+		case TUVLONG:
+			a = AMOVQ;
+			goto ld;
+		case TIND:
+			a = AMOVQ;
+
+		ld:
+			regalloc(&nod, f, t);
+			nod.type = t64 ? types[TVLONG] : types[TINT];
+			gins(a, f, &nod);
+			gmove(&nod, t);
+			regfree(&nod);
+			return;
+
+		case TFLOAT:
+			a = AMOVSS;
+			goto fld;
+		case TDOUBLE:
+			a = AMOVSD;
+		fld:
+			regalloc(&nod, f, t);
+			if(tt != TDOUBLE && tt != TFLOAT) { /* TO DO: why is this here */
+				prtree(f, "odd tree");
+				nod.type = t64 ? types[TVLONG] : types[TINT];
+			}
 			gins(a, f, &nod);
 			gmove(&nod, t);
 			regfree(&nod);
 			return;
 		}
-		a = AMOVL;
-		if(t64)
-			a = AMOVLQSX;
-		goto ld;
-	case TUINT:
-	case TULONG:
-		a = AMOVL;
-		if(t64)
-			a = AMOVLQZX;	/* could probably use plain MOVL */
-		goto ld;
-	case TVLONG:
-		if(typefd[tt]) {
-			regalloc(&nod, t, t);
-			if(tt == TDOUBLE)
-				a = ACVTSQ2SD;
-			else
-				a = ACVTSQ2SS;
-			gins(a, f, &nod);
-			gmove(&nod, t);
-			regfree(&nod);
-			return;
-		}
-	case TUVLONG:
-		a = AMOVQ;
-		goto ld;
-	case TIND:
-		a = AMOVQ;
 
-	ld:
-		regalloc(&nod, f, t);
-		nod.type = t64? types[TVLONG]: types[TINT];
-		gins(a, f, &nod);
-		gmove(&nod, t);
-		regfree(&nod);
-		return;
-
-	case TFLOAT:
-		a = AMOVSS;
-		goto fld;
-	case TDOUBLE:
-		a = AMOVSD;
-	fld:
-		regalloc(&nod, f, t);
-		if(tt != TDOUBLE && tt != TFLOAT){	/* TO DO: why is this here */
-			prtree(f, "odd tree");
-			nod.type = t64? types[TVLONG]: types[TINT];
-		}
-		gins(a, f, &nod);
-		gmove(&nod, t);
-		regfree(&nod);
-		return;
-	}
-
-/*
+	/*
  * store
  */
 	if(t->op == ONAME || t->op == OINDREG ||
 	   t->op == OIND || t->op == OINDEX)
-	switch(tt) {
-	case TCHAR:
-	case TUCHAR:
-		a = AMOVB;	goto st;
-	case TSHORT:
-	case TUSHORT:
-		a = AMOVW;	goto st;
-	case TINT:
-	case TUINT:
-	case TLONG:
-	case TULONG:
-		a = AMOVL;	goto st;
-	case TVLONG:
-	case TUVLONG:
-	case TIND:
-		a = AMOVQ;	goto st;
+		switch(tt) {
+		case TCHAR:
+		case TUCHAR:
+			a = AMOVB;
+			goto st;
+		case TSHORT:
+		case TUSHORT:
+			a = AMOVW;
+			goto st;
+		case TINT:
+		case TUINT:
+		case TLONG:
+		case TULONG:
+			a = AMOVL;
+			goto st;
+		case TVLONG:
+		case TUVLONG:
+		case TIND:
+			a = AMOVQ;
+			goto st;
 
-	st:
-		if(f->op == OCONST) {
-			gins(a, f, t);
+		st:
+			if(f->op == OCONST) {
+				gins(a, f, t);
+				return;
+			}
+		fst:
+			regalloc(&nod, t, f);
+			gmove(f, &nod);
+			gins(a, &nod, t);
+			regfree(&nod);
 			return;
+
+		case TFLOAT:
+			a = AMOVSS;
+			goto fst;
+		case TDOUBLE:
+			a = AMOVSD;
+			goto fst;
 		}
-	fst:
-		regalloc(&nod, t, f);
-		gmove(f, &nod);
-		gins(a, &nod, t);
-		regfree(&nod);
-		return;
 
-	case TFLOAT:
-		a = AMOVSS;
-		goto fst;
-	case TDOUBLE:
-		a = AMOVSD;
-		goto fst;
-	}
-
-/*
+	/*
  * convert
  */
-	switch(CASE(ft,tt)) {
+	switch(CASE(ft, tt)) {
 	default:
-/*
+		/*
  * integer to integer
  ********
 		a = AGOK;	break;
@@ -825,19 +822,19 @@ gmove(Node *f, Node *t)
 		a = AMOVL;
 		break;
 
-	case CASE(	TVLONG,	TCHAR):
-	case	CASE(	TVLONG,	TSHORT):
-	case CASE(	TVLONG,	TINT):
-	case CASE(	TVLONG,	TLONG):
-	case CASE(	TUVLONG, TCHAR):
-	case	CASE(	TUVLONG, TSHORT):
-	case CASE(	TUVLONG, TINT):
-	case CASE(	TUVLONG, TLONG):
-	case CASE(	TINT,	TVLONG):
-	case CASE(	TINT,	TUVLONG):
-	case CASE(	TLONG,	TVLONG):
-	case CASE(	TINT,	TIND):
-	case CASE(	TLONG,	TIND):
+	case CASE(TVLONG, TCHAR):
+	case CASE(TVLONG, TSHORT):
+	case CASE(TVLONG, TINT):
+	case CASE(TVLONG, TLONG):
+	case CASE(TUVLONG, TCHAR):
+	case CASE(TUVLONG, TSHORT):
+	case CASE(TUVLONG, TINT):
+	case CASE(TUVLONG, TLONG):
+	case CASE(TINT, TVLONG):
+	case CASE(TINT, TUVLONG):
+	case CASE(TLONG, TVLONG):
+	case CASE(TINT, TIND):
+	case CASE(TLONG, TIND):
 		a = AMOVLQSX;
 		if(f->op == OCONST) {
 			f->vconst &= (uint64_t)0xffffffffU;
@@ -847,35 +844,35 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TUINT,	TIND):
-	case CASE(	TUINT,	TVLONG):
-	case CASE(	TUINT,	TUVLONG):
-	case CASE(	TULONG,	TVLONG):
-	case CASE(	TULONG,	TUVLONG):
-	case CASE(	TULONG,	TIND):
-		a = AMOVL;	/* same effect as AMOVLQZX */
+	case CASE(TUINT, TIND):
+	case CASE(TUINT, TVLONG):
+	case CASE(TUINT, TUVLONG):
+	case CASE(TULONG, TVLONG):
+	case CASE(TULONG, TUVLONG):
+	case CASE(TULONG, TIND):
+		a = AMOVL; /* same effect as AMOVLQZX */
 		if(f->op == OCONST) {
 			f->vconst &= (uint64_t)0xffffffffU;
 			a = AMOVQ;
 		}
 		break;
 
-	case CASE(	TIND,	TVLONG):
-	case CASE(	TVLONG,	TVLONG):
-	case CASE(	TUVLONG,	TVLONG):
-	case CASE(	TVLONG,	TUVLONG):
-	case CASE(	TUVLONG,	TUVLONG):
-	case CASE(	TIND,	TUVLONG):
-	case CASE(	TVLONG,	TIND):
-	case CASE(	TUVLONG,	TIND):
-	case CASE(	TIND,	TIND):
+	case CASE(TIND, TVLONG):
+	case CASE(TVLONG, TVLONG):
+	case CASE(TUVLONG, TVLONG):
+	case CASE(TVLONG, TUVLONG):
+	case CASE(TUVLONG, TUVLONG):
+	case CASE(TIND, TUVLONG):
+	case CASE(TVLONG, TIND):
+	case CASE(TUVLONG, TIND):
+	case CASE(TIND, TIND):
 		a = AMOVQ;
 		break;
 
-	case CASE(	TSHORT,	TINT):
-	case CASE(	TSHORT,	TUINT):
-	case CASE(	TSHORT,	TLONG):
-	case CASE(	TSHORT,	TULONG):
+	case CASE(TSHORT, TINT):
+	case CASE(TSHORT, TUINT):
+	case CASE(TSHORT, TLONG):
+	case CASE(TSHORT, TULONG):
 		a = AMOVWLSX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xffff;
@@ -885,13 +882,13 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TSHORT,	TVLONG):
-	case CASE(	TSHORT,	TUVLONG):
-	case CASE(	TSHORT,	TIND):
+	case CASE(TSHORT, TVLONG):
+	case CASE(TSHORT, TUVLONG):
+	case CASE(TSHORT, TIND):
 		a = AMOVWQSX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xffff;
-			if(f->vconst & 0x8000){
+			if(f->vconst & 0x8000) {
 				f->vconst |= 0xffff0000;
 				f->vconst |= (int64_t)~0 << 32;
 			}
@@ -899,10 +896,10 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TUSHORT,TINT):
-	case CASE(	TUSHORT,TUINT):
-	case CASE(	TUSHORT,TLONG):
-	case CASE(	TUSHORT,TULONG):
+	case CASE(TUSHORT, TINT):
+	case CASE(TUSHORT, TUINT):
+	case CASE(TUSHORT, TLONG):
+	case CASE(TUSHORT, TULONG):
 		a = AMOVWLZX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xffff;
@@ -910,22 +907,22 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TUSHORT,TVLONG):
-	case CASE(	TUSHORT,TUVLONG):
-	case CASE(	TUSHORT,TIND):
+	case CASE(TUSHORT, TVLONG):
+	case CASE(TUSHORT, TUVLONG):
+	case CASE(TUSHORT, TIND):
 		a = AMOVWQZX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xffff;
-			a = AMOVL;	/* MOVL also zero-extends to 64 bits */
+			a = AMOVL; /* MOVL also zero-extends to 64 bits */
 		}
 		break;
 
-	case CASE(	TCHAR,	TSHORT):
-	case CASE(	TCHAR,	TUSHORT):
-	case CASE(	TCHAR,	TINT):
-	case CASE(	TCHAR,	TUINT):
-	case CASE(	TCHAR,	TLONG):
-	case CASE(	TCHAR,	TULONG):
+	case CASE(TCHAR, TSHORT):
+	case CASE(TCHAR, TUSHORT):
+	case CASE(TCHAR, TINT):
+	case CASE(TCHAR, TUINT):
+	case CASE(TCHAR, TLONG):
+	case CASE(TCHAR, TULONG):
 		a = AMOVBLSX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xff;
@@ -935,13 +932,13 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TCHAR,	TVLONG):
-	case CASE(	TCHAR,	TUVLONG):
-	case CASE(	TCHAR,	TIND):
+	case CASE(TCHAR, TVLONG):
+	case CASE(TCHAR, TUVLONG):
+	case CASE(TCHAR, TIND):
 		a = AMOVBQSX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xff;
-			if(f->vconst & 0x80){
+			if(f->vconst & 0x80) {
 				f->vconst |= 0xffffff00;
 				f->vconst |= (int64_t)~0 << 32;
 			}
@@ -949,12 +946,12 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TUCHAR,	TSHORT):
-	case CASE(	TUCHAR,	TUSHORT):
-	case CASE(	TUCHAR,	TINT):
-	case CASE(	TUCHAR,	TUINT):
-	case CASE(	TUCHAR,	TLONG):
-	case CASE(	TUCHAR,	TULONG):
+	case CASE(TUCHAR, TSHORT):
+	case CASE(TUCHAR, TUSHORT):
+	case CASE(TUCHAR, TINT):
+	case CASE(TUCHAR, TUINT):
+	case CASE(TUCHAR, TLONG):
+	case CASE(TUCHAR, TULONG):
 		a = AMOVBLZX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xff;
@@ -962,49 +959,49 @@ gmove(Node *f, Node *t)
 		}
 		break;
 
-	case CASE(	TUCHAR,	TVLONG):
-	case CASE(	TUCHAR,	TUVLONG):
-	case CASE(	TUCHAR,	TIND):
+	case CASE(TUCHAR, TVLONG):
+	case CASE(TUCHAR, TUVLONG):
+	case CASE(TUCHAR, TIND):
 		a = AMOVBQZX;
 		if(f->op == OCONST) {
 			f->vconst &= 0xff;
-			a = AMOVL;	/* zero-extends to 64-bits */
+			a = AMOVL; /* zero-extends to 64-bits */
 		}
 		break;
 
-/*
+	/*
  * float to fix
  */
-	case CASE(	TFLOAT,	TCHAR):
-	case CASE(	TFLOAT,	TUCHAR):
-	case CASE(	TFLOAT,	TSHORT):
-	case CASE(	TFLOAT,	TUSHORT):
-	case CASE(	TFLOAT,	TINT):
-	case CASE(	TFLOAT,	TUINT):
-	case CASE(	TFLOAT,	TLONG):
-	case CASE(	TFLOAT,	TULONG):
-	case CASE(	TFLOAT,	TVLONG):
-	case CASE(	TFLOAT,	TUVLONG):
-	case CASE(	TFLOAT,	TIND):
+	case CASE(TFLOAT, TCHAR):
+	case CASE(TFLOAT, TUCHAR):
+	case CASE(TFLOAT, TSHORT):
+	case CASE(TFLOAT, TUSHORT):
+	case CASE(TFLOAT, TINT):
+	case CASE(TFLOAT, TUINT):
+	case CASE(TFLOAT, TLONG):
+	case CASE(TFLOAT, TULONG):
+	case CASE(TFLOAT, TVLONG):
+	case CASE(TFLOAT, TUVLONG):
+	case CASE(TFLOAT, TIND):
 
-	case CASE(	TDOUBLE,TCHAR):
-	case CASE(	TDOUBLE,TUCHAR):
-	case CASE(	TDOUBLE,TSHORT):
-	case CASE(	TDOUBLE,TUSHORT):
-	case CASE(	TDOUBLE,TINT):
-	case CASE(	TDOUBLE,TUINT):
-	case CASE(	TDOUBLE,TLONG):
-	case CASE(	TDOUBLE,TULONG):
-	case CASE(	TDOUBLE,TVLONG):
-	case CASE(	TDOUBLE,TUVLONG):
-	case CASE(	TDOUBLE,TIND):
+	case CASE(TDOUBLE, TCHAR):
+	case CASE(TDOUBLE, TUCHAR):
+	case CASE(TDOUBLE, TSHORT):
+	case CASE(TDOUBLE, TUSHORT):
+	case CASE(TDOUBLE, TINT):
+	case CASE(TDOUBLE, TUINT):
+	case CASE(TDOUBLE, TLONG):
+	case CASE(TDOUBLE, TULONG):
+	case CASE(TDOUBLE, TVLONG):
+	case CASE(TDOUBLE, TUVLONG):
+	case CASE(TDOUBLE, TIND):
 		regalloc(&nod, t, Z);
-		if(ewidth[tt] == SZ_VLONG || typeu[tt] && ewidth[tt] == SZ_INT){
+		if(ewidth[tt] == SZ_VLONG || typeu[tt] && ewidth[tt] == SZ_INT) {
 			if(ft == TFLOAT)
 				a = ACVTTSS2SQ;
 			else
 				a = ACVTTSD2SQ;
-		}else{
+		} else {
 			if(ft == TFLOAT)
 				a = ACVTTSS2SL;
 			else
@@ -1015,11 +1012,11 @@ gmove(Node *f, Node *t)
 		regfree(&nod);
 		return;
 
-/*
+	/*
  * ulong to float
  */
-	case CASE(	TUVLONG,	TDOUBLE):
-	case CASE(	TUVLONG,	TFLOAT):
+	case CASE(TUVLONG, TDOUBLE):
+	case CASE(TUVLONG, TFLOAT):
 		a = ACVTSQ2SS;
 		if(tt == TDOUBLE)
 			a = ACVTSQ2SD;
@@ -1041,7 +1038,7 @@ gmove(Node *f, Node *t)
 		gins(AANDL, nodconst(1), &nod3);
 		gins(AORQ, &nod3, &nod2);
 		gins(a, &nod2, &nod1);
-		gins(tt == TDOUBLE? AADDSD: AADDSS, &nod1, &nod1);
+		gins(tt == TDOUBLE ? AADDSD : AADDSS, &nod1, &nod1);
 		regfree(&nod2);
 		regfree(&nod3);
 		patch(p2, pc);
@@ -1049,10 +1046,10 @@ gmove(Node *f, Node *t)
 		regfree(&nod1);
 		return;
 
-	case CASE(	TULONG,	TDOUBLE):
-	case CASE(	TUINT,	TDOUBLE):
-	case CASE(	TULONG,	TFLOAT):
-	case CASE(	TUINT,	TFLOAT):
+	case CASE(TULONG, TDOUBLE):
+	case CASE(TUINT, TDOUBLE):
+	case CASE(TULONG, TFLOAT):
+	case CASE(TUINT, TFLOAT):
 		a = ACVTSQ2SS;
 		if(tt == TDOUBLE)
 			a = ACVTSQ2SD;
@@ -1065,33 +1062,33 @@ gmove(Node *f, Node *t)
 		regfree(&nod1);
 		return;
 
-/*
+	/*
  * fix to float
  */
-	case CASE(	TCHAR,	TFLOAT):
-	case CASE(	TUCHAR,	TFLOAT):
-	case CASE(	TSHORT,	TFLOAT):
-	case CASE(	TUSHORT,TFLOAT):
-	case CASE(	TINT,	TFLOAT):
-	case CASE(	TLONG,	TFLOAT):
-	case	CASE(	TVLONG,	TFLOAT):
-	case CASE(	TIND,	TFLOAT):
+	case CASE(TCHAR, TFLOAT):
+	case CASE(TUCHAR, TFLOAT):
+	case CASE(TSHORT, TFLOAT):
+	case CASE(TUSHORT, TFLOAT):
+	case CASE(TINT, TFLOAT):
+	case CASE(TLONG, TFLOAT):
+	case CASE(TVLONG, TFLOAT):
+	case CASE(TIND, TFLOAT):
 
-	case CASE(	TCHAR,	TDOUBLE):
-	case CASE(	TUCHAR,	TDOUBLE):
-	case CASE(	TSHORT,	TDOUBLE):
-	case CASE(	TUSHORT,TDOUBLE):
-	case CASE(	TINT,	TDOUBLE):
-	case CASE(	TLONG,	TDOUBLE):
-	case CASE(	TVLONG,	TDOUBLE):
-	case CASE(	TIND,	TDOUBLE):
+	case CASE(TCHAR, TDOUBLE):
+	case CASE(TUCHAR, TDOUBLE):
+	case CASE(TSHORT, TDOUBLE):
+	case CASE(TUSHORT, TDOUBLE):
+	case CASE(TINT, TDOUBLE):
+	case CASE(TLONG, TDOUBLE):
+	case CASE(TVLONG, TDOUBLE):
+	case CASE(TIND, TDOUBLE):
 		regalloc(&nod, t, t);
-		if(ewidth[ft] == SZ_VLONG){
+		if(ewidth[ft] == SZ_VLONG) {
 			if(tt == TFLOAT)
 				a = ACVTSQ2SS;
 			else
 				a = ACVTSQ2SD;
-		}else{
+		} else {
 			if(tt == TFLOAT)
 				a = ACVTSL2SS;
 			else
@@ -1102,25 +1099,25 @@ gmove(Node *f, Node *t)
 		regfree(&nod);
 		return;
 
-/*
+	/*
  * float to float
  */
-	case CASE(	TFLOAT,	TFLOAT):
+	case CASE(TFLOAT, TFLOAT):
 		a = AMOVSS;
 		break;
-	case CASE(	TDOUBLE,TFLOAT):
+	case CASE(TDOUBLE, TFLOAT):
 		a = ACVTSD2SS;
 		break;
-	case CASE(	TFLOAT,	TDOUBLE):
+	case CASE(TFLOAT, TDOUBLE):
 		a = ACVTSS2SD;
 		break;
-	case CASE(	TDOUBLE,TDOUBLE):
+	case CASE(TDOUBLE, TDOUBLE):
 		a = AMOVSD;
 		break;
 	}
-	if(a == AMOVQ || a == AMOVSD || a == AMOVSS || a == AMOVL && ewidth[ft] == ewidth[tt])	/* TO DO: check AMOVL */
-	if(samaddr(f, t))
-		return;
+	if(a == AMOVQ || a == AMOVSD || a == AMOVSS || a == AMOVL && ewidth[ft] == ewidth[tt]) /* TO DO: check AMOVL */
+		if(samaddr(f, t))
+			return;
 	gins(a, f, t);
 }
 
@@ -1130,11 +1127,11 @@ doindex(Node *n)
 	Node nod, nod1;
 	int32_t v;
 
-if(debug['Y'])
-prtree(n, "index");
+	if(debug['Y'])
+		prtree(n, "index");
 
-if(n->left->complex >= FNX)
-print("botch in doindex\n");
+	if(n->left->complex >= FNX)
+		print("botch in doindex\n");
 
 	regalloc(&nod, &qregnode, Z);
 	v = constnode.vconst;
@@ -1145,7 +1142,7 @@ print("botch in doindex\n");
 	else if(n->left->op == OREGISTER)
 		idx.ptr = n->left->reg;
 	else if(n->left->op != OADDR) {
-		reg[D_BP]++;	// cant be used as a base
+		reg[D_BP]++; // cant be used as a base
 		regalloc(&nod1, &qregnode, Z);
 		cgen(n->left, &nod1);
 		idx.ptr = nod1.reg;
@@ -1384,16 +1381,36 @@ gopcode(int o, Type *ty, Node *f, Node *t)
 			a = AUCOMISD;
 		gins(a, f, t);
 		switch(o) {
-		case OEQ:	a = AJEQ; break;
-		case ONE:	a = AJNE; break;
-		case OLT:	a = AJLT; break;
-		case OLE:	a = AJLE; break;
-		case OGE:	a = AJGE; break;
-		case OGT:	a = AJGT; break;
-		case OLO:	a = AJCS; break;
-		case OLS:	a = AJLS; break;
-		case OHS:	a = AJCC; break;
-		case OHI:	a = AJHI; break;
+		case OEQ:
+			a = AJEQ;
+			break;
+		case ONE:
+			a = AJNE;
+			break;
+		case OLT:
+			a = AJLT;
+			break;
+		case OLE:
+			a = AJLE;
+			break;
+		case OGE:
+			a = AJGE;
+			break;
+		case OGT:
+			a = AJGT;
+			break;
+		case OLO:
+			a = AJCS;
+			break;
+		case OLS:
+			a = AJLS;
+			break;
+		case OHS:
+			a = AJCC;
+			break;
+		case OHI:
+			a = AJHI;
+			break;
 		}
 		gins(a, Z, Z);
 		return;
@@ -1425,7 +1442,7 @@ gbranch(int o)
 	}
 	nextpc();
 	if(a == AGOK) {
-		diag(Z, "bad in gbranch %O",  o);
+		diag(Z, "bad in gbranch %O", o);
 		nextpc();
 	}
 	p->as = a;
@@ -1474,7 +1491,7 @@ exreg(Type *t)
 	int32_t o;
 
 	if(typechlpv[t->etype]) {
-		if(exregoffset <= REGEXT-4)
+		if(exregoffset <= REGEXT - 4)
 			return 0;
 		o = exregoffset;
 		exregoffset--;
@@ -1483,49 +1500,49 @@ exreg(Type *t)
 	return 0;
 }
 
-schar	ewidth[NTYPE] =
-{
-	-1,		/*[TXXX]*/	
-	SZ_CHAR,	/*[TCHAR]*/	
-	SZ_CHAR,	/*[TUCHAR]*/
-	SZ_SHORT,	/*[TSHORT]*/
-	SZ_SHORT,	/*[TUSHORT]*/
-	SZ_INT,		/*[TINT]*/
-	SZ_INT,		/*[TUINT]*/
-	SZ_LONG,	/*[TLONG]*/
-	SZ_LONG,	/*[TULONG]*/
-	SZ_VLONG,	/*[TVLONG]*/
-	SZ_VLONG,	/*[TUVLONG]*/
-	SZ_FLOAT,	/*[TFLOAT]*/
-	SZ_DOUBLE,	/*[TDOUBLE]*/
-	SZ_IND,		/*[TIND]*/
-	0,		/*[TFUNC]*/
-	-1,		/*[TARRAY]*/
-	0,		/*[TVOID]*/
-	-1,		/*[TSTRUCT]*/
-	-1,		/*[TUNION]*/
-	SZ_INT,		/*[TENUM]*/
+schar ewidth[NTYPE] =
+    {
+     -1,	/*[TXXX]*/
+     SZ_CHAR,   /*[TCHAR]*/
+     SZ_CHAR,   /*[TUCHAR]*/
+     SZ_SHORT,  /*[TSHORT]*/
+     SZ_SHORT,  /*[TUSHORT]*/
+     SZ_INT,    /*[TINT]*/
+     SZ_INT,    /*[TUINT]*/
+     SZ_LONG,   /*[TLONG]*/
+     SZ_LONG,   /*[TULONG]*/
+     SZ_VLONG,  /*[TVLONG]*/
+     SZ_VLONG,  /*[TUVLONG]*/
+     SZ_FLOAT,  /*[TFLOAT]*/
+     SZ_DOUBLE, /*[TDOUBLE]*/
+     SZ_IND,    /*[TIND]*/
+     0,		/*[TFUNC]*/
+     -1,	/*[TARRAY]*/
+     0,		/*[TVOID]*/
+     -1,	/*[TSTRUCT]*/
+     -1,	/*[TUNION]*/
+     SZ_INT,    /*[TENUM]*/
 };
-int32_t	ncast[NTYPE] =
-{
-	0,				/*[TXXX]*/
-	BCHAR|BUCHAR,			/*[TCHAR]*/
-	BCHAR|BUCHAR,			/*[TUCHAR]*/	
-	BSHORT|BUSHORT,			/*[TSHORT]*/
-	BSHORT|BUSHORT,			/*[TUSHORT]*/
-	BINT|BUINT|BLONG|BULONG,	/*[TINT]*/		
-	BINT|BUINT|BLONG|BULONG,	/*[TUINT]*/
-	BINT|BUINT|BLONG|BULONG,	/*[TLONG]*/
-	BINT|BUINT|BLONG|BULONG,	/*[TULONG]*/
-	BVLONG|BUVLONG|BIND,			/*[TVLONG]*/
-	BVLONG|BUVLONG|BIND,			/*[TUVLONG]*/
-	BFLOAT,				/*[TFLOAT]*/
-	BDOUBLE,			/*[TDOUBLE]*/
-	BVLONG|BUVLONG|BIND,		/*[TIND]*/
-	0,				/*[TFUNC]*/
-	0,				/*[TARRAY]*/
-	0,				/*[TVOID]*/
-	BSTRUCT,			/*[TSTRUCT]*/
-	BUNION,				/*[TUNION]*/
-	0,				/*[TENUM]*/
+int32_t ncast[NTYPE] =
+    {
+     0,				    /*[TXXX]*/
+     BCHAR | BUCHAR,		    /*[TCHAR]*/
+     BCHAR | BUCHAR,		    /*[TUCHAR]*/
+     BSHORT | BUSHORT,		    /*[TSHORT]*/
+     BSHORT | BUSHORT,		    /*[TUSHORT]*/
+     BINT | BUINT | BLONG | BULONG, /*[TINT]*/
+     BINT | BUINT | BLONG | BULONG, /*[TUINT]*/
+     BINT | BUINT | BLONG | BULONG, /*[TLONG]*/
+     BINT | BUINT | BLONG | BULONG, /*[TULONG]*/
+     BVLONG | BUVLONG | BIND,       /*[TVLONG]*/
+     BVLONG | BUVLONG | BIND,       /*[TUVLONG]*/
+     BFLOAT,			    /*[TFLOAT]*/
+     BDOUBLE,			    /*[TDOUBLE]*/
+     BVLONG | BUVLONG | BIND,       /*[TIND]*/
+     0,				    /*[TFUNC]*/
+     0,				    /*[TARRAY]*/
+     0,				    /*[TVOID]*/
+     BSTRUCT,			    /*[TSTRUCT]*/
+     BUNION,			    /*[TUNION]*/
+     0,				    /*[TENUM]*/
 };

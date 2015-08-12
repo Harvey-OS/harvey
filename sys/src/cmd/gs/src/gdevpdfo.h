@@ -27,7 +27,7 @@
 /* Internal definitions for "objects" for pdfwrite driver. */
 
 #ifndef gdevpdfo_INCLUDED
-#  define gdevpdfo_INCLUDED
+#define gdevpdfo_INCLUDED
 
 /*
  * This file defines the structures and support procedures for what Adobe
@@ -49,7 +49,7 @@
 
 /* Define some needed abstract types. */
 #ifndef gx_device_pdf_DEFINED
-#  define gx_device_pdf_DEFINED
+#define gx_device_pdf_DEFINED
 typedef struct gx_device_pdf_s gx_device_pdf;
 #endif
 
@@ -57,7 +57,7 @@ typedef struct gx_device_pdf_s gx_device_pdf;
 
 /* Define the abstract types if they aren't defined already (in gdevpdfx.h). */
 #ifndef cos_types_DEFINED
-#  define cos_types_DEFINED
+#define cos_types_DEFINED
 typedef struct cos_object_s cos_object_t;
 typedef struct cos_stream_s cos_stream_t;
 typedef struct cos_dict_s cos_dict_t;
@@ -77,16 +77,16 @@ typedef struct cos_stream_piece_s cos_stream_piece_t;
 /*typedef struct cos_object_s cos_object_t;*/
 /*typedef*/ struct cos_object_procs_s {
 
-#define cos_proc_release(proc)\
-  void proc(cos_object_t *pco, client_name_t cname)
+#define cos_proc_release(proc) \
+	void proc(cos_object_t *pco, client_name_t cname)
 	cos_proc_release((*release));
 
-#define cos_proc_write(proc)\
-  int proc(const cos_object_t *pco, gx_device_pdf *pdev, gs_id object_id)
+#define cos_proc_write(proc) \
+	int proc(const cos_object_t *pco, gx_device_pdf *pdev, gs_id object_id)
 	cos_proc_write((*write));
 
-#define cos_proc_equal(proc)\
-  int proc(const cos_object_t *pco0, const cos_object_t *pco1, gx_device_pdf *pdev)
+#define cos_proc_equal(proc) \
+	int proc(const cos_object_t *pco0, const cos_object_t *pco1, gx_device_pdf *pdev)
 	cos_proc_equal((*equal));
 
 } /*cos_object_procs_t*/;
@@ -113,27 +113,27 @@ typedef struct cos_stream_piece_s cos_stream_piece_t;
  * The written member records whether the object has been written (copied)
  * into the contents or resource file.
  */
-#define cos_object_struct(otype_s, etype)\
-struct otype_s {\
-    const cos_object_procs_t *cos_procs;	/* must be first */\
-    long id;\
-    etype *elements;\
-    cos_stream_piece_t *pieces;\
-    gx_device_pdf *pdev;\
-    pdf_resource_t *pres;	/* only for BP/EP XObjects */\
-    byte is_open;		/* see above */\
-    byte is_graphics;		/* see above */\
-    byte written;		/* see above */\
-    long length;                /* only for stream objects */\
-    stream *input_strm;		/* only for stream objects */\
-    /* input_strm is introduced recently for pdfmark. */\
-    /* Using this field, psdf_binary_writer_s may be simplified. */\
-}
+#define cos_object_struct(otype_s, etype)                                                             \
+	struct otype_s {                                                                              \
+		const cos_object_procs_t *cos_procs; /* must be first */                              \
+		long id;                                                                              \
+		etype *elements;                                                                      \
+		cos_stream_piece_t *pieces;                                                           \
+		gx_device_pdf *pdev;                                                                  \
+		pdf_resource_t *pres; /* only for BP/EP XObjects */                                   \
+		byte is_open;	 /* see above */                                                 \
+		byte is_graphics;     /* see above */                                                 \
+		byte written;	 /* see above */                                                 \
+		long length;	  /* only for stream objects */                                   \
+		stream *input_strm;   /* only for stream objects */                                   \
+				      /* input_strm is introduced recently for pdfmark. */            \
+				      /* Using this field, psdf_binary_writer_s may be simplified. */ \
+	}
 cos_object_struct(cos_object_s, cos_element_t);
-#define private_st_cos_object()	/* in gdevpdfo.c */\
-  gs_private_st_ptrs5(st_cos_object, cos_object_t, "cos_object_t",\
-    cos_object_enum_ptrs, cos_object_reloc_ptrs, elements, pieces,\
-    pdev, pres, input_strm)
+#define private_st_cos_object() /* in gdevpdfo.c */                                        \
+	gs_private_st_ptrs5(st_cos_object, cos_object_t, "cos_object_t",                   \
+			    cos_object_enum_ptrs, cos_object_reloc_ptrs, elements, pieces, \
+			    pdev, pres, input_strm)
 extern const cos_object_procs_t cos_generic_procs;
 #define cos_type_generic (&cos_generic_procs)
 
@@ -150,21 +150,21 @@ extern const cos_object_procs_t cos_generic_procs;
  */
 /*typedef struct cos_value_s cos_value_t;*/
 typedef enum {
-    COS_VALUE_SCALAR = 0,	/* heap-allocated string */
-    COS_VALUE_CONST,		/* shared (constant) string */
-    COS_VALUE_OBJECT,		/* object referenced by # # R */
-    COS_VALUE_RESOURCE		/* object referenced by /R# */
+	COS_VALUE_SCALAR = 0, /* heap-allocated string */
+	COS_VALUE_CONST,      /* shared (constant) string */
+	COS_VALUE_OBJECT,     /* object referenced by # # R */
+	COS_VALUE_RESOURCE    /* object referenced by /R# */
 } cos_value_type_t;
 struct cos_value_s {
-    cos_value_type_t value_type;
-    union vc_ {
-	gs_string chars;	/* SCALAR, CONST */
-	cos_object_t *object;	/* OBJECT, RESOURCE */
-    } contents;
+	cos_value_type_t value_type;
+	union vc_ {
+		gs_string chars;      /* SCALAR, CONST */
+		cos_object_t *object; /* OBJECT, RESOURCE */
+	} contents;
 };
-#define private_st_cos_value()	/* in gdevpdfo.c */\
-  gs_private_st_composite(st_cos_value, cos_value_t,\
-    "cos_value_t", cos_value_enum_ptrs, cos_value_reloc_ptrs)
+#define private_st_cos_value() /* in gdevpdfo.c */         \
+	gs_private_st_composite(st_cos_value, cos_value_t, \
+				"cos_value_t", cos_value_enum_ptrs, cos_value_reloc_ptrs)
 
 /*
  * Define Cos arrays, dictionaries, and streams.
@@ -173,17 +173,17 @@ struct cos_value_s {
  * The elements of dictionaries/streams are not sorted.
  * The contents pieces of streams are stored in reverse order.
  */
-    /* array */
+/* array */
 typedef struct cos_array_element_s cos_array_element_t;
 cos_object_struct(cos_array_s, cos_array_element_t);
 extern const cos_object_procs_t cos_array_procs;
 #define cos_type_array (&cos_array_procs)
-    /* dict */
+/* dict */
 typedef struct cos_dict_element_s cos_dict_element_t;
 cos_object_struct(cos_dict_s, cos_dict_element_t);
 extern const cos_object_procs_t cos_dict_procs;
 #define cos_type_dict (&cos_dict_procs)
-    /* stream */
+/* stream */
 cos_object_struct(cos_stream_s, cos_dict_element_t);
 extern const cos_object_procs_t cos_stream_procs;
 #define cos_type_stream (&cos_stream_procs)
@@ -235,7 +235,7 @@ const cos_value_t *cos_resource_value(cos_value_t *, cos_object_t *);
  * unshared string, allocated by the same allocator as the collection
  * itself, that should not be copied.
  */
-    /* array */
+/* array */
 int cos_array_put(cos_array_t *, long, const cos_value_t *);
 int cos_array_put_no_copy(cos_array_t *, long, const cos_value_t *);
 int cos_array_add(cos_array_t *, const cos_value_t *);
@@ -246,7 +246,7 @@ int cos_array_add_real(cos_array_t *, floatp);
 int cos_array_add_object(cos_array_t *, cos_object_t *);
 /* add adds at the end, unadd removes the last element */
 int cos_array_unadd(cos_array_t *, cos_value_t *);
-    /* dict */
+/* dict */
 int cos_dict_put(cos_dict_t *, const byte *, uint, const cos_value_t *);
 int cos_dict_put_no_copy(cos_dict_t *, const byte *, uint,
 			 const cos_value_t *);
@@ -262,7 +262,7 @@ int cos_dict_put_string_copy(cos_dict_t *pcd, const char *key, const char *value
 int cos_dict_put_c_strings(cos_dict_t *, const char *, const char *);
 /* move all the elements from one dict to another */
 int cos_dict_move_all(cos_dict_t *, cos_dict_t *);
-    /* stream */
+/* stream */
 int cos_stream_add(cos_stream_t *, uint);
 int cos_stream_add_bytes(cos_stream_t *, const byte *, uint);
 int cos_stream_add_stream_contents(cos_stream_t *, stream *);
@@ -283,10 +283,10 @@ cos_dict_t *cos_stream_dict(cos_stream_t *);
  * they may or may not be included in the enumeration.
  */
 const cos_array_element_t *
-    cos_array_element_first(const cos_array_t *);
+cos_array_element_first(const cos_array_t *);
 const cos_array_element_t *
-    cos_array_element_next(const cos_array_element_t *, long *,
-			   const cos_value_t **);
+cos_array_element_next(const cos_array_element_t *, long *,
+		       const cos_value_t **);
 
 /* Look up a key in a dictionary. */
 const cos_value_t *cos_dict_find(const cos_dict_t *, const byte *, uint);
@@ -294,9 +294,9 @@ const cos_value_t *cos_dict_find_c_key(const cos_dict_t *, const char *);
 
 /* Set up a parameter list that writes into a Cos dictionary. */
 typedef struct cos_param_list_writer_s {
-    gs_param_list_common;
-    cos_dict_t *pcd;
-    int print_ok;
+	gs_param_list_common;
+	cos_dict_t *pcd;
+	int print_ok;
 } cos_param_list_writer_t;
 int cos_param_list_writer_init(cos_param_list_writer_t *, cos_dict_t *,
 			       int print_ok);
@@ -307,9 +307,9 @@ stream *cos_write_stream_alloc(cos_stream_t *pcs, gx_device_pdf *pdev,
 			       client_name_t cname);
 
 /* Get cos stream from pipeline. */
-cos_stream_t * cos_stream_from_pipeline(stream *s);
+cos_stream_t *cos_stream_from_pipeline(stream *s);
 /* Get cos write stream from pipeline. */
-stream * cos_write_stream_from_pipeline(stream *s);
+stream *cos_write_stream_from_pipeline(stream *s);
 
 /* Write a Cos value on the output. */
 int cos_value_write(const cos_value_t *, gx_device_pdf *);

@@ -42,10 +42,10 @@
 	values of n>1.
 */
 
-double	j0(double);
-double	j1(double);
-double	y0(double);
-double	y1(double);
+double j0(double);
+double j1(double);
+double y0(double);
+double y1(double);
 
 double
 jn(int n, double x)
@@ -69,27 +69,27 @@ jn(int n, double x)
 
 	a = j0(x);
 	b = j1(x);
-	for(i=1; i<n; i++) {
+	for(i = 1; i < n; i++) {
 		temp = b;
-		b = (2*i/x)*b - a;
+		b = (2 * i / x) * b - a;
 		a = temp;
 	}
 	return b;
 
 recurs:
-	xsq = x*x;
-	for(t=0,i=n+16; i>n; i--)
-		t = xsq/(2*i - t);
-	t = x/(2*n-t);
+	xsq = x * x;
+	for(t = 0, i = n + 16; i > n; i--)
+		t = xsq / (2 * i - t);
+	t = x / (2 * n - t);
 
 	a = t;
 	b = 1;
-	for(i=n-1; i>0; i--) {
+	for(i = n - 1; i > 0; i--) {
 		temp = b;
-		b = (2*i/x)*b - a;
+		b = (2 * i / x) * b - a;
 		a = temp;
 	}
-	return t*j0(x)/b;
+	return t * j0(x) / b;
 }
 
 double
@@ -99,27 +99,27 @@ yn(int n, double x)
 	int sign;
 	double a, b, temp;
 
-	if (x <= 0) {
+	if(x <= 0) {
 		errno = EDOM;
 		return -HUGE_VAL;
 	}
 	sign = 1;
 	if(n < 0) {
 		n = -n;
-		if(n%2 == 1)
+		if(n % 2 == 1)
 			sign = -1;
 	}
 	if(n == 0)
 		return y0(x);
 	if(n == 1)
-		return sign*y1(x);
+		return sign * y1(x);
 
 	a = y0(x);
 	b = y1(x);
-	for(i=1; i<n; i++) {
+	for(i = 1; i < n; i++) {
 		temp = b;
-		b = (2*i/x)*b - a;
+		b = (2 * i / x) * b - a;
 		a = temp;
 	}
-	return sign*b;
+	return sign * b;
 }

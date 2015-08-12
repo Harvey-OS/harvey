@@ -7,14 +7,14 @@
  * in the LICENSE file.
  */
 
-#ifndef	__UNISTD_H
-#define	__UNISTD_H
+#ifndef __UNISTD_H
+#define __UNISTD_H
 #ifndef _POSIX_SOURCE
-   This header file is not defined in pure ANSI
+This header file is not defined in pure ANSI
 #endif
 #pragma lib "/$M/lib/ape/libap.a"
 
-#define _POSIX_VERSION	199309L
+#define _POSIX_VERSION 199309L
 #define _POSIX_ASYNC_IO -1
 #define _POSIX_CHOWN_RESTRICTED 1
 #define _POSIX_NO_TRUNC 1
@@ -24,7 +24,7 @@
 
 #ifndef _SIZE_T
 #define _SIZE_T
-typedef unsigned long size_t;
+    typedef unsigned long size_t;
 #endif
 #ifndef _SSIZE_T
 #define _SSIZE_T
@@ -35,58 +35,58 @@ typedef long ssize_t;
 #ifdef __cplusplus
 #define NULL 0
 #else
-#define NULL ((void*)0)
+#define NULL ((void *)0)
 #endif
 #endif
 #endif
 
 /* access */
-#define	R_OK		4
-#define	W_OK		2
-#define	X_OK		1
-#define	F_OK		0	/* test for existence */
+#define R_OK 4
+#define W_OK 2
+#define X_OK 1
+#define F_OK 0 /* test for existence */
 
 /* lockf */
-#define	F_ULOCK		0	/* unlock a previously locked region */
-#define	F_LOCK		1	/* lock a region for exclusive use */
-#define	F_TLOCK		2	/* test and lock a region for exclusive use */
-#define	F_TEST		3	/* test a region for a previous lock */
+#define F_ULOCK 0 /* unlock a previously locked region */
+#define F_LOCK 1  /* lock a region for exclusive use */
+#define F_TLOCK 2 /* test and lock a region for exclusive use */
+#define F_TEST 3  /* test a region for a previous lock */
 
 /* lseek */
-#ifndef SEEK_SET		/* also defined in stdio.h */
-#define	SEEK_SET	0
-#define	SEEK_CUR	1
-#define	SEEK_END	2
+#ifndef SEEK_SET /* also defined in stdio.h */
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
 #endif
 
 /* sysconf argument */
-#define	_SC_ARG_MAX		1	/* max chars in args to exec */
-#define	_SC_CHILD_MAX		2	/* max child process per process */
-#define	_SC_CLK_TCK		3	/* number of clock() units per second */
-#define	_SC_NGROUPS_MAX		4	/* max supplementary groups per process */
-#define	_SC_OPEN_MAX		5
-#define _SC_STREAM_MAX		6
-#define _SC_TZNAME_MAX		7
-#define	_SC_JOB_CONTROL		8	/* posix job control */
-#define	_SC_SAVED_IDS		9	/* saved suid/sgid per process */
-#define	_SC_VERSION		10	/* this version */
-#define _SC_LOGIN_NAME_MAX	11	/* max length of a login name */
+#define _SC_ARG_MAX 1     /* max chars in args to exec */
+#define _SC_CHILD_MAX 2   /* max child process per process */
+#define _SC_CLK_TCK 3     /* number of clock() units per second */
+#define _SC_NGROUPS_MAX 4 /* max supplementary groups per process */
+#define _SC_OPEN_MAX 5
+#define _SC_STREAM_MAX 6
+#define _SC_TZNAME_MAX 7
+#define _SC_JOB_CONTROL 8     /* posix job control */
+#define _SC_SAVED_IDS 9       /* saved suid/sgid per process */
+#define _SC_VERSION 10	/* this version */
+#define _SC_LOGIN_NAME_MAX 11 /* max length of a login name */
 
 /* pathconf argument */
-#define _PC_LINK_MAX		1
-#define _PC_MAX_CANON		2
-#define _PC_MAX_INPUT		3
-#define _PC_NAME_MAX		4
-#define _PC_PATH_MAX		5
-#define _PC_PIPE_BUF		6
-#define _PC_CHOWN_RESTRICTED	7
-#define _PC_NO_TRUNC		8
-#define _PC_VDISABLE		9
+#define _PC_LINK_MAX 1
+#define _PC_MAX_CANON 2
+#define _PC_MAX_INPUT 3
+#define _PC_NAME_MAX 4
+#define _PC_PATH_MAX 5
+#define _PC_PIPE_BUF 6
+#define _PC_CHOWN_RESTRICTED 7
+#define _PC_NO_TRUNC 8
+#define _PC_VDISABLE 9
 
 /* standard filenos */
-#define STDIN_FILENO		0
-#define STDOUT_FILENO		1
-#define STDERR_FILENO		2
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,7 +95,7 @@ extern "C" {
 /* process primitives */
 extern int execl(const char *, const char *, ...);
 extern int execv(const char *, const char **);
-extern int execle(const char *, const char *, const char *,  ...);
+extern int execle(const char *, const char *, const char *, ...);
 extern int execve(const char *, const char **, const char **);
 extern int execlp(const char *, const char *, ...);
 extern int execvp(const char *, const char **);
@@ -172,6 +172,5 @@ extern char *getlogin_r(char *, int);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

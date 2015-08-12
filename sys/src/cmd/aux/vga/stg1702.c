@@ -19,20 +19,20 @@
  * with 16-bit Pixel Port.
  */
 enum {
-	Command		= 0x00,		/* Pixel Command Register */
-	IndexLO		= 0x01,		/* LO-byte of 16-bit Index */
-	IndexHI		= 0x02,		/* HI-byte of 16-bit Index */
-	Index		= 0x03,		/* Indexed Register */
+	Command = 0x00, /* Pixel Command Register */
+	IndexLO = 0x01, /* LO-byte of 16-bit Index */
+	IndexHI = 0x02, /* HI-byte of 16-bit Index */
+	Index = 0x03,   /* Indexed Register */
 
-	CompanyID	= 0x00,		/* Company ID = 0x44 */
-	DeviceID	= 0x01,		/* Device ID = 0x02 */
-	Pmode		= 0x03,		/* Primary Pixel Mode Select */
-	Smode		= 0x04,		/* Secondary Pixel Mode Select */
-	Pipeline	= 0x05,		/* Pipeline Timing Control */
-	Sreset		= 0x06,		/* Soft Reset */
-	Power		= 0x07,		/* Power Management */
+	CompanyID = 0x00, /* Company ID = 0x44 */
+	DeviceID = 0x01,  /* Device ID = 0x02 */
+	Pmode = 0x03,     /* Primary Pixel Mode Select */
+	Smode = 0x04,     /* Secondary Pixel Mode Select */
+	Pipeline = 0x05,  /* Pipeline Timing Control */
+	Sreset = 0x06,    /* Soft Reset */
+	Power = 0x07,     /* Power Management */
 
-	Nindex		= 0x08,
+	Nindex = 0x08,
 };
 
 static void
@@ -77,22 +77,22 @@ indexrw(uint8_t index)
 	uint8_t command;
 
 	command = commandr();
-	commandw(command|0x10);
+	commandw(command | 0x10);
 
 	commandrw();
 	inportb(Pixmask);
 	outportb(Pixmask, index & 0xFF);
-	outportb(Pixmask, (index>>8) & 0xFF);
+	outportb(Pixmask, (index >> 8) & 0xFF);
 }
 
 static void
-options(Vga* vga, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
-	ctlr->flag |= Hpclk2x8|Foptions;
+	ctlr->flag |= Hpclk2x8 | Foptions;
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	uint32_t pclk;
 
@@ -124,7 +124,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * If yes and the clock has already been initialised,
 	 * initialise it again.
 	 */
-	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f[0] >= 110000000){
+	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f[0] >= 110000000) {
 		vga->f[0] /= 2;
 		resyncinit(vga, ctlr, Upclk2x8, 0);
 	}
@@ -133,14 +133,14 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uint8_t command, mode, pipeline;
 
 	command = 0x00;
 	mode = 0x00;
 	pipeline = 0x02;
-	if(ctlr->flag & Upclk2x8){
+	if(ctlr->flag & Upclk2x8) {
 		command = 0x08;
 		mode = 0x05;
 		pipeline = 0x02;
@@ -161,7 +161,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 
@@ -177,10 +177,10 @@ dump(Vga* vga, Ctlr* ctlr)
 }
 
 Ctlr stg1702 = {
-	"stg1702",			/* name */
-	0,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "stg1702", /* name */
+    0,	 /* snarf */
+    options,   /* options */
+    init,      /* init */
+    load,      /* load */
+    dump,      /* dump */
 };

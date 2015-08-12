@@ -27,11 +27,11 @@
 /* Client interface to LanguageLevel 3 color facilities */
 
 #ifndef gscolor3_INCLUDED
-#  define gscolor3_INCLUDED
+#define gscolor3_INCLUDED
 
 /* Smooth shading */
 #ifndef gs_shading_t_DEFINED
-#  define gs_shading_t_DEFINED
+#define gs_shading_t_DEFINED
 typedef struct gs_shading_s gs_shading_t;
 #endif
 

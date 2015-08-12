@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-#define	N	256
+#define N 256
 
 size_t
 strcspn(const char *s, const char *b)
@@ -18,12 +18,12 @@ strcspn(const char *s, const char *b)
 
 	memset(map, 0, N);
 	for(;;) {
-		map[*(unsigned char*)b] = 1;
+		map[*(unsigned char *)b] = 1;
 		if(*b++ == 0)
 			break;
 	}
 	os = (char *)s;
-	while(map[*(unsigned char*)s++] == 0)
+	while(map[*(unsigned char *)s++] == 0)
 		;
 	return s - os - 1;
 }

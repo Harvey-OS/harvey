@@ -12,7 +12,7 @@
 #include <draw.h>
 
 static char channames[] = "rgbkamx";
-char*
+char *
 chantostr(char *buf, uint32_t cc)
 {
 	uint32_t c, rc;
@@ -23,15 +23,15 @@ chantostr(char *buf, uint32_t cc)
 
 	/* reverse the channel descriptor so we can easily generate the string in the right order */
 	rc = 0;
-	for(c=cc; c; c>>=8){
+	for(c = cc; c; c >>= 8) {
 		rc <<= 8;
-		rc |= c&0xFF;
+		rc |= c & 0xFF;
 	}
 
 	p = buf;
-	for(c=rc; c; c>>=8) {
+	for(c = rc; c; c >>= 8) {
 		*p++ = channames[TYPE(c)];
-		*p++ = '0'+NBITS(c);
+		*p++ = '0' + NBITS(c);
 	}
 	*p = 0;
 
@@ -42,7 +42,7 @@ chantostr(char *buf, uint32_t cc)
 static int
 isspace(char c)
 {
-	return c==' ' || c== '\t' || c=='\r' || c=='\n';
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
 
 uint32_t
@@ -54,22 +54,22 @@ strtochan(char *s)
 
 	c = 0;
 	d = 0;
-	p=s;
+	p = s;
 	while(*p && isspace(*p))
 		p++;
 
-	while(*p && !isspace(*p)){
-		if((q = strchr(channames, p[0])) == nil) 
+	while(*p && !isspace(*p)) {
+		if((q = strchr(channames, p[0])) == nil)
 			return 0;
-		t = q-channames;
+		t = q - channames;
 		if(p[1] < '0' || p[1] > '9')
 			return 0;
-		n = p[1]-'0';
+		n = p[1] - '0';
 		d += n;
-		c = (c<<8) | __DC(t, n);
+		c = (c << 8) | __DC(t, n);
 		p += 2;
 	}
-	if(d==0 || (d>8 && d%8) || (d<8 && 8%d))
+	if(d == 0 || (d > 8 && d % 8) || (d < 8 && 8 % d))
 		return 0;
 	return c;
 }
@@ -79,12 +79,12 @@ chantodepth(uint32_t c)
 {
 	int n;
 
-	for(n=0; c; c>>=8){
+	for(n = 0; c; c >>= 8) {
 		if(TYPE(c) >= NChan || NBITS(c) > 8 || NBITS(c) <= 0)
 			return 0;
 		n += NBITS(c);
 	}
-	if(n==0 || (n>8 && n%8) || (n<8 && 8%n))
+	if(n == 0 || (n > 8 && n % 8) || (n < 8 && 8 % n))
 		return 0;
 	return n;
 }

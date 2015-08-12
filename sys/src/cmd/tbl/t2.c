@@ -8,7 +8,7 @@
  */
 
 /* t2.c:  subroutine sequencing for one table */
-# include "t.h"
+#include "t.h"
 void
 tableput(void)
 {
@@ -30,5 +30,3 @@ tableput(void)
 	freearr();
 	restline();
 }
-
-

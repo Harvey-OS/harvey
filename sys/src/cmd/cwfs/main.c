@@ -77,10 +77,10 @@ okay(char *quest)
 	char *ln;
 
 	print("okay to %s? ", quest);
-	if ((ln = Brdline(&bin, '\n')) == nil)
+	if((ln = Brdline(&bin, '\n')) == nil)
 		return 0;
-	ln[Blinelen(&bin)-1] = '\0';
-	if (isascii(*ln) && isupper(*ln))
+	ln[Blinelen(&bin) - 1] = '\0';
+	if(isascii(*ln) && isupper(*ln))
 		*ln = tolower(*ln);
 	return *ln == 'y';
 }
@@ -94,30 +94,30 @@ mapinit(char *mapfile)
 	Biobuf *bp;
 	Map *map;
 
-	if (mapfile == nil)
+	if(mapfile == nil)
 		return;
 	bp = Bopen(mapfile, OREAD);
-	if (bp == nil)
+	if(bp == nil)
 		sysfatal("can't read %s", mapfile);
 	devmap = nil;
-	while ((ln = Brdline(bp, '\n')) != nil) {
-		ln[Blinelen(bp)-1] = '\0';
-		if (*ln == '\0' || *ln == '#')
+	while((ln = Brdline(bp, '\n')) != nil) {
+		ln[Blinelen(bp) - 1] = '\0';
+		if(*ln == '\0' || *ln == '#')
 			continue;
 		nf = tokenize(ln, fields, nelem(fields));
-		if (nf != 2)
+		if(nf != 2)
 			continue;
 		if(testconfig(fields[0]) != 0) {
 			print("bad `from' device %s in %s\n",
-				fields[0], mapfile);
+			      fields[0], mapfile);
 			continue;
 		}
 		map = malloc(sizeof *map);
 		map->from = strdup(fields[0]);
-		map->to =   strdup(fields[1]);
+		map->to = strdup(fields[1]);
 		map->fdev = iconfig(fields[0]);
 		map->tdev = nil;
-		if (access(map->to, AEXIST) < 0) {
+		if(access(map->to, AEXIST) < 0) {
 			/*
 			 * map->to isn't an existing file, so it had better be
 			 * a config string for a device.
@@ -140,20 +140,20 @@ confinit(void)
 	conf.mem = meminit();
 
 	conf.nuid = 1000;
-	conf.nserve = 15;		/* tunable */
+	conf.nserve = 15; /* tunable */
 	conf.nfile = 30000;
 	conf.nlgmsg = 100;
 	conf.nsmmsg = 500;
 
 	localconfinit();
 
-	conf.nwpath = conf.nfile*8;
-	conf.nauth =  conf.nfile/10;
-	conf.gidspace = conf.nuid*3;
+	conf.nwpath = conf.nfile * 8;
+	conf.nauth = conf.nfile / 10;
+	conf.gidspace = conf.nuid * 3;
 
 	cons.flags = 0;
 
-	if (conf.devmap)
+	if(conf.devmap)
 		mapinit(conf.devmap);
 }
 
@@ -167,7 +167,7 @@ adduvlongov(uint64_t a, uint64_t b)
 {
 	uint64_t r = a + b;
 
-	if (r < a || r < b)
+	if(r < a || r < b)
 		return 0;
 	return r;
 }
@@ -177,7 +177,7 @@ muluvlongov(uint64_t a, uint64_t b)
 {
 	uint64_t r = a * b;
 
-	if (a != 0 && r/a != b || r < a || r < b)
+	if(a != 0 && r / a != b || r < a || r < b)
 		return 0;
 	return r;
 }
@@ -188,20 +188,20 @@ maxsize(void)
 	int i;
 	uint64_t max = NDBLOCK, ind = 1;
 
-	for (i = 0; i < NIBLOCK; i++) {
-		ind = muluvlongov(ind, INDPERBUF);	/* power of INDPERBUF */
-		if (ind == 0)
+	for(i = 0; i < NIBLOCK; i++) {
+		ind = muluvlongov(ind, INDPERBUF); /* power of INDPERBUF */
+		if(ind == 0)
 			return 0;
 		max = adduvlongov(max, ind);
-		if (max == 0)
+		if(max == 0)
 			return 0;
 	}
 	return muluvlongov(max, BUFSIZE);
 }
 
 enum {
-	INDPERBUF⁲ = ((uvlong)INDPERBUF *INDPERBUF),
-	INDPERBUF⁴ = ((uvlong)INDPERBUF⁲*INDPERBUF⁲),
+	INDPERBUF⁲ = ((uvlong)INDPERBUF * INDPERBUF),
+	INDPERBUF⁴ = ((uvlong)INDPERBUF⁲ * INDPERBUF⁲),
 };
 
 static void
@@ -210,31 +210,31 @@ printsizes(void)
 	uvlong max = maxsize();
 
 	print("\tblock size = %d; ", RBUFSIZE);
-	if (max == 0)
+	if(max == 0)
 		print("max file size exceeds 2⁶⁴ bytes\n");
 	else {
-		uvlong offlim = 1ULL << (sizeof(Off)*8 - 1);
+		uvlong offlim = 1ULL << (sizeof(Off) * 8 - 1);
 
-		if (max >= offlim)
+		if(max >= offlim)
 			max = offlim - 1;
 		print("max file size = %,llud\n", (Wideoff)max);
 	}
-	if (INDPERBUF⁲/INDPERBUF != INDPERBUF)
+	if(INDPERBUF⁲ / INDPERBUF != INDPERBUF)
 		print("overflow computing INDPERBUF⁲\n");
-	if (INDPERBUF⁴/INDPERBUF⁲ != INDPERBUF⁲)
+	if(INDPERBUF⁴ / INDPERBUF⁲ != INDPERBUF⁲)
 		print("overflow computing INDPERBUF⁴\n");
 	print("\tINDPERBUF = %d, INDPERBUF^4 = %,lld, ", INDPERBUF,
-		(Wideoff)INDPERBUF⁴);
+	      (Wideoff)INDPERBUF⁴);
 	print("CEPERBK = %d\n", CEPERBK);
 	print("\tsizeofs: Dentry = %d, Cache = %d\n",
-		sizeof(Dentry), sizeof(Cache));
+	      sizeof(Dentry), sizeof(Cache));
 }
 
 void
 usage(void)
 {
 	fprint(2, "usage: %s [-cf][-a ann-str][-m dev-map] config-dev\n",
-		argv0);
+	       argv0);
 	exits("usage");
 }
 
@@ -247,54 +247,56 @@ main(int argc, char **argv)
 	rfork(RFNOTEG);
 	formatinit();
 	machinit();
-	conf.confdev = "n";		/* Devnone */
+	conf.confdev = "n"; /* Devnone */
 
-	ARGBEGIN{
-	case 'a':			/* announce on this net */
+	ARGBEGIN
+	{
+	case 'a': /* announce on this net */
 		ann = EARGF(usage());
-		if (nets >= Maxnets) {
+		if(nets >= Maxnets) {
 			fprint(2, "%s: too many networks to announce: %s\n",
-				argv0, ann);
+			       argv0, ann);
 			exits("too many nets");
 		}
 		annstrs[nets++] = ann;
 		break;
-	case 'c':			/* use new, faster cache layout */
+	case 'c': /* use new, faster cache layout */
 		oldcachefmt = 0;
 		break;
-	case 'f':			/* enter configuration mode first */
+	case 'f': /* enter configuration mode first */
 		conf.configfirst++;
 		break;
-	case 'm':			/* name device-map file */
+	case 'm': /* name device-map file */
 		conf.devmap = EARGF(usage());
 		break;
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
-	if (argc != 1)
+	if(argc != 1)
 		usage();
-	conf.confdev = argv[0];	/* config string for dev holding full config */
+	conf.confdev = argv[0]; /* config string for dev holding full config */
 
 	Binit(&bin, 0, OREAD);
 	confinit();
 
 	print("\nPlan 9 %d-bit cached-worm file server with %d-deep indir blks\n",
-		sizeof(Off)*8 - 1, NIBLOCK);
+	      sizeof(Off) * 8 - 1, NIBLOCK);
 	printsizes();
 
 	qlock(&reflock);
 	qunlock(&reflock);
-	serveq = newqueue(1000, "9P service");	/* tunable */
-	raheadq = newqueue(1000, "readahead");	/* tunable */
+	serveq = newqueue(1000, "9P service"); /* tunable */
+	raheadq = newqueue(1000, "readahead"); /* tunable */
 
 	mbinit();
 	netinit();
 	scsiinit();
 
 	files = malloc(conf.nfile * sizeof *files);
-	for(i=0; i < conf.nfile; i++) {
+	for(i = 0; i < conf.nfile; i++) {
 		qlock(&files[i]);
 		qunlock(&files[i]);
 	}
@@ -326,7 +328,7 @@ main(int argc, char **argv)
 	/*
 	 * server processes
 	 */
-	for(i=0; i < conf.nserve; i++)
+	for(i = 0; i < conf.nserve; i++)
 		newproc(serve, 0, "srv");
 
 	/*
@@ -357,8 +359,8 @@ rbcmp(const void *va, const void *vb)
 {
 	Rabuf *ra, *rb;
 
-	ra = *(Rabuf**)va;
-	rb = *(Rabuf**)vb;
+	ra = *(Rabuf **)va;
+	rb = *(Rabuf **)vb;
 	if(rb == 0)
 		return 1;
 	if(ra == 0)
@@ -381,7 +383,7 @@ rahead(void *)
 	Iobuf *p;
 	int i, n;
 
-	for (;;) {
+	for(;;) {
 		rb[0] = fs_recv(raheadq, 0);
 		for(n = 1; n < nelem(rb); n++) {
 			if(raheadq->count <= 0)
@@ -416,24 +418,24 @@ serve(void *)
 	Chan *cp;
 	Msgbuf *mb;
 
-	for (;;) {
+	for(;;) {
 		qlock(&reflock);
 		/* read 9P request from a network input process */
 		mb = fs_recv(serveq, 0);
 		assert(mb->magic == Mbmagic);
 		/* fs kernel sets chan in /sys/src/fs/ip/il.c:/^getchan */
 		cp = mb->chan;
-		if (cp == nil)
+		if(cp == nil)
 			panic("serve: nil mb->chan");
 		rlock(&cp->reflock);
 		qunlock(&reflock);
 
 		rlock(&mainlock);
 
-		if (mb->data == nil)
+		if(mb->data == nil)
 			panic("serve: nil mb->data");
 		/* better sniffing code in /sys/src/cmd/disk/kfs/9p12.c */
-		if(cp->protocol == nil){
+		if(cp->protocol == nil) {
 			/* do we recognise the protocol in this packet? */
 			/* better sniffing code: /sys/src/cmd/disk/kfs/9p12.c */
 			for(i = 0; fsprotocol[i] != nil; i++)
@@ -441,7 +443,7 @@ serve(void *)
 					cp->protocol = fsprotocol[i];
 					break;
 				}
-			if(cp->protocol == nil){
+			if(cp->protocol == nil) {
 				print("no protocol for message\n");
 				for(i = 0; i < 12; i++)
 					print(" %2.2uX", mb->data[i]);
@@ -470,8 +472,8 @@ exit(void)
 }
 
 enum {
-	DUMPTIME = 5,	/* 5 am */
-	WEEKMASK = 0,	/* every day (1=sun, 2=mon, 4=tue, etc.) */
+	DUMPTIME = 5, /* 5 am */
+	WEEKMASK = 0, /* every day (1=sun, 2=mon, 4=tue, etc.) */
 };
 
 /*
@@ -481,7 +483,7 @@ enum {
 Timet
 nextdump(Timet t)
 {
-	Timet nddate = nextime(t+MINUTE(100), DUMPTIME, WEEKMASK);
+	Timet nddate = nextime(t + MINUTE(100), DUMPTIME, WEEKMASK);
 
 	if(!conf.nodump)
 		print("next dump at %T\n", nddate);
@@ -501,11 +503,11 @@ wormcopy(void *)
 	Timet dt, t = 0, nddate = 0, ntoytime = 0;
 	Filsys *fs;
 
-	for (;;) {
-		if (dorecalc) {
+	for(;;) {
+		if(dorecalc) {
 			dorecalc = 0;
 			t = time(nil);
-			nddate = nextdump(t);		/* chatters */
+			nddate = nextdump(t); /* chatters */
 			ntoytime = time(nil);
 		}
 		dt = time(nil) - t;
@@ -524,14 +526,14 @@ wormcopy(void *)
 		else if(t > nddate) {
 			if(!conf.nodump) {
 				print("automatic dump %T\n", t);
-				for(fs=filsys; fs->name; fs++)
+				for(fs = filsys; fs->name; fs++)
 					if(fs->dev->type == Devcw)
 						cfsdump(fs);
 			}
 			dorecalc = 1;
 		} else {
 			rlock(&mainlock);
-			for(fs=filsys; fs->name; fs++)
+			for(fs = filsys; fs->name; fs++)
 				if(fs->dev->type == Devcw)
 					f |= dumpblock(fs->dev);
 			runlock(&mainlock);
@@ -554,7 +556,7 @@ synccopy(void)
 {
 	int f;
 
-	for (;;) {
+	for(;;) {
 		rlock(&mainlock);
 		f = syncblock();
 		runlock(&mainlock);
@@ -576,16 +578,16 @@ inqsize(char *file)
 
 	strcpy(data, file);
 	end = strstr(data, "/data");
-	if (end == nil)
+	if(end == nil)
 		strcat(data, "/ctl");
 	else
 		strcpy(end, "/ctl");
 	bp = Bopen(data, OREAD);
-	if (bp) {
-		while (rv < 0 && (ln = Brdline(bp, '\n')) != nil) {
-			ln[Blinelen(bp)-1] = '\0';
+	if(bp) {
+		while(rv < 0 && (ln = Brdline(bp, '\n')) != nil) {
+			ln[Blinelen(bp) - 1] = '\0';
 			nf = tokenize(ln, fields, nelem(fields));
-			if (nf == 3 && strcmp(fields[0], "geometry") == 0)
+			if(nf == 3 && strcmp(fields[0], "geometry") == 0)
 				rv = atoi(fields[2]);
 		}
 		Bterm(bp);

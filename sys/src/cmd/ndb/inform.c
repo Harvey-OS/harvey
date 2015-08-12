@@ -16,20 +16,20 @@
 #include "dns.h"
 
 enum {
-	FQDNMAX	= 255,
+	FQDNMAX = 255,
 };
 
 char *errmsgs[] = {
-	[0]  "ok",
-	[1]  "request format error",
-	[2]  "internal server error",
-	[3]  "domain name does not exist",
-	[4]  "request not supported",
-	[5]  "permission denied",
-	[6]  "domain name already exists",
-	[7]  "resource record already exists",
-	[8]  "resource record does not exist",
-	[9]  "server not authoritative",
+	[0] "ok",
+	[1] "request format error",
+	[2] "internal server error",
+	[3] "domain name does not exist",
+	[4] "request not supported",
+	[5] "permission denied",
+	[6] "domain name already exists",
+	[7] "resource record already exists",
+	[8] "resource record does not exist",
+	[9] "server not authoritative",
 	[10] "domain name not in zone",
 };
 
@@ -53,7 +53,7 @@ g16(uint8_t **p)
 {
 	int n;
 
-	n  = *(*p)++ << 8;
+	n = *(*p)++ << 8;
 	n |= *(*p)++;
 	return n;
 }
@@ -86,7 +86,7 @@ pname(uint8_t **p, char *s)
 {
 	uint8_t *len;
 
-	while (*s){
+	while(*s) {
 		len = (*p)++;
 		while(*s && *s != '.')
 			*(*p)++ = *s++;
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	ushort txid;
 	Ndb *db;
 	Ndbtuple *t, *tt;
-	static char *query[] = { "dom", "dnsdomain", "ns", "inform" };
+	static char *query[] = {"dom", "dnsdomain", "ns", "inform"};
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
@@ -118,7 +118,8 @@ main(int argc, char *argv[])
 	dom = nil;
 	inform = nil;
 	dnsdomain = nil;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug = 1;
 		break;
@@ -127,7 +128,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 0)
 		usage();
@@ -138,7 +140,7 @@ main(int argc, char *argv[])
 	if((db = ndbopen(nil)) == nil)
 		sysfatal("can't open ndb: %r");
 	tt = ndbipinfo(db, "sys", sysname, query, nelem(query));
-	for(t = tt; t; t = t->entry){
+	for(t = tt; t; t = t->entry) {
 		if(strcmp(t->attr, "ns") == 0)
 			ns = t->val;
 		else if(strcmp(t->attr, "dom") == 0)
@@ -164,7 +166,7 @@ main(int argc, char *argv[])
 	myipaddr(v6addr, net);
 	memmove(addr, v6addr + IPaddrlen - IPv4addrlen, IPv4addrlen);
 
-	if(debug){
+	if(debug) {
 		print("ip=%V\n", addr);
 		print("ns=%s\n", ns);
 		print("dnsdomain=%s\n", dnsdomain);
@@ -177,31 +179,31 @@ main(int argc, char *argv[])
 	txid = time(nil) + getpid();
 
 	p = buf;
-	p16(&p, txid);		/* ID */
-	p16(&p, 5<<11);		/* flags */
-	p16(&p, 1);		/* # Zones */
-	p16(&p, 0);		/* # prerequisites */
-	p16(&p, 2);		/* # updates */
-	p16(&p, 0);		/* # additionals */
+	p16(&p, txid);    /* ID */
+	p16(&p, 5 << 11); /* flags */
+	p16(&p, 1);       /* # Zones */
+	p16(&p, 0);       /* # prerequisites */
+	p16(&p, 2);       /* # updates */
+	p16(&p, 0);       /* # additionals */
 
-        pname(&p, dnsdomain);	/* zone */
-	p16(&p, Tsoa);		/* zone type */
-	p16(&p, Cin);		/* zone class */
+	pname(&p, dnsdomain); /* zone */
+	p16(&p, Tsoa);	/* zone type */
+	p16(&p, Cin);	 /* zone class */
 
 	/* delete old name */
-        pname(&p, dom);		/* name */
-	p16(&p, Ta);		/* type: v4 addr */
-	p16(&p, Call);		/* class */
-	p32(&p, 0);		/* TTL */
-	p16(&p, 0);		/* data len */
+	pname(&p, dom); /* name */
+	p16(&p, Ta);    /* type: v4 addr */
+	p16(&p, Call);  /* class */
+	p32(&p, 0);     /* TTL */
+	p16(&p, 0);     /* data len */
 
 	/* add new A record */
-	pname(&p, dom);		/* name */
-	p16(&p, Ta);		/* type: v4 addr */
-	p16(&p, Cin);		/* class */
-	p32(&p, 60*60*25);	/* TTL (25 hours) */
+	pname(&p, dom);		     /* name */
+	p16(&p, Ta);		     /* type: v4 addr */
+	p16(&p, Cin);		     /* class */
+	p32(&p, 60 * 60 * 25);       /* TTL (25 hours) */
 	p16(&p, IPv4addrlen);	/* data len */
-	pmem(&p, addr, IPv4addrlen);	/* v4 address */
+	pmem(&p, addr, IPv4addrlen); /* v4 address */
 
 	len = p - buf;
 	if(write(fd, buf, len) != len)
@@ -209,17 +211,17 @@ main(int argc, char *argv[])
 
 	notify(ding);
 	alarm(3000);
-	do{
+	do {
 		if(read(fd, buf, sizeof buf) < 0)
 			sysfatal("timeout");
 		p = buf;
-	}while(g16(&p) != txid);
+	} while(g16(&p) != txid);
 	alarm(0);
 
 	close(fd);
 
 	err = g16(&p) & 7;
-	if(err != 0 && err != 7)	/* err==7 is just a "yes, I know" warning */
+	if(err != 0 && err != 7) /* err==7 is just a "yes, I know" warning */
 		if(err < nelem(errmsgs))
 			sysfatal("%s", errmsgs[err]);
 		else

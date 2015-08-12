@@ -108,46 +108,46 @@ rectaddpt(Rectangle r, Point p)
 int
 eqpt(Point p, Point q)
 {
-	return p.x==q.x && p.y==q.y;
+	return p.x == q.x && p.y == q.y;
 }
 
 int
 eqrect(Rectangle r, Rectangle s)
 {
-	return r.min.x==s.min.x && r.max.x==s.max.x &&
-	       r.min.y==s.min.y && r.max.y==s.max.y;
+	return r.min.x == s.min.x && r.max.x == s.max.x &&
+	       r.min.y == s.min.y && r.max.y == s.max.y;
 }
 
 int
 rectXrect(Rectangle r, Rectangle s)
 {
-	return r.min.x<s.max.x && s.min.x<r.max.x &&
-	       r.min.y<s.max.y && s.min.y<r.max.y;
+	return r.min.x < s.max.x && s.min.x < r.max.x &&
+	       r.min.y < s.max.y && s.min.y < r.max.y;
 }
 
 int
 rectinrect(Rectangle r, Rectangle s)
 {
-	return s.min.x<=r.min.x && r.max.x<=s.max.x && s.min.y<=r.min.y && r.max.y<=s.max.y;
+	return s.min.x <= r.min.x && r.max.x <= s.max.x && s.min.y <= r.min.y && r.max.y <= s.max.y;
 }
 
 int
 ptinrect(Point p, Rectangle r)
 {
-	return p.x>=r.min.x && p.x<r.max.x &&
-	       p.y>=r.min.y && p.y<r.max.y;
+	return p.x >= r.min.x && p.x < r.max.x &&
+	       p.y >= r.min.y && p.y < r.max.y;
 }
 
 Rectangle
 canonrect(Rectangle r)
 {
 	int t;
-	if (r.max.x < r.min.x) {
+	if(r.max.x < r.min.x) {
 		t = r.min.x;
 		r.min.x = r.max.x;
 		r.max.x = t;
 	}
-	if (r.max.y < r.min.y) {
+	if(r.max.y < r.min.y) {
 		t = r.min.y;
 		r.min.y = r.max.y;
 		r.max.y = t;
@@ -169,31 +169,31 @@ combinerect(Rectangle *r1, Rectangle r2)
 }
 
 uint32_t
-drawld2chan[] = {
+    drawld2chan[] = {
 	GREY1,
 	GREY2,
 	GREY4,
 	CMAP8,
 };
 
-int log2[] = { -1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5 };
+int log2[] = {-1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5};
 
 uint32_t
 setalpha(uint32_t color, uint8_t alpha)
 {
 	int red, green, blue;
 
-	red = (color >> 3*8) & 0xFF;
-	green = (color >> 2*8) & 0xFF;
-	blue = (color >> 1*8) & 0xFF;
+	red = (color >> 3 * 8) & 0xFF;
+	green = (color >> 2 * 8) & 0xFF;
+	blue = (color >> 1 * 8) & 0xFF;
 	/* ignore incoming alpha */
-	red = (red * alpha)/255;
-	green = (green * alpha)/255;
-	blue = (blue * alpha)/255;
-	return (red<<3*8) | (green<<2*8) | (blue<<1*8) | (alpha<<0*8);
+	red = (red * alpha) / 255;
+	green = (green * alpha) / 255;
+	blue = (blue * alpha) / 255;
+	return (red << 3 * 8) | (green << 2 * 8) | (blue << 1 * 8) | (alpha << 0 * 8);
 }
 
-Point	ZP;
+Point ZP;
 Rectangle ZR;
 int
 Rfmt(Fmt *f)
@@ -212,4 +212,3 @@ Pfmt(Fmt *f)
 	p = va_arg(f->args, Point);
 	return fmtprint(f, "[%d %d]", p.x, p.y);
 }
-

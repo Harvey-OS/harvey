@@ -31,10 +31,9 @@
 #include "fmtdef.h"
 #include "nan.h"
 
-enum
-{
-	FDEFLT	= 6,
-	NSIGNIF	= 17
+enum {
+	FDEFLT = 6,
+	NSIGNIF = 17
 };
 
 /*
@@ -42,23 +41,23 @@ enum
  * total space for doubles.
  */
 static double pows10[] =
-{
-	  1e0,   1e1,   1e2,   1e3,   1e4,   1e5,   1e6,   1e7,   1e8,   1e9,  
-	 1e10,  1e11,  1e12,  1e13,  1e14,  1e15,  1e16,  1e17,  1e18,  1e19,  
-	 1e20,  1e21,  1e22,  1e23,  1e24,  1e25,  1e26,  1e27,  1e28,  1e29,  
-	 1e30,  1e31,  1e32,  1e33,  1e34,  1e35,  1e36,  1e37,  1e38,  1e39,  
-	 1e40,  1e41,  1e42,  1e43,  1e44,  1e45,  1e46,  1e47,  1e48,  1e49,  
-	 1e50,  1e51,  1e52,  1e53,  1e54,  1e55,  1e56,  1e57,  1e58,  1e59,  
-	 1e60,  1e61,  1e62,  1e63,  1e64,  1e65,  1e66,  1e67,  1e68,  1e69,  
-	 1e70,  1e71,  1e72,  1e73,  1e74,  1e75,  1e76,  1e77,  1e78,  1e79,  
-	 1e80,  1e81,  1e82,  1e83,  1e84,  1e85,  1e86,  1e87,  1e88,  1e89,  
-	 1e90,  1e91,  1e92,  1e93,  1e94,  1e95,  1e96,  1e97,  1e98,  1e99,  
-	1e100, 1e101, 1e102, 1e103, 1e104, 1e105, 1e106, 1e107, 1e108, 1e109, 
-	1e110, 1e111, 1e112, 1e113, 1e114, 1e115, 1e116, 1e117, 1e118, 1e119, 
-	1e120, 1e121, 1e122, 1e123, 1e124, 1e125, 1e126, 1e127, 1e128, 1e129, 
-	1e130, 1e131, 1e132, 1e133, 1e134, 1e135, 1e136, 1e137, 1e138, 1e139, 
-	1e140, 1e141, 1e142, 1e143, 1e144, 1e145, 1e146, 1e147, 1e148, 1e149, 
-	1e150, 1e151, 1e152, 1e153, 1e154, 1e155, 1e156, 1e157, 1e158, 1e159, 
+    {
+     1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
+     1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
+     1e20, 1e21, 1e22, 1e23, 1e24, 1e25, 1e26, 1e27, 1e28, 1e29,
+     1e30, 1e31, 1e32, 1e33, 1e34, 1e35, 1e36, 1e37, 1e38, 1e39,
+     1e40, 1e41, 1e42, 1e43, 1e44, 1e45, 1e46, 1e47, 1e48, 1e49,
+     1e50, 1e51, 1e52, 1e53, 1e54, 1e55, 1e56, 1e57, 1e58, 1e59,
+     1e60, 1e61, 1e62, 1e63, 1e64, 1e65, 1e66, 1e67, 1e68, 1e69,
+     1e70, 1e71, 1e72, 1e73, 1e74, 1e75, 1e76, 1e77, 1e78, 1e79,
+     1e80, 1e81, 1e82, 1e83, 1e84, 1e85, 1e86, 1e87, 1e88, 1e89,
+     1e90, 1e91, 1e92, 1e93, 1e94, 1e95, 1e96, 1e97, 1e98, 1e99,
+     1e100, 1e101, 1e102, 1e103, 1e104, 1e105, 1e106, 1e107, 1e108, 1e109,
+     1e110, 1e111, 1e112, 1e113, 1e114, 1e115, 1e116, 1e117, 1e118, 1e119,
+     1e120, 1e121, 1e122, 1e123, 1e124, 1e125, 1e126, 1e127, 1e128, 1e129,
+     1e130, 1e131, 1e132, 1e133, 1e134, 1e135, 1e136, 1e137, 1e138, 1e139,
+     1e140, 1e141, 1e142, 1e143, 1e144, 1e145, 1e146, 1e147, 1e148, 1e149,
+     1e150, 1e151, 1e152, 1e153, 1e154, 1e155, 1e156, 1e157, 1e158, 1e159,
 };
 
 static double
@@ -68,30 +67,30 @@ pow10(int n)
 	int neg;
 
 	neg = 0;
-	if(n < 0){
-		if(n < DBL_MIN_10_EXP){
+	if(n < 0) {
+		if(n < DBL_MIN_10_EXP) {
 			return 0.;
 		}
 		neg = 1;
 		n = -n;
-	}else if(n > DBL_MAX_10_EXP){
+	} else if(n > DBL_MAX_10_EXP) {
 		return HUGE_VAL;
 	}
-	if(n < (int)(sizeof(pows10)/sizeof(pows10[0])))
+	if(n < (int)(sizeof(pows10) / sizeof(pows10[0])))
 		d = pows10[n];
-	else{
-		d = pows10[sizeof(pows10)/sizeof(pows10[0]) - 1];
-		for(;;){
-			n -= sizeof(pows10)/sizeof(pows10[0]) - 1;
-			if(n < (int)(sizeof(pows10)/sizeof(pows10[0]))){
+	else {
+		d = pows10[sizeof(pows10) / sizeof(pows10[0]) - 1];
+		for(;;) {
+			n -= sizeof(pows10) / sizeof(pows10[0]) - 1;
+			if(n < (int)(sizeof(pows10) / sizeof(pows10[0]))) {
 				d *= pows10[n];
 				break;
 			}
-			d *= pows10[sizeof(pows10)/sizeof(pows10[0]) - 1];
+			d *= pows10[sizeof(pows10) / sizeof(pows10[0]) - 1];
 		}
 	}
-	if(neg){
-		return 1./d;
+	if(neg) {
+		return 1. / d;
 	}
 	return d;
 }
@@ -104,7 +103,7 @@ xadd(char *a, int n, int v)
 
 	if(n < 0 || n >= NSIGNIF)
 		return 0;
-	for(b = a+n; b >= a; b--) {
+	for(b = a + n; b >= a; b--) {
 		c = *b + v;
 		if(c <= '9') {
 			*b = c;
@@ -113,7 +112,7 @@ xadd(char *a, int n, int v)
 		*b = '0';
 		v = 1;
 	}
-	*a = '1';	/* overflow adding */
+	*a = '1'; /* overflow adding */
 	return 1;
 }
 
@@ -123,7 +122,7 @@ xsub(char *a, int n, int v)
 	char *b;
 	int c;
 
-	for(b = a+n; b >= a; b--) {
+	for(b = a + n; b >= a; b--) {
 		c = *b - v;
 		if(c >= '0') {
 			*b = c;
@@ -132,7 +131,7 @@ xsub(char *a, int n, int v)
 		*b = '9';
 		v = 1;
 	}
-	*a = '9';	/* underflow subtracting */
+	*a = '9'; /* underflow subtracting */
 	return 1;
 }
 
@@ -161,10 +160,10 @@ xaddexp(char *p, int e)
 	*p = '\0';
 }
 
-static char*
+static char *
 xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 {
-	char s2[NSIGNIF+10];
+	char s2[NSIGNIF + 10];
 	double g, h;
 	int e, d, i;
 	int c2, sign, oerr;
@@ -202,17 +201,17 @@ xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 			d = 0;
 			h = f;
 		} else {
-			d = e/2;
+			d = e / 2;
 			h = f * pow10(-d);
 		}
-		g = h * pow10(d-e);
+		g = h * pow10(d - e);
 		while(g < 1) {
 			e--;
-			g = h * pow10(d-e);
+			g = h * pow10(d - e);
 		}
 		while(g >= 10) {
 			e++;
-			g = h * pow10(d-e);
+			g = h * pow10(d - e);
 		}
 	}
 
@@ -220,7 +219,7 @@ xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 	 * convert NSIGNIF digits and convert
 	 * back to get accuracy.
 	 */
-	for(i=0; i<NSIGNIF; i++) {
+	for(i = 0; i < NSIGNIF; i++) {
 		d = (int)g;
 		s1[i] = d + '0';
 		g = (g - d) * 10;
@@ -234,18 +233,18 @@ xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 	if(chr == 'f')
 		c2 += e;
 	oerr = errno;
-	if(c2 >= NSIGNIF-2) {
+	if(c2 >= NSIGNIF - 2) {
 		strcpy(s2, s1);
 		d = e;
-		s1[NSIGNIF-2] = '0';
-		s1[NSIGNIF-1] = '0';
-		xaddexp(s1+NSIGNIF, e-NSIGNIF+1);
+		s1[NSIGNIF - 2] = '0';
+		s1[NSIGNIF - 1] = '0';
+		xaddexp(s1 + NSIGNIF, e - NSIGNIF + 1);
 		g = fmtstrtod(s1, nil);
 		if(g == f)
 			goto found;
-		if(xadd(s1, NSIGNIF-3, 1)) {
+		if(xadd(s1, NSIGNIF - 3, 1)) {
 			e++;
-			xaddexp(s1+NSIGNIF, e-NSIGNIF+1);
+			xaddexp(s1 + NSIGNIF, e - NSIGNIF + 1);
 		}
 		g = fmtstrtod(s1, nil);
 		if(g == f)
@@ -258,15 +257,15 @@ xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 	 * convert back so s1 gets exact answer
 	 */
 	for(d = 0; d < 10; d++) {
-		xaddexp(s1+NSIGNIF, e-NSIGNIF+1);
+		xaddexp(s1 + NSIGNIF, e - NSIGNIF + 1);
 		g = fmtstrtod(s1, nil);
 		if(f > g) {
-			if(xadd(s1, NSIGNIF-1, 1))
+			if(xadd(s1, NSIGNIF - 1, 1))
 				e--;
 			continue;
 		}
 		if(f < g) {
-			if(xsub(s1, NSIGNIF-1, 1))
+			if(xsub(s1, NSIGNIF - 1, 1))
 				e++;
 			continue;
 		}
@@ -280,19 +279,19 @@ found:
 	 * round & adjust 'f' digits
 	 */
 	c2 = prec + 1;
-	if(chr == 'f'){
-		if(xadd(s1, c2+e, 5))
+	if(chr == 'f') {
+		if(xadd(s1, c2 + e, 5))
 			e++;
 		c2 += e;
-		if(c2 < 0){
+		if(c2 < 0) {
 			c2 = 0;
 			e = -prec - 1;
 		}
-	}else{
+	} else {
 		if(xadd(s1, c2, 5))
 			e++;
 	}
-	if(c2 > NSIGNIF){
+	if(c2 > NSIGNIF) {
 		c2 = NSIGNIF;
 	}
 
@@ -371,22 +370,22 @@ fmtzdotpad(Fmt *f, int n, int pt)
 	int i;
 	Rune *rt, *rs;
 
-	if(f->runes){
-		rt = (Rune*)f->to;
-		rs = (Rune*)f->stop;
-		for(i = 0; i < n; i++){
-			if(i == pt){
+	if(f->runes) {
+		rt = (Rune *)f->to;
+		rs = (Rune *)f->stop;
+		for(i = 0; i < n; i++) {
+			if(i == pt) {
 				FMTRCHAR(f, rt, rs, '.');
 			}
 			FMTRCHAR(f, rt, rs, '0');
 		}
-		f->nfmt += rt - (Rune*)f->to;
+		f->nfmt += rt - (Rune *)f->to;
 		f->to = rt;
-	}else{
-		t = (char*)f->to;
-		s = (char*)f->stop;
-		for(i = 0; i < n; i++){
-			if(i == pt){
+	} else {
+		t = (char *)f->to;
+		s = (char *)f->stop;
+		for(i = 0; i < n; i++) {
+			if(i == pt) {
 				FMTCHAR(f, t, s, '.');
 			}
 			FMTCHAR(f, t, s, '0');
@@ -401,7 +400,7 @@ int
 __efgfmt(Fmt *fmt)
 {
 	double f;
-	char s1[NSIGNIF+10];
+	char s1[NSIGNIF + 10];
 	int e, d, n;
 	int c1, c2, c3, c4, ucase, sign, chr, prec, fl;
 
@@ -413,13 +412,13 @@ __efgfmt(Fmt *fmt)
 		prec = fmt->prec;
 	chr = fmt->r;
 	ucase = 0;
-	if(chr == 'E'){
+	if(chr == 'E') {
 		chr = 'e';
 		ucase = 1;
-	}else if(chr == 'F'){
+	} else if(chr == 'F') {
 		chr = 'f';
 		ucase = 1;
-	}else if(chr == 'G'){
+	} else if(chr == 'G') {
 		chr = 'g';
 		ucase = 1;
 	}
@@ -430,16 +429,16 @@ __efgfmt(Fmt *fmt)
 
 	xdodtoa(s1, f, chr, prec, &e, &sign);
 	e--;
-	if(*s1 == 'i' || *s1 == 'n'){
-		if(ucase){
-			if(*s1 == 'i'){
+	if(*s1 == 'i' || *s1 == 'n') {
+		if(ucase) {
+			if(*s1 == 'i') {
 				strcpy(s1, "INF");
-			}else{
+			} else {
 				strcpy(s1, "NAN");
 			}
 		}
-		fmt->flags = fl & (FmtWidth|FmtLeft);
-		return __fmtcpy(fmt, (const void*)s1, 3, 3);
+		fmt->flags = fl & (FmtWidth | FmtLeft);
+		return __fmtcpy(fmt, (const void *)s1, 3, 3);
 	}
 
 	/*
@@ -464,7 +463,7 @@ __efgfmt(Fmt *fmt)
 		if(e >= -4 && e <= prec) {
 			c1 = -e;
 			c4 = prec - e;
-			chr = 'h';	/* flag for 'f' style */
+			chr = 'h'; /* flag for 'f' style */
 		}
 		break;
 	case 'f':
@@ -483,23 +482,22 @@ __efgfmt(Fmt *fmt)
 	if(c2 < 0)
 		c2 = 0;
 	if(c2 > NSIGNIF) {
-		c3 = c2-NSIGNIF;
+		c3 = c2 - NSIGNIF;
 		c2 = NSIGNIF;
 	}
 
 	/*
 	 * trim trailing zeros for %g
 	 */
-	if(!(fl & FmtSharp)
-	&& (chr == 'g' || chr == 'h')){
-		if(c4 >= c3){
+	if(!(fl & FmtSharp) && (chr == 'g' || chr == 'h')) {
+		if(c4 >= c3) {
 			c4 -= c3;
 			c3 = 0;
-		}else{
+		} else {
 			c3 -= c4;
 			c4 = 0;
 		}
-		while(c4 && c2 > 1 && s1[c2 - 1] == '0'){
+		while(c4 && c2 > 1 && s1[c2 - 1] == '0') {
 			c4--;
 			c2--;
 		}
@@ -509,12 +507,12 @@ __efgfmt(Fmt *fmt)
 	 * calculate the total length
 	 */
 	n = c1 + c2 + c3;
-	if(sign || (fl & (FmtSign|FmtSpace)))
+	if(sign || (fl & (FmtSign | FmtSpace)))
 		n++;
-	if(c4 || (fl & FmtSharp)){
+	if(c4 || (fl & FmtSharp)) {
 		n++;
 	}
-	if(chr == 'e' || chr == 'g'){
+	if(chr == 'e' || chr == 'g') {
 		n += 4;
 		if(e >= 100)
 			n++;
@@ -523,11 +521,11 @@ __efgfmt(Fmt *fmt)
 	/*
 	 * pad to width if right justified
 	 */
-	if((fl & (FmtWidth|FmtLeft)) == FmtWidth && n < fmt->width){
-		if(fl & FmtZero){
+	if((fl & (FmtWidth | FmtLeft)) == FmtWidth && n < fmt->width) {
+		if(fl & FmtZero) {
 			c1 += fmt->width - n;
-		}else{
-			if(__fmtpad(fmt, fmt->width - n) < 0){
+		} else {
+			if(__fmtpad(fmt, fmt->width - n) < 0) {
 				return -1;
 			}
 		}
@@ -543,7 +541,7 @@ __efgfmt(Fmt *fmt)
 		d = '+';
 	else if(fl & FmtSpace)
 		d = ' ';
-	if(d && fmtrune(fmt, d) < 0){
+	if(d && fmtrune(fmt, d) < 0) {
 		return -1;
 	}
 
@@ -551,26 +549,26 @@ __efgfmt(Fmt *fmt)
 	 * copy digits
 	 */
 	c4 = c1 + c2 + c3 - c4;
-	if(c1 > 0){
-		if(fmtzdotpad(fmt, c1, c4) < 0){
+	if(c1 > 0) {
+		if(fmtzdotpad(fmt, c1, c4) < 0) {
 			return -1;
 		}
 		c4 -= c1;
 	}
 	d = 0;
-	if(c4 >= 0 && c4 < c2){
+	if(c4 >= 0 && c4 < c2) {
 		if(__fmtcpy(fmt, s1, c4, c4) < 0 || fmtrune(fmt, '.') < 0)
 			return -1;
 		d = c4;
 		c2 -= c4;
 		c4 = -1;
 	}
-	if(__fmtcpy(fmt, (const void*)(s1 + d), c2, c2) < 0){
+	if(__fmtcpy(fmt, (const void *)(s1 + d), c2, c2) < 0) {
 		return -1;
 	}
 	c4 -= c2;
-	if(c3 > 0){
-		if(fmtzdotpad(fmt, c3, c4) < 0){
+	if(c3 > 0) {
+		if(fmtzdotpad(fmt, c3, c4) < 0) {
 			return -1;
 		}
 		c4 -= c3;
@@ -579,7 +577,7 @@ __efgfmt(Fmt *fmt)
 	/*
 	 * strip trailing '0' on g conv
 	 */
-	if((fl & FmtSharp) && c4 == 0 && fmtrune(fmt, '.') < 0){
+	if((fl & FmtSharp) && c4 == 0 && fmtrune(fmt, '.') < 0) {
 		return -1;
 	}
 	if(chr == 'e' || chr == 'g') {
@@ -595,17 +593,17 @@ __efgfmt(Fmt *fmt)
 		} else
 			s1[d++] = '+';
 		if(c1 >= 100) {
-			s1[d++] = c1/100 + '0';
-			c1 = c1%100;
+			s1[d++] = c1 / 100 + '0';
+			c1 = c1 % 100;
 		}
-		s1[d++] = c1/10 + '0';
-		s1[d++] = c1%10 + '0';
-		if(__fmtcpy(fmt, s1, d, d) < 0){
+		s1[d++] = c1 / 10 + '0';
+		s1[d++] = c1 % 10 + '0';
+		if(__fmtcpy(fmt, s1, d, d) < 0) {
 			return -1;
 		}
 	}
-	if((fl & (FmtWidth|FmtLeft)) == (FmtWidth|FmtLeft) && n < fmt->width){
-		if(__fmtpad(fmt, fmt->width - n) < 0){
+	if((fl & (FmtWidth | FmtLeft)) == (FmtWidth | FmtLeft) && n < fmt->width) {
+		if(__fmtpad(fmt, fmt->width - n) < 0) {
 			return -1;
 		}
 	}

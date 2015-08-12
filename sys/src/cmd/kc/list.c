@@ -43,7 +43,7 @@ Bconv(Fmt *fp)
 		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
 			break;
 		strcat(str, s);
-		bits.b[i/32] &= ~(1L << (i%32));
+		bits.b[i / 32] &= ~(1L << (i % 32));
 	}
 	return fmtstrcpy(fp, str);
 }
@@ -55,18 +55,15 @@ Pconv(Fmt *fp)
 	Prog *p;
 	int a;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(fp->args, Prog *);
 	a = p->as;
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
-	else
-	if(p->as == ATEXT)
+	else if(p->as == ATEXT)
 		sprint(str, "	%A	%D,%d,%D", a, &p->from, p->reg, &p->to);
-	else
-	if(p->reg == NREG)
+	else if(p->reg == NREG)
 		sprint(str, "	%A	%D,%D", a, &p->from, &p->to);
-	else
-	if(p->from.type != D_FREG)
+	else if(p->from.type != D_FREG)
 		sprint(str, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
 	else
 		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
@@ -92,7 +89,7 @@ Dconv(Fmt *fp)
 	char str[STRINGSZ];
 	Adr *a;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	switch(a->type) {
 
 	default:
@@ -138,7 +135,7 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_BRANCH:
-		sprint(str, "%ld(PC)", a->offset-pc);
+		sprint(str, "%ld(PC)", a->offset - pc);
 		break;
 
 	case D_FCONST:
@@ -158,9 +155,9 @@ Sconv(Fmt *fp)
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, char *);
 	p = str;
-	for(i=0; i<NSNAME; i++) {
+	for(i = 0; i < NSNAME; i++) {
 		c = a[i] & 0xff;
 		if(c >= 'a' && c <= 'z' ||
 		   c >= 'A' && c <= 'Z' ||
@@ -191,8 +188,8 @@ Sconv(Fmt *fp)
 			*p++ = 'f';
 			continue;
 		}
-		*p++ = (c>>6) + '0';
-		*p++ = ((c>>3) & 7) + '0';
+		*p++ = (c >> 6) + '0';
+		*p++ = ((c >> 3) & 7) + '0';
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
@@ -206,7 +203,7 @@ Nconv(Fmt *fp)
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	s = a->sym;
 	if(s == S) {
 		sprint(str, "%ld", a->offset);

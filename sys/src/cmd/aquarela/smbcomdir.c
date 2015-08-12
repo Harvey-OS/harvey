@@ -19,31 +19,29 @@ smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 	SmbTree *t;
 	char *fullpath = nil;
 
-	if (!smbcheckwordcount("comcheckdirectory", h, 0))
+	if(!smbcheckwordcount("comcheckdirectory", h, 0))
 		return SmbProcessResultFormat;
 
-	if (!smbbuffergetb(b, &fmt)
-		|| fmt != 4
-		|| !smbbuffergetstring(b, h, SMB_STRING_PATH, &path))
+	if(!smbbuffergetb(b, &fmt) || fmt != 4 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &path))
 		return SmbProcessResultFormat;
 
 	t = smbidmapfind(s->tidmap, h->tid);
-	if (t == nil) {
+	if(t == nil) {
 		smbseterror(s, ERRSRV, ERRinvtid);
 		return SmbProcessResultError;
 	}
-	
+
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
-smblogprintif(1, "smbcomcheckdirectory: statting %s\n", fullpath);
+	smblogprintif(1, "smbcomcheckdirectory: statting %s\n", fullpath);
 	d = dirstat(fullpath);
 
-	if (d == nil || (d->mode & DMDIR) == 0) {
+	if(d == nil || (d->mode & DMDIR) == 0) {
 		smbseterror(s, ERRDOS, ERRbadpath);
 		pr = SmbProcessResultError;
 		goto done;
 	}
 
-	if (access(fullpath, AREAD) < 0) {
+	if(access(fullpath, AREAD) < 0) {
 		smbseterror(s, ERRDOS, ERRbadpath);
 		pr = SmbProcessResultError;
 		goto done;

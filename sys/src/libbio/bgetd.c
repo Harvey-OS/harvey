@@ -11,10 +11,9 @@
 #include <libc.h>
 #include <bio.h>
 
-struct	bgetd
-{
-	Biobufhdr*	b;
-	int		eof;
+struct bgetd {
+	Biobufhdr *b;
+	int eof;
 };
 
 static int

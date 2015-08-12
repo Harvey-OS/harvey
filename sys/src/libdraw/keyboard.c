@@ -13,7 +13,6 @@
 #include <thread.h>
 #include <keyboard.h>
 
-
 void
 closekeyboard(Keyboardctl *kc)
 {
@@ -25,7 +24,7 @@ closekeyboard(Keyboardctl *kc)
 #ifdef BUG
 	/* Drain the channel */
 	while(?kc->c)
-		<-kc->c;
+		< -kc->c;
 #endif
 
 	close(kc->ctlfd);
@@ -35,8 +34,7 @@ closekeyboard(Keyboardctl *kc)
 	free(kc);
 }
 
-static
-void
+static void
 _ioproc(void *arg)
 {
 	int m, n;
@@ -48,16 +46,16 @@ _ioproc(void *arg)
 	threadsetname("kbdproc");
 	kc->pid = getpid();
 	n = 0;
-	for(;;){
-		while(n>0 && fullrune(buf, n)){
+	for(;;) {
+		while(n > 0 && fullrune(buf, n)) {
 			m = chartorune(&r, buf);
 			n -= m;
-			memmove(buf, buf+m, n);
+			memmove(buf, buf + m, n);
 			send(kc->c, &r);
 		}
-		m = read(kc->consfd, buf+n, sizeof buf-n);
-		if(m <= 0){
-			yield();	/* if error is due to exiting, we'll exit here */
+		m = read(kc->consfd, buf + n, sizeof buf - n);
+		if(m <= 0) {
+			yield(); /* if error is due to exiting, we'll exit here */
 			fprint(2, "keyboard read error: %r\n");
 			threadexits("error");
 		}
@@ -65,7 +63,7 @@ _ioproc(void *arg)
 	}
 }
 
-Keyboardctl*
+Keyboardctl *
 initkeyboard(char *file)
 {
 	Keyboardctl *kc;
@@ -77,23 +75,23 @@ initkeyboard(char *file)
 	if(file == nil)
 		file = "/dev/cons";
 	kc->file = strdup(file);
-	kc->consfd = open(file, ORDWR|OCEXEC);
-	t = malloc(strlen(file)+16);
-	if(kc->consfd<0 || t==nil){
-Error1:
+	kc->consfd = open(file, ORDWR | OCEXEC);
+	t = malloc(strlen(file) + 16);
+	if(kc->consfd < 0 || t == nil) {
+	Error1:
 		free(kc);
 		return nil;
 	}
 	sprint(t, "%sctl", file);
-	kc->ctlfd = open(t, OWRITE|OCEXEC);
-	if(kc->ctlfd < 0){
+	kc->ctlfd = open(t, OWRITE | OCEXEC);
+	if(kc->ctlfd < 0) {
 		fprint(2, "initkeyboard: can't open %s: %r\n", t);
-Error2:
+	Error2:
 		close(kc->consfd);
 		free(t);
 		goto Error1;
 	}
-	if(ctlkeyboard(kc, "rawon") < 0){
+	if(ctlkeyboard(kc, "rawon") < 0) {
 		fprint(2, "initkeyboard: can't turn on raw mode on %s: %r\n", t);
 		close(kc->ctlfd);
 		goto Error2;

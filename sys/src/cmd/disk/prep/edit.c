@@ -17,7 +17,7 @@
 #include <disk.h>
 #include "edit.h"
 
-char*
+char *
 getline(Edit *edit)
 {
 	static int inited;
@@ -25,13 +25,13 @@ getline(Edit *edit)
 	char *p;
 	int n;
 
-	if(!inited){
+	if(!inited) {
 		Binit(&bin, 0, OREAD);
 		inited = 1;
 	}
 	p = Brdline(&bin, '\n');
 	n = Blinelen(&bin);
-	if(p == nil || n < 1){
+	if(p == nil || n < 1) {
 		if(edit->changed)
 			fprint(2, "?warning: changes not written\n");
 		exits(0);
@@ -42,18 +42,18 @@ getline(Edit *edit)
 	return p;
 }
 
-Part*
+Part *
 findpart(Edit *edit, char *name)
 {
 	int i;
 
-	for(i=0; i<edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		if(strcmp(edit->part[i]->name, name) == 0)
 			return edit->part[i];
 	return nil;
 }
 
-static char*
+static char *
 okname(Edit *edit, char *name)
 {
 	int i;
@@ -62,10 +62,10 @@ okname(Edit *edit, char *name)
 	if(name[0] == '\0')
 		return "partition has no name";
 
-//	if(strlen(name) >= NAMELEN)
-//		return "name too long";
-//
-	for(i=0; i<edit->npart; i++) {
+	//	if(strlen(name) >= NAMELEN)
+	//		return "name too long";
+	//
+	for(i = 0; i < edit->npart; i++) {
 		if(strcmp(name, edit->part[i]->name) == 0) {
 			sprint(msg, "already have partition with name \"%s\"", name);
 			return msg;
@@ -74,7 +74,7 @@ okname(Edit *edit, char *name)
 	return nil;
 }
 
-char*
+char *
 addpart(Edit *edit, Part *p)
 {
 	int i;
@@ -84,22 +84,22 @@ addpart(Edit *edit, Part *p)
 	if(err = okname(edit, p->name))
 		return err;
 
-	for(i=0; i<edit->npart; i++) {
+	for(i = 0; i < edit->npart; i++) {
 		if(p->start < edit->part[i]->end && edit->part[i]->start < p->end) {
 			sprint(msg, "\"%s\" %lld-%lld overlaps with \"%s\" %lld-%lld",
-				p->name, p->start, p->end,
-				edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
-		//	return msg;
+			       p->name, p->start, p->end,
+			       edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
+			//	return msg;
 		}
 	}
 
-	if(edit->npart >= nelem(edit->part))	
+	if(edit->npart >= nelem(edit->part))
 		return "too many partitions";
 
-	edit->part[i=edit->npart++] = p;
-	for(; i > 0 && p->start < edit->part[i-1]->start; i--) {
-		edit->part[i] = edit->part[i-1];
-		edit->part[i-1] = p;
+	edit->part[i = edit->npart++] = p;
+	for(; i > 0 && p->start < edit->part[i - 1]->start; i--) {
+		edit->part[i] = edit->part[i - 1];
+		edit->part[i - 1] = p;
 	}
 
 	if(p->changed)
@@ -107,24 +107,24 @@ addpart(Edit *edit, Part *p)
 	return nil;
 }
 
-char*
+char *
 delpart(Edit *edit, Part *p)
 {
 	int i;
 
-	for(i=0; i<edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		if(edit->part[i] == p)
 			break;
 	assert(i < edit->npart);
 	edit->npart--;
-	for(; i<edit->npart; i++)
-		edit->part[i] = edit->part[i+1];
+	for(; i < edit->npart; i++)
+		edit->part[i] = edit->part[i + 1];
 
 	edit->changed = 1;
 	return nil;
 }
 
-static char*
+static char *
 editdot(Edit *edit, int argc, char **argv)
 {
 	char *err;
@@ -145,7 +145,7 @@ editdot(Edit *edit, int argc, char **argv)
 	return nil;
 }
 
-static char*
+static char *
 editadd(Edit *edit, int argc, char **argv)
 {
 	char *name, *err, *q;
@@ -172,7 +172,7 @@ editadd(Edit *edit, int argc, char **argv)
 	if(start < 0 || start >= edit->end)
 		return "start out of range";
 
-	for(i=0; i < edit->npart; i++) {
+	for(i = 0; i < edit->npart; i++) {
 		if(edit->part[i]->start <= start && start < edit->part[i]->end) {
 			sprint(msg, "start %s in partition \"%s\"", edit->unit, edit->part[i]->name);
 			return msg;
@@ -180,7 +180,7 @@ editadd(Edit *edit, int argc, char **argv)
 	}
 
 	maxend = edit->end;
-	for(i=0; i < edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		if(start < edit->part[i]->start && edit->part[i]->start < maxend)
 			maxend = edit->part[i]->start;
 
@@ -209,7 +209,7 @@ editadd(Edit *edit, int argc, char **argv)
 	return nil;
 }
 
-static char*
+static char *
 editdel(Edit *edit, int argc, char **argv)
 {
 	Part *p;
@@ -223,17 +223,17 @@ editdel(Edit *edit, int argc, char **argv)
 	return edit->del(edit, p);
 }
 
-static char *helptext = 
-	". [newdot] - display or set value of dot\n"
-	"a name [start [end]] - add partition\n"
-	"d name - delete partition\n"
-	"h - print help message\n"
-	"p - print partition table\n"
-	"P - print commands to update sd(3) device\n"
-	"w - write partition table\n"
-	"q - quit\n";
+static char *helptext =
+    ". [newdot] - display or set value of dot\n"
+    "a name [start [end]] - add partition\n"
+    "d name - delete partition\n"
+    "h - print help message\n"
+    "p - print partition table\n"
+    "P - print commands to update sd(3) device\n"
+    "w - write partition table\n"
+    "q - quit\n";
 
-static char*
+static char *
 edithelp(Edit *edit, int i, char **c)
 {
 	print("%s", helptext);
@@ -242,7 +242,7 @@ edithelp(Edit *edit, int i, char **c)
 	return nil;
 }
 
-static char*
+static char *
 editprint(Edit *edit, int argc, char **c)
 {
 	int64_t lastend;
@@ -254,7 +254,7 @@ editprint(Edit *edit, int argc, char **c)
 
 	lastend = 0;
 	part = edit->part;
-	for(i=0; i<edit->npart; i++) {
+	for(i = 0; i < edit->npart; i++) {
 		if(lastend < part[i]->start)
 			edit->sum(edit, nil, lastend, part[i]->start);
 		edit->sum(edit, part[i], part[i]->start, part[i]->end);
@@ -265,7 +265,7 @@ editprint(Edit *edit, int argc, char **c)
 	return nil;
 }
 
-char*
+char *
 editwrite(Edit *edit, int argc, char **c)
 {
 	int i;
@@ -280,13 +280,13 @@ editwrite(Edit *edit, int argc, char **c)
 	err = edit->write(edit);
 	if(err)
 		return err;
-	for(i=0; i<edit->npart; i++)
+	for(i = 0; i < edit->npart; i++)
 		edit->part[i]->changed = 0;
 	edit->changed = 0;
 	return nil;
 }
 
-static char*
+static char *
 editquit(Edit *edit, int argc, char **c)
 {
 	static int warned;
@@ -302,10 +302,10 @@ editquit(Edit *edit, int argc, char **c)
 	}
 
 	exits(0);
-	return nil;	/* not reached */
+	return nil; /* not reached */
 }
 
-char*
+char *
 editctlprint(Edit *edit, int argc, char **c)
 {
 	if(argc != 1)
@@ -321,19 +321,19 @@ editctlprint(Edit *edit, int argc, char **c)
 typedef struct Cmd Cmd;
 struct Cmd {
 	char c;
-	char *(*fn)(Edit*, int ,char**);
+	char *(*fn)(Edit *, int, char **);
 };
 
 Cmd cmds[] = {
-	'.',	editdot,
-	'a',	editadd,
-	'd',	editdel,
-	'?',	edithelp,
-	'h',	edithelp,
-	'P',	editctlprint,
-	'p',	editprint,
-	'w',	editwrite,
-	'q',	editquit,
+    '.', editdot,
+    'a', editadd,
+    'd', editdel,
+    '?', edithelp,
+    'h', edithelp,
+    'P', editctlprint,
+    'p', editprint,
+    'w', editwrite,
+    'q', editquit,
 };
 
 void
@@ -359,24 +359,24 @@ runcmd(Edit *edit, char *cmd)
 	}
 
 	err = nil;
-	for(i=0; i<nelem(cmds); i++) {
+	for(i = 0; i < nelem(cmds); i++) {
 		if(cmds[i].c == f[0][0]) {
 			err = cmds[i].fn(edit, nf, f);
 			break;
 		}
 	}
-	if(i == nelem(cmds)){
+	if(i == nelem(cmds)) {
 		if(edit->ext)
 			err = edit->ext(edit, nf, f);
 		else
 			err = "unknown command";
 	}
-	if(err) 
+	if(err)
 		fprint(2, "?%s\n", err);
 	edit->lastcmd = f[0][0];
 }
 
-static Part*
+static Part *
 ctlmkpart(char *name, int64_t start, int64_t end, int changed)
 {
 	Part *p;
@@ -408,7 +408,7 @@ rdctlpart(Edit *edit)
 	}
 
 	nline = getfields(buf, line, nelem(line), 1, "\n");
-	for(i=0; i<nline; i++){
+	for(i = 0; i < nline; i++) {
 		if(strncmp(line[i], "part ", 5) != 0)
 			continue;
 
@@ -423,7 +423,7 @@ rdctlpart(Edit *edit)
 			break;
 
 		/* only gather partitions contained in the disk partition we are editing */
-		if(a < disk->offset ||  disk->offset+disk->secs < b)
+		if(a < disk->offset || disk->offset + disk->secs < b)
 			continue;
 
 		a -= disk->offset;
@@ -460,11 +460,10 @@ ctlend(Part *p)
 static int
 areequiv(Part *p, Part *q)
 {
-	if(p->ctlname[0]=='\0' || q->ctlname[0]=='\0')
+	if(p->ctlname[0] == '\0' || q->ctlname[0] == '\0')
 		return 0;
 
-	return strcmp(p->ctlname, q->ctlname) == 0
-			&& ctlstart(p) == ctlstart(q) && ctlend(p) == ctlend(q);
+	return strcmp(p->ctlname, q->ctlname) == 0 && ctlstart(p) == ctlstart(q) && ctlend(p) == ctlend(q);
 }
 
 static void
@@ -473,13 +472,13 @@ unchange(Edit *edit, Part *p)
 	int i;
 	Part *q;
 
-	for(i=0; i<edit->nctlpart; i++) {
+	for(i = 0; i < edit->nctlpart; i++) {
 		q = edit->ctlpart[i];
 		if(p->start <= q->start && q->end <= p->end) {
 			q->changed = 0;
 		}
 	}
-assert(p->changed == 0);
+	assert(p->changed == 0);
 }
 
 int
@@ -492,15 +491,15 @@ ctldiff(Edit *edit, int ctlfd)
 	rdctlpart(edit);
 
 	/* everything is bogus until we prove otherwise */
-	for(i=0; i<edit->nctlpart; i++)
+	for(i = 0; i < edit->nctlpart; i++)
 		edit->ctlpart[i]->changed = 1;
 
 	/*
 	 * partitions with same info have not changed,
 	 * and neither have partitions inside them.
 	 */
-	for(i=0; i<edit->nctlpart; i++)
-		for(j=0; j<edit->npart; j++)
+	for(i = 0; i < edit->nctlpart; i++)
+		for(j = 0; j < edit->npart; j++)
 			if(areequiv(edit->ctlpart[i], edit->part[j])) {
 				unchange(edit, edit->ctlpart[i]);
 				break;
@@ -510,13 +509,13 @@ ctldiff(Edit *edit, int ctlfd)
 	/*
 	 * delete all the changed partitions except data (we'll add them back if necessary) 
 	 */
-	for(i=0; i<edit->nctlpart; i++) {
+	for(i = 0; i < edit->nctlpart; i++) {
 		p = edit->ctlpart[i];
 		if(p->changed)
-		if(fprint(ctlfd, "delpart %s\n", p->ctlname)<0) {
-			fprint(2, "delpart failed: %s: %r\n", p->ctlname);
-			waserr = -1;
-		}
+			if(fprint(ctlfd, "delpart %s\n", p->ctlname) < 0) {
+				fprint(2, "delpart failed: %s: %r\n", p->ctlname);
+				waserr = -1;
+			}
 	}
 
 	/*
@@ -525,10 +524,10 @@ ctldiff(Edit *edit, int ctlfd)
 	 * information identical to what is there is a no-op.
 	 */
 	offset = edit->disk->offset;
-	for(i=0; i<edit->npart; i++) {
+	for(i = 0; i < edit->npart; i++) {
 		p = edit->part[i];
 		if(p->ctlname[0]) {
-			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname, offset+ctlstart(p), offset+ctlend(p)) < 0) {
+			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname, offset + ctlstart(p), offset + ctlend(p)) < 0) {
 				fprint(2, "adding part failed: %s: %r\n", p->ctlname);
 				waserr = -1;
 			}
@@ -537,7 +536,7 @@ ctldiff(Edit *edit, int ctlfd)
 	return waserr;
 }
 
-void*
+void *
 emalloc(uint32_t sz)
 {
 	void *v;
@@ -549,7 +548,7 @@ emalloc(uint32_t sz)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	s = strdup(s);
@@ -557,4 +556,3 @@ estrdup(char *s)
 		sysfatal("strdup (%.10s) fails", s);
 	return s;
 }
-

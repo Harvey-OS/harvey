@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-char*
+char *
 strupr(char *s)
 {
 	char *p;
@@ -22,7 +22,7 @@ strupr(char *s)
 	return s;
 }
 
-char*
+char *
 strlwr(char *s)
 {
 	char *p;

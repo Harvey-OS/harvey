@@ -29,14 +29,14 @@ writecolmap(Display *d, RGB *m)
 	if(fd < 0)
 		drawerror(d, "writecolmap: open colormap failed");
 	t = malloc(8192);
-	if (t == nil)
+	if(t == nil)
 		drawerror(d, "writecolmap: no memory");
 	n = 0;
 	for(i = 0; i < 256; i++) {
-		r = m[i].red>>24;
-		g = m[i].green>>24;
-		b = m[i].blue>>24;
-		n += sprint(t+n, "%d %lud %lud %lud\n", 255-i, r, g, b);
+		r = m[i].red >> 24;
+		g = m[i].green >> 24;
+		b = m[i].blue >> 24;
+		n += sprint(t + n, "%d %lud %lud %lud\n", 255 - i, r, g, b);
 	}
 	i = write(fd, t, n);
 	free(t);

@@ -8,28 +8,28 @@
  */
 
 typedef struct Ureg {
-	uint32_t	r0;
-	uint32_t	r1;
-	uint32_t	r2;
-	uint32_t	r3;
-	uint32_t	r4;
-	uint32_t	r5;
-	uint32_t	r6;
-	uint32_t	r7;
-	uint32_t	r8;
-	uint32_t	r9;
-	uint32_t	r10;
-	uint32_t	r11;
-	uint32_t	r12;	/* sb */
+	uint32_t r0;
+	uint32_t r1;
+	uint32_t r2;
+	uint32_t r3;
+	uint32_t r4;
+	uint32_t r5;
+	uint32_t r6;
+	uint32_t r7;
+	uint32_t r8;
+	uint32_t r9;
+	uint32_t r10;
+	uint32_t r11;
+	uint32_t r12; /* sb */
 	union {
-		uint32_t	r13;
-		uint32_t	sp;
+		uint32_t r13;
+		uint32_t sp;
 	};
 	union {
-		uint32_t	r14;
-		uint32_t	link;
+		uint32_t r14;
+		uint32_t link;
 	};
-	uint32_t	type;	/* of exception */
-	uint32_t	psr;
-	uint32_t	pc;	/* interrupted addr */
+	uint32_t type; /* of exception */
+	uint32_t psr;
+	uint32_t pc; /* interrupted addr */
 } Ureg;

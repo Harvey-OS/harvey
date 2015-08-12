@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	<string.h>
+#include <string.h>
 
 int
 memcmp(const void *a1, const void *a2, size_t n)

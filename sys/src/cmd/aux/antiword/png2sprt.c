@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include "antiword.h"
 
-
 /*
  * bTranslatePNG - translate a PNG picture
  *
@@ -28,7 +27,7 @@
  */
 BOOL
 bTranslatePNG(diagram_type *pDiag, FILE *pFile,
-	ULONG ulFileOffset, size_t tPictureLen, const imagedata_type *pImg)
+	      ULONG ulFileOffset, size_t tPictureLen, const imagedata_type *pImg)
 {
 	/* PNG is not supported yet */
 	return bAddDummyImage(pDiag, pImg);

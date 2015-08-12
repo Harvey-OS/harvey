@@ -21,7 +21,7 @@
 static void
 Hrand(uint8_t *s)
 {
-	uint32_t *u = (uint32_t*)s;
+	uint32_t *u = (uint32_t *)s;
 	*u++ = fastrand();
 	*u++ = fastrand();
 	*u++ = fastrand();
@@ -33,8 +33,8 @@ static void
 Hincr(uint8_t *s)
 {
 	int i;
-	for(i=0; i<20; i++)
-		if(++s[i]!=0)
+	for(i = 0; i < 20; i++)
+		if(++s[i] != 0)
 			break;
 }
 
@@ -55,32 +55,32 @@ DSAprimes(mpint *q, mpint *p, uint8_t seed[SHA1dlen])
 	X = mpnew(0);
 	q2 = mpnew(0);
 forever:
-	do{
+	do {
 		Hrand(s);
 		memcpy(sj, s, 20);
 		sha1(s, 20, Hs, 0);
 		Hincr(sj);
 		sha1(sj, 20, Hs1, 0);
-		for(i=0; i<20; i++)
+		for(i = 0; i < 20; i++)
 			Hs[i] ^= Hs1[i];
 		Hs[0] |= 1;
 		Hs[19] |= 0x80;
 		letomp(Hs, 20, q);
-	}while(!probably_prime(q, 18));
-	if(seed != nil)	// allow skeptics to confirm computation
+	} while(!probably_prime(q, 18));
+	if(seed != nil) // allow skeptics to confirm computation
 		memmove(seed, s, SHA1dlen);
 	i = 0;
 	j = 2;
 	Hincr(sj);
 	mpleft(q, 1, q2);
-	while(i<4096){
+	while(i < 4096) {
 		memcpy(sjk, sj, 20);
-		for(k=0; k <= n; k++){
+		for(k = 0; k <= n; k++) {
 			sha1(sjk, 20, Hs, 0);
 			letomp(Hs, 20, Vk);
 			if(k == n)
 				mpmod(Vk, mb, Vk);
-			mpleft(Vk, 160*k, Vk);
+			mpleft(Vk, 160 * k, Vk);
 			mpadd(W, Vk, W);
 			Hincr(sjk);
 		}
@@ -88,11 +88,11 @@ forever:
 		mpmod(X, q2, W);
 		mpsub(W, mpone, W);
 		mpsub(X, W, p);
-		if(mpcmp(p, two1023)>=0 && probably_prime(p, 5))
+		if(mpcmp(p, two1023) >= 0 && probably_prime(p, 5))
 			goto done;
 		i += 1;
-		j += n+1;
-		for(k=0; k<n+1; k++)
+		j += n + 1;
+		for(k = 0; k < n + 1; k++)
 			Hincr(sj);
 	}
 	goto forever;

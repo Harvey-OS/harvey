@@ -92,7 +92,7 @@ readfile(char *name, char *buf, int len)
 	f = open(name, OREAD);
 	if(f < 0)
 		return -1;
-	n = read(f, buf, len-1);
+	n = read(f, buf, len - 1);
 	if(n >= 0)
 		buf[n] = 0;
 	close(f);
@@ -120,7 +120,7 @@ setenv(char *name, char *val)
 
 	snprint(ename, sizeof ename, "#e/%s", name);
 	f = create(ename, 1, 0666);
-	if(f < 0){
+	if(f < 0) {
 		fprint(2, "create %s: %r\n", ename);
 		return;
 	}
@@ -167,26 +167,26 @@ outin(char *prompt, char *def, int len)
 	char buf[256];
 
 	if(len >= sizeof buf)
-		len = sizeof(buf)-1;
+		len = sizeof(buf) - 1;
 
-	if(cpuflag){
+	if(cpuflag) {
 		notify(catchint);
-		alarm(15*1000);
+		alarm(15 * 1000);
 	}
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
 	n = read(0, buf, len);
-	if(cpuflag){
+	if(cpuflag) {
 		alarm(0);
 		notify(0);
 	}
 
-	if(n < 0){
+	if(n < 0) {
 		print("\n");
 		return 1;
 	}
-	if(n > 1){
-		buf[n-1] = 0;
+	if(n > 1) {
+		buf[n - 1] = 0;
 		strcpy(def, buf);
 	}
 	return n;

@@ -37,7 +37,7 @@ error(char *fmt, ...)
 		silent = 0;
 	else {
 		va_start(arg, fmt);
-		vseprint(buf, buf+sizeof(buf), fmt, arg);
+		vseprint(buf, buf + sizeof(buf), fmt, arg);
 		va_end(arg);
 		fprint(2, "%L: (error) %s\n", buf);
 	}
@@ -138,8 +138,7 @@ execute(Node *n)
 				execute(r->left);
 			else
 				execute(r->right);
-		}
-		else if(bool(&res))
+		} else if(bool(&res))
 			execute(r);
 		break;
 	case OWHILE:
@@ -165,8 +164,7 @@ execute(Node *n)
 	}
 }
 
-int
-bool(Node *n)
+int bool(Node *n)
 {
 	int true = 0;
 
@@ -204,8 +202,7 @@ convflt(Node *r, char *flt)
 		r->type = TSTRING;
 		r->fmt = 's';
 		r->string = strnode(flt);
-	}
-	else {
+	} else {
 		r->type = TFLOAT;
 		r->fval = atof(flt);
 	}
@@ -232,7 +229,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 'b':
 		r->type = TINT;
 		ret = get1(m, addr, &cval, 1);
-		if (ret < 0)
+		if(ret < 0)
 			error("indir: %r");
 		r->ival = cval;
 		break;
@@ -244,7 +241,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 'r':
 		r->type = TINT;
 		ret = get2(m, addr, &sval);
-		if (ret < 0)
+		if(ret < 0)
 			error("indir: %r");
 		r->ival = sval;
 		break;
@@ -253,7 +250,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 'W':
 		r->type = TINT;
 		ret = geta(m, addr, &uvval);
-		if (ret < 0)
+		if(ret < 0)
 			error("indir: %r");
 		r->ival = uvval;
 		break;
@@ -265,7 +262,7 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 'Q':
 		r->type = TINT;
 		ret = get4(m, addr, &lval);
-		if (ret < 0)
+		if(ret < 0)
 			error("indir: %r");
 		r->ival = lval;
 		break;
@@ -274,15 +271,15 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 	case 'Z':
 		r->type = TINT;
 		ret = get8(m, addr, &uvval);
-		if (ret < 0)
+		if(ret < 0)
 			error("indir: %r");
 		r->ival = uvval;
 		break;
 	case 's':
 		r->type = TSTRING;
-		for(i = 0; i < sizeof(buf)-1; i++) {
-			ret = get1(m, addr, (uint8_t*)&buf[i], 1);
-			if (ret < 0)
+		for(i = 0; i < sizeof(buf) - 1; i++) {
+			ret = get1(m, addr, (uint8_t *)&buf[i], 1);
+			if(ret < 0)
 				error("indir: %r");
 			addr++;
 			if(buf[i] == '\0')
@@ -295,69 +292,69 @@ indir(Map *m, uint64_t addr, char fmt, Node *r)
 		break;
 	case 'R':
 		r->type = TSTRING;
-		for(i = 0; i < sizeof(buf)-2; i += 2) {
-			ret = get1(m, addr, (uint8_t*)&buf[i], 2);
-			if (ret < 0)
+		for(i = 0; i < sizeof(buf) - 2; i += 2) {
+			ret = get1(m, addr, (uint8_t *)&buf[i], 2);
+			if(ret < 0)
 				error("indir: %r");
 			addr += 2;
-			if(buf[i] == 0 && buf[i+1] == 0)
+			if(buf[i] == 0 && buf[i + 1] == 0)
 				break;
 		}
 		buf[i++] = 0;
 		buf[i] = 0;
-		r->string = runenode((Rune*)buf);
+		r->string = runenode((Rune *)buf);
 		break;
 	case 'i':
 	case 'I':
-		if ((*machdata->das)(m, addr, fmt, buf, sizeof(buf)) < 0)
+		if((*machdata->das)(m, addr, fmt, buf, sizeof(buf)) < 0)
 			error("indir: %r");
 		r->type = TSTRING;
 		r->fmt = 's';
 		r->string = strnode(buf);
 		break;
 	case 'f':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
-		if (ret < 0)
+		ret = get1(m, addr, (uint8_t *)buf, mach->szfloat);
+		if(ret < 0)
 			error("indir: %r");
-		machdata->sftos(buf, sizeof(buf), (void*) buf);
+		machdata->sftos(buf, sizeof(buf), (void *)buf);
 		convflt(r, buf);
 		break;
 	case 'g':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
-		if (ret < 0)
+		ret = get1(m, addr, (uint8_t *)buf, mach->szfloat);
+		if(ret < 0)
 			error("indir: %r");
-		machdata->sftos(buf, sizeof(buf), (void*) buf);
+		machdata->sftos(buf, sizeof(buf), (void *)buf);
 		r->type = TSTRING;
 		r->string = strnode(buf);
 		break;
 	case 'F':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
-		if (ret < 0)
+		ret = get1(m, addr, (uint8_t *)buf, mach->szdouble);
+		if(ret < 0)
 			error("indir: %r");
-		machdata->dftos(buf, sizeof(buf), (void*) buf);
+		machdata->dftos(buf, sizeof(buf), (void *)buf);
 		convflt(r, buf);
 		break;
-	case '3':	/* little endian ieee 80 with hole in bytes 8&9 */
-		ret = get1(m, addr, (uint8_t*)reg, 10);
-		if (ret < 0)
+	case '3': /* little endian ieee 80 with hole in bytes 8&9 */
+		ret = get1(m, addr, (uint8_t *)reg, 10);
+		if(ret < 0)
 			error("indir: %r");
-		memmove(reg+10, reg+8, 2);	/* open hole */
-		memset(reg+8, 0, 2);		/* fill it */
+		memmove(reg + 10, reg + 8, 2); /* open hole */
+		memset(reg + 8, 0, 2);	 /* fill it */
 		leieee80ftos(buf, sizeof(buf), reg);
 		convflt(r, buf);
 		break;
-	case '8':	/* big-endian ieee 80 */
-		ret = get1(m, addr, (uint8_t*)reg, 10);
-		if (ret < 0)
+	case '8': /* big-endian ieee 80 */
+		ret = get1(m, addr, (uint8_t *)reg, 10);
+		if(ret < 0)
 			error("indir: %r");
 		beieee80ftos(buf, sizeof(buf), reg);
 		convflt(r, buf);
 		break;
 	case 'G':
-		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
-		if (ret < 0)
+		ret = get1(m, addr, (uint8_t *)buf, mach->szdouble);
+		if(ret < 0)
 			error("indir: %r");
-		machdata->dftos(buf, sizeof(buf), (void*) buf);
+		machdata->dftos(buf, sizeof(buf), (void *)buf);
 		r->type = TSTRING;
 		r->string = strnode(buf);
 		break;
@@ -427,11 +424,11 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		break;
 	case 's':
 	case 'R':
-		ret = put1(m, aes.ival, (uint8_t*)res.string->string,
-		           res.string->len);
+		ret = put1(m, aes.ival, (uint8_t *)res.string->string,
+			   res.string->len);
 		break;
 	}
-	if (ret < 0)
+	if(ret < 0)
 		error("windir: %r");
 }
 

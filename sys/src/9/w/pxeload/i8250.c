@@ -17,78 +17,76 @@
 /*
  *  INS8250 uart
  */
-enum
-{
+enum {
 	/*
 	 *  register numbers
 	 */
-	Data=	0,		/* xmit/rcv buffer */
-	Iena=	1,		/* interrupt enable */
-	 Ircv=	(1<<0),		/*  for char rcv'd */
-	 Ixmt=	(1<<1),		/*  for xmit buffer empty */
-	 Irstat=(1<<2),		/*  for change in rcv'er status */
-	 Imstat=(1<<3),		/*  for change in modem status */
-	Istat=	2,		/* interrupt flag (read) */
-	Tctl=	2,		/* test control (write) */
-	Format=	3,		/* byte format */
-	 Bits8=	(3<<0),		/*  8 bits/byte */
-	 Stop2=	(1<<2),		/*  2 stop bits */
-	 Pena=	(1<<3),		/*  generate parity */
-	 Peven=	(1<<4),		/*  even parity */
-	 Pforce=(1<<5),		/*  force parity */
-	 Break=	(1<<6),		/*  generate a break */
-	 Dra=	(1<<7),		/*  address the divisor */
-	Mctl=	4,		/* modem control */
-	 Dtr=	(1<<0),		/*  data terminal ready */
-	 Rts=	(1<<1),		/*  request to send */
-	 Ri=	(1<<2),		/*  ring */
-	 Inton=	(1<<3),		/*  turn on interrupts */
-	 Loop=	(1<<4),		/*  loop back */
-	Lstat=	5,		/* line status */
-	 Inready=(1<<0),	/*  receive buffer full */
-	 Oerror=(1<<1),		/*  receiver overrun */
-	 Perror=(1<<2),		/*  receiver parity error */
-	 Ferror=(1<<3),		/*  rcv framing error */
-	 Outready=(1<<5),	/*  output buffer empty */
-	Mstat=	6,		/* modem status */
-	 Ctsc=	(1<<0),		/*  clear to send changed */
-	 Dsrc=	(1<<1),		/*  data set ready changed */
-	 Rire=	(1<<2),		/*  rising edge of ring indicator */
-	 Dcdc=	(1<<3),		/*  data carrier detect changed */
-	 Cts=	(1<<4),		/*  complement of clear to send line */
-	 Dsr=	(1<<5),		/*  complement of data set ready line */
-	 Ring=	(1<<6),		/*  complement of ring indicator line */
-	 Dcd=	(1<<7),		/*  complement of data carrier detect line */
-	Scratch=7,		/* scratchpad */
-	Dlsb=	0,		/* divisor lsb */
-	Dmsb=	1,		/* divisor msb */
+	Data = 0,	    /* xmit/rcv buffer */
+	Iena = 1,	    /* interrupt enable */
+	Ircv = (1 << 0),     /*  for char rcv'd */
+	Ixmt = (1 << 1),     /*  for xmit buffer empty */
+	Irstat = (1 << 2),   /*  for change in rcv'er status */
+	Imstat = (1 << 3),   /*  for change in modem status */
+	Istat = 2,	   /* interrupt flag (read) */
+	Tctl = 2,	    /* test control (write) */
+	Format = 3,	  /* byte format */
+	Bits8 = (3 << 0),    /*  8 bits/byte */
+	Stop2 = (1 << 2),    /*  2 stop bits */
+	Pena = (1 << 3),     /*  generate parity */
+	Peven = (1 << 4),    /*  even parity */
+	Pforce = (1 << 5),   /*  force parity */
+	Break = (1 << 6),    /*  generate a break */
+	Dra = (1 << 7),      /*  address the divisor */
+	Mctl = 4,	    /* modem control */
+	Dtr = (1 << 0),      /*  data terminal ready */
+	Rts = (1 << 1),      /*  request to send */
+	Ri = (1 << 2),       /*  ring */
+	Inton = (1 << 3),    /*  turn on interrupts */
+	Loop = (1 << 4),     /*  loop back */
+	Lstat = 5,	   /* line status */
+	Inready = (1 << 0),  /*  receive buffer full */
+	Oerror = (1 << 1),   /*  receiver overrun */
+	Perror = (1 << 2),   /*  receiver parity error */
+	Ferror = (1 << 3),   /*  rcv framing error */
+	Outready = (1 << 5), /*  output buffer empty */
+	Mstat = 6,	   /* modem status */
+	Ctsc = (1 << 0),     /*  clear to send changed */
+	Dsrc = (1 << 1),     /*  data set ready changed */
+	Rire = (1 << 2),     /*  rising edge of ring indicator */
+	Dcdc = (1 << 3),     /*  data carrier detect changed */
+	Cts = (1 << 4),      /*  complement of clear to send line */
+	Dsr = (1 << 5),      /*  complement of data set ready line */
+	Ring = (1 << 6),     /*  complement of ring indicator line */
+	Dcd = (1 << 7),      /*  complement of data carrier detect line */
+	Scratch = 7,	 /* scratchpad */
+	Dlsb = 0,	    /* divisor lsb */
+	Dmsb = 1,	    /* divisor msb */
 
-	Serial=	0,
-	Modem=	1,
+	Serial = 0,
+	Modem = 1,
 };
 
-typedef struct Uart	Uart;
-struct Uart
-{
-	int	port;
-	int	freq;
-	uint8_t	sticky[8];	/* sticky write register values */
-	uint8_t	txbusy;
+typedef struct Uart Uart;
+struct Uart {
+	int port;
+	int freq;
+	uint8_t sticky[8]; /* sticky write register values */
+	uint8_t txbusy;
 
-	void	(*rx)(int);	/* routine to take a received character */
-	int	(*tx)(void);	/* routine to get a character to transmit */
+	void (*rx)(int); /* routine to take a received character */
+	int (*tx)(void); /* routine to get a character to transmit */
 
-	uint32_t	frame;
-	uint32_t	overrun;
+	uint32_t frame;
+	uint32_t overrun;
 };
 
 static Uart com[2];
-static Uart* uart;
+static Uart *uart;
 
 #define UartFREQ 1843200
 
-#define uartwrreg(u,r,v)	outb((u)->port + r, (u)->sticky[r] | (v))
-#define uartrdreg(u,r)		inb((u)->port + r)
+#define uartwrreg(u, r, v) outb((u)->port + r, (u)->sticky[r] | (v))
+#define uartrdreg(u, r) inb((u)->port + r)
 
 /*
  *  set the baud rate by calculating and setting the baudrate
@@ -100,11 +98,11 @@ uartsetbaud(Uart *up, int rate)
 {
 	uint32_t brconst;
 
-	brconst = (up->freq+8*rate-1)/(16*rate);
+	brconst = (up->freq + 8 * rate - 1) / (16 * rate);
 
 	uartwrreg(up, Format, Dra);
-	outb(up->port+Dmsb, (brconst>>8) & 0xff);
-	outb(up->port+Dlsb, brconst & 0xff);
+	outb(up->port + Dmsb, (brconst >> 8) & 0xff);
+	outb(up->port + Dlsb, brconst & 0xff);
 	uartwrreg(up, Format, 0);
 }
 
@@ -135,17 +133,17 @@ uartrts(Uart *up, int n)
 }
 
 static void
-uartintr(Ureg*, void *arg)
+uartintr(Ureg *, void *arg)
 {
 	Uart *up;
 	int ch;
 	int s, l, loops;
 
 	up = arg;
-	for(loops = 0; loops < 1024; loops++){
+	for(loops = 0; loops < 1024; loops++) {
 		s = uartrdreg(up, Istat);
-		switch(s & 0x3F){
-		case 6:	/* receiver line status */
+		switch(s & 0x3F) {
+		case 6: /* receiver line status */
 			l = uartrdreg(up, Lstat);
 			if(l & Ferror)
 				up->frame++;
@@ -153,29 +151,29 @@ uartintr(Ureg*, void *arg)
 				up->overrun++;
 			break;
 
-		case 4:	/* received data available */
+		case 4: /* received data available */
 		case 12:
-			ch = inb(up->port+Data);
+			ch = inb(up->port + Data);
 			if(up->rx)
 				(*up->rx)(ch);
 			break;
 
-		case 2:	/* transmitter empty */
+		case 2: /* transmitter empty */
 			ch = -1;
 			if(up->tx)
 				ch = (*up->tx)();
 			if(ch != -1)
-				outb(up->port+Data, ch);
+				outb(up->port + Data, ch);
 			else
 				up->txbusy = 0;
 			break;
 
-		case 0:	/* modem status */
+		case 0: /* modem status */
 			uartrdreg(up, Mstat);
 			break;
 
 		default:
-			if(s&1)
+			if(s & 1)
 				return;
 			print("weird modem interrupt #%2.2ux\n", s);
 			break;
@@ -197,7 +195,7 @@ uartenable(Uart *up)
 	if(up->tx)
 		up->sticky[Iena] |= Ixmt;
 	if(up->rx)
-		up->sticky[Iena] |= Ircv|Irstat;
+		up->sticky[Iena] |= Ircv | Irstat;
 	uartwrreg(up, Iena, 0);
 
 	/*
@@ -208,7 +206,7 @@ uartenable(Uart *up)
 }
 
 static void
-uartdisable(Uart* up)
+uartdisable(Uart *up)
 {
 	/*
  	 * Disable interrupts.
@@ -220,11 +218,11 @@ uartdisable(Uart* up)
 }
 
 static void
-i8250thre(Uart* up)
+i8250thre(Uart *up)
 {
 	int i;
 
-	for(i = 0; i < 100; i++){
+	for(i = 0; i < 100; i++) {
 		if(uartrdreg(up, Lstat) & Outready)
 			break;
 		delay(1);
@@ -238,7 +236,7 @@ uartspecial(int which, void (*rx)(int), int (*tx)(void), int baud)
 	int freq, port, vector;
 	ISAConf isa;
 
-	switch(which){
+	switch(which) {
 	case 0:
 		port = 0x3F8;
 		vector = VectorUART0;
@@ -255,11 +253,11 @@ uartspecial(int which, void (*rx)(int), int (*tx)(void), int baud)
 		return 0;
 	}
 	memset(&isa, 0, sizeof(isa));
-	if(isaconfig("eia", which, &isa) != 0){
+	if(isaconfig("eia", which, &isa) != 0) {
 		if(isa.port != 0)
 			port = isa.port;
 		if(isa.irq != 0)
-			vector = VectorPIC+isa.irq;
+			vector = VectorPIC + isa.irq;
 		if(isa.freq != 0)
 			freq = isa.freq;
 	}
@@ -269,15 +267,15 @@ uartspecial(int which, void (*rx)(int), int (*tx)(void), int baud)
 	 * Should be able to write/read
 	 * the Scratch Pad.
 	 */
-	outb(port+Scratch, 0x55);
-	if(inb(port+Scratch) != 0x55)
+	outb(port + Scratch, 0x55);
+	if(inb(port + Scratch) != 0x55)
 		return 0;
 
 	if(uart != nil && uart != up)
 		uartdisable(uart);
 	uart = up;
 
-	if(up->port == 0){
+	if(up->port == 0) {
 		up->port = port;
 		setvec(vector, uartintr, up);
 	}
@@ -314,7 +312,7 @@ uartputc(int c)
 	if((up = uart) == nil)
 		return;
 	i8250thre(up);
-	outb(up->port+Data, c);
+	outb(up->port + Data, c);
 }
 
 void
@@ -325,13 +323,13 @@ uartputs(IOQ *q, char *s, int n)
 
 	if((up = uart) == nil)
 		return;
-	while(n--){
+	while(n--) {
 		if(*s == '\n')
 			q->putc(q, '\r');
 		q->putc(q, *s++);
 	}
 	x = splhi();
-	if(up->txbusy == 0 && (c = q->getc(q)) != -1){
+	if(up->txbusy == 0 && (c = q->getc(q)) != -1) {
 		uartputc(c & 0xFF);
 		up->txbusy = 1;
 	}

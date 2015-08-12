@@ -18,7 +18,7 @@ nbemalloc(uint32_t nbytes)
 {
 	void *p;
 	p = malloc(nbytes);
-	if (p == nil) {
+	if(p == nil) {
 		print("nbemalloc: failed\n");
 		threadexitsall("mem");
 	}

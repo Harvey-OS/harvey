@@ -26,12 +26,12 @@
 /* $Id: dwmain.h,v 1.6 2002/02/21 22:24:51 giles Exp $ */
 
 #ifndef dwmain_INCLUDED
-#  define dwmain_INCLUDED
+#define dwmain_INCLUDED
 
 /* Icon index definitions - needed by resources */
 
-#define GSTEXT_ICON	50
-#define GSIMAGE_ICON	51
+#define GSTEXT_ICON 50
+#define GSIMAGE_ICON 51
 
 extern HWND hwndtext;
 

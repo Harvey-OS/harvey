@@ -27,7 +27,7 @@
 /* Pn macros for pre-ANSI compiler compatibility */
 
 #ifndef stdpn_INCLUDED
-#  define stdpn_INCLUDED
+#define stdpn_INCLUDED
 
 /*
  * We formerly supported "traditional" (pre-ANSI) C compilers, by using
@@ -41,21 +41,21 @@
 
 #define P0() void
 #define P1(t1) t1
-#define P2(t1,t2) t1,t2
-#define P3(t1,t2,t3) t1,t2,t3
-#define P4(t1,t2,t3,t4) t1,t2,t3,t4
-#define P5(t1,t2,t3,t4,t5) t1,t2,t3,t4,t5
-#define P6(t1,t2,t3,t4,t5,t6) t1,t2,t3,t4,t5,t6
-#define P7(t1,t2,t3,t4,t5,t6,t7) t1,t2,t3,t4,t5,t6,t7
-#define P8(t1,t2,t3,t4,t5,t6,t7,t8) t1,t2,t3,t4,t5,t6,t7,t8
-#define P9(t1,t2,t3,t4,t5,t6,t7,t8,t9) t1,t2,t3,t4,t5,t6,t7,t8,t9
-#define P10(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10
-#define P11(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11
-#define P12(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12
-#define P13(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13
-#define P14(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14
-#define P15(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15
-#define P16(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16
+#define P2(t1, t2) t1, t2
+#define P3(t1, t2, t3) t1, t2, t3
+#define P4(t1, t2, t3, t4) t1, t2, t3, t4
+#define P5(t1, t2, t3, t4, t5) t1, t2, t3, t4, t5
+#define P6(t1, t2, t3, t4, t5, t6) t1, t2, t3, t4, t5, t6
+#define P7(t1, t2, t3, t4, t5, t6, t7) t1, t2, t3, t4, t5, t6, t7
+#define P8(t1, t2, t3, t4, t5, t6, t7, t8) t1, t2, t3, t4, t5, t6, t7, t8
+#define P9(t1, t2, t3, t4, t5, t6, t7, t8, t9) t1, t2, t3, t4, t5, t6, t7, t8, t9
+#define P10(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10
+#define P11(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11
+#define P12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12
+#define P13(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13
+#define P14(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14
+#define P15(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15
+#define P16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16
 
 #endif /* stdpn_INCLUDED */
 /* Copyright (C) 1993-2003 artofcode LLC.  All rights reserved.
@@ -78,7 +78,7 @@
 /* Standard definitions for Ghostscript code not needing arch.h */
 
 #ifndef stdpre_INCLUDED
-#  define stdpre_INCLUDED
+#define stdpre_INCLUDED
 
 /*
  * Here we deal with the vagaries of various C compilers.  We assume that:
@@ -92,8 +92,8 @@
  *
  * We arrange to define __MSDOS__ on all the MS-DOS platforms.
  */
-#if (defined(MSDOS) || defined(_MSDOS)) && !defined(__MSDOS__)
-#  define __MSDOS__
+#if(defined(MSDOS) || defined(_MSDOS)) && !defined(__MSDOS__)
+#define __MSDOS__
 #endif
 /*
  * Also, not used much here, but used in other header files, we assume:
@@ -111,53 +111,53 @@
  * header files, and never to use them in code.
  */
 #if defined(__osf__) && !defined(__OSF__)
-#  define __OSF__		/* */
+#define __OSF__ /* */
 #endif
 #if defined(M_SYSV) && !defined(SYSV)
-#  define SYSV			/* */
+#define SYSV /* */
 #endif
 #if defined(M_SYS3) && !defined(__SVR3)
-#  define __SVR3		/* */
+#define __SVR3 /* */
 #endif
 
 #if defined(__STDC__) || defined(__MSDOS__) || defined(__convex__) || defined(VMS) || defined(__OSF__) || defined(__WIN32__) || defined(__IBMC__) || defined(M_UNIX) || defined(__GNUC__) || defined(__BORLANDC__)
-# if !(defined(M_XENIX) && !defined(__GNUC__))	/* SCO Xenix cc is broken */
-#  define __PROTOTYPES__	/* */
-# endif
+#if !(defined(M_XENIX) && !defined(__GNUC__)) /* SCO Xenix cc is broken */
+#define __PROTOTYPES__			      /* */
+#endif
 #endif
 
 /* Define dummy values for __FILE__ and __LINE__ if the compiler */
 /* doesn't provide these.  Note that places that use __FILE__ */
 /* must check explicitly for a null pointer. */
 #ifndef __FILE__
-#  define __FILE__ NULL
+#define __FILE__ NULL
 #endif
 #ifndef __LINE__
-#  define __LINE__ 0
+#define __LINE__ 0
 #endif
 
 /* Disable 'const' and 'volatile' if the compiler can't handle them. */
 #ifndef __PROTOTYPES__
-#  undef const
-#  define const			/* */
-#  undef volatile
-#  define volatile		/* */
+#undef const
+#define const /* */
+#undef volatile
+#define volatile /* */
 #endif
 
 /* Disable 'inline' if the compiler can't handle it. */
 #ifdef __DECC
-#  undef inline
-#  define inline __inline
+#undef inline
+#define inline __inline
 #else
-#  ifdef __GNUC__
+#ifdef __GNUC__
 /* Define inline as __inline__ so -pedantic won't produce a warning. */
-#    undef inline
-#    define inline __inline__
-#  else
-#    if !(defined(__MWERKS__) || defined(inline))
-#      define inline		/* */
-#    endif
-#  endif
+#undef inline
+#define inline __inline__
+#else
+#if !(defined(__MWERKS__) || defined(inline))
+#define inline /* */
+#endif
+#endif
 #endif
 
 /*
@@ -178,7 +178,7 @@
  * the .c file where its closed copy is compiled.
  */
 #ifdef __GNUC__
-#  define extern_inline extern inline
+#define extern_inline extern inline
 #endif
 
 /*
@@ -211,10 +211,10 @@ extern_inline int xyz(<<parameters>>)
  * customization.
  */
 #ifdef extern_inline
-#  define HAVE_EXTERN_INLINE 1
+#define HAVE_EXTERN_INLINE 1
 #else
-#  define extern_inline /* */
-#  define HAVE_EXTERN_INLINE 0
+#define extern_inline /* */
+#define HAVE_EXTERN_INLINE 0
 #endif
 
 /*
@@ -236,7 +236,7 @@ extern_inline int xyz(<<parameters>>)
  * meaningful warnings.
  */
 #ifdef __WATCOMC__
-#  pragma disable_message(124);
+#pragma disable_message(124);
 #endif
 
 /*
@@ -249,9 +249,9 @@ extern_inline int xyz(<<parameters>>)
  * that (we think) matter.
  */
 #ifdef __GNUC__
-# if __GNUC__ == 2 & (7 < __GNUC_MINOR__ <= 95)
-#  define ALIGNMENT_ALIASING_BUG
-# endif
+#if __GNUC__ == 2 & (7 < __GNUC_MINOR__ <= 95)
+#define ALIGNMENT_ALIASING_BUG
+#endif
 #endif
 
 /*
@@ -288,11 +288,11 @@ extern_inline int xyz(<<parameters>>)
  * CodeWarrior compiler (Macintosh and BeOS).
  */
 #ifdef __MWERKS__
-#define offset_of(type, memb)\
- ((int) &((type *) 0)->memb)
+#define offset_of(type, memb) \
+	((int)&((type *)0)->memb)
 #else
-#define offset_of(type, memb)\
- ((int) ( (char *)&((type *)0)->memb - (char *)((type *)0) ))
+#define offset_of(type, memb) \
+	((int)((char *)&((type *)0)->memb - (char *)((type *)0)))
 #endif
 
 /*
@@ -300,8 +300,8 @@ extern_inline int xyz(<<parameters>>)
  * There is no portable way to do this, but the following definition
  * works on all reasonable systems.
  */
-#define ALIGNMENT_MOD(ptr, modu)\
-  ((uint)( ((const char *)(ptr) - (const char *)0) & ((modu) - 1) ))
+#define ALIGNMENT_MOD(ptr, modu) \
+	((uint)(((const char *)(ptr) - (const char *)0) & ((modu)-1)))
 
 /* Define short names for the unsigned types. */
 typedef unsigned char byte;
@@ -319,7 +319,7 @@ typedef unsigned long ulong;
  * header file that includes sys/types.h.
  *
  */
-#define bool bool_		/* (maybe not needed) */
+#define bool bool_ /* (maybe not needed) */
 #define uchar uchar_
 #define uint uint_
 #define ushort ushort_
@@ -355,9 +355,9 @@ typedef int bool;
  */
 #ifndef __MACOS__
 #undef false
-#define false ((bool)0)
+#define false((bool)0)
 #undef true
-#define true ((bool)1)
+#define true((bool)1)
 #endif /* __MACOS__ */
 
 /*
@@ -385,32 +385,32 @@ typedef unsigned long ptr_ord_t;
 typedef const char *ptr_ord_t;
 #endif
 /* Define all the pointer comparison operations. */
-#define _PTR_CMP(p1, rel, p2)  ((ptr_ord_t)(p1) rel (ptr_ord_t)(p2))
+#define _PTR_CMP(p1, rel, p2) ((ptr_ord_t)(p1)rel(ptr_ord_t)(p2))
 #define PTR_LE(p1, p2) _PTR_CMP(p1, <=, p2)
 #define PTR_LT(p1, p2) _PTR_CMP(p1, <, p2)
 #define PTR_GE(p1, p2) _PTR_CMP(p1, >=, p2)
 #define PTR_GT(p1, p2) _PTR_CMP(p1, >, p2)
-#define PTR_BETWEEN(ptr, lo, hi)\
-  (PTR_GE(ptr, lo) && PTR_LT(ptr, hi))
+#define PTR_BETWEEN(ptr, lo, hi) \
+	(PTR_GE(ptr, lo) && PTR_LT(ptr, hi))
 
 /* Define  min and max, but make sure to use the identical definition */
 /* to the one that all the compilers seem to have.... */
 #ifndef min
-#  define min(a, b) (((a) < (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 #ifndef max
-#  define max(a, b) (((a) > (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 /* Define a standard way to round values to a (constant) modulus. */
-#define ROUND_DOWN(value, modulus)\
-  ( (modulus) & ((modulus) - 1) ?	/* not a power of 2 */\
-    (value) - (value) % (modulus) :\
-    (value) & -(modulus) )
-#define ROUND_UP(value, modulus)\
-  ( (modulus) & ((modulus) - 1) ?	/* not a power of 2 */\
-    ((value) + ((modulus) - 1)) / (modulus) * (modulus) :\
-    ((value) + ((modulus) - 1)) & -(modulus) )
+#define ROUND_DOWN(value, modulus)                          \
+	((modulus) & ((modulus)-1) ? /* not a power of 2 */ \
+	     (value) - (value) % (modulus)                  \
+				   : (value) & -(modulus))
+#define ROUND_UP(value, modulus)                               \
+	((modulus) & ((modulus)-1) ? /* not a power of 2 */    \
+	     ((value) + ((modulus)-1)) / (modulus) * (modulus) \
+				   : ((value) + ((modulus)-1)) & -(modulus))
 /* Backward compatibility */
 #define round_up(v, m) ROUND_UP(v, m)
 #define round_down(v, m) ROUND_DOWN(v, m)
@@ -435,15 +435,17 @@ typedef double floatp;
  *        ...statements...
  *      END
  */
-#define BEGIN	do {
-#define END	} while (0)
+#define BEGIN do {
+#define END \
+	}   \
+	while(0)
 
 /*
  * Define a handy macro for a statement that does nothing.
  * We can't just use an empty statement, since this upsets some compilers.
  */
 #ifndef DO_NOTHING
-#  define DO_NOTHING BEGIN END
+#define DO_NOTHING BEGIN END
 #endif
 
 /*
@@ -459,16 +461,16 @@ typedef const char *client_name_t;
  * If we are debugging, make all static variables and procedures public
  * so they get passed through the linker.
  */
-#define public			/* */
+#define public /* */
 /*
  * We separate out the definition of private this way so that
  * we can temporarily #undef it to handle the X Windows headers,
  * which define a member named private.
  */
 #ifdef NOPRIVATE
-# define private_		/* */
+#define private_ /* */
 #else
-# define private_ static
+#define private_ static
 #endif
 #define private private_
 
@@ -478,7 +480,7 @@ typedef const char *client_name_t;
  * jconfig.h is constructed.
  */
 #ifndef stdpn_INCLUDED
-#  define stdpn_INCLUDED
+#define stdpn_INCLUDED
 #include "stdpn.h"
 #endif /* stdpn_INCLUDED */
 
@@ -492,15 +494,15 @@ typedef const char *client_name_t;
  */
 /*#define OLD_VMS_C*/
 #if defined(VMS)
-#  define exit_FAILED 18
-#  if (defined(OLD_VMS_C) || !defined(__DECC))
-#    define exit_OK 1
-#  else
-#    define exit_OK 0
-#  endif
+#define exit_FAILED 18
+#if(defined(OLD_VMS_C) || !defined(__DECC))
+#define exit_OK 1
 #else
-#  define exit_OK 0
-#  define exit_FAILED 1
+#define exit_OK 0
+#endif
+#else
+#define exit_OK 0
+#define exit_FAILED 1
 #endif
 
 #endif /* stdpre_INCLUDED */
@@ -524,7 +526,7 @@ typedef const char *client_name_t;
 /* jconfig.h file for Independent JPEG Group code */
 
 #ifndef gsjconf_INCLUDED
-#  define gsjconf_INCLUDED
+#define gsjconf_INCLUDED
 
 /*
  * We should have the following here:
@@ -541,20 +543,20 @@ typedef const char *client_name_t;
 /* See IJG's jconfig.doc for the contents of this file. */
 
 #ifdef __PROTOTYPES__
-#  define HAVE_PROTOTYPES
+#define HAVE_PROTOTYPES
 #endif
 
 #define HAVE_UNSIGNED_CHAR
 #define HAVE_UNSIGNED_SHORT
 #undef CHAR_IS_UNSIGNED
 
-#ifdef __STDC__			/* is this right? */
-#  define HAVE_STDDEF_H
-#  define HAVE_STDLIB_H
+#ifdef __STDC__ /* is this right? */
+#define HAVE_STDDEF_H
+#define HAVE_STDLIB_H
 #endif
 
-#undef NEED_BSD_STRINGS		/* WRONG */
-#undef NEED_SYS_TYPES_H		/* WRONG */
+#undef NEED_BSD_STRINGS /* WRONG */
+#undef NEED_SYS_TYPES_H /* WRONG */
 #undef NEED_FAR_POINTERS
 #undef NEED_SHORT_EXTERNAL_NAMES
 
@@ -562,19 +564,18 @@ typedef const char *client_name_t;
 
 /* The following is documented in jmemsys.h, not jconfig.doc. */
 #if ARCH_SIZEOF_INT <= 2
-#  undef MAX_ALLOC_CHUNK
-#  define MAX_ALLOC_CHUNK 0xfff0
+#undef MAX_ALLOC_CHUNK
+#define MAX_ALLOC_CHUNK 0xfff0
 #endif
 
 #ifdef JPEG_INTERNALS
 
 #if ARCH_ARITH_RSHIFT == 0
-#  define RIGHT_SHIFT_IS_UNSIGNED
+#define RIGHT_SHIFT_IS_UNSIGNED
 #else
-#  undef RIGHT_SHIFT_IS_UNSIGNED
+#undef RIGHT_SHIFT_IS_UNSIGNED
 #endif
 
 #endif /* JPEG_INTERNALS */
 
 #endif /* gsjconf_INCLUDED */
-

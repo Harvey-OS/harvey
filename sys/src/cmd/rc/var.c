@@ -19,17 +19,17 @@ hash(char *as, int n)
 	uint8_t *s;
 
 	s = (uint8_t *)as;
-	while (*s)
+	while(*s)
 		h += *s++ * i++;
 	return h % n;
 }
 
-#define	NKW	30
-struct kw{
+#define NKW 30
+struct kw {
 	char *name;
 	int type;
 	struct kw *next;
-}*kw[NKW];
+} * kw[NKW];
 
 void
 kenter(int type, char *name)
@@ -57,13 +57,13 @@ kinit(void)
 	kenter(FN, "fn");
 }
 
-tree*
+tree *
 klook(char *name)
 {
 	struct kw *p;
 	tree *t = token(name, WORD);
-	for(p = kw[hash(name, NKW)];p;p = p->next)
-		if(strcmp(p->name, name)==0){
+	for(p = kw[hash(name, NKW)]; p; p = p->next)
+		if(strcmp(p->name, name) == 0) {
 			t->type = p->type;
 			t->iskw = 1;
 			break;
@@ -71,22 +71,25 @@ klook(char *name)
 	return t;
 }
 
-var*
+var *
 gvlook(char *name)
 {
 	int h = hash(name, NVAR);
 	var *v;
-	for(v = gvar[h];v;v = v->next) if(strcmp(v->name, name)==0) return v;
+	for(v = gvar[h]; v; v = v->next)
+		if(strcmp(v->name, name) == 0)
+			return v;
 	return gvar[h] = newvar(strdup(name), gvar[h]);
 }
 
-var*
+var *
 vlook(char *name)
 {
 	var *v;
 	if(runq)
-		for(v = runq->local;v;v = v->next)
-			if(strcmp(v->name, name)==0) return v;
+		for(v = runq->local; v; v = v->next)
+			if(strcmp(v->name, name) == 0)
+				return v;
 	return gvlook(name);
 }
 

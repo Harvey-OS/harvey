@@ -32,14 +32,14 @@ struct Edit {
 	Part *part[Maxpart];
 	int npart;
 
-	char *(*add)(Edit*, char*, int64_t, int64_t);
-	char *(*del)(Edit*, Part*);
-	char *(*ext)(Edit*, int, char**);
-	char *(*help)(Edit*);
-	char *(*okname)(Edit*, char*);
-	void (*sum)(Edit*, Part*, int64_t, int64_t);
-	char *(*write)(Edit*);
-	void (*printctl)(Edit*, int);
+	char *(*add)(Edit *, char *, int64_t, int64_t);
+	char *(*del)(Edit *, Part *);
+	char *(*ext)(Edit *, int, char **);
+	char *(*help)(Edit *);
+	char *(*okname)(Edit *, char *);
+	void (*sum)(Edit *, Part *, int64_t, int64_t);
+	char *(*write)(Edit *);
+	void (*printctl)(Edit *, int);
 
 	char *unit;
 	void *aux;
@@ -52,12 +52,12 @@ struct Edit {
 	int lastcmd;
 };
 
-char	*getline(Edit*);
-void	runcmd(Edit*, char*);
-Part	*findpart(Edit*, char*);
-char	*addpart(Edit*, Part*);
-char	*delpart(Edit*, Part*);
+char *getline(Edit *);
+void runcmd(Edit *, char *);
+Part *findpart(Edit *, char *);
+char *addpart(Edit *, Part *);
+char *delpart(Edit *, Part *);
 char *parseexpr(char *s, int64_t xdot, int64_t xdollar, int64_t xsize, int64_t *result);
-int	ctldiff(Edit *edit, int ctlfd);
+int ctldiff(Edit *edit, int ctlfd);
 void *emalloc(uint32_t);
-char *estrdup(char*);
+char *estrdup(char *);

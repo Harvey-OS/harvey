@@ -34,7 +34,8 @@ main(int argc, char **argv)
 	rfork(RFNAMEG);
 
 	t = Tpage;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
 	case 'd':
@@ -51,12 +52,13 @@ main(int argc, char **argv)
 		break;
 	case 'P':
 		parse = 1;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
 
-	if(t == Thistory || t==Tdiff)
+	if(t == Thistory || t == Tdiff)
 		doc = gethistory(atoi(argv[0]));
 	else
 		doc = getcurrent(atoi(argv[0]));
@@ -64,11 +66,11 @@ main(int argc, char **argv)
 	if(doc == nil)
 		sysfatal("doc: %r");
 
-	if(parse){
+	if(parse) {
 		printpage(doc->doc->wtxt);
 		exits(0);
 	}
-	if((h = tohtml(doc, doc->doc+doc->ndoc-1, t)) == nil)
+	if((h = tohtml(doc, doc->doc + doc->ndoc - 1, t)) == nil)
 		sysfatal("wiki2html: %r");
 
 	write(1, s_to_c(h), s_len(h));

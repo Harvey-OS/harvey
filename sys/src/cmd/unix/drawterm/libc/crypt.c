@@ -39,7 +39,7 @@ encrypt(void *key, void *vbuf, int n)
 	n--;
 	r = n % 7;
 	n /= 7;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		block_cipher(ekey, buf, 0);
 		buf += 7;
 	}
@@ -69,7 +69,7 @@ decrypt(void *key, void *vbuf, int n)
 	buf += n * 7;
 	if(r)
 		block_cipher(ekey, buf - 7 + r, 1);
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		buf -= 7;
 		block_cipher(ekey, buf, 1);
 	}

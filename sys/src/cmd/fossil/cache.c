@@ -12,7 +12,7 @@
 #include "fns.h"
 #include "error.h"
 
-#include "9.h"	/* for cacheFlush */
+#include "9.h" /* for cacheFlush */
 
 typedef struct FreeList FreeList;
 typedef struct BAddr BAddr;
@@ -28,36 +28,35 @@ enum {
  * that the block fits within psize or dsize as the case may be.
  */
 
-struct Cache
-{
-	VtLock	*lk;
-	int 	ref;
-	int	mode;
+struct Cache {
+	VtLock *lk;
+	int ref;
+	int mode;
 
-	Disk 	*disk;
-	int	size;			/* block size */
-	int	ndmap;		/* size of per-block dirty pointer map used in blockWrite */
+	Disk *disk;
+	int size;  /* block size */
+	int ndmap; /* size of per-block dirty pointer map used in blockWrite */
 	VtSession *z;
-	uint32_t	now;			/* ticks for usage timestamps */
-	Block	**heads;		/* hash table for finding address */
-	int	nheap;			/* number of available victims */
-	Block	**heap;			/* heap for locating victims */
-	int32_t	nblocks;		/* number of blocks allocated */
-	Block	*blocks;		/* array of block descriptors */
-	uint8_t	*mem;			/* memory for all block data & blists */
+	uint32_t now;    /* ticks for usage timestamps */
+	Block **heads;   /* hash table for finding address */
+	int nheap;       /* number of available victims */
+	Block **heap;    /* heap for locating victims */
+	int32_t nblocks; /* number of blocks allocated */
+	Block *blocks;   /* array of block descriptors */
+	uint8_t *mem;    /* memory for all block data & blists */
 
-	BList	*blfree;
+	BList *blfree;
 	VtRendez *blrend;
 
-	int 	ndirty;			/* number of dirty blocks in the cache */
-	int 	maxdirty;		/* max number of dirty blocks */
-	uint32_t	vers;
+	int ndirty;   /* number of dirty blocks in the cache */
+	int maxdirty; /* max number of dirty blocks */
+	uint32_t vers;
 
 	int32_t hashSize;
 
 	FreeList *fl;
 
-	VtRendez *die;			/* daemon threads should die when != nil */
+	VtRendez *die; /* daemon threads should die when != nil */
 
 	VtRendez *flush;
 	VtRendez *flushwait;
@@ -86,10 +85,10 @@ struct BList {
 	uint32_t epoch;
 	uint32_t vers;
 
-	int recurse;	/* for block unlink */
+	int recurse; /* for block unlink */
 
 	/* for roll back */
-	int index;			/* -1 indicates not valid */
+	int index; /* -1 indicates not valid */
 	union {
 		uint8_t score[VtScoreSize];
 		uint8_t entry[VtEntrySize];
@@ -105,48 +104,48 @@ struct BAddr {
 
 struct FreeList {
 	VtLock *lk;
-	uint32_t last;		/* last block allocated */
-	uint32_t end;		/* end of data partition */
-	uint32_t nused;		/* number of used blocks */
-	uint32_t epochLow;	/* low epoch when last updated nused */
+	uint32_t last;     /* last block allocated */
+	uint32_t end;      /* end of data partition */
+	uint32_t nused;    /* number of used blocks */
+	uint32_t epochLow; /* low epoch when last updated nused */
 };
 
 static FreeList *flAlloc(uint32_t end);
 static void flFree(FreeList *fl);
 
 static Block *cacheBumpBlock(Cache *c);
-static void heapDel(Block*);
-static void heapIns(Block*);
-static void cacheCheck(Cache*);
+static void heapDel(Block *);
+static void heapIns(Block *);
+static void cacheCheck(Cache *);
 static void unlinkThread(void *a);
 static void flushThread(void *a);
 static void unlinkBody(Cache *c);
 static int cacheFlushBlock(Cache *c);
-static void cacheSync(void*);
-static BList *blistAlloc(Block*);
-static void blistFree(Cache*, BList*);
-static void doRemoveLink(Cache*, BList*);
+static void cacheSync(void *);
+static BList *blistAlloc(Block *);
+static void blistFree(Cache *, BList *);
+static void doRemoveLink(Cache *, BList *);
 
 /*
  * Mapping from local block type to Venti type
  */
 int vtType[BtMax] = {
-	VtDataType,		/* BtData | 0  */
-	VtPointerType0,		/* BtData | 1  */
-	VtPointerType1,		/* BtData | 2  */
-	VtPointerType2,		/* BtData | 3  */
-	VtPointerType3,		/* BtData | 4  */
-	VtPointerType4,		/* BtData | 5  */
-	VtPointerType5,		/* BtData | 6  */
-	VtPointerType6,		/* BtData | 7  */
-	VtDirType,		/* BtDir | 0  */
-	VtPointerType0,		/* BtDir | 1  */
-	VtPointerType1,		/* BtDir | 2  */
-	VtPointerType2,		/* BtDir | 3  */
-	VtPointerType3,		/* BtDir | 4  */
-	VtPointerType4,		/* BtDir | 5  */
-	VtPointerType5,		/* BtDir | 6  */
-	VtPointerType6,		/* BtDir | 7  */
+    VtDataType,     /* BtData | 0  */
+    VtPointerType0, /* BtData | 1  */
+    VtPointerType1, /* BtData | 2  */
+    VtPointerType2, /* BtData | 3  */
+    VtPointerType3, /* BtData | 4  */
+    VtPointerType4, /* BtData | 5  */
+    VtPointerType5, /* BtData | 6  */
+    VtPointerType6, /* BtData | 7  */
+    VtDirType,      /* BtDir | 0  */
+    VtPointerType0, /* BtDir | 1  */
+    VtPointerType1, /* BtDir | 2  */
+    VtPointerType2, /* BtDir | 3  */
+    VtPointerType3, /* BtDir | 4  */
+    VtPointerType4, /* BtDir | 5  */
+    VtPointerType5, /* BtDir | 6  */
+    VtPointerType6, /* BtDir | 7  */
 };
 
 /*
@@ -172,21 +171,21 @@ cacheAlloc(Disk *disk, VtSession *z, uint32_t nblocks, int mode)
 	c->disk = disk;
 	c->z = z;
 	c->size = diskBlockSize(disk);
-bwatchSetBlockSize(c->size);
+	bwatchSetBlockSize(c->size);
 	/* round c->size up to be a nice multiple */
 	c->size = (c->size + 127) & ~127;
-	c->ndmap = (c->size/20 + 7) / 8;
+	c->ndmap = (c->size / 20 + 7) / 8;
 	c->nblocks = nblocks;
 	c->hashSize = nblocks;
-	c->heads = vtMemAllocZ(c->hashSize*sizeof(Block*));
-	c->heap = vtMemAllocZ(nblocks*sizeof(Block*));
-	c->blocks = vtMemAllocZ(nblocks*sizeof(Block));
+	c->heads = vtMemAllocZ(c->hashSize * sizeof(Block *));
+	c->heap = vtMemAllocZ(nblocks * sizeof(Block *));
+	c->blocks = vtMemAllocZ(nblocks * sizeof(Block));
 	c->mem = vtMemAllocZ(nblocks * (c->size + c->ndmap) + nbl * sizeof(BList));
 	c->baddr = vtMemAllocZ(nblocks * sizeof(BAddr));
 	c->mode = mode;
 	c->vers++;
 	p = c->mem;
-	for(i = 0; i < nblocks; i++){
+	for(i = 0; i < nblocks; i++) {
 		b = &c->blocks[i];
 		b->lk = vtLockAlloc();
 		b->c = c;
@@ -197,14 +196,14 @@ bwatchSetBlockSize(c->size);
 		p += c->size;
 	}
 	c->nheap = nblocks;
-	for(i = 0; i < nbl; i++){
-		bl = (BList*)p;
+	for(i = 0; i < nbl; i++) {
+		bl = (BList *)p;
 		bl->next = c->blfree;
 		c->blfree = bl;
 		p += sizeof(BList);
 	}
 	/* separate loop to keep blocks and blists reasonably aligned */
-	for(i = 0; i < nblocks; i++){
+	for(i = 0; i < nblocks; i++) {
 		b = &c->blocks[i];
 		b->dmap = p;
 		p += c->ndmap;
@@ -212,7 +211,7 @@ bwatchSetBlockSize(c->size);
 
 	c->blrend = vtRendezAlloc(c->lk);
 
-	c->maxdirty = nblocks*(DirtyPercentage*0.01);
+	c->maxdirty = nblocks * (DirtyPercentage * 0.01);
 
 	c->fl = flAlloc(diskSize(disk, PartData));
 
@@ -220,9 +219,9 @@ bwatchSetBlockSize(c->size);
 	c->flush = vtRendezAlloc(c->lk);
 	c->flushwait = vtRendezAlloc(c->lk);
 	c->heapwait = vtRendezAlloc(c->lk);
-	c->sync = periodicAlloc(cacheSync, c, 30*1000);
+	c->sync = periodicAlloc(cacheSync, c, 30 * 1000);
 
-	if(mode == OReadWrite){
+	if(mode == OReadWrite) {
 		c->ref += 2;
 		vtThread(unlinkThread, c);
 		vtThread(flushThread, c);
@@ -262,7 +261,7 @@ cacheFree(Cache *c)
 
 	cacheCheck(c);
 
-	for(i = 0; i < c->nblocks; i++){
+	for(i = 0; i < c->nblocks; i++) {
 		assert(c->blocks[i].ref == 0);
 		vtRendezFree(c->blocks[i].ioready);
 		vtLockFree(c->blocks[i].lk);
@@ -285,11 +284,11 @@ cacheDump(Cache *c)
 	int i;
 	Block *b;
 
-	for(i = 0; i < c->nblocks; i++){
+	for(i = 0; i < c->nblocks; i++) {
 		b = &c->blocks[i];
 		fprint(2, "%d. p=%d a=%ud %V t=%d ref=%d state=%s io=%s pc=%#p\n",
-			i, b->part, b->addr, b->score, b->l.type, b->ref,
-			bsStr(b->l.state), bioStr(b->iostate), b->pc);
+		       i, b->part, b->addr, b->score, b->l.type, b->ref,
+		       bsStr(b->l.state), bioStr(b->iostate), b->pc);
 	}
 }
 
@@ -304,7 +303,7 @@ cacheCheck(Cache *c)
 	size = c->size;
 	now = c->now;
 
-	for(i = 0; i < c->nheap; i++){
+	for(i = 0; i < c->nheap; i++) {
 		if(c->heap[i]->heap != i)
 			vtFatal("mis-heaped at %d: %d", i, c->heap[i]->heap);
 		if(i > 0 && c->heap[(i - 1) >> 1]->used - now > c->heap[i]->used - now)
@@ -318,30 +317,31 @@ cacheCheck(Cache *c)
 	}
 
 	refed = 0;
-	for(i = 0; i < c->nblocks; i++){
+	for(i = 0; i < c->nblocks; i++) {
 		b = &c->blocks[i];
 		if(b->data != &c->mem[i * size])
 			vtFatal("mis-blocked at %d", i);
-		if(b->ref && b->heap == BadHeap){
+		if(b->ref && b->heap == BadHeap) {
 			refed++;
 		}
 	}
-if(c->nheap + refed != c->nblocks){
-fprint(2, "%s: cacheCheck: nheap %d refed %d nblocks %ld\n", argv0, c->nheap, refed, c->nblocks);
-cacheDump(c);
-}
+	if(c->nheap + refed != c->nblocks) {
+		fprint(2, "%s: cacheCheck: nheap %d refed %d nblocks %ld\n", argv0, c->nheap, refed, c->nblocks);
+		cacheDump(c);
+	}
 	assert(c->nheap + refed == c->nblocks);
 	refed = 0;
-	for(i = 0; i < c->nblocks; i++){
+	for(i = 0; i < c->nblocks; i++) {
 		b = &c->blocks[i];
-		if(b->ref){
-if(1)fprint(2, "%s: p=%d a=%ud %V ref=%d %L\n", argv0, b->part, b->addr, b->score, b->ref, &b->l);
+		if(b->ref) {
+			if(1)
+				fprint(2, "%s: p=%d a=%ud %V ref=%d %L\n", argv0, b->part, b->addr, b->score, b->ref, &b->l);
 			refed++;
 		}
 	}
-if(refed > 0)fprint(2, "%s: cacheCheck: in used %d\n", argv0, refed);
+	if(refed > 0)
+		fprint(2, "%s: cacheCheck: in used %d\n", argv0, refed);
 }
-
 
 /*
  * locate the block with the oldest second to last use.
@@ -359,20 +359,20 @@ cacheBumpBlock(Cache *c)
 	 * remove it from the heap, and fix up the heap.
 	 */
 	printed = 0;
-	if(c->nheap == 0){
-		while(c->nheap == 0){
+	if(c->nheap == 0) {
+		while(c->nheap == 0) {
 			vtWakeup(c->flush);
 			vtSleep(c->heapwait);
-			if(c->nheap == 0){
+			if(c->nheap == 0) {
 				printed = 1;
 				fprint(2, "%s: entire cache is busy, %d dirty "
-					"-- waking flush thread\n",
-					argv0, c->ndirty);
+					  "-- waking flush thread\n",
+				       argv0, c->ndirty);
 			}
 		}
 		if(printed)
 			fprint(2, "%s: cache is okay again, %d dirty\n",
-				argv0, c->ndirty);
+			       argv0, c->ndirty);
 	}
 
 	b = c->heap[0];
@@ -387,15 +387,15 @@ cacheBumpBlock(Cache *c)
 	/*
 	 * unchain the block from hash chain
 	 */
-	if(b->prev){
+	if(b->prev) {
 		*(b->prev) = b->next;
 		if(b->next)
 			b->next->prev = b->prev;
 		b->prev = nil;
 	}
 
-
-if(0)fprint(2, "%s: dropping %d:%x:%V\n", argv0, b->part, b->addr, b->score);
+	if(0)
+		fprint(2, "%s: dropping %d:%x:%V\n", argv0, b->part, b->addr, b->score);
 	/* set block to a reasonable state */
 	b->ref = 1;
 	b->part = PartError;
@@ -410,7 +410,7 @@ if(0)fprint(2, "%s: dropping %d:%x:%V\n", argv0, b->part, b->addr, b->score);
  */
 static Block *
 _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
-	int waitlock, int *lockfailure)
+		  int waitlock, int *lockfailure)
 {
 	Block *b;
 	uint32_t h;
@@ -424,15 +424,15 @@ _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
 	 * look for the block in the cache
 	 */
 	vtLock(c->lk);
-	for(b = c->heads[h]; b != nil; b = b->next){
+	for(b = c->heads[h]; b != nil; b = b->next) {
 		if(b->part == part && b->addr == addr)
 			break;
 	}
-	if(b == nil || b->vers != vers){
+	if(b == nil || b->vers != vers) {
 		vtUnlock(c->lk);
 		return nil;
 	}
-	if(!waitlock && !vtCanLock(b->lk)){
+	if(!waitlock && !vtCanLock(b->lk)) {
 		*lockfailure = 1;
 		vtUnlock(c->lk);
 		return nil;
@@ -446,15 +446,15 @@ _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
 		vtLock(b->lk);
 	b->nlock = 1;
 
-	for(;;){
-		switch(b->iostate){
+	for(;;) {
+		switch(b->iostate) {
 		default:
 			abort();
 		case BioEmpty:
 		case BioLabel:
 		case BioClean:
 		case BioDirty:
-			if(b->vers != vers){
+			if(b->vers != vers) {
 				blockPut(b);
 				return nil;
 			}
@@ -475,12 +475,11 @@ _cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers,
 	}
 	/* NOT REACHED */
 }
-static Block*
+static Block *
 cacheLocalLookup(Cache *c, int part, uint32_t addr, uint32_t vers)
 {
 	return _cacheLocalLookup(c, part, addr, vers, Waitlock, 0);
 }
-
 
 /*
  * fetch a local (on-disk) block from the memory cache.
@@ -500,11 +499,11 @@ _cacheLocal(Cache *c, int part, uint32_t addr, int mode, uint32_t epoch)
 	 * look for the block in the cache
 	 */
 	vtLock(c->lk);
-	for(b = c->heads[h]; b != nil; b = b->next){
+	for(b = c->heads[h]; b != nil; b = b->next) {
 		if(b->part != part || b->addr != addr)
 			continue;
-		if(epoch && b->l.epoch != epoch){
-fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
+		if(epoch && b->l.epoch != epoch) {
+			fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 			vtUnlock(c->lk);
 			vtSetError(ELabelMismatch);
 			return nil;
@@ -514,7 +513,7 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 		break;
 	}
 
-	if(b == nil){
+	if(b == nil) {
 		b = cacheBumpBlock(c);
 
 		b->part = part;
@@ -541,28 +540,29 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 	 * For now, I'm not going to worry about it.
 	 */
 
-if(0)fprint(2, "%s: cacheLocal: %d: %d %x\n", argv0, getpid(), b->part, b->addr);
+	if(0)
+		fprint(2, "%s: cacheLocal: %d: %d %x\n", argv0, getpid(), b->part, b->addr);
 	bwatchLock(b);
 	vtLock(b->lk);
 	b->nlock = 1;
 
-	if(part == PartData && b->iostate == BioEmpty){
-		if(!readLabel(c, &b->l, addr)){
+	if(part == PartData && b->iostate == BioEmpty) {
+		if(!readLabel(c, &b->l, addr)) {
 			blockPut(b);
 			return nil;
 		}
 		blockSetIOState(b, BioLabel);
 	}
-	if(epoch && b->l.epoch != epoch){
+	if(epoch && b->l.epoch != epoch) {
 		blockPut(b);
-fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
+		fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 		vtSetError(ELabelMismatch);
 		return nil;
 	}
 
 	b->pc = getcallerpc(&c);
-	for(;;){
-		switch(b->iostate){
+	for(;;) {
+		switch(b->iostate) {
 		default:
 			abort();
 		case BioLabel:
@@ -572,7 +572,7 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 				 * hasn't been read.
 				 */
 				return b;
-			/* fall through */
+		/* fall through */
 		case BioEmpty:
 			diskRead(c->disk, b);
 			vtSleep(b->ioready);
@@ -614,9 +614,9 @@ cacheLocalData(Cache *c, uint32_t addr, int type, uint32_t tag, int mode,
 	b = _cacheLocal(c, PartData, addr, mode, epoch);
 	if(b == nil)
 		return nil;
-	if(b->l.type != type || b->l.tag != tag){
+	if(b->l.type != type || b->l.tag != tag) {
 		fprint(2, "%s: cacheLocalData: addr=%d type got %d exp %d: tag got %ux exp %ux\n",
-			argv0, addr, b->l.type, type, b->l.tag, tag);
+		       argv0, addr, b->l.type, type, b->l.tag, tag);
 		vtSetError(ELabelMismatch);
 		blockPut(b);
 		return nil;
@@ -640,20 +640,20 @@ cacheGlobal(Cache *c, uint8_t score[VtScoreSize], int type, uint32_t tag,
 	uint32_t addr;
 
 	addr = globalToLocal(score);
-	if(addr != NilBlock){
+	if(addr != NilBlock) {
 		b = cacheLocalData(c, addr, type, tag, mode, 0);
 		if(b)
 			b->pc = getcallerpc(&c);
 		return b;
 	}
 
-	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->hashSize;
+	h = (uint32_t)(score[0] | (score[1] << 8) | (score[2] << 16) | (score[3] << 24)) % c->hashSize;
 
 	/*
 	 * look for the block in the cache
 	 */
 	vtLock(c->lk);
-	for(b = c->heads[h]; b != nil; b = b->next){
+	for(b = c->heads[h]; b != nil; b = b->next) {
 		if(b->part != PartVenti || memcmp(b->score, score, VtScoreSize) != 0 || b->l.type != type)
 			continue;
 		heapDel(b);
@@ -661,8 +661,9 @@ cacheGlobal(Cache *c, uint8_t score[VtScoreSize], int type, uint32_t tag,
 		break;
 	}
 
-	if(b == nil){
-if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
+	if(b == nil) {
+		if(0)
+			fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 
 		b = cacheBumpBlock(c);
 
@@ -685,17 +686,17 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 	b->nlock = 1;
 	b->pc = getcallerpc(&c);
 
-	switch(b->iostate){
+	switch(b->iostate) {
 	default:
 		abort();
 	case BioEmpty:
 		n = vtRead(c->z, score, vtType[type], b->data, c->size);
-		if(n < 0 || !vtSha1Check(score, b->data, n)){
+		if(n < 0 || !vtSha1Check(score, b->data, n)) {
 			blockSetIOState(b, BioVentiError);
 			blockPut(b);
 			vtSetError(
-			"venti error reading block %V or wrong score: %r",
-				score);
+			    "venti error reading block %V or wrong score: %r",
+			    score);
 			return nil;
 		}
 		vtZeroExtend(vtType[type], b->data, n, c->size);
@@ -736,72 +737,74 @@ cacheAllocBlock(Cache *c, int type, uint32_t tag, uint32_t epoch,
 
 	vtLock(fl->lk);
 	addr = fl->last;
-	b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
-	if(b == nil){
+	b = cacheLocal(c, PartLabel, addr / n, OReadOnly);
+	if(b == nil) {
 		fprint(2, "%s: cacheAllocBlock: xxx %R\n", argv0);
 		vtUnlock(fl->lk);
 		return nil;
 	}
 	nwrap = 0;
-	for(;;){
-		if(++addr >= fl->end){
+	for(;;) {
+		if(++addr >= fl->end) {
 			addr = 0;
-			if(++nwrap >= 2){
+			if(++nwrap >= 2) {
 				blockPut(b);
 				vtSetError("disk is full");
 				/*
 				 * try to avoid a continuous spew of console
 				 * messages.
 				 */
-				if (fl->last != 0)
+				if(fl->last != 0)
 					fprint(2, "%s: cacheAllocBlock: xxx1 %R\n",
-						argv0);
+					       argv0);
 				fl->last = 0;
 				vtUnlock(fl->lk);
 				return nil;
 			}
 		}
-		if(addr%n == 0){
+		if(addr % n == 0) {
 			blockPut(b);
-			b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
-			if(b == nil){
+			b = cacheLocal(c, PartLabel, addr / n, OReadOnly);
+			if(b == nil) {
 				fl->last = addr;
 				fprint(2, "%s: cacheAllocBlock: xxx2 %R\n", argv0);
 				vtUnlock(fl->lk);
 				return nil;
 			}
 		}
-		if(!labelUnpack(&lab, b->data, addr%n))
+		if(!labelUnpack(&lab, b->data, addr % n))
 			continue;
 		if(lab.state == BsFree)
 			goto Found;
-		if(lab.state&BsClosed)
-		if(lab.epochClose <= epochLow || lab.epoch==lab.epochClose)
-			goto Found;
+		if(lab.state & BsClosed)
+			if(lab.epochClose <= epochLow || lab.epoch == lab.epochClose)
+				goto Found;
 	}
 Found:
 	blockPut(b);
 	b = cacheLocal(c, PartData, addr, OOverWrite);
-	if(b == nil){
+	if(b == nil) {
 		fprint(2, "%s: cacheAllocBlock: xxx3 %R\n", argv0);
 		return nil;
 	}
-assert(b->iostate == BioLabel || b->iostate == BioClean);
+	assert(b->iostate == BioLabel || b->iostate == BioClean);
 	fl->last = addr;
 	lab.type = type;
 	lab.tag = tag;
 	lab.state = BsAlloc;
 	lab.epoch = epoch;
 	lab.epochClose = ~(uint32_t)0;
-	if(!blockSetLabel(b, &lab, 1)){
+	if(!blockSetLabel(b, &lab, 1)) {
 		fprint(2, "%s: cacheAllocBlock: xxx4 %R\n", argv0);
 		blockPut(b);
 		return nil;
 	}
 	vtZeroExtend(vtType[type], b->data, 0, c->size);
-if(0)diskWrite(c->disk, b);
+	if(0)
+		diskWrite(c->disk, b);
 
-if(0)fprint(2, "%s: fsAlloc %ud type=%d tag = %ux\n", argv0, addr, type, tag);
+	if(0)
+		fprint(2, "%s: fsAlloc %ud type=%d tag = %ux\n", argv0, addr, type, tag);
 	lastAlloc = addr;
 	fl->nused++;
 	vtUnlock(fl->lk);
@@ -829,7 +832,7 @@ cacheCountUsed(Cache *c, uint32_t epochLow, uint32_t *used, uint32_t *total,
 	n = c->size / LabelSize;
 	*bsize = c->size;
 	vtLock(fl->lk);
-	if(fl->epochLow == epochLow){
+	if(fl->epochLow == epochLow) {
 		*used = fl->nused;
 		*total = fl->end;
 		vtUnlock(fl->lk);
@@ -837,27 +840,27 @@ cacheCountUsed(Cache *c, uint32_t epochLow, uint32_t *used, uint32_t *total,
 	}
 	b = nil;
 	nused = 0;
-	for(addr=0; addr<fl->end; addr++){
-		if(addr%n == 0){
+	for(addr = 0; addr < fl->end; addr++) {
+		if(addr % n == 0) {
 			blockPut(b);
-			b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
-			if(b == nil){
+			b = cacheLocal(c, PartLabel, addr / n, OReadOnly);
+			if(b == nil) {
 				fprint(2, "%s: flCountUsed: loading %ux: %R\n",
-					argv0, addr/n);
+				       argv0, addr / n);
 				break;
 			}
 		}
-		if(!labelUnpack(&lab, b->data, addr%n))
+		if(!labelUnpack(&lab, b->data, addr % n))
 			continue;
 		if(lab.state == BsFree)
 			continue;
-		if(lab.state&BsClosed)
-		if(lab.epochClose <= epochLow || lab.epoch==lab.epochClose)
-			continue;
+		if(lab.state & BsClosed)
+			if(lab.epochClose <= epochLow || lab.epoch == lab.epochClose)
+				continue;
 		nused++;
 	}
 	blockPut(b);
-	if(addr == fl->end){
+	if(addr == fl->end) {
 		fl->nused = nused;
 		fl->epochLow = epochLow;
 	}
@@ -910,14 +913,15 @@ blockDupLock(Block *b)
  * unlock it.  can't use it after calling this.
  */
 void
-blockPut(Block* b)
+blockPut(Block *b)
 {
 	Cache *c;
 
 	if(b == nil)
 		return;
 
-if(0)fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->addr, c->nheap, bioStr(b->iostate));
+	if(0)
+		fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->addr, c->nheap, bioStr(b->iostate));
 
 	if(b->iostate == BioDirty)
 		bwatchDependency(b);
@@ -934,20 +938,20 @@ if(0)fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->a
 	 */
 	assert(b->nlock == 0);
 	b->nlock = 1;
-//	b->pc = 0;
+	//	b->pc = 0;
 
 	bwatchUnlock(b);
 	vtUnlock(b->lk);
 	c = b->c;
 	vtLock(c->lk);
 
-	if(--b->ref > 0){
+	if(--b->ref > 0) {
 		vtUnlock(c->lk);
 		return;
 	}
 
 	assert(b->ref == 0);
-	switch(b->iostate){
+	switch(b->iostate) {
 	default:
 		b->used = c->now++;
 		heapIns(b);
@@ -969,7 +973,7 @@ if(0)fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->a
 /*
  * set the label associated with a block.
  */
-Block*
+Block *
 _blockSetLabel(Block *b, Label *l)
 {
 	int lpb;
@@ -984,12 +988,12 @@ _blockSetLabel(Block *b, Label *l)
 	lpb = c->size / LabelSize;
 	a = b->addr / lpb;
 	bb = cacheLocal(c, PartLabel, a, OReadWrite);
-	if(bb == nil){
+	if(bb == nil) {
 		blockPut(b);
 		return nil;
 	}
 	b->l = *l;
-	labelPack(l, bb->data, b->addr%lpb);
+	labelPack(l, bb->data, b->addr % lpb);
 	blockDirty(bb);
 	return bb;
 }
@@ -1057,9 +1061,9 @@ blockDependency(Block *b, Block *bb, int index, uint8_t *score, Entry *e)
 	if(index == -1 && bb->part == PartData)
 		assert(b->l.type == BtData);
 
-	if(bb->iostate != BioDirty){
+	if(bb->iostate != BioDirty) {
 		fprint(2, "%s: %d:%x:%d iostate is %d in blockDependency\n",
-			argv0, bb->part, bb->addr, bb->l.type, bb->iostate);
+		       argv0, bb->part, bb->addr, bb->l.type, bb->iostate);
 		abort();
 	}
 
@@ -1068,14 +1072,15 @@ blockDependency(Block *b, Block *bb, int index, uint8_t *score, Entry *e)
 		return;
 
 	assert(bb->iostate == BioDirty);
-if(0)fprint(2, "%s: %d:%x:%d depends on %d:%x:%d\n", argv0, b->part, b->addr, b->l.type, bb->part, bb->addr, bb->l.type);
+	if(0)
+		fprint(2, "%s: %d:%x:%d depends on %d:%x:%d\n", argv0, b->part, b->addr, b->l.type, bb->part, bb->addr, bb->l.type);
 
 	p->part = bb->part;
 	p->addr = bb->addr;
 	p->type = bb->l.type;
 	p->vers = bb->vers;
 	p->index = index;
-	if(p->index >= 0){
+	if(p->index >= 0) {
 		/*
 		 * This test would just be b->l.type==BtDir except
 		 * we need to exclude the super block.
@@ -1114,7 +1119,7 @@ blockDirty(Block *b)
 	vtLock(c->lk);
 	b->iostate = BioDirty;
 	c->ndirty++;
-	if(c->ndirty > (c->maxdirty>>1))
+	if(c->ndirty > (c->maxdirty >> 1))
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
 
@@ -1139,20 +1144,20 @@ blockRollback(Block *b, uint8_t *buf)
 		return b->data;
 
 	memmove(buf, b->data, b->c->size);
-	for(p=b->prior; p; p=p->next){
+	for(p = b->prior; p; p = p->next) {
 		/*
 		 * we know p->index >= 0 because blockWrite has vetted this block for us.
 		 */
 		assert(p->index >= 0);
 		assert(b->part == PartSuper || (b->part == PartData && b->l.type != BtData));
-		if(b->part == PartSuper){
+		if(b->part == PartSuper) {
 			assert(p->index == 0);
 			superUnpack(&super, buf);
 			addr = globalToLocal(p->old.score);
-			if(addr == NilBlock){
+			if(addr == NilBlock) {
 				fprint(2, "%s: rolling back super block: "
-					"bad replacement addr %V\n",
-					argv0, p->old.score);
+					  "bad replacement addr %V\n",
+				       argv0, p->old.score);
 				abort();
 			}
 			super.active = addr;
@@ -1160,9 +1165,9 @@ blockRollback(Block *b, uint8_t *buf)
 			continue;
 		}
 		if(b->l.type == BtDir)
-			memmove(buf+p->index*VtEntrySize, p->old.entry, VtEntrySize);
+			memmove(buf + p->index * VtEntrySize, p->old.entry, VtEntrySize);
 		else
-			memmove(buf+p->index*VtScoreSize, p->old.score, VtScoreSize);
+			memmove(buf + p->index * VtScoreSize, p->old.score, VtScoreSize);
 	}
 	return buf;
 }
@@ -1196,21 +1201,21 @@ blockWrite(Block *b, int waitlock)
 	dmap = b->dmap;
 	memset(dmap, 0, c->ndmap);
 	pp = &b->prior;
-	for(p=*pp; p; p=*pp){
-		if(p->index >= 0){
+	for(p = *pp; p; p = *pp) {
+		if(p->index >= 0) {
 			/* more recent dependency has succeeded; this one can go */
-			if(dmap[p->index/8] & (1<<(p->index%8)))
+			if(dmap[p->index / 8] & (1 << (p->index % 8)))
 				goto ignblock;
 		}
 
 		lockfail = 0;
 		bb = _cacheLocalLookup(c, p->part, p->addr, p->vers, waitlock,
-			&lockfail);
-		if(bb == nil){
+				       &lockfail);
+		if(bb == nil) {
 			if(lockfail)
 				return 0;
 			/* block not in cache => was written already */
-			dmap[p->index/8] |= 1<<(p->index%8);
+			dmap[p->index / 8] |= 1 << (p->index % 8);
 			goto ignblock;
 		}
 
@@ -1220,9 +1225,9 @@ blockWrite(Block *b, int waitlock)
 		 * the assertion is true because the block still has version p->vers,
 		 * which means it hasn't been written out since we last saw it.
 		 */
-		if(bb->iostate != BioDirty){
+		if(bb->iostate != BioDirty) {
 			fprint(2, "%s: %d:%x:%d iostate is %d in blockWrite\n",
-				argv0, bb->part, bb->addr, bb->l.type, bb->iostate);
+			       argv0, bb->part, bb->addr, bb->l.type, bb->iostate);
 			/* probably BioWriting if it happens? */
 			if(bb->iostate == BioClean)
 				goto ignblock;
@@ -1230,20 +1235,21 @@ blockWrite(Block *b, int waitlock)
 
 		blockPut(bb);
 
-		if(p->index < 0){
+		if(p->index < 0) {
 			/*
 			 * We don't know how to temporarily undo
 			 * b's dependency on bb, so just don't write b yet.
 			 */
-			if(0) fprint(2, "%s: blockWrite skipping %d %x %d %d; need to write %d %x %d\n",
-				argv0, b->part, b->addr, b->vers, b->l.type, p->part, p->addr, bb->vers);
+			if(0)
+				fprint(2, "%s: blockWrite skipping %d %x %d %d; need to write %d %x %d\n",
+				       argv0, b->part, b->addr, b->vers, b->l.type, p->part, p->addr, bb->vers);
 			return 0;
 		}
 		/* keep walking down the list */
 		pp = &p->next;
 		continue;
 
-ignblock:
+	ignblock:
 		*pp = p->next;
 		blistFree(c, p);
 		continue;
@@ -1270,12 +1276,13 @@ blockSetIOState(Block *b, int iostate)
 	Cache *c;
 	BList *p, *q;
 
-if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr, bioStr(b->iostate), bioStr(iostate));
+	if(0)
+		fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr, bioStr(b->iostate), bioStr(iostate));
 
 	c = b->c;
 
 	dowakeup = 0;
-	switch(iostate){
+	switch(iostate) {
 	default:
 		abort();
 	case BioEmpty:
@@ -1290,7 +1297,7 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 		 * If b->prior is set, it means a write just finished.
 		 * The prior list isn't needed anymore.
 		 */
-		for(p=b->prior; p; p=q){
+		for(p = b->prior; p; p = q) {
 			q = p->next;
 			blistFree(c, p);
 		}
@@ -1300,17 +1307,17 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 		 * Move the blocks from the per-block unlink
 		 * queue to the cache unlink queue.
 		 */
-		if(b->iostate == BioDirty || b->iostate == BioWriting){
+		if(b->iostate == BioDirty || b->iostate == BioWriting) {
 			vtLock(c->lk);
 			c->ndirty--;
-			b->iostate = iostate;	/* change here to keep in sync with ndirty */
+			b->iostate = iostate; /* change here to keep in sync with ndirty */
 			b->vers = c->vers++;
-			if(b->uhead){
+			if(b->uhead) {
 				/* add unlink blocks to unlink queue */
-				if(c->uhead == nil){
+				if(c->uhead == nil) {
 					c->uhead = b->uhead;
 					vtWakeup(c->unlink);
-				}else
+				} else
 					c->utail->next = b->uhead;
 				c->utail = b->utail;
 				b->uhead = nil;
@@ -1325,7 +1332,7 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 		 * Wrote out an old version of the block (see blockRollback).
 		 * Bump a version count, leave it dirty.
 		 */
-		if(b->iostate == BioWriting){
+		if(b->iostate == BioWriting) {
 			vtLock(c->lk);
 			b->vers = c->vers++;
 			vtUnlock(c->lk);
@@ -1402,18 +1409,18 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
  * set the BsCopied bit in the label and force that to disk *before*
  * the copy gets written out.
  */
-Block*
+Block *
 blockCopy(Block *b, uint32_t tag, uint32_t ehi, uint32_t elo)
 {
 	Block *bb, *lb;
 	Label l;
 
-	if((b->l.state&BsClosed) || b->l.epoch >= ehi)
+	if((b->l.state & BsClosed) || b->l.epoch >= ehi)
 		fprint(2, "%s: blockCopy %#ux %L but fs is [%ud,%ud]\n",
-			argv0, b->addr, &b->l, elo, ehi);
+		       argv0, b->addr, &b->l, elo, ehi);
 
 	bb = cacheAllocBlock(b->c, b->l.type, tag, ehi, elo);
-	if(bb == nil){
+	if(bb == nil) {
 		blockPut(b);
 		return nil;
 	}
@@ -1424,26 +1431,26 @@ blockCopy(Block *b, uint32_t tag, uint32_t ehi, uint32_t elo)
 	 * the tree.)  This must follow cacheAllocBlock since we
 	 * can't be holding onto lb when we call cacheAllocBlock.
 	 */
-	if((b->l.state&BsCopied)==0)
-	if(b->part == PartData){	/* not the superblock */
-		l = b->l;
-		l.state |= BsCopied;
-		lb = _blockSetLabel(b, &l);
-		if(lb == nil){
-			/* can't set label => can't copy block */
-			blockPut(b);
-			l.type = BtMax;
-			l.state = BsFree;
-			l.epoch = 0;
-			l.epochClose = 0;
-			l.tag = 0;
-			blockSetLabel(bb, &l, 0);
-			blockPut(bb);
-			return nil;
+	if((b->l.state & BsCopied) == 0)
+		if(b->part == PartData) { /* not the superblock */
+			l = b->l;
+			l.state |= BsCopied;
+			lb = _blockSetLabel(b, &l);
+			if(lb == nil) {
+				/* can't set label => can't copy block */
+				blockPut(b);
+				l.type = BtMax;
+				l.state = BsFree;
+				l.epoch = 0;
+				l.epochClose = 0;
+				l.tag = 0;
+				blockSetLabel(bb, &l, 0);
+				blockPut(bb);
+				return nil;
+			}
+			blockDependency(bb, lb, -1, nil, nil);
+			blockPut(lb);
 		}
-		blockDependency(bb, lb, -1, nil, nil);
-		blockPut(lb);
-	}
 
 	memmove(bb->data, b->data, b->c->size);
 	blockDirty(bb);
@@ -1466,13 +1473,13 @@ blockRemoveLink(Block *b, uint32_t addr, int type, uint32_t tag,
 		int recurse)
 {
 	BList *p, **pp, bl;
-	
+
 	/* remove bb from prior list */
-	for(pp=&b->prior; (p=*pp)!=nil; ){
-		if(p->part == PartData && p->addr == addr){
+	for(pp = &b->prior; (p = *pp) != nil;) {
+		if(p->part == PartData && p->addr == addr) {
 			*pp = p->next;
 			blistFree(b->c, p);
-		}else
+		} else
 			pp = &p->next;
 	}
 
@@ -1490,7 +1497,7 @@ blockRemoveLink(Block *b, uint32_t addr, int type, uint32_t tag,
 		p = nil;
 	else
 		p = blistAlloc(b);
-	if(p == nil){
+	if(p == nil) {
 		/*
 		 * b has already been written to disk.
 		 */
@@ -1536,23 +1543,23 @@ doRemoveLink(Cache *c, BList *p)
 	 * When we're unlinking from the superblock, close with the next epoch.
 	 */
 	if(p->epoch == 0)
-		p->epoch = b->l.epoch+1;
+		p->epoch = b->l.epoch + 1;
 
 	/* sanity check */
-	if(b->l.epoch > p->epoch){
+	if(b->l.epoch > p->epoch) {
 		fprint(2, "%s: doRemoveLink: strange epoch %ud > %ud\n",
-			argv0, b->l.epoch, p->epoch);
+		       argv0, b->l.epoch, p->epoch);
 		blockPut(b);
 		return;
 	}
 
-	if(recurse){
+	if(recurse) {
 		n = c->size / VtScoreSize;
-		for(i=0; i<n; i++){
-			a = globalToLocal(b->data + i*VtScoreSize);
+		for(i = 0; i < n; i++) {
+			a = globalToLocal(b->data + i * VtScoreSize);
 			if(a == NilBlock || !readLabel(c, &l, a))
 				continue;
-			if(l.state&BsClosed)
+			if(l.state & BsClosed)
 				continue;
 			/*
 			 * If stack space becomes an issue...
@@ -1573,9 +1580,9 @@ doRemoveLink(Cache *c, BList *p)
 			blockPut(b);
 			doRemoveLink(c, &bl);
 			b = cacheLocalData(c, p->addr, p->type, p->tag, OReadOnly, 0);
-			if(b == nil){
+			if(b == nil) {
 				fprint(2, "%s: warning: lost block in doRemoveLink\n",
-					argv0);
+				       argv0);
 				return;
 			}
 		}
@@ -1584,13 +1591,13 @@ doRemoveLink(Cache *c, BList *p)
 	l = b->l;
 	l.state |= BsClosed;
 	l.epochClose = p->epoch;
-	if(l.epochClose == l.epoch){
+	if(l.epochClose == l.epoch) {
 		vtLock(c->fl->lk);
 		if(l.epoch == c->fl->epochLow)
 			c->fl->nused--;
 		blockSetLabel(b, &l, 0);
 		vtUnlock(c->fl->lk);
-	}else
+	} else
 		blockSetLabel(b, &l, 0);
 	blockPut(b);
 }
@@ -1606,7 +1613,7 @@ blistAlloc(Block *b)
 	Cache *c;
 	BList *p;
 
-	if(b->iostate != BioDirty){
+	if(b->iostate != BioDirty) {
 		/*
 		 * should not happen anymore -
 	 	 * blockDirty used to flush but no longer does.
@@ -1618,13 +1625,13 @@ blistAlloc(Block *b)
 
 	c = b->c;
 	vtLock(c->lk);
-	if(c->blfree == nil){
+	if(c->blfree == nil) {
 		/*
 		 * No free BLists.  What are our options?
 		 */
-	
+
 		/* Block has no priors? Just write it. */
-		if(b->prior == nil){
+		if(b->prior == nil) {
 			vtUnlock(c->lk);
 			diskWriteAndWait(c->disk, b);
 			return nil;
@@ -1642,7 +1649,7 @@ blistAlloc(Block *b)
 		 * (The flush thread never blocks waiting for a block,
 		 * so it can't deadlock like we can.)
 		 */
-		while(c->blfree == nil){
+		while(c->blfree == nil) {
 			vtWakeup(c->flush);
 			vtSleep(c->blrend);
 			if(c->blfree == nil)
@@ -1666,7 +1673,7 @@ blistFree(Cache *c, BList *bl)
 	vtUnlock(c->lk);
 }
 
-char*
+char *
 bsStr(int state)
 {
 	static char s[100];
@@ -1677,13 +1684,13 @@ bsStr(int state)
 		return "Bad";
 
 	sprint(s, "%x", state);
-	if(!(state&BsAlloc))
-		strcat(s, ",Free");	/* should not happen */
-	if(state&BsCopied)
+	if(!(state & BsAlloc))
+		strcat(s, ",Free"); /* should not happen */
+	if(state & BsCopied)
 		strcat(s, ",Copied");
-	if(state&BsVenti)
+	if(state & BsVenti)
 		strcat(s, ",Venti");
-	if(state&BsClosed)
+	if(state & BsClosed)
 		strcat(s, ",Closed");
 	return s;
 }
@@ -1691,7 +1698,7 @@ bsStr(int state)
 char *
 bioStr(int iostate)
 {
-	switch(iostate){
+	switch(iostate) {
 	default:
 		return "Unknown!!";
 	case BioEmpty:
@@ -1716,25 +1723,25 @@ bioStr(int iostate)
 }
 
 static char *bttab[] = {
-	"BtData",
-	"BtData+1",
-	"BtData+2",
-	"BtData+3",
-	"BtData+4",
-	"BtData+5",
-	"BtData+6",
-	"BtData+7",
-	"BtDir",
-	"BtDir+1",
-	"BtDir+2",
-	"BtDir+3",
-	"BtDir+4",
-	"BtDir+5",
-	"BtDir+6",
-	"BtDir+7",
+    "BtData",
+    "BtData+1",
+    "BtData+2",
+    "BtData+3",
+    "BtData+4",
+    "BtData+5",
+    "BtData+6",
+    "BtData+7",
+    "BtDir",
+    "BtDir+1",
+    "BtDir+2",
+    "BtDir+3",
+    "BtDir+4",
+    "BtDir+5",
+    "BtDir+6",
+    "BtDir+7",
 };
 
-char*
+char *
 btStr(int type)
 {
 	if(type < nelem(bttab))
@@ -1747,9 +1754,9 @@ labelFmt(Fmt *f)
 {
 	Label *l;
 
-	l = va_arg(f->args, Label*);
+	l = va_arg(f->args, Label *);
 	return fmtprint(f, "%s,%s,e=%ud,%d,tag=%#ux",
-		btStr(l->type), bsStr(l->state), l->epoch, (int)l->epochClose, l->tag);
+			btStr(l->type), bsStr(l->state), l->epoch, (int)l->epochClose, l->tag);
 }
 
 int
@@ -1759,12 +1766,12 @@ scoreFmt(Fmt *f)
 	int i;
 	uint32_t addr;
 
-	v = va_arg(f->args, uint8_t*);
-	if(v == nil){
+	v = va_arg(f->args, uint8_t *);
+	if(v == nil) {
 		fmtprint(f, "*");
-	}else if((addr = globalToLocal(v)) != NilBlock)
+	} else if((addr = globalToLocal(v)) != NilBlock)
 		fmtprint(f, "0x%.8ux", addr);
-	else{
+	else {
 		for(i = 0; i < VtScoreSize; i++)
 			fmtprint(f, "%2.2ux", v[i]);
 	}
@@ -1782,7 +1789,7 @@ upHeap(int i, Block *b)
 
 	c = b->c;
 	now = c->now;
-	for(; i != 0; i = p){
+	for(; i != 0; i = p) {
 		p = (i - 1) >> 1;
 		bb = c->heap[p];
 		if(b->used - now >= bb->used - now)
@@ -1806,7 +1813,7 @@ downHeap(int i, Block *b)
 
 	c = b->c;
 	now = c->now;
-	for(; ; i = k){
+	for(;; i = k) {
 		k = (i << 1) + 1;
 		if(k >= c->nheap)
 			break;
@@ -1873,12 +1880,12 @@ readLabel(Cache *c, Label *l, uint32_t addr)
 	lpb = c->size / LabelSize;
 	a = addr / lpb;
 	b = cacheLocal(c, PartLabel, a, OReadOnly);
-	if(b == nil){
+	if(b == nil) {
 		blockPut(b);
 		return 0;
 	}
 
-	if(!labelUnpack(l, b->data, addr%lpb)){
+	if(!labelUnpack(l, b->data, addr % lpb)) {
 		blockPut(b);
 		return 0;
 	}
@@ -1895,7 +1902,7 @@ unlinkBody(Cache *c)
 {
 	BList *p;
 
-	while(c->uhead != nil){
+	while(c->uhead != nil) {
 		p = c->uhead;
 		c->uhead = p->next;
 		vtUnlock(c->lk);
@@ -1917,7 +1924,7 @@ unlinkThread(void *a)
 	vtThreadSetName("unlink");
 
 	vtLock(c->lk);
-	for(;;){
+	for(;;) {
 		while(c->uhead == nil && c->die == nil)
 			vtSleep(c->unlink);
 		if(c->die != nil)
@@ -1958,14 +1965,14 @@ flushFill(Cache *c)
 	Block *b;
 
 	vtLock(c->lk);
-	if(c->ndirty == 0){
+	if(c->ndirty == 0) {
 		vtUnlock(c->lk);
 		return;
 	}
 
 	p = c->baddr;
 	ndirty = 0;
-	for(i=0; i<c->nblocks; i++){
+	for(i = 0; i < c->nblocks; i++) {
 		b = c->blocks + i;
 		if(b->part == PartError)
 			continue;
@@ -1978,9 +1985,9 @@ flushFill(Cache *c)
 		p->vers = b->vers;
 		p++;
 	}
-	if(ndirty != c->ndirty){
+	if(ndirty != c->ndirty) {
 		fprint(2, "%s: ndirty mismatch expected %d found %d\n",
-			argv0, c->ndirty, ndirty);
+		       argv0, c->ndirty, ndirty);
 		c->ndirty = ndirty;
 	}
 	vtUnlock(c->lk);
@@ -2004,8 +2011,8 @@ cacheFlushBlock(Cache *c)
 	int lockfail, nfail;
 
 	nfail = 0;
-	for(;;){
-		if(c->br == c->be){
+	for(;;) {
+		if(c->br == c->be) {
 			if(c->bw == 0 || c->bw == c->be)
 				flushFill(c);
 			c->br = 0;
@@ -2019,9 +2026,9 @@ cacheFlushBlock(Cache *c)
 		p = c->baddr + c->br;
 		c->br++;
 		b = _cacheLocalLookup(c, p->part, p->addr, p->vers, Nowaitlock,
-			&lockfail);
+				      &lockfail);
 
-		if(b && blockWrite(b, Nowaitlock)){
+		if(b && blockWrite(b, Nowaitlock)) {
 			c->nflush++;
 			blockPut(b);
 			return 1;
@@ -2038,7 +2045,7 @@ cacheFlushBlock(Cache *c)
 			continue;
 
 		/* Failed to acquire lock; sleep if happens a lot. */
-		if(lockfail && ++nfail > 100){
+		if(lockfail && ++nfail > 100) {
 			sleep(500);
 			nfail = 0;
 		}
@@ -2059,17 +2066,17 @@ flushThread(void *a)
 
 	vtThreadSetName("flush");
 	vtLock(c->lk);
-	while(c->die == nil){
+	while(c->die == nil) {
 		vtSleep(c->flush);
 		vtUnlock(c->lk);
-		for(i=0; i<FlushSize; i++)
-			if(!cacheFlushBlock(c)){
+		for(i = 0; i < FlushSize; i++)
+			if(!cacheFlushBlock(c)) {
 				/*
 				 * If i==0, could be someone is waking us repeatedly
 				 * to flush the cache but there's no work to do.
 				 * Pause a little.
 				 */
-				if(i==0){
+				if(i == 0) {
 					// fprint(2, "%s: flushthread found "
 					//	"nothing to flush - %d dirty\n",
 					//	argv0, c->ndirty);
@@ -2077,7 +2084,7 @@ flushThread(void *a)
 				}
 				break;
 			}
-		if(i==0 && c->ndirty){
+		if(i == 0 && c->ndirty) {
 			/*
 			 * All the blocks are being written right now -- there's nothing to do.
 			 * We might be spinning with cacheFlush though -- he'll just keep
@@ -2102,15 +2109,15 @@ void
 cacheFlush(Cache *c, int wait)
 {
 	vtLock(c->lk);
-	if(wait){
-		while(c->ndirty){
-		//	consPrint("cacheFlush: %d dirty blocks, uhead %p\n",
-		//		c->ndirty, c->uhead);
+	if(wait) {
+		while(c->ndirty) {
+			//	consPrint("cacheFlush: %d dirty blocks, uhead %p\n",
+			//		c->ndirty, c->uhead);
 			vtWakeup(c->flush);
 			vtSleep(c->flushwait);
 		}
-	//	consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
-	}else if(c->ndirty)
+		//	consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
+	} else if(c->ndirty)
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
 }

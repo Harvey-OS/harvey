@@ -28,16 +28,16 @@
 /* Requires gsmemory.h */
 
 #ifndef gsmalloc_INCLUDED
-#  define gsmalloc_INCLUDED
+#define gsmalloc_INCLUDED
 
 /* Define a memory manager that allocates directly from the C heap. */
 typedef struct gs_malloc_block_s gs_malloc_block_t;
 typedef struct gs_malloc_memory_s {
-    gs_memory_common;
-    gs_malloc_block_t *allocated;
-    long limit;
-    long used;
-    long max_used;
+	gs_memory_common;
+	gs_malloc_block_t *allocated;
+	long limit;
+	long used;
+	long max_used;
 } gs_malloc_memory_t;
 
 /* Allocate and initialize a malloc memory manager. */
@@ -45,17 +45,17 @@ gs_malloc_memory_t *gs_malloc_memory_init(void);
 
 /* Release all the allocated blocks, and free the memory manager. */
 /* The cast is unfortunate, but unavoidable. */
-#define gs_malloc_memory_release(mem)\
-  gs_memory_free_all((gs_memory_t *)mem, FREE_ALL_EVERYTHING,\
-		     "gs_malloc_memory_release")
+#define gs_malloc_memory_release(mem)                               \
+	gs_memory_free_all((gs_memory_t *)mem, FREE_ALL_EVERYTHING, \
+			   "gs_malloc_memory_release")
 
-gs_memory_t * gs_malloc_init(const gs_memory_t *parent);
+gs_memory_t *gs_malloc_init(const gs_memory_t *parent);
 void gs_malloc_release(gs_memory_t *mem);
 
-#define gs_malloc(mem, nelts, esize, cname)\
-  (void *)gs_alloc_byte_array(mem->non_gc_memory, nelts, esize, cname)
-#define gs_free(mem, data, nelts, esize, cname)\
-  gs_free_object(mem->non_gc_memory, data, cname)
+#define gs_malloc(mem, nelts, esize, cname) \
+	(void *) gs_alloc_byte_array(mem->non_gc_memory, nelts, esize, cname)
+#define gs_free(mem, data, nelts, esize, cname) \
+	gs_free_object(mem->non_gc_memory, data, cname)
 
 /* ---------------- Locking ---------------- */
 

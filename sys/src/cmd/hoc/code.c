@@ -13,28 +13,28 @@
 #include "hoc.h"
 #include "y.tab.h"
 
-#define	NSTACK	256
+#define NSTACK 256
 
-static Datum stack[NSTACK];	/* the stack */
-static Datum *stackp;		/* next free spot on stack */
+static Datum stack[NSTACK]; /* the stack */
+static Datum *stackp;       /* next free spot on stack */
 
-#define	NPROG	2000
-Inst	prog[NPROG];	/* the machine */
-Inst	*progp;		/* next free spot for code generation */
-Inst	*pc;		/* program counter during execution */
-Inst	*progbase = prog; /* start of current subprogram */
-int	returning;	/* 1 if return stmt seen */
-int	indef;	/* 1 if parsing a func or proc */
+#define NPROG 2000
+Inst prog[NPROG];      /* the machine */
+Inst *progp;	   /* next free spot for code generation */
+Inst *pc;	      /* program counter during execution */
+Inst *progbase = prog; /* start of current subprogram */
+int returning;	 /* 1 if return stmt seen */
+int indef;	     /* 1 if parsing a func or proc */
 
-typedef struct Frame {	/* proc/func call stack frame */
-	Symbol	*sp;	/* symbol table entry */
-	Inst	*retpc;	/* where to resume after return */
-	Datum	*argn;	/* n-th argument on stack */
-	int	nargs;	/* number of arguments */
+typedef struct Frame {/* proc/func call stack frame */
+	Symbol *sp;   /* symbol table entry */
+	Inst *retpc;  /* where to resume after return */
+	Datum *argn;  /* n-th argument on stack */
+	int nargs;    /* number of arguments */
 } Frame;
-#define	NFRAME	100
-Frame	frame[NFRAME];
-Frame	*fp;		/* frame pointer */
+#define NFRAME 100
+Frame frame[NFRAME];
+Frame *fp; /* frame pointer */
 
 void
 initcode(void)
@@ -49,7 +49,7 @@ initcode(void)
 void
 push(Datum d)
 {
-	if (stackp >= &stack[NSTACK])
+	if(stackp >= &stack[NSTACK])
 		execerror("stack too deep", 0);
 	*stackp++ = d;
 }
@@ -57,15 +57,15 @@ push(Datum d)
 Datum
 pop(void)
 {
-	if (stackp == stack)
+	if(stackp == stack)
 		execerror("stack underflow", 0);
 	return *--stackp;
 }
 
 void
-xpop(void)	/* for when no value is wanted */
+xpop(void) /* for when no value is wanted */
 {
-	if (stackp == stack)
+	if(stackp == stack)
 		execerror("stack underflow", (char *)0);
 	--stackp;
 }
@@ -92,17 +92,17 @@ whilecode(void)
 	Datum d;
 	Inst *savepc = pc;
 
-	execute(savepc+2);	/* condition */
+	execute(savepc + 2); /* condition */
 	d = pop();
-	while (d.val) {
-		execute(*((Inst **)(savepc)));	/* body */
-		if (returning)
+	while(d.val) {
+		execute(*((Inst **)(savepc))); /* body */
+		if(returning)
 			break;
-		execute(savepc+2);	/* condition */
+		execute(savepc + 2); /* condition */
 		d = pop();
 	}
-	if (!returning)
-		pc = *((Inst **)(savepc+1)); /* next stmt */
+	if(!returning)
+		pc = *((Inst **)(savepc + 1)); /* next stmt */
 }
 
 void
@@ -111,57 +111,57 @@ forcode(void)
 	Datum d;
 	Inst *savepc = pc;
 
-	execute(savepc+4);		/* precharge */
+	execute(savepc + 4); /* precharge */
 	pop();
-	execute(*((Inst **)(savepc)));	/* condition */
+	execute(*((Inst **)(savepc))); /* condition */
 	d = pop();
-	while (d.val) {
-		execute(*((Inst **)(savepc+2)));	/* body */
-		if (returning)
+	while(d.val) {
+		execute(*((Inst **)(savepc + 2))); /* body */
+		if(returning)
 			break;
-		execute(*((Inst **)(savepc+1)));	/* post loop */
+		execute(*((Inst **)(savepc + 1))); /* post loop */
 		pop();
-		execute(*((Inst **)(savepc)));	/* condition */
+		execute(*((Inst **)(savepc))); /* condition */
 		d = pop();
 	}
-	if (!returning)
-		pc = *((Inst **)(savepc+3)); /* next stmt */
+	if(!returning)
+		pc = *((Inst **)(savepc + 3)); /* next stmt */
 }
 
 void
-ifcode(void) 
+ifcode(void)
 {
 	Datum d;
-	Inst *savepc = pc;	/* then part */
+	Inst *savepc = pc; /* then part */
 
-	execute(savepc+3);	/* condition */
+	execute(savepc + 3); /* condition */
 	d = pop();
-	if (d.val)
-		execute(*((Inst **)(savepc)));	
-	else if (*((Inst **)(savepc+1))) /* else part? */
-		execute(*((Inst **)(savepc+1)));
-	if (!returning)
-		pc = *((Inst **)(savepc+2)); /* next stmt */
+	if(d.val)
+		execute(*((Inst **)(savepc)));
+	else if(*((Inst **)(savepc + 1))) /* else part? */
+		execute(*((Inst **)(savepc + 1)));
+	if(!returning)
+		pc = *((Inst **)(savepc + 2)); /* next stmt */
 }
 
 void
-define(Symbol* sp, Formal *f)	/* put func/proc in symbol table */
+define(Symbol *sp, Formal *f) /* put func/proc in symbol table */
 {
 	Fndefn *fd;
 	int n;
 
 	fd = emalloc(sizeof(Fndefn));
-	fd->code = progbase;	/* start of code */
-	progbase = progp;	/* next code starts here */
+	fd->code = progbase; /* start of code */
+	progbase = progp;    /* next code starts here */
 	fd->formals = f;
-	for(n=0; f; f=f->next)
+	for(n = 0; f; f = f->next)
 		n++;
 	fd->nargs = n;
 	sp->u.defn = fd;
 }
 
 void
-call(void) 		/* call a function */
+call(void) /* call a function */
 {
 	Formal *f;
 	Datum *arg;
@@ -170,19 +170,19 @@ call(void) 		/* call a function */
 
 	Symbol *sp = (Symbol *)pc[0]; /* symbol table entry */
 				      /* for function */
-	if (fp >= &frame[NFRAME-1])
+	if(fp >= &frame[NFRAME - 1])
 		execerror(sp->name, "call nested too deeply");
 	fp++;
 	fp->sp = sp;
 	fp->nargs = (int)(uintptr)pc[1];
 	fp->retpc = pc + 2;
-	fp->argn = stackp - 1;	/* last argument */
+	fp->argn = stackp - 1; /* last argument */
 	if(fp->nargs != sp->u.defn->nargs)
 		execerror(sp->name, "called with wrong number of arguments");
 	/* bind formals */
 	f = sp->u.defn->formals;
 	arg = stackp - fp->nargs;
-	while(f){
+	while(f) {
 		s = emalloc(sizeof(Saveval));
 		s->val = f->sym->u;
 		s->type = f->sym->type;
@@ -193,22 +193,22 @@ call(void) 		/* call a function */
 		f = f->next;
 		arg++;
 	}
-	for (i = 0; i < fp->nargs; i++)
-		pop();	/* pop arguments; no longer needed */
+	for(i = 0; i < fp->nargs; i++)
+		pop(); /* pop arguments; no longer needed */
 	execute(sp->u.defn->code);
 	returning = 0;
 }
 
 void
-restore(Symbol *sp)	/* restore formals associated with symbol */
+restore(Symbol *sp) /* restore formals associated with symbol */
 {
 	Formal *f;
 	Saveval *s;
 
 	f = sp->u.defn->formals;
-	while(f){
+	while(f) {
 		s = f->save;
-		if(s == 0)	/* more actuals than formals */
+		if(s == 0) /* more actuals than formals */
 			break;
 		f->sym->u = s->val;
 		f->sym->type = s->type;
@@ -219,9 +219,9 @@ restore(Symbol *sp)	/* restore formals associated with symbol */
 }
 
 void
-restoreall(void)	/* restore all variables in case of error */
+restoreall(void) /* restore all variables in case of error */
 {
-	while(fp>=frame && fp->sp){
+	while(fp >= frame && fp->sp) {
 		restore(fp->sp);
 		--fp;
 	}
@@ -229,7 +229,7 @@ restoreall(void)	/* restore all variables in case of error */
 }
 
 static void
-ret(void) 		/* common return from func or proc */
+ret(void) /* common return from func or proc */
 {
 	/* restore formals */
 	restore(fp->sp);
@@ -239,32 +239,32 @@ ret(void) 		/* common return from func or proc */
 }
 
 void
-funcret(void) 	/* return from a function */
+funcret(void) /* return from a function */
 {
 	Datum d;
-	if (fp->sp->type == PROCEDURE)
+	if(fp->sp->type == PROCEDURE)
 		execerror(fp->sp->name, "(proc) returns value");
-	d = pop();	/* preserve function return value */
+	d = pop(); /* preserve function return value */
 	ret();
 	push(d);
 }
 
 void
-procret(void) 	/* return from a procedure */
+procret(void) /* return from a procedure */
 {
-	if (fp->sp->type == FUNCTION)
+	if(fp->sp->type == FUNCTION)
 		execerror(fp->sp->name,
-			"(func) returns no value");
+			  "(func) returns no value");
 	ret();
 }
 
 void
-bltin(void) 
+bltin(void)
 {
 
 	Datum d;
 	d = pop();
-	d.val = (*(double (*)(double))*pc++)(d.val);
+	d.val = (*(double (*)(double)) * pc++)(d.val);
 	push(d);
 }
 
@@ -303,7 +303,7 @@ div(void)
 {
 	Datum d1, d2;
 	d2 = pop();
-	if (d2.val == 0.0)
+	if(d2.val == 0.0)
 		execerror("division by zero", (char *)0);
 	d1 = pop();
 	d1.val /= d2.val;
@@ -315,7 +315,7 @@ mod(void)
 {
 	Datum d1, d2;
 	d2 = pop();
-	if (d2.val == 0.0)
+	if(d2.val == 0.0)
 		execerror("division by zero", (char *)0);
 	d1 = pop();
 	/* d1.val %= d2.val; */
@@ -333,16 +333,16 @@ negate(void)
 }
 
 void
-verify(Symbol* s)
+verify(Symbol *s)
 {
-	if (s->type != VAR && s->type != UNDEF)
+	if(s->type != VAR && s->type != UNDEF)
 		execerror("attempt to evaluate non-variable", s->name);
-	if (s->type == UNDEF)
+	if(s->type == UNDEF)
 		execerror("undefined variable", s->name);
 }
 
 void
-eval(void)		/* evaluate variable on stack */
+eval(void) /* evaluate variable on stack */
 {
 	Datum d;
 	d = pop();
@@ -457,8 +457,7 @@ ne(void)
 	push(d1);
 }
 
-void
-and(void)
+void and (void)
 {
 	Datum d1, d2;
 	d2 = pop();
@@ -467,8 +466,7 @@ and(void)
 	push(d1);
 }
 
-void
-or(void)
+void or (void)
 {
 	Datum d1, d2;
 	d2 = pop();
@@ -477,8 +475,7 @@ or(void)
 	push(d1);
 }
 
-void
-not(void)
+void not(void)
 {
 	Datum d;
 	d = pop();
@@ -502,9 +499,9 @@ assign(void)
 	Datum d1, d2;
 	d1 = pop();
 	d2 = pop();
-	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
+	if(d1.sym->type != VAR && d1.sym->type != UNDEF)
 		execerror("assignment to non-variable",
-			d1.sym->name);
+			  d1.sym->name);
 	d1.sym->u.val = d2.val;
 	d1.sym->type = VAR;
 	push(d2);
@@ -516,9 +513,9 @@ addeq(void)
 	Datum d1, d2;
 	d1 = pop();
 	d2 = pop();
-	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
+	if(d1.sym->type != VAR && d1.sym->type != UNDEF)
 		execerror("assignment to non-variable",
-			d1.sym->name);
+			  d1.sym->name);
 	d2.val = d1.sym->u.val += d2.val;
 	d1.sym->type = VAR;
 	push(d2);
@@ -530,9 +527,9 @@ subeq(void)
 	Datum d1, d2;
 	d1 = pop();
 	d2 = pop();
-	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
+	if(d1.sym->type != VAR && d1.sym->type != UNDEF)
 		execerror("assignment to non-variable",
-			d1.sym->name);
+			  d1.sym->name);
 	d2.val = d1.sym->u.val -= d2.val;
 	d1.sym->type = VAR;
 	push(d2);
@@ -544,9 +541,9 @@ muleq(void)
 	Datum d1, d2;
 	d1 = pop();
 	d2 = pop();
-	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
+	if(d1.sym->type != VAR && d1.sym->type != UNDEF)
 		execerror("assignment to non-variable",
-			d1.sym->name);
+			  d1.sym->name);
 	d2.val = d1.sym->u.val *= d2.val;
 	d1.sym->type = VAR;
 	push(d2);
@@ -558,9 +555,9 @@ diveq(void)
 	Datum d1, d2;
 	d1 = pop();
 	d2 = pop();
-	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
+	if(d1.sym->type != VAR && d1.sym->type != UNDEF)
 		execerror("assignment to non-variable",
-			d1.sym->name);
+			  d1.sym->name);
 	d2.val = d1.sym->u.val /= d2.val;
 	d1.sym->type = VAR;
 	push(d2);
@@ -573,23 +570,23 @@ modeq(void)
 	int32_t x;
 	d1 = pop();
 	d2 = pop();
-	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
+	if(d1.sym->type != VAR && d1.sym->type != UNDEF)
 		execerror("assignment to non-variable",
-			d1.sym->name);
+			  d1.sym->name);
 	/* d2.val = d1.sym->u.val %= d2.val; */
 	x = d1.sym->u.val;
-	x %= (int32_t) d2.val;
+	x %= (int32_t)d2.val;
 	d2.val = d1.sym->u.val = x;
 	d1.sym->type = VAR;
 	push(d2);
 }
 
 void
-printtop(void)	/* pop top value from stack, print it */
+printtop(void) /* pop top value from stack, print it */
 {
 	Datum d;
-	static Symbol *s;	/* last value computed */
-	if (s == 0)
+	static Symbol *s; /* last value computed */
+	if(s == 0)
 		s = install("_", VAR, 0.0);
 	d = pop();
 	print("%.12g\n", d.val);
@@ -597,7 +594,7 @@ printtop(void)	/* pop top value from stack, print it */
 }
 
 void
-prexpr(void)	/* print numeric value */
+prexpr(void) /* print numeric value */
 {
 	Datum d;
 	d = pop();
@@ -605,25 +602,25 @@ prexpr(void)	/* print numeric value */
 }
 
 void
-prstr(void)		/* print string value */ 
+prstr(void) /* print string value */
 {
-	print("%s", (char *) *pc++);
+	print("%s", (char *)*pc++);
 }
 
 void
-varread(void)	/* read into variable */
+varread(void) /* read into variable */
 {
 	Datum d;
 	extern Biobuf *bin;
-	Symbol *var = (Symbol *) *pc++;
+	Symbol *var = (Symbol *)*pc++;
 	int c;
 
-  Again:
+Again:
 	do
 		c = Bgetc(bin);
-	while(c==' ' || c=='\t' || c=='\n');
-	if(c == Beof){
-  Iseof:
+	while(c == ' ' || c == '\t' || c == '\n');
+	if(c == Beof) {
+	Iseof:
 		if(moreinput())
 			goto Again;
 		d.val = var->u.val = 0.0;
@@ -637,24 +634,24 @@ varread(void)	/* read into variable */
 		goto Iseof;
 	else
 		d.val = 1.0;
-  Return:
+Return:
 	var->type = VAR;
 	push(d);
 }
 
-Inst*
-code(Inst f)	/* install one instruction or operand */
+Inst *
+code(Inst f) /* install one instruction or operand */
 {
 	Inst *oprogp = progp;
-	if (progp >= &prog[NPROG])
+	if(progp >= &prog[NPROG])
 		execerror("program too big", (char *)0);
 	*progp++ = f;
 	return oprogp;
 }
 
 void
-execute(Inst* p)
+execute(Inst *p)
 {
-	for (pc = p; *pc != STOP && !returning; )
+	for(pc = p; *pc != STOP && !returning;)
 		(*((++pc)[-1]))();
 }

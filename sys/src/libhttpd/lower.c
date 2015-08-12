@@ -12,7 +12,7 @@
 #include <bin.h>
 #include <httpd.h>
 
-char*
+char *
 hlower(char *p)
 {
 	char c;

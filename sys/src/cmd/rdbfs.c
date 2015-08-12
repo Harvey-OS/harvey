@@ -20,7 +20,9 @@
 #include <9p.h>
 
 int dbg = 0;
-#define DBG	if(dbg)fprint
+#define DBG     \
+	if(dbg) \
+	fprint
 
 enum {
 	NHASH = 4096,
@@ -30,8 +32,8 @@ enum {
 
 /* caching memory pages: a lot of space to avoid serial communications */
 Lock pglock;
-typedef struct	Page	Page;
-struct Page {	/* cached memory contents */
+typedef struct Page Page;
+struct Page {/* cached memory contents */
 	Page *link;
 	uint32_t len;
 	uint32_t addr;
@@ -44,19 +46,19 @@ Page *pgtab[NHASH];
 Page *freelist;
 
 /* called with pglock locked */
-Page*
+Page *
 newpg(void)
 {
 	int i;
 	Page *p, *q;
 
-	if(freelist == nil){
-		p = malloc(sizeof(Page)*Pagequantum);
+	if(freelist == nil) {
+		p = malloc(sizeof(Page) * Pagequantum);
 		if(p == nil)
 			sysfatal("out of memory");
 
-		for(i=0, q=p; i<Pagequantum-1; i++, q++)
-			q->link = q+1;
+		for(i = 0, q = p; i < Pagequantum - 1; i++, q++)
+			q->link = q + 1;
 		q->link = nil;
 
 		freelist = p;
@@ -70,7 +72,7 @@ newpg(void)
 uint
 ahash(uint32_t addr)
 {
-	return (uint)floor(NHASH*fmod(addr*PHIINV, 1.0));
+	return (uint)floor(NHASH * fmod(addr * PHIINV, 1.0));
 }
 
 int
@@ -79,8 +81,8 @@ lookup(uint32_t addr, uint8_t *val, uint32_t count)
 	Page *p;
 
 	lock(&pglock);
-	for(p=pgtab[ahash(addr)]; p; p=p->link){
-		if(p->addr == addr && p->count == count){
+	for(p = pgtab[ahash(addr)]; p; p = p->link) {
+		if(p->addr == addr && p->count == count) {
 			memmove(val, p->val, count);
 			unlock(&pglock);
 			return 1;
@@ -103,7 +105,7 @@ insert(uint32_t addr, uint8_t *val, int count)
 	memmove(p->val, val, count);
 	h = ahash(addr);
 	p->link = pgtab[h];
-	p->len = pgtab[h] ? pgtab[h]->len+1 : 1;
+	p->len = pgtab[h] ? pgtab[h]->len + 1 : 1;
 	pgtab[h] = p;
 	unlock(&pglock);
 }
@@ -115,9 +117,9 @@ flushcache(void)
 	Page *p;
 
 	lock(&pglock);
-	for(i=0; i<NHASH; i++){
-		if(p=pgtab[i]){
-			for(;p->link; p=p->link)
+	for(i = 0; i < NHASH; i++) {
+		if(p = pgtab[i]) {
+			for(; p->link; p = p->link)
 				;
 			p->link = freelist;
 			freelist = p;
@@ -127,9 +129,8 @@ flushcache(void)
 	unlock(&pglock);
 }
 
-enum
-{
-	Xctl	= 1,
+enum {
+	Xctl = 1,
 	Xfpregs,
 	Xkregs,
 	Xmem,
@@ -140,14 +141,14 @@ enum
 
 };
 
-int	textfd;
-int	rfd;
-Biobuf	rfb;
-char*	portname = "/dev/eia0";
-char*	textfile = "/386/9pc";
-char*	procname = "1";
-char*	srvname;
-Channel* rchan;
+int textfd;
+int rfd;
+Biobuf rfb;
+char *portname = "/dev/eia0";
+char *textfile = "/386/9pc";
+char *procname = "1";
+char *srvname;
+Channel *rchan;
 
 void
 usage(void)
@@ -178,73 +179,74 @@ eiaread(void *v)
 	int i, tries;
 
 	notify(noalarm);
-	while(r = recvp(rchan)){
+	while(r = recvp(rchan)) {
 		DBG(2, "got %F: here goes...", &r->ifcall);
 		if(r->ifcall.count > Readlen)
 			r->ifcall.count = Readlen;
 		r->ofcall.count = r->ifcall.count;
-		if(r->type == Tread && lookup(r->ifcall.offset, (uint8_t*)r->ofcall.data, r->ofcall.count)){
+		if(r->type == Tread && lookup(r->ifcall.offset, (uint8_t *)r->ofcall.data, r->ofcall.count)) {
 			respond(r, nil);
 			continue;
 		}
-		for(tries=0; tries<5; tries++){
-			if(r->type == Twrite){
-				DBG(2, "w%.8lux %.8lux...", (uint32_t)r->ifcall.offset, *(uint32_t*)r->ifcall.data);
+		for(tries = 0; tries < 5; tries++) {
+			if(r->type == Twrite) {
+				DBG(2, "w%.8lux %.8lux...", (uint32_t)r->ifcall.offset, *(uint32_t *)r->ifcall.data);
 				fprint(rfd, "w%.8lux %.8lux\n",
 				       (uint32_t)r->ifcall.offset,
-				       *(uint32_t*)r->ifcall.data);
-			}else if(r->type == Tread){
+				       *(uint32_t *)r->ifcall.data);
+			} else if(r->type == Tread) {
 				DBG(2, "r%.8lux...", (uint32_t)r->ifcall.offset);
 				fprint(rfd, "r%.8lux\n",
 				       (uint32_t)r->ifcall.offset);
-			}else{
+			} else {
 				respond(r, "oops");
 				break;
 			}
-			for(;;){
+			for(;;) {
 				werrstr("");
 				alarm(500);
-				p=Brdline(&rfb, '\n');
+				p = Brdline(&rfb, '\n');
 				alarm(0);
-				if(p == nil){
+				if(p == nil) {
 					rerrstr(err, sizeof err);
 					DBG(2, "error %s\n", err);
 					if(strstr(err, "alarm") || strstr(err, "interrupted"))
 						break;
 					if(Blinelen(&rfb) == 0) // true eof
 						sysfatal("eof on serial line?");
-					Bread(&rfb, buf, Blinelen(&rfb)<sizeof buf ? Blinelen(&rfb) : sizeof buf);
+					Bread(&rfb, buf, Blinelen(&rfb) < sizeof buf ? Blinelen(&rfb) : sizeof buf);
 					continue;
 				}
-				p[Blinelen(&rfb)-1] = 0;
+				p[Blinelen(&rfb) - 1] = 0;
 				if(p[0] == '\r')
 					p++;
 				DBG(2, "serial %s\n", p);
-				if(p[0] == 'R'){
-					if(strtoul(p+1, 0, 16) == (uint32_t)r->ifcall.offset){
+				if(p[0] == 'R') {
+					if(strtoul(p + 1, 0, 16) == (uint32_t)r->ifcall.offset) {
 						/* we know that data can handle Readlen bytes */
-						data = (uint8_t*)r->ofcall.data;
-						for(i=0; i<r->ifcall.count; i++)
-							data[i] = strtol(p+1+8+1+3*i, 0, 16);
+						data = (uint8_t *)r->ofcall.data;
+						for(i = 0; i < r->ifcall.count; i++)
+							data[i] = strtol(p + 1 + 8 + 1 + 3 * i, 0, 16);
 						insert(r->ifcall.offset, data, r->ifcall.count);
 						respond(r, nil);
 						goto Break2;
-					}else
-						DBG(2, "%.8lux ≠ %.8lux\n", strtoul(p+1, 0, 16), (uint32_t)r->ifcall.offset);
-				}else if(p[0] == 'W'){
+					} else
+						DBG(2, "%.8lux ≠ %.8lux\n", strtoul(p + 1, 0, 16), (uint32_t)r->ifcall.offset);
+				} else if(p[0] == 'W') {
 					respond(r, nil);
 					goto Break2;
-				}else{
+				} else {
 					DBG(2, "unknown message\n");
 				}
 			}
 		}
-	Break2:;
+	Break2:
+		;
 	}
 }
 
 void
-attachremote(char* name)
+attachremote(char *name)
 {
 	int fd;
 	char buf[128];
@@ -268,7 +270,7 @@ fsopen(Req *r)
 {
 	char buf[ERRMAX];
 
-	switch((uintptr)r->fid->file->aux){
+	switch((uintptr)r->fid->file->aux) {
 	case Xtext:
 		close(textfd);
 		textfd = open(textfile, OREAD);
@@ -278,7 +280,7 @@ fsopen(Req *r)
 			return;
 		}
 		break;
-	}		
+	}
 	respond(r, nil);
 }
 
@@ -296,7 +298,7 @@ fsread(Req *r)
 		break;
 	case Xkregs:
 	case Xmem:
-		if(sendp(rchan, r) != 1){
+		if(sendp(rchan, r) != 1) {
 			snprint(buf, sizeof buf, "rdbfs sendp: %r");
 			respond(r, buf);
 			return;
@@ -315,7 +317,7 @@ fsread(Req *r)
 	case Xstatus:
 		n = sprint(buf, "%-28s%-28s%-28s", "remote", "system", "New");
 		for(i = 0; i < 9; i++)
-			n += sprint(buf+n, "%-12d", 0);
+			n += sprint(buf + n, "%-12d", 0);
 		readstr(r, buf);
 		respond(r, nil);
 		break;
@@ -336,19 +338,19 @@ fswrite(Req *r)
 			respond(r, nil);
 			postnote(PNGROUP, getpid(), "umount");
 			exits(nil);
-		}else if(strncmp(r->ifcall.data, "refresh", 7) == 0){
+		} else if(strncmp(r->ifcall.data, "refresh", 7) == 0) {
 			flushcache();
 			respond(r, nil);
-		}else if(strncmp(r->ifcall.data, "hashstats", 9) == 0){
+		} else if(strncmp(r->ifcall.data, "hashstats", 9) == 0) {
 			int i;
 			lock(&pglock);
-			for(i=0; i<NHASH; i++)
+			for(i = 0; i < NHASH; i++)
 				if(pgtab[i])
 					print("%lud ", pgtab[i]->len);
 			print("\n");
 			unlock(&pglock);
 			respond(r, nil);
-		}else
+		} else
 			respond(r, "permission denied");
 		break;
 	case Xkregs:
@@ -370,14 +372,14 @@ struct {
 	int64_t id;
 	int mode;
 } tab[] = {
-	"ctl",		Xctl,		0222,
-	"fpregs",	Xfpregs,	0666,
-	"kregs",	Xkregs,		0666,
-	"mem",		Xmem,		0666,
-	"proc",		Xproc,		0444,
-	"regs",		Xregs,		0666,
-	"text",		Xtext,		0444,
-	"status",	Xstatus,	0444,
+    "ctl", Xctl, 0222,
+    "fpregs", Xfpregs, 0666,
+    "kregs", Xkregs, 0666,
+    "mem", Xmem, 0666,
+    "proc", Xproc, 0444,
+    "regs", Xregs, 0666,
+    "text", Xtext, 0444,
+    "status", Xstatus, 0444,
 };
 
 void
@@ -387,10 +389,10 @@ killall(Srv *s)
 }
 
 Srv fs = {
-.open=	fsopen,
-.read=	fsread,
-.write=	fswrite,
-.end=	killall,
+    .open = fsopen,
+    .read = fsread,
+    .write = fswrite,
+    .end = killall,
 };
 
 void
@@ -400,7 +402,8 @@ threadmain(int argc, char **argv)
 	File *dir;
 
 	rfork(RFNOTEG);
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -418,9 +421,10 @@ threadmain(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
-	switch(argc){
+	switch(argc) {
 	case 0:
 		break;
 	case 1:
@@ -430,7 +434,7 @@ threadmain(int argc, char **argv)
 		usage();
 	}
 
-	rchan = chancreate(sizeof(Req*), 10);
+	rchan = chancreate(sizeof(Req *), 10);
 	attachremote(portname);
 	if(pipe(p) < 0)
 		sysfatal("pipe: %r");
@@ -438,12 +442,11 @@ threadmain(int argc, char **argv)
 	fmtinstall('F', fcallfmt);
 	proccreate(eiaread, nil, 8192);
 
-	fs.tree = alloctree("rdbfs", "rdbfs", DMDIR|0555, nil);
-	dir = createfile(fs.tree->root, procname, "rdbfs", DMDIR|0555, 0);
-	for(i=0; i<nelem(tab); i++)
-		closefile(createfile(dir, tab[i].s, "rdbfs", tab[i].mode, (void*)tab[i].id));
+	fs.tree = alloctree("rdbfs", "rdbfs", DMDIR | 0555, nil);
+	dir = createfile(fs.tree->root, procname, "rdbfs", DMDIR | 0555, 0);
+	for(i = 0; i < nelem(tab); i++)
+		closefile(createfile(dir, tab[i].s, "rdbfs", tab[i].mode, (void *)tab[i].id));
 	closefile(dir);
 	threadpostmountsrv(&fs, srvname, "/proc", MBEFORE);
 	exits(0);
 }
-

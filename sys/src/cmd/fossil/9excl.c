@@ -12,27 +12,27 @@
 #include "9.h"
 
 static struct {
-	VtLock*	lock;
+	VtLock *lock;
 
-	Excl*	head;
-	Excl*	tail;
+	Excl *head;
+	Excl *tail;
 } ebox;
 
 struct Excl {
-	Fsys*	fsys;
-	uint64_t	path;
-	uint32_t	time;
+	Fsys *fsys;
+	uint64_t path;
+	uint32_t time;
 
-	Excl*	next;
-	Excl*	prev;
+	Excl *next;
+	Excl *prev;
 };
 
 enum {
-	LifeTime	= (5*60),
+	LifeTime = (5 * 60),
 };
 
 int
-exclAlloc(Fid* fid)
+exclAlloc(Fid *fid)
 {
 	uint32_t t;
 	Excl *excl;
@@ -41,7 +41,7 @@ exclAlloc(Fid* fid)
 
 	t = time(0L);
 	vtLock(ebox.lock);
-	for(excl = ebox.head; excl != nil; excl = excl->next){
+	for(excl = ebox.head; excl != nil; excl = excl->next) {
 		if(excl->fsys != fid->fsys || excl->path != fid->qid.path)
 			continue;
 		/*
@@ -52,7 +52,7 @@ exclAlloc(Fid* fid)
 		 * one and continue on to allocate a
 		 * a new one.
 		 */
-		if(excl->time >= t){
+		if(excl->time >= t) {
 			vtUnlock(ebox.lock);
 			vtSetError("exclusive lock");
 			return 0;
@@ -67,12 +67,11 @@ exclAlloc(Fid* fid)
 	excl = vtMemAllocZ(sizeof(Excl));
 	excl->fsys = fid->fsys;
 	excl->path = fid->qid.path;
-	excl->time = t+LifeTime;
-	if(ebox.tail != nil){
+	excl->time = t + LifeTime;
+	if(ebox.tail != nil) {
 		excl->prev = ebox.tail;
 		ebox.tail->next = excl;
-	}
-	else{
+	} else {
 		ebox.head = excl;
 		excl->prev = nil;
 	}
@@ -85,7 +84,7 @@ exclAlloc(Fid* fid)
 }
 
 int
-exclUpdate(Fid* fid)
+exclUpdate(Fid *fid)
 {
 	uint32_t t;
 	Excl *excl;
@@ -94,19 +93,19 @@ exclUpdate(Fid* fid)
 
 	t = time(0L);
 	vtLock(ebox.lock);
-	if(excl->time < t || excl->fsys != fid->fsys){
+	if(excl->time < t || excl->fsys != fid->fsys) {
 		vtUnlock(ebox.lock);
 		vtSetError("exclusive lock broken");
 		return 0;
 	}
-	excl->time = t+LifeTime;
+	excl->time = t + LifeTime;
 	vtUnlock(ebox.lock);
 
 	return 1;
 }
 
 void
-exclFree(Fid* fid)
+exclFree(Fid *fid)
 {
 	Excl *excl;
 

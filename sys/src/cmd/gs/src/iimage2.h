@@ -28,7 +28,7 @@
 /* Requires gsiparam.h */
 
 #ifndef iimage2_INCLUDED
-#  define iimage2_INCLUDED
+#define iimage2_INCLUDED
 
 /* This procedure is exported by zimage2.c for other modules. */
 
@@ -38,7 +38,7 @@
  * both zdps.c and zdpnext.c.
  */
 int process_non_source_image(i_ctx_t *i_ctx_p,
-                             const gs_image_common_t * pim,
-                             client_name_t cname);
+			     const gs_image_common_t *pim,
+			     client_name_t cname);
 
 #endif /* iimage2_INCLUDED */

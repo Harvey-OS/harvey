@@ -27,7 +27,7 @@
 /* Client interface to character operations */
 
 #ifndef gschar_INCLUDED
-#  define gschar_INCLUDED
+#define gschar_INCLUDED
 
 #include "gsccode.h"
 #include "gscpm.h"
@@ -35,13 +35,13 @@
 /* String display, like image display, uses an enumeration structure */
 /* to keep track of what's going on (aka 'poor man's coroutine'). */
 #ifndef gs_show_enum_DEFINED
-#  define gs_show_enum_DEFINED
+#define gs_show_enum_DEFINED
 typedef struct gs_show_enum_s gs_show_enum;
 #endif
 
 /* Define an opaque type for fonts if necessary. */
 #ifndef gs_font_DEFINED
-#  define gs_font_DEFINED
+#define gs_font_DEFINED
 typedef struct gs_font_s gs_font;
 #endif
 
@@ -76,50 +76,50 @@ int gs_show_use_glyph(gs_show_enum *, gs_glyph);
 /* a zero (successful completion) or negative (error) value. */
 /* Other values indicate the following situations: */
 
-	/* The client must render a character: obtain the code from */
-	/* gs_show_current_char, do whatever is necessary, and then */
-	/* call gs_show_next again. */
+/* The client must render a character: obtain the code from */
+/* gs_show_current_char, do whatever is necessary, and then */
+/* call gs_show_next again. */
 #define gs_show_render TEXT_PROCESS_RENDER
 
-	/* The client has asked to intervene between characters (kshow). */
-	/* Obtain the previous and next codes from gs_kshow_previous_char */
-	/* and gs_kshow_next_char, do whatever is necessary, and then */
-	/* call gs_show_next again. */
+/* The client has asked to intervene between characters (kshow). */
+/* Obtain the previous and next codes from gs_kshow_previous_char */
+/* and gs_kshow_next_char, do whatever is necessary, and then */
+/* call gs_show_next again. */
 #define gs_show_kern TEXT_PROCESS_INTERVENE
 
-	/* The client has asked to handle characters individually */
-	/* (xshow, yshow, xyshow, cshow).  Obtain the current code */
-	/* from gs_show_current_char, do whatever is necessary, and then */
-	/* call gs_show_next again. */
+/* The client has asked to handle characters individually */
+/* (xshow, yshow, xyshow, cshow).  Obtain the current code */
+/* from gs_show_current_char, do whatever is necessary, and then */
+/* call gs_show_next again. */
 #define gs_show_move TEXT_PROCESS_INTERVENE
 
 int gs_show_next(gs_show_enum *);
 
 gs_char
-    gs_show_current_char(const gs_show_enum *),
+gs_show_current_char(const gs_show_enum *),
     gs_kshow_previous_char(const gs_show_enum *),
     gs_kshow_next_char(const gs_show_enum *);
 gs_font *
-    gs_show_current_font(const gs_show_enum *);
+gs_show_current_font(const gs_show_enum *);
 
 gs_glyph
-    gs_show_current_glyph(const gs_show_enum *);
+gs_show_current_glyph(const gs_show_enum *);
 int gs_show_current_width(const gs_show_enum *, gs_point *);
-void gs_show_width(const gs_show_enum *, gs_point *);  /* cumulative width */
+void gs_show_width(const gs_show_enum *, gs_point *); /* cumulative width */
 
 gs_char_path_mode
-    gs_show_in_charpath(const gs_show_enum *);  /* return charpath flag */
+gs_show_in_charpath(const gs_show_enum *); /* return charpath flag */
 
 /* Character cache and metrics operators. */
 /* gs_setcachedevice* return 1 iff the cache device was just installed. */
-int gs_setcachedevice_float(gs_show_enum *, gs_state *, const float * /*[6] */ );
-int gs_setcachedevice_double(gs_show_enum *, gs_state *, const double * /*[6] */ );
-#define gs_setcachedevice(penum, pgs, pw)\
-  gs_setcachedevice_float(penum, pgs, pw)
-int gs_setcachedevice2_float(gs_show_enum *, gs_state *, const float * /*[10] */ );
-int gs_setcachedevice2_double(gs_show_enum *, gs_state *, const double * /*[10] */ );
-#define gs_setcachedevice2(penum, pgs, pw2)\
-  gs_setcachedevice2_float(penum, pgs, pw2)
+int gs_setcachedevice_float(gs_show_enum *, gs_state *, const float * /*[6] */);
+int gs_setcachedevice_double(gs_show_enum *, gs_state *, const double * /*[6] */);
+#define gs_setcachedevice(penum, pgs, pw) \
+	gs_setcachedevice_float(penum, pgs, pw)
+int gs_setcachedevice2_float(gs_show_enum *, gs_state *, const float * /*[10] */);
+int gs_setcachedevice2_double(gs_show_enum *, gs_state *, const double * /*[10] */);
+#define gs_setcachedevice2(penum, pgs, pw2) \
+	gs_setcachedevice2_float(penum, pgs, pw2)
 int gs_setcharwidth(gs_show_enum *, gs_state *, floatp, floatp);
 
 /* Return true if we only need the width from the rasterizer */

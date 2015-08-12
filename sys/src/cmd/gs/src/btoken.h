@@ -27,7 +27,7 @@
 /* Definitions for Level 2 binary tokens */
 
 #ifndef btoken_INCLUDED
-#  define btoken_INCLUDED
+#define btoken_INCLUDED
 
 /*
  * Define accessors for pointers to the system and user name tables
@@ -48,7 +48,7 @@ int encode_binary_token(i_ctx_t *i_ctx_p, const ref *obj, long *ref_offset,
 /* Define the current binary object format for operators. */
 /* This is a ref so that it can be managed properly by save/restore. */
 #define ref_binary_object_format_container i_ctx_p
-#define ref_binary_object_format\
-  (ref_binary_object_format_container->binary_object_format)
+#define ref_binary_object_format \
+	(ref_binary_object_format_container->binary_object_format)
 
 #endif /* btoken_INCLUDED */

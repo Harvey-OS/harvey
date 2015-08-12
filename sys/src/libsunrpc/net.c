@@ -13,8 +13,7 @@
 #include <sunrpc.h>
 
 typedef struct Arg Arg;
-struct Arg
-{
+struct Arg {
 	int fd;
 	char adir[40];
 	SunSrv *srv;
@@ -27,7 +26,7 @@ sunNetListen(void *v)
 	char ldir[40];
 	Arg *a = v;
 
-	for(;;){
+	for(;;) {
 		lcfd = listen(a->adir, ldir);
 		if(lcfd < 0)
 			break;

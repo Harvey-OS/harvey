@@ -13,16 +13,15 @@
 #include <auth.h>
 #include "imap4d.h"
 
-static NamedInt	flagMap[] =
-{
-	{"\\Seen",	MSeen},
-	{"\\Answered",	MAnswered},
-	{"\\Flagged",	MFlagged},
-	{"\\Deleted",	MDeleted},
-	{"\\Draft",	MDraft},
-	{"\\Recent",	MRecent},
-	{nil,		0}
-};
+static NamedInt flagMap[] =
+    {
+     {"\\Seen", MSeen},
+     {"\\Answered", MAnswered},
+     {"\\Flagged", MFlagged},
+     {"\\Deleted", MDeleted},
+     {"\\Draft", MDraft},
+     {"\\Recent", MRecent},
+     {nil, 0}};
 
 int
 storeMsg(Box *box, Msg *m, int uids, void *vst)
@@ -52,7 +51,7 @@ storeMsg(Box *box, Msg *m, int uids, void *vst)
 	f = (f & ~MRecent) | (m->flags & MRecent);
 	setFlags(box, m, f);
 
-	if(st->op != STFlagsSilent){
+	if(st->op != STFlagsSilent) {
 		m->sendFlags = 1;
 		box->sendFlags = 1;
 	}
@@ -70,7 +69,7 @@ setFlags(Box *box, Msg *m, int f)
 		return;
 
 	box->dirtyImp = 1;
-	if((f & MRecent) != (m->flags & MRecent)){
+	if((f & MRecent) != (m->flags & MRecent)) {
 		if(f & MRecent)
 			box->recent++;
 		else
@@ -88,8 +87,8 @@ sendFlags(Box *box, int uids)
 		return;
 
 	box->sendFlags = 0;
-	for(m = box->msgs; m != nil; m = m->next){
-		if(!m->expunged && m->sendFlags){
+	for(m = box->msgs; m != nil; m = m->next) {
+		if(!m->expunged && m->sendFlags) {
 			Bprint(&bout, "* %lud FETCH (", m->seq);
 			if(uids)
 				Bprint(&bout, "uid %lud ", m->uid);
@@ -108,9 +107,8 @@ writeFlags(Biobuf *b, Msg *m, int recentOk)
 	int f;
 
 	sep = "";
-	for(f = 0; flagMap[f].name != nil; f++){
-		if((m->flags & flagMap[f].v)
-		&& (flagMap[f].v != MRecent || recentOk)){
+	for(f = 0; flagMap[f].name != nil; f++) {
+		if((m->flags & flagMap[f].v) && (flagMap[f].v != MRecent || recentOk)) {
 			Bprint(b, "%s%s", sep, flagMap[f].name);
 			sep = " ";
 		}

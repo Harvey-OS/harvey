@@ -13,11 +13,11 @@
 #include "dat.h"
 #include "fns.h"
 
-#define	FIDMOD	127	/* prime */
+#define FIDMOD 127 /* prime */
 
-static Xfs	*xhead;
-static Xfile	*xfiles[FIDMOD], *freelist;
-static MLock	xlock, xlocks[FIDMOD], freelock;
+static Xfs *xhead;
+static Xfile *xfiles[FIDMOD], *freelist;
+static MLock xlock, xlocks[FIDMOD], freelock;
 
 static int
 okmode(int omode, int fmode)
@@ -39,9 +39,9 @@ getxfs(char *user, char *name)
 	int fd, omode;
 
 	USED(user);
-	if(name==nil || name[0]==0)
+	if(name == nil || name[0] == 0)
 		name = deffile;
-	if(name == nil){
+	if(name == nil) {
 		errno = Enofilsys;
 		return 0;
 	}
@@ -54,11 +54,11 @@ getxfs(char *user, char *name)
 	 * of a boot manager programme at the beginning of the disc.
 	 */
 	offset = 0;
-	if(p = strrchr(name, ':')){
+	if(p = strrchr(name, ':')) {
 		*p++ = 0;
 		offset = strtol(p, &q, 0);
 		chat("name %s, offset %ld\n", p, offset);
-		if(offset < 0 || p == q){
+		if(offset < 0 || p == q) {
 			errno = Enofilsys;
 			return 0;
 		}
@@ -71,18 +71,18 @@ getxfs(char *user, char *name)
 		omode = ORDWR;
 	fd = open(name, omode);
 
-	if(fd < 0 && omode==ORDWR){
+	if(fd < 0 && omode == ORDWR) {
 		omode = OREAD;
 		fd = open(name, omode);
 	}
 
-	if(fd < 0){
+	if(fd < 0) {
 		chat("can't open %s: %r\n", name);
 		errno = Eerrstr;
 		return 0;
 	}
 	dir = dirfstat(fd);
-	if(dir == nil){
+	if(dir == nil) {
 		errno = Eio;
 		close(fd);
 		return 0;
@@ -91,8 +91,8 @@ getxfs(char *user, char *name)
 	dqid = dir->qid;
 	free(dir);
 	mlock(&xlock);
-	for(fxf=0,xf=xhead; xf; xf=xf->next){
-		if(xf->ref == 0){
+	for(fxf = 0, xf = xhead; xf; xf = xf->next) {
+		if(xf->ref == 0) {
 			if(fxf == 0)
 				fxf = xf;
 			continue;
@@ -111,9 +111,9 @@ getxfs(char *user, char *name)
 		close(fd);
 		return xf;
 	}
-	if(fxf == nil){
+	if(fxf == nil) {
 		fxf = malloc(sizeof(Xfs));
-		if(fxf == nil){
+		if(fxf == nil) {
 			unmlock(&xlock);
 			close(fd);
 			errno = Enomem;
@@ -141,12 +141,12 @@ refxfs(Xfs *xf, int delta)
 {
 	mlock(&xlock);
 	xf->ref += delta;
-	if(xf->ref == 0){
+	if(xf->ref == 0) {
 		chat("free \"%s\", dev=%d...", xf->name, xf->dev);
 		free(xf->name);
 		free(xf->ptr);
 		purgebuf(xf);
-		if(xf->dev >= 0){
+		if(xf->dev >= 0) {
 			close(xf->dev);
 			xf->dev = -1;
 		}
@@ -164,17 +164,17 @@ xfile(int fid, int flag)
 	hp = &xfiles[k];
 	mlock(&xlocks[k]);
 	pf = nil;
-	for(f=*hp; f; f=f->next){
+	for(f = *hp; f; f = f->next) {
 		if(f->fid == fid)
 			break;
 		pf = f;
 	}
-	if(f && pf){
+	if(f && pf) {
 		pf->next = f->next;
 		f->next = *hp;
 		*hp = f;
 	}
-	switch(flag){
+	switch(flag) {
 	default:
 		panic("xfile");
 	case Asis:
@@ -183,7 +183,7 @@ xfile(int fid, int flag)
 	case Clean:
 		break;
 	case Clunk:
-		if(f){
+		if(f) {
 			*hp = f->next;
 			unmlock(&xlocks[k]);
 			clean(f);
@@ -199,13 +199,13 @@ xfile(int fid, int flag)
 	if(f)
 		return clean(f);
 	mlock(&freelock);
-	if(f = freelist){	/* assign = */
+	if(f = freelist) { /* assign = */
 		freelist = f->next;
 		unmlock(&freelock);
 	} else {
 		unmlock(&freelock);
 		f = malloc(sizeof(Xfile));
-		if(f == nil){
+		if(f == nil) {
 			errno = Enomem;
 			return nil;
 		}
@@ -216,7 +216,7 @@ xfile(int fid, int flag)
 	unmlock(&xlocks[k]);
 	f->fid = fid;
 	f->flags = 0;
-	f->qid = (Qid){0,0,0};
+	f->qid = (Qid){0, 0, 0};
 	f->xf = nil;
 	f->ptr = nil;
 	return f;
@@ -225,16 +225,16 @@ xfile(int fid, int flag)
 Xfile *
 clean(Xfile *f)
 {
-	if(f->ptr){
+	if(f->ptr) {
 		free(f->ptr);
 		f->ptr = nil;
 	}
-	if(f->xf){
+	if(f->xf) {
 		refxfs(f->xf, -1);
 		f->xf = nil;
 	}
 	f->flags = 0;
-	f->qid = (Qid){0,0,0};
+	f->qid = (Qid){0, 0, 0};
 	return f;
 }
 
@@ -249,11 +249,10 @@ dosptrreloc(Xfile *f, Dosptr *dp, uint32_t addr, uint32_t offset)
 	Xfile *p;
 	Dosptr *xdp;
 
-	for(i=0; i < FIDMOD; i++){
-		for(p = xfiles[i]; p != nil; p = p->next){
+	for(i = 0; i < FIDMOD; i++) {
+		for(p = xfiles[i]; p != nil; p = p->next) {
 			xdp = p->ptr;
-			if(p != f && p->xf == f->xf
-			&& xdp != nil && xdp->addr == addr && xdp->offset == offset){
+			if(p != f && p->xf == f->xf && xdp != nil && xdp->addr == addr && xdp->offset == offset) {
 				memmove(xdp, dp, sizeof(Dosptr));
 				xdp->p = nil;
 				xdp->d = nil;

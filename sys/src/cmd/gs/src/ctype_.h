@@ -27,7 +27,7 @@
 /* Wrapper for ctype.h */
 
 #ifndef ctype__INCLUDED
-#  define ctype__INCLUDED
+#define ctype__INCLUDED
 
 /* We must include std.h before any file that includes sys/types.h. */
 #include "std.h"

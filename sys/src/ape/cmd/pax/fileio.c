@@ -52,11 +52,9 @@ static char *ident = "$Id: fileio.c,v 1.2 89/02/12 10:04:31 mark Exp $";
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /* open_archive -  open an archive file.  
  *
@@ -78,41 +76,40 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
  */
 
 #ifdef __STDC__
-    
-int open_archive(int mode)
+
+int
+open_archive(int mode)
 
 #else
-    
-int open_archive(mode)
-int             mode;
+
+int open_archive(mode) int mode;
 
 #endif
 {
-    if (ar_file[0] == '-' && ar_file[1] == '\0') {
-	if (mode == AR_READ) {
-	    archivefd = STDIN;
-	    bufend = bufidx = bufstart;
-	} else {
-	    archivefd = STDOUT;
+	if(ar_file[0] == '-' && ar_file[1] == '\0') {
+		if(mode == AR_READ) {
+			archivefd = STDIN;
+			bufend = bufidx = bufstart;
+		} else {
+			archivefd = STDOUT;
+		}
+	} else if(mode == AR_READ) {
+		archivefd = open(ar_file, O_RDONLY | O_BINARY);
+		bufend = bufidx = bufstart; /* set up for initial read */
+	} else if(mode == AR_WRITE) {
+		archivefd = open(ar_file, O_WRONLY | O_TRUNC | O_CREAT | O_BINARY, 0666);
+	} else if(mode == AR_APPEND) {
+		archivefd = open(ar_file, O_RDWR | O_BINARY, 0666);
+		bufend = bufidx = bufstart; /* set up for initial read */
 	}
-    } else if (mode == AR_READ) {
-	archivefd = open(ar_file, O_RDONLY | O_BINARY);
-	bufend = bufidx = bufstart;	/* set up for initial read */
-    } else if (mode == AR_WRITE) {
-	archivefd = open(ar_file, O_WRONLY|O_TRUNC|O_CREAT|O_BINARY, 0666);
-    } else if (mode == AR_APPEND) {
-	archivefd = open(ar_file, O_RDWR | O_BINARY, 0666);
-	bufend = bufidx = bufstart;	/* set up for initial read */
-    }
 
-    if (archivefd < 0) {
-	warnarch(strerror(), (OFFSET) 0);
-	return (-1);
-    }
-    ++arvolume;
-    return (0);
+	if(archivefd < 0) {
+		warnarch(strerror(), (OFFSET)0);
+		return (-1);
+	}
+	++arvolume;
+	return (0);
 }
-
 
 /* close_archive - close the archive file
  *
@@ -124,20 +121,21 @@ int             mode;
 
 #ifdef __STDC__
 
-void close_archive(void)
+void
+close_archive(void)
 
 #else
-    
-void close_archive()
+
+void
+close_archive()
 
 #endif
 {
-    if (archivefd != STDIN && archivefd != STDOUT) {
-	close(archivefd);
-    }
-    areof = 0;
+	if(archivefd != STDIN && archivefd != STDOUT) {
+		close(archivefd);
+	}
+	areof = 0;
 }
-
 
 /* openout - open an output file
  *
@@ -165,239 +163,236 @@ void close_archive()
 
 #ifdef __STDC__
 
-int openout(char *name, Stat *asb, Link *linkp, int ispass)
+int
+openout(char *name, Stat *asb, Link *linkp, int ispass)
 
 #else
-    
-int openout(name, asb, linkp, ispass)
-char           *name;
-Stat           *asb;
-Link           *linkp;
-int             ispass;
+
+int openout(name, asb, linkp, ispass) char *name;
+Stat *asb;
+Link *linkp;
+int ispass;
 
 #endif
 {
-    int             exists;
-    int             fd;
-    uint16_t          perm;
-    uint16_t          operm = 0;
-    Stat            osb;
-#ifdef	S_IFLNK
-    int             ssize;
-    char            sname[PATH_MAX + 1];
-#endif	/* S_IFLNK */
+	int exists;
+	int fd;
+	uint16_t perm;
+	uint16_t operm = 0;
+	Stat osb;
+#ifdef S_IFLNK
+	int ssize;
+	char sname[PATH_MAX + 1];
+#endif /* S_IFLNK */
 
-    if (exists = (LSTAT(name, &osb) == 0)) {
-	if (ispass && osb.sb_ino == asb->sb_ino && osb.sb_dev == asb->sb_dev) {
-	    warn(name, "Same file");
-	    return (-1);
-	} else if ((osb.sb_mode & S_IFMT) == (asb->sb_mode & S_IFMT)) {
-	    operm = osb.sb_mode & S_IPERM;
-	} else if (REMOVE(name, &osb) < 0) {
-	    warn(name, strerror());
-	    return (-1);
-	} else {
-	    exists = 0;
-	}
-    }
-    if (linkp) {
-	if (exists) {
-	    if (asb->sb_ino == osb.sb_ino && asb->sb_dev == osb.sb_dev) {
-		return (0);
-	    } else if (unlink(name) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    } else {
-		exists = 0;
-	    }
-	}
-	if (link(linkp->l_name, name) != 0) {
-	    if (errno == ENOENT) {
-		if (f_dir_create) {
-		    if (dirneed(name) != 0 ||
-			    link(linkp->l_name, name) != 0) {
-			    warn(name, strerror());
+	if(exists = (LSTAT(name, &osb) == 0)) {
+		if(ispass && osb.sb_ino == asb->sb_ino && osb.sb_dev == asb->sb_dev) {
+			warn(name, "Same file");
 			return (-1);
-		    }
+		} else if((osb.sb_mode & S_IFMT) == (asb->sb_mode & S_IFMT)) {
+			operm = osb.sb_mode & S_IPERM;
+		} else if(REMOVE(name, &osb) < 0) {
+			warn(name, strerror());
+			return (-1);
 		} else {
-		    warn(name, 
-			     "Directories are not being created (-d option)");
+			exists = 0;
 		}
-		return(0);
-	    } else if (errno != EXDEV) {
-		warn(name, strerror());
-		return (-1);
-	    }
-	} else {
-	    return(0);
-	} 
-    }
-    perm = asb->sb_mode & S_IPERM;
-    switch (asb->sb_mode & S_IFMT) {
-    case S_IFBLK:
-    case S_IFCHR:
+	}
+	if(linkp) {
+		if(exists) {
+			if(asb->sb_ino == osb.sb_ino && asb->sb_dev == osb.sb_dev) {
+				return (0);
+			} else if(unlink(name) < 0) {
+				warn(name, strerror());
+				return (-1);
+			} else {
+				exists = 0;
+			}
+		}
+		if(link(linkp->l_name, name) != 0) {
+			if(errno == ENOENT) {
+				if(f_dir_create) {
+					if(dirneed(name) != 0 ||
+					   link(linkp->l_name, name) != 0) {
+						warn(name, strerror());
+						return (-1);
+					}
+				} else {
+					warn(name,
+					     "Directories are not being created (-d option)");
+				}
+				return (0);
+			} else if(errno != EXDEV) {
+				warn(name, strerror());
+				return (-1);
+			}
+		} else {
+			return (0);
+		}
+	}
+	perm = asb->sb_mode & S_IPERM;
+	switch(asb->sb_mode & S_IFMT) {
+	case S_IFBLK:
+	case S_IFCHR:
 #ifdef _POSIX_SOURCE
-	warn(name, "Can't create special files");
-	return (-1);
+		warn(name, "Can't create special files");
+		return (-1);
 #else
-	fd = 0;
-	if (exists) {
-	    if (asb->sb_rdev == osb.sb_rdev) {
-		if (perm != operm && chmod(name, (int) perm) < 0) {
-		    warn(name, strerror());
-		    return (-1);
-		} else {
-		    break;
+		fd = 0;
+		if(exists) {
+			if(asb->sb_rdev == osb.sb_rdev) {
+				if(perm != operm && chmod(name, (int)perm) < 0) {
+					warn(name, strerror());
+					return (-1);
+				} else {
+					break;
+				}
+			} else if(REMOVE(name, &osb) < 0) {
+				warn(name, strerror());
+				return (-1);
+			} else {
+				exists = 0;
+			}
 		}
-	    } else if (REMOVE(name, &osb) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    } else {
-		exists = 0;
-	    }
-	}
-	if (mknod(name, (int) asb->sb_mode, (int) asb->sb_rdev) < 0) {
-	    if (errno == ENOENT) {
-		if (f_dir_create) {
-		    if (dirneed(name) < 0 || mknod(name, (int) asb->sb_mode, 
-			   (int) asb->sb_rdev) < 0) {
-			warn(name, strerror());
-			return (-1);
-		    }
-		} else {
-		    warn(name, "Directories are not being created (-d option)");
+		if(mknod(name, (int)asb->sb_mode, (int)asb->sb_rdev) < 0) {
+			if(errno == ENOENT) {
+				if(f_dir_create) {
+					if(dirneed(name) < 0 || mknod(name, (int)asb->sb_mode, (int)asb->sb_rdev) < 0) {
+						warn(name, strerror());
+						return (-1);
+					}
+				} else {
+					warn(name, "Directories are not being created (-d option)");
+				}
+			} else {
+				warn(name, strerror());
+				return (-1);
+			}
 		}
-	    } else {
-		warn(name, strerror());
-		return (-1);
-	    }
-	}
-	return(0);
-#endif /* _POSIX_SOURCE */
-	break;
-    case S_IFDIR:
-	if (exists) {
-	    if (perm != operm && chmod(name, (int) perm) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    }
-	} else if (f_dir_create) {
-	    if (dirmake(name, asb) < 0 || dirneed(name) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    }
-	} else {
-	    warn(name, "Directories are not being created (-d option)");
-	}
-	return (0);
-#ifndef _POSIX_SOURCE
-#ifdef	S_IFIFO
-    case S_IFIFO:
-	fd = 0;
-	if (exists) {
-	    if (perm != operm && chmod(name, (int) perm) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    }
-	} else if (mknod(name, (int) asb->sb_mode, 0) < 0) {
-	    if (errno == ENOENT) {
-		if (f_dir_create) {
-		    if (dirneed(name) < 0
-		       || mknod(name, (int) asb->sb_mode, 0) < 0) {
-			warn(name, strerror());
-			return (-1);
-		    }
-		} else {
-		    warn(name, "Directories are not being created (-d option)");
-		}
-	    } else {
-		warn(name, strerror());
-		return (-1);
-	    }
-	}
-	return(0);
-	break;
-#endif				/* S_IFIFO */
-#endif				/* _POSIX_SOURCE */
-#ifdef	S_IFLNK
-    case S_IFLNK:
-	if (exists) {
-	    if ((ssize = readlink(name, sname, sizeof(sname))) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    } else if (strncmp(sname, asb->sb_link, ssize) == 0) {
 		return (0);
-	    } else if (REMOVE(name, &osb) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    } else {
-		exists = 0;
-	    }
-	}
-	if (symlink(asb->sb_link, name) < 0) {
-	    if (errno == ENOENT) {
-		if (f_dir_create) {
-		    if (dirneed(name) < 0 || symlink(asb->sb_link, name) < 0) {
-			warn(name, strerror());
-			return (-1);
-		    }
+#endif /* _POSIX_SOURCE */
+		break;
+	case S_IFDIR:
+		if(exists) {
+			if(perm != operm && chmod(name, (int)perm) < 0) {
+				warn(name, strerror());
+				return (-1);
+			}
+		} else if(f_dir_create) {
+			if(dirmake(name, asb) < 0 || dirneed(name) < 0) {
+				warn(name, strerror());
+				return (-1);
+			}
 		} else {
-		    warn(name, "Directories are not being created (-d option)");
+			warn(name, "Directories are not being created (-d option)");
 		}
-	    } else {
-		warn(name, strerror());
-		return (-1);
-	    }
-	}
-	return (0);		/* Can't chown()/chmod() a symbolic link */
-#endif				/* S_IFLNK */
-    case S_IFREG:
-	if (exists) {
-	    if (!f_unconditional && osb.sb_mtime > asb->sb_mtime) {
-		warn(name, "Newer file exists");
-		return (-1);
-	    } else if (unlink(name) < 0) {
-		warn(name, strerror());
-		return (-1);
-	    } else {
-		exists = 0;
-	    }
-	}
-	if ((fd = creat(name, (int) perm)) < 0) {
-	    if (errno == ENOENT) {
-		if (f_dir_create) {
-		    if (dirneed(name) < 0 || 
-			    (fd = creat(name, (int) perm)) < 0) {
-			warn(name, strerror());
-			return (-1);
-		    }
-		} else {
-		    /* 
+		return (0);
+#ifndef _POSIX_SOURCE
+#ifdef S_IFIFO
+	case S_IFIFO:
+		fd = 0;
+		if(exists) {
+			if(perm != operm && chmod(name, (int)perm) < 0) {
+				warn(name, strerror());
+				return (-1);
+			}
+		} else if(mknod(name, (int)asb->sb_mode, 0) < 0) {
+			if(errno == ENOENT) {
+				if(f_dir_create) {
+					if(dirneed(name) < 0 || mknod(name, (int)asb->sb_mode, 0) < 0) {
+						warn(name, strerror());
+						return (-1);
+					}
+				} else {
+					warn(name, "Directories are not being created (-d option)");
+				}
+			} else {
+				warn(name, strerror());
+				return (-1);
+			}
+		}
+		return (0);
+		break;
+#endif /* S_IFIFO */
+#endif /* _POSIX_SOURCE */
+#ifdef S_IFLNK
+	case S_IFLNK:
+		if(exists) {
+			if((ssize = readlink(name, sname, sizeof(sname))) < 0) {
+				warn(name, strerror());
+				return (-1);
+			} else if(strncmp(sname, asb->sb_link, ssize) == 0) {
+				return (0);
+			} else if(REMOVE(name, &osb) < 0) {
+				warn(name, strerror());
+				return (-1);
+			} else {
+				exists = 0;
+			}
+		}
+		if(symlink(asb->sb_link, name) < 0) {
+			if(errno == ENOENT) {
+				if(f_dir_create) {
+					if(dirneed(name) < 0 || symlink(asb->sb_link, name) < 0) {
+						warn(name, strerror());
+						return (-1);
+					}
+				} else {
+					warn(name, "Directories are not being created (-d option)");
+				}
+			} else {
+				warn(name, strerror());
+				return (-1);
+			}
+		}
+		return (0); /* Can't chown()/chmod() a symbolic link */
+#endif			    /* S_IFLNK */
+	case S_IFREG:
+		if(exists) {
+			if(!f_unconditional && osb.sb_mtime > asb->sb_mtime) {
+				warn(name, "Newer file exists");
+				return (-1);
+			} else if(unlink(name) < 0) {
+				warn(name, strerror());
+				return (-1);
+			} else {
+				exists = 0;
+			}
+		}
+		if((fd = creat(name, (int)perm)) < 0) {
+			if(errno == ENOENT) {
+				if(f_dir_create) {
+					if(dirneed(name) < 0 ||
+					   (fd = creat(name, (int)perm)) < 0) {
+						warn(name, strerror());
+						return (-1);
+					}
+				} else {
+					/* 
 		     * the file requires a directory which does not exist
 		     * and which the user does not want created, so skip
 		     * the file...
 		     */
-		    warn(name, "Directories are not being created (-d option)");
-		    return(0);
+					warn(name, "Directories are not being created (-d option)");
+					return (0);
+				}
+			} else {
+				warn(name, strerror());
+				return (-1);
+			}
 		}
-	    } else {
-		warn(name, strerror());
+		break;
+	default:
+		warn(name, "Unknown filetype");
 		return (-1);
-	    }
 	}
-	break;
-    default:
-	warn(name, "Unknown filetype");
-	return (-1);
-    }
-    if (f_owner) {
-	if (!exists || asb->sb_uid != osb.sb_uid || asb->sb_gid != osb.sb_gid) {
-	    chown(name, (int) asb->sb_uid, (int) asb->sb_gid);
+	if(f_owner) {
+		if(!exists || asb->sb_uid != osb.sb_uid || asb->sb_gid != osb.sb_gid) {
+			chown(name, (int)asb->sb_uid, (int)asb->sb_gid);
+		}
 	}
-    }
-    return (fd);
+	return (fd);
 }
-
 
 /* openin - open the next input file
  *
@@ -426,43 +421,43 @@ int             ispass;
 
 #ifdef __STDC__
 
-int openin(char *name, Stat *asb)
+int
+openin(char *name, Stat *asb)
 
 #else
-    
-int openin(name, asb)
-char           *name;		/* name of file to open */
-Stat           *asb;		/* pointer to stat structure for file */
+
+int openin(name, asb) char *name; /* name of file to open */
+Stat *asb; /* pointer to stat structure for file */
 
 #endif
 {
-    int             fd;
+	int fd;
 
-    switch (asb->sb_mode & S_IFMT) {
-    case S_IFDIR:
-	asb->sb_nlink = 1;
-	asb->sb_size = 0;
-	return (0);
-#ifdef	S_IFLNK
-    case S_IFLNK:
-	if ((asb->sb_size = readlink(name,
-			     asb->sb_link, sizeof(asb->sb_link) - 1)) < 0) {
-	    warn(name, strerror());
-	    return(0);
+	switch(asb->sb_mode & S_IFMT) {
+	case S_IFDIR:
+		asb->sb_nlink = 1;
+		asb->sb_size = 0;
+		return (0);
+#ifdef S_IFLNK
+	case S_IFLNK:
+		if((asb->sb_size = readlink(name,
+					    asb->sb_link, sizeof(asb->sb_link) - 1)) < 0) {
+			warn(name, strerror());
+			return (0);
+		}
+		asb->sb_link[asb->sb_size] = '\0';
+		return (0);
+#endif /* S_IFLNK */
+	case S_IFREG:
+		if(asb->sb_size == 0) {
+			return (0);
+		}
+		if((fd = open(name, O_RDONLY | O_BINARY)) < 0) {
+			warn(name, strerror());
+		}
+		return (fd);
+	default:
+		asb->sb_size = 0;
+		return (0);
 	}
-	asb->sb_link[asb->sb_size] = '\0';
-	return (0);
-#endif				/* S_IFLNK */
-    case S_IFREG:
-	if (asb->sb_size == 0) {
-	    return (0);
-	}
-	if ((fd = open(name, O_RDONLY | O_BINARY)) < 0) {
-	    warn(name, strerror());
-	}
-	return (fd);
-    default:
-	asb->sb_size = 0;
-	return (0);
-    }
 }

@@ -9,6 +9,7 @@
 
 #include "iplot.h"
 char *
-whoami(void){
-	return("general");
+whoami(void)
+{
+	return ("general");
 }

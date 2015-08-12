@@ -29,18 +29,18 @@ storeclump(Index *ix, ZBlock *zb, uint8_t *sc, int type, uint32_t creator,
 
 	trace(TraceLump, "storeclump enter", sc, type);
 	size = zb->len;
-	if(size > VtMaxLumpSize){
+	if(size > VtMaxLumpSize) {
 		seterr(EStrange, "lump too large");
 		return -1;
 	}
-	if(vttypevalid(type) < 0){
+	if(vttypevalid(type) < 0) {
 		seterr(EStrange, "invalid lump type");
 		return -1;
 	}
 
-	if(0){
+	if(0) {
 		scoremem(bh, zb->data, size);
-		if(scorecmp(sc, bh) != 0){
+		if(scorecmp(sc, bh) != 0) {
 			seterr(ECorrupt, "storing clump: corrupted; expected=%V got=%V, size=%d", sc, bh, size);
 			return -1;
 		}
@@ -58,10 +58,10 @@ storeclump(Index *ix, ZBlock *zb, uint8_t *sc, int type, uint32_t creator,
 
 	trace(TraceLump, "storeclump whackblock");
 	dsize = whackblock(&cb->data[ClumpSize], zb->data, size);
-	if(dsize > 0 && dsize < size){
+	if(dsize > 0 && dsize < size) {
 		cl.encoding = ClumpECompress;
-	}else{
-		if(dsize > size){
+	} else {
+		if(dsize > size) {
 			fprint(2, "whack error: dsize=%d size=%d\n", dsize, size);
 			abort();
 		}
@@ -69,7 +69,7 @@ storeclump(Index *ix, ZBlock *zb, uint8_t *sc, int type, uint32_t creator,
 		dsize = size;
 		memmove(&cb->data[ClumpSize], zb->data, size);
 	}
-	memset(cb->data+ClumpSize+dsize, 0, 4);
+	memset(cb->data + ClumpSize + dsize, 0, 4);
 	cl.info.size = dsize;
 
 	a = writeiclump(ix, &cl, cb->data);
@@ -83,7 +83,7 @@ storeclump(Index *ix, ZBlock *zb, uint8_t *sc, int type, uint32_t creator,
 	ia->size = size;
 	ia->blocks = (dsize + ClumpSize + (1 << ABlockLog) - 1) >> ABlockLog;
 
-/*
+	/*
 	qlock(&stats.lock);
 	stats.clumpwrites++;
 	stats.clumpbwrites += size;
@@ -110,7 +110,7 @@ clumpmagic(Arena *arena, uint64_t aa)
  * blocks is roughly the length of the clump on disk;
  * if zero, the length is unknown.
  */
-ZBlock*
+ZBlock *
 loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 	  int verify)
 {
@@ -120,7 +120,7 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 	uint32_t n;
 	int nunc;
 
-/*
+	/*
 	qlock(&stats.lock);
 	stats.clumpreads++;
 	qunlock(&stats.lock);
@@ -135,52 +135,52 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 	if(cb == nil)
 		return nil;
 	n = readarena(arena, aa, cb->data, blocks << ABlockLog);
-	if(n < ClumpSize){
+	if(n < ClumpSize) {
 		if(n != 0)
 			seterr(ECorrupt, "loadclump read less than a header");
 		freezblock(cb);
 		return nil;
 	}
 	trace(TraceLump, "loadclump unpack");
-	if(unpackclump(cl, cb->data, arena->clumpmagic) < 0){
+	if(unpackclump(cl, cb->data, arena->clumpmagic) < 0) {
 		seterr(ECorrupt, "loadclump %s %llud: %r", arena->name, aa);
 		freezblock(cb);
 		return nil;
 	}
-	if(cl->info.type == VtCorruptType){
+	if(cl->info.type == VtCorruptType) {
 		seterr(EOk, "clump is marked corrupt");
 		freezblock(cb);
 		return nil;
 	}
 	n -= ClumpSize;
-	if(n < cl->info.size){
+	if(n < cl->info.size) {
 		freezblock(cb);
 		n = cl->info.size;
 		cb = alloczblock(n, 0, 0);
 		if(cb == nil)
 			return nil;
-		if(readarena(arena, aa + ClumpSize, cb->data, n) != n){
+		if(readarena(arena, aa + ClumpSize, cb->data, n) != n) {
 			seterr(ECorrupt, "loadclump read too little data");
 			freezblock(cb);
 			return nil;
 		}
 		buf = cb->data;
-	}else
+	} else
 		buf = cb->data + ClumpSize;
 
 	scorecp(score, cl->info.score);
 
 	zb = alloczblock(cl->info.uncsize, 0, 0);
-	if(zb == nil){
+	if(zb == nil) {
 		freezblock(cb);
 		return nil;
 	}
-	switch(cl->encoding){
+	switch(cl->encoding) {
 	case ClumpECompress:
 		trace(TraceLump, "loadclump decompress");
 		unwhackinit(&uw);
 		nunc = unwhack(&uw, zb->data, cl->info.uncsize, buf, cl->info.size);
-		if(nunc != cl->info.uncsize){
+		if(nunc != cl->info.uncsize) {
 			if(nunc < 0)
 				seterr(ECorrupt, "decompression of %llud failed: %s", aa, uw.err);
 			else
@@ -191,7 +191,7 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 		}
 		break;
 	case ClumpENone:
-		if(cl->info.size != cl->info.uncsize){
+		if(cl->info.size != cl->info.uncsize) {
 			seterr(ECorrupt, "loading clump: bad uncompressed size for uncompressed block %llud", aa);
 			freezblock(cb);
 			freezblock(zb);
@@ -210,15 +210,15 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 	}
 	freezblock(cb);
 
-	if(verify){
+	if(verify) {
 		trace(TraceLump, "loadclump verify");
 		scoremem(bh, zb->data, cl->info.uncsize);
-		if(scorecmp(cl->info.score, bh) != 0){
+		if(scorecmp(cl->info.score, bh) != 0) {
 			seterr(ECorrupt, "loading clump: corrupted at %s %llud; expected=%V got=%V", arena->name, aa, cl->info.score, bh);
 			freezblock(zb);
 			return nil;
 		}
-		if(vttypevalid(cl->info.type) < 0){
+		if(vttypevalid(cl->info.type) < 0) {
 			seterr(ECorrupt, "loading lump at %s %llud: invalid lump type %d", arena->name, aa, cl->info.type);
 			freezblock(zb);
 			return nil;
@@ -226,7 +226,7 @@ loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
 	}
 
 	trace(TraceLump, "loadclump exit");
-/*
+	/*
 	qlock(&stats.lock);
 	stats.clumpbreads += cl->info.size;
 	stats.clumpbuncomp += cl->info.uncsize;

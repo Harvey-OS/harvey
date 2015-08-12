@@ -20,9 +20,9 @@
 extern int verbose;
 
 char VERSION[] = "secstore";
-static char *feedback[] = {"alpha","bravo","charlie","delta","echo","foxtrot","golf","hotel"};
+static char *feedback[] = {"alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel"};
 
-typedef struct PAKparams{
+typedef struct PAKparams {
 	mpint *q, *p, *r, *g;
 } PAKparams;
 
@@ -34,22 +34,23 @@ initPAKparams(void)
 {
 	if(pak)
 		return;
-	pak = (PAKparams*)emalloc(sizeof(*pak));
+	pak = (PAKparams *)emalloc(sizeof(*pak));
 	pak->q = strtomp("E0F0EF284E10796C5A2A511E94748BA03C795C13", nil, 16, nil);
 	pak->p = strtomp("C41CFBE4D4846F67A3DF7DE9921A49D3B42DC33728427AB159CEC8CBB"
-		"DB12B5F0C244F1A734AEB9840804EA3C25036AD1B61AFF3ABBC247CD4B384224567A86"
-		"3A6F020E7EE9795554BCD08ABAD7321AF27E1E92E3DB1C6E7E94FAAE590AE9C48F96D9"
-		"3D178E809401ABE8A534A1EC44359733475A36A70C7B425125062B1142D",
-		nil, 16, nil);
+			 "DB12B5F0C244F1A734AEB9840804EA3C25036AD1B61AFF3ABBC247CD4B384224567A86"
+			 "3A6F020E7EE9795554BCD08ABAD7321AF27E1E92E3DB1C6E7E94FAAE590AE9C48F96D9"
+			 "3D178E809401ABE8A534A1EC44359733475A36A70C7B425125062B1142D",
+			 nil, 16, nil);
 	pak->r = strtomp("DF310F4E54A5FEC5D86D3E14863921E834113E060F90052AD332B3241"
-		"CEF2497EFA0303D6344F7C819691A0F9C4A773815AF8EAECFB7EC1D98F039F17A32A7E"
-		"887D97251A927D093F44A55577F4D70444AEBD06B9B45695EC23962B175F266895C67D"
-		"21C4656848614D888A4", nil, 16, nil);
+			 "CEF2497EFA0303D6344F7C819691A0F9C4A773815AF8EAECFB7EC1D98F039F17A32A7E"
+			 "887D97251A927D093F44A55577F4D70444AEBD06B9B45695EC23962B175F266895C67D"
+			 "21C4656848614D888A4",
+			 nil, 16, nil);
 	pak->g = strtomp("2F1C308DC46B9A44B52DF7DACCE1208CCEF72F69C743ADD4D23271734"
-		"44ED6E65E074694246E07F9FD4AE26E0FDDD9F54F813C40CB9BCD4338EA6F242AB94CD"
-		"410E676C290368A16B1A3594877437E516C53A6EEE5493A038A017E955E218E7819734"
-		"E3E2A6E0BAE08B14258F8C03CC1B30E0DDADFCF7CEDF0727684D3D255F1",
-		nil, 16, nil);
+			 "44ED6E65E074694246E07F9FD4AE26E0FDDD9F54F813C40CB9BCD4338EA6F242AB94CD"
+			 "410E676C290368A16B1A3594877437E516C53A6EEE5493A038A017E955E218E7819734"
+			 "E3E2A6E0BAE08B14258F8C03CC1B30E0DDADFCF7CEDF0727684D3D255F1",
+			 nil, 16, nil);
 }
 
 // H = (sha(ver,C,sha(passphrase)))^r mod p,
@@ -64,13 +65,13 @@ longhash(char *ver, char *C, uint8_t *passwd, mpint *H)
 	nver = strlen(ver);
 	nC = strlen(C);
 	n = nver + nC + SHA1dlen;
-	Cp = (uint8_t*)emalloc(n);
+	Cp = (uint8_t *)emalloc(n);
 	memmove(Cp, ver, nver);
-	memmove(Cp+nver, C, nC);
-	memmove(Cp+nver+nC, passwd, SHA1dlen);
-	for(i = 0; i < 7; i++){
-		key[0] = 'A'+i;
-		hmac_sha1(Cp, n, key, sizeof key, buf+i*SHA1dlen, nil);
+	memmove(Cp + nver, C, nC);
+	memmove(Cp + nver + nC, passwd, SHA1dlen);
+	for(i = 0; i < 7; i++) {
+		key[0] = 'A' + i;
+		hmac_sha1(Cp, n, key, sizeof key, buf + i * SHA1dlen, nil);
 	}
 	memset(Cp, 0, n);
 	free(Cp);
@@ -101,20 +102,20 @@ shorthash(char *mess, char *C, char *S, char *m, char *mu,
 {
 	SHA1state *state;
 
-	state = sha1((uint8_t*)mess, strlen(mess), 0, 0);
-	state = sha1((uint8_t*)C, strlen(C), 0, state);
-	state = sha1((uint8_t*)S, strlen(S), 0, state);
-	state = sha1((uint8_t*)m, strlen(m), 0, state);
-	state = sha1((uint8_t*)mu, strlen(mu), 0, state);
-	state = sha1((uint8_t*)sigma, strlen(sigma), 0, state);
-	state = sha1((uint8_t*)Hi, strlen(Hi), 0, state);
-	state = sha1((uint8_t*)mess, strlen(mess), 0, state);
-	state = sha1((uint8_t*)C, strlen(C), 0, state);
-	state = sha1((uint8_t*)S, strlen(S), 0, state);
-	state = sha1((uint8_t*)m, strlen(m), 0, state);
-	state = sha1((uint8_t*)mu, strlen(mu), 0, state);
-	state = sha1((uint8_t*)sigma, strlen(sigma), 0, state);
-	sha1((uint8_t*)Hi, strlen(Hi), digest, state);
+	state = sha1((uint8_t *)mess, strlen(mess), 0, 0);
+	state = sha1((uint8_t *)C, strlen(C), 0, state);
+	state = sha1((uint8_t *)S, strlen(S), 0, state);
+	state = sha1((uint8_t *)m, strlen(m), 0, state);
+	state = sha1((uint8_t *)mu, strlen(mu), 0, state);
+	state = sha1((uint8_t *)sigma, strlen(sigma), 0, state);
+	state = sha1((uint8_t *)Hi, strlen(Hi), 0, state);
+	state = sha1((uint8_t *)mess, strlen(mess), 0, state);
+	state = sha1((uint8_t *)C, strlen(C), 0, state);
+	state = sha1((uint8_t *)S, strlen(S), 0, state);
+	state = sha1((uint8_t *)m, strlen(m), 0, state);
+	state = sha1((uint8_t *)mu, strlen(mu), 0, state);
+	state = sha1((uint8_t *)sigma, strlen(sigma), 0, state);
+	sha1((uint8_t *)Hi, strlen(Hi), digest, state);
 }
 
 // On input, conn provides an open channel to the server;
@@ -127,7 +128,7 @@ int
 PAKclient(SConn *conn, char *C, char *pass, char **pS)
 {
 	char *mess, *mess2, *eol, *S, *hexmu, *ks, *hexm, *hexsigma = nil, *hexHi;
-	char kc[2*SHA1dlen+1];
+	char kc[2 * SHA1dlen + 1];
 	uint8_t digest[SHA1dlen];
 	int rc = -1, n;
 	mpint *x, *m = mpnew(0), *mu = mpnew(0), *sigma = mpnew(0);
@@ -135,7 +136,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 
 	hexHi = PAK_Hi(C, pass, H, Hi);
 	if(verbose)
-		fprint(2, "%s\n", feedback[H->p[0]&0x7]);  // provide a clue to catch typos
+		fprint(2, "%s\n", feedback[H->p[0] & 0x7]); // provide a clue to catch typos
 
 	// random 1<=x<=q-1; send C, m=g**x H
 	x = mprand(240, genrandom, nil);
@@ -146,34 +147,34 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	mpmul(m, H, m);
 	mpmod(m, pak->p, m);
 	hexm = mptoa(m, 64, nil, 0);
-	mess = (char*)emalloc(2*Maxmsg+2);
-	mess2 = mess+Maxmsg+1;
+	mess = (char *)emalloc(2 * Maxmsg + 2);
+	mess2 = mess + Maxmsg + 1;
 	snprint(mess, Maxmsg, "%s\tPAK\nC=%s\nm=%s\n", VERSION, C, hexm);
-	conn->write(conn, (uint8_t*)mess, strlen(mess));
+	conn->write(conn, (uint8_t *)mess, strlen(mess));
 
 	// recv g**y, S, check hash1(g**xy)
-	if(readstr(conn, mess) < 0){
+	if(readstr(conn, mess) < 0) {
 		fprint(2, "%s: error: %s\n", argv0, mess);
 		writerr(conn, "couldn't read g**y");
 		goto done;
 	}
 	eol = strchr(mess, '\n');
-	if(strncmp("mu=", mess, 3) != 0 || !eol || strncmp("\nk=", eol, 3) != 0){
+	if(strncmp("mu=", mess, 3) != 0 || !eol || strncmp("\nk=", eol, 3) != 0) {
 		writerr(conn, "verifier syntax error");
 		goto done;
 	}
-	hexmu = mess+3;
+	hexmu = mess + 3;
 	*eol = 0;
-	ks = eol+3;
+	ks = eol + 3;
 	eol = strchr(ks, '\n');
-	if(!eol || strncmp("\nS=", eol, 3) != 0){
+	if(!eol || strncmp("\nS=", eol, 3) != 0) {
 		writerr(conn, "verifier syntax error for secstore 1.0");
 		goto done;
 	}
 	*eol = 0;
-	S = eol+3;
+	S = eol + 3;
 	eol = strchr(S, '\n');
-	if(!eol){
+	if(!eol) {
 		writerr(conn, "verifier syntax error for secstore 1.0");
 		goto done;
 	}
@@ -185,7 +186,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	hexsigma = mptoa(sigma, 64, nil, 0);
 	shorthash("server", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(kc, sizeof kc, digest, SHA1dlen);
-	if(strcmp(ks, kc) != 0){
+	if(strcmp(ks, kc) != 0) {
 		writerr(conn, "verifier didn't match");
 		goto done;
 	}
@@ -194,14 +195,14 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	shorthash("client", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(kc, sizeof kc, digest, SHA1dlen);
 	snprint(mess2, Maxmsg, "k'=%s\n", kc);
-	conn->write(conn, (uint8_t*)mess2, strlen(mess2));
+	conn->write(conn, (uint8_t *)mess2, strlen(mess2));
 
 	// set session key
 	shorthash("session", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	memset(hexsigma, 0, strlen(hexsigma));
 	n = conn->secret(conn, digest, 0);
 	memset(digest, 0, SHA1dlen);
-	if(n < 0){
+	if(n < 0) {
 		writerr(conn, "can't set secret");
 		goto done;
 	}
@@ -231,7 +232,7 @@ int
 PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 {
 	int rc = -1, n;
-	char mess2[Maxmsg+1], *eol;
+	char mess2[Maxmsg + 1], *eol;
 	char *C, ks[41], *kc, *hexm, *hexmu = nil, *hexsigma = nil, *hexHi = nil;
 	uint8_t digest[SHA1dlen];
 	mpint *H = mpnew(0), *Hi = mpnew(0);
@@ -239,9 +240,9 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	PW *pw = nil;
 
 	// secstore version and algorithm
-	snprint(mess2,Maxmsg,"%s\tPAK\n", VERSION);
+	snprint(mess2, Maxmsg, "%s\tPAK\n", VERSION);
 	n = strlen(mess2);
-	if(strncmp(mess,mess2,n) != 0){
+	if(strncmp(mess, mess2, n) != 0) {
 		writerr(conn, "protocol should start with ver alg");
 		return -1;
 	}
@@ -250,16 +251,16 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 
 	// parse first message into C, m
 	eol = strchr(mess, '\n');
-	if(strncmp("C=", mess, 2) != 0 || !eol){
+	if(strncmp("C=", mess, 2) != 0 || !eol) {
 		fprint(2, "%s: mess[1]=%s\n", argv0, mess);
 		writerr(conn, "PAK version mismatch");
 		goto done;
 	}
-	C = mess+2;
+	C = mess + 2;
 	*eol = 0;
-	hexm = eol+3;
+	hexm = eol + 3;
 	eol = strchr(hexm, '\n');
-	if(strncmp("m=", hexm-2, 2) != 0 || !eol){
+	if(strncmp("m=", hexm - 2, 2) != 0 || !eol) {
 		writerr(conn, "PAK version mismatch");
 		goto done;
 	}
@@ -268,7 +269,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	mpmod(m, pak->p, m);
 
 	// lookup client
-	if((pw = getPW(C,0)) == nil) {
+	if((pw = getPW(C, 0)) == nil) {
 		snprint(mess2, sizeof mess2, "%r");
 		writerr(conn, mess2);
 		goto done;
@@ -284,7 +285,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	// random y, mu=g**y, sigma=g**xy
 	y = mprand(240, genrandom, nil);
 	mpmod(y, pak->q, y);
-	if(mpcmp(y, mpzero) == 0){
+	if(mpcmp(y, mpzero) == 0) {
 		mpassign(mpone, y);
 	}
 	mpexp(pak->g, y, pak->p, mu);
@@ -298,19 +299,19 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	shorthash("server", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(ks, sizeof ks, digest, SHA1dlen);
 	snprint(mess2, sizeof mess2, "mu=%s\nk=%s\nS=%s\n", hexmu, ks, S);
-	conn->write(conn, (uint8_t*)mess2, strlen(mess2));
+	conn->write(conn, (uint8_t *)mess2, strlen(mess2));
 
 	// recv hash2(g**xy)
-	if(readstr(conn, mess2) < 0){
+	if(readstr(conn, mess2) < 0) {
 		writerr(conn, "couldn't read verifier");
 		goto done;
 	}
 	eol = strchr(mess2, '\n');
-	if(strncmp("k'=", mess2, 3) != 0 || !eol){
+	if(strncmp("k'=", mess2, 3) != 0 || !eol) {
 		writerr(conn, "verifier syntax error");
 		goto done;
 	}
-	kc = mess2+3;
+	kc = mess2 + 3;
 	*eol = 0;
 	shorthash("client", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(ks, sizeof ks, digest, SHA1dlen);
@@ -322,18 +323,18 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	// set session key
 	shorthash("session", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	n = conn->secret(conn, digest, 1);
-	if(n < 0){
+	if(n < 0) {
 		writerr(conn, "can't set secret");
 		goto done;
 	}
 
 	rc = 0;
 done:
-	if(rc<0 && pw){
+	if(rc < 0 && pw) {
 		pw->failed++;
 		putPW(pw);
 	}
-	if(rc==0 && pw && pw->failed>0){
+	if(rc == 0 && pw && pw->failed > 0) {
 		pw->failed = 0;
 		putPW(pw);
 	}
@@ -352,4 +353,3 @@ done:
 	mpfree(H);
 	return rc;
 }
-

@@ -49,24 +49,22 @@
 
 #ifndef lint
 static char *ident = "$Id: tar.c,v 1.2 89/02/12 10:06:05 mark Exp $";
-static char *copyright ="Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.";
 #endif /* not lint */
 
 /* Headers */
 
 #include "pax.h"
 
-
 /* Defines */
 
-#define DEF_BLOCKING	20	/* default blocking factor for extract */
-
+#define DEF_BLOCKING 20 /* default blocking factor for extract */
 
 /* Function Prototypes */
 
 #ifdef __STDC__
 
-static int taropt(int , char **, char *);
+static int taropt(int, char **, char *);
 static void usage(void);
 
 #else /* !__STDC__ */
@@ -75,7 +73,6 @@ static int taropt();
 static void usage();
 
 #endif /* __STDC__ */
-
 
 /* do_tar - main routine for tar. 
  *
@@ -96,136 +93,135 @@ static void usage();
 
 #ifdef __STDC__
 
-int do_tar(int argc, char **argv)
+int
+do_tar(int argc, char **argv)
 
 #else
 
-int do_tar(argc, argv)
-int             argc;		/* argument count (argc from main) */
-char          **argv;		/* argument list (argv from main) */
+int do_tar(argc, argv) int argc; /* argument count (argc from main) */
+char **argv;			 /* argument list (argv from main) */
 
 #endif
 {
-    int             c;		/* Option letter */
+	int c; /* Option letter */
 
-    /* Set default option values */
-    names_from_stdin = 0;
-    ar_file = getenv("TAPE");	/* From environment, or */
-    if (ar_file == 0) {
-	ar_file = DEF_AR_FILE;	/* From Makefile */
-    }
+	/* Set default option values */
+	names_from_stdin = 0;
+	ar_file = getenv("TAPE"); /* From environment, or */
+	if(ar_file == 0) {
+		ar_file = DEF_AR_FILE; /* From Makefile */
+	}
 
-    /*
+	/*
      * set up the flags to reflect the default pax inteface.  Unfortunately
      * the pax interface has several options which are completely opposite
      * of the tar and/or cpio interfaces...
      */
-    f_unconditional = 1;
-    f_mtime = 1;
-    f_dir_create = 1;
-    blocking = 0;
-    ar_interface = TAR;
-    ar_format = TAR;
-    msgfile=stderr;
+	f_unconditional = 1;
+	f_mtime = 1;
+	f_dir_create = 1;
+	blocking = 0;
+	ar_interface = TAR;
+	ar_format = TAR;
+	msgfile = stderr;
 
-    /* Parse options */
-    while ((c = taropt(argc, argv, "b:cf:hlmortuvwx")) != EOF) {
-	switch (c) {
-	case 'b':		/* specify blocking factor */
-	    /* 
+	/* Parse options */
+	while((c = taropt(argc, argv, "b:cf:hlmortuvwx")) != EOF) {
+		switch(c) {
+		case 'b': /* specify blocking factor */
+			/* 
 	     * FIXME - we should use a conversion routine that does
 	     * some kind of reasonable error checking, but...
 	     */
-	    blocking = atoi(optarg);
-	    break;
-	case 'c':		/* create a new archive */
-	    f_create = 1;
-	    break;
-	case 'f':		/* specify input/output file */
-	    ar_file = optarg;
-	    break;
-	case 'h':
-	    f_follow_links = 1;	/* follow symbolic links */
-	    break;
-	case 'l':		/* report unresolved links */
-	    f_linksleft = 1;
-	    break;
-	case 'm':		/* don't restore modification times */
-	    f_modified = 1;
-	    break;
-	case 'o':		/* take on user's group rather than
+			blocking = atoi(optarg);
+			break;
+		case 'c': /* create a new archive */
+			f_create = 1;
+			break;
+		case 'f': /* specify input/output file */
+			ar_file = optarg;
+			break;
+		case 'h':
+			f_follow_links = 1; /* follow symbolic links */
+			break;
+		case 'l': /* report unresolved links */
+			f_linksleft = 1;
+			break;
+		case 'm': /* don't restore modification times */
+			f_modified = 1;
+			break;
+		case 'o': /* take on user's group rather than
 				 * archives */
-	    break;
-	case 'r':		/* named files are appended to archive */
-	    f_append = 1;
-	    break;
-	case 't':
-	    f_list = 1;		/* list files in archive */
-	    break;
-	case 'u':		/* named files are added to archive */
-	    f_newer = 1;
-	    break;
-	case 'v':		/* verbose mode */
-	    f_verbose = 1;
-	    break;
-	case 'w':		/* user interactive mode */
-	    f_disposition = 1;
-	    break;
-	case 'x':		/* named files are extracted from archive */
-	    f_extract = 1;
-	    break;
-	case '?':
-	    usage();
-	    exit(EX_ARGSBAD);
+			break;
+		case 'r': /* named files are appended to archive */
+			f_append = 1;
+			break;
+		case 't':
+			f_list = 1; /* list files in archive */
+			break;
+		case 'u': /* named files are added to archive */
+			f_newer = 1;
+			break;
+		case 'v': /* verbose mode */
+			f_verbose = 1;
+			break;
+		case 'w': /* user interactive mode */
+			f_disposition = 1;
+			break;
+		case 'x': /* named files are extracted from archive */
+			f_extract = 1;
+			break;
+		case '?':
+			usage();
+			exit(EX_ARGSBAD);
+		}
 	}
-    }
 
-    /* check command line argument sanity */
-    if (f_create + f_extract + f_list + f_append + f_newer != 1) {
-	(void) fprintf(stderr,
-	   "%s: you must specify exactly one of the c, t, r, u or x options\n",
-		       myname);
-	usage();
-	exit(EX_ARGSBAD);
-    }
+	/* check command line argument sanity */
+	if(f_create + f_extract + f_list + f_append + f_newer != 1) {
+		(void)fprintf(stderr,
+			      "%s: you must specify exactly one of the c, t, r, u or x options\n",
+			      myname);
+		usage();
+		exit(EX_ARGSBAD);
+	}
 
-    /* set the blocking factor, if not set by the user */
-    if (blocking == 0) {
+	/* set the blocking factor, if not set by the user */
+	if(blocking == 0) {
 #ifdef USG
-	if (f_extract || f_list) {
-	    blocking = DEF_BLOCKING;
-	    fprintf(stderr, "Tar: blocksize = %d\n", blocking);
-	} else {
-	    blocking = 1;
-	}
-#else /* !USG */
-	blocking = 20;
+		if(f_extract || f_list) {
+			blocking = DEF_BLOCKING;
+			fprintf(stderr, "Tar: blocksize = %d\n", blocking);
+		} else {
+			blocking = 1;
+		}
+#else  /* !USG */
+		blocking = 20;
 #endif /* USG */
-    }
-    blocksize = blocking * BLOCKSIZE;
-    buf_allocate((OFFSET) blocksize);
+	}
+	blocksize = blocking * BLOCKSIZE;
+	buf_allocate((OFFSET)blocksize);
 
-    if (f_create) {
-	open_archive(AR_WRITE);
-	create_archive();	/* create the archive */
-    } else if (f_extract) {
-	open_archive(AR_READ);
-	read_archive();		/* extract files from archive */
-    } else if (f_list) {
-	open_archive(AR_READ);
-	read_archive();		/* read and list contents of archive */
-    } else if (f_append) {
-	open_archive(AR_APPEND);
-	append_archive();	/* append files to archive */
-    }
-    
-    if (f_linksleft) {		
-	linkleft(); 		/* report any unresolved links */ 
-    }
-    
-    return (0);
+	if(f_create) {
+		open_archive(AR_WRITE);
+		create_archive(); /* create the archive */
+	} else if(f_extract) {
+		open_archive(AR_READ);
+		read_archive(); /* extract files from archive */
+	} else if(f_list) {
+		open_archive(AR_READ);
+		read_archive(); /* read and list contents of archive */
+	} else if(f_append) {
+		open_archive(AR_APPEND);
+		append_archive(); /* append files to archive */
+	}
+
+	if(f_linksleft) {
+		linkleft(); /* report any unresolved links */
+	}
+
+	return (0);
 }
-
 
 /* taropt -  tar specific getopt
  *
@@ -252,64 +248,63 @@ char          **argv;		/* argument list (argv from main) */
 
 #ifdef __STDC__
 
-static int taropt(int argc, char **argv, char *optstring)
+static int
+taropt(int argc, char **argv, char *optstring)
 
 #else
 
-static int taropt(argc, argv, optstring)
-int             argc;
-char          **argv;
-char           *optstring;
+static int taropt(argc, argv, optstring) int argc;
+char **argv;
+char *optstring;
 
 #endif
 {
-    extern char    *optarg;	/* Points to next arg */
-    extern int      optind;	/* Global argv index */
-    static char    *key;	/* Points to next keyletter */
-    static char     use_getopt;	/* !=0 if argv[1][0] was '-' */
-    char            c;
-    char           *place;
+	extern char *optarg;    /* Points to next arg */
+	extern int optind;      /* Global argv index */
+	static char *key;       /* Points to next keyletter */
+	static char use_getopt; /* !=0 if argv[1][0] was '-' */
+	char c;
+	char *place;
 
-    optarg = (char *)NULL;
+	optarg = (char *)NULL;
 
-    if (key == (char *)NULL) {		/* First time */
-	if (argc < 2)
-	    return EOF;
-	key = argv[1];
-	if (*key == '-')
-	    use_getopt++;
-	else
-	    optind = 2;
-    }
-    if (use_getopt) {
-	return getopt(argc, argv, optstring);
-    }
-
-    c = *key++;
-    if (c == '\0') {
-	key--;
-	return EOF;
-    }
-    place = strchr(optstring, c);
-
-    if (place == (char *)NULL || c == ':') {
-	fprintf(stderr, "%s: unknown option %c\n", argv[0], c);
-	return ('?');
-    }
-    place++;
-    if (*place == ':') {
-	if (optind < argc) {
-	    optarg = argv[optind];
-	    optind++;
-	} else {
-	    fprintf(stderr, "%s: %c argument missing\n",
-		    argv[0], c);
-	    return ('?');
+	if(key == (char *)NULL) { /* First time */
+		if(argc < 2)
+			return EOF;
+		key = argv[1];
+		if(*key == '-')
+			use_getopt++;
+		else
+			optind = 2;
 	}
-    }
-    return (c);
-}
+	if(use_getopt) {
+		return getopt(argc, argv, optstring);
+	}
 
+	c = *key++;
+	if(c == '\0') {
+		key--;
+		return EOF;
+	}
+	place = strchr(optstring, c);
+
+	if(place == (char *)NULL || c == ':') {
+		fprintf(stderr, "%s: unknown option %c\n", argv[0], c);
+		return ('?');
+	}
+	place++;
+	if(*place == ':') {
+		if(optind < argc) {
+			optarg = argv[optind];
+			optind++;
+		} else {
+			fprintf(stderr, "%s: %c argument missing\n",
+				argv[0], c);
+			return ('?');
+		}
+	}
+	return (c);
+}
 
 /* usage - print a helpful message and exit
  *
@@ -327,18 +322,20 @@ char           *optstring;
 
 #ifdef __STDC__
 
-static void usage(void)
+static void
+usage(void)
 
 #else
 
-static void usage()
+static void
+usage()
 
 #endif
 {
-    fprintf(stderr, "Usage: %s -c[bfvw] device block filename..\n", myname);
-    fprintf(stderr, "       %s -r[bvw] device block [filename...]\n", myname);
-    fprintf(stderr, "       %s -t[vf] device\n", myname);
-    fprintf(stderr, "       %s -u[bvw] device block [filename...]\n", myname);
-    fprintf(stderr, "       %s -x[flmovw] device [filename...]\n", myname);
-    exit(1);
+	fprintf(stderr, "Usage: %s -c[bfvw] device block filename..\n", myname);
+	fprintf(stderr, "       %s -r[bvw] device block [filename...]\n", myname);
+	fprintf(stderr, "       %s -t[vf] device\n", myname);
+	fprintf(stderr, "       %s -u[bvw] device block [filename...]\n", myname);
+	fprintf(stderr, "       %s -x[flmovw] device [filename...]\n", myname);
+	exit(1);
 }

@@ -14,10 +14,10 @@
 #define Extern extern
 #include "power.h"
 
-#define	prof profqi
-#define Percent(num, max)	(int)(((vlong)(num)*100)/(max))
+#define prof profqi
+#define Percent(num, max) (int)(((vlong)(num)*100) / (max))
 
-Inset *tables[] = { &ops0, &ops19, &ops31, &ops59, &ops63a, &ops63b, 0 };
+Inset *tables[] = {&ops0, &ops19, &ops31, &ops59, &ops63a, &ops63b, 0};
 
 void
 isum(void)
@@ -49,7 +49,7 @@ isum(void)
 	Bprint(bioout, "\nInstruction summary.\n\n");
 
 	for(j = 0; tables[j]; j++) {
-		for(k =tables[j]->nel; --k>=0; ) {
+		for(k = tables[j]->nel; --k >= 0;) {
 			i = &tables[j]->tab[k];
 			if(i->name && i->func) {
 				if(i->count == 0)
@@ -57,11 +57,11 @@ isum(void)
 				pct = Percent(i->count, total);
 				if(pct != 0)
 					Bprint(bioout, "%-8ud %3d%% %s\n",
-					i->count, Percent(i->count, total), i->name);
+					       i->count, Percent(i->count, total), i->name);
 				else
 					Bprint(bioout, "%-8ud      %s\n",
-					i->count, i->name);
-	
+					       i->count, i->name);
+
 				switch(i->type) {
 				default:
 					fatal(0, "isum bad stype %d\n", i->type);
@@ -100,45 +100,45 @@ isum(void)
 		}
 	}
 
-	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads+stores+total);
+	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads + stores + total);
 
 	if(total == 0)
 		return;
 
 	Bprint(bioout, "%-8ud %3d%% Instruction cycles\n",
-				total, Percent(total, loads+stores+total));
+	       total, Percent(total, loads + stores + total));
 
 	Bprint(bioout, "%-8ud %3d%% Data cycles\n\n",
-				loads+stores, Percent(loads+stores, loads+stores+total));	
+	       loads + stores, Percent(loads + stores, loads + stores + total));
 
 	Bprint(bioout, "%-8ud %3d%% Stores\n", stores, Percent(stores, total));
 
 	Bprint(bioout, "%-8ud %3d%% Loads\n", loads, Percent(loads, total));
 
-	Bprint(bioout, "   %-8ud Store stall\n", stores*2);
+	Bprint(bioout, "   %-8ud Store stall\n", stores * 2);
 
 	Bprint(bioout, "   %-8lud Load stall\n", loadlock);
 
 	Bprint(bioout, "%-8ud %3d%% Arithmetic\n", arith, Percent(arith, total));
 
 	Bprint(bioout, "%-8ud %3d%% Floating point\n",
-					realarith, Percent(realarith, total));
+	       realarith, Percent(realarith, total));
 
 	Bprint(bioout, "%-8ud %3d%% PowerPC special register load/stores\n",
-					powerreg, Percent(powerreg, total));
+	       powerreg, Percent(powerreg, total));
 
 	Bprint(bioout, "%-8ud %3d%% PowerPC control instructions\n",
-					control, Percent(control, total));
+	       control, Percent(control, total));
 
 	Bprint(bioout, "%-8ud %3d%% System calls\n", syscall, Percent(syscall, total));
 
 	Bprint(bioout, "%-8ud %3d%% Branches\n", branch, Percent(branch, total));
 
 	Bprint(bioout, "   %-8ud %3d%% Branches taken\n",
-					taken, Percent(taken, branch));
+	       taken, Percent(taken, branch));
 }
 
-char *stype[] = { "Stack", "Text", "Data", "Bss" };
+char *stype[] = {"Stack", "Text", "Data", "Bss"};
 
 void
 segsum(void)
@@ -151,22 +151,21 @@ segsum(void)
 	for(i = 0; i < Nseg; i++) {
 		s = &memory.seg[i];
 		Bprint(bioout, "%-5s %.8lux %.8lux %-8d %-8d\n",
-				stype[i], s->base, s->end, s->rss*BY2PG, s->refs);
+		       stype[i], s->base, s->end, s->rss * BY2PG, s->refs);
 	}
 }
 
 typedef struct Prof Prof;
-struct Prof
-{
-	Symbol	s;
-	int32_t	count;
+struct Prof {
+	Symbol s;
+	int32_t count;
 };
-Prof	prof[5000];
+Prof prof[5000];
 
 int
 profcmp(const void *a, const void *b)
 {
-	return ((Prof*)b)->count - ((Prof*)a)->count;
+	return ((Prof *)b)->count - ((Prof *)a)->count;
 }
 
 void
@@ -183,11 +182,11 @@ iprofile(void)
 		return;
 	i++;
 	for(;;) {
-		n = p+1;
+		n = p + 1;
 		if(textsym(&n->s, i) == 0)
 			break;
-		b = (p->s.value-textbase)/PROFGRAN;
-		e = (n->s.value-textbase)/PROFGRAN;
+		b = (p->s.value - textbase) / PROFGRAN;
+		e = (n->s.value - textbase) / PROFGRAN;
 		while(b < e)
 			p->count += iprof[b++];
 		i++;
@@ -206,13 +205,13 @@ iprofile(void)
 			continue;
 
 		Bprint(bioout, "%8ld %3ld.%ld %-15s ",
-			prof[b].count,
-			100*prof[b].count/total,
-			(1000*prof[b].count/total)%10,
-			prof[b].s.name);
+		       prof[b].count,
+		       100 * prof[b].count / total,
+		       (1000 * prof[b].count / total) % 10,
+		       prof[b].s.name);
 
 		printsource(prof[b].s.value);
 		Bputc(bioout, '\n');
 	}
-	memset(prof, 0, sizeof(Prof)*i);
+	memset(prof, 0, sizeof(Prof) * i);
 }

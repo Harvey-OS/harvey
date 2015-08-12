@@ -21,12 +21,11 @@
 #include "fns.h"
 #include <ctype.h>
 
-char	Ebadwr[]		= "bad rectangle in wctl request";
-char	Ewalloc[]		= "window allocation failed in wctl request";
+char Ebadwr[] = "bad rectangle in wctl request";
+char Ewalloc[] = "window allocation failed in wctl request";
 
 /* >= Top are disallowed if mouse button is pressed */
-enum
-{
+enum {
 	New,
 	Resize,
 	Move,
@@ -42,23 +41,21 @@ enum
 };
 
 static char *cmds[] = {
-	[New]	= "new",
-	[Resize]	= "resize",
-	[Move]	= "move",
-	[Scroll]	= "scroll",
-	[Noscroll]	= "noscroll",
-	[Set]		= "set",
-	[Top]	= "top",
-	[Bottom]	= "bottom",
-	[Current]	= "current",
-	[Hide]	= "hide",
-	[Unhide]	= "unhide",
-	[Delete]	= "delete",
-	nil
-};
+	[New] = "new",
+	[Resize] = "resize",
+	[Move] = "move",
+	[Scroll] = "scroll",
+	[Noscroll] = "noscroll",
+	[Set] = "set",
+	[Top] = "top",
+	[Bottom] = "bottom",
+	[Current] = "current",
+	[Hide] = "hide",
+	[Unhide] = "unhide",
+	[Delete] = "delete",
+	nil};
 
-enum
-{
+enum {
 	Cd,
 	Deltax,
 	Deltay,
@@ -75,21 +72,20 @@ enum
 };
 
 static char *params[] = {
-	[Cd]	 			= "-cd",
-	[Deltax]			= "-dx",
-	[Deltay]			= "-dy",
-	[Hidden]			= "-hide",
-	[Id]				= "-id",
-	[Maxx]			= "-maxx",
-	[Maxy]			= "-maxy",
-	[Minx]			= "-minx",
-	[Miny]			= "-miny",
-	[PID]				= "-pid",
-	[R]				= "-r",
-	[Scrolling]			= "-scroll",
-	[Noscrolling]		= "-noscroll",
-	nil
-};
+	[Cd] = "-cd",
+	[Deltax] = "-dx",
+	[Deltay] = "-dy",
+	[Hidden] = "-hide",
+	[Id] = "-id",
+	[Maxx] = "-maxx",
+	[Maxy] = "-maxy",
+	[Minx] = "-minx",
+	[Miny] = "-miny",
+	[PID] = "-pid",
+	[R] = "-r",
+	[Scrolling] = "-scroll",
+	[Noscrolling] = "-noscroll",
+	nil};
 
 /*
  * Check that newly created window will be of manageable size
@@ -99,21 +95,20 @@ goodrect(Rectangle r)
 {
 	if(!eqrect(canonrect(r), r))
 		return 0;
-	if(Dx(r)<100 || Dy(r)<3*font->height)
+	if(Dx(r) < 100 || Dy(r) < 3 * font->height)
 		return 0;
 	/* must have some screen and border visible so we can move it out of the way */
 	if(Dx(r) >= Dx(screen->r) && Dy(r) >= Dy(screen->r))
 		return 0;
 	/* reasonable sizes only please */
-	if(Dx(r) > BIG*Dx(screen->r))
+	if(Dx(r) > BIG * Dx(screen->r))
 		return 0;
-	if(Dy(r) > BIG*Dx(screen->r))
+	if(Dy(r) > BIG * Dx(screen->r))
 		return 0;
 	return 1;
 }
 
-static
-int
+static int
 word(char **sp, char *tab[])
 {
 	char *s, *t;
@@ -123,13 +118,13 @@ word(char **sp, char *tab[])
 	while(isspace(*s))
 		s++;
 	t = s;
-	while(*s!='\0' && !isspace(*s))
+	while(*s != '\0' && !isspace(*s))
 		s++;
-	for(i=0; tab[i]!=nil; i++)
-		if(strncmp(tab[i], t, strlen(tab[i])) == 0){
+	for(i = 0; tab[i] != nil; i++)
+		if(strncmp(tab[i], t, strlen(tab[i])) == 0) {
 			*sp = s;
 			return i;
-	}
+		}
 	return -1;
 }
 
@@ -149,25 +144,25 @@ newrect(void)
 	static int i = 0;
 	int minx, miny, dx, dy;
 
-	dx = min(600, Dx(screen->r) - 2*Borderwidth);
-	dy = min(400, Dy(screen->r) - 2*Borderwidth);
-	minx = 32 + 16*i;
-	miny = 32 + 16*i;
+	dx = min(600, Dx(screen->r) - 2 * Borderwidth);
+	dy = min(400, Dy(screen->r) - 2 * Borderwidth);
+	minx = 32 + 16 * i;
+	miny = 32 + 16 * i;
 	i++;
 	i %= 10;
 
-	return Rect(minx, miny, minx+dx, miny+dy);
+	return Rect(minx, miny, minx + dx, miny + dy);
 }
 
 void
 shift(int *minp, int *maxp, int min, int max)
 {
-	if(*minp < min){
-		*maxp += min-*minp;
+	if(*minp < min) {
+		*maxp += min - *minp;
 		*minp = min;
 	}
-	if(*maxp > max){
-		*minp += max-*maxp;
+	if(*maxp > max) {
+		*minp += max - *maxp;
 		*maxp = max;
 	}
 }
@@ -186,7 +181,7 @@ riostrtol(char *s, char **t)
 {
 	int n;
 
-	while(*s!='\0' && (*s==' ' || *s=='\t' || *s=='['))
+	while(*s != '\0' && (*s == ' ' || *s == '\t' || *s == '['))
 		s++;
 	if(*s == '[')
 		s++;
@@ -196,7 +191,6 @@ riostrtol(char *s, char **t)
 			(*t)++;
 	return n;
 }
-
 
 int
 parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
@@ -211,7 +205,7 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 	*scrollingp = scrolling;
 	*cdp = nil;
 	cmd = word(&s, cmds);
-	if(cmd < 0){
+	if(cmd < 0) {
 		strcpy(err, "unrecognized wctl command");
 		return -1;
 	}
@@ -219,8 +213,8 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 		r = newrect();
 
 	strcpy(err, "missing or bad wctl parameter");
-	while((param = word(&s, params)) >= 0){
-		switch(param){	/* special cases */
+	while((param = word(&s, params)) >= 0) {
+		switch(param) { /* special cases */
 		case Hidden:
 			*hiddenp = 1;
 			continue;
@@ -251,7 +245,7 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 		}
 		while(isspace(*s))
 			s++;
-		if(param == Cd){
+		if(param == Cd) {
 			*cdp = s;
 			while(*s && !isspace(*s))
 				s++;
@@ -260,37 +254,37 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 			continue;
 		}
 		sign = 0;
-		if(*s == '-'){
+		if(*s == '-') {
 			sign = -1;
 			s++;
-		}else if(*s == '+'){
+		} else if(*s == '+') {
 			sign = +1;
 			s++;
 		}
 		if(!isdigit(*s))
 			return -1;
 		xy = riostrtol(s, &s);
-		switch(param){
+		switch(param) {
 		case -1:
 			strcpy(err, "unrecognized wctl parameter");
 			return -1;
 		case Minx:
-			r.min.x = set(sign, r.min.x-xy, xy, r.min.x+xy);
+			r.min.x = set(sign, r.min.x - xy, xy, r.min.x + xy);
 			break;
 		case Miny:
-			r.min.y = set(sign, r.min.y-xy, xy, r.min.y+xy);
+			r.min.y = set(sign, r.min.y - xy, xy, r.min.y + xy);
 			break;
 		case Maxx:
-			r.max.x = set(sign, r.max.x-xy, xy, r.max.x+xy);
+			r.max.x = set(sign, r.max.x - xy, xy, r.max.x + xy);
 			break;
 		case Maxy:
-			r.max.y = set(sign, r.max.y-xy, xy, r.max.y+xy);
+			r.max.y = set(sign, r.max.y - xy, xy, r.max.y + xy);
 			break;
 		case Deltax:
-			r.max.x = set(sign, r.max.x-xy, r.min.x+xy, r.max.x+xy);
+			r.max.x = set(sign, r.max.x - xy, r.min.x + xy, r.max.x + xy);
 			break;
 		case Deltay:
-			r.max.y = set(sign, r.max.y-xy, r.min.y+xy, r.max.y+xy);
+			r.max.y = set(sign, r.max.y - xy, r.min.y + xy, r.max.y + xy);
 			break;
 		case Id:
 			if(idp != nil)
@@ -307,7 +301,7 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 
 	while(isspace(*s))
 		s++;
-	if(cmd!=New && *s!='\0'){
+	if(cmd != New && *s != '\0') {
 		strcpy(err, "extraneous text in wctl message");
 		return -1;
 	}
@@ -325,19 +319,19 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
 	char **argv;
 	Image *i;
 
-	if(!goodrect(rect)){
+	if(!goodrect(rect)) {
 		strcpy(err, Ebadwr);
 		return -1;
 	}
-	argv = emalloc(4*sizeof(char*));
+	argv = emalloc(4 * sizeof(char *));
 	argv[0] = "rc";
 	argv[1] = "-c";
 	while(isspace(*arg))
 		arg++;
-	if(*arg == '\0'){
+	if(*arg == '\0') {
 		argv[1] = "-i";
 		argv[2] = nil;
-	}else{
+	} else {
 		argv[2] = arg;
 		argv[3] = nil;
 	}
@@ -345,7 +339,7 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
 		i = allocimage(display, rect, screen->chan, 0, DWhite);
 	else
 		i = allocwindow(wscreen, rect, Refbackup, DWhite);
-	if(i == nil){
+	if(i == nil) {
 		strcpy(err, Ewalloc);
 		return -1;
 	}
@@ -353,7 +347,7 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
 
 	new(i, hideit, scrollit, pid, dir, "/bin/rc", argv);
 
-	free(argv);	/* when new() returns, argv and args have been copied */
+	free(argv); /* when new() returns, argv and args have been copied */
 	return 1;
 }
 
@@ -376,27 +370,27 @@ writewctl(Xfid *x, char *err)
 	if(cmd < 0)
 		return -1;
 
-	if(mouse->buttons!=0 && cmd>=Top){
+	if(mouse->buttons != 0 && cmd >= Top) {
 		strcpy(err, "action disallowed when mouse active");
 		return -1;
 	}
 
-	if(id != 0){
-		for(j=0; j<nwindow; j++)
+	if(id != 0) {
+		for(j = 0; j < nwindow; j++)
 			if(window[j]->id == id)
 				break;
-		if(j == nwindow){
+		if(j == nwindow) {
 			strcpy(err, "no such window id");
 			return -1;
 		}
 		w = window[j];
-		if(w->deleted || w->i==nil){
+		if(w->deleted || w->i == nil) {
 			strcpy(err, "window deleted");
 			return -1;
 		}
 	}
 
-	switch(cmd){
+	switch(cmd) {
 	case New:
 		return wctlnew(rect, arg, pid, hideit, scrollit, dir, err);
 	case Set:
@@ -404,18 +398,18 @@ writewctl(Xfid *x, char *err)
 			wsetpid(w, pid, 0);
 		return 1;
 	case Move:
-		rect = Rect(rect.min.x, rect.min.y, rect.min.x+Dx(w->screenr), rect.min.y+Dy(w->screenr));
+		rect = Rect(rect.min.x, rect.min.y, rect.min.x + Dx(w->screenr), rect.min.y + Dy(w->screenr));
 		rect = rectonscreen(rect);
-		/* fall through */
+	/* fall through */
 	case Resize:
-		if(!goodrect(rect)){
+		if(!goodrect(rect)) {
 			strcpy(err, Ebadwr);
 			return -1;
 		}
 		if(eqrect(rect, w->screenr))
 			return 1;
 		i = allocwindow(wscreen, rect, Refbackup, DWhite);
-		if(i == nil){
+		if(i == nil) {
 			strcpy(err, Ewalloc);
 			return -1;
 		}
@@ -441,7 +435,7 @@ writewctl(Xfid *x, char *err)
 		wcurrent(w);
 		return 1;
 	case Hide:
-		switch(whide(w)){
+		switch(whide(w)) {
 		case -1:
 			strcpy(err, "window already hidden");
 			return -1;
@@ -453,14 +447,14 @@ writewctl(Xfid *x, char *err)
 		}
 		return 1;
 	case Unhide:
-		for(j=0; j<nhidden; j++)
+		for(j = 0; j < nhidden; j++)
 			if(hidden[j] == w)
 				break;
-		if(j == nhidden){
+		if(j == nhidden) {
 			strcpy(err, "window not hidden");
 			return -1;
 		}
-		if(wunhide(j) == 0){
+		if(wunhide(j) == 0) {
 			strcpy(err, "hide failed");
 			return -1;
 		}
@@ -486,11 +480,11 @@ wctlthread(void *v)
 
 	threadsetname("WCTLTHREAD");
 
-	for(;;){
+	for(;;) {
 		buf = recvp(c);
 		cmd = parsewctl(&arg, ZR, &rect, &pid, &id, &hideit, &scrollit, &dir, buf, err);
 
-		switch(cmd){
+		switch(cmd) {
 		case New:
 			wctlnew(rect, arg, pid, hideit, scrollit, dir, err);
 		}
@@ -509,12 +503,12 @@ wctlproc(void *v)
 	c = v;
 
 	eofs = 0;
-	for(;;){
+	for(;;) {
 		buf = emalloc(messagesize);
-		n = read(wctlfd, buf, messagesize-1);	/* room for \0 */
+		n = read(wctlfd, buf, messagesize - 1); /* room for \0 */
 		if(n < 0)
 			break;
-		if(n == 0){
+		if(n == 0) {
 			if(++eofs > 20)
 				break;
 			continue;

@@ -20,12 +20,11 @@
 #include "antiword.h"
 
 /* The character set */
-static encoding_type	eEncoding = encoding_neutral;
+static encoding_type eEncoding = encoding_neutral;
 /* Current vertical position information */
-static int32_t		lYtopCurr = 0;
+static int32_t lYtopCurr = 0;
 /* Local representation of the non-breaking space */
-static UCHAR		ucNbsp = 0;
-
+static UCHAR ucNbsp = 0;
 
 /*
  * vPrologueTXT - set options and perform the Text initialization
@@ -59,28 +58,28 @@ vEpilogueTXT(FILE *pOutFile)
 static void
 vPrintTXT(FILE *pFile, const char *szString, size_t tStringLength)
 {
-	const UCHAR	*ucBytes;
-	size_t		tCount;
+	const UCHAR *ucBytes;
+	size_t tCount;
 
 	fail(szString == NULL);
 
-	if (szString == NULL || szString[0] == '\0' || tStringLength == 0) {
+	if(szString == NULL || szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
-	if (eEncoding == encoding_utf_8) {
+	if(eEncoding == encoding_utf_8) {
 		fprintf(pFile, "%.*s", (int)tStringLength, szString);
 		return;
 	}
 
-	if (ucNbsp == 0) {
+	if(ucNbsp == 0) {
 		ucNbsp = ucGetNbspCharacter();
 		DBG_HEX_C(ucNbsp != 0xa0, ucNbsp);
 	}
 
 	ucBytes = (UCHAR *)szString;
-	for (tCount = 0; tCount < tStringLength ; tCount++) {
-		if (ucBytes[tCount] == ucNbsp) {
+	for(tCount = 0; tCount < tStringLength; tCount++) {
+		if(ucBytes[tCount] == ucNbsp) {
 			(void)putc(' ', pFile);
 		} else {
 			(void)putc(szString[tCount], pFile);
@@ -97,14 +96,14 @@ vPrintTXT(FILE *pFile, const char *szString, size_t tStringLength)
 static void
 vMoveTo(diagram_type *pDiag)
 {
-	int	iCount, iNbr;
+	int iCount, iNbr;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 
-	if (pDiag->lYtop != lYtopCurr) {
+	if(pDiag->lYtop != lYtopCurr) {
 		iNbr = iDrawUnits2Char(pDiag->lXleft);
-		for (iCount = 0; iCount < iNbr; iCount++) {
+		for(iCount = 0; iCount < iNbr; iCount++) {
 			(void)putc(FILLER_CHAR, pDiag->pOutFile);
 		}
 		lYtopCurr = pDiag->lYtop;
@@ -129,14 +128,14 @@ vMove2NextLineTXT(diagram_type *pDiag)
  */
 void
 vSubstringTXT(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, int32_t lStringWidth)
+	      const char *szString, size_t tStringLength, int32_t lStringWidth)
 {
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(pDiag->lXleft < 0);
 	fail(tStringLength != strlen(szString));
 
-	if (szString[0] == '\0' || tStringLength == 0) {
+	if(szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
@@ -154,7 +153,7 @@ vStartOfParagraphTXT(diagram_type *pDiag, int32_t lBeforeIndentation)
 	fail(pDiag == NULL);
 	fail(lBeforeIndentation < 0);
 
-	if (lBeforeIndentation >= lTwips2MilliPoints(HEADING_GAP)) {
+	if(lBeforeIndentation >= lTwips2MilliPoints(HEADING_GAP)) {
 		/* A large gap is replaced by an empty line */
 		vMove2NextLineTXT(pDiag);
 	}
@@ -170,12 +169,12 @@ vEndOfParagraphTXT(diagram_type *pDiag, int32_t lAfterIndentation)
 	fail(pDiag->pOutFile == NULL);
 	fail(lAfterIndentation < 0);
 
-	if (pDiag->lXleft > 0) {
+	if(pDiag->lXleft > 0) {
 		/* To the start of the line */
 		vMove2NextLineTXT(pDiag);
 	}
 
-	if (lAfterIndentation >= lTwips2MilliPoints(HEADING_GAP)) {
+	if(lAfterIndentation >= lTwips2MilliPoints(HEADING_GAP)) {
 		/* A large gap is replaced by an empty line */
 		vMove2NextLineTXT(pDiag);
 	}

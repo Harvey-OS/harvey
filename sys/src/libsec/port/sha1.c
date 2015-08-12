@@ -10,16 +10,16 @@
 #include "os.h"
 #include <libsec.h>
 
-static void encode(uint8_t*, uint32_t*, uint32_t);
+static void encode(uint8_t *, uint32_t *, uint32_t);
 
-extern void _sha1block(uint8_t*, uint32_t, uint32_t*);
+extern void _sha1block(uint8_t *, uint32_t, uint32_t *);
 
 /*
  *  we require len to be a multiple of 64 for all but
  *  the last call.  There must be room in the input buffer
  *  to pad.
  */
-SHA1state*
+SHA1state *
 sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 {
 	uint8_t buf[128];
@@ -27,7 +27,7 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 	int i;
 	uint8_t *e;
 
-	if(s == nil){
+	if(s == nil) {
 		s = malloc(sizeof(*s));
 		if(s == nil)
 			return nil;
@@ -35,7 +35,7 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 		s->malloced = 1;
 	}
 
-	if(s->seeded == 0){
+	if(s->seeded == 0) {
 		/* seed the state, these constants would look nicer big-endian */
 		s->state[0] = 0x67452301;
 		s->state[1] = 0xefcdab89;
@@ -46,7 +46,7 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 	}
 
 	/* fill out the partial 64 byte block from previous calls */
-	if(s->blen){
+	if(s->blen) {
 		i = 64 - s->blen;
 		if(len < i)
 			i = len;
@@ -54,7 +54,7 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 		len -= i;
 		s->blen += i;
 		p += i;
-		if(s->blen == 64){
+		if(s->blen == 64) {
 			_sha1block(s->buf, s->blen, s->state);
 			s->len += s->blen;
 			s->blen = 0;
@@ -63,7 +63,7 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 
 	/* do 64 byte blocks */
 	i = len & ~0x3f;
-	if(i){
+	if(i) {
 		_sha1block(p, i, s->state);
 		s->len += i;
 		len -= i;
@@ -71,8 +71,8 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 	}
 
 	/* save the left overs if not last call */
-	if(digest == 0){
-		if(len){
+	if(digest == 0) {
+		if(len) {
 			memmove(s->buf, p, len);
 			s->blen += len;
 		}
@@ -83,7 +83,7 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 	 *  this is the last time through, pad what's left with 0x80,
 	 *  0's, and the input count to create a multiple of 64 bytes
 	 */
-	if(s->blen){
+	if(s->blen) {
 		p = s->buf;
 		len = s->blen;
 	} else {
@@ -101,13 +101,13 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 	len += i;
 
 	/* append the count */
-	x[0] = s->len>>29;
-	x[1] = s->len<<3;
-	encode(p+len, x, 8);
+	x[0] = s->len >> 29;
+	x[1] = s->len << 3;
+	encode(p + len, x, 8);
 
 	/* digest the last part */
-	_sha1block(p, len+8, s->state);
-	s->len += len+8;
+	_sha1block(p, len + 8, s->state);
+	s->len += len + 8;
 
 	/* return result and free state */
 	encode(digest, s->state, SHA1dlen);
@@ -135,10 +135,10 @@ encode(uint8_t *output, uint32_t *input, uint32_t len)
 	}
 }
 
-DigestState*
+DigestState *
 hmac_sha1(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
 	  uint8_t *digest,
-	DigestState *s)
+	  DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha1, SHA1dlen);
 }

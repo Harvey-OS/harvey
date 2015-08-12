@@ -16,8 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static
-char*
+static char *
 skip(char *p)
 {
 
@@ -50,7 +49,7 @@ times(struct tms *buf)
 		buf->tms_stime = atol(p);
 	p = skip(p);
 	r = atol(p);
-	if(buf){
+	if(buf) {
 		p = skip(p);
 		buf->tms_cutime = atol(p);
 		p = skip(p);

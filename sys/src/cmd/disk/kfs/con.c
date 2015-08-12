@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
-#include	"9p1.h"
+#include "all.h"
+#include "9p1.h"
 
-static	char	elem[NAMELEN];
-static	Filsys*	cur_fs;
-static	char	conline[100];
+static char elem[NAMELEN];
+static Filsys *cur_fs;
+static char conline[100];
 
 void
 consserve(void)
@@ -28,16 +28,17 @@ cmd_exec(char *arg)
 	char *s, *c;
 	int i;
 
-	for(i=0; s = command[i].string; i++) {
-		for(c=arg; *s; c++)
+	for(i = 0; s = command[i].string; i++) {
+		for(c = arg; *s; c++)
 			if(*c != *s++)
 				goto brk;
-		if(*c == '\0' || *c == ' ' || *c == '\t'){
+		if(*c == '\0' || *c == ' ' || *c == '\t') {
 			cons.arg = c;
 			(*command[i].func)();
 			return 1;
 		}
-	brk:;
+	brk:
+		;
 	}
 	return 0;
 }
@@ -49,39 +50,56 @@ cmd_check(void)
 	int flags;
 
 	flags = 0;
-	for(s = cons.arg; *s; s++){
+	for(s = cons.arg; *s; s++) {
 		while(*s == ' ' || *s == '\t')
 			s++;
 		if(*s == '\0')
 			break;
-		switch(*s){
+		switch(*s) {
 		/* rebuild the free list */
-		case 'f':	flags |= Cfree;			break;
+		case 'f':
+			flags |= Cfree;
+			break;
 		/* fix bad tags */
-		case 't':	flags |= Ctag;			break;
+		case 't':
+			flags |= Ctag;
+			break;
 		/* fix bad tags and clear the contents of the block */
-		case 'c':	flags |= Cream;			break;
+		case 'c':
+			flags |= Cream;
+			break;
 		/* delete all redundant references to a block */
-		case 'd':	flags |= Cbad;			break;
+		case 'd':
+			flags |= Cbad;
+			break;
 		/* read and check tags on all blocks */
-		case 'r':	flags |= Crdall;		break;
+		case 'r':
+			flags |= Crdall;
+			break;
 		/* write all of the blocks you touch */
-		case 'w':	flags |= Ctouch;		break;
+		case 'w':
+			flags |= Ctouch;
+			break;
 		/* print all directories as they are read */
-		case 'p':	flags |= Cpdir;			break;
+		case 'p':
+			flags |= Cpdir;
+			break;
 		/* print all files as they are read */
-		case 'P':	flags |= Cpfile;		break;
+		case 'P':
+			flags |= Cpfile;
+			break;
 		/* quiet, just report really nasty stuff */
-		case 'q':	flags |= Cquiet;		break;
+		case 'q':
+			flags |= Cquiet;
+			break;
 		}
 	}
 	check(cur_fs, flags);
 }
 
-enum
-{
-	Sset	= (1<<0),
-	Setc	= (1<<1),
+enum {
+	Sset = (1 << 0),
+	Setc = (1 << 1),
 };
 void
 cmd_stats(void)
@@ -92,7 +110,7 @@ cmd_stats(void)
 	cprint("	hits = %A iops\n", (Filta){&cons.bhit, 1});
 	cprint("	read = %A iops\n", (Filta){&cons.bread, 1});
 	cprint("	init = %A iops\n", (Filta){&cons.binit, 1});
-/*	for(i = 0; i < MAXTAG; i++)
+	/*	for(i = 0; i < MAXTAG; i++)
 		cprint("	tag %G = %A iops\n", i, (Filta){&cons.tags[i], 1});
 */
 }
@@ -127,17 +145,17 @@ cmd_help(void)
 {
 	int i;
 
-	for(i=0; command[i].string; i++)
+	for(i = 0; command[i].string; i++)
 		cprint("	%s %s\n", command[i].string, command[i].args);
 	cprint("check options:\n"
-		" r	read all blocks\n"
-		" f	rebuild the free list\n"
-		" t	fix all bad tags\n"
-		" c	fix bad tags and zero the blocks\n"
-		" d	delete all redundant references to blocks\n"
-		" p	print directories as they are checked\n"
-		" P	print all files as they are checked\n"
-		" w	write all blocks that are read\n");
+	       " r	read all blocks\n"
+	       " f	rebuild the free list\n"
+	       " t	fix all bad tags\n"
+	       " c	fix bad tags and zero the blocks\n"
+	       " d	delete all redundant references to blocks\n"
+	       " p	print directories as they are checked\n"
+	       " P	print all files as they are checked\n"
+	       " w	write all blocks that are read\n");
 }
 
 void
@@ -148,18 +166,18 @@ cmd_create(void)
 	char oelem[NAMELEN];
 	char name[NAMELEN];
 
-	if(err = con_clone(FID1, FID2)){
+	if(err = con_clone(FID1, FID2)) {
 		cprint("clone failed: %s\n", errstring[err]);
 		return;
 	}
-	if(skipbl(1)){
+	if(skipbl(1)) {
 		cprint("skipbl\n");
 		return;
 	}
 	oelem[0] = 0;
 	while(nextelem()) {
 		if(oelem[0])
-			if(err = con_walk(FID2, oelem)){
+			if(err = con_walk(FID2, oelem)) {
 				cprint("walk failed: %s\n", errstring[err]);
 				return;
 			}
@@ -168,25 +186,23 @@ cmd_create(void)
 	if(skipbl(1))
 		return;
 	uid = strtouid(cname(name));
-	if(uid == 0){
+	if(uid == 0) {
 		cprint("unknown user %s\n", name);
 		return;
 	}
 	gid = strtouid(cname(name));
-	if(gid == 0){
+	if(gid == 0) {
 		cprint("unknown group %s\n", name);
 		return;
 	}
 	perm = number(0777, 8);
 	skipbl(0);
-	for(; *cons.arg; cons.arg++){
+	for(; *cons.arg; cons.arg++) {
 		if(*cons.arg == 'l')
 			perm |= PLOCK;
-		else
-		if(*cons.arg == 'a')
+		else if(*cons.arg == 'a')
 			perm |= PAPND;
-		else
-		if(*cons.arg == 'd')
+		else if(*cons.arg == 'd')
 			perm |= PDIR;
 		else
 			break;
@@ -204,7 +220,7 @@ cmd_clri(void)
 	if(skipbl(1))
 		return;
 	while(nextelem())
-		if(con_walk(FID2, elem)){
+		if(con_walk(FID2, elem)) {
 			cprint("can't walk %s\n", elem);
 			return;
 		}
@@ -227,7 +243,7 @@ cmd_rename(void)
 	oelem[0] = 0;
 	while(nextelem()) {
 		if(oelem[0])
-			if(con_walk(FID2, oelem)){
+			if(con_walk(FID2, oelem)) {
 				cprint("file does not exits");
 				return;
 			}
@@ -235,23 +251,23 @@ cmd_rename(void)
 	}
 	if(skipbl(1))
 		return;
-	if(cons.arg[0]=='/'){
+	if(cons.arg[0] == '/') {
 		if(con_clone(FID1, FID3))
 			return;
 		noelem[0] = 0;
-		while(nextelem()){
+		while(nextelem()) {
 			if(noelem[0])
-				if(con_walk(FID3, noelem)){
+				if(con_walk(FID3, noelem)) {
 					cprint("target path %s does not exist", noelem);
 					return;
 				}
 			memmove(noelem, elem, NAMELEN);
 		}
-		if(!con_walk(FID3, elem)){
+		if(!con_walk(FID3, elem)) {
 			cprint("target %s already exists\n", elem);
 			return;
 		}
-		if(con_walk(FID2, oelem)){
+		if(con_walk(FID2, oelem)) {
 			cprint("src %s does not exist\n", oelem);
 			return;
 		}
@@ -261,27 +277,27 @@ cmd_rename(void)
 		 * to do the rename, create the target and then
 		 * copy the directory entry directly.  then remove the source.
 		 */
-		if(err = con_stat(FID2, stat)){
+		if(err = con_stat(FID2, stat)) {
 			cprint("can't stat file: %s\n", errstring[err]);
 			return;
 		}
 		convM2D9p1(stat, &d);
-		perm = (d.mode&0777)|((d.mode&0x7000)<<17);
-		if(err = con_create(FID3, elem, d.uid, d.gid, perm, (d.mode&DDIR)?OREAD:ORDWR)){
+		perm = (d.mode & 0777) | ((d.mode & 0x7000) << 17);
+		if(err = con_create(FID3, elem, d.uid, d.gid, perm, (d.mode & DDIR) ? OREAD : ORDWR)) {
 			cprint("can't create %s: %s\n", elem, errstring[err]);
 			return;
 		}
-		if(err = con_swap(FID2, FID3)){
+		if(err = con_swap(FID2, FID3)) {
 			cprint("can't swap data: %s\n", errstring[err]);
 			return;
 		}
-		if(err = con_remove(FID2)){
+		if(err = con_remove(FID2)) {
 			cprint("can't remove file: %s\n", errstring[err]);
 			return;
-		}		
-	}else{
+		}
+	} else {
 		cname(nxelem);
-		if(strchr(nxelem, '/')){
+		if(strchr(nxelem, '/')) {
 			cprint("bad rename target: not full path, but contains slashes\n");
 			return;
 		}
@@ -291,14 +307,14 @@ cmd_rename(void)
 			cprint("file does not already exist\n");
 		else if(err = con_stat(FID2, stat))
 			cprint("can't stat file: %s\n", errstring[err]);
-		else{
+		else {
 			convM2D9p1(stat, &d);
 			strncpy(d.name, nxelem, NAMELEN);
 			convD2M9p1(&d, stat);
 			if(err = con_wstat(FID2, stat))
 				cprint("can't move file: %s\n", errstring[err]);
 		}
-	}	
+	}
 }
 
 void
@@ -309,7 +325,7 @@ cmd_remove(void)
 	if(skipbl(1))
 		return;
 	while(nextelem())
-		if(con_walk(FID2, elem)){
+		if(con_walk(FID2, elem)) {
 			cprint("can't walk %s\n", elem);
 			return;
 		}
@@ -322,14 +338,14 @@ cmd_cfs(void)
 	Filsys *fs;
 
 	if(*cons.arg != ' ') {
-		fs = &filesys[0];		/* default */
+		fs = &filesys[0]; /* default */
 	} else {
-		if(skipbl(1)){
+		if(skipbl(1)) {
 			cprint("skipbl\n");
 			return;
 		}
 		if(!nextelem())
-			fs = &filesys[0];	/* default */
+			fs = &filesys[0]; /* default */
 		else
 			fs = fsstr(elem);
 	}
@@ -354,11 +370,11 @@ statlen(char *ap)
 	uint8_t *p;
 	uint32_t ll, hl;
 
-	p = (uint8_t*)ap;
-	p += 3*28+5*4;
-	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
-	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
-	return ll | ((uint64_t) hl << 32);
+	p = (uint8_t *)ap;
+	p += 3 * 28 + 5 * 4;
+	ll = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+	hl = p[4] | (p[5] << 8) | (p[6] << 16) | (p[7] << 24);
+	return ll | ((uint64_t)hl << 32);
 }
 
 int
@@ -379,11 +395,11 @@ adduser(char *user, int isgroup)
 		nu = 9000;
 	else
 		nu = 0;
-	for(i=0, u=uid; i<conf.nuid; i++,u++) {
+	for(i = 0, u = uid; i < conf.nuid; i++, u++) {
 		c = u->uid;
 		if(c == 0)
 			break;
-		if(strcmp(uidspace+u->offset, user) == 0)
+		if(strcmp(uidspace + u->offset, user) == 0)
 			return 1;
 		if(c >= 9000 && !isgroup)
 			continue;
@@ -391,7 +407,7 @@ adduser(char *user, int isgroup)
 			nu = c;
 	}
 	nu++;
-	if(isgroup){
+	if(isgroup) {
 		if(nu >= 0x10000) {
 			cprint("out of group ids\n");
 			return 0;
@@ -406,9 +422,7 @@ adduser(char *user, int isgroup)
 	/*
 	 * write onto adm/users
 	 */
-	if(con_clone(FID1, FID2)
-	|| con_path(FID2, "/adm/users")
-	|| con_open(FID2, 1)) {
+	if(con_clone(FID1, FID2) || con_path(FID2, "/adm/users") || con_open(FID2, 1)) {
 		cprint("can't open /adm/users\n");
 		return 0;
 	}
@@ -417,12 +431,12 @@ adduser(char *user, int isgroup)
 	cprint("add user %s", msg);
 	c = strlen(msg);
 	i = con_stat(FID2, stat);
-	if(i){
+	if(i) {
 		cprint("can't stat /adm/users: %s\n", errstring[i]);
 		return 0;
 	}
 	i = con_write(FID2, msg, statlen(stat), c);
-	if(i != c){
+	if(i != c) {
 		cprint("short write on /adm/users: %d %d\n", c, i);
 		return 0;
 	}
@@ -440,13 +454,11 @@ cmd_newuser(void)
 	 */
 	cname(user);
 	cname(param);
-	for(i=0; i<NAMELEN; i++) {
+	for(i = 0; i < NAMELEN; i++) {
 		c = user[i];
 		if(c == 0)
 			break;
-		if(c >= '0' && c <= '9'
-		|| c >= 'a' && c <= 'z'
-		|| c >= 'A' && c <= 'Z')
+		if(c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
 			continue;
 		cprint("bad character in name: 0x%x\n", c);
 		return;
@@ -460,7 +472,7 @@ cmd_newuser(void)
 		return;
 	}
 
-	switch(param[0]){
+	switch(param[0]) {
 	case 0:
 		if(!adduser(user, 0))
 			return;
@@ -506,12 +518,9 @@ cmd_checkuser(void)
 	uint8_t buf[DIRREC], *p;
 	static char utime[4];
 
-	if(con_clone(FID1, FID2)
-	|| con_path(FID2, "/adm/users")
-	|| con_open(FID2, 0)
-	|| con_stat(FID2, (char*)buf))
+	if(con_clone(FID1, FID2) || con_path(FID2, "/adm/users") || con_open(FID2, 0) || con_stat(FID2, (char *)buf))
 		return;
-	p = buf + 3*NAMELEN + 4*4;
+	p = buf + 3 * NAMELEN + 4 * 4;
 	if(memcmp(utime, p, 4) == 0)
 		return;
 	memmove(utime, p, 4);
@@ -550,7 +559,7 @@ void
 cmd_noneattach(void)
 {
 	allownone = !allownone;
-	if(allownone) 
+	if(allownone)
 		cprint("none can attach to new connections\n");
 	else
 		cprint("none can only attach on authenticated connections\n");
@@ -562,7 +571,7 @@ cmd_listen(void)
 	char addr[NAMELEN];
 
 	if(skipbl(0))
-		strcpy(addr, "tcp!*!564");	/* 9fs */
+		strcpy(addr, "tcp!*!564"); /* 9fs */
 	else
 		cname(addr);
 
@@ -578,31 +587,30 @@ cmd_nowritegroup(void)
 	writegroup = 0;
 }
 
-Command	command[] =
-{
-	"allow",	cmd_allow,	"",
-	"allowoff",	cmd_disallow,	"",
-	"atime",		cmd_atime,	"",
-	"cfs",		cmd_cfs,	"[filesys]",
-	"chat",		cmd_chat,	"",
-	"check",	cmd_check,	"[cdfpPqrtw]",
-	"clri",		cmd_clri,	"filename",
-	"create",	cmd_create,	"filename user group perm [ald]",
-	"disallow",	cmd_disallow,	"",
-	"halt",		cmd_halt,	"",
-	"help",		cmd_help,	"",
-	"listen",		cmd_listen,	"[address]",
-	"newuser",	cmd_newuser,	"username",
-	"noneattach",	cmd_noneattach,	"",
-	"nowritegroup",	cmd_nowritegroup,	"",
-	"remove",	cmd_remove,	"filename",
-	"rename",	cmd_rename,	"file newname",
-	"start",	cmd_start, "",
-	"stats",	cmd_stats,	"[fw]",
-	"sync",		cmd_sync,	"",
-	"user",		cmd_user,	"",
-	0
-};
+Command command[] =
+    {
+     "allow", cmd_allow, "",
+     "allowoff", cmd_disallow, "",
+     "atime", cmd_atime, "",
+     "cfs", cmd_cfs, "[filesys]",
+     "chat", cmd_chat, "",
+     "check", cmd_check, "[cdfpPqrtw]",
+     "clri", cmd_clri, "filename",
+     "create", cmd_create, "filename user group perm [ald]",
+     "disallow", cmd_disallow, "",
+     "halt", cmd_halt, "",
+     "help", cmd_help, "",
+     "listen", cmd_listen, "[address]",
+     "newuser", cmd_newuser, "username",
+     "noneattach", cmd_noneattach, "",
+     "nowritegroup", cmd_nowritegroup, "",
+     "remove", cmd_remove, "filename",
+     "rename", cmd_rename, "file newname",
+     "start", cmd_start, "",
+     "stats", cmd_stats, "[fw]",
+     "sync", cmd_sync, "",
+     "user", cmd_user, "",
+     0};
 
 int
 skipbl(int err)
@@ -617,13 +625,13 @@ skipbl(int err)
 	return 0;
 }
 
-char*
+char *
 _cname(char *name)
 {
 	int i, c;
 
 	memset(name, 0, NAMELEN);
-	for(i=0;; i++) {
+	for(i = 0;; i++) {
 		c = *cons.arg;
 		switch(c) {
 		case ' ':
@@ -632,13 +640,13 @@ _cname(char *name)
 		case '\0':
 			return name;
 		}
-		if(i < NAMELEN-1)
+		if(i < NAMELEN - 1)
 			name[i] = c;
 		cons.arg++;
 	}
 }
 
-char*
+char *
 cname(char *name)
 {
 	skipbl(0);
@@ -697,8 +705,7 @@ number(int d, int base)
 		n *= base;
 		if(c >= 'a' && c <= 'f')
 			n += c - 'a' + 10;
-		else
-		if(c >= 'A' && c <= 'F')
+		else if(c >= 'A' && c <= 'F')
 			n += c - 'A' + 10;
 		else
 			n += c - '0';

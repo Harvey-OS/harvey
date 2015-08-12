@@ -26,7 +26,7 @@
 // $Id: dwinst.h,v 1.7 2004/11/18 06:48:41 ghostgum Exp $
 
 #ifndef dwinst_INCLUDED
-#  define dwinst_INCLUDED
+#define dwinst_INCLUDED
 
 // Definitions for Ghostscript installer
 
@@ -38,12 +38,12 @@
 #endif
 #endif
 
-class CInstall  
+class CInstall
 {
-public:
+      public:
 	CInstall();
 	virtual ~CInstall();
-	void SetMessageFunction(void(*fn)(const char *));
+	void SetMessageFunction(void (*fn)(const char *));
 	void AddMessage(const char *message);
 	const char *GetMainDir();
 	const char *GetUninstallName();
@@ -52,7 +52,7 @@ public:
 	BOOL InstallFiles(BOOL bNoCopy, BOOL *pbQuit);
 	BOOL InstallFile(char *filename, BOOL bNoCopy);
 	BOOL MakeDir(const char *dirname);
-	FILE * MakeTemp(char *name);
+	FILE *MakeTemp(char *name);
 
 	BOOL SetAllUsers(BOOL bUseCommon);
 	void SetTargetDir(const char *szTargetDir);
@@ -72,9 +72,9 @@ public:
 
 	void CleanUp(void);
 
-        void AppendFileNew(const char *filename);
+	void AppendFileNew(const char *filename);
 
-private:
+      private:
 	BOOL m_bNoCopy;
 	BOOL m_bUseCommon;
 	BOOL m_bQuit;
@@ -111,18 +111,15 @@ private:
 	char m_szShellOld[MAXSTR];
 
 	// Log files
-	FILE * m_fLogNew;
-	FILE * m_fLogOld;
-
+	FILE *m_fLogNew;
+	FILE *m_fLogOld;
 
 	BOOL SetRegistryValue(HKEY hkey, const char *value_name, const char *value);
 	BOOL CreateShellLink(LPCSTR description, LPCSTR program, LPCSTR arguments, LPCSTR icon = NULL, int nIconIndex = 0);
 	void CopyFileContents(FILE *df, FILE *sf);
 	void ResetReadonly(const char *filename);
 
-	void(*AddMessageFn)(const char *);
-
+	void (*AddMessageFn)(const char *);
 };
-
 
 #endif /* dwinst_INCLUDED */

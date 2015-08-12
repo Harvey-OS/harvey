@@ -24,6 +24,6 @@ chanprint(Channel *c, char *fmt, ...)
 	if(p == nil)
 		sysfatal("vsmprint failed: %r");
 	n = sendp(c, p);
-	yield();	/* let recipient handle message immediately */
+	yield(); /* let recipient handle message immediately */
 	return n;
 }

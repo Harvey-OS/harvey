@@ -27,7 +27,7 @@
 /* Client interface to color routines */
 
 #ifndef gscolor_INCLUDED
-#  define gscolor_INCLUDED
+#define gscolor_INCLUDED
 
 #include "gxtmap.h"
 

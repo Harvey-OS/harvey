@@ -173,18 +173,18 @@ void smbtransactionfree(SmbTransaction *t);
 int smbtransactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, char **errmsgp);
 int smbtransactionencoderesponse2(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, char **errmsgp);
 int smbtransactionencodeprimary(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
-	uchar *wordcountp, ushort *bytecountp, char **errmsgp);
+				uchar *wordcountp, ushort *bytecountp, char **errmsgp);
 int smbtransactionencodeprimary2(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
-	uchar *wordcountp, ushort *bytecountp, char **errmsgp);
+				 uchar *wordcountp, ushort *bytecountp, char **errmsgp);
 int smbtransactiondecoderesponse(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp);
 int smbtransactiondecoderesponse2(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp);
 int smbtransactionclientsend(void *magic, SmbBuffer *ob, char **errmsgp);
 int smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **errmsgp);
 
 int smbtransactionexecute(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p,
-	SmbBuffer *ob, SmbTransactionMethod *method, void *magic, SmbHeader *rh, char **errmsgp);
+			  SmbBuffer *ob, SmbTransactionMethod *method, void *magic, SmbHeader *rh, char **errmsgp);
 int smbtransactionrespond(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
-	SmbTransactionMethod *method, void *magic, char **errmsgp);
+			  SmbTransactionMethod *method, void *magic, char **errmsgp);
 
 SmbProcessResult smbtrans2findfirst2(SmbSession *s, SmbHeader *h);
 SmbProcessResult smbtrans2findnext2(SmbSession *s, SmbHeader *h);
@@ -250,7 +250,7 @@ int smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 
 int smbbuffergetheader(SmbBuffer *b, SmbHeader *h, uchar **parametersp, ushort *bytecountp);
 int smbbuffergetandcheckheader(SmbBuffer *b, SmbHeader *h, uchar command, int response,
-	uchar **pdatap, ushort *bytecountp, char **errmsgp);
+			       uchar **pdatap, ushort *bytecountp, char **errmsgp);
 int smbcheckheader(SmbHeader *h, uchar command, int response, char **errmsgp);
 int smbcheckheaderdirection(SmbHeader *h, int response, char **errmsgp);
 
@@ -261,7 +261,7 @@ int smbmatch(char *name, Reprog *rep);
 Reprog *smbmkrep(char *pattern);
 
 int smbclientopen(SmbClient *c, ushort mode, char *name, uchar *errclassp, ushort *errorp, ushort *fid, ushort *attrp,
-uint32_t *mtimep, uint32_t *sizep, ushort *accessallowedp, char **errmsgp);
+		  uint32_t *mtimep, uint32_t *sizep, ushort *accessallowedp, char **errmsgp);
 
 Rune smbruneconvert(Rune r, uint32_t flags);
 

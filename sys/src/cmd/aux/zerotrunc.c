@@ -21,10 +21,10 @@ main(void)
 	char *p;
 	int n;
 
-	while((n = read(0, buf, sizeof(buf))) > 0){
+	while((n = read(0, buf, sizeof(buf))) > 0) {
 		p = memchr(buf, 0, n);
 		if(p != nil)
-			n = p-buf;
+			n = p - buf;
 		if(n > 0)
 			write(1, buf, n);
 		if(p != nil)
@@ -32,4 +32,3 @@ main(void)
 	}
 	exits(0);
 }
-

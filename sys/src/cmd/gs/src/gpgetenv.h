@@ -27,7 +27,7 @@
 /* Interface to platform-specific getenv routine */
 
 #ifndef gpgetenv_INCLUDED
-#  define gpgetenv_INCLUDED
+#define gpgetenv_INCLUDED
 
 /*
  * Get a value from the environment (getenv).

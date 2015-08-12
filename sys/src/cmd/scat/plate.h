@@ -7,19 +7,18 @@
  * in the LICENSE file.
  */
 
-#define	RAD(x)	((x)*PI_180)
-#define	DEG(x)	((x)/PI_180)
-#define ARCSECONDS_PER_RADIAN	(DEG(1)*3600)
-#define input_nybble(infile)    input_nbits(infile,4)
+#define RAD(x) ((x)*PI_180)
+#define DEG(x) ((x) / PI_180)
+#define ARCSECONDS_PER_RADIAN (DEG(1) * 3600)
+#define input_nybble(infile) input_nbits(infile, 4)
 
-typedef float	Angle;	/* in radians */
+typedef float Angle; /* in radians */
 
-enum
-{
+enum {
 	/*
 	 * parameters for plate
 	 */
-	Pppo1	= 0,
+	Pppo1 = 0,
 	Pppo2,
 	Pppo3,
 	Pppo4,
@@ -79,69 +78,66 @@ enum
 	Pnparam,
 };
 
-typedef	struct	Plate	Plate;
-struct	Plate
-{
-	char	rgn[7];
-	char	disk;
-	Angle	ra;
-	Angle	dec;
+typedef struct Plate Plate;
+struct Plate {
+	char rgn[7];
+	char disk;
+	Angle ra;
+	Angle dec;
 };
 
-typedef	struct	Header	Header;
-struct	Header
-{
-	float	param[Pnparam];
-	int	amdflag;
+typedef struct Header Header;
+struct Header {
+	float param[Pnparam];
+	int amdflag;
 
-	float	x;
-	float	y;
-	float	xi;
-	float	eta;
+	float x;
+	float y;
+	float xi;
+	float eta;
 };
-typedef	long	Type;
+typedef long Type;
 
-typedef struct	Image	Image;
-struct	Image
-{
-	int	nx;
-	int	ny;	/* ny is the fast-varying dimension */
-	Type	a[1];
+typedef struct Image Image;
+struct Image {
+	int nx;
+	int ny; /* ny is the fast-varying dimension */
+	Type a[1];
 };
 
-int	nplate;
-Plate	plate[2000];		/* needs to go to 2000 when the north comes */
-double	PI_180;
-double	TWOPI;
-int	debug;
+int nplate;
+Plate plate[2000]; /* needs to go to 2000 when the north comes */
+double PI_180;
+double TWOPI;
+int debug;
 struct
-{
-	float	min;
-	float	max;
-	float	del;
-	double	gamma;
-	int	neg;
+    {
+	float min;
+	float max;
+	float del;
+	double gamma;
+	int neg;
 } gam;
 
-char*	hms(Angle);
-char*	dms(Angle);
-double	xsqrt(double);
-Angle	dist(Angle, Angle, Angle, Angle);
-Header*	getheader(char*);
-char*	getword(char*, char*);
-void	amdinv(Header*, Angle, Angle, float, float);
-void	ppoinv(Header*, Angle, Angle);
-void	xypos(Header*, Angle, Angle, float, float);
-void	traneqstd(Header*, Angle, Angle);
-Angle	getra(char*);
-Angle	getdec(char*);
-void	getplates(void);
+char *hms(Angle);
+char *dms(Angle);
+double xsqrt(double);
+Angle dist(Angle, Angle, Angle, Angle);
+Header *getheader(char *);
+char *getword(char *, char *);
+void amdinv(Header *, Angle, Angle, float, float);
+void ppoinv(Header *, Angle, Angle);
+void xypos(Header *, Angle, Angle, float, float);
+void traneqstd(Header *, Angle, Angle);
+Angle getra(char *);
+Angle getdec(char *);
+void getplates(void);
 
-Image*	dssread(char*);
-void	hinv(Type*, int, int);
-int	input_bit(Biobuf*);
-int	input_nbits(Biobuf*, int);
-void	qtree_decode(Biobuf*, Type*, int, int, int, int);
-void	start_inputing_bits(void);
-Bitmap*	image(Angle, Angle, Angle, Angle);
-int	dogamma(int);
+Image *dssread(char *);
+void hinv(Type *, int, int);
+int input_bit(Biobuf *);
+int input_nbits(Biobuf *, int);
+void qtree_decode(Biobuf *, Type *, int, int, int, int);
+void start_inputing_bits(void);
+Bitmap *image(Angle, Angle, Angle, Angle);
+int dogamma(int);

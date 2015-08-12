@@ -14,7 +14,7 @@
 #include <html.h>
 #include "dat.h"
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *p;
@@ -26,7 +26,7 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
@@ -35,17 +35,17 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
 
-	t = emalloc(strlen(s)+1);
+	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
 	return t;
 }
 
-char*
+char *
 estrstrdup(char *s, char *t)
 {
 	int32_t ns, nt;
@@ -54,16 +54,16 @@ estrstrdup(char *s, char *t)
 	ns = strlen(s);
 	nt = strlen(t);
 	/* use malloc to avoid memset */
-	u = malloc(ns+nt+1);
+	u = malloc(ns + nt + 1);
 	if(u == nil)
 		error("can't malloc: %r");
 	memmove(u, s, ns);
-	memmove(u+ns, t, nt);
-	u[ns+nt] = '\0';
+	memmove(u + ns, t, nt);
+	u[ns + nt] = '\0';
 	return u;
 }
 
-char*
+char *
 eappend(char *s, char *sep, char *t)
 {
 	int32_t ns, nsep, nt;
@@ -71,24 +71,24 @@ eappend(char *s, char *sep, char *t)
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
-	else{
+	else {
 		ns = strlen(s);
 		nsep = strlen(sep);
 		nt = strlen(t);
 		/* use malloc to avoid memset */
-		u = malloc(ns+nsep+nt+1);
+		u = malloc(ns + nsep + nt + 1);
 		if(u == nil)
 			error("can't malloc: %r");
 		memmove(u, s, ns);
-		memmove(u+ns, sep, nsep);
-		memmove(u+ns+nsep, t, nt);
-		u[ns+nsep+nt] = '\0';
+		memmove(u + ns, sep, nsep);
+		memmove(u + ns + nsep, t, nt);
+		u[ns + nsep + nt] = '\0';
 	}
 	free(s);
 	return u;
 }
 
-char*
+char *
 egrow(char *s, char *sep, char *t)
 {
 	s = eappend(s, sep, t);
@@ -116,14 +116,14 @@ error(char *fmt, ...)
 void
 growbytes(Bytes *b, char *s, int32_t ns)
 {
-	if(b->nalloc < b->n + ns + 1){
+	if(b->nalloc < b->n + ns + 1) {
 		b->nalloc = b->n + ns + 8000;
 		/* use realloc to avoid memset */
 		b->b = realloc(b->b, b->nalloc);
 		if(b->b == nil)
 			error("growbytes: can't realloc: %r");
 	}
-	memmove(b->b+b->n, s, ns);
+	memmove(b->b + b->n, s, ns);
 	b->n += ns;
 	b->b[b->n] = '\0';
 }

@@ -14,48 +14,56 @@
 #define Extern extern
 #include "power.h"
 
-void	mcrf(ulong);
-void	bclr(ulong);
-void	crop(ulong);
-void	bcctr(ulong);
-void	call(ulong);
-void	ret(ulong);
+void mcrf(ulong);
+void bclr(ulong);
+void crop(ulong);
+void bcctr(ulong);
+void call(ulong);
+void ret(ulong);
 void isync(ulong);
 
-Inst	op19[] = {
-[0] {mcrf, "mcrf", Ibranch},
-[16] {bclr, "bclr", Ibranch},
-[33] {crop, "crnor", Ibranch},
-[15] {0, "rfi", Ibranch},
-[129] {crop, "crandc", Ibranch},
-[150] {isync, "isync", Ibranch},
-[193] {crop, "crxor", Ibranch},
-[225] {crop, "crnand", Ibranch},
-[257] {crop, "crand", Ibranch},
-[289] {crop, "creqv", Ibranch},
-[417] {crop, "crorc", Ibranch},
-[449] {crop, "cror", Ibranch},
-[528] {bcctr, "bcctr", Ibranch},
-	{0, 0, 0}
-};
+Inst op19[] = {
+	[0]{mcrf, "mcrf", Ibranch},
+	[16]{bclr, "bclr", Ibranch},
+	[33]{crop, "crnor", Ibranch},
+	[15]{0, "rfi", Ibranch},
+	[129]{crop, "crandc", Ibranch},
+	[150]{isync, "isync", Ibranch},
+	[193]{crop, "crxor", Ibranch},
+	[225]{crop, "crnand", Ibranch},
+	[257]{crop, "crand", Ibranch},
+	[289]{crop, "creqv", Ibranch},
+	[417]{crop, "crorc", Ibranch},
+	[449]{crop, "cror", Ibranch},
+	[528]{bcctr, "bcctr", Ibranch},
+	{0, 0, 0}};
 
-Inset	ops19 = {op19, nelem(op19)-1};
+Inset ops19 = {op19, nelem(op19) - 1};
 
 static char *
 boname(int bo)
 {
 	static char buf[8];
 
-	switch(bo>>1){
-	case 0:	return "dnzf";
-	case 1:	return "dzf";
-	case 2:	return "f";
-	case 4:	return "dnzt";
-	case 5:	return "dzt";
-	case 6:	return "t";
-	case 8:	return "dnz";
-	case 9:	return "dz";
-	case 10:	return "a";
+	switch(bo >> 1) {
+	case 0:
+		return "dnzf";
+	case 1:
+		return "dzf";
+	case 2:
+		return "f";
+	case 4:
+		return "dnzt";
+	case 5:
+		return "dzt";
+	case 6:
+		return "t";
+	case 8:
+		return "dnz";
+	case 9:
+		return "dz";
+	case 10:
+		return "a";
 	default:
 		sprint(buf, "%d?", bo);
 		return buf;
@@ -70,8 +78,8 @@ cname(int bo, int bi)
 	static char buf[20];
 	static char *f0[] = {"lt", "gt", "eq", "so/un"};
 
-	if(bo == 0x14){	/* branch always */
-		sprint(buf,"%d", bi);
+	if(bo == 0x14) { /* branch always */
+		sprint(buf, "%d", bi);
 		return buf;
 	}
 	for(f = 0; bi >= 4; bi -= 4)
@@ -80,7 +88,7 @@ cname(int bo, int bi)
 	p += sprint(buf, "%d[", bi);
 	if(f)
 		p += sprint(buf, "cr%d+", f);
-	strcpy(p, f0[bi&3]);
+	strcpy(p, f0[bi & 3]);
 	strcat(p, "]");
 	return buf;
 }
@@ -98,8 +106,8 @@ condok(uint32_t ir, int ctr)
 			undef(ir);
 		reg.ctr--;
 	}
-	if(bo & 0x4 || (reg.ctr!=0)^((bo>>1)&1)) {
-		if(bo & 0x10 || (((reg.cr & bits[bi])!=0)==((bo>>3)&1)))
+	if(bo & 0x4 || (reg.ctr != 0) ^ ((bo >> 1) & 1)) {
+		if(bo & 0x10 || (((reg.cr & bits[bi]) != 0) == ((bo >> 3) & 1)))
 			return 1;
 	}
 	return 0;
@@ -116,17 +124,17 @@ dobranch(uint32_t ir, uint32_t *r, int ctr)
 	if(condok(ir, ctr)) {
 		ci->taken++;
 		nia = *r & ~3;
-		if(bo & 4)	/* assume counting branches aren't returns */
+		if(bo & 4) /* assume counting branches aren't returns */
 			ret(nia);
 	} else
 		nia = reg.pc + 4;
 	if(trace)
-		itrace("%s%s\t%s,%s,#%.8lux", ci->name, ir&1? "l": "", boname(bo), cname(bo, bi), nia);
+		itrace("%s%s\t%s,%s,#%.8lux", ci->name, ir & 1 ? "l" : "", boname(bo), cname(bo, bi), nia);
 	if(ir & 1) {
 		call(nia);
 		reg.lr = reg.pc + 4;
 	}
-	reg.pc = nia-4;
+	reg.pc = nia - 4;
 	/* branch delays? */
 }
 
@@ -155,24 +163,24 @@ bcx(uint32_t ir)
 	imm = ir & 0xFFFC;
 	if(ir & 0x08000)
 		imm |= 0xFFFF0000;
-	if((ir & 2) == 0) {	/* not absolute address */
+	if((ir & 2) == 0) { /* not absolute address */
 		ea = reg.pc + imm;
 		if(trace)
-			itrace("%s\t%s,%s,.%s%ld\tea = #%.8lux", opc[ir&3], boname(bo), cname(bo, bi), imm<0?"":"+", imm, ea);
+			itrace("%s\t%s,%s,.%s%ld\tea = #%.8lux", opc[ir & 3], boname(bo), cname(bo, bi), imm < 0 ? "" : "+", imm, ea);
 	} else {
 		ea = imm;
 		if(trace)
-			itrace("%s\t%s,%s,#%.8lux", opc[ir&3], boname(bo), cname(bo, bi), ea);
+			itrace("%s\t%s,%s,#%.8lux", opc[ir & 3], boname(bo), cname(bo, bi), ea);
 	}
-	if(condok(ir&0xFFFF0000, 1))
+	if(condok(ir & 0xFFFF0000, 1))
 		ci->taken++;
 	else
 		ea = reg.pc + 4;
 	if(ir & 1) {
 		call(ea);
-		reg.lr = reg.pc+4;
+		reg.lr = reg.pc + 4;
 	}
-	reg.pc = ea-4;
+	reg.pc = ea - 4;
 	/* branch delay? */
 }
 
@@ -188,15 +196,33 @@ crop(uint32_t ir)
 	rb = (reg.cr & bits[rb]) != 0;
 	d = 0;
 	switch(getxo(ir)) {
-	case 257:	d = ra & rb; break;
-	case 129:	d = ra & !rb; break;
-	case 289:	d = ra == rb; break;
-	case 225:	d = !(ra & rb); break;
-	case 33:	d = !(ra | rb); break;
-	case 449:	d = ra | rb; break;
-	case 417:	d = ra | !rb; break;
-	case 193:	d = ra ^ rb; break;
-	default:	undef(ir); break;
+	case 257:
+		d = ra & rb;
+		break;
+	case 129:
+		d = ra & !rb;
+		break;
+	case 289:
+		d = ra == rb;
+		break;
+	case 225:
+		d = !(ra & rb);
+		break;
+	case 33:
+		d = !(ra | rb);
+		break;
+	case 449:
+		d = ra | rb;
+		break;
+	case 417:
+		d = ra | !rb;
+		break;
+	case 193:
+		d = ra ^ rb;
+		break;
+	default:
+		undef(ir);
+		break;
 	}
 	if(d)
 		reg.cr |= bits[rd];
@@ -240,7 +266,7 @@ ret(uint32_t npc)
 	if(calltree) {
 		findsym(npc, CTEXT, &s);
 		Bprint(bioout, "%8lux return to #%lux %s r3=#%lux (%ld)\n",
-					reg.pc, npc, s.name, reg.r[3], reg.r[3]);
+		       reg.pc, npc, s.name, reg.r[3], reg.r[3]);
 	}
 }
 
@@ -254,21 +280,21 @@ bx(uint32_t ir)
 	imm = ir & 0x03FFFFFC;
 	if(ir & 0x02000000)
 		imm |= 0xFC000000;
-	if((ir & 2) == 0) {	/* not absolute address */
+	if((ir & 2) == 0) { /* not absolute address */
 		ea = reg.pc + imm;
 		if(trace)
-			itrace("%s\t.%s%ld\tea = #%.8lux", opc[ir&3], imm<0?"":"+", imm, ea);
+			itrace("%s\t.%s%ld\tea = #%.8lux", opc[ir & 3], imm < 0 ? "" : "+", imm, ea);
 	} else {
 		ea = imm;
 		if(trace)
-			itrace("%s\t#%.8lux", opc[ir&3], ea);
+			itrace("%s\t#%.8lux", opc[ir & 3], ea);
 	}
 	ci->taken++;
 	if(ir & 1) {
 		call(ea);
-		reg.lr = reg.pc+4;
+		reg.lr = reg.pc + 4;
 	}
-	reg.pc = ea-4;
+	reg.pc = ea - 4;
 	/* branch delay? */
 }
 

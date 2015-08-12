@@ -13,7 +13,7 @@ typedef struct Frag Frag;
 
 enum {
 	BigMemSize = MaxFragSize,
-	SmallMemSize = BigMemSize/8,
+	SmallMemSize = BigMemSize / 8,
 	NLocalFrag = 2,
 };
 
@@ -24,8 +24,7 @@ enum {
 	PEnd,
 };
 
-struct Mem
-{
+struct Mem {
 	Lock lk;
 	int ref;
 	unsigned char *bp;
@@ -40,9 +39,8 @@ enum {
 	FragLocalAlloc,
 	FragGlobal,
 };
-	
-struct Frag
-{
+
+struct Frag {
 	int state;
 	Mem *mem;
 	unsigned char *rp;
@@ -50,16 +48,14 @@ struct Frag
 	Frag *next;
 };
 
-struct Packet
-{
+struct Packet {
 	int size;
-	int asize;  /* allocated memmory - always greater than size */
-	
+	int asize; /* allocated memmory - always greater than size */
+
 	Packet *next;
-	
+
 	Frag *first;
 	Frag *last;
-	
+
 	Frag local[NLocalFrag];
 };
-

@@ -25,7 +25,7 @@ resize(Vnc *v, int first)
 	int fd;
 	Point d;
 
-	d = addpt(v->dim, Pt(2*Borderwidth, 2*Borderwidth));
+	d = addpt(v->dim, Pt(2 * Borderwidth, 2 * Borderwidth));
 	lockdisplay(display);
 
 	if(getwindow(display, Refnone) < 0)
@@ -34,9 +34,9 @@ resize(Vnc *v, int first)
 	/*
 	 * limit the window to at most the vnc server's size
 	 */
-	if(first || d.x < Dx(screen->r) || d.y < Dy(screen->r)){
+	if(first || d.x < Dx(screen->r) || d.y < Dy(screen->r)) {
 		fd = open("/dev/wctl", OWRITE);
-		if(fd >= 0){
+		if(fd >= 0) {
 			fprint(fd, "resize -dx %d -dy %d", d.x, d.y);
 			close(fd);
 		}
@@ -53,40 +53,43 @@ eresized(void)
 }
 
 static Cursor dotcursor = {
-	{-7, -7},
-	{0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00, 
-	 0x03, 0xc0,
-	 0x07, 0xe0,
-	 0x0f, 0xf0, 
-	 0x0f, 0xf0,
-	 0x0f, 0xf0,
-	 0x07, 0xe0,
-	 0x03, 0xc0,
-	 0x00, 0x00, 
-	 0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00, },
-	{0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00, 
-	 0x00, 0x00,
-	 0x03, 0xc0,
-	 0x07, 0xe0, 
-	 0x07, 0xe0,
-	 0x07, 0xe0,
-	 0x03, 0xc0,
-	 0x00, 0x00,
-	 0x00, 0x00, 
-	 0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00,
-	 0x00, 0x00, }
-};
+    {-7, -7},
+    {
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x03, 0xc0,
+     0x07, 0xe0,
+     0x0f, 0xf0,
+     0x0f, 0xf0,
+     0x0f, 0xf0,
+     0x07, 0xe0,
+     0x03, 0xc0,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+    },
+    {
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x03, 0xc0,
+     0x07, 0xe0,
+     0x07, 0xe0,
+     0x07, 0xe0,
+     0x03, 0xc0,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+     0x00, 0x00,
+    }};
 
 static void
 mouseevent(Vnc *v, Mouse m)
@@ -118,14 +121,14 @@ initmouse(void)
 }
 
 enum {
-	EventSize = 1+4*12
+	EventSize = 1 + 4 * 12
 };
 void
 readmouse(Vnc *v)
 {
 	int cursorfd, len, n;
-	char buf[10*EventSize], *start, *end;
-	uint8_t curs[2*4+2*2*16];
+	char buf[10 * EventSize], *start, *end;
+	uint8_t curs[2 * 4 + 2 * 2 * 16];
 	Cursor *cs;
 	Mouse m;
 
@@ -135,31 +138,31 @@ readmouse(Vnc *v)
 	if((cursorfd = open(buf, OWRITE)) < 0)
 		sysfatal("open %s: %r", buf);
 
-	BPLONG(curs+0*4, cs->offset.x);
-	BPLONG(curs+1*4, cs->offset.y);
-	memmove(curs+2*4, cs->clr, 2*2*16);
+	BPLONG(curs + 0 * 4, cs->offset.x);
+	BPLONG(curs + 1 * 4, cs->offset.y);
+	memmove(curs + 2 * 4, cs->clr, 2 * 2 * 16);
 	write(cursorfd, curs, sizeof curs);
 
 	resize(v, 1);
 	requestupdate(vnc, 0);
 	start = end = buf;
 	len = 0;
-	for(;;){
+	for(;;) {
 		if((n = read(mousefd, end, sizeof(buf) - (end - buf))) < 0)
 			sysfatal("read mouse failed");
 
 		len += n;
 		end += n;
-		while(len >= EventSize){
-			if(*start == 'm'){
-				m.xy.x = atoi(start+1);
-				m.xy.y = atoi(start+1+12);
-				m.buttons = atoi(start+1+2*12) & 0x1F;
+		while(len >= EventSize) {
+			if(*start == 'm') {
+				m.xy.x = atoi(start + 1);
+				m.xy.y = atoi(start + 1 + 12);
+				m.buttons = atoi(start + 1 + 2 * 12) & 0x1F;
 				m.xy = subpt(m.xy, screen->r.min);
-				if(ptinrect(m.xy, Rpt(ZP, v->dim))){
+				if(ptinrect(m.xy, Rpt(ZP, v->dim))) {
 					mouseevent(v, m);
-					/* send wheel button *release* */ 
-					if ((m.buttons & 0x7) != m.buttons) {
+					/* send wheel button *release* */
+					if((m.buttons & 0x7) != m.buttons) {
 						m.buttons &= 0x7;
 						mouseevent(v, m);
 					}
@@ -170,10 +173,10 @@ readmouse(Vnc *v)
 			start += EventSize;
 			len -= EventSize;
 		}
-		if(start - buf > sizeof(buf) - EventSize){
+		if(start - buf > sizeof(buf) - EventSize) {
 			memmove(buf, start, len);
 			start = buf;
-			end = start+len;
+			end = start + len;
 		}
 	}
 }
@@ -181,19 +184,19 @@ readmouse(Vnc *v)
 static int snarffd = -1;
 static uint32_t snarfvers;
 
-void 
+void
 writesnarf(Vnc *v, int32_t n)
 {
 	uint8_t buf[8192];
 	int32_t m;
 	Biobuf *b;
 
-	if((b = Bopen("/dev/snarf", OWRITE)) == nil){
+	if((b = Bopen("/dev/snarf", OWRITE)) == nil) {
 		vncgobble(v, n);
 		return;
 	}
 
-	while(n > 0){
+	while(n > 0) {
 		m = n;
 		if(m > sizeof(buf))
 			m = sizeof(buf);
@@ -212,16 +215,16 @@ getsnarf(int *sz)
 	char *snarf, *p;
 	int n, c;
 
-	*sz =0;
+	*sz = 0;
 	n = 8192;
 	p = snarf = malloc(n);
 
 	seek(snarffd, 0, 0);
-	while ((c = read(snarffd, p, n)) > 0){
+	while((c = read(snarffd, p, n)) > 0) {
 		p += c;
 		n -= c;
 		*sz += c;
-		if (n == 0){
+		if(n == 0) {
 			snarf = realloc(snarf, *sz + 8192);
 			n = 8192;
 		}
@@ -236,19 +239,19 @@ checksnarf(Vnc *v)
 	char *snarf;
 	int len;
 
-	if(snarffd < 0){
+	if(snarffd < 0) {
 		snarffd = open("/dev/snarf", OREAD);
 		if(snarffd < 0)
 			sysfatal("can't open /dev/snarf: %r");
 	}
 
-	for(;;){
+	for(;;) {
 		sleep(1000);
 
 		dir = dirstat("/dev/snarf");
-		if(dir == nil)	/* this happens under old drawterm */
+		if(dir == nil) /* this happens under old drawterm */
 			continue;
-		if(dir->qid.vers > snarfvers){
+		if(dir->qid.vers > snarfvers) {
 			snarf = getsnarf(&len);
 
 			vnclock(v);

@@ -20,11 +20,13 @@ static struct {
 	int acfd;
 	char ldir[NETPATHLEN];
 	int lcfd;
-} tcp = { -1 };
+} tcp = {-1};
 
 typedef struct Session Session;
 
-enum { NeedSessionRequest, Connected, Dead };
+enum { NeedSessionRequest,
+       Connected,
+       Dead };
 
 struct Session {
 	NbSession;
@@ -60,9 +62,9 @@ deletesession(Session *s)
 	Session **sp;
 	close(s->fd);
 	qlock(&sessions);
-	for (sp = &sessions.head; *sp && *sp != s; sp = &(*sp)->next)
+	for(sp = &sessions.head; *sp && *sp != s; sp = &(*sp)->next)
 		;
-	if (*sp)
+	if(*sp)
 		*sp = s->next;
 	qunlock(&sessions);
 	free(s);
@@ -75,16 +77,16 @@ tcpreader(void *a)
 	uint8_t *buf;
 	int buflen = 0x1ffff + 4;
 	buf = nbemalloc(buflen);
-	for (;;) {
+	for(;;) {
 		int n;
 		uint8_t flags;
 		uint16_t length;
 
 		n = readn(s->fd, buf, 4);
-		if (n != 4) {
+		if(n != 4) {
 		die:
 			free(buf);
-			if (s->state == Connected)
+			if(s->state == Connected)
 				(*s->write)(s, nil, -1);
 			deletesession(s);
 			return;
@@ -92,20 +94,20 @@ tcpreader(void *a)
 		flags = buf[1];
 		length = nhgets(buf + 2) | ((flags & 1) << 16);
 		n = readn(s->fd, buf + 4, length);
-		if (n != length)
+		if(n != length)
 			goto die;
-		if (flags & 0xfe) {
+		if(flags & 0xfe) {
 			print("nbss: invalid flags field 0x%.2ux\n", flags);
 			goto die;
 		}
-		switch (buf[0]) {
+		switch(buf[0]) {
 		case 0: /* session message */
-			if (s->state != Connected && s->state != Dead) {
+			if(s->state != Connected && s->state != Dead) {
 				print("nbss: unexpected session message\n");
 				goto die;
 			}
-			if (s->state == Connected) {
-				if ((*s->write)(s, buf + 4, length) != 0) {
+			if(s->state == Connected) {
+				if((*s->write)(s, buf + 4, length) != 0) {
 					s->state = Dead;
 					goto die;
 				}
@@ -118,24 +120,24 @@ tcpreader(void *a)
 			int called_found;
 			uint8_t error_code;
 
-			if (s->state == Connected) {
+			if(s->state == Connected) {
 				print("nbss: unexpected session request\n");
 				goto die;
 			}
 			p = buf + 4;
 			ep = p + length;
 			k = nbnamedecode(p, p, ep, s->to);
-			if (k == 0) {
+			if(k == 0) {
 				print("nbss: malformed called name in session request\n");
 				goto die;
 			}
 			p += k;
 			k = nbnamedecode(p, p, ep, s->from);
-			if (k == 0) {
+			if(k == 0) {
 				print("nbss: malformed calling name in session request\n");
 				goto die;
 			}
-/*
+			/*
 			p += k;
 			if (p != ep) {
 				print("nbss: extra data at end of session request\n");
@@ -143,17 +145,17 @@ tcpreader(void *a)
 			}
 */
 			called_found = 0;
-//print("nbss: called %B calling %B\n", s->to, s->from);
+			//print("nbss: called %B calling %B\n", s->to, s->from);
 			qlock(&listens);
-			for (l = listens.head; l; l = l->next)
-				if (nbnameequal(l->to, s->to)) {
+			for(l = listens.head; l; l = l->next)
+				if(nbnameequal(l->to, s->to)) {
 					called_found = 1;
-					if (nbnameequal(l->from, s->from))
+					if(nbnameequal(l->from, s->from))
 						break;
 				}
-			if (l == nil) {
+			if(l == nil) {
 				qunlock(&listens);
-				error_code  = called_found ? 0x81 : 0x80;
+				error_code = called_found ? 0x81 : 0x80;
 			replydie:
 				buf[0] = 0x83;
 				buf[1] = 0;
@@ -162,7 +164,7 @@ tcpreader(void *a)
 				write(s->fd, buf, 5);
 				goto die;
 			}
-			if (!(*l->accept)(l->magic, s, &s->write)) {
+			if(!(*l->accept)(l->magic, s, &s->write)) {
 				qunlock(&listens);
 				error_code = 0x83;
 				goto replydie;
@@ -170,7 +172,7 @@ tcpreader(void *a)
 			buf[0] = 0x82;
 			buf[1] = 0;
 			hnputs(buf + 2, 0);
-			if (write(s->fd, buf, 4) != 4) {
+			if(write(s->fd, buf, 4) != 4) {
 				qunlock(&listens);
 				goto die;
 			}
@@ -196,7 +198,7 @@ createsession(int fd)
 	s->state = NeedSessionRequest;
 	qlock(&sessions);
 	s->thread = procrfork(tcpreader, s, 32768, RFNAMEG);
-	if (s->thread < 0) {
+	if(s->thread < 0) {
 		qunlock(&sessions);
 		free(s);
 		return nil;
@@ -210,14 +212,14 @@ createsession(int fd)
 static void
 tcplistener(void *)
 {
-	for (;;) {
+	for(;;) {
 		int dfd;
 		char ldir[NETPATHLEN];
 		int lcfd;
-//print("tcplistener: listening\n");
+		//print("tcplistener: listening\n");
 		lcfd = listen(tcp.adir, ldir);
-//print("tcplistener: contact\n");
-		if (lcfd < 0) {
+		//print("tcplistener: contact\n");
+		if(lcfd < 0) {
 		die:
 			qlock(&tcp);
 			close(tcp.acfd);
@@ -227,22 +229,22 @@ tcplistener(void *)
 		}
 		dfd = accept(lcfd, ldir);
 		close(lcfd);
-		if (dfd < 0)
+		if(dfd < 0)
 			goto die;
-		if (createsession(dfd) == nil)
+		if(createsession(dfd) == nil)
 			close(dfd);
 	}
 }
 
 int
-nbsslisten(NbName to, NbName from,int (*accept)(void *magic, NbSession *s, NBSSWRITEFN **writep), void *magic)
+nbsslisten(NbName to, NbName from, int (*accept)(void *magic, NbSession *s, NBSSWRITEFN **writep), void *magic)
 {
 	Listen *l;
 	qlock(&tcp);
-	if (tcp.thread < 0) {
+	if(tcp.thread < 0) {
 		fmtinstall('B', nbnamefmt);
 		tcp.acfd = announce("tcp!*!netbios", tcp.adir);
-		if (tcp.acfd < 0) {
+		if(tcp.acfd < 0) {
 			print("nbsslisten: can't announce: %r\n");
 			qunlock(&tcp);
 			return -1;
@@ -264,7 +266,7 @@ nbsslisten(NbName to, NbName from,int (*accept)(void *magic, NbSession *s, NBSSW
 
 void
 nbssfree(NbSession *s)
-{	
+{
 	deletesession((Session *)s);
 }
 
@@ -274,16 +276,16 @@ nbssgatherwrite(NbSession *s, NbScatterGather *a)
 	uint8_t hdr[4];
 	NbScatterGather *ap;
 	int32_t l = 0;
-	for (ap = a; ap->p; ap++)
+	for(ap = a; ap->p; ap++)
 		l += ap->l;
-//print("nbssgatherwrite %ld bytes\n", l);
+	//print("nbssgatherwrite %ld bytes\n", l);
 	hnputl(hdr, l);
-//nbdumpdata(hdr, sizeof(hdr));
-	if (write(s->fd, hdr, sizeof(hdr)) != sizeof(hdr))
+	//nbdumpdata(hdr, sizeof(hdr));
+	if(write(s->fd, hdr, sizeof(hdr)) != sizeof(hdr))
 		return -1;
-	for (ap = a; ap->p; ap++) {
-//nbdumpdata(ap->p, ap->l);
-		if (write(s->fd, ap->p, ap->l) != ap->l)
+	for(ap = a; ap->p; ap++) {
+		//nbdumpdata(ap->p, ap->l);
+		if(write(s->fd, ap->p, ap->l) != ap->l)
 			return -1;
 	}
 	return 0;
@@ -302,12 +304,12 @@ nbssconnect(NbName to, NbName from)
 	uint8_t flags;
 	int32_t length;
 
-	if (!nbnameresolve(to, ipaddr))
+	if(!nbnameresolve(to, ipaddr))
 		return nil;
 	fmtinstall('I', eipfmt);
 	snprint(dialaddress, sizeof(dialaddress), "tcp!%I!netbios", ipaddr);
 	fd = dial(dialaddress, nil, dir, nil);
-	if (fd < 0)
+	if(fd < 0)
 		return nil;
 	msg[0] = 0x81;
 	msg[1] = 0;
@@ -315,35 +317,35 @@ nbssconnect(NbName to, NbName from)
 	o += nbnameencode(msg + o, msg + sizeof(msg) - o, to);
 	o += nbnameencode(msg + o, msg + sizeof(msg) - o, from);
 	hnputs(msg + 2, o - 4);
-	if (write(fd, msg, o) != o) {
+	if(write(fd, msg, o) != o) {
 		close(fd);
 		return nil;
 	}
-	if (readn(fd, msg, 4) != 4) {
+	if(readn(fd, msg, 4) != 4) {
 		close(fd);
 		return nil;
 	}
 	flags = msg[1];
 	length = nhgets(msg + 2) | ((flags & 1) << 16);
-	switch (msg[0]) {
+	switch(msg[0]) {
 	default:
 		close(fd);
 		werrstr("unexpected session message code 0x%.2ux", msg[0]);
 		return nil;
 	case 0x82:
-		if (length != 0) {
+		if(length != 0) {
 			close(fd);
 			werrstr("length not 0 in positive session response");
 			return nil;
 		}
 		break;
 	case 0x83:
-		if (length != 1) {
+		if(length != 1) {
 			close(fd);
 			werrstr("length not 1 in negative session response");
 			return nil;
 		}
-		if (readn(fd, msg + 4, 1) != 1) {
+		if(readn(fd, msg + 4, 1) != 1) {
 			close(fd);
 			return nil;
 		}
@@ -371,21 +373,21 @@ nbssscatterread(NbSession *nbs, NbScatterGather *a)
 	Session *s = (Session *)nbs;
 
 	int32_t l = 0;
-	for (ap = a; ap->p; ap++)
+	for(ap = a; ap->p; ap++)
 		l += ap->l;
 //print("nbssscatterread %ld bytes\n", l);
 again:
-	if (readn(s->fd, hdr, 4) != 4) {
+	if(readn(s->fd, hdr, 4) != 4) {
 	dead:
 		s->state = Dead;
 		return -1;
 	}
 	flags = hdr[1];
 	length = nhgets(hdr + 2) | ((flags & 1) << 16);
-//print("%.2ux: %d\n", hdr[0], length);
-	switch (hdr[0]) {
+	//print("%.2ux: %d\n", hdr[0], length);
+	switch(hdr[0]) {
 	case 0x85:
-		if (length != 0) {
+		if(length != 0) {
 			werrstr("length in keepalive not 0");
 			goto dead;
 		}
@@ -396,20 +398,20 @@ again:
 		werrstr("unexpected session message code 0x%.2ux", hdr[0]);
 		goto dead;
 	}
-	if (length > l) {
+	if(length > l) {
 		werrstr("message too big (%ld)", length);
 		goto dead;
 	}
 	total = length;
-	for (ap = a; length && ap->p; ap++) {
+	for(ap = a; length && ap->p; ap++) {
 		int32_t thistime;
 		int32_t n;
 		thistime = length;
-		if (thistime > ap->l)
+		if(thistime > ap->l)
 			thistime = ap->l;
-//print("reading %d\n", length);
+		//print("reading %d\n", length);
 		n = readn(s->fd, ap->p, thistime);
-		if (n != thistime)
+		if(n != thistime)
 			goto dead;
 		length -= thistime;
 	}

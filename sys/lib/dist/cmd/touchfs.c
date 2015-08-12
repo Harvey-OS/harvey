@@ -52,7 +52,7 @@ main(int argc, char **argv)
 	Binit(&bout, 1, OWRITE);
 
 	while(p = Brdline(&bin, '\n')) {
-		p[Blinelen(&bin)-1] = '\0';
+		p[Blinelen(&bin) - 1] = '\0';
 		if(strcmp(p, "end of archive") == 0) {
 			Bprint(&bout, "end of archive\n");
 			exits(0);
@@ -65,7 +65,7 @@ main(int argc, char **argv)
 		}
 
 		Bprint(&bout, "%q %q %q %q %lud %q\n",
-			f[0], f[1], f[2], f[3], d, f[5]);
+		       f[0], f[1], f[2], f[3], d, f[5]);
 
 		size = strtoul(f[5], 0, 0);
 		Bpass(&bin, &bout, size);

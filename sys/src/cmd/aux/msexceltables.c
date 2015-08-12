@@ -15,35 +15,34 @@
 
 enum {
 	Tillegal = 0,
-	Tnumber,		// cell types
+	Tnumber, // cell types
 	Tlabel,
 	Tindex,
 	Tbool,
 	Terror,
 
-	Ver8 = 0x600,		// only BIFF8 and BIFF8x files support unicode
+	Ver8 = 0x600, // only BIFF8 and BIFF8x files support unicode
 
 	Nwidths = 4096,
 };
-	
-	
+
 typedef struct Biff Biff;
 typedef struct Col Col;
 typedef struct Row Row;
 
 struct Row {
-	Row *next;		// next row
-	int r;			// row number
-	Col *col;		// list of cols in row
+	Row *next; // next row
+	int r;     // row number
+	Col *col;  // list of cols in row
 };
 
 struct Col {
-	Col *next;		// next col in row
-	int c;			// col number
-	int f;			// index into formating table (Xf)
-	int type;		// type of value for union below
-	union {			// value
-		int index;	// index into string table (Strtab)
+	Col *next;	 // next col in row
+	int c;		   // col number
+	int f;		   // index into formating table (Xf)
+	int type;	  // type of value for union below
+	union {		   // value
+		int index; // index into string table (Strtab)
 		int error;
 		int bool;
 		char *label;
@@ -51,49 +50,49 @@ struct Col {
 	};
 };
 
-struct  Biff {
-	Biobuf *bp;		// input file
-	int op;			// current record type
-	int len;		// length of current record
+struct Biff {
+	Biobuf *bp; // input file
+	int op;     // current record type
+	int len;    // length of current record
 };
 
 // options
 static int Nopad = 0;		// disable padding cells to colum width
 static int Trunc = 0;		// truncate cells to colum width
 static int All = 0;		// dump all sheet types, Worksheets only by default
-static char *Delim = " ";	// field delimiter
-static char *Sheetrange = nil;	// range of sheets wanted
-static char *Columnrange = nil;	// range of collums wanted
+static char *Delim = " ";       // field delimiter
+static char *Sheetrange = nil;  // range of sheets wanted
+static char *Columnrange = nil; // range of collums wanted
 static int Debug = 0;
 
 // file scope
-static int Defwidth = 10;	// default colum width if non given
-static int Biffver;		// file vesion
-static int Datemode;		// date ref: 1899-Dec-31 or 1904-jan-1
-static char **Strtab = nil;	// label contents heap
-static int Nstrtab = 0;		// # of above
-static int *Xf;			// array of extended format indices
-static int Nxf = 0;		// # of above
-static Biobuf *bo;		// stdout (sic)
-static int Doquote = 1;		// quote text fields if they are rc(1) unfriendly
+static int Defwidth = 10;   // default colum width if non given
+static int Biffver;	 // file vesion
+static int Datemode;	// date ref: 1899-Dec-31 or 1904-jan-1
+static char **Strtab = nil; // label contents heap
+static int Nstrtab = 0;     // # of above
+static int *Xf;		    // array of extended format indices
+static int Nxf = 0;	 // # of above
+static Biobuf *bo;	  // stdout (sic)
+static int Doquote = 1;     // quote text fields if they are rc(1) unfriendly
 
 // table scope
-static int Width[Nwidths];	// array of colum widths
-static int Ncols = -1;		// max colums in table used
-static int Content = 0;		// type code for contents of sheet
-static Row *Root = nil;		// one worksheet's worth of cells
-				
-static char *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+static int Width[Nwidths]; // array of colum widths
+static int Ncols = -1;     // max colums in table used
+static int Content = 0;    // type code for contents of sheet
+static Row *Root = nil;    // one worksheet's worth of cells
+
+static char *Months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+			 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 static char *Errmsgs[] = {
-	[0x0]	"#NULL!",	// intersection of two cell ranges is empty
-	[0x7]	"#DIV/0!",	// division by zero	
-	[0xf]	"#VALUE!",	// wrong type of operand
-	[0x17]	"#REF!",	// illegal or deleted cell reference
-	[0x1d]	"#NAME?",	// wrong function or range name
-	[0x24]	"#NUM!",	// value range overflow
-	[0x2a]	"#N/A!",	// argument of function not available
+	[0x0] "#NULL!",  // intersection of two cell ranges is empty
+	[0x7] "#DIV/0!", // division by zero
+	[0xf] "#VALUE!", // wrong type of operand
+	[0x17] "#REF!",  // illegal or deleted cell reference
+	[0x1d] "#NAME?", // wrong function or range name
+	[0x24] "#NUM!",  // value range overflow
+	[0x2a] "#N/A!",  // argument of function not available
 };
 
 int
@@ -102,14 +101,14 @@ wanted(char *range, int here)
 	int n, s;
 	char *p;
 
-	if (! range)
+	if(!range)
 		return 1;
 
 	s = -1;
 	p = range;
-	while(1){
+	while(1) {
 		n = strtol(p, &p, 10);
-		switch(*p){
+		switch(*p) {
 		case 0:
 			if(n == here)
 				return 1;
@@ -137,7 +136,6 @@ wanted(char *range, int here)
 	}
 }
 
-	
 void
 cell(int r, int c, int f, int type, void *val)
 {
@@ -154,16 +152,27 @@ cell(int r, int c, int f, int type, void *val)
 	ncol->type = type;
 	ncol->next = nil;
 
-	switch(type){
-	case Tnumber:	ncol->number = *(double *)val;	break;
-	case Tlabel:	ncol->label = (char *)val;	break;
-	case Tindex:	ncol->index = *(int *)val;	break;
-	case Tbool:	ncol->bool = *(int *)val;	break;
-	case Terror:	ncol->error = *(int *)val;	break;
-	default:	sysfatal("can't happen error");
+	switch(type) {
+	case Tnumber:
+		ncol->number = *(double *)val;
+		break;
+	case Tlabel:
+		ncol->label = (char *)val;
+		break;
+	case Tindex:
+		ncol->index = *(int *)val;
+		break;
+	case Tbool:
+		ncol->bool = *(int *)val;
+		break;
+	case Terror:
+		ncol->error = *(int *)val;
+		break;
+	default:
+		sysfatal("can't happen error");
 	}
 
-	if(Root == nil || Root->r > r){
+	if(Root == nil || Root->r > r) {
 		if((nrow = malloc(sizeof(Row))) == nil)
 			sysfatal("no memory");
 		nrow->col = ncol;
@@ -174,16 +183,15 @@ cell(int r, int c, int f, int type, void *val)
 		return;
 	}
 
-	for(row = Root; row; row = row->next){
-		if(row->r == r){
-			if(row->col->c > c){
+	for(row = Root; row; row = row->next) {
+		if(row->r == r) {
+			if(row->col->c > c) {
 				ncol->next = row->col;
 				row->col = ncol;
 				return;
-			}
-			else{
+			} else {
 				for(col = row->col; col; col = col->next)
-					if(col->next == nil || col->next->c > c){
+					if(col->next == nil || col->next->c > c) {
 						ncol->next = col->next;
 						col->next = ncol;
 						return;
@@ -191,7 +199,7 @@ cell(int r, int c, int f, int type, void *val)
 			}
 		}
 
-		if(row->next == nil || row->next->r > r){
+		if(row->next == nil || row->next->r > r) {
 			if((nrow = malloc(sizeof(Row))) == nil)
 				sysfatal("no memory");
 			nrow->col = ncol;
@@ -214,10 +222,10 @@ bifftime(double t)
 	 * was a leap year
 	 */
 	if(Datemode)
-		t -= 24107;		// epoch = 1/1/1904
+		t -= 24107; // epoch = 1/1/1904
 	else
-		t -= 25569;		// epoch = 31/12/1899
-	t *= 60*60*24;
+		t -= 25569; // epoch = 31/12/1899
+	t *= 60 * 60 * 24;
 
 	return localtime((int32_t)t);
 }
@@ -229,34 +237,27 @@ numfmt(int fmt, int min, int max, double num)
 	struct Tm *tm;
 
 	if(fmt == 9)
-		snprint(buf, sizeof(buf),"%.0f%%", num);
-	else
-	if(fmt == 10)
-		snprint(buf, sizeof(buf),"%f%%", num);
-	else
-	if(fmt == 11 || fmt == 48)
-		snprint(buf, sizeof(buf),"%e", num);
-	else
-	if(fmt >= 14 && fmt <= 17){
+		snprint(buf, sizeof(buf), "%.0f%%", num);
+	else if(fmt == 10)
+		snprint(buf, sizeof(buf), "%f%%", num);
+	else if(fmt == 11 || fmt == 48)
+		snprint(buf, sizeof(buf), "%e", num);
+	else if(fmt >= 14 && fmt <= 17) {
 		tm = bifftime(num);
-		snprint(buf, sizeof(buf),"%d-%s-%d",
-			tm->mday, Months[tm->mon], tm->year+1900);
-	}
-	else
-	if((fmt >= 18 && fmt <= 21) || (fmt >= 45 && fmt <= 47)){
+		snprint(buf, sizeof(buf), "%d-%s-%d",
+			tm->mday, Months[tm->mon], tm->year + 1900);
+	} else if((fmt >= 18 && fmt <= 21) || (fmt >= 45 && fmt <= 47)) {
 		tm = bifftime(num);
-		snprint(buf, sizeof(buf),"%02d:%02d:%02d", tm->hour, tm->min, tm->sec);
+		snprint(buf, sizeof(buf), "%02d:%02d:%02d", tm->hour, tm->min, tm->sec);
 
-	}
-	else
-	if(fmt == 22){
+	} else if(fmt == 22) {
 		tm = bifftime(num);
-		snprint(buf, sizeof(buf),"%02d:%02d:%02d %d-%s-%d",
+		snprint(buf, sizeof(buf), "%02d:%02d:%02d %d-%s-%d",
 			tm->hour, tm->min, tm->sec,
-			tm->mday, Months[tm->mon], tm->year+1900);
+			tm->mday, Months[tm->mon], tm->year + 1900);
 
-	}else
-		snprint(buf, sizeof(buf),"%g", num);
+	} else
+		snprint(buf, sizeof(buf), "%g", num);
 
 	Bprint(bo, "%-*.*q", min, max, buf);
 }
@@ -274,11 +275,11 @@ dump(void)
 	else
 		strfmt = "%-*.*s";
 
-	for(r = Root; r; r = r->next){
+	for(r = Root; r; r = r->next) {
 		n = 1;
-		for(c = r->col; c; c = c->next){
+		for(c = r->col; c; c = c->next) {
 			n++;
-			if(! wanted(Columnrange, n))
+			if(!wanted(Columnrange, n))
 				continue;
 
 			if(c->c < 0 || c->c >= Nwidths || (min = Width[c->c]) == 0)
@@ -287,9 +288,9 @@ dump(void)
 				min = 0;
 			max = -1;
 			if(Trunc && min > 2)
-				max = min -2;	// FIXME: -2 because of bug %q format ?
+				max = min - 2; // FIXME: -2 because of bug %q format ?
 
-			switch(c->type){
+			switch(c->type) {
 			case Tnumber:
 				if(Xf == nil || Xf[c->f] == 0)
 					Bprint(bo, "%-*.*g", min, max, c->number);
@@ -300,7 +301,7 @@ dump(void)
 				Bprint(bo, strfmt, min, max, c->label);
 				break;
 			case Tbool:
-				Bprint(bo, strfmt, min, max, (c->bool)? "True": "False");
+				Bprint(bo, strfmt, min, max, (c->bool) ? "True" : "False");
 				break;
 			case Tindex:
 				if(c->index < 0 || c->index >= Nstrtab)
@@ -319,18 +320,18 @@ dump(void)
 			}
 
 			last = 1;
-			for(i = n+1, c1 = c->next; c1; c1 = c1->next, i++)
-				if(wanted(Columnrange, i)){
+			for(i = n + 1, c1 = c->next; c1; c1 = c1->next, i++)
+				if(wanted(Columnrange, i)) {
 					last = 0;
 					break;
 				}
 
-			if(! last){
-				if(c->next->c == c->c)		// bar charts
+			if(!last) {
+				if(c->next->c == c->c) // bar charts
 					Bprint(bo, "=");
-				else{
+				else {
 					Bprint(bo, "%s", Delim);
-					for(i = c->c; c->next && i < c->next->c -1; i++)
+					for(i = c->c; c->next && i < c->next->c - 1; i++)
 						Bprint(bo, "%-*.*s%s", min, max, "", Delim);
 				}
 			}
@@ -338,7 +339,6 @@ dump(void)
 		if(r->next)
 			for(i = r->r; i < r->next->r; i++)
 				Bprint(bo, "\n");
-
 	}
 	Bprint(bo, "\n");
 }
@@ -346,13 +346,13 @@ dump(void)
 void
 release(void)
 {
-	Row *r, *or;
+	Row *r, * or ;
 	Col *c, *oc;
 
 	r = Root;
-	while(r){
+	while(r) {
 		c = r->col;
-		while(c){
+		while(c) {
 			if(c->type == Tlabel)
 				free(c->label);
 			oc = c;
@@ -361,7 +361,7 @@ release(void)
 		}
 		or = r;
 		r = r->next;
-		free(or);
+		free(or );
 	}
 	Root = nil;
 
@@ -397,8 +397,8 @@ xd(Biff *b)
 
 	addr = 0;
 	off = Boffset(b->bp);
-	while(addr < b->len){
-		n = (b->len >= sizeof(buf))? sizeof(buf): b->len;
+	while(addr < b->len) {
+		n = (b->len >= sizeof(buf)) ? sizeof(buf) : b->len;
 		got = Bread(b->bp, buf, n);
 
 		Bprint(bo, "	%6d  ", addr);
@@ -410,18 +410,18 @@ xd(Biff *b)
 			Bprint(bo, "   ");
 		Bprint(bo, "  ");
 		for(i = 0; i < got; i++)
-			Bprint(bo, "%c", isprint(buf[i])? buf[i]: '.');
+			Bprint(bo, "%c", isprint(buf[i]) ? buf[i] : '.');
 		Bprint(bo, "\n");
 	}
 	Bseek(b->bp, off, 0);
 }
 
-static int 
+static int
 getrec(Biff *b)
 {
 	int c;
 	if((c = Bgetc(b->bp)) == -1)
-		return -1;		// real EOF
+		return -1; // real EOF
 	b->op = c;
 	if((c = Bgetc(b->bp)) == -1)
 		sysfatal("unexpected EOF - %r");
@@ -434,7 +434,7 @@ getrec(Biff *b)
 	b->len |= c << 8;
 	if(b->op == 0 && b->len == 0)
 		return -1;
-	if(Debug){
+	if(Debug) {
 		Bprint(bo, "op=0x%x len=%d\n", b->op, b->len);
 		xd(b);
 	}
@@ -450,12 +450,12 @@ gint(Biff *b, int n)
 	if(b->len < n)
 		return -1;
 	rc = 0;
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		if((c = Bgetc(b->bp)) == -1)
 			sysfatal("unexpected EOF - %r");
 		b->len--;
 		vl = c;
-		rc |= vl << (8*i);
+		rc |= vl << (8 * i);
 	}
 	return rc;
 }
@@ -470,10 +470,9 @@ grk(Biff *b)
 	n = gint(b, 4);
 	f = n & 3;
 	n &= ~3LL;
-	if(f & 2){
+	if(f & 2) {
 		d = n / 4.0;
-	}
-	else{
+	} else {
 		n <<= 32;
 		memcpy(&d, &n, sizeof(d));
 	}
@@ -504,7 +503,7 @@ gstr(Biff *b, int len_width)
 		Rich_text = 8,
 	};
 
-	if(b->len < len_width){
+	if(b->len < len_width) {
 		if(getrec(b) == -1)
 			sysfatal("starting STRING expected CONTINUE, got EOF");
 		if(b->op != 0x03c)
@@ -512,15 +511,14 @@ gstr(Biff *b, int len_width)
 	}
 
 	ln = gint(b, len_width);
-	if(Biffver != Ver8){
-		if((buf = calloc(ln+1, sizeof(char))) == nil)
+	if(Biffver != Ver8) {
+		if((buf = calloc(ln + 1, sizeof(char))) == nil)
 			sysfatal("no memory");
 		gmem(b, buf, ln);
 		return buf;
 	}
 
-
-	if((buf = calloc(ln+1, sizeof(char)*UTFmax)) == nil)
+	if((buf = calloc(ln + 1, sizeof(char) * UTFmax)) == nil)
 		sysfatal("no memory");
 	p = buf;
 
@@ -537,15 +535,15 @@ gstr(Biff *b, int len_width)
 		ap = gint(b, 4);
 	else
 		ap = 0;
-	for(;;){
-		w = (opt & Unicode)? sizeof(Rune): sizeof(char);
+	for(;;) {
+		w = (opt & Unicode) ? sizeof(Rune) : sizeof(char);
 
-		while(b->len > 0){
+		while(b->len > 0) {
 			r = gint(b, w);
 			p += runetochar(p, &r);
-			if(++nch >= ln){
+			if(++nch >= ln) {
 				if(rt)
-					skip(b, rt*4);
+					skip(b, rt * 4);
 				if(ap)
 					skip(b, ap);
 				return buf;
@@ -553,7 +551,7 @@ gstr(Biff *b, int len_width)
 		}
 		if(getrec(b) == -1)
 			sysfatal("in STRING expected CONTINUE, got EOF");
-		if(b->op != 0x03c)	
+		if(b->op != 0x03c)
 			sysfatal("in STRING expected CONTINUE, got op=0x%x", b->op);
 		opt = gint(b, 1);
 	}
@@ -563,45 +561,44 @@ void
 sst(Biff *b)
 {
 	int n;
-	
-	skip(b, 4);			// total # strings
-	Nstrtab = gint(b, 4);		// # unique strings
+
+	skip(b, 4);	   // total # strings
+	Nstrtab = gint(b, 4); // # unique strings
 	if((Strtab = calloc(Nstrtab, sizeof(char *))) == nil)
 		sysfatal("no memory");
 	for(n = 0; n < Nstrtab; n++)
 		Strtab[n] = gstr(b, 2);
-
 }
 
 void
 boolerr(Biff *b)
 {
-	int r = gint(b, 2);		// row
-	int c = gint(b, 2);		// col
-	int f = gint(b, 2);		// formatting ref
-	int v = gint(b, 1);		// bool value / err code
-	int t = gint(b, 1);		// type
-	cell(r, c, f, (t)? Terror: Tbool, &v);
+	int r = gint(b, 2); // row
+	int c = gint(b, 2); // col
+	int f = gint(b, 2); // formatting ref
+	int v = gint(b, 1); // bool value / err code
+	int t = gint(b, 1); // type
+	cell(r, c, f, (t) ? Terror : Tbool, &v);
 }
 
 void
 rk(Biff *b)
 {
-	int r = gint(b, 2);		// row
-	int c = gint(b, 2);		// col
-	int f = gint(b, 2);		// formatting ref
-	double v = grk(b);		// value
+	int r = gint(b, 2); // row
+	int c = gint(b, 2); // col
+	int f = gint(b, 2); // formatting ref
+	double v = grk(b);  // value
 	cell(r, c, f, Tnumber, &v);
 }
 
 void
 mulrk(Biff *b)
 {
-	int r = gint(b, 2);		// row
-	int c = gint(b, 2);		// first col
-	while(b->len >= 6){
-		int f = gint(b, 2);	// formatting ref
-		double v = grk(b);	// value
+	int r = gint(b, 2); // row
+	int c = gint(b, 2); // first col
+	while(b->len >= 6) {
+		int f = gint(b, 2); // formatting ref
+		double v = grk(b);  // value
 		cell(r, c++, f, Tnumber, &v);
 	}
 }
@@ -609,31 +606,30 @@ mulrk(Biff *b)
 void
 number(Biff *b)
 {
-	int r = gint(b, 2);		// row
-	int c = gint(b, 2);		// col
-	int f = gint(b, 2);		// formatting ref
-	double v = gdoub(b);		// double 
+	int r = gint(b, 2);  // row
+	int c = gint(b, 2);  // col
+	int f = gint(b, 2);  // formatting ref
+	double v = gdoub(b); // double
 	cell(r, c, f, Tnumber, &v);
 }
 
 void
 label(Biff *b)
 {
-	int r = gint(b, 2);		// row
-	int c = gint(b, 2);		// col
-	int f = gint(b, 2);		// formatting ref
-	char *s = gstr(b, 2);		// byte string
+	int r = gint(b, 2);   // row
+	int c = gint(b, 2);   // col
+	int f = gint(b, 2);   // formatting ref
+	char *s = gstr(b, 2); // byte string
 	cell(r, c, f, Tlabel, s);
 }
-
 
 void
 labelsst(Biff *b)
 {
-	int r = gint(b, 2);		// row
-	int c = gint(b, 2);		// col
-	int f = gint(b, 2);		// formatting ref
-	int i = gint(b, 2);		// sst string ref
+	int r = gint(b, 2); // row
+	int c = gint(b, 2); // col
+	int f = gint(b, 2); // formatting ref
+	int i = gint(b, 2); // sst string ref
 	cell(r, c, f, Tindex, &i);
 }
 
@@ -641,7 +637,7 @@ void
 bof(Biff *b)
 {
 	Biffver = gint(b, 2);
-	Content = gint(b, 2);	
+	Content = gint(b, 2);
 }
 
 void
@@ -664,30 +660,28 @@ eof(Biff *b)
 		int n;
 		char *s;
 	} names[] = {
-		0x005,	"Workbook globals",
-		0x006,	"Visual Basic module",
-		0x010,	"Worksheet",
-		0x020,	"Chart",
-		0x040,	"Macro sheet",
-		0x100,	"Workspace file",
+	    0x005, "Workbook globals",
+	    0x006, "Visual Basic module",
+	    0x010, "Worksheet",
+	    0x020, "Chart",
+	    0x040, "Macro sheet",
+	    0x100, "Workspace file",
 	};
 	static int sheet = 0;
 
-	if(! wanted(Sheetrange, ++sheet)){
+	if(!wanted(Sheetrange, ++sheet)) {
 		release();
 		return;
 	}
-			
-	if(Ncols != -1){
-		if(All){
+
+	if(Ncols != -1) {
+		if(All) {
 			for(i = 0; i < nelem(names); i++)
-				if(names[i].n == Content){
+				if(names[i].n == Content) {
 					Bprint(bo, "\n# contents %s\n", names[i].s);
 					dump();
 				}
-		}
-		else 
-		if(Content == 0x10)		// Worksheet
+		} else if(Content == 0x10) // Worksheet
 			dump();
 	}
 	release();
@@ -700,7 +694,7 @@ colinfo(Biff *b)
 	int c;
 	int c1 = gint(b, 2);
 	int c2 = gint(b, 2);
-	int w  = gint(b, 2);
+	int w = gint(b, 2);
 
 	if(c1 < 0)
 		sysfatal("negative column number (%d)", c1);
@@ -725,9 +719,9 @@ xf(Biff *b)
 
 	skip(b, 2);
 	fmt = gint(b, 2);
-	if(nalloc >= Nxf){
+	if(nalloc >= Nxf) {
 		nalloc += 20;
-		if((Xf = realloc(Xf, nalloc*sizeof(int))) == nil)
+		if((Xf = realloc(Xf, nalloc * sizeof(int))) == nil)
 			sysfatal("no memory");
 	}
 	Xf[Nxf++] = fmt;
@@ -743,7 +737,7 @@ void
 codepage(Biff *b)
 {
 	int codepage = gint(b, 2);
-	if(codepage != 1200)				// 1200 == UTF-16
+	if(codepage != 1200) // 1200 == UTF-16
 		Bprint(bo, "# codepage %d\n", codepage);
 }
 
@@ -756,26 +750,26 @@ xls2csv(Biobuf *bp)
 		int op;
 		void (*func)(Biff *);
 	} dispatch[] = {
-		0x000a,	eof,
-		0x0022,	datemode,
-		0x0042,	codepage,
-		0x0055,	defcolwidth,
-		0x005c,	writeaccess,
-		0x007d,	colinfo,
-		0x00bd,	mulrk,
-		0x00fc,	sst,
-		0x00fd,	labelsst,
-		0x0203,	number,
-		0x0204,	label,
-		0x0205,	boolerr,
-		0x027e,	rk,
-		0x0809,	bof,
-		0x00e0,	xf,
-	};		
-	
+	    0x000a, eof,
+	    0x0022, datemode,
+	    0x0042, codepage,
+	    0x0055, defcolwidth,
+	    0x005c, writeaccess,
+	    0x007d, colinfo,
+	    0x00bd, mulrk,
+	    0x00fc, sst,
+	    0x00fd, labelsst,
+	    0x0203, number,
+	    0x0204, label,
+	    0x0205, boolerr,
+	    0x027e, rk,
+	    0x0809, bof,
+	    0x00e0, xf,
+	};
+
 	b = &biff;
 	b->bp = bp;
-	while(getrec(b) != -1){
+	while(getrec(b) != -1) {
 		for(i = 0; i < nelem(dispatch); i++)
 			if(b->op == dispatch[i].op)
 				(*dispatch[i].func)(b);
@@ -795,8 +789,9 @@ main(int argc, char *argv[])
 {
 	int i;
 	Biobuf bin, bout, *bp;
-	
-	ARGBEGIN{
+
+	ARGBEGIN
+	{
 	case 'D':
 		Debug = 1;
 		break;
@@ -824,7 +819,8 @@ main(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND;
+	}
+	ARGEND;
 
 	if(argc != 1)
 		usage();
@@ -834,7 +830,7 @@ main(int argc, char *argv[])
 	Binit(bo, OWRITE, 1);
 
 	if(argc > 0) {
-		for(i = 0; i < argc; i++){
+		for(i = 0; i < argc; i++) {
 			if((bp = Bopen(argv[i], OREAD)) == nil)
 				sysfatal("%s cannot open - %r", argv[i]);
 			xls2csv(bp);
@@ -846,4 +842,3 @@ main(int argc, char *argv[])
 	}
 	exits(0);
 }
-

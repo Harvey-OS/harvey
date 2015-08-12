@@ -38,9 +38,9 @@ If not, write to the Free Software Foundation,
 /* We must define `volatile' and `const' first (the latter inside config.h),
    so that they're used consistently in all system includes.  */
 #ifndef __STDC__
-# ifndef volatile
-# define volatile
-# endif
+#ifndef volatile
+#define volatile
+#endif
 #endif
 
 /* Enable support for fseeko and ftello on hosts
@@ -56,11 +56,11 @@ If not, write to the Free Software Foundation,
 #include <time.h>
 
 #include <sys/stat.h>
-#if ! defined S_ISDIR && defined S_IFDIR
-# define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#if !defined S_ISDIR && defined S_IFDIR
+#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #endif
-#if ! defined S_ISREG && defined S_IFREG
-# define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#if !defined S_ISREG && defined S_IFREG
+#define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
 #endif
 #ifndef S_IXOTH
 #define S_IXOTH 1
@@ -91,13 +91,13 @@ If not, write to the Free Software Foundation,
 #endif
 
 #if HAVE_LIMITS_H
-# include <limits.h>
+#include <limits.h>
 #endif
 #ifndef INT_MAX
 #define INT_MAX 2147483647
 #endif
 #ifndef LONG_MIN
-#define LONG_MIN (-1-2147483647L)
+#define LONG_MIN (-1 - 2147483647L)
 #endif
 
 #include <ctype.h>
@@ -106,16 +106,15 @@ If not, write to the Free Software Foundation,
 #if STDC_HEADERS
 #define CTYPE_DOMAIN(c) 1
 #else
-#define CTYPE_DOMAIN(c) ((unsigned) (c) <= 0177)
+#define CTYPE_DOMAIN(c) ((unsigned)(c) <= 0177)
 #endif
 #ifndef ISSPACE
-#define ISSPACE(c) (CTYPE_DOMAIN (c) && isspace (c))
+#define ISSPACE(c) (CTYPE_DOMAIN(c) && isspace(c))
 #endif
 
 #ifndef ISDIGIT
-#define ISDIGIT(c) ((unsigned) (c) - '0' <= 9)
+#define ISDIGIT(c) ((unsigned)(c) - '0' <= 9)
 #endif
-
 
 #ifndef FILESYSTEM_PREFIX_LEN
 #define FILESYSTEM_PREFIX_LEN(f) 0
@@ -124,7 +123,6 @@ If not, write to the Free Software Foundation,
 #ifndef ISSLASH
 #define ISSLASH(c) ((c) == '/')
 #endif
-
 
 /* constants */
 
@@ -140,22 +138,22 @@ If not, write to the Free Software Foundation,
 
 /* handy definitions */
 
-#define strEQ(s1,s2) (!strcmp(s1, s2))
-#define strnEQ(s1,s2,l) (!strncmp(s1, s2, l))
+#define strEQ(s1, s2) (!strcmp(s1, s2))
+#define strnEQ(s1, s2, l) (!strncmp(s1, s2, l))
 
 /* typedefs */
 
-typedef int bool;			/* must promote to itself */
-typedef long LINENUM;			/* must be signed */
+typedef int bool;     /* must promote to itself */
+typedef long LINENUM; /* must be signed */
 
 /* globals */
 
 extern char const program_name[];
 
-XTERN char *buf;			/* general purpose buffer */
-XTERN size_t bufsize;			/* allocated size of buf */
+XTERN char *buf;      /* general purpose buffer */
+XTERN size_t bufsize; /* allocated size of buf */
 
-XTERN bool using_plan_a;		/* try to keep everything in memory */
+XTERN bool using_plan_a; /* try to keep everything in memory */
 
 XTERN char *inname;
 XTERN char *outfile;
@@ -168,20 +166,22 @@ XTERN bool posixly_correct;
 XTERN char const *origprae;
 XTERN char const *origbase;
 
-XTERN char const * volatile TMPOUTNAME;
-XTERN char const * volatile TMPINNAME;
-XTERN char const * volatile TMPPATNAME;
+XTERN char const *volatile TMPOUTNAME;
+XTERN char const *volatile TMPINNAME;
+XTERN char const *volatile TMPPATNAME;
 
 #ifdef DEBUGGING
 XTERN int debug;
 #else
-# define debug 0
+#define debug 0
 #endif
 XTERN bool force;
 XTERN bool batch;
 XTERN bool noreverse;
 XTERN int reverse;
-XTERN enum { DEFAULT_VERBOSITY, SILENT, VERBOSE } verbosity;
+XTERN enum { DEFAULT_VERBOSITY,
+	     SILENT,
+	     VERBOSE } verbosity;
 XTERN bool skip_rest_of_patch;
 XTERN int strippath;
 XTERN bool canonicalize;
@@ -189,40 +189,39 @@ XTERN int patch_get;
 XTERN int set_time;
 XTERN int set_utc;
 
-enum diff
-  {
-    NO_DIFF,
-    CONTEXT_DIFF,
-    NORMAL_DIFF,
-    ED_DIFF,
-    NEW_CONTEXT_DIFF,
-    UNI_DIFF
-  };
+enum diff {
+	NO_DIFF,
+	CONTEXT_DIFF,
+	NORMAL_DIFF,
+	ED_DIFF,
+	NEW_CONTEXT_DIFF,
+	UNI_DIFF
+};
 
 XTERN enum diff diff_type;
 
-XTERN char *revision;			/* prerequisite revision, if any */
+XTERN char *revision; /* prerequisite revision, if any */
 
 #ifdef __STDC__
-# define GENERIC_OBJECT void
+#define GENERIC_OBJECT void
 #else
-# define GENERIC_OBJECT char
+#define GENERIC_OBJECT char
 #endif
 
 #if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 6) || __STRICT_ANSI__
-# define __attribute__(x)
+#define __attribute__(x)
 #endif
 
 #ifndef PARAMS
-# ifdef __STDC__
-#  define PARAMS(args) args
-# else
-#  define PARAMS(args) ()
-# endif
+#ifdef __STDC__
+#define PARAMS(args) args
+#else
+#define PARAMS(args) ()
+#endif
 #endif
 
-GENERIC_OBJECT *xmalloc PARAMS ((size_t));
-void fatal_exit PARAMS ((int)) __attribute__ ((noreturn));
+GENERIC_OBJECT *xmalloc PARAMS((size_t));
+void fatal_exit PARAMS((int)) __attribute__((noreturn));
 
 #include <errno.h>
 #if !STDC_HEADERS && !defined errno
@@ -230,29 +229,29 @@ extern int errno;
 #endif
 
 #if STDC_HEADERS || HAVE_STRING_H
-# include <string.h>
+#include <string.h>
 #else
-# if !HAVE_MEMCHR
-#  define memcmp(s1, s2, n) bcmp (s1, s2, n)
-#  define memcpy(d, s, n) bcopy (s, d, n)
-GENERIC_OBJECT *memchr ();
-# endif
+#if !HAVE_MEMCHR
+#define memcmp(s1, s2, n) bcmp(s1, s2, n)
+#define memcpy(d, s, n) bcopy(s, d, n)
+GENERIC_OBJECT *memchr();
+#endif
 #endif
 
 #if STDC_HEADERS
-# include <stdlib.h>
+#include <stdlib.h>
 #else
-long atol ();
-char *getenv ();
-GENERIC_OBJECT *malloc ();
-GENERIC_OBJECT *realloc ();
+long atol();
+char *getenv();
+GENERIC_OBJECT *malloc();
+GENERIC_OBJECT *realloc();
 #endif
 
 #if HAVE_UNISTD_H
-# include <unistd.h>
+#include <unistd.h>
 #endif
 #ifndef lseek
-off_t lseek ();
+off_t lseek();
 #endif
 #ifndef SEEK_SET
 #define SEEK_SET 0
@@ -267,17 +266,17 @@ off_t lseek ();
 #define STDERR_FILENO 2
 #endif
 #if _LFS_LARGEFILE
-  typedef off_t file_offset;
-# define file_seek fseeko
-# define file_tell ftello
+typedef off_t file_offset;
+#define file_seek fseeko
+#define file_tell ftello
 #else
-  typedef long file_offset;
-# define file_seek fseek
-# define file_tell ftell
+typedef long file_offset;
+#define file_seek fseek
+#define file_tell ftell
 #endif
 
 #if HAVE_FCNTL_H
-# include <fcntl.h>
+#include <fcntl.h>
 #endif
 #ifndef O_RDONLY
 #define O_RDONLY 0
@@ -302,9 +301,9 @@ off_t lseek ();
 #endif
 
 #if HAVE_SETMODE
-  XTERN int binary_transput;	/* O_BINARY if binary i/o is desired */
+XTERN int binary_transput; /* O_BINARY if binary i/o is desired */
 #else
-# define binary_transput 0
+#define binary_transput 0
 #endif
 
 #ifndef NULL_DEVICE

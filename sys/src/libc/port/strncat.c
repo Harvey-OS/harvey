@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 strncat(char *s1, char *s2, int32_t n)
 {
 	char *os1;

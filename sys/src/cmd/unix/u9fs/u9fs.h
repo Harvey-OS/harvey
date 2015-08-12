@@ -11,12 +11,12 @@ typedef struct Auth Auth;
 struct Auth {
 	char *name;
 
-	char* (*auth)(Fcall*, Fcall*);
-	char* (*attach)(Fcall*, Fcall*);
+	char *(*auth)(Fcall *, Fcall *);
+	char *(*attach)(Fcall *, Fcall *);
 	void (*init)(void);
-	char* (*read)(Fcall*, Fcall*);
-	char* (*write)(Fcall*, Fcall*);
-	char* (*clunk)(Fcall*, Fcall*);
+	char *(*read)(Fcall *, Fcall *);
+	char *(*write)(Fcall *, Fcall *);
+	char *(*clunk)(Fcall *, Fcall *);
 };
 
 extern char remotehostname[];
@@ -28,9 +28,9 @@ extern Auth authrhosts;
 extern Auth authnone;
 
 extern uint32_t truerand(void);
-extern void randombytes(uchar*, uint);
+extern void randombytes(uchar *, uint);
 
-extern uint32_t  msize;
+extern uint32_t msize;
 
 typedef struct Fid Fid;
 Fid *newauthfid(int fid, void *magic, char **ep);

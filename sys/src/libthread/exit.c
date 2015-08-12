@@ -25,9 +25,9 @@ threadexits(char *exitstr)
 	p = _threadgetproc();
 	t = p->thread;
 	t->moribund = 1;
-	if(exitstr==nil)
-		exitstr="";
-	utfecpy(p->exitstr, p->exitstr+ERRMAX, exitstr);
+	if(exitstr == nil)
+		exitstr = "";
+	utfecpy(p->exitstr, p->exitstr + ERRMAX, exitstr);
 	_sched();
 }
 
@@ -52,11 +52,11 @@ threadexitsall(char *exitstr)
 	 * avoid mallocs since malloc can post a note which can
 	 * call threadexitsall...
 	 */
-	for(;;){
+	for(;;) {
 		lock(&_threadpq.lock);
 		npid = 0;
-		for(p = _threadpq.head; p && npid < nelem(pid); p=p->next){
-			if(p->threadint == 0 && p->pid != mypid){
+		for(p = _threadpq.head; p && npid < nelem(pid); p = p->next) {
+			if(p->threadint == 0 && p->pid != mypid) {
 				pid[npid++] = p->pid;
 				p->threadint = 1;
 			}
@@ -64,7 +64,7 @@ threadexitsall(char *exitstr)
 		unlock(&_threadpq.lock);
 		if(npid == 0)
 			break;
-		for(i=0; i<npid; i++)
+		for(i = 0; i < npid; i++)
 			postnote(PNPROC, pid[i], "threadint");
 	}
 
@@ -72,10 +72,10 @@ threadexitsall(char *exitstr)
 	exits(exitstr);
 }
 
-Channel*
+Channel *
 threadwaitchan(void)
 {
-	if(_threadwaitchan==nil)
-		_threadwaitchan = chancreate(sizeof(Waitmsg*), 16);
+	if(_threadwaitchan == nil)
+		_threadwaitchan = chancreate(sizeof(Waitmsg *), 16);
 	return _threadwaitchan;
 }

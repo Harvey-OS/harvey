@@ -13,7 +13,7 @@
 #include <thread.h>
 #include "win.h"
 
-void*
+void *
 erealloc(void *p, uint n)
 {
 	p = realloc(p, n);
@@ -28,12 +28,12 @@ wnew(Win *w)
 	char buf[12];
 
 	w->ctl = open("/mnt/acme/new/ctl", ORDWR);
-	if(w->ctl<0 || read(w->ctl, buf, 12)!=12)
-		 fprint (2, "can't open window ctl file: %r");
+	if(w->ctl < 0 || read(w->ctl, buf, 12) != 12)
+		fprint(2, "can't open window ctl file: %r");
 	ctlwrite(w, "noscroll\n");
 	w->winid = atoi(buf);
 	w->event = openfile(w, "event");
-	w->addr = -1;	/* will be opened when needed */
+	w->addr = -1; /* will be opened when needed */
 	w->body = nil;
 	w->data = -1;
 }
@@ -45,9 +45,9 @@ openfile(Win *w, char *f)
 	int fd;
 
 	sprint(buf, "/mnt/acme/%d/%s", w->winid, f);
-	fd = open(buf, ORDWR|OCEXEC);
+	fd = open(buf, ORDWR | OCEXEC);
 	if(fd < 0)
-		 fprint (2,"can't open window %s file: %r", f);
+		fprint(2, "can't open window %s file: %r", f);
 	return fd;
 }
 
@@ -57,9 +57,9 @@ openbody(Win *w, int mode)
 	char buf[64];
 
 	sprint(buf, "/mnt/acme/%d/body", w->winid);
-	w->body = Bopen(buf, mode|OCEXEC);
+	w->body = Bopen(buf, mode | OCEXEC);
 	if(w->body == nil)
-		 fprint(2,"can't open window body file: %r");
+		fprint(2, "can't open window body file: %r");
 }
 
 void
@@ -68,7 +68,7 @@ wwritebody(Win *w, char *s, int n)
 	if(w->body == nil)
 		openbody(w, OWRITE);
 	if(Bwrite(w->body, s, n) != n)
-		  fprint(2,"write error to window: %r");
+		fprint(2, "write error to window: %r");
 	Bflush(w->body);
 }
 
@@ -79,12 +79,12 @@ wreplace(Win *w, char *addr, char *repl, int nrepl)
 		w->addr = openfile(w, "addr");
 	if(w->data < 0)
 		w->data = openfile(w, "data");
-	if(write(w->addr, addr, strlen(addr)) < 0){
+	if(write(w->addr, addr, strlen(addr)) < 0) {
 		fprint(2, "mail: warning: badd address %s:%r\n", addr);
 		return;
 	}
 	if(write(w->data, repl, nrepl) != nrepl)
-		 fprint(2, "writing data: %r");
+		fprint(2, "writing data: %r");
 }
 
 static int
@@ -94,8 +94,8 @@ nrunes(char *s, int nb)
 	Rune r;
 
 	n = 0;
-	for(i=0; i<nb; n++)
-		i += chartorune(&r, s+i);
+	for(i = 0; i < nb; n++)
+		i += chartorune(&r, s + i);
 	return n;
 }
 
@@ -110,16 +110,18 @@ wread(Win *w, uint q0, uint q1, char *data)
 	if(w->data < 0)
 		w->data = openfile(w, "data");
 	m = q0;
-	while(m < q1){
+	while(m < q1) {
 		n = sprint(buf, "#%d", m);
 		if(write(w->addr, buf, n) != n)
-			  fprint(2,"writing addr: %r");
+			fprint(2, "writing addr: %r");
 		n = read(w->data, buf, sizeof buf);
 		if(n <= 0)
-			  fprint(2,"reading data: %r");
+			fprint(2, "reading data: %r");
 		nr = nrunes(buf, n);
-		while(m+nr >q1){
-			do; while(n>0 && (buf[--n]&0xC0)==0x80);
+		while(m + nr > q1) {
+			do
+				;
+			while(n > 0 && (buf[--n] & 0xC0) == 0x80);
 			--nr;
 		}
 		if(n == 0)
@@ -137,7 +139,7 @@ wselect(Win *w, char *addr)
 	if(w->addr < 0)
 		w->addr = openfile(w, "addr");
 	if(write(w->addr, addr, strlen(addr)) < 0)
-		  fprint(2,"writing addr");
+		fprint(2, "writing addr");
 	ctlwrite(w, "dot=addr\n");
 }
 
@@ -148,7 +150,7 @@ wtagwrite(Win *w, char *s, int n)
 
 	fd = openfile(w, "tag");
 	if(write(fd, s, n) != n)
-		  fprint(2,"tag write: %r");
+		fprint(2, "tag write: %r");
 	close(fd);
 }
 
@@ -159,7 +161,7 @@ ctlwrite(Win *w, char *s)
 
 	n = strlen(s);
 	if(write(w->ctl, s, n) != n)
-		 fprint(2,"write error to ctl file: %r");
+		fprint(2, "write error to ctl file: %r");
 }
 
 int
@@ -195,15 +197,15 @@ wclean(Win *w)
 void
 wdormant(Win *w)
 {
-	if(w->addr >= 0){
+	if(w->addr >= 0) {
 		close(w->addr);
 		w->addr = -1;
 	}
-	if(w->body != nil){
+	if(w->body != nil) {
 		Bterm(w->body);
 		w->body = nil;
 	}
-	if(w->data >= 0){
+	if(w->data >= 0) {
 		close(w->data);
 		w->data = -1;
 	}
@@ -212,10 +214,10 @@ wdormant(Win *w)
 int
 getec(Win *w)
 {
-	if(w->nbuf == 0){
+	if(w->nbuf == 0) {
 		w->nbuf = read(w->event, w->buf, sizeof w->buf);
 		if(w->nbuf <= 0)
-			  fprint(2,"event read error: %r");
+			fprint(2, "event read error: %r");
 		w->bufp = w->buf;
 	}
 	w->nbuf--;
@@ -228,10 +230,10 @@ geten(Win *w)
 	int n, c;
 
 	n = 0;
-	while('0'<=(c=getec(w)) && c<='9')
-		n = n*10+(c-'0');
+	while('0' <= (c = getec(w)) && c <= '9')
+		n = n * 10 + (c - '0');
 	if(c != ' ')
-		 fprint(2, "event number syntax");
+		fprint(2, "event number syntax");
 	return n;
 }
 
@@ -249,11 +251,10 @@ geter(Win *w, char *buf, int *nb)
 	while(!fullrune(buf, n))
 		buf[n++] = getec(w);
 	chartorune(&r, buf);
-    Return:
+Return:
 	*nb = n;
 	return r;
 }
-
 
 void
 wevent(Win *w, Event *e)
@@ -267,16 +268,16 @@ wevent(Win *w, Event *e)
 	e->flag = geten(w);
 	e->nr = geten(w);
 	if(e->nr > EVENTSIZE)
-		  fprint(2, "wevent: event string too long");
+		fprint(2, "wevent: event string too long");
 	e->nb = 0;
-	for(i=0; i<e->nr; i++){
-		e->r[i] = geter(w, e->b+e->nb, &nb);
+	for(i = 0; i < e->nr; i++) {
+		e->r[i] = geter(w, e->b + e->nb, &nb);
 		e->nb += nb;
 	}
 	e->r[e->nr] = 0;
 	e->b[e->nb] = 0;
 	if(getec(w) != '\n')
-		 fprint(2, "wevent: event syntax 2");
+		fprint(2, "wevent: event syntax 2");
 }
 
 void
@@ -306,12 +307,12 @@ wreadall(Win *w, char **sp)
 	s = nil;
 	na = 0;
 	n = 0;
-	for(;;){
-		if(na < n+512){
+	for(;;) {
+		if(na < n + 512) {
 			na += 1024;
-			s = erealloc(s, na+1);
+			s = erealloc(s, na + 1);
 		}
-		m = Bread(w->body, s+n, na-n);
+		m = Bread(w->body, s + n, na - n);
 		if(m <= 0)
 			break;
 		n += m;

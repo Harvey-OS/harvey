@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-#define	N	256
+#define N 256
 
 size_t
 strspn(const char *s, const char *b)

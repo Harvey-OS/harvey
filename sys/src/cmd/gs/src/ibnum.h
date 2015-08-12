@@ -28,7 +28,7 @@
 /* Requires stream.h */
 
 #ifndef ibnum_INCLUDED
-#  define ibnum_INCLUDED
+#define ibnum_INCLUDED
 
 /*
  * There is a bug in all Adobe interpreters that causes them to byte-swap
@@ -50,8 +50,8 @@
  * big-endian.  Note that these values are defined by the PostScript
  * Language Reference Manual: they are not arbitrary.
  */
-#define num_int32 0		/* [0..31] */
-#define num_int16 32		/* [32..47] */
+#define num_int32 0  /* [0..31] */
+#define num_int16 32 /* [32..47] */
 #define num_float 48
 #define num_float_IEEE num_float
 /* Note that num_msb / num_lsb is ignored for num_float_native. */
@@ -59,24 +59,24 @@
 #define num_msb 0
 #define num_lsb 128
 #define num_is_lsb(format) ((format) >= num_lsb)
-#define num_is_valid(format) (((format) & 127) <= 49)
+#define num_is_valid(format) (((format)&127) <= 49)
 /*
  * Special "format" for reading from an array.
  * num_msb/lsb is not used in this case.
  */
 #define num_array 256
 /* Define the number of bytes for a given format of encoded number. */
-extern const byte enc_num_bytes[];	/* in ibnum.c */
+extern const byte enc_num_bytes[]; /* in ibnum.c */
 
-#define enc_num_bytes_values\
-  4, 4, 2, 4, 0, 0, 0, 0,\
-  4, 4, 2, 4, 0, 0, 0, 0,\
-  sizeof(ref)
-#define encoded_number_bytes(format)\
-  (enc_num_bytes[(format) >> 4])
+#define enc_num_bytes_values        \
+	4, 4, 2, 4, 0, 0, 0, 0,     \
+	    4, 4, 2, 4, 0, 0, 0, 0, \
+	    sizeof(ref)
+#define encoded_number_bytes(format) \
+	(enc_num_bytes[(format) >> 4])
 
 /* Read from an array or encoded number string. */
-int num_array_format(const ref *);	/* returns format or error */
+int num_array_format(const ref *); /* returns format or error */
 uint num_array_size(const ref *, int);
 int num_array_get(const gs_memory_t *mem, const ref *, int, uint, ref *);
 

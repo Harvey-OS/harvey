@@ -27,15 +27,15 @@
 /* Internal color space writing interfaces for pdfwrite driver. */
 
 #ifndef gdevpdfc_INCLUDED
-#  define gdevpdfc_INCLUDED
+#define gdevpdfc_INCLUDED
 
 /* ------ Exported by gdevpdfc.c for gdevpdfk.c ------ */
 
 /* Define the special cases for CIEBased spaces. */
 typedef enum {
-    ONE_STEP_NOT,		/* not one-step */
-    ONE_STEP_LMN,		/* DecodeLMN (scalar cache) + matrix */
-    ONE_STEP_ABC		/* DecodeABC (vector cache) + matrix */
+	ONE_STEP_NOT, /* not one-step */
+	ONE_STEP_LMN, /* DecodeLMN (scalar cache) + matrix */
+	ONE_STEP_ABC  /* DecodeABC (vector cache) + matrix */
 } cie_cache_one_step_t;
 
 /*

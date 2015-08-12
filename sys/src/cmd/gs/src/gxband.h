@@ -27,7 +27,7 @@
 /* Band-processing parameters for Ghostscript */
 
 #ifndef gxband_INCLUDED
-#  define gxband_INCLUDED
+#define gxband_INCLUDED
 
 #include "gxclio.h"
 
@@ -35,10 +35,10 @@
  * Define the parameters controlling banding.
  */
 typedef struct gx_band_params_s {
-    bool page_uses_transparency; /* PDF 1.4 transparency is used on the page */
-    int BandWidth;		/* (optional) band width in pixels */
-    int BandHeight;		/* (optional) */
-    long BandBufferSpace;	/* (optional) */
+	bool page_uses_transparency; /* PDF 1.4 transparency is used on the page */
+	int BandWidth;		     /* (optional) band width in pixels */
+	int BandHeight;		     /* (optional) */
+	long BandBufferSpace;	/* (optional) */
 } gx_band_params_t;
 
 #define BAND_PARAMS_INITIAL_VALUES 0, 0, 0
@@ -47,9 +47,9 @@ typedef struct gx_band_params_s {
  * Define information about the colors used on a page.
  */
 typedef struct gx_colors_used_s {
-    gx_color_index or;		/* the "or" of all the used colors */
-    bool slow_rop;		/* true if any RasterOps that can't be */
-				/* executed plane-by-plane on CMYK devices */
+	gx_color_index or ; /* the "or" of all the used colors */
+	bool slow_rop;      /* true if any RasterOps that can't be */
+			    /* executed plane-by-plane on CMYK devices */
 } gx_colors_used_t;
 
 /*
@@ -69,21 +69,28 @@ typedef struct gx_colors_used_s {
  * Define the information for a saved page.
  */
 typedef struct gx_band_page_info_s {
-    char cfname[gp_file_name_sizeof];	/* command file name */
-    clist_file_ptr cfile;	/* command file, normally 0 */
-    char bfname[gp_file_name_sizeof];	/* block file name */
-    clist_file_ptr bfile;	/* block file, normally 0 */
-    uint tile_cache_size;	/* size of tile cache */
-    long bfile_end_pos;		/* ftell at end of bfile */
-    gx_band_params_t band_params;  /* parameters used when writing band list */
-				/* (actual values, no 0s) */
-    int scan_lines_per_colors_used; /* number of scan lines per colors_used */
-				/* entry (a multiple of the band height) */
-    gx_colors_used_t band_colors_used[PAGE_INFO_NUM_COLORS_USED];  /* colors used on the page */
+	char cfname[gp_file_name_sizeof]; /* command file name */
+	clist_file_ptr cfile;		  /* command file, normally 0 */
+	char bfname[gp_file_name_sizeof]; /* block file name */
+	clist_file_ptr bfile;		  /* block file, normally 0 */
+	uint tile_cache_size;		  /* size of tile cache */
+	long bfile_end_pos;		  /* ftell at end of bfile */
+	gx_band_params_t band_params;     /* parameters used when writing band list */
+	/* (actual values, no 0s) */
+	int scan_lines_per_colors_used; /* number of scan lines per colors_used */
+	/* entry (a multiple of the band height) */
+	gx_colors_used_t band_colors_used[PAGE_INFO_NUM_COLORS_USED]; /* colors used on the page */
 } gx_band_page_info_t;
-#define PAGE_INFO_NULL_VALUES\
-  { 0 }, 0, { 0 }, 0, 0, 0, { BAND_PARAMS_INITIAL_VALUES },\
-  0x3fffffff, { { 0 } }
+#define PAGE_INFO_NULL_VALUES                                        \
+	{                                                            \
+		0                                                    \
+	}                                                            \
+	, 0, {0}, 0, 0, 0, {BAND_PARAMS_INITIAL_VALUES}, 0x3fffffff, \
+	{                                                            \
+		{                                                    \
+			0                                            \
+		}                                                    \
+	}
 
 /*
  * By convention, the structure member containing the above is called

@@ -27,7 +27,7 @@
 /* Generic operand stack API */
 
 #ifndef iostack_INCLUDED
-#  define iostack_INCLUDED
+#define iostack_INCLUDED
 
 #include "iosdata.h"
 #include "istack.h"

@@ -7,11 +7,11 @@
  * in the LICENSE file.
  */
 
-#include	"cc.h"
-#include	"y.tab.h"
+#include "cc.h"
+#include "y.tab.h"
 
-#ifndef	CPP
-#define	CPP	"/bin/cpp"
+#ifndef CPP
+#define CPP "/bin/cpp"
 #endif
 
 /*
@@ -54,22 +54,23 @@ main(int argc, char *argv[])
 	ginit();
 	arginit();
 
-	profileflg = 1;	/* #pragma can turn it off */
-	tufield = simplet((1L<<tfield->etype) | BUNSIGNED);
+	profileflg = 1; /* #pragma can turn it off */
+	tufield = simplet((1L << tfield->etype) | BUNSIGNED);
 	maxdef = 0;
 	ndef = 0;
 	outfile = 0;
 	defs = nil;
 	setinclude(".");
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	default:
 		c = ARGC();
 		if(c >= 0 && c < sizeof(debug))
 			debug[c]++;
 		break;
 
-	case 'l':			/* for little-endian mips */
-		if(thechar != 'v'){
+	case 'l': /* for little-endian mips */
+		if(thechar != 'v') {
 			print("can only use -l with vc");
 			errorexit();
 		}
@@ -84,7 +85,7 @@ main(int argc, char *argv[])
 	case 'D':
 		p = ARGF();
 		if(p) {
-			if(ndef >= maxdef){
+			if(ndef >= maxdef) {
 				maxdef += 50;
 				np = alloc(maxdef * sizeof *np);
 				if(defs != nil)
@@ -101,12 +102,13 @@ main(int argc, char *argv[])
 		if(p)
 			setinclude(p);
 		break;
-	} ARGEND
+	}
+	ARGEND
 	if(argc < 1 && outfile == 0) {
 		print("usage: %cc [-options] files\n", thechar);
 		errorexit();
 	}
-	if(argc > 1 && systemtype(Windows)){
+	if(argc > 1 && systemtype(Windows)) {
 		print("can't compile multiple files on windows\n");
 		errorexit();
 	}
@@ -117,8 +119,8 @@ main(int argc, char *argv[])
 		 * concurrently, to avoid interleaving output.
 		 */
 		if(((!debug['a'] && !debug['Z']) || debug['n']) &&
-		    (p = getenv("NPROC")) != nil)
-			nproc = atol(p);	/* */
+		   (p = getenv("NPROC")) != nil)
+			nproc = atol(p); /* */
 		c = 0;
 		nout = 0;
 		for(;;) {
@@ -137,7 +139,7 @@ main(int argc, char *argv[])
 				}
 				if(i == 0) {
 					fprint(2, "%s:\n", *argv);
-					if (compile(*argv, defs, ndef))
+					if(compile(*argv, defs, ndef))
 						errorexit();
 					exits(0);
 				}
@@ -213,14 +215,14 @@ compile(char *file, char **defs, int ndef)
 			setinclude("/sys/include");
 		}
 	}
-	if (first)
+	if(first)
 		Binit(&diagbuf, 1, OWRITE);
 	/*
 	 * if we're writing acid to standard output, don't keep scratching
 	 * outbuf.
 	 */
 	if((debug['a'] || debug['Z']) && !debug['n']) {
-		if (first) {
+		if(first) {
 			outfile = 0;
 			Binit(&outbuf, dup(1, -1), OWRITE);
 			dup(2, 1);
@@ -367,7 +369,7 @@ newfile(char *s, int f)
 	linehist(s, 0);
 }
 
-Sym*
+Sym *
 slookup(char *s)
 {
 
@@ -375,7 +377,7 @@ slookup(char *s)
 	return lookup();
 }
 
-Sym*
+Sym *
 lookup(void)
 {
 	Sym *s;
@@ -384,7 +386,7 @@ lookup(void)
 	int c, n;
 
 	h = 0;
-	for(p=symb; *p;) {
+	for(p = symb; *p;) {
 		h = h * 3;
 		h += *p++;
 	}
@@ -424,18 +426,17 @@ syminit(Sym *s)
 	s->sig = SIGNONE;
 }
 
-#define	EOF	(-1)
-#define	IGN	(-2)
-#define	ESC	(Runemask+1)		/* Rune flag: a literal byte */
-#define	GETC()	((--fi.c < 0)? filbuf(): (*fi.p++ & 0xff))
+#define EOF (-1)
+#define IGN (-2)
+#define ESC (Runemask + 1) /* Rune flag: a literal byte */
+#define GETC() ((--fi.c < 0) ? filbuf() : (*fi.p++ & 0xff))
 
-enum
-{
-	Numdec		= 1<<0,
-	Numlong		= 1<<1,
-	Numuns		= 1<<2,
-	Numvlong	= 1<<3,
-	Numflt		= 1<<4,
+enum {
+	Numdec = 1 << 0,
+	Numlong = 1 << 1,
+	Numuns = 1 << 2,
+	Numvlong = 1 << 3,
+	Numflt = 1 << 4,
 };
 
 int32_t
@@ -495,8 +496,7 @@ l1:
 	}
 	if(isdigit(c))
 		goto tnum;
-	switch(c)
-	{
+	switch(c) {
 
 	case EOF:
 		peekc = EOF;
@@ -538,7 +538,7 @@ l1:
 				rune = c;
 				c = runelen(rune);
 				cp = allocn(cp, c1, c);
-				runetochar(cp+c1, &rune);
+				runetochar(cp + c1, &rune);
 				c1 += c;
 			}
 		}
@@ -560,13 +560,13 @@ l1:
 			if(c == EOF)
 				break;
 			cp = allocn(cp, c1, sizeof(TRune));
-			*(TRune*)(cp + c1) = c;
+			*(TRune *)(cp + c1) = c;
 			c1 += sizeof(TRune);
 		}
 		yylval.sval.l = c1;
 		do {
 			cp = allocn(cp, c1, sizeof(TRune));
-			*(TRune*)(cp + c1) = 0;
+			*(TRune *)(cp + c1) = 0;
 			c1 += sizeof(TRune);
 		} while(c1 & MAXALIGN);
 		yylval.sval.s = cp;
@@ -586,8 +586,7 @@ l1:
 		yylval.vval = convvtox(vv, TUCHAR);
 		if(yylval.vval != vv)
 			yyerror("overflow in character constant: 0x%lx", c);
-		else
-		if(c & 0x80){
+		else if(c & 0x80) {
 			nearln = lineno;
 			warn(Z, "sign-extended character constant");
 		}
@@ -728,7 +727,7 @@ talph:
 	 */
 	for(;;) {
 		if(c >= Runeself) {
-			for(c1=0;;) {
+			for(c1 = 0;;) {
 				cp[c1++] = c;
 				if(fullrune(cp, c1))
 					break;
@@ -794,7 +793,7 @@ tnum:
 				continue;
 			if(c >= 'A' && c <= 'F')
 				continue;
-			if(cp == symb+2)
+			if(cp == symb + 2)
 				yyerror("malformed hex constant");
 			goto ncu;
 		}
@@ -865,7 +864,7 @@ ncu:
 
 nret:
 	yylval.vval = convvtox(vv, t);
-	if(yylval.vval != vv){
+	if(yylval.vval != vv) {
 		nearln = lineno;
 		warn(Z, "truncated constant: %T %s", types[t], symb);
 	}
@@ -899,8 +898,7 @@ caseout:
 	if(c == 'L' || c == 'l') {
 		c = GETC();
 		c1 |= Numlong;
-	} else
-	if(c == 'F' || c == 'f') {
+	} else if(c == 'F' || c == 'f') {
 		c = GETC();
 		c1 |= Numflt;
 	}
@@ -933,7 +931,7 @@ mpatov(char *s, int64_t *v)
 		goto oct;
 	while(c = *s++) {
 		if(c >= '0' && c <= '9')
-			nn = n*10 + c-'0';
+			nn = n * 10 + c - '0';
 		else
 			goto bad;
 		if(n < 0 && nn >= 0)
@@ -949,7 +947,7 @@ oct:
 		goto hex;
 	while(c = *s++) {
 		if(c >= '0' || c <= '7')
-			nn = n*8 + c-'0';
+			nn = n * 8 + c - '0';
 		else
 			goto bad;
 		if(n < 0 && nn >= 0)
@@ -962,16 +960,14 @@ hex:
 	s++;
 	while(c = *s++) {
 		if(c >= '0' && c <= '9')
-			c += 0-'0';
-		else
-		if(c >= 'a' && c <= 'f')
-			c += 10-'a';
-		else
-		if(c >= 'A' && c <= 'F')
-			c += 10-'A';
+			c += 0 - '0';
+		else if(c >= 'a' && c <= 'f')
+			c += 10 - 'a';
+		else if(c >= 'A' && c <= 'F')
+			c += 10 - 'A';
 		else
 			goto bad;
-		nn = n*16 + c;
+		nn = n * 16 + c;
 		if(n < 0 && nn >= 0)
 			goto bad;
 		n = nn;
@@ -1008,9 +1004,8 @@ int32_t
 getr(void)
 {
 	int c, i;
-	char str[UTFmax+1];
+	char str[UTFmax + 1];
 	Rune rune;
-
 
 	c = getc();
 	if(c < Runeself)
@@ -1027,8 +1022,8 @@ loop:
 	if(rune == Runeerror && c == 1) {
 		nearln = lineno;
 		diag(Z, "illegal rune in string");
-		for(c=0; c<i; c++)
-			print(" %.2x", *(uint8_t*)(str+c));
+		for(c = 0; c < i; c++)
+			print(" %.2x", *(uint8_t *)(str + c));
 		print("\n");
 	}
 	return rune;
@@ -1091,18 +1086,18 @@ loop:
 		if(longflg)
 			i = 6;
 		l = 0;
-		for(; i>0; i--) {
+		for(; i > 0; i--) {
 			c = getc();
 			if(c >= '0' && c <= '9') {
-				l = l*16 + c-'0';
+				l = l * 16 + c - '0';
 				continue;
 			}
 			if(c >= 'a' && c <= 'f') {
-				l = l*16 + c-'a' + 10;
+				l = l * 16 + c - 'a' + 10;
 				continue;
 			}
 			if(c >= 'A' && c <= 'F') {
-				l = l*16 + c-'A' + 10;
+				l = l * 16 + c - 'A' + 10;
 				continue;
 			}
 			unget(c);
@@ -1121,10 +1116,10 @@ loop:
 		if(longflg)
 			i = 8;
 		l = c - '0';
-		for(; i>0; i--) {
+		for(; i > 0; i--) {
 			c = getc();
 			if(c >= '0' && c <= '7') {
-				l = l*8 + c-'0';
+				l = l * 8 + c - '0';
 				continue;
 			}
 			unget(c);
@@ -1133,67 +1128,73 @@ loop:
 			l |= ESC;
 		return l;
 	}
-	switch(c)
-	{
-	case '\n':	goto loop;
-	case 'n':	return '\n';
-	case 't':	return '\t';
-	case 'b':	return '\b';
-	case 'r':	return '\r';
-	case 'f':	return '\f';
-	case 'a':	return '\a';
-	case 'v':	return '\v';
+	switch(c) {
+	case '\n':
+		goto loop;
+	case 'n':
+		return '\n';
+	case 't':
+		return '\t';
+	case 'b':
+		return '\b';
+	case 'r':
+		return '\r';
+	case 'f':
+		return '\f';
+	case 'a':
+		return '\a';
+	case 'v':
+		return '\v';
 	}
 	return c;
 }
 
 struct
-{
-	char	*name;
-	uint16_t	lexical;
-	uint16_t	type;
+    {
+	char *name;
+	uint16_t lexical;
+	uint16_t type;
 } itab[] =
-{
-	"auto",		LAUTO,		0,
-	"break",	LBREAK,		0,
-	"case",		LCASE,		0,
-	"char",		LCHAR,		TCHAR,
-	"const",	LCONSTNT,	0,
-	"continue",	LCONTINUE,	0,
-	"default",	LDEFAULT,	0,
-	"do",		LDO,		0,
-	"double",	LDOUBLE,	TDOUBLE,
-	"else",		LELSE,		0,
-	"enum",		LENUM,		0,
-	"extern",	LEXTERN,	0,
-	"float",	LFLOAT,		TFLOAT,
-	"for",		LFOR,		0,
-	"goto",		LGOTO,		0,
-	"if",		LIF,		0,
-	"inline",	LINLINE,	0,
-	"int",		LINT,		TINT,
-	"long",		LLONG,		TLONG,
-	"register",	LREGISTER,	0,
-	"restrict",	LRESTRICT,	0,
-	"return",	LRETURN,	0,
-	"SET",		LSET,		0,
-	"short",	LSHORT,		TSHORT,
-	"signed",	LSIGNED,	0,
-	"signof",	LSIGNOF,	0,
-	"sizeof",	LSIZEOF,	0,
-	"static",	LSTATIC,	0,
-	"struct",	LSTRUCT,	0,
-	"switch",	LSWITCH,	0,
-	"typedef",	LTYPEDEF,	0,
-	"typestr",	LTYPESTR,	0,
-	"union",	LUNION,		0,
-	"unsigned",	LUNSIGNED,	0,
-	"USED",		LUSED,		0,
-	"void",		LVOID,		TVOID,
-	"volatile",	LVOLATILE,	0,
-	"while",	LWHILE,		0,
-	0
-};
+    {
+     "auto", LAUTO, 0,
+     "break", LBREAK, 0,
+     "case", LCASE, 0,
+     "char", LCHAR, TCHAR,
+     "const", LCONSTNT, 0,
+     "continue", LCONTINUE, 0,
+     "default", LDEFAULT, 0,
+     "do", LDO, 0,
+     "double", LDOUBLE, TDOUBLE,
+     "else", LELSE, 0,
+     "enum", LENUM, 0,
+     "extern", LEXTERN, 0,
+     "float", LFLOAT, TFLOAT,
+     "for", LFOR, 0,
+     "goto", LGOTO, 0,
+     "if", LIF, 0,
+     "inline", LINLINE, 0,
+     "int", LINT, TINT,
+     "long", LLONG, TLONG,
+     "register", LREGISTER, 0,
+     "restrict", LRESTRICT, 0,
+     "return", LRETURN, 0,
+     "SET", LSET, 0,
+     "short", LSHORT, TSHORT,
+     "signed", LSIGNED, 0,
+     "signof", LSIGNOF, 0,
+     "sizeof", LSIZEOF, 0,
+     "static", LSTATIC, 0,
+     "struct", LSTRUCT, 0,
+     "switch", LSWITCH, 0,
+     "typedef", LTYPEDEF, 0,
+     "typestr", LTYPESTR, 0,
+     "union", LUNION, 0,
+     "unsigned", LUNSIGNED, 0,
+     "USED", LUSED, 0,
+     "void", LVOID, TVOID,
+     "volatile", LVOLATILE, 0,
+     "while", LWHILE, 0,
+     0};
 
 void
 cinit(void)
@@ -1227,9 +1228,9 @@ cinit(void)
 	types[TFUNC] = typ(TFUNC, types[TINT]);
 	types[TIND] = typ(TIND, types[TVOID]);
 
-	for(i=0; i<NHASH; i++)
+	for(i = 0; i < NHASH; i++)
 		hash[i] = S;
-	for(i=0; itab[i].name; i++) {
+	for(i = 0; itab[i].name; i++) {
 		s = slookup(itab[i].name);
 		s->lexical = itab[i].lexical;
 		if(itab[i].type != 0)
@@ -1319,10 +1320,10 @@ Lconv(Fmt *fp)
 	Hist *h;
 	struct
 	{
-		Hist*	incl;	/* start of this include file */
-		int32_t	idel;	/* delta line number to apply to include */
-		Hist*	line;	/* start of this #line directive */
-		int32_t	ldel;	/* delta line number to apply to #line */
+		Hist *incl;   /* start of this include file */
+		int32_t idel; /* delta line number to apply to include */
+		Hist *line;   /* start of this #line directive */
+		int32_t ldel; /* delta line number to apply to #line */
 	} a[HISTSZ];
 	int32_t l, d;
 	int i, n;
@@ -1333,13 +1334,13 @@ Lconv(Fmt *fp)
 		if(l < h->line)
 			break;
 		if(h->name) {
-			if(h->offset != 0) {		/* #line directive, not #pragma */
+			if(h->offset != 0) { /* #line directive, not #pragma */
 				if(n > 0 && n < HISTSZ && h->offset >= 0) {
-					a[n-1].line = h;
-					a[n-1].ldel = h->line - h->offset + 1;
+					a[n - 1].line = h;
+					a[n - 1].ldel = h->line - h->offset + 1;
 				}
 			} else {
-				if(n < HISTSZ) {	/* beginning of file */
+				if(n < HISTSZ) { /* beginning of file */
 					a[n].incl = h;
 					a[n].idel = h->line;
 					a[n].line = 0;
@@ -1351,30 +1352,30 @@ Lconv(Fmt *fp)
 		n--;
 		if(n > 0 && n < HISTSZ) {
 			d = h->line - a[n].incl->line;
-			a[n-1].ldel += d;
-			a[n-1].idel += d;
+			a[n - 1].ldel += d;
+			a[n - 1].idel += d;
 		}
 	}
 	if(n > HISTSZ)
 		n = HISTSZ;
 	str[0] = 0;
-	for(i=n-1; i>=0; i--) {
-		if(i != n-1) {
-			if(fp->flags & ~(FmtWidth|FmtPrec))	/* BUG ROB - was f3 */
+	for(i = n - 1; i >= 0; i--) {
+		if(i != n - 1) {
+			if(fp->flags & ~(FmtWidth | FmtPrec)) /* BUG ROB - was f3 */
 				break;
 			strcat(str, " ");
 		}
 		if(a[i].line)
 			snprint(s, STRINGSZ, "%s:%ld[%s:%ld]",
-				a[i].line->name, l-a[i].ldel+1,
-				a[i].incl->name, l-a[i].idel+1);
+				a[i].line->name, l - a[i].ldel + 1,
+				a[i].incl->name, l - a[i].idel + 1);
 		else
 			snprint(s, STRINGSZ, "%s:%ld",
-				a[i].incl->name, l-a[i].idel+1);
-		if(strlen(s)+strlen(str) >= STRINGSZ-10)
+				a[i].incl->name, l - a[i].idel + 1);
+		if(strlen(s) + strlen(str) >= STRINGSZ - 10)
 			break;
 		strcat(str, s);
-		l = a[i].incl->line - 1;	/* now print out start of this file */
+		l = a[i].incl->line - 1; /* now print out start of this file */
 	}
 	if(n == 0)
 		strcat(str, "<eof>");
@@ -1384,18 +1385,18 @@ Lconv(Fmt *fp)
 int
 Tconv(Fmt *fp)
 {
-	char str[STRINGSZ+20], s[STRINGSZ+20];
+	char str[STRINGSZ + 20], s[STRINGSZ + 20];
 	Type *t, *t1;
 	int et;
 	int32_t n;
 
 	str[0] = 0;
-	for(t = va_arg(fp->args, Type*); t != T; t = t->link) {
+	for(t = va_arg(fp->args, Type *); t != T; t = t->link) {
 		et = t->etype;
 		if(str[0])
 			strcat(str, " ");
-		if(t->garb&~GINCOMPLETE) {
-			sprint(s, "%s ", gnames[t->garb&~GINCOMPLETE]);
+		if(t->garb & ~GINCOMPLETE) {
+			sprint(s, "%s ", gnames[t->garb & ~GINCOMPLETE]);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 		}
@@ -1446,7 +1447,7 @@ FNconv(Fmt *fp)
 	char *str;
 	Node *n;
 
-	n = va_arg(fp->args, Node*);
+	n = va_arg(fp->args, Node *);
 	str = "<indirect>";
 	if(n != Z && (n->op == ONAME || n->op == ODOT || n->op == OELEM))
 		str = n->sym->name;
@@ -1456,7 +1457,7 @@ FNconv(Fmt *fp)
 int
 Qconv(Fmt *fp)
 {
-	char str[STRINGSZ+20], *s;
+	char str[STRINGSZ + 20], *s;
 	int32_t b;
 	int i;
 
@@ -1481,10 +1482,10 @@ VBconv(Fmt *fp)
 	int i, n, t, pc;
 
 	n = va_arg(fp->args, int);
-	pc = 0;	/* BUG: was printcol */
+	pc = 0; /* BUG: was printcol */
 	i = 0;
 	while(pc < n) {
-		t = (pc+4) & ~3;
+		t = (pc + 4) & ~3;
 		if(t <= n) {
 			str[i++] = '\t';
 			pc = t;
@@ -1501,7 +1502,7 @@ VBconv(Fmt *fp)
 /*
  * real allocs
  */
-void*
+void *
 alloc(int32_t n)
 {
 	void *p;
@@ -1518,14 +1519,14 @@ alloc(int32_t n)
 	return p;
 }
 
-void*
+void *
 allocn(void *p, int32_t on, int32_t n)
 {
 	void *q;
 
-	q = (uint8_t*)p + on;
+	q = (uint8_t *)p + on;
 	if(q != hunk || nhunk < n) {
-		while(nhunk < on+n)
+		while(nhunk < on + n)
 			gethunk();
 		memmove(hunk, p, on);
 		p = hunk;
@@ -1548,12 +1549,12 @@ setinclude(char *p)
 		if(e != 0)
 			*e = '\0';
 
-		for(i=0; i < ninclude; i++)
+		for(i = 0; i < ninclude; i++)
 			if(strcmp(p, include[i]) == 0)
 				break;
 
-		if(i >= ninclude){
-			if(i >= maxinclude){
+		if(i >= ninclude) {
+			if(i >= maxinclude) {
 				maxinclude += 20;
 				np = alloc(maxinclude * sizeof *np);
 				if(include != nil)
@@ -1565,6 +1566,6 @@ setinclude(char *p)
 
 		if(e == 0)
 			break;
-		p = e+1;
+		p = e + 1;
 	}
 }

@@ -14,13 +14,13 @@ main(void)
 	char buf[1];
 
 	fd = open("/dev/sysstat", OREAD);
-	if(fd < 0){
+	if(fd < 0) {
 		print("couldn't open /dev/sysstat: %r\n");
 		exits("FAIL");
 	}
 
 	ret = 0;
-	for(;;){
+	for(;;) {
 		n = read(fd, buf, sizeof(buf));
 		if(n <= 0)
 			break;

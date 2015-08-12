@@ -22,9 +22,9 @@ cuserid(char *s)
 	static char buf[L_cuserid];
 
 	if((logname = getlogin()) == NULL)
-		return(NULL);
+		return (NULL);
 	if(s == 0)
 		s = buf;
 	strncpy(s, logname, sizeof buf);
-	return(s);
+	return (s);
 }

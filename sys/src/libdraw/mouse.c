@@ -29,7 +29,9 @@ closemouse(Mousectl *mc)
 
 	postnote(PNPROC, mc->pid, "kill");
 
-	do; while(nbrecv(mc->c, &mc->Mouse) > 0);
+	do
+		;
+	while(nbrecv(mc->c, &mc->Mouse) > 0);
 
 	close(mc->mfd);
 	close(mc->cfd);
@@ -44,19 +46,18 @@ readmouse(Mousectl *mc)
 {
 	if(mc->image)
 		flushimage(mc->image->display, 1);
-	if(recv(mc->c, &mc->Mouse) < 0){
+	if(recv(mc->c, &mc->Mouse) < 0) {
 		fprint(2, "readmouse: %r\n");
 		return -1;
 	}
 	return 0;
 }
 
-static
-void
+static void
 _ioproc(void *arg)
 {
 	int n, nerr, one;
-	char buf[1+5*12];
+	char buf[1 + 5 * 12];
 	Mouse m;
 	Mousectl *mc;
 
@@ -66,25 +67,25 @@ _ioproc(void *arg)
 	memset(&m, 0, sizeof m);
 	mc->pid = getpid();
 	nerr = 0;
-	for(;;){
+	for(;;) {
 		n = read(mc->mfd, buf, sizeof buf);
-		if(n != 1+4*12){
-			yield();	/* if error is due to exiting, we'll exit here */
+		if(n != 1 + 4 * 12) {
+			yield(); /* if error is due to exiting, we'll exit here */
 			fprint(2, "mouse: bad count %d not 49: %r\n", n);
-			if(n<0 || ++nerr>10)
+			if(n < 0 || ++nerr > 10)
 				threadexits("read error");
 			continue;
 		}
 		nerr = 0;
-		switch(buf[0]){
+		switch(buf[0]) {
 		case 'r':
 			send(mc->resizec, &one);
-			/* fall through */
+		/* fall through */
 		case 'm':
-			m.xy.x = atoi(buf+1+0*12);
-			m.xy.y = atoi(buf+1+1*12);
-			m.buttons = atoi(buf+1+2*12);
-			m.msec = atoi(buf+1+3*12);
+			m.xy.x = atoi(buf + 1 + 0 * 12);
+			m.xy.y = atoi(buf + 1 + 1 * 12);
+			m.buttons = atoi(buf + 1 + 2 * 12);
+			m.msec = atoi(buf + 1 + 3 * 12);
 			send(mc->c, &m);
 			/*
 			 * mc->Mouse is updated after send so it doesn't have wrong value if we block during send.
@@ -97,7 +98,7 @@ _ioproc(void *arg)
 	}
 }
 
-Mousectl*
+Mousectl *
 initmouse(char *file, Image *i)
 {
 	Mousectl *mc;
@@ -107,17 +108,17 @@ initmouse(char *file, Image *i)
 	if(file == nil)
 		file = "/dev/mouse";
 	mc->file = strdup(file);
-	mc->mfd = open(file, ORDWR|OCEXEC);
-	if(mc->mfd<0 && strcmp(file, "/dev/mouse")==0){
+	mc->mfd = open(file, ORDWR | OCEXEC);
+	if(mc->mfd < 0 && strcmp(file, "/dev/mouse") == 0) {
 		bind("#m", "/dev", MAFTER);
-		mc->mfd = open(file, ORDWR|OCEXEC);
+		mc->mfd = open(file, ORDWR | OCEXEC);
 	}
-	if(mc->mfd < 0){
+	if(mc->mfd < 0) {
 		free(mc);
 		return nil;
 	}
-	t = malloc(strlen(file)+16);
-	if (t == nil) {
+	t = malloc(strlen(file) + 16);
+	if(t == nil) {
 		close(mc->mfd);
 		free(mc);
 		return nil;
@@ -128,7 +129,7 @@ initmouse(char *file, Image *i)
 		strcpy(sl, "/cursor");
 	else
 		strcpy(t, "/dev/cursor");
-	mc->cfd = open(t, ORDWR|OCEXEC);
+	mc->cfd = open(t, ORDWR | OCEXEC);
 	free(t);
 	mc->image = i;
 	mc->c = chancreate(sizeof(Mouse), 0);
@@ -140,14 +141,14 @@ initmouse(char *file, Image *i)
 void
 setcursor(Mousectl *mc, Cursor *c)
 {
-	char curs[2*4+2*2*16];
+	char curs[2 * 4 + 2 * 2 * 16];
 
 	if(c == nil)
 		write(mc->cfd, curs, 0);
-	else{
-		BPLONG(curs+0*4, c->offset.x);
-		BPLONG(curs+1*4, c->offset.y);
-		memmove(curs+2*4, c->clr, 2*2*16);
+	else {
+		BPLONG(curs + 0 * 4, c->offset.x);
+		BPLONG(curs + 1 * 4, c->offset.y);
+		memmove(curs + 2 * 4, c->clr, 2 * 2 * 16);
 		write(mc->cfd, curs, sizeof curs);
 	}
 }

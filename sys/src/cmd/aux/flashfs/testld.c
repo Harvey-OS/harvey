@@ -44,7 +44,8 @@ main(int argc, char **argv)
 	prog = "testldfs";
 	file = nil;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'n':
 		nsects = argval(ARGF());
 		break;
@@ -56,7 +57,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc != 0 || nsects == 0 || sectsize == 0 || file == nil)
 		usage();

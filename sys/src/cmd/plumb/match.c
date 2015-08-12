@@ -15,7 +15,7 @@
 #include <plumb.h>
 #include "plumber.h"
 
-static char*
+static char *
 nonnil(char *s)
 {
 	if(s == nil)
@@ -26,7 +26,7 @@ nonnil(char *s)
 int
 verbis(int obj, Plumbmsg *m, Rule *r)
 {
-	switch(obj){
+	switch(obj) {
 	default:
 		fprint(2, "unimplemented 'is' object %d\n", obj);
 		break;
@@ -49,13 +49,13 @@ setvar(Resub rs[10], char *match[10])
 {
 	int i, n;
 
-	for(i=0; i<10; i++){
+	for(i = 0; i < 10; i++) {
 		free(match[i]);
 		match[i] = nil;
 	}
-	for(i=0; i<10 && rs[i].sp!=nil; i++){
-		n = rs[i].ep-rs[i].sp;
-		match[i] = emalloc(n+1);
+	for(i = 0; i < 10 && rs[i].sp != nil; i++) {
+		n = rs[i].ep - rs[i].sp;
+		match[i] = emalloc(n + 1);
 		memmove(match[i], rs[i].sp, n);
 		match[i][n] = '\0';
 	}
@@ -69,13 +69,13 @@ clickmatch(Reprog *re, char *text, Resub rs[10], int click)
 	Rune r;
 
 	/* click is in characters, not bytes */
-	for(i=0; i<click && text[i]!='\0'; i+=w)
-		w = chartorune(&r, text+i);
-	clickp = text+i;
-	for(i=0; i<=click; i++){
-		memset(rs, 0, 10*sizeof(Resub));
-		if(regexec(re, text+i, rs, 10))
-			if(rs[0].sp<=clickp && clickp<=rs[0].ep)
+	for(i = 0; i < click && text[i] != '\0'; i += w)
+		w = chartorune(&r, text + i);
+	clickp = text + i;
+	for(i = 0; i <= click; i++) {
+		memset(rs, 0, 10 * sizeof(Resub));
+		if(regexec(re, text + i, rs, 10))
+			if(rs[0].sp <= clickp && clickp <= rs[0].ep)
 				return 1;
 	}
 	return 0;
@@ -90,13 +90,13 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 
 	memset(rs, 0, sizeof rs);
 	ntext = -1;
-	switch(obj){
+	switch(obj) {
 	default:
 		fprint(2, "unimplemented 'matches' object %d\n", obj);
 		break;
 	case OData:
 		clickval = plumblookup(m->attr, "click");
-		if(clickval == nil){
+		if(clickval == nil) {
 			alltext = m->data;
 			ntext = m->ndata;
 			goto caseAlltext;
@@ -105,7 +105,7 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 			break;
 		p0 = rs[0].sp - m->data;
 		p1 = rs[0].ep - m->data;
-		if(e->p0 >=0 && !(p0==e->p0 && p1==e->p1))
+		if(e->p0 >= 0 && !(p0 == e->p0 && p1 == e->p1))
 			break;
 		e->clearclick = 1;
 		e->setdata = 1;
@@ -124,12 +124,12 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 		goto caseAlltext;
 	case OSrc:
 		alltext = m->src;
-		/* fall through */
+	/* fall through */
 	caseAlltext:
 		/* must match full text */
 		if(ntext < 0)
 			ntext = strlen(alltext);
-		if(!regexec(r->regex, alltext, rs, 10) || rs[0].sp!=alltext || rs[0].ep!=alltext+ntext)
+		if(!regexec(r->regex, alltext, rs, 10) || rs[0].sp != alltext || rs[0].ep != alltext + ntext)
 			break;
 		setvar(rs, e->match);
 		return 1;
@@ -155,14 +155,14 @@ isfile(char *file, uint32_t maskon, uint32_t maskoff)
 	return 1;
 }
 
-char*
+char *
 absolute(char *dir, char *file)
 {
 	char *p;
 
 	if(file[0] == '/')
 		return estrdup(file);
-	p = emalloc(strlen(dir)+1+strlen(file)+1);
+	p = emalloc(strlen(dir) + 1 + strlen(file) + 1);
 	sprint(p, "%s/%s", dir, file);
 	return cleanname(p);
 }
@@ -173,13 +173,13 @@ verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, uint32_t maskon,
 {
 	char *file;
 
-	switch(obj){
+	switch(obj) {
 	default:
 		fprint(2, "unimplemented 'isfile' object %d\n", obj);
 		break;
 	case OArg:
 		file = absolute(m->wdir, expand(e, r->arg, nil));
-		if(isfile(file, maskon, maskoff)){
+		if(isfile(file, maskon, maskoff)) {
 			*var = file;
 			return 1;
 		}
@@ -187,8 +187,8 @@ verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, uint32_t maskon,
 		break;
 	case OData:
 	case OWdir:
-		file = absolute(m->wdir, obj==OData? m->data : m->wdir);
-		if(isfile(file, maskon, maskoff)){
+		file = absolute(m->wdir, obj == OData ? m->data : m->wdir);
+		if(isfile(file, maskon, maskoff)) {
 			*var = file;
 			return 1;
 		}
@@ -203,7 +203,7 @@ verbset(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
 	char *new;
 
-	switch(obj){
+	switch(obj) {
 	default:
 		fprint(2, "unimplemented 'is' object %d\n", obj);
 		break;
@@ -243,7 +243,7 @@ verbset(int obj, Plumbmsg *m, Rule *r, Exec *e)
 int
 verbadd(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
-	switch(obj){
+	switch(obj) {
 	default:
 		fprint(2, "unimplemented 'add' object %d\n", obj);
 		break;
@@ -259,7 +259,7 @@ verbdelete(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
 	char *a;
 
-	switch(obj){
+	switch(obj) {
 	default:
 		fprint(2, "unimplemented 'delete' object %d\n", obj);
 		break;
@@ -276,7 +276,7 @@ verbdelete(int obj, Plumbmsg *m, Rule *r, Exec *e)
 int
 matchpat(Plumbmsg *m, Exec *e, Rule *r)
 {
-	switch(r->verb){
+	switch(r->verb) {
 	default:
 		fprint(2, "unimplemented verb %d\n", r->verb);
 		break;
@@ -308,16 +308,16 @@ freeexec(Exec *exec)
 		return;
 	free(exec->dir);
 	free(exec->file);
-	for(i=0; i<10; i++)
+	for(i = 0; i < 10; i++)
 		free(exec->match[i]);
 	free(exec);
 }
 
-Exec*
+Exec *
 newexec(Plumbmsg *m)
 {
 	Exec *exec;
-	
+
 	exec = emalloc(sizeof(Exec));
 	exec->msg = m;
 	exec->p0 = -1;
@@ -330,22 +330,22 @@ rewrite(Plumbmsg *m, Exec *e)
 {
 	Plumbattr *a, *prev;
 
-	if(e->clearclick){
+	if(e->clearclick) {
 		prev = nil;
-		for(a=m->attr; a!=nil; a=a->next){
-			if(strcmp(a->name, "click") == 0){
+		for(a = m->attr; a != nil; a = a->next) {
+			if(strcmp(a->name, "click") == 0) {
 				if(prev == nil)
 					m->attr = a->next;
 				else
 					prev->next = a->next;
 				free(a->name);
-				free(a->value);	
+				free(a->value);
 				free(a);
 				break;
 			}
 			prev = a;
 		}
-		if(e->setdata){
+		if(e->setdata) {
 			free(m->data);
 			m->data = estrdup(expand(e, "$0", nil));
 			m->ndata = strlen(m->data);
@@ -353,7 +353,7 @@ rewrite(Plumbmsg *m, Exec *e)
 	}
 }
 
-char**
+char **
 buildargv(char *s, Exec *e)
 {
 	char **av;
@@ -361,10 +361,10 @@ buildargv(char *s, Exec *e)
 
 	ac = 0;
 	av = nil;
-	for(;;){
-		av = erealloc(av, (ac+1) * sizeof(char*));
+	for(;;) {
+		av = erealloc(av, (ac + 1) * sizeof(char *));
 		av[ac] = nil;
-		while(*s==' ' || *s=='\t')
+		while(*s == ' ' || *s == '\t')
 			s++;
 		if(*s == '\0')
 			break;
@@ -373,21 +373,21 @@ buildargv(char *s, Exec *e)
 	return av;
 }
 
-Exec*
+Exec *
 matchruleset(Plumbmsg *m, Ruleset *rs)
 {
 	int i;
 	Exec *exec;
 
-	if(m->dst!=nil && m->dst[0]!='\0' && rs->port!=nil && strcmp(m->dst, rs->port)!=0)
+	if(m->dst != nil && m->dst[0] != '\0' && rs->port != nil && strcmp(m->dst, rs->port) != 0)
 		return nil;
 	exec = newexec(m);
-	for(i=0; i<rs->npat; i++)
-		if(!matchpat(m, exec, rs->pat[i])){
+	for(i = 0; i < rs->npat; i++)
+		if(!matchpat(m, exec, rs->pat[i])) {
 			freeexec(exec);
 			return nil;
 		}
-	if(rs->port!=nil && (m->dst==nil || m->dst[0]=='\0')){
+	if(rs->port != nil && (m->dst == nil || m->dst[0] == '\0')) {
 		free(m->dst);
 		m->dst = estrdup(rs->port);
 	}
@@ -395,27 +395,26 @@ matchruleset(Plumbmsg *m, Ruleset *rs)
 	return exec;
 }
 
-enum
-{
-	NARGS		= 100,
-	NARGCHAR	= 8*1024,
-	EXECSTACK 	= 8192+(NARGS+1)*sizeof(char*)+NARGCHAR
+enum {
+	NARGS = 100,
+	NARGCHAR = 8 * 1024,
+	EXECSTACK = 8192 + (NARGS + 1) * sizeof(char *) + NARGCHAR
 };
 
 /* copy argv to stack and free the incoming strings, so we don't leak argument vectors */
 void
-stackargv(char **inargv, char *argv[NARGS+1], char args[NARGCHAR])
+stackargv(char **inargv, char *argv[NARGS + 1], char args[NARGCHAR])
 {
 	int i, n;
 	char *s, *a;
 
 	s = args;
-	for(i=0; i<NARGS; i++){
+	for(i = 0; i < NARGS; i++) {
 		a = inargv[i];
 		if(a == nil)
 			break;
-		n = strlen(a)+1;
-		if((s-args)+n >= NARGCHAR)	/* too many characters */
+		n = strlen(a) + 1;
+		if((s - args) + n >= NARGCHAR) /* too many characters */
 			break;
 		argv[i] = s;
 		memmove(s, a, n);
@@ -425,12 +424,11 @@ stackargv(char **inargv, char *argv[NARGS+1], char args[NARGCHAR])
 	argv[i] = nil;
 }
 
-
 void
 execproc(void *v)
 {
 	char **av;
-	char buf[1024], *args[NARGS+1], argc[NARGCHAR];
+	char buf[1024], *args[NARGS + 1], argc[NARGCHAR];
 
 	rfork(RFFDG);
 	close(0);
@@ -439,24 +437,24 @@ execproc(void *v)
 	stackargv(av, args, argc);
 	free(av);
 	procexec(nil, args[0], args);
-	if(args[0][0]!='/' && strncmp(args[0], "./", 2)!=0 && strncmp(args[0], "../", 3)!=0)
+	if(args[0][0] != '/' && strncmp(args[0], "./", 2) != 0 && strncmp(args[0], "../", 3) != 0)
 		snprint(buf, sizeof buf, "/bin/%s", args[0]);
 	procexec(nil, buf, args);
 	threadexits("can't exec");
 }
 
-char*
+char *
 startup(Ruleset *rs, Exec *e)
 {
 	char **argv;
 	int i;
 
 	if(rs != nil)
-		for(i=0; i<rs->nact; i++){
+		for(i = 0; i < rs->nact; i++) {
 			if(rs->act[i]->verb == VStart)
 				goto Found;
-			if(rs->act[i]->verb == VClient){
-				if(e->msg->dst==nil || e->msg->dst[0]=='\0')
+			if(rs->act[i]->verb == VClient) {
+				if(e->msg->dst == nil || e->msg->dst[0] == '\0')
 					return "no port for \"client\" rule";
 				e->holdforclient = 1;
 				goto Found;

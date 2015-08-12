@@ -21,7 +21,7 @@ main(int argc, char **argv)
 	Face f;
 	char *q;
 
-	if(argc != 3){
+	if(argc != 3) {
 		fprint(2, "usage: dblook name domain\n");
 		exits("usage");
 	}

@@ -32,14 +32,14 @@ smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	char *nativeos = nil;
 	char *nativelanman = nil;
 
-	if (!smbcheckwordcount("comsessionsetupandx", h, 13)) {
+	if(!smbcheckwordcount("comsessionsetupandx", h, 13)) {
 	fmtfail:
 		pr = SmbProcessResultFormat;
 		goto done;
 	}
 
 	andxcommand = *pdata++;
-	switch (andxcommand) {
+	switch(andxcommand) {
 	case SMB_COM_TREE_CONNECT_ANDX:
 	case SMB_COM_OPEN_ANDX:
 	case SMB_COM_CREATE_NEW:
@@ -61,76 +61,80 @@ smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 		break;
 	default:
 		smblogprint(h->command, "smbcomsessionsetupandx: invalid andxcommand %s (0x%.2ux)\n",
-			smboptable[andxcommand].name, andxcommand);
+			    smboptable[andxcommand].name, andxcommand);
 		goto fmtfail;
 	}
 	pdata++;
-	andxoffset = smbnhgets(pdata); pdata += 2;
-	s->peerinfo.maxlen = smbnhgets(pdata); pdata += 2;
+	andxoffset = smbnhgets(pdata);
+	pdata += 2;
+	s->peerinfo.maxlen = smbnhgets(pdata);
+	pdata += 2;
 	smbresponseinit(s, s->peerinfo.maxlen);
-	s->client.maxmpxcount = smbnhgets(pdata); pdata += 2;
-	vcnumber = smbnhgets(pdata); pdata += 2;
-	sessionkey = smbnhgetl(pdata); pdata += 4;
-	caseinsensitivepasswordlength = smbnhgets(pdata); pdata += 2;
-	casesensitivepasswordlength = smbnhgets(pdata); pdata += 2;
+	s->client.maxmpxcount = smbnhgets(pdata);
+	pdata += 2;
+	vcnumber = smbnhgets(pdata);
+	pdata += 2;
+	sessionkey = smbnhgetl(pdata);
+	pdata += 4;
+	caseinsensitivepasswordlength = smbnhgets(pdata);
+	pdata += 2;
+	casesensitivepasswordlength = smbnhgets(pdata);
+	pdata += 2;
 	pdata += 4;
 	s->peerinfo.capabilities = smbnhgetl(pdata); /*pdata += 4;*/
-smbloglock();
-smblogprint(h->command, "andxcommand: %s offset %ud\n", smboptable[andxcommand].name, andxoffset);
-smblogprint(h->command, "client.maxbuffersize: %ud\n", s->peerinfo.maxlen);
-smblogprint(h->command, "client.maxmpxcount: %ud\n", s->client.maxmpxcount);
-smblogprint(h->command, "vcnumber: %ud\n", vcnumber);
-smblogprint(h->command, "sessionkey: 0x%.8lux\n", sessionkey);
-smblogprint(h->command, "caseinsensitivepasswordlength: %ud\n", caseinsensitivepasswordlength);
-smblogprint(h->command, "casesensitivepasswordlength: %ud\n", casesensitivepasswordlength);
-smblogprint(h->command, "clientcapabilities: 0x%.8lux\n", s->peerinfo.capabilities);
-smblogunlock();
+	smbloglock();
+	smblogprint(h->command, "andxcommand: %s offset %ud\n", smboptable[andxcommand].name, andxoffset);
+	smblogprint(h->command, "client.maxbuffersize: %ud\n", s->peerinfo.maxlen);
+	smblogprint(h->command, "client.maxmpxcount: %ud\n", s->client.maxmpxcount);
+	smblogprint(h->command, "vcnumber: %ud\n", vcnumber);
+	smblogprint(h->command, "sessionkey: 0x%.8lux\n", sessionkey);
+	smblogprint(h->command, "caseinsensitivepasswordlength: %ud\n", caseinsensitivepasswordlength);
+	smblogprint(h->command, "casesensitivepasswordlength: %ud\n", casesensitivepasswordlength);
+	smblogprint(h->command, "clientcapabilities: 0x%.8lux\n", s->peerinfo.capabilities);
+	smblogunlock();
 
 	mschapreply = smbbufferreadpointer(b);
 
-	if (!smbbuffergetbytes(b, nil, caseinsensitivepasswordlength + casesensitivepasswordlength)) {
+	if(!smbbuffergetbytes(b, nil, caseinsensitivepasswordlength + casesensitivepasswordlength)) {
 		smblogprint(h->command, "smbcomsessionsetupandx: not enough bdata for passwords\n");
 		goto fmtfail;
 	}
-	if (!smbbuffergetstring(b, h, 0, &accountname)
-		|| !smbbuffergetstring(b, h, 0, &primarydomain)
-		|| !smbbuffergetstring(b, h, 0, &nativeos)
-		|| !smbbuffergetstring(b, h, 0, &nativelanman)) {
+	if(!smbbuffergetstring(b, h, 0, &accountname) || !smbbuffergetstring(b, h, 0, &primarydomain) || !smbbuffergetstring(b, h, 0, &nativeos) || !smbbuffergetstring(b, h, 0, &nativelanman)) {
 		smblogprint(h->command, "smbcomsessionsetupandx: not enough bytes for strings\n");
 		goto fmtfail;
 	}
 
-	for (sp = accountname; *sp; sp++)
+	for(sp = accountname; *sp; sp++)
 		*sp = tolower(*sp);
 
-smblogprint(h->command, "account: %s\n", accountname);
-smblogprint(h->command, "primarydomain: %s\n", primarydomain);
-smblogprint(h->command, "nativeos: %s\n", nativeos);
-smblogprint(h->command, "nativelanman: %s\n", nativelanman);
+	smblogprint(h->command, "account: %s\n", accountname);
+	smblogprint(h->command, "primarydomain: %s\n", primarydomain);
+	smblogprint(h->command, "nativeos: %s\n", nativeos);
+	smblogprint(h->command, "nativelanman: %s\n", nativelanman);
 
-	if (s->client.accountname && accountname[0] && strcmp(s->client.accountname, accountname) != 0) {
+	if(s->client.accountname && accountname[0] && strcmp(s->client.accountname, accountname) != 0) {
 		smblogprint(h->command, "smbcomsessionsetupandx: more than one user on VC (before %s, now %s)\n",
-			s->client.accountname, accountname);
+			    s->client.accountname, accountname);
 		smbseterror(s, ERRSRV, ERRtoomanyuids);
 	errordone:
 		pr = SmbProcessResultError;
 		goto done;
 	}
 
-	if (s->client.accountname == nil) {
+	if(s->client.accountname == nil) {
 		/* first time */
-		if (accountname[0] == 0) {
+		if(accountname[0] == 0) {
 			smbseterror(s, ERRSRV, ERRbaduid);
 			goto errordone;
 		}
-		if ((casesensitivepasswordlength != 24 || caseinsensitivepasswordlength != 24)) {
+		if((casesensitivepasswordlength != 24 || caseinsensitivepasswordlength != 24)) {
 			smblogprint(h->command,
-				"smbcomsessionsetupandx: case sensitive/insensitive password length not 24\n");
+				    "smbcomsessionsetupandx: case sensitive/insensitive password length not 24\n");
 			smbseterror(s, ERRSRV, ERRbadpw);
 			goto errordone;
 		}
 		memcpy(&s->client.mschapreply, mschapreply, sizeof(s->client.mschapreply));
-		if(s->cs == nil){
+		if(s->cs == nil) {
 			smbseterror(s, ERRSRV, ERRerror);
 			goto errordone;
 		}
@@ -138,13 +142,13 @@ smblogprint(h->command, "nativelanman: %s\n", nativelanman);
 		s->cs->resp = &s->client.mschapreply;
 		s->cs->nresp = sizeof(MSchapreply);
 		ai = auth_response(s->cs);
-		if (ai == nil) {
+		if(ai == nil) {
 			smblogprint(h->command, "authentication failed\n");
 			smbseterror(s, ERRSRV, ERRbadpw);
 			goto errordone;
 		}
 		smblogprint(h->command, "authentication succeeded\n");
-		if (auth_chuid(ai, nil) < 0) {
+		if(auth_chuid(ai, nil) < 0) {
 			smblogprint(h->command, "smbcomsessionsetupandx: chuid failed: %r\n");
 			auth_freeAI(ai);
 		miscerror:
@@ -161,10 +165,8 @@ smblogprint(h->command, "nativelanman: %s\n", nativelanman);
 		primarydomain = nil;
 		nativeos = nil;
 		nativelanman = nil;
-	}
-	else {
-		if (caseinsensitivepasswordlength == 24 && casesensitivepasswordlength == 24
-			&& memcmp(&s->client.mschapreply, mschapreply, sizeof(MSchapreply)) != 0) {
+	} else {
+		if(caseinsensitivepasswordlength == 24 && casesensitivepasswordlength == 24 && memcmp(&s->client.mschapreply, mschapreply, sizeof(MSchapreply)) != 0) {
 			smblogprint(h->command, "second time authentication failed\n");
 			smbseterror(s, ERRSRV, ERRbadpw);
 			goto errordone;
@@ -173,21 +175,19 @@ smblogprint(h->command, "nativelanman: %s\n", nativelanman);
 
 	/* CIFS says 4 with or without extended security, samba/ms says 3 without */
 	h->wordcount = 3;
-	if (!smbresponseputandxheader(s, h, andxcommand, &andxfixupoffset))
+	if(!smbresponseputandxheader(s, h, andxcommand, &andxfixupoffset))
 		goto miscerror;
-	if (!smbresponseputs(s, 0))
+	if(!smbresponseputs(s, 0))
 		goto miscerror;
 	bytecountfixup = smbresponseoffset(s);
-	if (!smbresponseputs(s, 0))
+	if(!smbresponseputs(s, 0))
 		goto miscerror;
-	if (!smbresponseputstring(s, 1, smbglobals.nativeos)
-		|| !smbresponseputstring(s, 1, smbglobals.serverinfo.nativelanman)
-		|| !smbresponseputstring(s, 1, smbglobals.primarydomain))
+	if(!smbresponseputstring(s, 1, smbglobals.nativeos) || !smbresponseputstring(s, 1, smbglobals.serverinfo.nativelanman) || !smbresponseputstring(s, 1, smbglobals.primarydomain))
 		goto miscerror;
 	offset = smbresponseoffset(s);
 	smbresponseoffsetputs(s, bytecountfixup, offset - bytecountfixup - 2);
 	s->state = SmbSessionEstablished;
-	if (andxcommand != SMB_COM_NO_ANDX_COMMAND)
+	if(andxcommand != SMB_COM_NO_ANDX_COMMAND)
 		pr = smbchaincommand(s, h, andxfixupoffset, andxcommand, andxoffset, b);
 	else
 		pr = SmbProcessResultReply;

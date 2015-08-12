@@ -39,8 +39,7 @@ typedef struct NfsMount3RUmntall NfsMount3RUmntall;
 typedef struct NfsMount3TExport NfsMount3TExport;
 typedef struct NfsMount3RExport NfsMount3RExport;
 
-typedef enum
-{
+typedef enum {
 	NfsMount3CallTNull,
 	NfsMount3CallRNull,
 	NfsMount3CallTMnt,
@@ -131,14 +130,14 @@ struct NfsMount3RExport {
 	uint32_t count;
 };
 
-uint nfsMount3ExportGroupSize(uint8_t*);
-uint nfsMount3ExportSize(NfsMount3Export*);
-int nfsMount3ExportPack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Export*);
-int nfsMount3ExportUnpack(uint8_t*, uint8_t*, uint8_t**, char**, char***,
-			  NfsMount3Export*);
-int nfsMount3EntryPack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Entry*);
-int nfsMount3EntryUnpack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Entry*);
-uint nfsMount3EntrySize(NfsMount3Entry*);
+uint nfsMount3ExportGroupSize(uint8_t *);
+uint nfsMount3ExportSize(NfsMount3Export *);
+int nfsMount3ExportPack(uint8_t *, uint8_t *, uint8_t **, NfsMount3Export *);
+int nfsMount3ExportUnpack(uint8_t *, uint8_t *, uint8_t **, char **, char ***,
+			  NfsMount3Export *);
+int nfsMount3EntryPack(uint8_t *, uint8_t *, uint8_t **, NfsMount3Entry *);
+int nfsMount3EntryUnpack(uint8_t *, uint8_t *, uint8_t **, NfsMount3Entry *);
+uint nfsMount3EntrySize(NfsMount3Entry *);
 
 extern SunProg nfsMount3Prog;
 
@@ -161,11 +160,10 @@ enum {
 	Nfs3FsHomogeneous = 8,
 	Nfs3FsCanSetTime = 16,
 
-	Nfs3Version = 3,	
+	Nfs3Version = 3,
 	Nfs3Program = 100003,
 };
-typedef enum
-{
+typedef enum {
 	Nfs3Ok = 0,
 	Nfs3ErrNotOwner = 1,
 	Nfs3ErrNoEnt = 2,
@@ -202,8 +200,7 @@ typedef enum
 
 void nfs3Errstr(Nfs3Status);
 
-typedef enum
-{
+typedef enum {
 	Nfs3FileReg = 1,
 	Nfs3FileDir = 2,
 	Nfs3FileBlock = 3,
@@ -213,15 +210,13 @@ typedef enum
 	Nfs3FileFifo = 7,
 } Nfs3FileType;
 
-enum
-{
+enum {
 	Nfs3ModeSetUid = 0x800,
 	Nfs3ModeSetGid = 0x400,
 	Nfs3ModeSticky = 0x200,
 };
 
-typedef enum
-{
+typedef enum {
 	Nfs3CallTNull,
 	Nfs3CallRNull,
 	Nfs3CallTGetattr,
@@ -274,8 +269,7 @@ typedef struct Nfs3Time Nfs3Time;
 typedef struct Nfs3Attr Nfs3Attr;
 typedef struct Nfs3WccAttr Nfs3WccAttr;
 typedef struct Nfs3Wcc Nfs3Wcc;
-typedef enum
-{
+typedef enum {
 	Nfs3SetTimeDont = 0,
 	Nfs3SetTimeServer = 1,
 	Nfs3SetTimeClient = 2,
@@ -296,8 +290,7 @@ typedef struct Nfs3TReadlink Nfs3TReadlink;
 typedef struct Nfs3RReadlink Nfs3RReadlink;
 typedef struct Nfs3TRead Nfs3TRead;
 typedef struct Nfs3RRead Nfs3RRead;
-typedef enum
-{
+typedef enum {
 	Nfs3SyncNone = 0,
 	Nfs3SyncData = 1,
 	Nfs3SyncFile = 2,
@@ -305,8 +298,7 @@ typedef enum
 
 typedef struct Nfs3TWrite Nfs3TWrite;
 typedef struct Nfs3RWrite Nfs3RWrite;
-typedef enum
-{
+typedef enum {
 	Nfs3CreateUnchecked = 0,
 	Nfs3CreateGuarded = 1,
 	Nfs3CreateExclusive = 2,
@@ -777,45 +769,44 @@ char *nfs3TypeStr(Nfs3CallType);
 char *nfs3SetTimeStr(Nfs3SetTime);
 char *nfs3SyncStr(Nfs3Sync);
 
-void nfs3HandlePrint(Fmt*, Nfs3Handle*);
-uint32_t nfs3HandleSize(Nfs3Handle*);
-int nfs3HandlePack(uint8_t*, uint8_t*, uint8_t**, Nfs3Handle*);
-int nfs3HandleUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Handle*);
+void nfs3HandlePrint(Fmt *, Nfs3Handle *);
+uint32_t nfs3HandleSize(Nfs3Handle *);
+int nfs3HandlePack(uint8_t *, uint8_t *, uint8_t **, Nfs3Handle *);
+int nfs3HandleUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3Handle *);
 
-void nfs3TimePrint(Fmt*, Nfs3Time*);
-uint32_t nfs3TimeSize(Nfs3Time*);
-int nfs3TimePack(uint8_t*, uint8_t*, uint8_t**, Nfs3Time*);
-int nfs3TimeUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Time*);
+void nfs3TimePrint(Fmt *, Nfs3Time *);
+uint32_t nfs3TimeSize(Nfs3Time *);
+int nfs3TimePack(uint8_t *, uint8_t *, uint8_t **, Nfs3Time *);
+int nfs3TimeUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3Time *);
 
-void nfs3AttrPrint(Fmt*, Nfs3Attr*);
-uint32_t nfs3AttrSize(Nfs3Attr*);
-int nfs3AttrPack(uint8_t*, uint8_t*, uint8_t**, Nfs3Attr*);
-int nfs3AttrUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Attr*);
+void nfs3AttrPrint(Fmt *, Nfs3Attr *);
+uint32_t nfs3AttrSize(Nfs3Attr *);
+int nfs3AttrPack(uint8_t *, uint8_t *, uint8_t **, Nfs3Attr *);
+int nfs3AttrUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3Attr *);
 
-void nfs3WccAttrPrint(Fmt*, Nfs3WccAttr*);
-uint32_t nfs3WccAttrSize(Nfs3WccAttr*);
-int nfs3WccAttrPack(uint8_t*, uint8_t*, uint8_t**, Nfs3WccAttr*);
-int nfs3WccAttrUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3WccAttr*);
+void nfs3WccAttrPrint(Fmt *, Nfs3WccAttr *);
+uint32_t nfs3WccAttrSize(Nfs3WccAttr *);
+int nfs3WccAttrPack(uint8_t *, uint8_t *, uint8_t **, Nfs3WccAttr *);
+int nfs3WccAttrUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3WccAttr *);
 
-void nfs3WccPrint(Fmt*, Nfs3Wcc*);
-uint32_t nfs3WccSize(Nfs3Wcc*);
-int nfs3WccPack(uint8_t*, uint8_t*, uint8_t**, Nfs3Wcc*);
-int nfs3WccUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Wcc*);
+void nfs3WccPrint(Fmt *, Nfs3Wcc *);
+uint32_t nfs3WccSize(Nfs3Wcc *);
+int nfs3WccPack(uint8_t *, uint8_t *, uint8_t **, Nfs3Wcc *);
+int nfs3WccUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3Wcc *);
 
-void nfs3SetAttrPrint(Fmt*, Nfs3SetAttr*);
-uint32_t nfs3SetAttrSize(Nfs3SetAttr*);
-int nfs3SetAttrPack(uint8_t*, uint8_t*, uint8_t**, Nfs3SetAttr*);
-int nfs3SetAttrUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3SetAttr*);
+void nfs3SetAttrPrint(Fmt *, Nfs3SetAttr *);
+uint32_t nfs3SetAttrSize(Nfs3SetAttr *);
+int nfs3SetAttrPack(uint8_t *, uint8_t *, uint8_t **, Nfs3SetAttr *);
+int nfs3SetAttrUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3SetAttr *);
 
 extern SunProg nfs3Prog;
 
-void nfs3EntryPrint(Fmt*, Nfs3Entry*);
-uint32_t nfs3EntrySize(Nfs3Entry*);
-int nfs3EntryPack(uint8_t*, uint8_t*, uint8_t**, Nfs3Entry*);
-int nfs3EntryUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Entry*);
+void nfs3EntryPrint(Fmt *, Nfs3Entry *);
+uint32_t nfs3EntrySize(Nfs3Entry *);
+int nfs3EntryPack(uint8_t *, uint8_t *, uint8_t **, Nfs3Entry *);
+int nfs3EntryUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3Entry *);
 
-void nfs3EntryPlusPrint(Fmt*, Nfs3Entry*);
-uint32_t nfs3EntryPlusSize(Nfs3Entry*);
-int nfs3EntryPlusPack(uint8_t*, uint8_t*, uint8_t**, Nfs3Entry*);
-int nfs3EntryPlusUnpack(uint8_t*, uint8_t*, uint8_t**, Nfs3Entry*);
-
+void nfs3EntryPlusPrint(Fmt *, Nfs3Entry *);
+uint32_t nfs3EntryPlusSize(Nfs3Entry *);
+int nfs3EntryPlusPack(uint8_t *, uint8_t *, uint8_t **, Nfs3Entry *);
+int nfs3EntryPlusUnpack(uint8_t *, uint8_t *, uint8_t **, Nfs3Entry *);

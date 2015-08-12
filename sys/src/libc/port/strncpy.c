@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-char*
+char *
 strncpy(char *s1, char *s2, uint32_t n)
 {
 	int i;

@@ -22,4 +22,3 @@ snprint(char *buf, int len, char *fmt, ...)
 	va_end(args);
 	return n;
 }
-

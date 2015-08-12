@@ -13,15 +13,14 @@
 
 #include <u.h>
 
-typedef
-struct
-{
-	int	(*cmp)(const void*, const void*);
-	void	(*swap)(char*, char*, int32_t);
-	int32_t	es;
+typedef struct
+    {
+	int (*cmp)(const void *, const void *);
+	void (*swap)(char *, char *, int32_t);
+	int32_t es;
 } Sort;
 
-static	void
+static void
 swapb(char *i, char *j, int32_t es)
 {
 	char c;
@@ -32,16 +31,15 @@ swapb(char *i, char *j, int32_t es)
 		*j++ = c;
 		es--;
 	} while(es != 0);
-
 }
 
-static	void
+static void
 swapi(char *ii, char *ij, int32_t es)
 {
 	int32_t *i, *j, c;
 
-	i = (int32_t*)ii;
-	j = (int32_t*)ij;
+	i = (int32_t *)ii;
+	j = (int32_t *)ij;
 	do {
 		c = *i;
 		*i++ = *j;
@@ -50,17 +48,17 @@ swapi(char *ii, char *ij, int32_t es)
 	} while(es != 0);
 }
 
-static	char*
+static char *
 pivot(char *a, int32_t n, Sort *p)
 {
 	int32_t j;
 	char *pi, *pj, *pk;
 
-	j = n/6 * p->es;
-	pi = a + j;	/* 1/6 */
+	j = n / 6 * p->es;
+	pi = a + j; /* 1/6 */
 	j += j;
-	pj = pi + j;	/* 1/2 */
-	pk = pj + j;	/* 5/6 */
+	pj = pi + j; /* 1/2 */
+	pk = pj + j; /* 5/6 */
 	if(p->cmp(pi, pj) < 0) {
 		if(p->cmp(pi, pk) < 0) {
 			if(p->cmp(pj, pk) < 0)
@@ -77,7 +75,7 @@ pivot(char *a, int32_t n, Sort *p)
 	return pj;
 }
 
-static	void
+static void
 qsorts(char *a, int32_t n, Sort *p)
 {
 	int32_t j, es;
@@ -88,11 +86,11 @@ qsorts(char *a, int32_t n, Sort *p)
 		if(n > 10) {
 			pi = pivot(a, n, p);
 		} else
-			pi = a + (n>>1)*es;
+			pi = a + (n >> 1) * es;
 
 		p->swap(a, pi, es);
 		pi = a;
-		pn = a + n*es;
+		pn = a + n * es;
 		pj = pn;
 		for(;;) {
 			do
@@ -108,19 +106,19 @@ qsorts(char *a, int32_t n, Sort *p)
 		p->swap(a, pj, es);
 		j = (pj - a) / es;
 
-		n = n-j-1;
+		n = n - j - 1;
 		if(j >= n) {
 			qsorts(a, j, p);
-			a += (j+1)*es;
+			a += (j + 1) * es;
 		} else {
-			qsorts(a + (j+1)*es, n, p);
+			qsorts(a + (j + 1) * es, n, p);
 			n = j;
 		}
 	}
 }
 
 void
-qsort(void *va, int32_t n, int32_t es, int (*cmp)(const void*, const void*))
+qsort(void *va, int32_t n, int32_t es, int (*cmp)(const void *, const void *))
 {
 	Sort s;
 
@@ -129,5 +127,5 @@ qsort(void *va, int32_t n, int32_t es, int (*cmp)(const void*, const void*))
 	s.swap = swapi;
 	if(((uintptr)va | es) % sizeof(int32_t))
 		s.swap = swapb;
-	qsorts((char*)va, n, &s);
+	qsorts((char *)va, n, &s);
 }

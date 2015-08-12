@@ -14,9 +14,9 @@
 #include "ndbhf.h"
 
 enum {
-	Dptr,	/* pointer to database file */
-	Cptr,	/* pointer to first chain entry */
-	Cptr1,	/* pointer to second chain entry */
+	Dptr,  /* pointer to database file */
+	Cptr,  /* pointer to first chain entry */
+	Cptr1, /* pointer to second chain entry */
 };
 
 /*
@@ -27,28 +27,27 @@ uint32_t
 ndbhash(char *vp, int hlen)
 {
 	uint32_t hash;
-	uint8_t *val = (uint8_t*)vp;
+	uint8_t *val = (uint8_t *)vp;
 
 	for(hash = 0; *val; val++)
-		hash = (hash*13) + *val-'a';
+		hash = (hash * 13) + *val - 'a';
 	return hash % hlen;
 }
 
 /*
  *  read a hash file with buffering
  */
-static uint8_t*
+static uint8_t *
 hfread(Ndbhf *hf, int32_t off, int len)
 {
-	if(off < hf->off || off + len > hf->off + hf->len){
-		if(seek(hf->fd, off, 0) < 0
-		|| (hf->len = read(hf->fd, hf->buf, sizeof(hf->buf))) < len){
+	if(off < hf->off || off + len > hf->off + hf->len) {
+		if(seek(hf->fd, off, 0) < 0 || (hf->len = read(hf->fd, hf->buf, sizeof(hf->buf))) < len) {
 			hf->off = -1;
 			return 0;
 		}
 		hf->off = off;
 	}
-	return &hf->buf[off-hf->off];
+	return &hf->buf[off - hf->off];
 }
 
 /*
@@ -56,22 +55,21 @@ hfread(Ndbhf *hf, int32_t off, int len)
  *  attribute and if it is current vis-a-vis the data
  *  base file
  */
-static Ndbhf*
+static Ndbhf *
 hfopen(Ndb *db, char *attr)
 {
 	Ndbhf *hf;
-	char buf[sizeof(hf->attr)+sizeof(db->file)+2];
+	char buf[sizeof(hf->attr) + sizeof(db->file) + 2];
 	uint8_t *p;
 	Dir *d;
 
 	/* try opening the data base if it's closed */
-	if(db->mtime==0 && ndbreopen(db) < 0)
+	if(db->mtime == 0 && ndbreopen(db) < 0)
 		return 0;
 
 	/* if the database has changed, throw out hash files and reopen db */
-	if((d = dirfstat(Bfildes(&db->b))) == nil || db->qid.path != d->qid.path
-	|| db->qid.vers != d->qid.vers){
-		if(ndbreopen(db) < 0){
+	if((d = dirfstat(Bfildes(&db->b))) == nil || db->qid.path != d->qid.path || db->qid.vers != d->qid.vers) {
+		if(ndbreopen(db) < 0) {
 			free(d);
 			return 0;
 		}
@@ -82,29 +80,29 @@ hfopen(Ndb *db, char *attr)
 		return 0;
 
 	/* see if a hash file exists for this attribute */
-	for(hf = db->hf; hf; hf= hf->next){
+	for(hf = db->hf; hf; hf = hf->next) {
 		if(strcmp(hf->attr, attr) == 0)
 			return hf;
 	}
 
 	/* create a new one */
-	hf = (Ndbhf*)malloc(sizeof(Ndbhf));
+	hf = (Ndbhf *)malloc(sizeof(Ndbhf));
 	if(hf == 0)
 		return 0;
 	memset(hf, 0, sizeof(Ndbhf));
 
 	/* compare it to the database file */
-	strncpy(hf->attr, attr, sizeof(hf->attr)-1);
+	strncpy(hf->attr, attr, sizeof(hf->attr) - 1);
 	sprint(buf, "%s.%s", db->file, hf->attr);
 	hf->fd = open(buf, OREAD);
-	if(hf->fd >= 0){
+	if(hf->fd >= 0) {
 		hf->len = 0;
 		hf->off = 0;
-		p = hfread(hf, 0, 2*NDBULLEN);
-		if(p){
+		p = hfread(hf, 0, 2 * NDBULLEN);
+		if(p) {
 			hf->dbmtime = NDBGETUL(p);
-			hf->hlen = NDBGETUL(p+NDBULLEN);
-			if(hf->dbmtime == db->mtime){
+			hf->hlen = NDBGETUL(p + NDBULLEN);
+			if(hf->dbmtime == db->mtime) {
 				hf->next = db->hf;
 				db->hf = hf;
 				return hf;
@@ -120,7 +118,7 @@ hfopen(Ndb *db, char *attr)
 /*
  *  return the first matching entry
  */
-Ndbtuple*
+Ndbtuple *
 ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 {
 	uint8_t *p;
@@ -130,11 +128,11 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 	hf = hfopen(db, attr);
 
 	memset(s, 0, sizeof(*s));
-	if(_ndbcachesearch(db, s, attr, val, &t) == 0){
+	if(_ndbcachesearch(db, s, attr, val, &t) == 0) {
 		/* found in cache */
-		if(t != nil){
+		if(t != nil) {
 			ndbsetmalloctag(t, getcallerpc(&db));
-			return t;	/* answer from this file */
+			return t; /* answer from this file */
 		}
 		if(db->next == nil)
 			return nil;
@@ -145,17 +143,17 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 
 	s->db = db;
 	s->hf = hf;
-	if(s->hf){
-		s->ptr = ndbhash(val, s->hf->hlen)*NDBPLEN;
-		p = hfread(s->hf, s->ptr+NDBHLEN, NDBPLEN);
-		if(p == 0){
+	if(s->hf) {
+		s->ptr = ndbhash(val, s->hf->hlen) * NDBPLEN;
+		p = hfread(s->hf, s->ptr + NDBHLEN, NDBPLEN);
+		if(p == 0) {
 			t = _ndbcacheadd(db, s, attr, val, nil);
 			ndbsetmalloctag(t, getcallerpc(&db));
 			return t;
 		}
 		s->ptr = NDBGETP(p);
 		s->type = Cptr1;
-	} else if(db->length > 128*1024){
+	} else if(db->length > 128 * 1024) {
 		print("Missing or out of date hash file %s.%s.\n", db->file, attr);
 		syslog(0, "ndb", "Missing or out of date hash file %s.%s.", db->file, attr);
 
@@ -172,19 +170,18 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 		s->type = Dptr;
 	}
 	t = ndbsnext(s, attr, val);
-	_ndbcacheadd(db, s, attr, val, (t != nil && s->db == db)?t:nil);
+	_ndbcacheadd(db, s, attr, val, (t != nil && s->db == db) ? t : nil);
 	ndbsetmalloctag(t, getcallerpc(&db));
 	return t;
 }
 
-static Ndbtuple*
+static Ndbtuple *
 match(Ndbtuple *t, char *attr, char *val)
 {
 	Ndbtuple *nt;
 
 	for(nt = t; nt; nt = nt->entry)
-		if(strcmp(attr, nt->attr) == 0
-		&& strcmp(val, nt->val) == 0)
+		if(strcmp(attr, nt->attr) == 0 && strcmp(val, nt->val) == 0)
 			return nt;
 	return 0;
 }
@@ -192,7 +189,7 @@ match(Ndbtuple *t, char *attr, char *val)
 /*
  *  return the next matching entry in the hash chain
  */
-Ndbtuple*
+Ndbtuple *
 ndbsnext(Ndbs *s, char *attr, char *val)
 {
 	Ndbtuple *t;
@@ -203,49 +200,49 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 	if(s->ptr == NDBNAP)
 		goto nextfile;
 
-	for(;;){
-		if(s->type == Dptr){
+	for(;;) {
+		if(s->type == Dptr) {
 			if(Bseek(&db->b, s->ptr, 0) < 0)
 				break;
 			t = ndbparse(db);
 			s->ptr = Boffset(&db->b);
 			if(t == 0)
 				break;
-			if(s->t = match(t, attr, val)){
+			if(s->t = match(t, attr, val)) {
 				ndbsetmalloctag(t, getcallerpc(&s));
 				return t;
 			}
 			ndbfree(t);
-		} else if(s->type == Cptr){
+		} else if(s->type == Cptr) {
 			if(Bseek(&db->b, s->ptr, 0) < 0)
-				break; 
+				break;
 			s->ptr = s->ptr1;
 			s->type = Cptr1;
 			t = ndbparse(db);
 			if(t == 0)
 				break;
-			if(s->t = match(t, attr, val)){
+			if(s->t = match(t, attr, val)) {
 				ndbsetmalloctag(t, getcallerpc(&s));
 				return t;
 			}
 			ndbfree(t);
-		} else if(s->type == Cptr1){
-			if(s->ptr & NDBCHAIN){	/* hash chain continuation */
+		} else if(s->type == Cptr1) {
+			if(s->ptr & NDBCHAIN) { /* hash chain continuation */
 				s->ptr &= ~NDBCHAIN;
-				p = hfread(s->hf, s->ptr+NDBHLEN, 2*NDBPLEN);
+				p = hfread(s->hf, s->ptr + NDBHLEN, 2 * NDBPLEN);
 				if(p == 0)
 					break;
 				s->ptr = NDBGETP(p);
-				s->ptr1 = NDBGETP(p+NDBPLEN);
+				s->ptr1 = NDBGETP(p + NDBPLEN);
 				s->type = Cptr;
-			} else {		/* end of hash chain */
+			} else { /* end of hash chain */
 				if(Bseek(&db->b, s->ptr, 0) < 0)
-					break; 
+					break;
 				s->ptr = NDBNAP;
 				t = ndbparse(db);
 				if(t == 0)
 					break;
-				if(s->t = match(t, attr, val)){
+				if(s->t = match(t, attr, val)) {
 					ndbsetmalloctag(t, getcallerpc(&s));
 					return t;
 				}

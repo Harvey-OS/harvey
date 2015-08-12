@@ -26,84 +26,92 @@
 #include "pangen4.h"
 #include "pangen5.h"
 
-#define DELTA	500	/* sets an upperbound on nr of chan names */
+#define DELTA 500 /* sets an upperbound on nr of chan names */
 
-#define blurb(fd, e)	{ fprintf(fd, "\n"); if (!merger) fprintf(fd, "\t\t/* %s:%d */\n", \
-				e->n->fn->name, e->n->ln); }
-#define tr_map(m, e)	{ if (!merger) fprintf(tt, "\t\ttr_2_src(%d, \"%s\", %d);\n", \
-				m, e->n->fn->name, e->n->ln); }
+#define blurb(fd, e)                                                                \
+	{                                                                           \
+		fprintf(fd, "\n");                                                  \
+		if(!merger)                                                         \
+			fprintf(fd, "\t\t/* %s:%d */\n", e->n->fn->name, e->n->ln); \
+	}
+#define tr_map(m, e)                                                                                 \
+	{                                                                                            \
+		if(!merger)                                                                          \
+			fprintf(tt, "\t\ttr_2_src(%d, \"%s\", %d);\n", m, e->n->fn->name, e->n->ln); \
+	}
 
-extern ProcList	*rdy;
-extern RunList	*run;
-extern Symbol	*Fname, *oFname, *context;
-extern char	*claimproc, *eventmap;
-extern int	lineno, verbose, Npars, Mpars, nclaims;
-extern int	m_loss, has_remote, has_remvar, merger, rvopt, separate;
-extern int	Ntimeouts, Etimeouts, deadvar, old_scope_rules;
-extern int	u_sync, u_async, nrRdy, Unique;
-extern int	GenCode, IsGuard, Level, TestOnly;
-extern int16_t	has_stack;
-extern char	*NextLab[];
+extern ProcList *rdy;
+extern RunList *run;
+extern Symbol *Fname, *oFname, *context;
+extern char *claimproc, *eventmap;
+extern int lineno, verbose, Npars, Mpars, nclaims;
+extern int m_loss, has_remote, has_remvar, merger, rvopt, separate;
+extern int Ntimeouts, Etimeouts, deadvar, old_scope_rules;
+extern int u_sync, u_async, nrRdy, Unique;
+extern int GenCode, IsGuard, Level, TestOnly;
+extern int16_t has_stack;
+extern char *NextLab[];
 
-FILE	*tc, *th, *tt, *tb;
-static FILE	*tm;
+FILE *tc, *th, *tt, *tb;
+static FILE *tm;
 
-int	OkBreak = -1, has_hidden = 0; /* has_hidden set in sym.c and structs.c */
-int16_t	nocast=0;	/* to turn off casts in lvalues */
-int16_t	terse=0;	/* terse printing of varnames */
-int16_t	no_arrays=0;
-int16_t	has_last=0;	/* spec refers to _last */
-int16_t	has_badelse=0;	/* spec contains else combined with chan refs */
-int16_t	has_enabled=0;	/* spec contains enabled() */
-int16_t	has_pcvalue=0;	/* spec contains pc_value() */
-int16_t	has_np=0;	/* spec contains np_ */
-int16_t	has_sorted=0;	/* spec contains `!!' (sorted-send) operator */
-int16_t	has_random=0;	/* spec contains `??' (random-recv) operator */
-int16_t	has_xu=0;	/* spec contains xr or xs assertions */
-int16_t	has_unless=0;	/* spec contains unless statements */
-int16_t	has_provided=0;	/* spec contains PROVIDED clauses on procs */
-int16_t	has_code=0;	/* spec contains c_code, c_expr, c_state */
-int16_t	evalindex=0;	/* evaluate index of var names */
-int	mst=0;		/* max nr of state/process */
-int	claimnr = -1;	/* claim process, if any */
-int	eventmapnr = -1; /* event trace, if any */
-int	Pid;		/* proc currently processed */
-int	multi_oval;	/* set in merges, used also in pangen4.c */
+int OkBreak = -1, has_hidden = 0; /* has_hidden set in sym.c and structs.c */
+int16_t nocast = 0;		  /* to turn off casts in lvalues */
+int16_t terse = 0;		  /* terse printing of varnames */
+int16_t no_arrays = 0;
+int16_t has_last = 0;     /* spec refers to _last */
+int16_t has_badelse = 0;  /* spec contains else combined with chan refs */
+int16_t has_enabled = 0;  /* spec contains enabled() */
+int16_t has_pcvalue = 0;  /* spec contains pc_value() */
+int16_t has_np = 0;       /* spec contains np_ */
+int16_t has_sorted = 0;   /* spec contains `!!' (sorted-send) operator */
+int16_t has_random = 0;   /* spec contains `??' (random-recv) operator */
+int16_t has_xu = 0;       /* spec contains xr or xs assertions */
+int16_t has_unless = 0;   /* spec contains unless statements */
+int16_t has_provided = 0; /* spec contains PROVIDED clauses on procs */
+int16_t has_code = 0;     /* spec contains c_code, c_expr, c_state */
+int16_t evalindex = 0;    /* evaluate index of var names */
+int mst = 0;		  /* max nr of state/process */
+int claimnr = -1;	 /* claim process, if any */
+int eventmapnr = -1;      /* event trace, if any */
+int Pid;		  /* proc currently processed */
+int multi_oval;		  /* set in merges, used also in pangen4.c */
 
-#define MAXMERGE	256	/* max nr of bups per merge sequence */
+#define MAXMERGE 256 /* max nr of bups per merge sequence */
 
-static int16_t	CnT[MAXMERGE];
-static Lextok	XZ, YZ[MAXMERGE];
-static int	didcase, YZmax, YZcnt;
+static int16_t CnT[MAXMERGE];
+static Lextok XZ, YZ[MAXMERGE];
+static int didcase, YZmax, YZcnt;
 
-static Lextok	*Nn[2];
-static int	Det;	/* set if deterministic */
-static int	T_sum, T_mus, t_cyc;
-static int	TPE[2], EPT[2];
-static int	uniq=1;
-static int	multi_needed, multi_undo;
-static int16_t	AllGlobal=0;	/* set if process has provided clause */
-static int16_t	withprocname=0;	/* prefix local varnames with procname */
-static int16_t	_isok=0;	/* checks usage of predefined variable _ */
+static Lextok *Nn[2];
+static int Det; /* set if deterministic */
+static int T_sum, T_mus, t_cyc;
+static int TPE[2], EPT[2];
+static int uniq = 1;
+static int multi_needed, multi_undo;
+static int16_t AllGlobal = 0;    /* set if process has provided clause */
+static int16_t withprocname = 0; /* prefix local varnames with procname */
+static int16_t _isok = 0;	/* checks usage of predefined variable _ */
 
-int	has_global(Lextok *);
-void	Fatal(char *, char *);
-static int	getweight(Lextok *);
-static int	scan_seq(Sequence *);
-static void	genconditionals(void);
-static void	mark_seq(Sequence *);
-static void	patch_atomic(Sequence *);
-static void	put_seq(Sequence *, int, int);
-static void	putproc(ProcList *);
-static void	Tpe(Lextok *);
-extern void	spit_recvs(FILE *, FILE*);
+int has_global(Lextok *);
+void Fatal(char *, char *);
+static int getweight(Lextok *);
+static int scan_seq(Sequence *);
+static void genconditionals(void);
+static void mark_seq(Sequence *);
+static void patch_atomic(Sequence *);
+static void put_seq(Sequence *, int, int);
+static void putproc(ProcList *);
+static void Tpe(Lextok *);
+extern void spit_recvs(FILE *, FILE *);
 
 static int
 fproc(char *s)
-{	ProcList *p;
+{
+	ProcList *p;
 
-	for (p = rdy; p; p = p->nxt)
-		if (strcmp(p->n->name, s) == 0)
+	for(p = rdy; p; p = p->nxt)
+		if(strcmp(p->n->name, s) == 0)
 			return p->tn;
 
 	fatal("proctype %s not found", s);
@@ -111,11 +119,13 @@ fproc(char *s)
 }
 
 int
-pid_is_claim(int p)	/* Pid (p->tn) to type (p->b) */
-{	ProcList *r;
+pid_is_claim(int p) /* Pid (p->tn) to type (p->b) */
+{
+	ProcList *r;
 
-	for (r = rdy; r; r = r->nxt)
-	{	if (r->tn == p) return (r->b == N_CLAIM);
+	for(r = rdy; r; r = r->nxt) {
+		if(r->tn == p)
+			return (r->b == N_CLAIM);
 	}
 	printf("spin: error, cannot find pid %d\n", p);
 	return 0;
@@ -124,7 +134,8 @@ pid_is_claim(int p)	/* Pid (p->tn) to type (p->b) */
 static void
 reverse_procs(RunList *q)
 {
-	if (!q) return;
+	if(!q)
+		return;
 	reverse_procs(q->nxt);
 	fprintf(tc, "		Addproc(%d);\n", q->tn);
 }
@@ -132,7 +143,8 @@ reverse_procs(RunList *q)
 static void
 forward_procs(RunList *q)
 {
-	if (!q) return;
+	if(!q)
+		return;
 	fprintf(tc, "		Addproc(%d);\n", q->tn);
 	forward_procs(q->nxt);
 }
@@ -143,20 +155,21 @@ tm_predef_np(void)
 	fprintf(th, "#define _T5	%d\n", uniq++);
 	fprintf(th, "#define _T2	%d\n", uniq++);
 
-	if (Unique < (1 << (8*sizeof(unsigned char)) ))	/* was uniq before */
-	{	fprintf(th, "#define T_ID	unsigned char\n");
-	} else if (Unique < (1 << (8*sizeof(unsigned short)) ))
-	{	fprintf(th, "#define T_ID	unsigned short\n");
-	} else
-	{	fprintf(th, "#define T_ID	unsigned int\n");
+	if(Unique < (1 << (8 * sizeof(unsigned char)))) /* was uniq before */
+	{
+		fprintf(th, "#define T_ID	unsigned char\n");
+	} else if(Unique < (1 << (8 * sizeof(unsigned short)))) {
+		fprintf(th, "#define T_ID	unsigned short\n");
+	} else {
+		fprintf(th, "#define T_ID	unsigned int\n");
 	}
 
 	fprintf(tm, "\tcase  _T5:\t/* np_ */\n");
 
-	if (separate == 2)
-	fprintf(tm, "\t\tif (!((!(o_pm&4) && !(tau&128))))\n");
+	if(separate == 2)
+		fprintf(tm, "\t\tif (!((!(o_pm&4) && !(tau&128))))\n");
 	else
-	fprintf(tm, "\t\tif (!((!(trpt->o_pm&4) && !(trpt->tau&128))))\n");
+		fprintf(tm, "\t\tif (!((!(trpt->o_pm&4) && !(trpt->tau&128))))\n");
 
 	fprintf(tm, "\t\t\tcontinue;\n");
 	fprintf(tm, "\t\t/* else fall through */\n");
@@ -181,42 +194,44 @@ tt_predef_np(void)
 static struct {
 	char *nm[3];
 } Cfile[] = {
-	{ { "pan.c", "pan_s.c", "pan_t.c" } },
-	{ { "pan.h", "pan_s.h", "pan_t.h" } },
-	{ { "pan.t", "pan_s.t", "pan_t.t" } },
-	{ { "pan.m", "pan_s.m", "pan_t.m" } },
-	{ { "pan.b", "pan_s.b", "pan_t.b" } }
-};
+    {{"pan.c", "pan_s.c", "pan_t.c"}},
+    {{"pan.h", "pan_s.h", "pan_t.h"}},
+    {{"pan.t", "pan_s.t", "pan_t.t"}},
+    {{"pan.m", "pan_s.m", "pan_t.m"}},
+    {{"pan.b", "pan_s.b", "pan_t.b"}}};
 
 void
 gensrc(void)
-{	ProcList *p;
+{
+	ProcList *p;
 	int i;
 
-	disambiguate();		/* avoid name-clashes between scopes */
+	disambiguate(); /* avoid name-clashes between scopes */
 
-	if (!(tc = fopen(Cfile[0].nm[separate], MFLAGS))		/* main routines */
-	||  !(th = fopen(Cfile[1].nm[separate], MFLAGS))		/* header file   */
-	||  !(tt = fopen(Cfile[2].nm[separate], MFLAGS))		/* transition matrix */
-	||  !(tm = fopen(Cfile[3].nm[separate], MFLAGS))		/* forward  moves */
-	||  !(tb = fopen(Cfile[4].nm[separate], MFLAGS)))	/* backward moves */
-	{	printf("spin: cannot create pan.[chtmfb]\n");
+	if(!(tc = fopen(Cfile[0].nm[separate], MFLAGS))     /* main routines */
+	   || !(th = fopen(Cfile[1].nm[separate], MFLAGS))  /* header file   */
+	   || !(tt = fopen(Cfile[2].nm[separate], MFLAGS))  /* transition matrix */
+	   || !(tm = fopen(Cfile[3].nm[separate], MFLAGS))  /* forward  moves */
+	   || !(tb = fopen(Cfile[4].nm[separate], MFLAGS))) /* backward moves */
+	{
+		printf("spin: cannot create pan.[chtmfb]\n");
 		alldone(1);
 	}
 
 	fprintf(th, "#define SpinVersion	\"%s\"\n", SpinVersion);
 	fprintf(th, "#define PanSource	\"");
-	for (i = 0; oFname->name[i] != '\0'; i++)
-	{	char c = oFname->name[i];
-		if (c == '\\' || c == ' ') /* Windows path */
-		{	fprintf(th, "\\");
+	for(i = 0; oFname->name[i] != '\0'; i++) {
+		char c = oFname->name[i];
+		if(c == '\\' || c == ' ') /* Windows path */
+		{
+			fprintf(th, "\\");
 		}
 		fprintf(th, "%c", c);
 	}
 	fprintf(th, "\"\n\n");
 
-	fprintf(th, "#define G_long	%d\n", (int) sizeof(int32_t));
-	fprintf(th, "#define G_int	%d\n", (int) sizeof(int));
+	fprintf(th, "#define G_long	%d\n", (int)sizeof(int32_t));
+	fprintf(th, "#define G_int	%d\n", (int)sizeof(int));
 
 	fprintf(th, "#ifdef WIN64\n");
 	fprintf(th, "	#define ONE_L	((unsigned long) 1)\n");
@@ -225,8 +240,8 @@ gensrc(void)
 	fprintf(th, "	#define ONE_L	(1L)\n");
 	fprintf(th, "#endif\n");
 
-	if (separate != 2)
-	{	fprintf(th, "char *TrailFile = PanSource; /* default */\n");
+	if(separate != 2) {
+		fprintf(th, "char *TrailFile = PanSource; /* default */\n");
 		fprintf(th, "char *trailfilename;\n");
 	}
 
@@ -246,28 +261,29 @@ gensrc(void)
 	fprintf(th, "	#define uint	unsigned int\n");
 	fprintf(th, "#endif\n");
 
-	if (sizeof(void *) > 4)	/* 64 bit machine */
-	{	fprintf(th, "#if !defined(HASH32) && !defined(HASH64)\n");
+	if(sizeof(void *) > 4) /* 64 bit machine */
+	{
+		fprintf(th, "#if !defined(HASH32) && !defined(HASH64)\n");
 		fprintf(th, "	#define HASH64\n");
 		fprintf(th, "#endif\n");
 	}
 
-	if (separate == 1 && !claimproc)
-	{	Symbol *n = (Symbol *) emalloc(sizeof(Symbol));
-		Sequence *s = (Sequence *) emalloc(sizeof(Sequence));
+	if(separate == 1 && !claimproc) {
+		Symbol *n = (Symbol *)emalloc(sizeof(Symbol));
+		Sequence *s = (Sequence *)emalloc(sizeof(Sequence));
 		claimproc = n->name = "_:never_template:_";
 		ready(n, ZN, s, 0, ZN, N_CLAIM);
 	}
-	if (separate == 2)
-	{	if (has_remote)
-		{	printf("spin: warning, make sure that the S1 model\n");
+	if(separate == 2) {
+		if(has_remote) {
+			printf("spin: warning, make sure that the S1 model\n");
 			printf("      includes the same remote references\n");
 		}
 		fprintf(th, "#ifndef NFAIR\n");
 		fprintf(th, "#define NFAIR	2	/* must be >= 2 */\n");
 		fprintf(th, "#endif\n");
-		if (has_last)
-		fprintf(th, "#define HAS_LAST	%d\n", has_last);
+		if(has_last)
+			fprintf(th, "#define HAS_LAST	%d\n", has_last);
 		goto doless;
 	}
 
@@ -289,52 +305,49 @@ gensrc(void)
 	fprintf(th, "#ifndef NFAIR\n");
 	fprintf(th, "	#define NFAIR	2	/* must be >= 2 */\n");
 	fprintf(th, "#endif\n");
-	if (Ntimeouts)
-	fprintf(th, "#define NTIM	%d\n", Ntimeouts);
-	if (Etimeouts)
-	fprintf(th, "#define ETIM	%d\n", Etimeouts);
-	if (has_remvar)
-	fprintf(th, "#define REM_VARS	1\n");
-	if (has_remote)
-	fprintf(th, "#define REM_REFS	%d\n", has_remote); /* not yet used */
-	if (has_hidden)
-	fprintf(th, "#define HAS_HIDDEN	%d\n", has_hidden);
-	if (has_last)
-	fprintf(th, "#define HAS_LAST	%d\n", has_last);
-	if (has_sorted)
-	fprintf(th, "#define HAS_SORTED	%d\n", has_sorted);
-	if (m_loss)
-	fprintf(th, "#define M_LOSS\n");
-	if (has_random)
-	fprintf(th, "#define HAS_RANDOM	%d\n", has_random);
-	fprintf(th, "#define HAS_CODE\n");	/* doesn't seem to cause measurable overhead */
+	if(Ntimeouts)
+		fprintf(th, "#define NTIM	%d\n", Ntimeouts);
+	if(Etimeouts)
+		fprintf(th, "#define ETIM	%d\n", Etimeouts);
+	if(has_remvar)
+		fprintf(th, "#define REM_VARS	1\n");
+	if(has_remote)
+		fprintf(th, "#define REM_REFS	%d\n", has_remote); /* not yet used */
+	if(has_hidden)
+		fprintf(th, "#define HAS_HIDDEN	%d\n", has_hidden);
+	if(has_last)
+		fprintf(th, "#define HAS_LAST	%d\n", has_last);
+	if(has_sorted)
+		fprintf(th, "#define HAS_SORTED	%d\n", has_sorted);
+	if(m_loss)
+		fprintf(th, "#define M_LOSS\n");
+	if(has_random)
+		fprintf(th, "#define HAS_RANDOM	%d\n", has_random);
+	fprintf(th, "#define HAS_CODE\n"); /* doesn't seem to cause measurable overhead */
 	fprintf(th, "#if defined(RANDSTORE) && !defined(RANDSTOR)\n");
 	fprintf(th, "	#define RANDSTOR	RANDSTORE\n"); /* xspin uses RANDSTORE... */
 	fprintf(th, "#endif\n");
-	if (has_stack)
-	fprintf(th, "#define HAS_STACK	%d\n", has_stack);
-	if (has_enabled)
-	fprintf(th, "#define HAS_ENABLED	1\n");
-	if (has_unless)
-	fprintf(th, "#define HAS_UNLESS	%d\n", has_unless);
-	if (has_provided)
-	fprintf(th, "#define HAS_PROVIDED	%d\n", has_provided);
-	if (has_pcvalue)
-	fprintf(th, "#define HAS_PCVALUE	%d\n", has_pcvalue);
-	if (has_badelse)
-	fprintf(th, "#define HAS_BADELSE	%d\n", has_badelse);
-	if (has_enabled
-	||  has_pcvalue
-	||  has_badelse
-	||  has_last)
-	{	fprintf(th, "#ifndef NOREDUCE\n");
+	if(has_stack)
+		fprintf(th, "#define HAS_STACK	%d\n", has_stack);
+	if(has_enabled)
+		fprintf(th, "#define HAS_ENABLED	1\n");
+	if(has_unless)
+		fprintf(th, "#define HAS_UNLESS	%d\n", has_unless);
+	if(has_provided)
+		fprintf(th, "#define HAS_PROVIDED	%d\n", has_provided);
+	if(has_pcvalue)
+		fprintf(th, "#define HAS_PCVALUE	%d\n", has_pcvalue);
+	if(has_badelse)
+		fprintf(th, "#define HAS_BADELSE	%d\n", has_badelse);
+	if(has_enabled || has_pcvalue || has_badelse || has_last) {
+		fprintf(th, "#ifndef NOREDUCE\n");
 		fprintf(th, "	#define NOREDUCE	1\n");
 		fprintf(th, "#endif\n");
 	}
-	if (has_np)
-	fprintf(th, "#define HAS_NP	%d\n", has_np);
-	if (merger)
-	fprintf(th, "#define MERGED	1\n");
+	if(has_np)
+		fprintf(th, "#define HAS_NP	%d\n", has_np);
+	if(merger)
+		fprintf(th, "#define MERGED	1\n");
 
 doless:
 	fprintf(th, "#if !defined(HAS_LAST) && defined(BCS)\n");
@@ -351,12 +364,12 @@ doless:
 	fprintf(th, "#endif\n");
 
 	fprintf(th, "#ifdef NP\n");
-	if (!has_np)
-	fprintf(th, "	#define HAS_NP	2\n");
-	fprintf(th, "	#define VERI	%d	/* np_ */\n",	nrRdy);
+	if(!has_np)
+		fprintf(th, "	#define HAS_NP	2\n");
+	fprintf(th, "	#define VERI	%d	/* np_ */\n", nrRdy);
 	fprintf(th, "#endif\n");
-	if (claimproc)
-	{	claimnr = fproc(claimproc);	/* the default claim */
+	if(claimproc) {
+		claimnr = fproc(claimproc); /* the default claim */
 		fprintf(th, "#ifndef NOCLAIM\n");
 		fprintf(th, "	#define NCLAIMS	%d\n", nclaims);
 		fprintf(th, "	#ifndef NP\n");
@@ -364,12 +377,12 @@ doless:
 		fprintf(th, "	#endif\n");
 		fprintf(th, "#endif\n");
 	}
-	if (eventmap)
-	{	eventmapnr = fproc(eventmap);
-		fprintf(th, "#define EVENT_TRACE	%d\n",	eventmapnr);
-		fprintf(th, "#define endevent	endstate%d\n",	eventmapnr);
-		if (eventmap[2] == 'o')	/* ":notrace:" */
-		fprintf(th, "#define NEGATED_TRACE	1\n");
+	if(eventmap) {
+		eventmapnr = fproc(eventmap);
+		fprintf(th, "#define EVENT_TRACE	%d\n", eventmapnr);
+		fprintf(th, "#define endevent	endstate%d\n", eventmapnr);
+		if(eventmap[2] == 'o') /* ":notrace:" */
+			fprintf(th, "#define NEGATED_TRACE	1\n");
 	}
 
 	fprintf(th, "typedef struct S_F_MAP {\n");
@@ -381,12 +394,18 @@ doless:
 
 	ntimes(tc, 0, 1, Pre0);
 
-	plunk_c_decls(tc);	/* types can be refered to in State */
+	plunk_c_decls(tc); /* types can be refered to in State */
 
-	switch (separate) {
-	case 0:	fprintf(tc, "#include \"pan.h\"\n"); break;
-	case 1:	fprintf(tc, "#include \"pan_s.h\"\n"); break;
-	case 2:	fprintf(tc, "#include \"pan_t.h\"\n"); break;
+	switch(separate) {
+	case 0:
+		fprintf(tc, "#include \"pan.h\"\n");
+		break;
+	case 1:
+		fprintf(tc, "#include \"pan_s.h\"\n");
+		break;
+	case 2:
+		fprintf(tc, "#include \"pan_t.h\"\n");
+		break;
 	}
 
 	fprintf(tc, "#ifdef LOOPSTATE\n");
@@ -395,9 +414,9 @@ doless:
 
 	fprintf(tc, "State	A_Root;	/* seed-state for cycles */\n");
 	fprintf(tc, "State	now;	/* the full state-vector */\n");
-	plunk_c_fcts(tc);	/* State can be used in fcts */
+	plunk_c_fcts(tc); /* State can be used in fcts */
 
-	if (separate != 2)
+	if(separate != 2)
 		ntimes(tc, 0, 1, Preamble);
 	else
 		fprintf(tc, "extern int verbose; extern long depth;\n");
@@ -408,13 +427,13 @@ doless:
 	fprintf(tc, "	#define Index(x, y)\tx\n");
 	fprintf(tc, "#endif\n");
 
-	c_preview();	/* sets hastrack */
+	c_preview(); /* sets hastrack */
 
-	for (p = rdy; p; p = p->nxt)
+	for(p = rdy; p; p = p->nxt)
 		mst = max(p->s->maxel, mst);
 
-	if (separate != 2)
-	{	fprintf(tt, "#ifdef PEG\n");
+	if(separate != 2) {
+		fprintf(tt, "#ifdef PEG\n");
 		fprintf(tt, "struct T_SRC {\n");
 		fprintf(tt, "	char *fl; int ln;\n");
 		fprintf(tt, "} T_SRC[NTRANS];\n\n");
@@ -427,8 +446,8 @@ doless:
 		fprintf(tt, "	printf(\"%%s:%%d\\n\",\n");
 		fprintf(tt, "		T_SRC[n].fl, T_SRC[n].ln);\n");
 		fprintf(tt, "}\n");
-		if (!merger)
-		{	fprintf(tt, "#else\n");
+		if(!merger) {
+			fprintf(tt, "#else\n");
 			fprintf(tt, "#define tr_2_src(m,f,l)\n");
 		}
 		fprintf(tt, "#endif\n\n");
@@ -436,15 +455,14 @@ doless:
 		fprintf(tt, "\tTrans *settr(int, int, int, int, int,");
 		fprintf(tt, " char *, int, int, int);\n\n");
 		fprintf(tt, "\ttrans = (Trans ***) ");
-		fprintf(tt, "emalloc(%d*sizeof(Trans **));\n", nrRdy+1);
-				/* +1 for np_ automaton */
+		fprintf(tt, "emalloc(%d*sizeof(Trans **));\n", nrRdy + 1);
+		/* +1 for np_ automaton */
 
-		if (separate == 1)
-		{
-		fprintf(tm, "	if (II == 0)\n");
-		fprintf(tm, "	{ _m = step_claim(trpt->o_pm, trpt->tau, tt, ot, t);\n");
-		fprintf(tm, "	  if (_m) goto P999; else continue;\n");
-		fprintf(tm, "	} else\n");
+		if(separate == 1) {
+			fprintf(tm, "	if (II == 0)\n");
+			fprintf(tm, "	{ _m = step_claim(trpt->o_pm, trpt->tau, tt, ot, t);\n");
+			fprintf(tm, "	  if (_m) goto P999; else continue;\n");
+			fprintf(tm, "	} else\n");
 		}
 
 		fprintf(tm, "#define rand	pan_rand\n");
@@ -452,8 +470,8 @@ doless:
 		fprintf(tm, "	cpu_printf(\"Pr: %%d Tr: %%d\\n\", II, t->forw);\n");
 		fprintf(tm, "#endif\n");
 		fprintf(tm, "	switch (t->forw) {\n");
-	} else
-	{	fprintf(tt, "#ifndef PEG\n");
+	} else {
+		fprintf(tt, "#ifndef PEG\n");
 		fprintf(tt, "	#define tr_2_src(m,f,l)\n");
 		fprintf(tt, "#endif\n");
 		fprintf(tt, "void\nset_claim(void)\n{\tTrans *T;\n");
@@ -472,71 +490,70 @@ doless:
 	fprintf(tm, "	case 0:	/* if without executable clauses */\n");
 	fprintf(tm, "		continue;\n");
 	fprintf(tm, "	case 1: /* generic 'goto' or 'skip' */\n");
-	if (separate != 2)
+	if(separate != 2)
 		fprintf(tm, "		IfNotBlocked\n");
 	fprintf(tm, "		_m = 3; goto P999;\n");
 	fprintf(tm, "	case 2: /* generic 'else' */\n");
-	if (separate == 2)
+	if(separate == 2)
 		fprintf(tm, "		if (o_pm&1) continue;\n");
-	else
-	{	fprintf(tm, "		IfNotBlocked\n");
+	else {
+		fprintf(tm, "		IfNotBlocked\n");
 		fprintf(tm, "		if (trpt->o_pm&1) continue;\n");
 	}
 	fprintf(tm, "		_m = 3; goto P999;\n");
 	uniq = 3;
 
-	if (separate == 1)
+	if(separate == 1)
 		fprintf(tb, "	if (II == 0) goto R999;\n");
 
 	fprintf(tb, "	switch (t->back) {\n");
 	fprintf(tb, "	default: Uerror(\"bad return move\");\n");
 	fprintf(tb, "	case  0: goto R999; /* nothing to undo */\n");
 
-	for (p = rdy; p; p = p->nxt)
-	{	putproc(p);
+	for(p = rdy; p; p = p->nxt) {
+		putproc(p);
 	}
 
-	if (separate != 2)
-	{
+	if(separate != 2) {
 		fprintf(th, "struct {\n");
 		fprintf(th, "	int tp; short *src;\n");
 		fprintf(th, "} src_all[] = {\n");
-		for (p = rdy; p; p = p->nxt)
+		for(p = rdy; p; p = p->nxt)
 			fprintf(th, "	{ %d, &src_ln%d[0] },\n",
 				p->tn, p->tn);
 		fprintf(th, "	{ 0, (short *) 0 }\n");
 		fprintf(th, "};\n");
 
-		fprintf(th, "S_F_MAP *flref[] = {\n");	/* 5.3.0 */
-		for (p = rdy; p; p = p->nxt)
-		{	fprintf(th, "	src_file%d%c\n", p->tn, p->nxt?',':' ');
+		fprintf(th, "S_F_MAP *flref[] = {\n"); /* 5.3.0 */
+		for(p = rdy; p; p = p->nxt) {
+			fprintf(th, "	src_file%d%c\n", p->tn, p->nxt ? ',' : ' ');
 		}
 		fprintf(th, "};\n");
 	}
 
 	gencodetable(th);
 
-	if (separate != 1)
-	{	tm_predef_np();
+	if(separate != 1) {
+		tm_predef_np();
 		tt_predef_np();
 	}
-	fprintf(tt, "}\n\n");	/* end of settable() */
+	fprintf(tt, "}\n\n"); /* end of settable() */
 
 	fprintf(tm, "#undef rand\n");
 	fprintf(tm, "	}\n\n");
 	fprintf(tb, "	}\n\n");
 
-	if (separate != 2)
-	{	ntimes(tt, 0, 1, Tail);
+	if(separate != 2) {
+		ntimes(tt, 0, 1, Tail);
 		genheader();
-		if (separate == 1)
-		{	fprintf(th, "#define FORWARD_MOVES\t\"pan_s.m\"\n");
+		if(separate == 1) {
+			fprintf(th, "#define FORWARD_MOVES\t\"pan_s.m\"\n");
 			fprintf(th, "#define REVERSE_MOVES\t\"pan_s.b\"\n");
 			fprintf(th, "#define SEPARATE\n");
 			fprintf(th, "#define TRANSITIONS\t\"pan_s.t\"\n");
 			fprintf(th, "extern void ini_claim(int, int);\n");
-		} else
-		{	fprintf(th, "#define FORWARD_MOVES\t\"pan.m\"\n");
+		} else {
+			fprintf(th, "#define FORWARD_MOVES\t\"pan.m\"\n");
 			fprintf(th, "#define REVERSE_MOVES\t\"pan.b\"\n");
 			fprintf(th, "#define TRANSITIONS\t\"pan.t\"\n");
 		}
@@ -546,17 +563,18 @@ doless:
 		genunio();
 		genconditionals();
 		gensvmap();
-		if (!run) fatal("no runable process", (char *)0);
+		if(!run)
+			fatal("no runable process", (char *)0);
 		fprintf(tc, "void\n");
 		fprintf(tc, "active_procs(void)\n{\n");
 #if 1
 		fprintf(tc, "	if (!permuted) {\n");
-			reverse_procs(run);
+		reverse_procs(run);
 		fprintf(tc, "	} else {\n");
-			forward_procs(run);
+		forward_procs(run);
 		fprintf(tc, "	}\n");
 #else
-			reverse_procs(run);
+		reverse_procs(run);
 #endif
 		fprintf(tc, "}\n");
 		ntimes(tc, 0, 1, Dfa);
@@ -567,11 +585,11 @@ doless:
 		fprintf(th, "	long peg[NTRANS];\n");
 		fprintf(th, "#endif\n");
 		fprintf(th, "void select_claim(int);\n");
-		if (u_sync && !u_async)
-		{	spit_recvs(th, tc);
+		if(u_sync && !u_async) {
+			spit_recvs(th, tc);
 		}
-	} else
-	{	genheader();
+	} else {
+		genheader();
 		fprintf(th, "#define FORWARD_MOVES\t\"pan_t.m\"\n");
 		fprintf(th, "#define REVERSE_MOVES\t\"pan_t.b\"\n");
 		fprintf(th, "#define TRANSITIONS\t\"pan_t.t\"\n");
@@ -612,56 +630,59 @@ doless:
 		fprintf(tc, "#include TRANSITIONS\n");
 	}
 
-	if (separate != 2)
-	{	c_wrapper(tc);
+	if(separate != 2) {
+		c_wrapper(tc);
 		c_chandump(tc);
 	}
 }
 
 static int
 find_id(Symbol *s)
-{	ProcList *p;
+{
+	ProcList *p;
 
-	if (s)
-	for (p = rdy; p; p = p->nxt)
-		if (s == p->n)
-			return p->tn;
+	if(s)
+		for(p = rdy; p; p = p->nxt)
+			if(s == p->n)
+				return p->tn;
 	return 0;
 }
 
 static void
 dolen(Symbol *s, char *pre, int pid, int ai, int qln)
 {
-	if (ai > 0)
+	if(ai > 0)
 		fprintf(tc, "\n\t\t\t ||    ");
 	fprintf(tc, "%s(", pre);
-	if (!(s->hidden&1))
-	{	if (s->context)
+	if(!(s->hidden & 1)) {
+		if(s->context)
 			fprintf(tc, "(int) ( ((P%d *)this)->", pid);
 		else
 			fprintf(tc, "(int) ( now.");
 	}
 	fprintf(tc, "%s", s->name);
-	if (qln > 1 || s->isarray) fprintf(tc, "[%d]", ai);
+	if(qln > 1 || s->isarray)
+		fprintf(tc, "[%d]", ai);
 	fprintf(tc, ") )");
 }
 
-struct AA {	char TT[9];	char CC[8]; };
+struct AA {
+	char TT[9];
+	char CC[8];
+};
 
 static struct AA BB[4] = {
-	{ "Q_FULL_F",	" q_full" },
-	{ "Q_FULL_T",	"!q_full" },
-	{ "Q_EMPT_F",	" !q_len" },
-	{ "Q_EMPT_T",	"  q_len" }
-	};
+    {"Q_FULL_F", " q_full"},
+    {"Q_FULL_T", "!q_full"},
+    {"Q_EMPT_F", " !q_len"},
+    {"Q_EMPT_T", "  q_len"}};
 
 static struct AA DD[4] = {
-	{ "Q_FULL_F",	" q_e_f" },	/* empty or full */
-	{ "Q_FULL_T",	"!q_full" },
-	{ "Q_EMPT_F",	" q_e_f" },
-	{ "Q_EMPT_T",	" q_len" }
-	};
-	/* this reduces the number of cases where 's' and 'r'
+    {"Q_FULL_F", " q_e_f"}, /* empty or full */
+    {"Q_FULL_T", "!q_full"},
+    {"Q_EMPT_F", " q_e_f"},
+    {"Q_EMPT_T", " q_len"}};
+/* this reduces the number of cases where 's' and 'r'
 	   are considered conditionally safe under the
 	   partial order reduction rules;  as a price for
 	   this simple implementation, it also affects the
@@ -674,13 +695,13 @@ static struct AA DD[4] = {
 void
 bb_or_dd(int j, int which)
 {
-	if (which)
-	{	if (has_unless)
+	if(which) {
+		if(has_unless)
 			fprintf(tc, "%s", DD[j].CC);
 		else
 			fprintf(tc, "%s", BB[j].CC);
-	} else
-	{	if (has_unless)
+	} else {
+		if(has_unless)
 			fprintf(tc, "%s", DD[j].TT);
 		else
 			fprintf(tc, "%s", BB[j].TT);
@@ -689,26 +710,27 @@ bb_or_dd(int j, int which)
 
 void
 Done_case(char *nm, Symbol *z)
-{	int j, k;
+{
+	int j, k;
 	int nid = z->Nid;
 	int qln = z->nel;
 
 	fprintf(tc, "\t\tcase %d: if (", nid);
-	for (j = 0; j < 4; j++)
-	{	fprintf(tc, "\t(t->ty[i] == ");
+	for(j = 0; j < 4; j++) {
+		fprintf(tc, "\t(t->ty[i] == ");
 		bb_or_dd(j, 0);
 		fprintf(tc, " && (");
-		for (k = 0; k < qln; k++)
-		{	if (k > 0)
+		for(k = 0; k < qln; k++) {
+			if(k > 0)
 				fprintf(tc, "\n\t\t\t ||    ");
 			bb_or_dd(j, 1);
 			fprintf(tc, "(%s%s", nm, z->name);
-			if (qln > 1)
+			if(qln > 1)
 				fprintf(tc, "[%d]", k);
 			fprintf(tc, ")");
 		}
 		fprintf(tc, "))\n\t\t\t ");
-		if (j < 3)
+		if(j < 3)
 			fprintf(tc, "|| ");
 		else
 			fprintf(tc, "   ");
@@ -718,22 +740,23 @@ Done_case(char *nm, Symbol *z)
 
 static void
 Docase(Symbol *s, int pid, int nid)
-{	int i, j;
+{
+	int i, j;
 
 	fprintf(tc, "\t\tcase %d: if (", nid);
-	for (j = 0; j < 4; j++)
-	{	fprintf(tc, "\t(t->ty[i] == ");
+	for(j = 0; j < 4; j++) {
+		fprintf(tc, "\t(t->ty[i] == ");
 		bb_or_dd(j, 0);
 		fprintf(tc, " && (");
-		if (has_unless)
-		{	for (i = 0; i < s->nel; i++)
+		if(has_unless) {
+			for(i = 0; i < s->nel; i++)
 				dolen(s, DD[j].CC, pid, i, s->nel);
-		} else
-		{	for (i = 0; i < s->nel; i++)
+		} else {
+			for(i = 0; i < s->nel; i++)
 				dolen(s, BB[j].CC, pid, i, s->nel);
 		}
 		fprintf(tc, "))\n\t\t\t ");
-		if (j < 3)
+		if(j < 3)
 			fprintf(tc, "|| ");
 		else
 			fprintf(tc, "   ");
@@ -743,9 +766,10 @@ Docase(Symbol *s, int pid, int nid)
 
 static void
 genconditionals(void)
-{	Symbol *s;
-	int last=0, j;
-	extern Ordered	*all_names;
+{
+	Symbol *s;
+	int last = 0, j;
+	extern Ordered *all_names;
 	Ordered *walk;
 
 	fprintf(th, "#define LOCAL	1\n");
@@ -763,7 +787,7 @@ genconditionals(void)
 	fprintf(tc, "{	int i = 0;\n");
 	fprintf(tc, "	for (i = 0; i < 6; i++)\n");
 	fprintf(tc, "	{	if (t->ty[i] == TIMEOUT_F) return %s;\n",
-					(Etimeouts)?"(!(trpt->tau&1))":"1");
+		(Etimeouts) ? "(!(trpt->tau&1))" : "1");
 	fprintf(tc, "		if (t->ty[i] == ALPHA_F)\n");
 	fprintf(tc, "#ifdef GLOB_ALPHA\n");
 	fprintf(tc, "			return 0;\n");
@@ -782,22 +806,23 @@ genconditionals(void)
 	fprintf(tc, "		switch (t->qu[i]) {\n");
 	fprintf(tc, "		case 0: break;\n");
 
-	for (walk = all_names; walk; walk = walk->next)
-	{	s = walk->entry;
-		if (s->owner) continue;
+	for(walk = all_names; walk; walk = walk->next) {
+		s = walk->entry;
+		if(s->owner)
+			continue;
 		j = find_id(s->context);
-		if (s->type == CHAN)
-		{	if (last == s->Nid) continue;	/* chan array */
+		if(s->type == CHAN) {
+			if(last == s->Nid)
+				continue; /* chan array */
 			last = s->Nid;
 			Docase(s, j, last);
-		} else if (s->type == STRUCT)
-		{	/* struct may contain a chan */
+		} else if(s->type == STRUCT) { /* struct may contain a chan */
 			char pregat[128];
 			extern void walk2_struct(char *, Symbol *);
 			strcpy(pregat, "");
-			if (!(s->hidden&1))
-			{	if (s->context)
-					sprintf(pregat, "((P%d *)this)->",j);
+			if(!(s->hidden & 1)) {
+				if(s->context)
+					sprintf(pregat, "((P%d *)this)->", j);
 				else
 					sprintf(pregat, "now.");
 			}
@@ -814,12 +839,12 @@ genconditionals(void)
 
 static void
 putproc(ProcList *p)
-{	Pid = p->tn;
+{
+	Pid = p->tn;
 	Det = p->det;
 
-	if (pid_is_claim(Pid)
-	&&  separate == 1)
-	{	fprintf(th, "extern uchar reached%d[];\n", Pid);
+	if(pid_is_claim(Pid) && separate == 1) {
+		fprintf(th, "extern uchar reached%d[];\n", Pid);
 #if 0
 		fprintf(th, "extern short nstates%d;\n", Pid);
 #else
@@ -830,44 +855,42 @@ putproc(ProcList *p)
 		fprintf(th, "extern uchar *loopstate%d;\n", Pid);
 		fprintf(th, "extern S_F_MAP src_file%d[];\n", Pid);
 		fprintf(th, "#define endstate%d	%d\n",
-			Pid, p->s->last?p->s->last->seqno:0);
+			Pid, p->s->last ? p->s->last->seqno : 0);
 		return;
 	}
-	if (!pid_is_claim(Pid)
-	&&  separate == 2)
-	{	fprintf(th, "extern short src_ln%d[];\n", Pid);
+	if(!pid_is_claim(Pid) && separate == 2) {
+		fprintf(th, "extern short src_ln%d[];\n", Pid);
 		fprintf(th, "extern uchar *loopstate%d;\n", Pid);
 		return;
 	}
 
-	AllGlobal = (p->prov)?1:0;	/* process has provided clause */
+	AllGlobal = (p->prov) ? 1 : 0; /* process has provided clause */
 
 	fprintf(th, "\n#define nstates%d	%d\t/* %s */\n",
 		Pid, p->s->maxel, p->n->name);
-	if (Pid == eventmapnr)
-	fprintf(th, "#define nstates_event	nstates%d\n", Pid);
+	if(Pid == eventmapnr)
+		fprintf(th, "#define nstates_event	nstates%d\n", Pid);
 
-	fprintf(th, "#define endstate%d	%d\n", Pid, p->s->last?p->s->last->seqno:0);
+	fprintf(th, "#define endstate%d	%d\n", Pid, p->s->last ? p->s->last->seqno : 0);
 
-	if (p->b == N_CLAIM || p->b == E_TRACE || p->b == N_TRACE)
-	{	fprintf(tm, "\n		 /* CLAIM %s */\n", p->n->name);
+	if(p->b == N_CLAIM || p->b == E_TRACE || p->b == N_TRACE) {
+		fprintf(tm, "\n		 /* CLAIM %s */\n", p->n->name);
 		fprintf(tb, "\n		 /* CLAIM %s */\n", p->n->name);
-	}
-	else
-	{	fprintf(tm, "\n		 /* PROC %s */\n", p->n->name);
+	} else {
+		fprintf(tm, "\n		 /* PROC %s */\n", p->n->name);
 		fprintf(tb, "\n		 /* PROC %s */\n", p->n->name);
 	}
 	fprintf(tt, "\n	/* proctype %d: %s */\n", Pid, p->n->name);
 	fprintf(tt, "\n	trans[%d] = (Trans **)", Pid);
 	fprintf(tt, " emalloc(%d*sizeof(Trans *));\n\n", p->s->maxel);
 
-	if (Pid == eventmapnr)
-	{	fprintf(th, "\n#define in_s_scope(x_y3_)	0");
+	if(Pid == eventmapnr) {
+		fprintf(th, "\n#define in_s_scope(x_y3_)	0");
 		fprintf(tc, "\n#define in_r_scope(x_y3_)	0");
 	}
 	put_seq(p->s, 2, 0);
-	if (Pid == eventmapnr)
-	{	fprintf(th, "\n\n");
+	if(Pid == eventmapnr) {
+		fprintf(th, "\n\n");
 		fprintf(tc, "\n\n");
 	}
 	dumpsrc(p->s->maxel, Pid);
@@ -875,41 +898,46 @@ putproc(ProcList *p)
 
 static void
 addTpe(int x)
-{	int i;
+{
+	int i;
 
-	if (x <= 2) return;
+	if(x <= 2)
+		return;
 
-	for (i = 0; i < T_sum; i++)
-		if (TPE[i] == x)
+	for(i = 0; i < T_sum; i++)
+		if(TPE[i] == x)
 			return;
-	TPE[(T_sum++)%2] = x;
+	TPE[(T_sum++) % 2] = x;
 }
 
 static void
 cnt_seq(Sequence *s)
-{	Element *f;
+{
+	Element *f;
 	SeqList *h;
 
-	if (s)
-	for (f = s->frst; f; f = f->nxt)
-	{	Tpe(f->n);	/* sets EPT */
-		addTpe(EPT[0]);
-		addTpe(EPT[1]);
-		for (h = f->sub; h; h = h->nxt)
-			cnt_seq(h->this);
-		if (f == s->last)
-			break;
-	}
+	if(s)
+		for(f = s->frst; f; f = f->nxt) {
+			Tpe(f->n); /* sets EPT */
+			addTpe(EPT[0]);
+			addTpe(EPT[1]);
+			for(h = f->sub; h; h = h->nxt)
+				cnt_seq(h->this);
+			if(f == s->last)
+				break;
+		}
 }
 
 static void
 typ_seq(Sequence *s)
 {
 	T_sum = 0;
-	TPE[0] = 2; TPE[1] = 0;
+	TPE[0] = 2;
+	TPE[1] = 0;
 	cnt_seq(s);
-	if (T_sum > 2)		/* more than one type */
-	{	TPE[0] = 5*DELTA;	/* non-mixing */
+	if(T_sum > 2) /* more than one type */
+	{
+		TPE[0] = 5 * DELTA; /* non-mixing */
 		TPE[1] = 0;
 	}
 }
@@ -917,44 +945,65 @@ typ_seq(Sequence *s)
 static int
 hidden(Lextok *n)
 {
-	if (n)
-	switch (n->ntyp) {
-	case  FULL: case  EMPTY:
-	case NFULL: case NEMPTY: case TIMEOUT:
-		Nn[(T_mus++)%2] = n;
-		break;
-	case '!': case UMIN: case '~': case ASSERT: case 'c':
-		(void) hidden(n->lft);
-		break;
-	case '/': case '*': case '-': case '+':
-	case '%': case LT:  case GT: case '&': case '^':
-	case '|': case LE:  case GE:  case NE: case '?':
-	case EQ:  case OR:  case AND: case LSHIFT: case RSHIFT:
-		(void) hidden(n->lft);
-		(void) hidden(n->rgt);
-		break;
-	}
+	if(n)
+		switch(n->ntyp) {
+		case FULL:
+		case EMPTY:
+		case NFULL:
+		case NEMPTY:
+		case TIMEOUT:
+			Nn[(T_mus++) % 2] = n;
+			break;
+		case '!':
+		case UMIN:
+		case '~':
+		case ASSERT:
+		case 'c':
+			(void)hidden(n->lft);
+			break;
+		case '/':
+		case '*':
+		case '-':
+		case '+':
+		case '%':
+		case LT:
+		case GT:
+		case '&':
+		case '^':
+		case '|':
+		case LE:
+		case GE:
+		case NE:
+		case '?':
+		case EQ:
+		case OR:
+		case AND:
+		case LSHIFT:
+		case RSHIFT:
+			(void)hidden(n->lft);
+			(void)hidden(n->rgt);
+			break;
+		}
 	return T_mus;
 }
 
 static int
 getNid(Lextok *n)
 {
-	if (n->sym
-	&&  n->sym->type == STRUCT
-	&&  n->rgt && n->rgt->lft)
+	if(n->sym && n->sym->type == STRUCT && n->rgt && n->rgt->lft)
 		return getNid(n->rgt->lft);
 
-	if (!n->sym || n->sym->Nid == 0)
-	{	fatal("bad channel name '%s'",
-		(n->sym)?n->sym->name:"no name");
+	if(!n->sym || n->sym->Nid == 0) {
+		fatal("bad channel name '%s'",
+		      (n->sym) ? n->sym->name : "no name");
 	}
 	return n->sym->Nid;
 }
 
 static int
 valTpe(Lextok *n)
-{	int res = 2;
+{
+	int res = 2;
 	/*
 	2 = local
 	2+1	    .. 2+1*DELTA = nfull,  's'	- require q_full==false
@@ -965,62 +1014,76 @@ valTpe(Lextok *n)
 	6*DELTA = timeout (conditionally safe)
 	7*DELTA = @, process deletion (conditionally safe)
 	 */
-	switch (n->ntyp) { /* a series of fall-thru cases: */
-	case   FULL:	res += DELTA;		/* add 3*DELTA + chan nr */
-	case  EMPTY:	res += DELTA;		/* add 2*DELTA + chan nr */
-	case    'r':
-	case NEMPTY:	res += DELTA;		/* add 1*DELTA + chan nr */
-	case    's':
-	case  NFULL:	res += getNid(n->lft);	/* add channel nr */
-			break;
+	switch(n->ntyp) { /* a series of fall-thru cases: */
+	case FULL:
+		res += DELTA; /* add 3*DELTA + chan nr */
+	case EMPTY:
+		res += DELTA; /* add 2*DELTA + chan nr */
+	case 'r':
+	case NEMPTY:
+		res += DELTA; /* add 1*DELTA + chan nr */
+	case 's':
+	case NFULL:
+		res += getNid(n->lft); /* add channel nr */
+		break;
 
-	case TIMEOUT:	res = 6*DELTA; break;
-	case '@':	res = 7*DELTA; break;
-	default:	break;
+	case TIMEOUT:
+		res = 6 * DELTA;
+		break;
+	case '@':
+		res = 7 * DELTA;
+		break;
+	default:
+		break;
 	}
 	return res;
 }
 
 static void
-Tpe(Lextok *n)	/* mixing in selections */
+Tpe(Lextok *n) /* mixing in selections */
 {
-	EPT[0] = 2; EPT[1] = 0;
+	EPT[0] = 2;
+	EPT[1] = 0;
 
-	if (!n) return;
+	if(!n)
+		return;
 
 	T_mus = 0;
 	Nn[0] = Nn[1] = ZN;
 
-	if (n->ntyp == 'c')
-	{	if (hidden(n->lft) > 2)
-		{	EPT[0] = 5*DELTA; /* non-mixing */
+	if(n->ntyp == 'c') {
+		if(hidden(n->lft) > 2) {
+			EPT[0] = 5 * DELTA; /* non-mixing */
 			EPT[1] = 0;
 			return;
 		}
 	} else
 		Nn[0] = n;
 
-	if (Nn[0]) EPT[0] = valTpe(Nn[0]);
-	if (Nn[1]) EPT[1] = valTpe(Nn[1]);
+	if(Nn[0])
+		EPT[0] = valTpe(Nn[0]);
+	if(Nn[1])
+		EPT[1] = valTpe(Nn[1]);
 }
 
 static void
 put_escp(Element *e)
-{	int n;
+{
+	int n;
 	SeqList *x;
 
-	if (e->esc /* && e->n->ntyp != GOTO */ && e->n->ntyp != '.')
-	{	for (x = e->esc, n = 0; x; x = x->nxt, n++)
-		{	int i = huntele(x->this->frst, e->status, -1)->seqno;
+	if(e->esc /* && e->n->ntyp != GOTO */ && e->n->ntyp != '.') {
+		for(x = e->esc, n = 0; x; x = x->nxt, n++) {
+			int i = huntele(x->this->frst, e->status, -1)->seqno;
 			fprintf(tt, "\ttrans[%d][%d]->escp[%d] = %d;\n",
 				Pid, e->seqno, n, i);
 			fprintf(tt, "\treached%d[%d] = 1;\n",
 				Pid, i);
 		}
-		for (x = e->esc, n=0; x; x = x->nxt, n++)
-		{	fprintf(tt, "	/* escape #%d: %d */\n", n,
+		for(x = e->esc, n = 0; x; x = x->nxt, n++) {
+			fprintf(tt, "	/* escape #%d: %d */\n", n,
 				huntele(x->this->frst, e->status, -1)->seqno);
-			put_seq(x->this, 2, 0);	/* args?? */
+			put_seq(x->this, 2, 0); /* args?? */
 		}
 		fprintf(tt, "	/* end-escapes */\n");
 	}
@@ -1028,7 +1091,8 @@ put_escp(Element *e)
 
 static void
 put_sub(Element *e, int Tt0, int Tt1)
-{	Sequence *s = e->n->sl->this;
+{
+	Sequence *s = e->n->sl->this;
 	Element *g = ZE;
 	int a;
 
@@ -1037,82 +1101,78 @@ put_sub(Element *e, int Tt0, int Tt1)
 	g = huntstart(s->frst);
 	a = g->seqno;
 
-	if (0) printf("put_sub %d -> %d -> %d\n", e->seqno, s->frst->seqno, a);
+	if(0)
+		printf("put_sub %d -> %d -> %d\n", e->seqno, s->frst->seqno, a);
 
-	if ((e->n->ntyp == ATOMIC
-	||  e->n->ntyp == D_STEP)
-	&&  scan_seq(s))
+	if((e->n->ntyp == ATOMIC || e->n->ntyp == D_STEP) && scan_seq(s))
 		mark_seq(s);
 	s->last->nxt = e->nxt;
 
-	typ_seq(s);	/* sets TPE */
+	typ_seq(s); /* sets TPE */
 
-	if (e->n->ntyp == D_STEP)
-	{	int inherit = (e->status&(ATOM|L_ATOM));
+	if(e->n->ntyp == D_STEP) {
+		int inherit = (e->status & (ATOM | L_ATOM));
 		fprintf(tm, "\tcase %d: ", uniq++);
 		fprintf(tm, "/* STATE %d - %s:%d - [",
 			e->seqno, e->n->fn->name, e->n->ln);
 		comment(tm, e->n, 0);
 		fprintf(tm, "] */\n\t\t");
 
-		if (s->last->n->ntyp == BREAK)
+		if(s->last->n->ntyp == BREAK)
 			OkBreak = target(huntele(s->last->nxt,
-				s->last->status, -1))->Seqno;
+						 s->last->status, -1))->Seqno;
 		else
 			OkBreak = -1;
 
-		if (!putcode(tm, s, e->nxt, 0, e->n->ln, e->seqno))
-		{
+		if(!putcode(tm, s, e->nxt, 0, e->n->ln, e->seqno)) {
 			fprintf(tm, "\n#if defined(C_States) && (HAS_TRACK==1)\n");
 			fprintf(tm, "\t\tc_update((uchar *) &(now.c_state[0]));\n");
 			fprintf(tm, "#endif\n");
 
 			fprintf(tm, "\t\t_m = %d", getweight(s->frst->n));
-			if (m_loss && s->frst->n->ntyp == 's')
+			if(m_loss && s->frst->n->ntyp == 's')
 				fprintf(tm, "+delta_m; delta_m = 0");
 			fprintf(tm, "; goto P999;\n\n");
 		}
-	
-		fprintf(tb, "\tcase %d: ", uniq-1);
+
+		fprintf(tb, "\tcase %d: ", uniq - 1);
 		fprintf(tb, "/* STATE %d */\n", e->seqno);
 		fprintf(tb, "\t\tsv_restor();\n");
 		fprintf(tb, "\t\tgoto R999;\n");
-		if (e->nxt)
+		if(e->nxt)
 			a = huntele(e->nxt, e->status, -1)->seqno;
 		else
 			a = 0;
-		tr_map(uniq-1, e);
+		tr_map(uniq - 1, e);
 		fprintf(tt, "/*->*/\ttrans[%d][%d]\t= ",
 			Pid, e->seqno);
 		fprintf(tt, "settr(%d,%d,%d,%d,%d,\"",
-			e->Seqno, D_ATOM|inherit, a, uniq-1, uniq-1);
+			e->Seqno, D_ATOM | inherit, a, uniq - 1, uniq - 1);
 		comment(tt, e->n, e->seqno);
-		fprintf(tt, "\", %d, ", (s->frst->status&I_GLOB)?1:0);
+		fprintf(tt, "\", %d, ", (s->frst->status & I_GLOB) ? 1 : 0);
 		fprintf(tt, "%d, %d);\n", TPE[0], TPE[1]);
 		put_escp(e);
-	} else
-	{	/* ATOMIC or NON_ATOMIC */
+	} else { /* ATOMIC or NON_ATOMIC */
 		fprintf(tt, "\tT = trans[ %d][%d] = ", Pid, e->seqno);
 		fprintf(tt, "settr(%d,%d,0,0,0,\"",
-			e->Seqno, (e->n->ntyp == ATOMIC)?ATOM:0);
+			e->Seqno, (e->n->ntyp == ATOMIC) ? ATOM : 0);
 		comment(tt, e->n, e->seqno);
-		if ((e->status&CHECK2)
-		||  (g->status&CHECK2))
+		if((e->status & CHECK2) || (g->status & CHECK2))
 			s->frst->status |= I_GLOB;
 		fprintf(tt, "\", %d, %d, %d);",
-			(s->frst->status&I_GLOB)?1:0, Tt0, Tt1);
+			(s->frst->status & I_GLOB) ? 1 : 0, Tt0, Tt1);
 		blurb(tt, e);
 		fprintf(tt, "\tT->nxt\t= ");
 		fprintf(tt, "settr(%d,%d,%d,0,0,\"",
-			e->Seqno, (e->n->ntyp == ATOMIC)?ATOM:0, a);
+			e->Seqno, (e->n->ntyp == ATOMIC) ? ATOM : 0, a);
 		comment(tt, e->n, e->seqno);
-		fprintf(tt, "\", %d, ", (s->frst->status&I_GLOB)?1:0);
-		if (e->n->ntyp == NON_ATOMIC)
-		{	fprintf(tt, "%d, %d);", Tt0, Tt1);
+		fprintf(tt, "\", %d, ", (s->frst->status & I_GLOB) ? 1 : 0);
+		if(e->n->ntyp == NON_ATOMIC) {
+			fprintf(tt, "%d, %d);", Tt0, Tt1);
 			blurb(tt, e);
 			put_seq(s, Tt0, Tt1);
-		} else
-		{	fprintf(tt, "%d, %d);", TPE[0], TPE[1]);
+		} else {
+			fprintf(tt, "%d, %d);", TPE[0], TPE[1]);
 			blurb(tt, e);
 			put_seq(s, TPE[0], TPE[1]);
 		}
@@ -1132,41 +1192,35 @@ static CaseCache *casing[6];
 static int
 identical(Lextok *p, Lextok *q)
 {
-	if ((!p && q) || (p && !q))
+	if((!p && q) || (p && !q))
 		return 0;
-	if (!p)
+	if(!p)
 		return 1;
 
-	if (p->ntyp    != q->ntyp
-	||  p->ismtyp  != q->ismtyp
-	||  p->val     != q->val
-	||  p->indstep != q->indstep
-	||  p->sym     != q->sym
-	||  p->sq      != q->sq
-	||  p->sl      != q->sl)
+	if(p->ntyp != q->ntyp || p->ismtyp != q->ismtyp || p->val != q->val || p->indstep != q->indstep || p->sym != q->sym || p->sq != q->sq || p->sl != q->sl)
 		return 0;
 
-	return	identical(p->lft, q->lft)
-	&&	identical(p->rgt, q->rgt);
+	return identical(p->lft, q->lft) && identical(p->rgt, q->rgt);
 }
 
 static int
 samedeads(FSM_use *a, FSM_use *b)
-{	FSM_use *p, *q;
+{
+	FSM_use *p, *q;
 
-	for (p = a, q = b; p && q; p = p->nxt, q = q->nxt)
-		if (p->var != q->var
-		||  p->special != q->special)
+	for(p = a, q = b; p && q; p = p->nxt, q = q->nxt)
+		if(p->var != q->var || p->special != q->special)
 			return 0;
 	return (!p && !q);
 }
 
 static Element *
 findnext(Element *f)
-{	Element *g;
+{
+	Element *g;
 
-	if (f->n->ntyp == GOTO)
-	{	g = get_lab(f->n, 1);
+	if(f->n->ntyp == GOTO) {
+		g = get_lab(f->n, 1);
 		return huntele(g, f->status, -1);
 	}
 	return f->nxt;
@@ -1174,51 +1228,54 @@ findnext(Element *f)
 
 static Element *
 advance(Element *e, int stopat)
-{	Element *f = e;
+{
+	Element *f = e;
 
-	if (stopat)
-	while (f && f->seqno != stopat)
-	{	f = findnext(f);
-		if (!f)
-		{	break;
+	if(stopat)
+		while(f && f->seqno != stopat) {
+			f = findnext(f);
+			if(!f) {
+				break;
+			}
+			switch(f->n->ntyp) {
+			case GOTO:
+			case '.':
+			case PRINT:
+			case PRINTM:
+				break;
+			default:
+				return f;
+			}
 		}
-		switch (f->n->ntyp) {
-		case GOTO:
-		case '.':
-		case PRINT:
-		case PRINTM:
-			break;
-		default:
-			return f;
-	}	}
-	return (Element *) 0;
+	return (Element *)0;
 }
 
 static int
 equiv_merges(Element *a, Element *b)
-{	Element *f, *g;
+{
+	Element *f, *g;
 	int stopat_a, stopat_b;
 
-	if (a->merge_start)
+	if(a->merge_start)
 		stopat_a = a->merge_start;
 	else
 		stopat_a = a->merge;
 
-	if (b->merge_start)
+	if(b->merge_start)
 		stopat_b = b->merge_start;
 	else
 		stopat_b = b->merge;
 
-	if (!stopat_a && !stopat_b)
+	if(!stopat_a && !stopat_b)
 		return 1;
 
 	f = advance(a, stopat_a);
 	g = advance(b, stopat_b);
 
-	if (!f && !g)
+	if(!f && !g)
 		return 1;
 
-	if (f && g)
+	if(f && g)
 		return identical(f->n, g->n);
 
 	return 0;
@@ -1226,39 +1283,64 @@ equiv_merges(Element *a, Element *b)
 
 static CaseCache *
 prev_case(Element *e, int owner)
-{	int j; CaseCache *nc;
+{
+	int j;
+	CaseCache *nc;
 
-	switch (e->n->ntyp) {
-	case 'r':	j = 0; break;
-	case 's':	j = 1; break;
-	case 'c':	j = 2; break;
-	case ASGN:	j = 3; break;
-	case ASSERT:	j = 4; break;
-	default:	j = 5; break;
+	switch(e->n->ntyp) {
+	case 'r':
+		j = 0;
+		break;
+	case 's':
+		j = 1;
+		break;
+	case 'c':
+		j = 2;
+		break;
+	case ASGN:
+		j = 3;
+		break;
+	case ASSERT:
+		j = 4;
+		break;
+	default:
+		j = 5;
+		break;
 	}
-	for (nc = casing[j]; nc; nc = nc->nxt)
-		if (identical(nc->n, e->n)
-		&&  samedeads(nc->u, e->dead)
-		&&  equiv_merges(nc->e, e)
-		&&  nc->owner == owner)
+	for(nc = casing[j]; nc; nc = nc->nxt)
+		if(identical(nc->n, e->n) && samedeads(nc->u, e->dead) && equiv_merges(nc->e, e) && nc->owner == owner)
 			return nc;
 
-	return (CaseCache *) 0;
+	return (CaseCache *)0;
 }
 
 static void
 new_case(Element *e, int m, int b, int owner)
-{	int j; CaseCache *nc;
+{
+	int j;
+	CaseCache *nc;
 
-	switch (e->n->ntyp) {
-	case 'r':	j = 0; break;
-	case 's':	j = 1; break;
-	case 'c':	j = 2; break;
-	case ASGN:	j = 3; break;
-	case ASSERT:	j = 4; break;
-	default:	j = 5; break;
+	switch(e->n->ntyp) {
+	case 'r':
+		j = 0;
+		break;
+	case 's':
+		j = 1;
+		break;
+	case 'c':
+		j = 2;
+		break;
+	case ASGN:
+		j = 3;
+		break;
+	case ASSERT:
+		j = 4;
+		break;
+	default:
+		j = 5;
+		break;
 	}
-	nc = (CaseCache *) emalloc(sizeof(CaseCache));
+	nc = (CaseCache *)emalloc(sizeof(CaseCache));
 	nc->owner = owner;
 	nc->m = m;
 	nc->b = b;
@@ -1271,20 +1353,20 @@ new_case(Element *e, int m, int b, int owner)
 
 static int
 nr_bup(Element *e)
-{	FSM_use *u;
+{
+	FSM_use *u;
 	Lextok *v;
 	int nr = 0;
 
-	switch (e->n->ntyp) {
+	switch(e->n->ntyp) {
 	case ASGN:
 		nr++;
 		break;
-	case  'r':
-		if (e->n->val >= 1)
-			nr++;	/* random recv */
-		for (v = e->n->rgt; v; v = v->rgt)
-		{	if ((v->lft->ntyp == CONST
-			||   v->lft->ntyp == EVAL))
+	case 'r':
+		if(e->n->val >= 1)
+			nr++; /* random recv */
+		for(v = e->n->rgt; v; v = v->rgt) {
+			if((v->lft->ntyp == CONST || v->lft->ntyp == EVAL))
 				continue;
 			nr++;
 		}
@@ -1292,29 +1374,29 @@ nr_bup(Element *e)
 	default:
 		break;
 	}
-	for (u = e->dead; u; u = u->nxt)
-	{	switch (u->special) {
-		case 2:		/* dead after write */
-			if (e->n->ntyp == ASGN
-			&&  e->n->rgt->ntyp == CONST
-			&&  e->n->rgt->val == 0)
+	for(u = e->dead; u; u = u->nxt) {
+		switch(u->special) {
+		case 2: /* dead after write */
+			if(e->n->ntyp == ASGN && e->n->rgt->ntyp == CONST && e->n->rgt->val == 0)
 				break;
 			nr++;
 			break;
-		case 1:		/* dead after read */
+		case 1: /* dead after read */
 			nr++;
 			break;
-	}	}
+		}
+	}
 	return nr;
 }
 
 static int
 nrhops(Element *e)
-{	Element *f = e, *g;
+{
+	Element *f = e, *g;
 	int cnt = 0;
 	int stopat;
 
-	if (e->merge_start)
+	if(e->merge_start)
 		stopat = e->merge_start;
 	else
 		stopat = e->merge;
@@ -1325,26 +1407,25 @@ nrhops(Element *e)
 	do {
 		cnt += nr_bup(f);
 
-		if (f->n->ntyp == GOTO)
-		{	g = get_lab(f->n, 1);
-			if (g->seqno == stopat)
+		if(f->n->ntyp == GOTO) {
+			g = get_lab(f->n, 1);
+			if(g->seqno == stopat)
 				f = g;
 			else
 				f = huntele(g, f->status, stopat);
-		} else
-		{
+		} else {
 			f = f->nxt;
 		}
 
-		if (f && !f->merge && !f->merge_single && f->seqno != stopat)
-		{	fprintf(tm, "\n\t\tbad hop %s:%d -- at %d, <",
-				f->n->fn->name,f->n->ln, f->seqno);
+		if(f && !f->merge && !f->merge_single && f->seqno != stopat) {
+			fprintf(tm, "\n\t\tbad hop %s:%d -- at %d, <",
+				f->n->fn->name, f->n->ln, f->seqno);
 			comment(tm, f->n, 0);
 			fprintf(tm, "> looking for %d -- merge %d:%d:%d\n\t\t",
 				stopat, f->merge, f->merge_start, f->merge_single);
-		 	break;
+			break;
 		}
-	} while (f && f->seqno != stopat);
+	} while(f && f->seqno != stopat);
 
 	return cnt;
 }
@@ -1352,8 +1433,8 @@ nrhops(Element *e)
 static void
 check_needed(void)
 {
-	if (multi_needed)
-	{	fprintf(tm, "(trpt+1)->bup.ovals = grab_ints(%d);\n\t\t",
+	if(multi_needed) {
+		fprintf(tm, "(trpt+1)->bup.ovals = grab_ints(%d);\n\t\t",
 			multi_needed);
 		multi_undo = multi_needed;
 		multi_needed = 0;
@@ -1362,85 +1443,88 @@ check_needed(void)
 
 static void
 doforward(FILE *tm_fd, Element *e)
-{	FSM_use *u;
+{
+	FSM_use *u;
 
 	putstmnt(tm_fd, e->n, e->seqno);
 
-	if (e->n->ntyp != ELSE && Det)
-	{	fprintf(tm_fd, ";\n\t\tif (trpt->o_pm&1)\n\t\t");
+	if(e->n->ntyp != ELSE && Det) {
+		fprintf(tm_fd, ";\n\t\tif (trpt->o_pm&1)\n\t\t");
 		fprintf(tm_fd, "\tuerror(\"non-determinism in D_proctype\")");
 	}
-	if (deadvar && !has_code)
-	for (u = e->dead; u; u = u->nxt)
-	{	fprintf(tm_fd, ";\n\t\t/* dead %d: %s */  ",
-			u->special, u->var->name);
+	if(deadvar && !has_code)
+		for(u = e->dead; u; u = u->nxt) {
+			fprintf(tm_fd, ";\n\t\t/* dead %d: %s */  ",
+				u->special, u->var->name);
 
-		switch (u->special) {
-		case 2:		/* dead after write -- lval already bupped */
-			if (e->n->ntyp == ASGN)	/* could be recv or asgn */
-			{	if (e->n->rgt->ntyp == CONST
-				&&  e->n->rgt->val == 0)
-					continue;	/* already set to 0 */
-			}
-			if (e->n->ntyp != 'r')
-			{	XZ.sym = u->var;
-				fprintf(tm_fd, "\n#ifdef HAS_CODE\n");
+			switch(u->special) {
+			case 2:			       /* dead after write -- lval already bupped */
+				if(e->n->ntyp == ASGN) /* could be recv or asgn */
+				{
+					if(e->n->rgt->ntyp == CONST && e->n->rgt->val == 0)
+						continue; /* already set to 0 */
+				}
+				if(e->n->ntyp != 'r') {
+					XZ.sym = u->var;
+					fprintf(tm_fd, "\n#ifdef HAS_CODE\n");
+					fprintf(tm_fd, "\t\tif (!readtrail)\n");
+					fprintf(tm_fd, "#endif\n\t\t\t");
+					putname(tm_fd, "", &XZ, 0, " = 0");
+					break;
+				}			/* else fall through */
+			case 1:				/* dead after read -- add asgn of rval -- needs bup */
+				YZ[YZmax].sym = u->var; /* store for pan.b */
+				CnT[YZcnt]++;		/* this step added bups */
+				if(multi_oval) {
+					check_needed();
+					fprintf(tm_fd, "(trpt+1)->bup.ovals[%d] = ",
+						multi_oval - 1);
+					multi_oval++;
+				} else
+					fprintf(tm_fd, "(trpt+1)->bup.oval = ");
+				putname(tm_fd, "", &YZ[YZmax], 0, ";\n");
+				fprintf(tm_fd, "#ifdef HAS_CODE\n");
 				fprintf(tm_fd, "\t\tif (!readtrail)\n");
 				fprintf(tm_fd, "#endif\n\t\t\t");
-				putname(tm_fd, "", &XZ, 0, " = 0");
+				putname(tm_fd, "", &YZ[YZmax], 0, " = 0");
+				YZmax++;
 				break;
-			} /* else fall through */
-		case 1:		/* dead after read -- add asgn of rval -- needs bup */
-			YZ[YZmax].sym = u->var;	/* store for pan.b */
-			CnT[YZcnt]++;		/* this step added bups */
-			if (multi_oval)
-			{	check_needed();
-				fprintf(tm_fd, "(trpt+1)->bup.ovals[%d] = ",
-					multi_oval-1);
-				multi_oval++;
-			} else
-				fprintf(tm_fd, "(trpt+1)->bup.oval = ");
-			putname(tm_fd, "", &YZ[YZmax], 0, ";\n");
-			fprintf(tm_fd, "#ifdef HAS_CODE\n");
-			fprintf(tm_fd, "\t\tif (!readtrail)\n");
-			fprintf(tm_fd, "#endif\n\t\t\t");
-			putname(tm_fd, "", &YZ[YZmax], 0, " = 0");
-			YZmax++;
-			break;
-	}	}
+			}
+		}
 	fprintf(tm_fd, ";\n\t\t");
 }
 
 static int
 dobackward(Element *e, int casenr)
 {
-	if (!any_undo(e->n) && CnT[YZcnt] == 0)
-	{	YZcnt--;
+	if(!any_undo(e->n) && CnT[YZcnt] == 0) {
+		YZcnt--;
 		return 0;
 	}
 
-	if (!didcase)
-	{	fprintf(tb, "\n\tcase %d: ", casenr);
+	if(!didcase) {
+		fprintf(tb, "\n\tcase %d: ", casenr);
 		fprintf(tb, "/* STATE %d */\n\t\t", e->seqno);
 		didcase++;
 	}
 
 	_isok++;
-	while (CnT[YZcnt] > 0)	/* undo dead variable resets */
-	{	CnT[YZcnt]--;
+	while(CnT[YZcnt] > 0) /* undo dead variable resets */
+	{
+		CnT[YZcnt]--;
 		YZmax--;
-		if (YZmax < 0)
+		if(YZmax < 0)
 			fatal("cannot happen, dobackward", (char *)0);
 		fprintf(tb, ";\n\t/* %d */\t", YZmax);
 		putname(tb, "", &YZ[YZmax], 0, " = trpt->bup.oval");
-		if (multi_oval > 0)
-		{	multi_oval--;
-			fprintf(tb, "s[%d]", multi_oval-1);
+		if(multi_oval > 0) {
+			multi_oval--;
+			fprintf(tb, "s[%d]", multi_oval - 1);
 		}
 	}
 
-	if (e->n->ntyp != '.')
-	{	fprintf(tb, ";\n\t\t");
+	if(e->n->ntyp != '.') {
+		fprintf(tb, ";\n\t\t");
 		undostmnt(e->n, e->seqno);
 	}
 	_isok--;
@@ -1451,19 +1535,19 @@ dobackward(Element *e, int casenr)
 
 static void
 lastfirst(int stopat, Element *fin, int casenr)
-{	Element *f = fin, *g;
+{
+	Element *f = fin, *g;
 
-	if (f->n->ntyp == GOTO)
-	{	g = get_lab(f->n, 1);
-		if (g->seqno == stopat)
+	if(f->n->ntyp == GOTO) {
+		g = get_lab(f->n, 1);
+		if(g->seqno == stopat)
 			f = g;
 		else
 			f = huntele(g, f->status, stopat);
 	} else
 		f = f->nxt;
 
-	if (!f || f->seqno == stopat
-	|| (!f->merge && !f->merge_single))
+	if(!f || f->seqno == stopat || (!f->merge && !f->merge_single))
 		return;
 	lastfirst(stopat, f, casenr);
 #if 0
@@ -1483,54 +1567,54 @@ static int modifier;
 
 static void
 lab_transfer(Element *to, Element *from)
-{	Symbol *ns, *s = has_lab(from, (1|2|4));
+{
+	Symbol *ns, *s = has_lab(from, (1 | 2 | 4));
 	Symbol *oc;
-	int ltp, usedit=0;
+	int ltp, usedit = 0;
 
-	if (!s) return;
+	if(!s)
+		return;
 
 	/* "from" could have all three labels -- rename
 	 * to prevent jumps to the transfered copies
 	 */
-	oc = context;	/* remember */
-	for (ltp = 1; ltp < 8; ltp *= 2)	/* 1, 2, and 4 */
-		if ((s = has_lab(from, ltp)) != (Symbol *) 0)
-		{	ns = (Symbol *) emalloc(sizeof(Symbol));
-			ns->name = (char *) emalloc((int) strlen(s->name) + 4);
+	oc = context;			/* remember */
+	for(ltp = 1; ltp < 8; ltp *= 2) /* 1, 2, and 4 */
+		if((s = has_lab(from, ltp)) != (Symbol *)0) {
+			ns = (Symbol *)emalloc(sizeof(Symbol));
+			ns->name = (char *)emalloc((int)strlen(s->name) + 4);
 			sprintf(ns->name, "%s%d", s->name, modifier);
 
 			context = s->context;
 			set_lab(ns, to);
 			usedit++;
 		}
-	context = oc;	/* restore */
-	if (usedit)
-	{	if (modifier++ > 990)
-			fatal("modifier overflow error", (char *) 0);
+	context = oc; /* restore */
+	if(usedit) {
+		if(modifier++ > 990)
+			fatal("modifier overflow error", (char *)0);
 	}
 }
 
 static int
 case_cache(Element *e, int a)
-{	int bupcase = 0, casenr = uniq, fromcache = 0;
-	CaseCache *Cached = (CaseCache *) 0;
+{
+	int bupcase = 0, casenr = uniq, fromcache = 0;
+	CaseCache *Cached = (CaseCache *)0;
 	Element *f, *g;
 	int j, nrbups, mark, ntarget;
 	extern int ccache;
 
-	mark = (e->status&ATOM); /* could lose atomicity in a merge chain */
+	mark = (e->status & ATOM); /* could lose atomicity in a merge chain */
 
-	if (e->merge_mark > 0
-	||  (merger && e->merge_in == 0))
-	{	/* state nominally unreachable (part of merge chains) */
-		if (e->n->ntyp != '.'
-		&&  e->n->ntyp != GOTO)
-		{	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+	if(e->merge_mark > 0 || (merger && e->merge_in == 0)) { /* state nominally unreachable (part of merge chains) */
+		if(e->n->ntyp != '.' && e->n->ntyp != GOTO) {
+			fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 			fprintf(tt, "settr(0,0,0,0,0,\"");
 			comment(tt, e->n, e->seqno);
 			fprintf(tt, "\",0,0,0);\n");
-		} else
-		{	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+		} else {
+			fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 			casenr = 1; /* mhs example */
 			j = a;
 			goto haveit; /* pakula's example */
@@ -1541,12 +1625,9 @@ case_cache(Element *e, int a)
 
 	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 
-	if (ccache
-	&&  !pid_is_claim(Pid)
-	&&  Pid != eventmapnr
-	&& (Cached = prev_case(e, Pid)))
-	{	bupcase = Cached->b;
-		casenr  = Cached->m;
+	if(ccache && !pid_is_claim(Pid) && Pid != eventmapnr && (Cached = prev_case(e, Pid))) {
+		bupcase = Cached->b;
+		casenr = Cached->m;
 		fromcache = 1;
 
 		fprintf(tm, "/* STATE %d - %s:%d - [",
@@ -1567,17 +1648,17 @@ case_cache(Element *e, int a)
 	fprintf(tm, "] (%d:%d:%d - %d) */\n\t\t",
 		e->merge_start, e->merge, nrbups, e->merge_in);
 
-	if (nrbups > MAXMERGE-1)
+	if(nrbups > MAXMERGE - 1)
 		fatal("merge requires more than 256 bups", (char *)0);
 
-	if (e->n->ntyp != 'r' && !pid_is_claim(Pid) && Pid != eventmapnr)
+	if(e->n->ntyp != 'r' && !pid_is_claim(Pid) && Pid != eventmapnr)
 		fprintf(tm, "IfNotBlocked\n\t\t");
 
-	if (multi_needed != 0 || multi_undo != 0)
-		fatal("cannot happen, case_cache", (char *) 0);
+	if(multi_needed != 0 || multi_undo != 0)
+		fatal("cannot happen, case_cache", (char *)0);
 
-	if (nrbups > 1)
-	{	multi_oval = 1;
+	if(nrbups > 1) {
+		multi_oval = 1;
 		multi_needed = nrbups; /* allocated after edge condition */
 	} else
 		multi_oval = 0;
@@ -1585,10 +1666,10 @@ case_cache(Element *e, int a)
 	memset(CnT, 0, sizeof(CnT));
 	YZmax = YZcnt = 0;
 
-/* new 4.2.6, revised 6.0.0 */
-	if (pid_is_claim(Pid))
-	{	fprintf(tm, "\n#if defined(VERI) && !defined(NP)\n");
-fprintf(tm, "#if NCLAIMS>1\n");
+	/* new 4.2.6, revised 6.0.0 */
+	if(pid_is_claim(Pid)) {
+		fprintf(tm, "\n#if defined(VERI) && !defined(NP)\n");
+		fprintf(tm, "#if NCLAIMS>1\n");
 		fprintf(tm, "\t\t{	static int reported%d = 0;\n", e->seqno);
 		fprintf(tm, "\t\t	int nn = (int) ((Pclaim *)this)->_n;\n\t\t");
 		fprintf(tm, "	if (verbose && !reported%d)\n\t\t", e->seqno);
@@ -1598,7 +1679,7 @@ fprintf(tm, "#if NCLAIMS>1\n");
 		fprintf(tm, "		reported%d = 1;\n\t\t", e->seqno);
 		fprintf(tm, "		fflush(stdout);\n\t\t");
 		fprintf(tm, "}	}\n");
-fprintf(tm, "#else\n");
+		fprintf(tm, "#else\n");
 		fprintf(tm, "{	static int reported%d = 0;\n\t\t", e->seqno);
 		fprintf(tm, "	if (verbose && !reported%d)\n\t\t", e->seqno);
 		fprintf(tm, "	{	printf(\"depth %%d: Claim, state %%d (line %%d)\\n\",\n\t\t");
@@ -1607,70 +1688,73 @@ fprintf(tm, "#else\n");
 		fprintf(tm, "		reported%d = 1;\n\t\t", e->seqno);
 		fprintf(tm, "		fflush(stdout);\n\t\t");
 		fprintf(tm, "}	}\n");
-fprintf(tm, "#endif\n");
+		fprintf(tm, "#endif\n");
 		fprintf(tm, "#endif\n\t\t");
 	}
-/* end */
+	/* end */
 
 	/* the src xrefs have the numbers in e->seqno builtin */
 	fprintf(tm, "reached[%d][%d] = 1;\n\t\t", Pid, e->seqno);
 
 	doforward(tm, e);
 
-	if (e->merge_start)
+	if(e->merge_start)
 		ntarget = e->merge_start;
 	else
 		ntarget = e->merge;
 
-	if (ntarget)
-	{	f = e;
+	if(ntarget) {
+		f = e;
 
-more:		if (f->n->ntyp == GOTO)
-		{	g = get_lab(f->n, 1);
-			if (g->seqno == ntarget)
+	more:
+		if(f->n->ntyp == GOTO) {
+			g = get_lab(f->n, 1);
+			if(g->seqno == ntarget)
 				f = g;
 			else
 				f = huntele(g, f->status, ntarget);
 		} else
 			f = f->nxt;
 
-
-		if (f && f->seqno != ntarget)
-		{	if (!f->merge && !f->merge_single)
-			{	fprintf(tm, "/* stop at bad hop %d, %d */\n\t\t",
+		if(f && f->seqno != ntarget) {
+			if(!f->merge && !f->merge_single) {
+				fprintf(tm, "/* stop at bad hop %d, %d */\n\t\t",
 					f->seqno, ntarget);
 				goto out;
 			}
 			fprintf(tm, "/* merge: ");
 			comment(tm, f->n, 0);
-			fprintf(tm,  "(%d, %d, %d) */\n\t\t", f->merge, f->seqno, ntarget);
+			fprintf(tm, "(%d, %d, %d) */\n\t\t", f->merge, f->seqno, ntarget);
 			fprintf(tm, "reached[%d][%d] = 1;\n\t\t", Pid, f->seqno);
 			YZcnt++;
 			lab_transfer(e, f);
-			mark = f->status&(ATOM|L_ATOM); /* last step wins */
+			mark = f->status & (ATOM | L_ATOM); /* last step wins */
 			doforward(tm, f);
-			if (f->merge_in == 1) f->merge_mark++;
+			if(f->merge_in == 1)
+				f->merge_mark++;
 
 			goto more;
-	}	}
+		}
+	}
 out:
 	fprintf(tm, "_m = %d", getweight(e->n));
-	if (m_loss && e->n->ntyp == 's') fprintf(tm, "+delta_m; delta_m = 0");
+	if(m_loss && e->n->ntyp == 's')
+		fprintf(tm, "+delta_m; delta_m = 0");
 	fprintf(tm, "; goto P999; /* %d */\n", YZcnt);
 
 	multi_needed = 0;
 	didcase = 0;
 
-	if (ntarget)
+	if(ntarget)
 		lastfirst(ntarget, e, casenr); /* mergesteps only */
 
-	dobackward(e, casenr);			/* the original step */
+	dobackward(e, casenr); /* the original step */
 
 	fprintf(tb, ";\n\t\t");
 
-	if (e->merge || e->merge_start)
-	{	if (!didcase)
-		{	fprintf(tb, "\n\tcase %d: ", casenr);
+	if(e->merge || e->merge_start) {
+		if(!didcase) {
+			fprintf(tb, "\n\tcase %d: ", casenr);
 			fprintf(tb, "/* STATE %d */", e->seqno);
 			didcase++;
 		} else
@@ -1679,71 +1763,72 @@ out:
 		fprintf(tb, ";");
 	fprintf(tb, "\n\t\t");
 
-	if (multi_undo)
-	{	fprintf(tb, "ungrab_ints(trpt->bup.ovals, %d);\n\t\t",
+	if(multi_undo) {
+		fprintf(tb, "ungrab_ints(trpt->bup.ovals, %d);\n\t\t",
 			multi_undo);
 		multi_undo = 0;
 	}
-	if (didcase)
-	{	fprintf(tb, "goto R999;\n");
+	if(didcase) {
+		fprintf(tb, "goto R999;\n");
 		bupcase = casenr;
 	}
 
-	if (!e->merge && !e->merge_start)
+	if(!e->merge && !e->merge_start)
 		new_case(e, casenr, bupcase, Pid);
 
 gotit:
 	j = a;
-	if (e->merge_start)
+	if(e->merge_start)
 		j = e->merge_start;
-	else if (e->merge)
+	else if(e->merge)
 		j = e->merge;
 haveit:
-	fprintf(tt, "%ssettr(%d,%d,%d,%d,%d,\"", fromcache?"/* c */ ":"",
+	fprintf(tt, "%ssettr(%d,%d,%d,%d,%d,\"", fromcache ? "/* c */ " : "",
 		e->Seqno, mark, j, casenr, bupcase);
 
-	return (fromcache)?0:casenr;
+	return (fromcache) ? 0 : casenr;
 }
 
 static void
 put_el(Element *e, int Tt0, int Tt1)
-{	int a, casenr, Global_ref;
+{
+	int a, casenr, Global_ref;
 	Element *g = ZE;
 
-	if (e->n->ntyp == GOTO)
-	{	g = get_lab(e->n, 1);
+	if(e->n->ntyp == GOTO) {
+		g = get_lab(e->n, 1);
 		g = huntele(g, e->status, -1);
 		cross_dsteps(e->n, g->n);
 		a = g->seqno;
-	} else if (e->nxt)
-	{	g = huntele(e->nxt, e->status, -1);
+	} else if(e->nxt) {
+		g = huntele(e->nxt, e->status, -1);
 		a = g->seqno;
 	} else
 		a = 0;
-	if (g
-	&&  (g->status&CHECK2	/* entering remotely ref'd state */
-	||   e->status&CHECK2))	/* leaving  remotely ref'd state */
+	if(g && (g->status & CHECK2      /* entering remotely ref'd state */
+		 || e->status & CHECK2)) /* leaving  remotely ref'd state */
 		e->status |= I_GLOB;
 
 	/* don't remove dead edges in here, to preserve structure of fsm */
-	if (e->merge_start || e->merge)
+	if(e->merge_start || e->merge)
 		goto non_generic;
 
 	/*** avoid duplicate or redundant cases in pan.m ***/
-	switch (e->n->ntyp) {
+	switch(e->n->ntyp) {
 	case ELSE:
 		casenr = 2; /* standard else */
 		putskip(e->seqno);
 		goto generic_case;
-		/* break; */
+	/* break; */
 	case '.':
 	case GOTO:
 	case BREAK:
-		putskip(e->seqno); 
+		putskip(e->seqno);
 		casenr = 1; /* standard goto */
-generic_case:	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+	generic_case:
+		fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 		fprintf(tt, "settr(%d,%d,%d,%d,0,\"",
-			e->Seqno, e->status&ATOM, a, casenr);
+			e->Seqno, e->status & ATOM, a, casenr);
 		break;
 #ifndef PRINTF
 	case PRINT:
@@ -1752,60 +1837,59 @@ generic_case:	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 		goto non_generic;
 #endif
 	case 'c':
-		if (e->n->lft->ntyp == CONST
-		&&  e->n->lft->val == 1)	/* skip or true */
-		{	casenr = 1;
+		if(e->n->lft->ntyp == CONST && e->n->lft->val == 1) /* skip or true */
+		{
+			casenr = 1;
 			putskip(e->seqno);
 			goto generic_case;
 		}
 		goto non_generic;
 
 	default:
-non_generic:
+	non_generic:
 		casenr = case_cache(e, a);
-		if (casenr < 0) return;	/* unreachable state */
+		if(casenr < 0)
+			return; /* unreachable state */
 		break;
 	}
 	/* tailend of settr(...); */
-	Global_ref = (e->status&I_GLOB)?1:has_global(e->n);
+	Global_ref = (e->status & I_GLOB) ? 1 : has_global(e->n);
 	comment(tt, e->n, e->seqno);
 	fprintf(tt, "\", %d, ", Global_ref);
-	if (Tt0 != 2)
-	{	fprintf(tt, "%d, %d);", Tt0, Tt1);
-	} else
-	{	Tpe(e->n);	/* sets EPT */
+	if(Tt0 != 2) {
+		fprintf(tt, "%d, %d);", Tt0, Tt1);
+	} else {
+		Tpe(e->n); /* sets EPT */
 		fprintf(tt, "%d, %d);", EPT[0], EPT[1]);
 	}
-	if ((e->merge_start && e->merge_start != a)
-	||  (e->merge && e->merge != a))
-	{	fprintf(tt, " /* m: %d -> %d,%d */\n",
+	if((e->merge_start && e->merge_start != a) || (e->merge && e->merge != a)) {
+		fprintf(tt, " /* m: %d -> %d,%d */\n",
 			a, e->merge_start, e->merge);
 		fprintf(tt, "	reached%d[%d] = 1;",
 			Pid, a); /* Sheinman's example */
 	}
 	fprintf(tt, "\n");
 
-	if (casenr > 2)
+	if(casenr > 2)
 		tr_map(casenr, e);
 	put_escp(e);
 }
 
 static void
 nested_unless(Element *e, Element *g)
-{	struct SeqList *y = e->esc, *z = g->esc;
+{
+	struct SeqList *y = e->esc, *z = g->esc;
 
-	for ( ; y && z; y = y->nxt, z = z->nxt)
-		if (z->this != y->this)
+	for(; y && z; y = y->nxt, z = z->nxt)
+		if(z->this != y->this)
 			break;
-	if (!y && !z)
+	if(!y && !z)
 		return;
 
-	if (g->n->ntyp != GOTO
-	&&  g->n->ntyp != '.'
-	&&  e->sub->nxt)
-	{	printf("error: (%s:%d) saw 'unless' on a guard:\n",
-			(e->n)?e->n->fn->name:"-",
-			(e->n)?e->n->ln:0);
+	if(g->n->ntyp != GOTO && g->n->ntyp != '.' && e->sub->nxt) {
+		printf("error: (%s:%d) saw 'unless' on a guard:\n",
+		       (e->n) ? e->n->fn->name : "-",
+		       (e->n) ? e->n->ln : 0);
 		printf("=====>instead of\n");
 		printf("	do (or if)\n");
 		printf("	:: ...\n");
@@ -1822,168 +1906,168 @@ nested_unless(Element *e, Element *g)
 
 static void
 put_seq(Sequence *s, int Tt0, int Tt1)
-{	SeqList *h;
+{
+	SeqList *h;
 	Element *e, *g;
 	int a, deadlink;
 
-	if (0) printf("put_seq %d\n", s->frst->seqno);
+	if(0)
+		printf("put_seq %d\n", s->frst->seqno);
 
-	for (e = s->frst; e; e = e->nxt)
-	{
-		if (0) printf("	step %d\n", e->seqno);
-		if (e->status & DONE)
-		{
-			if (0) printf("		done before\n");
+	for(e = s->frst; e; e = e->nxt) {
+		if(0)
+			printf("	step %d\n", e->seqno);
+		if(e->status & DONE) {
+			if(0)
+				printf("		done before\n");
 			goto checklast;
 		}
 		e->status |= DONE;
 
-		if (e->n->ln)
+		if(e->n->ln)
 			putsrc(e);
 
-		if (e->n->ntyp == UNLESS)
-		{
-			if (0) printf("		an unless\n");
+		if(e->n->ntyp == UNLESS) {
+			if(0)
+				printf("		an unless\n");
 			put_seq(e->sub->this, Tt0, Tt1);
-		} else if (e->sub)
-		{
-			if (0) printf("		has sub\n");
+		} else if(e->sub) {
+			if(0)
+				printf("		has sub\n");
 			fprintf(tt, "\tT = trans[%d][%d] = ",
 				Pid, e->seqno);
 			fprintf(tt, "settr(%d,%d,0,0,0,\"",
-				e->Seqno, e->status&ATOM);
+				e->Seqno, e->status & ATOM);
 			comment(tt, e->n, e->seqno);
-			if (e->status&CHECK2)
+			if(e->status & CHECK2)
 				e->status |= I_GLOB;
 			fprintf(tt, "\", %d, %d, %d);",
-				(e->status&I_GLOB)?1:0, Tt0, Tt1);
+				(e->status & I_GLOB) ? 1 : 0, Tt0, Tt1);
 			blurb(tt, e);
-			for (h = e->sub; h; h = h->nxt)
-			{	putskip(h->this->frst->seqno);
+			for(h = e->sub; h; h = h->nxt) {
+				putskip(h->this->frst->seqno);
 				g = huntstart(h->this->frst);
-				if (g->esc)
+				if(g->esc)
 					nested_unless(e, g);
 				a = g->seqno;
 
-				if (g->n->ntyp == 'c'
-				&&  g->n->lft->ntyp == CONST
-				&&  g->n->lft->val == 0		/* 0 or false */
-				&& !g->esc)
-				{	fprintf(tt, "#if 0\n\t/* dead link: */\n");
+				if(g->n->ntyp == 'c' && g->n->lft->ntyp == CONST && g->n->lft->val == 0 /* 0 or false */
+				   && !g->esc) {
+					fprintf(tt, "#if 0\n\t/* dead link: */\n");
 					deadlink = 1;
-					if (verbose&32)
-					printf("spin: warning, %s:%d: condition is always false\n",
-						g->n->fn?g->n->fn->name:"", g->n->ln);
+					if(verbose & 32)
+						printf("spin: warning, %s:%d: condition is always false\n",
+						       g->n->fn ? g->n->fn->name : "", g->n->ln);
 				} else
 					deadlink = 0;
-				if (0) printf("			settr %d %d\n", a, 0);
-				if (h->nxt)
+				if(0)
+					printf("			settr %d %d\n", a, 0);
+				if(h->nxt)
 					fprintf(tt, "\tT = T->nxt\t= ");
 				else
 					fprintf(tt, "\t    T->nxt\t= ");
 				fprintf(tt, "settr(%d,%d,%d,0,0,\"",
-					e->Seqno, e->status&ATOM, a);
+					e->Seqno, e->status & ATOM, a);
 				comment(tt, e->n, e->seqno);
-				if (g->status&CHECK2)
+				if(g->status & CHECK2)
 					h->this->frst->status |= I_GLOB;
 				fprintf(tt, "\", %d, %d, %d);",
-					(h->this->frst->status&I_GLOB)?1:0,
+					(h->this->frst->status & I_GLOB) ? 1 : 0,
 					Tt0, Tt1);
 				blurb(tt, e);
-				if (deadlink)
+				if(deadlink)
 					fprintf(tt, "#endif\n");
 			}
-			for (h = e->sub; h; h = h->nxt)
+			for(h = e->sub; h; h = h->nxt)
 				put_seq(h->this, Tt0, Tt1);
-		} else
-		{
-			if (0) printf("		[non]atomic %d\n", e->n->ntyp);
-			if (e->n->ntyp == ATOMIC
-			||  e->n->ntyp == D_STEP
-			||  e->n->ntyp == NON_ATOMIC)
+		} else {
+			if(0)
+				printf("		[non]atomic %d\n", e->n->ntyp);
+			if(e->n->ntyp == ATOMIC || e->n->ntyp == D_STEP || e->n->ntyp == NON_ATOMIC)
 				put_sub(e, Tt0, Tt1);
-			else 
-			{
-				if (0) printf("			put_el %d\n", e->seqno);
+			else {
+				if(0)
+					printf("			put_el %d\n", e->seqno);
 				put_el(e, Tt0, Tt1);
 			}
 		}
-checklast:	if (e == s->last)
+	checklast:
+		if(e == s->last)
 			break;
 	}
-	if (0) printf("put_seq done\n");
+	if(0)
+		printf("put_seq done\n");
 }
 
 static void
-patch_atomic(Sequence *s)	/* catch goto's that break the chain */
-{	Element *f, *g;
+patch_atomic(Sequence *s) /* catch goto's that break the chain */
+{
+	Element *f, *g;
 	SeqList *h;
 
-	for (f = s->frst; f ; f = f->nxt)
-	{
-		if (f->n && f->n->ntyp == GOTO)
-		{	g = get_lab(f->n,1);
+	for(f = s->frst; f; f = f->nxt) {
+		if(f->n && f->n->ntyp == GOTO) {
+			g = get_lab(f->n, 1);
 			cross_dsteps(f->n, g->n);
-			if ((f->status & (ATOM|L_ATOM))
-			&& !(g->status & (ATOM|L_ATOM)))
-			{	f->status &= ~ATOM;
+			if((f->status & (ATOM | L_ATOM)) && !(g->status & (ATOM | L_ATOM))) {
+				f->status &= ~ATOM;
 				f->status |= L_ATOM;
 			}
 			/* bridge atomics */
-			if ((f->status & L_ATOM)
-			&&  (g->status & (ATOM|L_ATOM)))
-			{	f->status &= ~L_ATOM;
+			if((f->status & L_ATOM) && (g->status & (ATOM | L_ATOM))) {
+				f->status &= ~L_ATOM;
 				f->status |= ATOM;
 			}
 		} else
-		for (h = f->sub; h; h = h->nxt)
-			patch_atomic(h->this);
-		if (f == s->extent)
+			for(h = f->sub; h; h = h->nxt)
+				patch_atomic(h->this);
+		if(f == s->extent)
 			break;
 	}
 }
 
 static void
 mark_seq(Sequence *s)
-{	Element *f;
+{
+	Element *f;
 	SeqList *h;
 
-	for (f = s->frst; f; f = f->nxt)
-	{	f->status |= I_GLOB;
+	for(f = s->frst; f; f = f->nxt) {
+		f->status |= I_GLOB;
 
-		if (f->n->ntyp == ATOMIC
-		||  f->n->ntyp == NON_ATOMIC
-		||  f->n->ntyp == D_STEP)
+		if(f->n->ntyp == ATOMIC || f->n->ntyp == NON_ATOMIC || f->n->ntyp == D_STEP)
 			mark_seq(f->n->sl->this);
 
-		for (h = f->sub; h; h = h->nxt)
+		for(h = f->sub; h; h = h->nxt)
 			mark_seq(h->this);
-		if (f == s->last)
+		if(f == s->last)
 			return;
 	}
 }
 
 static Element *
 find_target(Element *e)
-{	Element *f;
+{
+	Element *f;
 
-	if (!e) return e;
+	if(!e)
+		return e;
 
-	if (t_cyc++ > 32)
-	{	fatal("cycle of goto jumps", (char *) 0);
+	if(t_cyc++ > 32) {
+		fatal("cycle of goto jumps", (char *)0);
 	}
-	switch (e->n->ntyp) {
-	case  GOTO:
-		f = get_lab(e->n,1);
+	switch(e->n->ntyp) {
+	case GOTO:
+		f = get_lab(e->n, 1);
 		cross_dsteps(e->n, f->n);
 		f = find_target(f);
 		break;
 	case BREAK:
-		if (e->nxt)
-		{	f = find_target(huntele(e->nxt, e->status, -1));
-			break;	/* new 5.0 -- was missing */
+		if(e->nxt) {
+			f = find_target(huntele(e->nxt, e->status, -1));
+			break; /* new 5.0 -- was missing */
 		}
-		/* else fall through */
+	/* else fall through */
 	default:
 		f = e;
 		break;
@@ -1994,64 +2078,69 @@ find_target(Element *e)
 Element *
 target(Element *e)
 {
-	if (!e) return e;
+	if(!e)
+		return e;
 	lineno = e->n->ln;
-	Fname  = e->n->fn;
+	Fname = e->n->fn;
 	t_cyc = 0;
 	return find_target(e);
 }
 
 static int
-seq_has_el(Sequence *s, Element *g)		/* new to version 5.0 */
-{	Element *f;
+seq_has_el(Sequence *s, Element *g) /* new to version 5.0 */
+{
+	Element *f;
 	SeqList *h;
 
-	for (f = s->frst; f; f = f->nxt)	/* g in same atomic? */
-	{	if (f == g)
-		{	return 1;
+	for(f = s->frst; f; f = f->nxt) /* g in same atomic? */
+	{
+		if(f == g) {
+			return 1;
 		}
-		if (f->status & CHECK3)
-		{	continue;
+		if(f->status & CHECK3) {
+			continue;
 		}
 		f->status |= CHECK3; /* protect against cycles */
-		for (h = f->sub; h; h = h->nxt)
-		{	if (h->this && seq_has_el(h->this, g))
-			{	return 1;
-	}	}	}
+		for(h = f->sub; h; h = h->nxt) {
+			if(h->this && seq_has_el(h->this, g)) {
+				return 1;
+			}
+		}
+	}
 	return 0;
 }
 
 static int
 scan_seq(Sequence *s)
-{	Element *f, *g;
+{
+	Element *f, *g;
 	SeqList *h;
 
-	for (f = s->frst; f; f = f->nxt)
-	{	if ((f->status&CHECK2)
-		||  has_global(f->n))
+	for(f = s->frst; f; f = f->nxt) {
+		if((f->status & CHECK2) || has_global(f->n))
 			return 1;
-		if  (f->n->ntyp == GOTO	/* may exit or reach other atomic */
-		&& !(f->status & D_ATOM))	/* cannot jump from d_step */
-		{	/* consider jump from an atomic without globals into
+		if(f->n->ntyp == GOTO	/* may exit or reach other atomic */
+		   && !(f->status & D_ATOM)) /* cannot jump from d_step */
+		{			     /* consider jump from an atomic without globals into
 			 * an atomic with globals
 			 * example by Claus Traulsen, 22 June 2007
 			 */
 			g = target(f);
 #if 1
-			if (g && !seq_has_el(s, g)) /* not internal to this atomic/dstep */
+			if(g && !seq_has_el(s, g)) /* not internal to this atomic/dstep */
 
 #else
-			if (g
-			&& !(f->status & L_ATOM)
-			&& !(g->status & (ATOM|L_ATOM)))
+			if(g && !(f->status & L_ATOM) && !(g->status & (ATOM | L_ATOM)))
 #endif
-			{	fprintf(tt, "\t/* mark-down line %d status %d = %d */\n", f->n->ln, f->status, (f->status & D_ATOM));
+			{
+				fprintf(tt, "\t/* mark-down line %d status %d = %d */\n", f->n->ln, f->status, (f->status & D_ATOM));
 				return 1; /* assume worst case */
-		}	}
-		for (h = f->sub; h; h = h->nxt)
-			if (scan_seq(h->this))
+			}
+		}
+		for(h = f->sub; h; h = h->nxt)
+			if(scan_seq(h->this))
 				return 1;
-		if (f == s->last)
+		if(f == s->last)
 			break;
 	}
 	return 0;
@@ -2059,13 +2148,14 @@ scan_seq(Sequence *s)
 
 static int
 glob_args(Lextok *n)
-{	int result = 0;
+{
+	int result = 0;
 	Lextok *v;
 
-	for (v = n->rgt; v; v = v->rgt)
-	{	if (v->lft->ntyp == CONST)
+	for(v = n->rgt; v; v = v->rgt) {
+		if(v->lft->ntyp == CONST)
 			continue;
-		if (v->lft->ntyp == EVAL)
+		if(v->lft->ntyp == EVAL)
 			result += has_global(v->lft->lft);
 		else
 			result += has_global(v->lft);
@@ -2075,28 +2165,32 @@ glob_args(Lextok *n)
 
 static int
 proc_is_safe(const Lextok *n)
-{	ProcList *p;
+{
+	ProcList *p;
 	/* not safe unless no local var inits are used */
 	/* note that a local variable init could refer to a global */
 
-	for (p = rdy; p; p = p->nxt)
-	{	if (strcmp(n->sym->name, p->n->name) == 0)
-		{	/* printf("proc %s safety: %d\n", p->n->name, p->unsafe); */
+	for(p = rdy; p; p = p->nxt) {
+		if(strcmp(n->sym->name, p->n->name) == 0) { /* printf("proc %s safety: %d\n", p->n->name, p->unsafe); */
 			return (p->unsafe != 0);
-	}	}
-/*	non_fatal("bad call to proc_is_safe", (char *) 0);	*/
+		}
+	}
+	/*	non_fatal("bad call to proc_is_safe", (char *) 0);	*/
 	/* cannot happen */
 	return 0;
 }
 
 int
 has_global(Lextok *n)
-{	Lextok *v;
+{
+	Lextok *v;
 
-	if (!n) return 0;
-	if (AllGlobal) return 1;	/* global provided clause */
+	if(!n)
+		return 0;
+	if(AllGlobal)
+		return 1; /* global provided clause */
 
-	switch (n->ntyp) {
+	switch(n->ntyp) {
 	case ATOMIC:
 	case D_STEP:
 	case NON_ATOMIC:
@@ -2108,33 +2202,43 @@ has_global(Lextok *n)
 	case CONST:
 		return 0;
 
-	case   ELSE: return n->val; /* true if combined with chan refs */
+	case ELSE:
+		return n->val; /* true if combined with chan refs */
 
-	case    's': return glob_args(n)!=0 || ((n->sym->xu&(XS|XX)) != XS);
-	case    'r': return glob_args(n)!=0 || ((n->sym->xu&(XR|XX)) != XR);
-	case    'R': return glob_args(n)!=0 || (((n->sym->xu)&(XR|XS|XX)) != (XR|XS));
-	case NEMPTY: return ((n->sym->xu&(XR|XX)) != XR);
-	case  NFULL: return ((n->sym->xu&(XS|XX)) != XS);
-	case   FULL: return ((n->sym->xu&(XR|XX)) != XR);
-	case  EMPTY: return ((n->sym->xu&(XS|XX)) != XS);
-	case  LEN:   return (((n->sym->xu)&(XR|XS|XX)) != (XR|XS));
+	case 's':
+		return glob_args(n) != 0 || ((n->sym->xu & (XS | XX)) != XS);
+	case 'r':
+		return glob_args(n) != 0 || ((n->sym->xu & (XR | XX)) != XR);
+	case 'R':
+		return glob_args(n) != 0 || (((n->sym->xu) & (XR | XS | XX)) != (XR | XS));
+	case NEMPTY:
+		return ((n->sym->xu & (XR | XX)) != XR);
+	case NFULL:
+		return ((n->sym->xu & (XS | XX)) != XS);
+	case FULL:
+		return ((n->sym->xu & (XR | XX)) != XR);
+	case EMPTY:
+		return ((n->sym->xu & (XS | XX)) != XS);
+	case LEN:
+		return (((n->sym->xu) & (XR | XS | XX)) != (XR | XS));
 
-	case   NAME:
-		if (n->sym->context
-		|| (n->sym->hidden&64)
-		||  strcmp(n->sym->name, "_pid") == 0
-		||  strcmp(n->sym->name, "_") == 0)
+	case NAME:
+		if(n->sym->context || (n->sym->hidden & 64) || strcmp(n->sym->name, "_pid") == 0 || strcmp(n->sym->name, "_") == 0)
 			return 0;
 		return 1;
 
 	case RUN:
 		return proc_is_safe(n);
 
-	case C_CODE: case C_EXPR:
+	case C_CODE:
+	case C_EXPR:
 		return glob_inline(n->sym->name);
 
-	case ENABLED: case PC_VAL: case NONPROGRESS:
-	case 'p': case 'q':
+	case ENABLED:
+	case PC_VAL:
+	case NONPROGRESS:
+	case 'p':
+	case 'q':
 	case TIMEOUT:
 		return 1;
 
@@ -2144,21 +2248,42 @@ has_global(Lextok *n)
 			II is the youngest process
 			and nrprocs < MAXPROCS
 	*/
-	case '@': return 0;
+	case '@':
+		return 0;
 
-	case '!': case UMIN: case '~': case ASSERT:
+	case '!':
+	case UMIN:
+	case '~':
+	case ASSERT:
 		return has_global(n->lft);
 
-	case '/': case '*': case '-': case '+':
-	case '%': case LT:  case GT: case '&': case '^':
-	case '|': case LE:  case GE:  case NE: case '?':
-	case EQ:  case OR:  case AND: case LSHIFT:
-	case RSHIFT: case 'c': case ASGN:
+	case '/':
+	case '*':
+	case '-':
+	case '+':
+	case '%':
+	case LT:
+	case GT:
+	case '&':
+	case '^':
+	case '|':
+	case LE:
+	case GE:
+	case NE:
+	case '?':
+	case EQ:
+	case OR:
+	case AND:
+	case LSHIFT:
+	case RSHIFT:
+	case 'c':
+	case ASGN:
 		return has_global(n->lft) || has_global(n->rgt);
 
 	case PRINT:
-		for (v = n->lft; v; v = v->rgt)
-			if (has_global(v->lft)) return 1;
+		for(v = n->lft; v; v = v->rgt)
+			if(has_global(v->lft))
+				return 1;
 		return 0;
 	case PRINTM:
 		return has_global(n->lft);
@@ -2169,90 +2294,145 @@ has_global(Lextok *n)
 static void
 Bailout(FILE *fd, char *str)
 {
-	if (!GenCode)
+	if(!GenCode)
 		fprintf(fd, "continue%s", str);
-	else if (IsGuard)
+	else if(IsGuard)
 		fprintf(fd, "%s%s", NextLab[Level], str);
 	else
 		fprintf(fd, "Uerror(\"block in d_step seq\")%s", str);
 }
 
-#define cat0(x)   	putstmnt(fd,now->lft,m); fprintf(fd, x); \
-			putstmnt(fd,now->rgt,m)
-#define cat1(x)		fprintf(fd,"("); cat0(x); fprintf(fd,")")
-#define cat2(x,y)  	fprintf(fd,x); putstmnt(fd,y,m)
-#define cat3(x,y,z)	fprintf(fd,x); putstmnt(fd,y,m); fprintf(fd,z)
+#define cat0(x)                    \
+	putstmnt(fd, now->lft, m); \
+	fprintf(fd, x);            \
+	putstmnt(fd, now->rgt, m)
+#define cat1(x)           \
+	fprintf(fd, "("); \
+	cat0(x);          \
+	fprintf(fd, ")")
+#define cat2(x, y)      \
+	fprintf(fd, x); \
+	putstmnt(fd, y, m)
+#define cat3(x, y, z)       \
+	fprintf(fd, x);     \
+	putstmnt(fd, y, m); \
+	fprintf(fd, z)
 
 void
 putstmnt(FILE *fd, Lextok *now, int m)
-{	Lextok *v;
+{
+	Lextok *v;
 	int i, j;
 
-	if (!now) { fprintf(fd, "0"); return; }
+	if(!now) {
+		fprintf(fd, "0");
+		return;
+	}
 	lineno = now->ln;
-	Fname  = now->fn;
+	Fname = now->fn;
 
-	switch (now->ntyp) {
-	case CONST:	fprintf(fd, "%d", now->val); break;
-	case '!':	cat3(" !(", now->lft, ")"); break;
-	case UMIN:	cat3(" -(", now->lft, ")"); break;
-	case '~':	cat3(" ~(", now->lft, ")"); break;
+	switch(now->ntyp) {
+	case CONST:
+		fprintf(fd, "%d", now->val);
+		break;
+	case '!':
+		cat3(" !(", now->lft, ")");
+		break;
+	case UMIN:
+		cat3(" -(", now->lft, ")");
+		break;
+	case '~':
+		cat3(" ~(", now->lft, ")");
+		break;
 
-	case '/':	cat1("/");  break;
-	case '*':	cat1("*");  break;
-	case '-':	cat1("-");  break;
-	case '+':	cat1("+");  break;
-	case '%':	cat1("%%"); break;
-	case '&':	cat1("&");  break;
-	case '^':	cat1("^");  break;
-	case '|':	cat1("|");  break;
-	case LT:	cat1("<");  break;
-	case GT:	cat1(">");  break;
-	case LE:	cat1("<="); break;
-	case GE:	cat1(">="); break;
-	case NE:	cat1("!="); break;
-	case EQ:	cat1("=="); break;
-	case OR:	cat1("||"); break;
-	case AND:	cat1("&&"); break;
-	case LSHIFT:	cat1("<<"); break;
-	case RSHIFT:	cat1(">>"); break;
+	case '/':
+		cat1("/");
+		break;
+	case '*':
+		cat1("*");
+		break;
+	case '-':
+		cat1("-");
+		break;
+	case '+':
+		cat1("+");
+		break;
+	case '%':
+		cat1("%%");
+		break;
+	case '&':
+		cat1("&");
+		break;
+	case '^':
+		cat1("^");
+		break;
+	case '|':
+		cat1("|");
+		break;
+	case LT:
+		cat1("<");
+		break;
+	case GT:
+		cat1(">");
+		break;
+	case LE:
+		cat1("<=");
+		break;
+	case GE:
+		cat1(">=");
+		break;
+	case NE:
+		cat1("!=");
+		break;
+	case EQ:
+		cat1("==");
+		break;
+	case OR:
+		cat1("||");
+		break;
+	case AND:
+		cat1("&&");
+		break;
+	case LSHIFT:
+		cat1("<<");
+		break;
+	case RSHIFT:
+		cat1(">>");
+		break;
 
 	case TIMEOUT:
-		if (separate == 2)
+		if(separate == 2)
 			fprintf(fd, "((tau)&1)");
 		else
 			fprintf(fd, "((trpt->tau)&1)");
-		if (GenCode)
-		 printf("spin: warning, %s:%d, 'timeout' in d_step sequence\n",
-			Fname->name, lineno);
+		if(GenCode)
+			printf("spin: warning, %s:%d, 'timeout' in d_step sequence\n",
+			       Fname->name, lineno);
 		/* is okay as a guard */
 		break;
 
 	case RUN:
-		if (now->sym == NULL)
-			Fatal("internal error pangen2.c", (char *) 0);
-		if (claimproc
-		&&  strcmp(now->sym->name, claimproc) == 0)
+		if(now->sym == NULL)
+			Fatal("internal error pangen2.c", (char *)0);
+		if(claimproc && strcmp(now->sym->name, claimproc) == 0)
 			fatal("claim %s, (not runnable)", claimproc);
-		if (eventmap
-		&&  strcmp(now->sym->name, eventmap) == 0)
+		if(eventmap && strcmp(now->sym->name, eventmap) == 0)
 			fatal("eventmap %s, (not runnable)", eventmap);
 
-		if (GenCode)
-		  fatal("'run' in d_step sequence (use atomic)",
-			(char *)0);
+		if(GenCode)
+			fatal("'run' in d_step sequence (use atomic)",
+			      (char *)0);
 
-		fprintf(fd,"addproc(II, %d", fproc(now->sym->name));
-		for (v = now->lft, i = 0; v; v = v->rgt, i++)
-		{	cat2(", ", v->lft);
+		fprintf(fd, "addproc(II, %d", fproc(now->sym->name));
+		for(v = now->lft, i = 0; v; v = v->rgt, i++) {
+			cat2(", ", v->lft);
 		}
 		check_param_count(i, now);
 
-		if (i > Npars)
-		{	/* printf("\t%d parameters used, max %d expected\n", i, Npars); */
+		if(i > Npars) { /* printf("\t%d parameters used, max %d expected\n", i, Npars); */
 			fatal("too many parameters in run %s(...)", now->sym->name);
 		}
-		for ( ; i < Npars; i++)
+		for(; i < Npars; i++)
 			fprintf(fd, ", 0");
 		fprintf(fd, ")");
 		break;
@@ -2263,10 +2443,10 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case NONPROGRESS:
 		/* o_pm&4=progress, tau&128=claim stutter */
-		if (separate == 2)
-		fprintf(fd, "(!(o_pm&4) && !(tau&128))");
+		if(separate == 2)
+			fprintf(fd, "(!(o_pm&4) && !(tau&128))");
 		else
-		fprintf(fd, "(!(trpt->o_pm&4) && !(trpt->tau&128))");
+			fprintf(fd, "(!(trpt->o_pm&4) && !(trpt->tau&128))");
 		break;
 
 	case PC_VAL:
@@ -2274,8 +2454,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case LEN:
-		if (!terse && !TestOnly && has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
+		if(!terse && !TestOnly && has_xu) {
+			fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
 			putname(fd, "(!(q_claim[", now->lft, m, "]&1) || ");
 			putname(fd, "q_R_check(", now->lft, m, "");
 			fprintf(fd, ", II)) &&\n\t\t");
@@ -2287,8 +2467,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case FULL:
-		if (!terse && !TestOnly && has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
+		if(!terse && !TestOnly && has_xu) {
+			fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
 			putname(fd, "(!(q_claim[", now->lft, m, "]&1) || ");
 			putname(fd, "q_R_check(", now->lft, m, "");
 			fprintf(fd, ", II)) &&\n\t\t");
@@ -2300,8 +2480,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case EMPTY:
-		if (!terse && !TestOnly && has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
+		if(!terse && !TestOnly && has_xu) {
+			fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
 			putname(fd, "(!(q_claim[", now->lft, m, "]&1) || ");
 			putname(fd, "q_R_check(", now->lft, m, "");
 			fprintf(fd, ", II)) &&\n\t\t");
@@ -2313,8 +2493,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case NFULL:
-		if (!terse && !TestOnly && has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
+		if(!terse && !TestOnly && has_xu) {
+			fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
 			putname(fd, "(!(q_claim[", now->lft, m, "]&2) || ");
 			putname(fd, "q_S_check(", now->lft, m, ", II)) &&");
 			fprintf(fd, "\n#endif\n\t\t");
@@ -2323,8 +2503,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case NEMPTY:
-		if (!terse && !TestOnly && has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
+		if(!terse && !TestOnly && has_xu) {
+			fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
 			putname(fd, "(!(q_claim[", now->lft, m, "]&1) || ");
 			putname(fd, "q_R_check(", now->lft, m, ", II)) &&");
 			fprintf(fd, "\n#endif\n\t\t");
@@ -2333,18 +2513,17 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case 's':
-		if (Pid == eventmapnr)
-		{	fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 's') ");
+		if(Pid == eventmapnr) {
+			fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 's') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
-			for (v = now->rgt, i=0; v; v = v->rgt, i++)
-			{	if (v->lft->ntyp != CONST
-				&&  v->lft->ntyp != EVAL)
+			for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+				if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL)
 					continue;
 				fprintf(fd, " \\\n\t\t|| qrecv(");
 				putname(fd, "", now->lft, m, ", ");
 				putname(fd, "q_len(", now->lft, m, ")-1, ");
 				fprintf(fd, "%d, 0) != ", i);
-				if (v->lft->ntyp == CONST)
+				if(v->lft->ntyp == CONST)
 					putstmnt(fd, v->lft, m);
 				else /* EVAL */
 					putstmnt(fd, v->lft->lft, m);
@@ -2354,40 +2533,40 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			putname(th, " || (x_y3_ == ", now->lft, m, ")");
 			break;
 		}
-		if (TestOnly)
-		{	if (m_loss)
+		if(TestOnly) {
+			if(m_loss)
 				fprintf(fd, "1");
 			else
 				putname(fd, "!q_full(", now->lft, m, ")");
 			break;
 		}
-		if (has_xu)
-		{	fprintf(fd, "\n#if !defined(XUSAFE) && !defined(NOREDUCE)\n\t\t");
+		if(has_xu) {
+			fprintf(fd, "\n#if !defined(XUSAFE) && !defined(NOREDUCE)\n\t\t");
 			putname(fd, "if (q_claim[", now->lft, m, "]&2)\n\t\t");
 			putname(fd, "{	q_S_check(", now->lft, m, ", II);\n\t\t");
 			fprintf(fd, "}\n");
-			if (has_sorted && now->val == 1)
-			{	putname(fd, "\t\tif (q_claim[", now->lft, m, "]&1)\n\t\t"); /* &1 iso &2 */
+			if(has_sorted && now->val == 1) {
+				putname(fd, "\t\tif (q_claim[", now->lft, m, "]&1)\n\t\t"); /* &1 iso &2 */
 				fprintf(fd, "{	uerror(\"sorted send on xr channel violates po reduction\");\n\t\t");
 				fprintf(fd, "}\n");
 			}
 			fprintf(fd, "#endif\n\t\t");
 		}
 		fprintf(fd, "if (q_%s",
-			(u_sync > 0 && u_async == 0)?"len":"full");
+			(u_sync > 0 && u_async == 0) ? "len" : "full");
 		putname(fd, "(", now->lft, m, "))\n");
 
-		if (m_loss)
+		if(m_loss)
 			fprintf(fd, "\t\t{ nlost++; delta_m = 1; } else {");
-		else
-		{	fprintf(fd, "\t\t\t");
+		else {
+			fprintf(fd, "\t\t\t");
 			Bailout(fd, ";");
 		}
 
-		if (has_enabled)
+		if(has_enabled)
 			fprintf(fd, "\n\t\tif (TstOnly) return 1;");
 
-		if (u_sync && !u_async && rvopt)
+		if(u_sync && !u_async && rvopt)
 			fprintf(fd, "\n\n\t\tif (no_recvs(II)) continue;\n");
 
 		fprintf(fd, "\n#ifdef HAS_CODE\n");
@@ -2395,10 +2574,10 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		fprintf(fd, "\t\t\tchar simtmp[32];\n");
 		putname(fd, "\t\t\tsprintf(simvals, \"%%d!\", ", now->lft, m, ");\n");
 		_isok++;
-		for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-		{	cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
-			if (v->rgt)
-			fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
+		for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+			cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
+			if(v->rgt)
+				fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
 		}
 		_isok--;
 		fprintf(fd, "\t\t}\n");
@@ -2406,44 +2585,43 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 		putname(fd, "\n\t\tqsend(", now->lft, m, "");
 		fprintf(fd, ", %d", now->val);
-		for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-		{	cat2(", ", v->lft);
+		for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+			cat2(", ", v->lft);
 		}
-		if (i > Mpars)
-		{	terse++;
+		if(i > Mpars) {
+			terse++;
 			putname(stdout, "channel name: ", now->lft, m, "\n");
 			terse--;
 			printf("	%d msg parameters sent, %d expected\n", i, Mpars);
 			fatal("too many pars in send", "");
 		}
-		for (j = i; i < Mpars; i++)
+		for(j = i; i < Mpars; i++)
 			fprintf(fd, ", 0");
 		fprintf(fd, ", %d)", j);
-		if (u_sync)
-		{	fprintf(fd, ";\n\t\t");
-			if (u_async)
-			  putname(fd, "if (q_zero(", now->lft, m, ")) ");
+		if(u_sync) {
+			fprintf(fd, ";\n\t\t");
+			if(u_async)
+				putname(fd, "if (q_zero(", now->lft, m, ")) ");
 			putname(fd, "{ boq = ", now->lft, m, "");
-			if (GenCode)
-			  fprintf(fd, "; Uerror(\"rv-attempt in d_step\")");
+			if(GenCode)
+				fprintf(fd, "; Uerror(\"rv-attempt in d_step\")");
 			fprintf(fd, "; }");
 		}
-		if (m_loss)
+		if(m_loss)
 			fprintf(fd, ";\n\t\t}\n\t\t"); /* end of m_loss else */
 		break;
 
 	case 'r':
-		if (Pid == eventmapnr)
-		{	fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 'r') ");
+		if(Pid == eventmapnr) {
+			fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 'r') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
-			for (v = now->rgt, i=0; v; v = v->rgt, i++)
-			{	if (v->lft->ntyp != CONST
-				&&  v->lft->ntyp != EVAL)
+			for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+				if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL)
 					continue;
 				fprintf(fd, " \\\n\t\t|| qrecv(");
 				putname(fd, "", now->lft, m, ", ");
 				fprintf(fd, "0, %d, 0) != ", i);
-				if (v->lft->ntyp == CONST)
+				if(v->lft->ntyp == CONST)
 					putstmnt(fd, v->lft, m);
 				else /* EVAL */
 					putstmnt(fd, v->lft->lft, m);
@@ -2455,244 +2633,239 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 			break;
 		}
-		if (TestOnly)
-		{	fprintf(fd, "((");
-			if (u_sync) fprintf(fd, "(boq == -1 && ");
+		if(TestOnly) {
+			fprintf(fd, "((");
+			if(u_sync)
+				fprintf(fd, "(boq == -1 && ");
 
 			putname(fd, "q_len(", now->lft, m, ")");
 
-			if (u_sync && now->val <= 1)
-			{ putname(fd, ") || (boq == ",  now->lft,m," && ");
-			  putname(fd, "q_zero(", now->lft,m,"))");
+			if(u_sync && now->val <= 1) {
+				putname(fd, ") || (boq == ", now->lft, m, " && ");
+				putname(fd, "q_zero(", now->lft, m, "))");
 			}
 
 			fprintf(fd, ")");
-			if (now->val == 0 || now->val == 2)
-			{	for (v = now->rgt, i=j=0; v; v = v->rgt, i++)
-				{ if (v->lft->ntyp == CONST)
-				  { cat3("\n\t\t&& (", v->lft, " == ");
-				    putname(fd, "qrecv(", now->lft, m, ", ");
-				    fprintf(fd, "0, %d, 0))", i);
-				  } else if (v->lft->ntyp == EVAL)
-				  { cat3("\n\t\t&& (", v->lft->lft, " == ");
-				    putname(fd, "qrecv(", now->lft, m, ", ");
-				    fprintf(fd, "0, %d, 0))", i);
-				  } else
-				  {	j++; continue;
-				  }
+			if(now->val == 0 || now->val == 2) {
+				for(v = now->rgt, i = j = 0; v; v = v->rgt, i++) {
+					if(v->lft->ntyp == CONST) {
+						cat3("\n\t\t&& (", v->lft, " == ");
+						putname(fd, "qrecv(", now->lft, m, ", ");
+						fprintf(fd, "0, %d, 0))", i);
+					} else if(v->lft->ntyp == EVAL) {
+						cat3("\n\t\t&& (", v->lft->lft, " == ");
+						putname(fd, "qrecv(", now->lft, m, ", ");
+						fprintf(fd, "0, %d, 0))", i);
+					} else {
+						j++;
+						continue;
+					}
 				}
-			} else
-			{	fprintf(fd, "\n\t\t&& Q_has(");
+			} else {
+				fprintf(fd, "\n\t\t&& Q_has(");
 				putname(fd, "", now->lft, m, "");
-				for (v = now->rgt, i=0; v; v = v->rgt, i++)
-				{	if (v->lft->ntyp == CONST)
-					{	fprintf(fd, ", 1, ");
+				for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+					if(v->lft->ntyp == CONST) {
+						fprintf(fd, ", 1, ");
 						putstmnt(fd, v->lft, m);
-					} else if (v->lft->ntyp == EVAL)
-					{	fprintf(fd, ", 1, ");
+					} else if(v->lft->ntyp == EVAL) {
+						fprintf(fd, ", 1, ");
 						putstmnt(fd, v->lft->lft, m);
-					} else
-					{	fprintf(fd, ", 0, 0");
-				}	}
-				for ( ; i < Mpars; i++)
+					} else {
+						fprintf(fd, ", 0, 0");
+					}
+				}
+				for(; i < Mpars; i++)
 					fprintf(fd, ", 0, 0");
 				fprintf(fd, ")");
 			}
 			fprintf(fd, ")");
 			break;
 		}
-		if (has_xu)
-		{	fprintf(fd, "\n#if !defined(XUSAFE) && !defined(NOREDUCE)\n\t\t");
+		if(has_xu) {
+			fprintf(fd, "\n#if !defined(XUSAFE) && !defined(NOREDUCE)\n\t\t");
 			putname(fd, "if (q_claim[", now->lft, m, "]&1)\n\t\t");
 			putname(fd, "{	q_R_check(", now->lft, m, ", II);\n\t\t");
-			if (has_random && now->val != 0)
-			fprintf(fd, "	uerror(\"rand receive on xr channel violates po reduction\");\n\t\t");
+			if(has_random && now->val != 0)
+				fprintf(fd, "	uerror(\"rand receive on xr channel violates po reduction\");\n\t\t");
 			fprintf(fd, "}\n");
 			fprintf(fd, "#endif\n\t\t");
 		}
-		if (u_sync)
-		{	if (now->val >= 2)
-			{	if (u_async)
-				{ fprintf(fd, "if (");
-				  putname(fd, "q_zero(", now->lft,m,"))");
-				  fprintf(fd, "\n\t\t{\t");
+		if(u_sync) {
+			if(now->val >= 2) {
+				if(u_async) {
+					fprintf(fd, "if (");
+					putname(fd, "q_zero(", now->lft, m, "))");
+					fprintf(fd, "\n\t\t{\t");
 				}
 				fprintf(fd, "uerror(\"polling ");
 				fprintf(fd, "rv chan\");\n\t\t");
-				if (u_async)
-				  fprintf(fd, "	continue;\n\t\t}\n\t\t");
+				if(u_async)
+					fprintf(fd, "	continue;\n\t\t}\n\t\t");
 				fprintf(fd, "IfNotBlocked\n\t\t");
-			} else
-			{	fprintf(fd, "if (");
-				if (u_async == 0)
-				  putname(fd, "boq != ", now->lft,m,") ");
-				else
-				{ putname(fd, "q_zero(", now->lft,m,"))");
-				  fprintf(fd, "\n\t\t{\tif (boq != ");
-				  putname(fd, "",  now->lft,m,") ");
-				  Bailout(fd, ";\n\t\t} else\n\t\t");
-				  fprintf(fd, "{\tif (boq != -1) ");
+			} else {
+				fprintf(fd, "if (");
+				if(u_async == 0)
+					putname(fd, "boq != ", now->lft, m, ") ");
+				else {
+					putname(fd, "q_zero(", now->lft, m, "))");
+					fprintf(fd, "\n\t\t{\tif (boq != ");
+					putname(fd, "", now->lft, m, ") ");
+					Bailout(fd, ";\n\t\t} else\n\t\t");
+					fprintf(fd, "{\tif (boq != -1) ");
 				}
 				Bailout(fd, ";\n\t\t");
-				if (u_async)
+				if(u_async)
 					fprintf(fd, "}\n\t\t");
-		}	}
+			}
+		}
 		putname(fd, "if (q_len(", now->lft, m, ") == 0) ");
 		Bailout(fd, "");
 
-		for (v = now->rgt, j=0; v; v = v->rgt)
-		{	if (v->lft->ntyp != CONST
-			&&  v->lft->ntyp != EVAL)
-				j++;	/* count settables */
+		for(v = now->rgt, j = 0; v; v = v->rgt) {
+			if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL)
+				j++; /* count settables */
 		}
 		fprintf(fd, ";\n\n\t\tXX=1");
-/* test */	if (now->val == 0 || now->val == 2)
-		{	for (v = now->rgt, i=0; v; v = v->rgt, i++)
-			{	if (v->lft->ntyp == CONST)
-				{ fprintf(fd, ";\n\t\t");
-				  cat3("if (", v->lft, " != ");
-				  putname(fd, "qrecv(", now->lft, m, ", ");
-				  fprintf(fd, "0, %d, 0)) ", i);
-				  Bailout(fd, "");
-				} else if (v->lft->ntyp == EVAL)
-				{ fprintf(fd, ";\n\t\t");
-				  cat3("if (", v->lft->lft, " != ");
-				  putname(fd, "qrecv(", now->lft, m, ", ");
-				  fprintf(fd, "0, %d, 0)) ", i);
-				  Bailout(fd, "");
-			}	}
-		} else	/* random receive: val 1 or 3 */
-		{	fprintf(fd, ";\n\t\tif (!(XX = Q_has(");
+		/* test */ if(now->val == 0 || now->val == 2) {
+			for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+				if(v->lft->ntyp == CONST) {
+					fprintf(fd, ";\n\t\t");
+					cat3("if (", v->lft, " != ");
+					putname(fd, "qrecv(", now->lft, m, ", ");
+					fprintf(fd, "0, %d, 0)) ", i);
+					Bailout(fd, "");
+				} else if(v->lft->ntyp == EVAL) {
+					fprintf(fd, ";\n\t\t");
+					cat3("if (", v->lft->lft, " != ");
+					putname(fd, "qrecv(", now->lft, m, ", ");
+					fprintf(fd, "0, %d, 0)) ", i);
+					Bailout(fd, "");
+				}
+			}
+		} else /* random receive: val 1 or 3 */
+		{
+			fprintf(fd, ";\n\t\tif (!(XX = Q_has(");
 			putname(fd, "", now->lft, m, "");
-			for (v = now->rgt, i=0; v; v = v->rgt, i++)
-			{	if (v->lft->ntyp == CONST)
-				{	fprintf(fd, ", 1, ");
+			for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+				if(v->lft->ntyp == CONST) {
+					fprintf(fd, ", 1, ");
 					putstmnt(fd, v->lft, m);
-				} else if (v->lft->ntyp == EVAL)
-				{	fprintf(fd, ", 1, ");
+				} else if(v->lft->ntyp == EVAL) {
+					fprintf(fd, ", 1, ");
 					putstmnt(fd, v->lft->lft, m);
-				} else
-				{	fprintf(fd, ", 0, 0");
-			}	}
-			for ( ; i < Mpars; i++)
+				} else {
+					fprintf(fd, ", 0, 0");
+				}
+			}
+			for(; i < Mpars; i++)
 				fprintf(fd, ", 0, 0");
 			fprintf(fd, "))) ");
 			Bailout(fd, "");
- if (!GenCode) {
-			fprintf(fd, ";\n\t\t");
-			if (multi_oval)
-			{	check_needed();
-				fprintf(fd, "(trpt+1)->bup.ovals[%d] = ",
-					multi_oval-1);
-				multi_oval++;
-			} else
-				fprintf(fd, "(trpt+1)->bup.oval = ");
-			fprintf(fd, "XX");
- }
+			if(!GenCode) {
+				fprintf(fd, ";\n\t\t");
+				if(multi_oval) {
+					check_needed();
+					fprintf(fd, "(trpt+1)->bup.ovals[%d] = ",
+						multi_oval - 1);
+					multi_oval++;
+				} else
+					fprintf(fd, "(trpt+1)->bup.oval = ");
+				fprintf(fd, "XX");
+			}
 		}
 
-		if (has_enabled)
+		if(has_enabled)
 			fprintf(fd, ";\n\t\tif (TstOnly) return 1");
 
-		if (j == 0 && now->val >= 2)
-		{	fprintf(fd, ";\n\t\t");
-			break;	/* poll without side-effect */
+		if(j == 0 && now->val >= 2) {
+			fprintf(fd, ";\n\t\t");
+			break; /* poll without side-effect */
 		}
 
-		if (!GenCode)
-		{	int jj = 0;
+		if(!GenCode) {
+			int jj = 0;
 			fprintf(fd, ";\n\t\t");
 			/* no variables modified */
-			if (j == 0 && now->val == 0)
-			{	fprintf(fd, "if (q_flds[((Q0 *)qptr(");
+			if(j == 0 && now->val == 0) {
+				fprintf(fd, "if (q_flds[((Q0 *)qptr(");
 				putname(fd, "", now->lft, m, "-1))->_t]");
 				fprintf(fd, " != %d)\n\t", i);
 				fprintf(fd, "\t\tUerror(\"wrong nr of msg fields in rcv\");\n\t\t");
 			}
 
-			for (v = now->rgt; v; v = v->rgt)
-				if ((v->lft->ntyp != CONST
-				&&   v->lft->ntyp != EVAL))
-					jj++;	/* nr of vars needing bup */
+			for(v = now->rgt; v; v = v->rgt)
+				if((v->lft->ntyp != CONST && v->lft->ntyp != EVAL))
+					jj++; /* nr of vars needing bup */
 
-			if (jj)
-			for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-			{	char tempbuf[64];
+			if(jj)
+				for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+					char tempbuf[64];
 
-				if ((v->lft->ntyp == CONST
-				||   v->lft->ntyp == EVAL))
-					continue;
+					if((v->lft->ntyp == CONST || v->lft->ntyp == EVAL))
+						continue;
 
-				if (multi_oval)
-				{	check_needed();
-					sprintf(tempbuf, "(trpt+1)->bup.ovals[%d] = ",
-						multi_oval-1);
-					multi_oval++;
-				} else
-					sprintf(tempbuf, "(trpt+1)->bup.oval = ");
+					if(multi_oval) {
+						check_needed();
+						sprintf(tempbuf, "(trpt+1)->bup.ovals[%d] = ",
+							multi_oval - 1);
+						multi_oval++;
+					} else
+						sprintf(tempbuf, "(trpt+1)->bup.oval = ");
 
-				if (v->lft->sym && !strcmp(v->lft->sym->name, "_"))
-				{	fprintf(fd, tempbuf);
-					putname(fd, "qrecv(", now->lft, m, "");
-					fprintf(fd, ", XX-1, %d, 0);\n\t\t", i);
-				} else
-				{	_isok++;
-					cat3(tempbuf, v->lft, ";\n\t\t");
-					_isok--;
+					if(v->lft->sym && !strcmp(v->lft->sym->name, "_")) {
+						fprintf(fd, tempbuf);
+						putname(fd, "qrecv(", now->lft, m, "");
+						fprintf(fd, ", XX-1, %d, 0);\n\t\t", i);
+					} else {
+						_isok++;
+						cat3(tempbuf, v->lft, ";\n\t\t");
+						_isok--;
+					}
+				}
+
+			if(jj) /* check for double entries q?x,x */
+			{
+				Lextok *w;
+
+				for(v = now->rgt; v; v = v->rgt) {
+					if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL && v->lft->sym && v->lft->sym->type != STRUCT /* not a struct */
+					   && (v->lft->sym->nel == 1 && v->lft->sym->isarray == 0)				       /* not array */
+					   && strcmp(v->lft->sym->name, "_") != 0)
+						for(w = v->rgt; w; w = w->rgt)
+							if(v->lft->sym == w->lft->sym) {
+								fatal("cannot use var ('%s') in multiple msg fields",
+								      v->lft->sym->name);
+							}
 				}
 			}
-
-			if (jj)	/* check for double entries q?x,x */
-			{	Lextok *w;
-
-				for (v = now->rgt; v; v = v->rgt)
-				{	if (v->lft->ntyp != CONST
-					&&  v->lft->ntyp != EVAL
-					&&  v->lft->sym
-					&&  v->lft->sym->type != STRUCT	/* not a struct */
-					&&  (v->lft->sym->nel == 1 && v->lft->sym->isarray == 0) /* not array */
-					&&  strcmp(v->lft->sym->name, "_") != 0)
-					for (w = v->rgt; w; w = w->rgt)
-						if (v->lft->sym == w->lft->sym)
-						{	fatal("cannot use var ('%s') in multiple msg fields",
-								v->lft->sym->name);
-			}	}		}
 		}
-/* set */	for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-		{	if ((v->lft->ntyp == CONST
-			||   v->lft->ntyp == EVAL) && v->rgt)
+		/* set */ for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+			if((v->lft->ntyp == CONST || v->lft->ntyp == EVAL) && v->rgt)
 				continue;
 			fprintf(fd, ";\n\t\t");
 
-			if (v->lft->ntyp != CONST
-			&&  v->lft->ntyp != EVAL
-			&&  v->lft->sym != NULL
-			&&  strcmp(v->lft->sym->name, "_") != 0)
-			{	nocast=1;
+			if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL && v->lft->sym != NULL && strcmp(v->lft->sym->name, "_") != 0) {
+				nocast = 1;
 				_isok++;
 				putstmnt(fd, v->lft, m);
 				_isok--;
-				nocast=0;
+				nocast = 0;
 				fprintf(fd, " = ");
 			}
 			putname(fd, "qrecv(", now->lft, m, ", ");
 			fprintf(fd, "XX-1, %d, ", i);
-			fprintf(fd, "%d)", (v->rgt || now->val >= 2)?0:1);
+			fprintf(fd, "%d)", (v->rgt || now->val >= 2) ? 0 : 1);
 
-			if (v->lft->ntyp != CONST
-			&&  v->lft->ntyp != EVAL
-			&&  v->lft->sym != NULL
-			&& strcmp(v->lft->sym->name, "_") != 0
-			&&  (v->lft->ntyp != NAME
-			||   v->lft->sym->type != CHAN))
-			{	fprintf(fd, ";\n#ifdef VAR_RANGES");
+			if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL && v->lft->sym != NULL && strcmp(v->lft->sym->name, "_") != 0 && (v->lft->ntyp != NAME || v->lft->sym->type != CHAN)) {
+				fprintf(fd, ";\n#ifdef VAR_RANGES");
 				fprintf(fd, "\n\t\tlogval(\"");
 				withprocname = terse = nocast = 1;
 				_isok++;
-				putstmnt(fd,v->lft,m);
+				putstmnt(fd, v->lft, m);
 				withprocname = terse = nocast = 0;
 				fprintf(fd, "\", ");
-				putstmnt(fd,v->lft,m);
+				putstmnt(fd, v->lft, m);
 				_isok--;
 				fprintf(fd, ");\n#endif\n");
 				fprintf(fd, "\t\t");
@@ -2705,21 +2878,21 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		fprintf(fd, "\t\t\tchar simtmp[32];\n");
 		putname(fd, "\t\t\tsprintf(simvals, \"%%d?\", ", now->lft, m, ");\n");
 		_isok++;
-		for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-		{	if (v->lft->ntyp != EVAL)
-			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
-			} else
-			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
+		for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+			if(v->lft->ntyp != EVAL) {
+				cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
+			} else {
+				cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
 			}
-			if (v->rgt)
-			fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
+			if(v->rgt)
+				fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
 		}
 		_isok--;
 		fprintf(fd, "\t\t}\n");
 		fprintf(fd, "#endif\n\t\t");
 
-		if (u_sync)
-		{	putname(fd, "if (q_zero(", now->lft, m, "))");
+		if(u_sync) {
+			putname(fd, "if (q_zero(", now->lft, m, "))");
 			fprintf(fd, "\n\t\t{	boq = -1;\n");
 
 			fprintf(fd, "#ifndef NOFAIR\n"); /* NEW 3.0.8 */
@@ -2746,8 +2919,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case 'R':
-		if (!terse && !TestOnly && has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
+		if(!terse && !TestOnly && has_xu) {
+			fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
 			putname(fd, "(!(q_claim[", now->lft, m, "]&1) || ");
 			fprintf(fd, "q_R_check(");
 			putname(fd, "", now->lft, m, ", II)) &&\n\t\t");
@@ -2755,106 +2928,107 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			putname(fd, "q_S_check(", now->lft, m, ", II)) &&");
 			fprintf(fd, "\n#endif\n\t\t");
 		}
-		if (u_sync>0)
+		if(u_sync > 0)
 			putname(fd, "not_RV(", now->lft, m, ") && \\\n\t\t");
 
-		for (v = now->rgt, i=j=0; v; v = v->rgt, i++)
-			if (v->lft->ntyp != CONST
-			&&  v->lft->ntyp != EVAL)
-			{	j++; continue;
+		for(v = now->rgt, i = j = 0; v; v = v->rgt, i++)
+			if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL) {
+				j++;
+				continue;
 			}
-		if (now->val == 0 || i == j)
-		{	putname(fd, "(q_len(", now->lft, m, ") > 0");
-			for (v = now->rgt, i=0; v; v = v->rgt, i++)
-			{	if (v->lft->ntyp != CONST
-				&&  v->lft->ntyp != EVAL)
+		if(now->val == 0 || i == j) {
+			putname(fd, "(q_len(", now->lft, m, ") > 0");
+			for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+				if(v->lft->ntyp != CONST && v->lft->ntyp != EVAL)
 					continue;
 				fprintf(fd, " \\\n\t\t&& qrecv(");
 				putname(fd, "", now->lft, m, ", ");
 				fprintf(fd, "0, %d, 0) == ", i);
-				if (v->lft->ntyp == CONST)
+				if(v->lft->ntyp == CONST)
 					putstmnt(fd, v->lft, m);
 				else /* EVAL */
 					putstmnt(fd, v->lft->lft, m);
 			}
 			fprintf(fd, ")");
-		} else
-		{	putname(fd, "Q_has(", now->lft, m, "");
-			for (v = now->rgt, i=0; v; v = v->rgt, i++)
-			{	if (v->lft->ntyp == CONST)
-				{	fprintf(fd, ", 1, ");
+		} else {
+			putname(fd, "Q_has(", now->lft, m, "");
+			for(v = now->rgt, i = 0; v; v = v->rgt, i++) {
+				if(v->lft->ntyp == CONST) {
+					fprintf(fd, ", 1, ");
 					putstmnt(fd, v->lft, m);
-				} else if (v->lft->ntyp == EVAL)
-				{	fprintf(fd, ", 1, ");
+				} else if(v->lft->ntyp == EVAL) {
+					fprintf(fd, ", 1, ");
 					putstmnt(fd, v->lft->lft, m);
 				} else
 					fprintf(fd, ", 0, 0");
-			}	
-			for ( ; i < Mpars; i++)
+			}
+			for(; i < Mpars; i++)
 				fprintf(fd, ", 0, 0");
 			fprintf(fd, ")");
 		}
 		break;
 
 	case 'c':
-		preruse(fd, now->lft);	/* preconditions */
+		preruse(fd, now->lft); /* preconditions */
 		cat3("if (!(", now->lft, "))\n\t\t\t");
 		Bailout(fd, "");
 		break;
 
-	case  ELSE:
-		if (!GenCode)
-		{	if (separate == 2)
+	case ELSE:
+		if(!GenCode) {
+			if(separate == 2)
 				fprintf(fd, "if (o_pm&1)\n\t\t\t");
 			else
 				fprintf(fd, "if (trpt->o_pm&1)\n\t\t\t");
 			Bailout(fd, "");
-		} else
-		{	fprintf(fd, "/* else */");
+		} else {
+			fprintf(fd, "/* else */");
 		}
 		break;
 
 	case '?':
-		if (now->lft)
-		{	cat3("( (", now->lft, ") ? ");
+		if(now->lft) {
+			cat3("( (", now->lft, ") ? ");
 		}
-		if (now->rgt)
-		{	cat3("(", now->rgt->lft, ") : ");
+		if(now->rgt) {
+			cat3("(", now->rgt->lft, ") : ");
 			cat3("(", now->rgt->rgt, ") )");
 		}
 		break;
 
 	case ASGN:
-		if (has_enabled)
-		fprintf(fd, "if (TstOnly) return 1;\n\t\t");
+		if(has_enabled)
+			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
 		_isok++;
 
-		if (!GenCode)
-		{	if (multi_oval)
-			{	char tempbuf[64];
+		if(!GenCode) {
+			if(multi_oval) {
+				char tempbuf[64];
 				check_needed();
 				sprintf(tempbuf, "(trpt+1)->bup.ovals[%d] = ",
-					multi_oval-1);
+					multi_oval - 1);
 				multi_oval++;
 				cat3(tempbuf, now->lft, ";\n\t\t");
-			} else
-			{	cat3("(trpt+1)->bup.oval = ", now->lft, ";\n\t\t");
-		}	}
-		nocast = 1; putstmnt(fd,now->lft,m); nocast = 0;
-		fprintf(fd," = ");
+			} else {
+				cat3("(trpt+1)->bup.oval = ", now->lft, ";\n\t\t");
+			}
+		}
+		nocast = 1;
+		putstmnt(fd, now->lft, m);
+		nocast = 0;
+		fprintf(fd, " = ");
 		_isok--;
-		putstmnt(fd,now->rgt,m);
+		putstmnt(fd, now->rgt, m);
 
-		if (now->sym->type != CHAN
-		||  verbose > 0)
-		{	fprintf(fd, ";\n#ifdef VAR_RANGES");
+		if(now->sym->type != CHAN || verbose > 0) {
+			fprintf(fd, ";\n#ifdef VAR_RANGES");
 			fprintf(fd, "\n\t\tlogval(\"");
 			withprocname = terse = nocast = 1;
 			_isok++;
-			putstmnt(fd,now->lft,m);
+			putstmnt(fd, now->lft, m);
 			withprocname = terse = nocast = 0;
 			fprintf(fd, "\", ");
-			putstmnt(fd,now->lft,m);
+			putstmnt(fd, now->lft, m);
 			_isok--;
 			fprintf(fd, ");\n#endif\n");
 			fprintf(fd, "\t\t");
@@ -2862,24 +3036,24 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case PRINT:
-		if (has_enabled)
-		fprintf(fd, "if (TstOnly) return 1;\n\t\t");
+		if(has_enabled)
+			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
 #ifdef PRINTF
 		fprintf(fd, "printf(%s", now->sym->name);
 #else
 		fprintf(fd, "Printf(%s", now->sym->name);
 #endif
-		for (v = now->lft; v; v = v->rgt)
-		{	cat2(", ", v->lft);
+		for(v = now->lft; v; v = v->rgt) {
+			cat2(", ", v->lft);
 		}
 		fprintf(fd, ")");
 		break;
 
 	case PRINTM:
-		if (has_enabled)
-		fprintf(fd, "if (TstOnly) return 1;\n\t\t");
+		if(has_enabled)
+			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
 		fprintf(fd, "printm(");
-		if (now->lft && now->lft->ismtyp)
+		if(now->lft && now->lft->ismtyp)
 			fprintf(fd, "%d", now->lft->val);
 		else
 			putstmnt(fd, now->lft, m);
@@ -2887,18 +3061,18 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case NAME:
-		if (!nocast && now->sym && Sym_typ(now) < SHORT)
+		if(!nocast && now->sym && Sym_typ(now) < SHORT)
 			putname(fd, "((int)", now, m, ")");
 		else
 			putname(fd, "", now, m, "");
 		break;
 
-	case   'p':
+	case 'p':
 		putremote(fd, now, m);
 		break;
 
-	case   'q':
-		if (terse)
+	case 'q':
+		if(terse)
 			fprintf(fd, "%s", now->sym->name);
 		else
 			fprintf(fd, "%d", remotelab(now));
@@ -2915,18 +3089,18 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case C_CODE:
-		if (now->sym)
+		if(now->sym)
 			fprintf(fd, "/* %s */\n\t\t", now->sym->name);
-		if (has_enabled)
+		if(has_enabled)
 			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
 
-		if (now->sym)
+		if(now->sym)
 			plunk_inline(fd, now->sym->name, 1, GenCode);
 		else
-			Fatal("internal error pangen2.c", (char *) 0);
+			Fatal("internal error pangen2.c", (char *)0);
 
-		if (!GenCode)
-		{	fprintf(fd, "\n");	/* state changed, capture it */
+		if(!GenCode) {
+			fprintf(fd, "\n"); /* state changed, capture it */
 			fprintf(fd, "#if defined(C_States) && (HAS_TRACK==1)\n");
 			fprintf(fd, "\t\tc_update((uchar *) &(now.c_state[0]));\n");
 			fprintf(fd, "#endif\n");
@@ -2934,7 +3108,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case ASSERT:
-		if (has_enabled)
+		if(has_enabled)
 			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
 
 		cat3("spin_assert(", now->lft, ", ");
@@ -2946,19 +3120,19 @@ putstmnt(FILE *fd, Lextok *now, int m)
 	case '.':
 	case BREAK:
 	case GOTO:
-		if (Pid == eventmapnr)
+		if(Pid == eventmapnr)
 			fprintf(fd, "Uerror(\"cannot get here\")");
 		putskip(m);
 		break;
 
 	case '@':
-		if (Pid == eventmapnr)
-		{	fprintf(fd, "return 0");
+		if(Pid == eventmapnr) {
+			fprintf(fd, "return 0");
 			break;
 		}
 
-		if (has_enabled)
-		{	fprintf(fd, "if (TstOnly)\n\t\t\t");
+		if(has_enabled) {
+			fprintf(fd, "if (TstOnly)\n\t\t\t");
 			fprintf(fd, "return (II+1 == now._nr_pr);\n\t\t");
 		}
 		fprintf(fd, "if (!delproc(1, II)) ");
@@ -2967,7 +3141,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	default:
 		printf("spin: error, %s:%d, bad node type %d (.m)\n",
-			now->fn->name, now->ln, now->ntyp);
+		       now->fn->name, now->ln, now->ntyp);
 		fflush(tm);
 		alldone(1);
 	}
@@ -2975,79 +3149,83 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 char *
 simplify_name(char *s)
-{	char *t = s;
+{
+	char *t = s;
 
-	if (!old_scope_rules)
-	{	while (*t == '_' || isdigit((int)*t))
-		{	t++;
-	}	}
+	if(!old_scope_rules) {
+		while(*t == '_' || isdigit((int)*t)) {
+			t++;
+		}
+	}
 
 	return t;
 }
 
 void
 putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
-{	Symbol *s = n->sym;
+{
+	Symbol *s = n->sym;
 	char *ptr;
 
-	lineno = n->ln; Fname = n->fn;
+	lineno = n->ln;
+	Fname = n->fn;
 
-	if (!s)
-		fatal("no name - putname", (char *) 0);
+	if(!s)
+		fatal("no name - putname", (char *)0);
 
-	if (s->context && context && s->type)
-		s = findloc(s);		/* it's a local var */
+	if(s->context && context && s->type)
+		s = findloc(s); /* it's a local var */
 
-	if (!s)
-	{	fprintf(fd, "%s%s%s", pre, n->sym->name, suff);
+	if(!s) {
+		fprintf(fd, "%s%s%s", pre, n->sym->name, suff);
 		return;
 	}
-	if (!s->type)	/* not a local name */
-		s = lookup(s->name);	/* must be a global */
+	if(!s->type)		     /* not a local name */
+		s = lookup(s->name); /* must be a global */
 
-	if (!s->type)
-	{	if (strcmp(pre, ".") != 0)
+	if(!s->type) {
+		if(strcmp(pre, ".") != 0)
 			fatal("undeclared variable '%s'", s->name);
 		s->type = INT;
 	}
 
-	if (s->type == PROCTYPE)
+	if(s->type == PROCTYPE)
 		fatal("proctype-name '%s' used as array-name", s->name);
 
 	fprintf(fd, pre);
-	if (!terse && !s->owner && evalindex != 1)
-	{	if (s->context
-		||  strcmp(s->name, "_p") == 0
-		||  strcmp(s->name, "_pid") == 0)
-		{	fprintf(fd, "((P%d *)this)->", Pid);
-		} else
-		{	int x = strcmp(s->name, "_");
-			if (!(s->hidden&1) && x != 0)
+	if(!terse && !s->owner && evalindex != 1) {
+		if(s->context || strcmp(s->name, "_p") == 0 || strcmp(s->name, "_pid") == 0) {
+			fprintf(fd, "((P%d *)this)->", Pid);
+		} else {
+			int x = strcmp(s->name, "_");
+			if(!(s->hidden & 1) && x != 0)
 				fprintf(fd, "now.");
-			if (x == 0 && _isok == 0)
+			if(x == 0 && _isok == 0)
 				fatal("attempt to read value of '_'", 0);
-	}	}
+		}
+	}
 
 	ptr = s->name;
 
-	if (s->type != PREDEF)	/* new 6.0.2 */
-	{	if (withprocname
-		&&  s->context
-		&&  strcmp(pre, "."))
-		{	fprintf(fd, "%s:", s->context->name);
+	if(s->type != PREDEF) /* new 6.0.2 */
+	{
+		if(withprocname && s->context && strcmp(pre, ".")) {
+			fprintf(fd, "%s:", s->context->name);
 			ptr = simplify_name(ptr);
-		} else
-		{	if (terse)
-			{	ptr = simplify_name(ptr);
-	}	}	}
+		} else {
+			if(terse) {
+				ptr = simplify_name(ptr);
+			}
+		}
+	}
 
-	if (evalindex != 1)
+	if(evalindex != 1)
 		fprintf(fd, "%s", ptr);
 
-	if (s->nel > 1 || s->isarray == 1)
-	{	if (no_arrays)
-		{	non_fatal("ref to array element invalid in this context",
-				(char *)0);
+	if(s->nel > 1 || s->isarray == 1) {
+		if(no_arrays) {
+			non_fatal("ref to array element invalid in this context",
+				  (char *)0);
 			printf("\thint: instead of, e.g., x[rs] qu[3], use\n");
 			printf("\tchan nm_3 = qu[3]; x[rs] nm_3;\n");
 			printf("\tand use nm_3 in sends/recvs instead of qu[3]\n");
@@ -3060,22 +3238,17 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 		 * (see procedure has_global())
 		 */
 
-		if (evalindex == 2)
-		{	fprintf(fd, "[%%d]");
-		} else if (evalindex == 1)
-		{	evalindex = 0;		/* no good if index is indexed array */
+		if(evalindex == 2) {
+			fprintf(fd, "[%%d]");
+		} else if(evalindex == 1) {
+			evalindex = 0; /* no good if index is indexed array */
 			fprintf(fd, ", ");
 			putstmnt(fd, n->lft, m);
 			evalindex = 1;
-		} else
-		{	if (terse
-			|| (n->lft
-			&&  n->lft->ntyp == CONST
-			&&  n->lft->val < s->nel)
-			|| (!n->lft && s->nel > 0))
-			{	cat3("[", n->lft, "]");
-			} else
-			{	/* attempt to catch arrays that are indexed with an array element in the same array
+		} else {
+			if(terse || (n->lft && n->lft->ntyp == CONST && n->lft->val < s->nel) || (!n->lft && s->nel > 0)) {
+				cat3("[", n->lft, "]");
+			} else { /* attempt to catch arrays that are indexed with an array element in the same array
 				 * this causes trouble in the verifier in the backtracking
 				 * e.g., restoring a[?] in the assignment: a [a[1]] = x where a[1] == 1
 				 * but it is hard when the array is inside a structure, so the names dont match
@@ -3088,69 +3261,77 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 #endif
 				cat3("[ Index(", n->lft, ", ");
 				fprintf(fd, "%d) ]", s->nel);
-		}	}
-	} else
-	{	if (n->lft	/* effectively a scalar, but with an index */
-		&& (n->lft->ntyp != CONST
-		||  n->lft->val != 0))
-		{	fatal("ref to scalar '%s' using array index",
-			       (char *) ptr);
-	}	}
+			}
+		}
+	} else {
+		if(n->lft /* effectively a scalar, but with an index */
+		   && (n->lft->ntyp != CONST || n->lft->val != 0)) {
+			fatal("ref to scalar '%s' using array index",
+			      (char *)ptr);
+		}
+	}
 
-	if (s->type == STRUCT && n->rgt && n->rgt->lft)
-	{	putname(fd, ".", n->rgt->lft, m, "");
+	if(s->type == STRUCT && n->rgt && n->rgt->lft) {
+		putname(fd, ".", n->rgt->lft, m, "");
 	}
 	fprintf(fd, suff);
 }
 
 void
-putremote(FILE *fd, Lextok *n, int m)	/* remote reference */
-{	int promoted = 0;
+putremote(FILE *fd, Lextok *n, int m) /* remote reference */
+{
+	int promoted = 0;
 	int pt;
 
-	if (terse)
-	{	fprintf(fd, "%s", n->lft->sym->name);	/* proctype name */
-		if (n->lft->lft)
-		{	fprintf(fd, "[");
-			putstmnt(fd, n->lft->lft, m);	/* pid */
+	if(terse) {
+		fprintf(fd, "%s", n->lft->sym->name); /* proctype name */
+		if(n->lft->lft) {
+			fprintf(fd, "[");
+			putstmnt(fd, n->lft->lft, m); /* pid */
 			fprintf(fd, "]");
 		}
 		fprintf(fd, ".%s", n->sym->name);
-	} else
-	{	if (Sym_typ(n) < SHORT)
-		{	promoted = 1;
+	} else {
+		if(Sym_typ(n) < SHORT) {
+			promoted = 1;
 			fprintf(fd, "((int)");
 		}
 
 		pt = fproc(n->lft->sym->name);
 		fprintf(fd, "((P%d *)Pptr(", pt);
-		if (n->lft->lft)
-		{	fprintf(fd, "BASE+");
+		if(n->lft->lft) {
+			fprintf(fd, "BASE+");
 			putstmnt(fd, n->lft->lft, m);
 		} else
 			fprintf(fd, "f_pid(%d)", pt);
 		fprintf(fd, "))->%s", n->sym->name);
 	}
-	if (n->rgt)
-	{	fprintf(fd, "[");
-		putstmnt(fd, n->rgt, m);	/* array var ref */
+	if(n->rgt) {
+		fprintf(fd, "[");
+		putstmnt(fd, n->rgt, m); /* array var ref */
 		fprintf(fd, "]");
 	}
-	if (promoted) fprintf(fd, ")");
+	if(promoted)
+		fprintf(fd, ")");
 }
 
 static int
 getweight(Lextok *n)
-{	/* this piece of code is a remnant of early versions
+{ /* this piece of code is a remnant of early versions
 	 * of the verifier -- in the current version of Spin
 	 * only non-zero values matter - so this could probably
 	 * simply return 1 in all cases.
 	 */
-	switch (n->ntyp) {
-	case 'r':     return 4;
-	case 's':     return 2;
-	case TIMEOUT: return 1;
-	case 'c':     if (has_typ(n->lft, TIMEOUT)) return 1;
+	switch(n->ntyp) {
+	case 'r':
+		return 4;
+	case 's':
+		return 2;
+	case TIMEOUT:
+		return 1;
+	case 'c':
+		if(has_typ(n->lft, TIMEOUT))
+			return 1;
 	}
 	return 3;
 }
@@ -3158,8 +3339,10 @@ getweight(Lextok *n)
 int
 has_typ(Lextok *n, int m)
 {
-	if (!n) return 0;
-	if (n->ntyp == m) return 1;
+	if(!n)
+		return 0;
+	if(n->ntyp == m)
+		return 1;
 	return (has_typ(n->lft, m) || has_typ(n->rgt, m));
 }
 
@@ -3168,14 +3351,16 @@ static int runcount, opcount;
 static void
 do_count(Lextok *n, int checkop)
 {
-	if (!n) return;
+	if(!n)
+		return;
 
-	switch (n->ntyp) {
+	switch(n->ntyp) {
 	case RUN:
 		runcount++;
 		break;
 	default:
-		if (checkop) opcount++;
+		if(checkop)
+			opcount++;
 		break;
 	}
 	do_count(n->lft, checkop && (n->ntyp != RUN));
@@ -3187,9 +3372,9 @@ count_runs(Lextok *n)
 {
 	runcount = opcount = 0;
 	do_count(n, 1);
-	if (runcount > 1)
+	if(runcount > 1)
 		fatal("more than one run operator in expression", "");
-	if (runcount == 1 && opcount > 1)
+	if(runcount == 1 && opcount > 1)
 		fatal("use of run operator in compound expression", "");
 }
 
@@ -3198,6 +3383,6 @@ any_runs(Lextok *n)
 {
 	runcount = opcount = 0;
 	do_count(n, 0);
-	if (runcount >= 1)
+	if(runcount >= 1)
 		fatal("run operator used in invalid context", "");
 }

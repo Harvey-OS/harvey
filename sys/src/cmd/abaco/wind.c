@@ -40,13 +40,12 @@ wininit(Window *w, Window *, Rectangle r)
 	draw(screen, r1, tagcols[BORD], nil, ZP);
 	br.min = w->tag.scrollr.min;
 	br.max.x = br.min.x + Dx(button->r);
-	br.max.y  = br.min.y + Dy(button->r);
+	br.max.y = br.min.y + Dy(button->r);
 	draw(screen, br, button, nil, button->r.min);
 	r1.min.y = r1.max.y;
 	r1.max.y += font->height;
 	textinit(&w->url, screen, r1, font, tagcols);
-	w->url.
-	w->url.what = Urltag;
+	w->url.w->url.what = Urltag;
 	r1.min.y = r1.max.y++;
 	draw(screen, r1, tagcols[BORD], nil, ZP);
 	r1.min.y = r1.max.y;
@@ -70,11 +69,11 @@ winresize(Window *w, Rectangle r, int safe)
 	w->r = r;
 	r1 = r;
 	r1.max.y = r1.min.y + font->height;
-	if(!safe || !eqrect(w->tag.r, r1)){
+	if(!safe || !eqrect(w->tag.r, r1)) {
 		textresize(&w->tag, screen, r1);
 		br.min = w->tag.scrollr.min;
 		br.max.x = r1.min.x + Dx(button->r);
-		br.max.y  = r1.min.y + Dy(button->r);
+		br.max.y = r1.min.y + Dy(button->r);
 		draw(screen, br, button, nil, button->r.min);
 		r1.min.y = r1.max.y++;
 		draw(screen, r1, tagcols[BORD], nil, ZP);
@@ -87,8 +86,8 @@ winresize(Window *w, Rectangle r, int safe)
 	r1.min.y = r1.max.y;
 	r1.max.y = r.max.y - font->height - 1;
 	w->page.b = screen;
-	if(!safe || !eqrect(w->page.all, r1)){
-		if(Dy(r1) <= 0){
+	if(!safe || !eqrect(w->page.all, r1)) {
+		if(Dy(r1) <= 0) {
 			w->page.all = ZR;
 			pagerender(&w->page);
 			w->r = r;
@@ -112,12 +111,12 @@ winclose1(Window *w)
 {
 	int i;
 
-	if(decref(w) == 0){
+	if(decref(w) == 0) {
 		textclose(&w->tag);
 		textclose(&w->url);
 		textclose(&w->status);
-		if(w->history.url){
-			for(i=0; i<w->history.nurl; i++)
+		if(w->history.url) {
+			for(i = 0; i < w->history.nurl; i++)
 				urlfree(w->history.url[i]);
 			free(w->history.url);
 		}
@@ -160,41 +159,41 @@ winsettag1(Window *w)
 
 	memset(&old, 0, sizeof(Runestr));
 	copyrunestr(&old, &w->tag.rs);
-	for(i=0; i<w->tag.rs.nr; i++)
-		if(old.r[i]==' ' || old.r[i]=='\t')
+	for(i = 0; i < w->tag.rs.nr; i++)
+		if(old.r[i] == ' ' || old.r[i] == '\t')
 			break;
 
-	if(runestreq(old, w->page.title) == FALSE){
+	if(runestreq(old, w->page.title) == FALSE) {
 		textdelete(&w->tag, 0, i);
 		textinsert(&w->tag, 0, w->page.title.r, w->page.title.nr);
 		closerunestr(&old);
 		copyrunestr(&old, &w->tag.rs);
 	}
-	new = runemalloc(w->page.title.nr+100);
+	new = runemalloc(w->page.title.nr + 100);
 	i = 0;
-	runemove(new+i, L" Del Snarf", 10);
+	runemove(new + i, L" Del Snarf", 10);
 	i += 10;
-	if(w->history.nurl){
-		if(w->history.cid > 0){
-			runemove(new+i, L" Back", 5);
+	if(w->history.nurl) {
+		if(w->history.cid > 0) {
+			runemove(new + i, L" Back", 5);
 			i += 5;
 		}
-		if(w->history.cid < w->history.nurl-1){
-			runemove(new+i, L" Next", 5);
+		if(w->history.cid < w->history.nurl - 1) {
+			runemove(new + i, L" Next", 5);
 			i += 5;
 		}
-		if(w->page.loading){
-			runemove(new+i, L" Stop", 5);
+		if(w->page.loading) {
+			runemove(new + i, L" Stop", 5);
 			i += 5;
 		}
 	}
-	runemove(new+i, L" Get", 4);
+	runemove(new + i, L" Get", 4);
 	i += 4;
-	runemove(new+i, L" | ", 3);
+	runemove(new + i, L" | ", 3);
 	i += 3;
-	runemove(new+i, w->page.title.r, w->page.title.nr);
+	runemove(new + i, w->page.title.r, w->page.title.nr);
 	i += w->page.title.nr;
-/*
+	/*
 	r = runestrchr(old.r, '|');
 	r = nil;
 	if(r)
@@ -208,25 +207,25 @@ winsettag1(Window *w)
 	}
 */
 	k = w->tag.rs.nr;
-	if(runeeq(new, i, old.r, k) == FALSE){
+	if(runeeq(new, i, old.r, k) == FALSE) {
 		n = k;
 		if(n > i)
 			n = i;
-		for(j=0; j<n; j++)
+		for(j = 0; j < n; j++)
 			if(old.r[j] != new[j])
 				break;
 		q0 = w->tag.q0;
 		q1 = w->tag.q1;
 		textdelete(&w->tag, j, k);
-		textinsert(&w->tag, j, new+j, i-j);
+		textinsert(&w->tag, j, new + j, i - j);
 		/* try to preserve user selection */
 		r = runestrchr(old.r, '|');
-		if(r){
-			bar = r-old.r;
-			if(q0 > bar){
-				bar = (runestrchr(new, '|')-new)-bar;
-				w->tag.q0 = q0+bar;
-				w->tag.q1 = q1+bar;
+		if(r) {
+			bar = r - old.r;
+			if(q0 > bar) {
+				bar = (runestrchr(new, '|') - new) - bar;
+				w->tag.q0 = q0 + bar;
+				w->tag.q1 = q1 + bar;
 			}
 		}
 	}
@@ -245,7 +244,6 @@ winsettag1(Window *w)
 	draw(screen, br, b, nil, b->r.min);
 }
 
-
 void
 winsettag(Window *w)
 {
@@ -256,7 +254,7 @@ winsettag(Window *w)
 void
 winseturl(Window *w)
 {
-	if(w->page.url && runestreq(w->url.rs, w->page.url->act)==FALSE)
+	if(w->page.url && runestreq(w->url.rs, w->page.url->act) == FALSE)
 		textset(&w->url, w->page.url->act.r, w->page.url->act.nr);
 }
 
@@ -276,14 +274,14 @@ winaddhist(Window *w, Url *u)
 	url = w->history.url;
 	n = w->history.nurl;
 	cid = w->history.cid;
-	if(cid < n-1){
-		for(i=cid+1; i<n; i++)
+	if(cid < n - 1) {
+		for(i = cid + 1; i < n; i++)
 			urlfree(url[i]);
-		n = cid+1;
+		n = cid + 1;
 	}
-	w->history.url = erealloc(w->history.url, ++n*sizeof(Url *));
-	w->history.url[n-1] = u;
-	w->history.cid = u->id = n-1;
+	w->history.url = erealloc(w->history.url, ++n * sizeof(Url *));
+	w->history.url[n - 1] = u;
+	w->history.cid = u->id = n - 1;
 	w->history.nurl = n;
 	incref(u);
 }
@@ -306,7 +304,7 @@ wingohist(Window *w, int isnext)
 	else
 		id--;
 
-	if(n==0 || id<0 || id==n)
+	if(n == 0 || id < 0 || id == n)
 		return;
 
 	incref(w->history.url[id]);
@@ -378,13 +376,13 @@ windebug(Window *w)
 
 	p = &w->page;
 	fprint(2, "title:\t%S\n", p->title.r);
-	fprint(2, "url:\t%.*S\n",w->url.rs.nr, w->url.rs.r);
+	fprint(2, "url:\t%.*S\n", w->url.rs.nr, w->url.rs.r);
 	fprint(2, "aborting:\t%s\n", istrue(p->aborting));
 	fprint(2, "changed:\t%s\n", istrue(p->changed));
 	fprint(2, "loading:\t%s\n", istrue(p->loading));
 	fprint(2, "status:\t%S\n", p->status);
 	fprint(2, "HISTORY:\n");
-	for(i=0; i<w->history.nurl; i++)
+	for(i = 0; i < w->history.nurl; i++)
 		fprint(2, "url[%d]: %S\n", i, w->history.url[i]->act.r);
 
 	if(p->kidinfo)

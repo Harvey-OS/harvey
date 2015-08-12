@@ -14,7 +14,7 @@
 #include <ndb.h>
 #include "dat.h"
 
-char	*blog = "ipboot";
+char *blog = "ipboot";
 
 void
 main(int argc, char **argv)

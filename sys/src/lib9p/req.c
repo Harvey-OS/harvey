@@ -20,15 +20,15 @@ increqref(void *v)
 	Req *r;
 
 	r = v;
-	if(r){
-if(chatty9p > 1)
-	fprint(2, "increfreq %p %ld\n", r, r->ref.ref);
+	if(r) {
+		if(chatty9p > 1)
+			fprint(2, "increfreq %p %ld\n", r, r->ref.ref);
 		incref(&r->ref);
 	}
 }
 
-Reqpool*
-allocreqpool(void (*destroy)(Req*))
+Reqpool *
+allocreqpool(void (*destroy)(Req *))
 {
 	Reqpool *f;
 
@@ -41,11 +41,11 @@ allocreqpool(void (*destroy)(Req*))
 void
 freereqpool(Reqpool *p)
 {
-	freemap(p->map, (void(*)(void*))p->destroy);
+	freemap(p->map, (void (*)(void *))p->destroy);
 	free(p);
-}	
+}
 
-Req*
+Req *
 allocreq(Reqpool *pool, uint32_t tag)
 {
 	Req *r;
@@ -56,7 +56,7 @@ allocreq(Reqpool *pool, uint32_t tag)
 
 	increqref(r);
 	increqref(r);
-	if(caninsertkey(pool->map, tag, r) == 0){
+	if(caninsertkey(pool->map, tag, r) == 0) {
 		closereq(r);
 		closereq(r);
 		return nil;
@@ -65,11 +65,11 @@ allocreq(Reqpool *pool, uint32_t tag)
 	return r;
 }
 
-Req*
+Req *
 lookupreq(Reqpool *pool, uint32_t tag)
 {
-if(chatty9p > 1)
-	fprint(2, "lookupreq %lud\n", tag);
+	if(chatty9p > 1)
+		fprint(2, "lookupreq %lud\n", tag);
 	return lookupkey(pool->map, tag);
 }
 
@@ -81,10 +81,10 @@ closereq(Req *r)
 	if(r == nil)
 		return;
 
-if(chatty9p > 1)
-	fprint(2, "closereq %p %ld\n", r, r->ref.ref);
+	if(chatty9p > 1)
+		fprint(2, "closereq %p %ld\n", r, r->ref.ref);
 
-	if(decref(&r->ref) == 0){
+	if(decref(&r->ref) == 0) {
 		if(r->fid)
 			closefid(r->fid);
 		if(r->newfid)
@@ -93,10 +93,10 @@ if(chatty9p > 1)
 			closefid(r->afid);
 		if(r->oldreq)
 			closereq(r->oldreq);
-		for(i=0; i<r->nflush; i++)
+		for(i = 0; i < r->nflush; i++)
 			respond(r->flush[i], nil);
 		free(r->flush);
-		switch(r->ifcall.type){
+		switch(r->ifcall.type) {
 		case Tstat:
 			free(r->ofcall.stat);
 			free(r->d.name);
@@ -113,10 +113,10 @@ if(chatty9p > 1)
 	}
 }
 
-Req*
+Req *
 removereq(Reqpool *pool, uint32_t tag)
 {
-if(chatty9p > 1)
-	fprint(2, "removereq %lud\n", tag);
+	if(chatty9p > 1)
+		fprint(2, "removereq %lud\n", tag);
 	return deletekey(pool->map, tag);
 }

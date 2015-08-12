@@ -13,14 +13,12 @@
 #include "queue.h"
 
 typedef struct Qel Qel;
-struct Qel
-{
+struct Qel {
 	Qel *next;
 	void *p;
 };
 
-struct Queue
-{
+struct Queue {
 	int ref;
 	int hungup;
 	QLock lk;
@@ -29,7 +27,7 @@ struct Queue
 	Qel *tail;
 };
 
-Queue*
+Queue *
 _vtqalloc(void)
 {
 	Queue *q;
@@ -40,7 +38,7 @@ _vtqalloc(void)
 	return q;
 }
 
-Queue*
+Queue *
 _vtqincref(Queue *q)
 {
 	qlock(&q->lk);
@@ -53,9 +51,9 @@ void
 _vtqdecref(Queue *q)
 {
 	Qel *e;
-	
+
 	qlock(&q->lk);
-	if(--q->ref > 0){
+	if(--q->ref > 0) {
 		qunlock(&q->lk);
 		return;
 	}
@@ -63,7 +61,7 @@ _vtqdecref(Queue *q)
 	qunlock(&q->lk);
 
 	/* Leaks the pointers e->p! */
-	while(q->head){
+	while(q->head) {
 		e = q->head;
 		q->head = e->next;
 		free(e);
@@ -78,7 +76,7 @@ _vtqsend(Queue *q, void *p)
 
 	e = vtmalloc(sizeof(Qel));
 	qlock(&q->lk);
-	if(q->hungup){
+	if(q->hungup) {
 		werrstr("hungup queue");
 		qunlock(&q->lk);
 		return -1;
@@ -95,7 +93,7 @@ _vtqsend(Queue *q, void *p)
 	return 0;
 }
 
-void*
+void *
 _vtqrecv(Queue *q)
 {
 	void *p;
@@ -104,7 +102,7 @@ _vtqrecv(Queue *q)
 	qlock(&q->lk);
 	while(q->head == nil && !q->hungup)
 		rsleep(&q->r);
-	if(q->hungup){
+	if(q->hungup) {
 		qunlock(&q->lk);
 		return nil;
 	}
@@ -116,14 +114,14 @@ _vtqrecv(Queue *q)
 	return p;
 }
 
-void*
+void *
 _vtnbqrecv(Queue *q)
 {
 	void *p;
 	Qel *e;
 
 	qlock(&q->lk);
-	if(q->head == nil){
+	if(q->head == nil) {
 		qunlock(&q->lk);
 		return nil;
 	}

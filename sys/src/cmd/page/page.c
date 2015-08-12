@@ -23,7 +23,7 @@ int goodps = 1;
 int ppi = 100;
 int teegs = 0;
 int truetoboundingbox;
-int textbits=4, gfxbits=4;
+int textbits = 4, gfxbits = 4;
 int wctlfd = -1;
 int stdinfd;
 int truecolor;
@@ -32,7 +32,7 @@ int notewatcher;
 int notegp;
 
 int
-watcher(void*, char *x)
+watcher(void *, char *x)
 {
 	if(strcmp(x, "die") != 0)
 		postnote(PNGROUP, notegp, x);
@@ -50,7 +50,7 @@ bell(void *u, char *x)
 		fprint(2, "postnote %d: %s\n", getpid(), x);
 
 	/* alarms come from the gs monitor */
-	if(x && strstr(x, "alarm")){
+	if(x && strstr(x, "alarm")) {
 		postnote(PNGROUP, getpid(), "die (gs error)");
 		postnote(PNPROC, notewatcher, "die (gs error)");
 	}
@@ -59,7 +59,7 @@ bell(void *u, char *x)
 	if((u == nil || u != x) && doabort)
 		abort();
 
-/*	fprint(2, "exiting %d\n", getpid()); */
+	/*	fprint(2, "exiting %d\n", getpid()); */
 	wexits("note");
 	return 0;
 }
@@ -69,7 +69,7 @@ afmt(Fmt *fmt)
 {
 	char *s;
 
-	s = va_arg(fmt->args, char*);
+	s = va_arg(fmt->args, char *);
 	if(s == nil || s[0] == '\0')
 		return fmtstrcpy(fmt, "");
 	else
@@ -89,10 +89,11 @@ main(int argc, char **argv)
 	Document *doc;
 	Biobuf *b;
 	enum { Ninput = 16 };
-	uchar buf[Ninput+1];
+	uchar buf[Ninput + 1];
 	int readstdin;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	/* "temporary" debugging options */
 	case 'P':
 		goodps = 0;
@@ -133,11 +134,12 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}
+	ARGEND;
 
 	notegp = getpid();
 
-	switch(notewatcher = fork()){
+	switch(notewatcher = fork()) {
 	case -1:
 		sysfatal("fork");
 		exits(0);
@@ -154,7 +156,7 @@ main(int argc, char **argv)
 	atnotify(bell, 1);
 
 	readstdin = 0;
-	if(imagemode == 0 && argc == 0){
+	if(imagemode == 0 && argc == 0) {
 		readstdin = 1;
 		stdinfd = dup(0, -1);
 		close(0);
@@ -169,41 +171,41 @@ main(int argc, char **argv)
 	if(mknewwindow)
 		newwin();
 
-	if(readstdin){
+	if(readstdin) {
 		b = nil;
-		if(readn(stdinfd, buf, Ninput) != Ninput){
+		if(readn(stdinfd, buf, Ninput) != Ninput) {
 			fprint(2, "page: short read reading %s\n", argv[0]);
 			wexits("read");
 		}
-	}else if(argc != 0){
+	} else if(argc != 0) {
 		if(!(b = Bopen(argv[0], OREAD))) {
 			fprint(2, "page: cannot open \"%s\"\n", argv[0]);
 			wexits("open");
-		}	
+		}
 
 		if(Bread(b, buf, Ninput) != Ninput) {
 			fprint(2, "page: short read reading %s\n", argv[0]);
 			wexits("read");
 		}
-	}else
+	} else
 		b = nil;
 
 	buf[Ninput] = '\0';
 	if(imagemode)
 		doc = initgfx(nil, 0, nil, nil, 0);
-	else if(strncmp((char*)buf, "%PDF-", 5) == 0)
+	else if(strncmp((char *)buf, "%PDF-", 5) == 0)
 		doc = initpdf(b, argc, argv, buf, Ninput);
-	else if(strncmp((char*)buf, "\x04%!", 2) == 0)
+	else if(strncmp((char *)buf, "\x04%!", 2) == 0)
 		doc = initps(b, argc, argv, buf, Ninput);
-	else if(buf[0] == '\x1B' && strstr((char*)buf, "@PJL"))
+	else if(buf[0] == '\x1B' && strstr((char *)buf, "@PJL"))
 		doc = initps(b, argc, argv, buf, Ninput);
-	else if(strncmp((char*)buf, "%!", 2) == 0)
+	else if(strncmp((char *)buf, "%!", 2) == 0)
 		doc = initps(b, argc, argv, buf, Ninput);
-	else if(strcmp((char*)buf, "\xF7\x02\x01\x83\x92\xC0\x1C;") == 0)
+	else if(strcmp((char *)buf, "\xF7\x02\x01\x83\x92\xC0\x1C;") == 0)
 		doc = initdvi(b, argc, argv, buf, Ninput);
-	else if(strncmp((char*)buf, "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1", 8) == 0)
+	else if(strncmp((char *)buf, "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1", 8) == 0)
 		doc = initmsdoc(b, argc, argv, buf, Ninput);
-	else if(strncmp((char*)buf, "x T ", 4) == 0)
+	else if(strncmp((char *)buf, "x T ", 4) == 0)
 		doc = inittroff(b, argc, argv, buf, Ninput);
 	else {
 		if(ppi != 100) {
@@ -226,7 +228,7 @@ main(int argc, char **argv)
 	if(reverse == -1) /* neither cmdline nor ps reader set it */
 		reverse = 0;
 
-	if(initdraw(0, 0, "page") < 0){
+	if(initdraw(0, 0, "page") < 0) {
 		fprint(2, "page: initdraw failed: %r\n");
 		wexits("initdraw");
 	}
@@ -241,7 +243,7 @@ void
 wexits(char *s)
 {
 	if(s && *s && strcmp(s, "note") != 0 && mknewwindow)
-		sleep(10*1000);
+		sleep(10 * 1000);
 	postnote(PNPROC, notewatcher, "die");
 	exits(s);
 }

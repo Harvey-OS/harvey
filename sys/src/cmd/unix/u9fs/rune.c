@@ -7,37 +7,35 @@
  * in the LICENSE file.
  */
 
-#include	<plan9.h>
+#include <plan9.h>
 
 char *argv0;
-enum
-{
-	Bit1	= 7,
-	Bitx	= 6,
-	Bit2	= 5,
-	Bit3	= 4,
-	Bit4	= 3,
+enum {
+	Bit1 = 7,
+	Bitx = 6,
+	Bit2 = 5,
+	Bit3 = 4,
+	Bit4 = 3,
 
-	T1	= ((1<<(Bit1+1))-1) ^ 0xFF,	/* 0000 0000 */
-	Tx	= ((1<<(Bitx+1))-1) ^ 0xFF,	/* 1000 0000 */
-	T2	= ((1<<(Bit2+1))-1) ^ 0xFF,	/* 1100 0000 */
-	T3	= ((1<<(Bit3+1))-1) ^ 0xFF,	/* 1110 0000 */
-	T4	= ((1<<(Bit4+1))-1) ^ 0xFF,	/* 1111 0000 */
-	T5	= ((1<<(Bit5+1))-1) ^ 0xFF,	/* 1111 1000 */
+	T1 = ((1 << (Bit1 + 1)) - 1) ^ 0xFF, /* 0000 0000 */
+	Tx = ((1 << (Bitx + 1)) - 1) ^ 0xFF, /* 1000 0000 */
+	T2 = ((1 << (Bit2 + 1)) - 1) ^ 0xFF, /* 1100 0000 */
+	T3 = ((1 << (Bit3 + 1)) - 1) ^ 0xFF, /* 1110 0000 */
+	T4 = ((1 << (Bit4 + 1)) - 1) ^ 0xFF, /* 1111 0000 */
+	T5 = ((1 << (Bit5 + 1)) - 1) ^ 0xFF, /* 1111 1000 */
 
-	Rune1	= (1<<(Bit1+0*Bitx))-1,		/* 0000 0000 0000 0000 0111 1111 */
-	Rune2	= (1<<(Bit2+1*Bitx))-1,		/* 0000 0000 0000 0111 1111 1111 */
-	Rune3	= (1<<(Bit3+2*Bitx))-1,		/* 0000 0000 1111 1111 1111 1111 */
-	Rune4	= (1<<(Bit4+3*Bitx))-1,		/* 0001 1111 1111 1111 1111 1111 */
+	Rune1 = (1 << (Bit1 + 0 * Bitx)) - 1, /* 0000 0000 0000 0000 0111 1111 */
+	Rune2 = (1 << (Bit2 + 1 * Bitx)) - 1, /* 0000 0000 0000 0111 1111 1111 */
+	Rune3 = (1 << (Bit3 + 2 * Bitx)) - 1, /* 0000 0000 1111 1111 1111 1111 */
+	Rune4 = (1 << (Bit4 + 3 * Bitx)) - 1, /* 0001 1111 1111 1111 1111 1111 */
 
+	Maskx = (1 << Bitx) - 1, /* 0011 1111 */
+	Testx = Maskx ^ 0xFF,    /* 1100 0000 */
 
-	Maskx	= (1<<Bitx)-1,			/* 0011 1111 */
-	Testx	= Maskx ^ 0xFF,			/* 1100 0000 */
+	SurrogateMin = 0xD800,
+	SurrogateMax = 0xDFFF,
 
-	SurrogateMin	= 0xD800,
-	SurrogateMax	= 0xDFFF,
-
-	Bad	= Runeerror
+	Bad = Runeerror
 };
 
 int
@@ -50,7 +48,7 @@ chartorune(Rune *rune, char *str)
 	 * one character sequence
 	 *	00000-0007F => T1
 	 */
-	c = *(uint8_t*)str;
+	c = *(uint8_t *)str;
 	if(c < Tx) {
 		*rune = c;
 		return 1;
@@ -60,7 +58,7 @@ chartorune(Rune *rune, char *str)
 	 * two character sequence
 	 *	00080-007FF => T2 Tx
 	 */
-	c1 = *(uint8_t*)(str+1) ^ Tx;
+	c1 = *(uint8_t *)(str + 1) ^ Tx;
 	if(c1 & Testx)
 		goto bad;
 	if(c < T3) {
@@ -77,7 +75,7 @@ chartorune(Rune *rune, char *str)
 	 * three character sequence
 	 *	00800-0FFFF => T3 Tx Tx
 	 */
-	c2 = *(uint8_t*)(str+2) ^ Tx;
+	c2 = *(uint8_t *)(str + 2) ^ Tx;
 
 	if(c2 & Testx)
 		goto bad;
@@ -85,7 +83,7 @@ chartorune(Rune *rune, char *str)
 		l = ((((c << Bitx) | c1) << Bitx) | c2) & Rune3;
 		if(l <= Rune2)
 			goto bad;
-		if (SurrogateMin <= l && l <= SurrogateMax)
+		if(SurrogateMin <= l && l <= SurrogateMax)
 			goto bad;
 		*rune = l;
 		return 3;
@@ -96,7 +94,7 @@ chartorune(Rune *rune, char *str)
 	 *	10000-10FFFF => T4 Tx Tx Tx
 	 */
 	if(UTFmax >= 4) {
-		c3 = *(uint8_t*)(str+3) ^ Tx;
+		c3 = *(uint8_t *)(str + 3) ^ Tx;
 		if(c3 & Testx)
 			goto bad;
 		if(c < T5) {
@@ -110,7 +108,7 @@ chartorune(Rune *rune, char *str)
 		}
 	}
 
-	/*
+/*
 	 * bad decoding
 	 */
 bad:
@@ -138,7 +136,7 @@ runetochar(char *str, Rune *rune)
 	 *	0080-07FF => T2 Tx
 	 */
 	if(c <= Rune2) {
-		str[0] = T2 | (c >> 1*Bitx);
+		str[0] = T2 | (c >> 1 * Bitx);
 		str[1] = Tx | (c & Maskx);
 		return 2;
 	}
@@ -148,19 +146,19 @@ runetochar(char *str, Rune *rune)
 	 * Doing it earlier would duplicate work, since an out of range
 	 * Rune wouldn't have fit in one or two bytes.
 	 */
-	if (c > Runemax)
+	if(c > Runemax)
 		c = Runeerror;
-	if (SurrogateMin <= c && c <= SurrogateMax)
+	if(SurrogateMin <= c && c <= SurrogateMax)
 		c = Runeerror;
 
 	/*
 	 * three character sequence
 	 *	0800-FFFF => T3 Tx Tx
 	 */
-	if (c <= Rune3) {
-		str[0] = T3 |  (c >> 2*Bitx);
-		str[1] = Tx | ((c >> 1*Bitx) & Maskx);
-		str[2] = Tx |  (c & Maskx);
+	if(c <= Rune3) {
+		str[0] = T3 | (c >> 2 * Bitx);
+		str[1] = Tx | ((c >> 1 * Bitx) & Maskx);
+		str[2] = Tx | (c & Maskx);
 		return 3;
 	}
 
@@ -168,9 +166,9 @@ runetochar(char *str, Rune *rune)
 	 * four character sequence (21-bit value)
 	 *     10000-1FFFFF => T4 Tx Tx Tx
 	 */
-	str[0] = T4 | (c >> 3*Bitx);
-	str[1] = Tx | ((c >> 2*Bitx) & Maskx);
-	str[2] = Tx | ((c >> 1*Bitx) & Maskx);
+	str[0] = T4 | (c >> 3 * Bitx);
+	str[1] = Tx | ((c >> 2 * Bitx) & Maskx);
+	str[2] = Tx | ((c >> 1 * Bitx) & Maskx);
 	str[3] = Tx | (c & Maskx);
 	return 4;
 }
@@ -194,7 +192,7 @@ utflen(char *s)
 
 	n = 0;
 	for(;;) {
-		c = *(uint8_t*)s;
+		c = *(uint8_t *)s;
 		if(c < Runeself) {
 			if(c == 0)
 				return n;

@@ -21,7 +21,7 @@ strrev(char *s, char *e)
 {
 	int c;
 
-	while(--e > s){
+	while(--e > s) {
 		c = *s;
 		*s++ = *e;
 		*e = c;
@@ -57,7 +57,7 @@ ciisprefix(char *pre, char *s)
 	return cistrncmp(pre, s, strlen(pre)) == 0;
 }
 
-char*
+char *
 readFile(int fd)
 {
 	Dir *d;
@@ -87,8 +87,8 @@ imapTmp(void)
 	int tries, fd;
 
 	snprint(name, sizeof(name), "/mail/box/%s/mbox.tmp.imp", username);
-	for(tries = 0; tries < LockSecs*2; tries++){
-		fd = create(name, ORDWR|ORCLOSE|OCEXEC, DMEXCL|0600);
+	for(tries = 0; tries < LockSecs * 2; tries++) {
+		fd = create(name, ORDWR | ORCLOSE | OCEXEC, DMEXCL | 0600);
 		if(fd >= 0)
 			return fd;
 		errstr(buf, sizeof buf);
@@ -109,7 +109,7 @@ openLocked(char *dir, char *file, int mode)
 	char buf[ERRMAX];
 	int tries, fd;
 
-	for(tries = 0; tries < LockSecs*2; tries++){
+	for(tries = 0; tries < LockSecs * 2; tries++) {
 		fd = cdOpen(dir, file, mode);
 		if(fd >= 0)
 			return fd;
@@ -145,7 +145,7 @@ mapInt(NamedInt *map, char *name)
 	return map[i].v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
@@ -155,7 +155,7 @@ estrdup(char *s)
 	return t;
 }
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *p;
@@ -167,7 +167,7 @@ emalloc(uint32_t n)
 	return p;
 }
 
-void*
+void *
 ezmalloc(uint32_t n)
 {
 	void *p;
@@ -180,7 +180,7 @@ ezmalloc(uint32_t n)
 	return p;
 }
 
-void*
+void *
 erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);

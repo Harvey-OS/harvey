@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-void*
+void *
 memmove(void *a1, const void *a2, size_t n)
 {
 	char *s1, *s2;
@@ -28,8 +28,8 @@ memmove(void *a1, const void *a2, size_t n)
 	return a1;
 
 back:
-	s1 = (char*)a1 + n;
-	s2 = (char*)a2 + n;
+	s1 = (char *)a1 + n;
+	s2 = (char *)a2 + n;
 	while(n > 0) {
 		*--s1 = *--s2;
 		n--;
@@ -37,7 +37,7 @@ back:
 	return a1;
 }
 
-void*
+void *
 memcpy(void *a1, const void *a2, size_t n)
 {
 	return memmove(a1, a2, n);

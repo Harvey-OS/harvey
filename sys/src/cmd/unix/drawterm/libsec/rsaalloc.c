@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-RSApub*
+RSApub *
 rsapuballoc(void)
 {
 	RSApub *rsa;
@@ -32,8 +32,7 @@ rsapubfree(RSApub *rsa)
 	free(rsa);
 }
 
-
-RSApriv*
+RSApriv *
 rsaprivalloc(void)
 {
 	RSApriv *rsa;

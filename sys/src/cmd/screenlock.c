@@ -30,7 +30,7 @@ blankscreen(int blank)
 	if(vgactl < 0)
 		return;
 	seek(vgactl, 0, 0);
-	if(fprint(vgactl, blank? "blank": "unblank") < 0)
+	if(fprint(vgactl, blank ? "blank" : "unblank") < 0)
 		fprint(2, "blankscreen: can't blank: %r\n");
 }
 
@@ -58,7 +58,6 @@ usage(void)
 	exits("usage");
 }
 
-
 void
 readfile(char *name, char *buf, int nbuf, int addnul)
 {
@@ -67,7 +66,7 @@ readfile(char *name, char *buf, int nbuf, int addnul)
 	fd = open(name, OREAD);
 	if(fd == -1)
 		error("%s - can't open: %r", name);
-	nbuf = read(fd, buf, nbuf-addnul);
+	nbuf = read(fd, buf, nbuf - addnul);
 	close(fd);
 	if(nbuf == -1)
 		error("%s - can't can't read: %r", name);
@@ -82,8 +81,8 @@ readline(char *buf, int nbuf)
 	int i;
 
 	i = 0;
-	while(i < nbuf-1)
-		if(read(0, &c, 1) != 1 || c == '\04' || c == '\177'){
+	while(i < nbuf - 1)
+		if(read(0, &c, 1) != 1 || c == '\04' || c == '\177') {
 			i = 0;
 			break;
 		} else if(c == '\n')
@@ -106,7 +105,7 @@ checkpassword(void)
 	static int opened;
 
 	must = 1;
-	if(!opened){
+	if(!opened) {
 		fd = open("/dev/cons", OREAD);
 		if(fd == -1)
 			error("can't open cons: %r");
@@ -126,7 +125,7 @@ checkpassword(void)
 		opened = 1;
 	}
 
-	for(;;){
+	for(;;) {
 		if(chatty || !must)
 			fprint(2, "%s's screenlock password: ", user);
 		memset(buf, 0, sizeof buf);
@@ -134,7 +133,7 @@ checkpassword(void)
 		blankscreen(0);
 		if(chatty || !must)
 			fprint(2, "\n");
-		if(buf[0] == '\0' || buf[0] == '\04'){
+		if(buf[0] == '\0' || buf[0] == '\04') {
 			if(must)
 				continue;
 			error("no password typed");
@@ -160,8 +159,8 @@ blanker(void *v)
 	int tics;
 
 	tics = 0;
-	for(;;){
-		if(doblank > 0){
+	for(;;) {
+		if(doblank > 0) {
 			doblank = 0;
 			tics = 10;
 		}
@@ -184,15 +183,15 @@ grabmouse(void *v)
 		error("can't open /dev/mouse: %r");
 
 	snprint(obuf, sizeof obuf, "m %d %d",
-		screen->r.min.x + Dx(screen->r)/2,
-		screen->r.min.y + Dy(screen->r)/2);
-	while(read(fd, ibuf, sizeof ibuf) > 0){
+		screen->r.min.x + Dx(screen->r) / 2,
+		screen->r.min.y + Dy(screen->r) / 2);
+	while(read(fd, ibuf, sizeof ibuf) > 0) {
 		ibuf[12] = 0;
 		ibuf[24] = 0;
-		x = atoi(ibuf+1);
-		y = atoi(ibuf+13);
-		if(x != screen->r.min.x + Dx(screen->r)/2 ||
-		   y != screen->r.min.y + Dy(screen->r)/2){
+		x = atoi(ibuf + 1);
+		y = atoi(ibuf + 13);
+		if(x != screen->r.min.x + Dx(screen->r) / 2 ||
+		   y != screen->r.min.y + Dy(screen->r) / 2) {
 			fprint(fd, "%s", obuf);
 			doblank = 1;
 		}
@@ -210,9 +209,12 @@ screenstring(Point p, char *s)
 void
 lockscreen(void)
 {
-	enum { Nfld = 5, Fldlen = 12, Cursorlen = 2*4 + 2*2*16, };
+	enum { Nfld = 5,
+	       Fldlen = 12,
+	       Cursorlen = 2 * 4 + 2 * 2 * 16,
+	};
 	char *s;
-	char buf[Nfld*Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
+	char buf[Nfld * Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
 	int fd, dx, dy;
 	Image *i;
 	Point p;
@@ -222,16 +224,16 @@ lockscreen(void)
 	fd = open("/dev/screen", OREAD);
 	if(fd < 0)
 		error("can't open /dev/screen: %r");
-	if(read(fd, buf, Nfld*Fldlen) != Nfld*Fldlen)
+	if(read(fd, buf, Nfld * Fldlen) != Nfld * Fldlen)
 		error("can't read /dev/screen: %r");
 	close(fd);
-	buf[sizeof buf-1] = 0;
+	buf[sizeof buf - 1] = 0;
 	if(tokenize(buf, flds, Nfld) != Nfld)
 		error("can't tokenize /dev/screen header");
 	snprint(newcmd, sizeof newcmd, "-r %s %s %d %d",
 		flds[1], flds[2], atoi(flds[3]) - 1, atoi(flds[4]) - 1);
 	newwindow(newcmd);
-	if (initdraw(nil, nil, "screenlock") < 0)
+	if(initdraw(nil, nil, "screenlock") < 0)
 		sysfatal("initdraw failed");
 	if(display == nil)
 		error("no display");
@@ -240,11 +242,11 @@ lockscreen(void)
 	procrfork(grabmouse, nil, 4096, RFFDG);
 	procrfork(blanker, nil, 4096, RFFDG);
 	fd = open(pic, OREAD);
-	if(fd > 0){
+	if(fd > 0) {
 		i = readimage(display, fd, 0);
-		if(i){
- 			r = screen->r;
-			p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
+		if(i) {
+			r = screen->r;
+			p = Pt(r.max.x / 2, r.max.y * 2 / 3);
 			dx = (Dx(screen->r) - Dx(i->r)) / 2;
 			r.min.x += dx;
 			r.max.x -= dx;
@@ -266,7 +268,7 @@ lockscreen(void)
 
 	/* clear the cursor */
 	fd = open("/dev/cursor", OWRITE);
-	if(fd > 0){
+	if(fd > 0) {
 		memset(cbuf, 0, sizeof cbuf);
 		write(fd, cbuf, sizeof cbuf);
 		/* leave it open */
@@ -281,13 +283,15 @@ threadmain(int argc, char *argv[])
 	if((vgactl = open("/dev/vgactl", OWRITE)) < 0)
 		vgactl = open("#v/vgactl", OWRITE);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'd':
 		debug++;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();

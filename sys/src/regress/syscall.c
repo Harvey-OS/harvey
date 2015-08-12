@@ -10,10 +10,10 @@ main(void)
 	int fd;
 
 	fail = 0;
-	for(i = 0; i < 10000; i++){
+	for(i = 0; i < 10000; i++) {
 		fd = open("/proc/1/status", OREAD);
 		n = read(fd, buf, sizeof buf);
-		if(i != 0 && n != oldn){
+		if(i != 0 && n != oldn) {
 			fprint(2, "read %d, want %d\n", n, oldn);
 			fail++;
 		}

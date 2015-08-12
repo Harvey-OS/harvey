@@ -26,7 +26,7 @@
 /* $Id: errors.h,v 1.10 2004/04/08 16:18:25 giles Exp $ */
 
 #ifndef errors_INCLUDED
-#  define errors_INCLUDED
+#define errors_INCLUDED
 
 /* This file used to contain error codes for the Ghostscript client api.
  * It has been renamed ierrors.h to reduce the risk of namespace collision 

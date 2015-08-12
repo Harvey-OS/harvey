@@ -33,7 +33,7 @@ drawglenda(void)
 	/* leave some room from the edge of the window */
 	p = addpt(p, Pt(1, 1));
 
-	r = Rpt(p, Pt(p.x + BoardX, p.y+BoardY));
+	r = Rpt(p, Pt(p.x + BoardX, p.y + BoardY));
 	draw(img, r, glenda, nil, ZP);
 }
 
@@ -49,7 +49,7 @@ drawwin(void)
 	p = addpt(p, Pt(6, 6));
 	p = addpt(p, Pt(1, 1));
 
-	r = Rpt(p, Pt(p.x + BoardX, p.y+BoardY));
+	r = Rpt(p, Pt(p.x + BoardX, p.y + BoardY));
 	draw(img, r, text, win, ZP);
 }
 
@@ -65,7 +65,7 @@ drawboard(Point p)
 	/* leave some room from the edge of the window */
 	p = addpt(p, Pt(1, 1));
 
-	r = Rpt(p, Pt(p.x + BoardX, p.y+BoardY));
+	r = Rpt(p, Pt(p.x + BoardX, p.y + BoardY));
 
 	switch(square) {
 	case Background:
@@ -97,17 +97,16 @@ resize(Point p)
 	int fd;
 
 	fd = open("/dev/wctl", OWRITE);
-	if(fd >= 0){
-		fprint(fd, "resize -dx %d -dy %d", p.x*BoardX+10, p.y*BoardY+10);
+	if(fd >= 0) {
+		fprint(fd, "resize -dx %d -dy %d", p.x * BoardX + 10, p.y * BoardY + 10);
 		close(fd);
 	}
-
 }
 
 Point
 boardsize(Point p)
 {
-	return Pt(p.x*BoardX+2, p.y*BoardY+2);
+	return Pt(p.x * BoardX + 2, p.y * BoardY + 2);
 }
 
 void
@@ -119,7 +118,7 @@ drawlevel(void)
 
 	if(img)
 		freeimage(img);
-	img = eallocimage(Rpt(Pt(0, 0), boardsize(level.max)), 0, 0);	
+	img = eallocimage(Rpt(Pt(0, 0), boardsize(level.max)), 0, 0);
 
 	draw(img, insetrect(img->r, 1), empty, nil, ZP);
 

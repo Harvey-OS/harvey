@@ -16,7 +16,7 @@ struct na_patch {
 };
 
 int na_fixup(unsigned long *script, unsigned long pa_script, unsigned long pa_reg,
-    struct na_patch *patch, int patches,
-    int (*externval)(int x, unsigned long *v));
+	     struct na_patch *patch, int patches,
+	     int (*externval)(int x, unsigned long *v));
 
 #endif

@@ -28,13 +28,13 @@
  * $Id: layer12.h,v 1.10 2004/01/23 09:41:32 rob Exp $
  */
 
-# ifndef LIBMAD_LAYER12_H
-# define LIBMAD_LAYER12_H
+#ifndef LIBMAD_LAYER12_H
+#define LIBMAD_LAYER12_H
 
-# include "stream.h"
-# include "frame.h"
+#include "stream.h"
+#include "frame.h"
 
 int mad_layer_I(struct mad_stream *, struct mad_frame *);
 int mad_layer_II(struct mad_stream *, struct mad_frame *);
 
-# endif
+#endif

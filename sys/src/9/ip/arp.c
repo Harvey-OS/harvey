@@ -21,44 +21,42 @@
  *  address resolution tables
  */
 
-enum
-{
-	NHASH		= (1<<6),
-	NCACHE		= 256,
+enum {
+	NHASH = (1 << 6),
+	NCACHE = 256,
 
-	AOK		= 1,
-	AWAIT		= 2,
+	AOK = 1,
+	AWAIT = 2,
 };
 
 char *arpstate[] =
-{
-	"UNUSED",
-	"OK",
-	"WAIT",
+    {
+     "UNUSED",
+     "OK",
+     "WAIT",
 };
 
 /*
  *  one per Fs
  */
-struct Arp
-{
+struct Arp {
 	QLock;
-	Fs	*f;
-	Arpent	*hash[NHASH];
-	Arpent	cache[NCACHE];
-	Arpent	*rxmt;
-	Proc	*rxmitp;	/* neib sol re-transmit proc */
-	Rendez	rxmtq;
-	Block 	*dropf, *dropl;
+	Fs *f;
+	Arpent *hash[NHASH];
+	Arpent cache[NCACHE];
+	Arpent *rxmt;
+	Proc *rxmitp; /* neib sol re-transmit proc */
+	Rendez rxmtq;
+	Block *dropf, *dropl;
 };
 
 char *Ebadarp = "bad arp";
 
-#define haship(s) ((s)[IPaddrlen-1]%NHASH)
+#define haship(s) ((s)[IPaddrlen - 1] % NHASH)
 
-int 	ReTransTimer = RETRANS_TIMER;
+int ReTransTimer = RETRANS_TIMER;
 
-static void 	rxmitproc(void *v);
+static void rxmitproc(void *v);
 
 void
 arpinit(Fs *f)
@@ -73,7 +71,7 @@ arpinit(Fs *f)
 /*
  *  create a new arp entry for an ip address.
  */
-static Arpent*
+static Arpent *
 newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 {
 	uint t;
@@ -86,8 +84,8 @@ newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 	e = &arp->cache[NCACHE];
 	a = arp->cache;
 	t = a->utime;
-	for(f = a; f < e; f++){
-		if(f->utime < t){
+	for(f = a; f < e; f++) {
+		if(f->utime < t) {
 			t = f->utime;
 			a = f;
 		}
@@ -97,15 +95,14 @@ newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 	xp = a->hold;
 	a->hold = nil;
 
-	if(isv4(a->ip)){
-		while(xp){
+	if(isv4(a->ip)) {
+		while(xp) {
 			next = xp->list;
 			freeblist(xp);
 			xp = next;
 		}
-	}
-	else { /* queue icmp unreachable for rxmitproc later on, w/o arp lock */
-		if(xp){
+	} else { /* queue icmp unreachable for rxmitproc later on, w/o arp lock */
+		if(xp) {
 			if(arp->dropl == nil)
 				arp->dropf = xp;
 			else
@@ -120,8 +117,8 @@ newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 
 	/* take out of current chain */
 	l = &arp->hash[haship(a->ip)];
-	for(f = *l; f; f = f->hash){
-		if(f == a){
+	for(f = *l; f; f = f->hash) {
+		if(f == a) {
 			*l = a->hash;
 			break;
 		}
@@ -144,18 +141,18 @@ newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 	a->ifcid = ifc->ifcid;
 
 	/* put to the end of re-transmit chain; addrxt is 0 when isv4(a->ip) */
-	if(!ipismulticast(a->ip) && addrxt){
+	if(!ipismulticast(a->ip) && addrxt) {
 		l = &arp->rxmt;
-		empty = (*l==nil);
+		empty = (*l == nil);
 
-		for(f = *l; f; f = f->nextrxt){
-			if(f == a){
+		for(f = *l; f; f = f->nextrxt) {
+			if(f == a) {
 				*l = a->nextrxt;
 				break;
 			}
 			l = &f->nextrxt;
 		}
-		for(f = *l; f; f = f->nextrxt){
+		for(f = *l; f; f = f->nextrxt) {
 			l = &f->nextrxt;
 		}
 		*l = a;
@@ -182,8 +179,8 @@ cleanarpent(Arp *arp, Arpent *a)
 
 	/* take out of current chain */
 	l = &arp->hash[haship(a->ip)];
-	for(f = *l; f; f = f->hash){
-		if(f == a){
+	for(f = *l; f; f = f->hash) {
+		if(f == a) {
 			*l = a->hash;
 			break;
 		}
@@ -192,8 +189,8 @@ cleanarpent(Arp *arp, Arpent *a)
 
 	/* take out of re-transmit chain */
 	l = &arp->rxmt;
-	for(f = *l; f; f = f->nextrxt){
-		if(f == a){
+	for(f = *l; f; f = f->nextrxt) {
+		if(f == a) {
 			*l = a->nextrxt;
 			break;
 		}
@@ -212,7 +209,7 @@ cleanarpent(Arp *arp, Arpent *a)
  *  for ip.  Add the packet to be sent onto the list of packets
  *  waiting for ip->mac to be resolved.
  */
-Arpent*
+Arpent *
 arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 {
 	int hash;
@@ -220,26 +217,26 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 	Medium *type = ifc->medium;
 	uint8_t v6ip[IPaddrlen];
 
-	if(version == V4){
+	if(version == V4) {
 		v4tov6(v6ip, ip);
 		ip = v6ip;
 	}
 
 	qlock(arp);
 	hash = haship(ip);
-	for(a = arp->hash[hash]; a; a = a->hash){
+	for(a = arp->hash[hash]; a; a = a->hash) {
 		if(memcmp(ip, a->ip, sizeof(a->ip)) == 0)
-		if(type == a->type)
-			break;
+			if(type == a->type)
+				break;
 	}
 
-	if(a == nil){
+	if(a == nil) {
 		a = newarp6(arp, ip, ifc, (version != V4));
 		a->state = AWAIT;
 	}
 	a->utime = NOW;
-	if(a->state == AWAIT){
-		if(bp != nil){
+	if(a->state == AWAIT) {
+		if(bp != nil) {
 			if(a->hold)
 				a->last->list = bp;
 			else
@@ -247,13 +244,13 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 			a->last = bp;
 			bp->list = nil;
 		}
-		return a;		/* return with arp qlocked */
+		return a; /* return with arp qlocked */
 	}
 
 	memmove(mac, a->mac, a->type->maclen);
 
 	/* remove old entries */
-	if(NOW - a->ctime > 15*60*1000)
+	if(NOW - a->ctime > 15 * 60 * 1000)
 		cleanarpent(arp, a);
 
 	qunlock(arp);
@@ -275,16 +272,16 @@ arprelease(Arp *arp, Arpent *arpen)
  *
  * called with arp locked
  */
-Block*
+Block *
 arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 {
 	Block *bp;
 	Arpent *f, **l;
 
-	if(!isv4(a->ip)){
+	if(!isv4(a->ip)) {
 		l = &arp->rxmt;
-		for(f = *l; f; f = f->nextrxt){
-			if(f == a){
+		for(f = *l; f; f = f->nextrxt) {
+			if(f == a) {
 				*l = a->nextrxt;
 				break;
 			}
@@ -317,12 +314,12 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 
 	arp = fs->arp;
 
-	if(n != 6){
-//		print("arp: len = %d\n", n);
+	if(n != 6) {
+		//		print("arp: len = %d\n", n);
 		return;
 	}
 
-	switch(version){
+	switch(version) {
 	case V4:
 		r = v4lookup(fs, ip, nil);
 		v4tov6(v6ip, ip);
@@ -333,11 +330,11 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 		break;
 	default:
 		panic("arpenter: version %d", version);
-		return;	/* to supress warnings */
+		return; /* to supress warnings */
 	}
 
-	if(r == nil){
-//		print("arp: no route for entry\n");
+	if(r == nil) {
+		//		print("arp: no route for entry\n");
 		return;
 	}
 
@@ -345,19 +342,19 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 	type = ifc->medium;
 
 	qlock(arp);
-	for(a = arp->hash[haship(ip)]; a; a = a->hash){
+	for(a = arp->hash[haship(ip)]; a; a = a->hash) {
 		if(a->type != type || (a->state != AWAIT && a->state != AOK))
 			continue;
 
-		if(ipcmp(a->ip, ip) == 0){
+		if(ipcmp(a->ip, ip) == 0) {
 			a->state = AOK;
 			memmove(a->mac, mac, type->maclen);
 
-			if(version == V6){
+			if(version == V6) {
 				/* take out of re-transmit chain */
 				l = &arp->rxmt;
-				for(f = *l; f; f = f->nextrxt){
-					if(f == a){
+				for(f = *l; f; f = f->nextrxt) {
+					if(f == a) {
 						*l = a->nextrxt;
 						break;
 					}
@@ -375,10 +372,10 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 			a->ctime = a->utime;
 			qunlock(arp);
 
-			while(bp){
+			while(bp) {
 				next = bp->list;
-				if(ifc != nil){
-					if(waserror()){
+				if(ifc != nil) {
+					if(waserror()) {
 						runlock(ifc);
 						nexterror();
 					}
@@ -397,7 +394,7 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 		}
 	}
 
-	if(refresh == 0){
+	if(refresh == 0) {
 		a = newarp6(arp, ip, ifc, 0);
 		a->state = AOK;
 		a->type = type;
@@ -425,22 +422,22 @@ arpwrite(Fs *fs, char *s, int len)
 	if(len == 0)
 		error(Ebadarp);
 	if(len >= sizeof(buf))
-		len = sizeof(buf)-1;
+		len = sizeof(buf) - 1;
 	strncpy(buf, s, len);
 	buf[len] = 0;
-	if(len > 0 && buf[len-1] == '\n')
-		buf[len-1] = 0;
+	if(len > 0 && buf[len - 1] == '\n')
+		buf[len - 1] = 0;
 
 	n = getfields(buf, f, 4, 1, " ");
-	if(strcmp(f[0], "flush") == 0){
+	if(strcmp(f[0], "flush") == 0) {
 		qlock(arp);
-		for(a = arp->cache; a < &arp->cache[NCACHE]; a++){
+		for(a = arp->cache; a < &arp->cache[NCACHE]; a++) {
 			memset(a->ip, 0, sizeof(a->ip));
 			memset(a->mac, 0, sizeof(a->mac));
 			a->hash = nil;
 			a->state = 0;
 			a->utime = 0;
-			while(a->hold != nil){
+			while(a->hold != nil) {
 				bp = a->hold->list;
 				freeblist(a->hold);
 				a->hold = bp;
@@ -452,15 +449,15 @@ arpwrite(Fs *fs, char *s, int len)
 		arp->dropf = nil;
 		arp->dropl = nil;
 		qunlock(arp);
-	} else if(strcmp(f[0], "add") == 0){
-		switch(n){
+	} else if(strcmp(f[0], "add") == 0) {
+		switch(n) {
 		default:
 			error(Ebadarg);
 		case 3:
-			if (parseip(ip, f[1]) == -1)
+			if(parseip(ip, f[1]) == -1)
 				error(Ebadip);
 			if(isv4(ip))
-				r = v4lookup(fs, ip+IPv4off, nil);
+				r = v4lookup(fs, ip + IPv4off, nil);
 			else
 				r = v6lookup(fs, ip, nil);
 			if(r == nil)
@@ -472,7 +469,7 @@ arpwrite(Fs *fs, char *s, int len)
 			medium = ipfindmedium(f[1]);
 			if(medium == nil)
 				error(Ebadarp);
-			if (parseip(ip, f[2]) == -1)
+			if(parseip(ip, f[2]) == -1)
 				error(Ebadip);
 			n = parsemac(mac, f[3], medium->maclen);
 			break;
@@ -482,28 +479,28 @@ arpwrite(Fs *fs, char *s, int len)
 			error(Ebadarp);
 
 		medium->ares(fs, V6, ip, mac, n, 0);
-	} else if(strcmp(f[0], "del") == 0){
+	} else if(strcmp(f[0], "del") == 0) {
 		if(n != 2)
 			error(Ebadarg);
 
-		if (parseip(ip, f[1]) == -1)
+		if(parseip(ip, f[1]) == -1)
 			error(Ebadip);
 		qlock(arp);
 
 		l = &arp->hash[haship(ip)];
-		for(a = *l; a; a = a->hash){
-			if(memcmp(ip, a->ip, sizeof(a->ip)) == 0){
+		for(a = *l; a; a = a->hash) {
+			if(memcmp(ip, a->ip, sizeof(a->ip)) == 0) {
 				*l = a->hash;
 				break;
 			}
 			l = &a->hash;
 		}
 
-		if(a){
+		if(a) {
 			/* take out of re-transmit chain */
 			l = &arp->rxmt;
-			for(fl = *l; fl; fl = fl->nextrxt){
-				if(fl == a){
+			for(fl = *l; fl; fl = fl->nextrxt) {
+				if(fl == a) {
 					*l = a->nextrxt;
 					break;
 				}
@@ -525,9 +522,8 @@ arpwrite(Fs *fs, char *s, int len)
 	return len;
 }
 
-enum
-{
-	Alinelen=	90,
+enum {
+	Alinelen = 90,
 };
 
 char *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
@@ -544,27 +540,27 @@ arpread(Arp *arp, char *p, uint32_t offset, int len)
 {
 	Arpent *a;
 	int n;
-	char mac[2*MAClen+1];
+	char mac[2 * MAClen + 1];
 
 	if(offset % Alinelen)
 		return 0;
 
-	offset = offset/Alinelen;
-	len = len/Alinelen;
+	offset = offset / Alinelen;
+	len = len / Alinelen;
 
 	n = 0;
-	for(a = arp->cache; len > 0 && a < &arp->cache[NCACHE]; a++){
+	for(a = arp->cache; len > 0 && a < &arp->cache[NCACHE]; a++) {
 		if(a->state == 0)
 			continue;
-		if(offset > 0){
+		if(offset > 0) {
 			offset--;
 			continue;
 		}
 		len--;
 		qlock(arp);
 		convmac(mac, &mac[sizeof mac], a->mac, a->type->maclen);
-		n += snprint(p+n, Alinelen+1, aformat, a->type->name,
-			arpstate[a->state], a->ip, mac);	/* +1 for NUL */
+		n += snprint(p + n, Alinelen + 1, aformat, a->type->name,
+			     arpstate[a->state], a->ip, mac); /* +1 for NUL */
 		qunlock(arp);
 	}
 
@@ -586,22 +582,22 @@ rxmitsols(Arp *arp)
 	f = arp->f;
 
 	a = arp->rxmt;
-	if(a==nil){
+	if(a == nil) {
 		nrxt = 0;
-		goto dodrops; 		/* return nrxt; */
+		goto dodrops; /* return nrxt; */
 	}
 	nrxt = a->rtime - NOW;
-	if(nrxt > 3*ReTransTimer/4)
-		goto dodrops; 		/* return nrxt; */
+	if(nrxt > 3 * ReTransTimer / 4)
+		goto dodrops; /* return nrxt; */
 
-	for(; a; a = a->nextrxt){
+	for(; a; a = a->nextrxt) {
 		ifc = a->ifc;
 		assert(ifc != nil);
-		if((a->rxtsrem <= 0) || !(canrlock(ifc)) || (a->ifcid != ifc->ifcid)){
+		if((a->rxtsrem <= 0) || !(canrlock(ifc)) || (a->ifcid != ifc->ifcid)) {
 			xp = a->hold;
 			a->hold = nil;
 
-			if(xp){
+			if(xp) {
 				if(arp->dropl == nil)
 					arp->dropf = xp;
 				else
@@ -609,15 +605,13 @@ rxmitsols(Arp *arp)
 			}
 
 			cleanarpent(arp, a);
-		}
-		else
+		} else
 			break;
 	}
 	if(a == nil)
 		goto dodrops;
 
-
-	qunlock(arp);	/* for icmpns */
+	qunlock(arp); /* for icmpns */
 	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC)
 		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
 
@@ -626,14 +620,14 @@ rxmitsols(Arp *arp)
 
 	/* put to the end of re-transmit chain */
 	l = &arp->rxmt;
-	for(b = *l; b; b = b->nextrxt){
-		if(b == a){
+	for(b = *l; b; b = b->nextrxt) {
+		if(b == a) {
 			*l = a->nextrxt;
 			break;
 		}
 		l = &b->nextrxt;
 	}
-	for(b = *l; b; b = b->nextrxt){
+	for(b = *l; b; b = b->nextrxt) {
 		l = &b->nextrxt;
 	}
 	*l = a;
@@ -642,7 +636,7 @@ rxmitsols(Arp *arp)
 	a->rtime = NOW + ReTransTimer;
 
 	a = arp->rxmt;
-	if(a==nil)
+	if(a == nil)
 		nrxt = 0;
 	else
 		nrxt = a->rtime - NOW;
@@ -653,19 +647,18 @@ dodrops:
 	arp->dropl = nil;
 	qunlock(arp);
 
-	for(; xp; xp = next){
+	for(; xp; xp = next) {
 		next = xp->list;
 		icmphostunr(f, ifc, xp, Icmp6_adr_unreach, 1);
 	}
 
 	return nrxt;
-
 }
 
 static int
 rxready(void *v)
 {
-	Arp *arp = (Arp *) v;
+	Arp *arp = (Arp *)v;
 	int x;
 
 	x = ((arp->rxmt != nil) || (arp->dropf != nil));
@@ -682,16 +675,15 @@ rxmitproc(void *v)
 
 	arp->rxmitp = up;
 	//print("arp rxmitproc started\n");
-	if(waserror()){
+	if(waserror()) {
 		arp->rxmitp = 0;
 		pexit("hangup", 1);
 	}
-	for(;;){
+	for(;;) {
 		wakeupat = rxmitsols(arp);
 		if(wakeupat == 0)
 			sleep(&arp->rxmtq, rxready, v);
-		else if(wakeupat > ReTransTimer/4)
+		else if(wakeupat > ReTransTimer / 4)
 			tsleep(&arp->rxmtq, return0, 0, wakeupat);
 	}
 }
-

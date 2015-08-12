@@ -28,7 +28,7 @@ sendto(int fd, void *a, int n, int flags, void *, int)
 
 int
 recvfrom(int fd, void *a, int n, int flags,
-	void *from, int *fromlen)
+	 void *from, int *fromlen)
 {
 	if(getsockname(fd, from, fromlen) < 0)
 		return -1;

@@ -20,11 +20,11 @@ nbnameresolve(NbName nbname, uint8_t *ipaddr)
 	Ndbtuple *t;
 
 	/* for now, just use dns */
-	if (nbremotenametablefind(nbname, ipaddr)) {
-//print("%B found in cache\n", nbname);
+	if(nbremotenametablefind(nbname, ipaddr)) {
+		//print("%B found in cache\n", nbname);
 		return 1;
 	}
-	if (nbnsfindname(nil, nbname, ipaddr, &ttl) == 0) {
+	if(nbnsfindname(nil, nbname, ipaddr, &ttl) == 0) {
 		nbremotenametableadd(nbname, ipaddr, ttl);
 		return 1;
 	}
@@ -32,7 +32,7 @@ nbnameresolve(NbName nbname, uint8_t *ipaddr)
 	copy[NbNameLen - 1] = 0;
 	nbmkstringfromname(name, sizeof(name), copy);
 	t = dnsquery("/net", name, "ip");
-	if (t == nil)
+	if(t == nil)
 		return 0;
 	r = parseip(ipaddr, t->line->val);
 	ndbfree(t);

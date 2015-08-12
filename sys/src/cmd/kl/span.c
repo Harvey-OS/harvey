@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
 span(void)
@@ -53,7 +53,7 @@ span(void)
 		Bprint(&bso, "tsize = %lux\n", textsize);
 	Bflush(&bso);
 }
-		
+
 void
 xdefine(char *p, int t, int32_t v)
 {
@@ -110,7 +110,7 @@ aclass(Adr *a)
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s",
-					a->sym->name, TNAME);
+				     a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
 			instoffset = a->sym->value + a->offset - BIG;
@@ -174,7 +174,7 @@ aclass(Adr *a)
 			t = s->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s",
-					s->name, TNAME);
+				     s->name, TNAME);
 				s->type = SDATA;
 			}
 			if(s->type == STEXT || s->type == SLEAF) {
@@ -189,9 +189,9 @@ aclass(Adr *a)
 			if(instoffset >= -BIG && instoffset < BIG && instoffset != 0)
 				return C_SECON;
 			instoffset = s->value + a->offset + INITDAT;
-/* not sure why this barfs */
-return C_LCON;
-/*
+			/* not sure why this barfs */
+			return C_LCON;
+		/*
 			if(instoffset == 0)
 				return C_ZCON;
 			if(instoffset >= -0x1000 && instoffset <= 0xfff)
@@ -221,7 +221,7 @@ return C_LCON;
 	return C_GOK;
 }
 
-Optab*
+Optab *
 oplook(Prog *p)
 {
 	int a1, a2, a3, r;
@@ -230,7 +230,7 @@ oplook(Prog *p)
 
 	a1 = p->optab;
 	if(a1)
-		return optab+(a1-1);
+		return optab + (a1 - 1);
 	a1 = p->from.class;
 	if(a1 == 0) {
 		a1 = aclass(&p->from) + 1;
@@ -253,16 +253,16 @@ oplook(Prog *p)
 	e = oprange[r].stop;
 	c1 = xcmp[a1];
 	c3 = xcmp[a3];
-	for(; o<e; o++)
+	for(; o < e; o++)
 		if(o->a2 == a2)
-		if(c1[o->a1])
-		if(c3[o->a3]) {
-			p->optab = (o-optab)+1;
-			return o;
-		}
+			if(c1[o->a1])
+				if(c3[o->a3]) {
+					p->optab = (o - optab) + 1;
+					return o;
+				}
 	diag("illegal combination %A %d %d %d",
-		p->as, a1, a2, a3);
-	if(1||!debug['a'])
+	     p->as, a1, a2, a3);
+	if(1 || !debug['a'])
 		prasm(p);
 	if(o == 0)
 		errorexit();
@@ -349,8 +349,8 @@ ocmp(const void *a1, const void *a2)
 	Optab *p1, *p2;
 	int n;
 
-	p1 = (Optab*)a1;
-	p2 = (Optab*)a2;
+	p1 = (Optab *)a1;
+	p2 = (Optab *)a2;
 	n = p1->as - p2->as;
 	if(n)
 		return n;
@@ -371,22 +371,21 @@ buildop(void)
 {
 	int i, n, r;
 
-	for(i=0; i<C_NCLASS; i++)
-		for(n=0; n<C_NCLASS; n++)
+	for(i = 0; i < C_NCLASS; i++)
+		for(n = 0; n < C_NCLASS; n++)
 			xcmp[i][n] = cmp(n, i);
-	for(n=0; optab[n].as != AXXX; n++)
+	for(n = 0; optab[n].as != AXXX; n++)
 		;
 	qsort(optab, n, sizeof(optab[0]), ocmp);
-	for(i=0; i<n; i++) {
+	for(i = 0; i < n; i++) {
 		r = optab[i].as;
-		oprange[r].start = optab+i;
+		oprange[r].start = optab + i;
 		while(optab[i].as == r)
 			i++;
-		oprange[r].stop = optab+i;
+		oprange[r].stop = optab + i;
 		i--;
-		
-		switch(r)
-		{
+
+		switch(r) {
 		default:
 			diag("unknown op in build: %A", r);
 			errorexit();

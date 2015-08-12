@@ -12,75 +12,71 @@
 #include <tty.h>
 
 typedef struct Mode Mode;
-struct Mode
-{
-	char*	name;
-	int	bit;
+struct Mode {
+	char *name;
+	int bit;
 };
 
 Mode ou[] =
-{
-	"opost",	OPOST,
-	"olcuc",	OLCUC,
-	"onlcr",	ONLCR,
-	"ocrnl",	OCRNL,
-	"onocr",	ONOCR,
-	"onlret",	ONLRET,
-	"ofill",	OFILL,
-	"ofdel",	OFDEL,
-	0
-};
+    {
+     "opost", OPOST,
+     "olcuc", OLCUC,
+     "onlcr", ONLCR,
+     "ocrnl", OCRNL,
+     "onocr", ONOCR,
+     "onlret", ONLRET,
+     "ofill", OFILL,
+     "ofdel", OFDEL,
+     0};
 
 Mode in[] =
-{
-	"brkint",	BRKINT,
-	"icrnl",	ICRNL,
-	"ignbrk",	IGNBRK,
-	"igncr",	IGNCR,
-	"ignpar",	IGNPAR,
-	"inlcr",	INLCR,
-	"inpck",	INPCK,
-	"istrip",	ISTRIP,
-	"ixoff",	IXOFF,
-	"ixon",		IXON,
-	"parmrk",	PARMRK,
-	0
-};
+    {
+     "brkint", BRKINT,
+     "icrnl", ICRNL,
+     "ignbrk", IGNBRK,
+     "igncr", IGNCR,
+     "ignpar", IGNPAR,
+     "inlcr", INLCR,
+     "inpck", INPCK,
+     "istrip", ISTRIP,
+     "ixoff", IXOFF,
+     "ixon", IXON,
+     "parmrk", PARMRK,
+     0};
 
 Mode lo[] =
-{
-	"echo",		ECHO,
-	"echoe",	ECHOE,
-	"echok", 	ECHOK,
-	"echonl",	ECHONL,
-	"icanon",	ICANON,
-	"iexten",	IEXTEN,
-	"isig",		ISIG,
-	"noflsh",	NOFLSH,
-	"tostop",	TOSTOP,
-	0
-};
+    {
+     "echo", ECHO,
+     "echoe", ECHOE,
+     "echok", ECHOK,
+     "echonl", ECHONL,
+     "icanon", ICANON,
+     "iexten", IEXTEN,
+     "isig", ISIG,
+     "noflsh", NOFLSH,
+     "tostop", TOSTOP,
+     0};
 
 Mode cc[] =
-{
-	"eof",		VEOF,
-	"eol",		VEOL,
-	"erase",	VERASE,
-	"intr",		VINTR,
-	"kill",		VKILL,
-	"min",		VMIN,
-	"quit",		VQUIT,
-	"susp",		VSUSP,
-	"time",		VTIME,
-	"start",	VSTART,
-	"stop",		VSTOP,
-	0,
+    {
+     "eof", VEOF,
+     "eol", VEOL,
+     "erase", VERASE,
+     "intr", VINTR,
+     "kill", VKILL,
+     "min", VMIN,
+     "quit", VQUIT,
+     "susp", VSUSP,
+     "time", VTIME,
+     "start", VSTART,
+     "stop", VSTOP,
+     0,
 };
 
-int	getmode(int, Termios*);
-int	setmode(int, Termios*);
+int getmode(int, Termios *);
+int setmode(int, Termios *);
 
-char*
+char *
 ctlchar(char c)
 {
 	static char buf[10];
@@ -91,10 +87,10 @@ ctlchar(char c)
 		return "NUL";
 	if(c < 32) {
 		buf[0] = '^';
-		buf[1] = '@'+c;
+		buf[1] = '@' + c;
 		buf[2] = '\0';
 		return buf;
-	}	
+	}
 	buf[0] = c;
 	buf[1] = '\0';
 	return buf;
@@ -123,7 +119,7 @@ showmode(Termios *t)
 		if(ou[i].bit & t->oflag)
 			print("%s ", ou[i].name);
 
-	for(i = 0; in[i].name; i++)
+	for(i = 0; in [i].name; i++)
 		if(in[i].bit & t->iflag)
 			print("%s ", in[i].name);
 
@@ -208,7 +204,7 @@ main(int argc, char **argv)
 			continue;
 		}
 		cc = ccname(argv[i]);
-		if(cc != -1 && i+1 < argc) {
+		if(cc != -1 && i + 1 < argc) {
 			wmo++;
 			t.cc[cc] = argv[++i][0];
 			continue;
@@ -234,9 +230,9 @@ setmode(int fd, Termios *t)
 	char buf[256];
 
 	n = sprint(buf, "IOW %4.4ux %4.4ux %4.4ux %4.4ux ",
-		t->iflag, t->oflag, t->cflag, t->lflag);
+		   t->iflag, t->oflag, t->cflag, t->lflag);
 	for(i = 0; i < NCCS; i++)
-		n += sprint(buf+n, "%2.2ux ", t->cc[i]);
+		n += sprint(buf + n, "%2.2ux ", t->cc[i]);
 
 	if(seek(fd, -2, 0) != -2)
 		return -1;
@@ -263,13 +259,13 @@ getmode(int fd, Termios *t)
 	if(n < 0)
 		return -1;
 
-	t->iflag = strtoul(buf+4, 0, 16);
-	t->oflag = strtoul(buf+9, 0, 16);
-	t->cflag = strtoul(buf+14, 0, 16);
-	t->lflag = strtoul(buf+19, 0, 16);
+	t->iflag = strtoul(buf + 4, 0, 16);
+	t->oflag = strtoul(buf + 9, 0, 16);
+	t->cflag = strtoul(buf + 14, 0, 16);
+	t->lflag = strtoul(buf + 19, 0, 16);
 
 	for(n = 0; n < NCCS; n++)
-		t->cc[n] = strtoul(buf+24+(n*3), 0, 16);
+		t->cc[n] = strtoul(buf + 24 + (n * 3), 0, 16);
 
 	return 0;
 }

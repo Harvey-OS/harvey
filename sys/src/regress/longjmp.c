@@ -17,7 +17,7 @@ main(void)
 
 	njmp = 0;
 	while((njmp = setjmp(label)) < Njmps)
-		longjmp(label, njmp+1);
+		longjmp(label, njmp + 1);
 
 	for(i = 0; i < nelem(label); i++)
 		fprint(2, "label[%d] = %p\n", i, label[i]);
@@ -34,7 +34,7 @@ main(void)
 	if(label[JMPBUFSP] < 0x7fffffd00000)
 		fail++;
 
-	if(fail == 0){
+	if(fail == 0) {
 		print("PASS\n");
 		exits("PASS");
 	}

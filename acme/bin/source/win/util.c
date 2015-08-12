@@ -13,7 +13,7 @@
 #include <thread.h>
 #include "dat.h"
 
-void*
+void *
 emalloc(uint n)
 {
 	void *p;
@@ -25,42 +25,42 @@ emalloc(uint n)
 	return p;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	char *t;
 
-	t = emalloc(strlen(s)+1);
+	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
 	return t;
 }
 
-char*
+char *
 estrstrdup(char *s, char *t)
 {
 	char *u;
 
-	u = emalloc(strlen(s)+strlen(t)+1);
+	u = emalloc(strlen(s) + strlen(t) + 1);
 	sprint(u, "%s%s", s, t);
 	return u;
 }
 
-char*
+char *
 eappend(char *s, char *sep, char *t)
 {
 	char *u;
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
-	else{
-		u = emalloc(strlen(s)+strlen(sep)+strlen(t)+1);
+	else {
+		u = emalloc(strlen(s) + strlen(sep) + strlen(t) + 1);
 		sprint(u, "%s%s%s", s, sep, t);
 	}
 	free(s);
 	return u;
 }
 
-char*
+char *
 egrow(char *s, char *sep, char *t)
 {
 	s = eappend(s, sep, t);

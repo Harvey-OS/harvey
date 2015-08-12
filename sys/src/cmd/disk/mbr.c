@@ -16,22 +16,22 @@
 #include <disk.h>
 
 typedef struct {
-	uint8_t	active;			/* active flag */
-	uint8_t	starth;			/* starting head */
-	uint8_t	starts;			/* starting sector */
-	uint8_t	startc;			/* starting cylinder */
-	uint8_t	type;			/* partition type */
-	uint8_t	endh;			/* ending head */
-	uint8_t	ends;			/* ending sector */
-	uint8_t	endc;			/* ending cylinder */
-	uint8_t	lba[4];			/* starting LBA */
-	uint8_t	size[4];		/* size in sectors */
+	uint8_t active;  /* active flag */
+	uint8_t starth;  /* starting head */
+	uint8_t starts;  /* starting sector */
+	uint8_t startc;  /* starting cylinder */
+	uint8_t type;    /* partition type */
+	uint8_t endh;    /* ending head */
+	uint8_t ends;    /* ending sector */
+	uint8_t endc;    /* ending cylinder */
+	uint8_t lba[4];  /* starting LBA */
+	uint8_t size[4]; /* size in sectors */
 } Tentry;
 
 enum {
-	Toffset = 0x1BE,		/* offset of partition table */
+	Toffset = 0x1BE, /* offset of partition table */
 
-	Type9	= 0x39,
+	Type9 = 0x39,
 };
 
 /*
@@ -39,24 +39,24 @@ enum {
  */
 static int ndefmbr = Toffset;
 static char defmbr[512] = {
-[0x000]	0xEB, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	[0x000] 0xEB, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-[0x03E] 0xFA, 0xFC, 0x8C, 0xC8, 0x8E, 0xD8, 0x8E, 0xD0,
+	[0x03E] 0xFA, 0xFC, 0x8C, 0xC8, 0x8E, 0xD8, 0x8E, 0xD0,
 	0xBC, 0x00, 0x7C, 0xBE, 0x77, 0x7C, 0xE8, 0x19,
 	0x00, 0x33, 0xC0, 0xCD, 0x16, 0xBB, 0x40, 0x00,
 	0x8E, 0xC3, 0xBB, 0x72, 0x00, 0xB8, 0x34, 0x12,
 	0x26, 0x89, 0x07, 0xEA, 0x00, 0x00, 0xFF, 0xFF,
 	0xEB, 0xD6, 0xAC, 0x0A, 0xC0, 0x74, 0x09, 0xB4,
 	0x0E, 0xBB, 0x07, 0x00, 0xCD, 0x10, 0xEB, 0xF2,
-	0xC3,  'N',  'o',  't',  ' ',  'a',  ' ',  'b',
-	 'o',  'o',  't',  'a',  'b',  'l',  'e',  ' ',
-	 'd',  'i',  's',  'c',  ' ',  'o',  'r',  ' ',
-	 'd',  'i',  's',  'c',  ' ',  'e',  'r',  'r',
-	 'o',  'r', '\r', '\n',  'P',  'r',  'e',  's',
-	 's',  ' ',  'a',  'l',  'm',  'o',  's',  't',
-	 ' ',  'a',  'n',  'y',  ' ',  'k',  'e',  'y',
-	 ' ',  't',  'o',  ' ',  'r',  'e',  'b',  'o',
-	 'o',  't',  '.',  '.',  '.', 0x00, 0x00, 0x00,
+	0xC3, 'N', 'o', 't', ' ', 'a', ' ', 'b',
+	'o', 'o', 't', 'a', 'b', 'l', 'e', ' ',
+	'd', 'i', 's', 'c', ' ', 'o', 'r', ' ',
+	'd', 'i', 's', 'c', ' ', 'e', 'r', 'r',
+	'o', 'r', '\r', '\n', 'P', 'r', 'e', 's',
+	's', ' ', 'a', 'l', 'm', 'o', 's', 't',
+	' ', 'a', 'n', 'y', ' ', 'k', 'e', 'y',
+	' ', 't', 'o', ' ', 'r', 'e', 'b', 'o',
+	'o', 't', '.', '.', '.', 0x00, 0x00, 0x00,
 };
 
 void
@@ -80,15 +80,15 @@ fatal(char *fmt, ...)
 }
 
 static void
-putle32(void* v, uint32_t i)
+putle32(void *v, uint32_t i)
 {
 	uint8_t *p;
 
 	p = v;
 	p[0] = i;
-	p[1] = i>>8;
-	p[2] = i>>16;
-	p[3] = i>>24;
+	p[1] = i >> 8;
+	p[2] = i >> 16;
+	p[3] = i >> 24;
 }
 
 static void
@@ -107,7 +107,7 @@ writechs(Disk *disk, uint8_t *p, int64_t lba)
 	}
 
 	p[0] = h;
-	p[1] = ((s+1) & 0x3F) | ((c>>2) & 0xC0);
+	p[1] = ((s + 1) & 0x3F) | ((c >> 2) & 0xC0);
 	p[2] = c;
 }
 
@@ -115,12 +115,12 @@ static void
 wrtentry(Disk *disk, Tentry *tp, int type, uint32_t base, uint32_t lba,
 	 uint32_t end)
 {
-	tp->active = 0x80;		/* make this sole partition active */
+	tp->active = 0x80; /* make this sole partition active */
 	tp->type = type;
 	writechs(disk, &tp->starth, lba);
-	writechs(disk, &tp->endh, end-1);
-	putle32(tp->lba, lba-base);
-	putle32(tp->size, end-lba);
+	writechs(disk, &tp->endh, end - 1);
+	putle32(tp->lba, lba - base);
+	putle32(tp->size, end - lba);
 }
 
 void
@@ -135,7 +135,8 @@ main(int argc, char **argv)
 
 	flag9 = 0;
 	mbrfile = nil;
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case '9':
 		flag9 = 1;
 		break;
@@ -144,7 +145,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	} ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -163,10 +165,10 @@ main(int argc, char **argv)
 	secsize = 512;
 	if(disk->secsize != secsize)
 		fprint(2, "%s: sector size %lld not %ld, should be okay\n",
-			argv0, disk->secsize, secsize);
+		       argv0, disk->secsize, secsize);
 
-	buf = malloc(secsize*(disk->s+1));
-	mbr = malloc(secsize*disk->s);
+	buf = malloc(secsize * (disk->s + 1));
+	mbr = malloc(secsize * disk->s);
 	if(buf == nil || mbr == nil)
 		fatal("out of memory");
 
@@ -178,36 +180,36 @@ main(int argc, char **argv)
 	if(read(disk->fd, mbr, secsize) != secsize)
 		fatal("reading boot sector: %r");
 
-	if(mbrfile == nil){
+	if(mbrfile == nil) {
 		nmbr = ndefmbr;
 		memmove(mbr, defmbr, nmbr);
 	} else {
-		memset(buf, 0, secsize*disk->s);
+		memset(buf, 0, secsize * disk->s);
 		if((sysfd = open(mbrfile, OREAD)) < 0)
 			fatal("open %s: %r", mbrfile);
-		if((nmbr = read(sysfd, buf, secsize*(disk->s+1))) < 0)
+		if((nmbr = read(sysfd, buf, secsize * (disk->s + 1))) < 0)
 			fatal("read %s: %r", mbrfile);
-		if(nmbr > secsize*disk->s)
-			fatal("master boot record too large %d > %d", nmbr, secsize*disk->s);
+		if(nmbr > secsize * disk->s)
+			fatal("master boot record too large %d > %d", nmbr, secsize * disk->s);
 		if(nmbr < secsize)
 			nmbr = secsize;
 		close(sysfd);
-		memmove(buf+Toffset, mbr+Toffset, secsize-Toffset);
+		memmove(buf + Toffset, mbr + Toffset, secsize - Toffset);
 		memmove(mbr, buf, nmbr);
 	}
 
-	if(flag9){
-		tp = (Tentry*)(mbr+Toffset);
-		memset(tp, 0, secsize-Toffset);
+	if(flag9) {
+		tp = (Tentry *)(mbr + Toffset);
+		memset(tp, 0, secsize - Toffset);
 		wrtentry(disk, tp, Type9, 0, disk->s, disk->secs);
 	}
-	mbr[secsize-2] = 0x55;
-	mbr[secsize-1] = 0xAA;
-	nmbr = (nmbr+secsize-1)&~(secsize-1);
+	mbr[secsize - 2] = 0x55;
+	mbr[secsize - 1] = 0xAA;
+	nmbr = (nmbr + secsize - 1) & ~(secsize - 1);
 	if(seek(disk->wfd, 0, 0) < 0)
 		fatal("seek to MBR sector: %r\n");
 	if(write(disk->wfd, mbr, nmbr) != nmbr)
 		fatal("writing MBR: %r");
-	
+
 	exits(0);
 }

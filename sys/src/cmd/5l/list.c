@@ -34,7 +34,7 @@ Pconv(Fmt *fp)
 	Prog *p;
 	int a;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(fp->args, Prog *);
 	curp = p;
 	a = p->as;
 	switch(a) {
@@ -43,27 +43,26 @@ Pconv(Fmt *fp)
 		s += sprint(s, "(%ld)", p->line);
 		if(p->reg == NREG)
 			sprint(s, "	%A%C	%D,%D",
-				a, p->scond, &p->from, &p->to);
-		else
-		if(p->from.type != D_FREG)
+			       a, p->scond, &p->from, &p->to);
+		else if(p->from.type != D_FREG)
 			sprint(s, "	%A%C	%D,R%d,%D",
-				a, p->scond, &p->from, p->reg, &p->to);
+			       a, p->scond, &p->from, p->reg, &p->to);
 		else
 			sprint(s, "	%A%C	%D,F%d,%D",
-				a, p->scond, &p->from, p->reg, &p->to);
+			       a, p->scond, &p->from, p->reg, &p->to);
 		break;
 
 	case ASWPW:
 	case ASWPBU:
 		sprint(str, "(%ld)	%A%C	R%d,%D,%D",
-			p->line, a, p->scond, p->reg, &p->from, &p->to);
+		       p->line, a, p->scond, p->reg, &p->from, &p->to);
 		break;
 
 	case ADATA:
 	case AINIT:
 	case ADYNT:
 		sprint(str, "(%ld)	%A%C	%D/%d,%D",
-			p->line, a, p->scond, &p->from, p->reg, &p->to);
+		       p->line, a, p->scond, &p->from, p->reg, &p->to);
 		break;
 	}
 	return fmtstrcpy(fp, str);
@@ -82,25 +81,24 @@ Aconv(Fmt *fp)
 	return fmtstrcpy(fp, s);
 }
 
-char*	strcond[16] =
-{
-	".EQ",
-	".NE",
-	".HS",
-	".LO",
-	".MI",
-	".PL",
-	".VS",
-	".VC",
-	".HI",
-	".LS",
-	".GE",
-	".LT",
-	".GT",
-	".LE",
-	"",
-	".NV"
-};
+char *strcond[16] =
+    {
+     ".EQ",
+     ".NE",
+     ".HS",
+     ".LO",
+     ".MI",
+     ".PL",
+     ".VS",
+     ".VC",
+     ".HI",
+     ".LS",
+     ".GE",
+     ".LT",
+     ".GT",
+     ".LE",
+     "",
+     ".NV"};
 
 int
 Cconv(Fmt *fp)
@@ -116,7 +114,7 @@ Cconv(Fmt *fp)
 		strcat(s, ".P");
 	if(c & C_WBIT)
 		strcat(s, ".W");
-	if(c & C_UBIT)		/* ambiguous with FBIT */
+	if(c & C_UBIT) /* ambiguous with FBIT */
 		strcat(s, ".U");
 	return fmtstrcpy(fp, s);
 }
@@ -129,7 +127,7 @@ Dconv(Fmt *fp)
 	Adr *a;
 	int32_t v;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	switch(a->type) {
 
 	default:
@@ -151,13 +149,13 @@ Dconv(Fmt *fp)
 
 	case D_SHIFT:
 		v = a->offset;
-		op = "<<>>->@>" + (((v>>5) & 3) << 1);
-		if(v & (1<<4))
-			sprint(str, "R%ld%c%cR%ld", v&15, op[0], op[1], (v>>8)&15);
+		op = "<<>>->@>" + (((v >> 5) & 3) << 1);
+		if(v & (1 << 4))
+			sprint(str, "R%ld%c%cR%ld", v & 15, op[0], op[1], (v >> 8) & 15);
 		else
-			sprint(str, "R%ld%c%c%ld", v&15, op[0], op[1], (v>>7)&31);
+			sprint(str, "R%ld%c%c%ld", v & 15, op[0], op[1], (v >> 7) & 31);
 		if(a->reg != NREG)
-			sprint(str+strlen(str), "(R%d)", a->reg);
+			sprint(str + strlen(str), "(R%d)", a->reg);
 		break;
 
 	case D_OCONST:
@@ -208,7 +206,7 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_FPCR:
-		switch(a->reg){
+		switch(a->reg) {
 		case 0:
 			sprint(str, "FPSR");
 			break;
@@ -224,18 +222,17 @@ Dconv(Fmt *fp)
 
 		break;
 
-	case D_BRANCH:	/* botch */
+	case D_BRANCH: /* botch */
 		if(curp->cond != P) {
 			v = curp->cond->pc;
 			if(a->sym != S)
 				sprint(str, "%s+%.5lux(BRANCH)", a->sym->name, v);
 			else
 				sprint(str, "%.5lux(BRANCH)", v);
-		} else
-			if(a->sym != S)
-				sprint(str, "%s+%ld(APC)", a->sym->name, a->offset);
-			else
-				sprint(str, "%ld(APC)", a->offset);
+		} else if(a->sym != S)
+			sprint(str, "%s+%ld(APC)", a->sym->name, a->offset);
+		else
+			sprint(str, "%ld(APC)", a->offset);
 		break;
 
 	case D_FCONST:
@@ -256,7 +253,7 @@ Nconv(Fmt *fp)
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	s = a->sym;
 	switch(a->name) {
 	default:
@@ -304,9 +301,9 @@ Sconv(Fmt *fp)
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, char *);
 	p = str;
-	for(i=0; i<sizeof(int32_t); i++) {
+	for(i = 0; i < sizeof(int32_t); i++) {
 		c = a[i] & 0xff;
 		if(c >= 'a' && c <= 'z' ||
 		   c >= 'A' && c <= 'Z' ||
@@ -331,8 +328,8 @@ Sconv(Fmt *fp)
 			*p++ = 't';
 			continue;
 		}
-		*p++ = (c>>6) + '0';
-		*p++ = ((c>>3) & 7) + '0';
+		*p++ = (c >> 6) + '0';
+		*p++ = ((c >> 3) & 7) + '0';
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
@@ -349,7 +346,7 @@ diag(char *fmt, ...)
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%s: %s\n", tn, buf);
 

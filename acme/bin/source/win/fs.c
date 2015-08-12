@@ -24,8 +24,8 @@ fsread(Req *r)
 {
 	Fsevent e;
 
-	if(r->fid->file == devnew){
-		if(r->fid->aux==nil){
+	if(r->fid->file == devnew) {
+		if(r->fid->aux == nil) {
 			respond(r, "phase error");
 			return;
 		}
@@ -61,16 +61,16 @@ fswrite(Req *r)
 	char tmp[UTFmax], *t;
 	static int n, partial;
 
-	if(r->fid->file == devnew){
-		if(r->fid->aux){
+	if(r->fid->file == devnew) {
+		if(r->fid->aux) {
 			respond(r, "already created a window");
 			return;
 		}
-		s = emalloc(r->ifcall.count+1);
+		s = emalloc(r->ifcall.count + 1);
 		memmove(s, r->ifcall.data, r->ifcall.count);
 		s[r->ifcall.count] = 0;
 		pid = strtol(s, &t, 0);
-		if(*t==' ')
+		if(*t == ' ')
 			t++;
 		i = newpipewin(pid, t);
 		free(s);
@@ -84,42 +84,42 @@ fswrite(Req *r)
 
 	assert(r->fid->file == devcons);
 
-	if(e[0] == nil){
-		for(i=0; i<nelem(e); i++){
+	if(e[0] == nil) {
+		for(i = 0; i < nelem(e); i++) {
 			e[i] = emalloc(sizeof(Event));
 			e[i]->c1 = 'S';
 		}
 	}
 
 	ep = e[n];
-	n = (n+1)%nelem(e);
-	assert(r->ifcall.count <= 8192);	/* is this guaranteed by lib9p? */
+	n = (n + 1) % nelem(e);
+	assert(r->ifcall.count <= 8192); /* is this guaranteed by lib9p? */
 	nb = r->ifcall.count;
-	memmove(ep->b+partial, r->ifcall.data, nb);
+	memmove(ep->b + partial, r->ifcall.data, nb);
 	nb += partial;
 	ep->b[nb] = '\0';
-	if(strlen(ep->b) < nb){	/* nulls in data */
+	if(strlen(ep->b) < nb) { /* nulls in data */
 		t = ep->b;
-		for(i=j=0; i<nb; i++)
+		for(i = j = 0; i < nb; i++)
 			if(ep->b[i] != '\0')
 				t[j++] = ep->b[i];
 		nb = j;
 		t[j] = '\0';
 	}
-	ei = nb>8192? 8192 : nb;
+	ei = nb > 8192 ? 8192 : nb;
 	/* process bytes into runes, transferring terminal partial runes into next buffer */
-	for(i=j=0; i<ei && fullrune(ep->b+i, ei-i); i+=wid,j++)
-		wid = chartorune(&rune, ep->b+i);
-	memmove(tmp, ep->b+i, nb-i);
-	partial = nb-i;
+	for(i = j = 0; i < ei && fullrune(ep->b + i, ei - i); i += wid, j++)
+		wid = chartorune(&rune, ep->b + i);
+	memmove(tmp, ep->b + i, nb - i);
+	partial = nb - i;
 	ep->nb = i;
 	ep->nr = j;
 	ep->b[i] = '\0';
-	if(i != 0){
+	if(i != 0) {
 		sendp(win->cevent, ep);
 		recvp(writechan);
 	}
-	partial = nb-i;
+	partial = nb - i;
 	memmove(e[n]->b, tmp, partial);
 	r->ofcall.count = r->ifcall.count;
 	respond(r, nil);
@@ -133,19 +133,19 @@ fsdestroyfid(Fid *fid)
 }
 
 Srv fs = {
-.read=	fsread,
-.write=	fswrite,
-.flush=	fsflush,
-.destroyfid=	fsdestroyfid,
-.leavefdsopen=	1,
+    .read = fsread,
+    .write = fswrite,
+    .flush = fsflush,
+    .destroyfid = fsdestroyfid,
+    .leavefdsopen = 1,
 };
 
 void
 mountcons(void)
 {
 	fschan = chancreate(sizeof(Fsevent), 0);
-	writechan = chancreate(sizeof(void*), 0);
-	fs.tree = alloctree("win", "win", DMDIR|0555, nil);
+	writechan = chancreate(sizeof(void *), 0);
+	fs.tree = alloctree("win", "win", DMDIR | 0555, nil);
 	devcons = createfile(fs.tree->root, "cons", "win", 0666, nil);
 	if(devcons == nil)
 		sysfatal("creating /dev/cons: %r");

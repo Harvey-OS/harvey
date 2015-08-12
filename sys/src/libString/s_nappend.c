@@ -15,13 +15,12 @@
 String *
 s_nappend(String *to, char *from, int n)
 {
-	if (to == 0)
+	if(to == 0)
 		to = s_new();
-	if (from == 0)
+	if(from == 0)
 		return to;
 	for(; n && *from; from++, n--)
 		s_putc(to, *from);
 	s_terminate(to);
 	return to;
 }
-

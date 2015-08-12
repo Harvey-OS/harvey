@@ -15,15 +15,15 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	char*	file;
-static	int	fd;
-static	uint8_t	*ones;
+static char *file;
+static int fd;
+static uint8_t *ones;
 
-static	int	isdev;
+static int isdev;
 
 struct {
-	int	dfd;	/* data */
-	int	cfd;	/* control */
+	int dfd; /* data */
+	int cfd; /* control */
 } flash;
 
 void
@@ -36,25 +36,25 @@ initdata(char *f, int i)
 
 	isdev = 1;
 	flash.dfd = open(f, ORDWR);
-	if(flash.dfd < 0){
+	if(flash.dfd < 0) {
 		errstr(err, sizeof err);
-		if((flash.dfd = create(f, ORDWR, 0666)) >= 0){
+		if((flash.dfd = create(f, ORDWR, 0666)) >= 0) {
 			fprint(2, "warning: created plain file %s\n", buf);
 			goto Plain;
 		}
-		errstr(err, sizeof err);	/* restore open error */
+		errstr(err, sizeof err); /* restore open error */
 		sysfatal("opening %s: %r", f);
 	}
-	if(snprint(buf, sizeof buf, "%sctl", f) != strlen(f)+3)
+	if(snprint(buf, sizeof buf, "%sctl", f) != strlen(f) + 3)
 		sysfatal("path too long: %s", f);
 	flash.cfd = open(buf, ORDWR);
-	if(flash.cfd < 0){
+	if(flash.cfd < 0) {
 		fprint(2, "warning: cannot open %s (%r); assuming plain file\n", buf);
 	Plain:
 		isdev = 0;
 		if(sectsize == 0)
 			sectsize = 512;
-		if(nsects == 0){
+		if(nsects == 0) {
 			if((d = dirstat(f)) == nil)
 				sysfatal("stat %s: %r", f);
 			nsects = d->length / sectsize;
@@ -62,8 +62,8 @@ initdata(char *f, int i)
 		}
 		ones = emalloc9p(sectsize);
 		memset(ones, ~0, sectsize);
-	}else{
-		n = read(flash.cfd, buf, sizeof(buf)-1);
+	} else {
+		n = read(flash.cfd, buf, sizeof(buf) - 1);
 		if(n <= 0)
 			sysfatal("reading %sctl: %r", f);
 		buf[n] = 0;
@@ -82,10 +82,10 @@ initdata(char *f, int i)
 void
 clearsect(int sect)
 {
-	if(isdev==0){
-		if(pwrite(flash.dfd, ones, sectsize, sect*sectsize) != sectsize)
+	if(isdev == 0) {
+		if(pwrite(flash.dfd, ones, sectsize, sect * sectsize) != sectsize)
 			sysfatal("couldn't erase sector %d: %r", sect);
-	}else{
+	} else {
 		if(fprint(flash.cfd, "erase %lud", sect * sectsize) < 0)
 			sysfatal("couldn't erase sector %d: %r", sect);
 	}
@@ -111,14 +111,14 @@ writedata(int err, int sect, void *buff, uint32_t count, uint32_t off)
 	int32_t n;
 	uint32_t m;
 
-	m = sect*sectsize + off;
+	m = sect * sectsize + off;
 	n = pwrite(flash.dfd, buff, count, m);
-	if(n < 0){
+	if(n < 0) {
 		if(err)
 			return 0;
 		sysfatal("error writing at %lux: %r", m);
 	}
-	if(n != count){
+	if(n != count) {
 		if(err)
 			return 0;
 		sysfatal("short write at %lud, %ld instead of %lud", m, n, count);

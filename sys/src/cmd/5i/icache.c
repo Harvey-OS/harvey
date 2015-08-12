@@ -23,4 +23,3 @@ updateicache(uint32_t addr)
 {
 	USED(addr);
 }
-

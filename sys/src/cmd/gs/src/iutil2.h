@@ -27,19 +27,22 @@
 /* Interface to procedures in iutil2.c */
 
 #ifndef iutil2_INCLUDED
-#  define iutil2_INCLUDED
+#define iutil2_INCLUDED
 
 /* ------ Password utilities ------ */
 
 /* Define the password structure. */
 /* NOTE: MAX_PASSWORD must match the initial password lengths in gs_lev2.ps. */
-#define MAX_PASSWORD 64		/* must be at least 11 */
+#define MAX_PASSWORD 64 /* must be at least 11 */
 typedef struct password_s {
-    uint size;
-    byte data[MAX_PASSWORD];
+	uint size;
+	byte data[MAX_PASSWORD];
 } password;
 
-# define NULL_PASSWORD {0, {0}}
+#define NULL_PASSWORD    \
+	{                \
+		0, { 0 } \
+	}
 
 /* Transmit a password to or from a parameter list. */
 int param_read_password(gs_param_list *, const char *, password *);

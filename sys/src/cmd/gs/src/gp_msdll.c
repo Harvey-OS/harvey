@@ -36,24 +36,22 @@
 GSDLLEXPORT BOOL WINAPI
 DllEntryPoint(HINSTANCE hInst, DWORD fdwReason, LPVOID lpReserved)
 {
-    /* Win32s: HIWORD bit 15 is 1 and bit 14 is 0 */
-    /* Win95:  HIWORD bit 15 is 1 and bit 14 is 1 */
-    /* WinNT:  HIWORD bit 15 is 0 and bit 14 is 0 */
-    /* WinNT Shell Update Release is WinNT && LOBYTE(LOWORD) >= 4 */
-    DWORD version = GetVersion();
+	/* Win32s: HIWORD bit 15 is 1 and bit 14 is 0 */
+	/* Win95:  HIWORD bit 15 is 1 and bit 14 is 1 */
+	/* WinNT:  HIWORD bit 15 is 0 and bit 14 is 0 */
+	/* WinNT Shell Update Release is WinNT && LOBYTE(LOWORD) >= 4 */
+	DWORD version = GetVersion();
 
-    if (((HIWORD(version) & 0x8000) != 0) && ((HIWORD(version) & 0x4000) == 0))
-	is_win32s = TRUE;
+	if(((HIWORD(version) & 0x8000) != 0) && ((HIWORD(version) & 0x4000) == 0))
+		is_win32s = TRUE;
 
-    phInstance = hInst;
-    return TRUE;
+	phInstance = hInst;
+	return TRUE;
 }
 
 /* DLL entry point for Microsoft Visual C++ */
 GSDLLEXPORT BOOL WINAPI
 DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID lpReserved)
 {
-    return DllEntryPoint(hInst, fdwReason, lpReserved);
+	return DllEntryPoint(hInst, fdwReason, lpReserved);
 }
-
-

@@ -40,10 +40,10 @@
  * saving, so it does not have to be restored.
  */
 
-extern char* acfpunm(Ureg* ureg, void *unused_voidp);
-extern char* acfpumf(Ureg* ureg, void *unused_voidp);
-extern char* acfpuxf(Ureg* ureg, void *unused_voidp);
-extern void acfpusysprocsetup(Proc*);
+extern char *acfpunm(Ureg *ureg, void *unused_voidp);
+extern char *acfpumf(Ureg *ureg, void *unused_voidp);
+extern char *acfpuxf(Ureg *ureg, void *unused_voidp);
+extern void acfpusysprocsetup(Proc *);
 
 extern void _acsysret(void);
 extern void _actrapret(void);
@@ -58,7 +58,7 @@ static void
 testiccfn(void)
 {
 	Proc *up = externup();
-	print("called: %s\n", ( char *)m->icc->data);
+	print("called: %s\n", (char *)m->icc->data);
 }
 
 void
@@ -66,14 +66,14 @@ testicc(int i)
 {
 	Mach *mp;
 
-	if((mp = sys->machptr[i]) != nil && mp->online != 0){
-		if(mp->nixtype != NIXAC){
+	if((mp = sys->machptr[i]) != nil && mp->online != 0) {
+		if(mp->nixtype != NIXAC) {
 			print("testicc: core %d is not an AC\n", i);
 			return;
 		}
 		print("calling core %d... ", i);
 		mp->icc->flushtlb = 0;
-		snprint(( char *)mp->icc->data, ICCLNSZ, "<%d>", i);
+		snprint((char *)mp->icc->data, ICCLNSZ, "<%d>", i);
 		mfence();
 		mp->icc->fn = testiccfn;
 		mwait(&mp->icc->fn);
@@ -91,8 +91,8 @@ acstackok(void)
 	char dummy;
 	char *sstart;
 
-	sstart = (char *)m - PGSZ - 4*PTSZ - MACHSTKSZ;
-	if(&dummy < sstart + 4*KiB){
+	sstart = (char *)m - PGSZ - 4 * PTSZ - MACHSTKSZ;
+	if(&dummy < sstart + 4 * KiB) {
 		print("ac kernel stack overflow, cpu%d stopped\n", machp()->machno);
 		DONE();
 	}
@@ -111,7 +111,7 @@ acsched(void)
 {
 	Proc *up = externup();
 	acmmuswitch();
-	for(;;){
+	for(;;) {
 		acstackok();
 		mwait(&m->icc->fn);
 		if(m->icc->flushtlb)
@@ -131,7 +131,6 @@ acmmuswitch(void)
 	extern Page mach0pml4;
 
 	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
-
 
 	cr3put(machp()->pml4->pa);
 }
@@ -283,7 +282,7 @@ acsyscall(void)
 void
 acsysret(void)
 {
-panic("acsysret");
+	panic("acsysret");
 #if 0
 	DBG("acsysret\n");
 	if(m->proc != nil)
@@ -300,18 +299,18 @@ dumpreg(void *u)
 }
 
 char *rolename[] =
-{
-	[NIXAC]	"AC",
-	[NIXTC]	"TC",
-	[NIXKC]	"KC",
-	[NIXXC]	"XC",
+    {
+	 [NIXAC] "AC",
+	 [NIXTC] "TC",
+	 [NIXKC] "KC",
+	 [NIXXC] "XC",
 };
 
 void
 acmodeset(int mode)
 {
 	Proc *up = externup();
-	switch(mode){
+	switch(mode) {
 	case NIXAC:
 	case NIXKC:
 	case NIXTC:

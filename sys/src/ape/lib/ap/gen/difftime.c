@@ -14,5 +14,5 @@
 double
 difftime(time_t t1, time_t t0)
 {
-	return (double)t1-(double)t0;
+	return (double)t1 - (double)t0;
 }

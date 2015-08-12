@@ -46,36 +46,36 @@ enum {
 	Rhostbpp,
 	Nreg,
 
-	Crectfill = 1<<0,
-	Crectcopy = 1<<1,
-	Crectpatfill = 1<<2,
-	Coffscreen = 1<<3,
-	Crasterop = 1<<4,
-	Ccursor = 1<<5,
-	Ccursorbypass = 1<<6,
-	Ccursorbypass2 = 1<<7,
-	C8bitemulation = 1<<8,
-	Calphacursor = 1<<9,
+	Crectfill = 1 << 0,
+	Crectcopy = 1 << 1,
+	Crectpatfill = 1 << 2,
+	Coffscreen = 1 << 3,
+	Crasterop = 1 << 4,
+	Ccursor = 1 << 5,
+	Ccursorbypass = 1 << 6,
+	Ccursorbypass2 = 1 << 7,
+	C8bitemulation = 1 << 8,
+	Calphacursor = 1 << 9,
 
 	Rpalette = 1024,
-};	
-
-typedef struct Vmware	Vmware;
-struct Vmware {
-	uint32_t	mmio;
-	uint32_t	fb;
-
-	uint32_t	ra;
-	uint32_t	rd;
-
-	uint32_t	r[Nreg];
-
-	char	chan[32];
-	int	depth;
 };
 
-static char*
-rname[Nreg] = {
+typedef struct Vmware Vmware;
+struct Vmware {
+	uint32_t mmio;
+	uint32_t fb;
+
+	uint32_t ra;
+	uint32_t rd;
+
+	uint32_t r[Nreg];
+
+	char chan[32];
+	int depth;
+};
+
+static char *
+    rname[Nreg] = {
 	"ID",
 	"Enable",
 	"Width",
@@ -126,14 +126,14 @@ bits(uint32_t a)
 {
 	int b;
 
-	for(b=0; a; a>>=1)
-		if(a&1)
+	for(b = 0; a; a >>= 1)
+		if(a & 1)
 			b++;
 	return b;
 }
 
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	int extra, i;
 	Pcidev *p;
@@ -145,44 +145,44 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	vm = alloc(sizeof(Vmware));
 
-	switch(p->did){
-	case 0x710:	/* VMware video chipset #1 */
+	switch(p->did) {
+	case 0x710: /* VMware video chipset #1 */
 		vm->ra = 0x4560;
-		vm->rd = 0x4560+4;
+		vm->rd = 0x4560 + 4;
 		break;
 
-	case 0x405:	/* VMware video chipset #2, untested */
-		vm->ra = p->mem[0].bar&~3;
-		vm->rd = vm->ra+1;
+	case 0x405: /* VMware video chipset #2, untested */
+		vm->ra = p->mem[0].bar & ~3;
+		vm->rd = vm->ra + 1;
 		break;
 
 	default:
 		error("%s: unrecognized chipset %.4ux\n", ctlr->name, p->did);
 	}
 
-	for(i=0; i<Nreg; i++)
+	for(i = 0; i < Nreg; i++)
 		vm->r[i] = vmrd(vm, i);
 
-//vmwr(vm, Renable, 0);
+	//vmwr(vm, Renable, 0);
 	/*
 	 * Figure out color channel.  Delay errors until init,
 	 * which is after the register dump.
 	 */
 	vm->depth = vm->r[Rbpp];
 	extra = vm->r[Rbpp] - vm->r[Rdepth];
-	if(vm->r[Rrmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rbmask]){
+	if(vm->r[Rrmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rbmask]) {
 		if(extra)
 			sprint(vm->chan, "x%d", extra);
 		else
 			vm->chan[0] = '\0';
-		sprint(vm->chan+strlen(vm->chan), "r%dg%db%d", bits(vm->r[Rrmask]),
-			bits(vm->r[Rgmask]), bits(vm->r[Rbmask]));
-	}else if(vm->r[Rbmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rrmask]){
+		sprint(vm->chan + strlen(vm->chan), "r%dg%db%d", bits(vm->r[Rrmask]),
+		       bits(vm->r[Rgmask]), bits(vm->r[Rbmask]));
+	} else if(vm->r[Rbmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rrmask]) {
 		sprint(vm->chan, "b%dg%dr%d", bits(vm->r[Rbmask]),
-			bits(vm->r[Rgmask]), bits(vm->r[Rrmask]));
+		       bits(vm->r[Rgmask]), bits(vm->r[Rrmask]));
 		if(extra)
-			sprint(vm->chan+strlen(vm->chan), "x%d", extra);
-	}else
+			sprint(vm->chan + strlen(vm->chan), "x%d", extra);
+	} else
 		sprint(vm->chan, "unknown");
 
 	/* Record the frame buffer start, size */
@@ -193,31 +193,29 @@ snarf(Vga* vga, Ctlr* ctlr)
 	ctlr->flag |= Fsnarf;
 }
 
-
 static void
-options(Vga* vga, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
-	ctlr->flag |= Hlinear|Henhanced|Foptions;
+	ctlr->flag |= Hlinear | Henhanced | Foptions;
 }
 
-
 static void
-clock(Vga* vga, Ctlr* ctlr)
+clock(Vga *vga, Ctlr *ctlr)
 {
 	/* BEST CLOCK ROUTINE EVER! */
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Vmware *vm;
 
 	vm = vga->private;
 
-	vmwr(vm, Rid, (0x900000<<8)|2);
-	if(vmrd(vm, Rid)&0xFF != 2)
+	vmwr(vm, Rid, (0x900000 << 8) | 2);
+	if(vmrd(vm, Rid) & 0xFF != 2)
 		error("old vmware svga version %lud; need version 2\n",
-			vmrd(vm,Rid)&0xFF);
+		      vmrd(vm, Rid) & 0xFF);
 
 	ctlr->flag |= Ulinear;
 	if(strcmp(vm->chan, "unknown") == 0)
@@ -241,7 +239,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr *ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	char buf[64];
 	int x;
@@ -251,27 +249,27 @@ load(Vga* vga, Ctlr *ctlr)
 	vmwr(vm, Rwidth, vm->r[Rwidth]);
 	vmwr(vm, Rheight, vm->r[Rheight]);
 	vmwr(vm, Renable, 1);
-	vmwr(vm, Rguestid, 0x5010);	/* OS type is "Other" */
+	vmwr(vm, Rguestid, 0x5010); /* OS type is "Other" */
 
-	x = vmrd(vm, Rbpl)/(vm->depth/8);
-	if(x != vga->mode->x){
+	x = vmrd(vm, Rbpl) / (vm->depth / 8);
+	if(x != vga->mode->x) {
 		vga->virtx = x;
 		sprint(buf, "%ludx%ludx%d %s", vga->virtx, vga->virty,
-			vga->mode->z, vga->mode->chan);
+		       vga->mode->z, vga->mode->chan);
 		vgactlw("size", buf);
 	}
 	ctlr->flag |= Fload;
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	Vmware *vm;
 
 	vm = vga->private;
 
-	for(i=0; i<Nreg; i++){
+	for(i = 0; i < Nreg; i++) {
 		printitem(ctlr->name, rname[i]);
 		Bprint(&stdout, " %.8lux\n", vm->r[i]);
 	}
@@ -281,24 +279,22 @@ dump(Vga* vga, Ctlr* ctlr)
 	printitem(ctlr->name, "depth");
 	Bprint(&stdout, " %d\n", vm->depth);
 	printitem(ctlr->name, "linear");
-	
 }
 
 Ctlr vmware = {
-	"vmware",			/* name */
-	snarf,				/* snarf */
-	options,			/* options */
-	init,				/* init */
-	load,				/* load */
-	dump,				/* dump */
+    "vmware", /* name */
+    snarf,    /* snarf */
+    options,  /* options */
+    init,     /* init */
+    load,     /* load */
+    dump,     /* dump */
 };
 
 Ctlr vmwarehwgc = {
-	"vmwarehwgc",			/* name */
-	0,				/* snarf */
-	0,				/* options */
-	0,				/* init */
-	0,				/* load */
-	0,				/* dump */
+    "vmwarehwgc", /* name */
+    0,		  /* snarf */
+    0,		  /* options */
+    0,		  /* init */
+    0,		  /* load */
+    0,		  /* dump */
 };
-

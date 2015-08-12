@@ -17,10 +17,10 @@ vtScoreFmt(Fmt *f)
 	uint8_t *v;
 	int i;
 
-	v = va_arg(f->args, uint8_t*);
-	if(v == nil){
+	v = va_arg(f->args, uint8_t *);
+	if(v == nil) {
 		fmtprint(f, "*");
-	}else{
+	} else {
 		for(i = 0; i < VtScoreSize; i++)
 			fmtprint(f, "%2.2ux", v[i]);
 	}

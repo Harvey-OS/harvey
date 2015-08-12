@@ -18,12 +18,12 @@
  * DON'T TOUCH or you'll break compatibility.
  */
 enum {
-	NAMELEN		= 28,		/* max size of file name components */
-	NDBLOCK		= 6,		/* number of direct blocks in Dentry */
-	NIBLOCK		= 2,		/* max depth of indirect blocks */
+	NAMELEN = 28, /* max size of file name components */
+	NDBLOCK = 6,  /* number of direct blocks in Dentry */
+	NIBLOCK = 2,  /* max depth of indirect blocks */
 };
 
-typedef long Off;	/* file offsets & sizes, in bytes & blocks */
+typedef long Off; /* file offsets & sizes, in bytes & blocks */
 
 #define COMPAT32
 #define swaboff swab4

@@ -52,11 +52,9 @@ static char *ident = "$Id: append.c,v 1.2 89/02/12 10:03:58 mark Exp $";
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /* append_archive - main loop for appending to a tar archive
  *
@@ -71,28 +69,30 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-void append_archive(void)
+void
+append_archive(void)
 
 #else
 
-void append_archive()
+void
+append_archive()
 
 #endif
 {
-    Stat            sb;
-    char            name[PATH_MAX + 1];
+	Stat sb;
+	char name[PATH_MAX + 1];
 
-    name[0] = '\0';
-    while (get_header(name, &sb) == 0) {
-	if (((ar_format == TAR)
-	     ? buf_skip(ROUNDUP((OFFSET) sb.sb_size, BLOCKSIZE))
-	     : buf_skip((OFFSET) sb.sb_size)) < 0) {
-	    warn(name, "File data is corrupt");
+	name[0] = '\0';
+	while(get_header(name, &sb) == 0) {
+		if(((ar_format == TAR)
+			? buf_skip(ROUNDUP((OFFSET)sb.sb_size, BLOCKSIZE))
+			: buf_skip((OFFSET)sb.sb_size)) < 0) {
+			warn(name, "File data is corrupt");
+		}
 	}
-    }
-    /* we have now gotten to the end of the archive... */
+	/* we have now gotten to the end of the archive... */
 
-    /* reset the buffer now that we have read the entire archive */
-    bufend = bufidx = bufstart;
-    create_archive();
+	/* reset the buffer now that we have read the entire archive */
+	bufend = bufidx = bufstart;
+	create_archive();
 }

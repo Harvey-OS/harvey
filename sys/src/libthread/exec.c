@@ -12,7 +12,7 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-#define PIPEMNT	"/mnt/temp"
+#define PIPEMNT "/mnt/temp"
 
 void
 procexec(Channel *pidc, char *prog, char *args[])
@@ -25,7 +25,7 @@ procexec(Channel *pidc, char *prog, char *args[])
 	/* must be only thread in proc */
 	p = _threadgetproc();
 	t = p->thread;
-	if(p->threads.head != t || p->threads.head->nextt != nil){
+	if(p->threads.head != t || p->threads.head->nextt != nil) {
 		werrstr("not only thread in proc");
 	Bad:
 		if(pidc)
@@ -47,11 +47,11 @@ procexec(Channel *pidc, char *prog, char *args[])
 	 */
 	if(bind("#|", PIPEMNT, MREPL) < 0)
 		goto Bad;
-	if((p->exec.fd[0] = open(PIPEMNT "/data", OREAD)) < 0){
+	if((p->exec.fd[0] = open(PIPEMNT "/data", OREAD)) < 0) {
 		unmount(nil, PIPEMNT);
 		goto Bad;
 	}
-	if((p->exec.fd[1] = open(PIPEMNT "/data1", OWRITE|OCEXEC)) < 0){
+	if((p->exec.fd[1] = open(PIPEMNT "/data1", OWRITE | OCEXEC)) < 0) {
 		close(p->exec.fd[0]);
 		unmount(nil, PIPEMNT);
 		goto Bad;
@@ -59,14 +59,14 @@ procexec(Channel *pidc, char *prog, char *args[])
 	unmount(nil, PIPEMNT);
 
 	/* exec in parallel via the scheduler */
-	assert(p->needexec==0);
+	assert(p->needexec == 0);
 	p->exec.prog = prog;
 	p->exec.args = args;
 	p->needexec = 1;
 	_sched();
 
 	close(p->exec.fd[1]);
-	if((n = read(p->exec.fd[0], p->exitstr, ERRMAX-1)) > 0){	/* exec failed */
+	if((n = read(p->exec.fd[0], p->exitstr, ERRMAX - 1)) > 0) { /* exec failed */
 		p->exitstr[n] = '\0';
 		errstr(p->exitstr, ERRMAX);
 		close(p->exec.fd[0]);
@@ -84,6 +84,5 @@ procexec(Channel *pidc, char *prog, char *args[])
 void
 procexecl(Channel *pidc, char *f, ...)
 {
-	procexec(pidc, f, &f+1);
+	procexec(pidc, f, &f + 1);
 }
-

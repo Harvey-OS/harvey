@@ -30,8 +30,8 @@
 
 #include "priv.h"
 
-extern int	_muxsid;
-extern void	_killmuxsid(void);
+extern int _muxsid;
+extern void _killmuxsid(void);
 
 /*
  * replace the fd with a pipe and start a process to
@@ -49,7 +49,7 @@ listenproc(Rock *r, int fd)
 	char listen[Ctlsize];
 	char name[Ctlsize];
 
-	switch(r->stype){
+	switch(r->stype) {
 	case SOCK_DGRAM:
 		net = "udp";
 		break;
@@ -65,7 +65,7 @@ listenproc(Rock *r, int fd)
 	p = strrchr(listen, '/');
 	if(p == 0)
 		return -1;
-	strcpy(p+1, "listen");
+	strcpy(p + 1, "listen");
 
 	if(pipe(pfd) < 0)
 		return -1;
@@ -79,7 +79,7 @@ listenproc(Rock *r, int fd)
 	r->dev = d.st_dev;
 
 	/* start listening process */
-	switch(fork()){
+	switch(fork()) {
 	case -1:
 		close(pfd[1]);
 		close(nfd);
@@ -100,11 +100,11 @@ listenproc(Rock *r, int fd)
 		return 0;
 	}
 
-/*	for(fd = 0; fd < 30; fd++)
+	/*	for(fd = 0; fd < 30; fd++)
 		if(fd != nfd && fd != pfd[1])
 			close(fd);/**/
 
-	for(;;){
+	for(;;) {
 		cfd = open(listen, O_RDWR);
 		if(cfd < 0)
 			break;
@@ -134,33 +134,32 @@ listen(int fd, int)
 	struct sockaddr_un *lunix;
 
 	r = _sock_findrock(fd, 0);
-	if(r == 0){
+	if(r == 0) {
 		errno = ENOTSOCK;
 		return -1;
 	}
 
-	switch(r->domain){
+	switch(r->domain) {
 	case PF_INET:
 		cfd = open(r->ctl, O_RDWR);
-		if(cfd < 0){
+		if(cfd < 0) {
 			errno = EBADF;
 			return -1;
 		}
-		lip = (struct sockaddr_in*)&r->addr;
-		if(1 || lip->sin_port >= 0) {	/* sin_port is unsigned */
+		lip = (struct sockaddr_in *)&r->addr;
+		if(1 || lip->sin_port >= 0) { /* sin_port is unsigned */
 			if(write(cfd, "bind 0", 6) < 0) {
 				errno = EGREG;
 				close(cfd);
 				return -1;
 			}
 			snprintf(msg, sizeof msg, "announce %d",
-				ntohs(lip->sin_port));
-		}
-		else
+				 ntohs(lip->sin_port));
+		} else
 			strcpy(msg, "announce *");
 		n = write(cfd, msg, strlen(msg));
-		if(n < 0){
-			errno = EOPNOTSUPP;	/* Improve error reporting!!! */
+		if(n < 0) {
+			errno = EOPNOTSUPP; /* Improve error reporting!!! */
 			close(cfd);
 			return -1;
 		}
@@ -168,12 +167,12 @@ listen(int fd, int)
 
 		return listenproc(r, fd);
 	case PF_UNIX:
-		if(r->other < 0){
+		if(r->other < 0) {
 			errno = EGREG;
 			return -1;
 		}
-		lunix = (struct sockaddr_un*)&r->addr;
-		if(_sock_srv(lunix->sun_path, r->other) < 0){
+		lunix = (struct sockaddr_un *)&r->addr;
+		if(_sock_srv(lunix->sun_path, r->other) < 0) {
 			_syserrno();
 			r->other = -1;
 			return -1;

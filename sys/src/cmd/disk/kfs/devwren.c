@@ -9,26 +9,26 @@
 
 #include "all.h"
 
-enum{
+enum {
 	MAXWREN = 7,
 };
 
-#define WMAGIC	"kfs wren device\n"
+#define WMAGIC "kfs wren device\n"
 
-typedef struct Wren	Wren;
+typedef struct Wren Wren;
 
-struct Wren{
+struct Wren {
 	QLock;
-	Device	dev;
-	uint64_t	size;
-	int	fd;
+	Device dev;
+	uint64_t size;
+	int fd;
 };
 
-static Wren	*wrens;
-static int	maxwren;
-char		*wrenfile;
-int		nwren;
-int		badmagic;
+static Wren *wrens;
+static int maxwren;
+char *wrenfile;
+int nwren;
+int badmagic;
 
 static Wren *
 wren(Device dev)
@@ -64,13 +64,13 @@ wreninit(Device dev)
 		panic("can't read %s", wrenfile);
 	badmagic = 0;
 	RBUFSIZE = 1024;
-	if(strncmp(buf+256, WMAGIC, strlen(WMAGIC)) == 0){
-		RBUFSIZE = atol(buf+256+strlen(WMAGIC));
-		if(RBUFSIZE % 512){
+	if(strncmp(buf + 256, WMAGIC, strlen(WMAGIC)) == 0) {
+		RBUFSIZE = atol(buf + 256 + strlen(WMAGIC));
+		if(RBUFSIZE % 512) {
 			fprint(2, "kfs: bad buffersize(%d): assuming 1k blocks\n", RBUFSIZE);
 			RBUFSIZE = 1024;
 		}
-	}else
+	} else
 		badmagic = 1;
 	w->dev = dev;
 	w->size = d->length;
@@ -95,7 +95,7 @@ wrenream(Device dev)
 	w = wren(dev);
 	fd = w->fd;
 	memset(buf, 0, sizeof buf);
-	sprint(buf+256, "%s%d\n", WMAGIC, RBUFSIZE);
+	sprint(buf + 256, "%s%d\n", WMAGIC, RBUFSIZE);
 	qlock(w);
 	i = seek(fd, 0, 0) < 0 || write(fd, buf, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
@@ -108,8 +108,8 @@ wrentag(char *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
-	t = (Tag*)(p+BUFSIZE);
-	return t->tag != tag || (qpath&~QPDIR) != t->path;
+	t = (Tag *)(p + BUFSIZE);
+	return t->tag != tag || (qpath & ~QPDIR) != t->path;
 }
 
 int
@@ -122,8 +122,7 @@ wrencheck(Device dev)
 	if(RBUFSIZE > sizeof(buf))
 		panic("kfs: bad buffersize(%d): must be at most %d\n", RBUFSIZE, sizeof(buf));
 
-	if(wrenread(dev, wrensuper(dev), buf) || wrentag(buf, Tsuper, QPSUPER)
-	|| wrenread(dev, wrenroot(dev), buf) || wrentag(buf, Tdir, QPROOT))
+	if(wrenread(dev, wrensuper(dev), buf) || wrentag(buf, Tsuper, QPSUPER) || wrenread(dev, wrenroot(dev), buf) || wrentag(buf, Tdir, QPROOT))
 		return 1;
 	if(((Dentry *)buf)[0].mode & DALLOC)
 		return 0;
@@ -159,7 +158,7 @@ wrenread(Device dev, int32_t addr, void *b)
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr * RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	if(i)
 		print("wrenread failed: %r\n");
@@ -175,7 +174,7 @@ wrenwrite(Device dev, int32_t addr, void *b)
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr * RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	if(i)
 		print("wrenwrite failed: %r\n");

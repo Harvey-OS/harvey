@@ -17,7 +17,7 @@ static struct {
 	int thread;
 	QLock;
 	int fd;
-} udp = { -1 };
+} udp = {-1};
 
 typedef struct Listen Listen;
 
@@ -36,24 +36,24 @@ static struct {
 static void
 udplistener(void *)
 {
-//print("udplistener - starting\n");
-	for (;;) {
+	//print("udplistener - starting\n");
+	for(;;) {
 		uint8_t msg[Udphdrsize + 576];
 		int len = read(udp.fd, msg, sizeof(msg));
-		if (len < 0)
+		if(len < 0)
 			break;
-		if (len >= nbudphdrsize) {
+		if(len >= nbudphdrsize) {
 			NbDgram s;
-//			Udphdr *uh;
+			//			Udphdr *uh;
 			uint8_t *p;
 			int n;
 
-//			uh = (Udphdr*)msg;
+			//			uh = (Udphdr*)msg;
 			p = msg + nbudphdrsize;
 			len -= nbudphdrsize;
 			n = nbdgramconvM2S(&s, p, p + len);
-			if (n) {
-				switch (s.type) {
+			if(n) {
+				switch(s.type) {
 				case NbDgramError:
 					print("nbdgramlisten: error: ip %I port %d code 0x%.2ux\n", s.srcip, s.srcport, s.error.code);
 					break;
@@ -62,11 +62,10 @@ udplistener(void *)
 				case NbDgramBroadcast: {
 					int delivered = 0;
 					Listen **lp, *l;
-					if ((s.flags & NbDgramMore) || s.datagram.offset != 0)
+					if((s.flags & NbDgramMore) || s.datagram.offset != 0)
 						break;
-					if (!nbnameisany(s.datagram.dstname)
-						&& !nbnametablefind(s.datagram.dstname, 0)) {
-/* - only do this if a broadcast node, and can tell when packets are broadcast...
+					if(!nbnameisany(s.datagram.dstname) && !nbnametablefind(s.datagram.dstname, 0)) {
+						/* - only do this if a broadcast node, and can tell when packets are broadcast...
 						s.flags &= 3;
 						ipmove(s.srcip, nbglobals.myipaddr);
 						s.srcport = NbDgramPort;
@@ -77,12 +76,12 @@ udplistener(void *)
 						break;
 					}
 					qlock(&listens);
-					for (lp = &listens.head; (l = *lp) != nil;) {
-						if (nbnameisany(l->to) || nbnameequal(l->to, s.datagram.dstname)) {
-							switch ((*l->deliver)(l->magic, &s)) {
+					for(lp = &listens.head; (l = *lp) != nil;) {
+						if(nbnameisany(l->to) || nbnameequal(l->to, s.datagram.dstname)) {
+							switch((*l->deliver)(l->magic, &s)) {
 							case 0:
 								delivered = 1;
-								/* fall through */
+							/* fall through */
 							case -1:
 								*lp = l->next;
 								free(l);
@@ -103,7 +102,7 @@ udplistener(void *)
 			}
 		}
 	}
-print("udplistener - exiting\n");
+	print("udplistener - exiting\n");
 	qlock(&udp);
 	udp.thread = -1;
 	qunlock(&udp);
@@ -113,10 +112,10 @@ static char *
 startlistener(void)
 {
 	qlock(&udp);
-	if (udp.thread < 0) {
+	if(udp.thread < 0) {
 		char *e;
 		e = nbudpannounce(NbDgramPort, &udp.fd);
-		if (e) {
+		if(e) {
 			qunlock(&udp);
 			return e;
 		}
@@ -133,7 +132,7 @@ nbdgramlisten(NbName to, int (*deliver)(void *magic, NbDgram *s), void *magic)
 	char *e;
 	nbnametablefind(to, 1);
 	e = startlistener();
-	if (e)
+	if(e)
 		return e;
 	l = nbemalloc(sizeof(Listen));
 	nbnamecpy(l->to, to);
@@ -156,11 +155,11 @@ nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s)
 	char *e;
 
 	e = startlistener();
-	if (e != nil)
+	if(e != nil)
 		return 0;
 
 	l = nbdgramconvS2M(msg + nbudphdrsize, msg + sizeof(msg), s);
-	if (l == 0) {
+	if(l == 0) {
 		print("conv failed\n");
 		return 0;
 	}
@@ -169,10 +168,10 @@ nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s)
 	hnputs(u->lport, NbDgramPort);
 	ipmove(u->raddr, ipaddr);
 	hnputs(u->rport, port);
-//nbdumpdata(msg, l + nbudphdrsize);
-//print("transmitting\n");
+	//nbdumpdata(msg, l + nbudphdrsize);
+	//print("transmitting\n");
 	rv = write(udp.fd, msg, l + nbudphdrsize);
-//print("rv %d l %d hdrsize %d error %r\n", rv, l, nbudphdrsize);
+	//print("rv %d l %d hdrsize %d error %r\n", rv, l, nbudphdrsize);
 	return rv == l + nbudphdrsize;
 }
 
@@ -197,13 +196,13 @@ nbdgramsend(NbDgramSendParameters *p, uint8_t *data, int32_t datalen)
 	NbDgram s;
 	uint8_t dstip[IPaddrlen];
 	s.type = p->type;
-	switch (p->type) {
+	switch(p->type) {
 	case NbDgramBroadcast:
 	case NbDgramDirectGroup:
 		ipmove(dstip, nbglobals.bcastaddr);
 		break;
 	case NbDgramDirectUnique:
-		if (!nbnameresolve(p->to, dstip)) {
+		if(!nbnameresolve(p->to, dstip)) {
 			werrstr("nbdgramsend: name resolution failed");
 			return 0;
 		}

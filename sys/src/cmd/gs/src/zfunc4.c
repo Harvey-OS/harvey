@@ -51,18 +51,41 @@
  * The following list is taken directly from the PDF 1.3 documentation.
  */
 #define XOP(zfn) int zfn(i_ctx_t *)
-XOP(zabs); XOP(zand); XOP(zatan); XOP(zbitshift);
-XOP(zceiling); XOP(zcos); XOP(zcvi); XOP(zcvr);
-XOP(zdiv); XOP(zexp); XOP(zfloor); XOP(zidiv);
-XOP(zln); XOP(zlog); XOP(zmod); XOP(zmul);
-XOP(zneg); XOP(znot); XOP(zor); XOP(zround);
-XOP(zsin); XOP(zsqrt); XOP(ztruncate); XOP(zxor);
-XOP(zeq); XOP(zge); XOP(zgt); XOP(zle); XOP(zlt); XOP(zne);
+XOP(zabs);
+XOP(zand);
+XOP(zatan);
+XOP(zbitshift);
+XOP(zceiling);
+XOP(zcos);
+XOP(zcvi);
+XOP(zcvr);
+XOP(zdiv);
+XOP(zexp);
+XOP(zfloor);
+XOP(zidiv);
+XOP(zln);
+XOP(zlog);
+XOP(zmod);
+XOP(zmul);
+XOP(zneg);
+XOP(znot);
+XOP(zor);
+XOP(zround);
+XOP(zsin);
+XOP(zsqrt);
+XOP(ztruncate);
+XOP(zxor);
+XOP(zeq);
+XOP(zge);
+XOP(zgt);
+XOP(zle);
+XOP(zlt);
+XOP(zne);
 XOP(z2copy);
 #undef XOP
 typedef struct calc_op_s {
-    op_proc_t proc;
-    gs_PtCr_opcode_t opcode;
+	op_proc_t proc;
+	gs_PtCr_opcode_t opcode;
 } calc_op_t;
 static const calc_op_t calc_ops[] = {
 
@@ -123,13 +146,14 @@ static const calc_op_t calc_ops[] = {
 };
 
 /* Fix up an if or ifelse forward reference. */
-private void
+private
+void
 psc_fixup(byte *p, byte *to)
 {
-    int skip = to - (p + 3);
+	int skip = to - (p + 3);
 
-    p[1] = (byte)(skip >> 8);
-    p[2] = (byte)skip;
+	p[1] = (byte)(skip >> 8);
+	p[2] = (byte)skip;
 }
 
 /*
@@ -139,133 +163,134 @@ psc_fixup(byte *p, byte *to)
  * known to be a procedure.
  */
 #define MAX_PSC_FUNCTION_NESTING 10
-private int
+private
+int
 check_psc_function(i_ctx_t *i_ctx_p, const ref *pref, int depth, byte *ops, int *psize)
 {
-    int32_t i;
-    uint size = r_size(pref);
+	int32_t i;
+	uint size = r_size(pref);
 
-    for (i = 0; i < size; ++i) {
-	byte no_ops[1 + max(sizeof(int), sizeof(float))];
-	byte *p = (ops ? ops + *psize : no_ops);
-	ref elt, elt2, elt3;
-	ref * delp;
-	int code;
+	for(i = 0; i < size; ++i) {
+		byte no_ops[1 + max(sizeof(int), sizeof(float))];
+		byte *p = (ops ? ops + *psize : no_ops);
+		ref elt, elt2, elt3;
+		ref *delp;
+		int code;
 
-	array_get(imemory, pref, i, &elt);
-	switch (r_btype(&elt)) {
-	case t_integer: {
-	    int i = elt.value.intval;
+		array_get(imemory, pref, i, &elt);
+		switch(r_btype(&elt)) {
+		case t_integer: {
+			int i = elt.value.intval;
 
 #if ARCH_SIZEOF_INT < ARCH_SIZEOF_LONG
-	    if (i != elt.value.intval) /* check for truncation */
-		return_error(e_rangecheck);
+			if(i != elt.value.intval) /* check for truncation */
+				return_error(e_rangecheck);
 #endif
-	    if (i == (byte)i) {
-		*p = PtCr_byte;
-		p[1] = (byte)i;
-		*psize += 2;
-	    } else {
-		*p = PtCr_int;
-		memcpy(p + 1, &i, sizeof(i));
-		*psize += 1 + sizeof(int);
-	    }
-	    break;
-	}
-	case t_real: {
-	    float f = elt.value.realval;
+			if(i == (byte)i) {
+				*p = PtCr_byte;
+				p[1] = (byte)i;
+				*psize += 2;
+			} else {
+				*p = PtCr_int;
+				memcpy(p + 1, &i, sizeof(i));
+				*psize += 1 + sizeof(int);
+			}
+			break;
+		}
+		case t_real: {
+			float f = elt.value.realval;
 
-	    *p = PtCr_float;
-	    memcpy(p + 1, &f, sizeof(f));
-	    *psize += 1 + sizeof(float);
-	    break;
-	}
-	case t_boolean:
-	    *p = (elt.value.boolval ? PtCr_true : PtCr_false);
-	    ++*psize;
-	    break;
-	case t_name:
-	    if (!r_has_attr(&elt, a_executable))
-		return_error(e_rangecheck);
-	    name_string_ref(imemory, &elt, &elt);
-	    if (!bytes_compare(elt.value.bytes, r_size(&elt),
-			       (const byte *)"true", 4)) {
-		*p = PtCr_true;
-	        ++*psize;
-	        break;
-	    }
-	    if (!bytes_compare(elt.value.bytes, r_size(&elt),
-				      (const byte *)"false", 5)) {
-		*p = PtCr_false;
-	        ++*psize;
-	        break;
-	    }
-	    /* Check if the name is a valid operator in systemdict */
-	    if (dict_find(systemdict, &elt, &delp) <= 0)
-		return_error(e_undefined);
-	    if (r_btype(delp) != t_operator)
-		return_error(e_typecheck);
-	    if (!r_has_attr(delp, a_executable))
-		return_error(e_rangecheck);
-	    elt = *delp;
-	    /* Fall into the operator case */
-	case t_operator: {
-	    int j;
+			*p = PtCr_float;
+			memcpy(p + 1, &f, sizeof(f));
+			*psize += 1 + sizeof(float);
+			break;
+		}
+		case t_boolean:
+			*p = (elt.value.boolval ? PtCr_true : PtCr_false);
+			++*psize;
+			break;
+		case t_name:
+			if(!r_has_attr(&elt, a_executable))
+				return_error(e_rangecheck);
+			name_string_ref(imemory, &elt, &elt);
+			if(!bytes_compare(elt.value.bytes, r_size(&elt),
+					  (const byte *)"true", 4)) {
+				*p = PtCr_true;
+				++*psize;
+				break;
+			}
+			if(!bytes_compare(elt.value.bytes, r_size(&elt),
+					  (const byte *)"false", 5)) {
+				*p = PtCr_false;
+				++*psize;
+				break;
+			}
+			/* Check if the name is a valid operator in systemdict */
+			if(dict_find(systemdict, &elt, &delp) <= 0)
+				return_error(e_undefined);
+			if(r_btype(delp) != t_operator)
+				return_error(e_typecheck);
+			if(!r_has_attr(delp, a_executable))
+				return_error(e_rangecheck);
+			elt = *delp;
+		/* Fall into the operator case */
+		case t_operator: {
+			int j;
 
-	    for (j = 0; j < countof(calc_ops); ++j)
-		if (elt.value.opproc == calc_ops[j].proc) {
-		    *p = calc_ops[j].opcode;
-		    ++*psize;
-		    goto next;
+			for(j = 0; j < countof(calc_ops); ++j)
+				if(elt.value.opproc == calc_ops[j].proc) {
+					*p = calc_ops[j].opcode;
+					++*psize;
+					goto next;
+				}
+			return_error(e_rangecheck);
 		}
-	    return_error(e_rangecheck);
-	}
-	default: {
-	    if (!r_is_proc(&elt))
-		return_error(e_typecheck);
-	    if (depth == MAX_PSC_FUNCTION_NESTING)
-		return_error(e_limitcheck);
-	    if ((code = array_get(imemory, pref, ++i, &elt2)) < 0)
-		return code;
-	    *psize += 3;
-	    code = check_psc_function(i_ctx_p, &elt, depth + 1, ops, psize);
-	    if (code < 0)
-		return code;
-	    /* Check for {proc} if | {proc1} {proc2} ifelse */
-#define R_IS_OPER(pref, proc)\
-  (r_btype(pref) == t_operator && r_has_attr(pref, a_executable) &&\
-   (pref)->value.opproc == proc)
-	    if (R_IS_OPER(&elt2, zif)) {
-		if (ops) {
-		    *p = PtCr_if;
-		    psc_fixup(p, ops + *psize);
-		}
-	    } else if (!r_is_proc(&elt2))
-		return_error(e_rangecheck);
-	    else if ((code == array_get(imemory, pref, ++i, &elt3)) < 0)
-		return code;
-	    else if (R_IS_OPER(&elt3, zifelse)) {
-		if (ops) {
-		    *p = PtCr_if;
-		    psc_fixup(p, ops + *psize + 3);
-		    p = ops + *psize;
-		    *p = PtCr_else;
-		}
-		*psize += 3;
-		code = check_psc_function(i_ctx_p, &elt2, depth + 1, ops, psize);
-		if (code < 0)
-		    return code;
-		if (ops)
-		    psc_fixup(p, ops + *psize);
-	    } else
-		return_error(e_rangecheck);
+		default: {
+			if(!r_is_proc(&elt))
+				return_error(e_typecheck);
+			if(depth == MAX_PSC_FUNCTION_NESTING)
+				return_error(e_limitcheck);
+			if((code = array_get(imemory, pref, ++i, &elt2)) < 0)
+				return code;
+			*psize += 3;
+			code = check_psc_function(i_ctx_p, &elt, depth + 1, ops, psize);
+			if(code < 0)
+				return code;
+/* Check for {proc} if | {proc1} {proc2} ifelse */
+#define R_IS_OPER(pref, proc)                                             \
+	(r_btype(pref) == t_operator && r_has_attr(pref, a_executable) && \
+	 (pref)->value.opproc == proc)
+			if(R_IS_OPER(&elt2, zif)) {
+				if(ops) {
+					*p = PtCr_if;
+					psc_fixup(p, ops + *psize);
+				}
+			} else if(!r_is_proc(&elt2))
+				return_error(e_rangecheck);
+			else if((code == array_get(imemory, pref, ++i, &elt3)) < 0)
+				return code;
+			else if(R_IS_OPER(&elt3, zifelse)) {
+				if(ops) {
+					*p = PtCr_if;
+					psc_fixup(p, ops + *psize + 3);
+					p = ops + *psize;
+					*p = PtCr_else;
+				}
+				*psize += 3;
+				code = check_psc_function(i_ctx_p, &elt2, depth + 1, ops, psize);
+				if(code < 0)
+					return code;
+				if(ops)
+					psc_fixup(p, ops + *psize);
+			} else
+				return_error(e_rangecheck);
 #undef R_IS_OPER
+		}
+		}
+	next:
+		DO_NOTHING;
 	}
-	}
-    next:
-	DO_NOTHING;
-    }
-    return 0;
+	return 0;
 }
 #undef MAX_PSC_FUNCTION_NESTING
 
@@ -274,45 +299,45 @@ build_function_proc(gs_build_function_4);
 
 /* Finish building a FunctionType 4 (PostScript Calculator) function. */
 int
-gs_build_function_4(i_ctx_t *i_ctx_p, const ref *op, const gs_function_params_t * mnDR,
-		    int depth, gs_function_t ** ppfn, gs_memory_t *mem)
+gs_build_function_4(i_ctx_t *i_ctx_p, const ref *op, const gs_function_params_t *mnDR,
+		    int depth, gs_function_t **ppfn, gs_memory_t *mem)
 {
-    gs_function_PtCr_params_t params;
-    ref *proc;
-    int code;
-    byte *ops;
-    int size;
+	gs_function_PtCr_params_t params;
+	ref *proc;
+	int code;
+	byte *ops;
+	int size;
 
-    *(gs_function_params_t *)&params = *mnDR;
-    params.ops.data = 0;	/* in case of failure */
-    params.ops.size = 0;	/* ditto */
-    if (dict_find_string(op, "Function", &proc) <= 0) {
-	code = gs_note_error(e_rangecheck);
-	goto fail;
-    }
-    if (!r_is_proc(proc)) {
-	code = gs_note_error(e_typecheck);
-	goto fail;
-    }
-    size = 0;
-    code = check_psc_function(i_ctx_p, proc, 0, NULL, &size);
-    if (code < 0)
-	goto fail;
-    ops = gs_alloc_string(mem, size + 1, "gs_build_function_4(ops)");
-    if (ops == 0) {
-	code = gs_note_error(e_VMerror);
-	goto fail;
-    }
-    size = 0;
-    check_psc_function(i_ctx_p, proc, 0, ops, &size); /* can't fail */
-    ops[size] = PtCr_return;
-    params.ops.data = ops;
-    params.ops.size = size + 1;
-    code = gs_function_PtCr_init(ppfn, &params, mem);
-    if (code >= 0)
-	return 0;
-    /* free_params will free the ops string */
+	*(gs_function_params_t *)&params = *mnDR;
+	params.ops.data = 0; /* in case of failure */
+	params.ops.size = 0; /* ditto */
+	if(dict_find_string(op, "Function", &proc) <= 0) {
+		code = gs_note_error(e_rangecheck);
+		goto fail;
+	}
+	if(!r_is_proc(proc)) {
+		code = gs_note_error(e_typecheck);
+		goto fail;
+	}
+	size = 0;
+	code = check_psc_function(i_ctx_p, proc, 0, NULL, &size);
+	if(code < 0)
+		goto fail;
+	ops = gs_alloc_string(mem, size + 1, "gs_build_function_4(ops)");
+	if(ops == 0) {
+		code = gs_note_error(e_VMerror);
+		goto fail;
+	}
+	size = 0;
+	check_psc_function(i_ctx_p, proc, 0, ops, &size); /* can't fail */
+	ops[size] = PtCr_return;
+	params.ops.data = ops;
+	params.ops.size = size + 1;
+	code = gs_function_PtCr_init(ppfn, &params, mem);
+	if(code >= 0)
+		return 0;
+/* free_params will free the ops string */
 fail:
-    gs_function_PtCr_free_params(&params, mem);
-    return (code < 0 ? code : gs_note_error(e_rangecheck));
+	gs_function_PtCr_free_params(&params, mem);
+	return (code < 0 ? code : gs_note_error(e_rangecheck));
 }

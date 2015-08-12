@@ -7,27 +7,27 @@
  * in the LICENSE file.
  */
 
-#include	"all.h"
+#include "all.h"
 
-int	sfd;
-int	cmdmode = 0660;
-int	rfd;
-int	chat;
-extern	char *wrenfile;
-extern	int nwren;
-char	*myname;
-int	cmdfd;
-int	writeallow;	/* never on; for compatibility with fs */
-int	wstatallow;
-int	writegroup;
-int	allownone;
-int	noatime;
-int	srvfd(char*, int, int);
-void	usage(void);
-void	confinit(void);
-Chan	*chaninit(char*);
-void	consinit(void);
-void	forkserve(void);
+int sfd;
+int cmdmode = 0660;
+int rfd;
+int chat;
+extern char *wrenfile;
+extern int nwren;
+char *myname;
+int cmdfd;
+int writeallow; /* never on; for compatibility with fs */
+int wstatallow;
+int writegroup;
+int allownone;
+int noatime;
+int srvfd(char *, int, int);
+void usage(void);
+void confinit(void);
+Chan *chaninit(char *);
+void consinit(void);
+void forkserve(void);
 
 void
 main(int argc, char *argv[])
@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	/*
 	 * insulate from invoker's environment and keep it from swapping
 	 */
-	rfork(RFNAMEG|RFNOTEG|RFREND);
+	rfork(RFNAMEG | RFNOTEG | RFREND);
 
 	confinit();
 	sfd = -1;
@@ -61,7 +61,8 @@ main(int argc, char *argv[])
 
 	buf[0] = '\0';
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		newbufsize = atol(ARGF());
 		break;
@@ -75,8 +76,8 @@ main(int argc, char *argv[])
 		nwren = atol(ARGF());
 		break;
 	case 'n':
-		strncpy(buf, ARGF(), NAMELEN-1);
-		buf[NAMELEN-1] = '\0';
+		strncpy(buf, ARGF(), NAMELEN - 1);
+		buf[NAMELEN - 1] = '\0';
 		break;
 	case 'p':
 		cmdmode = atol(ARGF());
@@ -99,14 +100,15 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();
 
 	cmdfd = 2;
 
-	if (access(wrenfile, AREAD|AWRITE) == -1)
+	if(access(wrenfile, AREAD | AWRITE) == -1)
 		sysfatal("%s cannot access device", wrenfile);
 
 	formatinit();
@@ -126,15 +128,16 @@ main(int argc, char *argv[])
 	/*
 	 * init global locks
 	 */
-	wlock(&mainlock); wunlock(&mainlock);
+	wlock(&mainlock);
+	wunlock(&mainlock);
 
 	/*
 	 * init the file system, ream it if needed, and get the block sizes
 	 */
 	ream = fsinit(ream, newbufsize);
 	iobufinit();
-	for(fs=filesys; fs->name; fs++)
-		if(fs->flags & FREAM){		/* set by fsinit if reamed */
+	for(fs = filesys; fs->name; fs++)
+		if(fs->flags & FREAM) { /* set by fsinit if reamed */
 			ream++;
 			rootream(fs->dev, getraddr(fs->dev));
 			superream(fs->dev, superaddr(fs->dev));
@@ -159,12 +162,11 @@ forkserve(void)
 	serve(chan);
 }
 
-static
-struct
-{
-	int	nfilter;
-	Filter*	filters[100];
-}f;
+static struct
+    {
+	int nfilter;
+	Filter *filters[100];
+} f;
 
 int alarmed;
 
@@ -173,7 +175,7 @@ catchalarm(void *regs, char *msg)
 {
 	USED(regs);
 	USED(msg);
-	if(strcmp(msg, "alarm") == 0){
+	if(strcmp(msg, "alarm") == 0) {
 		alarmed = 1;
 		noted(NCONT);
 	} else
@@ -193,7 +195,7 @@ catchalarm(void *regs, char *msg)
 void
 syncproc(void)
 {
-	char buf[4*1024];
+	char buf[4 * 1024];
 	Filter *ft;
 	uint32_t c0, c1;
 	int32_t t, n, d;
@@ -211,15 +213,15 @@ syncproc(void)
 	notify(catchalarm);
 
 	t = time(nil);
-	for(;;){
+	for(;;) {
 		i = syncblock();
 		alarmed = 0;
-		alarm(i ? 1000: 10000);
+		alarm(i ? 1000 : 10000);
 		n = read(cmdfd, buf, sizeof buf - 1);
 		if(n <= 0 && !alarmed)
-			sleep(i ? 1000: 10000);
+			sleep(i ? 1000 : 10000);
 		alarm(0);
-		if(n > 0){
+		if(n > 0) {
 			buf[n] = '\0';
 			if(cmd_exec(buf))
 				fprint(cmdfd, "done");
@@ -228,11 +230,11 @@ syncproc(void)
 		}
 		n = time(nil);
 		d = n - t;
-		if(d < 0 || d > 5*60)
+		if(d < 0 || d > 5 * 60)
 			d = 0;
 		while(d >= 1) {
 			d -= 1;
-			for(i=0; i<f.nfilter; i++) {
+			for(i = 0; i < f.nfilter; i++) {
 				ft = f.filters[i];
 				c0 = ft->count;
 				c1 = c0 - ft->oldcount;
@@ -257,13 +259,13 @@ dofilter(Filter *ft)
 		return;
 	}
 	f.filters[i] = ft;
-	f.nfilter = i+1;
+	f.nfilter = i + 1;
 }
 
 void
 startproc(void (*f)(void), char *name)
 {
-	switch(rfork(RFMEM|RFFDG|RFPROC)){
+	switch(rfork(RFMEM | RFFDG | RFPROC)) {
 	case -1:
 		panic("can't fork");
 	case 0:
@@ -282,8 +284,8 @@ confinit(void)
 	conf.niobuf = 0;
 	conf.nuid = 600;
 	conf.nserve = 2;
-	conf.uidspace = conf.nuid*6;
-	conf.gidspace = conf.nuid*3;
+	conf.uidspace = conf.nuid * 6;
+	conf.gidspace = conf.nuid * 3;
 	cons.flags = 0;
 }
 
@@ -298,15 +300,15 @@ dochaninit(Chan *cp, int fd)
 	unlock(&cp->flock);
 }
 
-Chan*
+Chan *
 chaninit(char *server)
 {
 	Chan *cp;
-	char buf[3*NAMELEN];
+	char buf[3 * NAMELEN];
 	int p[2];
 
 	sprint(buf, "#s/%s", server);
-	if(sfd < 0){
+	if(sfd < 0) {
 		if(pipe(p) < 0)
 			panic("can't make a pipe");
 		sfd = p[0];
@@ -324,7 +326,7 @@ int
 netserve(char *netaddr)
 {
 	int afd, lfd, fd;
-	char adir[2*NAMELEN], ldir[2*NAMELEN];
+	char adir[2 * NAMELEN], ldir[2 * NAMELEN];
 	Chan *netchan;
 
 	if(access("/net/tcp/clone", 0) < 0)
@@ -333,9 +335,9 @@ netserve(char *netaddr)
 		bind("#I1", "/net.alt", MAFTER);
 
 	afd = announce(netaddr, adir);
-	if (afd < 0)
+	if(afd < 0)
 		return -1;
-	switch (rfork(RFMEM|RFFDG|RFPROC)) {
+	switch(rfork(RFMEM | RFFDG | RFPROC)) {
 	case -1:
 		return -1;
 	case 0:
@@ -343,12 +345,12 @@ netserve(char *netaddr)
 	default:
 		return 0;
 	}
-	for (;;) {
+	for(;;) {
 		lfd = listen(adir, ldir);
-		if (lfd < 0)
+		if(lfd < 0)
 			continue;
 		fd = accept(lfd, ldir);
-		if (fd < 0) {
+		if(fd < 0) {
 			close(lfd);
 			continue;
 		}
@@ -356,7 +358,7 @@ netserve(char *netaddr)
 		if(netchan == nil)
 			panic("out of memory");
 		dochaninit(netchan, fd);
-		switch (rfork(RFMEM|RFFDG|RFPROC)) {
+		switch(rfork(RFMEM | RFFDG | RFPROC)) {
 		case -1:
 			panic("can't fork");
 		case 0:
@@ -379,10 +381,10 @@ srvfd(char *s, int mode, int sfd)
 	int fd;
 	char buf[32];
 
-	fd = create(s, ORCLOSE|OWRITE, mode);
-	if(fd < 0){
+	fd = create(s, ORCLOSE | OWRITE, mode);
+	if(fd < 0) {
 		remove(s);
-		fd = create(s, ORCLOSE|OWRITE, mode);
+		fd = create(s, ORCLOSE | OWRITE, mode);
 		if(fd < 0)
 			panic(s);
 	}
@@ -439,24 +441,24 @@ memsize(void)
 	char *p, buf[128];
 	int fd, n, by2pg, secs;
 
-	by2pg = 4*1024;
+	by2pg = 4 * 1024;
 	p = getenv("cputype");
 	if(p && strcmp(p, "68020") == 0)
-		by2pg = 8*1024;
+		by2pg = 8 * 1024;
 
-	secs = 4*1024*1024;
-	
+	secs = 4 * 1024 * 1024;
+
 	fd = open("/dev/swap", OREAD);
 	if(fd < 0)
 		return secs;
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	close(fd);
 	if(n <= 0)
 		return secs;
 	buf[n] = 0;
 	p = strchr(buf, '/');
 	if(p)
-		secs = strtoul(p+1, 0, 0)*by2pg;
+		secs = strtoul(p + 1, 0, 0) * by2pg;
 	return secs;
 }
 
@@ -471,15 +473,15 @@ fsinit(int ream, int newbufsize)
 	Filsys *fs;
 
 	RBUFSIZE = 4 * 1024;
-	for(fs=filesys; fs->name; fs++)
+	for(fs = filesys; fs->name; fs++)
 		(*devcall[fs->dev.type].init)(fs->dev);
 	if(newbufsize == 0)
 		newbufsize = RBUFSIZE;
 
 	if(conf.niobuf == 0) {
-		conf.niobuf = memsize()/10;
-		if(conf.niobuf > 2*1024*1024)
-			conf.niobuf = 2*1024*1024;
+		conf.niobuf = memsize() / 10;
+		if(conf.niobuf > 2 * 1024 * 1024)
+			conf.niobuf = 2 * 1024 * 1024;
 		conf.niobuf /= newbufsize;
 		if(conf.niobuf < 30)
 			conf.niobuf = 30;
@@ -487,8 +489,8 @@ fsinit(int ream, int newbufsize)
 
 	BUFSIZE = RBUFSIZE - sizeof(Tag);
 
-	for(fs=filesys; fs->name; fs++)
-		if(ream || (*devcall[fs->dev.type].check)(fs->dev) && askream(fs)){
+	for(fs = filesys; fs->name; fs++)
+		if(ream || (*devcall[fs->dev.type].check)(fs->dev) && askream(fs)) {
 			RBUFSIZE = newbufsize;
 			BUFSIZE = RBUFSIZE - sizeof(Tag);
 			(*devcall[fs->dev.type].ream)(fs->dev);
@@ -511,7 +513,7 @@ fsinit(int ream, int newbufsize)
  * allocate rest of mem
  * for io buffers.
  */
-#define	HWIDTH	5	/* buffers per hash */
+#define HWIDTH 5 /* buffers per hash */
 void
 iobufinit(void)
 {
@@ -519,8 +521,8 @@ iobufinit(void)
 	Iobuf *p, *q;
 	Hiob *hp;
 
-	i = conf.niobuf*RBUFSIZE;
-	niob = i / (sizeof(Iobuf) + RBUFSIZE + sizeof(Hiob)/HWIDTH);
+	i = conf.niobuf * RBUFSIZE;
+	niob = i / (sizeof(Iobuf) + RBUFSIZE + sizeof(Hiob) / HWIDTH);
 	nhiob = niob / HWIDTH;
 	while(!prime(nhiob))
 		nhiob++;
@@ -528,14 +530,14 @@ iobufinit(void)
 		print("	%ld buffers; %ld hashes\n", niob, nhiob);
 	hiob = ialloc(nhiob * sizeof(Hiob));
 	hp = hiob;
-	for(i=0; i<nhiob; i++) {
+	for(i = 0; i < nhiob; i++) {
 		lock(hp);
 		unlock(hp);
 		hp++;
 	}
 	p = ialloc(niob * sizeof(Iobuf));
 	hp = hiob;
-	for(i=0; i<niob; i++) {
+	for(i = 0; i < niob; i++) {
 		qlock(p);
 		qunlock(p);
 		if(hp == hiob)
@@ -555,7 +557,7 @@ iobufinit(void)
 		p->dev = devnone;
 		p->addr = -1;
 		p->xiobuf = ialloc(RBUFSIZE);
-		p->iobuf = (char*)-1;
+		p->iobuf = (char *)-1;
 		p++;
 	}
 }

@@ -17,10 +17,10 @@ typedef int32_t clock_t;
 #endif
 
 struct tms {
-	clock_t	tms_utime;
-	clock_t	tms_stime;
-	clock_t	tms_cutime;
-	clock_t	tms_cstime;
+	clock_t tms_utime;
+	clock_t tms_stime;
+	clock_t tms_cutime;
+	clock_t tms_cstime;
 };
 
 #ifdef __cplusplus

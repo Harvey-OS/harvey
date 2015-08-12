@@ -17,7 +17,7 @@ fork(void)
 {
 	int n;
 
-	n = _RFORK(RFENVG|RFFDG|RFPROC);
+	n = _RFORK(RFENVG | RFFDG | RFPROC);
 	if(n < 0)
 		_syserrno();
 	if(n == 0) {

@@ -23,13 +23,12 @@ usage(void)
 void
 ding(void *v, char *s)
 {
-	if(strstr(s, "alarm")){
+	if(strstr(s, "alarm")) {
 		alarmed = 1;
 		noted(NCONT);
 	} else
 		noted(NDFLT);
 }
-
 
 void
 main(int argc, char **argv)
@@ -39,11 +38,13 @@ main(int argc, char **argv)
 	char buf[1];
 	int quiet = 0;
 
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'q':
 		quiet = 1;
 		break;
-	} ARGEND;
+	}
+	ARGEND;
 
 	notify(ding);
 
@@ -54,13 +55,13 @@ main(int argc, char **argv)
 	if(cfd >= 0)
 		fprint(cfd, "rawon");
 
-	switch(rfork(RFPROC|RFFDG|RFMEM)){
+	switch(rfork(RFPROC | RFFDG | RFMEM)) {
 	case -1:
 		sysfatal("forking: %r");
 	default:
 		// read until we're done writing or
 		// we get an end of line
-		while(!done){
+		while(!done) {
 			alarmed = 0;
 			alarm(250);
 			i = read(0, buf, 1);
@@ -68,7 +69,7 @@ main(int argc, char **argv)
 
 			if(i == 0)
 				break;
-			if(i < 0){
+			if(i < 0) {
 				if(alarmed)
 					continue;
 				else
@@ -78,11 +79,11 @@ main(int argc, char **argv)
 				break;
 			if(buf[0] == '\n' || buf[0] == '\r')
 				break;
-		}	
+		}
 		break;
 	case 0:
 		// pass one character at a time till end of line
-		for(;;){
+		for(;;) {
 			if(read(fd, buf, 1) <= 0)
 				break;
 			if(write(1, buf, 1) < 0)

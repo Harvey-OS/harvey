@@ -9,29 +9,28 @@
 
 #include "ssh.h"
 
-static CipherState*
-initnone(Conn*, int)
+static CipherState *
+initnone(Conn *, int)
 {
 	/* must be non-nil */
-	return (CipherState*)~0;
+	return (CipherState *)~0;
 }
 
 static void
-encryptnone(CipherState*, uint8_t*, int)
+encryptnone(CipherState *, uint8_t *, int)
 {
 }
 
 static void
-decryptnone(CipherState*, uint8_t*, int)
+decryptnone(CipherState *, uint8_t *, int)
 {
 }
 
 Cipher ciphernone =
-{
-	SSH_CIPHER_NONE,
-	"none",
-	initnone,
-	encryptnone,
-	decryptnone,
+    {
+     SSH_CIPHER_NONE,
+     "none",
+     initnone,
+     encryptnone,
+     decryptnone,
 };
-

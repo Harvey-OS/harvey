@@ -15,9 +15,9 @@
  */
 
 typedef struct {
-	long	start;			/* page starts at this byte offset */
-	long	stop;			/* and ends here */
-	int	empty;			/* dummy page if TRUE */
+	long start; /* page starts at this byte offset */
+	long stop;  /* and ends here */
+	int empty;  /* dummy page if TRUE */
 } Pages;
 
 /*
@@ -26,5 +26,4 @@ typedef struct {
  *
  */
 
-char	*copystdin();
-
+char *copystdin();

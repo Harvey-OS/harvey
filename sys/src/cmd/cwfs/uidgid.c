@@ -10,32 +10,31 @@
 #include "all.h"
 
 struct {
-	char*	name;
-	Userid	uid;
-	Userid	lead;
+	char *name;
+	Userid uid;
+	Userid lead;
 } minusers[] = {
-	"adm",		-1,	-1,
-	"none",		0,	-1,
-	"tor",		1,	1,
-	"sys",		10000,	0,
-	"map",		10001,	10001,
-	"doc",		10002,	0,
-	"upas",		10003,	10003,
-	"font",		10004,	0,
-	"bootes",	10005,	10005,
-	0
-};
+    "adm", -1, -1,
+    "none", 0, -1,
+    "tor", 1, 1,
+    "sys", 10000, 0,
+    "map", 10001, 10001,
+    "doc", 10002, 0,
+    "upas", 10003, 10003,
+    "font", 10004, 0,
+    "bootes", 10005, 10005,
+    0};
 
 static char buf[4096];
 static Rune ichar[] = L"?=+-/:";
 
-Uid*	chkuid(char *name, int chk);
-void	do_newuser(int, char*[]);
-char*	getword(char*, Rune, char*, int);
-void	pentry(char*, Uid*);
-int	readln(char*, int);
-void	setminusers(void);
-Uid*	uidtop(int);
+Uid *chkuid(char *name, int chk);
+void do_newuser(int, char *[]);
+char *getword(char *, Rune, char *, int);
+void pentry(char *, Uid *);
+int readln(char *, int);
+void setminusers(void);
+Uid *uidtop(int);
 
 void
 cmd_users(int argc, char *argv[])
@@ -76,7 +75,7 @@ cmd_users(int argc, char *argv[])
 		if(ulead == nil)
 			continue;
 
-		if(strlen(p) > NAMELEN-1) {
+		if(strlen(p) > NAMELEN - 1) {
 			print("%s: name too long\n", p);
 			continue;
 		}
@@ -107,11 +106,11 @@ cmd_users(int argc, char *argv[])
 	line = 0;
 	while(readln(buf, sizeof buf) != 0) {
 		line++;
-		uname = getword(buf, L':', 0, 0);	/* skip number */
+		uname = getword(buf, L':', 0, 0); /* skip number */
 		if(uname == nil)
 			continue;
 
-		ulead = getword(uname, L':', 0, 0);	/* skip name */
+		ulead = getword(uname, L':', 0, 0); /* skip name */
 		if(ulead == nil)
 			continue;
 
@@ -134,7 +133,7 @@ cmd_users(int argc, char *argv[])
 		}
 		ui->gtab = &gidspace[g];
 		ui->ngrp = 0;
-		while (p != nil) {
+		while(p != nil) {
 			unext = getword(p, L',', 0, 0);
 			o = strtouid(p);
 			if(o >= 0) {
@@ -189,7 +188,7 @@ do_newuser(int argc, char *argv[])
 			print("illegal character in name\n");
 			return;
 		}
-	if(strlen(argv[1]) > NAMELEN-1) {
+	if(strlen(argv[1]) > NAMELEN - 1) {
 		print("name %s too long\n", argv[1]);
 		return;
 	}
@@ -203,10 +202,10 @@ do_newuser(int argc, char *argv[])
 		pentry(buf, ui);
 		n = strlen(buf);
 		p = buf;
-		while(n > PRINTSIZE-5) {
+		while(n > PRINTSIZE - 5) {
 			q = p;
-			p += PRINTSIZE-5;
-			n -= PRINTSIZE-5;
+			p += PRINTSIZE - 5;
+			n -= PRINTSIZE - 5;
 			i = *p;
 			*p = 0;
 			print("%s", q);
@@ -264,7 +263,7 @@ do_newuser(int argc, char *argv[])
 			return;
 		if(u2->uid == ui->uid)
 			return;
-		if(cons.ngid+ui->ngrp+1 >= conf.gidspace) {
+		if(cons.ngid + ui->ngrp + 1 >= conf.gidspace) {
 			print("conf.gidspace too small (%ld)\n", conf.gidspace);
 			return;
 		}
@@ -276,11 +275,11 @@ do_newuser(int argc, char *argv[])
 		}
 
 		wlock(&uidgc.uidlock);
-		s = gidspace+cons.ngid;
-		memmove(s, ui->gtab, ui->ngrp*sizeof(*s));
+		s = gidspace + cons.ngid;
+		memmove(s, ui->gtab, ui->ngrp * sizeof(*s));
 		ui->gtab = s;
 		s[ui->ngrp++] = u2->uid;
-		cons.ngid += ui->ngrp+1;
+		cons.ngid += ui->ngrp + 1;
 		wunlock(&uidgc.uidlock);
 		break;
 
@@ -302,9 +301,9 @@ do_newuser(int argc, char *argv[])
 		}
 
 		wlock(&uidgc.uidlock);
-		s = ui->gtab+i;
+		s = ui->gtab + i;
 		ui->ngrp--;
-		memmove(s, s+1, (ui->ngrp-i)*sizeof(*s));
+		memmove(s, s + 1, (ui->ngrp - i) * sizeof(*s));
 		wunlock(&uidgc.uidlock);
 		break;
 
@@ -322,7 +321,7 @@ do_newuser(int argc, char *argv[])
 		if(ui == 0)
 			return;
 
-		if(strlen(argv[2]) > NAMELEN-1) {
+		if(strlen(argv[2]) > NAMELEN - 1) {
 			print("name %s too long\n", argv[2]);
 			return;
 		}
@@ -333,8 +332,7 @@ do_newuser(int argc, char *argv[])
 		break;
 	}
 
-
-	if(walkto("/adm/users") || con_open(FID2, OWRITE|OTRUNC)) {
+	if(walkto("/adm/users") || con_open(FID2, OWRITE | OTRUNC)) {
 		print("can't open /adm/users for write\n");
 		return;
 	}
@@ -356,7 +354,7 @@ do_newuser(int argc, char *argv[])
 	}
 }
 
-Uid*
+Uid *
 chkuid(char *name, int chk)
 {
 	Uid *u;
@@ -365,8 +363,7 @@ chkuid(char *name, int chk)
 	if(chk == 1) {
 		if(u == 0)
 			print("%s does not exist\n", name);
-	}
-	else {
+	} else {
 		if(u != 0)
 			print("%s already exists\n", name);
 	}
@@ -382,19 +379,19 @@ pentry(char *buf, Uid *u)
 	posn = sprint(buf, "%d:%s:", u->uid, u->name);
 	p = uidtop(u->lead);
 	if(p && u->lead != 0)
-		posn += sprint(buf+posn, "%s", p->name);
+		posn += sprint(buf + posn, "%s", p->name);
 
-	posn += sprint(buf+posn, ":");
+	posn += sprint(buf + posn, ":");
 	for(i = 0; i < u->ngrp; i++) {
 		p = uidtop(u->gtab[i]);
 		if(i != 0)
-			posn += sprint(buf+posn, ",");
+			posn += sprint(buf + posn, ",");
 		if(p != 0)
-			posn += sprint(buf+posn, "%s", p->name);
+			posn += sprint(buf + posn, "%s", p->name);
 		else
-			posn += sprint(buf+posn, "%d", u->gtab[i]);
+			posn += sprint(buf + posn, "%d", u->gtab[i]);
 	}
-	sprint(buf+posn, "\n");
+	sprint(buf + posn, "\n");
 }
 
 void
@@ -411,20 +408,20 @@ setminusers(void)
 	qsort(uid, u, sizeof(uid[0]), byuid);
 }
 
-Uid*
+Uid *
 uidpstr(char *name)
 {
 	Uid *s, *e;
 
 	s = uid;
-	for(e = s+cons.nuid; s < e; s++) {
+	for(e = s + cons.nuid; s < e; s++) {
 		if(strcmp(name, s->name) == 0)
 			return s;
 	}
 	return 0;
 }
 
-char*
+char *
 getword(char *buf, Rune delim, char *error, int line)
 {
 	char *p;
@@ -436,7 +433,7 @@ getword(char *buf, Rune delim, char *error, int line)
 		return 0;
 	}
 	*p = '\0';
-	return p+1;
+	return p + 1;
 }
 
 int
@@ -457,16 +454,16 @@ strtouid(char *name)
 	return id;
 }
 
-Uid*
+Uid *
 uidtop(int id)
 {
 	Uid *bot, *top, *new;
 
 	bot = uid;
-	top = bot + cons.nuid-1;
+	top = bot + cons.nuid - 1;
 
-	while(bot <= top){
-		new = bot + (top - bot)/2;
+	while(bot <= top) {
+		new = bot + (top - bot) / 2;
 		if(new->uid == id)
 			return new;
 		if(new->uid < id)

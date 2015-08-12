@@ -27,7 +27,7 @@
 /* stdio redirection */
 
 #ifndef gsio_INCLUDED
-#  define gsio_INCLUDED
+#define gsio_INCLUDED
 
 /*
  * The library and interpreter must never use stdin/out/err directly.

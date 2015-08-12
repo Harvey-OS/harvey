@@ -21,122 +21,120 @@
 #include "version.h"
 #include "antiword.h"
 
-
 /* Constants for the file positions */
-#define INITIAL_LOCATION_SIZE	20
-#define INITIAL_PAGEOBJECT_SIZE	 5
+#define INITIAL_LOCATION_SIZE 20
+#define INITIAL_PAGEOBJECT_SIZE 5
 #if defined(DEBUG)
-#define EXTENSION_ARRAY_SIZE	10
+#define EXTENSION_ARRAY_SIZE 10
 #else
-#define EXTENSION_ARRAY_SIZE	30
+#define EXTENSION_ARRAY_SIZE 30
 #endif /* DEBUG */
 
 /* The character set */
-static encoding_type	eEncoding = encoding_neutral;
+static encoding_type eEncoding = encoding_neutral;
 /* Current creator for a PDF header */
-static const char	*szProducer = NULL;
+static const char *szProducer = NULL;
 /* The height and width of a PDF page (in DrawUnits) */
-static int32_t		lPageHeight = LONG_MAX;
-static int32_t		lPageWidth = LONG_MAX;
+static int32_t lPageHeight = LONG_MAX;
+static int32_t lPageWidth = LONG_MAX;
 /* The height of the footer on the current page (in DrawUnits) */
-static int32_t		lFooterHeight = 0;
+static int32_t lFooterHeight = 0;
 /* Inside a footer (to prevent an infinite loop when the footer is too big) */
-static BOOL		bInFtrSpace = FALSE;
+static BOOL bInFtrSpace = FALSE;
 /* Current font information */
-static drawfile_fontref	tFontRefCurr = (drawfile_fontref)-1;
-static USHORT		usFontSizeCurr = 0;
-static int		iFontColorCurr = -1;
+static drawfile_fontref tFontRefCurr = (drawfile_fontref)-1;
+static USHORT usFontSizeCurr = 0;
+static int iFontColorCurr = -1;
 /* Current vertical position information */
-static int32_t		lYtopCurr = -1;
+static int32_t lYtopCurr = -1;
 /* Image counter */
-static int		iImageCount = 0;
+static int iImageCount = 0;
 /* Section index */
-static int		iSectionIndex = 0;
+static int iSectionIndex = 0;
 /* Are we on the first page of the section? */
-static BOOL		bFirstInSection = TRUE;
+static BOOL bFirstInSection = TRUE;
 /* File positions */
-static int32_t		lFilePosition = 0;
-static int32_t		*alLocation = NULL;
-static size_t		tLocations = 0;
-static int		iMaxLocationNumber = 0;
+static int32_t lFilePosition = 0;
+static int32_t *alLocation = NULL;
+static size_t tLocations = 0;
+static int iMaxLocationNumber = 0;
 /* File position at the start of a page */
-static int32_t		lStreamStart = -1;
+static int32_t lStreamStart = -1;
 /* Page objects */
-static int		*aiPageObject = NULL;
-static int		iPageCount = 0;
-static size_t		tMaxPageObjects = 0;
+static int *aiPageObject = NULL;
+static int iPageCount = 0;
+static size_t tMaxPageObjects = 0;
 /* Current object number */
 /* 1 = root; 2 = info; 3 = pages; 4 = encoding; 5-16 = fonts; 17 = resources */
-static int		iObjectNumberCurr = 17;
+static int iObjectNumberCurr = 17;
 
-static void		vMoveTo(diagram_type *, int32_t);
+static void vMoveTo(diagram_type *, int32_t);
 
 static const struct {
-	const char	*szPDFname;
-	const char	*szPSname;
+	const char *szPDFname;
+	const char *szPSname;
 } atFontname[] = {
-	{ "Courier",			FONT_MONOSPACED_PLAIN },
-	{ "Courier-Bold",		FONT_MONOSPACED_BOLD },
-	{ "Courier-Oblique",		FONT_MONOSPACED_ITALIC },
-	{ "Courier-BoldOblique",	FONT_MONOSPACED_BOLDITALIC },
-	{ "Helvetica",			FONT_SANS_SERIF_PLAIN },
-	{ "Helvetica-Bold",		FONT_SANS_SERIF_BOLD },
-	{ "Helvetica-Oblique",		FONT_SANS_SERIF_ITALIC },
-	{ "Helvetica-BoldOblique",	FONT_SANS_SERIF_BOLDITALIC },
-	{ "Times-Roman",		FONT_SERIF_PLAIN },
-	{ "Times-Bold",			FONT_SERIF_BOLD },
-	{ "Times-Italic",		FONT_SERIF_ITALIC },
-	{ "Times-BoldItalic",		FONT_SERIF_BOLDITALIC },
+    {"Courier", FONT_MONOSPACED_PLAIN},
+    {"Courier-Bold", FONT_MONOSPACED_BOLD},
+    {"Courier-Oblique", FONT_MONOSPACED_ITALIC},
+    {"Courier-BoldOblique", FONT_MONOSPACED_BOLDITALIC},
+    {"Helvetica", FONT_SANS_SERIF_PLAIN},
+    {"Helvetica-Bold", FONT_SANS_SERIF_BOLD},
+    {"Helvetica-Oblique", FONT_SANS_SERIF_ITALIC},
+    {"Helvetica-BoldOblique", FONT_SANS_SERIF_BOLDITALIC},
+    {"Times-Roman", FONT_SERIF_PLAIN},
+    {"Times-Bold", FONT_SERIF_BOLD},
+    {"Times-Italic", FONT_SERIF_ITALIC},
+    {"Times-BoldItalic", FONT_SERIF_BOLDITALIC},
 };
 
 static const char *iso_8859_1[] = {
-"128 /Euro",
-"140 /ellipsis /trademark /perthousand /bullet",
-"    /quoteleft /quoteright /guilsinglleft /guilsinglright",
-"    /quotedblleft /quotedblright /quotedblbase /endash /emdash",
-"    /minus /OE /oe /dagger /daggerdbl /fi /fl",
-"160 /space /exclamdown /cent /sterling /currency",
-"    /yen /brokenbar /section /dieresis /copyright",
-"    /ordfeminine /guillemotleft /logicalnot /hyphen /registered",
-"    /macron /degree /plusminus /twosuperior /threesuperior",
-"    /acute /mu /paragraph /periodcentered /cedilla",
-"    /onesuperior /ordmasculine /guillemotright /onequarter",
-"    /onehalf /threequarters /questiondown /Agrave /Aacute",
-"    /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla",
-"    /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute",
-"    /Icircumflex /Idieresis /Eth /Ntilde /Ograve /Oacute",
-"    /Ocircumflex /Otilde /Odieresis /multiply /Oslash",
-"    /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn",
-"    /germandbls /agrave /aacute /acircumflex /atilde",
-"    /adieresis /aring /ae /ccedilla /egrave /eacute",
-"    /ecircumflex /edieresis /igrave /iacute /icircumflex",
-"    /idieresis /eth /ntilde /ograve /oacute /ocircumflex",
-"    /otilde /odieresis /divide /oslash /ugrave /uacute",
-"    /ucircumflex /udieresis /yacute /thorn /ydieresis",
+    "128 /Euro",
+    "140 /ellipsis /trademark /perthousand /bullet",
+    "    /quoteleft /quoteright /guilsinglleft /guilsinglright",
+    "    /quotedblleft /quotedblright /quotedblbase /endash /emdash",
+    "    /minus /OE /oe /dagger /daggerdbl /fi /fl",
+    "160 /space /exclamdown /cent /sterling /currency",
+    "    /yen /brokenbar /section /dieresis /copyright",
+    "    /ordfeminine /guillemotleft /logicalnot /hyphen /registered",
+    "    /macron /degree /plusminus /twosuperior /threesuperior",
+    "    /acute /mu /paragraph /periodcentered /cedilla",
+    "    /onesuperior /ordmasculine /guillemotright /onequarter",
+    "    /onehalf /threequarters /questiondown /Agrave /Aacute",
+    "    /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla",
+    "    /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute",
+    "    /Icircumflex /Idieresis /Eth /Ntilde /Ograve /Oacute",
+    "    /Ocircumflex /Otilde /Odieresis /multiply /Oslash",
+    "    /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn",
+    "    /germandbls /agrave /aacute /acircumflex /atilde",
+    "    /adieresis /aring /ae /ccedilla /egrave /eacute",
+    "    /ecircumflex /edieresis /igrave /iacute /icircumflex",
+    "    /idieresis /eth /ntilde /ograve /oacute /ocircumflex",
+    "    /otilde /odieresis /divide /oslash /ugrave /uacute",
+    "    /ucircumflex /udieresis /yacute /thorn /ydieresis",
 };
 
 static const char *iso_8859_2[] = {
-"160 /space /Aogonek /breve /Lslash /currency /Lcaron",
-"    /Sacute /section /dieresis /Scaron /Scommaaccent",
-"    /Tcaron /Zacute /hyphen /Zcaron /Zdotaccent /degree",
-"    /aogonek /ogonek /lslash /acute /lcaron /sacute",
-"    /caron /cedilla /scaron /scommaaccent /tcaron",
-"    /zacute /hungarumlaut /zcaron /zdotaccent /Racute",
-"    /Aacute /Acircumflex /Abreve /Adieresis /Lacute",
-"    /Cacute /Ccedilla /Ccaron /Eacute /Eogonek",
-"    /Edieresis /Ecaron /Iacute /Icircumflex /Dcaron",
-"    /.notdef /Nacute /Ncaron /Oacute /Ocircumflex",
-"    /Ohungarumlaut /Odieresis /multiply /Rcaron /Uring",
-"    /Uacute /Uhungarumlaut /Udieresis /Yacute /Tcommaaccent",
-"    /germandbls /racute /aacute /acircumflex /abreve",
-"    /adieresis /lacute /cacute /ccedilla /ccaron /eacute",
-"    /eogonek /edieresis /ecaron /iacute /icircumflex",
-"    /dcaron /.notdef /nacute /ncaron /oacute /ocircumflex",
-"    /ohungarumlaut /odieresis /divide /rcaron /uring",
-"    /uacute /uhungarumlaut /udieresis /yacute /tcommaaccent",
-"    /dotaccent",
+    "160 /space /Aogonek /breve /Lslash /currency /Lcaron",
+    "    /Sacute /section /dieresis /Scaron /Scommaaccent",
+    "    /Tcaron /Zacute /hyphen /Zcaron /Zdotaccent /degree",
+    "    /aogonek /ogonek /lslash /acute /lcaron /sacute",
+    "    /caron /cedilla /scaron /scommaaccent /tcaron",
+    "    /zacute /hungarumlaut /zcaron /zdotaccent /Racute",
+    "    /Aacute /Acircumflex /Abreve /Adieresis /Lacute",
+    "    /Cacute /Ccedilla /Ccaron /Eacute /Eogonek",
+    "    /Edieresis /Ecaron /Iacute /Icircumflex /Dcaron",
+    "    /.notdef /Nacute /Ncaron /Oacute /Ocircumflex",
+    "    /Ohungarumlaut /Odieresis /multiply /Rcaron /Uring",
+    "    /Uacute /Uhungarumlaut /Udieresis /Yacute /Tcommaaccent",
+    "    /germandbls /racute /aacute /acircumflex /abreve",
+    "    /adieresis /lacute /cacute /ccedilla /ccaron /eacute",
+    "    /eogonek /edieresis /ecaron /iacute /icircumflex",
+    "    /dcaron /.notdef /nacute /ncaron /oacute /ocircumflex",
+    "    /ohungarumlaut /odieresis /divide /rcaron /uring",
+    "    /uacute /uhungarumlaut /udieresis /yacute /tcommaaccent",
+    "    /dotaccent",
 };
-
 
 /*
  * tGetFontIndex - get the font index
@@ -144,19 +142,19 @@ static const char *iso_8859_2[] = {
 static size_t
 tGetFontIndex(drawfile_fontref tFontRef)
 {
-	const char	*szFontname;
-	size_t		tIndex;
+	const char *szFontname;
+	size_t tIndex;
 
 	/* Get the font name */
 	szFontname = szGetFontname(tFontRef);
 	fail(szFontname == NULL);
-	if (szFontname == NULL) {
+	if(szFontname == NULL) {
 		return 0;
 	}
 
 	/* Find the name in the table */
-	for (tIndex = 0; tIndex < elementsof(atFontname); tIndex++) {
-		if (STRCEQ(atFontname[tIndex].szPSname, szFontname)) {
+	for(tIndex = 0; tIndex < elementsof(atFontname); tIndex++) {
+		if(STRCEQ(atFontname[tIndex].szPSname, szFontname)) {
 			return tIndex;
 		}
 	}
@@ -174,17 +172,17 @@ vSetLocation(int iLocationNumber)
 {
 	fail(iLocationNumber <= 0);
 
-	if ((size_t)iLocationNumber >= tLocations) {
+	if((size_t)iLocationNumber >= tLocations) {
 		/* Extend and set to zero */
 		tLocations += EXTENSION_ARRAY_SIZE;
 		alLocation = xrealloc(alLocation,
 				      tLocations * sizeof(int32_t));
 		memset(alLocation + tLocations - EXTENSION_ARRAY_SIZE,
-			0,
-			EXTENSION_ARRAY_SIZE * sizeof(int32_t));
+		       0,
+		       EXTENSION_ARRAY_SIZE * sizeof(int32_t));
 		DBG_DEC(tLocations);
 	}
-	if (iLocationNumber > iMaxLocationNumber) {
+	if(iLocationNumber > iMaxLocationNumber) {
 		iMaxLocationNumber = iLocationNumber;
 	}
 
@@ -202,7 +200,7 @@ static void
 vFillNextPageObject(void)
 {
 	iPageCount++;
-	if ((size_t)iPageCount >= tMaxPageObjects) {
+	if((size_t)iPageCount >= tMaxPageObjects) {
 		/* Extend the array */
 		tMaxPageObjects += EXTENSION_ARRAY_SIZE;
 		aiPageObject = xrealloc(aiPageObject,
@@ -220,7 +218,7 @@ vFillNextPageObject(void)
 static void
 vFPprintf(FILE *pOutFile, const char *szFormat, ...)
 {
-	va_list	tArg;
+	va_list tArg;
 
 	va_start(tArg, szFormat);
 	lFilePosition += vfprintf(pOutFile, szFormat, tArg);
@@ -233,9 +231,9 @@ vFPprintf(FILE *pOutFile, const char *szFormat, ...)
 void
 vCreateInfoDictionary(diagram_type *pDiag, int iWordVersion)
 {
-	FILE	*pOutFile;
-	const char	*szTitle, *szAuthor, *szSubject, *szCreator;
-	const char	*szCreationDate, *szModDate;
+	FILE *pOutFile;
+	const char *szTitle, *szAuthor, *szSubject, *szCreator;
+	const char *szCreationDate, *szModDate;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -248,16 +246,34 @@ vCreateInfoDictionary(diagram_type *pDiag, int iWordVersion)
 	szCreationDate = szGetCreationDate();
 	szModDate = szGetModDate();
 
-	switch (iWordVersion) {
-	case 0: szCreator = "Word for DOS"; break;
-	case 1: szCreator = "WinWord 1.x"; break;
-	case 2: szCreator = "WinWord 2.0"; break;
-	case 4: szCreator = "MacWord 4"; break;
-	case 5: szCreator = "MacWord 5"; break;
-	case 6: szCreator = "Word 6"; break;
-	case 7: szCreator = "Word 7/95"; break;
-	case 8: szCreator = "Word 97 or later"; break;
-	default: szCreator = NULL; break;
+	switch(iWordVersion) {
+	case 0:
+		szCreator = "Word for DOS";
+		break;
+	case 1:
+		szCreator = "WinWord 1.x";
+		break;
+	case 2:
+		szCreator = "WinWord 2.0";
+		break;
+	case 4:
+		szCreator = "MacWord 4";
+		break;
+	case 5:
+		szCreator = "MacWord 5";
+		break;
+	case 6:
+		szCreator = "Word 6";
+		break;
+	case 7:
+		szCreator = "Word 7/95";
+		break;
+	case 8:
+		szCreator = "Word 97 or later";
+		break;
+	default:
+		szCreator = NULL;
+		break;
 	}
 
 	pOutFile = pDiag->pOutFile;
@@ -265,23 +281,23 @@ vCreateInfoDictionary(diagram_type *pDiag, int iWordVersion)
 	vSetLocation(2);
 	vFPprintf(pOutFile, "2 0 obj\n");
 	vFPprintf(pOutFile, "<<\n");
-	if (szTitle != NULL && szTitle[0] != '\0') {
+	if(szTitle != NULL && szTitle[0] != '\0') {
 		vFPprintf(pOutFile, "/Title (%s)\n", szTitle);
 	}
-	if (szAuthor != NULL && szAuthor[0] != '\0') {
+	if(szAuthor != NULL && szAuthor[0] != '\0') {
 		vFPprintf(pOutFile, "/Author (%s)\n", szAuthor);
 	}
-	if (szSubject != NULL && szSubject[0] != '\0') {
+	if(szSubject != NULL && szSubject[0] != '\0') {
 		vFPprintf(pOutFile, "/Subject (%s)\n", szSubject);
 	}
-	if (szCreator != NULL && szCreator[0] != '\0') {
+	if(szCreator != NULL && szCreator[0] != '\0') {
 		vFPprintf(pOutFile, "/Creator (%s)\n", szCreator);
 	}
 	vFPprintf(pOutFile, "/Producer (%s %s)\n", szProducer, VERSIONSTRING);
-	if (szCreationDate != NULL && szCreationDate[0] != '\0') {
+	if(szCreationDate != NULL && szCreationDate[0] != '\0') {
 		vFPprintf(pOutFile, "/CreationDate (%s)\n", szCreationDate);
 	}
-	if (szModDate != NULL && szModDate[0] != '\0') {
+	if(szModDate != NULL && szModDate[0] != '\0') {
 		vFPprintf(pOutFile, "/ModDate (%s)\n", szModDate);
 	}
 	vFPprintf(pOutFile, ">>\n");
@@ -294,26 +310,26 @@ vCreateInfoDictionary(diagram_type *pDiag, int iWordVersion)
 static void
 vAddHdrFtr(diagram_type *pDiag, const hdrftr_block_type *pHdrFtrInfo)
 {
-	output_type	*pStart, *pPrev, *pNext;
+	output_type *pStart, *pPrev, *pNext;
 
 	fail(pDiag == NULL);
 	fail(pHdrFtrInfo == NULL);
 
 	vStartOfParagraphPDF(pDiag, 0);
 	pStart = pHdrFtrInfo->pText;
-	while (pStart != NULL) {
+	while(pStart != NULL) {
 		pNext = pStart;
-		while (pNext != NULL &&
-		       (pNext->tNextFree != 1 ||
-		        (pNext->szStorage[0] != PAR_END &&
-		         pNext->szStorage[0] != HARD_RETURN))) {
+		while(pNext != NULL &&
+		      (pNext->tNextFree != 1 ||
+		       (pNext->szStorage[0] != PAR_END &&
+			pNext->szStorage[0] != HARD_RETURN))) {
 			pNext = pNext->pNext;
 		}
-		if (pNext == NULL) {
-			if (bOutputContainsText(pStart)) {
+		if(pNext == NULL) {
+			if(bOutputContainsText(pStart)) {
 				vAlign2Window(pDiag, pStart,
-					lChar2MilliPoints(DEFAULT_SCREEN_WIDTH),
-					ALIGNMENT_LEFT);
+					      lChar2MilliPoints(DEFAULT_SCREEN_WIDTH),
+					      ALIGNMENT_LEFT);
 			} else {
 				vMove2NextLinePDF(pDiag, pStart->usFontSize);
 			}
@@ -321,19 +337,19 @@ vAddHdrFtr(diagram_type *pDiag, const hdrftr_block_type *pHdrFtrInfo)
 		}
 		fail(pNext->tNextFree != 1);
 		fail(pNext->szStorage[0] != PAR_END &&
-			pNext->szStorage[0] != HARD_RETURN);
+		     pNext->szStorage[0] != HARD_RETURN);
 
-		if (pStart != pNext) {
+		if(pStart != pNext) {
 			/* There is something to print */
 			pPrev = pNext->pPrev;
 			fail(pPrev->pNext != pNext);
 			/* Cut the chain */
 			pPrev->pNext = NULL;
-			if (bOutputContainsText(pStart)) {
+			if(bOutputContainsText(pStart)) {
 				/* Print it */
 				vAlign2Window(pDiag, pStart,
-					lChar2MilliPoints(DEFAULT_SCREEN_WIDTH),
-					ALIGNMENT_LEFT);
+					      lChar2MilliPoints(DEFAULT_SCREEN_WIDTH),
+					      ALIGNMENT_LEFT);
 			} else {
 				/* Just an empty line */
 				vMove2NextLinePDF(pDiag, pStart->usFontSize);
@@ -341,9 +357,9 @@ vAddHdrFtr(diagram_type *pDiag, const hdrftr_block_type *pHdrFtrInfo)
 			/* Repair the chain */
 			pPrev->pNext = pNext;
 		}
-		if (pNext->szStorage[0] == PAR_END) {
+		if(pNext->szStorage[0] == PAR_END) {
 			vEndOfParagraphPDF(pDiag, pNext->usFontSize,
-					(int32_t)pNext->usFontSize * 200);
+					   (int32_t)pNext->usFontSize * 200);
 		}
 		pStart = pNext->pNext;
 	}
@@ -363,31 +379,31 @@ vAddHeader(diagram_type *pDiag)
 	NO_DBG_MSG("vAddHeader");
 
 	pHdrInfo = pGetHdrFtrInfo(iSectionIndex, TRUE,
-					odd(iPageCount), bFirstInSection);
+				  odd(iPageCount), bFirstInSection);
 	pFtrInfo = pGetHdrFtrInfo(iSectionIndex, FALSE,
-					odd(iPageCount), bFirstInSection);
+				  odd(iPageCount), bFirstInSection);
 	/* Set the height of the footer of this page */
 	lFooterHeight = pFtrInfo == NULL ? 0 : pFtrInfo->lHeight;
 	fail(lFooterHeight < 0);
 
-	if (pHdrInfo == NULL ||
-	    pHdrInfo->pText == NULL ||
-	    pHdrInfo->lHeight <= 0) {
+	if(pHdrInfo == NULL ||
+	   pHdrInfo->pText == NULL ||
+	   pHdrInfo->lHeight <= 0) {
 		fail(pHdrInfo != NULL && pHdrInfo->lHeight < 0);
 		fail(pHdrInfo != NULL &&
-			pHdrInfo->pText != NULL &&
-			pHdrInfo->lHeight == 0);
+		     pHdrInfo->pText != NULL &&
+		     pHdrInfo->lHeight == 0);
 		return;
 	}
 
 	vAddHdrFtr(pDiag, pHdrInfo);
 
 	DBG_DEC_C(pHdrInfo->lHeight !=
-		lPageHeight - PS_TOP_MARGIN - pDiag->lYtop,
-		pHdrInfo->lHeight);
+		      lPageHeight - PS_TOP_MARGIN - pDiag->lYtop,
+		  pHdrInfo->lHeight);
 	DBG_DEC_C(pHdrInfo->lHeight !=
-		lPageHeight - PS_TOP_MARGIN - pDiag->lYtop,
-		lPageHeight - PS_TOP_MARGIN - pDiag->lYtop);
+		      lPageHeight - PS_TOP_MARGIN - pDiag->lYtop,
+		  lPageHeight - PS_TOP_MARGIN - pDiag->lYtop);
 } /* end of vAddHeader */
 
 /*
@@ -403,15 +419,15 @@ vAddFooter(diagram_type *pDiag)
 	NO_DBG_MSG("vAddFooter");
 
 	pFtrInfo = pGetHdrFtrInfo(iSectionIndex, FALSE,
-					odd(iPageCount), bFirstInSection);
+				  odd(iPageCount), bFirstInSection);
 	bFirstInSection = FALSE;
-	if (pFtrInfo == NULL ||
-	    pFtrInfo->pText == NULL ||
-	    pFtrInfo->lHeight <= 0) {
+	if(pFtrInfo == NULL ||
+	   pFtrInfo->pText == NULL ||
+	   pFtrInfo->lHeight <= 0) {
 		fail(pFtrInfo != NULL && pFtrInfo->lHeight < 0);
 		fail(pFtrInfo != NULL &&
-			pFtrInfo->pText != NULL &&
-			pFtrInfo->lHeight == 0);
+		     pFtrInfo->pText != NULL &&
+		     pFtrInfo->lHeight == 0);
 		return;
 	}
 
@@ -420,15 +436,15 @@ vAddFooter(diagram_type *pDiag)
 	DBG_DEC_C(pFtrInfo->lHeight != lFooterHeight, pFtrInfo->lHeight);
 	DBG_DEC_C(pFtrInfo->lHeight != lFooterHeight, lFooterHeight);
 	DBG_DEC_C(pDiag->lYtop < lFooterHeight + PS_BOTTOM_MARGIN,
-			pDiag->lYtop);
+		  pDiag->lYtop);
 	DBG_DEC_C(pDiag->lYtop < lFooterHeight + PS_BOTTOM_MARGIN,
-			lFooterHeight + PS_BOTTOM_MARGIN);
+		  lFooterHeight + PS_BOTTOM_MARGIN);
 
-	if (pDiag->lYtop > lFooterHeight + PS_BOTTOM_MARGIN) {
+	if(pDiag->lYtop > lFooterHeight + PS_BOTTOM_MARGIN) {
 		/* Move down to the start of the footer */
 		pDiag->lYtop = lFooterHeight + PS_BOTTOM_MARGIN;
 		vMoveTo(pDiag, 0);
-	} else if (pDiag->lYtop < lFooterHeight + PS_BOTTOM_MARGIN / 2) {
+	} else if(pDiag->lYtop < lFooterHeight + PS_BOTTOM_MARGIN / 2) {
 		DBG_FIXME();
 		/*
 		 * Move up to the start of the footer, to prevent moving
@@ -439,7 +455,7 @@ vAddFooter(diagram_type *pDiag)
 	}
 
 	DBG_FLT_C(pDiag->lYtop < lFooterHeight + PS_BOTTOM_MARGIN,
-	dDrawUnits2Points(lFooterHeight + PS_BOTTOM_MARGIN - pDiag->lYtop));
+		  dDrawUnits2Points(lFooterHeight + PS_BOTTOM_MARGIN - pDiag->lYtop));
 
 	vAddHdrFtr(pDiag, pFtrInfo);
 	bInFtrSpace = FALSE;
@@ -451,9 +467,9 @@ vAddFooter(diagram_type *pDiag)
 static void
 vEndPageObject(FILE *pOutFile)
 {
-	int32_t	lStreamEnd;
+	int32_t lStreamEnd;
 
-	if (lStreamStart < 0) {
+	if(lStreamStart < 0) {
 		/* There is no current page object */
 		return;
 	}
@@ -476,7 +492,7 @@ vEndPageObject(FILE *pOutFile)
 static void
 vMove2NextPage(diagram_type *pDiag, BOOL bNewSection)
 {
-	FILE	*pOutFile;
+	FILE *pOutFile;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -486,7 +502,7 @@ vMove2NextPage(diagram_type *pDiag, BOOL bNewSection)
 	vAddFooter(pDiag);
 	/* End the old page object */
 	vEndPageObject(pOutFile);
-	if (bNewSection) {
+	if(bNewSection) {
 		iSectionIndex++;
 		bFirstInSection = TRUE;
 	}
@@ -536,7 +552,7 @@ vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 
-	if (pDiag->lYtop <= lFooterHeight + PS_BOTTOM_MARGIN && !bInFtrSpace) {
+	if(pDiag->lYtop <= lFooterHeight + PS_BOTTOM_MARGIN && !bInFtrSpace) {
 		vMove2NextPage(pDiag, FALSE);
 		/* Repeat the last vertical movement on the new page */
 		pDiag->lYtop -= lLastVerticalMovement;
@@ -546,10 +562,10 @@ vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
 	DBG_DEC_C(pDiag->lYtop < PS_BOTTOM_MARGIN, pDiag->lYtop);
 	fail(pDiag->lYtop < PS_BOTTOM_MARGIN / 3);
 
-	if (pDiag->lYtop != lYtopCurr) {
+	if(pDiag->lYtop != lYtopCurr) {
 		vFPprintf(pDiag->pOutFile, "1 0 0 1 %.2f %.2f Tm\n",
-			dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
-			dDrawUnits2Points(pDiag->lYtop));
+			  dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
+			  dDrawUnits2Points(pDiag->lYtop));
 		lYtopCurr = pDiag->lYtop;
 	}
 } /* end of vMoveTo */
@@ -559,9 +575,9 @@ vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
  */
 void
 vProloguePDF(diagram_type *pDiag,
-	const char *szTask, const options_type *pOptions)
+	     const char *szTask, const options_type *pOptions)
 {
-	FILE	*pOutFile;
+	FILE *pOutFile;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -579,13 +595,13 @@ vProloguePDF(diagram_type *pDiag,
 	tMaxPageObjects = INITIAL_PAGEOBJECT_SIZE;
 	aiPageObject = xcalloc(tMaxPageObjects, sizeof(int));
 
-	if (pOptions->iPageHeight == INT_MAX) {
+	if(pOptions->iPageHeight == INT_MAX) {
 		lPageHeight = LONG_MAX;
 	} else {
 		lPageHeight = lPoints2DrawUnits(pOptions->iPageHeight);
 	}
 	DBG_DEC(lPageHeight);
-	if (pOptions->iPageWidth == INT_MAX) {
+	if(pOptions->iPageWidth == INT_MAX) {
 		lPageWidth = LONG_MAX;
 	} else {
 		lPageWidth = lPoints2DrawUnits(pOptions->iPageWidth);
@@ -630,9 +646,9 @@ vProloguePDF(diagram_type *pDiag,
 void
 vEpiloguePDF(diagram_type *pDiag)
 {
-	FILE	*pOutFile;
-	int32_t	lXref;
-	int	iIndex;
+	FILE *pOutFile;
+	int32_t lXref;
+	int iIndex;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -649,10 +665,10 @@ vEpiloguePDF(diagram_type *pDiag)
 	vFPprintf(pOutFile, "/Type /Pages\n");
 	vFPprintf(pOutFile, "/Count %d\n", iPageCount);
 	vFPprintf(pOutFile, "/MediaBox [ 0 0 %.0f %.0f ]\n",
-			dDrawUnits2Points(lPageWidth),
-			dDrawUnits2Points(lPageHeight));
+		  dDrawUnits2Points(lPageWidth),
+		  dDrawUnits2Points(lPageHeight));
 	vFPprintf(pOutFile, "/Kids [ ");
-	for (iIndex = 1; iIndex <= iPageCount; iIndex++) {
+	for(iIndex = 1; iIndex <= iPageCount; iIndex++) {
 		vFPprintf(pOutFile, "\t%d 0 R\n", aiPageObject[iIndex]);
 	}
 	vFPprintf(pOutFile, "]\n");
@@ -664,7 +680,7 @@ vEpiloguePDF(diagram_type *pDiag)
 	vFPprintf(pOutFile, "xref\n");
 	vFPprintf(pOutFile, "0 %d\n", iMaxLocationNumber + 1);
 	vFPprintf(pOutFile, "0000000000 65535 f \n");
-	for (iIndex = 1; iIndex <= iMaxLocationNumber; iIndex++) {
+	for(iIndex = 1; iIndex <= iMaxLocationNumber; iIndex++) {
 		vFPprintf(pOutFile, "%.10ld 00000 n \n", alLocation[iIndex]);
 	}
 
@@ -690,7 +706,7 @@ vEpiloguePDF(diagram_type *pDiag)
 static void
 vPrintPalette(FILE *pOutFile, const imagedata_type *pImg)
 {
-	int	iIndex;
+	int iIndex;
 
 	fail(pOutFile == NULL);
 	fail(pImg == NULL);
@@ -699,17 +715,17 @@ vPrintPalette(FILE *pOutFile, const imagedata_type *pImg)
 
 	vFPprintf(pOutFile, "\t/ColorSpace [ /Indexed\n");
 	vFPprintf(pOutFile, "\t/Device%s %d\n",
-		pImg->bColorImage ? "RGB" : "Gray", pImg->iColorsUsed - 1);
+		  pImg->bColorImage ? "RGB" : "Gray", pImg->iColorsUsed - 1);
 	vFPprintf(pOutFile, "<");
-	for (iIndex = 0; iIndex < pImg->iColorsUsed; iIndex++) {
+	for(iIndex = 0; iIndex < pImg->iColorsUsed; iIndex++) {
 		vFPprintf(pOutFile, "%02x",
-				(unsigned int)pImg->aucPalette[iIndex][0]);
-		if (pImg->bColorImage) {
+			  (unsigned int)pImg->aucPalette[iIndex][0]);
+		if(pImg->bColorImage) {
 			vFPprintf(pOutFile, "%02x%02x",
-				(unsigned int)pImg->aucPalette[iIndex][1],
-				(unsigned int)pImg->aucPalette[iIndex][2]);
+				  (unsigned int)pImg->aucPalette[iIndex][1],
+				  (unsigned int)pImg->aucPalette[iIndex][2]);
 		}
-		if (iIndex % 8 == 7) {
+		if(iIndex % 8 == 7) {
 			vFPprintf(pOutFile, "\n");
 		} else {
 			vFPprintf(pOutFile, " ");
@@ -724,13 +740,13 @@ vPrintPalette(FILE *pOutFile, const imagedata_type *pImg)
 void
 vImageProloguePDF(diagram_type *pDiag, const imagedata_type *pImg)
 {
-	FILE	*pOutFile;
+	FILE *pOutFile;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(pImg == NULL);
 
-	if (pImg->iVerSizeScaled <= 0 || pImg->iHorSizeScaled <= 0) {
+	if(pImg->iVerSizeScaled <= 0 || pImg->iHorSizeScaled <= 0) {
 		return;
 	}
 
@@ -745,25 +761,25 @@ vImageProloguePDF(diagram_type *pDiag, const imagedata_type *pImg)
 
 	vFPprintf(pOutFile, "ET\n");
 	vFPprintf(pOutFile, "q %% Image %03d\n", iImageCount);
-	if (pImg->eImageType == imagetype_is_dib) {
+	if(pImg->eImageType == imagetype_is_dib) {
 		/* Scanning from left to right and bottom to top */
 		vFPprintf(pOutFile, "%d 0 0 %d %.2f %.2f cm\n",
-			pImg->iHorSizeScaled, -pImg->iVerSizeScaled,
-			dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
-			dDrawUnits2Points(pDiag->lYtop) + pImg->iVerSizeScaled);
+			  pImg->iHorSizeScaled, -pImg->iVerSizeScaled,
+			  dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
+			  dDrawUnits2Points(pDiag->lYtop) + pImg->iVerSizeScaled);
 	} else {
 		/* Scanning from left to right and top to bottom */
 		vFPprintf(pOutFile, "%d 0 0 %d %.2f %.2f cm\n",
-			pImg->iHorSizeScaled, pImg->iVerSizeScaled,
-			dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
-			dDrawUnits2Points(pDiag->lYtop));
+			  pImg->iHorSizeScaled, pImg->iVerSizeScaled,
+			  dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
+			  dDrawUnits2Points(pDiag->lYtop));
 	}
 	vFPprintf(pOutFile, "BI\n");
 	vFPprintf(pOutFile, "\t/Width %d\n", pImg->iWidth);
 	vFPprintf(pOutFile, "\t/Height %d\n", pImg->iHeight);
-	switch (pImg->eImageType) {
+	switch(pImg->eImageType) {
 	case imagetype_is_jpeg:
-		switch (pImg->iComponents) {
+		switch(pImg->iComponents) {
 		case 1:
 			vFPprintf(pOutFile, "\t/ColorSpace /DeviceGray\n");
 			break;
@@ -772,13 +788,13 @@ vImageProloguePDF(diagram_type *pDiag, const imagedata_type *pImg)
 			break;
 		case 4:
 			vFPprintf(pOutFile, "\t/ColorSpace /DeviceCMYK\n");
-			if (pImg->bAdobe) {
+			if(pImg->bAdobe) {
 				/*
 				 * Adobe-conforming CMYK file
 				 * applying workaround for color inversion
 				 */
 				vFPprintf(pOutFile,
-					"\t/Decode [1 0 1 0 1 0 1 0]\n");
+					  "\t/Decode [1 0 1 0 1 0 1 0]\n");
 			}
 			break;
 		default:
@@ -787,33 +803,33 @@ vImageProloguePDF(diagram_type *pDiag, const imagedata_type *pImg)
 		}
 		vFPprintf(pOutFile, "\t/BitsPerComponent 8\n");
 		vFPprintf(pOutFile,
-			"\t/Filter [ /ASCII85Decode /DCTDecode ]\n");
+			  "\t/Filter [ /ASCII85Decode /DCTDecode ]\n");
 		break;
 	case imagetype_is_png:
-		if (pImg->iComponents == 3 || pImg->iComponents == 4) {
+		if(pImg->iComponents == 3 || pImg->iComponents == 4) {
 			vFPprintf(pOutFile, "\t/ColorSpace /DeviceRGB\n");
 			vFPprintf(pOutFile, "\t/BitsPerComponent 8\n");
-		} else if (pImg->iColorsUsed > 0) {
+		} else if(pImg->iColorsUsed > 0) {
 			vPrintPalette(pOutFile, pImg);
 			fail(pImg->uiBitsPerComponent > 8);
 			vFPprintf(pOutFile, "\t/BitsPerComponent %u\n",
-					pImg->uiBitsPerComponent);
+				  pImg->uiBitsPerComponent);
 		} else {
 			vFPprintf(pOutFile, "\t/ColorSpace /DeviceGray\n");
 			vFPprintf(pOutFile, "\t/BitsPerComponent 8\n");
 		}
 		vFPprintf(pOutFile,
-			"\t/Filter [ /ASCII85Decode /FlateDecode ]\n");
+			  "\t/Filter [ /ASCII85Decode /FlateDecode ]\n");
 		vFPprintf(pOutFile, "\t/DecodeParms [ null <<\n");
 		vFPprintf(pOutFile, "\t\t/Predictor 10\n");
 		vFPprintf(pOutFile, "\t\t/Colors %d\n", pImg->iComponents);
 		vFPprintf(pOutFile, "\t\t/BitsPerComponent %u\n",
-						pImg->uiBitsPerComponent);
+			  pImg->uiBitsPerComponent);
 		vFPprintf(pOutFile, "\t\t/Columns %d\n", pImg->iWidth);
 		vFPprintf(pOutFile, "\t\t>> ]\n");
 		break;
 	case imagetype_is_dib:
-		if (pImg->uiBitsPerComponent <= 8) {
+		if(pImg->uiBitsPerComponent <= 8) {
 			vPrintPalette(pOutFile, pImg);
 		} else {
 			vFPprintf(pOutFile, "\t/ColorSpace /DeviceRGB\n");
@@ -823,7 +839,7 @@ vImageProloguePDF(diagram_type *pDiag, const imagedata_type *pImg)
 		break;
 	default:
 		vFPprintf(pOutFile, "\t/ColorSpace /Device%s\n",
-			pImg->bColorImage ? "RGB" : "Gray");
+			  pImg->bColorImage ? "RGB" : "Gray");
 		vFPprintf(pOutFile, "\t/BitsPerComponent 8\n");
 		vFPprintf(pOutFile, "\t/Filter /ASCIIHexDecode\n");
 		break;
@@ -837,7 +853,7 @@ vImageProloguePDF(diagram_type *pDiag, const imagedata_type *pImg)
 void
 vImageEpiloguePDF(diagram_type *pDiag)
 {
-	FILE	*pOutFile;
+	FILE *pOutFile;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -862,13 +878,13 @@ vImageEpiloguePDF(diagram_type *pDiag)
 BOOL
 bAddDummyImagePDF(diagram_type *pDiag, const imagedata_type *pImg)
 {
-	FILE	*pOutFile;
+	FILE *pOutFile;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(pImg == NULL);
 
-	if (pImg->iVerSizeScaled <= 0 || pImg->iHorSizeScaled <= 0) {
+	if(pImg->iVerSizeScaled <= 0 || pImg->iHorSizeScaled <= 0) {
 		return FALSE;
 	}
 
@@ -886,10 +902,10 @@ bAddDummyImagePDF(diagram_type *pDiag, const imagedata_type *pImg)
 	vFPprintf(pOutFile, "\t1.0 w\n");
 	vFPprintf(pOutFile, "\t0.3 G\n");
 	vFPprintf(pOutFile, "\t%.2f %.2f %d %d re\n",
-			dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
-			dDrawUnits2Points(pDiag->lYtop),
-			pImg->iHorSizeScaled,
-			pImg->iVerSizeScaled);
+		  dDrawUnits2Points(pDiag->lXleft + PS_LEFT_MARGIN),
+		  dDrawUnits2Points(pDiag->lYtop),
+		  pImg->iHorSizeScaled,
+		  pImg->iVerSizeScaled);
 	vFPprintf(pOutFile, "\tS\n");
 	vFPprintf(pOutFile, "Q\n");
 	vFPprintf(pOutFile, "BT\n");
@@ -905,8 +921,8 @@ bAddDummyImagePDF(diagram_type *pDiag, const imagedata_type *pImg)
 void
 vAddFontsPDF(diagram_type *pDiag)
 {
-	FILE	*pOutFile;
-	size_t	tIndex;
+	FILE *pOutFile;
+	size_t tIndex;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -920,28 +936,28 @@ vAddFontsPDF(diagram_type *pDiag)
 	vFPprintf(pOutFile, "/Type /Encoding\n");
 	vFPprintf(pOutFile, "/BaseEncoding /StandardEncoding\n");
 	vFPprintf(pOutFile, "/Differences [\n");
-	switch (eEncoding) {
+	switch(eEncoding) {
 	case encoding_latin_1:
-		for (tIndex = 0;
-		     tIndex < elementsof(iso_8859_1);
-		     tIndex++) {
+		for(tIndex = 0;
+		    tIndex < elementsof(iso_8859_1);
+		    tIndex++) {
 			vFPprintf(pOutFile, "%s\n", iso_8859_1[tIndex]);
 		}
 		break;
 	case encoding_latin_2:
-		for (tIndex = 0;
-		     tIndex < elementsof(iso_8859_2);
-		     tIndex++) {
+		for(tIndex = 0;
+		    tIndex < elementsof(iso_8859_2);
+		    tIndex++) {
 			vFPprintf(pOutFile, "%s\n", iso_8859_2[tIndex]);
 		}
 		break;
 	case encoding_cyrillic:
 		werr(1,
-		"The combination PDF and Cyrillic is not supported");
+		     "The combination PDF and Cyrillic is not supported");
 		break;
 	case encoding_utf_8:
 		werr(1,
-		"The combination PDF and UTF-8 is not supported");
+		     "The combination PDF and UTF-8 is not supported");
 		break;
 	default:
 		DBG_DEC(eEncoding);
@@ -952,7 +968,7 @@ vAddFontsPDF(diagram_type *pDiag)
 	vFPprintf(pOutFile, "endobj\n");
 
 	/* Twelve of the standard type 1 fonts */
-	for (tIndex = 0; tIndex < 12; tIndex++) {
+	for(tIndex = 0; tIndex < 12; tIndex++) {
 		vSetLocation(5 + tIndex);
 		vFPprintf(pOutFile, "%u 0 obj\n", 5 + tIndex);
 		vFPprintf(pOutFile, "<<\n");
@@ -960,7 +976,7 @@ vAddFontsPDF(diagram_type *pDiag)
 		vFPprintf(pOutFile, "/Subtype /Type1\n");
 		vFPprintf(pOutFile, "/Name /F%u\n", 1 + tIndex);
 		vFPprintf(pOutFile, "/BaseFont /%s\n",
-						atFontname[tIndex].szPDFname);
+			  atFontname[tIndex].szPDFname);
 		vFPprintf(pOutFile, "/Encoding 4 0 R\n");
 		vFPprintf(pOutFile, ">>\n");
 		vFPprintf(pOutFile, "endobj\n");
@@ -972,7 +988,7 @@ vAddFontsPDF(diagram_type *pDiag)
 	vFPprintf(pOutFile, "<<\n");
 	vFPprintf(pOutFile, "/ProcSet [ /PDF /Text ]\n");
 	vFPprintf(pOutFile, "/Font <<\n");
-	for (tIndex = 0; tIndex < 12; tIndex++) {
+	for(tIndex = 0; tIndex < 12; tIndex++) {
 		vFPprintf(pOutFile, "\t/F%u %u 0 R\n", 1 + tIndex, 5 + tIndex);
 	}
 	vFPprintf(pOutFile, "\t>>\n");
@@ -986,15 +1002,15 @@ vAddFontsPDF(diagram_type *pDiag)
  */
 static void
 vPrintPDF(FILE *pFile, const char *szString, size_t tStringLength,
-	USHORT usFontstyle)
+	  USHORT usFontstyle)
 {
-	const UCHAR	*aucBytes;
-	double	dMove;
-	size_t	tCount;
+	const UCHAR *aucBytes;
+	double dMove;
+	size_t tCount;
 
 	fail(szString == NULL);
 
-	if (szString == NULL || szString[0] == '\0' || tStringLength == 0) {
+	if(szString == NULL || szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 	DBG_DEC_C(usFontSizeCurr < MIN_FONT_SIZE, usFontSizeCurr);
@@ -1002,13 +1018,13 @@ vPrintPDF(FILE *pFile, const char *szString, size_t tStringLength,
 	dMove = 0.0;
 
 	/* Up for superscript */
-	if (bIsSuperscript(usFontstyle) && usFontSizeCurr != 0) {
+	if(bIsSuperscript(usFontstyle) && usFontSizeCurr != 0) {
 		dMove = (double)((usFontSizeCurr + 1) / 2) * 0.375;
 		vFPprintf(pFile, "%.2f Ts\n", dMove);
 	}
 
 	/* Down for subscript */
-	if (bIsSubscript(usFontstyle) && usFontSizeCurr != 0) {
+	if(bIsSubscript(usFontstyle) && usFontSizeCurr != 0) {
 		dMove = (double)usFontSizeCurr * 0.125;
 		vFPprintf(pFile, "%.2f Ts\n", -dMove);
 	}
@@ -1016,23 +1032,23 @@ vPrintPDF(FILE *pFile, const char *szString, size_t tStringLength,
 	/* Generate and print the PDF output */
 	aucBytes = (UCHAR *)szString;
 	vFPprintf(pFile, "(");
-	for (tCount = 0; tCount < tStringLength ; tCount++) {
-		switch (aucBytes[tCount]) {
+	for(tCount = 0; tCount < tStringLength; tCount++) {
+		switch(aucBytes[tCount]) {
 		case '(':
 		case ')':
 		case '\\':
 			vFPprintf(pFile, "\\%c", szString[tCount]);
 			break;
 		default:
-			if (aucBytes[tCount] < 0x20 ||
-			    aucBytes[tCount] == 0x7f ||
-			    (aucBytes[tCount] >= 0x81 &&
-			     aucBytes[tCount] < 0x8c)) {
+			if(aucBytes[tCount] < 0x20 ||
+			   aucBytes[tCount] == 0x7f ||
+			   (aucBytes[tCount] >= 0x81 &&
+			    aucBytes[tCount] < 0x8c)) {
 				DBG_HEX(aucBytes[tCount]);
 				vFPprintf(pFile, " ");
-			} else if (aucBytes[tCount] >= 0x80) {
+			} else if(aucBytes[tCount] >= 0x80) {
 				vFPprintf(pFile, "\\%03o",
-						(UINT)aucBytes[tCount]);
+					  (UINT)aucBytes[tCount]);
 			} else {
 				vFPprintf(pFile, "%c", szString[tCount]);
 			}
@@ -1042,7 +1058,7 @@ vPrintPDF(FILE *pFile, const char *szString, size_t tStringLength,
 	vFPprintf(pFile, ") Tj\n");
 
 	/* Undo the superscript/subscript move */
-	if (dMove != 0.0) {
+	if(dMove != 0.0) {
 		vFPprintf(pFile, "0 Ts\n");
 	}
 } /* end of vPrintPDF */
@@ -1053,14 +1069,14 @@ vPrintPDF(FILE *pFile, const char *szString, size_t tStringLength,
 static void
 vSetColor(FILE *pFile, UCHAR ucFontColor)
 {
-	ULONG	ulTmp, ulRed, ulGreen, ulBlue;
+	ULONG ulTmp, ulRed, ulGreen, ulBlue;
 
 	ulTmp = ulColor2Color(ucFontColor);
-	ulRed   = (ulTmp & 0x0000ff00) >> 8;
+	ulRed = (ulTmp & 0x0000ff00) >> 8;
 	ulGreen = (ulTmp & 0x00ff0000) >> 16;
-	ulBlue  = (ulTmp & 0xff000000) >> 24;
+	ulBlue = (ulTmp & 0xff000000) >> 24;
 	vFPprintf(pFile, "%.3f %.3f %.3f rg\n",
-			ulRed / 255.0, ulGreen / 255.0, ulBlue / 255.0);
+		  ulRed / 255.0, ulGreen / 255.0, ulBlue / 255.0);
 } /* end of vSetColor */
 
 /*
@@ -1080,11 +1096,11 @@ vMove2NextLinePDF(diagram_type *pDiag, USHORT usFontSize)
  */
 void
 vSubstringPDF(diagram_type *pDiag,
-	char *szString, size_t tStringLength, int32_t lStringWidth,
-	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
-	USHORT usFontSize, USHORT usMaxFontSize)
+	      char *szString, size_t tStringLength, int32_t lStringWidth,
+	      UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
+	      USHORT usFontSize, USHORT usMaxFontSize)
 {
-	size_t	tFontIndex;
+	size_t tFontIndex;
 
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -1094,19 +1110,19 @@ vSubstringPDF(diagram_type *pDiag,
 	fail(usMaxFontSize < MIN_FONT_SIZE || usMaxFontSize > MAX_FONT_SIZE);
 	fail(usFontSize > usMaxFontSize);
 
-	if (szString[0] == '\0' || tStringLength == 0) {
+	if(szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
 	vMoveTo(pDiag, lComputeLeading(usMaxFontSize));
-	if (tFontRef != tFontRefCurr || usFontSize != usFontSizeCurr) {
+	if(tFontRef != tFontRefCurr || usFontSize != usFontSizeCurr) {
 		tFontIndex = tGetFontIndex(tFontRef);
 		vFPprintf(pDiag->pOutFile, "/F%u %.1f Tf\n",
-			 1 + tFontIndex, (double)usFontSize / 2.0);
+			  1 + tFontIndex, (double)usFontSize / 2.0);
 		tFontRefCurr = tFontRef;
 		usFontSizeCurr = usFontSize;
 	}
-	if ((int)ucFontColor != iFontColorCurr) {
+	if((int)ucFontColor != iFontColorCurr) {
 		vSetColor(pDiag->pOutFile, ucFontColor);
 		iFontColorCurr = (int)ucFontColor;
 	}
@@ -1132,14 +1148,14 @@ vStartOfParagraphPDF(diagram_type *pDiag, int32_t lBeforeIndentation)
  */
 void
 vEndOfParagraphPDF(diagram_type *pDiag,
-	USHORT usFontSize, int32_t lAfterIndentation)
+		   USHORT usFontSize, int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 	fail(lAfterIndentation < 0);
 
-	if (pDiag->lXleft > 0) {
+	if(pDiag->lXleft > 0) {
 		/* To the start of the line */
 		vMove2NextLinePDF(pDiag, usFontSize);
 	}

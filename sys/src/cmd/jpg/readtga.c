@@ -26,19 +26,19 @@ enum {
 };
 
 typedef struct {
-	int idlen;		/* length of string after header */
-	int cmaptype;		/* 1 =>  datatype = 1 => colourmapped */
-	int datatype;		/* see below */
-	int cmaporigin;		/* index of first entry in colour map */
-	int cmaplen;		/* length of olour map */
-	int cmapbpp;		/* bips per pixel of colour map: 16, 24, or 32 */
-	int xorigin;		/* source image origin */
+	int idlen;      /* length of string after header */
+	int cmaptype;   /* 1 =>  datatype = 1 => colourmapped */
+	int datatype;   /* see below */
+	int cmaporigin; /* index of first entry in colour map */
+	int cmaplen;    /* length of olour map */
+	int cmapbpp;    /* bips per pixel of colour map: 16, 24, or 32 */
+	int xorigin;    /* source image origin */
 	int yorigin;
 	int width;
 	int height;
-	int bpp;		/* bits per pixel of image: 16, 24, or 32 */
+	int bpp; /* bits per pixel of image: 16, 24, or 32 */
 	int descriptor;
-	uint8_t *cmap;		/* colour map (optional) */
+	uint8_t *cmap; /* colour map (optional) */
 } Tga;
 
 /*
@@ -50,15 +50,15 @@ typedef struct {
  */
 
 char *datatype[] = {
-	[0]	"No image data",
-	[1]	"color mapped",
-	[2]	"RGB",
-	[3]	"B&W",
-	[9]	"RLE color-mapped",
-	[10]	"RLE RGB",
-	[11]	"Compressed B&W",
-	[32]	"Compressed color",
-	[33]	"Quadtree compressed color",
+	[0] "No image data",
+	[1] "color mapped",
+	[2] "RGB",
+	[3] "B&W",
+	[9] "RLE color-mapped",
+	[10] "RLE RGB",
+	[11] "Compressed B&W",
+	[32] "Compressed color",
+	[33] "Quadtree compressed color",
 };
 
 static int
@@ -70,7 +70,7 @@ Bgeti(Biobuf *bp)
 		return -1;
 	if((y = Bgetc(bp)) < 0)
 		return -1;
-	return (y<<8)|x;
+	return (y << 8) | x;
 }
 
 static Tga *
@@ -107,22 +107,22 @@ rdhdr(Biobuf *bp)
 		return nil;
 
 	/* skip over ID, usually empty anyway */
-	if(Bseek(bp, h->idlen, 1) < 0){
+	if(Bseek(bp, h->idlen, 1) < 0) {
 		free(h);
 		return nil;
 	}
 
-	if(h->cmaptype == 0){
+	if(h->cmaptype == 0) {
 		h->cmap = 0;
 		return h;
 	}
 
-	n = (h->cmapbpp/8)*h->cmaplen;
-	if((h->cmap = malloc(n)) == nil){
+	n = (h->cmapbpp / 8) * h->cmaplen;
+	if((h->cmap = malloc(n)) == nil) {
 		free(h);
 		return nil;
 	}
-	if(Bread(bp, h->cmap, n) != n){
+	if(Bread(bp, h->cmap, n) != n) {
 		free(h);
 		free(h->cmap);
 		return nil;
@@ -142,19 +142,18 @@ luma_rle(Biobuf *bp, uint8_t *l, int num)
 	uint8_t len;
 	int i, got;
 
-	for(got = 0; got < num; got += len){
+	for(got = 0; got < num; got += len) {
 		if(Bread(bp, &len, 1) != 1)
 			break;
-		if(len & 0x80){
+		if(len & 0x80) {
 			len &= 0x7f;
-			len += 1;	/* run of zero is meaningless */
+			len += 1; /* run of zero is meaningless */
 			if(luma(bp, l, 1) != 1)
 				break;
 			for(i = 0; i < len && got < num; i++)
-				l[i+1] = *l;
-		}
-		else{
-			len += 1;	/* raw block of zero is meaningless */
+				l[i + 1] = *l;
+		} else {
+			len += 1; /* raw block of zero is meaningless */
 			if(luma(bp, l, len) != len)
 				break;
 		}
@@ -163,27 +162,26 @@ luma_rle(Biobuf *bp, uint8_t *l, int num)
 	return got;
 }
 
-
 static int
 rgba(Biobuf *bp, int bpp, uint8_t *r, uint8_t *g, uint8_t *b, int num)
 {
 	int i;
 	uint8_t x, y, buf[4];
 
-	switch(bpp){
+	switch(bpp) {
 	case 16:
-		for(i = 0; i < num; i++){
+		for(i = 0; i < num; i++) {
 			if(Bread(bp, buf, 2) != 2)
 				break;
 			x = buf[0];
 			y = buf[1];
-			*b++ = (x&0x1f)<<3;
-			*g++ = ((y&0x03)<<6) | ((x&0xe0)>>2);
-			*r++ = (y&0x1f)<<3;
+			*b++ = (x & 0x1f) << 3;
+			*g++ = ((y & 0x03) << 6) | ((x & 0xe0) >> 2);
+			*r++ = (y & 0x1f) << 3;
 		}
 		break;
 	case 24:
-		for(i = 0; i < num; i++){
+		for(i = 0; i < num; i++) {
 			if(Bread(bp, buf, 3) != 3)
 				break;
 			*b++ = buf[0];
@@ -192,7 +190,7 @@ rgba(Biobuf *bp, int bpp, uint8_t *r, uint8_t *g, uint8_t *b, int num)
 		}
 		break;
 	case 32:
-		for(i = 0; i < num; i++){
+		for(i = 0; i < num; i++) {
 			if(Bread(bp, buf, 4) != 4)
 				break;
 			*b++ = buf[0];
@@ -213,22 +211,21 @@ rgba_rle(Biobuf *bp, int bpp, uint8_t *r, uint8_t *g, uint8_t *b, int num)
 	uint8_t len;
 	int i, got;
 
-	for(got = 0; got < num; got += len){
+	for(got = 0; got < num; got += len) {
 		if(Bread(bp, &len, 1) != 1)
 			break;
-		if(len & 0x80){
+		if(len & 0x80) {
 			len &= 0x7f;
-			len += 1;	/* run of zero is meaningless */
+			len += 1; /* run of zero is meaningless */
 			if(rgba(bp, bpp, r, g, b, 1) != 1)
 				break;
-			for(i = 0; i < len-1 && got < num; i++){
-				r[i+1] = *r;
-				g[i+1] = *g;
-				b[i+1] = *b;
+			for(i = 0; i < len - 1 && got < num; i++) {
+				r[i + 1] = *r;
+				g[i + 1] = *g;
+				b[i + 1] = *b;
 			}
-		}
-		else{
-			len += 1;	/* raw block of zero is meaningless */
+		} else {
+			len += 1; /* raw block of zero is meaningless */
 			if(rgba(bp, bpp, r, g, b, len) != len)
 				break;
 		}
@@ -247,15 +244,15 @@ flip(Rawimage *ar)
 
 	w = Dx(ar->r);
 	h = Dy(ar->r);
-	if((t = malloc(w)) == nil){
+	if((t = malloc(w)) == nil) {
 		werrstr("ReadTGA: no memory - %r\n");
 		return -1;
 	}
 
-	for(c = 0; c < ar->nchans; c++){
+	for(c = 0; c < ar->nchans; c++) {
 		s = ar->chans[c];
 		d = ar->chans[c] + ar->chanlen - w;
-		for(l = 0; l < (h/2); l++){
+		for(l = 0; l < (h / 2); l++) {
 			memcpy(t, s, w);
 			memcpy(s, d, w);
 			memcpy(d, t, w);
@@ -276,13 +273,13 @@ reflect(Rawimage *ar)
 	w = Dx(ar->r);
 	h = Dy(ar->r);
 
-	for(c = 0; c < ar->nchans; c++){
+	for(c = 0; c < ar->nchans; c++) {
 		sol = ar->chans[c];
-		eol = ar->chans[c] +w -1;
-		for(l = 0; l < h; l++){
+		eol = ar->chans[c] + w - 1;
+		for(l = 0; l < h; l++) {
 			s = sol;
 			d = eol;
-			for(p = 0; p < w/2; p++){
+			for(p = 0; p < w / 2; p++) {
 				t = *s;
 				*s = *d;
 				*d = t;
@@ -296,8 +293,7 @@ reflect(Rawimage *ar)
 	return 0;
 }
 
-
-Rawimage**
+Rawimage **
 Breadtga(Biobuf *bp)
 {
 	Tga *h;
@@ -305,12 +301,12 @@ Breadtga(Biobuf *bp)
 	uint8_t *r, *g, *b;
 	Rawimage *ar, **array;
 
-	if((h = rdhdr(bp)) == nil){
+	if((h = rdhdr(bp)) == nil) {
 		werrstr("ReadTGA: bad header %r");
 		return nil;
 	}
 
-	if(0){
+	if(0) {
 		fprint(2, "idlen=%d\n", h->idlen);
 		fprint(2, "cmaptype=%d\n", h->cmaptype);
 		fprint(2, "datatype=%s\n", datatype[h->datatype]);
@@ -326,31 +322,30 @@ Breadtga(Biobuf *bp)
 	}
 
 	array = nil;
-	if((ar = calloc(sizeof(Rawimage), 1)) == nil){
+	if((ar = calloc(sizeof(Rawimage), 1)) == nil) {
 		werrstr("ReadTGA: no memory - %r\n");
 		goto Error;
 	}
 
-	if((array = calloc(sizeof(Rawimage *), 2)) == nil){
+	if((array = calloc(sizeof(Rawimage *), 2)) == nil) {
 		werrstr("ReadTGA: no memory - %r\n");
 		goto Error;
 	}
 	array[0] = ar;
 	array[1] = nil;
 
-	if(h->datatype == 3){
+	if(h->datatype == 3) {
 		ar->nchans = 1;
 		ar->chandesc = CY;
-	}
-	else{
+	} else {
 		ar->nchans = 3;
 		ar->chandesc = CRGB;
 	}
 
-	ar->chanlen = h->width*h->height;
+	ar->chanlen = h->width * h->height;
 	ar->r = Rect(0, 0, h->width, h->height);
-	for (c = 0; c < ar->nchans; c++)
-		if ((ar->chans[c] = malloc(h->width*h->height)) == nil){
+	for(c = 0; c < ar->nchans; c++)
+		if((ar->chans[c] = malloc(h->width * h->height)) == nil) {
 			werrstr("ReadTGA: no memory - %r\n");
 			goto Error;
 		}
@@ -358,49 +353,49 @@ Breadtga(Biobuf *bp)
 	g = ar->chans[1];
 	b = ar->chans[2];
 
-	num = h->width*h->height;
-	switch(h->datatype){
+	num = h->width * h->height;
+	switch(h->datatype) {
 	case 2:
-		if(rgba(bp, h->bpp, r, g, b, num) != num){
+		if(rgba(bp, h->bpp, r, g, b, num) != num) {
 			werrstr("ReadTGA: decode fail - %r\n");
 			goto Error;
 		}
 		break;
 	case 3:
-		if(luma(bp, r, num) != num){
+		if(luma(bp, r, num) != num) {
 			werrstr("ReadTGA: decode fail - %r\n");
 			goto Error;
 		}
 		break;
 	case 10:
-		if((n = rgba_rle(bp, h->bpp, r, g, b, num)) != num){
+		if((n = rgba_rle(bp, h->bpp, r, g, b, num)) != num) {
 			werrstr("ReadTGA: decode fail (%d!=%d) - %r\n", n, num);
 			goto Error;
 		}
 		break;
 	case 11:
-		if(luma_rle(bp, r, num) != num){
+		if(luma_rle(bp, r, num) != num) {
 			werrstr("ReadTGA: decode fail - %r\n");
 			goto Error;
 		}
 		break;
 	default:
 		werrstr("ReadTGA: type=%d (%s) unsupported\n", h->datatype, datatype[h->datatype]);
-		goto Error;	
- 	}
+		goto Error;
+	}
 
 	if(h->xorigin != 0)
 		reflect(ar);
 	if(h->yorigin == 0)
 		flip(ar);
-	
+
 	free(h->cmap);
 	free(h);
 	return array;
 Error:
 
 	if(ar)
-		for (c = 0; c < ar->nchans; c++)
+		for(c = 0; c < ar->nchans; c++)
 			free(ar->chans[c]);
 	free(ar);
 	free(array);
@@ -409,17 +404,15 @@ Error:
 	return nil;
 }
 
-Rawimage**
+Rawimage **
 readtga(int fd)
 {
-	Rawimage * *a;
+	Rawimage **a;
 	Biobuf b;
 
-	if (Binit(&b, fd, OREAD) < 0)
+	if(Binit(&b, fd, OREAD) < 0)
 		return nil;
 	a = Breadtga(&b);
 	Bterm(&b);
 	return a;
 }
-
-

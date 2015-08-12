@@ -26,7 +26,7 @@ queue(Proc **first, Proc **last)
 	up->qnext = 0;
 }
 
-static Proc*
+static Proc *
 dequeue(Proc **first, Proc **last)
 {
 	Proc *t;
@@ -54,9 +54,9 @@ qlock(QLock *q)
 	/*
 	 * Can't assert this because of RWLock
 	assert(q->hold != up);
-	 */		
+	 */
 
-	queue((Proc**)&q->first, (Proc**)&q->last);
+	queue((Proc **)&q->first, (Proc **)&q->last);
 	unlock(&q->lk);
 	procsleep();
 }
@@ -84,7 +84,7 @@ qunlock(QLock *q)
 	 * Can't assert this because of RWlock
 	assert(q->hold == CT);
 	 */
-	p = dequeue((Proc**)&q->first, (Proc**)&q->last);
+	p = dequeue((Proc **)&q->first, (Proc **)&q->last);
 	if(p) {
 		q->hold = p;
 		unlock(&q->lk);
@@ -100,4 +100,3 @@ holdqlock(QLock *q)
 {
 	return q->hold == up;
 }
-

@@ -28,7 +28,7 @@
 /* Requires stdio.h, gsmemory.h */
 
 #ifndef gslib_INCLUDED
-#  define gslib_INCLUDED
+#define gslib_INCLUDED
 
 /*
  * Initialize the library.  gs_lib_init does all of the initialization,
@@ -36,8 +36,8 @@
  * use a different default allocator during initialization, it should call
  * gs_lib_init0 and then gs_lib_init1.
  */
-int gs_lib_init(FILE * debug_out);
-gs_memory_t *gs_lib_init0(FILE * debug_out);
+int gs_lib_init(FILE *debug_out);
+gs_memory_t *gs_lib_init0(FILE *debug_out);
 int gs_lib_init1(gs_memory_t *);
 
 /* Clean up after execution. */

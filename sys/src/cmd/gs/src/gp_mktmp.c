@@ -32,25 +32,25 @@
 char *
 mktemp(char *fname)
 {
-    struct stat fst;
-    int len = strlen(fname);
-    char *end = fname + len - 6;
-    
-    if (len < 6 || strcmp(end, "XXXXXX"))
-	return (char *)0;	/* invalid  */
-    strcpy(end, "AA.AAA");
+	struct stat fst;
+	int len = strlen(fname);
+	char *end = fname + len - 6;
 
-    while (stat(fname, &fst) == 0) {
-	char *inc = fname + len - 1;
+	if(len < 6 || strcmp(end, "XXXXXX"))
+		return (char *)0; /* invalid  */
+	strcpy(end, "AA.AAA");
 
-	while (*inc == 'Z' || *inc == '.') {
-	    if (inc == end)
-		return (char *)0;	/* failure */
-	    if (*inc == 'Z')
-		*inc = 'A';
-	    --inc;
+	while(stat(fname, &fst) == 0) {
+		char *inc = fname + len - 1;
+
+		while(*inc == 'Z' || *inc == '.') {
+			if(inc == end)
+				return (char *)0; /* failure */
+			if(*inc == 'Z')
+				*inc = 'A';
+			--inc;
+		}
+		++*inc;
 	}
-	++*inc;
-    }
-    return fname;
+	return fname;
 }

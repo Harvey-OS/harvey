@@ -28,22 +28,22 @@
 /* Requires imemory.h, ostack.h */
 
 #ifndef iutil_INCLUDED
-#  define iutil_INCLUDED
+#define iutil_INCLUDED
 
 /* ------ Object utilities ------ */
 
 /* Copy refs from one place to another. */
 /* (If we are copying to the stack, we can just use memcpy.) */
-void refcpy_to_new(ref * to, const ref * from, uint size,
+void refcpy_to_new(ref *to, const ref *from, uint size,
 		   gs_dual_memory_t *dmem);
-int refcpy_to_old(ref * aref, uint index, const ref * from, uint size,
+int refcpy_to_old(ref *aref, uint index, const ref *from, uint size,
 		  gs_dual_memory_t *dmem, client_name_t cname);
 
 /*
  * Fill an array with nulls.
  * For backward compatibility, we define the procedure with a new name.
  */
-void refset_null_new(ref * to, uint size, uint new_mask);
+void refset_null_new(ref *to, uint size, uint new_mask);
 #define refset_null(to, size) refset_null_new(to, size, ialloc_new_mask)
 
 /* Compare two objects for equality. */
@@ -72,8 +72,8 @@ int obj_string_data(const gs_memory_t *mem, const ref *op, const byte **pchars, 
  * not for allocating; if it is NULL and full_print != 0, structures will
  * print as --(struct)--.
  */
-#define CVP_MAX_STRING 200  /* strings are truncated here if full_print = 1 */
-int obj_cvp(const ref * op, byte *str, uint len, uint * prlen,
+#define CVP_MAX_STRING 200 /* strings are truncated here if full_print = 1 */
+int obj_cvp(const ref *op, byte *str, uint len, uint *prlen,
 	    int full_print, uint start_pos, const gs_memory_t *mem);
 
 /*
@@ -89,8 +89,8 @@ int obj_cvp(const ref * op, byte *str, uint len, uint * prlen,
  * and it can return a pointer to the data for names and strings, like
  * obj_string_data.
  */
-int obj_cvs(const gs_memory_t *mem, const ref * op, byte * str, uint len, uint * prlen,
-	    const byte ** pchars);
+int obj_cvs(const gs_memory_t *mem, const ref *op, byte *str, uint len, uint *prlen,
+	    const byte **pchars);
 
 /* Get an element from an array (packed or not). */
 int array_get(const gs_memory_t *mem, const ref *, long, ref *);
@@ -104,7 +104,7 @@ void packed_get(const gs_memory_t *mem, const ref_packed *, ref *);
 /* Check to make sure an interval contains no object references */
 /* to a space younger than a given one. */
 /* Return 0 or e_invalidaccess. */
-int refs_check_space(const ref * refs, uint size, uint space);
+int refs_check_space(const ref *refs, uint size, uint space);
 
 /* ------ String utilities ------ */
 
@@ -143,7 +143,7 @@ int make_floats(ref *, const float *, int);
 
 /* Define the gs_matrix type if necessary. */
 #ifndef gs_matrix_DEFINED
-#  define gs_matrix_DEFINED
+#define gs_matrix_DEFINED
 typedef struct gs_matrix_s gs_matrix;
 #endif
 
@@ -155,9 +155,9 @@ int read_matrix(const gs_memory_t *mem, const ref *, gs_matrix *);
 /* If dmem is not NULL, imem is ignored. */
 int write_matrix_in(ref *op, const gs_matrix *pmat, gs_dual_memory_t *dmem,
 		    gs_ref_memory_t *imem);
-#define write_matrix_new(op, pmat, imem)\
-  write_matrix_in(op, pmat, NULL, imem)
-#define write_matrix(op, pmat)\
-  write_matrix_in(op, pmat, idmemory, NULL)
+#define write_matrix_new(op, pmat, imem) \
+	write_matrix_in(op, pmat, NULL, imem)
+#define write_matrix(op, pmat) \
+	write_matrix_in(op, pmat, idmemory, NULL)
 
 #endif /* iutil_INCLUDED */

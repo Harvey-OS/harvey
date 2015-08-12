@@ -53,11 +53,9 @@ static char *ident = "$Id: ttyio.c,v 1.2 89/02/12 10:06:11 mark Exp $";
 static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
-
 /* Headers */
 
 #include "pax.h"
-
 
 /* open_tty - open the terminal for interactive queries
  *
@@ -82,31 +80,32 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-int open_tty(void)
+int
+open_tty(void)
 
 #else
 
-int open_tty()
+int
+open_tty()
 
 #endif
 {
-    int             fd;		/* file descriptor for terminal */
-    SIG_T         (*intr)();	/* used to restore interupts if signal fails */
+	int fd;		 /* file descriptor for terminal */
+	SIG_T (*intr)(); /* used to restore interupts if signal fails */
 
-    if ((intr = signal(SIGINT, SIG_IGN)) == SIG_IGN) {
+	if((intr = signal(SIGINT, SIG_IGN)) == SIG_IGN) {
+		return (-1);
+	}
+	signal(SIGINT, intr);
+	if((fd = open(TTY, O_RDWR)) < 0) {
+		return (-1);
+	}
+	if(isatty(fd)) {
+		return (fd);
+	}
+	close(fd);
 	return (-1);
-    }
-    signal(SIGINT, intr);
-    if ((fd = open(TTY, O_RDWR)) < 0) {
-	return (-1);
-    }
-    if (isatty(fd)) {
-	return (fd);
-    }
-    close(fd);
-    return (-1);
 }
-
 
 /* nextask - ask a question and get a response
  *
@@ -137,45 +136,44 @@ int open_tty()
 
 #ifdef __STDC__
 
-int nextask(char *msg, char *answer, int limit)
+int
+nextask(char *msg, char *answer, int limit)
 
 #else
 
-int nextask(msg, answer, limit)
-char           *msg;		/* message to display for user */
-char           *answer;		/* pointer to user's response to question */
-int             limit;		/* limit of length for user's response */
+int nextask(msg, answer, limit) char *msg; /* message to display for user */
+char *answer;				   /* pointer to user's response to question */
+int limit;				   /* limit of length for user's response */
 
 #endif
 {
-    int             idx;	/* index into answer for character input */
-    int             got;	/* number of characters read */
-    char            c;		/* character read */
+	int idx; /* index into answer for character input */
+	int got; /* number of characters read */
+	char c;  /* character read */
 
-    if (ttyf < 0) {
-	fatal("/dev/tty Unavailable");
-    }
-    write(ttyf, msg, (uint) strlen(msg));
-    idx = 0;
-    while ((got = read(ttyf, &c, 1)) == 1) {
-	if (c == '\n') {
-	    break;
-	} else if (c == ' ' || c == '\t') {
-	    continue;
-	} else if (idx < limit - 1) {
-	    answer[idx++] = c;
+	if(ttyf < 0) {
+		fatal("/dev/tty Unavailable");
 	}
-    }
-    if (got == 0) {		/* got an EOF */
-        return(-1);
-    }
-    if (got < 0) {
-	fatal(strerror());
-    }
-    answer[idx] = '\0';
-    return(0);
+	write(ttyf, msg, (uint)strlen(msg));
+	idx = 0;
+	while((got = read(ttyf, &c, 1)) == 1) {
+		if(c == '\n') {
+			break;
+		} else if(c == ' ' || c == '\t') {
+			continue;
+		} else if(idx < limit - 1) {
+			answer[idx++] = c;
+		}
+	}
+	if(got == 0) { /* got an EOF */
+		return (-1);
+	}
+	if(got < 0) {
+		fatal(strerror());
+	}
+	answer[idx] = '\0';
+	return (0);
 }
-
 
 /* lineget - get a line from a given stream
  *
@@ -196,31 +194,31 @@ int             limit;		/* limit of length for user's response */
 
 #ifdef __STDC__
 
-int lineget(FILE *stream, char *buf)
+int
+lineget(FILE *stream, char *buf)
 
 #else
 
 int lineget(stream, buf)
-FILE           *stream;		/* stream to get input from */
-char           *buf;		/* buffer to put input into */
+    FILE *stream; /* stream to get input from */
+char *buf;	/* buffer to put input into */
 
 #endif
 {
-    int             c;
+	int c;
 
-    for (;;) {
-	if ((c = getc(stream)) == EOF) {
-	    return (-1);
+	for(;;) {
+		if((c = getc(stream)) == EOF) {
+			return (-1);
+		}
+		if(c == '\n') {
+			break;
+		}
+		*buf++ = c;
 	}
-	if (c == '\n') {
-	    break;
-	}
-	*buf++ = c;
-    }
-    *buf = '\0';
-    return (0);
+	*buf = '\0';
+	return (0);
 }
-
 
 /* next - Advance to the next archive volume. 
  *
@@ -241,31 +239,31 @@ char           *buf;		/* buffer to put input into */
 
 #ifdef __STDC__
 
-void next(int mode)
+void
+next(int mode)
 
 #else
 
-void next(mode)
-int             mode;		/* mode of archive (READ, WRITE, PASS) */
+void next(mode) int mode; /* mode of archive (READ, WRITE, PASS) */
 
 #endif
 {
-    char            msg[200];	/* buffer for message display */ 
-    char            answer[20];	/* buffer for user's answer */
-    int             ret;
+	char msg[200];   /* buffer for message display */
+	char answer[20]; /* buffer for user's answer */
+	int ret;
 
-    close_archive();
+	close_archive();
 
-    sprintf(msg, "%s: Ready for volume %u\n%s: Type \"go\" when ready to proceed (or \"quit\" to abort): \07",
-		   myname, arvolume + 1, myname);
-    for (;;) {
-	ret = nextask(msg, answer, sizeof(answer));
-	if (ret == -1 || strcmp(answer, "quit") == 0) {
-	    fatal("Aborted");
+	sprintf(msg, "%s: Ready for volume %u\n%s: Type \"go\" when ready to proceed (or \"quit\" to abort): \07",
+		myname, arvolume + 1, myname);
+	for(;;) {
+		ret = nextask(msg, answer, sizeof(answer));
+		if(ret == -1 || strcmp(answer, "quit") == 0) {
+			fatal("Aborted");
+		}
+		if(strcmp(answer, "go") == 0 && open_archive(mode) == 0) {
+			break;
+		}
 	}
-	if (strcmp(answer, "go") == 0 && open_archive(mode) == 0) {
-	    break;
-	}
-    }
-    warnarch("Continuing", (OFFSET) 0);
+	warnarch("Continuing", (OFFSET)0);
 }

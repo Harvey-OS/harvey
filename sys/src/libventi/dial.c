@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <venti.h>
 
-VtConn*
+VtConn *
 vtdial(char *addr)
 {
 	char *na;
@@ -29,6 +29,6 @@ vtdial(char *addr)
 
 	z = vtconn(fd, fd);
 	if(z)
-		strecpy(z->addr, z->addr+sizeof z->addr, na);
+		strecpy(z->addr, z->addr + sizeof z->addr, na);
 	return z;
 }

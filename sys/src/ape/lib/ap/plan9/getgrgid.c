@@ -24,7 +24,7 @@ getgrgid(gid_t gid)
 	num = gid;
 	nam = 0;
 	mem = 0;
-	if(_getpw(&num, &nam, &mem)){
+	if(_getpw(&num, &nam, &mem)) {
 		holdgroup.gr_name = nam;
 		holdgroup.gr_gid = num;
 		holdgroup.gr_mem = _grpmems(mem);

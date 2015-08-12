@@ -8,9 +8,9 @@
  */
 
 #include <string.h>
-#define	N	10000
+#define N 10000
 
-static void*
+static void *
 pmemccpy(void *a1, void *a2, int c, size_t n)
 {
 	char *s1, *s2;
@@ -25,7 +25,7 @@ pmemccpy(void *a1, void *a2, int c, size_t n)
 	return 0;
 }
 
-char*
+char *
 strcpy(char *s1, const char *s2)
 {
 	char *os1;

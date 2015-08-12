@@ -18,7 +18,7 @@
 #include "ethermii.h"
 
 int
-mii(Mii* mii, int mask)
+mii(Mii *mii, int mask)
 {
 	MiiPhy *miiphy;
 	int bit, phyno, r, rmask;
@@ -30,11 +30,11 @@ mii(Mii* mii, int mask)
 	 * the Mii information.
 	 */
 	rmask = 0;
-	for(phyno = 0; phyno < NMiiPhy; phyno++){
-		bit = 1<<phyno;
+	for(phyno = 0; phyno < NMiiPhy; phyno++) {
+		bit = 1 << phyno;
 		if(!(mask & bit))
 			continue;
-		if(mii->mask & bit){
+		if(mii->mask & bit) {
 			rmask |= bit;
 			continue;
 		}
@@ -45,9 +45,9 @@ mii(Mii* mii, int mask)
 
 		miiphy->mii = mii;
 		r = mii->mir(mii, phyno, Phyidr1);
-		miiphy->oui = (r & 0x3FFF)<<6;
+		miiphy->oui = (r & 0x3FFF) << 6;
 		r = mii->mir(mii, phyno, Phyidr2);
-		miiphy->oui |= r>>10;
+		miiphy->oui |= r >> 10;
 		miiphy->phyno = phyno;
 
 		miiphy->anar = ~0;
@@ -66,7 +66,7 @@ mii(Mii* mii, int mask)
 }
 
 int
-miimir(Mii* mii, int r)
+miimir(Mii *mii, int r)
 {
 	if(mii == nil || mii->ctlr == nil || mii->curphy == nil)
 		return -1;
@@ -74,7 +74,7 @@ miimir(Mii* mii, int r)
 }
 
 int
-miimiw(Mii* mii, int r, int data)
+miimiw(Mii *mii, int r, int data)
 {
 	if(mii == nil || mii->ctlr == nil || mii->curphy == nil)
 		return -1;
@@ -82,7 +82,7 @@ miimiw(Mii* mii, int r, int data)
 }
 
 int
-miireset(Mii* mii)
+miireset(Mii *mii)
 {
 	int bmcr;
 
@@ -97,7 +97,7 @@ miireset(Mii* mii)
 }
 
 int
-miiane(Mii* mii, int a, int p, int e)
+miiane(Mii *mii, int a, int p, int e)
 {
 	int anar, bmsr, mscr, r, phyno;
 
@@ -110,12 +110,12 @@ miiane(Mii* mii, int a, int p, int e)
 		return -1;
 
 	if(a != ~0)
-		anar = (AnaTXFD|AnaTXHD|Ana10FD|Ana10HD) & a;
+		anar = (AnaTXFD | AnaTXHD | Ana10FD | Ana10HD) & a;
 	else if(mii->curphy->anar != ~0)
 		anar = mii->curphy->anar;
-	else{
+	else {
 		anar = mii->mir(mii, phyno, Anar);
-		anar &= ~(AnaAP|AnaP|AnaT4|AnaTXFD|AnaTXHD|Ana10FD|Ana10HD);
+		anar &= ~(AnaAP | AnaP | AnaT4 | AnaTXFD | AnaTXHD | Ana10FD | Ana10HD);
 		if(bmsr & Bmsr10THD)
 			anar |= Ana10HD;
 		if(bmsr & Bmsr10TFD)
@@ -128,19 +128,19 @@ miiane(Mii* mii, int a, int p, int e)
 	mii->curphy->anar = anar;
 
 	if(p != ~0)
-		anar |= (AnaAP|AnaP) & p;
+		anar |= (AnaAP | AnaP) & p;
 	else if(mii->curphy->fc != ~0)
 		anar |= mii->curphy->fc;
-	mii->curphy->fc = (AnaAP|AnaP) & anar;
+	mii->curphy->fc = (AnaAP | AnaP) & anar;
 
-	if(bmsr & BmsrEs){
+	if(bmsr & BmsrEs) {
 		mscr = mii->mir(mii, phyno, Mscr);
-		mscr &= ~(Mscr1000TFD|Mscr1000THD);
+		mscr &= ~(Mscr1000TFD | Mscr1000THD);
 		if(e != ~0)
-			mscr |= (Mscr1000TFD|Mscr1000THD) & e;
+			mscr |= (Mscr1000TFD | Mscr1000THD) & e;
 		else if(mii->curphy->mscr != ~0)
 			mscr = mii->curphy->mscr;
-		else{
+		else {
 			r = mii->mir(mii, phyno, Esr);
 			if(r & Esr1000THD)
 				mscr |= Mscr1000THD;
@@ -153,8 +153,8 @@ miiane(Mii* mii, int a, int p, int e)
 	mii->miw(mii, phyno, Anar, anar);
 
 	r = mii->mir(mii, phyno, Bmcr);
-	if(!(r & BmcrR)){
-		r |= BmcrAne|BmcrRan;
+	if(!(r & BmcrR)) {
+		r |= BmcrAne | BmcrRan;
 		mii->miw(mii, phyno, Bmcr, r);
 	}
 
@@ -162,7 +162,7 @@ miiane(Mii* mii, int a, int p, int e)
 }
 
 int
-miistatus(Mii* mii)
+miistatus(Mii *mii)
 {
 	MiiPhy *phy;
 	int anlpar, bmsr, p, r, phyno;
@@ -177,51 +177,48 @@ miistatus(Mii* mii)
 	 * (Read status twice as the Ls bit is sticky).
 	 */
 	bmsr = mii->mir(mii, phyno, Bmsr);
-	if(!(bmsr & (BmsrAnc|BmsrAna)))
+	if(!(bmsr & (BmsrAnc | BmsrAna)))
 		return -1;
 
 	bmsr = mii->mir(mii, phyno, Bmsr);
-	if(!(bmsr & BmsrLs)){
+	if(!(bmsr & BmsrLs)) {
 		phy->link = 0;
 		return -1;
 	}
 
 	phy->speed = phy->fd = phy->rfc = phy->tfc = 0;
-	if(phy->mscr){
+	if(phy->mscr) {
 		r = mii->mir(mii, phyno, Mssr);
-		if((phy->mscr & Mscr1000TFD) && (r & Mssr1000TFD)){
+		if((phy->mscr & Mscr1000TFD) && (r & Mssr1000TFD)) {
 			phy->speed = 1000;
 			phy->fd = 1;
-		}
-		else if((phy->mscr & Mscr1000THD) && (r & Mssr1000THD))
+		} else if((phy->mscr & Mscr1000THD) && (r & Mssr1000THD))
 			phy->speed = 1000;
 	}
 
 	anlpar = mii->mir(mii, phyno, Anlpar);
-	if(phy->speed == 0){
+	if(phy->speed == 0) {
 		r = phy->anar & anlpar;
-		if(r & AnaTXFD){
+		if(r & AnaTXFD) {
 			phy->speed = 100;
 			phy->fd = 1;
-		}
-		else if(r & AnaTXHD)
+		} else if(r & AnaTXHD)
 			phy->speed = 100;
-		else if(r & Ana10FD){
+		else if(r & Ana10FD) {
 			phy->speed = 10;
 			phy->fd = 1;
-		}
-		else if(r & Ana10HD)
+		} else if(r & Ana10HD)
 			phy->speed = 10;
 	}
 	if(phy->speed == 0)
 		return -1;
 
-	if(phy->fd){
+	if(phy->fd) {
 		p = phy->fc;
-		r = anlpar & (AnaAP|AnaP);
-		if(p == AnaAP && r == (AnaAP|AnaP))
+		r = anlpar & (AnaAP | AnaP);
+		if(p == AnaAP && r == (AnaAP | AnaP))
 			phy->tfc = 1;
-		else if(p == (AnaAP|AnaP) && r == AnaAP)
+		else if(p == (AnaAP | AnaP) && r == AnaAP)
 			phy->rfc = 1;
 		else if((p & AnaP) && (r & AnaP))
 			phy->rfc = phy->tfc = 1;

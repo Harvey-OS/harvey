@@ -24,7 +24,7 @@
 #include "fmt.h"
 #include "fmtdef.h"
 
-char*
+char *
 vseprint(char *buf, char *e, char *fmt, va_list args)
 {
 	Fmt f;
@@ -40,7 +40,6 @@ vseprint(char *buf, char *e, char *fmt, va_list args)
 	f.nfmt = 0;
 	f.args = args;
 	dofmt(&f, fmt);
-	*(char*)f.to = '\0';
-	return (char*)f.to;
+	*(char *)f.to = '\0';
+	return (char *)f.to;
 }
-

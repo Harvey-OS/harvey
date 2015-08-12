@@ -12,11 +12,9 @@
 #include <oventi.h>
 
 /* score of a zero length block */
-uint8_t	vtZeroScore[VtScoreSize] = {
-	0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55,
-	0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09
-};
-
+uint8_t vtZeroScore[VtScoreSize] = {
+    0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55,
+    0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09};
 
 int
 vtZeroExtend(int type, uint8_t *buf, int n, int nn)
@@ -25,7 +23,7 @@ vtZeroExtend(int type, uint8_t *buf, int n, int nn)
 
 	switch(type) {
 	default:
-		memset(buf+n, 0, nn-n);
+		memset(buf + n, 0, nn - n);
 		break;
 	case VtPointerType0:
 	case VtPointerType1:
@@ -37,19 +35,19 @@ vtZeroExtend(int type, uint8_t *buf, int n, int nn)
 	case VtPointerType7:
 	case VtPointerType8:
 	case VtPointerType9:
-		p = buf + (n/VtScoreSize)*VtScoreSize;
-		ep = buf + (nn/VtScoreSize)*VtScoreSize;
+		p = buf + (n / VtScoreSize) * VtScoreSize;
+		ep = buf + (nn / VtScoreSize) * VtScoreSize;
 		while(p < ep) {
 			memmove(p, vtZeroScore, VtScoreSize);
 			p += VtScoreSize;
 		}
-		memset(p, 0, buf+nn-p);
+		memset(p, 0, buf + nn - p);
 		break;
 	}
 	return 1;
 }
 
-int 
+int
 vtZeroTruncate(int type, uint8_t *buf, int n)
 {
 	uint8_t *p;
@@ -76,7 +74,7 @@ vtZeroTruncate(int type, uint8_t *buf, int n)
 	case VtPointerType8:
 	case VtPointerType9:
 		/* ignore slop at end of block */
-		p = buf + (n/VtScoreSize)*VtScoreSize;
+		p = buf + (n / VtScoreSize) * VtScoreSize;
 
 		while(p > buf) {
 			if(memcmp(p - VtScoreSize, vtZeroScore, VtScoreSize) != 0)

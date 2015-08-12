@@ -27,12 +27,12 @@ getdate(char *d)
 	for(i = 0; i < 8; i++)
 		if(!isdigit(d[i]))
 			return date;
-	date.year = (d[0]-'0')*1000 + (d[1]-'0')*100 + (d[2]-'0')*10 + d[3]-'0';
+	date.year = (d[0] - '0') * 1000 + (d[1] - '0') * 100 + (d[2] - '0') * 10 + d[3] - '0';
 	date.year -= 1900;
 	d += 4;
-	date.mon = (d[0]-'0')*10 + d[1]-'0' - 1;
+	date.mon = (d[0] - '0') * 10 + d[1] - '0' - 1;
 	d += 2;
-	date.mday = (d[0]-'0')*10 + d[1]-'0';
+	date.mday = (d[0] - '0') * 10 + d[1] - '0';
 	date.yday = 0;
 	return date;
 }
@@ -51,19 +51,19 @@ getexpiration(char *db, char *u)
 	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
 	fd = open(buf, OREAD);
 	buf[0] = 0;
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
+	if(fd >= 0) {
+		n = read(fd, buf, sizeof(buf) - 1);
 		if(n > 0)
-			buf[n-1] = 0;
+			buf[n - 1] = 0;
 		close(fd);
 	}
 
-	if(buf[0]){
-		if(strncmp(buf, "never", 5)){
+	if(buf[0]) {
+		if(strncmp(buf, "never", 5)) {
 			secs = atoi(buf);
 			memmove(&date, localtime(secs), sizeof(date));
 			snprint(buf, sizeof buf, "%4.4d%2.2d%2.2d",
-				date.year+1900, date.mon+1, date.mday);
+				date.year + 1900, date.mon + 1, date.mday);
 		} else
 			buf[5] = 0;
 	} else
@@ -72,7 +72,7 @@ getexpiration(char *db, char *u)
 		"Expiration date (YYYYMMDD or never)[return = %s]: ", buf);
 
 	now = time(0);
-	for(;;){
+	for(;;) {
 		readln(prompt, cdate, sizeof cdate, 0);
 		if(*cdate == 0)
 			return -1;
@@ -80,7 +80,7 @@ getexpiration(char *db, char *u)
 			return 0;
 		date = getdate(cdate);
 		secs = tm2sec(&date);
-		if(secs > now && secs < now + 2*365*24*60*60)
+		if(secs > now && secs < now + 2 * 365 * 24 * 60 * 60)
 			break;
 		print("expiration time must fall between now and 2 years from now\n");
 	}

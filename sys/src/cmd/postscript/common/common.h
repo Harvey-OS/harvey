@@ -7,17 +7,17 @@
  * in the LICENSE file.
  */
 
-#define	NONE	0
-#define	WARNING	1
-#define	FATAL	2
+#define NONE 0
+#define WARNING 1
+#define FATAL 2
 
-#define	RUNEGETGROUP(a)	((a>>8)&0xff)
-#define	RUNEGETCHAR(a)	(a&0xff)
+#define RUNEGETGROUP(a) ((a >> 8) & 0xff)
+#define RUNEGETCHAR(a) (a & 0xff)
 
-typedef	int	BOOLEAN;
+typedef int BOOLEAN;
 
-#define	TRUE	1
-#define	FALSE	0
+#define TRUE 1
+#define FALSE 0
 
 #define NUMOFONTS 0x100
 #define FONTSIZE 0x100

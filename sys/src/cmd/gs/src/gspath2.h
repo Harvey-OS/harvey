@@ -28,7 +28,7 @@
 /* Requires gsmatrix.h */
 
 #ifndef gspath2_INCLUDED
-#  define gspath2_INCLUDED
+#define gspath2_INCLUDED
 
 /* Miscellaneous */
 int gs_setbbox(gs_state *, floatp, floatp, floatp, floatp);

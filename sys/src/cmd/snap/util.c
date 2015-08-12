@@ -12,12 +12,12 @@
 #include <bio.h>
 #include "snap.h"
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *v;
 	v = malloc(n);
-	if(v == nil){
+	if(v == nil) {
 		fprint(2, "out of memory\n");
 		exits("memory");
 	}
@@ -25,7 +25,7 @@ emalloc(uint32_t n)
 	return v;
 }
 
-void*
+void *
 erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
@@ -36,7 +36,7 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	s = strdup(s);

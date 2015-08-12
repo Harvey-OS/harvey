@@ -10,11 +10,11 @@
 #include "all.h"
 
 struct
-{
-	RWLock	uidlock;
-	char*	uidbuf;
-	int	flen;
-	int	find;
+    {
+	RWLock uidlock;
+	char *uidbuf;
+	int flen;
+	int find;
 } uidgc;
 
 int
@@ -34,7 +34,7 @@ byname(const void *a1, const void *a2)
 
 	u1 = a1;
 	u2 = a2;
-	return strcmp(uidspace+u2->offset, uidspace+u1->offset);
+	return strcmp(uidspace + u2->offset, uidspace + u1->offset);
 }
 
 int
@@ -57,7 +57,7 @@ fname(char *name)
 	int i, c;
 
 	memset(name, 0, NAMELEN);
-	for(i=0;; i++) {
+	for(i = 0;; i++) {
 		c = fchar();
 		switch(c) {
 		case ':':
@@ -68,7 +68,7 @@ fname(char *name)
 		case 0:
 			return c;
 		}
-		if(i < NAMELEN-1)
+		if(i < NAMELEN - 1)
 			name[i] = c;
 	}
 }
@@ -83,18 +83,18 @@ read_user(void)
 {
 	int c;
 
-	if((c=fname(ustr))!=':' || (c=fname(name))!=':' || (c=fname(lead))!=':')
+	if((c = fname(ustr)) != ':' || (c = fname(name)) != ':' || (c = fname(lead)) != ':')
 		goto skipline;
 	n = atol(ustr);
 	if(n == 0)
 		goto skipline;
-	if(readu){
-		o -= strlen(name)+1;
+	if(readu) {
+		o -= strlen(name) + 1;
 		if(o < 0) {
 			cprint("conf.uidspace(%ld) too small\n", conf.uidspace);
 			return -1;
 		}
-		strcpy(uidspace+o, name);
+		strcpy(uidspace + o, name);
 		uid[u].uid = n;
 		uid[u].offset = o;
 		u++;
@@ -102,22 +102,20 @@ read_user(void)
 			cprint("conf.nuid(%ld) too small\n", conf.nuid);
 			goto initu;
 		}
-	}else{
+	} else {
 		o = strtouid1(name);
 		if(o == 0 && strcmp(name, "") != 0)
 			o = n;
-		for(c=0; c<u; c++)
+		for(c = 0; c < u; c++)
 			if(uid[c].uid == n) {
 				uid[c].lead = o;
 				break;
 			}
-		while(((c=fname(name))==',' || c=='\n') && name[0]){
-work here		
-			if(c=='\n')
-				break;
+		while(((c = fname(name)) == ',' || c == '\n') && name[0]) {
+			work here if(c == '\n') break;
 		}
 	}
-	
+
 skipline:
 	while(c != '\n')
 		fname(ustr);
@@ -137,21 +135,19 @@ skipline:
 */
 
 struct {
-	int	uid;
-	char	*name;
-	int	leader;
-}
-admusers[] = {
-	-1,	"adm",	-1,
-	 0,	"none",	-1,
-	 1,	"tor",	1,
-	 2,	"glenda",	2,
-	10000,	"sys",	0,
-	10001,	"upas",	10001,
-	10002,	"bootes",	10002,
-	0,	0,	0,
+	int uid;
+	char *name;
+	int leader;
+} admusers[] = {
+    -1, "adm", -1,
+    0, "none", -1,
+    1, "tor", 1,
+    2, "glenda", 2,
+    10000, "sys", 0,
+    10001, "upas", 10001,
+    10002, "bootes", 10002,
+    0, 0, 0,
 };
-
 
 void
 cmd_user(void)
@@ -163,7 +159,7 @@ cmd_user(void)
 		goto ainitu;
 	if(con_path(FID2, "/adm/users"))
 		goto ainitu;
-	if(con_open(FID2, 0)){
+	if(con_open(FID2, 0)) {
 		goto ainitu;
 	}
 
@@ -190,12 +186,12 @@ ul1:
 	c = fname(name);
 	if(c != ':')
 		goto uskip;
-	o -= strlen(name)+1;
+	o -= strlen(name) + 1;
 	if(o < 0) {
 		cprint("conf.uidspace(%ld) too small\n", conf.uidspace);
 		goto initu;
 	}
-	strcpy(uidspace+o, name);
+	strcpy(uidspace + o, name);
 	uid[u].uid = n;
 	uid[u].offset = o;
 	u++;
@@ -211,25 +207,25 @@ uskip:
 		c = fname(name);
 		goto uskip;
 	}
-/*	cprint("%d uids read\n", u);*/
+	/*	cprint("%d uids read\n", u);*/
 	qsort(uid, u, sizeof(uid[0]), byuid);
-	for(c=u-1; c>0; c--)
-		if(uid[c].uid == uid[c-1].uid) {
+	for(c = u - 1; c > 0; c--)
+		if(uid[c].uid == uid[c - 1].uid) {
 			cprint("duplicate uids: %d\n", uid[c].uid);
-			cprint("	%s", uidspace+uid[c].offset);
-			cprint(" %s\n", uidspace+uid[c-1].offset);
+			cprint("	%s", uidspace + uid[c].offset);
+			cprint(" %s\n", uidspace + uid[c - 1].offset);
 		}
 	qsort(uid, u, sizeof(uid[0]), byname);
-	for(c=u-1; c>0; c--)
-		if(!strcmp(uidspace+uid[c].offset,
-		   uidspace+uid[c-1].offset)) {
-			cprint("kfs: duplicate names: %s\n", uidspace+uid[c].offset);
+	for(c = u - 1; c > 0; c--)
+		if(!strcmp(uidspace + uid[c].offset,
+			   uidspace + uid[c - 1].offset)) {
+			cprint("kfs: duplicate names: %s\n", uidspace + uid[c].offset);
 			cprint("	%d", uid[c].uid);
-			cprint(" %d\n", uid[c-1].uid);
+			cprint(" %d\n", uid[c - 1].uid);
 		}
 	if(cons.flags & Fuid)
-		for(c=0; c<u; c++)
-			cprint("%6d %s\n", uid[c].uid, uidspace+uid[c].offset);
+		for(c = 0; c < u; c++)
+			cprint("%6d %s\n", uid[c].uid, uidspace + uid[c].offset);
 
 	uidgc.flen = 0;
 	uidgc.find = 0;
@@ -240,24 +236,24 @@ gl1:
 	c = fname(name);
 	if(c != ':')
 		goto gskip;
-	n = atol(name);		/* number */
+	n = atol(name); /* number */
 	if(n == 0)
 		goto gskip;
-	c = fname(name);	/* name */
+	c = fname(name); /* name */
 	if(c != ':')
 		goto gskip;
-	c = fname(name);	/* leader */
+	c = fname(name); /* leader */
 	if(c != ':')
 		goto gskip;
 	o = strtouid1(name);
 	if(o == 0 && strcmp(name, "") != 0)
 		o = n;
-	for(c=0; c<u; c++)
+	for(c = 0; c < u; c++)
 		if(uid[c].uid == n) {
 			uid[c].lead = o;
 			break;
 		}
-	c = fname(name);	/* list of members */
+	c = fname(name); /* list of members */
 	if(c != ',' && c != '\n')
 		goto gskip;
 	if(!name[0])
@@ -267,7 +263,7 @@ gl2:
 	n = strtouid1(name);
 	if(n)
 		gidspace[g++] = n;
-	if(g >= conf.gidspace-2) {
+	if(g >= conf.gidspace - 2) {
 		cprint("conf.gidspace(%ld) too small\n", conf.gidspace);
 		goto initu;
 	}
@@ -290,7 +286,7 @@ gskip:
 	}
 	if(cons.flags & Fuid) {
 		o = 0;
-		for(c=0; c<g; c++) {
+		for(c = 0; c < g; c++) {
 			n = gidspace[c];
 			if(n == 0) {
 				o = 0;
@@ -323,9 +319,9 @@ initu:
 	o = conf.uidspace;
 	u = 0;
 
-	for(i=0; admusers[i].name; i++){
-		o -= strlen(admusers[i].name)+1;
-		strcpy(uidspace+o, admusers[i].name);
+	for(i = 0; admusers[i].name; i++) {
+		o -= strlen(admusers[i].name) + 1;
+		strcpy(uidspace + o, admusers[i].name);
 		uid[u].uid = admusers[i].uid;
 		uid[u].lead = admusers[i].leader;
 		uid[u].offset = o;
@@ -336,7 +332,6 @@ out:
 	free(uidgc.uidbuf);
 	writegroup = strtouid1("write");
 	wunlock(&uidgc.uidlock);
-
 }
 
 void
@@ -353,13 +348,13 @@ uidtostr1(char *name, int id)
 	Uid *u;
 	int i;
 
-	if(id == 0){
+	if(id == 0) {
 		strncpy(name, "none", NAMELEN);
 		return;
 	}
-	for(i=0, u=uid; i<conf.nuid; i++,u++) {
+	for(i = 0, u = uid; i < conf.nuid; i++, u++) {
 		if(u->uid == id) {
-			strncpy(name, uidspace+u->offset, NAMELEN);
+			strncpy(name, uidspace + u->offset, NAMELEN);
 			return;
 		}
 	}
@@ -383,8 +378,8 @@ strtouid1(char *s)
 	Uid *u;
 	int i;
 
-	for(i=0, u=uid; i<conf.nuid; i++,u++)
-		if(!strcmp(s, uidspace+u->offset))
+	for(i = 0, u = uid; i < conf.nuid; i++, u++)
+		if(!strcmp(s, uidspace + u->offset))
 			return u->uid;
 	return 0;
 }
@@ -397,7 +392,7 @@ ingroup(int u, int g)
 	if(u == g)
 		return 1;
 	rlock(&uidgc.uidlock);
-	for(p=gidspace; *p;) {
+	for(p = gidspace; *p;) {
 		if(*p != g) {
 			for(p++; *p++;)
 				;
@@ -420,7 +415,7 @@ leadgroup(int ui, int gi)
 	int i;
 
 	rlock(&uidgc.uidlock);
-	for(i=0, u=uid; i<conf.nuid; i++,u++) {
+	for(i = 0, u = uid; i < conf.nuid; i++, u++) {
 		if(u->uid == gi) {
 			i = u->lead;
 			runlock(&uidgc.uidlock);

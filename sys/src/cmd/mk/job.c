@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"mk.h"
+#include "mk.h"
 
 Job *
 newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre,
@@ -26,18 +26,18 @@ newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre,
 	j->at = atar;
 	j->nproc = -1;
 	j->next = 0;
-	return(j);
+	return (j);
 }
 
 void
 dumpj(char *s, Job *j, int all)
 {
 	Bprint(&bout, "%s\n", s);
-	while(j){
+	while(j) {
 		Bprint(&bout, "job@%p: r=%p n=%p stem='%s' nproc=%d\n",
-			j, j->r, j->n, j->stem, j->nproc);
+		       j, j->r, j->n, j->stem, j->nproc);
 		Bprint(&bout, "\ttarget='%s' alltarget='%s' prereq='%s' nprereq='%s'\n",
-			wtos(j->t, ' '), wtos(j->at, ' '), wtos(j->p, ' '), wtos(j->np, ' '));
-		j = all? j->next : 0;
+		       wtos(j->t, ' '), wtos(j->at, ' '), wtos(j->p, ' '), wtos(j->np, ' '));
+		j = all ? j->next : 0;
 	}
 }

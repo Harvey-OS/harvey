@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 
-#ifndef	EXTERN
-#define	EXTERN	extern
+#ifndef EXTERN
+#define EXTERN extern
 #endif
 
 typedef struct Re Re;
@@ -35,13 +35,13 @@ struct Re {
 	uint8_t type;
 	uint16_t gen;
 	union {
-		Re *alt;				/* Talt */
-		Re **cases;				/* case */
-		struct {				/* class */
+		Re *alt;    /* Talt */
+		Re **cases; /* case */
+		struct {    /* class */
 			Rune lo;
 			Rune hi;
 		};
-		Rune val;				/* char */
+		Rune val; /* char */
 	};
 	Re *next;
 };
@@ -80,8 +80,8 @@ EXTERN union {
 		 * if pre were smaller than buf you'd get a suffix of the
 		 * line with a hole cut out.
 		 */
-		uint8_t pre[16 * 1024];	/* to save to previous '\n' */
-		uint8_t buf[16 * 1024];	/* input buffer */
+		uint8_t pre[16 * 1024]; /* to save to previous '\n' */
+		uint8_t buf[16 * 1024]; /* input buffer */
 	};
 } u;
 
@@ -105,7 +105,7 @@ EXTERN Re2 topre;
 extern Re *addcase(Re *);
 extern void appendnext(Re *, Re *);
 extern void error(char *);
-extern int fcmp(const void *, const void *);	/* (Re**, Re**) */
+extern int fcmp(const void *, const void *); /* (Re**, Re**) */
 extern void fol1(Re *, int);
 extern int getrec(void);
 extern void increment(State *, int);

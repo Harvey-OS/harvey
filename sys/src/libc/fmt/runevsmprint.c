@@ -22,17 +22,17 @@ runeFmtStrFlush(Fmt *f)
 	n = (int)(uintptr)f->farg;
 	n *= 2;
 	s = f->start;
-	f->start = realloc(s, sizeof(Rune)*n);
-	if(f->start == nil){
+	f->start = realloc(s, sizeof(Rune) * n);
+	if(f->start == nil) {
 		f->farg = nil;
 		f->to = nil;
 		f->stop = nil;
 		free(s);
 		return 0;
 	}
-	f->farg = (void*)(uintptr_t)n;
-	f->to = (Rune*)f->start + ((Rune*)f->to - s);
-	f->stop = (Rune*)f->start + n - 1;
+	f->farg = (void *)(uintptr_t)n;
+	f->to = (Rune *)f->start + ((Rune *)f->to - s);
+	f->stop = (Rune *)f->start + n - 1;
 	return 1;
 }
 
@@ -44,14 +44,14 @@ runefmtstrinit(Fmt *f)
 	memset(f, 0, sizeof *f);
 	f->runes = 1;
 	n = 32;
-	f->start = malloc(sizeof(Rune)*n);
+	f->start = malloc(sizeof(Rune) * n);
 	if(f->start == nil)
 		return -1;
 	setmalloctag(f->start, getcallerpc(&f));
 	f->to = f->start;
-	f->stop = (Rune*)f->start + n - 1;
+	f->stop = (Rune *)f->start + n - 1;
 	f->flush = runeFmtStrFlush;
-	f->farg = (void*)(uintptr_t)n;
+	f->farg = (void *)(uintptr_t)n;
 	f->nfmt = 0;
 	return 0;
 }
@@ -59,7 +59,7 @@ runefmtstrinit(Fmt *f)
 /*
  * print into an allocated string buffer
  */
-Rune*
+Rune *
 runevsmprint(char *fmt, va_list args)
 {
 	Fmt f;
@@ -68,16 +68,16 @@ runevsmprint(char *fmt, va_list args)
 	if(runefmtstrinit(&f) < 0)
 		return nil;
 	//f.args = args;
-	va_copy(f.args,args);
+	va_copy(f.args, args);
 	n = dofmt(&f, fmt);
 	va_end(f.args);
-	if(f.start == nil)		/* realloc failed? */
+	if(f.start == nil) /* realloc failed? */
 		return nil;
-	if(n < 0){
+	if(n < 0) {
 		free(f.start);
 		return nil;
 	}
 	setmalloctag(f.start, getcallerpc(&fmt));
-	*(Rune*)f.to = '\0';
+	*(Rune *)f.to = '\0';
 	return f.start;
 }

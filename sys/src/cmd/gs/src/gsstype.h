@@ -27,7 +27,7 @@
 /* Definition of structure type descriptors and extern_st */
 
 #ifndef gsstype_INCLUDED
-#  define gsstype_INCLUDED
+#define gsstype_INCLUDED
 
 /* Define an opaque type for the garbage collector state. */
 typedef struct gc_state_s gc_state_t;
@@ -37,8 +37,8 @@ typedef struct gc_state_s gc_state_t;
  * object pointers use only the ptr element; strings also use size.
  */
 typedef struct enum_ptr_s {
-    const void *ptr;
-    uint size;
+	const void *ptr;
+	uint size;
 } enum_ptr_t;
 
 /*
@@ -51,26 +51,26 @@ typedef struct enum_ptr_s {
 
 /* Define the procedures for structure types. */
 
-		/* Clear the marks of a structure. */
+/* Clear the marks of a structure. */
 
-#define struct_proc_clear_marks(proc)\
-  void proc(const gs_memory_t *cmem, void /*obj_header_t*/ *pre, uint size,\
-    const gs_memory_struct_type_t *pstype)
+#define struct_proc_clear_marks(proc)                                             \
+	void proc(const gs_memory_t *cmem, void /*obj_header_t*/ *pre, uint size, \
+		  const gs_memory_struct_type_t *pstype)
 
-		/* Enumerate the pointers in a structure. */
+/* Enumerate the pointers in a structure. */
 
-#define struct_proc_enum_ptrs(proc)\
-  gs_ptr_type_t proc(const gs_memory_t *mem, EV_CONST void /*obj_header_t*/ *ptr, uint size,\
-    int index, enum_ptr_t *pep, const gs_memory_struct_type_t *pstype,\
-    gc_state_t *gcst)
+#define struct_proc_enum_ptrs(proc)                                                                \
+	gs_ptr_type_t proc(const gs_memory_t *mem, EV_CONST void /*obj_header_t*/ *ptr, uint size, \
+			   int index, enum_ptr_t *pep, const gs_memory_struct_type_t *pstype,      \
+			   gc_state_t *gcst)
 
-		/* Relocate all the pointers in this structure. */
+/* Relocate all the pointers in this structure. */
 
-#define struct_proc_reloc_ptrs(proc)\
-  void proc(void /*obj_header_t*/ *ptr, uint size,\
-    const gs_memory_struct_type_t *pstype, gc_state_t *gcst)
+#define struct_proc_reloc_ptrs(proc)                     \
+	void proc(void /*obj_header_t*/ *ptr, uint size, \
+		  const gs_memory_struct_type_t *pstype, gc_state_t *gcst)
 
-		/*
+/*
 		 * Finalize this structure just before freeing it.
 		 * Finalization procedures must not allocate or resize
 		 * any objects in any space managed by the allocator,
@@ -82,8 +82,8 @@ typedef struct enum_ptr_s {
 		 * by libraries.
 		 */
 
-#define struct_proc_finalize(proc)\
-  void proc(void /*obj_header_t*/ *ptr)
+#define struct_proc_finalize(proc) \
+	void proc(void /*obj_header_t*/ *ptr)
 
 /*
  * A descriptor for an object (structure) type.

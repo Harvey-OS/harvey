@@ -35,14 +35,14 @@ wrbio(char *file, Acctbio *a)
 		a->email[0] = strdup(a->user);
 
 	n = 0;
-	n += snprint(buf+n, sizeof(buf)-n, "%s|%s|%s|%s",
-		a->user, a->postid, a->name, a->dept);
-	for(i = 0; i < Nemail; i++){
+	n += snprint(buf + n, sizeof(buf) - n, "%s|%s|%s|%s",
+		     a->user, a->postid, a->name, a->dept);
+	for(i = 0; i < Nemail; i++) {
 		if(a->email[i] == 0)
 			break;
-		n += snprint(buf+n, sizeof(buf)-n, "|%s", a->email[i]);
+		n += snprint(buf + n, sizeof(buf) - n, "|%s", a->email[i]);
 	}
-	n += snprint(buf+n, sizeof(buf)-n, "\n");
+	n += snprint(buf + n, sizeof(buf) - n, "\n");
 
 	write(fd, buf, n);
 	close(fd);

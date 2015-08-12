@@ -21,8 +21,8 @@
 
 typedef struct Xarg Xarg;
 struct Xarg {
-	void (*enm)(char*,char*,XDir*,void*);
-	void (*warn)(char*,void*);
+	void (*enm)(char *, char *, XDir *, void *);
+	void (*warn)(char *, void *);
 	void *arg;
 };
 
@@ -65,8 +65,8 @@ numericuid(char *user)
 	struct passwd *pass;
 	static int warned = 0;
 
-	if (! (pass = getpwnam(user))) {
-		if (!warned)
+	if(!(pass = getpwnam(user))) {
+		if(!warned)
 			fprint(2, "Warning: getpwnam(3) failed for \"%s\"\n", user);
 		warned = 1;
 		return 0;
@@ -81,8 +81,8 @@ numericgid(char *gp)
 	struct group *gr;
 	static int warned = 0;
 
-	if (! (gr = getgrnam(gp))) {
-		if (!warned)
+	if(!(gr = getgrnam(gp))) {
+		if(!warned)
 			fprint(2, "Warning: getgrnam(3) failed for \"%s\"\n", gp);
 		warned = 1;
 		return 0;

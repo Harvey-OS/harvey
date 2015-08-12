@@ -18,21 +18,20 @@
 
 typedef struct Scrib Scrib;
 
-struct Scrib
-{
+struct Scrib {
 	Control;
-	int		border;
-	CImage	*image;
-	CImage	*color;
-	CImage	*bordercolor;
-	CFont	*font;
-	int		align;
-	int		lastbut;
-	char		lastchar[8];
-	Scribble	*scrib;
+	int border;
+	CImage *image;
+	CImage *color;
+	CImage *bordercolor;
+	CFont *font;
+	int align;
+	int lastbut;
+	char lastchar[8];
+	Scribble *scrib;
 };
 
-enum{
+enum {
 	EAlign,
 	EBorder,
 	EBordercolor,
@@ -48,27 +47,26 @@ enum{
 };
 
 static char *cmds[] = {
-	[EAlign] =		"align",
-	[EBorder] =	"border",
-	[EBordercolor] ="bordercolor",
-	[EFocus] = 	"focus",
-	[EFont] =		"font",
-	[EHide] =		"hide",
-	[EImage] =	"image",
-	[ELinecolor] =	"linecolor",
-	[ERect] =		"rect",
-	[EReveal] =	"reveal",
-	[EShow] =		"show",
-	[ESize] =		"size",
-	nil
-};
+	[EAlign] = "align",
+	[EBorder] = "border",
+	[EBordercolor] = "bordercolor",
+	[EFocus] = "focus",
+	[EFont] = "font",
+	[EHide] = "hide",
+	[EImage] = "image",
+	[ELinecolor] = "linecolor",
+	[ERect] = "rect",
+	[EReveal] = "reveal",
+	[EShow] = "show",
+	[ESize] = "size",
+	nil};
 
-static void	scribshow(Scrib*);
-static void scribchar(Scrib*, Rune);
+static void scribshow(Scrib *);
+static void scribchar(Scrib *, Rune);
 
-static void	resetstroke(Scrib *w);
-static void	displaylast(Scrib *w);
-static void	addpoint(Scrib *w, Point p);
+static void resetstroke(Scrib *w);
+static void displaylast(Scrib *w);
+static void addpoint(Scrib *w, Point p);
 
 static void
 scribmouse(Control *c, Mouse *m)
@@ -76,22 +74,23 @@ scribmouse(Control *c, Mouse *m)
 	Scrib *b;
 	Rune r;
 
-	b = (Scrib*)c;
-	if (m->buttons & 0x1) {
-		if ((b->lastbut & 0x1) == 0) {
+	b = (Scrib *)c;
+	if(m->buttons & 0x1) {
+		if((b->lastbut & 0x1) == 0) {
 			/* mouse went down */
 			resetstroke(b);
 		}
 		/* mouse is down */
-		if (ptinrect(m->xy,b->rect))
+		if(ptinrect(m->xy, b->rect))
 			addpoint(b, m->xy);
-	} else if (b->lastbut & 0x1) {
+	} else if(b->lastbut & 0x1) {
 		/* mouse went up */
-		if (ptinrect(m->xy,b->rect)) {
+		if(ptinrect(m->xy, b->rect)) {
 			r = recognize(b->scrib);
 			scribchar(b, r);
 			scribshow(b);
-			if (r) chanprint(b->event, b->format, b->name, r);
+			if(r)
+				chanprint(b->event, b->format, b->name, r);
 		}
 	}
 	b->lastbut = m->buttons;
@@ -102,12 +101,12 @@ scribfree(Control *c)
 {
 	Scrib *b;
 
-	b = (Scrib*)c;
+	b = (Scrib *)c;
 	_putctlimage(b->image);
 	_putctlimage(b->color);
 	_putctlimage(b->bordercolor);
 	_putctlfont(b->font);
-//	scribblefree(b->scrib);
+	//	scribblefree(b->scrib);
 }
 
 static void
@@ -118,11 +117,10 @@ scribchar(Scrib *b, Rune r)
 	else if(r == ' ')
 		strcpy(b->lastchar, "' '");
 	else if(r < ' ')
-		sprint(b->lastchar, "ctl-%c", r+'@');
+		sprint(b->lastchar, "ctl-%c", r + '@');
 	else
 		sprint(b->lastchar, "%C", r);
 }
-
 
 static void
 scribshow(Scrib *b)
@@ -133,26 +131,26 @@ scribshow(Scrib *b)
 	Scribble *s = b->scrib;
 	char buf[32];
 
-	if (b->hidden)
+	if(b->hidden)
 		return;
-	if(b->border > 0){
+	if(b->border > 0) {
 		r = insetrect(b->rect, b->border);
 		border(b->screen, b->rect, b->border, b->bordercolor->image, ZP);
-	}else
+	} else
 		r = b->rect;
 
 	i = b->image->image;
 	draw(b->screen, r, i, nil, i->r.min);
 
-	if (s->ctrlShift)
+	if(s->ctrlShift)
 		mode = " ^C";
-	else if (s->puncShift)
+	else if(s->puncShift)
 		mode = " #&^";
-	else if (s->curCharSet == CS_DIGITS)
+	else if(s->curCharSet == CS_DIGITS)
 		mode = " 123";
-	else if (s->capsLock)
+	else if(s->capsLock)
 		mode = " ABC";
-	else if (s->tmpShift)
+	else if(s->tmpShift)
 		mode = " Abc";
 	else
 		mode = " abc";
@@ -170,9 +168,9 @@ scribctl(Control *c, CParse *cp)
 	Rectangle r;
 	Scrib *b;
 
-	b = (Scrib*)c;
+	b = (Scrib *)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
-	switch(cmd){
+	switch(cmd) {
 	default:
 		abort();
 		ctlerror("%q: unrecognized message '%s'", b->name, cp->str);
@@ -207,7 +205,7 @@ scribctl(Control *c, CParse *cp)
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
-		if(Dx(r)<0 || Dy(r)<0)
+		if(Dx(r) < 0 || Dy(r) < 0)
 			ctlerror("%q: bad rectangle: %s", b->name, cp->str);
 		b->rect = r;
 		break;
@@ -229,16 +227,16 @@ scribctl(Control *c, CParse *cp)
 		b->hidden = 1;
 		break;
 	case ESize:
-		if (cp->nargs == 3)
+		if(cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
-		else{
+		else {
 			_ctlargcount(b, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
-		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+		if(r.min.x <= 0 || r.min.y <= 0 || r.max.x <= 0 || r.max.y <= 0 || r.max.x < r.min.x || r.max.y < r.min.y)
 			ctlerror("%q: bad sizes: %s", b->name, cp->str);
 		b->size.min = r.min;
 		b->size.max = r.max;
@@ -258,34 +256,34 @@ resetstroke(Scrib *w)
 static void
 displaylast(Scrib *w)
 {
-	int	    npt;
+	int npt;
 	Scribble *s = w->scrib;
 
 	npt = s->ps.npts;
-	if (npt > 2)
+	if(npt > 2)
 		npt = 2;
 	poly(w->screen, s->pt + (s->ps.npts - npt), npt, Endsquare, Endsquare,
-		0, w->color->image, ZP);
+	     0, w->color->image, ZP);
 	flushimage(display, 1);
 }
 
 static void
 addpoint(Scrib *w, Point p)
 {
-	pen_point	*ppa;
-	Point	*pt;
-	int		ppasize;
-	Scribble	*s = w->scrib;
+	pen_point *ppa;
+	Point *pt;
+	int ppasize;
+	Scribble *s = w->scrib;
 
-	if (s->ps.npts == s->ppasize) {
+	if(s->ps.npts == s->ppasize) {
 		ppasize = s->ppasize + 100;
-		ppa = malloc ((sizeof (pen_point) + sizeof (Point)) * ppasize);
-		if (!ppa)
+		ppa = malloc((sizeof(pen_point) + sizeof(Point)) * ppasize);
+		if(!ppa)
 			return;
-		pt = (Point *) (ppa + ppasize);
-		memmove(ppa, s->ps.pts, s->ppasize * sizeof (pen_point));
-		memmove(pt, s->pt, s->ppasize * sizeof (Point));
-		free (s->ps.pts);
+		pt = (Point *)(ppa + ppasize);
+		memmove(ppa, s->ps.pts, s->ppasize * sizeof(pen_point));
+		memmove(pt, s->pt, s->ppasize * sizeof(Point));
+		free(s->ps.pts);
 		s->ps.pts = ppa;
 		s->pt = pt;
 		s->ppasize = ppasize;
@@ -297,16 +295,16 @@ addpoint(Scrib *w, Point p)
 	*pt = p;
 
 	s->ps.npts++;
-	
+
 	displaylast(w);
 }
 
-Control*
+Control *
 createscribble(Controlset *cs, char *name)
 {
 	Scrib *b;
 
-	b = (Scrib*)_createctl(cs, "scribble", sizeof(Scrib), name);
+	b = (Scrib *)_createctl(cs, "scribble", sizeof(Scrib), name);
 	b->image = _getctlimage("white");
 	b->color = _getctlimage("black");
 	b->bordercolor = _getctlimage("black");
@@ -320,5 +318,5 @@ createscribble(Controlset *cs, char *name)
 	b->ctl = scribctl;
 	b->mouse = scribmouse;
 	b->exit = scribfree;
-	return (Control*)b;
+	return (Control *)b;
 }

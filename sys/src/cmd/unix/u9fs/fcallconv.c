@@ -13,11 +13,11 @@
 
 extern int old9p;
 
-static uint dumpsome(char*, char*, int32_t);
-static void fdirconv(char*, Dir*);
-static char *qidtype(char*, uint8_t);
+static uint dumpsome(char *, char *, int32_t);
+static void fdirconv(char *, Dir *);
+static char *qidtype(char *, uint8_t);
 
-#define	QIDFMT	"(%.16llux %lud %s)"
+#define QIDFMT "(%.16llux %lud %s)"
 
 int
 fcallconv(va_list *arg, Fconv *f1)
@@ -28,136 +28,136 @@ fcallconv(va_list *arg, Fconv *f1)
 	Dir *d;
 	Qid *q;
 
-	f = va_arg(*arg, Fcall*);
+	f = va_arg(*arg, Fcall *);
 	type = f->type;
 	fid = f->fid;
 	tag = f->tag;
-	switch(type){
-	case Tversion:	/* 100 */
+	switch(type) {
+	case Tversion: /* 100 */
 		sprint(buf, "Tversion tag %ud msize %ud version '%s'", tag, f->msize, f->version);
 		break;
 	case Rversion:
 		sprint(buf, "Rversion tag %ud msize %ud version '%s'", tag, f->msize, f->version);
 		break;
-	case Tauth:	/* 102 */
+	case Tauth: /* 102 */
 		sprint(buf, "Tauth tag %ud afid %d uname %s aname %s", tag,
-			f->afid, f->uname, f->aname);
+		       f->afid, f->uname, f->aname);
 		break;
 	case Rauth:
 		sprint(buf, "Rauth tag %ud qid " QIDFMT, tag,
-			f->aqid.path, f->aqid.vers, qidtype(tmp, f->aqid.type));
+		       f->aqid.path, f->aqid.vers, qidtype(tmp, f->aqid.type));
 		break;
-	case Tattach:	/* 104 */
+	case Tattach: /* 104 */
 		sprint(buf, "Tattach tag %ud fid %d afid %d uname %s aname %s", tag,
-			fid, f->afid, f->uname, f->aname);
+		       fid, f->afid, f->uname, f->aname);
 		break;
 	case Rattach:
 		sprint(buf, "Rattach tag %ud qid " QIDFMT, tag,
-			f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type));
+		       f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type));
 		break;
-	case Rerror:	/* 107; 106 (Terror) illegal */
+	case Rerror: /* 107; 106 (Terror) illegal */
 		sprint(buf, "Rerror tag %ud ename %s", tag, f->ename);
 		break;
-	case Tflush:	/* 108 */
+	case Tflush: /* 108 */
 		sprint(buf, "Tflush tag %ud oldtag %ud", tag, f->oldtag);
 		break;
 	case Rflush:
 		sprint(buf, "Rflush tag %ud", tag);
 		break;
-	case Twalk:	/* 110 */
+	case Twalk: /* 110 */
 		n = sprint(buf, "Twalk tag %ud fid %d newfid %d nwname %d ", tag, fid, f->newfid, f->nwname);
-			for(i=0; i<f->nwname; i++)
-				n += sprint(buf+n, "%d:%s ", i, f->wname[i]);
+		for(i = 0; i < f->nwname; i++)
+			n += sprint(buf + n, "%d:%s ", i, f->wname[i]);
 		break;
 	case Rwalk:
 		n = sprint(buf, "Rwalk tag %ud nwqid %ud ", tag, f->nwqid);
-		for(i=0; i<f->nwqid; i++){
+		for(i = 0; i < f->nwqid; i++) {
 			q = &f->wqid[i];
-			n += sprint(buf+n, "%d:" QIDFMT " ", i,
-				q->path, q->vers, qidtype(tmp, q->type));
+			n += sprint(buf + n, "%d:" QIDFMT " ", i,
+				    q->path, q->vers, qidtype(tmp, q->type));
 		}
 		break;
-	case Topen:	/* 112 */
+	case Topen: /* 112 */
 		sprint(buf, "Topen tag %ud fid %ud mode %d", tag, fid, f->mode);
 		break;
 	case Ropen:
 		sprint(buf, "Ropen tag %ud qid " QIDFMT " iounit %ud ", tag,
-			f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
+		       f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
 		break;
-	case Tcreate:	/* 114 */
+	case Tcreate: /* 114 */
 		sprint(buf, "Tcreate tag %ud fid %ud name %s perm %M mode %d",
-			tag, fid, f->name, (uint32_t)f->perm, f->mode);
+		       tag, fid, f->name, (uint32_t)f->perm, f->mode);
 		break;
 	case Rcreate:
 		sprint(buf, "Rcreate tag %ud qid " QIDFMT " iounit %ud ", tag,
-			f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
+		       f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
 		break;
-	case Tread:	/* 116 */
+	case Tread: /* 116 */
 		sprint(buf, "Tread tag %ud fid %d offset %lld count %ud",
-			tag, fid, f->offset, f->count);
+		       tag, fid, f->offset, f->count);
 		break;
 	case Rread:
 		n = sprint(buf, "Rread tag %ud count %ud ", tag, f->count);
-			dumpsome(buf+n, f->data, f->count);
+		dumpsome(buf + n, f->data, f->count);
 		break;
-	case Twrite:	/* 118 */
+	case Twrite: /* 118 */
 		n = sprint(buf, "Twrite tag %ud fid %d offset %lld count %ud ",
-			tag, fid, f->offset, f->count);
-		dumpsome(buf+n, f->data, f->count);
+			   tag, fid, f->offset, f->count);
+		dumpsome(buf + n, f->data, f->count);
 		break;
 	case Rwrite:
 		sprint(buf, "Rwrite tag %ud count %ud", tag, f->count);
 		break;
-	case Tclunk:	/* 120 */
+	case Tclunk: /* 120 */
 		sprint(buf, "Tclunk tag %ud fid %ud", tag, fid);
 		break;
 	case Rclunk:
 		sprint(buf, "Rclunk tag %ud", tag);
 		break;
-	case Tremove:	/* 122 */
+	case Tremove: /* 122 */
 		sprint(buf, "Tremove tag %ud fid %ud", tag, fid);
 		break;
 	case Rremove:
 		sprint(buf, "Rremove tag %ud", tag);
 		break;
-	case Tstat:	/* 124 */
+	case Tstat: /* 124 */
 		sprint(buf, "Tstat tag %ud fid %ud", tag, fid);
 		break;
 	case Rstat:
 		n = sprint(buf, "Rstat tag %ud ", tag);
 		if(f->nstat > sizeof tmp)
-			sprint(buf+n, " stat(%d bytes)", f->nstat);
-		else{
-			d = (Dir*)tmp;
-			(old9p?convM2Dold:convM2D)(f->stat, f->nstat, d,
-						   (char*)(d+1));
-			sprint(buf+n, " stat ");
-			fdirconv(buf+n+6, d);
+			sprint(buf + n, " stat(%d bytes)", f->nstat);
+		else {
+			d = (Dir *)tmp;
+			(old9p ? convM2Dold : convM2D)(f->stat, f->nstat, d,
+						       (char *)(d + 1));
+			sprint(buf + n, " stat ");
+			fdirconv(buf + n + 6, d);
 		}
 		break;
-	case Twstat:	/* 126 */
+	case Twstat: /* 126 */
 		n = sprint(buf, "Twstat tag %ud fid %ud", tag, fid);
 		if(f->nstat > sizeof tmp)
-			sprint(buf+n, " stat(%d bytes)", f->nstat);
-		else{
-			d = (Dir*)tmp;
-			(old9p?convM2Dold:convM2D)(f->stat, f->nstat, d,
-						   (char*)(d+1));
-			sprint(buf+n, " stat ");
-			fdirconv(buf+n+6, d);
+			sprint(buf + n, " stat(%d bytes)", f->nstat);
+		else {
+			d = (Dir *)tmp;
+			(old9p ? convM2Dold : convM2D)(f->stat, f->nstat, d,
+						       (char *)(d + 1));
+			sprint(buf + n, " stat ");
+			fdirconv(buf + n + 6, d);
 		}
 		break;
 	case Rwstat:
 		sprint(buf, "Rwstat tag %ud", tag);
 		break;
 	default:
-		sprint(buf,  "unknown type %d", type);
+		sprint(buf, "unknown type %d", type);
 	}
 	strconv(buf, f1);
-	return(sizeof(Fcall*));
+	return (sizeof(Fcall *));
 }
 
-static char*
+static char *
 qidtype(char *s, uint8_t t)
 {
 	char *p;
@@ -182,9 +182,9 @@ dirconv(va_list *arg, Fconv *f)
 {
 	char buf[160];
 
-	fdirconv(buf, va_arg(*arg, Dir*));
+	fdirconv(buf, va_arg(*arg, Dir *));
 	strconv(buf, f);
-	return(sizeof(Dir*));
+	return (sizeof(Dir *));
 }
 
 static void
@@ -193,13 +193,13 @@ fdirconv(char *buf, Dir *d)
 	char tmp[16];
 
 	sprint(buf, "'%s' '%s' '%s' '%s' "
-		"q " QIDFMT " m %#luo "
-		"at %ld mt %ld l %lld "
-		"t %d d %d",
-			d->name, d->uid, d->gid, d->muid,
-			d->qid.path, d->qid.vers, qidtype(tmp, d->qid.type), d->mode,
-			d->atime, d->mtime, d->length,
-			d->type, d->dev);
+		    "q " QIDFMT " m %#luo "
+		    "at %ld mt %ld l %lld "
+		    "t %d d %d",
+	       d->name, d->uid, d->gid, d->muid,
+	       d->qid.path, d->qid.vers, qidtype(tmp, d->qid.type), d->mode,
+	       d->atime, d->mtime, d->length,
+	       d->type, d->dev);
 }
 
 /*
@@ -218,17 +218,17 @@ dumpsome(char *ans, char *buf, int32_t count)
 	printable = 1;
 	if(count > DUMPL)
 		count = DUMPL;
-	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uint8_t)buf[i]>127)
+	for(i = 0; i < count && printable; i++)
+		if((buf[i] < 32 && buf[i] != '\n' && buf[i] != '\t') || (uint8_t)buf[i] > 127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';
-	if(printable){
+	if(printable) {
 		memmove(p, buf, count);
 		p += count;
-	}else{
-		for(i=0; i<count; i++){
-			if(i>0 && i%4==0)
+	} else {
+		for(i = 0; i < count; i++) {
+			if(i > 0 && i % 4 == 0)
 				*p++ = ' ';
 			sprint(p, "%2.2ux", (uint8_t)buf[i]);
 			p += 2;

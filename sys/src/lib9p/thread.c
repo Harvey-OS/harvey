@@ -14,9 +14,9 @@
 #include <9p.h>
 
 static void
-tforker(void (*fn)(void*), void *arg, int rflag)
+tforker(void (*fn)(void *), void *arg, int rflag)
 {
-	procrfork(fn, arg, 32*1024, rflag);
+	procrfork(fn, arg, 32 * 1024, rflag);
 }
 
 void

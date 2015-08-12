@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-char*
+char *
 smprint(char *fmt, ...)
 {
 	va_list args;

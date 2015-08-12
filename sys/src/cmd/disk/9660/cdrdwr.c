@@ -14,8 +14,8 @@
 
 #include "iso9660.h"
 
-static int readisodesc(Cdimg*, Voldesc*);
-static int readjolietdesc(Cdimg*, Voldesc*);
+static int readisodesc(Cdimg *, Voldesc *);
+static int readjolietdesc(Cdimg *, Voldesc *);
 
 /*
  * It's not strictly conforming; instead it's enough to
@@ -26,13 +26,13 @@ static int readjolietdesc(Cdimg*, Voldesc*);
  *	- no path table
  *	- root directories are of length zero
  */
-Cdimg*
+Cdimg *
 createcd(char *file, Cdinfo info)
 {
 	int fd, xfd;
 	Cdimg *cd;
 
-	if(access(file, AEXIST) == 0){
+	if(access(file, AEXIST) == 0) {
 		werrstr("file already exists");
 		return nil;
 	}
@@ -49,12 +49,12 @@ createcd(char *file, Cdinfo info)
 		sysfatal("can't open file again: %r");
 	Binit(&cd->bwr, xfd, OWRITE);
 
-	Crepeat(cd, 0, 16*Blocksize);
+	Crepeat(cd, 0, 16 * Blocksize);
 	Cputisopvd(cd, info);
-	if(info.flags & CDbootable){
+	if(info.flags & CDbootable) {
 		cd->bootimage = info.bootimage;
 		cd->loader = info.loader;
-		cd->flags |= info.flags & (CDbootable|CDbootnoemu);
+		cd->flags |= info.flags & (CDbootable | CDbootnoemu);
 		Cputbootvol(cd);
 	}
 
@@ -72,11 +72,11 @@ createcd(char *file, Cdinfo info)
 	}
 	Cputendvd(cd);
 
-	if(info.flags & CDdump){
+	if(info.flags & CDdump) {
 		cd->nulldump = Cputdumpblock(cd);
 		cd->flags |= CDdump;
 	}
-	if(cd->flags & CDbootable){
+	if(cd->flags & CDbootable) {
 		Cputbootcat(cd);
 		Cupdatebootvol(cd);
 	}
@@ -91,7 +91,7 @@ createcd(char *file, Cdinfo info)
 	return cd;
 }
 
-Cdimg*
+Cdimg *
 opencd(char *file, Cdinfo info)
 {
 	int fd, xfd;
@@ -135,15 +135,14 @@ opencd(char *file, Cdinfo info)
 	}
 
 	/* lowercase because of isostring */
-	if(strstr(cd->iso.systemid, "iso9660") == nil 
-	&& strstr(cd->iso.systemid, "utf8") == nil) {
+	if(strstr(cd->iso.systemid, "iso9660") == nil && strstr(cd->iso.systemid, "utf8") == nil) {
 		werrstr("unknown systemid %s", cd->iso.systemid);
 		free(cd);
 		close(fd);
 		close(xfd);
 		return nil;
 	}
-	
+
 	if(strstr(cd->iso.systemid, "plan 9"))
 		cd->flags |= CDplan9;
 	if(strstr(cd->iso.systemid, "iso9660"))
@@ -169,8 +168,8 @@ big(void *a, int n)
 
 	p = a;
 	v = 0;
-	for(i=0; i<n; i++)
-		v = (v<<8) | *p++;
+	for(i = 0; i < n; i++)
+		v = (v << 8) | *p++;
 	return v;
 }
 
@@ -183,28 +182,28 @@ little(void *a, int n)
 
 	p = a;
 	v = 0;
-	for(i=0; i<n; i++)
-		v |= (*p++<<(i*8));
+	for(i = 0; i < n; i++)
+		v |= (*p++ << (i * 8));
 	return v;
 }
 
 void
 Creadblock(Cdimg *cd, void *buf, uint32_t block, uint32_t len)
 {
-	assert(block != 0);	/* nothing useful there */
+	assert(block != 0); /* nothing useful there */
 
 	Bflush(&cd->bwr);
 	if(Bseek(&cd->brd, (int64_t)block * Blocksize, 0) !=
-	    (int64_t)block * Blocksize)
+	   (int64_t)block * Blocksize)
 		sysfatal("error seeking to block %lud", block);
 	if(Bread(&cd->brd, buf, len) != len)
 		sysfatal("error reading %lud bytes at block %lud: %r %lld",
-			len, block, Bseek(&cd->brd, 0, 2));
+			 len, block, Bseek(&cd->brd, 0, 2));
 }
 
 int
 parsedir(Cdimg *cd, Direc *d, uint8_t *buf, int len,
-	 char *(*cvtname)(uint8_t*, int))
+	 char *(*cvtname)(uint8_t *, int))
 {
 	enum { NAMELEN = 28 };
 	char name[NAMELEN];
@@ -213,7 +212,7 @@ parsedir(Cdimg *cd, Direc *d, uint8_t *buf, int len,
 
 	memset(d, 0, sizeof *d);
 
-	c = (Cdir*)buf;
+	c = (Cdir *)buf;
 
 	if(c->len > len) {
 		werrstr("buffer too small");
@@ -233,33 +232,32 @@ parsedir(Cdimg *cd, Direc *d, uint8_t *buf, int len,
 	if(c->flags & 2)
 		d->mode |= DMDIR;
 
-/*BUG: do we really need to parse the plan 9 fields? */
+	/*BUG: do we really need to parse the plan 9 fields? */
 	/* plan 9 use fields */
-	if((cd->flags & CDplan9) && cvtname == isostring
-	&& (c->namelen != 1 || c->name[0] > 1)) {
-		p = buf+33+c->namelen;
-		if((p-buf)&1)
+	if((cd->flags & CDplan9) && cvtname == isostring && (c->namelen != 1 || c->name[0] > 1)) {
+		p = buf + 33 + c->namelen;
+		if((p - buf) & 1)
 			p++;
-		assert(p < buf+c->len);
+		assert(p < buf + c->len);
 		assert(*p < NAMELEN);
 		if(*p != 0) {
-			memmove(name, p+1, *p);
+			memmove(name, p + 1, *p);
 			name[*p] = '\0';
 			d->confname = d->name;
 			d->name = atom(name);
 		}
-		p += *p+1;
+		p += *p + 1;
 		assert(*p < NAMELEN);
-		memmove(name, p+1, *p);
+		memmove(name, p + 1, *p);
 		name[*p] = '\0';
 		d->uid = atom(name);
-		p += *p+1;
+		p += *p + 1;
 		assert(*p < NAMELEN);
-		memmove(name, p+1, *p);
+		memmove(name, p + 1, *p);
 		name[*p] = '\0';
 		d->gid = atom(name);
-		p += *p+1;
-		if((p-buf)&1)
+		p += *p + 1;
+		if((p - buf) & 1)
 			p++;
 		d->mode = little(p, 4);
 	}
@@ -274,7 +272,7 @@ setroot(Cdimg *cd, uint32_t block, uint32_t dloc, uint32_t dlen)
 	assert(block != 0);
 
 	Cwseek(cd, (int64_t)block * Blocksize + offsetof(Cvoldesc, rootdir[0]) +
-		offsetof(Cdir, dloc[0]));
+		       offsetof(Cdir, dloc[0]));
 	Cputn(cd, dloc, 4);
 	Cputn(cd, dlen, 4);
 }
@@ -285,7 +283,7 @@ setvolsize(Cdimg *cd, uint64_t block, uint32_t size)
 	assert(block != 0);
 
 	Cwseek(cd, block * Blocksize + offsetof(Cvoldesc, volsize[0]));
-	Cputn(cd, size, 4);			/* size in blocks */
+	Cputn(cd, size, 4); /* size in blocks */
 }
 
 void
@@ -301,13 +299,11 @@ setpathtable(Cdimg *cd, uint32_t block, uint32_t sz, uint32_t lloc,
 	Cputnl(cd, 0, 4);
 	Cputnm(cd, bloc, 4);
 	Cputnm(cd, 0, 4);
-	assert(Cwoffset(cd) == (int64_t)block * Blocksize +
-		offsetof(Cvoldesc, rootdir[0]));
+	assert(Cwoffset(cd) == (int64_t)block * Blocksize + offsetof(Cvoldesc, rootdir[0]));
 }
 
-
 static void
-parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uint8_t*, int))
+parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uint8_t *, int))
 {
 	v->systemid = string(cv->systemid, sizeof cv->systemid);
 
@@ -324,11 +320,11 @@ parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uint8_t*, int))
 	v->biblio = string(cv->biblio, sizeof cv->biblio);
 	v->notice = string(cv->notice, sizeof cv->notice);
 }
-	
+
 static int
 readisodesc(Cdimg *cd, Voldesc *v)
 {
-	static uint8_t magic[] = { 0x01, 'C', 'D', '0', '0', '1', 0x01, 0x00 };
+	static uint8_t magic[] = {0x01, 'C', 'D', '0', '0', '1', 0x01, 0x00};
 	Cvoldesc cv;
 
 	memset(v, 0, sizeof *v);
@@ -354,22 +350,21 @@ static int
 readjolietdesc(Cdimg *cd, Voldesc *v)
 {
 	int i;
-	static uint8_t magic[] = { 0x02, 'C', 'D', '0', '0', '1', 0x01, 0x00 };
+	static uint8_t magic[] = {0x02, 'C', 'D', '0', '0', '1', 0x01, 0x00};
 	Cvoldesc cv;
 
 	memset(v, 0, sizeof *v);
 
-	for(i=16; i<24; i++) {
+	for(i = 16; i < 24; i++) {
 		Creadblock(cd, &cv, i, sizeof cv);
 		if(memcmp(cv.magic, magic, sizeof magic) != 0)
 			continue;
-		if(cv.charset[0] != 0x25 || cv.charset[1] != 0x2F
-		|| (cv.charset[2] != 0x40 && cv.charset[2] != 0x43 && cv.charset[2] != 0x45))
+		if(cv.charset[0] != 0x25 || cv.charset[1] != 0x2F || (cv.charset[2] != 0x40 && cv.charset[2] != 0x43 && cv.charset[2] != 0x45))
 			continue;
 		break;
 	}
 
-	if(i==24) {
+	if(i == 24) {
 		werrstr("could not find Joliet SVD");
 		return -1;
 	}
@@ -391,10 +386,11 @@ readjolietdesc(Cdimg *cd, Voldesc *v)
 void
 Cputc(Cdimg *cd, int c)
 {
-	assert(Boffset(&cd->bwr) >= 16*Blocksize || c == 0);
+	assert(Boffset(&cd->bwr) >= 16 * Blocksize || c == 0);
 
-if(Boffset(&cd->bwr) == 0x9962)
-if(c >= 256) abort();
+	if(Boffset(&cd->bwr) == 0x9962)
+		if(c >= 256)
+			abort();
 	if(Bputc(&cd->bwr, c) < 0)
 		sysfatal("Bputc: %r");
 	Bflush(&cd->brd);
@@ -407,30 +403,30 @@ Cputnl(Cdimg *cd, uint64_t val, int size)
 	default:
 		sysfatal("bad size %d in Cputnl", size);
 	case 2:
-		if(val >= (1<<16))
+		if(val >= (1 << 16))
 			sysfatal("value %llud too big for size %d in Cputnl",
-				val, size);
+				 val, size);
 		Cputc(cd, val);
-		Cputc(cd, val>>8);
+		Cputc(cd, val >> 8);
 		break;
 	case 4:
-		if(val >= (1ULL<<32))
+		if(val >= (1ULL << 32))
 			sysfatal("value %llud too big for size %d in Cputnl",
-				val, size);
+				 val, size);
 		Cputc(cd, val);
-		Cputc(cd, val>>8);
-		Cputc(cd, val>>16);
-		Cputc(cd, val>>24);
+		Cputc(cd, val >> 8);
+		Cputc(cd, val >> 16);
+		Cputc(cd, val >> 24);
 		break;
 	case 8:
 		Cputc(cd, val);
-		Cputc(cd, val>>8);
-		Cputc(cd, val>>16);
-		Cputc(cd, val>>24);
-		Cputc(cd, val>>32);
-		Cputc(cd, val>>40);
-		Cputc(cd, val>>48);
-		Cputc(cd, val>>56);
+		Cputc(cd, val >> 8);
+		Cputc(cd, val >> 16);
+		Cputc(cd, val >> 24);
+		Cputc(cd, val >> 32);
+		Cputc(cd, val >> 40);
+		Cputc(cd, val >> 48);
+		Cputc(cd, val >> 56);
 		break;
 	}
 }
@@ -442,29 +438,29 @@ Cputnm(Cdimg *cd, uint64_t val, int size)
 	default:
 		sysfatal("bad size %d in Cputnm", size);
 	case 2:
-		if(val >= (1<<16))
+		if(val >= (1 << 16))
 			sysfatal("value %llud too big for size %d in Cputnl",
-				val, size);
-		Cputc(cd, val>>8);
+				 val, size);
+		Cputc(cd, val >> 8);
 		Cputc(cd, val);
 		break;
 	case 4:
-		if(val >= (1ULL<<32))
+		if(val >= (1ULL << 32))
 			sysfatal("value %llud too big for size %d in Cputnl",
-				val, size);
-		Cputc(cd, val>>24);
-		Cputc(cd, val>>16);
-		Cputc(cd, val>>8);
+				 val, size);
+		Cputc(cd, val >> 24);
+		Cputc(cd, val >> 16);
+		Cputc(cd, val >> 8);
 		Cputc(cd, val);
 		break;
 	case 8:
-		Cputc(cd, val>>56);
-		Cputc(cd, val>>48);
-		Cputc(cd, val>>40);
-		Cputc(cd, val>>32);
-		Cputc(cd, val>>24);
-		Cputc(cd, val>>16);
-		Cputc(cd, val>>8);
+		Cputc(cd, val >> 56);
+		Cputc(cd, val >> 48);
+		Cputc(cd, val >> 40);
+		Cputc(cd, val >> 32);
+		Cputc(cd, val >> 24);
+		Cputc(cd, val >> 16);
+		Cputc(cd, val >> 8);
 		Cputc(cd, val);
 		break;
 	}
@@ -497,16 +493,16 @@ Cputs(Cdimg *cd, char *s, int size)
 		return;
 	}
 
-	for(n=0; n<size && *s; n++)
+	for(n = 0; n < size && *s; n++)
 		Cputc(cd, *s++);
-	if(n<size)
-		Crepeat(cd, ' ', size-n);
+	if(n < size)
+		Crepeat(cd, ' ', size - n);
 }
 
 void
 Cwrite(Cdimg *cd, void *buf, int n)
 {
-	assert(Boffset(&cd->bwr) >= 16*Blocksize);
+	assert(Boffset(&cd->bwr) >= 16 * Blocksize);
 
 	if(Bwrite(&cd->bwr, buf, n) != n)
 		sysfatal("Bwrite: %r");
@@ -516,7 +512,7 @@ Cwrite(Cdimg *cd, void *buf, int n)
 void
 Cputr(Cdimg *cd, Rune r)
 {
-	Cputc(cd, r>>8);
+	Cputc(cd, r >> 8);
 	Cputc(cd, r);
 }
 
@@ -525,7 +521,7 @@ Crepeatr(Cdimg *cd, Rune r, int n)
 {
 	int i;
 
-	for(i=0; i<n; i++)
+	for(i = 0; i < n; i++)
 		Cputr(cd, r);
 }
 
@@ -534,17 +530,17 @@ Cputrs(Cdimg *cd, Rune *s, int osize)
 {
 	int n, size;
 
-	size = osize/2;
+	size = osize / 2;
 	if(s == nil)
 		Crepeatr(cd, (Rune)' ', size);
 	else {
-		for(n=0; *s && n<size; n++)
+		for(n = 0; *s && n < size; n++)
 			Cputr(cd, *s++);
-		if(n<size)
-			Crepeatr(cd, ' ', size-n);
+		if(n < size)
+			Crepeatr(cd, ' ', size - n);
 	}
-	if(osize&1)
-		Cputc(cd, 0);	/* what else can we do? */
+	if(osize & 1)
+		Cputc(cd, 0); /* what else can we do? */
 }
 
 void
@@ -566,7 +562,7 @@ Cpadblock(Cdimg *cd)
 	if(n != Blocksize)
 		Crepeat(cd, 0, n);
 
-	nb = Boffset(&cd->bwr)/Blocksize;
+	nb = Boffset(&cd->bwr) / Blocksize;
 	assert(nb != 0);
 	if(nb > cd->nextblock)
 		cd->nextblock = nb;
@@ -583,7 +579,7 @@ Cputdate(Cdimg *cd, uint32_t ust)
 	}
 	tm = gmtime(ust);
 	Cputc(cd, tm->year);
-	Cputc(cd, tm->mon+1);
+	Cputc(cd, tm->mon + 1);
 	Cputc(cd, tm->mday);
 	Cputc(cd, tm->hour);
 	Cputc(cd, tm->min);
@@ -604,12 +600,12 @@ Cputdate1(Cdimg *cd, uint32_t ust)
 	}
 	tm = gmtime(ust);
 	sprint(str, "%.4d%.2d%.2d%.2d%.2d%.4d",
-		tm->year+1900,
-		tm->mon+1,
-		tm->mday,
-		tm->hour,
-		tm->min,
-		tm->sec*100);
+	       tm->year + 1900,
+	       tm->mon + 1,
+	       tm->mday,
+	       tm->hour,
+	       tm->min,
+	       tm->sec * 100);
 	Cputs(cd, str, 16);
 	Cputc(cd, 0);
 }
@@ -666,7 +662,7 @@ Cread(Cdimg *cd, void *buf, int n)
 		sysfatal("Bread: %r");
 }
 
-char*
+char *
 Crdline(Cdimg *cd, int c)
 {
 	Cwflush(cd);
@@ -678,4 +674,3 @@ Clinelen(Cdimg *cd)
 {
 	return Blinelen(&cd->brd);
 }
-

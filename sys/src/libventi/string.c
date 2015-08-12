@@ -17,19 +17,19 @@ vtputstring(Packet *p, char *s)
 	uint8_t buf[2];
 	int n;
 
-	if(s == nil){
+	if(s == nil) {
 		werrstr("null string in packet");
 		return -1;
 	}
 	n = strlen(s);
-	if(n > VtMaxStringSize){
+	if(n > VtMaxStringSize) {
 		werrstr("string too long in packet");
 		return -1;
 	}
-	buf[0] = n>>8;
+	buf[0] = n >> 8;
 	buf[1] = n;
 	packetappend(p, buf, 2);
-	packetappend(p, (uint8_t*)s, n);
+	packetappend(p, (uint8_t *)s, n);
 	return 0;
 }
 
@@ -42,13 +42,13 @@ vtgetstring(Packet *p, char **ps)
 
 	if(packetconsume(p, buf, 2) < 0)
 		return -1;
-	n = (buf[0]<<8) + buf[1];
+	n = (buf[0] << 8) + buf[1];
 	if(n > VtMaxStringSize) {
 		werrstr("string too long in packet");
 		return -1;
 	}
-	s = vtmalloc(n+1);
-	if(packetconsume(p, (uint8_t*)s, n) < 0){
+	s = vtmalloc(n + 1);
+	if(packetconsume(p, (uint8_t *)s, n) < 0) {
 		vtfree(s);
 		return -1;
 	}
@@ -56,4 +56,3 @@ vtgetstring(Packet *p, char **ps)
 	*ps = s;
 	return 0;
 }
-

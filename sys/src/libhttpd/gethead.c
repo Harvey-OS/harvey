@@ -24,17 +24,17 @@ hgethead(HConnect *c, int many)
 	int n;
 
 	hin = &c->hin;
-	for(;;){
-		s = (char*)hin->pos;
+	for(;;) {
+		s = (char *)hin->pos;
 		pp = s;
-		while(p = memchr(pp, '\n', (char*)hin->stop - pp)){
-			if(!many || p == pp || (p == pp + 1 && *pp == '\r')){
+		while(p = memchr(pp, '\n', (char *)hin->stop - pp)) {
+			if(!many || p == pp || (p == pp + 1 && *pp == '\r')) {
 				pp = p + 1;
 				break;
 			}
 			pp = p + 1;
 		}
-		hin->pos = (uint8_t*)pp;
+		hin->pos = (uint8_t *)pp;
 		n = pp - s;
 		if(c->hstop + n > &c->header[HBufSize])
 			return -1;

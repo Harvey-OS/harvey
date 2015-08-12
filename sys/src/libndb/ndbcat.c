@@ -13,7 +13,7 @@
 #include <ctype.h>
 #include <ndb.h>
 
-Ndb*
+Ndb *
 ndbcat(Ndb *a, Ndb *b)
 {
 	Ndb *db = a;

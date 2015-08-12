@@ -25,18 +25,18 @@
 /*
  * return the name of the slave
  */
-char*
+char *
 ptsname(int fd)
 {
 	Dir *d;
 	static char buf[32];
 
-	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
+	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4) {
 		free(d);
 		_syserrno();
 		return 0;
 	}
-	snprintf(buf, sizeof buf, "/dev/ptty%d", atoi(d->name+4));
+	snprintf(buf, sizeof buf, "/dev/ptty%d", atoi(d->name + 4));
 	free(d);
 	return buf;
 }
@@ -44,19 +44,19 @@ ptsname(int fd)
 /*
  * return the name of the master
  */
-char*
+char *
 ptmname(int fd)
 {
 	Dir *d;
 	static char buf[32];
 
-	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
+	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4) {
 		free(d);
 		_syserrno();
 		return 0;
 	}
 
-	snprintf(buf, sizeof buf, "/dev/ttym%d", atoi(d->name+4));
+	snprintf(buf, sizeof buf, "/dev/ttym%d", atoi(d->name + 4));
 	return buf;
 }
 
@@ -81,7 +81,7 @@ mkserver(void)
 		 */
 		_CLOSE(fd);
 		_REMOVE(fssrv);
-		switch(_RFORK(RFPROC|RFFDG)) {
+		switch(_RFORK(RFPROC | RFFDG)) {
 		case -1:
 			return;
 		case 0:

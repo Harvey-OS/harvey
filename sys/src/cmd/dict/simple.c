@@ -24,13 +24,13 @@ simpleprintentry(Entry e, int cmd)
 
 	p = (uint8_t *)e.start;
 	pe = (uint8_t *)e.end;
-	while(p < pe){
-		if(*p == '\t'){
+	while(p < pe) {
+		if(*p == '\t') {
 			if(cmd == 'h')
 				break;
 			else
 				outchar(' '), ++p;
-		}else if(*p == '\n')
+		} else if(*p == '\n')
 			break;
 		else
 			outchar(*p++);

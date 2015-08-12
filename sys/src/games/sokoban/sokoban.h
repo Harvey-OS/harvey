@@ -9,9 +9,9 @@
 
 enum {
 	/* levels */
-	Empty		= 0,
+	Empty = 0,
 	Background,
-	Wall, 
+	Wall,
 	Cargo,
 	Goal,
 	GoalCargo,
@@ -26,8 +26,8 @@ enum {
 
 enum {
 	/* glenda faces the horizontal direction she's moving in */
-	GLeft	= 0,
-	GRight 	= 1,
+	GLeft = 0,
+	GRight = 1,
 };
 
 enum {
@@ -35,53 +35,53 @@ enum {
 	MazeY = 18,
 	BoardX = 49,
 	BoardY = 49,
-	SizeX = MazeX*BoardX+10,	
-	SizeY = MazeY*BoardY+10,
+	SizeX = MazeX * BoardX + 10,
+	SizeY = MazeY * BoardY + 10,
 
 	Maxlevels = 200,
 };
 
 typedef struct Step {
-	uint dir;		/* direction */
-	uint count;	/* number of single-step moves */
+	uint dir;   /* direction */
+	uint count; /* number of single-step moves */
 } Step;
 
 typedef struct Route {
-	uint nstep;	/* number of valid Step */
+	uint nstep; /* number of valid Step */
 	Step *step;
-	Point dest;	/* result of step */
+	Point dest; /* result of step */
 } Route;
 
 typedef struct Walk {
-	uint nroute;	/* number of valid Route* */
+	uint nroute; /* number of valid Route* */
 	Route **route;
-	uint beyond;	/* number of allocated Route* */
+	uint beyond; /* number of allocated Route* */
 } Walk;
 
 typedef struct Visited {
-	uint 	board[MazeX][MazeY];
+	uint board[MazeX][MazeY];
 } Visited;
 
 typedef struct Animation {
-	Route* route;
+	Route *route;
 	Step *step;
 	int count;
 } Animation;
 
 typedef struct {
-	Point 	glenda;
-	Point 	max;		/* that's how much the board spans */
-	uint 	index;
-	uint	done;
-	uint 	board[MazeX][MazeY];
+	Point glenda;
+	Point max; /* that's how much the board spans */
+	uint index;
+	uint done;
+	uint board[MazeX][MazeY];
 } Level;
 
-Level level;		/* the current level */
-Level levels[Maxlevels];	/* all levels from this file */
-int numlevels;		/* how many levels do we have */
+Level level;		 /* the current level */
+Level levels[Maxlevels]; /* all levels from this file */
+int numlevels;		 /* how many levels do we have */
 
-Image *img;		/* buffer */
-Image *text;		/* for text messages */
+Image *img;  /* buffer */
+Image *text; /* for text messages */
 Image *win;
 
 Image *goal;
@@ -110,18 +110,17 @@ int loadlevels(char *);
 void move(int);
 
 /* route.c */
-int validpush(Point, Step*, Point*);
-int isvalid(Point, Route*, int (*)(Point, Step*, Point*));
-void freeroute(Route*);
-Route* extend(Route*, int, int, Point);
-Route* findroute(Point, Point);
+int validpush(Point, Step *, Point *);
+int isvalid(Point, Route *, int (*)(Point, Step *, Point *));
+void freeroute(Route *);
+Route *extend(Route *, int, int, Point);
+Route *findroute(Point, Point);
 
 /* animation.c */
-void initanimation(Animation*);
-void setupanimation(Animation*, Route*);
-int onestep(Animation*);
-void stopanimation(Animation*);
-
+void initanimation(Animation *);
+void setupanimation(Animation *, Route *);
+int onestep(Animation *);
+void stopanimation(Animation *);
 
 /* sokoban.c */
 char *genlevels(int);

@@ -13,9 +13,8 @@
 
 enum {
 	IdealAlignment = 32,
-	ChunkSize 	= 128*1024,
+	ChunkSize = 128 * 1024,
 };
-
 
 void
 vtMemFree(void *p)
@@ -24,7 +23,6 @@ vtMemFree(void *p)
 		return;
 	free(p);
 }
-
 
 void *
 vtMemAlloc(int size)
@@ -59,7 +57,6 @@ vtMemRealloc(void *p, int size)
 	return p;
 }
 
-
 void *
 vtMemBrk(int n)
 {
@@ -74,21 +71,21 @@ vtMemBrk(int n)
 		align = IdealAlignment;
 	else if(n > 8)
 		align = 8;
-	else	
+	else
 		align = 4;
 
 	lock(&lk);
-	pad = (align - (uintptr)buf) & (align-1);
+	pad = (align - (uintptr)buf) & (align - 1);
 	if(n + pad > nbuf) {
 		buf = vtMemAllocZ(ChunkSize);
 		setmalloctag(buf, getcallerpc(&n));
 		nbuf = ChunkSize;
-		pad = (align - (uintptr)buf) & (align-1);
+		pad = (align - (uintptr)buf) & (align - 1);
 		nchunk++;
 	}
 
-	assert(n + pad <= nbuf);	
-	
+	assert(n + pad <= nbuf);
+
 	p = buf + pad;
 	buf += pad + n;
 	nbuf -= pad + n;
@@ -104,7 +101,7 @@ vtThreadSetName(char *name)
 	char buf[32];
 
 	sprint(buf, "/proc/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
+	if((fd = open(buf, OWRITE)) >= 0) {
 		write(fd, name, strlen(name));
 		close(fd);
 	}
@@ -129,7 +126,7 @@ int
 vtFdWrite(int fd, uint8_t *buf, int n)
 {
 	int nn;
-	
+
 	nn = write(fd, buf, n);
 	if(nn < 0) {
 		vtOSError();

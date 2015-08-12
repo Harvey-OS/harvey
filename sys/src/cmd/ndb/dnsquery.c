@@ -23,13 +23,13 @@ setup(int argc, char **argv)
 {
 	int fd;
 
-	if(argc == 1){
+	if(argc == 1) {
 		domount = 0;
 		mtpt = argv[0];
 	}
 
 	fd = open(dns, ORDWR);
-	if(fd < 0){
+	if(fd < 0) {
 		if(domount == 0)
 			sysfatal("can't open %s: %r", dns);
 		fd = open(srv, ORDWR);
@@ -56,7 +56,7 @@ querydns(int fd, char *line, int n)
 	}
 	seek(fd, 0, 0);
 	buf[0] = '\0';
-	while((n = read(fd, buf, sizeof(buf))) > 0){
+	while((n = read(fd, buf, sizeof(buf))) > 0) {
 		buf[n] = '\0';
 		print("%s\n", buf);
 	}
@@ -71,12 +71,12 @@ query(int fd)
 	Biobuf in;
 
 	Binit(&in, 0, OREAD);
-	for(print("> "); lp = Brdline(&in, '\n'); print("> ")){
-		n = Blinelen(&in) -1;
+	for(print("> "); lp = Brdline(&in, '\n'); print("> ")) {
+		n = Blinelen(&in) - 1;
 		while(isspace(lp[n]))
 			lp[n--] = 0;
 		n++;
-		while(isspace(*lp)){
+		while(isspace(*lp)) {
 			lp++;
 			n--;
 		}
@@ -95,28 +95,28 @@ query(int fd)
 			}
 
 		/* inverse queries may need to be permuted */
-		if(n > 4 && strcmp(" ptr", &line[n-4]) == 0 &&
-		    cistrstr(line, ".arpa") == nil){
+		if(n > 4 && strcmp(" ptr", &line[n - 4]) == 0 &&
+		   cistrstr(line, ".arpa") == nil) {
 			/* TODO: reversing v6 addrs is harder */
 			for(p = line; *p; p++)
-				if(*p == ' '){
+				if(*p == ' ') {
 					*p = '.';
 					break;
 				}
 			np = buf;
 			len = 0;
-			while(p >= line){
+			while(p >= line) {
 				len++;
 				p--;
-				if(*p == '.'){
-					memmove(np, p+1, len);
+				if(*p == '.') {
+					memmove(np, p + 1, len);
 					np += len;
 					len = 0;
 				}
 			}
-			memmove(np, p+1, len);
+			memmove(np, p + 1, len);
 			np += len;
-			strcpy(np, "in-addr.arpa ptr");	/* TODO: ip6.arpa for v6 */
+			strcpy(np, "in-addr.arpa ptr"); /* TODO: ip6.arpa for v6 */
 			strcpy(line, buf);
 			n = strlen(line);
 		}
@@ -133,7 +133,8 @@ main(int argc, char *argv[])
 	dns = "/net/dns";
 	srv = "/srv/dns";
 	domount = 1;
-	ARGBEGIN {
+	ARGBEGIN
+	{
 	case 'x':
 		mtpt = "/net.alt";
 		dns = "/net.alt/dns";
@@ -142,7 +143,8 @@ main(int argc, char *argv[])
 	default:
 		fprint(2, "usage: %s [-x] [dns-mount-point]\n", argv0);
 		exits("usage");
-	} ARGEND;
+	}
+	ARGEND;
 
 	query(setup(argc, argv));
 	exits(0);

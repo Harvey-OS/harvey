@@ -29,7 +29,7 @@
 /* contributed by Jouk Jansen (joukj@hrem.stm.tudelft.nl) */
 
 #ifndef vms_x_fix_INCLUDED
-#  define vms_x_fix_INCLUDED
+#define vms_x_fix_INCLUDED
 
 #define DtSaverGetWindows DTSAVERGETWINDOWS
 #define XAddHosts XADDHOSTS
@@ -704,7 +704,7 @@
 #define XwcTextExtents XWCTEXTEXTENTS
 #define XwcTextListToTextProperty XWCTEXTLISTTOTEXTPROPERTY
 #define XwcTextPropertyToTextList XWCTEXTPROPERTYTOTEXTLIST
-#define _XRegisterFilterByType _XREGISTERFILTERBYTYPE 
+#define _XRegisterFilterByType _XREGISTERFILTERBYTYPE
 #define _XUnregisterFilter _XUNREGISTERFILTER
 #define _XmBottomShadowColorDefault _XMBOTTOMSHADOWCOLORDEFAULT
 #define _XmClearBorder _XMCLEARBORDER
@@ -898,11 +898,10 @@
 #define xmToggleButtonGadgetClass XMTOGGLEBUTTONGADGETCLASS
 #define xmToggleButtonWidgetClass XMTOGGLEBUTTONWIDGETCLASS
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void XtFree(char*);
+extern void XtFree(char *);
 #ifdef __cplusplus
 }
 #endif

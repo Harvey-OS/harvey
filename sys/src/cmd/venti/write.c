@@ -34,7 +34,8 @@ threadmain(int argc, char *argv[])
 	host = nil;
 	dotrunc = 0;
 	type = VtDataType;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'z':
 		dotrunc = 1;
 		break;
@@ -47,13 +48,14 @@ threadmain(int argc, char *argv[])
 	default:
 		usage();
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 0)
 		usage();
 
-	p = vtmallocz(VtMaxLumpSize+1);
-	n = readn(0, p, VtMaxLumpSize+1);
+	p = vtmallocz(VtMaxLumpSize + 1);
+	n = readn(0, p, VtMaxLumpSize + 1);
 	if(n > VtMaxLumpSize)
 		sysfatal("input too big: max block size is %d", VtMaxLumpSize);
 	z = vtdial(host);

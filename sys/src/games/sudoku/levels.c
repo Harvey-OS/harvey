@@ -26,7 +26,7 @@ fprettyprintbrd(Cell *board)
 {
 	int x, y, fd;
 
-	fd = create("/tmp/sudoku-print", OWRITE|OTRUNC, 0600);
+	fd = create("/tmp/sudoku-print", OWRITE | OTRUNC, 0600);
 	if(fd < 0) {
 		perror("can not open save file /tmp/sudoku-save");
 		return;
@@ -35,20 +35,19 @@ fprettyprintbrd(Cell *board)
 	for(x = 0; x < Brdsize; x++) {
 		for(y = 0; y < Brdsize; y++) {
 			fprint(fd, " ");
-			if(board[y*Brdsize + x].digit == -1)
+			if(board[y * Brdsize + x].digit == -1)
 				fprint(fd, ".");
 			else
-				fprint(fd, "%d", board[y*Brdsize + x].digit+1);
+				fprint(fd, "%d", board[y * Brdsize + x].digit + 1);
 
-			if(((x*Brdsize + y + 1) % Brdsize) == 0 || (x*Brdsize + y + 1) == Psize)
+			if(((x * Brdsize + y + 1) % Brdsize) == 0 || (x * Brdsize + y + 1) == Psize)
 				fprint(fd, "\n");
 
-			if(((x*Brdsize + y + 1) % 3) == 0 && ((x*Brdsize + y + 1) % Brdsize) != 0)
+			if(((x * Brdsize + y + 1) % 3) == 0 && ((x * Brdsize + y + 1) % Brdsize) != 0)
 				fprint(fd, "|");
 
-			if(((x*Brdsize + y + 1) % 27) == 0 && ((x*Brdsize + y + 1) % Psize) != 0)
+			if(((x * Brdsize + y + 1) % 27) == 0 && ((x * Brdsize + y + 1) % Psize) != 0)
 				fprint(fd, " -------------------\n");
-
 		}
 	}
 	close(fd);
@@ -58,18 +57,18 @@ void
 fprintbrd(int fd, Cell *board)
 {
 	int i;
-	
+
 	for(i = 0; i < Psize; i++) {
 		if(board[i].digit == -1)
 			fprint(fd, ".");
 		else
-			fprint(fd, "%d", board[i].digit+1);
+			fprint(fd, "%d", board[i].digit + 1);
 
 		if((i + 1) % Brdsize == 0)
 			fprint(fd, "\n");
 	}
 	for(i = 0; i < Psize; i++) {
-		fprint(fd, "%d", board[i].solve+1);
+		fprint(fd, "%d", board[i].solve + 1);
 		if((i + 1) % Brdsize == 0)
 			fprint(fd, "\n");
 	}
@@ -83,7 +82,7 @@ loadlevel(char *name, Cell *board)
 	Biobuf *b;
 	char c;
 	int i;
-	
+
 	b = Bopen(name, OREAD);
 	if(b == nil) {
 		fprint(2, "could not open file %s: %r\n", name);
@@ -155,8 +154,8 @@ void
 printboard(Cell *board)
 {
 	int fd;
-	
-	fd = create("/tmp/sudoku-board", OWRITE|OTRUNC, 0600);
+
+	fd = create("/tmp/sudoku-board", OWRITE | OTRUNC, 0600);
 	if(fd < 0) {
 		perror("can not open save file /tmp/sudoku-save");
 		return;
@@ -171,8 +170,8 @@ void
 savegame(Cell *board)
 {
 	int fd;
-	
-	fd = create("/tmp/sudoku-save", OWRITE|OTRUNC, 0600);
+
+	fd = create("/tmp/sudoku-save", OWRITE | OTRUNC, 0600);
 	if(fd < 0) {
 		perror("can not open save file /tmp/sudoku-save");
 		return;
@@ -202,7 +201,7 @@ loadgame(Cell *board)
 		close(fd);
 		return -1;
 	}
-	
+
 	close(fd);
 
 	return 1;

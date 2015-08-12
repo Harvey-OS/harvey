@@ -52,21 +52,24 @@ main(int argc, char **argv)
 {
 	int i;
 
-	ARGBEGIN{
-	}ARGEND;
+	ARGBEGIN
+	{
+	}
+	ARGEND;
 
-	if(argc == 0){
+	if(argc == 0) {
 		fprint(2, "usage: %s portrange\n", argv0);
 		exits("usage");
 	}
 
-	switch(rfork(RFREND|RFNOTEG|RFFDG|RFPROC|RFNAMEG)){
+	switch(rfork(RFREND | RFNOTEG | RFFDG | RFPROC | RFNAMEG)) {
 	case 0:
 		close(0);
 		close(1);
 		break;
 	case -1:
-		abort(); /* "fork failed\n" */;
+		abort(); /* "fork failed\n" */
+		;
 	default:
 		_exits(0);
 	}

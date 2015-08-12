@@ -12,14 +12,13 @@
 #include <draw.h>
 #include <memdraw.h>
 
-enum
-{
+enum {
 	None,
-	Inset,	/* move border in or out uniformly */
-	Insetxy,	/* move border in or out; different parameters for x and y */
-	Set,		/* set rectangle to absolute values */
-	Blank,	/* cut off blank region according to color value */
-			/* Blank is not actually set as a mode; it can be combined with others */
+	Inset,   /* move border in or out uniformly */
+	Insetxy, /* move border in or out; different parameters for x and y */
+	Set,     /* set rectangle to absolute values */
+	Blank,   /* cut off blank region according to color value */
+		 /* Blank is not actually set as a mode; it can be combined with others */
 };
 
 void
@@ -37,9 +36,9 @@ getint(char *s)
 	if(s == nil)
 		usage();
 	if(*s == '+')
-		return atoi(s+1);
+		return atoi(s + 1);
 	if(*s == '-')
-		return -atoi(s+1);
+		return -atoi(s + 1);
 	return atoi(s);
 }
 
@@ -56,7 +55,7 @@ crop(Memimage *m, uint32_t c)
 	top = m->r.max.y;
 	bottom = m->r.min.y;
 	n = nil;
-	if(m->chan != RGBA32){
+	if(m->chan != RGBA32) {
 		/* convert type for simplicity */
 		n = allocmemimage(m->r, RGBA32);
 		if(n == nil)
@@ -65,18 +64,18 @@ crop(Memimage *m, uint32_t c)
 		m = n;
 	}
 	wpl = wordsperline(m->r, m->depth);
-	bpl = wpl*sizeof(uint32_t);
+	bpl = wpl * sizeof(uint32_t);
 	buf = malloc(bpl);
 	if(buf == nil)
 		sysfatal("can't allocate buffer: %r");
 
-	for(y=m->r.min.y; y<m->r.max.y; y++){
-		x = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y+1),
-				   (uint8_t*)buf, bpl);
+	for(y = m->r.min.y; y < m->r.max.y; y++) {
+		x = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y + 1),
+				   (uint8_t *)buf, bpl);
 		if(x != bpl)
 			sysfatal("unloadmemimage");
-		for(x=0; x<wpl; x++)
-			if(buf[x] != c){
+		for(x = 0; x < wpl; x++)
+			if(buf[x] != c) {
 				if(x < left)
 					left = x;
 				if(x > right)
@@ -86,10 +85,10 @@ crop(Memimage *m, uint32_t c)
 				bottom = y;
 			}
 	}
-	
+
 	if(n != nil)
 		freememimage(n);
-	return Rect(left, top, right+1, bottom+1);
+	return Rect(left, top, right + 1, bottom + 1);
 }
 
 void
@@ -110,22 +109,23 @@ main(int argc, char *argv[])
 	t = ZP;
 	memset(&rparam, 0, sizeof rparam);
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'b':
 		if(bg != 0)
 			usage();
-		red = getint(ARGF())&0xFF;
-		green = getint(ARGF())&0xFF;
-		blue = getint(ARGF())&0xFF;
-		bg = (red<<24)|(green<<16)|(blue<<8)|0xFF;
+		red = getint(ARGF()) & 0xFF;
+		green = getint(ARGF()) & 0xFF;
+		blue = getint(ARGF()) & 0xFF;
+		bg = (red << 24) | (green << 16) | (blue << 8) | 0xFF;
 		break;
 	case 'c':
 		if(cropval != 0)
 			usage();
-		red = getint(ARGF())&0xFF;
-		green = getint(ARGF())&0xFF;
-		blue = getint(ARGF())&0xFF;
-		cropval = (red<<24)|(green<<16)|(blue<<8)|0xFF;
+		red = getint(ARGF()) & 0xFF;
+		green = getint(ARGF()) & 0xFF;
+		blue = getint(ARGF()) & 0xFF;
+		cropval = (red << 24) | (green << 16) | (blue << 8) | 0xFF;
 		break;
 	case 'i':
 		if(mode != None)
@@ -160,7 +160,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(mode == None && cropval == 0 && eqpt(ZP, t))
 		usage();
@@ -169,7 +170,7 @@ main(int argc, char *argv[])
 	fd = 0;
 	if(argc > 1)
 		usage();
-	else if(argc == 1){
+	else if(argc == 1) {
 		file = argv[0];
 		fd = open(file, OREAD);
 		if(fd < 0)
@@ -181,12 +182,12 @@ main(int argc, char *argv[])
 		sysfatal("can't read %s: %r", file);
 
 	r = m->r;
-	if(cropval != 0){
+	if(cropval != 0) {
 		r = crop(m, cropval);
 		m->clipr = r;
 	}
 
-	switch(mode){
+	switch(mode) {
 	case None:
 		break;
 	case Inset:

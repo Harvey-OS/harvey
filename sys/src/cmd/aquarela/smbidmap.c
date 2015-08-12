@@ -34,7 +34,7 @@ smbidmapnew(void)
 void
 smbidmapremovebyid(SmbIdMap *m, int32_t id)
 {
-	if (m == nil)
+	if(m == nil)
 		return;
 	assert(id > 0);
 	id--;
@@ -48,7 +48,7 @@ void
 smbidmapremove(SmbIdMap *m, void *thing)
 {
 	int32_t id;
-	if (m == nil)
+	if(m == nil)
 		return;
 	id = *(int32_t *)thing;
 	smbidmapremovebyid(m, id);
@@ -58,10 +58,10 @@ void
 smbidmapremoveif(SmbIdMap *m, int (*f)(void *p, void *arg), void *arg)
 {
 	int i;
-	if (m == nil)
+	if(m == nil)
 		return;
-	for (i = 0; i < m->entries; i++)
-		if (m->array[i].freechain == -2 && (*f)(m->array[i].p, arg))
+	for(i = 0; i < m->entries; i++)
+		if(m->array[i].freechain == -2 && (*f)(m->array[i].p, arg))
 			smbidmapremovebyid(m, i + 1);
 }
 
@@ -70,12 +70,12 @@ grow(SmbIdMap *m)
 {
 	int32_t x;
 	int32_t oldentries = m->entries;
-	if (m->entries == 0)
+	if(m->entries == 0)
 		m->entries = INITIALCHUNKSIZE;
 	else
 		m->entries *= 2;
 	smberealloc(&m->array, sizeof(Entry) * m->entries);
-	for (x = m->entries - 1; x >= oldentries; x--) {
+	for(x = m->entries - 1; x >= oldentries; x--) {
 		m->array[x].freechain = m->freeindex;
 		m->freeindex = x;
 	}
@@ -85,7 +85,7 @@ int32_t
 smbidmapadd(SmbIdMap *m, void *p)
 {
 	int32_t i;
-	if (m->freeindex < 0)
+	if(m->freeindex < 0)
 		grow(m);
 	i = m->freeindex;
 	m->freeindex = m->array[i].freechain;
@@ -98,12 +98,12 @@ smbidmapadd(SmbIdMap *m, void *p)
 void *
 smbidmapfind(SmbIdMap *m, int32_t id)
 {
-	if (m == nil)
+	if(m == nil)
 		return nil;
-	if (id <= 0)
+	if(id <= 0)
 		return nil;
 	id--;
-	if (id < 0 || id > m->entries || m->array[id].freechain != -2)
+	if(id < 0 || id > m->entries || m->array[id].freechain != -2)
 		return nil;
 	return m->array[id].p;
 }
@@ -112,11 +112,11 @@ void
 smbidmapfree(SmbIdMap **mp, SMBIDMAPAPPLYFN *freefn, void *magic)
 {
 	SmbIdMap *m = *mp;
-	if (m) {
+	if(m) {
 		int32_t i;
-		if (freefn) {
-			for (i = 0; i < m->entries; i++)
-				if (m->array[i].freechain == -2)
+		if(freefn) {
+			for(i = 0; i < m->entries; i++)
+				if(m->array[i].freechain == -2)
 					(*freefn)(magic, m->array[i].p);
 		}
 		free(m->array);
@@ -128,10 +128,10 @@ smbidmapfree(SmbIdMap **mp, SMBIDMAPAPPLYFN *freefn, void *magic)
 void
 smbidmapapply(SmbIdMap *m, SMBIDMAPAPPLYFN *applyfn, void *magic)
 {
-	if (m) {
+	if(m) {
 		int32_t i;
-		for (i = 0; i < m->entries; i++)
-			if (m->array[i].freechain == -2)
+		for(i = 0; i < m->entries; i++)
+			if(m->array[i].freechain == -2)
 				(*applyfn)(magic, m->array[i].p);
 	}
 }

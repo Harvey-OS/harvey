@@ -15,7 +15,7 @@
 #include <thread.h>
 #include "wiki.h"
 
-void*
+void *
 erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
@@ -25,7 +25,7 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-void*
+void *
 emalloc(uint32_t n)
 {
 	void *v;
@@ -38,22 +38,22 @@ emalloc(uint32_t n)
 	return v;
 }
 
-char*
+char *
 estrdup(char *s)
 {
 	int l;
 	char *t;
 
-	if (s == nil)
+	if(s == nil)
 		return nil;
-	l = strlen(s)+1;
+	l = strlen(s) + 1;
 	t = emalloc(l);
 	memmove(t, s, l);
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
 
-char*
+char *
 estrdupn(char *s, int n)
 {
 	int l;
@@ -62,43 +62,43 @@ estrdupn(char *s, int n)
 	l = strlen(s);
 	if(l > n)
 		l = n;
-	t = emalloc(l+1);
+	t = emalloc(l + 1);
 	memmove(t, s, l);
 	t[l] = '\0';
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
 
-char*
+char *
 strlower(char *s)
 {
 	char *p;
 
-	for(p=s; *p; p++)
+	for(p = s; *p; p++)
 		if('A' <= *p && *p <= 'Z')
-			*p += 'a'-'A';
+			*p += 'a' - 'A';
 	return s;
 }
 
-String*
+String *
 s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
 {
 	int i, m;
 	char *q, *r, *ep;
 
-	ep = p+n;
-	while(p<ep){
+	ep = p + n;
+	while(p < ep) {
 		q = ep;
 		m = -1;
-		for(i=0; i<nsub; i++){
-			if(sub[i].sub && (r = strstr(p, sub[i].match)) && r < q){
+		for(i = 0; i < nsub; i++) {
+			if(sub[i].sub && (r = strstr(p, sub[i].match)) && r < q) {
 				q = r;
 				m = i;
 			}
 		}
-		s = s_nappend(s, p, q-p);
+		s = s_nappend(s, p, q - p);
 		p = q;
-		if(m >= 0){
+		if(m >= 0) {
 			s = s_append(s, sub[m].sub);
 			p += strlen(sub[m].match);
 		}
@@ -106,14 +106,14 @@ s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
 	return s;
 }
 
-String*
+String *
 s_appendlist(String *s, ...)
 {
 	char *x;
 	va_list arg;
 
 	va_start(arg, s);
-	while(x = va_arg(arg, char*))
+	while(x = va_arg(arg, char *))
 		s = s_append(s, x);
 	va_end(arg);
 	return s;
@@ -127,9 +127,9 @@ opentemp(char *template)
 
 	p = estrdup(template);
 	fd = -1;
-	for(i=0; i<10; i++){
+	for(i = 0; i < 10; i++) {
 		mktemp(p);
-		if(access(p, 0) < 0 && (fd=create(p, ORDWR|ORCLOSE, 0444)) >= 0)
+		if(access(p, 0) < 0 && (fd = create(p, ORDWR | ORCLOSE, 0444)) >= 0)
 			break;
 		strcpy(p, template);
 	}
@@ -139,4 +139,3 @@ opentemp(char *template)
 
 	return fd;
 }
-

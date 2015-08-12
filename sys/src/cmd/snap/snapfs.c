@@ -25,7 +25,7 @@ struct PD {
 	};
 };
 
-PD*
+PD *
 PDProc(Proc *p)
 {
 	PD *pd;
@@ -36,7 +36,7 @@ PDProc(Proc *p)
 	return pd;
 }
 
-PD*
+PD *
 PDData(Data *d)
 {
 	PD *pd;
@@ -54,24 +54,24 @@ usage(void)
 	exits("usage");
 }
 
-char*
+char *
 memread(Proc *p, File *f, void *buf, int32_t *count, int64_t offset)
 {
 	Page *pg;
 	int po;
 
-	po = offset%Pagesize;
-	if(!(pg = findpage(p, p->pid, f->name[0], offset-po)))
+	po = offset % Pagesize;
+	if(!(pg = findpage(p, p->pid, f->name[0], offset - po)))
 		return "address not mapped";
 
-	if(*count > Pagesize-po)
-		*count = Pagesize-po;
+	if(*count > Pagesize - po)
+		*count = Pagesize - po;
 
-	memmove(buf, pg->data+po, *count);
+	memmove(buf, pg->data + po, *count);
 	return nil;
 }
 
-char*
+char *
 dataread(Data *d, void *buf, int32_t *count, int64_t offset)
 {
 	assert(d != nil);
@@ -81,10 +81,10 @@ dataread(Data *d, void *buf, int32_t *count, int64_t offset)
 		return nil;
 	}
 
-	if(offset+*count >= d->len)
+	if(offset + *count >= d->len)
 		*count = d->len - offset;
 
-	memmove(buf, d->data+offset, *count);
+	memmove(buf, d->data + offset, *count);
 	return nil;
 }
 
@@ -115,10 +115,10 @@ fsread(Req *r)
 }
 
 Srv fs = {
-	.read = fsread,
+    .read = fsread,
 };
 
-File*
+File *
 ecreatefile(File *a, char *b, char *c, uint32_t d, void *e)
 {
 	File *f;
@@ -143,7 +143,8 @@ main(int argc, char **argv)
 	mtpt = "/proc";
 	mflag = MBEFORE;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'D':
 		chatty9p++;
 		break;
@@ -158,7 +159,8 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1)
 		usage();
@@ -174,20 +176,20 @@ main(int argc, char **argv)
 		exits("readsnap");
 	}
 
-	tree = alloctree(nil, nil, DMDIR|0555, nil);
+	tree = alloctree(nil, nil, DMDIR | 0555, nil);
 	fs.tree = tree;
 
-	for(p=plist; p; p=p->link) {
+	for(p = plist; p; p = p->link) {
 		print("process %ld %.*s\n", p->pid, 28, p->d[Pstatus] ? p->d[Pstatus]->data : "");
 
 		snprint(buf, sizeof buf, "%ld", p->pid);
-		fdir = ecreatefile(tree->root, buf, nil, DMDIR|0555, nil);
+		fdir = ecreatefile(tree->root, buf, nil, DMDIR | 0555, nil);
 		ecreatefile(fdir, "ctl", nil, 0777, nil);
 		if(p->text)
 			ecreatefile(fdir, "text", nil, 0777, PDProc(p));
 
 		ecreatefile(fdir, "mem", nil, 0666, PDProc(p));
-		for(i=0; i<Npfile; i++) {
+		for(i = 0; i < Npfile; i++) {
 			if(d = p->d[i]) {
 				f = ecreatefile(fdir, pfile[i], nil, 0666, PDData(d));
 				f->length = d->len;

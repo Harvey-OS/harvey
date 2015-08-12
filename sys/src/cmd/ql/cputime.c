@@ -11,11 +11,11 @@ double
 cputime(void)
 {
 	int32_t t[4];
-	int32_t times(int32_t*);
+	int32_t times(int32_t *);
 	int i;
 
 	times(t);
-	for(i=1; i<4; i++)
+	for(i = 1; i < 4; i++)
 		t[0] += t[i];
 	return t[0] / 100.;
 }
@@ -31,7 +31,7 @@ seek(int f, int32_t o, int p)
 int
 create(char *n, int m, int32_t p)
 {
-	int creat(char*, int);
+	int creat(char *, int);
 
 	if(m != 1)
 		return -1;

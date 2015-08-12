@@ -28,8 +28,8 @@ main(void)
 
 	m = uitomp(2035, nil);
 
-	plen = mpsignif(sk->pub.p)+1;
-	shift = ((plen+Dbits-1)/Dbits)*Dbits;
+	plen = mpsignif(sk->pub.p) + 1;
+	shift = ((plen + Dbits - 1) / Dbits) * Dbits;
 	gamma = uitomp(1430, nil);
 	delta = uitomp(697, nil);
 	out = mpnew(0);

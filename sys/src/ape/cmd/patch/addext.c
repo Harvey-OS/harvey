@@ -28,7 +28,7 @@
 /* Written by David MacKenzie <djm@gnu.ai.mit.edu> and Paul Eggert */
 
 #if HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #ifndef HAVE_DOS_FILE_NAMES
@@ -41,7 +41,7 @@
 #include <backupfile.h>
 
 #if HAVE_LIMITS_H
-# include <limits.h>
+#include <limits.h>
 #endif
 #ifndef _POSIX_NAME_MAX
 #define _POSIX_NAME_MAX 14
@@ -49,67 +49,61 @@
 
 #include <sys/types.h>
 #if HAVE_STRING_H
-# include <string.h>
+#include <string.h>
 #else
-# include <strings.h>
+#include <strings.h>
 #endif
 
 #if HAVE_UNISTD_H
-# include <unistd.h>
+#include <unistd.h>
 #endif
 
 /* Append to FILENAME the extension EXT, unless the result would be too long,
    in which case just append the character E.  */
 
 void
-addext (filename, ext, e)
-     char *filename;
-     char const *ext;
-     int e;
+    addext(filename, ext, e) char *filename;
+char const *ext;
+int e;
 {
-  char *s = base_name (filename);
-  size_t slen = strlen (s), extlen = strlen (ext);
-  int32_t slen_max = -1;
+	char *s = base_name(filename);
+	size_t slen = strlen(s), extlen = strlen(ext);
+	int32_t slen_max = -1;
 
 #if HAVE_PATHCONF && defined _PC_NAME_MAX
-  if (slen + extlen <= _POSIX_NAME_MAX && ! HAVE_DOS_FILE_NAMES)
-    /* The file name is so short there's no need to call pathconf.  */
-    slen_max = _POSIX_NAME_MAX;
-  else if (s == filename)
-    slen_max = pathconf (".", _PC_NAME_MAX);
-  else
-    {
-      char c = *s;
-      *s = 0;
-      slen_max = pathconf (filename, _PC_NAME_MAX);
-      *s = c;
-    }
-#endif
-  if (slen_max < 0)
-    slen_max = HAVE_LONG_FILE_NAMES ? 255 : 14;
-
-  if (HAVE_DOS_FILE_NAMES && slen_max <= 12)
-    {
-      /* Live within DOS's 8.3 limit.  */
-      char *dot = strchr (s, '.');
-      if (dot)
-	{
-	  slen -= dot + 1 - s;
-	  s = dot + 1;
-	  slen_max = 3;
+	if(slen + extlen <= _POSIX_NAME_MAX && !HAVE_DOS_FILE_NAMES)
+		/* The file name is so short there's no need to call pathconf.  */
+		slen_max = _POSIX_NAME_MAX;
+	else if(s == filename)
+		slen_max = pathconf(".", _PC_NAME_MAX);
+	else {
+		char c = *s;
+		*s = 0;
+		slen_max = pathconf(filename, _PC_NAME_MAX);
+		*s = c;
 	}
-      else
-	slen_max = 8;
-      extlen = 9; /* Don't use EXT.  */
-    }
+#endif
+	if(slen_max < 0)
+		slen_max = HAVE_LONG_FILE_NAMES ? 255 : 14;
 
-  if (slen + extlen <= slen_max)
-    strcpy (s + slen, ext);
-  else
-    {
-      if (slen_max <= slen)
-	slen = slen_max - 1;
-      s[slen] = e;
-      s[slen + 1] = 0;
-    }
+	if(HAVE_DOS_FILE_NAMES && slen_max <= 12) {
+		/* Live within DOS's 8.3 limit.  */
+		char *dot = strchr(s, '.');
+		if(dot) {
+			slen -= dot + 1 - s;
+			s = dot + 1;
+			slen_max = 3;
+		} else
+			slen_max = 8;
+		extlen = 9; /* Don't use EXT.  */
+	}
+
+	if(slen + extlen <= slen_max)
+		strcpy(s + slen, ext);
+	else {
+		if(slen_max <= slen)
+			slen = slen_max - 1;
+		s[slen] = e;
+		s[slen + 1] = 0;
+	}
 }

@@ -30,10 +30,10 @@
 /* 7/28/98 ghost@aladdin.com - Updated to Ghostscript coding standards. */
 
 #ifndef gdevprna_INCLUDED
-# define gdevprna_INCLUDED
+#define gdevprna_INCLUDED
 
-# include "gdevprn.h"
-# include "gxsync.h"
+#include "gdevprn.h"
+#include "gxsync.h"
 
 /* 
  * General
@@ -145,20 +145,18 @@
 /* typedef is in gdevprn.h */
 /* typedef struct gdev_prn_start_render_params_s gdev_prn_start_render_params;*/
 struct gdev_prn_start_render_params_s {
-    gx_device_printer *writer_device;/* writer dev that points to render dev */
-    gx_semaphore_t *open_semaphore;	/* signal this once open_code is set */
-    int open_code;		/* RETURNS status of open of reader device */
+	gx_device_printer *writer_device; /* writer dev that points to render dev */
+	gx_semaphore_t *open_semaphore;   /* signal this once open_code is set */
+	int open_code;			  /* RETURNS status of open of reader device */
 };
 
 /* -------- Macros used to initialize render-specific structures ------ */
 
-#define init_async_render_procs(xpdev, xstart_render_thread,\
-				xbuffer_page, xprint_page_copies)\
-  BEGIN\
-    (xpdev)->printer_procs.start_render_thread = (xstart_render_thread);\
-    (xpdev)->printer_procs.buffer_page = (xbuffer_page);\
-    (xpdev)->printer_procs.print_page_copies = (xprint_page_copies);\
-  END
+#define init_async_render_procs(xpdev, xstart_render_thread, xbuffer_page, xprint_page_copies) \
+	BEGIN(xpdev)->printer_procs.start_render_thread = (xstart_render_thread);              \
+	(xpdev)->printer_procs.buffer_page = (xbuffer_page);                                   \
+	(xpdev)->printer_procs.print_page_copies = (xprint_page_copies);                       \
+	END
 
 /* -------------- Global procedure declarations --------- */
 
@@ -183,7 +181,7 @@ int gdev_prn_async_render_open(gx_device_printer *prdev);
  * rendering loop, which requires its own thread for as long as
  * the device is open. This proc only returns after the device is closed.
  */
-int	/* rets 0 ok, -ve error code */
-gdev_prn_async_render_thread(gdev_prn_start_render_params *);
+int /* rets 0 ok, -ve error code */
+    gdev_prn_async_render_thread(gdev_prn_start_render_params *);
 
-#endif				/* gdevprna_INCLUDED */
+#endif /* gdevprna_INCLUDED */

@@ -23,12 +23,11 @@
 #include "antiword.h"
 
 /* The character set */
-static encoding_type	eEncoding = encoding_neutral;
+static encoding_type eEncoding = encoding_neutral;
 /* Current vertical position information */
-static int32_t		lYtopCurr = 0;
+static int32_t lYtopCurr = 0;
 /* Local representation of the non-breaking space */
-static UCHAR		ucNbsp = 0;
-
+static UCHAR ucNbsp = 0;
 
 /*
  * vPrologueFMT - set options and perform the Formatted Text initialization
@@ -50,22 +49,22 @@ vPrologueFMT(diagram_type *pDiag, const options_type *pOptions)
  */
 static void
 vPrintFMT(FILE *pFile,
-	const char *szString, size_t tStringLength, USHORT usFontstyle)
+	  const char *szString, size_t tStringLength, USHORT usFontstyle)
 {
-	const UCHAR	*pucByte, *pucStart, *pucLast, *pucNonSpace;
+	const UCHAR *pucByte, *pucStart, *pucLast, *pucNonSpace;
 
 	fail(szString == NULL);
 
-	if (szString == NULL || szString[0] == '\0' || tStringLength == 0) {
+	if(szString == NULL || szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 
-	if (eEncoding == encoding_utf_8) {
+	if(eEncoding == encoding_utf_8) {
 		fprintf(pFile, "%.*s", (int)tStringLength, szString);
 		return;
 	}
 
-	if (ucNbsp == 0) {
+	if(ucNbsp == 0) {
 		ucNbsp = ucGetNbspCharacter();
 		DBG_HEX_C(ucNbsp != 0xa0, ucNbsp);
 	}
@@ -73,38 +72,38 @@ vPrintFMT(FILE *pFile,
 	pucStart = (UCHAR *)szString;
 	pucLast = pucStart + tStringLength - 1;
 	pucNonSpace = pucLast;
-	while ((*pucNonSpace == (UCHAR)' ' || *pucNonSpace == ucNbsp) &&
-	       pucNonSpace > pucStart) {
+	while((*pucNonSpace == (UCHAR)' ' || *pucNonSpace == ucNbsp) &&
+	      pucNonSpace > pucStart) {
 		pucNonSpace--;
 	}
 
 	/* 1: The spaces at the start */
 	pucByte = pucStart;
-	while ((*pucByte == (UCHAR)' ' || *pucByte == ucNbsp) &&
-	       pucByte <= pucLast) {
+	while((*pucByte == (UCHAR)' ' || *pucByte == ucNbsp) &&
+	      pucByte <= pucLast) {
 		(void)putc(' ', pFile);
 		pucByte++;
 	}
 
-	if (pucByte > pucLast) {
+	if(pucByte > pucLast) {
 		/* There is no text, just spaces */
 		return;
 	}
 
 	/* 2: Start the *bold*, /italic/ and _underline_ */
-	if (bIsBold(usFontstyle)) {
+	if(bIsBold(usFontstyle)) {
 		(void)putc('*', pFile);
 	}
-	if (bIsItalic(usFontstyle)) {
+	if(bIsItalic(usFontstyle)) {
 		(void)putc('/', pFile);
 	}
-	if (bIsUnderline(usFontstyle)) {
+	if(bIsUnderline(usFontstyle)) {
 		(void)putc('_', pFile);
 	}
 
 	/* 3: The text itself */
-	while (pucByte <= pucNonSpace) {
-		if (*pucByte == ucNbsp) {
+	while(pucByte <= pucNonSpace) {
+		if(*pucByte == ucNbsp) {
 			(void)putc(' ', pFile);
 		} else {
 			(void)putc((char)*pucByte, pFile);
@@ -113,18 +112,18 @@ vPrintFMT(FILE *pFile,
 	}
 
 	/* 4: End the *bold*, /italic/ and _underline_ */
-	if (bIsUnderline(usFontstyle)) {
+	if(bIsUnderline(usFontstyle)) {
 		(void)putc('_', pFile);
 	}
-	if (bIsItalic(usFontstyle)) {
+	if(bIsItalic(usFontstyle)) {
 		(void)putc('/', pFile);
 	}
-	if (bIsBold(usFontstyle)) {
+	if(bIsBold(usFontstyle)) {
 		(void)putc('*', pFile);
 	}
 
 	/* 5: The spaces at the end */
-	while (pucByte <= pucLast) {
+	while(pucByte <= pucLast) {
 		(void)putc(' ', pFile);
 		pucByte++;
 	}
@@ -139,14 +138,14 @@ vPrintFMT(FILE *pFile,
 static void
 vMoveTo(diagram_type *pDiag)
 {
-	int	iCount, iNbr;
+	int iCount, iNbr;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
 
-	if (pDiag->lYtop != lYtopCurr) {
+	if(pDiag->lYtop != lYtopCurr) {
 		iNbr = iDrawUnits2Char(pDiag->lXleft);
-		for (iCount = 0; iCount < iNbr; iCount++) {
+		for(iCount = 0; iCount < iNbr; iCount++) {
 			(void)putc(FILLER_CHAR, pDiag->pOutFile);
 		}
 		lYtopCurr = pDiag->lYtop;
@@ -158,15 +157,15 @@ vMoveTo(diagram_type *pDiag)
  */
 void
 vSubstringFMT(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, int32_t lStringWidth,
-	USHORT usFontstyle)
+	      const char *szString, size_t tStringLength, int32_t lStringWidth,
+	      USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);
 	fail(pDiag->lXleft < 0);
 	fail(tStringLength != strlen(szString));
 
-	if (szString[0] == '\0' || tStringLength == 0) {
+	if(szString[0] == '\0' || tStringLength == 0) {
 		return;
 	}
 

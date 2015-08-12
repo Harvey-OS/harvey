@@ -18,15 +18,15 @@ fmtrune(Fmt *f, int r)
 	char *t;
 	int n;
 
-	if(f->runes){
-		rt = (Rune*)f->to;
+	if(f->runes) {
+		rt = (Rune *)f->to;
 		FMTRCHAR(f, rt, f->stop, r);
 		f->to = rt;
 		n = 1;
-	}else{
-		t = (char*)f->to;
+	} else {
+		t = (char *)f->to;
 		FMTRUNE(f, t, f->stop, r);
-		n = t - (char*)f->to;
+		n = t - (char *)f->to;
 		f->to = t;
 	}
 	f->nfmt += n;

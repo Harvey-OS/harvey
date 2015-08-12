@@ -27,7 +27,7 @@
 /* Compact C representation of built-in encodings */
 
 #ifndef gscencs_INCLUDED
-#  define gscencs_INCLUDED
+#define gscencs_INCLUDED
 
 #include "stdpre.h"
 #include "gstypes.h"

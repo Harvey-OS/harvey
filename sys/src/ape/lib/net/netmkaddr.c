@@ -28,21 +28,20 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	 *  dump network name
 	 */
 	cp = strchr(linear, '!');
-	if(cp == 0){
-		if(defnet==0){
+	if(cp == 0) {
+		if(defnet == 0) {
 			if(defsrv)
 				snprintf(addr, sizeof(addr), "net!%s!%s",
-					linear, defsrv);
+					 linear, defsrv);
 			else
 				snprintf(addr, sizeof(addr), "net!%s", linear);
-		}
-		else {
+		} else {
 			if(defsrv)
 				snprintf(addr, sizeof(addr), "%s!%s!%s", defnet,
-					linear, defsrv);
+					 linear, defsrv);
 			else
 				snprintf(addr, sizeof(addr), "%s!%s", defnet,
-					linear);
+					 linear);
 		}
 		return addr;
 	}
@@ -50,7 +49,7 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	/*
 	 *  if there is already a service, use it
 	 */
-	cp = strchr(cp+1, '!');
+	cp = strchr(cp + 1, '!');
 	if(cp)
 		return linear;
 

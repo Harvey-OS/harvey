@@ -101,8 +101,7 @@
 /*--
    return version like "0.9.0c".
 --*/
-const char * BZ_API(BZ2_bzlibVersion)(void)
+const char *BZ_API(BZ2_bzlibVersion)(void)
 {
-   return BZ_VERSION;
+	return BZ_VERSION;
 }
-

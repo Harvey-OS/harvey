@@ -17,10 +17,10 @@
 
 extern PhysUart i8250physuart;
 extern PhysUart pciphysuart;
-extern void* i8250alloc(int, int, int);
+extern void *i8250alloc(int, int, int);
 
-static Uart*
-uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
+static Uart *
+uartpci(int ctlrno, Pcidev *p, int barno, int n, int freq, char *name)
 {
 	int i, io;
 	void *ctlr;
@@ -29,14 +29,14 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
 
 	io = p->mem[barno].bar & ~0x01;
 	snprint(buf, sizeof(buf), "%s%d", pciphysuart.name, ctlrno);
-	if(ioalloc(io, p->mem[barno].size, 0, buf) < 0){
+	if(ioalloc(io, p->mem[barno].size, 0, buf) < 0) {
 		print("uartpci: I/O 0x%uX in use\n", io);
 		return nil;
 	}
 
-	head = uart = malloc(sizeof(Uart)*n);
+	head = uart = malloc(sizeof(Uart) * n);
 
-	for(i = 0; i < n; i++){
+	for(i = 0; i < n; i++) {
 		ctlr = i8250alloc(io, p->intl, p->tbdf);
 		io += 8;
 		if(ctlr == nil)
@@ -48,14 +48,14 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
 		uart->freq = freq;
 		uart->phys = &i8250physuart;
 		if(uart != head)
-			(uart-1)->next = uart;
+			(uart - 1)->next = uart;
 		uart++;
 	}
 
 	return head;
 }
 
-static Uart*
+static Uart *
 uartpcipnp(void)
 {
 	Pcidev *p;
@@ -71,20 +71,20 @@ uartpcipnp(void)
 	 */
 	head = tail = nil;
 	ctlrno = 0;
-	for(p = pcimatch(nil, 0, 0); p != nil; p = pcimatch(p, 0, 0)){
+	for(p = pcimatch(nil, 0, 0); p != nil; p = pcimatch(p, 0, 0)) {
 		if(p->ccrb != 0x07 || p->ccru > 2)
 			continue;
 
-		switch((p->did<<16)|p->vid){
+		switch((p->did << 16) | p->vid) {
 		default:
 			continue;
-		case (0x9835<<16)|0x9710:	/* StarTech PCI2S550 */
+		case(0x9835 << 16) | 0x9710: /* StarTech PCI2S550 */
 			uart = uartpci(ctlrno, p, 0, 1, 1843200, "PCI2S550-0");
 			if(uart == nil)
 				continue;
 			uart->next = uartpci(ctlrno, p, 1, 1, 1843200, "PCI2S550-1");
 			break;
-		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
+		case(0x950A << 16) | 0x1415: /* Oxford Semi OX16PCI954 */
 			/*
 			 * These are common devices used by 3rd-party
 			 * manufacturers.
@@ -92,18 +92,18 @@ uartpcipnp(void)
 			 * match, mostly to get the clock frequency right.
 			 */
 			subid = pcicfgr16(p, PciSVID);
-			subid |= pcicfgr16(p, PciSID)<<16;
-			switch(subid){
+			subid |= pcicfgr16(p, PciSID) << 16;
+			switch(subid) {
 			default:
 				continue;
-			case (0x2000<<16)|0x131F:/* SIIG CyberSerial PCIe */
+			case(0x2000 << 16) | 0x131F: /* SIIG CyberSerial PCIe */
 				uart = uartpci(ctlrno, p, 0, 1, 18432000, "CyberSerial-1S");
 				if(uart == nil)
 					continue;
 				break;
 			}
 			break;
-		case (0x9501<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
+		case(0x9501 << 16) | 0x1415: /* Oxford Semi OX16PCI954 */
 			/*
 			 * These are common devices used by 3rd-party
 			 * manufacturers.
@@ -111,19 +111,19 @@ uartpcipnp(void)
 			 * match, mostly to get the clock frequency right.
 			 */
 			subid = pcicfgr16(p, PciSVID);
-			subid |= pcicfgr16(p, PciSID)<<16;
-			switch(subid){
+			subid |= pcicfgr16(p, PciSID) << 16;
+			switch(subid) {
 			default:
 				continue;
-			case (0<<16)|0x1415:	/* StarTech PCI4S550 */
+			case(0 << 16) | 0x1415: /* StarTech PCI4S550 */
 				uart = uartpci(ctlrno, p, 0, 1, 18432000, "PCI4S550-0");
 				if(uart == nil)
 					continue;
 				break;
 			}
 			break;
-		case (0x9050<<16)|0x10B5:	/* Perle PCI-Fast4 series */
-		case (0x9030<<16)|0x10B5:	/* Perle Ultraport series */
+		case(0x9050 << 16) | 0x10B5: /* Perle PCI-Fast4 series */
+		case(0x9030 << 16) | 0x10B5: /* Perle Ultraport series */
 			/*
 			 * These devices consists of a PLX bridge (the above
 			 * PCI VID+DID) behind which are some 16C654 UARTs.
@@ -131,25 +131,25 @@ uartpcipnp(void)
 			 * match.
 			 */
 			subid = pcicfgr16(p, PciSVID);
-			subid |= pcicfgr16(p, PciSID)<<16;
-			switch(subid){
+			subid |= pcicfgr16(p, PciSID) << 16;
+			switch(subid) {
 			default:
 				continue;
-			case (0x0011<<16)|0x12E0:	/* Perle PCI-Fast16 */
+			case(0x0011 << 16) | 0x12E0: /* Perle PCI-Fast16 */
 				n = 16;
 				name = "PCI-Fast16";
 				break;
-			case (0x0021<<16)|0x12E0:	/* Perle PCI-Fast8 */
+			case(0x0021 << 16) | 0x12E0: /* Perle PCI-Fast8 */
 				n = 8;
 				name = "PCI-Fast8";
 				break;
-			case (0x0031<<16)|0x12E0:	/* Perle PCI-Fast4 */
+			case(0x0031 << 16) | 0x12E0: /* Perle PCI-Fast4 */
 				n = 4;
 				name = "PCI-Fast4";
 				break;
-			case (0x0021<<16)|0x155F:	/* Perle Ultraport8 */
+			case(0x0021 << 16) | 0x155F: /* Perle Ultraport8 */
 				n = 8;
-				name = "Ultraport8";	/* 16C754 UARTs */
+				name = "Ultraport8"; /* 16C754 UARTs */
 				break;
 			}
 			uart = uartpci(ctlrno, p, 2, n, 7372800, name);
@@ -171,19 +171,19 @@ uartpcipnp(void)
 }
 
 PhysUart pciphysuart = {
-	.name		= "UartPCI",
-	.pnp		= uartpcipnp,
-	.enable		= nil,
-	.disable	= nil,
-	.kick		= nil,
-	.dobreak	= nil,
-	.baud		= nil,
-	.bits		= nil,
-	.stop		= nil,
-	.parity		= nil,
-	.modemctl	= nil,
-	.rts		= nil,
-	.dtr		= nil,
-	.status		= nil,
-	.fifo		= nil,
+    .name = "UartPCI",
+    .pnp = uartpcipnp,
+    .enable = nil,
+    .disable = nil,
+    .kick = nil,
+    .dobreak = nil,
+    .baud = nil,
+    .bits = nil,
+    .stop = nil,
+    .parity = nil,
+    .modemctl = nil,
+    .rts = nil,
+    .dtr = nil,
+    .status = nil,
+    .fifo = nil,
 };

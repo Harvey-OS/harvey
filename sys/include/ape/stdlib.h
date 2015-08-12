@@ -18,8 +18,12 @@
 #define MB_CUR_MAX 4
 #define RAND_MAX 32767
 
-typedef struct { int quot, rem; } div_t;
-typedef struct { int32_t quot, rem; } ldiv_t;
+typedef struct {
+	int quot, rem;
+} div_t;
+typedef struct {
+	int32_t quot, rem;
+} ldiv_t;
 
 #ifdef __cplusplus
 extern "C" {

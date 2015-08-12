@@ -15,17 +15,16 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	Srv	flashsrv;
+static Srv flashsrv;
 
-typedef struct	State	State;
+typedef struct State State;
 
-struct State
-{
-	Entry	*e;
-	Dirr	*r;
+struct State {
+	Entry *e;
+	Dirr *r;
 };
 
-#define	writeable(e)	((e)->mode & 0222)
+#define writeable(e) ((e)->mode & 0222)
 
 static State *
 state(Entry *e)
@@ -44,7 +43,7 @@ destroy(Fid *f)
 	State *s;
 
 	s = f->aux;
-	if(s == nil)		/* Tauth fids have no state */
+	if(s == nil) /* Tauth fids have no state */
 		return;
 
 	f->aux = nil;
@@ -94,7 +93,7 @@ flopen(Req *r)
 		p = AWRITE;
 		break;
 	case ORDWR:
-		p = AREAD|AWRITE;
+		p = AREAD | AWRITE;
 		break;
 	case OEXEC:
 		p = AEXEC;
@@ -121,8 +120,7 @@ flopen(Req *r)
 			return;
 		}
 		s->r = ediropen(s->e);
-	}
-	else if(r->ifcall.mode & OTRUNC) {
+	} else if(r->ifcall.mode & OTRUNC) {
 		err = need(Ntrunc);
 		if(err != nil) {
 			respond(r, err);
@@ -311,8 +309,7 @@ flremove(Req *r)
 			put(&j, 0);
 		}
 		respond(r, d);
-	}
-	else
+	} else
 		respond(r, Eperm);
 }
 
@@ -387,22 +384,21 @@ flwalk(Req *r)
 		if(f) {
 			r->ofcall.wqid[i] = eqid(f);
 			e = f;
-		}
-		else {
+		} else {
 			e->ref--;
 			break;
 		}
 	}
 	r->ofcall.nwqid = i;
-	if (i) err = nil;
+	if(i)
+		err = nil;
 
 	if(f) {
 		if(r->ifcall.fid != r->ifcall.newfid) {
 			s = r->newfid->aux;
 			s->e = f;
 			r->newfid->qid = eqid(f);
-		}
-		else {
+		} else {
 			s = r->fid->aux;
 			s->e->ref--;
 			s->e = f;
@@ -427,5 +423,5 @@ serve(char *mount)
 
 	flashsrv.destroyfid = destroy;
 	flashsrv.destroyreq = trace;
-	postmountsrv(&flashsrv, "brzr", mount, MREPL|MCREATE);
+	postmountsrv(&flashsrv, "brzr", mount, MREPL | MCREATE);
 }

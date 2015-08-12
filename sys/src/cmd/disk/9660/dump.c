@@ -37,7 +37,7 @@ md5cd(Cdimg *cd, uint32_t block, uint32_t length, uint8_t *digest)
 	md5(nil, 0, digest, s);
 }
 
-static Dumpdir*
+static Dumpdir *
 mkdumpdir(char *name, uint8_t *md5, uint32_t block, uint32_t length)
 {
 	Dumpdir *d;
@@ -53,7 +53,7 @@ mkdumpdir(char *name, uint8_t *md5, uint32_t block, uint32_t length)
 	return d;
 }
 
-static Dumpdir**
+static Dumpdir **
 ltreewalkmd5(Dumpdir **l, uint8_t *md5)
 {
 	int i;
@@ -70,7 +70,7 @@ ltreewalkmd5(Dumpdir **l, uint8_t *md5)
 	return l;
 }
 
-static Dumpdir**
+static Dumpdir **
 ltreewalkblock(Dumpdir **l, uint32_t block)
 {
 	while(*l) {
@@ -103,7 +103,7 @@ addfile(Cdimg *cd, Dump *d, char *name, Direc *dir)
 		if((*lblock)->length == dir->length)
 			return;
 		fprint(2, "block %lud length %lud %s %lud %s\n", dir->block, (*lblock)->length, (*lblock)->name,
-			dir->length, dir->name);
+		       dir->length, dir->name);
 		assert(0);
 	}
 
@@ -115,7 +115,7 @@ addfile(Cdimg *cd, Dump *d, char *name, Direc *dir)
 
 void
 insertmd5(Dump *d, char *name, uint8_t *md5, uint32_t block,
-          uint32_t length)
+	  uint32_t length)
 {
 	Dumpdir **lmd5;
 	Dumpdir **lblock;
@@ -143,7 +143,7 @@ insertmd5(Dump *d, char *name, uint8_t *md5, uint32_t block,
  * all we care about is block, length, and whether it is a directory.
  */
 void
-readkids(Cdimg *cd, Direc *dir, char *(*cvt)(uint8_t*, int))
+readkids(Cdimg *cd, Direc *dir, char *(*cvt)(uint8_t *, int))
 {
 	char *dot, *dotdot;
 	int m, n;
@@ -156,41 +156,41 @@ readkids(Cdimg *cd, Direc *dir, char *(*cvt)(uint8_t*, int))
 
 	dot = atom(".");
 	dotdot = atom("..");
-	ebuf = buf+Blocksize;
-	nb = (dir->length+Blocksize-1) / Blocksize;
+	ebuf = buf + Blocksize;
+	nb = (dir->length + Blocksize - 1) / Blocksize;
 
 	n = 0;
-	for(b=0; b<nb; b++) {
+	for(b = 0; b < nb; b++) {
 		Creadblock(cd, buf, dir->block + b, Blocksize);
 		p = buf;
 		while(p < ebuf) {
-			c = (Cdir*)p;
+			c = (Cdir *)p;
 			if(c->len == 0)
 				break;
-			if(p+c->len > ebuf)
+			if(p + c->len > ebuf)
 				break;
-			if(parsedir(cd, &dx, p, ebuf-p, cvt) == 0 && dx.name != dot && dx.name != dotdot)
+			if(parsedir(cd, &dx, p, ebuf - p, cvt) == 0 && dx.name != dot && dx.name != dotdot)
 				n++;
 			p += c->len;
 		}
 	}
 
-	m = (n+Ndirblock-1)/Ndirblock * Ndirblock;
-	dir->child = emalloc(m*sizeof dir->child[0]);
+	m = (n + Ndirblock - 1) / Ndirblock * Ndirblock;
+	dir->child = emalloc(m * sizeof dir->child[0]);
 	dir->nchild = n;
 
 	n = 0;
-	for(b=0; b<nb; b++) {
+	for(b = 0; b < nb; b++) {
 		assert(n <= dir->nchild);
 		Creadblock(cd, buf, dir->block + b, Blocksize);
 		p = buf;
 		while(p < ebuf) {
-			c = (Cdir*)p;
+			c = (Cdir *)p;
 			if(c->len == 0)
 				break;
-			if(p+c->len > ebuf)
+			if(p + c->len > ebuf)
 				break;
-			if(parsedir(cd, &dx, p, ebuf-p, cvt) == 0 && dx.name != dot && dx.name != dotdot) {
+			if(parsedir(cd, &dx, p, ebuf - p, cvt) == 0 && dx.name != dot && dx.name != dotdot) {
 				assert(n < dir->nchild);
 				dir->child[n++] = dx;
 			}
@@ -207,7 +207,7 @@ freekids(Direc *dir)
 {
 	int i;
 
-	for(i=0; i<dir->nchild; i++)
+	for(i = 0; i < dir->nchild; i++)
 		assert(dir->child[i].nchild == 0);
 
 	free(dir->child);
@@ -224,7 +224,7 @@ adddir(Cdimg *cd, Dump *d, Direc *dir)
 	int i;
 
 	readkids(cd, dir, isostring);
-	for(i=0; i<dir->nchild; i++) {
+	for(i = 0; i < dir->nchild; i++) {
 		if(dir->child[i].mode & DMDIR)
 			adddir(cd, d, &dir->child[i]);
 		else
@@ -233,7 +233,7 @@ adddir(Cdimg *cd, Dump *d, Direc *dir)
 	freekids(dir);
 }
 
-Dumpdir*
+Dumpdir *
 lookupmd5(Dump *d, uint8_t *md5)
 {
 	return *ltreewalkmd5(&d->md5root, md5);
@@ -245,16 +245,16 @@ adddirx(Cdimg *cd, Dump *d, Direc *dir, int lev)
 	int i;
 	Direc dd;
 
-	if(lev == 2){
+	if(lev == 2) {
 		dd = *dir;
 		adddir(cd, d, &dd);
 		return;
 	}
-	for(i=0; i<dir->nchild; i++)
-		adddirx(cd, d, &dir->child[i], lev+1);
+	for(i = 0; i < dir->nchild; i++)
+		adddirx(cd, d, &dir->child[i], lev + 1);
 }
 
-Dump*
+Dump *
 dumpcd(Cdimg *cd, Direc *dir)
 {
 	Dump *d;
@@ -293,16 +293,16 @@ copybutname(Direc *d, Direc *s)
 	d->confname = x.confname;
 }
 
-Direc*
+Direc *
 createdumpdir(Direc *root, XDir *dir, char *utfname)
 {
 	char *p;
 	Direc *d;
 
-	if(utfname[0]=='/')
+	if(utfname[0] == '/')
 		sysfatal("bad dump name '%s'", utfname);
 	p = strchr(utfname, '/');
-	if(p == nil || strchr(p+1, '/'))
+	if(p == nil || strchr(p + 1, '/'))
 		sysfatal("bad dump name '%s'", utfname);
 	*p++ = '\0';
 	if((d = walkdirec(root, utfname)) == nil)
@@ -318,10 +318,10 @@ rmdirec(Direc *d, Direc *kid)
 {
 	Direc *ekid;
 
-	ekid = d->child+d->nchild;
+	ekid = d->child + d->nchild;
 	assert(d->child <= kid && kid < ekid);
-	if(ekid != kid+1)
-		memmove(kid, kid+1, (ekid-(kid+1))*sizeof(*kid));
+	if(ekid != kid + 1)
+		memmove(kid, kid + 1, (ekid - (kid + 1)) * sizeof(*kid));
 	d->nchild--;
 }
 
@@ -331,10 +331,10 @@ rmdumpdir(Direc *root, char *utfname)
 	char *p;
 	Direc *d, *dd;
 
-	if(utfname[0]=='/')
+	if(utfname[0] == '/')
 		sysfatal("bad dump name '%s'", utfname);
 	p = strchr(utfname, '/');
-	if(p == nil || strchr(p+1, '/'))
+	if(p == nil || strchr(p + 1, '/'))
 		sysfatal("bad dump name '%s'", utfname);
 	*p++ = '\0';
 	if((d = walkdirec(root, utfname)) == nil)
@@ -349,7 +349,7 @@ rmdumpdir(Direc *root, char *utfname)
 		rmdirec(root, d);
 }
 
-char*
+char *
 adddumpdir(Direc *root, uint32_t now, XDir *dir)
 {
 	char buf[40], *p;
@@ -358,16 +358,16 @@ adddumpdir(Direc *root, uint32_t now, XDir *dir)
 	Tm tm;
 
 	tm = *localtime(now);
-	
-	sprint(buf, "%d", tm.year+1900);
+
+	sprint(buf, "%d", tm.year + 1900);
 	if((dyear = walkdirec(root, buf)) == nil) {
 		dyear = adddirec(root, buf, dir);
 		assert(dyear != nil);
 	}
 
 	n = 0;
-	sprint(buf, "%.2d%.2d", tm.mon+1, tm.mday);
-	p = buf+strlen(buf);
+	sprint(buf, "%.2d%.2d", tm.mon + 1, tm.mday);
+	p = buf + strlen(buf);
 	while(walkdirec(dyear, buf))
 		sprint(p, "%d", ++n);
 
@@ -375,7 +375,7 @@ adddumpdir(Direc *root, uint32_t now, XDir *dir)
 	assert(dday != nil);
 
 	sprint(buf, "%s/%s", dyear->name, dday->name);
-assert(walkdirec(root, buf)==dday);
+	assert(walkdirec(root, buf) == dday);
 	return atom(buf);
 }
 
@@ -398,9 +398,9 @@ Cputdumpblock(Cdimg *cd)
 
 	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 	x = Cwoffset(cd);
-	Cwrite(cd, magic, sizeof(magic)-1);
+	Cwrite(cd, magic, sizeof(magic) - 1);
 	Cpadblock(cd);
-	return x/Blocksize;
+	return x / Blocksize;
 }
 
 int
@@ -409,16 +409,16 @@ hasdump(Cdimg *cd)
 	int i;
 	char buf[128];
 
-	for(i=16; i<24; i++) {
+	for(i = 16; i < 24; i++) {
 		Creadblock(cd, buf, i, sizeof buf);
-		if(memcmp(buf, magic, sizeof(magic)-1) == 0)
+		if(memcmp(buf, magic, sizeof(magic) - 1) == 0)
 			return i;
 	}
 	return 0;
 }
-	
+
 Direc
-readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t*, int))
+readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t *, int))
 {
 	char buf[Blocksize];
 	char *p, *q, *f[16];
@@ -430,14 +430,14 @@ readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t*, int))
 	mkdirec(&root, dir);
 	db = hasdump(cd);
 	xd = *dir;
-	for(;;){
+	for(;;) {
 		if(db == 0)
 			sysfatal("error in dump blocks");
 
 		Creadblock(cd, buf, db, sizeof buf);
-		if(memcmp(buf, magic, sizeof(magic)-1) != 0)
+		if(memcmp(buf, magic, sizeof(magic) - 1) != 0)
 			break;
-		p = buf+sizeof(magic)-1;
+		p = buf + sizeof(magic) - 1;
 		if(p[0] == '\0')
 			break;
 		if((q = strchr(p, '\n')) != nil)
@@ -445,7 +445,7 @@ readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t*, int))
 
 		nf = tokenize(p, f, nelem(f));
 		i = 5;
-		if(nf < i || (cvt==jolietstring && nf < i+2))
+		if(nf < i || (cvt == jolietstring && nf < i + 2))
 			sysfatal("error in dump block %lud: nf=%d; p='%s'", db, nf, p);
 		nr = createdumpdir(&root, &xd, f[0]);
 		t = strtoul(f[1], 0, 0);
@@ -454,13 +454,13 @@ readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t*, int))
 		if(cvt == jolietstring)
 			i += 2;
 		nr->block = strtoul(f[i], 0, 0);
-		nr->length = strtoul(f[i+1], 0, 0);
+		nr->length = strtoul(f[i + 1], 0, 0);
 	}
 	cd->nulldump = db;
 	return root;
 }
 
-extern void addtx(char*, char*);
+extern void addtx(char *, char *);
 
 static int
 isalldigit(char *s)
@@ -481,16 +481,16 @@ readdumpconform(Cdimg *cd)
 	uint64_t m;
 
 	db = hasdump(cd);
-	assert(map==nil || map->nt == 0);
+	assert(map == nil || map->nt == 0);
 
-	for(;;){
+	for(;;) {
 		if(db == 0)
 			sysfatal("error0 in dump blocks");
 
 		Creadblock(cd, buf, db, sizeof buf);
-		if(memcmp(buf, magic, sizeof(magic)-1) != 0)
+		if(memcmp(buf, magic, sizeof(magic) - 1) != 0)
 			break;
-		p = buf+sizeof(magic)-1;
+		p = buf + sizeof(magic) - 1;
 		if(p[0] == '\0')
 			break;
 		if((q = strchr(p, '\n')) != nil)
@@ -506,12 +506,11 @@ readdumpconform(Cdimg *cd)
 
 		Crseek(cd, (int64_t)cb * Blocksize);
 		m = (int64_t)cb * Blocksize + nc;
-		while(Croffset(cd) < m && (p = Crdline(cd, '\n')) != nil){
-			p[Clinelen(cd)-1] = '\0';
-			if(tokenize(p, f, 2) != 2 || (f[0][0] != 'D' && f[0][0] != 'F')
-			|| strlen(f[0]) != 7 || !isalldigit(f[0]+1))
+		while(Croffset(cd) < m && (p = Crdline(cd, '\n')) != nil) {
+			p[Clinelen(cd) - 1] = '\0';
+			if(tokenize(p, f, 2) != 2 || (f[0][0] != 'D' && f[0][0] != 'F') || strlen(f[0]) != 7 || !isalldigit(f[0] + 1))
 				break;
-	
+
 			addtx(atom(f[1]), atom(f[0]));
 		}
 	}

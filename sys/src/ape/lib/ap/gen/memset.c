@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-void*
+void *
 memset(void *ap, int c, size_t n)
 {
 	char *p;

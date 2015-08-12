@@ -12,8 +12,8 @@
 #include <libsec.h>
 #include "dat.h"
 
-mpint*
-mprand(int bits, void (*gen)(uint8_t*, int), mpint *b)
+mpint *
+mprand(int bits, void (*gen)(uint8_t *, int), mpint *b)
 {
 	int n, m;
 	mpdigit mask;
@@ -25,17 +25,17 @@ mprand(int bits, void (*gen)(uint8_t*, int), mpint *b)
 	else
 		mpbits(b, bits);
 
-	p = malloc(n*Dbytes);
+	p = malloc(n * Dbytes);
 	if(p == nil)
 		return nil;
-	(*gen)(p, n*Dbytes);
-	betomp(p, n*Dbytes, b);
+	(*gen)(p, n *Dbytes);
+	betomp(p, n * Dbytes, b);
 	free(p);
 
 	// make sure we don't give too many bits
-	m = bits%Dbits;
+	m = bits % Dbits;
 	n--;
-	if(m > 0){
+	if(m > 0) {
 		mask = 1;
 		mask <<= m;
 		mask--;
@@ -45,7 +45,7 @@ mprand(int bits, void (*gen)(uint8_t*, int), mpint *b)
 	for(; n >= 0; n--)
 		if(b->p[n] != 0)
 			break;
-	b->top = n+1;
+	b->top = n + 1;
 	b->sign = 1;
 	return b;
 }

@@ -27,7 +27,7 @@
 /* Ghostscript memory allocator extensions for interpreter level */
 
 #ifndef imemory_INCLUDED
-#  define imemory_INCLUDED
+#define imemory_INCLUDED
 
 #include "ivmspace.h"
 
@@ -41,30 +41,30 @@
 #include "gsalloc.h"
 
 #ifndef gs_ref_memory_DEFINED
-#  define gs_ref_memory_DEFINED
+#define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;
 #endif
 
-	/* Allocate a ref array. */
+/* Allocate a ref array. */
 
-int gs_alloc_ref_array(gs_ref_memory_t * mem, ref * paref,
+int gs_alloc_ref_array(gs_ref_memory_t *mem, ref *paref,
 		       uint attrs, uint num_refs, client_name_t cname);
 
-	/* Resize a ref array. */
-	/* Currently this is only implemented for shrinking, */
-	/* not growing. */
+/* Resize a ref array. */
+/* Currently this is only implemented for shrinking, */
+/* not growing. */
 
-int gs_resize_ref_array(gs_ref_memory_t * mem, ref * paref,
+int gs_resize_ref_array(gs_ref_memory_t *mem, ref *paref,
 			uint new_num_refs, client_name_t cname);
 
-	/* Free a ref array. */
+/* Free a ref array. */
 
-void gs_free_ref_array(gs_ref_memory_t * mem, ref * paref,
+void gs_free_ref_array(gs_ref_memory_t *mem, ref *paref,
 		       client_name_t cname);
 
-	/* Allocate a string ref. */
+/* Allocate a string ref. */
 
-int gs_alloc_string_ref(gs_ref_memory_t * mem, ref * psref,
+int gs_alloc_string_ref(gs_ref_memory_t *mem, ref *psref,
 			uint attrs, uint nbytes, client_name_t cname);
 
 /* Register a ref root.  This just calls gs_register_root. */
@@ -72,7 +72,6 @@ int gs_alloc_string_ref(gs_ref_memory_t * mem, ref * psref,
 /* the ref * that they point to points to a *statically* allocated ref. */
 int gs_register_ref_root(gs_memory_t *mem, gs_gc_root_t *root,
 			 void **pp, client_name_t cname);
-
 
 /*
  * The interpreter allocator can allocate in either local or global VM,
@@ -89,22 +88,22 @@ int gs_register_ref_root(gs_memory_t *mem, gs_gc_root_t *root,
  * garbage collection.
  */
 #ifndef gs_dual_memory_DEFINED
-#  define gs_dual_memory_DEFINED
+#define gs_dual_memory_DEFINED
 typedef struct gs_dual_memory_s gs_dual_memory_t;
 #endif
 struct gs_dual_memory_s {
-    gs_ref_memory_t *current;	/* = ...global or ...local */
-    vm_spaces spaces;		/* system, global, local */
-    uint current_space;		/* = current->space */
-    /* Garbage collection hook */
-    int (*reclaim) (gs_dual_memory_t *, int);
-    /* Masks for store checking, see isave.h. */
-    uint test_mask;
-    uint new_mask;
+	gs_ref_memory_t *current; /* = ...global or ...local */
+	vm_spaces spaces;	 /* system, global, local */
+	uint current_space;       /* = current->space */
+	/* Garbage collection hook */
+	int (*reclaim)(gs_dual_memory_t *, int);
+	/* Masks for store checking, see isave.h. */
+	uint test_mask;
+	uint new_mask;
 };
 
-#define public_st_gs_dual_memory()	/* in ialloc.c */\
-  gs_public_st_simple(st_gs_dual_memory, gs_dual_memory_t, "gs_dual_memory_t")
+#define public_st_gs_dual_memory() /* in ialloc.c */ \
+	gs_public_st_simple(st_gs_dual_memory, gs_dual_memory_t, "gs_dual_memory_t")
 #define st_gs_dual_memory_num_ptrs 0
 
 #endif /* imemory_INCLUDED */

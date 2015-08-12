@@ -46,7 +46,7 @@
 
 #include "gdevstc.h"
 
-#include <stdlib.h>     /* for rand */
+#include <stdlib.h> /* for rand */
 
 /*
    Both algorithms require an error-buffer of 
@@ -67,368 +67,381 @@
  * reverts the order used by the basic driver.
  */
 
-static const byte grayvals[2]  = { 0, BLACK };
+static const byte grayvals[2] = {0, BLACK};
 
-static const byte  rgbvals[8]  = {
-   0, RED, GREEN, RED|GREEN, BLUE, BLUE|RED, BLUE|GREEN, BLUE|RED|GREEN};
+static const byte rgbvals[8] = {
+    0, RED, GREEN, RED | GREEN, BLUE, BLUE | RED, BLUE | GREEN, BLUE | RED | GREEN};
 
 static const byte cmykvals[16] = {
-      0, CYAN,MAGENTA,CYAN|MAGENTA,YELLOW,YELLOW|CYAN,YELLOW|MAGENTA,BLACK,
-  BLACK,BLACK,  BLACK,       BLACK, BLACK,      BLACK,         BLACK,BLACK};
+    0, CYAN, MAGENTA, CYAN | MAGENTA, YELLOW, YELLOW | CYAN, YELLOW | MAGENTA, BLACK,
+    BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK};
 
-static const byte  *const pixelconversion[5] = {
-   NULL, grayvals, NULL, rgbvals, cmykvals};
+static const byte *const pixelconversion[5] = {
+    NULL, grayvals, NULL, rgbvals, cmykvals};
 
-
-int 
-stc_fs(stcolor_device *sdev,int npixel,byte *bin,byte *bbuf,byte *out) 
+int
+stc_fs(stcolor_device *sdev, int npixel, byte *bin, byte *bbuf, byte *out)
 {
 
-     int32_t *in  = (int32_t *) bin;
-     int32_t *buf = (int32_t *) bbuf;
+	int32_t *in = (int32_t *)bin;
+	int32_t *buf = (int32_t *)bbuf;
 
-/* ============================================================= */
-   if(npixel > 0) {  /* npixel >  0 -> scanline-processing       */
-/* ============================================================= */
+	/* ============================================================= */
+	if(npixel > 0) { /* npixel >  0 -> scanline-processing       */
+			 /* ============================================================= */
 
-      int bstep,pstart,pstop,pstep,p;
-      int32_t spotsize,threshold,*errc,*errv;
-      const byte *pixel2stc;
+		int bstep, pstart, pstop, pstep, p;
+		int32_t spotsize, threshold, *errc, *errv;
+		const byte *pixel2stc;
 
-      if(buf[0] >= 0) { /* run forward */
-        buf[0] = -1;
-        bstep  = 1;
-        pstep  = sdev->color_info.num_components;
-        pstart = 0;
-        pstop  = npixel * pstep;
+		if(buf[0] >= 0) { /* run forward */
+			buf[0] = -1;
+			bstep = 1;
+			pstep = sdev->color_info.num_components;
+			pstart = 0;
+			pstop = npixel * pstep;
 
-      } else {                  /* run backward */
-        buf[0] =  1;
-        bstep  = -1;
-        pstep  = -sdev->color_info.num_components;
-        pstop  = pstep;
-        pstart = (1-npixel) * pstep;
-        out   += npixel-1;
-      }                   /* forward / backward */
+		} else { /* run backward */
+			buf[0] = 1;
+			bstep = -1;
+			pstep = -sdev->color_info.num_components;
+			pstop = pstep;
+			pstart = (1 - npixel) * pstep;
+			out += npixel - 1;
+		} /* forward / backward */
 
-/*    --------------------------------------------------------------------- */
-      if(in == NULL) return 0;  /* almost ignore the 'white calls' */
-/*    --------------------------------------------------------------------- */
+		/*    --------------------------------------------------------------------- */
+		if(in == NULL)
+			return 0; /* almost ignore the 'white calls' */
+				  /*    --------------------------------------------------------------------- */
 
-      spotsize  = buf[1];
-      threshold = buf[2];
-      errc      = buf+3;
-      errv      = errc + 2*sdev->color_info.num_components;
-      pixel2stc = pixelconversion[sdev->color_info.num_components];
+		spotsize = buf[1];
+		threshold = buf[2];
+		errc = buf + 3;
+		errv = errc + 2 * sdev->color_info.num_components;
+		pixel2stc = pixelconversion[sdev->color_info.num_components];
 
-      for(p = pstart; p != pstop; p += pstep) { /* loop over pixels */
-         int c;     /* component-number */
-         int pixel; /* internal pxel-value */
+		for(p = pstart; p != pstop; p += pstep) { /* loop over pixels */
+			int c;				  /* component-number */
+			int pixel;			  /* internal pxel-value */
 
-         pixel = 0;
+			pixel = 0;
 
-         for(c = 0; c < sdev->color_info.num_components; c++) { /* comp */
-            int32_t cv; /* component value */
+			for(c = 0; c < sdev->color_info.num_components; c++) { /* comp */
+				int32_t cv;				       /* component value */
 
-            cv = in[p+c] + errv[p+c] + errc[c] - ((errc[c]+4)>>3);
-            if(cv > threshold) {
-               pixel |= 1<<c;
-               cv    -= spotsize;
-            }
-            errv[p+c-pstep] += ((3*cv+8)>>4);        /* 3/16 */
-            errv[p+c      ]  = ((5*cv  )>>4)         /* 5/16 */
-                             + ((errc[c]+4)>>3);     /* 1/16 (rest) */
-            errc[c]          = cv                    /* 8/16 (neu) */
-                             - ((5*cv  )>>4)
-                             - ((3*cv+8)>>4);
-         }                                                      /* comp */
+				cv = in[p + c] + errv[p + c] + errc[c] - ((errc[c] + 4) >> 3);
+				if(cv > threshold) {
+					pixel |= 1 << c;
+					cv -= spotsize;
+				}
+				errv[p + c - pstep] += ((3 * cv + 8) >> 4); /* 3/16 */
+				errv[p + c] = ((5 * cv) >> 4)		    /* 5/16 */
+					      + ((errc[c] + 4) >> 3);       /* 1/16 (rest) */
+				errc[c] = cv				    /* 8/16 (neu) */
+					  - ((5 * cv) >> 4) - ((3 * cv + 8) >> 4);
+			} /* comp */
 
-         *out = pixel2stc[pixel];
-         out += bstep;
-      }                                         /* loop over pixels */
+			*out = pixel2stc[pixel];
+			out += bstep;
+		} /* loop over pixels */
 
+		/* ============================================================= */
+	} else { /* npixel <= 0 -> initialisation            */
+		 /* ============================================================= */
 
-/* ============================================================= */
-   } else {          /* npixel <= 0 -> initialisation            */
-/* ============================================================= */
+		int i, i2do;
+		int32_t rand_max;
+		double offset, scale;
 
-      int i,i2do;
-      int32_t rand_max;
-      double offset,scale;
-
-/*
+		/*
  * check wether the number of components is valid
  */
-      if((sdev->color_info.num_components < 0)                         ||
-         (sdev->color_info.num_components >= countof(pixelconversion)) ||
-         (pixelconversion[sdev->color_info.num_components] == NULL)) return -1;
+		if((sdev->color_info.num_components < 0) ||
+		   (sdev->color_info.num_components >= countof(pixelconversion)) ||
+		   (pixelconversion[sdev->color_info.num_components] == NULL))
+			return -1;
 
-/*
+		/*
  * check wether stcdither & TYPE are correct
  */
-      if(( sdev->stc.dither                    == NULL) ||
-         ((sdev->stc.dither->flags & STC_TYPE) != STC_LONG))         return -2;
+		if((sdev->stc.dither == NULL) ||
+		   ((sdev->stc.dither->flags & STC_TYPE) != STC_LONG))
+			return -2;
 
-/*
+		/*
  * check wether the buffer-size is sufficiently large
  */
-      if(((sdev->stc.dither->flags/STC_SCAN) < 1) ||
-         ( sdev->stc.dither->bufadd          <
-          (3 + 3*sdev->color_info.num_components)))                  return -3;
-/*
+		if(((sdev->stc.dither->flags / STC_SCAN) < 1) ||
+		   (sdev->stc.dither->bufadd <
+		    (3 + 3 * sdev->color_info.num_components)))
+			return -3;
+		/*
  * must neither have STC_DIRECT nor STC_WHITE
  */
-      if(sdev->stc.dither->flags & (STC_DIRECT | STC_WHITE))         return -4;
+		if(sdev->stc.dither->flags & (STC_DIRECT | STC_WHITE))
+			return -4;
 
-/*
+		/*
  * compute initial values
  */
-/* -- direction */
-     buf[0] = 1;
+		/* -- direction */
+		buf[0] = 1;
 
-/* -- "spotsize" */
-     scale  = sdev->stc.dither->minmax[1];
-     buf[1] = (int32_t)(scale + (scale > 0.0 ? 0.5 : -0.5));
+		/* -- "spotsize" */
+		scale = sdev->stc.dither->minmax[1];
+		buf[1] = (int32_t)(scale + (scale > 0.0 ? 0.5 : -0.5));
 
-/* -- "threshold" */
-     offset = sdev->stc.dither->minmax[0];
-     scale -= offset;
-     if((offset+0.5*scale) > 0.0) buf[2] = (int32_t)(offset + 0.5*scale + 0.5);
-     else                         buf[2] = (int32_t)(offset + 0.5*scale - 0.5);
+		/* -- "threshold" */
+		offset = sdev->stc.dither->minmax[0];
+		scale -= offset;
+		if((offset + 0.5 * scale) > 0.0)
+			buf[2] = (int32_t)(offset + 0.5 * scale + 0.5);
+		else
+			buf[2] = (int32_t)(offset + 0.5 * scale - 0.5);
 
-/*
+		/*
  *   random values, that do not exceed half of normal value
  */
-     i2do  = sdev->color_info.num_components * (3-npixel);
-     rand_max = 0;
+		i2do = sdev->color_info.num_components * (3 - npixel);
+		rand_max = 0;
 
-     if(sdev->stc.flags & STCDFLAG0) {
+		if(sdev->stc.flags & STCDFLAG0) {
 
-        for(i = 0; i < i2do; ++i) buf[i+3] = 0;
+			for(i = 0; i < i2do; ++i)
+				buf[i + 3] = 0;
 
-     } else {
+		} else {
 
-        for(i = 0; i < i2do; ++i) {
-           buf[i+3] = rand();
-           if(buf[i+3] > rand_max) rand_max = buf[i+3];
-        }
+			for(i = 0; i < i2do; ++i) {
+				buf[i + 3] = rand();
+				if(buf[i + 3] > rand_max)
+					rand_max = buf[i + 3];
+			}
 
-        scale = (double) buf[1] / (double) rand_max;
+			scale = (double)buf[1] / (double)rand_max;
 
-        for(i = 0; i < sdev->color_info.num_components; ++ i)
-           buf[i+3] = (int32_t)(0.25000*scale*(buf[i+3]-rand_max/2));
+			for(i = 0; i < sdev->color_info.num_components; ++i)
+				buf[i + 3] = (int32_t)(0.25000 * scale * (buf[i + 3] - rand_max / 2));
 
-        for(     ; i < i2do; ++i) /* includes 2 additional pixels ! */
-           buf[i+3] = (int32_t)(0.28125*scale*(buf[i+3]-rand_max/2));
+			for(; i < i2do; ++i) /* includes 2 additional pixels ! */
+				buf[i + 3] = (int32_t)(0.28125 * scale * (buf[i + 3] - rand_max / 2));
+		}
 
-     }
+		/* ============================================================= */
+	} /* scanline-processing or initialisation */
+	  /* ============================================================= */
 
-/* ============================================================= */
-   } /* scanline-processing or initialisation */
-/* ============================================================= */
-
-   return 0;
+	return 0;
 }
 
 /*
  * Experimental CMYK-Algorithm
  */
 
-int 
-stc_fscmyk(stcolor_device *sdev,int npixel,byte *bin,byte *bbuf,byte *out) 
+int
+stc_fscmyk(stcolor_device *sdev, int npixel, byte *bin, byte *bbuf, byte *out)
 {
-      int32_t *in  = (int32_t *) bin;
-      int32_t *buf = (int32_t *) bbuf;
+	int32_t *in = (int32_t *)bin;
+	int32_t *buf = (int32_t *)bbuf;
 
-/* ============================================================= */
-   if(npixel > 0) {  /* npixel >  0 -> scanline-processing       */
-/* ============================================================= */
+	/* ============================================================= */
+	if(npixel > 0) { /* npixel >  0 -> scanline-processing       */
+			 /* ============================================================= */
 
-      int bstep,pstart,pstop,pstep,p;
-      int32_t spotsize,threshold,*errc,*errv;
+		int bstep, pstart, pstop, pstep, p;
+		int32_t spotsize, threshold, *errc, *errv;
 
-      if(buf[0] >= 0) { /* run forward */
-        buf[0] = -1;
-        bstep  = 1;
-        pstep  = 4;
-        pstart = 0;
-        pstop  = npixel * pstep;
+		if(buf[0] >= 0) { /* run forward */
+			buf[0] = -1;
+			bstep = 1;
+			pstep = 4;
+			pstart = 0;
+			pstop = npixel * pstep;
 
-      } else {                  /* run backward */
-        buf[0] =  1;
-        bstep  = -1;
-        pstep  = -4;
-        pstop  = pstep;
-        pstart = (1-npixel) * pstep;
-        out   += npixel-1;
-      }                   /* forward / backward */
+		} else { /* run backward */
+			buf[0] = 1;
+			bstep = -1;
+			pstep = -4;
+			pstop = pstep;
+			pstart = (1 - npixel) * pstep;
+			out += npixel - 1;
+		} /* forward / backward */
 
-      spotsize  = buf[1];
-      threshold = buf[2];
-      errc      = buf+3;
-      errv      = errc + 2*4;
+		spotsize = buf[1];
+		threshold = buf[2];
+		errc = buf + 3;
+		errv = errc + 2 * 4;
 
-      for(p = 0; p < 4; ++p) errc[p] = 0;
+		for(p = 0; p < 4; ++p)
+			errc[p] = 0;
 
-      for(p = pstart; p != pstop; p += pstep) { /* loop over pixels */
-         int c;     /* component-number */
-         int pixel; /* internal pxel-value */
-         int32_t cv,k;
+		for(p = pstart; p != pstop; p += pstep) { /* loop over pixels */
+			int c;				  /* component-number */
+			int pixel;			  /* internal pxel-value */
+			int32_t cv, k;
 
-/*
+			/*
  * Black is treated first, with conventional Floyd-Steinberg
  */
-         k  = in[p+3];
-         cv = k + errv[p+3] + errc[3] - ((errc[3]+4)>>3);
+			k = in[p + 3];
+			cv = k + errv[p + 3] + errc[3] - ((errc[3] + 4) >> 3);
 
-         if(cv > threshold) {
-            pixel  = BLACK;
-            cv    -= spotsize;
-         } else {
-            pixel  = 0;
-         }
+			if(cv > threshold) {
+				pixel = BLACK;
+				cv -= spotsize;
+			} else {
+				pixel = 0;
+			}
 
-         errv[p+3-pstep] += ((3*cv+8)>>4);        /* 3/16 */
-         errv[p+3      ]  = ((5*cv  )>>4)         /* 5/16 */
-                          + ((errc[3]+4)>>3);     /* 1/16 (rest) */
-         errc[3]          = cv                    /* 8/16 (neu) */
-                          - ((5*cv  )>>4)
-                          - ((3*cv+8)>>4);
+			errv[p + 3 - pstep] += ((3 * cv + 8) >> 4); /* 3/16 */
+			errv[p + 3] = ((5 * cv) >> 4)		    /* 5/16 */
+				      + ((errc[3] + 4) >> 3);       /* 1/16 (rest) */
+			errc[3] = cv				    /* 8/16 (neu) */
+				  - ((5 * cv) >> 4) - ((3 * cv + 8) >> 4);
 
-/*
+			/*
  * color-handling changes with black fired or not
  */
-         if(pixel) {
+			if(pixel) {
 
-/* -------- firing of black causes all colors to fire too */
+				/* -------- firing of black causes all colors to fire too */
 
-            for(c = 0; c < 3; ++c) {
-               cv  = in[p+c] > k ? in[p+c] : k;
-               cv += errv[p+c] + errc[c] - ((errc[c]+4)>>3)-spotsize;
-               if(cv <= (threshold-spotsize)) cv = threshold-spotsize+1;
+				for(c = 0; c < 3; ++c) {
+					cv = in[p + c] > k ? in[p + c] : k;
+					cv += errv[p + c] + errc[c] - ((errc[c] + 4) >> 3) - spotsize;
+					if(cv <= (threshold - spotsize))
+						cv = threshold - spotsize + 1;
 
-               errv[p+c-pstep] += ((3*cv+8)>>4);        /* 3/16 */
-               errv[p+c      ]  = ((5*cv  )>>4)         /* 5/16 */
-                                + ((errc[c]+4)>>3);     /* 1/16 (rest) */
-               errc[c]          = cv                    /* 8/16 (neu) */
-                                - ((5*cv  )>>4)
-                                - ((3*cv+8)>>4);
-            }
+					errv[p + c - pstep] += ((3 * cv + 8) >> 4); /* 3/16 */
+					errv[p + c] = ((5 * cv) >> 4)		    /* 5/16 */
+						      + ((errc[c] + 4) >> 3);       /* 1/16 (rest) */
+					errc[c] = cv				    /* 8/16 (neu) */
+						  - ((5 * cv) >> 4) - ((3 * cv + 8) >> 4);
+				}
 
-         } else {
+			} else {
 
-/* -------- if black did not fire, only colors w. larger values may fire */
+				/* -------- if black did not fire, only colors w. larger values may fire */
 
-            for(c = 0; c < 3; ++c) {
+				for(c = 0; c < 3; ++c) {
 
-               cv  = in[p+c];
+					cv = in[p + c];
 
-               if(cv > k) { /* May Fire */
-                  cv += errv[p+c] + errc[c] - ((errc[c]+4)>>3);
-                  if(cv > threshold) {
-                     cv -= spotsize;
-                     pixel |= CYAN>>c;
-                  }
-               } else {     /* Must not fire */
-                  cv = k + errv[p+c] + errc[c] - ((errc[c]+4)>>3);
-                  if(cv > threshold ) cv =  threshold;
-               }
+					if(cv > k) { /* May Fire */
+						cv += errv[p + c] + errc[c] - ((errc[c] + 4) >> 3);
+						if(cv > threshold) {
+							cv -= spotsize;
+							pixel |= CYAN >> c;
+						}
+					} else { /* Must not fire */
+						cv = k + errv[p + c] + errc[c] - ((errc[c] + 4) >> 3);
+						if(cv > threshold)
+							cv = threshold;
+					}
 
-               errv[p+c-pstep] += ((3*cv+8)>>4);        /* 3/16 */
-               errv[p+c      ]  = ((5*cv  )>>4)         /* 5/16 */
-                                + ((errc[c]+4)>>3);     /* 1/16 (rest) */
-               errc[c]          = cv                    /* 8/16 (neu) */
-                                - ((5*cv  )>>4)
-                                - ((3*cv+8)>>4);
-            }
-         }
+					errv[p + c - pstep] += ((3 * cv + 8) >> 4); /* 3/16 */
+					errv[p + c] = ((5 * cv) >> 4)		    /* 5/16 */
+						      + ((errc[c] + 4) >> 3);       /* 1/16 (rest) */
+					errc[c] = cv				    /* 8/16 (neu) */
+						  - ((5 * cv) >> 4) - ((3 * cv + 8) >> 4);
+				}
+			}
 
-         *out = pixel;
-         out += bstep;
-      }                                         /* loop over pixels */
+			*out = pixel;
+			out += bstep;
+		} /* loop over pixels */
 
+		/* ============================================================= */
+	} else { /* npixel <= 0 -> initialisation            */
+		 /* ============================================================= */
 
-/* ============================================================= */
-   } else {          /* npixel <= 0 -> initialisation            */
-/* ============================================================= */
+		int i, i2do;
+		int32_t rand_max;
+		double offset, scale;
 
-      int i,i2do;
-      int32_t rand_max;
-      double offset,scale;
-
-/*
+		/*
  * check wether the number of components is valid
  */
-      if(sdev->color_info.num_components != 4)                       return -1;
+		if(sdev->color_info.num_components != 4)
+			return -1;
 
-/*
+		/*
  * check wether stcdither & TYPE are correct
  */
-      if(( sdev->stc.dither                    == NULL) ||
-         ((sdev->stc.dither->flags & STC_TYPE) != STC_LONG))         return -2;
+		if((sdev->stc.dither == NULL) ||
+		   ((sdev->stc.dither->flags & STC_TYPE) != STC_LONG))
+			return -2;
 
-/*
+		/*
  * check wether the buffer-size is sufficiently large
  */
-      if(((sdev->stc.dither->flags/STC_SCAN) < 1) ||
-         ( sdev->stc.dither->bufadd          <
-          (3 + 3*sdev->color_info.num_components)))                  return -3;
-/*
+		if(((sdev->stc.dither->flags / STC_SCAN) < 1) ||
+		   (sdev->stc.dither->bufadd <
+		    (3 + 3 * sdev->color_info.num_components)))
+			return -3;
+		/*
  * must neither have STC_DIRECT nor STC_WHITE
  */
-      if(sdev->stc.dither->flags & (STC_DIRECT | STC_WHITE))         return -4;
+		if(sdev->stc.dither->flags & (STC_DIRECT | STC_WHITE))
+			return -4;
 
-/*
+		/*
  * compute initial values
  */
-/* -- direction */
-     buf[0] = 1;
+		/* -- direction */
+		buf[0] = 1;
 
-/* -- "spotsize" */
-     scale  = sdev->stc.dither->minmax[1];
-     buf[1] = (int32_t)(scale + (scale > 0.0 ? 0.5 : -0.5));
+		/* -- "spotsize" */
+		scale = sdev->stc.dither->minmax[1];
+		buf[1] = (int32_t)(scale + (scale > 0.0 ? 0.5 : -0.5));
 
-/* -- "threshold" */
-     offset = sdev->stc.dither->minmax[0];
-     scale -= offset;
-     if(sdev->stc.flags & STCDFLAG1) {
-        buf[2] = (int32_t)((sdev->stc.extv[0][sdev->stc.sizv[0]-1] - 
-		sdev->stc.extv[0][0]) * scale / 2.0 + offset);
-     } else {
-        if((offset+0.5*scale) > 0.0) buf[2] = (int32_t)(offset + 0.5*scale + 0.5);
-        else                         buf[2] = (int32_t)(offset + 0.5*scale - 0.5);
-     }
+		/* -- "threshold" */
+		offset = sdev->stc.dither->minmax[0];
+		scale -= offset;
+		if(sdev->stc.flags & STCDFLAG1) {
+			buf[2] = (int32_t)((sdev->stc.extv[0][sdev->stc.sizv[0] - 1] -
+					    sdev->stc.extv[0][0]) *
+					       scale / 2.0 +
+					   offset);
+		} else {
+			if((offset + 0.5 * scale) > 0.0)
+				buf[2] = (int32_t)(offset + 0.5 * scale + 0.5);
+			else
+				buf[2] = (int32_t)(offset + 0.5 * scale - 0.5);
+		}
 
-/*
+		/*
  *   random values, that do not exceed half of normal value
  */
-     i2do  = sdev->color_info.num_components * (3-npixel);
-     rand_max = 0;
+		i2do = sdev->color_info.num_components * (3 - npixel);
+		rand_max = 0;
 
-     if(sdev->stc.flags & STCDFLAG0) {
+		if(sdev->stc.flags & STCDFLAG0) {
 
-        for(i = 0; i < i2do; ++i) buf[i+3] = 0;
+			for(i = 0; i < i2do; ++i)
+				buf[i + 3] = 0;
 
-     } else {
+		} else {
 
-        for(i = 0; i < i2do; ++i) {
-           buf[i+3] = rand();
-           if(buf[i+3] > rand_max) rand_max = buf[i+3];
-        }
+			for(i = 0; i < i2do; ++i) {
+				buf[i + 3] = rand();
+				if(buf[i + 3] > rand_max)
+					rand_max = buf[i + 3];
+			}
 
-        scale = (double) buf[1] / (double) rand_max;
+			scale = (double)buf[1] / (double)rand_max;
 
-        for(i = 0; i < sdev->color_info.num_components; ++ i)
-           buf[i+3] = (int32_t)(0.25000*scale*(buf[i+3]-rand_max/2));
+			for(i = 0; i < sdev->color_info.num_components; ++i)
+				buf[i + 3] = (int32_t)(0.25000 * scale * (buf[i + 3] - rand_max / 2));
 
-        for(     ; i < i2do; ++i) /* includes 2 additional pixels ! */
-           buf[i+3] = (int32_t)(0.28125*scale*(buf[i+3]-rand_max/2));
+			for(; i < i2do; ++i) /* includes 2 additional pixels ! */
+				buf[i + 3] = (int32_t)(0.28125 * scale * (buf[i + 3] - rand_max / 2));
+		}
 
-     }
+		/* ============================================================= */
+	} /* scanline-processing or initialisation */
+	  /* ============================================================= */
 
-/* ============================================================= */
-   } /* scanline-processing or initialisation */
-/* ============================================================= */
-
-   return 0;
+	return 0;
 }

@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-#include	"l.h"
+#include "l.h"
 
 void
 noops(void)
@@ -53,7 +53,7 @@ noops(void)
 			curbecome = 0;
 
 			q = p;
-			p->mark |= LABEL|LEAF|SYNC;
+			p->mark |= LABEL | LEAF | SYNC;
 			if(p->link)
 				p->link->mark |= LABEL;
 			curtext = p;
@@ -63,7 +63,7 @@ noops(void)
 			q = p;
 			if(p->to.type == D_REG)
 				if(p->to.reg == REGZERO)
-					p->mark |= LABEL|SYNC;
+					p->mark |= LABEL | SYNC;
 			break;
 
 		case ALWAR:
@@ -86,7 +86,7 @@ noops(void)
 		case ARFI:
 		case ARFCI:
 			q = p;
-			p->mark |= LABEL|SYNC;
+			p->mark |= LABEL | SYNC;
 			continue;
 
 		case AMOVW:
@@ -98,7 +98,7 @@ noops(void)
 			case D_FPSCR:
 			case D_CREG:
 			case D_DCR:
-				p->mark |= LABEL|SYNC;
+				p->mark |= LABEL | SYNC;
 			}
 			switch(p->to.type) {
 			case D_MSR:
@@ -107,7 +107,7 @@ noops(void)
 			case D_FPSCR:
 			case D_CREG:
 			case D_DCR:
-				p->mark |= LABEL|SYNC;
+				p->mark |= LABEL | SYNC;
 			}
 			continue;
 
@@ -185,7 +185,7 @@ noops(void)
 		case AFCMPO:
 		case AFCMPU:
 			q = p;
-			p->mark |= FCMP|FLOAT;
+			p->mark |= FCMP | FLOAT;
 			continue;
 
 		case ARETURN:
@@ -201,7 +201,7 @@ noops(void)
 
 		case ANOP:
 			q1 = p->link;
-			q->link = q1;		/* q is non-nop */
+			q->link = q1; /* q is non-nop */
 			q1->mark |= p->mark;
 			continue;
 
@@ -228,7 +228,7 @@ noops(void)
 			curtext = p;
 			break;
 
-		case ABL:	/* ABCL? */
+		case ABL: /* ABCL? */
 			if(curtext != P && curtext->from.sym != S && curtext->to.offset >= 0) {
 				o = maxbecome - curtext->from.sym->frame;
 				if(o <= 0)
@@ -239,7 +239,7 @@ noops(void)
 					if(debug['b']) {
 						curp = p;
 						print("%D calling %D increase %d\n",
-							&curtext->from, &p->to, o);
+						      &curtext->from, &p->to, o);
 					}
 				}
 			}
@@ -258,9 +258,8 @@ noops(void)
 			autosize = p->to.offset + 4;
 			if((p->mark & LEAF) && autosize <= 4)
 				autosize = 0;
-			else
-				if(autosize & 4)
-					autosize += 4;
+			else if(autosize & 4)
+				autosize += 4;
 			p->to.offset = autosize - 4;
 
 			q = p;
@@ -281,11 +280,10 @@ noops(void)
 					q->link = p->link;
 					p->link = q;
 				}
-			} else
-			if(!(curtext->mark & LEAF)) {
+			} else if(!(curtext->mark & LEAF)) {
 				if(debug['v'])
 					Bprint(&bso, "save suppressed in: %s\n",
-						curtext->from.sym->name);
+					       curtext->from.sym->name);
 				curtext->mark |= LEAF;
 			}
 
@@ -464,17 +462,17 @@ noops(void)
 		return;
 
 	curtext = P;
-	q = P;		/* p - 1 */
-	q1 = firstp;	/* top of block */
-	o = 0;		/* count of instructions */
+	q = P;       /* p - 1 */
+	q1 = firstp; /* top of block */
+	o = 0;       /* count of instructions */
 	for(p = firstp; p != P; p = p1) {
 		p1 = p->link;
 		o++;
-		if(p->mark & NOSCHED){
-			if(q1 != p){
+		if(p->mark & NOSCHED) {
+			if(q1 != p) {
 				sched(q1, q);
 			}
-			for(; p != P; p = p->link){
+			for(; p != P; p = p->link) {
 				if(!(p->mark & NOSCHED))
 					break;
 				q = p;
@@ -484,13 +482,13 @@ noops(void)
 			o = 0;
 			continue;
 		}
-		if(p->mark & (LABEL|SYNC)) {
+		if(p->mark & (LABEL | SYNC)) {
 			if(q1 != p)
 				sched(q1, q);
 			q1 = p;
 			o = 1;
 		}
-		if(p->mark & (BRANCH|SYNC)) {
+		if(p->mark & (BRANCH | SYNC)) {
 			sched(q1, p);
 			q1 = p1;
 			o = 0;

@@ -27,7 +27,7 @@
 /* Internal definitions for Functions */
 
 #ifndef gxfunc_INCLUDED
-#  define gxfunc_INCLUDED
+#define gxfunc_INCLUDED
 
 #include "gsfunc.h"
 #include "gsstruct.h"
@@ -36,20 +36,20 @@
 
 /* Define the generic Function structure type.  This is never instantiated. */
 extern_st(st_function);
-#define public_st_function()	/* in gsfunc.c */\
-  gs_public_st_ptrs2(st_function, gs_function_t, "gs_function_t",\
-    function_enum_ptrs, function_reloc_ptrs, params.Domain, params.Range)
+#define public_st_function() /* in gsfunc.c */                          \
+	gs_public_st_ptrs2(st_function, gs_function_t, "gs_function_t", \
+			   function_enum_ptrs, function_reloc_ptrs, params.Domain, params.Range)
 
 /* ---------------- Internal procedures ---------------- */
 
 /* Generic free_params implementation. */
-void fn_common_free_params(gs_function_params_t * params, gs_memory_t * mem);
+void fn_common_free_params(gs_function_params_t *params, gs_memory_t *mem);
 
 /* Generic free implementation. */
-void fn_common_free(gs_function_t * pfn, bool free_params, gs_memory_t * mem);
+void fn_common_free(gs_function_t *pfn, bool free_params, gs_memory_t *mem);
 
 /* Check the values of m, n, Domain, and (if supplied) Range. */
-int fn_check_mnDR(const gs_function_params_t * params, int m, int n);
+int fn_check_mnDR(const gs_function_params_t *params, int m, int n);
 
 /* Generic get_info implementation (no Functions or DataSource). */
 FN_GET_INFO_PROC(gs_function_get_info_default);
@@ -80,6 +80,6 @@ int fn_common_scale(gs_function_t *psfn, const gs_function_t *pfn,
 		    const gs_range_t *pranges, gs_memory_t *mem);
 
 /* Serialize. */
-int fn_common_serialize(const gs_function_t * pfn, stream *s);
+int fn_common_serialize(const gs_function_t *pfn, stream *s);
 
 #endif /* gxfunc_INCLUDED */

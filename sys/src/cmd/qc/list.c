@@ -43,7 +43,7 @@ Bconv(Fmt *fp)
 		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
 			break;
 		strcat(str, s);
-		bits.b[i/32] &= ~(1L << (i%32));
+		bits.b[i / 32] &= ~(1L << (i % 32));
 	}
 	return fmtstrcpy(fp, str);
 }
@@ -55,19 +55,19 @@ Pconv(Fmt *fp)
 	Prog *p;
 	int a;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(fp->args, Prog *);
 	a = p->as;
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
 	else if(p->as == ATEXT)
 		sprint(str, "	%A	%D,%d,%D", a, &p->from, p->reg, &p->to);
 	else {
-		s = seprint(str, str+sizeof(str), "	%A	%D", a, &p->from);
+		s = seprint(str, str + sizeof(str), "	%A	%D", a, &p->from);
 		if(p->reg != NREG)
-			s = seprint(s, str+sizeof(str), ",%c%d", p->from.type==D_FREG? 'F': 'R', p->reg);
+			s = seprint(s, str + sizeof(str), ",%c%d", p->from.type == D_FREG ? 'F' : 'R', p->reg);
 		if(p->from3.type != D_NONE)
-			s = seprint(s, str+sizeof(str), ",%D", &p->from3);
-		seprint(s, s+sizeof(str), ",%D", &p->to);
+			s = seprint(s, str + sizeof(str), ",%D", &p->from3);
+		seprint(s, s + sizeof(str), ",%D", &p->to);
 	}
 	return fmtstrcpy(fp, str);
 }
@@ -91,7 +91,7 @@ Dconv(Fmt *fp)
 	char str[STRINGSZ];
 	Adr *a;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	switch(a->type) {
 
 	default:
@@ -137,7 +137,7 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_BRANCH:
-		sprint(str, "%ld(PC)", a->offset-pc);
+		sprint(str, "%ld(PC)", a->offset - pc);
 		break;
 
 	case D_FCONST:
@@ -157,9 +157,9 @@ Sconv(Fmt *fp)
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, char *);
 	p = str;
-	for(i=0; i<NSNAME; i++) {
+	for(i = 0; i < NSNAME; i++) {
 		c = a[i] & 0xff;
 		if(c >= 'a' && c <= 'z' ||
 		   c >= 'A' && c <= 'Z' ||
@@ -190,8 +190,8 @@ Sconv(Fmt *fp)
 			*p++ = 'f';
 			continue;
 		}
-		*p++ = (c>>6) + '0';
-		*p++ = ((c>>3) & 7) + '0';
+		*p++ = (c >> 6) + '0';
+		*p++ = ((c >> 3) & 7) + '0';
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
@@ -206,13 +206,13 @@ Nconv(Fmt *fp)
 	Sym *s;
 	int i, l, b, n;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(fp->args, Adr *);
 	s = a->sym;
 	if(s == S) {
 		if(a->offset > 64 || -a->offset > 64) {
 			n = 0;
 			l = a->offset & 1;
-			for(i=0; i<32; i++){
+			for(i = 0; i < 32; i++) {
 				b = (a->offset >> i) & 1;
 				if(b != l)
 					n++;

@@ -27,7 +27,7 @@
 /* Extended public interface to halftones */
 
 #ifndef gsht1_INCLUDED
-#  define gsht1_INCLUDED
+#define gsht1_INCLUDED
 
 #include "gsht.h"
 
@@ -41,7 +41,7 @@ int gs_currentcolorscreen(gs_state *, gs_colorscreen_halftone *);
  * using sethalftone.
  */
 #ifndef gs_halftone_DEFINED
-#  define gs_halftone_DEFINED
+#define gs_halftone_DEFINED
 typedef struct gs_halftone_s gs_halftone;
 
 #endif

@@ -16,11 +16,11 @@
 #include <9p.h>
 
 /* little endian */
-#define SHORT(p)	(((uint8_t*)(p))[0] | (((uint8_t*)(p))[1] << 8))
-#define LONG(p)	((uint32_t)SHORT(p) |(((uint32_t)SHORT((p)+2)) << 16))
+#define SHORT(p) (((uint8_t *)(p))[0] | (((uint8_t *)(p))[1] << 8))
+#define LONG(p) ((uint32_t)SHORT(p) | (((uint32_t)SHORT((p) + 2)) << 16))
 
-typedef struct Ofile	Ofile;
-typedef struct Odir	Odir;
+typedef struct Ofile Ofile;
+typedef struct Odir Odir;
 
 enum {
 	/* special block map entries */
@@ -59,7 +59,7 @@ struct Ofile {
 /* prev and next form a binary tree of directory entries */
 struct Odir {
 	Ofile *f;
-	Rune name[32+1];
+	Rune name[32 + 1];
 	uint8_t type;
 	uint8_t isroot;
 	uint32_t left;
@@ -69,7 +69,7 @@ struct Odir {
 	uint32_t size;
 };
 
-void*
+void *
 emalloc(uint32_t sz)
 {
 	void *v;
@@ -94,23 +94,23 @@ convM2OD(Odir *f, void *buf, int nbuf)
 	 * when zero, it means there is no Odir here.
 	 */
 	p = buf;
-	len = SHORT(p+0x40);
+	len = SHORT(p + 0x40);
 	if(len == 0)
 		return 0;
 
-	if(len > 32)	/* shouldn't happen */
+	if(len > 32) /* shouldn't happen */
 		len = 32;
 
-	for(i=0; i<len; i++)
-		f->name[i] = SHORT(p+i*2);
+	for(i = 0; i < len; i++)
+		f->name[i] = SHORT(p + i * 2);
 	f->name[len] = 0;
 
 	f->type = p[0x42];
-	f->left = LONG(p+0x44);
-	f->right = LONG(p+0x48);
-	f->dir = LONG(p+0x4C);
-	f->start = LONG(p+0x74);
-	f->size = LONG(p+0x78);
+	f->left = LONG(p + 0x44);
+	f->right = LONG(p + 0x48);
+	f->dir = LONG(p + 0x4C);
+	f->start = LONG(p + 0x74);
+	f->size = LONG(p + 0x78);
 
 	/* BUG: grab time in ms format from here */
 
@@ -127,18 +127,18 @@ oreadblock(Ofile *f, int block, uint32_t off, char *buf, int nbuf)
 		return -1;
 	}
 
-	if(off >= Blocksize){
+	if(off >= Blocksize) {
 		print("offset too far into block\n");
 		return 0;
 	}
 
-	if(off+nbuf > Blocksize)
-		nbuf = Blocksize-off;
+	if(off + nbuf > Blocksize)
+		nbuf = Blocksize - off;
 
 	/* blocks start numbering at -1 [sic] */
-	off += (block+1)*Blocksize;
+	off += (block + 1) * Blocksize;
 
-	if(Bseek(f->b, off, 0) != off){
+	if(Bseek(f->b, off, 0) != off) {
 		print("seek failed\n");
 		return -1;
 	}
@@ -153,7 +153,7 @@ int
 chainlen(Ofile *f, uint32_t start)
 {
 	int i;
-	for(i=0; start < 0xFFFF0000; i++)
+	for(i = 0; start < 0xFFFF0000; i++)
 		start = f->blockmap[start];
 
 	return i;
@@ -171,13 +171,13 @@ oreadchain(Ofile *f, uint32_t block, int off, char *buf, int nbuf)
 	int i;
 	int offblock;
 
-	offblock = off/Blocksize;
-	for(i=0; i<offblock && block < 0xFFFF0000; i++)
+	offblock = off / Blocksize;
+	for(i = 0; i < offblock && block < 0xFFFF0000; i++)
 		block = f->blockmap[block];
-	return oreadblock(f, block, off%Blocksize, buf, nbuf);
+	return oreadblock(f, block, off % Blocksize, buf, nbuf);
 }
 
-int 
+int
 oreadfile(Odir *d, int off, char *buf, int nbuf)
 {
 	/*
@@ -189,14 +189,13 @@ oreadfile(Odir *d, int off, char *buf, int nbuf)
 
 	if(off >= d->size)
 		return 0;
-	if(off+nbuf > d->size)
-		nbuf = d->size-off;
+	if(off + nbuf > d->size)
+		nbuf = d->size - off;
 
-	if(d->size >= 0x1000 
-	|| memcmp(d->name, L"Root Entry", 11*sizeof(Rune)) == 0)
+	if(d->size >= 0x1000 || memcmp(d->name, L"Root Entry", 11 * sizeof(Rune)) == 0)
 		return oreadchain(d->f, d->start, off, buf, nbuf);
-	else {	/* small block */
-		off += d->start*64;
+	else { /* small block */
+		off += d->start * 64;
 		return oreadchain(d->f, d->f->smapblock, off, buf, nbuf);
 	}
 }
@@ -206,7 +205,7 @@ oreaddir(Ofile *f, int entry, Odir *d)
 {
 	char buf[Odirsize];
 
-	if(oreadchain(f, f->rootblock, entry*Odirsize, buf, Odirsize) != Odirsize)
+	if(oreadchain(f, f->rootblock, entry * Odirsize, buf, Odirsize) != Odirsize)
 		return -1;
 
 	d->f = f;
@@ -224,7 +223,7 @@ dumpdir(Ofile *f, uint32_t dnum)
 	}
 
 	fprint(2, "%.8lux type %d size %lud l %.8lux r %.8lux d %.8lux (%S)\n", dnum, d.type, d.size, d.left, d.right, d.dir, d.name);
-	if(d.left != (uint32_t)-1) 
+	if(d.left != (uint32_t)-1)
 		dumpdir(f, d.left);
 	if(d.right != (uint32_t)-1)
 		dumpdir(f, d.right);
@@ -232,7 +231,7 @@ dumpdir(Ofile *f, uint32_t dnum)
 		dumpdir(f, d.dir);
 }
 
-Ofile*
+Ofile *
 oleopen(char *fn)
 {
 	int i, j, k, block;
@@ -245,17 +244,15 @@ oleopen(char *fn)
 	Ofile *f;
 	Biobuf *b;
 	static char magic[] = {
-		0xD0, 0xCF, 0x11, 0xE0,
-		0xA1, 0xB1, 0x1A, 0xE1
-	};
+	    0xD0, 0xCF, 0x11, 0xE0,
+	    0xA1, 0xB1, 0x1A, 0xE1};
 
 	b = Bopen(fn, OREAD);
 	if(b == nil)
 		return nil;
 
 	/* the first bytes are magic */
-	if(Bread(b, buf, sizeof magic) != sizeof magic
-	|| memcmp(buf, magic, sizeof magic) != 0) {
+	if(Bread(b, buf, sizeof magic) != sizeof magic || memcmp(buf, magic, sizeof magic) != 0) {
 		Bterm(b);
 		werrstr("bad magic: not OLE file");
 		return nil;
@@ -277,37 +274,36 @@ oleopen(char *fn)
 		return nil;
 	}
 
-	ndepot = LONG(buf+0x2C);
-	f->nblock = ndepot*(Blocksize/4);
-//	fprint(2, "ndepot = %d f->nblock = %lud\n", ndepot, f->nblock);
-	f->rootblock = LONG(buf+0x30);
-	f->smapblock = LONG(buf+0x3C);
-	f->blockmap = emalloc(sizeof(f->blockmap[0])*f->nblock);
-	extrablock = LONG(buf+0x44);
+	ndepot = LONG(buf + 0x2C);
+	f->nblock = ndepot * (Blocksize / 4);
+	//	fprint(2, "ndepot = %d f->nblock = %lud\n", ndepot, f->nblock);
+	f->rootblock = LONG(buf + 0x30);
+	f->smapblock = LONG(buf + 0x3C);
+	f->blockmap = emalloc(sizeof(f->blockmap[0]) * f->nblock);
+	extrablock = LONG(buf + 0x44);
 
 	u = 0;
 
 	/* the big block map fills to the end of the first 512-byte block */
-	for(i=0; i<ndepot && i<(0x200-0x4C)/4; i++) {
-		if(Bseek(b, 0x4C+4*i, 0) != 0x4C+4*i
-		|| Bread(b, buf, 4) != 4) {
-			print("bseek %d fail\n", 0x4C+4*i);
+	for(i = 0; i < ndepot && i < (0x200 - 0x4C) / 4; i++) {
+		if(Bseek(b, 0x4C + 4 * i, 0) != 0x4C + 4 * i || Bread(b, buf, 4) != 4) {
+			print("bseek %d fail\n", 0x4C + 4 * i);
 			goto Die;
 		}
 		block = LONG(buf);
 		if((uint32_t)block == Bendchain) {
 			ndepot = i;
-			f->nblock = ndepot*(Blocksize/4);
+			f->nblock = ndepot * (Blocksize / 4);
 			break;
 		}
 
-		if(Bseek(b, (block+1)*Blocksize, 0) != (block+1)*Blocksize) {
-			print("Xbseek %d fail\n", (block+1)*Blocksize);
+		if(Bseek(b, (block + 1) * Blocksize, 0) != (block + 1) * Blocksize) {
+			print("Xbseek %d fail\n", (block + 1) * Blocksize);
 			goto Die;
 		}
-		for(j=0; j<Blocksize/4; j++) {
+		for(j = 0; j < Blocksize / 4; j++) {
 			if(Bread(b, buf, 4) != 4) {
-				print("Bread fail seek block %x, %d i %d ndepot %d\n", block, (block+1)*Blocksize, i, ndepot);
+				print("Bread fail seek block %x, %d i %d ndepot %d\n", block, (block + 1) * Blocksize, i, ndepot);
 				goto Die;
 			}
 			f->blockmap[u++] = LONG(buf);
@@ -319,41 +315,40 @@ oleopen(char *fn)
 	 * each block.
 	 */
 	while(i < ndepot) {
-		for(k=0; k<(0x200-4)/4 && i<ndepot; i++, k++) {
-			if(Bseek(b, 0x200+extrablock*Blocksize+4*i, 0) != 0x200+extrablock*0x200+4*i
-			|| Bread(b, buf, 4) != 4) {
-				print("bseek %d fail\n", 0x4C+4*i);
+		for(k = 0; k < (0x200 - 4) / 4 && i < ndepot; i++, k++) {
+			if(Bseek(b, 0x200 + extrablock * Blocksize + 4 * i, 0) != 0x200 + extrablock * 0x200 + 4 * i || Bread(b, buf, 4) != 4) {
+				print("bseek %d fail\n", 0x4C + 4 * i);
 				goto Die;
 			}
 			block = LONG(buf);
 			if((uint32_t)block == Bendchain) {
 				ndepot = i;
-				f->nblock = ndepot*(Blocksize/4);
+				f->nblock = ndepot * (Blocksize / 4);
 				goto Break2;
 			}
 
-			if(Bseek(b, (block+1)*Blocksize, 0) != (block+1)*Blocksize) {
-				print("Xbseek %d fail\n", (block+1)*Blocksize);
+			if(Bseek(b, (block + 1) * Blocksize, 0) != (block + 1) * Blocksize) {
+				print("Xbseek %d fail\n", (block + 1) * Blocksize);
 				goto Die;
 			}
-			for(j=0; j<Blocksize/4; j++) {
+			for(j = 0; j < Blocksize / 4; j++) {
 				if(Bread(b, buf, 4) != 4) {
-					print("Bread fail seek block %x, %d i %d ndepot %d\n", block, (block+1)*Blocksize, i, ndepot);
+					print("Bread fail seek block %x, %d i %d ndepot %d\n", block, (block + 1) * Blocksize, i, ndepot);
 					goto Die;
 				}
 				f->blockmap[u++] = LONG(buf);
 			}
 		}
-		if(Bseek(b, 0x200+extrablock*Blocksize+Blocksize-4, 0) != 0x200+extrablock*Blocksize+Blocksize-4
-		|| Bread(b, buf, 4) != 4) {
-			print("bseek %d fail\n", 0x4C+4*i);
+		if(Bseek(b, 0x200 + extrablock * Blocksize + Blocksize - 4, 0) != 0x200 + extrablock * Blocksize + Blocksize - 4 || Bread(b, buf, 4) != 4) {
+			print("bseek %d fail\n", 0x4C + 4 * i);
 			goto Die;
 		}
 		extrablock = LONG(buf);
 	}
-Break2:;
+Break2:
+	;
 
-	if(oreaddir(f, 0, &rootdir) <= 0){
+	if(oreaddir(f, 0, &rootdir) <= 0) {
 		print("oreaddir could not read root\n");
 		goto Die;
 	}
@@ -392,17 +387,17 @@ oleread(Req *r)
 		return;
 	}
 
-	if(o+c > d->size)
-		c = d->size-o;
+	if(o + c > d->size)
+		c = d->size - o;
 
 	/*
 	 * oreadfile returns so little data, it will
 	 * help to read as much as we can.
 	 */
-	e = c+o;
+	e = c + o;
 	n = 0;
-	for(p=r->ofcall.data; o<e; o+=n, p+=n) {
-		n = oreadfile(d, o, p, e-o);
+	for(p = r->ofcall.data; o < e; o += n, p += n) {
+		n = oreadfile(d, o, p, e - o);
 		if(n <= 0)
 			break;
 	}
@@ -415,7 +410,7 @@ oleread(Req *r)
 	}
 }
 
-Odir*
+Odir *
 copydir(Odir *d)
 {
 	Odir *e;
@@ -424,14 +419,14 @@ copydir(Odir *d)
 	*e = *d;
 	return e;
 }
-		
+
 void
 filldir(File *t, Ofile *f, int dnum, int nrecur)
 {
 	Odir d;
 	int i;
 	Rune rbuf[40];
-	char buf[UTFmax*nelem(rbuf)];
+	char buf[UTFmax * nelem(rbuf)];
 	File *nt;
 
 	if(dnum == 0xFFFFFFFF || oreaddir(f, dnum, &d) != 1)
@@ -444,17 +439,16 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 	if(nrecur > 100)
 		sysfatal("tree too large in office file: probably circular");
 
-	filldir(t, f, d.left, nrecur+1);
+	filldir(t, f, d.left, nrecur + 1);
 
 	/* add current tree entry */
-	runestrecpy(rbuf, rbuf+sizeof rbuf, d.name);
-	for(i=0; rbuf[i]; i++)
+	runestrecpy(rbuf, rbuf + sizeof rbuf, d.name);
+	for(i = 0; rbuf[i]; i++)
 		if(rbuf[i] == L' ')
 			rbuf[i] = L'␣';
-		else if(rbuf[i] <= 0x20 || rbuf[i] == L'/' 
-			|| (0x80 <= rbuf[i] && rbuf[i] <= 0x9F))
-				rbuf[i] = ':';
-	
+		else if(rbuf[i] <= 0x20 || rbuf[i] == L'/' || (0x80 <= rbuf[i] && rbuf[i] <= 0x9F))
+			rbuf[i] = ':';
+
 	snprint(buf, sizeof buf, "%S", rbuf);
 
 	if(d.dir == 0xFFFFFFFF) {
@@ -465,18 +459,18 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 		nt->aux = copydir(&d);
 		nt->length = d.size;
 	} else /* make directory */
-		nt = createfile(t, buf, nil, DMDIR|0777, nil);
+		nt = createfile(t, buf, nil, DMDIR | 0777, nil);
 
-	filldir(t, f, d.right, nrecur+1);
+	filldir(t, f, d.right, nrecur + 1);
 
 	if(d.dir != 0xFFFFFFFF)
-		filldir(nt, f, d.dir, nrecur+1);
+		filldir(nt, f, d.dir, nrecur + 1);
 
 	closefile(nt);
 }
 
 Srv olesrv = {
-	.read=	oleread,
+    .read = oleread,
 };
 
 void
@@ -487,14 +481,16 @@ main(int argc, char **argv)
 	Odir d;
 
 	mtpt = "/mnt/doc";
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'm':
 		mtpt = ARGF();
 		break;
-	
+
 	default:
 		goto Usage;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc != 1) {
 	Usage:
@@ -508,14 +504,14 @@ main(int argc, char **argv)
 		exits("open");
 	}
 
-//	dumpdir(f, 0);
+	//	dumpdir(f, 0);
 
 	if(oreaddir(f, 0, &d) != 1) {
 		fprint(2, "oreaddir error: %r\n");
 		exits("oreaddir");
 	}
 
-	olesrv.tree = alloctree(nil, nil, DMDIR|0777, nil);
+	olesrv.tree = alloctree(nil, nil, DMDIR | 0777, nil);
 	filldir(olesrv.tree->root, f, d.dir, 0);
 	postmountsrv(&olesrv, nil, mtpt, MREPL);
 	exits(0);

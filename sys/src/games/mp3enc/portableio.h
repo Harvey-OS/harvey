@@ -85,12 +85,12 @@
  * Revision 2.6  91/04/30  17:06:02  malcolm
  */
 
-#include	<stdio.h>
+#include <stdio.h>
 
-#ifndef	__cplusplus
-# define	CLINK	
+#ifndef __cplusplus
+#define CLINK
 #else
-# define	CLINK "C"
+#define CLINK "C"
 #endif
 
 extern CLINK int ReadByte(FILE *fp);
@@ -122,6 +122,6 @@ extern CLINK void WriteIeeeDoubleHighLow(FILE *fp, double num);
 extern CLINK void WriteIeeeExtendedLowHigh(FILE *fp, double num);
 extern CLINK void WriteIeeeExtendedHighLow(FILE *fp, double num);
 
-#define	Read32BitsLowHigh(f)	Read32Bits(f)
-#define WriteString(f,s)	fwrite(s,strlen(s),sizeof(char),f)
+#define Read32BitsLowHigh(f) Read32Bits(f)
+#define WriteString(f, s) fwrite(s, strlen(s), sizeof(char), f)
 #endif

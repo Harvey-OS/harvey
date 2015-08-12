@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-void*
+void *
 mallocz(uint32_t n, int clr)
 {
 	void *v;

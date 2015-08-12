@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-Rune*
+Rune *
 runesmprint(char *fmt, ...)
 {
 	va_list args;

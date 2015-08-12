@@ -17,11 +17,19 @@ main(int argc, char *argv[])
 {
 	uint32_t now;
 
-	ARGBEGIN{
-	case 'n':	nflg = 1; break;
-	case 'u':	uflg = 1; break;
-	default:	fprint(2, "usage: date [-un] [seconds]\n"); exits("usage");
-	}ARGEND
+	ARGBEGIN
+	{
+	case 'n':
+		nflg = 1;
+		break;
+	case 'u':
+		uflg = 1;
+		break;
+	default:
+		fprint(2, "usage: date [-un] [seconds]\n");
+		exits("usage");
+	}
+	ARGEND
 
 	if(argc == 1)
 		now = strtoul(*argv, 0, 0);
@@ -34,6 +42,6 @@ main(int argc, char *argv[])
 		print("%s", asctime(gmtime(now)));
 	else
 		print("%s", ctime(now));
-	
+
 	exits(0);
 }

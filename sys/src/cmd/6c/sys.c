@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "/sys/src/libc/9syscall/sys.h"
 
-int64_t	_sysargs[6*4];
+int64_t _sysargs[6 * 4];
 int64_t _callsys(void);
 
 /*
@@ -76,7 +76,7 @@ void
 _exits(char *s)
 {
 	_sysargs[0] = EXITS;
-	_sysargs[1] = s!=nil? strlen(s): 0;
+	_sysargs[1] = s != nil ? strlen(s) : 0;
 	_callsys();
 }
 
@@ -106,10 +106,10 @@ brk_(void *a)
 	return _callsys();
 }
 
-void*
+void *
 sbrk(uint32_t n)
 {
 	_sysargs[0] = -2;
 	_sysargs[1] = n;
-	return (void*)_callsys();
+	return (void *)_callsys();
 }

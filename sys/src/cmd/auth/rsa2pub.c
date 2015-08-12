@@ -32,10 +32,12 @@ main(int argc, char **argv)
 	fmtinstall('B', mpfmt);
 	quotefmtinstall();
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 1)
 		usage();
@@ -44,8 +46,8 @@ main(int argc, char **argv)
 		sysfatal("%r");
 
 	s = smprint("key %A size=%d ek=%B n=%B\n",
-		a, 
-		mpsignif(key->pub.n), key->pub.ek, key->pub.n);
+		    a,
+		    mpsignif(key->pub.n), key->pub.ek, key->pub.n);
 	if(s == nil)
 		sysfatal("smprint: %r");
 	write(1, s, strlen(s));

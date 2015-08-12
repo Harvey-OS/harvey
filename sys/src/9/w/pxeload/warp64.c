@@ -16,12 +16,12 @@
 
 #include "mmu64.h"
 
-#define Pml4	0x00108000
+#define Pml4 0x00108000
 
 typedef unsigned long long u64intptr;
 
-#define u64ptr2int(p)	((u64intptr)(p))
-#define u64int2ptr(i)	((void*)(i))
+#define u64ptr2int(p) ((u64intptr)(p))
+#define u64int2ptr(i) ((void *)(i))
 
 static u64intptr
 mach0ptalloc(int l)
@@ -41,8 +41,8 @@ mach0ptalloc(int l)
 	return table;
 }
 
-PTE*
-mmuwalk64(PTE* pml4, u64intptr va, int level, u64intptr (*alloc)(int))
+PTE *
+mmuwalk64(PTE *pml4, u64intptr va, int level, u64intptr (*alloc)(int))
 {
 	int l, idx;
 	PTE *pte;
@@ -50,27 +50,27 @@ mmuwalk64(PTE* pml4, u64intptr va, int level, u64intptr (*alloc)(int))
 
 	idx = PTEX64(va, 4);
 	pte = &pml4[idx];
-	for(l = 4; l > 0; l--){
+	for(l = 4; l > 0; l--) {
 		if(vflag)
 			print("mmuwalk64 0x%p 0x%llux %d: entry %d\n",
-				pml4, va, l, idx);
+			      pml4, va, l, idx);
 		if(l == level)
 			return pte;
 		if(l == 2 && (*pte & PtePS))
 			break;
-		if(!(*pte & PteP)){
+		if(!(*pte & PteP)) {
 			if(alloc == nil)
 				break;
 			pa = alloc(l);
 			if(pa == ~0ULL)
 				break;
-			*pte = pa|PteRW|PteP;
+			*pte = pa | PteRW | PteP;
 			if(vflag)
 				print("mmuwalk64 0x%p 0x%llux %d: alloc 0x%llux\n",
-					pml4, va, l, pa);
+				      pml4, va, l, pa);
 		}
 		pte = u64int2ptr(KADDR(PPN64(*pte)));
-		idx = PTEX64(va, l-1);
+		idx = PTEX64(va, l - 1);
 		pte += idx;
 	}
 
@@ -91,12 +91,12 @@ mkmach0pt(u64intptr kzero64)
 	memset(pml4, 0, PGSIZE64);
 
 	va = kzero64;
-	for(pa = 0; pa < 4*MiB; pa += 2*MiB){
+	for(pa = 0; pa < 4 * MiB; pa += 2 * MiB) {
 		pte = mmuwalk64(pml4, va, 2, mach0ptalloc);
-		*pte = (PPN64(pa))|PtePS|PteRW|PteP;
+		*pte = (PPN64(pa)) | PtePS | PteRW | PteP;
 		if(vflag)
 			print("va %#llux pte %#p *pte %#llux\n", va, pte, *pte);
-		va += 2*MiB;
+		va += 2 * MiB;
 	}
 	pte = mmuwalk64(pml4, kzero64, 4, 0);
 	if(vflag)
@@ -106,7 +106,7 @@ mkmach0pt(u64intptr kzero64)
 	pte0 += PTEX64(0, 2);
 	if(vflag)
 		print("pte0 l2 @ 0x%p  0 == 0x%llux\n", pte0, *pte0);
-	*pte0 = (PPN64(0))|PtePS|PteRW|PteP;
+	*pte0 = (PPN64(0)) | PtePS | PteRW | PteP;
 	if(vflag)
 		print("pte0 l2 @ 0x%p  0 == 0x%llux\n", pte0, *pte0);
 
@@ -131,12 +131,12 @@ warp64(uint64_t entry)
 	u64intptr kzero64;
 	extern void _warp64(ulong);
 
-//	kzero64 = KZERO64;
-//	if(entry != 0xFFFFFFFF80110000ULL){
-//		print("bad entry address %#llux\n", entry);
-//		return;
-//	}
-kzero64 = entry & ~0x000000000fffffffull;
+	//	kzero64 = KZERO64;
+	//	if(entry != 0xFFFFFFFF80110000ULL){
+	//		print("bad entry address %#llux\n", entry);
+	//		return;
+	//	}
+	kzero64 = entry & ~0x000000000fffffffull;
 	print("warp64(%#llux) %#llux %d\n", entry, kzero64, nmmap);
 	if(vflag)
 		print("mkmultiboot\n");

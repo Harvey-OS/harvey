@@ -19,34 +19,55 @@
 
 static Ether ether[MaxEther];
 
-extern int amd79c970reset(Ether*);
-extern int ether2114xreset(Ether*);
-extern int etherbcm4401pnp(Ether*);
-extern int i82557reset(Ether*);
-extern int i82563pnp(Ether*);
+extern int amd79c970reset(Ether *);
+extern int ether2114xreset(Ether *);
+extern int etherbcm4401pnp(Ether *);
+extern int i82557reset(Ether *);
+extern int i82563pnp(Ether *);
 extern int igbepnp(Ether *);
-extern int rtl8139pnp(Ether*);
-extern int rtl8169pnp(Ether*);
-extern int vgbepnp(Ether*);
+extern int rtl8139pnp(Ether *);
+extern int rtl8169pnp(Ether *);
+extern int vgbepnp(Ether *);
 
 struct {
-	char	*type;
-	int	(*reset)(Ether*);
-	int	noprobe;
+	char *type;
+	int (*reset)(Ether *);
+	int noprobe;
 } ethercards[] = {
-	{ "21140", ether2114xreset, 0, },
-	{ "2114x", ether2114xreset, 0, },
-	{ "bcm4401", etherbcm4401pnp, 0, },
-	{ "i82557", i82557reset, 0, },
-	{ "i82563", i82563pnp, 0, },
-	{ "igbe",  igbepnp, 0, },
-	{ "RTL8139", rtl8139pnp, 0, },
-	{ "RTL8169", rtl8169pnp, 0, },
-	{ "AMD79C970", amd79c970reset, 0, },
-	{ "vgbe", vgbepnp, 0, },
+    {
+     "21140", ether2114xreset, 0,
+    },
+    {
+     "2114x", ether2114xreset, 0,
+    },
+    {
+     "bcm4401", etherbcm4401pnp, 0,
+    },
+    {
+     "i82557", i82557reset, 0,
+    },
+    {
+     "i82563", i82563pnp, 0,
+    },
+    {
+     "igbe", igbepnp, 0,
+    },
+    {
+     "RTL8139", rtl8139pnp, 0,
+    },
+    {
+     "RTL8169", rtl8169pnp, 0,
+    },
+    {
+     "AMD79C970", amd79c970reset, 0,
+    },
+    {
+     "vgbe", vgbepnp, 0,
+    },
 
-	{ 0, }
-};
+    {
+     0,
+    }};
 
 static void xetherdetach(void);
 
@@ -60,25 +81,24 @@ etherinit(void)
 
 	etherdetach = xetherdetach;
 	mask = 0;
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
+	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++) {
 		ctlr = &ether[ctlrno];
 		memset(ctlr, 0, sizeof(Ether));
 		if(iniread && isaconfig("ether", ctlrno, ctlr) == 0)
 			continue;
 
-		for(n = 0; ethercards[n].type; n++){
-			if(!iniread){
+		for(n = 0; ethercards[n].type; n++) {
+			if(!iniread) {
 				if(ethercards[n].noprobe)
 					continue;
 				memset(ctlr, 0, sizeof(Ether));
 				ctlr->type = ethercards[n].type;
-			}
-			else if(cistrcmp(ethercards[n].type, ctlr->type))
+			} else if(cistrcmp(ethercards[n].type, ctlr->type))
 				continue;
 			ctlr->ctlrno = ctlrno;
 
 			x = splhi();
-			if((*ethercards[n].reset)(ctlr)){
+			if((*ethercards[n].reset)(ctlr)) {
 				splx(x);
 				if(iniread)
 					break;
@@ -87,13 +107,13 @@ etherinit(void)
 			}
 
 			ctlr->state = 1;
-			mask |= 1<<ctlrno;
+			mask |= 1 << ctlrno;
 			if(ctlr->irq == 2)
 				ctlr->irq = 9;
 			setvec(VectorPIC + ctlr->irq, ctlr->interrupt, ctlr);
 
 			print("ether#%d: %s: port 0x%luX irq %lud",
-				ctlr->ctlrno, ctlr->type, ctlr->port, ctlr->irq);
+			      ctlr->ctlrno, ctlr->type, ctlr->port, ctlr->irq);
 			if(ctlr->mem)
 				print(" addr 0x%luX", ctlr->mem & ~KZERO);
 			if(ctlr->size)
@@ -102,10 +122,10 @@ etherinit(void)
 
 			if(ctlr->nrb == 0)
 				ctlr->nrb = Nrb;
-			ctlr->rb = ialloc(sizeof(RingBuf)*ctlr->nrb, 0);
+			ctlr->rb = ialloc(sizeof(RingBuf) * ctlr->nrb, 0);
 			if(ctlr->ntb == 0)
 				ctlr->ntb = Ntb;
-			ctlr->tb = ialloc(sizeof(RingBuf)*ctlr->ntb, 0);
+			ctlr->tb = ialloc(sizeof(RingBuf) * ctlr->ntb, 0);
 
 			ctlr->rh = 0;
 			ctlr->ri = 0;
@@ -137,7 +157,7 @@ etherprintdevs(int i)
 	print(" ether%d", i);
 }
 
-static Ether*
+static Ether *
 attach(int ctlrno)
 {
 	Ether *ctlr;
@@ -146,7 +166,7 @@ attach(int ctlrno)
 		return 0;
 
 	ctlr = &ether[ctlrno];
-	if(ctlr->state == 1){
+	if(ctlr->state == 1) {
 		ctlr->state = 2;
 		(*ctlr->attach)(ctlr);
 	}
@@ -161,7 +181,7 @@ xetherdetach(void)
 	int ctlrno, x;
 
 	x = splhi();
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
+	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++) {
 		ctlr = &ether[ctlrno];
 		if(ctlr->detach && ctlr->state != 0)
 			ctlr->detach(ctlr);
@@ -169,7 +189,7 @@ xetherdetach(void)
 	splx(x);
 }
 
-uint8_t*
+uint8_t *
 etheraddr(int ctlrno)
 {
 	Ether *ctlr;
@@ -181,13 +201,13 @@ etheraddr(int ctlrno)
 }
 
 static int
-wait(RingBuf* ring, uint8_t owner, int timo)
+wait(RingBuf *ring, uint8_t owner, int timo)
 {
 	uint32_t start;
 	extern void hlt(void);
 
 	start = machp()->ticks;
-	while(TK2MS(machp()->ticks - start) < timo){
+	while(TK2MS(machp()->ticks - start) < timo) {
 		if(ring->owner != owner)
 			return 1;
 		hlt();
@@ -197,7 +217,7 @@ wait(RingBuf* ring, uint8_t owner, int timo)
 }
 
 int
-etherrxpkt(int ctlrno, Etherpkt* pkt, int timo)
+etherrxpkt(int ctlrno, Etherpkt *pkt, int timo)
 {
 	int n;
 	Ether *ctlr;
@@ -207,7 +227,7 @@ etherrxpkt(int ctlrno, Etherpkt* pkt, int timo)
 		return 0;
 
 	ring = &ctlr->rb[ctlr->rh];
-	if(wait(ring, Interface, timo) == 0){
+	if(wait(ring, Interface, timo) == 0) {
 		if(debug)
 			print("ether%d: rx timeout\n", ctlrno);
 		return 0;
@@ -232,7 +252,7 @@ etherrxflush(int ctlrno)
 		return 0;
 
 	n = 0;
-	for(;;){
+	for(;;) {
 		ring = &ctlr->rb[ctlr->rh];
 		if(wait(ring, Interface, 100) == 0)
 			break;
@@ -246,7 +266,7 @@ etherrxflush(int ctlrno)
 }
 
 int
-ethertxpkt(int ctlrno, Etherpkt* pkt, int len, int)
+ethertxpkt(int ctlrno, Etherpkt *pkt, int len, int)
 {
 	Ether *ctlr;
 	RingBuf *ring;
@@ -256,7 +276,7 @@ ethertxpkt(int ctlrno, Etherpkt* pkt, int len, int)
 		return 0;
 
 	ring = &ctlr->tb[ctlr->th];
-	if(wait(ring, Interface, 1000) == 0){
+	if(wait(ring, Interface, 1000) == 0) {
 		print("ether%d: tx buffer timeout\n", ctlrno);
 		return 0;
 	}
@@ -265,8 +285,8 @@ ethertxpkt(int ctlrno, Etherpkt* pkt, int len, int)
 	if(debug)
 		print("%E to %E...\n", pkt->s, pkt->d);
 	memmove(ring->pkt, pkt, len);
-	if(len < ETHERMINTU){
-		memset(ring->pkt+len, 0, ETHERMINTU-len);
+	if(len < ETHERMINTU) {
+		memset(ring->pkt + len, 0, ETHERMINTU - len);
 		len = ETHERMINTU;
 	}
 	ring->len = len;

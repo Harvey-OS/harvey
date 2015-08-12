@@ -17,16 +17,15 @@
 
 typedef struct Box Box;
 
-struct Box
-{
+struct Box {
 	Control;
-	int		border;
-	CImage	*bordercolor;
-	CImage	*image;
-	int		align;
+	int border;
+	CImage *bordercolor;
+	CImage *image;
+	int align;
 };
 
-enum{
+enum {
 	EAlign,
 	EBorder,
 	EBordercolor,
@@ -40,25 +39,24 @@ enum{
 };
 
 static char *cmds[] = {
-	[EAlign] =		"align",
-	[EBorder] =	"border",
-	[EBordercolor] ="bordercolor",
-	[EFocus] = 	"focus",
-	[EHide] =		"hide",
-	[EImage] =	"image",
-	[ERect] =		"rect",
-	[EReveal] =	"reveal",
-	[EShow] =		"show",
-	[ESize] =		"size",
-	nil
-};
+	[EAlign] = "align",
+	[EBorder] = "border",
+	[EBordercolor] = "bordercolor",
+	[EFocus] = "focus",
+	[EHide] = "hide",
+	[EImage] = "image",
+	[ERect] = "rect",
+	[EReveal] = "reveal",
+	[EShow] = "show",
+	[ESize] = "size",
+	nil};
 
 static void
 boxkey(Control *c, Rune *rp)
 {
 	Box *b;
 
-	b = (Box*)c;
+	b = (Box *)c;
 	chanprint(b->event, "%q: key 0x%x", b->name, rp[0]);
 }
 
@@ -67,16 +65,16 @@ boxmouse(Control *c, Mouse *m)
 {
 	Box *b;
 
-	b = (Box*)c;
-	if (ptinrect(m->xy,b->rect))
+	b = (Box *)c;
+	if(ptinrect(m->xy, b->rect))
 		chanprint(b->event, "%q: mouse %P %d %ld", b->name,
-			m->xy, m->buttons, m->msec);
+			  m->xy, m->buttons, m->msec);
 }
 
 static void
 boxfree(Control *c)
 {
-	_putctlimage(((Box*)c)->image);
+	_putctlimage(((Box *)c)->image);
 }
 
 static void
@@ -87,10 +85,10 @@ boxshow(Box *b)
 
 	if(b->hidden)
 		return;
-	if(b->border > 0){
+	if(b->border > 0) {
 		border(b->screen, b->rect, b->border, b->bordercolor->image, ZP);
 		r = insetrect(b->rect, b->border);
-	}else
+	} else
 		r = b->rect;
 	i = b->image->image;
 	/* BUG: ALIGNMENT AND CLIPPING */
@@ -104,9 +102,9 @@ boxctl(Control *c, CParse *cp)
 	Rectangle r;
 	Box *b;
 
-	b = (Box*)c;
+	b = (Box *)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
-	switch(cmd){
+	switch(cmd) {
 	default:
 		ctlerror("%q: unrecognized message '%s'", b->name, cp->str);
 		break;
@@ -142,7 +140,7 @@ boxctl(Control *c, CParse *cp)
 		r.min.y = cp->iargs[2];
 		r.max.x = cp->iargs[3];
 		r.max.y = cp->iargs[4];
-		if(Dx(r)<0 || Dy(r)<0)
+		if(Dx(r) < 0 || Dy(r) < 0)
 			ctlerror("%q: bad rectangle: %s", b->name, cp->str);
 		b->rect = r;
 		break;
@@ -156,16 +154,16 @@ boxctl(Control *c, CParse *cp)
 		boxshow(b);
 		break;
 	case ESize:
-		if (cp->nargs == 3)
+		if(cp->nargs == 3)
 			r.max = Pt(0x7fffffff, 0x7fffffff);
-		else{
+		else {
 			_ctlargcount(b, cp, 5);
 			r.max.x = cp->iargs[3];
 			r.max.y = cp->iargs[4];
 		}
 		r.min.x = cp->iargs[1];
 		r.min.y = cp->iargs[2];
-		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+		if(r.min.x <= 0 || r.min.y <= 0 || r.max.x <= 0 || r.max.y <= 0 || r.max.x < r.min.x || r.max.y < r.min.y)
 			ctlerror("%q: bad sizes: %s", b->name, cp->str);
 		b->size.min = r.min;
 		b->size.max = r.max;
@@ -173,7 +171,7 @@ boxctl(Control *c, CParse *cp)
 	}
 }
 
-Control*
+Control *
 createbox(Controlset *cs, char *name)
 {
 	Box *b;

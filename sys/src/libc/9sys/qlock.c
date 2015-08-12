@@ -11,42 +11,40 @@
 #include <libc.h>
 
 static struct {
-	QLp	*p;
-	QLp	x[1024];
+	QLp *p;
+	QLp x[1024];
 } ql = {
-	ql.x
-};
+    ql.x};
 
-enum
-{
+enum {
 	Queuing,
 	QueuingR,
 	QueuingW,
 	Sleeping,
 };
 
-static void*	(*_rendezvousp)(void*, void*) = rendezvous;
+static void *(*_rendezvousp)(void *, void *) = rendezvous;
 
 /* this gets called by the thread library ONLY to get us to use its rendezvous */
 void
-_qlockinit(void* (*r)(void*, void*))
+_qlockinit(void *(*r)(void *, void *))
 {
 	_rendezvousp = r;
 }
 
 /* find a free shared memory location to queue ourselves in */
-static QLp*
+static QLp *
 getqlp(void)
 {
 	QLp *p, *op;
 
 	op = ql.p;
-	for(p = op+1; ; p++){
+	for(p = op + 1;; p++) {
 		if(p == &ql.x[nelem(ql.x)])
 			p = ql.x;
 		if(p == op)
 			abort();
-		if(_tas(&(p->inuse)) == 0){
+		if(_tas(&(p->inuse)) == 0) {
 			ql.p = p;
 			p->next = nil;
 			break;
@@ -61,12 +59,11 @@ qlock(QLock *q)
 	QLp *p, *mp;
 
 	lock(&q->lock);
-	if(!q->locked){
+	if(!q->locked) {
 		q->locked = 1;
 		unlock(&q->lock);
 		return;
 	}
-
 
 	/* chain into waiting list */
 	mp = getqlp();
@@ -80,7 +77,7 @@ qlock(QLock *q)
 	unlock(&q->lock);
 
 	/* wait */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(mp, (void *)1) == (void *)~0)
 		;
 	mp->inuse = 0;
 }
@@ -91,17 +88,17 @@ qunlock(QLock *q)
 	QLp *p;
 
 	lock(&q->lock);
-	if (q->locked == 0)
+	if(q->locked == 0)
 		fprint(2, "qunlock called with qlock not held, from %#p\n",
-			getcallerpc(&q));
+		       getcallerpc(&q));
 	p = q->head;
-	if(p != nil){
+	if(p != nil) {
 		/* wakeup head waiting process */
 		q->head = p->next;
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		while((*_rendezvousp)(p, (void*)0x12345) == (void*)~0)
+		while((*_rendezvousp)(p, (void *)0x12345) == (void *)~0)
 			;
 		return;
 	}
@@ -114,7 +111,7 @@ canqlock(QLock *q)
 {
 	if(!canlock(&q->lock))
 		return 0;
-	if(!q->locked){
+	if(!q->locked) {
 		q->locked = 1;
 		unlock(&q->lock);
 		return 1;
@@ -129,7 +126,7 @@ rlock(RWLock *q)
 	QLp *p, *mp;
 
 	lock(&q->lock);
-	if(q->writer == 0 && q->head == nil){
+	if(q->writer == 0 && q->head == nil) {
 		/* no writer, go for it */
 		q->_readers++;
 		unlock(&q->lock);
@@ -148,7 +145,7 @@ rlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(mp, (void *)1) == (void *)~0)
 		;
 	mp->inuse = 0;
 }
@@ -157,7 +154,7 @@ int
 canrlock(RWLock *q)
 {
 	lock(&q->lock);
-	if (q->writer == 0 && q->head == nil) {
+	if(q->writer == 0 && q->head == nil) {
 		/* no writer; go for it */
 		q->_readers++;
 		unlock(&q->lock);
@@ -176,7 +173,7 @@ runlock(RWLock *q)
 	if(q->_readers <= 0)
 		abort();
 	p = q->head;
-	if(--(q->_readers) > 0 || p == nil){
+	if(--(q->_readers) > 0 || p == nil) {
 		unlock(&q->lock);
 		return;
 	}
@@ -191,7 +188,7 @@ runlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wakeup waiter */
-	while((*_rendezvousp)(p, 0) == (void*)~0)
+	while((*_rendezvousp)(p, 0) == (void *)~0)
 		;
 }
 
@@ -201,7 +198,7 @@ wlock(RWLock *q)
 	QLp *p, *mp;
 
 	lock(&q->lock);
-	if(q->_readers == 0 && q->writer == 0){
+	if(q->_readers == 0 && q->writer == 0) {
 		/* noone waiting, go for it */
 		q->writer = 1;
 		unlock(&q->lock);
@@ -221,7 +218,7 @@ wlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(mp, (void *)1) == (void *)~0)
 		;
 	mp->inuse = 0;
 }
@@ -230,7 +227,7 @@ int
 canwlock(RWLock *q)
 {
 	lock(&q->lock);
-	if (q->_readers == 0 && q->writer == 0) {
+	if(q->_readers == 0 && q->writer == 0) {
 		/* no one waiting; go for it */
 		q->writer = 1;
 		unlock(&q->lock);
@@ -249,18 +246,18 @@ wunlock(RWLock *q)
 	if(q->writer == 0)
 		abort();
 	p = q->head;
-	if(p == nil){
+	if(p == nil) {
 		q->writer = 0;
 		unlock(&q->lock);
 		return;
 	}
-	if(p->state == QueuingW){
+	if(p->state == QueuingW) {
 		/* start waiting writer */
 		q->head = p->next;
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		while((*_rendezvousp)(p, 0) == (void*)~0)
+		while((*_rendezvousp)(p, 0) == (void *)~0)
 			;
 		return;
 	}
@@ -269,11 +266,11 @@ wunlock(RWLock *q)
 		abort();
 
 	/* wake waiting readers */
-	while(q->head != nil && q->head->state == QueuingR){
+	while(q->head != nil && q->head->state == QueuingR) {
 		p = q->head;
 		q->head = p->next;
 		q->_readers++;
-		while((*_rendezvousp)(p, 0) == (void*)~0)
+		while((*_rendezvousp)(p, 0) == (void *)~0)
 			;
 	}
 	if(q->head == nil)
@@ -306,20 +303,20 @@ rsleep(Rendez *r)
 
 	/* pass the qlock to the next guy */
 	t = r->l->head;
-	if(t){
+	if(t) {
 		r->l->head = t->next;
 		if(r->l->head == nil)
 			r->l->tail = nil;
 		unlock(&r->l->lock);
-		while((*_rendezvousp)(t, (void*)0x12345) == (void*)~0)
+		while((*_rendezvousp)(t, (void *)0x12345) == (void *)~0)
 			;
-	}else{
+	} else {
 		r->l->locked = 0;
 		unlock(&r->l->lock);
 	}
 
 	/* wait for a wakeup */
-	while((*_rendezvousp)(me, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(me, (void *)1) == (void *)~0)
 		;
 	me->inuse = 0;
 }
@@ -333,7 +330,7 @@ rwakeup(Rendez *r)
 	 * take off wait and put on front of queue
 	 * put on front so guys that have been waiting will not get starved
 	 */
-	
+
 	if(!r->l)
 		abort();
 	lock(&r->l->lock);
@@ -341,7 +338,7 @@ rwakeup(Rendez *r)
 		abort();
 
 	t = r->head;
-	if(t == nil){
+	if(t == nil) {
 		unlock(&r->l->lock);
 		return 0;
 	}
@@ -365,8 +362,7 @@ rwakeupall(Rendez *r)
 {
 	int i;
 
-	for(i=0; rwakeup(r); i++)
+	for(i = 0; rwakeup(r); i++)
 		;
 	return i;
 }
-

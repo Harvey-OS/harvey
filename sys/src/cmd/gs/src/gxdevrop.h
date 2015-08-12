@@ -27,7 +27,7 @@
 /* Extension of gxdevice.h for RasterOp */
 
 #ifndef gxdevrop_INCLUDED
-#  define gxdevrop_INCLUDED
+#define gxdevrop_INCLUDED
 
 /* Define an unaligned implementation of [strip_]copy_rop. */
 dev_proc_copy_rop(gx_copy_rop_unaligned);

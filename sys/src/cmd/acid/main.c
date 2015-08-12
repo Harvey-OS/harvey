@@ -15,19 +15,19 @@
 #include "acid.h"
 #include "y.tab.h"
 
-extern int _ifmt(Fmt*);
+extern int _ifmt(Fmt *);
 
-static Biobuf	bioout;
-static char	prog[128];
-static char*	lm[16];
-static int	nlm;
-static char*	mtype;
+static Biobuf bioout;
+static char prog[128];
+static char *lm[16];
+static int nlm;
+static char *mtype;
 
-static	int attachfiles(char*, int);
-int	xfmt(Fmt*);
-int	isnumeric(char*);
-void	die(void);
-void	loadmoduleobjtype(void);
+static int attachfiles(char *, int);
+int xfmt(Fmt *);
+int isnumeric(char *);
+void die(void);
+void loadmoduleobjtype(void);
 
 void
 usage(void)
@@ -50,7 +50,8 @@ main(int argc, char *argv[])
 	quiet = 1;
 
 	mtype = 0;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'm':
 		mtype = ARGF();
 		break;
@@ -76,13 +77,13 @@ main(int argc, char *argv[])
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc > 0) {
 		if(remote)
 			aout = argv[0];
-		else
-		if(isnumeric(argv[0])) {
+		else if(isnumeric(argv[0])) {
 			pid = strtol(argv[0], 0, 0);
 			snprint(prog, sizeof(prog), "/proc/%d/text", pid);
 			aout = prog;
@@ -90,16 +91,14 @@ main(int argc, char *argv[])
 				aout = argv[1];
 			else if(kernel)
 				aout = system();
-		}
-		else {
+		} else {
 			if(kernel) {
 				fprint(2, "acid: -k requires a pid\n");
 				usage();
 			}
 			aout = argv[0];
 		}
-	} else
-	if(remote)
+	} else if(remote)
 		aout = "/mips/9ch";
 
 	fmtinstall('x', xfmt);
@@ -116,8 +115,8 @@ main(int argc, char *argv[])
 	if(mtype && machbyname(mtype) == 0)
 		print("unknown machine %s", mtype);
 
-	if (attachfiles(aout, pid) < 0)
-		varreg();		/* use default register set on error */
+	if(attachfiles(aout, pid) < 0)
+		varreg(); /* use default register set on error */
 
 	loadmodule("/sys/lib/acid/port");
 	loadmoduleobjtype();
@@ -174,7 +173,7 @@ attachfiles(char *aout, int pid)
 	if(setjmp(err))
 		return -1;
 
-	if(aout) {				/* executable given */
+	if(aout) { /* executable given */
 		if(wtflag)
 			text = open(aout, ORDWR);
 		else
@@ -184,7 +183,7 @@ attachfiles(char *aout, int pid)
 			error("%s: can't open %s: %r\n", argv0, aout);
 		readtext(aout);
 	}
-	if(pid)					/* pid given */
+	if(pid) /* pid given */
 		sproc(pid);
 	return 0;
 }
@@ -269,13 +268,13 @@ readtext(char *s)
 	Symbol sym;
 	extern Machdata mipsmach;
 
-	if(mtype != 0){
+	if(mtype != 0) {
 		symmap = newmap(0, 1);
 		if(symmap == 0)
 			print("%s: (error) loadmap: cannot make symbol map\n", argv0);
-		length = 1<<24;
+		length = 1 << 24;
 		d = dirfstat(text);
-		if(d != nil){
+		if(d != nil) {
 			length = d->length;
 			free(d);
 		}
@@ -327,7 +326,7 @@ readtext(char *s)
 	varreg();
 }
 
-Node*
+Node *
 an(int op, Node *l, Node *r)
 {
 	Node *n;
@@ -342,7 +341,7 @@ an(int op, Node *l, Node *r)
 	return n;
 }
 
-List*
+List *
 al(int t)
 {
 	List *l;
@@ -355,7 +354,7 @@ al(int t)
 	return l;
 }
 
-Node*
+Node *
 con(int64_t v)
 {
 	Node *n;
@@ -374,7 +373,7 @@ fatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s: %L (fatal problem) %s\n", argv0, buf);
 	exits(buf);
@@ -391,7 +390,7 @@ yyerror(char *fmt, ...)
 		return;
 	}
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%L: %s\n", buf);
 }
@@ -487,14 +486,13 @@ gc(void)
 		next = m->gclink;
 		if(m->gcmark == 0) {
 			*p = next;
-			free(m);	/* Sleazy reliance on my malloc */
-		}
-		else
+			free(m); /* Sleazy reliance on my malloc */
+		} else
 			p = &m->gclink;
 	}
 }
 
-void*
+void *
 gmalloc(int32_t l)
 {
 	void *p;
@@ -517,14 +515,14 @@ checkqid(int f1, int pid)
 		return;
 
 	d1 = dirfstat(f1);
-	if(d1 == nil){
+	if(d1 == nil) {
 		print("checkqid: (qid not checked) dirfstat: %r\n");
 		return;
 	}
 
 	snprint(buf, sizeof(buf), "/proc/%d/text", pid);
 	fd = open(buf, OREAD);
-	if(fd < 0 || (d2 = dirfstat(fd)) == nil){
+	if(fd < 0 || (d2 = dirfstat(fd)) == nil) {
 		print("checkqid: (qid not checked) dirstat %s: %r\n", buf);
 		free(d1);
 		if(fd >= 0)
@@ -534,9 +532,9 @@ checkqid(int f1, int pid)
 
 	close(fd);
 
-	if(d1->qid.path != d2->qid.path || d1->qid.vers != d2->qid.vers || d1->qid.type != d2->qid.type){
+	if(d1->qid.path != d2->qid.path || d1->qid.vers != d2->qid.vers || d1->qid.type != d2->qid.type) {
 		print("path %llux %llux vers %lud %lud type %d %d\n",
-			d1->qid.path, d2->qid.path, d1->qid.vers, d2->qid.vers, d1->qid.type, d2->qid.type);
+		      d1->qid.path, d2->qid.path, d1->qid.vers, d2->qid.vers, d1->qid.type, d2->qid.type);
 		print("warning: image does not match text for pid %d\n", pid);
 	}
 	free(d1);
@@ -555,7 +553,7 @@ catcher(void *junk, char *s)
 	noted(NDFLT);
 }
 
-char*
+char *
 system(void)
 {
 	char *cpu, *p, *q;
@@ -567,11 +565,10 @@ system(void)
 		print("$cputype not set; assuming %s\n", cpu);
 	}
 	p = getenv("terminal");
-	if(p == 0 || (p=strchr(p, ' ')) == 0 || p[1] == ' ' || p[1] == 0) {
+	if(p == 0 || (p = strchr(p, ' ')) == 0 || p[1] == ' ' || p[1] == 0) {
 		p = "ch";
 		print("missing or bad $terminal; assuming %s\n", p);
-	}
-	else{
+	} else {
 		p++;
 		q = strchr(p, ' ');
 		if(q)

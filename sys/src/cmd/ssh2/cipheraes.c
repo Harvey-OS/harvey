@@ -30,26 +30,26 @@ initaes(Conn *c, int dir, int bits)
 	qlock(&aeslock);
 	cs = emalloc9p(sizeof(CipherState));
 	if(dir)
-		setupAESstate(&cs->state, c->s2cek, bits/8, c->s2civ);
+		setupAESstate(&cs->state, c->s2cek, bits / 8, c->s2civ);
 	else
-		setupAESstate(&cs->state, c->c2sek, bits/8, c->c2siv);
+		setupAESstate(&cs->state, c->c2sek, bits / 8, c->c2siv);
 	qunlock(&aeslock);
 	return cs;
 }
 
-static CipherState*
+static CipherState *
 initaes128(Conn *c, int dir)
 {
 	return initaes(c, dir, 128);
 }
 
-static CipherState*
+static CipherState *
 initaes192(Conn *c, int dir)
 {
 	return initaes(c, dir, 192);
 }
 
-static CipherState*
+static CipherState *
 initaes256(Conn *c, int dir)
 {
 	return initaes(c, dir, 256);
@@ -76,25 +76,25 @@ decryptaes(CipherState *cs, uint8_t *buf, int nbuf)
 }
 
 Cipher cipheraes128 = {
-	"aes128-cbc",
-	AESbsize,
-	initaes128,
-	encryptaes,
-	decryptaes,
+    "aes128-cbc",
+    AESbsize,
+    initaes128,
+    encryptaes,
+    decryptaes,
 };
 
 Cipher cipheraes192 = {
-	"aes192-cbc",
-	AESbsize,
-	initaes192,
-	encryptaes,
-	decryptaes,
+    "aes192-cbc",
+    AESbsize,
+    initaes192,
+    encryptaes,
+    decryptaes,
 };
 
 Cipher cipheraes256 = {
-	"aes256-cbc",
-	AESbsize,
-	initaes256,
-	encryptaes,
-	decryptaes,
+    "aes256-cbc",
+    AESbsize,
+    initaes256,
+    encryptaes,
+    decryptaes,
 };

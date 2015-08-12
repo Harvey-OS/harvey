@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-extern int		fflag;
+extern int fflag;
 
 void printtree(Object *, int);
 int parentage(char *, int, Object *);

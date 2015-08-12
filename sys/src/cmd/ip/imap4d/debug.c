@@ -23,7 +23,7 @@ debuglog(char *fmt, ...)
 		return;
 	if(logfd == 0)
 		logfd = open("/sys/log/imap4d", OWRITE);
-	if(logfd > 0){
+	if(logfd > 0) {
 		va_start(arg, fmt);
 		fprint(logfd, "%s: ", username);
 		vfprint(logfd, fmt, arg);
@@ -42,7 +42,7 @@ boxVerify(Box *box)
 	recent = 0;
 	seq = 0;
 	uid = 0;
-	for(m = box->msgs; m != nil; m = m->next){
+	for(m = box->msgs; m != nil; m = m->next) {
 		if(m->seq == 0)
 			fprint(2, "m->seq == 0: m->seq=%lud\n", m->seq);
 		else if(m->seq <= seq)
@@ -72,9 +72,9 @@ openfiles(void)
 	Dir *d;
 	int i;
 
-	for(i = 0; i < 20; i++){
+	for(i = 0; i < 20; i++) {
 		d = dirfstat(i);
-		if(d != nil){
+		if(d != nil) {
 			fprint(2, "fd[%d]='%s' type=%c dev=%d user='%s group='%s'\n", i, d->name, d->type, d->dev, d->uid, d->gid);
 			free(d);
 		}
@@ -96,19 +96,19 @@ ls(char *file)
 	 * each one has a directory, and is in numerical order
 	 */
 	d = dirfstat(fd);
-	if(d == nil){
+	if(d == nil) {
 		close(fd);
 		return;
 	}
-	if(!(d->mode & DMDIR)){
+	if(!(d->mode & DMDIR)) {
 		fprint(2, "file %s\n", file);
 		free(d);
 		close(fd);
 		return;
 	}
 	free(d);
-	while((nd = dirread(fd, &d)) > 0){
-		for(i = 0; i < nd; i++){
+	while((nd = dirread(fd, &d)) > 0) {
+		for(i = 0; i < nd; i++) {
 			fprint(2, "%s/%s %c\n", file, d[i].name, "-d"[(d[i].mode & DMDIR) == DMDIR]);
 		}
 		free(d);

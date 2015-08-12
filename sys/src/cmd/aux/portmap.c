@@ -20,12 +20,12 @@ void
 usage(void)
 {
 	fprint(2, "usage: portmap address [cmd]\n"
-		"cmd is one of:\n"
-		"\tnull\n"
-		"\tset prog vers proto port\n"
-		"\tunset prog vers proto port\n"
-		"\tgetport prog vers proto\n"
-		"\tdump (default)\n");
+		  "cmd is one of:\n"
+		  "\tnull\n"
+		  "\tset prog vers proto port\n"
+		  "\tunset prog vers proto port\n"
+		  "\tgetport prog vers proto\n"
+		  "\tdump (default)\n");
 	threadexitsall("usage");
 }
 
@@ -34,8 +34,8 @@ portCall(SunCall *c, PortCallType type)
 {
 	c->rpc.prog = PortProgram;
 	c->rpc.vers = PortVersion;
-	c->rpc.proc = type>>1;
-	c->rpc.iscall = !(type&1);
+	c->rpc.proc = type >> 1;
+	c->rpc.iscall = !(type & 1);
 	c->type = type;
 }
 
@@ -144,7 +144,7 @@ tdump(char **argv)
 	if(sunClientRpc(client, 0, &tx.call, &rx.call, &p) < 0)
 		sysfatal("rpc: %r");
 
-	for(i=0, m=rx.map; i<rx.nmap; i++, m++)
+	for(i = 0, m = rx.map; i < rx.nmap; i++, m++)
 		print("%ud %ud %ud %ud\n", (uint)m->prog, (uint)m->vers, (uint)m->prot, (uint)m->port);
 
 	free(p);
@@ -153,27 +153,31 @@ tdump(char **argv)
 static struct {
 	char *cmd;
 	int narg;
-	void (*fn)(char**);
+	void (*fn)(char **);
 } tab[] = {
-	"null",	0,	tnull,
-	"set",	4,	tset,
-	"unset",	4,	tunset,
-	"getport",	3,	tgetport,
-	"dump",	0,	tdump,
+    "null", 0, tnull,
+    "set", 4, tset,
+    "unset", 4, tunset,
+    "getport", 3, tgetport,
+    "dump", 0, tdump,
 };
 
 void
 threadmain(int argc, char **argv)
 {
-	char *dflt[] = { "dump", };
+	char *dflt[] = {
+	    "dump",
+	};
 	char *addr, *cmd;
 	int i;
 
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case 'R':
 		chatty++;
 		break;
-	}ARGEND
+	}
+	ARGEND
 
 	if(argc < 1)
 		usage();
@@ -193,7 +197,7 @@ threadmain(int argc, char **argv)
 	argv++;
 	argc--;
 
-	if(argc == 0){
+	if(argc == 0) {
 		argc = 1;
 		argv = dflt;
 	}
@@ -201,8 +205,8 @@ threadmain(int argc, char **argv)
 	argv++;
 	argc--;
 
-	for(i=0; i<nelem(tab); i++){
-		if(strcmp(tab[i].cmd, cmd) == 0){
+	for(i = 0; i < nelem(tab); i++) {
+		if(strcmp(tab[i].cmd, cmd) == 0) {
 			if(tab[i].narg != argc)
 				usage();
 			(*tab[i].fn)(argv);

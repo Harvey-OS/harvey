@@ -15,36 +15,36 @@
 #include <bio.h>
 #include <libsec.h>
 
-#pragma	varargck	type	"M"	unsigned char*
+#pragma varargck type "M" unsigned char *
 
 typedef struct Sha2 Sha2;
 struct Sha2 {
-	int	bits;
-	int	dlen;
-	DigestState* (*func)(uint8_t *, uint32_t, uint8_t *, DigestState *);
+	int bits;
+	int dlen;
+	DigestState *(*func)(uint8_t *, uint32_t, uint8_t *, DigestState *);
 };
 
 static Sha2 sha2s[] = {
-	224,	SHA2_224dlen,	sha2_224,
-	256,	SHA2_256dlen,	sha2_256,
-	384,	SHA2_384dlen,	sha2_384,
-	512,	SHA2_512dlen,	sha2_512,
+    224, SHA2_224dlen, sha2_224,
+    256, SHA2_256dlen, sha2_256,
+    384, SHA2_384dlen, sha2_384,
+    512, SHA2_512dlen, sha2_512,
 };
 
-static DigestState* (*shafunc)(uint8_t *, uint32_t, uint8_t *,
+static DigestState *(*shafunc)(uint8_t *, uint32_t, uint8_t *,
 			       DigestState *);
 static int shadlen;
 
 static int
 digestfmt(Fmt *fmt)
 {
-	char buf[SHA2_512dlen*2 + 1];
+	char buf[SHA2_512dlen * 2 + 1];
 	uint8_t *p;
 	int i;
 
-	p = va_arg(fmt->args, uint8_t*);
+	p = va_arg(fmt->args, uint8_t *);
 	for(i = 0; i < shadlen; i++)
-		sprint(buf + 2*i, "%.2ux", p[i]);
+		sprint(buf + 2 * i, "%.2ux", p[i]);
 	return fmtstrcpy(fmt, buf);
 }
 
@@ -58,8 +58,8 @@ sum(int fd, char *name)
 	s = (*shafunc)(nil, 0, nil, nil);
 	while((n = read(fd, buf, sizeof buf)) > 0)
 		(*shafunc)(buf, n, nil, s);
-	if(n < 0){
-		fprint(2, "reading %s: %r\n", name? name: "stdin");
+	if(n < 0) {
+		fprint(2, "reading %s: %r\n", name ? name : "stdin");
 		return;
 	}
 	(*shafunc)(nil, 0, digest, s);
@@ -84,29 +84,31 @@ main(int argc, char *argv[])
 
 	shafunc = sha1;
 	shadlen = SHA1dlen;
-	ARGBEGIN{
+	ARGBEGIN
+	{
 	case '2':
 		bits = atoi(EARGF(usage()));
-		for (sha = sha2s; sha < sha2s + nelem(sha2s); sha++)
-			if (sha->bits == bits)
+		for(sha = sha2s; sha < sha2s + nelem(sha2s); sha++)
+			if(sha->bits == bits)
 				break;
-		if (sha >= sha2s + nelem(sha2s))
+		if(sha >= sha2s + nelem(sha2s))
 			sysfatal("unknown number of sha2 bits: %d", bits);
 		shafunc = sha->func;
 		shadlen = sha->dlen;
 		break;
 	default:
 		usage();
-	}ARGEND
+	}
+	ARGEND
 
 	fmtinstall('M', digestfmt);
 
 	if(argc == 0)
 		sum(0, nil);
 	else
-		for(i = 0; i < argc; i++){
+		for(i = 0; i < argc; i++) {
 			fd = open(argv[i], OREAD);
-			if(fd < 0){
+			if(fd < 0) {
 				fprint(2, "%s: can't open %s: %r\n", argv0, argv[i]);
 				continue;
 			}
