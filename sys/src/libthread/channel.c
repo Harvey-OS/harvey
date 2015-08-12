@@ -87,6 +87,7 @@ chancreate(int elemsize, int elemcnt)
 	return c;
 }
 
+/* isopenfor is meant to be called under the chanlock. */
 static int
 isopenfor(Channel *c, int op)
 {
@@ -134,7 +135,7 @@ alt(Alt *alts)
 			return -1;
 		}
 
-		if(isopenfor(c, xa->op) && canexec(xa))
+		if(isopenfor((Channel *)c, xa->op) && canexec(xa))
 			if(nrand(++n) == 0)
 				a = xa;
 	}
@@ -160,7 +161,7 @@ alt(Alt *alts)
 				continue;
 			else if(isopenfor(xa->c, xa->op)){
 				waiting = 1;
-				enqueue(xa, &c);
+				enqueue(xa, (Channel **)&c);
 			} else if(xa->err != errcl)
 				ca = xa;
 			else
@@ -232,7 +233,7 @@ alt(Alt *alts)
 int
 chanclose(Channel *c)
 {
-	Alt *a;
+	volatile Alt *a;
 	int i, s;
 
 	s = _procsplhi();	/* note handlers; see :/^alt */
@@ -465,6 +466,7 @@ emptyentry(Channel *c)
 	return i;
 }
 
+/* enqueue is called under the chanlock, the Channel can be treated as non-volatile. */
 static void
 enqueue(Alt *a, Channel **c)
 {
