@@ -1,3 +1,0 @@
-#!/bin/rc
-
-echo $* | aux/trampoline tcp!192.168.233.1!17890
