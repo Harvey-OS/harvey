@@ -20,6 +20,7 @@ import (
 	"debug/elf"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -83,6 +84,7 @@ var (
 		"ld":     "ld",
 		"ranlib": "ranlib",
 		"strip":  "strip",
+		"sh":     "bash",
 	}
 	arch = map[string]bool{
 		"amd64": true,
@@ -108,6 +110,31 @@ func adjust(s []string) (r []string) {
 	}
 	return
 }
+
+func sh(cmd *exec.Cmd){
+	bash := exec.Command(tools["sh"])
+	bash.Env = cmd.Env
+	bash.Stderr = os.Stderr
+	bash.Stdout = os.Stdout
+	commandString := strings.Join(cmd.Args, " ")
+
+	if bashIn, e := bash.StdinPipe(); e == nil {
+
+		go func(){
+			defer bashIn.Close()
+			io.WriteString(bashIn, commandString)
+		}()
+
+		log.Printf("[%v]", commandString)
+		err := bash.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+	} else {
+		log.Fatalf("cannot pipe [%v] to %s: %v", commandString, tools["sh"], e)
+	}
+}
+
 func process(f string, b *build) {
 	if b.jsons[f] {
 		return
@@ -167,23 +194,15 @@ func process(f string, b *build) {
 func compile(b *build) {
 	// N.B. Plan 9 has a very well defined include structure, just three things:
 	// /amd64/include, /sys/include, .
-	// TODO: replace amd64 with an arch variable. Later.
 	args := []string{"-c"}
-	args = append(args, adjust([]string{"-I", "/amd64/include", "-I", "/sys/include", "-I", "."})...)
+	args = append(args, adjust([]string{"-I", os.ExpandEnv("/$ARCH/include"), "-I", "/sys/include", "-I", "."})...)
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
 			cmd := exec.Command(tools["cc"], argscmd...)
 			cmd.Env = append(os.Environ(), b.Env...)
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			sh(cmd)
 			argscmd = args
 		}
 	} else {
@@ -191,14 +210,7 @@ func compile(b *build) {
 		cmd := exec.Command(tools["cc"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd)
 	}
 }
 
@@ -217,37 +229,23 @@ func link(b *build) {
 			o := f[:len(f)] + ".o"
 			args = append(args, []string{o}...)
 			args = append(args, b.Oflags...)
-			args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
+			args = append(args, adjust([]string{"-L", os.ExpandEnv("/$ARCH/lib")})...)
 			args = append(args, b.Libs...)
 			cmd := exec.Command(tools["ld"], args...)
 			cmd.Env = append(os.Environ(), b.Env...)
 
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			sh(cmd)
 		}
 	} else {
 		args := []string{"-o", b.Program}
 		args = append(args, b.ObjectFiles...)
 		args = append(args, b.Oflags...)
-		args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
+		args = append(args, adjust([]string{"-L", os.ExpandEnv("/$ARCH/lib")})...)
 		args = append(args, b.Libs...)
 		cmd := exec.Command(tools["ld"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd)
 	}
 }
 
@@ -277,28 +275,14 @@ func install(b *build) {
 
 			cmd := exec.Command("mv", args...)
 
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			sh(cmd)
 		}
 	} else if len(b.Program) > 0 {
 		args := []string{b.Program}
 		args = append(args, installpath...)
 		cmd := exec.Command("mv", args...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd)
 	} else if len(b.Library) > 0 {
 		args := []string{"-rvs"}
 		libpath := installpath[0] + "/" + b.Library
@@ -318,36 +302,20 @@ func install(b *build) {
 		}
 		cmd := exec.Command(tools["ar"], args...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
 		log.Printf("*** Installing %v ***", b.Library)
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd)
 
 		cmd = exec.Command(tools["ranlib"], libpath)
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd)
 	}
 
 }
 
 func run(b *build, cmd []string) {
 	for _, v := range cmd {
-		cmd := exec.Command("bash", "-c", v)
+		cmd := exec.Command(v)
 		cmd.Env = append(os.Environ(), b.Env...)
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd)
 	}
 }
 
@@ -376,15 +344,8 @@ func data2c(name string, path string) (string, error) {
 		}
 		args := []string{"-o", tmpf.Name(), path}
 		cmd := exec.Command(tools["strip"], args...)
-		cmd.Env = nil
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		cmd.Env = os.Environ()
+		sh(cmd)
 
 		in, err = ioutil.ReadAll(tmpf)
 		if err != nil {
