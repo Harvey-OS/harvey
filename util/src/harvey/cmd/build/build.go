@@ -20,6 +20,7 @@ import (
 	"debug/elf"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -83,19 +84,22 @@ var (
 		"ld":     "ld",
 		"ranlib": "ranlib",
 		"strip":  "strip",
+		"sh":     "bash",
 	}
 	arch = map[string]bool{
 		"amd64": true,
 	}
 )
 
-func fail(err error) {
+// fail with message, if err is not nil
+func failOn(err error) {
 	if err != nil {
-		log.Fatalf("%v", err)
+		log.Fatalf("%v\n", err)
 	}
 }
 
 func adjust1(s string) string {
+	s = os.ExpandEnv(s)
 	if path.IsAbs(s) {
 		return path.Join(harvey, s)
 	}
@@ -108,23 +112,61 @@ func adjust(s []string) (r []string) {
 	}
 	return
 }
+
+// send cmd to a shell
+func sh(cmd *exec.Cmd){
+	shell := exec.Command(tools["sh"])
+	shell.Env = cmd.Env
+
+	commandString := strings.Join(cmd.Args, " ")
+	if shStdin, e := shell.StdinPipe(); e == nil {
+		go func(){
+			defer shStdin.Close()
+			io.WriteString(shStdin, commandString)
+		}()
+	} else {
+		log.Fatalf("cannot pipe [%v] to %s: %v", commandString, tools["sh"], e)
+	}
+	shell.Stderr = os.Stderr
+	shell.Stdout = os.Stdout
+
+	log.Printf("[%v]", commandString)
+	err := shell.Run()
+	failOn(err)
+}
+
+// run cmd preserving $LD_PRELOAD tricks
+func withPreloadTricks(cmd *exec.Cmd){
+	if os.Getenv("LD_PRELOAD") != "" {
+		// we need a shell to enable $LD_PRELOAD tricks,
+		// see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
+		sh(cmd)
+	} else {
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("%v", cmd.Args)
+		err := cmd.Run()
+		failOn(err)
+	}
+}
+
 func process(f string, b *build) {
 	if b.jsons[f] {
 		return
 	}
 	log.Printf("Processing %v", f)
 	d, err := ioutil.ReadFile(f)
-	fail(err)
+	failOn(err)
 	var build build
 	err = json.Unmarshal(d, &build)
-	fail(err)
+	failOn(err)
 	b.jsons[f] = true
 
 	if len(b.jsons) == 1 {
 		cwd, err := os.Getwd()
-		if err != nil {
-			log.Fatalf("%v", err)
-		}
+		failOn(err)
+
 		b.path = path.Join(cwd, f)
 		b.Name = build.Name
 		b.Kernel = build.Kernel
@@ -167,23 +209,15 @@ func process(f string, b *build) {
 func compile(b *build) {
 	// N.B. Plan 9 has a very well defined include structure, just three things:
 	// /amd64/include, /sys/include, .
-	// TODO: replace amd64 with an arch variable. Later.
 	args := []string{"-c"}
-	args = append(args, adjust([]string{"-I", "/amd64/include", "-I", "/sys/include", "-I", "."})...)
+	args = append(args, adjust([]string{"-I", os.ExpandEnv("/$ARCH/include"), "-I", "/sys/include", "-I", "."})...)
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
 			cmd := exec.Command(tools["cc"], argscmd...)
 			cmd.Env = append(os.Environ(), b.Env...)
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			withPreloadTricks(cmd)
 			argscmd = args
 		}
 	} else {
@@ -191,14 +225,7 @@ func compile(b *build) {
 		cmd := exec.Command(tools["cc"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		withPreloadTricks(cmd)
 	}
 }
 
@@ -217,37 +244,23 @@ func link(b *build) {
 			o := f[:len(f)] + ".o"
 			args = append(args, []string{o}...)
 			args = append(args, b.Oflags...)
-			args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
+			args = append(args, adjust([]string{"-L", os.ExpandEnv("/$ARCH/lib")})...)
 			args = append(args, b.Libs...)
 			cmd := exec.Command(tools["ld"], args...)
 			cmd.Env = append(os.Environ(), b.Env...)
 
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			withPreloadTricks(cmd)
 		}
 	} else {
 		args := []string{"-o", b.Program}
 		args = append(args, b.ObjectFiles...)
 		args = append(args, b.Oflags...)
-		args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
+		args = append(args, adjust([]string{"-L", os.ExpandEnv("/$ARCH/lib")})...)
 		args = append(args, b.Libs...)
 		cmd := exec.Command(tools["ld"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		withPreloadTricks(cmd)
 	}
 }
 
@@ -258,9 +271,8 @@ func install(b *build) {
 	installpath := adjust([]string{os.ExpandEnv(b.Install)})
 	// Make sure they're all there.
 	for _, v := range installpath {
-		if err := os.MkdirAll(v, 0755); err != nil {
-			log.Fatalf("%v", err)
-		}
+		err := os.MkdirAll(v, 0755)
+		failOn(err)
 	}
 
 	if len(b.SourceFilesCmd) > 0 {
@@ -277,28 +289,14 @@ func install(b *build) {
 
 			cmd := exec.Command("mv", args...)
 
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			withPreloadTricks(cmd)
 		}
 	} else if len(b.Program) > 0 {
 		args := []string{b.Program}
 		args = append(args, installpath...)
 		cmd := exec.Command("mv", args...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		withPreloadTricks(cmd)
 	} else if len(b.Library) > 0 {
 		args := []string{"-rvs"}
 		libpath := installpath[0] + "/" + b.Library
@@ -318,36 +316,20 @@ func install(b *build) {
 		}
 		cmd := exec.Command(tools["ar"], args...)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
 		log.Printf("*** Installing %v ***", b.Library)
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		withPreloadTricks(cmd)
 
 		cmd = exec.Command(tools["ranlib"], libpath)
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		withPreloadTricks(cmd)
 	}
 
 }
 
 func run(b *build, cmd []string) {
 	for _, v := range cmd {
-		cmd := exec.Command("bash", "-c", v)
+		cmd := exec.Command(v)
 		cmd.Env = append(os.Environ(), b.Env...)
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		sh(cmd) // we need a shell here
 	}
 }
 
@@ -356,7 +338,7 @@ func projects(b *build) {
 		wd := path.Dir(v)
 		f := path.Base(v)
 		cwd, err := os.Getwd()
-		fail(err)
+		failOn(err)
 		os.Chdir(wd)
 		project(f)
 		os.Chdir(cwd)
@@ -371,37 +353,28 @@ func data2c(name string, path string) (string, error) {
 		elf.Close()
 		cwd, err := os.Getwd()
 		tmpf, err := ioutil.TempFile(cwd, name)
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		failOn(err)
+
 		args := []string{"-o", tmpf.Name(), path}
 		cmd := exec.Command(tools["strip"], args...)
-		cmd.Env = nil
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		cmd.Env = os.Environ()
+		withPreloadTricks(cmd)
 
 		in, err = ioutil.ReadAll(tmpf)
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		failOn(err)
+
 		tmpf.Close()
 		os.Remove(tmpf.Name())
 	} else {
 		var file *os.File
 		var err error
-		if file, err = os.Open(path); err != nil {
-			log.Fatalf("%v", err)
-		}
+
+		file, err = os.Open(path);
+		failOn(err)
+
 		in, err = ioutil.ReadAll(file)
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		failOn(err)
+
 		file.Close()
 	}
 
@@ -427,9 +400,8 @@ func confcode(path string, kern *kernel) []byte {
 	if kern.Ramfiles != nil {
 		for name, path := range kern.Ramfiles {
 			code, err := data2c(name, adjust1(path))
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			failOn(err)
+
 			rootcodes = append(rootcodes, code)
 			rootnames = append(rootnames, name)
 		}
@@ -535,19 +507,15 @@ char* conffile = "{{ .Path }}";
 `)
 
 	codebuf := bytes.NewBuffer(nil)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
+	failOn(err)
+
 	err = tmpl.Execute(codebuf, vars)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
+	failOn(err)
 
 	return codebuf.Bytes()
 }
 
 func buildkernel(b *build) {
-
 	if b.Kernel == nil {
 		return
 	}
@@ -557,7 +525,6 @@ func buildkernel(b *build) {
 	if err := ioutil.WriteFile(b.Name+".c", codebuf, 0666); err != nil {
 		log.Fatalf("Writing %s.c: %v", b.Name, err)
 	}
-
 }
 
 // assumes we are in the wd of the project.
@@ -593,11 +560,12 @@ func main() {
 	var badsetup bool
 	var err error
 	cwd, err = os.Getwd()
-	fail(err)
+	failOn(err)
 	harvey = os.Getenv("HARVEY")
-	if err := findTools(os.Getenv("TOOLPREFIX")); err != nil {
-		fail(err)
-	}
+	
+	err = findTools(os.Getenv("TOOLPREFIX"))
+	failOn(err)
+
 	if harvey == "" {
 		log.Printf("You need to set the HARVEY environment variable")
 		badsetup = true
@@ -617,7 +585,7 @@ func main() {
 	dir := path.Dir(os.Args[1])
 	file := path.Base(os.Args[1])
 	err = os.Chdir(dir)
-	fail(err)
+	failOn(err)
 	project(file)
 }
 
@@ -628,9 +596,7 @@ func findTools(toolprefix string) (err error) {
 		}
 		v = toolprefix + v
 		v, err = exec.LookPath(v)
-		if err != nil {
-			return err
-		}
+		failOn(err)
 		tools[k] = v
 	}
 	return nil
