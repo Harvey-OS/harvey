@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 #BUILD script
 #
@@ -17,87 +18,52 @@
 #You should have received a copy of the GNU General Public License along
 #with this program; if not, write to the Free Software Foundation, Inc.,
 #51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-#
 
 #Search for config:
-_BUILD_DIR="$(dirname "$0")"
-export _BUILD_DIR=$(cd "$_BUILD_DIR"; pwd)
-. "${_BUILD_DIR}/BUILD.conf"
-export HARVEY="$_BUILD_DIR"
-
-compile_kernel()
-{
-	cd "$KRL_DIR"
-	build "$KERNEL_CONF.json"
-	cd "$PATH_ORI" > /dev/null
-}
+export HARVEY="$(git rev-parse --show-toplevel)"
+. "${HARVEY}/BUILD.conf"
 
 build_kernel()
-{
-	compile_kernel
-	if [ $? -ne 0 ]
-	then
-		echo "SOMETHING WENT WRONG!"
-	else
-		echo "KERNEL COMPILED OK"
-	fi
-}
-
+{ (
+	cd "$KRL_DIR"
+	build "$KERNEL_CONF.json"
+) }
 
 build_go_utils()
 { (
-	# this is run in a subshell, so environment modifications are local only
-	set -e
 	export GOBIN="${UTIL_DIR}"
 	export GOPATH="${UTIL_DIR}/third_party:${UTIL_DIR}"
-	go get -d all # should really vendor these bits
+	go get -d harvey/cmd/... # should really vendor these bits
 	go install github.com/rminnich/go9p/ufs harvey/cmd/...
 ) }
 
-check_utils()
-{
-	if [ -f "${UTIL_DIR}"/mksys ]
-	then
-		echo 0
-	else
-		echo 1
-	fi
-}
-
 build_libs()
-{
+{ (
 	rm -rf "$HARVEY/amd64/lib/"*
 	cd "$SRC_DIR"
 	build libs.json
-	cd "$PATH_ORI" > /dev/null
-}
-
+) }
 
 build_klibs()
-{
+{ (
 	cd "$SRC_DIR"
 	build klibs.json
-	cd "$PATH_ORI" > /dev/null
-
-}
+) }
 
 build_cmds()
-{
+{ (
 	rm -rf "$HARVEY/amd64/bin/"*
 	cd "$CMD_DIR"
 	build cmds.json
 	build kcmds.json
-	cd "$PATH_ORI" > /dev/null
-}
+) }
 
 build_regress()
-{
+{ (
 	rm -rf "$HARVEY/amd64/bin/regress"
 	cd "$SRC_DIR"/regress
 	build regress.json
-	cd "$PATH_ORI" > /dev/null
-}
+) }
 
 show_help()
 {
