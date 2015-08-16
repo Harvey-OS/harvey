@@ -20,7 +20,7 @@ addons:
     - gcc-4.8
   coverity_scan:
     project:
-      name: "Harvey-OS/harvey"
+      name: "elbing/harvey"
       description: "Build submitted via Travis CI"
     notification_email: harvey@googlegroups.com
     build_command_prepend: "./BUILD utils"
