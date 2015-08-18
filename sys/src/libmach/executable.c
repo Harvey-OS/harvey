@@ -45,11 +45,17 @@ static	int	sparcboot(int, Fhdr*, ExecHdr*);
 static	int	mipsboot(int, Fhdr*, ExecHdr*);
 static	int	mips4kboot(int, Fhdr*, ExecHdr*);
 #endif
+#if HARVEYSPARC | HARVEY32 | HARVEYPPC | HARVEYARM | HARVEYALPHA
 static	int	common(int, Fhdr*, ExecHdr*);
+#endif
 static	int	commonllp64(int, Fhdr*, ExecHdr*);
+#if HARVEYMIPS | HARVEYMIPS
 static	int	adotout(int, Fhdr*, ExecHdr*);
+#endif
 static	int	elfdotout(int, Fhdr*, ExecHdr*);
+#if HARVEYARM
 static	int	armdotout(int, Fhdr*, ExecHdr*);
+#endif
 static	void	setsym(Fhdr*, int32_t, int32_t, int32_t, int64_t);
 static	void	setdata(Fhdr*, uint64_t, int32_t, int64_t,
 				  int32_t);
@@ -394,6 +400,7 @@ hswal(void *v, int n, uint32_t (*swap)(uint32_t))
 		*ulp = (*swap)(*ulp);
 }
 
+#if HARVEYMIPS | HARVEYMIPS
 /*
  *	Crack a normal a.out-type header
  */
@@ -411,6 +418,7 @@ adotout(int fd, Fhdr *fp, ExecHdr *hp)
 	setsym(fp, hp->e.syms, hp->e.spsz, hp->e.pcsz, fp->datoff+fp->datsz);
 	return 1;
 }
+#endif
 
 static void
 commonboot(Fhdr *fp)
@@ -465,6 +473,7 @@ commonboot(Fhdr *fp)
 	fp->hdrsz = 0;			/* header stripped */
 }
 
+#if HARVEYSPARC | HARVEY32 | HARVEYPPC | HARVEYARM | HARVEYALPHA
 /*
  *	_MAGIC() style headers and
  *	alpha plan9-style bootable images for axp "headerless" boot
@@ -482,6 +491,7 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 	commonboot(fp);
 	return 1;
 }
+#endif
 
 static int
 commonllp64(int i, Fhdr *fp, ExecHdr *hp)
@@ -904,6 +914,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	return 0;
 }
 
+#if HARVEYARM
 /*
  * (Free|Net)BSD ARM header.
  */
@@ -926,6 +937,7 @@ armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	}
 	return 1;
 }
+#endif
 
 static void
 settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
