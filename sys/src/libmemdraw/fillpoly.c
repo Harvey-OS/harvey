@@ -35,6 +35,8 @@ static	int	zcompare(const void*, const void*);
 static	void	xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int, int, int);
 static	void	yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int);
 
+/* fillcolor was used by xscan, but rsc removed the hack based on it
+ * 
 static void
 fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
 {
@@ -46,6 +48,7 @@ fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
 	p.y = y;
 	memset(byteaddr(dst, p), srcval, right-left);
 }
+ */
 
 static void
 fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p, int op)
@@ -480,7 +483,8 @@ zsort(Seg **seg, Seg **ep)
 static int
 ycompare(const void *a, const void *b)
 {
-	Seg **s0, **s1;
+	const Seg * const *s0;
+	const Seg * const *s1;
 	int32_t y0, y1;
 
 	s0 = a;
@@ -498,7 +502,8 @@ ycompare(const void *a, const void *b)
 static int
 xcompare(const void *a, const void *b)
 {
-	Seg **s0, **s1;
+	const Seg * const *s0;
+	const Seg * const *s1;
 	int32_t x0, x1;
 
 	s0 = a;
@@ -516,7 +521,8 @@ xcompare(const void *a, const void *b)
 static int
 zcompare(const void *a, const void *b)
 {
-	Seg **s0, **s1;
+	const Seg * const *s0;
+	const Seg * const *s1;
 	int32_t z0, z1;
 
 	s0 = a;
