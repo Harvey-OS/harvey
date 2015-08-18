@@ -7,11 +7,6 @@
  * in the LICENSE file.
  */
 
-#pragma src "/sys/src/libthread"
-#pragma lib "libthread.a"
-
-#pragma	varargck	argpos	chanprint	2
-
 typedef struct Alt	Alt;
 typedef struct Channel	Channel;
 typedef struct Ref	Ref;
@@ -122,9 +117,6 @@ extern	int	mainstacksize;
 
 /* slave I/O processes */
 typedef struct Ioproc Ioproc;
-
-#pragma incomplete Ioproc
-
 
 Ioproc*	ioproc(void);
 void	closeioproc(Ioproc*);

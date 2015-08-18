@@ -155,7 +155,7 @@ struct Ioproc
 	int tid;
 	Channel *c, *creply;
 	int inuse;
-	long (*op)(va_list*);
+	int32_t (*op)(va_list*);
 	va_list arg;
 	long ret;
 	char err[ERRMAX];

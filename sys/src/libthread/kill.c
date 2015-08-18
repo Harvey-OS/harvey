@@ -95,5 +95,8 @@ tinterrupt(Proc *p, Thread *t)
 	case Rendezvous:
 		_threadflagrendez(t);
 		break;
+	case Dead:
+	case Ready:
+		break;
 	}
 }
