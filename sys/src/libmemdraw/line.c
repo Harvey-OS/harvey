@@ -22,15 +22,6 @@ enum
 
 static
 int
-lmin(int a, int b)
-{
-	if(a < b)
-		return a;
-	return b;
-}
-
-static
-int
 lmax(int a, int b)
 {
 	if(a > b)
@@ -46,6 +37,15 @@ lmax(int a, int b)
  * For speed, we check for clipping outside the loop and make the
  * test easy when possible.
  */
+
+static
+int
+lmin(int a, int b)
+{
+	if(a < b)
+		return a;
+	return b;
+}
 
 static
 void

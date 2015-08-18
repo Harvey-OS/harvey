@@ -98,7 +98,6 @@ static uint32_t pixelbits(Memimage*, Point);
 void
 memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask, Point p1, int op)
 {
-	static int n = 0;
 	Memdrawparam par;
 
 	if(mask == nil)
@@ -107,14 +106,10 @@ memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask
 DBG	print("memimagedraw %p/%luX %R @ %p %p/%luX %P %p/%luX %P... ", dst, dst->chan, r, dst->data->bdata, src, src->chan, p0, mask, mask->chan, p1);
 
 	if(drawclip(dst, &r, src, &p0, mask, &p1, &par.sr, &par.mr) == 0){
-//		if(drawdebug)
-//			iprint("empty clipped rectangle\n");
 		return;
 	}
 
 	if(op < Clear || op > SoverD){
-//		if(drawdebug)
-//			iprint("op out of range: %d\n", op);
 		return;
 	}
 
@@ -135,7 +130,7 @@ DBG	print("memimagedraw %p/%luX %R @ %p %p/%luX %P %p/%luX %P... ", dst, dst->ch
 			par.srgba = imgtorgba(src, par.sval);
 			par.sdval = rgbatoimg(dst, par.srgba);
 			if((par.srgba&0xFF) == 0 && (op&DoutS)){
-//				if (drawdebug) iprint("fill with transparent source\n");
+DBG print("fill with transparent source\n");
 				return;	/* no-op successfully handled */
 			}
 		}
@@ -146,7 +141,7 @@ DBG	print("memimagedraw %p/%luX %R @ %p %p/%luX %P %p/%luX %P... ", dst, dst->ch
 		if(Dx(mask->r)==1 && Dy(mask->r)==1){
 			par.mval = pixelbits(mask, mask->r.min);
 			if(par.mval == 0 && (op&DoutS)){
-//				if(drawdebug) iprint("fill with zero mask\n");
+DBG print("fill with zero mask\n");
 				return;	/* no-op successfully handled */
 			}
 			par.state |= Simplemask;
@@ -156,8 +151,6 @@ DBG	print("memimagedraw %p/%luX %R @ %p %p/%luX %P %p/%luX %P... ", dst, dst->ch
 		}
 	}
 
-//	if(drawdebug)
-//		iprint("dr %R sr %R mr %R...", r, par.sr, par.mr);
 DBG print("draw dr %R sr %R mr %R %lux\n", r, par.sr, par.mr, par.state);
 
 	/*
@@ -174,7 +167,6 @@ DBG print("draw dr %R sr %R mr %R %lux\n", r, par.sr, par.mr, par.state);
 	 */
 DBG print("test hwdraw\n");
 	if(hwdraw(&par)){
-//if(drawdebug) iprint("hw handled\n");
 DBG print("hwdraw handled\n");
 		return;
 	}
@@ -183,7 +175,6 @@ DBG print("hwdraw handled\n");
 	 */
 DBG print("test memoptdraw\n");
 	if(memoptdraw(&par)){
-//if(drawdebug) iprint("memopt handled\n");
 DBG print("memopt handled\n");
 		return;
 	}
@@ -194,7 +185,6 @@ DBG print("memopt handled\n");
 	 */
 DBG print("test chardraw\n");
 	if(chardraw(&par)){
-//if(drawdebug) iprint("chardraw handled\n");
 DBG print("chardraw handled\n");
 		return;
 	}
@@ -204,7 +194,6 @@ DBG print("chardraw handled\n");
 	 */
 DBG print("do alphadraw\n");
 	alphadraw(&par);
-//if(drawdebug) iprint("alphadraw handled\n");
 DBG print("alphadraw handled\n");
 }
 #undef DBG
@@ -447,9 +436,6 @@ struct Param {
 	int	convdx;
 };
 
-static uint8_t *drawbuf;
-static int	ndrawbuf;
-static int	mdrawbuf;
 static Readfn	greymaskread, replread, readptr;
 static Writefn	nullwrite;
 static Calcfn	alphacalc0, alphacalc14, alphacalc2810, alphacalc3679, alphacalc5, alphacalc11, alphacalcS;
@@ -461,7 +447,6 @@ static Writefn*	writefn(Memimage*);
 
 static Calcfn*	boolcopyfn(Memimage*, Memimage*);
 static Readfn*	convfn(Memimage*, Param*, Memimage*, Param*, int*);
-static Readfn*	ptrfn(Memimage*);
 
 static Calcfn *alphacalc[Ncomp] = 
 {
@@ -2179,7 +2164,7 @@ DBG print("dp %p v %lux lm %ux (v ^ *dp) & lm %lux\n", dp, v, lm, (v^*dp)&lm);
 			return 1;
 		case 8:
 			for(y=0; y<dy; y++, dp+=dwid)
-				memset(dp, v, dx);
+				memsetb(dp, v, dx);
 			return 1;
 		case 16:
 			p[0] = v;		/* make little endian */
@@ -2473,32 +2458,6 @@ DBG print("\n");
 	return 1;	
 }
 #undef DBG
-
-
-/*
- * Fill entire byte with replicated (if necessary) copy of source pixel,
- * assuming destination ldepth is >= source ldepth.
- *
- * This code is just plain wrong for >8bpp.
- *
-ulong
-membyteval(Memimage *src)
-{
-	int i, val, bpp;
-	uchar uc;
-
-	unloadmemimage(src, src->r, &uc, 1);
-	bpp = src->depth;
-	uc <<= (src->r.min.x&(7/src->depth))*src->depth;
-	uc &= ~(0xFF>>bpp);
-	/* pixel value is now in high part of byte. repeat throughout byte 
-	val = uc;
-	for(i=bpp; i<8; i<<=1)
-		val |= val>>i;
-	return val;
-}
- * 
- */
 
 void
 memfillcolor(Memimage *i, uint32_t val)
