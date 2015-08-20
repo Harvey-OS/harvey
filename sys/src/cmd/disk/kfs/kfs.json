@@ -2,8 +2,8 @@
 	"Include": [
 		"../../cmd.json"
 	],
-	"Name": "kfs",
 	"Install": "/$ARCH/bin/disk",
+	"Name": "kfs",
 	"Program": "kfs",
 	"SourceFiles": [
 		"9p1.c",
@@ -27,4 +27,3 @@
 		"devwren.c"
 	]
 }
-
