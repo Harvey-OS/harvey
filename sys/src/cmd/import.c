@@ -244,7 +244,7 @@ main(int argc, char **argv)
 		post(srvfile, srvpost, fd);
 	}
 	procsetname("mount on %s", mntpt);
-	if(mount(fd, -1, mntpt, mntflags, "") < 0)
+	if(mount(fd, -1, mntpt, mntflags, "", 'M') < 0)
 		sysfatal("can't mount %s: %r", argv[1]);
 	alarm(0);
 

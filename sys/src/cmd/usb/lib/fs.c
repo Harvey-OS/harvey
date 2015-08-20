@@ -679,7 +679,7 @@ usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
 		afd = fauth(sfd, "");
 		if(afd >= 0)
 			sysfatal("authentication required??");
-		if(mount(sfd, -1, mnt, flag, "") < 0)
+		if(mount(sfd, -1, mnt, flag, "", 'M') < 0)
 			sysfatal("mount: %r");
 	}
 	close(fd[0]);

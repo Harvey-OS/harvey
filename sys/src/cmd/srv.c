@@ -206,7 +206,7 @@ Mount:
 	if(domount == 0 || reallymount == 0)
 		exits(0);
 
-	if((!doauth && mount(fd, -1, mtpt, mountflag, "") < 0)
+	if((!doauth && mount(fd, -1, mtpt, mountflag, "", 'M') < 0)
 	|| (doauth && amount(fd, mtpt, mountflag, "") < 0)){
 		err[0] = 0;
 		errstr(err, sizeof err);

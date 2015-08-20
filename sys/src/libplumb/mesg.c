@@ -36,7 +36,7 @@ plumbopen(char *name, int omode)
 		free(s);
 		if(f < 0)
 			return -1;
-		if(mount(f, -1, "/mnt/plumb", MREPL, "") < 0){
+		if(mount(f, -1, "/mnt/plumb", MREPL, "", 'M') < 0){
 			close(f);
 			return -1;
 		}

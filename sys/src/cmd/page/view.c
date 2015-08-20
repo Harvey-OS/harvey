@@ -1016,7 +1016,7 @@ newwin(void)
 	}
 	free(srv);
 	sprint(spec, "new -pid %d", pid);
-	if(mount(srvfd, -1, "/mnt/wsys", 0, spec) == -1){
+	if(mount(srvfd, -1, "/mnt/wsys", 0, spec, 'M') == -1){
 		fprint(2, "page: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
 		wexits("no mount");
 	}

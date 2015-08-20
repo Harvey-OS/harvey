@@ -579,7 +579,7 @@ makewindow(int dx, int dy, int wflag){
 			sysfatal("open %s: %r", rio);
 		snprint(aname, sizeof aname, "new -dx %d -dy %d", dx, dy);
 		rfork(RFNAMEG);
-		if(mount(mountfd, -1, "/mnt/wsys", MREPL, aname) < 0)
+		if(mount(mountfd, -1, "/mnt/wsys", MREPL, aname, 'M') < 0)
 			sysfatal("mount: %r");
 		if(bind("/mnt/wsys", "/dev", MBEFORE) < 0)
 			sysfatal("mount: %r");
