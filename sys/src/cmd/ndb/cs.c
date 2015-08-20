@@ -334,7 +334,7 @@ mountinit(char *service, char *mntpt)
 		 *  put ourselves into the file system
 		 */
 		close(p[0]);
-		if(mount(p[1], -1, mntpt, MAFTER, "") < 0)
+		if(mount(p[1], -1, mntpt, MAFTER, "", 'M') < 0)
 			error("mount failed\n");
 		_exits(0);
 	}

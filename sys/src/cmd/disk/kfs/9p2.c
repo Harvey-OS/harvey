@@ -65,7 +65,7 @@ fsauth(Chan *chan, Fcall *f, Fcall *r)
 
 	if(access("/mnt/factotum", 0) < 0)
 		if((fd = open("/srv/factotum", ORDWR)) >= 0)
-			mount(fd, -1, "/mnt", MBEFORE, "");
+			mount(fd, -1, "/mnt", MBEFORE, "", 'M');
 
 	afd = open("/mnt/factotum/rpc", ORDWR);
 	if(afd < 0){

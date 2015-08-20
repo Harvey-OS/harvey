@@ -144,7 +144,7 @@ famount(int fd, AuthRpc *rpc, char *mntpt, int flags, char *aname)
 		if(ai != nil)
 			auth_freeAI(ai);
 	}
-	ret = mount(fd, afd, mntpt, flags, aname);
+	ret = mount(fd, afd, mntpt, flags, aname, 'M');
 	if(afd >= 0)
 		close(afd);
 	return ret;

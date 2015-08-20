@@ -50,7 +50,7 @@ settime(int islocal, int afd, char *rp)
 		f = open(timeserver, ORDWR);
 		if(f < 0)
 			return;
-		if(mount(f, afd, "/tmp", MREPL, rp) < 0){
+		if(mount(f, afd, "/tmp", MREPL, rp, 'M') < 0){
 			warning("settime mount");
 			close(f);
 			return;

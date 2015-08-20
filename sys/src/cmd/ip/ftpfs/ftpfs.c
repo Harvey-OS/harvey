@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(p[0]);
-		if(mount(p[1], -1, mountpoint, MREPL|MCREATE, "") < 0)
+		if(mount(p[1], -1, mountpoint, MREPL|MCREATE, "", 'M') < 0)
 			fatal("mount failed: %r");
 	}
 	exits(0);

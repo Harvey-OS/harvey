@@ -122,7 +122,7 @@ mounttunnel(int ctlfd)
 		hangup(ctlfd);
 		exits("open");
 	}
-	if (mount(fd, -1, np, MBEFORE, "") < 0) {
+	if (mount(fd, -1, np, MBEFORE, "", 'M') < 0) {
 		syslog(0, "ssh", "can't mount %s in %s: %r", p, np);
 		hangup(ctlfd);
 		exits("can't mount");

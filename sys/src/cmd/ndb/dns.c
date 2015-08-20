@@ -136,7 +136,7 @@ justremount(char *service, char *mntpt)
 	f = open(service, ORDWR);
 	if(f < 0)
 		abort(); 	/* service */;
-	while (mount(f, -1, mntpt, MAFTER, "") < 0) {
+	while (mount(f, -1, mntpt, MAFTER, "", 'M') < 0) {
 		dnslog("dns mount -a on %s failed: %r", mntpt);
 		sleep(5000);
 	}

@@ -283,7 +283,7 @@ loop:
 	/*
 	 * mount nfs jukebox server
 	 */
-	if(mount(s1, -1, "/n/njuke", 0, "") < 0) {
+	if(mount(s1, -1, "/n/njuke", 0, "", 'M') < 0) {
 		close(s1);
 		Bprint(&bout, "\"mount /srv/%s /n/juke\" failed: %r\n", JUKEFS);
 		goto out;
@@ -309,7 +309,7 @@ loop:
 	/*
 	 * mount 9660 server
 	 */
-	if(mount(s2, -1, "/n/dss", 0, dssname) < 0) {
+	if(mount(s2, -1, "/n/dss", 0, dssname, 'M') < 0) {
 		close(s2);
 		if(count == 0) {
 			// do it again so /n/njuke is in 9660's namespace
