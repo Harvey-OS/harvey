@@ -29,7 +29,7 @@ mounter(char *mntpt, int how, int fd, int n)
 	for(i = 0; i < n; i++){
 		snprint(buf, sizeof buf, "%d", i);
 		mfd = dup(fd, -1);
-		if(mount(mfd, -1, mntpt, how, buf) == -1){
+		if(mount(mfd, -1, mntpt, how, buf, 'M') == -1){
 			close(mfd);
 			fprint(2, "can't mount on %s: %r\n", mntpt);
 			ok = 0;

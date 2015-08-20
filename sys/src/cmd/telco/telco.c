@@ -1420,7 +1420,7 @@ receiver(Dev *d)
 			syslog(0, LOGFILE, "can't open telco: %r");
 			exits(0);
 		}
-		if(mount(fd, -1, "/net", MAFTER, "") < 0){
+		if(mount(fd, -1, "/net", MAFTER, "", 'M') < 0){
 			syslog(0, LOGFILE, "can't mount: %r");
 			exits(0);
 		}

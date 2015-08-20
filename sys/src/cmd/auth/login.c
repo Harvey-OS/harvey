@@ -115,7 +115,7 @@ mountfactotum(char *srvname)
 	fd = open(srvname, ORDWR);
 	if(fd < 0)
 		sysfatal("opening factotum: %r");
-	mount(fd, -1, "/mnt", MBEFORE, "");
+	mount(fd, -1, "/mnt", MBEFORE, "", 'M');
 	close(fd);
 }
 

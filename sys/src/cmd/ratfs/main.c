@@ -165,7 +165,7 @@ post(int fd, char *mountpoint)
 		 * another server is already running, so just exit.
 		 */
 		f = open(SRVFILE, ORDWR);
-		if(f >= 0 && mount(f, -1, mountpoint, MREPL|MCREATE, "") >= 0){
+		if(f >= 0 && mount(f, -1, mountpoint, MREPL|MCREATE, "", 'M') >= 0){
 				unmount(0, mountpoint);
 				close(f);
 				exits(0);

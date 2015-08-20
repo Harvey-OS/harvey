@@ -1303,7 +1303,7 @@ sysmount(Ar0* ar0, ...)
 {
 	int afd, fd, flag;
 	char *aname, *old;
-	int dc = 'M';
+	int dc;
 	va_list list;
 	va_start(list, ar0);
 
@@ -1317,6 +1317,7 @@ sysmount(Ar0* ar0, ...)
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
+	dc = va_arg(list, int);
 	va_end(list);
 
 	ar0->i = bindmount(dc, fd, afd, nil, old, flag, aname);

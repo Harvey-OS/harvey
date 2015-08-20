@@ -31,6 +31,6 @@ newwindow(char *str)
 		snprint(buf, sizeof buf, "new %s", str);
 	else
 		strcpy(buf, "new");
-	return mount(fd, -1, "/dev", MBEFORE, buf);
+	return mount(fd, -1, "/dev", MBEFORE, buf, 'M');
 }
 
