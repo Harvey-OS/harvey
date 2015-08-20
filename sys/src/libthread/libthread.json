@@ -1,8 +1,8 @@
 {
 	"Include": [
+		"/amd64/include/cflags.json",
 		"../lib.json"
 	],
-	"Cflags": [ "-Werror" ],
 	"Install": "/$ARCH/lib/",
 	"Library": "libthread.a",
 	"Name": "libthread",

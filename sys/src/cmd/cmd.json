@@ -1,17 +1,6 @@
 {
-	"Cflags": [
-		"-mcmodel=small",
-		"-O0",
-		"-fplan9-extensions",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-trigraphs",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-g"
+	"Include": [
+		"/amd64/include/cflags.json"
 	],
 	"Name": "Cmd",
 	"Oflags": [

@@ -4,6 +4,16 @@
 	],
 	"Install": "/$ARCH/bin/ip",
 	"Name": "ipcmds",
+	"Projects": [
+		"ftpd.json",
+		"dhcpd/dhcpd.json",
+		"dhcpd/dhcpleases.json",
+		"ftpfs/ftpfs.json",
+		"httpd/httpd.json",
+		"imap4d/imap4d.json",
+		"ipconfig/ipconfig.json",
+		"ppp/ppp.json"
+	],
 	"SourceFilesCmd": [
 		"ping.c",
 		"dhcpclient.c",
@@ -24,15 +34,5 @@
 		"traceroute.c",
 		"udpecho.c",
 		"wol.c"
-	],
-	"Projects": [
-		"ftpd.json",
-		"dhcpd/dhcpd.json",
-		"dhcpd/dhcpleases.json",
-		"ftpfs/ftpfs.json",
-		"httpd/httpd.json",
-		"imap4d/imap4d.json",
-		"ipconfig/ipconfig.json",
-		"ppp/ppp.json"
 	]
 }

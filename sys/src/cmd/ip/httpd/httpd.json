@@ -2,11 +2,14 @@
 	"Include": [
 		"/sys/src/cmd/cmd.json"
 	],
+	"Install": "/$ARCH/bin/ip",
+	"Name": "httpdcmds",
+	"Oflags": [
+		"libhttps.a"
+	],
 	"Projects": [
 		"libhttps.json"
 	],
-	"Install": "/$ARCH/bin/ip",
-	"Name": "httpdcmds",
 	"SourceFilesCmd": [
 		"httpd.c",
 		"imagemap.c",
@@ -16,8 +19,5 @@
 		"netlib_history.c",
 		"webls.c",
 		"wikipost.c"
-	],
-	"Oflags": [
-		"libhttps.a"
 	]
 }
