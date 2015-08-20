@@ -676,7 +676,7 @@ extern	int	fauth(int, char*);
 extern	int	fstat(int, uint8_t*, int);
 extern	int	fwstat(int, uint8_t*, int);
 extern	int	fversion(int, int, char*, int);
-extern	int	mount(int, int, char*, int, char*);
+extern	int	mount(int, int, char*, int, char*, int);
 extern	int	unmount(char*, char*);
 extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));

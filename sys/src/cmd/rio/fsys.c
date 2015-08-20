@@ -243,7 +243,7 @@ filsysmount(Filsys *fs, int id)
 
 	close(fs->sfd);	/* close server end so mount won't hang if exiting */
 	sprint(buf, "%d", id);
-	if(mount(fs->cfd, -1, "/mnt/wsys", MREPL, buf) < 0){
+	if(mount(fs->cfd, -1, "/mnt/wsys", MREPL, buf, 'M') < 0){
 		fprint(2, "mount failed: %r\n");
 		return -1;
 	}

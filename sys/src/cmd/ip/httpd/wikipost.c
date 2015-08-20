@@ -148,7 +148,7 @@ mountwiki(HConnect *c, char *service)
 		hfail(c, HNotFound);
 		exits("failed");
 	}
-	if(mount(fd, -1, "/mnt/wiki", MREPL, "") < 0){
+	if(mount(fd, -1, "/mnt/wiki", MREPL, "", 'M') < 0){
 		syslog(0, LOG, "%s mount /mnt/wiki failed: %r", hp->remotesys);
 		hfail(c, HNotFound);
 		exits("failed");

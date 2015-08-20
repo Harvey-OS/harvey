@@ -772,7 +772,7 @@ mountkfs(char *name)
 		fprint(2, "can't open %q\n", kname);
 		exits("open /srv/kfs");
 	}
-	if(mount(sfd, -1, "/n/kfs", MREPL|MCREATE, "") < 0){
+	if(mount(sfd, -1, "/n/kfs", MREPL|MCREATE, "", 'M') < 0){
 		fprint(2, "can't mount kfs on /n/kfs\n");
 		exits("mount kfs");
 	}

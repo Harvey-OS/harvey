@@ -381,7 +381,7 @@ fsmount(char *mntpt)
 		close(srv);
 	}
 
-	mount(pfd[1], -1, mntpt, MBEFORE, "");
+	mount(pfd[1], -1, mntpt, MBEFORE, "", 'M');
 	close(pfd[1]);
 	return fs;
 }

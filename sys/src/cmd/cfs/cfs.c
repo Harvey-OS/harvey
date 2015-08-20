@@ -269,7 +269,8 @@ mountinit(char *server, char *mountpoint)
 		break;
 	default:
 		if (noauth)
-			err = mount(p[1], -1, mountpoint, MREPL|MCREATE, "");
+			err = mount(p[1], -1, mountpoint, MREPL|MCREATE, "",
+				    'M');
 		else
 			err = amount(p[1], mountpoint, MREPL|MCREATE, "");
 		if (err < 0)

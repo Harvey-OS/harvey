@@ -227,7 +227,7 @@ main(int argc, char **argv)
 		exits(nil);
 	}
 
-	if(mount(p[1], -1, mnt, MREPL, "") < 0){
+	if(mount(p[1], -1, mnt, MREPL, "", 'M') < 0){
 		close(p[1]);
 		fatal("mount failed");
 	}

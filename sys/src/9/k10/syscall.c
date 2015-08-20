@@ -244,16 +244,17 @@ syscall(int badscallnr, Ureg *ureg)
 {
 	// can only handle 4 args right now.
 	uintptr_t a0, a1, a2, a3;
-	uintptr_t a4, a5 = 0;
+	uintptr_t a4, a5;
 
 	a0 = ureg->di;
 	a1 = ureg->si;
 	a2 = ureg->dx;
 	a3 = ureg->r10;
 	a4 = ureg->r8;
+	a5 = ureg->r9;
 	Proc *up = externup();
 	unsigned int scallnr = (unsigned int) badscallnr;
-	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
+	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4, a5);
 	char *e;
 	uintptr_t	sp;
 	int s;

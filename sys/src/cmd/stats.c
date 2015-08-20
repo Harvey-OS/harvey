@@ -664,10 +664,10 @@ initmach(Machine *m, char *name)
 			return 0;
 		}
 		/* BUG? need to use amount() now? */
-		if(mount(fd, -1, mpt, MREPL, "") < 0){
+		if(mount(fd, -1, mpt, MREPL, "", 'M') < 0){
 			fprint(2, "stats: mount %s on %s failed (%r); trying /n/sid\n", name, mpt);
 			strcpy(mpt, "/n/sid");
-			if(mount(fd, -1, mpt, MREPL, "") < 0){
+			if(mount(fd, -1, mpt, MREPL, "", 'M') < 0){
 				fprint(2, "stats: mount %s on %s failed: %r\n", name, mpt);
 				return 0;
 			}
