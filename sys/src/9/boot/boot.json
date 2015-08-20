@@ -1,34 +1,20 @@
 {
-	"Cflags": [
-		"-g",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-O0",
-		"-static",
-		"-fplan9-extensions",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-mcmodel=small"
+	"Include": [
+		"/sys/src/lib.json"
 	],
 	"Install": "/sys/src/9/boot",
 	"Library": "libboot.a",
-	"Name": "Libboot",
-	"Oflags": [
-		"-static"
-	],
+	"Name": "libboot",
 	"SourceFiles": [
-		"aux.c",
-		"bootauth.c",
-		"boot.c",
-		"bootcache.c",
-		"bootip.c",
-		"embed.c",
-		"local.c",
-		"paq.c",
-		"sac.c",
-		"settime.c"
+		"../boot/aux.c",
+		"../boot/bootauth.c",
+		"../boot/boot.c",
+		"../boot/bootcache.c",
+		"../boot/bootip.c",
+		"../boot/embed.c",
+		"../boot/local.c",
+		"../boot/paq.c",
+		"../boot/sac.c",
+		"../boot/settime.c"
 	]
 }
