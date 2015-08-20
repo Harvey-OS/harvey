@@ -21,7 +21,8 @@ struct Who
 
 int cmp(const void *arg1, const void *arg2)
 {
-	Who **a = arg1, **b = arg2;
+	const Who * const *a = arg1;
+	const Who * const *b = arg2;
 
 	return strcmp((*a)->name, (*b)->name);
 }
