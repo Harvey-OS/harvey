@@ -25,7 +25,7 @@
  * connection.
  */
 
-#define MAXRPC (IOHDRSZ+8192)
+#define MAXRPC (IOHDRSZ+128*1024)
 
 struct Mntrpc
 {
