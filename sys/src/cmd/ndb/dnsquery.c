@@ -35,7 +35,7 @@ setup(int argc, char **argv)
 		fd = open(srv, ORDWR);
 		if(fd < 0)
 			sysfatal("can't open %s: %r", srv);
-		if(mount(fd, -1, mtpt, MBEFORE, "") < 0)
+		if(mount(fd, -1, mtpt, MBEFORE, "", 'M') < 0)
 			sysfatal("can't mount(%s, %s): %r", srv, mtpt);
 		fd = open(dns, ORDWR);
 		if(fd < 0)

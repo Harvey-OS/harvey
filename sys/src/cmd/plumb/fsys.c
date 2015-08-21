@@ -225,7 +225,7 @@ startfsys(void)
 	procrfork(fsysproc, nil, Stack, RFFDG);
 
 	close(p[0]);
-	if(mount(p[1], -1, "/mnt/plumb", MREPL, "") < 0)
+	if(mount(p[1], -1, "/mnt/plumb", MREPL, "", 'M') < 0)
 		error("can't mount /mnt/plumb: %r");
 	close(p[1]);
 }

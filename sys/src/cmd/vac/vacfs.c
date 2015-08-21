@@ -225,7 +225,7 @@ threadmain(int argc, char *argv[])
 	if(!stdio){
 		close(p[0]);
 		if(defmnt){
-			if(mount(srvfd, -1, defmnt, MREPL|MCREATE, "") < 0)
+			if(mount(srvfd, -1, defmnt, MREPL|MCREATE, "", 'M') < 0)
 				sysfatal("mount %s: %r", defmnt);
 		}
 	}

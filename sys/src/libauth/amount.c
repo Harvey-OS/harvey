@@ -24,7 +24,7 @@ amount(int fd, char *mntpt, int flags, char *aname)
 		if(ai != nil)
 			auth_freeAI(ai);
 	}
-	rv = mount(fd, afd, mntpt, flags, aname);
+	rv = mount(fd, afd, mntpt, flags, aname, 'M');
 	if(afd >= 0)
 		close(afd);
 	return rv;

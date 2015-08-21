@@ -338,7 +338,7 @@ remoteside(int old)
 	strcpy(buf, VERSION9P);
 	if(fversion(fd, 64*1024, buf, sizeof buf) < 0)
 		exits("fversion failed");
-	if(mount(fd, -1, "/mnt/term", MCREATE|MREPL, "") < 0)
+	if(mount(fd, -1, "/mnt/term", MCREATE|MREPL, "", 'M') < 0)
 		exits("mount failed");
 
 	close(fd);
@@ -1109,7 +1109,7 @@ lclnoteproc(int netfd)
 		return;
 	case 0:
 		close(pfd[0]);
-		if(mount(pfd[1], -1, "/dev", MBEFORE, "") < 0)
+		if(mount(pfd[1], -1, "/dev", MBEFORE, "", 'M') < 0)
 			fprint(2, "cpu: can't mount note proc: %r\n");
 		close(pfd[1]);
 		return;

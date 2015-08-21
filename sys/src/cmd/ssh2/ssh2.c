@@ -137,7 +137,7 @@ timedmount(int fd, int afd, char *mntpt, int flag, char *aname)
 
 	atnotify(catcher, 1);
 	oalarm = alarm(5*1000);		/* don't get stuck here */
-	ret = mount(fd, afd, mntpt, flag, aname);
+	ret = mount(fd, afd, mntpt, flag, aname, 'M');
 	alarm(oalarm);
 	atnotify(catcher, 0);
 	return ret;
