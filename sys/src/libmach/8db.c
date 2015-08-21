@@ -189,7 +189,7 @@ struct	Instr
 	uint8_t	reg;		/* bits 3-5 of mod r/m field */
 	char	ss;		/* bits 6-7 of SIB */
 	char	index;		/* bits 3-5 of SIB */
-	char	base;		/* bits 0-2 of SIB */
+	uint8_t	base;		/* bits 0-2 of SIB */
 	char	rip;		/* RIP-relative in amd64 mode */
 	uint8_t	opre;		/* f2/f3 could introduce media */
 	int16_t	seg;		/* segment of far address */
@@ -1289,25 +1289,6 @@ igetl(Map *map, Instr *ip, uint32_t *lp)
 		return -1;
 	l |= (s<<16);
 	*lp = l;
-	return 1;
-}
-
-/*
- *  get 8 bytes of the instruction
- */
-static int
-igetq(Map *map, Instr *ip, int64_t *qp)
-{
-	uint32_t	l;
-	uint64_t q;
-
-	if (igetl(map, ip, &l) < 0)
-		return -1;
-	q = l;
-	if (igetl(map, ip, &l) < 0)
-		return -1;
-	q |= ((uint64_t)l<<32);
-	*qp = q;
 	return 1;
 }
 
