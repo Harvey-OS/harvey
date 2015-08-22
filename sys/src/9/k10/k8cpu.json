@@ -25,6 +25,7 @@
 				"ip",
 				"kprof",
 				"mnt",
+				"mntn",
 				"pci",
 				"pipe",
 				"pmc",

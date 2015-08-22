@@ -21,6 +21,7 @@
 		"../port/devkexec.c",
 		"../port/devkprof.c",
 		"../port/devmnt.c",
+		"../port/devmntn.c",
 		"../port/devpci.c",
 		"../port/devpipe.c",
 		"../port/devpmc.c",
