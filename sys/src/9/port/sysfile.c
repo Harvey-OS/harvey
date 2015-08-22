@@ -1168,7 +1168,8 @@ syschdir(Ar0* ar0, ...)
  */
 
 static int dcok[] =  {
-	'M'
+	'M',
+	'N'
 };
 static int checkdc(int dc)
 {
