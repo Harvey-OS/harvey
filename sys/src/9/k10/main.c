@@ -622,7 +622,7 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 
 	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
-	print("schedinit...\n");
+	print("schedinit!...\n");
 
 	schedinit();
 }

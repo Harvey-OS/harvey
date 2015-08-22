@@ -5,13 +5,27 @@
 		"-Wno-missing-braces",
 		"-Wno-parentheses",
 		"-Wno-unknown-pragmas",
+		"-Wuninitialized",
+		"-Wmaybe-uninitialized",
+		"-mcmodel=small",
 		"-O0",
 		"-static",
 		"-fplan9-extensions",
 		"-mno-red-zone",
 		"-ffreestanding",
 		"-fno-builtin",
-		"-mcmodel=small"
+		"-DKERNDATE=1433623937",
+		"-g",
+		"-fvar-tracking",
+		"-fvar-tracking-assignments",
+		"-Wall",
+		"-W",
+		"-Wno-sign-compare",
+		"-Wno-missing-field-initializers",
+		"-Wno-unused-parameter",
+		"-Wno-missing-braces",
+		"-Wno-parentheses",
+		"-Wno-unknown-pragmas"
 	],
 	"Libs": [
 		"libboot.a",
@@ -25,7 +39,8 @@
 		"-static"
 	],
 	"Post": [
-		"rm *.o *.a"
+		"rm *.o *.a",
+		"../../../../util/data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
 	],
 	"Pre": [
 		"[ ! -f bootk8cpu.elf.out ] || rm *.elf.out",
