@@ -14,6 +14,21 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+char* BOOT_CONTENTS = "#!/boot/rc -m /boot/rcmain\n"
+"# boot script for file servers, including standalone ones\n"
+"path=(/boot /bin /amd64/bin /rc/bin .)\n"
+"prompt=('harvey@cpu% ' '        ')\n"
+"echo 'Hello, I am built in Harvey :-)'\n"
+"bind -a /boot /bin\n"
+"bind -a '#I' /net\n"
+"bind -a '#l0' /net\n"
+"bind -a '#p' /proc\n"
+"bind -a '#s' /srv\n"
+"ipconfig\n"
+"/boot/listen1 -t -v tcp!*!1522  /boot/tty /boot/rc -m /boot/rcmain -i &\n"
+"/boot/tty -f'#t/eia0' /boot/rc -m/boot/rcmain -i &\n"
+"exec /boot/console /boot/tty /boot/rc -m/boot/rcmain -i";
+
 enum
 {
 	Qdir = 0,
@@ -114,6 +129,7 @@ rootreset(void)
 	addrootdir("proc");
 	addrootdir("root");
 	addrootdir("srv");
+	addbootfile("boot", (uint8_t*)BOOT_CONTENTS, strlen(BOOT_CONTENTS));
 }
 
 static Chan*

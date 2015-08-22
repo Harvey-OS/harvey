@@ -29,6 +29,14 @@ build_kernel()
 	build "$KERNEL_CONF.json"
 ) }
 
+build_term()
+{ (
+	cd "$BOOT_DIR"
+	build boot.json
+	cd "$KRL_DIR"
+	build "$TERM_CONF.json"
+) }
+
 build_go_utils()
 { (
 	export GOBIN="${UTIL_DIR}"
@@ -161,6 +169,9 @@ else
 					;;
 			"kernel")
 					build_kernel
+					;;
+			"term")
+					build_term
 					;;
 			*)
 				echo "Invalid option <$1>"
