@@ -1,4 +1,5 @@
 /*
+                eatpid();
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -52,6 +53,7 @@ main(int argc, char *argv[])
 		break;
 	}ARGEND
 	cmd = *argv;
+	print("service type %s\n", service);
 
 	snprint(ctl, sizeof(ctl), "#p/%d/ctl", getpid());
 	fd = open(ctl, OWRITE);
@@ -181,9 +183,9 @@ rcexec(void)
 {
 	if(cmd)
 		execl("/bin/rc", "rc", "-c", cmd, nil);
-	else if(manual || iscpu)
-		execl("/bin/rc", "rc", nil);
-	else if(strcmp(service, "terminal") == 0)
+	else if(manual || iscpu){
+		execl("/boot/console", "/boot/tty", "/boot/rc", "-m/boot/rcmain", "-i", nil);
+	}else if(strcmp(service, "terminal") == 0)
 		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
 	else
 		execl("/bin/rc", "rc", nil);

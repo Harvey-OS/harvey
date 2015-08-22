@@ -386,13 +386,13 @@ main(int argc, char *argv[])
 
 	if((ps2fd = open("#P/ps2keyb", OREAD)) == -1){
 		errstr(buf, sizeof buf);
-		fprint(2, "open #P/ps2keyb: %s\n", buf);
+		print("open #P/ps2keyb: %s\n", buf);
 		exits("open");
 	}
 
 	if((cgafd = open("#P/cgamem", OWRITE)) == -1){
 		errstr(buf, sizeof buf);
-		fprint(2, "open #P/cgamem: %s\n", buf);
+		print("open #P/cgamem: %s\n", buf);
 		exits("open");
 	}
 

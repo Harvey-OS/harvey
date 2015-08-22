@@ -31,4 +31,5 @@ if not{
 	status=''
 	. $*
 }
+echo $status
 exit $status

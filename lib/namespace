@@ -18,6 +18,7 @@ bind -b #P /dev
 
 # mount points
 mount -a /srv/slashn /n
+mount -a /boot /bin
 
 # authentication
 mount -a /srv/factotum /mnt

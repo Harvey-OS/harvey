@@ -1,7 +1,8 @@
 {
 	"Cflags": [
 		"-I/sys/include/ape",
-		"-DPLAN9"
+		"-DPLAN9",
+		"-DYYSIZE_T=size_t"
 	],
 	"Include": [
 		"../cmd.json"
