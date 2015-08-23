@@ -15,6 +15,7 @@ void	usage(void);
 void	catch(void *c, char*);
 
 char *keyspec = "";
+int mntdevice = 'M';
 
 int
 amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
@@ -30,10 +31,22 @@ amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
 		else
 			fprint(2, "%s: auth_proxy: %r\n", argv0);
 	}
-	rv = mount(fd, afd, mntpt, flags, aname, 'M');
+	rv = mount(fd, afd, mntpt, flags, aname, mntdevice);
 	if(afd >= 0)
 		close(afd);
 	return rv;
+}
+
+void
+setmntdevice(char *dev)
+{
+	Rune d;
+	if(dev[0] != '#')
+		usage();
+	if(chartorune(&d, ++dev) == 1 && d == Runeerror)
+		usage();
+
+	mntdevice = d;
 }
 
 void
@@ -54,6 +67,9 @@ main(int argc, char *argv[])
 		break;
 	case 'c':
 		flag |= MCREATE;
+		break;
+	case 'd':
+		setmntdevice(EARGF(usage()));
 		break;
 	case 'C':
 		flag |= MCACHE;
@@ -92,7 +108,7 @@ main(int argc, char *argv[])
 
 	notify(catch);
 	if(noauth)
-		rv = mount(fd, -1, argv[1], flag, spec, 'M');
+		rv = mount(fd, -1, argv[1], flag, spec, mntdevice);
 	else
 		rv = amount0(fd, argv[1], flag, spec, keyspec);
 	if(rv < 0){
@@ -115,6 +131,6 @@ catch(void *x, char *m)
 void
 usage(void)
 {
-	fprint(2, "usage: mount [-a|-b] [-cnq] [-k keypattern] /srv/service dir [spec]\n");
+	fprint(2, "usage: mount [-a|-b] [-cnq] [-d '#X'] [-k keypattern] /srv/service dir [spec]\n");
 	exits("usage");
 }
