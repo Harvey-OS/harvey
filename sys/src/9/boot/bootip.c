@@ -70,11 +70,6 @@ print("ipconfig...");
 	if(access("#l3", 0) == 0 && bind("#l3", mpoint, MAFTER) < 0)
 		print("bind #l3: %r\n");
 	werrstr("");
-	print("running binds\n");
-	if (bind("/boot", "/bin", MAFTER) < 0)
-		print("bind /boot: %r\n");
-	if (bind("#p", "/proc", MAFTER) < 0)
-		print("bind /boot: %r\n");
 
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){
@@ -110,7 +105,6 @@ print("ipconfig...");
 	// Hack!!
 	if(!isvalidip(fsip))
 		parseip(fsip, "10.0.2.2");
-	print("%I\n", fsip);
 	while(!isvalidip(fsip)){
 		buf[0] = 0;
 		outin("filesystem IP address", buf, sizeof(buf));
