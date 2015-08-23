@@ -12,6 +12,7 @@ arch \- architecture-specific information and control
 .B /dev/iol
 .B /dev/iow
 .B /dev/irqalloc
+.B /dev/numcores
 .SH DESCRIPTION
 This device presents textual information about PC hardware and allows
 user-level control of the I/O ports on x86-class machines.
@@ -121,6 +122,10 @@ cause 8-bit wide, 16-bit wide, and 32-bit wide requests to
 I/O ports.
 The port accessed is determined by the byte offset of the
 file descriptor.
+.PP
+Reads from
+.IR numcores
+return the number of cores online.
 .SH EXAMPLE
 The following code reads from an x86 byte I/O port.
 .IP

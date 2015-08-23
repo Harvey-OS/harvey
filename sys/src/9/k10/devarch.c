@@ -542,10 +542,19 @@ cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 	return readstr(off, a, n, buf);
 }
 
+static int32_t
+numcoresread(Chan* c, void *a, int32_t n, int64_t off)
+{
+        char buf[8];
+        snprint(buf, 8, "%d\n", sys->nmach);
+        return readstr(off, a, n, buf);
+}
+
 void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
+	addarchfile("numcores", 0444, numcoresread, nil);
 }
 
 void
