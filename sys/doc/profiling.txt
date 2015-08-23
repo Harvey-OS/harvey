@@ -1,0 +1,95 @@
+Profiling (from the Akaros document)
+===========================
+2015-07-15 Barret Rhoden (brho)
+
+Contents
+---------------------------
+"Oprofile"
+
+"Oprofile"
+---------------------------
+Akaros has a very basic sampling profiler, similar to oprofile.  The kernel
+generates traces, which you copy off the machine and process on Linux.
+
+To get started, make sure #K is mounted.  
+
+/ $ bind -a \#K /dev/
+
+You control the profiler with the kpctl file.  The general style is to start
+the events that trigger a sample, such as a timer tick, then you start and stop
+the profiling.  The distinction between the two steps is that one actually
+fires the events (e.g. the timer IRQ), and the other enables *collection* of profiling info when those events occur.
+
+TODO from Akaros:
+The optimer command takes the core id (or "all"), followed by "on" or "off".
+As with all good devices, if you echo garbage, in, you should get the usage as
+an errstr.  That'll be kept up to date more than documentation.
+
+/ $ echo garbage > /dev/kpctl
+echo failed: Unspecified, startclr|start|stop|clear|opstart|opstop|optimer
+
+/ $ echo optimer garbage > /dev/kpctl
+echo failed: Unspecified, optimer [<0|1|..|n|all> <on|off>] [period USEC]
+
+Let's set up the timer on core 0:
+
+/ $ echo optimer 0 on > /dev/kpctl
+
+And then start oprofile system-wide.
+
+/ $ echo opstart > /dev/kpctl
+Enable tracing on 0
+Enable tracing on 1
+Enable tracing on 2
+Enable tracing on 3
+Enable tracing on 4
+Enable tracing on 5
+Enable tracing on 6
+Enable tracing on 7
+
+Run whatever command you want, then stop the profiler.
+
+/ $ foo
+/ $ echo opstop > /dev/kpctl
+
+TODO
+Might as well turn off the timers:
+/ $ echo optimer all off > /dev/kpctl
+
+Now we need to extract the trace.  The easiest way is via 9p.
+/ $ cat /dev/kpoprofile > /mnt/trace
+
+Once the trace has been read from kpoprofile, it cannot be read again.  The
+read drains the kernel's trace buffer.
+
+The trace that the kernel generates is in an Akaros-specific format.  There is
+a go program at tools/profile/op2.go that translates from the Akaros format to
+pprof format.  You could run this on Harvey, since we support Go programs, but
+since we don't have a port of pprof, it's easier to do it all in Linux.
+
+So now we're in linux, and say our 9p ufs server is rooted at mnt/netroot/.  Run op2:
+
+(linux) $ op2 < mnt/netroot/trace > trace-pp
+
+To get a sense for what the trace holds, you might want to start with looking at the raw addresses to distinguish between the kernel and the user.
+
+(linux) $ pprof --addresses trace-pp
+PPROF> top
+	(shows some addresses)
+
+Say the majority of the addresses are user addresses:
+
+(linux) $ pprof obj/tests/foo trace-pp
+PPROF> top
+	(shows some functions)
+
+Or you can visualize things:
+(linux) $ pprof --evince obj/tests/foo trace-pp
+
+The visualization is not of much user for user programs, since the kernel does
+not record backtraces for userspace by default.  It's a little dangerous at the
+moment.  In the future, we may have an op option to control whether or not the
+kernel attempts a backtrace.
+
+For more info on pprof, check out:
+http://gperftools.googlecode.com/svn/trunk/doc/cpuprofile.html
