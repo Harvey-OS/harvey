@@ -215,7 +215,7 @@ serve(void *)
 		remove(srvfile);
 		post(srvfile, "usbaudio", p[1]);
 	}
-	if(mount(p[1], -1, mntpt, MBEFORE, "") < 0)
+	if(mount(p[1], -1, mntpt, MBEFORE, "", 'M') < 0)
 		sysfatal("mount failed");
 	if(endpt[Play] >= 0 && devctl(epdev[Play], "name audio") < 0)
 		fprint(2, "audio: name audio: %r\n");

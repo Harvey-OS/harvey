@@ -966,7 +966,7 @@ conIPCheck(Con* con)
 		if(access("/mnt/ipok/ok", AEXIST) < 0){
 			/* mount closes the fd on success */
 			if((fd = open("/srv/ipok", ORDWR)) >= 0 
-			&& mount(fd, -1, "/mnt/ipok", MREPL, "") < 0)
+			&& mount(fd, -1, "/mnt/ipok", MREPL, "", 'M') < 0)
 				close(fd);
 			if(access("/mnt/ipok/ok", AEXIST) < 0){
 				vtSetError("cannot verify remote address");

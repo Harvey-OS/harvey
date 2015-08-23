@@ -30,7 +30,7 @@ amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
 		else
 			fprint(2, "%s: auth_proxy: %r\n", argv0);
 	}
-	rv = mount(fd, afd, mntpt, flags, aname);
+	rv = mount(fd, afd, mntpt, flags, aname, 'M');
 	if(afd >= 0)
 		close(afd);
 	return rv;
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 
 	notify(catch);
 	if(noauth)
-		rv = mount(fd, -1, argv[1], flag, spec);
+		rv = mount(fd, -1, argv[1], flag, spec, 'M');
 	else
 		rv = amount0(fd, argv[1], flag, spec, keyspec);
 	if(rv < 0){

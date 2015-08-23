@@ -279,7 +279,7 @@ fsysmount(Rune *dir, int ndir, Rune **incl, int nincl)
 	close(sfd);
 	m = fsysaddid(dir, ndir, incl, nincl);
 	sprint(buf, "%d", m->id);
-	if(mount(cfd, -1, "/mnt/acme", MREPL, buf) < 0){
+	if(mount(cfd, -1, "/mnt/acme", MREPL, buf, 'M') < 0){
 		fsysdelid(m);
 		return nil;
 	}

@@ -10,25 +10,6 @@
 /*
  *	Definitions needed for accessing ELF headers
  */
-#ifdef HARVEY32
-typedef struct {
-	unsigned char	ident[16];	/* ident bytes */
-	unsigned short	type;	/* file type */
-	unsigned short	machine;	/* target machine */
-	int	version;	/* file version */
-	uint32_t	elfentry;	/* start address */
-	uint32_t	phoff;		/* phdr file offset */
-	uint32_t	shoff;		/* shdr file offset */
-	int	flags;		/* file flags */
-	unsigned short	ehsize;		/* sizeof ehdr */
-	unsigned short	phentsize;	/* sizeof phdr */
-	unsigned short	phnum;		/* number phdrs */
-	unsigned short	shentsize;	/* sizeof shdr */
-	unsigned short	shnum;		/* number shdrs */
-	unsigned short	shstrndx;	/* shdr string index */
-} Ehdr;
-#endif
-
 typedef struct {
 	uint8_t		ident[16];	/* ident bytes */
 	uint16_t	type;		/* file type */

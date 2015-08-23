@@ -286,7 +286,7 @@ newwin(char *win)
 		return -1;
 	}
 	sprint(spec, "new -r %s", win);
-	if(mount(srvfd, -1, "/mnt/wsys", 0, spec) == -1){
+	if(mount(srvfd, -1, "/mnt/wsys", 0, spec, 'M') == -1){
 		fprint(2, "statusbar: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
 		return -1;
 	}

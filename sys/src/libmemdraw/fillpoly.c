@@ -36,18 +36,6 @@ static	void	xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Mem
 static	void	yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int);
 
 static void
-fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
-{
-	int srcval;
-
-	USED(src);
-	srcval = p.x;
-	p.x = left;
-	p.y = y;
-	memset(byteaddr(dst, p), srcval, right-left);
-}
-
-static void
 fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p, int op)
 {
 	Rectangle r;
@@ -177,20 +165,6 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 	void	(*fill)(Memimage*, int, int, int, Memimage*, Point, int);
 
 	fill = fillline;
-/*
- * This can only work on 8-bit destinations, since fillcolor is
- * just using memset on sp.x.
- *
- * I'd rather not even enable it then, since then if the general
- * code is too slow, someone will come up with a better improvement
- * than this sleazy hack.	-rsc
- *
-	if(clipped && (src->flags&Frepl) && src->depth==8 && Dx(src->r)==1 && Dy(src->r)==1) {
-		fill = fillcolor;
-		sp.x = membyteval(src);
-	}
- *
- */
 	USED(clipped);
 
 
@@ -480,7 +454,8 @@ zsort(Seg **seg, Seg **ep)
 static int
 ycompare(const void *a, const void *b)
 {
-	Seg **s0, **s1;
+	const Seg * const *s0;
+	const Seg * const *s1;
 	int32_t y0, y1;
 
 	s0 = a;
@@ -498,7 +473,8 @@ ycompare(const void *a, const void *b)
 static int
 xcompare(const void *a, const void *b)
 {
-	Seg **s0, **s1;
+	const Seg * const *s0;
+	const Seg * const *s1;
 	int32_t x0, x1;
 
 	s0 = a;
@@ -516,7 +492,8 @@ xcompare(const void *a, const void *b)
 static int
 zcompare(const void *a, const void *b)
 {
-	Seg **s0, **s1;
+	const Seg * const *s0;
+	const Seg * const *s1;
 	int32_t z0, z1;
 
 	s0 = a;
