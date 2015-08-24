@@ -11,6 +11,8 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
+int readline(char* bud, int len);
+
 /*
 int
 plumb(char *dir, char *dest, int *efd, char *here)
@@ -90,12 +92,15 @@ readfile(char *name, char *buf, int len)
 
 	buf[0] = 0;
 	f = open(name, OREAD);
-	if(f < 0)
+	if(f < 0){
+		fprint(2, "readfile: cannot open %s (%r)\n", name);
 		return -1;
+	}
 	n = read(f, buf, len-1);
 	if(n >= 0)
 		buf[n] = 0;
 	close(f);
+	print("readfile: success reading %s\n", name);
 	return 0;
 }
 
@@ -172,17 +177,17 @@ outin(char *prompt, char *def, int len)
 	if(cpuflag){
 		notify(catchint);
 		alarm(15*1000);
-	}
+	} 
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
-	n = read(0, buf, len);
+	n = readline(buf, sizeof buf);
+
 	if(cpuflag){
 		alarm(0);
 		notify(0);
 	}
 
 	if(n < 0){
-		print("\n");
 		return 1;
 	}
 	if(n > 1){

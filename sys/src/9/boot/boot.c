@@ -15,7 +15,6 @@
 
 char	cputype[64];
 char	sys[2*64];
-char 	reply[256];
 int	printcol;
 int	mflag;
 int	fflag;
@@ -44,9 +43,6 @@ boot(int argc, char *argv[])
 	fmtinstall('r', errfmt);
 
 	bind("#c", "/dev", MBEFORE);
-	open("/dev/cons", OREAD);
-	open("/dev/cons", OWRITE);
-	open("/dev/cons", OWRITE);
 	/*
 	 * init will reinitialize its namespace.
 	 * #ec gets us plan9.ini settings (*var variables).
@@ -54,6 +50,8 @@ boot(int argc, char *argv[])
 	bind("#ec", "/env", MREPL);
 	bind("#e", "/env", MBEFORE|MCREATE);
 	bind("#s", "/srv", MREPL|MCREATE);
+	bind("#p", "/proc", MREPL|MCREATE);
+	print("Hello, I am Harvey :-)\n");
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)
@@ -72,13 +70,13 @@ boot(int argc, char *argv[])
 		fflag = 1;
 		break;
 	}ARGEND
-
 	readfile("#e/cputype", cputype, sizeof(cputype));
 
 	/*
 	 *  set up usb keyboard, mouse and disk, if any.
 	 */
 	usbinit();
+	print("usbinit done\n");
 
 	/*
 	 *  pick a method and initialize it
@@ -136,7 +134,7 @@ print("\n");
 		if(ai == nil)
 			print("authentication failed (%r), trying mount anyways\n");
 	}
-	if(mount(fd, afd, "/root", MREPL|MCREATE, rp) < 0)
+	if(mount(fd, afd, "/root", MREPL|MCREATE, rp, 'M') < 0)
 		fatal("mount /");
 	rsp = rp;
 	rp = getenv("rootdir");
@@ -169,7 +167,7 @@ print("\n");
 
 	cmd = getenv("init");
 	if(cmd == nil){
-		sprint(cmdbuf, "/%s/init -%s%s", cputype,
+		sprint(cmdbuf, "/%s/bin/init -%s%s", cputype,
 			cpuflag ? "c" : "t", mflag ? "m" : "");
 		cmd = cmdbuf;
 	}
@@ -219,13 +217,15 @@ static Method*
 rootserver(char *arg)
 {
 	char prompt[256];
+	int rc;
 	Method *mp;
 	char *cp;
+	char reply[256];
 	int n;
 
 	/* look for required reply */
-	readfile("#e/nobootprompt", reply, sizeof(reply));
-	if(reply[0]){
+	rc = readfile("#e/nobootprompt", reply, sizeof(reply));
+	if(rc == 0 && reply[0]){
 		mp = findmethod(reply);
 		if(mp)
 			goto HaveMethod;

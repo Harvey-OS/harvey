@@ -73,7 +73,7 @@
 		},
 		"Ramfiles": {
 			"bind": "/amd64/bin/bind",
-			"boot": "boot.fs",
+			"boot": "/sys/src/9/boot/bootk8cpu.elf.out",
 			"cat": "/amd64/bin/cat",
 			"date": "/amd64/bin/date",
 			"echo": "/amd64/bin/echo",
