@@ -1,9 +1,0 @@
-</$objtype/mkfile
-
-#	ptyfs\	# for X11, not going to bother
-TARG=\
-	stty\
-	tar\
-
-BIN=/$objtype/bin/ape
-</sys/src/cmd/mkmany
