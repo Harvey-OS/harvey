@@ -1,17 +1,6 @@
 {
-	"Cflags": [
-		"-g",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-O0",
-		"-static",
-		"-fplan9-extensions",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-mcmodel=small"
+	"Include": [
+		"/amd64/include/cflags.json"
 	],
 	"Libs": [
 		"libboot.a",
@@ -25,7 +14,8 @@
 		"-static"
 	],
 	"Post": [
-		"rm *.o *.a"
+		"rm *.o *.a",
+		"../../../../util/data2c ramfs_bootk8cpu_ ../boot/bootk8cpu.elf.out >> ../k10/k8cpu.c"
 	],
 	"Pre": [
 		"[ ! -f bootk8cpu.elf.out ] || rm *.elf.out",

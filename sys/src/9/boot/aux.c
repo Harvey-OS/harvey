@@ -90,8 +90,10 @@ readfile(char *name, char *buf, int len)
 
 	buf[0] = 0;
 	f = open(name, OREAD);
-	if(f < 0)
+	if(f < 0){
+		fprint(2, "readfile: cannot open %s (%r)\n", name);
 		return -1;
+	}
 	n = read(f, buf, len-1);
 	if(n >= 0)
 		buf[n] = 0;
@@ -182,7 +184,6 @@ outin(char *prompt, char *def, int len)
 	}
 
 	if(n < 0){
-		print("\n");
 		return 1;
 	}
 	if(n > 1){

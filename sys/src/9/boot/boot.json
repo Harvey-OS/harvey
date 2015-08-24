@@ -13,12 +13,12 @@
 		"-fno-builtin",
 		"-mcmodel=small"
 	],
+	"Include": [
+		"/sys/src/lib.json"
+	],
 	"Install": "/sys/src/9/boot",
 	"Library": "libboot.a",
-	"Name": "Libboot",
-	"Oflags": [
-		"-static"
-	],
+	"Name": "libboot",
 	"SourceFiles": [
 		"aux.c",
 		"bootauth.c",
@@ -27,6 +27,7 @@
 		"bootip.c",
 		"embed.c",
 		"local.c",
+		"hack.c",
 		"paq.c",
 		"sac.c",
 		"settime.c"
