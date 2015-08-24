@@ -47,6 +47,7 @@
 	],
 	"Projects": [
 		"clean.json",
+		"../boot/bootconf.json",
 		"inith.json"
 	],
 	"SourceFiles": [

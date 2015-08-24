@@ -303,175 +303,44 @@ enum {
 	Height		= 25,
 };
 
-int cgapos;
-uint8_t CGA[16384];
-
-static void
-cgaputc(int c)
+int
+readline(char* buf, int buflen)
 {
-	int i;
-	uint8_t *cga, *p;
-
-	cga = CGA;
-
-	cga[cgapos] = ' ';
-	cga[cgapos+1] = Attr;
-
-	switch(c){
-	case '\r':
-		break;
-	case '\n':
-		cgapos = cgapos/Width;
-		cgapos = (cgapos+1)*Width;
-		break;
-	case '\t':
-		i = 8 - ((cgapos/2)&7);
-		while(i-- > 0)
-			cgaputc(' ');
-		break;
-	case '\b':
-		if(cgapos >= 2)
-			cgapos -= 2;
-		break;
-	default:
-		cga[cgapos++] = c;
-		cga[cgapos++] = Attr;
-		break;
-	}
-
-	if(cgapos >= (Width*Height)){
-		memmove(cga, &cga[Width], Width*(Height-1));
-		p = &cga[Width*(Height-1)];
-		for(i = 0; i < Width/2; i++){
-			*p++ = ' ';
-			*p++ = Attr;
-		}
-
-		cgapos -= Width;
-	}
-
-	cga[cgapos] = ' ';
-	cga[cgapos+1] = Cursor;
-}
-
-static void
-cgawrite(uint8_t *buf, int len)
-{
-	int i;
-	for(i = 0; i < len; i++)
-		cgaputc(buf[i]);
-}
-
-static void
-cgaflush(int fd)
-{
-	pwrite(fd, CGA, Width*Height, 0);
-}
-
-void
-main(int argc, char *argv[])
-{
-	int ps2fd, cgafd;
-	int pid, wpid;
-	int i, n, off, len;
-	int frchld[2];
-	int tochld[2];
+	int ps2fd;
+	int i, n, off, lastoff, len;
+	char* scan;
 	static uint8_t ibuf[32];
-	static char buf[8*sizeof ibuf];
-
-	if(argc < 2){
-		fprint(2, "usage: %s cmd args...\n", argv[0]);
-		exits("usage");
-	}
 
 	if((ps2fd = open("#P/ps2keyb", OREAD)) == -1){
 		errstr(buf, sizeof buf);
 		fprint(2, "open #P/ps2keyb: %s\n", buf);
-		exits("open");
+		return -1;
 	}
 
-	if((cgafd = open("#P/cgamem", OWRITE)) == -1){
-		errstr(buf, sizeof buf);
-		fprint(2, "open #P/cgamem: %s\n", buf);
-		exits("open");
-	}
-
-	pipe(frchld);
-	pipe(tochld);
-	// rfnameg to put command into a new pgid (in case we are init)
-	switch(pid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG)){ 
-	case -1:
-		exits("fork");
-	case 0:
-		close(ps2fd);
-		close(cgafd);
-		close(tochld[0]);
-		close(frchld[1]);
-
-		dup(tochld[1], 0);
-		dup(frchld[0], 1);
-		dup(frchld[0], 2);
-		close(tochld[1]);
-		close(frchld[0]);
-
-		exec(argv[1], argv+1);
-		exits("exec");
-	default:
-		close(tochld[1]);
-		close(frchld[0]);
-		break;
-	}
-
-	switch(wpid = rfork(RFPROC|RFFDG)){
-	case -1:
-		exits("rfork");
-	case 0:
-		off = 0;
-		close(cgafd);
-		close(frchld[1]);
+	off = 0;
+	for (;;){
 		while((len = read(ps2fd, ibuf, sizeof ibuf)) > 0){
+			lastoff = off;
 			for(i = 0; i < len; i++){
-				if((n = keybscan(ibuf[i], buf+off, sizeof buf - off)) == -1){
+				if((n = keybscan(ibuf[i], buf+off, buflen - off)) == -1){
 					fprint(2, "keybscan -1\n");
-					break;
+					return -1;
 				}
 				off += n;
 			}
+			if(buf[off-1] == '\n')
+				goto GotLine;
 			if(off > 0){
-				write(tochld[0], buf, off);
-				off = 0;
+				for(scan = buf + lastoff; scan < buf + off; scan++){
+					write(1, scan, 1);
+					if(*scan == 0x8)
+						off -= 2;
+				}
 			}
 		}
-		postnote(PNPROC, getppid(), "interrupt");
-		exits(nil);
-	default:
-		close(0);
-		close(ps2fd);
-		close(tochld[0]);
-		while((n = read(frchld[1], buf, sizeof buf)) >= 0){
-			Dir *dirp;
-			if(n > 0){
-				cgawrite(buf, n);
-			}
-			if((dirp = dirfstat(frchld[1])) != nil){
-				if(dirp->length == 0)
-					cgaflush(cgafd);
-				free(dirp);
-			} else {
-				cgaflush(cgafd);
-			}
-		}
-		if(len == -1){
-			errstr(buf, sizeof buf);
-			fprint(2, "read %s: %s\n", argv[1], buf);
-			exits("read");
-		}
-		close(cgafd);
-		postnote(PNPROC, wpid, "interrupt");
-		postnote(PNPROC, pid, "interrupt");
-		waitpid();
-		waitpid();
 	}
-
-	exits(nil);
+GotLine:
+	write(1, "\n", 1);
+	buf[off] = '\0';
+	return off - 1;
 }
