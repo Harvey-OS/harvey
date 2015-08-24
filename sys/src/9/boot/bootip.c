@@ -102,6 +102,9 @@ print("ipconfig...");
 	netndb("fs", fsip);
 	if(!isvalidip(fsip))
 		netenv("fs", fsip);
+	// Hack!!
+	if(!isvalidip(fsip))
+		parseip(fsip, "10.0.2.2");
 	while(!isvalidip(fsip)){
 		buf[0] = 0;
 		outin("filesystem IP address", buf, sizeof(buf));
@@ -112,6 +115,9 @@ print("ipconfig...");
 	netndb("auth", auip);
 	if(!isvalidip(auip))
 		netenv("auth", auip);
+	// Hack!!
+	if(!isvalidip(auip))
+		parseip(auip, "10.0.2.2");
 	while(!isvalidip(auip)){
 		buf[0] = 0;
 		outin("authentication server IP address", buf, sizeof(buf));
@@ -142,7 +148,7 @@ connecttcp(void)
 	int fd;
 	char buf[64];
 
-	snprint(buf, sizeof buf, "tcp!%I!564", fsip);
+	snprint(buf, sizeof buf, "tcp!%I!5640", fsip);
 	fd = dial(buf, 0, 0, 0);
 	if (fd < 0)
 		werrstr("dial %s: %r", buf);
