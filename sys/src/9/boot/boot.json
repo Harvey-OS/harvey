@@ -25,6 +25,7 @@
 		"../boot/boot.c",
 		"../boot/bootcache.c",
 		"../boot/bootip.c",
+		"../boot/console.c",
 		"../boot/embed.c",
 		"../boot/local.c",
 		"../boot/hack.c",

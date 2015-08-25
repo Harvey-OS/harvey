@@ -255,6 +255,7 @@ rootserver(char *arg)
 	/* parse replies */
 	do{
 		outin(prompt, reply, sizeof(reply));
+		print("chose %s\n", reply);
 		mp = findmethod(reply);
 	}while(mp == nil);
 
