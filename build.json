@@ -1,0 +1,16 @@
+{
+	"Name": "k8cpu",
+	"Projects": ["/sys/src/9/k10/k8cpu.json"]
+}
+{
+	"Name": "regress",
+	"Projects": ["/sys/src/regress/regress.json"]
+}
+{
+	"Name": "kregress",
+	"Projects": ["/sys/src/9/k10/k8cpu.json", "/sys/src/regress/regress.json"]
+}
+{
+	"Name": "kernels",
+	"Projects": ["/sys/src/9/k10/k8cpu.json"]
+}

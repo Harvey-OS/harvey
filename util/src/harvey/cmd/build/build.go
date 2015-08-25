@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"debug/elf"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,6 +28,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -89,6 +91,7 @@ var (
 	arch = map[string]bool{
 		"amd64": true,
 	}
+	which = flag.String("w", ".*", "Regexp defining which top level JSONs to process")
 )
 
 // fail with message, if err is not nil
@@ -114,13 +117,13 @@ func adjust(s []string) (r []string) {
 }
 
 // send cmd to a shell
-func sh(cmd *exec.Cmd){
+func sh(cmd *exec.Cmd) {
 	shell := exec.Command(tools["sh"])
 	shell.Env = cmd.Env
 
 	commandString := strings.Join(cmd.Args, " ")
 	if shStdin, e := shell.StdinPipe(); e == nil {
-		go func(){
+		go func() {
 			defer shStdin.Close()
 			io.WriteString(shStdin, commandString)
 		}()
@@ -136,7 +139,7 @@ func sh(cmd *exec.Cmd){
 }
 
 // run cmd preserving $LD_PRELOAD tricks
-func withPreloadTricks(cmd *exec.Cmd){
+func withPreloadTricks(cmd *exec.Cmd) {
 	if os.Getenv("LD_PRELOAD") != "" {
 		// we need a shell to enable $LD_PRELOAD tricks,
 		// see https://github.com/Harvey-OS/harvey/issues/8#issuecomment-131235178
@@ -151,59 +154,74 @@ func withPreloadTricks(cmd *exec.Cmd){
 	}
 }
 
-func process(f string, b *build) {
+func process(f, which string, b *build) {
+	r := regexp.MustCompile(which)
 	if b.jsons[f] {
 		return
 	}
 	log.Printf("Processing %v", f)
 	d, err := ioutil.ReadFile(f)
+	dec := json.NewDecoder(strings.NewReader(string(d)))
 	failOn(err)
-	var build build
-	err = json.Unmarshal(d, &build)
-	failOn(err)
-	b.jsons[f] = true
-
-	if len(b.jsons) == 1 {
-		cwd, err := os.Getwd()
-		failOn(err)
-
-		b.path = path.Join(cwd, f)
-		b.Name = build.Name
-		b.Kernel = build.Kernel
-	}
-
-	b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
-	b.Cflags = append(b.Cflags, build.Cflags...)
-	b.Oflags = append(b.Oflags, build.Oflags...)
-	b.Pre = append(b.Pre, build.Pre...)
-	b.Post = append(b.Post, build.Post...)
-	b.Libs = append(b.Libs, adjust(build.Libs)...)
-	b.Projects = append(b.Projects, adjust(build.Projects)...)
-	b.Env = append(b.Env, build.Env...)
-	b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
-	b.Program += build.Program
-	b.Library += build.Library
-	b.Install += build.Install
-
-	// For each source file, assume we create an object file with the last char replaced
-	// with 'o'. We can get smarter later.
-
-	for _, v := range build.SourceFiles {
-		f := path.Base(v)
-		o := f[:len(f)-1] + "o"
-		b.ObjectFiles = append(b.ObjectFiles, o)
-	}
-
-	b.ObjectFiles = append(b.ObjectFiles, adjust(build.ObjectFiles)...)
-
-	includes := adjust(build.Include)
-	for _, v := range includes {
-		if !path.IsAbs(v) {
-			wd := path.Dir(f)
-			v = path.Join(wd, v)
+	var builds []build
+	for {
+		var b build
+		err := dec.Decode(&b)
+		if err == io.EOF {
+			break
 		}
-		process(v, b)
+		failOn(err)
+		builds = append(builds, b)
 	}
+	for _, build := range builds {
+		log.Printf("Do %v", b.Name)
+		if !r.MatchString(build.Name) {
+			continue
+		}
+		b.jsons[f] = true
+
+		if len(b.jsons) == 1 {
+			cwd, err := os.Getwd()
+			failOn(err)
+
+			b.path = path.Join(cwd, f)
+			b.Name = build.Name
+			b.Kernel = build.Kernel
+		}
+
+		b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
+		b.Cflags = append(b.Cflags, build.Cflags...)
+		b.Oflags = append(b.Oflags, build.Oflags...)
+		b.Pre = append(b.Pre, build.Pre...)
+		b.Post = append(b.Post, build.Post...)
+		b.Libs = append(b.Libs, adjust(build.Libs)...)
+		b.Projects = append(b.Projects, adjust(build.Projects)...)
+		b.Env = append(b.Env, build.Env...)
+		b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
+		b.Program += build.Program
+		b.Library += build.Library
+		b.Install += build.Install
+		b.ObjectFiles = append(b.ObjectFiles, adjust(build.ObjectFiles)...)
+
+		includes := adjust(build.Include)
+		for _, v := range includes {
+			if !path.IsAbs(v) {
+				wd := path.Dir(f)
+				v = path.Join(wd, v)
+			}
+			process(v, ".*", b)
+		}
+
+		// For each source file, assume we create an object file with the last char replaced
+		// with 'o'. We can get smarter later.
+
+		for _, v := range build.SourceFiles {
+			f := path.Base(v)
+			o := f[:len(f)-1] + "o"
+			b.ObjectFiles = append(b.ObjectFiles, o)
+		}
+	}
+
 }
 
 func compile(b *build) {
@@ -340,7 +358,7 @@ func projects(b *build) {
 		cwd, err := os.Getwd()
 		failOn(err)
 		os.Chdir(wd)
-		project(f)
+		project(f, ".*")
 		os.Chdir(cwd)
 	}
 }
@@ -369,7 +387,7 @@ func data2c(name string, path string) (string, error) {
 		var file *os.File
 		var err error
 
-		file, err = os.Open(path);
+		file, err = os.Open(path)
 		failOn(err)
 
 		in, err = ioutil.ReadAll(file)
@@ -528,10 +546,10 @@ func buildkernel(b *build) {
 }
 
 // assumes we are in the wd of the project.
-func project(root string) {
+func project(root, which string) {
 	b := &build{}
 	b.jsons = map[string]bool{}
-	process(root, b)
+	process(root, which, b)
 	projects(b)
 	run(b, b.Pre)
 	buildkernel(b)
@@ -559,10 +577,11 @@ func project(root string) {
 func main() {
 	var badsetup bool
 	var err error
+	flag.Parse()
 	cwd, err = os.Getwd()
 	failOn(err)
 	harvey = os.Getenv("HARVEY")
-	
+
 	err = findTools(os.Getenv("TOOLPREFIX"))
 	failOn(err)
 
@@ -582,11 +601,11 @@ func main() {
 	if badsetup {
 		os.Exit(1)
 	}
-	dir := path.Dir(os.Args[1])
-	file := path.Base(os.Args[1])
+	dir := path.Dir(flag.Arg(0))
+	file := path.Base(flag.Arg(0))
 	err = os.Chdir(dir)
 	failOn(err)
-	project(file)
+	project(file, *which)
 }
 
 func findTools(toolprefix string) (err error) {
