@@ -34,19 +34,9 @@ var config = struct {
 	Except: map[string]bool{"cflags.json": true, "9": true, "libauthcmd.json": true, "awk.json": true, "bzip2": true, "klibc.json": true, "kcmds.json": true, "klib.json": true, "kernel.json": true},
 }
 
-func one(n string) error {
-	buf, err := ioutil.ReadFile(n)
-	if err != nil {
-		return err
-	}
+type fixup func(string, map[string]interface{})
 
-	var jsmap map[string]interface{}
-	if err := json.Unmarshal(buf, &jsmap); err != nil {
-		return err
-	}
-	if config.Debug {
-		log.Printf("%v: %v", n, jsmap)
-	}
+func cflags(n string, jsmap map[string]interface{}) {
 	if _, ok := jsmap["Cflags"]; ok {
 		log.Printf("Deleting Cflags from %v", n)
 		delete(jsmap, "Cflags")
@@ -60,6 +50,9 @@ func one(n string) error {
 		}
 		jsmap["Include"] = a
 	}
+}
+
+func removeempty(n string, jsmap map[string]interface{}) {
 	for key, val := range jsmap {
 		switch tval := val.(type) {
 		case map[string]interface{}:
@@ -73,7 +66,31 @@ func one(n string) error {
 			}
 		}
 	}
+}
 
+func checkname(n string, jsmap map[string]interface{}) {
+	if _, ok := jsmap["Name"]; !ok {
+		log.Print("File %v has no \"Name\" key", n)
+	}
+}
+
+func one(n string, f ...fixup) error {
+	buf, err := ioutil.ReadFile(n)
+	if err != nil {
+		return err
+	}
+
+	var jsmap map[string]interface{}
+	if err := json.Unmarshal(buf, &jsmap); err != nil {
+		return err
+	}
+	if config.Debug {
+		log.Printf("%v: %v", n, jsmap)
+	}
+
+	for _, d := range f {
+		d(n, jsmap)
+	}
 	buf, err = json.MarshalIndent(jsmap, "", "\t")
 	if err != nil {
 		return err
@@ -119,8 +136,9 @@ func main() {
 			if len(n) < 5 || n[len(n)-5:] != ".json" {
 				return nil
 			}
+			todo := []fixup{cflags, removeempty, checkname}
 			if config.Except[n] {
-				return nil
+				todo = todo[1:]
 			}
 			log.Printf("process %s", name)
 			err = one(name)
