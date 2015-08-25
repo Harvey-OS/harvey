@@ -124,6 +124,18 @@ it is placed in the first element of the union that has been bound or mounted wi
 flag.
 If that directory does not have write permission, the create fails.
 .TP
+.B -d '#X'
+(Only in
+.IR mount .)
+By default
+.IR mount
+connect a 9P server using the
+.IR mnt (3)
+device.
+With this option, the mount device
+.IR #X
+is used instead.
+.TP
 .B -C
 (Only in
 .IR mount .)
