@@ -1,4 +1,5 @@
 {
+	"Name": "k8cpu",
 	"Env": [
 		"CONF=k8cpu"
 	],
