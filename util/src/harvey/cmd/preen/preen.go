@@ -141,7 +141,7 @@ func main() {
 				todo = todo[1:]
 			}
 			log.Printf("process %s", name)
-			err = one(name)
+			err = one(name, todo...)
 			if err != nil {
 				log.Printf("%s: %s\n", name, err)
 				return err
