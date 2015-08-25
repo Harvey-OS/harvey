@@ -1,4 +1,5 @@
 {
+	"Name" : "inith",
 	"Cflags": [
 		"-g",
 		"-Wall",
