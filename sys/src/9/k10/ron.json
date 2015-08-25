@@ -1,4 +1,5 @@
 {
+	"Name" : "ron",
 	"Env": [
 		"CONF=somekindakernel"
 	],
