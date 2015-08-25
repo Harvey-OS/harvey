@@ -1,30 +1,6 @@
 {
-	"Cflags": [
-		"-g",
-		"-Wall",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas",
-		"-Wuninitialized",
-		"-Wmaybe-uninitialized",
-		"-O0",
-		"-static",
-		"-fplan9-extensions",
-		"-mno-red-zone",
-		"-ffreestanding",
-		"-fno-builtin",
-		"-DKERNDATE=1433623937",
-		"-g",
-		"-fvar-tracking",
-		"-fvar-tracking-assignments",
-		"-Wall",
-		"-W",
-		"-Wno-sign-compare",
-		"-Wno-missing-field-initializers",
-		"-Wno-unused-parameter",
-		"-Wno-missing-braces",
-		"-Wno-parentheses",
-		"-Wno-unknown-pragmas"
+	"Include": [
+		"/amd64/include/cflags.json"
 	],
 	"Libs": [
 		"libboot.a",

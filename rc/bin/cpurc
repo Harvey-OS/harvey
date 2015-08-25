@@ -59,6 +59,7 @@ rm -f '#¤/caphash'
 if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
 	aux/listen -q tcp
 
+# TODO: Removed until awk works
 #if(! ps|grep -s timesync) {
 #	aux/timesync -n pool.ntp.org
 #	if (test -e '#r/rtc') @ {
