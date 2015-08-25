@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-int keybscan(uint8_t code, char *out, int len);
+int readline(char* bud, int len);
 
 /*
 int
@@ -170,43 +170,18 @@ outin(char *prompt, char *def, int len)
 {
 	int n, off, i;
 	char buf[256];
-	int kbdfd;
-	int timeout;
 	static uint8_t ibuf[32];
 
 	if(len >= sizeof buf)
 		len = sizeof(buf)-1;
-
-	if ((kbdfd = open("#P/ps2keyb", OREAD)) == -1){
-		fprint(2, "keyboard open failed %r");
-		return 1;
-	} 
 
 	if(cpuflag){
 		notify(catchint);
 		alarm(15*1000);
 	} 
 	print("%s[%s]: ", prompt, *def ? def : "no default");
-	off = 0;
 	memset(buf, 0, sizeof buf);
-	timeout = time(nil);
-	while(time(nil) < timeout + 1500){
-		while((len = read(kbdfd, ibuf, sizeof ibuf)) > 0){
-			for(i = 0; i < len; i++){
-				if((n = keybscan(ibuf[i], buf+off, sizeof buf - off)) == -1){
-					fprint(2, "keybscan -1\n");
-					break;
-				}
-				off += n;
-			}
-			if (off > 0  && buf[off - 1] == '\n'){
-				goto GotLine;
-			}
-			timeout = time(nil);
-		}
-	}
-GotLine:
-	close(kbdfd);
+	off = readline(buf, sizeof buf);
 
 	if(cpuflag){
 		alarm(0);
