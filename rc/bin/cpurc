@@ -17,7 +17,7 @@ if(test -e /rc/bin/cpurc.local)
 	. /rc/bin/cpurc.local
 
 if (~ $#sysname 0 || ~ $sysname '') {
-	sysname = helix			# default
+	sysname = harvey			# default
 	echo -n $sysname >/dev/sysname
 }
 prompt=($sysname^'# ' '	')
@@ -58,17 +58,15 @@ rm -f '#¤/caphash'
 # start listeners if it hasn't already been done (dicey check)
 if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
 	aux/listen -q tcp
-# we don't use IL, maybe you do
-if(! netstat -n | grep -v 17008 | grep -s il.*Listen)
-	aux/listen -q il
 
-if(! ps|grep -s timesync) {
-	aux/timesync -n pool.ntp.org
-	if (test -e '#r/rtc') @ {
-		sleep 10			# let timesync correct the time
-		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
-	} &
-}
+# TODO: Removed until awk works
+#if(! ps|grep -s timesync) {
+#	aux/timesync -n pool.ntp.org
+#	if (test -e '#r/rtc') @ {
+#		sleep 10			# let timesync correct the time
+#		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
+#	} &
+#}
 
 # cpu-specific late startup
 if(test -e /cfg/$sysname/cpustart)
@@ -76,7 +74,12 @@ if(test -e /cfg/$sysname/cpustart)
 
 # mode of /proc/*/ctl is inherited across rfork, and sets modes on
 # other /proc files, such as note, so let listen be killed.
-dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
+#dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
+
+# From bootfs
+/boot/listen1 -t -v tcp!*!1522  /boot/tty /boot/rc -m /boot/rcmain -i &
+/boot/tty -f'#t/eia0' /boot/rc -m/boot/rcmain -i &
+exec /boot/console /boot/tty /boot/rc -m/boot/rcmain -i
 
 # echo `{date} $sysname >>/sys/log/boot
 exit ''
