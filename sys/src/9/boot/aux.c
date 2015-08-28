@@ -100,7 +100,6 @@ readfile(char *name, char *buf, int len)
 	if(n >= 0)
 		buf[n] = 0;
 	close(f);
-	print("readfile: success reading %s\n", name);
 	return 0;
 }
 
