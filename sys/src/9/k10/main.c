@@ -111,7 +111,9 @@ static void
 options(int argc, char* argv[])
 {
 	char *p;
+	char *env[2];
 	int n, o;
+	char envcopy[256];
 
 	/*
 	 * Process flags.
@@ -120,30 +122,49 @@ options(int argc, char* argv[])
 	 * (no space between flag and level).
 	 * '--' ends flag processing.
 	 */
-	while(--argc > 0 && (*++argv)[0] == '-' && (*argv)[1] != '-'){
-		while(o = *++argv[0]){
-			if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
-				continue;
-			n = strtol(argv[0]+1, &p, 0);
-			if(p == argv[0]+1 || n < 1 || n > 127)
-				n = 1;
-			argv[0] = p-1;
-			dbgflg[o] = n;
+	while(--argc > 0){
+		char* next = *++argv;
+		if(next[0] =='-' && next[1] != '-'){
+			while(o = *++argv[0]){
+				if(!(o >= 'A' && o <= 'Z') && !(o >= 'a' && o <= 'z'))
+					continue;
+				n = strtol(argv[0]+1, &p, 0);
+				if(p == argv[0]+1 || n < 1 || n > 127)
+					n = 1;
+				argv[0] = p-1;
+				dbgflg[o] = n;
+			}
+		}else{
+			strncpy(envcopy, next, sizeof envcopy);
+			gettokens(envcopy, env, 2, "=");
+			if(strcmp(env[0], "maxcores") == 0){
+				maxcores = strtol(env[1], 0, 0);
+			}
+			if(strcmp(env[0], "numtcs") == 0){
+				numtcs = strtol(env[1], 0, 0);
+			}
 		}
 	}
 	vflag = dbgflg['v'];
-	if(argc > 0){
-		maxcores = strtol(argv[0], 0, 0);
-		argc--;
-		argv++;
-	}
-	if(argc > 0){
-		numtcs = strtol(argv[0], 0, 0);
-		//argc--;
-		//argv++;
-	}
 	// hack.
 	nosmp = dbgflg['n'];
+}
+
+void
+loadenv(int argc, char* argv[])
+{
+	char *env[2];
+
+	/*
+	 * Process command line env options
+	 */
+	while(--argc > 0){
+		char* next = *++argv;
+		if(next[0] !='-'){
+			gettokens(next, env, 2, "=");
+			ksetenv(env[0], env[1], 0);
+		}
+	}
 }
 
 void
@@ -654,6 +675,7 @@ init0(void)
 
 	if(!waserror()){
 		snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
+		loadenv(oargc, oargv);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", cputype, 0);
 		if(cpuserver)
