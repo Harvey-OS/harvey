@@ -400,7 +400,9 @@ ksetenv(char *ename, char *eval, int conf)
 	char buf[2*KNAMELEN];
 
 	snprint(buf, sizeof(buf), "#e%s/%s", conf?"c":"", ename);
+	print("%s\n", buf);
 	c = namec(buf, Acreate, OWRITE, 0600);
+	print("c=%d\n", c);
 	c->dev->write(c, eval, strlen(eval), 0);
 	cclose(c);
 }
