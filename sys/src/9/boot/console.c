@@ -340,6 +340,7 @@ readline(char* buf, int buflen)
 		}
 	}
 GotLine:
+	close(ps2fd);
 	write(1, "\n", 1);
 	buf[off] = '\0';
 	return off - 1;
