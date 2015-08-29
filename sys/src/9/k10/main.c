@@ -161,8 +161,11 @@ loadenv(int argc, char* argv[])
 	while(--argc > 0){
 		char* next = *++argv;
 		if(next[0] !='-'){
-			gettokens(next, env, 2, "=");
-			ksetenv(env[0], env[1], 0);
+			if (gettokens(next, env, 2, "=")  == 2){;
+				ksetenv(env[0], env[1], 0);
+			}else{
+				print("Ignoring parameter with no value: %s\n", env[0]);
+			}
 		}
 	}
 }
