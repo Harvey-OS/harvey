@@ -175,6 +175,7 @@ configloopback(void)
 	if(print1(fd, "bind loopback /dev/null") < 0
 	|| print1(fd, "add 127.0.0.1 255.255.255.255") < 0)
 		fatal("write /net/ipifc/clone for loopback");
+	close(fd);
 }
 
 int
