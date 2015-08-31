@@ -38,7 +38,7 @@ extern	uint32_t	start;
 
 int vers;		/* incremented each clone/attach */
 
-static volatile int stop;
+static int stop;
 
 /* holds data to be returned via read of /net/dns, perhaps multiple reads */
 struct Mfile
@@ -116,8 +116,10 @@ void	setext(char*, int, char*);
 
 static char *lookupqueryold(Job*, Mfile*, Request*, char*, char*, int,
 			      int);
+#ifdef notused
 static char *lookupquerynew(Job*, Mfile*, Request*, char*, char*, int,
 			      int);
+#endif
 static char *respond(Job*, Mfile*, RR*, char*, int, int);
 
 void
@@ -454,11 +456,11 @@ flushjob(int tag)
 void
 io(void)
 {
-	volatile int32_t n;
-	volatile uint8_t mdata[IOHDRSZ + Maxfdata];
-	Job *volatile job;
-	Mfile *volatile mf;
-	volatile Request req;
+	int32_t n;
+	uint8_t mdata[IOHDRSZ + Maxfdata];
+	Job *job;
+	Mfile *mf;
+	Request req;
 
 	memset(&req, 0, sizeof req);
 	/*

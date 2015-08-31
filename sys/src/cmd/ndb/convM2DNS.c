@@ -35,7 +35,7 @@ errneg(RR *rp, Scan *sp, int actual)
 	return 0;
 }
 
-static int
+static int64_t
 errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 {
 	char *p, *ep;

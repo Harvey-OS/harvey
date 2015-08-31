@@ -16,7 +16,7 @@
 
 /* get a notification from another system of a changed zone */
 void
-dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
+dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *req)
 {
 	RR *tp;
 	Area *a;
